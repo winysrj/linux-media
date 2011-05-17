@@ -1,74 +1,171 @@
 Return-path: <mchehab@pedra>
-Received: from mail-ew0-f46.google.com ([209.85.215.46]:41728 "EHLO
-	mail-ew0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750805Ab1EBT3q (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 2 May 2011 15:29:46 -0400
-Received: by ewy4 with SMTP id 4so1850909ewy.19
-        for <linux-media@vger.kernel.org>; Mon, 02 May 2011 12:29:45 -0700 (PDT)
+Received: from smtp.nokia.com ([147.243.128.26]:56154 "EHLO mgw-da02.nokia.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751720Ab1EQUbi (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 17 May 2011 16:31:38 -0400
+Message-ID: <4DD2DBDC.6060303@maxwell.research.nokia.com>
+Date: Tue, 17 May 2011 23:34:36 +0300
+From: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
 MIME-Version: 1.0
-In-Reply-To: <201105022111.40604.hverkuil@xs4all.nl>
-References: <E1QGwlS-0006ys-15@www.linuxtv.org>
-	<201105022111.40604.hverkuil@xs4all.nl>
-Date: Mon, 2 May 2011 15:21:52 -0400
-Message-ID: <BANLkTi=3n++7w-UOE6HZ8p6P9S6Oa9y9kQ@mail.gmail.com>
-Subject: Re: [git:v4l-dvb/for_v2.6.40] [media] cx18: mmap() support for raw
- YUV video capture
-From: Devin Heitmueller <dheitmueller@kernellabs.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	linux-media@vger.kernel.org,
-	Simon Farnsworth <simon.farnsworth@onelan.co.uk>,
-	Steven Toth <stoth@kernellabs.com>,
-	Andy Walls <awalls@md.metrocast.net>
+To: Sylwester Nawrocki <snjw23@gmail.com>
+CC: Hans Verkuil <hverkuil@xs4all.nl>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	Nayden Kanchev <nkanchev@mm-sol.com>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	David Cohen <dacohen@gmail.com>,
+	Kim HeungJun <riverful@gmail.com>, andrew.b.adams@gmail.com,
+	Sung Hee Park <shpark7@stanford.edu>
+Subject: Re: [RFC v4] V4L2 API for flash devices
+References: <4DC2F131.6090407@maxwell.research.nokia.com> <201105071446.56843.hverkuil@xs4all.nl> <4DC5849A.9050806@gmail.com> <4DC7151E.8070601@maxwell.research.nokia.com> <4DC9A2D0.2060709@gmail.com>
+In-Reply-To: <4DC9A2D0.2060709@gmail.com>
 Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Mon, May 2, 2011 at 3:11 PM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
-> NACK.
->
-> For two reasons: first of all it is not signed off by Andy Walls, the cx18
-> maintainer. I know he has had other things on his plate recently which is
-> probably why he hasn't had the chance to review this.
->
-> Secondly, while doing a quick scan myself I noticed that this code does a
-> conversion from UYVY format to YUYV *in the driver*. Format conversion is
-> not allowed in the kernel, we have libv4lconvert for that. So at the minimum
-> this conversion code must be removed first.
+Sylwester Nawrocki wrote:
+> Hi Sakari,
 
-Hi Hans,
+Hi Sylwester,
 
-Cutting the code that does UYVY to YUYV shouldn't be a problem, since
-there are other devices which only support UYVY and thus applications
-do support the format (the HVR-950q for one).  Should just need to
-remove the offending code block and adjust the advertised formats
-list.
+> On 05/09/2011 12:11 AM, Sakari Ailus wrote:
+>> Sylwester Nawrocki wrote:
+>>> On 05/07/2011 02:46 PM, Hans Verkuil wrote:
+>>>> On Thursday, May 05, 2011 20:49:21 Sakari Ailus wrote:
+>>>>> Hi,
+>>>>>
+>>>>> This is a fourth proposal for an interface for controlling flash devices
+>>>>> on the V4L2/v4l2_subdev APIs.
+>>>>>
+>>>>> I want to thank everyone who have participated to the development of the
+>>>>> flash interface.
+>>>>>
+>>>>> Comments and questions are very, very welcome as always.
+>>>>>
+>>>>>
+>>>>> Changes since v3 [12]
+>>>>> =====================
+>>>>>
+>>>>> - V4L2_CID_FLASH_STROBE changed to button control,
+>>>>> V4L2_CID_FLASH_STROBE_STOP button control added,
+>>>>> V4L2_CID_FLASH_STROBE_STATUS boolean control added.
+>>>>>
+>>>>> - No reason to say xenon flashes can't use V4L2_CID_FLASH_STROBE.
+>>>>>
+>>>>> - V4L2_CID_FLASH_STROBE_WHENCE changed to V4L2_CID_FLASH_STROBE_MODE.
+>>>>>
+>>>>> - V4L2_CID_TORCH_INTENSITY renamed to V4L2_CID_FLASH_TORCH_INTENSITY and
+>>>>> V4L2_CID_INDICATOR_INTENSITY renamed to
+>>>>> V4L2_CID_FLASH_INDICATOR_INTENSITY.
+>>>>>
+>>>>> - Moved V4L2_CID_FLASH_EXTERNAL_STROBE_MODE under "Possible future
+>>>>> extensions".
+>>>>>
+>>>
+>>> [snip]
+>>>
+>>>>>
+>>>>> 3. Sensor metadata on frames
+>>>>> ----------------------------
+>>>>>
+>>>>> It'd be useful to be able to read back sensor metadata. If the flash is
+>>>>> strobed (on sensor hardware) while streaming, it's difficult to know
+>>>>> otherwise which frame in the stream has been exposed with flash.
+>>>>
+>>>> I wonder if it would make sense to have a V4L2_BUF_FLAG_FLASH buffer
+>>>> flag?
+>>>> That way userspace can tell if that particular frame was taken with
+>>>> flash.
+>>>
+>>> This looks more as a workaround for the problem rather than a good long
+>>> term solution. It might be tempting to use the buffer flags which seem
+>>> to be be more or less intended for buffer control.
+>>> I'd like much more to see a buffer flags to be used to indicate whether
+>>> an additional plane of (meta)data is carried by the buffer.
+>>> There seem to be many more parameters, than a single flag indicating
+>>> whether the frame has been exposed with flash or not, needed to be
+>>> carried over to user space.
+>>> But then we might need some standard format of the meta data, perhaps
+>>> control id/value pairs and possibly a per plane configurable memory
+>>> type.
+>>
+>> There are multiple possible approaches for this.
+>>
+>> For sensors where metadata is register-value pairs, that is, essentially
+>> V4L2 control values, I think this should be parsed by the sensor driver.
+>> The ISP (camera bridge) driver does receive the data so it'd have to
+>> "ask for help" from the sensor driver.
+> 
+> I am inclined to let the ISP drivers parse the data but on the other hand
+> it might be difficult to access same DMA buffers in kernel _and_ user space.
 
-That said, Andy hasn't provided any feedback onlist at all, which is a
-bit disconcerting (and probably calls for "why won't Andy comment?"
-instead of an arbitrary NACK).
+This is just about mapping the buffer to both kernel and user spaces. If
+the ISP has an iommu the kernel mapping might already exist if it comes
+from vmalloc().
 
-I did speak to Andy about this patch series several months ago, and he
-was generally not in favor of it because he was planning on converting
-to videobuf2.  While I agree this would be good in the long term, this
-patch provides a great deal of value in the meantime, and I've always
-been a fan of the notion that "perfect is the enemy of good".  Who
-knows when we'll actually see a videobuf2 conversion, and this patch
-doesn't really prevent any of that from happening.
+>> As discussed previously, using V4L2 control events shouldn't probably be
+>> the way to go, but I think it's obvious that this is _somehow_ bound to
+>> controls, at least control ids.
+>>
+>>> Also as Sakari indicated some sensors adopt custom meta data formats
+>>> so maybe we need to introduce standard fourcc like IDs for meta data
+>>> formats? I am not sure whether it is possible to create common
+>>> description of an image meta data that fits all H/W.
+>>
+>> I'm not sure either since I know of only one example. That example, i.e.
+>> register-value pairs, should be something that I'd assume _some_ other
+>> hardware uses as well, but there could exist also hardware which
+>> doesn't. This solution might not work on that hardware.
+> 
+> Of course it's hard to find a silver bullet for a hardware we do not know ;)
+> 
+>>
+>> If there is metadata which does not associate to V4L2 controls (or
+>> ioctls), either existing or not yet existing, then that probably should
+>> be parsed by the driver. On the other hand, I can't think of metadata
+>> that wouldn't fall under this right now. :-)
+> 
+> Some metadata are arrays of length specific to a given attribute,
+> I wonder how to support that with v4l2 controls ?
 
-I would hate to see yet another situation where a solution stays
-out-of-tree for years because of some totally awesome better approach
-which might possibly get integrated at some unknown point in the
-future.
+Is the metadata something which really isn't associated to any V4L2
+control? Are we now talking about a sensor which is more complex than a
+regular raw bayer sensor?
 
-In other words, let's get this merged in (sans the UYVY/YUYV
-conversion), and if/when Andy eventually does a videobuf2 conversion,
-then we will all rejoice.  Actually, nobody except us driver
-developers will rejoice since it's an internal architecture change
-which provides no user-visible value.
+>> Do you know more examples of sensor produced metadata than SMIA++?
+> 
+> The only metadata I've had a bit experience with was regular EXIF tags
+> which could be retrieved from ISP through I2C bus.
 
-Devin
+That obviously won't map to V4L2 controls.
+
+This should very likely be just passed to user space as-is as
+different... plane?
+
+In some cases it's time critical to pass data to user space that
+otherwise could be associated with a video buffer. I wonder if this case
+is time critical or not.
+
+> These were mostly fixed point arithmetic numbers in [32-bit numerator/
+> 32-bit denominator] form carrying exposure time, shutter speed, aperture,
+> brightness, flash, etc. information. The tags could be read from ISP after
+> it buffered a frame in its memory and processed it.
+> In case of a JPEG image format the tags can be embedded into the main
+> image file. But the image processors not always supported that so we used
+> to have an ioctl for the purpose of retrieving the metadata in user space.
+> In some cases it is desired to read data directly from the driver rather
+> than parsing a relatively large buffer.
+> It would be good to have a uniform interface for passing such data to
+> applications. I think in that particular use case a control id/value pair
+> sequences would do.
+
+Do you think this is "control id" or non-control id, and whether the
+value is the same data type than the V4L2 control would be? That would
+match to what I'm aware of, too.
+
+Regards,
 
 -- 
-Devin J. Heitmueller - Kernel Labs
-http://www.kernellabs.com
+Sakari Ailus
+sakari.ailus@maxwell.research.nokia.com
