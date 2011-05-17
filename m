@@ -1,30 +1,55 @@
 Return-path: <mchehab@pedra>
-Received: from moutng.kundenserver.de ([212.227.126.171]:62392 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932648Ab1EROLZ (ORCPT
+Received: from mail-ey0-f174.google.com ([209.85.215.174]:35914 "EHLO
+	mail-ey0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754228Ab1EQNae (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 18 May 2011 10:11:25 -0400
-Received: from localhost (localhost [127.0.0.1])
-	by axis700.grange (Postfix) with ESMTP id 75648189B66
-	for <linux-media@vger.kernel.org>; Wed, 18 May 2011 16:11:23 +0200 (CEST)
-Date: Wed, 18 May 2011 16:11:23 +0200 (CEST)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: [PATCH 0/5] soc-camera for .40: adapt to changed and new mediabus
- pixel codes
-Message-ID: <Pine.LNX.4.64.1105181558440.16324@axis700.grange>
+	Tue, 17 May 2011 09:30:34 -0400
+Received: by eyx24 with SMTP id 24so135671eyx.19
+        for <linux-media@vger.kernel.org>; Tue, 17 May 2011 06:30:32 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+In-Reply-To: <BANLkTi=u26EwJ+yV9Z96J0yPyCGEUcgiiQ@mail.gmail.com>
+References: <BANLkTinp69oB1qCK_ieX8vYm3F+Qd=e2mg@mail.gmail.com>
+	<B2B80B47-7366-41D4-8051-FF82B9198FA8@wilsonet.com>
+	<BANLkTi=u26EwJ+yV9Z96J0yPyCGEUcgiiQ@mail.gmail.com>
+Date: Tue, 17 May 2011 23:30:32 +1000
+Message-ID: <BANLkTimCW_HYBbESXjth4nqr2U34+-mLgQ@mail.gmail.com>
+Subject: Re: imon: spews to dmesg
+From: Vincent McIntyre <vincent.mcintyre@gmail.com>
+To: linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-With the integration of the Media Controller and related drivers, pixel 
-codes chenged their values and new ones have been added. soc-camera uses 
-of those codes have to be adjusted too now.
+I think I have found the source of this.
 
-Thanks
-Guennadi
----
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
-http://www.open-technology.de/
+linux/drivers/media/video/omap3isp/Makefile  contains this:
+ ifdef CONFIG_VIDEO_OMAP3_DEBUG
+ EXTRA_CFLAGS += -DDEBUG
+ endif
+
+but this module is not turned on,nor is the _DEBUG setting for it.
+ % grep OMAP3 media_build/v4l/.config
+ # CONFIG_VIDEO_OMAP3_DEBUG is not set
+ # CONFIG_VIDEO_OMAP3 is not set
+ % grep OMAP3 media_build/v4l/.myconfig
+ CONFIG_VIDEO_OMAP3_DEBUG                     := n
+ CONFIG_VIDEO_OMAP3                           := n
+
+nonetheless:
+ % grep DDEBUG media_build/v4l/.imon.o.cmd
+...
+-fconserve-stack -Idrivers/media/dvb/dvb-core
+-Idrivers/media/dvb/dvb-usb -Idrivers/media/dvb/frontends
+-Idrivers/media/dvb/dvb-core -Idrivers/media/video
+-Idrivers/media/common/tuners -Idrivers/media/dvb/dvb-core
+-Idrivers/media/dvb/frontends -Idrivers/media/video
+-Idrivers/media/common/tuners -Idrivers/media/dvb/dvb-core
+-Idrivers/media/dvb/frontends -DDEBUG -Isound
+-Idrivers/staging/cxd2099/ -g
+...
+
+Commenting out the three lines above in the omap3isp/Makefile gets rid
+of the -DDEBUG
+in the .cmd files. It seems to be the only Makefile that sets -DDEBUG
+in this way.
+Not sure what the real remedy is here.
