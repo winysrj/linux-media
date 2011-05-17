@@ -1,126 +1,237 @@
 Return-path: <mchehab@pedra>
-Received: from mailout-de.gmx.net ([213.165.64.22]:51037 "HELO
-	mailout-de.gmx.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1751212Ab1EDL1S (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 4 May 2011 07:27:18 -0400
-Message-ID: <4DC13823.7000700@gmx.net>
-Date: Wed, 04 May 2011 13:27:31 +0200
-From: Lutz Sammer <johns98@gmx.net>
+Received: from newsmtp5.atmel.com ([204.2.163.5]:16570 "EHLO
+	sjogate2.atmel.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752391Ab1EQGgV convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 17 May 2011 02:36:21 -0400
+Content-class: urn:content-classes:message
 MIME-Version: 1.0
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-CC: linux-media@vger.kernel.org, Manu Abraham <abraham.manu@gmail.com>
-Subject: Re: TT-budget S2-3200 cannot tune on HB13E DVBS2 transponder
-References: <4DA63A66.1070300@gmx.net> <4DC08CB8.3020105@redhat.com>
-In-Reply-To: <4DC08CB8.3020105@redhat.com>
-Content-Type: multipart/mixed;
- boundary="------------000602000707080307040805"
+Content-Type: text/plain;
+	charset="US-ASCII"
+Content-Transfer-Encoding: 8BIT
+Subject: RE: [PATCH] [media] at91: add Atmel Image Sensor Interface (ISI) support
+Date: Tue, 17 May 2011 14:35:59 +0800
+Message-ID: <4C79549CB6F772498162A641D92D532801B80C20@penmb01.corp.atmel.com>
+In-Reply-To: <20110512114530.GE18952@game.jcrosoft.org>
+References: <1305186138-5656-1-git-send-email-josh.wu@atmel.com> <20110512114530.GE18952@game.jcrosoft.org>
+From: "Wu, Josh" <Josh.wu@atmel.com>
+To: "Jean-Christophe PLAGNIOL-VILLARD" <plagnioj@jcrosoft.com>
+Cc: <mchehab@redhat.com>, <linux-media@vger.kernel.org>,
+	"Haring, Lars" <Lars.Haring@atmel.com>,
+	<linux-kernel@vger.kernel.org>,
+	<linux-arm-kernel@lists.infradead.org>, <g.liakhovetski@gmx.de>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-This is a multi-part message in MIME format.
---------------000602000707080307040805
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8bit
+Hi, JC
 
-On 05/04/11 01:16, Mauro Carvalho Chehab wrote:
-> Em 13-04-2011 21:05, Lutz Sammer escreveu:
->>> On 05/04/11 21:07, Steffen Barszus wrote:
->>>> On Tue, 05 Apr 2011 13:00:14 +0200
->>>> "Issa Gorissen" <flop.m@xxxxxxx> wrote:
->>>>
->>>>> Hi,
->>>>>
->>>>> Eutelsat made a recent migration from DVB-S to DVB-S2 (since
->>>>> 31/3/2011) on two transponders on HB13E
->>>>>
->>>>> - HOT BIRD 6 13° Est TP 159 Freq 11,681 Ghz DVB-S2 FEC 3/4 27500
->>>>> Msymb/s 0.2 Pilot off Polar H
->>>>>
->>>>> - HOT BIRD 9 13° Est TP 99 Freq 12,692 Ghz DVB-S2 FEC 3/4 27500
->>>>> Msymb/s 0.2 Pilot off Polar H
->>>>>
->>>>>
->>>>> Before those changes, with my TT S2 3200, I was able to watch TV on
->>>>> those transponders. Now, I cannot even tune on those transponders. I
->>>>> have tried with scan-s2 and w_scan and the latest drivers from git.
->>>>> They both find the transponders but cannot tune onto it.
->>>>>
->>>>> Something noteworthy is that my other card, a DuoFlex S2 can tune
->>>>> fine on those transponders.
->>>>>
->>>>> My question is; can someone try this as well with a TT S2 3200 and
->>>>> post the results ?
->>>> i read something about it lately here (german!): 
->>>> http://www.vdr-portal.de/board16-video-disk-recorder/board85-hdtv-dvb-s2/p977938-stb0899-fec-3-4-tester-gesucht/#post977938
->>>>
->>>> It says in stb0899_drv.c function:
->>>> static void stb0899_set_iterations(struct stb0899_state *state) 
->>>>
->>>> This:
->>>> reg = STB0899_READ_S2REG(STB0899_S2DEMOD, MAX_ITER);
->>>> STB0899_SETFIELD_VAL(MAX_ITERATIONS, reg, iter_scale);
->>>> stb0899_write_s2reg(state, STB0899_S2DEMOD, STB0899_BASE_MAX_ITER, STB0899_OFF0_MAX_ITER, reg);
->>>>
->>>> should be replaced with this:
->>>>
->>>> reg = STB0899_READ_S2REG(STB0899_S2FEC, MAX_ITER);
->>>> STB0899_SETFIELD_VAL(MAX_ITERATIONS, reg, iter_scale);
->>>> stb0899_write_s2reg(state, STB0899_S2FEC, STB0899_BASE_MAX_ITER, STB0899_OFF0_MAX_ITER, reg);
->>>>
->>>> Basically replace STB0899_S2DEMOD with STB0899_S2FEC in this 2 lines
->>>> affected.
->>>>
->>>> Kind Regards 
->>>>
->>>> Steffen
->>> Hi Steffen,
->>>
->>> Unfortunately, it does not help in my case. Thx anyway.
->>
->> Try my locking fix. With above patch I can lock the
->> channels without problem.
-> 
-> Can someone confirm that such patch would fix the issue? If so, please
-> forward it in a way that it could be applied (patch is currently line-wrapped),
-> and submit with some comments/description and your SOB.
-> 
-> As the patch is currently broken, I'm just marking it as rejected at patchwork.
-> 
-> Manu,
-> 
-> Please take a look on this trouble report.
-> 
+>> +struct atmel_isi;
+> do we really this here?
+Not really. I'll remove this.
 
-Sorry, the things are mixed here. My patch (resend and hopefully this
-time not broken) handles only DVB-S transponders.
+>> +
+>> [snip]
+>>  
+>>  if VIDEO_CAPTURE_DRIVERS && VIDEO_V4L2
+>> +config VIDEO_ATMEL_ISI
+>> +	tristate "ATMEL Image Sensor Interface (ISI) support"
+>> +	depends on VIDEO_DEV && SOC_CAMERA
+> depends on AT91 if the drivers is at91 specific or avr32 otherwise
+I'll add that. I think now it is only supported AT91. I am not sure for the AVR32 part
 
-The FEC fix patch fixed locking on 11,681 Ghz, but not on 12,692 Ghz for
-me.  But I have very weak receiption,
+>> +	select VIDEOBUF2_DMA_CONTIG
+>> +	default n
+> it's n by default  please remove
+I'll change that.
 
-Johns
+>> [snip]
+>> +
+>> +/* Frame buffer descriptor
+>> + *  Used by the ISI module as a linked list for the DMA controller.
+>> + */
+>> +struct fbd {
+>> +	/* Physical address of the frame buffer */
+>> +	u32 fb_address;
+>> +#if defined(CONFIG_ARCH_AT91SAM9G45) ||\
+>> +	defined(CONFIG_ARCH_AT91SAM9X5)
+>> +	/* DMA Control Register(only in HISI2) */
+>> +	u32 dma_ctrl;
+>> +#endif
+> no ifdef in the struct
+I'll remove this #if. I think for the non-HISI2 version, like AT91SAM9263, we should define another FBD structure which not includes dma_ctrl.
 
---------------000602000707080307040805
-Content-Type: text/plain;
- name="stb0899_fec_fix.diff"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: attachment;
- filename="stb0899_fec_fix.diff"
+>> +	/* Physical address of the next fbd */
+>> +	u32 next_fbd_address;
+>> +};
+>> +
+>> +#if defined(CONFIG_ARCH_AT91SAM9G45) ||\
+>> +	defined(CONFIG_ARCH_AT91SAM9X5)
+>> +static void set_dma_ctrl(struct fbd *fb_desc, u32 ctrl) {
+>> +	fb_desc->dma_ctrl = ctrl;
+>> +}
+>> +#else
+>> +static void set_dma_ctrl(struct fbd *fb_desc, u32 ctrl) { } #endif
+> no ifdef here also as we want to have multi soc support
+I'll remove this #if also.
 
-diff --git a/drivers/media/dvb/frontends/stb0899_drv.c b/drivers/media/dvb/frontends/stb0899_drv.c
-index 37a222d..7691282 100644
---- a/drivers/media/dvb/frontends/stb0899_drv.c
-+++ b/drivers/media/dvb/frontends/stb0899_drv.c
-@@ -1426,9 +1426,9 @@ static void stb0899_set_iterations(struct stb0899_state *state)
- 	if (iter_scale > config->ldpc_max_iter)
- 		iter_scale = config->ldpc_max_iter;
- 
--	reg = STB0899_READ_S2REG(STB0899_S2DEMOD, MAX_ITER);
-+	reg = STB0899_READ_S2REG(STB0899_S2FEC, MAX_ITER);
- 	STB0899_SETFIELD_VAL(MAX_ITERATIONS, reg, iter_scale);
--	stb0899_write_s2reg(state, STB0899_S2DEMOD, STB0899_BASE_MAX_ITER, STB0899_OFF0_MAX_ITER, reg);
-+	stb0899_write_s2reg(state, STB0899_S2FEC, STB0899_BASE_MAX_ITER, STB0899_OFF0_MAX_ITER, reg);
- }
- 
- static enum dvbfe_search stb0899_search(struct dvb_frontend *fe, struct dvb_frontend_parameters *p)
+>> [snip]
+>> +	/* State of the ISI module in capturing mode */
+>> +	int				state;
+>> +
+>> +	/* Capture/streaming wait queue for waiting for SOF */
+>> +	wait_queue_head_t		capture_wq;
+>> +
+>> +	struct v4l2_device		v4l2_dev;
+>> +
+>> +	struct vb2_alloc_ctx		*alloc_ctx;
+>> +
+>> +	struct clk			*pclk;
+>> +	struct platform_device		*pdev;
+> do you really need to store the pdev?
+I'll remove this. It is no use.
 
---------------000602000707080307040805--
+>> +	unsigned int			irq;
+>> +
+>> +	struct isi_platform_data	*pdata;
+>> +	unsigned long			platform_flags;
+>> +
+>> +	struct list_head		video_buffer_list;
+>> +	struct frame_buffer		*active;
+>> +
+>> +	struct soc_camera_device	*icd;
+>> +	struct soc_camera_host		soc_host;
+>> +};
+>> +
+>> +static int configure_geometry(struct atmel_isi *isi, u32 width,
+>> +			u32 height, enum v4l2_mbus_pixelcode code) {
+>> +	u32 cfg2, cr, ctrl;
+>> +
+>> +	cr = 0;
+> please move this in default
+I'll remove this cr line. Seems it is not needed. cr will be initialized by the following code.
+
+>> [snip]
+>> +
+>> +	size = bytes_per_line * icd->user_height;
+>> +
+>> +	if (0 == *nbuffers)
+> please invert the test
+I'll fix it.
+
+>> +		*nbuffers = MAX_BUFFER_NUMS;
+>> +	if (*nbuffers > MAX_BUFFER_NUMS)
+>> +		*nbuffers = MAX_BUFFER_NUMS;
+>> +
+>> +	while (size * *nbuffers > vid_limit * 1024 * 1024)
+>> +		(*nbuffers)--;
+>> +
+>> +	*nplanes = 1;
+>> +	sizes[0] = size;
+>> +	alloc_ctxs[0] = dev->alloc_ctx;
+>> +
+>> +	dev->sequence = 0;
+>> +	dev->active = NULL;
+>> +
+>> +	dev_dbg(icd->dev.parent, "%s, count=%d, size=%ld\n", __func__,
+>> +		*nbuffers, size);
+>> +
+>> +	return 0;
+>> +}
+>> +
+>> +
+>> +static void start_dma(struct atmel_isi *isi, struct frame_buffer 
+>> +*buffer) {
+>> +	u32 ctrl, cfg1;
+> please add ine ligne here
+OK. I'll change that.
+
+>> +	ctrl = isi_readl(isi, V2_CTRL);
+>> +	cfg1 = isi_readl(isi, V2_CFG1);
+>> +	/* Enable irq: cxfr for the codec path, pxfr for the preview path */
+>> +	isi_writel(isi, V2_INTEN,
+>> +			ISI_BIT(V2_CXFR_DONE) | ISI_BIT(V2_PXFR_DONE));
+>> +
+>> +	/* Enable codec path */
+>> +	ctrl |= ISI_BIT(V2_CDC);
+>> +	/* Check if already in a frame */
+>> +	while (isi_readl(isi, V2_STATUS) & ISI_BIT(V2_CDC))
+>> +		cpu_relax();
+> no timeout?
+I'll add time out code and test it.
+
+>> +
+>> +	/* Write the address of the first frame buffer in the C_ADDR reg
+>> +	* write the address of the first descriptor(link list of buffer)
+>> +	* in the C_DSCR reg, and enable dma channel.
+>> +	*/
+>> +	isi_writel(isi, V2_DMA_C_DSCR, (__pa(&(buffer->fb_desc))));
+>> +	isi_writel(isi, V2_DMA_C_CTRL,
+>> +			ISI_BIT(V2_DMA_FETCH) | ISI_BIT(V2_DMA_DONE));
+>> +	isi_writel(isi, V2_DMA_CHER, ISI_BIT(V2_DMA_C_CH_EN));
+>> +
+>> +	/* Enable linked list */
+>> +	cfg1 |= ISI_BF(V2_FRATE, isi->pdata->frate) | ISI_BIT(V2_DISCR);
+>> +
+>> +	/* Enable ISI module*/
+>> +	ctrl |= ISI_BIT(V2_ENABLE);
+>> +	isi_writel(isi, V2_CTRL, ctrl);
+>> +	isi_writel(isi, V2_CFG1, cfg1);
+>> +}
+>> +
+>> +
+>> +/* abort streaming and wait for last buffer */ static int 
+>> +stop_streaming(struct vb2_queue *vq) {
+>> +	struct soc_camera_device *icd = soc_camera_from_vb2q(vq);
+>> +	struct soc_camera_host *ici = to_soc_camera_host(icd->dev.parent);
+>> +	struct atmel_isi *isi = ici->priv;
+>> +
+>> +	spin_lock_irq(&isi->lock);
+>> +	isi->still_capture = 0;
+>> +	isi->active = NULL;
+>> +
+>> +	while (isi_readl(isi, V2_STATUS) & ISI_BIT(V2_CDC))
+>> +		cpu_relax();
+> ditto
+I'll fix it too.
+
+>> +
+>> +	/* Disble codec path */
+>> +	isi_writel(isi, V2_CTRL, isi_readl(isi, V2_CTRL) & (~ISI_BIT(V2_CDC)));
+>> +	/* Disable interrupts */
+>> +	isi_writel(isi, V2_INTDIS,
+>> +			ISI_BIT(V2_CXFR_DONE) | ISI_BIT(V2_PXFR_DONE));
+>> +	/* Disable ISI module*/
+>> +	isi_writel(isi, V2_CTRL, isi_readl(isi, V2_CTRL) | ISI_BIT(V2_DIS));
+>> +
+
+>> +
+>> +static int __init atmel_isi_probe(struct platform_device *pdev) {
+>> +	unsigned int irq;
+>> +	struct atmel_isi *isi;
+>> +	struct clk *pclk;
+>> +	struct resource *regs;
+>> +	int ret;
+>> +	struct device *dev = &pdev->dev;
+>> +	struct isi_platform_data *pdata;
+>> +	struct soc_camera_host *soc_host;
+>> +
+>> +	regs = platform_get_resource(pdev, IORESOURCE_MEM, 0);
+>> +	if (!regs)
+>> +		return -ENXIO;
+>> +
+>> +	pclk = clk_get(&pdev->dev, "isi_clk");
+>> +	if (IS_ERR(pclk))
+>> +		return PTR_ERR(pclk);
+>> +
+>> +	clk_enable(pclk);
+> do we really need to always enable the clock?
+> normally we need to enable it just when we use the device and disable asap
+Yes, you are right. I will move such code to the camera_add_device/camera_remove_device functions
+
+> do you plane toadd the pm?
+You mean the power resume/suspend function for ISI, right? Not planned yet. But if I have time I will try this.
+
+Thank you for the comments. I will fix it in V2 patch.
+
+Best Regards,
+Josh Wu
