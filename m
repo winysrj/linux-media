@@ -1,102 +1,136 @@
 Return-path: <mchehab@pedra>
-Received: from mail-iy0-f174.google.com ([209.85.210.174]:52691 "EHLO
+Received: from mail-iy0-f174.google.com ([209.85.210.174]:43911 "EHLO
 	mail-iy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753067Ab1EAJbI (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sun, 1 May 2011 05:31:08 -0400
-Date: Sun, 1 May 2011 04:31:04 -0500
-From: Jonathan Nieder <jrnieder@gmail.com>
-To: linux-media@vger.kernel.org
-Cc: linux-kernel@vger.kernel.org,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Dan Carpenter <error27@gmail.com>,
-	Hans Verkuil <hverkuil@xs4all.nl>, Andi Huber <hobrom@gmx.at>,
-	Marlon de Boer <marlon@hyves.nl>,
-	Damien Churchill <damoxc@gmail.com>
-Subject: [PATCH 6/7] [media] cx88: don't use atomic_t for core->mpeg_users
-Message-ID: <20110501093104.GF18380@elie>
-References: <20110501091710.GA18263@elie>
+	with ESMTP id S1756556Ab1ERJKE convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 18 May 2011 05:10:04 -0400
+Received: by iyb14 with SMTP id 14so1129124iyb.19
+        for <linux-media@vger.kernel.org>; Wed, 18 May 2011 02:10:03 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20110501091710.GA18263@elie>
+In-Reply-To: <201105171334.01607.laurent.pinchart@ideasonboard.com>
+References: <1305624528-5595-1-git-send-email-javier.martin@vista-silicon.com>
+	<1305624528-5595-2-git-send-email-javier.martin@vista-silicon.com>
+	<201105171334.01607.laurent.pinchart@ideasonboard.com>
+Date: Wed, 18 May 2011 11:10:03 +0200
+Message-ID: <BANLkTinArWj1VsX8_N7Knjyzw8NymQNYkQ@mail.gmail.com>
+Subject: Re: [PATCH 1/2] mt9p031: Add mt9p031 sensor driver.
+From: javier Martin <javier.martin@vista-silicon.com>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: linux-media@vger.kernel.org, g.liakhovetski@gmx.de,
+	carlighting@yahoo.co.nz, beagleboard@googlegroups.com,
+	linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-mpeg_users is always read or written with core->lock held except
-in mpeg_release (where it looks like a bug).  A plain int is simpler
-and faster.
+Hi Laurent,
+I've already fixed almost every issue you pointed out.
+However, I still have got some doubts that I hope you can clarify.
 
-Tested-by: Andi Huber <hobrom@gmx.at>
-Tested-by: Marlon de Boer <marlon@hyves.nl>
-Signed-off-by: Jonathan Nieder <jrnieder@gmail.com>
----
- drivers/media/video/cx88/cx88-blackbird.c |   11 ++++++-----
- drivers/media/video/cx88/cx88.h           |    2 +-
- 2 files changed, 7 insertions(+), 6 deletions(-)
+On 17 May 2011 13:33, Laurent Pinchart
+<laurent.pinchart@ideasonboard.com> wrote:
+> Hi Javier,
+>
+> Thanks for the patch.
+>
+> On Tuesday 17 May 2011 11:28:47 Javier Martin wrote:
+>> It has been tested in beagleboard xM, using LI-5M03 module.
+>>
+>> Signed-off-by: Javier Martin <javier.martin@vista-silicon.com>
+>>
+>> +
+>> +static int mt9p031_power_on(struct mt9p031 *mt9p031)
+>> +{
+>> +     int ret;
+>> +
+>> +     if (mt9p031->pdata->set_xclk)
+>> +             mt9p031->pdata->set_xclk(&mt9p031->subdev, 54000000);
+>> +     /* turn on VDD_IO */
+>> +     ret = regulator_enable(mt9p031->reg_2v8);
+>> +     if (ret) {
+>> +             pr_err("Failed to enable 2.8v regulator: %d\n", ret);
+>> +             return -1;
+>> +     }
+>
+>I would enable the regulator first. As a general rule, chips should be powered
+>up before their I/Os are actively driven.
+>
+>You need to restore registers here, otherwise all controls set by the user
+>will not be applied to the device.
 
-diff --git a/drivers/media/video/cx88/cx88-blackbird.c b/drivers/media/video/cx88/cx88-blackbird.c
-index fa8e347..11e49bb 100644
---- a/drivers/media/video/cx88/cx88-blackbird.c
-+++ b/drivers/media/video/cx88/cx88-blackbird.c
-@@ -1073,7 +1073,7 @@ static int mpeg_open(struct file *file)
- 		return err;
- 	}
- 
--	if (!atomic_read(&dev->core->mpeg_users) && blackbird_initialize_codec(dev) < 0) {
-+	if (!dev->core->mpeg_users && blackbird_initialize_codec(dev) < 0) {
- 		drv->request_release(drv);
- 		mutex_unlock(&dev->core->lock);
- 		return -EINVAL;
-@@ -1101,7 +1101,7 @@ static int mpeg_open(struct file *file)
- 	cx88_set_scale(dev->core, dev->width, dev->height,
- 			fh->mpegq.field);
- 
--	atomic_inc(&dev->core->mpeg_users);
-+	dev->core->mpeg_users++;
- 	mutex_unlock(&dev->core->lock);
- 	return 0;
- }
-@@ -1112,7 +1112,9 @@ static int mpeg_release(struct file *file)
- 	struct cx8802_dev *dev = fh->dev;
- 	struct cx8802_driver *drv = NULL;
- 
--	if (dev->mpeg_active && atomic_read(&dev->core->mpeg_users) == 1)
-+	mutex_lock(&dev->core->lock);
-+
-+	if (dev->mpeg_active && dev->core->mpeg_users == 1)
- 		blackbird_stop_codec(dev);
- 
- 	cx8802_cancel_buffers(fh->dev);
-@@ -1121,7 +1123,6 @@ static int mpeg_release(struct file *file)
- 
- 	videobuf_mmap_free(&fh->mpegq);
- 
--	mutex_lock(&dev->core->lock);
- 	file->private_data = NULL;
- 	kfree(fh);
- 
-@@ -1131,7 +1132,7 @@ static int mpeg_release(struct file *file)
- 	if (drv)
- 		drv->request_release(drv);
- 
--	atomic_dec(&dev->core->mpeg_users);
-+	dev->core->mpeg_users--;
- 
- 	mutex_unlock(&dev->core->lock);
- 
-diff --git a/drivers/media/video/cx88/cx88.h b/drivers/media/video/cx88/cx88.h
-index 93a94bf..09e329f 100644
---- a/drivers/media/video/cx88/cx88.h
-+++ b/drivers/media/video/cx88/cx88.h
-@@ -384,7 +384,7 @@ struct cx88_core {
- 	/* various v4l controls */
- 	u32                        freq;
- 	atomic_t		   users;
--	atomic_t                   mpeg_users;
-+	int                        mpeg_users;
- 
- 	/* cx88-video needs to access cx8802 for hybrid tuner pll access. */
- 	struct cx8802_dev          *dvbdev;
+It's my mistake. This driver uses two regulators: 1,8 and 2,8 V
+respectively. 2,8V regulator powers analog part and I/O whereas 1,8V
+one powers the core. What I failed to do was keeping 1,8V regulator
+always powered on, so that register configuration was not lost, and
+power 2,8V regulator on and off as needed since it does not affect
+register values. However, I messed it all up.
+
+Ideally I would have to power 1,8V regulator on and off too. However,
+as you wisely pointed out, registers should be restored in that case.
+How am I supposed to keep track of register values? Are there any
+helper functions I can use for that purpose or must I create a custom
+register cache? Do you know any driver that uses this technique?
+
+> [snip]
+>> +static int mt9p031_set_params(struct i2c_client *client,
+>> +                           struct v4l2_rect *rect, u16 xskip, u16 yskip)
+>
+> set_params should apply the parameters, not change them. They should have
+> already been validated by the callers.
+
+"mt9p031_set_params()" function is used by "mt9p031_set_crop()" and
+"mt9p031_set_format()", as you have correctly stated, these functions
+shouldn' apply parameters but only change them.
+I've checked mt9v032 driver and it is as you said. The question is,
+where should these parameters get applied then?
+
+>> +static int mt9p031_registered(struct v4l2_subdev *sd)
+>> +{
+>> +     struct mt9p031 *mt9p031;
+>> +     mt9p031 = container_of(sd, struct mt9p031, subdev);
+>> +
+>> +     mt9p031_power_off(mt9p031);
+>
+> What's that for ?
+>
+>> +     return 0;
+>> +}
+
+Since "mt9p031_power_off()" and "mt9p031_power_on()" functions
+disable/enable the 2,8V regulator which powers I/O, it must be powered
+on during probe and after registering, it can be safely powered off.
+
+>
+> You have a set_xclk callback to board code, so I assume the chip can be driven
+> by one of the OMAP3 ISP XCLK signals. To call back to the OMAP3 ISP from board
+> code, you need to get hold of the OMAP3 ISP device pointer. Your next patch
+> exports omap3isp_device, but I'm not sure that's the way to go. One option is
+>
+> struct isp_device *isp = v4l2_dev_to_isp_device(subdev->v4l2_dev);
+>
+> but that requires the subdev to be registered before the function can be
+> called. In that case you would need to move the probe code to the registered
+> subdev internal function.
+>
+
+Yes, I tried using that function but it didn't work because subdev
+hadn't been registeret yet.
+
+> A clean solution is needed in the long run, preferably not involving board
+> code at all. It would be nice if the OMAP3 ISP driver could export XCLKA/XCLKB
+> as generic clock objects.
+
+So, what should I do in order to submit the driver to mainline?
+ Do you want me to move the probe code to registered callback?
+
+Thank you.
+
 -- 
-1.7.5
-
+Javier Martin
+Vista Silicon S.L.
+CDTUC - FASE C - Oficina S-345
+Avda de los Castros s/n
+39005- Santander. Cantabria. Spain
++34 942 25 32 60
+www.vista-silicon.com
