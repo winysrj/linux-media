@@ -1,50 +1,62 @@
 Return-path: <mchehab@pedra>
-Received: from moutng.kundenserver.de ([212.227.17.10]:54950 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753486Ab1E1PEk (ORCPT
+Received: from perceval.ideasonboard.com ([95.142.166.194]:47526 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754316Ab1ERHuz (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 28 May 2011 11:04:40 -0400
-Date: Sat, 28 May 2011 17:04:33 +0200 (CEST)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: javier Martin <javier.martin@vista-silicon.com>
-cc: Koen Kooi <koen@beagleboard.org>, beagleboard@googlegroups.com,
-	linux-media@vger.kernel.org, laurent.pinchart@ideasonboard.com,
-	carlighting@yahoo.co.nz
-Subject: Re: [beagleboard] [PATCH] Second RFC version of mt9p031 sensor with
- power managament.
-In-Reply-To: <Pine.LNX.4.64.1105281542200.6780@axis700.grange>
-Message-ID: <Pine.LNX.4.64.1105281701530.6780@axis700.grange>
-References: <1306322212-26879-1-git-send-email-javier.martin@vista-silicon.com>
- <F50AF7E4-DCBA-4FC9-971A-ADF01F342FEF@beagleboard.org>
- <BANLkTiksN_+12hdQFOQ9+bS5LBU+QSR4cA@mail.gmail.com>
- <07EF42D6-0587-4F35-8431-E03B9994F9B5@beagleboard.org>
- <BANLkTikon2uw4DWcsXLCnLD1crfbV7HP_Q@mail.gmail.com>
- <Pine.LNX.4.64.1105281542200.6780@axis700.grange>
+	Wed, 18 May 2011 03:50:55 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: "Russell King - ARM Linux" <linux@arm.linux.org.uk>
+Subject: Re: [PATCH 2/2] OMAP3BEAGLE: Add support for mt9p031 sensor (LI-5M03 module).
+Date: Wed, 18 May 2011 09:50:54 +0200
+Cc: Javier Martin <javier.martin@vista-silicon.com>,
+	linux-media@vger.kernel.org, beagleboard@googlegroups.com,
+	carlighting@yahoo.co.nz, g.liakhovetski@gmx.de,
+	linux-arm-kernel@lists.infradead.org
+References: <1305624528-5595-1-git-send-email-javier.martin@vista-silicon.com> <1305624528-5595-3-git-send-email-javier.martin@vista-silicon.com> <20110517230821.GA5913@n2100.arm.linux.org.uk>
+In-Reply-To: <20110517230821.GA5913@n2100.arm.linux.org.uk>
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201105180950.55287.laurent.pinchart@ideasonboard.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Sat, 28 May 2011, Guennadi Liakhovetski wrote:
+Hi Russell,
 
-> Hi Javier
+On Wednesday 18 May 2011 01:08:21 Russell King - ARM Linux wrote:
+> On Tue, May 17, 2011 at 11:28:48AM +0200, Javier Martin wrote:
+> > +#include "devices.h"
+> > +#include "../../../drivers/media/video/omap3isp/isp.h"
+> > +#include "../../../drivers/media/video/omap3isp/ispreg.h"
 > 
-> On Thu, 26 May 2011, javier Martin wrote:
-> 
-> > I use a patched version of yavta and Mplayer to see video
-> > (http://download.open-technology.de/BeagleBoard_xM-MT9P031/)
-> 
-> Are you really using those versions and patches, as described in 
-> BBxM-MT9P031.txt? I don't think those versions still work with 2.6.39, 
-> they don't even compile for me. Whereas if I take current HEAD, it builds 
-> and media-ctl seems to run error-free, but yavta produces no output.
+> This suggests that there's something very wrong with what's going on;
+> it suggests that you're trying to access driver internals which should
+> be handled via some better means.  And it looks like it's this:
 
-Ok, sorry for the noise. It works with current media-ctl with no patches, 
-so, we better don't try to confuse our users / testers:)
+> > @@ -654,6 +715,62 @@ static void __init beagle_opp_init(void)
+> > 
+> >  	return;
+> >  
+> >  }
+> > 
+> > +extern struct platform_device omap3isp_device;
+> > +
+> > +static int beagle_cam_set_xclk(struct v4l2_subdev *subdev, int hz)
+> > +{
+> > +	struct isp_device *isp = platform_get_drvdata(&omap3isp_device);
+> > +	int ret;
+> > +
+> > +	ret = isp->platform_cb.set_xclk(isp, hz, MT9P031_XCLK);
+> > +	return 0;
+> > +}
+> 
+> That really needs fixing in a different way.
 
-Thanks
-Guennadi
----
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
-http://www.open-technology.de/
+I plan to look into whether I can expose the OMAP3 ISP clocks through the 
+Linux clock framework.
+
+-- 
+Regards,
+
+Laurent Pinchart
