@@ -1,179 +1,118 @@
 Return-path: <mchehab@pedra>
-Received: from mx1.redhat.com ([209.132.183.28]:3150 "EHLO mx1.redhat.com"
+Received: from smtp.nokia.com ([147.243.128.24]:58656 "EHLO mgw-da01.nokia.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751778Ab1ECD2O (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 2 May 2011 23:28:14 -0400
-Message-ID: <4DBF7642.8000101@redhat.com>
-Date: Tue, 03 May 2011 00:28:02 -0300
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
+	id S1750996Ab1ERH1Y (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 18 May 2011 03:27:24 -0400
+Message-ID: <4DD3758B.7030006@maxwell.research.nokia.com>
+Date: Wed, 18 May 2011 10:30:19 +0300
+From: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
 MIME-Version: 1.0
-To: Andy Walls <awalls@md.metrocast.net>
-CC: Hans Verkuil <hverkuil@xs4all.nl>,
-	Devin Heitmueller <dheitmueller@kernellabs.com>,
-	linux-media@vger.kernel.org,
-	Simon Farnsworth <simon.farnsworth@onelan.co.uk>,
-	Steven Toth <stoth@kernellabs.com>
-Subject: Re: [git:v4l-dvb/for_v2.6.40] [media] cx18: mmap() support for raw
- YUV video capture
-References: <E1QGwlS-0006ys-15@www.linuxtv.org>	 <201105022202.57946.hverkuil@xs4all.nl>	 <BANLkTinzrccpQHk1qrDyT6VbfTPVBCGKkQ@mail.gmail.com>	 <201105022331.29142.hverkuil@xs4all.nl> <1304390415.2461.126.camel@localhost>
-In-Reply-To: <1304390415.2461.126.camel@localhost>
-Content-Type: text/plain; charset=UTF-8
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+CC: Sylwester Nawrocki <snjw23@gmail.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	Nayden Kanchev <nkanchev@mm-sol.com>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	David Cohen <dacohen@gmail.com>,
+	Kim HeungJun <riverful@gmail.com>, andrew.b.adams@gmail.com,
+	Sung Hee Park <shpark7@stanford.edu>
+Subject: Re: [RFC v4] V4L2 API for flash devices
+References: <4DC2F131.6090407@maxwell.research.nokia.com> <4DC9A2D0.2060709@gmail.com> <4DD2DBDC.6060303@maxwell.research.nokia.com> <201105180910.32988.laurent.pinchart@ideasonboard.com>
+In-Reply-To: <201105180910.32988.laurent.pinchart@ideasonboard.com>
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Em 02-05-2011 23:40, Andy Walls escreveu:
-> Hi All,
-> 
-> Ah crud, what a mess.  Where to begin...?
-> 
-> Where have I been:
-> 
-> On 30 March 2011, my 8-year-old son was diagnosed with Necrotizing
-> Fasciitis caused by Invasive Group A Streptococcous - otherwise known as
-> "Flesh-eating bacteria":
-> 
-> http://en.wikipedia.org/wiki/Necrotizing_fasciitis
-> http://www.ncbi.nlm.nih.gov/pubmedhealth/PMH0002415/
+Laurent Pinchart wrote:
+> Hi Sakari,
 
-Sorry to hear about that!
+Hi Laurent,
 
-> By the grace of God, my son was diagnosed very early.  He only lost the
-> fascia on his left side and one lymph node - damage essentially
-> unnoticable to anyone, including my son himself.  His recovery progress
-> is excellent and he is now back to his normal life. Yay! \O/
+> On Tuesday 17 May 2011 22:34:36 Sakari Ailus wrote:
+>> Sylwester Nawrocki wrote:
+>>> On 05/09/2011 12:11 AM, Sakari Ailus wrote:
+>>>> Sylwester Nawrocki wrote:
+>>>>> On 05/07/2011 02:46 PM, Hans Verkuil wrote:
+>>>>>> On Thursday, May 05, 2011 20:49:21 Sakari Ailus wrote:
+>>>>>>> Hi,
+>>>>>>>
+>>>>>>> This is a fourth proposal for an interface for controlling flash
+>>>>>>> devices on the V4L2/v4l2_subdev APIs.
+>>>>>>>
+>>>>>>> I want to thank everyone who have participated to the development of
+>>>>>>> the flash interface.
+>>>>>>>
+>>>>>>> Comments and questions are very, very welcome as always.
+>>>>>>>
+>>>>>>>
+>>>>>>> Changes since v3 [12]
+>>>>>>> =====================
+>>>>>>>
+>>>>>>> - V4L2_CID_FLASH_STROBE changed to button control,
+>>>>>>> V4L2_CID_FLASH_STROBE_STOP button control added,
+>>>>>>> V4L2_CID_FLASH_STROBE_STATUS boolean control added.
+>>>>>>>
+>>>>>>> - No reason to say xenon flashes can't use V4L2_CID_FLASH_STROBE.
+>>>>>>>
+>>>>>>> - V4L2_CID_FLASH_STROBE_WHENCE changed to V4L2_CID_FLASH_STROBE_MODE.
+>>>>>>>
+>>>>>>> - V4L2_CID_TORCH_INTENSITY renamed to V4L2_CID_FLASH_TORCH_INTENSITY
+>>>>>>> and V4L2_CID_INDICATOR_INTENSITY renamed to
+>>>>>>> V4L2_CID_FLASH_INDICATOR_INTENSITY.
+>>>>>>>
+>>>>>>> - Moved V4L2_CID_FLASH_EXTERNAL_STROBE_MODE under "Possible future
+>>>>>>> extensions".
+>>>>>
+>>>>> [snip]
+>>>>>
+>>>>>>> 3. Sensor metadata on frames
+>>>>>>> ----------------------------
+>>>>>>>
+>>>>>>> It'd be useful to be able to read back sensor metadata. If the flash
+>>>>>>> is strobed (on sensor hardware) while streaming, it's difficult to
+>>>>>>> know otherwise which frame in the stream has been exposed with
+>>>>>>> flash.
+>>>>>>
+>>>>>> I wonder if it would make sense to have a V4L2_BUF_FLAG_FLASH buffer
+>>>>>> flag?
+>>>>>> That way userspace can tell if that particular frame was taken with
+>>>>>> flash.
+>>>>>
+>>>>> This looks more as a workaround for the problem rather than a good long
+>>>>> term solution. It might be tempting to use the buffer flags which seem
+>>>>> to be be more or less intended for buffer control.
+>>>>> I'd like much more to see a buffer flags to be used to indicate whether
+>>>>> an additional plane of (meta)data is carried by the buffer.
+>>>>> There seem to be many more parameters, than a single flag indicating
+>>>>> whether the frame has been exposed with flash or not, needed to be
+>>>>> carried over to user space.
+>>>>> But then we might need some standard format of the meta data, perhaps
+>>>>> control id/value pairs and possibly a per plane configurable memory
+>>>>> type.
+>>>>
+>>>> There are multiple possible approaches for this.
+>>>>
+>>>> For sensors where metadata is register-value pairs, that is, essentially
+>>>> V4L2 control values, I think this should be parsed by the sensor driver.
+>>>> The ISP (camera bridge) driver does receive the data so it'd have to
+>>>> "ask for help" from the sensor driver.
+>>>
+>>> I am inclined to let the ISP drivers parse the data but on the other hand
+>>> it might be difficult to access same DMA buffers in kernel _and_ user
+>>> space.
+>>
+>> This is just about mapping the buffer to both kernel and user spaces. If
+>> the ISP has an iommu the kernel mapping might already exist if it comes
+>> from vmalloc().
+> 
+> And we're also trying to get rid of that mapping to facilitate cache 
+> management. Any API we create for metadata parsing will need to take potential 
+> cache-related performances issues into account at the design stage.
 
-Good! I hope him to fully recover from the disease. All the best for you
-and your wife. Our hearts are with you.
+In this case, it's not necessary to map this memory to user space at all
+so the kernel mapping would be the only one.
 
-> Naturally, Linux driver development disappeared from my mind during the
-> extended hospital stay, multiple surgeries, and post-hospitalization
-> recovery.
-> 
-> As always; yard-work, house-work, work-work, choir practice, kids'
-> sports, kids' after school clubs, and kids' instrument lessons also
-> consume my time.
-> 
-
-Completely understandable.
-
-> History of this patch:
-> 
-> 1. Steven wrote the bulk of it 10 months ago:
-> 
-> 	http://www.kernellabs.com/hg/~stoth/cx18-videobuf/
-> 
-> 2. At Steven's request, I took a day and reviewed it on July 10 2010 and
-> provide comments off-list.  (I will provide them in a follow up to Mauro
-> Devin and Hans).
-
-Thanks! 
-
-Next time, please answer it publicly, or if the patch author submitted
-it in priv for a good reason, please c/c me on the review, in order to
-warn me that you have some restrictions about a patch.
-
-> 3. The patch languished as Steven didn't have time to make the fixes and
-> neither did I.
-> 
-> 4. Videobuf2 came along as did good documentation on the deficiencies of
-> videobuf1:
-> 
-> http://linuxtv.org/downloads/presentations/summit_jun_2010/20100614-v4l2_summit-videobuf.pdf
-> http://linuxtv.org/downloads/presentations/summit_jun_2010/Videobuf_Helsinki_June2010.pdf
-> http://lwn.net/Articles/415883/
-> 
-> 5. I started independent work to implement videobuf2 for YUV and
-> actually using zero-copy.  My progress is very slow.
-> 
-> http://git.linuxtv.org/awalls/media_tree.git?a=shortlog;h=refs/heads/cx18-vb2-proto
-> http://git.linuxtv.org/awalls/media_tree.git?a=shortlog;h=refs/heads/cx18_39
-> 
-> 6. Simon submits the patches to the list as one big patch.
-> 
-> 7. Off-list I forward the same 5 emails of comments to Simon as I
-> provided in #2 to Steven.
-
-In this case, as Simon had opened the source code already for the patch,
-the better would be if you had made a public statement about your nack.
-I always review the ML before applying a patch.
-
-> 8. Simon addresses most of the comments and provides a revised patch
-> off-list asking for review.  I haven't had time to look at it.
-> 
-> 9. Mauro commits the original patch that Simon submitted to the list.
-> 
-> 
-> My thoughts:
-> 
-> 1. I don't want to stop progress, so I did not NACK this patch.  I don't
-> exactly like the patch either, so I didn't ACK it.
-> 
-> 2. At a minimum someone needs to review Simon's revised patch that tried
-> to address my comments.  That patch has to be better than this one.
-> Hans has already noticed a few of the bugs I pointed out to Steven and
-> Simon.
-> 
-> 3. I value that this patch has been tested, but I am guessing the
-> use-case was limited.  The toughest cx18 use-cases involve a lot of
-> concurrency - multiple stream captures (MPEG, VBI, YUV, PCM) on multiple
-> boards (3 or 4).  I had to do a lot of work with the driver to get that
-> concurrency reliable and performing well.  Has this been tested post-BKL
-> removal?  Have screen sizes other than the full-screen size been tested?
-> 
-> 4. I do not like using videobuf(1) for this.  Videobuf(1) is a buggy
-> dead-end IMO.  I will NACK any patch that tries to fix anything due to
-> videobuf(1) related problems introduced into cx18 by this patch.
-> There's no point in throwing too much effort into fixing what would
-> likely be unfixable.
-> 
-> 5. When I am done with my videobuf2 stuff for cx18, I will essentially
-> revert this one and add in my new implementation after sufficient
-> testing.  Though given the amount of time I have for this, maybe the
-> last HVR-1600 will be dead before then.
-> 
-> 
-> Summary:
-> 
-> 1. I'm not going to fix any YUV related problems merging this patch
-> causes.  It's the YUV stream of an MPEG capture card that's more
-> expensive than a simple frame grabber.  (I've only heard of it being
-> used for live play of video games and of course for Simon's
-> application.)
-> 
-> 2. I'd at least like Simon's revised patch to be merged instead, to fix
-> the known deficincies in this one.
-
-IMO, the proper workflow would be that Simon should send his changes, as
-a diff patch against the current one. We can all review it, based on the
-comments you sent in priv and fix it.
-
-As it seems that that the patch offers a subset of the desired features
-that you're planning with your approach, maybe the better would be to add
-a CONFIG var to enable YUV support, stating that such feature is experimental.
-
-> 3. If merging this patch, means a change to videobuf2 in the future is
-> not allowed, than I'd prefer to NACK the patch that introduces
-> videobuf(1) into cx18.
-
-The addition of VB1 first doesn't imply that VB2 would be acked or nacked.
-
-In any case, the first non-embedded VB2 driver will need a very careful
-review, to be sure that they won't break any userspace applications. 
-
-On embedded hardware, only a limited set of applications are supported, and they
-are patched and bundled together with the hardware, so there's not much concern
-about userspace apps breakage.
-
-However, on non-embedded hardware, we should be sure that no regressions to
-existing applications will happen. So, the better would be if the first VB2 
-non-embedded driver to be a full-featured V4L2 board (e. g. saa7134 or bttv, 
-as they support all types of video buffer userspace API's, including overlay
-mode), allowing us to test if VB2 is really following the specs (both the
-"de facto" and "de jure" specs).
-
-After having one full-featured driver ported to VB2, the other driver conversions
-and usages of VB2 will depend mostly on driver maintainer's desire and enough tests.
-
-Cheers,
-Mauro.
+-- 
+Sakari Ailus
+sakari.ailus@maxwell.research.nokia.com
