@@ -1,43 +1,136 @@
 Return-path: <mchehab@pedra>
-Received: from mail-vw0-f46.google.com ([209.85.212.46]:51794 "EHLO
-	mail-vw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752388Ab1ETWPc (ORCPT
+Received: from smtp-vbr2.xs4all.nl ([194.109.24.22]:3228 "EHLO
+	smtp-vbr2.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754327Ab1ERGd2 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 20 May 2011 18:15:32 -0400
-Received: by vws1 with SMTP id 1so2992197vws.19
-        for <linux-media@vger.kernel.org>; Fri, 20 May 2011 15:15:31 -0700 (PDT)
+	Wed, 18 May 2011 02:33:28 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Bhupesh SHARMA <bhupesh.sharma@st.com>
+Subject: Re: Audio Video synchronization for data received from a HDMI receiver chip
+Date: Wed, 18 May 2011 08:32:52 +0200
+Cc: "Charlie X. Liu" <charlie@sensoray.com>,
+	"laurent.pinchart@ideasonboard.com"
+	<laurent.pinchart@ideasonboard.com>,
+	"g.liakhovetski@gmx.de" <g.liakhovetski@gmx.de>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	"alsa-devel@alsa-project.org" <alsa-devel@alsa-project.org>
+References: <D5ECB3C7A6F99444980976A8C6D896384DF1137013@EAPEX1MAIL1.st.com> <BANLkTi=rpQEkroia3kUqp6zUHTQk3k220Q@mail.gmail.com> <D5ECB3C7A6F99444980976A8C6D896384DF11B5D98@EAPEX1MAIL1.st.com>
+In-Reply-To: <D5ECB3C7A6F99444980976A8C6D896384DF11B5D98@EAPEX1MAIL1.st.com>
 MIME-Version: 1.0
-Date: Sat, 21 May 2011 00:15:31 +0200
-Message-ID: <BANLkTi=pQ45Z=3vF1-HX=-foqHh7oJcR1A@mail.gmail.com>
-Subject: Medion CTX1921 - why does the driver is not in the kernel yet?
-From: James Huk <huk256@gmail.com>
-To: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201105180832.52333.hverkuil@xs4all.nl>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Hello everybody.
+On Wednesday, May 18, 2011 06:10:43 Bhupesh SHARMA wrote:
+> Hi,
+> 
+> (adding alsa mailing list in cc)
+> 
+> > On Thursday, May 12, 2011 18:59:33 Charlie X. Liu wrote:
+> > > Which HDMI receiver chip?
+> > 
+> > Indeed, that's my question as well :-)
+> 
+> We use Sil 9135 receiver chip which is provided by Silicon Image.
+> Please see details here: http://www.siliconimage.com/products/product.aspx?pid=109
+>  
+> > Anyway, this question comes up regularly. V4L2 provides timestamps for
+> > each
+> > frame, so that's no problem. But my understanding is that ALSA does not
+> > give
+> > you timestamps, so if there are processing delays between audio and
+> > video, then
+> > you have no way of knowing. The obvious solution is to talk to the ALSA
+> > people
+> > to see if some sort of timestamping is possible, but nobody has done
+> > that.
+> 
+> I am aware of the time stamping feature provided by V4L2, but I am also
+> not sure whether the same feature is supported by ALSA. I have included
+> alsa-mailing list also in copy of this mail. Let's see if we can get
+> some sort of confirmation on this from them.
+>  
+> > This is either because everyone that needs it hacks around it instead
+> > of trying
+> > to really solve it, or because it is never a problem in practice.
+> 
+> What should be the proper solution according to you to solve this issue.
+> Do we require a Audio-Video Bridge kind of utility/mechanism?
 
-First of all - this post is not meant as the flame starter, nor is it
-"I DEMAND" kind of post - I just would like to know what is the policy
-with driver patches.
+I don't believe so. All you need is reliable time stamping for your audio
+and video streams. That's enough for userspace to detect AV sync issues.
 
-I bought Medion CTX1921 USB DVB-T stick, since I saw patches for kernel 2.6.32:
+Regards,
 
-http://article.gmane.org/gmane.linux.drivers.video-input-infrastructure/19938/match=1921
+	Hans
 
-so,I thought everything above that, will support this card "out of the
-box", however I tried it on kernel 2.6.38 and it still required manual
-patching, after minor driver modification it works OK.
-
-So... the question is, why isn't this tuner supported yet, even though
-patches were aviable nearly a year ago (and where minor)? What is the
-policy here? When can we expect support?
-
-Thanks in advance for the answers.
-
-Best Regards
-
-P.S
-
-Sorry for my English ;]
+> 
+> Regards,
+> Bhupesh
+> 
+> > 
+> > >
+> > > -----Original Message-----
+> > > From: linux-media-owner@vger.kernel.org
+> > > [mailto:linux-media-owner@vger.kernel.org] On Behalf Of Bhupesh
+> > SHARMA
+> > > Sent: Wednesday, May 11, 2011 10:49 PM
+> > > To: linux-media@vger.kernel.org
+> > > Cc: Laurent Pinchart; Guennadi Liakhovetski; Hans Verkuil
+> > > Subject: Audio Video synchronization for data received from a HDMI
+> > receiver
+> > > chip
+> > >
+> > > Hi Linux media folks,
+> > >
+> > > We are considering putting an advanced HDMI receiver chip on our SoC,
+> > > to allow reception of HDMI audio and video. The chip receives HDMI
+> > data
+> > > from a host like a set-up box or DVD player. It provides a video data
+> > > interface
+> > > and SPDIF/I2S audio data interface.
+> > >
+> > > We plan to support the HDMI video using the V4L2 framework and the
+> > HDMI
+> > > audio using ALSA framework.
+> > >
+> > > Now, what seems to be intriguing us is how the audio-video
+> > synchronization
+> > > will be maintained? Will a separate bridging entity required to
+> > ensure the
+> > > same
+> > > or whether this can be left upon a user space application like
+> > mplayer or
+> > > gstreamer.
+> > >
+> > > Also is there a existing interface between the V4L2 and ALSA
+> > frameworks and
+> > > the same
+> > > can be used in our design?
+> > >
+> > > Regards,
+> > > Bhupesh
+> > > ST Microelectronics
+> > > --
+> > > To unsubscribe from this list: send the line "unsubscribe linux-
+> > media" in
+> > > the body of a message to majordomo@vger.kernel.org
+> > > More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> > >
+> > >
+> > --
+> > To unsubscribe from this list: send the line "unsubscribe linux-media"
+> > in
+> > the body of a message to majordomo@vger.kernel.org
+> > More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> > 
+> > 
+> > 
+> > --
+> > regards
+> > Shiraz Hashim
+> 
+> 
