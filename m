@@ -1,71 +1,222 @@
-Return-path: <mchehab@gaivota>
-Received: from outbound.icp-qv1-irony-out6.iinet.net.au ([203.59.1.109]:64488
-	"EHLO outbound.icp-qv1-irony-out6.iinet.net.au" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752293Ab1ELOX4 (ORCPT
+Return-path: <mchehab@pedra>
+Received: from mail1-out1.atlantis.sk ([80.94.52.55]:48666 "EHLO
+	mail.atlantis.sk" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S933739Ab1ERTgi (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 12 May 2011 10:23:56 -0400
-Message-ID: <4DCBEB52.5060808@iinet.net.au>
-Date: Thu, 12 May 2011 22:14:42 +0800
-From: Mike <michael.stock@iinet.net.au>
+	Wed, 18 May 2011 15:36:38 -0400
+From: Ondrej Zary <linux@rainbow-software.org>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Subject: [PATCH v3] tea575x: convert to control framework
+Date: Wed, 18 May 2011 21:36:27 +0200
+Cc: linux-media@vger.kernel.org, alsa-devel@alsa-project.org,
+	"Kernel development list" <linux-kernel@vger.kernel.org>
+References: <201105140017.26968.linux@rainbow-software.org> <201105172345.10318.linux@rainbow-software.org> <201105180821.54511.hverkuil@xs4all.nl>
+In-Reply-To: <201105180821.54511.hverkuil@xs4all.nl>
 MIME-Version: 1.0
-To: linux-media@vger.kernel.org
-Subject: Re: Bug in HVR1300. Found part of a patch, if reverted
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: text/plain;
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+Message-Id: <201105182136.29979.linux@rainbow-software.org>
 List-ID: <linux-media.vger.kernel.org>
-Sender: Mauro Carvalho Chehab <mchehab@gaivota>
+Sender: <mchehab@pedra>
 
-Hi there
+Convert tea575x-tuner to use the new V4L2 control framework. Also add
+ext_init() callback that can be used by a card driver for additional
+initialization right before registering the video device (for SF16-FMR2).
 
-in the latest kernel (and all those since when the patch was written) 
-this patch is still required for the HVR-1300 to work, any chance of it 
-getting incorporated?
+Signed-off-by: Ondrej Zary <linux@rainbow-software.org>
 
-thanks
-Mike
+--- linux-2.6.39-rc2-/include/sound/tea575x-tuner.h	2011-05-13 19:39:23.000000000 +0200
++++ linux-2.6.39-rc2/include/sound/tea575x-tuner.h	2011-05-17 22:35:19.000000000 +0200
+@@ -23,8 +23,7 @@
+  */
+ 
+ #include <linux/videodev2.h>
+-#include <media/v4l2-dev.h>
+-#include <media/v4l2-ioctl.h>
++#include <media/v4l2-ctrls.h>
+ 
+ #define TEA575X_FMIF	10700
+ 
+@@ -54,6 +53,8 @@ struct snd_tea575x {
+ 	void *private_data;
+ 	u8 card[32];
+ 	u8 bus_info[32];
++	struct v4l2_ctrl_handler ctrl_handler;
++	void (*ext_init)(struct snd_tea575x *tea);
+ };
+ 
+ int snd_tea575x_init(struct snd_tea575x *tea);
+--- linux-2.6.39-rc2-/sound/i2c/other/tea575x-tuner.c	2011-05-13 19:39:23.000000000 +0200
++++ linux-2.6.39-rc2/sound/i2c/other/tea575x-tuner.c	2011-05-18 21:33:05.000000000 +0200
+@@ -22,11 +22,11 @@
+ 
+ #include <asm/io.h>
+ #include <linux/delay.h>
+-#include <linux/interrupt.h>
+ #include <linux/init.h>
+ #include <linux/slab.h>
+ #include <linux/version.h>
+-#include <sound/core.h>
++#include <media/v4l2-dev.h>
++#include <media/v4l2-ioctl.h>
+ #include <sound/tea575x-tuner.h>
+ 
+ MODULE_AUTHOR("Jaroslav Kysela <perex@perex.cz>");
+@@ -62,17 +62,6 @@ module_param(radio_nr, int, 0);
+ #define TEA575X_BIT_DUMMY	(1<<15)		/* buffer */
+ #define TEA575X_BIT_FREQ_MASK	0x7fff
+ 
+-static struct v4l2_queryctrl radio_qctrl[] = {
+-	{
+-		.id            = V4L2_CID_AUDIO_MUTE,
+-		.name          = "Mute",
+-		.minimum       = 0,
+-		.maximum       = 1,
+-		.default_value = 1,
+-		.type          = V4L2_CTRL_TYPE_BOOLEAN,
+-	}
+-};
+-
+ /*
+  * lowlevel part
+  */
+@@ -266,47 +255,17 @@ static int vidioc_s_audio(struct file *f
+ 	return 0;
+ }
+ 
+-static int vidioc_queryctrl(struct file *file, void *priv,
+-					struct v4l2_queryctrl *qc)
++static int tea575x_s_ctrl(struct v4l2_ctrl *ctrl)
+ {
+-	int i;
+-
+-	for (i = 0; i < ARRAY_SIZE(radio_qctrl); i++) {
+-		if (qc->id && qc->id == radio_qctrl[i].id) {
+-			memcpy(qc, &(radio_qctrl[i]),
+-						sizeof(*qc));
+-			return 0;
+-		}
+-	}
+-	return -EINVAL;
+-}
+-
+-static int vidioc_g_ctrl(struct file *file, void *priv,
+-					struct v4l2_control *ctrl)
+-{
+-	struct snd_tea575x *tea = video_drvdata(file);
++	struct snd_tea575x *tea = container_of(ctrl->handler, struct snd_tea575x, ctrl_handler);
+ 
+ 	switch (ctrl->id) {
+ 	case V4L2_CID_AUDIO_MUTE:
+-		ctrl->value = tea->mute;
++		tea->mute = ctrl->val;
++		snd_tea575x_set_freq(tea);
+ 		return 0;
+ 	}
+-	return -EINVAL;
+-}
+-
+-static int vidioc_s_ctrl(struct file *file, void *priv,
+-					struct v4l2_control *ctrl)
+-{
+-	struct snd_tea575x *tea = video_drvdata(file);
+ 
+-	switch (ctrl->id) {
+-	case V4L2_CID_AUDIO_MUTE:
+-		if (tea->mute != ctrl->value) {
+-			tea->mute = ctrl->value;
+-			snd_tea575x_set_freq(tea);
+-		}
+-		return 0;
+-	}
+ 	return -EINVAL;
+ }
+ 
+@@ -355,9 +314,6 @@ static const struct v4l2_ioctl_ops tea57
+ 	.vidioc_s_input     = vidioc_s_input,
+ 	.vidioc_g_frequency = vidioc_g_frequency,
+ 	.vidioc_s_frequency = vidioc_s_frequency,
+-	.vidioc_queryctrl   = vidioc_queryctrl,
+-	.vidioc_g_ctrl      = vidioc_g_ctrl,
+-	.vidioc_s_ctrl      = vidioc_s_ctrl,
+ };
+ 
+ static struct video_device tea575x_radio = {
+@@ -367,6 +323,10 @@ static struct video_device tea575x_radio
+ 	.release	= video_device_release,
+ };
+ 
++static const struct v4l2_ctrl_ops tea575x_ctrl_ops = {
++	.s_ctrl = tea575x_s_ctrl,
++};
++
+ /*
+  * initialize all the tea575x chips
+  */
+@@ -384,31 +344,43 @@ int snd_tea575x_init(struct snd_tea575x
+ 	tea->in_use = 0;
+ 	tea->val = TEA575X_BIT_BAND_FM | TEA575X_BIT_SEARCH_10_40;
+ 	tea->freq = 90500 * 16;		/* 90.5Mhz default */
++	snd_tea575x_set_freq(tea);
+ 
+ 	tea575x_radio_inst = video_device_alloc();
+-	if (tea575x_radio_inst == NULL) {
++	if (!tea575x_radio_inst) {
+ 		printk(KERN_ERR "tea575x-tuner: not enough memory\n");
+ 		return -ENOMEM;
+ 	}
+ 
+ 	memcpy(tea575x_radio_inst, &tea575x_radio, sizeof(tea575x_radio));
+-
+-	strcpy(tea575x_radio.name, tea->tea5759 ?
+-				   "TEA5759 radio" : "TEA5757 radio");
+-
+ 	video_set_drvdata(tea575x_radio_inst, tea);
+ 
+-	retval = video_register_device(tea575x_radio_inst,
+-				       VFL_TYPE_RADIO, radio_nr);
++	v4l2_ctrl_handler_init(&tea->ctrl_handler, 1);
++	tea575x_radio_inst->ctrl_handler = &tea->ctrl_handler;
++	v4l2_ctrl_new_std(&tea->ctrl_handler, &tea575x_ctrl_ops, V4L2_CID_AUDIO_MUTE, 0, 1, 1, 1);
++	retval = tea->ctrl_handler.error;
+ 	if (retval) {
+-		printk(KERN_ERR "tea575x-tuner: can't register video device!\n");
++		printk(KERN_ERR "tea575x-tuner: can't initialize controls\n");
++		v4l2_ctrl_handler_free(&tea->ctrl_handler);
+ 		kfree(tea575x_radio_inst);
+ 		return retval;
+ 	}
++	v4l2_ctrl_handler_setup(&tea->ctrl_handler);
++
++	if (tea->ext_init)
++		tea->ext_init(tea);
+ 
+-	snd_tea575x_set_freq(tea);
+ 	tea->vd = tea575x_radio_inst;
+ 
++	retval = video_register_device(tea575x_radio_inst, VFL_TYPE_RADIO, radio_nr);
++	if (retval) {
++		printk(KERN_ERR "tea575x-tuner: can't register video device!\n");
++		v4l2_ctrl_handler_free(&tea->ctrl_handler);
++		kfree(tea575x_radio_inst);
++		tea->vd = NULL;
++		return retval;
++	}
++
+ 	return 0;
+ }
+ 
+@@ -416,6 +388,7 @@ void snd_tea575x_exit(struct snd_tea575x
+ {
+ 	if (tea->vd) {
+ 		video_unregister_device(tea->vd);
++		v4l2_ctrl_handler_free(&tea->ctrl_handler);
+ 		tea->vd = NULL;
+ 	}
+ }
 
- > Hi list,
- >
- > there seems to be a bug in cx88 (HVR1300) that is responsible for not
- > switching channels, and not being able to scan.
- > Complete description can be found on launchpad:
- >
- > https://bugs.launchpad.net/mythtv/+bug/439163 (starting from comment #16)
- >
- > Anyway, i digged it down to this patch:
- > http://www.mail-archive.com/linuxtv-commits@xxxxxxxxxxx/msg02195.html
- >
- > When reverting the following part of the patch it starts working again:
- >
- > snip----------
- >
- > diff -r 576096447a45 -r d2eedb425718
- > linux/drivers/media/video/cx88/cx88-dvb.c
- > - --- a/linux/drivers/media/video/cx88/cx88-dvb.c Thu Dec 18 07:28:18 
-2008
- > - -0200
- > +++ b/linux/drivers/media/video/cx88/cx88-dvb.c Thu Dec 18 07:28:35 2008
- > - -0200
- > @@ -1135,40 +1135,44 @@ static int cx8802_dvb_advise_acquire(str
- > * on the bus. Take the bus from the cx23416 and enable the
- > * cx22702 demod
- > */
- > - - cx_set(MO_GP0_IO, 0x00000080); /* cx22702 out of reset and
- > enable */
- > + /* Toggle reset on cx22702 leaving i2c active */
- > + cx_set(MO_GP0_IO, 0x00000080);
- > + udelay(1000);
- > + cx_clear(MO_GP0_IO, 0x00000080);
- > + udelay(50);
- > + cx_set(MO_GP0_IO, 0x00000080);
- > + udelay(1000);
- > + /* enable the cx22702 pins */
- > cx_clear(MO_GP0_IO, 0x00000004);
- > udelay(1000);
- > break;
- > - ---------snip
- >
- > Regards
- >
- > Frank Sagurna
 
+-- 
+Ondrej Zary
