@@ -1,58 +1,50 @@
 Return-path: <mchehab@pedra>
-Received: from mx1.redhat.com ([209.132.183.28]:26636 "EHLO mx1.redhat.com"
+Received: from mail.kapsi.fi ([217.30.184.167]:53142 "EHLO mail.kapsi.fi"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751106Ab1EELln (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 5 May 2011 07:41:43 -0400
-Message-ID: <4DC28CEE.1080304@redhat.com>
-Date: Thu, 05 May 2011 08:41:34 -0300
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
+	id S933194Ab1ESVuL (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 19 May 2011 17:50:11 -0400
+Message-ID: <4DD59090.3020900@iki.fi>
+Date: Fri, 20 May 2011 00:50:08 +0300
+From: Antti Palosaari <crope@iki.fi>
 MIME-Version: 1.0
-To: Simon Farnsworth <simon.farnsworth@onelan.co.uk>
-CC: Andy Walls <awalls@md.metrocast.net>,
-	Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org,
-	Steven Toth <stoth@kernellabs.com>
-Subject: Re: [PATCH] cx18: Clean up mmap() support for raw YUV
-References: <4DBFDF71.5090705@redhat.com> <1304423860-12785-1-git-send-email-simon.farnsworth@onelan.co.uk> <b418b252-4152-4666-9c83-85e91613b493@email.android.com> <201105041032.24644.simon.farnsworth@onelan.co.uk>
-In-Reply-To: <201105041032.24644.simon.farnsworth@onelan.co.uk>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 8bit
+To: wallak@free.fr
+CC: linux-media@vger.kernel.org
+Subject: Re: AverMedia A306 (cx23385, xc3028, af9013) (A577 too ?)
+References: <S932606Ab1ESVJJ/20110519210909Z+86@vger.kernel.org> <1305839612.4dd587fc20a03@imp.free.fr>
+In-Reply-To: <1305839612.4dd587fc20a03@imp.free.fr>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Hi Simon,
+On 05/20/2011 12:13 AM, wallak@free.fr wrote:
+> I've tried to use my A306 board on my system. All the main chips are fully
+> supported by linux.
+>
+> At this stage the CX23385 and the tuner: xc3028 seem to respond properly. But
+> the DVB-T chip (af9013) is silent. Nevertheless both chips are visible on the
+> I2C bus.
 
-Em 04-05-2011 06:32, Simon Farnsworth escreveu:
-> On Tuesday 3 May 2011, Andy Walls <awalls@md.metrocast.net> wrote:
->> Simon,
->>
->> If these two changes are going in, please also bump the driver version to
->> 1.5.0 in cx18-version.c.  These changes are significant enough
->> perturbation.
->>
->> End users are going to look to driver version 1.4.1 as the first version
->> for proper analog tuner support of the HVR1600 model 74351.
->>
->> Mauro,
->>
->> Is cx18 v1.4.1 with HVR1600 model 74351 analog tuner support, without these
->> mmap() changes going to be visible in kernel version .39 ?
->>
-> 
-> Mauro,
-> 
-> If you're going to accept these two patches, would you mind bumping the 
-> version in cx18-version.c for me as you apply them, or would you prefer me to 
-> provide either an incremental patch or a new patch with the bump added?
+You should get I2C connection to chip and after that load firmware.
 
-There are a few new warnings with your code:
+> I've no full datasheet of theses chips. with exception of the af9013 where this
+> information is available:
+> http://wenku.baidu.com/view/42240f72f242336c1eb95e08.html
 
-drivers/media/video/cx18/cx18-mailbox.c: In function ‘cx18_mdl_send_to_videobuf’:
-drivers/media/video/cx18/cx18-mailbox.c:206: warning: passing argument 1 of ‘ktime_get_ts’ from incompatible pointer type
-include/linux/ktime.h:331: note: expected ‘struct timespec *’ but argument is of type ‘struct timeval *’
-drivers/media/video/cx18/cx18-mailbox.c:170: warning: unused variable ‘i’
-drivers/media/video/cx18/cx18-mailbox.c:167: warning: unused variable ‘u’
+Those documents are rather useless. There is few versions of Linux 
+AF9015 driver around the net, which are rather near sample SDK code. Try 
+to find one.
 
-Could you please fix them?
+> At this stage the CLK signal of the DVB-T chip may be missing or something is
+> wrong elsewhere.
+>
+> If you have the datasheets... Any help will be appreciated.
+>
+>
+> Best Regards,
+> Wallak.
+>
 
-Thanks,
-Mauro
+Antti
+-- 
+http://palosaari.fi/
