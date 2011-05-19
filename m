@@ -1,40 +1,80 @@
 Return-path: <mchehab@pedra>
-Received: from yop.chewa.net ([91.121.105.214]:49396 "EHLO yop.chewa.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753414Ab1EYOv0 convert rfc822-to-8bit (ORCPT
+Received: from perceval.ideasonboard.com ([95.142.166.194]:47427 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755466Ab1ESMOn (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 25 May 2011 10:51:26 -0400
-From: "=?iso-8859-1?q?R=E9mi?= Denis-Courmont" <remi@remlab.net>
-To: linux-media@vger.kernel.org
-Subject: Re: dvb: one demux per tuner or one demux per demod?
-Date: Wed, 25 May 2011 17:51:19 +0300
-Cc: vlc-devel@videolan.org
-References: <719f9c4d1bd57d5b2711bc24a9d5c3b1@chewa.net> <BANLkTinN1YWpEpxxMgoZ2hMTGt3eEv=peA@mail.gmail.com> <4DDBABDE.5010908@iki.fi>
-In-Reply-To: <4DDBABDE.5010908@iki.fi>
+	Thu, 19 May 2011 08:14:43 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
+Subject: Re: [PATCH 0/3] V4L2 API for flash devices and the adp1653 flash controller driver
+Date: Thu, 19 May 2011 14:14:44 +0200
+Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	Nayden Kanchev <nkanchev@mm-sol.com>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	David Cohen <dacohen@gmail.com>,
+	Kim HeungJun <riverful@gmail.com>, andrew.b.adams@gmail.com,
+	Sung Hee Park <shpark7@stanford.edu>
+References: <4DD4F3CA.3040300@maxwell.research.nokia.com>
+In-Reply-To: <4DD4F3CA.3040300@maxwell.research.nokia.com>
 MIME-Version: 1.0
 Content-Type: Text/Plain;
   charset="iso-8859-1"
-Content-Transfer-Encoding: 8BIT
-Message-Id: <201105251751.21203.remi@remlab.net>
+Content-Transfer-Encoding: 7bit
+Message-Id: <201105191414.44721.laurent.pinchart@ideasonboard.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Le mardi 24 mai 2011 16:00:14 Antti Palosaari, vous avez écrit :
-> Yes I did, since I didn't know there is better way. Is there any other
-> driver which implements it differently? I think all current MFE drivers
-> does it like I did. For example look NetUP cx23885 + stv0367.
-> 
-> /dev/dvb/adapter0/
-> crw-rw----+ 1 root video 212, 2 May 24 15:51 demux0
-> crw-rw----+ 1 root video 212, 3 May 24 15:51 dvr0
-> crw-rw----+ 1 root video 212, 0 May 24 15:51 frontend0
-> crw-rw----+ 1 root video 212, 1 May 24 15:51 frontend1
-> crw-rw----+ 1 root video 212, 4 May 24 15:51 net0
+Hi Sakari,
 
-So there is always only one demux per adapter then? That would work for me, 
-but it contradicts the example code at Documentation/DocBook/dvb/examples.xml
+On Thursday 19 May 2011 12:41:14 Sakari Ailus wrote:
+> Hi,
+> 
+> This patchset implements RFC v4 of V4L2 API for flash devices [1], with
+> minor modifications, and adds the adp1653 flash controller driver.
+
+As already answered in private:
+
+Acked-by: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
+ 
+> This patchset depends on the bitmask controls patch [4].
+>
+> Changes since v2 [3] of the RFC patchset:
+> 
+> - Improved flash control documentation in general.
+> 
+> - Faults may change the LED mode to none. This is now documented.
+> 
+> - adp1653 is returned to sane after faults are detected.
+> 
+> - Proper error handling for adp1653_get_fault() in adp1653_strobe().
+> 
+> - Remove useless function: adp1653_registered() and the corresponding
+>   callback. Controls are now initialised in adp1653_probe().
+> 
+> - Improved fault handling in adp1653_init_device().
+> 
+> Changes since v1 [2] of the RFC patchset:
+> 
+> - Faults on the flash LED are allowed to make the LED unusable before
+> the faults are read. This is implemented in the adp1653 driver.
+> 
+> - Intensities are using standard units; mA for flash / torch and uA for
+> the indicator.
+> 
+> 
+> Thanks to those who have given their feedback so far in the process!
+> 
+> 
+> [1] http://www.spinics.net/lists/linux-media/msg32030.html
+> 
+> [2] http://www.spinics.net/lists/linux-media/msg32396.html
+> 
+> [3] http://www.spinics.net/lists/linux-media/msg32436.html
+> 
+> [4] http://www.spinics.net/lists/linux-media/msg31001.html
 
 -- 
-Rémi Denis-Courmont
-http://www.remlab.net/
-http://fi.linkedin.com/in/remidenis
+Regards,
+
+Laurent Pinchart
