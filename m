@@ -1,180 +1,528 @@
 Return-path: <mchehab@pedra>
-Received: from mx1.redhat.com ([209.132.183.28]:15334 "EHLO mx1.redhat.com"
+Received: from bear.ext.ti.com ([192.94.94.41]:33710 "EHLO bear.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751384Ab1E2Ozm (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 29 May 2011 10:55:42 -0400
-Message-ID: <4DE25E6A.5080900@redhat.com>
-Date: Sun, 29 May 2011 11:55:38 -0300
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
+	id S1752505Ab1ESOxt convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 19 May 2011 10:53:49 -0400
+From: "Hadli, Manjunath" <manjunath.hadli@ti.com>
+To: "'Laurent Pinchart'" <laurent.pinchart@ideasonboard.com>
+CC: "'davinci-linux-open-source@linux.davincidsp.com'"
+	<davinci-linux-open-source@linux.davincidsp.com>,
+	"'LMML'" <linux-media@vger.kernel.org>,
+	"'Kevin Hilman'" <khilman@deeprootsystems.com>,
+	"'LAK'" <linux-arm-kernel@lists.infradead.org>,
+	"Nori, Sekhar" <nsekhar@ti.com>
+Date: Thu, 19 May 2011 20:23:33 +0530
+Subject: RE: [PATCH v16 01/13] davinci vpbe: V4L2 display driver for DM644X
+ SoC
+Message-ID: <B85A65D85D7EB246BE421B3FB0FBB593024BCEF732@dbde02.ent.ti.com>
+In-Reply-To: <201105021158.23956.laurent.pinchart@ideasonboard.com>
+Content-Language: en-US
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 MIME-Version: 1.0
-To: Hans de Goede <hdegoede@redhat.com>
-CC: Hans Verkuil <hverkuil@xs4all.nl>,
-	Devin Heitmueller <dheitmueller@kernellabs.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: [RFCv2] Add a library to retrieve associated media devices -
- was: Re: [ANNOUNCE] experimental alsa stream support at xawtv3
-References: <4DDAC0C2.7090508@redhat.com> <4DE120D1.2020805@redhat.com> <4DE19AF7.2000401@redhat.com> <201105291319.47207.hverkuil@xs4all.nl> <4DE233EA.2000400@redhat.com> <4DE2455C.1070303@redhat.com> <4DE24A84.5030909@redhat.com>
-In-Reply-To: <4DE24A84.5030909@redhat.com>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Em 29-05-2011 10:30, Hans de Goede escreveu:
-> Hi,
-> 
-> On 05/29/2011 03:08 PM, Mauro Carvalho Chehab wrote:
->> Em 29-05-2011 08:54, Hans de Goede escreveu:
->>> Hi,
->>>
->>> On 05/29/2011 01:19 PM, Hans Verkuil wrote:
->>>> Hi Mauro,
->>>>
->>>> Thanks for the RFC! Some initial comments below. I'll hope to do some more
->>>> testing and reviewing in the coming week.
->>>>
->>>
->>> <Snip>
->>>
->>>>> c) get_not_associated_device: Returns the next device not associated with
->>>>>                    an specific device type.
->>>>>
->>>>> char *get_not_associated_device(void *opaque,
->>>>>                  char *last_seek,
->>>>>                  enum device_type desired_type,
->>>>>                  enum device_type not_desired_type);
->>>>>
->>>>> The parameters are:
->>>>>
->>>>> opaque:            media devices opaque descriptor
->>>>> last_seek:        last seek result. Use NULL to get the first result
->>>>> desired_type:        type of the desired device
->>>>> not_desired_type:    type of the seek device
->>>>>
->>>>> This function seeks inside the media_devices struct for the next physical
->>>>> device that doesn't support a non_desired type.
->>>>> This method is useful for example to return the audio devices that are
->>>>> provided by the motherboard.
->>>>
->>>> Hmmm. What you really want IMHO is to iterate over 'media hardware', and for
->>>> each piece of hardware you can find the associated device nodes.
->>>>
->>>> It's what you expect to see in an application: a list of USB/PCI/Platform
->>>> devices to choose from.
->>>
->>> This is exactly what I was thinking, I was think along the lines of making
->>> the device_type enum bitmasks instead, and have a list devices functions,
->>> which lists all the "physical" media devices as "describing string",
->>> capabilities pairs, where capabilities would include things like sound
->>> in / sound out, etc.
->>
->> A bitmask for device_type in practice means that we'll have just 32 (or 64)
->> types of devices. Not sure if this is enough in the long term.
->>
-> 
-> Ok, so we may need to use a different mechanism. I'm trying to think from
-> the pov of what the average app needs when it comes to media device discovery,
-> and what it needs is a list of devices which have the capabilities it needs
-> (like for example video input). As mentioned in this thread earlier it might
-> be an idea to add an option to this new lib to filter the discovered
-> devices. We could do that, but with a bitmask containing capabilities, the
-> user of the lib can easily iterate over all found devices itself and
-> discard unwanted ones itself.
+Laurent,
+  Thank you for your comments. I have addressed all your suggestions.
 
-I think that one of the issues of the current device node name is that the
-kernel just names all video devices as "video???", no matter if such device
-is a video output device, a video input device, an analog TV device or a
-webcam.
+Please find my comments inline.
 
-IMO, we should be reviewing this policy, for example, to name video output
-devices as "video_out", and webcams as "webcam", and let udev to create
-aliases for the old namespace.
+Also,
+ Would you please review the patch again?
 
->> Grouping the discovered information together is not hard, but there's one
->> issue if we'll be opening devices to retrieve additional info: some devices
->> do weird stuff at open, like retrieving firmware, when the device is waking
->> from a suspend state. So, the discover procedure that currently happens in
->> usecs may take seconds. Ok, this is, in fact, a driver and/or hardware trouble,
->> but I think that having a separate method for it is a good idea.
-> 
-> WRT detection speed I agree we should avoid opening the nodes where possible,
-> so I guess that also means we may want a second "give me more detailed info"
-> call which an app can do an a per device (function) basis, or we could
-> leave this to the apps themselves.
+The branch is at:
+http://git.linuxtv.org/mhadli/v4l-dvb-davinci_devices.git?a=shortlog;h=refs/heads/forkhilman2
 
-I'm in favour of a "more detailed info" call.
+and the patch that you last reviewed was:
 
-> WRT grouping together, I think that the grouping view should be the primary
-> view / API, as that is what most apps will want to use ...
-
-In the case of tvtime/xawtv, the non-grouped devices may also be important, as they
-generally represent the default output device. Eventually, this information is
-also provided by libalsa, but I'm not sure if libalsa behave well if a video 
-device with audio output is probed before the motherboard-provided one.
-On one setup here, the hw:0 is generally the video board hardware.
-
->>> And then a function to get a device string (be it a device node
->>> or an alsa device string, whatever is appropriate) for each capability
->>> of a device.
->>
->> get_associated_device()/fget_associated_device() does it. It is generic enough to
->> work with all types of devices. So, having an alsa device, it can be used
->> to get the video device associated, or vice-versa.
-> 
-> This is very topology / association detection oriented, as said before
-> I don't think that is what the average app wants / needs, for example tvtime/xawtv
-> want:
-> 1) Give me a list v4l2 input devices with a tuner
-
-do {
-	vid = get_associated_device(md, vid, MEDIA_V4L_VIDEO, NULL, NONE);
-	if (!vid)
-		break;
-	printf("Video device: %s\n", vid);
-} while (vid);
+http://git.linuxtv.org/mhadli/v4l-dvb-davinci_devices.git?a=commit;h=690187eb05de65f1e63fc631ad4dc31358d01e55
 
 
-Of course, we may do something like:
+Thanks,
+-Manju
 
-#define get_video_devices(md, prev) get_associated_device(md, prev, MEDIA_V4L_VIDEO, NULL, NONE)
+On Mon, May 02, 2011 at 15:28:23, Laurent Pinchart wrote:
+> Hi Manjunath,
+>
+> On Tuesday 26 April 2011 16:47:45 Hadli, Manjunath wrote:
+> > Laurent,
+> >   Can you please review the patches with your suggestions from :
+> > http://git.linuxtv.org/mhadli/v4l-dvb-davinci_devices.git?a=shortlog;h
+> > =refs
+> > /heads/forkhilman2 and let me know if you think all your suggestions
+> > are taken care of?
+> >
+> > The patch you reviewed was :
+> >
+> > http://git.linuxtv.org/mhadli/v4l-dvb-davinci_devices.git?a=commitdiff
+> > ;h=69
+> > f60ed7577ab9184ceabd7efbe5bb3453bf7ef1;hp=a400604f47c339831880c50eda6f
+> > 6b032
+> > 21579e3
+>
+> I've reviewed the same patch, here are my comments.
+>
+> > +/*
+> > + * vpbe_display_isr()
+> > + * ISR function. It changes status of the displayed buffer, takes
+> > +next
+> buffer
+> > + * from the queue and sets its address in VPBE registers  */ static
+> > +void vpbe_display_isr(unsigned int event, struct vpbe_display
+> *disp_obj)
+> > +{
+> > +   struct osd_state *osd_device = disp_obj->osd_device;
+> > +   struct timespec timevalue;
+> > +   struct vpbe_layer *layer;
+> > +   unsigned long addr;
+> > +   int fid;
+> > +   int i;
+> > +
+> > +   ktime_get_ts(&timevalue);
+> > +
+> > +   for (i = 0; i < VPBE_DISPLAY_MAX_DEVICES; i++) {
+> > +           layer = disp_obj->dev[i];
+> > +           /* If streaming is started in this layer */
+> > +           if (!layer->started)
+> > +                   continue;
+>
+> What about moving everything above to venc_isr(), and having this function handle a single layer only ? It will lower the max indentation level. I also wonder whether you couldn't share some code between the non-interlaced and the interlaced cases by reorganizing the function body (the fid == 1 code looks quite similar to the non-interlaced code).
+To make it very clean I have broken the isr in a different way and tried to neatly arrange it. It has now been made qute small and re-usable.Hope you like it.
+>
+> [snip]
+>
+> > +/**
+> > + * vpbe_try_format()
+> > + * If user application provides width and height, and have
+> > +bytesperline set
+> > + * to zero, driver calculates bytesperline and sizeimage based on
+> > +hardware
+> > + * limits. If application likes to add pads at the end of each line
+> > +and
+> > + * end of the buffer , it can set bytesperline to line size and
+> > +sizeimage
+> to
+> > + * bytesperline * height of the buffer. If driver fills zero for
+> > + active
+> > + * video width and height, and has requested user bytesperline and
+> sizeimage,
+> > + * width and height is adjusted to maximum display limit or buffer
+> > + width
+> > + * height which ever is lower
+>
+> This still sounds a bit cryptic to me.
+>
+> vpbe_try_format() should return a format closest to what the user requested:
+>
+> - If the pixel format is invalid, select a default value (done)
+> - If the field is invalid or not specified, select a default value (partly
+>   done, you don't check for default values)
+> - If width and/or height are invalid (including being set to 0), select
+>   default values (partly done, you compute width/height based on bytesperline
+>   and sizeimage when they're set to 0, and I don't understand why)
+> - If bytesperline is invalid (smaller than the minimum value according to the
+>   selected width, or larger than the maximum allowable value), fix it
+> - If sizeimage is invalid (smaller than the minimum value according the the
+>   selected height and bytesperline), fix it
+>
+> Is there a need to allow sizeimage values different than height * bytesperline ?
 
+Cleaned and taken care of.
+>
+> > + */
+>
+> [snip]
+>
+> > +static int vpbe_display_querycap(struct file *file, void  *priv,
+> > +                          struct v4l2_capability *cap) {
+> > +   struct vpbe_fh *fh = file->private_data;
+> > +   struct vpbe_device *vpbe_dev = fh->disp_dev->vpbe_dev;
+> > +
+> > +   cap->version = VPBE_DISPLAY_VERSION_CODE;
+> > +   cap->capabilities = V4L2_CAP_VIDEO_OUTPUT | V4L2_CAP_STREAMING;
+> > +   strlcpy(cap->driver, VPBE_DISPLAY_DRIVER, sizeof(cap->driver));
+> > +   strlcpy(cap->bus_info, "platform", sizeof(cap->bus_info));
+> > +   /* check the name of davinci device */
+> > +   if (vpbe_dev->cfg->module_name != NULL)
+>
+> module_name can't be NULL, as it's declared as a char[32].
+>
+> > +           strlcpy(cap->card, vpbe_dev->cfg->module_name,
+> > +                   sizeof(cap->card));
+> > +
+> > +   return 0;
+> > +}
+>
+> [snip]
+>
+> > +static int vpbe_display_g_fmt(struct file *file, void *priv,
+> > +                           struct v4l2_format *fmt)
+> > +{
+> > +   struct vpbe_fh *fh = file->private_data;
+> > +   struct vpbe_layer *layer = fh->layer;
+> > +   struct vpbe_device *vpbe_dev = fh->disp_dev->vpbe_dev;
+> > +
+> > +   v4l2_dbg(1, debug, &vpbe_dev->v4l2_dev,
+> > +                   "VIDIOC_G_FMT, layer id = %d\n",
+> > +                   layer->device_id);
+> > +
+> > +   /* If buffer type is video output */
+> > +   if (V4L2_BUF_TYPE_VIDEO_OUTPUT == fmt->type) {
+> > +           /* Fill in the information about format */
+> > +           fmt->fmt.pix = layer->pix_fmt;
+> > +   } else {
+> > +           v4l2_err(&vpbe_dev->v4l2_dev, "invalid type\n");
+> > +           return -EINVAL;
+> > +   }
+>
+> You should do it the other way around. Return -EINVAL when the type isn't OUTPUT, and remove the else. This will increase code readability by decreasing the max indentation level in the common case.
+Done.
+>
+> > +
+> > +   return 0;
+> > +}
+>
+> [snip]
+>
+> > +/**
+> > + * vpbe_display_enum_output - enumerate outputs
+> > + *
+> > + * Enumerates the outputs available at the vpbe display
+> > + * returns the status, -EINVAL if end of output list  */ static int
+> > +vpbe_display_enum_output(struct file *file, void *priv,
+> > +                               struct v4l2_output *output)
+> > +{
+> > +   struct vpbe_fh *fh = priv;
+> > +   struct vpbe_device *vpbe_dev = fh->disp_dev->vpbe_dev;
+> > +   int ret;
+> > +
+> > +   v4l2_dbg(1, debug, &vpbe_dev->v4l2_dev, "VIDIOC_ENUM_OUTPUT\n");
+> > +
+> > +   /* Enumerate outputs */
+> > +
+> > +   if (NULL != vpbe_dev->ops.enum_outputs) {
+> > +           ret = vpbe_dev->ops.enum_outputs(vpbe_dev, output);
+> > +           if (ret) {
+> > +                   v4l2_dbg(1, debug, &vpbe_dev->v4l2_dev,
+> > +                           "Failed to enumerate outputs\n");
+> > +                   return -EINVAL;
+> > +           }
+> > +   } else {
+> > +           return -EINVAL;
+> > +   }
+>
+> Other way around here too please.
+Done.
+>
+> > +
+> > +   return 0;
+> > +}
+> > +
+> > +/**
+> > + * vpbe_display_s_output - Set output to
+> > + * the output specified by the index
+> > + */
+> > +static int vpbe_display_s_output(struct file *file, void *priv,
+> > +                           unsigned int i)
+> > +{
+> > +   struct vpbe_fh *fh = priv;
+> > +   struct vpbe_layer *layer = fh->layer;
+> > +   struct vpbe_device *vpbe_dev = fh->disp_dev->vpbe_dev;
+> > +   int ret;
+> > +
+> > +   v4l2_dbg(1, debug, &vpbe_dev->v4l2_dev, "VIDIOC_S_OUTPUT\n");
+> > +   /* If streaming is started, return error */
+> > +   if (layer->started) {
+> > +           v4l2_err(&vpbe_dev->v4l2_dev, "Streaming is started\n");
+> > +           return -EBUSY;
+> > +   }
+> > +   if (NULL != vpbe_dev->ops.set_output) {
+> > +           ret = vpbe_dev->ops.set_output(vpbe_dev, i);
+> > +           if (ret) {
+> > +                   v4l2_err(&vpbe_dev->v4l2_dev,
+> > +                           "Failed to set output for sub devices\n");
+> > +                   return -EINVAL;
+> > +           }
+> > +   } else {
+> > +           return -EINVAL;
+> > +   }
+>
+> And here too.
+Done.
+>
+> > +
+> > +   return 0;
+> > +}
+>
+> [snip]
+>
+> > +static __devinit int init_vpbe_layer(int i, struct vpbe_display *disp_dev,
+> > +                                struct platform_device *pdev) {
+> > +   struct vpbe_layer *vpbe_display_layer = NULL;
+> > +   struct video_device *vbd = NULL;
+> > +   int k;
+> > +   int err;
+> > +
+> > +   /* Allocate memory for four plane display objects */
+> > +
+> > +   disp_dev->dev[i] =
+> > +           kmalloc(sizeof(struct vpbe_layer), GFP_KERNEL);
+>
+> You can use kzalloc() and avoid several initializations to 0 below.
+Sure.
 
-> 2) Give me the sound device to read sound from associated to
->    v4l2 input device foo (the one the user just selected).
-
-const char *alsa = fget_associated_device(md, NULL, MEDIA_SND_CAP, fd, MEDIA_V4L_VIDEO);
-
-An alias for it can also be provided.
-
-> I realize that this can be done with the current API too, I'm just
-> saying that it might be better to give the enumeration of physical devices
-> a more prominent role, as well as getting a user friendly name for
-> the physical device.
-
-Yeah, getting a friendly name would be nice. It should be noticed that udev does
-it already on RHEL6/Fedora 15 (newer versions of udev?):
-
-$ tree /dev/v4l/ /dev/video*
-/dev/v4l/
-├── by-id
-│   └── usb-Vimicro_Corp._Sirius_USB2.0_Camera-video-index0 -> ../../video1
-└── by-path
-    └── pci-0000:00:1d.7-usb-0:8.2:1.0-video-index0 -> ../../video1
-/dev/video0 [error opening dir]
-/dev/video1 [error opening dir]
-/dev/video2 [error opening dir]
-
-(weird: it didn't catch the names for vivi and for hvr-950).
-
-More research about it is needed, but, at least on some cases, it can be done without
-needing to open the device node.
-
-> 
+>
+> > +
+> > +   /* If memory allocation fails, return error */
+> > +   if (!disp_dev->dev[i]) {
+> > +           printk(KERN_ERR "ran out of memory\n");
+> > +           err = -ENOMEM;
+> > +           goto free_mem;
+> > +   }
+> > +   spin_lock_init(&disp_dev->dev[i]->irqlock);
+> > +   mutex_init(&disp_dev->dev[i]->opslock);
+> > +
+> > +   /* Get the pointer to the layer object */
+> > +   vpbe_display_layer = disp_dev->dev[i];
+> > +   /* Allocate memory for video device */
+> > +   vbd = video_device_alloc();
+>
+> There's no need to allocate the device dynamically, you can embed struct video_device into struct vpbe_layer (i.e. replace struct video_device *video_dev with struct video_device video_dev inside struct vpbe_layer)
+>
+> (and feel free to rename video_dev to something shorter if needed)
+Done. Did not do the renaming though.
+>
+> > +   if (vbd == NULL) {
+> > +           v4l2_err(&disp_dev->vpbe_dev->v4l2_dev,
+> > +                           "ran out of memory\n");
+> > +           err = -ENOMEM;
+> > +           goto free_mem;
+> > +   }
+> > +   /* Initialize field of video device */
+> > +   vbd->release    = video_device_release;
+>
+> You should then use video_device_release_empty instead of video_device_release.
+Ok.
+>
+> > +   vbd->fops       = &vpbe_fops;
+> > +   vbd->ioctl_ops  = &vpbe_ioctl_ops;
+> > +   vbd->minor      = -1;
+> > +   vbd->v4l2_dev   = &disp_dev->vpbe_dev->v4l2_dev;
+> > +   vbd->lock       = &vpbe_display_layer->opslock;
+> > +
+> > +   if (disp_dev->vpbe_dev->current_timings.timings_type &
+> > +                   VPBE_ENC_STD) {
+> > +           vbd->tvnorms = (V4L2_STD_525_60 | V4L2_STD_625_50);
+> > +           vbd->current_norm =
+> > +                   disp_dev->vpbe_dev->
+> > +                   current_timings.timings.std_id;
+> > +   } else
+> > +           vbd->current_norm = 0;
+> > +
+> > +   snprintf(vbd->name, sizeof(vbd->name),
+> > +                   "DaVinci_VPBE Display_DRIVER_V%d.%d.%d",
+> > +                   (VPBE_DISPLAY_VERSION_CODE >> 16) & 0xff,
+> > +                   (VPBE_DISPLAY_VERSION_CODE >> 8) & 0xff,
+> > +                   (VPBE_DISPLAY_VERSION_CODE) & 0xff);
+> > +
+> > +   /* Set video_dev to the video device */
+> > +   vpbe_display_layer->video_dev = vbd;
+> > +   vpbe_display_layer->device_id = i;
+> > +
+> > +   vpbe_display_layer->layer_info.id =
+> > +           ((i == VPBE_DISPLAY_DEVICE_0) ? WIN_VID0 : WIN_VID1);
+> > +
+> > +   /* Initialize field of the display layer objects */
+> > +   vpbe_display_layer->usrs = 0;
+> > +   vpbe_display_layer->io_usrs = 0;
+> > +   vpbe_display_layer->started = 0;
+> > +
+> > +   /* Initialize prio member of layer object */
+> > +   v4l2_prio_init(&vpbe_display_layer->prio);
+> > +
+> > +   return 0;
+> > +
+> > +free_mem:
+> > +   for (k = 0; k < i-1; k++) {
+> > +           /* Get the pointer to the layer object */
+> > +           vpbe_display_layer = disp_dev->dev[k];
+> > +           /* Release video device */
+> > +           video_device_release(vpbe_display_layer->video_dev);
+> > +           vpbe_display_layer->video_dev = NULL;
+> > +           /* free layer memory */
+> > +           kfree(disp_dev->dev[k]);
+> > +   }
+>
+> This should be moved to the error cleanup part of vpbe_display_probe(). A function that registers a single device shouldn't clean other devices up in case of error.
+Done.
+>
+> > +
+> > +   return -ENODEV;
+> > +}
+> > +
+> > +static __devinit int register_devices(int i, struct vpbe_display *disp_dev,
+> > +                                 struct platform_device *pdev) {
+>
+> This registers a single device, so I would call it vpbe_register_device.
+>
+> > +   struct vpbe_layer *vpbe_display_layer = NULL;
+> > +   int err;
+> > +   int k;
+> > +
+> > +   vpbe_display_layer = disp_dev->dev[i];
+>
+> Please pass disp_dev->dev[i] to the function instead of i.
+Done.
+>
+> > +   v4l2_info(&disp_dev->vpbe_dev->v4l2_dev,
+> > +             "Trying to register VPBE display device.\n");
+> > +   v4l2_info(&disp_dev->vpbe_dev->v4l2_dev,
+> > +             "layer=%x,layer->video_dev=%x\n",
+> > +             (int)vpbe_display_layer,
+> > +             (int)&vpbe_display_layer->video_dev);
+> > +
+> > +   err = video_register_device(vpbe_display_layer->video_dev,
+> > +                               VFL_TYPE_GRABBER,
+> > +                               -1);
+> > +   if (err)
+> > +           goto video_register_failed;
+> > +
+> > +   vpbe_display_layer->disp_dev = disp_dev;
+> > +   /* set the driver data in platform device */
+> > +   platform_set_drvdata(pdev, disp_dev);
+> > +   video_set_drvdata(vpbe_display_layer->video_dev,
+> > +                     vpbe_display_layer);
+> > +
+> > +   return 0;
+> > +
+> > +video_register_failed:
+> > +   for (k = 0; k < i-1; k++)
+> > +           video_unregister_device(vpbe_display_layer->video_dev);
+> > +
+> > +   for (k = 0; k < VPBE_DISPLAY_MAX_DEVICES; k++) {
+> > +           /* Get the pointer to the layer object */
+> > +           vpbe_display_layer = disp_dev->dev[k];
+> > +           /* Release video device */
+> > +           video_device_release(vpbe_display_layer->video_dev);
+> > +           /* Unregister video device */
+> > +           video_unregister_device(vpbe_display_layer->video_dev);
+> > +           vpbe_display_layer->video_dev = NULL;
+> > +           /* free layer memory */
+> > +           kfree(disp_dev->dev[k]);
+> > +   }
+>
+> This should be moved to the error cleanup part of vpbe_display_probe() as well.
+Done.
+>
+> > +   return -ENODEV;
+> > +}
+> > +
+> > +
+> > +
+> > +/*
+> > + * vpbe_display_probe()
+> > + * This function creates device entries by register itself to the
+> > +V4L2
+> driver
+> > + * and initializes fields of each layer objects  */ static __devinit
+> > +int vpbe_display_probe(struct platform_device *pdev) {
+> > +   struct vpbe_display *disp_dev;
+> > +   struct resource *res;
+> > +   int i;
+> > +   int err;
+> > +   int irq;
+> > +
+> > +   printk(KERN_DEBUG "vpbe_display_probe\n");
+> > +   /* Allocate memory for vpbe_display */
+> > +   disp_dev = kzalloc(sizeof(struct vpbe_display), GFP_KERNEL);
+> > +   if (!disp_dev) {
+> > +           printk(KERN_ERR "ran out of memory\n");
+> > +           return -ENOMEM;
+> > +   }
+> > +
+> > +   spin_lock_init(&disp_dev->dma_queue_lock);
+> > +   /*
+> > +    * Scan all the platform devices to find the vpbe
+> > +    * controller device and get the vpbe_dev object
+> > +    */
+> > +   err = bus_for_each_dev(&platform_bus_type, NULL, disp_dev,
+> > +                   vpbe_device_get);
+> > +   if (err < 0)
+> > +           return err;
+> > +   /* Initialize the vpbe display controller */
+> > +   if (NULL != disp_dev->vpbe_dev->ops.initialize) {
+> > +           err = disp_dev->vpbe_dev->ops.initialize(&pdev->dev,
+> > +                                                    disp_dev->vpbe_dev);
+> > +           if (err) {
+> > +                   v4l2_err(&disp_dev->vpbe_dev->v4l2_dev,
+> > +                                   "Error initing vpbe\n");
+> > +                   err = -ENOMEM;
+> > +                   goto probe_out;
+> > +           }
+> > +   }
+> > +
+> > +   for (i = 0; i < VPBE_DISPLAY_MAX_DEVICES; i++) {
+> > +           if (init_vpbe_layer(i, disp_dev, pdev)) {
+> > +                   err = -ENODEV;
+> > +                   goto probe_out;
+> > +           }
+> > +   }
+> > +
+> > +   res = platform_get_resource(pdev, IORESOURCE_IRQ, 0);
+> > +   if (!res) {
+> > +           v4l2_err(&disp_dev->vpbe_dev->v4l2_dev,
+> > +                    "Unable to get VENC interrupt resource\n");
+> > +           err = -ENODEV;
+> > +           goto probe_out;
+> > +   }
+> > +
+> > +   irq = res->start;
+> > +   if (request_irq(irq, venc_isr,  IRQF_DISABLED, VPBE_DISPLAY_DRIVER,
+> > +           disp_dev)) {
+> > +           v4l2_err(&disp_dev->vpbe_dev->v4l2_dev,
+> > +                           "Unable to request interrupt\n");
+> > +           err = -ENODEV;
+> > +           goto probe_out;
+> > +   }
+> > +
+> > +   for (i = 0; i < VPBE_DISPLAY_MAX_DEVICES; i++) {
+> > +           if (register_devices(i, disp_dev, pdev)) {
+> > +                   err = -ENODEV;
+> > +                   goto probe_out;
+> > +           }
+> > +   }
+> > +
+> > +   printk(KERN_DEBUG "Successfully completed the probing of vpbe v4l2
+> device\n");
+> > +   return 0;
+> > +
+> > +probe_out:
+>
+> You need to unregister the IRQ handler (and move the cleanup code from the two previous functions here).
+Done.
+>
+> > +   kfree(disp_dev);
+> > +   return err;
+> > +}
+>
+> [snip]
+>
+> > +/* Function for module initialization and cleanup */
+> > +module_init(vpbe_display_init); module_exit(vpbe_display_cleanup);
+> > +
+> > +MODULE_DESCRIPTION("TI DMXXX VPBE Display controller");
+>
+> What about "TI DM644x/DM355/DM365" then ? DMXXX makes it look like it supports all DaVinci chips.
+Done.
+>
+> > +MODULE_LICENSE("GPL");
+> > +MODULE_AUTHOR("Texas Instruments");
+>
+> --
 > Regards,
-> 
-> Hans
-> -- 
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>
+> Laurent Pinchart
+>
 
