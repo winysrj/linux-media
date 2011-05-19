@@ -1,93 +1,138 @@
 Return-path: <mchehab@pedra>
-Received: from mxout002.mail.hostpoint.ch ([217.26.49.181]:63552 "EHLO
-	mxout002.mail.hostpoint.ch" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754025Ab1E3MHR (ORCPT
+Received: from mail-pv0-f174.google.com ([74.125.83.174]:46102 "EHLO
+	mail-pv0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S934812Ab1ESVeF (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 30 May 2011 08:07:17 -0400
-Message-ID: <4DE38872.9090501@section5.ch>
-Date: Mon, 30 May 2011 14:07:14 +0200
-From: Martin Strubel <hackfin@section5.ch>
-MIME-Version: 1.0
-To: Hans Verkuil <hverkuil@xs4all.nl>
-CC: linux-media@vger.kernel.org
-Subject: Re: v4l2 device property framework in userspace
-References: <4DE244F4.90203@section5.ch>    <201105300932.59570.hverkuil@xs4all.nl>    <4DE365A8.9050508@section5.ch> <322765c00a668d7915214de27d3debe7.squirrel@webmail.xs4all.nl>
-In-Reply-To: <322765c00a668d7915214de27d3debe7.squirrel@webmail.xs4all.nl>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+	Thu, 19 May 2011 17:34:05 -0400
+From: Jim Cromie <jim.cromie@gmail.com>
+To: linux-kernel@vger.kernel.org
+Cc: gregkh@suse.de, Jim Cromie <jim.cromie@gmail.com>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	linux-media@vger.kernel.org
+Subject: [PATCH 06/23] use register_chrdev_ids in drivers/media/
+Date: Thu, 19 May 2011 15:33:09 -0600
+Message-Id: <1305840792-25877-7-git-send-email-jim.cromie@gmail.com>
+In-Reply-To: <1305840792-25877-1-git-send-email-jim.cromie@gmail.com>
+References: <1305840792-25877-1-git-send-email-jim.cromie@gmail.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Hi Hans,
+Since new api passes dev_t*, hoist inline MKDEV out to local var
+assignment, and replace other inline MKDEVs with new var.
 
-> 
-> Can you give examples of the sort of things that are in those registers?
-> Is that XML file available somewhere? Are there public datasheets?
-> 
+This and 2 subsequent patches brought to you by coccinelle/spatch
 
-If you mean the sensor datasheets, many of them are buried behind NDAs,
-but people are writing opensourced headers too...let's leave this to the
-lawyers.
+cc: Mauro Carvalho Chehab <mchehab@infradead.org>
+cc: linux-media@vger.kernel.org
 
-Here's an example: http://section5.ch/downloads/mt9d111.xml
-The XSLT sheets to generate code from it are found in the netpp
-distribution, see http://www.section5.ch/netpp. You might have to read
-some of the documentation to get to the actual clues.
+@ rcr_md @
+identifier f;
+expression major, minor;
+expression ct, name;
+@@
 
-> BTW, you should need just a single control handler that just looks up all
-> the relevant information in a table.
+	f(...) {
+// ++ gives multiple inserts, needed for tty_io.c, fix up manually
+// fresh identifier apparently also helps here
+++	dev_t devt;
+++	devt = MKDEV(major,minor);
 
-Right. It might be not too much work to write an appropriate XSLT for
-that. In fact, the netpp TOKENs (see it as a handle or proxy for a
-property) are 32 bit values, so they could be used to hold ioctl request
-codes. However, there are some enumeration/mapping (TOKEN -> Property)
-issues to be sorted out.
-In the standard implementation, a TOKEN is merely a mangled index, and
-we generate a table with elements like:
+<+...
+-	register_chrdev_region
++	register_chrdev_ids
+	(
+-	MKDEV(major,minor),
++	&devt,
+	ct, name)
+...+>
 
-	{ "Enable" /* id250673 */,  DC_BOOL,
-		F_RW,
-		DC_VAR, { .varp_bool = &g_context.hist_enable },
-		0 /* no children */ },
+}
 
-So coding efforts could again be kept at a minimum (apart from the
-horror of writing an XSLT), but you'd fill some bytes with the above
-table data. For the kernel, the property names (the string) should be
-probably stripped and turned into ioctl request codes (?).
+@ all_md depends on rcr_md @	// where above changes made, also do
+identifier f;
+expression major, minor;
+@@
 
-For some utopia, it would be darn cool (for lazy people) if device
-vendors provided register information in XML and the kernel would just
-access them via generated property tables.
+	f(...) {
+	dev_t devt;
+	devt = MKDEV(major,minor);
 
-> If V4L2 drivers want to go into the kernel, then it is highly unlikely we
-> want to allow uio drivers. Such drivers cannot be reused. A typical sensor
-> can be used by many vendors and products. By ensuring that access to the
-> sensor is standardized you ensure that anyone can use that sensor and that
-> fixes/improvements to that sensor will benefit everyone.
-> 
-> You don't have that with uio, and that's the reason we don't want it
-> (other reasons are possible abuse of uio allowing closed source drivers
-> being build on top of it).
-> 
+<+...
+-	MKDEV(major,minor)
++	devt
+...+>
+	}
 
-Right. I'm aware that there's some discussion about pro/cons of uio, but
-I won't blame people for doing closed source drivers. Also, to bring
-back the above NDA topic, some vendors might be getting annoyed at
-source code containing their 'protected' register information. But let's
-keep this off topic for now.
+Signed-off-by: Jim Cromie <jim.cromie@gmail.com>
+---
+ drivers/media/dvb/dvb-core/dvbdev.c |    6 ++++--
+ drivers/media/media-devnode.c       |    3 +--
+ drivers/media/rc/lirc_dev.c         |    4 ++--
+ drivers/media/video/v4l2-dev.c      |    2 +-
+ 4 files changed, 8 insertions(+), 7 deletions(-)
 
-Anyhow, with the framework we use I don't see many problems in terms of
-reusability, because we generate most of the stuff. So you would be free
-to put all sensor properties into a kernel module as well (provided,
-that the XML files are 'free'). But for our embedded stuff (or rapid
-prototyping), I'd still want to see "userspace", also for the reason to
-quickly add a new sensor device or property without the need to
-recompile the kernel
-This is BTW a big issue for some embedded linux device vendors.
-So my question is still up, if there's room for userspace handlers for
-kernel events (ioctl requests). Our current hack is, to read events from
-a char device and push them through netpp.
+diff --git a/drivers/media/dvb/dvb-core/dvbdev.c b/drivers/media/dvb/dvb-core/dvbdev.c
+index f732877..225b9d5 100644
+--- a/drivers/media/dvb/dvb-core/dvbdev.c
++++ b/drivers/media/dvb/dvb-core/dvbdev.c
+@@ -464,8 +464,10 @@ static int __init init_dvbdev(void)
+ 	int retval;
+ 	dev_t dev = MKDEV(DVB_MAJOR, 0);
+ 
+-	if ((retval = register_chrdev_region(dev, MAX_DVB_MINORS, "DVB")) != 0) {
+-		printk(KERN_ERR "dvb-core: unable to get major %d\n", DVB_MAJOR);
++	retval = register_chrdev_ids(&dev, MAX_DVB_MINORS, "DVB");
++	if (retval != 0) {
++		printk(KERN_ERR "dvb-core: unable to get major %d\n",
++		       DVB_MAJOR);
+ 		return retval;
+ 	}
+ 
+diff --git a/drivers/media/media-devnode.c b/drivers/media/media-devnode.c
+index af5263c..e45f322 100644
+--- a/drivers/media/media-devnode.c
++++ b/drivers/media/media-devnode.c
+@@ -289,8 +289,7 @@ static int __init media_devnode_init(void)
+ 	int ret;
+ 
+ 	printk(KERN_INFO "Linux media interface: v0.10\n");
+-	ret = alloc_chrdev_region(&media_dev_t, 0, MEDIA_NUM_DEVICES,
+-				  MEDIA_NAME);
++	ret = register_chrdev_ids(&media_dev_t, MEDIA_NUM_DEVICES, MEDIA_NAME);
+ 	if (ret < 0) {
+ 		printk(KERN_WARNING "media: unable to allocate major\n");
+ 		return ret;
+diff --git a/drivers/media/rc/lirc_dev.c b/drivers/media/rc/lirc_dev.c
+index fd237ab..28f2968 100644
+--- a/drivers/media/rc/lirc_dev.c
++++ b/drivers/media/rc/lirc_dev.c
+@@ -780,11 +780,11 @@ static int __init lirc_dev_init(void)
+ 		goto error;
+ 	}
+ 
+-	retval = alloc_chrdev_region(&lirc_base_dev, 0, MAX_IRCTL_DEVICES,
++	retval = register_chrdev_ids(&lirc_base_dev, MAX_IRCTL_DEVICES,
+ 				     IRCTL_DEV_NAME);
+ 	if (retval) {
+ 		class_destroy(lirc_class);
+-		printk(KERN_ERR "lirc_dev: alloc_chrdev_region failed\n");
++		printk(KERN_ERR "lirc_dev: register_chrdev_ids() failed\n");
+ 		goto error;
+ 	}
+ 
+diff --git a/drivers/media/video/v4l2-dev.c b/drivers/media/video/v4l2-dev.c
+index 6dc7196..9ae24e2 100644
+--- a/drivers/media/video/v4l2-dev.c
++++ b/drivers/media/video/v4l2-dev.c
+@@ -761,7 +761,7 @@ static int __init videodev_init(void)
+ 	int ret;
+ 
+ 	printk(KERN_INFO "Linux video capture interface: v2.00\n");
+-	ret = register_chrdev_region(dev, VIDEO_NUM_DEVICES, VIDEO_NAME);
++	ret = register_chrdev_ids(&dev, VIDEO_NUM_DEVICES, VIDEO_NAME);
+ 	if (ret < 0) {
+ 		printk(KERN_WARNING "videodev: unable to get major %d\n",
+ 				VIDEO_MAJOR);
+-- 
+1.7.4.4
 
-Greetings,
-
-- Martin
