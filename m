@@ -1,102 +1,123 @@
-Return-path: <mchehab@gaivota>
-Received: from 64.mail-out.ovh.net ([91.121.185.65]:53778 "HELO
-	64.mail-out.ovh.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1752975Ab1EMBgQ (ORCPT
+Return-path: <mchehab@pedra>
+Received: from mail.meprolight.com ([194.90.149.17]:34018 "EHLO meprolight.com"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1756558Ab1ESMwF convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 12 May 2011 21:36:16 -0400
-Date: Fri, 13 May 2011 03:25:20 +0200
-From: Jean-Christophe PLAGNIOL-VILLARD <plagnioj@jcrosoft.com>
-To: Ryan Mallon <ryan@bluewatersys.com>
-Cc: Josh Wu <josh.wu@atmel.com>, mchehab@redhat.com,
-	linux-kernel@vger.kernel.org, lars.haring@atmel.com,
-	g.liakhovetski@gmx.de, linux-arm-kernel@lists.infradead.org,
-	linux-media@vger.kernel.org
-Subject: Re: [PATCH] [media] at91: add Atmel Image Sensor Interface (ISI)
- support
-Message-ID: <20110513012520.GL18952@game.jcrosoft.org>
-References: <1305186138-5656-1-git-send-email-josh.wu@atmel.com>
- <4DCC5040.6050300@bluewatersys.com>
+	Thu, 19 May 2011 08:52:05 -0400
+From: Alex Gershgorin <alexg@meprolight.com>
+To: Alex Gershgorin <alexg@meprolight.com>,
+	"'linux-media@vger.kernel.org'" <linux-media@vger.kernel.org>
+CC: "'sakari.ailus@iki.fi'" <sakari.ailus@iki.fi>,
+	"'laurent.pinchart@ideasonboard.com'"
+	<laurent.pinchart@ideasonboard.com>,
+	"'agersh@rambler.ru'" <agersh@rambler.ru>
+Date: Thu, 19 May 2011 15:51:16 +0300
+Subject: RE: FW: OMAP 3 ISP
+Message-ID: <4875438356E7CA4A8F2145FCD3E61C0B15D3557D38@MEP-EXCH.meprolight.com>
+In-Reply-To: <4875438356E7CA4A8F2145FCD3E61C0B15D3557D37@MEP-EXCH.meprolight.com>
+Content-Language: en-US
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <4DCC5040.6050300@bluewatersys.com>
 List-ID: <linux-media.vger.kernel.org>
-Sender: Mauro Carvalho Chehab <mchehab@gaivota>
+Sender: <mchehab@pedra>
 
-> > +
-> > +/* Constants for RGB_CFG(ISI_V2) */
-> > +#define ISI_V2_RGB_CFG_DEFAULT			0
-> > +#define ISI_V2_RGB_CFG_MODE_1			1
-> > +#define ISI_V2_RGB_CFG_MODE_2			2
-> > +#define ISI_V2_RGB_CFG_MODE_3			3
-> > +
-> > +/* Bit manipulation macros */
-> > +#define ISI_BIT(name)					\
-> > +	(1 << ISI_##name##_OFFSET)
-> > +#define ISI_BF(name, value)				\
-> > +	(((value) & ((1 << ISI_##name##_SIZE) - 1))	\
-> > +	 << ISI_##name##_OFFSET)
-> > +#define ISI_BFEXT(name, value)				\
-> > +	(((value) >> ISI_##name##_OFFSET)		\
-> > +	 & ((1 << ISI_##name##_SIZE) - 1))
-> > +#define ISI_BFINS(name, value, old)			\
-> > +	(((old) & ~(((1 << ISI_##name##_SIZE) - 1)	\
-> > +		    << ISI_##name##_OFFSET))\
-> > +	 | ISI_BF(name, value))
-> 
-> I really dislike this kind of register access magic. Not sure how others
-> feel about it. These macros are really ugly.
-> 
-> > +/* Register access macros */
-> > +#define isi_readl(port, reg)				\
-> > +	__raw_readl((port)->regs + ISI_##reg)
-> > +#define isi_writel(port, reg, value)			\
-> > +	__raw_writel((value), (port)->regs + ISI_##reg)
-> 
-> If the token pasting stuff gets dropped then these can be static inline
-> functions which is preferred.
-Sorry this make the C code much readable
-and this can not be done as a inline
 
-so please keep it as is
-> 
-> > +
-> > +#define ATMEL_V4L2_VID_FLAGS (V4L2_CAP_VIDEO_OUTPUT)
-> > +
-> > +struct atmel_isi;
-> > +
-> > +enum atmel_isi_pixfmt {
-> > +	ATMEL_ISI_PIXFMT_GREY,		/* Greyscale */
+Thanks Laurent,
 
-> > +		dev_info(&pdev->dev,
-> > +			"No config available using default values\n");
-> > +		pdata = &isi_default_data;
-> > +	}
-> > +
-> > +	isi->pdata = pdata;
-> > +	isi->platform_flags = pdata->flags;
-> > +	if (isi->platform_flags == 0)
-> > +		isi->platform_flags = ISI_DATAWIDTH_8;
-> 
-> We could be mean here an require that people get the flags correct, e.g.
-> 
-> 	if (!((isi->platform_flags & ISI_DATA_WIDTH_8) ||
-> 	      (isi->platform_flags & ISI_DATA_WIDTH_8))) {
-> 		dev_err(&pdev->dev, "No data width specified\n");
-> 		err = -ENOMEM;
-> 		goto fail;
-> 	}
-> 
-> Which discourages sloppy coding in the board files.
-if this means default configuration so not need to have all board to set it
-> 
-> > +
-> > +	isi_writel(isi, V2_CTRL, ISI_BIT(V2_DIS));
-> > +	/* Check if module disable */
-> > +	while (isi_readl(isi, V2_STATUS) & ISI_BIT(V2_DIS))
-> > +		cpu_relax();
-> > +
-> > +	irq = platform_get_irq(pdev, 0);
+My video source is not the video camera and performs many other functions.
+For this purpose I have RS232 port.
+As for the video, it runs continuously and is not subject to control except for the power supply.
+
+Regards,
+Alex Gershgorin
+
+
+Can the video source be controlled at all, or is it always running?
+If it can be controlled, how do you control it?
+
+Regards,
+Laurent Pinchart
+
+-----Original Message-----
+From: Alex Gershgorin
+Sent: Thursday, May 19, 2011 2:36 PM
+To: 'linux-media@vger.kernel.org'
+Cc: 'sakari.ailus@iki.fi'; 'laurent.pinchart@ideasonboard.com'; 'agersh@rambler.ru'
+Subject: FW: FW: OMAP 3 ISP
+
+Thanks for your quick response :-)
+
+Unfortunately, my video source has no additional interfaces.
 
 Best Regards,
-J.
+Alex Gershgorin
+Embedded Software Engineer
+E-mail: alexg@meprolight.com
+
+-----Original Message-----
+From: Sakari Ailus [mailto:sakari.ailus@iki.fi]
+Sent: Thursday, May 19, 2011 2:09 PM
+To: Alex Gershgorin
+Cc: 'agersh@rambler.ru'
+Subject: Re: FW: OMAP 3 ISP
+
+On Thu, May 19, 2011 at 12:08:41PM +0300, Alex Gershgorin wrote:
+>
+>
+>
+>
+>  Hi Sakari,
+
+Hi Alex,
+
+>
+>
+> We wish to develop video device and use omap3530.
+>
+> Our video source has an 8-bit raw data, vertical and horizontal signals,
+> and has no i2c bus.
+>
+> I was briefly acquainted with Linux OMAP 3 Image Signal Processor (ISP)
+> and found, that
+>
+> to register video device I need to provide I2C subdevs board information
+> array, but my device does not have i2c information.
+>
+> I'm asking for your support on this issue.
+
+Does your image data source have some other kind of control interface,
+possibly SPI?
+
+Please reply to linux-media@vger.kernel.org and cc myself and
+laurent.pinchart@ideasonboard.com.
+
+Regards,
+
+--
+Sakari Ailus
+sakari dot ailus at iki dot fi
+
+
+__________ Information from ESET NOD32 Antivirus, version of virus signature database 6134 (20110519) __________
+
+The message was checked by ESET NOD32 Antivirus.
+
+http://www.eset.com
+
+
+
+__________ Information from ESET NOD32 Antivirus, version of virus signature database 6134 (20110519) __________
+
+The message was checked by ESET NOD32 Antivirus.
+
+http://www.eset.com
+
+
+
+__________ Information from ESET NOD32 Antivirus, version of virus signature database 6134 (20110519) __________
+
+The message was checked by ESET NOD32 Antivirus.
+
+http://www.eset.com
+
