@@ -1,69 +1,50 @@
-Return-path: <mchehab@gaivota>
-Received: from mail-qw0-f46.google.com ([209.85.216.46]:33210 "EHLO
-	mail-qw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751585Ab1ELDsX (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 11 May 2011 23:48:23 -0400
-Subject: Re: IR remote control autorepeat / evdev
-Mime-Version: 1.0 (Apple Message framework v1084)
-Content-Type: text/plain; charset=us-ascii
-From: Jarod Wilson <jarod@wilsonet.com>
-In-Reply-To: <4DCB39AF.2000807@redhat.com>
-Date: Wed, 11 May 2011 23:48:19 -0400
-Cc: Anssi Hannula <anssi.hannula@iki.fi>,
-	Peter Hutterer <peter.hutterer@who-t.net>,
-	linux-media@vger.kernel.org,
-	"linux-input@vger.kernel.org" <linux-input@vger.kernel.org>,
-	xorg-devel@lists.freedesktop.org
+Return-path: <mchehab@pedra>
+Received: from mx1.redhat.com ([209.132.183.28]:51559 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754347Ab1ESK4f (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 19 May 2011 06:56:35 -0400
+Message-ID: <4DD4F75A.3010308@redhat.com>
+Date: Thu, 19 May 2011 07:56:26 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+MIME-Version: 1.0
+To: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
+CC: Hans Verkuil <hverkuil@xs4all.nl>, dri-devel@lists.freedesktop.org,
+	linux-media@vger.kernel.org, Jesse Barker <jesse.barker@linaro.org>
+Subject: Re: Summary of the V4L2 discussions during LDS - was: Re: Embedded
+ Linux memory management interest group list
+References: <BANLkTimoKzWrAyCBM2B9oTEKstPJjpG_MA@mail.gmail.com> <201105141302.55100.hverkuil@xs4all.nl> <4DCE6B7B.1080907@redhat.com> <201105152310.31678.hverkuil@xs4all.nl> <4DD42218.7000302@maxwell.research.nokia.com>
+In-Reply-To: <4DD42218.7000302@maxwell.research.nokia.com>
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Message-Id: <7E0935B5-0C85-439A-AB55-172FD4230730@wilsonet.com>
-References: <4DC61E28.4090301@iki.fi> <20110510041107.GA32552@barra.redhat.com> <4DC8C9B6.5000501@iki.fi> <20110510053038.GA5808@barra.redhat.com> <4DC940E5.2070902@iki.fi> <4DCA1496.20304@redhat.com> <4DCABA42.30505@iki.fi> <4DCABEAE.4080607@redhat.com> <4DCACE74.6050601@iki.fi> <4DCB213A.8040306@redhat.com> <4DCB2BD9.6090105@iki.fi> <4DCB336B.2090303@redhat.com> <4DCB39AF.2000807@redhat.com>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
 List-ID: <linux-media.vger.kernel.org>
-Sender: Mauro Carvalho Chehab <mchehab@gaivota>
+Sender: <mchehab@pedra>
 
-On May 11, 2011, at 9:36 PM, Mauro Carvalho Chehab wrote:
-
-> Em 12-05-2011 03:10, Mauro Carvalho Chehab escreveu:
->> Em 12-05-2011 02:37, Anssi Hannula escreveu:
+Em 18-05-2011 16:46, Sakari Ailus escreveu:
+> Hans Verkuil wrote:
+>> Note that many video receivers cannot stall. You can't tell them to wait until
+>> the last buffer finished processing. This is different from some/most? sensors.
 > 
->>> I don't see any other places:
->>> $ git grep 'REP_PERIOD' .
->>> dvb/dvb-usb/dvb-usb-remote.c:   input_dev->rep[REP_PERIOD] =
->>> d->props.rc.legacy.rc_interval;
->> 
->> Indeed, the REP_PERIOD is not adjusted on other drivers. I agree that we
->> should change it to something like 125ms, for example, as 33ms is too 
->> short, as it takes up to 114ms for a repeat event to arrive.
->> 
-> IMO, the enclosed patch should do a better job with repeat events, without
-> needing to change rc-core/input/event logic.
+> Not even image sensors. They just output the frame data; if the receiver
+> runs out of buffers the data is just lost. And if any part of the frame
+> is lost, there's no use for other parts of it either. But that's
+> something the receiver must handle, i.e. discard the data and increment
+> frame number (field_count in v4l2_buffer).
 > 
-> -
-> 
-> Subject: Use a more consistent value for RC repeat period
-> From: Mauro Carvalho Chehab <mchehab@redhat.com>
-> 
-> The default REP_PERIOD is 33 ms. This doesn't make sense for IR's,
-> as, in general, an IR repeat scancode is provided at every 110/115ms,
-> depending on the RC protocol. So, increase its default, to do a
-> better job avoiding ghost repeat events.
-> 
-> Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+> The interfaces used by image sensors, be they parallel or serial, do not
+> provide means to inform the sensor that the receiver has run out of
+> buffer space. These interfaces are just unidirectional.
 
-Yeah, I definitely like this change, and I think it should do some
-good. I've been pointing a number of people at ir-keytable and its
-ability to tweak these values from userspace. Most people have been
-bumping REP_PERIOD up a bit, but also REP_DELAY down a bit, so that
-repeats actually kick in a bit sooner. I'm fine with leaving 500 as
-the default there though, and letting individual drivers adjust it
-if they really want.
+Well, it depends on how the hardware works, really. On most (all?) designs, the
+IP block responsible to receive data from a sensor (or to transmit data, on an
+output device) is capable of generating an IRQ to notify the OS that a 
+framebuffer was filled. So, the V4L driver can mark that buffer as finished 
+and remove it from the list of the queued buffers. Although the current API's
+don't allow to create a new buffer if the list is empty, it may actually make
+sense to allow kernel to dynamically create a new buffer, warranting that the
+sensor (or receiver) will never run out of buffers under normal usage.
 
-Acked-by: Jarod Wilson <jarod@redhat.com>
+Of course, the maximum number of buffers should be specified, to avoid having
+an unacceptable delay. On such case, the frame will end by being discarded.
+It makes sense to provide a way to report userspace if this happens.
 
--- 
-Jarod Wilson
-jarod@wilsonet.com
-
-
-
+Mauro.
