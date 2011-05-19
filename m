@@ -1,98 +1,114 @@
 Return-path: <mchehab@pedra>
-Received: from mail-in-06.arcor-online.net ([151.189.21.46]:43911 "EHLO
-	mail-in-06.arcor-online.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751124Ab1ECPC4 (ORCPT
+Received: from mail1.matrix-vision.com ([78.47.19.71]:57855 "EHLO
+	mail1.matrix-vision.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933421Ab1ESOYb (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 3 May 2011 11:02:56 -0400
-Message-ID: <4DC0191E.50404@arcor.de>
-Date: Tue, 03 May 2011 17:02:54 +0200
-From: Stefan Ringel <stefan.ringel@arcor.de>
+	Thu, 19 May 2011 10:24:31 -0400
+Message-ID: <4DD5281D.40103@matrix-vision.de>
+Date: Thu, 19 May 2011 16:24:29 +0200
+From: Michael Jones <michael.jones@matrix-vision.de>
 MIME-Version: 1.0
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-CC: linux-media@vger.kernel.org, d.belimov@gmail.com
-Subject: Re: [PATCH 3/5] tm6000: add audio mode parameter
-References: <1301948324-27186-1-git-send-email-stefan.ringel@arcor.de> <1301948324-27186-3-git-send-email-stefan.ringel@arcor.de> <4DADFDF1.9020108@redhat.com> <4DAE9B00.7050404@arcor.de> <4DBFD3CD.9070008@redhat.com> <4DC01043.6090309@arcor.de> <4DC01442.2060207@redhat.com> <4DC016B7.3030506@arcor.de>
-In-Reply-To: <4DC016B7.3030506@arcor.de>
-Content-Type: text/plain; charset=ISO-8859-15; format=flowed
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+CC: Alex Gershgorin <alexg@meprolight.com>,
+	"'linux-media@vger.kernel.org'" <linux-media@vger.kernel.org>,
+	"'sakari.ailus@iki.fi'" <sakari.ailus@iki.fi>,
+	"'agersh@rambler.ru'" <agersh@rambler.ru>
+Subject: Re: FW: OMAP 3 ISP
+References: <4875438356E7CA4A8F2145FCD3E61C0B15D3557D38@MEP-EXCH.meprolight.com> <201105191502.11130.laurent.pinchart@ideasonboard.com> <4DD51EB2.30408@matrix-vision.de> <201105191556.07323.laurent.pinchart@ideasonboard.com>
+In-Reply-To: <201105191556.07323.laurent.pinchart@ideasonboard.com>
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Am 03.05.2011 16:52, schrieb Stefan Ringel:
-> Am 03.05.2011 16:42, schrieb Mauro Carvalho Chehab:
->> Em 03-05-2011 11:25, Stefan Ringel arcor escreveu:
->>> Am 03.05.2011 12:07, schrieb Mauro Carvalho Chehab:
->>>> Em 20-04-2011 05:36, Stefan Ringel escreveu:
->>>>> Am 19.04.2011 23:26, schrieb Mauro Carvalho Chehab:
->>>>>> Em 04-04-2011 17:18, stefan.ringel@arcor.de escreveu:
->>>>>>> From: Stefan Ringel<stefan.ringel@arcor.de>
->>>>>>>
->>>>>>> add audio mode parameter
->>>>>> Why we need a parameter for it? It should be determined based on
->>>>>> the standard.
->>>>>>
->>>>> tm6010 has a sif decoder, and I think if auto detect doesn't work, 
->>>>> use can set the audio standard, which it has in your region. Or 
->>>>> it's better if users can see image but can hear audio?
->>>> I did some tests with SIF and MTS here. None of them were capable 
->>>> of working with BTSC signals with
->>>> my devices. Adding a parameter won't help it at all. What we need 
->>>> to do is to fix the audio
->>>> decoding.
+On 05/19/2011 03:56 PM, Laurent Pinchart wrote:
+> Hi Michael,
+> 
+> On Thursday 19 May 2011 15:44:18 Michael Jones wrote:
+>> On 05/19/2011 03:02 PM, Laurent Pinchart wrote:
+>>> On Thursday 19 May 2011 14:51:16 Alex Gershgorin wrote:
+>>>> Thanks Laurent,
 >>>>
->>> In the next patch I will send it. A preview I have send to be test (
->>> https://patchwork.kernel.org/patch/722021/ ).
->> I tested your preview. Didn't make any difference.
-> Has you test with all setting variants? (BG_A2 works auto and A2 audio 
-> mode).
-I use mplayer, and have in the first use the wrong parameter. Now I know 
-the right parameter for mplayer:
+>>>> My video source is not the video camera and performs many other
+>>>> functions. For this purpose I have RS232 port.
+>>>> As for the video, it runs continuously and is not subject to control
+>>>> except for the power supply.
+>>>
+>>> As a quick hack, you can create an I2C driver for your video source that
+>>> doesn't access the device and just returns fixed format and frame size.
+>>>
+>>> The correct fix is to implement support for platform subdevs in the V4L2
+>>> core.
+>>
+>> I recently implemented support for platform V4L2 subdevs.  Now that it
+>> sounds like others would be interested in this, I will try to polish it
+>> up and submit the patch for review in the next week or so.
+> 
+> Great. This has been discussed during the V4L meeting in Warsaw, here are a 
+> couple of pointers, to make sure we're going in the same direction.
+> 
+> Bridge drivers should not care whether the subdev sits on an I2C, SPI, 
+> platform or other bus. To achieve that, an abstraction layer must be provided 
+> by the V4L2 core. Here's what I got in one of my trees:
+> 
+> /* V4L2 core */
+> 
+> struct v4l2_subdev_i2c_board_info {
+>         struct i2c_board_info *board_info;
+>         int i2c_adapter_id;
+> };
+> 
+> enum v4l2_subdev_bus_type {
+>         V4L2_SUBDEV_BUS_TYPE_NONE,
+>         V4L2_SUBDEV_BUS_TYPE_I2C,
+>         V4L2_SUBDEV_BUS_TYPE_SPI,
+> };
+> 
+> struct v4l2_subdev_board_info {
+>         enum v4l2_subdev_bus_type type;
+>         union {
+>                 struct v4l2_subdev_i2c_board_info i2c;
+>                 struct spi_board_info *spi;
+>         } info;
+> };
+> 
+> /* OMAP3 ISP  */
+> 
+> struct isp_v4l2_subdevs_group {
+>         struct v4l2_subdev_board_info *subdevs;
+>         enum isp_interface_type interface;
+>         union {
+>                 struct isp_parallel_platform_data parallel;
+>                 struct isp_ccp2_platform_data ccp2;
+>                 struct isp_csi2_platform_data csi2;
+>         } bus; /* gcc < 4.6.0 chokes on anonymous union initializers */
+> };
+> 
+> struct isp_platform_data {
+>         struct isp_v4l2_subdevs_group *subdevs;
+> };
+> 
+> The V4L2 core would need to provide a function to register a subdev based on a 
+> v4l2_subdev_board_info structure.
+> 
+> Is that in line with what you've done ? I can provide a patch that implements 
+> this for I2C and SPI, and let you add platform subdevs if that can help you.
+> 
 
-mplayer -vc rawyuy2 -ac pcm -ao alsa:device=hw=0.0 -tv 
-driver=v4l2:device=/dev/video2:input=0:outfmt=yv12:freq=210.25:normid=3:alsa:adevice=hw.2,0:amode=1:immediatemode=0 
--fs tv://
->>>>>>> Signed-off-by: Stefan Ringel<stefan.ringel@arcor.de>
->>>>>>> ---
->>>>>>>    drivers/staging/tm6000/tm6000-stds.c |    5 +++++
->>>>>>>    1 files changed, 5 insertions(+), 0 deletions(-)
->>>>>>>
->>>>>>> diff --git a/drivers/staging/tm6000/tm6000-stds.c 
->>>>>>> b/drivers/staging/tm6000/tm6000-stds.c
->>>>>>> index da3e51b..a9e1921 100644
->>>>>>> --- a/drivers/staging/tm6000/tm6000-stds.c
->>>>>>> +++ b/drivers/staging/tm6000/tm6000-stds.c
->>>>>>> @@ -22,12 +22,17 @@
->>>>>>>    #include "tm6000.h"
->>>>>>>    #include "tm6000-regs.h"
->>>>>>>
->>>>>>> +static unsigned int tm6010_a_mode;
->>>>>>> +module_param(tm6010_a_mode, int, 0644);
->>>>>>> +MODULE_PARM_DESC(tm6010_a_mode, "set sif audio mode (tm6010 
->>>>>>> only)");
->>>>>>> +
->>>>>>>    struct tm6000_reg_settings {
->>>>>>>        unsigned char req;
->>>>>>>        unsigned char reg;
->>>>>>>        unsigned char value;
->>>>>>>    };
->>>>>>>
->>>>>>> +/* must be updated */
->>>>>>>    enum tm6000_audio_std {
->>>>>>>        BG_NICAM,
->>>>>>>        BTSC,
->>>>> -- 
->>>>> To unsubscribe from this list: send the line "unsubscribe 
->>>>> linux-media" in
->>>>> the body of a message to majordomo@vger.kernel.org
->>>>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->> -- 
->> To unsubscribe from this list: send the line "unsubscribe 
->> linux-media" in
->> the body of a message to majordomo@vger.kernel.org
->> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->
-> -- 
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Hi Laurent,
 
+Yes, that looks very similar to what I've done.  I was going to submit
+SPI support, too, which I also have, but it sounds like you've already
+done that?  I'm currently still using a 2.6.38 tree based on an older
+media branch of yours, so I'm not familiar with any new changes there yet.
+
+I just need to know what I should use as my baseline.  I don't need to
+step on toes and submit something you've already done, so maybe you want
+to point me to a branch with the SPI stuff, and I'll just put the
+platform stuff on top of it?
+
+-Michael
+
+MATRIX VISION GmbH, Talstrasse 16, DE-71570 Oppenweiler
+Registergericht: Amtsgericht Stuttgart, HRB 271090
+Geschaeftsfuehrer: Gerhard Thullner, Werner Armingeon, Uwe Furtner
