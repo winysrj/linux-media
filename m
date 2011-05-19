@@ -1,49 +1,64 @@
 Return-path: <mchehab@pedra>
-Received: from smtp.nokia.com ([147.243.128.24]:50693 "EHLO mgw-da01.nokia.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751553Ab1EPNAj (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 16 May 2011 09:00:39 -0400
-Message-ID: <4DD11FEC.8050308@maxwell.research.nokia.com>
-Date: Mon, 16 May 2011 16:00:28 +0300
-From: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
+Received: from casper.infradead.org ([85.118.1.10]:47966 "EHLO
+	casper.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933955Ab1ESTWO (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 19 May 2011 15:22:14 -0400
+Message-ID: <4DD56DDE.6060003@infradead.org>
+Date: Thu, 19 May 2011 16:22:06 -0300
+From: Mauro Carvalho Chehab <mchehab@infradead.org>
 MIME-Version: 1.0
-To: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-CC: Nayden Kanchev <nkanchev@mm-sol.com>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	David Cohen <dacohen@gmail.com>,
-	Kim HeungJun <riverful@gmail.com>, andrew.b.adams@gmail.com,
-	Sung Hee Park <shpark7@stanford.edu>
-Subject: [RFC 0/3] V4L2 API for flash devices and the adp1653 flash controller
- driver
+To: Randy Dunlap <randy.dunlap@oracle.com>
+CC: linux-media@vger.kernel.org,
+	Stephen Rothwell <sfr@canb.auug.org.au>, gregkh@suse.de,
+	linux-next@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>,
+	"Igor M. Liplianin" <liplianin@netup.ru>
+Subject: Re: Fw: [PATCH -next RESEND/still needed] staging: altera-jtag needs
+ delay.h
+References: <20110328082305.c6fa41d9.randy.dunlap@oracle.com>
+In-Reply-To: <20110328082305.c6fa41d9.randy.dunlap@oracle.com>
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Hi,
+Em 28-03-2011 12:23, Randy Dunlap escreveu:
+> From: Randy Dunlap <randy.dunlap@oracle.com>
+> 
+> altera-jtag.c needs to include <linux/delay.h> to fix a build error:
+> 
+> drivers/staging/altera-stapl/altera-jtag.c:398: error: implicit declaration of function 'udelay'
+> 
+> Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
+Acked-by: Mauro Carvalho Chehab <mchehab@redhat.com>
 
-This is a patchset which implements RFC v4 of V4L2 API for flash devices
-[1], with minor modifications, and adds the adp1653 flash controller driver.
+> Cc: Igor M. Liplianin <liplianin@netup.ru>
+> ---
+>  drivers/staging/altera-stapl/altera-jtag.c |    1 +
+>  1 file changed, 1 insertion(+)
+> 
+> Somehow I was supposed to know to send this to Mauro instead of to Greg,
+> but I don't see anything in drivers/staging/altera-stapl/ that says that.
 
-What was changed was that the V4L2_CID_FLASH_STROBE_MODE control was
-renamed to V4L2_CID_FLASH_STROBE_SOURCE. Also the related enum has been
-renamed correspondingly.
+Ah, yes, we need to add a readme file there stating about that.
 
-Laurent: I didn't add the text from the RFC to the flash controls
-documentation since I'm inclined to think it doesn't actually belong
-there. Much of it is suggesting what could be done in future or defining
-the scope of the interface. Both are mostly related to further
-development activities. That said, there definitely is important
-information in the RFC although much of it isn't directly related to the
-flash controls. If we want to add (some of) that to the V4L2
-documentation, where should it be put?
+Greg, you may add it on your tree, or if you prefer, I can just add here for
+my next upstream pull.
 
-[1] http://www.spinics.net/lists/linux-media/msg32030.html
+Thanks,
+Mauro.
 
-Cheers,
+> 
+> 
+> --- linux-next-20110304.orig/drivers/staging/altera-stapl/altera-jtag.c
+> +++ linux-next-20110304/drivers/staging/altera-stapl/altera-jtag.c
+> @@ -23,6 +23,7 @@
+>   * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+>   */
+>  
+> +#include <linux/delay.h>
+>  #include <linux/firmware.h>
+>  #include <linux/slab.h>
+>  #include <staging/altera.h>
+> --
 
--- 
-Sakari Ailus
-sakari.ailus@maxwell.research.nokia.com
