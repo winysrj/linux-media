@@ -1,58 +1,42 @@
 Return-path: <mchehab@pedra>
-Received: from mx1.redhat.com ([209.132.183.28]:43413 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754092Ab1EUKnj (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 21 May 2011 06:43:39 -0400
-Message-ID: <4DD79752.2050605@redhat.com>
-Date: Sat, 21 May 2011 07:43:30 -0300
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Received: from perceval.ideasonboard.com ([95.142.166.194]:52042 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756755Ab1ESNCM (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 19 May 2011 09:02:12 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Alex Gershgorin <alexg@meprolight.com>
+Subject: Re: FW: OMAP 3 ISP
+Date: Thu, 19 May 2011 15:02:10 +0200
+Cc: "'linux-media@vger.kernel.org'" <linux-media@vger.kernel.org>,
+	"'sakari.ailus@iki.fi'" <sakari.ailus@iki.fi>,
+	"'agersh@rambler.ru'" <agersh@rambler.ru>
+References: <4875438356E7CA4A8F2145FCD3E61C0B15D3557D38@MEP-EXCH.meprolight.com>
+In-Reply-To: <4875438356E7CA4A8F2145FCD3E61C0B15D3557D38@MEP-EXCH.meprolight.com>
 MIME-Version: 1.0
-To: James Huk <huk256@gmail.com>
-CC: linux-media@vger.kernel.org,
-	=?ISO-8859-1?Q?St=E9phane_Elmaleh?= <stephane.elmaleh@laposte.net>,
-	Patrick Boettcher <pboettcher@kernellabs.com>,
-	Radoslaw Warowny <radoslaww@gmail.com>,
-	Alf Fahland <alf-f@gmx.de>
-Subject: Re: Medion CTX1921 - why does the driver is not in the kernel yet?
-References: <BANLkTi=pQ45Z=3vF1-HX=-foqHh7oJcR1A@mail.gmail.com>
-In-Reply-To: <BANLkTi=pQ45Z=3vF1-HX=-foqHh7oJcR1A@mail.gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8bit
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201105191502.11130.laurent.pinchart@ideasonboard.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Em 20-05-2011 19:15, James Huk escreveu:
-> Hello everybody.
+Hi Alex,
+
+On Thursday 19 May 2011 14:51:16 Alex Gershgorin wrote:
+> Thanks Laurent,
 > 
-> First of all - this post is not meant as the flame starter, nor is it
-> "I DEMAND" kind of post - I just would like to know what is the policy
-> with driver patches.
-> 
-> I bought Medion CTX1921 USB DVB-T stick, since I saw patches for kernel 2.6.32:
-> 
-> http://article.gmane.org/gmane.linux.drivers.video-input-infrastructure/19938/match=1921
+> My video source is not the video camera and performs many other functions.
+> For this purpose I have RS232 port.
+> As for the video, it runs continuously and is not subject to control except
+> for the power supply.
 
-Thanks for noticing it. Clearly, the last patch from Stéphane were mangled by
-his emailer. Due to that, it were not caught by patchwork. He also forgot to
-send us a Signed-off-by.
+As a quick hack, you can create an I2C driver for your video source that 
+doesn't access the device and just returns fixed format and frame size.
 
-Yet, Alf and Randoslaw re-sent the same patch, so I dunno why this patch were
-never applied, but I guess that it is because the patch become obsolete, as
-more cards were added to the dib0700 driver.
+The correct fix is to implement support for platform subdevs in the V4L2 core.
 
-> so,I thought everything above that, will support this card "out of the
-> box", however I tried it on kernel 2.6.38 and it still required manual
-> patching, after minor driver modification it works OK.
+-- 
+Regards,
 
-Thanks for pointing it to us. I've re-based the patch to move the new entry
-to the end and applied it.
-
-> 
-> So... the question is, why isn't this tuner supported yet, even though
-> patches were aviable nearly a year ago (and where minor)? What is the
-> policy here? When can we expect support?
-> 
-> Thanks in advance for the answers.
-
-Cheers,
-Mauro
+Laurent Pinchart
