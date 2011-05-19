@@ -1,274 +1,197 @@
 Return-path: <mchehab@pedra>
-Received: from moutng.kundenserver.de ([212.227.126.171]:60036 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932648Ab1EROL3 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 18 May 2011 10:11:29 -0400
-Received: from localhost (localhost [127.0.0.1])
-	by axis700.grange (Postfix) with ESMTP id A9D9A189B66
-	for <linux-media@vger.kernel.org>; Wed, 18 May 2011 16:11:27 +0200 (CEST)
-Date: Wed, 18 May 2011 16:11:27 +0200 (CEST)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: [PATCH 1/5] V4L: soc-camera: avoid huge arrays, caused by changed
- format codes
-In-Reply-To: <Pine.LNX.4.64.1105181558440.16324@axis700.grange>
-Message-ID: <Pine.LNX.4.64.1105181605200.16324@axis700.grange>
-References: <Pine.LNX.4.64.1105181558440.16324@axis700.grange>
-MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Received: from smtp.nokia.com ([147.243.128.24]:26093 "EHLO mgw-da01.nokia.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754088Ab1ESKlk (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 19 May 2011 06:41:40 -0400
+From: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
+To: linux-media@vger.kernel.org
+Cc: laurent.pinchart@ideasonboard.com, nkanchev@mm-sol.com,
+	g.liakhovetski@gmx.de, hverkuil@xs4all.nl, dacohen@gmail.com,
+	riverful@gmail.com, andrew.b.adams@gmail.com, shpark7@stanford.edu
+Subject: [PATCH 1/3] v4l: Add a class and a set of controls for flash devices.
+Date: Thu, 19 May 2011 13:41:24 +0300
+Message-Id: <1305801686-32360-1-git-send-email-sakari.ailus@maxwell.research.nokia.com>
+In-Reply-To: <4DD4F3CA.3040300@maxwell.research.nokia.com>
+References: <4DD4F3CA.3040300@maxwell.research.nokia.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Recently mediabus pixel format codes have become a part of the user-
-space API, at which time their values also have been changed from
-contiguous numbers, running from 0 to sparse numbers with values
-around 0x1000, 0x2000, 0x3000... This made them unsuitable for the
-use as array indices. This patch switches soc-camera internal format
-look-ups to not depend on values of those macros.
+From: Sakari Ailus <sakari.ailus@iki.fi>
 
-Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Add a control class and a set of controls to support LED and Xenon flash
+devices. An example of such a device is the adp1653.
+
+Signed-off-by: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
 ---
+ drivers/media/video/v4l2-ctrls.c |   45 ++++++++++++++++++++++++++++++++++++++
+ include/linux/videodev2.h        |   36 ++++++++++++++++++++++++++++++
+ 2 files changed, 81 insertions(+), 0 deletions(-)
 
-Yes, this violates the coding style, I've chosen to do that to minimize 
-the patch to simplify its verification. We can reformat it in the future 
-if desired.
-
- drivers/media/video/soc_mediabus.c |   89 ++++++++++++++++++++++++++---------
- include/media/soc_mediabus.h       |   14 ++++++
- 2 files changed, 80 insertions(+), 23 deletions(-)
-
-diff --git a/drivers/media/video/soc_mediabus.c b/drivers/media/video/soc_mediabus.c
-index ed77aa0..505b586 100644
---- a/drivers/media/video/soc_mediabus.c
-+++ b/drivers/media/video/soc_mediabus.c
-@@ -15,121 +15,152 @@
- #include <media/v4l2-mediabus.h>
- #include <media/soc_mediabus.h>
+diff --git a/drivers/media/video/v4l2-ctrls.c b/drivers/media/video/v4l2-ctrls.c
+index 2412f08..74aae36 100644
+--- a/drivers/media/video/v4l2-ctrls.c
++++ b/drivers/media/video/v4l2-ctrls.c
+@@ -216,6 +216,17 @@ const char * const *v4l2_ctrl_get_menu(u32 id)
+ 		"75 useconds",
+ 		NULL,
+ 	};
++	static const char * const flash_led_mode[] = {
++		"Off",
++		"Flash",
++		"Torch",
++		NULL,
++	};
++	static const char * const flash_strobe_source[] = {
++		"Software",
++		"External",
++		NULL,
++	};
  
--#define MBUS_IDX(f) (V4L2_MBUS_FMT_ ## f - V4L2_MBUS_FMT_FIXED - 1)
--
--static const struct soc_mbus_pixelfmt mbus_fmt[] = {
--	[MBUS_IDX(YUYV8_2X8)] = {
-+static const struct soc_mbus_lookup mbus_fmt[] = {
-+{
-+	.code = V4L2_MBUS_FMT_YUYV8_2X8,
-+	.fmt = {
- 		.fourcc			= V4L2_PIX_FMT_YUYV,
- 		.name			= "YUYV",
- 		.bits_per_sample	= 8,
- 		.packing		= SOC_MBUS_PACKING_2X8_PADHI,
- 		.order			= SOC_MBUS_ORDER_LE,
- 	},
--	[MBUS_IDX(YVYU8_2X8)] = {
-+}, {
-+	.code = V4L2_MBUS_FMT_YVYU8_2X8,
-+	.fmt = {
- 		.fourcc			= V4L2_PIX_FMT_YVYU,
- 		.name			= "YVYU",
- 		.bits_per_sample	= 8,
- 		.packing		= SOC_MBUS_PACKING_2X8_PADHI,
- 		.order			= SOC_MBUS_ORDER_LE,
- 	},
--	[MBUS_IDX(UYVY8_2X8)] = {
-+}, {
-+	.code = V4L2_MBUS_FMT_UYVY8_2X8,
-+	.fmt = {
- 		.fourcc			= V4L2_PIX_FMT_UYVY,
- 		.name			= "UYVY",
- 		.bits_per_sample	= 8,
- 		.packing		= SOC_MBUS_PACKING_2X8_PADHI,
- 		.order			= SOC_MBUS_ORDER_LE,
- 	},
--	[MBUS_IDX(VYUY8_2X8)] = {
-+}, {
-+	.code = V4L2_MBUS_FMT_VYUY8_2X8,
-+	.fmt = {
- 		.fourcc			= V4L2_PIX_FMT_VYUY,
- 		.name			= "VYUY",
- 		.bits_per_sample	= 8,
- 		.packing		= SOC_MBUS_PACKING_2X8_PADHI,
- 		.order			= SOC_MBUS_ORDER_LE,
- 	},
--	[MBUS_IDX(RGB555_2X8_PADHI_LE)] = {
-+}, {
-+	.code = V4L2_MBUS_FMT_RGB555_2X8_PADHI_LE,
-+	.fmt = {
- 		.fourcc			= V4L2_PIX_FMT_RGB555,
- 		.name			= "RGB555",
- 		.bits_per_sample	= 8,
- 		.packing		= SOC_MBUS_PACKING_2X8_PADHI,
- 		.order			= SOC_MBUS_ORDER_LE,
- 	},
--	[MBUS_IDX(RGB555_2X8_PADHI_BE)] = {
-+}, {
-+	.code = V4L2_MBUS_FMT_RGB555_2X8_PADHI_BE,
-+	.fmt = {
- 		.fourcc			= V4L2_PIX_FMT_RGB555X,
- 		.name			= "RGB555X",
- 		.bits_per_sample	= 8,
- 		.packing		= SOC_MBUS_PACKING_2X8_PADHI,
- 		.order			= SOC_MBUS_ORDER_LE,
- 	},
--	[MBUS_IDX(RGB565_2X8_LE)] = {
-+}, {
-+	.code = V4L2_MBUS_FMT_RGB565_2X8_LE,
-+	.fmt = {
- 		.fourcc			= V4L2_PIX_FMT_RGB565,
- 		.name			= "RGB565",
- 		.bits_per_sample	= 8,
- 		.packing		= SOC_MBUS_PACKING_2X8_PADHI,
- 		.order			= SOC_MBUS_ORDER_LE,
- 	},
--	[MBUS_IDX(RGB565_2X8_BE)] = {
-+}, {
-+	.code = V4L2_MBUS_FMT_RGB565_2X8_BE,
-+	.fmt = {
- 		.fourcc			= V4L2_PIX_FMT_RGB565X,
- 		.name			= "RGB565X",
- 		.bits_per_sample	= 8,
- 		.packing		= SOC_MBUS_PACKING_2X8_PADHI,
- 		.order			= SOC_MBUS_ORDER_LE,
- 	},
--	[MBUS_IDX(SBGGR8_1X8)] = {
-+}, {
-+	.code = V4L2_MBUS_FMT_SBGGR8_1X8,
-+	.fmt = {
- 		.fourcc			= V4L2_PIX_FMT_SBGGR8,
- 		.name			= "Bayer 8 BGGR",
- 		.bits_per_sample	= 8,
- 		.packing		= SOC_MBUS_PACKING_NONE,
- 		.order			= SOC_MBUS_ORDER_LE,
- 	},
--	[MBUS_IDX(SBGGR10_1X10)] = {
-+}, {
-+	.code = V4L2_MBUS_FMT_SBGGR10_1X10,
-+	.fmt = {
- 		.fourcc			= V4L2_PIX_FMT_SBGGR10,
- 		.name			= "Bayer 10 BGGR",
- 		.bits_per_sample	= 10,
- 		.packing		= SOC_MBUS_PACKING_EXTEND16,
- 		.order			= SOC_MBUS_ORDER_LE,
- 	},
--	[MBUS_IDX(Y8_1X8)] = {
-+}, {
-+	.code = V4L2_MBUS_FMT_Y8_1X8,
-+	.fmt = {
- 		.fourcc			= V4L2_PIX_FMT_GREY,
- 		.name			= "Grey",
- 		.bits_per_sample	= 8,
- 		.packing		= SOC_MBUS_PACKING_NONE,
- 		.order			= SOC_MBUS_ORDER_LE,
- 	},
--	[MBUS_IDX(Y10_1X10)] = {
-+}, {
-+	.code = V4L2_MBUS_FMT_Y10_1X10,
-+	.fmt = {
- 		.fourcc			= V4L2_PIX_FMT_Y10,
- 		.name			= "Grey 10bit",
- 		.bits_per_sample	= 10,
- 		.packing		= SOC_MBUS_PACKING_EXTEND16,
- 		.order			= SOC_MBUS_ORDER_LE,
- 	},
--	[MBUS_IDX(SBGGR10_2X8_PADHI_LE)] = {
-+}, {
-+	.code = V4L2_MBUS_FMT_SBGGR10_2X8_PADHI_LE,
-+	.fmt = {
- 		.fourcc			= V4L2_PIX_FMT_SBGGR10,
- 		.name			= "Bayer 10 BGGR",
- 		.bits_per_sample	= 8,
- 		.packing		= SOC_MBUS_PACKING_2X8_PADHI,
- 		.order			= SOC_MBUS_ORDER_LE,
- 	},
--	[MBUS_IDX(SBGGR10_2X8_PADLO_LE)] = {
-+}, {
-+	.code = V4L2_MBUS_FMT_SBGGR10_2X8_PADLO_LE,
-+	.fmt = {
- 		.fourcc			= V4L2_PIX_FMT_SBGGR10,
- 		.name			= "Bayer 10 BGGR",
- 		.bits_per_sample	= 8,
- 		.packing		= SOC_MBUS_PACKING_2X8_PADLO,
- 		.order			= SOC_MBUS_ORDER_LE,
- 	},
--	[MBUS_IDX(SBGGR10_2X8_PADHI_BE)] = {
-+}, {
-+	.code = V4L2_MBUS_FMT_SBGGR10_2X8_PADHI_BE,
-+	.fmt = {
- 		.fourcc			= V4L2_PIX_FMT_SBGGR10,
- 		.name			= "Bayer 10 BGGR",
- 		.bits_per_sample	= 8,
- 		.packing		= SOC_MBUS_PACKING_2X8_PADHI,
- 		.order			= SOC_MBUS_ORDER_BE,
- 	},
--	[MBUS_IDX(SBGGR10_2X8_PADLO_BE)] = {
-+}, {
-+	.code = V4L2_MBUS_FMT_SBGGR10_2X8_PADLO_BE,
-+	.fmt = {
- 		.fourcc			= V4L2_PIX_FMT_SBGGR10,
- 		.name			= "Bayer 10 BGGR",
- 		.bits_per_sample	= 8,
- 		.packing		= SOC_MBUS_PACKING_2X8_PADLO,
- 		.order			= SOC_MBUS_ORDER_BE,
- 	},
-+},
- };
+ 	switch (id) {
+ 	case V4L2_CID_MPEG_AUDIO_SAMPLING_FREQ:
+@@ -256,6 +267,10 @@ const char * const *v4l2_ctrl_get_menu(u32 id)
+ 		return colorfx;
+ 	case V4L2_CID_TUNE_PREEMPHASIS:
+ 		return tune_preemphasis;
++	case V4L2_CID_FLASH_LED_MODE:
++		return flash_led_mode;
++	case V4L2_CID_FLASH_STROBE_SOURCE:
++		return flash_strobe_source;
+ 	default:
+ 		return NULL;
+ 	}
+@@ -389,6 +404,21 @@ const char *v4l2_ctrl_get_name(u32 id)
+ 	case V4L2_CID_TUNE_POWER_LEVEL:		return "Tune Power Level";
+ 	case V4L2_CID_TUNE_ANTENNA_CAPACITOR:	return "Tune Antenna Capacitor";
  
- int soc_mbus_samples_per_pixel(const struct soc_mbus_pixelfmt *mf)
-@@ -160,13 +191,25 @@ s32 soc_mbus_bytes_per_line(u32 width, const struct soc_mbus_pixelfmt *mf)
++	/* Flash controls */
++	case V4L2_CID_FLASH_CLASS:		return "Flash controls";
++	case V4L2_CID_FLASH_LED_MODE:		return "LED mode";
++	case V4L2_CID_FLASH_STROBE_SOURCE:	return "Strobe source";
++	case V4L2_CID_FLASH_STROBE:		return "Strobe";
++	case V4L2_CID_FLASH_STROBE_STOP:	return "Stop strobe";
++	case V4L2_CID_FLASH_STROBE_STATUS:	return "Strobe status";
++	case V4L2_CID_FLASH_TIMEOUT:		return "Strobe timeout";
++	case V4L2_CID_FLASH_INTENSITY:		return "Intensity, flash mode";
++	case V4L2_CID_FLASH_TORCH_INTENSITY:	return "Intensity, torch mode";
++	case V4L2_CID_FLASH_INDICATOR_INTENSITY: return "Intensity, indicator";
++	case V4L2_CID_FLASH_FAULT:		return "Faults";
++	case V4L2_CID_FLASH_CHARGE:		return "Charge";
++	case V4L2_CID_FLASH_READY:		return "Ready to strobe";
++
+ 	default:
+ 		return NULL;
+ 	}
+@@ -423,12 +453,17 @@ void v4l2_ctrl_fill(u32 id, const char **name, enum v4l2_ctrl_type *type,
+ 	case V4L2_CID_PILOT_TONE_ENABLED:
+ 	case V4L2_CID_ILLUMINATORS_1:
+ 	case V4L2_CID_ILLUMINATORS_2:
++	case V4L2_CID_FLASH_STROBE_STATUS:
++	case V4L2_CID_FLASH_CHARGE:
++	case V4L2_CID_FLASH_READY:
+ 		*type = V4L2_CTRL_TYPE_BOOLEAN;
+ 		*min = 0;
+ 		*max = *step = 1;
+ 		break;
+ 	case V4L2_CID_PAN_RESET:
+ 	case V4L2_CID_TILT_RESET:
++	case V4L2_CID_FLASH_STROBE:
++	case V4L2_CID_FLASH_STROBE_STOP:
+ 		*type = V4L2_CTRL_TYPE_BUTTON;
+ 		*flags |= V4L2_CTRL_FLAG_WRITE_ONLY;
+ 		*min = *max = *step = *def = 0;
+@@ -452,6 +487,8 @@ void v4l2_ctrl_fill(u32 id, const char **name, enum v4l2_ctrl_type *type,
+ 	case V4L2_CID_EXPOSURE_AUTO:
+ 	case V4L2_CID_COLORFX:
+ 	case V4L2_CID_TUNE_PREEMPHASIS:
++	case V4L2_CID_FLASH_LED_MODE:
++	case V4L2_CID_FLASH_STROBE_SOURCE:
+ 		*type = V4L2_CTRL_TYPE_MENU;
+ 		break;
+ 	case V4L2_CID_RDS_TX_PS_NAME:
+@@ -462,6 +499,7 @@ void v4l2_ctrl_fill(u32 id, const char **name, enum v4l2_ctrl_type *type,
+ 	case V4L2_CID_CAMERA_CLASS:
+ 	case V4L2_CID_MPEG_CLASS:
+ 	case V4L2_CID_FM_TX_CLASS:
++	case V4L2_CID_FLASH_CLASS:
+ 		*type = V4L2_CTRL_TYPE_CTRL_CLASS;
+ 		/* You can neither read not write these */
+ 		*flags |= V4L2_CTRL_FLAG_READ_ONLY | V4L2_CTRL_FLAG_WRITE_ONLY;
+@@ -474,6 +512,9 @@ void v4l2_ctrl_fill(u32 id, const char **name, enum v4l2_ctrl_type *type,
+ 		/* Max is calculated as RGB888 that is 2^24 */
+ 		*max = 0xFFFFFF;
+ 		break;
++	case V4L2_CID_FLASH_FAULT:
++		*type = V4L2_CTRL_TYPE_BITMASK;
++		break;
+ 	default:
+ 		*type = V4L2_CTRL_TYPE_INTEGER;
+ 		break;
+@@ -519,6 +560,10 @@ void v4l2_ctrl_fill(u32 id, const char **name, enum v4l2_ctrl_type *type,
+ 	case V4L2_CID_ZOOM_RELATIVE:
+ 		*flags |= V4L2_CTRL_FLAG_WRITE_ONLY;
+ 		break;
++	case V4L2_CID_FLASH_STROBE_STATUS:
++	case V4L2_CID_FLASH_READY:
++		*flags |= V4L2_CTRL_FLAG_READ_ONLY;
++		break;
+ 	}
  }
- EXPORT_SYMBOL(soc_mbus_bytes_per_line);
+ EXPORT_SYMBOL(v4l2_ctrl_fill);
+diff --git a/include/linux/videodev2.h b/include/linux/videodev2.h
+index be82c8e..e364350 100644
+--- a/include/linux/videodev2.h
++++ b/include/linux/videodev2.h
+@@ -1022,6 +1022,7 @@ struct v4l2_ext_controls {
+ #define V4L2_CTRL_CLASS_MPEG 0x00990000	/* MPEG-compression controls */
+ #define V4L2_CTRL_CLASS_CAMERA 0x009a0000	/* Camera class controls */
+ #define V4L2_CTRL_CLASS_FM_TX 0x009b0000	/* FM Modulator control class */
++#define V4L2_CTRL_CLASS_FLASH 0x009c0000	/* Camera flash controls */
  
-+const struct soc_mbus_pixelfmt *soc_mbus_find_fmtdesc(
-+	enum v4l2_mbus_pixelcode code,
-+	const struct soc_mbus_lookup *lookup,
-+	int n)
-+{
-+	int i;
-+
-+	for (i = 0; i < n; i++)
-+		if (lookup[i].code == code)
-+			return &lookup[i].fmt;
-+
-+	return NULL;
-+}
-+EXPORT_SYMBOL(soc_mbus_find_fmtdesc);
-+
- const struct soc_mbus_pixelfmt *soc_mbus_get_fmtdesc(
- 	enum v4l2_mbus_pixelcode code)
- {
--	if (code - V4L2_MBUS_FMT_FIXED > ARRAY_SIZE(mbus_fmt) ||
--	    code <= V4L2_MBUS_FMT_FIXED)
--		return NULL;
--	return mbus_fmt + code - V4L2_MBUS_FMT_FIXED - 1;
-+	return soc_mbus_find_fmtdesc(code, mbus_fmt, ARRAY_SIZE(mbus_fmt));
- }
- EXPORT_SYMBOL(soc_mbus_get_fmtdesc);
+ #define V4L2_CTRL_ID_MASK      	  (0x0fffffff)
+ #define V4L2_CTRL_ID2CLASS(id)    ((id) & 0x0fff0000UL)
+@@ -1423,6 +1424,41 @@ enum v4l2_preemphasis {
+ #define V4L2_CID_TUNE_POWER_LEVEL		(V4L2_CID_FM_TX_CLASS_BASE + 113)
+ #define V4L2_CID_TUNE_ANTENNA_CAPACITOR		(V4L2_CID_FM_TX_CLASS_BASE + 114)
  
-diff --git a/include/media/soc_mediabus.h b/include/media/soc_mediabus.h
-index b338108..91b41d6 100644
---- a/include/media/soc_mediabus.h
-+++ b/include/media/soc_mediabus.h
-@@ -57,6 +57,20 @@ struct soc_mbus_pixelfmt {
- 	u8			bits_per_sample;
- };
- 
-+/**
-+ * struct soc_mbus_lookup - Lookup FOURCC IDs by mediabus codes for pass-through
-+ * @code:	mediabus pixel-code
-+ * @fmt:	pixel format description
-+ */
-+struct soc_mbus_lookup {
-+	enum v4l2_mbus_pixelcode	code;
-+	struct soc_mbus_pixelfmt	fmt;
++/* Flash and privacy (indicator) light controls */
++#define V4L2_CID_FLASH_CLASS_BASE		(V4L2_CTRL_CLASS_FLASH | 0x900)
++#define V4L2_CID_FLASH_CLASS			(V4L2_CTRL_CLASS_FLASH | 1)
++
++#define V4L2_CID_FLASH_LED_MODE			(V4L2_CID_FLASH_CLASS_BASE + 1)
++enum v4l2_flash_led_mode {
++	V4L2_FLASH_LED_MODE_NONE,
++	V4L2_FLASH_LED_MODE_FLASH,
++	V4L2_FLASH_LED_MODE_TORCH,
 +};
 +
-+const struct soc_mbus_pixelfmt *soc_mbus_find_fmtdesc(
-+	enum v4l2_mbus_pixelcode code,
-+	const struct soc_mbus_lookup *lookup,
-+	int n);
- const struct soc_mbus_pixelfmt *soc_mbus_get_fmtdesc(
- 	enum v4l2_mbus_pixelcode code);
- s32 soc_mbus_bytes_per_line(u32 width, const struct soc_mbus_pixelfmt *mf);
++#define V4L2_CID_FLASH_STROBE_SOURCE		(V4L2_CID_FLASH_CLASS_BASE + 2)
++enum v4l2_flash_strobe_source {
++	V4L2_FLASH_STROBE_SOURCE_SOFTWARE,
++	V4L2_FLASH_STROBE_SOURCE_EXTERNAL,
++};
++
++#define V4L2_CID_FLASH_STROBE			(V4L2_CID_FLASH_CLASS_BASE + 3)
++#define V4L2_CID_FLASH_STROBE_STOP		(V4L2_CID_FLASH_CLASS_BASE + 4)
++#define V4L2_CID_FLASH_STROBE_STATUS		(V4L2_CID_FLASH_CLASS_BASE + 5)
++
++#define V4L2_CID_FLASH_TIMEOUT			(V4L2_CID_FLASH_CLASS_BASE + 6)
++#define V4L2_CID_FLASH_INTENSITY		(V4L2_CID_FLASH_CLASS_BASE + 7)
++#define V4L2_CID_FLASH_TORCH_INTENSITY		(V4L2_CID_FLASH_CLASS_BASE + 8)
++#define V4L2_CID_FLASH_INDICATOR_INTENSITY	(V4L2_CID_FLASH_CLASS_BASE + 9)
++
++#define V4L2_CID_FLASH_FAULT			(V4L2_CID_FLASH_CLASS_BASE + 10)
++#define V4L2_FLASH_FAULT_OVER_VOLTAGE		(1 << 0)
++#define V4L2_FLASH_FAULT_TIMEOUT		(1 << 1)
++#define V4L2_FLASH_FAULT_OVER_TEMPERATURE	(1 << 2)
++#define V4L2_FLASH_FAULT_SHORT_CIRCUIT		(1 << 3)
++
++#define V4L2_CID_FLASH_CHARGE			(V4L2_CID_FLASH_CLASS_BASE + 11)
++#define V4L2_CID_FLASH_READY			(V4L2_CID_FLASH_CLASS_BASE + 12)
++
+ /*
+  *	T U N I N G
+  */
 -- 
 1.7.2.5
 
