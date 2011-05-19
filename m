@@ -1,53 +1,74 @@
 Return-path: <mchehab@pedra>
-Received: from emh07.mail.saunalahti.fi ([62.142.5.117]:52531 "EHLO
-	emh07.mail.saunalahti.fi" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751125Ab1EUQTI (ORCPT
+Received: from perceval.ideasonboard.com ([95.142.166.194]:52607 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932671Ab1ESOMH (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 21 May 2011 12:19:08 -0400
-Message-ID: <4DD7E5F5.4090503@kolumbus.fi>
-Date: Sat, 21 May 2011 19:19:01 +0300
-From: Marko Ristola <marko.ristola@kolumbus.fi>
+	Thu, 19 May 2011 10:12:07 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Tomasz Stanislawski <t.stanislaws@samsung.com>
+Subject: Re: [PATCH 0/2] V4L: Extended crop/compose API
+Date: Thu, 19 May 2011 16:12:08 +0200
+Cc: Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Hans Verkuil <hansverk@cisco.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org,
+	m.szyprowski@samsung.com, kyungmin.park@samsung.com,
+	sakari.ailus@maxwell.research.nokia.com
+References: <1304588396-7557-1-git-send-email-t.stanislaws@samsung.com> <201105191547.50175.laurent.pinchart@ideasonboard.com> <4DD523D4.8060807@samsung.com>
+In-Reply-To: <4DD523D4.8060807@samsung.com>
 MIME-Version: 1.0
-To: "Adrian C." <anrxc@sysphere.org>
-CC: Christoph Pinkl <christoph.pinkl@gmail.com>,
-	abraham.manu@gmail.com, linux-media@vger.kernel.org
-Subject: Re: AW: Remote control not working for Terratec Cinergy C (2.6.37
- Mantis driver)
-References: <alpine.LNX.2.00.1105040038430.10167@flfcurer.bet> <4DC431C6.1010605@kolumbus.fi> <alpine.LNX.2.00.1105102329290.12340@flfcurer.bet> <4dcd3ef7.dc06df0a.52b1.5d88@mx.google.com> <alpine.LNX.2.00.1105210314230.26477@flfcurer.bet> <alpine.LNX.2.00.1105210922290.31652@flfcurer.bet>
-In-Reply-To: <alpine.LNX.2.00.1105210922290.31652@flfcurer.bet>
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
+Message-Id: <201105191612.09127.laurent.pinchart@ideasonboard.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
+On Thursday 19 May 2011 16:06:12 Tomasz Stanislawski wrote:
+> Laurent Pinchart wrote:
+> > On Wednesday 18 May 2011 15:03:13 Sylwester Nawrocki wrote:
+> >> On 05/18/2011 02:31 PM, Hans Verkuil wrote:
+> >>> On Wednesday, May 18, 2011 14:06:21 Sylwester Nawrocki wrote:
+> >>>> On 05/16/2011 09:21 AM, Laurent Pinchart wrote:
+> >>>>> On Saturday 14 May 2011 12:50:32 Hans Verkuil wrote:
+> >>>>>> On Friday, May 13, 2011 14:43:08 Laurent Pinchart wrote:
+> >>>>>>> Thinking some more about it, does it make sense to set both crop
+> >>>>>>> and compose on a single video device node (not talking about
+> >>>>>>> mem-to-mem, where you use the type to multiplex input/output
+> >>>>>>> devices on the same node) ? If so, what would the use cases be ?
+> >>>> 
+> >>>> I can't think of any, one either use crop or compose.
+> >>> 
+> >>> I can: you crop in the video receiver and compose it into a larger
+> >>> buffer.
+> >>> 
+> >>> Actually quite a desirable feature.
+> >> 
+> >> Yes, right. Don't know why I imagined something different.
+> >> And we need it in Samsung capture capture interfaces as well. The H/W
+> >> is capable of cropping and composing with camera interface as a data
+> >> source similarly as it is done with memory buffers.
+> > 
+> > The same result could be achieved by adding an offset to the buffer
+> > address and setting the bytesperline field accordingly, but that would
+> > only work with userptr buffers. As we're working on an API to share
+> > buffers between subsystems, I agree that composing into a larger buffer
+> > is desirable and shouldn't be implemented using offset/stride.
+> 
+> Hi,
+> Simulation of cropping on a data source using offset/bytesperline is not
+> possible for compressed formats like JPEG.
 
-I noticed that too on the C code:
+I agree with you, but for composing I wonder how you're going to compose an 
+image into a JPEG buffer :-)
 
-If keypress comes from the remote control,
-driver does both "push down" and "release" immediately.
+> I could not find any good definition of bytesperline for macroblock and
+> planar formats. These problems were the reason of proposing extcrop (aka
+> selection) API.
 
-Some years ago I made a version that did something like this:
+As I said, I agree that composing shouldn't be implemented using 
+offset/stride, so there's no disagreement.
 
-I measured that a remote control sends "key pressed" in about 20ms cycles.
-
-Thus I decided that the driver can do following:
-
-Whe key '1' is pressed initially, send "key 1 pressed to input layer".
-
-If within 30ms a '1 pressed' comes from the remote control, driver keeps '1' as pressed (do nothing for input layer).
-If there won't come a '1 pressed' from remote within 30ms, then driver sends "key 1 unpressed to input layer".
-
-I don't know if there is any reusable algorithm (easilly usable code) for remote control drivers for this.
-
+-- 
 Regards,
-Marko Ristola
 
-
-21.05.2011 10:23, Adrian C. kirjoitti:
-> Haven't noticed earlier that every button press is executed twice, until 
-> I did some testing with Oxine. Not sure how much Lirc is to blame for 
-> this, and for button 0 not working. I will move to the Lirc list.
-> 
-> Thanks again for the patch.
-> 
-
+Laurent Pinchart
