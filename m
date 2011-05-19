@@ -1,23 +1,21 @@
 Return-path: <mchehab@pedra>
 Received: from mail.tu-berlin.de ([130.149.7.33])
 	by www.linuxtv.org with esmtp (Exim 4.69)
-	(envelope-from <stewart@wic.co.nz>) id 1QOqCu-0005Kg-DE
-	for linux-dvb@linuxtv.org; Tue, 24 May 2011 13:55:29 +0200
-Received: from wic-core-1.wic.co.nz ([202.20.97.20])
-	by mail.tu-berlin.de (exim-4.75/mailfrontend-2) with esmtp
+	(envelope-from <wallak@free.fr>) id 1QNA9R-0006nt-8I
+	for linux-dvb@linuxtv.org; Thu, 19 May 2011 22:48:57 +0200
+Received: from smtp5-g21.free.fr ([212.27.42.5])
+	by mail.tu-berlin.de (exim-4.75/mailfrontend-4) with esmtp
 	for <linux-dvb@linuxtv.org>
-	id 1QOqCr-0004i2-IO; Tue, 24 May 2011 13:55:26 +0200
-Received: from [10.1.1.127] (unknown [120.89.80.178])
-	by wic-core-1.wic.co.nz (Postfix) with ESMTPSA id 790AB32D12
-	for <linux-dvb@linuxtv.org>; Tue, 24 May 2011 23:55:18 +1200 (NZST)
-Message-ID: <4DDB9CA6.6040208@wic.co.nz>
-Date: Tue, 24 May 2011 23:55:18 +1200
-From: Stu Fleming <stewart@wic.co.nz>
-MIME-Version: 1.0
+	id 1QNA9Q-00039C-Be; Thu, 19 May 2011 22:48:57 +0200
+Received: from UNKNOWN (unknown [172.20.243.135])
+	by smtp5-g21.free.fr (Postfix) with ESMTP id 48B90D4823B
+	for <linux-dvb@linuxtv.org>; Thu, 19 May 2011 22:48:49 +0200 (CEST)
+Message-ID: <1305838128.4dd582301742e@imp.free.fr>
+Date: Thu, 19 May 2011 22:48:48 +0200
+From: wallak@free.fr
 To: linux-dvb@linuxtv.org
-References: <885931.85151.qm@web28303.mail.ukl.yahoo.com>
-In-Reply-To: <885931.85151.qm@web28303.mail.ukl.yahoo.com>
-Subject: Re: [linux-dvb] build.sh fails on kernel 2.6.38
+MIME-Version: 1.0
+Subject: [linux-dvb] AverMedia A306 (cx23385, xc3028, af9013) (A577 too ?)
 Reply-To: linux-media@vger.kernel.org
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/options/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
@@ -26,62 +24,291 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Transfer-Encoding: base64
-Content-Type: text/plain; charset="utf-8"; Format="flowed"
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 Sender: <mchehab@pedra>
 List-ID: <linux-dvb@linuxtv.org>
 
-T24gMjMvMDUvMTEgMjI6MDksIEdpd3Jnb3MgUGFub3Ugd3JvdGU6Cj4gSGVsbG8sCj4gSSB0cmll
-ZCB0byBidWlsZCB0aGUgdjRsLWR2YiBvbiBhbiB1YnVudHUgbWFjaGluZSB3aXRoIGtlcm5lbCAy
-LjYuMzguOCBnZW5lcmljCj4gYW5kIEkgZ2V0IG1ha2UgZXJyb3I6Cj4gPT09PT09PT09PT09PT09
-PT09PT09PT09PT09PT09PT09PT09PT09PT0KPiAvaG9tZS96L21lZGlhX2J1aWxkL3Y0bC9raW5l
-Y3QuYzozODoxOTogZXJyb3I6IOKAmERfRVJS4oCZIHVuZGVjbGFyZWQgaGVyZSAobm90IGluIGEg
-ZnVuY3Rpb24pCj4gL2hvbWUvei9tZWRpYV9idWlsZC92NGwva2luZWN0LmM6Mzg6Mjc6IGVycm9y
-OiDigJhEX1BST0JF4oCZIHVuZGVjbGFyZWQgaGVyZSAobm90IGluIGEgZnVuY3Rpb24pCj4gL2hv
-bWUvei9tZWRpYV9idWlsZC92NGwva2luZWN0LmM6Mzg6Mzc6IGVycm9yOiDigJhEX0NPTkbigJkg
-dW5kZWNsYXJlZCBoZXJlIChub3QgaW4gYSBmdW5jdGlvbikKPiAvaG9tZS96L21lZGlhX2J1aWxk
-L3Y0bC9raW5lY3QuYzozODo0NjogZXJyb3I6IOKAmERfU1RSRUFN4oCZIHVuZGVjbGFyZWQgaGVy
-ZSAobm90IGluIGEgZnVuY3Rpb24pCj4gL2hvbWUvei9tZWRpYV9idWlsZC92NGwva2luZWN0LmM6
-Mzg6NTc6IGVycm9yOiDigJhEX0ZSQU3igJkgdW5kZWNsYXJlZCBoZXJlIChub3QgaW4gYSBmdW5j
-dGlvbikKPiAvaG9tZS96L21lZGlhX2J1aWxkL3Y0bC9raW5lY3QuYzozODo2NjogZXJyb3I6IOKA
-mERfUEFDS+KAmSB1bmRlY2xhcmVkIGhlcmUgKG5vdCBpbiBhIGZ1bmN0aW9uKQo+IC9ob21lL3ov
-bWVkaWFfYnVpbGQvdjRsL2tpbmVjdC5jOjM5OjI6IGVycm9yOiDigJhEX1VTQknigJkgdW5kZWNs
-YXJlZCBoZXJlIChub3QgaW4gYSBmdW5jdGlvbikKPiAvaG9tZS8vbWVkaWFfYnVpbGQvdjRsL2tp
-bmVjdC5jOjM5OjExOiBlcnJvcjog4oCYRF9VU0JP4oCZIHVuZGVjbGFyZWQgaGVyZSAobm90IGlu
-IGEgZnVuY3Rpb24pCj4gL2hvbWUvL21lZGlhX2J1aWxkL3Y0bC9raW5lY3QuYzozOToyMDogZXJy
-b3I6IOKAmERfVjRMMuKAsiB1bmRlY2xhcmVkIGhlcmUgKG5vdCBpbiBhIGZ1bmN0aW9uKQo+IG1h
-a2VbM106ICoqKiBbL2hvbWUvL21lZGlhX2J1aWxkL3Y0bC9raW5lY3Qub10gRXJyb3IgMQo+IG1h
-a2VbMl06ICoqKiBbX21vZHVsZV8vaG9tZS8vbWVkaWFfYnVpbGQvdjRsXSBFcnJvciAyCj4gPT09
-PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09
-PT09PT0KSSBhbHNvIHNlZSwgY29tcGlsaW5nIGFnYWluc3QgMi42LjM4OgogICBDQyBbTV0gIC91
-c3Ivc3JjL3Y0bC1kdmIvdjRsL2ZsZXhjb3AtaTJjLm8KL3Vzci9zcmMvdjRsLWR2Yi92NGwvZmxl
-eGNvcC1pMmMuYzogSW4gZnVuY3Rpb24gJ2ZsZXhjb3BfaTJjX2luaXQnOgovdXNyL3NyYy92NGwt
-ZHZiL3Y0bC9mbGV4Y29wLWkyYy5jOjI1MzozOTogZXJyb3I6ICdJMkNfQ0xBU1NfVFZfRElHSVRB
-TCcgCnVuZGVjbGFyZWQgKGZpcnN0IHVzZSBpbiB0aGlzIGZ1bmN0aW9uKQpodHRwczovL3BhdGNo
-d29yay5rZXJuZWwub3JnL3BhdGNoLzI1MDQ1MS8gcmVmZXJzCgogICBDQyBbTV0gIC91c3Ivc3Jj
-L3Y0bC1kdmIvdjRsL2J0dHYtaTJjLm8KL3Vzci9zcmMvdjRsLWR2Yi92NGwvYnR0di1pMmMuYzog
-SW4gZnVuY3Rpb24gJ2luaXRfYnR0dl9pMmNfaXInOgovdXNyL3NyYy92NGwtZHZiL3Y0bC9idHR2
-LWkyYy5jOjQzNzozOiBlcnJvcjogdG9vIGZldyBhcmd1bWVudHMgdG8gCmZ1bmN0aW9uICdpMmNf
-bmV3X3Byb2JlZF9kZXZpY2UnCmh0dHA6Ly93d3cuZ29zc2FtZXItdGhyZWFkcy5jb20vbGlzdHMv
-bGludXgva2VybmVsLzEyODIwNDAgcmVmZXJzCgphbmQgZmluYWxseQogICBDQyBbTV0gIC91c3Iv
-c3JjL3Y0bC1kdmIvdjRsL2RteGRldi5vCi91c3Ivc3JjL3Y0bC1kdmIvdjRsL2RteGRldi5jOiBJ
-biBmdW5jdGlvbiAnZHZiX2RteGRldl9zdGFydF9mZWVkJzoKL3Vzci9zcmMvdjRsLWR2Yi92NGwv
-ZG14ZGV2LmM6NTgzOjEzOiB3YXJuaW5nOiBjb21wYXJpc29uIGJldHdlZW4gJ2VudW0gCmRteF90
-c19wZXMnIGFuZCAnZW51bSA8YW5vbnltb3VzPicKL3Vzci9zcmMvdjRsLWR2Yi92NGwvZG14ZGV2
-LmM6IEF0IHRvcCBsZXZlbDoKL3Vzci9zcmMvdjRsLWR2Yi92NGwvZG14ZGV2LmM6MTE0MjoyOiBl
-cnJvcjogdW5rbm93biBmaWVsZCAnaW9jdGwnIApzcGVjaWZpZWQgaW4gaW5pdGlhbGl6ZXIKL3Vz
-ci9zcmMvdjRsLWR2Yi92NGwvZG14ZGV2LmM6MTE0MjoyOiB3YXJuaW5nOiBpbml0aWFsaXphdGlv
-biBmcm9tIAppbmNvbXBhdGlibGUgcG9pbnRlciB0eXBlCi91c3Ivc3JjL3Y0bC1kdmIvdjRsL2Rt
-eGRldi5jOjEyMTE6MjogZXJyb3I6IHVua25vd24gZmllbGQgJ2lvY3RsJyAKc3BlY2lmaWVkIGlu
-IGluaXRpYWxpemVyCi91c3Ivc3JjL3Y0bC1kdmIvdjRsL2RteGRldi5jOjEyMTE6Mjogd2Fybmlu
-ZzogaW5pdGlhbGl6YXRpb24gZnJvbSAKaW5jb21wYXRpYmxlIHBvaW50ZXIgdHlwZQp3aGljaCBJ
-IGNhbm5vdCB5ZXQgZml4LgoKSSBub3RlIHRoYXQgdGhlIGN4ODggYnVnIHRoYXQgYWZmZWN0cyBI
-VlIzMDAwIGFuZCBIVlI0MDAwIGlzIHN0aWxsIGluIAp0aGlzIGJ1aWxkCmh0dHBzOi8vbGlzdHMu
-bGF1bmNocGFkLm5ldC9teXRoYnVudHUtYnVncy9tc2cwMzM5MC5odG1sCgpJIHdvdWxkIGh1Z2Vs
-eSBhcHByZWNpYXRlIHRoZSBsYXR0ZXIgYnVnIGJlaW5nIGZpeGVkISEKUmVnYXJkcywKU3R1CgoK
-Cl9fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fCmxpbnV4LWR2
-YiB1c2VycyBtYWlsaW5nIGxpc3QKRm9yIFY0TC9EVkIgZGV2ZWxvcG1lbnQsIHBsZWFzZSB1c2Ug
-aW5zdGVhZCBsaW51eC1tZWRpYUB2Z2VyLmtlcm5lbC5vcmcKbGludXgtZHZiQGxpbnV4dHYub3Jn
-Cmh0dHA6Ly93d3cubGludXh0di5vcmcvY2dpLWJpbi9tYWlsbWFuL2xpc3RpbmZvL2xpbnV4LWR2
-Yg==
+Hello All,
+
+I've tried to use my A306 board on my system. All the main chips are fully
+supported by linux.
+
+At this stage the CX23385 and the tuner: xc3028 seem to respond properly. But
+the DVB-T chip (af9013) is silent. Nevertheless both chips are visible on the
+I2C bus.
+
+I've no full datasheet of theses chips. with exception of the af9013 where this
+information is available:
+http://wenku.baidu.com/view/42240f72f242336c1eb95e08.html
+
+At this stage the CLK signal of the DVB-T chip may be missing or something is
+wrong elsewhere.
+
+If you have the datasheets... Any help will be appreciated.
+
+
+Best Regards,
+Wallak.
+
+
+
+
+diff -u -r -b -B -w -x '*.o' -x '*.cmd' -x '*.ko' -x '*.mod.c' -x 'modules.*'
+tmp/linux-2.6.37.6/drivers/media/common/tuners/tuner-xc2028.c
+linux-2.6.37.6-mdf/drivers/media/common/tuners/tuner-xc2028.c
+--- linux-2.6.37.6/drivers/media/common/tuners/tuner-xc2028.c	2011-03-27
+21:01:41.000000000 +0200
++++ linux-2.6.37.6-mdf/drivers/media/common/tuners/tuner-xc2028.c	2011-05-07
+23:30:20.000000000 +0200
+@@ -813,6 +813,10 @@
+ 		  hwmodel, (version & 0xf000) >> 12, (version & 0xf00) >> 8,
+ 		  (version & 0xf0) >> 4, version & 0xf);
+
++	{
++	  void af9013_execdebug(struct dvb_frontend *fe);
++	  af9013_execdebug(fe);
++	}
+
+ 	if (priv->ctrl.read_not_reliable)
+ 		goto read_not_reliable;
+diff -u -r -b -B -w -x '*.o' -x '*.cmd' -x '*.ko' -x '*.mod.c' -x 'modules.*'
+tmp/linux-2.6.37.6/drivers/media/dvb/frontends/af9013.c
+linux-2.6.37.6-mdf/drivers/media/dvb/frontends/af9013.c
+--- linux-2.6.37.6/drivers/media/dvb/frontends/af9013.c	2011-03-27
+21:01:41.000000000 +0200
++++ linux-2.6.37.6-mdf/drivers/media/dvb/frontends/af9013.c	2011-05-15
+02:58:34.000000000 +0200
+@@ -69,6 +69,8 @@
+ 	buf[2] = mbox;
+ 	memcpy(&buf[3], val, len);
+
++	printk(KERN_DEBUG "af9013_write_regs(%02x, %02x %02x
+%02x)\n",state->config.demod_address,buf[0],buf[1],buf[2]);
++
+ 	if (i2c_transfer(state->i2c, &msg, 1) != 1) {
+ 		warn("I2C write failed reg:%04x len:%d", reg, len);
+ 		return -EREMOTEIO;
+@@ -119,6 +121,10 @@
+ 		warn("I2C read failed reg:%04x", reg);
+ 		return -EREMOTEIO;
+ 	}
++
++        printk(KERN_DEBUG "af9013_read_reg(%02x, %02x %02x %02x)
+=%02x\n",state->config.demod_address,reg >> 8,reg & 0xff, 0, ibuf[0]);
++
++
+ 	*val = ibuf[0];
+ 	return 0;
+ }
+@@ -1448,6 +1454,22 @@
+ 	kfree(state);
+ }
+
++void af9013_execdebug(struct dvb_frontend *fe)
++{
++  struct af9013_state *state = fe->demodulator_priv;
++  u8 val;
++  u8 buf[4];
++  int ret, i;
++
++  ret = af9013_read_reg(state, 0x98be, &val);
++  printk(KERN_DEBUG "(0x0c) running = %02x, ret=%02x\n",val, ret);
++
++  ret = af9013_read_reg_bits(state, 0xd733, 4, 4, &buf[2]);
++  for (i = 0; i < 2; i++) { ret = af9013_read_reg(state, 0x116b + i, &buf[i]);
+}
++  printk(KERN_DEBUG "%s: chip version:%d ROM version:%d.%d (ret=%d)\n",
+__func__, buf[2], buf[0], buf[1], ret);
++}
++EXPORT_SYMBOL(af9013_execdebug);
++
+ static struct dvb_frontend_ops af9013_ops;
+
+ struct dvb_frontend *af9013_attach(const struct af9013_config *config,
+@@ -1484,7 +1506,18 @@
+ 	if (state->config.output_mode != AF9013_OUTPUT_MODE_USB) {
+ 		ret = af9013_download_firmware(state);
+ 		if (ret)
+-			goto error;
++		  {
++		    deb_info("%s: continue...\n", __func__);
++
++		    /* create dvb_frontend */
++		    memcpy(&state->frontend.ops, &af9013_ops,
++			   sizeof(struct dvb_frontend_ops));
++		    state->frontend.demodulator_priv = state;
++
++		    return &state->frontend;
++
++		    //goto error;
++		  }
+ 	}
+
+ 	/* firmware version */
+diff -u -r -b -B -w -x '*.o' -x '*.cmd' -x '*.ko' -x '*.mod.c' -x 'modules.*'
+tmp/linux-2.6.37.6/drivers/media/video/cx23885/cx23885-cards.c
+linux-2.6.37.6-mdf/drivers/media/video/cx23885/cx23885-cards.c
+--- linux-2.6.37.6/drivers/media/video/cx23885/cx23885-cards.c	2011-03-27
+21:01:41.000000000 +0200
++++ linux-2.6.37.6-mdf/drivers/media/video/cx23885/cx23885-cards.c	2011-05-15
+04:12:20.000000000 +0200
+@@ -275,6 +275,10 @@
+ 		.name		= "Compro VideoMate E800",
+ 		.portc		= CX23885_MPEG_DVB,
+ 	},
++	[CX23885_BOARD_AVERMEDIA_A306] = {
++		.name		= "Avermedia A306",
++		.portc		= CX23885_MPEG_DVB,
++	},
+ 	[CX23885_BOARD_HAUPPAUGE_HVR1290] = {
+ 		.name		= "Hauppauge WinTV-HVR1290",
+ 		.portc		= CX23885_MPEG_DVB,
+@@ -485,6 +489,10 @@
+ 		.subdevice = 0xe800,
+ 		.card      = CX23885_BOARD_COMPRO_VIDEOMATE_E800,
+ 	}, {
++	        .subvendor = 0x1461,
++		.subdevice = 0xc139,
++		.card      = CX23885_BOARD_AVERMEDIA_A306,
++	}, {
+ 		.subvendor = 0x0070,
+ 		.subdevice = 0x8551,
+ 		.card      = CX23885_BOARD_HAUPPAUGE_HVR1290,
+@@ -967,6 +975,31 @@
+ 		/* CX24228 GPIO */
+ 		/* Connected to IF / Mux */
+ 		break;
++	case CX23885_BOARD_AVERMEDIA_A306:
++	  // ?? PIO0: 1:on 0:nothing work
++	  // ?? PIO1: demodulator address 1: 0x1c, 0:0x1d ??
++	  // ?? PIO2: tuner reset ?
++	  // ?? PIO3: demodulator reset ?
++	  printk(KERN_INFO "gpio...\n");
++
++	  cx_set(GP0_IO, 0x000f0000);
++	  mdelay(100);
++	  cx_clear(GP0_IO, 0x0000000f);
++	  mdelay(100);
++
++
++	  cx_set(GP0_IO, 0x000f0000 | (1<<3) | (1<<2) | (1<<1) | (0<<0));
++	  mdelay(100);
++	  //cx_clear(GP0_IO, 0x00000000 | (1<<3) | (1<<2));
++	  cx_set(GP0_IO, 0x000f0000 | (1<<3) | (0<<2) | (1<<1) | (0<<0));
++	  mdelay(100);
++	  cx_set(GP0_IO, 0x000f0000 | (1<<3) | (0<<2) | (1<<1) | (1<<0));
++	  //cx_clear(GP0_IO, 0x0000000f);
++	  //cx_set(GP0_IO, 0x00000003);
++	  //cx_clear(GP0_IO, 0x00000002);
++          mdelay(100);
++
++	  break;
+ 	}
+ }
+
+@@ -1012,6 +1045,7 @@
+ 	case CX23885_BOARD_HAUPPAUGE_HVR1275:
+ 	case CX23885_BOARD_HAUPPAUGE_HVR1255:
+ 	case CX23885_BOARD_HAUPPAUGE_HVR1210:
++	case CX23885_BOARD_AVERMEDIA_A306:
+ 		/* FIXME: Implement me */
+ 		break;
+ 	case CX23885_BOARD_HAUPPAUGE_HVR1850:
+@@ -1258,6 +1292,7 @@
+ 	/* AUX-PLL 27MHz CLK */
+ 	switch (dev->board) {
+ 	case CX23885_BOARD_NETUP_DUAL_DVBS2_CI:
++	  //case CX23885_BOARD_AVERMEDIA_A306:
+ 		netup_initialize(dev);
+ 		break;
+ 	}
+diff -u -r -b -B -w -x '*.o' -x '*.cmd' -x '*.ko' -x '*.mod.c' -x 'modules.*'
+tmp/linux-2.6.37.6/drivers/media/video/cx23885/cx23885-dvb.c
+linux-2.6.37.6-mdf/drivers/media/video/cx23885/cx23885-dvb.c
+--- linux-2.6.37.6/drivers/media/video/cx23885/cx23885-dvb.c	2011-03-27
+21:01:41.000000000 +0200
++++ linux-2.6.37.6-mdf/drivers/media/video/cx23885/cx23885-dvb.c	2011-05-15
+04:03:54.000000000 +0200
+@@ -48,6 +48,7 @@
+ #include "stv0900.h"
+ #include "stv0900_reg.h"
+ #include "stv6110.h"
++#include "af9013.h"
+ #include "lnbh24.h"
+ #include "cx24116.h"
+ #include "cimax2.h"
+@@ -571,6 +572,14 @@
+ 	.osc_clk = 20
+ };
+
++static struct af9013_config af9013_config = {
++  .demod_address = (0x1c << 1),                         /* #define
+AF9015_I2C_DEMOD   0x38 */ /*0x1c or 0x1d*/
++  .output_mode   = AF9013_OUTPUT_MODE_PARALLEL,
++  .api_version = { 0, 1, 9, 0 },
++  /*.gpio[0] = AF9013_GPIO_TUNER_ON,
++    .gpio[1] = AF9013_GPIO_LO,*/
++};
++
+ static int dvb_register(struct cx23885_tsport *port)
+ {
+ 	struct cx23885_dev *dev = port->dev;
+@@ -966,6 +975,34 @@
+ 			break;
+ 		}
+ 		break;
++	case CX23885_BOARD_AVERMEDIA_A306:
++	  printk("# %d\n", port->nr - 1);
++	  i2c_bus = &dev->i2c_bus[0];
++
++	  fe0->dvb.frontend = dvb_attach(af9013_attach,
++					 &af9013_config,
++					 &i2c_bus->i2c_adap);
++
++	  if (fe0->dvb.frontend != NULL || 1) {
++	    struct dvb_frontend *fe;
++	    struct xc2028_config cfg = {
++	      .i2c_adap  = &dev->i2c_bus[1].i2c_adap,
++	      .i2c_addr  = 0x61,
++	    };
++	    static struct xc2028_ctrl ctl = {
++	      .fname       = XC2028_DEFAULT_FIRMWARE,
++	      .max_len     = 64,
++	      .demod       = XC3028_FE_ZARLINK456 /*XC3028_FE_OREN538: Loading SCODE
+for type=DTV6 ATSC OREN538 SCODE HAS_IF_5580 (60110020)*/,
++	    };
++
++	    printk(KERN_INFO "xc2028_attach %p\n", fe0->dvb.frontend);
++	    fe = dvb_attach(xc2028_attach, fe0->dvb.frontend, &cfg);
++	    printk(KERN_INFO "xc2028_attach %p\n", fe);
++	    if (fe != NULL && fe->ops.tuner_ops.set_config != NULL) {
++	        fe->ops.tuner_ops.set_config(fe, &ctl);
++	    }
++	  }
++	  break;
+
+ 	default:
+ 		printk(KERN_INFO "%s: The frontend of your DVB/ATSC card "
+diff -u -r -b -B -w -x '*.o' -x '*.cmd' -x '*.ko' -x '*.mod.c' -x 'modules.*'
+tmp/linux-2.6.37.6/drivers/media/video/cx23885/cx23885.h
+linux-2.6.37.6-mdf/drivers/media/video/cx23885/cx23885.h
+--- linux-2.6.37.6/drivers/media/video/cx23885/cx23885.h	2011-03-27
+21:01:41.000000000 +0200
++++ linux-2.6.37.6-mdf/drivers/media/video/cx23885/cx23885.h	2011-05-05
+02:58:01.000000000 +0200
+@@ -84,6 +84,7 @@
+ #define CX23885_BOARD_HAUPPAUGE_HVR1290        26
+ #define CX23885_BOARD_MYGICA_X8558PRO          27
+ #define CX23885_BOARD_LEADTEK_WINFAST_PXTV1200 28
++#define CX23885_BOARD_AVERMEDIA_A306           29
+
+ #define GPIO_0 0x00000001
+ #define GPIO_1 0x00000002
+
+_______________________________________________
+linux-dvb users mailing list
+For V4L/DVB development, please use instead linux-media@vger.kernel.org
+linux-dvb@linuxtv.org
+http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
