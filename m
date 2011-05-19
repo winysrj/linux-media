@@ -1,50 +1,52 @@
 Return-path: <mchehab@pedra>
-Received: from cmsout01.mbox.net ([165.212.64.31]:34247 "EHLO
-	cmsout01.mbox.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751196Ab1EDI1t convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 4 May 2011 04:27:49 -0400
-Received: from cmsout01.mbox.net (cmsout01-lo [127.0.0.1])
-	by cmsout01.mbox.net (Postfix) with ESMTP id 4F81D2AC892
-	for <linux-media@vger.kernel.org>; Wed,  4 May 2011 08:27:41 +0000 (GMT)
-Date: Wed, 04 May 2011 10:27:38 +0200
-From: "Issa Gorissen" <flop.m@usa.net>
-To: <linux-media@vger.kernel.org>
-Subject: Re: [PATCH] Ngene cam device name
-Mime-Version: 1.0
-Message-ID: <148PeDiAM3760S04.1304497658@web04.cms.usa.net>
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+Received: from ssfcaprox01.familycourt.gov.au ([144.140.84.10]:51207 "EHLO
+	ssfcaprox01.familycourt.gov.au" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1756414Ab1ESMHd (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 19 May 2011 08:07:33 -0400
+Received: from lxsmtp03.svr.gdc (lxsmtp02.svr.gdc [192.168.1.3])
+	by ssfcaprox01.familycourt.gov.au (Postfix) with ESMTP id B668959C87
+	for <linux-media@vger.kernel.org>; Thu, 19 May 2011 22:00:20 +1000 (EST)
+Received: from lxsmtp03.svr.gdc (localhost.localdomain [127.0.0.1])
+	by localhost.svr.gdc (Postfix) with ESMTP id A6FE971403A
+	for <linux-media@vger.kernel.org>; Thu, 19 May 2011 22:00:20 +1000 (EST)
+Received: from mail1.familycourt.gov.au (unknown [144.140.85.195])
+	by lxsmtp03.svr.gdc (Postfix) with ESMTP id 99558714039
+	for <linux-media@vger.kernel.org>; Thu, 19 May 2011 22:00:20 +1000 (EST)
+Received: from cbrnotes4.familycourt.gov.au (unverified) by
+    mail1.familycourt.gov.au (Clearswift SMTPRS 5.3.4) with ESMTP id
+    <T9d16aeb78c0a1e0333bc4@mail1.familycourt.gov.au> for
+    <linux-media@vger.kernel.org>; Thu, 19 May 2011 22:00:14 +1000
+Subject: AUTO: Ben Ellis is out of the office (returning 05/27/2011)
+From: ben.ellis@familycourt.gov.au
+To: linux-media@vger.kernel.org
+Message-ID: <OF817024AA.32DA336C-ONCA257895.0041F0A6-CA257895.0041F0A6@familycourt.gov.au>
+Date: Thu, 19 May 2011 22:00:14 +1000
+MIME-Version: 1.0
+Content-type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-From: Andreas Oberritter <obi@linuxtv.org>
-> Also, there's still no mapping between ca and caio devices. Imagine a
-> built-in descrambler ca0 and two CI slots ca1 and ca2.
-> 
-> ca0 won't get a caio device, at least for now.
-> ca1 and ca2 might or might not have a caio device.
-> 
-> If there is caio0, how am I supposed to know that it's related to ca1 or
-> ca2 (or ca0, if someone implements a caio device to bypass the software
-> demux to use a built-in descrambler)? You must not assume that there are
-> either none or two (or three) caio interfaces. You need to be able to
-> detect (or set up) the connection between the interfaces. Otherwise this
-> "API" will be a mess.
-> 
-> Regards,
-> Andreas
+
+I am out of the office until 05/27/2011.
+
+For urgent matters please contact Peter Hine on 02 6243 8668 or
+peter.hine@familycourt.gov.au
 
 
-To my understanding, in such a described case, 
+Note: This is an automated response to your message  "Re: [linux-dvb]
+Technisat Cablestar HD2 not automatically detected by kernel > 2.6.33?"
+sent on 19/5/2011 19:12:37.
 
-- ca0 would be reached from /dev/dvb/adapter0/ca0
-- ca[12], depending on if they are connected to the same physical adapter
-(PCI, USB, ...), would be reached from /dev/dvb/adapter1/ca[12] or
-/dev/dvb/adapter1/ca1 and /dev/dvb/adapter2/ca2 and there respective caio
-devices.
+This is the only notification you will receive while this person is away.
 
-- If the 3 ca devices are on the same adapter, then the driver writer should
-take care of the order of the mapping so that ca1 always map caio1 and
-ca2/caio2, ...; and if this is not feasable, then the driver writer should
-span the ca/caio devices on different /dev/dvb/adapter folders.
+
+**********************************************************************
+The information contained in this e-mail (including any attachments) 
+is for the exclusive use of the addressee. If you are not the intended 
+recipient please notify the sender immediately and delete this e-mail. 
+It is noted that legal privilege is not waived because you have read 
+this e-mail.
+**********************************************************************
 
