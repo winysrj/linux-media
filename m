@@ -1,172 +1,128 @@
 Return-path: <mchehab@pedra>
-Received: from mail.meprolight.com ([194.90.149.17]:32755 "EHLO meprolight.com"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S932238Ab1ESPPH convert rfc822-to-8bit (ORCPT
+Received: from mail.phytec.de ([217.6.246.34]:45353 "EHLO root.phytec.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754680Ab1ESLHW convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 19 May 2011 11:15:07 -0400
-From: Alex Gershgorin <alexg@meprolight.com>
-To: "'Laurent Pinchart'" <laurent.pinchart@ideasonboard.com>,
-	Michael Jones <michael.jones@matrix-vision.de>
-CC: "'linux-media@vger.kernel.org'" <linux-media@vger.kernel.org>,
-	"'sakari.ailus@iki.fi'" <sakari.ailus@iki.fi>,
-	"'agersh@rambler.ru'" <agersh@rambler.ru>
-Date: Thu, 19 May 2011 18:13:28 +0300
-Subject: RE: FW: OMAP 3 ISP
-Message-ID: <4875438356E7CA4A8F2145FCD3E61C0B15D3557D3A@MEP-EXCH.meprolight.com>
-In-Reply-To: <201105191627.20621.laurent.pinchart@ideasonboard.com>
-Content-Language: en-US
-Content-Type: text/plain; charset="us-ascii"
+	Thu, 19 May 2011 07:07:22 -0400
+Subject: Re: [PATCH 2/2] mt9m111: fix pixel clock
+From: Teresa Gamez <T.Gamez@phytec.de>
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Cc: linux-media@vger.kernel.org
+In-Reply-To: <Pine.LNX.4.64.1105181309320.16324@axis700.grange>
+References: <1302098515-12176-1-git-send-email-t.gamez@phytec.de>
+	 <1302098515-12176-2-git-send-email-t.gamez@phytec.de>
+	 <Pine.LNX.4.64.1105181309320.16324@axis700.grange>
+Date: Thu, 19 May 2011 13:07:58 +0200
+Message-ID: <1305803278.28630.100.camel@lws-gamez>
+Mime-Version: 1.0
 Content-Transfer-Encoding: 8BIT
-MIME-Version: 1.0
+Content-Type: text/plain; charset="UTF-8"
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Hi Michael,
+Am Mittwoch, den 18.05.2011, 13:12 +0200 schrieb Guennadi Liakhovetski:
+> Hi Teresa
+> 
+> I've verified the mt9v022 patch - finally I have noticed the difference, 
+> it does look correct! As for this one, how about this version of your 
+> patch:
 
-I liked the idea of a driver that returns fixed format and frame size.
-It certainly could solve my problem.
-On the other hand, from your correspondence to Laurent, I realized that it was already done work on improving V4L2 subdevs.
-Michael patch of which you speak will help solve my problem without writing a special driver?
-Advise in what direction to go in my case?
+Great! Thank you.
 
-Regards,
+> 
+> diff --git a/drivers/media/video/mt9m111.c b/drivers/media/video/mt9m111.c
+> index 53fa2a7..ebebed9 100644
+> --- a/drivers/media/video/mt9m111.c
+> +++ b/drivers/media/video/mt9m111.c
+> @@ -315,10 +315,20 @@ static int mt9m111_setup_rect(struct i2c_client *client,
+>  static int mt9m111_setup_pixfmt(struct i2c_client *client, u16 outfmt)
+>  {
+>  	int ret;
+> +	u16 mask = MT9M111_OUTFMT_PROCESSED_BAYER | MT9M111_OUTFMT_RGB |
+> +		MT9M111_OUTFMT_BYPASS_IFP | MT9M111_OUTFMT_SWAP_RGB_EVEN |
+> +		MT9M111_OUTFMT_RGB565 | MT9M111_OUTFMT_RGB555 |
+> +		MT9M111_OUTFMT_SWAP_YCbCr_Cb_Cr |
+> +		MT9M111_OUTFMT_SWAP_YCbCr_C_Y;
+>  
+> -	ret = reg_write(OUTPUT_FORMAT_CTRL2_A, outfmt);
+> +	ret = reg_read(OUTPUT_FORMAT_CTRL2_A);
+> +	if (ret >= 0)
+> +		ret = reg_write(OUTPUT_FORMAT_CTRL2_A, (ret & ~mask) | outfmt);
+>  	if (!ret)
+> -		ret = reg_write(OUTPUT_FORMAT_CTRL2_B, outfmt);
+> +		ret = reg_read(OUTPUT_FORMAT_CTRL2_B);
+> +	if (ret >= 0)
+> +		ret = reg_write(OUTPUT_FORMAT_CTRL2_B, (ret & ~mask) | outfmt);
+> +
+>  	return ret;
+>  }
+>  
+> 
+> It reduces the number of I2C accesses and avoids writing some not 
+> necessarily desired value to the register. Does this look ok to you? Could 
+> you maybe test - I've got no mt9m111 cameras.
+> 
 
-Alex Gershgorin
+Yes, this looks good. And I tested it successfully with a mt9m131.
 
+Tested-by: Teresa Gámez <t.gamez@phytec.de>
 
+Teresa
 
------Original Message-----
-From: Laurent Pinchart [mailto:laurent.pinchart@ideasonboard.com]
-Sent: Thursday, May 19, 2011 5:27 PM
-To: Michael Jones
-Cc: Alex Gershgorin; 'linux-media@vger.kernel.org'; 'sakari.ailus@iki.fi'; 'agersh@rambler.ru'
-Subject: Re: FW: OMAP 3 ISP
+> Thanks
+> Guennadi
+> 
+> On Wed, 6 Apr 2011, Teresa Gámez wrote:
+> 
+> > This camera driver supports only rising edge, which is the default
+> > setting of the device. The function mt9m111_setup_pixfmt() overwrites
+> > this setting. So the driver actually uses falling edge.
+> > This patch corrects that.
+> > 
+> > Signed-off-by: Teresa Gámez <t.gamez@phytec.de>
+> > ---
+> >  drivers/media/video/mt9m111.c |   14 ++++++++++++--
+> >  1 files changed, 12 insertions(+), 2 deletions(-)
+> > 
+> > diff --git a/drivers/media/video/mt9m111.c b/drivers/media/video/mt9m111.c
+> > index 53fa2a7..4040a96 100644
+> > --- a/drivers/media/video/mt9m111.c
+> > +++ b/drivers/media/video/mt9m111.c
+> > @@ -315,10 +315,20 @@ static int mt9m111_setup_rect(struct i2c_client *client,
+> >  static int mt9m111_setup_pixfmt(struct i2c_client *client, u16 outfmt)
+> >  {
+> >  	int ret;
+> > +	u16 mask = MT9M111_OUTFMT_PROCESSED_BAYER | MT9M111_OUTFMT_RGB |
+> > +		MT9M111_OUTFMT_BYPASS_IFP | MT9M111_OUTFMT_SWAP_RGB_EVEN |
+> > +		MT9M111_OUTFMT_RGB565 | MT9M111_OUTFMT_RGB555 |
+> > +		MT9M111_OUTFMT_SWAP_YCbCr_Cb_Cr |
+> > +		MT9M111_OUTFMT_SWAP_YCbCr_C_Y;
+> >  
+> > -	ret = reg_write(OUTPUT_FORMAT_CTRL2_A, outfmt);
+> > +	ret = reg_clear(OUTPUT_FORMAT_CTRL2_A, mask);
+> >  	if (!ret)
+> > -		ret = reg_write(OUTPUT_FORMAT_CTRL2_B, outfmt);
+> > +		ret = reg_set(OUTPUT_FORMAT_CTRL2_A, outfmt);
+> > +	if (!ret)
+> > +		ret = reg_clear(OUTPUT_FORMAT_CTRL2_B, mask);
+> > +	if (!ret)
+> > +		ret = reg_set(OUTPUT_FORMAT_CTRL2_B, outfmt);
+> > +
+> >  	return ret;
+> >  }
+> >  
+> > -- 
+> > 1.7.0.4
+> > 
+> > --
+> > To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> > the body of a message to majordomo@vger.kernel.org
+> > More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> > 
+> 
+> ---
+> Guennadi Liakhovetski, Ph.D.
+> Freelance Open-Source Software Developer
+> http://www.open-technology.de/
 
-Hi Michael,
-
-On Thursday 19 May 2011 16:24:29 Michael Jones wrote:
-> On 05/19/2011 03:56 PM, Laurent Pinchart wrote:
-> > On Thursday 19 May 2011 15:44:18 Michael Jones wrote:
-> >> On 05/19/2011 03:02 PM, Laurent Pinchart wrote:
-> >>> On Thursday 19 May 2011 14:51:16 Alex Gershgorin wrote:
-> >>>> Thanks Laurent,
-> >>>>
-> >>>> My video source is not the video camera and performs many other
-> >>>> functions. For this purpose I have RS232 port.
-> >>>> As for the video, it runs continuously and is not subject to control
-> >>>> except for the power supply.
-> >>>
-> >>> As a quick hack, you can create an I2C driver for your video source
-> >>> that doesn't access the device and just returns fixed format and frame
-> >>> size.
-> >>>
-> >>> The correct fix is to implement support for platform subdevs in the
-> >>> V4L2 core.
-> >>
-> >> I recently implemented support for platform V4L2 subdevs.  Now that it
-> >> sounds like others would be interested in this, I will try to polish it
-> >> up and submit the patch for review in the next week or so.
-> >
-> > Great. This has been discussed during the V4L meeting in Warsaw, here are
-> > a couple of pointers, to make sure we're going in the same direction.
-> >
-> > Bridge drivers should not care whether the subdev sits on an I2C, SPI,
-> > platform or other bus. To achieve that, an abstraction layer must be
-> > provided by the V4L2 core. Here's what I got in one of my trees:
-> >
-> > /* V4L2 core */
-> >
-> > struct v4l2_subdev_i2c_board_info {
-> >
-> >         struct i2c_board_info *board_info;
-> >         int i2c_adapter_id;
-> >
-> > };
-> >
-> > enum v4l2_subdev_bus_type {
-> >
-> >         V4L2_SUBDEV_BUS_TYPE_NONE,
-> >         V4L2_SUBDEV_BUS_TYPE_I2C,
-> >         V4L2_SUBDEV_BUS_TYPE_SPI,
-> >
-> > };
-> >
-> > struct v4l2_subdev_board_info {
-> >
-> >         enum v4l2_subdev_bus_type type;
-> >         union {
-> >
-> >                 struct v4l2_subdev_i2c_board_info i2c;
-> >                 struct spi_board_info *spi;
-> >
-> >         } info;
-> >
-> > };
-> >
-> > /* OMAP3 ISP  */
-> >
-> > struct isp_v4l2_subdevs_group {
-> >
-> >         struct v4l2_subdev_board_info *subdevs;
-> >         enum isp_interface_type interface;
-> >         union {
-> >
-> >                 struct isp_parallel_platform_data parallel;
-> >                 struct isp_ccp2_platform_data ccp2;
-> >                 struct isp_csi2_platform_data csi2;
-> >
-> >         } bus; /* gcc < 4.6.0 chokes on anonymous union initializers */
-> >
-> > };
-> >
-> > struct isp_platform_data {
-> >
-> >         struct isp_v4l2_subdevs_group *subdevs;
-> >
-> > };
-> >
-> > The V4L2 core would need to provide a function to register a subdev based
-> > on a v4l2_subdev_board_info structure.
-> >
-> > Is that in line with what you've done ? I can provide a patch that
-> > implements this for I2C and SPI, and let you add platform subdevs if
-> > that can help you.
->
-> Hi Laurent,
->
-> Yes, that looks very similar to what I've done.  I was going to submit
-> SPI support, too, which I also have, but it sounds like you've already
-> done that?  I'm currently still using a 2.6.38 tree based on an older
-> media branch of yours, so I'm not familiar with any new changes there yet.
->
-> I just need to know what I should use as my baseline.
-
-Please use mainline, now that the OMAP3 ISP driver has been merged :-)
-
-> I don't need to step on toes and submit something you've already done, so
-> maybe you want to point me to a branch with the SPI stuff, and I'll just put
-> the platform stuff on top of it?
-
-I'll send the SPI support patches to linux-media, as they haven't been
-reviewed publicly yet.
-
---
-Regards,
-
-Laurent Pinchart
-
-
-__________ Information from ESET NOD32 Antivirus, version of virus signature database 6135 (20110519) __________
-
-The message was checked by ESET NOD32 Antivirus.
-
-http://www.eset.com
-
-
-
-__________ Information from ESET NOD32 Antivirus, version of virus signature database 6135 (20110519) __________
-
-The message was checked by ESET NOD32 Antivirus.
-
-http://www.eset.com
 
