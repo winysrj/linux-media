@@ -1,131 +1,333 @@
 Return-path: <mchehab@pedra>
-Received: from smtp-vbr16.xs4all.nl ([194.109.24.36]:4491 "EHLO
-	smtp-vbr16.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755882Ab1E3MxY (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 30 May 2011 08:53:24 -0400
-Message-ID: <bf5dd516b42805e8cb5ca0d66a4ed138.squirrel@webmail.xs4all.nl>
-In-Reply-To: <4DE38872.9090501@section5.ch>
-References: <4DE244F4.90203@section5.ch>
-    <201105300932.59570.hverkuil@xs4all.nl> <4DE365A8.9050508@section5.ch>
-    <322765c00a668d7915214de27d3debe7.squirrel@webmail.xs4all.nl>
-    <4DE38872.9090501@section5.ch>
-Date: Mon, 30 May 2011 14:53:17 +0200
-Subject: Re: v4l2 device property framework in userspace
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: "Martin Strubel" <hackfin@section5.ch>
-Cc: linux-media@vger.kernel.org
-MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+Received: from smtp.nokia.com ([147.243.128.24]:26079 "EHLO mgw-da01.nokia.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753907Ab1ESKlk (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 19 May 2011 06:41:40 -0400
+From: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
+To: linux-media@vger.kernel.org
+Cc: laurent.pinchart@ideasonboard.com, nkanchev@mm-sol.com,
+	g.liakhovetski@gmx.de, hverkuil@xs4all.nl, dacohen@gmail.com,
+	riverful@gmail.com, andrew.b.adams@gmail.com, shpark7@stanford.edu
+Subject: [PATCH 2/3] v4l: Add flash control documentation
+Date: Thu, 19 May 2011 13:41:25 +0300
+Message-Id: <1305801686-32360-2-git-send-email-sakari.ailus@maxwell.research.nokia.com>
+In-Reply-To: <4DD4F3CA.3040300@maxwell.research.nokia.com>
+References: <4DD4F3CA.3040300@maxwell.research.nokia.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-> Hi Hans,
->
->>
->> Can you give examples of the sort of things that are in those registers?
->> Is that XML file available somewhere? Are there public datasheets?
->>
->
-> If you mean the sensor datasheets, many of them are buried behind NDAs,
-> but people are writing opensourced headers too...let's leave this to the
-> lawyers.
->
-> Here's an example: http://section5.ch/downloads/mt9d111.xml
-> The XSLT sheets to generate code from it are found in the netpp
-> distribution, see http://www.section5.ch/netpp. You might have to read
-> some of the documentation to get to the actual clues.
+Add documentation for V4L2 flash controls.
 
-The XML is basically just a dump of all the sensor registers, right?
+Signed-off-by: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
+---
+ Documentation/DocBook/v4l/controls.xml           |  275 ++++++++++++++++++++++
+ Documentation/DocBook/v4l/vidioc-g-ext-ctrls.xml |    7 +
+ 2 files changed, 282 insertions(+), 0 deletions(-)
 
-So you are not talking about 'properties', but about reading/setting
-registers directly. That's something that we do not support (or even want
-to support) except for debugging (see the VIDIOC_DBG_G/S_REGISTER ioctls
-which require root access).
-
->> BTW, you should need just a single control handler that just looks up
->> all
->> the relevant information in a table.
->
-> Right. It might be not too much work to write an appropriate XSLT for
-> that. In fact, the netpp TOKENs (see it as a handle or proxy for a
-> property) are 32 bit values, so they could be used to hold ioctl request
-> codes. However, there are some enumeration/mapping (TOKEN -> Property)
-> issues to be sorted out.
-> In the standard implementation, a TOKEN is merely a mangled index, and
-> we generate a table with elements like:
->
-> 	{ "Enable" /* id250673 */,  DC_BOOL,
-> 		F_RW,
-> 		DC_VAR, { .varp_bool = &g_context.hist_enable },
-> 		0 /* no children */ },
->
-> So coding efforts could again be kept at a minimum (apart from the
-> horror of writing an XSLT), but you'd fill some bytes with the above
-> table data. For the kernel, the property names (the string) should be
-> probably stripped and turned into ioctl request codes (?).
->
-> For some utopia, it would be darn cool (for lazy people) if device
-> vendors provided register information in XML and the kernel would just
-> access them via generated property tables.
-
-But this is not a driver. This is just a mapping of symbols to registers.
-You are just moving the actual driver intelligence to userspace, making it
-very hard to reuse. It's a no-go I'm afraid.
-
->> If V4L2 drivers want to go into the kernel, then it is highly unlikely
->> we
->> want to allow uio drivers. Such drivers cannot be reused. A typical
->> sensor
->> can be used by many vendors and products. By ensuring that access to the
->> sensor is standardized you ensure that anyone can use that sensor and
->> that
->> fixes/improvements to that sensor will benefit everyone.
->>
->> You don't have that with uio, and that's the reason we don't want it
->> (other reasons are possible abuse of uio allowing closed source drivers
->> being build on top of it).
->>
->
-> Right. I'm aware that there's some discussion about pro/cons of uio, but
-> I won't blame people for doing closed source drivers. Also, to bring
-> back the above NDA topic, some vendors might be getting annoyed at
-> source code containing their 'protected' register information. But let's
-> keep this off topic for now.
->
-> Anyhow, with the framework we use I don't see many problems in terms of
-> reusability, because we generate most of the stuff.
-
-As mentioned a list of registers does not make a driver. Someone has to do
-the actual programming.
-
-> So you would be free
-> to put all sensor properties into a kernel module as well (provided,
-> that the XML files are 'free'). But for our embedded stuff (or rapid
-> prototyping), I'd still want to see "userspace", also for the reason to
-> quickly add a new sensor device or property without the need to
-> recompile the kernel
-> This is BTW a big issue for some embedded linux device vendors.
-> So my question is still up, if there's room for userspace handlers for
-> kernel events (ioctl requests). Our current hack is, to read events from
-> a char device and push them through netpp.
-
-Well, no. The policy is to have kernel drivers and not userspace drivers.
-
-It's not just technical reasons, but also social reasons: suppose you have
-userspace drivers, who is going to maintain all those drivers? Ensure that
-they remain in sync, that new features can be added, etc.? That whole
-infrastructure already exists if you use kernel drivers.
-
-Userspace drivers may be great in the short term and from the point of
-view of a single company/user, but it's a lot less attractive in the long
-term.
-
-Anyway, using subdevices and judicious use of controls it really shouldn't
-be that hard to create a kernel driver.
-
-Regards,
-
-        Hans
+diff --git a/Documentation/DocBook/v4l/controls.xml b/Documentation/DocBook/v4l/controls.xml
+index a920ee8..77913b7 100644
+--- a/Documentation/DocBook/v4l/controls.xml
++++ b/Documentation/DocBook/v4l/controls.xml
+@@ -2092,6 +2092,281 @@ manually or automatically if set to zero. Unit, range and step are driver-specif
+ <para>For more details about RDS specification, refer to
+ <xref linkend="en50067" /> document, from CENELEC.</para>
+     </section>
++
++    <section id="flash-controls">
++      <title>Flash Control Reference</title>
++
++      <para>
++	The V4L2 flash controls are intended to provide generic access
++	to flash controller devices. Flash controller devices are
++	typically used in digital cameras.
++      </para>
++
++      <para>
++	The interface can support both LED and xenon flash devices. As
++	of writing this, there is no xenon flash driver using this
++	interface.
++      </para>
++
++      <section id="flash-controls-use-cases">
++	<title>Supported use cases</title>
++
++	<section>
++	  <title>Unsynchronised LED flash (software strobe)</title>
++
++	  <para>
++	    Unsynchronised LED flash is controlled directly by the
++	    host as the sensor. The flash must be enabled by the host
++	    before the exposure of the image starts and disabled once
++	    it ends. The host is fully responsible for the timing of
++	    the flash.
++	  </para>
++
++	  <para>Example of such device: Nokia N900.</para>
++	</section>
++
++	<section>
++	  <title>Synchronised LED flash (hardware strobe)</title>
++
++	  <para>
++	    The synchronised LED flash is pre-programmed by the host
++	    (power and timeout) but controlled by the sensor through a
++	    strobe signal from the sensor to the flash.
++	  </para>
++
++	  <para>
++	    The sensor controls the flash duration and timing. This
++	    information typically must be made available to the
++	    sensor.
++	  </para>
++
++	</section>
++
++	<section>
++	  <title>LED flash as torch</title>
++
++	  <para>
++	    LED flash may be used as torch in conjunction with another
++	    use case involving camera or individually.
++	  </para>
++
++	</section>
++
++      </section>
++
++      <table pgwide="1" frame="none" id="flash-control-id">
++      <title>Flash Control IDs</title>
++
++      <tgroup cols="4">
++	<colspec colname="c1" colwidth="1*" />
++	<colspec colname="c2" colwidth="6*" />
++	<colspec colname="c3" colwidth="2*" />
++	<colspec colname="c4" colwidth="6*" />
++	<spanspec namest="c1" nameend="c2" spanname="id" />
++	<spanspec namest="c2" nameend="c4" spanname="descr" />
++	<thead>
++	  <row>
++	    <entry spanname="id" align="left">ID</entry>
++	    <entry align="left">Type</entry>
++	  </row><row rowsep="1"><entry spanname="descr" align="left">Description</entry>
++	  </row>
++	</thead>
++	<tbody valign="top">
++	  <row><entry></entry></row>
++	  <row>
++	    <entry spanname="id"><constant>V4L2_CID_FLASH_CLASS</constant></entry>
++	    <entry>class</entry>
++	  </row>
++	  <row>
++	    <entry spanname="descr">The FLASH class descriptor.</entry>
++	  </row>
++	  <row>
++	    <entry spanname="id"><constant>V4L2_CID_FLASH_LED_MODE</constant></entry>
++	    <entry>menu</entry>
++	  </row>
++	  <row>
++	    <entry spanname="descr">Defines the mode of the flash LED,
++	    the high-power white LED attached to the flash controller.
++	    Setting this control may not be possible in presence of
++	    some faults. See V4L2_CID_FLASH_FAULT.</entry>
++	  </row>
++	  <row>
++	    <entrytbl spanname="descr" cols="2">
++	      <tbody valign="top">
++		<row>
++		  <entry><constant>V4L2_FLASH_LED_MODE_NONE</constant></entry>
++		  <entry>Off.</entry>
++		</row>
++		<row>
++		  <entry><constant>V4L2_FLASH_LED_MODE_FLASH</constant></entry>
++		  <entry>Flash mode.</entry>
++		</row>
++		<row>
++		  <entry><constant>V4L2_FLASH_LED_MODE_TORCH</constant></entry>
++		  <entry>Torch mode. See V4L2_CID_FLASH_TORCH_INTENSITY.</entry>
++		</row>
++	      </tbody>
++	    </entrytbl>
++	  </row>
++	  <row>
++	    <entry spanname="id"><constant>V4L2_CID_FLASH_STROBE_SOURCE</constant></entry>
++	    <entry>menu</entry>
++	  </row>
++	  <row><entry spanname="descr">Defines the mode of the
++	  flash LED strobe.</entry>
++	  </row>
++	  <row>
++	    <entrytbl spanname="descr" cols="2">
++	      <tbody valign="top">
++		<row>
++		  <entry><constant>V4L2_FLASH_STROBE_SOURCE_SOFTWARE</constant></entry>
++		  <entry>The flash strobe is triggered by using
++		  the V4L2_CID_FLASH_STROBE control.</entry>
++		</row>
++		<row>
++		  <entry><constant>V4L2_FLASH_STROBE_SOURCE_EXTERNAL</constant></entry>
++		  <entry>The flash strobe is triggered by an
++		  external source. Typically this is a sensor,
++		  which makes it possible to synchronises the
++		  flash strobe start to exposure start.</entry>
++		</row>
++	      </tbody>
++	    </entrytbl>
++	  </row>
++	  <row>
++	    <entry spanname="id"><constant>V4L2_CID_FLASH_STROBE</constant></entry>
++	    <entry>button</entry>
++	  </row>
++	  <row>
++	    <entry spanname="descr">Strobe flash. Valid when
++	    V4L2_CID_FLASH_LED_MODE is set to
++	    V4L2_FLASH_LED_MODE_FLASH and V4L2_CID_FLASH_STROBE_SOURCE
++	    is set to V4L2_FLASH_STROBE_SOURCE_SOFTWARE. Setting this
++	    control may not be possible in presence of some faults.
++	    See V4L2_CID_FLASH_FAULT.</entry>
++	  </row>
++	  <row>
++	    <entry spanname="id"><constant>V4L2_CID_FLASH_STROBE_STOP</constant></entry>
++	    <entry>button</entry>
++	  </row>
++	  <row><entry spanname="descr">Stop flash strobe immediately.</entry>
++	  </row>
++	  <row>
++	    <entry spanname="id"><constant>V4L2_CID_FLASH_STROBE_STATUS</constant></entry>
++	    <entry>boolean</entry>
++	  </row>
++	  <row>
++	    <entry spanname="descr">Strobe status: whether the flash
++	    is strobing at the moment or not. This is a read-only
++	    control.</entry>
++	  </row>
++	  <row>
++	    <entry spanname="id"><constant>V4L2_CID_FLASH_TIMEOUT</constant></entry>
++	    <entry>integer</entry>
++	  </row>
++	  <row>
++	    <entry spanname="descr">Hardware timeout for flash. The
++	    flash strobe is stopped after this period of time has
++	    passed from the start of the strobe.</entry>
++	  </row>
++	  <row>
++	    <entry spanname="id"><constant>V4L2_CID_FLASH_INTENSITY</constant></entry>
++	    <entry>integer</entry>
++	  </row>
++	  <row>
++	    <entry spanname="descr">Intensity of the flash strobe when
++	    the flash LED is in flash mode
++	    (V4L2_FLASH_LED_MODE_FLASH). The unit should be milliamps
++	    (mA) if possible.</entry>
++	  </row>
++	  <row>
++	    <entry spanname="id"><constant>V4L2_CID_FLASH_TORCH_INTENSITY</constant></entry>
++	    <entry>integer</entry>
++	  </row>
++	  <row>
++	    <entry spanname="descr">Intensity of the flash LED in
++	    torch mode (V4L2_FLASH_LED_MODE_TORCH). The unit should be
++	    milliamps (mA) if possible. Setting this control may not
++	    be possible in presence of some faults. See
++	    V4L2_CID_FLASH_FAULT.</entry>
++	  </row>
++	  <row>
++	    <entry spanname="id"><constant>V4L2_CID_FLASH_INDICATOR_INTENSITY</constant></entry>
++	    <entry>integer</entry>
++	  </row>
++	  <row>
++	    <entry spanname="descr">Intensity of the indicator LED.
++	    The indicator LED may be fully independent of the flash
++	    LED. The unit should be microamps (uA) if possible.</entry>
++	  </row>
++	  <row>
++	    <entry spanname="id"><constant>V4L2_CID_FLASH_FAULT</constant></entry>
++	    <entry>bitmask</entry>
++	  </row>
++	  <row>
++	    <entry spanname="descr">Faults related to the flash. The
++	    faults tell about specific problems in the flash chip
++	    itself or the LEDs attached to it. Faults may prevent
++	    further use of some of the flash controls. In particular,
++	    V4L2_CID_FLASH_LED_MODE is set to V4L2_FLASH_LED_MODE_NONE
++	    if the fault affects the flash LED. Exactly which faults
++	    have such an effect is chip dependent. Reading the faults
++	    resets the control and returns the chip to a usable state
++	    if possible.</entry>
++	  </row>
++	  <row>
++	    <entrytbl spanname="descr" cols="2">
++	      <tbody valign="top">
++		<row>
++		  <entry><constant>V4L2_FLASH_FAULT_OVER_VOLTAGE</constant></entry>
++		  <entry>Flash controller voltage to the flash LED
++		  has exceeded the limit specific to the flash
++		  controller.</entry>
++		</row>
++		<row>
++		  <entry><constant>V4L2_FLASH_FAULT_TIMEOUT</constant></entry>
++		  <entry>The flash strobe was still on when
++		  the timeout set by the user ---
++		  V4L2_CID_FLASH_TIMEOUT control --- has expired.
++		  Not all flash controllers may set this in all
++		  such conditions.</entry>
++		</row>
++		<row>
++		  <entry><constant>V4L2_FLASH_FAULT_OVER_TEMPERATURE</constant></entry>
++		  <entry>The flash controller has overheated.</entry>
++		</row>
++		<row>
++		  <entry><constant>V4L2_FLASH_FAULT_SHORT_CIRCUIT</constant></entry>
++		  <entry>The short circuit protection of the flash
++		  controller has been triggered.</entry>
++		</row>
++	      </tbody>
++	    </entrytbl>
++	  </row>
++	  <row>
++	    <entry spanname="id"><constant>V4L2_CID_FLASH_CHARGE</constant></entry>
++	    <entry>boolean</entry>
++	  </row>
++	  <row><entry spanname="descr">Enable or disable charging of the xenon
++	  flash capacitor.</entry>
++	  </row>
++	  <row>
++	    <entry spanname="id"><constant>V4L2_CID_FLASH_READY</constant></entry>
++	    <entry>boolean</entry>
++	  </row>
++	  <row>
++	    <entry spanname="descr">Is the flash ready to strobe?
++	    Xenon flashes require their capacitors charged before
++	    strobing. LED flashes often require a cooldown period
++	    after strobe during which another strobe will not be
++	    possible. This is a read-only control.</entry>
++	  </row>
++	  <row><entry></entry></row>
++	</tbody>
++      </tgroup>
++      </table>
++
++    </section>
+ </section>
+ 
+   <!--
+diff --git a/Documentation/DocBook/v4l/vidioc-g-ext-ctrls.xml b/Documentation/DocBook/v4l/vidioc-g-ext-ctrls.xml
+index 3aa7f8f..c37bd86 100644
+--- a/Documentation/DocBook/v4l/vidioc-g-ext-ctrls.xml
++++ b/Documentation/DocBook/v4l/vidioc-g-ext-ctrls.xml
+@@ -250,6 +250,13 @@ These controls are described in <xref
+ These controls are described in <xref
+ 		linkend="fm-tx-controls" />.</entry>
+ 	  </row>
++	  <row>
++	    <entry><constant>V4L2_CTRL_CLASS_FLASH</constant></entry>
++	    <entry>0x9c0000</entry>
++	    <entry>The class containing flash device controls.
++These controls are described in <xref
++		linkend="flash-controls" />.</entry>
++	  </row>
+ 	</tbody>
+       </tgroup>
+     </table>
+-- 
+1.7.2.5
 
