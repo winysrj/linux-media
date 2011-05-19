@@ -1,109 +1,136 @@
 Return-path: <mchehab@pedra>
-Received: from mail-gx0-f174.google.com ([209.85.161.174]:35461 "EHLO
-	mail-gx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752134Ab1ECPj7 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 3 May 2011 11:39:59 -0400
-Received: by gxk21 with SMTP id 21so72464gxk.19
-        for <linux-media@vger.kernel.org>; Tue, 03 May 2011 08:39:59 -0700 (PDT)
-References: <20110423005412.12978e29@darkstar> <20110424163530.2bc1b365@darkstar> <BCCEA9F4-16D7-4E63-B32C-15217AA094F3@wilsonet.com> <20110425201835.0fbb84ee@darkstar> <A4226E90-09BE-45FE-AEEF-0EA7E9414B4B@wilsonet.com> <20110425230658.22551665@darkstar> <59898A0D-573E-46E9-A3B7-9054B24E69DF@wilsonet.com> <20110427151621.5ac73e12@darkstar> <1FB1ED64-0EEC-4E15-8178-D2CCCA915B1D@wilsonet.com> <20110427204725.2923ac99@darkstar> <91CD2A5E-418A-4217-8D9F-1B29FC9DD24D@wilsonet.com> <20110427222855.2e3a3a4d@darkstar>
-In-Reply-To: <20110427222855.2e3a3a4d@darkstar>
-Mime-Version: 1.0 (Apple Message framework v1084)
-Content-Type: text/plain; charset=us-ascii
-Message-Id: <63E3BF90-BF19-43E3-B8DD-6D6F4896F2E7@wilsonet.com>
+Received: from perceval.ideasonboard.com ([95.142.166.194]:60427 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933379Ab1ESO1T (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 19 May 2011 10:27:19 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Michael Jones <michael.jones@matrix-vision.de>
+Subject: Re: FW: OMAP 3 ISP
+Date: Thu, 19 May 2011 16:27:20 +0200
+Cc: Alex Gershgorin <alexg@meprolight.com>,
+	"'linux-media@vger.kernel.org'" <linux-media@vger.kernel.org>,
+	"'sakari.ailus@iki.fi'" <sakari.ailus@iki.fi>,
+	"'agersh@rambler.ru'" <agersh@rambler.ru>
+References: <4875438356E7CA4A8F2145FCD3E61C0B15D3557D38@MEP-EXCH.meprolight.com> <201105191556.07323.laurent.pinchart@ideasonboard.com> <4DD5281D.40103@matrix-vision.de>
+In-Reply-To: <4DD5281D.40103@matrix-vision.de>
+MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	"mailing list: lirc" <lirc-list@lists.sourceforge.net>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-From: Jarod Wilson <jarod@wilsonet.com>
-Subject: Re: Terratec Cinergy 1400 DVB-T RC not working anymore
-Date: Tue, 3 May 2011 11:40:06 -0400
-To: Heiko Baums <lists@baums-on-web.de>
+Message-Id: <201105191627.20621.laurent.pinchart@ideasonboard.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Apr 27, 2011, at 4:28 PM, Heiko Baums wrote:
-...
->> However, I think I do at least see why you have no active protocols.
->> It looks like the v4l-utils ir-keytable rule is loading a new map
->> (probably the terratec_cinergy_xs one), which doesn't have a specific
->> protocol listed, so no protocols get enabled.
+Hi Michael,
+
+On Thursday 19 May 2011 16:24:29 Michael Jones wrote:
+> On 05/19/2011 03:56 PM, Laurent Pinchart wrote:
+> > On Thursday 19 May 2011 15:44:18 Michael Jones wrote:
+> >> On 05/19/2011 03:02 PM, Laurent Pinchart wrote:
+> >>> On Thursday 19 May 2011 14:51:16 Alex Gershgorin wrote:
+> >>>> Thanks Laurent,
+> >>>> 
+> >>>> My video source is not the video camera and performs many other
+> >>>> functions. For this purpose I have RS232 port.
+> >>>> As for the video, it runs continuously and is not subject to control
+> >>>> except for the power supply.
+> >>> 
+> >>> As a quick hack, you can create an I2C driver for your video source
+> >>> that doesn't access the device and just returns fixed format and frame
+> >>> size.
+> >>> 
+> >>> The correct fix is to implement support for platform subdevs in the
+> >>> V4L2 core.
+> >> 
+> >> I recently implemented support for platform V4L2 subdevs.  Now that it
+> >> sounds like others would be interested in this, I will try to polish it
+> >> up and submit the patch for review in the next week or so.
+> > 
+> > Great. This has been discussed during the V4L meeting in Warsaw, here are
+> > a couple of pointers, to make sure we're going in the same direction.
+> > 
+> > Bridge drivers should not care whether the subdev sits on an I2C, SPI,
+> > platform or other bus. To achieve that, an abstraction layer must be
+> > provided by the V4L2 core. Here's what I got in one of my trees:
+> > 
+> > /* V4L2 core */
+> > 
+> > struct v4l2_subdev_i2c_board_info {
+> > 
+> >         struct i2c_board_info *board_info;
+> >         int i2c_adapter_id;
+> > 
+> > };
+> > 
+> > enum v4l2_subdev_bus_type {
+> > 
+> >         V4L2_SUBDEV_BUS_TYPE_NONE,
+> >         V4L2_SUBDEV_BUS_TYPE_I2C,
+> >         V4L2_SUBDEV_BUS_TYPE_SPI,
+> > 
+> > };
+> > 
+> > struct v4l2_subdev_board_info {
+> > 
+> >         enum v4l2_subdev_bus_type type;
+> >         union {
+> >         
+> >                 struct v4l2_subdev_i2c_board_info i2c;
+> >                 struct spi_board_info *spi;
+> >         
+> >         } info;
+> > 
+> > };
+> > 
+> > /* OMAP3 ISP  */
+> > 
+> > struct isp_v4l2_subdevs_group {
+> > 
+> >         struct v4l2_subdev_board_info *subdevs;
+> >         enum isp_interface_type interface;
+> >         union {
+> >         
+> >                 struct isp_parallel_platform_data parallel;
+> >                 struct isp_ccp2_platform_data ccp2;
+> >                 struct isp_csi2_platform_data csi2;
+> >         
+> >         } bus; /* gcc < 4.6.0 chokes on anonymous union initializers */
+> > 
+> > };
+> > 
+> > struct isp_platform_data {
+> > 
+> >         struct isp_v4l2_subdevs_group *subdevs;
+> > 
+> > };
+> > 
+> > The V4L2 core would need to provide a function to register a subdev based
+> > on a v4l2_subdev_board_info structure.
+> > 
+> > Is that in line with what you've done ? I can provide a patch that
+> > implements this for I2C and SPI, and let you add platform subdevs if
+> > that can help you.
 > 
-> Judging by this feature request there doesn't seems to be any active
-> protocol for every device, not only for the cx88:
-> https://bugs.archlinux.org/task/23673
-
-Just about all my IR devices come up with at least their default
-protocol active, I think its only specific driver/keymap combos
-that aren't. (I have something north of 30 different receivers,
-last time I counted).
-
->> Heiko, here's something to try:
->> 
->> Make a backup copy of /etc/rc_keymaps/terratec_cinergy_xs, and then
->> alter the original, so that it says "type: NEC" and prefix each of
->> the scancodes with 4eb (i.e., 0x41 KEY_HOME -> 0x4eb41 KEY_HOME).
->> Then load that, and see if things start actually working... (I'm
->> sort of shooting in the dark here, but I think its worth a try).
+> Hi Laurent,
 > 
-> It already said "type: NEC". But I ran `sed -i
-> "s:x14:x4eb:g" /etc/rc_keymaps/nec_terratec_cinergy_xs` so that it says
-> e.g. 0x4eb02 KEY_1 instead of 0x1402 KEY_1.
+> Yes, that looks very similar to what I've done.  I was going to submit
+> SPI support, too, which I also have, but it sounds like you've already
+> done that?  I'm currently still using a 2.6.38 tree based on an older
+> media branch of yours, so I'm not familiar with any new changes there yet.
 > 
-> And now it spits out a bit more, but I'm still getting scancodes only
-> very randomly.
+> I just need to know what I should use as my baseline.
 
-Hrm. Not good.
+Please use mainline, now that the OMAP3 ISP driver has been merged :-)
 
+> I don't need to step on toes and submit something you've already done, so
+> maybe you want to point me to a branch with the SPI stuff, and I'll just put
+> the platform stuff on top of it?
 
-> When pressing the "1" key, ir-keytable -t now gives me:
-> 
-> Testing events. Please, press CTRL-C to abort.
-> 1303935368.238345: event MSC: scancode = 4eb02
-> 1303935368.238373: event key down: KEY_1 (0x0002)
-> 1303935368.238376: event sync
-> 11303935368.278350: event MSC: scancode = 4eb02
-> 1303935368.294324: event MSC: scancode = 4eb02
-> 1303935368.390373: event MSC: scancode = 4eb02
-> 1303935368.398335: event MSC: scancode = 4eb02
-> 1303935368.648245: event key up: KEY_1 (0x0002)
-> 1303935368.648258: event sync
-
-So that much at least looks mostly sane...
-
-
-> But, like I said before, it doesn't react always. Let's say, if I press
-> the keys about 10 times I only get 2 or 3 scancodes, if not less.
-
-...but a 20% success rate obviously isn't.
-
-
-> And dmesg now says this:
-> [27163.270751] ir_nec_decode: NEC (Ext) scancode 0x04eb02
-> [27163.270759] rc_g_keycode_from_table: cx88 IR (TerraTec Cinergy
-> 1400 : scancode 0x4eb02 keycode 0x02
-> [27163.270785] ir_rc5_decode: RC5(x) decode failed at state 1 (11500us
-> space)
-> [27163.270791] ir_rc6_decode: RC6 decode failed at state 0 (11500us
-> space)
-> [27163.270797] ir_jvc_decode: JVC decode failed at state 0 (11500us
-> space)
-> [27163.270802] ir_sony_decode: Sony decode failed at state 0 (11500us
-> space)
-> [27163.520656] ir_do_keyup: keyup key 0x0002
-
-This looks normal, all decoders tried in parallel (more or less) to
-decode the signal. NEC was successful, the others weren't.
-
-So there are really two issues here. First up, the default keymap
-isn't correct for this device, and second, the behavior of the
-hardware and/or driver is terrible, as only ~20% of keypresses
-are getting though. The first is easy enough to remedy. The second
-probably requires someone with the hardware to dig into its IR
-handling routines in the kernel. (I haven't got the hardware).
+I'll send the SPI support patches to linux-media, as they haven't been 
+reviewed publicly yet.
 
 -- 
-Jarod Wilson
-jarod@wilsonet.com
+Regards,
 
-
-
+Laurent Pinchart
