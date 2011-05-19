@@ -1,175 +1,244 @@
 Return-path: <mchehab@pedra>
-Received: from smtp-vbr16.xs4all.nl ([194.109.24.36]:4655 "EHLO
-	smtp-vbr16.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751970Ab1EEGYm convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 5 May 2011 02:24:42 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-Subject: Re: Patches still pending at linux-media queue (18 patches)
-Date: Thu, 5 May 2011 08:24:36 +0200
-Cc: LMML <linux-media@vger.kernel.org>,
-	Manu Abraham <abraham.manu@gmail.com>, tomekbu@op.pl,
-	Steven Stoth <stoth@kernellabs.com>,
-	Jonathan Corbet <corbet@lwn.net>,
-	=?utf-8?q?Hern=C3=A1n_Ordiales?= <h.ordiales@gmail.com>,
-	Hans Verkuil <hansverk@cisco.com>,
-	Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>,
-	"Igor M. Liplianin" <liplianin@me.by>
-References: <4DC2207B.5030700@redhat.com>
-In-Reply-To: <4DC2207B.5030700@redhat.com>
+Received: from smtp.nokia.com ([147.243.128.24]:51247 "EHLO mgw-da01.nokia.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S932460Ab1ESIJG (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 19 May 2011 04:09:06 -0400
+Message-ID: <4DD4D0D2.7030609@maxwell.research.nokia.com>
+Date: Thu, 19 May 2011 11:12:02 +0300
+From: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="utf-8"
-Content-Transfer-Encoding: 8BIT
-Message-Id: <201105050824.36310.hverkuil@xs4all.nl>
+To: Sylwester Nawrocki <snjw23@gmail.com>
+CC: Hans Verkuil <hverkuil@xs4all.nl>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	Nayden Kanchev <nkanchev@mm-sol.com>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	David Cohen <dacohen@gmail.com>,
+	Kim HeungJun <riverful@gmail.com>, andrew.b.adams@gmail.com,
+	Sung Hee Park <shpark7@stanford.edu>
+Subject: Re: [RFC v4] V4L2 API for flash devices
+References: <4DC2F131.6090407@maxwell.research.nokia.com> <201105071446.56843.hverkuil@xs4all.nl> <4DC5849A.9050806@gmail.com> <4DC7151E.8070601@maxwell.research.nokia.com> <4DC9A2D0.2060709@gmail.com> <4DD2DBDC.6060303@maxwell.research.nokia.com> <4DD4464C.30702@gmail.com>
+In-Reply-To: <4DD4464C.30702@gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Thursday, May 05, 2011 05:58:51 Mauro Carvalho Chehab wrote:
-> I did a big effort those days to cleanup the patchwork queue. I'm still finishing to
-> handle the git pull requests.
-> 
-> As several noticed, we had a very bad time with patchwork on the last weeks, due to
-> some troubles at patchwork.kernel.org. That included:
-> 	- Patches that disappeared from patchwork;
-> 	- Patches that lost email body/SOB/From/Ack/Nack fields;
-> 	- Patches sent that weren't caught by patchwork;
-> 	- Patchwork lack of availability;
-> 	- sync troubles between the mysql instances used by patchwork.
-> 
-> I've made a hard effort to recover those patches, and also did the kernel.org maintainer.
-> John, thank you for your help.
-> 
-> I also did an effort to cleanup most of the old stuff from patchwork. On several cases,
-> the patch were already applied, or another approach was taken. I also fixed manually some
-> trivial troubles I've detected.
-> 
-> There are still 18 patches pending for merge, as described bellow.
-> 
-> 		== New patches == 
-> 
-> Those require more tests and/or reviews to be applied, as they are new. There are two patches
-> related to UVC, 2 patches related to stv0899, 2 patches for cx18 and one VB1 patch. The last
-> one requires more care, as videobuf is used on lots of drivers, So, tests for it are welcome.
-> 
-> Apr,29 2011: [1/2] V4L/DVB: v4l2-dev: revert commit c29fcff3daafbf46d64a543c1950bbd http://patchwork.kernel.org/patch/740691  Bob Liu <lliubbo@gmail.com>
-> Apr,29 2011: [2/2] media:uvc_driver: Add support for NOMMU arch                     http://patchwork.kernel.org/patch/740671  Bob Liu <lliubbo@gmail.com>
-> May, 4 2011: stb0899: Fix not locking DVB-S transponder                             http://patchwork.kernel.org/patch/753382  Lutz Sammer <johns98@gmx.net>
-> May, 4 2011: TT-budget S2-3200 cannot tune on HB13E DVBS2 transponder               http://patchwork.kernel.org/patch/753392  Lutz Sammer <johns98@gmx.net>
-> May, 3 2011: cx18: Clean up mmap() support for raw YUV                              http://patchwork.kernel.org/patch/749832  Simon Farnsworth <simon.farnsworth@onelan.co.uk>
-> May, 4 2011: cx18: Bump driver version to 1.5.0                                     http://patchwork.kernel.org/patch/753402  Simon Farnsworth <simon.farnsworth@onelan.co.uk>
-> Apr,19 2011: videobuf_pages_to_sg: sglist[0] length problem                         http://patchwork.kernel.org/patch/718421  Newson Edouard <newsondev@gmail.com>
-> 
-> 		== mantis patches - Waiting for Manu Abraham <abraham.manu@gmail.com> == 
-> 
-> Manu,
-> 	Can you please review those two patches?
-> 
-> Aug, 7 2010: Refactor Mantis DMA transfer to deliver 16Kb TS data per interrupt     http://patchwork.kernel.org/patch/118173  Marko Ristola <marko.ristola@kolumbus.fi>
-> Jun,11 2010: stb0899: Removed an extra byte sent at init on DiSEqC bus              http://patchwork.kernel.org/patch/105621  Florent AUDEBERT <florent.audebert@anevia.com>
-> 
-> 		== Waiting for Steven Stoth <stoth@kernellabs.com> review == 
-> 
-> Steven,
-> 	This patch is here for a long time. Could you please check what's the status of it?
-> 
-> Nov,24 2010: [media] saa7164: poll mask set incorrectly                             http://patchwork.kernel.org/patch/351711  Dan Carpenter <error27@gmail.com>
-> 
-> 		== Waiting for Hans Verkuil <hansverk@cisco.com> review == 
-> 
-> Hans,
-> 	I believe that want to replace this patch by something else, but better to keep it at the list while you don't
-> send us a replacement.
-> 
-> Mar,26 2011: [media] cpia2: fix typo in variable initialisation                     http://patchwork.kernel.org/patch/665951  Mariusz Kozlowski <mk@lab.zgora.pl>
+Sylwester Nawrocki wrote:
+> Hi Sakari,
 
-Feel free to merge this. It makes a broken driver slightly less broken.
+Hi Sylwester,
 
-I don't know when I will have time to create a proper patch that fixes this
-driver. I need to get the work I'm doing on the control framework done first,
-and that is taking a lot longer than I would like. But there is no sense in
-keeping this patch back.
+> On 05/17/2011 10:34 PM, Sakari Ailus wrote:
+>> Sylwester Nawrocki wrote:
+>>> On 05/09/2011 12:11 AM, Sakari Ailus wrote:
+>>>> Sylwester Nawrocki wrote:
+>>>>> On 05/07/2011 02:46 PM, Hans Verkuil wrote:
+>>>>>> On Thursday, May 05, 2011 20:49:21 Sakari Ailus wrote:
+>>>>>>> Hi,
+>>>>>>>
+>>>>>>> This is a fourth proposal for an interface for controlling flash devices
+>>>>>>> on the V4L2/v4l2_subdev APIs.
+> ...
+>>>>>>> 3. Sensor metadata on frames
+>>>>>>> ----------------------------
+>>>>>>>
+>>>>>>> It'd be useful to be able to read back sensor metadata. If the flash is
+>>>>>>> strobed (on sensor hardware) while streaming, it's difficult to know
+>>>>>>> otherwise which frame in the stream has been exposed with flash.
+>>>>>>
+>>>>>> I wonder if it would make sense to have a V4L2_BUF_FLAG_FLASH buffer
+>>>>>> flag?
+>>>>>> That way userspace can tell if that particular frame was taken with
+>>>>>> flash.
+>>>>>
+>>>>> This looks more as a workaround for the problem rather than a good long
+>>>>> term solution. It might be tempting to use the buffer flags which seem
+>>>>> to be be more or less intended for buffer control.
+>>>>> I'd like much more to see a buffer flags to be used to indicate whether
+>>>>> an additional plane of (meta)data is carried by the buffer.
+>>>>> There seem to be many more parameters, than a single flag indicating
+>>>>> whether the frame has been exposed with flash or not, needed to be
+>>>>> carried over to user space.
+>>>>> But then we might need some standard format of the meta data, perhaps
+>>>>> control id/value pairs and possibly a per plane configurable memory
+>>>>> type.
+>>>>
+>>>> There are multiple possible approaches for this.
+>>>>
+>>>> For sensors where metadata is register-value pairs, that is, essentially
+>>>> V4L2 control values, I think this should be parsed by the sensor driver.
+>>>> The ISP (camera bridge) driver does receive the data so it'd have to
+>>>> "ask for help" from the sensor driver.
+>>>
+>>> I am inclined to let the ISP drivers parse the data but on the other hand
+>>> it might be difficult to access same DMA buffers in kernel _and_ user space.
+>>
+>> This is just about mapping the buffer to both kernel and user spaces. If
+>> the ISP has an iommu the kernel mapping might already exist if it comes
+>> from vmalloc().
+> 
+> Yes, I know. I was thinking of possibly required different mapping attributes
+> for kernel and user space and the problems on ARM with that.
 
-While working on the control framework I found a few bugs. I'll try to make
-a pull request fixing them today or tomorrow at the latest.
+As I replied to Laurent, this is not an issue since the memory wouldn't
+be mapped to user space. The user space would get the result which has
+been interpreted by the sensor driver.
 
-Regards,
+> Also as metadata is supposed to occupy only small part of a frame buffer perhaps
+> only one page or so could be mapped in kernel space.
+> I'm referring here mainly to SMIA++ method of storing metadata.
 
-	Hans
+Yes, I agree.
 
+> In case of sensors I used to work with it wouldn't be necessary to touch the
+> main frame buffers as the metadata is transmitted out of band.
+
+This depends on link a little, but on CSI-2 this is a separate channel.
+In other cases the metadata is part of the frame --- but I don't know
+anyone using metadata in such a case, so it _might_ be possible to just
+ignore this use case.
+
+Another alternative would be to pass binary blobs to user space and let
+a library to interpret the data. This might be the way to go at least
+with some more exotic cases.
+
+>>
+>>>> As discussed previously, using V4L2 control events shouldn't probably be
+>>>> the way to go, but I think it's obvious that this is _somehow_ bound to
+>>>> controls, at least control ids.
+>>>>
+>>>>> Also as Sakari indicated some sensors adopt custom meta data formats
+>>>>> so maybe we need to introduce standard fourcc like IDs for meta data
+>>>>> formats? I am not sure whether it is possible to create common
+>>>>> description of an image meta data that fits all H/W.
+>>>>
+>>>> I'm not sure either since I know of only one example. That example, i.e.
+>>>> register-value pairs, should be something that I'd assume _some_ other
+>>>> hardware uses as well, but there could exist also hardware which
+>>>> doesn't. This solution might not work on that hardware.
+>>>
+>>> Of course it's hard to find a silver bullet for a hardware we do not know ;)
+>>>
+>>>>
+>>>> If there is metadata which does not associate to V4L2 controls (or
+>>>> ioctls), either existing or not yet existing, then that probably should
+>>>> be parsed by the driver. On the other hand, I can't think of metadata
+>>>> that wouldn't fall under this right now. :-)
+>>>
+>>> Some metadata are arrays of length specific to a given attribute,
+>>> I wonder how to support that with v4l2 controls ?
+>>
+>> Is the metadata something which really isn't associated to any V4L2
+>> control? Are we now talking about a sensor which is more complex than a
+>> regular raw bayer sensor?
 > 
-> 		== Waiting for Igor M. Liplianin <liplianin@me.by> review == 
+> I referred to tags defined in EXIF standard, as you may know every tag
+> is basically an array of specific data type. For most tag types the array
+> length is 1 though.
+> Similar problem is solved by the V4L extended string controls API.
 > 
-> Igor,
-> 	Please check this patch. I'm not sure how to proceed with this one.
+> And yes this kind of tags are mostly produced by more powerful ISPs,
+> with, for instance, 3A or distortion corrections implemented in their firmware.
+> So this is a little bit different situation than a raw sensor with OMAP3 ISP.
+
+True.
+
+>>>> Do you know more examples of sensor produced metadata than SMIA++?
+>>>
+>>> The only metadata I've had a bit experience with was regular EXIF tags
+>>> which could be retrieved from ISP through I2C bus.
+>>
+>> That obviously won't map to V4L2 controls.
+>>
+>> This should very likely be just passed to user space as-is as
+>> different... plane?
 > 
-> Oct,23 2010: DM1105: could not attach frontend 195d:1105                            http://patchwork.kernel.org/patch/279091  Igor M. Liplianin <liplianin@me.by>
+> Yes, but I am trying to assess whether it's possible to create some
+> generic tag data structure so such plane contains an array of such 
+> data structures and application would know how to handle that. 
+> Independently of the underlying H/W.
+
+There's one issue I see --- the kernel drivers do know how to interpret
+the data, but then again the user space must be able to tell which part
+of the data the user space is interested in. In many cases I'd assume
+it's just one or two variables within a 8k (or so) metadata block.
+
+I think it would be ideal if the sensor driver would be able to
+interpret the data (or parts of it) and pass them to the user space. But
+I don't know how generic this is, taken your example of rational numbers
+used in metadata below.
+
+>> In some cases it's time critical to pass data to user space that
+>> otherwise could be associated with a video buffer. I wonder if this case
+>> is time critical or not.
 > 
-> 		== Waiting for it to be applied upstream == 
+> No, it's rather no time critical. The frame data is buffered inside ISP,
+> even in case of multi-frame capture mode.
+> But, of course, we also need to consider a time critical case.
+
+I think in a time critical case, there must be an event to tell that the
+data has arrived, or alternatively, if it's passed to user space as
+such, a new video node for that. The set of buffers is different from
+the image buffers, so a new video buffer queue is required.
+
+>>> These were mostly fixed point arithmetic numbers in [32-bit numerator/
+>>> 32-bit denominator] form carrying exposure time, shutter speed, aperture,
+>>> brightness, flash, etc. information. The tags could be read from ISP after
+>>> it buffered a frame in its memory and processed it.
+>>> In case of a JPEG image format the tags can be embedded into the main
+>>> image file. But the image processors not always supported that so we used
+>>> to have an ioctl for the purpose of retrieving the metadata in user space.
+>>> In some cases it is desired to read data directly from the driver rather
+>>> than parsing a relatively large buffer.
+>>> It would be good to have a uniform interface for passing such data to
+>>> applications. I think in that particular use case a control id/value pair
+>>> sequences would do.
+>>
+>> Do you think this is "control id" or non-control id, and whether the
+>> value is the same data type than the V4L2 control would be? That would
+>> match to what I'm aware of, too.
 > 
-> I understood that this patch will follow via Tejun's tree. I'm keeping it here just
-> for my own control. It will probably be removed after the next merge window.
-> 
-> Feb,15 2011: cx23885: restore flushes of cx23885_dev work items                     http://patchwork.kernel.org/patch/558301  Tejun Heo <tj@kernel.org>
-> 
-> 		== waiting for Sakari Ailus <sakari.ailus@maxwell.research.nokia.com> submission == 
-> 
-> Sakari,
-> 
-> 	I'm understanding that you'll be handling this one.
-> 
-> Feb,19 2011: [RFC/PATCH,1/1] tcm825x: convert driver to V4L2 sub device interface   http://patchwork.kernel.org/patch/574931  David Cohen <dacohen@gmail.com>
-> 
-> 		== Waiting for Jonathan Corbet <corbet@lwn.net> ack == 
-> 
-> Jon,
-> 	One patch for your ack ;)
-> 
-> Apr,29 2011: [media] via-camera: add MODULE_ALIAS                                   http://patchwork.kernel.org/patch/742581  Daniel Drake <dsd@laptop.org>
-> 
-> 		== waiting for Hernán Ordiales <h.ordiales@gmail.com> to provide a patch for S870 board == 
-> 
-> 
-> The next 2 patches are waiting for a new review. I fixed some stuff there, but
-> they're not ready yet for merge, requiring some care from the patch authors.
-> 
-> May, 3 2011: Adding support to the Geniatech/MyGica SBTVD Stick S870 remote control http://patchwork.kernel.org/patch/751702  Mauro Carvalho Chehab <mchehab@redhat.com>
-> 
-> 		== waiting for updated version from Tomasz G. Burak tomekbu@op.pl == 
-> 
-> Feb, 7 2011: DVB-USB: Remote Control for TwinhanDTV StarBox DVB-S USB and clones    http://patchwork.kernel.org/patch/751832  Tomasz G. Burak <tomekbu@op.pl>
-> 
-> 		== Waiting for Mauro Carvalho Chehab <mchehab@redhat.com> fixes on Docbook == 
-> 
-> The last one is my fault: I need some time to work on this one ;) It is not urgent, as it just
-> adds some automation to our DocBook. No functional changes and no documentation changes. So,
-> it has very low priority, but if someone have some time, any help is welcome.
-> 
-> Oct,23 2010: [RFC, PATCHv3] DocBook: Add rules to auto-generate some media docbooks http://patchwork.kernel.org/patch/279201  Mauro Carvalho Chehab <mchehab@redhat.com>
-> 
-> 
-> Number of pending patches per reviewer:
->   LinuxTV community                                                     : 9
->   Manu Abraham <abraham.manu@gmail.com>                                 : 2
->   tomekbu@op.pl                                                         : 1
->   Steven Stoth <stoth@kernellabs.com>                                   : 1
->   Jonathan Corbet <corbet@lwn.net>                                      : 1
->   Mauro Carvalho Chehab <mchehab@redhat.com>                            : 1
->   Hans Verkuil <hansverk@cisco.com>                                     : 1
->   Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>                : 1
->   Igor M. Liplianin <liplianin@me.by>                                   : 1
-> 
-> Cheers,
-> Mauro
-> 
-> ---
-> 
-> PS.: If you discover any patch submitted via email that weren't caught by
->      kernel.patchwork.org, please re-send and let me know. It may be due
->      to the problems that we had with patchwork over the last weeks.
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
-> 
+> Whatever id ;) I started with controls because they have defined data types.
+> A list of attributes in my case could be mapped to control ids.
+> But data types are different, the values are represented by rational numbers.
+
+What do they represent? They should be in the same units the sensor is
+programmed with, but somehow I feel the sensor is trying to be smarter
+than it should be.
+
+> But perhaps we could define a generic list of attributes for metadata, together
+> with a generic tag data structure ?
+
+There are a few buts:
+
+- The data can be something up to kilobytes in size. We don't want to
+parse all of it per every frame unless it's really necessary. Most often
+the user is interested in just a few items while it might like to get
+all of it sometimes. This could be probably resolved relatively easily,
+though.
+
+- Which formats are your rational numbers in? A kernel interface can't
+really have floating point numbers, so there would need to be a sane way
+to pass these to user space.
+
+- What kind of other types of metadata we could run into? Would it fit
+to this interface?
+
+> I'm not yet even sure if it would be acceptable to interpret a data plane in user
+> space as an array of some type of data structure. 
+
+If the data structure is known to user space, then it's definitely fine.
+
+As an alternative, I'm thinking of a library which would be generic but
+its interface would not be a kernel/user space interface which will
+never change. My worry is that with two examples (or did you have
+more?), can we design an interface generic enough for hopefully
+everyone? My knowledge of sensor metadata is limited to just these
+examples. The answer may well be yes, though.
+
+Kind regards,
+
+-- 
+Sakari Ailus
+sakari.ailus@maxwell.research.nokia.com
