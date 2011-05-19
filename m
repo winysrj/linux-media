@@ -1,53 +1,99 @@
 Return-path: <mchehab@pedra>
-Received: from mx1.redhat.com ([209.132.183.28]:51572 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755334Ab1EWOsB (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 23 May 2011 10:48:01 -0400
-Received: from int-mx10.intmail.prod.int.phx2.redhat.com (int-mx10.intmail.prod.int.phx2.redhat.com [10.5.11.23])
-	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id p4NEm1l9025482
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
-	for <linux-media@vger.kernel.org>; Mon, 23 May 2011 10:48:01 -0400
-Received: from shalem.localdomain (vpn1-4-53.ams2.redhat.com [10.36.4.53])
-	by int-mx10.intmail.prod.int.phx2.redhat.com (8.14.4/8.14.4) with ESMTP id p4NElxr8014537
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-CAMELLIA256-SHA bits=256 verify=NO)
-	for <linux-media@vger.kernel.org>; Mon, 23 May 2011 10:48:00 -0400
-Message-ID: <4DDA73A5.1080803@redhat.com>
-Date: Mon, 23 May 2011 16:48:05 +0200
-From: Hans de Goede <hdegoede@redhat.com>
+Received: from smtp-vbr2.xs4all.nl ([194.109.24.22]:2682 "EHLO
+	smtp-vbr2.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754566Ab1ESLi0 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 19 May 2011 07:38:26 -0400
+Message-ID: <cde8c4d7287ff0d3a1bbdd2d3ad29474.squirrel@webmail.xs4all.nl>
+In-Reply-To: <D5ECB3C7A6F99444980976A8C6D896384DF11B6342@EAPEX1MAIL1.st.com>
+References: <D5ECB3C7A6F99444980976A8C6D896384DF1137013@EAPEX1MAIL1.st.com>
+    <201105180832.52333.hverkuil@xs4all.nl>
+    <D5ECB3C7A6F99444980976A8C6D896384DF11B615E@EAPEX1MAIL1.st.com>
+    <201105190855.58027.hverkuil@xs4all.nl>
+    <D5ECB3C7A6F99444980976A8C6D896384DF11B6342@EAPEX1MAIL1.st.com>
+Date: Thu, 19 May 2011 13:38:21 +0200
+Subject: RE: Audio Video synchronization for data received from a HDMI
+ receiver chip
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: "Bhupesh SHARMA" <bhupesh.sharma@st.com>
+Cc: "Charlie X. Liu" <charlie@sensoray.com>,
+	"laurent.pinchart@ideasonboard.com"
+	<laurent.pinchart@ideasonboard.com>,
+	"g.liakhovetski@gmx.de" <g.liakhovetski@gmx.de>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	"alsa-devel@alsa-project.org" <alsa-devel@alsa-project.org>
 MIME-Version: 1.0
-To: linux-media@vger.kernel.org
-Subject: Re: [git:v4l-utils/master] Add an install target to libv4l2util
-References: <E1QORwH-0003gY-GA@www.linuxtv.org>
-In-Reply-To: <E1QORwH-0003gY-GA@www.linuxtv.org>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Hi,
-
-On 05/23/2011 12:00 PM, Mauro Carvalho Chehab wrote:
-> This is an automatic generated email to let you know that the following patch were queued at the
-> http://git.linuxtv.org/v4l-utils.git tree:
+>> > Hi Hans,
+>> >
+>> > I have another doubt regarding the framework choice for the entire
+>> > system that I have, especially the video part of the system. The
+>> overall
+>> > system is similar to the one depicted below:
+>> >
+>> > HDMI data --> HDMI receiver chip --> Video Port IP on SoC --> System
+>> DDR
+>> >
+>> > HDMI data is received from external world (from say a set-up box or
+>> dvd player),
+>> > which is fed to the HDMI receiver chip on-board and then parallel
+>> data lines feed
+>> > this data to a Video Port IP on the SoC which has a DMA master
+>> interface and
+>> > hence can push the data thus received directly on system DDR.
+>> >
+>> > Now, I can figure out that there will be two drivers required here:
+>> > # HDMI receiver chip driver (which is essentially a v4l2 subdev being
+>> controller via I2C)
+>> > # Video Port driver (which is a v4l2 bridge driver)
+>> >
+>> > Is my understanding correct?
+>>
+>> Yes.
 >
-> Subject: Add an install target to libv4l2util
-> Author:  Mauro Carvalho Chehab<mchehab@redhat.com>
-> Date:    Mon May 23 07:00:00 2011 -0300
+> Thanks for clarifying this.
 >
-> Signed-off-by: Mauro Carvalho Chehab<mchehab@redhat.com>
+>> > Are there any HDMI receiver subdev driver and video bridge driver
+>> already available which I can
+>> > use for reference?
+>>
+>> Video bridge drivers are easier: examples are in
+>> drivers/media/video/s5p-fimc
+>> or in drivers/media/video/davinci. Note that you should use the new
+>> videobuf2
+>> framework instead of the older videobuf framework. s5p-fimc is using
+>> vb2 already.
+>> but the vpif capture and display drivers in the davinci directory do
+>> not.
 >
+> I quickly had a look at the s5p-fimc and davinci approaches, but I found
+> that
+> the video bridge drivers supported in both the Samsung and TI SoCs,
+> support video post-processing operations whereas in our case the Video
+> Port
+> IP performs almost no additional processing and only passes the unpacked
+> RBG
+> raw data received from HDMI bus to system DDR via a DMA master interface.
 
-Erm,
+This is similar to the davinci vpif-capture/vpif-display drivers for the
+TI dm646x SoCs. Those videoports are also just a DMA engine without video
+processing.
 
-This is a static lib, installing static libs globally is considered
-bad practice. Either we need to make this a properly versioned .so
-and all the API+ABI promises which some with that, or we should just
-keep it as a private utility function lib, which gets linked into
-a few utils, but not installed system wide.
+> So as such these are no format conversion operations(rgb-to-yuv or
+> vice-versa),
+> image resizing operations (cropping, scaling..) and image quality
+> operations
+> (filtering, distortion removal) available in the H/W block.
+>
+> What should be the correct choice in such a case?
 
-I think this may have something to do with the new get_media_devices
-code, but the commit message is rather undescriptive...
+vpif-capture/display drivers are identical in that respect.
 
 Regards,
 
-Hans
+       Hans
+
