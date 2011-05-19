@@ -1,83 +1,119 @@
 Return-path: <mchehab@pedra>
-Received: from mx1.redhat.com ([209.132.183.28]:33157 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752321Ab1EEMRo (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 5 May 2011 08:17:44 -0400
-Message-ID: <4DC29563.10007@redhat.com>
-Date: Thu, 05 May 2011 09:17:39 -0300
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Received: from mailfe01.c2i.net ([212.247.154.2]:43063 "EHLO swip.net"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1756684Ab1ESIj7 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 19 May 2011 04:39:59 -0400
+Received: from [188.126.198.129] (account mc467741@c2i.net HELO laptop002.hselasky.homeunix.org)
+  by mailfe01.swip.net (CommuniGate Pro SMTP 5.2.19)
+  with ESMTPA id 129166233 for linux-media@vger.kernel.org; Thu, 19 May 2011 10:39:56 +0200
+From: Hans Petter Selasky <hselasky@c2i.net>
+To: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Subject: [PATCHES] Various MODULE parameter releated fixes
+Date: Thu, 19 May 2011 10:38:48 +0200
 MIME-Version: 1.0
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-CC: linux-media@vger.kernel.org
-Subject: Re: [GIT PATCHES FOR 2.6.40] Make the UVC API public (and minor enhancements)
-References: <201104271238.03887.laurent.pinchart@ideasonboard.com> <4DC28B00.50505@redhat.com> <201105051340.26661.laurent.pinchart@ideasonboard.com>
-In-Reply-To: <201105051340.26661.laurent.pinchart@ideasonboard.com>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: Multipart/Mixed;
+  boundary="Boundary-00=_YcN1NCcnD8vP2pZ"
+Message-Id: <201105191038.48068.hselasky@c2i.net>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Em 05-05-2011 08:40, Laurent Pinchart escreveu:
-> Hi Mauro,
-> 
-> On Thursday 05 May 2011 13:33:20 Mauro Carvalho Chehab wrote:
->> Em 27-04-2011 07:38, Laurent Pinchart escreveu:
->>> Hi Mauro,
->>>
->>> These patches move the uvcvideo.h header file from
->>> drivers/media/video/uvc to include/linux, making the UVC API public.
->>> Support for the old API is kept and will be removed in 2.6.42.
->>>
->>> The following changes since commit 
-> a4761a092fd3b6bf8b5f9cfe361670c86cdcc8ca:
->>>   [media] tm6000: fix vbuf may be used uninitialized (2011-04-19 21:13:59
->>>   -0300)
->>>
->>> are available in the git repository at:
->>>   git://linuxtv.org/pinchartl/uvcvideo.git uvcvideo-next
->>>
->>> Laurent Pinchart (5):
->>>       uvcvideo: Deprecate UVCIOC_CTRL_{ADD,MAP_OLD,GET,SET}
->>>       uvcvideo: Rename UVC_CONTROL_* flags to UVC_CTRL_FLAG_*
->>>       uvcvideo: Make the API public
->>
->> Why are you declaring this twice:
->>
->> Index: patchwork/drivers/media/video/uvc/uvcvideo.h
->>
->> ...
->>
->> +#ifndef __KERNEL__
->> #define UVCIOC_CTRL_ADD     _IOW('U', 1, struct uvc_xu_control_info)
->> #define UVCIOC_CTRL_MAP_OLD _IOWR('U', 2, struct uvc_xu_control_mapping_old)
->> #define UVCIOC_CTRL_MAP     _IOWR('U', 2, struct uvc_xu_control_mapping)
->> #define UVCIOC_CTRL_GET     _IOWR('U', 3, struct uvc_xu_control)
->> #define UVCIOC_CTRL_SET     _IOW('U', 4, struct uvc_xu_control)
->> -#define UVCIOC_CTRL_QUERY   _IOWR('U', 5, struct uvc_xu_control_query)
->> +#else
->> +#define __UVCIOC_CTRL_ADD   _IOW('U', 1, struct uvc_xu_control_info)
->> +#define __UVCIOC_CTRL_MAP_OLD _IOWR('U', 2, struct 
-> uvc_xu_control_mapping_old)
->> +#define __UVCIOC_CTRL_MAP   _IOWR('U', 2, struct uvc_xu_control_mapping)
->> +#define __UVCIOC_CTRL_GET   _IOWR('U', 3, struct uvc_xu_control)
->> +#define __UVCIOC_CTRL_SET   _IOW('U', 4, struct uvc_xu_control)
->> +#endif
-> 
-> For compatibility with existing applications. Applications should now include 
-> linux/uvcvideo.h instead of drivers/media/video/uvc/uvcvideo.h, but existing 
-> applications include the later. I want to make sure they will still compile. A 
-> warning will be printed, and this will be removed in 2.6.42.
->> You shouldn't need to do that. In fact, the better would be to have two
->> separate headers: one with just the public API under include/linux, and
->> another with the extra uvc-internal bits, as we did in the past with
->> videobuf2.h.
-> 
-> That's how linux/uvcvideo.h and drivers/media/video/uvc/uvcvideo.h are 
-> partitioned by this patch set, except that the private header still contains 
-> userspace API to avoid breaking applications during the transition period.
+--Boundary-00=_YcN1NCcnD8vP2pZ
+Content-Type: text/plain;
+  charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 
-Ok, so I'm understanding that, on 2.6.42, you'll be removing the checks for
-__KERNEL__ from uvcvideo.h, right?
+--HPS
+
+--Boundary-00=_YcN1NCcnD8vP2pZ
+Content-Type: text/x-patch;
+  charset="us-ascii";
+  name="tda7432.diff"
+Content-Transfer-Encoding: quoted-printable
+Content-Disposition: inline;
+	filename="tda7432.diff"
+
+=46rom 0e135fa9cd9cb377bd8930253a547d6d9ae6d01b Mon Sep 17 00:00:00 2001
+=46rom: Hans Petter Selasky <hselasky@c2i.net>
+Date: Thu, 19 May 2011 02:46:40 +0200
+Subject: [PATCH] Parameter description should be after parameter.
+
+=2D--
+ ../media_tree/drivers/media/video/tda7432.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
+
+diff --git a/../media_tree/drivers/media/video/tda7432.c b/../media_tree/dr=
+ivers/media/video/tda7432.c
+index 3941f95..398b9fb 100644
+=2D-- a/../media_tree/drivers/media/video/tda7432.c
++++ b/../media_tree/drivers/media/video/tda7432.c
+@@ -50,8 +50,8 @@ static int loudness; /* disable loudness by default */
+ static int debug;	 /* insmod parameter */
+ module_param(debug, int, S_IRUGO | S_IWUSR);
+ module_param(loudness, int, S_IRUGO);
+=2DMODULE_PARM_DESC(maxvol,"Set maximium volume to +20db (0), default is 0d=
+b(1)");
+ module_param(maxvol, int, S_IRUGO | S_IWUSR);
++MODULE_PARM_DESC(maxvol,"Set maximium volume to +20db (0), default is 0db(=
+1)");
+=20
+=20
+=20
+=2D-=20
+1.7.1.1
 
 
-Mauro.
+--Boundary-00=_YcN1NCcnD8vP2pZ
+Content-Type: text/x-patch;
+  charset="us-ascii";
+  name="tda8261.diff"
+Content-Transfer-Encoding: quoted-printable
+Content-Disposition: inline;
+	filename="tda8261.diff"
+
+=46rom 7191938e7da088ccb5e8bad36e99ca495e53d206 Mon Sep 17 00:00:00 2001
+=46rom: Hans Petter Selasky <hselasky@c2i.net>
+Date: Thu, 19 May 2011 02:56:48 +0200
+Subject: [PATCH] Remove invalid parameter description.
+
+=2D--
+ ../media_tree/drivers/media/dvb/frontends/tda8261.c |    1 -
+ 1 files changed, 0 insertions(+), 1 deletions(-)
+
+diff --git a/../media_tree/drivers/media/dvb/frontends/tda8261.c b/../media=
+_tree/drivers/media/dvb/frontends/tda8261.c
+index 1742056..53c7d8f 100644
+=2D-- a/../media_tree/drivers/media/dvb/frontends/tda8261.c
++++ b/../media_tree/drivers/media/dvb/frontends/tda8261.c
+@@ -224,7 +224,6 @@ exit:
+ }
+=20
+ EXPORT_SYMBOL(tda8261_attach);
+=2DMODULE_PARM_DESC(verbose, "Set verbosity level");
+=20
+ MODULE_AUTHOR("Manu Abraham");
+ MODULE_DESCRIPTION("TDA8261 8PSK/QPSK Tuner");
+=2D-=20
+1.7.1.1
+
+
+--Boundary-00=_YcN1NCcnD8vP2pZ
+Content-Type: text/x-patch;
+  charset="us-ascii";
+  name="cx24116.c.diff"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline;
+	filename="cx24116.c.diff"
+
+--- cx24116.c.orig	2011-03-20 23:11:40.000000000 +0100
++++ cx24116.c	2011-03-20 23:12:35.000000000 +0100
+@@ -137,7 +137,7 @@
+ /* SNR measurements */
+ static int esno_snr;
+ module_param(esno_snr, int, 0644);
+-MODULE_PARM_DESC(debug, "SNR return units, 0=PERCENTAGE 0-100, "\
++MODULE_PARM_DESC(esno_snr, "SNR return units, 0=PERCENTAGE 0-100, "\
+ 	"1=ESNO(db * 10) (default:0)");
+ 
+ enum cmds {
+
+--Boundary-00=_YcN1NCcnD8vP2pZ--
