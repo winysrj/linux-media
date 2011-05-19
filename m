@@ -1,69 +1,51 @@
 Return-path: <mchehab@pedra>
-Received: from mailfe03.c2i.net ([212.247.154.66]:44497 "EHLO swip.net"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1755253Ab1EWOiv (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 23 May 2011 10:38:51 -0400
-To: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Subject: [PATCH] Alternate setting 1 must be selected for interface 0 on the model that I received. Else the rest is identical.
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>
-From: Hans Petter Selasky <hselasky@c2i.net>
-Date: Mon, 23 May 2011 16:37:39 +0200
+Received: from blu0-omc2-s25.blu0.hotmail.com ([65.55.111.100]:17537 "EHLO
+	blu0-omc2-s25.blu0.hotmail.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S933907Ab1ESSRJ (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 19 May 2011 14:17:09 -0400
+Message-ID: <BLU0-SMTP25C479222362147498A619D88E0@phx.gbl>
+From: Manoel PN <pinusdtv@hotmail.com>
+To: linux-media@vger.kernel.org, lgspn@hotmail.com
+Subject: [PATCH] saa7134-dvb.c kworld_sbtvd
+Date: Thu, 19 May 2011 15:16:57 -0300
 MIME-Version: 1.0
-Content-Type: Multipart/Mixed;
-  boundary="Boundary-00=_zEn2NxpFtxIsen3"
-Message-Id: <201105231637.39053.hselasky@c2i.net>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
---Boundary-00=_zEn2NxpFtxIsen3
-Content-Type: text/plain;
-  charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+The correct place to put i2c_gate_ctrl is before calling tda18271_attach,
+because the driver tda18271 will use it to enable or disable the i2c-bus
+from the demodulator to the tuner.
 
---HPS
+And thus eliminate the error message: "Unknown device (255) detected
+@ 1-00c0, device not supported" in the driver tda18271.
 
---Boundary-00=_zEn2NxpFtxIsen3
-Content-Type: text/x-patch;
-  charset="us-ascii";
-  name="dvb-usb-0016.patch"
-Content-Transfer-Encoding: quoted-printable
-Content-Disposition: inline;
-	filename="dvb-usb-0016.patch"
-
-=46rom 3cf61d6a77b22f58471188cd0e7e3dc6c3a29b0b Mon Sep 17 00:00:00 2001
-=46rom: Hans Petter Selasky <hselasky@c2i.net>
-Date: Mon, 23 May 2011 16:36:55 +0200
-Subject: [PATCH] Alternate setting 1 must be selected for interface 0 on th=
-e model that I received. Else the rest is identical.
-
-Signed-off-by: Hans Petter Selasky <hselasky@c2i.net>
-=2D--
- drivers/media/dvb/ttusb-budget/dvb-ttusb-budget.c |    8 ++++++++
- 1 files changed, 8 insertions(+), 0 deletions(-)
-
-diff --git a/drivers/media/dvb/ttusb-budget/dvb-ttusb-budget.c b/drivers/me=
-dia/dvb/ttusb-budget/dvb-ttusb-budget.c
-index cbe2f0d..38a7d03 100644
-=2D-- a/drivers/media/dvb/ttusb-budget/dvb-ttusb-budget.c
-+++ b/drivers/media/dvb/ttusb-budget/dvb-ttusb-budget.c
-@@ -971,6 +971,14 @@ static int ttusb_stop_feed(struct dvb_demux_feed *dvbd=
-mxfeed)
-=20
- static int ttusb_setup_interfaces(struct ttusb *ttusb)
- {
-+	/*
-+	 * Try to select alternate setting 1 for first interface. If
-+	 * that does not work, restore to alternate setting 0.
-+	 */
-+	if (usb_set_interface(ttusb->dev, 0, 1) < 0)
-+		usb_set_interface(ttusb->dev, 0, 0);
-+
-+	/* Select alternate setting 1 for second interface. */
- 	usb_set_interface(ttusb->dev, 1, 1);
-=20
- 	ttusb->bulk_out_pipe =3D usb_sndbulkpipe(ttusb->dev, 1);
-=2D-=20
-1.7.1.1
+In the device kworld_sbtvd (hybrid analog and digital TV) the control
+of the i2c-bus to tuner is done in the analog demodulator and not in
+the digital demodulator.
 
 
---Boundary-00=_zEn2NxpFtxIsen3--
+Signed-off-by: Manoel Pinheiro <pinusdtv@hotmail.com>
+
+
+diff --git a/drivers/media/video/saa7134/saa7134-dvb.c 
+b/drivers/media/video/saa7134/saa7134-dvb.c
+index f65cad2..c1a18d1 100644
+--- a/drivers/media/video/saa7134/saa7134-dvb.c
++++ b/drivers/media/video/saa7134/saa7134-dvb.c
+@@ -1666,10 +1666,10 @@ static int dvb_init(struct saa7134_dev *dev)
+ 			dvb_attach(tda829x_attach, fe0->dvb.frontend,
+ 				   &dev->i2c_adap, 0x4b,
+ 				   &tda829x_no_probe);
++			fe0->dvb.frontend->ops.i2c_gate_ctrl = kworld_sbtvd_gate_ctrl;
+ 			dvb_attach(tda18271_attach, fe0->dvb.frontend,
+ 				   0x60, &dev->i2c_adap,
+ 				   &kworld_tda18271_config);
+-			fe0->dvb.frontend->ops.i2c_gate_ctrl = kworld_sbtvd_gate_ctrl;
+ 		}
+ 
+ 		/* mb86a20s need to use the I2C gateway */
+
+
