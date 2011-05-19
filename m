@@ -1,38 +1,31 @@
-Return-path: <mchehab@gaivota>
-Received: from mail-wy0-f174.google.com ([74.125.82.174]:59818 "EHLO
-	mail-wy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751933Ab1EIS5t (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 9 May 2011 14:57:49 -0400
-Received: by wya21 with SMTP id 21so4124822wya.19
-        for <linux-media@vger.kernel.org>; Mon, 09 May 2011 11:57:47 -0700 (PDT)
-Date: Mon, 09 May 2011 20:57:40 +0200
-Subject: Re: [PATCH] [media] ite-cir: make IR receive work after resume
-Message-ID: <dwy71fckod7ba37187igo82l.1304967460349@email.android.com>
-From: =?ISO-8859-1?Q?Juan_Jes=FAs_Garc=EDa_de_Soria_Lucena?=
-	<skandalfo@gmail.com>
-To: Jarod Wilson <jarod@redhat.com>, linux-media@vger.kernel.org
+Return-path: <mchehab@pedra>
+Received: from cmsout02.mbox.net ([165.212.64.32]:38857 "EHLO
+	cmsout02.mbox.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752300Ab1ESWS5 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 19 May 2011 18:18:57 -0400
+Message-ID: <4DD59732.7060302@usa.net>
+Date: Fri, 20 May 2011 00:18:26 +0200
+From: Issa Gorissen <flop.m@usa.net>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: base64
+To: =?ISO-8859-1?Q?=22S=E9bastien_RAILLARD_=28COEXSI=29=22?=
+	<sr@coexsi.fr>
+CC: linux-media@vger.kernel.org
+Subject: Re: [libdvben50221] [PATCH] Assign same resource_id in open_session_response
+ when "resource non-existent"
+References: <AANLkTinT9oPT9ob3W6pzuvbxr502gAC5N02TOLGr_pLC@mail.gmail.com>	<4DD29848.6030901@braice.net> <BANLkTin6astzASvU6VfDwD2XCRuZToq+RQ@mail.gmail.com> <4DD513F5.8060602@linuxtv.org> <005501cc1667$ee99a130$cbcce390$@coexsi.fr>
+In-Reply-To: <005501cc1667$ee99a130$cbcce390$@coexsi.fr>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8bit
 List-ID: <linux-media.vger.kernel.org>
-Sender: Mauro Carvalho Chehab <mchehab@gaivota>
+Sender: <mchehab@pedra>
 
-SGkgSmFyb2QsIGFuZCB0aGFua3MgZm9yIGxvb2tpbmcgYXQgdGhpcy4KCkVsIDA5LzA1LzIwMTEg
-MjA6MjgsICJKYXJvZCBXaWxzb24iIDxqYXJvZEByZWRoYXQuY29tPiBlc2NyaWJpw7M6Cj4gLS0t
-IGEvZHJpdmVycy9tZWRpYS9yYy9pdGUtY2lyLmMKPiArKysgYi9kcml2ZXJzL21lZGlhL3JjL2l0
-ZS1jaXIuYwo+IEBAIC0xNjg0LDYgKzE2ODQsOCBAQCBzdGF0aWMgaW50IGl0ZV9yZXN1bWUoc3Ry
-dWN0IHBucF9kZXYgKnBkZXYpCj4gwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAvKiB3YWtlIHVwIHRo
-ZSB0cmFuc21pdHRlciAqLwo+IMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgd2FrZV91cF9pbnRlcnJ1
-cHRpYmxlKCZkZXYtPnR4X3F1ZXVlKTsKPiDCoCDCoCDCoCDCoH0gZWxzZSB7Cj4gKyDCoCDCoCDC
-oCDCoCDCoCDCoCDCoCAvKiByZWluaXRpYWxpemUgaGFyZHdhcmUgY29uZmlnIHJlZ2lzdGVycyAq
-Lwo+ICsgwqAgwqAgwqAgwqAgwqAgwqAgwqAgZGV2LT5wYXJhbXMuaW5pdF9oYXJkd2FyZShkZXYp
-Owo+IMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgLyogZW5hYmxlIHRoZSByZWNlaXZlciAqLwo+IMKg
-IMKgIMKgIMKgIMKgIMKgIMKgIMKgZGV2LT5wYXJhbXMuZW5hYmxlX3J4KGRldik7Cj4gwqAgwqAg
-wqAgwqB9Cj4gLS0KPiAxLjcuMQo+CgpCdXQuLi4gd291bGRuJ3QgdGhlIGhhcmR3YXJlIGluaXRp
-YWxpemF0aW9uIGJlIHJlcXVpcmVkIHRvbyBpZiB0aGUgaGFyZHdhcmUgZ290IHN1c3BlbmRlZCB3
-aGlsZSBkb2luZyBUWD8gSSBtZWFuLCBwcm9iYWJseSB0aGUgY2FsbCB0byBpbml0X2hhcmR3YXJl
-KCkgc2hvdWxkIGJlIGRvbmUgaW4gYW55IGNhc2UsIGp1c3QgYmVmb3JlIHRoZSBpZi4uLiAoZm9y
-Z2l2ZSBtZSBpZiBJJ20gb2ZmIHRhcmdldDsgSSdtIGxvb2tpbmcgYXQgdGhlIGNvZGUgYXMgSSBy
-ZW1lbWJlciBpdCwgc2luY2UgSSBkb24ndCBoYXZlIGl0IGJlZm9yZSBtZSByaWdodCBub3cpLgoK
-QmVzdCByZWdhcmRzLAoKICAgSnVhbiBKZXPDunMu
+On 19/05/11 23:01, Sébastien RAILLARD (COEXSI) wrote:
+>
+> Yes, of course, but I don't find information that can help me to provide the
+> correct format.
+> Is-there a documentation somewhere that explains how patches must be
+> formatted to be correctly tracked?
 
+This should help
+[http://www.linuxtv.org/wiki/index.php/Development:_How_to_submit_patches]
