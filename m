@@ -1,121 +1,42 @@
-Return-path: <mchehab@gaivota>
-Received: from mx1.redhat.com ([209.132.183.28]:9481 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750790Ab1EIEMb (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 9 May 2011 00:12:31 -0400
-Message-ID: <4DC769A6.1090100@redhat.com>
-Date: Mon, 09 May 2011 06:12:22 +0200
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-MIME-Version: 1.0
-To: Andreas Oberritter <obi@linuxtv.org>
-CC: linux-media@vger.kernel.org,
-	Thierry LELEGARD <tlelegard@logiways.com>
-Subject: Re: [PATCH 2/8] DVB: dtv_property_cache_submit shouldn't modifiy
- the cache
-References: <1304895821-21642-1-git-send-email-obi@linuxtv.org> <1304895821-21642-3-git-send-email-obi@linuxtv.org> <4DC7665E.5000202@redhat.com>
-In-Reply-To: <4DC7665E.5000202@redhat.com>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Return-path: <mchehab@pedra>
+Received: from mail-wy0-f174.google.com ([74.125.82.174]:36713 "EHLO
+	mail-wy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933861Ab1ETP5m convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 20 May 2011 11:57:42 -0400
+Received: by wya21 with SMTP id 21so2834342wya.19
+        for <linux-media@vger.kernel.org>; Fri, 20 May 2011 08:57:41 -0700 (PDT)
+Subject: Re: [beagleboard] [PATCH v2 2/2] OMAP3BEAGLE: Add support for mt9p031 sensor driver.
+Mime-Version: 1.0 (Apple Message framework v1084)
+Content-Type: text/plain; charset=us-ascii
+From: Koen Kooi <koen@beagleboard.org>
+In-Reply-To: <1305899272-31839-2-git-send-email-javier.martin@vista-silicon.com>
+Date: Fri, 20 May 2011 17:57:34 +0200
+Cc: linux-media@vger.kernel.org, g.liakhovetski@gmx.de,
+	laurent.pinchart@ideasonboard.com, carlighting@yahoo.co.nz,
+	linux-arm-kernel@lists.infradead.org,
+	Javier Martin <javier.martin@vista-silicon.com>
+Content-Transfer-Encoding: 8BIT
+Message-Id: <DDCBBAA2-C49C-4952-9D1B-519D8A3AB41E@beagleboard.org>
+References: <1305899272-31839-1-git-send-email-javier.martin@vista-silicon.com> <1305899272-31839-2-git-send-email-javier.martin@vista-silicon.com>
+To: "beagleboard@googlegroups.com Board" <beagleboard@googlegroups.com>,
+	Jason Kridner <jkridner@beagleboard.org>
 List-ID: <linux-media.vger.kernel.org>
-Sender: Mauro Carvalho Chehab <mchehab@gaivota>
+Sender: <mchehab@pedra>
 
-Em 09-05-2011 05:58, Mauro Carvalho Chehab escreveu:
-> Em 09-05-2011 01:03, Andreas Oberritter escreveu:
->> - Use const pointers and remove assignments.
+Op 20 mei 2011, om 15:47 heeft Javier Martin het volgende geschreven:
+
+> isp.h file has to be included as a temporal measure
+> since clocks of the isp are not exposed yet.
 > 
-> That's OK.
-> 
->> - delivery_system already gets assigned by DTV_DELIVERY_SYSTEM
->>   and dtv_property_cache_sync.
-> 
-> The logic for those legacy params is too complex. It is easy that
-> a latter patch to break the implicit set via dtv_property_cache_sync().
-> 
-> Do you actually see a bug caused by the extra set for the delivery system?
-> If not, I prefer to keep this extra re-assignment.
+> Signed-off-by: Javier Martin <javier.martin@vista-silicon.com>
+> ---
+> arch/arm/mach-omap2/board-omap3beagle.c |  127 ++++++++++++++++++++++++++++++-
 
-Hmm... after applying all patches the logic change, and patch 2 may actually
-make sense. I'll need to re-examine the patch series. 
+Javier,
 
-On a quick look, if applied as-is, I suspect that git bisect
-will break dvb in the middle of the patch series.
+In previous patch sets we put that in a seperate file (omap3beagle-camera.c) so we don't clutter up the board file with all the different sensor drivers. Would it make sense to do the same with the current patches? It looks like MCF cuts down a lot on the boilerplace needed already.
 
-Anyway, patch 1/8 is OK. For now, I'll apply only this patch. I'll delay the
-others until I have more time. I'm currently traveling abroad, due to Linaro
-Development Summit, so, I don't have much time for review (and I'm also suffering
-for a 5 hours jet-leg).
+regards,
 
->>
->> Signed-off-by: Andreas Oberritter <obi@linuxtv.org>
->> ---
->>  drivers/media/dvb/dvb-core/dvb_frontend.c |   13 +++----------
->>  1 files changed, 3 insertions(+), 10 deletions(-)
->>
->> diff --git a/drivers/media/dvb/dvb-core/dvb_frontend.c b/drivers/media/dvb/dvb-core/dvb_frontend.c
->> index be0f631..1ac7633 100644
->> --- a/drivers/media/dvb/dvb-core/dvb_frontend.c
->> +++ b/drivers/media/dvb/dvb-core/dvb_frontend.c
->> @@ -1074,7 +1074,7 @@ static void dtv_property_cache_sync(struct dvb_frontend *fe,
->>   */
->>  static void dtv_property_legacy_params_sync(struct dvb_frontend *fe)
->>  {
->> -	struct dtv_frontend_properties *c = &fe->dtv_property_cache;
->> +	const struct dtv_frontend_properties *c = &fe->dtv_property_cache;
->>  	struct dvb_frontend_private *fepriv = fe->frontend_priv;
->>  	struct dvb_frontend_parameters *p = &fepriv->parameters;
->>  
->> @@ -1086,14 +1086,12 @@ static void dtv_property_legacy_params_sync(struct dvb_frontend *fe)
->>  		dprintk("%s() Preparing QPSK req\n", __func__);
->>  		p->u.qpsk.symbol_rate = c->symbol_rate;
->>  		p->u.qpsk.fec_inner = c->fec_inner;
->> -		c->delivery_system = SYS_DVBS;
->>  		break;
->>  	case FE_QAM:
->>  		dprintk("%s() Preparing QAM req\n", __func__);
->>  		p->u.qam.symbol_rate = c->symbol_rate;
->>  		p->u.qam.fec_inner = c->fec_inner;
->>  		p->u.qam.modulation = c->modulation;
->> -		c->delivery_system = SYS_DVBC_ANNEX_AC;
->>  		break;
->>  	case FE_OFDM:
->>  		dprintk("%s() Preparing OFDM req\n", __func__);
->> @@ -1111,15 +1109,10 @@ static void dtv_property_legacy_params_sync(struct dvb_frontend *fe)
->>  		p->u.ofdm.transmission_mode = c->transmission_mode;
->>  		p->u.ofdm.guard_interval = c->guard_interval;
->>  		p->u.ofdm.hierarchy_information = c->hierarchy;
->> -		c->delivery_system = SYS_DVBT;
->>  		break;
->>  	case FE_ATSC:
->>  		dprintk("%s() Preparing VSB req\n", __func__);
->>  		p->u.vsb.modulation = c->modulation;
->> -		if ((c->modulation == VSB_8) || (c->modulation == VSB_16))
->> -			c->delivery_system = SYS_ATSC;
->> -		else
->> -			c->delivery_system = SYS_DVBC_ANNEX_B;
->>  		break;
->>  	}
->>  }
->> @@ -1129,7 +1122,7 @@ static void dtv_property_legacy_params_sync(struct dvb_frontend *fe)
->>   */
->>  static void dtv_property_adv_params_sync(struct dvb_frontend *fe)
->>  {
->> -	struct dtv_frontend_properties *c = &fe->dtv_property_cache;
->> +	const struct dtv_frontend_properties *c = &fe->dtv_property_cache;
->>  	struct dvb_frontend_private *fepriv = fe->frontend_priv;
->>  	struct dvb_frontend_parameters *p = &fepriv->parameters;
->>  
->> @@ -1170,7 +1163,7 @@ static void dtv_property_adv_params_sync(struct dvb_frontend *fe)
->>  
->>  static void dtv_property_cache_submit(struct dvb_frontend *fe)
->>  {
->> -	struct dtv_frontend_properties *c = &fe->dtv_property_cache;
->> +	const struct dtv_frontend_properties *c = &fe->dtv_property_cache;
->>  
->>  	/* For legacy delivery systems we don't need the delivery_system to
->>  	 * be specified, but we populate the older structures from the cache
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-
+Koen
