@@ -1,60 +1,71 @@
 Return-path: <mchehab@pedra>
-Received: from mailfe03.c2i.net ([212.247.154.66]:57447 "EHLO swip.net"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1753301Ab1EWLan (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 23 May 2011 07:30:43 -0400
-To: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Subject: [PATCH] Remove invalid parameter description.
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>
-From: Hans Petter Selasky <hselasky@c2i.net>
-Date: Mon, 23 May 2011 13:29:31 +0200
+Received: from mail-bw0-f46.google.com ([209.85.214.46]:41666 "EHLO
+	mail-bw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S934618Ab1ETOeF (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 20 May 2011 10:34:05 -0400
+Received: by bwz15 with SMTP id 15so3011947bwz.19
+        for <linux-media@vger.kernel.org>; Fri, 20 May 2011 07:34:02 -0700 (PDT)
+Message-ID: <4DD67B68.7070704@mvista.com>
+Date: Fri, 20 May 2011 18:32:08 +0400
+From: Sergei Shtylyov <sshtylyov@mvista.com>
 MIME-Version: 1.0
-Content-Type: Multipart/Mixed;
-  boundary="Boundary-00=_bUk2Nrrof8Ulm0X"
-Message-Id: <201105231329.31371.hselasky@c2i.net>
+To: Manjunath Hadli <manjunath.hadli@ti.com>
+CC: LMML <linux-media@vger.kernel.org>,
+	dlos <davinci-linux-open-source@linux.davincidsp.com>
+Subject: Re: [PATCH v17 5/6] davinci vpbe: Build infrastructure for VPBE driver
+References: <1305899324-2118-1-git-send-email-manjunath.hadli@ti.com>
+In-Reply-To: <1305899324-2118-1-git-send-email-manjunath.hadli@ti.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
---Boundary-00=_bUk2Nrrof8Ulm0X
-Content-Type: text/plain;
-  charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Hello.
 
---HPS
+Manjunath Hadli wrote:
 
---Boundary-00=_bUk2Nrrof8Ulm0X
-Content-Type: text/x-patch;
-  charset="us-ascii";
-  name="dvb-usb-0009.patch"
-Content-Transfer-Encoding: quoted-printable
-Content-Disposition: inline;
-	filename="dvb-usb-0009.patch"
+> This patch adds the build infra-structure for Davinci
+> VPBE dislay driver.
 
-=46rom 843559156c08edaf3ef616df005eae8b8d14b186 Mon Sep 17 00:00:00 2001
-=46rom: Hans Petter Selasky <hselasky@c2i.net>
-Date: Mon, 23 May 2011 13:28:50 +0200
-Subject: [PATCH] Remove invalid parameter description.
+> Signed-off-by: Manjunath Hadli <manjunath.hadli@ti.com>
+> Acked-by: Muralidharan Karicheri <m-karicheri2@ti.com>
+> Acked-by: Hans Verkuil <hverkuil@xs4all.nl>
+[...]
 
-Signed-off-by: Hans Petter Selasky <hselasky@c2i.net>
-=2D--
- drivers/media/dvb/frontends/tda8261.c |    1 -
- 1 files changed, 0 insertions(+), 1 deletions(-)
+> diff --git a/drivers/media/video/davinci/Kconfig b/drivers/media/video/davinci/Kconfig
+> index 6b19540..a7f11e7 100644
+> --- a/drivers/media/video/davinci/Kconfig
+> +++ b/drivers/media/video/davinci/Kconfig
+> @@ -91,3 +91,25 @@ config VIDEO_ISIF
+>  
+>  	   To compile this driver as a module, choose M here: the
+>  	   module will be called vpfe.
+> +
+> +config VIDEO_DM644X_VPBE
+> +	tristate "DM644X VPBE HW module"
 
-diff --git a/drivers/media/dvb/frontends/tda8261.c b/drivers/media/dvb/fron=
-tends/tda8261.c
-index 1742056..53c7d8f 100644
-=2D-- a/drivers/media/dvb/frontends/tda8261.c
-+++ b/drivers/media/dvb/frontends/tda8261.c
-@@ -224,7 +224,6 @@ exit:
- }
-=20
- EXPORT_SYMBOL(tda8261_attach);
-=2DMODULE_PARM_DESC(verbose, "Set verbosity level");
-=20
- MODULE_AUTHOR("Manu Abraham");
- MODULE_DESCRIPTION("TDA8261 8PSK/QPSK Tuner");
-=2D-=20
-1.7.1.1
+    BTW, as this seems DM644x specific, shouldn't this depend on 
+CONFIG_ARCH_DAVINCI_DM644x?
 
+> +	select VIDEO_VPSS_SYSTEM
+> +	select VIDEOBUF_DMA_CONTIG
+> +	help
+> +	    Enables VPBE modules used for display on a DM644x
+> +	    SoC.
+> +
+> +	    To compile this driver as a module, choose M here: the
+> +	    module will be called vpbe.
+> +
+> +
+> +config VIDEO_VPBE_DISPLAY
+> +	tristate "VPBE V4L2 Display driver"
+> +	select VIDEO_DM644X_VPBE
 
---Boundary-00=_bUk2Nrrof8Ulm0X--
+    Or this one, if it selects VIDEO_DM644X_VPBE?
+
+> +	default y
+
+    Hm, "y" shouldn't be the default.
+
+WBR, Sergei
