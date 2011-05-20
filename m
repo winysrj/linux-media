@@ -1,64 +1,73 @@
 Return-path: <mchehab@pedra>
-Received: from smtp-vbr8.xs4all.nl ([194.109.24.28]:3226 "EHLO
-	smtp-vbr8.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753818Ab1E0O6G (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 27 May 2011 10:58:06 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [RFCv1 PATCH 2/5] v4l2-controls.txt: update to latest v4l2-ctrl.c changes.
-Date: Fri, 27 May 2011 16:57:52 +0200
-Message-Id: <29e131f3a44d9c1a875fad8309cce6be4ed13365.1306507763.git.hans.verkuil@cisco.com>
-In-Reply-To: <1306508275-9228-1-git-send-email-hverkuil@xs4all.nl>
-References: <1306508275-9228-1-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <287bab4f54ddce64458a69e0407d5866158fda0a.1306507763.git.hans.verkuil@cisco.com>
-References: <287bab4f54ddce64458a69e0407d5866158fda0a.1306507763.git.hans.verkuil@cisco.com>
+Received: from mx1.redhat.com ([209.132.183.28]:36916 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S934367Ab1ETSjC (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 20 May 2011 14:39:02 -0400
+Received: from int-mx10.intmail.prod.int.phx2.redhat.com (int-mx10.intmail.prod.int.phx2.redhat.com [10.5.11.23])
+	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id p4KId25G008494
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
+	for <linux-media@vger.kernel.org>; Fri, 20 May 2011 14:39:02 -0400
+Message-ID: <4DD6B54E.9000801@redhat.com>
+Date: Fri, 20 May 2011 14:39:10 -0400
+From: Jarod Wilson <jarod@redhat.com>
+MIME-Version: 1.0
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+CC: LMML <linux-media@vger.kernel.org>
+Subject: [GIT PULL REQ] Initial IR updates for 2.6.40
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+Here's what I've got that's been stewing in my IR tree for a bit. 
+There's more I'm working on and/or planning to work on for 2.6.40, but 
+these should be good to go right now. The new redrat3 driver still has 
+some quirks, at least when used with lirc userspace decoding, but I'm 
+working with the folks at RedRat to sort them out.
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- Documentation/video4linux/v4l2-controls.txt |   13 ++++---------
- 1 files changed, 4 insertions(+), 9 deletions(-)
+The following changes since commit 7225a1dcc38f28fcc6178258b2072d12742f68d9:
 
-diff --git a/Documentation/video4linux/v4l2-controls.txt b/Documentation/video4linux/v4l2-controls.txt
-index bc24be4..65d4652 100644
---- a/Documentation/video4linux/v4l2-controls.txt
-+++ b/Documentation/video4linux/v4l2-controls.txt
-@@ -277,16 +277,13 @@ implement g_volatile_ctrl like this:
- 	{
- 		switch (ctrl->id) {
- 		case V4L2_CID_BRIGHTNESS:
--			ctrl->cur.val = read_reg(0x123);
-+			ctrl->val = read_reg(0x123);
- 			break;
- 		}
- 	}
+   [media] uvcvideo: Add M420 format support (2011-05-20 12:18:24 -0300)
+
+are available in the git repository at:
  
--The 'new value' union is not used in g_volatile_ctrl. In general controls
--that need to implement g_volatile_ctrl are read-only controls.
--
--Note that if one or more controls in a control cluster are marked as volatile,
--then all the controls in the cluster are seen as volatile.
-+Note that you use the 'new value' union as well in g_volatile_ctrl. In general
-+controls that need to implement g_volatile_ctrl are read-only controls.
- 
- To mark a control as volatile you have to set the is_volatile flag:
- 
-@@ -638,9 +635,7 @@ button controls are write-only controls.
- -EINVAL as the spec says.
- 
- 5) The spec does not mention what should happen when you try to set/get a
--control class controls. ivtv currently returns -EINVAL (indicating that the
--control ID does not exist) while the framework will return -EACCES, which
--makes more sense.
-+control class controls. The framework will return -EACCES.
- 
- 
- Proposals for Extensions
+git+ssh://master.kernel.org/pub/scm/linux/kernel/git/jarod/linux-2.6-ir.git/ 
+for-2.6.40
+
+Devin Heitmueller (1):
+       [media] saa7134: enable IR support for Hauppauge HVR-1150/1120
+
+Jarod Wilson (9):
+       [media] nuvoton-cir: minor tweaks to rc dev init
+       [media] imon: clean up disconnect routine
+       [media] ite-cir: make IR receive work after resume
+       [media] ite-cir: clean up odd spacing in ite8709 bits
+       [media] ite-cir: finish tx before suspending
+       [media] rc-winfast: fix inverted left/right key mappings
+       [media] mceusb: passing ep to request_packet is redundant
+       [media] rc: add locking to fix register/show race
+       [media] redrat3: new rc-core IR transceiver device driver
+
+Julia Lawall (1):
+       [media] imon: Correct call to input_free_device
+
+  drivers/media/rc/Kconfig                    |   11 +
+  drivers/media/rc/Makefile                   |    1 +
+  drivers/media/rc/imon.c                     |   36 +-
+  drivers/media/rc/ite-cir.c                  |   60 +-
+  drivers/media/rc/keymaps/rc-winfast.c       |    4 +-
+  drivers/media/rc/mceusb.c                   |   18 +-
+  drivers/media/rc/nuvoton-cir.c              |   13 +-
+  drivers/media/rc/rc-main.c                  |   47 +-
+  drivers/media/rc/redrat3.c                  | 1344 +++++++++++++++++++
+  drivers/media/video/saa7134/saa7134-cards.c |    1 +
+  drivers/media/video/saa7134/saa7134-input.c |    8 +
+  include/media/rc-core.h                     |    7 +-
+  12 files changed, 1462 insertions(+), 88 deletions(-)
+  create mode 100644 drivers/media/rc/redrat3.c
+
 -- 
-1.7.1
+Jarod Wilson
+jarod@redhat.com
+
 
