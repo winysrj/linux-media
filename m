@@ -1,75 +1,63 @@
 Return-path: <mchehab@pedra>
-Received: from mailfe01.c2i.net ([212.247.154.2]:56095 "EHLO swip.net"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1752209Ab1EWLJI (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 23 May 2011 07:09:08 -0400
-To: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Subject: [PATCH] Make code more readable by not using the return value of the WARN() macro. Set ret variable in an undefined case.
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>
-From: Hans Petter Selasky <hselasky@c2i.net>
-Date: Mon, 23 May 2011 13:07:53 +0200
+Received: from comal.ext.ti.com ([198.47.26.152]:50713 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751049Ab1ETNrD (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 20 May 2011 09:47:03 -0400
+Received: from dbdp20.itg.ti.com ([172.24.170.38])
+	by comal.ext.ti.com (8.13.7/8.13.7) with ESMTP id p4KDl0Im010184
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-media@vger.kernel.org>; Fri, 20 May 2011 08:47:02 -0500
+From: Manjunath Hadli <manjunath.hadli@ti.com>
+To: LMML <linux-media@vger.kernel.org>
+CC: dlos <davinci-linux-open-source@linux.davincidsp.com>,
+	Manjunath Hadli <manjunath.hadli@ti.com>
+Subject: [PATCH v17 0/6] davinci vpbe: dm6446 v4l2 driver
+Date: Fri, 20 May 2011 19:16:55 +0530
+Message-ID: <1305899215-1886-1-git-send-email-manjunath.hadli@ti.com>
 MIME-Version: 1.0
-Content-Type: Multipart/Mixed;
-  boundary="Boundary-00=_JAk2NFgVtFEQdpE"
-Message-Id: <201105231307.53836.hselasky@c2i.net>
+Content-Type: text/plain
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
---Boundary-00=_JAk2NFgVtFEQdpE
-Content-Type: text/plain;
-  charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+version17 : Fixed Laurent Pinchart's comments for:
+1.ISR reorganization
+2.probe function cleanup
+3.try_format cleanup
+4.Minor fixes
 
---HPS
+sssssssss Hadli (6):
+  davinci vpbe: V4L2 display driver for DM644X SoC
+  davinci vpbe: VPBE display driver
+  davinci vpbe: OSD(On Screen Display) block
+  davinci vpbe: VENC( Video Encoder) implementation
+  davinci vpbe: Build infrastructure for VPBE driver
+  davinci vpbe: Readme text for Dm6446 vpbe
 
---Boundary-00=_JAk2NFgVtFEQdpE
-Content-Type: text/x-patch;
-  charset="us-ascii";
-  name="dvb-usb-0005.patch"
-Content-Transfer-Encoding: quoted-printable
-Content-Disposition: inline;
-	filename="dvb-usb-0005.patch"
+ Documentation/video4linux/README.davinci-vpbe |   93 ++
+ drivers/media/video/davinci/Kconfig           |   22 +
+ drivers/media/video/davinci/Makefile          |    2 +
+ drivers/media/video/davinci/vpbe.c            |  864 ++++++++++++
+ drivers/media/video/davinci/vpbe_display.c    | 1861 +++++++++++++++++++++++++
+ drivers/media/video/davinci/vpbe_osd.c        | 1231 ++++++++++++++++
+ drivers/media/video/davinci/vpbe_osd_regs.h   |  364 +++++
+ drivers/media/video/davinci/vpbe_venc.c       |  566 ++++++++
+ drivers/media/video/davinci/vpbe_venc_regs.h  |  177 +++
+ include/media/davinci/vpbe.h                  |  184 +++
+ include/media/davinci/vpbe_display.h          |  147 ++
+ include/media/davinci/vpbe_osd.h              |  394 ++++++
+ include/media/davinci/vpbe_types.h            |   91 ++
+ include/media/davinci/vpbe_venc.h             |   45 +
+ 14 files changed, 6041 insertions(+), 0 deletions(-)
+ create mode 100644 Documentation/video4linux/README.davinci-vpbe
+ create mode 100644 drivers/media/video/davinci/vpbe.c
+ create mode 100644 drivers/media/video/davinci/vpbe_display.c
+ create mode 100644 drivers/media/video/davinci/vpbe_osd.c
+ create mode 100644 drivers/media/video/davinci/vpbe_osd_regs.h
+ create mode 100644 drivers/media/video/davinci/vpbe_venc.c
+ create mode 100644 drivers/media/video/davinci/vpbe_venc_regs.h
+ create mode 100644 include/media/davinci/vpbe.h
+ create mode 100644 include/media/davinci/vpbe_display.h
+ create mode 100644 include/media/davinci/vpbe_osd.h
+ create mode 100644 include/media/davinci/vpbe_types.h
+ create mode 100644 include/media/davinci/vpbe_venc.h
 
-=46rom 94b88b92763f9309018ba04c200a8842ce1ff0ed Mon Sep 17 00:00:00 2001
-=46rom: Hans Petter Selasky <hselasky@c2i.net>
-Date: Mon, 23 May 2011 13:07:08 +0200
-Subject: [PATCH] Make code more readable by not using the return value of t=
-he WARN() macro. Set ret variable in an undefined case.
-
-Signed-off-by: Hans Petter Selasky <hselasky@c2i.net>
-=2D--
- drivers/media/video/sr030pc30.c |    5 ++++-
- 1 files changed, 4 insertions(+), 1 deletions(-)
-
-diff --git a/drivers/media/video/sr030pc30.c b/drivers/media/video/sr030pc3=
-0.c
-index c901721..6cc64c9 100644
-=2D-- a/drivers/media/video/sr030pc30.c
-+++ b/drivers/media/video/sr030pc30.c
-@@ -726,8 +726,10 @@ static int sr030pc30_s_power(struct v4l2_subdev *sd, i=
-nt on)
- 	const struct sr030pc30_platform_data *pdata =3D info->pdata;
- 	int ret;
-=20
-=2D	if (WARN(pdata =3D=3D NULL, "No platform data!\n"))
-+	if (pdata =3D=3D NULL) {
-+		WARN(1, "No platform data!\n");
- 		return -ENOMEM;
-+	}
-=20
- 	/*
- 	 * Put sensor into power sleep mode before switching off
-@@ -746,6 +748,7 @@ static int sr030pc30_s_power(struct v4l2_subdev *sd, in=
-t on)
- 	if (on) {
- 		ret =3D sr030pc30_base_config(sd);
- 	} else {
-+		ret =3D 0;
- 		info->curr_win =3D NULL;
- 		info->curr_fmt =3D NULL;
- 	}
-=2D-=20
-1.7.1.1
-
-
---Boundary-00=_JAk2NFgVtFEQdpE--
