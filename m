@@ -1,197 +1,102 @@
 Return-path: <mchehab@pedra>
-Received: from smtp.nokia.com ([147.243.1.48]:45305 "EHLO mgw-sa02.nokia.com"
+Received: from ns.mm-sol.com ([213.240.235.226]:36256 "EHLO extserv.mm-sol.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752687Ab1EQPOM (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 17 May 2011 11:14:12 -0400
-From: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
-To: linux-media@vger.kernel.org
-Cc: laurent.pinchart@ideasonboard.com, nkanchev@mm-sol.com,
-	g.liakhovetski@gmx.de, hverkuil@xs4all.nl, dacohen@gmail.com,
-	riverful@gmail.com, andrew.b.adams@gmail.com, shpark7@stanford.edu
-Subject: [RFC v2 1/3] v4l: Add a class and a set of controls for flash devices.
-Date: Tue, 17 May 2011 18:14:02 +0300
-Message-Id: <1305645244-11878-1-git-send-email-sakari.ailus@maxwell.research.nokia.com>
-In-Reply-To: <4DD29088.1060703@maxwell.research.nokia.com>
-References: <4DD29088.1060703@maxwell.research.nokia.com>
+	id S934797Ab1ETImR (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 20 May 2011 04:42:17 -0400
+Message-ID: <4DD6295D.9070105@mm-sol.com>
+Date: Fri, 20 May 2011 11:42:05 +0300
+From: Yordan Kamenov <ykamenov@mm-sol.com>
+MIME-Version: 1.0
+To: Hans de Goede <hdegoede@redhat.com>
+CC: linux-media@vger.kernel.org,
+	sakari.ailus@maxwell.research.nokia.com
+Subject: Re: [libv4l-mcplugin PATCH 0/3] Media controller plugin for libv4l2
+References: <cover.1305804894.git.ykamenov@mm-sol.com> <4DD6141A.8030907@redhat.com>
+In-Reply-To: <4DD6141A.8030907@redhat.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-From: Sakari Ailus <sakari.ailus@iki.fi>
+Hans de Goede wrote:
+> Hi,
+Hi Hans,
+>
+> So judging from the directory layout, this is supposed to be a separate
+> project, and not part of v4l-utils / libv4l, right?
+>
+It is separate now, but I guess that at some point it would be good to have
+'plugins' directory containing some generic plugins as part of libv4l.
 
-Add a control class and a set of controls to support LED and Xenon flash
-devices. An example of such a device is the adp1653.
-
-Signed-off-by: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
----
- drivers/media/video/v4l2-ctrls.c |   45 ++++++++++++++++++++++++++++++++++++++
- include/linux/videodev2.h        |   36 ++++++++++++++++++++++++++++++
- 2 files changed, 81 insertions(+), 0 deletions(-)
-
-diff --git a/drivers/media/video/v4l2-ctrls.c b/drivers/media/video/v4l2-ctrls.c
-index 2412f08..74aae36 100644
---- a/drivers/media/video/v4l2-ctrls.c
-+++ b/drivers/media/video/v4l2-ctrls.c
-@@ -216,6 +216,17 @@ const char * const *v4l2_ctrl_get_menu(u32 id)
- 		"75 useconds",
- 		NULL,
- 	};
-+	static const char * const flash_led_mode[] = {
-+		"Off",
-+		"Flash",
-+		"Torch",
-+		NULL,
-+	};
-+	static const char * const flash_strobe_source[] = {
-+		"Software",
-+		"External",
-+		NULL,
-+	};
- 
- 	switch (id) {
- 	case V4L2_CID_MPEG_AUDIO_SAMPLING_FREQ:
-@@ -256,6 +267,10 @@ const char * const *v4l2_ctrl_get_menu(u32 id)
- 		return colorfx;
- 	case V4L2_CID_TUNE_PREEMPHASIS:
- 		return tune_preemphasis;
-+	case V4L2_CID_FLASH_LED_MODE:
-+		return flash_led_mode;
-+	case V4L2_CID_FLASH_STROBE_SOURCE:
-+		return flash_strobe_source;
- 	default:
- 		return NULL;
- 	}
-@@ -389,6 +404,21 @@ const char *v4l2_ctrl_get_name(u32 id)
- 	case V4L2_CID_TUNE_POWER_LEVEL:		return "Tune Power Level";
- 	case V4L2_CID_TUNE_ANTENNA_CAPACITOR:	return "Tune Antenna Capacitor";
- 
-+	/* Flash controls */
-+	case V4L2_CID_FLASH_CLASS:		return "Flash controls";
-+	case V4L2_CID_FLASH_LED_MODE:		return "LED mode";
-+	case V4L2_CID_FLASH_STROBE_SOURCE:	return "Strobe source";
-+	case V4L2_CID_FLASH_STROBE:		return "Strobe";
-+	case V4L2_CID_FLASH_STROBE_STOP:	return "Stop strobe";
-+	case V4L2_CID_FLASH_STROBE_STATUS:	return "Strobe status";
-+	case V4L2_CID_FLASH_TIMEOUT:		return "Strobe timeout";
-+	case V4L2_CID_FLASH_INTENSITY:		return "Intensity, flash mode";
-+	case V4L2_CID_FLASH_TORCH_INTENSITY:	return "Intensity, torch mode";
-+	case V4L2_CID_FLASH_INDICATOR_INTENSITY: return "Intensity, indicator";
-+	case V4L2_CID_FLASH_FAULT:		return "Faults";
-+	case V4L2_CID_FLASH_CHARGE:		return "Charge";
-+	case V4L2_CID_FLASH_READY:		return "Ready to strobe";
-+
- 	default:
- 		return NULL;
- 	}
-@@ -423,12 +453,17 @@ void v4l2_ctrl_fill(u32 id, const char **name, enum v4l2_ctrl_type *type,
- 	case V4L2_CID_PILOT_TONE_ENABLED:
- 	case V4L2_CID_ILLUMINATORS_1:
- 	case V4L2_CID_ILLUMINATORS_2:
-+	case V4L2_CID_FLASH_STROBE_STATUS:
-+	case V4L2_CID_FLASH_CHARGE:
-+	case V4L2_CID_FLASH_READY:
- 		*type = V4L2_CTRL_TYPE_BOOLEAN;
- 		*min = 0;
- 		*max = *step = 1;
- 		break;
- 	case V4L2_CID_PAN_RESET:
- 	case V4L2_CID_TILT_RESET:
-+	case V4L2_CID_FLASH_STROBE:
-+	case V4L2_CID_FLASH_STROBE_STOP:
- 		*type = V4L2_CTRL_TYPE_BUTTON;
- 		*flags |= V4L2_CTRL_FLAG_WRITE_ONLY;
- 		*min = *max = *step = *def = 0;
-@@ -452,6 +487,8 @@ void v4l2_ctrl_fill(u32 id, const char **name, enum v4l2_ctrl_type *type,
- 	case V4L2_CID_EXPOSURE_AUTO:
- 	case V4L2_CID_COLORFX:
- 	case V4L2_CID_TUNE_PREEMPHASIS:
-+	case V4L2_CID_FLASH_LED_MODE:
-+	case V4L2_CID_FLASH_STROBE_SOURCE:
- 		*type = V4L2_CTRL_TYPE_MENU;
- 		break;
- 	case V4L2_CID_RDS_TX_PS_NAME:
-@@ -462,6 +499,7 @@ void v4l2_ctrl_fill(u32 id, const char **name, enum v4l2_ctrl_type *type,
- 	case V4L2_CID_CAMERA_CLASS:
- 	case V4L2_CID_MPEG_CLASS:
- 	case V4L2_CID_FM_TX_CLASS:
-+	case V4L2_CID_FLASH_CLASS:
- 		*type = V4L2_CTRL_TYPE_CTRL_CLASS;
- 		/* You can neither read not write these */
- 		*flags |= V4L2_CTRL_FLAG_READ_ONLY | V4L2_CTRL_FLAG_WRITE_ONLY;
-@@ -474,6 +512,9 @@ void v4l2_ctrl_fill(u32 id, const char **name, enum v4l2_ctrl_type *type,
- 		/* Max is calculated as RGB888 that is 2^24 */
- 		*max = 0xFFFFFF;
- 		break;
-+	case V4L2_CID_FLASH_FAULT:
-+		*type = V4L2_CTRL_TYPE_BITMASK;
-+		break;
- 	default:
- 		*type = V4L2_CTRL_TYPE_INTEGER;
- 		break;
-@@ -519,6 +560,10 @@ void v4l2_ctrl_fill(u32 id, const char **name, enum v4l2_ctrl_type *type,
- 	case V4L2_CID_ZOOM_RELATIVE:
- 		*flags |= V4L2_CTRL_FLAG_WRITE_ONLY;
- 		break;
-+	case V4L2_CID_FLASH_STROBE_STATUS:
-+	case V4L2_CID_FLASH_READY:
-+		*flags |= V4L2_CTRL_FLAG_READ_ONLY;
-+		break;
- 	}
- }
- EXPORT_SYMBOL(v4l2_ctrl_fill);
-diff --git a/include/linux/videodev2.h b/include/linux/videodev2.h
-index be82c8e..e364350 100644
---- a/include/linux/videodev2.h
-+++ b/include/linux/videodev2.h
-@@ -1022,6 +1022,7 @@ struct v4l2_ext_controls {
- #define V4L2_CTRL_CLASS_MPEG 0x00990000	/* MPEG-compression controls */
- #define V4L2_CTRL_CLASS_CAMERA 0x009a0000	/* Camera class controls */
- #define V4L2_CTRL_CLASS_FM_TX 0x009b0000	/* FM Modulator control class */
-+#define V4L2_CTRL_CLASS_FLASH 0x009c0000	/* Camera flash controls */
- 
- #define V4L2_CTRL_ID_MASK      	  (0x0fffffff)
- #define V4L2_CTRL_ID2CLASS(id)    ((id) & 0x0fff0000UL)
-@@ -1423,6 +1424,41 @@ enum v4l2_preemphasis {
- #define V4L2_CID_TUNE_POWER_LEVEL		(V4L2_CID_FM_TX_CLASS_BASE + 113)
- #define V4L2_CID_TUNE_ANTENNA_CAPACITOR		(V4L2_CID_FM_TX_CLASS_BASE + 114)
- 
-+/* Flash and privacy (indicator) light controls */
-+#define V4L2_CID_FLASH_CLASS_BASE		(V4L2_CTRL_CLASS_FLASH | 0x900)
-+#define V4L2_CID_FLASH_CLASS			(V4L2_CTRL_CLASS_FLASH | 1)
-+
-+#define V4L2_CID_FLASH_LED_MODE			(V4L2_CID_FLASH_CLASS_BASE + 1)
-+enum v4l2_flash_led_mode {
-+	V4L2_FLASH_LED_MODE_NONE,
-+	V4L2_FLASH_LED_MODE_FLASH,
-+	V4L2_FLASH_LED_MODE_TORCH,
-+};
-+
-+#define V4L2_CID_FLASH_STROBE_SOURCE		(V4L2_CID_FLASH_CLASS_BASE + 2)
-+enum v4l2_flash_strobe_source {
-+	V4L2_FLASH_STROBE_SOURCE_SOFTWARE,
-+	V4L2_FLASH_STROBE_SOURCE_EXTERNAL,
-+};
-+
-+#define V4L2_CID_FLASH_STROBE			(V4L2_CID_FLASH_CLASS_BASE + 3)
-+#define V4L2_CID_FLASH_STROBE_STOP		(V4L2_CID_FLASH_CLASS_BASE + 4)
-+#define V4L2_CID_FLASH_STROBE_STATUS		(V4L2_CID_FLASH_CLASS_BASE + 5)
-+
-+#define V4L2_CID_FLASH_TIMEOUT			(V4L2_CID_FLASH_CLASS_BASE + 6)
-+#define V4L2_CID_FLASH_INTENSITY		(V4L2_CID_FLASH_CLASS_BASE + 7)
-+#define V4L2_CID_FLASH_TORCH_INTENSITY		(V4L2_CID_FLASH_CLASS_BASE + 8)
-+#define V4L2_CID_FLASH_INDICATOR_INTENSITY	(V4L2_CID_FLASH_CLASS_BASE + 9)
-+
-+#define V4L2_CID_FLASH_FAULT			(V4L2_CID_FLASH_CLASS_BASE + 10)
-+#define V4L2_FLASH_FAULT_OVER_VOLTAGE		(1 << 0)
-+#define V4L2_FLASH_FAULT_TIMEOUT		(1 << 1)
-+#define V4L2_FLASH_FAULT_OVER_TEMPERATURE	(1 << 2)
-+#define V4L2_FLASH_FAULT_SHORT_CIRCUIT		(1 << 3)
-+
-+#define V4L2_CID_FLASH_CHARGE			(V4L2_CID_FLASH_CLASS_BASE + 11)
-+#define V4L2_CID_FLASH_READY			(V4L2_CID_FLASH_CLASS_BASE + 12)
-+
- /*
-  *	T U N I N G
-  */
--- 
-1.7.2.5
+Regards
+Yordan
+> WRT my merging plans for libv4l. I've recently done some much needed
+> work to better support high-res usb cameras. I plan to do a 0.8.4 release
+> with that work included real soon. Once that is done I'll change the 
+> version
+> in the Make.rules to 0.9.0-test and merge the plugin. Then we'll have
+> some 0.9.x releases followed by some 0.9.9x release (all testing 
+> releases)
+> followed by a 0.10.0 which should be the first stable release with plugin
+> support.
+>
+> Regards,
+>
+> Hans
+>
+>
+> On 05/19/2011 02:36 PM, Yordan Kamenov wrote:
+>> Hi,
+>>
+>> This is the Media Controller plugin for libv4l. It uses libv4l2 
+>> plugin support
+>> which is accepted by Hans De Goede, but not yet included in mainline 
+>> libv4l2:
+>> http://www.spinics.net/lists/linux-media/msg32017.html
+>>
+>> The plugin allows a traditional v4l2 applications to work with Media 
+>> Controller
+>> framework. The plugin is loaded when application opens /dev/video0 
+>> and it
+>> configures the media controller and then all ioctl's by the 
+>> applicatin are
+>> handled by the plugin.
+>>
+>> The plugin implements init, close and ioctl callbacks. The init callback
+>> checks it's input file descriptor and if it coresponds to 
+>> /dev/video0, then
+>> the media controller is initialized and appropriate pipeline is created.
+>> The close callback deinitializes the pipeline, and closes the media 
+>> device.
+>> The ioctl callback is responsible to handle ioctl calls from 
+>> application by
+>> using the media controller pipeline.
+>>
+>> The plugin uses media-ctl library for media controller operations:
+>> http://git.ideasonboard.org/?p=media-ctl.git;a=summary
+>>
+>> The plugin is divided in three separate patches:
+>>   * Media Controller pipelines initialization, configuration and 
+>> destruction
+>>   * v4l operations - uses some functionality from the first one
+>>   * Plugin interface operations (init, close and ioctl) - uses 
+>> functionality
+>>     from first two
+>>
+>>
+>>
+>> Yordan Kamenov (3):
+>>    Add files for media controller pipelines
+>>    Add files for v4l operations
+>>    Add libv4l2 media controller plugin interface files
+>>
+>> -- 
+>> To unsubscribe from this list: send the line "unsubscribe 
+>> linux-media" in
+>> the body of a message to majordomo@vger.kernel.org
+>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> -- 
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
