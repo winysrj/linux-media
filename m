@@ -1,35 +1,48 @@
 Return-path: <mchehab@pedra>
-Received: from cmsout02.mbox.net ([165.212.64.32]:59972 "EHLO
-	cmsout02.mbox.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752808Ab1EDLJk convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 4 May 2011 07:09:40 -0400
-Received: from cmsout02.mbox.net (co02-lo [127.0.0.1])
-	by cmsout02.mbox.net (Postfix) with ESMTP id 13AC01343FE
-	for <linux-media@vger.kernel.org>; Wed,  4 May 2011 11:09:40 +0000 (GMT)
-Date: Wed, 04 May 2011 13:09:36 +0200
-From: "Issa Gorissen" <flop.m@usa.net>
-To: <linux-media@vger.kernel.org>
-Subject: Re: [PATCH] Ngene cam device name
-Mime-Version: 1.0
-Message-ID: <879PeDLiK4512S03.1304507376@web03.cms.usa.net>
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+Received: from casper.infradead.org ([85.118.1.10]:44166 "EHLO
+	casper.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753745Ab1ETXVY (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 20 May 2011 19:21:24 -0400
+Message-ID: <4DD6F76B.5010906@infradead.org>
+Date: Fri, 20 May 2011 20:21:15 -0300
+From: Mauro Carvalho Chehab <mchehab@infradead.org>
+MIME-Version: 1.0
+To: Simon Farnsworth <simon.farnsworth@onelan.co.uk>
+CC: Andy Walls <awalls@md.metrocast.net>,
+	Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org,
+	Steven Toth <stoth@kernellabs.com>
+Subject: Re: [PATCH] cx18: Move spinlock and vb_type initialisation into stream_init
+References: <4DC2A8FD.4010902@infradead.org> <1305035390-31439-1-git-send-email-simon.farnsworth@onelan.co.uk>
+In-Reply-To: <1305035390-31439-1-git-send-email-simon.farnsworth@onelan.co.uk>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Em 10-05-2011 10:49, Simon Farnsworth escreveu:
+> The initialisation of vb_type in serialized_open was preventing
+> REQBUFS from working reliably. Remove it, and move the spinlock into
+> stream_init for good measure - it's only used when we have a stream
+> that supports videobuf anyway.
 > 
-> It is not that simple. The question is not just how to name the interface, 
-> but that such interface will work on a different way than the current 
-> ca interface.
+> Signed-off-by: Simon Farnsworth <simon.farnsworth@onelan.co.uk>
+> ---
+> Mauro,
 > 
-> In other words, the DVB API should clearly explain why this
-> interface is different, when it should be used and how.
+> This fixes a bug I introduced, and noticed while trying to work out
+> how videobuf works and interacts with the rest of the driver, in
+> preparation for working out how to port this code to videobuf2.
 > 
-> Cheers,
-> Mauro.
+> Briefly, if you open a device node at the wrong time, you lose
+> videobuf support forever.
 > 
+> Please consider this for 2.6.40,
 
-Ok, please give me the location of the DVB API. Could not find it under the
-linux/Documentation folder.
+/me is assuming that Andy is ok with it.
 
+Ok, I'm adding this to my series, as it is part of the code you added.
+
+
+Thanks,
+Mauro.
