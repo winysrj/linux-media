@@ -1,48 +1,46 @@
 Return-path: <mchehab@pedra>
-Received: from mail-ey0-f174.google.com ([209.85.215.174]:41617 "EHLO
-	mail-ey0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751010Ab1EXPA6 (ORCPT
+Received: from perceval.ideasonboard.com ([95.142.166.194]:56633 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S934561Ab1ETQEW convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 24 May 2011 11:00:58 -0400
-Received: by eyx24 with SMTP id 24so2207316eyx.19
-        for <linux-media@vger.kernel.org>; Tue, 24 May 2011 08:00:56 -0700 (PDT)
-Message-ID: <4DDBC79A.5000302@mvista.com>
-Date: Tue, 24 May 2011 18:58:34 +0400
-From: Sergei Shtylyov <sshtylyov@mvista.com>
+	Fri, 20 May 2011 12:04:22 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: "=?iso-8859-1?q?R=E9mi?= Denis-Courmont" <remi@remlab.net>
+Subject: Re: [GIT PATCH FOR 2.6.40] uvcvideo patches
+Date: Fri, 20 May 2011 18:04:25 +0200
+Cc: linux-media@vger.kernel.org,
+	Mauro Carvalho Chehab <mchehab@redhat.com>
+References: <201105150948.24956.laurent.pinchart@ideasonboard.com> <4DD6899D.5020004@redhat.com> <201105201855.53240.remi@remlab.net>
+In-Reply-To: <201105201855.53240.remi@remlab.net>
 MIME-Version: 1.0
-To: Manjunath Hadli <manjunath.hadli@ti.com>
-CC: LMML <linux-media@vger.kernel.org>,
-	dlos <davinci-linux-open-source@linux.davincidsp.com>
-Subject: Re: [PATCH v18 5/6] davinci vpbe: Build infrastructure for VPBE driver
-References: <1306245783-3483-1-git-send-email-manjunath.hadli@ti.com>
-In-Reply-To: <1306245783-3483-1-git-send-email-manjunath.hadli@ti.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 8BIT
+Message-Id: <201105201804.26348.laurent.pinchart@ideasonboard.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Hello.
+Hi Rémi,
 
-Manjunath Hadli wrote:
+On Friday 20 May 2011 17:55:52 Rémi Denis-Courmont wrote:
+> Le vendredi 20 mai 2011 18:32:45 Mauro Carvalho Chehab, vous avez écrit :
+> > However, I have serious concerns about media_controller API usage on
+> > generic drivers, as it is required that all drivers should be fully
+> > configurable via V4L2 API alone, otherwise we'll have regressions, as no
+> > generic applications use the media_controller.
+> 
+> If VLC counts as a generic application, I'd be more than API to use the
+> media_controller (or whatever else) if only to find which ALSA (sub)device,
+> if any, corresponds to the V4L2 node of a given USB webcam or such.
 
-> This patch adds the build infra-structure for Davinci
-> VPBE dislay driver.
+That feature is not available yet, but it's definitely something I want to 
+fix. It might be a bit tricky for USB devices (as uvcvideo and usbaudio don't 
+know about eachother), but we need to find a proper solution.
 
-> Signed-off-by: Manjunath Hadli <manjunath.hadli@ti.com>
-> Acked-by: Muralidharan Karicheri <m-karicheri2@ti.com>
-> Acked-by: Hans Verkuil <hverkuil@xs4all.nl>
-> ---
->  drivers/media/video/davinci/Kconfig        |   23 +++++++++++++++++++++++
->  drivers/media/video/davinci/Makefile       |    2 ++
->  2 files changed, 25 insertions(+), 0 deletions(-)
->  delete mode 100644 drivers/staging/vme/bridges/Module.symvers
-[...]
+> I don't know any solution at the moment, and this is a major inconvenience
+> on Linux desktop compared to DirectShow.
 
-> diff --git a/drivers/staging/vme/bridges/Module.symvers b/drivers/staging/vme/bridges/Module.symvers
-> deleted file mode 100644
-> index e69de29..0000000
+-- 
+Regards,
 
-    Looks like a stray file got added to the patch...
-
-WBR, Sergei
-
+Laurent Pinchart
