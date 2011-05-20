@@ -1,88 +1,113 @@
 Return-path: <mchehab@pedra>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:35771 "EHLO
+Received: from perceval.ideasonboard.com ([95.142.166.194]:33352 "EHLO
 	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756338Ab1EQSfs (ORCPT
+	with ESMTP id S934735Ab1ETJFF (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 17 May 2011 14:35:48 -0400
+	Fri, 20 May 2011 05:05:05 -0400
 From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Daniel Vetter <daniel.vetter@ffwll.ch>
-Subject: Re: [RFC] drm: add overlays as first class KMS objects
-Date: Tue, 17 May 2011 20:35:42 +0200
-Cc: Jesse Barnes <jbarnes@virtuousgeek.org>,
-	dri-devel@lists.freedesktop.org, "Clark, Rob" <rob@ti.com>,
-	Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org
-References: <20110425151220.2f5dc17a@jbarnes-desktop> <BANLkTimSrSgxcS2khHvAQPK+-vdfxo7VGg@mail.gmail.com>
-In-Reply-To: <BANLkTimSrSgxcS2khHvAQPK+-vdfxo7VGg@mail.gmail.com>
+To: Hans Verkuil <hansverk@cisco.com>
+Subject: Re: [RFC/PATCH 1/2] v4l: Add generic board subdev
+ =?iso-8859-1?q?registration=09function?=
+Date: Fri, 20 May 2011 11:05:00 +0200
+Cc: Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	linux-media@vger.kernel.org, sakari.ailus@iki.fi,
+	michael.jones@matrix-vision.de
+References: <1305830080-18211-1-git-send-email-laurent.pinchart@ideasonboard.com> <201105200929.33226.laurent.pinchart@ideasonboard.com> <201105201053.33002.hansverk@cisco.com>
+In-Reply-To: <201105201053.33002.hansverk@cisco.com>
 MIME-Version: 1.0
 Content-Type: Text/Plain;
   charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
-Message-Id: <201105172035.42566.laurent.pinchart@ideasonboard.com>
+Message-Id: <201105201105.02082.laurent.pinchart@ideasonboard.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Hi Daniel,
+Hi Hans,
 
-On Friday 13 May 2011 18:16:30 Daniel Vetter wrote:
-> Hi Jesse,
+On Friday 20 May 2011 10:53:32 Hans Verkuil wrote:
+> On Friday, May 20, 2011 09:29:32 Laurent Pinchart wrote:
+> > On Friday 20 May 2011 09:14:36 Sylwester Nawrocki wrote:
+> > > On 05/19/2011 08:34 PM, Laurent Pinchart wrote:
+> > > > The new v4l2_new_subdev_board() function creates and register a
+> > > > subdev based on generic board information. The board information
+> > > > structure includes a bus type and bus type-specific information.
+> > > > 
+> > > > Only I2C and SPI busses are currently supported.
+> > > > 
+> > > > Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+
+[snip]
+
+> > > I had an issue when tried to call request_module, to register subdev of
+> > > platform device type, in probe() of other platform device. Driver's
+> > > probe() for devices belonging same bus type cannot be nested as the bus
+> > > lock is taken by the driver core before entering probe(), so this would
+> > > lead to a deadlock.
+> > > That exactly happens in __driver_attach().
+> > > 
+> > > For the same reason v4l2_new_subdev_board could not be called from
+> > > probe() of devices belonging to I2C or SPI bus, as request_module is
+> > > called inside of it. I'm not sure how to solve it, yet:)
+> > 
+> > Ouch. I wasn't aware of that issue. Looks like it's indeed time to fix
+> > the subdev registration issue, including the module load race condition.
+> > Michael, you said you have a patch to add platform subdev support, how
+> > have you avoided the race condition ?
+> > 
+> > I've been thinking for some time now about removing the module load code
+> > completely. I2C, SPI and platform subdevs would be registered either by
+> > board code (possibly through the device tree on platforms that suppport
+> > it) for embedded platforms, and by host drivers for pluggable hardware
+> > (PCI and USB). Module loading would be handled automatically by the kernel
+> > module auto loader, but asynchronously instead of synchronously. Bus
+> > notifiers would then be used by host drivers to wait for all subdevs to be
+> > registered.
+> > 
+> > I'm not sure yet if this approach is viable. Hans, I think we've briefly
+> > discussed this (possible quite a long time ago), do you have any opinion
+> > ? Guennadi, based on your previous experience trying to use bus notifiers
+> > to solve the module load race, what do you think about the idea ? Others,
+> > please comment as well :-)
 > 
-> Discussion here in Budapest with v4l and embedded graphics folks was
-> extremely fruitful. A few quick things to take away - I'll try to dig
-> through all
-> the stuff I've learned more in-depth later (probably in a blog post or
-> two):
+> It's definitely viable (I believe the required bus notification has been
+> added some time ago), but I am not sure how to implement it in an
+> efficient manner.
 > 
-> - embedded graphics is insane. The output routing/blending/whatever
->   currently shipping hw can do is crazy and kms as-is is nowhere near up
->   to snuff to support this. We've discussed omap4 and a ti chip targeted at
->   video surveillance as use cases. I'll post block diagrams and
-> explanations some when later.
-> - we should immediately stop to call anything an overlay. It's a confusing
->   concept that has a different meaning in every subsystem and for every hw
->   manufacturer. More sensible names are dma fifo engines for things that
-> slurp in planes and make them available to the display subsystem. Blend
-> engines for blocks that take multiple input pipes and overlay/underlay/blend
-> them together. Display subsytem/controller for the aggregate thing including
-> encoders/resizers/outputs and especially the crazy routing network that
-> connects everything.
+> My initial idea would be to just wait in v4l2_new_subdev_board until you
+> get the notification on the bus (with a timeout, of course). However, I
+> suspect that that does not solve the deadlock, although it would solve the
+> race.
 > 
-> Most of the discussion centered around clearing up the confusion and
-> reaching a mutual understanding between desktop graphics, embedded
-> graphics and v4l people. Two rough ideas emerged though:
+> As an aside: note that if the module is unloaded right after the
+> request_module, then that will be detected by the code and it will just
+> return an error. It won't oops or anything like that. Personally I don't
+> believe it is worth the effort just to solve this race, since it is highly
+> theoretical.
 > 
-> 1) Splitting the crtc object into two objects: crtc with associated output
-> mode (pixel clock, encoders/connectors) and dma engines (possibly
-> multiple) that feed it. omap 4 has essentially just 4 dma engines that can
-> be freely assigned to the available outputs, so a distinction between
-> normal crtcs and overlay engines just does not make sense. There's the
-> major open question of where to put the various attributes to set up the
-> output pipeline. Also some of these attributes might need to be changed
-> atomicly together with pageflips on a bunch of dma engines all associated
-> with the same crtc on the next vsync, e.g. output position of an overlaid
-> video buffer.
+> The problem of loading another bus module when in a bus probe function is a
+> separate issue. My initial reaction is: why do you want to do this? Even if
+> you use delayed module loads, you probably still have to wait for them to
+> succeed at a higher-level function. For example: in the probe function of
+> module A it will attempt to load module B. That probably can't succeed as
+> long as you are in A's probe function due to the bus lock. So you can't
+> check for a successful load of B until you return from that probe function
+> and a higher- level function (that likely loaded module A in the first
+> place) does that check.
+> 
+> That's all pretty tricky code, and my suggestion would be to simply not do
+> nested module loads from the same bus.
 
-I like that idea. Setting attributes atomically will likely be one of the 
-biggest challenge. V4L2 shares the same need, but we haven't had time to 
-address it yet.
+That's unfortunately not an option. Most bridge/host devices in embedded 
+systems are platform devices, and they will need to load platform subdevs. We 
+need to fix that.
 
-> 2) The above should be good enough to support halfway sane chips like
-> omap4. But hw with more insane routing capabilities that can also use v4l
-> devices as sources (even video input connectors) media controller might be
-> a good fit. Media controller is designed to expose multimedia pipe routing
-> across different subsystem. But the first version, still marked
-> experimental, only got merged in .39. We discussed a few ideas as how to
-> splice media controller into kms but nothing clear emerged. So a possible
-> kms integration with media controller is rather far away.
-
-You're probably right, but far away doesn't mean never. Especially when one of 
-the media controller developers is interested in the project and could spend 
-time on it :-)
-
-I've started working on a prototype implementation that would use the media 
-controller API to report the CRTCs, encoders and connectors topology to 
-userspace. The learning curve is pretty steep as I'm not familiar with the DRM 
-and KMS code, but the code base turned out to be much easier to dive in than 
-it seemed a couple of years ago.
+My idea was to use bus notifiers to delay the bridge/host device 
+initialization. The bridge probe() function would pre-initialize the bridge 
+and register notifiers. The driver would then wait until all subdevs are 
+properly registered, and then proceed from to register V4L2 devices from the 
+bus notifier callback (or possible a work queue). There would be no nested 
+probe() calls.
 
 -- 
 Regards,
