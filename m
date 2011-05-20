@@ -1,50 +1,63 @@
 Return-path: <mchehab@pedra>
-Received: from mail.wdtv.com ([66.118.69.84]:34551 "EHLO mail.wdtv.com"
+Received: from mx1.redhat.com ([209.132.183.28]:16178 "EHLO mx1.redhat.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754776Ab1EARQn (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 1 May 2011 13:16:43 -0400
-From: Gene Heskett <gene.heskett@gmail.com>
-To: linux-media@vger.kernel.org
-Subject: Cannot build dvb-atsc-tools-1.0.7
-Date: Sun, 1 May 2011 13:09:20 -0400
+	id S1752430Ab1ETWWe (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 20 May 2011 18:22:34 -0400
+Message-ID: <4DD6E9A5.10406@redhat.com>
+Date: Fri, 20 May 2011 19:22:29 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
 MIME-Version: 1.0
-Content-Type: text/plain;
-  charset="utf-8"
-Content-Transfer-Encoding: 8bit
-Message-Id: <201105011309.20215.gene.heskett@gmail.com>
+To: Devin Heitmueller <dheitmueller@kernellabs.com>
+CC: Dmitri Belimov <d.belimov@gmail.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: [PATCH] xc5000, fix fw upload crash
+References: <20110517142352.7d311ee8@glory.local>	<BANLkTimk-WrKKqW4b_1G99euY6vjcoQxeQ@mail.gmail.com>	<20110520144615.2345c2d6@glory.local> <BANLkTi=otyZxEof89KbDbLXCLz4XsT=5ww@mail.gmail.com>
+In-Reply-To: <BANLkTi=otyZxEof89KbDbLXCLz4XsT=5ww@mail.gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Greetings all;
+Em 20-05-2011 10:04, Devin Heitmueller escreveu:
+> On Friday, May 20, 2011, Dmitri Belimov <d.belimov@gmail.com> wrote:
+>> Hi Devin
+>>
+>> snip
+>>
+>>> NACK!
+>>>
+>>> I don't think this patch is correct.  Concurrency problems are
+>>> expected to be handled in the upper layers, as there are usually much
+>>> more significant problems than just this case.  For example, if this
+>>> is a race between V4L2 and DVB, it is the responsibility of bridge
+>>> driver to provide proper locking.
+>>>
 
-Currently running 2.6.38.4 here.
+...
 
-Along with kernel 2.6.38.4, kaffiene no longer does tv from my pcHDTV-3000 
-card.  And acts like the device is not there.  IIRC it did work with 
-2.6.38.2 but won't swear that on the good book, pclos jumped from 
-2.6.37.something to 2.6.38.2
+>>
+>> I see two different way add mutex to function where firmware is loaded or to
+>> xc5000_set_analog_params
+>>
+>> Both of this is working I already test it.
+>>
+>> What you think about it??
 
-So to troubleshoot, I go pull dvb-atsc-tools-1.0.7 from my tarball archive.
-Cd'ing to the dir, the README says to type make, which promptly exits, 
-can't find linux/videodev.h, so I cp that from the kernel 2.6.33.7 tree to 
-/usr/include/linux/.  According to locate, that apparently was the only 
-copy of that file on a machine with quite a few newer kernel src trees 
-resident.
+...
 
-Wrong!  Now it exits the make:
-gcc -Wall -D_FILE_OFFSET_BITS=64     chopatscfile.c   -o chopatscfile
-In file included from chopatscfile.c:41:0:
-/usr/include/linux/videodev.h:166:27: error: expected ‘:’, ‘,’, ‘;’, ‘}’ or 
-‘__attribute__’ before ‘*’ token
-make: *** [chopatscfile] Error 1
+>> [  110.010686]  [<f81cb6d8>] ? set_mode_freq+0xe4/0xff [tuner]
+>> [  110.010689]  [<f81cb8d4>] ? tuner_s_std+0x26/0x5aa [tuner]
+>> [  110.010692]  [<f81cb8ae>] ? tuner_s_std+0x0/0x5aa [tuner]
 
-Can this be fixed?  If so, how?
+Hmm... this is probably caused by the BKL removal patches. 
 
-Thanks for any hints.
+Basically, tuner_s_std is being called without holding dev->lock. The fix is
+simple, but requires some care: we need either to convert saa7134 to the
+v4l2 core support (probably not an easy task) or to review all places where
+dev->lock should be used, e. g. at (almost all) ioctls, and at the other
+file ops (open, close, mmap, etc). This driver is complex, due to the mpeg
+optional module used on some devices. So, maybe the in-core locking schema
+is not the proper way to fix it.
 
--- 
-Cheers, Gene
-"There are four boxes to be used in defense of liberty:
- soap, ballot, jury, and ammo. Please use in that order."
--Ed Howdershelt (Author)
-New England Life, of course.  Why do you ask?
+Cheers,
+Mauro.
