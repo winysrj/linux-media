@@ -1,70 +1,51 @@
-Return-path: <mchehab@gaivota>
-Received: from mail.kapsi.fi ([217.30.184.167]:56031 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752679Ab1ELWl1 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 12 May 2011 18:41:27 -0400
-Message-ID: <4DCC59F5.6060306@iki.fi>
-Date: Fri, 13 May 2011 01:06:45 +0300
-From: Antti Palosaari <crope@iki.fi>
+Return-path: <mchehab@pedra>
+Received: from mail2.matrix-vision.com ([85.214.244.251]:35961 "EHLO
+	mail2.matrix-vision.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932157Ab1ETHwk (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 20 May 2011 03:52:40 -0400
+Message-ID: <4DD61DC6.10909@matrix-vision.de>
+Date: Fri, 20 May 2011 09:52:38 +0200
+From: Michael Jones <michael.jones@matrix-vision.de>
 MIME-Version: 1.0
-To: Steve Kerrison <steve@stevekerrison.com>
-CC: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	linux-media@vger.kernel.org, Andreas Oberritter <obi@linuxtv.org>,
-	=?ISO-8859-1?Q?R=E9mi_Denis-Courmont?= <remi@remlab.net>
-Subject: Re: [PATCH 0/6] DVB-T2 API updates, documentation and accompanying
- small fixes
-References: <4DC417DA.5030107@redhat.com> <1304869873-9974-1-git-send-email-steve@stevekerrison.com>
-In-Reply-To: <1304869873-9974-1-git-send-email-steve@stevekerrison.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 8bit
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+CC: Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	linux-media@vger.kernel.org, sakari.ailus@iki.fi
+Subject: Re: [RFC/PATCH 1/2] v4l: Add generic board subdev  registration function
+References: <1305830080-18211-1-git-send-email-laurent.pinchart@ideasonboard.com> <4DD614DC.3070905@samsung.com> <201105200929.33226.laurent.pinchart@ideasonboard.com>
+In-Reply-To: <201105200929.33226.laurent.pinchart@ideasonboard.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
-Sender: Mauro Carvalho Chehab <mchehab@gaivota>
+Sender: <mchehab@pedra>
 
-Hello all,
+On 05/20/2011 09:29 AM, Laurent Pinchart wrote:
 
-Rémi informed he have added this new API and DVB-T2 support for VLC 
-media player Git tree [1]. I didn't test it yet, mostly due to lack of 
-time :i I will test that sooner or later, feel free to test!
+[snip]
 
-[1] http://git.videolan.org/?p=vlc.git
+>> I had an issue when tried to call request_module, to register subdev of
+>> platform device type, in probe() of other platform device. Driver's
+>> probe() for devices belonging same bus type cannot be nested as the bus
+>> lock is taken by the driver core before entering probe(), so this would
+>> lead to a deadlock.
+>> That exactly happens in __driver_attach().
+>>
+>> For the same reason v4l2_new_subdev_board could not be called from probe()
+>> of devices belonging to I2C or SPI bus, as request_module is called inside
+>> of it. I'm not sure how to solve it, yet:)
+> 
+> Ouch. I wasn't aware of that issue. Looks like it's indeed time to fix the 
+> subdev registration issue, including the module load race condition. Michael, 
+> you said you have a patch to add platform subdev support, how have you avoided 
+> the race condition ?
 
+I spoke too soon. This deadlock is staring me in the face right now,
+too.  Ouch, indeed.
 
-regards
-Antti
-
-
-
-On 05/08/2011 06:51 PM, Steve Kerrison wrote:
-> Hi Mauro, Antti, Andreas,
->
-> I hope this patch set is formed appropriately - it is my first patch
-> submission direct to the linux-media group.
->
-> Following the pull of Antti's work on support for the cxd2820r and PCTV
-> nanoStick T2 290e, this patch set implements Andreas' modifications to the API
-> to give provisional DVB-T2 support and the removal of a workaround for this
-> in the cxd2820r module.
->
-> In addition, there are some minor fixes to compiler warnings as a result
-> of the expanded enums. I cannot test these myself but they treat unrecognized
-> values as *_AUTO and I can't see where a problem would be created.
->
-> I have updated the documentation a little. If I've done the right thing then
-> I guess there is incentive there for me continue to expand DVB related
-> elements of the API docs.
->
-> This patch set has been tested by me on two systems, with one running a MythTV
-> backend utilising a long-supported DVB tuner. MythTV works fine with the old
-> tuner and the nanoStick T2 290e works in VLC. I've yet to test the 290e in
-> MythTV - I was more intent on making sure the patches hadn't broken userland
-> or older devices.
->
-> Feedback, testing  and discussion of where to go next is welcomed!
->
-> Regards,
-> Steve Kerrison.
->
+[snip]
 
 
--- 
-http://palosaari.fi/
+MATRIX VISION GmbH, Talstrasse 16, DE-71570 Oppenweiler
+Registergericht: Amtsgericht Stuttgart, HRB 271090
+Geschaeftsfuehrer: Gerhard Thullner, Werner Armingeon, Uwe Furtner
