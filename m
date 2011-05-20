@@ -1,145 +1,75 @@
 Return-path: <mchehab@pedra>
-Received: from mailout2.samsung.com ([203.254.224.25]:53397 "EHLO
-	mailout2.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754420Ab1EaHgL (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 31 May 2011 03:36:11 -0400
-Received: from epcpsbgm1.samsung.com (mailout2.samsung.com [203.254.224.25])
- by mailout2.samsung.com
- (Oracle Communications Messaging Exchange Server 7u4-19.01 64bit (built Sep  7
- 2010)) with ESMTP id <0LM100143UD62FO0@mailout2.samsung.com> for
- linux-media@vger.kernel.org; Tue, 31 May 2011 16:36:09 +0900 (KST)
-Received: from TNRNDGASPAPP1.tn.corp.samsungelectronics.net ([165.213.149.150])
- by mmp2.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14 2004))
- with ESMTPA id <0LM10099JUG9EC@mmp2.samsung.com> for
- linux-media@vger.kernel.org; Tue, 31 May 2011 16:36:09 +0900 (KST)
-Date: Tue, 31 May 2011 16:36:01 +0900
-From: "HeungJun, Kim" <riverful.kim@samsung.com>
-Subject: [PATCH v2 3/4] m5mols: remove union in the m5mols_get_version(),
- and VERSION_SIZE
-In-reply-to: <1306501095-28267-1-git-send-email-riverful.kim@samsung.com>
-To: linux-media@vger.kernel.org
-Cc: mchehab@infradead.org, s.nawrocki@samsung.com, sakari.ailus@iki.fi,
-	"HeungJun, Kim" <riverful.kim@samsung.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>
-Message-id: <1306827362-4064-4-git-send-email-riverful.kim@samsung.com>
-Content-transfer-encoding: 7BIT
-References: <1306501095-28267-1-git-send-email-riverful.kim@samsung.com>
+Received: from bear.ext.ti.com ([192.94.94.41]:58486 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S932291Ab1ETNsu (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 20 May 2011 09:48:50 -0400
+Received: from dbdp20.itg.ti.com ([172.24.170.38])
+	by bear.ext.ti.com (8.13.7/8.13.7) with ESMTP id p4KDml3B011989
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-media@vger.kernel.org>; Fri, 20 May 2011 08:48:49 -0500
+From: Manjunath Hadli <manjunath.hadli@ti.com>
+To: LMML <linux-media@vger.kernel.org>
+CC: dlos <davinci-linux-open-source@linux.davincidsp.com>,
+	Manjunath Hadli <manjunath.hadli@ti.com>
+Subject: [PATCH v17 5/6] davinci vpbe: Build infrastructure for VPBE driver
+Date: Fri, 20 May 2011 19:18:44 +0530
+Message-ID: <1305899324-2118-1-git-send-email-manjunath.hadli@ti.com>
+MIME-Version: 1.0
+Content-Type: text/plain
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Remove union version in the m5mols_get_version(), and read version information
-directly. Also remove VERSION_SIZE.
+This patch adds the build infra-structure for Davinci
+VPBE dislay driver.
 
-Signed-off-by: HeungJun, Kim <riverful.kim@samsung.com>
-Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+Signed-off-by: Manjunath Hadli <manjunath.hadli@ti.com>
+Acked-by: Muralidharan Karicheri <m-karicheri2@ti.com>
+Acked-by: Hans Verkuil <hverkuil@xs4all.nl>
 ---
- drivers/media/video/m5mols/m5mols.h      |    1 -
- drivers/media/video/m5mols/m5mols_core.c |   42 +++++++++++++++---------------
- drivers/media/video/m5mols/m5mols_reg.h  |   13 ++++++++-
- 3 files changed, 33 insertions(+), 23 deletions(-)
+ drivers/media/video/davinci/Kconfig  |   22 ++++++++++++++++++++++
+ drivers/media/video/davinci/Makefile |    2 ++
+ 2 files changed, 24 insertions(+), 0 deletions(-)
 
-diff --git a/drivers/media/video/m5mols/m5mols.h b/drivers/media/video/m5mols/m5mols.h
-index dbe8928..9ae1709 100644
---- a/drivers/media/video/m5mols/m5mols.h
-+++ b/drivers/media/video/m5mols/m5mols.h
-@@ -154,7 +154,6 @@ struct m5mols_version {
- 	u8	str[VERSION_STRING_SIZE];
- 	u8	af;
- };
--#define VERSION_SIZE sizeof(struct m5mols_version)
+diff --git a/drivers/media/video/davinci/Kconfig b/drivers/media/video/davinci/Kconfig
+index 6b19540..a7f11e7 100644
+--- a/drivers/media/video/davinci/Kconfig
++++ b/drivers/media/video/davinci/Kconfig
+@@ -91,3 +91,25 @@ config VIDEO_ISIF
  
- /**
-  * struct m5mols_info - M-5MOLS driver data structure
-diff --git a/drivers/media/video/m5mols/m5mols_core.c b/drivers/media/video/m5mols/m5mols_core.c
-index 2b1f23f..8ccab95 100644
---- a/drivers/media/video/m5mols/m5mols_core.c
-+++ b/drivers/media/video/m5mols/m5mols_core.c
-@@ -386,33 +386,33 @@ int m5mols_mode(struct m5mols_info *info, u8 mode)
- static int m5mols_get_version(struct v4l2_subdev *sd)
- {
- 	struct m5mols_info *info = to_m5mols(sd);
--	union {
--		struct m5mols_version ver;
--		u8 bytes[VERSION_SIZE];
--	} version;
--	u8 cmd = CAT0_VER_CUSTOMER;
-+	struct m5mols_version *ver = &info->ver;
-+	u8 *str = ver->str;
-+	int i;
- 	int ret;
- 
--	do {
--		ret = m5mols_read_u8(sd, SYSTEM_CMD(cmd), &version.bytes[cmd]);
--		if (ret)
--			return ret;
--	} while (cmd++ != CAT0_VER_AWB);
-+	ret = m5mols_read_u8(sd, SYSTEM_VER_CUSTOMER, &ver->customer);
-+	if (!ret)
-+		ret = m5mols_read_u8(sd, SYSTEM_VER_PROJECT, &ver->project);
-+	if (!ret)
-+		ret = m5mols_read_u16(sd, SYSTEM_VER_FIRMWARE, &ver->fw);
-+	if (!ret)
-+		ret = m5mols_read_u16(sd, SYSTEM_VER_HARDWARE, &ver->hw);
-+	if (!ret)
-+		ret = m5mols_read_u16(sd, SYSTEM_VER_PARAMETER, &ver->param);
-+	if (!ret)
-+		ret = m5mols_read_u16(sd, SYSTEM_VER_AWB, &ver->awb);
-+	if (!ret)
-+		ret = m5mols_read_u8(sd, AF_VERSION, &ver->af);
-+	if (ret)
-+		return ret;
- 
--	do {
--		ret = m5mols_read_u8(sd, SYSTEM_VER_STRING, &version.bytes[cmd]);
-+	for (i = 0; i < VERSION_STRING_SIZE; i++) {
-+		ret = m5mols_read_u8(sd, SYSTEM_VER_STRING, &str[i]);
- 		if (ret)
- 			return ret;
--		if (cmd >= VERSION_SIZE - 1)
--			return -EINVAL;
--	} while (version.bytes[cmd++]);
--
--	ret = m5mols_read_u8(sd, AF_VERSION, &version.bytes[cmd]);
--	if (ret)
--		return ret;
-+	}
- 
--	/* store version information swapped for being readable */
--	info->ver	= version.ver;
- 	info->ver.fw	= be16_to_cpu(info->ver.fw);
- 	info->ver.hw	= be16_to_cpu(info->ver.hw);
- 	info->ver.param	= be16_to_cpu(info->ver.param);
-diff --git a/drivers/media/video/m5mols/m5mols_reg.h b/drivers/media/video/m5mols/m5mols_reg.h
-index 8260f50..5f5bdcf 100644
---- a/drivers/media/video/m5mols/m5mols_reg.h
-+++ b/drivers/media/video/m5mols/m5mols_reg.h
-@@ -56,13 +56,24 @@
-  * more specific contents, see definition if file m5mols.h.
-  */
- #define CAT0_VER_CUSTOMER	0x00	/* customer version */
--#define CAT0_VER_AWB		0x09	/* Auto WB version */
-+#define CAT0_VER_PROJECT	0x01	/* project version */
-+#define CAT0_VER_FIRMWARE	0x02	/* Firmware version */
-+#define CAT0_VER_HARDWARE	0x04	/* Hardware version */
-+#define CAT0_VER_PARAMETER	0x06	/* Parameter version */
-+#define CAT0_VER_AWB		0x08	/* Auto WB version */
- #define CAT0_VER_STRING		0x0a	/* string including M-5MOLS */
- #define CAT0_SYSMODE		0x0b	/* SYSTEM mode register */
- #define CAT0_STATUS		0x0c	/* SYSTEM mode status register */
- #define CAT0_INT_FACTOR		0x10	/* interrupt pending register */
- #define CAT0_INT_ENABLE		0x11	/* interrupt enable register */
- 
-+#define SYSTEM_VER_CUSTOMER	I2C_REG(CAT_SYSTEM, CAT0_VER_CUSTOMER, 1)
-+#define SYSTEM_VER_PROJECT	I2C_REG(CAT_SYSTEM, CAT0_VER_PROJECT, 1)
-+#define SYSTEM_VER_FIRMWARE	I2C_REG(CAT_SYSTEM, CAT0_VER_FIRMWARE, 2)
-+#define SYSTEM_VER_HARDWARE	I2C_REG(CAT_SYSTEM, CAT0_VER_HARDWARE, 2)
-+#define SYSTEM_VER_PARAMETER	I2C_REG(CAT_SYSTEM, CAT0_VER_PARAMETER, 2)
-+#define SYSTEM_VER_AWB		I2C_REG(CAT_SYSTEM, CAT0_VER_AWB, 2)
+ 	   To compile this driver as a module, choose M here: the
+ 	   module will be called vpfe.
 +
- #define SYSTEM_SYSMODE		I2C_REG(CAT_SYSTEM, CAT0_SYSMODE, 1)
- #define REG_SYSINIT		0x00	/* SYSTEM mode */
- #define REG_PARAMETER		0x01	/* PARAMETER mode */
++config VIDEO_DM644X_VPBE
++	tristate "DM644X VPBE HW module"
++	select VIDEO_VPSS_SYSTEM
++	select VIDEOBUF_DMA_CONTIG
++	help
++	    Enables VPBE modules used for display on a DM644x
++	    SoC.
++
++	    To compile this driver as a module, choose M here: the
++	    module will be called vpbe.
++
++
++config VIDEO_VPBE_DISPLAY
++	tristate "VPBE V4L2 Display driver"
++	select VIDEO_DM644X_VPBE
++	default y
++	help
++	    Enables VPBE V4L2 Display driver on a DMXXX device
++
++	    To compile this driver as a module, choose M here: the
++	    module will be called vpbe_display.
+diff --git a/drivers/media/video/davinci/Makefile b/drivers/media/video/davinci/Makefile
+index a379557..ae7dafb 100644
+--- a/drivers/media/video/davinci/Makefile
++++ b/drivers/media/video/davinci/Makefile
+@@ -16,3 +16,5 @@ obj-$(CONFIG_VIDEO_VPFE_CAPTURE) += vpfe_capture.o
+ obj-$(CONFIG_VIDEO_DM6446_CCDC) += dm644x_ccdc.o
+ obj-$(CONFIG_VIDEO_DM355_CCDC) += dm355_ccdc.o
+ obj-$(CONFIG_VIDEO_ISIF) += isif.o
++obj-$(CONFIG_VIDEO_DM644X_VPBE) += vpbe.o vpbe_osd.o vpbe_venc.o
++obj-$(CONFIG_VIDEO_VPBE_DISPLAY) += vpbe_display.o
 -- 
-1.7.0.4
+1.6.2.4
 
