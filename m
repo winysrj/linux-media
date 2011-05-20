@@ -1,38 +1,38 @@
 Return-path: <mchehab@pedra>
-Received: from mail-bw0-f46.google.com ([209.85.214.46]:42931 "EHLO
-	mail-bw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756243Ab1EZIzd (ORCPT
+Received: from yop.chewa.net ([91.121.105.214]:52869 "EHLO yop.chewa.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S933861Ab1ETPzz convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 26 May 2011 04:55:33 -0400
-Date: Thu, 26 May 2011 11:55:08 +0300
-From: Dan Carpenter <error27@gmail.com>
-To: Mauro Carvalho Chehab <mchehab@infradead.org>
-Cc: Jarod Wilson <jarod@redhat.com>,
-	"open list:MEDIA INPUT INFRA..." <linux-media@vger.kernel.org>,
-	kernel-janitors@vger.kernel.org
-Subject: [patch] [media] rc/redrat3: dereferencing null pointer
-Message-ID: <20110526085508.GG14591@shale.localdomain>
+	Fri, 20 May 2011 11:55:55 -0400
+From: "=?iso-8859-1?q?R=E9mi?= Denis-Courmont" <remi@remlab.net>
+To: linux-media@vger.kernel.org
+Subject: Re: [GIT PATCH FOR 2.6.40] uvcvideo patches
+Date: Fri, 20 May 2011 18:55:52 +0300
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>
+References: <201105150948.24956.laurent.pinchart@ideasonboard.com> <4DD6899D.5020004@redhat.com>
+In-Reply-To: <4DD6899D.5020004@redhat.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 8BIT
+Message-Id: <201105201855.53240.remi@remlab.net>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-In the original code, if the allocation failed we dereference "rr3"
-when it was NULL.
+Le vendredi 20 mai 2011 18:32:45 Mauro Carvalho Chehab, vous avez écrit :
+> However, I have serious concerns about media_controller API usage on
+> generic drivers, as it is required that all drivers should be fully
+> configurable via V4L2 API alone, otherwise we'll have regressions, as no
+> generic applications use the media_controller.
 
-Signed-off-by: Dan Carpenter <error27@gmail.com>
+If VLC counts as a generic application, I'd be more than API to use the 
+media_controller (or whatever else) if only to find which ALSA (sub)device, if 
+any, corresponds to the V4L2 node of a given USB webcam or such.
 
-diff --git a/drivers/media/rc/redrat3.c b/drivers/media/rc/redrat3.c
-index 5147767..4582ef7 100644
---- a/drivers/media/rc/redrat3.c
-+++ b/drivers/media/rc/redrat3.c
-@@ -1186,7 +1186,7 @@ static int __devinit redrat3_dev_probe(struct usb_interface *intf,
- 	rr3 = kzalloc(sizeof(*rr3), GFP_KERNEL);
- 	if (rr3 == NULL) {
- 		dev_err(dev, "Memory allocation failure\n");
--		goto error;
-+		goto no_endpoints;
- 	}
- 
- 	rr3->dev = &intf->dev;
+I don't know any solution at the moment, and this is a major inconvenience on 
+Linux desktop compared to DirectShow.
+
+-- 
+Rémi Denis-Courmont
+http://www.remlab.info/
+http://fi.linkedin.com/in/remidenis
