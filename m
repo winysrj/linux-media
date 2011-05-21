@@ -1,74 +1,58 @@
 Return-path: <mchehab@pedra>
-Received: from mail-iw0-f174.google.com ([209.85.214.174]:35739 "EHLO
-	mail-iw0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753528Ab1EEKKU (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 5 May 2011 06:10:20 -0400
-Received: by iwn34 with SMTP id 34so1694512iwn.19
-        for <linux-media@vger.kernel.org>; Thu, 05 May 2011 03:10:20 -0700 (PDT)
+Received: from mx1.redhat.com ([209.132.183.28]:43413 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754092Ab1EUKnj (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 21 May 2011 06:43:39 -0400
+Message-ID: <4DD79752.2050605@redhat.com>
+Date: Sat, 21 May 2011 07:43:30 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
 MIME-Version: 1.0
-Date: Thu, 5 May 2011 12:10:19 +0200
-Message-ID: <BANLkTinRqcFj5doua4r6d-vwPAym=JGvDw@mail.gmail.com>
-Subject: omap3isp clock problems on Beagleboard xM.
-From: javier Martin <javier.martin@vista-silicon.com>
-To: linux-media@vger.kernel.org
-Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Content-Type: multipart/mixed; boundary=20cf301d446ca3185a04a28494d6
+To: James Huk <huk256@gmail.com>
+CC: linux-media@vger.kernel.org,
+	=?ISO-8859-1?Q?St=E9phane_Elmaleh?= <stephane.elmaleh@laposte.net>,
+	Patrick Boettcher <pboettcher@kernellabs.com>,
+	Radoslaw Warowny <radoslaww@gmail.com>,
+	Alf Fahland <alf-f@gmx.de>
+Subject: Re: Medion CTX1921 - why does the driver is not in the kernel yet?
+References: <BANLkTi=pQ45Z=3vF1-HX=-foqHh7oJcR1A@mail.gmail.com>
+In-Reply-To: <BANLkTi=pQ45Z=3vF1-HX=-foqHh7oJcR1A@mail.gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
---20cf301d446ca3185a04a28494d6
-Content-Type: text/plain; charset=ISO-8859-1
+Em 20-05-2011 19:15, James Huk escreveu:
+> Hello everybody.
+> 
+> First of all - this post is not meant as the flame starter, nor is it
+> "I DEMAND" kind of post - I just would like to know what is the policy
+> with driver patches.
+> 
+> I bought Medion CTX1921 USB DVB-T stick, since I saw patches for kernel 2.6.32:
+> 
+> http://article.gmane.org/gmane.linux.drivers.video-input-infrastructure/19938/match=1921
 
-Hi,
-as you know I'm currently working on submitting mt9p031 driver to
-mainline, testing it with my Beagleboard xM.
-While I was trying to clean Guennadi's patches I ran into the attached
-patch which changes a call to "omap3isp_get(isp);" into
-"isp_enable_clocks(isp);".
+Thanks for noticing it. Clearly, the last patch from Stéphane were mangled by
+his emailer. Due to that, it were not caught by patchwork. He also forgot to
+send us a Signed-off-by.
 
-I don't think this is clean since it would unbalance the number of
-omap3isp_get() vs omap3isp_put() and we probably don't want that.
-What seems clear is if we don't apply this patch the clock is not
-actually enabled.
+Yet, Alf and Randoslaw re-sent the same patch, so I dunno why this patch were
+never applied, but I guess that it is because the patch become obsolete, as
+more cards were added to the dib0700 driver.
 
-According to my debugging results "isp_disable_clocks()" is never
-called, so, after the first call to "isp_enable_clocks()" there
-shouldn't be any need to enable the clocks again.
+> so,I thought everything above that, will support this card "out of the
+> box", however I tried it on kernel 2.6.38 and it still required manual
+> patching, after minor driver modification it works OK.
 
-Guennadi, do you know what is the cause of the problem?
+Thanks for pointing it to us. I've re-based the patch to move the new entry
+to the end and applied it.
 
+> 
+> So... the question is, why isn't this tuner supported yet, even though
+> patches were aviable nearly a year ago (and where minor)? What is the
+> policy here? When can we expect support?
+> 
+> Thanks in advance for the answers.
 
--- 
-Javier Martin
-Vista Silicon S.L.
-CDTUC - FASE C - Oficina S-345
-Avda de los Castros s/n
-39005- Santander. Cantabria. Spain
-+34 942 25 32 60
-www.vista-silicon.com
-
---20cf301d446ca3185a04a28494d6
-Content-Type: text/x-patch; charset=US-ASCII; name="isp.patch"
-Content-Disposition: attachment; filename="isp.patch"
-Content-Transfer-Encoding: base64
-X-Attachment-Id: f_gnbis4e80
-
-ZGlmZiAtLWdpdCBhL2RyaXZlcnMvbWVkaWEvdmlkZW8vb21hcDNpc3AvaXNwLmMgYi9kcml2ZXJz
-L21lZGlhL3ZpZGVvL29tYXAzaXNwL2lzcC5jCmluZGV4IDQ3MmE2OTMuLjZhNmVhODYgMTAwNjQ0
-Ci0tLSBhL2RyaXZlcnMvbWVkaWEvdmlkZW8vb21hcDNpc3AvaXNwLmMKKysrIGIvZHJpdmVycy9t
-ZWRpYS92aWRlby9vbWFwM2lzcC9pc3AuYwpAQCAtMTc3LDYgKzE3Nyw4IEBAIHN0YXRpYyB2b2lk
-IGlzcF9kaXNhYmxlX2ludGVycnVwdHMoc3RydWN0IGlzcF9kZXZpY2UgKmlzcCkKICAgICAgICBp
-c3BfcmVnX3dyaXRlbChpc3AsIDAsIE9NQVAzX0lTUF9JT01FTV9NQUlOLCBJU1BfSVJRMEVOQUJM
-RSk7CiB9CiAKK3N0YXRpYyBpbnQgaXNwX2VuYWJsZV9jbG9ja3Moc3RydWN0IGlzcF9kZXZpY2Ug
-KmlzcCk7CisKIC8qKgogICogaXNwX3NldF94Y2xrIC0gQ29uZmlndXJlcyB0aGUgc3BlY2lmaWVk
-IGNhbV94Y2xrIHRvIHRoZSBkZXNpcmVkIGZyZXF1ZW5jeS4KICAqIEBpc3A6IE9NQVAzIElTUCBk
-ZXZpY2UKQEAgLTIzOSw3ICsyNDEsNyBAQCBzdGF0aWMgdTMyIGlzcF9zZXRfeGNsayhzdHJ1Y3Qg
-aXNwX2RldmljZSAqaXNwLCB1MzIgeGNsaywgdTggeGNsa3NlbCkKIAogICAgICAgIC8qIERvIHdl
-IGdvIGZyb20gc3RhYmxlIHdoYXRldmVyIHRvIGNsb2NrPyAqLwogICAgICAgIGlmIChkaXZpc29y
-ID49IDIgJiYgaXNwLT54Y2xrX2Rpdmlzb3JbeGNsa3NlbCAtIDFdIDwgMikKLSAgICAgICAgICAg
-ICAgIG9tYXAzaXNwX2dldChpc3ApOworICAgICAgICAgICAgICAgaXNwX2VuYWJsZV9jbG9ja3Mo
-aXNwKTsKICAgICAgICAvKiBTdG9wcGluZyB0aGUgY2xvY2suICovCiAgICAgICAgZWxzZSBpZiAo
-ZGl2aXNvciA8IDIgJiYgaXNwLT54Y2xrX2Rpdmlzb3JbeGNsa3NlbCAtIDFdID49IDIpCiAgICAg
-ICAgICAgICAgICBvbWFwM2lzcF9wdXQoaXNwKTsK
---20cf301d446ca3185a04a28494d6--
+Cheers,
+Mauro
