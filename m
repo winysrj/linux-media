@@ -1,70 +1,58 @@
-Return-path: <mchehab@gaivota>
-Received: from mx1.redhat.com ([209.132.183.28]:46937 "EHLO mx1.redhat.com"
+Return-path: <mchehab@pedra>
+Received: from mail.lastar.com ([64.129.117.10]:52238 "EHLO mail.lastar.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754630Ab1EMWkA (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 13 May 2011 18:40:00 -0400
-Message-ID: <4DCDB333.8000801@redhat.com>
-Date: Sat, 14 May 2011 00:39:47 +0200
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
+	id S1753016Ab1EUSqG convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sat, 21 May 2011 14:46:06 -0400
+Received: from localhost (localhost [127.0.0.1])
+	by mail.lastar.com (Postfix) with ESMTP id 1EBB82A6006
+	for <linux-media@vger.kernel.org>; Sat, 21 May 2011 14:46:06 -0400 (EDT)
+Received: from mail.lastar.com ([127.0.0.1])
+	by localhost (mail.lastar.com [127.0.0.1]) (amavisd-new, port 10024)
+	with ESMTP id 7kjbCXyjpc5T for <linux-media@vger.kernel.org>;
+	Sat, 21 May 2011 14:46:06 -0400 (EDT)
+Received: from V-EXMAILBOX.ctg.com (v-exmailbox.ctg.com [192.168.74.76])
+	by mail.lastar.com (Postfix) with ESMTP id F08912A6004
+	for <linux-media@vger.kernel.org>; Sat, 21 May 2011 14:46:05 -0400 (EDT)
+From: Jason Gauthier <jgauthier@lastar.com>
+To: Jason Gauthier <jgauthier@lastar.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: RE: Enable IR on hdpvr
+Date: Sat, 21 May 2011 18:46:03 +0000
+Message-ID: <65DE7931C559BF4DBEE42C3F8246249A2AB13455@V-EXMAILBOX.ctg.com>
+References: <65DE7931C559BF4DBEE42C3F8246249A0B686EB0@V-EXMAILBOX.ctg.com>
+	 <8AFBEFD7-69E3-4E71-B155-EA773C2FED43@wilsonet.com>
+	 <65DE7931C559BF4DBEE42C3F8246249A0B69B014@V-ALBEXCHANGE.ctg.com>
+	 <EC37FC85-82B2-48AE-BB94-64ED00E7647D@wilsonet.com>
+	 <93CE8497-D6AB-43BA-A239-EE32D51582FC@wilsonet.com>
+	 <65DE7931C559BF4DBEE42C3F8246249A0B6A54C7@V-ALBEXCHANGE.ctg.com>,<1294875902.2485.19.camel@morgan.silverblock.net>
+ <65DE7931C559BF4DBEE42C3F8246249A0B6A9B4A@V-ALBEXCHANGE.ctg.com>
+ <65DE7931C559BF4DBEE42C3F8246249A2AB1230E@V-EXMAILBOX.ctg.com>
+In-Reply-To: <65DE7931C559BF4DBEE42C3F8246249A2AB1230E@V-EXMAILBOX.ctg.com>
+Content-Language: en-US
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 MIME-Version: 1.0
-To: Anssi Hannula <anssi.hannula@iki.fi>
-CC: Peter Hutterer <peter.hutterer@who-t.net>,
-	linux-media@vger.kernel.org,
-	"linux-input@vger.kernel.org" <linux-input@vger.kernel.org>,
-	xorg-devel@lists.freedesktop.org
-Subject: Re: IR remote control autorepeat / evdev
-References: <4DC61E28.4090301@iki.fi> <20110510041107.GA32552@barra.redhat.com> <4DC8C9B6.5000501@iki.fi> <20110510053038.GA5808@barra.redhat.com> <4DC940E5.2070902@iki.fi> <4DCA1496.20304@redhat.com> <4DCABA42.30505@iki.fi> <4DCABEAE.4080607@redhat.com> <4DCACE74.6050601@iki.fi> <4DCB213A.8040306@redhat.com> <4DCB2BD9.6090105@iki.fi> <4DCB336B.2090303@redhat.com> <4DCB39AF.2000807@redhat.com> <4DCC71B5.8080306@iki.fi>
-In-Reply-To: <4DCC71B5.8080306@iki.fi>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
-Sender: Mauro Carvalho Chehab <mchehab@gaivota>
+Sender: <mchehab@pedra>
 
-Em 13-05-2011 01:48, Anssi Hannula escreveu:
-> On 12.05.2011 04:36, Mauro Carvalho Chehab wrote:
->> Em 12-05-2011 03:10, Mauro Carvalho Chehab escreveu:
->>> Em 12-05-2011 02:37, Anssi Hannula escreveu:
->>
->>>> I don't see any other places:
->>>> $ git grep 'REP_PERIOD' .
->>>> dvb/dvb-usb/dvb-usb-remote.c:   input_dev->rep[REP_PERIOD] =
->>>> d->props.rc.legacy.rc_interval;
->>>
->>> Indeed, the REP_PERIOD is not adjusted on other drivers. I agree that we
->>> should change it to something like 125ms, for example, as 33ms is too 
->>> short, as it takes up to 114ms for a repeat event to arrive.
->>>
->> IMO, the enclosed patch should do a better job with repeat events, without
->> needing to change rc-core/input/event logic.
-> 
-> It will indeed reduce the amount of ghost events so it brings us in the
-> right direction.
-> 
-> I'd still like to get rid of the ghost repeats entirely, or at least
-> some way for users to do it if we don't do it by default.
+>Admittedly, I do not understand exactly what I am reading.  It seems to probe the IR Tx (i2c-1) successfully:
+>May 21 12:51:06 jgauthier-mythtv kernel: [   43.088265] lirc_zilog: probe of IR Tx on Hauppage HD PVR I2C (i2c-1) done. IR unit ready.
 
-> Maybe we could replace the kernel softrepeat with native repeats (for
-> those protocols/drivers that have them), while making sure that repeat
-> events before REP_DELAY are ignored and repeat events less than
-> REP_PERIOD since the previous event are ignored, so the users can still
-> configure them as they like? 
-> 
+>But, then below on (i2c-2) is failed:
+>May 21 12:51:06 jgauthier-mythtv kernel: [   43.088282] lirc_zilog: ir_probe: probing IR Rx on Hauppage HD PVR I2C (i2c-2) failed with 1
+>May 21 12:51:06 jgauthier-mythtv kernel: [   43.088288] Zilog/Hauppauge i2c IR: probe of 2-0071 failed with error 1
 
-This doesn't seem to be the right thing to do. If the kernel will
-accept 33 ms as the value or REP_PERIOD, but it will internally 
-set the maximum repeat rate is 115 ms (no matter what logic it would
-use for that), Kernel (or X) shouldn't allow the user to set a smaller value. 
+>Either way irsend doesn't work:
 
-The thing is that writing a logic to block a small value is not easy, since 
-the max value is protocol-dependent (worse than that, on some cases, it is 
-device-specific). It seems better to add a warning at the userspace tools 
-that delays lower than 115 ms can produce ghost events on IR's.
+>irsend: command failed: SEND_ONCE blaster 0_74_KEY_2
+>irsend: hardware does not support sending
 
-> Or maybe just a module option that causes rc-core to use native repeat
-> events, for those of us that want accurate repeat events without ghosting?
+>Are there other pieces I need to glue together?
+>I attempted to move to lirc 0.9, and recompiled everything (including zilog) against it, (I read it somewhere) but that did not really make a >difference.
 
-If the user already knows about the possibility to generate ghost effects,
-with low delays, he can simply not pass a bad value to the kernel, instead 
-of forcing a modprobe parameter that will limit the minimal value.
+Okay, so I emailed a little too quickly.  The messages above got me thinking.  One of them is successful the other is not.
+I verified with irsend.  So, this may be an issue with multiple hdpvrs.
 
-Mauro. 
+Anything else I can test/verify?
+
