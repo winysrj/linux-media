@@ -1,39 +1,32 @@
 Return-path: <mchehab@pedra>
-Received: from moutng.kundenserver.de ([212.227.126.186]:52278 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756173Ab1EWSXu (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 23 May 2011 14:23:50 -0400
-Date: Mon, 23 May 2011 20:23:48 +0200 (CEST)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Hans Petter Selasky <hselasky@c2i.net>
-cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>
-Subject: Re: [PATCH] Inlined functions should be static.
-In-Reply-To: <201105231607.13668.hselasky@c2i.net>
-Message-ID: <Pine.LNX.4.64.1105232022460.30305@axis700.grange>
-References: <201105231607.13668.hselasky@c2i.net>
+Received: from mx1.redhat.com ([209.132.183.28]:5279 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754816Ab1EULCE (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 21 May 2011 07:02:04 -0400
+Message-ID: <4DD79BA5.4040207@redhat.com>
+Date: Sat, 21 May 2011 08:01:57 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+To: Hans Petter Selasky <hselasky@c2i.net>
+CC: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Subject: Re: [PATCHES] Various MODULE parameter releated fixes
+References: <201105191038.48068.hselasky@c2i.net>
+In-Reply-To: <201105191038.48068.hselasky@c2i.net>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Mon, 23 May 2011, Hans Petter Selasky wrote:
-
+Em 19-05-2011 05:38, Hans Petter Selasky escreveu:
 > --HPS
-> 
 
-(again, inlining would save me copy-pasting)
+The patches look sane, but, please send one patch per email. Otherwise,
+only the first patch will be caught by patchwork:
+	https://patchwork.kernel.org/patch/796522/
 
-> -inline u32 stb0899_do_div(u64 n, u32 d)
-> +static inline u32 stb0899_do_div(u64 n, u32 d)
+Also, please sign your patches (with Signed-off-by:) and send them in-lined,
+otherwise replies (like this one) become very bad, as the patch is not replied
+on most email clients used by developers.
 
-while at it you could as well remove the unneeded in a C file "inline" 
-attribute.
-
-Thanks
-Guennadi
----
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
-http://www.open-technology.de/
+Thanks,
+Mauro.
