@@ -1,102 +1,76 @@
-Return-path: <mchehab@gaivota>
-Received: from mail1-out1.atlantis.sk ([80.94.52.55]:57261 "EHLO
-	mail.atlantis.sk" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1752749Ab1EJVY3 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 10 May 2011 17:24:29 -0400
-From: Ondrej Zary <linux@rainbow-software.org>
-To: alsa-devel@alsa-project.org
-Subject: fm801: implement TEA575x tuner autodetection
-Date: Tue, 10 May 2011 23:24:15 +0200
-Cc: linux-media@vger.kernel.org,
-	"Kernel development list" <linux-kernel@vger.kernel.org>
+Return-path: <mchehab@pedra>
+Received: from smtp.nokia.com ([147.243.1.47]:62509 "EHLO mgw-sa01.nokia.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753866Ab1EVMgr (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 22 May 2011 08:36:47 -0400
+Message-ID: <4DD90415.8000908@maxwell.research.nokia.com>
+Date: Sun, 22 May 2011 15:39:49 +0300
+From: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
 MIME-Version: 1.0
-Content-Type: text/plain;
-  charset="us-ascii"
+To: Mauro Carvalho Chehab <maurochehab@gmail.com>
+CC: linux-media@vger.kernel.org, laurent.pinchart@ideasonboard.com,
+	nkanchev@mm-sol.com, g.liakhovetski@gmx.de, hverkuil@xs4all.nl,
+	dacohen@gmail.com, riverful@gmail.com, andrew.b.adams@gmail.com,
+	shpark7@stanford.edu
+Subject: Re: [PATCH 3/3] adp1653: Add driver for LED flash controller
+References: <4DD4F3CA.3040300@maxwell.research.nokia.com> <1305801686-32360-3-git-send-email-sakari.ailus@maxwell.research.nokia.com> <4DD7A8BC.4020207@gmail.com>
+In-Reply-To: <4DD7A8BC.4020207@gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-Message-Id: <201105102324.18562.linux@rainbow-software.org>
 List-ID: <linux-media.vger.kernel.org>
-Sender: Mauro Carvalho Chehab <mchehab@gaivota>
+Sender: <mchehab@pedra>
 
-Autodetect TEA575x tuner connection type during init. This allows tuner to
-work out-of-the box.
+Mauro Carvalho Chehab wrote:
+> Em 19-05-2011 07:41, Sakari Ailus escreveu:
+>> This patch adds the driver for the adp1653 LED flash controller. This
+>> controller supports a high power led in flash and torch modes and an
+>> indicator light, sometimes also called privacy light.
+>>
+>> The adp1653 is used on the Nokia N900.
+>>
+>> Signed-off-by: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
+>> Signed-off-by: Tuukka Toivonen <tuukkat76@gmail.com>
+>> Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+>> Signed-off-by: David Cohen <dacohen@gmail.com>
+>> ---
+>>  drivers/media/video/Kconfig   |    7 +
+>>  drivers/media/video/Makefile  |    2 +
+>>  drivers/media/video/adp1653.c |  481 +++++++++++++++++++++++++++++++++++++++++
+>>  include/media/adp1653.h       |  126 +++++++++++
+>>  4 files changed, 616 insertions(+), 0 deletions(-)
+>>  create mode 100644 drivers/media/video/adp1653.c
+>>  create mode 100644 include/media/adp1653.h
+>>
+>> diff --git a/drivers/media/video/Kconfig b/drivers/media/video/Kconfig
+>> index 00f51dd..c004dbb 100644
+>> --- a/drivers/media/video/Kconfig
+>> +++ b/drivers/media/video/Kconfig
+>> @@ -344,6 +344,13 @@ config VIDEO_TCM825X
+>>  	  This is a driver for the Toshiba TCM825x VGA camera sensor.
+>>  	  It is used for example in Nokia N800.
+>>  
+>> +config VIDEO_ADP1653
+>> +	tristate "ADP1653 flash support"
+>> +	depends on I2C && VIDEO_V4L2 && MEDIA_CONTROLLER
+>> +	---help---
+>> +	  This is a driver for the ADP1653 flash controller. It is used for
+>> +	  example in Nokia N900.
+>> +
+>>  config VIDEO_SAA7110
+>>  	tristate "Philips SAA7110 video decoder"
+>>  	depends on VIDEO_V4L2 && I2C
+> 
+> The patches look sane. I have just one comment: Please, create a separate
+> section for the LED controls. OK, some patches already messed the Kconfig stuff
+> by mixing sensors together with video decoders, but let's not make the things
+> worse.
 
-tea575x_tuner module parameter remains functional to force tuner type.
+Hi Mauro,
 
-Tested with SF256-PCP and SF64-PCR.
+Thanks for the comment! I'll fix this in the Kconfig for the next patchset.
 
-Signed-off-by: Ondrej Zary <linux@rainbow-software.org>
-
---- linux-2.6.39-rc2-/sound/pci/fm801.c	2011-05-10 22:31:45.000000000 +0200
-+++ linux-2.6.39-rc2/sound/pci/fm801.c	2011-05-10 23:21:42.000000000 +0200
-@@ -53,7 +53,7 @@ static int enable[SNDRV_CARDS] = SNDRV_D
- /*
-  *  Enable TEA575x tuner
-  *    1 = MediaForte 256-PCS
-- *    2 = MediaForte 256-PCPR
-+ *    2 = MediaForte 256-PCP
-  *    3 = MediaForte 64-PCR
-  *   16 = setup tuner only (this is additional bit), i.e. SF64-PCR FM card
-  *  High 16-bits are video (radio) device number + 1
-@@ -67,7 +67,7 @@ MODULE_PARM_DESC(id, "ID string for the
- module_param_array(enable, bool, NULL, 0444);
- MODULE_PARM_DESC(enable, "Enable FM801 soundcard.");
- module_param_array(tea575x_tuner, int, NULL, 0444);
--MODULE_PARM_DESC(tea575x_tuner, "TEA575x tuner access method (1 = SF256-PCS, 2=SF256-PCPR, 3=SF64-PCR, +16=tuner-only).");
-+MODULE_PARM_DESC(tea575x_tuner, "TEA575x tuner access method (0 = auto, 1 = SF256-PCS, 2=SF256-PCP, 3=SF64-PCR, 8=disable, +16=tuner-only).");
- 
- #define TUNER_ONLY		(1<<4)
- #define TUNER_TYPE_MASK		(~TUNER_ONLY & 0xFFFF)
-@@ -720,12 +720,13 @@ static int __devinit snd_fm801_pcm(struc
- /* GPIO to TEA575x maps */
- struct snd_fm801_tea575x_gpio {
- 	u8 data, clk, wren, most;
-+	char *name;
- };
- 
- static struct snd_fm801_tea575x_gpio snd_fm801_tea575x_gpios[] = {
--	{ .data = 1, .clk = 3, .wren = 2, .most = 0 },	/* SF256-PCS */
--	{ .data = 1, .clk = 0, .wren = 2, .most = 3 },	/* SF256-PCP */
--	{ .data = 2, .clk = 0, .wren = 1, .most = 3 },	/* SF64-PCR */
-+	{ .data = 1, .clk = 3, .wren = 2, .most = 0, .name = "SF256-PCS" },
-+	{ .data = 1, .clk = 0, .wren = 2, .most = 3, .name = "SF256-PCP" },
-+	{ .data = 2, .clk = 0, .wren = 1, .most = 3, .name = "SF64-PCR" },
- };
- 
- static void snd_fm801_tea575x_set_pins(struct snd_tea575x *tea, u8 pins)
-@@ -1229,14 +1230,24 @@ static int __devinit snd_fm801_create(st
- 	snd_card_set_dev(card, &pci->dev);
- 
- #ifdef TEA575X_RADIO
-+	chip->tea.card = card;
-+	chip->tea.freq_fixup = 10700;
-+	chip->tea.private_data = chip;
-+	chip->tea.ops = &snd_fm801_tea_ops;
- 	if ((tea575x_tuner & TUNER_TYPE_MASK) > 0 &&
- 	    (tea575x_tuner & TUNER_TYPE_MASK) < 4) {
--		chip->tea.card = card;
--		chip->tea.freq_fixup = 10700;
--		chip->tea.private_data = chip;
--		chip->tea.ops = &snd_fm801_tea_ops;
--		snd_tea575x_init(&chip->tea);
--	}
-+		if (snd_tea575x_init(&chip->tea))
-+			snd_printk(KERN_ERR "TEA575x radio not found\n");
-+	} else if ((tea575x_tuner & TUNER_TYPE_MASK) == 0)
-+		/* autodetect tuner connection */
-+		for (tea575x_tuner = 1; tea575x_tuner <= 3; tea575x_tuner++) {
-+			chip->tea575x_tuner = tea575x_tuner;
-+			if (!snd_tea575x_init(&chip->tea)) {
-+				snd_printk(KERN_INFO "detected TEA575x radio type %s\n",
-+					snd_fm801_tea575x_gpios[tea575x_tuner - 1].name);
-+				break;
-+			}
-+		}
- #endif
- 
- 	*rchip = chip;
-
+Regards,
 
 -- 
-Ondrej Zary
+Sakari Ailus
+sakari.ailus@maxwell.research.nokia.com
