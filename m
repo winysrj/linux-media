@@ -1,67 +1,71 @@
 Return-path: <mchehab@pedra>
-Received: from moutng.kundenserver.de ([212.227.126.187]:49179 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751233Ab1E3GVR (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 30 May 2011 02:21:17 -0400
-Date: Mon, 30 May 2011 08:21:13 +0200 (CEST)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Chris Rodley <carlighting@yahoo.co.nz>
-cc: javier.martin@vista-silicon.com, koen@beagleboard.org,
-	beagleboard@googlegroups.com, linux-media@vger.kernel.org,
-	laurent.pinchart@ideasonboard.com
-Subject: Re: [beagleboard] [PATCH] Second RFC version of mt9p031 sensor with
- power managament.
-In-Reply-To: <290776.52536.qm@web112005.mail.gq1.yahoo.com>
-Message-ID: <Pine.LNX.4.64.1105300819320.29224@axis700.grange>
-References: <290776.52536.qm@web112005.mail.gq1.yahoo.com>
+Received: from smtp.nokia.com ([147.243.128.26]:48374 "EHLO mgw-da02.nokia.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753866Ab1EVMPA (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 22 May 2011 08:15:00 -0400
+Message-ID: <4DD8FEF4.9080505@maxwell.research.nokia.com>
+Date: Sun, 22 May 2011 15:17:56 +0300
+From: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+CC: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: Re: [PATCH/RFC 1/4] V4L: add three new ioctl()s for multi-size videobuffer
+ management
+References: <Pine.LNX.4.64.1104010959470.9530@axis700.grange> <Pine.LNX.4.64.1104011010530.9530@axis700.grange> <Pine.LNX.4.64.1105121835370.24486@axis700.grange> <4DD12784.2000100@maxwell.research.nokia.com> <Pine.LNX.4.64.1105162144200.29373@axis700.grange> <4DD20D1C.4020808@maxwell.research.nokia.com> <Pine.LNX.4.64.1105221209480.8519@axis700.grange>
+In-Reply-To: <Pine.LNX.4.64.1105221209480.8519@axis700.grange>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Sun, 29 May 2011, Chris Rodley wrote:
-
-> On 29/05/11 03:04, Guennadi Liakhovetski wrote:
-> > On Sat, 28 May 2011, Guennadi Liakhovetski wrote:
-> >
-> >> Hi Javier
-> >>
-> >> On Thu, 26 May 2011, javier Martin wrote:
-> >>
-> >>> I use a patched version of yavta and Mplayer to see video
-> >>> (http://download.open-technology.de/BeagleBoard_xM-MT9P031/)
-> >>
-> >> Are you really using those versions and patches, as described in 
-> >> BBxM-MT9P031.txt? I don't think those versions still work with 2.6.39, 
-> >> they don't even compile for me. Whereas if I take current HEAD, it builds 
-> >> and media-ctl seems to run error-free, but yavta produces no output.
-> >
-> > Ok, sorry for the noise. It works with current media-ctl with no patches, 
-> > so, we better don't try to confuse our users / testers:)
-> >
-> > Thanks
-> > Guennadi
+Guennadi Liakhovetski wrote:
+> On Tue, 17 May 2011, Sakari Ailus wrote:
 > 
-> Hi,
+>> Guennadi Liakhovetski wrote:
 > 
-> Still no luck getting the v3 patch working.
-> I did go back and re-test the first v1 patch that Javier released.
-> This works fine with the same version of media-ctl and yavta.
-> So it isn't either of those programs that is causing the problem.
-
-It is. For 2.6.39 + v3 of Javier's patches you need a current media-ctl 
-version unpatched. Interestingly, the new yavta version didn't work for 
-me, but maybe I've done something wrong. The old (patched) version did 
-work though.
-
-> Must be something else.
+> [snip]
 > 
-> Will wait and see how Koen goes.
+>>> I don't understand this. We do _not_ want to allow holes in indices. For 
+>>> now we decide to not implement DESTROY at all. In this case indices just 
+>>> increment contiguously.
+>>>
+>>> The next stage is to implement DESTROY, but only in strict reverse order - 
+>>> without holes and in the same ranges, as buffers have been CREATEd before. 
+>>> So, I really don't understand why we need arrays, sorry.
+>>
+>> Well, now that we're defining a second interface to make new buffer
+>> objects, I just thought it should be made as future-proof as we can. But
+>> even with single index, it's always possible to issue the ioctl more
+>> than once and achieve the same result as if there was an array of indices.
+>>
+>> What would be the reason to disallow creating holes to index range? I
+>> don't see much reason from application or implementation point of view,
+>> as we're even being limited to such low numbers.
+> 
+> I think, there are a few locations in V4L2, that assume, that for N number 
+> of buffers currently allocated, their indices are 0...N-1. Just look for 
+> loops like
+> 
+> 	for (buffer = 0; buffer < q->num_buffers; ++buffer) {
+> 
+> in videobuf2-core.c.
 
-Thanks
-Guennadi
----
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
-http://www.open-technology.de/
+This code is in implementation of videobuf2, it's not the spec. We're
+designing a new interface here and its behaviour musn't be restrained by
+the current codebase. The videobuf2 must be changed to support the new
+ioctls in any case; those functions must be fixed as the support for
+CREATE_BUF and other new IOCTLs is added to videobuf2.
+
+The above loop also likely assumes that the index of the first video
+buffer to be allocated is zero; this would mean that no more than one
+allocation of n buffers could be made, defeating the purpose of the new
+interface.
+
+Regards,
+
+-- 
+Sakari Ailus
+sakari.ailus@maxwell.research.nokia.com
