@@ -1,39 +1,35 @@
-Return-path: <mchehab@gaivota>
-Received: from cmsout02.mbox.net ([165.212.64.32]:52345 "EHLO
-	cmsout02.mbox.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932580Ab1ELU3k (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 12 May 2011 16:29:40 -0400
-Received: from cmsout02.mbox.net (co02-lo [127.0.0.1])
-	by cmsout02.mbox.net (Postfix) with ESMTP id 086511343A9
-	for <linux-media@vger.kernel.org>; Thu, 12 May 2011 20:29:39 +0000 (GMT)
-Message-ID: <4DCC4304.2020205@usa.net>
-Date: Thu, 12 May 2011 22:28:52 +0200
-From: Issa Gorissen <flop.m@usa.net>
+Return-path: <mchehab@pedra>
+Received: from mailfe04.c2i.net ([212.247.154.98]:57460 "EHLO swip.net"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1753102Ab1EVJTe (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 22 May 2011 05:19:34 -0400
+From: Hans Petter Selasky <hselasky@c2i.net>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+Subject: Re: [PATCHES] Various MODULE parameter releated fixes
+Date: Sun, 22 May 2011 11:18:24 +0200
+Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+References: <201105191038.48068.hselasky@c2i.net> <4DD79BA5.4040207@redhat.com>
+In-Reply-To: <4DD79BA5.4040207@redhat.com>
 MIME-Version: 1.0
-To: linux-media@vger.kernel.org
-Subject: Re: ngene CI problems
-References: <4D74E28A.6030302@gmail.com> <201105112059.21083@orion.escape-edv.de>
-In-Reply-To: <201105112059.21083@orion.escape-edv.de>
-Content-Type: text/plain; charset=UTF-8
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
+Message-Id: <201105221118.24407.hselasky@c2i.net>
 List-ID: <linux-media.vger.kernel.org>
-Sender: Mauro Carvalho Chehab <mchehab@gaivota>
+Sender: <mchehab@pedra>
 
-On 11/05/11 20:59, Oliver Endriss wrote:
->
-> I reworked the driver to strip those null packets. Please try
-> http://linuxtv.org/hg/~endriss/ngene-octopus-test/raw-rev/f0dc4237ad08
->
-> CU
-> Oliver
->
+On Saturday 21 May 2011 13:01:57 Mauro Carvalho Chehab wrote:
+> Em 19-05-2011 05:38, Hans Petter Selasky escreveu:
+> > --HPS
+> 
+> The patches look sane, but, please send one patch per email. Otherwise,
+> only the first patch will be caught by patchwork:
+> 	https://patchwork.kernel.org/patch/796522/
+> 
+> Also, please sign your patches (with Signed-off-by:) and send them
+> in-lined, otherwise replies (like this one) become very bad, as the patch
+> is not replied on most email clients used by developers.
 
-Hi Oliver,
+Ok. Got it. Will do.
 
-Tried your patch, but FFs have been replaced by 6Fs in null packets.
-Other than that, no improvement for me.
-
-Thx
---
-Issa
+--HPS
