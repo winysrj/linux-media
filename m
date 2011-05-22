@@ -1,109 +1,94 @@
 Return-path: <mchehab@pedra>
-Received: from mx1.redhat.com ([209.132.183.28]:31838 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751793Ab1EBQjD (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 2 May 2011 12:39:03 -0400
-Message-ID: <4DBEDE24.2040808@redhat.com>
-Date: Mon, 02 May 2011 13:39:00 -0300
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Received: from mail-gx0-f174.google.com ([209.85.161.174]:35839 "EHLO
+	mail-gx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751989Ab1EVDW4 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sat, 21 May 2011 23:22:56 -0400
+Received: by gxk21 with SMTP id 21so1797895gxk.19
+        for <linux-media@vger.kernel.org>; Sat, 21 May 2011 20:22:55 -0700 (PDT)
 MIME-Version: 1.0
-To: Sensoray Linux Development <linux-dev@sensoray.com>
-CC: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: [PATCH 2/2] [media] s2255drv: jpeg enable module parameter
-References: <4D9A0C87.40309@sensoray.com>
-In-Reply-To: <4D9A0C87.40309@sensoray.com>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+In-Reply-To: <BANLkTimOUFgBKx5Y4VE+v08SMVB+Ms5RBg@mail.gmail.com>
+References: <BANLkTin=Fs-ugm13yT89PtT4bds4WobszA@mail.gmail.com>
+ <BANLkTi=poXh2q+4N6Q9iMJxoW=9txLjt4w@mail.gmail.com> <BANLkTimQGYqS=PRNJSEtL5Wu0rP3YdEOVg@mail.gmail.com>
+ <BANLkTimOUFgBKx5Y4VE+v08SMVB+Ms5RBg@mail.gmail.com>
+From: Roman Gaufman <hackeron@gmail.com>
+Date: Sun, 22 May 2011 04:22:35 +0100
+Message-ID: <BANLkTimcqrz3ExwT_TH_AG0zue7YRfTDeg@mail.gmail.com>
+Subject: Re: Connexant cx25821 help
+To: Devin Heitmueller <dheitmueller@kernellabs.com>
+Cc: linux-media@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8BIT
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Em 04-04-2011 15:23, Sensoray Linux Development escreveu:
-> Adding jpeg enable module parameter.
+On 22 May 2011 04:11, Devin Heitmueller <dheitmueller@kernellabs.com> wrote:
+> On Sat, May 21, 2011 at 10:25 PM, Roman Gaufman <hackeron@gmail.com> wrote:
+>> I figured as much, but what can I do now?
+>
+> Your options at this point are:
+>
+> 1.  Find some developer who cares enough to take a free board just for
+> the fun of making it work.
 
-This one has also some bad whitespacing.
+Any suggestions where?
 
-I've applied both. Please next time, double check it before sending me a patch.
+> 2.  If you're a commercial entity, hire somebody to do the work
+> (Kernel Labs does this sort of work)
 
-Thanks,
-Mauro
-> 
-> Signed-off-by: Dean Anderson <linux-dev@sensoray.com>
-> 
-> ---
->  drivers/media/video/s2255drv.c |   21 ++++++++++++++++-----
->  1 files changed, 16 insertions(+), 5 deletions(-)
-> 
-> diff --git a/drivers/media/video/s2255drv.c b/drivers/media/video/s2255drv.c
-> index 38e5c4b..eb33e1e 100644
-> --- a/drivers/media/video/s2255drv.c
-> +++ b/drivers/media/video/s2255drv.c
-> @@ -389,12 +389,17 @@ static unsigned int vid_limit = 16;    /* Video memory limit, in Mb */
->  /* start video number */
->  static int video_nr = -1;    /* /dev/videoN, -1 for autodetect */
->  
-> +/* Enable jpeg capture. */
-> +static int jpeg_enable = 1;
-> +
->  module_param(debug, int, 0644);
->  MODULE_PARM_DESC(debug, "Debug level(0-100) default 0");
->  module_param(vid_limit, int, 0644);
->  MODULE_PARM_DESC(vid_limit, "video memory limit(Mb)");
->  module_param(video_nr, int, 0644);
->  MODULE_PARM_DESC(video_nr, "start video minor(-1 default autodetect)");
-> +module_param(jpeg_enable, int, 0644);
-> +MODULE_PARM_DESC(jpeg_enable, "Jpeg enable(1-on 0-off) default 1");
->  
->  /* USB device table */
->  #define USB_SENSORAY_VID    0x1943
-> @@ -408,6 +413,7 @@ MODULE_DEVICE_TABLE(usb, s2255_table);
->  #define BUFFER_TIMEOUT msecs_to_jiffies(400)
->  
->  /* image formats.  */
-> +/* JPEG formats must be defined last to support jpeg_enable parameter */
->  static const struct s2255_fmt formats[] = {
->      {
->          .name = "4:2:2, planar, YUV422P",
-> @@ -424,6 +430,10 @@ static const struct s2255_fmt formats[] = {
->          .fourcc = V4L2_PIX_FMT_UYVY,
->          .depth = 16
->      }, {
-> +        .name = "8bpp GREY",
-> +        .fourcc = V4L2_PIX_FMT_GREY,
-> +        .depth = 8
-> +    }, {
->          .name = "JPG",
->          .fourcc = V4L2_PIX_FMT_JPEG,
->          .depth = 24
-> @@ -431,10 +441,6 @@ static const struct s2255_fmt formats[] = {
->          .name = "MJPG",
->          .fourcc = V4L2_PIX_FMT_MJPEG,
->          .depth = 24
-> -    }, {
-> -        .name = "8bpp GREY",
-> -        .fourcc = V4L2_PIX_FMT_GREY,
-> -        .depth = 8
->      }
->  };
->  
-> @@ -609,6 +615,9 @@ static const struct s2255_fmt *format_by_fourcc(int fourcc)
->      for (i = 0; i < ARRAY_SIZE(formats); i++) {
->          if (-1 == formats[i].fourcc)
->              continue;
-> +        if (!jpeg_enable && ((formats[i].fourcc == V4L2_PIX_FMT_JPEG) ||
-> +                     (formats[i].fourcc == V4L2_PIX_FMT_MJPEG)))
-> +            continue;
->          if (formats[i].fourcc == fourcc)
->              return formats + i;
->      }
-> @@ -856,7 +865,9 @@ static int vidioc_enum_fmt_vid_cap(struct file *file, void *priv,
->  
->      if (index >= ARRAY_SIZE(formats))
->          return -EINVAL;
-> -
-> +    if (!jpeg_enable && ((formats[index].fourcc == V4L2_PIX_FMT_JPEG) ||
-> +                 (formats[index].fourcc == V4L2_PIX_FMT_MJPEG)))
-> +        return -EINVAL;
->      dprintk(4, "name %s\n", formats[index].name);
->      strlcpy(f->description, formats[index].name, sizeof(f->description));
->      f->pixelformat = formats[index].fourcc;
+I have a small company that consists of just me and I'm broke, heh,
+but I'll check out kernel labs thanks!
 
+> 3.  Learn enough about driver development to add the support yourself.
+
+Any suggestions where/how to start? - are there any guides/tutorials
+that show how to go from start to finish getting a board to work?
+
+>
+> The reality is that the LinuxTV project is grossly understaffed
+> already, and if you're a regular user who wants a working product,
+> your best bet is to just buy something that is already supported.  All
+> other options require either a considerable investment in money (to
+> pay someone to do the work), or time (to learn how to do it yourself).
+
+Do you have any recommendations for a DVR card that has 8 or 16
+audio+video inputs that's already supported by linux available for
+sale?
+
+The problem is I can't find anything that's already supported, so I'm
+just trying random cards. I bought one with SAA7134 chips that
+happened to work, but they stopped making it.
+
+The problem is I can't find anything supported that's available for
+sale. It seems quite the opposite, only rare obscure cards that are no
+longer sold are supported :/
+
+>
+> Developers who care enough to contribute to the project typically have
+> no shortage of boards at their disposal, and they tend to focus their
+> energy on where you get the most bang for the buck.  This tends to
+> favor products that are more popular, which is why the cx25821 driver
+> has gotten almost zero attention (since there are almost no actual
+> products using it other than Conexant reference designs).
+>
+>> Should I take some high resolution pictures of the board?
+>> Any other details I can provide to help developers add support for this board?
+>> Is there anyone in particularly I should contact?
+>> Anywhere I can post any information I collect on this board?
+>
+> You can create an entry on the LinuxTV wiki with the board details.
+> Of course no guarantee that anybody will do anything with it (in fact,
+> the less popular the board, the less likely for this to be the case).
+
+This is a board from http://securitycamera2000.com and is one of the
+few boards that pop up when looking for a DVR card on google and ebay.
+
+I will create an entry on the LinuxTV wiki, thanks!
+
+>
+> Devin
+>
+> --
+> Devin J. Heitmueller - Kernel Labs
+> http://www.kernellabs.com
+>
