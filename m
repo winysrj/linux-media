@@ -1,43 +1,59 @@
-Return-path: <mchehab@gaivota>
-Received: from mx1.redhat.com ([209.132.183.28]:53715 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751726Ab1EIUHU (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 9 May 2011 16:07:20 -0400
-Message-ID: <4DC8497F.9030002@redhat.com>
-Date: Mon, 09 May 2011 16:07:27 -0400
-From: Jarod Wilson <jarod@redhat.com>
+Return-path: <mchehab@pedra>
+Received: from cinke.fazekas.hu ([195.199.244.225]:57069 "EHLO
+	cinke.fazekas.hu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750698Ab1EVAaN (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sat, 21 May 2011 20:30:13 -0400
+Date: Sun, 22 May 2011 02:19:57 +0200 (CEST)
+From: Balint Marton <cus@fazekas.hu>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+cc: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: [PATCH 08/13] [media] rc-winfast: Fix the keycode tables
+In-Reply-To: <20110124131843.7b5c82c7@pedra>
+Message-ID: <alpine.LNX.2.00.1105220215030.28057@cinke.fazekas.hu>
+References: <cover.1295882104.git.mchehab@redhat.com> <20110124131843.7b5c82c7@pedra>
 MIME-Version: 1.0
-To: linux-media@vger.kernel.org
-CC: =?UTF-8?B?SnVhbiBKZXPDunMgR2FyY8OtYSBkZSBTb3JpYQ==?=
-	<skandalfo@gmail.com>
-Subject: Re: [PATCH] [media] ite-cir: finish tx before suspending
-References: <4DC84470.7060603@redhat.com> <1304971156-26650-1-git-send-email-jarod@redhat.com>
-In-Reply-To: <1304971156-26650-1-git-send-email-jarod@redhat.com>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 8bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
 List-ID: <linux-media.vger.kernel.org>
-Sender: Mauro Carvalho Chehab <mchehab@gaivota>
+Sender: <mchehab@pedra>
 
-Jarod Wilson wrote:
-> Continuing with IR transmit after resuming from suspend seems fairly
-> useless, given that the only place we can actually end up suspending is
-> after IR has been send and we're simply mdelay'ing. Lets simplify the
-> resume path by just waiting on tx to complete in the suspend path, then
-> we know we can't be transmitting on resume, and reinitialization of the
-> hardware registers becomes more straight-forward.
+Hi,
+
+> One of the remotes has a picture available at:
+> 	http://lirc.sourceforge.net/remotes/leadtek/Y04G0004.jpg
 >
-> CC: Juan Jesús García de Soria<skandalfo@gmail.com>
-> Signed-off-by: Jarod Wilson<jarod@redhat.com>
-> ---
-> Nb: this patch relies upon my earlier patch to add the init_hardware
-> calls to the resume path in the first place.
+> As there's one variant with a set direction keys plus vol/chann
+> keys, and the same table is used for both models, change it to
+> represent all keys, avoiding the usage of weird function keys.
+>
+> Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+>
+> diff --git a/drivers/media/rc/keymaps/rc-winfast.c b/drivers/media/rc/keymaps/rc-winfast.c
+> index 2747db4..0062ca2 100644
+> --- a/drivers/media/rc/keymaps/rc-winfast.c
+> +++ b/drivers/media/rc/keymaps/rc-winfast.c
+> @@ -27,15 +27,15 @@ static struct rc_map_table winfast[] = {
+> 	{ 0x0e, KEY_8 },
+> 	{ 0x0f, KEY_9 },
+>
+> -	{ 0x00, KEY_POWER },
+> +	{ 0x00, KEY_POWER2 },
+> 	{ 0x1b, KEY_AUDIO },		/* Audio Source */
+> 	{ 0x02, KEY_TUNER },		/* TV/FM, not on Y0400052 */
+> 	{ 0x1e, KEY_VIDEO },		/* Video Source */
+> 	{ 0x16, KEY_INFO },		/* Display information */
+> -	{ 0x04, KEY_VOLUMEUP },
+> -	{ 0x08, KEY_VOLUMEDOWN },
+> -	{ 0x0c, KEY_CHANNELUP },
+> -	{ 0x10, KEY_CHANNELDOWN },
+> +	{ 0x04, KEY_LEFT },
+> +	{ 0x08, KEY_RIGHT },
+> +	{ 0x0c, KEY_UP },
+> +	{ 0x10, KEY_DOWN },
 
-Also note: I don't have tx-capable hardware (or at least, there's no
-tx hardware wired up), so I haven't actually tested this, but the code 
-added to ite_suspend is more or less cloned from ite_close.
+Left and right key is now swapped on my remote. (Which is exactly the same 
+model by the way that was shown in Y04G0004.jpg.) Could you please swap 
+the two keys?
 
--- 
-Jarod Wilson
-jarod@redhat.com
-
-
+Regards,
+   Marton
