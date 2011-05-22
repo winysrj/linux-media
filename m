@@ -1,55 +1,63 @@
 Return-path: <mchehab@pedra>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:34190 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753560Ab1EEKWm (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 5 May 2011 06:22:42 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Subject: Re: omap3isp clock problems on Beagleboard xM.
-Date: Thu, 5 May 2011 12:23:17 +0200
-Cc: javier Martin <javier.martin@vista-silicon.com>,
-	linux-media@vger.kernel.org
-References: <BANLkTinRqcFj5doua4r6d-vwPAym=JGvDw@mail.gmail.com> <Pine.LNX.4.64.1105051215340.29735@axis700.grange>
-In-Reply-To: <Pine.LNX.4.64.1105051215340.29735@axis700.grange>
+Received: from moutng.kundenserver.de ([212.227.126.171]:58181 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753382Ab1EVKSM (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 22 May 2011 06:18:12 -0400
+Date: Sun, 22 May 2011 12:18:07 +0200 (CEST)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
+cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: Re: [PATCH/RFC 1/4] V4L: add three new ioctl()s for multi-size
+ videobuffer management
+In-Reply-To: <4DD20D1C.4020808@maxwell.research.nokia.com>
+Message-ID: <Pine.LNX.4.64.1105221209480.8519@axis700.grange>
+References: <Pine.LNX.4.64.1104010959470.9530@axis700.grange>
+ <Pine.LNX.4.64.1104011010530.9530@axis700.grange>
+ <Pine.LNX.4.64.1105121835370.24486@axis700.grange> <4DD12784.2000100@maxwell.research.nokia.com>
+ <Pine.LNX.4.64.1105162144200.29373@axis700.grange> <4DD20D1C.4020808@maxwell.research.nokia.com>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201105051223.17801.laurent.pinchart@ideasonboard.com>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Hi Javier,
+On Tue, 17 May 2011, Sakari Ailus wrote:
 
-On Thursday 05 May 2011 12:17:12 Guennadi Liakhovetski wrote:
-> On Thu, 5 May 2011, javier Martin wrote:
-> > Hi,
-> > as you know I'm currently working on submitting mt9p031 driver to
-> > mainline, testing it with my Beagleboard xM.
-> > While I was trying to clean Guennadi's patches I ran into the attached
-> > patch which changes a call to "omap3isp_get(isp);" into
-> > "isp_enable_clocks(isp);".
+> Guennadi Liakhovetski wrote:
+
+[snip]
+
+> > I don't understand this. We do _not_ want to allow holes in indices. For 
+> > now we decide to not implement DESTROY at all. In this case indices just 
+> > increment contiguously.
 > > 
-> > I don't think this is clean since it would unbalance the number of
-> > omap3isp_get() vs omap3isp_put() and we probably don't want that.
-> > What seems clear is if we don't apply this patch the clock is not
-> > actually enabled.
-> > 
-> > According to my debugging results "isp_disable_clocks()" is never
-> > called, so, after the first call to "isp_enable_clocks()" there
-> > shouldn't be any need to enable the clocks again.
-> > 
-> > Guennadi, do you know what is the cause of the problem?
+> > The next stage is to implement DESTROY, but only in strict reverse order - 
+> > without holes and in the same ranges, as buffers have been CREATEd before. 
+> > So, I really don't understand why we need arrays, sorry.
 > 
-> I don't remember exactly, but it didn't work without this patch. I know it
-> is not clean and shouldn't be needed, so, if now it works also without it
-> - perfect! You can start, stop, and restart streaming without this patch
-> and it all works? Then certainly it should be dropped.
+> Well, now that we're defining a second interface to make new buffer
+> objects, I just thought it should be made as future-proof as we can. But
+> even with single index, it's always possible to issue the ioctl more
+> than once and achieve the same result as if there was an array of indices.
+> 
+> What would be the reason to disallow creating holes to index range? I
+> don't see much reason from application or implementation point of view,
+> as we're even being limited to such low numbers.
 
-And otherwise you can work on a fix ;-) I unfortunately have no sensor module 
-for the Beagleboard xM so I can't really test this.
+I think, there are a few locations in V4L2, that assume, that for N number 
+of buffers currently allocated, their indices are 0...N-1. Just look for 
+loops like
 
--- 
-Regards,
+	for (buffer = 0; buffer < q->num_buffers; ++buffer) {
 
-Laurent Pinchart
+in videobuf2-core.c.
+
+Thanks
+Guennadi
+---
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
+http://www.open-technology.de/
