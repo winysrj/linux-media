@@ -1,264 +1,167 @@
 Return-path: <mchehab@pedra>
-Received: from mail-ww0-f44.google.com ([74.125.82.44]:54066 "EHLO
-	mail-ww0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752327Ab1E3Iha (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 30 May 2011 04:37:30 -0400
-Received: by mail-ww0-f44.google.com with SMTP id 36so3680967wwa.1
-        for <linux-media@vger.kernel.org>; Mon, 30 May 2011 01:37:29 -0700 (PDT)
-From: Javier Martin <javier.martin@vista-silicon.com>
-To: linux-media@vger.kernel.org
-Cc: g.liakhovetski@gmx.de, laurent.pinchart@ideasonboard.com,
-	carlighting@yahoo.co.nz, beagleboard@googlegroups.com,
-	mch_kot@yahoo.com.cn,
-	Javier Martin <javier.martin@vista-silicon.com>
-Subject: [PATCH v4 2/2] Add support for mt9p031 (LI-5M03 module) in Beagleboard xM.
-Date: Mon, 30 May 2011 10:37:17 +0200
-Message-Id: <1306744637-9051-2-git-send-email-javier.martin@vista-silicon.com>
-In-Reply-To: <1306744637-9051-1-git-send-email-javier.martin@vista-silicon.com>
-References: <1306744637-9051-1-git-send-email-javier.martin@vista-silicon.com>
+Received: from mailfe05.c2i.net ([212.247.154.130]:60556 "EHLO swip.net"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1754445Ab1EWLmJ (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 23 May 2011 07:42:09 -0400
+To: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Subject: [PATCH] The dbg, warn and info macros are already defined by the USB stack. Rename these macros to avoid macro redefinition warnings. Refactor lineshift in printouts.
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>
+From: Hans Petter Selasky <hselasky@c2i.net>
+Date: Mon, 23 May 2011 13:40:56 +0200
+MIME-Version: 1.0
+Content-Type: Multipart/Mixed;
+  boundary="Boundary-00=_Ifk2NJGTJ5Be114"
+Message-Id: <201105231340.56580.hselasky@c2i.net>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Since isp clocks have not been exposed yet, this patch
-includes a temporal solution for testing mt9p031 driver
-in Beagleboard xM.
+--Boundary-00=_Ifk2NJGTJ5Be114
+Content-Type: text/plain;
+  charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 
-Signed-off-by: Javier Martin <javier.martin@vista-silicon.com>
----
- arch/arm/mach-omap2/Makefile                   |    1 +
- arch/arm/mach-omap2/board-omap3beagle-camera.c |   88 ++++++++++++++++++++++++
- arch/arm/mach-omap2/board-omap3beagle.c        |   58 ++++++++++++++++
- 3 files changed, 147 insertions(+), 0 deletions(-)
- create mode 100644 arch/arm/mach-omap2/board-omap3beagle-camera.c
+--HPS
 
-diff --git a/arch/arm/mach-omap2/Makefile b/arch/arm/mach-omap2/Makefile
-index 512b152..05cd983 100644
---- a/arch/arm/mach-omap2/Makefile
-+++ b/arch/arm/mach-omap2/Makefile
-@@ -179,6 +179,7 @@ obj-$(CONFIG_MACH_OMAP_2430SDP)		+= board-2430sdp.o \
- 					   hsmmc.o
- obj-$(CONFIG_MACH_OMAP_APOLLON)		+= board-apollon.o
- obj-$(CONFIG_MACH_OMAP3_BEAGLE)		+= board-omap3beagle.o \
-+					   board-omap3beagle-camera.o \
- 					   hsmmc.o
- obj-$(CONFIG_MACH_DEVKIT8000)     	+= board-devkit8000.o \
-                                            hsmmc.o
-diff --git a/arch/arm/mach-omap2/board-omap3beagle-camera.c b/arch/arm/mach-omap2/board-omap3beagle-camera.c
-new file mode 100644
-index 0000000..840f8f3
---- /dev/null
-+++ b/arch/arm/mach-omap2/board-omap3beagle-camera.c
-@@ -0,0 +1,88 @@
-+#include <linux/gpio.h>
-+#include <linux/regulator/machine.h>
-+
-+#include <plat/i2c.h>
-+
-+#include <media/mt9p031.h>
-+
-+#include "devices.h"
-+#include "../../../drivers/media/video/omap3isp/isp.h"
-+
-+#define MT9P031_RESET_GPIO	98
-+#define MT9P031_XCLK		ISP_XCLK_A
-+
-+static struct regulator *reg_1v8, *reg_2v8;
-+
-+static int beagle_cam_set_xclk(struct v4l2_subdev *subdev, int hz)
-+{
-+	struct isp_device *isp = v4l2_dev_to_isp_device(subdev->v4l2_dev);
-+	int ret;
-+
-+	ret = isp->platform_cb.set_xclk(isp, hz, MT9P031_XCLK);
-+	return 0;
-+}
-+
-+static int beagle_cam_reset(struct v4l2_subdev *subdev, int active)
-+{
-+	/* Set RESET_BAR to !active */
-+	gpio_set_value(MT9P031_RESET_GPIO, !active);
-+
-+	return 0;
-+}
-+
-+static struct mt9p031_platform_data beagle_mt9p031_platform_data = {
-+	.set_xclk               = beagle_cam_set_xclk,
-+	.reset                  = beagle_cam_reset,
-+};
-+
-+static struct i2c_board_info mt9p031_camera_i2c_device = {
-+	I2C_BOARD_INFO("mt9p031", 0x48),
-+	.platform_data = &beagle_mt9p031_platform_data,
-+};
-+
-+static struct isp_subdev_i2c_board_info mt9p031_camera_subdevs[] = {
-+	{
-+		.board_info = &mt9p031_camera_i2c_device,
-+		.i2c_adapter_id = 2,
-+	},
-+	{ NULL, 0, },
-+};
-+
-+static struct isp_v4l2_subdevs_group beagle_camera_subdevs[] = {
-+	{
-+		.subdevs = mt9p031_camera_subdevs,
-+		.interface = ISP_INTERFACE_PARALLEL,
-+		.bus = {
-+				.parallel = {
-+					.data_lane_shift = 0,
-+					.clk_pol = 1,
-+					.bridge = ISPCTRL_PAR_BRIDGE_DISABLE,
-+				}
-+		},
-+	},
-+	{ },
-+};
-+
-+static struct isp_platform_data beagle_isp_platform_data = {
-+	.subdevs = beagle_camera_subdevs,
-+};
-+
-+void __init beagle_camera_init(void)
-+{
-+	reg_1v8 = regulator_get(NULL, "cam_1v8");
-+	if (IS_ERR(reg_1v8))
-+		pr_err("%s: cannot get cam_1v8 regulator\n", __func__);
-+	else
-+		regulator_enable(reg_1v8);
-+
-+	reg_2v8 = regulator_get(NULL, "cam_2v8");
-+	if (IS_ERR(reg_2v8))
-+		pr_err("%s: cannot get cam_2v8 regulator\n", __func__);
-+	else
-+		regulator_enable(reg_2v8);
-+
-+	omap_register_i2c_bus(2, 100, NULL, 0);
-+	gpio_request(MT9P031_RESET_GPIO, "cam_rst");
-+	gpio_direction_output(MT9P031_RESET_GPIO, 0);
-+	omap3_init_camera(&beagle_isp_platform_data);
-+}
-diff --git a/arch/arm/mach-omap2/board-omap3beagle.c b/arch/arm/mach-omap2/board-omap3beagle.c
-index 33007fd..0bdc522 100644
---- a/arch/arm/mach-omap2/board-omap3beagle.c
-+++ b/arch/arm/mach-omap2/board-omap3beagle.c
-@@ -24,12 +24,16 @@
- #include <linux/input.h>
- #include <linux/gpio_keys.h>
- #include <linux/opp.h>
-+#include <linux/i2c.h>
-+#include <linux/mm.h>
-+#include <linux/videodev2.h>
- 
- #include <linux/mtd/mtd.h>
- #include <linux/mtd/partitions.h>
- #include <linux/mtd/nand.h>
- #include <linux/mmc/host.h>
- 
-+#include <linux/gpio.h>
- #include <linux/regulator/machine.h>
- #include <linux/i2c/twl.h>
- 
-@@ -47,6 +51,7 @@
- #include <plat/nand.h>
- #include <plat/usb.h>
- #include <plat/omap_device.h>
-+#include <plat/i2c.h>
- 
- #include "mux.h"
- #include "hsmmc.h"
-@@ -273,6 +278,44 @@ static struct regulator_consumer_supply beagle_vsim_supply = {
- 
- static struct gpio_led gpio_leds[];
- 
-+static struct regulator_consumer_supply beagle_vaux3_supply = {
-+	.supply         = "cam_1v8",
-+};
-+
-+static struct regulator_consumer_supply beagle_vaux4_supply = {
-+	.supply         = "cam_2v8",
-+};
-+
-+/* VAUX3 for CAM_1V8 */
-+static struct regulator_init_data beagle_vaux3 = {
-+	.constraints = {
-+		.min_uV			= 1800000,
-+		.max_uV			= 1800000,
-+		.apply_uV		= true,
-+		.valid_modes_mask	= REGULATOR_MODE_NORMAL
-+					| REGULATOR_MODE_STANDBY,
-+		.valid_ops_mask		= REGULATOR_CHANGE_MODE
-+					| REGULATOR_CHANGE_STATUS,
-+	},
-+	.num_consumer_supplies		= 1,
-+	.consumer_supplies		= &beagle_vaux3_supply,
-+};
-+
-+/* VAUX4 for CAM_2V8 */
-+static struct regulator_init_data beagle_vaux4 = {
-+	.constraints = {
-+		.min_uV			= 1800000,
-+		.max_uV			= 1800000,
-+		.apply_uV		= true,
-+		.valid_modes_mask	= REGULATOR_MODE_NORMAL
-+					| REGULATOR_MODE_STANDBY,
-+		.valid_ops_mask		= REGULATOR_CHANGE_MODE
-+					| REGULATOR_CHANGE_STATUS,
-+	},
-+	.num_consumer_supplies  = 1,
-+	.consumer_supplies      = &beagle_vaux4_supply,
-+};
-+
- static int beagle_twl_gpio_setup(struct device *dev,
- 		unsigned gpio, unsigned ngpio)
- {
-@@ -309,6 +352,15 @@ static int beagle_twl_gpio_setup(struct device *dev,
- 			pr_err("%s: unable to configure EHCI_nOC\n", __func__);
+--Boundary-00=_Ifk2NJGTJ5Be114
+Content-Type: text/x-patch;
+  charset="us-ascii";
+  name="dvb-usb-0010.patch"
+Content-Transfer-Encoding: quoted-printable
+Content-Disposition: inline;
+	filename="dvb-usb-0010.patch"
+
+=46rom c05334a4162912164d9e8d2d551f1bc2a5fdce82 Mon Sep 17 00:00:00 2001
+=46rom: Hans Petter Selasky <hselasky@c2i.net>
+Date: Mon, 23 May 2011 13:40:00 +0200
+Subject: [PATCH] The dbg, warn and info macros are already defined by the U=
+SB stack. Rename these macros to avoid macro redefinition warnings. Refacto=
+r lineshift in printouts.
+
+Signed-off-by: Hans Petter Selasky <hselasky@c2i.net>
+=2D--
+ drivers/media/dvb/frontends/itd1000.c |   25 +++++++++++--------------
+ 1 files changed, 11 insertions(+), 14 deletions(-)
+
+diff --git a/drivers/media/dvb/frontends/itd1000.c b/drivers/media/dvb/fron=
+tends/itd1000.c
+index f7a40a1..aa9ccb8 100644
+=2D-- a/drivers/media/dvb/frontends/itd1000.c
++++ b/drivers/media/dvb/frontends/itd1000.c
+@@ -35,21 +35,18 @@ static int debug;
+ module_param(debug, int, 0644);
+ MODULE_PARM_DESC(debug, "Turn on/off debugging (default:off).");
+=20
+=2D#define deb(args...)  do { \
++#define itd_dbg(args...)  do { \
+ 	if (debug) { \
+ 		printk(KERN_DEBUG   "ITD1000: " args);\
+=2D		printk("\n"); \
+ 	} \
+ } while (0)
+=20
+=2D#define warn(args...) do { \
++#define itd_warn(args...) do { \
+ 	printk(KERN_WARNING "ITD1000: " args); \
+=2D	printk("\n"); \
+ } while (0)
+=20
+=2D#define info(args...) do { \
++#define itd_info(args...) do { \
+ 	printk(KERN_INFO    "ITD1000: " args); \
+=2D	printk("\n"); \
+ } while (0)
+=20
+ /* don't write more than one byte with flexcop behind */
+@@ -62,7 +59,7 @@ static int itd1000_write_regs(struct itd1000_state *state=
+, u8 reg, u8 v[], u8 le
+ 	buf[0] =3D reg;
+ 	memcpy(&buf[1], v, len);
+=20
+=2D	/* deb("wr %02x: %02x", reg, v[0]); */
++	/* itd_dbg("wr %02x: %02x\n", reg, v[0]); */
+=20
+ 	if (i2c_transfer(state->i2c, &msg, 1) !=3D 1) {
+ 		printk(KERN_WARNING "itd1000 I2C write failed\n");
+@@ -83,7 +80,7 @@ static int itd1000_read_reg(struct itd1000_state *state, =
+u8 reg)
+ 	itd1000_write_regs(state, (reg - 1) & 0xff, &state->shadow[(reg - 1) & 0x=
+ff], 1);
+=20
+ 	if (i2c_transfer(state->i2c, msg, 2) !=3D 2) {
+=2D		warn("itd1000 I2C read failed");
++		itd_warn("itd1000 I2C read failed\n");
+ 		return -EREMOTEIO;
  	}
- 
-+	if (omap3_beagle_get_rev() == OMAP3BEAGLE_BOARD_XM) {
-+		/*
-+		 * Power on camera interface - only on pre-production, not
-+		 * needed on production boards
-+		 */
-+		gpio_request(gpio + 2, "CAM_EN");
-+		gpio_direction_output(gpio + 2, 1);
-+	}
-+
- 	/*
- 	 * TWL4030_GPIO_MAX + 0 == ledA, EHCI nEN_USB_PWR (out, XM active
- 	 * high / others active low)
-@@ -451,6 +503,8 @@ static struct twl4030_platform_data beagle_twldata = {
- 	.vsim		= &beagle_vsim,
- 	.vdac		= &beagle_vdac,
- 	.vpll2		= &beagle_vpll2,
-+	.vaux3          = &beagle_vaux3,
-+	.vaux4          = &beagle_vaux4,
- };
- 
- static struct i2c_board_info __initdata beagle_i2c_boardinfo[] = {
-@@ -654,10 +708,13 @@ static void __init beagle_opp_init(void)
- 	return;
- }
- 
-+extern void __init beagle_camera_init(void);
-+
- static void __init omap3_beagle_init(void)
- {
- 	omap3_mux_init(board_mux, OMAP_PACKAGE_CBB);
- 	omap3_beagle_init_rev();
-+
- 	omap3_beagle_i2c_init();
- 	platform_add_devices(omap3_beagle_devices,
- 			ARRAY_SIZE(omap3_beagle_devices));
-@@ -679,6 +736,7 @@ static void __init omap3_beagle_init(void)
- 
- 	beagle_display_init();
- 	beagle_opp_init();
-+	beagle_camera_init();
- }
- 
- MACHINE_START(OMAP3_BEAGLE, "OMAP3 Beagle Board")
--- 
-1.7.0.4
+ 	return val;
+@@ -127,14 +124,14 @@ static void itd1000_set_lpf_bw(struct itd1000_state *=
+state, u32 symbol_rate)
+ 	u8 bbgvmin =3D itd1000_read_reg(state, BBGVMIN) & 0xf0;
+ 	u8 bw      =3D itd1000_read_reg(state, BW)      & 0xf0;
+=20
+=2D	deb("symbol_rate =3D %d", symbol_rate);
++	itd_dbg("symbol_rate =3D %d\n", symbol_rate);
+=20
+ 	/* not sure what is that ? - starting to download the table */
+ 	itd1000_write_reg(state, CON1, con1 | (1 << 1));
+=20
+ 	for (i =3D 0; i < ARRAY_SIZE(itd1000_lpf_pga); i++)
+ 		if (symbol_rate < itd1000_lpf_pga[i].symbol_rate) {
+=2D			deb("symrate: index: %d pgaext: %x, bbgvmin: %x", i, itd1000_lpf_pga[=
+i].pgaext, itd1000_lpf_pga[i].bbgvmin);
++			itd_dbg("symrate: index: %d pgaext: %x, bbgvmin: %x\n", i, itd1000_lpf_=
+pga[i].pgaext, itd1000_lpf_pga[i].bbgvmin);
+ 			itd1000_write_reg(state, PLLFH,   pllfh | (itd1000_lpf_pga[i].pgaext <<=
+ 4));
+ 			itd1000_write_reg(state, BBGVMIN, bbgvmin | (itd1000_lpf_pga[i].bbgvmin=
+));
+ 			itd1000_write_reg(state, BW,      bw | (i & 0x0f));
+@@ -182,7 +179,7 @@ static void itd1000_set_vco(struct itd1000_state *state=
+, u32 freq_khz)
+=20
+ 			adcout =3D itd1000_read_reg(state, PLLLOCK) & 0x0f;
+=20
+=2D			deb("VCO: %dkHz: %d -> ADCOUT: %d %02x", freq_khz, itd1000_vcorg[i].v=
+corg, adcout, vco_chp1_i2c);
++			itd_dbg("VCO: %dkHz: %d -> ADCOUT: %d %02x\n", freq_khz, itd1000_vcorg[=
+i].vcorg, adcout, vco_chp1_i2c);
+=20
+ 			if (adcout > 13) {
+ 				if (!(itd1000_vcorg[i].vcorg =3D=3D 7 || itd1000_vcorg[i].vcorg =3D=3D=
+ 15))
+@@ -232,7 +229,7 @@ static void itd1000_set_lo(struct itd1000_state *state,=
+ u32 freq_khz)
+ 	pllf =3D (u32) tmp;
+=20
+ 	state->frequency =3D ((plln * 1000) + (pllf * 1000)/1048576) * 2*FREF;
+=2D	deb("frequency: %dkHz (wanted) %dkHz (set), PLLF =3D %d, PLLN =3D %d", =
+freq_khz, state->frequency, pllf, plln);
++	itd_dbg("frequency: %dkHz (wanted) %dkHz (set), PLLF =3D %d, PLLN =3D %d\=
+n", freq_khz, state->frequency, pllf, plln);
+=20
+ 	itd1000_write_reg(state, PLLNH, 0x80); /* PLLNH */;
+ 	itd1000_write_reg(state, PLLNL, plln & 0xff);
+@@ -242,7 +239,7 @@ static void itd1000_set_lo(struct itd1000_state *state,=
+ u32 freq_khz)
+=20
+ 	for (i =3D 0; i < ARRAY_SIZE(itd1000_fre_values); i++) {
+ 		if (freq_khz <=3D itd1000_fre_values[i].freq) {
+=2D			deb("fre_values: %d", i);
++			itd_dbg("fre_values: %d\n", i);
+ 			itd1000_write_reg(state, RFTR, itd1000_fre_values[i].values[0]);
+ 			for (j =3D 0; j < 9; j++)
+ 				itd1000_write_reg(state, RFST1+j, itd1000_fre_values[i].values[j+1]);
+@@ -382,7 +379,7 @@ struct dvb_frontend *itd1000_attach(struct dvb_frontend=
+ *fe, struct i2c_adapter
+ 		kfree(state);
+ 		return NULL;
+ 	}
+=2D	info("successfully identified (ID: %d)", i);
++	itd_info("successfully identified (ID: %d)\n", i);
+=20
+ 	memset(state->shadow, 0xff, sizeof(state->shadow));
+ 	for (i =3D 0x65; i < 0x9c; i++)
+=2D-=20
+1.7.1.1
 
+
+--Boundary-00=_Ifk2NJGTJ5Be114--
