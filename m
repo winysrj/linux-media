@@ -1,51 +1,86 @@
 Return-path: <mchehab@pedra>
-Received: from mail-qy0-f174.google.com ([209.85.216.174]:34743 "EHLO
-	mail-qy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753241Ab1EYWCv convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 25 May 2011 18:02:51 -0400
-Received: by qyk7 with SMTP id 7so2378403qyk.19
-        for <linux-media@vger.kernel.org>; Wed, 25 May 2011 15:02:50 -0700 (PDT)
-References: <1306305788.2390.4.camel@porites> <1306306916.2390.6.camel@porites> <21882CB6-3679-444E-A072-8AAE43610367@wilsonet.com>
-In-Reply-To: <21882CB6-3679-444E-A072-8AAE43610367@wilsonet.com>
-Mime-Version: 1.0 (Apple Message framework v1084)
-Content-Type: text/plain; charset=us-ascii
-Message-Id: <9C58F89F-7B1F-4D72-AD30-59AC8E3921A8@wilsonet.com>
-Content-Transfer-Encoding: 8BIT
-From: Jarod Wilson <jarod@wilsonet.com>
-Subject: Re: build errors on kinect and rc-main - 2.6.38 (mipi-csis not rc-main)
-Date: Wed, 25 May 2011 18:02:57 -0400
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Received: from mailfe08.c2i.net ([212.247.154.226]:52089 "EHLO swip.net"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1752229Ab1EWLUY (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 23 May 2011 07:20:24 -0400
+To: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Subject: [PATCH] The USB_SPEED... keywords are already defined by the USB stack. Rename currently unused macros to avoid possible future warnings and errors.
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>
+From: Hans Petter Selasky <hselasky@c2i.net>
+Date: Mon, 23 May 2011 13:19:11 +0200
+MIME-Version: 1.0
+Content-Type: Multipart/Mixed;
+  boundary="Boundary-00=_vKk2NRQ65TgMIxM"
+Message-Id: <201105231319.11284.hselasky@c2i.net>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On May 25, 2011, at 5:41 PM, Jarod Wilson wrote:
+--Boundary-00=_vKk2NRQ65TgMIxM
+Content-Type: text/plain;
+  charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 
-> On May 25, 2011, at 3:01 AM, Nicolas WILL wrote:
-> 
->> On Wed, 2011-05-25 at 07:43 +0100, Nicolas WILL wrote:
->>> The second one is on rc-main (I probably need that!):
->>> 
->>> CC [M]  /home/nico/src/media_build/v4l/rc-main.o
->>> /home/nico/src/media_build/v4l/rc-main.c: In function 'rc_allocate_device':
->>> /home/nico/src/media_build/v4l/rc-main.c:993:29: warning: assignment from incompatible pointer type
->>> /home/nico/src/media_build/v4l/rc-main.c:994:29: warning: assignment from incompatible pointer type
->>> CC [M]  /home/nico/src/media_build/v4l/ir-raw.o
->>> CC [M]  /home/nico/src/media_build/v4l/mipi-csis.o
->>> /home/nico/src/media_build/v4l/mipi-csis.c:29:28: fatal error: plat/mipi_csis.h: No such file or directory
->>> compilation terminated.
->> 
->> Oh, not rc-main, but mipi-csis!
-> 
-> True, but the rc-main warning is actually a valid issue that needs to
-> be fixed as well. I'll get the necessary backport patch into media_build
-> shortly, I hope...
+--HPS
 
-Patches pushed.
+--Boundary-00=_vKk2NRQ65TgMIxM
+Content-Type: text/x-patch;
+  charset="us-ascii";
+  name="dvb-usb-0001.patch"
+Content-Transfer-Encoding: quoted-printable
+Content-Disposition: inline;
+	filename="dvb-usb-0001.patch"
 
--- 
-Jarod Wilson
-jarod@wilsonet.com
+=46rom f7a0f7254da47ff88f69314f14043b01ba0764eb Mon Sep 17 00:00:00 2001
+=46rom: Hans Petter Selasky <hselasky@c2i.net>
+Date: Mon, 23 May 2011 12:43:50 +0200
+Subject: [PATCH] The USB_SPEED_XXX keywords are already defined by the USB =
+stack. Rename currently unused macros to avoid possible future warnings and=
+ errors.
+
+Signed-off-by: Hans Petter Selasky <hselasky@c2i.net>
+=2D--
+ drivers/media/dvb/dvb-usb/gp8psk.h |    6 +++---
+ drivers/media/dvb/dvb-usb/vp7045.h |    6 +++---
+ 2 files changed, 6 insertions(+), 6 deletions(-)
+
+diff --git a/drivers/media/dvb/dvb-usb/gp8psk.h b/drivers/media/dvb/dvb-usb=
+/gp8psk.h
+index 831749a..c271b68 100644
+=2D-- a/drivers/media/dvb/dvb-usb/gp8psk.h
++++ b/drivers/media/dvb/dvb-usb/gp8psk.h
+@@ -78,9 +78,9 @@ extern int dvb_usb_gp8psk_debug;
+ #define ADV_MOD_DVB_BPSK 9     /* DVB-S BPSK */
+=20
+ #define GET_USB_SPEED                     0x07
+=2D #define USB_SPEED_LOW                    0
+=2D #define USB_SPEED_FULL                   1
+=2D #define USB_SPEED_HIGH                   2
++ #define TH_USB_SPEED_LOW                 0
++ #define TH_USB_SPEED_FULL                1
++ #define TH_USB_SPEED_HIGH                2
+=20
+ #define RESET_FX2                         0x13
+=20
+diff --git a/drivers/media/dvb/dvb-usb/vp7045.h b/drivers/media/dvb/dvb-usb=
+/vp7045.h
+index 969688f..7ce6c00 100644
+=2D-- a/drivers/media/dvb/dvb-usb/vp7045.h
++++ b/drivers/media/dvb/dvb-usb/vp7045.h
+@@ -36,9 +36,9 @@
+  #define Tuner_Power_OFF                  0
+=20
+ #define GET_USB_SPEED                     0x07
+=2D #define USB_SPEED_LOW                    0
+=2D #define USB_SPEED_FULL                   1
+=2D #define USB_SPEED_HIGH                   2
++ #define TH_USB_SPEED_LOW                 0
++ #define TH_USB_SPEED_FULL                1
++ #define TH_USB_SPEED_HIGH                2
+=20
+ #define LOCK_TUNER_COMMAND                0x09
+=20
+=2D-=20
+1.7.1.1
 
 
-
+--Boundary-00=_vKk2NRQ65TgMIxM--
