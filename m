@@ -1,66 +1,52 @@
 Return-path: <mchehab@pedra>
-Received: from mailout1.w1.samsung.com ([210.118.77.11]:37930 "EHLO
-	mailout1.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932126Ab1EXNLx (ORCPT
+Received: from perceval.ideasonboard.com ([95.142.166.194]:45596 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751082Ab1EWIAT (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 24 May 2011 09:11:53 -0400
-Received: from spt2.w1.samsung.com (mailout1.w1.samsung.com [210.118.77.11])
- by mailout1.w1.samsung.com
- (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14 2004))
- with ESMTP id <0LLP00L3PB88MR@mailout1.w1.samsung.com> for
- linux-media@vger.kernel.org; Tue, 24 May 2011 14:09:44 +0100 (BST)
-Received: from linux.samsung.com ([106.116.38.10])
- by spt2.w1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14
- 2004)) with ESMTPA id <0LLP000Z7B870J@spt2.w1.samsung.com> for
- linux-media@vger.kernel.org; Tue, 24 May 2011 14:09:43 +0100 (BST)
-Date: Tue, 24 May 2011 15:09:34 +0200
-From: Tomasz Stanislawski <t.stanislaws@samsung.com>
-Subject: [PATCH 1/3] v4l: add macro for 1080p59_54 preset
-In-reply-to: <1306242576-24458-1-git-send-email-t.stanislaws@samsung.com>
-To: linux-media@vger.kernel.org
-Cc: m.szyprowski@samsung.com, t.stanislaws@samsung.com,
-	kyungmin.park@samsung.com, hverkuil@xs4all.nl
-Message-id: <1306242576-24458-2-git-send-email-t.stanislaws@samsung.com>
-MIME-version: 1.0
-Content-type: TEXT/PLAIN
-Content-transfer-encoding: 7BIT
-References: <1306242576-24458-1-git-send-email-t.stanislaws@samsung.com>
+	Mon, 23 May 2011 04:00:19 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: javier Martin <javier.martin@vista-silicon.com>
+Subject: Re: [beagleboard] [PATCH v2 2/2] OMAP3BEAGLE: Add support for mt9p031 sensor driver.
+Date: Mon, 23 May 2011 10:00:31 +0200
+Cc: Koen Kooi <koen@beagleboard.org>,
+	"beagleboard@googlegroups.com Board" <beagleboard@googlegroups.com>,
+	Jason Kridner <jkridner@beagleboard.org>,
+	linux-media@vger.kernel.org, g.liakhovetski@gmx.de,
+	carlighting@yahoo.co.nz, linux-arm-kernel@lists.infradead.org
+References: <1305899272-31839-1-git-send-email-javier.martin@vista-silicon.com> <DDCBBAA2-C49C-4952-9D1B-519D8A3AB41E@beagleboard.org> <BANLkTi=ZHyk1+otf2i0qp47Zvvo4nfYk6A@mail.gmail.com>
+In-Reply-To: <BANLkTi=ZHyk1+otf2i0qp47Zvvo4nfYk6A@mail.gmail.com>
+MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201105231000.32194.laurent.pinchart@ideasonboard.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-The 1080p59_94 is supported in latest Samusng SoC.
+Hi Javier,
 
-Signed-off-by: Tomasz Stanislawski <t.stanislaws@samsung.com>
-Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
----
- drivers/media/video/v4l2-common.c |    1 +
- include/linux/videodev2.h         |    1 +
- 2 files changed, 2 insertions(+), 0 deletions(-)
+On Monday 23 May 2011 09:01:07 javier Martin wrote:
+> On 20 May 2011 17:57, Koen Kooi <koen@beagleboard.org> wrote:
+> > In previous patch sets we put that in a seperate file
+> > (omap3beagle-camera.c) so we don't clutter up the board file with all
+> > the different sensor drivers. Would it make sense to do the same with
+> > the current patches? It looks like MCF cuts down a lot on the
+> > boilerplace needed already.
+> 
+> I sent my first patch using that approach but I was told to move it to
+> the board code.
+> Please, don't make undo the changes. Or at least, let's discuss this
+> seriously so that we all agree on what is the best way of doing it and
+> I don't have to change it every time.
 
-diff --git a/drivers/media/video/v4l2-common.c b/drivers/media/video/v4l2-common.c
-index 06b9f9f..003e648 100644
---- a/drivers/media/video/v4l2-common.c
-+++ b/drivers/media/video/v4l2-common.c
-@@ -582,6 +582,7 @@ int v4l_fill_dv_preset_info(u32 preset, struct v4l2_dv_enum_preset *info)
- 		{ 1920, 1080, "1080p@30" },	/* V4L2_DV_1080P30 */
- 		{ 1920, 1080, "1080p@50" },	/* V4L2_DV_1080P50 */
- 		{ 1920, 1080, "1080p@60" },	/* V4L2_DV_1080P60 */
-+		{ 1920, 1080, "1080p@59.94" },	/* V4L2_DV_1080P59_94 */
- 	};
- 
- 	if (info == NULL || preset >= ARRAY_SIZE(dv_presets))
-diff --git a/include/linux/videodev2.h b/include/linux/videodev2.h
-index 38575ae..4d58cfc 100644
---- a/include/linux/videodev2.h
-+++ b/include/linux/videodev2.h
-@@ -870,6 +870,7 @@ struct v4l2_dv_enum_preset {
- #define		V4L2_DV_1080P30		16 /* SMPTE 296M */
- #define		V4L2_DV_1080P50		17 /* BT.1120 */
- #define		V4L2_DV_1080P60		18 /* BT.1120 */
-+#define		V4L2_DV_1080P59_94	19
- 
- /*
-  *	D V 	B T	T I M I N G S
+What we really need here is a modular way to support sensors on pluggable 
+expansion boards. Not all Beagleboard users will have an MT9P031 connected to 
+the OMAP3 ISP, so that must not be hardcoded in board code. As the sensor 
+boards are not runtime detectable, one solution would be to compile part of 
+the code as a module. Regulator definitions and I2C2 bus registration (and 
+possibly GPIO initialization) can be left in board code.
+
 -- 
-1.7.5.1
+Regards,
 
+Laurent Pinchart
