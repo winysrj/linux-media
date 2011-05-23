@@ -1,60 +1,36 @@
-Return-path: <mchehab@gaivota>
-Received: from mx1.redhat.com ([209.132.183.28]:52800 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752000Ab1EISZf (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 9 May 2011 14:25:35 -0400
-Message-ID: <4DC831A6.7090408@redhat.com>
-Date: Mon, 09 May 2011 14:25:42 -0400
-From: Jarod Wilson <jarod@redhat.com>
+Return-path: <mchehab@pedra>
+Received: from mailfe04.c2i.net ([212.247.154.98]:59459 "EHLO swip.net"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1756892Ab1EWTFV (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 23 May 2011 15:05:21 -0400
+From: Hans Petter Selasky <hselasky@c2i.net>
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Subject: Re: [PATCH] Make code more readable by not using the return value of the WARN() macro. Set ret variable in an undefined case.
+Date: Mon, 23 May 2011 21:04:08 +0200
+Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>
+References: <201105231307.53836.hselasky@c2i.net> <Pine.LNX.4.64.1105232019560.30305@axis700.grange>
+In-Reply-To: <Pine.LNX.4.64.1105232019560.30305@axis700.grange>
 MIME-Version: 1.0
-To: linux-media@vger.kernel.org
-CC: =?UTF-8?B?SnVhbiBKZXPDunMgR2FyY8OtYSBkZSBTb3JpYQ==?=
-	<skandalfo@gmail.com>
-Subject: Re: [PATCH] [media] ite-cir: make IR receive work after resume
-References: <1304953686-21805-1-git-send-email-jarod@redhat.com>
-In-Reply-To: <1304953686-21805-1-git-send-email-jarod@redhat.com>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 8bit
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201105232104.08895.hselasky@c2i.net>
 List-ID: <linux-media.vger.kernel.org>
-Sender: Mauro Carvalho Chehab <mchehab@gaivota>
+Sender: <mchehab@pedra>
 
-Jarod Wilson wrote:
-> Just recently acquired an Asus Eee Box PC with an onboard IR receiver
-> driven by ite-cir (ITE8713 sub-variant). Works out of the box with the
-> ite-cir driver in 2.6.39, but stops working after a suspend/resume
-> cycle. Its fixed by simply reinitializing registers after resume,
-> similar to what's done in the nuvoton-cir driver. I've not tested with
-> any other ITE variant, but code inspection suggests this should be safe
-> on all variants.
->
-> Reported-by: Stephan Raue<sraue@openelec.tv>
-> CC: Juan Jesús García de Soria<skandalfo@gmail.com>
-> Signed-off-by: Jarod Wilson<jarod@redhat.com>
-> ---
->   drivers/media/rc/ite-cir.c |    2 ++
->   1 files changed, 2 insertions(+), 0 deletions(-)
->
-> diff --git a/drivers/media/rc/ite-cir.c b/drivers/media/rc/ite-cir.c
-> index 43908a7..8488e53 100644
-> --- a/drivers/media/rc/ite-cir.c
-> +++ b/drivers/media/rc/ite-cir.c
-> @@ -1684,6 +1684,8 @@ static int ite_resume(struct pnp_dev *pdev)
->   		/* wake up the transmitter */
->   		wake_up_interruptible(&dev->tx_queue);
->   	} else {
-> +		/* reinitialize hardware config registers */
-> +		itdev->params.init_hardware(itdev);
->   		/* enable the receiver */
->   		dev->params.enable_rx(dev);
+On Monday 23 May 2011 20:22:02 Guennadi Liakhovetski wrote:
+> Please, inline patches. Otherwise, this is what one gets, when replying.
+> 
+> On Mon, 23 May 2011, Hans Petter Selasky wrote:
+> > --HPS
+> 
+> In any case, just throwing in my 2 cents - no idea how not using the
+> return value of WARN() makes code more readable. On the contrary, using it
+> is a standard practice. This patch doesn't seem like an improvement to me.
 
+There is no strong reason for the WARN() part, you may ignore that, but the 
+ret = 0, part is still valid. Should I generate a new patch or can you handle 
+this?
 
-Gah. I've obviously screwed this one up. Tested a locally built version 
-of the module on the machine itself, then did a copy/paste of the 
-init_hardware line from elsewhere in the driver where struct ite_dev was 
-called itdev instead of just dev. v2 momentarily.
-
--- 
-Jarod Wilson
-jarod@redhat.com
-
-
+--HPS
