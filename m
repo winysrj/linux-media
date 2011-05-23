@@ -1,106 +1,63 @@
 Return-path: <mchehab@pedra>
-Received: from smtp.nokia.com ([147.243.1.48]:44269 "EHLO mgw-sa02.nokia.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752378Ab1ECKwC convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 3 May 2011 06:52:02 -0400
-From: <kalle.jokiniemi@nokia.com>
-To: <laurent.pinchart@ideasonboard.com>
-CC: <maurochehab@gmail.com>, <tony@atomide.com>,
-	<linux-omap@vger.kernel.org>, <linux-media@vger.kernel.org>
-Subject: RE: [PATCH v3 2/2] OMAP3: RX-51: define vdds_csib regulator supply
-Date: Tue, 3 May 2011 10:51:56 +0000
-Message-ID: <9D0D31AA57AAF5499AFDC63D6472631B09D335@008-AM1MPN1-036.mgdnok.nokia.com>
-References: <1304419283-4177-1-git-send-email-kalle.jokiniemi@nokia.com>
- <1304419283-4177-3-git-send-email-kalle.jokiniemi@nokia.com>
- <201105031249.23245.laurent.pinchart@ideasonboard.com>
-In-Reply-To: <201105031249.23245.laurent.pinchart@ideasonboard.com>
-Content-Language: en-US
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Received: from mailfe05.c2i.net ([212.247.154.130]:51256 "EHLO swip.net"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1751195Ab1EWL2Z (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 23 May 2011 07:28:25 -0400
+To: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Subject: [PATCH] Define parameter description after the parameter itself.
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>
+From: Hans Petter Selasky <hselasky@c2i.net>
+Date: Mon, 23 May 2011 13:27:11 +0200
 MIME-Version: 1.0
+Content-Type: Multipart/Mixed;
+  boundary="Boundary-00=_PSk2NFi2yxg4yOh"
+Message-Id: <201105231327.11791.hselasky@c2i.net>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Hi,
+--Boundary-00=_PSk2NFi2yxg4yOh
+Content-Type: text/plain;
+  charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 
- > -----Original Message-----
- > From: ext Laurent Pinchart [mailto:laurent.pinchart@ideasonboard.com]
- > Sent: 3. toukokuuta 2011 13:49
- > To: Jokiniemi Kalle (Nokia-SD/Tampere)
- > Cc: maurochehab@gmail.com; tony@atomide.com; linux-
- > omap@vger.kernel.org; linux-media@vger.kernel.org
- > Subject: Re: [PATCH v3 2/2] OMAP3: RX-51: define vdds_csib regulator supply
- > 
- > Hi Kalle,
- > 
- > Thanks for the patch.
- > 
- > On Tuesday 03 May 2011 12:41:23 Kalle Jokiniemi wrote:
- > > The RX-51 uses the CSIb IO complex for camera operation. The
- > > board file is missing definition for the regulator supplying
- > > the CSIb complex, so this is added for better power
- > > management.
- > >
- > > Signed-off-by: Kalle Jokiniemi <kalle.jokiniemi@nokia.com>
- > > ---
- > >  arch/arm/mach-omap2/board-rx51-peripherals.c |    6 ++++++
- > >  1 files changed, 6 insertions(+), 0 deletions(-)
- > >
- > > diff --git a/arch/arm/mach-omap2/board-rx51-peripherals.c
- > > b/arch/arm/mach-omap2/board-rx51-peripherals.c index bbcb677..2f12425
- > > 100644
- > > --- a/arch/arm/mach-omap2/board-rx51-peripherals.c
- > > +++ b/arch/arm/mach-omap2/board-rx51-peripherals.c
- > > @@ -337,6 +337,10 @@ static struct omap2_hsmmc_info mmc[] __initdata =
- > {
- > >  static struct regulator_consumer_supply rx51_vmmc1_supply =
- > >  	REGULATOR_SUPPLY("vmmc", "omap_hsmmc.0");
- > >
- > > +static struct regulator_consumer_supply rx51_vaux2_supply[] = {
- > > +	REGULATOR_SUPPLY("vdds_csib", "omap3isp"),
- > > +};
- > > +
- > 
- > What about
- > 
- > static struct regulator_consumer_supply rx51_vaux2_supply =
- > 	REGULATOR_SUPPLY("vdds_csib", "omap3isp");
- > 
- > instead ? :-) It would be in line with the other vaux supply definitions.
- > 
- > >  static struct regulator_consumer_supply rx51_vaux3_supply =
- > >  	REGULATOR_SUPPLY("vmmc", "omap_hsmmc.1");
- > >
- > > @@ -400,6 +404,8 @@ static struct regulator_init_data rx51_vaux2 = {
- > >  		.valid_ops_mask		= REGULATOR_CHANGE_MODE
- > >
- > >  					| REGULATOR_CHANGE_STATUS,
- > >
- > >  	},
- > > +	.num_consumer_supplies	= 1,
- > > +	.consumer_supplies	= rx51_vaux2_supply,
- > 
- > and
- > 
- > .consumer_supplies	= &rx51_vaux2_supply,
- > 
- > here.
- > 
- > If you're fine with that, there's no need to resubmit, I'll modify this patch
- > and push the set through my tree (let me know if I can keep your SoB line with
- > that change).
+--HPS
 
-Perfectly fine with me, you can keep the SoB line. 
+--Boundary-00=_PSk2NFi2yxg4yOh
+Content-Type: text/x-patch;
+  charset="us-ascii";
+  name="dvb-usb-0008.patch"
+Content-Transfer-Encoding: quoted-printable
+Content-Disposition: inline;
+	filename="dvb-usb-0008.patch"
 
-Thanks,
-Kalle
+=46rom 2f5378e5c5cc5528473f77321879fb075005d3dd Mon Sep 17 00:00:00 2001
+=46rom: Hans Petter Selasky <hselasky@c2i.net>
+Date: Mon, 23 May 2011 13:26:04 +0200
+Subject: [PATCH] Define parameter description after the parameter itself.
 
- > 
- > >  };
- > >
- > >  /* VAUX3 - adds more power to VIO_18 rail */
- > 
- > --
- > Regards,
- > 
- > Laurent Pinchart
+Signed-off-by: Hans Petter Selasky <hselasky@c2i.net>
+=2D--
+ drivers/media/video/tda7432.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
+
+diff --git a/drivers/media/video/tda7432.c b/drivers/media/video/tda7432.c
+index 3941f95..398b9fb 100644
+=2D-- a/drivers/media/video/tda7432.c
++++ b/drivers/media/video/tda7432.c
+@@ -50,8 +50,8 @@ static int loudness; /* disable loudness by default */
+ static int debug;	 /* insmod parameter */
+ module_param(debug, int, S_IRUGO | S_IWUSR);
+ module_param(loudness, int, S_IRUGO);
+=2DMODULE_PARM_DESC(maxvol,"Set maximium volume to +20db (0), default is 0d=
+b(1)");
+ module_param(maxvol, int, S_IRUGO | S_IWUSR);
++MODULE_PARM_DESC(maxvol,"Set maximium volume to +20db (0), default is 0db(=
+1)");
+=20
+=20
+=20
+=2D-=20
+1.7.1.1
+
+
+--Boundary-00=_PSk2NFi2yxg4yOh--
