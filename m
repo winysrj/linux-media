@@ -1,80 +1,129 @@
 Return-path: <mchehab@pedra>
-Received: from moutng.kundenserver.de ([212.227.126.187]:50794 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751368Ab1EaOx1 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 31 May 2011 10:53:27 -0400
-Date: Tue, 31 May 2011 16:53:25 +0200 (CEST)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-cc: Koen Kooi <koen@beagleboard.org>, beagleboard@googlegroups.com,
-	linux-media@vger.kernel.org, carlighting@yahoo.co.nz,
-	mch_kot@yahoo.com.cn,
-	Javier Martin <javier.martin@vista-silicon.com>
-Subject: Re: [beagleboard] [PATCH v5 2/2] Add support for mt9p031 (LI-5M03
- module) in Beagleboard xM.
-In-Reply-To: <201105311647.01034.laurent.pinchart@ideasonboard.com>
-Message-ID: <Pine.LNX.4.64.1105311652290.10863@axis700.grange>
-References: <1306835210-1345-1-git-send-email-javier.martin@vista-silicon.com>
- <0A19142F-45A6-44AB-8EFB-94D60875E7DC@beagleboard.org>
- <Pine.LNX.4.64.1105311553230.10863@axis700.grange>
- <201105311647.01034.laurent.pinchart@ideasonboard.com>
+Received: from mailfe02.c2i.net ([212.247.154.34]:46600 "EHLO swip.net"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1754271Ab1EWLo1 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 23 May 2011 07:44:27 -0400
+To: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Subject: [PATCH] The info and err macros are already defined by the USB stack. Rename these macros to avoid macro redefinition warnings.
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>
+From: Hans Petter Selasky <hselasky@c2i.net>
+Date: Mon, 23 May 2011 13:43:15 +0200
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: Multipart/Mixed;
+  boundary="Boundary-00=_Thk2N2SOVZ4W3cU"
+Message-Id: <201105231343.15083.hselasky@c2i.net>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Tue, 31 May 2011, Laurent Pinchart wrote:
+--Boundary-00=_Thk2N2SOVZ4W3cU
+Content-Type: text/plain;
+  charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 
-> On Tuesday 31 May 2011 15:55:04 Guennadi Liakhovetski wrote:
-> > On Tue, 31 May 2011, Koen Kooi wrote:
-> > > Op 31 mei 2011, om 11:46 heeft Javier Martin het volgende geschreven:
-> > > > diff --git a/arch/arm/mach-omap2/board-omap3beagle-camera.c
-> > > > b/arch/arm/mach-omap2/board-omap3beagle-camera.c new file mode 100644
-> > > > index 0000000..04365b2
-> > > > --- /dev/null
-> > > > +++ b/arch/arm/mach-omap2/board-omap3beagle-camera.c
-> > > > 
-> > > > +static int __init beagle_camera_init(void)
-> > > > +{
-> > > > +	reg_1v8 = regulator_get(NULL, "cam_1v8");
-> > > > +	if (IS_ERR(reg_1v8))
-> > > > +		pr_err("%s: cannot get cam_1v8 regulator\n", __func__);
-> > > > +	else
-> > > > +		regulator_enable(reg_1v8);
-> > > > +
-> > > > +	reg_2v8 = regulator_get(NULL, "cam_2v8");
-> > > > +	if (IS_ERR(reg_2v8))
-> > > > +		pr_err("%s: cannot get cam_2v8 regulator\n", __func__);
-> > > > +	else
-> > > > +		regulator_enable(reg_2v8);
-> > > > +
-> > > > +	omap_register_i2c_bus(2, 100, NULL, 0);
-> > > > +	gpio_request(MT9P031_RESET_GPIO, "cam_rst");
-> > > > +	gpio_direction_output(MT9P031_RESET_GPIO, 0);
-> > > > +	omap3_init_camera(&beagle_isp_platform_data);
-> > > > +	return 0;
-> > > > +}
-> > > > +late_initcall(beagle_camera_init);
-> > > 
-> > > There should probably a if (cpu_is_omap3630()) {} wrapped around that, so
-> > > the camera doesn't get initted on a 3530 beagle.
-> > 
-> > ...speaking of which - if multiarch kernels are supported by OMAP3 you
-> > probably want to use something like
-> > 
-> > 	if (!machine_is_omap3_beagle() || !cpu_is_omap3630())
-> > 		return;
-> 
-> Shouldn't you check the Beagleboard version instead? The OMAP3530 has an ISP, 
-> so there's nothing wrong with it per-se.
+--HPS
 
-No idea whatsoever - in that part I'm just repeating, what the previous 
-poster has said:)
+--Boundary-00=_Thk2N2SOVZ4W3cU
+Content-Type: text/x-patch;
+  charset="us-ascii";
+  name="dvb-usb-0011.patch"
+Content-Transfer-Encoding: quoted-printable
+Content-Disposition: inline;
+	filename="dvb-usb-0011.patch"
 
-Thanks
-Guennadi
----
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
-http://www.open-technology.de/
+=46rom 49bc5e480f51a9b756f1f7f1503d237e8a1ba939 Mon Sep 17 00:00:00 2001
+=46rom: Hans Petter Selasky <hselasky@c2i.net>
+Date: Mon, 23 May 2011 13:42:40 +0200
+Subject: [PATCH] The info and err macros are already defined by the USB sta=
+ck. Rename these macros to avoid macro redefinition warnings.
+
+Signed-off-by: Hans Petter Selasky <hselasky@c2i.net>
+=2D--
+ drivers/media/dvb/frontends/cx24113.c |   20 ++++++++++----------
+ 1 files changed, 10 insertions(+), 10 deletions(-)
+
+diff --git a/drivers/media/dvb/frontends/cx24113.c b/drivers/media/dvb/fron=
+tends/cx24113.c
+index e9ee555..c341d57 100644
+=2D-- a/drivers/media/dvb/frontends/cx24113.c
++++ b/drivers/media/dvb/frontends/cx24113.c
+@@ -31,8 +31,8 @@
+=20
+ static int debug;
+=20
+=2D#define info(args...) do { printk(KERN_INFO "CX24113: " args); } while (=
+0)
+=2D#define err(args...)  do { printk(KERN_ERR  "CX24113: " args); } while (=
+0)
++#define cx_info(args...) do { printk(KERN_INFO "CX24113: " args); } while =
+(0)
++#define cx_err(args...)  do { printk(KERN_ERR  "CX24113: " args); } while =
+(0)
+=20
+ #define dprintk(args...) \
+ 	do { \
+@@ -341,7 +341,7 @@ static void cx24113_calc_pll_nf(struct cx24113_state *s=
+tate, u16 *n, s32 *f)
+ 	} while (N < 6 && R < 3);
+=20
+ 	if (N < 6) {
+=2D		err("strange frequency: N < 6\n");
++		cx_err("strange frequency: N < 6\n");
+ 		return;
+ 	}
+ 	F =3D freq_hz;
+@@ -563,7 +563,7 @@ struct dvb_frontend *cx24113_attach(struct dvb_frontend=
+ *fe,
+ 		kzalloc(sizeof(struct cx24113_state), GFP_KERNEL);
+ 	int rc;
+ 	if (state =3D=3D NULL) {
+=2D		err("Unable to kzalloc\n");
++		cx_err("Unable to kzalloc\n");
+ 		goto error;
+ 	}
+=20
+@@ -571,7 +571,7 @@ struct dvb_frontend *cx24113_attach(struct dvb_frontend=
+ *fe,
+ 	state->config =3D config;
+ 	state->i2c =3D i2c;
+=20
+=2D	info("trying to detect myself\n");
++	cx_info("trying to detect myself\n");
+=20
+ 	/* making a dummy read, because of some expected troubles
+ 	 * after power on */
+@@ -579,24 +579,24 @@ struct dvb_frontend *cx24113_attach(struct dvb_fronte=
+nd *fe,
+=20
+ 	rc =3D cx24113_readreg(state, 0x00);
+ 	if (rc < 0) {
+=2D		info("CX24113 not found.\n");
++		cx_info("CX24113 not found.\n");
+ 		goto error;
+ 	}
+ 	state->rev =3D rc;
+=20
+ 	switch (rc) {
+ 	case 0x43:
+=2D		info("detected CX24113 variant\n");
++		cx_info("detected CX24113 variant\n");
+ 		break;
+ 	case REV_CX24113:
+=2D		info("successfully detected\n");
++		cx_info("successfully detected\n");
+ 		break;
+ 	default:
+=2D		err("unsupported device id: %x\n", state->rev);
++		cx_err("unsupported device id: %x\n", state->rev);
+ 		goto error;
+ 	}
+ 	state->ver =3D cx24113_readreg(state, 0x01);
+=2D	info("version: %x\n", state->ver);
++	cx_info("version: %x\n", state->ver);
+=20
+ 	/* create dvb_frontend */
+ 	memcpy(&fe->ops.tuner_ops, &cx24113_tuner_ops,
+=2D-=20
+1.7.1.1
+
+
+--Boundary-00=_Thk2N2SOVZ4W3cU--
