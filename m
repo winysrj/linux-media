@@ -1,39 +1,54 @@
 Return-path: <mchehab@pedra>
-Received: from yop.chewa.net ([91.121.105.214]:49922 "EHLO yop.chewa.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753373Ab1E1NEt convert rfc822-to-8bit (ORCPT
+Received: from smtp-vbr18.xs4all.nl ([194.109.24.38]:1870 "EHLO
+	smtp-vbr18.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753880Ab1EWLPe (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 28 May 2011 09:04:49 -0400
-From: "=?utf-8?q?R=C3=A9mi?= Denis-Courmont" <remi@remlab.net>
-To: Antti Palosaari <crope@iki.fi>, linux-media@vger.kernel.org
-Subject: Re: PCTV nanoStick T2 290e support - Thank you!
-Date: Sat, 28 May 2011 16:04:47 +0300
-Cc: Steve Kerrison <steve@stevekerrison.com>
-References: <1306445141.14462.0.camel@porites> <4DDEDB0E.30108@iki.fi>
-In-Reply-To: <4DDEDB0E.30108@iki.fi>
+	Mon, 23 May 2011 07:15:34 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: "linux-media" <linux-media@vger.kernel.org>
+Subject: [GIT PATCHES FOR 2.6.41] Add bitmask controls
+Date: Mon, 23 May 2011 13:15:29 +0200
+Cc: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
 MIME-Version: 1.0
 Content-Type: Text/Plain;
-  charset="utf-8"
-Content-Transfer-Encoding: 8BIT
-Message-Id: <201105281604.48018.remi@remlab.net>
+  charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201105231315.29328.hverkuil@xs4all.nl>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Le vendredi 27 mai 2011 01:58:22 Antti Palosaari, vous avez écrit :
-> On 05/27/2011 12:25 AM, Nicolas WILL wrote:
-> > Just installed mine for MythTV.
-> > 
-> > Works great on the first try!
-> > 
-> > Many, many thanks!
-> 
-> Thank you for the feedback!
+Hi Mauro,
 
-By the way, what is the V4L2 device node supposed to be? I don't suppose the 
-hardware supports analog nor hardware decoding!? Is it just a left over from 
-the em28xx driver?
+These patches for 2.6.41 add support for bitmask controls, needed for the
+upcoming Flash API and HDMI API.
 
--- 
-Rémi Denis-Courmont
-http://www.remlab.net/
-http://fi.linkedin.com/in/remidenis
+Sakari, can you give your ack as well?
+
+The patch is the same as the original one posted April 4, except for a small
+change in the control logging based on feedback from Laurent and the new
+DocBook documentation.
+
+Regards,
+
+	Hans
+
+The following changes since commit 87cf028f3aa1ed51fe29c36df548aa714dc7438f:
+
+  [media] dm1105: GPIO handling added, I2C on GPIO added, LNB control through GPIO reworked (2011-05-21 11:10:28 -0300)
+
+are available in the git repository at:
+  ssh://linuxtv.org/git/hverkuil/media_tree.git core3
+
+Hans Verkuil (3):
+      v4l2-ctrls: add new bitmask control type.
+      vivi: add bitmask test control.
+      DocBook: document V4L2_CTRL_TYPE_BITMASK.
+
+ Documentation/DocBook/v4l/compat.xml           |    8 ++++++++
+ Documentation/DocBook/v4l/v4l2.xml             |    9 ++++++++-
+ Documentation/DocBook/v4l/vidioc-queryctrl.xml |   12 +++++++++++-
+ drivers/media/video/v4l2-common.c              |    3 +++
+ drivers/media/video/v4l2-ctrls.c               |   17 ++++++++++++++++-
+ drivers/media/video/vivi.c                     |   18 ++++++++++++++++--
+ include/linux/videodev2.h                      |    1 +
+ 7 files changed, 63 insertions(+), 5 deletions(-)
