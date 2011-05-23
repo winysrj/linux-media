@@ -1,225 +1,299 @@
 Return-path: <mchehab@pedra>
-Received: from mail.meprolight.com ([194.90.149.17]:44275 "EHLO meprolight.com"
+Received: from mailfe01.c2i.net ([212.247.154.2]:51740 "EHLO swip.net"
 	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S932209Ab1EXOND convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 24 May 2011 10:13:03 -0400
-From: Alex Gershgorin <alexg@meprolight.com>
-To: "'Sakari Ailus'" <sakari.ailus@iki.fi>
-CC: "'Laurent Pinchart'" <laurent.pinchart@ideasonboard.com>,
-	Michael Jones <michael.jones@matrix-vision.de>,
-	"'linux-media@vger.kernel.org'" <linux-media@vger.kernel.org>,
-	"'agersh@rambler.ru'" <agersh@rambler.ru>
-Date: Tue, 24 May 2011 17:11:16 +0300
-Subject: RE: FW: OMAP 3 ISP
-Message-ID: <4875438356E7CA4A8F2145FCD3E61C0B15D3557D40@MEP-EXCH.meprolight.com>
-In-Reply-To: <20110519153232.GB1768@valkosipuli.localdomain>
-Content-Language: en-US
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+	id S1751116Ab1EWK7W (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 23 May 2011 06:59:22 -0400
+To: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Subject: [PATCH] The info and err macros are already defined by the USB stack. Rename these macros to avoid macro redefinition warnings.
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>
+From: Hans Petter Selasky <hselasky@c2i.net>
+Date: Mon, 23 May 2011 12:58:07 +0200
 MIME-Version: 1.0
+Content-Type: Multipart/Mixed;
+  boundary="Boundary-00=_/2j2NFSzRbAXRyf"
+Message-Id: <201105231258.07403.hselasky@c2i.net>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
+--Boundary-00=_/2j2NFSzRbAXRyf
+Content-Type: text/plain;
+  charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 
-Hi All,
+--HPS
 
-I wrote a simple V4L2 subdevs I2C driver which returns a fixed format and size.
-I do not understand who reads these parameters, user application through IOCTL or OMAP3 ISP driver uses them regardless of the user space application?
+--Boundary-00=_/2j2NFSzRbAXRyf
+Content-Type: text/x-patch;
+  charset="ISO-8859-1";
+  name="dvb-usb-0003.patch"
+Content-Transfer-Encoding: quoted-printable
+Content-Disposition: attachment;
+	filename="dvb-usb-0003.patch"
 
-Another question, if I need to change polarity of Vertical or Horizontal synchronization signals, according struct isp_parallel_platform_data, is it not possible?
+=46rom 83b2408914b9c02600c8288459ed869037efd1dd Mon Sep 17 00:00:00 2001
+=46rom: Hans Petter Selasky <hselasky@c2i.net>
+Date: Mon, 23 May 2011 12:54:21 +0200
+Subject: [PATCH] The info and err macros are already defined by the USB sta=
+ck. Rename these macros to avoid macro redefinition warnings.
 
-struct isp_parallel_platform_data {
-        unsigned int data_lane_shift:2;
-        unsigned int clk_pol:1;
-        unsigned int bridge:4;
-};
+Signed-off-by: Hans Petter Selasky <hselasky@c2i.net>
+=2D--
+ drivers/media/dvb/frontends/cx24123.c        |   34 +++++++++++++---------=
+=2D---
+ drivers/media/dvb/frontends/dib3000mb.c      |   12 ++++----
+ drivers/media/dvb/frontends/dib3000mb_priv.h |   10 +++----
+ 3 files changed, 27 insertions(+), 29 deletions(-)
 
-Regards,
-Alex Gershgorin
+diff --git a/drivers/media/dvb/frontends/cx24123.c b/drivers/media/dvb/fron=
+tends/cx24123.c
+index b1dd8ac..b73fb90 100644
+=2D-- a/drivers/media/dvb/frontends/cx24123.c
++++ b/drivers/media/dvb/frontends/cx24123.c
+@@ -41,8 +41,8 @@ static int debug;
+ module_param(debug, int, 0644);
+ MODULE_PARM_DESC(debug, "Activates frontend debugging (default:0)");
+=20
+=2D#define info(args...) do { printk(KERN_INFO "CX24123: " args); } while (=
+0)
+=2D#define err(args...)  do { printk(KERN_ERR  "CX24123: " args); } while (=
+0)
++#define cx_info(args...) do { printk(KERN_INFO "CX24123: " args); } while =
+(0)
++#define cx_err(args...)  do { printk(KERN_ERR  "CX24123: " args); } while =
+(0)
+=20
+ #define dprintk(args...) \
+ 	do { \
+@@ -274,7 +274,7 @@ static int cx24123_i2c_readreg(struct cx24123_state *st=
+ate, u8 i2c_addr, u8 reg)
+ 	ret =3D i2c_transfer(state->i2c, msg, 2);
+=20
+ 	if (ret !=3D 2) {
+=2D		err("%s: reg=3D0x%x (error=3D%d)\n", __func__, reg, ret);
++		cx_err("%s: reg=3D0x%x (error=3D%d)\n", __func__, reg, ret);
+ 		return ret;
+ 	}
+=20
+@@ -620,7 +620,7 @@ static int cx24123_pll_writereg(struct dvb_frontend *fe,
+ 	cx24123_writereg(state, 0x22, (data >> 16) & 0xff);
+ 	while ((cx24123_readreg(state, 0x20) & 0x40) =3D=3D 0) {
+ 		if (time_after(jiffies, timeout)) {
+=2D			err("%s:  demodulator is not responding, "\
++			cx_err("%s:  demodulator is not responding, "\
+ 				"possibly hung, aborting.\n", __func__);
+ 			return -EREMOTEIO;
+ 		}
+@@ -632,7 +632,7 @@ static int cx24123_pll_writereg(struct dvb_frontend *fe,
+ 	cx24123_writereg(state, 0x22, (data >> 8) & 0xff);
+ 	while ((cx24123_readreg(state, 0x20) & 0x40) =3D=3D 0) {
+ 		if (time_after(jiffies, timeout)) {
+=2D			err("%s:  demodulator is not responding, "\
++			cx_err("%s:  demodulator is not responding, "\
+ 				"possibly hung, aborting.\n", __func__);
+ 			return -EREMOTEIO;
+ 		}
+@@ -645,7 +645,7 @@ static int cx24123_pll_writereg(struct dvb_frontend *fe,
+ 	cx24123_writereg(state, 0x22, (data) & 0xff);
+ 	while ((cx24123_readreg(state, 0x20) & 0x80)) {
+ 		if (time_after(jiffies, timeout)) {
+=2D			err("%s:  demodulator is not responding," \
++			cx_err("%s:  demodulator is not responding," \
+ 				"possibly hung, aborting.\n", __func__);
+ 			return -EREMOTEIO;
+ 		}
+@@ -668,7 +668,7 @@ static int cx24123_pll_tune(struct dvb_frontend *fe,
+ 	dprintk("frequency=3D%i\n", p->frequency);
+=20
+ 	if (cx24123_pll_calculate(fe, p) !=3D 0) {
+=2D		err("%s: cx24123_pll_calcutate failed\n", __func__);
++		cx_err("%s: cx24123_pll_calcutate failed\n", __func__);
+ 		return -EINVAL;
+ 	}
+=20
+@@ -765,7 +765,7 @@ static void cx24123_wait_for_diseqc(struct cx24123_stat=
+e *state)
+ 	unsigned long timeout =3D jiffies + msecs_to_jiffies(200);
+ 	while (!(cx24123_readreg(state, 0x29) & 0x40)) {
+ 		if (time_after(jiffies, timeout)) {
+=2D			err("%s: diseqc queue not ready, " \
++			cx_err("%s: diseqc queue not ready, " \
+ 				"command may be lost.\n", __func__);
+ 			break;
+ 		}
+@@ -947,7 +947,7 @@ static int cx24123_set_frontend(struct dvb_frontend *fe,
+ 	else if (fe->ops.tuner_ops.set_params)
+ 		fe->ops.tuner_ops.set_params(fe, p);
+ 	else
+=2D		err("it seems I don't have a tuner...");
++		cx_err("it seems I don't have a tuner...");
+=20
+ 	/* Enable automatic acquisition and reset cycle */
+ 	cx24123_writereg(state, 0x03, (cx24123_readreg(state, 0x03) | 0x07));
+@@ -968,11 +968,11 @@ static int cx24123_get_frontend(struct dvb_frontend *=
+fe,
+ 	dprintk("\n");
+=20
+ 	if (cx24123_get_inversion(state, &p->inversion) !=3D 0) {
+=2D		err("%s: Failed to get inversion status\n", __func__);
++		cx_err("%s: Failed to get inversion status\n", __func__);
+ 		return -EREMOTEIO;
+ 	}
+ 	if (cx24123_get_fec(state, &p->u.qpsk.fec_inner) !=3D 0) {
+=2D		err("%s: Failed to get fec status\n", __func__);
++		cx_err("%s: Failed to get fec status\n", __func__);
+ 		return -EREMOTEIO;
+ 	}
+ 	p->frequency =3D state->currentfreq;
+@@ -999,7 +999,7 @@ static int cx24123_set_tone(struct dvb_frontend *fe, fe=
+_sec_tone_mode_t tone)
+ 		dprintk("setting tone off\n");
+ 		return cx24123_writereg(state, 0x29, val & 0xef);
+ 	default:
+=2D		err("CASE reached default with tone=3D%d\n", tone);
++		cx_err("CASE reached default with tone=3D%d\n", tone);
+ 		return -EINVAL;
+ 	}
+=20
+@@ -1075,7 +1075,7 @@ struct dvb_frontend *cx24123_attach(const struct cx24=
+123_config *config,
+=20
+ 	dprintk("\n");
+ 	if (state =3D=3D NULL) {
+=2D		err("Unable to kzalloc\n");
++		cx_err("Unable to kzalloc\n");
+ 		goto error;
+ 	}
+=20
+@@ -1087,13 +1087,13 @@ struct dvb_frontend *cx24123_attach(const struct cx=
+24123_config *config,
+ 	state->demod_rev =3D cx24123_readreg(state, 0x00);
+ 	switch (state->demod_rev) {
+ 	case 0xe1:
+=2D		info("detected CX24123C\n");
++		cx_info("detected CX24123C\n");
+ 		break;
+ 	case 0xd1:
+=2D		info("detected CX24123\n");
++		cx_info("detected CX24123\n");
+ 		break;
+ 	default:
+=2D		err("wrong demod revision: %x\n", state->demod_rev);
++		cx_err("wrong demod revision: %x\n", state->demod_rev);
+ 		goto error;
+ 	}
+=20
+@@ -1112,7 +1112,7 @@ struct dvb_frontend *cx24123_attach(const struct cx24=
+123_config *config,
+ 	state->tuner_i2c_adapter.algo_data =3D NULL;
+ 	i2c_set_adapdata(&state->tuner_i2c_adapter, state);
+ 	if (i2c_add_adapter(&state->tuner_i2c_adapter) < 0) {
+=2D		err("tuner i2c bus could not be initialized\n");
++		cx_err("tuner i2c bus could not be initialized\n");
+ 		goto error;
+ 	}
+=20
+diff --git a/drivers/media/dvb/frontends/dib3000mb.c b/drivers/media/dvb/fr=
+ontends/dib3000mb.c
+index e80c597..b0a795a 100644
+=2D-- a/drivers/media/dvb/frontends/dib3000mb.c
++++ b/drivers/media/dvb/frontends/dib3000mb.c
+@@ -147,7 +147,7 @@ static int dib3000mb_set_frontend(struct dvb_frontend* =
+fe,
+ 			case BANDWIDTH_AUTO:
+ 				return -EOPNOTSUPP;
+ 			default:
+=2D				err("unknown bandwidth value.");
++				dib_err("unknown bandwidth value.");
+ 				return -EINVAL;
+ 		}
+ 	}
+@@ -505,7 +505,7 @@ static int dib3000mb_get_frontend(struct dvb_frontend* =
+fe,
+ 			ofdm->constellation =3D QAM_64;
+ 			break;
+ 		default:
+=2D			err("Unexpected constellation returned by TPS (%d)", tps_val);
++			dib_err("Unexpected constellation returned by TPS (%d)", tps_val);
+ 			break;
+ 	}
+ 	deb_getf("TPS: %d\n", tps_val);
+@@ -532,7 +532,7 @@ static int dib3000mb_get_frontend(struct dvb_frontend* =
+fe,
+ 				ofdm->hierarchy_information =3D HIERARCHY_4;
+ 				break;
+ 			default:
+=2D				err("Unexpected ALPHA value returned by TPS (%d)", tps_val);
++				dib_err("Unexpected ALPHA value returned by TPS (%d)", tps_val);
+ 				break;
+ 		}
+ 		deb_getf("TPS: %d\n", tps_val);
+@@ -569,7 +569,7 @@ static int dib3000mb_get_frontend(struct dvb_frontend* =
+fe,
+ 			*cr =3D FEC_7_8;
+ 			break;
+ 		default:
+=2D			err("Unexpected FEC returned by TPS (%d)", tps_val);
++			dib_err("Unexpected FEC returned by TPS (%d)", tps_val);
+ 			break;
+ 	}
+ 	deb_getf("TPS: %d\n",tps_val);
+@@ -592,7 +592,7 @@ static int dib3000mb_get_frontend(struct dvb_frontend* =
+fe,
+ 			ofdm->guard_interval =3D GUARD_INTERVAL_1_4;
+ 			break;
+ 		default:
+=2D			err("Unexpected Guard Time returned by TPS (%d)", tps_val);
++			dib_err("Unexpected Guard Time returned by TPS (%d)", tps_val);
+ 			break;
+ 	}
+ 	deb_getf("TPS: %d\n", tps_val);
+@@ -607,7 +607,7 @@ static int dib3000mb_get_frontend(struct dvb_frontend* =
+fe,
+ 			ofdm->transmission_mode =3D TRANSMISSION_MODE_8K;
+ 			break;
+ 		default:
+=2D			err("unexpected transmission mode return by TPS (%d)", tps_val);
++			dib_err("unexpected transmission mode return by TPS (%d)", tps_val);
+ 			break;
+ 	}
+ 	deb_getf("TPS: %d\n", tps_val);
+diff --git a/drivers/media/dvb/frontends/dib3000mb_priv.h b/drivers/media/d=
+vb/frontends/dib3000mb_priv.h
+index 16c5265..c9c36ce 100644
+=2D-- a/drivers/media/dvb/frontends/dib3000mb_priv.h
++++ b/drivers/media/dvb/frontends/dib3000mb_priv.h
+@@ -13,20 +13,18 @@
+ #ifndef __DIB3000MB_PRIV_H_INCLUDED__
+ #define __DIB3000MB_PRIV_H_INCLUDED__
+=20
+=2D/* info and err, taken from usb.h, if there is anything available like b=
+y default. */
+=2D#define err(format, arg...)  printk(KERN_ERR     "dib3000: " format "\n"=
+ , ## arg)
+=2D#define info(format, arg...) printk(KERN_INFO    "dib3000: " format "\n"=
+ , ## arg)
+=2D#define warn(format, arg...) printk(KERN_WARNING "dib3000: " format "\n"=
+ , ## arg)
++/* dib_err - error printout wrapper */
++#define dib_err(format, arg...) printk(KERN_ERR     "dib3000: " format "\n=
+" , ## arg)
+=20
+ /* handy shortcuts */
+ #define rd(reg) dib3000_read_reg(state,reg)
+=20
+ #define wr(reg,val) if (dib3000_write_reg(state,reg,val)) \
+=2D	{ err("while sending 0x%04x to 0x%04x.",val,reg); return -EREMOTEIO; }
++	{ dib_err("while sending 0x%04x to 0x%04x.",val,reg); return -EREMOTEIO; }
+=20
+ #define wr_foreach(a,v) { int i; \
+ 	if (sizeof(a) !=3D sizeof(v)) \
+=2D		err("sizeof: %zu %zu is different",sizeof(a),sizeof(v));\
++		dib_err("sizeof: %zu %zu is different",sizeof(a),sizeof(v));\
+ 	for (i=3D0; i < sizeof(a)/sizeof(u16); i++) \
+ 		wr(a[i],v[i]); \
+ 	}
+=2D-=20
+1.7.1.1
 
 
------Original Message-----
-From: Sakari Ailus [mailto:sakari.ailus@iki.fi]
-Sent: Thursday, May 19, 2011 6:33 PM
-To: Alex Gershgorin
-Cc: 'Laurent Pinchart'; Michael Jones; 'linux-media@vger.kernel.org'; 'agersh@rambler.ru'
-Subject: Re: FW: OMAP 3 ISP
-
-On Thu, May 19, 2011 at 06:13:28PM +0300, Alex Gershgorin wrote:
-> Hi Michael,
->
-> I liked the idea of a driver that returns fixed format and frame size.
-> It certainly could solve my problem.
-> On the other hand, from your correspondence to Laurent, I realized that it was already done work on improving V4L2 subdevs.
-> Michael patch of which you speak will help solve my problem without writing a special driver?
-> Advise in what direction to go in my case?
-
-Hi Alex,
-
-You still need a driver, but with the patches you can easily implement that
-as a driver for a platform device. The driver itself wouldn't have to do
-much more than to return a fixed format and size when queried.
-
->
-> Regards,
->
-> Alex Gershgorin
->
->
->
-> -----Original Message-----
-> From: Laurent Pinchart [mailto:laurent.pinchart@ideasonboard.com]
-> Sent: Thursday, May 19, 2011 5:27 PM
-> To: Michael Jones
-> Cc: Alex Gershgorin; 'linux-media@vger.kernel.org'; 'sakari.ailus@iki.fi'; 'agersh@rambler.ru'
-> Subject: Re: FW: OMAP 3 ISP
->
-> Hi Michael,
->
-> On Thursday 19 May 2011 16:24:29 Michael Jones wrote:
-> > On 05/19/2011 03:56 PM, Laurent Pinchart wrote:
-> > > On Thursday 19 May 2011 15:44:18 Michael Jones wrote:
-> > >> On 05/19/2011 03:02 PM, Laurent Pinchart wrote:
-> > >>> On Thursday 19 May 2011 14:51:16 Alex Gershgorin wrote:
-> > >>>> Thanks Laurent,
-> > >>>>
-> > >>>> My video source is not the video camera and performs many other
-> > >>>> functions. For this purpose I have RS232 port.
-> > >>>> As for the video, it runs continuously and is not subject to control
-> > >>>> except for the power supply.
-> > >>>
-> > >>> As a quick hack, you can create an I2C driver for your video source
-> > >>> that doesn't access the device and just returns fixed format and frame
-> > >>> size.
-> > >>>
-> > >>> The correct fix is to implement support for platform subdevs in the
-> > >>> V4L2 core.
-> > >>
-> > >> I recently implemented support for platform V4L2 subdevs.  Now that it
-> > >> sounds like others would be interested in this, I will try to polish it
-> > >> up and submit the patch for review in the next week or so.
-> > >
-> > > Great. This has been discussed during the V4L meeting in Warsaw, here are
-> > > a couple of pointers, to make sure we're going in the same direction.
-> > >
-> > > Bridge drivers should not care whether the subdev sits on an I2C, SPI,
-> > > platform or other bus. To achieve that, an abstraction layer must be
-> > > provided by the V4L2 core. Here's what I got in one of my trees:
-> > >
-> > > /* V4L2 core */
-> > >
-> > > struct v4l2_subdev_i2c_board_info {
-> > >
-> > >         struct i2c_board_info *board_info;
-> > >         int i2c_adapter_id;
-> > >
-> > > };
-> > >
-> > > enum v4l2_subdev_bus_type {
-> > >
-> > >         V4L2_SUBDEV_BUS_TYPE_NONE,
-> > >         V4L2_SUBDEV_BUS_TYPE_I2C,
-> > >         V4L2_SUBDEV_BUS_TYPE_SPI,
-> > >
-> > > };
-> > >
-> > > struct v4l2_subdev_board_info {
-> > >
-> > >         enum v4l2_subdev_bus_type type;
-> > >         union {
-> > >
-> > >                 struct v4l2_subdev_i2c_board_info i2c;
-> > >                 struct spi_board_info *spi;
-> > >
-> > >         } info;
-> > >
-> > > };
-> > >
-> > > /* OMAP3 ISP  */
-> > >
-> > > struct isp_v4l2_subdevs_group {
-> > >
-> > >         struct v4l2_subdev_board_info *subdevs;
-> > >         enum isp_interface_type interface;
-> > >         union {
-> > >
-> > >                 struct isp_parallel_platform_data parallel;
-> > >                 struct isp_ccp2_platform_data ccp2;
-> > >                 struct isp_csi2_platform_data csi2;
-> > >
-> > >         } bus; /* gcc < 4.6.0 chokes on anonymous union initializers */
-> > >
-> > > };
-> > >
-> > > struct isp_platform_data {
-> > >
-> > >         struct isp_v4l2_subdevs_group *subdevs;
-> > >
-> > > };
-> > >
-> > > The V4L2 core would need to provide a function to register a subdev based
-> > > on a v4l2_subdev_board_info structure.
-> > >
-> > > Is that in line with what you've done ? I can provide a patch that
-> > > implements this for I2C and SPI, and let you add platform subdevs if
-> > > that can help you.
-> >
-> > Hi Laurent,
-> >
-> > Yes, that looks very similar to what I've done.  I was going to submit
-> > SPI support, too, which I also have, but it sounds like you've already
-> > done that?  I'm currently still using a 2.6.38 tree based on an older
-> > media branch of yours, so I'm not familiar with any new changes there yet.
-> >
-> > I just need to know what I should use as my baseline.
->
-> Please use mainline, now that the OMAP3 ISP driver has been merged :-)
->
-> > I don't need to step on toes and submit something you've already done, so
-> > maybe you want to point me to a branch with the SPI stuff, and I'll just put
-> > the platform stuff on top of it?
->
-> I'll send the SPI support patches to linux-media, as they haven't been
-> reviewed publicly yet.
->
-> --
-> Regards,
->
-> Laurent Pinchart
->
->
-> __________ Information from ESET NOD32 Antivirus, version of virus signature database 6135 (20110519) __________
->
-> The message was checked by ESET NOD32 Antivirus.
->
-> http://www.eset.com
->
->
->
-> __________ Information from ESET NOD32 Antivirus, version of virus signature database 6135 (20110519) __________
->
-> The message was checked by ESET NOD32 Antivirus.
->
-> http://www.eset.com
->
-
---
-Sakari Ailus
-sakari dot ailus at iki dot fi
-
-
-__________ Information from ESET NOD32 Antivirus, version of virus signature database 6135 (20110519) __________
-
-The message was checked by ESET NOD32 Antivirus.
-
-http://www.eset.com
-
-
-
-__________ Information from ESET NOD32 Antivirus, version of virus signature database 6147 (20110524) __________
-
-The message was checked by ESET NOD32 Antivirus.
-
-http://www.eset.com
-
+--Boundary-00=_/2j2NFSzRbAXRyf--
