@@ -1,74 +1,98 @@
-Return-path: <mchehab@gaivota>
-Received: from smtp1.mtw.ru ([93.95.97.34]:47660 "EHLO smtp1.mtw.ru"
+Return-path: <mchehab@pedra>
+Received: from mx1.redhat.com ([209.132.183.28]:46836 "EHLO mx1.redhat.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752610Ab1EIPjP convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 9 May 2011 11:39:15 -0400
-Received: from 8MYHG4J.512bytes.com (unknown [81.200.112.228])
-	(Authenticated sender: aj-a-j)
-	by smtp1.mtw.ru (Postfix) with ESMTPA id 8894044BD33
-	for <linux-media@vger.kernel.org>; Mon,  9 May 2011 19:35:07 +0400 (MSD)
-Date: Mon, 9 May 2011 19:39:09 +0400
-From: Andrew Junev <a-j@a-j.ru>
-Reply-To: Andrew Junev <a-j@a-j.ru>
-Message-ID: <925086505.20110509193909@a-j.ru>
-To: linux-media@vger.kernel.org
-Subject: Re: [linux-dvb] TeVii S470 (cx23885 / ds3000) makes the machine unstable
-In-Reply-To: <157285607.20110508122321@a-j.ru>
-References: <1908281867.20110505213806@a-j.ru> <BANLkTimL7qhNpXr8xBBcU4MccZKAAFURYw@mail.gmail.com> <16110382789.20110506010009@a-j.ru> <BANLkTimGEL4YvXRJsFM10NfyHPOn-JsA_g@mail.gmail.com> <157285607.20110508122321@a-j.ru>
+	id S1756143Ab1EWUcV (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 23 May 2011 16:32:21 -0400
+Message-ID: <4DDAC451.6000002@redhat.com>
+Date: Mon, 23 May 2011 17:32:17 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=windows-1251
-Content-Transfer-Encoding: 8BIT
+To: Devin Heitmueller <dheitmueller@kernellabs.com>
+CC: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: [ANNOUNCE] experimental alsa stream support at xawtv3
+References: <4DDAC0C2.7090508@redhat.com> <BANLkTinjqbU0rYnG42afw+9FywT9PBhutQ@mail.gmail.com>
+In-Reply-To: <BANLkTinjqbU0rYnG42afw+9FywT9PBhutQ@mail.gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
-Sender: Mauro Carvalho Chehab <mchehab@gaivota>
+Sender: <mchehab@pedra>
 
-Sunday, May 8, 2011, 12:23:21 PM, you wrote:
+Em 23-05-2011 17:19, Devin Heitmueller escreveu:
+> On Mon, May 23, 2011 at 4:17 PM, Mauro Carvalho Chehab
+> <mchehab@redhat.com> wrote:
+>> Due to the alsa detection code that I've added at libv4l2util (at v4l2-utils)
+>> during the weekend, I decided to add alsa support also on xawtv3, basically
+>> to provide a real usecase example. Of course, for it to work, it needs the
+>> very latest v4l2-utils version from the git tree.
+>>
+>> I've basically added there the code that Devin wrote for tvtime, with a few
+>> small fixes and with the audio device auto-detection.
+> 
+> If any of these fixes you made apply to the code in general, I will be
+> happy to merge them into our tvtime tree.  Let me know.
 
-> I installed the latest s2-liplianin drivers, but I still seem to have
-> the same issue. The card works fine for some time after reboot, then I
-> am starting to get the following errors in the system log:
+The code bellow will probably be more useful for you. It basically adds alsa
+device autodetection. The patch is against xawtv source code, but the code
+there is generic enough to be added on tvtime.
 
-> May  8 11:11:38 localhost kernel: ds3000_readreg: reg=0xa1(error=-5)
-> May  8 11:11:38 localhost kernel: ds3000_readreg: reg=0xa1(error=-5)
-> May  8 11:11:38 localhost kernel: ds3000_readreg: reg=0xa1(error=-5)
-> May  8 11:11:38 localhost kernel: ds3000_writereg: writereg
-> error(err == -5, reg == 0xa1, value == 0x7b)
-> May  8 11:11:38 localhost kernel: ds3000_readreg: reg=0xa2(error=-5)
-> May  8 11:11:38 localhost kernel: ds3000_writereg: writereg
-> error(err == -5, reg == 0xa2, value == 0xbb)
+Have fun!
+Mauro
 
-> And then my machine just stops responding - even on the ssh sessions.
-
-
-> A friend of mine installed the same S470 card a few days ago. He's
-> using Fedora 14 (kernel 2.6.35) and he says his machine started to
-> 'hang' sporadically, too... I guess he might have a similar issue...
-
-> How could I track what is going on?
-
-
-Dear All,
-
-I still have this very annoying issue. I see no obvious reason, but
-my DVB-S card just stops locking the signal, I get really a lot of
-these errors in my syslog:
-
-May  9 19:04:33 localhost kernel: ds3000_readreg: reg=0xd(error=-5)
-May  9 19:04:33 localhost kernel: ds3000_writereg: writereg error(err == -5, reg == 0x03, value == 0x12)
-May  9 19:04:33 localhost kernel: ds3000_tuner_readreg: reg=0x3d(error=-5)
-May  9 19:04:33 localhost kernel: ds3000_writereg: writereg error(err == -5, reg == 0x03, value == 0x12)
-May  9 19:04:33 localhost kernel: ds3000_tuner_readreg: reg=0x21(error=-5)
-May  9 19:04:33 localhost kernel: ds3000_readreg: reg=0x8c(error=-5)
-May  9 19:04:33 localhost kernel: ds3000_readreg: reg=0x8d(error=-5)
-
-and then the machine just freezes. Could it be some buffer overflow?
-
-How could I track it?
-
-
-The machine is perfectly stable when S470 card is out...
-
-
--- 
-Best regards,
- Andrew             
-
+diff --git a/x11/xt.c b/x11/xt.c
+index 81658a0..7cf7281 100644
+--- a/x11/xt.c
++++ b/x11/xt.c
+@@ -22,7 +22,9 @@
+ #include <netinet/in.h>
+ #include <netdb.h>
+ #include <pthread.h>
+-
++#ifdef HAVE_LIBV42LUTIL
++# include <get_media_devices.h>
++#endif
+ #if defined(__linux__)
+ # include <sys/ioctl.h>
+ #include <linux/types.h>
+@@ -58,6 +60,7 @@
+ #include "blit.h"
+ #include "parseconfig.h"
+ #include "event.h"
++#include "alsa_stream.h"
+ 
+ /* jwz */
+ #include "remote.h"
+@@ -1377,6 +1380,11 @@ grabber_init()
+ {
+     struct ng_video_fmt screen;
+     void *base = NULL;
++#if defined(HAVE_V4L2UTIL) && defined(HAVE_ALSA)
++    struct media_devices *md;
++    unsigned int size = 0;
++    char *alsa_cap, *alsa_out, *p;
++#endif
+ 
+     memset(&screen,0,sizeof(screen));
+ #ifdef HAVE_LIBXXF86DGA
+@@ -1417,6 +1425,22 @@ grabber_init()
+     }
+     f_drv = drv->capabilities(h_drv);
+     add_attrs(drv->list_attrs(h_drv));
++
++#if defined(HAVE_V4L2UTIL) && defined(HAVE_ALSA)
++    /* Start audio capture thread */
++    md = discover_media_devices(&size);
++    p = strrchr(args.device, '/');
++    if (!p)
++	p = args.device;
++    alsa_cap = get_first_alsa_cap_device(md, size, p + 1);
++    alsa_out = get_first_no_video_out_device(md, size);
++
++    printf("Alsa devices: cap: %s (%s), out: %s\n", alsa_cap, args.device, alsa_out);
++
++    if (alsa_cap && alsa_out)
++        alsa_thread_startup(alsa_out, alsa_cap);
++    free_media_devices(md, size);
++#endif
+ }
+ 
+ void
