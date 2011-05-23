@@ -1,44 +1,53 @@
-Return-path: <mchehab@gaivota>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:43294 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757242Ab1EKQO5 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 11 May 2011 12:14:57 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: linux-media@vger.kernel.org
-Cc: hdegoede@redhat.com
-Subject: [PATCH 1/2] v4l: Add M420 format definition
-Date: Wed, 11 May 2011 15:37:22 +0200
-Message-Id: <1305121043-8543-1-git-send-email-laurent.pinchart@ideasonboard.com>
-List-ID: <linux-media.vger.kernel.org>
-Sender: Mauro Carvalho Chehab <mchehab@gaivota>
-
+Return-path: <mchehab@pedra>
+Received: from mx1.redhat.com ([209.132.183.28]:51572 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755334Ab1EWOsB (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 23 May 2011 10:48:01 -0400
+Received: from int-mx10.intmail.prod.int.phx2.redhat.com (int-mx10.intmail.prod.int.phx2.redhat.com [10.5.11.23])
+	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id p4NEm1l9025482
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
+	for <linux-media@vger.kernel.org>; Mon, 23 May 2011 10:48:01 -0400
+Received: from shalem.localdomain (vpn1-4-53.ams2.redhat.com [10.36.4.53])
+	by int-mx10.intmail.prod.int.phx2.redhat.com (8.14.4/8.14.4) with ESMTP id p4NElxr8014537
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-CAMELLIA256-SHA bits=256 verify=NO)
+	for <linux-media@vger.kernel.org>; Mon, 23 May 2011 10:48:00 -0400
+Message-ID: <4DDA73A5.1080803@redhat.com>
+Date: Mon, 23 May 2011 16:48:05 +0200
 From: Hans de Goede <hdegoede@redhat.com>
+MIME-Version: 1.0
+To: linux-media@vger.kernel.org
+Subject: Re: [git:v4l-utils/master] Add an install target to libv4l2util
+References: <E1QORwH-0003gY-GA@www.linuxtv.org>
+In-Reply-To: <E1QORwH-0003gY-GA@www.linuxtv.org>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+List-ID: <linux-media.vger.kernel.org>
+Sender: <mchehab@pedra>
 
-M420 is an hybrid YUV 4:2:2 packet/planar format. Two Y lines are
-followed by an interleaved U/V line.
+Hi,
 
-Signed-off-by: Hans de Goede <hdegoede@redhat.com>
-[laurent.pinchart@ideasonboard.com: split into v4l/uvcvideo patches]
-Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
----
- include/linux/videodev2.h |    1 +
- 1 files changed, 1 insertions(+), 0 deletions(-)
+On 05/23/2011 12:00 PM, Mauro Carvalho Chehab wrote:
+> This is an automatic generated email to let you know that the following patch were queued at the
+> http://git.linuxtv.org/v4l-utils.git tree:
+>
+> Subject: Add an install target to libv4l2util
+> Author:  Mauro Carvalho Chehab<mchehab@redhat.com>
+> Date:    Mon May 23 07:00:00 2011 -0300
+>
+> Signed-off-by: Mauro Carvalho Chehab<mchehab@redhat.com>
+>
 
-diff --git a/include/linux/videodev2.h b/include/linux/videodev2.h
-index a417270..8a4c309 100644
---- a/include/linux/videodev2.h
-+++ b/include/linux/videodev2.h
-@@ -336,6 +336,7 @@ struct v4l2_pix_format {
- #define V4L2_PIX_FMT_YUV420  v4l2_fourcc('Y', 'U', '1', '2') /* 12  YUV 4:2:0     */
- #define V4L2_PIX_FMT_HI240   v4l2_fourcc('H', 'I', '2', '4') /*  8  8-bit color   */
- #define V4L2_PIX_FMT_HM12    v4l2_fourcc('H', 'M', '1', '2') /*  8  YUV 4:2:0 16x16 macroblocks */
-+#define V4L2_PIX_FMT_M420    v4l2_fourcc('M', '4', '2', '0') /* 12  YUV 4:2:0 2 lines y, 1 line uv interleaved */
- 
- /* two planes -- one Y, one Cr + Cb interleaved  */
- #define V4L2_PIX_FMT_NV12    v4l2_fourcc('N', 'V', '1', '2') /* 12  Y/CbCr 4:2:0  */
--- 
+Erm,
+
+This is a static lib, installing static libs globally is considered
+bad practice. Either we need to make this a properly versioned .so
+and all the API+ABI promises which some with that, or we should just
+keep it as a private utility function lib, which gets linked into
+a few utils, but not installed system wide.
+
+I think this may have something to do with the new get_media_devices
+code, but the commit message is rather undescriptive...
+
 Regards,
 
-Laurent Pinchart
-
+Hans
