@@ -1,63 +1,60 @@
 Return-path: <mchehab@pedra>
-Received: from comal.ext.ti.com ([198.47.26.152]:50713 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751049Ab1ETNrD (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 20 May 2011 09:47:03 -0400
-Received: from dbdp20.itg.ti.com ([172.24.170.38])
-	by comal.ext.ti.com (8.13.7/8.13.7) with ESMTP id p4KDl0Im010184
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-media@vger.kernel.org>; Fri, 20 May 2011 08:47:02 -0500
-From: Manjunath Hadli <manjunath.hadli@ti.com>
-To: LMML <linux-media@vger.kernel.org>
-CC: dlos <davinci-linux-open-source@linux.davincidsp.com>,
-	Manjunath Hadli <manjunath.hadli@ti.com>
-Subject: [PATCH v17 0/6] davinci vpbe: dm6446 v4l2 driver
-Date: Fri, 20 May 2011 19:16:55 +0530
-Message-ID: <1305899215-1886-1-git-send-email-manjunath.hadli@ti.com>
+Received: from 50.23.254.54-static.reverse.softlayer.com ([50.23.254.54]:45819
+	"EHLO softlayer.compulab.co.il" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S932161Ab1EWRDz (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 23 May 2011 13:03:55 -0400
+Message-ID: <4DDA9372.5060200@compulab.co.il>
+Date: Mon, 23 May 2011 20:03:46 +0300
+From: Igor Grinberg <grinberg@compulab.co.il>
 MIME-Version: 1.0
-Content-Type: text/plain
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+CC: javier Martin <javier.martin@vista-silicon.com>,
+	linux-media@vger.kernel.org, beagleboard@googlegroups.com,
+	carlighting@yahoo.co.nz, g.liakhovetski@gmx.de,
+	linux-arm-kernel@lists.infradead.org,
+	"linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+Subject: Re: [PATCH v2 2/2] OMAP3BEAGLE: Add support for mt9p031 sensor driver.
+References: <1305899272-31839-1-git-send-email-javier.martin@vista-silicon.com> <4DD9146B.2050408@compulab.co.il> <BANLkTi=sqZpAKFxeCbwqpU_7+WZABGa4=w@mail.gmail.com> <201105230947.15775.laurent.pinchart@ideasonboard.com>
+In-Reply-To: <201105230947.15775.laurent.pinchart@ideasonboard.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-version17 : Fixed Laurent Pinchart's comments for:
-1.ISR reorganization
-2.probe function cleanup
-3.try_format cleanup
-4.Minor fixes
+On 05/23/11 10:47, Laurent Pinchart wrote:
+> Hi Javier,
+>
+> On Monday 23 May 2011 09:25:01 javier Martin wrote:
+>> On 22 May 2011 15:49, Igor Grinberg <grinberg@compulab.co.il> wrote:
+> [snip]
+>
+>>>> @@ -309,6 +357,15 @@ static int beagle_twl_gpio_setup(struct device
+>>>> *dev, pr_err("%s: unable to configure EHCI_nOC\n", __func__); }
+>>>>
+>>>> +     if (omap3_beagle_get_rev() == OMAP3BEAGLE_BOARD_XM) {
+>>>> +             /*
+>>>> +              * Power on camera interface - only on pre-production, not
+>>>> +              * needed on production boards
+>>>> +              */
+>>>> +             gpio_request(gpio + 2, "CAM_EN");
+>>>> +             gpio_direction_output(gpio + 2, 1);
+>>> Why not gpio_request_one()?
+>> Just to follow the same approach as in the rest of the code.
+>> Maybe a further patch could change all "gpio_request()" uses to
+>> "gpio_request_one()".
+> Please do it the other way around. Replace calls to gpio_request() + 
+> gpio_direction_output() with a call to gpio_request_one(), and then modify 
+> this patch to use gpio_request_one().
 
-sssssssss Hadli (6):
-  davinci vpbe: V4L2 display driver for DM644X SoC
-  davinci vpbe: VPBE display driver
-  davinci vpbe: OSD(On Screen Display) block
-  davinci vpbe: VENC( Video Encoder) implementation
-  davinci vpbe: Build infrastructure for VPBE driver
-  davinci vpbe: Readme text for Dm6446 vpbe
+Well, this is done already, you need to follow Tony's linux-next branch...
+So, just changing this patch would do...
+Also, good practice is to base patches on maintainer's appropriate branch,
+so it would be easier to apply.
 
- Documentation/video4linux/README.davinci-vpbe |   93 ++
- drivers/media/video/davinci/Kconfig           |   22 +
- drivers/media/video/davinci/Makefile          |    2 +
- drivers/media/video/davinci/vpbe.c            |  864 ++++++++++++
- drivers/media/video/davinci/vpbe_display.c    | 1861 +++++++++++++++++++++++++
- drivers/media/video/davinci/vpbe_osd.c        | 1231 ++++++++++++++++
- drivers/media/video/davinci/vpbe_osd_regs.h   |  364 +++++
- drivers/media/video/davinci/vpbe_venc.c       |  566 ++++++++
- drivers/media/video/davinci/vpbe_venc_regs.h  |  177 +++
- include/media/davinci/vpbe.h                  |  184 +++
- include/media/davinci/vpbe_display.h          |  147 ++
- include/media/davinci/vpbe_osd.h              |  394 ++++++
- include/media/davinci/vpbe_types.h            |   91 ++
- include/media/davinci/vpbe_venc.h             |   45 +
- 14 files changed, 6041 insertions(+), 0 deletions(-)
- create mode 100644 Documentation/video4linux/README.davinci-vpbe
- create mode 100644 drivers/media/video/davinci/vpbe.c
- create mode 100644 drivers/media/video/davinci/vpbe_display.c
- create mode 100644 drivers/media/video/davinci/vpbe_osd.c
- create mode 100644 drivers/media/video/davinci/vpbe_osd_regs.h
- create mode 100644 drivers/media/video/davinci/vpbe_venc.c
- create mode 100644 drivers/media/video/davinci/vpbe_venc_regs.h
- create mode 100644 include/media/davinci/vpbe.h
- create mode 100644 include/media/davinci/vpbe_display.h
- create mode 100644 include/media/davinci/vpbe_osd.h
- create mode 100644 include/media/davinci/vpbe_types.h
- create mode 100644 include/media/davinci/vpbe_venc.h
+
+
+-- 
+Regards,
+Igor.
 
