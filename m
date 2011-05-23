@@ -1,37 +1,72 @@
 Return-path: <mchehab@pedra>
-Received: from mail-iy0-f174.google.com ([209.85.210.174]:39066 "EHLO
-	mail-iy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753999Ab1EEWuR convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 5 May 2011 18:50:17 -0400
-Received: by iyb14 with SMTP id 14so2209917iyb.19
-        for <linux-media@vger.kernel.org>; Thu, 05 May 2011 15:50:17 -0700 (PDT)
+Received: from mailfe07.c2i.net ([212.247.154.194]:55318 "EHLO swip.net"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1752469Ab1EWLC6 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 23 May 2011 07:02:58 -0400
+To: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Subject: [PATCH] Fix warning about invalid trigraph sequence.
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>
+From: Hans Petter Selasky <hselasky@c2i.net>
+Date: Mon, 23 May 2011 13:01:45 +0200
 MIME-Version: 1.0
-From: =?ISO-8859-2?Q?Wojciech_Dal=EAtka?= <webmaster@nadaje.com>
-Date: Fri, 6 May 2011 00:42:26 +0200
-Message-ID: <BANLkTimz1X+FoT1dFHnxh7fQMrMB7p8WLg@mail.gmail.com>
-Subject: h826d
-To: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8BIT
+Content-Type: Multipart/Mixed;
+  boundary="Boundary-00=_Z6j2NojnDW7N/IQ"
+Message-Id: <201105231301.45428.hselasky@c2i.net>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Hi,
-I've got a problem with an USB Capture Device:
-AVerTV Hybrid Volar HX
+--Boundary-00=_Z6j2NojnDW7N/IQ
+Content-Type: text/plain;
+  charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 
-System: ubuntu 11.04
-Kernel: linux-headers-2.6.38-8-generic-pae
+--HPS
 
-I did everything co compile the driver, according to:
-http://www.linuxtv.org/wiki/index.php/AVerMedia_AverTV_Hybrid_Volar_HX_(A827)
+--Boundary-00=_Z6j2NojnDW7N/IQ
+Content-Type: text/x-patch;
+  charset="us-ascii";
+  name="dvb-usb-0004.patch"
+Content-Transfer-Encoding: quoted-printable
+Content-Disposition: inline;
+	filename="dvb-usb-0004.patch"
 
-But afteall I get this error in dmesg:
-[ 9506.533260] h826d: Unknown symbol param_array_ops.param_array_ops (err 0)
-(I did hex edit the file osdep_dvb.o_shipped as it was recommended)
+=46rom e3b824b49f3d853ba16d9cdda836bd2fe81c7775 Mon Sep 17 00:00:00 2001
+=46rom: Hans Petter Selasky <hselasky@c2i.net>
+Date: Mon, 23 May 2011 12:59:37 +0200
+Subject: [PATCH] Fix warning about invalid trigraph sequence.
 
-Is it possible to run this card on ubuntu 11.04?
+Signed-off-by: Hans Petter Selasky <hselasky@c2i.net>
+=2D--
+ drivers/media/video/cpia2/cpia2_v4l.c |    4 ++--
+ 1 files changed, 2 insertions(+), 2 deletions(-)
 
--- 
-Wojciech Dalętka
-http://nadaje.com
+diff --git a/drivers/media/video/cpia2/cpia2_v4l.c b/drivers/media/video/cp=
+ia2/cpia2_v4l.c
+index 5111bbc..e909838 100644
+=2D-- a/drivers/media/video/cpia2/cpia2_v4l.c
++++ b/drivers/media/video/cpia2/cpia2_v4l.c
+@@ -438,7 +438,7 @@ static int cpia2_querycap(struct file *file, void *fh, =
+struct v4l2_capability *v
+ 		strcat(vc->card, " (676/");
+ 		break;
+ 	default:
+=2D		strcat(vc->card, " (???/");
++		strcat(vc->card, " (XXX/");
+ 		break;
+ 	}
+ 	switch (cam->params.version.sensor_flags) {
+@@ -458,7 +458,7 @@ static int cpia2_querycap(struct file *file, void *fh, =
+struct v4l2_capability *v
+ 		strcat(vc->card, "500)");
+ 		break;
+ 	default:
+=2D		strcat(vc->card, "???)");
++		strcat(vc->card, "XXX)");
+ 		break;
+ 	}
+=20
+=2D-=20
+1.7.1.1
+
+
+--Boundary-00=_Z6j2NojnDW7N/IQ--
