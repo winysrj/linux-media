@@ -1,63 +1,48 @@
 Return-path: <mchehab@pedra>
-Received: from relay4-d.mail.gandi.net ([217.70.183.196]:35841 "EHLO
-	relay4-d.mail.gandi.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753944Ab1EXRrH (ORCPT
+Received: from smtp-vbr7.xs4all.nl ([194.109.24.27]:2260 "EHLO
+	smtp-vbr7.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753640Ab1EWLHF (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 24 May 2011 13:47:07 -0400
-From: =?iso-8859-1?Q?S=E9bastien_RAILLARD_=28COEXSI=29?= <sr@coexsi.fr>
-To: "'Guy Martin'" <gmsoft@tuxicoman.be>, <abraham.manu@gmail.com>
-Cc: <linux-media@vger.kernel.org>
-References: <20110524181817.34097929@borg.bxl.tuxicoman.be>
-In-Reply-To: <20110524181817.34097929@borg.bxl.tuxicoman.be>
-Subject: RE: STV6110 FE_READ_STATUS implementation
-Date: Tue, 24 May 2011 19:47:17 +0200
-Message-ID: <007101cc1a3a$a0a86e80$e1f94b80$@coexsi.fr>
+	Mon, 23 May 2011 07:07:05 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: "linux-media" <linux-media@vger.kernel.org>
+Subject: [GIT PATCHES FOR 2.6.40] Fixes
+Date: Mon, 23 May 2011 13:06:56 +0200
+Cc: Manjunatha Halli <manjunatha_halli@ti.com>,
+	"Matti J. Aaltonen" <matti.j.aaltonen@nokia.com>
 MIME-Version: 1.0
-Content-Type: text/plain;
-	charset="iso-8859-1"
+Content-Type: Text/Plain;
+  charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Content-Language: fr
+Message-Id: <201105231306.56050.hverkuil@xs4all.nl>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
+Hi Mauro,
 
+Here are a few fixes: the first fixes a bug in the wl12xx drivers (I hope Matti's
+email is still correct). The second fixes a few DocBook validation errors, and
+the last fixes READ_ONLY and GRABBED handling in the control framework.
 
-> -----Original Message-----
-> From: linux-media-owner@vger.kernel.org [mailto:linux-media-
-> owner@vger.kernel.org] On Behalf Of Guy Martin
-> Sent: mardi 24 mai 2011 18:18
-> To: abraham.manu@gmail.com
-> Cc: linux-media@vger.kernel.org
-> Subject: STV6110 FE_READ_STATUS implementation
-> 
-> 
-> Hi Manu,
-> 
-> I'm currently writing an application that needs to know the detailed
-> frontend status when there is no lock.
-> As far as I can see from the sources, the code will only set the right
-> status when there is a lock in stv6110x_get_status().
-> 
-> Does the STV6110 supports reporting of signal, carrier, viterbi and sync
-> ?
-> 
+Regards,
 
-I've done some tests with the CineS2, that is using the STV6110A as the
-tuner and the STV0903 as the demodulator.
+	Hans
 
-The values you are searching for don't come from the tuner, but the
-demodulator.
+The following changes since commit 87cf028f3aa1ed51fe29c36df548aa714dc7438f:
 
-In my case, the STV0903 is reporting the five following states : SCVYL.
+  [media] dm1105: GPIO handling added, I2C on GPIO added, LNB control through GPIO reworked (2011-05-21 11:10:28 -0300)
 
+are available in the git repository at:
+  ssh://linuxtv.org/git/hverkuil/media_tree.git fixes
 
-> I'd be happy to implement that if it does but I wasn't able to find the
-> datasheet. Do you have that available ?
-> 
-> Regards,
->   Guy
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media"
-> in the body of a message to majordomo@vger.kernel.org More majordomo
-> info at  http://vger.kernel.org/majordomo-info.html
+Hans Verkuil (3):
+      wl12xx: g_volatile_ctrl fix: wrong field set.
+      Media DocBook: fix validation errors.
+      v4l2-ctrls: drivers should be able to ignore READ_ONLY and GRABBED flags
 
+ Documentation/DocBook/dvb/dvbproperty.xml    |    5 ++-
+ Documentation/DocBook/v4l/subdev-formats.xml |   10 ++--
+ drivers/media/radio/radio-wl1273.c           |    2 +-
+ drivers/media/radio/wl128x/fmdrv_v4l2.c      |    2 +-
+ drivers/media/video/v4l2-ctrls.c             |   59 +++++++++++++++++---------
+ 5 files changed, 50 insertions(+), 28 deletions(-)
