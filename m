@@ -1,36 +1,63 @@
-Return-path: <mchehab@gaivota>
-Received: from newsmtp5.atmel.com ([204.2.163.5]:27696 "EHLO
-	sjogate2.atmel.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755837Ab1ELJ3W convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 12 May 2011 05:29:22 -0400
-Content-class: urn:content-classes:message
+Return-path: <mchehab@pedra>
+Received: from mailfe04.c2i.net ([212.247.154.98]:35437 "EHLO swip.net"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1751546Ab1EWKw2 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 23 May 2011 06:52:28 -0400
+To: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Subject: [PATCH] Correct a module parameter description to describe the correct parameter.
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>
+From: Hans Petter Selasky <hselasky@c2i.net>
+Date: Mon, 23 May 2011 12:51:15 +0200
 MIME-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Subject: RE: [PATCH] [media] at91: add Atmel Image Sensor Interface (ISI)support
-Date: Thu, 12 May 2011 17:26:59 +0800
-Message-ID: <4C79549CB6F772498162A641D92D532801AC28CD@penmb01.corp.atmel.com>
-In-Reply-To: <20110512074725.GA1356@n2100.arm.linux.org.uk>
-References: <1305186138-5656-1-git-send-email-josh.wu@atmel.com> <20110512074725.GA1356@n2100.arm.linux.org.uk>
-From: "Wu, Josh" <Josh.wu@atmel.com>
-To: "Russell King - ARM Linux" <linux@arm.linux.org.uk>
-Cc: <mchehab@redhat.com>, <linux-media@vger.kernel.org>,
-	"Haring, Lars" <Lars.Haring@atmel.com>,
-	<linux-kernel@vger.kernel.org>,
-	<linux-arm-kernel@lists.infradead.org>, <g.liakhovetski@gmx.de>
+Content-Type: Multipart/Mixed;
+  boundary="Boundary-00=_jwj2NpB2BWemrS+"
+Message-Id: <201105231251.15532.hselasky@c2i.net>
 List-ID: <linux-media.vger.kernel.org>
-Sender: Mauro Carvalho Chehab <mchehab@gaivota>
+Sender: <mchehab@pedra>
 
-Hi, Russell
+--Boundary-00=_jwj2NpB2BWemrS+
+Content-Type: text/plain;
+  charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 
-From: Russell King - ARM Linux [mailto:linux@arm.linux.org.uk] Sent: Thursday, May 12, 2011 3:47 PM
-> On Thu, May 12, 2011 at 03:42:18PM +0800, Josh Wu wrote:
->> +err_alloc_isi:
->> +	clk_disable(pclk);
-> clk_put() ?
-Ok, will be fixed in V2 patch. Thanks.
+--HPS
 
-Best Regards,
-Josh Wu
+--Boundary-00=_jwj2NpB2BWemrS+
+Content-Type: text/x-patch;
+  charset="us-ascii";
+  name="dvb-usb-0002.patch"
+Content-Transfer-Encoding: quoted-printable
+Content-Disposition: inline;
+	filename="dvb-usb-0002.patch"
+
+=46rom 0b5b16dfa302229060eb4ceae0498f0d60ab86c1 Mon Sep 17 00:00:00 2001
+=46rom: Hans Petter Selasky <hselasky@c2i.net>
+Date: Mon, 23 May 2011 12:50:01 +0200
+Subject: [PATCH] Correct a module parameter description to describe the cor=
+rect parameter.
+
+Signed-off-by: Hans Petter Selasky <hselasky@c2i.net>
+=2D--
+ drivers/media/dvb/frontends/cx24116.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
+
+diff --git a/drivers/media/dvb/frontends/cx24116.c b/drivers/media/dvb/fron=
+tends/cx24116.c
+index 2410d8b..cf1ec6c 100644
+=2D-- a/drivers/media/dvb/frontends/cx24116.c
++++ b/drivers/media/dvb/frontends/cx24116.c
+@@ -137,7 +137,7 @@ MODULE_PARM_DESC(toneburst, "DiSEqC toneburst 0=3DOFF, =
+1=3DTONE CACHE, "\
+ /* SNR measurements */
+ static int esno_snr;
+ module_param(esno_snr, int, 0644);
+=2DMODULE_PARM_DESC(debug, "SNR return units, 0=3DPERCENTAGE 0-100, "\
++MODULE_PARM_DESC(esno_snr, "SNR return units, 0=3DPERCENTAGE 0-100, "\
+ 	"1=3DESNO(db * 10) (default:0)");
+=20
+ enum cmds {
+=2D-=20
+1.7.1.1
+
+
+--Boundary-00=_jwj2NpB2BWemrS+--
