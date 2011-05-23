@@ -1,68 +1,109 @@
 Return-path: <mchehab@pedra>
-Received: from mail-iy0-f174.google.com ([209.85.210.174]:40642 "EHLO
-	mail-iy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752322Ab1EFKmU (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 6 May 2011 06:42:20 -0400
-Received: by iyb14 with SMTP id 14so2548172iyb.19
-        for <linux-media@vger.kernel.org>; Fri, 06 May 2011 03:42:19 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <201105051602.49814.laurent.pinchart@ideasonboard.com>
-References: <1304603588-3178-1-git-send-email-javier.martin@vista-silicon.com>
-	<201105051602.49814.laurent.pinchart@ideasonboard.com>
-Date: Fri, 6 May 2011 12:42:19 +0200
-Message-ID: <BANLkTik64pqpg3XtnixjtgLHAdP1t81uHg@mail.gmail.com>
-Subject: Re: [PATCH] OMAP3: ISP: Fix unbalanced use of omap3isp_get().
-From: javier Martin <javier.martin@vista-silicon.com>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: linux-media@vger.kernel.org, g.liakhovetski@gmx.de
-Content-Type: text/plain; charset=ISO-8859-1
+Received: from mailout3.w1.samsung.com ([210.118.77.13]:17960 "EHLO
+	mailout3.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753840Ab1EWLzW (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 23 May 2011 07:55:22 -0400
+MIME-version: 1.0
+Content-transfer-encoding: 7BIT
+Content-type: text/plain; charset=utf-8
+Date: Mon, 23 May 2011 13:55:21 +0200
+From: Marek Szyprowski <m.szyprowski@samsung.com>
+Subject: RE: [RFC] Standardize YUV support in the fbdev API
+In-reply-to: <201105180853.33850.hverkuil@xs4all.nl>
+To: 'Hans Verkuil' <hverkuil@xs4all.nl>,
+	'Felipe Contreras' <felipe.contreras@gmail.com>
+Cc: 'Laurent Pinchart' <laurent.pinchart@ideasonboard.com>,
+	linux-fbdev@vger.kernel.org, linux-media@vger.kernel.org,
+	dri-devel@lists.freedesktop.org
+Message-id: <000601cc1940$4b2e2b20$e18a8160$%szyprowski@samsung.com>
+Content-language: pl
+References: <201105180007.21173.laurent.pinchart@ideasonboard.com>
+ <BANLkTi=mRYkJL-R63K+pvZGvtetJo3oJaQ@mail.gmail.com>
+ <201105180853.33850.hverkuil@xs4all.nl>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Hi Laurent,
-> This won't work. Let's assume the following sequence of events:
->
-> - Userspace opens the sensor subdev device node
-> - The sensor driver calls to board code to turn the sensor clock on
-> - Board code calls to the ISP driver to turn XCLK on
-> - The ISP driver calls isp_enable_clocks()
-> ...
-> - Userspace opens an ISP video device node
-> - The ISP driver calls isp_get(), incrementing the reference count
-> - Userspace closes the ISP video device node
-> - The ISP driver calls isp_put(), decrementing the reference count
-> - The reference count reaches 0, the ISP driver calls isp_disable_clocks()
->
-> The sensor will then loose its clock, even though the sensor subdev device
-> node is still opened.
+Hello,
 
-Of course, you are right, I hadn't thought of it this way.
+On Wednesday, May 18, 2011 8:54 AM Hans Verkuil wrote:
 
-> Could you please explain why the existing code doesn't work on your hardware ?
+> On Wednesday, May 18, 2011 00:44:26 Felipe Contreras wrote:
+> > On Wed, May 18, 2011 at 1:07 AM, Laurent Pinchart
+> > <laurent.pinchart@ideasonboard.com> wrote:
+> > > I need to implement support for a YUV frame buffer in an fbdev driver.
+> As the
+> > > fbdev API doesn't support this out of the box, I've spent a couple of
+> days
+> > > reading fbdev (and KMS) code and thinking about how we could cleanly
+> add YUV
+> > > support to the API. I'd like to share my findings and thoughts, and
+> hopefully
+> > > receive some comments back.
+> > >
+> > > The terms 'format', 'pixel format', 'frame buffer format' and 'data
+> format'
+> > > will be used interchangeably in this e-mail. They all refer to the way
+> pixels
+> > > are stored in memory, including both the representation of a pixel as
+> integer
+> > > values and the layout of those integer values in memory.
+> >
+> > This is a great proposal. It was about time!
+> >
+> > > The third solution has my preference. Comments and feedback will be
+> > > appreciated. I will then work on a proof of concept and submit patches.
+> >
+> > I also would prefer the third solution. I don't think there's much
+> > difference from the user-space point of view, and a new ioctl would be
+> > cleaner. Also the v4l2 fourcc's should do.
+> 
+> I agree with this.
+> 
+> We might want to take the opportunity to fix this section of the V4L2 Spec:
+> 
+> http://www.xs4all.nl/~hverkuil/spec/media.html#pixfmt-rgb
+> 
+> There are two tables, 2.6 and 2.7. But 2.6 is almost certainly wrong and
+> should be removed.
 
-Apparently, it is a mistake related to the sensor driver. Sorry about that.
+That's definitely true. I was confused at the beginning when I saw 2
+different tables describing the same pixel formats.
 
-Just one question.
-As I can see from mt9v032 driver, open callback is used to enable
-clock and close callback is used to disable clock.
-Does this mean that if sensor device node is not held open video won't work?
-i.e, the following wouldn't work since (2) opens the sensor (enables
-clock) and closes it again (disables clock) and (3) only opens CCDC
-device node (enables clock with a wrong setting, since it was
-previously set to 0 by (2) ) :
+ I suspect many if not all V4L2 drivers are badly broken for
+> big-endian systems and report the wrong pixel formats.
+> 
+> Officially the pixel formats reflect the contents of the memory. But
+> everything is swapped on a big endian system, so you are supposed to 
+> report a different pix format.
 
-(1)  ./media-ctl -r -l '"mt9p031 2-0048":0->"OMAP3 ISP CCDC":0[1],
-"OMAP3 ISP CCDC":1->"OMAP3 ISP CCDC output":0[1]'
-(2)  ./media-ctl -f '"mt9p031 2-0048":0[SGRBG8 320x240], "OMAP3 ISP
-CCDC":1[SGRBG8 320x240]'
-(3)  ./yavta  -f SGRBG8 -s 320x240 -n 4 --capture=100 --skip 3 -F
-`./media-ctl -e "OMAP3 ISP CCDC output"
+I always thought that pix_format describes the layout of video data in
+memory on byte level, which is exactly the same on both little- and big-
+endian systems. You can notice swapped data only if you access memory
+by units larger than byte, like 16bit or 32bit integers. BTW - I would
+really like to avoid little- and big- endian flame, but your statement
+about 'everything is swapped on a big endian system' is completely
+wrong. It is rather the characteristic of little-endian system not big
+endian one if you display the content of the same memory first using
+byte access and then using word/long access.
 
+> I can't remember seeing any driver do that. Some have built-in swapping,
+> though, and turn that on if needed.
+
+The drivers shouldn't do ANY byte swapping at all. Only tools that
+extract pixel data with some 'accelerated' methods (like 32bit integer
+casting and bit-level shifting) should be aware of endianess.
+
+> I really need to run some tests, but I've been telling myself this for
+> years now :-(
+
+I've checked the BTTV board in my PowerMac/G4 and the display was
+correct with xawtv. It is just a matter of selecting correct pix format
+basing on the information returned by xsever. 
+
+Best regards
 -- 
-Javier Martin
-Vista Silicon S.L.
-CDTUC - FASE C - Oficina S-345
-Avda de los Castros s/n
-39005- Santander. Cantabria. Spain
-+34 942 25 32 60
-www.vista-silicon.com
+Marek Szyprowski
+Samsung Poland R&D Center
+
+
