@@ -1,107 +1,116 @@
 Return-path: <mchehab@pedra>
-Received: from smtp-68.nebula.fi ([83.145.220.68]:47080 "EHLO
-	smtp-68.nebula.fi" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752581Ab1EZOpS (ORCPT
+Received: from smtp-vbr12.xs4all.nl ([194.109.24.32]:2901 "EHLO
+	smtp-vbr12.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752426Ab1EWMKL (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 26 May 2011 10:45:18 -0400
-Date: Thu, 26 May 2011 17:45:12 +0300
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Arnd Bergmann <arnd@arndb.de>
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	linux-media@vger.kernel.org,
-	David Rusling <david.rusling@linaro.org>
-Subject: Re: [GIT PATCH FOR 2.6.40] uvcvideo patches
-Message-ID: <20110526144512.GB3547@valkosipuli.localdomain>
-References: <201105150948.24956.laurent.pinchart@ideasonboard.com>
- <4DDD95AF.4010004@redhat.com>
- <201105261054.59914.laurent.pinchart@ideasonboard.com>
- <201105261120.41282.arnd@arndb.de>
+	Mon, 23 May 2011 08:10:11 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Marek Szyprowski <m.szyprowski@samsung.com>
+Subject: Re: [RFC] Standardize YUV support in the fbdev API
+Date: Mon, 23 May 2011 14:09:59 +0200
+Cc: "'Felipe Contreras'" <felipe.contreras@gmail.com>,
+	"'Laurent Pinchart'" <laurent.pinchart@ideasonboard.com>,
+	linux-fbdev@vger.kernel.org, linux-media@vger.kernel.org,
+	dri-devel@lists.freedesktop.org
+References: <201105180007.21173.laurent.pinchart@ideasonboard.com> <201105180853.33850.hverkuil@xs4all.nl> <000601cc1940$4b2e2b20$e18a8160$%szyprowski@samsung.com>
+In-Reply-To: <000601cc1940$4b2e2b20$e18a8160$%szyprowski@samsung.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <201105261120.41282.arnd@arndb.de>
+Content-Type: Text/Plain;
+  charset="utf-8"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201105231409.59876.hverkuil@xs4all.nl>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Hi Arnd and others,
-
-On Thu, May 26, 2011 at 11:20:41AM +0200, Arnd Bergmann wrote:
-> On Thursday 26 May 2011, Laurent Pinchart wrote:
-> > On Thursday 26 May 2011 01:50:07 Mauro Carvalho Chehab wrote:
-> > > Em 25-05-2011 20:43, Laurent Pinchart escreveu:
-> > > > Issues arise when devices have floating point registers. And yes, that
-> > > > happens, I've learnt today about an I2C sensor with floating point
-> > > > registers (in this specific case it should probably be put in the broken
-> > > > design category, but it exists :-)).
-> > > 
-> > > Huh! Yeah, an I2C sensor with FP registers sound weird. We need more
-> > > details in order to address those.
-> > 
-> > Fortunately for the sensor I'm talking about most of those registers are read-
-> > only and contain large values that can be handled as integers, so all we need 
-> > to do is convert the 32-bit IEEE float value into an integer. Other hardware 
-> > might require more complex FP handling.
+On Monday, May 23, 2011 13:55:21 Marek Szyprowski wrote:
+> Hello,
 > 
-> As an additional remark here, most architectures can handle float in the
-> kernel in some way, but they all do it differently, so it's basically
-> impossible to do in a cross-architecture device driver.
-
-Yeah, I noticed this also. Luckily, usually no other operations are needed
-on floating point numbers than converting them to integers.
-
-> > > I'm all about showing the industry in with direction we would like it to
-> > > go. We want that all Linux-supported architectures/sub-architectures
-> > > support inter-core communications in kernelspace, in a more efficient way
-> > > that it would happen if such communication would happen in userspace.
-> > 
-> > I agree with that. My concern is about things like
-> > 
-> > "Standardizing on the OpenMax media libraries and the GStreamer framework is 
-> > the direction that Linaro is going." (David Rusling, Linaro CTO, quoted on 
-> > lwn.net)
-> > 
-> > We need to address this now, otherwise it will be too late.
+> On Wednesday, May 18, 2011 8:54 AM Hans Verkuil wrote:
 > 
-> Absolutely agreed. OpenMAX needs to die as an interface abstraction layer.
+> > On Wednesday, May 18, 2011 00:44:26 Felipe Contreras wrote:
+> > > On Wed, May 18, 2011 at 1:07 AM, Laurent Pinchart
+> > > <laurent.pinchart@ideasonboard.com> wrote:
+> > > > I need to implement support for a YUV frame buffer in an fbdev driver.
+> > As the
+> > > > fbdev API doesn't support this out of the box, I've spent a couple of
+> > days
+> > > > reading fbdev (and KMS) code and thinking about how we could cleanly
+> > add YUV
+> > > > support to the API. I'd like to share my findings and thoughts, and
+> > hopefully
+> > > > receive some comments back.
+> > > >
+> > > > The terms 'format', 'pixel format', 'frame buffer format' and 'data
+> > format'
+> > > > will be used interchangeably in this e-mail. They all refer to the way
+> > pixels
+> > > > are stored in memory, including both the representation of a pixel as
+> > integer
+> > > > values and the layout of those integer values in memory.
+> > >
+> > > This is a great proposal. It was about time!
+> > >
+> > > > The third solution has my preference. Comments and feedback will be
+> > > > appreciated. I will then work on a proof of concept and submit patches.
+> > >
+> > > I also would prefer the third solution. I don't think there's much
+> > > difference from the user-space point of view, and a new ioctl would be
+> > > cleaner. Also the v4l2 fourcc's should do.
+> > 
+> > I agree with this.
+> > 
+> > We might want to take the opportunity to fix this section of the V4L2 Spec:
+> > 
+> > http://www.xs4all.nl/~hverkuil/spec/media.html#pixfmt-rgb
+> > 
+> > There are two tables, 2.6 and 2.7. But 2.6 is almost certainly wrong and
+> > should be removed.
 > 
-> IIRC, the last time we discussed this in Linaro, the outcome was basically
-> that we want to have an OpenMAX compatible library on top of V4L, so that the
-> Linaro members can have a checkmark in their product specs that lists them
-> as compatible, but we wouldn't do anything hardware specific in there, or
-> advocate the use of OpenMAX over v4l2 or gstreamer.
+> That's definitely true. I was confused at the beginning when I saw 2
+> different tables describing the same pixel formats.
+> 
+>  I suspect many if not all V4L2 drivers are badly broken for
+> > big-endian systems and report the wrong pixel formats.
+> > 
+> > Officially the pixel formats reflect the contents of the memory. But
+> > everything is swapped on a big endian system, so you are supposed to 
+> > report a different pix format.
+> 
+> I always thought that pix_format describes the layout of video data in
+> memory on byte level, which is exactly the same on both little- and big-
+> endian systems.
 
-I strongly favour GStreamer below OpenMAX rather than V4L2. Naturally the
-GStreamer source plugins do use V4L2 where applicable.
+Correct.
 
-Much of the high level functionality in cameras that applications are
-interested in (for example) is best implemented in GStreamer rather than
-V4L2 which is quite low level interface in some cases. While some closed
-source components will likely remain, the software stack is still primarily
-Open Source software. The closed components are well isolated and
-replaceable where they exist; essentially this means individual GStreamer
-plugins.
+> You can notice swapped data only if you access memory
+> by units larger than byte, like 16bit or 32bit integers. BTW - I would
+> really like to avoid little- and big- endian flame, but your statement
+> about 'everything is swapped on a big endian system' is completely
+> wrong. It is rather the characteristic of little-endian system not big
+> endian one if you display the content of the same memory first using
+> byte access and then using word/long access.
 
-Using GStreamer also would have the benefit that in practice most of the
-code using V4L2 would be Open Source as well, not to mention fostering
-development as people work on common software components rather than
-everyone having their own, as in various OpenMAX implementations.
+You are correct, I wasn't thinking it through.
+ 
+> > I can't remember seeing any driver do that. Some have built-in swapping,
+> > though, and turn that on if needed.
+> 
+> The drivers shouldn't do ANY byte swapping at all. Only tools that
+> extract pixel data with some 'accelerated' methods (like 32bit integer
+> casting and bit-level shifting) should be aware of endianess.
+> 
+> > I really need to run some tests, but I've been telling myself this for
+> > years now :-(
+> 
+> I've checked the BTTV board in my PowerMac/G4 and the display was
+> correct with xawtv. It is just a matter of selecting correct pix format
+> basing on the information returned by xsever. 
+> 
+> Best regards
+> 
 
-I wonder if vendors really are looking to provide new designs supporting
-OpenMAX while NOT using V4L2, with the possible exception of the OMAP 5.
-But, there's a project to develop a V4L2 driver for the OMAP 4 ISS which
-hopefully would support OMAP 5 as well. Of course, this direction of
-development must be supported where we can.
+Just forget my post (except for the part of cleaning up the tables :-) ).
 
-I think the goal should be that OpenMAX provides no useful functionality at
-all. It should be just a legacy interface layer for applications dependent
-on it. All the functionality should be implemented in V4L2 drivers and
-GStreamer below OpenMAX.
+Regards,
 
-Just my 5 euro cents.
-
-Cheers,
-
--- 
-Sakari Ailus
-sakari dot ailus at iki dot fi
+	Hans
