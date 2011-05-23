@@ -1,88 +1,742 @@
 Return-path: <mchehab@pedra>
-Received: from mail-ey0-f174.google.com ([209.85.215.174]:42191 "EHLO
-	mail-ey0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752019Ab1ECVwk (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 3 May 2011 17:52:40 -0400
-Received: by eyx24 with SMTP id 24so170642eyx.19
-        for <linux-media@vger.kernel.org>; Tue, 03 May 2011 14:52:39 -0700 (PDT)
+Received: from perceval.ideasonboard.com ([95.142.166.194]:46483 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752289Ab1EWJDR (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 23 May 2011 05:03:17 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Subject: Re: [PATCH v2 1/2] MT9P031: Add support for Aptina mt9p031 sensor.
+Date: Mon, 23 May 2011 11:03:26 +0200
+Cc: Javier Martin <javier.martin@vista-silicon.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	carlighting@yahoo.co.nz, beagleboard@googlegroups.com,
+	linux-arm-kernel@lists.infradead.org
+References: <1305899272-31839-1-git-send-email-javier.martin@vista-silicon.com> <Pine.LNX.4.64.1105211334260.25424@axis700.grange>
+In-Reply-To: <Pine.LNX.4.64.1105211334260.25424@axis700.grange>
 MIME-Version: 1.0
-In-Reply-To: <CC1D29DF-C192-4818-B16A-36AF9FDDAF2A@wilsonet.com>
-References: <20110423005412.12978e29@darkstar>
-	<20110424163530.2bc1b365@darkstar>
-	<BCCEA9F4-16D7-4E63-B32C-15217AA094F3@wilsonet.com>
-	<20110425201835.0fbb84ee@darkstar>
-	<A4226E90-09BE-45FE-AEEF-0EA7E9414B4B@wilsonet.com>
-	<20110425230658.22551665@darkstar>
-	<59898A0D-573E-46E9-A3B7-9054B24E69DF@wilsonet.com>
-	<20110427151621.5ac73e12@darkstar>
-	<1FB1ED64-0EEC-4E15-8178-D2CCCA915B1D@wilsonet.com>
-	<20110427204725.2923ac99@darkstar>
-	<91CD2A5E-418A-4217-8D9F-1B29FC9DD24D@wilsonet.com>
-	<20110427222855.2e3a3a4d@darkstar>
-	<63E3BF90-BF19-43E3-B8DD-6D6F4896F2E7@wilsonet.com>
-	<BANLkTik+gYRfhDBy9JWgvo+GWJk5Uz7RMQ@mail.gmail.com>
-	<14961B2E-36D9-4CD2-87E7-629F115055F2@wilsonet.com>
-	<20110503222149.1ce726d9@darkstar>
-	<BANLkTin7i871oBseKwg2BmumzvUEb+wHTg@mail.gmail.com>
-	<CC1D29DF-C192-4818-B16A-36AF9FDDAF2A@wilsonet.com>
-Date: Tue, 3 May 2011 17:52:38 -0400
-Message-ID: <BANLkTimUen9CfMOhX19wptKrvC3--dQ18w@mail.gmail.com>
-Subject: Re: Terratec Cinergy 1400 DVB-T RC not working anymore
-From: Devin Heitmueller <dheitmueller@kernellabs.com>
-To: Jarod Wilson <jarod@wilsonet.com>
-Cc: Heiko Baums <lists@baums-on-web.de>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	"mailing list: lirc" <lirc-list@lists.sourceforge.net>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201105231103.26775.laurent.pinchart@ideasonboard.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Tue, May 3, 2011 at 4:46 PM, Jarod Wilson <jarod@wilsonet.com> wrote:
-> Yeah, good to have confirmation its got the same issue (and that
-> it doesn't appear to be a simple case of flat batteries)
->
->> Jarod, send me your mailing address off-list, and I'll get a package
->> into the mail this week.
->
-> Will do, coming shortly.
+Hi Guennadi and Javier,
 
-Not to hijack the thread, but when I was doing the saa7134 work for
-the 1150, I noticed something strange during testing.  I just was
-watching the my tty0 virtual console while whacking buttons on the
-remote.  It appears that there would be a backlog queued up in the
+On Saturday 21 May 2011 17:29:18 Guennadi Liakhovetski wrote:
+> On Fri, 20 May 2011, Javier Martin wrote:
+
+[snip]
+
+> > diff --git a/drivers/media/video/mt9p031.c
+> > b/drivers/media/video/mt9p031.c new file mode 100644
+> > index 0000000..e406b64
+> > --- /dev/null
+> > +++ b/drivers/media/video/mt9p031.c
+
+[snip]
+
+> > +#define MT9P031_ROW_START			0x01
+> 
+> Don't mix spaces and TABs between "#define" and the macro - just use one
+> space everywhere.
+> 
+> > +#define		MT9P031_ROW_START_SKIP		54
+
+That should be MT9P031_ROW_START_DEF. You should define MT9P031_ROW_START_MIN 
+and MT9P031_ROW_START_MAX as well, you will need them. Same for column start, 
+window height and window width.
+
+> > +#define MT9P031_COLUMN_START			0x02
+> > +#define		MT9P031_COLUMN_START_SKIP	16
+> > +#define MT9P031_WINDOW_HEIGHT			0x03
+> > +#define MT9P031_WINDOW_WIDTH			0x04
+> > +#define MT9P031_H_BLANKING			0x05
+> > +#define		MT9P031_H_BLANKING_VALUE	0
+> > +#define MT9P031_V_BLANKING			0x06
+> > +#define		MT9P031_V_BLANKING_VALUE	25
+> > +#define MT9P031_OUTPUT_CONTROL			0x07
+> > +#define		MT9P031_OUTPUT_CONTROL_CEN	2
+> > +#define		MT9P031_OUTPUT_CONTROL_SYN	1
+> > +#define MT9P031_SHUTTER_WIDTH_UPPER		0x08
+> > +#define MT9P031_SHUTTER_WIDTH			0x09
+> > +#define MT9P031_PIXEL_CLOCK_CONTROL		0x0a
+> > +#define MT9P031_FRAME_RESTART			0x0b
+> > +#define MT9P031_SHUTTER_DELAY			0x0c
+> > +#define MT9P031_RST				0x0d
+> > +#define		MT9P031_RST_ENABLE		1
+> > +#define		MT9P031_RST_DISABLE		0
+> > +#define MT9P031_READ_MODE_1			0x1e
+> > +#define MT9P031_READ_MODE_2			0x20
+> > +#define		MT9P031_READ_MODE_2_ROW_MIR	0x8000
+> > +#define		MT9P031_READ_MODE_2_COL_MIR	0x4000
+> > +#define MT9P031_ROW_ADDRESS_MODE		0x22
+> > +#define MT9P031_COLUMN_ADDRESS_MODE		0x23
+> > +#define MT9P031_GLOBAL_GAIN			0x35
+> > +
+> > +#define MT9P031_MAX_HEIGHT			1944
+> > +#define MT9P031_MAX_WIDTH			2592
+> > +#define MT9P031_MIN_HEIGHT			2
+> > +#define MT9P031_MIN_WIDTH			18
+
+You can get rid of those 4 #define's and use MT9P031_WINDOW_(HEIGHT|
+WIDTH)_(MIN|MAX) instead.
+
+> > +struct mt9p031 {
+> > +	struct v4l2_subdev subdev;
+> > +	struct media_pad pad;
+> > +	struct v4l2_rect rect;	/* Sensor window */
+> > +	struct v4l2_mbus_framefmt format;
+> > +	struct mt9p031_platform_data *pdata;
+> > +	struct mutex power_lock;
+> 
+> Don't locks _always_ have to be documented? And this one: you only protect
+> set_power() with it, Laurent, is this correct?
+
+You're right, locks have to always be documented, either inline or in a 
+comment block above the structure. A small comment such as /* Protects 
+power_count */ is enough.
+
+> > +	int power_count;
+> > +	u16 xskip;
+> > +	u16 yskip;
+> > +	u16 output_control;
+> > +	struct regulator *reg_1v8;
+> > +	struct regulator *reg_2v8;
+> > +};
+
+[snip]
+
+> > +static int mt9p031_reset(struct i2c_client *client)
+> > +{
+> > +	struct mt9p031 *mt9p031 = to_mt9p031(client);
+> > +	int ret;
+> > +
+> > +	/* Disable chip output, synchronous option update */
+> > +	ret = reg_write(client, MT9P031_RST, MT9P031_RST_ENABLE);
+> > +	if (ret < 0)
+> > +		return -EIO;
+> > +	ret = reg_write(client, MT9P031_RST, MT9P031_RST_DISABLE);
+> > +	if (ret < 0)
+> > +		return -EIO;
+> > +	ret = mt9p031_set_output_control(mt9p031, MT9P031_OUTPUT_CONTROL_CEN,
+> > 0); +	if (ret < 0)
+> > +		return -EIO;
+> > +	return 0;
+> 
+> I think, a sequence like
+> 
+> 	ret = fn();
+> 	if (!ret)
+> 		ret = fn();
+> 	if (!ret)
+> 		ret = fn();
+> 	return ret;
+> 
+> is a better way to achieve the same.
+
+I disagree with you on that :-) I find code sequences that return as soon as 
+an error occurs, using the main code path for the error-free case, easier to 
+read. It can be a matter of personal taste though.
+
+This being said, the function can end with
+
+	return mt9p031_set_output_control(mt9p031, MT9P031_OUTPUT_CONTROL_CEN, 0);
+
+instead of
+
+	ret = mt9p031_set_output_control(mt9p031, MT9P031_OUTPUT_CONTROL_CEN, 0);
+	if (ret < 0)
+		return -EIO;
+	return 0;
+ 
+> > +}
+> > +
+> > +static int mt9p031_power_on(struct mt9p031 *mt9p031)
+> > +{
+> > +	int ret;
+> > +
+> > +	/* turn on VDD_IO */
+> > +	ret = regulator_enable(mt9p031->reg_2v8);
+> > +	if (ret) {
+> > +		pr_err("Failed to enable 2.8v regulator: %d\n", ret);
+> 
+> dev_err()
+> 
+> > +		return ret;
+> > +	}
+> > +	if (mt9p031->pdata->set_xclk)
+> > +		mt9p031->pdata->set_xclk(&mt9p031->subdev, 54000000);
+
+Can you make 54000000 a #define at the beginning of the file ?
+
+You should soft-reset the chip here by calling mt9p031_reset().
+
+> > +
+> > +	return 0;
+> > +}
+
+[snip]
+
+> > +static u16 mt9p031_skip_for_crop(s32 source, s32 *target, s32 max_skip)
+> > +{
+> > +	unsigned int skip;
+> > +
+> > +	if (source - source / 4 < *target) {
+> > +		*target = source;
+> > +		return 1;
+> > +	}
+> > +
+> > +	skip = DIV_ROUND_CLOSEST(source, *target);
+> > +	if (skip > max_skip)
+> > +		skip = max_skip;
+> > +	*target = 2 * DIV_ROUND_UP(source, 2 * skip);
+> > +
+> > +	return skip;
+> > +}
+> > +
+> > +static int mt9p031_set_params(struct i2c_client *client,
+> > +			      struct v4l2_rect *rect, u16 xskip, u16 yskip)
+> > +{
+> > +	struct mt9p031 *mt9p031 = to_mt9p031(client);
+> > +	int ret;
+> > +	u16 xbin, ybin;
+> > +	const u16 hblank = MT9P031_H_BLANKING_VALUE,
+> > +		vblank = MT9P031_V_BLANKING_VALUE;
+> > +	/*
+> > +	 * TODO: Attention! When implementing horizontal flipping, adjust
+> > +	 * alignment according to R2 "Column Start" description in the
+> > datasheet +	 */
+> > +	if (xskip & 1) {
+> > +		xbin = 1;
+> > +		rect->left &= ~3;
+> > +	} else if (xskip & 2) {
+> > +		xbin = 2;
+> > +		rect->left &= ~7;
+> > +	} else {
+> > +		xbin = 4;
+> > +		rect->left &= ~15;
+> > +	}
+
+Please don't modify the rectangle here. It needs to have been properly 
+validated and/or modified before mt9p031_set_params() is called. This function 
+should *only* apply parameters to the chip (possibly computing some of them on 
+the fly). It must not modify any parameter.
+
+> > +
+> > +	ybin = min(yskip, (u16)4);
+> > +
+> > +	rect->top &= ~1;
+> > +
+> > +	/* Disable register update, reconfigure atomically */
+> > +	ret = mt9p031_set_output_control(mt9p031, 0,
+> > MT9P031_OUTPUT_CONTROL_SYN); +	if (ret < 0)
+> > +		return ret;
+> > +
+> > +	dev_dbg(&client->dev, "skip %u:%u, rect %ux%u@%u:%u\n",
+> > +		xskip, yskip, rect->width, rect->height, rect->left, rect->top);
+> > +
+> > +	/* Blanking and start values - default... */
+> > +	ret = reg_write(client, MT9P031_H_BLANKING, hblank);
+> > +	if (ret < 0)
+> > +		return ret;
+> > +	ret = reg_write(client, MT9P031_V_BLANKING, vblank);
+> > +	if (ret < 0)
+> > +		return ret;
+> > +
+> > +	ret = reg_write(client, MT9P031_COLUMN_ADDRESS_MODE,
+> > +				((xbin - 1) << 4) | (xskip - 1));
+> > +	if (ret < 0)
+> > +		return ret;
+> > +	ret = reg_write(client, MT9P031_ROW_ADDRESS_MODE,
+> > +				((ybin - 1) << 4) | (yskip - 1));
+> > +	if (ret < 0)
+> > +		return ret;
+> > +
+> > +	dev_dbg(&client->dev, "new physical left %u, top %u\n",
+> > +		rect->left, rect->top);
+> > +
+> > +	ret = reg_write(client, MT9P031_COLUMN_START,
+> > +				rect->left + MT9P031_COLUMN_START_SKIP);
+> > +	if (ret < 0)
+> > +		return ret;
+> > +	ret = reg_write(client, MT9P031_ROW_START,
+> > +				rect->top + MT9P031_ROW_START_SKIP);
+> > +	if (ret < 0)
+> > +		return ret;
+> > +	ret = reg_write(client, MT9P031_WINDOW_WIDTH,
+> > +				rect->width - 1);
+> > +	if (ret < 0)
+> > +		return ret;
+> > +	ret = reg_write(client, MT9P031_WINDOW_HEIGHT,
+> > +				rect->height - 1);
+> > +	if (ret < 0)
+> > +		return ret;
+> > +
+> > +	/* Re-enable register update, commit all changes */
+> > +	ret = mt9p031_set_output_control(mt9p031, MT9P031_OUTPUT_CONTROL_SYN,
+> > 0); +	if (ret < 0)
+> > +		return ret;
+> > +
+> 
+> Ditto with "ret = fn();"
+> 
+> > +	mt9p031->xskip = xskip;
+> > +	mt9p031->yskip = yskip;
+> > +	return ret;
+> > +}
+> > +
+> > +static int mt9p031_set_crop(struct v4l2_subdev *sd,
+> > +				struct v4l2_subdev_fh *fh,
+> > +				struct v4l2_subdev_crop *crop)
+> > +{
+> > +	struct mt9p031 *mt9p031 = container_of(sd, struct mt9p031, subdev);
+> > +	struct v4l2_mbus_framefmt *f;
+> > +	struct v4l2_rect *c;
+> > +	struct v4l2_rect rect;
+> > +	u16 xskip, yskip;
+> > +	s32 width, height;
+> > +
+> > +	pr_info("%s(%ux%u@%u:%u : %u)\n", __func__,
+> > +			crop->rect.width, crop->rect.height,
+> > +			crop->rect.left, crop->rect.top, crop->which);
+> 
+> dev_dbg()
+> 
+> > +
+> > +	/*
+> > +	 * Clamp the crop rectangle boundaries and align them to a multiple of
+> > 2 +	 * pixels.
+> > +	 */
+> > +	rect.width = ALIGN(clamp(crop->rect.width,
+> > +				 MT9P031_MIN_WIDTH, MT9P031_MAX_WIDTH), 2);
+> > +	rect.height = ALIGN(clamp(crop->rect.height,
+> > +				  MT9P031_MIN_HEIGHT, MT9P031_MAX_HEIGHT), 2);
+> > +	rect.left = ALIGN(clamp(crop->rect.left,
+> > +				0, MT9P031_MAX_WIDTH - rect.width), 2);
+> > +	rect.top = ALIGN(clamp(crop->rect.top,
+> > +			       0, MT9P031_MAX_HEIGHT - rect.height), 2);
+> > +
+> > +	c = mt9p031_get_pad_crop(mt9p031, fh, crop->pad, crop->which);
+> > +
+> > +	if (rect.width != c->width || rect.height != c->height) {
+> > +		/*
+> > +		 * Reset the output image size if the crop rectangle size has
+> > +		 * been modified.
+> > +		 */
+> > +		f = mt9p031_get_pad_format(mt9p031, fh, crop->pad,
+> > +						    crop->which);
+> > +		width = f->width;
+> > +		height = f->height;
+> > +
+> > +		xskip = mt9p031_skip_for_crop(rect.width, &width, 7);
+> > +		yskip = mt9p031_skip_for_crop(rect.height, &height, 8);
+> > +	} else {
+> > +		xskip = mt9p031->xskip;
+> > +		yskip = mt9p031->yskip;
+> > +		f = NULL;
+> > +	}
+> 
+> Hm, looks like something is missing here: you dropped
+> 
+> 	if (crop->which == V4L2_SUBDEV_FORMAT_ACTIVE) {
+> 		ret = mt9p031_set_params(client, &rect, xskip, yskip);
+> 		if (ret < 0)
+> 			return ret;
+> 	}
+> 
+> from my version, without which no cropping is actually taking place. Or
+> have you also switched to the convention of only configuring the hardware
+> on set_stream(1)?
+
+I think it's fine to configure formats at set_stream(1) time only, but crop 
+rectangles should be settable when the stream is running. Their size can't 
+change though. The mt9v032 driver doesn't support that, I need to fix it to 
+provide a (hopefully) clean example of how to implement his.
+
+> > +	if (f) {
+> > +		f->width = width;
+> > +		f->height = height;
+> > +	}
+> > +
+> > +	*c = rect;
+> > +	crop->rect = rect;
+> > +
+> > +	mt9p031->xskip = xskip;
+> > +	mt9p031->yskip = yskip;
+> > +	mt9p031->rect = *c;
+> > +	return 0;
+> > +}
+
+[snip]
+
+> > +static u16 mt9p031_skip_for_scale(s32 *source, s32 target,
+> > +					s32 max_skip, s32 max)
+> > +{
+> > +	unsigned int skip;
+> > +
+> > +	if (*source - *source / 4 < target) {
+> > +		*source = target;
+> > +		return 1;
+> > +	}
+> > +
+> > +	skip = min(max, *source + target / 2) / target;
+> > +	if (skip > max_skip)
+> > +		skip = max_skip;
+> > +	*source = target * skip;
+> > +
+> > +	return skip;
+> > +}
+> > +
+> > +static int mt9p031_fmt_validate(struct v4l2_subdev *sd,
+> > +				struct v4l2_subdev_format *fmt)
+> > +{
+> > +	struct mt9p031 *mt9p031 = container_of(sd, struct mt9p031, subdev);
+> > +	struct v4l2_mbus_framefmt *format = &fmt->format;
+> > +
+> > +	if (format->code != mt9p031->format.code || fmt->pad)
+> > +		return -EINVAL;
+
+There's no need to check pad->fmt, it has already been validated by 
+subdev_do_ioctl().
+
+You should also not return an error when the code is invalid. As the MT9P031 
+only supports one code, you can just hardcode it
+
+	format->code = V4L2_MBUS_FMT_SGRBG12_1X12;
+
+> > +
+> > +	format->colorspace = V4L2_COLORSPACE_SRGB;
+> > +	format->width = clamp_t(int, ALIGN(format->width, 2), 2,
+> > +						MT9P031_MAX_WIDTH);
+> > +	format->height = clamp_t(int, ALIGN(format->height, 2), 2,
+> > +						MT9P031_MAX_HEIGHT);
+> > +	format->field = V4L2_FIELD_NONE;
+> > +
+> > +	return 0;
+> > +}
+> > +
+> > +static int mt9p031_set_format(struct v4l2_subdev *sd,
+> > +				struct v4l2_subdev_fh *fh,
+> > +				struct v4l2_subdev_format *fmt)
+> > +{
+> > +	struct v4l2_subdev_format sdf = *fmt;
+> > +	struct v4l2_mbus_framefmt *f, *format = &sdf.format;
+
+Do you really need to make a copy of the requested format and work on it here 
+? Can't you instead take the only fmt members that are configurable (width and 
+height), clamp/mangle them, copy them to the mt9p031_get_pad_format() return 
+pointer, and copy back the whole format structure to userspace ? Have a look 
+at the mt9v032_set_format() function, I think it's easier to understand than 
+what mt9p031_set_format() does.
+
+> > +	struct v4l2_rect *c, rect;
+> > +	struct mt9p031 *mt9p031 = container_of(sd, struct mt9p031, subdev);
+> > +	u16 xskip, yskip;
+> > +	int ret;
+> > +
+> > +	ret = mt9p031_fmt_validate(sd, &sdf);
+> > +	if (ret < 0)
+> > +		return ret;
+> > +
+> > +	f = mt9p031_get_pad_format(mt9p031, fh, fmt->pad, fmt->which);
+> > +
+> > +	if (f->width == format->width && f->height == format->height)
+> > +		return 0;
+
+If width and height match, the other fields won't be copied back to userspace.
+
+Please consider copying the mt9v032_set_format() code, unless you think it's 
+not applicable for the mt9p031.
+
+> > +
+> > +
+> 
+> One empty line is usually enough, especially inside a function.
+> 
+> > +	c = mt9p031_get_pad_crop(mt9p031, fh, fmt->pad, fmt->which);
+> > +
+> > +	rect.width = c->width;
+> > +	rect.height = c->height;
+> > +
+> > +	xskip = mt9p031_skip_for_scale(&rect.width, format->width, 7,
+> > +				       MT9P031_MAX_WIDTH);
+> > +	if (rect.width + c->left > MT9P031_MAX_WIDTH)
+> > +		rect.left = (MT9P031_MAX_WIDTH - rect.width) / 2;
+> > +	else
+> > +		rect.left = c->left;
+> > +	yskip = mt9p031_skip_for_scale(&rect.height, format->height, 8,
+> > +				       MT9P031_MAX_HEIGHT);
+> > +	if (rect.height + c->top > MT9P031_MAX_HEIGHT)
+> > +		rect.top = (MT9P031_MAX_HEIGHT - rect.height) / 2;
+> > +	else
+> > +		rect.top = c->top;
+> > +
+> > +
+> > +	pr_info("%s(%ux%u : %u)\n", __func__,
+> > +		format->width, format->height, fmt->which);
+> 
+> dev_dbg()
+> 
+> > +	if (c)
+> > +		*c = rect;
+> > +
+> > +	*f = *format;
+> > +	fmt->format = *format;
+> > +
+> > +	mt9p031->xskip = xskip;
+> > +	mt9p031->yskip = yskip;
+> > +	mt9p031->rect = *c;
+> > +	return 0;
+> > +}
+> > +
+> > +static int mt9p031_s_stream(struct v4l2_subdev *sd, int enable)
+> > +{
+> > +	struct mt9p031 *mt9p031 = container_of(sd, struct mt9p031, subdev);
+> > +	struct i2c_client *client = v4l2_get_subdevdata(&mt9p031->subdev);
+> > +	struct v4l2_rect rect = mt9p031->rect;
+> > +	u16 xskip = mt9p031->xskip;
+> > +	u16 yskip = mt9p031->yskip;
+> > +	int ret;
+> > +
+> > +	if (enable) {
+> > +		ret = mt9p031_set_params(client, &rect, xskip, yskip);
+
+mt9p031_set_params() is only called here. Why don't you pass it the mt9p031 
+pointer instead of the client pointer, and have it access the rectangle, xskip 
+and yskip members directly ?
+
+> > +		if (ret < 0)
+> > +			return ret;
+> > +		/* Switch to master "normal" mode */
+> > +		ret = mt9p031_set_output_control(mt9p031, 0,
+> > MT9P031_OUTPUT_CONTROL_CEN);
+> > +	} else {
+> > +		/* Stop sensor readout */
+> > +		ret = mt9p031_set_output_control(mt9p031, MT9P031_OUTPUT_CONTROL_CEN,
+> > 0);
+> > +	}
+> > +	if (ret < 0)
+> > +		return -EIO;
+> > +
+> > +	return 0;
+
+Just replace those 4 lines by return ret; or, even better, return the result 
+of the above mt9p031_set_output_control() calls directly.
+
+> > +}
+> > +
+> > +/*
+> > + * Interface active, can use i2c. If it fails, it can indeed mean, that
+> > + * this wasn't our capture interface, so, we wait for the right one
+
+I'm not sure to see where/how you wait for the right one :-)
+
+> > + */
+> > +static int mt9p031_video_probe(struct i2c_client *client)
+> > +{
+> > +	s32 data;
+> > +	int ret;
+> > +
+> > +	/* Read out the chip version register */
+> > +	data = reg_read(client, MT9P031_CHIP_VERSION);
+> > +	if (data != MT9P031_CHIP_VERSION_VALUE) {
+> > +		dev_err(&client->dev,
+> > +			"No MT9P031 chip detected, register read %x\n", data);
+> > +		return -ENODEV;
+> > +	}
+> > +
+> > +	dev_info(&client->dev, "Detected a MT9P031 chip ID %x\n", data);
+> > +
+> > +	ret = mt9p031_reset(client);
+> > +	if (ret < 0)
+> > +		dev_err(&client->dev, "Failed to initialise the camera\n");
+
+If you move the soft-reset operation to mt9p031_power_on(), you don't need to 
+call it here.
+
+> > +	return ret;
+> > +}
+
+[snip]
+
+> > +static int mt9p031_registered(struct v4l2_subdev *sd)
+> > +{
+> > +	struct mt9p031 *mt9p031 = container_of(sd, struct mt9p031, subdev);
+> > +	struct i2c_client *client = v4l2_get_subdevdata(&mt9p031->subdev);
+> > +	int ret;
+> > +
+> > +	ret = mt9p031_set_power(&mt9p031->subdev, 1);
+> > +	if (ret) {
+> > +		pr_err("Failed to power on device: %d\n", ret);
+> 
+> dev_err()
+> 
+> > +		goto pwron;
+
+I would rename the goto labels to start with err_ or error_.
+
+> > +	}
+> > +	if (mt9p031->pdata->reset)
+> > +		mt9p031->pdata->reset(&mt9p031->subdev, 1);
+> > +	msleep(50);
+> > +	if (mt9p031->pdata->reset)
+> > +		mt9p031->pdata->reset(&mt9p031->subdev, 0);
+> > +	msleep(50);
+
+If there's no reset operation you don't need to msleep(), so something like
+
+	if (mt9p031->pdata->reset) {
+		mt9p031->pdata->reset(&mt9p031->subdev, 1);
+		msleep(50);
+		mt9p031->pdata->reset(&mt9p031->subdev, 0);
+		msleep(50);
+	}
+
+is better. Where does the 50ms value come from ? It sounds quite long to me.
+
+> > +
+> > +	ret = mt9p031_video_probe(client);
+> > +	if (ret)
+> > +		goto evprobe;
+> > +
+> > +	mt9p031->pad.flags = MEDIA_PAD_FL_SOURCE;
+> > +	ret = media_entity_init(&mt9p031->subdev.entity, 1, &mt9p031->pad, 0);
+> > +	if (ret)
+> > +		goto evprobe;
+> > +
+> > +	mt9p031->subdev.flags |= V4L2_SUBDEV_FL_HAS_DEVNODE;
+> > +	mt9p031_set_power(&mt9p031->subdev, 0);
+> > +
+> > +	return 0;
+> > +evprobe:
+> > +	mt9p031_set_power(&mt9p031->subdev, 0);
+> > +pwron:
+> > +	return ret;
+> > +}
+> > +
+> > +static int mt9p031_open(struct v4l2_subdev *sd, struct v4l2_subdev_fh
+> > *fh) +{
+> > +	struct mt9p031 *mt9p031;
+> > +	mt9p031 = container_of(sd, struct mt9p031, subdev);
+> > +
+> > +	return mt9p031_set_power(sd, 1);
+> 
+> Is open() called only for the first open, or for each one? If for each,
+> you'll want to reference count yourself. Besides, isn't
+> core_ops::s_power() called anyway, maybe you don't need these open() /
+> close() at all?
+
+It's called for each open. mt9p031_set_power() includes reference counting, so 
+this should be safe.
+
+core_ops::s_power() isn't called on open().
+
+Javier, you should also initialize the crop and format settings in 
+v4l2_subdev_fh to default values. Please see the mt9v032 driver.
+
+> > +}
+
+[snip]
+
+> > +static int mt9p031_probe(struct i2c_client *client,
+> > +			 const struct i2c_device_id *did)
+> > +{
+> > +	struct mt9p031 *mt9p031;
+> > +	struct mt9p031_platform_data *pdata = client->dev.platform_data;
+> > +	struct i2c_adapter *adapter = to_i2c_adapter(client->dev.parent);
+> > +	int ret;
+> > +
+> > +	if (!i2c_check_functionality(adapter, I2C_FUNC_SMBUS_WORD_DATA)) {
+> > +		dev_warn(&adapter->dev,
+> > +			 "I2C-Adapter doesn't support I2C_FUNC_SMBUS_WORD\n");
+> > +		return -EIO;
+> > +	}
+> > +
+> > +	mt9p031 = kzalloc(sizeof(struct mt9p031), GFP_KERNEL);
+> > +	if (!mt9p031)
+> > +		return -ENOMEM;
+> > +
+> > +	mutex_init(&mt9p031->power_lock);
+> > +	v4l2_i2c_subdev_init(&mt9p031->subdev, client, &mt9p031_subdev_ops);
+> > +	mt9p031->subdev.internal_ops = &mt9p031_subdev_internal_ops;
+> > +
+> > +	mt9p031->pdata		= pdata;
+> > +	mt9p031->rect.left	= 0;
+> > +	mt9p031->rect.top	= 0;
+> 
+> No need - kzalloc() has nullified it for you.
+
+According to the datasheet, the Row Start and Column Start default values are 
+54 and 16. You should use them instead of 0 (and add #define's for them at the 
+beginning of the file). You should expose the real sensor coordinates through 
+the crop operations, don't try to add/subtract offsets internally in the 
 driver.
 
-For example, if I hit on the remote control:
+> > +	mt9p031->rect.width	= MT9P031_MAX_WIDTH;
+> > +	mt9p031->rect.height	= MT9P031_MAX_HEIGHT;
+> > +
+> > +	mt9p031->format.code = V4L2_MBUS_FMT_SGRBG12_1X12;
+> > +
+> > +	mt9p031->format.width = MT9P031_MAX_WIDTH;
+> > +	mt9p031->format.height = MT9P031_MAX_HEIGHT;
+> > +	mt9p031->format.field = V4L2_FIELD_NONE;
+> > +	mt9p031->format.colorspace = V4L2_COLORSPACE_SRGB;
+> > +
+> > +	mt9p031->xskip = 1;
+> > +	mt9p031->yskip = 1;
+> > +
+> > +	mt9p031->reg_1v8 = regulator_get(NULL, "cam_1v8");
+> > +	if (IS_ERR(mt9p031->reg_1v8)) {
+> > +		ret = PTR_ERR(mt9p031->reg_1v8);
+> > +		pr_err("Failed 1.8v regulator: %d\n", ret);
+> 
+> dev_err()
+> 
+> > +		goto e1v8;
+> > +	}
 
-1111.....2
+The driver can be used with boards where either or both of the 1.8V and 2.8V 
+supplies are always on, thus not connected to any regulator. I'm not sure how 
+that's usually handled, if board code should define an "always-on" power 
+supply, or if the driver shouldn't fail when no regulator is present. In any 
+case, this must be handled.
 
-(where .... is a pause for a couple of seconds)
+> > +
+> > +	mt9p031->reg_2v8 = regulator_get(NULL, "cam_2v8");
+> > +	if (IS_ERR(mt9p031->reg_2v8)) {
+> > +		ret = PTR_ERR(mt9p031->reg_2v8);
+> > +		pr_err("Failed 2.8v regulator: %d\n", ret);
+> 
+> ditto
+> 
+> > +		goto e2v8;
+> > +	}
+> > +	/* turn on core */
+> > +	ret = regulator_enable(mt9p031->reg_1v8);
+> > +	if (ret) {
+> > +		pr_err("Failed to enable 1.8v regulator: %d\n", ret);
+> 
+> ditto
+> 
+> > +		goto e1v8en;
+> > +	}
+> > +	return 0;
 
-I would actually see to the console:
+Why do you leave core power on at the end of probe() ? You should only turn it 
+on when needed.
 
-1111....12
-
-(were .... is the pause in time)
-
-Note that there is a "1" after the pause, suggesting it was in some
-sort of queue or backlog that wasn't flushed.
-
-Have you seen anything like this with other drivers?  I'm asking
-because if this is something you think might be specific to the
-saa7134 (and you want to investigate), I can throw the 1150 board into
-the same package.
-
-I guess I'm just raising the concern because the perceived behavior
-could be stray button presses being sent to the application.  For
-example, if I say "13" and then a few seconds later type "25", I don't
-want the application to receive "325".
-
-Anyway, let me know if you want me to throw the second board in the
-outbound package.
-
-Devin
+> > +e1v8en:
+> > +	regulator_put(mt9p031->reg_2v8);
+> > +e2v8:
+> > +	regulator_put(mt9p031->reg_1v8);
+> > +e1v8:
+> > +	kfree(mt9p031);
+> > +	return ret;
+> > +}
 
 -- 
-Devin J. Heitmueller - Kernel Labs
-http://www.kernellabs.com
+Regards,
+
+Laurent Pinchart
