@@ -1,193 +1,121 @@
 Return-path: <mchehab@pedra>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:47051 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753214Ab1EEMZN (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 5 May 2011 08:25:13 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Subject: Re: [PATCH v4 3/3] v4l: Add v4l2 subdev driver for S5P/EXYNOS4 MIPI-CSI receivers
-Date: Thu, 5 May 2011 14:25:44 +0200
-Cc: Sylwester Nawrocki <snjw23@gmail.com>,
-	"linux-media" <linux-media@vger.kernel.org>,
-	"linux-samsung-soc" <linux-samsung-soc@vger.kernel.org>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	Marek Szyprowski <m.szyprowski@samsung.com>,
-	Heungjun Kim <riverful.kim@samsung.com>,
-	Sungchun Kang <sungchun.kang@samsung.com>,
-	Jonghun Han <jonghun.han@samsung.com>
-References: <1303399264-3849-1-git-send-email-s.nawrocki@samsung.com> <201105041400.29090.laurent.pinchart@ideasonboard.com> <4DC26EE7.2040205@samsung.com>
-In-Reply-To: <4DC26EE7.2040205@samsung.com>
+Received: from mx1.redhat.com ([209.132.183.28]:31281 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756892Ab1EWTGj (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 23 May 2011 15:06:39 -0400
+Message-ID: <4DDAB038.2060801@redhat.com>
+Date: Mon, 23 May 2011 16:06:32 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="utf-8"
+To: Hans Petter Selasky <hselasky@c2i.net>
+CC: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Subject: Re: [PATCH] Alternate setting 1 must be selected for interface 0
+ on the model that I received. Else the rest is identical.
+References: <201105231637.39053.hselasky@c2i.net> <4DDAA415.40007@redhat.com> <201105232048.47280.hselasky@c2i.net>
+In-Reply-To: <201105232048.47280.hselasky@c2i.net>
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Message-Id: <201105051425.45392.laurent.pinchart@ideasonboard.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Hi Sylwester,
-
-On Thursday 05 May 2011 11:33:27 Sylwester Nawrocki wrote:
-> On 05/04/2011 02:00 PM, Laurent Pinchart wrote:
-> > On Tuesday 03 May 2011 20:07:43 Sylwester Nawrocki wrote:
-> >> On 05/03/2011 11:16 AM, Laurent Pinchart wrote:
-> >>> On Thursday 21 April 2011 17:21:04 Sylwester Nawrocki wrote:
-> > [snip]
-> > 
-> >>>> +	struct media_pad pads[CSIS_PADS_NUM];
-> >>>> +	struct v4l2_subdev sd;
-> >>>> +	struct platform_device *pdev;
-> >>>> +	struct resource *regs_res;
-> >>>> +	void __iomem *regs;
-> >>>> +	struct clk *clock[NUM_CSIS_CLOCKS];
-> >>>> +	int irq;
-> >>>> +	struct regulator *supply;
-> >>>> +	u32 flags;
-> >>>> +	/* Common format for the source and sink pad. */
-> >>>> +	const struct csis_pix_format *csis_fmt;
-> >>>> +	struct v4l2_mbus_framefmt mf[CSIS_NUM_FMTS];
-> >>> 
-> >>> As try formats are stored in the file handle, and as the formats on the
-> >>> sink and source pads are identical, a single v4l2_mbus_framefmt will do
-> >>> here.
-> >> 
-> >> Ok. How about a situation when the caller never provides a file handle?
-> >> Is it not supposed to happen?
-> > 
-> > Good question :-) The subdev pad-level operations have been designed with
-> > a userspace interface in mind, so they require a file handle to store
-> > try the formats (and crop rectangles).
-> > 
-> >> For V4L2_SUBDEV_FORMAT_TRY, should set_fmt just abandon storing the
-> >> format and should get_fmt just return -EINVAL when passed fh == NULL ?
-> > 
-> > For such a simple subdev, that should work as a workaround, yes. You can
-> > use it as a temporary solution at least.
-> > 
-> >> Or should the host driver allocate the file handle just for the sake of
-> >> set_fmt/get_fmt calls (assuming that cropping ops are not supported
-> >> by the subdev) ?
-> > 
-> > That's another solution. We could also pass an internal structure that
-> > contains formats and crop rectangles to the pad operations handlers,
-> > instead of passing the whole file handle. Do you think that would be
-> > better ?
+Em 23-05-2011 15:48, Hans Petter Selasky escreveu:
+> On Monday 23 May 2011 20:14:45 Mauro Carvalho Chehab wrote:
+>> Em 23-05-2011 11:37, Hans Petter Selasky escreveu:
+>>
+>> I don't have any ttusb device here, but I doubt that this would work.
 > 
-> So it would then be an additional argument for the pad-level operations ?
-
-It would replace the file handle argument.
-
-> Perhaps that would make sense when both format and crop information is
-> needed at the same time in the subdev driver. However this would only be
-> required for TRY formats/crop rectangles which wouldn't be supported anyway
-> because of missing file handle.. or I missed something?
-
-The reason why we pass the file handle to the pad operations is to let drivers 
-access formats/crop try settings that are stored in the file handle. If we 
-moved those settings to a separate structure, and embedded that structure into 
-the file handle structure, we could pass &fh->settings instead of fh to the 
-pad operations. Drivers that want to call pad operations would then need to 
-allocate a settings structure, instead of a complete fake fh.
-
-> Furthermore I assume more complex pipelines will be handled in user space
-
-The pad-level API has been designed to get/set formats/crop settings directly 
-from userspace, not from inside the kernel, so that would certainly work.
-
-> and the host drivers could store format and crop information locally
-> directly from v4l2_subdev_format and v4l2_subdev_crop data structures.
-
-I'm not sure to understand what you mean there.
-
-> > Quoting one of your comments below,
-> > 
-> >                         x--- FIMC_0 (/dev/video1)
-> >  
-> >  SENSOR -> MIPI_CSIS  --|
-> >  
-> >                         x--- FIMC_1 (/dev/video3)
-> > 
-> > How do you expect to configure the MIPI_CSIS block from the FIMC_0 and
-> > FIMC_1 blocks, without any help from userspace ? Conflicts will need to
-> > be handled, and the best way to handle them is to have userspace
-> > configuring the MIPI_CSIS explicitly.
+> Hi,
 > 
-> My priority is to make work the configurations without device nodes at
-> sensor and MIPI CSIS subdevs.
+> It is already tested and works fine.
+
+This will work for you, but it will likely break for the others. Your patch
+is assuming that returning an error if selecting alt 1 is enough to know that
+alt 0 should be used.
+
+> What I see is that interface 1 does not have an alternate setting like the 
+> driver code expects, while interface 0 does. So it is the opposite of what the 
+> driver expects. Maybe the manufacturer changed something. Endpoints are still 
+> the same.
+
+That sometimes happen. Or maybe you just need a different size.
 > 
-> I agree it would be best to leave the negotiation logic to user space,
-> however I need to assure the regular V4L2 application also can use the
-> driver.
+> Please find attached an USB descriptor dump from this device.
+
+Int 0, endpoint 0:
+
+    Interface 0
+      bLength = 0x0009 
+      bDescriptorType = 0x0004 
+      bInterfaceNumber = 0x0000 
+      bAlternateSetting = 0x0000 
+      bNumEndpoints = 0x0003 
+      bInterfaceClass = 0x0000 
+      bInterfaceSubClass = 0x0000 
+      bInterfaceProtocol = 0x0000 
+      iInterface = 0x0000  <no string>
+
+...
+
+     Endpoint 2
+        bLength = 0x0007 
+        bDescriptorType = 0x0005 
+        bEndpointAddress = 0x0082  <IN>
+        bmAttributes = 0x0001  <ISOCHRONOUS>
+        wMaxPacketSize = 0x0000 
+        bInterval = 0x0001 
+        bRefresh = 0x0000 
+        bSynchAddress = 0x0000 
+
+...
+
+    Interface 0 Alt 1
+      bLength = 0x0009 
+      bDescriptorType = 0x0004 
+      bInterfaceNumber = 0x0000 
+      bAlternateSetting = 0x0001 
+      bNumEndpoints = 0x0003 
+      bInterfaceClass = 0x0000 
+      bInterfaceSubClass = 0x0000 
+      bInterfaceProtocol = 0x0000 
+      iInterface = 0x0000  <no string>
+
+...
+     Endpoint 2
+        bLength = 0x0007 
+        bDescriptorType = 0x0005 
+        bEndpointAddress = 0x0082  <IN>
+        bmAttributes = 0x0001  <ISOCHRONOUS>
+        wMaxPacketSize = 0x0390 
+        bInterval = 0x0001 
+        bRefresh = 0x0000 
+        bSynchAddress = 0x0000 
+
+Hmm... assuming that the driver is using ISOC transfers, the difference between
+alt 0 and alt 1 is that, on alt0, the mwMaxPacketSize is 0 (so, you can't use it
+for isoc transfers), while, on alt 1, wMaxPacketSize is 0x390.
+
+What the driver should be doing is to select an alt mode where the wMaxPacketSize is 
+big enough to handle the transfer.
+
+Calculating what "big enough"   is device-dependent, but, basically, a 480 Mbps
+USB bus is capable of providing 800 isoc slots per interval. If the packets are bigger,
+the max bandwidth is bigger.
+
+You're able to see the amount of packets per interval by doing a cat /proc/bus/usb/devices:
+
+T:  Bus=01 Lev=00 Prnt=00 Port=00 Cnt=00 Dev#=  1 Spd=480  MxCh= 8
+B:  Alloc=  0/800 us ( 0%), #Int=  0, #Iso=  0
+
+The "B:" line above shows the USB bandwidth usage.
+
 > 
-> My idea was to only try format at CSI slave and sensor subdevs when S_FMT
-> is called on a video node. So the sensor and CSIS constraints are taken
-> into account.
->
-> Then from VIDIOC_STREAMON, formats at pipeline elements would be set on
-> subdevs without device node or validated on subdevs providing a device
-> node.
-
-For subdevs without device nodes, why don't you set the active format directly 
-when S_FMT is called, instead of postponing the operation until 
-VIDIOC_STREAMON time ? You wouldn't need to use TRY formats then.
-
-> Another issue is v4l2 controls. The subdevs are now in my case registered
-> to a v4l2_device instance embedded in the media device driver. The video
-> node drivers (FIMC0...FIMC3) have their own v4l2_device instances. So the
-> control inheritance between video node and a subdevs is gone :/, i.e. I
-> couldn't find a standard way to remove back from a parent control handler
-> the controls which have been added to it with v4l2_ctrl_handler_add().
-
-I think you should expose sensor controls through subdev devices nodes, not 
-through the V4L2 device node.
- 
-> I've had similar issue with subdev -> v4l2_device notify callback. Before,
-> when the subdev was directly registered to a v4l2_instance associated with
-> a video node, v4l2_subdev_notify had been propagated straight to FIMC{N}
-> device the subdev was attached to.
-> Now I just redirect notifications ending up in the media device driver to
-> relevant FIMC{N} device instance depending on link configuration.
->
-> >>>> +#define csis_pad_valid(pad) (pad == CSIS_PAD_SOURCE || pad ==
-> >>>> CSIS_PAD_SINK) +
-> >>>> +static struct csis_state *sd_to_csis_state(struct v4l2_subdev *sdev)
-> >>>> +{
-> >>>> +	return container_of(sdev, struct csis_state, sd);
-> >>>> +}
-> >>>> +
-> >>>> +static const struct csis_pix_format *find_csis_format(
-> >>>> +	struct v4l2_mbus_framefmt *mf)
-> >>>> +{
-> >>>> +	int i = ARRAY_SIZE(s5pcsis_formats);
-> >>>> +
-> >>>> +	while (--i>= 0)
-> >>> 
-> >>> I'm curious, why do you search backward instead of doing the usual
-> >>> 
-> >>> for (i = 0; i<  ARRAY_SIZE(s5pcsis_formats); ++i)
-> >>> 
-> >>> (in that case 'i' could be unsigned) ?
-> >> 
-> >> Perhaps doing it either way does not make any difference with the
-> >> toolchains we use, but the loops with test for 0 are supposed to be
-> >> faster on ARM.
-> > 
-> > I didn't know that. I wonder if it makes a real difference with gcc.
+>>
+>> Alternates should be selected depending on the bandwidth needed. The right
+>> way is to write some logic that will get the maximum packet size for each
+>> mode, between the alternates that provide the type of transfer (Bulk or
+>> ISOC) accepted by the driver.
 > 
-> I've checked it and gcc 4.5 seem to produce identical number of
-> instructions for both statements, regardless of the optimization level.
-> Although it may also depend on the architecture version.
+> Right, but this driver doesn't do this. It only selects a working one.
 > 
-> The topic is presented in
-> http://infocenter.arm.com/help/topic/com.arm.doc.dui0056d/DUI0056.pdf
-> chapter 5.3.
-> However this is really old book now :-)
+> --HPS
 
-Yes it is :-)
-
-(and I can't find this topic in chapter 5.3)
-
--- 
-Regards,
-
-Laurent Pinchart
