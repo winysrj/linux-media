@@ -1,46 +1,65 @@
 Return-path: <mchehab@pedra>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:60832 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756729Ab1EYKBm (ORCPT
+Received: from moutng.kundenserver.de ([212.227.17.9]:49465 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751531Ab1EWJ0o (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 25 May 2011 06:01:42 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Alex Gershgorin <alexg@meprolight.com>
-Subject: Re: FW: OMAP 3 ISP
-Date: Wed, 25 May 2011 12:01:57 +0200
-Cc: "'Sakari Ailus'" <sakari.ailus@iki.fi>,
-	Michael Jones <michael.jones@matrix-vision.de>,
-	"'linux-media@vger.kernel.org'" <linux-media@vger.kernel.org>,
-	"'agersh@rambler.ru'" <agersh@rambler.ru>
-References: <4875438356E7CA4A8F2145FCD3E61C0B15D3557D42@MEP-EXCH.meprolight.com>
-In-Reply-To: <4875438356E7CA4A8F2145FCD3E61C0B15D3557D42@MEP-EXCH.meprolight.com>
+	Mon, 23 May 2011 05:26:44 -0400
+Date: Mon, 23 May 2011 11:26:38 +0200 (CEST)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+cc: Javier Martin <javier.martin@vista-silicon.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	carlighting@yahoo.co.nz, beagleboard@googlegroups.com,
+	linux-arm-kernel@lists.infradead.org
+Subject: Re: [PATCH v2 1/2] MT9P031: Add support for Aptina mt9p031 sensor.
+In-Reply-To: <201105231103.26775.laurent.pinchart@ideasonboard.com>
+Message-ID: <Pine.LNX.4.64.1105231123100.30305@axis700.grange>
+References: <1305899272-31839-1-git-send-email-javier.martin@vista-silicon.com>
+ <Pine.LNX.4.64.1105211334260.25424@axis700.grange>
+ <201105231103.26775.laurent.pinchart@ideasonboard.com>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201105251201.57902.laurent.pinchart@ideasonboard.com>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Hi Alex,
+On Mon, 23 May 2011, Laurent Pinchart wrote:
 
-On Wednesday 25 May 2011 11:58:58 Alex Gershgorin wrote:
-> Hi Laurent,
+> > > +{
+> > > +	struct mt9p031 *mt9p031 = to_mt9p031(client);
+> > > +	int ret;
+> > > +
+> > > +	/* Disable chip output, synchronous option update */
+> > > +	ret = reg_write(client, MT9P031_RST, MT9P031_RST_ENABLE);
+> > > +	if (ret < 0)
+> > > +		return -EIO;
+> > > +	ret = reg_write(client, MT9P031_RST, MT9P031_RST_DISABLE);
+> > > +	if (ret < 0)
+> > > +		return -EIO;
+> > > +	ret = mt9p031_set_output_control(mt9p031, MT9P031_OUTPUT_CONTROL_CEN,
+> > > 0); +	if (ret < 0)
+> > > +		return -EIO;
+> > > +	return 0;
+> > 
+> > I think, a sequence like
+> > 
+> > 	ret = fn();
+> > 	if (!ret)
+> > 		ret = fn();
+> > 	if (!ret)
+> > 		ret = fn();
+> > 	return ret;
+> > 
+> > is a better way to achieve the same.
 > 
-> Unfortunately, at this point I have no Hardware platforms, but in the
-> next week we should get Zoom OMAP35 Torpedo evaluation kit
-> and then I can test it.
-> 
-> I have already applied this patch on the last main line
-> Kernel version (2.6.39) and continue to work on the platform device for
-> Zoom OMAP35xx Torpedo.
-> 
-> Thanks for this patch :-)
+> I disagree with you on that :-) I find code sequences that return as soon as 
+> an error occurs, using the main code path for the error-free case, easier to 
+> read. It can be a matter of personal taste though.
 
-You're welcome. Please let me know if it works for you when you'll receive the 
-hardware. I will then push the patch to mainline.
+Whichever way, but it should be consistent, IMHO.
 
--- 
-Regards,
-
-Laurent Pinchart
+Thanks
+Guennadi
+---
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
+http://www.open-technology.de/
