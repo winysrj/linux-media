@@ -1,53 +1,46 @@
 Return-path: <mchehab@pedra>
-Received: from mx1.redhat.com ([209.132.183.28]:9348 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S933144Ab1ETOnX (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 20 May 2011 10:43:23 -0400
-Message-ID: <4DD67E03.4070002@redhat.com>
-Date: Fri, 20 May 2011 11:43:15 -0300
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-MIME-Version: 1.0
-To: Antonio Ospite <ospite@studenti.unina.it>
-CC: Jean-Francois Moine <moinejf@free.fr>, linux-media@vger.kernel.org
-Subject: Re: [GIT PATCHES FOR 2.6.40] gspca for_v2.6.40
-References: <20110517105417.1b96f66c@tele> <20110517113637.923e0da2.ospite@studenti.unina.it>
-In-Reply-To: <20110517113637.923e0da2.ospite@studenti.unina.it>
-Content-Type: text/plain; charset=ISO-8859-1
+Received: from rcsinet10.oracle.com ([148.87.113.121]:23095 "EHLO
+	rcsinet10.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755788Ab1EWAip (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 22 May 2011 20:38:45 -0400
+Date: Sun, 22 May 2011 17:34:12 -0700
+From: Randy Dunlap <randy.dunlap@oracle.com>
+To: Stephen Rothwell <sfr@canb.auug.org.au>,
+	Pelagicore AB <info@pelagicore.com>, mchehab@infradead.org
+Cc: linux-next@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>,
+	linux-media@vger.kernel.org
+Subject: [PATCH -next] media: fix kconfig dependency warning for
+ VIDEO_TIMBERDALE
+Message-Id: <20110522173412.21948fba.randy.dunlap@oracle.com>
+In-Reply-To: <20110520165507.cba539d5.sfr@canb.auug.org.au>
+References: <20110520165507.cba539d5.sfr@canb.auug.org.au>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Em 17-05-2011 06:36, Antonio Ospite escreveu:
-> On Tue, 17 May 2011 10:54:17 +0200
-> Jean-Francois Moine <moinejf@free.fr> wrote:
-> 
->> The following changes since commit
->> f9b51477fe540fb4c65a05027fdd6f2ecce4db3b:
->>
->>   [media] DVB: return meaningful error codes in dvb_frontend (2011-05-09 05:47:20 +0200)
->>
->> are available in the git repository at:
->>   git://linuxtv.org/jfrancois/gspca.git for_v2.6.40
->>
-> [...]
-> 
-> Hi Jean-Francois, sometimes it is useful to add also a "why" section to
-> commit messages so others can follow your thoughts, and even learn from
-> them.
-> 
-> I have this very simple scheme: a summary of the "what" goes into the
-> short commit message and the "why" and "how" go into the long commit
-> message when they are not immediately trivial from the code; for
-> instance the "why" of the USB trace changes in this series wasn't
-> trivial to me.
+From: Randy Dunlap <randy.dunlap@oracle.com>
 
-Yeah, providing a good documentation is important to allow the others to know what's
-happening at the driver.
+Fix kconfig unmet dependency warning:
 
-Jean-Francois,
+warning: (VIDEO_TIMBERDALE) selects TIMB_DMA which has unmet direct dependencies (DMADEVICES && (MFD_TIMBERDALE || HAS_IOMEM))
 
-Could you please add more comments to your patch series? I'll discard this pull
-request from my queue. So, feel free to re-base your tree if you need.
+Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
+Cc: Pelagicore AB <info@pelagicore.com>
+---
+ drivers/media/video/Kconfig |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-Thanks,
-Mauro
+--- linux-next-20110520.orig/drivers/media/video/Kconfig
++++ linux-next-20110520/drivers/media/video/Kconfig
+@@ -683,7 +683,7 @@ config VIDEO_HEXIUM_GEMINI
+ 
+ config VIDEO_TIMBERDALE
+ 	tristate "Support for timberdale Video In/LogiWIN"
+-	depends on VIDEO_V4L2 && I2C
++	depends on VIDEO_V4L2 && I2C && DMADEVICES
+ 	select DMA_ENGINE
+ 	select TIMB_DMA
+ 	select VIDEO_ADV7180
