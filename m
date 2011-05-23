@@ -1,208 +1,137 @@
-Return-path: <mchehab@gaivota>
-Received: from stevekez.vm.bytemark.co.uk ([80.68.91.30]:55637 "EHLO
-	stevekerrison.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758678Ab1ELVSp (ORCPT
+Return-path: <mchehab@pedra>
+Received: from sirokuusama.dnainternet.net ([83.102.40.133]:48804 "EHLO
+	sirokuusama.dnainternet.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753201Ab1EWVgv (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 12 May 2011 17:18:45 -0400
-Subject: Re: [PATCH v2 5/5] Documentation: Update to include DVB-T2
- additions
-From: Steve Kerrison <steve@stevekerrison.com>
+	Mon, 23 May 2011 17:36:51 -0400
+Message-ID: <4DDAD36A.9080105@iki.fi>
+Date: Tue, 24 May 2011 00:36:42 +0300
+From: Anssi Hannula <anssi.hannula@iki.fi>
+MIME-Version: 1.0
 To: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: linux-media@vger.kernel.org, Andreas Oberritter <obi@linuxtv.org>,
-	Antti Palosaari <crope@iki.fi>
-In-Reply-To: <1304882240-23044-6-git-send-email-steve@stevekerrison.com>
-References: <4DC6BF28.8070006@redhat.com>
-	 <1304882240-23044-6-git-send-email-steve@stevekerrison.com>
-Content-Type: text/plain; charset="UTF-8"
-Date: Thu, 12 May 2011 22:18:38 +0100
-Message-ID: <1305235118.2920.246.camel@ares>
-Mime-Version: 1.0
+CC: Peter Hutterer <peter.hutterer@who-t.net>,
+	linux-media@vger.kernel.org,
+	"linux-input@vger.kernel.org" <linux-input@vger.kernel.org>,
+	xorg-devel@lists.freedesktop.org, Jarod Wilson <jarod@redhat.com>
+Subject: Re: IR remote control autorepeat / evdev
+References: <4DC61E28.4090301@iki.fi> <20110510041107.GA32552@barra.redhat.com> <4DC8C9B6.5000501@iki.fi> <20110510053038.GA5808@barra.redhat.com> <4DC940E5.2070902@iki.fi> <4DCA1496.20304@redhat.com> <4DCABA42.30505@iki.fi> <4DCABEAE.4080607@redhat.com> <4DCACE74.6050601@iki.fi> <4DCB213A.8040306@redhat.com> <4DCB2BD9.6090105@iki.fi> <4DCB336B.2090303@redhat.com> <4DCB39AF.2000807@redhat.com> <4DCC71B5.8080306@iki.fi> <4DCDB333.8000801@redhat.com> <4DCDB9CB.7030306@iki.fi> <4DCF4B7C.3070900@redhat.com>
+In-Reply-To: <4DCF4B7C.3070900@redhat.com>
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
-Sender: Mauro Carvalho Chehab <mchehab@gaivota>
+Sender: <mchehab@pedra>
 
-I've just realised there is some illegal whitespace in this patch here:
+On 15.05.2011 06:41, Mauro Carvalho Chehab wrote:
+> Em 14-05-2011 01:07, Anssi Hannula escreveu:
+>> On 14.05.2011 01:39, Mauro Carvalho Chehab wrote:
+>>> Em 13-05-2011 01:48, Anssi Hannula escreveu:
+>>>> On 12.05.2011 04:36, Mauro Carvalho Chehab wrote:
+>>>>> Em 12-05-2011 03:10, Mauro Carvalho Chehab escreveu:
+>>>>>> Em 12-05-2011 02:37, Anssi Hannula escreveu:
+>>>>>
+>>>>>>> I don't see any other places:
+>>>>>>> $ git grep 'REP_PERIOD' .
+>>>>>>> dvb/dvb-usb/dvb-usb-remote.c:   input_dev->rep[REP_PERIOD] =
+>>>>>>> d->props.rc.legacy.rc_interval;
+>>>>>>
+>>>>>> Indeed, the REP_PERIOD is not adjusted on other drivers. I agree that we
+>>>>>> should change it to something like 125ms, for example, as 33ms is too 
+>>>>>> short, as it takes up to 114ms for a repeat event to arrive.
+>>>>>>
+>>>>> IMO, the enclosed patch should do a better job with repeat events, without
+>>>>> needing to change rc-core/input/event logic.
+>>>>
+>>>> It will indeed reduce the amount of ghost events so it brings us in the
+>>>> right direction.
+>>>>
+>>>> I'd still like to get rid of the ghost repeats entirely, or at least
+>>>> some way for users to do it if we don't do it by default.
+>>>
+>>>> Maybe we could replace the kernel softrepeat with native repeats (for
+>>>> those protocols/drivers that have them), while making sure that repeat
+>>>> events before REP_DELAY are ignored and repeat events less than
+>>>> REP_PERIOD since the previous event are ignored, so the users can still
+>>>> configure them as they like? 
+>>>>
+>>>
+>>> This doesn't seem to be the right thing to do. If the kernel will
+>>> accept 33 ms as the value or REP_PERIOD, but it will internally 
+>>> set the maximum repeat rate is 115 ms (no matter what logic it would
+>>> use for that), Kernel (or X) shouldn't allow the user to set a smaller value. 
+>>>
+>>> The thing is that writing a logic to block a small value is not easy, since 
+>>> the max value is protocol-dependent (worse than that, on some cases, it is 
+>>> device-specific). It seems better to add a warning at the userspace tools 
+>>> that delays lower than 115 ms can produce ghost events on IR's.
+>>
+>> From what I see, even periods longer than 115 ms can produce ghost events.
+>>
+>> For example with your patch softrepeat period is 125ms, release timeout
+>> 250ms, and a native rate of 110ms:
+>>
+>> There are 4 native events transmitted at
+>> 000 ms
+>> 110 ms
+>> 220 ms
+>> 330 ms
+>> (user stops between 330ms and 440ms)
+>>
+>> This causes these events in the evdev interface:
+>> 000: 1
+>> 125: 2
+>> 250: 2
+>> 375: 2
+>> 500: 2
+>> 550: 0
+>>
+>> So we got 1-2 ghost repeat events.
+>>
+>>>> Or maybe just a module option that causes rc-core to use native repeat
+>>>> events, for those of us that want accurate repeat events without ghosting?
+>>>
+>>> If the user already knows about the possibility to generate ghost effects,
+>>> with low delays, he can simply not pass a bad value to the kernel, instead 
+>>> of forcing a modprobe parameter that will limit the minimal value.
+>>
+>> There is no "good value" for REP_PERIOD (as in ghost repeats guaranteed
+>> gone like with native repeats). Sufficiently large values will make
+>> ghost repeats increasingly rare, but the period becomes so long the
+>> autorepeat becomes frustratingly slow to use.
+>>
+> The 250 ms delay used internally to wait for a repeat code is there because
+> shorter periods weren't working on one of the first boards we've added to
+> rc core (it was a saa7134 - can't remember much details... too much time ago).
+> 
+> I remember that I added it as a per-board timer (or per protocol?), as it seemed
+> to high for me, but later, David sent a series of patches rewriting the entire 
+> stuff and proposing to have just one timer, arguing that later this could be
+> changed. As his series were improving rc-core, I ended by acking with the changes.
+> 
+> The fact is that REP_PERIODS shorter than that timer makes non-sense, as that
+> timer is used to actually wait for a repeat message.
+> 
+> I suspect we should re-work the code, perhaps replacing the 250 ms fixed value
+> by REP_PERIOD.
 
-> @@ -553,5 +568,20 @@ typedef enum fe_guard_interval {
->                         </section>
->                 </section>
->         </section>
-> +       <section id="dvbt2-params">
-> +               <title>DVB-T2 parameters</title>
-> +               
-> +               <para>This section covers parameters that apply only
-> to the DVB-T2 delivery method. DVB-T2
+Well, that still has a 50% chance of a ghost repeat with length 1-125ms
+(e.g. native rate 110ms, user releases button at 900ms, last native
+event at 880ms, evdev repeat events at 500,625,750,875,1000ms).
 
-Auto-tab between the title and first paragraph. My apologies! If I need
-to do anything about this let me know.
+It would be significantly better than it was before, though, and I'll
+have to test it myself to see if it is good enough (though I fear it is
+not).
+
+
+> I can't work on it this weekend, as I'm about to leave Hungary to return back
+> home. I suspect that I'll have lots of fun next week, due to a one-week travel,
+> and due to the .40 merge window (I suspect it will be opened next week).
+> 
+> Maybe Jarod can find some time to do such patch and test it.
+> 
+> Thanks,
+> Mauro.
+> 
+
+
 -- 
-Steve Kerrison MEng Hons.
-http://www.stevekerrison.com/ 
-
-On Sun, 2011-05-08 at 20:17 +0100, Steve Kerrison wrote:
-> A few new capabilities added to frontend.h for DVB-T2. Added these
-> to the documentation plus some notes explaining that they are
-> used by the T2 delivery system.
-> 
-> Signed-off-by: Steve Kerrison <steve@stevekerrison.com>
-> ---
->  Documentation/DocBook/dvb/dvbproperty.xml |   36 ++++++++++++++++++++++++++--
->  Documentation/DocBook/dvb/frontend.h.xml  |   20 +++++++++++++---
->  2 files changed, 49 insertions(+), 7 deletions(-)
-> 
-> diff --git a/Documentation/DocBook/dvb/dvbproperty.xml b/Documentation/DocBook/dvb/dvbproperty.xml
-> index 05ce603..52d5e3c 100644
-> --- a/Documentation/DocBook/dvb/dvbproperty.xml
-> +++ b/Documentation/DocBook/dvb/dvbproperty.xml
-> @@ -217,9 +217,12 @@ get/set up to 64 properties. The actual meaning of each property is described on
->  		<para>Bandwidth for the channel, in HZ.</para>
->  
->  		<para>Possible values:
-> +			<constant>1712000</constant>,
-> +			<constant>5000000</constant>,
->  			<constant>6000000</constant>,
->  			<constant>7000000</constant>,
-> -			<constant>8000000</constant>.
-> +			<constant>8000000</constant>,
-> +			<constant>10000000</constant>.
->  		</para>
->  
->  		<para>Notes:</para>
-> @@ -231,6 +234,8 @@ get/set up to 64 properties. The actual meaning of each property is described on
->  		<para>4) Bandwidth in ISDB-T is fixed (6MHz) or can be easily derived from
->  			other parameters (DTV_ISDBT_SB_SEGMENT_IDX,
->  			DTV_ISDBT_SB_SEGMENT_COUNT).</para>
-> +		<para>5) DVB-T supports 6, 7 and 8MHz.</para>
-> +		<para>6) In addition, DVB-T2 supports 1.172, 5 and 10MHz.</para>
->  	</section>
->  
->  	<section id="DTV_DELIVERY_SYSTEM">
-> @@ -257,6 +262,7 @@ typedef enum fe_delivery_system {
->  	SYS_DMBTH,
->  	SYS_CMMB,
->  	SYS_DAB,
-> +	SYS_DVBT2,
->  } fe_delivery_system_t;
->  </programlisting>
->  
-> @@ -273,7 +279,10 @@ typedef enum fe_transmit_mode {
->  	TRANSMISSION_MODE_2K,
->  	TRANSMISSION_MODE_8K,
->  	TRANSMISSION_MODE_AUTO,
-> -	TRANSMISSION_MODE_4K
-> +	TRANSMISSION_MODE_4K,
-> +	TRANSMISSION_MODE_1K,
-> +	TRANSMISSION_MODE_16K,
-> +	TRANSMISSION_MODE_32K,
->  } fe_transmit_mode_t;
->  </programlisting>
->  
-> @@ -284,6 +293,8 @@ typedef enum fe_transmit_mode {
->  		<para>2) If <constant>DTV_TRANSMISSION_MODE</constant> is set the <constant>TRANSMISSION_MODE_AUTO</constant> the
->  			hardware will try to find the correct FFT-size (if capable) and will
->  			use TMCC to fill in the missing parameters.</para>
-> +		<para>3) DVB-T specifies 2K and 8K as valid sizes.</para>
-> +		<para>4) DVB-T2 specifies 1K, 2K, 4K, 8K, 16K and 32K.</para>
->  	</section>
->  
->  	<section id="DTV_GUARD_INTERVAL">
-> @@ -296,7 +307,10 @@ typedef enum fe_guard_interval {
->  	GUARD_INTERVAL_1_16,
->  	GUARD_INTERVAL_1_8,
->  	GUARD_INTERVAL_1_4,
-> -	GUARD_INTERVAL_AUTO
-> +	GUARD_INTERVAL_AUTO,
-> +	GUARD_INTERVAL_1_128,
-> +	GUARD_INTERVAL_19_128,
-> +	GUARD_INTERVAL_19_256,
->  } fe_guard_interval_t;
->  </programlisting>
->  
-> @@ -304,6 +318,7 @@ typedef enum fe_guard_interval {
->  		<para>1) If <constant>DTV_GUARD_INTERVAL</constant> is set the <constant>GUARD_INTERVAL_AUTO</constant> the hardware will
->  			try to find the correct guard interval (if capable) and will use TMCC to fill
->  			in the missing parameters.</para>
-> +		<para>2) Intervals 1/128, 19/128 and 19/256 are used only for DVB-T2 at present</para>
->  	</section>
->  </section>
->  
-> @@ -553,5 +568,20 @@ typedef enum fe_guard_interval {
->  			</section>
->  		</section>
->  	</section>
-> +	<section id="dvbt2-params">
-> +		<title>DVB-T2 parameters</title>
-> +		
-> +		<para>This section covers parameters that apply only to the DVB-T2 delivery method. DVB-T2
-> +			support is currently in the early stages development so expect this section to grow
-> +			and become more detailed with time.</para>
-> +
-> +		<section id="dvbt2-plp-id">
-> +			<title><constant>DTV_DVBT2_PLP_ID</constant></title>
-> +
-> +			<para>DVB-T2 supports Physical Layer Pipes (PLP) to allow transmission of
-> +				many data types via a single multiplex. The API will soon support this
-> +				at which point this section will be expanded.</para>
-> +		</section>
-> +	</section>
->  </section>
->  </section>
-> diff --git a/Documentation/DocBook/dvb/frontend.h.xml b/Documentation/DocBook/dvb/frontend.h.xml
-> index d08e0d4..d792f78 100644
-> --- a/Documentation/DocBook/dvb/frontend.h.xml
-> +++ b/Documentation/DocBook/dvb/frontend.h.xml
-> @@ -176,14 +176,20 @@ typedef enum fe_transmit_mode {
->          TRANSMISSION_MODE_2K,
->          TRANSMISSION_MODE_8K,
->          TRANSMISSION_MODE_AUTO,
-> -        TRANSMISSION_MODE_4K
-> +        TRANSMISSION_MODE_4K,
-> +        TRANSMISSION_MODE_1K,
-> +        TRANSMISSION_MODE_16K,
-> +        TRANSMISSION_MODE_32K,
->  } fe_transmit_mode_t;
->  
->  typedef enum fe_bandwidth {
->          BANDWIDTH_8_MHZ,
->          BANDWIDTH_7_MHZ,
->          BANDWIDTH_6_MHZ,
-> -        BANDWIDTH_AUTO
-> +        BANDWIDTH_AUTO,
-> +        BANDWIDTH_5_MHZ,
-> +        BANDWIDTH_10_MHZ,
-> +        BANDWIDTH_1_712_MHZ,
->  } fe_bandwidth_t;
->  
-> 
-> @@ -192,7 +198,10 @@ typedef enum fe_guard_interval {
->          GUARD_INTERVAL_1_16,
->          GUARD_INTERVAL_1_8,
->          GUARD_INTERVAL_1_4,
-> -        GUARD_INTERVAL_AUTO
-> +        GUARD_INTERVAL_AUTO,
-> +        GUARD_INTERVAL_1_128,
-> +        GUARD_INTERVAL_19_128,
-> +        GUARD_INTERVAL_19_256,
->  } fe_guard_interval_t;
->  
-> 
-> @@ -306,7 +315,9 @@ struct dvb_frontend_event {
->  
->  #define DTV_ISDBS_TS_ID         42
->  
-> -#define DTV_MAX_COMMAND                         DTV_ISDBS_TS_ID
-> +#define DTV_DVBT2_PLP_ID	43
-> +
-> +#define DTV_MAX_COMMAND                         DTV_DVBT2_PLP_ID
->  
->  typedef enum fe_pilot {
->          PILOT_ON,
-> @@ -338,6 +349,7 @@ typedef enum fe_delivery_system {
->          SYS_DMBTH,
->          SYS_CMMB,
->          SYS_DAB,
-> +        SYS_DVBT2,
->  } fe_delivery_system_t;
->  
->  struct dtv_cmds_h {
-
+Anssi Hannula
