@@ -1,67 +1,103 @@
 Return-path: <mchehab@pedra>
-Received: from smtp-vbr4.xs4all.nl ([194.109.24.24]:1471 "EHLO
-	smtp-vbr4.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752036Ab1E2Jmg convert rfc822-to-8bit (ORCPT
+Received: from bear.ext.ti.com ([192.94.94.41]:60787 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756494Ab1EWSKH convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 29 May 2011 05:42:36 -0400
-Received: from basedrum.localnet (ereprijs.demon.nl [83.161.20.106])
-	by smtp-vbr4.xs4all.nl (8.13.8/8.13.8) with ESMTP id p4T9gYv2099380
-	for <linux-media@vger.kernel.org>; Sun, 29 May 2011 11:42:34 +0200 (CEST)
-	(envelope-from willem@ereprijs.demon.nl)
-From: Willem van Asperen <willem@ereprijs.demon.nl>
-To: linux-media@vger.kernel.org
-Subject: Re: [linux-dvb] Terratec Cinergy C HD - CAM support.... Need help?
-Date: Sun, 29 May 2011 11:42:33 +0200
-References: <201105272148.04347.willem@ereprijs.demon.nl> <4DE002DB.8000304@dommel.be> <87wrhbql6b.fsf@nemi.mork.no>
-In-Reply-To: <87wrhbql6b.fsf@nemi.mork.no>
-MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="utf-8"
+	Mon, 23 May 2011 14:10:07 -0400
+From: "Premi, Sanjeev" <premi@ti.com>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>
+CC: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Date: Mon, 23 May 2011 23:39:58 +0530
+Subject: RE: [PATCH] omap3: isp: fix compiler warning
+Message-ID: <B85A65D85D7EB246BE421B3FB0FBB593024D09B451@dbde02.ent.ti.com>
+References: <1305734811-2354-1-git-send-email-premi@ti.com>
+ <4DD79A24.5080107@redhat.com>
+ <201105222125.51967.laurent.pinchart@ideasonboard.com>
+In-Reply-To: <201105222125.51967.laurent.pinchart@ideasonboard.com>
+Content-Language: en-US
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 8BIT
-Message-Id: <201105291142.33876.willem@ereprijs.demon.nl>
+MIME-Version: 1.0
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Saturday 28 May 2011 10:33:16 Bjørn Mork wrote:
-> Marc Coevoet <marcc@dommel.be> writes:
-> > Op 27-05-11 21:48, Willem van Asperen schreef:
-> >> a) CAM support is currently not implemented for terratec HD
-> >
-> > For all cards?
+> -----Original Message-----
+> From: Laurent Pinchart [mailto:laurent.pinchart@ideasonboard.com] 
+> Sent: Monday, May 23, 2011 12:56 AM
+> To: Mauro Carvalho Chehab
+> Cc: Premi, Sanjeev; linux-media@vger.kernel.org
+> Subject: Re: [PATCH] omap3: isp: fix compiler warning
 > 
-> The CA code in the mantis driver isn't actually hooked into the driver
-> anywhere, so that't correct: No CAM will currently work with the
-> Terratec Cinergy C HD.
+> Hi Mauro and Sanjeev,
 > 
-> Exported, but never called:
+> On Saturday 21 May 2011 12:55:32 Mauro Carvalho Chehab wrote:
+> > Em 18-05-2011 13:06, Sanjeev Premi escreveu:
+> > > This patch fixes this compiler warning:
+> > >   drivers/media/video/omap3isp/isp.c: In function 'isp_isr_dbg':
+> > >   drivers/media/video/omap3isp/isp.c:392:2: warning: zero-length
+> > >   
+> > >    gnu_printf format string
+> > > 
+> > > Since printk() is used in next few statements, same was used
+> > > here as well.
+> > > 
+> > > Signed-off-by: Sanjeev Premi <premi@ti.com>
+> > > Cc: laurent.pinchart@ideasonboard.com
+> > > ---
+> > > 
+> > >  Actually full block can be converted to dev_dbg()
+> > >  as well; but i am not sure about original intent
+> > >  of the mix.
+> > >  
+> > >  Based on comments, i can resubmit with all prints
+> > >  converted to dev_dbg.
+> > 
+> > It is probably better to convert the full block to dev_dbg.
 > 
->  bjorn@canardo:/usr/local/src/git/linux-2.6/drivers/media/dvb/mantis$ grep
->  mantis_ca_init *.c mantis_ca.c:int mantis_ca_init(struct mantis_pci
->  *mantis)
->  mantis_ca.c:EXPORT_SYMBOL_GPL(mantis_ca_init);
+> You can't insert a KERN_CONT with dev_dbg().
 
-Actually, doing this on s2-liplianin-41388e396e0f (the one I downloaded today) 
-gets:
-$ grep mantis_ca_init *.c
+[sp] I did realize that hence changed only the call to dev_dbg.
 
-mantis_ca.c:int mantis_ca_init(struct mantis_pci *mantis)
-mantis_dvb.c:   mantis_ca_init(mantis);
+> 
+> > >  drivers/media/video/omap3isp/isp.c |    2 +-
+> > >  1 files changed, 1 insertions(+), 1 deletions(-)
+> > > 
+> > > diff --git a/drivers/media/video/omap3isp/isp.c
+> > > b/drivers/media/video/omap3isp/isp.c index 503bd79..1d38d96 100644
+> > > --- a/drivers/media/video/omap3isp/isp.c
+> > > +++ b/drivers/media/video/omap3isp/isp.c
+> > > @@ -387,7 +387,7 @@ static inline void isp_isr_dbg(struct 
+> isp_device
+> > > *isp, u32 irqstatus)
+> > > 
+> > >  	};
+> > >  	int i;
+> > > 
+> > > -	dev_dbg(isp->dev, "");
+> > > +	printk(KERN_DEBUG "%s:\n", dev_driver_string(isp->dev));
+> 
+> The original code doesn't include any \n. Is there a 
+> particular reason why you 
+> want to add one ?
 
-And in the function __devinit mantis_dvb_init(struct mantis_pci *mantis) it 
-actually says:
+[sp] Sorry, that's a mistake out of habit.
+     Another way to fix warning would be to make the string meaningful:
 
-...
-	dvb_net_init(&mantis->dvb_adapter, &mantis->dvbnet, &mantis->demux.dmx);
-	tasklet_init(&mantis->tasklet, mantis_dma_xfer, (unsigned long) mantis);
-	mantis_frontend_init(mantis);
-	mantis_ca_init(mantis);
+-	dev_dbg(isp->dev, "");
++	dev_dbg (isp->dev, "ISP_IRQ:");
 
-	return 0;
-...
+     Is this better?
 
-So it seems that this mantis_ca_init call is actually made nowadays.
+~sanjeev
 
-I'll do some more digging -- check the /var/log/messages file for output of the 
-mantis initialization -- and report back.
-
-Willem
+> 
+> > >  	for (i = 0; i < ARRAY_SIZE(name); i++) {
+> > >  	
+> > >  		if ((1 << i) & irqstatus)
+> 
+> -- 
+> Regards,
+> 
+> Laurent Pinchart
+> 
