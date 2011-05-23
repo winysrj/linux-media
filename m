@@ -1,32 +1,45 @@
-Return-path: <mchehab@gaivota>
-Received: from na3sys009aog110.obsmtp.com ([74.125.149.203]:40957 "EHLO
-	na3sys009aog110.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932111Ab1EIWEb (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 9 May 2011 18:04:31 -0400
-Received: by mail-gw0-f51.google.com with SMTP id 17so1936376gwj.10
-        for <linux-media@vger.kernel.org>; Mon, 09 May 2011 15:04:29 -0700 (PDT)
+Return-path: <mchehab@pedra>
+Received: from nm27-vm0.bullet.mail.sp2.yahoo.com ([98.139.91.232]:21081 "HELO
+	nm27-vm0.bullet.mail.sp2.yahoo.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with SMTP id S1753722Ab1EWDBk convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 22 May 2011 23:01:40 -0400
+Message-ID: <180987.84653.qm@web112003.mail.gq1.yahoo.com>
+Date: Sun, 22 May 2011 20:01:40 -0700 (PDT)
+From: Chris Rodley <carlighting@yahoo.co.nz>
+Subject: Re: [PATCH v2 1/2] MT9P031: Add support for Aptina mt9p031 sensor.
+To: linux-media@vger.kernel.org
 MIME-Version: 1.0
-From: "Aguirre, Sergio" <saaguirre@ti.com>
-Date: Mon, 9 May 2011 17:04:09 -0500
-Message-ID: <BANLkTi=FXUvjikBb-ooLSaicWoRf3kM74Q@mail.gmail.com>
-Subject: [Query] Anyone here working with the mainline omap3isp driver?
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Ohad Ben-Cohen <ohad@wizery.com>, Bhavin Shah <bshah@ti.com>
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 8BIT
 List-ID: <linux-media.vger.kernel.org>
-Sender: Mauro Carvalho Chehab <mchehab@gaivota>
+Sender: <mchehab@pedra>
 
-Hi Everyone,
+Error when using media-ctl as below with v2 mt9p031 driver from Javier and latest media-ctl version.
+Is there a patch I missed to add different formats - or maybe my command is wrong?
 
-I'll just like to know if there's someone working with the mainline
-version of the omap3isp driver.
+# ./media-ctl -v -r -l '"mt9p031 2-0048":0->"OMAP3 ISP CCDC":0[1], "OMAP3 ISP CCDC":1->"OMAP3 ISP CCDC output":0[1]'
+Opening media device /dev/media0
+Enumerating entities
+Found 16 entities
+Enumerating pads and links
+Resetting all links to inactive
+Setting up link 16:0 -> 5:0 [1]
+Setting up link 5:1 -> 6:0 [1]
 
-Ohad (in CC) has some omap3 iommu changes which might affect the
-omap3isp driver.
+# ./media-ctl -v -f '"mt9p031 2-0048":0[SGRBG8 320x240], "OMAP3 ISP CCDC":1[SGRBG8 320x240]'
+Opening media device /dev/media0
+Enumerating entities
+Found 16 entities
+Enumerating pads and links
+Setting up format SGRBG8 320x240 on pad mt9p031 2-0048/0
+Unable to set format: Invalid argument (-22)
+ 
+I also tried:
+./media-ctl -r -l '"mt9p031 2-0048":0->"OMAP3 ISP CCDC":0[1], "OMAP3 ISP CCDC":1->"OMAP3 ISP CCDC output":0[1]'
+./media-ctl -f '"mt9p031 2-0048":0[SGRBG10 752x480 (1,5)/752x480], "OMAP3 ISP CCDC":0[SGRBG8 752x480], "OMAP3 ISP CCDC":1[SGRBG8 752x480]'
 
-I have been a bit away of the omap3 driver these days, so, if there's
-someone else that can try some iommu changes on top, that'll be great.
+With the same result.
 
-Regards,
-Sergio
+Cheers,
+Chris
