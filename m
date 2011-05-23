@@ -1,97 +1,61 @@
 Return-path: <mchehab@pedra>
-Received: from mo-p00-ob.rzone.de ([81.169.146.162]:17257 "EHLO
-	mo-p00-ob.rzone.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751054Ab1EDNPk (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 4 May 2011 09:15:40 -0400
-From: Ralph Metzler <rjkm@metzlerbros.de>
+Received: from perceval.ideasonboard.com ([95.142.166.194]:41862 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751331Ab1EWHrO (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 23 May 2011 03:47:14 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: javier Martin <javier.martin@vista-silicon.com>
+Subject: Re: [PATCH v2 2/2] OMAP3BEAGLE: Add support for mt9p031 sensor driver.
+Date: Mon, 23 May 2011 09:47:15 +0200
+Cc: Igor Grinberg <grinberg@compulab.co.il>,
+	linux-media@vger.kernel.org, beagleboard@googlegroups.com,
+	carlighting@yahoo.co.nz, g.liakhovetski@gmx.de,
+	linux-arm-kernel@lists.infradead.org,
+	"linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+References: <1305899272-31839-1-git-send-email-javier.martin@vista-silicon.com> <4DD9146B.2050408@compulab.co.il> <BANLkTi=sqZpAKFxeCbwqpU_7+WZABGa4=w@mail.gmail.com>
+In-Reply-To: <BANLkTi=sqZpAKFxeCbwqpU_7+WZABGa4=w@mail.gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
-Message-ID: <19905.20858.398133.877952@morden.metzler>
-Date: Wed, 4 May 2011 15:15:38 +0200
-To: Andreas Oberritter <obi@linuxtv.org>
-Cc: Issa Gorissen <flop.m@usa.net>, linux-media@vger.kernel.org
-Subject: Re: [PATCH] Ngene cam device name
-In-Reply-To: <4DC146E1.3000103@linuxtv.org>
-References: <148PeDiAM3760S04.1304497658@web04.cms.usa.net>
-	<4DC1236C.3000006@linuxtv.org>
-	<19905.13923.40846.342434@morden.metzler>
-	<4DC146E1.3000103@linuxtv.org>
+Message-Id: <201105230947.15775.laurent.pinchart@ideasonboard.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Andreas Oberritter writes:
- > > Of course it does since it is not feasible to use the same adapter
- > > number even on the same card when it provides multi-standard 
- > > frontends which share dvr and demux devices. E.g., frontend0 and
- > > frontend1 can belong to the same demod which can be DVB-C and -T 
- > > (or other combinations, some demods can even do DVB-C/T/S2). 
- > 
- > There's absolutely no need to have more than one frontend device per
- > demod. Just add two commands, one to query the possible delivery systems
- > and one to switch the system. Why would you need more than one device
- > node at all, if you can only use one delivery system at a time?
+Hi Javier,
 
+On Monday 23 May 2011 09:25:01 javier Martin wrote:
+> On 22 May 2011 15:49, Igor Grinberg <grinberg@compulab.co.il> wrote:
 
-Maybe because there is no proper documentation for this.
+[snip]
 
+> >> @@ -309,6 +357,15 @@ static int beagle_twl_gpio_setup(struct device
+> >> *dev, pr_err("%s: unable to configure EHCI_nOC\n", __func__); }
+> >> 
+> >> +     if (omap3_beagle_get_rev() == OMAP3BEAGLE_BOARD_XM) {
+> >> +             /*
+> >> +              * Power on camera interface - only on pre-production, not
+> >> +              * needed on production boards
+> >> +              */
+> >> +             gpio_request(gpio + 2, "CAM_EN");
+> >> +             gpio_direction_output(gpio + 2, 1);
+> > 
+> > Why not gpio_request_one()?
+> 
+> Just to follow the same approach as in the rest of the code.
+> Maybe a further patch could change all "gpio_request()" uses to
+> "gpio_request_one()".
 
- > > Or is there a standard way this is supposed to be handled?
- > 
- > Yes. Since ages. The ioctl is called DMX_SET_SOURCE.
+Please do it the other way around. Replace calls to gpio_request() + 
+gpio_direction_output() with a call to gpio_request_one(), and then modify 
+this patch to use gpio_request_one().
 
-This does make no sense regarding my question.
+If you want to learn how to use coccinelle (http://coccinelle.lip6.fr/), now 
+would be a good time. You could use it to replace gpio_request() + 
+gpio_direction_output() through the whole kernel.
 
+-- 
+Regards,
 
- > > There are no mechanism to connect a frontend with specific dvr or
- > > demux devices in the current API. But you demand it for the caio device.
- > 
- > See above.
-
-Ok, wrong formulation. There is no API to indicate which can connect
-to which.
-
-
- > > A ca/caio pair is completely independent by design and should not get mixed with
- > > other devices.
- > 
- > I guess you're right, but I'm questioning your design.
-
-
-How else can an independent CI interface be designed?
-And this is how the hardware is. I cannot change this in software.
-
- > >  > It's ugly to force random policies on drivers. Please create a proper
- > >  > interface instead!
- > >  > 
- > > 
- > > Then the whole API should first get proper interfaces. See above.
- > 
- > Already done. See above.
-
-And no proper documentation.
-
-
- > Of course, you shouldn't invent fake frontends. But, if you decide to
- > plug a frontend into your octopus card later on, then the frontend
- > device should appear under the same adapter number. Right?
-
-No, it does not right now.
-
- 
- > >  > At least on embedded devices, it simply isn't feasible to copy a TS to
- > >  > userspace from a demux, just to copy it back to the kernel and again
- > >  > back to userspace through a caio device, when live streaming.
- > > 
- > > Then do not use it on embedded devices. 
- > > But this is how this hardware works and APIs will not change the hardware.
- > 
- > In a similar way, I could propose to not use vanilla kernels, if you
- > don't want to come up with a good API.
-
-Why? The driver works fine on top of vanilla kernels.
-
-I do not really care if the driver itself gets into the kernel anymore.
-
- 
--Ralph
+Laurent Pinchart
