@@ -1,66 +1,153 @@
 Return-path: <mchehab@pedra>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:41982 "EHLO
+Received: from perceval.ideasonboard.com ([95.142.166.194]:54994 "EHLO
 	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751091Ab1EOHrW (ORCPT
+	with ESMTP id S1751061Ab1EWJIk (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 15 May 2011 03:47:22 -0400
-Received: from lancelot.localnet (249.170-65-87.adsl-dyn.isp.belgacom.be [87.65.170.249])
-	by perceval.ideasonboard.com (Postfix) with ESMTPSA id BEC233599D
-	for <linux-media@vger.kernel.org>; Sun, 15 May 2011 07:47:21 +0000 (UTC)
+	Mon, 23 May 2011 05:08:40 -0400
 From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: linux-media@vger.kernel.org
-Subject: [GIT PATCH FOR 2.6.40] uvcvideo patches
-Date: Sun, 15 May 2011 09:48:24 +0200
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Subject: Re: [PATCH v2 1/2] MT9P031: Add support for Aptina mt9p031 sensor.
+Date: Mon, 23 May 2011 11:08:52 +0200
+Cc: javier Martin <javier.martin@vista-silicon.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	carlighting@yahoo.co.nz, beagleboard@googlegroups.com,
+	linux-arm-kernel@lists.infradead.org
+References: <1305899272-31839-1-git-send-email-javier.martin@vista-silicon.com> <BANLkTinjNUVH4pvxsKos=wTd0fCB-2zz2A@mail.gmail.com> <Pine.LNX.4.64.1105231027150.30305@axis700.grange>
+In-Reply-To: <Pine.LNX.4.64.1105231027150.30305@axis700.grange>
 MIME-Version: 1.0
-Content-Type: text/plain;
-  charset="us-ascii"
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
-Message-Id: <201105150948.24956.laurent.pinchart@ideasonboard.com>
+Message-Id: <201105231108.53143.laurent.pinchart@ideasonboard.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Hi Mauro,
+Hi Guennadi,
 
-The following changes since commit f9b51477fe540fb4c65a05027fdd6f2ecce4db3b:
+On Monday 23 May 2011 10:48:36 Guennadi Liakhovetski wrote:
+> On Mon, 23 May 2011, javier Martin wrote:
+> > On 21 May 2011 17:29, Guennadi Liakhovetski <g.liakhovetski@gmx.de> wrote:
+> > > On Fri, 20 May 2011, Javier Martin wrote:
+> > >> This driver adds basic support for Aptina mt9p031 sensor.
+> > >> 
+> > >> Signed-off-by: Javier Martin <javier.martin@vista-silicon.com>
+> > >> ---
+> > >>  drivers/media/video/Kconfig   |    8 +
+> > >>  drivers/media/video/Makefile  |    1 +
+> > >>  drivers/media/video/mt9p031.c |  751
+> > >> +++++++++++++++++++++++++++++++++++++++++ include/media/mt9p031.h    
+> > >>   |   11 +
+> > >>  4 files changed, 771 insertions(+), 0 deletions(-)
+> > >>  create mode 100644 drivers/media/video/mt9p031.c
+> > >>  create mode 100644 include/media/mt9p031.h
+> > >> 
+> > >> diff --git a/drivers/media/video/mt9p031.c
+> > >> b/drivers/media/video/mt9p031.c new file mode 100644
+> > >> index 0000000..e406b64
+> > >> --- /dev/null
+> > >> +++ b/drivers/media/video/mt9p031.c
+> > >> @@ -0,0 +1,751 @@
+> > >> +/*
+> > >> + * Driver for MT9P031 CMOS Image Sensor from Aptina
+> > >> + *
+> > >> + * Copyright (C) 2011, Javier Martin
+> > >> <javier.martin@vista-silicon.com> + *
+> > >> + * Copyright (C) 2011, Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+> > >> + *
+> > >> + * Based on the MT9V032 driver and Bastian Hecht's code.
+> > >> + *
+> > >> + * This program is free software; you can redistribute it and/or
+> > >> modify + * it under the terms of the GNU General Public License
+> > >> version 2 as + * published by the Free Software Foundation.
+> > >> + */
+> > >> +
+> > >> +#include <linux/delay.h>
+> > >> +#include <linux/device.h>
+> > >> +#include <linux/i2c.h>
+> > >> +#include <linux/log2.h>
+> > >> +#include <linux/pm.h>
+> > >> +#include <linux/regulator/consumer.h>
+> > >> +#include <linux/slab.h>
+> > >> +#include <media/v4l2-subdev.h>
+> > >> +#include <linux/videodev2.h>
+> > >> +
+> > >> +#include <media/mt9p031.h>
+> > >> +#include <media/v4l2-chip-ident.h>
+> > >> +#include <media/v4l2-subdev.h>
+> > >> +#include <media/v4l2-device.h>
+> > >> +
+> > >> +/* mt9p031 selected register addresses */
+> > >> +#define MT9P031_CHIP_VERSION                 0x00
+> > >> +#define              MT9P031_CHIP_VERSION_VALUE      0x1801
+> > >> +#define MT9P031_ROW_START                    0x01
+> > > 
+> > > Don't mix spaces and TABs between "#define" and the macro - just use
+> > > one space everywhere.
+> > 
+> > I've done this in order to follow Laurent's directions. He does the
+> > same in mt9v032 driver.
+> > So, unless Laurent and you agree I think I won't change it.
+> 
+> Ah, so, you use a space for registers and TABs for their values, ok then.
+> 
+> > >> +struct mt9p031 {
+> > >> +     struct v4l2_subdev subdev;
+> > >> +     struct media_pad pad;
+> > >> +     struct v4l2_rect rect;  /* Sensor window */
+> > >> +     struct v4l2_mbus_framefmt format;
+> > >> +     struct mt9p031_platform_data *pdata;
+> > >> +     struct mutex power_lock;
+> > > 
+> > > Don't locks _always_ have to be documented? And this one: you only
+> > > protect set_power() with it, Laurent, is this correct?
+> > 
+> > Just following the model Laurent applies in mt9v032. Let's see what he
+> > has to say about this.
+> 
+> Try running scripts/checkpatch.pl on your patch. I think, it will complain
+> about this. And in general it's a good idea to run it before submission;)
+> 
+> > >> +static int mt9p031_reset(struct i2c_client *client)
+> > >> +{
+> > >> +     struct mt9p031 *mt9p031 = to_mt9p031(client);
+> > >> +     int ret;
+> > >> +
+> > >> +     /* Disable chip output, synchronous option update */
+> > >> +     ret = reg_write(client, MT9P031_RST, MT9P031_RST_ENABLE);
+> > >> +     if (ret < 0)
+> > >> +             return -EIO;
+> > >> +     ret = reg_write(client, MT9P031_RST, MT9P031_RST_DISABLE);
+> > >> +     if (ret < 0)
+> > >> +             return -EIO;
+> > >> +     ret = mt9p031_set_output_control(mt9p031,
+> > >> MT9P031_OUTPUT_CONTROL_CEN, 0); +     if (ret < 0)
+> > >> +             return -EIO;
+> > >> +     return 0;
+> > > 
+> > > I think, a sequence like
+> > > 
+> > >        ret = fn();
+> > >        if (!ret)
+> > >                ret = fn();
+> > >        if (!ret)
+> > >                ret = fn();
+> > >        return ret;
+> > > 
+> > > is a better way to achieve the same.
+> > 
+> > Sorry, but I have to disagree. I understand what you want to achieve
+> > but this seems quite tricky to me.
+> > I explicitly changed parts of the code that were written using that
+> > style because I think It was better understandable.
+> 
+> Well, that was my opinion. Since Laurent will be taking this patch via his
+> tree, his decision will be final, of course. But I think, he'll agree,
+> that at least you have to be consistent across the driver. And at least
+> you'd want to propagate your error code up to the caller instead of
+> replacing it with "-EIO."
 
-  [media] DVB: return meaningful error codes in dvb_frontend (2011-05-09 05:47:20 +0200)
-
-are available in the git repository at:
-  git://linuxtv.org/pinchartl/uvcvideo.git uvcvideo-next
-
-They replace the git pull request I've sent on Thursday with the same subject.
-
-Bob Liu (2):
-      Revert "V4L/DVB: v4l2-dev: remove get_unmapped_area"
-      uvcvideo: Add support for NOMMU arch
-
-Hans de Goede (2):
-      v4l: Add M420 format definition
-      uvcvideo: Add M420 format support
-
-Laurent Pinchart (4):
-      v4l: Release module if subdev registration fails
-      uvcvideo: Register a v4l2_device
-      uvcvideo: Register subdevices for each entity
-      uvcvideo: Connect video devices to media entities                                                                                                    
-                                                                                                                                                           
- Documentation/DocBook/media-entities.tmpl |    1 +                                                                                                        
- Documentation/DocBook/v4l/pixfmt-m420.xml |  147 +++++++++++++++++++++++++++++                                                                            
- Documentation/DocBook/v4l/pixfmt.xml      |    1 +                                                                                                        
- Documentation/DocBook/v4l/videodev2.h.xml |    1 +                                                                                                        
- drivers/media/video/uvc/Makefile          |    3 +                                                                                                        
- drivers/media/video/uvc/uvc_driver.c      |   71 +++++++++++++--                                                                                          
- drivers/media/video/uvc/uvc_entity.c      |  118 +++++++++++++++++++++++                                                                                  
- drivers/media/video/uvc/uvc_queue.c       |   34 +++++++-                                                                                                 
- drivers/media/video/uvc/uvc_v4l2.c        |   17 ++++                                                                                                     
- drivers/media/video/uvc/uvcvideo.h        |   27 +++++                                                                                                    
- drivers/media/video/v4l2-dev.c            |   18 ++++                                                                                                     
- drivers/media/video/v4l2-device.c         |    5 +-                                                                                                       
- include/linux/videodev2.h                 |    1 +                                                                                                        
- include/media/v4l2-dev.h                  |    2 +                                                                                                        
- 14 files changed, 437 insertions(+), 9 deletions(-)                                                                                                       
- create mode 100644 Documentation/DocBook/v4l/pixfmt-m420.xml                                                                                              
- create mode 100644 drivers/media/video/uvc/uvc_entity.c
+To follow up on my previous answer on this, I agree that the return value 
+should be propagated instead of replacing it with -EIO.
 
 -- 
 Regards,
