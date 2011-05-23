@@ -1,55 +1,69 @@
 Return-path: <mchehab@pedra>
-Received: from mailout2.w1.samsung.com ([210.118.77.12]:45374 "EHLO
-	mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932782Ab1EYIes (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 25 May 2011 04:34:48 -0400
-Received: from eu_spt1 (mailout2.w1.samsung.com [210.118.77.12])
- by mailout2.w1.samsung.com
- (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14 2004))
- with ESMTP id <0LLQ000T5T5ZYZ@mailout2.w1.samsung.com> for
- linux-media@vger.kernel.org; Wed, 25 May 2011 09:34:47 +0100 (BST)
-Received: from linux.samsung.com ([106.116.38.10])
- by spt1.w1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14
- 2004)) with ESMTPA id <0LLQ0067ET5XW8@spt1.w1.samsung.com> for
- linux-media@vger.kernel.org; Wed, 25 May 2011 09:34:46 +0100 (BST)
-Date: Wed, 25 May 2011 10:34:43 +0200
-From: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Subject: [PATCH v2] s5p-csis: Add missing dependency on PLAT_S5P
-In-reply-to: <1306306916.2390.6.camel@porites>
-To: linux-media@vger.kernel.org
-Cc: nico@youplala.net, Sylwester Nawrocki <s.nawrocki@samsung.com>
-Message-id: <1306312483-32478-1-git-send-email-s.nawrocki@samsung.com>
-MIME-version: 1.0
-Content-type: TEXT/PLAIN
-Content-transfer-encoding: 7BIT
-References: <1306306916.2390.6.camel@porites>
+Received: from ffm.saftware.de ([83.141.3.46]:51654 "EHLO ffm.saftware.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752363Ab1EWPca (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 23 May 2011 11:32:30 -0400
+Message-ID: <4DDA7E07.7070907@linuxtv.org>
+Date: Mon, 23 May 2011 17:32:23 +0200
+From: Andreas Oberritter <obi@linuxtv.org>
+MIME-Version: 1.0
+To: Hans Petter Selasky <hselasky@c2i.net>
+CC: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	linux-kernel@vger.kernel.org
+Subject: Re: [PATCH] FE_GET_PROPERTY should be _IOW, because the associated
+ structure is transferred from userspace to kernelspace. Keep the old ioctl
+ around for compatibility so that existing code is not broken.
+References: <201105231558.13084.hselasky@c2i.net> <4DDA711E.3030301@linuxtv.org> <201105231651.55945.hselasky@c2i.net>
+In-Reply-To: <201105231651.55945.hselasky@c2i.net>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-s5p-csis is to be built only on S5P SoC platforms.
+On 05/23/2011 04:51 PM, Hans Petter Selasky wrote:
+> On Monday 23 May 2011 16:37:18 Andreas Oberritter wrote:
+>> On 05/23/2011 03:58 PM, Hans Petter Selasky wrote:
+>>> From be7d0f72ebf4d945cfb2a5c9cc871707f72e1e3c Mon Sep 17 00:00:00 2001
+>>> From: Hans Petter Selasky <hselasky@c2i.net>
+>>> Date: Mon, 23 May 2011 15:56:31 +0200
+>>> Subject: [PATCH] FE_GET_PROPERTY should be _IOW, because the associated
+>>> structure is transferred from userspace to kernelspace. Keep the old
+>>> ioctl around for compatibility so that existing code is not broken.
+>>
+> 
+> Hi,
+> 
+>> Good catch, but I think _IOWR would be right, because the result gets
+>> copied from kernelspace to userspace.
+> 
+> Those flags are only for the IOCTL associated structure itself. The V4L DVB 
+> kernel only reads the dtv_properties structure in either case and does not 
+> write any data back to it. That's why only _IOW is required.
 
-Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
----
-Resending, as the previous patch had PLAT_S5P added twice..
+I see.
 
----
- drivers/media/video/Kconfig |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
+> I checked somewhat and the R/W bits in the IOCTL command does not appear do be 
+> matched to the R/W permissions you have on the file handle? Or am I mistaken?
 
-diff --git a/drivers/media/video/Kconfig b/drivers/media/video/Kconfig
-index cf5a1f6..bb53de7 100644
---- a/drivers/media/video/Kconfig
-+++ b/drivers/media/video/Kconfig
-@@ -954,7 +954,7 @@ config  VIDEO_SAMSUNG_S5P_FIMC
- 
- config VIDEO_S5P_MIPI_CSIS
- 	tristate "Samsung S5P and EXYNOS4 MIPI CSI receiver driver"
--	depends on VIDEO_V4L2 && PM_RUNTIME && VIDEO_V4L2_SUBDEV_API
-+	depends on VIDEO_V4L2 && PM_RUNTIME && PLAT_S5P && VIDEO_V4L2_SUBDEV_API
- 	---help---
- 	  This is a v4l2 driver for Samsung S5P/EXYNOS4 MIPI-CSI receiver.
- 
--- 
-1.7.2.5
+You're right. There's no direct relationship between them, at least not
+within dvb-core.
 
+> In other words the IOCTL R/W (_IOC_READ, _IOC_WRITE) bits should not reflect 
+> what the IOCTL actually does, like modifying indirect data?
+
+I'm not sure. Your patch is certainly doing the right thing for the
+current implementation of dvb_usercopy, which however wasn't designed
+with variable length arrays in mind.
+
+Taking dvb_usercopy aside, my interpretation of the ioctl bits was:
+- _IOC_READ is required if copy_to_user/put_user needs to be used during
+the ioctl.
+- _IOC_WRITE is required if copy_from_user/get_user needs to be used
+during the ioctl.
+
+Whether that's limited to the structure directly encoded in the ioctl or
+not is unclear to me. Maybe someone at LKML can shed some light on that.
+
+Regards,
+Andreas
