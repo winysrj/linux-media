@@ -1,45 +1,53 @@
 Return-path: <mchehab@pedra>
-Received: from smtp5-g21.free.fr ([212.27.42.5]:36116 "EHLO smtp5-g21.free.fr"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751061Ab1EWJUW convert rfc822-to-8bit (ORCPT
+Received: from eline.schedom-europe.net ([193.109.184.70]:45418 "EHLO
+	eline.schedom-europe.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756197Ab1EXSp3 convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 23 May 2011 05:20:22 -0400
-Received: from tele (unknown [82.245.201.222])
-	by smtp5-g21.free.fr (Postfix) with ESMTP id 922B3D481E8
-	for <linux-media@vger.kernel.org>; Mon, 23 May 2011 11:20:16 +0200 (CEST)
-Date: Mon, 23 May 2011 11:20:54 +0200
-From: Jean-Francois Moine <moinejf@free.fr>
-To: linux-media@vger.kernel.org
-Subject: [GIT PATCHES FOR 2.6.40] gspca for_v2.6.40
-Message-ID: <20110523112054.4d8b29ef@tele>
+	Tue, 24 May 2011 14:45:29 -0400
+Date: Tue, 24 May 2011 20:45:14 +0200
+From: Guy Martin <gmsoft@tuxicoman.be>
+To: =?UTF-8?B?U8OpYmFzdGllbg==?= RAILLARD (COEXSI) <sr@coexsi.fr>
+Cc: <abraham.manu@gmail.com>, <linux-media@vger.kernel.org>
+Subject: Re: STV090x FE_READ_STATUS implementation
+Message-ID: <20110524204514.4fc6774c@zombie>
+In-Reply-To: <007101cc1a3a$a0a86e80$e1f94b80$@coexsi.fr>
+References: <20110524181817.34097929@borg.bxl.tuxicoman.be>
+	<007101cc1a3a$a0a86e80$e1f94b80$@coexsi.fr>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8BIT
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-The following changes since commit
-87cf028f3aa1ed51fe29c36df548aa714dc7438f:
+On Tue, 24 May 2011 19:47:17 +0200
+Sébastien RAILLARD (COEXSI) <sr@coexsi.fr> wrote:
 
-  [media] dm1105: GPIO handling added, I2C on GPIO added, LNB control through GPIO reworked (2011-05-21 11:10:28 -0300)
+> > Does the STV6110 supports reporting of signal, carrier, viterbi and
+> > sync ?
+> > 
+> 
+> I've done some tests with the CineS2, that is using the STV6110A as
+> the tuner and the STV0903 as the demodulator.
+> 
+> The values you are searching for don't come from the tuner, but the
+> demodulator.
+> 
+> In my case, the STV0903 is reporting the five following states :
+> SCVYL.
+> 
 
-are available in the git repository at:
-  git://linuxtv.org/jfrancois/gspca.git for_v2.6.40
+Indeed, after some more troubleshooting, I found out that the problem
+is not in the STV6110 but in the STV090X code. The card I'm using is a
+TT S2-1600.
 
-Jean-François Moine (6):
-      gspca - ov519: Fix a regression for ovfx2 webcams
-      gspca - ov519: Change the ovfx2 bulk transfer size
-      gspca: Remove coarse_expo_autogain.h
-      gspca - stv06xx: Set a lower default value of gain for hdcs sensors
-      gspca - ov519: New sensor ov9600 with bridge ovfx2
-      gspca - ov519: Set the default frame rate to 15 fps
+The function stv090x_read_status() only reports the status when locked.
 
- drivers/media/video/gspca/coarse_expo_autogain.h |  116 ---------------------
- drivers/media/video/gspca/ov519.c                |  117 ++++++++++++++++++---
- drivers/media/video/gspca/stv06xx/stv06xx_hdcs.h |    2 +-
- 3 files changed, 101 insertions(+), 134 deletions(-)
- delete mode 100644 drivers/media/video/gspca/coarse_expo_autogain.h
+I couldn't find the datasheet either for this one. Manu is the
+maintainer as well. Maybe he has more input on this.
 
--- 
-Ken ar c'hentañ	|	      ** Breizh ha Linux atav! **
-Jef		|		http://moinejf.free.fr/
+In the meantime, I'll give a closer look at the code see if I can figure
+out a way to fix that.
+
+
+Thanks,
+  Guy
