@@ -1,94 +1,85 @@
 Return-path: <mchehab@pedra>
-Received: from kroah.org ([198.145.64.141]:60421 "EHLO coco.kroah.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753551Ab1EDUj1 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 4 May 2011 16:39:27 -0400
-Date: Wed, 4 May 2011 13:36:13 -0700
-From: Greg KH <greg@kroah.com>
+Received: from smtp-vbr11.xs4all.nl ([194.109.24.31]:3162 "EHLO
+	smtp-vbr11.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752141Ab1EXG2t (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 24 May 2011 02:28:49 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
 To: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Jarod Wilson <jarod@wilsonet.com>,
-	Lawrence Rust <lawrence@softsystem.co.uk>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: [PATCH] Fix cx88 remote control input
-Message-ID: <20110504203613.GA1091@kroah.com>
-References: <1302267045.1749.38.camel@gagarin>
- <4DBEFD02.70906@redhat.com>
- <1304407514.1739.22.camel@gagarin>
- <D7FAB30A-E204-47B9-A7A0-E3BF50EE7FBD@wilsonet.com>
- <4DC1B41D.9090200@redhat.com>
+Subject: Re: [GIT PATCHES FOR 2.6.40] Fixes
+Date: Tue, 24 May 2011 08:28:32 +0200
+Cc: "linux-media" <linux-media@vger.kernel.org>,
+	Manjunatha Halli <manjunatha_halli@ti.com>,
+	"Matti J. Aaltonen" <matti.j.aaltonen@nokia.com>
+References: <201105231306.56050.hverkuil@xs4all.nl> <4DDB0D08.2000503@redhat.com>
+In-Reply-To: <4DDB0D08.2000503@redhat.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <4DC1B41D.9090200@redhat.com>
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201105240828.32866.hverkuil@xs4all.nl>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Wed, May 04, 2011 at 05:16:29PM -0300, Mauro Carvalho Chehab wrote:
-> Hi Lawerence,
-> 
-> Em 03-05-2011 14:19, Jarod Wilson escreveu:
-> > On May 3, 2011, at 3:25 AM, Lawrence Rust wrote:
+On Tuesday, May 24, 2011 03:42:32 Mauro Carvalho Chehab wrote:
+> Em 23-05-2011 08:06, Hans Verkuil escreveu:
+> > Hi Mauro,
 > > 
-> >> On Mon, 2011-05-02 at 15:50 -0300, Mauro Carvalho Chehab wrote:
-> >>> Em 08-04-2011 09:50, Lawrence Rust escreveu:
-> >>>> This patch restores remote control input for cx2388x based boards on
-> >>>> Linux kernels >= 2.6.38.
-> >>>>
-> >>>> After upgrading from Linux 2.6.37 to 2.6.38 I found that the remote
-> >>>> control input of my Hauppauge Nova-S plus was no longer functioning.  
-> >>>> I posted a question on this newsgroup and Mauro Carvalho Chehab gave
-> >>>> some helpful pointers as to the likely cause.
-> >>>>
-> >>>> Turns out that there are 2 problems:
-> >>>>
-> >>>> 1. In the IR interrupt handler of cx88-input.c there's a 32-bit multiply
-> >>>> overflow which causes IR pulse durations to be incorrectly calculated.
+> > Here are a few fixes: the first fixes a bug in the wl12xx drivers (I hope Matti's
+> > email is still correct). The second fixes a few DocBook validation errors, and
+> > the last fixes READ_ONLY and GRABBED handling in the control framework.
+> > 
+> > Regards,
+> > 
+> > 	Hans
+> > 
+> > The following changes since commit 87cf028f3aa1ed51fe29c36df548aa714dc7438f:
+> > 
+> >   [media] dm1105: GPIO handling added, I2C on GPIO added, LNB control through GPIO reworked (2011-05-21 11:10:28 -0300)
+> > 
+> > are available in the git repository at:
+> >   ssh://linuxtv.org/git/hverkuil/media_tree.git fixes
+> > 
+> > Hans Verkuil (3):
+> >       wl12xx: g_volatile_ctrl fix: wrong field set.
+> >       Media DocBook: fix validation errors.
 > 
-> I'm adding the patch for it today on my linux-next tree. I'll probably send
-> upstream on the next couple days.
+> The two above are fixes...
 > 
-> >>>>
-> >>>> 2. The RC5 decoder appends the system code to the scancode and passes
-> >>>> the combination to rc_keydown().  Unfortunately, the combined value is
-> >>>> then forwarded to input_event() which then fails to recognise a valid
-> >>>> scancode and hence no input events are generated.
+> >       v4l2-ctrls: drivers should be able to ignore READ_ONLY and GRABBED flags
 > 
-> In this case, a patch should be sent to -stable in separate.
-> 
-> Greg,
-> 
-> On 2.6.38, there are two RC5 keytables for Hauppauge devices, one with incomplete
-> scancodes (just 8 bits for each key) and the other one with 14 bits. One patch
-> changed the IR handling for cx88 to accept 14-bits for scancodes, but the change
-> didn't switch to the complete table.
-> 
-> For 2.6.39, all keytables for Hauppauge (4 different tables) were unified into
-> just one keytable. So, on 2.6.39-rc, the cx88 code already works fine for 64-bits
-> kernels, and the fix for 32-bits is undergoing.
-> 
-> In the case of 2.6.38 kernel, the Remote Controller is broken for both kernels.
-> The fix is as simple as:
-> 
-> --- a/drivers/media/video/cx88/cx88-input.c
-> +++ b/drivers/media/video/cx88/cx88-input.c
-> @@ -283,7 +283,7 @@ int cx88_ir_init(struct cx88_core *core, struct pci_dev *pci)
-> 	case CX88_BOARD_PCHDTV_HD3000:
-> 	case CX88_BOARD_PCHDTV_HD5500:
-> 	case CX88_BOARD_HAUPPAUGE_IRONLY:
-> -		ir_codes = RC_MAP_HAUPPAUGE_NEW;
-> +		ir_codes = RC_MAP_RC5_HAUPPAUGE_NEW;
-> 		ir->sampling = 1;
-> 		break;
-> 	case CX88_BOARD_WINFAST_DTV2000H:
-> 
-> 
-> But this change diverges from upstream, due to the table unify. Would such patch
-> be acceptable for stable, even not having a corresponding upstream commit?
+> But this one is a change at the behaviour. I need to analyse it better. The idea
+> of a "read only" control that it is not read only seems too weird on my tired eyes.
 
-Yes, as long as .39 is working properly.  We take patches in -stable for
-stuff like this at times, it just needs to be specified exactly like you
-did above.  Want me to take this patch as-is for .38-stable?
+It's read-only for *applications*. But if you have a read-only control that
+reflects a driver state, then it should be possible for a *driver* to change
+it. It's something that is needed for the upcoming Flash and HDMI APIs.
 
-thanks,
+The userspace behavior does not change.
 
-greg k-h
+BTW, if you prefer to move this last patch to 2.6.41, then that's OK by me.
+It's not really necessary for 2.6.40.
+
+Regards,
+
+	Hans
+
+> 
+> I'll take a more careful look on it tomorrow.
+> 
+> Thanks,
+> Mauro.
+> 
+> > 
+> >  Documentation/DocBook/dvb/dvbproperty.xml    |    5 ++-
+> >  Documentation/DocBook/v4l/subdev-formats.xml |   10 ++--
+> >  drivers/media/radio/radio-wl1273.c           |    2 +-
+> >  drivers/media/radio/wl128x/fmdrv_v4l2.c      |    2 +-
+> >  drivers/media/video/v4l2-ctrls.c             |   59 +++++++++++++++++---------
+> >  5 files changed, 50 insertions(+), 28 deletions(-)
+> > --
+> > To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> > the body of a message to majordomo@vger.kernel.org
+> > More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
+> 
