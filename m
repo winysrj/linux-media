@@ -1,54 +1,54 @@
 Return-path: <mchehab@pedra>
-Received: from nm26-vm0.bullet.mail.sp2.yahoo.com ([98.139.91.230]:42651 "HELO
-	nm26-vm0.bullet.mail.sp2.yahoo.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with SMTP id S1751229Ab1E3CNL convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 29 May 2011 22:13:11 -0400
-Message-ID: <290776.52536.qm@web112005.mail.gq1.yahoo.com>
-Date: Sun, 29 May 2011 19:13:10 -0700 (PDT)
-From: Chris Rodley <carlighting@yahoo.co.nz>
-Subject: Re: [beagleboard] [PATCH] Second RFC version of mt9p031 sensor with power managament.
-To: g.liakhovetski@gmx.de, javier.martin@vista-silicon.com
-Cc: koen@beagleboard.org, beagleboard@googlegroups.com,
-	linux-media@vger.kernel.org, laurent.pinchart@ideasonboard.com
-MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 8BIT
+Received: from mailout1.w1.samsung.com ([210.118.77.11]:37930 "EHLO
+	mailout1.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932075Ab1EXNLw (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 24 May 2011 09:11:52 -0400
+Received: from spt2.w1.samsung.com (mailout1.w1.samsung.com [210.118.77.11])
+ by mailout1.w1.samsung.com
+ (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14 2004))
+ with ESMTP id <0LLP00L3PB88MR@mailout1.w1.samsung.com> for
+ linux-media@vger.kernel.org; Tue, 24 May 2011 14:09:44 +0100 (BST)
+Received: from linux.samsung.com ([106.116.38.10])
+ by spt2.w1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14
+ 2004)) with ESMTPA id <0LLP001X8B87HC@spt2.w1.samsung.com> for
+ linux-media@vger.kernel.org; Tue, 24 May 2011 14:09:43 +0100 (BST)
+Date: Tue, 24 May 2011 15:09:35 +0200
+From: Tomasz Stanislawski <t.stanislaws@samsung.com>
+Subject: [PATCH 2/3] v4l: add g_tvnorms callback to V4L2 subdev
+In-reply-to: <1306242576-24458-1-git-send-email-t.stanislaws@samsung.com>
+To: linux-media@vger.kernel.org
+Cc: m.szyprowski@samsung.com, t.stanislaws@samsung.com,
+	kyungmin.park@samsung.com, hverkuil@xs4all.nl
+Message-id: <1306242576-24458-3-git-send-email-t.stanislaws@samsung.com>
+MIME-version: 1.0
+Content-type: TEXT/PLAIN
+Content-transfer-encoding: 7BIT
+References: <1306242576-24458-1-git-send-email-t.stanislaws@samsung.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On 29/05/11 03:04, Guennadi Liakhovetski wrote:
-> On Sat, 28 May 2011, Guennadi Liakhovetski wrote:
->
->> Hi Javier
->>
->> On Thu, 26 May 2011, javier Martin wrote:
->>
->>> I use a patched version of yavta and Mplayer to see video
->>> (http://download.open-technology.de/BeagleBoard_xM-MT9P031/)
->>
->> Are you really using those versions and patches, as described in 
->> BBxM-MT9P031.txt? I don't think those versions still work with 2.6.39, 
->> they don't even compile for me. Whereas if I take current HEAD, it builds 
->> and media-ctl seems to run error-free, but yavta produces no output.
->
-> Ok, sorry for the noise. It works with current media-ctl with no patches, 
-> so, we better don't try to confuse our users / testers:)
->
-> Thanks
-> Guennadi
+Callback is used to acquire TV norms supported by a subdev.
+It is used to avoid having standards in top-level driver.
 
-Hi,
+Signed-off-by: Tomasz Stanislawski <t.stanislaws@samsung.com>
+Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+---
+ include/media/v4l2-subdev.h |    1 +
+ 1 files changed, 1 insertions(+), 0 deletions(-)
 
-Still no luck getting the v3 patch working.
-I did go back and re-test the first v1 patch that Javier released.
-This works fine with the same version of media-ctl and yavta.
-So it isn't either of those programs that is causing the problem.
-
-Must be something else.
-
-Will wait and see how Koen goes.
-
-Cheers,
-Chris
+diff --git a/include/media/v4l2-subdev.h b/include/media/v4l2-subdev.h
+index 1562c4f..4206e97 100644
+--- a/include/media/v4l2-subdev.h
++++ b/include/media/v4l2-subdev.h
+@@ -261,6 +261,7 @@ struct v4l2_subdev_video_ops {
+ 	int (*s_crystal_freq)(struct v4l2_subdev *sd, u32 freq, u32 flags);
+ 	int (*s_std_output)(struct v4l2_subdev *sd, v4l2_std_id std);
+ 	int (*querystd)(struct v4l2_subdev *sd, v4l2_std_id *std);
++	int (*g_tvnorms)(struct v4l2_subdev *sd, v4l2_std_id *std);
+ 	int (*g_input_status)(struct v4l2_subdev *sd, u32 *status);
+ 	int (*s_stream)(struct v4l2_subdev *sd, int enable);
+ 	int (*cropcap)(struct v4l2_subdev *sd, struct v4l2_cropcap *cc);
+-- 
+1.7.5.1
 
