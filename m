@@ -1,61 +1,58 @@
 Return-path: <mchehab@pedra>
-Received: from mailout4.samsung.com ([203.254.224.34]:48848 "EHLO
-	mailout4.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751884Ab1EYLa2 (ORCPT
+Received: from casper.infradead.org ([85.118.1.10]:34837 "EHLO
+	casper.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932466Ab1EXOKh (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 25 May 2011 07:30:28 -0400
-MIME-version: 1.0
-Content-transfer-encoding: 8BIT
-Content-type: text/plain; charset=UTF-8
-Received: from epcpsbgm2.samsung.com (mailout4.samsung.com [203.254.224.34])
- by mailout4.samsung.com
- (Oracle Communications Messaging Exchange Server 7u4-19.01 64bit (built Sep  7
- 2010)) with ESMTP id <0LLR0086E1ACF1I0@mailout4.samsung.com> for
- linux-media@vger.kernel.org; Wed, 25 May 2011 20:30:27 +0900 (KST)
-Received: from TNRNDGASPAPP1.tn.corp.samsungelectronics.net ([165.213.149.150])
- by mmp1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14 2004))
- with ESMTPA id <0LLR00A7W1ARXE@mmp1.samsung.com> for
- linux-media@vger.kernel.org; Wed, 25 May 2011 20:30:27 +0900 (KST)
-Date: Wed, 25 May 2011 20:30:26 +0900
-From: "Kim, HeungJun" <riverful.kim@samsung.com>
-Subject: Re: I just wondering how to set shutter or aperture value in uvc
- driver.
-In-reply-to: <201105251317.39393.laurent.pinchart@ideasonboard.com>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Reply-to: riverful.kim@samsung.com
-Message-id: <4DDCE852.9030509@samsung.com>
-References: <4DDCA67B.2060705@samsung.com>
- <201105251317.39393.laurent.pinchart@ideasonboard.com>
+	Tue, 24 May 2011 10:10:37 -0400
+Message-ID: <4DDBBC29.80009@infradead.org>
+Date: Tue, 24 May 2011 11:09:45 -0300
+From: Mauro Carvalho Chehab <mchehab@infradead.org>
+MIME-Version: 1.0
+To: Hans de Goede <hdegoede@redhat.com>
+CC: Hans Verkuil <hverkuil@xs4all.nl>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Devin Heitmueller <dheitmueller@kernellabs.com>
+Subject: Re: [ANNOUNCE] experimental alsa stream support at xawtv3
+References: <4DDAC0C2.7090508@redhat.com> <201105240850.35032.hverkuil@xs4all.nl> <4DDB5C6B.6000608@redhat.com>
+In-Reply-To: <4DDB5C6B.6000608@redhat.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Hi Laurent,
+Em 24-05-2011 04:21, Hans de Goede escreveu:
+> Hi,
+ 
+> My I suggest that we instead just copy over the single get_media_devices.c
+> file to xawtv, and not install the not so much a lib lib ?
 
-2011-05-25 오후 8:17, Laurent Pinchart 쓴 글:
-> Hi Heungjun,
-> 
-> On Wednesday 25 May 2011 08:49:31 Kim, HeungJun wrote:
->> Hi Laurent,
->>
->> I try to add the more exposure methods of the M-5MOLS driver. Currently,
->> the only 2 exposure type are available in the M-5MOLS driver -
->> V4L2_EXPOSURE_AUTO, V4L2_EXPOSURE_MANUAL. But, the HW is capable to shutter,
->> aperture exposure value, of course auto exposure.
->> So, I found the only UVC driver looks like using extra enumerations
->> V4L2_EXPOSURE_SHUTTER_PRIORITY, V4L2_EXPOSURE_APERTURE_PRIORITY.
->> But, I don't know how to set the each value in the each mode.
->>
->> The way pointed the specific value is only one -
->> V4L2_CID_EXPOSURE_ABSOLUTE. So, how can I set the specific value at the
->> each mode?
-> 
-> You can control the aperture using the V4L2_CID_IRIS_ABSOLUTE control. See 
-> http://linuxtv.org/downloads/v4l-dvb-apis/extended-controls.html#camera-
-> controls for more information regarding the exposure and iris controls.
-> 
-Thanks for response, and I could understand this!
-Sorry for pre-checking documents. :)
+If we do that, then all other places where the association between an alsa device
+and a video4linux node is needed will need to copy it, and we'll have a fork.
+Also, we'll keep needing it at v4l-utils, as it is now needed by the new version
+of v4l2-sysfs-path tool.
 
-Regards,
-Heungjun Kim
+Btw, this lib were created due to a request from the vlc maintainer that something
+like that would be needed. After finishing it, I decided to add it at xawtv in order
+to have an example about how to use it.
+
+> Mauro, I plan to do a new v4l-utils release soon (*), maybe even today. I
+> consider it unpolite to revert other peoples commits, so I would prefer for you
+> to revert the install libv4l2util.a patch yourself. But if you don't (or don't
+> get around to doing it before I do the release), I will revert it, as this
+> clearly needs more discussion before making it into an official release
+> tarbal (we can always re-introduce the patch after the release).
+
+I'm not a big fan or exporting the rest of stuff at libv4l2util.a either, but I
+think that at least the get_media_devices stuff should be exported somewhere,
+maybe as part of libv4l.
+
+Anyway, as you're releasing today a new v4l-utils, I agree that it is too early
+to add such library, as it is still experimental. I'm not considering make any
+new xawtv release those days, so I'm OK to postpone it.
+
+I'll commit a few patches commenting the install procedure for now, re-adding it
+after the release, for those that want to experiment it with xawtv with the new
+support.
+
+Cheers,
+Mauro
