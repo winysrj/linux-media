@@ -1,267 +1,931 @@
 Return-path: <mchehab@pedra>
-Received: from ims-d14.mx.aol.com ([205.188.249.151]:36280 "EHLO
-	ims-d14.mx.aol.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756572Ab1EPXzp (ORCPT
+Received: from mail-ww0-f44.google.com ([74.125.82.44]:44087 "EHLO
+	mail-ww0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756092Ab1EXObA (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 16 May 2011 19:55:45 -0400
-Received: from oms-db04.r1000.mx.aol.com (oms-db04.r1000.mx.aol.com [205.188.58.4])
-	by ims-d14.mx.aol.com (8.14.1/8.14.1) with ESMTP id p4GNgNBw007047
-	for <linux-media@vger.kernel.org>; Mon, 16 May 2011 19:42:23 -0400
-Received: from mtaout-db05.r1000.mx.aol.com (mtaout-db05.r1000.mx.aol.com [172.29.51.197])
-	by oms-db04.r1000.mx.aol.com (AOL Outbound OMS Interface) with ESMTP id A0A151C000085
-	for <linux-media@vger.kernel.org>; Mon, 16 May 2011 19:42:23 -0400 (EDT)
-Received: from [192.168.1.34] (unknown [201.255.105.7])
-	(using TLSv1 with cipher DHE-RSA-AES256-SHA (256/256 bits))
-	(No client certificate requested)
-	by mtaout-db05.r1000.mx.aol.com (MUA/Third Party Client Interface) with ESMTPSA id 6D9BAE00027E
-	for <linux-media@vger.kernel.org>; Mon, 16 May 2011 19:42:21 -0400 (EDT)
-Message-ID: <4DD1B65F.8020902@netscape.net>
-Date: Mon, 16 May 2011 20:42:23 -0300
-From: =?UTF-8?B?QWxmcmVkbyBKZXPDunMgRGVsYWl0aQ==?=
-	<alfredodelaiti@netscape.net>
-MIME-Version: 1.0
-CC: linux-media@vger.kernel.org
-Subject: Re: Help to make a driver. ISDB-Tb
-References: <4DBC422F.10102@netscape.net> <4DBCB4EF.5070104@redhat.com> <4DBE0F74.80602@netscape.net> <4DBEAC3D.7040608@redhat.com> <4DC179F6.1020905@netscape.net>
-In-Reply-To: <4DC179F6.1020905@netscape.net>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 8bit
-To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
+	Tue, 24 May 2011 10:31:00 -0400
+Received: by wwa36 with SMTP id 36so7393694wwa.1
+        for <linux-media@vger.kernel.org>; Tue, 24 May 2011 07:30:58 -0700 (PDT)
+From: Javier Martin <javier.martin@vista-silicon.com>
+To: linux-media@vger.kernel.org
+Cc: g.liakhovetski@gmx.de, laurent.pinchart@ideasonboard.com,
+	carlighting@yahoo.co.nz, beagleboard@googlegroups.com,
+	linux-arm-kernel@lists.infradead.org,
+	Javier Martin <javier.martin@vista-silicon.com>
+Subject: [PATCH][RFC] Add mt9p031 sensor support.
+Date: Tue, 24 May 2011 16:30:43 +0200
+Message-Id: <1306247443-2191-1-git-send-email-javier.martin@vista-silicon.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Hi
->
-> Digital television: not tune any channels with w-scan or gnome-dvb-setup.
-> But with the latter, it captures 2 weak signals, but I can not know 
-> which is.
-> Under windows also capture 2 channel and I'm in a place where the 
-> signal is low.
-> I'll try to have more signal strength.
->
-> If I run dmesg after scan channels I get the following:
->
-> [ 3474.858537] mb86a20s: mb86a20s_set_frontend:
-> [ 3474.858541] mb86a20s: mb86a20s_set_frontend: Calling tuner set 
-> parameters
-> [ 3474.981157] mb86a20s: mb86a20s_read_status:
-> [ 3474.981649] mb86a20s: mb86a20s_read_status: val = 2, status = 0x01
+This RFC includes a power management implementation that causes
+the sensor to show images with horizontal artifacts (usually
+monochrome lines that appear on the image randomly).
 
-I improved the antenna signal and I've got this:
+Signed-off-by: Javier Martin <javier.martin@vista-silicon.com>
+---
+ drivers/media/video/Kconfig   |    7 +
+ drivers/media/video/Makefile  |    1 +
+ drivers/media/video/mt9p031.c |  841 +++++++++++++++++++++++++++++++++++++++++
+ include/media/mt9p031.h       |   11 +
+ 4 files changed, 860 insertions(+), 0 deletions(-)
+ create mode 100644 drivers/media/video/mt9p031.c
+ create mode 100644 include/media/mt9p031.h
 
-alfredo@linux:~> mplayer -dumpstream dvb://'C5N HD' -dumpfile 
-mplayer-dumpfile.ts
-MPlayer dev-SVN-r33321-4.5-openSUSE Linux 11.4 (x86_64)-Packman (C) 
-2000-2011 MPlayer Team
-Can't open joystick device /dev/input/js0: No such file or directory
-Can't init input joystick
-mplayer: could not open config files /home/alfredo/.lircrc and 
-/etc/lirc/lircrc
-mplayer: No such file or directory
-Failed to read LIRC config file ~/.lircrc.
-Loading extension-related profile 'vo.vdpau'
-
-Playing dvb://C5N HD.
-dvb_tune Freq: 551142857
-dvb_streaming_read, attempt N. 6 failed with errno 0 when reading 2048 bytes
-dvb_streaming_read, attempt N. 5 failed with errno 0 when reading 2048 bytes
-dvb_streaming_read, attempt N. 4 failed with errno 0 when reading 2048 bytes
-dvb_streaming_read, attempt N. 3 failed with errno 0 when reading 2048 bytes
-dvb_streaming_read, attempt N. 2 failed with errno 0 when reading 2048 bytes
-dvb_streaming_read, attempt N. 1 failed with errno 0 when reading 2048 bytes
-dvb_streaming_read, return 0 bytes
-dvb_streaming_read, attempt N. 6 failed with errno 0 when reading 2048 bytes
-dvb_streaming_read, attempt N. 5 failed with errno 0 when reading 2048 bytes
-dvb_streaming_read, attempt N. 4 failed with errno 0 when reading 2048 bytes
-dvb_streaming_read, attempt N. 3 failed with errno 0 when reading 2048 bytes
-dvb_streaming_read, attempt N. 2 failed with errno 0 when reading 2048 bytes
-dvb_streaming_read, attempt N. 1 failed with errno 0 when reading 2048 bytes
-dvb_streaming_read, return 0 bytes
-Core dumped ;)
-
-Exiting... (End of file)
-
-dmesg
-
-[11359.790188] cx23885[0]/0: restarting queue
-[11359.790197] cx23885[0]/0: queue is empty - first active
-[11359.790202] cx23885[0]/0: cx23885_start_dma() w: 752, h: 32, f: 2
-[11359.790209] cx23885[0]/0: cx23885_sram_channel_setup() Configuring 
-channel [TS1 B]
-[11359.790423] cx23885[0]/0: cx23885_start_dma() enabling TS int's and DMA
-[11359.790436] cx23885[0]/0: [ffff880058342e00/0] cx23885_buf_queue - 
-first active
-[11359.790441] cx23885[0]/0: queue is not empty - append to active
-[11359.790445] cx23885[0]/0: [ffff88002d4fba00/1] cx23885_buf_queue - 
-append to active
-[11359.790449] cx23885[0]/0: queue is not empty - append to active
-[11359.790453] cx23885[0]/0: [ffff88003758ae00/2] cx23885_buf_queue - 
-append to active
-[11359.790457] cx23885[0]/0: queue is not empty - append to active
-[11359.790460] cx23885[0]/0: [ffff88005815f800/3] cx23885_buf_queue - 
-append to active
-[11359.790464] cx23885[0]/0: queue is not empty - append to active
-[11359.790468] cx23885[0]/0: [ffff88003758ac00/4] cx23885_buf_queue - 
-append to active
-[11359.790472] cx23885[0]/0: queue is not empty - append to active
-[11359.790476] cx23885[0]/0: [ffff88005ae15600/5] cx23885_buf_queue - 
-append to active
-[11359.790480] cx23885[0]/0: queue is not empty - append to active
-[11359.790484] cx23885[0]/0: [ffff88005ae15000/6] cx23885_buf_queue - 
-append to active
-[11359.790488] cx23885[0]/0: queue is not empty - append to active
-[11359.790492] cx23885[0]/0: [ffff88005ae15400/7] cx23885_buf_queue - 
-append to active
-[11359.790496] cx23885[0]/0: queue is not empty - append to active
-[11359.790499] cx23885[0]/0: [ffff88005a0ce000/8] cx23885_buf_queue - 
-append to active
-[11359.790503] cx23885[0]/0: queue is not empty - append to active
-[11359.790507] cx23885[0]/0: [ffff88005a0cea00/9] cx23885_buf_queue - 
-append to active
-[11359.790511] cx23885[0]/0: queue is not empty - append to active
-[11359.790515] cx23885[0]/0: [ffff88005a0cee00/10] cx23885_buf_queue - 
-append to active
-[11359.790519] cx23885[0]/0: queue is not empty - append to active
-[11359.790523] cx23885[0]/0: [ffff8800374ffe00/11] cx23885_buf_queue - 
-append to active
-[11359.790527] cx23885[0]/0: queue is not empty - append to active
-[11359.790531] cx23885[0]/0: [ffff8800582a0c00/12] cx23885_buf_queue - 
-append to active
-[11359.790535] cx23885[0]/0: queue is not empty - append to active
-[11359.790539] cx23885[0]/0: [ffff8800582a0600/13] cx23885_buf_queue - 
-append to active
-[11359.790543] cx23885[0]/0: queue is not empty - append to active
-[11359.790547] cx23885[0]/0: [ffff8800582a0000/14] cx23885_buf_queue - 
-append to active
-[11359.790551] cx23885[0]/0: queue is not empty - append to active
-[11359.790554] cx23885[0]/0: [ffff8800582a0a00/15] cx23885_buf_queue - 
-append to active
-[11359.790558] cx23885[0]/0: queue is not empty - append to active
-[11359.790562] cx23885[0]/0: [ffff8800582a0200/16] cx23885_buf_queue - 
-append to active
-[11359.790566] cx23885[0]/0: queue is not empty - append to active
-[11359.790570] cx23885[0]/0: [ffff8800582a0800/17] cx23885_buf_queue - 
-append to active
-[11359.790578] cx23885[0]/0: queue is not empty - append to active
-[11359.790582] cx23885[0]/0: [ffff88005ae14400/18] cx23885_buf_queue - 
-append to active
-[11359.790586] cx23885[0]/0: queue is not empty - append to active
-[11359.790590] cx23885[0]/0: [ffff88005ae14e00/19] cx23885_buf_queue - 
-append to active
-[11359.790594] cx23885[0]/0: queue is not empty - append to active
-[11359.790598] cx23885[0]/0: [ffff88005ae14600/20] cx23885_buf_queue - 
-append to active
-[11359.790602] cx23885[0]/0: queue is not empty - append to active
-[11359.790605] cx23885[0]/0: [ffff88005ae14c00/21] cx23885_buf_queue - 
-append to active
-[11359.790609] cx23885[0]/0: queue is not empty - append to active
-[11359.790613] cx23885[0]/0: [ffff88005ae14a00/22] cx23885_buf_queue - 
-append to active
-[11359.790617] cx23885[0]/0: queue is not empty - append to active
-[11359.790621] cx23885[0]/0: [ffff88005ae14000/23] cx23885_buf_queue - 
-append to active
-[11359.790625] cx23885[0]/0: queue is not empty - append to active
-[11359.790629] cx23885[0]/0: [ffff880037511a00/24] cx23885_buf_queue - 
-append to active
-[11359.790633] cx23885[0]/0: queue is not empty - append to active
-[11359.790637] cx23885[0]/0: [ffff880037511c00/25] cx23885_buf_queue - 
-append to active
-[11359.790641] cx23885[0]/0: queue is not empty - append to active
-[11359.790645] cx23885[0]/0: [ffff880037511e00/26] cx23885_buf_queue - 
-append to active
-[11359.790649] cx23885[0]/0: queue is not empty - append to active
-[11359.790652] cx23885[0]/0: [ffff880037683c00/27] cx23885_buf_queue - 
-append to active
-[11359.790656] cx23885[0]/0: queue is not empty - append to active
-[11359.790660] cx23885[0]/0: [ffff880037683800/28] cx23885_buf_queue - 
-append to active
-[11359.790664] cx23885[0]/0: queue is not empty - append to active
-[11359.790668] cx23885[0]/0: [ffff880037683000/29] cx23885_buf_queue - 
-append to active
-[11359.790672] cx23885[0]/0: queue is not empty - append to active
-[11359.790676] cx23885[0]/0: [ffff880037683e00/30] cx23885_buf_queue - 
-append to active
-[11359.790680] cx23885[0]/0: queue is not empty - append to active
-[11359.790684] cx23885[0]/0: [ffff880037748400/31] cx23885_buf_queue - 
-append to active
-[11360.064047] mb86a20s: mb86a20s_read_status:
-[11360.064533] mb86a20s: mb86a20s_read_status: val = 4, status = 0x03
-[11360.064541] mb86a20s: mb86a20s_set_frontend:
-[11360.064544] mb86a20s: mb86a20s_set_frontend: Calling tuner set parameters
-[11360.490076] mb86a20s: mb86a20s_read_status:
-[11360.490562] mb86a20s: mb86a20s_read_status: val = 5, status = 0x07
-[11360.490571] mb86a20s: mb86a20s_set_frontend:
-[11360.490574] mb86a20s: mb86a20s_set_frontend: Calling tuner set parameters
-[11360.792038] cx23885[0]/0: cx23885_timeout()
-[11360.792045] cx23885[0]/0: cx23885_stop_dma()
-[11360.792058] cx23885[0]/0: [ffff880058342e00/0] timeout - dma=0x03bbf000
-[11360.792063] cx23885[0]/0: [ffff88002d4fba00/1] timeout - dma=0x02ec9000
-[11360.792068] cx23885[0]/0: [ffff88003758ae00/2] timeout - dma=0x02ec7000
-[11360.792072] cx23885[0]/0: [ffff88005815f800/3] timeout - dma=0x18792000
-[11360.792076] cx23885[0]/0: [ffff88003758ac00/4] timeout - dma=0x038b2000
-[11360.792081] cx23885[0]/0: [ffff88005ae15600/5] timeout - dma=0x02eb1000
-[11360.792085] cx23885[0]/0: [ffff88005ae15000/6] timeout - dma=0x03a4b000
-[11360.792089] cx23885[0]/0: [ffff88005ae15400/7] timeout - dma=0x18510000
-[11360.792094] cx23885[0]/0: [ffff88005a0ce000/8] timeout - dma=0x02ee5000
-[11360.792098] cx23885[0]/0: [ffff88005a0cea00/9] timeout - dma=0x02ee1000
-[11360.792103] cx23885[0]/0: [ffff88005a0cee00/10] timeout - dma=0x09dc5000
-[11360.792107] cx23885[0]/0: [ffff8800374ffe00/11] timeout - dma=0x594a5000
-[11360.792112] cx23885[0]/0: [ffff8800582a0c00/12] timeout - dma=0x1a04b000
-[11360.792116] cx23885[0]/0: [ffff8800582a0600/13] timeout - dma=0x19dcc000
-[11360.792121] cx23885[0]/0: [ffff8800582a0000/14] timeout - dma=0x19d17000
-[11360.792125] cx23885[0]/0: [ffff8800582a0a00/15] timeout - dma=0x02ef3000
-[11360.792129] cx23885[0]/0: [ffff8800582a0200/16] timeout - dma=0x02ee9000
-[11360.792134] cx23885[0]/0: [ffff8800582a0800/17] timeout - dma=0x03b7f000
-[11360.792138] cx23885[0]/0: [ffff88005ae14400/18] timeout - dma=0x02c8f000
-[11360.792143] cx23885[0]/0: [ffff88005ae14e00/19] timeout - dma=0x02c93000
-[11360.792147] cx23885[0]/0: [ffff88005ae14600/20] timeout - dma=0x02c9b000
-[11360.792151] cx23885[0]/0: [ffff88005ae14c00/21] timeout - dma=0x02ca3000
-[11360.792156] cx23885[0]/0: [ffff88005ae14a00/22] timeout - dma=0x02cab000
-[11360.792160] cx23885[0]/0: [ffff88005ae14000/23] timeout - dma=0x02cb3000
-[11360.792164] cx23885[0]/0: [ffff880037511a00/24] timeout - dma=0x02cbb000
-[11360.792169] cx23885[0]/0: [ffff880037511c00/25] timeout - dma=0x02cc3000
-[11360.792173] cx23885[0]/0: [ffff880037511e00/26] timeout - dma=0x02ccb000
-[11360.792177] cx23885[0]/0: [ffff880037683c00/27] timeout - dma=0x02cd3000
-[11360.792182] cx23885[0]/0: [ffff880037683800/28] timeout - dma=0x02cdb000
-[11360.792186] cx23885[0]/0: [ffff880037683000/29] timeout - dma=0x02ce3000
-[11360.792191] cx23885[0]/0: [ffff880037683e00/30] timeout - dma=0x02ceb000
-[11360.792195] cx23885[0]/0: [ffff880037748400/31] timeout - dma=0x02cf4000
-[11360.792198] cx23885[0]/0: restarting queue
-
-As there is little sign, I asked another person to try and got this:
-
-$femon -H
-FE: Fujitsu mb86A20s (DVBT)
-Problem retrieving frontend information: Operation not supported
-status SCVYL | signal 6% | snr 71% | ber -1217255176 | unc -1217744071 | 
-FE_HAS_LOCK
-Problem retrieving frontend information: Operation not supported
-status SCVYL | signal 12% | snr 71% | ber -1217255176 | unc -1217744071 
-| FE_HAS_LOCK
-Problem retrieving frontend information: Operation not supported
-status SCVYL | signal 12% | snr 71% | ber -1217255176 | unc -1217744071 
-| FE_HAS_LOCK
-
-and this:
-
-[ 397.962795] mb86a20s: mb86a20s_read_status: val = 9, status = 0x1f
-[ 397.962798] mb86a20s: mb86a20s_read_signal_strength:
-[ 397.983108] mb86a20s: mb86a20s_read_signal_strength: signal strength = 
-4096
-[ 398.019975] mb86a20s: mb86a20s_read_status:
-[ 398.020461] mb86a20s: mb86a20s_read_status: val = 9, status = 0x1f
-
-I think these values ​​would have to watch TV, but no.
-
-Suggestions are welcome
-
-Thanks in advance
-
-Alfredo
-
-
-
+diff --git a/drivers/media/video/Kconfig b/drivers/media/video/Kconfig
+index 00f51dd..8a596cc 100644
+--- a/drivers/media/video/Kconfig
++++ b/drivers/media/video/Kconfig
+@@ -329,6 +329,13 @@ config VIDEO_OV7670
+ 	  OV7670 VGA camera.  It currently only works with the M88ALP01
+ 	  controller.
+ 
++config VIDEO_MT9P031
++	tristate "Aptina MT9P031 support"
++	depends on I2C && VIDEO_V4L2
++	---help---
++	 This is a Video4Linux2 sensor-level driver for the Aptina
++	 (Micron) mt9p031 5 Mpixel camera.
++
+ config VIDEO_MT9V011
+ 	tristate "Micron mt9v011 sensor support"
+ 	depends on I2C && VIDEO_V4L2
+diff --git a/drivers/media/video/Makefile b/drivers/media/video/Makefile
+index ace5d8b..912b29b 100644
+--- a/drivers/media/video/Makefile
++++ b/drivers/media/video/Makefile
+@@ -65,6 +65,7 @@ obj-$(CONFIG_VIDEO_UPD64083) += upd64083.o
+ obj-$(CONFIG_VIDEO_OV7670) 	+= ov7670.o
+ obj-$(CONFIG_VIDEO_TCM825X) += tcm825x.o
+ obj-$(CONFIG_VIDEO_TVEEPROM) += tveeprom.o
++obj-$(CONFIG_VIDEO_MT9P031) += mt9p031.o
+ obj-$(CONFIG_VIDEO_MT9V011) += mt9v011.o
+ obj-$(CONFIG_VIDEO_SR030PC30)	+= sr030pc30.o
+ obj-$(CONFIG_VIDEO_NOON010PC30)	+= noon010pc30.o
+diff --git a/drivers/media/video/mt9p031.c b/drivers/media/video/mt9p031.c
+new file mode 100644
+index 0000000..04d8812
+--- /dev/null
++++ b/drivers/media/video/mt9p031.c
+@@ -0,0 +1,841 @@
++/*
++ * Driver for MT9P031 CMOS Image Sensor from Aptina
++ *
++ * Copyright (C) 2011, Javier Martin <javier.martin@vista-silicon.com>
++ *
++ * Copyright (C) 2011, Guennadi Liakhovetski <g.liakhovetski@gmx.de>
++ *
++ * Based on the MT9V032 driver and Bastian Hecht's code.
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
++ */
++
++#include <linux/delay.h>
++#include <linux/device.h>
++#include <linux/i2c.h>
++#include <linux/log2.h>
++#include <linux/pm.h>
++#include <linux/regulator/consumer.h>
++#include <linux/slab.h>
++#include <media/v4l2-subdev.h>
++#include <linux/videodev2.h>
++
++#include <media/mt9p031.h>
++#include <media/v4l2-chip-ident.h>
++#include <media/v4l2-subdev.h>
++#include <media/v4l2-device.h>
++
++#define MT9P031_PIXCLK_FREQ			54000000
++
++/* mt9p031 selected register addresses */
++#define MT9P031_CHIP_VERSION			0x00
++#define		MT9P031_CHIP_VERSION_VALUE	0x1801
++#define MT9P031_ROW_START			0x01
++#define		MT9P031_ROW_START_DEF		54
++#define MT9P031_COLUMN_START			0x02
++#define		MT9P031_COLUMN_START_DEF	16
++#define MT9P031_WINDOW_HEIGHT			0x03
++#define MT9P031_WINDOW_WIDTH			0x04
++#define MT9P031_H_BLANKING			0x05
++#define		MT9P031_H_BLANKING_VALUE	0
++#define MT9P031_V_BLANKING			0x06
++#define		MT9P031_V_BLANKING_VALUE	25
++#define MT9P031_OUTPUT_CONTROL			0x07
++#define		MT9P031_OUTPUT_CONTROL_CEN	2
++#define		MT9P031_OUTPUT_CONTROL_SYN	1
++#define MT9P031_SHUTTER_WIDTH_UPPER		0x08
++#define MT9P031_SHUTTER_WIDTH			0x09
++#define MT9P031_PIXEL_CLOCK_CONTROL		0x0a
++#define MT9P031_FRAME_RESTART			0x0b
++#define MT9P031_SHUTTER_DELAY			0x0c
++#define MT9P031_RST				0x0d
++#define		MT9P031_RST_ENABLE		1
++#define		MT9P031_RST_DISABLE		0
++#define MT9P031_READ_MODE_1			0x1e
++#define MT9P031_READ_MODE_2			0x20
++#define		MT9P031_READ_MODE_2_ROW_MIR	0x8000
++#define		MT9P031_READ_MODE_2_COL_MIR	0x4000
++#define MT9P031_ROW_ADDRESS_MODE		0x22
++#define MT9P031_COLUMN_ADDRESS_MODE		0x23
++#define MT9P031_GLOBAL_GAIN			0x35
++
++#define MT9P031_WINDOW_HEIGHT_MAX		1944
++#define MT9P031_WINDOW_WIDTH_MAX		2592
++#define MT9P031_WINDOW_HEIGHT_MIN		2
++#define MT9P031_WINDOW_WIDTH_MIN		18
++
++struct mt9p031 {
++	struct v4l2_subdev subdev;
++	struct media_pad pad;
++	struct v4l2_rect rect;	/* Sensor window */
++	struct v4l2_mbus_framefmt format;
++	struct mt9p031_platform_data *pdata;
++	struct mutex power_lock; /* lock to protect power_count */
++	int power_count;
++	u16 xskip;
++	u16 yskip;
++	/* cache register values */
++	u16 output_control;
++	u16 h_blanking;
++	u16 v_blanking;
++	u16 column_address_mode;
++	u16 row_address_mode;
++	u16 column_start;
++	u16 row_start;
++	u16 window_width;
++	u16 window_height;
++	struct regulator *reg_1v8;
++	struct regulator *reg_2v8;
++};
++
++static struct mt9p031 *to_mt9p031(const struct i2c_client *client)
++{
++	return container_of(i2c_get_clientdata(client), struct mt9p031, subdev);
++}
++
++static int reg_read(struct i2c_client *client, const u8 reg)
++{
++	s32 data = i2c_smbus_read_word_data(client, reg);
++	return data < 0 ? data : swab16(data);
++}
++
++static int reg_write(struct i2c_client *client, const u8 reg,
++			const u16 data)
++{
++	return i2c_smbus_write_word_data(client, reg, swab16(data));
++}
++
++static int reg_write_cached(struct i2c_client *client, const u8 reg,
++			const u16 data, u16 *cache)
++{
++	int ret;
++
++	ret = reg_write(client, reg, data);
++	if (ret < 0)
++		return ret;
++	*cache = data;
++	return 0;
++}
++
++static int mt9p031_set_output_control(struct mt9p031 *mt9p031, u16 clear,
++				      u16 set)
++{
++	struct i2c_client *client = v4l2_get_subdevdata(&mt9p031->subdev);
++	u16 value = (mt9p031->output_control & ~clear) | set;
++
++	return reg_write_cached(client, MT9P031_OUTPUT_CONTROL, value,
++				&mt9p031->output_control);
++}
++
++static int restore_registers(struct i2c_client *client)
++{
++	int ret;
++	struct mt9p031 *mt9p031 = to_mt9p031(client);
++
++	/* Disable register update, reconfigure atomically */
++	ret = mt9p031_set_output_control(mt9p031, 0,
++					MT9P031_OUTPUT_CONTROL_SYN);
++	if (ret < 0)
++		return ret;
++
++	/* Blanking and start values - default... */
++	ret = reg_write(client, MT9P031_H_BLANKING, mt9p031->h_blanking);
++	if (ret < 0)
++		return ret;
++
++	ret = reg_write(client, MT9P031_V_BLANKING, mt9p031->v_blanking);
++	if (ret < 0)
++		return ret;
++
++	ret = reg_write(client, MT9P031_COLUMN_ADDRESS_MODE,
++				mt9p031->column_address_mode);
++	if (ret < 0)
++		return ret;
++
++	ret = reg_write(client, MT9P031_ROW_ADDRESS_MODE,
++				mt9p031->row_address_mode);
++	if (ret < 0)
++		return ret;
++
++	ret = reg_write(client, MT9P031_COLUMN_START,
++				mt9p031->column_start);
++	if (ret < 0)
++		return ret;
++
++	ret = reg_write(client, MT9P031_ROW_START,
++				mt9p031->row_start);
++	if (ret < 0)
++		return ret;
++
++	ret = reg_write(client, MT9P031_WINDOW_WIDTH,
++				mt9p031->window_width);
++	if (ret < 0)
++		return ret;
++
++	ret = reg_write(client, MT9P031_WINDOW_HEIGHT,
++				mt9p031->window_height);
++	if (ret < 0)
++		return ret;
++
++	/* Re-enable register update, commit all changes */
++	ret = mt9p031_set_output_control(mt9p031,
++					MT9P031_OUTPUT_CONTROL_SYN, 0);
++	if (ret < 0)
++		return ret;
++	return 0;
++}
++
++static int mt9p031_reset(struct i2c_client *client)
++{
++	struct mt9p031 *mt9p031 = to_mt9p031(client);
++	int ret;
++
++	/* Disable chip output, synchronous option update */
++	ret = reg_write(client, MT9P031_RST, MT9P031_RST_ENABLE);
++	if (ret < 0)
++		return ret;
++	ret = reg_write(client, MT9P031_RST, MT9P031_RST_DISABLE);
++	if (ret < 0)
++		return ret;
++	return mt9p031_set_output_control(mt9p031,
++					MT9P031_OUTPUT_CONTROL_CEN, 0);
++}
++
++static int mt9p031_power_on(struct mt9p031 *mt9p031)
++{
++	struct i2c_client *client = v4l2_get_subdevdata(&mt9p031->subdev);
++	int ret;
++
++	/* Ensure RESET_BAR is low */
++	if (mt9p031->pdata->reset)
++		mt9p031->pdata->reset(&mt9p031->subdev, 1);
++	/* turn on digital supply first */
++	ret = regulator_enable(mt9p031->reg_1v8);
++	if (ret) {
++		dev_err(&client->dev,
++			"Failed to enable 1.8v regulator: %d\n", ret);
++		goto err_1v8;
++	}
++	/* now turn on analog supply */
++	ret = regulator_enable(mt9p031->reg_2v8);
++	if (ret) {
++		dev_err(&client->dev,
++			"Failed to enable 2.8v regulator: %d\n", ret);
++		goto err_rst;
++	}
++	/* Now RESET_BAR must be high */
++	if (mt9p031->pdata->reset)
++		mt9p031->pdata->reset(&mt9p031->subdev, 0);
++	
++	if (mt9p031->pdata->set_xclk)
++		mt9p031->pdata->set_xclk(&mt9p031->subdev, MT9P031_PIXCLK_FREQ);
++
++	/* soft reset */
++	ret = mt9p031_reset(client);
++	if (ret < 0) {
++		dev_err(&client->dev, "Failed to reset the camera\n");
++		goto err_rst;
++	}
++
++	ret = restore_registers(client);
++	if (ret < 0) {
++		dev_err(&client->dev, "Failed to restore registers\n");
++		goto err_rst;
++	}
++
++	return 0;
++err_rst:
++	regulator_disable(mt9p031->reg_1v8);
++err_1v8:
++	return ret;
++	
++}
++
++static void mt9p031_power_off(struct mt9p031 *mt9p031)
++{
++	if (mt9p031->pdata->set_xclk)
++		mt9p031->pdata->set_xclk(&mt9p031->subdev, 0);
++	if (mt9p031->pdata->reset)
++		mt9p031->pdata->reset(&mt9p031->subdev, 1);
++	regulator_disable(mt9p031->reg_1v8);
++	regulator_disable(mt9p031->reg_2v8);
++}
++
++static int mt9p031_enum_mbus_code(struct v4l2_subdev *sd,
++				struct v4l2_subdev_fh *fh,
++				struct v4l2_subdev_mbus_code_enum *code)
++{
++	struct mt9p031 *mt9p031 = container_of(sd, struct mt9p031, subdev);
++
++	if (code->pad || code->index)
++		return -EINVAL;
++
++	code->code = mt9p031->format.code;
++
++	return 0;
++}
++
++static struct v4l2_mbus_framefmt *mt9p031_get_pad_format(
++			struct mt9p031 *mt9p031,
++			struct v4l2_subdev_fh *fh,
++			unsigned int pad, u32 which)
++{
++	switch (which) {
++	case V4L2_SUBDEV_FORMAT_TRY:
++		return v4l2_subdev_get_try_format(fh, pad);
++	case V4L2_SUBDEV_FORMAT_ACTIVE:
++		return &mt9p031->format;
++	default:
++		return NULL;
++	}
++}
++
++static struct v4l2_rect *mt9p031_get_pad_crop(struct mt9p031 *mt9p031,
++			struct v4l2_subdev_fh *fh, unsigned int pad, u32 which)
++{
++	switch (which) {
++	case V4L2_SUBDEV_FORMAT_TRY:
++		return v4l2_subdev_get_try_crop(fh, pad);
++	case V4L2_SUBDEV_FORMAT_ACTIVE:
++		return &mt9p031->rect;
++	default:
++		return NULL;
++	}
++}
++
++static int mt9p031_get_crop(struct v4l2_subdev *sd,
++				struct v4l2_subdev_fh *fh,
++				struct v4l2_subdev_crop *crop)
++{
++	struct mt9p031 *mt9p031 = container_of(sd, struct mt9p031, subdev);
++	struct v4l2_rect *rect = mt9p031_get_pad_crop(mt9p031, fh, crop->pad,
++							crop->which);
++	if (!rect)
++		return -EINVAL;
++
++	crop->rect = *rect;
++
++	return 0;
++}
++
++static u16 mt9p031_skip_for_crop(s32 source, s32 *target, s32 max_skip)
++{
++	unsigned int skip;
++
++	if (source - source / 4 < *target) {
++		*target = source;
++		return 1;
++	}
++
++	skip = DIV_ROUND_CLOSEST(source, *target);
++	if (skip > max_skip)
++		skip = max_skip;
++	*target = 2 * DIV_ROUND_UP(source, 2 * skip);
++
++	return skip;
++}
++
++static int mt9p031_set_params(struct i2c_client *client,
++			      struct v4l2_rect *rect, u16 xskip, u16 yskip)
++{
++	struct mt9p031 *mt9p031 = to_mt9p031(client);
++	int ret;
++	u16 xbin, ybin;
++	const u16 hblank = MT9P031_H_BLANKING_VALUE,
++		vblank = MT9P031_V_BLANKING_VALUE;
++	__s32 left, top, width, height;
++
++	/*
++	 * TODO: Attention! When implementing horizontal flipping, adjust
++	 * alignment according to R2 "Column Start" description in the datasheet
++	 */
++	if (xskip & 1) {
++		xbin = 1;
++		left = rect->left & (~3);
++	} else if (xskip & 2) {
++		xbin = 2;
++		left = rect->left & (~7);
++	} else {
++		xbin = 4;
++		left = rect->left & (~15);
++	}
++	top = rect->top & (~1);
++	width = rect->width;
++	height = rect->height;
++
++	ybin = min(yskip, (u16)4);
++
++	/* Disable register update, reconfigure atomically */
++	ret = mt9p031_set_output_control(mt9p031, 0,
++					MT9P031_OUTPUT_CONTROL_SYN);
++	if (ret < 0)
++		return ret;
++
++	dev_dbg(&client->dev, "skip %u:%u, rect %ux%u@%u:%u\n",
++		xskip, yskip, rect->width, rect->height, rect->left, rect->top);
++
++	/* Blanking and start values - default... */
++	ret = reg_write_cached(client, MT9P031_H_BLANKING, hblank,
++				&mt9p031->h_blanking);
++	if (ret < 0)
++		return ret;
++	ret = reg_write_cached(client, MT9P031_V_BLANKING, vblank,
++				&mt9p031->v_blanking);
++	if (ret < 0)
++		return ret;
++
++	ret = reg_write_cached(client, MT9P031_COLUMN_ADDRESS_MODE,
++				((xbin - 1) << 4) | (xskip - 1),
++				&mt9p031->column_address_mode);
++	if (ret < 0)
++		return ret;
++	ret = reg_write_cached(client, MT9P031_ROW_ADDRESS_MODE,
++				((ybin - 1) << 4) | (yskip - 1),
++				&mt9p031->row_address_mode);
++	if (ret < 0)
++		return ret;
++
++	dev_dbg(&client->dev, "new physical left %u, top %u\n",
++		rect->left, rect->top);
++
++	ret = reg_write_cached(client, MT9P031_COLUMN_START,
++				rect->left + MT9P031_COLUMN_START_DEF,
++				&mt9p031->column_start);
++	if (ret < 0)
++		return ret;
++	ret = reg_write_cached(client, MT9P031_ROW_START,
++				rect->top + MT9P031_ROW_START_DEF,
++				&mt9p031->row_start);
++	if (ret < 0)
++		return ret;
++	ret = reg_write_cached(client, MT9P031_WINDOW_WIDTH,
++				rect->width - 1,
++				&mt9p031->window_width);
++	if (ret < 0)
++		return ret;
++	ret = reg_write_cached(client, MT9P031_WINDOW_HEIGHT,
++				rect->height - 1,
++				&mt9p031->window_height);
++	if (ret < 0)
++		return ret;
++
++	/* Re-enable register update, commit all changes */
++	ret = mt9p031_set_output_control(mt9p031,
++					MT9P031_OUTPUT_CONTROL_SYN, 0);
++	if (ret < 0)
++		return ret;
++
++	mt9p031->xskip = xskip;
++	mt9p031->yskip = yskip;
++	return ret;
++}
++
++static int mt9p031_set_crop(struct v4l2_subdev *sd,
++				struct v4l2_subdev_fh *fh,
++				struct v4l2_subdev_crop *crop)
++{
++	struct mt9p031 *mt9p031 = container_of(sd, struct mt9p031, subdev);
++	struct v4l2_mbus_framefmt *f;
++	struct v4l2_rect *c;
++	struct v4l2_rect rect;
++	u16 xskip, yskip;
++	s32 width, height;
++
++	dev_dbg(mt9p031->subdev.v4l2_dev->dev, "%s(%ux%u@%u:%u : %u)\n",
++			__func__, crop->rect.width, crop->rect.height,
++			crop->rect.left, crop->rect.top, crop->which);
++
++	/*
++	 * Clamp the crop rectangle boundaries and align them to a multiple of 2
++	 * pixels.
++	 */
++	rect.width = ALIGN(clamp(crop->rect.width,
++				 MT9P031_WINDOW_WIDTH_MIN, MT9P031_WINDOW_WIDTH_MAX), 2);
++	rect.height = ALIGN(clamp(crop->rect.height,
++				  MT9P031_WINDOW_HEIGHT_MIN, MT9P031_WINDOW_HEIGHT_MAX), 2);
++	rect.left = ALIGN(clamp(crop->rect.left,
++				0, MT9P031_WINDOW_WIDTH_MAX - rect.width), 2);
++	rect.top = ALIGN(clamp(crop->rect.top,
++			       0, MT9P031_WINDOW_HEIGHT_MAX - rect.height), 2);
++
++	c = mt9p031_get_pad_crop(mt9p031, fh, crop->pad, crop->which);
++
++	if (rect.width != c->width || rect.height != c->height) {
++		/*
++		 * Reset the output image size if the crop rectangle size has
++		 * been modified.
++		 */
++		f = mt9p031_get_pad_format(mt9p031, fh, crop->pad,
++						    crop->which);
++		width = f->width;
++		height = f->height;
++
++		xskip = mt9p031_skip_for_crop(rect.width, &width, 7);
++		yskip = mt9p031_skip_for_crop(rect.height, &height, 8);
++	} else {
++		xskip = mt9p031->xskip;
++		yskip = mt9p031->yskip;
++		f = NULL;
++	}
++	if (f) {
++		f->width = width;
++		f->height = height;
++	}
++
++	*c = rect;
++	crop->rect = rect;
++
++	mt9p031->xskip = xskip;
++	mt9p031->yskip = yskip;
++	mt9p031->rect = *c;
++	return 0;
++}
++
++static int mt9p031_get_format(struct v4l2_subdev *sd,
++				struct v4l2_subdev_fh *fh,
++				struct v4l2_subdev_format *fmt)
++{
++	struct mt9p031 *mt9p031 = container_of(sd, struct mt9p031, subdev);
++
++	fmt->format =
++		*mt9p031_get_pad_format(mt9p031, fh, fmt->pad, fmt->which);
++	return 0;
++}
++
++static u16 mt9p031_skip_for_scale(s32 *source, s32 target,
++					s32 max_skip, s32 max)
++{
++	unsigned int skip;
++
++	if (*source - *source / 4 < target) {
++		*source = target;
++		return 1;
++	}
++
++	skip = min(max, *source + target / 2) / target;
++	if (skip > max_skip)
++		skip = max_skip;
++	*source = target * skip;
++
++	return skip;
++}
++
++static int mt9p031_fmt_validate(struct v4l2_subdev *sd,
++				struct v4l2_subdev_format *fmt)
++{
++	struct v4l2_mbus_framefmt *format = &fmt->format;
++
++	/* Hardcode code and colorspace as sensor only supports one */
++	format->code = V4L2_MBUS_FMT_SGRBG12_1X12;
++	format->colorspace = V4L2_COLORSPACE_SRGB;
++	
++	format->width = clamp_t(int, ALIGN(format->width, 2), 2,
++						MT9P031_WINDOW_WIDTH_MAX);
++	format->height = clamp_t(int, ALIGN(format->height, 2), 2,
++						MT9P031_WINDOW_HEIGHT_MAX);
++	format->field = V4L2_FIELD_NONE;
++
++	return 0;
++}
++
++static int mt9p031_set_format(struct v4l2_subdev *sd,
++				struct v4l2_subdev_fh *fh,
++				struct v4l2_subdev_format *format)
++{
++	struct v4l2_subdev_format sdf = *format;
++	struct v4l2_mbus_framefmt *__format, *format_bak = &sdf.format;
++	struct v4l2_rect *__crop, rect;
++	struct mt9p031 *mt9p031 = container_of(sd, struct mt9p031, subdev);
++	u16 xskip, yskip;
++	int ret;
++
++	__crop = mt9p031_get_pad_crop(mt9p031, fh, format->pad, format->which);
++
++	ret = mt9p031_fmt_validate(sd, &sdf);
++	if (ret < 0)
++		return ret;
++	rect.width = __crop->width;
++	rect.height = __crop->height;
++
++	xskip = mt9p031_skip_for_scale(&rect.width, format_bak->width, 7,
++				       MT9P031_WINDOW_WIDTH_MAX);
++	if (rect.width + __crop->left > MT9P031_WINDOW_WIDTH_MAX)
++		rect.left = (MT9P031_WINDOW_WIDTH_MAX - rect.width) / 2;
++	else
++		rect.left = __crop->left;
++	yskip = mt9p031_skip_for_scale(&rect.height, format_bak->height, 8,
++				       MT9P031_WINDOW_HEIGHT_MAX);
++	if (rect.height + __crop->top > MT9P031_WINDOW_HEIGHT_MAX)
++		rect.top = (MT9P031_WINDOW_HEIGHT_MAX - rect.height) / 2;
++	else
++		rect.top = __crop->top;
++
++	dev_dbg(mt9p031->subdev.v4l2_dev->dev, "%s(%ux%u : %u)\n", __func__,
++		format_bak->width, format_bak->height, format->which);
++	if (__crop)
++		*__crop = rect;
++
++	__format = mt9p031_get_pad_format(mt9p031, fh, format->pad, format->which);
++	*__format = *format_bak;
++	format->format = *format_bak;
++
++	mt9p031->xskip = xskip;
++	mt9p031->yskip = yskip;
++	mt9p031->rect = *__crop;
++	return 0;
++}
++
++static int mt9p031_s_stream(struct v4l2_subdev *sd, int enable)
++{
++	struct mt9p031 *mt9p031 = container_of(sd, struct mt9p031, subdev);
++	struct i2c_client *client = v4l2_get_subdevdata(&mt9p031->subdev);
++	struct v4l2_rect rect = mt9p031->rect;
++	u16 xskip = mt9p031->xskip;
++	u16 yskip = mt9p031->yskip;
++	int ret;
++
++	if (enable) {
++		ret = mt9p031_set_params(client, &rect, xskip, yskip);
++		if (ret < 0)
++			return ret;
++		/* Switch to master "normal" mode */
++		ret = mt9p031_set_output_control(mt9p031, 0,
++						MT9P031_OUTPUT_CONTROL_CEN);
++	} else {
++		/* Stop sensor readout */
++		ret = mt9p031_set_output_control(mt9p031,
++						MT9P031_OUTPUT_CONTROL_CEN, 0);
++	}
++	return ret;
++}
++
++static int mt9p031_video_probe(struct i2c_client *client)
++{
++	s32 data;
++
++	/* Read out the chip version register */
++	data = reg_read(client, MT9P031_CHIP_VERSION);
++	if (data != MT9P031_CHIP_VERSION_VALUE) {
++		dev_err(&client->dev,
++			"No MT9P031 chip detected, register read %x\n", data);
++		return -ENODEV;
++	}
++
++	dev_info(&client->dev, "Detected a MT9P031 chip ID %x\n", data);
++
++	return 0;
++}
++
++static int mt9p031_set_power(struct v4l2_subdev *sd, int on)
++{
++	struct mt9p031 *mt9p031 = container_of(sd, struct mt9p031, subdev);
++	int ret = 0;
++
++	mutex_lock(&mt9p031->power_lock);
++
++	/*
++	 * If the power count is modified from 0 to != 0 or from != 0 to 0,
++	 * update the power state.
++	 */
++	if (mt9p031->power_count == !on) {
++		if (on) {
++			ret = mt9p031_power_on(mt9p031);
++			if (ret) {
++				dev_err(mt9p031->subdev.v4l2_dev->dev,
++				"Failed to enable 2.8v regulator: %d\n", ret);
++				goto out;
++			}
++		} else {
++			mt9p031_power_off(mt9p031);
++		}
++	}
++
++	/* Update the power count. */
++	mt9p031->power_count += on ? 1 : -1;
++	WARN_ON(mt9p031->power_count < 0);
++
++out:
++	mutex_unlock(&mt9p031->power_lock);
++	return ret;
++}
++
++static int mt9p031_registered(struct v4l2_subdev *sd)
++{
++	struct mt9p031 *mt9p031 = container_of(sd, struct mt9p031, subdev);
++	struct i2c_client *client = v4l2_get_subdevdata(&mt9p031->subdev);
++	int ret;
++
++	ret = mt9p031_set_power(&mt9p031->subdev, 1);
++	if (ret) {
++		dev_err(&client->dev,
++			"Failed to power on device: %d\n", ret);
++		goto err_pwron;
++	}
++
++	ret = mt9p031_video_probe(client);
++	if (ret)
++		goto err_evprobe;
++
++	mt9p031->pad.flags = MEDIA_PAD_FL_SOURCE;
++	ret = media_entity_init(&mt9p031->subdev.entity, 1, &mt9p031->pad, 0);
++	if (ret)
++		goto err_evprobe;
++
++	mt9p031->subdev.flags |= V4L2_SUBDEV_FL_HAS_DEVNODE;
++	mt9p031_set_power(&mt9p031->subdev, 0);
++
++	return 0;
++err_evprobe:
++	mt9p031_set_power(&mt9p031->subdev, 0);
++err_pwron:
++	return ret;
++}
++
++static int mt9p031_open(struct v4l2_subdev *sd, struct v4l2_subdev_fh *fh)
++{
++	struct mt9p031 *mt9p031;
++	mt9p031 = container_of(sd, struct mt9p031, subdev);
++
++	mt9p031->rect.width	= MT9P031_WINDOW_WIDTH_MAX;
++	mt9p031->rect.height	= MT9P031_WINDOW_HEIGHT_MAX;
++	mt9p031->rect.left	= MT9P031_COLUMN_START_DEF;
++	mt9p031->rect.top	= MT9P031_ROW_START_DEF;
++
++	mt9p031->format.code = V4L2_MBUS_FMT_SGRBG12_1X12;
++	mt9p031->format.width = MT9P031_WINDOW_WIDTH_MAX;
++	mt9p031->format.height = MT9P031_WINDOW_HEIGHT_MAX;
++	mt9p031->format.field = V4L2_FIELD_NONE;
++	mt9p031->format.colorspace = V4L2_COLORSPACE_SRGB;
++
++	mt9p031->xskip = 1;
++	mt9p031->yskip = 1;
++	return mt9p031_set_power(sd, 1);
++}
++
++static int mt9p031_close(struct v4l2_subdev *sd, struct v4l2_subdev_fh *fh)
++{
++	return mt9p031_set_power(sd, 0);
++}
++
++static struct v4l2_subdev_core_ops mt9p031_subdev_core_ops = {
++	.s_power	= mt9p031_set_power,
++};
++
++static struct v4l2_subdev_video_ops mt9p031_subdev_video_ops = {
++	.s_stream	= mt9p031_s_stream,
++};
++
++static struct v4l2_subdev_pad_ops mt9p031_subdev_pad_ops = {
++	.enum_mbus_code = mt9p031_enum_mbus_code,
++	.get_fmt = mt9p031_get_format,
++	.set_fmt = mt9p031_set_format,
++	.get_crop = mt9p031_get_crop,
++	.set_crop = mt9p031_set_crop,
++};
++
++static struct v4l2_subdev_ops mt9p031_subdev_ops = {
++	.core	= &mt9p031_subdev_core_ops,
++	.video	= &mt9p031_subdev_video_ops,
++	.pad	= &mt9p031_subdev_pad_ops,
++};
++
++static const struct v4l2_subdev_internal_ops mt9p031_subdev_internal_ops = {
++	.registered = mt9p031_registered,
++	.open = mt9p031_open,
++	.close = mt9p031_close,
++};
++
++static int mt9p031_probe(struct i2c_client *client,
++			 const struct i2c_device_id *did)
++{
++	struct mt9p031 *mt9p031;
++	struct mt9p031_platform_data *pdata = client->dev.platform_data;
++	struct i2c_adapter *adapter = to_i2c_adapter(client->dev.parent);
++	int ret;
++
++	if (!i2c_check_functionality(adapter, I2C_FUNC_SMBUS_WORD_DATA)) {
++		dev_warn(&adapter->dev,
++			 "I2C-Adapter doesn't support I2C_FUNC_SMBUS_WORD\n");
++		return -EIO;
++	}
++
++	mt9p031 = kzalloc(sizeof(struct mt9p031), GFP_KERNEL);
++	if (!mt9p031)
++		return -ENOMEM;
++
++	mutex_init(&mt9p031->power_lock);
++	v4l2_i2c_subdev_init(&mt9p031->subdev, client, &mt9p031_subdev_ops);
++	mt9p031->subdev.internal_ops = &mt9p031_subdev_internal_ops;
++
++	mt9p031->pdata		= pdata;
++
++	mt9p031->reg_1v8 = regulator_get(NULL, "cam_1v8");
++	if (IS_ERR(mt9p031->reg_1v8)) {
++		ret = PTR_ERR(mt9p031->reg_1v8);
++		dev_err(mt9p031->subdev.v4l2_dev->dev,
++			"Failed 1.8v regulator: %d\n", ret);
++		goto err_e1v8;
++	}
++
++	mt9p031->reg_2v8 = regulator_get(NULL, "cam_2v8");
++	if (IS_ERR(mt9p031->reg_2v8)) {
++		ret = PTR_ERR(mt9p031->reg_2v8);
++		dev_err(mt9p031->subdev.v4l2_dev->dev,
++			"Failed 2.8v regulator: %d\n", ret);
++		goto err_e2v8;
++	}
++	return 0;
++err_e2v8:
++	regulator_put(mt9p031->reg_1v8);
++err_e1v8:
++	kfree(mt9p031);
++	return ret;
++}
++
++static int mt9p031_remove(struct i2c_client *client)
++{
++	struct v4l2_subdev *sd = i2c_get_clientdata(client);
++	struct mt9p031 *mt9p031 = container_of(sd, struct mt9p031, subdev);
++
++	v4l2_device_unregister_subdev(sd);
++	media_entity_cleanup(&sd->entity);
++	regulator_put(mt9p031->reg_2v8);
++	regulator_put(mt9p031->reg_1v8);
++	kfree(mt9p031);
++
++	return 0;
++}
++
++static const struct i2c_device_id mt9p031_id[] = {
++	{ "mt9p031", 0 },
++	{ }
++};
++MODULE_DEVICE_TABLE(i2c, mt9p031_id);
++
++static struct i2c_driver mt9p031_i2c_driver = {
++	.driver = {
++		.name = "mt9p031",
++	},
++	.probe		= mt9p031_probe,
++	.remove		= mt9p031_remove,
++	.id_table	= mt9p031_id,
++};
++
++static int __init mt9p031_mod_init(void)
++{
++	return i2c_add_driver(&mt9p031_i2c_driver);
++}
++
++static void __exit mt9p031_mod_exit(void)
++{
++	i2c_del_driver(&mt9p031_i2c_driver);
++}
++
++module_init(mt9p031_mod_init);
++module_exit(mt9p031_mod_exit);
++
++MODULE_DESCRIPTION("Aptina MT9P031 Camera driver");
++MODULE_AUTHOR("Bastian Hecht <hechtb@gmail.com>");
++MODULE_LICENSE("GPL v2");
+diff --git a/include/media/mt9p031.h b/include/media/mt9p031.h
+new file mode 100644
+index 0000000..ad37eb3
+--- /dev/null
++++ b/include/media/mt9p031.h
+@@ -0,0 +1,11 @@
++#ifndef MT9P031_H
++#define MT9P031_H
++
++struct v4l2_subdev;
++
++struct mt9p031_platform_data {
++	int (*set_xclk)(struct v4l2_subdev *subdev, int hz);
++	int (*reset)(struct v4l2_subdev *subdev, int active);
++};
++
++#endif
 -- 
-Dona tu voz
-http://www.voxforge.org/es
+1.7.0.4
 
