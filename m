@@ -1,107 +1,87 @@
 Return-path: <mchehab@pedra>
-Received: from smtp5-g21.free.fr ([212.27.42.5]:57143 "EHLO smtp5-g21.free.fr"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754479Ab1EVOS2 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 22 May 2011 10:18:28 -0400
-Message-ID: <1306073899.4dd91b2bb7408@imp.free.fr>
-Date: Sun, 22 May 2011 16:18:19 +0200
-From: wallak@free.fr
-To: linux-media@vger.kernel.org,
-	Nicholas Leahy <silvercordiagsr@hotmail.com>
-Cc: linux-media@vger.kernel.org, linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] AverMedia A306 (cx23385, xc3028, af9013) (A577 too ?)
-References: <1305838128.4dd582301742e@imp.free.fr> <SNT124-W4826814BFEF35D02DDBB99AC710@phx.gbl>
-In-Reply-To: <SNT124-W4826814BFEF35D02DDBB99AC710@phx.gbl>
+Received: from mail.tu-berlin.de ([130.149.7.33])
+	by www.linuxtv.org with esmtp (Exim 4.69)
+	(envelope-from <stewart@wic.co.nz>) id 1QOqCu-0005Kg-DE
+	for linux-dvb@linuxtv.org; Tue, 24 May 2011 13:55:29 +0200
+Received: from wic-core-1.wic.co.nz ([202.20.97.20])
+	by mail.tu-berlin.de (exim-4.75/mailfrontend-2) with esmtp
+	for <linux-dvb@linuxtv.org>
+	id 1QOqCr-0004i2-IO; Tue, 24 May 2011 13:55:26 +0200
+Received: from [10.1.1.127] (unknown [120.89.80.178])
+	by wic-core-1.wic.co.nz (Postfix) with ESMTPSA id 790AB32D12
+	for <linux-dvb@linuxtv.org>; Tue, 24 May 2011 23:55:18 +1200 (NZST)
+Message-ID: <4DDB9CA6.6040208@wic.co.nz>
+Date: Tue, 24 May 2011 23:55:18 +1200
+From: Stu Fleming <stewart@wic.co.nz>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
-List-ID: <linux-media.vger.kernel.org>
+To: linux-dvb@linuxtv.org
+References: <885931.85151.qm@web28303.mail.ukl.yahoo.com>
+In-Reply-To: <885931.85151.qm@web28303.mail.ukl.yahoo.com>
+Subject: Re: [linux-dvb] build.sh fails on kernel 2.6.38
+Reply-To: linux-media@vger.kernel.org
+List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/options/linux-dvb>,
+	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
+List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
+List-Post: <mailto:linux-dvb@linuxtv.org>
+List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
+List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
+	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
+Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="utf-8"; Format="flowed"
+Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 Sender: <mchehab@pedra>
+List-ID: <linux-dvb@linuxtv.org>
 
-Hi,
-
-Quoting Nicholas Leahy <silvercordiagsr@hotmail.com>:
-
->
-> Hi Wallak
-> How do you see the chips on the I2C bus? I have been trying to get a DiVCO
-> card to work (it uses the same CX23885)
-> I dont get the following parts
-> CX23885_BOARD_AVERMEDIA_A306:> + // ?? PIO0: 1:on 0:nothing work> + // ??
-> PIO1: demodulator address 1: 0x1c, 0:0x1d ??> + // ?? PIO2: tuner reset ?> +
-> // ?? PIO3: demodulator reset ?> + printk(KERN_INFO "gpio...\n");
->
-
-
-  Once the CX23885 driver is loaded, and the new board recognized, 3 new i2c bus
-are added. The state may be dumped with the i2c-tools-3.0.3 package,  e.g.:
-
-i2c-tools-3.0.3/tools/i2cdetect -l
-...
-    i2c-12      unknown         cx23885[0]
-    i2c-13      unknown         cx23885[0]                                      
-                       # SPD EEPROM
-    i2c-14      unknown         cx23885[0]                                      
-                       # SPD EEPROM
-
-Adding the subsystem pci IDs is enough to be sure that the CX23885 driver is
-loaded properly (the previous patch add theses lines).
-
-After this stage; the following command dump an I2C bus:
-i2c-tools-3.0.3/tools/i2cdetect -y $[12 + 0]
-
-     0  1  2  3  4  5  6  7  8  9  a  b  c  d  e  f
-00:          -- -- -- -- -- -- -- -- -- -- -- -- --
-10: -- -- -- -- -- -- -- -- -- -- -- -- 1c -- -- --
-20: -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
-30: 30 31 32 33 34 35 36 37 -- -- -- -- -- -- -- --
-40: -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
-50: 50 51 52 53 54 55 56 57 58 59 5a 5b 5c 5d 5e 5f
-60: -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
-70: -- -- -- -- -- -- -- --
-
-The DVB-T chip is here at the address : 0x1c
-
->
-> and GPIO stuff
->
->
->
-> Cheers Nick
->
-> > Date: Thu, 19 May 2011 22:48:48 +0200
-> > From: wallak@free.fr
-> > To: linux-dvb@linuxtv.org
-> > Subject: [linux-dvb] AverMedia A306 (cx23385, xc3028, af9013) (A577 too ?)
-> >
-> > Hello All,
-> >
-> > I've tried to use my A306 board on my system. All the main chips are fully
-> > supported by linux.
-> >
-> > At this stage the CX23385 and the tuner: xc3028 seem to respond properly.
-> But
-> > the DVB-T chip (af9013) is silent. Nevertheless both chips are visible on
-> the
-> > I2C bus.
-> >
-> > I've no full datasheet of theses chips. with exception of the af9013 where
-> this
-> > information is available:
-> > http://wenku.baidu.com/view/42240f72f242336c1eb95e08.html
-> >
-> > At this stage the CLK signal of the DVB-T chip may be missing or something
-> is
-> > wrong elsewhere.
-> >
->
-> > _______________________________________________
-> > linux-dvb users mailing list
-> > For V4L/DVB development, please use instead linux-media@vger.kernel.org
-> > linux-dvb@linuxtv.org
-> > http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
->
-
-
-Best Regards,
-Wallak,
+T24gMjMvMDUvMTEgMjI6MDksIEdpd3Jnb3MgUGFub3Ugd3JvdGU6Cj4gSGVsbG8sCj4gSSB0cmll
+ZCB0byBidWlsZCB0aGUgdjRsLWR2YiBvbiBhbiB1YnVudHUgbWFjaGluZSB3aXRoIGtlcm5lbCAy
+LjYuMzguOCBnZW5lcmljCj4gYW5kIEkgZ2V0IG1ha2UgZXJyb3I6Cj4gPT09PT09PT09PT09PT09
+PT09PT09PT09PT09PT09PT09PT09PT09PT0KPiAvaG9tZS96L21lZGlhX2J1aWxkL3Y0bC9raW5l
+Y3QuYzozODoxOTogZXJyb3I6IOKAmERfRVJS4oCZIHVuZGVjbGFyZWQgaGVyZSAobm90IGluIGEg
+ZnVuY3Rpb24pCj4gL2hvbWUvei9tZWRpYV9idWlsZC92NGwva2luZWN0LmM6Mzg6Mjc6IGVycm9y
+OiDigJhEX1BST0JF4oCZIHVuZGVjbGFyZWQgaGVyZSAobm90IGluIGEgZnVuY3Rpb24pCj4gL2hv
+bWUvei9tZWRpYV9idWlsZC92NGwva2luZWN0LmM6Mzg6Mzc6IGVycm9yOiDigJhEX0NPTkbigJkg
+dW5kZWNsYXJlZCBoZXJlIChub3QgaW4gYSBmdW5jdGlvbikKPiAvaG9tZS96L21lZGlhX2J1aWxk
+L3Y0bC9raW5lY3QuYzozODo0NjogZXJyb3I6IOKAmERfU1RSRUFN4oCZIHVuZGVjbGFyZWQgaGVy
+ZSAobm90IGluIGEgZnVuY3Rpb24pCj4gL2hvbWUvei9tZWRpYV9idWlsZC92NGwva2luZWN0LmM6
+Mzg6NTc6IGVycm9yOiDigJhEX0ZSQU3igJkgdW5kZWNsYXJlZCBoZXJlIChub3QgaW4gYSBmdW5j
+dGlvbikKPiAvaG9tZS96L21lZGlhX2J1aWxkL3Y0bC9raW5lY3QuYzozODo2NjogZXJyb3I6IOKA
+mERfUEFDS+KAmSB1bmRlY2xhcmVkIGhlcmUgKG5vdCBpbiBhIGZ1bmN0aW9uKQo+IC9ob21lL3ov
+bWVkaWFfYnVpbGQvdjRsL2tpbmVjdC5jOjM5OjI6IGVycm9yOiDigJhEX1VTQknigJkgdW5kZWNs
+YXJlZCBoZXJlIChub3QgaW4gYSBmdW5jdGlvbikKPiAvaG9tZS8vbWVkaWFfYnVpbGQvdjRsL2tp
+bmVjdC5jOjM5OjExOiBlcnJvcjog4oCYRF9VU0JP4oCZIHVuZGVjbGFyZWQgaGVyZSAobm90IGlu
+IGEgZnVuY3Rpb24pCj4gL2hvbWUvL21lZGlhX2J1aWxkL3Y0bC9raW5lY3QuYzozOToyMDogZXJy
+b3I6IOKAmERfVjRMMuKAsiB1bmRlY2xhcmVkIGhlcmUgKG5vdCBpbiBhIGZ1bmN0aW9uKQo+IG1h
+a2VbM106ICoqKiBbL2hvbWUvL21lZGlhX2J1aWxkL3Y0bC9raW5lY3Qub10gRXJyb3IgMQo+IG1h
+a2VbMl06ICoqKiBbX21vZHVsZV8vaG9tZS8vbWVkaWFfYnVpbGQvdjRsXSBFcnJvciAyCj4gPT09
+PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09
+PT09PT0KSSBhbHNvIHNlZSwgY29tcGlsaW5nIGFnYWluc3QgMi42LjM4OgogICBDQyBbTV0gIC91
+c3Ivc3JjL3Y0bC1kdmIvdjRsL2ZsZXhjb3AtaTJjLm8KL3Vzci9zcmMvdjRsLWR2Yi92NGwvZmxl
+eGNvcC1pMmMuYzogSW4gZnVuY3Rpb24gJ2ZsZXhjb3BfaTJjX2luaXQnOgovdXNyL3NyYy92NGwt
+ZHZiL3Y0bC9mbGV4Y29wLWkyYy5jOjI1MzozOTogZXJyb3I6ICdJMkNfQ0xBU1NfVFZfRElHSVRB
+TCcgCnVuZGVjbGFyZWQgKGZpcnN0IHVzZSBpbiB0aGlzIGZ1bmN0aW9uKQpodHRwczovL3BhdGNo
+d29yay5rZXJuZWwub3JnL3BhdGNoLzI1MDQ1MS8gcmVmZXJzCgogICBDQyBbTV0gIC91c3Ivc3Jj
+L3Y0bC1kdmIvdjRsL2J0dHYtaTJjLm8KL3Vzci9zcmMvdjRsLWR2Yi92NGwvYnR0di1pMmMuYzog
+SW4gZnVuY3Rpb24gJ2luaXRfYnR0dl9pMmNfaXInOgovdXNyL3NyYy92NGwtZHZiL3Y0bC9idHR2
+LWkyYy5jOjQzNzozOiBlcnJvcjogdG9vIGZldyBhcmd1bWVudHMgdG8gCmZ1bmN0aW9uICdpMmNf
+bmV3X3Byb2JlZF9kZXZpY2UnCmh0dHA6Ly93d3cuZ29zc2FtZXItdGhyZWFkcy5jb20vbGlzdHMv
+bGludXgva2VybmVsLzEyODIwNDAgcmVmZXJzCgphbmQgZmluYWxseQogICBDQyBbTV0gIC91c3Iv
+c3JjL3Y0bC1kdmIvdjRsL2RteGRldi5vCi91c3Ivc3JjL3Y0bC1kdmIvdjRsL2RteGRldi5jOiBJ
+biBmdW5jdGlvbiAnZHZiX2RteGRldl9zdGFydF9mZWVkJzoKL3Vzci9zcmMvdjRsLWR2Yi92NGwv
+ZG14ZGV2LmM6NTgzOjEzOiB3YXJuaW5nOiBjb21wYXJpc29uIGJldHdlZW4gJ2VudW0gCmRteF90
+c19wZXMnIGFuZCAnZW51bSA8YW5vbnltb3VzPicKL3Vzci9zcmMvdjRsLWR2Yi92NGwvZG14ZGV2
+LmM6IEF0IHRvcCBsZXZlbDoKL3Vzci9zcmMvdjRsLWR2Yi92NGwvZG14ZGV2LmM6MTE0MjoyOiBl
+cnJvcjogdW5rbm93biBmaWVsZCAnaW9jdGwnIApzcGVjaWZpZWQgaW4gaW5pdGlhbGl6ZXIKL3Vz
+ci9zcmMvdjRsLWR2Yi92NGwvZG14ZGV2LmM6MTE0MjoyOiB3YXJuaW5nOiBpbml0aWFsaXphdGlv
+biBmcm9tIAppbmNvbXBhdGlibGUgcG9pbnRlciB0eXBlCi91c3Ivc3JjL3Y0bC1kdmIvdjRsL2Rt
+eGRldi5jOjEyMTE6MjogZXJyb3I6IHVua25vd24gZmllbGQgJ2lvY3RsJyAKc3BlY2lmaWVkIGlu
+IGluaXRpYWxpemVyCi91c3Ivc3JjL3Y0bC1kdmIvdjRsL2RteGRldi5jOjEyMTE6Mjogd2Fybmlu
+ZzogaW5pdGlhbGl6YXRpb24gZnJvbSAKaW5jb21wYXRpYmxlIHBvaW50ZXIgdHlwZQp3aGljaCBJ
+IGNhbm5vdCB5ZXQgZml4LgoKSSBub3RlIHRoYXQgdGhlIGN4ODggYnVnIHRoYXQgYWZmZWN0cyBI
+VlIzMDAwIGFuZCBIVlI0MDAwIGlzIHN0aWxsIGluIAp0aGlzIGJ1aWxkCmh0dHBzOi8vbGlzdHMu
+bGF1bmNocGFkLm5ldC9teXRoYnVudHUtYnVncy9tc2cwMzM5MC5odG1sCgpJIHdvdWxkIGh1Z2Vs
+eSBhcHByZWNpYXRlIHRoZSBsYXR0ZXIgYnVnIGJlaW5nIGZpeGVkISEKUmVnYXJkcywKU3R1CgoK
+Cl9fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fCmxpbnV4LWR2
+YiB1c2VycyBtYWlsaW5nIGxpc3QKRm9yIFY0TC9EVkIgZGV2ZWxvcG1lbnQsIHBsZWFzZSB1c2Ug
+aW5zdGVhZCBsaW51eC1tZWRpYUB2Z2VyLmtlcm5lbC5vcmcKbGludXgtZHZiQGxpbnV4dHYub3Jn
+Cmh0dHA6Ly93d3cubGludXh0di5vcmcvY2dpLWJpbi9tYWlsbWFuL2xpc3RpbmZvL2xpbnV4LWR2
+Yg==
