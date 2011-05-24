@@ -1,40 +1,74 @@
 Return-path: <mchehab@pedra>
-Received: from smtp.nokia.com ([147.243.128.26]:54978 "EHLO mgw-da02.nokia.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751890Ab1ECKmI (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 3 May 2011 06:42:08 -0400
-From: Kalle Jokiniemi <kalle.jokiniemi@nokia.com>
-To: maurochehab@gmail.com, tony@atomide.com
-Cc: laurent.pinchart@ideasonboard.com, linux-omap@vger.kernel.org,
-	linux-media@vger.kernel.org,
-	Kalle Jokiniemi <kalle.jokiniemi@nokia.com>
-Subject: [PATCH v3 0/2] omap3isp/rx-51: Add vdds_csib regulator handling
-Date: Tue,  3 May 2011 13:41:21 +0300
-Message-Id: <1304419283-4177-1-git-send-email-kalle.jokiniemi@nokia.com>
+Received: from smtp-vbr13.xs4all.nl ([194.109.24.33]:1930 "EHLO
+	smtp-vbr13.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752282Ab1EXGuq (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 24 May 2011 02:50:46 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+Subject: Re: [ANNOUNCE] experimental alsa stream support at xawtv3
+Date: Tue, 24 May 2011 08:50:34 +0200
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Devin Heitmueller <dheitmueller@kernellabs.com>
+References: <4DDAC0C2.7090508@redhat.com>
+In-Reply-To: <4DDAC0C2.7090508@redhat.com>
+MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201105240850.35032.hverkuil@xs4all.nl>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-The CSIb block is used in rx-51 to handle camera ccp2 IO. Adding
-support to omap3isp driver for managing the power supply for the
-CSIb IO complex via regulator framework. Also create the
-apropriate regulator definitions in the rx-51 board file.
+On Monday, May 23, 2011 22:17:06 Mauro Carvalho Chehab wrote:
+> Due to the alsa detection code that I've added at libv4l2util (at v4l2-utils)
+> during the weekend, I decided to add alsa support also on xawtv3, basically
+> to provide a real usecase example. Of course, for it to work, it needs the
+> very latest v4l2-utils version from the git tree.
 
-I propose to push this set through the linux-media, since most
-of the changes are on the omap3isp driver side.
+Please, please add at the very least some very big disclaimer in libv4l2util
+that the API/ABI is likely to change. As mentioned earlier, this library is
+undocumented, has not gone through any peer-review, and I am very unhappy with
+it and with the decision (without discussion it seems) to install it.
 
-Tested on Nokia N900 and the MeeGo testing daily images
-(.37 based kernel). Patches on top of Mauro's linux-next tree,
-build tested and boot tested with that. 
+Once you install it on systems it becomes much harder to change.
 
-v2: updated patch 1/2 with comment from Laurent Pinchart
-v3: removed unnecessary "vaux2" consumer regulator supply
+Regards,
 
-Kalle Jokiniemi (2):
-  OMAP3: ISP: Add regulator control for omap34xx
-  OMAP3: RX-51: define vdds_csib regulator supply
+	Hans
 
- arch/arm/mach-omap2/board-rx51-peripherals.c |    6 +++++
- drivers/media/video/omap3isp/ispccp2.c       |   27 ++++++++++++++++++++++++-
- drivers/media/video/omap3isp/ispccp2.h       |    1 +
- 3 files changed, 32 insertions(+), 2 deletions(-)
-
+> I've basically added there the code that Devin wrote for tvtime, with a few
+> small fixes and with the audio device auto-detection.
+> 
+> With this patch, xawtv will now get the alsa device associated with a video
+> device node (if any), and start streaming from it, on a separate thread.
+> 
+> As the code is the same as the one at tvtime, it should work at the
+> same devices that are supported there. I tested it only on two em28xx devices:
+> 	- HVR-950;
+> 	- WinTV USB-2.
+> 
+> It worked with HVR-950, but it didn't work with WinTV USB-2. It seems that
+> snd-usb-audio do something different to set the framerate, that the alsa-stream
+> code doesn't recognize. While I didn't test, I think it probably won't work
+> with saa7134, as the code seems to hardcode the frame rate to 48 kHz, but
+> saa7134 supports only 32 kHz.
+> 
+> It would be good to add an option to disable this behavior and to allow manually
+> select the alsa out device, so please send us patches ;)
+> 
+> Anyway, patches fixing it and more tests are welcome.
+> 
+> The git repositories for xawtv3 and v4l-utils is at:
+> 
+> http://git.linuxtv.org/xawtv3.git
+> http://git.linuxtv.org/v4l-utils.git
+> 
+> Thanks,
+> Mauro.
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
+> 
