@@ -1,60 +1,59 @@
 Return-path: <mchehab@pedra>
-Received: from mail.wdtv.com ([66.118.69.84]:39037 "EHLO mail.wdtv.com"
+Received: from mx1.redhat.com ([209.132.183.28]:48952 "EHLO mx1.redhat.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755712Ab1EATCg (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 1 May 2011 15:02:36 -0400
-To: linux-media@vger.kernel.org
-Subject: Cannot build dvb-atsc-tools-1.0.7
-From: Gene Heskett <gene.heskett@gmail.com>
-Date: Sun, 1 May 2011 15:02:34 -0400
+	id S932209Ab1EXOPF (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 24 May 2011 10:15:05 -0400
+Message-ID: <4DDBBD64.5060107@redhat.com>
+Date: Tue, 24 May 2011 11:15:00 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
 MIME-Version: 1.0
-Content-Type: text/plain;
-  charset="utf-8"
-Content-Transfer-Encoding: 8bit
-Message-Id: <201105011502.34227.gene.heskett@gmail.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+CC: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Devin Heitmueller <dheitmueller@kernellabs.com>
+Subject: Re: [ANNOUNCE] experimental alsa stream support at xawtv3
+References: <4DDAC0C2.7090508@redhat.com> <201105240850.35032.hverkuil@xs4all.nl>
+In-Reply-To: <201105240850.35032.hverkuil@xs4all.nl>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Greetings all;
+Em 24-05-2011 03:50, Hans Verkuil escreveu:
+> On Monday, May 23, 2011 22:17:06 Mauro Carvalho Chehab wrote:
+>> Due to the alsa detection code that I've added at libv4l2util (at v4l2-utils)
+>> during the weekend, I decided to add alsa support also on xawtv3, basically
+>> to provide a real usecase example. Of course, for it to work, it needs the
+>> very latest v4l2-utils version from the git tree.
+> 
+> Please, please add at the very least some very big disclaimer in libv4l2util
+> that the API/ABI is likely to change. As mentioned earlier, this library is
+> undocumented, has not gone through any peer-review, and I am very unhappy with
+> it and with the decision (without discussion it seems) to install it.
 
-Currently running 2.6.38.4 here.
+With respect to the other stuff inside libv4l2util, they are there for a long time,
+and not much has changed since them. Yet, I'm not a big fan of exporting them, as
+they may not be useful to other applications.
 
-Along with kernel 2.6.38.4, kaffiene no longer does tv from my pcHDTV-3000 
-card.  And acts like the device is not there.  IIRC it did work with 
-2.6.38.2 but won't swear that on the good book, pclos jumped from 
-2.6.37.something to 2.6.38.2
+With respect to the new API I've added, there are not much to change at the 
+get_media_devices stuff. It has just 5 methods: one to retrieve info, one to free data, 
+one to display all info (used by v4l2-sysfs-path tool), and two for getting the alsa
+devices. Of course, new functions can always be added, and the structs might need more
+fields.
 
-So to troubleshoot, I go pull dvb-atsc-tools-1.0.7 from my tarball archive.
-Cd'ing to the dir, the README says to type make, which promptly exits, 
-can't find linux/videodev.h, so I cp that from the kernel 2.6.33.7 tree to 
-/usr/include/linux/.  According to locate, that apparently was the only 
-copy of that file on a machine with quite a few newer kernel src trees 
-resident.
+I've added a proper documentation for it. I also added a macro with a version number 
+for the library. This will help userspace apps that would use it to check for the 
+version number.
 
-Wrong!  Now it exits the make:
-gcc -Wall -D_FILE_OFFSET_BITS=64     chopatscfile.c   -o chopatscfile
-In file included from chopatscfile.c:41:0:
-/usr/include/linux/videodev.h:166:27: error: expected ‘:’, ‘,’, ‘;’, ‘}’ or 
-‘__attribute__’ before ‘*’ token
-make: *** [chopatscfile] Error 1
+That's said, I'm moving the get_media_devices into a new library, to avoid mixing
+it with other stuff.
 
-Can this be fixed?  If so, how?
+As I said, I'm OK to postpone the install to happen for the -next version of v4l2-utils,
+so I've commented for now the install scripts for it.
 
-Thanks for any hints.
+> Once you install it on systems it becomes much harder to change.
+> 
+> Regards,
+> 
+> 	Hans
 
-PS:  I seem to have found it myself, by editing all the .c files in dvb-
-atsc-tools-1.0.7 to look for linux/videodev2.h instead of 
-/linux/videodev.h, that was the only change, in all .c files.
-
-The tool chain then built, and installed, and at least 'dvtsignal 5' 
-reports a good signal, and all of a sudden kaffiene is working again.
-
-So file that away for good measure.  Its a regression fix.
-
--- 
-Cheers, Gene
-"There are four boxes to be used in defense of liberty:
- soap, ballot, jury, and ammo. Please use in that order."
--Ed Howdershelt (Author)
-New England Life, of course.  Why do you ask?
-
+Mauro
