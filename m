@@ -1,86 +1,232 @@
 Return-path: <mchehab@pedra>
-Received: from mail-iy0-f174.google.com ([209.85.210.174]:34945 "EHLO
-	mail-iy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752329Ab1EYHAW (ORCPT
+Received: from mailfe06.c2i.net ([212.247.154.162]:54942 "EHLO swip.net"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S932724Ab1EXTxx convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 25 May 2011 03:00:22 -0400
-Received: by iyb14 with SMTP id 14so5939587iyb.19
-        for <linux-media@vger.kernel.org>; Wed, 25 May 2011 00:00:21 -0700 (PDT)
+	Tue, 24 May 2011 15:53:53 -0400
+Received: from [188.126.198.129] (account mc467741@c2i.net HELO laptop002.hselasky.homeunix.org)
+  by mailfe06.swip.net (CommuniGate Pro SMTP 5.2.19)
+  with ESMTPA id 130260248 for linux-media@vger.kernel.org; Tue, 24 May 2011 21:53:51 +0200
+From: Hans Petter Selasky <hselasky@c2i.net>
+To: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Subject: [PATCH] Fix the derot zig-zag to work with TT-USB2.0 TechnoTrend hardware.
+Date: Tue, 24 May 2011 21:52:38 +0200
 MIME-Version: 1.0
-In-Reply-To: <551158.38796.qm@web112009.mail.gq1.yahoo.com>
-References: <551158.38796.qm@web112009.mail.gq1.yahoo.com>
-Date: Wed, 25 May 2011 09:00:21 +0200
-Message-ID: <BANLkTi=7mssSFd=HYwVReoKw6VEC_Qvs0Q@mail.gmail.com>
-Subject: Re: [PATCH v2 1/2] MT9P031: Add support for Aptina mt9p031 sensor.
-From: javier Martin <javier.martin@vista-silicon.com>
-To: Chris Rodley <carlighting@yahoo.co.nz>
-Cc: laurent.pinchart@ideasonboard.com, linux-media@vger.kernel.org,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	beagleboard@googlegroups.com, linux-arm-kernel@lists.infradead.org
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: Text/Plain;
+  charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+Message-Id: <201105242152.38319.hselasky@c2i.net>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Please, do not remove anyone from the CC list.
+(This time without any word wrappings)
 
-On 25 May 2011 05:45, Chris Rodley <carlighting@yahoo.co.nz> wrote:
-> Hi,
->
-> Have upgraded the driver to Javier's latest RFC driver.
-> Still having problems viewing output.
->
-> Setting up with:
-> # media-ctl -r -l '"mt9p031 2-0048":0->"OMAP3 ISP CCDC":0[1], "OMAP3 ISP CCDC":1->"OMAP3 ISP CCDC output":0[1]'
-> Resetting all links to inactive
-> Setting up link 16:0 -> 5:0 [1]
-> Setting up link 5:1 -> 6:0 [1]
->
-> # media-ctl -f '"mt9p031 2-0048":0[SGRBG12 320x240], "OMAP3 ISP CCDC":0[SGRBG8 320x240], "OMAP3 ISP CCDC":1[SGRBG8 320x240]'
-> Setting up format SGRBG12 320x240 on pad mt9p031 2-0048/0
-> Format set: SGRB
-> Setting up format SGRBG12 320x240 on pad OMAP3 ISP CCDC/0
-> Format set: SGRBG12 320x240
-> Setting up format SGRBG8 320x240 on pad OMAP3 ISP CCDC/0
-> Format set: SGRBG8 320x240
-> Setting up format SGRBG8 320x240 on pad OMAP3 ISP CCDC/1
-> Format set: SGRBG8 320x240
->
-> Then:
-> # yavta -f SGRBG8 -s 320x240 -n 4 --capture=100 -F /dev/video2
-> Device /dev/video2 opened.
-> Device `OMAP3 ISP CCDC output' on `media' is a video capture device.
-> Video format set: width: 320 height: 240 buffer size: 76800
-> Video format: GRBG (47425247) 320x240
-> 4 buffers requested.
-> length: 76800 offset: 0
-> Buffer 0 mapped at address 0x4006c000.
-> length: 76800 offset: 77824
-> Buffer 1 mapped at address 0x40222000.
-> length: 76800 offset: 155648
-> Buffer 2 mapped at address 0x4025e000.
-> length: 76800 offset: 233472
-> Buffer 3 mapped at address 0x402f0000.
->
-> After this it hangs and will exit on 'ctrl c':
-> omap3isp omap3isp: CCDC stop timeout!
->
-> Any ideas what is causing this problem?
->
+>From 83224b9c4b5402332589139549b387066bff8277 Mon Sep 17 00:00:00 2001
+From: Hans Petter Selasky <hselasky@c2i.net>
+Date: Tue, 24 May 2011 21:44:53 +0200
+Subject: [PATCH] Fix the derot zig-zag to work with TT-USB2.0 TechnoTrend hardware.
 
-No idea,
-it works for me. Note you have to apply RFC + PATCH v2 2/2. Please,
-double check.
+Signed-off-by: Hans Petter Selasky <hselasky@c2i.net>
+---
+ drivers/media/dvb/frontends/stb0899_algo.c |  113 ++++++++++++---------------
+ 1 files changed, 50 insertions(+), 63 deletions(-)
 
-Also, if you have problems with last RFC patch you should answer RFC
-mail. Not this one.
-
-Thank you.
-
+diff --git a/drivers/media/dvb/frontends/stb0899_algo.c b/drivers/media/dvb/frontends/stb0899_algo.c
+index d70eee0..1dbd9be 100644
+--- a/drivers/media/dvb/frontends/stb0899_algo.c
++++ b/drivers/media/dvb/frontends/stb0899_algo.c
+@@ -23,6 +23,13 @@
+ #include "stb0899_priv.h"
+ #include "stb0899_reg.h"
+ 
++#include <linux/kernel.h>
++#include <linux/module.h>
++
++static int derot_max = 8192;
++module_param(derot_max, int, 0644);
++MODULE_PARM_DESC(derot_max, "Set Maximum Derot Value (0..32767)");
++
+ static inline u32 stb0899_do_div(u64 n, u32 d)
+ {
+ 	/* wrap do_div() for ease of use */
+@@ -117,7 +124,7 @@ static u32 stb0899_set_srate(struct stb0899_state *state, u32 master_clk, u32 sr
+  */
+ static long stb0899_calc_derot_time(long srate)
+ {
+-	if (srate > 0)
++	if (srate > 999)
+ 		return (100000 / (srate / 1000));
+ 	else
+ 		return 0;
+@@ -207,30 +214,22 @@ static enum stb0899_status stb0899_search_tmg(struct stb0899_state *state)
+ {
+ 	struct stb0899_internal *internal = &state->internal;
+ 	struct stb0899_params *params = &state->params;
+-
+-	short int derot_step, derot_freq = 0, derot_limit, next_loop = 3;
++	int derot_freq = 0;
+ 	int index = 0;
+ 	u8 cfr[2];
+ 
+ 	internal->status = NOTIMING;
++	internal->direction = 1;
+ 
+-	/* timing loop computation & symbol rate optimisation	*/
+-	derot_limit = (internal->sub_range / 2L) / internal->mclk;
+-	derot_step = (params->srate / 2L) / internal->mclk;
++	while ((stb0899_check_tmg(state) != TIMINGOK) && (abs(derot_freq) <= derot_max)) {
++		derot_freq += index * (index - 1) * internal->direction;	/* next derot zig zag position	*/
+ 
+-	while ((stb0899_check_tmg(state) != TIMINGOK) && next_loop) {
+-		index++;
+-		derot_freq += index * internal->direction * derot_step;	/* next derot zig zag position	*/
++		STB0899_SETFIELD_VAL(CFRM, cfr[0], MSB(state->config->inversion * derot_freq));
++		STB0899_SETFIELD_VAL(CFRL, cfr[1], LSB(state->config->inversion * derot_freq));
++		stb0899_write_regs(state, STB0899_CFRM, cfr, 2); /* derotator frequency		*/
+ 
+-		if (abs(derot_freq) > derot_limit)
+-			next_loop--;
+-
+-		if (next_loop) {
+-			STB0899_SETFIELD_VAL(CFRM, cfr[0], MSB(state->config->inversion * derot_freq));
+-			STB0899_SETFIELD_VAL(CFRL, cfr[1], LSB(state->config->inversion * derot_freq));
+-			stb0899_write_regs(state, STB0899_CFRM, cfr, 2); /* derotator frequency		*/
+-		}
+ 		internal->direction = -internal->direction;	/* Change zigzag direction		*/
++		index++;
+ 	}
+ 
+ 	if (internal->status == TIMINGOK) {
+@@ -277,50 +276,41 @@ static enum stb0899_status stb0899_check_carrier(struct stb0899_state *state)
+ static enum stb0899_status stb0899_search_carrier(struct stb0899_state *state)
+ {
+ 	struct stb0899_internal *internal = &state->internal;
+-
+-	short int derot_freq = 0, last_derot_freq = 0, derot_limit, next_loop = 3;
++	int derot_freq;
+ 	int index = 0;
+ 	u8 cfr[2];
+ 	u8 reg;
+ 
+ 	internal->status = NOCARRIER;
+-	derot_limit = (internal->sub_range / 2L) / internal->mclk;
++	internal->direction = 1;
+ 	derot_freq = internal->derot_freq;
+ 
+ 	reg = stb0899_read_reg(state, STB0899_CFD);
+ 	STB0899_SETFIELD_VAL(CFD_ON, reg, 1);
+ 	stb0899_write_reg(state, STB0899_CFD, reg);
+ 
+-	do {
++	while ((stb0899_check_carrier(state) == NOCARRIER) && (abs(derot_freq) <= derot_max)) {
++
++		derot_freq += index * (index - 1) * internal->direction;	/* next derot zig zag position	*/
++
+ 		dprintk(state->verbose, FE_DEBUG, 1, "Derot Freq=%d, mclk=%d", derot_freq, internal->mclk);
+-		if (stb0899_check_carrier(state) == NOCARRIER) {
+-			index++;
+-			last_derot_freq = derot_freq;
+-			derot_freq += index * internal->direction * internal->derot_step; /* next zig zag derotator 
+position */
+-
+-			if(abs(derot_freq) > derot_limit)
+-				next_loop--;
+-
+-			if (next_loop) {
+-				reg = stb0899_read_reg(state, STB0899_CFD);
+-				STB0899_SETFIELD_VAL(CFD_ON, reg, 1);
+-				stb0899_write_reg(state, STB0899_CFD, reg);
+-
+-				STB0899_SETFIELD_VAL(CFRM, cfr[0], MSB(state->config->inversion * derot_freq));
+-				STB0899_SETFIELD_VAL(CFRL, cfr[1], LSB(state->config->inversion * derot_freq));
+-				stb0899_write_regs(state, STB0899_CFRM, cfr, 2); /* derotator frequency	*/
+-			}
+-		}
++
++		reg = stb0899_read_reg(state, STB0899_CFD);
++		STB0899_SETFIELD_VAL(CFD_ON, reg, 1);
++		stb0899_write_reg(state, STB0899_CFD, reg);
++
++		STB0899_SETFIELD_VAL(CFRM, cfr[0], MSB(state->config->inversion * derot_freq));
++		STB0899_SETFIELD_VAL(CFRL, cfr[1], LSB(state->config->inversion * derot_freq));
++		stb0899_write_regs(state, STB0899_CFRM, cfr, 2); /* derotator frequency	*/
+ 
+ 		internal->direction = -internal->direction; /* Change zigzag direction */
+-	} while ((internal->status != CARRIEROK) && next_loop);
++		index++;
++	}
+ 
+ 	if (internal->status == CARRIEROK) {
+ 		stb0899_read_regs(state, STB0899_CFRM, cfr, 2); /* get derotator frequency */
+ 		internal->derot_freq = state->config->inversion * MAKEWORD16(cfr[0], cfr[1]);
+ 		dprintk(state->verbose, FE_DEBUG, 1, "----> CARRIER OK !, Derot Freq=%d", internal->derot_freq);
+-	} else {
+-		internal->derot_freq = last_derot_freq;
+ 	}
+ 
+ 	return internal->status;
+@@ -384,7 +374,7 @@ static enum stb0899_status stb0899_check_data(struct stb0899_state *state)
+  */
+ static enum stb0899_status stb0899_search_data(struct stb0899_state *state)
+ {
+-	short int derot_freq, derot_step, derot_limit, next_loop = 3;
++	int derot_freq;
+ 	u8 cfr[2];
+ 	u8 reg;
+ 	int index = 1;
+@@ -392,33 +382,30 @@ static enum stb0899_status stb0899_search_data(struct stb0899_state *state)
+ 	struct stb0899_internal *internal = &state->internal;
+ 	struct stb0899_params *params = &state->params;
+ 
+-	derot_step = (params->srate / 4L) / internal->mclk;
+-	derot_limit = (internal->sub_range / 2L) / internal->mclk;
++	internal->direction = 1;
++
+ 	derot_freq = internal->derot_freq;
+ 
+-	do {
+-		if ((internal->status != CARRIEROK) || (stb0899_check_data(state) != DATAOK)) {
++	while (((internal->status != CARRIEROK) ||
++	    (stb0899_check_data(state) != DATAOK)) && (abs(derot_freq) <= derot_max)) {
+ 
+-			derot_freq += index * internal->direction * derot_step;	/* next zig zag derotator position 
+*/
+-			if (abs(derot_freq) > derot_limit)
+-				next_loop--;
++		derot_freq += index * (index - 1) * internal->direction;	/* next zig zag derotator position */
+ 
+-			if (next_loop) {
+-				dprintk(state->verbose, FE_DEBUG, 1, "Derot freq=%d, mclk=%d", derot_freq, internal-
+>mclk);
+-				reg = stb0899_read_reg(state, STB0899_CFD);
+-				STB0899_SETFIELD_VAL(CFD_ON, reg, 1);
+-				stb0899_write_reg(state, STB0899_CFD, reg);
++		dprintk(state->verbose, FE_DEBUG, 1, "Derot freq=%d, mclk=%d", derot_freq, internal->mclk);
+ 
+-				STB0899_SETFIELD_VAL(CFRM, cfr[0], MSB(state->config->inversion * derot_freq));
+-				STB0899_SETFIELD_VAL(CFRL, cfr[1], LSB(state->config->inversion * derot_freq));
+-				stb0899_write_regs(state, STB0899_CFRM, cfr, 2); /* derotator frequency	*/
++		reg = stb0899_read_reg(state, STB0899_CFD);
++		STB0899_SETFIELD_VAL(CFD_ON, reg, 1);
++		stb0899_write_reg(state, STB0899_CFD, reg);
++
++		STB0899_SETFIELD_VAL(CFRM, cfr[0], MSB(state->config->inversion * derot_freq));
++		STB0899_SETFIELD_VAL(CFRL, cfr[1], LSB(state->config->inversion * derot_freq));
++		stb0899_write_regs(state, STB0899_CFRM, cfr, 2); /* derotator frequency	*/
++
++		stb0899_check_carrier(state);
+ 
+-				stb0899_check_carrier(state);
+-				index++;
+-			}
+-		}
+ 		internal->direction = -internal->direction; /* change zig zag direction */
+-	} while ((internal->status != DATAOK) && next_loop);
++		index++;
++	}
+ 
+ 	if (internal->status == DATAOK) {
+ 		stb0899_read_regs(state, STB0899_CFRM, cfr, 2); /* get derotator frequency */
 -- 
-Javier Martin
-Vista Silicon S.L.
-CDTUC - FASE C - Oficina S-345
-Avda de los Castros s/n
-39005- Santander. Cantabria. Spain
-+34 942 25 32 60
-www.vista-silicon.com
+1.7.1.1
+
