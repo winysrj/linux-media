@@ -1,60 +1,70 @@
-Return-path: <mchehab@gaivota>
-Received: from tx2ehsobe001.messaging.microsoft.com ([65.55.88.11]:27703 "EHLO
-	TX2EHSOBE002.bigfish.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751800Ab1EJCoP convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 9 May 2011 22:44:15 -0400
-From: "Jiang, Scott" <Scott.Jiang@analog.com>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-CC: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	"uclinux-dist-devel@blackfin.uclinux.org"
-	<uclinux-dist-devel@blackfin.uclinux.org>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	"hverkuil@xs4all.nl" <hverkuil@xs4all.nl>
-Date: Mon, 9 May 2011 22:44:05 -0400
-Subject: RE: why is there no enum_input in v4l2_subdev_video_ops
-Message-ID: <E43657A3F2E26048BB0EBCA7C4CB6941B4B52CDFA4@NWD2CMBX1.ad.analog.com>
-References: <E43657A3F2E26048BB0EBCA7C4CB6941B4B52CDE0C@NWD2CMBX1.ad.analog.com>
- <Pine.LNX.4.64.1105091102320.21938@axis700.grange>
- <E43657A3F2E26048BB0EBCA7C4CB6941B4B52CDE4D@NWD2CMBX1.ad.analog.com>
- <201105092342.06166.laurent.pinchart@ideasonboard.com>
-In-Reply-To: <201105092342.06166.laurent.pinchart@ideasonboard.com>
-Content-Language: en-US
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-MIME-Version: 1.0
+Return-path: <mchehab@pedra>
+Received: from ganesha.gnumonks.org ([213.95.27.120]:42716 "EHLO
+	ganesha.gnumonks.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752537Ab1EXAez (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 23 May 2011 20:34:55 -0400
+From: Jeongtae Park <jtp.park@samsung.com>
+To: Jeongtae Park <jtp.park@samsung.com>, linux-media@vger.kernel.org
+Cc: jaeryul.oh@samsung.com, jonghun.han@samsung.com,
+	june.bae@samsung.com, janghyuck.kim@samsung.com,
+	younglak1004.kim@samsung.com, m.szyprowski@samsung.com,
+	Jeongtae Park <jtp.park@samsung.com>,
+	Kamil Debski <k.debski@samsung.com>
+Subject: [PATCH 1/4] media: MFC: Remove usused variables & compile warnings
+Date: Tue, 24 May 2011 09:28:37 +0900
+Message-Id: <1306196920-15467-2-git-send-email-jtp.park@samsung.com>
+In-Reply-To: <1306196920-15467-1-git-send-email-jtp.park@samsung.com>
+References: <1306196920-15467-1-git-send-email-jtp.park@samsung.com>
 List-ID: <linux-media.vger.kernel.org>
-Sender: Mauro Carvalho Chehab <mchehab@gaivota>
+Sender: <mchehab@pedra>
 
-Hi Laurent,
+This patch removes unused variables & compile warnings
 
-On Tue, May 10, 2011 at 5:42 AM, Laurent Pinchart <laurent.pinchart@ideasonboard.com> wrote:
->> >> Why is there no enum_input operation in v4l2_subdev_video_ops?
->
-> Why do you need one ?
+Signed-off-by: Jeongtae Park <jtp.park@samsung.com>
+Cc: Kamil Debski <k.debski@samsung.com>
+---
+ drivers/media/video/s5p-mfc/s5p_mfc_enc.c |    1 -
+ drivers/media/video/s5p-mfc/s5p_mfc_mem.c |    1 +
+ drivers/media/video/s5p-mfc/s5p_mfc_opr.c |    1 -
+ 3 files changed, 1 insertions(+), 2 deletions(-)
 
-Because I want to query decoder how many inputs it can support.
-So the question is where we should store inputs info, board specific data or decoder driver?
-I appreciate your advice.
-
->> > Maybe because noone needed it until now?
->> >
->> >> I found some drivers put this info in board specific data, but in my
->> >> opinion this info is sensor or decoder related.
->> >
->> > Can you tell which drivers / boards you're referring to?
->>
->> I referred to drivers/media/video/davinci files.
->>
->> >> So it should be put into the sensor drivers.
->> >
->> > Maybe. Also notice, I'm not a maintainer nor a principal v4l2-subdev
->> > developer. I've added Hans and Laurent to Cc:, will see what they say, or
->> > you can just point out which drivers / platforms are doing this wrong and
->> > propose a fix.
->>
->> Sorry, I only found your mail in MAINTAINERS.
->
-
-Regards,
-Scott
+diff --git a/drivers/media/video/s5p-mfc/s5p_mfc_enc.c b/drivers/media/video/s5p-mfc/s5p_mfc_enc.c
+index 981fdfe..530ff0b 100644
+--- a/drivers/media/video/s5p-mfc/s5p_mfc_enc.c
++++ b/drivers/media/video/s5p-mfc/s5p_mfc_enc.c
+@@ -1935,7 +1935,6 @@ static int s5p_mfc_start_streaming(struct vb2_queue *q)
+ 	struct s5p_mfc_ctx *ctx = q->drv_priv;
+ 	struct s5p_mfc_dev *dev = ctx->dev;
+ 	unsigned long flags;
+-	unsigned ret;
+ 
+ 	/* If context is ready then dev = work->data;schedule it to run */
+ 	if (s5p_mfc_ctx_ready(ctx)) {
+diff --git a/drivers/media/video/s5p-mfc/s5p_mfc_mem.c b/drivers/media/video/s5p-mfc/s5p_mfc_mem.c
+index d5e235f..aeb3306 100644
+--- a/drivers/media/video/s5p-mfc/s5p_mfc_mem.c
++++ b/drivers/media/video/s5p-mfc/s5p_mfc_mem.c
+@@ -20,6 +20,7 @@
+ 
+ 
+ #ifdef CONFIG_VIDEO_SAMSUNG_S5P_MFC_DMA_IOMMU
++#include <linux/slab.h>
+ #include <plat/sysmmu.h>
+ 
+ struct vb2_mem_ops *s5p_mfc_mem_ops(void)
+diff --git a/drivers/media/video/s5p-mfc/s5p_mfc_opr.c b/drivers/media/video/s5p-mfc/s5p_mfc_opr.c
+index a22ea43..24b2e11 100644
+--- a/drivers/media/video/s5p-mfc/s5p_mfc_opr.c
++++ b/drivers/media/video/s5p-mfc/s5p_mfc_opr.c
+@@ -1061,7 +1061,6 @@ static int s5p_mfc_set_enc_params_h263(struct s5p_mfc_ctx *ctx)
+ {
+ 	struct s5p_mfc_dev *dev = ctx->dev;
+ 	struct s5p_mfc_enc_params *p = &ctx->enc_params;
+-	struct s5p_mfc_mpeg4_enc_params *p_mpeg4 = &p->codec.mpeg4;
+ 	unsigned int reg;
+ 	unsigned int shm;
+ 
+-- 
+1.7.1
 
