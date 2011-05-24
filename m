@@ -1,21 +1,19 @@
 Return-path: <mchehab@pedra>
-Received: from bear.ext.ti.com ([192.94.94.41]:37276 "EHLO bear.ext.ti.com"
+Received: from bear.ext.ti.com ([192.94.94.41]:40821 "EHLO bear.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756960Ab1EYMTb (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 25 May 2011 08:19:31 -0400
+	id S1756117Ab1EXODZ (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 24 May 2011 10:03:25 -0400
 Received: from dbdp20.itg.ti.com ([172.24.170.38])
-	by bear.ext.ti.com (8.13.7/8.13.7) with ESMTP id p4PCJRqS010628
+	by bear.ext.ti.com (8.13.7/8.13.7) with ESMTP id p4OE3Mdj028510
 	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-media@vger.kernel.org>; Wed, 25 May 2011 07:19:30 -0500
+	for <linux-media@vger.kernel.org>; Tue, 24 May 2011 09:03:24 -0500
 From: Manjunath Hadli <manjunath.hadli@ti.com>
 To: LMML <linux-media@vger.kernel.org>
 CC: dlos <davinci-linux-open-source@linux.davincidsp.com>,
 	Manjunath Hadli <manjunath.hadli@ti.com>
-Subject: [PATCH v19 6/6] davinci vpbe: Readme text for Dm6446 vpbe
-Date: Wed, 25 May 2011 17:49:22 +0530
-Message-ID: <1306325962-19299-7-git-send-email-manjunath.hadli@ti.com>
-In-Reply-To: <1306325962-19299-1-git-send-email-manjunath.hadli@ti.com>
-References: <1306325962-19299-1-git-send-email-manjunath.hadli@ti.com>
+Subject: [PATCH v18 6/6] davinci vpbe: Readme text for Dm6446 vpbe
+Date: Tue, 24 May 2011 19:33:18 +0530
+Message-ID: <1306245798-3529-1-git-send-email-manjunath.hadli@ti.com>
 MIME-Version: 1.0
 Content-Type: text/plain
 List-ID: <linux-media.vger.kernel.org>
