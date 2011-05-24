@@ -1,69 +1,36 @@
 Return-path: <mchehab@pedra>
-Received: from mx1.redhat.com ([209.132.183.28]:4934 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757953Ab1EYP0v (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 25 May 2011 11:26:51 -0400
-Received: from int-mx02.intmail.prod.int.phx2.redhat.com (int-mx02.intmail.prod.int.phx2.redhat.com [10.5.11.12])
-	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id p4PFQoQY019559
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
-	for <linux-media@vger.kernel.org>; Wed, 25 May 2011 11:26:50 -0400
-Received: from pedra (vpn-235-184.phx2.redhat.com [10.3.235.184])
-	by int-mx02.intmail.prod.int.phx2.redhat.com (8.13.8/8.13.8) with ESMTP id p4PFQnlY007978
-	for <linux-media@vger.kernel.org>; Wed, 25 May 2011 11:26:50 -0400
-Date: Wed, 25 May 2011 12:26:43 -0300
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: [PATCH 1/3] [media] Documentation/DocBook: Rename media fops xml
- files
-Message-ID: <20110525122643.1e2e4d8a@pedra>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
-To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
+Received: from ganesha.gnumonks.org ([213.95.27.120]:42714 "EHLO
+	ganesha.gnumonks.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753069Ab1EXAez (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 23 May 2011 20:34:55 -0400
+From: Jeongtae Park <jtp.park@samsung.com>
+To: Jeongtae Park <jtp.park@samsung.com>, linux-media@vger.kernel.org
+Cc: jaeryul.oh@samsung.com, jonghun.han@samsung.com,
+	june.bae@samsung.com, janghyuck.kim@samsung.com,
+	younglak1004.kim@samsung.com, m.szyprowski@samsung.com
+Subject: Add support control framework in MFC decoder
+Date: Tue, 24 May 2011 09:28:36 +0900
+Message-Id: <1306196920-15467-1-git-send-email-jtp.park@samsung.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-By convention, the name of the XML file should match the references
-declared at media-entities.tmpl, as, otherwise, some validation
-scripts break.
+Hi,
+This patch series implements MFC contorl framework support in decoder.
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+I started with below branch (MFC v8)
+http://git.infradead.org/users/kmpark/linux-2.6-samsung/shortlog/refs/heads/mfc_v8
+and apply control event patch series by Hans Verkuil to the branch.
+After that add some minor changes to support per-buffer control in the framework.
+Last, migrate MFC decoder to the control framework.
 
-diff --git a/Documentation/DocBook/media-entities.tmpl b/Documentation/DocBook/media-entities.tmpl
-index c8abb23..5c44aa7 100644
---- a/Documentation/DocBook/media-entities.tmpl
-+++ b/Documentation/DocBook/media-entities.tmpl
-@@ -373,9 +373,9 @@
- <!ENTITY sub-media-indices SYSTEM "media-indices.tmpl">
- 
- <!ENTITY sub-media-controller SYSTEM "v4l/media-controller.xml">
--<!ENTITY sub-media-open SYSTEM "v4l/media-func-open.xml">
--<!ENTITY sub-media-close SYSTEM "v4l/media-func-close.xml">
--<!ENTITY sub-media-ioctl SYSTEM "v4l/media-func-ioctl.xml">
-+<!ENTITY sub-media-func-open SYSTEM "v4l/media-func-open.xml">
-+<!ENTITY sub-media-func-close SYSTEM "v4l/media-func-close.xml">
-+<!ENTITY sub-media-func-ioctl SYSTEM "v4l/media-func-ioctl.xml">
- <!ENTITY sub-media-ioc-device-info SYSTEM "v4l/media-ioc-device-info.xml">
- <!ENTITY sub-media-ioc-enum-entities SYSTEM "v4l/media-ioc-enum-entities.xml">
- <!ENTITY sub-media-ioc-enum-links SYSTEM "v4l/media-ioc-enum-links.xml">
-diff --git a/Documentation/DocBook/v4l/media-controller.xml b/Documentation/DocBook/v4l/media-controller.xml
-index 2dc25e1..873ac3a 100644
---- a/Documentation/DocBook/v4l/media-controller.xml
-+++ b/Documentation/DocBook/v4l/media-controller.xml
-@@ -78,9 +78,9 @@
- <appendix id="media-user-func">
-   <title>Function Reference</title>
-   <!-- Keep this alphabetically sorted. -->
--  &sub-media-open;
--  &sub-media-close;
--  &sub-media-ioctl;
-+  &sub-media-func-open;
-+  &sub-media-func-close;
-+  &sub-media-func-ioctl;
-   <!-- All ioctls go here. -->
-   &sub-media-ioc-device-info;
-   &sub-media-ioc-enum-entities;
--- 
-1.7.1
+Any comments are welcome!
 
+This patch series contains:
+[PATCH 1/4] media: MFC: Remove usused variables & compile warnings
+[PATCH 2/4] v4l2: Apply control events patch series
+[PATCH 3/4] v4l2-ctrls: add support for per-buffer control
+[PATCH 4/4] media: MFC: Add support control framework in decoder
 
+Best regards,
+Jeongtae Park
