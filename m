@@ -1,50 +1,62 @@
 Return-path: <mchehab@pedra>
-Received: from smtp-vbr18.xs4all.nl ([194.109.24.38]:3974 "EHLO
-	smtp-vbr18.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753396Ab1E0UFC (ORCPT
+Received: from devils.ext.ti.com ([198.47.26.153]:34343 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755948Ab1EXOBs (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 27 May 2011 16:05:02 -0400
-Received: from basedrum.localnet (ereprijs.demon.nl [83.161.20.106])
-	by smtp-vbr18.xs4all.nl (8.13.8/8.13.8) with ESMTP id p4RJw551001879
-	for <linux-media@vger.kernel.org>; Fri, 27 May 2011 21:58:05 +0200 (CEST)
-	(envelope-from willem@ereprijs.demon.nl)
-To: linux-media@vger.kernel.org
-Subject: Terratec Cinergy C HD - CAM support.... Need help?
-From: Willem van Asperen <willem@ereprijs.demon.nl>
-Date: Fri, 27 May 2011 21:58:05 +0200
+	Tue, 24 May 2011 10:01:48 -0400
+Received: from dbdp20.itg.ti.com ([172.24.170.38])
+	by devils.ext.ti.com (8.13.7/8.13.7) with ESMTP id p4OE1iKv010238
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-media@vger.kernel.org>; Tue, 24 May 2011 09:01:46 -0500
+From: Manjunath Hadli <manjunath.hadli@ti.com>
+To: LMML <linux-media@vger.kernel.org>
+CC: dlos <davinci-linux-open-source@linux.davincidsp.com>,
+	Manjunath Hadli <manjunath.hadli@ti.com>
+Subject: [PATCH v18 0/6] davinci vpbe: dm6446 v4l2 driver
+Date: Tue, 24 May 2011 19:31:39 +0530
+Message-ID: <1306245699-3236-1-git-send-email-manjunath.hadli@ti.com>
 MIME-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201105272158.05217.willem@ereprijs.demon.nl>
+Content-Type: text/plain
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Hi All,
+Fixed Sergei's comments for Kconfig dm644x dependencies
+Fixed Sekhar'c comment on indentation
 
-I need something but willing to help out!
+Manjunath Hadli (6):
+  davinci vpbe: V4L2 display driver for DM644X SoC
+  davinci vpbe: VPBE display driver
+  davinci vpbe: OSD(On Screen Display) block
+  davinci vpbe: VENC( Video Encoder) implementation
+  davinci vpbe: Build infrastructure for VPBE driver
+  davinci vpbe: Readme text for Dm6446 vpbe
 
-I just got my Terratec Cinergy C HD card. After relatively minor issues I got 
-the card running on my Mandriva 2010.2 (kernel 2.6.33) myth box.
+ Documentation/video4linux/README.davinci-vpbe |   93 ++
+ drivers/media/video/davinci/Kconfig           |   23 +
+ drivers/media/video/davinci/Makefile          |    2 +
+ drivers/media/video/davinci/vpbe.c            |  864 ++++++++++++
+ drivers/media/video/davinci/vpbe_display.c    | 1860 +++++++++++++++++++++++++
+ drivers/media/video/davinci/vpbe_osd.c        | 1231 ++++++++++++++++
+ drivers/media/video/davinci/vpbe_osd_regs.h   |  364 +++++
+ drivers/media/video/davinci/vpbe_venc.c       |  566 ++++++++
+ drivers/media/video/davinci/vpbe_venc_regs.h  |  177 +++
+ include/media/davinci/vpbe.h                  |  184 +++
+ include/media/davinci/vpbe_display.h          |  147 ++
+ include/media/davinci/vpbe_osd.h              |  394 ++++++
+ include/media/davinci/vpbe_types.h            |   91 ++
+ include/media/davinci/vpbe_venc.h             |   45 +
+ 14 files changed, 6041 insertions(+), 0 deletions(-)
+ create mode 100644 Documentation/video4linux/README.davinci-vpbe
+ create mode 100644 drivers/media/video/davinci/vpbe.c
+ create mode 100644 drivers/media/video/davinci/vpbe_display.c
+ create mode 100644 drivers/media/video/davinci/vpbe_osd.c
+ create mode 100644 drivers/media/video/davinci/vpbe_osd_regs.h
+ create mode 100644 drivers/media/video/davinci/vpbe_venc.c
+ create mode 100644 drivers/media/video/davinci/vpbe_venc_regs.h
+ delete mode 100644 drivers/staging/vme/bridges/Module.symvers
+ create mode 100644 include/media/davinci/vpbe.h
+ create mode 100644 include/media/davinci/vpbe_display.h
+ create mode 100644 include/media/davinci/vpbe_osd.h
+ create mode 100644 include/media/davinci/vpbe_types.h
+ create mode 100644 include/media/davinci/vpbe_venc.h
 
-But... I am getting my DVB-C signal from the Ziggo (former Casema) network. I 
-found a post that claims that all channels are encrypted (except for Nederland 
-1). Even though these are the standard channels that you also get when you 
-just have an analog subscription.
-
-So. I need CAM support. After a couple of nights swimming the net I come to 
-the conclusion that
-
-a) CAM support is currently not implemented
-b) This support has been not implemented for quite some time
-c) There are more people that would like it to work...
-
-So, dear people, is anyone working on getting the CAM to work on the Terratec 
-Cinergy C HD card, but having problems? Is there any way, shape or form that I 
-can assist in getting this support done?
-
-Or have we given up on this card and should I just take my loss and go for 
-another card... If so, which one?
-
-Thanks,
-Willem
