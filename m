@@ -1,75 +1,63 @@
-Return-path: <mchehab@gaivota>
-Received: from smtp.nokia.com ([147.243.1.47]:19307 "EHLO mgw-sa01.nokia.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1758072Ab1EMW6b (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 13 May 2011 18:58:31 -0400
-Message-ID: <4DCDB846.1010204@iki.fi>
-Date: Sat, 14 May 2011 02:01:26 +0300
-From: Sakari Ailus <sakari.ailus@iki.fi>
+Return-path: <mchehab@pedra>
+Received: from relay4-d.mail.gandi.net ([217.70.183.196]:35841 "EHLO
+	relay4-d.mail.gandi.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753944Ab1EXRrH (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 24 May 2011 13:47:07 -0400
+From: =?iso-8859-1?Q?S=E9bastien_RAILLARD_=28COEXSI=29?= <sr@coexsi.fr>
+To: "'Guy Martin'" <gmsoft@tuxicoman.be>, <abraham.manu@gmail.com>
+Cc: <linux-media@vger.kernel.org>
+References: <20110524181817.34097929@borg.bxl.tuxicoman.be>
+In-Reply-To: <20110524181817.34097929@borg.bxl.tuxicoman.be>
+Subject: RE: STV6110 FE_READ_STATUS implementation
+Date: Tue, 24 May 2011 19:47:17 +0200
+Message-ID: <007101cc1a3a$a0a86e80$e1f94b80$@coexsi.fr>
 MIME-Version: 1.0
-To: "Aguirre, Sergio" <saaguirre@ti.com>
-CC: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	laurent.pinchart@ideasonboard.com,
-	Hans Verkuil <hansverk@cisco.com>, Rob Clark <rob@ti.com>
-Subject: Re: [ANNOUNCE] New OMAP4 V4L2 Camera Project started
-References: <BANLkTi=RVE0zk83K0hn89H3S6CKEmKSj2A@mail.gmail.com>
-In-Reply-To: <BANLkTi=RVE0zk83K0hn89H3S6CKEmKSj2A@mail.gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain;
+	charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
+Content-Language: fr
 List-ID: <linux-media.vger.kernel.org>
-Sender: Mauro Carvalho Chehab <mchehab@gaivota>
+Sender: <mchehab@pedra>
 
-Aguirre, Sergio wrote:
-> Hi all,
 
-Hi, Sergio!
 
-> Just to let you know that I've just officially registered for a new
-> project in the Pandaboard.org portal for OMAP4 v4l2 camera support.
+> -----Original Message-----
+> From: linux-media-owner@vger.kernel.org [mailto:linux-media-
+> owner@vger.kernel.org] On Behalf Of Guy Martin
+> Sent: mardi 24 mai 2011 18:18
+> To: abraham.manu@gmail.com
+> Cc: linux-media@vger.kernel.org
+> Subject: STV6110 FE_READ_STATUS implementation
 > 
-> You can find it here:
 > 
-> http://omiio.org/content/omap4-v4l2-camera
+> Hi Manu,
 > 
-> And also, you can find the actual Gitorious project with the code here:
+> I'm currently writing an application that needs to know the detailed
+> frontend status when there is no lock.
+> As far as I can see from the sources, the code will only set the right
+> status when there is a lock in stv6110x_get_status().
 > 
-> https://www.gitorious.org/omap4-v4l2-camera
+> Does the STV6110 supports reporting of signal, carrier, viterbi and sync
+> ?
 > 
-> If anyone is interested in contributing for this project, please let
-> me know, so I can add you as a contributor to the project.
 
-I'm very, very happy to see a project to start implementing V4L2 support
-for the OMAP 4 ISS!! Thanks, Sergio!
+I've done some tests with the CineS2, that is using the STV6110A as the
+tuner and the STV0903 as the demodulator.
 
-A few comments:
+The values you are searching for don't come from the tuner, but the
+demodulator.
 
-
-- The driver is using videobuf. I wonder if the driver would benefit
-more from videobuf2.
+In my case, the STV0903 is reporting the five following states : SCVYL.
 
 
-- As far as I understand, the OMAP 4 ISS is partially similar to the
-OMAP 3 one in design --- it has a hardware pipeline, that is. Fitting
-the bus receivers and the ISP under an Media controller graph looks
-relatively straightforward. The same might apply to SIMCOP, but then the
-question is: what kind of interface should the SIMCOP have?
+> I'd be happy to implement that if it does but I wasn't able to find the
+> datasheet. Do you have that available ?
+> 
+> Regards,
+>   Guy
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media"
+> in the body of a message to majordomo@vger.kernel.org More majordomo
+> info at  http://vger.kernel.org/majordomo-info.html
 
-Being familiar with the history of the OMAP 3 ISP driver, I know this is
-not a small project. Still, starting to use the Media controller in an
-early phase would benefit the project in long run since the conversion
-can be avoided later.
-
-
-Which parts of the ISS require regular attention from the M3s? Is it the
-whole ISS or just the SIMCOP, for example?
-
-Kind regards,
-Sakari Ailus
-
-Ps. I have nothing against SoC camera, but when I look at the ISS
-overview diagram (section 8.1 in my TRM) I can't avoid thinking that
-this is exactly what the Media controller was created for. :-)
-
--- 
-Sakari Ailus
-sakari.ailus@iki.fi
