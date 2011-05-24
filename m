@@ -1,52 +1,86 @@
 Return-path: <mchehab@pedra>
-Received: from mailfe05.c2i.net ([212.247.154.130]:57349 "EHLO swip.net"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1756209Ab1EZIIO convert rfc822-to-8bit (ORCPT
+Received: from mail-ey0-f174.google.com ([209.85.215.174]:61535 "EHLO
+	mail-ey0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753233Ab1EXO5Y (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 26 May 2011 04:08:14 -0400
-Received: from [188.126.198.129] (account mc467741@c2i.net HELO laptop002.hselasky.homeunix.org)
-  by mailfe05.swip.net (CommuniGate Pro SMTP 5.2.19)
-  with ESMTPA id 130332182 for linux-media@vger.kernel.org; Thu, 26 May 2011 10:08:12 +0200
-From: Hans Petter Selasky <hselasky@c2i.net>
-To: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Subject: [PATCH v2] Correct and add some parameter descriptions.
-Date: Thu, 26 May 2011 10:06:57 +0200
+	Tue, 24 May 2011 10:57:24 -0400
+Received: by eyx24 with SMTP id 24so2204713eyx.19
+        for <linux-media@vger.kernel.org>; Tue, 24 May 2011 07:57:22 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: text/plain;
-  charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Message-Id: <201105261006.57202.hselasky@c2i.net>
+In-Reply-To: <201105240850.35032.hverkuil@xs4all.nl>
+References: <4DDAC0C2.7090508@redhat.com>
+	<201105240850.35032.hverkuil@xs4all.nl>
+Date: Tue, 24 May 2011 10:57:22 -0400
+Message-ID: <BANLkTikFROSj8LBeCs=Ep1R-HFEEFGOYZw@mail.gmail.com>
+Subject: Re: [ANNOUNCE] experimental alsa stream support at xawtv3
+From: Devin Heitmueller <dheitmueller@kernellabs.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=ISO-8859-1
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
->From 70d02ce19f64fae4ceee563501e8462a76e17b91 Mon Sep 17 00:00:00 2001
-From: Hans Petter Selasky <hselasky@c2i.net>
-Date: Thu, 26 May 2011 10:06:09 +0200
-Subject: [PATCH] Correct and add some parameter descriptions.
+On Tue, May 24, 2011 at 2:50 AM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
+> On Monday, May 23, 2011 22:17:06 Mauro Carvalho Chehab wrote:
+>> Due to the alsa detection code that I've added at libv4l2util (at v4l2-utils)
+>> during the weekend, I decided to add alsa support also on xawtv3, basically
+>> to provide a real usecase example. Of course, for it to work, it needs the
+>> very latest v4l2-utils version from the git tree.
+>
+> Please, please add at the very least some very big disclaimer in libv4l2util
+> that the API/ABI is likely to change. As mentioned earlier, this library is
+> undocumented, has not gone through any peer-review, and I am very unhappy with
+> it and with the decision (without discussion it seems) to install it.
+>
+> Once you install it on systems it becomes much harder to change.
 
-Signed-off-by: Hans Petter Selasky <hselasky@c2i.net>
----
- drivers/media/video/tda7432.c |    5 +++--
- 1 files changed, 3 insertions(+), 2 deletions(-)
+I share Hans' concern on this.  This is an API that seems pretty
+immature, and I worry that it's adoption will cause lots of problems
+as people expect it to work with a wide variety of tuners.
 
-diff --git a/drivers/media/video/tda7432.c b/drivers/media/video/tda7432.c
-index 3941f95..bd21854 100644
---- a/drivers/media/video/tda7432.c
-+++ b/drivers/media/video/tda7432.c
-@@ -49,10 +49,11 @@ static int maxvol;
- static int loudness; /* disable loudness by default */
- static int debug;	 /* insmod parameter */
- module_param(debug, int, S_IRUGO | S_IWUSR);
-+MODULE_PARM_DESC(debug, "Set debugging level from 0 to 3. Default is off(0).");
- module_param(loudness, int, S_IRUGO);
--MODULE_PARM_DESC(maxvol,"Set maximium volume to +20db (0), default is 0db(1)");
-+MODULE_PARM_DESC(loudness, "Turn loudness on(1) else off(0). Default is off(0).");
- module_param(maxvol, int, S_IRUGO | S_IWUSR);
--
-+MODULE_PARM_DESC(maxvol, "Set maximium volume to +20dB(0) else +0dB(1). Default is +20dB(0).");
- 
- 
- /* Structure of address and subaddresses for the tda7432 */
+For example, how does the sysfs approach handle PCI boards that have
+multiple video and audio devices?  The sysfs layout will effectively
+be:
+
+PCI DEVICE
+-> video0
+-> video1
+-> alsa hw:1,0
+-> alsa hw:1,1
+
+The approach taken in this library will probably help with the simple
+cases such as a USB tuner that only has a single video device, audio
+device, and VBI device.  But it's going to fall flat on its face when
+it comes to devices that have multiple capture sources (since sysfs
+will represent this as a tree with all the nodes on the same level).
+
+Oh, and how is it expected to handle informing the application about
+device contention between DVB and V4L?  Some devices share the tuner
+and therefore you cannot use both the V4L and DVB device at the same
+time.  Other products have two independent input paths on the same
+board, allowing both to be used simultaneously (the HVR-1600 is a
+popular example of this).  Sysfs isn't going to tell you this
+information, which is why in the MC API we explicitly added the notion
+of device groups (so the driver author can explicitly state the
+relationships).
+
+Today MythTV users accomplish this by manually specifying "Input
+Groups".  I say that's what they do, but in reality they don't realize
+that they need to configure MythTV this way until they complain that
+MythTV recordings fail when trying to record programs on both inputs,
+at which point an advanced user points it out to them.  End users
+shouldn't have to understand the internal architecture of their
+capture card just to avoid weird crashy behavior (which is what often
+happens if you try to use both devices simultaneously since almost no
+hybrid drivers do proper locking).
+
+I am in favor of this finally getting some attention, but the reality
+is that sysfs isn't going to cut it.  It just doesn't expose enough
+information about the underlying hardware layout.
+
+Devin
+
 -- 
-1.7.1.1
-
+Devin J. Heitmueller - Kernel Labs
+http://www.kernellabs.com
