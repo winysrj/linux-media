@@ -1,74 +1,74 @@
 Return-path: <mchehab@pedra>
-Received: from mailout3.samsung.com ([203.254.224.33]:44632 "EHLO
-	mailout3.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751037Ab1EaGiZ (ORCPT
+Received: from relay4-d.mail.gandi.net ([217.70.183.196]:34787 "EHLO
+	relay4-d.mail.gandi.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755633Ab1EXTFZ convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 31 May 2011 02:38:25 -0400
-MIME-version: 1.0
-Content-transfer-encoding: 8BIT
-Content-type: text/plain; charset=UTF-8
-Received: from epcpsbgm2.samsung.com (mailout3.samsung.com [203.254.224.33])
- by mailout3.samsung.com
- (Oracle Communications Messaging Exchange Server 7u4-19.01 64bit (built Sep  7
- 2010)) with ESMTP id <0LM100DQVRQ374L0@mailout3.samsung.com> for
- linux-media@vger.kernel.org; Tue, 31 May 2011 15:38:23 +0900 (KST)
-Received: from TNRNDGASPAPP1.tn.corp.samsungelectronics.net ([165.213.149.150])
- by mmp2.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14 2004))
- with ESMTPA id <0LM100LHSRRZ5L@mmp2.samsung.com> for
- linux-media@vger.kernel.org; Tue, 31 May 2011 15:38:23 +0900 (KST)
-Date: Tue, 31 May 2011 15:38:26 +0900
-From: "Kim, HeungJun" <riverful.kim@samsung.com>
-Subject: Re: v4l2 device property framework in userspace
-In-reply-to: <4DE38872.9090501@section5.ch>
-To: Martin Strubel <hackfin@section5.ch>
-Cc: Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org
-Reply-to: riverful.kim@samsung.com
-Message-id: <4DE48CE2.4010401@samsung.com>
-References: <4DE244F4.90203@section5.ch>
- <201105300932.59570.hverkuil@xs4all.nl> <4DE365A8.9050508@section5.ch>
- <322765c00a668d7915214de27d3debe7.squirrel@webmail.xs4all.nl>
- <4DE38872.9090501@section5.ch>
+	Tue, 24 May 2011 15:05:25 -0400
+From: =?utf-8?Q?S=C3=A9bastien_RAILLARD_=28COEXSI=29?= <sr@coexsi.fr>
+To: "'Guy Martin'" <gmsoft@tuxicoman.be>
+Cc: <abraham.manu@gmail.com>, <linux-media@vger.kernel.org>
+References: <20110524181817.34097929@borg.bxl.tuxicoman.be>	<007101cc1a3a$a0a86e80$e1f94b80$@coexsi.fr> <20110524204514.4fc6774c@zombie>
+In-Reply-To: <20110524204514.4fc6774c@zombie>
+Subject: RE: STV090x FE_READ_STATUS implementation
+Date: Tue, 24 May 2011 21:05:33 +0200
+Message-ID: <007201cc1a45$90ed05e0$b2c711a0$@coexsi.fr>
+MIME-Version: 1.0
+Content-Type: text/plain;
+	charset="utf-8"
+Content-Transfer-Encoding: 8BIT
+Content-Language: fr
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Hi Martin,
 
-I'm not an expert of V4L2 and this camera sensor, too.
-But, if you don't mind, I want to leave some comments about the registers,
-and I hope that it helps you.
 
-2011-05-30 오후 9:07, Martin Strubel 쓴 글:
-> Hi Hans,
+> -----Original Message-----
+> From: linux-media-owner@vger.kernel.org [mailto:linux-media-
+> owner@vger.kernel.org] On Behalf Of Guy Martin
+> Sent: mardi 24 mai 2011 20:45
+> To: Sébastien RAILLARD (COEXSI)
+> Cc: abraham.manu@gmail.com; linux-media@vger.kernel.org
+> Subject: Re: STV090x FE_READ_STATUS implementation
 > 
->>
->> Can you give examples of the sort of things that are in those registers?
->> Is that XML file available somewhere? Are there public datasheets?
->>
+> On Tue, 24 May 2011 19:47:17 +0200
+> Sébastien RAILLARD (COEXSI) <sr@coexsi.fr> wrote:
 > 
-> If you mean the sensor datasheets, many of them are buried behind NDAs,
-> but people are writing opensourced headers too...let's leave this to the
-> lawyers.
+> > > Does the STV6110 supports reporting of signal, carrier, viterbi and
+> > > sync ?
+> > >
+> >
+> > I've done some tests with the CineS2, that is using the STV6110A as
+> > the tuner and the STV0903 as the demodulator.
+> >
+> > The values you are searching for don't come from the tuner, but the
+> > demodulator.
+> >
+> > In my case, the STV0903 is reporting the five following states :
+> > SCVYL.
+> >
 > 
-> Here's an example: http://section5.ch/downloads/mt9d111.xml
-> The XSLT sheets to generate code from it are found in the netpp
-> distribution, see http://www.section5.ch/netpp. You might have to read
-> some of the documentation to get to the actual clues.
-As you said, obviously this camera has a lot of registers.
-But, IMHO, even it can be expressed by one subdev driver like any other ones.
-Almost registers can be absorbed and adapted at the start(or booting) time.
-And the most others also can be defined at the current V4L2 APIs.
-(like controls, croppings, buffers, powers, etc)
+> Indeed, after some more troubleshooting, I found out that the problem is
+> not in the STV6110 but in the STV090X code. The card I'm using is a TT
+> S2-1600.
+> 
+> The function stv090x_read_status() only reports the status when locked.
+> 
+> I couldn't find the datasheet either for this one. Manu is the
+> maintainer as well. Maybe he has more input on this.
+> 
 
-The matter is to find which factor can vary, when the camera setting is varied
-by the board as you said. And in just my short thinking, this is not much to
-catch. If there are such things, not expressed using current V4L2 APIs, but
-needed for your works or your board, you can submit this APIs to ML.
+Strange, as it must be the same demodulator and code as for the CineS2!
 
-The best thing is, you collect such things(it can be express current V4L2 APIs),
-and submit new V4L2 APIs, because there are many other people handling camera
-driver like you, and they can think similary like you.
-For sure, they can welcome to birth new APIs.
+Not easy to get the datasheets from ST, they have never replied to my enquiries...
 
+> In the meantime, I'll give a closer look at the code see if I can figure
+> out a way to fix that.
+> 
+> 
+> Thanks,
+>   Guy
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media"
+> in the body of a message to majordomo@vger.kernel.org More majordomo
+> info at  http://vger.kernel.org/majordomo-info.html
 
-Cheers,
-Heungjun Kim
