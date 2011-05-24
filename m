@@ -1,150 +1,177 @@
 Return-path: <mchehab@pedra>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:40741 "EHLO
+Received: from perceval.ideasonboard.com ([95.142.166.194]:34528 "EHLO
 	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755545Ab1EROXq (ORCPT
+	with ESMTP id S1753763Ab1EXIjo (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 18 May 2011 10:23:46 -0400
+	Tue, 24 May 2011 04:39:44 -0400
 From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 To: javier Martin <javier.martin@vista-silicon.com>
-Subject: Re: [PATCH 1/2] mt9p031: Add mt9p031 sensor driver.
-Date: Wed, 18 May 2011 16:23:45 +0200
-Cc: linux-media@vger.kernel.org, g.liakhovetski@gmx.de,
+Subject: Re: [PATCH v2 1/2] MT9P031: Add support for Aptina mt9p031 sensor.
+Date: Tue, 24 May 2011 10:39:58 +0200
+Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
 	carlighting@yahoo.co.nz, beagleboard@googlegroups.com,
 	linux-arm-kernel@lists.infradead.org
-References: <1305624528-5595-1-git-send-email-javier.martin@vista-silicon.com> <201105171334.01607.laurent.pinchart@ideasonboard.com> <BANLkTinArWj1VsX8_N7Knjyzw8NymQNYkQ@mail.gmail.com>
-In-Reply-To: <BANLkTinArWj1VsX8_N7Knjyzw8NymQNYkQ@mail.gmail.com>
+References: <1305899272-31839-1-git-send-email-javier.martin@vista-silicon.com> <201105231103.26775.laurent.pinchart@ideasonboard.com> <BANLkTinKgj-HmKwAWN-e6+8kj6ZRC4WJgg@mail.gmail.com>
+In-Reply-To: <BANLkTinKgj-HmKwAWN-e6+8kj6ZRC4WJgg@mail.gmail.com>
 MIME-Version: 1.0
 Content-Type: Text/Plain;
   charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
-Message-Id: <201105181623.46364.laurent.pinchart@ideasonboard.com>
+Message-Id: <201105241039.58428.laurent.pinchart@ideasonboard.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
 Hi Javier,
 
-On Wednesday 18 May 2011 11:10:03 javier Martin wrote:
-> Hi Laurent,
-> I've already fixed almost every issue you pointed out.
-> However, I still have got some doubts that I hope you can clarify.
-> 
-> On 17 May 2011 13:33, Laurent Pinchart wrote:
-> > On Tuesday 17 May 2011 11:28:47 Javier Martin wrote:
-> >> It has been tested in beagleboard xM, using LI-5M03 module.
-> >> 
-> >> Signed-off-by: Javier Martin <javier.martin@vista-silicon.com>
-> >> 
-> >> +
-> >> +static int mt9p031_power_on(struct mt9p031 *mt9p031)
-> >> +{
-> >> +     int ret;
-> >> +
-> >> +     if (mt9p031->pdata->set_xclk)
-> >> +             mt9p031->pdata->set_xclk(&mt9p031->subdev, 54000000);
-> >> +     /* turn on VDD_IO */
-> >> +     ret = regulator_enable(mt9p031->reg_2v8);
-> >> +     if (ret) {
-> >> +             pr_err("Failed to enable 2.8v regulator: %d\n", ret);
-> >> +             return -1;
-> >> +     }
-> >
-> >I would enable the regulator first. As a general rule, chips should be
-> >powered up before their I/Os are actively driven.
-> >
-> >You need to restore registers here, otherwise all controls set by the user
-> >will not be applied to the device.
-> 
-> It's my mistake. This driver uses two regulators: 1,8 and 2,8 V
-> respectively. 2,8V regulator powers analog part and I/O whereas 1,8V
-> one powers the core. What I failed to do was keeping 1,8V regulator
-> always powered on, so that register configuration was not lost, and
-> power 2,8V regulator on and off as needed since it does not affect
-> register values. However, I messed it all up.
-> 
-> Ideally I would have to power 1,8V regulator on and off too. However,
-> as you wisely pointed out, registers should be restored in that case.
-> How am I supposed to keep track of register values? Are there any
-> helper functions I can use for that purpose or must I create a custom
-> register cache? Do you know any driver that uses this technique?
-
-You can either keep track of register contents manually, or use the control 
-framework to restore the value of all controls by calling 
-v4l2_ctrl_handler_setup(). That's what the mt9v032 driver does in its power on 
-handler. You might have to restore a couple of registers manually if they're 
-not handled through controls.
-
+On Tuesday 24 May 2011 10:31:46 javier Martin wrote:
+> On 23 May 2011 11:03, Laurent Pinchart wrote:
+> > On Saturday 21 May 2011 17:29:18 Guennadi Liakhovetski wrote:
+> >> On Fri, 20 May 2011, Javier Martin wrote:
 > > [snip]
 > > 
-> >> +static int mt9p031_set_params(struct i2c_client *client,
-> >> +                           struct v4l2_rect *rect, u16 xskip, u16
-> >> yskip)
+> >> > diff --git a/drivers/media/video/mt9p031.c
+> >> > b/drivers/media/video/mt9p031.c new file mode 100644
+> >> > index 0000000..e406b64
+> >> > --- /dev/null
+> >> > +++ b/drivers/media/video/mt9p031.c
 > > 
-> > set_params should apply the parameters, not change them. They should have
-> > already been validated by the callers.
-> 
-> "mt9p031_set_params()" function is used by "mt9p031_set_crop()" and
-> "mt9p031_set_format()", as you have correctly stated, these functions
-> shouldn' apply parameters but only change them.
-> I've checked mt9v032 driver and it is as you said. The question is,
-> where should these parameters get applied then?
-
-The mt9v032 driver applies those parameters at stream on time. The downside is 
-that it doesn't support resolution or crop changes at runtime. While changing 
-resolution at runtime might not make much sense in most cases, changing the 
-crop rectangle (providing its size stays the same) is a useful feature.
-
-You can handle resolution changes at runtime, or you can choose to only set 
-the resolution at stream on time. In both cases, the mt9p031_set_params() 
-function should only apply parameters to the device, not change their value on 
-the driver side. That was the purpose of my original comment.
-
-> >> +static int mt9p031_registered(struct v4l2_subdev *sd)
-> >> +{
-> >> +     struct mt9p031 *mt9p031;
-> >> +     mt9p031 = container_of(sd, struct mt9p031, subdev);
-> >> +
-> >> +     mt9p031_power_off(mt9p031);
+> > [snip]
 > > 
-> > What's that for ?
+> >> > +}
+> >> > +
+> >> > +static int mt9p031_power_on(struct mt9p031 *mt9p031)
+> >> > +{
+> >> > +   int ret;
+> >> > +
+> >> > +   /* turn on VDD_IO */
+> >> > +   ret = regulator_enable(mt9p031->reg_2v8);
+> >> > +   if (ret) {
+> >> > +           pr_err("Failed to enable 2.8v regulator: %d\n", ret);
+> >> 
+> >> dev_err()
+> >> 
+> >> > +           return ret;
+> >> > +   }
+> >> > +   if (mt9p031->pdata->set_xclk)
+> >> > +           mt9p031->pdata->set_xclk(&mt9p031->subdev, 54000000);
 > > 
-> >> +     return 0;
-> >> +}
-> 
-> Since "mt9p031_power_off()" and "mt9p031_power_on()" functions
-> disable/enable the 2,8V regulator which powers I/O, it must be powered
-> on during probe and after registering, it can be safely powered off.
-
-Can't you just power it off at the end of your probe function, instead of 
-doing it here ?
-
-> > You have a set_xclk callback to board code, so I assume the chip can be
-> > driven by one of the OMAP3 ISP XCLK signals. To call back to the OMAP3
-> > ISP from board code, you need to get hold of the OMAP3 ISP device
-> > pointer. Your next patch exports omap3isp_device, but I'm not sure
-> > that's the way to go. One option is
+> > Can you make 54000000 a #define at the beginning of the file ?
 > > 
-> > struct isp_device *isp = v4l2_dev_to_isp_device(subdev->v4l2_dev);
-> > 
-> > but that requires the subdev to be registered before the function can be
-> > called. In that case you would need to move the probe code to the
-> > registered subdev internal function.
+> > You should soft-reset the chip here by calling mt9p031_reset().
 > 
-> Yes, I tried using that function but it didn't work because subdev
-> hadn't been registeret yet.
-> 
-> > A clean solution is needed in the long run, preferably not involving
-> > board code at all. It would be nice if the OMAP3 ISP driver could export
-> > XCLKA/XCLKB as generic clock objects.
-> 
-> So, what should I do in order to submit the driver to mainline?
-> Do you want me to move the probe code to registered callback?
+> If I do this, I would be force to cache some registers and restart
+> them. I've tried to do this but I don't know what is failing that
+> there are some artifacts consisting on horizontal black lines in the
+> image.
 
-You should move the part that powers the device up and reads registers to the 
-registered callback. The board code should then use v4l2_dev_to_isp_device() 
-as showed above. This isn't a perfect solution, but at least it will be 
-consistent with other sensor drivers. When the OMAP3 ISP clocks will be 
-available through the clock framework, we will fix board code (and possibly 
-sensor drivers).
+You need to cache registers anyway, as the chip will be reset to default 
+values by the core power cycling. And as I'm writing those lines I realize 
+that you don't power cycle reg_1v8. This needs to be done to save power.
+
+> Please, let me push this to mainline without this feature as a first
+> step, since I'll have to spend some assigned to another project.
+
+Power handling is an important feature. I don't think the driver is ready 
+without it. 
+
+> [snip]
+> 
+> >> > + */
+> >> > +static int mt9p031_video_probe(struct i2c_client *client)
+> >> > +{
+> >> > +   s32 data;
+> >> > +   int ret;
+> >> > +
+> >> > +   /* Read out the chip version register */
+> >> > +   data = reg_read(client, MT9P031_CHIP_VERSION);
+> >> > +   if (data != MT9P031_CHIP_VERSION_VALUE) {
+> >> > +           dev_err(&client->dev,
+> >> > +                   "No MT9P031 chip detected, register read %x\n",
+> >> > data); +           return -ENODEV;
+> >> > +   }
+> >> > +
+> >> > +   dev_info(&client->dev, "Detected a MT9P031 chip ID %x\n", data);
+> >> > +
+> >> > +   ret = mt9p031_reset(client);
+> >> > +   if (ret < 0)
+> >> > +           dev_err(&client->dev, "Failed to initialise the
+> >> > camera\n");
+> > 
+> > If you move the soft-reset operation to mt9p031_power_on(), you don't
+> > need to call it here.
+> 
+> The reason for this is the same as before. I haven't still been able
+> to success on restarting registers and getting everything to work
+> fine.
+> It would be great if you allowed me to push this as it is as an
+> intermediate step.
+
+Sorry, but I'd like to see power management properly implemented before the 
+driver hits mainline. Other less important features (such as exposure/gain 
+controls for instance) can be missing, but proper power management is 
+important.
+
+> [snip]
+> 
+> >> > +   mt9p031->rect.width     = MT9P031_MAX_WIDTH;
+> >> > +   mt9p031->rect.height    = MT9P031_MAX_HEIGHT;
+> >> > +
+> >> > +   mt9p031->format.code = V4L2_MBUS_FMT_SGRBG12_1X12;
+> >> > +
+> >> > +   mt9p031->format.width = MT9P031_MAX_WIDTH;
+> >> > +   mt9p031->format.height = MT9P031_MAX_HEIGHT;
+> >> > +   mt9p031->format.field = V4L2_FIELD_NONE;
+> >> > +   mt9p031->format.colorspace = V4L2_COLORSPACE_SRGB;
+> >> > +
+> >> > +   mt9p031->xskip = 1;
+> >> > +   mt9p031->yskip = 1;
+> >> > +
+> >> > +   mt9p031->reg_1v8 = regulator_get(NULL, "cam_1v8");
+> >> > +   if (IS_ERR(mt9p031->reg_1v8)) {
+> >> > +           ret = PTR_ERR(mt9p031->reg_1v8);
+> >> > +           pr_err("Failed 1.8v regulator: %d\n", ret);
+> >> 
+> >> dev_err()
+> >> 
+> >> > +           goto e1v8;
+> >> > +   }
+> > 
+> > The driver can be used with boards where either or both of the 1.8V and
+> > 2.8V supplies are always on, thus not connected to any regulator. I'm
+> > not sure how that's usually handled, if board code should define an
+> > "always-on" power supply, or if the driver shouldn't fail when no
+> > regulator is present. In any case, this must be handled.
+> 
+> I think board code should define an "always-on" power supply.
+
+Fine with me. How is that done BTW ?
+
+> >> > +
+> >> > +   mt9p031->reg_2v8 = regulator_get(NULL, "cam_2v8");
+> >> > +   if (IS_ERR(mt9p031->reg_2v8)) {
+> >> > +           ret = PTR_ERR(mt9p031->reg_2v8);
+> >> > +           pr_err("Failed 2.8v regulator: %d\n", ret);
+> >> 
+> >> ditto
+> >> 
+> >> > +           goto e2v8;
+> >> > +   }
+> >> > +   /* turn on core */
+> >> > +   ret = regulator_enable(mt9p031->reg_1v8);
+> >> > +   if (ret) {
+> >> > +           pr_err("Failed to enable 1.8v regulator: %d\n", ret);
+> >> 
+> >> ditto
+> >> 
+> >> > +           goto e1v8en;
+> >> > +   }
+> >> > +   return 0;
+> > 
+> > Why do you leave core power on at the end of probe() ? You should only
+> > turn it on when needed.
+> 
+> Just as I said, because restarting registers does not work yet.
 
 -- 
 Regards,
