@@ -1,42 +1,47 @@
 Return-path: <mchehab@pedra>
-Received: from mail-wy0-f174.google.com ([74.125.82.174]:37981 "EHLO
-	mail-wy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753741Ab1EaHwK (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 31 May 2011 03:52:10 -0400
-Received: by wya21 with SMTP id 21so3085752wya.19
-        for <linux-media@vger.kernel.org>; Tue, 31 May 2011 00:52:09 -0700 (PDT)
-Subject: Re: [beagleboard] [PATCH v4 2/2] Add support for mt9p031 (LI-5M03 module) in Beagleboard xM.
-Mime-Version: 1.0 (Apple Message framework v1084)
-Content-Type: text/plain; charset=us-ascii
-From: Koen Kooi <koen@beagleboard.org>
-In-Reply-To: <1306744637-9051-2-git-send-email-javier.martin@vista-silicon.com>
-Date: Tue, 31 May 2011 09:52:05 +0200
-Cc: linux-media@vger.kernel.org, g.liakhovetski@gmx.de,
-	laurent.pinchart@ideasonboard.com, carlighting@yahoo.co.nz,
-	mch_kot@yahoo.com.cn,
-	Javier Martin <javier.martin@vista-silicon.com>
+Received: from mail.kapsi.fi ([217.30.184.167]:58279 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754255Ab1EYVno (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 25 May 2011 17:43:44 -0400
+Message-ID: <4DDD780C.30205@iki.fi>
+Date: Thu, 26 May 2011 00:43:40 +0300
+From: Antti Palosaari <crope@iki.fi>
+MIME-Version: 1.0
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+CC: linux-media@vger.kernel.org
+Subject: [GIT PULL FOR 2.6.40] Anysee
+References: <4DBAEFC5.8080707@iki.fi> <4DC178C8.4040603@redhat.com>
+In-Reply-To: <4DC178C8.4040603@redhat.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
-Message-Id: <8EFA38E5-E9C6-4C2E-A552-3E7D07DBC596@beagleboard.org>
-References: <1306744637-9051-1-git-send-email-javier.martin@vista-silicon.com> <1306744637-9051-2-git-send-email-javier.martin@vista-silicon.com>
-To: beagleboard@googlegroups.com
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
+Moikka Mauro,
 
-Op 30 mei 2011, om 10:37 heeft Javier Martin het volgende geschreven:
+Two new models and some fixes.
 
-> Since isp clocks have not been exposed yet, this patch
-> includes a temporal solution for testing mt9p031 driver
-> in Beagleboard xM.
 
-When compiling both as Y I get:
+The following changes since commit 87cf028f3aa1ed51fe29c36df548aa714dc7438f:
 
-[    4.231628] mt9p031 2-0048: Failed to reset the camera
-[    4.237030] omap3isp omap3isp: Failed to power on: -121
-[    4.242523] mt9p031 2-0048: Failed to power on device: -121
-[    4.248474] isp_register_subdev_group: Unable to register subdev mt9p031
+   [media] dm1105: GPIO handling added, I2C on GPIO added, LNB control 
+through GPIO reworked (2011-05-21 11:10:28 -0300)
 
-regards,
+are available in the git repository at:
+   git://linuxtv.org/anttip/media_tree.git anysee
 
-Koen
+Antti Palosaari (4):
+       anysee: return EOPNOTSUPP for unsupported I2C messages
+       anysee: add support for Anysee E7 PTC
+       anysee: add support for Anysee E7 PS2
+       anysee: style issues, comments, etc.
+
+  drivers/media/dvb/dvb-usb/anysee.c |   86 
+++++++++++++++++++++++++++----------
+  drivers/media/dvb/dvb-usb/anysee.h |   16 ++++---
+  2 files changed, 71 insertions(+), 31 deletions(-)
+
+
+t. Antti
+-- 
+http://palosaari.fi/
