@@ -1,126 +1,51 @@
 Return-path: <mchehab@pedra>
-Received: from connie.slackware.com ([64.57.102.36]:60372 "EHLO
-	connie.slackware.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752830Ab1ECCtV (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 2 May 2011 22:49:21 -0400
-Date: Mon, 2 May 2011 19:48:58 -0700 (PDT)
-From: Robby Workman <rworkman@slackware.com>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-cc: Andreas Oberritter <obi@linuxtv.org>, linux-media@vger.kernel.org,
-	Patrick Volkerding <volkerdi@slackware.com>,
-	Hans De Goede <hdegoede@redhat.com>,
-	linux-hotplug@vger.kernel.org
-Subject: Re: [PATCHES] Misc. trivial fixes
-In-Reply-To: <4DBF126D.6060807@redhat.com>
-Message-ID: <alpine.LNX.2.00.1105021926220.25339@connie.slackware.com>
-References: <alpine.LNX.2.00.1104111908050.32072@connie.slackware.com> <4DA441D9.2000601@linuxtv.org> <alpine.LNX.2.00.1104120729280.7359@connie.slackware.com> <4DA5E957.3020702@linuxtv.org> <4DBF126D.6060807@redhat.com>
-MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
+Received: from mail-qy0-f174.google.com ([209.85.216.174]:34743 "EHLO
+	mail-qy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753241Ab1EYWCv convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 25 May 2011 18:02:51 -0400
+Received: by qyk7 with SMTP id 7so2378403qyk.19
+        for <linux-media@vger.kernel.org>; Wed, 25 May 2011 15:02:50 -0700 (PDT)
+References: <1306305788.2390.4.camel@porites> <1306306916.2390.6.camel@porites> <21882CB6-3679-444E-A072-8AAE43610367@wilsonet.com>
+In-Reply-To: <21882CB6-3679-444E-A072-8AAE43610367@wilsonet.com>
+Mime-Version: 1.0 (Apple Message framework v1084)
+Content-Type: text/plain; charset=us-ascii
+Message-Id: <9C58F89F-7B1F-4D72-AD30-59AC8E3921A8@wilsonet.com>
+Content-Transfer-Encoding: 8BIT
+From: Jarod Wilson <jarod@wilsonet.com>
+Subject: Re: build errors on kinect and rc-main - 2.6.38 (mipi-csis not rc-main)
+Date: Wed, 25 May 2011 18:02:57 -0400
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Mon, 2 May 2011, Mauro Carvalho Chehab wrote:
+On May 25, 2011, at 5:41 PM, Jarod Wilson wrote:
 
-> Not sure what happened, but I lost the original email, so let me quote
-> it from patchwork ID#699151.
->
->
->> Subject: [PATCHES] Misc. trivial fixes
->> Date: Tue, 12 Apr 2011 02:10:36 -0000
->> From: Robby Workman <rworkman@slackware.com>
->> X-Patchwork-Id: 699151
->> Message-Id: <alpine.LNX.2.00.1104111908050.32072@connie.slackware.com>
->> To: linux-media@vger.kernel.org
->>
->> Patch #1 installs udev rules files to /lib/udev/rules.d/ instead
->> of /etc/udev/rules.d/ - see commit message for more info.
->>
->> Patch #2 allows override of manpage installation directory by
->> packagers - see commit message for more info
->
-> Please send each patch in-lined, one patch per email.
+> On May 25, 2011, at 3:01 AM, Nicolas WILL wrote:
+> 
+>> On Wed, 2011-05-25 at 07:43 +0100, Nicolas WILL wrote:
+>>> The second one is on rc-main (I probably need that!):
+>>> 
+>>> CC [M]  /home/nico/src/media_build/v4l/rc-main.o
+>>> /home/nico/src/media_build/v4l/rc-main.c: In function 'rc_allocate_device':
+>>> /home/nico/src/media_build/v4l/rc-main.c:993:29: warning: assignment from incompatible pointer type
+>>> /home/nico/src/media_build/v4l/rc-main.c:994:29: warning: assignment from incompatible pointer type
+>>> CC [M]  /home/nico/src/media_build/v4l/ir-raw.o
+>>> CC [M]  /home/nico/src/media_build/v4l/mipi-csis.o
+>>> /home/nico/src/media_build/v4l/mipi-csis.c:29:28: fatal error: plat/mipi_csis.h: No such file or directory
+>>> compilation terminated.
+>> 
+>> Oh, not rc-main, but mipi-csis!
+> 
+> True, but the rc-main warning is actually a valid issue that needs to
+> be fixed as well. I'll get the necessary backport patch into media_build
+> shortly, I hope...
 
+Patches pushed.
 
-Okay, noted.  Should I resend, or is this for future reference?
-
-
->> This creates MANDIR in Make.rules and keeps the preexisting
->> default of /usr/share/man, but allows packagers to easily
->> override via e.g. "make MANDIR=/usr/man"
->> ... snipped lots ...
->> +MANDIR = /usr/share/man
->
->
-> It would be better to define it as:
-> MANDIR = $(PREFIX)/share/man
->
-> As suggested by Andreas.
+-- 
+Jarod Wilson
+jarod@wilsonet.com
 
 
-Yes, I sent a fixed patch later - perhaps a resend is better
-regardless now?  :-)
 
-
->> ... snipped lots ...
->> -	install -m 755 -d $(DESTDIR)/etc/udev/rules.d
->> -	install -m 644 -p 70-infrared.rules $(DESTDIR)/etc/udev/rules.d
->> +	install -m 755 -d $(DESTDIR)/lib/udev/rules.d
->
->
-> Not all distros use /lib for it. In fact, RHEL5/RHEL6/Fedora 15 and Fedora rawhide
-> all use /etc/udev/rules.d.
-
-
-If so, it's only older distros that I wouldn't expect to be packaging newer
-versions of v4l-utils (e.g. RHEL won't as I understand it), and for Fedora,
-if "rawhide" is devel tree, then I'm pretty sure you're mistaken.
-
-
-> In a matter of fact, looking at RHEL6 (udev-147-2.35.el6.x86_64), it has both. I suspect
-> that /lib/udev/rules.d is meant to have the default scripts that are part of the
-> official packages, and /etc/udev/rules.d to be user-defined ones. So, at least on RHEL6,
-> it makes sense that a user-compiled tarball would install stuff into /etc/*, and
-> that a RHEL6 package would change it to install at /lib/*.
-
-
-Every distro (recent) will have both /lib/udev/rules.d/ and /etc/udev/rules.d/ ;
-more on that later...
-
-
-> So, it is better to have some Makefile var with some default, that
-> allows overriding it when doing a make install, for example:
->
-> UDEVDIR=/etc/udev/rules.d
-
-
-Well, if you *insist* on doing this, sure, but better to do this:
-   UDEVDIR=/lib/udev 
-as the default, and then use $(UDEVDIR)/rules.d/ (and let packagers
-redefine UDEVDIR if desired - though I don't think that will be as
-common as you believe).
-
-
-> The default is a matter of personal taste. I would keep the current way as default,
-> as it avoids breaking for those that are using it on the current way. One alternative
-> would be to add some logic there to change the default to /lib/* if /etc/* doesn't
-> exist.
-
-
-But /etc/udev/rules.d/ should exist regardless, and it's not at all a
-matter of personal taste, as I understand it.  /lib/udev/rules.d/ is
-the location for packaged and general default rules files to be placed,
-and /etc/udev/rules.d/ is where autogenerated rules (such as those that
-create persistent symlinks for optical and network devices) are placed,
-as well as admin- and system-specific override rules (e.g. a file named
-10-blah.rules in /etc/udev/rules.d/ would completely override a file of
-the same name in /lib/udev/rules.d/).
-
-The point I'm trying to make is this: you lose nothing in the way of 
-user customization by defaulting to /lib/udev/rules.d/ - you simply 
-force it to happen the way that upstream udev intends.  The only thing
-you lose is support for older udev releases, and I'm not sure that's
-a big concern :-)
-
-(CC'd udev mail list so that someone can LART me if I'm wrong)  ;-)
-
--RW
