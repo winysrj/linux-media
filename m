@@ -1,48 +1,55 @@
 Return-path: <mchehab@pedra>
-Received: from kroah.org ([198.145.64.141]:38645 "EHLO coco.kroah.org"
+Received: from mail.kapsi.fi ([217.30.184.167]:32801 "EHLO mail.kapsi.fi"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750853Ab1EEVJT (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 5 May 2011 17:09:19 -0400
-Date: Thu, 5 May 2011 13:35:45 -0700
-From: Greg KH <greg@kroah.com>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Jarod Wilson <jarod@wilsonet.com>,
-	Lawrence Rust <lawrence@softsystem.co.uk>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: [PATCH] Fix cx88 remote control input
-Message-ID: <20110505203545.GA13006@kroah.com>
-References: <1302267045.1749.38.camel@gagarin>
- <4DBEFD02.70906@redhat.com>
- <1304407514.1739.22.camel@gagarin>
- <D7FAB30A-E204-47B9-A7A0-E3BF50EE7FBD@wilsonet.com>
- <4DC1B41D.9090200@redhat.com>
- <20110504203613.GA1091@kroah.com>
- <4DC20A86.7010509@redhat.com>
+	id S1755890Ab1EYUmZ (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 25 May 2011 16:42:25 -0400
+Message-ID: <4DDD69AE.3070606@iki.fi>
+Date: Wed, 25 May 2011 23:42:22 +0300
+From: Antti Palosaari <crope@iki.fi>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <4DC20A86.7010509@redhat.com>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	linux-media@vger.kernel.org
+CC: Steve Kerrison <steve@stevekerrison.com>,
+	Dan Carpenter <error27@gmail.com>
+Subject: [GIT PULL FOR 2.6.40] PCTV nanoStick T2 290e (Sony CXD2820R DVB-T/T2/C)
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Wed, May 04, 2011 at 11:25:10PM -0300, Mauro Carvalho Chehab wrote:
-> Em 04-05-2011 17:36, Greg KH escreveu:
-> > Yes, as long as .39 is working properly.  We take patches in -stable for
-> > stuff like this at times, it just needs to be specified exactly like you
-> > did above.
-> 
-> OK.
-> 
-> > Want me to take this patch as-is for .38-stable?
-> 
-> Yes, please. I'm forwarding you bellow with the proper authorship/SOB/ack.
-> 
-> This patch fixes RC for 64 bits kernels. The extra fix for 32 bits kernels,
-> (solves a calculus overflow), were sent today to -next. I generally wait 
-> for a couple days before asking Linus to pull from it.
+Moikka Mauro,
 
-Now queued up.
+Fixes...
 
-thanks,
 
-greg k-h
+The following changes since commit 87cf028f3aa1ed51fe29c36df548aa714dc7438f:
+
+   [media] dm1105: GPIO handling added, I2C on GPIO added, LNB control 
+through GPIO reworked (2011-05-21 11:10:28 -0300)
+
+are available in the git repository at:
+   git://linuxtv.org/anttip/media_tree.git pctv_290e
+
+Antti Palosaari (7):
+       em28xx-dvb: add module param "options" and use it for LNA
+       cxd2820r: malloc buffers instead of stack
+       cxd2820r: fix bitfields
+       em28xx: EM28174 remote support
+       em28xx: add remote for PCTV nanoStick T2 290e
+       em28xx: correct PCTV nanoStick T2 290e device name
+       cxd2820r: correct missing error checks
+
+  drivers/media/dvb/frontends/cxd2820r.h      |    4 +-
+  drivers/media/dvb/frontends/cxd2820r_core.c |   22 +++++++++++++---
+  drivers/media/dvb/frontends/cxd2820r_priv.h |    4 +-
+  drivers/media/video/em28xx/em28xx-cards.c   |    8 +++---
+  drivers/media/video/em28xx/em28xx-dvb.c     |   37 
+++++++++++++++++++++++++---
+  drivers/media/video/em28xx/em28xx-input.c   |    1 +
+  6 files changed, 60 insertions(+), 16 deletions(-)
+
+
+Antti
+
+-- 
+http://palosaari.fi/
