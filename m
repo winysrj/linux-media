@@ -1,54 +1,62 @@
 Return-path: <mchehab@pedra>
-Received: from ist.d-labs.de ([213.239.218.44]:50333 "EHLO mx01.d-labs.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753206Ab1EAKjH (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 1 May 2011 06:39:07 -0400
-Date: Sun, 1 May 2011 12:38:51 +0200
-From: Florian Mickler <florian@mickler.org>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
-	crope@iki.fi, tvboxspy@gmail.com
-Subject: Re: [PATCH 0/5] get rid of on-stack dma buffers (part1)
-Message-ID: <20110501123851.0ab6b799@schatten.dmk.lab>
-In-Reply-To: <4DBC8D9C.2090802@redhat.com>
-References: <1300657852-29318-1-git-send-email-florian@mickler.org>
-	<20110430205405.4beb7d33@schatten.dmk.lab>
-	<4DBC8D9C.2090802@redhat.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Received: from visualpaging.com ([24.123.23.170]:54471 "EHLO
+	unifiedpaging.messagenetsystems.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1754984Ab1EYVBK (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 25 May 2011 17:01:10 -0400
+Message-ID: <4DDD6E14.3000005@MessageNetSystems.com>
+Date: Wed, 25 May 2011 17:01:08 -0400
+From: Jerry Geis <geisj@MessageNetSystems.com>
+MIME-Version: 1.0
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+CC: linux-media@vger.kernel.org, Hans Verkuil <hverkuil@xs4all.nl>
+Subject: Re: h.264 web cam
+References: <4DDD5C3B.6060706@MessageNetSystems.com> <201105252206.39243.laurent.pinchart@ideasonboard.com> <4DDD67D4.5070802@MessageNetSystems.com> <201105252251.20043.laurent.pinchart@ideasonboard.com>
+In-Reply-To: <201105252251.20043.laurent.pinchart@ideasonboard.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Sat, 30 Apr 2011 19:30:52 -0300
-Mauro Carvalho Chehab <mchehab@redhat.com> wrote:
+Laurent Pinchart wrote:
+> Hi Jerry,
+>
+> On Wednesday 25 May 2011 22:34:28 Jerry Geis wrote:
+>   
+>> Laurent Pinchart wrote:
+>>     
+>>> On Wednesday 25 May 2011 21:44:59 Jerry Geis wrote:
+>>>       
+>>>> I am trying to find the code for h.264 mentioned
+>>>>
+>>>>  http://www.spinics.net/lists/linux-media/msg29129.html
+>>>>
+>>>> I downloaded the linux-media-2011-05.24 and it is not part of
+>>>> uvc_driver.c
+>>>>
+>>>> Where can I get the code?
+>>>>         
+>>> That code only exists in the patches you've found. They haven't been
+>>> applied to the uvcvideo driver, because we haven't decided yet how H.264
+>>> should be exposed to applications by the V4L2 API.
+>>>
+>>> We now have a better understanding of H.264. Hans, could you review the
+>>> H.264 patch at the link above and tell me what you now think about the
+>>> new fourcc ?
+>>>       
+>> Thanks I am trying to get an H.264 hardware encoded web cam from
+>> Facevsion E1 to work on linux.
+>> Its far superior to the the other web cams I was using.
+>>     
+>
+> Any chance I could get a sample from Facevision ? :-)
+>
+>   
+I dont know.... I am not with them. You could always contact them.
+Where are you in the world?
 
-> Hi Florian,
-> 
-> Em 30-04-2011 15:54, Florian Mickler escreveu:
-> > Hi Mauro!
-> > 
-> > I just saw that you picked up some patches of mine. What about these?
-> > These are actually tested...
-> 
-> I'm still in process of applying the pending patches. Due to patchwork.kernel.org
-> troubles (including the loss of about 270 patches from its SQL database only 
-> recovered yesterday[1]), I have a long backlog. So, I'm gradually applying the remaing
-> stuff. It will take some time though, and it will depend on patchwork mood, but I intend
-> to spend some time during this weekend to minimize the backlog.
-> 
-> 
-> Cheers,
-> Mauro
-> 
-> [1] The recover lost the email's body/SOB, so I've wrote a script to use my email
-> queue to get the data, using patchwork just to mark what patches were already
-> processed. This increses the time I have to spend on each patch, as I need to run
-> a script to match the patchwork patch with the patch ID inside my email queue.
-> 
+I can always connect it to a machine here and give you access?
 
-Ah ok, no time pressure over here.. just wanted to make sure
-that these don't get lost.
+Let me know,
 
-Regards and thanks,
-Flo
+Jerry
