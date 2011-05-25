@@ -1,125 +1,146 @@
-Return-path: <mchehab@gaivota>
-Received: from mx1.redhat.com ([209.132.183.28]:24295 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753462Ab1ENKTY (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 14 May 2011 06:19:24 -0400
-Message-ID: <4DCE5726.1030705@redhat.com>
-Date: Sat, 14 May 2011 12:19:18 +0200
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Return-path: <mchehab@pedra>
+Received: from perceval.ideasonboard.com ([95.142.166.194]:44005 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754134Ab1EYXUj (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 25 May 2011 19:20:39 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+Subject: Re: [GIT PATCH FOR 2.6.40] uvcvideo patches
+Date: Thu, 26 May 2011 01:20:54 +0200
+Cc: linux-media@vger.kernel.org, Arnd Bergmann <arnd@arndb.de>
+References: <201105150948.24956.laurent.pinchart@ideasonboard.com> <201105240027.37467.laurent.pinchart@ideasonboard.com> <4DDBBCED.7090102@redhat.com>
+In-Reply-To: <4DDBBCED.7090102@redhat.com>
 MIME-Version: 1.0
-To: dri-devel@lists.freedesktop.org, linux-media@vger.kernel.org
-CC: Jesse Barker <jesse.barker@linaro.org>
-Subject: Summary of the V4L2 discussions during LDS - was: Re: Embedded Linux
- memory management interest group list
-References: <BANLkTimoKzWrAyCBM2B9oTEKstPJjpG_MA@mail.gmail.com>
-In-Reply-To: <BANLkTimoKzWrAyCBM2B9oTEKstPJjpG_MA@mail.gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
+Message-Id: <201105260120.54392.laurent.pinchart@ideasonboard.com>
 List-ID: <linux-media.vger.kernel.org>
-Sender: Mauro Carvalho Chehab <mchehab@gaivota>
+Sender: <mchehab@pedra>
 
-Em 18-04-2011 17:15, Jesse Barker escreveu:
-> One of the big issues we've been faced with at Linaro is around GPU
-> and multimedia device integration, in particular the memory management
-> requirements for supporting them on ARM.  This next cycle, we'll be
-> focusing on driving consensus around a unified memory management
-> solution for embedded systems that support multiple architectures and
-> SoCs.  This is listed as part of our working set of requirements for
-> the next six-month cycle (in spite of the URL, this is not being
-> treated as a graphics-specific topic - we also have participation from
-> multimedia and kernel working group folks):
+Hi Mauro,
+
+Thanks for applying the patches. For the record, the compromise was to 
+implement XU controls filtering to make sure that userspace applications won't 
+have access to potentially dangerous controls, and to push vendors to properly 
+document their XUs.
+
+On Tuesday 24 May 2011 16:13:01 Mauro Carvalho Chehab wrote:
+> Em 23-05-2011 19:27, Laurent Pinchart escreveu:
+> > On Friday 20 May 2011 23:01:18 Mauro Carvalho Chehab wrote:
+> >> Em 20-05-2011 16:47, Laurent Pinchart escreveu:
+> >>> On Friday 20 May 2011 21:16:49 Mauro Carvalho Chehab wrote:
+
+[snip]
+
+> > UVC compliance, using the Microsoft driver, is a requirement for webcams
+> > to receive the "designed for Windows Vista/7" certification. Vendors are
+> > thus not trying to push all kind of proprietary, non UVC-compliant
+> > features for their devices (most of them don't have the necessary
+> > resources to implement a custom UVC driver).
 > 
->   https://wiki.linaro.org/Cycles/1111/TechnicalTopics/Graphics
+> If you look on how MCE remote controllers are implemented, you'll see that
+> this is a really bad example. I was told by one of the MCE manufacturers
+> that even them don't know the MCE protocol used there. Microsoft doesn't
+> care about open specs. They only care about having the device working with
+> their drivers.
 
-As part of the memory management needs, Linaro organized several discussions
-during Linaro Development Summit (LDS), at Budapest, and invited me and other
-members of the V4L and DRI community to discuss about the requirements.
-I wish to thank Linaro for its initiative.
+Oh, for sure. That's why many UVC devices crash when you send them requests 
+that are not used by the Windows UVC driver. Some vendors (namely Logitech) 
+started testing their devices on Linux, hopefully that trend will catch up.
 
-Basically, on several SoC designs, the GPU and the CPU are integrated into
-the same chipset and they can share the same memory for a framebuffer. Also,
-they may have some IP blocks that allow processing the framebuffer internally,
-to do things like enhancing the image and converting it into an mpeg stream.
+My point was that, as devices need to work with the Windows UVC drivers, many 
+manufacturers will not add non-compliant, undocumented features to their 
+devices as they don't have the resources to implement a custom UVC driver. 
+Bigger vendors still do that though.
 
-The desire, from the SoC developers, is that those operations should be
-done using zero-copy transfers.
+> > Can you imagine a vendor looking at the Linux driver, seeing that UVC XUs
+> > can be accessed directly, and then deciding to design their hardware
+> > based on that ? I can't :-) XUs are accessible in Windows through a
+> > documented API. If vendors want to design devices that expose XU
+> > controls, they will do it, regardless of whether Linux implements
+> > support for that or not.
+> 
+> It is to fragile to assume that. At Windows, vendors write their own
+> drivers, and are allowed to do whatever they want on a closed source.
 
-This resembles somewhat the idea of the VIDIOC_OVERLAY/VIDIOC_FBUF API, 
-that was used in the old days where CPUs weren't fast enough to process
-video without generating a huge load on it. So the overlay mode were created
-to allow direct PCI2PCI transfers from the video capture board into the
-display adapter, using XVideo extension, and removing the overload at the
-CPU due to a video stream. It were designed as a Kernel API for it, and an
-userspace X11 driver, that passes a framebuffer reference to the V4L driver,
-where it is used to program the DMA transfers to happen inside the framebuffer.
+For proprietary protocols that what happens. For UVC the situation is a bit 
+better, as the Microsoft UVC driver is widely used nowadays. The Windows 
+driver model allows vendors to write filter drivers though, so I agree that 
+they can add support for proprietary device features.
 
-At the LDS, we had a 3-day discussions about how the buffer sharing should
-be handled, and Linaro is producing a blueprint plan to address the needs.
-We had also a discussion about V4L and KMS, allowing both communities to better
-understand how things are supposed to work on the other side.
+> >>> We have several alternatives. One of them, that is being shipped in
+> >>> some systems, is a uvcvideo driver patched by the Evil
+> >>> Manufacturer(tm), incompatible with the mainline version. Another one
+> >>> is a closed-source userspace driver based on libusb shipped by the
+> >>> Evil Manufacturer(tm). Yet another one is webcams that work on Windows
+> >>> only. Which one do you prefer ?
+> >> 
+> >> I prefer to ask the vendor about the XU controls that he needs and add a
+> >> proper interface for them.
+> > 
+> > And I would rather having Nvidia documenting their hardware, but that's
+> > not the world we live in :-)
+> > 
+> > Some XU controls are variable-size binary chunks of data. We can't expose
+> > that as V4L2 controls, which is why I expose them using a documented UVC
+> > API.
+> 
+> The V4L2 API allows string controls.
 
->From V4L2 perspective, what is needed is to create a way to somehow allow
-passing a framebuffer between two V4L2 devices and between a V4L2 device
-and GPU. The V4L2 device can either be an input or an output one.
-The original idea were to add yet-another-mmap-mode at the VIDIOC streaming
-ioctls, and keep using QBUF/DQBUF to handle it. However, as I've pointed
-there, this would leed into sync issues on a shared buffer, causing flip
-effects. Also, as the API is generic, it can be used also on generic computers,
-like desktops, notebooks and tablets (even on arm-based designs), and it
-may end to be actually implemented as a PCI2PCI transfer.
+Hans was very much against using string controls to pass raw binary data.
 
-So, based at all I've seen, I'm pretty much convinced that the normal MMAP
-way of streaming (VIDIOC_[REQBUF|STREAMON|STREAMOFF|QBUF|DQBUF ioctl's)
-are not the best way to share data with framebuffers. We probably need
-something that it will be an enhanced version of the VIDIOC_FBUF/VIDIOC_OVERLAY
-ioctls. Unfortunately, we can't just add more stuff there, as there's no
-reserved space. So, we'll probably add some VIDIOC_FBUF2 series of ioctl's.
+[snip]
 
-It seems to me that the proper way to develop such API is to start working
-with Xorg V4L driver, changing it to work with KMS and with the new API
-(probably porting some parts of the Xorg driver to kernelspace).
+> >> Unfortunately, by being a generic driver for an USB class, and with
+> >> vendors not quite following the specs, there's no way to avoid having
+> >> device-specific stuff there. Other similar drivers like snd-usb-audio
+> >> and sound hda driver has lots of quirks. In particular, the hda driver
+> >> contains more lines to the patch-*.c drivers (with the device-specific
+> >> stuff) than the driver core:
 
-One of the problems with a shared framebuffer is that an overlayed V4L stream
-may, at the worse case, be sent to up to 4 different GPU's and/or displays.
+[snip]
 
-Imagine a scenario like:
+> >>>> So, I'm yet not convinced ;) In fact, I think we should just deprecate
+> >>>> the XU private ioctls.
+> >>> 
+> >>> http://www.quickcamteam.net/uvc-h264/USB_Video_Payload_H.264_0.87.pdf
+> >>> 
+> >>> That's a brain-dead proposal for a new H.264 payload format pushed by
+> >>> Logitech and Microsoft. The document is a bit outdated, but the final
+> >>> version will likely be close. It requires direct XU access from
+> >>> applications. I don't like it either, and the alternative will be to
+> >>> not support H.264 UVC cameras at all (something I might consider, by
+> >>> blacklisting the product completely). Are you ready to refuse
+> >>> supporting large classes of USB hardware ?
+> >> 
+> >> What's the difference between:
+> >> 	1) exposing XU access to userspace and having no applications using it;
+> >> 	2) just blacklisting them.
+> >> 
+> >> The end result is the same.
+> > 
+> > Why would there be no applications using it ? The UVC H.264 XUs are
+> > documented in the above spec, so application can use them.
+> 
+> The Linux kernel were designed to abstract hardware differences. We should
+> not move this task to userspace.
 
-	===================+===================
-	|                  |                  |
-	|      D1     +----|---+     D2       |
-	|             | V4L|   |              |
-	+-------------|----+---|--------------|
-	|             |    |   |              |
-	|      D3     +----+---+     D4       |
-	|                  |                  |
-	=======================================
+I agree in principle, but we will have to rethink this at some point in the 
+future. I don't think it will always be possible to handle all hardware 
+abstractions in the kernel. Some hardware require floating point operations in 
+their drivers for instance.
 
+There's an industry trend there, and we need to think about solutions now 
+otherwise we will be left without any way forward when too many devices will 
+be impossible to support from kernelspace (OMAP4 is a good example there, some 
+device drivers require communication with other cores, and the communication 
+API is implemented in userspace).
 
-Where D1, D2, D3 and D4 are 4 different displays, and the same V4L framebuffer is
-partially shared between them (the above is an example of a V4L input, although
-the reverse scenario of having one frame buffer divided into 4 V4L outputs
-also seems to be possible).
+[snip]
 
-As the same image may be divided into 4 monitors, the buffer filling should be
-synced with all of them, in order to avoid flipping effects. Also, the shared
-buffer can't be re-used until all displays finish reading. From what I understood 
-from the discussions with DRI people, the display API's currently has similar issues
-of needing to wait for a buffer to be completely used before allowing it to be
-re-used. According to them, this were solved there by dynamically allocating buffers. 
-We may need to do something similar to that also at V4L.
+-- 
+Regards,
 
-Btw, the need of managing buffers is currently being covered by the proposal
-for new ioctl()s to support multi-sized video-buffers [1].
-
-[1] http://www.spinics.net/lists/linux-media/msg30869.html
-
-It makes sense to me to discuss such proposal together with the above discussions, 
-in order to keep the API consistent.
-
-On my understanding, the SoC people that are driving those changes will
-be working on providing the API proposals for it. They should also be
-providing the needed patches, open source drivers and userspace application(s) 
-that allows testing and validating the GPU <==> V4L transfers using the newly API.
-
-Thanks,
-Mauro
+Laurent Pinchart
