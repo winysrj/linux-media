@@ -1,64 +1,59 @@
-Return-path: <mchehab@gaivota>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:48934 "EHLO
+Return-path: <mchehab@pedra>
+Received: from perceval.ideasonboard.com ([95.142.166.194]:47286 "EHLO
 	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757075Ab1EKQJ5 (ORCPT
+	with ESMTP id S1756951Ab1EYIOb (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 11 May 2011 12:09:57 -0400
+	Wed, 25 May 2011 04:14:31 -0400
 From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: linux-media@vger.kernel.org
-Cc: hdegoede@redhat.com
-Subject: [PATCH 2/2] uvcvideo: Add M420 format support
-Date: Wed, 11 May 2011 15:37:23 +0200
-Message-Id: <1305121043-8543-2-git-send-email-laurent.pinchart@ideasonboard.com>
-In-Reply-To: <1305121043-8543-1-git-send-email-laurent.pinchart@ideasonboard.com>
-References: <1305121043-8543-1-git-send-email-laurent.pinchart@ideasonboard.com>
+To: "Premi, Sanjeev" <premi@ti.com>
+Subject: Re: [PATCH] omap3: isp: fix compiler warning
+Date: Wed, 25 May 2011 10:14:46 +0200
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+References: <1305734811-2354-1-git-send-email-premi@ti.com> <201105222125.51967.laurent.pinchart@ideasonboard.com> <B85A65D85D7EB246BE421B3FB0FBB593024D09B451@dbde02.ent.ti.com>
+In-Reply-To: <B85A65D85D7EB246BE421B3FB0FBB593024D09B451@dbde02.ent.ti.com>
+MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201105251014.47204.laurent.pinchart@ideasonboard.com>
 List-ID: <linux-media.vger.kernel.org>
-Sender: Mauro Carvalho Chehab <mchehab@gaivota>
+Sender: <mchehab@pedra>
 
-From: Hans de Goede <hdegoede@redhat.com>
+Hi Sanjeev,
 
-The M420 format is used by the Microsoft LifeCam Studio HD.
+On Monday 23 May 2011 20:09:58 Premi, Sanjeev wrote:
+> On Monday, May 23, 2011 12:56 AM Laurent Pinchart wrote:
+> > On Saturday 21 May 2011 12:55:32 Mauro Carvalho Chehab wrote:
+> > > Em 18-05-2011 13:06, Sanjeev Premi escreveu:
 
-Signed-off-by: Hans de Goede <hdegoede@redhat.com>
-[laurent.pinchart@ideasonboard.com: split into v4l/uvcvideo patches]
-Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
----
- drivers/media/video/uvc/uvc_driver.c |    5 +++++
- drivers/media/video/uvc/uvcvideo.h   |    3 +++
- 2 files changed, 8 insertions(+), 0 deletions(-)
+[snip]
 
-diff --git a/drivers/media/video/uvc/uvc_driver.c b/drivers/media/video/uvc/uvc_driver.c
-index 496a9de..823f4b3 100644
---- a/drivers/media/video/uvc/uvc_driver.c
-+++ b/drivers/media/video/uvc/uvc_driver.c
-@@ -84,6 +84,11 @@ static struct uvc_format_desc uvc_fmts[] = {
- 		.fcc		= V4L2_PIX_FMT_YUV420,
- 	},
- 	{
-+		.name		= "YUV 4:2:0 (M420)",
-+		.guid		= UVC_GUID_FORMAT_M420,
-+		.fcc		= V4L2_PIX_FMT_M420,
-+	},
-+	{
- 		.name		= "YUV 4:2:2 (UYVY)",
- 		.guid		= UVC_GUID_FORMAT_UYVY,
- 		.fcc		= V4L2_PIX_FMT_UYVY,
-diff --git a/drivers/media/video/uvc/uvcvideo.h b/drivers/media/video/uvc/uvcvideo.h
-index 0275613..7cf224b 100644
---- a/drivers/media/video/uvc/uvcvideo.h
-+++ b/drivers/media/video/uvc/uvcvideo.h
-@@ -172,6 +172,9 @@ struct uvc_xu_control {
- #define UVC_GUID_FORMAT_RGBP \
- 	{ 'R',  'G',  'B',  'P', 0x00, 0x00, 0x10, 0x00, \
- 	 0x80, 0x00, 0x00, 0xaa, 0x00, 0x38, 0x9b, 0x71}
-+#define UVC_GUID_FORMAT_M420 \
-+	{ 'M',  '4',  '2',  '0', 0x00, 0x00, 0x10, 0x00, \
-+	 0x80, 0x00, 0x00, 0xaa, 0x00, 0x38, 0x9b, 0x71}
- 
- /* ------------------------------------------------------------------------
-  * Driver specific constants.
+> > > > @@ -387,7 +387,7 @@ static inline void isp_isr_dbg(struct
+> > > > isp_device *isp, u32 irqstatus)
+> > > > 
+> > > >  	};
+> > > >  	int i;
+> > > > 
+> > > > -	dev_dbg(isp->dev, "");
+> > > > +	printk(KERN_DEBUG "%s:\n", dev_driver_string(isp->dev));
+> > 
+> > The original code doesn't include any \n. Is there a
+> > particular reason why you
+> > want to add one ?
+> 
+> [sp] Sorry, that's a mistake out of habit.
+>      Another way to fix warning would be to make the string meaningful:
+> 
+> -	dev_dbg(isp->dev, "");
+> +	dev_dbg (isp->dev, "ISP_IRQ:");
+> 
+>      Is this better?
+
+That looks good to me. I'll queue your patch in my tree (with a space after 
+the colon). Thanks.
+
 -- 
 Regards,
 
 Laurent Pinchart
-
