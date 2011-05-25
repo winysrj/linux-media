@@ -1,65 +1,75 @@
 Return-path: <mchehab@pedra>
-Received: from mx4-phx2.redhat.com ([209.132.183.25]:53268 "EHLO
-	mx4-phx2.redhat.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751883Ab1E2ASc (ORCPT
+Received: from smtp-vbr5.xs4all.nl ([194.109.24.25]:3549 "EHLO
+	smtp-vbr5.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932540Ab1EYNeN (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 28 May 2011 20:18:32 -0400
-Subject: Re: [PATCH] [media] lirc_dev: store cdev in irctl, up maxdevs
-References: <1306526466-18717-1-git-send-email-jarod@redhat.com> <1306600961.8085.15.camel@localhost>
-Content-Transfer-Encoding: 7bit
-From: Jarod Wilson <jwilson@redhat.com>
-Content-Type: text/plain;
-	charset=us-ascii
-In-Reply-To: <1306600961.8085.15.camel@localhost>
-Message-Id: <BB9DD5B3-5F95-4F7F-9660-B0CDEC9856FB@redhat.com>
-Date: Sat, 28 May 2011 20:18:30 -0400 (EDT)
-To: Andy Walls <awalls@md.metrocast.net>
-Cc: Jarod Wilson <jarod@redhat.com>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Mime-Version: 1.0
+	Wed, 25 May 2011 09:34:13 -0400
+Received: from tschai (64-103-25-233.cisco.com [64.103.25.233])
+	(authenticated bits=0)
+	by smtp-vbr5.xs4all.nl (8.13.8/8.13.8) with ESMTP id p4PDYARU007307
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-media@vger.kernel.org>; Wed, 25 May 2011 15:34:11 +0200 (CEST)
+	(envelope-from hverkuil@xs4all.nl)
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: [RFCv2 PATCH 00/11] Control Event
+Date: Wed, 25 May 2011 15:33:44 +0200
+Message-Id: <1306330435-11799-1-git-send-email-hverkuil@xs4all.nl>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On May 28, 2011, at 4:41 PM, Andy Walls <awalls@md.metrocast.net> wrote:
+This is the second version of the patch series introducing a new event that
+is triggered when a control's value or state changes.
 
-> On Fri, 2011-05-27 at 16:01 -0400, Jarod Wilson wrote:
->> Store the cdev pointer in struct irctl, allocated dynamically as needed,
->> rather than having a static array. At the same time, recycle some of the
->> saved memory to nudge the maximum number of lirc devices supported up a
->> ways -- its not that uncommon these days, now that we have the rc-core
->> lirc bridge driver, to see a system with at least 4 raw IR receivers.
->> (consider a mythtv backend with several video capture devices and the
->> possible need for IR transmit hardware).
->> 
->> Signed-off-by: Jarod Wilson <jarod@redhat.com>
->> ---
->> drivers/media/rc/lirc_dev.c |   33 ++++++++++++++++++++++++---------
->> include/media/lirc_dev.h    |    2 +-
->> 2 files changed, 25 insertions(+), 10 deletions(-)
->> 
->> diff --git a/drivers/media/rc/lirc_dev.c b/drivers/media/rc/lirc_dev.c
->> index fd237ab..9e79692 100644
->> --- a/drivers/media/rc/lirc_dev.c
->> +++ b/drivers/media/rc/lirc_dev.c
->> 
-...
->> 
->> +    cdev = kzalloc(sizeof(*cdev), GFP_KERNEL);
-> 
->    if (cdev == NULL) 
->        
-> 
->>    if (d->fops) {
->>        cdev_init(cdev, d->fops);
-> 
->       generate_oops();
-> 
-> ;)
+It incorporates the comments made since version 1.
 
-D'oh, rookie mistake! I'll fix that right up... Thanks for lookin'.
+Most of these patches are relatively minor infrastructure changes. The real
+work is done in patch 7.
 
+This patch series builds on the bitmask patch series.
 
--- 
-Jarod Wilson
-jarod@redhat.com
+The main changes since version 1 are:
+
+- The patches that add the bitmask control type are split off since these
+  are needed sooner than the control events and they are indepedent of one
+  another.
+
+- Instead of having separate CTRL_CH_VALUE and CTRL_CH_STATE events, there
+  is now just one V4L2_EVENT_CTRL event which has a bitmask telling what was
+  changed since the last event. In addition, the event payload gives all the
+  relevant control data (type, value, min, max, step, def, flags). This greatly
+  simplifies the applications that need to use this as it prevents having
+  to do additional calls to VIDIOC_G_CTRL or VIDIOC_QUERYCTRL.
+
+- If you call VIDIOC_S_CTRL or VIDIOC_S_EXT_CTRLS, then the filehandle passed
+  to the ioctl function will be skipped when the events for the new value
+  are generated. This prevents nasty feedback loops.
+
+- Documentation was added.
+
+The vivi driver has been updated to support control events.
+
+The qv4l2 application has also been updated to test control events.
+You can find it here:
+
+http://git.linuxtv.org/hverkuil/v4l-utils.git?a=shortlog;h=refs/heads/core
+
+Please review! I'd like to get this in for 2.6.41.
+
+Still on my TODO list (will be done as separate patch series):
+
+- Change the way volatile controls are handled.
+
+- Add autofoo/foo support.
+
+- Make it possible to update control values from interrupt context. This will
+  only be possible for a certain subset of controls.
+
+- I need to figure out how to handle the case where there are two inputs, each
+  with its own subdev and set of controls. Switching inputs would imply switching
+  controls as well. I've tried several things, but it's all very awkward.
+
+Regards,
+
+	Hans
 
