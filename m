@@ -1,21 +1,21 @@
 Return-path: <mchehab@pedra>
 Received: from mail.tu-berlin.de ([130.149.7.33])
 	by www.linuxtv.org with esmtp (Exim 4.69)
-	(envelope-from <wallak@free.fr>) id 1QNA9R-0006nt-8I
-	for linux-dvb@linuxtv.org; Thu, 19 May 2011 22:48:57 +0200
-Received: from smtp5-g21.free.fr ([212.27.42.5])
+	(envelope-from <silvercordiagsr@hotmail.com>) id 1QP48S-0003xX-Um
+	for linux-dvb@linuxtv.org; Wed, 25 May 2011 04:47:49 +0200
+Received: from snt0-omc2-s6.snt0.hotmail.com ([65.55.90.81])
 	by mail.tu-berlin.de (exim-4.75/mailfrontend-4) with esmtp
 	for <linux-dvb@linuxtv.org>
-	id 1QNA9Q-00039C-Be; Thu, 19 May 2011 22:48:57 +0200
-Received: from UNKNOWN (unknown [172.20.243.135])
-	by smtp5-g21.free.fr (Postfix) with ESMTP id 48B90D4823B
-	for <linux-dvb@linuxtv.org>; Thu, 19 May 2011 22:48:49 +0200 (CEST)
-Message-ID: <1305838128.4dd582301742e@imp.free.fr>
-Date: Thu, 19 May 2011 22:48:48 +0200
-From: wallak@free.fr
-To: linux-dvb@linuxtv.org
+	id 1QP48S-0001Z2-BM; Wed, 25 May 2011 04:47:48 +0200
+Message-ID: <SNT124-W57B15F4522C54494626D8AC740@phx.gbl>
+From: Nicholas Leahy <silvercordiagsr@hotmail.com>
+To: <linux-media@vger.kernel.org>, <linux-dvb@linuxtv.org>
+Date: Wed, 25 May 2011 12:47:45 +1000
+In-Reply-To: <4DDB9CA6.6040208@wic.co.nz>
+References: <885931.85151.qm@web28303.mail.ukl.yahoo.com>,
+	<4DDB9CA6.6040208@wic.co.nz>
 MIME-Version: 1.0
-Subject: [linux-dvb] AverMedia A306 (cx23385, xc3028, af9013) (A577 too ?)
+Subject: Re: [linux-dvb] build.sh fails on kernel 2.6.38
 Reply-To: linux-media@vger.kernel.org
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/options/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
@@ -24,291 +24,122 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/mixed; boundary="===============0914161792=="
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 Sender: <mchehab@pedra>
 List-ID: <linux-dvb@linuxtv.org>
 
-Hello All,
+--===============0914161792==
+Content-Type: multipart/alternative;
+	boundary="_0d1b52e6-8f2a-42c7-84a0-51a6d70fda2a_"
 
-I've tried to use my A306 board on my system. All the main chips are fully
-supported by linux.
-
-At this stage the CX23385 and the tuner: xc3028 seem to respond properly. But
-the DVB-T chip (af9013) is silent. Nevertheless both chips are visible on the
-I2C bus.
-
-I've no full datasheet of theses chips. with exception of the af9013 where this
-information is available:
-http://wenku.baidu.com/view/42240f72f242336c1eb95e08.html
-
-At this stage the CLK signal of the DVB-T chip may be missing or something is
-wrong elsewhere.
-
-If you have the datasheets... Any help will be appreciated.
+--_0d1b52e6-8f2a-42c7-84a0-51a6d70fda2a_
+Content-Type: text/plain; charset="iso-2022-jp"
+Content-Transfer-Encoding: 7bit
 
 
-Best Regards,
-Wallak.
+I had the same problems as well on ubuntu with kernel 2.6.38.8
+> Date: Tue, 24 May 2011 23:55:18 +1200
+> From: stewart@wic.co.nz
+> To: linux-dvb@linuxtv.org
+> Subject: Re: [linux-dvb] build.sh fails on kernel 2.6.38
+> 
+> On 23/05/11 22:09, Giwrgos Panou wrote:
+> > Hello,
+> > I tried to build the v4l-dvb on an ubuntu machine with kernel 2.6.38.8 generic
+> > and I get make error:
+> > =========================================
+> > /home/z/media_build/v4l/kinect.c:38:19: error: ‘D_ERR’ undeclared here (not in a function)
+> > /home/z/media_build/v4l/kinect.c:38:27: error: ‘D_PROBE’ undeclared here (not in a function)
+> > /home/z/media_build/v4l/kinect.c:38:37: error: ‘D_CONF’ undeclared here (not in a function)
+> > /home/z/media_build/v4l/kinect.c:38:46: error: ‘D_STREAM’ undeclared here (not in a function)
+> > /home/z/media_build/v4l/kinect.c:38:57: error: ‘D_FRAM’ undeclared here (not in a function)
+> > /home/z/media_build/v4l/kinect.c:38:66: error: ‘D_PACK’ undeclared here (not in a function)
+> > /home/z/media_build/v4l/kinect.c:39:2: error: ‘D_USBI’ undeclared here (not in a function)
+> > /home//media_build/v4l/kinect.c:39:11: error: ‘D_USBO’ undeclared here (not in a function)
+> > /home//media_build/v4l/kinect.c:39:20: error: ‘D_V4L2′ undeclared here (not in a function)
+> > make[3]: *** [/home//media_build/v4l/kinect.o] Error 1
+> > make[2]: *** [_module_/home//media_build/v4l] Error 2
+> > =================================================================
+> I also see, compiling against 2.6.38:
+>    CC [M]  /usr/src/v4l-dvb/v4l/flexcop-i2c.o
+> /usr/src/v4l-dvb/v4l/flexcop-i2c.c: In function 'flexcop_i2c_init':
+> /usr/src/v4l-dvb/v4l/flexcop-i2c.c:253:39: error: 'I2C_CLASS_TV_DIGITAL' 
+> undeclared (first use in this function)
+> https://patchwork.kernel.org/patch/250451/ refers
+> 
+>    CC [M]  /usr/src/v4l-dvb/v4l/bttv-i2c.o
+> /usr/src/v4l-dvb/v4l/bttv-i2c.c: In function 'init_bttv_i2c_ir':
+> /usr/src/v4l-dvb/v4l/bttv-i2c.c:437:3: error: too few arguments to 
+> function 'i2c_new_probed_device'
+> http://www.gossamer-threads.com/lists/linux/kernel/1282040 refers
+> 
+> and finally
+>    CC [M]  /usr/src/v4l-dvb/v4l/dmxdev.o
+> /usr/src/v4l-dvb/v4l/dmxdev.c: In function 'dvb_dmxdev_start_feed':
+> /usr/src/v4l-dvb/v4l/dmxdev.c:583:13: warning: comparison between 'enum 
+> dmx_ts_pes' and 'enum <anonymous>'
+> /usr/src/v4l-dvb/v4l/dmxdev.c: At top level:
+> /usr/src/v4l-dvb/v4l/dmxdev.c:1142:2: error: unknown field 'ioctl' 
+> specified in initializer
+> /usr/src/v4l-dvb/v4l/dmxdev.c:1142:2: warning: initialization from 
+> incompatible pointer type
+> /usr/src/v4l-dvb/v4l/dmxdev.c:1211:2: error: unknown field 'ioctl' 
+> specified in initializer
+> /usr/src/v4l-dvb/v4l/dmxdev.c:1211:2: warning: initialization from 
+> incompatible pointer type
+> which I cannot yet fix.
+> 
+> I note that the cx88 bug that affects HVR3000 and HVR4000 is still in 
+> this build
+> https://lists.launchpad.net/mythbuntu-bugs/msg03390.html
+> 
+> I would hugely appreciate the latter bug being fixed!!
+> Regards,
+> Stu
+> 
+> 
+> 
+> _______________________________________________
+> linux-dvb users mailing list
+> For V4L/DVB development, please use instead linux-media@vger.kernel.org
+> linux-dvb@linuxtv.org
+> http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+ 		 	   		  
+--_0d1b52e6-8f2a-42c7-84a0-51a6d70fda2a_
+Content-Type: text/html; charset="iso-2022-jp"
+Content-Transfer-Encoding: 7bit
 
-
-
-
-diff -u -r -b -B -w -x '*.o' -x '*.cmd' -x '*.ko' -x '*.mod.c' -x 'modules.*'
-tmp/linux-2.6.37.6/drivers/media/common/tuners/tuner-xc2028.c
-linux-2.6.37.6-mdf/drivers/media/common/tuners/tuner-xc2028.c
---- linux-2.6.37.6/drivers/media/common/tuners/tuner-xc2028.c	2011-03-27
-21:01:41.000000000 +0200
-+++ linux-2.6.37.6-mdf/drivers/media/common/tuners/tuner-xc2028.c	2011-05-07
-23:30:20.000000000 +0200
-@@ -813,6 +813,10 @@
- 		  hwmodel, (version & 0xf000) >> 12, (version & 0xf00) >> 8,
- 		  (version & 0xf0) >> 4, version & 0xf);
-
-+	{
-+	  void af9013_execdebug(struct dvb_frontend *fe);
-+	  af9013_execdebug(fe);
-+	}
-
- 	if (priv->ctrl.read_not_reliable)
- 		goto read_not_reliable;
-diff -u -r -b -B -w -x '*.o' -x '*.cmd' -x '*.ko' -x '*.mod.c' -x 'modules.*'
-tmp/linux-2.6.37.6/drivers/media/dvb/frontends/af9013.c
-linux-2.6.37.6-mdf/drivers/media/dvb/frontends/af9013.c
---- linux-2.6.37.6/drivers/media/dvb/frontends/af9013.c	2011-03-27
-21:01:41.000000000 +0200
-+++ linux-2.6.37.6-mdf/drivers/media/dvb/frontends/af9013.c	2011-05-15
-02:58:34.000000000 +0200
-@@ -69,6 +69,8 @@
- 	buf[2] = mbox;
- 	memcpy(&buf[3], val, len);
-
-+	printk(KERN_DEBUG "af9013_write_regs(%02x, %02x %02x
-%02x)\n",state->config.demod_address,buf[0],buf[1],buf[2]);
-+
- 	if (i2c_transfer(state->i2c, &msg, 1) != 1) {
- 		warn("I2C write failed reg:%04x len:%d", reg, len);
- 		return -EREMOTEIO;
-@@ -119,6 +121,10 @@
- 		warn("I2C read failed reg:%04x", reg);
- 		return -EREMOTEIO;
- 	}
-+
-+        printk(KERN_DEBUG "af9013_read_reg(%02x, %02x %02x %02x)
-=%02x\n",state->config.demod_address,reg >> 8,reg & 0xff, 0, ibuf[0]);
-+
-+
- 	*val = ibuf[0];
- 	return 0;
- }
-@@ -1448,6 +1454,22 @@
- 	kfree(state);
- }
-
-+void af9013_execdebug(struct dvb_frontend *fe)
-+{
-+  struct af9013_state *state = fe->demodulator_priv;
-+  u8 val;
-+  u8 buf[4];
-+  int ret, i;
-+
-+  ret = af9013_read_reg(state, 0x98be, &val);
-+  printk(KERN_DEBUG "(0x0c) running = %02x, ret=%02x\n",val, ret);
-+
-+  ret = af9013_read_reg_bits(state, 0xd733, 4, 4, &buf[2]);
-+  for (i = 0; i < 2; i++) { ret = af9013_read_reg(state, 0x116b + i, &buf[i]);
+<html>
+<head>
+<style><!--
+.hmmessage P
+{
+margin:0px;
+padding:0px
 }
-+  printk(KERN_DEBUG "%s: chip version:%d ROM version:%d.%d (ret=%d)\n",
-__func__, buf[2], buf[0], buf[1], ret);
-+}
-+EXPORT_SYMBOL(af9013_execdebug);
-+
- static struct dvb_frontend_ops af9013_ops;
+body.hmmessage
+{
+font-size: 10pt;
+font-family:Tahoma
+}
+--></style>
+</head>
+<body class='hmmessage'>
+I had the same problems as well&nbsp;on ubuntu with kernel 2.6.38.8<div><br>&gt; Date: Tue, 24 May 2011 23:55:18 +1200<br>&gt; From: stewart@wic.co.nz<br>&gt; To: linux-dvb@linuxtv.org<br>&gt; Subject: Re: [linux-dvb] build.sh fails on kernel 2.6.38<br>&gt; <br>&gt; On 23/05/11 22:09, Giwrgos Panou wrote:<br>&gt; &gt; Hello,<br>&gt; &gt; I tried to build the v4l-dvb on an ubuntu machine with kernel 2.6.38.8 generic<br>&gt; &gt; and I get make error:<br>&gt; &gt; =========================================<br>&gt; &gt; /home/z/media_build/v4l/kinect.c:38:19: error: ‘D_ERR’ undeclared here (not in a function)<br>&gt; &gt; /home/z/media_build/v4l/kinect.c:38:27: error: ‘D_PROBE’ undeclared here (not in a function)<br>&gt; &gt; /home/z/media_build/v4l/kinect.c:38:37: error: ‘D_CONF’ undeclared here (not in a function)<br>&gt; &gt; /home/z/media_build/v4l/kinect.c:38:46: error: ‘D_STREAM’ undeclared here (not in a function)<br>&gt; &gt; /home/z/media_build/v4l/kinect.c:38:57: error: ‘D_FRAM’ undeclared here (not in a function)<br>&gt; &gt; /home/z/media_build/v4l/kinect.c:38:66: error: ‘D_PACK’ undeclared here (not in a function)<br>&gt; &gt; /home/z/media_build/v4l/kinect.c:39:2: error: ‘D_USBI’ undeclared here (not in a function)<br>&gt; &gt; /home//media_build/v4l/kinect.c:39:11: error: ‘D_USBO’ undeclared here (not in a function)<br>&gt; &gt; /home//media_build/v4l/kinect.c:39:20: error: ‘D_V4L2′ undeclared here (not in a function)<br>&gt; &gt; make[3]: *** [/home//media_build/v4l/kinect.o] Error 1<br>&gt; &gt; make[2]: *** [_module_/home//media_build/v4l] Error 2<br>&gt; &gt; =================================================================<br>&gt; I also see, compiling against 2.6.38:<br>&gt;    CC [M]  /usr/src/v4l-dvb/v4l/flexcop-i2c.o<br>&gt; /usr/src/v4l-dvb/v4l/flexcop-i2c.c: In function 'flexcop_i2c_init':<br>&gt; /usr/src/v4l-dvb/v4l/flexcop-i2c.c:253:39: error: 'I2C_CLASS_TV_DIGITAL' <br>&gt; undeclared (first use in this function)<br>&gt; https://patchwork.kernel.org/patch/250451/ refers<br>&gt; <br>&gt;    CC [M]  /usr/src/v4l-dvb/v4l/bttv-i2c.o<br>&gt; /usr/src/v4l-dvb/v4l/bttv-i2c.c: In function 'init_bttv_i2c_ir':<br>&gt; /usr/src/v4l-dvb/v4l/bttv-i2c.c:437:3: error: too few arguments to <br>&gt; function 'i2c_new_probed_device'<br>&gt; http://www.gossamer-threads.com/lists/linux/kernel/1282040 refers<br>&gt; <br>&gt; and finally<br>&gt;    CC [M]  /usr/src/v4l-dvb/v4l/dmxdev.o<br>&gt; /usr/src/v4l-dvb/v4l/dmxdev.c: In function 'dvb_dmxdev_start_feed':<br>&gt; /usr/src/v4l-dvb/v4l/dmxdev.c:583:13: warning: comparison between 'enum <br>&gt; dmx_ts_pes' and 'enum &lt;anonymous&gt;'<br>&gt; /usr/src/v4l-dvb/v4l/dmxdev.c: At top level:<br>&gt; /usr/src/v4l-dvb/v4l/dmxdev.c:1142:2: error: unknown field 'ioctl' <br>&gt; specified in initializer<br>&gt; /usr/src/v4l-dvb/v4l/dmxdev.c:1142:2: warning: initialization from <br>&gt; incompatible pointer type<br>&gt; /usr/src/v4l-dvb/v4l/dmxdev.c:1211:2: error: unknown field 'ioctl' <br>&gt; specified in initializer<br>&gt; /usr/src/v4l-dvb/v4l/dmxdev.c:1211:2: warning: initialization from <br>&gt; incompatible pointer type<br>&gt; which I cannot yet fix.<br>&gt; <br>&gt; I note that the cx88 bug that affects HVR3000 and HVR4000 is still in <br>&gt; this build<br>&gt; https://lists.launchpad.net/mythbuntu-bugs/msg03390.html<br>&gt; <br>&gt; I would hugely appreciate the latter bug being fixed!!<br>&gt; Regards,<br>&gt; Stu<br>&gt; <br>&gt; <br>&gt; <br>&gt; _______________________________________________<br>&gt; linux-dvb users mailing list<br>&gt; For V4L/DVB development, please use instead linux-media@vger.kernel.org<br>&gt; linux-dvb@linuxtv.org<br>&gt; http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb<br></div> 		 	   		  </body>
+</html>
+--_0d1b52e6-8f2a-42c7-84a0-51a6d70fda2a_--
 
- struct dvb_frontend *af9013_attach(const struct af9013_config *config,
-@@ -1484,7 +1506,18 @@
- 	if (state->config.output_mode != AF9013_OUTPUT_MODE_USB) {
- 		ret = af9013_download_firmware(state);
- 		if (ret)
--			goto error;
-+		  {
-+		    deb_info("%s: continue...\n", __func__);
-+
-+		    /* create dvb_frontend */
-+		    memcpy(&state->frontend.ops, &af9013_ops,
-+			   sizeof(struct dvb_frontend_ops));
-+		    state->frontend.demodulator_priv = state;
-+
-+		    return &state->frontend;
-+
-+		    //goto error;
-+		  }
- 	}
 
- 	/* firmware version */
-diff -u -r -b -B -w -x '*.o' -x '*.cmd' -x '*.ko' -x '*.mod.c' -x 'modules.*'
-tmp/linux-2.6.37.6/drivers/media/video/cx23885/cx23885-cards.c
-linux-2.6.37.6-mdf/drivers/media/video/cx23885/cx23885-cards.c
---- linux-2.6.37.6/drivers/media/video/cx23885/cx23885-cards.c	2011-03-27
-21:01:41.000000000 +0200
-+++ linux-2.6.37.6-mdf/drivers/media/video/cx23885/cx23885-cards.c	2011-05-15
-04:12:20.000000000 +0200
-@@ -275,6 +275,10 @@
- 		.name		= "Compro VideoMate E800",
- 		.portc		= CX23885_MPEG_DVB,
- 	},
-+	[CX23885_BOARD_AVERMEDIA_A306] = {
-+		.name		= "Avermedia A306",
-+		.portc		= CX23885_MPEG_DVB,
-+	},
- 	[CX23885_BOARD_HAUPPAUGE_HVR1290] = {
- 		.name		= "Hauppauge WinTV-HVR1290",
- 		.portc		= CX23885_MPEG_DVB,
-@@ -485,6 +489,10 @@
- 		.subdevice = 0xe800,
- 		.card      = CX23885_BOARD_COMPRO_VIDEOMATE_E800,
- 	}, {
-+	        .subvendor = 0x1461,
-+		.subdevice = 0xc139,
-+		.card      = CX23885_BOARD_AVERMEDIA_A306,
-+	}, {
- 		.subvendor = 0x0070,
- 		.subdevice = 0x8551,
- 		.card      = CX23885_BOARD_HAUPPAUGE_HVR1290,
-@@ -967,6 +975,31 @@
- 		/* CX24228 GPIO */
- 		/* Connected to IF / Mux */
- 		break;
-+	case CX23885_BOARD_AVERMEDIA_A306:
-+	  // ?? PIO0: 1:on 0:nothing work
-+	  // ?? PIO1: demodulator address 1: 0x1c, 0:0x1d ??
-+	  // ?? PIO2: tuner reset ?
-+	  // ?? PIO3: demodulator reset ?
-+	  printk(KERN_INFO "gpio...\n");
-+
-+	  cx_set(GP0_IO, 0x000f0000);
-+	  mdelay(100);
-+	  cx_clear(GP0_IO, 0x0000000f);
-+	  mdelay(100);
-+
-+
-+	  cx_set(GP0_IO, 0x000f0000 | (1<<3) | (1<<2) | (1<<1) | (0<<0));
-+	  mdelay(100);
-+	  //cx_clear(GP0_IO, 0x00000000 | (1<<3) | (1<<2));
-+	  cx_set(GP0_IO, 0x000f0000 | (1<<3) | (0<<2) | (1<<1) | (0<<0));
-+	  mdelay(100);
-+	  cx_set(GP0_IO, 0x000f0000 | (1<<3) | (0<<2) | (1<<1) | (1<<0));
-+	  //cx_clear(GP0_IO, 0x0000000f);
-+	  //cx_set(GP0_IO, 0x00000003);
-+	  //cx_clear(GP0_IO, 0x00000002);
-+          mdelay(100);
-+
-+	  break;
- 	}
- }
-
-@@ -1012,6 +1045,7 @@
- 	case CX23885_BOARD_HAUPPAUGE_HVR1275:
- 	case CX23885_BOARD_HAUPPAUGE_HVR1255:
- 	case CX23885_BOARD_HAUPPAUGE_HVR1210:
-+	case CX23885_BOARD_AVERMEDIA_A306:
- 		/* FIXME: Implement me */
- 		break;
- 	case CX23885_BOARD_HAUPPAUGE_HVR1850:
-@@ -1258,6 +1292,7 @@
- 	/* AUX-PLL 27MHz CLK */
- 	switch (dev->board) {
- 	case CX23885_BOARD_NETUP_DUAL_DVBS2_CI:
-+	  //case CX23885_BOARD_AVERMEDIA_A306:
- 		netup_initialize(dev);
- 		break;
- 	}
-diff -u -r -b -B -w -x '*.o' -x '*.cmd' -x '*.ko' -x '*.mod.c' -x 'modules.*'
-tmp/linux-2.6.37.6/drivers/media/video/cx23885/cx23885-dvb.c
-linux-2.6.37.6-mdf/drivers/media/video/cx23885/cx23885-dvb.c
---- linux-2.6.37.6/drivers/media/video/cx23885/cx23885-dvb.c	2011-03-27
-21:01:41.000000000 +0200
-+++ linux-2.6.37.6-mdf/drivers/media/video/cx23885/cx23885-dvb.c	2011-05-15
-04:03:54.000000000 +0200
-@@ -48,6 +48,7 @@
- #include "stv0900.h"
- #include "stv0900_reg.h"
- #include "stv6110.h"
-+#include "af9013.h"
- #include "lnbh24.h"
- #include "cx24116.h"
- #include "cimax2.h"
-@@ -571,6 +572,14 @@
- 	.osc_clk = 20
- };
-
-+static struct af9013_config af9013_config = {
-+  .demod_address = (0x1c << 1),                         /* #define
-AF9015_I2C_DEMOD   0x38 */ /*0x1c or 0x1d*/
-+  .output_mode   = AF9013_OUTPUT_MODE_PARALLEL,
-+  .api_version = { 0, 1, 9, 0 },
-+  /*.gpio[0] = AF9013_GPIO_TUNER_ON,
-+    .gpio[1] = AF9013_GPIO_LO,*/
-+};
-+
- static int dvb_register(struct cx23885_tsport *port)
- {
- 	struct cx23885_dev *dev = port->dev;
-@@ -966,6 +975,34 @@
- 			break;
- 		}
- 		break;
-+	case CX23885_BOARD_AVERMEDIA_A306:
-+	  printk("# %d\n", port->nr - 1);
-+	  i2c_bus = &dev->i2c_bus[0];
-+
-+	  fe0->dvb.frontend = dvb_attach(af9013_attach,
-+					 &af9013_config,
-+					 &i2c_bus->i2c_adap);
-+
-+	  if (fe0->dvb.frontend != NULL || 1) {
-+	    struct dvb_frontend *fe;
-+	    struct xc2028_config cfg = {
-+	      .i2c_adap  = &dev->i2c_bus[1].i2c_adap,
-+	      .i2c_addr  = 0x61,
-+	    };
-+	    static struct xc2028_ctrl ctl = {
-+	      .fname       = XC2028_DEFAULT_FIRMWARE,
-+	      .max_len     = 64,
-+	      .demod       = XC3028_FE_ZARLINK456 /*XC3028_FE_OREN538: Loading SCODE
-for type=DTV6 ATSC OREN538 SCODE HAS_IF_5580 (60110020)*/,
-+	    };
-+
-+	    printk(KERN_INFO "xc2028_attach %p\n", fe0->dvb.frontend);
-+	    fe = dvb_attach(xc2028_attach, fe0->dvb.frontend, &cfg);
-+	    printk(KERN_INFO "xc2028_attach %p\n", fe);
-+	    if (fe != NULL && fe->ops.tuner_ops.set_config != NULL) {
-+	        fe->ops.tuner_ops.set_config(fe, &ctl);
-+	    }
-+	  }
-+	  break;
-
- 	default:
- 		printk(KERN_INFO "%s: The frontend of your DVB/ATSC card "
-diff -u -r -b -B -w -x '*.o' -x '*.cmd' -x '*.ko' -x '*.mod.c' -x 'modules.*'
-tmp/linux-2.6.37.6/drivers/media/video/cx23885/cx23885.h
-linux-2.6.37.6-mdf/drivers/media/video/cx23885/cx23885.h
---- linux-2.6.37.6/drivers/media/video/cx23885/cx23885.h	2011-03-27
-21:01:41.000000000 +0200
-+++ linux-2.6.37.6-mdf/drivers/media/video/cx23885/cx23885.h	2011-05-05
-02:58:01.000000000 +0200
-@@ -84,6 +84,7 @@
- #define CX23885_BOARD_HAUPPAUGE_HVR1290        26
- #define CX23885_BOARD_MYGICA_X8558PRO          27
- #define CX23885_BOARD_LEADTEK_WINFAST_PXTV1200 28
-+#define CX23885_BOARD_AVERMEDIA_A306           29
-
- #define GPIO_0 0x00000001
- #define GPIO_1 0x00000002
+--===============0914161792==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
 _______________________________________________
 linux-dvb users mailing list
 For V4L/DVB development, please use instead linux-media@vger.kernel.org
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+--===============0914161792==--
