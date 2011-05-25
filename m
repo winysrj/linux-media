@@ -1,64 +1,59 @@
 Return-path: <mchehab@pedra>
-Received: from casper.infradead.org ([85.118.1.10]:47966 "EHLO
-	casper.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933955Ab1ESTWO (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 19 May 2011 15:22:14 -0400
-Message-ID: <4DD56DDE.6060003@infradead.org>
-Date: Thu, 19 May 2011 16:22:06 -0300
-From: Mauro Carvalho Chehab <mchehab@infradead.org>
-MIME-Version: 1.0
-To: Randy Dunlap <randy.dunlap@oracle.com>
-CC: linux-media@vger.kernel.org,
-	Stephen Rothwell <sfr@canb.auug.org.au>, gregkh@suse.de,
-	linux-next@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>,
-	"Igor M. Liplianin" <liplianin@netup.ru>
-Subject: Re: Fw: [PATCH -next RESEND/still needed] staging: altera-jtag needs
- delay.h
-References: <20110328082305.c6fa41d9.randy.dunlap@oracle.com>
-In-Reply-To: <20110328082305.c6fa41d9.randy.dunlap@oracle.com>
-Content-Type: text/plain; charset=ISO-8859-1
+Received: from mx1.redhat.com ([209.132.183.28]:32321 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1757985Ab1EYP0w (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 25 May 2011 11:26:52 -0400
+Received: from int-mx02.intmail.prod.int.phx2.redhat.com (int-mx02.intmail.prod.int.phx2.redhat.com [10.5.11.12])
+	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id p4PFQqO8008044
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
+	for <linux-media@vger.kernel.org>; Wed, 25 May 2011 11:26:52 -0400
+Received: from pedra (vpn-235-184.phx2.redhat.com [10.3.235.184])
+	by int-mx02.intmail.prod.int.phx2.redhat.com (8.13.8/8.13.8) with ESMTP id p4PFQnlZ007978
+	for <linux-media@vger.kernel.org>; Wed, 25 May 2011 11:26:51 -0400
+Date: Wed, 25 May 2011 12:26:40 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: [PATCH 2/3] [media] add V4L2-PIX-FMT-SRGGB12 & friends to docbook
+Message-ID: <20110525122640.5b872ace@pedra>
+In-Reply-To: <96c3a1277523b929bd27f5d68d5f40e2a0e5bdf3.1306337174.git.mchehab@redhat.com>
+References: <96c3a1277523b929bd27f5d68d5f40e2a0e5bdf3.1306337174.git.mchehab@redhat.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
+To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Em 28-03-2011 12:23, Randy Dunlap escreveu:
-> From: Randy Dunlap <randy.dunlap@oracle.com>
-> 
-> altera-jtag.c needs to include <linux/delay.h> to fix a build error:
-> 
-> drivers/staging/altera-stapl/altera-jtag.c:398: error: implicit declaration of function 'udelay'
-> 
-> Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
-Acked-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+The xml with those guys are there, but they weren't included
+on the docbook.
 
-> Cc: Igor M. Liplianin <liplianin@netup.ru>
-> ---
->  drivers/staging/altera-stapl/altera-jtag.c |    1 +
->  1 file changed, 1 insertion(+)
-> 
-> Somehow I was supposed to know to send this to Mauro instead of to Greg,
-> but I don't see anything in drivers/staging/altera-stapl/ that says that.
+Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
 
-Ah, yes, we need to add a readme file there stating about that.
+diff --git a/Documentation/DocBook/media-entities.tmpl b/Documentation/DocBook/media-entities.tmpl
+index 5c44aa7..e5fe094 100644
+--- a/Documentation/DocBook/media-entities.tmpl
++++ b/Documentation/DocBook/media-entities.tmpl
+@@ -293,6 +293,7 @@
+ <!ENTITY sub-yuyv SYSTEM "v4l/pixfmt-yuyv.xml">
+ <!ENTITY sub-yvyu SYSTEM "v4l/pixfmt-yvyu.xml">
+ <!ENTITY sub-srggb10 SYSTEM "v4l/pixfmt-srggb10.xml">
++<!ENTITY sub-srggb12 SYSTEM "v4l/pixfmt-srggb12.xml">
+ <!ENTITY sub-srggb8 SYSTEM "v4l/pixfmt-srggb8.xml">
+ <!ENTITY sub-y10 SYSTEM "v4l/pixfmt-y10.xml">
+ <!ENTITY sub-y12 SYSTEM "v4l/pixfmt-y12.xml">
+diff --git a/Documentation/DocBook/v4l/pixfmt.xml b/Documentation/DocBook/v4l/pixfmt.xml
+index dbfe3b0..deb6602 100644
+--- a/Documentation/DocBook/v4l/pixfmt.xml
++++ b/Documentation/DocBook/v4l/pixfmt.xml
+@@ -673,6 +673,7 @@ access the palette, this must be done with ioctls of the Linux framebuffer API.<
+     &sub-srggb8;
+     &sub-sbggr16;
+     &sub-srggb10;
++    &sub-srggb12;
+   </section>
+ 
+   <section id="yuv-formats">
+-- 
+1.7.1
 
-Greg, you may add it on your tree, or if you prefer, I can just add here for
-my next upstream pull.
-
-Thanks,
-Mauro.
-
-> 
-> 
-> --- linux-next-20110304.orig/drivers/staging/altera-stapl/altera-jtag.c
-> +++ linux-next-20110304/drivers/staging/altera-stapl/altera-jtag.c
-> @@ -23,6 +23,7 @@
->   * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
->   */
->  
-> +#include <linux/delay.h>
->  #include <linux/firmware.h>
->  #include <linux/slab.h>
->  #include <staging/altera.h>
-> --
 
