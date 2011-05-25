@@ -1,61 +1,153 @@
-Return-path: <mchehab@gaivota>
-Received: from mail-gy0-f174.google.com ([209.85.160.174]:43621 "EHLO
-	mail-gy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754411Ab1EJOOd (ORCPT
+Return-path: <mchehab@pedra>
+Received: from mail.meprolight.com ([194.90.149.17]:46521 "EHLO meprolight.com"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1755719Ab1EYKAz convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 10 May 2011 10:14:33 -0400
-Received: by gyd10 with SMTP id 10so2143493gyd.19
-        for <linux-media@vger.kernel.org>; Tue, 10 May 2011 07:14:32 -0700 (PDT)
+	Wed, 25 May 2011 06:00:55 -0400
+From: Alex Gershgorin <alexg@meprolight.com>
+To: "'Laurent Pinchart'" <laurent.pinchart@ideasonboard.com>
+CC: "'Sakari Ailus'" <sakari.ailus@iki.fi>,
+	Michael Jones <michael.jones@matrix-vision.de>,
+	"'linux-media@vger.kernel.org'" <linux-media@vger.kernel.org>,
+	"'agersh@rambler.ru'" <agersh@rambler.ru>
+Date: Wed, 25 May 2011 12:58:58 +0300
+Subject: RE: FW: OMAP 3 ISP
+Message-ID: <4875438356E7CA4A8F2145FCD3E61C0B15D3557D42@MEP-EXCH.meprolight.com>
+In-Reply-To: <201105250922.28496.laurent.pinchart@ideasonboard.com>
+Content-Language: en-US
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 MIME-Version: 1.0
-In-Reply-To: <BANLkTinBmoeuPBfwNL2z62xLhzZK_owM1Q@mail.gmail.com>
-References: <BANLkTi=pS07RymXLOFsRihd5Jso-y6OsHg@mail.gmail.com>
-	<BANLkTinrSz4nULGS729jEhs1O=wvUy19Jg@mail.gmail.com>
-	<BANLkTincAieXM+DNbkaHiRVxEA6nh6O0Tw@mail.gmail.com>
-	<201105101425.40631.laurent.pinchart@ideasonboard.com>
-	<BANLkTinBmoeuPBfwNL2z62xLhzZK_owM1Q@mail.gmail.com>
-Date: Tue, 10 May 2011 16:14:09 +0200
-Message-ID: <BANLkTin9GKVUfzr+oZSMetzRVo2ENquKqQ@mail.gmail.com>
-Subject: Re: Current status report of mt9p031.
-From: javier Martin <javier.martin@vista-silicon.com>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: linux-media@vger.kernel.org,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Chris Rodley <carlighting@yahoo.co.nz>
-Content-Type: text/plain; charset=ISO-8859-1
 List-ID: <linux-media.vger.kernel.org>
-Sender: Mauro Carvalho Chehab <mchehab@gaivota>
+Sender: <mchehab@pedra>
 
 Hi Laurent,
-information for data lane shifter is passed through platform data:
 
-/**
- * struct isp_parallel_platform_data - Parallel interface platform data
- * @data_lane_shift: Data lane shifter
- *		0 - CAMEXT[13:0] -> CAM[13:0]
- *		1 - CAMEXT[13:2] -> CAM[11:0]
- *		2 - CAMEXT[13:4] -> CAM[9:0]
- *		3 - CAMEXT[13:6] -> CAM[7:0]
- * @clk_pol: Pixel clock polarity
- *		0 - Non Inverted, 1 - Inverted
- * @bridge: CCDC Bridge input control
- *		ISPCTRL_PAR_BRIDGE_DISABLE - Disable
- *		ISPCTRL_PAR_BRIDGE_LENDIAN - Little endian
- *		ISPCTRL_PAR_BRIDGE_BENDIAN - Big endian
- */
-struct isp_parallel_platform_data {
-	unsigned int data_lane_shift:2;
-	unsigned int clk_pol:1;
-	unsigned int bridge:4;
-};
+Unfortunately, at this point I have no Hardware platforms, but in the
+next week we should get Zoom OMAP35 Torpedo evaluation kit
+and then I can test it.
 
-This way I am able to convert from 12bpp to 8bpp:
-data_lane_shift = 2  and  bridge = ISPCTRL_PAR_BRIDGE_DISABLE
+I have already applied this patch on the last main line
+Kernel version (2.6.39) and continue to work on the platform device for Zoom OMAP35xx Torpedo.
 
--- 
-Javier Martin
-Vista Silicon S.L.
-CDTUC - FASE C - Oficina S-345
-Avda de los Castros s/n
-39005- Santander. Cantabria. Spain
-+34 942 25 32 60
-www.vista-silicon.com
+Thanks for this patch :-)
+
+Regards,
+Alex Gershgorin
+
+-----Original Message-----
+From: Laurent Pinchart [mailto:laurent.pinchart@ideasonboard.com]
+Sent: Wednesday, May 25, 2011 10:22 AM
+To: Alex Gershgorin
+Cc: 'Sakari Ailus'; Michael Jones; 'linux-media@vger.kernel.org'; 'agersh@rambler.ru'
+Subject: Re: FW: OMAP 3 ISP
+
+Hi Alex,
+
+On Tuesday 24 May 2011 16:11:16 Alex Gershgorin wrote:
+> Hi All,
+>
+> I wrote a simple V4L2 subdevs I2C driver which returns a fixed format and
+> size. I do not understand who reads these parameters, user application
+> through IOCTL or OMAP3 ISP driver uses them regardless of the user space
+> application?
+
+Both. media-ctl (and other userspace applications) can use them, and the OMAP3
+ISP driver retrieves them when starting the video stream to make sure that the
+formats at the "sensor" output and at the CCDC input match.
+
+> Another question, if I need to change polarity of Vertical or Horizontal
+> synchronization signals, according struct isp_parallel_platform_data, is
+> it not possible?
+>
+> struct isp_parallel_platform_data {
+>         unsigned int data_lane_shift:2;
+>         unsigned int clk_pol:1;
+>         unsigned int bridge:4;
+> };
+
+Could you please try the following patch ?
+
+>From 7f8eff25e63880a93bc283cd97840227cd092622 Mon Sep 17 00:00:00 2001
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Date: Wed, 25 May 2011 09:16:28 +0200
+Subject: [PATCH] omap3isp: Support configurable HS/VS polarities
+
+Add two fields to the ISP parallel platform data to set the HS and VS
+signals polarities.
+
+Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+---
+ drivers/media/video/omap3isp/isp.h     |    6 ++++++
+ drivers/media/video/omap3isp/ispccdc.c |    4 ++--
+ 2 files changed, 8 insertions(+), 2 deletions(-)
+
+diff --git a/drivers/media/video/omap3isp/isp.h b/drivers/media/video/omap3isp/isp.h
+index 2620c40..529e582 100644
+--- a/drivers/media/video/omap3isp/isp.h
++++ b/drivers/media/video/omap3isp/isp.h
+@@ -139,6 +139,10 @@ struct isp_reg {
+  *             3 - CAMEXT[13:6] -> CAM[7:0]
+  * @clk_pol: Pixel clock polarity
+  *             0 - Non Inverted, 1 - Inverted
++ * @hs_pol: Horizontal synchronization polarity
++ *             0 - Active high, 1 - Active low
++ * @vs_pol: Vertical synchronization polarity
++ *             0 - Active high, 1 - Active low
+  * @bridge: CCDC Bridge input control
+  *             ISPCTRL_PAR_BRIDGE_DISABLE - Disable
+  *             ISPCTRL_PAR_BRIDGE_LENDIAN - Little endian
+@@ -147,6 +151,8 @@ struct isp_reg {
+ struct isp_parallel_platform_data {
+        unsigned int data_lane_shift:2;
+        unsigned int clk_pol:1;
++       unsigned int hs_pol:1;
++       unsigned int vs_pol:1;
+        unsigned int bridge:4;
+ };
+
+diff --git a/drivers/media/video/omap3isp/ispccdc.c b/drivers/media/video/omap3isp/ispccdc.c
+index 39d501b..5e742b2 100644
+--- a/drivers/media/video/omap3isp/ispccdc.c
++++ b/drivers/media/video/omap3isp/ispccdc.c
+@@ -1148,6 +1148,8 @@ static void ccdc_configure(struct isp_ccdc_device *ccdc)
+        omap3isp_configure_bridge(isp, ccdc->input, pdata, shift);
+
+        ccdc->syncif.datsz = depth_out;
++       ccdc->syncif.hdpol = pdata ? pdata-> hs_pol : 0;
++       ccdc->syncif.vdpol = pdata ? pdata-> vs_pol : 0;
+        ccdc_config_sync_if(ccdc, &ccdc->syncif);
+
+        /* CCDC_PAD_SINK */
+@@ -2257,8 +2259,6 @@ int omap3isp_ccdc_init(struct isp_device *isp)
+        ccdc->syncif.fldout = 0;
+        ccdc->syncif.fldpol = 0;
+        ccdc->syncif.fldstat = 0;
+-       ccdc->syncif.hdpol = 0;
+-       ccdc->syncif.vdpol = 0;
+
+        ccdc->clamp.oblen = 0;
+        ccdc->clamp.dcsubval = 0;
+--
+1.7.3.4
+
+--
+Regards,
+
+Laurent Pinchart
+
+
+__________ Information from ESET NOD32 Antivirus, version of virus signature database 6149 (20110524) __________
+
+The message was checked by ESET NOD32 Antivirus.
+
+http://www.eset.com
+
+
+
+__________ Information from ESET NOD32 Antivirus, version of virus signature database 6149 (20110524) __________
+
+The message was checked by ESET NOD32 Antivirus.
+
+http://www.eset.com
+
