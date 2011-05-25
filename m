@@ -1,73 +1,136 @@
 Return-path: <mchehab@pedra>
-Received: from mx1.redhat.com ([209.132.183.28]:59436 "EHLO mx1.redhat.com"
+Received: from bear.ext.ti.com ([192.94.94.41]:37276 "EHLO bear.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753535Ab1E1Oj7 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 28 May 2011 10:39:59 -0400
-Message-ID: <4DE1093A.6070003@redhat.com>
-Date: Sat, 28 May 2011 11:39:54 -0300
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
+	id S1756960Ab1EYMTb (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 25 May 2011 08:19:31 -0400
+Received: from dbdp20.itg.ti.com ([172.24.170.38])
+	by bear.ext.ti.com (8.13.7/8.13.7) with ESMTP id p4PCJRqS010628
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-media@vger.kernel.org>; Wed, 25 May 2011 07:19:30 -0500
+From: Manjunath Hadli <manjunath.hadli@ti.com>
+To: LMML <linux-media@vger.kernel.org>
+CC: dlos <davinci-linux-open-source@linux.davincidsp.com>,
+	Manjunath Hadli <manjunath.hadli@ti.com>
+Subject: [PATCH v19 6/6] davinci vpbe: Readme text for Dm6446 vpbe
+Date: Wed, 25 May 2011 17:49:22 +0530
+Message-ID: <1306325962-19299-7-git-send-email-manjunath.hadli@ti.com>
+In-Reply-To: <1306325962-19299-1-git-send-email-manjunath.hadli@ti.com>
+References: <1306325962-19299-1-git-send-email-manjunath.hadli@ti.com>
 MIME-Version: 1.0
-To: =?ISO-8859-1?Q?R=E9mi_Denis-Courmont?= <remi@remlab.net>
-CC: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: [ANNOUNCE] experimental alsa stream support at xawtv3
-References: <4DDAC0C2.7090508@redhat.com> <4DDB5C6B.6000608@redhat.com> <4DDBBC29.80009@infradead.org> <201105281555.28285.remi@remlab.net>
-In-Reply-To: <201105281555.28285.remi@remlab.net>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Em 28-05-2011 09:55, Rémi Denis-Courmont escreveu:
-> Le mardi 24 mai 2011 17:09:45 Mauro Carvalho Chehab, vous avez écrit :
->> If we do that, then all other places where the association between an alsa
->> device and a video4linux node is needed will need to copy it, and we'll
->> have a fork. Also, we'll keep needing it at v4l-utils, as it is now needed
->> by the new version of v4l2-sysfs-path tool.
->>
->> Btw, this lib were created due to a request from the vlc maintainer that
->> something like that would be needed. After finishing it, I decided to add
->> it at xawtv in order to have an example about how to use it.
-> 
-> Hmm errm, I said VLC would need to be able to match a V4L2 device to an ALSA 
-> input (where applicable). Currently, V4L2 devices are enumerated with 
-> (lib)udev though. I am not very clear how v4l2-utils fits there (and oh, ALSA 
-> is a bitch for udev-hotplugging but I'm getting side tracked).
+Please refer to this file for detailed documentation of
+davinci vpbe v4l2 driver.
 
-Once you have a V4L2 device, it will use something similar to (lib)udev to get
-the associated alsa device for that video input.
+Signed-off-by: Manjunath Hadli <manjunath.hadli@ti.com>
+Acked-by: Muralidharan Karicheri <m-karicheri2@ti.com>
+Acked-by: Hans Verkuil <hverkuil@xs4all.nl>
+---
+ Documentation/video4linux/README.davinci-vpbe |   93 +++++++++++++++++++++++++
+ 1 files changed, 93 insertions(+), 0 deletions(-)
+ create mode 100644 Documentation/video4linux/README.davinci-vpbe
 
-> I guess I misunderstood that /dev/media would logically group related devices.  
-> Now I guess it is _solely_ intended to plug DSPs together à la OpenMAX IL. 
-> Sorry about that.
+diff --git a/Documentation/video4linux/README.davinci-vpbe b/Documentation/video4linux/README.davinci-vpbe
+new file mode 100644
+index 0000000..7a460b0
+--- /dev/null
++++ b/Documentation/video4linux/README.davinci-vpbe
+@@ -0,0 +1,93 @@
++
++                VPBE V4L2 driver design
++ ======================================================================
++
++ File partitioning
++ -----------------
++ V4L2 display device driver
++         drivers/media/video/davinci/vpbe_display.c
++         drivers/media/video/davinci/vpbe_display.h
++
++ VPBE display controller
++         drivers/media/video/davinci/vpbe.c
++         drivers/media/video/davinci/vpbe.h
++
++ VPBE venc sub device driver
++         drivers/media/video/davinci/vpbe_venc.c
++         drivers/media/video/davinci/vpbe_venc.h
++         drivers/media/video/davinci/vpbe_venc_regs.h
++
++ VPBE osd driver
++         drivers/media/video/davinci/vpbe_osd.c
++         drivers/media/video/davinci/vpbe_osd.h
++         drivers/media/video/davinci/vpbe_osd_regs.h
++
++ Functional partitioning
++ -----------------------
++
++ Consists of the following (in the same order as the list under file
++ partitioning):-
++
++ 1. V4L2 display driver
++    Implements creation of video2 and video3 device nodes and
++    provides v4l2 device interface to manage VID0 and VID1 layers.
++
++ 2. Display controller
++    Loads up VENC, OSD and external encoders such as ths8200. It provides
++    a set of API calls to V4L2 drivers to set the output/standards
++    in the VENC or external sub devices. It also provides
++    a device object to access the services from OSD subdevice
++    using sub device ops. The connection of external encoders to VENC LCD
++    controller port is done at init time based on default output and standard
++    selection or at run time when application change the output through
++    V4L2 IOCTLs.
++
++    When connected to an external encoder, vpbe controller is also responsible
++    for setting up the interface between VENC and external encoders based on
++    board specific settings (specified in board-xxx-evm.c). This allows
++    interfacing external encoders such as ths8200. The setup_if_config()
++    is implemented for this as well as configure_venc() (part of the next patch)
++    API to set timings in VENC for a specific display resolution. As of this
++    patch series, the interconnection and enabling and setting of the external
++    encoders is not present, and would be a part of the next patch series.
++
++ 3. VENC subdevice module
++    Responsible for setting outputs provided through internal DACs and also
++    setting timings at LCD controller port when external encoders are connected
++    at the port or LCD panel timings required. When external encoder/LCD panel
++    is connected, the timings for a specific standard/preset is retrieved from
++    the board specific table and the values are used to set the timings in
++    venc using non-standard timing mode.
++
++    Support LCD Panel displays using the VENC. For example to support a Logic
++    PD display, it requires setting up the LCD controller port with a set of
++    timings for the resolution supported and setting the dot clock. So we could
++    add the available outputs as a board specific entry (i.e add the "LogicPD"
++    output name to board-xxx-evm.c). A table of timings for various LCDs
++    supported can be maintained in the board specific setup file to support
++    various LCD displays.As of this patch a basic driver is present, and this
++    support for external encoders and displays forms a part of the next
++    patch series.
++
++ 4. OSD module
++    OSD module implements all OSD layer management and hardware specific
++    features. The VPBE module interacts with the OSD for enabling and
++    disabling appropriate features of the OSD.
++
++ Current status:-
++
++ A fully functional working version of the V4L2 driver is available. This
++ driver has been tested with NTSC and PAL standards and buffer streaming.
++
++ Following are TBDs.
++
++ vpbe display controller
++    - Add support for external encoders.
++    - add support for selecting external encoder as default at probe time.
++
++ vpbe venc sub device
++    - add timings for supporting ths8200
++    - add support for LogicPD LCD.
++
++ FB drivers
++    - Add support for fbdev drivers.- Ready and part of subsequent patches.
+-- 
+1.6.2.4
 
-Although people is thinking and discussing about using it also on other subsystems, 
-it is currently limited to video4linux only. As you said, the current focus
-is to plug DSPs.
-
->>> Mauro, I plan to do a new v4l-utils release soon (*), maybe even today. I
->>> consider it unpolite to revert other peoples commits, so I would prefer
->>> for you to revert the install libv4l2util.a patch yourself. But if you
->>> don't (or don't get around to doing it before I do the release), I will
->>> revert it, as this clearly needs more discussion before making it into
->>> an official release tarbal (we can always re-introduce the patch after
->>> the release).
->>
->> I'm not a big fan or exporting the rest of stuff at libv4l2util.a either,
->> but I think that at least the get_media_devices stuff should be exported
->> somewhere, maybe as part of libv4l.
-> 
-> Should it be exposed as a udev device attribute instead then?
-
-An udev attribute can be added to allow such association on devices where both
-audio and video are handled by a driver at /drivers/media (I'm actually thinking
-on using udev uevent instead, as there's nothing that you can control with it).
-
-This won't cover 100% of the cases, as some devices just provide a standard Usb 
-Audio Class for audio. So, the standard driver (snd-usb-audio) will handle the 
-audio part without knowing anything about the video part of the device.
-
-The current library will handle such case by detecting that both audio and video
-nodes belong to the same physical device.
-
-Cheers,
-Mauro
