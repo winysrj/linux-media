@@ -1,55 +1,59 @@
 Return-path: <mchehab@pedra>
-Received: from mailout4.samsung.com ([203.254.224.34]:46389 "EHLO
-	mailout4.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752828Ab1EYGvA (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 25 May 2011 02:51:00 -0400
-MIME-version: 1.0
-Content-transfer-encoding: 8BIT
-Content-type: text/plain; charset=UTF-8
-Received: from epcpsbgm1.samsung.com (mailout4.samsung.com [203.254.224.34])
- by mailout4.samsung.com
- (Oracle Communications Messaging Exchange Server 7u4-19.01 64bit (built Sep  7
- 2010)) with ESMTP id <0LLQ008VIOCPF170@mailout4.samsung.com> for
- linux-media@vger.kernel.org; Wed, 25 May 2011 15:50:59 +0900 (KST)
-Received: from TNRNDGASPAPP1.tn.corp.samsungelectronics.net ([165.213.149.150])
- by mmp1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14 2004))
- with ESMTPA id <0LLQ00IHKOCZKB@mmp1.samsung.com> for
- linux-media@vger.kernel.org; Wed, 25 May 2011 15:50:59 +0900 (KST)
-Date: Wed, 25 May 2011 15:50:58 +0900
-From: "Kim, HeungJun" <riverful.kim@samsung.com>
-Subject: Re: I just wondering how to set shutter or aperture value in uvc
- driver.
-In-reply-to: <4DDCA67B.2060705@samsung.com>
-To: riverful.kim@samsung.com
-Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Reply-to: riverful.kim@samsung.com
-Message-id: <4DDCA6D2.1050307@samsung.com>
-References: <4DDCA67B.2060705@samsung.com>
+Received: from comal.ext.ti.com ([198.47.26.152]:39350 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1757023Ab1EYMTb (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 25 May 2011 08:19:31 -0400
+Received: from dbdp20.itg.ti.com ([172.24.170.38])
+	by comal.ext.ti.com (8.13.7/8.13.7) with ESMTP id p4PCJRk6018282
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-media@vger.kernel.org>; Wed, 25 May 2011 07:19:29 -0500
+From: Manjunath Hadli <manjunath.hadli@ti.com>
+To: LMML <linux-media@vger.kernel.org>
+CC: dlos <davinci-linux-open-source@linux.davincidsp.com>,
+	Manjunath Hadli <manjunath.hadli@ti.com>
+Subject: [PATCH v19 0/6] davinci vpbe: dm6446 v4l2 driver
+Date: Wed, 25 May 2011 17:49:16 +0530
+Message-ID: <1306325962-19299-1-git-send-email-manjunath.hadli@ti.com>
+MIME-Version: 1.0
+Content-Type: text/plain
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-missing. sorry :)
+fixed a wrong file inclusion in one of the patches
 
-2011-05-25 오후 3:49, Kim, HeungJun 쓴 글:
-> Hi Laurent,
-> 
-> I try to add the more exposure methods of the M-5MOLS driver. Currently,
-> the only 2 exposure type are available in the M-5MOLS driver -
-> V4L2_EXPOSURE_AUTO, V4L2_EXPOSURE_MANUAL. But, the HW is capable to 
+Manjunath Hadli (6):
+  davinci vpbe: V4L2 display driver for DM644X SoC
+  davinci vpbe: VPBE display driver
+  davinci vpbe: OSD(On Screen Display) block
+  davinci vpbe: VENC( Video Encoder) implementation
+  davinci vpbe: Build infrastructure for VPBE driver
+  davinci vpbe: Readme text for Dm6446 vpbe
 
-the HW is capable to shutter, aperture exposure value, of course auto exposure. 
- 
-> 
-> So, I found the only UVC driver looks like using extra enumerations
-> V4L2_EXPOSURE_SHUTTER_PRIORITY, V4L2_EXPOSURE_APERTURE_PRIORITY.
-> But, I don't know how to set the each value in the each mode.
-> 
-> The way pointed the specific value is only one - V4L2_CID_EXPOSURE_ABSOLUTE.
-> So, how can I set the specific value at the each mode?
-> 
-> 
-> Regards,
-> Heungjun Kim
+ Documentation/video4linux/README.davinci-vpbe |   93 ++
+ drivers/media/video/davinci/Kconfig           |   23 +
+ drivers/media/video/davinci/Makefile          |    2 +
+ drivers/media/video/davinci/vpbe.c            |  864 ++++++++++++
+ drivers/media/video/davinci/vpbe_display.c    | 1860 +++++++++++++++++++++++++
+ drivers/media/video/davinci/vpbe_osd.c        | 1231 ++++++++++++++++
+ drivers/media/video/davinci/vpbe_osd_regs.h   |  364 +++++
+ drivers/media/video/davinci/vpbe_venc.c       |  566 ++++++++
+ drivers/media/video/davinci/vpbe_venc_regs.h  |  177 +++
+ include/media/davinci/vpbe.h                  |  184 +++
+ include/media/davinci/vpbe_display.h          |  147 ++
+ include/media/davinci/vpbe_osd.h              |  394 ++++++
+ include/media/davinci/vpbe_types.h            |   91 ++
+ include/media/davinci/vpbe_venc.h             |   45 +
+ 14 files changed, 6041 insertions(+), 0 deletions(-)
+ create mode 100644 Documentation/video4linux/README.davinci-vpbe
+ create mode 100644 drivers/media/video/davinci/vpbe.c
+ create mode 100644 drivers/media/video/davinci/vpbe_display.c
+ create mode 100644 drivers/media/video/davinci/vpbe_osd.c
+ create mode 100644 drivers/media/video/davinci/vpbe_osd_regs.h
+ create mode 100644 drivers/media/video/davinci/vpbe_venc.c
+ create mode 100644 drivers/media/video/davinci/vpbe_venc_regs.h
+ create mode 100644 include/media/davinci/vpbe.h
+ create mode 100644 include/media/davinci/vpbe_display.h
+ create mode 100644 include/media/davinci/vpbe_osd.h
+ create mode 100644 include/media/davinci/vpbe_types.h
+ create mode 100644 include/media/davinci/vpbe_venc.h
 
