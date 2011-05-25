@@ -1,184 +1,78 @@
-Return-path: <mchehab@gaivota>
-Received: from moutng.kundenserver.de ([212.227.17.9]:62693 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754588Ab1ENUeF (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 14 May 2011 16:34:05 -0400
-From: Arnd Bergmann <arnd@arndb.de>
-To: linux-arm-kernel@lists.infradead.org
-Subject: Re: [PATCH] [media] at91: add Atmel Image Sensor Interface (ISI) support
-Date: Fri, 13 May 2011 21:18:32 +0200
-Cc: Josh Wu <josh.wu@atmel.com>, mchehab@redhat.com,
-	linux-media@vger.kernel.org, lars.haring@atmel.com,
-	linux-kernel@vger.kernel.org, g.liakhovetski@gmx.de
-References: <1305186138-5656-1-git-send-email-josh.wu@atmel.com>
-In-Reply-To: <1305186138-5656-1-git-send-email-josh.wu@atmel.com>
+Return-path: <mchehab@pedra>
+Received: from comal.ext.ti.com ([198.47.26.152]:39351 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756729Ab1EYMTb (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 25 May 2011 08:19:31 -0400
+Received: from dbdp20.itg.ti.com ([172.24.170.38])
+	by comal.ext.ti.com (8.13.7/8.13.7) with ESMTP id p4PCJR7C018285
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-media@vger.kernel.org>; Wed, 25 May 2011 07:19:30 -0500
+From: Manjunath Hadli <manjunath.hadli@ti.com>
+To: LMML <linux-media@vger.kernel.org>
+CC: dlos <davinci-linux-open-source@linux.davincidsp.com>,
+	Manjunath Hadli <manjunath.hadli@ti.com>
+Subject: [PATCH v19 5/6] davinci vpbe: Build infrastructure for VPBE driver
+Date: Wed, 25 May 2011 17:49:21 +0530
+Message-ID: <1306325962-19299-6-git-send-email-manjunath.hadli@ti.com>
+In-Reply-To: <1306325962-19299-1-git-send-email-manjunath.hadli@ti.com>
+References: <1306325962-19299-1-git-send-email-manjunath.hadli@ti.com>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201105132118.32590.arnd@arndb.de>
+Content-Type: text/plain
 List-ID: <linux-media.vger.kernel.org>
-Sender: Mauro Carvalho Chehab <mchehab@gaivota>
+Sender: <mchehab@pedra>
 
-On Thursday 12 May 2011, Josh Wu wrote:
-> This patch is to enable Atmel Image Sensor Interface (ISI) driver support. 
-> - Using soc-camera framework with videobuf2 dma-contig allocator
-> - Supporting video streaming of YUV packed format
-> - Tested on AT91SAM9M10G45-EK with OV2640
->
-> Signed-off-by: Josh Wu <josh.wu@atmel.com>
+This patch adds the build infra-structure for Davinci
+VPBE dislay driver.
 
-This looks like a very well written driver for the most part. I have a few
-comments, mainly regarding maintainability that you should probably look
-into.
+Signed-off-by: Manjunath Hadli <manjunath.hadli@ti.com>
+Acked-by: Muralidharan Karicheri <m-karicheri2@ti.com>
+Acked-by: Hans Verkuil <hverkuil@xs4all.nl>
+---
+ drivers/media/video/davinci/Kconfig  |   23 +++++++++++++++++++++++
+ drivers/media/video/davinci/Makefile |    2 ++
+ 2 files changed, 25 insertions(+), 0 deletions(-)
+
+diff --git a/drivers/media/video/davinci/Kconfig b/drivers/media/video/davinci/Kconfig
+index 6b19540..60a456e 100644
+--- a/drivers/media/video/davinci/Kconfig
++++ b/drivers/media/video/davinci/Kconfig
+@@ -91,3 +91,26 @@ config VIDEO_ISIF
  
->  arch/arm/mach-at91/include/mach/at91_isi.h |  454 ++++++++++++
->  drivers/media/video/Kconfig                |   10 +
->  drivers/media/video/Makefile               |    1 +
->  drivers/media/video/atmel-isi.c            | 1089 ++++++++++++++++++++++++++++
-
-So you have a mach specific header file that is used by a single driver?
-That does not lean itself it code reuse. Better move the header file into
-the same directory as the driver, or (better) merge its contents into the
-same file.
-
-This is especially important if the driver is possibly shared with avr32
-socs.
-
-> +/* Constants for RGB_CFG */
-> +#define ISI_RGB_CFG_DEFAULT			0
-> +#define ISI_RGB_CFG_MODE_1			1
-> +#define ISI_RGB_CFG_MODE_2			2
-> +#define ISI_RGB_CFG_MODE_3			3
-> +
-> +/* Constants for RGB_CFG(ISI_V2) */
-> +#define ISI_V2_RGB_CFG_DEFAULT			0
-> +#define ISI_V2_RGB_CFG_MODE_1			1
-> +#define ISI_V2_RGB_CFG_MODE_2			2
-> +#define ISI_V2_RGB_CFG_MODE_3			3
-> +
-> +/* Bit manipulation macros */
-> +#define ISI_BIT(name)					\
-> +	(1 << ISI_##name##_OFFSET)
-> +#define ISI_BF(name, value)				\
-> +	(((value) & ((1 << ISI_##name##_SIZE) - 1))	\
-> +	 << ISI_##name##_OFFSET)
-> +#define ISI_BFEXT(name, value)				\
-> +	(((value) >> ISI_##name##_OFFSET)		\
-> +	 & ((1 << ISI_##name##_SIZE) - 1))
-> +#define ISI_BFINS(name, value, old)			\
-> +	(((old) & ~(((1 << ISI_##name##_SIZE) - 1)	\
-> +		    << ISI_##name##_OFFSET))\
-> +	 | ISI_BF(name, value))
-
-A much better way to express the above would be to define the constants as
-mask values rather than using the macros with bit numbers. There are
-conflicting views on how bits are counted, plus the use of macros
-makes it harder to grep for the idenfiers.
-
-For example, do
-
-#define ISI_RGB_CFG_DEFAULT	0x0001
-#define ISI_RGB_CFG_MODE_1	0x0002
-#define ISI_RGB_CFG_MODE_2	0x0004
-#define ISI_RGB_CFG_MODE_3	0x0008
-
-For the two examples I quoted, the values are actually the same,
-so you might also want to name them so that you don't have to
-define multiple versions but can simply reuse the same macros.
-
-Some people also prefer the use of enum over #define, but I
-leave that to your judgement
-
-> +/* Register access macros */
-> +#define isi_readl(port, reg)				\
-> +	__raw_readl((port)->regs + ISI_##reg)
-> +#define isi_writel(port, reg, value)			\
-> +	__raw_writel((value), (port)->regs + ISI_##reg)
-
-Please explain why you use __raw_* instead of the proper
-accessors in the comment. Normal drivers should always
-use readl/writel.
-
-Better don't concatenate identifiers, in order to make
-grep and ctags work on the arguments.
-
-> +
-> +#define ATMEL_ISI_VERSION	KERNEL_VERSION(1, 0, 0)
-
-Don't use KERNEL_VERSION() here, it means something else.
-
-Better yet, don't define a version at all. It is not acceptable
-to make any user space interface depend on specific versions,
-this is a compatibility nightmare.
-
-> +/* Frame buffer descriptor
-> + *  Used by the ISI module as a linked list for the DMA controller.
-> + */
-> +struct fbd {
-> +	/* Physical address of the frame buffer */
-> +	u32 fb_address;
-> +#if defined(CONFIG_ARCH_AT91SAM9G45) ||\
-> +	defined(CONFIG_ARCH_AT91SAM9X5)
-> +	/* DMA Control Register(only in HISI2) */
-> +	u32 dma_ctrl;
-> +#endif
-> +	/* Physical address of the next fbd */
-> +	u32 next_fbd_address;
-> +};
-> +
-> +#if defined(CONFIG_ARCH_AT91SAM9G45) ||\
-> +	defined(CONFIG_ARCH_AT91SAM9X5)
-> +static void set_dma_ctrl(struct fbd *fb_desc, u32 ctrl)
-> +{
-> +	fb_desc->dma_ctrl = ctrl;
-> +}
-> +#else
-> +static void set_dma_ctrl(struct fbd *fb_desc, u32 ctrl) { }
-> +#endif
-
-Make these runtime checks, not compile-time. Best define different
-identifiers for the platform device, then key the differences off
-the device, not the platform.
-
-> +struct atmel_isi {
-> +	/* ISI module spin lock. Protects against concurrent access of variables
-> +	 * that are shared with the ISR */
-> +	spinlock_t			lock;
-> +	void __iomem			*regs;
-> +
-> +	/*  If set ISI is in still capture mode */
-> +	int				still_capture;
-> +	int				sequence;
-> +	/* State of the ISI module in capturing mode */
-> +	int				state;
-> +
-> +	/* Capture/streaming wait queue for waiting for SOF */
-> +	wait_queue_head_t		capture_wq;
-> +
-> +	struct v4l2_device		v4l2_dev;
-> +
-> +	struct vb2_alloc_ctx		*alloc_ctx;
-> +
-> +	struct clk			*pclk;
-> +	struct platform_device		*pdev;
-
-pdev is unused?
-
-> +	spin_lock_irq(&isi->lock);
-> +	isi->still_capture = 0;
-> +	isi->active = NULL;
-> +
-> +	while (isi_readl(isi, V2_STATUS) & ISI_BIT(V2_CDC))
-> +		cpu_relax();
-
-A busy loop with interrupts disabled is rather nasty.
-Is there a guaranteed upper bound on how long this can take?
-
-You have the same loop in other places, maybe you can move
-it into a separate function with a comment explaining what
-you wait for and how long it can take.
-
-	Arnd
+ 	   To compile this driver as a module, choose M here: the
+ 	   module will be called vpfe.
++
++config VIDEO_DM644X_VPBE
++	tristate "DM644X VPBE HW module"
++	depends on ARCH_DAVINCI_DM644x
++	select VIDEO_VPSS_SYSTEM
++	select VIDEOBUF_DMA_CONTIG
++	help
++	    Enables VPBE modules used for display on a DM644x
++	    SoC.
++
++	    To compile this driver as a module, choose M here: the
++	    module will be called vpbe.
++
++
++config VIDEO_VPBE_DISPLAY
++	tristate "VPBE V4L2 Display driver"
++	depends on ARCH_DAVINCI_DM644x
++	select VIDEO_DM644X_VPBE
++	help
++	    Enables VPBE V4L2 Display driver on a DM644x device
++
++	    To compile this driver as a module, choose M here: the
++	    module will be called vpbe_display.
+diff --git a/drivers/media/video/davinci/Makefile b/drivers/media/video/davinci/Makefile
+index a379557..ae7dafb 100644
+--- a/drivers/media/video/davinci/Makefile
++++ b/drivers/media/video/davinci/Makefile
+@@ -16,3 +16,5 @@ obj-$(CONFIG_VIDEO_VPFE_CAPTURE) += vpfe_capture.o
+ obj-$(CONFIG_VIDEO_DM6446_CCDC) += dm644x_ccdc.o
+ obj-$(CONFIG_VIDEO_DM355_CCDC) += dm355_ccdc.o
+ obj-$(CONFIG_VIDEO_ISIF) += isif.o
++obj-$(CONFIG_VIDEO_DM644X_VPBE) += vpbe.o vpbe_osd.o vpbe_venc.o
++obj-$(CONFIG_VIDEO_VPBE_DISPLAY) += vpbe_display.o
+-- 
+1.6.2.4
 
