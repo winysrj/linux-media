@@ -1,49 +1,30 @@
 Return-path: <mchehab@pedra>
-Received: from web244.extendcp.co.uk ([79.170.40.244]:42032 "EHLO
-	web244.extendcp.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756470Ab1EFNsj (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 6 May 2011 09:48:39 -0400
-Received: from web244.extendcp.co.uk (web244.extendcp.co.uk [127.0.0.1])
-	by web244.extendcp.co.uk (8.14.3/8.13.1) with ESMTP id p46Dh1na016314
-	for <linux-media@vger.kernel.org>; Fri, 6 May 2011 14:43:01 +0100
-To: <linux-media@vger.kernel.org>
-Subject: Re: [PATCH] Ngene cam device name
+Received: from visualpaging.com ([24.123.23.170]:54375 "EHLO
+	unifiedpaging.messagenetsystems.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753922Ab1EYTum (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 25 May 2011 15:50:42 -0400
+Received: from devcentos5x64.msgnet.com (visualpaging.com [24.123.23.170])
+	by unifiedpaging.messagenetsystems.com (8.13.1/8.13.1) with ESMTP id p4PJiufJ010634
+	for <linux-media@vger.kernel.org>; Wed, 25 May 2011 15:44:57 -0400
+Message-ID: <4DDD5C3B.6060706@MessageNetSystems.com>
+Date: Wed, 25 May 2011 15:44:59 -0400
+From: Jerry Geis <geisj@MessageNetSystems.com>
 MIME-Version: 1.0
-Date: Fri, 06 May 2011 14:43:00 +0100
-From: Walter Van Eetvelt <walter@van.eetvelt.be>
-In-Reply-To: <4DC3E6C7.8040109@linuxtv.org>
-References: <148PeDiAM3760S04.1304497658@web04.cms.usa.net>	<4DC1236C.3000006@linuxtv.org> <19905.13923.40846.342434@morden.metzler> <4DC146E1.3000103@linuxtv.org> <4DC15633.3030300@gmail.com> <4DC166D4.4090408@linuxtv.org> <4DC2B797.3040202@gmail.com> <4DC3E6C7.8040109@linuxtv.org>
-Message-ID: <58b42017a616f79708c4f1de72f67b9d@mail.eetvelt.be>
-Content-Transfer-Encoding: 8bit
-Content-Type: text/plain; charset=UTF-8
+To: linux-media@vger.kernel.org
+Subject: h.264 web cam
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Hi, 
+I am trying to find the code for h.264 mentioned
+ http://www.spinics.net/lists/linux-media/msg29129.html
 
-On Fri, 06 May 2011 14:17:11 +0200, Andreas Oberritter <obi@linuxtv.org>
-wrote:
-> On 05/05/2011 04:43 PM, Martin Vidovic wrote:
->> Hi,
->> 
->> Broadly speaking, I could put issues discussed in this thread into
->> following categories:
->> 
->> - How devices are named;
->> - How devices are used;
->> - How devices relate to one another;
->> - How devices are enumerated;
->> - How devices are described;
->> 
->> Mostly we discuss category 1 and 2 with relation to nGENE CI, but
->> sometimes we leap to other categories as well.
->> 
+I downloaded the linux-media-2011-05.24 and it is not part of uvc_driver.c
 
-I must say I really like this discussion so far.  But for me to keep
-focus: Can someone list different options for
-naming/using/relating/enumerating/describing devices in relation to
-(multiple?ngene?) CI's.  
-Or does that information already exist?
+Where can I get the code?
 
-Walter
+Thanks,
 
+Jerry
