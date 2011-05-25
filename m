@@ -1,61 +1,48 @@
-Return-path: <mchehab@gaivota>
-Received: from mail.dream-property.net ([82.149.226.172]:52920 "EHLO
-	mail.dream-property.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754184Ab1EHXNV (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sun, 8 May 2011 19:13:21 -0400
-From: Andreas Oberritter <obi@linuxtv.org>
-To: linux-media@vger.kernel.org
-Cc: Thierry LELEGARD <tlelegard@logiways.com>
-Subject: [PATCH 3/8] DVB: call get_property at the end of dtv_property_process_get
-Date: Sun,  8 May 2011 23:03:36 +0000
-Message-Id: <1304895821-21642-4-git-send-email-obi@linuxtv.org>
-In-Reply-To: <1304895821-21642-1-git-send-email-obi@linuxtv.org>
-References: <1304895821-21642-1-git-send-email-obi@linuxtv.org>
+Return-path: <mchehab@pedra>
+Received: from mail-qw0-f46.google.com ([209.85.216.46]:56626 "EHLO
+	mail-qw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756382Ab1EYVlO convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 25 May 2011 17:41:14 -0400
+Received: by qwk3 with SMTP id 3so77727qwk.19
+        for <linux-media@vger.kernel.org>; Wed, 25 May 2011 14:41:13 -0700 (PDT)
+References: <1306305788.2390.4.camel@porites> <1306306916.2390.6.camel@porites>
+In-Reply-To: <1306306916.2390.6.camel@porites>
+Mime-Version: 1.0 (Apple Message framework v1084)
+Content-Type: text/plain; charset=us-ascii
+Message-Id: <21882CB6-3679-444E-A072-8AAE43610367@wilsonet.com>
+Content-Transfer-Encoding: 8BIT
+Cc: linux-media@vger.kernel.org
+From: Jarod Wilson <jarod@wilsonet.com>
+Subject: Re: build errors on kinect and rc-main - 2.6.38 (mipi-csis not rc-main)
+Date: Wed, 25 May 2011 17:41:21 -0400
+To: Nicolas WILL <nico@youplala.net>
 List-ID: <linux-media.vger.kernel.org>
-Sender: Mauro Carvalho Chehab <mchehab@gaivota>
+Sender: <mchehab@pedra>
 
-- Drivers should be able to override properties returned to the user.
-- The default values get prefilled from the cache.
+On May 25, 2011, at 3:01 AM, Nicolas WILL wrote:
 
-Signed-off-by: Andreas Oberritter <obi@linuxtv.org>
----
- drivers/media/dvb/dvb-core/dvb_frontend.c |   16 ++++++++--------
- 1 files changed, 8 insertions(+), 8 deletions(-)
+> On Wed, 2011-05-25 at 07:43 +0100, Nicolas WILL wrote:
+>> The second one is on rc-main (I probably need that!):
+>> 
+>>  CC [M]  /home/nico/src/media_build/v4l/rc-main.o
+>> /home/nico/src/media_build/v4l/rc-main.c: In function 'rc_allocate_device':
+>> /home/nico/src/media_build/v4l/rc-main.c:993:29: warning: assignment from incompatible pointer type
+>> /home/nico/src/media_build/v4l/rc-main.c:994:29: warning: assignment from incompatible pointer type
+>>  CC [M]  /home/nico/src/media_build/v4l/ir-raw.o
+>>  CC [M]  /home/nico/src/media_build/v4l/mipi-csis.o
+>> /home/nico/src/media_build/v4l/mipi-csis.c:29:28: fatal error: plat/mipi_csis.h: No such file or directory
+>> compilation terminated.
+> 
+> Oh, not rc-main, but mipi-csis!
 
-diff --git a/drivers/media/dvb/dvb-core/dvb_frontend.c b/drivers/media/dvb/dvb-core/dvb_frontend.c
-index 1ac7633..bcb4186 100644
---- a/drivers/media/dvb/dvb-core/dvb_frontend.c
-+++ b/drivers/media/dvb/dvb-core/dvb_frontend.c
-@@ -1196,14 +1196,7 @@ static int dtv_property_process_get(struct dvb_frontend *fe,
- 				    struct dtv_property *tvp,
- 				    struct file *file)
- {
--	int r = 0;
--
--	/* Allow the frontend to validate incoming properties */
--	if (fe->ops.get_property)
--		r = fe->ops.get_property(fe, tvp);
--
--	if (r < 0)
--		return r;
-+	int r;
- 
- 	switch(tvp->cmd) {
- 	case DTV_FREQUENCY:
-@@ -1323,6 +1316,13 @@ static int dtv_property_process_get(struct dvb_frontend *fe,
- 		return -EINVAL;
- 	}
- 
-+	/* Allow the frontend to override outgoing properties */
-+	if (fe->ops.get_property) {
-+		r = fe->ops.get_property(fe, tvp);
-+		if (r < 0)
-+			return r;
-+	}
-+
- 	dtv_property_dump(tvp);
- 
- 	return 0;
+True, but the rc-main warning is actually a valid issue that needs to
+be fixed as well. I'll get the necessary backport patch into media_build
+shortly, I hope...
+
 -- 
-1.7.2.5
+Jarod Wilson
+jarod@wilsonet.com
+
+
 
