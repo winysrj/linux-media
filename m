@@ -1,211 +1,100 @@
 Return-path: <mchehab@pedra>
-Received: from mail.bluewatersys.com ([202.124.120.130]:55778 "EHLO
-	hayes.bluewaternz.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1756614Ab1EQU6B (ORCPT
+Received: from smtp-vbr15.xs4all.nl ([194.109.24.35]:2098 "EHLO
+	smtp-vbr15.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757382Ab1EYI15 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 17 May 2011 16:58:01 -0400
-Message-ID: <4DD2E158.7050300@bluewatersys.com>
-Date: Wed, 18 May 2011 08:58:00 +1200
-From: Ryan Mallon <ryan@bluewatersys.com>
+	Wed, 25 May 2011 04:27:57 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+Subject: Re: [GIT PATCHES FOR 2.6.40] Fixes
+Date: Wed, 25 May 2011 10:27:48 +0200
+Cc: "linux-media" <linux-media@vger.kernel.org>,
+	Manjunatha Halli <manjunatha_halli@ti.com>,
+	"Matti J. Aaltonen" <matti.j.aaltonen@nokia.com>
+References: <201105231306.56050.hverkuil@xs4all.nl> <4DDB0D08.2000503@redhat.com> <201105240828.32866.hverkuil@xs4all.nl>
+In-Reply-To: <201105240828.32866.hverkuil@xs4all.nl>
 MIME-Version: 1.0
-To: "Wu, Josh" <Josh.wu@atmel.com>
-CC: mchehab@redhat.com, linux-kernel@vger.kernel.org,
-	"Haring, Lars" <Lars.Haring@atmel.com>, g.liakhovetski@gmx.de,
-	linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org
-Subject: Re: [PATCH] [media] at91: add Atmel Image Sensor Interface (ISI)
- support
-References: <1305186138-5656-1-git-send-email-josh.wu@atmel.com>	<4DCC5040.6050300@bluewatersys.com> <4C79549CB6F772498162A641D92D532801B80D21@penmb01.corp.atmel.com>
-In-Reply-To: <4C79549CB6F772498162A641D92D532801B80D21@penmb01.corp.atmel.com>
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
+Message-Id: <201105251027.48424.hverkuil@xs4all.nl>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On 05/17/2011 08:59 PM, Wu, Josh wrote:
+On Tuesday, May 24, 2011 08:28:32 Hans Verkuil wrote:
+> On Tuesday, May 24, 2011 03:42:32 Mauro Carvalho Chehab wrote:
+> > Em 23-05-2011 08:06, Hans Verkuil escreveu:
+> > > Hi Mauro,
+> > > 
+> > > Here are a few fixes: the first fixes a bug in the wl12xx drivers (I hope Matti's
+> > > email is still correct). The second fixes a few DocBook validation errors, and
+> > > the last fixes READ_ONLY and GRABBED handling in the control framework.
+> > > 
+> > > Regards,
+> > > 
+> > > 	Hans
+> > > 
+> > > The following changes since commit 87cf028f3aa1ed51fe29c36df548aa714dc7438f:
+> > > 
+> > >   [media] dm1105: GPIO handling added, I2C on GPIO added, LNB control through GPIO reworked (2011-05-21 11:10:28 -0300)
+> > > 
+> > > are available in the git repository at:
+> > >   ssh://linuxtv.org/git/hverkuil/media_tree.git fixes
+> > > 
+> > > Hans Verkuil (3):
+> > >       wl12xx: g_volatile_ctrl fix: wrong field set.
+> > >       Media DocBook: fix validation errors.
+> > 
+> > The two above are fixes...
+> > 
+> > >       v4l2-ctrls: drivers should be able to ignore READ_ONLY and GRABBED flags
+> > 
+> > But this one is a change at the behaviour. I need to analyse it better. The idea
+> > of a "read only" control that it is not read only seems too weird on my tired eyes.
 > 
-> On Friday, May 13, 2011 5:25 AM, Ryan Mallon wrote 
+> It's read-only for *applications*. But if you have a read-only control that
+> reflects a driver state, then it should be possible for a *driver* to change
+> it. It's something that is needed for the upcoming Flash and HDMI APIs.
 > 
->> On 05/12/2011 07:42 PM, Josh Wu wrote:
->>> This patch is to enable Atmel Image Sensor Interface (ISI) driver support. 
->>> - Using soc-camera framework with videobuf2 dma-contig allocator
->>> - Supporting video streaming of YUV packed format
->>> - Tested on AT91SAM9M10G45-EK with OV2640
+> The userspace behavior does not change.
 > 
->> Hi Josh,
+> BTW, if you prefer to move this last patch to 2.6.41, then that's OK by me.
+> It's not really necessary for 2.6.40.
+
+I'm going to move this patch to 2.6.41, so there is no need for you to review this.
+I'll include it in another patch series I'm working on.
+
+Regards,
+
+	Hans
+
 > 
->> Thansk for doing this. Overall the patch looks really good. A few
->> comments below.
-> Hi, Ryan
+> Regards,
 > 
-> Thank you for the comments.
+> 	Hans
 > 
->>>
->>> Signed-off-by: Josh Wu <josh.wu@atmel.com>
->>> ---
->>> base on branch staging/for_v2.6.40
->>>
->>>  arch/arm/mach-at91/include/mach/at91_isi.h |  454 ++++++++++++
->>>  drivers/media/video/Kconfig                |   10 +
->>>  drivers/media/video/Makefile               |    1 +
->>>  drivers/media/video/atmel-isi.c            | 1089 ++++++++++++++++++++++++++++
->>>  4 files changed, 1554 insertions(+), 0 deletions(-)
->>>  create mode 100644 arch/arm/mach-at91/include/mach/at91_isi.h
->>>  create mode 100644 drivers/media/video/atmel-isi.c
+> > 
+> > I'll take a more careful look on it tomorrow.
+> > 
+> > Thanks,
+> > Mauro.
+> > 
+> > > 
+> > >  Documentation/DocBook/dvb/dvbproperty.xml    |    5 ++-
+> > >  Documentation/DocBook/v4l/subdev-formats.xml |   10 ++--
+> > >  drivers/media/radio/radio-wl1273.c           |    2 +-
+> > >  drivers/media/radio/wl128x/fmdrv_v4l2.c      |    2 +-
+> > >  drivers/media/video/v4l2-ctrls.c             |   59 +++++++++++++++++---------
+> > >  5 files changed, 50 insertions(+), 28 deletions(-)
+> > > --
+> > > To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> > > the body of a message to majordomo@vger.kernel.org
+> > > More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> > 
+> > 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 > 
->>> [snip]
->>> +
->>> +/* Bit manipulation macros */
->>> +#define ISI_BIT(name)					\
->>> +	(1 << ISI_##name##_OFFSET)
->>> +#define ISI_BF(name, value)				\
->>> +	(((value) & ((1 << ISI_##name##_SIZE) - 1))	\
->>> +	 << ISI_##name##_OFFSET)
->>> +#define ISI_BFEXT(name, value)				\
->>> +	(((value) >> ISI_##name##_OFFSET)		\
->>> +	 & ((1 << ISI_##name##_SIZE) - 1))
->>> +#define ISI_BFINS(name, value, old)			\
->>> +	(((old) & ~(((1 << ISI_##name##_SIZE) - 1)	\
->>> +		    << ISI_##name##_OFFSET))\
->>> +	 | ISI_BF(name, value))
 > 
->> I really dislike this kind of register access magic. Not sure how others
->> feel about it. These macros are really ugly.
-> I understand this. So I will try to find a better way (static inline function) to solve this. :)
-
->>> +/* Register access macros */
->>> +#define isi_readl(port, reg)				\
->>> +	__raw_readl((port)->regs + ISI_##reg)
->>> +#define isi_writel(port, reg, value)			\
->>> +	__raw_writel((value), (port)->regs + ISI_##reg)
-
->> If the token pasting stuff gets dropped then these can be static inline
->> functions which is preferred.
-> sure, I'll try.
-
-Something like this is pretty common (should be moved into the .c file):
-
-static inline unsigned atmel_isi_readl(struct atmel_isi *isi,
-					 unsigned reg)
-{
-	return readl(isi->regs + reg);
-}
-
-static inline void atmel_isi_writel(struct atmel_isi *isi,
-				 	unsigned reg, unsigned val)
-{
-	writel(val, isi->regs + reg);
-}
-
-Then for single bit values you can just do:
-
-#define ISI_REG_CR		0x0000
-#define ISI_CR_GRAYSCALE	(1 << 13)
-
-cr = isi_readl(isi, ISI_REG_CR);
-cr |= ISI_CR_GRAYSCALE;
-isi_writel(isi, ISI_REG_CR, cr);
-
-For bit-fields you could do something like:
-
-static void atmel_isi_set_bitfield(struct atmel_isi *isi, unsigned reg,
-					unsigned offset, unsigned mask,
-					unsigned val)
-{
-	unsigned tmp;
-
-	tmp = atmel_isi_readl(isi, reg);
-	tmp &= ~(mask << offset);
-	tmp |= (val & mask) << offset;
-	atmel_isi_writel(isi, reg, tmp);
-}
-
-#define ISI_V2_VCC_SWAP_OFFSET		28
-#define ISI_V2_VCC_SWAP_MASK		0x3
-
-atmel_isi_set_bitfield(isi, ISI_REG_CR, ISI_V2_VCC_SWAP_OFFSET,
-			ISI_V2_SWAP_MASK, 2);
-
-There are only a handful of bit-field accesses in the driver so I don't
-think this will make the driver much more verbose and it will remove a
-number of _SIZE definitions for the single bit values.
-
-<snip>
-
->>> diff --git a/drivers/media/video/Kconfig b/drivers/media/video/Kconfig
->>> index d61414e..eae6005 100644
->>> --- a/drivers/media/video/Kconfig
->>> +++ b/drivers/media/video/Kconfig
->>> @@ -80,6 +80,16 @@ menuconfig VIDEO_CAPTURE_DRIVERS
->>>  	  Some of those devices also supports FM radio.
->>>  
->>>  if VIDEO_CAPTURE_DRIVERS && VIDEO_V4L2
->>> +config VIDEO_ATMEL_ISI
->>> +	tristate "ATMEL Image Sensor Interface (ISI) support"
->>> +	depends on VIDEO_DEV && SOC_CAMERA
-> 
->> Depends on AT91/AVR32?
-> I think I will use AT91
-
-Somebody else suggested leaving out the AT91 dependency to allow better
-build coverage. The reason for having the AT91 dependency is so that it
-doesn't show up in menuconfig for people on other platforms and
-architectures who cannot use the driver. I've always made SoC drivers
-depend on their architecture. Not sure what the correct answer is here?
-
->>> [snip]
->>> +
->>> +#include <media/videobuf2-dma-contig.h>
->>> +#include <media/soc_camera.h>
->>> +#include <media/soc_mediabus.h>
->>> +
->>> +#define ATMEL_ISI_VERSION	KERNEL_VERSION(1, 0, 0)
-> 
->> Do we really need this version?
-> Since we need set a version for v4l2_capability.version in function isi_camera_querycap(). So we use this macro.
-> How about this?
-> 	static int isi_camera_querycap(struct soc_camera_host *ici,
-> 			       struct v4l2_capability *cap)
-> 	{
-> 		strcpy(cap->driver, "atmel-isi");
-> 		strcpy(cap->card, "Atmel Image Sensor Interface");
-> 		cap->version = KERNEL_VERSION(1, 0, 0);
-> 		cap->capabilities = (V4L2_CAP_VIDEO_CAPTURE |
-> 				V4L2_CAP_STREAMING);
-> 		return 0;
-> 	}
-
-Not sure. Is cap->version meant to be a KERNEL_VERSION value or is it
-arbitrary? If nothing from user-space cares then it could just be left
-as zero?
-
-<snip>
-
->>> +static int atmel_isi_init(struct atmel_isi *isi)
->>> +{
->>> +	/*
->>> +	 * The reset will only succeed if we have a
->>> +	 * pixel clock from the camera.
->>> +	 */
->>> +	isi_writel(isi, V2_CTRL, ISI_BIT(V2_SRST));
->>> +	isi_writel(isi, V2_INTDIS, ~0UL);
-> 
->> Don't you need to wait for the reset bit to clear? Other implementations
->> I have used of the Atmel ISI driver do a wait_for_completition and have
->> the interrupt handler set a reset_complete flag.
-> You are right. I just remove the reset_complete waiting part in this version.
-> Actually I am thinking whether I need add such code again.
-
-The driver should do the check since the reset can fail, and the caller
-should be notified. This function should probably be called
-atmel_isi_reset rather than atmel_isi_init to better reflect what it does.
-
-~Ryan
-
--- 
-Bluewater Systems Ltd - ARM Technology Solution Centre
-
-Ryan Mallon         		5 Amuri Park, 404 Barbadoes St
-ryan@bluewatersys.com         	PO Box 13 889, Christchurch 8013
-http://www.bluewatersys.com	New Zealand
-Phone: +64 3 3779127		Freecall: Australia 1800 148 751
-Fax:   +64 3 3779135			  USA 1800 261 2934
