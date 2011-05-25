@@ -1,81 +1,74 @@
-Return-path: <mchehab@gaivota>
-Received: from sypressi.dnainternet.net ([83.102.40.135]:59023 "EHLO
-	sypressi.dnainternet.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750768Ab1EHEoG (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sun, 8 May 2011 00:44:06 -0400
-Message-ID: <4DC61E28.4090301@iki.fi>
-Date: Sun, 08 May 2011 07:38:00 +0300
-From: Anssi Hannula <anssi.hannula@iki.fi>
+Return-path: <mchehab@pedra>
+Received: from mail-iw0-f174.google.com ([209.85.214.174]:49086 "EHLO
+	mail-iw0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932336Ab1EYJln convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 25 May 2011 05:41:43 -0400
+Received: by iwn34 with SMTP id 34so6284682iwn.19
+        for <linux-media@vger.kernel.org>; Wed, 25 May 2011 02:41:43 -0700 (PDT)
 MIME-Version: 1.0
-To: linux-media@vger.kernel.org,
-	"linux-input@vger.kernel.org" <linux-input@vger.kernel.org>,
-	xorg-devel@lists.freedesktop.org
-Subject: IR remote control autorepeat / evdev
+In-Reply-To: <201105251005.28691.laurent.pinchart@ideasonboard.com>
+References: <1306247443-2191-1-git-send-email-javier.martin@vista-silicon.com>
+	<201105251005.28691.laurent.pinchart@ideasonboard.com>
+Date: Wed, 25 May 2011 11:41:42 +0200
+Message-ID: <BANLkTikvLEG55vqpLmNJJsvsvz1eLsGoHw@mail.gmail.com>
+Subject: Re: [PATCH][RFC] Add mt9p031 sensor support.
+From: javier Martin <javier.martin@vista-silicon.com>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: linux-media@vger.kernel.org, g.liakhovetski@gmx.de,
+	carlighting@yahoo.co.nz, beagleboard@googlegroups.com,
+	linux-arm-kernel@lists.infradead.org
 Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 8BIT
 List-ID: <linux-media.vger.kernel.org>
-Sender: Mauro Carvalho Chehab <mchehab@gaivota>
+Sender: <mchehab@pedra>
 
-Hi all!
+Hi,
+thank you for the review, I agree with you on all the suggested
+changes except on this one:
 
-Most IR/RF remotes differ from normal keyboards in that they don't
-provide release events. They do provide native repeat events, though.
+On 25 May 2011 10:05, Laurent Pinchart
+<laurent.pinchart@ideasonboard.com> wrote:
+> Hi Javier,
+>
+> Thanks for the patch. Here's a review of the power handling code.
+>
+> On Tuesday 24 May 2011 16:30:43 Javier Martin wrote:
+>> This RFC includes a power management implementation that causes
+>> the sensor to show images with horizontal artifacts (usually
+>> monochrome lines that appear on the image randomly).
+>>
+>> Signed-off-by: Javier Martin <javier.martin@vista-silicon.com>
+>
+> [snip]
+>
+>> diff --git a/drivers/media/video/mt9p031.c b/drivers/media/video/mt9p031.c
+>> new file mode 100644
+>> index 0000000..04d8812
+>> --- /dev/null
+>> +++ b/drivers/media/video/mt9p031.c
+>
+> [snip]
+>> +#define MT9P031_WINDOW_HEIGHT_MAX            1944
+>> +#define MT9P031_WINDOW_WIDTH_MAX             2592
+>> +#define MT9P031_WINDOW_HEIGHT_MIN            2
+>> +#define MT9P031_WINDOW_WIDTH_MIN             18
+>
+> Can you move those 4 constants right below MT9P031_WINDOW_HEIGHT and
+> MT9P031_WINDOW_WIDTH ? The max values are not correct, according to the
+> datasheet they should be 2005 and 2751.
 
-Currently the Linux kernel RC/input subsystems provide a simulated
-autorepeat for remote controls (default delay 500ms, period 33ms), and
-X.org server ignores these events and generates its own autorepeat for them.
+In figure 4, it says active image size is 2592 x 1944
+Why should I include active boundary and dark pixels?
 
-The kernel RC subsystem provides a simulated release event when 250ms
-has passed since the last native event (repeat or non-repeat) was
-received from the device.
 
-This is problematic, since it causes lots of extra repeat events to be
-always sent (for up to 250ms) after the user has released the remote
-control button, which makes the remote quite uncomfortable to use.
 
-Now, IMO something should be done to fix this. But what exactly?
-
-Here are two ideas that would remove these ghost repeats:
-
-1. Do not provide any repeat/release simulation in the kernel for RC
-devices (by default?), just provide both keydown and immediate release
-events for every native keypress or repeat received from the device.
-+ Very simple to implement
-- We lose the ability to track repeats, i.e. if a new event was a repeat
-  or a new keypress; "holding down" a key becomes impossible
-
-or
-2. Replace kernel autorepeat simulation by passing through the native
-repeat events (probably filtering them according to REP_DELAY and
-REP_PERIOD), and have a device property bit (fetchable via EVIOCGPROP)
-indicating that the keyrelease is simulated, and have the X server use
-the native repeats instead of softrepeats for such a device.
-+ The userspace correctly gets repeat events tagged as repeats and
-  release events when appropriate (albeit a little late)
-- Adds complexity. Also, while the kernel part is quite easy to
-  implement, I'm not sure if the X server part is.
-
-or
-3. Same as 1., but indicate the repeatness of an event with a new
-   additional special event before EV_SYN (sync event).
-+ Simple to implement
-- Quite hacky, and userspace still can't guess from initial
-  keypress/release if the key is still pressed down or not.
-
-4. Same as 1., but have a new EV_RC with RC_KEYDOWN and RC_KEYUP events,
-   with RC_KEYDOWN sent when a key is pressed down a first time along
-   with the normal EV_KEY event, and RC_KEYUP sent when the key is
-   surely released (e.g. 250ms without native repeat events or another
-   key got pressed, i.e. like the simulated keyup now).
-+ Simple to implement, works as expected with most userspace apps with
-  no changes to them; and if an app wants to know the repeatness of an
-  event or held-down-ness of a key, it can do that.
-- Repeatness of the event is hidden behind a new API.
-
-What do you think? Or any other ideas?
-
-2 and 4 seem nicest to me.
-(I don't know how feasible 2 would be on X server side, though)
 
 -- 
-Anssi Hannula
+Javier Martin
+Vista Silicon S.L.
+CDTUC - FASE C - Oficina S-345
+Avda de los Castros s/n
+39005- Santander. Cantabria. Spain
++34 942 25 32 60
+www.vista-silicon.com
