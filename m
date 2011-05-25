@@ -1,130 +1,290 @@
 Return-path: <mchehab@pedra>
-Received: from mx1.redhat.com ([209.132.183.28]:14634 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S935177Ab1ETSsb (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 20 May 2011 14:48:31 -0400
-Message-ID: <4DD6B77A.2010800@redhat.com>
-Date: Fri, 20 May 2011 15:48:26 -0300
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-MIME-Version: 1.0
-To: =?UTF-8?B?UsOpbWkgRGVuaXMtQ291cm1vbnQ=?= <remi@remlab.net>
-CC: linux-media@vger.kernel.org
-Subject: Re: [GIT PATCH FOR 2.6.40] uvcvideo patches
-References: <201105150948.24956.laurent.pinchart@ideasonboard.com> <4DD6899D.5020004@redhat.com> <201105201855.53240.remi@remlab.net>
-In-Reply-To: <201105201855.53240.remi@remlab.net>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Received: from smtp-vbr5.xs4all.nl ([194.109.24.25]:1928 "EHLO
+	smtp-vbr5.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932540Ab1EYNeT (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 25 May 2011 09:34:19 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [RFCv2 PATCH 09/11] vivi: support control events.
+Date: Wed, 25 May 2011 15:33:53 +0200
+Message-Id: <e901e65931cf0ca2bee57e5458f045b2ffbdfa0e.1306329390.git.hans.verkuil@cisco.com>
+In-Reply-To: <1306330435-11799-1-git-send-email-hverkuil@xs4all.nl>
+References: <1306330435-11799-1-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <6cea502820c1684f34b9e862a64be2972afb718f.1306329390.git.hans.verkuil@cisco.com>
+References: <6cea502820c1684f34b9e862a64be2972afb718f.1306329390.git.hans.verkuil@cisco.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Em 20-05-2011 12:55, Rémi Denis-Courmont escreveu:
-> Le vendredi 20 mai 2011 18:32:45 Mauro Carvalho Chehab, vous avez écrit :
->> However, I have serious concerns about media_controller API usage on
->> generic drivers, as it is required that all drivers should be fully
->> configurable via V4L2 API alone, otherwise we'll have regressions, as no
->> generic applications use the media_controller.
-> 
-> If VLC counts as a generic application, I'd be more than API to use the 
-> media_controller (or whatever else) if only to find which ALSA (sub)device, if 
-> any, corresponds to the V4L2 node of a given USB webcam or such.
-> 
-> I don't know any solution at the moment, and this is a major inconvenience on 
-> Linux desktop compared to DirectShow.
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-You don't need the media controller for it.
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ drivers/media/video/vivi.c |  161 ++++++++++++++++++++++++++-----------------
+ 1 files changed, 97 insertions(+), 64 deletions(-)
 
-The proper solution for it is to use the sysfs to identify the alsa sub-device.
+diff --git a/drivers/media/video/vivi.c b/drivers/media/video/vivi.c
+index 21d8f6a..93692ad 100644
+--- a/drivers/media/video/vivi.c
++++ b/drivers/media/video/vivi.c
+@@ -32,6 +32,7 @@
+ #include <media/v4l2-ioctl.h>
+ #include <media/v4l2-ctrls.h>
+ #include <media/v4l2-fh.h>
++#include <media/v4l2-event.h>
+ #include <media/v4l2-common.h>
+ 
+ #define VIVI_MODULE_NAME "vivi"
+@@ -157,54 +158,6 @@ struct vivi_dmaqueue {
+ 
+ static LIST_HEAD(vivi_devlist);
+ 
+-struct vivi_dev {
+-	struct list_head           vivi_devlist;
+-	struct v4l2_device 	   v4l2_dev;
+-	struct v4l2_ctrl_handler   ctrl_handler;
+-
+-	/* controls */
+-	struct v4l2_ctrl	   *brightness;
+-	struct v4l2_ctrl	   *contrast;
+-	struct v4l2_ctrl	   *saturation;
+-	struct v4l2_ctrl	   *hue;
+-	struct v4l2_ctrl	   *volume;
+-	struct v4l2_ctrl	   *button;
+-	struct v4l2_ctrl	   *boolean;
+-	struct v4l2_ctrl	   *int32;
+-	struct v4l2_ctrl	   *int64;
+-	struct v4l2_ctrl	   *menu;
+-	struct v4l2_ctrl	   *string;
+-	struct v4l2_ctrl	   *bitmask;
+-
+-	spinlock_t                 slock;
+-	struct mutex		   mutex;
+-
+-	/* various device info */
+-	struct video_device        *vfd;
+-
+-	struct vivi_dmaqueue       vidq;
+-
+-	/* Several counters */
+-	unsigned 		   ms;
+-	unsigned long              jiffies;
+-	unsigned		   button_pressed;
+-
+-	int			   mv_count;	/* Controls bars movement */
+-
+-	/* Input Number */
+-	int			   input;
+-
+-	/* video capture */
+-	struct vivi_fmt            *fmt;
+-	unsigned int               width, height;
+-	struct vb2_queue	   vb_vidq;
+-	enum v4l2_field		   field;
+-	unsigned int		   field_count;
+-
+-	u8 			   bars[9][3];
+-	u8 			   line[MAX_WIDTH * 4];
+-};
+-
+ /* ------------------------------------------------------------------
+ 	DMA and thread functions
+    ------------------------------------------------------------------*/
+@@ -257,6 +210,50 @@ static struct bar_std bars[] = {
+ 
+ #define NUM_INPUTS ARRAY_SIZE(bars)
+ 
++struct vivi_dev {
++	struct list_head           vivi_devlist;
++	struct v4l2_device	   v4l2_dev;
++	struct v4l2_ctrl_handler   ctrl_handler;
++
++	/* controls */
++	struct v4l2_ctrl	   *volume;
++	struct v4l2_ctrl	   *button;
++	struct v4l2_ctrl	   *boolean;
++	struct v4l2_ctrl	   *int32;
++	struct v4l2_ctrl	   *int64;
++	struct v4l2_ctrl	   *menu;
++	struct v4l2_ctrl	   *string;
++	struct v4l2_ctrl	   *bitmask;
++
++	spinlock_t                 slock;
++	struct mutex		   mutex;
++
++	/* various device info */
++	struct video_device        *vfd;
++
++	struct vivi_dmaqueue       vidq;
++
++	/* Several counters */
++	unsigned		   ms;
++	unsigned long              jiffies;
++	unsigned		   button_pressed;
++
++	int			   mv_count;	/* Controls bars movement */
++
++	/* Input Number */
++	int			   input;
++
++	/* video capture */
++	struct vivi_fmt            *fmt;
++	unsigned int               width, height;
++	struct vb2_queue	   vb_vidq;
++	enum v4l2_field		   field;
++	unsigned int		   field_count;
++
++	u8			   bars[9][3];
++	u8			   line[MAX_WIDTH * 4];
++};
++
+ #define TO_Y(r, g, b) \
+ 	(((16829 * r + 33039 * g + 6416 * b  + 32768) >> 16) + 16)
+ /* RGB to  V(Cr) Color transform */
+@@ -451,6 +448,14 @@ static void gen_text(struct vivi_dev *dev, char *basep,
+ 
+ static void vivi_fillbuff(struct vivi_dev *dev, struct vivi_buffer *buf)
+ {
++	struct v4l2_ctrl *brightness = v4l2_ctrl_find(&dev->ctrl_handler,
++							V4L2_CID_BRIGHTNESS);
++	struct v4l2_ctrl *contrast = v4l2_ctrl_find(&dev->ctrl_handler,
++							V4L2_CID_CONTRAST);
++	struct v4l2_ctrl *saturation = v4l2_ctrl_find(&dev->ctrl_handler,
++							V4L2_CID_SATURATION);
++	struct v4l2_ctrl *hue = v4l2_ctrl_find(&dev->ctrl_handler,
++							V4L2_CID_HUE);
+ 	int wmax = dev->width;
+ 	int hmax = dev->height;
+ 	struct timeval ts;
+@@ -482,10 +487,10 @@ static void vivi_fillbuff(struct vivi_dev *dev, struct vivi_buffer *buf)
+ 
+ 	mutex_lock(&dev->ctrl_handler.lock);
+ 	snprintf(str, sizeof(str), " brightness %3d, contrast %3d, saturation %3d, hue %d ",
+-			dev->brightness->cur.val,
+-			dev->contrast->cur.val,
+-			dev->saturation->cur.val,
+-			dev->hue->cur.val);
++			brightness->cur.val,
++			contrast->cur.val,
++			saturation->cur.val,
++			hue->cur.val);
+ 	gen_text(dev, vbuf, line++ * 16, 16, str);
+ 	snprintf(str, sizeof(str), " volume %3d ", dev->volume->cur.val);
+ 	gen_text(dev, vbuf, line++ * 16, 16, str);
+@@ -977,12 +982,29 @@ static int vidioc_s_input(struct file *file, void *priv, unsigned int i)
+ 	if (i >= NUM_INPUTS)
+ 		return -EINVAL;
+ 
++	if (i == dev->input)
++		return 0;
++
+ 	dev->input = i;
+ 	precalculate_bars(dev);
+ 	precalculate_line(dev);
+ 	return 0;
+ }
+ 
++static int vidioc_subscribe_event(struct v4l2_fh *fh,
++				struct v4l2_event_subscription *sub)
++{
++	int ret;
++
++	switch (sub->type) {
++	case V4L2_EVENT_CTRL:
++		return v4l2_ctrl_sub_fh(fh, sub,
++				v4l2_ctrl_handler_cnt(fh->ctrl_handler) * 2);
++	default:
++		return -EINVAL;
++	}
++}
++
+ /* --- controls ---------------------------------------------- */
+ 
+ static int vivi_s_ctrl(struct v4l2_ctrl *ctrl)
+@@ -1012,10 +1034,17 @@ static unsigned int
+ vivi_poll(struct file *file, struct poll_table_struct *wait)
+ {
+ 	struct vivi_dev *dev = video_drvdata(file);
++	struct v4l2_fh *fh = file->private_data;
+ 	struct vb2_queue *q = &dev->vb_vidq;
++	unsigned int res;
+ 
+ 	dprintk(dev, 1, "%s\n", __func__);
+-	return vb2_poll(q, file, wait);
++	res = vb2_poll(q, file, wait);
++	if (v4l2_event_pending(fh))
++		res |= POLLPRI;
++	else
++		poll_wait(file, &fh->events->wait, wait);
++	return res;
+ }
+ 
+ static int vivi_close(struct file *file)
+@@ -1132,7 +1161,7 @@ static const struct v4l2_ctrl_config vivi_ctrl_bitmask = {
+ 
+ static const struct v4l2_file_operations vivi_fops = {
+ 	.owner		= THIS_MODULE,
+-	.open		= v4l2_fh_open,
++	.open           = v4l2_fh_open,
+ 	.release        = vivi_close,
+ 	.read           = vivi_read,
+ 	.poll		= vivi_poll,
+@@ -1156,6 +1185,8 @@ static const struct v4l2_ioctl_ops vivi_ioctl_ops = {
+ 	.vidioc_s_input       = vidioc_s_input,
+ 	.vidioc_streamon      = vidioc_streamon,
+ 	.vidioc_streamoff     = vidioc_streamoff,
++	.vidioc_subscribe_event = vidioc_subscribe_event,
++	.vidioc_unsubscribe_event = v4l2_event_unsubscribe,
+ };
+ 
+ static struct video_device vivi_template = {
+@@ -1200,6 +1231,7 @@ static int __init vivi_create_instance(int inst)
+ 	struct v4l2_ctrl_handler *hdl;
+ 	struct vb2_queue *q;
+ 	int ret;
++	int i;
+ 
+ 	dev = kzalloc(sizeof(*dev), GFP_KERNEL);
+ 	if (!dev)
+@@ -1214,18 +1246,19 @@ static int __init vivi_create_instance(int inst)
+ 	dev->fmt = &formats[0];
+ 	dev->width = 640;
+ 	dev->height = 480;
++
+ 	hdl = &dev->ctrl_handler;
+-	v4l2_ctrl_handler_init(hdl, 11);
++	v4l2_ctrl_handler_init(hdl, 12);
++	v4l2_ctrl_new_std(hdl, &vivi_ctrl_ops,
++			V4L2_CID_BRIGHTNESS, i, 255, 1, 127 + i);
++	v4l2_ctrl_new_std(hdl, &vivi_ctrl_ops,
++			V4L2_CID_CONTRAST, i, 255, 1, 16 + i);
++	v4l2_ctrl_new_std(hdl, &vivi_ctrl_ops,
++			V4L2_CID_SATURATION, i, 255, 1, 127 + i);
++	v4l2_ctrl_new_std(hdl, &vivi_ctrl_ops,
++			V4L2_CID_HUE, -128 + i, 127, 1, i);
+ 	dev->volume = v4l2_ctrl_new_std(hdl, &vivi_ctrl_ops,
+ 			V4L2_CID_AUDIO_VOLUME, 0, 255, 1, 200);
+-	dev->brightness = v4l2_ctrl_new_std(hdl, &vivi_ctrl_ops,
+-			V4L2_CID_BRIGHTNESS, 0, 255, 1, 127);
+-	dev->contrast = v4l2_ctrl_new_std(hdl, &vivi_ctrl_ops,
+-			V4L2_CID_CONTRAST, 0, 255, 1, 16);
+-	dev->saturation = v4l2_ctrl_new_std(hdl, &vivi_ctrl_ops,
+-			V4L2_CID_SATURATION, 0, 255, 1, 127);
+-	dev->hue = v4l2_ctrl_new_std(hdl, &vivi_ctrl_ops,
+-			V4L2_CID_HUE, -128, 127, 1, 0);
+ 	dev->button = v4l2_ctrl_new_custom(hdl, &vivi_ctrl_button, NULL);
+ 	dev->int32 = v4l2_ctrl_new_custom(hdl, &vivi_ctrl_int32, NULL);
+ 	dev->int64 = v4l2_ctrl_new_custom(hdl, &vivi_ctrl_int64, NULL);
+@@ -1296,7 +1329,7 @@ static int __init vivi_create_instance(int inst)
+ rel_vdev:
+ 	video_device_release(vfd);
+ unreg_dev:
+-	v4l2_ctrl_handler_free(hdl);
++	v4l2_ctrl_handler_free(&dev->ctrl_handler);
+ 	v4l2_device_unregister(&dev->v4l2_dev);
+ free_dev:
+ 	kfree(dev);
+-- 
+1.7.1
 
-For example, I have this on one of my machines:
-
-$ lspci |grep Multimedia
-1c:00.0 Multimedia video controller: Conexant Systems, Inc. CX23885 PCI Video and Audio Decoder (rev 04)
-37:09.0 Multimedia controller: Philips Semiconductors SAA7131/SAA7133/SAA7135 Video Broadcast Decoder (rev d1)
-
-$ $ lsusb
-Bus 001 Device 001: ID 1d6b:0002 Linux Foundation 2.0 root hub
-Bus 002 Device 001: ID 1d6b:0002 Linux Foundation 2.0 root hub
-Bus 003 Device 001: ID 1d6b:0001 Linux Foundation 1.1 root hub
-Bus 004 Device 001: ID 1d6b:0001 Linux Foundation 1.1 root hub
-Bus 005 Device 001: ID 1d6b:0001 Linux Foundation 1.1 root hub
-Bus 006 Device 001: ID 1d6b:0001 Linux Foundation 1.1 root hub
-Bus 007 Device 001: ID 1d6b:0001 Linux Foundation 1.1 root hub
-Bus 008 Device 001: ID 1d6b:0001 Linux Foundation 1.1 root hub
-Bus 001 Device 004: ID 0409:005a NEC Corp. HighSpeed Hub
-Bus 001 Device 005: ID 0ac8:3330 Z-Star Microelectronics Corp. 
-Bus 008 Device 002: ID 2101:020f ActionStar 
-Bus 001 Device 003: ID 2040:4200 Hauppauge 
-Bus 001 Device 006: ID 0d8c:0126 C-Media Electronics, Inc. 
-
-I wrote an utility in the past that dig into the sysfs stuff to identify it, but
-I'm not sure if it is still working fine, as some changes at sysfs might affect it,
-as I never intended to maintain such utility.
-
-I'll seek for some time to re-write it with another approach and add it as a 
-library, inside v4l2-utils, eventually together with libv4l.
-
-Basically, all V4L devices are under video4linux class:
-
-$ tree /sys/class/video4linux/
-/sys/class/video4linux/
-├── vbi0 -> ../../devices/pci0000:00/0000:00:1e.0/0000:37:09.0/video4linux/vbi0
-├── video0 -> ../../devices/pci0000:00/0000:00:1c.0/0000:1c:00.0/video4linux/video0
-├── video1 -> ../../devices/pci0000:00/0000:00:1a.7/usb1/1-5/1-5:1.0/video4linux/video1
-├── video2 -> ../../devices/pci0000:00/0000:00:1e.0/0000:37:09.0/video4linux/video2
-└── video3 -> ../../devices/pci0000:00/0000:00:1a.7/usb1/1-6/1-6.2/1-6.2:1.0/video4linux/video3
-
-And all alsa devices are under sound class:
-
-$ tree /sys/class/sound/
-/sys/class/sound/
-├── card0 -> ../../devices/pci0000:00/0000:00:1b.0/sound/card0
-├── card1 -> ../../devices/pci0000:00/0000:00:1a.7/usb1/1-5/1-5:1.1/sound/card1
-├── card2 -> ../../devices/pci0000:00/0000:00:1e.0/0000:37:09.0/sound/card2
-├── card3 -> ../../devices/pci0000:00/0000:00:1a.7/usb1/1-6/1-6.3/1-6.3:1.0/sound/card3
-├── controlC0 -> ../../devices/pci0000:00/0000:00:1b.0/sound/card0/controlC0
-├── controlC1 -> ../../devices/pci0000:00/0000:00:1a.7/usb1/1-5/1-5:1.1/sound/card1/controlC1
-├── controlC2 -> ../../devices/pci0000:00/0000:00:1e.0/0000:37:09.0/sound/card2/controlC2
-├── controlC3 -> ../../devices/pci0000:00/0000:00:1a.7/usb1/1-6/1-6.3/1-6.3:1.0/sound/card3/controlC3
-├── hwC0D0 -> ../../devices/pci0000:00/0000:00:1b.0/sound/card0/hwC0D0
-├── pcmC0D0c -> ../../devices/pci0000:00/0000:00:1b.0/sound/card0/pcmC0D0c
-├── pcmC0D0p -> ../../devices/pci0000:00/0000:00:1b.0/sound/card0/pcmC0D0p
-├── pcmC1D0c -> ../../devices/pci0000:00/0000:00:1a.7/usb1/1-5/1-5:1.1/sound/card1/pcmC1D0c
-├── pcmC2D0c -> ../../devices/pci0000:00/0000:00:1e.0/0000:37:09.0/sound/card2/pcmC2D0c
-├── pcmC3D0p -> ../../devices/pci0000:00/0000:00:1a.7/usb1/1-6/1-6.3/1-6.3:1.0/sound/card3/pcmC3D0p
-├── seq -> ../../devices/virtual/sound/seq
-└── timer -> ../../devices/virtual/sound/timer
-
-All that such library/utility/function needs do to is to parse the two above sysfs directories
-and associate the devices based on the provided aliases.
-
-For example, on the above, we have 4 V4L cards:
-
-PCI card (in this case, a saa7134-based card)
-├── vbi0 -> ../../devices/pci0000:00/0000:00:1e.0/0000:37:09.0/video4linux/vbi0
-├── video2 -> ../../devices/pci0000:00/0000:00:1e.0/0000:37:09.0/video4linux/video2
-└── card2 -> ../../devices/pci0000:00/0000:00:1e.0/0000:37:09.0/sound/card2
-
-All tree are at the PCI device 0000:37:09.0.
-
-USB card (in this example, an em28xx-based card, that uses snd-usb-audio for alsa)
-├── video1 -> ../../devices/pci0000:00/0000:00:1a.7/usb1/1-5/1-5:1.0/video4linux/video1
-└── card1 -> ../../devices/pci0000:00/0000:00:1a.7/usb1/1-5/1-5:1.1/sound/card1
-
-All two are at the USB 1-5 device.
-
-DVB-C/DVB-T PCI card (in this case cx23885, without any alsa-associated device)
-└── video0 -> ../../devices/pci0000:00/0000:00:1c.0/0000:1c:00.0/video4linux/video0
-
-This one is at PCI device 0000:1c:00.0.
-
-UVC webcam (with audio provided by snd-usb-audio)
-├── video3 -> ../../devices/pci0000:00/0000:00:1a.7/usb1/1-6/1-6.2/1-6.2:1.0/video4linux/video3
-└── card3 -> ../../devices/pci0000:00/0000:00:1a.7/usb1/1-6/1-6.3/1-6.3:1.0/sound/card3
-
-All two are at the USB 1-6 device.
-
-So, it is easy to associate video and audio for each device. You can even associate the volume
-controls and the PCM input/outputs using the above info.
-
-Cheers,
-Mauro.
