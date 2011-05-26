@@ -1,48 +1,51 @@
 Return-path: <mchehab@pedra>
-Received: from ffm.saftware.de ([83.141.3.46]:38915 "EHLO ffm.saftware.de"
+Received: from mx1.redhat.com ([209.132.183.28]:31499 "EHLO mx1.redhat.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756696Ab1ESM6d (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 19 May 2011 08:58:33 -0400
-Message-ID: <4DD513F5.8060602@linuxtv.org>
-Date: Thu, 19 May 2011 14:58:29 +0200
-From: Andreas Oberritter <obi@linuxtv.org>
+	id S1756905Ab1EZOtX (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 26 May 2011 10:49:23 -0400
+Message-ID: <4DDE686C.6000900@redhat.com>
+Date: Thu, 26 May 2011 10:49:16 -0400
+From: Jarod Wilson <jarod@redhat.com>
 MIME-Version: 1.0
-To: Tomer Barletz <barletz@gmail.com>
-CC: Brice DUBOST <braice@braice.net>, linux-media@vger.kernel.org
-Subject: Re: [libdvben50221] [PATCH] Assign same resource_id in open_session_response
- when "resource non-existent"
-References: <AANLkTinT9oPT9ob3W6pzuvbxr502gAC5N02TOLGr_pLC@mail.gmail.com>	<4DD29848.6030901@braice.net> <BANLkTin6astzASvU6VfDwD2XCRuZToq+RQ@mail.gmail.com>
-In-Reply-To: <BANLkTin6astzASvU6VfDwD2XCRuZToq+RQ@mail.gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1
+To: Dan Carpenter <error27@gmail.com>
+CC: Mauro Carvalho Chehab <mchehab@infradead.org>,
+	=?ISO-8859-1?Q?David_?= =?ISO-8859-1?Q?H=E4rdeman?=
+	<david@hardeman.nu>, Dmitry Torokhov <dtor@mail.ru>,
+	"open list:MEDIA INPUT INFRA..." <linux-media@vger.kernel.org>,
+	kernel-janitors@vger.kernel.org
+Subject: Re: [patch] [media] rc: double unlock in rc_register_device()
+References: <20110526085201.GF14591@shale.localdomain>
+In-Reply-To: <20110526085201.GF14591@shale.localdomain>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On 05/18/2011 09:16 PM, Tomer Barletz wrote:
-> On Tue, May 17, 2011 at 8:46 AM, Brice DUBOST <braice@braice.net> wrote:
->> On 18/01/2011 15:42, Tomer Barletz wrote:
->>> Attached a patch for a bug in the lookup_callback function, were in
->>> case of a non-existent resource, the connected_resource_id is not
->>> initialized and then used in the open_session_response call of the
->>> session layer.
->>>
->>
->> Hello
->>
->> Can you explain what kind of bug it fixes ?
->>
->> Thanks
->>
-> 
-> The standard states that in case the module can't provide the
-> requested resource , it should reply with the same resource id - this
-> is the only line that was added.
-> Also, since the caller to this function might use the variable
-> returned, this variable must be initialized.
-> The attached patch solves both bugs.
+Dan Carpenter wrote:
+> If change_protocol() fails and we goto out_raw, then it calls unlock
+> twice.
 
-Can you please resend the patch inline with a proper signed-off-by line,
-in order to get it tracked by patchwork.kernel.org?
+Gah, good catch, I gotta quit adding new bugs... ;)
 
-Regards,
-Andreas
+
+> I noticed that the other time we called change_protocol() we
+> held the &dev->lock, so I changed it to hold it here too.
+>
+> Signed-off-by: Dan Carpenter<error27@gmail.com>
+> ---
+> Compile tested only.
+
+
+I've sanity-checked the code, and yeah, calling change_protocol() 
+function pointers with the lock held should be perfectly fine here too. 
+The change_protocol functions are device-driver-specific, and don't 
+touch the core rc device lock.
+
+Reviewed-by: Jarod Wilson <jarod@redhat.com>
+Acked-by: Jarod Wilson <jarod@redhat.com>
+
+-- 
+Jarod Wilson
+jarod@redhat.com
+
+
