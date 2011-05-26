@@ -1,59 +1,47 @@
 Return-path: <mchehab@pedra>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:47286 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756951Ab1EYIOb (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 25 May 2011 04:14:31 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: "Premi, Sanjeev" <premi@ti.com>
-Subject: Re: [PATCH] omap3: isp: fix compiler warning
-Date: Wed, 25 May 2011 10:14:46 +0200
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-References: <1305734811-2354-1-git-send-email-premi@ti.com> <201105222125.51967.laurent.pinchart@ideasonboard.com> <B85A65D85D7EB246BE421B3FB0FBB593024D09B451@dbde02.ent.ti.com>
-In-Reply-To: <B85A65D85D7EB246BE421B3FB0FBB593024D09B451@dbde02.ent.ti.com>
-MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201105251014.47204.laurent.pinchart@ideasonboard.com>
+Received: from mx1.redhat.com ([209.132.183.28]:43235 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755767Ab1EZVb6 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 26 May 2011 17:31:58 -0400
+Received: from int-mx01.intmail.prod.int.phx2.redhat.com (int-mx01.intmail.prod.int.phx2.redhat.com [10.5.11.11])
+	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id p4QLVwf5013015
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
+	for <linux-media@vger.kernel.org>; Thu, 26 May 2011 17:31:58 -0400
+From: Jarod Wilson <jarod@redhat.com>
+To: linux-media@vger.kernel.org
+Cc: Jarod Wilson <jarod@redhat.com>
+Subject: [PATCH] [media] mceusb: support I-O Data GV-MC7/RCKIT
+Date: Thu, 26 May 2011 17:31:55 -0400
+Message-Id: <1306445515-17941-1-git-send-email-jarod@redhat.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Hi Sanjeev,
+There's an SMK-device-id remote kit from I-O Data avaiable primarily in
+Japan, which appears to have no tx hardware, but has rx functionality
+that works with the mceusb driver by simply adding its device ID.
 
-On Monday 23 May 2011 20:09:58 Premi, Sanjeev wrote:
-> On Monday, May 23, 2011 12:56 AM Laurent Pinchart wrote:
-> > On Saturday 21 May 2011 12:55:32 Mauro Carvalho Chehab wrote:
-> > > Em 18-05-2011 13:06, Sanjeev Premi escreveu:
+http://www.iodata.jp/product/av/tidegi/gv-mc7rckit/
 
-[snip]
+Reported-by: Jeremy Kwok <jeremykwok@desu.ca>
+Signed-off-by: Jarod Wilson <jarod@redhat.com>
+---
+ drivers/media/rc/mceusb.c |    3 +++
+ 1 files changed, 3 insertions(+), 0 deletions(-)
 
-> > > > @@ -387,7 +387,7 @@ static inline void isp_isr_dbg(struct
-> > > > isp_device *isp, u32 irqstatus)
-> > > > 
-> > > >  	};
-> > > >  	int i;
-> > > > 
-> > > > -	dev_dbg(isp->dev, "");
-> > > > +	printk(KERN_DEBUG "%s:\n", dev_driver_string(isp->dev));
-> > 
-> > The original code doesn't include any \n. Is there a
-> > particular reason why you
-> > want to add one ?
-> 
-> [sp] Sorry, that's a mistake out of habit.
->      Another way to fix warning would be to make the string meaningful:
-> 
-> -	dev_dbg(isp->dev, "");
-> +	dev_dbg (isp->dev, "ISP_IRQ:");
-> 
->      Is this better?
-
-That looks good to me. I'll queue your patch in my tree (with a space after 
-the colon). Thanks.
-
+diff --git a/drivers/media/rc/mceusb.c b/drivers/media/rc/mceusb.c
+index 2f1d0b7..3c4fb7d 100644
+--- a/drivers/media/rc/mceusb.c
++++ b/drivers/media/rc/mceusb.c
+@@ -252,6 +252,9 @@ static struct usb_device_id mceusb_dev_table[] = {
+ 	  .driver_info = MCE_GEN2_TX_INV },
+ 	/* SMK eHome Infrared Transceiver */
+ 	{ USB_DEVICE(VENDOR_SMK, 0x0338) },
++	/* SMK/I-O Data GV-MC7/RCKIT Receiver */
++	{ USB_DEVICE(VENDOR_SMK, 0x0353),
++	  .driver_info = MCE_GEN2_NO_TX },
+ 	/* Tatung eHome Infrared Transceiver */
+ 	{ USB_DEVICE(VENDOR_TATUNG, 0x9150) },
+ 	/* Shuttle eHome Infrared Transceiver */
 -- 
-Regards,
+1.7.1
 
-Laurent Pinchart
