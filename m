@@ -1,87 +1,99 @@
 Return-path: <mchehab@pedra>
-Received: from mail.kapsi.fi ([217.30.184.167]:35131 "EHLO mail.kapsi.fi"
+Received: from smtp205.alice.it ([82.57.200.101]:50749 "EHLO smtp205.alice.it"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753327Ab1EDUgn (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 4 May 2011 16:36:43 -0400
-Message-ID: <4DC1B8D7.6020701@iki.fi>
-Date: Wed, 04 May 2011 23:36:39 +0300
-From: Antti Palosaari <crope@iki.fi>
-MIME-Version: 1.0
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-CC: linux-media@vger.kernel.org, Steven Toth <stoth@hauppauge.com>
-Subject: Re: [GIT PULL FOR 2.6.40] Anysee
-References: <4DBAEFC5.8080707@iki.fi> <4DC178C8.4040603@redhat.com>
-In-Reply-To: <4DC178C8.4040603@redhat.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+	id S1754475Ab1EZHrk (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 26 May 2011 03:47:40 -0400
+Date: Thu, 26 May 2011 09:47:30 +0200
+From: Antonio Ospite <ospite@studenti.unina.it>
+To: Jean-Francois Moine <moinejf@free.fr>
+Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Subject: Re: [PATCH] [media] gspca/kinect: wrap gspca_debug with GSPCA_DEBUG
+Message-Id: <20110526094730.bbf9d1e9.ospite@studenti.unina.it>
+In-Reply-To: <20110526084912.1ac3ac37@tele>
+References: <1306305788.2390.4.camel@porites>
+	<1306359272-30792-1-git-send-email-jarod@redhat.com>
+	<20110526084912.1ac3ac37@tele>
+Mime-Version: 1.0
+Content-Type: multipart/signed; protocol="application/pgp-signature";
+ micalg="PGP-SHA1";
+ boundary="Signature=_Thu__26_May_2011_09_47_30_+0200_ro5L3Ga5A_XO4E9L"
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Updated PULL requested!
+--Signature=_Thu__26_May_2011_09_47_30_+0200_ro5L3Ga5A_XO4E9L
+Content-Type: text/plain; charset=US-ASCII
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Cc: Steven Toth as cx24116 driver author.
+On Thu, 26 May 2011 08:49:12 +0200
+Jean-Francois Moine <moinejf@free.fr> wrote:
 
-On 05/04/2011 07:03 PM, Mauro Carvalho Chehab wrote:
-> Em 29-04-2011 14:05, Antti Palosaari escreveu:
->> Moikka Mauro,
->>
->> PULL following patches for the 2.6.40.
->>
->> This basically adds support for two Anysee satellite models:
->> 1. E30 S2 Plus
->> 2. E7 S2
->>
->>
->> t. Antti
->>
->> The following changes since commit f5bc5d1d4730bce69fbfdc8949ff50b49c70d934:
->>
->>    anysee: add more info about known board configs (2011-04-13 02:17:11 +0300)
->>
->> are available in the git repository at:
->>    git://linuxtv.org/anttip/media_tree.git anysee
->>
->> Antti Palosaari (3):
->>        cx24116: add config option to split firmware download
->>        anysee: add support for Anysee E30 S2 Plus
->>        anysee: add support for Anysee E7 S2
->
-> As I said you on irc, at cx24116, please add a logic to explicitly check if
-> I2C size is equal to zero. While your logic works, it is tricky, and having
-> a more readable code at the expense of something like:
-> 	if (i2c_max == 0)
-> 		i2c_max = 65535;
->
-> seems to be the right thing to do.
+> On Wed, 25 May 2011 17:34:32 -0400
+> Jarod Wilson <jarod@redhat.com> wrote:
+>=20
+> > diff --git a/drivers/media/video/gspca/kinect.c b/drivers/media/video/g=
+spca/kinect.c
+> > index 66671a4..26fc206 100644
+> > --- a/drivers/media/video/gspca/kinect.c
+> > +++ b/drivers/media/video/gspca/kinect.c
+> > @@ -34,7 +34,7 @@ MODULE_AUTHOR("Antonio Ospite <ospite@studenti.unina.=
+it>");
+> >  MODULE_DESCRIPTION("GSPCA/Kinect Sensor Device USB Camera Driver");
+> >  MODULE_LICENSE("GPL");
+> > =20
+> > -#ifdef DEBUG
+> > +#ifdef GSPCA_DEBUG
+> >  int gspca_debug =3D D_ERR | D_PROBE | D_CONF | D_STREAM | D_FRAM | D_P=
+ACK |
+> >  	D_USBI | D_USBO | D_V4L2;
+> >  #endif
+>=20
+> Hi Jarod,
+>=20
+> Sorry, it is not the right fix. In fact, the variable gspca_debug must
+> not be defined in gspca subdrivers:
+>=20
+> --- a/drivers/media/video/gspca/kinect.c
+> +++ b/drivers/media/video/gspca/kinect.c
+> @@ -34,11 +34,6 @@
+>  MODULE_DESCRIPTION("GSPCA/Kinect Sensor Device USB Camera Driver");
+>  MODULE_LICENSE("GPL");
+> =20
+> -#ifdef DEBUG
+> -int gspca_debug =3D D_ERR | D_PROBE | D_CONF | D_STREAM | D_FRAM | D_PAC=
+K |
+> -	D_USBI | D_USBO | D_V4L2;
+> -#endif
+> -
+>  struct pkt_hdr {
+>  	uint8_t magic[2];
+>  	uint8_t pad;
+>=20
 
-For some reason as I mentioned on IRC, this change increases binary size 
-52 bytes, whilst functionality remains same. Feel free to select this 
-new or old patch.
+OK.
 
-t. Antti
+Thanks,
+   Antonio
 
-The following changes since commit f5bc5d1d4730bce69fbfdc8949ff50b49c70d934:
+--=20
+Antonio Ospite
+http://ao2.it
 
-   anysee: add more info about known board configs (2011-04-13 02:17:11 
-+0300)
+PGP public key ID: 0x4553B001
 
-are available in the git repository at:
-   git://linuxtv.org/anttip/media_tree.git anysee
+A: Because it messes up the order in which people normally read text.
+   See http://en.wikipedia.org/wiki/Posting_style
+Q: Why is top-posting such a bad thing?
 
-Antti Palosaari (4):
-       cx24116: add config option to split firmware download
-       anysee: add support for Anysee E30 S2 Plus
-       anysee: add support for Anysee E7 S2
-       cx24116: make FW DL split more readable
+--Signature=_Thu__26_May_2011_09_47_30_+0200_ro5L3Ga5A_XO4E9L
+Content-Type: application/pgp-signature
 
-  drivers/media/dvb/dvb-usb/Kconfig     |    4 +
-  drivers/media/dvb/dvb-usb/anysee.c    |  103 
-+++++++++++++++++++++++++++++++++
-  drivers/media/dvb/dvb-usb/anysee.h    |    1 +
-  drivers/media/dvb/frontends/cx24116.c |   19 +++++-
-  drivers/media/dvb/frontends/cx24116.h |    3 +
-  5 files changed, 127 insertions(+), 3 deletions(-)
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.11 (GNU/Linux)
 
+iEYEARECAAYFAk3eBZIACgkQ5xr2akVTsAEuAACfeKV4rMuJt52Hl8OeFvdjXmTM
+rgUAoK8nHMltRxUpKyF5kwjuTgr/ell0
+=8bL+
+-----END PGP SIGNATURE-----
 
--- 
-http://palosaari.fi/
+--Signature=_Thu__26_May_2011_09_47_30_+0200_ro5L3Ga5A_XO4E9L--
