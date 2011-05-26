@@ -1,59 +1,106 @@
 Return-path: <mchehab@pedra>
-Received: from cinke.fazekas.hu ([195.199.244.225]:57069 "EHLO
-	cinke.fazekas.hu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750698Ab1EVAaN (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 21 May 2011 20:30:13 -0400
-Date: Sun, 22 May 2011 02:19:57 +0200 (CEST)
-From: Balint Marton <cus@fazekas.hu>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-cc: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: [PATCH 08/13] [media] rc-winfast: Fix the keycode tables
-In-Reply-To: <20110124131843.7b5c82c7@pedra>
-Message-ID: <alpine.LNX.2.00.1105220215030.28057@cinke.fazekas.hu>
-References: <cover.1295882104.git.mchehab@redhat.com> <20110124131843.7b5c82c7@pedra>
+Received: from mx1.redhat.com ([209.132.183.28]:43281 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1757065Ab1EZAXV (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 25 May 2011 20:23:21 -0400
+Message-ID: <4DDD9D70.1030404@redhat.com>
+Date: Wed, 25 May 2011 21:23:12 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
+To: Hans Verkuil <hverkuil@xs4all.nl>
+CC: linux-media <linux-media@vger.kernel.org>,
+	Manjunatha Halli <manjunatha_halli@ti.com>,
+	"Matti J. Aaltonen" <matti.j.aaltonen@nokia.com>
+Subject: Re: [GIT PATCHES FOR 2.6.40] Fixes
+References: <201105231306.56050.hverkuil@xs4all.nl> <4DDB0D08.2000503@redhat.com> <201105240828.32866.hverkuil@xs4all.nl> <201105251027.48424.hverkuil@xs4all.nl>
+In-Reply-To: <201105251027.48424.hverkuil@xs4all.nl>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Hi,
+Em 25-05-2011 05:27, Hans Verkuil escreveu:
+> On Tuesday, May 24, 2011 08:28:32 Hans Verkuil wrote:
+>> On Tuesday, May 24, 2011 03:42:32 Mauro Carvalho Chehab wrote:
+>>> Em 23-05-2011 08:06, Hans Verkuil escreveu:
+>>>> Hi Mauro,
+>>>>
+>>>> Here are a few fixes: the first fixes a bug in the wl12xx drivers (I hope Matti's
+>>>> email is still correct). The second fixes a few DocBook validation errors, and
+>>>> the last fixes READ_ONLY and GRABBED handling in the control framework.
+>>>>
+>>>> Regards,
+>>>>
+>>>> 	Hans
+>>>>
+>>>> The following changes since commit 87cf028f3aa1ed51fe29c36df548aa714dc7438f:
+>>>>
+>>>>   [media] dm1105: GPIO handling added, I2C on GPIO added, LNB control through GPIO reworked (2011-05-21 11:10:28 -0300)
+>>>>
+>>>> are available in the git repository at:
+>>>>   ssh://linuxtv.org/git/hverkuil/media_tree.git fixes
+>>>>
+>>>> Hans Verkuil (3):
+>>>>       wl12xx: g_volatile_ctrl fix: wrong field set.
+>>>>       Media DocBook: fix validation errors.
+>>>
+>>> The two above are fixes...
+>>>
+>>>>       v4l2-ctrls: drivers should be able to ignore READ_ONLY and GRABBED flags
+>>>
+>>> But this one is a change at the behaviour. I need to analyse it better. The idea
+>>> of a "read only" control that it is not read only seems too weird on my tired eyes.
+>>
+>> It's read-only for *applications*. But if you have a read-only control that
+>> reflects a driver state, then it should be possible for a *driver* to change
+>> it. It's something that is needed for the upcoming Flash and HDMI APIs.
+>>
+>> The userspace behavior does not change.
+>>
+>> BTW, if you prefer to move this last patch to 2.6.41, then that's OK by me.
+>> It's not really necessary for 2.6.40.
+> 
+> I'm going to move this patch to 2.6.41, so there is no need for you to review this.
+> I'll include it in another patch series I'm working on.
 
-> One of the remotes has a picture available at:
-> 	http://lirc.sourceforge.net/remotes/leadtek/Y04G0004.jpg
->
-> As there's one variant with a set direction keys plus vol/chann
-> keys, and the same table is used for both models, change it to
-> represent all keys, avoiding the usage of weird function keys.
->
-> Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
->
-> diff --git a/drivers/media/rc/keymaps/rc-winfast.c b/drivers/media/rc/keymaps/rc-winfast.c
-> index 2747db4..0062ca2 100644
-> --- a/drivers/media/rc/keymaps/rc-winfast.c
-> +++ b/drivers/media/rc/keymaps/rc-winfast.c
-> @@ -27,15 +27,15 @@ static struct rc_map_table winfast[] = {
-> 	{ 0x0e, KEY_8 },
-> 	{ 0x0f, KEY_9 },
->
-> -	{ 0x00, KEY_POWER },
-> +	{ 0x00, KEY_POWER2 },
-> 	{ 0x1b, KEY_AUDIO },		/* Audio Source */
-> 	{ 0x02, KEY_TUNER },		/* TV/FM, not on Y0400052 */
-> 	{ 0x1e, KEY_VIDEO },		/* Video Source */
-> 	{ 0x16, KEY_INFO },		/* Display information */
-> -	{ 0x04, KEY_VOLUMEUP },
-> -	{ 0x08, KEY_VOLUMEDOWN },
-> -	{ 0x0c, KEY_CHANNELUP },
-> -	{ 0x10, KEY_CHANNELDOWN },
-> +	{ 0x04, KEY_LEFT },
-> +	{ 0x08, KEY_RIGHT },
-> +	{ 0x0c, KEY_UP },
-> +	{ 0x10, KEY_DOWN },
+Ok, I'll remove it from my queue.
 
-Left and right key is now swapped on my remote. (Which is exactly the same 
-model by the way that was shown in Y04G0004.jpg.) Could you please swap 
-the two keys?
+Thanks,
+Mauro
 
-Regards,
-   Marton
+> 
+> Regards,
+> 
+> 	Hans
+> 
+>>
+>> Regards,
+>>
+>> 	Hans
+>>
+>>>
+>>> I'll take a more careful look on it tomorrow.
+>>>
+>>> Thanks,
+>>> Mauro.
+>>>
+>>>>
+>>>>  Documentation/DocBook/dvb/dvbproperty.xml    |    5 ++-
+>>>>  Documentation/DocBook/v4l/subdev-formats.xml |   10 ++--
+>>>>  drivers/media/radio/radio-wl1273.c           |    2 +-
+>>>>  drivers/media/radio/wl128x/fmdrv_v4l2.c      |    2 +-
+>>>>  drivers/media/video/v4l2-ctrls.c             |   59 +++++++++++++++++---------
+>>>>  5 files changed, 50 insertions(+), 28 deletions(-)
+>>>> --
+>>>> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+>>>> the body of a message to majordomo@vger.kernel.org
+>>>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>>>
+>>>
+>> --
+>> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+>> the body of a message to majordomo@vger.kernel.org
+>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>>
+>>
+
