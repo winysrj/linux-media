@@ -1,348 +1,48 @@
 Return-path: <mchehab@pedra>
-Received: from mailout-de.gmx.net ([213.165.64.23]:40777 "HELO
-	mailout-de.gmx.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1755844Ab1EATGG (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sun, 1 May 2011 15:06:06 -0400
-Received: from tobias-t61p.localnet (unknown [10.2.3.10])
-	by mail.lorenz.priv (Postfix) with ESMTPS id CB133141ED
-	for <linux-media@vger.kernel.org>; Sun,  1 May 2011 21:06:02 +0200 (CEST)
-From: Tobias Lorenz <tobias.lorenz@gmx.net>
-To: linux-media@vger.kernel.org
-Subject: [PATCH 6/6] removement of locking mechanisms
-Date: Sun, 1 May 2011 21:03:32 +0200
+Received: from mail.une.net.co ([200.13.249.119]:41645 "EHLO
+	une-pmta02.une.net.co" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1755301Ab1EZWG6 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 26 May 2011 18:06:58 -0400
+Content-Type: text/plain; charset=US-ASCII
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201105012103.32066.tobias.lorenz@gmx.net>
+Content-Transfer-Encoding: 7BIT
+Content-Description: Mail message body
+Subject: Pick up Your $5000USD Now!!!
+To: Recipients <info@western.com>
+From: =?utf-8?q?=22Western_Union_Money_Transfer=C2=A9=22=3Cinfo=40western=2Ecom?=@une-pmta02.une.net.co,
+	=?utf-8?q?=3E?=@une-pmta02.une.net.co
+Date: Thu, 26 May 2011 14:58:59 -0700
+Reply-To: w.westernmoneytransfer@yahoo.com.hk
+Message-Id: <20110526220016.955741FF01D@une-pmta02.une.net.co>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-This patch minimized the use of locking.
-Basically locking is only required where open/close/disconnect is done.
+How are you doing today?
 
-Interfering calls usually happen only to rds read/write operations.
-The code for ring buffer handling is changed in a way that makes locking there 
-unnecessary.
-In case of extensive compiler optimization, the worst that can happen is 
-dropped new data or redundant read of data.
+I write to inform you that we have already sent you USD5000.00 dollars through Western union as we have been given the mandate to transfer your full benefited sum of $1,800,000.00USD via our office here (Western Union)  by the United nations in conjunction with the Nigeria Government as a compensation.
 
-The good thing is that the clicking noise problem seems finally resolved with 
-that patch!
+I called to give you the information through phone as internet hackers were many but i cannot reach you yesterday even this morning.So,I decided to email you the MTCN and sender name so that can pick up this USD5000.00 to enable us send another USD5000.00 by tomorrow as you knows we will be sending you only USD5000.00 per day.
 
-Signed-off-by: Tobias Lorenz <tobias.lorenz@gmx.net>
----
- drivers/media/radio/si470x/radio-si470x-common.c |   39 +++++----------------
- drivers/media/radio/si470x/radio-si470x-i2c.c    |   16 ++++++---
- drivers/media/radio/si470x/radio-si470x-usb.c    |   19 +++++++----
- drivers/media/radio/si470x/radio-si470x.h        |    2 +-
- 4 files changed, 34 insertions(+), 42 deletions(-)
+Kindly pick up this information and hurry up to the nearest western union money office that is close to you and pick up this first payment that has been sent to you now and as soon as you are done with the pick up kindly get back to us in order for us to send you another payment by tomorrow,as you know that we shall be sending  you $5000usd par day.
 
-diff --git a/drivers/media/radio/si470x/radio-si470x-common.c 
-b/drivers/media/radio/si470x/radio-si470x-common.c
-index 60bd95d..b184292 100644
---- a/drivers/media/radio/si470x/radio-si470x-common.c
-+++ b/drivers/media/radio/si470x/radio-si470x-common.c
-@@ -347,7 +347,8 @@ static ssize_t si470x_fops_read(struct file *file, char 
-__user *buf,
- {
- 	struct si470x_device *radio = video_drvdata(file);
- 	int retval = 0;
--	unsigned int block_count = 0;
-+	size_t copied = 0;
-+	unsigned int new_rd_index = 0;
- 
- 	/* switch on rds reception */
- 	if ((radio->registers[SYSCONFIG1] & SYSCONFIG1_RDS) == 0)
-@@ -366,31 +367,28 @@ static ssize_t si470x_fops_read(struct file *file, char 
-__user *buf,
- 		}
- 	}
- 
--	/* calculate block count from byte count */
--	count /= 3;
--
- 	/* copy RDS block out of internal buffer and to user buffer */
--	mutex_lock(&radio->lock);
--	while (block_count < count) {
-+	while (copied < count) {
- 		if (radio->rd_index == radio->wr_index)
- 			break;
- 
--		/* always transfer rds complete blocks */
-+		/* always transfer complete rds blocks */
- 		if (copy_to_user(buf, &radio->buffer[radio->rd_index], 3))
- 			/* retval = -EFAULT; */
- 			break;
- 
- 		/* increment and wrap read pointer */
--		radio->rd_index += 3;
--		if (radio->rd_index >= radio->buf_size)
-+		new_rd_index = radio->rd_index + 3;
-+		if (new_rd_index < radio->buf_size)
-+			radio->rd_index = new_rd_index;
-+		else
- 			radio->rd_index = 0;
- 
- 		/* increment counters */
--		block_count++;
-+		copied += 3;
- 		buf += 3;
--		retval += 3;
- 	}
--	mutex_unlock(&radio->lock);
-+	retval = copied;
- 
- done:
- 	return retval;
-@@ -407,11 +405,8 @@ static unsigned int si470x_fops_poll(struct file *file,
- 	int retval = 0;
- 
- 	/* switch on rds reception */
--
--	mutex_lock(&radio->lock);
- 	if ((radio->registers[SYSCONFIG1] & SYSCONFIG1_RDS) == 0)
- 		si470x_rds_on(radio);
--	mutex_unlock(&radio->lock);
- 
- 	poll_wait(file, &radio->read_queue, pts);
- 
-@@ -485,7 +480,6 @@ static int si470x_vidioc_g_ctrl(struct file *file, void 
-*priv,
- 	struct si470x_device *radio = video_drvdata(file);
- 	int retval = 0;
- 
--	mutex_lock(&radio->lock);
- 	/* safety checks */
- 	retval = si470x_disconnect_check(radio);
- 	if (retval)
-@@ -509,7 +503,6 @@ done:
- 		dev_warn(&radio->videodev->dev,
- 			"get control failed with %d\n", retval);
- 
--	mutex_unlock(&radio->lock);
- 	return retval;
- }
- 
-@@ -523,7 +516,6 @@ static int si470x_vidioc_s_ctrl(struct file *file, void 
-*priv,
- 	struct si470x_device *radio = video_drvdata(file);
- 	int retval = 0;
- 
--	mutex_lock(&radio->lock);
- 	/* safety checks */
- 	retval = si470x_disconnect_check(radio);
- 	if (retval)
-@@ -550,7 +542,6 @@ done:
- 	if (retval < 0)
- 		dev_warn(&radio->videodev->dev,
- 			"set control failed with %d\n", retval);
--	mutex_unlock(&radio->lock);
- 	return retval;
- }
- 
-@@ -580,7 +571,6 @@ static int si470x_vidioc_g_tuner(struct file *file, void 
-*priv,
- 	struct si470x_device *radio = video_drvdata(file);
- 	int retval = 0;
- 
--	mutex_lock(&radio->lock);
- 	/* safety checks */
- 	retval = si470x_disconnect_check(radio);
- 	if (retval)
-@@ -650,7 +640,6 @@ done:
- 	if (retval < 0)
- 		dev_warn(&radio->videodev->dev,
- 			"get tuner failed with %d\n", retval);
--	mutex_unlock(&radio->lock);
- 	return retval;
- }
- 
-@@ -664,7 +653,6 @@ static int si470x_vidioc_s_tuner(struct file *file, void 
-*priv,
- 	struct si470x_device *radio = video_drvdata(file);
- 	int retval = 0;
- 
--	mutex_lock(&radio->lock);
- 	/* safety checks */
- 	retval = si470x_disconnect_check(radio);
- 	if (retval)
-@@ -691,7 +679,6 @@ done:
- 	if (retval < 0)
- 		dev_warn(&radio->videodev->dev,
- 			"set tuner failed with %d\n", retval);
--	mutex_unlock(&radio->lock);
- 	return retval;
- }
- 
-@@ -706,7 +693,6 @@ static int si470x_vidioc_g_frequency(struct file *file, 
-void *priv,
- 	int retval = 0;
- 
- 	/* safety checks */
--	mutex_lock(&radio->lock);
- 	retval = si470x_disconnect_check(radio);
- 	if (retval)
- 		goto done;
-@@ -723,7 +709,6 @@ done:
- 	if (retval < 0)
- 		dev_warn(&radio->videodev->dev,
- 			"get frequency failed with %d\n", retval);
--	mutex_unlock(&radio->lock);
- 	return retval;
- }
- 
-@@ -737,7 +722,6 @@ static int si470x_vidioc_s_frequency(struct file *file, 
-void *priv,
- 	struct si470x_device *radio = video_drvdata(file);
- 	int retval = 0;
- 
--	mutex_lock(&radio->lock);
- 	/* safety checks */
- 	retval = si470x_disconnect_check(radio);
- 	if (retval)
-@@ -754,7 +738,6 @@ done:
- 	if (retval < 0)
- 		dev_warn(&radio->videodev->dev,
- 			"set frequency failed with %d\n", retval);
--	mutex_unlock(&radio->lock);
- 	return retval;
- }
- 
-@@ -768,7 +751,6 @@ static int si470x_vidioc_s_hw_freq_seek(struct file *file, 
-void *priv,
- 	struct si470x_device *radio = video_drvdata(file);
- 	int retval = 0;
- 
--	mutex_lock(&radio->lock);
- 	/* safety checks */
- 	retval = si470x_disconnect_check(radio);
- 	if (retval)
-@@ -785,7 +767,6 @@ done:
- 	if (retval < 0)
- 		dev_warn(&radio->videodev->dev,
- 			"set hardware frequency seek failed with %d\n", retval);
--	mutex_unlock(&radio->lock);
- 	return retval;
- }
- 
-diff --git a/drivers/media/radio/si470x/radio-si470x-i2c.c 
-b/drivers/media/radio/si470x/radio-si470x-i2c.c
-index 4ce541a..e956bcc 100644
---- a/drivers/media/radio/si470x/radio-si470x-i2c.c
-+++ b/drivers/media/radio/si470x/radio-si470x-i2c.c
-@@ -273,6 +273,8 @@ static void si470x_i2c_interrupt_work(struct work_struct 
-*work)
- 	unsigned short rds;
- 	unsigned char tmpbuf[3];
- 	int retval = 0;
-+	unsigned int new_wr_index = 0;
-+	unsigned int new_rd_index = 0;
- 
- 	/* safety checks */
- 	if ((radio->registers[SYSCONFIG1] & SYSCONFIG1_RDS) == 0)
-@@ -325,17 +327,21 @@ static void si470x_i2c_interrupt_work(struct work_struct 
-*work)
- 
- 		/* copy RDS block to internal buffer */
- 		memcpy(&radio->buffer[radio->wr_index], &tmpbuf, 3);
--		radio->wr_index += 3;
- 
--		/* wrap write pointer */
--		if (radio->wr_index >= radio->buf_size)
-+		/* increment and wrap write pointer */
-+		new_wr_index = radio->wr_index + 3;
-+		if (radio->wr_index < radio->buf_size)
-+			radio->wr_index = new_wr_index;
-+		else
- 			radio->wr_index = 0;
- 
- 		/* check for overflow */
- 		if (radio->wr_index == radio->rd_index) {
- 			/* increment and wrap read pointer */
--			radio->rd_index += 3;
--			if (radio->rd_index >= radio->buf_size)
-+			new_rd_index = radio->rd_index + 3;
-+			if (radio->rd_index < radio->buf_size)
-+				radio->rd_index = new_rd_index;
-+			else
- 				radio->rd_index = 0;
- 		}
- 	}
-diff --git a/drivers/media/radio/si470x/radio-si470x-usb.c 
-b/drivers/media/radio/si470x/radio-si470x-usb.c
-index 57462b3..4df6d32e 100644
---- a/drivers/media/radio/si470x/radio-si470x-usb.c
-+++ b/drivers/media/radio/si470x/radio-si470x-usb.c
-@@ -375,8 +375,6 @@ int si470x_disconnect_check(struct si470x_device *radio)
- 
- /*
-  * si470x_int_in_callback - rds callback and processing function
-- *
-- * TODO: do we need to use mutex locks in some sections?
-  */
- static void si470x_int_in_callback(struct urb *urb)
- {
-@@ -388,6 +386,8 @@ static void si470x_int_in_callback(struct urb *urb)
- 	unsigned short bler; /* rds block errors */
- 	unsigned short rds;
- 	unsigned char tmpbuf[3];
-+	unsigned int new_wr_index = 0;
-+	unsigned int new_rd_index = 0;
- 
- 	if (urb->status) {
- 		if (urb->status == -ENOENT ||
-@@ -458,20 +458,25 @@ static void si470x_int_in_callback(struct urb *urb)
- 
- 			/* copy RDS block to internal buffer */
- 			memcpy(&radio->buffer[radio->wr_index], &tmpbuf, 3);
--			radio->wr_index += 3;
- 
--			/* wrap write pointer */
--			if (radio->wr_index >= radio->buf_size)
-+			/* increment and wrap write pointer */
-+			new_wr_index = radio->wr_index + 3;
-+			if (radio->wr_index < radio->buf_size)
-+				radio->wr_index = new_wr_index;
-+			else
- 				radio->wr_index = 0;
- 
- 			/* check for overflow */
- 			if (radio->wr_index == radio->rd_index) {
- 				/* increment and wrap read pointer */
--				radio->rd_index += 3;
--				if (radio->rd_index >= radio->buf_size)
-+				new_rd_index = radio->rd_index + 3;
-+				if (radio->rd_index < radio->buf_size)
-+					radio->rd_index = new_rd_index;
-+				else
- 					radio->rd_index = 0;
- 			}
- 		}
-+
- 		if (radio->wr_index != radio->rd_index)
- 			wake_up_interruptible(&radio->read_queue);
- 	}
-diff --git a/drivers/media/radio/si470x/radio-si470x.h 
-b/drivers/media/radio/si470x/radio-si470x.h
-index 7e1cc47..283275d 100644
---- a/drivers/media/radio/si470x/radio-si470x.h
-+++ b/drivers/media/radio/si470x/radio-si470x.h
-@@ -147,13 +147,13 @@ struct si470x_device {
- 
- 	/* driver management */
- 	unsigned int users;
-+	struct mutex lock;
- 
- 	/* Silabs internal registers (0..15) */
- 	unsigned short registers[RADIO_REGISTER_NUM];
- 
- 	/* RDS receive buffer */
- 	wait_queue_head_t read_queue;
--	struct mutex lock;		/* buffer locking */
- 	unsigned char *buffer;		/* size is always multiple of three */
- 	unsigned int buf_size;
- 	unsigned int rd_index;
--- 
-1.7.4.1
+Manager :Mrs.Anita Daniel
+Email: w.westernmoneytransfer@yahoo.com.hk
 
+Email me once you picked up this USD5000.00 today.
+Here is the western union information to pick up the USD5000.00,
+
+Payment Information.
+MTCN :_______________853-435-9544
+Sender's Name:_________Rose Micheal
+Text Question:__________What
+Answer:_______________Blue
+Amount Sent___________$5000.00USD
+Country:_______________Nigeria
+
+With due respect please get back to us urgently after the pick of the money and 
+if you have any problem you can as well contact us immediately.
+
+Thanks
+Mrs. Anita Daniel.
+western union Office.
