@@ -1,76 +1,60 @@
 Return-path: <mchehab@pedra>
-Received: from cmsout02.mbox.net ([165.212.64.32]:59363 "EHLO
-	cmsout02.mbox.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752920Ab1EDLHK convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 4 May 2011 07:07:10 -0400
-Received: from cmsout02.mbox.net (co02-lo [127.0.0.1])
-	by cmsout02.mbox.net (Postfix) with ESMTP id A8BA01340F1
-	for <linux-media@vger.kernel.org>; Wed,  4 May 2011 11:07:09 +0000 (GMT)
-Date: Wed, 04 May 2011 13:07:05 +0200
-From: "Issa Gorissen" <flop.m@usa.net>
-To: <linux-media@vger.kernel.org>
-Subject: Re: [PATCH] Ngene cam device name
-Mime-Version: 1.0
-Message-ID: <889PeDLgF4624S03.1304507225@web03.cms.usa.net>
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+Received: from mx1.redhat.com ([209.132.183.28]:50676 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752500Ab1EZAaS (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 25 May 2011 20:30:18 -0400
+Message-ID: <4DDD9F11.20903@redhat.com>
+Date: Wed, 25 May 2011 21:30:09 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+MIME-Version: 1.0
+To: Hans Petter Selasky <hselasky@c2i.net>
+CC: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Subject: Re: [PATCH] Inlined functions should be static.
+References: <201105231607.13668.hselasky@c2i.net> <Pine.LNX.4.64.1105232022460.30305@axis700.grange> <4DDAA788.80908@redhat.com> <201105232050.55676.hselasky@c2i.net>
+In-Reply-To: <201105232050.55676.hselasky@c2i.net>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-From: Andreas Oberritter <obi@linuxtv.org>
+Em 23-05-2011 15:50, Hans Petter Selasky escreveu:
+> On Monday 23 May 2011 20:29:28 Mauro Carvalho Chehab wrote:
+>> Em 23-05-2011 15:23, Guennadi Liakhovetski escreveu:
+>>> On Mon, 23 May 2011, Hans Petter Selasky wrote:
+>>>> --HPS
+>>>
+>>> (again, inlining would save me copy-pasting)
+>>
+>> Yeah... hard to comment not-inlined patches...
+>>
+>>>> -inline u32 stb0899_do_div(u64 n, u32 d)
+>>>> +static inline u32 stb0899_do_div(u64 n, u32 d)
+>>>
+>>> while at it you could as well remove the unneeded in a C file "inline"
+>>> attribute.
+>>
+>> hmm... foo_do_div()... it seems to be yet-another-implementation
+>> of asm/div64.h. If so, it is better to just remove this thing
+>> and use the existing function.
+>>
 > 
-> Of course I'm referring to devices connected to the same physical
-> adapter. Otherwise they would all be called ca0. Device enumeration
-> always starts at 0, for each adapter. What you're describing just
-> doesn't make sense.
+> The reason for this patch is that some version of GCC generated some garbage 
+> code on this function under certain conditions. Removing inline completly on 
+> this static function in a C file is fine by me. Do I need to create another 
+> patch?
 
+Just looked inside the code: it is not re-implementing the wheel. I don't like
+such macros, but it should not hurt. 
 
-Yes indeed you're right, I answered too quickly.
+So, I just applied your patch.
 
-
-> Last but not least, using a different adapter number wouldn't fit
-> either, because a DVB adapter is supposed to
-> - be one independent piece of hardware
-> - provide at least a frontend and a demux device
-
-
-How would you support device like the Hauppauge WinTV-CI ? This one comes on a
-USB port and does not provide any frontend and demux device.
-
-
+Thanks,
+Mauro.
 > 
-> At least on embedded devices, it simply isn't feasible to copy a TS to
-> userspace from a demux, just to copy it back to the kernel and again
-> back to userspace through a caio device, when live streaming. But you
-> may want to provide a way to use the caio device for
-> offline-descrambling. Unless you want to force users to buy multiple
-> modules and multiple subscriptions for a single receiver, which in turn
-> would need multiple CI slots, you need a way to make sure caio can not
-> be used during live streaming. If this dependency is between different
-> adapters, then something is really, really wrong.
-
-
-With the transmitted keys changed frequently (at least for viaccess), what's
-the point in supporting offline descrambling when it will not work reliably
-for all ?
-
-As for descrambling multiple tv channels from different transponders with only
-one cam, this is already possible. An example is what Digital Devices calls
-MTD (Multi Transponder Decrypting). But this is CAM dependent, some do not
-support it.
-
-Question is, where does this belong ? kernel or userspace ?
-
-
-> 
-> Why don't you just create a new device, e.g. ciX, deprecate the use of
-> caX for CI devices, inherit CI-related existing ioctls from the CA API,
-> translate the existing read and write funtions to ioctls and then use
-> read and write for TS I/O? IIRC, Ralph suggested something similar. I'm
-> pretty sure this can be done without too much code and in a backwards
-> compatible way.
-
-
-I'm open to this idea, but is there a consensus on this big API change ?
-(deprecating ca device) If yes, I will try to prepare something.
+> --HPS
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
