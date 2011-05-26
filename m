@@ -1,106 +1,69 @@
 Return-path: <mchehab@pedra>
-Received: from ffm.saftware.de ([83.141.3.46]:40991 "EHLO ffm.saftware.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752969Ab1EDNvI (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 4 May 2011 09:51:08 -0400
-Message-ID: <4DC159C7.1070201@linuxtv.org>
-Date: Wed, 04 May 2011 15:51:03 +0200
-From: Andreas Oberritter <obi@linuxtv.org>
+Received: from perceval.ideasonboard.com ([95.142.166.194]:45330 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756944Ab1EZIyp (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 26 May 2011 04:54:45 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+Subject: Re: [GIT PATCH FOR 2.6.40] uvcvideo patches
+Date: Thu, 26 May 2011 10:54:59 +0200
+Cc: linux-media@vger.kernel.org, Arnd Bergmann <arnd@arndb.de>
+References: <201105150948.24956.laurent.pinchart@ideasonboard.com> <201105260143.35396.laurent.pinchart@ideasonboard.com> <4DDD95AF.4010004@redhat.com>
+In-Reply-To: <4DDD95AF.4010004@redhat.com>
 MIME-Version: 1.0
-To: Issa Gorissen <flop.m@usa.net>
-CC: linux-media@vger.kernel.org
-Subject: Re: [PATCH] Ngene cam device name
-References: <889PeDLgF4624S03.1304507225@web03.cms.usa.net>
-In-Reply-To: <889PeDLgF4624S03.1304507225@web03.cms.usa.net>
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
+Message-Id: <201105261054.59914.laurent.pinchart@ideasonboard.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On 05/04/2011 01:07 PM, Issa Gorissen wrote:
-> From: Andreas Oberritter <obi@linuxtv.org>
->>
->> Of course I'm referring to devices connected to the same physical
->> adapter. Otherwise they would all be called ca0. Device enumeration
->> always starts at 0, for each adapter. What you're describing just
->> doesn't make sense.
+On Thursday 26 May 2011 01:50:07 Mauro Carvalho Chehab wrote:
+> Em 25-05-2011 20:43, Laurent Pinchart escreveu:
+> > Issues arise when devices have floating point registers. And yes, that
+> > happens, I've learnt today about an I2C sensor with floating point
+> > registers (in this specific case it should probably be put in the broken
+> > design category, but it exists :-)).
 > 
+> Huh! Yeah, an I2C sensor with FP registers sound weird. We need more
+> details in order to address those.
+
+Fortunately for the sensor I'm talking about most of those registers are read-
+only and contain large values that can be handled as integers, so all we need 
+to do is convert the 32-bit IEEE float value into an integer. Other hardware 
+might require more complex FP handling.
+
+> >>> There's an industry trend there, and we need to think about solutions
+> >>> now otherwise we will be left without any way forward when too many
+> >>> devices will be impossible to support from kernelspace (OMAP4 is a
+> >>> good example there, some device drivers require communication with
+> >>> other cores, and the communication API is implemented in userspace).
+> >> 
+> >> Needing to go to userspace to allow inter-core communication seems very
+> >> bad. I seriously doubt that this is a trend. It seems more like a
+> >> broken-by-design type of architecture.
+> > 
+> > I'm inclined to agree with you, but we should address these issues now,
+> > while we have relatively few devices impacted by them. I fear that
+> > ignoring the problem and hoping it will go away by itself will bring us
+> > to a difficult position in the future. We should show the industry in
+> > which direction we would like it to go.
 > 
-> Yes indeed you're right, I answered too quickly.
-> 
-> 
->> Last but not least, using a different adapter number wouldn't fit
->> either, because a DVB adapter is supposed to
->> - be one independent piece of hardware
->> - provide at least a frontend and a demux device
-> 
-> 
-> How would you support device like the Hauppauge WinTV-CI ? This one comes on a
-> USB port and does not provide any frontend and demux device.
+> I'm all about showing the industry in with direction we would like it to
+> go. We want that all Linux-supported architectures/sub-architectures
+> support inter-core communications in kernelspace, in a more efficient way
+> that it would happen if such communication would happen in userspace.
 
-Yes, as an exception, this device indeed wouldn't have a frontend,
-because it doesn't exist physycally.
+I agree with that. My concern is about things like
 
-It wouldn't have multiple adapters numbers either.
+"Standardizing on the OpenMax media libraries and the GStreamer framework is 
+the direction that Linaro is going." (David Rusling, Linaro CTO, quoted on 
+lwn.net)
 
->> At least on embedded devices, it simply isn't feasible to copy a TS to
->> userspace from a demux, just to copy it back to the kernel and again
->> back to userspace through a caio device, when live streaming. But you
->> may want to provide a way to use the caio device for
->> offline-descrambling. Unless you want to force users to buy multiple
->> modules and multiple subscriptions for a single receiver, which in turn
->> would need multiple CI slots, you need a way to make sure caio can not
->> be used during live streaming. If this dependency is between different
->> adapters, then something is really, really wrong.
-> 
-> 
-> With the transmitted keys changed frequently (at least for viaccess), what's
-> the point in supporting offline descrambling when it will not work reliably
-> for all ?
+We need to address this now, otherwise it will be too late.
 
-The reliability of offline descrambling depends on the network operators
-policy. So while it won't be useful for everybody in the world, it might
-well be useful to all customers of certain operators.
-
-> As for descrambling multiple tv channels from different transponders with only
-> one cam, this is already possible. An example is what Digital Devices calls
-> MTD (Multi Transponder Decrypting). But this is CAM dependent, some do not
-> support it.
-
-What's the point if it doesn't work reliably for everybody? ;-)
-
-> Question is, where does this belong ? kernel or userspace ?
-
-I guess it depends on whether the remultiplexing takes place in hardware
-or software (remapping of PIDs and generation of the joined SI data).
-
->> Why don't you just create a new device, e.g. ciX, deprecate the use of
->> caX for CI devices, inherit CI-related existing ioctls from the CA API,
->> translate the existing read and write funtions to ioctls and then use
->> read and write for TS I/O? IIRC, Ralph suggested something similar. I'm
->> pretty sure this can be done without too much code and in a backwards
->> compatible way.
-> 
-> 
-> I'm open to this idea, but is there a consensus on this big API change ?
-> (deprecating ca device) If yes, I will try to prepare something.
-
-The existing API could be copied to linux/dvb/ci.h and then simplified
-and reviewed.
-
-- There's no need for a slot number. Just assign a device node to every
-CI slot.
-- CA_CI_PHYS is unused.
-- ci.h doesn't need CA_DESCR, CA_SC, ca_descr_info_t, ca_caps_t,
-ca_descr_t, ca_pid_t and accompanying ioctls.
-- ca_slot_info.type should be an enum instead of a bitmask.
-- ca_msg.index and ca_msg.type are probably unused
-- Instead of a fixed length array, ca_msg.msg might as well just be a
-pointer to a user allocated buffer
-- Then, CA_GET_MSG should use _IOWR, because the maximum length must be
-read inside the kernel.
-
-Btw., does the av7110 really support two distinct CI slots?
-
+-- 
 Regards,
-Andreas
+
+Laurent Pinchart
