@@ -1,74 +1,70 @@
-Return-path: <mchehab@gaivota>
-Received: from ffm.saftware.de ([83.141.3.46]:59168 "EHLO ffm.saftware.de"
+Return-path: <mchehab@pedra>
+Received: from mx1.redhat.com ([209.132.183.28]:3068 "EHLO mx1.redhat.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751114Ab1EIKMM (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 9 May 2011 06:12:12 -0400
-Message-ID: <4DC7BDF7.1020706@linuxtv.org>
-Date: Mon, 09 May 2011 12:12:07 +0200
-From: Andreas Oberritter <obi@linuxtv.org>
+	id S1753952Ab1EZAH2 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 25 May 2011 20:07:28 -0400
+Message-ID: <4DDD99B5.2050105@redhat.com>
+Date: Wed, 25 May 2011 21:07:17 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
 MIME-Version: 1.0
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-CC: linux-media@vger.kernel.org,
-	Thierry LELEGARD <tlelegard@logiways.com>
-Subject: Re: [PATCH 2/8] DVB: dtv_property_cache_submit shouldn't modifiy
- the cache
-References: <1304895821-21642-1-git-send-email-obi@linuxtv.org> <1304895821-21642-3-git-send-email-obi@linuxtv.org> <4DC7665E.5000202@redhat.com> <4DC769A6.1090100@redhat.com>
-In-Reply-To: <4DC769A6.1090100@redhat.com>
+To: jean-francois Moine <moinejf@free.fr>
+CC: Hans Petter Selasky <hselasky@c2i.net>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Subject: Re: [PATCH] Make nchg variable signed because the code compares this
+ variable against negative values.
+References: <201105231309.54265.hselasky@c2i.net>
+In-Reply-To: <201105231309.54265.hselasky@c2i.net>
 Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 8bit
 List-ID: <linux-media.vger.kernel.org>
-Sender: Mauro Carvalho Chehab <mchehab@gaivota>
+Sender: <mchehab@pedra>
 
-On 05/09/2011 06:12 AM, Mauro Carvalho Chehab wrote:
-> Em 09-05-2011 05:58, Mauro Carvalho Chehab escreveu:
->> Em 09-05-2011 01:03, Andreas Oberritter escreveu:
->>> - Use const pointers and remove assignments.
->>
->> That's OK.
->>
->>> - delivery_system already gets assigned by DTV_DELIVERY_SYSTEM
->>>   and dtv_property_cache_sync.
->>
->> The logic for those legacy params is too complex. It is easy that
->> a latter patch to break the implicit set via dtv_property_cache_sync().
->>
->> Do you actually see a bug caused by the extra set for the delivery system?
->> If not, I prefer to keep this extra re-assignment.
+Jean-François,
 
-No, but I was suprised to see the dtv_frontend_properties getting
-modified in this function. There are three functions converting between
-old and new structures:
+This patch looks ok to me, although the description is not 100%. 
 
-dtv_property_cache_sync:
-  converts from dvb_frontend_parameters to dtv_frontend_properties
+The sonixj driver compares the value for nchg with
+		if (sd->nchg < -6 || sd->nchg >= 12) {
 
-dtv_property_legacy_params_sync and dtv_property_adv_params_sync:
-  convert from dtv_frontend_properties to dvb_frontend_parameters
+With u8, negative values won't work.
 
-Assigning to fields of a source structure indicates a logical error. I
-haven't found any comment on why this should be needed in the Git
-history or in the mailing list archives.
+Please check.
 
-Btw., I think that two functions should be enough. Any reason for not
-merging dtv_property_adv_params_sync into
-dtv_property_legacy_params_sync and calling the latter unconditionally?
+Thanks!
+Mauro
 
-> Hmm... after applying all patches the logic change, and patch 2 may actually
-> make sense. I'll need to re-examine the patch series. 
+
+
+Em 23-05-2011 08:09, Hans Petter Selasky escreveu:
+> --HPS
 > 
-> On a quick look, if applied as-is, I suspect that git bisect
-> will break dvb in the middle of the patch series.
+> 
+> dvb-usb-0006.patch
+> 
+> 
+> From b05d4913df24f11c7b7a2e07201bb87a04a949bc Mon Sep 17 00:00:00 2001
+> From: Hans Petter Selasky <hselasky@c2i.net>
+> Date: Mon, 23 May 2011 13:09:18 +0200
+> Subject: [PATCH] Make nchg variable signed because the code compares this variable against negative values.
+> 
+> Signed-off-by: Hans Petter Selasky <hselasky@c2i.net>
+> ---
+>  drivers/media/video/gspca/sonixj.c |    2 +-
+>  1 files changed, 1 insertions(+), 1 deletions(-)
+> 
+> diff --git a/drivers/media/video/gspca/sonixj.c b/drivers/media/video/gspca/sonixj.c
+> index 6415aff..81b8a60 100644
+> --- a/drivers/media/video/gspca/sonixj.c
+> +++ b/drivers/media/video/gspca/sonixj.c
+> @@ -60,7 +60,7 @@ struct sd {
+>  
+>  	u32 pktsz;			/* (used by pkt_scan) */
+>  	u16 npkt;
+> -	u8 nchg;
+> +	s8 nchg;
+>  	s8 short_mark;
+>  
+>  	u8 quality;			/* image quality */
+> -- 1.7.1.1
 
-Patches 6 and 8 depend on the patches mentioned in the cover letter. All
-other patches should apply and compile cleanly. Which patch do you
-suspect to break bisectability?
 
-> Anyway, patch 1/8 is OK. For now, I'll apply only this patch. I'll delay the
-> others until I have more time. I'm currently traveling abroad, due to Linaro
-> Development Summit, so, I don't have much time for review (and I'm also suffering
-> for a 5 hours jet-leg).
-
-OK, there's no hurry.
-
-Regards,
-Andreas
