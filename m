@@ -1,71 +1,90 @@
 Return-path: <mchehab@pedra>
-Received: from mail-vx0-f174.google.com ([209.85.220.174]:65358 "EHLO
-	mail-vx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751494Ab1EUL54 (ORCPT
+Received: from hqemgate03.nvidia.com ([216.228.121.140]:5906 "EHLO
+	hqemgate03.nvidia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754349Ab1EZAGl (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 21 May 2011 07:57:56 -0400
-Received: by vxi39 with SMTP id 39so3186214vxi.19
-        for <linux-media@vger.kernel.org>; Sat, 21 May 2011 04:57:55 -0700 (PDT)
-Message-ID: <4DD7A8BC.4020207@gmail.com>
-Date: Sat, 21 May 2011 08:57:48 -0300
-From: Mauro Carvalho Chehab <maurochehab@gmail.com>
+	Wed, 25 May 2011 20:06:41 -0400
+From: <achew@nvidia.com>
+To: <g.liakhovetski@gmx.de>, <mchehab@redhat.com>, <olof@lixom.net>
+CC: <linux-media@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
+	Andrew Chew <achew@nvidia.com>
+Subject: [PATCH 3/5 v2] [media] ov9740: Fixed some settings
+Date: Wed, 25 May 2011 17:04:30 -0700
+Message-ID: <1306368272-28279-3-git-send-email-achew@nvidia.com>
+In-Reply-To: <1306368272-28279-1-git-send-email-achew@nvidia.com>
+References: <1306368272-28279-1-git-send-email-achew@nvidia.com>
 MIME-Version: 1.0
-To: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
-CC: linux-media@vger.kernel.org, laurent.pinchart@ideasonboard.com,
-	nkanchev@mm-sol.com, g.liakhovetski@gmx.de, hverkuil@xs4all.nl,
-	dacohen@gmail.com, riverful@gmail.com, andrew.b.adams@gmail.com,
-	shpark7@stanford.edu
-Subject: Re: [PATCH 3/3] adp1653: Add driver for LED flash controller
-References: <4DD4F3CA.3040300@maxwell.research.nokia.com> <1305801686-32360-3-git-send-email-sakari.ailus@maxwell.research.nokia.com>
-In-Reply-To: <1305801686-32360-3-git-send-email-sakari.ailus@maxwell.research.nokia.com>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Em 19-05-2011 07:41, Sakari Ailus escreveu:
-> This patch adds the driver for the adp1653 LED flash controller. This
-> controller supports a high power led in flash and torch modes and an
-> indicator light, sometimes also called privacy light.
-> 
-> The adp1653 is used on the Nokia N900.
-> 
-> Signed-off-by: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
-> Signed-off-by: Tuukka Toivonen <tuukkat76@gmail.com>
-> Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-> Signed-off-by: David Cohen <dacohen@gmail.com>
-> ---
->  drivers/media/video/Kconfig   |    7 +
->  drivers/media/video/Makefile  |    2 +
->  drivers/media/video/adp1653.c |  481 +++++++++++++++++++++++++++++++++++++++++
->  include/media/adp1653.h       |  126 +++++++++++
->  4 files changed, 616 insertions(+), 0 deletions(-)
->  create mode 100644 drivers/media/video/adp1653.c
->  create mode 100644 include/media/adp1653.h
-> 
-> diff --git a/drivers/media/video/Kconfig b/drivers/media/video/Kconfig
-> index 00f51dd..c004dbb 100644
-> --- a/drivers/media/video/Kconfig
-> +++ b/drivers/media/video/Kconfig
-> @@ -344,6 +344,13 @@ config VIDEO_TCM825X
->  	  This is a driver for the Toshiba TCM825x VGA camera sensor.
->  	  It is used for example in Nokia N800.
->  
-> +config VIDEO_ADP1653
-> +	tristate "ADP1653 flash support"
-> +	depends on I2C && VIDEO_V4L2 && MEDIA_CONTROLLER
-> +	---help---
-> +	  This is a driver for the ADP1653 flash controller. It is used for
-> +	  example in Nokia N900.
-> +
->  config VIDEO_SAA7110
->  	tristate "Philips SAA7110 video decoder"
->  	depends on VIDEO_V4L2 && I2C
+From: Andrew Chew <achew@nvidia.com>
 
-The patches look sane. I have just one comment: Please, create a separate
-section for the LED controls. OK, some patches already messed the Kconfig stuff
-by mixing sensors together with video decoders, but let's not make the things
-worse.
+Based on vendor feedback, should issue a software reset at start of day.
 
-Thanks,
-Mauro.
+Also, OV9740_ANALOG_CTRL15 needs to be changed so the sensor does not begin
+streaming until it is ready (otherwise, results in a nonsense frame for the
+initial frame).
+
+For discontinuous clocks, need to change OV9740_MIPI_CTRL00.
+
+Finally, OV9740_ISP_CTRL19 needs to be changed to really use YUYV ordering
+(the previous value was for VYUY).
+
+Signed-off-by: Andrew Chew <achew@nvidia.com>
+---
+ drivers/media/video/ov9740.c |   10 +++++++++-
+ 1 files changed, 9 insertions(+), 1 deletions(-)
+
+diff --git a/drivers/media/video/ov9740.c b/drivers/media/video/ov9740.c
+index d5c9061..9d7c74d 100644
+--- a/drivers/media/video/ov9740.c
++++ b/drivers/media/video/ov9740.c
+@@ -68,6 +68,7 @@
+ #define OV9740_ANALOG_CTRL04		0x3604
+ #define OV9740_ANALOG_CTRL10		0x3610
+ #define OV9740_ANALOG_CTRL12		0x3612
++#define OV9740_ANALOG_CTRL15		0x3615
+ #define OV9740_ANALOG_CTRL20		0x3620
+ #define OV9740_ANALOG_CTRL21		0x3621
+ #define OV9740_ANALOG_CTRL22		0x3622
+@@ -222,6 +223,9 @@ struct ov9740_priv {
+ };
+ 
+ static const struct ov9740_reg ov9740_defaults[] = {
++	/* Software Reset */
++	{ OV9740_SOFTWARE_RESET,	0x01 },
++
+ 	/* Banding Filter */
+ 	{ OV9740_AEC_B50_STEP_HI,	0x00 },
+ 	{ OV9740_AEC_B50_STEP_LO,	0xe8 },
+@@ -333,6 +337,7 @@ static const struct ov9740_reg ov9740_defaults[] = {
+ 	{ OV9740_ANALOG_CTRL10,		0xa1 },
+ 	{ OV9740_ANALOG_CTRL12,		0x24 },
+ 	{ OV9740_ANALOG_CTRL22,		0x9f },
++	{ OV9740_ANALOG_CTRL15,		0xf0 },
+ 
+ 	/* Sensor Control */
+ 	{ OV9740_SENSOR_CTRL03,		0x42 },
+@@ -385,7 +390,7 @@ static const struct ov9740_reg ov9740_defaults[] = {
+ 	{ OV9740_LN_LENGTH_PCK_LO,	0x62 },
+ 
+ 	/* MIPI Control */
+-	{ OV9740_MIPI_CTRL00,		0x44 },
++	{ OV9740_MIPI_CTRL00,		0x64 }, /* 0x44 for continuous clock */
+ 	{ OV9740_MIPI_3837,		0x01 },
+ 	{ OV9740_MIPI_CTRL01,		0x0f },
+ 	{ OV9740_MIPI_CTRL03,		0x05 },
+@@ -393,6 +398,9 @@ static const struct ov9740_reg ov9740_defaults[] = {
+ 	{ OV9740_VFIFO_RD_CTRL,		0x16 },
+ 	{ OV9740_MIPI_CTRL_3012,	0x70 },
+ 	{ OV9740_SC_CMMM_MIPI_CTR,	0x01 },
++
++	/* YUYV order */
++	{ OV9740_ISP_CTRL19,		0x02 },
+ };
+ 
+ static const struct ov9740_reg ov9740_regs_vga[] = {
+-- 
+1.7.5.2
+
