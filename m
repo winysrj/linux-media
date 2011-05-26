@@ -1,127 +1,80 @@
-Return-path: <mchehab@gaivota>
-Received: from cmsout01.mbox.net ([165.212.64.31]:46399 "EHLO
-	cmsout01.mbox.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756571Ab1ELNrg (ORCPT
+Return-path: <mchehab@pedra>
+Received: from mail-iy0-f174.google.com ([209.85.210.174]:49215 "EHLO
+	mail-iy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753672Ab1EZLbv (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 12 May 2011 09:47:36 -0400
-Received: from cmsout01.mbox.net (cmsout01-lo [127.0.0.1])
-	by cmsout01.mbox.net (Postfix) with ESMTP id 08C773AC0DB
-	for <linux-media@vger.kernel.org>; Thu, 12 May 2011 13:47:35 +0000 (GMT)
-Message-ID: <4DCBE4DD.1040202@usa.net>
-Date: Thu, 12 May 2011 15:47:09 +0200
-From: Issa Gorissen <flop.m@usa.net>
+	Thu, 26 May 2011 07:31:51 -0400
+Received: by iyb14 with SMTP id 14so537204iyb.19
+        for <linux-media@vger.kernel.org>; Thu, 26 May 2011 04:31:51 -0700 (PDT)
 MIME-Version: 1.0
-To: linux-media@vger.kernel.org
-Subject: [PATCH] ngene: blocking and nonblocking io for sec0
+In-Reply-To: <D9AEF5C4-C0FE-4CBA-B124-0C3C0EC4F5EA@beagleboard.org>
+References: <1306322212-26879-1-git-send-email-javier.martin@vista-silicon.com>
+	<F50AF7E4-DCBA-4FC9-971A-ADF01F342FEF@beagleboard.org>
+	<BANLkTiksN_+12hdQFOQ9+bS5LBU+QSR4cA@mail.gmail.com>
+	<07EF42D6-0587-4F35-8431-E03B9994F9B5@beagleboard.org>
+	<BANLkTikon2uw4DWcsXLCnLD1crfbV7HP_Q@mail.gmail.com>
+	<D9AEF5C4-C0FE-4CBA-B124-0C3C0EC4F5EA@beagleboard.org>
+Date: Thu, 26 May 2011 13:31:37 +0200
+Message-ID: <BANLkTimCLVfvuVEPuEeYH_T3BCV-1EB5hw@mail.gmail.com>
+Subject: Re: [beagleboard] [PATCH] Second RFC version of mt9p031 sensor with
+ power managament.
+From: javier Martin <javier.martin@vista-silicon.com>
+To: Koen Kooi <koen@beagleboard.org>
+Cc: beagleboard@googlegroups.com, linux-media@vger.kernel.org,
+	g.liakhovetski@gmx.de, laurent.pinchart@ideasonboard.com,
+	carlighting@yahoo.co.nz
 Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
-Sender: Mauro Carvalho Chehab <mchehab@gaivota>
+Sender: <mchehab@pedra>
 
-Patch allows for blocking or nonblocking io on the ngene sec0 device.
-It also enforces one reader and one writer at a time.
+OK, I think I've found the problem with the power management.
 
-Signed-off-by: Issa Gorissen <flop.m@usa.net>
---
+As it is stated in mt9p031 datasheet [3] p 59, a sequence involving
+[VAA,VAA_PIX,VDD_PLL], [VDD,VDD_IO], [Reset] and [Ext Clk] must be
+followed in order to properly power up or down the sensor.
 
---- a/linux/drivers/media/dvb/ngene/ngene-dvb.c	2011-05-10 19:11:21.000000000 +0200
-+++ b/linux/drivers/media/dvb/ngene/ngene-dvb.c	2011-05-12 15:28:53.573185365 +0200
-@@ -53,15 +53,29 @@ static ssize_t ts_write(struct file *fil
- 	struct dvb_device *dvbdev = file->private_data;
- 	struct ngene_channel *chan = dvbdev->priv;
- 	struct ngene *dev = chan->dev;
-+	int avail = 0;
-+	char nonblock = file->f_flags & O_NONBLOCK;
- 
--	if (wait_event_interruptible(dev->tsout_rbuf.queue,
--				     dvb_ringbuffer_free
--				     (&dev->tsout_rbuf) >= count) < 0)
-+	if (!count)
- 		return 0;
- 
--	dvb_ringbuffer_write(&dev->tsout_rbuf, buf, count);
-+	if (nonblock) {
-+		avail = dvb_ringbuffer_avail(&dev->tsout_rbuf);
-+		if (!avail)
-+			return -EAGAIN;
-+	} else {
-+		while (1) {
-+			if (wait_event_interruptible(dev->tsout_rbuf.queue,
-+						     dvb_ringbuffer_free
-+						     (&dev->tsout_rbuf) >= count) >= 0)
-+				break;
-+		}
-+		avail = count;
-+	}
-+
-+	dvb_ringbuffer_write(&dev->tsout_rbuf, buf, avail);
-+	return avail;
- 
--	return count;
- }
- 
- static ssize_t ts_read(struct file *file, char *buf,
-@@ -70,22 +84,35 @@ static ssize_t ts_read(struct file *file
- 	struct dvb_device *dvbdev = file->private_data;
- 	struct ngene_channel *chan = dvbdev->priv;
- 	struct ngene *dev = chan->dev;
--	int left, avail;
-+	int avail = 0;
-+	char nonblock = file->f_flags & O_NONBLOCK;
- 
--	left = count;
--	while (left) {
--		if (wait_event_interruptible(
--			    dev->tsin_rbuf.queue,
--			    dvb_ringbuffer_avail(&dev->tsin_rbuf) > 0) < 0)
--			return -EAGAIN;
-+	if (!count)
-+		return 0;
-+
-+	if (nonblock) {
- 		avail = dvb_ringbuffer_avail(&dev->tsin_rbuf);
--		if (avail > left)
--			avail = left;
--		dvb_ringbuffer_read_user(&dev->tsin_rbuf, buf, avail);
--		left -= avail;
--		buf += avail;
-+	} else {
-+		while (!avail) {
-+			if (wait_event_interruptible(
-+				    dev->tsin_rbuf.queue,
-+				    dvb_ringbuffer_avail(&dev->tsin_rbuf) > 0) < 0)
-+				continue;
-+
-+			avail = dvb_ringbuffer_avail(&dev->tsin_rbuf);
-+		}
- 	}
--	return count;
-+
-+	if (avail > count)
-+		avail = count;
-+	if (avail > 0)
-+		dvb_ringbuffer_read_user(&dev->tsin_rbuf, buf, avail);
-+
-+	if (!avail)
-+		return -EAGAIN;
-+	else
-+		return avail;
-+
- }
- 
- static const struct file_operations ci_fops = {
-@@ -98,9 +125,9 @@ static const struct file_operations ci_f
- 
- struct dvb_device ngene_dvbdev_ci = {
- 	.priv    = 0,
--	.readers = -1,
--	.writers = -1,
--	.users   = -1,
-+	.readers = 1,
-+	.writers = 1,
-+	.users   = 2,
- 	.fops    = &ci_fops,
- };
- 
+If we take a look to the LI-5M031 schematic[1] and Beagleboard xM
+schematic [2] we'll notice that voltages are connected as follows:
+
+[VDD] (1,8V) <--- V2.8 <--- CAM_CORE <--- VAUX3 TPS65950
+[VDD_IO (VDDQ)] (1,8V) <--- V1.8 <--- CAM_IO <--- VAUX4 TPS65950
+[VAA, VAA_PIX, VDD_PLL] (2,8V) <---| U6 |<-- V3.3VD <-- HUB_3V3 <--|
+U16 | enabled by USBHOST_PWR_EN <-- LEDA TPS65950
+
+VAUX3 (VDD) and VAUX4 (VDD_IO) are fine, they are only used for
+powering our camera sensor. However, when it comes to the analog part
+(VAA, VAA_PIX...), it is got from HUB_3V3 which is also used for
+powering USB and ethernet.
+
+If we really want to activate/deactivate regulators that power mt9p031
+we need to follow [3] p59. However, for that purpose we need to ensure
+that a call to regulator_enable() or regulator_disable() will really
+power on/off that supply, otherwise the sequence won't be matched and
+the chip will have problems.
+
+Beagleboard xM is a good example of platform where this happens since
+HUB_3V3 and thus (VAA, VAA_PIX, etc...) cannot be deactivated since it
+is being used by other devices. But there could be others.
+
+So, as a conclusion, and in order to unblock my work, my purpose for
+power management in mt9p031 would be the following:
+- Drop regulator handling as we cannot guarantee that power on
+sequence will be accomplished.
+- Keep on asserting/de-asserting reset which saves a lot of power.
+- Also activate/deactivate clock when necessary to save some power.
+
+I'm looking forward to read your comments on this.
+
+[1] https://www.leopardimaging.com/uploads/li-5m03_camera_board_v2.pdf
+[2] http://beagle.s3.amazonaws.com/design/xM-A3/BB-xM_Schematic_REVA3.pdf
+[3] http://www.aptina.com/products/image_sensors/mt9p031i12stc/
 
 
+-- 
+Javier Martin
+Vista Silicon S.L.
+CDTUC - FASE C - Oficina S-345
+Avda de los Castros s/n
+39005- Santander. Cantabria. Spain
++34 942 25 32 60
+www.vista-silicon.com
