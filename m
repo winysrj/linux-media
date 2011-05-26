@@ -1,67 +1,63 @@
 Return-path: <mchehab@pedra>
-Received: from mail-ew0-f46.google.com ([209.85.215.46]:65430 "EHLO
-	mail-ew0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754480Ab1EaNm0 (ORCPT
+Received: from mailfe06.c2i.net ([212.247.154.162]:56914 "EHLO swip.net"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1752439Ab1EZH7k convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 31 May 2011 09:42:26 -0400
-Received: by ewy4 with SMTP id 4so1623581ewy.19
-        for <linux-media@vger.kernel.org>; Tue, 31 May 2011 06:42:25 -0700 (PDT)
+	Thu, 26 May 2011 03:59:40 -0400
+Received: from [188.126.198.129] (account mc467741@c2i.net HELO laptop002.hselasky.homeunix.org)
+  by mailfe06.swip.net (CommuniGate Pro SMTP 5.2.19)
+  with ESMTPA id 130980087 for linux-media@vger.kernel.org; Thu, 26 May 2011 09:59:38 +0200
+From: Hans Petter Selasky <hselasky@c2i.net>
+To: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Subject: [PATCH v2] Remove unused definitions which can cause conflict with definitions in usb/ch9.h.
+Date: Thu, 26 May 2011 09:58:23 +0200
 MIME-Version: 1.0
-In-Reply-To: <3F25E36F-2420-4D9A-BF5E-77278EB3E238@beagleboard.org>
-References: <1306835210-1345-1-git-send-email-javier.martin@vista-silicon.com>
-	<1306835210-1345-2-git-send-email-javier.martin@vista-silicon.com>
-	<3F25E36F-2420-4D9A-BF5E-77278EB3E238@beagleboard.org>
-Date: Tue, 31 May 2011 15:42:25 +0200
-Message-ID: <BANLkTimNe8C73PEiP+LC+4tQhjJuixwdvQ@mail.gmail.com>
-Subject: Re: [beagleboard] [PATCH v5 2/2] Add support for mt9p031 (LI-5M03
- module) in Beagleboard xM.
-From: javier Martin <javier.martin@vista-silicon.com>
-To: Koen Kooi <koen@beagleboard.org>
-Cc: beagleboard@googlegroups.com, linux-media@vger.kernel.org,
-	g.liakhovetski@gmx.de, laurent.pinchart@ideasonboard.com,
-	carlighting@yahoo.co.nz, mch_kot@yahoo.com.cn
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain;
+  charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+Message-Id: <201105260958.23397.hselasky@c2i.net>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On 31 May 2011 15:34, Koen Kooi <koen@beagleboard.org> wrote:
-> root@beagleboardxMC:~# yavta -f SGRBG8 -s 320x240 -n 4 --capture=10 --skip 3 -F `media-ctl -e "OMAP3 ISP CCDC output"`
-> Device /dev/video2 opened.
-> Device `OMAP3 ISP CCDC output' on `media' is a video capture device.
-> Video format set: SGRBG8 (47425247) 320x240 buffer size 76800
-> Video format: SGRBG8 (47425247) 320x240 buffer size 76800
-> 4 buffers requested.
-> length: 76800 offset: 0
-> Buffer 0 mapped at address 0x402cf000.
-> length: 76800 offset: 77824
-> Buffer 1 mapped at address 0x402fe000.
-> length: 76800 offset: 155648
-> Buffer 2 mapped at address 0x40362000.
-> length: 76800 offset: 233472
-> Buffer 3 mapped at address 0x40416000.
-> 0 (0) [-] 4294967295 76800 bytes 167.403289 1306829219.931121 0.002 fps
-> 1 (1) [-] 4294967295 76800 bytes 167.633148 1306829220.160980 4.350 fps
-> 2 (2) [-] 4294967295 76800 bytes 167.744506 1306829220.272308 8.980 fps
-> 3 (3) [-] 4294967295 76800 bytes 167.855865 1306829220.383667 8.980 fps
-> 4 (0) [-] 4294967295 76800 bytes 167.967193 1306829220.495025 8.982 fps
-> 5 (1) [-] 4294967295 76800 bytes 168.078552 1306829220.606384 8.980 fps
-> 6 (2) [-] 4294967295 76800 bytes 168.189910 1306829220.717742 8.980 fps
-> 7 (3) [-] 4294967295 76800 bytes 168.301269 1306829220.829071 8.980 fps
-> 8 (0) [-] 4294967295 76800 bytes 168.412597 1306829220.940429 8.982 fps
-> 9 (1) [-] 4294967295 76800 bytes 168.523956 1306829221.051788 8.980 fps
-> Captured 10 frames in 1.254212 seconds (7.973134 fps, 612336.670356 B/s).
-> 4 buffers released.
->
-> So that seems to be working! I haven't checked the frames yet, but is isn't throwing ISP errors anymore.
+>From 0dd2949dfeae431ed4ffbd00fd14a10dc3747ad0 Mon Sep 17 00:00:00 2001
+From: Hans Petter Selasky <hselasky@c2i.net>
+Date: Thu, 26 May 2011 09:56:55 +0200
+Subject: [PATCH] Remove unused definitions which can cause conflict with definitions in usb/ch9.h.
 
-Great!
-Do you have a monochrome version of the same sensor?
+Signed-off-by: Hans Petter Selasky <hselasky@c2i.net>
+---
+ drivers/media/dvb/dvb-usb/gp8psk.h |    3 ---
+ drivers/media/dvb/dvb-usb/vp7045.h |    3 ---
+ 2 files changed, 0 insertions(+), 6 deletions(-)
 
+diff --git a/drivers/media/dvb/dvb-usb/gp8psk.h b/drivers/media/dvb/dvb-usb/gp8psk.h
+index 831749a..ed32b9d 100644
+--- a/drivers/media/dvb/dvb-usb/gp8psk.h
++++ b/drivers/media/dvb/dvb-usb/gp8psk.h
+@@ -78,9 +78,6 @@ extern int dvb_usb_gp8psk_debug;
+ #define ADV_MOD_DVB_BPSK 9     /* DVB-S BPSK */
+ 
+ #define GET_USB_SPEED                     0x07
+- #define USB_SPEED_LOW                    0
+- #define USB_SPEED_FULL                   1
+- #define USB_SPEED_HIGH                   2
+ 
+ #define RESET_FX2                         0x13
+ 
+diff --git a/drivers/media/dvb/dvb-usb/vp7045.h b/drivers/media/dvb/dvb-usb/vp7045.h
+index 969688f..cf5ec46 100644
+--- a/drivers/media/dvb/dvb-usb/vp7045.h
++++ b/drivers/media/dvb/dvb-usb/vp7045.h
+@@ -36,9 +36,6 @@
+  #define Tuner_Power_OFF                  0
+ 
+ #define GET_USB_SPEED                     0x07
+- #define USB_SPEED_LOW                    0
+- #define USB_SPEED_FULL                   1
+- #define USB_SPEED_HIGH                   2
+ 
+ #define LOCK_TUNER_COMMAND                0x09
+ 
 -- 
-Javier Martin
-Vista Silicon S.L.
-CDTUC - FASE C - Oficina S-345
-Avda de los Castros s/n
-39005- Santander. Cantabria. Spain
-+34 942 25 32 60
-www.vista-silicon.com
+1.7.1.1
+
