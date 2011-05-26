@@ -1,141 +1,146 @@
 Return-path: <mchehab@pedra>
-Received: from mail-iy0-f174.google.com ([209.85.210.174]:49274 "EHLO
-	mail-iy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752563Ab1EETxz convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 5 May 2011 15:53:55 -0400
-Received: by iyb14 with SMTP id 14so2102218iyb.19
-        for <linux-media@vger.kernel.org>; Thu, 05 May 2011 12:53:54 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <1908281867.20110505213806@a-j.ru>
-References: <1908281867.20110505213806@a-j.ru>
-Date: Thu, 5 May 2011 21:53:54 +0200
-Message-ID: <BANLkTinc9pz9X3x8Q1AQwavzoX4T4n4UwQ@mail.gmail.com>
-Subject: Re: [linux-dvb] TeVii S470 (cx23885 / ds3000) makes the machine unstable
-From: Josu Lazkano <josu.lazkano@gmail.com>
-To: linux-media@vger.kernel.org, Andrew Junev <a-j@a-j.ru>
-Cc: linux-dvb@linuxtv.org
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+Received: from mx1.redhat.com ([209.132.183.28]:20431 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752779Ab1EZVcU (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 26 May 2011 17:32:20 -0400
+Received: from int-mx01.intmail.prod.int.phx2.redhat.com (int-mx01.intmail.prod.int.phx2.redhat.com [10.5.11.11])
+	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id p4QLWKUH010074
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
+	for <linux-media@vger.kernel.org>; Thu, 26 May 2011 17:32:20 -0400
+From: Jarod Wilson <jarod@redhat.com>
+To: linux-media@vger.kernel.org
+Cc: Jarod Wilson <jarod@redhat.com>
+Subject: [PATCH] [media] mceusb: mce_sync_in is brain-dead
+Date: Thu, 26 May 2011 17:32:16 -0400
+Message-Id: <1306445536-17991-1-git-send-email-jarod@redhat.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-2011/5/5 Andrew Junev <a-j@a-j.ru>:
-> Hello All,
->
->  I'm  trying  to set up a TeVii S470 DVB-S2 card for use in my MythTV
->  system  running  on  Fedora 13. I already have a couple of TT S-1401
->  cards in that machine, and it works fine.
->
->  I  copied   the  firmware for my S470 as described on the Wiki page.
->  The  card is detected  and seem to work. I am able to watch existing
->  channels, and even found some DVB-S2 transponders.
->
->  But  the  machine  is  very  unstable. After a while, I get a lot of
->  errors in my /var/log/messages , like:
->
-> May  3 22:35:51 localhost kernel: ds3000_readreg: reg=0xd(error=-5)
-> May  3 22:35:51 localhost kernel: ds3000_readreg: reg=0xb2(error=-5)
-> May  3 22:35:51 localhost kernel: ds3000_writereg: writereg error(err == -5, reg == 0x03, value == 0x11)
-> May  3 22:35:51 localhost kernel: ds3000_tuner_writereg: writereg error(err == -5, reg == 0x42, value == 0x73)
-> May  3 22:35:51 localhost kernel: ds3000_writereg: writereg error(err == -5, reg == 0x03, value == 0x11)
-> May  3 22:35:51 localhost kernel: ds3000_tuner_writereg: writereg error(err == -5, reg == 0x05, value == 0x01)
-> May  3 22:35:51 localhost kernel: ds3000_writereg: writereg error(err == -5, reg == 0x03, value == 0x11)
-> May  3 22:35:51 localhost kernel: ds3000_tuner_writereg: writereg error(err == -5, reg == 0x62, value == 0xf5)
->
-> May  3 22:35:51 localhost kernel: ds3000_readreg: reg=0xd(error=-5)
-> May  3 22:35:51 localhost kernel: ds3000_readreg: reg=0xd(error=-5)
-> May  3 22:35:51 localhost kernel: ds3000_readreg: reg=0xd(error=-5)
-> May  3 22:35:51 localhost kernel: ds3000_readreg: reg=0xd(error=-5)
-> May  3 22:35:51 localhost kernel: ds3000_readreg: reg=0xd(error=-5)
-> May  3 22:35:51 localhost kernel: ds3000_readreg: reg=0xd(error=-5)
-> May  3 22:35:51 localhost kernel: ds3000_readreg: reg=0xd(error=-5)
-> May  3 22:35:51 localhost kernel: ds3000_readreg: reg=0xd(error=-5)
-> May  3 22:35:51 localhost kernel: ds3000_readreg: reg=0xd(error=-5)
-> May  3 22:35:51 localhost kernel: ds3000_readreg: reg=0xd(error=-5)
-> May  3 22:35:51 localhost kernel: ds3000_readreg: reg=0xd(error=-5)
-> May  3 22:35:51 localhost kernel: ds3000_readreg: reg=0xd(error=-5)
-> May  3 22:35:51 localhost kernel: ds3000_readreg: reg=0xd(error=-5)
-> May  3 22:35:51 localhost kernel: ds3000_readreg: reg=0xd(error=-5)
-> May  3 22:35:51 localhost kernel: ds3000_readreg: reg=0xd(error=-5)
->
->
-> There   are   a  lot  of  lines  like  these  in the log (tens or even
-> hundreds  per  second).  And  at some point the machine just freezes -
-> stops  responding  completely.  It  happens  even  if I'm not watching
-> anything.
->
-> If I take the S470 out, my machine works just fine again.
->
->
-> Some more info from the log - perhaps something could be useful:
->
-> May  2 20:39:15 localhost kernel: Linux video capture interface: v2.00
-> May  2 20:39:15 localhost kernel: cx23885 driver version 0.0.2 loaded
-> May  2 20:39:15 localhost kernel: cx23885 0000:04:00.0: PCI INT A -> GSI 18 (level, low) -> IRQ 18
-> May  2 20:39:15 localhost kernel: LNBx2x attached on addr=8
-> May  2 20:39:15 localhost kernel: DVB: registering adapter 0 frontend 0 (Philips TDA10086 DVB-S)...
-> May  2 20:39:15 localhost kernel: budget dvb 0000:06:02.0: PCI INT A -> GSI 18 (level, low) -> IRQ 18
-> May  2 20:39:15 localhost kernel: CORE cx23885[0]: subsystem: d470:9022, board: TeVii S470 [card=15,autodetected]
-> May  2 20:39:15 localhost kernel: IRQ 18/: IRQF_DISABLED is not guaranteed on shared IRQs
-> May  2 20:39:15 localhost kernel: saa7146: found saa7146 @ mem fb3f4800 (revision 1, irq 18) (0x13c2,0x1018).
-> May  2 20:39:15 localhost kernel: saa7146 (1): dma buffer size 192512
-> May  2 20:39:15 localhost kernel: DVB: registering new adapter (TT-Budget-S-1401 PCI)
-> May  2 20:39:15 localhost kernel: adapter has MAC addr = 00:d0:5c:0b:01:2d
-> May  2 20:39:15 localhost kernel: LNBx2x attached on addr=8
-> May  2 20:39:15 localhost kernel: DVB: registering adapter 1 frontend 0 (Philips TDA10086 DVB-S)...
-> May  2 20:39:15 localhost kernel: cx23885_dvb_register() allocating 1 frontend(s)
-> May  2 20:39:15 localhost kernel: cx23885[0]: cx23885 based dvb card
-> May  2 20:39:15 localhost kernel: DS3000 chip version: 0.192 attached.
-> May  2 20:39:15 localhost kernel: DVB: registering new adapter (cx23885[0])
-> May  2 20:39:15 localhost kernel: DVB: registering adapter 2 frontend 0 (Montage Technology DS3000/TS2020)...
-> May  2 20:39:15 localhost kernel: cx23885_dev_checkrevision() Hardware revision = 0xb0
-> May  2 20:39:15 localhost kernel: cx23885[0]/0: found at 0000:04:00.0, rev: 2, irq: 18, latency: 0, mmio: 0xfe800000
-> May  2 20:39:15 localhost kernel: IRQ 18/cx23885[0]: IRQF_DISABLED is not guaranteed on shared IRQs
->
->
-> # uname -a
-> Linux mythbackend 2.6.34.8-68.fc13.i686.PAE #1 SMP Thu Feb 17 14:54:10 UTC 2011 i686 i686 i386 GNU/Linux
-> #
->
->
-> I searched the Net and found a similar question that was raised some time
-> ago, but there was not even a discussion on this topic...
->
-> If  someone  else  has  the  same  DVB-S  card  -  please  share  your
-> experience! I'd appreciate any ideas!
->
-> --
-> Best regards,
->  Andrew
->
->
+Aside from the initial "hey, lets make sure we've flushed any
+pre-existing data on the device" call to mce_sync_in, every other one of
+the calls was entirely superfluous. Ergo, remove them all, and rename
+the one and only (questionably) useful one to reflect what it really
+does. Verified on both gen2 and gen3 hardware to make zero difference.
+Well, except that you no longer get a bunch of urb submit failures from
+the unneeded mce_sync_in calls. Oh. And move that flush to a point
+*after* we've wired up the inbound urb, or it won't do squat. I have
+half a mind to just remove it entirely, but someone thought it was
+necessary at some point, and it doesn't seem to hurt, so lets leave it
+for the time being.
 
-Hello Andrew, I have same DVB-S2 card on a Debian Squeeze system, I
-have installed this way:
+This excercise took place due to insightful questions asked by Hans
+Petter Selasky, about the possible reuse of the inbound urb before it
+was actually availble by mce_sync_in, so thanks to him for motivating
+this cleanup.
 
-mkdir /usr/local/src/dvb
-cd /usr/local/src/dvb
-wget http://tevii.com/100315_Beta_linux_tevii_ds3000.rar
-unrar x 100315_Beta_linux_tevii_ds3000.rar
-cp dvb-fe-ds3000.fw /lib/firmware/
-tar xjvf linux-tevii-ds3000.tar.bz2
-cd linux-tevii-ds3000
-make && make install
+Reported-by: Hans Petter Selasky <hselasky@c2i.net>
+Signed-off-by: Jarod Wilson <jarod@redhat.com>
+---
+ drivers/media/rc/mceusb.c |   30 +++++++-----------------------
+ 1 files changed, 7 insertions(+), 23 deletions(-)
 
-It works for me, sometimes I have those message on /var/log/messages:
-
-May  4 13:43:14 htpc kernel: [11575.306168] ds3000_firmware_ondemand:
-Waiting for firmware upload (dvb-fe-ds3000.fw)...
-May  4 13:43:14 htpc kernel: [11575.306181] cx23885 0000:05:00.0:
-firmware: requesting dvb-fe-ds3000.fw
-May  4 13:43:14 htpc kernel: [11575.358334] ds3000_firmware_ondemand:
-Waiting for firmware upload(2)...
-
-But it works well, I use it with MythTV, SD and HD channels.
-
-Let me know if you need some test.
-
-Kind regards.
-
+diff --git a/drivers/media/rc/mceusb.c b/drivers/media/rc/mceusb.c
+index 3c4fb7d..06dfe09 100644
+--- a/drivers/media/rc/mceusb.c
++++ b/drivers/media/rc/mceusb.c
+@@ -685,9 +685,9 @@ static void mce_async_out(struct mceusb_dev *ir, unsigned char *data, int size)
+ 	mce_request_packet(ir, data, size, MCEUSB_TX);
+ }
+ 
+-static void mce_sync_in(struct mceusb_dev *ir, unsigned char *data, int size)
++static void mce_flush_rx_buffer(struct mceusb_dev *ir, int size)
+ {
+-	mce_request_packet(ir, data, size, MCEUSB_RX);
++	mce_request_packet(ir, NULL, size, MCEUSB_RX);
+ }
+ 
+ /* Send data out the IR blaster port(s) */
+@@ -973,7 +973,6 @@ static void mceusb_dev_recv(struct urb *urb, struct pt_regs *regs)
+ static void mceusb_gen1_init(struct mceusb_dev *ir)
+ {
+ 	int ret;
+-	int maxp = ir->len_in;
+ 	struct device *dev = ir->dev;
+ 	char *data;
+ 
+@@ -1015,55 +1014,40 @@ static void mceusb_gen1_init(struct mceusb_dev *ir)
+ 
+ 	/* device reset */
+ 	mce_async_out(ir, DEVICE_RESET, sizeof(DEVICE_RESET));
+-	mce_sync_in(ir, NULL, maxp);
+ 
+ 	/* get hw/sw revision? */
+ 	mce_async_out(ir, GET_REVISION, sizeof(GET_REVISION));
+-	mce_sync_in(ir, NULL, maxp);
+ 
+ 	kfree(data);
+ };
+ 
+ static void mceusb_gen2_init(struct mceusb_dev *ir)
+ {
+-	int maxp = ir->len_in;
+-
+ 	/* device reset */
+ 	mce_async_out(ir, DEVICE_RESET, sizeof(DEVICE_RESET));
+-	mce_sync_in(ir, NULL, maxp);
+ 
+ 	/* get hw/sw revision? */
+ 	mce_async_out(ir, GET_REVISION, sizeof(GET_REVISION));
+-	mce_sync_in(ir, NULL, maxp);
+ 
+ 	/* unknown what the next two actually return... */
+ 	mce_async_out(ir, GET_UNKNOWN, sizeof(GET_UNKNOWN));
+-	mce_sync_in(ir, NULL, maxp);
+ 	mce_async_out(ir, GET_UNKNOWN2, sizeof(GET_UNKNOWN2));
+-	mce_sync_in(ir, NULL, maxp);
+ }
+ 
+ static void mceusb_get_parameters(struct mceusb_dev *ir)
+ {
+-	int maxp = ir->len_in;
+-
+ 	/* get the carrier and frequency */
+ 	mce_async_out(ir, GET_CARRIER_FREQ, sizeof(GET_CARRIER_FREQ));
+-	mce_sync_in(ir, NULL, maxp);
+ 
+-	if (!ir->flags.no_tx) {
++	if (!ir->flags.no_tx)
+ 		/* get the transmitter bitmask */
+ 		mce_async_out(ir, GET_TX_BITMASK, sizeof(GET_TX_BITMASK));
+-		mce_sync_in(ir, NULL, maxp);
+-	}
+ 
+ 	/* get receiver timeout value */
+ 	mce_async_out(ir, GET_RX_TIMEOUT, sizeof(GET_RX_TIMEOUT));
+-	mce_sync_in(ir, NULL, maxp);
+ 
+ 	/* get receiver sensor setting */
+ 	mce_async_out(ir, GET_RX_SENSOR, sizeof(GET_RX_SENSOR));
+-	mce_sync_in(ir, NULL, maxp);
+ }
+ 
+ static struct rc_dev *mceusb_init_rc_dev(struct mceusb_dev *ir)
+@@ -1227,16 +1211,16 @@ static int __devinit mceusb_dev_probe(struct usb_interface *intf,
+ 	if (!ir->rc)
+ 		goto rc_dev_fail;
+ 
+-	/* flush buffers on the device */
+-	mce_sync_in(ir, NULL, maxp);
+-	mce_sync_in(ir, NULL, maxp);
+-
+ 	/* wire up inbound data handler */
+ 	usb_fill_int_urb(ir->urb_in, dev, pipe, ir->buf_in,
+ 		maxp, (usb_complete_t) mceusb_dev_recv, ir, ep_in->bInterval);
+ 	ir->urb_in->transfer_dma = ir->dma_in;
+ 	ir->urb_in->transfer_flags |= URB_NO_TRANSFER_DMA_MAP;
+ 
++	/* flush buffers on the device */
++	mce_dbg(&intf->dev, "Flushing receive buffers\n");
++	mce_flush_rx_buffer(ir, maxp);
++
+ 	/* initialize device */
+ 	if (ir->flags.microsoft_gen1)
+ 		mceusb_gen1_init(ir);
 -- 
-Josu Lazkano
+1.7.1
+
