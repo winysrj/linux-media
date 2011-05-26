@@ -1,44 +1,47 @@
 Return-path: <mchehab@pedra>
-Received: from mx1.redhat.com ([209.132.183.28]:48267 "EHLO mx1.redhat.com"
+Received: from smtp5-g21.free.fr ([212.27.42.5]:60663 "EHLO smtp5-g21.free.fr"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755138Ab1E0P5S (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 27 May 2011 11:57:18 -0400
-From: Jarod Wilson <jarod@redhat.com>
-To: linux-media@vger.kernel.org
-Cc: Jarod Wilson <jarod@redhat.com>,
-	Hans Petter Selasky <hselasky@c2i.net>
-Subject: [PATCH] [media] mceusb: plug memory leak on data transmit
-Date: Fri, 27 May 2011 11:57:09 -0400
-Message-Id: <1306511829-493-1-git-send-email-jarod@redhat.com>
+	id S1751487Ab1EZGrm convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 26 May 2011 02:47:42 -0400
+Date: Thu, 26 May 2011 08:48:15 +0200
+From: Jean-Francois Moine <moinejf@free.fr>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Hans Petter Selasky <hselasky@c2i.net>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Subject: Re: [PATCH] Make nchg variable signed because the code compares
+ this variable against negative values.
+Message-ID: <20110526084815.48a35684@tele>
+In-Reply-To: <4DDD99B5.2050105@redhat.com>
+References: <201105231309.54265.hselasky@c2i.net>
+	<4DDD99B5.2050105@redhat.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8BIT
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Hans Petter Selasky pointed out to me that we're leaking urbs when
-mce_async_out is called. Its used both for configuring the hardware and
-for transmitting IR data. In the tx case, mce_request_packet actually
-allocates both a urb and the transfer buffer, neither of which was being
-torn down. Do that in the tx callback.
+On Wed, 25 May 2011 21:07:17 -0300
+Mauro Carvalho Chehab <mchehab@redhat.com> wrote:
 
-CC: Hans Petter Selasky <hselasky@c2i.net>
-Signed-off-by: Jarod Wilson <jarod@redhat.com>
----
- drivers/media/rc/mceusb.c |    3 +++
- 1 files changed, 3 insertions(+), 0 deletions(-)
+> This patch looks ok to me, although the description is not 100%. 
+> 
+> The sonixj driver compares the value for nchg with
+> 		if (sd->nchg < -6 || sd->nchg >= 12) {
+> 
+> With u8, negative values won't work.
+> 
+> Please check.
 
-diff --git a/drivers/media/rc/mceusb.c b/drivers/media/rc/mceusb.c
-index ad927fc..124f5af 100644
---- a/drivers/media/rc/mceusb.c
-+++ b/drivers/media/rc/mceusb.c
-@@ -612,6 +612,9 @@ static void mce_async_callback(struct urb *urb, struct pt_regs *regs)
- 		mceusb_dev_printdata(ir, urb->transfer_buffer, 0, len, true);
- 	}
- 
-+	/* the transfer buffer and urb were allocated in mce_request_packet */
-+	kfree(urb->transfer_buffer);
-+	usb_free_urb(urb);
- }
- 
- /* request incoming or send outgoing usb packet - used to initialize remote */
+Hi Mauro and Hans Petter,
+
+With all the messages in the list, I did not noticed this patch.
+
+Indeed, the fix is correct. I was wondering why there were still
+problems with the image size in sonixj. They should disappear now.
+
+Thanks.
+
 -- 
-1.7.1
-
+Ken ar c'hentañ	|	      ** Breizh ha Linux atav! **
+Jef		|		http://moinejf.free.fr/
