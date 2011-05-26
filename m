@@ -1,68 +1,100 @@
 Return-path: <mchehab@pedra>
-Received: from mail-ew0-f46.google.com ([209.85.215.46]:57808 "EHLO
-	mail-ew0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752915Ab1EVBhL (ORCPT
+Received: from smtp-vbr2.xs4all.nl ([194.109.24.22]:4809 "EHLO
+	smtp-vbr2.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751324Ab1EZGgj (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 21 May 2011 21:37:11 -0400
-Received: by ewy4 with SMTP id 4so1495094ewy.19
-        for <linux-media@vger.kernel.org>; Sat, 21 May 2011 18:37:09 -0700 (PDT)
+	Thu, 26 May 2011 02:36:39 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: vipul kumar samar <vipulkumar.samar@st.com>
+Subject: Re: About RFC of HDMI-CEC
+Date: Thu, 26 May 2011 08:35:45 +0200
+Cc: "Martin Bugge (marbugge)" <marbugge@cisco.com>,
+	"hdegoede@redhat.com" <hdegoede@redhat.com>,
+	"mchehab@infradead.org" <mchehab@infradead.org>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+References: <4DDCED60.3080907@st.com> <4DDCF95C.1020705@cisco.com> <4DDDE08A.2090406@st.com>
+In-Reply-To: <4DDDE08A.2090406@st.com>
 MIME-Version: 1.0
-In-Reply-To: <BANLkTin=Fs-ugm13yT89PtT4bds4WobszA@mail.gmail.com>
-References: <BANLkTin=Fs-ugm13yT89PtT4bds4WobszA@mail.gmail.com>
-Date: Sat, 21 May 2011 21:37:08 -0400
-Message-ID: <BANLkTi=poXh2q+4N6Q9iMJxoW=9txLjt4w@mail.gmail.com>
-Subject: Re: Connexant cx25821 help
-From: Devin Heitmueller <dheitmueller@kernellabs.com>
-To: Roman Gaufman <hackeron@gmail.com>
-Cc: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: Text/Plain;
+  charset="iso-8859-15"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201105260835.45559.hverkuil@xs4all.nl>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Sat, May 21, 2011 at 3:34 PM, Roman Gaufman <hackeron@gmail.com> wrote:
-> I have a PCI-E capture card with two connexant cx25821 chips.
-> 04:00.0 Multimedia video controller: Conexant Systems, Inc. Device 8210
-> 05:00.0 Multimedia video controller: Conexant Systems, Inc. Device 8210
->
->
-> There is a staging driver in latest linux kernels. Looks like it uses v4l2
-> api.
-> I tried to use precompiled module cx25821 provided with Ubuntu 10.10 beta
-> (2.6.35-19-generic #28-Ubuntu SMP Sun Aug 29 06:36:51 UTC 2010 i686
-> GNU/Linux).
+On Thursday, May 26, 2011 07:09:30 vipul kumar samar wrote:
+> Hello,
+> 
+> On 05/25/2011 06:13 PM, Martin Bugge (marbugge) wrote:
+> > Hello
+> >
+> > To be honest I became a bit disengaded after all the discussion.
+> >
+> > What caused me a lot of problems was the request for AV link support
+> > (which is used in SCART connectors).
+> > Something I never plan to implement.
+> >
+> > But after the "v4l2 Warsaw Brainstroming meeting" it was sort of approved.
+> >
+> > It only need to be reworked to be a subdev level api.
+> > (for that I need some help from Hans Verkuil)
+> >
+> > But it is great that someone else also need an API for this.
+> > I include the latest version here so you can see if you agree, and
+> > together we will get it in.
+> >
+> 
+> Yes, sure.
+> 
+> > We currently have two drivers which uses this API for CEC.
+> >
+> > * Analog Devices adv7604
+> >
+> > * TMS320DM8x
+> >
+> 
+> i want to see source code of these two drivers.From where i can get 
+> source code of these drivers??
 
-Just because there is a driver for whatever chipset your board happens
-to have, doesn't mean that your board is actually supported.  The
-definition of a product is more than just the chips that are on it.
+The adv7604 driver is here:
 
-> # modprobe cx25821
+http://git.linuxtv.org/hverkuil/cisco.git?a=shortlog;h=refs/heads/cobalt
 
-You should *never* have to manually modprobe.  If you ran modprobe,
-then that means the driver does not know about the PCI ID for your
-board.
+But this tree hasn't been updated in quite some time and doesn't contain the
+CEC support. I need to work on this anyway today so I'll see if I can get
+this tree in sync with our internal tree.
 
-> The module looks like to be loaded successfully.
-<snip>
-> And now I can not see any /dev/video0-7 devices to get input from the card.
-> I'l greatly appreciate if someone could tell me about additional actions to
-> make this work.
+The other driver we can't release as open source. It will eventually become
+available, though.
 
-The /dev/video devices will not be created if the driver did not
-associate with the card.  Basically what you did is the equivalent of
-modprobing any driver in the system regardless of whether or not it
-has anything to do with the actual hardware you happen to have.
+Regards,
 
-Somebody would likely have to do work to modify the driver to support
-your board.  This would mean a driver developer who actually cared
-enough to do the work would have to have one of the boards, which
-doesn't appear to be the case at this point.
+      Hans
 
-Hope that helps (or at least it makes clear that this board will not
-just start to magically work just because you have a card which
-contains the chips involved).
-
-Devin
-
--- 
-Devin J. Heitmueller - Kernel Labs
-http://www.kernellabs.com
+> 
+> Thanks and Regards
+> Vipul Kumar Samar
+> 
+> > At least the adv7604 is planned to be upstreamed.
+> >
+> > Best regards
+> > Martin Bugge
+> >
+> >
+> > On 05/25/2011 01:52 PM, vipul kumar samar wrote:
+> >> Hello,
+> >>
+> >> I am working on HDMI-CEC and planning to implement it in v4l2
+> >> framework.I came to know that a RFC is going on for the same driver.
+> >>
+> >> I want to know is their any friezed version of that RFC or discussion
+> >> is still going on?? Is it included in kernel??
+> >>
+> >> Thanks and Regards
+> >> Vipul Kumar Samar
+> >
+> >
+> 
+> 
+> 
