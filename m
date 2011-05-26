@@ -1,74 +1,82 @@
 Return-path: <mchehab@pedra>
-Received: from mail.kapsi.fi ([217.30.184.167]:58843 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756138Ab1EXNAW (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 24 May 2011 09:00:22 -0400
-Message-ID: <4DDBABDE.5010908@iki.fi>
-Date: Tue, 24 May 2011 16:00:14 +0300
-From: Antti Palosaari <crope@iki.fi>
+Received: from perceval.ideasonboard.com ([95.142.166.194]:49346 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755670Ab1EZLBZ (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 26 May 2011 07:01:25 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: "Daniel Lundborg" <Daniel.Lundborg@prevas.se>
+Subject: Re: omap3isp - H3A auto white balance
+Date: Thu, 26 May 2011 13:01:30 +0200
+Cc: linux-media@vger.kernel.org
+References: <CA7B7D6C54015B459601D68441548157C5A3FC@prevas1.prevas.se>
+In-Reply-To: <CA7B7D6C54015B459601D68441548157C5A3FC@prevas1.prevas.se>
 MIME-Version: 1.0
-To: Devin Heitmueller <dheitmueller@kernellabs.com>
-CC: Steve Kerrison <steve@stevekerrison.com>,
-	=?ISO-8859-1?Q?R=E9mi_Den?= =?ISO-8859-1?Q?is-Courmont?=
-	<remi@remlab.net>, linux-media@vger.kernel.org,
-	vlc-devel@videolan.org
-Subject: Re: dvb: one demux per tuner or one demux per demod?
-References: <719f9c4d1bd57d5b2711bc24a9d5c3b1@chewa.net>	<1306238734.7397.102.camel@ares> <BANLkTinN1YWpEpxxMgoZ2hMTGt3eEv=peA@mail.gmail.com>
-In-Reply-To: <BANLkTinN1YWpEpxxMgoZ2hMTGt3eEv=peA@mail.gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 8bit
+Content-Type: Text/Plain;
+  charset="iso-8859-15"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201105261301.32159.laurent.pinchart@ideasonboard.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On 05/24/2011 03:28 PM, Devin Heitmueller wrote:
-> 2011/5/24 Steve Kerrison<steve@stevekerrison.com>:
->> Hi Rémi,
->>
->> The cxd2820r supports DVB-T/T2 and also DVB-C. As such antti coded up a
->> multiple front end (MFE) implementation for em28xx then attaches the
->> cxd2820r in both modes.
->>
->> I believe you can only use one frontend at once per adapter (this is
->> certainly enforced in the cxd2820r module), so I don't see how it would
->> cause a problem for mappings. I think a dual tuner device would register
->> itself as two adapters, wouldn't it?
->>
->> But I'm new at this, so forgive me if I've overlooked something or
->> misunderstood the issue you've raised.
+Hi Daniel,
+
+On Thursday 26 May 2011 10:57:39 Daniel Lundborg wrote:
+> 
+> Hello,
+> 
+> I am developing a camera sensor driver for the Aptina MT9V034. I am only
+> using it in snapshot mode and I can successfully trigger the sensor and
+> receive pictures using the latest omap3isp driver from
+> git://linuxtv.org/pinchartl/media.git branch omap3isp-next-sensors with
+> kernel 2.6.38.
+> 
+> I configure the sensor with media-ctl:
+> 
+> media-ctl -r -l '"mt9v034 3-0048":0->"OMAP3 ISP CCDC":0[1], "OMAP3 ISP
+> CCDC":1->"OMAP3 ISP CCDC output":0[1]'
+> 
+> media-ctl -f '"mt9v034 3-0048":0[SGRBG10 752x480], "OMAP3 ISP
+> CCDC":1[SGRBG10 752x480]'
+> 
+> And take pictures with yavta:
+> 
+> ./yavta -f SGRBG10 -s 752x480 -n 6 --capture=6 -F /dev/video2
+> 
+> My trouble is that I am always receiving whiter pictures when I wait a
+> moment before triggering the sensor to take a picture. If I take several
+> pictures in a row with for instance 20 ms between them, they all look
+> ok. But if I wait for 100 ms the picture will get much whiter.
+> 
+> I have turned off auto exposure and auto gain in the sensor and the
+> LED_OUT signal always have the same length (in this case 8 msec).
+
+I assume you've measured it with a scope ?
+
+Try disabling black level calibration and row noise correction as well. Please 
+also double-check that AEC and AGC are disabled. I've had a similar issue with 
+an MT9V032 sensor, where a bug in the driver enabled AEC/AGC instead of 
+disabling them.
+
+Do you have a light source connected to the LED_OUT signal ? If so, can you 
+try disabling it and using a constant light source ?
+
+> Why would the pictures become whiter if I wait a moment before taking a
+> picture?
 >
-> Oh wow, is that what Antti did?  I didn't really give much thought but
-> I can appreciate why he did it (the DVB 3.x API won't allow a single
-> frontend to advertise support for DVB-C and DVB-T).
+> If I set the sensor in streaming mode all pictures look like they
+> should.
+> 
+> Could there be something with the H3A auto white balance or auto exposure?
 
-Yes I did, since I didn't know there is better way. Is there any other 
-driver which implements it differently? I think all current MFE drivers 
-does it like I did. For example look NetUP cx23885 + stv0367.
+The OMAP3 ISP isn't able to apply any H3A algorithm to the images by itself. 
+The H3A hardware support only computes statistics, and a userspace application 
+then needs to compute parameters (such as exposure time and gains) based on 
+the statistics, and apply them to the hardware. As yavta doesn't include H3A 
+algorithms, the differences in picture brightness can only come from the 
+sensor.
 
-/dev/dvb/adapter0/
-crw-rw----+ 1 root video 212, 2 May 24 15:51 demux0
-crw-rw----+ 1 root video 212, 3 May 24 15:51 dvr0
-crw-rw----+ 1 root video 212, 0 May 24 15:51 frontend0
-crw-rw----+ 1 root video 212, 1 May 24 15:51 frontend1
-crw-rw----+ 1 root video 212, 4 May 24 15:51 net0
-
-> This is one of the big things that S2API fixes (through S2API you can
-> specify the modulation that you want).  Do we really want to be
-> advertising two frontends that point to the same demod, when they
-> cannot be used in parallel?  This seems doomed to create problems with
-> applications not knowing that they are in fact the same frontend.
-
-I was in understanding it is MFE when there is multiple frontends in 
-same adapter. In that case only one adapter can be used at time. I added 
-lock to cxd2820r driver, which probably is in wrong place (I think it 
-should be interface-driver or core which locks).
-
-> I'm tempted to say that this patch should be scapped and we should
-> simply say that you cannot use DVB-C on this device unless you are
-> using S2API.  That would certainly be cleaner but it comes at the cost
-> of DVB-C not working with tools that haven't been converted over to
-> S2API yet.
-
-reagrds,
-Antti
 -- 
-http://palosaari.fi/
+Regards,
+
+Laurent Pinchart
