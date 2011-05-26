@@ -1,86 +1,94 @@
-Return-path: <mchehab@gaivota>
-Received: from mail-in-05.arcor-online.net ([151.189.21.45]:51274 "EHLO
-	mail-in-05.arcor-online.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754496Ab1EITyO (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 9 May 2011 15:54:14 -0400
-From: stefan.ringel@arcor.de
-To: linux-media@vger.kernel.org
-Cc: mchehab@redhat.com, d.belimov@gmail.com,
-	Stefan Ringel <stefan.ringel@arcor.de>
-Subject: [PATCH 07/16] tm6000: remove unused capabilities
-Date: Mon,  9 May 2011 21:53:55 +0200
-Message-Id: <1304970844-20955-7-git-send-email-stefan.ringel@arcor.de>
-In-Reply-To: <1304970844-20955-1-git-send-email-stefan.ringel@arcor.de>
-References: <1304970844-20955-1-git-send-email-stefan.ringel@arcor.de>
+Return-path: <mchehab@pedra>
+Received: from mx1.redhat.com ([209.132.183.28]:52979 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753741Ab1EZADl (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 25 May 2011 20:03:41 -0400
+Message-ID: <4DDD98D2.4000402@redhat.com>
+Date: Wed, 25 May 2011 21:03:30 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+MIME-Version: 1.0
+To: Hans Petter Selasky <hselasky@c2i.net>
+CC: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Subject: Re: [PATCH] Make code more readable by not using the return value
+ of the WARN() macro. Set ret variable in an undefined case.
+References: <201105231307.53836.hselasky@c2i.net> <Pine.LNX.4.64.1105232019560.30305@axis700.grange> <201105232104.08895.hselasky@c2i.net>
+In-Reply-To: <201105232104.08895.hselasky@c2i.net>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
-Sender: Mauro Carvalho Chehab <mchehab@gaivota>
+Sender: <mchehab@pedra>
 
-From: Stefan Ringel <stefan.ringel@arcor.de>
+Em 23-05-2011 16:04, Hans Petter Selasky escreveu:
+> On Monday 23 May 2011 20:22:02 Guennadi Liakhovetski wrote:
+>> Please, inline patches. Otherwise, this is what one gets, when replying.
+>>
+>> On Mon, 23 May 2011, Hans Petter Selasky wrote:
+>>> --HPS
+>>
+>> In any case, just throwing in my 2 cents - no idea how not using the
+>> return value of WARN() makes code more readable. On the contrary, using it
+>> is a standard practice. This patch doesn't seem like an improvement to me.
+> 
+> There is no strong reason for the WARN() part, you may ignore that, but the 
+> ret = 0, part is still valid. Should I generate a new patch or can you handle 
+> this?
+Em 23-05-2011 08:07, Hans Petter Selasky escreveu:
+> --HPS
+> 
+> 
+> dvb-usb-0005.patch
+> 
+> 
+> From 94b88b92763f9309018ba04c200a8842ce1ff0ed Mon Sep 17 00:00:00 2001
+> From: Hans Petter Selasky <hselasky@c2i.net>
+> Date: Mon, 23 May 2011 13:07:08 +0200
+> Subject: [PATCH] Make code more readable by not using the return value of the WARN() macro. Set ret variable in an undefined case.
+> 
+> Signed-off-by: Hans Petter Selasky <hselasky@c2i.net>
+> ---
+>  drivers/media/video/sr030pc30.c |    5 ++++-
+>  1 files changed, 4 insertions(+), 1 deletions(-)
+> 
+> diff --git a/drivers/media/video/sr030pc30.c b/drivers/media/video/sr030pc30.c
+> index c901721..6cc64c9 100644
+> --- a/drivers/media/video/sr030pc30.c
+> +++ b/drivers/media/video/sr030pc30.c
+> @@ -726,8 +726,10 @@ static int sr030pc30_s_power(struct v4l2_subdev *sd, int on)
+>  	const struct sr030pc30_platform_data *pdata = info->pdata;
+>  	int ret;
+>  
+> -	if (WARN(pdata == NULL, "No platform data!\n"))
+> +	if (pdata == NULL) {
+> +		WARN(1, "No platform data!\n");
+>  		return -ENOMEM;
+> +	}
+>  
+>  	/*
+>  	 * Put sensor into power sleep mode before switching off
+> @@ -746,6 +748,7 @@ static int sr030pc30_s_power(struct v4l2_subdev *sd, int on)
+>  	if (on) {
+>  		ret = sr030pc30_base_config(sd);
+>  	} else {
+> +		ret = 0;
+>  		info->curr_win = NULL;
+>  		info->curr_fmt = NULL;
+>  	}
+> -- 1.7.1.1
 
-remove unused capabilities
+IMHO, both hunks make sense, as, on the first hunk, it is returning an error condition.
+Yet, -ENOMEM seems to be the wrong return code. -EINVAL is probably more appropriate.
 
+However, the patch is badly described. It is not about making the code cleaner, but
+about avoiding to run s_power if no platform data is found, and to avoid having
+ret undefined. Eventually, it should be broken into two different patches, as they
+fix different things.
 
+Please, when sending us patches, provide a proper description with "what" information
+at the first line, and why and how at the patch descriptions. Please, also avoid to
+have any line bigger than 74 characters, otherwise they'll look weird when seeing the
+patch history.
 
-Signed-off-by: Stefan Ringel <stefan.ringel@arcor.de>
----
- drivers/staging/tm6000/tm6000-cards.c |    8 --------
- drivers/staging/tm6000/tm6000.h       |    2 --
- 2 files changed, 0 insertions(+), 10 deletions(-)
-
-diff --git a/drivers/staging/tm6000/tm6000-cards.c b/drivers/staging/tm6000/tm6000-cards.c
-index 199cc86..19120ed 100644
---- a/drivers/staging/tm6000/tm6000-cards.c
-+++ b/drivers/staging/tm6000/tm6000-cards.c
-@@ -396,8 +396,6 @@ struct tm6000_board tm6000_boards[] = {
- 			.has_eeprom     = 1,
- 			.has_remote     = 1,
- 			.has_radio	= 1.
--			.has_input_comp = 1,
--			.has_input_svid = 1,
- 		},
- 		.gpio = {
- 			.tuner_reset	= TM6010_GPIO_0,
-@@ -435,8 +433,6 @@ struct tm6000_board tm6000_boards[] = {
- 			.has_eeprom     = 1,
- 			.has_remote     = 1,
- 			.has_radio	= 1,
--			.has_input_comp = 1,
--			.has_input_svid = 1,
- 		},
- 		.gpio = {
- 			.tuner_reset	= TM6010_GPIO_0,
-@@ -568,8 +564,6 @@ struct tm6000_board tm6000_boards[] = {
- 			.has_eeprom     = 1,
- 			.has_remote     = 0,
- 			.has_radio	= 1,
--			.has_input_comp = 0,
--			.has_input_svid = 0,
- 		},
- 		.gpio = {
- 			.tuner_reset	= TM6010_GPIO_0,
-@@ -599,8 +593,6 @@ struct tm6000_board tm6000_boards[] = {
- 			.has_eeprom     = 1,
- 			.has_remote     = 0,
- 			.has_radio	= 1,
--			.has_input_comp = 0,
--			.has_input_svid = 0,
- 		},
- 		.gpio = {
- 			.tuner_reset	= TM6010_GPIO_0,
-diff --git a/drivers/staging/tm6000/tm6000.h b/drivers/staging/tm6000/tm6000.h
-index e4ca896..ae6369b 100644
---- a/drivers/staging/tm6000/tm6000.h
-+++ b/drivers/staging/tm6000/tm6000.h
-@@ -143,8 +143,6 @@ struct tm6000_capabilities {
- 	unsigned int    has_eeprom:1;
- 	unsigned int    has_remote:1;
- 	unsigned int    has_radio:1;
--	unsigned int    has_input_comp:1;
--	unsigned int    has_input_svid:1;
- };
- 
- struct tm6000_dvb {
--- 
-1.7.4.2
-
+Thanks,
+Mauro.
+information a
