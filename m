@@ -1,40 +1,112 @@
 Return-path: <mchehab@pedra>
-Received: from www.youplala.net ([88.191.51.216]:46734 "EHLO mail.youplala.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752329Ab1EYHCa (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 25 May 2011 03:02:30 -0400
-Received: from [192.168.1.70] (host86-154-134-160.range86-154.btcentralplus.com [86.154.134.160])
-	by mail.youplala.net (Postfix) with ESMTPSA id D74C9D880B3
-	for <linux-media@vger.kernel.org>; Wed, 25 May 2011 09:02:03 +0200 (CEST)
-Subject: Re: build errors on kinect and rc-main - 2.6.38 (mipi-csis not
- rc-main)
-From: Nicolas WILL <nico@youplala.net>
-To: linux-media@vger.kernel.org
-In-Reply-To: <1306305788.2390.4.camel@porites>
-References: <1306305788.2390.4.camel@porites>
-Content-Type: text/plain; charset="UTF-8"
-Date: Wed, 25 May 2011 08:01:56 +0100
-Message-ID: <1306306916.2390.6.camel@porites>
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+Received: from hqemgate03.nvidia.com ([216.228.121.140]:5907 "EHLO
+	hqemgate03.nvidia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756741Ab1EZAGl (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 25 May 2011 20:06:41 -0400
+From: <achew@nvidia.com>
+To: <g.liakhovetski@gmx.de>, <mchehab@redhat.com>, <olof@lixom.net>
+CC: <linux-media@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
+	Andrew Chew <achew@nvidia.com>
+Subject: [PATCH 5/5 v2] [media] ov9740: Add suspend/resume
+Date: Wed, 25 May 2011 17:04:32 -0700
+Message-ID: <1306368272-28279-5-git-send-email-achew@nvidia.com>
+In-Reply-To: <1306368272-28279-1-git-send-email-achew@nvidia.com>
+References: <1306368272-28279-1-git-send-email-achew@nvidia.com>
+MIME-Version: 1.0
+Content-Type: text/plain
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Wed, 2011-05-25 at 07:43 +0100, Nicolas WILL wrote:
-> The second one is on rc-main (I probably need that!):
-> 
->   CC [M]  /home/nico/src/media_build/v4l/rc-main.o
-> /home/nico/src/media_build/v4l/rc-main.c: In function 'rc_allocate_device':
-> /home/nico/src/media_build/v4l/rc-main.c:993:29: warning: assignment from incompatible pointer type
-> /home/nico/src/media_build/v4l/rc-main.c:994:29: warning: assignment from incompatible pointer type
->   CC [M]  /home/nico/src/media_build/v4l/ir-raw.o
->   CC [M]  /home/nico/src/media_build/v4l/mipi-csis.o
-> /home/nico/src/media_build/v4l/mipi-csis.c:29:28: fatal error: plat/mipi_csis.h: No such file or directory
-> compilation terminated.
+From: Andrew Chew <achew@nvidia.com>
 
-Oh, not rc-main, but mipi-csis!
+On suspend, remember whether we are streaming or not, and at what frame format,
+so that on resume, we can start streaming again.
 
-Sorry...
+Signed-off-by: Andrew Chew <achew@nvidia.com>
+---
+ drivers/media/video/ov9740.c |   39 +++++++++++++++++++++++++++++++++++++++
+ 1 files changed, 39 insertions(+), 0 deletions(-)
 
-Nico
+diff --git a/drivers/media/video/ov9740.c b/drivers/media/video/ov9740.c
+index 6c28ae8..4abe943 100644
+--- a/drivers/media/video/ov9740.c
++++ b/drivers/media/video/ov9740.c
+@@ -201,6 +201,10 @@ struct ov9740_priv {
+ 
+ 	bool				flag_vflip;
+ 	bool				flag_hflip;
++
++	/* For suspend/resume. */
++	struct v4l2_mbus_framefmt	current_mf;
++	int				current_enable;
+ };
+ 
+ static const struct ov9740_reg ov9740_defaults[] = {
+@@ -551,6 +555,8 @@ static int ov9740_s_stream(struct v4l2_subdev *sd, int enable)
+ 					       0x00);
+ 	}
+ 
++	priv->current_enable = enable;
++
+ 	return ret;
+ }
+ 
+@@ -786,6 +792,7 @@ static int ov9740_s_fmt(struct v4l2_subdev *sd,
+ 			struct v4l2_mbus_framefmt *mf)
+ {
+ 	struct i2c_client *client = v4l2_get_subdevdata(sd);
++	struct ov9740_priv *priv = to_ov9740(sd);
+ 	enum v4l2_colorspace cspace;
+ 	enum v4l2_mbus_pixelcode code = mf->code;
+ 	int ret;
+@@ -812,6 +819,8 @@ static int ov9740_s_fmt(struct v4l2_subdev *sd,
+ 	mf->code	= code;
+ 	mf->colorspace	= cspace;
+ 
++	memcpy(&priv->current_mf, mf, sizeof(struct v4l2_mbus_framefmt));
++
+ 	return ret;
+ }
+ 
+@@ -922,7 +931,37 @@ err:
+ 	return ret;
+ }
+ 
++static int ov9740_suspend(struct soc_camera_device *icd, pm_message_t state)
++{
++	struct v4l2_subdev *sd = soc_camera_to_subdev(icd);
++	struct ov9740_priv *priv = to_ov9740(sd);
++
++	if (priv->current_enable) {
++		int current_enable = priv->current_enable;
++
++		ov9740_s_stream(sd, 0);
++		priv->current_enable = current_enable;
++	}
++
++	return 0;
++}
++
++static int ov9740_resume(struct soc_camera_device *icd)
++{
++	struct v4l2_subdev *sd = soc_camera_to_subdev(icd);
++	struct ov9740_priv *priv = to_ov9740(sd);
++
++	if (priv->current_enable) {
++		ov9740_s_fmt(sd, &priv->current_mf);
++		ov9740_s_stream(sd, priv->current_enable);
++	}
++
++	return 0;
++}
++
+ static struct soc_camera_ops ov9740_ops = {
++	.suspend		= ov9740_suspend,
++	.resume			= ov9740_resume,
+ 	.set_bus_param		= ov9740_set_bus_param,
+ 	.query_bus_param	= ov9740_query_bus_param,
+ 	.controls		= ov9740_controls,
+-- 
+1.7.5.2
 
