@@ -1,86 +1,39 @@
 Return-path: <mchehab@pedra>
-Received: from mail-bw0-f46.google.com ([209.85.214.46]:57844 "EHLO
-	mail-bw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751582Ab1EQDUc (ORCPT
+Received: from perceval.ideasonboard.com ([95.142.166.194]:48294 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755472Ab1EZJkH (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 16 May 2011 23:20:32 -0400
-Received: by bwz15 with SMTP id 15so155766bwz.19
-        for <linux-media@vger.kernel.org>; Mon, 16 May 2011 20:20:31 -0700 (PDT)
-Date: Tue, 17 May 2011 14:23:52 +1000
-From: Dmitri Belimov <d.belimov@gmail.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>
-Subject: [PATCH] xc5000, fix fw upload crash
-Message-ID: <20110517142352.7d311ee8@glory.local>
-Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="MP_/DWJrqv6m2ILFCKbd7TmcmJ3"
+	Thu, 26 May 2011 05:40:07 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Subject: Re: [beagleboard] [PATCH] Second RFC version of mt9p031 sensor with power managament.
+Date: Thu, 26 May 2011 11:40:23 +0200
+Cc: javier Martin <javier.martin@vista-silicon.com>,
+	Koen Kooi <koen@beagleboard.org>, beagleboard@googlegroups.com,
+	linux-media@vger.kernel.org, carlighting@yahoo.co.nz
+References: <1306322212-26879-1-git-send-email-javier.martin@vista-silicon.com> <BANLkTikon2uw4DWcsXLCnLD1crfbV7HP_Q@mail.gmail.com> <Pine.LNX.4.64.1105261135080.9307@axis700.grange>
+In-Reply-To: <Pine.LNX.4.64.1105261135080.9307@axis700.grange>
+MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201105261140.24081.laurent.pinchart@ideasonboard.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
---MP_/DWJrqv6m2ILFCKbd7TmcmJ3
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+On Thursday 26 May 2011 11:35:59 Guennadi Liakhovetski wrote:
+> On Thu, 26 May 2011, javier Martin wrote:
+> > Are you using a LI-5M03 module?
+> > (https://www.leopardimaging.com/Beagle_Board_xM_Camera.html)
+> > I also added pull ups to the I2C2 line so that I could communicate with
+> > mt9p031.
+> 
+> Hm, strange, I didn't have to solder anything.
 
-Hi
+You can also turn the OMAP3 internal pull-ups. Depending on who you ask, 
+that's usually way simpler than soldering resistors :-)
 
-Fix crash when init tuner and upload twice the firmware into xc5000 at the some time.
+-- 
+Regards,
 
-diff --git a/drivers/media/common/tuners/xc5000.c b/drivers/media/common/tuners/xc5000.c
-index aa1b2e8..a491a5b 100644
---- a/drivers/media/common/tuners/xc5000.c
-+++ b/drivers/media/common/tuners/xc5000.c
-@@ -996,6 +996,8 @@ static int xc_load_fw_and_init_tuner(struct dvb_frontend *fe)
- 	struct xc5000_priv *priv = fe->tuner_priv;
- 	int ret = 0;
- 
-+	mutex_lock(&xc5000_list_mutex);
-+
- 	if (xc5000_is_firmware_loaded(fe) != XC_RESULT_SUCCESS) {
- 		ret = xc5000_fwupload(fe);
- 		if (ret != XC_RESULT_SUCCESS)
-@@ -1015,6 +1017,8 @@ static int xc_load_fw_and_init_tuner(struct dvb_frontend *fe)
- 	/* Default to "CABLE" mode */
- 	ret |= xc_write_reg(priv, XREG_SIGNALSOURCE, XC_RF_MODE_CABLE);
- 
-+	mutex_unlock(&xc5000_list_mutex);
-+
- 	return ret;
- }
- 
-
-Signed-off-by: Beholder Intl. Ltd. Dmitry Belimov <d.belimov@gmail.com>
-
-With my best regards, Dmitry.
-
---MP_/DWJrqv6m2ILFCKbd7TmcmJ3
-Content-Type: text/x-patch
-Content-Transfer-Encoding: 7bit
-Content-Disposition: attachment; filename=xc5000_load_firmware_fix.diff
-
-diff --git a/drivers/media/common/tuners/xc5000.c b/drivers/media/common/tuners/xc5000.c
-index aa1b2e8..a491a5b 100644
---- a/drivers/media/common/tuners/xc5000.c
-+++ b/drivers/media/common/tuners/xc5000.c
-@@ -996,6 +996,8 @@ static int xc_load_fw_and_init_tuner(struct dvb_frontend *fe)
- 	struct xc5000_priv *priv = fe->tuner_priv;
- 	int ret = 0;
- 
-+	mutex_lock(&xc5000_list_mutex);
-+
- 	if (xc5000_is_firmware_loaded(fe) != XC_RESULT_SUCCESS) {
- 		ret = xc5000_fwupload(fe);
- 		if (ret != XC_RESULT_SUCCESS)
-@@ -1015,6 +1017,8 @@ static int xc_load_fw_and_init_tuner(struct dvb_frontend *fe)
- 	/* Default to "CABLE" mode */
- 	ret |= xc_write_reg(priv, XREG_SIGNALSOURCE, XC_RF_MODE_CABLE);
- 
-+	mutex_unlock(&xc5000_list_mutex);
-+
- 	return ret;
- }
- 
-
-Signed-off-by: Beholder Intl. Ltd. Dmitry Belimov <d.belimov@gmail.com>
-
---MP_/DWJrqv6m2ILFCKbd7TmcmJ3--
+Laurent Pinchart
