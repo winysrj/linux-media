@@ -1,39 +1,52 @@
-Return-path: <mchehab@gaivota>
-Received: from lo.gmane.org ([80.91.229.12]:60114 "EHLO lo.gmane.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753103Ab1ELHEg (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 12 May 2011 03:04:36 -0400
-Received: from list by lo.gmane.org with local (Exim 4.69)
-	(envelope-from <gldv-linux-media@m.gmane.org>)
-	id 1QKPwp-00054f-6r
-	for linux-media@vger.kernel.org; Thu, 12 May 2011 09:04:35 +0200
-Received: from 193.160.199.2 ([193.160.199.2])
-        by main.gmane.org with esmtp (Gmexim 0.1 (Debian))
-        id 1AlnuQ-0007hv-00
-        for <linux-media@vger.kernel.org>; Thu, 12 May 2011 09:04:35 +0200
-Received: from bjorn by 193.160.199.2 with local (Gmexim 0.1 (Debian))
-        id 1AlnuQ-0007hv-00
-        for <linux-media@vger.kernel.org>; Thu, 12 May 2011 09:04:35 +0200
-To: linux-media@vger.kernel.org
-From: =?utf-8?Q?Bj=C3=B8rn_Mork?= <bjorn@mork.no>
-Subject: Re: dvb-core/dvb_frontend.c: Synchronizing legacy and new tuning API
-Date: Thu, 12 May 2011 09:04:16 +0200
-Message-ID: <87oc38bdsf.fsf@nemi.mork.no>
-References: <87sjslaxwz.fsf@nemi.mork.no> <4DCAEED2.6040906@linuxtv.org>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 8bit
+Return-path: <mchehab@pedra>
+Received: from mailfe05.c2i.net ([212.247.154.130]:57349 "EHLO swip.net"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1756209Ab1EZIIO convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 26 May 2011 04:08:14 -0400
+Received: from [188.126.198.129] (account mc467741@c2i.net HELO laptop002.hselasky.homeunix.org)
+  by mailfe05.swip.net (CommuniGate Pro SMTP 5.2.19)
+  with ESMTPA id 130332182 for linux-media@vger.kernel.org; Thu, 26 May 2011 10:08:12 +0200
+From: Hans Petter Selasky <hselasky@c2i.net>
+To: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Subject: [PATCH v2] Correct and add some parameter descriptions.
+Date: Thu, 26 May 2011 10:06:57 +0200
+MIME-Version: 1.0
+Content-Type: text/plain;
+  charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+Message-Id: <201105261006.57202.hselasky@c2i.net>
 List-ID: <linux-media.vger.kernel.org>
-Sender: Mauro Carvalho Chehab <mchehab@gaivota>
+Sender: <mchehab@pedra>
 
-Andreas Oberritter <obi@linuxtv.org> writes:
+>From 70d02ce19f64fae4ceee563501e8462a76e17b91 Mon Sep 17 00:00:00 2001
+From: Hans Petter Selasky <hselasky@c2i.net>
+Date: Thu, 26 May 2011 10:06:09 +0200
+Subject: [PATCH] Correct and add some parameter descriptions.
 
-> Please try the patches submitted for testing:
->
-> http://www.mail-archive.com/linux-media@vger.kernel.org/msg31194.html
+Signed-off-by: Hans Petter Selasky <hselasky@c2i.net>
+---
+ drivers/media/video/tda7432.c |    5 +++--
+ 1 files changed, 3 insertions(+), 2 deletions(-)
 
-Ah, great! Thanks.  Nothing better than a problem already solved.
-
-
-Bjørn
+diff --git a/drivers/media/video/tda7432.c b/drivers/media/video/tda7432.c
+index 3941f95..bd21854 100644
+--- a/drivers/media/video/tda7432.c
++++ b/drivers/media/video/tda7432.c
+@@ -49,10 +49,11 @@ static int maxvol;
+ static int loudness; /* disable loudness by default */
+ static int debug;	 /* insmod parameter */
+ module_param(debug, int, S_IRUGO | S_IWUSR);
++MODULE_PARM_DESC(debug, "Set debugging level from 0 to 3. Default is off(0).");
+ module_param(loudness, int, S_IRUGO);
+-MODULE_PARM_DESC(maxvol,"Set maximium volume to +20db (0), default is 0db(1)");
++MODULE_PARM_DESC(loudness, "Turn loudness on(1) else off(0). Default is off(0).");
+ module_param(maxvol, int, S_IRUGO | S_IWUSR);
+-
++MODULE_PARM_DESC(maxvol, "Set maximium volume to +20dB(0) else +0dB(1). Default is +20dB(0).");
+ 
+ 
+ /* Structure of address and subaddresses for the tda7432 */
+-- 
+1.7.1.1
 
