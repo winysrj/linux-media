@@ -1,100 +1,107 @@
 Return-path: <mchehab@pedra>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:36548 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S935587Ab1ETKMX (ORCPT
+Received: from smtp-68.nebula.fi ([83.145.220.68]:47080 "EHLO
+	smtp-68.nebula.fi" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752581Ab1EZOpS (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 20 May 2011 06:12:23 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Hans Verkuil <hansverk@cisco.com>
-Subject: Re: [RFC/PATCH 1/2] v4l: Add generic board subdev
- =?iso-8859-1?q?registration=09function?=
-Date: Fri, 20 May 2011 12:12:23 +0200
-Cc: Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	linux-media@vger.kernel.org, sakari.ailus@iki.fi,
-	michael.jones@matrix-vision.de
-References: <1305830080-18211-1-git-send-email-laurent.pinchart@ideasonboard.com> <201105201137.25556.laurent.pinchart@ideasonboard.com> <201105201152.17414.hansverk@cisco.com>
-In-Reply-To: <201105201152.17414.hansverk@cisco.com>
+	Thu, 26 May 2011 10:45:18 -0400
+Date: Thu, 26 May 2011 17:45:12 +0300
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Arnd Bergmann <arnd@arndb.de>
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	linux-media@vger.kernel.org,
+	David Rusling <david.rusling@linaro.org>
+Subject: Re: [GIT PATCH FOR 2.6.40] uvcvideo patches
+Message-ID: <20110526144512.GB3547@valkosipuli.localdomain>
+References: <201105150948.24956.laurent.pinchart@ideasonboard.com>
+ <4DDD95AF.4010004@redhat.com>
+ <201105261054.59914.laurent.pinchart@ideasonboard.com>
+ <201105261120.41282.arnd@arndb.de>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201105201212.24046.laurent.pinchart@ideasonboard.com>
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <201105261120.41282.arnd@arndb.de>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Hi Hans,
+Hi Arnd and others,
 
-On Friday 20 May 2011 11:52:17 Hans Verkuil wrote:
-> On Friday, May 20, 2011 11:37:24 Laurent Pinchart wrote:
-> > On Friday 20 May 2011 11:19:48 Hans Verkuil wrote:
-> > > On Friday, May 20, 2011 11:05:00 Laurent Pinchart wrote:
-
-[snip]
-
-> > > > My idea was to use bus notifiers to delay the bridge/host device
-> > > > initialization. The bridge probe() function would pre-initialize the
-> > > > bridge and register notifiers. The driver would then wait until all
-> > > > subdevs are properly registered, and then proceed from to register
-> > > > V4L2 devices from the bus notifier callback (or possible a work
-> > > > queue). There would be no nested probe() calls.
+On Thu, May 26, 2011 at 11:20:41AM +0200, Arnd Bergmann wrote:
+> On Thursday 26 May 2011, Laurent Pinchart wrote:
+> > On Thursday 26 May 2011 01:50:07 Mauro Carvalho Chehab wrote:
+> > > Em 25-05-2011 20:43, Laurent Pinchart escreveu:
+> > > > Issues arise when devices have floating point registers. And yes, that
+> > > > happens, I've learnt today about an I2C sensor with floating point
+> > > > registers (in this specific case it should probably be put in the broken
+> > > > design category, but it exists :-)).
 > > > 
-> > > Would it be an option to create a new platform bus for the subdevs?
-> > > That would have its own lock. It makes sense from a hierarchical point
-> > > of view, but I'm not certain about the amount of work involved.
+> > > Huh! Yeah, an I2C sensor with FP registers sound weird. We need more
+> > > details in order to address those.
 > > 
-> > Do you mean a subdev-platform bus for platform subdevs, or a V4L2 subdev
-> > bus for all subdevs ? The first option is possible, but it looks more
-> > like a hack to me. If the subdev really is a platform device, it should be
-> > handled by the platform bus.
+> > Fortunately for the sensor I'm talking about most of those registers are read-
+> > only and contain large values that can be handled as integers, so all we need 
+> > to do is convert the 32-bit IEEE float value into an integer. Other hardware 
+> > might require more complex FP handling.
 > 
-> The first. So you have a 'top-level' platform device that wants to load
-> platform subdevs (probably representing internal IP blocks). So it would
-> create its own platform bus that is used to probe those platform subdevs.
-> 
-> It is similar to e.g. an I2C device that has internal I2C busses: you would
-> also create nested busses there.
-> 
-> BTW, why do these platform subdevs have to be on the platform bus? Why not
-> have standalone subdev drivers that are not on any bus? That's for example
-> what ivtv does for the internal GPIO audio subdev.
+> As an additional remark here, most architectures can handle float in the
+> kernel in some way, but they all do it differently, so it's basically
+> impossible to do in a cross-architecture device driver.
 
-There's some misunderstanging here. Internal IP blocks don't need to sit on 
-any bus. The host/bridge driver can create subdevs for those blocks directly, 
-as it doesn't need to load a separate driver.
+Yeah, I noticed this also. Luckily, usually no other operations are needed
+on floating point numbers than converting them to integers.
 
-The issue comes from external subdevs that offer little control or even none 
-at all. The best example is an FPGA that will feed video data to the bridge in 
-a fixed format without any mean of control, or with just an on/off control 
-through a GPIO. Support for such subdevices need to be handled by a separate 
-driver, so we need a way to load it at runtime. I'm not sure on what bus that 
-driver should sit.
-
-> > I don't think the second option is possible, I2C and SPI subdevs need to
-> > sit on an I2C or SPI bus (I could be mistaken though, there's at least
-> > one example of a logical bus type in the kernel with the HID bus).
+> > > I'm all about showing the industry in with direction we would like it to
+> > > go. We want that all Linux-supported architectures/sub-architectures
+> > > support inter-core communications in kernelspace, in a more efficient way
+> > > that it would happen if such communication would happen in userspace.
 > > 
-> > Let's also not forget about sub-sub-devices. We need to handle them at
-> > some point as well.
+> > I agree with that. My concern is about things like
+> > 
+> > "Standardizing on the OpenMax media libraries and the GStreamer framework is 
+> > the direction that Linaro is going." (David Rusling, Linaro CTO, quoted on 
+> > lwn.net)
+> > 
+> > We need to address this now, otherwise it will be too late.
 > 
-> Sub-sub-devices are not a problem by themselves. They are only a problem if
-> they on the same bus.
+> Absolutely agreed. OpenMAX needs to die as an interface abstraction layer.
 > 
-> > This being said, I think that the use of platform devices to solve the
-> > initial problem can also be considered a hack as well. What we really need
-> > is a way to handle subdevs that can't be controlled at all (a video source
-> > that continuously delivers data for instance), or that can be controlled
-> > through GPIO. What bus should we use for a bus-less subdev ? And for
-> > GPIO-based subdevs, should we create a GPIO bus ?
-> 
-> It is perfectly possible to have bus-less subdevs. See ivtv (I think there
-> are one or two other examples as well).
+> IIRC, the last time we discussed this in Linaro, the outcome was basically
+> that we want to have an OpenMAX compatible library on top of V4L, so that the
+> Linaro members can have a checkmark in their product specs that lists them
+> as compatible, but we wouldn't do anything hardware specific in there, or
+> advocate the use of OpenMAX over v4l2 or gstreamer.
 
-But how can we handle bus-less subdevs for embedded devices, where the host 
-(e.g. OMAP3 ISP) doesn't know about the external subdevs (e.g. FPGA controlled 
-by a couple of GPIOs) ?
+I strongly favour GStreamer below OpenMAX rather than V4L2. Naturally the
+GStreamer source plugins do use V4L2 where applicable.
+
+Much of the high level functionality in cameras that applications are
+interested in (for example) is best implemented in GStreamer rather than
+V4L2 which is quite low level interface in some cases. While some closed
+source components will likely remain, the software stack is still primarily
+Open Source software. The closed components are well isolated and
+replaceable where they exist; essentially this means individual GStreamer
+plugins.
+
+Using GStreamer also would have the benefit that in practice most of the
+code using V4L2 would be Open Source as well, not to mention fostering
+development as people work on common software components rather than
+everyone having their own, as in various OpenMAX implementations.
+
+I wonder if vendors really are looking to provide new designs supporting
+OpenMAX while NOT using V4L2, with the possible exception of the OMAP 5.
+But, there's a project to develop a V4L2 driver for the OMAP 4 ISS which
+hopefully would support OMAP 5 as well. Of course, this direction of
+development must be supported where we can.
+
+I think the goal should be that OpenMAX provides no useful functionality at
+all. It should be just a legacy interface layer for applications dependent
+on it. All the functionality should be implemented in V4L2 drivers and
+GStreamer below OpenMAX.
+
+Just my 5 euro cents.
+
+Cheers,
 
 -- 
-Regards,
-
-Laurent Pinchart
+Sakari Ailus
+sakari dot ailus at iki dot fi
