@@ -1,754 +1,1291 @@
 Return-path: <mchehab@pedra>
-Received: from mail-iy0-f174.google.com ([209.85.210.174]:47897 "EHLO
-	mail-iy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751291Ab1EDHdu (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 4 May 2011 03:33:50 -0400
-Received: by iyb14 with SMTP id 14so731051iyb.19
-        for <linux-media@vger.kernel.org>; Wed, 04 May 2011 00:33:49 -0700 (PDT)
-MIME-Version: 1.0
-Date: Wed, 4 May 2011 09:33:49 +0200
-Message-ID: <BANLkTi=pS07RymXLOFsRihd5Jso-y6OsHg@mail.gmail.com>
-Subject: Current status report of mt9p031.
-From: javier Martin <javier.martin@vista-silicon.com>
-To: linux-media@vger.kernel.org
-Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Chris Rodley <carlighting@yahoo.co.nz>
-Content-Type: multipart/mixed; boundary=20cf303bf7da12734e04a26e476d
+Received: from newsmtp5.atmel.com ([204.2.163.5]:42941 "EHLO
+	sjogate2.atmel.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753167Ab1E0LjR (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 27 May 2011 07:39:17 -0400
+From: Josh Wu <josh.wu@atmel.com>
+To: mchehab@redhat.com, g.liakhovetski@gmx.de,
+	linux-media@vger.kernel.org
+Cc: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+	lars.haring@atmel.com, ryan@bluewatersys.com, arnd@arndb.de,
+	plagnioj@jcrosoft.com, Josh Wu <josh.wu@atmel.com>
+Subject: [PATCH v2] [media] at91: add Atmel Image Sensor Interface (ISI) support
+Date: Fri, 27 May 2011 19:38:49 +0800
+Message-Id: <1306496329-14535-1-git-send-email-josh.wu@atmel.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
---20cf303bf7da12734e04a26e476d
-Content-Type: text/plain; charset=ISO-8859-1
+This patch is to enable Atmel Image Sensor Interface (ISI) driver support.
+- Using soc-camera framework with videobuf2 dma-contig allocator
+- Supporting video streaming of YUV packed format
+- Tested on AT91SAM9M10G45-EK with OV2640
 
-Hi,
-for those interested on mt9p031 working on the Beagleboard xM. I
-attach 2 patches here that must be applied to kernel-2.6.39-rc commit
-e8dad69408a9812d6bb42d03e74d2c314534a4fa
-These patches include a fix for the USB ethernet.
+Signed-off-by: Josh Wu <josh.wu@atmel.com>
+---
+Modified in V2 patch:
+move isi head file to include/media/atmel-isi.h, which make it possible share with AVR32.
+remove bit manipulation macro.
+using static isi_readl/writel functions.
+add time out for all endless loop.
+add dependency of AT91 since this version is not compatiable with AVR32.
+remove still image capture code since soc-camera is not supported.
+remove KERNEL_VERSION.
+correct clock api using.
+other minor fix.
 
-What currently works:
-- Test suggested by Guennadi
-(http://download.open-technology.de/BeagleBoard_xM-MT9P031/).
+ drivers/media/video/Kconfig     |    8 +
+ drivers/media/video/Makefile    |    1 +
+ drivers/media/video/atmel-isi.c | 1076 +++++++++++++++++++++++++++++++++++++++
+ include/media/atmel-isi.h       |  125 +++++
+ 4 files changed, 1210 insertions(+), 0 deletions(-)
+ create mode 100644 drivers/media/video/atmel-isi.c
+ create mode 100644 include/media/atmel-isi.h
 
-Known problems:
-1. You might be required to create device node for the sensor manually:
-
-mknod /dev/v4l-subdev8 c 81 15
-chown root:video /dev/v4l-subdev8
-
-2. Images captured seem to be too dull and dark. Values of pixels seem
-always to low, it seems to me like MSB of each pixel were stuck at 0.
-I hope someone can help here.
-
-Thank you.
-
+diff --git a/drivers/media/video/Kconfig b/drivers/media/video/Kconfig
+index bb53de7..93d1098 100644
+--- a/drivers/media/video/Kconfig
++++ b/drivers/media/video/Kconfig
+@@ -952,6 +952,14 @@ config  VIDEO_SAMSUNG_S5P_FIMC
+ 	  To compile this driver as a module, choose M here: the
+ 	  module will be called s5p-fimc.
+ 
++config VIDEO_ATMEL_ISI
++	tristate "ATMEL Image Sensor Interface (ISI) support"
++	depends on VIDEO_DEV && SOC_CAMERA && ARCH_AT91
++	select VIDEOBUF2_DMA_CONTIG
++	---help---
++	  This module makes the ATMEL Image Sensor Interface available
++	  as a v4l2 device.
++
+ config VIDEO_S5P_MIPI_CSIS
+ 	tristate "Samsung S5P and EXYNOS4 MIPI CSI receiver driver"
+ 	depends on VIDEO_V4L2 && PM_RUNTIME && PLAT_S5P && VIDEO_V4L2_SUBDEV_API
+diff --git a/drivers/media/video/Makefile b/drivers/media/video/Makefile
+index f0fecd6..d9833f4 100644
+--- a/drivers/media/video/Makefile
++++ b/drivers/media/video/Makefile
+@@ -166,6 +166,7 @@ obj-$(CONFIG_VIDEO_PXA27x)		+= pxa_camera.o
+ obj-$(CONFIG_VIDEO_SH_MOBILE_CSI2)	+= sh_mobile_csi2.o
+ obj-$(CONFIG_VIDEO_SH_MOBILE_CEU)	+= sh_mobile_ceu_camera.o
+ obj-$(CONFIG_VIDEO_OMAP1)		+= omap1_camera.o
++obj-$(CONFIG_VIDEO_ATMEL_ISI)		+= atmel-isi.o
+ 
+ obj-$(CONFIG_VIDEO_SAMSUNG_S5P_FIMC) 	+= s5p-fimc/
+ 
+diff --git a/drivers/media/video/atmel-isi.c b/drivers/media/video/atmel-isi.c
+new file mode 100644
+index 0000000..1dcf34c
+--- /dev/null
++++ b/drivers/media/video/atmel-isi.c
+@@ -0,0 +1,1076 @@
++/*
++ * Copyright (c) 2011 Atmel Corporation
++ * Josh Wu, <josh.wu@atmel.com>
++ *
++ * Based on previous work by Lars Haring, <lars.haring@atmel.com>
++ * and Sedji Gaouaou
++ * Based on the bttv driver for Bt848 with respective copyright holders
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
++ */
++
++#include <linux/clk.h>
++#include <linux/completion.h>
++#include <linux/fs.h>
++#include <linux/init.h>
++#include <linux/interrupt.h>
++#include <linux/kernel.h>
++#include <linux/platform_device.h>
++#include <linux/slab.h>
++#include <linux/delay.h>
++
++#include <mach/board.h>
++#include <mach/cpu.h>
++
++#include <media/videobuf2-dma-contig.h>
++#include <media/soc_camera.h>
++#include <media/soc_mediabus.h>
++#include <media/atmel-isi.h>
++
++#define MAX_BUFFER_NUMS			32
++#define MAX_SUPPORT_WIDTH		2048
++#define MAX_SUPPORT_HEIGHT		2048
++#define VID_LIMIT_BYTES			(16 * 1024 * 1024)
++#define MIN_FRAME_RATE			15
++#define FRAME_INTERVAL_MILLI_SEC	(1000 / MIN_FRAME_RATE)
++
++/* ISI states */
++enum {
++	ISI_STATE_IDLE = 0,
++	ISI_STATE_READY,
++	ISI_STATE_WAIT_SOF,
++};
++
++/* Frame buffer descriptor */
++struct fbd {
++	/* Physical address of the frame buffer */
++	u32 fb_address;
++	/* DMA Control Register(only in HISI2) */
++	u32 dma_ctrl;
++	/* Physical address of the next fbd */
++	u32 next_fbd_address;
++};
++
++static void set_dma_ctrl(struct fbd *fb_desc, u32 ctrl)
++{
++	fb_desc->dma_ctrl = ctrl;
++}
++
++/* Frame buffer data */
++struct frame_buffer {
++	struct vb2_buffer vb;
++	struct fbd *p_fb_desc;
++	u32 fb_desc_phys;
++	struct list_head list;
++};
++
++struct atmel_isi {
++	/* Protects the access of variables shared with the ISR */
++	spinlock_t			lock;
++	void __iomem			*regs;
++
++	int				sequence;
++	/* State of the ISI module in capturing mode */
++	int				state;
++
++	/* Capture/streaming wait queue for waiting for SOF */
++	wait_queue_head_t		capture_wq;
++
++	struct vb2_alloc_ctx		*alloc_ctx;
++
++	/* Allocate descriptors for dma buffer use */
++	struct fbd			*p_fb_descriptors;
++	u32				fb_descriptors_phys;
++	int				index_fb_desc;
++
++	struct completion		isi_complete;
++	struct clk			*pclk;
++	unsigned int			irq;
++
++	struct isi_platform_data	*pdata;
++	unsigned long			platform_flags;
++
++	struct list_head		video_buffer_list;
++	struct frame_buffer		*active;
++
++	struct soc_camera_device	*icd;
++	struct soc_camera_host		soc_host;
++};
++
++static void isi_writel(struct atmel_isi *isi, u32 reg, u32 val)
++{
++	writel(val, isi->regs + reg);
++}
++static u32 isi_readl(struct atmel_isi *isi, u32 reg)
++{
++	return readl(isi->regs + reg);
++}
++
++static int configure_geometry(struct atmel_isi *isi, u32 width,
++			u32 height, enum v4l2_mbus_pixelcode code)
++{
++	u32 cfg2, cr;
++
++	switch (code) {
++	/* YUV, including grey */
++	case V4L2_MBUS_FMT_Y8_1X8:
++		cr = ISI_CFG2_GRAYSCALE;
++		break;
++	case V4L2_MBUS_FMT_UYVY8_2X8:
++		cr = ISI_CFG2_YCC_SWAP_MODE_3;
++		break;
++	case V4L2_MBUS_FMT_VYUY8_2X8:
++		cr = ISI_CFG2_YCC_SWAP_MODE_2;
++		break;
++	case V4L2_MBUS_FMT_YUYV8_2X8:
++		cr = ISI_CFG2_YCC_SWAP_MODE_1;
++		break;
++	case V4L2_MBUS_FMT_YVYU8_2X8:
++		cr = ISI_CFG2_YCC_SWAP_DEFAULT;
++		break;
++	/* RGB, TODO */
++	default:
++		return -EINVAL;
++	}
++
++	isi_writel(isi, ISI_CTRL, ISI_CTRL_DIS);
++
++	cfg2 = isi_readl(isi, ISI_CFG2);
++	cfg2 |= cr;
++	/* Set width */
++	cfg2 &= ~(ISI_CFG2_IM_HSIZE_MASK);
++	cfg2 |= ((width - 1) << ISI_CFG2_IM_HSIZE_OFFSET) &
++			ISI_CFG2_IM_HSIZE_MASK;
++	/* Set height */
++	cfg2 &= ~(ISI_CFG2_IM_VSIZE_MASK);
++	cfg2 |= ((height - 1) << ISI_CFG2_IM_VSIZE_OFFSET)
++			& ISI_CFG2_IM_VSIZE_MASK;
++	isi_writel(isi, ISI_CFG2, cfg2);
++
++	return 0;
++}
++
++static irqreturn_t atmel_isi_handle_streaming(struct atmel_isi *isi)
++{
++	if (isi->active) {
++		struct vb2_buffer *vb = &isi->active->vb;
++		struct frame_buffer *buf = isi->active;
++
++		list_del_init(&buf->list);
++		do_gettimeofday(&vb->v4l2_buf.timestamp);
++		vb->v4l2_buf.sequence = isi->sequence++;
++		vb2_buffer_done(vb, VB2_BUF_STATE_DONE);
++	}
++
++	if (list_empty(&isi->video_buffer_list)) {
++		isi->active = NULL;
++	} else {
++		/* start next dma frame. */
++		isi->active = list_entry(isi->video_buffer_list.next,
++					struct frame_buffer, list);
++		isi_writel(isi, ISI_DMA_C_DSCR, isi->active->fb_desc_phys);
++		isi_writel(isi, ISI_DMA_C_CTRL,
++			ISI_DMA_CTRL_FETCH | ISI_DMA_CTRL_DONE);
++		isi_writel(isi, ISI_DMA_CHER, ISI_DMA_CHSR_C_CH);
++	}
++	return IRQ_HANDLED;
++}
++
++/* ISI interrupt service routine */
++static irqreturn_t isi_interrupt(int irq, void *dev_id)
++{
++	struct atmel_isi *isi = dev_id;
++	u32 status, mask, pending;
++	irqreturn_t ret = IRQ_NONE;
++
++	spin_lock(&isi->lock);
++
++	status = isi_readl(isi, ISI_STATUS);
++	mask = isi_readl(isi, ISI_INTMASK);
++	pending = status & mask;
++
++	if (pending & ISI_CTRL_SRST) {
++		complete(&isi->isi_complete);
++		isi_writel(isi, ISI_INTDIS, ISI_CTRL_SRST);
++		ret = IRQ_HANDLED;
++	}
++	if (pending & ISI_CTRL_DIS) {
++		complete(&isi->isi_complete);
++		isi_writel(isi, ISI_INTDIS, ISI_CTRL_DIS);
++		ret = IRQ_HANDLED;
++	}
++
++	if (pending & ISI_SR_VSYNC) {
++		switch (isi->state) {
++		case ISI_STATE_IDLE:
++			isi->state = ISI_STATE_READY;
++			wake_up_interruptible(&isi->capture_wq);
++			break;
++		}
++	} else if (likely(pending & ISI_SR_CXFR_DONE)) {
++		ret = atmel_isi_handle_streaming(isi);
++	}
++
++	spin_unlock(&isi->lock);
++
++	return ret;
++}
++
++#define	WAIT_ISI_RESET		1
++#define	WAIT_ISI_DISABLE	0
++static int atmel_isi_wait_status(int wait_reset, struct atmel_isi *isi)
++{
++	unsigned long timeout;
++	/*
++	 * The reset or disable will only succeed if we have a
++	 * pixel clock from the camera.
++	 */
++	init_completion(&isi->isi_complete);
++
++	if (wait_reset) {
++		isi_writel(isi, ISI_INTEN, ISI_CTRL_SRST);
++		isi_writel(isi, ISI_CTRL, ISI_CTRL_SRST);
++	} else {
++		isi_writel(isi, ISI_INTEN, ISI_CTRL_DIS);
++		isi_writel(isi, ISI_CTRL, ISI_CTRL_DIS);
++	}
++
++	timeout = wait_for_completion_timeout(&isi->isi_complete,
++			msecs_to_jiffies(100));
++	if (timeout == 0)
++		return -ETIMEDOUT;
++
++	return 0;
++}
++
++/* ------------------------------------------------------------------
++	Videobuf operations
++   ------------------------------------------------------------------*/
++static int queue_setup(struct vb2_queue *vq, unsigned int *nbuffers,
++				unsigned int *nplanes, unsigned long sizes[],
++				void *alloc_ctxs[])
++{
++	struct soc_camera_device *icd = soc_camera_from_vb2q(vq);
++	struct soc_camera_host *ici = to_soc_camera_host(icd->dev.parent);
++	struct atmel_isi *isi = ici->priv;
++	unsigned long size;
++	int ret, bytes_per_line;
++
++	/* Reset ISI */
++	ret = atmel_isi_wait_status(WAIT_ISI_RESET, isi);
++	if (ret < 0) {
++		dev_err(icd->dev.parent, "Reset ISI timed out\n");
++		return ret;
++	}
++	/* Disable all interrupts */
++	isi_writel(isi, ISI_INTDIS, ~0UL);
++
++	bytes_per_line = soc_mbus_bytes_per_line(icd->user_width,
++						icd->current_fmt->host_fmt);
++
++	if (bytes_per_line < 0)
++		return bytes_per_line;
++
++	size = bytes_per_line * icd->user_height;
++
++	if (*nbuffers == 0)
++		*nbuffers = MAX_BUFFER_NUMS;
++	if (*nbuffers > MAX_BUFFER_NUMS)
++		*nbuffers = MAX_BUFFER_NUMS;
++
++	if (size * *nbuffers > VID_LIMIT_BYTES)
++		*nbuffers = VID_LIMIT_BYTES / size;
++
++	*nplanes = 1;
++	sizes[0] = size;
++	alloc_ctxs[0] = isi->alloc_ctx;
++
++	isi->sequence = 0;
++	isi->active = NULL;
++
++	dev_dbg(icd->dev.parent, "%s, count=%d, size=%ld\n", __func__,
++		*nbuffers, size);
++
++	return 0;
++}
++
++static int buffer_init(struct vb2_buffer *vb)
++{
++	struct frame_buffer *buf = container_of(vb, struct frame_buffer, vb);
++
++	buf->p_fb_desc = NULL;
++	buf->fb_desc_phys = 0;
++	INIT_LIST_HEAD(&buf->list);
++
++	return 0;
++}
++
++static int buffer_prepare(struct vb2_buffer *vb)
++{
++	struct soc_camera_device *icd = soc_camera_from_vb2q(vb->vb2_queue);
++	struct frame_buffer *buf = container_of(vb, struct frame_buffer, vb);
++	struct soc_camera_host *ici = to_soc_camera_host(icd->dev.parent);
++	struct atmel_isi *isi = ici->priv;
++	unsigned long size;
++	int bytes_per_line = soc_mbus_bytes_per_line(icd->user_width,
++						icd->current_fmt->host_fmt);
++
++	if (bytes_per_line < 0)
++		return bytes_per_line;
++
++	size = bytes_per_line * icd->user_height;
++
++	if (vb2_plane_size(vb, 0) < size) {
++		dev_err(icd->dev.parent, "%s data will not fit into plane (%lu < %lu)\n",
++				__func__, vb2_plane_size(vb, 0), size);
++		return -EINVAL;
++	}
++
++	vb2_set_plane_payload(&buf->vb, 0, size);
++
++	if (!buf->p_fb_desc) {
++		/* Initialize the dma descriptor */
++		buf->p_fb_desc = &isi->p_fb_descriptors[isi->index_fb_desc];
++		buf->fb_desc_phys = isi->fb_descriptors_phys +
++				isi->index_fb_desc * sizeof(struct fbd);
++
++		buf->p_fb_desc->fb_address = vb2_dma_contig_plane_paddr(vb, 0);
++		buf->p_fb_desc->next_fbd_address = 0;
++		set_dma_ctrl(buf->p_fb_desc, ISI_DMA_CTRL_WB);
++		isi->index_fb_desc++;
++		if (isi->index_fb_desc > MAX_BUFFER_NUMS) {
++			dev_err(icd->dev.parent, "Not enough dma descriptors.\n");
++			return -EINVAL;
++		}
++	}
++	return 0;
++}
++
++static void buffer_cleanup(struct vb2_buffer *vb)
++{
++	struct soc_camera_device *icd = soc_camera_from_vb2q(vb->vb2_queue);
++	struct soc_camera_host *ici = to_soc_camera_host(icd->dev.parent);
++	struct atmel_isi *isi = ici->priv;
++	struct frame_buffer *buf = container_of(vb, struct frame_buffer, vb);
++	unsigned long flags;
++
++	spin_lock_irqsave(&isi->lock, flags);
++	if (buf->p_fb_desc) {
++		buf->p_fb_desc = NULL;
++		buf->fb_desc_phys = 0;
++		isi->index_fb_desc--;
++		if (isi->index_fb_desc < 0)
++			dev_err(icd->dev.parent, "Invalid descriptors index.\n");
++	}
++	spin_unlock_irqrestore(&isi->lock, flags);
++}
++
++static void start_dma(struct atmel_isi *isi, struct frame_buffer *buffer)
++{
++	u32 ctrl, cfg1;
++
++	cfg1 = isi_readl(isi, ISI_CFG1);
++	/* Enable irq: cxfr for the codec path, pxfr for the preview path */
++	isi_writel(isi, ISI_INTEN,
++			ISI_SR_CXFR_DONE | ISI_SR_PXFR_DONE);
++
++	/* Check if already in a frame */
++	if (isi_readl(isi, ISI_STATUS) & ISI_CTRL_CDC) {
++		dev_err(isi->icd->dev.parent, "Already in frame handling.\n");
++		return;
++	}
++
++	isi_writel(isi, ISI_DMA_C_DSCR, buffer->fb_desc_phys);
++	isi_writel(isi, ISI_DMA_C_CTRL, ISI_DMA_CTRL_FETCH | ISI_DMA_CTRL_DONE);
++	isi_writel(isi, ISI_DMA_CHER, ISI_DMA_CHSR_C_CH);
++
++	/* Enable linked list */
++	cfg1 |= isi->pdata->frate | ISI_CFG1_DISCR;
++
++	/* Enable codec path and ISI */
++	ctrl = ISI_CTRL_CDC | ISI_CTRL_EN;
++	isi_writel(isi, ISI_CTRL, ctrl);
++	isi_writel(isi, ISI_CFG1, cfg1);
++}
++
++static void buffer_queue(struct vb2_buffer *vb)
++{
++	struct soc_camera_device *icd = soc_camera_from_vb2q(vb->vb2_queue);
++	struct soc_camera_host *ici = to_soc_camera_host(icd->dev.parent);
++	struct atmel_isi *isi = ici->priv;
++	struct frame_buffer *buf = container_of(vb, struct frame_buffer, vb);
++	unsigned long flags = 0;
++
++	spin_lock_irqsave(&isi->lock, flags);
++	list_add_tail(&buf->list, &isi->video_buffer_list);
++
++	if (isi->active == NULL) {
++		isi->active = buf;
++		start_dma(isi, buf);
++	}
++	spin_unlock_irqrestore(&isi->lock, flags);
++}
++
++static int start_streaming(struct vb2_queue *vq)
++{
++	struct soc_camera_device *icd = soc_camera_from_vb2q(vq);
++	struct soc_camera_host *ici = to_soc_camera_host(icd->dev.parent);
++	struct atmel_isi *isi = ici->priv;
++
++	u32 sr = 0;
++	int ret;
++
++	spin_lock_irq(&isi->lock);
++	isi->state = ISI_STATE_IDLE;
++
++	/* Clear any pending SOF interrupt */
++	sr = isi_readl(isi, ISI_STATUS);
++	/* Enable VSYNC interrupt for SOF */
++	isi_writel(isi, ISI_INTEN, ISI_SR_VSYNC);
++	isi_writel(isi, ISI_CTRL, ISI_CTRL_EN);
++
++	spin_unlock_irq(&isi->lock);
++	dev_dbg(icd->dev.parent, "Waiting for SOF\n");
++	ret = wait_event_interruptible(isi->capture_wq,
++				       isi->state != ISI_STATE_IDLE);
++	if (ret)
++		return ret;
++
++	if (isi->state != ISI_STATE_READY)
++		return -EIO;
++
++	spin_lock_irq(&isi->lock);
++	isi->state = ISI_STATE_WAIT_SOF;
++	isi_writel(isi, ISI_INTDIS, ISI_SR_VSYNC);
++	spin_unlock_irq(&isi->lock);
++
++	return 0;
++}
++
++/* abort streaming and wait for last buffer */
++static int stop_streaming(struct vb2_queue *vq)
++{
++	struct soc_camera_device *icd = soc_camera_from_vb2q(vq);
++	struct soc_camera_host *ici = to_soc_camera_host(icd->dev.parent);
++	struct atmel_isi *isi = ici->priv;
++	struct list_head *pos, *node;
++	struct frame_buffer *buf;
++	int ret = 0;
++	unsigned long timeout;
++
++	spin_lock_irq(&isi->lock);
++	isi->active = NULL;
++	/* Release all active buffers */
++	list_for_each_safe(pos, node, &isi->video_buffer_list) {
++		buf = list_entry(pos, struct frame_buffer, list);
++		list_del_init(&buf->list);
++		vb2_buffer_done(&buf->vb, VB2_BUF_STATE_ERROR);
++	}
++	spin_unlock_irq(&isi->lock);
++
++	timeout = jiffies + FRAME_INTERVAL_MILLI_SEC * HZ;
++	/* Wait until the end of the current frame. */
++	while ((isi_readl(isi, ISI_STATUS) & ISI_CTRL_CDC) &&
++			time_before(jiffies, timeout))
++		msleep(1);
++
++	if (time_after(jiffies, timeout)) {
++		dev_err(icd->dev.parent,
++			"Timeout waiting for finishing codec request\n");
++		return -ETIMEDOUT;
++	}
++
++	/* Disable interrupts */
++	isi_writel(isi, ISI_INTDIS,
++			ISI_SR_CXFR_DONE | ISI_SR_PXFR_DONE);
++
++	/* Disable ISI and wait for it is done */
++	ret = atmel_isi_wait_status(WAIT_ISI_DISABLE, isi);
++	if (ret < 0)
++		dev_err(icd->dev.parent, "Disable ISI timed out\n");
++
++	return ret;
++}
++
++static struct vb2_ops isi_video_qops = {
++	.queue_setup		= queue_setup,
++	.buf_init		= buffer_init,
++	.buf_prepare		= buffer_prepare,
++	.buf_cleanup		= buffer_cleanup,
++	.buf_queue		= buffer_queue,
++	.start_streaming	= start_streaming,
++	.stop_streaming		= stop_streaming,
++	.wait_prepare		= soc_camera_unlock,
++	.wait_finish		= soc_camera_lock,
++};
++
++/* ------------------------------------------------------------------
++	SOC camera operations for the device
++   ------------------------------------------------------------------*/
++static int isi_camera_init_videobuf(struct vb2_queue *q,
++				     struct soc_camera_device *icd)
++{
++	q->type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
++	q->io_modes = VB2_MMAP;
++	q->drv_priv = icd;
++	q->buf_struct_size = sizeof(struct frame_buffer);
++	q->ops = &isi_video_qops;
++	q->mem_ops = &vb2_dma_contig_memops;
++
++	return vb2_queue_init(q);
++}
++
++static int isi_camera_set_fmt(struct soc_camera_device *icd,
++			      struct v4l2_format *f)
++{
++	struct soc_camera_host *ici = to_soc_camera_host(icd->dev.parent);
++	struct atmel_isi *isi = ici->priv;
++	struct v4l2_subdev *sd = soc_camera_to_subdev(icd);
++	const struct soc_camera_format_xlate *xlate;
++	struct v4l2_pix_format *pix = &f->fmt.pix;
++	struct v4l2_mbus_framefmt mf;
++	int ret;
++
++	xlate = soc_camera_xlate_by_fourcc(icd, pix->pixelformat);
++	if (!xlate) {
++		dev_warn(icd->dev.parent, "Format %x not found\n",
++			 pix->pixelformat);
++		return -EINVAL;
++	}
++
++	dev_dbg(icd->dev.parent, "Plan to set format %dx%d\n",
++			pix->width, pix->height);
++
++	mf.width	= pix->width;
++	mf.height	= pix->height;
++	mf.field	= pix->field;
++	mf.colorspace	= pix->colorspace;
++	mf.code		= xlate->code;
++
++	ret = v4l2_subdev_call(sd, video, s_mbus_fmt, &mf);
++	if (ret < 0)
++		return ret;
++
++	if (mf.code != xlate->code)
++		return -EINVAL;
++
++	ret = configure_geometry(isi, pix->width, pix->height, xlate->code);
++	if (ret < 0)
++		return ret;
++
++	pix->width		= mf.width;
++	pix->height		= mf.height;
++	pix->field		= mf.field;
++	pix->colorspace		= mf.colorspace;
++	icd->current_fmt	= xlate;
++
++	dev_dbg(icd->dev.parent, "Finally set format %dx%d\n",
++		pix->width, pix->height);
++
++	return ret;
++}
++
++static int isi_camera_try_fmt(struct soc_camera_device *icd,
++			      struct v4l2_format *f)
++{
++	struct v4l2_subdev *sd = soc_camera_to_subdev(icd);
++	const struct soc_camera_format_xlate *xlate;
++	struct v4l2_pix_format *pix = &f->fmt.pix;
++	struct v4l2_mbus_framefmt mf;
++	u32 pixfmt = pix->pixelformat;
++	int ret;
++
++	xlate = soc_camera_xlate_by_fourcc(icd, pixfmt);
++	if (pixfmt && !xlate) {
++		dev_warn(icd->dev.parent, "Format %x not found\n", pixfmt);
++		return -EINVAL;
++	}
++
++	/* limit to Atmel ISI hardware capabilities */
++	if (pix->height > MAX_SUPPORT_HEIGHT)
++		pix->height = MAX_SUPPORT_HEIGHT;
++	if (pix->width > MAX_SUPPORT_WIDTH)
++		pix->width = MAX_SUPPORT_WIDTH;
++
++	/* limit to sensor capabilities */
++	mf.width	= pix->width;
++	mf.height	= pix->height;
++	mf.field	= pix->field;
++	mf.colorspace	= pix->colorspace;
++	mf.code		= xlate->code;
++
++	ret = v4l2_subdev_call(sd, video, try_mbus_fmt, &mf);
++	if (ret < 0)
++		return ret;
++
++	pix->width	= mf.width;
++	pix->height	= mf.height;
++	pix->colorspace	= mf.colorspace;
++
++	switch (mf.field) {
++	case V4L2_FIELD_ANY:
++		pix->field = V4L2_FIELD_NONE;
++		break;
++	case V4L2_FIELD_NONE:
++		break;
++	default:
++		dev_err(icd->dev.parent, "Field type %d unsupported.\n",
++			mf.field);
++		ret = -EINVAL;
++	}
++
++	return ret;
++}
++
++static const struct soc_mbus_pixelfmt isi_camera_formats[] = {
++	{
++		.fourcc			= V4L2_PIX_FMT_YUYV,
++		.name			= "Packed YUV422 16 bit",
++		.bits_per_sample	= 8,
++		.packing		= SOC_MBUS_PACKING_2X8_PADHI,
++		.order			= SOC_MBUS_ORDER_LE,
++	},
++};
++
++/* This will be corrected as we get more formats */
++static bool isi_camera_packing_supported(const struct soc_mbus_pixelfmt *fmt)
++{
++	return	fmt->packing == SOC_MBUS_PACKING_NONE ||
++		(fmt->bits_per_sample == 8 &&
++		 fmt->packing == SOC_MBUS_PACKING_2X8_PADHI) ||
++		(fmt->bits_per_sample > 8 &&
++		 fmt->packing == SOC_MBUS_PACKING_EXTEND16);
++}
++
++static unsigned long make_bus_param(struct atmel_isi *isi)
++{
++	unsigned long flags;
++	/*
++	 * Platform specified synchronization and pixel clock polarities are
++	 * only a recommendation and are only used during probing. Atmel ISI
++	 * camera interface only works in master mode, i.e., uses HSYNC and
++	 * VSYNC signals from the sensor
++	 */
++	flags = SOCAM_MASTER |
++		SOCAM_HSYNC_ACTIVE_HIGH |
++		SOCAM_HSYNC_ACTIVE_LOW |
++		SOCAM_VSYNC_ACTIVE_HIGH |
++		SOCAM_VSYNC_ACTIVE_LOW |
++		SOCAM_PCLK_SAMPLE_RISING |
++		SOCAM_PCLK_SAMPLE_FALLING |
++		SOCAM_DATA_ACTIVE_HIGH;
++
++	if (isi->platform_flags & ISI_DATAWIDTH_10)
++		flags |= SOCAM_DATAWIDTH_10;
++
++	if (isi->platform_flags & ISI_DATAWIDTH_8)
++		flags |= SOCAM_DATAWIDTH_8;
++
++	if (flags & SOCAM_DATAWIDTH_MASK)
++		return flags;
++
++	return 0;
++}
++
++static int isi_camera_try_bus_param(struct soc_camera_device *icd,
++				    unsigned char buswidth)
++{
++	struct soc_camera_host *ici = to_soc_camera_host(icd->dev.parent);
++	struct atmel_isi *isi = ici->priv;
++	unsigned long camera_flags;
++	int ret;
++
++	camera_flags = icd->ops->query_bus_param(icd);
++	ret = soc_camera_bus_param_compatible(camera_flags,
++					make_bus_param(isi));
++	if (!ret)
++		return -EINVAL;
++	return 0;
++}
++
++
++static int isi_camera_get_formats(struct soc_camera_device *icd,
++				  unsigned int idx,
++				  struct soc_camera_format_xlate *xlate)
++{
++	struct v4l2_subdev *sd = soc_camera_to_subdev(icd);
++	int formats = 0, ret;
++	/* sensor format */
++	enum v4l2_mbus_pixelcode code;
++	/* soc camera host format */
++	const struct soc_mbus_pixelfmt *fmt;
++
++	ret = v4l2_subdev_call(sd, video, enum_mbus_fmt, idx, &code);
++	if (ret < 0)
++		/* No more formats */
++		return 0;
++
++	fmt = soc_mbus_get_fmtdesc(code);
++	if (!fmt) {
++		dev_err(icd->dev.parent,
++			"Invalid format code #%u: %d\n", idx, code);
++		return 0;
++	}
++
++	/* This also checks support for the requested bits-per-sample */
++	ret = isi_camera_try_bus_param(icd, fmt->bits_per_sample);
++	if (ret < 0) {
++		dev_err(icd->dev.parent,
++			"Fail to try the bus parameters.\n");
++		return 0;
++	}
++
++	switch (code) {
++	case V4L2_MBUS_FMT_UYVY8_2X8:
++	case V4L2_MBUS_FMT_VYUY8_2X8:
++	case V4L2_MBUS_FMT_YUYV8_2X8:
++	case V4L2_MBUS_FMT_YVYU8_2X8:
++		formats++;
++		if (xlate) {
++			xlate->host_fmt	= &isi_camera_formats[0];
++			xlate->code	= code;
++			xlate++;
++			dev_dbg(icd->dev.parent, "Providing format %s using code %d\n",
++				isi_camera_formats[0].name, code);
++		}
++		break;
++	default:
++		if (!isi_camera_packing_supported(fmt))
++			return 0;
++		if (xlate)
++			dev_dbg(icd->dev.parent,
++				"Providing format %s in pass-through mode\n",
++				fmt->name);
++	}
++
++	/* Generic pass-through */
++	formats++;
++	if (xlate) {
++		xlate->host_fmt	= fmt;
++		xlate->code	= code;
++		xlate++;
++	}
++
++	return formats;
++}
++
++/* Called with .video_lock held */
++static int isi_camera_add_device(struct soc_camera_device *icd)
++{
++	struct soc_camera_host *ici = to_soc_camera_host(icd->dev.parent);
++	struct atmel_isi *isi = ici->priv;
++
++	if (isi->icd)
++		return -EBUSY;
++
++	if (clk_enable(isi->pclk))
++		return -EIO;
++
++	isi->icd = icd;
++	dev_dbg(icd->dev.parent, "Atmel ISI Camera driver attached to camera %d\n",
++		 icd->devnum);
++	return 0;
++}
++/* Called with .video_lock held */
++static void isi_camera_remove_device(struct soc_camera_device *icd)
++{
++	struct soc_camera_host *ici = to_soc_camera_host(icd->dev.parent);
++	struct atmel_isi *isi = ici->priv;
++
++	BUG_ON(icd != isi->icd);
++
++	clk_disable(isi->pclk);
++	isi->icd = NULL;
++
++	dev_dbg(icd->dev.parent, "Atmel ISI Camera driver detached from camera %d\n",
++		 icd->devnum);
++}
++
++static unsigned int isi_camera_poll(struct file *file, poll_table *pt)
++{
++	struct soc_camera_device *icd = file->private_data;
++
++	return vb2_poll(&icd->vb2_vidq, file, pt);
++}
++
++static int isi_camera_querycap(struct soc_camera_host *ici,
++			       struct v4l2_capability *cap)
++{
++	strcpy(cap->driver, "atmel-isi");
++	strcpy(cap->card, "Atmel Image Sensor Interface");
++	cap->capabilities = (V4L2_CAP_VIDEO_CAPTURE |
++				V4L2_CAP_STREAMING);
++	return 0;
++}
++
++static int isi_camera_set_bus_param(struct soc_camera_device *icd, u32 pixfmt)
++{
++	struct soc_camera_host *ici = to_soc_camera_host(icd->dev.parent);
++	struct atmel_isi *isi = ici->priv;
++	unsigned long bus_flags, camera_flags, common_flags;
++	int hsync_act_low, vsync_act_low, pclk_act_falling;
++	int ret;
++	u32 cfg1 = 0;
++
++	camera_flags = icd->ops->query_bus_param(icd);
++
++	bus_flags = make_bus_param(isi);
++	common_flags = soc_camera_bus_param_compatible(camera_flags, bus_flags);
++	dev_dbg(icd->dev.parent, "Flags cam: 0x%lx host: 0x%lx common: 0x%lx\n",
++		camera_flags, bus_flags, common_flags);
++	if (!common_flags)
++		return -EINVAL;
++
++	/* Make choises, based on platform preferences */
++	if ((common_flags & SOCAM_HSYNC_ACTIVE_HIGH) &&
++	    (common_flags & SOCAM_HSYNC_ACTIVE_LOW)) {
++		if (isi->pdata->hsync_act_low)
++			common_flags &= ~SOCAM_HSYNC_ACTIVE_HIGH;
++		else
++			common_flags &= ~SOCAM_HSYNC_ACTIVE_LOW;
++	}
++
++	if ((common_flags & SOCAM_VSYNC_ACTIVE_HIGH) &&
++	    (common_flags & SOCAM_VSYNC_ACTIVE_LOW)) {
++		if (isi->pdata->vsync_act_low)
++			common_flags &= ~SOCAM_VSYNC_ACTIVE_HIGH;
++		else
++			common_flags &= ~SOCAM_VSYNC_ACTIVE_LOW;
++	}
++
++	if ((common_flags & SOCAM_PCLK_SAMPLE_RISING) &&
++	    (common_flags & SOCAM_PCLK_SAMPLE_FALLING)) {
++		if (isi->pdata->pclk_act_falling)
++			common_flags &= ~SOCAM_PCLK_SAMPLE_RISING;
++		else
++			common_flags &= ~SOCAM_PCLK_SAMPLE_FALLING;
++	}
++
++	ret = icd->ops->set_bus_param(icd, common_flags);
++	if (ret < 0) {
++		dev_dbg(icd->dev.parent, "Camera set_bus_param(%lx) returned %d\n",
++			common_flags, ret);
++		return ret;
++	}
++
++	/* set bus param for ISI */
++	hsync_act_low = isi->pdata->hsync_act_low;
++	vsync_act_low = isi->pdata->vsync_act_low;
++	pclk_act_falling = isi->pdata->pclk_act_falling;
++
++	if (common_flags & SOCAM_HSYNC_ACTIVE_LOW)
++		hsync_act_low = 1;
++	if (common_flags & SOCAM_VSYNC_ACTIVE_LOW)
++		vsync_act_low = 1;
++	if (common_flags & SOCAM_PCLK_SAMPLE_FALLING)
++		pclk_act_falling = 1;
++
++	if (hsync_act_low)
++		cfg1 |= ISI_CFG1_HSYNC_POL_ACTIVE_LOW;
++	if (vsync_act_low)
++		cfg1 |= ISI_CFG1_VSYNC_POL_ACTIVE_LOW;
++	if (pclk_act_falling)
++		cfg1 |= ISI_CFG1_PIXCLK_POL_ACTIVE_FALLING;
++	if (isi->pdata->has_emb_sync)
++		cfg1 |= ISI_CFG1_EMB_SYNC;
++	if (isi->pdata->isi_full_mode)
++		cfg1 |= ISI_CFG1_FULL_MODE;
++
++	isi_writel(isi, ISI_CTRL, ISI_CTRL_DIS);
++	isi_writel(isi, ISI_CFG1, cfg1);
++
++	return 0;
++}
++
++static struct soc_camera_host_ops isi_soc_camera_host_ops = {
++	.owner		= THIS_MODULE,
++	.add		= isi_camera_add_device,
++	.remove		= isi_camera_remove_device,
++	.set_fmt	= isi_camera_set_fmt,
++	.try_fmt	= isi_camera_try_fmt,
++	.get_formats	= isi_camera_get_formats,
++	.init_videobuf2	= isi_camera_init_videobuf,
++	.poll		= isi_camera_poll,
++	.querycap	= isi_camera_querycap,
++	.set_bus_param	= isi_camera_set_bus_param,
++};
++
++/* -----------------------------------------------------------------------*/
++static int __exit atmel_isi_remove(struct platform_device *pdev)
++{
++	struct soc_camera_host *soc_host = to_soc_camera_host(&pdev->dev);
++	struct atmel_isi *isi = container_of(soc_host,
++					struct atmel_isi, soc_host);
++
++	soc_camera_host_unregister(soc_host);
++	vb2_dma_contig_cleanup_ctx(isi->alloc_ctx);
++	dma_free_coherent(&pdev->dev,
++			sizeof(struct fbd) * MAX_BUFFER_NUMS,
++			isi->p_fb_descriptors,
++			isi->fb_descriptors_phys);
++
++	free_irq(isi->irq, isi);
++	iounmap(isi->regs);
++	clk_put(isi->pclk);
++	kfree(isi);
++
++	return 0;
++}
++
++static int __devinit atmel_isi_probe(struct platform_device *pdev)
++{
++	unsigned int irq;
++	struct atmel_isi *isi;
++	struct clk *pclk;
++	struct resource *regs;
++	int ret;
++	struct device *dev = &pdev->dev;
++	struct isi_platform_data *pdata;
++	struct soc_camera_host *soc_host;
++	static struct isi_platform_data isi_default_data;
++
++	regs = platform_get_resource(pdev, IORESOURCE_MEM, 0);
++	if (!regs)
++		return -ENXIO;
++
++	pclk = clk_get(&pdev->dev, "isi_clk");
++	if (IS_ERR(pclk))
++		return PTR_ERR(pclk);
++
++	isi = kzalloc(sizeof(struct atmel_isi), GFP_KERNEL);
++	if (!isi) {
++		ret = -ENOMEM;
++		dev_err(&pdev->dev, "Can't allocate interface!\n");
++		goto err_alloc_isi;
++	}
++
++	isi->pclk = pclk;
++
++	spin_lock_init(&isi->lock);
++	init_waitqueue_head(&isi->capture_wq);
++
++	isi->p_fb_descriptors = dma_alloc_coherent(&pdev->dev,
++				sizeof(struct fbd) * MAX_BUFFER_NUMS,
++				&isi->fb_descriptors_phys,
++				GFP_KERNEL);
++	if (!isi->p_fb_descriptors) {
++		ret = -ENOMEM;
++		dev_err(&pdev->dev, "Can't allocate descriptors!\n");
++		goto err_alloc_descriptors;
++	}
++	isi->index_fb_desc = 0;
++
++	isi->alloc_ctx = vb2_dma_contig_init_ctx(&pdev->dev);
++	if (IS_ERR(isi->alloc_ctx)) {
++		ret = PTR_ERR(isi->alloc_ctx);
++		goto err_alloc_ctx;
++	}
++
++	isi->regs = ioremap(regs->start, resource_size(regs));
++	if (!isi->regs) {
++		ret = -ENOMEM;
++		goto err_ioremap;
++	}
++
++	if (dev->platform_data) {
++		pdata = (struct isi_platform_data *) dev->platform_data;
++	} else {
++		/* Set default ISI platform data */
++		isi_default_data.frate		= ISI_CFG1_FRATE_CAPTURE_ALL;
++		isi_default_data.has_emb_sync	= 0;
++		isi_default_data.emb_crc_sync	= 0;
++		isi_default_data.hsync_act_low	= 0;
++		isi_default_data.vsync_act_low	= 0;
++		isi_default_data.pclk_act_falling = 0;
++		isi_default_data.isi_full_mode	= 1;
++		isi_default_data.data_width_flags = ISI_DATAWIDTH_8 |
++				ISI_DATAWIDTH_10;
++
++		pdata = &isi_default_data;
++		dev_info(&pdev->dev,
++			"No config available using default values\n");
++	}
++
++	isi->pdata = pdata;
++	isi->platform_flags = pdata->data_width_flags;
++	if (isi->platform_flags == 0)
++		isi->platform_flags = ISI_DATAWIDTH_8;
++
++	isi_writel(isi, ISI_CTRL, ISI_CTRL_DIS);
++
++	irq = platform_get_irq(pdev, 0);
++	if (irq < 0) {
++		ret = irq;
++		goto err_req_irq;
++	}
++
++	ret = request_irq(irq, isi_interrupt, 0, "isi", isi);
++	if (ret) {
++		dev_err(&pdev->dev, "Unable to request irq %d\n", irq);
++		goto err_req_irq;
++	}
++	isi->irq = irq;
++
++	INIT_LIST_HEAD(&isi->video_buffer_list);
++	isi->active = NULL;
++
++	soc_host		= &isi->soc_host;
++	soc_host->drv_name	= "isi-camera";
++	soc_host->ops		= &isi_soc_camera_host_ops;
++	soc_host->priv		= isi;
++	soc_host->v4l2_dev.dev	= &pdev->dev;
++	soc_host->nr		= pdev->id;
++
++	ret = soc_camera_host_register(soc_host);
++	if (ret) {
++		dev_err(&pdev->dev, "Unable to register soc camera host\n");
++		goto err_register_soc_camera_host;
++	}
++	return 0;
++
++err_register_soc_camera_host:
++	free_irq(isi->irq, isi);
++err_req_irq:
++	iounmap(isi->regs);
++err_ioremap:
++	vb2_dma_contig_cleanup_ctx(isi->alloc_ctx);
++err_alloc_ctx:
++	dma_free_coherent(&pdev->dev,
++			sizeof(struct fbd) * MAX_BUFFER_NUMS,
++			isi->p_fb_descriptors,
++			isi->fb_descriptors_phys);
++err_alloc_descriptors:
++	kfree(isi);
++err_alloc_isi:
++	clk_put(isi->pclk);
++
++	return ret;
++}
++
++static struct platform_driver atmel_isi_driver = {
++	.probe		= atmel_isi_probe,
++	.remove		= __exit_p(atmel_isi_remove),
++	.driver		= {
++		.name = "atmel_isi",
++		.owner = THIS_MODULE,
++	},
++};
++
++static int __init atmel_isi_init_module(void)
++{
++	return  platform_driver_probe(&atmel_isi_driver, &atmel_isi_probe);
++}
++
++static void __exit atmel_isi_exit(void)
++{
++	platform_driver_unregister(&atmel_isi_driver);
++}
++module_init(atmel_isi_init_module);
++module_exit(atmel_isi_exit);
++
++MODULE_AUTHOR("Josh Wu <josh.wu@atmel.com>");
++MODULE_DESCRIPTION("The V4L2 driver for Atmel Linux");
++MODULE_LICENSE("GPL");
++MODULE_SUPPORTED_DEVICE("video");
+diff --git a/include/media/atmel-isi.h b/include/media/atmel-isi.h
+new file mode 100644
+index 0000000..f09e7ab
+--- /dev/null
++++ b/include/media/atmel-isi.h
+@@ -0,0 +1,125 @@
++/*
++ * Register definitions for the Atmel Image Sensor Interface.
++ *
++ * Copyright (C) 2011 Atmel Corporation
++ * Josh Wu, <josh.wu@atmel.com>
++ *
++ * Based on previous work by Lars Haring, <lars.haring@atmel.com>
++ * and Sedji Gaouaou
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
++ */
++#ifndef __ATMEL_ISI_H__
++#define __ATMEL_ISI_H__
++
++#include <linux/types.h>
++
++/* ISI_V2 register offsets */
++#define ISI_CFG1				0x0000
++#define ISI_CFG2				0x0004
++#define ISI_PSIZE				0x0008
++#define ISI_PDECF				0x000c
++#define ISI_Y2R_SET0				0x0010
++#define ISI_Y2R_SET1				0x0014
++#define ISI_R2Y_SET0				0x0018
++#define ISI_R2Y_SET1				0x001C
++#define ISI_R2Y_SET2				0x0020
++#define ISI_CTRL				0x0024
++#define ISI_STATUS				0x0028
++#define ISI_INTEN				0x002C
++#define ISI_INTDIS				0x0030
++#define ISI_INTMASK				0x0034
++#define ISI_DMA_CHER				0x0038
++#define ISI_DMA_CHDR				0x003C
++#define ISI_DMA_CHSR				0x0040
++#define ISI_DMA_P_ADDR			0x0044
++#define ISI_DMA_P_CTRL			0x0048
++#define ISI_DMA_P_DSCR			0x004C
++#define ISI_DMA_C_ADDR			0x0050
++#define ISI_DMA_C_CTRL			0x0054
++#define ISI_DMA_C_DSCR			0x0058
++
++/* Bitfields in CFG1 */
++#define ISI_CFG1_HSYNC_POL_ACTIVE_LOW		(1 << 2)
++#define ISI_CFG1_VSYNC_POL_ACTIVE_LOW		(1 << 3)
++#define ISI_CFG1_PIXCLK_POL_ACTIVE_FALLING	(1 << 4)
++#define ISI_CFG1_EMB_SYNC			(1 << 6)
++#define ISI_CFG1_CRC_SYNC			(1 << 7)
++/* Constants for FRATE(ISI_V2) */
++#define		ISI_CFG1_FRATE_CAPTURE_ALL	(0 << 8)
++#define		ISI_CFG1_FRATE_DIV_2		(1 << 8)
++#define		ISI_CFG1_FRATE_DIV_3		(2 << 8)
++#define		ISI_CFG1_FRATE_DIV_4		(3 << 8)
++#define		ISI_CFG1_FRATE_DIV_5		(4 << 8)
++#define		ISI_CFG1_FRATE_DIV_6		(5 << 8)
++#define		ISI_CFG1_FRATE_DIV_7		(6 << 8)
++#define		ISI_CFG1_FRATE_DIV_8		(7 << 8)
++#define ISI_CFG1_DISCR				(1 << 11)
++#define ISI_CFG1_FULL_MODE			(1 << 12)
++
++/* Bitfields in CFG2 */
++#define ISI_CFG2_GRAYSCALE			(1 << 13)
++/* Constants for YCC_SWAP(ISI_V2) */
++#define		ISI_CFG2_YCC_SWAP_DEFAULT	(0 << 28)
++#define		ISI_CFG2_YCC_SWAP_MODE_1	(1 << 28)
++#define		ISI_CFG2_YCC_SWAP_MODE_2	(2 << 28)
++#define		ISI_CFG2_YCC_SWAP_MODE_3	(3 << 28)
++#define ISI_CFG2_IM_VSIZE_OFFSET		0
++#define ISI_CFG2_IM_HSIZE_OFFSET		16
++#define ISI_CFG2_IM_VSIZE_MASK		(0x7FF << ISI_CFG2_IM_VSIZE_OFFSET)
++#define ISI_CFG2_IM_HSIZE_MASK		(0x7FF << ISI_CFG2_IM_HSIZE_OFFSET)
++
++/* Bitfields in CTRL */
++/* Also using in SR(ISI_V2) */
++#define ISI_CTRL_EN				(1 << 0)
++#define ISI_CTRL_CDC				(1 << 8)
++/* Also using in SR/IER/IDR/IMR(ISI_V2) */
++#define ISI_CTRL_DIS				(1 << 1)
++#define ISI_CTRL_SRST				(1 << 2)
++
++/* Bitfields in SR */
++#define ISI_SR_SIP				(1 << 19)
++/* Also using in SR/IER/IDR/IMR */
++#define ISI_SR_VSYNC				(1 << 10)
++#define ISI_SR_PXFR_DONE			(1 << 16)
++#define ISI_SR_CXFR_DONE			(1 << 17)
++#define ISI_SR_P_OVR				(1 << 24)
++#define ISI_SR_C_OVR				(1 << 25)
++#define ISI_SR_CRC_ERR				(1 << 26)
++#define ISI_SR_FR_OVR				(1 << 27)
++
++/* Bitfields in DMA_C_CTRL & in DMA_P_CTRL */
++#define ISI_DMA_CTRL_FETCH			(1 << 0)
++#define ISI_DMA_CTRL_WB				(1 << 1)
++#define ISI_DMA_CTRL_IEN			(1 << 2)
++#define ISI_DMA_CTRL_DONE			(1 << 3)
++
++/* Bitfields in DMA_CHSR/CHER/CHDR */
++#define ISI_DMA_CHSR_P_CH			(1 << 0)
++#define ISI_DMA_CHSR_C_CH			(1 << 1)
++
++/* Definition for isi_platform_data */
++#define ISI_DATAWIDTH_8		0x40
++#define ISI_DATAWIDTH_10	0x80
++struct isi_platform_data {
++	u8 has_emb_sync;
++	u8 emb_crc_sync;
++	u8 hsync_act_low;
++	u8 vsync_act_low;
++	u8 pclk_act_falling;
++	u8 isi_full_mode;
++	u32 data_width_flags;
++	/* Using for ISI_CFG1 */
++	u32 frate;
++
++	/* TODO: not support yet */
++	u8 gs_mode;
++	u8 pixfmt;
++	u8 sfd;
++	u8 sld;
++	u8 thmask;
++};
++
++#endif /* __ATMEL_ISI_H__ */
 -- 
-Javier Martin
-Vista Silicon S.L.
-CDTUC - FASE C - Oficina S-345
-Avda de los Castros s/n
-39005- Santander. Cantabria. Spain
-+34 942 25 32 60
-www.vista-silicon.com
+1.6.3.3
 
---20cf303bf7da12734e04a26e476d
-Content-Type: text/x-patch; charset=US-ASCII; name="0001-mt9p031.patch"
-Content-Disposition: attachment; filename="0001-mt9p031.patch"
-Content-Transfer-Encoding: base64
-X-Attachment-Id: f_gn9xwpvb0
-
-ZGlmZiAtLWdpdCBhL2FyY2gvYXJtL21hY2gtb21hcDIvTWFrZWZpbGUgYi9hcmNoL2FybS9tYWNo
-LW9tYXAyL01ha2VmaWxlCmluZGV4IGE0NWNkNjQuLmM0MzczOTEgMTAwNjQ0Ci0tLSBhL2FyY2gv
-YXJtL21hY2gtb21hcDIvTWFrZWZpbGUKKysrIGIvYXJjaC9hcm0vbWFjaC1vbWFwMi9NYWtlZmls
-ZQpAQCAtMTc4LDcgKzE3OCw3IEBAIG9iai0kKENPTkZJR19NQUNIX09NQVBfSDQpCQkrPSBib2Fy
-ZC1oNC5vCiBvYmotJChDT05GSUdfTUFDSF9PTUFQXzI0MzBTRFApCQkrPSBib2FyZC0yNDMwc2Rw
-Lm8gXAogCQkJCQkgICBoc21tYy5vCiBvYmotJChDT05GSUdfTUFDSF9PTUFQX0FQT0xMT04pCQkr
-PSBib2FyZC1hcG9sbG9uLm8KLW9iai0kKENPTkZJR19NQUNIX09NQVAzX0JFQUdMRSkJCSs9IGJv
-YXJkLW9tYXAzYmVhZ2xlLm8gXAorb2JqLSQoQ09ORklHX01BQ0hfT01BUDNfQkVBR0xFKQkJKz0g
-Ym9hcmQtb21hcDNiZWFnbGUubyBib2FyZC1vbWFwM2JlYWdsZS1jYW1lcmEubyBcCiAJCQkJCSAg
-IGhzbW1jLm8KIG9iai0kKENPTkZJR19NQUNIX0RFVktJVDgwMDApICAgICAJKz0gYm9hcmQtZGV2
-a2l0ODAwMC5vIFwKICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICBo
-c21tYy5vCmRpZmYgLS1naXQgYS9hcmNoL2FybS9tYWNoLW9tYXAyL2JvYXJkLW9tYXAzYmVhZ2xl
-LmMgYi9hcmNoL2FybS9tYWNoLW9tYXAyL2JvYXJkLW9tYXAzYmVhZ2xlLmMKaW5kZXggMzMwMDdm
-ZC4uZWJhMjIzNSAxMDA2NDQKLS0tIGEvYXJjaC9hcm0vbWFjaC1vbWFwMi9ib2FyZC1vbWFwM2Jl
-YWdsZS5jCisrKyBiL2FyY2gvYXJtL21hY2gtb21hcDIvYm9hcmQtb21hcDNiZWFnbGUuYwpAQCAt
-NTIsNiArNTIsNyBAQAogI2luY2x1ZGUgImhzbW1jLmgiCiAjaW5jbHVkZSAidGltZXItZ3AuaCIK
-ICNpbmNsdWRlICJwbS5oIgorI2luY2x1ZGUgImNvbnRyb2wuaCIKIAogI2RlZmluZSBOQU5EX0JM
-T0NLX1NJWkUJCVNaXzEyOEsKIApAQCAtMjczLDYgKzI3NCw0NCBAQCBzdGF0aWMgc3RydWN0IHJl
-Z3VsYXRvcl9jb25zdW1lcl9zdXBwbHkgYmVhZ2xlX3ZzaW1fc3VwcGx5ID0gewogCiBzdGF0aWMg
-c3RydWN0IGdwaW9fbGVkIGdwaW9fbGVkc1tdOwogCitzdGF0aWMgc3RydWN0IHJlZ3VsYXRvcl9j
-b25zdW1lcl9zdXBwbHkgYmVhZ2xlX3ZhdXgzX3N1cHBseSA9IHsKKwkuc3VwcGx5CQk9ICJjYW1f
-MXY4IiwKK307CisKK3N0YXRpYyBzdHJ1Y3QgcmVndWxhdG9yX2NvbnN1bWVyX3N1cHBseSBiZWFn
-bGVfdmF1eDRfc3VwcGx5ID0geworCS5zdXBwbHkJCT0gImNhbV8ydjgiLAorfTsKKworLyogVkFV
-WDMgZm9yIENBTV8xVjggKi8KK3N0YXRpYyBzdHJ1Y3QgcmVndWxhdG9yX2luaXRfZGF0YSBiZWFn
-bGVfdmF1eDMgPSB7CisJLmNvbnN0cmFpbnRzID0geworCQkubWluX3VWCQkJPSAxODAwMDAwLAor
-CQkubWF4X3VWCQkJPSAxODAwMDAwLAorCQkuYXBwbHlfdVYJCT0gdHJ1ZSwKKwkJLnZhbGlkX21v
-ZGVzX21hc2sJPSBSRUdVTEFUT1JfTU9ERV9OT1JNQUwKKwkJCQkJfCBSRUdVTEFUT1JfTU9ERV9T
-VEFOREJZLAorCQkudmFsaWRfb3BzX21hc2sJCT0gUkVHVUxBVE9SX0NIQU5HRV9NT0RFCisJCQkJ
-CXwgUkVHVUxBVE9SX0NIQU5HRV9TVEFUVVMsCisJfSwKKwkubnVtX2NvbnN1bWVyX3N1cHBsaWVz
-CT0gMSwKKwkuY29uc3VtZXJfc3VwcGxpZXMJPSAmYmVhZ2xlX3ZhdXgzX3N1cHBseSwKK307CisK
-Ky8qIFZBVVg0IGZvciBDQU1fMlY4ICovCitzdGF0aWMgc3RydWN0IHJlZ3VsYXRvcl9pbml0X2Rh
-dGEgYmVhZ2xlX3ZhdXg0ID0geworCS5jb25zdHJhaW50cyA9IHsKKwkJLm1pbl91VgkJCT0gMTgw
-MDAwMCwKKwkJLm1heF91VgkJCT0gMTgwMDAwMCwKKwkJLmFwcGx5X3VWCQk9IHRydWUsCisJCS52
-YWxpZF9tb2Rlc19tYXNrCT0gUkVHVUxBVE9SX01PREVfTk9STUFMCisJCQkJCXwgUkVHVUxBVE9S
-X01PREVfU1RBTkRCWSwKKwkJLnZhbGlkX29wc19tYXNrCQk9IFJFR1VMQVRPUl9DSEFOR0VfTU9E
-RQorCQkJCQl8IFJFR1VMQVRPUl9DSEFOR0VfU1RBVFVTLAorCX0sCisJLm51bV9jb25zdW1lcl9z
-dXBwbGllcwk9IDEsCisJLmNvbnN1bWVyX3N1cHBsaWVzCT0gJmJlYWdsZV92YXV4NF9zdXBwbHks
-Cit9OworCiBzdGF0aWMgaW50IGJlYWdsZV90d2xfZ3Bpb19zZXR1cChzdHJ1Y3QgZGV2aWNlICpk
-ZXYsCiAJCXVuc2lnbmVkIGdwaW8sIHVuc2lnbmVkIG5ncGlvKQogewpAQCAtMzA5LDYgKzM0OCwx
-NSBAQCBzdGF0aWMgaW50IGJlYWdsZV90d2xfZ3Bpb19zZXR1cChzdHJ1Y3QgZGV2aWNlICpkZXYs
-CiAJCQlwcl9lcnIoIiVzOiB1bmFibGUgdG8gY29uZmlndXJlIEVIQ0lfbk9DXG4iLCBfX2Z1bmNf
-Xyk7CiAJfQogCisJaWYgKG9tYXAzX2JlYWdsZV9nZXRfcmV2KCkgPT0gT01BUDNCRUFHTEVfQk9B
-UkRfWE0pIHsKKwkJLyoKKwkJICogUG93ZXIgb24gY2FtZXJhIGludGVyZmFjZSAtIG9ubHkgb24g
-cHJlLXByb2R1Y3Rpb24sIG5vdAorCQkgKiBuZWVkZWQgb24gcHJvZHVjdGlvbiBib2FyZHMKKwkJ
-ICovCisJCWdwaW9fcmVxdWVzdChncGlvICsgMiwgIkNBTV9FTiIpOworCQlncGlvX2RpcmVjdGlv
-bl9vdXRwdXQoZ3BpbyArIDIsIDEpOworCX0KKwogCS8qCiAJICogVFdMNDAzMF9HUElPX01BWCAr
-IDAgPT0gbGVkQSwgRUhDSSBuRU5fVVNCX1BXUiAob3V0LCBYTSBhY3RpdmUKIAkgKiBoaWdoIC8g
-b3RoZXJzIGFjdGl2ZSBsb3cpCkBAIC00NTEsNiArNDk5LDggQEAgc3RhdGljIHN0cnVjdCB0d2w0
-MDMwX3BsYXRmb3JtX2RhdGEgYmVhZ2xlX3R3bGRhdGEgPSB7CiAJLnZzaW0JCT0gJmJlYWdsZV92
-c2ltLAogCS52ZGFjCQk9ICZiZWFnbGVfdmRhYywKIAkudnBsbDIJCT0gJmJlYWdsZV92cGxsMiwK
-KwkudmF1eDMJCT0gJmJlYWdsZV92YXV4MywKKwkudmF1eDQJCT0gJmJlYWdsZV92YXV4NCwKIH07
-CiAKIHN0YXRpYyBzdHJ1Y3QgaTJjX2JvYXJkX2luZm8gX19pbml0ZGF0YSBiZWFnbGVfaTJjX2Jv
-YXJkaW5mb1tdID0gewpAQCAtNDcyLDYgKzUyMiw3IEBAIHN0YXRpYyBpbnQgX19pbml0IG9tYXAz
-X2JlYWdsZV9pMmNfaW5pdCh2b2lkKQogewogCW9tYXBfcmVnaXN0ZXJfaTJjX2J1cygxLCAyNjAw
-LCBiZWFnbGVfaTJjX2JvYXJkaW5mbywKIAkJCUFSUkFZX1NJWkUoYmVhZ2xlX2kyY19ib2FyZGlu
-Zm8pKTsKKy8vIAlvbWFwX3JlZ2lzdGVyX2kyY19idXMoMiwgMTAwLCBOVUxMLCAwKTsKIAkvKiBC
-dXMgMyBpcyBhdHRhY2hlZCB0byB0aGUgRFZJIHBvcnQgd2hlcmUgZGV2aWNlcyBsaWtlIHRoZSBw
-aWNvIERMUAogCSAqIHByb2plY3RvciBkb24ndCB3b3JrIHJlbGlhYmx5IHdpdGggNDAwa0h6ICov
-CiAJb21hcF9yZWdpc3Rlcl9pMmNfYnVzKDMsIDEwMCwgYmVhZ2xlX2kyY19lZXByb20sIEFSUkFZ
-X1NJWkUoYmVhZ2xlX2kyY19lZXByb20pKTsKQEAgLTU5OCw2ICs2NDksMzQgQEAgc3RhdGljIGNv
-bnN0IHN0cnVjdCB1c2Joc19vbWFwX2JvYXJkX2RhdGEgdXNiaHNfYmRhdGEgX19pbml0Y29uc3Qg
-PSB7CiAKICNpZmRlZiBDT05GSUdfT01BUF9NVVgKIHN0YXRpYyBzdHJ1Y3Qgb21hcF9ib2FyZF9t
-dXggYm9hcmRfbXV4W10gX19pbml0ZGF0YSA9IHsKKy8vICNpZiAwCisJLyogQ2FtZXJhIC0gUGFy
-YWxsZWwgRGF0YSAqLworCU9NQVAzX01VWChDQU1fRDAsIE9NQVBfTVVYX01PREUwIHwgT01BUF9Q
-SU5fSU5QVVQpLAorCU9NQVAzX01VWChDQU1fRDEsIE9NQVBfTVVYX01PREUwIHwgT01BUF9QSU5f
-SU5QVVQpLAorCU9NQVAzX01VWChDQU1fRDIsIE9NQVBfTVVYX01PREUwIHwgT01BUF9QSU5fSU5Q
-VVQpLAorCU9NQVAzX01VWChDQU1fRDMsIE9NQVBfTVVYX01PREUwIHwgT01BUF9QSU5fSU5QVVQp
-LAorCU9NQVAzX01VWChDQU1fRDQsIE9NQVBfTVVYX01PREUwIHwgT01BUF9QSU5fSU5QVVQpLAor
-CU9NQVAzX01VWChDQU1fRDUsIE9NQVBfTVVYX01PREUwIHwgT01BUF9QSU5fSU5QVVQpLAorCU9N
-QVAzX01VWChDQU1fRDYsIE9NQVBfTVVYX01PREUwIHwgT01BUF9QSU5fSU5QVVQpLAorCU9NQVAz
-X01VWChDQU1fRDcsIE9NQVBfTVVYX01PREUwIHwgT01BUF9QSU5fSU5QVVQpLAorCU9NQVAzX01V
-WChDQU1fRDgsIE9NQVBfTVVYX01PREUwIHwgT01BUF9QSU5fSU5QVVQpLAorCU9NQVAzX01VWChD
-QU1fRDksIE9NQVBfTVVYX01PREUwIHwgT01BUF9QSU5fSU5QVVQpLAorCU9NQVAzX01VWChDQU1f
-RDEwLCBPTUFQX01VWF9NT0RFMCB8IE9NQVBfUElOX0lOUFVUKSwKKwlPTUFQM19NVVgoQ0FNX0Qx
-MSwgT01BUF9NVVhfTU9ERTAgfCBPTUFQX1BJTl9JTlBVVCksCisJT01BUDNfTVVYKENBTV9QQ0xL
-LCBPTUFQX01VWF9NT0RFMCB8IE9NQVBfUElOX0lOUFVUKSwKKworCS8qIENhbWVyYSAtIEhTL1ZT
-IHNpZ25hbHMgKi8KKwlPTUFQM19NVVgoQ0FNX0hTLCBPTUFQX01VWF9NT0RFMCB8IE9NQVBfUElO
-X0lOUFVUKSwKKwlPTUFQM19NVVgoQ0FNX1ZTLCBPTUFQX01VWF9NT0RFMCB8IE9NQVBfUElOX0lO
-UFVUKSwKKworCS8qIENhbWVyYSAtIFJlc2V0IEdQSU8gOTggKi8KKwlPTUFQM19NVVgoQ0FNX0ZM
-RCwgT01BUF9NVVhfTU9ERTQgfCBPTUFQX1BJTl9PVVRQVVQpLAorCisJLyogQ2FtZXJhIC0gWENM
-SyAqLworCU9NQVAzX01VWChDQU1fWENMS0EsIE9NQVBfTVVYX01PREUwIHwgT01BUF9QSU5fT1VU
-UFVUKSwKKy8vICNlbmRpZgorLy8gCU9NQVAzX01VWChJMkMyX1NDTCwgT01BUF9NVVhfTU9ERTAg
-fCBPTUFQX1BJTl9PVVRQVVQpLAorLy8gCU9NQVAzX01VWChJMkMyX1NEQSwgT01BUF9NVVhfTU9E
-RTAgfCBPTUFQX1BJTl9PRkZfSU5QVVRfUFVMTFVQIHwgT01BUF9QSU5fSU5QVVRfUFVMTFVQKSwK
-IAl7IC5yZWdfb2Zmc2V0ID0gT01BUF9NVVhfVEVSTUlOQVRPUiB9LAogfTsKICNlbmRpZgpAQCAt
-NjU2LDYgKzczNSw4IEBAIHN0YXRpYyB2b2lkIF9faW5pdCBiZWFnbGVfb3BwX2luaXQodm9pZCkK
-IAogc3RhdGljIHZvaWQgX19pbml0IG9tYXAzX2JlYWdsZV9pbml0KHZvaWQpCiB7CisvLyAJdTMy
-IGN0cmw7CisKIAlvbWFwM19tdXhfaW5pdChib2FyZF9tdXgsIE9NQVBfUEFDS0FHRV9DQkIpOwog
-CW9tYXAzX2JlYWdsZV9pbml0X3JldigpOwogCW9tYXAzX2JlYWdsZV9pMmNfaW5pdCgpOwpAQCAt
-Njc5LDYgKzc2MCw4IEBAIHN0YXRpYyB2b2lkIF9faW5pdCBvbWFwM19iZWFnbGVfaW5pdCh2b2lk
-KQogCiAJYmVhZ2xlX2Rpc3BsYXlfaW5pdCgpOwogCWJlYWdsZV9vcHBfaW5pdCgpOworLy8gCWN0
-cmwgPSBvbWFwX2N0cmxfcmVhZGwoT01BUDM0M1hfQ09OVFJPTF9QUk9HX0lPMSk7CisvLyAJb21h
-cF9jdHJsX3dyaXRlbChjdHJsICYgMHhGRkZGRkZGRSwgT01BUDM0M1hfQ09OVFJPTF9QUk9HX0lP
-MSk7CiB9CiAKIE1BQ0hJTkVfU1RBUlQoT01BUDNfQkVBR0xFLCAiT01BUDMgQmVhZ2xlIEJvYXJk
-IikKZGlmZiAtLWdpdCBhL2FyY2gvYXJtL21hY2gtb21hcDIvZGV2aWNlcy5jIGIvYXJjaC9hcm0v
-bWFjaC1vbWFwMi9kZXZpY2VzLmMKaW5kZXggN2I4NTU4NS4uYWU1YmEyNSAxMDA2NDQKLS0tIGEv
-YXJjaC9hcm0vbWFjaC1vbWFwMi9kZXZpY2VzLmMKKysrIGIvYXJjaC9hcm0vbWFjaC1vbWFwMi9k
-ZXZpY2VzLmMKQEAgLTIwMCw3ICsyMDAsNyBAQCBzdGF0aWMgc3RydWN0IHJlc291cmNlIG9tYXAz
-aXNwX3Jlc291cmNlc1tdID0gewogCX0KIH07CiAKLXN0YXRpYyBzdHJ1Y3QgcGxhdGZvcm1fZGV2
-aWNlIG9tYXAzaXNwX2RldmljZSA9IHsKK3N0cnVjdCBwbGF0Zm9ybV9kZXZpY2Ugb21hcDNpc3Bf
-ZGV2aWNlID0gewogCS5uYW1lCQk9ICJvbWFwM2lzcCIsCiAJLmlkCQk9IC0xLAogCS5udW1fcmVz
-b3VyY2VzCT0gQVJSQVlfU0laRShvbWFwM2lzcF9yZXNvdXJjZXMpLApkaWZmIC0tZ2l0IGEvYXJj
-aC9hcm0vcGxhdC1vbWFwL2lvbW11LmMgYi9hcmNoL2FybS9wbGF0LW9tYXAvaW9tbXUuYwppbmRl
-eCA4YTUxZmQ1Li5jZGMxNjFlIDEwMDY0NAotLS0gYS9hcmNoL2FybS9wbGF0LW9tYXAvaW9tbXUu
-YworKysgYi9hcmNoL2FybS9wbGF0LW9tYXAvaW9tbXUuYwpAQCAtNzkzLDcgKzc5Myw5IEBAIHN0
-YXRpYyBpcnFyZXR1cm5fdCBpb21tdV9mYXVsdF9oYW5kbGVyKGludCBpcnEsIHZvaWQgKmRhdGEp
-CiAJY2xrX2VuYWJsZShvYmotPmNsayk7CiAJZXJycyA9IGlvbW11X3JlcG9ydF9mYXVsdChvYmos
-ICZkYSk7CiAJY2xrX2Rpc2FibGUob2JqLT5jbGspOwotCisJaWYgKGVycnMgPT0gMCkKKwkJcmV0
-dXJuIElSUV9IQU5ETEVEOworCQkKIAkvKiBGYXVsdCBjYWxsYmFjayBvciBUTEIvUFRFIER5bmFt
-aWMgbG9hZGluZyAqLwogCWlmIChvYmotPmlzciAmJiAhb2JqLT5pc3Iob2JqLCBkYSwgZXJycywg
-b2JqLT5pc3JfcHJpdikpCiAJCXJldHVybiBJUlFfSEFORExFRDsKZGlmZiAtLWdpdCBhL2RyaXZl
-cnMvbWVkaWEvdmlkZW8vS2NvbmZpZyBiL2RyaXZlcnMvbWVkaWEvdmlkZW8vS2NvbmZpZwppbmRl
-eCAwMGY1MWRkLi4zMmRmOGJkIDEwMDY0NAotLS0gYS9kcml2ZXJzL21lZGlhL3ZpZGVvL0tjb25m
-aWcKKysrIGIvZHJpdmVycy9tZWRpYS92aWRlby9LY29uZmlnCkBAIC0zMjksNiArMzI5LDE0IEBA
-IGNvbmZpZyBWSURFT19PVjc2NzAKIAkgIE9WNzY3MCBWR0EgY2FtZXJhLiAgSXQgY3VycmVudGx5
-IG9ubHkgd29ya3Mgd2l0aCB0aGUgTTg4QUxQMDEKIAkgIGNvbnRyb2xsZXIuCiAKK2NvbmZpZyBW
-SURFT19NVDlQMDMxCisJdHJpc3RhdGUgIk1pY3JvbiBNVDlQMDMxIHN1cHBvcnQiCisJZGVwZW5k
-cyBvbiBJMkMgJiYgVklERU9fVjRMMgorCS0tLWhlbHAtLS0KKwkgIFRoaXMgZHJpdmVyIHN1cHBv
-cnRzIE1UOVAwMzEgY2FtZXJhcyBmcm9tIE1pY3JvbgorCSAgVGhpcyBpcyBhIFZpZGVvNExpbnV4
-MiBzZW5zb3ItbGV2ZWwgZHJpdmVyIGZvciB0aGUgTWljcm9uCisJICBtdDBwMDMxIDUgTXBpeGVs
-IGNhbWVyYS4KKwogY29uZmlnIFZJREVPX01UOVYwMTEKIAl0cmlzdGF0ZSAiTWljcm9uIG10OXYw
-MTEgc2Vuc29yIHN1cHBvcnQiCiAJZGVwZW5kcyBvbiBJMkMgJiYgVklERU9fVjRMMgpkaWZmIC0t
-Z2l0IGEvZHJpdmVycy9tZWRpYS92aWRlby9NYWtlZmlsZSBiL2RyaXZlcnMvbWVkaWEvdmlkZW8v
-TWFrZWZpbGUKaW5kZXggYWNlNWQ4Yi4uOTEyYjI5YiAxMDA2NDQKLS0tIGEvZHJpdmVycy9tZWRp
-YS92aWRlby9NYWtlZmlsZQorKysgYi9kcml2ZXJzL21lZGlhL3ZpZGVvL01ha2VmaWxlCkBAIC02
-NSw2ICs2NSw3IEBAIG9iai0kKENPTkZJR19WSURFT19VUEQ2NDA4MykgKz0gdXBkNjQwODMubwog
-b2JqLSQoQ09ORklHX1ZJREVPX09WNzY3MCkgCSs9IG92NzY3MC5vCiBvYmotJChDT05GSUdfVklE
-RU9fVENNODI1WCkgKz0gdGNtODI1eC5vCiBvYmotJChDT05GSUdfVklERU9fVFZFRVBST00pICs9
-IHR2ZWVwcm9tLm8KK29iai0kKENPTkZJR19WSURFT19NVDlQMDMxKSArPSBtdDlwMDMxLm8KIG9i
-ai0kKENPTkZJR19WSURFT19NVDlWMDExKSArPSBtdDl2MDExLm8KIG9iai0kKENPTkZJR19WSURF
-T19TUjAzMFBDMzApCSs9IHNyMDMwcGMzMC5vCiBvYmotJChDT05GSUdfVklERU9fTk9PTjAxMFBD
-MzApCSs9IG5vb24wMTBwYzMwLm8KZGlmZiAtLWdpdCBhL2RyaXZlcnMvbWVkaWEvdmlkZW8vb21h
-cDNpc3AvaXNwLmMgYi9kcml2ZXJzL21lZGlhL3ZpZGVvL29tYXAzaXNwL2lzcC5jCmluZGV4IDQ3
-MmE2OTMuLjI2MzcxOTMgMTAwNjQ0Ci0tLSBhL2RyaXZlcnMvbWVkaWEvdmlkZW8vb21hcDNpc3Av
-aXNwLmMKKysrIGIvZHJpdmVycy9tZWRpYS92aWRlby9vbWFwM2lzcC9pc3AuYwpAQCAtMTc3LDYg
-KzE3Nyw4IEBAIHN0YXRpYyB2b2lkIGlzcF9kaXNhYmxlX2ludGVycnVwdHMoc3RydWN0IGlzcF9k
-ZXZpY2UgKmlzcCkKIAlpc3BfcmVnX3dyaXRlbChpc3AsIDAsIE9NQVAzX0lTUF9JT01FTV9NQUlO
-LCBJU1BfSVJRMEVOQUJMRSk7CiB9CiAKK3N0YXRpYyBpbnQgaXNwX2VuYWJsZV9jbG9ja3Moc3Ry
-dWN0IGlzcF9kZXZpY2UgKmlzcCk7CisKIC8qKgogICogaXNwX3NldF94Y2xrIC0gQ29uZmlndXJl
-cyB0aGUgc3BlY2lmaWVkIGNhbV94Y2xrIHRvIHRoZSBkZXNpcmVkIGZyZXF1ZW5jeS4KICAqIEBp
-c3A6IE9NQVAzIElTUCBkZXZpY2UKQEAgLTIzOSw3ICsyNDEsNyBAQCBzdGF0aWMgdTMyIGlzcF9z
-ZXRfeGNsayhzdHJ1Y3QgaXNwX2RldmljZSAqaXNwLCB1MzIgeGNsaywgdTggeGNsa3NlbCkKIAog
-CS8qIERvIHdlIGdvIGZyb20gc3RhYmxlIHdoYXRldmVyIHRvIGNsb2NrPyAqLwogCWlmIChkaXZp
-c29yID49IDIgJiYgaXNwLT54Y2xrX2Rpdmlzb3JbeGNsa3NlbCAtIDFdIDwgMikKLQkJb21hcDNp
-c3BfZ2V0KGlzcCk7CisJCWlzcF9lbmFibGVfY2xvY2tzKGlzcCk7CiAJLyogU3RvcHBpbmcgdGhl
-IGNsb2NrLiAqLwogCWVsc2UgaWYgKGRpdmlzb3IgPCAyICYmIGlzcC0+eGNsa19kaXZpc29yW3hj
-bGtzZWwgLSAxXSA+PSAyKQogCQlvbWFwM2lzcF9wdXQoaXNwKTsKZGlmZiAtLWdpdCBhL2RyaXZl
-cnMvbWVkaWEvdmlkZW8vb21hcDNpc3AvaXNwLmggYi9kcml2ZXJzL21lZGlhL3ZpZGVvL29tYXAz
-aXNwL2lzcC5oCmluZGV4IDI2MjBjNDAuLmY0NTVkODAgMTAwNjQ0Ci0tLSBhL2RyaXZlcnMvbWVk
-aWEvdmlkZW8vb21hcDNpc3AvaXNwLmgKKysrIGIvZHJpdmVycy9tZWRpYS92aWRlby9vbWFwM2lz
-cC9pc3AuaApAQCAtMTQ4LDYgKzE0OCw3IEBAIHN0cnVjdCBpc3BfcGFyYWxsZWxfcGxhdGZvcm1f
-ZGF0YSB7CiAJdW5zaWduZWQgaW50IGRhdGFfbGFuZV9zaGlmdDoyOwogCXVuc2lnbmVkIGludCBj
-bGtfcG9sOjE7CiAJdW5zaWduZWQgaW50IGJyaWRnZTo0OworCXVuc2lnbmVkIGludCBkYXRhX2J1
-c193aWR0aDsKIH07CiAKIC8qKgpkaWZmIC0tZ2l0IGEvZHJpdmVycy9tZWRpYS92aWRlby9vbWFw
-M2lzcC9pc3BjY2RjLmMgYi9kcml2ZXJzL21lZGlhL3ZpZGVvL29tYXAzaXNwL2lzcGNjZGMuYwpp
-bmRleCAzOWQ1MDFiLi44MWJkOWFhIDEwMDY0NAotLS0gYS9kcml2ZXJzL21lZGlhL3ZpZGVvL29t
-YXAzaXNwL2lzcGNjZGMuYworKysgYi9kcml2ZXJzL21lZGlhL3ZpZGVvL29tYXAzaXNwL2lzcGNj
-ZGMuYwpAQCAtMjI1Myw2ICsyMjUzLDkgQEAgaW50IG9tYXAzaXNwX2NjZGNfaW5pdChzdHJ1Y3Qg
-aXNwX2RldmljZSAqaXNwKQogCWNjZGMtPnN5bmNpZi5jY2RjX21hc3Rlcm1vZGUgPSAwOwogCWNj
-ZGMtPnN5bmNpZi5kYXRhcG9sID0gMDsKIAljY2RjLT5zeW5jaWYuZGF0c3ogPSAwOworCWlmIChp
-c3AtPnBkYXRhLT5zdWJkZXZzLT5pbnRlcmZhY2UgPT0gSVNQX0lOVEVSRkFDRV9QQVJBTExFTAor
-CSAgICAmJiBpc3AtPnBkYXRhLT5zdWJkZXZzLT5idXMucGFyYWxsZWwuZGF0YV9idXNfd2lkdGgg
-IT0gMCkKKwkJY2NkYy0+c3luY2lmLmRhdHN6ID0gaXNwLT5wZGF0YS0+c3ViZGV2cy0+YnVzLnBh
-cmFsbGVsLmRhdGFfYnVzX3dpZHRoOwogCWNjZGMtPnN5bmNpZi5mbGRtb2RlID0gMDsKIAljY2Rj
-LT5zeW5jaWYuZmxkb3V0ID0gMDsKIAljY2RjLT5zeW5jaWYuZmxkcG9sID0gMDsKQEAgLTIyNjEs
-NyArMjI2NCw3IEBAIGludCBvbWFwM2lzcF9jY2RjX2luaXQoc3RydWN0IGlzcF9kZXZpY2UgKmlz
-cCkKIAljY2RjLT5zeW5jaWYudmRwb2wgPSAwOwogCiAJY2NkYy0+Y2xhbXAub2JsZW4gPSAwOwot
-CWNjZGMtPmNsYW1wLmRjc3VidmFsID0gMDsKKwljY2RjLT5jbGFtcC5kY3N1YnZhbCA9IChjY2Rj
-LT5zeW5jaWYuZGF0c3ogPT0gOCkgPyAwIDogNjQ7CiAKIAljY2RjLT52cGNmZy5waXhlbGNsayA9
-IDA7CiAKZGlmZiAtLWdpdCBhL2RyaXZlcnMvbWZkL29tYXAtdXNiLWhvc3QuYyBiL2RyaXZlcnMv
-bWZkL29tYXAtdXNiLWhvc3QuYwppbmRleCA1MzQ1MGY0Li40OTFjYWM1IDEwMDY0NAotLS0gYS9k
-cml2ZXJzL21mZC9vbWFwLXVzYi1ob3N0LmMKKysrIGIvZHJpdmVycy9tZmQvb21hcC11c2ItaG9z
-dC5jCkBAIC03MTksMTQgKzcxOSwxNCBAQCBzdGF0aWMgaW50IHVzYmhzX2VuYWJsZShzdHJ1Y3Qg
-ZGV2aWNlICpkZXYpCiAJCQlncGlvX3JlcXVlc3QocGRhdGEtPmVoY2lfZGF0YS0+cmVzZXRfZ3Bp
-b19wb3J0WzBdLAogCQkJCQkJIlVTQjEgUEhZIHJlc2V0Iik7CiAJCQlncGlvX2RpcmVjdGlvbl9v
-dXRwdXQKLQkJCQkocGRhdGEtPmVoY2lfZGF0YS0+cmVzZXRfZ3Bpb19wb3J0WzBdLCAxKTsKKwkJ
-CQkocGRhdGEtPmVoY2lfZGF0YS0+cmVzZXRfZ3Bpb19wb3J0WzBdLCAwKTsKIAkJfQogCiAJCWlm
-IChncGlvX2lzX3ZhbGlkKHBkYXRhLT5laGNpX2RhdGEtPnJlc2V0X2dwaW9fcG9ydFsxXSkpIHsK
-IAkJCWdwaW9fcmVxdWVzdChwZGF0YS0+ZWhjaV9kYXRhLT5yZXNldF9ncGlvX3BvcnRbMV0sCiAJ
-CQkJCQkiVVNCMiBQSFkgcmVzZXQiKTsKIAkJCWdwaW9fZGlyZWN0aW9uX291dHB1dAotCQkJCShw
-ZGF0YS0+ZWhjaV9kYXRhLT5yZXNldF9ncGlvX3BvcnRbMV0sIDEpOworCQkJCShwZGF0YS0+ZWhj
-aV9kYXRhLT5yZXNldF9ncGlvX3BvcnRbMV0sIDApOwogCQl9CiAKIAkJLyogSG9sZCB0aGUgUEhZ
-IGluIFJFU0VUIGZvciBlbm91Z2ggdGltZSB0aWxsIERJUiBpcyBoaWdoICovCkBAIC05MDYsMTEg
-KzkwNiwxMSBAQCBzdGF0aWMgaW50IHVzYmhzX2VuYWJsZShzdHJ1Y3QgZGV2aWNlICpkZXYpCiAK
-IAkJaWYgKGdwaW9faXNfdmFsaWQocGRhdGEtPmVoY2lfZGF0YS0+cmVzZXRfZ3Bpb19wb3J0WzBd
-KSkKIAkJCWdwaW9fc2V0X3ZhbHVlCi0JCQkJKHBkYXRhLT5laGNpX2RhdGEtPnJlc2V0X2dwaW9f
-cG9ydFswXSwgMCk7CisJCQkJKHBkYXRhLT5laGNpX2RhdGEtPnJlc2V0X2dwaW9fcG9ydFswXSwg
-MSk7CiAKIAkJaWYgKGdwaW9faXNfdmFsaWQocGRhdGEtPmVoY2lfZGF0YS0+cmVzZXRfZ3Bpb19w
-b3J0WzFdKSkKIAkJCWdwaW9fc2V0X3ZhbHVlCi0JCQkJKHBkYXRhLT5laGNpX2RhdGEtPnJlc2V0
-X2dwaW9fcG9ydFsxXSwgMCk7CisJCQkJKHBkYXRhLT5laGNpX2RhdGEtPnJlc2V0X2dwaW9fcG9y
-dFsxXSwgMSk7CiAJfQogCiBlbmRfY291bnQ6CmRpZmYgLS1naXQgYS9pbmNsdWRlL21lZGlhL3Y0
-bDItY2hpcC1pZGVudC5oIGIvaW5jbHVkZS9tZWRpYS92NGwyLWNoaXAtaWRlbnQuaAppbmRleCBi
-M2VkYjY3Li45NzkxOWYyIDEwMDY0NAotLS0gYS9pbmNsdWRlL21lZGlhL3Y0bDItY2hpcC1pZGVu
-dC5oCisrKyBiL2luY2x1ZGUvbWVkaWEvdjRsMi1jaGlwLWlkZW50LmgKQEAgLTI5Nyw2ICsyOTcs
-NyBAQCBlbnVtIHsKIAlWNEwyX0lERU5UX01UOVQxMTIJCT0gNDUwMjIsCiAJVjRMMl9JREVOVF9N
-VDlWMTExCQk9IDQ1MDMxLAogCVY0TDJfSURFTlRfTVQ5VjExMgkJPSA0NTAzMiwKKwlWNEwyX0lE
-RU5UX01UOVAwMzEJCT0gNDUwMzMsCiAKIAkvKiBIVjcxMzFSIENNT1Mgc2Vuc29yOiBqdXN0IGlk
-ZW50IDQ2MDAwICovCiAJVjRMMl9JREVOVF9IVjcxMzFSCQk9IDQ2MDAwLAo=
---20cf303bf7da12734e04a26e476d
-Content-Type: text/x-patch; charset=US-ASCII; name="0002-mt9p031.patch"
-Content-Disposition: attachment; filename="0002-mt9p031.patch"
-Content-Transfer-Encoding: base64
-X-Attachment-Id: f_gn9xx2l41
-
-ZGlmZiAtLWdpdCBhL2FyY2gvYXJtL21hY2gtb21hcDIvYm9hcmQtb21hcDNiZWFnbGUtY2FtZXJh
-LmMgYi9hcmNoL2FybS9tYWNoLW9tYXAyL2JvYXJkLW9tYXAzYmVhZ2xlLWNhbWVyYS5jCm5ldyBm
-aWxlIG1vZGUgMTAwNjQ0CmluZGV4IDAwMDAwMDAuLjkyMzg5ZGQKLS0tIC9kZXYvbnVsbAorKysg
-Yi9hcmNoL2FybS9tYWNoLW9tYXAyL2JvYXJkLW9tYXAzYmVhZ2xlLWNhbWVyYS5jCkBAIC0wLDAg
-KzEsMTU4IEBACisvKgorICogYXJjaC9hcm0vbWFjaC1vbWFwMi9ib2FyZC1yeDUxLWNhbWVyYS5j
-CisgKgorICogQ29weXJpZ2h0IChDKSAyMDA4IE5va2lhIENvcnBvcmF0aW9uCisgKgorICogQ29u
-dGFjdDogU2FrYXJpIEFpbHVzIDxzYWthcmkuYWlsdXNAbm9raWEuY29tPgorICogICAgICAgICAg
-VHV1a2thIFRvaXZvbmVuIDx0dXVra2Euby50b2l2b25lbkBub2tpYS5jb20+CisgKgorICogVGhp
-cyBwcm9ncmFtIGlzIGZyZWUgc29mdHdhcmU7IHlvdSBjYW4gcmVkaXN0cmlidXRlIGl0IGFuZC9v
-cgorICogbW9kaWZ5IGl0IHVuZGVyIHRoZSB0ZXJtcyBvZiB0aGUgR05VIEdlbmVyYWwgUHVibGlj
-IExpY2Vuc2UKKyAqIHZlcnNpb24gMiBhcyBwdWJsaXNoZWQgYnkgdGhlIEZyZWUgU29mdHdhcmUg
-Rm91bmRhdGlvbi4KKyAqCisgKiBUaGlzIHByb2dyYW0gaXMgZGlzdHJpYnV0ZWQgaW4gdGhlIGhv
-cGUgdGhhdCBpdCB3aWxsIGJlIHVzZWZ1bCwgYnV0CisgKiBXSVRIT1VUIEFOWSBXQVJSQU5UWTsg
-d2l0aG91dCBldmVuIHRoZSBpbXBsaWVkIHdhcnJhbnR5IG9mCisgKiBNRVJDSEFOVEFCSUxJVFkg
-b3IgRklUTkVTUyBGT1IgQSBQQVJUSUNVTEFSIFBVUlBPU0UuICBTZWUgdGhlIEdOVQorICogR2Vu
-ZXJhbCBQdWJsaWMgTGljZW5zZSBmb3IgbW9yZSBkZXRhaWxzLgorICoKKyAqIFlvdSBzaG91bGQg
-aGF2ZSByZWNlaXZlZCBhIGNvcHkgb2YgdGhlIEdOVSBHZW5lcmFsIFB1YmxpYyBMaWNlbnNlCisg
-KiBhbG9uZyB3aXRoIHRoaXMgcHJvZ3JhbTsgaWYgbm90LCB3cml0ZSB0byB0aGUgRnJlZSBTb2Z0
-d2FyZQorICogRm91bmRhdGlvbiwgSW5jLiwgNTEgRnJhbmtsaW4gU3QsIEZpZnRoIEZsb29yLCBC
-b3N0b24sIE1BCisgKiAwMjExMC0xMzAxIFVTQQorICoKKyAqLworCisjaW5jbHVkZSA8bGludXgv
-aTJjLmg+CisjaW5jbHVkZSA8bGludXgvaTJjL3R3bC5oPgorI2luY2x1ZGUgPGxpbnV4L2RlbGF5
-Lmg+CisjaW5jbHVkZSA8bGludXgvbW0uaD4KKyNpbmNsdWRlIDxsaW51eC9wbGF0Zm9ybV9kZXZp
-Y2UuaD4KKyNpbmNsdWRlIDxsaW51eC92aWRlb2RldjIuaD4KKworI2luY2x1ZGUgPG1lZGlhL210
-OXAwMzEuaD4KKworI2luY2x1ZGUgPHBsYXQvaTJjLmg+CisKKyNpbmNsdWRlIDxhc20vZ3Bpby5o
-PgorLy8jaW5jbHVkZSA8cGxhdC9jb250cm9sLmg+CisKKyNpbmNsdWRlICIuLi8uLi8uLi9kcml2
-ZXJzL21lZGlhL3ZpZGVvL29tYXAzaXNwL2lzcC5oIgorI2luY2x1ZGUgIi4uLy4uLy4uL2RyaXZl
-cnMvbWVkaWEvdmlkZW8vb21hcDNpc3AvaXNwcmVnLmgiCisKKyNpbmNsdWRlICJkZXZpY2VzLmgi
-CisKKyNkZWZpbmUgTVQ5UDAzMV9YQ0xLCQlJU1BfWENMS19BCisjaWYgMAorc3RhdGljIGludCBi
-ZWFnbGVfY29uZmlndXJlX2ludGVyZmFjZShzdHJ1Y3QgdjRsMl9zdWJkZXYgKnN1YmRldiwKKwkJ
-CQkJICAgICBpbnQgd2lkdGgsIGludCBoZWlnaHQpCit7CisJc3RydWN0IGlzcF9kZXZpY2UgKmlz
-cCA9IHY0bDJfZGV2X3RvX2lzcF9kZXZpY2Uoc3ViZGV2LT52NGwyX2Rldik7CisKKwlpc3Bfc2V0
-X3BpeGVsX2Nsb2NrKGlzcCwgMCk7CisKKwlyZXR1cm4gMDsKK30KKworc3RhdGljIGludCBiZWFn
-bGVfc2V0X3Bvd2VyKHN0cnVjdCB2NGwyX3N1YmRldiAqc3ViZGV2LCBpbnQgb24pCit7CisJcmV0
-dXJuIDA7Cit9CisjZW5kaWYKKworZXh0ZXJuIHN0cnVjdCBwbGF0Zm9ybV9kZXZpY2Ugb21hcDNp
-c3BfZGV2aWNlOworCitzdGF0aWMgaW50IGJlYWdsZV9zZXRfeGNsayhzdHJ1Y3QgdjRsMl9zdWJk
-ZXYgKnN1YmRldiwgaW50IGh6KQoreworCXN0cnVjdCBpc3BfZGV2aWNlICppc3AgPSBwbGF0Zm9y
-bV9nZXRfZHJ2ZGF0YSgmb21hcDNpc3BfZGV2aWNlKTsKKy8vCXN0cnVjdCBpc3BfZGV2aWNlICpp
-c3AgPSB2NGwyX2Rldl90b19pc3BfZGV2aWNlKHN1YmRldi0+djRsMl9kZXYpOworCWludCByZXQ7
-CisvLwlzdGF0aWMgaW50IGN1cnJlbnRfaHo7CisKKy8vCWlmIChoeiAhPSBjdXJyZW50X2h6KSB7
-CisvLwkJY3VycmVudF9oeiA9IGh6OworCQlyZXQgPSBpc3AtPnBsYXRmb3JtX2NiLnNldF94Y2xr
-KGlzcCwgaHosIE1UOVAwMzFfWENMSyk7CisJCXByX2luZm8oIiVzKCk6IHNldF94Y2xrKCkgPSAl
-ZFxuIiwgX19mdW5jX18sIHJldCk7CisvLwl9CisKKwlyZXR1cm4gMDsKK30KKworI2RlZmluZSBN
-VDlQMDMxX1JFU0VUX0dQSU8gOTgKKyNkZWZpbmUgTVQ5UDAzMV9EQVRBX1NISUZUIDIJLyogMDog
-MTItYml0LCAxOiAxMC1iaXQsIDI6IDgtYml0ICovCisKK3N0YXRpYyBpbnQgYmVhZ2xlX3Jlc2V0
-KHN0cnVjdCB2NGwyX3N1YmRldiAqc3ViZGV2LCBpbnQgYWN0aXZlKQoreworCS8qIFNldCBSRVNF
-VF9CQVIgdG8gIWFjdGl2ZSAqLworCisJcHJfaW5mbygiJXMoJWQpXG4iLCBfX2Z1bmNfXywgYWN0
-aXZlKTsKKwlncGlvX3NldF92YWx1ZShNVDlQMDMxX1JFU0VUX0dQSU8sICFhY3RpdmUpOworCisJ
-cmV0dXJuIDA7Cit9CisKK3N0YXRpYyBzdHJ1Y3QgbXQ5cDAzMV9wbGF0Zm9ybV9kYXRhIGJlYWds
-ZV9tdDlwMDMxX3BsYXRmb3JtX2RhdGEgPSB7CisvLwkuY29uZmlndXJlX2ludGVyZmFjZQk9IGJl
-YWdsZV9jb25maWd1cmVfaW50ZXJmYWNlLAorCS5zZXRfeGNsawkJPSBiZWFnbGVfc2V0X3hjbGss
-CisJLnJlc2V0CQkJPSBiZWFnbGVfcmVzZXQsCisJLmRhdGFfc2hpZnQJICAgICAgICA9IE1UOVAw
-MzFfREFUQV9TSElGVCwKKy8vCS5zZXRfcG93ZXIJCT0gYmVhZ2xlX3NldF9wb3dlciwKK307CisK
-K3N0YXRpYyBzdHJ1Y3QgaTJjX2JvYXJkX2luZm8gbXQ5cDAzMV9jYW1lcmFfaTJjX2RldmljZSA9
-IHsKKwlJMkNfQk9BUkRfSU5GTygibXQ5cDAzMSIsIDB4NDgpLAorLy8JSTJDX0JPQVJEX0lORk8o
-Im10OXAwMzEiLCAweDVkKSwKKwkucGxhdGZvcm1fZGF0YSA9ICZiZWFnbGVfbXQ5cDAzMV9wbGF0
-Zm9ybV9kYXRhLAorfTsKKworc3RhdGljIHN0cnVjdCBpc3Bfc3ViZGV2X2kyY19ib2FyZF9pbmZv
-IG10OXAwMzFfY2FtZXJhX3N1YmRldnNbXSA9IHsKKwl7CisJCS5ib2FyZF9pbmZvID0gJm10OXAw
-MzFfY2FtZXJhX2kyY19kZXZpY2UsCisJCS5pMmNfYWRhcHRlcl9pZCA9IDIsCisJfSwKKwl7IE5V
-TEwsIDAsIH0sCit9OworCitzdGF0aWMgc3RydWN0IGlzcF92NGwyX3N1YmRldnNfZ3JvdXAgYmVh
-Z2xlX2NhbWVyYV9zdWJkZXZzW10gPSB7CisJeworCQkuc3ViZGV2cyA9IG10OXAwMzFfY2FtZXJh
-X3N1YmRldnMsCisJCS5pbnRlcmZhY2UgPSBJU1BfSU5URVJGQUNFX1BBUkFMTEVMLAorCQkuYnVz
-ID0geworCQkJLnBhcmFsbGVsID0geworCQkJCS5kYXRhX2xhbmVfc2hpZnQgICAgICAgID0gTVQ5
-UDAzMV9EQVRBX1NISUZULAorCQkJCS5jbGtfcG9sICAgICAgICAgICAgICAgID0gMCwKKwkJCQku
-YnJpZGdlICAgICAgICAgICAgICAgICA9IElTUENUUkxfUEFSX0JSSURHRV9ESVNBQkxFLAorCQkJ
-CS5kYXRhX2J1c193aWR0aAkJPSA4LAorCQkJfQorCQl9LAorCX0sCisJeyB9LAorfTsKKworc3Rh
-dGljIHN0cnVjdCBpc3BfcGxhdGZvcm1fZGF0YSBiZWFnbGVfaXNwX3BsYXRmb3JtX2RhdGEgPSB7
-CisJLnN1YmRldnMgPSBiZWFnbGVfY2FtZXJhX3N1YmRldnMsCit9OworCitzdGF0aWMgaW50IF9f
-aW5pdCBiZWFnbGVfY2FtZXJhX2luaXQodm9pZCkKK3sKKwlpbnQgcmV0ID0gZ3Bpb19yZXF1ZXN0
-KE1UOVAwMzFfUkVTRVRfR1BJTywgImNhbV9yc3QiKTsKKwlwcmludGsoIiVzOiAxXG4iLCBfX2Z1
-bmNfXyk7CisJaWYgKHJldCA8IDApCisJCXJldHVybiByZXQ7CisJcHJpbnRrKCIlczogMlxuIiwg
-X19mdW5jX18pOworCWdwaW9fZGlyZWN0aW9uX291dHB1dChNVDlQMDMxX1JFU0VUX0dQSU8sIDAp
-OworCisJb21hcDNpc3BfZGV2aWNlLmRldi5wbGF0Zm9ybV9kYXRhID0gJmJlYWdsZV9pc3BfcGxh
-dGZvcm1fZGF0YTsKKwlvbWFwX3JlZ2lzdGVyX2kyY19idXMoMiwgMTAwLCBOVUxMLCAwKTsKKwlw
-cmludGsoIiVzOiAzXG4iLCBfX2Z1bmNfXyk7CisJcmV0dXJuIHBsYXRmb3JtX2RldmljZV9yZWdp
-c3Rlcigmb21hcDNpc3BfZGV2aWNlKTsKK30KKworc3RhdGljIHZvaWQgX19leGl0IGJlYWdsZV9j
-YW1lcmFfZXhpdCh2b2lkKQoreworCXBsYXRmb3JtX2RldmljZV91bnJlZ2lzdGVyKCZvbWFwM2lz
-cF9kZXZpY2UpOworfQorCittb2R1bGVfaW5pdChiZWFnbGVfY2FtZXJhX2luaXQpOworbW9kdWxl
-X2V4aXQoYmVhZ2xlX2NhbWVyYV9leGl0KTsKKworTU9EVUxFX0xJQ0VOU0UoIkdQTCB2MiIpOwpk
-aWZmIC0tZ2l0IGEvZHJpdmVycy9tZWRpYS92aWRlby9tdDlwMDMxLmMgYi9kcml2ZXJzL21lZGlh
-L3ZpZGVvL210OXAwMzEuYwpuZXcgZmlsZSBtb2RlIDEwMDY0NAppbmRleCAwMDAwMDAwLi5kNDJk
-NzgzCi0tLSAvZGV2L251bGwKKysrIGIvZHJpdmVycy9tZWRpYS92aWRlby9tdDlwMDMxLmMKQEAg
-LTAsMCArMSw4ODQgQEAKKyNpbmNsdWRlIDxsaW51eC9kZWxheS5oPgorI2luY2x1ZGUgPGxpbnV4
-L2RldmljZS5oPgorI2luY2x1ZGUgPGxpbnV4L2kyYy5oPgorI2luY2x1ZGUgPGxpbnV4L2xvZzIu
-aD4KKyNpbmNsdWRlIDxsaW51eC9wbS5oPgorI2luY2x1ZGUgPGxpbnV4L3JlZ3VsYXRvci9jb25z
-dW1lci5oPgorI2luY2x1ZGUgPGxpbnV4L3NsYWIuaD4KKyNpbmNsdWRlIDxtZWRpYS92NGwyLXN1
-YmRldi5oPgorI2luY2x1ZGUgPGxpbnV4L3ZpZGVvZGV2Mi5oPgorCisjaW5jbHVkZSA8bWVkaWEv
-bXQ5cDAzMS5oPgorI2luY2x1ZGUgPG1lZGlhL3Y0bDItY2hpcC1pZGVudC5oPgorI2luY2x1ZGUg
-PG1lZGlhL3Y0bDItc3ViZGV2Lmg+CisjaW5jbHVkZSA8bWVkaWEvdjRsMi1kZXZpY2UuaD4KKwor
-LyoKKyAqIG10OXAwMzEgaTJjIGFkZHJlc3MgMHg1ZCAoMHhCQSByZWFkLCAweEJCIHdyaXRlKSBz
-YW1lIGFzIG10OXQwMzEKKyAqIFRoZSBwbGF0Zm9ybSBoYXMgdG8gZGVmaW5lIGkyY19ib2FyZF9p
-bmZvIGFuZCBsaW5rIHRvIGl0IGZyb20KKyAqIHN0cnVjdCBzb2NfY2FtZXJhX2xpbmsKKyAqLwor
-CisvKiBtdDlwMDMxIHNlbGVjdGVkIHJlZ2lzdGVyIGFkZHJlc3NlcyAqLworI2RlZmluZSBNVDlQ
-MDMxX0NISVBfVkVSU0lPTgkJMHgwMAorI2RlZmluZSBNVDlQMDMxX1JPV19TVEFSVAkJMHgwMQor
-I2RlZmluZSBNVDlQMDMxX0NPTFVNTl9TVEFSVAkJMHgwMgorI2RlZmluZSBNVDlQMDMxX1dJTkRP
-V19IRUlHSFQJCTB4MDMKKyNkZWZpbmUgTVQ5UDAzMV9XSU5ET1dfV0lEVEgJCTB4MDQKKyNkZWZp
-bmUgTVQ5UDAzMV9IT1JJWk9OVEFMX0JMQU5LSU5HCTB4MDUKKyNkZWZpbmUgTVQ5UDAzMV9WRVJU
-SUNBTF9CTEFOS0lORwkweDA2CisjZGVmaW5lIE1UOVAwMzFfT1VUUFVUX0NPTlRST0wJCTB4MDcK
-KyNkZWZpbmUgTVQ5UDAzMV9TSFVUVEVSX1dJRFRIX1VQUEVSCTB4MDgKKyNkZWZpbmUgTVQ5UDAz
-MV9TSFVUVEVSX1dJRFRICQkweDA5CisjZGVmaW5lIE1UOVAwMzFfUElYRUxfQ0xPQ0tfQ09OVFJP
-TAkweDBhCisjZGVmaW5lIE1UOVAwMzFfRlJBTUVfUkVTVEFSVAkJMHgwYgorI2RlZmluZSBNVDlQ
-MDMxX1NIVVRURVJfREVMQVkJCTB4MGMKKyNkZWZpbmUgTVQ5UDAzMV9SRVNFVAkJCTB4MGQKKyNk
-ZWZpbmUgTVQ5UDAzMV9SRUFEX01PREVfMQkJMHgxZQorI2RlZmluZSBNVDlQMDMxX1JFQURfTU9E
-RV8yCQkweDIwCisvLyNkZWZpbmUgTVQ5VDAzMV9SRUFEX01PREVfMwkJMHgyMSAvLyBOQSByZWFk
-bW9kZV8yIGlzIDIgYnl0ZXMKKyNkZWZpbmUgTVQ5UDAzMV9ST1dfQUREUkVTU19NT0RFCTB4MjIK
-KyNkZWZpbmUgTVQ5UDAzMV9DT0xVTU5fQUREUkVTU19NT0RFCTB4MjMKKyNkZWZpbmUgTVQ5UDAz
-MV9HTE9CQUxfR0FJTgkJMHgzNQorLy8jZGVmaW5lIE1UOVQwMzFfQ0hJUF9FTkFCTEUJCTB4Rjgg
-Ly8gUEROIGlzIHBpbiBzaWduYWwuIG5vIGkyYyByZWdpc3RlcgorCisjZGVmaW5lIE1UOVAwMzFf
-TUFYX0hFSUdIVAkJMTk0NAorI2RlZmluZSBNVDlQMDMxX01BWF9XSURUSAkJMjU5MgorI2RlZmlu
-ZSBNVDlQMDMxX01JTl9IRUlHSFQJCTIKKyNkZWZpbmUgTVQ5UDAzMV9NSU5fV0lEVEgJCTE4Cisj
-ZGVmaW5lIE1UOVAwMzFfSE9SSVpPTlRBTF9CTEFOSwkwCisjZGVmaW5lIE1UOVAwMzFfVkVSVElD
-QUxfQkxBTksJCTI1CisjZGVmaW5lIE1UOVAwMzFfQ09MVU1OX1NLSVAJCTE2CisjZGVmaW5lIE1U
-OVAwMzFfUk9XX1NLSVAJCTU0CisKKyNkZWZpbmUgTVQ5UDAzMV9DSElQX1ZFUlNJT05fVkFMVUUJ
-MHgxODAxCisKKy8qCisjZGVmaW5lIE1UOVQwMzFfQlVTX1BBUkFNCShTT0NBTV9QQ0xLX1NBTVBM
-RV9SSVNJTkcgfAlcCisJU09DQU1fUENMS19TQU1QTEVfRkFMTElORyB8IFNPQ0FNX0hTWU5DX0FD
-VElWRV9ISUdIIHwJXAorCVNPQ0FNX1ZTWU5DX0FDVElWRV9ISUdIIHwgU09DQU1fREFUQV9BQ1RJ
-VkVfSElHSCB8CVwKKwlTT0NBTV9NQVNURVIgfCBTT0NBTV9EQVRBV0lEVEhfMTApCisqLworc3Ry
-dWN0IG10OXAwMzEgeworCXN0cnVjdCB2NGwyX3N1YmRldiBzdWJkZXY7CisgICAgICAgIHN0cnVj
-dCBtZWRpYV9wYWQgcGFkOworCisJc3RydWN0IHY0bDJfcmVjdCByZWN0OwkvKiBTZW5zb3Igd2lu
-ZG93ICovCisJc3RydWN0IHY0bDJfbWJ1c19mcmFtZWZtdCBmb3JtYXQ7CisJaW50IG1vZGVsOwkv
-KiBWNEwyX0lERU5UX01UOVAwMzEqIGNvZGVzIGZyb20gdjRsMi1jaGlwLWlkZW50LmggKi8KKwl1
-MTYgeHNraXA7CisJdTE2IHlza2lwOworCXN0cnVjdCByZWd1bGF0b3IgKnJlZ18xdjgsICpyZWdf
-MnY4OworfTsKKworc3RhdGljIHN0cnVjdCBtdDlwMDMxICp0b19tdDlwMDMxKGNvbnN0IHN0cnVj
-dCBpMmNfY2xpZW50ICpjbGllbnQpCit7CisJcmV0dXJuIGNvbnRhaW5lcl9vZihpMmNfZ2V0X2Ns
-aWVudGRhdGEoY2xpZW50KSwgc3RydWN0IG10OXAwMzEsIHN1YmRldik7Cit9CisKK3N0YXRpYyBp
-bnQgcmVnX3JlYWQoc3RydWN0IGkyY19jbGllbnQgKmNsaWVudCwgY29uc3QgdTggcmVnKQorewor
-CXMzMiBkYXRhID0gaTJjX3NtYnVzX3JlYWRfd29yZF9kYXRhKGNsaWVudCwgcmVnKTsKKwlyZXR1
-cm4gZGF0YSA8IDAgPyBkYXRhIDogc3dhYjE2KGRhdGEpOworfQorCitzdGF0aWMgaW50IHJlZ193
-cml0ZShzdHJ1Y3QgaTJjX2NsaWVudCAqY2xpZW50LCBjb25zdCB1OCByZWcsCisJCSAgICAgY29u
-c3QgdTE2IGRhdGEpCit7CisJcmV0dXJuIGkyY19zbWJ1c193cml0ZV93b3JkX2RhdGEoY2xpZW50
-LCByZWcsIHN3YWIxNihkYXRhKSk7Cit9CisKK3N0YXRpYyBpbnQgcmVnX3NldChzdHJ1Y3QgaTJj
-X2NsaWVudCAqY2xpZW50LCBjb25zdCB1OCByZWcsCisJCSAgIGNvbnN0IHUxNiBkYXRhKQorewor
-CWludCByZXQ7CisKKwlyZXQgPSByZWdfcmVhZChjbGllbnQsIHJlZyk7CisJaWYgKHJldCA8IDAp
-CisJCXJldHVybiByZXQ7CisJcmV0dXJuIHJlZ193cml0ZShjbGllbnQsIHJlZywgcmV0IHwgZGF0
-YSk7Cit9CisKK3N0YXRpYyBpbnQgcmVnX2NsZWFyKHN0cnVjdCBpMmNfY2xpZW50ICpjbGllbnQs
-IGNvbnN0IHU4IHJlZywKKwkJICAgICBjb25zdCB1MTYgZGF0YSkKK3sKKwlpbnQgcmV0OworCisJ
-cmV0ID0gcmVnX3JlYWQoY2xpZW50LCByZWcpOworCWlmIChyZXQgPCAwKQorCQlyZXR1cm4gcmV0
-OworCXJldHVybiByZWdfd3JpdGUoY2xpZW50LCByZWcsIHJldCAmIH5kYXRhKTsKK30KKworc3Rh
-dGljIGludCBzZXRfc2h1dHRlcihzdHJ1Y3QgaTJjX2NsaWVudCAqY2xpZW50LCBjb25zdCB1MzIg
-ZGF0YSkKK3sKKwlpbnQgcmV0OworCisJcmV0ID0gcmVnX3dyaXRlKGNsaWVudCwgTVQ5UDAzMV9T
-SFVUVEVSX1dJRFRIX1VQUEVSLCBkYXRhID4+IDE2KTsKKworCWlmIChyZXQgPj0gMCkKKwkJcmV0
-ID0gcmVnX3dyaXRlKGNsaWVudCwgTVQ5UDAzMV9TSFVUVEVSX1dJRFRILCBkYXRhICYgMHhmZmZm
-KTsKKworCXJldHVybiByZXQ7Cit9CisKK3N0YXRpYyBpbnQgZ2V0X3NodXR0ZXIoc3RydWN0IGky
-Y19jbGllbnQgKmNsaWVudCwgdTMyICpkYXRhKQoreworCWludCByZXQ7CisKKwlyZXQgPSByZWdf
-cmVhZChjbGllbnQsIE1UOVAwMzFfU0hVVFRFUl9XSURUSF9VUFBFUik7CisJKmRhdGEgPSByZXQg
-PDwgMTY7CisKKwlpZiAocmV0ID49IDApCisJCXJldCA9IHJlZ19yZWFkKGNsaWVudCwgTVQ5UDAz
-MV9TSFVUVEVSX1dJRFRIKTsKKwkqZGF0YSB8PSByZXQgJiAweGZmZmY7CisKKwlyZXR1cm4gcmV0
-IDwgMCA/IHJldCA6IDA7Cit9CisKK3N0YXRpYyBpbnQgbXQ5cDAzMV9pZGxlKHN0cnVjdCBpMmNf
-Y2xpZW50ICpjbGllbnQpCit7CisgICAgICAgIGludCByZXQ7CisKKyAgICAgICAgLyogRGlzYWJs
-ZSBjaGlwIG91dHB1dCwgc3luY2hyb25vdXMgb3B0aW9uIHVwZGF0ZSAqLworICAgICAgICByZXQg
-PSByZWdfd3JpdGUoY2xpZW50LCBNVDlQMDMxX1JFU0VULCAxKTsKKyAgICAgICAgaWYgKCFyZXQp
-CisgICAgICAgICAgICAgICAgcmV0ID0gcmVnX3dyaXRlKGNsaWVudCwgTVQ5UDAzMV9SRVNFVCwg
-MCk7CisgICAgICAgIGlmICghcmV0KQorICAgICAgICAgICAgICAgIHJldCA9IHJlZ19jbGVhcihj
-bGllbnQsIE1UOVAwMzFfT1VUUFVUX0NPTlRST0wsIDIpOworCisgICAgICAgIHJldHVybiByZXQg
-Pj0gMCA/IDAgOiAtRUlPOworfQorCitzdGF0aWMgaW50IG10OXAwMzFfZW51bV9tYnVzX2NvZGUo
-c3RydWN0IHY0bDJfc3ViZGV2ICpzZCwKKyAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAg
-ICBzdHJ1Y3QgdjRsMl9zdWJkZXZfZmggKmZoLAorICAgICAgICAgICAgICAgICAgICAgICAgICAg
-ICAgICAgIHN0cnVjdCB2NGwyX3N1YmRldl9tYnVzX2NvZGVfZW51bSAqY29kZSkKK3sKKwlzdHJ1
-Y3QgbXQ5cDAzMSAqbXQ5cDAzMSA9IGNvbnRhaW5lcl9vZihzZCwgc3RydWN0IG10OXAwMzEsIHN1
-YmRldik7CisKKwlpZiAoY29kZS0+cGFkIHx8IGNvZGUtPmluZGV4KQorCQlyZXR1cm4gLUVJTlZB
-TDsKKworCWNvZGUtPmNvZGUgPSBtdDlwMDMxLT5mb3JtYXQuY29kZTsKKworICAgICAgICByZXR1
-cm4gMDsKK30KKyNpZiAwCitzdGF0aWMgaW50IG10OXAwMzFfZW51bV9mcmFtZV9zaXplKHN0cnVj
-dCB2NGwyX3N1YmRldiAqc2QsCisgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIHN0
-cnVjdCB2NGwyX3N1YmRldl9maCAqZmgsCisgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAg
-ICAgIHN0cnVjdCB2NGwyX3N1YmRldl9mcmFtZV9zaXplX2VudW0gKmZzZSkKK3sKKwlwcl9pbmZv
-KCIlcygpXG4iLCBfX2Z1bmNfXyk7CisgICAgICAgCXJldHVybiAwOworfQorI2VuZGlmCitzdGF0
-aWMgc3RydWN0IHY0bDJfbWJ1c19mcmFtZWZtdCAqbXQ5cDAzMV9nZXRfcGFkX2Zvcm1hdChzdHJ1
-Y3QgbXQ5cDAzMSAqbXQ5cDAzMSwKKwkJCXN0cnVjdCB2NGwyX3N1YmRldl9maCAqZmgsIHVuc2ln
-bmVkIGludCBwYWQsIHUzMiB3aGljaCkKK3sKKwlzd2l0Y2ggKHdoaWNoKSB7CisJY2FzZSBWNEwy
-X1NVQkRFVl9GT1JNQVRfVFJZOgorCQlyZXR1cm4gdjRsMl9zdWJkZXZfZ2V0X3RyeV9mb3JtYXQo
-ZmgsIHBhZCk7CisJY2FzZSBWNEwyX1NVQkRFVl9GT1JNQVRfQUNUSVZFOgorCQlyZXR1cm4gJm10
-OXAwMzEtPmZvcm1hdDsKKwlkZWZhdWx0OgorCQlyZXR1cm4gTlVMTDsKKwl9Cit9CisKK3N0YXRp
-YyBzdHJ1Y3QgdjRsMl9yZWN0ICptdDlwMDMxX2dldF9wYWRfY3JvcChzdHJ1Y3QgbXQ5cDAzMSAq
-bXQ5cDAzMSwKKwkJCXN0cnVjdCB2NGwyX3N1YmRldl9maCAqZmgsIHVuc2lnbmVkIGludCBwYWQs
-IHUzMiB3aGljaCkKK3sKKwlzd2l0Y2ggKHdoaWNoKSB7CisJY2FzZSBWNEwyX1NVQkRFVl9GT1JN
-QVRfVFJZOgorCQlyZXR1cm4gdjRsMl9zdWJkZXZfZ2V0X3RyeV9jcm9wKGZoLCBwYWQpOworCWNh
-c2UgVjRMMl9TVUJERVZfRk9STUFUX0FDVElWRToKKwkJcmV0dXJuICZtdDlwMDMxLT5yZWN0Owor
-CWRlZmF1bHQ6CisJCXJldHVybiBOVUxMOworCX0KK30KKworc3RhdGljIGludCBtdDlwMDMxX2dl
-dF9jcm9wKHN0cnVjdCB2NGwyX3N1YmRldiAqc2QsCisgICAgICAgICAgICAgICAgICAgICAgICAg
-ICAgc3RydWN0IHY0bDJfc3ViZGV2X2ZoICpmaCwKKyAgICAgICAgICAgICAgICAgICAgICAgICAg
-ICBzdHJ1Y3QgdjRsMl9zdWJkZXZfY3JvcCAqY3JvcCkKK3sKKwlzdHJ1Y3QgbXQ5cDAzMSAqbXQ5
-cDAzMSA9IGNvbnRhaW5lcl9vZihzZCwgc3RydWN0IG10OXAwMzEsIHN1YmRldik7CisJc3RydWN0
-IHY0bDJfcmVjdCAqcmVjdCA9IG10OXAwMzFfZ2V0X3BhZF9jcm9wKG10OXAwMzEsIGZoLCBjcm9w
-LT5wYWQsCisJCQkJCQkJY3JvcC0+d2hpY2gpOworCXByX2luZm8oIiVzKClcbiIsIF9fZnVuY19f
-KTsKKworCWlmICghcmVjdCkKKwkJcmV0dXJuIC1FSU5WQUw7CisKKwljcm9wLT5yZWN0ID0gKnJl
-Y3Q7CisKKyAgICAgICAgcmV0dXJuIDA7Cit9CisKK3N0YXRpYyB1MTYgbXQ5cDAzMV9za2lwX2Zv
-cl9jcm9wKHMzMiBzb3VyY2UsIHMzMiAqdGFyZ2V0LCBzMzIgbWF4X3NraXApCit7CisJdW5zaWdu
-ZWQgaW50IHNraXA7CisKKwlpZiAoc291cmNlIC0gc291cmNlIC8gNCA8ICp0YXJnZXQpIHsKKwkJ
-KnRhcmdldCA9IHNvdXJjZTsKKwkJcmV0dXJuIDE7CisJfQorCisJc2tpcCA9IChzb3VyY2UgKyAq
-dGFyZ2V0IC8gMikgLyAqdGFyZ2V0OworCWlmIChza2lwID4gbWF4X3NraXApCisJCXNraXAgPSBt
-YXhfc2tpcDsKKworCSp0YXJnZXQgPSAyICogKChzb3VyY2UgKyAyICogc2tpcCAtIDEpIC8gKDIg
-KiBza2lwKSk7CisKKwlyZXR1cm4gc2tpcDsKK30KKworc3RhdGljIGludCBtdDlwMDMxX3NldF9w
-YXJhbXMoc3RydWN0IGkyY19jbGllbnQgKmNsaWVudCwKKwkJCSAgICAgIHN0cnVjdCB2NGwyX3Jl
-Y3QgKnJlY3QsIHUxNiB4c2tpcCwgdTE2IHlza2lwKQoreworCXN0cnVjdCBtdDlwMDMxICptdDlw
-MDMxID0gdG9fbXQ5cDAzMShjbGllbnQpOworCWludCByZXQ7CisJdTE2IHhiaW4sIHliaW47CisJ
-Y29uc3QgdTE2IGhibGFuayA9IE1UOVAwMzFfSE9SSVpPTlRBTF9CTEFOSywKKwkJdmJsYW5rID0g
-TVQ5UDAzMV9WRVJUSUNBTF9CTEFOSzsKKworCS8qCisJICogVE9ETzogQXR0ZW50aW9uISBXaGVu
-IGltcGxlbWVudGluZyBob3Jpem9udGFsIGZsaXBwaW5nLCBhZGp1c3QKKwkgKiBhbGlnbm1lbnQg
-YWNjb3JkaW5nIHRvIFIyICJDb2x1bW4gU3RhcnQiIGRlc2NyaXB0aW9uIGluIHRoZSBkYXRhc2hl
-ZXQKKwkgKi8KKwlpZiAoeHNraXAgJiAxKSB7CisJCXhiaW4gPSAxOworCQlyZWN0LT5sZWZ0ICY9
-IH4zOworCX0gZWxzZSBpZiAoeHNraXAgJiAyKSB7CisJCXhiaW4gPSAyOworCQlyZWN0LT5sZWZ0
-ICY9IH43OworCX0gZWxzZSB7CisJCXhiaW4gPSA0OworCQlyZWN0LT5sZWZ0ICY9IH4xNTsKKwl9
-CisKKwl5YmluID0gbWluKHlza2lwLCAodTE2KTQpOworCisJcmVjdC0+dG9wICY9IH4xOworCisJ
-LyogRGlzYWJsZSByZWdpc3RlciB1cGRhdGUsIHJlY29uZmlndXJlIGF0b21pY2FsbHkgKi8KKwly
-ZXQgPSByZWdfc2V0KGNsaWVudCwgTVQ5UDAzMV9PVVRQVVRfQ09OVFJPTCwgMSk7CisJaWYgKHJl
-dCA8IDApCisJCXJldHVybiByZXQ7CisKKwlkZXZfZGJnKCZjbGllbnQtPmRldiwgInNraXAgJXU6
-JXUsIHJlY3QgJXV4JXVAJXU6JXVcbiIsCisJCXhza2lwLCB5c2tpcCwgcmVjdC0+d2lkdGgsIHJl
-Y3QtPmhlaWdodCwgcmVjdC0+bGVmdCwgcmVjdC0+dG9wKTsKKworCS8qIEJsYW5raW5nIGFuZCBz
-dGFydCB2YWx1ZXMgLSBkZWZhdWx0Li4uICovCisJcmV0ID0gcmVnX3dyaXRlKGNsaWVudCwgTVQ5
-UDAzMV9IT1JJWk9OVEFMX0JMQU5LSU5HLCBoYmxhbmspOworCWlmICghcmV0KQorCQlyZXQgPSBy
-ZWdfd3JpdGUoY2xpZW50LCBNVDlQMDMxX1ZFUlRJQ0FMX0JMQU5LSU5HLCB2YmxhbmspOworCisJ
-aWYgKHlza2lwICE9IG10OXAwMzEtPnlza2lwIHx8IHhza2lwICE9IG10OXAwMzEtPnhza2lwKSB7
-CisJCS8qIEJpbm5pbmcsIHNraXBwaW5nICovCisJCWlmICghcmV0KQorCQkJcmV0ID0gcmVnX3dy
-aXRlKGNsaWVudCwgTVQ5UDAzMV9DT0xVTU5fQUREUkVTU19NT0RFLAorCQkJCQkoKHhiaW4gLSAx
-KSA8PCA0KSB8ICh4c2tpcCAtIDEpKTsKKwkJaWYgKCFyZXQpCisJCQlyZXQgPSByZWdfd3JpdGUo
-Y2xpZW50LCBNVDlQMDMxX1JPV19BRERSRVNTX01PREUsCisJCQkJCSgoeWJpbiAtIDEpIDw8IDQp
-IHwgKHlza2lwIC0gMSkpOworCX0KKwlkZXZfZGJnKCZjbGllbnQtPmRldiwgIm5ldyBwaHlzaWNh
-bCBsZWZ0ICV1LCB0b3AgJXVcbiIsCisJCXJlY3QtPmxlZnQsIHJlY3QtPnRvcCk7CisKKwlpZiAo
-IXJldCkKKwkJcmV0ID0gcmVnX3dyaXRlKGNsaWVudCwgTVQ5UDAzMV9DT0xVTU5fU1RBUlQsCisJ
-CQkJcmVjdC0+bGVmdCArIE1UOVAwMzFfQ09MVU1OX1NLSVApOworCWlmICghcmV0KQorCQlyZXQg
-PSByZWdfd3JpdGUoY2xpZW50LCBNVDlQMDMxX1JPV19TVEFSVCwKKwkJCQlyZWN0LT50b3AgKyBN
-VDlQMDMxX1JPV19TS0lQKTsKKwlpZiAoIXJldCkKKwkJcmV0ID0gcmVnX3dyaXRlKGNsaWVudCwg
-TVQ5UDAzMV9XSU5ET1dfV0lEVEgsCisJCQkJcmVjdC0+d2lkdGggLSAxKTsKKwlpZiAoIXJldCkK
-KwkJcmV0ID0gcmVnX3dyaXRlKGNsaWVudCwgTVQ5UDAzMV9XSU5ET1dfSEVJR0hULAorCQkJCXJl
-Y3QtPmhlaWdodCAtIDEpOworCisJLyogUmUtZW5hYmxlIHJlZ2lzdGVyIHVwZGF0ZSwgY29tbWl0
-IGFsbCBjaGFuZ2VzICovCisJaWYgKCFyZXQpCisJCXJldCA9IHJlZ19jbGVhcihjbGllbnQsIE1U
-OVAwMzFfT1VUUFVUX0NPTlRST0wsIDEpOworCisJaWYgKCFyZXQpIHsKKwkJbXQ5cDAzMS0+eHNr
-aXAgPSB4c2tpcDsKKwkJbXQ5cDAzMS0+eXNraXAgPSB5c2tpcDsKKwl9CisKKwlyZXR1cm4gcmV0
-OworfQorCitzdGF0aWMgaW50IG10OXAwMzFfc2V0X2Nyb3Aoc3RydWN0IHY0bDJfc3ViZGV2ICpz
-ZCwKKyAgICAgICAgICAgICAgICAgICAgICAgICAgICBzdHJ1Y3QgdjRsMl9zdWJkZXZfZmggKmZo
-LAorICAgICAgICAgICAgICAgICAgICAgICAgICAgIHN0cnVjdCB2NGwyX3N1YmRldl9jcm9wICpj
-cm9wKQorewkKKwlzdHJ1Y3QgaTJjX2NsaWVudCAqY2xpZW50ID0gdjRsMl9nZXRfc3ViZGV2ZGF0
-YShzZCk7CisJc3RydWN0IG10OXAwMzEgKm10OXAwMzEgPSBjb250YWluZXJfb2Yoc2QsIHN0cnVj
-dCBtdDlwMDMxLCBzdWJkZXYpOworCXN0cnVjdCB2NGwyX21idXNfZnJhbWVmbXQgKmY7CisJc3Ry
-dWN0IHY0bDJfcmVjdCAqYzsKKwlzdHJ1Y3QgdjRsMl9yZWN0IHJlY3Q7CisJdTE2IHhza2lwLCB5
-c2tpcDsKKwlzMzIgd2lkdGgsIGhlaWdodDsKKwlpbnQgcmV0OworCisJcHJfaW5mbygiJXMoJXV4
-JXVAJXU6JXUgOiAldSlcbiIsIF9fZnVuY19fLAorCQljcm9wLT5yZWN0LndpZHRoLCBjcm9wLT5y
-ZWN0LmhlaWdodCwgY3JvcC0+cmVjdC5sZWZ0LCBjcm9wLT5yZWN0LnRvcCwgY3JvcC0+d2hpY2gp
-OworCisJLyoKKwkgKiBDbGFtcCB0aGUgY3JvcCByZWN0YW5nbGUgYm91bmRhcmllcyBhbmQgYWxp
-Z24gdGhlbSB0byBhIG11bHRpcGxlIG9mIDIKKwkgKiBwaXhlbHMuCisJICovCisJcmVjdC53aWR0
-aCA9IEFMSUdOKGNsYW1wKGNyb3AtPnJlY3Qud2lkdGgsCisJCQkJIE1UOVAwMzFfTUlOX1dJRFRI
-LCBNVDlQMDMxX01BWF9XSURUSCksIDIpOworCXJlY3QuaGVpZ2h0ID0gQUxJR04oY2xhbXAoY3Jv
-cC0+cmVjdC5oZWlnaHQsCisJCQkJICBNVDlQMDMxX01JTl9IRUlHSFQsIE1UOVAwMzFfTUFYX0hF
-SUdIVCksIDIpOworCXJlY3QubGVmdCA9IEFMSUdOKGNsYW1wKGNyb3AtPnJlY3QubGVmdCwKKwkJ
-CQkwLCBNVDlQMDMxX01BWF9XSURUSCAtIHJlY3Qud2lkdGgpLCAyKTsKKwlyZWN0LnRvcCA9IEFM
-SUdOKGNsYW1wKGNyb3AtPnJlY3QudG9wLAorCQkJICAgICAgIDAsIE1UOVAwMzFfTUFYX0hFSUdI
-VCAtIHJlY3QuaGVpZ2h0KSwgMik7CisKKwljID0gbXQ5cDAzMV9nZXRfcGFkX2Nyb3AobXQ5cDAz
-MSwgZmgsIGNyb3AtPnBhZCwgY3JvcC0+d2hpY2gpOworCisjaWYgMQorCWlmIChyZWN0LndpZHRo
-ICE9IGMtPndpZHRoIHx8IHJlY3QuaGVpZ2h0ICE9IGMtPmhlaWdodCkgeworCQkvKgorCQkgKiBS
-ZXNldCB0aGUgb3V0cHV0IGltYWdlIHNpemUgaWYgdGhlIGNyb3AgcmVjdGFuZ2xlIHNpemUgaGFz
-CisJCSAqIGJlZW4gbW9kaWZpZWQuCisJCSAqLworCQlmID0gbXQ5cDAzMV9nZXRfcGFkX2Zvcm1h
-dChtdDlwMDMxLCBmaCwgY3JvcC0+cGFkLAorCQkJCQkJICAgIGNyb3AtPndoaWNoKTsKKwkJd2lk
-dGggPSBmLT53aWR0aDsKKwkJaGVpZ2h0ID0gZi0+aGVpZ2h0OworCisJCXhza2lwID0gbXQ5cDAz
-MV9za2lwX2Zvcl9jcm9wKHJlY3Qud2lkdGgsICZ3aWR0aCwgNyk7CisJCXlza2lwID0gbXQ5cDAz
-MV9za2lwX2Zvcl9jcm9wKHJlY3QuaGVpZ2h0LCAmaGVpZ2h0LCA4KTsKKwl9IGVsc2UgeworCQl4
-c2tpcCA9IG10OXAwMzEtPnhza2lwOworCQl5c2tpcCA9IG10OXAwMzEtPnlza2lwOworCQlmID0g
-TlVMTDsKKwl9CisKKwlpZiAoY3JvcC0+d2hpY2ggPT0gVjRMMl9TVUJERVZfRk9STUFUX0FDVElW
-RSkgeworCQlyZXQgPSBtdDlwMDMxX3NldF9wYXJhbXMoY2xpZW50LCAmcmVjdCwgeHNraXAsIHlz
-a2lwKTsKKwkJaWYgKHJldCA8IDApCisJCQlyZXR1cm4gcmV0OworCX0KKworCWlmIChmKSB7CisJ
-CWYtPndpZHRoID0gd2lkdGg7CisJCWYtPmhlaWdodCA9IGhlaWdodDsKKwl9CisjZWxzZQorCWYg
-PSBtdDlwMDMxX2dldF9wYWRfZm9ybWF0KG10OXAwMzEsIGZoLCBjcm9wLT5wYWQsCisJCQkJCSAg
-ICBjcm9wLT53aGljaCk7CisJZi0+d2lkdGggPSByZWN0LndpZHRoOworCWYtPmhlaWdodCA9IHJl
-Y3QuaGVpZ2h0OworI2VuZGlmCisKKwkqYyA9IHJlY3Q7CisJY3JvcC0+cmVjdCA9IHJlY3Q7CisK
-KwlyZXR1cm4gMDsKK30KKworc3RhdGljIGludCBtdDlwMDMxX2dldF9mb3JtYXQoc3RydWN0IHY0
-bDJfc3ViZGV2ICpzZCwKKyAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIHN0cnVjdCB2NGwy
-X3N1YmRldl9maCAqZmgsCisgICAgICAgICAgICAgICAgICAgICAgICAgICAgICBzdHJ1Y3QgdjRs
-Ml9zdWJkZXZfZm9ybWF0ICpmbXQpCit7CisJc3RydWN0IG10OXAwMzEgKm10OXAwMzEgPSBjb250
-YWluZXJfb2Yoc2QsIHN0cnVjdCBtdDlwMDMxLCBzdWJkZXYpOworLy8JZm10LT5mb3JtYXQgPSBt
-dDlwMDMxLT5mb3JtYXQ7CisJcHJfaW5mbygiJXMoKVxuIiwgX19mdW5jX18pOworCisJZm10LT5m
-b3JtYXQgPSAqbXQ5cDAzMV9nZXRfcGFkX2Zvcm1hdChtdDlwMDMxLCBmaCwgZm10LT5wYWQsIGZt
-dC0+d2hpY2gpOworICAgICAgICByZXR1cm4gMDsKK30KKworc3RhdGljIHUxNiBtdDlwMDMxX3Nr
-aXBfZm9yX3NjYWxlKHMzMiAqc291cmNlLCBzMzIgdGFyZ2V0LCBzMzIgbWF4X3NraXAsIHMzMiBt
-YXgpCit7CisJdW5zaWduZWQgaW50IHNraXA7CisKKwlpZiAoKnNvdXJjZSAtICpzb3VyY2UgLyA0
-IDwgdGFyZ2V0KSB7CisJCSpzb3VyY2UgPSB0YXJnZXQ7CisJCXJldHVybiAxOworCX0KKworCXNr
-aXAgPSBtaW4obWF4LCAqc291cmNlICsgdGFyZ2V0IC8gMikgLyB0YXJnZXQ7CisJaWYgKHNraXAg
-PiBtYXhfc2tpcCkKKwkJc2tpcCA9IG1heF9za2lwOworCSpzb3VyY2UgPSB0YXJnZXQgKiBza2lw
-OworCisJcmV0dXJuIHNraXA7Cit9CisKK3N0YXRpYyBpbnQgbXQ5cDAzMV9mbXRfdmFsaWRhdGUo
-c3RydWN0IHY0bDJfc3ViZGV2ICpzZCwgc3RydWN0IHY0bDJfc3ViZGV2X2Zvcm1hdCAqZm10KQor
-eworCXN0cnVjdCBtdDlwMDMxICptdDlwMDMxID0gY29udGFpbmVyX29mKHNkLCBzdHJ1Y3QgbXQ5
-cDAzMSwgc3ViZGV2KTsKKwlzdHJ1Y3QgdjRsMl9tYnVzX2ZyYW1lZm10ICpmb3JtYXQgPSAmZm10
-LT5mb3JtYXQ7CisKKwlpZiAoZm9ybWF0LT5jb2RlICE9IG10OXAwMzEtPmZvcm1hdC5jb2RlIHx8
-IGZtdC0+cGFkKQorCQlyZXR1cm4gLUVJTlZBTDsKKworCWZvcm1hdC0+Y29sb3JzcGFjZSA9IFY0
-TDJfQ09MT1JTUEFDRV9TUkdCOworCWZvcm1hdC0+d2lkdGggPSBjbGFtcF90KGludCwgQUxJR04o
-Zm9ybWF0LT53aWR0aCwgMiksIDIsIE1UOVAwMzFfTUFYX1dJRFRIKTsKKwlmb3JtYXQtPmhlaWdo
-dCA9IGNsYW1wX3QoaW50LCBBTElHTihmb3JtYXQtPmhlaWdodCwgMiksIDIsIE1UOVAwMzFfTUFY
-X0hFSUdIVCk7CisJZm9ybWF0LT5maWVsZCA9IFY0TDJfRklFTERfTk9ORTsKKworCXJldHVybiAw
-OworfQorCitzdGF0aWMgaW50IG10OXAwMzFfc2V0X2Zvcm1hdChzdHJ1Y3QgdjRsMl9zdWJkZXYg
-KnNkLAorICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgc3RydWN0IHY0bDJfc3ViZGV2X2Zo
-ICpmaCwKKyAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIHN0cnVjdCB2NGwyX3N1YmRldl9m
-b3JtYXQgKmZtdCkKK3sKKwlzdHJ1Y3QgaTJjX2NsaWVudCAqY2xpZW50ID0gdjRsMl9nZXRfc3Vi
-ZGV2ZGF0YShzZCk7CisJc3RydWN0IHY0bDJfc3ViZGV2X2Zvcm1hdCBzZGYgPSAqZm10OworCXN0
-cnVjdCB2NGwyX21idXNfZnJhbWVmbXQgKmYsICpmb3JtYXQgPSAmc2RmLmZvcm1hdDsKKwlzdHJ1
-Y3QgdjRsMl9yZWN0ICpjLCByZWN0OworCXN0cnVjdCBtdDlwMDMxICptdDlwMDMxID0gY29udGFp
-bmVyX29mKHNkLCBzdHJ1Y3QgbXQ5cDAzMSwgc3ViZGV2KTsKKwl1MTYgeHNraXAsIHlza2lwOwor
-CWludCByZXQ7CisKKwlyZXQgPSBtdDlwMDMxX2ZtdF92YWxpZGF0ZShzZCwgJnNkZik7CisJaWYg
-KHJldCA8IDApCisJCXJldHVybiByZXQ7CisKKwlmID0gbXQ5cDAzMV9nZXRfcGFkX2Zvcm1hdCht
-dDlwMDMxLCBmaCwgZm10LT5wYWQsIGZtdC0+d2hpY2gpOworCisJaWYgKGYtPndpZHRoICE9IGZv
-cm1hdC0+d2lkdGggfHwgZi0+aGVpZ2h0ICE9IGZvcm1hdC0+aGVpZ2h0KSB7CisJCWMgPSBtdDlw
-MDMxX2dldF9wYWRfY3JvcChtdDlwMDMxLCBmaCwgZm10LT5wYWQsIGZtdC0+d2hpY2gpOworCisJ
-CXJlY3Qud2lkdGggPSBjLT53aWR0aDsKKwkJcmVjdC5oZWlnaHQgPSBjLT5oZWlnaHQ7CisKKwkJ
-eHNraXAgPSBtdDlwMDMxX3NraXBfZm9yX3NjYWxlKCZyZWN0LndpZHRoLCBmb3JtYXQtPndpZHRo
-LCA3LCBNVDlQMDMxX01BWF9XSURUSCk7CisJCWlmIChyZWN0LndpZHRoICsgYy0+bGVmdCA+IE1U
-OVAwMzFfTUFYX1dJRFRIKQorCQkJcmVjdC5sZWZ0ID0gKE1UOVAwMzFfTUFYX1dJRFRIIC0gcmVj
-dC53aWR0aCkgLyAyOworCQllbHNlCisJCQlyZWN0LmxlZnQgPSBjLT5sZWZ0OworCQl5c2tpcCA9
-IG10OXAwMzFfc2tpcF9mb3Jfc2NhbGUoJnJlY3QuaGVpZ2h0LCBmb3JtYXQtPmhlaWdodCwgOCwg
-TVQ5UDAzMV9NQVhfSEVJR0hUKTsKKwkJaWYgKHJlY3QuaGVpZ2h0ICsgYy0+dG9wID4gTVQ5UDAz
-MV9NQVhfSEVJR0hUKQorCQkJcmVjdC50b3AgPSAoTVQ5UDAzMV9NQVhfSEVJR0hUIC0gcmVjdC5o
-ZWlnaHQpIC8gMjsKKwkJZWxzZQorCQkJcmVjdC50b3AgPSBjLT50b3A7CisJfSBlbHNlIHsKKwkJ
-eHNraXAgPSBtdDlwMDMxLT54c2tpcDsKKwkJeXNraXAgPSBtdDlwMDMxLT55c2tpcDsKKwkJYyA9
-IE5VTEw7CisJfQorCisJcHJfaW5mbygiJXMoJXV4JXUgOiAldSlcbiIsIF9fZnVuY19fLCBmb3Jt
-YXQtPndpZHRoLCBmb3JtYXQtPmhlaWdodCwgZm10LT53aGljaCk7CisKKwlpZiAoZm10LT53aGlj
-aCA9PSBWNEwyX1NVQkRFVl9GT1JNQVRfQUNUSVZFKSB7CisJCS8qIG10OXAwMzFfc2V0X3BhcmFt
-cygpIGRvZXNuJ3QgY2hhbmdlIHdpZHRoIGFuZCBoZWlnaHQgKi8KKwkJcmV0ID0gbXQ5cDAzMV9z
-ZXRfcGFyYW1zKGNsaWVudCwgJnJlY3QsIHhza2lwLCB5c2tpcCk7CisJCWlmIChyZXQgPCAwKQor
-CQkJcmV0dXJuIHJldDsKKwl9CisKKwlpZiAoYykKKwkJKmMgPSByZWN0OworCisJKmYgPSAqZm9y
-bWF0OworCWZtdC0+Zm9ybWF0ID0gKmZvcm1hdDsKKworCXJldHVybiAwOworI2lmIDAKKy8vCWZt
-dC0+Zm9ybWF0ID0gbXQ5cDAzMS0+Zm9ybWF0OworICAgICAgICByZXQgPSBtdDlwMDMxX3NldF9j
-cm9wKHNkLCBmaCwgJmNyb3ApOworCWlmICghcmV0KQorCQlmbXQtPmZvcm1hdCA9ICptdDlwMDMx
-X2dldF9wYWRfZm9ybWF0KG10OXAwMzEsIGZoLCBmbXQtPnBhZCwgZm10LT53aGljaCk7CisKKwly
-ZXR1cm4gcmV0OworI2VuZGlmCit9CisKK3N0YXRpYyBpbnQgbXQ5cDAzMV9zX3N0cmVhbShzdHJ1
-Y3QgdjRsMl9zdWJkZXYgKnNkLCBpbnQgZW5hYmxlKQoreworCXN0cnVjdCBpMmNfY2xpZW50ICpj
-bGllbnQgPSB2NGwyX2dldF9zdWJkZXZkYXRhKHNkKTsKKwlpbnQgcmV0OworCisJaWYgKGVuYWJs
-ZSkKKwkJLyogU3dpdGNoIHRvIG1hc3RlciAibm9ybWFsIiBtb2RlICovCisJCXJldCA9IHJlZ19z
-ZXQoY2xpZW50LCBNVDlQMDMxX09VVFBVVF9DT05UUk9MLCAyKTsKKwllbHNlCisJCS8qIFN0b3Ag
-c2Vuc29yIHJlYWRvdXQgKi8KKwkJcmV0ID0gcmVnX2NsZWFyKGNsaWVudCwgTVQ5UDAzMV9PVVRQ
-VVRfQ09OVFJPTCwgMik7CisKKwlpZiAocmV0IDwgMCkKKwkJcmV0dXJuIC1FSU87CisKKwlyZXR1
-cm4gMDsKK30KKworZW51bSB7CisgICAgICAgIE1UOVAwMzFfQ1RSTF9WRkxJUCwKKyAgICAgICAg
-TVQ5UDAzMV9DVFJMX0hGTElQLAorICAgICAgICBNVDlQMDMxX0NUUkxfR0FJTiwKKyAgICAgICAg
-TVQ5UDAzMV9DVFJMX0VYUE9TVVJFLAorICAgICAgICBNVDlQMDMxX0NUUkxfRVhQT1NVUkVfQVVU
-TywKK307CisKK3N0YXRpYyBjb25zdCBzdHJ1Y3QgdjRsMl9xdWVyeWN0cmwgbXQ5cDAzMV9jb250
-cm9sc1tdID0geworCVtNVDlQMDMxX0NUUkxfVkZMSVBdID0geworCQkuaWQJCT0gVjRMMl9DSURf
-VkZMSVAsCisJCS50eXBlCQk9IFY0TDJfQ1RSTF9UWVBFX0JPT0xFQU4sCisJCS5uYW1lCQk9ICJG
-bGlwIFZlcnRpY2FsbHkiLAorCQkubWluaW11bQk9IDAsCisJCS5tYXhpbXVtCT0gMSwKKwkJLnN0
-ZXAJCT0gMSwKKwkJLmRlZmF1bHRfdmFsdWUJPSAwLAorCX0sCisJW01UOVAwMzFfQ1RSTF9IRkxJ
-UF0gPSB7CisJCS5pZAkJPSBWNEwyX0NJRF9IRkxJUCwKKwkJLnR5cGUJCT0gVjRMMl9DVFJMX1RZ
-UEVfQk9PTEVBTiwKKwkJLm5hbWUJCT0gIkZsaXAgSG9yaXpvbnRhbGx5IiwKKwkJLm1pbmltdW0J
-PSAwLAorCQkubWF4aW11bQk9IDEsCisJCS5zdGVwCQk9IDEsCisJCS5kZWZhdWx0X3ZhbHVlCT0g
-MCwKKwl9LAorfTsKKworc3RhdGljIGludCBtdDlwMDMxX2dfY2hpcF9pZGVudChzdHJ1Y3QgdjRs
-Ml9zdWJkZXYgKnNkLAorCQkJCXN0cnVjdCB2NGwyX2RiZ19jaGlwX2lkZW50ICppZCkKK3sKKwlz
-dHJ1Y3QgaTJjX2NsaWVudCAqY2xpZW50ID0gdjRsMl9nZXRfc3ViZGV2ZGF0YShzZCk7CisJc3Ry
-dWN0IG10OXAwMzEgKm10OXAwMzEgPSBjb250YWluZXJfb2Yoc2QsIHN0cnVjdCBtdDlwMDMxLCBz
-dWJkZXYpOworCisJaWYgKGlkLT5tYXRjaC50eXBlICE9IFY0TDJfQ0hJUF9NQVRDSF9JMkNfQURE
-UikKKwkJcmV0dXJuIC1FSU5WQUw7CisKKwlpZiAoaWQtPm1hdGNoLmFkZHIgIT0gY2xpZW50LT5h
-ZGRyKQorCQlyZXR1cm4gLUVOT0RFVjsKKworCWlkLT5pZGVudAk9IG10OXAwMzEtPm1vZGVsOwor
-CWlkLT5yZXZpc2lvbgk9IDA7CisKKwlyZXR1cm4gMDsKK30KKworc3RhdGljIGludCBtdDlwMDMx
-X2dfY3RybChzdHJ1Y3QgdjRsMl9zdWJkZXYgKnNkLCBzdHJ1Y3QgdjRsMl9jb250cm9sICpjdHJs
-KQoreworCXN0cnVjdCBpMmNfY2xpZW50ICpjbGllbnQgPSB2NGwyX2dldF9zdWJkZXZkYXRhKHNk
-KTsKKwlpbnQgZGF0YTsKKworCXN3aXRjaCAoY3RybC0+aWQpIHsKKwljYXNlIFY0TDJfQ0lEX1ZG
-TElQOgorCQlkYXRhID0gcmVnX3JlYWQoY2xpZW50LCBNVDlQMDMxX1JFQURfTU9ERV8yKTsKKwkJ
-aWYgKGRhdGEgPCAwKQorCQkJcmV0dXJuIC1FSU87CisJCWN0cmwtPnZhbHVlID0gISEoZGF0YSAm
-IDB4ODAwMCk7CisJCWJyZWFrOworCWNhc2UgVjRMMl9DSURfSEZMSVA6CisJCWRhdGEgPSByZWdf
-cmVhZChjbGllbnQsIE1UOVAwMzFfUkVBRF9NT0RFXzIpOworCQlpZiAoZGF0YSA8IDApCisJCQly
-ZXR1cm4gLUVJTzsKKwkJY3RybC0+dmFsdWUgPSAhIShkYXRhICYgMHg0MDAwKTsKKwkJYnJlYWs7
-CisJfQorCXJldHVybiAwOworfQorCitzdGF0aWMgaW50IG10OXAwMzFfc19jdHJsKHN0cnVjdCB2
-NGwyX3N1YmRldiAqc2QsIHN0cnVjdCB2NGwyX2NvbnRyb2wgKmN0cmwpCit7CisJc3RydWN0IGky
-Y19jbGllbnQgKmNsaWVudCA9IHY0bDJfZ2V0X3N1YmRldmRhdGEoc2QpOworCWludCBkYXRhOwor
-CisJcHJfaW5mbygiJXMoKVxuIiwgX19mdW5jX18pOworCisJc3dpdGNoIChjdHJsLT5pZCkgewor
-CWNhc2UgVjRMMl9DSURfVkZMSVA6CisJCWlmIChjdHJsLT52YWx1ZSkKKwkJCWRhdGEgPSByZWdf
-c2V0KGNsaWVudCwgTVQ5UDAzMV9SRUFEX01PREVfMiwgMHg4MDAwKTsKKwkJZWxzZQorCQkJZGF0
-YSA9IHJlZ19jbGVhcihjbGllbnQsIE1UOVAwMzFfUkVBRF9NT0RFXzIsIDB4ODAwMCk7CisJCWlm
-IChkYXRhIDwgMCkKKwkJCXJldHVybiAtRUlPOworCQlicmVhazsKKwljYXNlIFY0TDJfQ0lEX0hG
-TElQOgorCQlpZiAoY3RybC0+dmFsdWUpCisJCQlkYXRhID0gcmVnX3NldChjbGllbnQsIE1UOVAw
-MzFfUkVBRF9NT0RFXzIsIDB4NDAwMCk7CisJCWVsc2UKKwkJCWRhdGEgPSByZWdfY2xlYXIoY2xp
-ZW50LCBNVDlQMDMxX1JFQURfTU9ERV8yLCAweDQwMDApOworCQlpZiAoZGF0YSA8IDApCisJCQly
-ZXR1cm4gLUVJTzsKKwkJYnJlYWs7CisJZGVmYXVsdDoKKwkJcmV0dXJuIC1FSU5WQUw7CisJfQor
-CXJldHVybiAwOworfQorCisvKgorc3RhdGljIHN0cnVjdCBkZXZfcG1fb3BzIG10OXAwMzFfZGV2
-X3BtX29wcyA9IHsKKwkucnVudGltZV9zdXNwZW5kCT0gbXQ5cDAzMV9ydW50aW1lX3N1c3BlbmQs
-CisJLnJ1bnRpbWVfcmVzdW1lCQk9IG10OXAwMzFfcnVudGltZV9yZXN1bWUsCit9OworCitzdGF0
-aWMgc3RydWN0IGRldmljZV90eXBlIG10OXAwMzFfZGV2X3R5cGUgPSB7CisJLm5hbWUJPSAiTVQ5
-UDAzMSIsCisJLnBtCT0gJm10OXAwMzFfZGV2X3BtX29wcywKK307CisqLworCisvKgorICogSW50
-ZXJmYWNlIGFjdGl2ZSwgY2FuIHVzZSBpMmMuIElmIGl0IGZhaWxzLCBpdCBjYW4gaW5kZWVkIG1l
-YW4sIHRoYXQKKyAqIHRoaXMgd2Fzbid0IG91ciBjYXB0dXJlIGludGVyZmFjZSwgc28sIHdlIHdh
-aXQgZm9yIHRoZSByaWdodCBvbmUKKyAqLworc3RhdGljIGludCBtdDlwMDMxX3ZpZGVvX3Byb2Jl
-KHN0cnVjdCBpMmNfY2xpZW50ICpjbGllbnQpCit7CisJc3RydWN0IG10OXAwMzEgKm10OXAwMzEg
-PSB0b19tdDlwMDMxKGNsaWVudCk7CisJczMyIGRhdGE7CisJaW50IHJldDsKKworCS8qIEVuYWJs
-ZSB0aGUgY2hpcCAqLworCS8vZGF0YSA9IHJlZ193cml0ZShjbGllbnQsIE1UOVAwMzFfQ0hJUF9F
-TkFCTEUsIDEpOworCS8vZGV2X2RiZygmY2xpZW50LT5kZXYsICJ3cml0ZTogJWRcbiIsIGRhdGEp
-OworCisJLyogUmVhZCBvdXQgdGhlIGNoaXAgdmVyc2lvbiByZWdpc3RlciAqLworCWRhdGEgPSBy
-ZWdfcmVhZChjbGllbnQsIE1UOVAwMzFfQ0hJUF9WRVJTSU9OKTsKKworCXN3aXRjaCAoZGF0YSkg
-eworCWNhc2UgTVQ5UDAzMV9DSElQX1ZFUlNJT05fVkFMVUU6CisJCW10OXAwMzEtPm1vZGVsID0g
-VjRMMl9JREVOVF9NVDlQMDMxOworCQlicmVhazsKKwlkZWZhdWx0OgorCQlkZXZfZXJyKCZjbGll
-bnQtPmRldiwKKwkJCSJObyBNVDlQMDMxIGNoaXAgZGV0ZWN0ZWQsIHJlZ2lzdGVyIHJlYWQgJXhc
-biIsIGRhdGEpOworCQlyZXR1cm4gLUVOT0RFVjsKKwl9CisKKwlkZXZfaW5mbygmY2xpZW50LT5k
-ZXYsICJEZXRlY3RlZCBhIE1UOVAwMzEgY2hpcCBJRCAleFxuIiwgZGF0YSk7CisKKwlyZXQgPSBt
-dDlwMDMxX2lkbGUoY2xpZW50KTsKKwlpZiAocmV0IDwgMCkKKwkJZGV2X2VycigmY2xpZW50LT5k
-ZXYsICJGYWlsZWQgdG8gaW5pdGlhbGlzZSB0aGUgY2FtZXJhXG4iKTsKKworCXJldHVybiByZXQ7
-Cit9CisKK3N0YXRpYyBpbnQgbXQ5cDAzMV9vcGVuKHN0cnVjdCB2NGwyX3N1YmRldiAqc2QsIHUz
-MiBpKQoreworCXByX2luZm8oIiVzKClcbiIsIF9fZnVuY19fKTsKKyAgICAgICAgcmV0dXJuIDA7
-Cit9CitzdGF0aWMgaW50IG10OXAwMzFfcXVlcnlfY3RybChzdHJ1Y3QgdjRsMl9zdWJkZXYgKnNk
-LAorICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgc3RydWN0IHY0bDJfcXVlcnljdHJsICpx
-YykKK3sKKyAgICAgICAgcmV0dXJuIDA7Cit9CisKK3N0YXRpYyBzdHJ1Y3QgdjRsMl9zdWJkZXZf
-Y29yZV9vcHMgbXQ5cDAzMV9zdWJkZXZfY29yZV9vcHMgPSB7CisJLmdfY3RybAkJPSBtdDlwMDMx
-X2dfY3RybCwKKwkuc19jdHJsCQk9IG10OXAwMzFfc19jdHJsLAorCS5nX2NoaXBfaWRlbnQJPSBt
-dDlwMDMxX2dfY2hpcF9pZGVudCwKKwkuaW5pdCAgICAgICAgICAgPSBtdDlwMDMxX29wZW4sCisJ
-LnF1ZXJ5Y3RybCAgICAgID0gbXQ5cDAzMV9xdWVyeV9jdHJsLAorfTsKKworc3RhdGljIHN0cnVj
-dCB2NGwyX3N1YmRldl92aWRlb19vcHMgbXQ5cDAzMV9zdWJkZXZfdmlkZW9fb3BzID0geworCS5z
-X3N0cmVhbQk9IG10OXAwMzFfc19zdHJlYW0sCit9OworCitzdGF0aWMgc3RydWN0IHY0bDJfc3Vi
-ZGV2X3BhZF9vcHMgbXQ5cDAzMV9zdWJkZXZfcGFkX29wcyA9IHsKKwkuZW51bV9tYnVzX2NvZGUg
-PSBtdDlwMDMxX2VudW1fbWJ1c19jb2RlLAorLy8JLmVudW1fZnJhbWVfc2l6ZSA9IG10OXAwMzFf
-ZW51bV9mcmFtZV9zaXplLAorCS5nZXRfZm10ID0gbXQ5cDAzMV9nZXRfZm9ybWF0LAorCS5zZXRf
-Zm10ID0gbXQ5cDAzMV9zZXRfZm9ybWF0LAorCS5nZXRfY3JvcCA9IG10OXAwMzFfZ2V0X2Nyb3As
-CisJLnNldF9jcm9wID0gbXQ5cDAzMV9zZXRfY3JvcCwKK307CisKK3N0YXRpYyBzdHJ1Y3QgdjRs
-Ml9zdWJkZXZfb3BzIG10OXAwMzFfc3ViZGV2X29wcyA9IHsKKwkuY29yZQk9ICZtdDlwMDMxX3N1
-YmRldl9jb3JlX29wcywKKwkudmlkZW8JPSAmbXQ5cDAzMV9zdWJkZXZfdmlkZW9fb3BzLAorCS5w
-YWQJPSAmbXQ5cDAzMV9zdWJkZXZfcGFkX29wcywKK307CisKK3N0YXRpYyBpbnQgbXQ5cDAzMV9w
-cm9iZShzdHJ1Y3QgaTJjX2NsaWVudCAqY2xpZW50LAorCQkJIGNvbnN0IHN0cnVjdCBpMmNfZGV2
-aWNlX2lkICpkaWQpCit7CisJc3RydWN0IG10OXAwMzEgKm10OXAwMzE7CisJc3RydWN0IHY0bDJf
-c3ViZGV2ICpzZCA9IGkyY19nZXRfY2xpZW50ZGF0YShjbGllbnQpOworCXN0cnVjdCBtdDlwMDMx
-X3BsYXRmb3JtX2RhdGEgKnBkYXRhID0gY2xpZW50LT5kZXYucGxhdGZvcm1fZGF0YTsKKwlzdHJ1
-Y3QgaTJjX2FkYXB0ZXIgKmFkYXB0ZXIgPSB0b19pMmNfYWRhcHRlcihjbGllbnQtPmRldi5wYXJl
-bnQpOworCWludCByZXQ7CisKKwlpZiAoIWkyY19jaGVja19mdW5jdGlvbmFsaXR5KGFkYXB0ZXIs
-IEkyQ19GVU5DX1NNQlVTX1dPUkRfREFUQSkpIHsKKwkJZGV2X3dhcm4oJmFkYXB0ZXItPmRldiwK
-KwkJCSAiSTJDLUFkYXB0ZXIgZG9lc24ndCBzdXBwb3J0IEkyQ19GVU5DX1NNQlVTX1dPUkRcbiIp
-OworCQlyZXR1cm4gLUVJTzsKKwl9CisKKwltdDlwMDMxID0ga3phbGxvYyhzaXplb2Yoc3RydWN0
-IG10OXAwMzEpLCBHRlBfS0VSTkVMKTsKKwlpZiAoIW10OXAwMzEpCisJCXJldHVybiAtRU5PTUVN
-OworCisJdjRsMl9pMmNfc3ViZGV2X2luaXQoJm10OXAwMzEtPnN1YmRldiwgY2xpZW50LCAmbXQ5
-cDAzMV9zdWJkZXZfb3BzKTsKKworLy8gICAgICAgc3RydWN0IGlzcF9kZXZpY2UgKmlzcCA9IHY0
-bDJfZGV2X3RvX2lzcF9kZXZpY2Uoc3ViZGV2LT52NGwyX2Rldik7CisvLyAgICAgICBpc3Bfc2V0
-X3hjbGsoaXNwLCAxNioxMDAwKjEwMDAsIElTUF9YQ0xLX0EpOworCisJbXQ5cDAzMS0+cmVjdC5s
-ZWZ0CT0gMC8qTVQ5UDAzMV9DT0xVTU5fU0tJUCovOworCW10OXAwMzEtPnJlY3QudG9wCT0gMC8q
-TVQ5UDAzMV9ST1dfU0tJUCovOworCW10OXAwMzEtPnJlY3Qud2lkdGgJPSBNVDlQMDMxX01BWF9X
-SURUSDsKKwltdDlwMDMxLT5yZWN0LmhlaWdodAk9IE1UOVAwMzFfTUFYX0hFSUdIVDsKKworCXN3
-aXRjaCAocGRhdGEtPmRhdGFfc2hpZnQpIHsKKwljYXNlIDI6CisJCW10OXAwMzEtPmZvcm1hdC5j
-b2RlID0gVjRMMl9NQlVTX0ZNVF9TR1JCRzhfMVg4OworCQlicmVhazsKKwljYXNlIDE6CisJCW10
-OXAwMzEtPmZvcm1hdC5jb2RlID0gVjRMMl9NQlVTX0ZNVF9TR1JCRzEwXzFYMTA7CisJCWJyZWFr
-OworCWNhc2UgMDoKKwkJbXQ5cDAzMS0+Zm9ybWF0LmNvZGUgPSBWNEwyX01CVVNfRk1UX1NCR0dS
-MTJfMVgxMjsKKwl9CisJbXQ5cDAzMS0+Zm9ybWF0LndpZHRoID0gTVQ5UDAzMV9NQVhfV0lEVEg7
-CisJbXQ5cDAzMS0+Zm9ybWF0LmhlaWdodCA9IE1UOVAwMzFfTUFYX0hFSUdIVDsKKwltdDlwMDMx
-LT5mb3JtYXQuZmllbGQgPSBWNEwyX0ZJRUxEX05PTkU7CisJbXQ5cDAzMS0+Zm9ybWF0LmNvbG9y
-c3BhY2UgPSBWNEwyX0NPTE9SU1BBQ0VfU1JHQjsKKworCS8qIG10OXAwMzFfaWRsZSgpIHdpbGwg
-cmVzZXQgdGhlIGNoaXAgdG8gZGVmYXVsdC4gKi8KKworCW10OXAwMzEtPnhza2lwID0gMTsKKwlt
-dDlwMDMxLT55c2tpcCA9IDE7CisKKy8vI2Vycm9yIEZJWE1FOiB0aGlzIGlzIG5lZWRlZCBmb3Ig
-aTJjIGNoaXAgZGV0ZWN0aW9uLCBidXQgdGhlbiBoYXMgdG8gYmUgZGVzYWJsZWQgYW5kIHJlbG9h
-ZGVkIGZvciBjYXB0dXJlIQorI2lmIDEKKwlpZiAocGRhdGEtPnNldF94Y2xrKQorCQlwZGF0YS0+
-c2V0X3hjbGsoc2QsIDU0MDAwMDAwKTsKKyNlbmRpZgorCisJbXQ5cDAzMS0+cmVnXzF2OCA9IHJl
-Z3VsYXRvcl9nZXQoTlVMTCwgImNhbV8xdjgiKTsKKwlpZiAoSVNfRVJSKG10OXAwMzEtPnJlZ18x
-djgpKSB7CisJCXJldCA9IFBUUl9FUlIobXQ5cDAzMS0+cmVnXzF2OCk7CisJCXByX2VycigiRmFp
-bGVkIDEuOHYgcmVndWxhdG9yOiAlZFxuIiwgcmV0KTsKKwkJZ290byBlMXY4OworCX0KKworCW10
-OXAwMzEtPnJlZ18ydjggPSByZWd1bGF0b3JfZ2V0KE5VTEwsICJjYW1fMnY4Iik7CisJaWYgKElT
-X0VSUihtdDlwMDMxLT5yZWdfMnY4KSkgeworCQlyZXQgPSBQVFJfRVJSKG10OXAwMzEtPnJlZ18y
-djgpOworCQlwcl9lcnIoIkZhaWxlZCAyLjh2IHJlZ3VsYXRvcjogJWRcbiIsIHJldCk7CisJCWdv
-dG8gZTJ2ODsKKwl9CisKKwlpZiAocGRhdGEtPnJlc2V0KQorCQlwZGF0YS0+cmVzZXQoc2QsIDEp
-OworCisJLyogdHVybiBvbiBWREQgKi8KKwlyZXQgPSByZWd1bGF0b3JfZW5hYmxlKG10OXAwMzEt
-PnJlZ18xdjgpOworCWlmIChyZXQpIHsKKwkJcHJfZXJyKCJGYWlsZWQgdG8gZW5hYmxlIDEuOHYg
-cmVndWxhdG9yOiAlZFxuIiwgcmV0KTsKKwkJZ290byBlMXY4ZW47CisJfQorCisvLwltc2xlZXAo
-MSk7CisKKwkvKiB0dXJuIG9uIFZERF9JTyAqLworCXJldCA9IHJlZ3VsYXRvcl9lbmFibGUobXQ5
-cDAzMS0+cmVnXzJ2OCk7CisJaWYgKHJldCkgeworCQlwcl9lcnIoIkZhaWxlZCB0byBlbmFibGUg
-Mi44diByZWd1bGF0b3I6ICVkXG4iLCByZXQpOworCQlnb3RvIGUydjhlbjsKKwl9CisKKwltc2xl
-ZXAoNTApOworCisJaWYgKHBkYXRhLT5yZXNldCkKKwkJcGRhdGEtPnJlc2V0KHNkLCAwKTsKKwor
-Ly8JdWRlbGF5KDUwMCk7CisJbXNsZWVwKDUwKTsKKworLy8JbXQ5cDAzMV9pZGxlKGNsaWVudCk7
-CisKKwlyZXQgPSBtdDlwMDMxX3ZpZGVvX3Byb2JlKGNsaWVudCk7CisKKwkvL210OXAwMzFfZGlz
-YWJsZShjbGllbnQpOworCisJaWYgKHJldCkKKwkJZ290byBldnByb2JlOworCisJbXQ5cDAzMS0+
-cGFkLmZsYWdzID0gTUVESUFfUEFEX0ZMX1NPVVJDRTsKKwlyZXQgPSBtZWRpYV9lbnRpdHlfaW5p
-dCgmbXQ5cDAzMS0+c3ViZGV2LmVudGl0eSwgMSwgJm10OXAwMzEtPnBhZCwgMCk7CisJaWYgKHJl
-dCkKKwkJZ290byBldnByb2JlOworCisJbXQ5cDAzMS0+c3ViZGV2LmZsYWdzIHw9IFY0TDJfU1VC
-REVWX0ZMX0hBU19ERVZOT0RFOworI2lmIDAKKwlpZiAocGRhdGEtPnNldF94Y2xrKQorCQlwZGF0
-YS0+c2V0X3hjbGsoc2QsIDApOworCisJbXNsZWVwKDEpOworCisJaWYgKHBkYXRhLT5zZXRfeGNs
-aykKKwkJcGRhdGEtPnNldF94Y2xrKHNkLCA1NDAwMDAwMCk7CisKKwltc2xlZXAoMSk7CisjZW5k
-aWYKKwlyZXR1cm4gcmV0OworCitldnByb2JlOgorCXJlZ3VsYXRvcl9kaXNhYmxlKG10OXAwMzEt
-PnJlZ18ydjgpOworZTJ2OGVuOgorCXJlZ3VsYXRvcl9kaXNhYmxlKG10OXAwMzEtPnJlZ18xdjgp
-OworZTF2OGVuOgorCXJlZ3VsYXRvcl9wdXQobXQ5cDAzMS0+cmVnXzJ2OCk7CitlMnY4OgorCXJl
-Z3VsYXRvcl9wdXQobXQ5cDAzMS0+cmVnXzF2OCk7CitlMXY4OgorCWtmcmVlKG10OXAwMzEpOwor
-CXJldHVybiByZXQ7Cit9CisKK3N0YXRpYyBpbnQgbXQ5cDAzMV9yZW1vdmUoc3RydWN0IGkyY19j
-bGllbnQgKmNsaWVudCkKK3sKKwlzdHJ1Y3QgdjRsMl9zdWJkZXYgKnNkID0gaTJjX2dldF9jbGll
-bnRkYXRhKGNsaWVudCk7CisJc3RydWN0IG10OXAwMzEgKm10OXAwMzEgPSBjb250YWluZXJfb2Yo
-c2QsIHN0cnVjdCBtdDlwMDMxLCBzdWJkZXYpOworCisJdjRsMl9kZXZpY2VfdW5yZWdpc3Rlcl9z
-dWJkZXYoc2QpOworCW1lZGlhX2VudGl0eV9jbGVhbnVwKCZzZC0+ZW50aXR5KTsKKwlyZWd1bGF0
-b3JfZGlzYWJsZShtdDlwMDMxLT5yZWdfMnY4KTsKKwlyZWd1bGF0b3JfZGlzYWJsZShtdDlwMDMx
-LT5yZWdfMXY4KTsKKwlyZWd1bGF0b3JfcHV0KG10OXAwMzEtPnJlZ18ydjgpOworCXJlZ3VsYXRv
-cl9wdXQobXQ5cDAzMS0+cmVnXzF2OCk7CisJa2ZyZWUobXQ5cDAzMSk7CisKKwlyZXR1cm4gMDsK
-K30KKworc3RhdGljIGNvbnN0IHN0cnVjdCBpMmNfZGV2aWNlX2lkIG10OXAwMzFfaWRbXSA9IHsK
-Kwl7ICJtdDlwMDMxIiwgMCB9LAorCXsgfQorfTsKK01PRFVMRV9ERVZJQ0VfVEFCTEUoaTJjLCBt
-dDlwMDMxX2lkKTsKKworc3RhdGljIHN0cnVjdCBpMmNfZHJpdmVyIG10OXAwMzFfaTJjX2RyaXZl
-ciA9IHsKKwkuZHJpdmVyID0geworCQkubmFtZSA9ICJtdDlwMDMxIiwKKwl9LAorCS5wcm9iZQkJ
-PSBtdDlwMDMxX3Byb2JlLAorCS5yZW1vdmUJCT0gbXQ5cDAzMV9yZW1vdmUsCisJLmlkX3RhYmxl
-CT0gbXQ5cDAzMV9pZCwKK307CisKK3N0YXRpYyBpbnQgX19pbml0IG10OXAwMzFfbW9kX2luaXQo
-dm9pZCkKK3sKKwlyZXR1cm4gaTJjX2FkZF9kcml2ZXIoJm10OXAwMzFfaTJjX2RyaXZlcik7Cit9
-CisKK3N0YXRpYyB2b2lkIF9fZXhpdCBtdDlwMDMxX21vZF9leGl0KHZvaWQpCit7CisJaTJjX2Rl
-bF9kcml2ZXIoJm10OXAwMzFfaTJjX2RyaXZlcik7Cit9CisKK21vZHVsZV9pbml0KG10OXAwMzFf
-bW9kX2luaXQpOworbW9kdWxlX2V4aXQobXQ5cDAzMV9tb2RfZXhpdCk7CisKK01PRFVMRV9ERVND
-UklQVElPTigiTWljcm9uIE1UOVAwMzEgQ2FtZXJhIGRyaXZlciIpOworTU9EVUxFX0FVVEhPUigi
-QmFzdGlhbiBIZWNodCA8aGVjaHRiQGdtYWlsLmNvbT4iKTsKK01PRFVMRV9MSUNFTlNFKCJHUEwg
-djIiKTsKZGlmZiAtLWdpdCBhL2luY2x1ZGUvbWVkaWEvbXQ5cDAzMS5oIGIvaW5jbHVkZS9tZWRp
-YS9tdDlwMDMxLmgKbmV3IGZpbGUgbW9kZSAxMDA2NDQKaW5kZXggMDAwMDAwMC4uZWUyZDJiYQot
-LS0gL2Rldi9udWxsCisrKyBiL2luY2x1ZGUvbWVkaWEvbXQ5cDAzMS5oCkBAIC0wLDAgKzEsMTIg
-QEAKKyNpZm5kZWYgTVQ5UDAzMV9ICisjZGVmaW5lIE1UOVAwMzFfSAorCitzdHJ1Y3QgdjRsMl9z
-dWJkZXY7CisKK3N0cnVjdCBtdDlwMDMxX3BsYXRmb3JtX2RhdGEgeworCWludCAoKnNldF94Y2xr
-KShzdHJ1Y3QgdjRsMl9zdWJkZXYgKnN1YmRldiwgaW50IGh6KTsKKwlpbnQgKCpyZXNldCkoc3Ry
-dWN0IHY0bDJfc3ViZGV2ICpzdWJkZXYsIGludCBhY3RpdmUpOworCXVuc2lnbmVkIGludCBkYXRh
-X3NoaWZ0OworfTsKKworI2VuZGlmCg==
---20cf303bf7da12734e04a26e476d--
