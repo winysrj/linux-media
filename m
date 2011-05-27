@@ -1,93 +1,50 @@
 Return-path: <mchehab@pedra>
-Received: from mx1.redhat.com ([209.132.183.28]:60225 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753455Ab1E1OKw (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 28 May 2011 10:10:52 -0400
-Message-ID: <4DE10266.1070709@redhat.com>
-Date: Sat, 28 May 2011 11:10:46 -0300
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Received: from smtp-vbr18.xs4all.nl ([194.109.24.38]:3974 "EHLO
+	smtp-vbr18.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753396Ab1E0UFC (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 27 May 2011 16:05:02 -0400
+Received: from basedrum.localnet (ereprijs.demon.nl [83.161.20.106])
+	by smtp-vbr18.xs4all.nl (8.13.8/8.13.8) with ESMTP id p4RJw551001879
+	for <linux-media@vger.kernel.org>; Fri, 27 May 2011 21:58:05 +0200 (CEST)
+	(envelope-from willem@ereprijs.demon.nl)
+To: linux-media@vger.kernel.org
+Subject: Terratec Cinergy C HD - CAM support.... Need help?
+From: Willem van Asperen <willem@ereprijs.demon.nl>
+Date: Fri, 27 May 2011 21:58:05 +0200
 MIME-Version: 1.0
-To: Hans de Goede <hdegoede@redhat.com>
-CC: Hans Verkuil <hverkuil@xs4all.nl>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Devin Heitmueller <dheitmueller@kernellabs.com>
-Subject: Re: [ANNOUNCE] experimental alsa stream support at xawtv3
-References: <4DDAC0C2.7090508@redhat.com> <201105240850.35032.hverkuil@xs4all.nl> <4DDB5C6B.6000608@redhat.com> <4DDBBC29.80009@infradead.org> <4DDBD504.5020109@redhat.com> <4DE0EE44.8060000@infradead.org>
-In-Reply-To: <4DE0EE44.8060000@infradead.org>
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain;
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
+Message-Id: <201105272158.05217.willem@ereprijs.demon.nl>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Em 28-05-2011 09:44, Mauro Carvalho Chehab escreveu:
+Hi All,
 
->> Anyways I think we're are currently
->> doing this the wrong way up. We should first discuss what such an API
->> should look like and then implement it. Hopefully we can re-use a lot
->> of the existing code when we do this, but I think it is better
->> to first design the API and then write code to the API, the current
->> API at least to me feels somewhat like an API written around existing
->> code rather then the other way around.
-> 
-> No, was just the opposite: the API were designed to fulfil the needs by
-> the alsa streaming methods implemented by Devin at tvtime:
-> 
-> int alsa_thread_startup(const char *pdevice, const char *cdevice);
-> 
-> The two arguments are the alsa playback device and the alsa capture device.
-> 
-> the API were designed around that, to do something like:
-> 
-> 	struct some_opaque_struct *opaque = discover_media_devices();
-> 	alsa_playback = alsa_playback(opaque);
-> 	alsa_capture = alsa_capture(opaque);
-> 	alsa_thread_startup(alsa_playback, alsa_capture);
-> 	free_media_devices(opaque);
-> 
-> PS.: I'm not using the real names/arguments at the above, to keep the example
->      simpler and clearer. The actual code is not that different from the above:
-> 
-> 	struct media_devices *md;
-> 	unsigned int size = 0;
-> 	char *alsa_cap, *alsa_out, *p;
-> 	char *video_dev = "/dev/video0";
-> 
-> 	md = discover_media_devices(&size);
-> 	p = strrchr(video_dev, '/');
-> 	alsa_cap = get_first_alsa_cap_device(md, size, p + 1);
-> 	alsa_out = get_first_no_video_out_device(md, size);
-> 	if (alsa_cap && alsa_out)
-> 		alsa_handler(alsa_out, alsa_cap);
-> 	free_media_devices(md, size);
-> 	...
-> 	fd = open(video_dev, "rw");
+I need something but willing to help out!
 
-I decided to re-organize the way the API will handle the devices, in order
-to make clearer that the internal struct should be opaque to the applications
-using the library [1].
+I just got my Terratec Cinergy C HD card. After relatively minor issues I got 
+the card running on my Mandriva 2010.2 (kernel 2.6.33) myth box.
 
-[1] http://git.linuxtv.org/v4l-utils.git?a=commitdiff;h=435f4ba896f76d92a800a2089e06618d8c3d93f0
+But... I am getting my DVB-C signal from the Ziggo (former Casema) network. I 
+found a post that claims that all channels are encrypted (except for Nederland 
+1). Even though these are the standard channels that you also get when you 
+just have an analog subscription.
 
-Now, the functions will just return a void pointer that is used as a parameter
-for the other functions.
+So. I need CAM support. After a couple of nights swimming the net I come to 
+the conclusion that
 
-So, the typical usecase is, currently:
+a) CAM support is currently not implemented
+b) This support has been not implemented for quite some time
+c) There are more people that would like it to work...
 
-	void *md;
-	char *alsa_playback, *alsa_capture, *p;
+So, dear people, is anyone working on getting the CAM to work on the Terratec 
+Cinergy C HD card, but having problems? Is there any way, shape or form that I 
+can assist in getting this support done?
 
-	md = discover_media_devices();
-	if (!md)
-		return;
-	alsa_capture = get_first_alsa_cap_device(md, video_dev);
-	alsa_playback = get_first_no_video_out_device(md);
-	if (alsa_capture && alsa_playback)
-		alsa_handler(alsa_playback, alsa_capture);
-	free_media_devices(md);
+Or have we given up on this card and should I just take my loss and go for 
+another card... If so, which one?
 
-I'll be working on improving the API, in order to read the uevent information from the
-media nodes (were device major/minor info are stored) and to associate a device with
-its file descriptor.
-
-Cheers,
-Mauro
+Thanks,
+Willem
