@@ -1,74 +1,54 @@
 Return-path: <mchehab@pedra>
-Received: from moutng.kundenserver.de ([212.227.126.171]:60290 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755465Ab1ETNIH (ORCPT
+Received: from www.youplala.net ([88.191.51.216]:44666 "EHLO mail.youplala.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753128Ab1E0LlY convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 20 May 2011 09:08:07 -0400
-Date: Fri, 20 May 2011 15:08:00 +0200 (CEST)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-cc: Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	linux-media@vger.kernel.org, sakari.ailus@iki.fi,
-	michael.jones@matrix-vision.de
-Subject: Re: [RFC/PATCH 1/2] v4l: Add generic board subdev
- =?iso-8859-1?q?registration=09function?=
-In-Reply-To: <201105200929.33226.laurent.pinchart@ideasonboard.com>
-Message-ID: <Pine.LNX.4.64.1105201455270.17254@axis700.grange>
-References: <1305830080-18211-1-git-send-email-laurent.pinchart@ideasonboard.com>
- <4DD614DC.3070905@samsung.com> <201105200929.33226.laurent.pinchart@ideasonboard.com>
+	Fri, 27 May 2011 07:41:24 -0400
+Received: from SLBD7Z763J (unknown [134.32.86.230])
+	by mail.youplala.net (Postfix) with ESMTPSA id D57EED880B3
+	for <linux-media@vger.kernel.org>; Fri, 27 May 2011 13:40:56 +0200 (CEST)
+From: "Nicolas WILL" <nico@youplala.net>
+To: <linux-media@vger.kernel.org>
+References: <1306445141.14462.0.camel@porites> <4DDEDB0E.30108@iki.fi> <8739k0tlx6.fsf@nemi.mork.no>
+In-Reply-To: <8739k0tlx6.fsf@nemi.mork.no>
+Subject: RE: PCTV nanoStick T2 290e support - Thank you!
+Date: Fri, 27 May 2011 12:40:55 +0100
+Message-ID: <000001cc1c62$f1531b30$d3f95190$@net>
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain;
+	charset="utf-8"
+Content-Transfer-Encoding: 8BIT
+Content-Language: en-gb
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Fri, 20 May 2011, Laurent Pinchart wrote:
 
-> Hi Sylwester,
+
+> -----Original Message-----
+> From: linux-media-owner@vger.kernel.org [mailto:linux-media-
+> owner@vger.kernel.org] On Behalf Of Bjørn Mork
+> Sent: 27 May 2011 12:37
+> To: linux-media@vger.kernel.org
+> Subject: Re: PCTV nanoStick T2 290e support - Thank you!
 > 
-> On Friday 20 May 2011 09:14:36 Sylwester Nawrocki wrote:
-
-[snip]
-
-> > I had an issue when tried to call request_module, to register subdev of
-> > platform device type, in probe() of other platform device. Driver's
-> > probe() for devices belonging same bus type cannot be nested as the bus
-> > lock is taken by the driver core before entering probe(), so this would
-> > lead to a deadlock.
-> > That exactly happens in __driver_attach().
-> > 
-> > For the same reason v4l2_new_subdev_board could not be called from probe()
-> > of devices belonging to I2C or SPI bus, as request_module is called inside
-> > of it. I'm not sure how to solve it, yet:)
+> Antti Palosaari <crope@iki.fi> writes:
+> > On 05/27/2011 12:25 AM, Nicolas WILL wrote:
+> >> Just installed mine for MythTV.
+> >>
+> >> Works great on the first try!
+> >>
+> >> Many, many thanks!
+> >
+> > Thank you for the feedback!
 > 
-> Ouch. I wasn't aware of that issue. Looks like it's indeed time to fix the 
-> subdev registration issue, including the module load race condition. Michael, 
-> you said you have a patch to add platform subdev support, how have you avoided 
-> the race condition ?
-> 
-> I've been thinking for some time now about removing the module load code 
-> completely. I2C, SPI and platform subdevs would be registered either by board 
-> code (possibly through the device tree on platforms that suppport it) for 
-> embedded platforms, and by host drivers for pluggable hardware (PCI and USB). 
-> Module loading would be handled automatically by the kernel module auto 
-> loader, but asynchronously instead of synchronously. Bus notifiers would then 
-> be used by host drivers to wait for all subdevs to be registered.
+> I'm a bit curious about this device.  It seems to only be marketed as a
+> DVB-T2 device in areas where that spec is used.  But looking at your
+> driver, it seems that the device also supports DVB-C.  Is that correct?
 
-Sorry, I'm probably missing something. The reason for this module loading 
-was, that you cannot probe i2c sensors before the host is initialised and 
-has turned the master clock on. If you want to go back to the traditional 
-platform-based I2C device registration, you'll have to wait in your sensor 
-(subdev) probe function for host registration, which wouldn't be a good 
-thing to do, IMHO.
+[   12.921835] DVB: registering adapter 4 frontend 0 (Sony CXD2820R (DVB-T/T2))...
+[   12.921904] DVB: registering adapter 4 frontend 1 (Sony CXD2820R (DVB-C))...
 
-> I'm not sure yet if this approach is viable. Hans, I think we've briefly 
-> discussed this (possible quite a long time ago), do you have any opinion ? 
-> Guennadi, based on your previous experience trying to use bus notifiers to 
-> solve the module load race, what do you think about the idea ? Others, please 
-> comment as well :-)
+Nico
 
-Thanks
-Guennadi
----
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
-http://www.open-technology.de/
+
+
