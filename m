@@ -1,136 +1,128 @@
 Return-path: <mchehab@pedra>
-Received: from smtp-vbr1.xs4all.nl ([194.109.24.21]:2143 "EHLO
-	smtp-vbr1.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751771Ab1EBUHc (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 2 May 2011 16:07:32 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Subject: Re: [RFC] V4L2 API for flash devices
-Date: Mon, 2 May 2011 22:07:12 +0200
-Cc: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>,
-	Hans Verkuil <hansverk@cisco.com>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	Nayden Kanchev <nkanchev@mm-sol.com>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-References: <4D90854C.2000802@maxwell.research.nokia.com> <201105022113.56088.hverkuil@xs4all.nl> <201105022132.47900.laurent.pinchart@ideasonboard.com>
-In-Reply-To: <201105022132.47900.laurent.pinchart@ideasonboard.com>
+Received: from mx1.redhat.com ([209.132.183.28]:44117 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753582Ab1E0OMj (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 27 May 2011 10:12:39 -0400
+Message-ID: <4DDFB150.2000804@redhat.com>
+Date: Fri, 27 May 2011 11:12:32 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
+To: Linus Torvalds <torvalds@linux-foundation.org>
+CC: Andrew Morton <akpm@linux-foundation.org>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+Subject: [GIT PULL for -rc1] media updates
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 7bit
-Message-Id: <201105022207.12505.hverkuil@xs4all.nl>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Monday, May 02, 2011 21:32:46 Laurent Pinchart wrote:
-> Hi Hans,
-> 
-> On Monday 02 May 2011 21:13:56 Hans Verkuil wrote:
-> > On Monday, May 02, 2011 18:04:18 Sakari Ailus wrote:
-> > > Sakari Ailus wrote:
-> > > > Laurent Pinchart wrote:
-> > > >> On Tuesday 29 March 2011 13:51:38 Sakari Ailus wrote:
-> > > >>> Sakari Ailus wrote:
-> > > >>>> Hans Verkuil wrote:
-> > > >>>>> On Tuesday, March 29, 2011 11:35:19 Sakari Ailus wrote:
-> > > >>>>>> Hi Hans,
-> > > >>>>>> 
-> > > >>>>>> Many thanks for the comments!
-> > > >>>> 
-> > > >>>> ...
-> > > >>>> 
-> > > >>>>>> It occurred to me that an application might want to turn off a
-> > > >>>>>> flash which has been strobed on software. That can't be done on a
-> > > >>>>>> single button control.
-> > > >>>>>> 
-> > > >>>>>> V4L2_CID_FLASH_SHUTDOWN?
-> > > >>>>>> 
-> > > >>>>>> The application would know the flash strobe is ongoing before it
-> > > >>>>>> receives a timeout fault. I somehow feel that there should be a
-> > > >>>>>> control telling that directly.
-> > > >>>>>> 
-> > > >>>>>> What about using a bool control for the strobe?
-> > > >>>>> 
-> > > >>>>> It depends: is the strobe signal just a pulse that kicks off the
-> > > >>>>> flash, or is it active throughout the flash duration? In the
-> > > >>>>> latter case a bool makes sense, in the first case an extra button
-> > > >>>>> control makes sense.
-> > > >>>> 
-> > > >>>> I like buttons since I associate them with action (like strobing)
-> > > >>>> but on the other hand buttons don't allow querying the current
-> > > >>>> state. On the other hand, the current state isn't always
-> > > >>>> determinable, e.g. in the absence of the interrupt line from the
-> > > >>>> flash controller interrupt pin (e.g. N900!).
-> > > >>> 
-> > > >>> Oh, I need to take my words back a bit.
-> > > >>> 
-> > > >>> There indeed is a way to get the on/off status for the flash, but
-> > > >>> that involves I2C register access --- when you read the fault
-> > > >>> registers, you do get the state, even if the interrupt linke is
-> > > >>> missing from the device. At least I can't see why this wouldn't
-> > > >>> work, at least on this particular chip.
-> > > >>> 
-> > > >>> What you can't have in this case is the event.
-> > > >>> 
-> > > >>> So, in my opinion this suggests that a single boolean control is the
-> > > >>> way to go.
-> > > >> 
-> > > >> Why would an application want to turn off a flash that has been
-> > > >> strobbed in software ? Applications should set the flash duration and
-> > > >> then strobe it.
-> > > > 
-> > > > The applications won't know beforehand the exact timing of the exposure
-> > > > of the frames on the sensor and the latencies of the operating system
-> > > > possibly affected by other processes running on the system. Thus it's
-> > > > impossible to know exactly how long flash strobe (on software, that
-> > > > is!) is required.
-> > > > 
-> > > > So, as far as I see there should be a way to turn the flash off and the
-> > > > timeout would mostly function as a safeguard. This is likely dependent
-> > > > on the flash controller as well.
-> > > 
-> > > Today I was working on the ADP1653 driver and realised that this chip
-> > > doesn't actually provide a way to stop the strobe by the user at all.
-> > > There's just the timeout. The user may not turn off the strobe, as it
-> > > first seemed to me in the spec. If I look at the AS3654A spec, it's
-> > > almost equally vague on this topic.
-> > > 
-> > > This means that there are chips that do not allow explicitly stopping
-> > > the strobe and probably those that do (I assume that hardware people
-> > > will learn some day that a hard timeout isn't the best you can provide
-> > > to software!).
-> > > 
-> > > There was a discussion on the type of the V4L2_CID_FLASH_STROBE control;
-> > > whether that should be a button or boolean control. Buttons cannot be
-> > > unpressed, so a button control would work for adp1653 but possibly not
-> > > for other similar chips in the future.
-> > > 
-> > > Even if we have a standard control, can the type of the control change,
-> > > depending on the properties of the hardware? This would also allow
-> > > providing to user the knowledge on whether the flash may be explicitly
-> > > turned off. On the other hand, I don't like the idea of having a
-> > > standard control with several possible types (there are none at the
-> > > moment, AFAIK). I would side with keeping the type of the control
-> > > boolean all the time but I'm not fully certain.
-> > > 
-> > > Hans, do you have an opinion on this?
-> > 
-> > Theoretically the type may change depending on the hardware, but I don't
-> > think that is something we should support. In particularly, that will make
-> > it very hard to programmatically use such controls. There are all sorts of
-> > subtle problems you run into when you allow for different types for the
-> > same standard control.
-> 
-> I'm still undecided. If we standardize a boolean control, how will userspace 
-> know that, for the adp1653, the control can be written to 1 but can't be 
-> written to 0 ?
+Hi Linus,
 
-We need two controls: one button control, one boolean control. The first can
-be called FLASH_STROBE, the second FLASH_STROBE_ON. Depending on the hardware,
-only one of these is implemented. These two strobe implementations behave
-differently in important ways, so I believe it makes sense to have two controls
-as well.
+Please pull from:
+  ssh://master.kernel.org/pub/scm/linux/kernel/git/mchehab/linux-2.6.git v4l_for_linus
 
-Regards,
+For a few more stuff for 3.0-rc1 (or 2.6.40-rc1).
 
-	Hans
+This series contain a few bug fixes, and some stuff that were ready for the
+merge window, but they took me some time to finish my review. Basically:
+	- an 8-megapixel sensor driver, used on some Samsung arm-based boards;
+	- a Remote Controller driver for a SuperIO chipset from Fintek;
+	- Media controller support for uvcvideo driver;
+	- DM04/QQBOX port to use the RC subsystem, instead of having its own implementation for IR.
+
+Thanks!
+Mauro
+
+
+The following changes since commit cf25220677b3f10468a74278130fe224f73632a6:
+
+  [media] gspca - sunplus: Fix some warnings and simplify code (2011-05-21 09:36:15 -0300)
+
+are available in the git repository at:
+  ssh://master.kernel.org/pub/scm/linux/kernel/git/mchehab/linux-2.6.git v4l_for_linus
+
+Hans Petter Selasky (4):
+      [media] cpia2: fix warning about invalid trigraph sequence
+      [media] Remove invalid parameter description
+      [media] Inlined functions should be static
+      [media] Add missing include guard to header file
+
+Hans Verkuil (2):
+      [media] wl12xx: g_volatile_ctrl fix: wrong field set
+      [media] Media DocBook: fix validation errors
+
+HeungJun, Kim (1):
+      [media] Add support for M-5MOLS 8 Mega Pixel camera ISP
+
+Igor M. Liplianin (1):
+      [media] dm1105: GPIO handling added, I2C on GPIO added, LNB control through GPIO reworked
+
+Jarod Wilson (2):
+      [media] fintek-cir: new driver for Fintek LPC SuperIO CIR function
+      [media] gspca/kinect: wrap gspca_debug with GSPCA_DEBUG
+
+Laurent Pinchart (3):
+      [media] uvcvideo: Register a v4l2_device
+      [media] uvcvideo: Register subdevices for each entity
+      [media] uvcvideo: Connect video devices to media entities
+
+Malcolm Priestley (1):
+      [media] v1.88 DM04/QQBOX Move remote to use rc_core dvb-usb-remote
+
+Mauro Carvalho Chehab (2):
+      [media] Documentation/DocBook: Rename media fops xml files
+      [media] add V4L2-PIX-FMT-SRGGB12 & friends to docbook
+
+Randy Dunlap (1):
+      [media] fix kconfig dependency warning for VIDEO_TIMBERDALE
+
+Sylwester Nawrocki (1):
+      [media] s5p-csis: Add missing dependency on PLAT_S5P
+
+ Documentation/DocBook/dvb/dvbproperty.xml      |    5 +-
+ Documentation/DocBook/media-entities.tmpl      |    7 +-
+ Documentation/DocBook/v4l/media-controller.xml |    6 +-
+ Documentation/DocBook/v4l/pixfmt.xml           |    1 +
+ Documentation/DocBook/v4l/subdev-formats.xml   |   10 +-
+ drivers/media/dvb/dm1105/dm1105.c              |  272 ++++++-
+ drivers/media/dvb/dvb-usb/lmedm04.c            |  107 +--
+ drivers/media/dvb/frontends/stb0899_algo.c     |    2 +-
+ drivers/media/dvb/frontends/tda8261.c          |    1 -
+ drivers/media/radio/radio-wl1273.c             |    2 +-
+ drivers/media/radio/wl128x/fmdrv_v4l2.c        |    2 +-
+ drivers/media/rc/Kconfig                       |   12 +
+ drivers/media/rc/Makefile                      |    1 +
+ drivers/media/rc/fintek-cir.c                  |  684 ++++++++++++++++
+ drivers/media/rc/fintek-cir.h                  |  243 ++++++
+ drivers/media/rc/keymaps/rc-lme2510.c          |  134 ++--
+ drivers/media/video/Kconfig                    |    6 +-
+ drivers/media/video/Makefile                   |    1 +
+ drivers/media/video/cpia2/cpia2_v4l.c          |    4 +-
+ drivers/media/video/gspca/kinect.c             |    2 +-
+ drivers/media/video/m5mols/Kconfig             |    5 +
+ drivers/media/video/m5mols/Makefile            |    3 +
+ drivers/media/video/m5mols/m5mols.h            |  296 +++++++
+ drivers/media/video/m5mols/m5mols_capture.c    |  191 +++++
+ drivers/media/video/m5mols/m5mols_controls.c   |  299 +++++++
+ drivers/media/video/m5mols/m5mols_core.c       | 1004 ++++++++++++++++++++++++
+ drivers/media/video/m5mols/m5mols_reg.h        |  399 ++++++++++
+ drivers/media/video/uvc/Makefile               |    3 +
+ drivers/media/video/uvc/uvc_driver.c           |   66 ++-
+ drivers/media/video/uvc/uvc_entity.c           |  118 +++
+ drivers/media/video/uvc/uvcvideo.h             |   20 +
+ include/media/m5mols.h                         |   35 +
+ include/media/videobuf-dvb.h                   |    4 +
+ 33 files changed, 3750 insertions(+), 195 deletions(-)
+ create mode 100644 drivers/media/rc/fintek-cir.c
+ create mode 100644 drivers/media/rc/fintek-cir.h
+ create mode 100644 drivers/media/video/m5mols/Kconfig
+ create mode 100644 drivers/media/video/m5mols/Makefile
+ create mode 100644 drivers/media/video/m5mols/m5mols.h
+ create mode 100644 drivers/media/video/m5mols/m5mols_capture.c
+ create mode 100644 drivers/media/video/m5mols/m5mols_controls.c
+ create mode 100644 drivers/media/video/m5mols/m5mols_core.c
+ create mode 100644 drivers/media/video/m5mols/m5mols_reg.h
+ create mode 100644 drivers/media/video/uvc/uvc_entity.c
+ create mode 100644 include/media/m5mols.h
+
