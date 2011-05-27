@@ -1,53 +1,45 @@
 Return-path: <mchehab@pedra>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:35049 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752335Ab1EYUvG (ORCPT
+Received: from nm3.bullet.mail.ac4.yahoo.com ([98.139.52.200]:46393 "HELO
+	nm3.bullet.mail.ac4.yahoo.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with SMTP id S1754332Ab1E0MUq (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 25 May 2011 16:51:06 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Jerry Geis <geisj@messagenetsystems.com>
-Subject: Re: h.264 web cam
-Date: Wed, 25 May 2011 22:51:19 +0200
-Cc: linux-media@vger.kernel.org, Hans Verkuil <hverkuil@xs4all.nl>
-References: <4DDD5C3B.6060706@MessageNetSystems.com> <201105252206.39243.laurent.pinchart@ideasonboard.com> <4DDD67D4.5070802@MessageNetSystems.com>
-In-Reply-To: <4DDD67D4.5070802@MessageNetSystems.com>
+	Fri, 27 May 2011 08:20:46 -0400
+Message-ID: <214556.93070.qm@web33205.mail.mud.yahoo.com>
+Date: Fri, 27 May 2011 05:20:45 -0700 (PDT)
+From: Moacyr Prado <mwprado@yahoo.com>
+Subject: Brazilian HDTV device
+To: linux-media@vger.kernel.org
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201105252251.20043.laurent.pinchart@ideasonboard.com>
+Content-Type: text/plain; charset=us-ascii
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Hi Jerry,
+Hi, I have a board with empia chipset. The em28xx driver not load, 
+because the device ID is not listed on source(cards.c, I guess). 
 
-On Wednesday 25 May 2011 22:34:28 Jerry Geis wrote:
-> Laurent Pinchart wrote:
-> > On Wednesday 25 May 2011 21:44:59 Jerry Geis wrote:
-> >> I am trying to find the code for h.264 mentioned
-> >> 
-> >>  http://www.spinics.net/lists/linux-media/msg29129.html
-> >> 
-> >> I downloaded the linux-media-2011-05.24 and it is not part of
-> >> uvc_driver.c
-> >> 
-> >> Where can I get the code?
-> > 
-> > That code only exists in the patches you've found. They haven't been
-> > applied to the uvcvideo driver, because we haven't decided yet how H.264
-> > should be exposed to applications by the V4L2 API.
-> > 
-> > We now have a better understanding of H.264. Hans, could you review the
-> > H.264 patch at the link above and tell me what you now think about the
-> > new fourcc ?
-> 
-> Thanks I am trying to get an H.264 hardware encoded web cam from
-> Facevsion E1 to work on linux.
-> Its far superior to the the other web cams I was using.
+Following bellow 
+have some infos from board:
+lsusb:
+Bus 001 Device 004: ID 1b80:e755 Afatech
 
-Any chance I could get a sample from Facevision ? :-)
+Opening the device, shows this ic:
 
--- 
-Regards,
+empia em2888 d351c-195 727-00ag (em28xx)
+nxp saa7136e/1/g SI5296.1 22 ZSD08411
+NXP TDA 18271??C2 HDC2? (tda18271)
+F JAPAN mb86a20s 0937 M01 E1 (mb86a20s)
 
-Laurent Pinchart
+but... dmesg shows:
+
+[18373.454136] usb 6-1: USB disconnect, address 2
+[18376.744074] usb 2-1: new high speed USB device using ehci_hcd and address 9
+[18376.860283] usb 2-1: New USB device found, idVendor=1b80, idProduct=e755
+[18376.860293] usb 2-1: New USB device strings: Mfr=0, Product=1, SerialNumber=2
+[18376.860300] usb 2-1: Product: USB 2885 Device
+[18376.860306] usb 2-1: SerialNumber: 1
+
+
+Could The em28xx module (writing some code for me)handle this device?
+
+Thanks,
+Moa
