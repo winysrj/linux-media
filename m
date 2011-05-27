@@ -1,197 +1,94 @@
 Return-path: <mchehab@pedra>
-Received: from smtp.nokia.com ([147.243.128.26]:19208 "EHLO mgw-da02.nokia.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751868Ab1EPNAs (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 16 May 2011 09:00:48 -0400
-From: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
-To: linux-media@vger.kernel.org
-Cc: laurent.pinchart@ideasonboard.com, nkanchev@mm-sol.com,
-	g.liakhovetski@gmx.de, hverkuil@xs4all.nl, dacohen@gmail.com,
-	riverful@gmail.com, andrew.b.adams@gmail.com, shpark7@stanford.edu
-Subject: [PATCH 1/3] v4l: Add a class and a set of controls for flash devices.
-Date: Mon, 16 May 2011 16:00:37 +0300
-Message-Id: <1305550839-16724-1-git-send-email-sakari.ailus@maxwell.research.nokia.com>
-In-Reply-To: <4DD11FEC.8050308@maxwell.research.nokia.com>
-References: <4DD11FEC.8050308@maxwell.research.nokia.com>
+Received: from nm10-vm1.bullet.mail.sp2.yahoo.com ([98.139.91.199]:29256 "HELO
+	nm10-vm1.bullet.mail.sp2.yahoo.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with SMTP id S1758637Ab1E0Cqw convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 26 May 2011 22:46:52 -0400
+Message-ID: <514198.1853.qm@web112012.mail.gq1.yahoo.com>
+Date: Thu, 26 May 2011 19:46:51 -0700 (PDT)
+From: Chris Rodley <carlighting@yahoo.co.nz>
+Subject: Re: [beagleboard] [PATCH] Second RFC version of mt9p031 sensor with power managament.
+To: javier Martin <javier.martin@vista-silicon.com>
+Cc: beagleboard@googlegroups.com, linux-media@vger.kernel.org,
+	koen@beagleboard.org, g.liakhovetski@gmx.de,
+	laurent.pinchart@ideasonboard.com
+MIME-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 8BIT
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-From: Sakari Ailus <sakari.ailus@iki.fi>
+On 26/05/11 19:24, javier Martin wrote:
 
-Add a control class and a set of controls to support LED and Xenon flash
-devices. An example of such a device is the adp1653.
+> On 25 May 2011 15:38, Koen Kooi <koen@beagleboard.org> wrote:
+>> >
+>> > Op 25 mei 2011, om 13:16 heeft Javier Martin het volgende geschreven:
+>> >
+>>> >> It includes several fixes pointed out by Laurent Pinchart. However,
+>>> >> the BUG which shows artifacts in the image (horizontal lines) still
+>>> >> persists. It won't happen if 1v8 regulator is not disabled (i.e.
+>>> >> comment line where it is disabled in function "mt9p031_power_off").
+>>> >> I know there can be some other details to fix but I would like someone
+>>> >> could help in the power management issue.
+>> >
+>> > I tried this + your beagle patch on 2.6.39 and both ISP and sensor being builtin to the kernel, I get the following:
+>> >
+>> > root@beagleboardxMC:~# media-ctl -r -l '"mt9p031 2-0048":0->"OMAP3 ISP CCDC":0[1 ], "OMAP3 ISP CCDC":1->"OMAP3 ISP CCDC output":0[1]'
+>> > Resetting all links to inactive
+>> > Setting up link 16:0 -> 5:0 [1]
+>> > Setting up link 5:1 -> 6:0 [1]
+>> >
+>> > root@beagleboardxMC:~# media-ctl -f '"mt9p031 2-0048":0[SGRBG12 320x240], "OMAP3  ISP CCDC":0[SGRBG8 320x240], "OMAP3 ISP CCDC":1[SGRBG8 320x240]'
+>> > Setting up format SGRBG12 320x240 on pad mt9p031 2-0048/0
+>> > Format set: SGRBG12 320x240
+>> > Setting up format SGRBG12 320x240 on pad OMAP3 ISP CCDC/0
+>> > Format set: SGRBG12 320x240
+>> > Setting up format SGRBG8 320x240 on pad OMAP3 ISP CCDC/0
+>> > Format set: SGRBG8 320x240
+>> > Setting up format SGRBG8 320x240 on pad OMAP3 ISP CCDC/1
+>> > Format set: SGRBG8 320x240
+>> >
+>> > oot@beagleboardxMC:~# yavta -f SGRBG8 -s 320x240 -n 4 --capture=10 --skip 3 -F  `media-ctl -e "OMAP3 ISP CCDC output"`
+>> > Device /dev/video2 opened.
+>> > Device `OMAP3 ISP CCDC output' on `media' is a video capture device.
+>> > Video format set: SGRBG8 (47425247) 320x240 buffer size 76800
+>> > Video format: SGRBG8 (47425247) 320x240 buffer size 76800
+>> > 4 buffers requested.
+>> > length: 76800 offset: 0
+>> > Buffer 0 mapped at address 0x4030d000.
+>> > length: 76800 offset: 77824
+>> > Buffer 1 mapped at address 0x40330000.
+>> > length: 76800 offset: 155648
+>> > Buffer 2 mapped at address 0x4042d000.
+>> > length: 76800 offset: 233472
+>> > Buffer 3 mapped at address 0x40502000.
+>> > [ 4131.459930] omap3isp omap3isp: CCDC won't become idle!
+> Please, test it again using new RFC v3 I've just submitted.
+> I have personally tested it against kernel 2.6.39 with the following
+> .config file:
 
-Signed-off-by: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
----
- drivers/media/video/v4l2-ctrls.c |   45 ++++++++++++++++++++++++++++++++++++++
- include/linux/videodev2.h        |   36 ++++++++++++++++++++++++++++++
- 2 files changed, 81 insertions(+), 0 deletions(-)
+Hi,
 
-diff --git a/drivers/media/video/v4l2-ctrls.c b/drivers/media/video/v4l2-ctrls.c
-index 2412f08..74aae36 100644
---- a/drivers/media/video/v4l2-ctrls.c
-+++ b/drivers/media/video/v4l2-ctrls.c
-@@ -216,6 +216,17 @@ const char * const *v4l2_ctrl_get_menu(u32 id)
- 		"75 useconds",
- 		NULL,
- 	};
-+	static const char * const flash_led_mode[] = {
-+		"Off",
-+		"Flash",
-+		"Torch",
-+		NULL,
-+	};
-+	static const char * const flash_strobe_source[] = {
-+		"Software",
-+		"External",
-+		NULL,
-+	};
- 
- 	switch (id) {
- 	case V4L2_CID_MPEG_AUDIO_SAMPLING_FREQ:
-@@ -256,6 +267,10 @@ const char * const *v4l2_ctrl_get_menu(u32 id)
- 		return colorfx;
- 	case V4L2_CID_TUNE_PREEMPHASIS:
- 		return tune_preemphasis;
-+	case V4L2_CID_FLASH_LED_MODE:
-+		return flash_led_mode;
-+	case V4L2_CID_FLASH_STROBE_SOURCE:
-+		return flash_strobe_source;
- 	default:
- 		return NULL;
- 	}
-@@ -389,6 +404,21 @@ const char *v4l2_ctrl_get_name(u32 id)
- 	case V4L2_CID_TUNE_POWER_LEVEL:		return "Tune Power Level";
- 	case V4L2_CID_TUNE_ANTENNA_CAPACITOR:	return "Tune Antenna Capacitor";
- 
-+	/* Flash controls */
-+	case V4L2_CID_FLASH_CLASS:		return "Flash controls";
-+	case V4L2_CID_FLASH_LED_MODE:		return "LED mode";
-+	case V4L2_CID_FLASH_STROBE_SOURCE:	return "Strobe source";
-+	case V4L2_CID_FLASH_STROBE:		return "Strobe";
-+	case V4L2_CID_FLASH_STROBE_STOP:	return "Stop strobe";
-+	case V4L2_CID_FLASH_STROBE_STATUS:	return "Strobe status";
-+	case V4L2_CID_FLASH_TIMEOUT:		return "Strobe timeout";
-+	case V4L2_CID_FLASH_INTENSITY:		return "Intensity, flash mode";
-+	case V4L2_CID_FLASH_TORCH_INTENSITY:	return "Intensity, torch mode";
-+	case V4L2_CID_FLASH_INDICATOR_INTENSITY: return "Intensity, indicator";
-+	case V4L2_CID_FLASH_FAULT:		return "Faults";
-+	case V4L2_CID_FLASH_CHARGE:		return "Charge";
-+	case V4L2_CID_FLASH_READY:		return "Ready to strobe";
-+
- 	default:
- 		return NULL;
- 	}
-@@ -423,12 +453,17 @@ void v4l2_ctrl_fill(u32 id, const char **name, enum v4l2_ctrl_type *type,
- 	case V4L2_CID_PILOT_TONE_ENABLED:
- 	case V4L2_CID_ILLUMINATORS_1:
- 	case V4L2_CID_ILLUMINATORS_2:
-+	case V4L2_CID_FLASH_STROBE_STATUS:
-+	case V4L2_CID_FLASH_CHARGE:
-+	case V4L2_CID_FLASH_READY:
- 		*type = V4L2_CTRL_TYPE_BOOLEAN;
- 		*min = 0;
- 		*max = *step = 1;
- 		break;
- 	case V4L2_CID_PAN_RESET:
- 	case V4L2_CID_TILT_RESET:
-+	case V4L2_CID_FLASH_STROBE:
-+	case V4L2_CID_FLASH_STROBE_STOP:
- 		*type = V4L2_CTRL_TYPE_BUTTON;
- 		*flags |= V4L2_CTRL_FLAG_WRITE_ONLY;
- 		*min = *max = *step = *def = 0;
-@@ -452,6 +487,8 @@ void v4l2_ctrl_fill(u32 id, const char **name, enum v4l2_ctrl_type *type,
- 	case V4L2_CID_EXPOSURE_AUTO:
- 	case V4L2_CID_COLORFX:
- 	case V4L2_CID_TUNE_PREEMPHASIS:
-+	case V4L2_CID_FLASH_LED_MODE:
-+	case V4L2_CID_FLASH_STROBE_SOURCE:
- 		*type = V4L2_CTRL_TYPE_MENU;
- 		break;
- 	case V4L2_CID_RDS_TX_PS_NAME:
-@@ -462,6 +499,7 @@ void v4l2_ctrl_fill(u32 id, const char **name, enum v4l2_ctrl_type *type,
- 	case V4L2_CID_CAMERA_CLASS:
- 	case V4L2_CID_MPEG_CLASS:
- 	case V4L2_CID_FM_TX_CLASS:
-+	case V4L2_CID_FLASH_CLASS:
- 		*type = V4L2_CTRL_TYPE_CTRL_CLASS;
- 		/* You can neither read not write these */
- 		*flags |= V4L2_CTRL_FLAG_READ_ONLY | V4L2_CTRL_FLAG_WRITE_ONLY;
-@@ -474,6 +512,9 @@ void v4l2_ctrl_fill(u32 id, const char **name, enum v4l2_ctrl_type *type,
- 		/* Max is calculated as RGB888 that is 2^24 */
- 		*max = 0xFFFFFF;
- 		break;
-+	case V4L2_CID_FLASH_FAULT:
-+		*type = V4L2_CTRL_TYPE_BITMASK;
-+		break;
- 	default:
- 		*type = V4L2_CTRL_TYPE_INTEGER;
- 		break;
-@@ -519,6 +560,10 @@ void v4l2_ctrl_fill(u32 id, const char **name, enum v4l2_ctrl_type *type,
- 	case V4L2_CID_ZOOM_RELATIVE:
- 		*flags |= V4L2_CTRL_FLAG_WRITE_ONLY;
- 		break;
-+	case V4L2_CID_FLASH_STROBE_STATUS:
-+	case V4L2_CID_FLASH_READY:
-+		*flags |= V4L2_CTRL_FLAG_READ_ONLY;
-+		break;
- 	}
- }
- EXPORT_SYMBOL(v4l2_ctrl_fill);
-diff --git a/include/linux/videodev2.h b/include/linux/videodev2.h
-index be82c8e..e364350 100644
---- a/include/linux/videodev2.h
-+++ b/include/linux/videodev2.h
-@@ -1022,6 +1022,7 @@ struct v4l2_ext_controls {
- #define V4L2_CTRL_CLASS_MPEG 0x00990000	/* MPEG-compression controls */
- #define V4L2_CTRL_CLASS_CAMERA 0x009a0000	/* Camera class controls */
- #define V4L2_CTRL_CLASS_FM_TX 0x009b0000	/* FM Modulator control class */
-+#define V4L2_CTRL_CLASS_FLASH 0x009c0000	/* Camera flash controls */
- 
- #define V4L2_CTRL_ID_MASK      	  (0x0fffffff)
- #define V4L2_CTRL_ID2CLASS(id)    ((id) & 0x0fff0000UL)
-@@ -1423,6 +1424,41 @@ enum v4l2_preemphasis {
- #define V4L2_CID_TUNE_POWER_LEVEL		(V4L2_CID_FM_TX_CLASS_BASE + 113)
- #define V4L2_CID_TUNE_ANTENNA_CAPACITOR		(V4L2_CID_FM_TX_CLASS_BASE + 114)
- 
-+/* Flash and privacy (indicator) light controls */
-+#define V4L2_CID_FLASH_CLASS_BASE		(V4L2_CTRL_CLASS_FLASH | 0x900)
-+#define V4L2_CID_FLASH_CLASS			(V4L2_CTRL_CLASS_FLASH | 1)
-+
-+#define V4L2_CID_FLASH_LED_MODE			(V4L2_CID_FLASH_CLASS_BASE + 1)
-+enum v4l2_flash_led_mode {
-+	V4L2_FLASH_LED_MODE_NONE,
-+	V4L2_FLASH_LED_MODE_FLASH,
-+	V4L2_FLASH_LED_MODE_TORCH,
-+};
-+
-+#define V4L2_CID_FLASH_STROBE_SOURCE		(V4L2_CID_FLASH_CLASS_BASE + 2)
-+enum v4l2_flash_strobe_source {
-+	V4L2_FLASH_STROBE_SOURCE_SOFTWARE,
-+	V4L2_FLASH_STROBE_SOURCE_EXTERNAL,
-+};
-+
-+#define V4L2_CID_FLASH_STROBE			(V4L2_CID_FLASH_CLASS_BASE + 3)
-+#define V4L2_CID_FLASH_STROBE_STOP		(V4L2_CID_FLASH_CLASS_BASE + 4)
-+#define V4L2_CID_FLASH_STROBE_STATUS		(V4L2_CID_FLASH_CLASS_BASE + 5)
-+
-+#define V4L2_CID_FLASH_TIMEOUT			(V4L2_CID_FLASH_CLASS_BASE + 6)
-+#define V4L2_CID_FLASH_INTENSITY		(V4L2_CID_FLASH_CLASS_BASE + 7)
-+#define V4L2_CID_FLASH_TORCH_INTENSITY		(V4L2_CID_FLASH_CLASS_BASE + 8)
-+#define V4L2_CID_FLASH_INDICATOR_INTENSITY	(V4L2_CID_FLASH_CLASS_BASE + 9)
-+
-+#define V4L2_CID_FLASH_FAULT			(V4L2_CID_FLASH_CLASS_BASE + 10)
-+#define V4L2_FLASH_FAULT_OVER_VOLTAGE		(1 << 0)
-+#define V4L2_FLASH_FAULT_TIMEOUT		(1 << 1)
-+#define V4L2_FLASH_FAULT_OVER_TEMPERATURE	(1 << 2)
-+#define V4L2_FLASH_FAULT_SHORT_CIRCUIT		(1 << 3)
-+
-+#define V4L2_CID_FLASH_CHARGE			(V4L2_CID_FLASH_CLASS_BASE + 11)
-+#define V4L2_CID_FLASH_READY			(V4L2_CID_FLASH_CLASS_BASE + 12)
-+
- /*
-  *	T U N I N G
-  */
--- 
-1.7.2.5
+No improvements here for me with v3.
+Still:
+
+# yavta --stdout -f SGRBG8 -s 320x240 -n 4 --capture=100 --skip 3 -F `media-ctl -e "OMAP3 ISP CCDC output"` | nc 10.1.1.16 3000
+Device /dev/video2 opened.
+Device `OMAP3 ISP CCDC output' on `media' is a video capture device.
+Video format set: width: 320 height: 240 buffer size: 76800
+Video format: GRBG (47425247) 320x240
+4 buffers requested.
+length: 76800 offset: 0
+Buffer 0 mapped at address 0x400d8000.
+length: 76800 offset: 77824
+Buffer 1 mapped at address 0x40292000.
+length: 76800 offset: 155648
+Buffer 2 mapped at address 0x40345000.
+length: 76800 offset: 233472
+Buffer 3 mapped at address 0x40377000.
+
+Will wait and see if Koen finds anything.
+
+Cheers,
+Chris
 
