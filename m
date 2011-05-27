@@ -1,66 +1,60 @@
 Return-path: <mchehab@pedra>
-Received: from proofpoint-cluster.metrocast.net ([65.175.128.136]:35344 "EHLO
-	proofpoint-cluster.metrocast.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754506Ab1ECXhl (ORCPT
+Received: from stevekez.vm.bytemark.co.uk ([80.68.91.30]:41036 "EHLO
+	stevekerrison.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750949Ab1E0MK0 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 3 May 2011 19:37:41 -0400
-Subject: Re: [PATCH] cx18: Clean up mmap() support for raw YUV
-From: Andy Walls <awalls@md.metrocast.net>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Simon Farnsworth <simon.farnsworth@onelan.co.uk>,
-	Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org,
-	Steven Toth <stoth@kernellabs.com>
-In-Reply-To: <4DC08961.3060508@redhat.com>
-References: <4DBFDF71.5090705@redhat.com>
-	 <1304423860-12785-1-git-send-email-simon.farnsworth@onelan.co.uk>
-	 <b418b252-4152-4666-9c83-85e91613b493@email.android.com>
-	 <4DC08961.3060508@redhat.com>
+	Fri, 27 May 2011 08:10:26 -0400
+Subject: Re: PCTV nanoStick T2 290e support - Thank you!
+From: Steve Kerrison <steve@stevekerrison.com>
+To: =?ISO-8859-1?Q?Bj=F8rn?= Mork <bjorn@mork.no>
+Cc: linux-media@vger.kernel.org
+In-Reply-To: <8739k0tlx6.fsf@nemi.mork.no>
+References: <1306445141.14462.0.camel@porites> <4DDEDB0E.30108@iki.fi>
+	 <8739k0tlx6.fsf@nemi.mork.no>
 Content-Type: text/plain; charset="UTF-8"
-Date: Tue, 03 May 2011 19:38:36 -0400
-Message-ID: <1304465916.2648.3.camel@localhost>
+Date: Fri, 27 May 2011 13:10:21 +0100
+Message-ID: <1306498221.4412.179.camel@ares>
 Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 8bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Tue, 2011-05-03 at 20:01 -0300, Mauro Carvalho Chehab wrote:
-> Em 03-05-2011 19:51, Andy Walls escreveu:
-> > Simon Farnsworth <simon.farnsworth@onelan.co.uk> wrote:
- 
+The demodulator chip supports T,T2 and C.
 
-> > Simon,
-> > 
-> > If these two changes are going in, please also bump the driver
-> version to 1.5.0 in cx18-version.c.  These changes are significant
-> enough perturbation.
-> > 
-> > End users are going to look to driver version 1.4.1 as the first
-> version for proper analog tuner support of the HVR1600 model 74351.
-> > 
-> > Mauro,
-> > 
-> > Is cx18 v1.4.1 with HVR1600 model 74351 analog tuner support,
-> without these mmap() changes going to be visible in kernel
-> version .39 ?
-> 
-> Hmm... This is what I have at my for_upstream tree:
-> 
-> $ git grep -i 74351 drivers/media/video/cx18/
-> drivers/media/video/cx18/cx18-driver.c:   case 74351: /* OEM models */
-> 
-> drivers/media/video/cx18/cx18-version.h:#define CX18_DRIVER_VERSION_MAJOR 1
-> drivers/media/video/cx18/cx18-version.h:#define CX18_DRIVER_VERSION_MINOR 4
-> drivers/media/video/cx18/cx18-version.h:#define CX18_DRIVER_VERSION_PATCHLEVEL 0
-> 
+Here in the UK you're not really allowed to attach cable receivers that
+aren't supplied by the cable company (Virgin Media). That and the fact
+that it has no access module for obvious reasons, I guess PCTV Systems
+didn't see the benefit in marketing the C functionality.
 
-I was refering to these patches (which look like they are destined for
-2.6.40 according to the subject lines)
-
-http://thread.gmane.org/gmane.comp.video.linuxtv.scm/9918
-http://thread.gmane.org/gmane.comp.video.linuxtv.scm/9917
+I don't actually know if the windows driver supports C mode, it would be
+amusing if we deliver more functionality with the Linux driver :)
 
 Regards,
-Andy
+-- 
+Steve Kerrison MEng Hons.
+http://www.stevekerrison.com/ 
 
-
+On Fri, 2011-05-27 at 13:36 +0200, Bjørn Mork wrote:
+> Antti Palosaari <crope@iki.fi> writes:
+> > On 05/27/2011 12:25 AM, Nicolas WILL wrote:
+> >> Just installed mine for MythTV.
+> >>
+> >> Works great on the first try!
+> >>
+> >> Many, many thanks!
+> >
+> > Thank you for the feedback!
+> 
+> I'm a bit curious about this device.  It seems to only be marketed as a
+> DVB-T2 device in areas where that spec is used.  But looking at your
+> driver, it seems that the device also supports DVB-C.  Is that correct?
+> 
+> 
+> 
+> Bjørn
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
