@@ -1,194 +1,53 @@
-Return-path: <mchehab@gaivota>
-Received: from mail-vx0-f174.google.com ([209.85.220.174]:50631 "EHLO
-	mail-vx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751163Ab1EHXYJ (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sun, 8 May 2011 19:24:09 -0400
-Received: by vxi39 with SMTP id 39so5185496vxi.19
-        for <linux-media@vger.kernel.org>; Sun, 08 May 2011 16:24:09 -0700 (PDT)
-From: Cotie Jones <intlvelvet@gmail.com>
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
-Subject: http://linuxtv.org/hg/dvb-apps/file/5e68946b0e0d/util/scan/atsc/us-Cable-Standard-center-frequencies-QAM256
-Date: Sun, 8 May 2011 19:24:07 -0400
-Message-Id: <D6539750-BBE4-4FD8-B4FD-43E621E1B868@gmail.com>
-To: linux-media@vger.kernel.org
-Mime-Version: 1.0 (Apple Message framework v1084)
+Return-path: <mchehab@pedra>
+Received: from comal.ext.ti.com ([198.47.26.152]:44251 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752960Ab1E0Gzp (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 27 May 2011 02:55:45 -0400
+Received: from dlep33.itg.ti.com ([157.170.170.112])
+	by comal.ext.ti.com (8.13.7/8.13.7) with ESMTP id p4R6tisK021503
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-media@vger.kernel.org>; Fri, 27 May 2011 01:55:44 -0500
+Received: from dlep26.itg.ti.com (smtp-le.itg.ti.com [157.170.170.27])
+	by dlep33.itg.ti.com (8.13.7/8.13.8) with ESMTP id p4R6tiR7003270
+	for <linux-media@vger.kernel.org>; Fri, 27 May 2011 01:55:44 -0500 (CDT)
+Received: from dlee74.ent.ti.com (localhost [127.0.0.1])
+	by dlep26.itg.ti.com (8.13.8/8.13.8) with ESMTP id p4R6tiS1007385
+	for <linux-media@vger.kernel.org>; Fri, 27 May 2011 01:55:44 -0500 (CDT)
+From: Archit Taneja <archit@ti.com>
+To: <linux-media@vger.kernel.org>
+CC: hvaibhav@ti.com, Archit Taneja <archit@ti.com>
+Subject: [PATCH 0/2] OMAP_VOUT: Allow omap_vout to build without VRFB
+Date: Fri, 27 May 2011 12:31:15 +0530
+Message-ID: <1306479677-23540-1-git-send-email-archit@ti.com>
+MIME-Version: 1.0
+Content-Type: text/plain
 List-ID: <linux-media.vger.kernel.org>
-Sender: Mauro Carvalho Chehab <mchehab@gaivota>
+Sender: <mchehab@pedra>
 
-# US EIA/NCTA Standard Cable center frequencies, added missing muxes
-# Channels are in ascending EIA/NCTA channel designation order
+Introduce omap_vout_vrfb.c and omap_vout_vrfb.h, for all VRFB related API's,
+making OMAP_VOUT driver independent from VRFB. This is required for OMAP4 DSS,
+since OMAP4 doesn't have VRFB block.
 
-#2
-A  57000000 QAM256
-A  63000000 QAM256
-A  69000000 QAM256
-A  79000000 QAM256
-A  85000000 QAM256
-A 177000000 QAM256
-A 183000000 QAM256
-A 189000000 QAM256
-#10
-A 195000000 QAM256
-A 201000000 QAM256
-A 207000000 QAM256
-A 213000000 QAM256
-A 123012500 QAM256
-A 129012500 QAM256
-A 135012500 QAM256
-A 141000000 QAM256
-A 147000000 QAM256
-A 153000000 QAM256
-#20
-A 159000000 QAM256
-A 165000000 QAM256
-A 171000000 QAM256
-A 219000000 QAM256
-A 225000000 QAM256
-A 231012500 QAM256
-A 237012500 QAM256
-A 243012500 QAM256
-A 249012500 QAM256
-A 255012500 QAM256
-#30
-A 261012500 QAM256
-A 267012500 QAM256
-A 273012500 QAM256
-A 279012500 QAM256
-A 285012500 QAM256
-A 291012500 QAM256
-A 297012500 QAM256
-A 303012500 QAM256
-A 309012500 QAM256
-A 315012500 QAM256
-#40
-A 321012500 QAM256
-A 327012500 QAM256
-A 333025000 QAM256
-A 339012500 QAM256
-A 345012500 QAM256
-A 351012500 QAM256
-A 357012500 QAM256
-A 363012500 QAM256
-A 369012500 QAM256
-A 375012500 QAM256
-#50
-A 381012500 QAM256
-A 387012500 QAM256
-A 393012500 QAM256
-A 399012500 QAM256
-A 405000000 QAM256
-A 411000000 QAM256
-A 417000000 QAM256
-A 423000000 QAM256
-A 429000000 QAM256
-A 435000000 QAM256
-#60
-A 441000000 QAM256
-A 447000000 QAM256
-A 453000000 QAM256
-A 459000000 QAM256
-A 465000000 QAM256
-A 471000000 QAM256
-A 477000000 QAM256
-A 483000000 QAM256
-A 489000000 QAM256
-A 495000000 QAM256
-#70
-A 501000000 QAM256
-A 507000000 QAM256
-A 513000000 QAM256
-A 519000000 QAM256
-A 525000000 QAM256
-A 531000000 QAM256
-A 537000000 QAM256
-A 543000000 QAM256
-A 549000000 QAM256
-A 555000000 QAM256
-#80
-A 561000000 QAM256
-A 567000000 QAM256
-A 573000000 QAM256
-A 579000000 QAM256
-A 585000000 QAM256
-A 591000000 QAM256
-A 597000000 QAM256
-A 603000000 QAM256
-A 609000000 QAM256
-A 615000000 QAM256
-#90
-A 621000000 QAM256
-A 627000000 QAM256
-A 633000000 QAM256
-A 639000000 QAM256
-A 645000000 QAM256
-A  93000000 QAM256
-A  99000000 QAM256
-A 105000000 QAM256
-A 111025000 QAM256
-A 117025000 QAM256
-#100
-A 651000000 QAM256
-A 657000000 QAM256
-A 663000000 QAM256
-A 669000000 QAM256
-A 675000000 QAM256
-A 681000000 QAM256
-A 687000000 QAM256
-A 693000000 QAM256
-A 699000000 QAM256
-A 705000000 QAM256
-#110
-A 711000000 QAM256
-A 717000000 QAM256
-A 723000000 QAM256
-A 729000000 QAM256
-A 735000000 QAM256
-A 741000000 QAM256
-A 747000000 QAM256
-A 753000000 QAM256
-A 759000000 QAM256
-A 765000000 QAM256
-#120
-A 771000000 QAM256
-A 777000000 QAM256
-A 783000000 QAM256
-A 789000000 QAM256
-A 795000000 QAM256
-A 801000000 QAM256
-A 807000000 QAM256
-A 813000000 QAM256
-A 819000000 QAM256
-A 825000000 QAM256
-#121
-A 831000000 QAM256
-A 837000000 QAM256
-A 843000000 QAM256
-A 849000000 QAM256
-A 855000000 QAM256
-A 861000000 QAM256
-A 867000000 QAM256
-A 873000000 QAM256
-A 879000000 QAM256
-A 885000000 QAM256
-#122
-A 891000000 QAM256
-A 897000000 QAM256
-A 903000000 QAM256
-A 909000000 QAM256
-A 915000000 QAM256
-A 921000000 QAM256
-A 927000000 QAM256
-A 933000000 QAM256
-A 939000000 QAM256
-A 945000000 QAM256
-#123
-A 951000000 QAM256
-A 957000000 QAM256
-A 963000000 QAM256
-A 969000000 QAM256
-A 975000000 QAM256
-A 981000000 QAM256
-A 987000000 QAM256
-A 993000000 QAM256
-A 999000000 QAM256
+A new enum called vout_rotation_type is introduced to differentiate between no
+rotation and vrfb rotation. A member rotation_type is introduced in
+omapvideo_info, this allows to call vrfb specific functions only if the rotation
+type is VOUT_ROT_VRFB. When the rotation_type is set to VOUT_ROT_NONE, the
+S_CTRL ioctl prevents the user setting a non zero rotation or non zero mirror
+value.
+
+Archit Taneja (2):
+  OMAP_VOUT: CLEANUP: Move some functions and macros from omap_vout
+  OMAP_VOUT: Create separate file for VRFB related API's
+
+ drivers/media/video/omap/Kconfig          |    7 +-
+ drivers/media/video/omap/Makefile         |    1 +
+ drivers/media/video/omap/omap_vout.c      |  562 +++++------------------------
+ drivers/media/video/omap/omap_vout_vrfb.c |  390 ++++++++++++++++++++
+ drivers/media/video/omap/omap_vout_vrfb.h |   40 ++
+ drivers/media/video/omap/omap_voutdef.h   |   78 ++++
+ drivers/media/video/omap/omap_voutlib.c   |   44 +++
+ drivers/media/video/omap/omap_voutlib.h   |    2 +
+ 8 files changed, 644 insertions(+), 480 deletions(-)
+ create mode 100644 drivers/media/video/omap/omap_vout_vrfb.c
+ create mode 100644 drivers/media/video/omap/omap_vout_vrfb.h
+
