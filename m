@@ -1,203 +1,149 @@
 Return-path: <mchehab@pedra>
-Received: from smtp.nokia.com ([147.243.1.48]:62071 "EHLO mgw-sa02.nokia.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755248Ab1EPN3x (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 16 May 2011 09:29:53 -0400
-Message-ID: <4DD12784.2000100@maxwell.research.nokia.com>
-Date: Mon, 16 May 2011 16:32:52 +0300
-From: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
+Received: from perceval.ideasonboard.com ([95.142.166.194]:43245 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750922Ab1E0OrP (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 27 May 2011 10:47:15 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: "Daniel Lundborg" <Daniel.Lundborg@prevas.se>
+Subject: Re: SV: omap3isp - H3A auto white balance
+Date: Fri, 27 May 2011 16:47:10 +0200
+Cc: linux-media@vger.kernel.org
+References: <CA7B7D6C54015B459601D68441548157C5A3FC@prevas1.prevas.se> <201105261301.32159.laurent.pinchart@ideasonboard.com> <CA7B7D6C54015B459601D68441548157C5A3FE@prevas1.prevas.se>
+In-Reply-To: <CA7B7D6C54015B459601D68441548157C5A3FE@prevas1.prevas.se>
 MIME-Version: 1.0
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-CC: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: Re: [PATCH/RFC 1/4] V4L: add three new ioctl()s for multi-size videobuffer
- management
-References: <Pine.LNX.4.64.1104010959470.9530@axis700.grange> <Pine.LNX.4.64.1104011010530.9530@axis700.grange> <Pine.LNX.4.64.1105121835370.24486@axis700.grange>
-In-Reply-To: <Pine.LNX.4.64.1105121835370.24486@axis700.grange>
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
+Message-Id: <201105271647.12503.laurent.pinchart@ideasonboard.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Hi Guennadi,
+Hi Daniel,
 
-Thanks for the patch!
-
-Guennadi Liakhovetski wrote:
-> I've found some more time to get back to this. Let me try to recap, what 
-> has been discussed. I've looked through all replies again (thanks to 
-> all!), so, I'll present a summary. Any mistakes and misinterpretations are 
-> mine;) If I misunderstand someone or forget anything - please, shout!
+On Thursday 26 May 2011 15:06:17 Daniel Lundborg wrote:
+> > On Thursday 26 May 2011 10:57:39 Daniel Lundborg wrote:
+> > > Hello,
+> > > 
+> > > I am developing a camera sensor driver for the Aptina MT9V034. I am only
+> > > using it in snapshot mode and I can successfully trigger the sensor and
+> > > receive pictures using the latest omap3isp driver from
+> > > git://linuxtv.org/pinchartl/media.git branch omap3isp-next-sensors with
+> > > kernel 2.6.38.
+> > > 
+> > > I configure the sensor with media-ctl:
+> > > 
+> > > media-ctl -r -l '"mt9v034 3-0048":0->"OMAP3 ISP CCDC":0[1], "OMAP3 ISP
+> > > CCDC":1->"OMAP3 ISP CCDC output":0[1]'
+> > > 
+> > > media-ctl -f '"mt9v034 3-0048":0[SGRBG10 752x480], "OMAP3 ISP
+> > > CCDC":1[SGRBG10 752x480]'
+> > > 
+> > > And take pictures with yavta:
+> > > 
+> > > ./yavta -f SGRBG10 -s 752x480 -n 6 --capture=6 -F /dev/video2
+> > > 
+> > > My trouble is that I am always receiving whiter pictures when I wait a
+> > > moment before triggering the sensor to take a picture. If I take several
+> > > pictures in a row with for instance 20 ms between them, they all look
+> > > ok. But if I wait for 100 ms the picture will get much whiter.
+> > > 
+> > > I have turned off auto exposure and auto gain in the sensor and the
+> > > LED_OUT signal always have the same length (in this case 8 msec).
+> > 
+> > I assume you've measured it with a scope ?
+> > 
+> > Try disabling black level calibration and row noise correction as well.
+> > Please also double-check that AEC and AGC are disabled. I've had a similar
+> > issue with an MT9V032 sensor, where a bug in the driver enabled AEC/AGC
+> > instead of disabling them.
 > 
-> On Fri, 1 Apr 2011, Guennadi Liakhovetski wrote:
+> The register on 0xaf (MT9V034_AGC_AEC_ENABLE) is set to 0 and is 0 when
+> I read from it.
+> bit 0 - AEC enable context A, bit 1 - AGC enable context A, bit 8 - AEC
+> enable context B, bit 9 - AGC enable context B
 > 
->> A possibility to preallocate and initialise buffers of different sizes
->> in V4L2 is required for an efficient implementation of asnapshot mode.
->> This patch adds three new ioctl()s: VIDIOC_CREATE_BUFS,
->> VIDIOC_DESTROY_BUFS, and VIDIOC_SUBMIT_BUF and defines respective data
->> structures.
->>
->> Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
->> ---
->>  drivers/media/video/v4l2-compat-ioctl32.c |    3 ++
->>  drivers/media/video/v4l2-ioctl.c          |   43 +++++++++++++++++++++++++++++
->>  include/linux/videodev2.h                 |   24 ++++++++++++++++
->>  include/media/v4l2-ioctl.h                |    3 ++
->>  4 files changed, 73 insertions(+), 0 deletions(-)
->>
->> diff --git a/drivers/media/video/v4l2-compat-ioctl32.c b/drivers/media/video/v4l2-compat-ioctl32.c
->> index 7c26947..d71b289 100644
->> --- a/drivers/media/video/v4l2-compat-ioctl32.c
->> +++ b/drivers/media/video/v4l2-compat-ioctl32.c
->> @@ -922,6 +922,9 @@ long v4l2_compat_ioctl32(struct file *file, unsigned int cmd, unsigned long arg)
->>  	case VIDIOC_DQEVENT:
->>  	case VIDIOC_SUBSCRIBE_EVENT:
->>  	case VIDIOC_UNSUBSCRIBE_EVENT:
->> +	case VIDIOC_CREATE_BUFS:
->> +	case VIDIOC_DESTROY_BUFS:
->> +	case VIDIOC_SUBMIT_BUF:
->>  		ret = do_video_ioctl(file, cmd, arg);
->>  		break;
->>  
->> diff --git a/drivers/media/video/v4l2-ioctl.c b/drivers/media/video/v4l2-ioctl.c
->> index a01ed39..b80a211 100644
->> --- a/drivers/media/video/v4l2-ioctl.c
->> +++ b/drivers/media/video/v4l2-ioctl.c
->> @@ -259,6 +259,9 @@ static const char *v4l2_ioctls[] = {
->>  	[_IOC_NR(VIDIOC_DQEVENT)]	   = "VIDIOC_DQEVENT",
->>  	[_IOC_NR(VIDIOC_SUBSCRIBE_EVENT)]  = "VIDIOC_SUBSCRIBE_EVENT",
->>  	[_IOC_NR(VIDIOC_UNSUBSCRIBE_EVENT)] = "VIDIOC_UNSUBSCRIBE_EVENT",
->> +	[_IOC_NR(VIDIOC_CREATE_BUFS)]      = "VIDIOC_CREATE_BUFS",
->> +	[_IOC_NR(VIDIOC_DESTROY_BUFS)]     = "VIDIOC_DESTROY_BUFS",
->> +	[_IOC_NR(VIDIOC_SUBMIT_BUF)]       = "VIDIOC_SUBMIT_BUF",
->>  };
->>  #define V4L2_IOCTLS ARRAY_SIZE(v4l2_ioctls)
->>  
->> @@ -2184,6 +2187,46 @@ static long __video_do_ioctl(struct file *file,
->>  		dbgarg(cmd, "type=0x%8.8x", sub->type);
->>  		break;
->>  	}
->> +	case VIDIOC_CREATE_BUFS:
->> +	{
->> +		struct v4l2_create_buffers *create = arg;
->> +
->> +		if (!ops->vidioc_create_bufs)
->> +			break;
->> +		ret = check_fmt(ops, create->format.type);
->> +		if (ret)
->> +			break;
->> +
->> +		if (create->size)
->> +			CLEAR_AFTER_FIELD(create, count);
->> +
->> +		ret = ops->vidioc_create_bufs(file, fh, create);
->> +
->> +		dbgarg(cmd, "count=%d\n", create->count);
->> +		break;
->> +	}
->> +	case VIDIOC_DESTROY_BUFS:
->> +	{
->> +		struct v4l2_buffer_span *span = arg;
->> +
->> +		if (!ops->vidioc_destroy_bufs)
->> +			break;
->> +
->> +		ret = ops->vidioc_destroy_bufs(file, fh, span);
->> +
->> +		dbgarg(cmd, "count=%d", span->count);
->> +		break;
->> +	}
->> +	case VIDIOC_SUBMIT_BUF:
->> +	{
->> +		unsigned int *i = arg;
->> +
->> +		if (!ops->vidioc_submit_buf)
->> +			break;
->> +		ret = ops->vidioc_submit_buf(file, fh, *i);
->> +		dbgarg(cmd, "index=%d", *i);
->> +		break;
->> +	}
->>  	default:
->>  	{
->>  		bool valid_prio = true;
->> diff --git a/include/linux/videodev2.h b/include/linux/videodev2.h
->> index aa6c393..b6ef46e 100644
->> --- a/include/linux/videodev2.h
->> +++ b/include/linux/videodev2.h
->> @@ -1847,6 +1847,26 @@ struct v4l2_dbg_chip_ident {
->>  	__u32 revision;    /* chip revision, chip specific */
->>  } __attribute__ ((packed));
->>  
->> +/* VIDIOC_DESTROY_BUFS */
->> +struct v4l2_buffer_span {
->> +	__u32			index;	/* output: buffers index...index + count - 1 have been created */
->> +	__u32			count;
->> +	__u32			reserved[2];
->> +};
->> +
->> +/* struct v4l2_createbuffers::flags */
->> +#define V4L2_BUFFER_FLAG_NO_CACHE_INVALIDATE	(1 << 0)
+> The register on 0x47 (MT9V034_BL_CALIB_CTRL) is set to 0 and is 0 when I
+> read from it.
+> bit 0 - (1 = override with programmed values, 0 = normal operation), bit
+> 7:5 - Frames to average over
+
+If I'm not mistaken "normal operation" means that automatic black level 
+calibration is enabled. Try to set bit 0 to 1 to override the automatic 
+algorithm (and program a zero value in register 0x48).
+
+> The register on 0x70 (MT9V034_ROW_NOISE_CORR_CONTROL) is set to 0 and is
+> 0 when I read from it.
+> bit 0 - enable noise correction context A , bit 1 - Use black level avg
+> context A, bit 8 - enable noise correction context B, bit 9 - Use black
+> level avg context B
 > 
-> 1. An additional flag FLAG_NO_CACHE_FLUSH is needed for output devices.
-
-Should this be called FLAG_NO_CACHE_CLEAN?
-
-Invalidate == Make contents of the cache invalid
-
-Clean == Make sure no dirty stuff resides in the cache
-
-Flush == invalidate + clean
-
-It occurred to me to wonder if two flags are needed for this, but I
-think the answer is yes, since there can be memory-to-memory devices
-which are both OUTPUT and CAPTURE.
-
-> 2. Both these flags should not be passed with CREATE, but with SUBMIT 
-> (which will be renamed to PREPARE or something similar). It should be 
-> possible to prepare the same buffer with different cacheing attributes 
-> during a running operation. Shall these flags be added to values, taken by 
-> struct v4l2_buffer::flags, since that is the struct, that will be used as 
-> the argument for the new version of the SUBMIT ioctl()?
+> I measure the signals with a scope and the LED_OUT signal is always 8
+> msec when triggered.
 > 
->> +
->> +/* VIDIOC_CREATE_BUFS */
->> +struct v4l2_create_buffers {
->> +	__u32			index;		/* output: buffers index...index + count - 1 have been created */
->> +	__u32			count;
->> +	__u32			flags;		/* V4L2_BUFFER_FLAG_* */
->> +	enum v4l2_memory        memory;
->> +	__u32			size;		/* Explicit size, e.g., for compressed streams */
->> +	struct v4l2_format	format;		/* "type" is used always, the rest if size == 0 */
->> +};
+> Code from my mt9v034.c:
+
+[snip]
+
+> And from my board-overo.c file:
 > 
-> 1. Care must be taken to keep index <= V4L2_MAX_FRAME
+> void overo_camera_configure(struct v4l2_subdev *subdev)
+> {
+> 	struct isp_device *isp =
+> v4l2_dev_to_isp_device(subdev->v4l2_dev);
+> 
+>   isp_reg_clr_set(isp, OMAP3_ISP_IOMEM_MAIN, ISP_TCTRL_CTRL,
+> ~0x9a1b63ff, 0x98036000); // Set CAM_GLOBAL_RESET pin as output, enable
+> shutter, set DIVC = 216
+>   isp_reg_clr(isp, OMAP3_ISP_IOMEM_MAIN, ISP_TCTRL_SHUT_DELAY,
+> 0x01ffffff);  // Set no shutter delay
+>   isp_reg_clr_set(isp, OMAP3_ISP_IOMEM_MAIN, ISP_TCTRL_SHUT_LENGTH,
+> 0x01ffffff, 0x000003e8); // Set shutter signal length to 1000 (=> 1000 *
+> 1/216MHz * 216 = 1 ms)
+>   isp_reg_clr_set(isp, OMAP3_ISP_IOMEM_MAIN, ISP_TCTRL_GRESET_LENGTH,
+> 0x01ffffff, 0x000003e8); // Set CAM_GLOBAL_RESET signal length to 1000
+> (=> 1000 * 1/216MHz * 216 = 1 ms)
+> }
+> 
+> static void overo_camera_take_picture(struct v4l2_subdev *subdev)
+> {
+> 	struct isp_device *isp =
+> v4l2_dev_to_isp_device(subdev->v4l2_dev);
+> 
+>   isp_reg_clr_set(isp, OMAP3_ISP_IOMEM_MAIN, ISP_TCTRL_CTRL, 0,
+> 0x00e00000);  // Enable shutter (SHUTEN bit = 1)
+>   isp_reg_clr_set(isp, OMAP3_ISP_IOMEM_MAIN, ISP_TCTRL_CTRL, 0,
+> 0x20000000);  // Start generation of CAM_GLOBAL_RESET signal (GRESETEN
+> bit = 1)
+> }
 
-This will make allocating new ranges of buffers impossible if the
-existing buffer indices are scattered within the range.
+I'll have to implement support for that in the OMAP3 ISP driver at some point.
 
-What about making it possible to pass an array of buffer indices to the
-user, just like VIDIOC_S_EXT_CTRLS does? I'm not sure if this would be
-perfect, but it would avoid the problem of requiring continuous ranges
-of buffer ids.
+[snip]
 
-struct v4l2_create_buffers {
-	__u32			*index;
-	__u32			count;
-	__u32			flags;
-	enum v4l2_memory        memory;
-	__u32			size;
-	struct v4l2_format	format;
-};
-
-Index would be a pointer to an array of buffer indices and its length
-would be count.
-
-[clip]
-
-Regards,
+> > Do you have a light source connected to the LED_OUT signal ? If so, can
+> > you try disabling it and using a constant light source ?
+> 
+> No I'm not using the LED_OUT signal other than measuring the exposure time
+> at this point.
+> 
+> > > Why would the pictures become whiter if I wait a moment before taking a
+> > > picture?
+> > > 
+> > > If I set the sensor in streaming mode all pictures look like they
+> > > should.
+> > > 
+> > > Could there be something with the H3A auto white balance or auto
+> > > exposure?
+> >
+> > The OMAP3 ISP isn't able to apply any H3A algorithm to the images by
+> > itself. The H3A hardware support only computes statistics, and a userspace
+> > application then needs to compute parameters (such as exposure time and
+> > gains) based on the statistics, and apply them to the hardware. As yavta
+> > doesn't include H3A algorithms, the differences in picture brightness can
+> > only come from the sensor.
 
 -- 
-Sakari Ailus
-sakari.ailus@maxwell.research.nokia.com
+Regards,
+
+Laurent Pinchart
