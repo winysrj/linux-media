@@ -1,51 +1,64 @@
 Return-path: <mchehab@pedra>
-Received: from blu0-omc2-s25.blu0.hotmail.com ([65.55.111.100]:17537 "EHLO
-	blu0-omc2-s25.blu0.hotmail.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S933907Ab1ESSRJ (ORCPT
+Received: from mail-gy0-f174.google.com ([209.85.160.174]:36104 "EHLO
+	mail-gy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756503Ab1E0GTR convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 19 May 2011 14:17:09 -0400
-Message-ID: <BLU0-SMTP25C479222362147498A619D88E0@phx.gbl>
-From: Manoel PN <pinusdtv@hotmail.com>
-To: linux-media@vger.kernel.org, lgspn@hotmail.com
-Subject: [PATCH] saa7134-dvb.c kworld_sbtvd
-Date: Thu, 19 May 2011 15:16:57 -0300
+	Fri, 27 May 2011 02:19:17 -0400
+Received: by gyd10 with SMTP id 10so577573gyd.19
+        for <linux-media@vger.kernel.org>; Thu, 26 May 2011 23:19:16 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+In-Reply-To: <Pine.LNX.4.64.1105180817420.21439@axis700.grange>
+References: <BANLkTiko27NWjPx6sT0o7NEYSY2RLsX=_Q@mail.gmail.com>
+	<Pine.LNX.4.64.1105180817420.21439@axis700.grange>
+Date: Fri, 27 May 2011 14:19:16 +0800
+Message-ID: <BANLkTi=arAUPN=G+shcBEZ+N6+ZyaYTh-A@mail.gmail.com>
+Subject: Re: pxa ccic driver based on soc_camera and videobuf
+From: Kassey Lee <kassey1216@gmail.com>
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Hans Verkuil <hverkuil@xs4all.nl>, qingx@marvell.com,
+	ygli@marvell.com, leiwen@marvell.com, hzhuang1@marvell.com,
+	jwan@marvell.com
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-The correct place to put i2c_gate_ctrl is before calling tda18271_attach,
-because the driver tda18271 will use it to enable or disable the i2c-bus
-from the demodulator to the tuner.
+hi, Guennadi:
 
-And thus eliminate the error message: "Unknown device (255) detected
-@ 1-00c0, device not supported" in the driver tda18271.
+       thanks for your comments.
+       I converted it to videobuf2 and send it out in another thread.
+       [PATCH] V4L/DVB: v4l: Add driver for Marvell PXA910 CCIC
 
-In the device kworld_sbtvd (hybrid analog and digital TV) the control
-of the i2c-bus to tuner is done in the analog demodulator and not in
-the digital demodulator.
+       would you please review ? thanks
 
 
-Signed-off-by: Manoel Pinheiro <pinusdtv@hotmail.com>
 
-
-diff --git a/drivers/media/video/saa7134/saa7134-dvb.c 
-b/drivers/media/video/saa7134/saa7134-dvb.c
-index f65cad2..c1a18d1 100644
---- a/drivers/media/video/saa7134/saa7134-dvb.c
-+++ b/drivers/media/video/saa7134/saa7134-dvb.c
-@@ -1666,10 +1666,10 @@ static int dvb_init(struct saa7134_dev *dev)
- 			dvb_attach(tda829x_attach, fe0->dvb.frontend,
- 				   &dev->i2c_adap, 0x4b,
- 				   &tda829x_no_probe);
-+			fe0->dvb.frontend->ops.i2c_gate_ctrl = kworld_sbtvd_gate_ctrl;
- 			dvb_attach(tda18271_attach, fe0->dvb.frontend,
- 				   0x60, &dev->i2c_adap,
- 				   &kworld_tda18271_config);
--			fe0->dvb.frontend->ops.i2c_gate_ctrl = kworld_sbtvd_gate_ctrl;
- 		}
- 
- 		/* mb86a20s need to use the I2C gateway */
-
-
+2011/5/18 Guennadi Liakhovetski <g.liakhovetski@gmx.de>:
+> Hi Kassey
+>
+> On Wed, 18 May 2011, Kassey Lee wrote:
+>
+>> hi, Guennadi, Hans:
+>>
+>>       I just converted  Marvell CCIC driver from ccic_cafe to
+>> soc_camera + videobuf, and make it stable and robust.
+>
+> Nice!
+>
+>>       do you accept the soc_camera + videobuf to the latest kernel ?
+>
+> My understanding is, that since videobuf2 is really an improved videobuf,
+> the latter shall be deprecated and removed in some time, after all
+> existing drivers are converted, so, there is no point in developing new
+> drivers with videobuf. That said, the conversion is not very difficult,
+> so, please, either do it yourself (preferred;)), or post your driver as is
+> and we'll help you convert it.
+>
+> Thanks
+> Guennadi
+> ---
+> Guennadi Liakhovetski, Ph.D.
+> Freelance Open-Source Software Developer
+> http://www.open-technology.de/
+>
