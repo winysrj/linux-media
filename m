@@ -1,150 +1,46 @@
 Return-path: <mchehab@pedra>
-Received: from ffm.saftware.de ([83.141.3.46]:57121 "EHLO ffm.saftware.de"
+Received: from lo.gmane.org ([80.91.229.12]:36397 "EHLO lo.gmane.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753783Ab1EFKBf (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 6 May 2011 06:01:35 -0400
-Message-ID: <4DC3C6FA.8070505@linuxtv.org>
-Date: Fri, 06 May 2011 12:01:30 +0200
-From: Andreas Oberritter <obi@linuxtv.org>
-MIME-Version: 1.0
+	id S1752990Ab1E0Lgu (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 27 May 2011 07:36:50 -0400
+Received: from list by lo.gmane.org with local (Exim 4.69)
+	(envelope-from <gldv-linux-media@m.gmane.org>)
+	id 1QPvLV-0000Xe-9g
+	for linux-media@vger.kernel.org; Fri, 27 May 2011 13:36:49 +0200
+Received: from 193.160.199.2 ([193.160.199.2])
+        by main.gmane.org with esmtp (Gmexim 0.1 (Debian))
+        id 1AlnuQ-0007hv-00
+        for <linux-media@vger.kernel.org>; Fri, 27 May 2011 13:36:49 +0200
+Received: from bjorn by 193.160.199.2 with local (Gmexim 0.1 (Debian))
+        id 1AlnuQ-0007hv-00
+        for <linux-media@vger.kernel.org>; Fri, 27 May 2011 13:36:49 +0200
 To: linux-media@vger.kernel.org
-CC: Antti Palosaari <crope@iki.fi>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>
-Subject: Re: [git:v4l-dvb/for_v2.6.40] [media] Sony CXD2820R DVB-T/T2/C	demodulator
- driver
-References: <E1QHwSm-0006hA-A9@www.linuxtv.org>
-In-Reply-To: <E1QHwSm-0006hA-A9@www.linuxtv.org>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+From: =?utf-8?Q?Bj=C3=B8rn_Mork?= <bjorn@mork.no>
+Subject: Re: PCTV nanoStick T2 290e support - Thank you!
+Date: Fri, 27 May 2011 13:36:37 +0200
+Message-ID: <8739k0tlx6.fsf@nemi.mork.no>
+References: <1306445141.14462.0.camel@porites> <4DDEDB0E.30108@iki.fi>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 8bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On 05/05/2011 12:53 PM, Mauro Carvalho Chehab wrote:
-> +		switch (priv->delivery_system) {
-> +		case SYS_UNDEFINED:
-> +			if (c->delivery_system == SYS_DVBT) {
-> +				/* SLEEP => DVB-T */
-> +				ret = cxd2820r_set_frontend_t(fe, p);
-> +			} else {
-> +				/* SLEEP => DVB-T2 */
-> +				ret = cxd2820r_set_frontend_t2(fe, p);
-> +			}
-> +			break;
-> +		case SYS_DVBT:
-> +			if (c->delivery_system == SYS_DVBT) {
-> +				/* DVB-T => DVB-T */
-> +				ret = cxd2820r_set_frontend_t(fe, p);
-> +			} else if (c->delivery_system == SYS_DVBT2) {
-> +				/* DVB-T => DVB-T2 */
-> +				ret = cxd2820r_sleep_t(fe);
-> +				ret = cxd2820r_set_frontend_t2(fe, p);
-> +			}
-> +			break;
-> +		case SYS_DVBT2:
-> +			if (c->delivery_system == SYS_DVBT2) {
+Antti Palosaari <crope@iki.fi> writes:
+> On 05/27/2011 12:25 AM, Nicolas WILL wrote:
+>> Just installed mine for MythTV.
+>>
+>> Works great on the first try!
+>>
+>> Many, many thanks!
+>
+> Thank you for the feedback!
 
-Is this driver compilable? I don't see the necessary changes to
-linux/dvb/frontend.h to add SYS_DVBT2 in your tree.
+I'm a bit curious about this device.  It seems to only be marketed as a
+DVB-T2 device in areas where that spec is used.  But looking at your
+driver, it seems that the device also supports DVB-C.  Is that correct?
 
-See below for a patch that I used for testing DVB-T2 internally.
 
-Regards,
-Andreas
 
---
-commit e89f95641f29b7a4457e7a68649f4374933e36a2
-Author: Andreas Oberritter <obi@linuxtv.org>
-Date:   Mon Mar 15 14:43:52 2010 +0100
+Bjørn
 
-    DVB: Add basic API support for DVB-T2 and bump minor version
-    
-    Signed-off-by: Andreas Oberritter <obi@linuxtv.org>
-
-diff --git a/drivers/media/dvb/dvb-core/dvb_frontend.c b/drivers/media/dvb/dvb-core/dvb_frontend.c
-index f5016ae..6f06efe 100644
---- a/drivers/media/dvb/dvb-core/dvb_frontend.c
-+++ b/drivers/media/dvb/dvb-core/dvb_frontend.c
-@@ -1141,10 +1141,9 @@ static void dtv_property_adv_params_sync(struct dvb_frontend *fe)
- 		break;
- 	}
- 
--	if(c->delivery_system == SYS_ISDBT) {
--		/* Fake out a generic DVB-T request so we pass validation in the ioctl */
--		p->frequency = c->frequency;
--		p->inversion = c->inversion;
-+	/* Fake out a generic DVB-T request so we pass validation in the ioctl */
-+	if ((c->delivery_system == SYS_ISDBT) ||
-+	    (c->delivery_system == SYS_DVBT2)) {
- 		p->u.ofdm.constellation = QAM_AUTO;
- 		p->u.ofdm.code_rate_HP = FEC_AUTO;
- 		p->u.ofdm.code_rate_LP = FEC_AUTO;
-diff --git a/include/linux/dvb/frontend.h b/include/linux/dvb/frontend.h
-index 493a2bf..36a3ed6 100644
---- a/include/linux/dvb/frontend.h
-+++ b/include/linux/dvb/frontend.h
-@@ -175,14 +175,20 @@ typedef enum fe_transmit_mode {
- 	TRANSMISSION_MODE_2K,
- 	TRANSMISSION_MODE_8K,
- 	TRANSMISSION_MODE_AUTO,
--	TRANSMISSION_MODE_4K
-+	TRANSMISSION_MODE_4K,
-+	TRANSMISSION_MODE_1K,
-+	TRANSMISSION_MODE_16K,
-+	TRANSMISSION_MODE_32K,
- } fe_transmit_mode_t;
- 
- typedef enum fe_bandwidth {
- 	BANDWIDTH_8_MHZ,
- 	BANDWIDTH_7_MHZ,
- 	BANDWIDTH_6_MHZ,
--	BANDWIDTH_AUTO
-+	BANDWIDTH_AUTO,
-+	BANDWIDTH_5_MHZ,
-+	BANDWIDTH_10_MHZ,
-+	BANDWIDTH_1_712_MHZ,
- } fe_bandwidth_t;
- 
- 
-@@ -191,7 +197,10 @@ typedef enum fe_guard_interval {
- 	GUARD_INTERVAL_1_16,
- 	GUARD_INTERVAL_1_8,
- 	GUARD_INTERVAL_1_4,
--	GUARD_INTERVAL_AUTO
-+	GUARD_INTERVAL_AUTO,
-+	GUARD_INTERVAL_1_128,
-+	GUARD_INTERVAL_19_128,
-+	GUARD_INTERVAL_19_256,
- } fe_guard_interval_t;
- 
- 
-@@ -305,7 +314,9 @@ struct dvb_frontend_event {
- 
- #define DTV_ISDBS_TS_ID		42
- 
--#define DTV_MAX_COMMAND				DTV_ISDBS_TS_ID
-+#define DTV_DVBT2_PLP_ID	43
-+
-+#define DTV_MAX_COMMAND				DTV_DVBT2_PLP_ID
- 
- typedef enum fe_pilot {
- 	PILOT_ON,
-@@ -337,6 +348,7 @@ typedef enum fe_delivery_system {
- 	SYS_DMBTH,
- 	SYS_CMMB,
- 	SYS_DAB,
-+	SYS_DVBT2,
- } fe_delivery_system_t;
- 
- struct dtv_cmds_h {
-diff --git a/include/linux/dvb/version.h b/include/linux/dvb/version.h
-index 5a7546c..1421cc8 100644
---- a/include/linux/dvb/version.h
-+++ b/include/linux/dvb/version.h
-@@ -24,6 +24,6 @@
- #define _DVBVERSION_H_
- 
- #define DVB_API_VERSION 5
--#define DVB_API_VERSION_MINOR 2
-+#define DVB_API_VERSION_MINOR 3
- 
- #endif /*_DVBVERSION_H_*/
