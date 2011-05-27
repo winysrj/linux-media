@@ -1,59 +1,44 @@
-Return-path: <mchehab@gaivota>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:39277 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752826Ab1ENOVr (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 14 May 2011 10:21:47 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: javier Martin <javier.martin@vista-silicon.com>
-Subject: Re: Current status report of mt9p031.
-Date: Sat, 14 May 2011 16:22:39 +0200
-Cc: Chris Rodley <carlighting@yahoo.co.nz>,
-	linux-media@vger.kernel.org, g.liakhovetski@gmx.de
-References: <935308.40531.qm@web112020.mail.gq1.yahoo.com> <BANLkTimvXHxmZ0io=9ZdCeLzTUQi0+S0bg@mail.gmail.com>
-In-Reply-To: <BANLkTimvXHxmZ0io=9ZdCeLzTUQi0+S0bg@mail.gmail.com>
-MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-15"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201105141622.39671.laurent.pinchart@ideasonboard.com>
+Return-path: <mchehab@pedra>
+Received: from lo.gmane.org ([80.91.229.12]:49226 "EHLO lo.gmane.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753181Ab1E0L67 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 27 May 2011 07:58:59 -0400
+Received: from list by lo.gmane.org with local (Exim 4.69)
+	(envelope-from <gldv-linux-media@m.gmane.org>)
+	id 1QPvgv-0005fC-NK
+	for linux-media@vger.kernel.org; Fri, 27 May 2011 13:58:57 +0200
+Received: from 193.160.199.2 ([193.160.199.2])
+        by main.gmane.org with esmtp (Gmexim 0.1 (Debian))
+        id 1AlnuQ-0007hv-00
+        for <linux-media@vger.kernel.org>; Fri, 27 May 2011 13:58:57 +0200
+Received: from bjorn by 193.160.199.2 with local (Gmexim 0.1 (Debian))
+        id 1AlnuQ-0007hv-00
+        for <linux-media@vger.kernel.org>; Fri, 27 May 2011 13:58:57 +0200
+To: linux-media@vger.kernel.org
+From: =?utf-8?Q?Bj=C3=B8rn_Mork?= <bjorn@mork.no>
+Subject: Re: PCTV nanoStick T2 290e support - Thank you!
+Date: Fri, 27 May 2011 13:58:46 +0200
+Message-ID: <87y61ss6bt.fsf@nemi.mork.no>
+References: <1306445141.14462.0.camel@porites> <4DDEDB0E.30108@iki.fi>
+	<8739k0tlx6.fsf@nemi.mork.no>
+	<ac07f3b673133d44f388843769c5f233@chewa.net>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 8bit
 List-ID: <linux-media.vger.kernel.org>
-Sender: Mauro Carvalho Chehab <mchehab@gaivota>
+Sender: <mchehab@pedra>
 
-Hi Javier,
-
-On Friday 13 May 2011 08:45:28 javier Martin wrote:
-> On 13 May 2011 07:02, Chris Rodley <carlighting@yahoo.co.nz> wrote:
-> > On 11/05/11 19:15, javier Martin wrote:
-> > 
-> > On 11 May 2011 06:54, Chris Rodley <carlighting@yahoo.co.nz> wrote:
-> >>  Thanks, sorry I should have spotted that.
-> > 
-> > Got some shots today. So I have caught up to where you were. Had a bit of
-> > messing around to do as my board connects power via gpio switches and I
-> > was porting other drivers from 2.6.32.
-> > 
-> > How are you progressing Javier?
+Rémi Denis-Courmont <remi@remlab.net> writes:
+> On Fri, 27 May 2011 13:36:37 +0200, Bjørn Mork <bjorn@mork.no> wrote:
+>
+>> I'm a bit curious about this device.  It seems to only be marketed as a
+>> DVB-T2 device in areas where that spec is used.  But looking at your
+>> driver, it seems that the device also supports DVB-C.  Is that correct?
 > 
-> I'm just waiting for Laurent to clarify an issue about  format matching
-> between mt9p031 and omap3isp.
-> He claimed to help me this weekend or next week.
+> At least, DVB-C worked for me.
 
-I have no mt9p031 here, so I've tried an mt9v032 (752x480 10-bit raw bayer) 
-with the latest OMAP3 ISP driver. I had to patch yavta to support 8-bit 
-formats, the patch has been pushed to the repository.
+Thanks.  Then I've ordered one of these :-)
 
-Running the following commands captured 4 frames successfully.
 
-./media-ctl -r -l '"mt9v032 3-005c":0->"OMAP3 ISP CCDC":0[1], "OMAP3 ISP 
-CCDC":1->"OMAP3 ISP CCDC output":0[1]'
-./media-ctl -f '"mt9v032 3-005c":0[SGRBG10 752x480 (1,5)/752x480], "OMAP3 ISP 
-CCDC":0[SGRBG8 752x480], "OMAP3 ISP CCDC":1[SGRBG8 752x480]'
+Bjørn
 
-./yavta -p -f SGRBG8 -s 752x480 -n 4 --capture=4 --skip 3 -F `./media-ctl -e 
-"OMAP3 ISP CCDC output"`
-
--- 
-Regards,
-
-Laurent Pinchart
