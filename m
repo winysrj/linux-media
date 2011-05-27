@@ -1,80 +1,64 @@
 Return-path: <mchehab@pedra>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:51758 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751593Ab1EOVN3 (ORCPT
+Received: from smtp-vbr8.xs4all.nl ([194.109.24.28]:3226 "EHLO
+	smtp-vbr8.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753818Ab1E0O6G (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 15 May 2011 17:13:29 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
-Subject: Re: [PATCH v2 1/1] v4l: Document EACCES in VIDIOC_[GS]_CTRL and VIDIOC_{G,S,TRY}_EXT_CTRLS
-Date: Sun, 15 May 2011 23:14:34 +0200
-Cc: linux-media@vger.kernel.org, hverkuil@xs4all.nl
-References: <1305473638-19440-1-git-send-email-sakari.ailus@maxwell.research.nokia.com>
-In-Reply-To: <1305473638-19440-1-git-send-email-sakari.ailus@maxwell.research.nokia.com>
-MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-15"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201105152314.34321.laurent.pinchart@ideasonboard.com>
+	Fri, 27 May 2011 10:58:06 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [RFCv1 PATCH 2/5] v4l2-controls.txt: update to latest v4l2-ctrl.c changes.
+Date: Fri, 27 May 2011 16:57:52 +0200
+Message-Id: <29e131f3a44d9c1a875fad8309cce6be4ed13365.1306507763.git.hans.verkuil@cisco.com>
+In-Reply-To: <1306508275-9228-1-git-send-email-hverkuil@xs4all.nl>
+References: <1306508275-9228-1-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <287bab4f54ddce64458a69e0407d5866158fda0a.1306507763.git.hans.verkuil@cisco.com>
+References: <287bab4f54ddce64458a69e0407d5866158fda0a.1306507763.git.hans.verkuil@cisco.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Sunday 15 May 2011 17:33:58 Sakari Ailus wrote:
-> VIDIOC_S_CTRL and VIDIOC_S_EXT_CTRLS return EACCES when setting a read-only
-> control VIDIOC_TRY_EXT_CTRLS when trying a read-only control and
-> VIDIOC_G_CTRL and VIDIOC_G_EXT_CTRLS when getting a write-only control.
-> Document this.
-> 
-> Signed-off-by: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ Documentation/video4linux/v4l2-controls.txt |   13 ++++---------
+ 1 files changed, 4 insertions(+), 9 deletions(-)
 
-> ---
->  Documentation/DocBook/v4l/vidioc-g-ctrl.xml      |    7 +++++++
->  Documentation/DocBook/v4l/vidioc-g-ext-ctrls.xml |    7 +++++++
->  2 files changed, 14 insertions(+), 0 deletions(-)
-> 
-> diff --git a/Documentation/DocBook/v4l/vidioc-g-ctrl.xml
-> b/Documentation/DocBook/v4l/vidioc-g-ctrl.xml index 8b5e6ff..5146d00
-> 100644
-> --- a/Documentation/DocBook/v4l/vidioc-g-ctrl.xml
-> +++ b/Documentation/DocBook/v4l/vidioc-g-ctrl.xml
-> @@ -117,6 +117,13 @@ because another applications took over control of the
-> device function this control belongs to.</para>
->  	</listitem>
->        </varlistentry>
-> +      <varlistentry>
-> +	<term><errorcode>EACCES</errorcode></term>
-> +	<listitem>
-> +	  <para>Attempt to set a read-only control or to get a
-> +	  write-only control.</para>
-> +	</listitem>
-> +      </varlistentry>
->      </variablelist>
->    </refsect1>
->  </refentry>
-> diff --git a/Documentation/DocBook/v4l/vidioc-g-ext-ctrls.xml
-> b/Documentation/DocBook/v4l/vidioc-g-ext-ctrls.xml index 3aa7f8f..5e73517
-> 100644
-> --- a/Documentation/DocBook/v4l/vidioc-g-ext-ctrls.xml
-> +++ b/Documentation/DocBook/v4l/vidioc-g-ext-ctrls.xml
-> @@ -294,6 +294,13 @@ The field <structfield>size</structfield> is set to a
-> value that is enough to store the payload and this error code is
-> returned.</para>
->  	</listitem>
->        </varlistentry>
-> +      <varlistentry>
-> +	<term><errorcode>EACCES</errorcode></term>
-> +	<listitem>
-> +	  <para>Attempt to try or set a read-only control or to get a
-> +	  write-only control.</para>
-> +	</listitem>
-> +      </varlistentry>
->      </variablelist>
->    </refsect1>
->  </refentry>
-
+diff --git a/Documentation/video4linux/v4l2-controls.txt b/Documentation/video4linux/v4l2-controls.txt
+index bc24be4..65d4652 100644
+--- a/Documentation/video4linux/v4l2-controls.txt
++++ b/Documentation/video4linux/v4l2-controls.txt
+@@ -277,16 +277,13 @@ implement g_volatile_ctrl like this:
+ 	{
+ 		switch (ctrl->id) {
+ 		case V4L2_CID_BRIGHTNESS:
+-			ctrl->cur.val = read_reg(0x123);
++			ctrl->val = read_reg(0x123);
+ 			break;
+ 		}
+ 	}
+ 
+-The 'new value' union is not used in g_volatile_ctrl. In general controls
+-that need to implement g_volatile_ctrl are read-only controls.
+-
+-Note that if one or more controls in a control cluster are marked as volatile,
+-then all the controls in the cluster are seen as volatile.
++Note that you use the 'new value' union as well in g_volatile_ctrl. In general
++controls that need to implement g_volatile_ctrl are read-only controls.
+ 
+ To mark a control as volatile you have to set the is_volatile flag:
+ 
+@@ -638,9 +635,7 @@ button controls are write-only controls.
+ -EINVAL as the spec says.
+ 
+ 5) The spec does not mention what should happen when you try to set/get a
+-control class controls. ivtv currently returns -EINVAL (indicating that the
+-control ID does not exist) while the framework will return -EACCES, which
+-makes more sense.
++control class controls. The framework will return -EACCES.
+ 
+ 
+ Proposals for Extensions
 -- 
-Regards,
+1.7.1
 
-Laurent Pinchart
