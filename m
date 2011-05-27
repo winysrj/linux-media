@@ -1,100 +1,68 @@
-Return-path: <mchehab@gaivota>
-Received: from tulikuusama.dnainternet.net ([83.102.40.132]:56278 "EHLO
-	tulikuusama.dnainternet.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758159Ab1EMXIF (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 13 May 2011 19:08:05 -0400
-Message-ID: <4DCDB9CB.7030306@iki.fi>
-Date: Sat, 14 May 2011 02:07:55 +0300
-From: Anssi Hannula <anssi.hannula@iki.fi>
-MIME-Version: 1.0
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-CC: Peter Hutterer <peter.hutterer@who-t.net>,
-	linux-media@vger.kernel.org,
-	"linux-input@vger.kernel.org" <linux-input@vger.kernel.org>,
-	xorg-devel@lists.freedesktop.org
-Subject: Re: IR remote control autorepeat / evdev
-References: <4DC61E28.4090301@iki.fi> <20110510041107.GA32552@barra.redhat.com> <4DC8C9B6.5000501@iki.fi> <20110510053038.GA5808@barra.redhat.com> <4DC940E5.2070902@iki.fi> <4DCA1496.20304@redhat.com> <4DCABA42.30505@iki.fi> <4DCABEAE.4080607@redhat.com> <4DCACE74.6050601@iki.fi> <4DCB213A.8040306@redhat.com> <4DCB2BD9.6090105@iki.fi> <4DCB336B.2090303@redhat.com> <4DCB39AF.2000807@redhat.com> <4DCC71B5.8080306@iki.fi> <4DCDB333.8000801@redhat.com>
-In-Reply-To: <4DCDB333.8000801@redhat.com>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Return-path: <mchehab@pedra>
+Received: from lo.gmane.org ([80.91.229.12]:58376 "EHLO lo.gmane.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750886Ab1E0Ml3 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 27 May 2011 08:41:29 -0400
+Received: from list by lo.gmane.org with local (Exim 4.69)
+	(envelope-from <gldv-linux-media@m.gmane.org>)
+	id 1QPwM4-0008MR-M6
+	for linux-media@vger.kernel.org; Fri, 27 May 2011 14:41:28 +0200
+Received: from 193.160.199.2 ([193.160.199.2])
+        by main.gmane.org with esmtp (Gmexim 0.1 (Debian))
+        id 1AlnuQ-0007hv-00
+        for <linux-media@vger.kernel.org>; Fri, 27 May 2011 14:41:28 +0200
+Received: from bjorn by 193.160.199.2 with local (Gmexim 0.1 (Debian))
+        id 1AlnuQ-0007hv-00
+        for <linux-media@vger.kernel.org>; Fri, 27 May 2011 14:41:28 +0200
+To: linux-media@vger.kernel.org
+From: =?utf-8?Q?Bj=C3=B8rn_Mork?= <bjorn@mork.no>
+Subject: Re: PCTV nanoStick T2 290e support - Thank you!
+Date: Fri, 27 May 2011 14:41:14 +0200
+Message-ID: <87ipsws4d1.fsf@nemi.mork.no>
+References: <1306445141.14462.0.camel@porites> <4DDEDB0E.30108@iki.fi>
+	<8739k0tlx6.fsf@nemi.mork.no> <1306498221.4412.179.camel@ares>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 8bit
 List-ID: <linux-media.vger.kernel.org>
-Sender: Mauro Carvalho Chehab <mchehab@gaivota>
+Sender: <mchehab@pedra>
 
-On 14.05.2011 01:39, Mauro Carvalho Chehab wrote:
-> Em 13-05-2011 01:48, Anssi Hannula escreveu:
->> On 12.05.2011 04:36, Mauro Carvalho Chehab wrote:
->>> Em 12-05-2011 03:10, Mauro Carvalho Chehab escreveu:
->>>> Em 12-05-2011 02:37, Anssi Hannula escreveu:
->>>
->>>>> I don't see any other places:
->>>>> $ git grep 'REP_PERIOD' .
->>>>> dvb/dvb-usb/dvb-usb-remote.c:   input_dev->rep[REP_PERIOD] =
->>>>> d->props.rc.legacy.rc_interval;
->>>>
->>>> Indeed, the REP_PERIOD is not adjusted on other drivers. I agree that we
->>>> should change it to something like 125ms, for example, as 33ms is too 
->>>> short, as it takes up to 114ms for a repeat event to arrive.
->>>>
->>> IMO, the enclosed patch should do a better job with repeat events, without
->>> needing to change rc-core/input/event logic.
->>
->> It will indeed reduce the amount of ghost events so it brings us in the
->> right direction.
->>
->> I'd still like to get rid of the ghost repeats entirely, or at least
->> some way for users to do it if we don't do it by default.
-> 
->> Maybe we could replace the kernel softrepeat with native repeats (for
->> those protocols/drivers that have them), while making sure that repeat
->> events before REP_DELAY are ignored and repeat events less than
->> REP_PERIOD since the previous event are ignored, so the users can still
->> configure them as they like? 
->>
-> 
-> This doesn't seem to be the right thing to do. If the kernel will
-> accept 33 ms as the value or REP_PERIOD, but it will internally 
-> set the maximum repeat rate is 115 ms (no matter what logic it would
-> use for that), Kernel (or X) shouldn't allow the user to set a smaller value. 
-> 
-> The thing is that writing a logic to block a small value is not easy, since 
-> the max value is protocol-dependent (worse than that, on some cases, it is 
-> device-specific). It seems better to add a warning at the userspace tools 
-> that delays lower than 115 ms can produce ghost events on IR's.
+Steve Kerrison <steve@stevekerrison.com> writes:
 
->From what I see, even periods longer than 115 ms can produce ghost events.
+> The demodulator chip supports T,T2 and C.
+>
+> Here in the UK you're not really allowed to attach cable receivers that
+> aren't supplied by the cable company (Virgin Media). That and the fact
+> that it has no access module for obvious reasons, I guess PCTV Systems
+> didn't see the benefit in marketing the C functionality.
 
-For example with your patch softrepeat period is 125ms, release timeout
-250ms, and a native rate of 110ms:
+Well, I found it a bit weird that they do announce DVB-T + DVB-C support
+for the "PCTV QuatroStick nano" (which has the exact same form factor
+and look, and therefore obviously no CA slot either):
+http://www.pctvsystems.com/Products/ProductsEuropeAsia/Hybridproducts/PCTVQuatroSticknano/tabid/254/language/en-GB/Default.aspx
 
-There are 4 native events transmitted at
-000 ms
-110 ms
-220 ms
-330 ms
-(user stops between 330ms and 440ms)
+While the "PCTV nanoStick T2" is announced as only DVB-T2 + DVB-T:
+http://www.pctvsystems.com/Products/ProductsEuropeAsia/Digitalproducts/PCTVnanoStickT2/tabid/248/language/en-GB/Default.aspx
 
-This causes these events in the evdev interface:
-000: 1
-125: 2
-250: 2
-375: 2
-500: 2
-550: 0
+That's why I asked, even though the driver clearly supports DVB-C.  But
+you may be right that this is because the "nanoStick T2" currently is
+targeted for the UK.
 
-So we got 1-2 ghost repeat events.
+Around here, we've actually got some cable companies supporting TV sets
+with integrated receivers.  Of course requiring their CAM.  They
+probably still don't like the thought of PC based receivers, but there
+is some hope...
 
->> Or maybe just a module option that causes rc-core to use native repeat
->> events, for those of us that want accurate repeat events without ghosting?
-> 
-> If the user already knows about the possibility to generate ghost effects,
-> with low delays, he can simply not pass a bad value to the kernel, instead 
-> of forcing a modprobe parameter that will limit the minimal value.
 
-There is no "good value" for REP_PERIOD (as in ghost repeats guaranteed
-gone like with native repeats). Sufficiently large values will make
-ghost repeats increasingly rare, but the period becomes so long the
-autorepeat becomes frustratingly slow to use.
+> I don't actually know if the windows driver supports C mode, it would be
+> amusing if we deliver more functionality with the Linux driver :)
 
--- 
-Anssi Hannula
+I thought downloading the Windows driver would tell, but
+a) I cannot seem to find the Windows driver for this device, and
+b) this info isn't easily found in the drivers I looked at
+
+So who knows?  It would certainly be amusing.
+
+
+Bjørn
+
