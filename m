@@ -1,73 +1,52 @@
-Return-path: <mchehab@gaivota>
-Received: from proofpoint-cluster.metrocast.net ([65.175.128.136]:46746 "EHLO
-	proofpoint-cluster.metrocast.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757168Ab1ENMar (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 14 May 2011 08:30:47 -0400
-Subject: Re: [PATCHv2] v4l: Add M420 format definition
-From: Andy Walls <awalls@md.metrocast.net>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	linux-media@vger.kernel.org
-In-Reply-To: <201105131643.41364.laurent.pinchart@ideasonboard.com>
-References: <1305277915-8383-1-git-send-email-laurent.pinchart@ideasonboard.com>
-	 <Pine.LNX.4.64.1105131356410.26356@axis700.grange>
-	 <201105131643.41364.laurent.pinchart@ideasonboard.com>
-Content-Type: text/plain; charset="UTF-8"
-Date: Sat, 14 May 2011 09:31:55 -0400
-Message-ID: <1305379915.2434.35.camel@localhost>
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+Return-path: <mchehab@pedra>
+Received: from mx1.redhat.com ([209.132.183.28]:32003 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751551Ab1E0UQ4 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 27 May 2011 16:16:56 -0400
+Received: from int-mx09.intmail.prod.int.phx2.redhat.com (int-mx09.intmail.prod.int.phx2.redhat.com [10.5.11.22])
+	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id p4RKGthF002760
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
+	for <linux-media@vger.kernel.org>; Fri, 27 May 2011 16:16:56 -0400
+From: Jarod Wilson <jarod@redhat.com>
+To: linux-media@vger.kernel.org
+Cc: Jarod Wilson <jarod@redhat.com>
+Subject: [PATCH] [media] fintek-cir: make suspend with active IR more reliable
+Date: Fri, 27 May 2011 16:16:54 -0400
+Message-Id: <1306527414-19015-1-git-send-email-jarod@redhat.com>
 List-ID: <linux-media.vger.kernel.org>
-Sender: Mauro Carvalho Chehab <mchehab@gaivota>
+Sender: <mchehab@pedra>
 
-On Fri, 2011-05-13 at 16:43 +0200, Laurent Pinchart wrote:
-> Hi Guennadi,
-> 
-> On Friday 13 May 2011 14:01:32 Guennadi Liakhovetski wrote:
-> > Couldn't spot any problems with the patch except:
-> > 
-> > On Fri, 13 May 2011, Laurent Pinchart wrote:
-> > > From: Hans de Goede <hdegoede@redhat.com>
-> > > 
-> > > M420 is an hybrid YUV 4:2:2 packet/planar format. Two Y lines are
-> > 
-> > Didn't you mean "4:2:0"?
-> 
-> Yep. I'll fix that. Thanks for the review.
-> 
-> > And if I wanted to nit-pick, I think, it should be "a hybrid," I'm not a
-> > native-speaker though;)
+There was a missing lock in fintek_suspend. Without the lock, its
+possible the system will be in the middle of receiving IR (draining the
+RX buffer) when we try to disable CIR interrupts.
 
-Yes, "a hybrid" is the correct form.
+Signed-off-by: Jarod Wilson <jarod@redhat.com>
+---
+ drivers/media/rc/fintek-cir.c |    5 +++++
+ 1 files changed, 5 insertions(+), 0 deletions(-)
 
-<digression>
-The use of "a" or "an" is a speech rule; not a spelling rule.  If the
-word begins with a consonant sound, "a" is used; if the word begins with
-a vowel sound, "-n" is appended, so "an" is used.
-
-The initial sounds of English words that begin with "h", "u", and "y"
-can't be determined by the inital letter alone.  One has to know how to
-pronounce the word to choose the correct form:
-
-	a hint
-	a unit
-	a yard
-
-	an hour
-	an umbrella
-	an yttrium atom
-
-The rule for appending "-n" to "a" before a vowel sound allows faster
-speech.  Without the "-n" before a vowel sound, an English speaker is
-going to pronounce the "a" either as a dipthong or with a trailing
-glottal stop.  Either will slow down speech ever so slightly.
-</digression>
-
-Regards,
-Andy
-
-> I'll fix that too :-)
-> 
-
+diff --git a/drivers/media/rc/fintek-cir.c b/drivers/media/rc/fintek-cir.c
+index 8fa539d..7f7079b 100644
+--- a/drivers/media/rc/fintek-cir.c
++++ b/drivers/media/rc/fintek-cir.c
+@@ -597,12 +597,17 @@ static void __devexit fintek_remove(struct pnp_dev *pdev)
+ static int fintek_suspend(struct pnp_dev *pdev, pm_message_t state)
+ {
+ 	struct fintek_dev *fintek = pnp_get_drvdata(pdev);
++	unsigned long flags;
+ 
+ 	fit_dbg("%s called", __func__);
+ 
++	spin_lock_irqsave(&fintek->fintek_lock, flags);
++
+ 	/* disable all CIR interrupts */
+ 	fintek_cir_reg_write(fintek, CIR_STATUS_IRQ_MASK, CIR_STATUS);
+ 
++	spin_unlock_irqrestore(&fintek->fintek_lock, flags);
++
+ 	fintek_config_mode_enable(fintek);
+ 
+ 	/* disable cir logical dev */
+-- 
+1.7.1
 
