@@ -1,47 +1,186 @@
 Return-path: <mchehab@pedra>
-Received: from mx1.redhat.com ([209.132.183.28]:59160 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753437Ab1EENji (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 5 May 2011 09:39:38 -0400
-Message-ID: <4DC2A892.5080104@redhat.com>
-Date: Thu, 05 May 2011 10:39:30 -0300
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-MIME-Version: 1.0
-To: Simon Farnsworth <simon.farnsworth@onelan.co.uk>
-CC: Andy Walls <awalls@md.metrocast.net>,
-	Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org,
-	Steven Toth <stoth@kernellabs.com>
-Subject: Re: [PATCH] cx18: Clean up mmap() support for raw YUV
-References: <4DBFDF71.5090705@redhat.com> <201105041032.24644.simon.farnsworth@onelan.co.uk> <4DC28CEE.1080304@redhat.com> <201105051344.59759.simon.farnsworth@onelan.co.uk>
-In-Reply-To: <201105051344.59759.simon.farnsworth@onelan.co.uk>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Received: from proofpoint-cluster.metrocast.net ([65.175.128.136]:33308 "EHLO
+	proofpoint-cluster.metrocast.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751926Ab1E1Ul0 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sat, 28 May 2011 16:41:26 -0400
+Subject: Re: [PATCH] [media] lirc_dev: store cdev in irctl, up maxdevs
+From: Andy Walls <awalls@md.metrocast.net>
+To: Jarod Wilson <jarod@redhat.com>
+Cc: linux-media@vger.kernel.org
+In-Reply-To: <1306526466-18717-1-git-send-email-jarod@redhat.com>
+References: <1306526466-18717-1-git-send-email-jarod@redhat.com>
+Content-Type: text/plain; charset="UTF-8"
+Date: Sat, 28 May 2011 12:42:41 -0400
+Message-ID: <1306600961.8085.15.camel@localhost>
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Em 05-05-2011 09:44, Simon Farnsworth escreveu:
-> On Thursday 5 May 2011, Mauro Carvalho Chehab <mchehab@redhat.com> wrote:
->> There are a few new warnings with your code:
->>
->> drivers/media/video/cx18/cx18-mailbox.c: In function
->> ‘cx18_mdl_send_to_videobuf’: drivers/media/video/cx18/cx18-mailbox.c:206:
->> warning: passing argument 1 of ‘ktime_get_ts’ from incompatible pointer
->> type include/linux/ktime.h:331: note: expected ‘struct timespec *’ but
->> argument is of type ‘struct timeval *’
->> drivers/media/video/cx18/cx18-mailbox.c:170: warning: unused variable ‘i’
->> drivers/media/video/cx18/cx18-mailbox.c:167: warning: unused variable ‘u’
->>
->> Could you please fix them?
->>
-> I'm not doing well on the driving git front today, and I've managed to send 
-> the fix patch with a wrong "In-reply-to"; it's message ID is 
-> <1304599356-21951-1-git-send-email-simon.farnsworth@onelan.co.uk>, and it's 
-> elsewhere in this thread (in reply to <4DC138F7.5050400@infradead.org>)
+On Fri, 2011-05-27 at 16:01 -0400, Jarod Wilson wrote:
+> Store the cdev pointer in struct irctl, allocated dynamically as needed,
+> rather than having a static array. At the same time, recycle some of the
+> saved memory to nudge the maximum number of lirc devices supported up a
+> ways -- its not that uncommon these days, now that we have the rc-core
+> lirc bridge driver, to see a system with at least 4 raw IR receivers.
+> (consider a mythtv backend with several video capture devices and the
+> possible need for IR transmit hardware).
+> 
+> Signed-off-by: Jarod Wilson <jarod@redhat.com>
+> ---
+>  drivers/media/rc/lirc_dev.c |   33 ++++++++++++++++++++++++---------
+>  include/media/lirc_dev.h    |    2 +-
+>  2 files changed, 25 insertions(+), 10 deletions(-)
+> 
+> diff --git a/drivers/media/rc/lirc_dev.c b/drivers/media/rc/lirc_dev.c
+> index fd237ab..9e79692 100644
+> --- a/drivers/media/rc/lirc_dev.c
+> +++ b/drivers/media/rc/lirc_dev.c
+> @@ -55,6 +55,8 @@ struct irctl {
+>  	struct lirc_buffer *buf;
+>  	unsigned int chunk_size;
+>  
+> +	struct cdev *cdev;
+> +
+>  	struct task_struct *task;
+>  	long jiffies_to_wait;
+>  };
+> @@ -62,7 +64,6 @@ struct irctl {
+>  static DEFINE_MUTEX(lirc_dev_lock);
+>  
+>  static struct irctl *irctls[MAX_IRCTL_DEVICES];
+> -static struct cdev cdevs[MAX_IRCTL_DEVICES];
+>  
+>  /* Only used for sysfs but defined to void otherwise */
+>  static struct class *lirc_class;
+> @@ -169,7 +170,9 @@ static int lirc_cdev_add(struct irctl *ir)
+>  {
+>  	int retval;
+>  	struct lirc_driver *d = &ir->d;
+> -	struct cdev *cdev = &cdevs[d->minor];
+> +	struct cdev *cdev;
+> +
+> +	cdev = kzalloc(sizeof(*cdev), GFP_KERNEL);
 
-No problem. I don't rely very much on in-reply-to, as patchwork doesn't care
-about it (unfortunately, as it would help to detect patches superseded/grouped).
+	if (cdev == NULL) 
+		
 
-Mauro.
+>  	if (d->fops) {
+>  		cdev_init(cdev, d->fops);
 
+	   generate_oops();
+
+;)
+
+Regards,
+Andy
+
+
+> @@ -180,12 +183,20 @@ static int lirc_cdev_add(struct irctl *ir)
+>  	}
+>  	retval = kobject_set_name(&cdev->kobj, "lirc%d", d->minor);
+>  	if (retval)
+> -		return retval;
+> +		goto err_out;
+>  
+>  	retval = cdev_add(cdev, MKDEV(MAJOR(lirc_base_dev), d->minor), 1);
+> -	if (retval)
+> +	if (retval) {
+>  		kobject_put(&cdev->kobj);
+> +		goto err_out;
+> +	}
+> +
+> +	ir->cdev = cdev;
+> +
+> +	return 0;
+>  
+> +err_out:
+> +	kfree(cdev);
+>  	return retval;
+>  }
+>  
+> @@ -214,7 +225,7 @@ int lirc_register_driver(struct lirc_driver *d)
+>  	if (MAX_IRCTL_DEVICES <= d->minor) {
+>  		dev_err(d->dev, "lirc_dev: lirc_register_driver: "
+>  			"\"minor\" must be between 0 and %d (%d)!\n",
+> -			MAX_IRCTL_DEVICES-1, d->minor);
+> +			MAX_IRCTL_DEVICES - 1, d->minor);
+>  		err = -EBADRQC;
+>  		goto out;
+>  	}
+> @@ -369,7 +380,7 @@ int lirc_unregister_driver(int minor)
+>  
+>  	if (minor < 0 || minor >= MAX_IRCTL_DEVICES) {
+>  		printk(KERN_ERR "lirc_dev: %s: minor (%d) must be between "
+> -		       "0 and %d!\n", __func__, minor, MAX_IRCTL_DEVICES-1);
+> +		       "0 and %d!\n", __func__, minor, MAX_IRCTL_DEVICES - 1);
+>  		return -EBADRQC;
+>  	}
+>  
+> @@ -380,7 +391,7 @@ int lirc_unregister_driver(int minor)
+>  		return -ENOENT;
+>  	}
+>  
+> -	cdev = &cdevs[minor];
+> +	cdev = ir->cdev;
+>  
+>  	mutex_lock(&lirc_dev_lock);
+>  
+> @@ -410,6 +421,7 @@ int lirc_unregister_driver(int minor)
+>  	} else {
+>  		lirc_irctl_cleanup(ir);
+>  		cdev_del(cdev);
+> +		kfree(cdev);
+>  		kfree(ir);
+>  		irctls[minor] = NULL;
+>  	}
+> @@ -453,7 +465,7 @@ int lirc_dev_fop_open(struct inode *inode, struct file *file)
+>  		goto error;
+>  	}
+>  
+> -	cdev = &cdevs[iminor(inode)];
+> +	cdev = ir->cdev;
+>  	if (try_module_get(cdev->owner)) {
+>  		ir->open++;
+>  		retval = ir->d.set_use_inc(ir->d.data);
+> @@ -484,13 +496,15 @@ EXPORT_SYMBOL(lirc_dev_fop_open);
+>  int lirc_dev_fop_close(struct inode *inode, struct file *file)
+>  {
+>  	struct irctl *ir = irctls[iminor(inode)];
+> -	struct cdev *cdev = &cdevs[iminor(inode)];
+> +	struct cdev *cdev;
+>  
+>  	if (!ir) {
+>  		printk(KERN_ERR "%s: called with invalid irctl\n", __func__);
+>  		return -EINVAL;
+>  	}
+>  
+> +	cdev = ir->cdev;
+> +
+>  	dev_dbg(ir->d.dev, LOGHEAD "close called\n", ir->d.name, ir->d.minor);
+>  
+>  	WARN_ON(mutex_lock_killable(&lirc_dev_lock));
+> @@ -503,6 +517,7 @@ int lirc_dev_fop_close(struct inode *inode, struct file *file)
+>  		lirc_irctl_cleanup(ir);
+>  		cdev_del(cdev);
+>  		irctls[ir->d.minor] = NULL;
+> +		kfree(cdev);
+>  		kfree(ir);
+>  	}
+>  
+> diff --git a/include/media/lirc_dev.h b/include/media/lirc_dev.h
+> index 630e702..168dd0b 100644
+> --- a/include/media/lirc_dev.h
+> +++ b/include/media/lirc_dev.h
+> @@ -9,7 +9,7 @@
+>  #ifndef _LINUX_LIRC_DEV_H
+>  #define _LINUX_LIRC_DEV_H
+>  
+> -#define MAX_IRCTL_DEVICES 4
+> +#define MAX_IRCTL_DEVICES 8
+>  #define BUFLEN            16
+>  
+>  #define mod(n, div) ((n) % (div))
 
 
