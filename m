@@ -1,42 +1,39 @@
 Return-path: <mchehab@pedra>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:38979 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753219Ab1EYUGX (ORCPT
+Received: from yop.chewa.net ([91.121.105.214]:49922 "EHLO yop.chewa.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753373Ab1E1NEt convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 25 May 2011 16:06:23 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Jerry Geis <geisj@messagenetsystems.com>
-Subject: Re: h.264 web cam
-Date: Wed, 25 May 2011 22:06:38 +0200
-Cc: linux-media@vger.kernel.org, Hans Verkuil <hverkuil@xs4all.nl>
-References: <4DDD5C3B.6060706@MessageNetSystems.com>
-In-Reply-To: <4DDD5C3B.6060706@MessageNetSystems.com>
+	Sat, 28 May 2011 09:04:49 -0400
+From: "=?utf-8?q?R=C3=A9mi?= Denis-Courmont" <remi@remlab.net>
+To: Antti Palosaari <crope@iki.fi>, linux-media@vger.kernel.org
+Subject: Re: PCTV nanoStick T2 290e support - Thank you!
+Date: Sat, 28 May 2011 16:04:47 +0300
+Cc: Steve Kerrison <steve@stevekerrison.com>
+References: <1306445141.14462.0.camel@porites> <4DDEDB0E.30108@iki.fi>
+In-Reply-To: <4DDEDB0E.30108@iki.fi>
 MIME-Version: 1.0
 Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201105252206.39243.laurent.pinchart@ideasonboard.com>
+  charset="utf-8"
+Content-Transfer-Encoding: 8BIT
+Message-Id: <201105281604.48018.remi@remlab.net>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Hi Jerry,
-
-On Wednesday 25 May 2011 21:44:59 Jerry Geis wrote:
-> I am trying to find the code for h.264 mentioned
->  http://www.spinics.net/lists/linux-media/msg29129.html
+Le vendredi 27 mai 2011 01:58:22 Antti Palosaari, vous avez écrit :
+> On 05/27/2011 12:25 AM, Nicolas WILL wrote:
+> > Just installed mine for MythTV.
+> > 
+> > Works great on the first try!
+> > 
+> > Many, many thanks!
 > 
-> I downloaded the linux-media-2011-05.24 and it is not part of uvc_driver.c
-> 
-> Where can I get the code?
+> Thank you for the feedback!
 
-That code only exists in the patches you've found. They haven't been applied 
-to the uvcvideo driver, because we haven't decided yet how H.264 should be 
-exposed to applications by the V4L2 API.
-
-We now have a better understanding of H.264. Hans, could you review the H.264 
-patch at the link above and tell me what you now think about the new fourcc ?
+By the way, what is the V4L2 device node supposed to be? I don't suppose the 
+hardware supports analog nor hardware decoding!? Is it just a left over from 
+the em28xx driver?
 
 -- 
-Regards,
-
-Laurent Pinchart
+Rémi Denis-Courmont
+http://www.remlab.net/
+http://fi.linkedin.com/in/remidenis
