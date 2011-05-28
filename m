@@ -1,72 +1,93 @@
 Return-path: <mchehab@pedra>
-Received: from mail-ey0-f174.google.com ([209.85.215.174]:52229 "EHLO
-	mail-ey0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750824Ab1EAEyJ (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sun, 1 May 2011 00:54:09 -0400
-Received: by eyx24 with SMTP id 24so1473430eyx.19
-        for <linux-media@vger.kernel.org>; Sat, 30 Apr 2011 21:54:08 -0700 (PDT)
+Received: from mx1.redhat.com ([209.132.183.28]:60225 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753455Ab1E1OKw (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 28 May 2011 10:10:52 -0400
+Message-ID: <4DE10266.1070709@redhat.com>
+Date: Sat, 28 May 2011 11:10:46 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
 MIME-Version: 1.0
-In-Reply-To: <B2B80B47-7366-41D4-8051-FF82B9198FA8@wilsonet.com>
-References: <BANLkTinp69oB1qCK_ieX8vYm3F+Qd=e2mg@mail.gmail.com>
-	<B2B80B47-7366-41D4-8051-FF82B9198FA8@wilsonet.com>
-Date: Sun, 1 May 2011 14:54:07 +1000
-Message-ID: <BANLkTi=u26EwJ+yV9Z96J0yPyCGEUcgiiQ@mail.gmail.com>
-Subject: Re: imon: spews to dmesg
-From: Vincent McIntyre <vincent.mcintyre@gmail.com>
-To: Jarod Wilson <jarod@wilsonet.com>
-Cc: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
+To: Hans de Goede <hdegoede@redhat.com>
+CC: Hans Verkuil <hverkuil@xs4all.nl>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Devin Heitmueller <dheitmueller@kernellabs.com>
+Subject: Re: [ANNOUNCE] experimental alsa stream support at xawtv3
+References: <4DDAC0C2.7090508@redhat.com> <201105240850.35032.hverkuil@xs4all.nl> <4DDB5C6B.6000608@redhat.com> <4DDBBC29.80009@infradead.org> <4DDBD504.5020109@redhat.com> <4DE0EE44.8060000@infradead.org>
+In-Reply-To: <4DE0EE44.8060000@infradead.org>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On 4/20/11, Jarod Wilson <jarod@wilsonet.com> wrote:
+Em 28-05-2011 09:44, Mauro Carvalho Chehab escreveu:
 
+>> Anyways I think we're are currently
+>> doing this the wrong way up. We should first discuss what such an API
+>> should look like and then implement it. Hopefully we can re-use a lot
+>> of the existing code when we do this, but I think it is better
+>> to first design the API and then write code to the API, the current
+>> API at least to me feels somewhat like an API written around existing
+>> code rather then the other way around.
+> 
+> No, was just the opposite: the API were designed to fulfil the needs by
+> the alsa streaming methods implemented by Devin at tvtime:
+> 
+> int alsa_thread_startup(const char *pdevice, const char *cdevice);
+> 
+> The two arguments are the alsa playback device and the alsa capture device.
+> 
+> the API were designed around that, to do something like:
+> 
+> 	struct some_opaque_struct *opaque = discover_media_devices();
+> 	alsa_playback = alsa_playback(opaque);
+> 	alsa_capture = alsa_capture(opaque);
+> 	alsa_thread_startup(alsa_playback, alsa_capture);
+> 	free_media_devices(opaque);
+> 
+> PS.: I'm not using the real names/arguments at the above, to keep the example
+>      simpler and clearer. The actual code is not that different from the above:
+> 
+> 	struct media_devices *md;
+> 	unsigned int size = 0;
+> 	char *alsa_cap, *alsa_out, *p;
+> 	char *video_dev = "/dev/video0";
+> 
+> 	md = discover_media_devices(&size);
+> 	p = strrchr(video_dev, '/');
+> 	alsa_cap = get_first_alsa_cap_device(md, size, p + 1);
+> 	alsa_out = get_first_no_video_out_device(md, size);
+> 	if (alsa_cap && alsa_out)
+> 		alsa_handler(alsa_out, alsa_cap);
+> 	free_media_devices(md, size);
+> 	...
+> 	fd = open(video_dev, "rw");
 
-> Those are almost all dev_dbg spew.
+I decided to re-organize the way the API will handle the devices, in order
+to make clearer that the internal struct should be opaque to the applications
+using the library [1].
 
-Indeed, it seems to come from
+[1] http://git.linuxtv.org/v4l-utils.git?a=commitdiff;h=435f4ba896f76d92a800a2089e06618d8c3d93f0
 
-        retval = send_packet(ictx);
-        if (retval) {
-                pr_err("send packet failed!\n");
-                goto exit;
-        } else {
-                dev_dbg(ictx->dev, "%s: write %d bytes to LCD\n",
-                        __func__, (int) n_bytes);
-        }
+Now, the functions will just return a void pointer that is used as a parameter
+for the other functions.
 
-in imon.c
+So, the typical usecase is, currently:
 
+	void *md;
+	char *alsa_playback, *alsa_capture, *p;
 
-> The normal way to enable dev_dbg spew is via some debugfs magic:
->
-> http://outer-rim.gnu4u.org/?p=38
->
-> (see also <kernel source>/Documentation/dynamic-debug-howto.txt)
->
+	md = discover_media_devices();
+	if (!md)
+		return;
+	alsa_capture = get_first_alsa_cap_device(md, video_dev);
+	alsa_playback = get_first_no_video_out_device(md);
+	if (alsa_capture && alsa_playback)
+		alsa_handler(alsa_playback, alsa_capture);
+	free_media_devices(md);
 
-I don't quite see why this would have happened since I didn't have a
-debugfs mounted
-during the build or after rebooting to use the new modules, to the
-best of my knowledge.
+I'll be working on improving the API, in order to read the uevent information from the
+media nodes (were device major/minor info are stored) and to associate a device with
+its file descriptor.
 
-> But I also seem to recall that DEBUG may be getting defined
-> somewhere as part of the media_build process, which might be what
-> is enabling that spew in your case.
-
-I can't follow the flow in the build system well enough to see for
-sure where this would be enabled or not, but some after grepping I
-found the following in the file
- /linux/drivers/media/dvb/ttusb-budget/dvb-ttusb-budget.c
- 136-
- 137:#define DEBUG 0
- 138-static int ttusb_cmd(struct ttusb *ttusb,
-
-All other uses of DEBUG that I can find are #if'ed or #ifdef'ed in the
-C code files.
-
-dvb-ttusb-budget.c is being built, but why should the definition there
-affect other modules?
-
-Cheers
-Vince
+Cheers,
+Mauro
