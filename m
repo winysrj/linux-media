@@ -1,121 +1,85 @@
 Return-path: <mchehab@pedra>
-Received: from mx1.redhat.com ([209.132.183.28]:31281 "EHLO mx1.redhat.com"
+Received: from mail.perches.com ([173.55.12.10]:2185 "EHLO mail.perches.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756892Ab1EWTGj (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 23 May 2011 15:06:39 -0400
-Message-ID: <4DDAB038.2060801@redhat.com>
-Date: Mon, 23 May 2011 16:06:32 -0300
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-MIME-Version: 1.0
-To: Hans Petter Selasky <hselasky@c2i.net>
-CC: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Subject: Re: [PATCH] Alternate setting 1 must be selected for interface 0
- on the model that I received. Else the rest is identical.
-References: <201105231637.39053.hselasky@c2i.net> <4DDAA415.40007@redhat.com> <201105232048.47280.hselasky@c2i.net>
-In-Reply-To: <201105232048.47280.hselasky@c2i.net>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+	id S1751971Ab1E1Rgz (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 28 May 2011 13:36:55 -0400
+From: Joe Perches <joe@perches.com>
+To: linux-atm-general@lists.sourceforge.net, netdev@vger.kernel.org,
+	drbd-user@lists.linbit.com, dm-devel@redhat.com,
+	linux-raid@vger.kernel.org, linux-mtd@lists.infradead.org,
+	linux-scsi@vger.kernel.org, linux-fbdev@vger.kernel.org,
+	xen-devel@lists.xensource.com,
+	virtualization@lists.linux-foundation.org,
+	codalist@coda.cs.cmu.edu, reiserfs-devel@vger.kernel.org,
+	linux-mm@kvack.org, containers@lists.linux-foundation.org,
+	netfilter-devel@vger.kernel.org, netfilter@vger.kernel.org,
+	coreteam@netfilter.org, rds-devel@oss.oracle.com
+Cc: linux-s390@vger.kernel.org, linux-kernel@vger.kernel.org,
+	linux-media@vger.kernel.org, devel@driverdev.osuosl.org,
+	xfs@oss.sgi.com
+Subject: [TRIVIAL PATCH next 00/15] treewide: Convert vmalloc/memset to vzalloc
+Date: Sat, 28 May 2011 10:36:20 -0700
+Message-Id: <cover.1306603968.git.joe@perches.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Em 23-05-2011 15:48, Hans Petter Selasky escreveu:
-> On Monday 23 May 2011 20:14:45 Mauro Carvalho Chehab wrote:
->> Em 23-05-2011 11:37, Hans Petter Selasky escreveu:
->>
->> I don't have any ttusb device here, but I doubt that this would work.
-> 
-> Hi,
-> 
-> It is already tested and works fine.
+Resubmittal of patches from November 2010 and a few new ones.
 
-This will work for you, but it will likely break for the others. Your patch
-is assuming that returning an error if selecting alt 1 is enough to know that
-alt 0 should be used.
+Joe Perches (15):
+  s390: Convert vmalloc/memset to vzalloc
+  x86: Convert vmalloc/memset to vzalloc
+  atm: Convert vmalloc/memset to vzalloc
+  drbd: Convert vmalloc/memset to vzalloc
+  char: Convert vmalloc/memset to vzalloc
+  isdn: Convert vmalloc/memset to vzalloc
+  md: Convert vmalloc/memset to vzalloc
+  media: Convert vmalloc/memset to vzalloc
+  mtd: Convert vmalloc/memset to vzalloc
+  scsi: Convert vmalloc/memset to vzalloc
+  staging: Convert vmalloc/memset to vzalloc
+  video: Convert vmalloc/memset to vzalloc
+  fs: Convert vmalloc/memset to vzalloc
+  mm: Convert vmalloc/memset to vzalloc
+  net: Convert vmalloc/memset to vzalloc
 
-> What I see is that interface 1 does not have an alternate setting like the 
-> driver code expects, while interface 0 does. So it is the opposite of what the 
-> driver expects. Maybe the manufacturer changed something. Endpoints are still 
-> the same.
+ arch/s390/hypfs/hypfs_diag.c           |    3 +--
+ arch/x86/mm/pageattr-test.c            |    3 +--
+ drivers/atm/idt77252.c                 |   11 ++++++-----
+ drivers/atm/lanai.c                    |    3 +--
+ drivers/block/drbd/drbd_bitmap.c       |    5 ++---
+ drivers/char/agp/backend.c             |    3 +--
+ drivers/char/raw.c                     |    3 +--
+ drivers/isdn/i4l/isdn_common.c         |    4 ++--
+ drivers/isdn/mISDN/dsp_core.c          |    3 +--
+ drivers/isdn/mISDN/l1oip_codec.c       |    6 ++----
+ drivers/md/dm-log.c                    |    3 +--
+ drivers/md/dm-snap-persistent.c        |    3 +--
+ drivers/md/dm-table.c                  |    4 +---
+ drivers/media/video/videobuf2-dma-sg.c |    8 ++------
+ drivers/mtd/mtdswap.c                  |    3 +--
+ drivers/s390/cio/blacklist.c           |    3 +--
+ drivers/scsi/bfa/bfad.c                |    3 +--
+ drivers/scsi/bfa/bfad_debugfs.c        |    8 ++------
+ drivers/scsi/cxgbi/libcxgbi.h          |    6 ++----
+ drivers/scsi/qla2xxx/qla_attr.c        |    6 ++----
+ drivers/scsi/qla2xxx/qla_bsg.c         |    3 +--
+ drivers/scsi/scsi_debug.c              |    7 ++-----
+ drivers/staging/rts_pstor/ms.c         |    3 +--
+ drivers/staging/rts_pstor/rtsx_chip.c  |    6 ++----
+ drivers/video/arcfb.c                  |    5 ++---
+ drivers/video/broadsheetfb.c           |    4 +---
+ drivers/video/hecubafb.c               |    5 ++---
+ drivers/video/metronomefb.c            |    4 +---
+ drivers/video/xen-fbfront.c            |    3 +--
+ fs/coda/coda_linux.h                   |    5 ++---
+ fs/reiserfs/journal.c                  |    9 +++------
+ fs/reiserfs/resize.c                   |    4 +---
+ fs/xfs/linux-2.6/kmem.h                |    7 +------
+ mm/page_cgroup.c                       |    3 +--
+ net/netfilter/x_tables.c               |    5 ++---
+ net/rds/ib_cm.c                        |    6 ++----
+ 36 files changed, 57 insertions(+), 113 deletions(-)
 
-That sometimes happen. Or maybe you just need a different size.
-> 
-> Please find attached an USB descriptor dump from this device.
-
-Int 0, endpoint 0:
-
-    Interface 0
-      bLength = 0x0009 
-      bDescriptorType = 0x0004 
-      bInterfaceNumber = 0x0000 
-      bAlternateSetting = 0x0000 
-      bNumEndpoints = 0x0003 
-      bInterfaceClass = 0x0000 
-      bInterfaceSubClass = 0x0000 
-      bInterfaceProtocol = 0x0000 
-      iInterface = 0x0000  <no string>
-
-...
-
-     Endpoint 2
-        bLength = 0x0007 
-        bDescriptorType = 0x0005 
-        bEndpointAddress = 0x0082  <IN>
-        bmAttributes = 0x0001  <ISOCHRONOUS>
-        wMaxPacketSize = 0x0000 
-        bInterval = 0x0001 
-        bRefresh = 0x0000 
-        bSynchAddress = 0x0000 
-
-...
-
-    Interface 0 Alt 1
-      bLength = 0x0009 
-      bDescriptorType = 0x0004 
-      bInterfaceNumber = 0x0000 
-      bAlternateSetting = 0x0001 
-      bNumEndpoints = 0x0003 
-      bInterfaceClass = 0x0000 
-      bInterfaceSubClass = 0x0000 
-      bInterfaceProtocol = 0x0000 
-      iInterface = 0x0000  <no string>
-
-...
-     Endpoint 2
-        bLength = 0x0007 
-        bDescriptorType = 0x0005 
-        bEndpointAddress = 0x0082  <IN>
-        bmAttributes = 0x0001  <ISOCHRONOUS>
-        wMaxPacketSize = 0x0390 
-        bInterval = 0x0001 
-        bRefresh = 0x0000 
-        bSynchAddress = 0x0000 
-
-Hmm... assuming that the driver is using ISOC transfers, the difference between
-alt 0 and alt 1 is that, on alt0, the mwMaxPacketSize is 0 (so, you can't use it
-for isoc transfers), while, on alt 1, wMaxPacketSize is 0x390.
-
-What the driver should be doing is to select an alt mode where the wMaxPacketSize is 
-big enough to handle the transfer.
-
-Calculating what "big enough"   is device-dependent, but, basically, a 480 Mbps
-USB bus is capable of providing 800 isoc slots per interval. If the packets are bigger,
-the max bandwidth is bigger.
-
-You're able to see the amount of packets per interval by doing a cat /proc/bus/usb/devices:
-
-T:  Bus=01 Lev=00 Prnt=00 Port=00 Cnt=00 Dev#=  1 Spd=480  MxCh= 8
-B:  Alloc=  0/800 us ( 0%), #Int=  0, #Iso=  0
-
-The "B:" line above shows the USB bandwidth usage.
-
-> 
->>
->> Alternates should be selected depending on the bandwidth needed. The right
->> way is to write some logic that will get the maximum packet size for each
->> mode, between the alternates that provide the type of transfer (Bulk or
->> ISOC) accepted by the driver.
-> 
-> Right, but this driver doesn't do this. It only selects a working one.
-> 
-> --HPS
+-- 
+1.7.5.rc3.dirty
 
