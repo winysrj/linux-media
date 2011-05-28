@@ -1,153 +1,69 @@
 Return-path: <mchehab@pedra>
-Received: from mx1.redhat.com ([209.132.183.28]:20453 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932223Ab1EWTsF (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 23 May 2011 15:48:05 -0400
-Message-ID: <4DDAB9ED.1020309@redhat.com>
-Date: Mon, 23 May 2011 16:47:57 -0300
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Received: from smtp-68.nebula.fi ([83.145.220.68]:33228 "EHLO
+	smtp-68.nebula.fi" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752872Ab1E1Kst (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sat, 28 May 2011 06:48:49 -0400
+Date: Sat, 28 May 2011 13:48:45 +0300
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-media@vger.kernel.org, Hans Verkuil <hans.verkuil@cisco.com>
+Subject: Re: [RFCv2 PATCH 07/11] v4l2-ctrls: add control events.
+Message-ID: <20110528104845.GB4991@valkosipuli.localdomain>
+References: <6cea502820c1684f34b9e862a64be2972afb718f.1306329390.git.hans.verkuil@cisco.com>
+ <2c6e1531f7f9ab33b60e8c7f972f58a0dd6fbbd1.1306329390.git.hans.verkuil@cisco.com>
 MIME-Version: 1.0
-To: Hans Petter Selasky <hselasky@c2i.net>
-CC: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Subject: Re: [PATCH] Alternate setting 1 must be selected for interface 0
- on the model that I received. Else the rest is identical.
-References: <201105231637.39053.hselasky@c2i.net> <201105232048.47280.hselasky@c2i.net> <4DDAB038.2060801@redhat.com> <201105232117.22890.hselasky@c2i.net>
-In-Reply-To: <201105232117.22890.hselasky@c2i.net>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <2c6e1531f7f9ab33b60e8c7f972f58a0dd6fbbd1.1306329390.git.hans.verkuil@cisco.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Em 23-05-2011 16:17, Hans Petter Selasky escreveu:
-> On Monday 23 May 2011 21:06:32 Mauro Carvalho Chehab wrote:
->> Em 23-05-2011 15:48, Hans Petter Selasky escreveu:
->>> On Monday 23 May 2011 20:14:45 Mauro Carvalho Chehab wrote:
->>>> Em 23-05-2011 11:37, Hans Petter Selasky escreveu:
->>>>
->>>> I don't have any ttusb device here, but I doubt that this would work.
->>>
->>> Hi,
->>>
->>> It is already tested and works fine.
->>
->> This will work for you, but it will likely break for the others. Your patch
->> is assuming that returning an error if selecting alt 1 is enough to know
->> that alt 0 should be used.
->>
->>> What I see is that interface 1 does not have an alternate setting like
->>> the driver code expects, while interface 0 does. So it is the opposite
->>> of what the driver expects. Maybe the manufacturer changed something.
->>> Endpoints are still the same.
->>
->> That sometimes happen. Or maybe you just need a different size.
->>
->>> Please find attached an USB descriptor dump from this device.
->>
->> Int 0, endpoint 0:
->>
->>     Interface 0
->>       bLength = 0x0009
->>       bDescriptorType = 0x0004
->>       bInterfaceNumber = 0x0000
->>       bAlternateSetting = 0x0000
->>       bNumEndpoints = 0x0003
->>       bInterfaceClass = 0x0000
->>       bInterfaceSubClass = 0x0000
->>       bInterfaceProtocol = 0x0000
->>       iInterface = 0x0000  <no string>
->>
->> ...
->>
->>      Endpoint 2
->>         bLength = 0x0007
->>         bDescriptorType = 0x0005
->>         bEndpointAddress = 0x0082  <IN>
->>         bmAttributes = 0x0001  <ISOCHRONOUS>
->>         wMaxPacketSize = 0x0000
->>         bInterval = 0x0001
->>         bRefresh = 0x0000
->>         bSynchAddress = 0x0000
->>
->> ...
->>
->>     Interface 0 Alt 1
->>       bLength = 0x0009
->>       bDescriptorType = 0x0004
->>       bInterfaceNumber = 0x0000
->>       bAlternateSetting = 0x0001
->>       bNumEndpoints = 0x0003
->>       bInterfaceClass = 0x0000
->>       bInterfaceSubClass = 0x0000
->>       bInterfaceProtocol = 0x0000
->>       iInterface = 0x0000  <no string>
->>
->> ...
->>      Endpoint 2
->>         bLength = 0x0007
->>         bDescriptorType = 0x0005
->>         bEndpointAddress = 0x0082  <IN>
->>         bmAttributes = 0x0001  <ISOCHRONOUS>
->>         wMaxPacketSize = 0x0390
->>         bInterval = 0x0001
->>         bRefresh = 0x0000
->>         bSynchAddress = 0x0000
->>
-> 
-> Hi,
-> 
->> Hmm... assuming that the driver is using ISOC transfers, the difference
->> between alt 0 and alt 1 is that, on alt0, the mwMaxPacketSize is 0 (so,
->> you can't use it for isoc transfers), while, on alt 1, wMaxPacketSize is
->> 0x390.
->>
->> What the driver should be doing is to select an alt mode where the
->> wMaxPacketSize is big enough to handle the transfer.
-> 
-> I can write the code to do that. Summed up:
-> 
-> 1) Search interface 0, for alternate settings that have an ISOC-IN and 
-> wMaxPacket != 0. Select this alternate setting.
-> 
-> 2) Search interface 1, for alternate settings that have an ISOC-IN and 
-> wMaxPacket != 0. Select this alternate setting.
+Hi Hans,
+
+On Wed, May 25, 2011 at 03:33:51PM +0200, Hans Verkuil wrote:
+> @@ -1800,21 +1801,45 @@ struct v4l2_event_vsync {
+>  	__u8 field;
+>  } __attribute__ ((packed));
 >  
-> 3) Done.
-> 
-> Do you think this will work better?
-> 
->> Calculating what "big enough"   is device-dependent, but, basically, a 480
->> Mbps USB bus is capable of providing 800 isoc slots per interval. If the
->> packets are bigger, the max bandwidth is bigger.
-> 
-> This is a FULL speed device, max 10MBit/second.
+> +/* Payload for V4L2_EVENT_CTRL */
+> +#define V4L2_EVENT_CTRL_CH_VALUE		(1 << 0)
+> +#define V4L2_EVENT_CTRL_CH_FLAGS		(1 << 1)
+> +
+> +struct v4l2_event_ctrl {
+> +	__u32 changes;
+> +	__u32 type;
+> +	union {
+> +		__s32 value;
+> +		__s64 value64;
+> +	};
+> +	__u32 flags;
+> +	__s32 minimum;
+> +	__s32 maximum;
+> +	__s32 step;
+> +	__s32 default_value;
+> +} __attribute__ ((packed));
+> +
 
-Hmm... USB 1.1 devices are even more limited on the amount of used bandwidth.
-The above procedure is better than the one you've proposed, but yet you may
-not be able to receive channels with higher bandwidths.
+One more comment.
 
-The usb "max" limit is lower than the maximum bandwidth. I think that full
-speed provides 900 isoc slots per interval, but the interval for usb 1.1 is
-higher (1s, while the interval for usb 2.0 is 125 us), but you need to double 
-check such constraints at the USB 1.1 and 2.0 specs, as I may be wrong on that,
-as I read it a long time ago ;)
+Do we really need type and default_value in the event? They are static, and
+on the other hand, the type should be already defined by the control so
+that's static, as I'd expect default_value would be.
 
-The proper way would be to have a function that would dynamically select
-the alternate depending on the channel bandwidth and on the stream needs.
+It just looks like this attempts to reimplement what QUERYCTRL does. :-)
+Step, min and max values may change, so they are good.
 
-Someone might of course just write a code that selects the highest wMaxPacket,
-but this would cause some troubles if another device is connected to the
-USB 1.1 bus.
+More fields can be added later on. User space libraries / applications using
+this structure might have different views of its size, though, depending
+which definition they used at compile time. So in principle also this
+structure should have reserved fields, although not having such and still
+changing it might not have any adverse effects at all.
 
-> 
->> You're able to see the amount of packets per interval by doing a cat
->> /proc/bus/usb/devices:
->>
->> T:  Bus=01 Lev=00 Prnt=00 Port=00 Cnt=00 Dev#=  1 Spd=480  MxCh= 8
->> B:  Alloc=  0/800 us ( 0%), #Int=  0, #Iso=  0
->>
->> The "B:" line above shows the USB bandwidth usage.
-> 
-> Do you need this information to proceed with the patch?
-> 
-> --HPS
+Btw. why __attribute__ ((packed))?
 
+Regards,
+
+-- 
+Sakari Ailus
+sakari dot ailus at iki dot fi
