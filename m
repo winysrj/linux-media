@@ -1,53 +1,60 @@
 Return-path: <mchehab@pedra>
-Received: from stevekez.vm.bytemark.co.uk ([80.68.91.30]:41253 "EHLO
-	stevekerrison.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754437Ab1EXMFi (ORCPT
+Received: from nm30.bullet.mail.ac4.yahoo.com ([98.139.52.227]:45811 "HELO
+	nm30.bullet.mail.ac4.yahoo.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with SMTP id S1753483Ab1E1O0f (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 24 May 2011 08:05:38 -0400
-Subject: Re: dvb: one demux per tuner or one demux per demod?
-From: Steve Kerrison <steve@stevekerrison.com>
-To: =?ISO-8859-1?Q?R=E9mi?= Denis-Courmont <remi@remlab.net>
-Cc: linux-media@vger.kernel.org, vlc-devel@videolan.org
-In-Reply-To: <719f9c4d1bd57d5b2711bc24a9d5c3b1@chewa.net>
-References: <719f9c4d1bd57d5b2711bc24a9d5c3b1@chewa.net>
-Content-Type: text/plain; charset="UTF-8"
-Date: Tue, 24 May 2011 13:05:34 +0100
-Message-ID: <1306238734.7397.102.camel@ares>
-Mime-Version: 1.0
-Content-Transfer-Encoding: 8bit
+	Sat, 28 May 2011 10:26:35 -0400
+Message-ID: <492883.34889.qm@web33208.mail.mud.yahoo.com>
+Date: Sat, 28 May 2011 07:21:06 -0700 (PDT)
+From: Moacyr Prado <mwprado@yahoo.com>
+Subject: Re: Need Some Help to Add a Device  
+To: linux-media@vger.kernel.org
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Hi Rémi,
+I've seen in kernel code there are tda78271, saa7134 drivers, could anyone to explain if I could add a device sent on last mail?
 
-The cxd2820r supports DVB-T/T2 and also DVB-C. As such antti coded up a
-multiple front end (MFE) implementation for em28xx then attaches the
-cxd2820r in both modes.
+--- On Fri, 5/27/11, Moacyr Prado <mwprado@yahoo.com> wrote:
 
-I believe you can only use one frontend at once per adapter (this is
-certainly enforced in the cxd2820r module), so I don't see how it would
-cause a problem for mappings. I think a dual tuner device would register
-itself as two adapters, wouldn't it?
-
-But I'm new at this, so forgive me if I've overlooked something or
-misunderstood the issue you've raised.
-
-Regards,
--- 
-Steve Kerrison MEng Hons.
-http://www.stevekerrison.com/ 
-
-On Tue, 2011-05-24 at 12:55 +0200, Rémi Denis-Courmont wrote:
-> Hello,
+> From: Moacyr Prado <mwprado@yahoo.com>
+> Subject: Brazilian HDTV device
+> To: linux-media@vger.kernel.org
+> Date: Friday, May 27, 2011, 9:20 AM
+> Hi, I have a board with empia
+> chipset. The em28xx driver not load, 
+> because the device ID is not listed on source(cards.c, I
+> guess). 
 > 
-> Been testing the bleeding-edge Hauppauge 290E (em28174 + Sony cxd2820r)
-> from Antti Palosaari and Steve Kerrison, now in linux-media GIT tree.
+> Following bellow 
+> have some infos from board:
+> lsusb:
+> Bus 001 Device 004: ID 1b80:e755 Afatech
 > 
-> It seems the device creates two frontends and only one demux/dvr nodes.
-> Are they not supposed to be one demux per frontend? Or how is user-space
-> supposed to map the demux/dvr and the frontend, on a multi-proto card? on a
-> multi-tuner card?
+> Opening the device, shows this ic:
 > 
-> Best regards,
+> empia em2888 d351c-195 727-00ag (em28xx)
+> nxp saa7136e/1/g SI5296.1 22 ZSD08411
+> NXP TDA 18271??C2 HDC2? (tda18271)
+> F JAPAN mb86a20s 0937 M01 E1 (mb86a20s)
 > 
-
+> but... dmesg shows:
+> 
+> [18373.454136] usb 6-1: USB disconnect, address 2
+> [18376.744074] usb 2-1: new high speed USB device using
+> ehci_hcd and address 9
+> [18376.860283] usb 2-1: New USB device found,
+> idVendor=1b80, idProduct=e755
+> [18376.860293] usb 2-1: New USB device strings: Mfr=0,
+> Product=1, SerialNumber=2
+> [18376.860300] usb 2-1: Product: USB 2885 Device
+> [18376.860306] usb 2-1: SerialNumber: 1
+> 
+> 
+> Could The em28xx module (writing some code for me)handle
+> this device?
+> 
+> Thanks,
+> Moa
+> 
