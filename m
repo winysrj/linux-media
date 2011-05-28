@@ -1,60 +1,50 @@
 Return-path: <mchehab@pedra>
-Received: from stevekez.vm.bytemark.co.uk ([80.68.91.30]:41036 "EHLO
-	stevekerrison.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750949Ab1E0MK0 (ORCPT
+Received: from moutng.kundenserver.de ([212.227.17.10]:54950 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753486Ab1E1PEk (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 27 May 2011 08:10:26 -0400
-Subject: Re: PCTV nanoStick T2 290e support - Thank you!
-From: Steve Kerrison <steve@stevekerrison.com>
-To: =?ISO-8859-1?Q?Bj=F8rn?= Mork <bjorn@mork.no>
-Cc: linux-media@vger.kernel.org
-In-Reply-To: <8739k0tlx6.fsf@nemi.mork.no>
-References: <1306445141.14462.0.camel@porites> <4DDEDB0E.30108@iki.fi>
-	 <8739k0tlx6.fsf@nemi.mork.no>
-Content-Type: text/plain; charset="UTF-8"
-Date: Fri, 27 May 2011 13:10:21 +0100
-Message-ID: <1306498221.4412.179.camel@ares>
-Mime-Version: 1.0
-Content-Transfer-Encoding: 8bit
+	Sat, 28 May 2011 11:04:40 -0400
+Date: Sat, 28 May 2011 17:04:33 +0200 (CEST)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: javier Martin <javier.martin@vista-silicon.com>
+cc: Koen Kooi <koen@beagleboard.org>, beagleboard@googlegroups.com,
+	linux-media@vger.kernel.org, laurent.pinchart@ideasonboard.com,
+	carlighting@yahoo.co.nz
+Subject: Re: [beagleboard] [PATCH] Second RFC version of mt9p031 sensor with
+ power managament.
+In-Reply-To: <Pine.LNX.4.64.1105281542200.6780@axis700.grange>
+Message-ID: <Pine.LNX.4.64.1105281701530.6780@axis700.grange>
+References: <1306322212-26879-1-git-send-email-javier.martin@vista-silicon.com>
+ <F50AF7E4-DCBA-4FC9-971A-ADF01F342FEF@beagleboard.org>
+ <BANLkTiksN_+12hdQFOQ9+bS5LBU+QSR4cA@mail.gmail.com>
+ <07EF42D6-0587-4F35-8431-E03B9994F9B5@beagleboard.org>
+ <BANLkTikon2uw4DWcsXLCnLD1crfbV7HP_Q@mail.gmail.com>
+ <Pine.LNX.4.64.1105281542200.6780@axis700.grange>
+MIME-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-The demodulator chip supports T,T2 and C.
+On Sat, 28 May 2011, Guennadi Liakhovetski wrote:
 
-Here in the UK you're not really allowed to attach cable receivers that
-aren't supplied by the cable company (Virgin Media). That and the fact
-that it has no access module for obvious reasons, I guess PCTV Systems
-didn't see the benefit in marketing the C functionality.
+> Hi Javier
+> 
+> On Thu, 26 May 2011, javier Martin wrote:
+> 
+> > I use a patched version of yavta and Mplayer to see video
+> > (http://download.open-technology.de/BeagleBoard_xM-MT9P031/)
+> 
+> Are you really using those versions and patches, as described in 
+> BBxM-MT9P031.txt? I don't think those versions still work with 2.6.39, 
+> they don't even compile for me. Whereas if I take current HEAD, it builds 
+> and media-ctl seems to run error-free, but yavta produces no output.
 
-I don't actually know if the windows driver supports C mode, it would be
-amusing if we deliver more functionality with the Linux driver :)
+Ok, sorry for the noise. It works with current media-ctl with no patches, 
+so, we better don't try to confuse our users / testers:)
 
-Regards,
--- 
-Steve Kerrison MEng Hons.
-http://www.stevekerrison.com/ 
-
-On Fri, 2011-05-27 at 13:36 +0200, Bjørn Mork wrote:
-> Antti Palosaari <crope@iki.fi> writes:
-> > On 05/27/2011 12:25 AM, Nicolas WILL wrote:
-> >> Just installed mine for MythTV.
-> >>
-> >> Works great on the first try!
-> >>
-> >> Many, many thanks!
-> >
-> > Thank you for the feedback!
-> 
-> I'm a bit curious about this device.  It seems to only be marketed as a
-> DVB-T2 device in areas where that spec is used.  But looking at your
-> driver, it seems that the device also supports DVB-C.  Is that correct?
-> 
-> 
-> 
-> Bjørn
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-
+Thanks
+Guennadi
+---
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
+http://www.open-technology.de/
