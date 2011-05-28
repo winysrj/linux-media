@@ -1,77 +1,57 @@
 Return-path: <mchehab@pedra>
-Received: from smtp-vbr16.xs4all.nl ([194.109.24.36]:1297 "EHLO
-	smtp-vbr16.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751086Ab1E3KwZ (ORCPT
+Received: from smtp-vbr4.xs4all.nl ([194.109.24.24]:4501 "EHLO
+	smtp-vbr4.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752659Ab1E1WiE convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 30 May 2011 06:52:25 -0400
-Message-ID: <322765c00a668d7915214de27d3debe7.squirrel@webmail.xs4all.nl>
-In-Reply-To: <4DE365A8.9050508@section5.ch>
-References: <4DE244F4.90203@section5.ch>
-    <201105300932.59570.hverkuil@xs4all.nl>
-    <4DE365A8.9050508@section5.ch>
-Date: Mon, 30 May 2011 12:52:21 +0200
-Subject: Re: v4l2 device property framework in userspace
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: "Martin Strubel" <hackfin@section5.ch>
-Cc: linux-media@vger.kernel.org
+	Sat, 28 May 2011 18:38:04 -0400
+Received: from basedrum.localnet (ereprijs.demon.nl [83.161.20.106])
+	by smtp-vbr4.xs4all.nl (8.13.8/8.13.8) with ESMTP id p4SMc1q1030993
+	for <linux-media@vger.kernel.org>; Sun, 29 May 2011 00:38:01 +0200 (CEST)
+	(envelope-from willem@ereprijs.demon.nl)
+From: Willem van Asperen <willem@ereprijs.demon.nl>
+To: linux-media@vger.kernel.org
+Subject: Re: [linux-dvb] Terratec Cinergy C HD - CAM support.... Need help?
+Date: Sun, 29 May 2011 00:38:00 +0200
+References: <201105272148.04347.willem@ereprijs.demon.nl> <4DE002DB.8000304@dommel.be> <87wrhbql6b.fsf@nemi.mork.no>
+In-Reply-To: <87wrhbql6b.fsf@nemi.mork.no>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+Content-Type: Text/Plain;
+  charset="utf-8"
+Content-Transfer-Encoding: 8BIT
+Message-Id: <201105290038.01048.willem@ereprijs.demon.nl>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-> Hi,
->
->>
->> Yes. As long as the sensors are implemented as sub-devices (see
->> Documentation/video4linux/v4l2-framework.txt) then you can add lots of
->> custom
->> controls to those subdevs that can be exposed to userspace. Writing
->> directly
->> to sensor registers from userspace is a no-go. If done correctly using
->> the
->> control framework (see Documentation/video4linux/v4l2-controls.txt) this
->> shouldn't
->> take a lot of code. The hardest part is probably documentation of those
->> controls.
->>
->
-> Well, we could generate all the control handlers from XML by writing
-> appropriate style sheets, but the point is that there are by now a few
-> hundreds of registers covered up in the current driver. Putting this
-> into the kernel would horribly bloat it, and this again is a no go on
-> our embedded system.
-> Documentation is also generated per property, BTW (as long as the user
-> fills in the <info> node)
-> Just to outline again what we're doing: The access to the registers (at
-> least to the SPI control interface) is in fact in kernel space, just the
-> handlers (and remember, there are a few 100s of them) are not. This
-> keeps the kernel layer lean and mean.
+On Saturday 28 May 2011 10:33:16 Bjørn Mork wrote:
+> Marc Coevoet <marcc@dommel.be> writes:
+> > Op 27-05-11 21:48, Willem van Asperen schreef:
+> >> a) CAM support is currently not implemented for terratec HD
+> >
+> > For all cards?
+> 
+> The CA code in the mantis driver isn't actually hooked into the driver
+> anywhere, so that't correct: No CAM will currently work with the
+> Terratec Cinergy C HD.
+> 
+> Exported, but never called:
+> 
+>  bjorn@canardo:/usr/local/src/git/linux-2.6/drivers/media/dvb/mantis$ grep
+>  mantis_ca_init *.c mantis_ca.c:int mantis_ca_init(struct mantis_pci
+>  *mantis)
+>  mantis_ca.c:EXPORT_SYMBOL_GPL(mantis_ca_init);
+> 
+> 
+> I don't know why, but I assume it's the same as with the remote control
+> code that was recently fixed Christoph Pinkl: The code probably wasn't
+> considered production ready when the driver was merged, and was therefore
+> "temporarily" disabled until it could be fixed.
+> 
+> 
+> Bjørn
+Can anyone confirm this and, if so, is someone working on getting this fixed?
 
-Can you give examples of the sort of things that are in those registers?
-Is that XML file available somewhere? Are there public datasheets?
-
-BTW, you should need just a single control handler that just looks up all
-the relevant information in a table.
-
-> For machine vision people, most of the typical v4l2 controls are
-> irrelevant, but for things like video format, we just pass ioctl calls
-> to user space via kernel events, handle them, and pass the register
-> read/write sequence back to the kernel.
-> What problem do you see doing it this way? There seem to be various uio
-> based drivers out for v4l2 devices.
-
-If V4L2 drivers want to go into the kernel, then it is highly unlikely we
-want to allow uio drivers. Such drivers cannot be reused. A typical sensor
-can be used by many vendors and products. By ensuring that access to the
-sensor is standardized you ensure that anyone can use that sensor and that
-fixes/improvements to that sensor will benefit everyone.
-
-You don't have that with uio, and that's the reason we don't want it
-(other reasons are possible abuse of uio allowing closed source drivers
-being build on top of it).
+Like I said, happy to dig in and see if I can help here. But I would at least 
+need to know what the current status is and an idea where the problem(s) sit.
 
 Regards,
-
-         Hans
-
+Willem
