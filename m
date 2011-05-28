@@ -1,57 +1,63 @@
 Return-path: <mchehab@pedra>
-Received: from mail-ey0-f174.google.com ([209.85.215.174]:56442 "EHLO
-	mail-ey0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753154Ab1ECPr5 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 3 May 2011 11:47:57 -0400
-Received: by eyx24 with SMTP id 24so66492eyx.19
-        for <linux-media@vger.kernel.org>; Tue, 03 May 2011 08:47:56 -0700 (PDT)
+Received: from yop.chewa.net ([91.121.105.214]:46553 "EHLO yop.chewa.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751327Ab1E1Mzd convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sat, 28 May 2011 08:55:33 -0400
+Received: from basile.remlab.net (cs27062010.pp.htv.fi [89.27.62.10])
+	(using TLSv1 with cipher DHE-RSA-AES256-SHA (256/256 bits))
+	(No client certificate requested)
+	(Authenticated sender: remi)
+	by yop.chewa.net (Postfix) with ESMTPSA id 376C1C8
+	for <linux-media@vger.kernel.org>; Sat, 28 May 2011 14:55:32 +0200 (CEST)
+From: "=?iso-8859-1?q?R=E9mi?= Denis-Courmont" <remi@remlab.net>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: [ANNOUNCE] experimental alsa stream support at xawtv3
+Date: Sat, 28 May 2011 15:55:27 +0300
+References: <4DDAC0C2.7090508@redhat.com> <4DDB5C6B.6000608@redhat.com> <4DDBBC29.80009@infradead.org>
+In-Reply-To: <4DDBBC29.80009@infradead.org>
 MIME-Version: 1.0
-In-Reply-To: <63E3BF90-BF19-43E3-B8DD-6D6F4896F2E7@wilsonet.com>
-References: <20110423005412.12978e29@darkstar>
-	<20110424163530.2bc1b365@darkstar>
-	<BCCEA9F4-16D7-4E63-B32C-15217AA094F3@wilsonet.com>
-	<20110425201835.0fbb84ee@darkstar>
-	<A4226E90-09BE-45FE-AEEF-0EA7E9414B4B@wilsonet.com>
-	<20110425230658.22551665@darkstar>
-	<59898A0D-573E-46E9-A3B7-9054B24E69DF@wilsonet.com>
-	<20110427151621.5ac73e12@darkstar>
-	<1FB1ED64-0EEC-4E15-8178-D2CCCA915B1D@wilsonet.com>
-	<20110427204725.2923ac99@darkstar>
-	<91CD2A5E-418A-4217-8D9F-1B29FC9DD24D@wilsonet.com>
-	<20110427222855.2e3a3a4d@darkstar>
-	<63E3BF90-BF19-43E3-B8DD-6D6F4896F2E7@wilsonet.com>
-Date: Tue, 3 May 2011 11:47:55 -0400
-Message-ID: <BANLkTik+gYRfhDBy9JWgvo+GWJk5Uz7RMQ@mail.gmail.com>
-Subject: Re: Terratec Cinergy 1400 DVB-T RC not working anymore
-From: Devin Heitmueller <dheitmueller@kernellabs.com>
-To: Jarod Wilson <jarod@wilsonet.com>
-Cc: Heiko Baums <lists@baums-on-web.de>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	"mailing list: lirc" <lirc-list@lists.sourceforge.net>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 8BIT
+Message-Id: <201105281555.28285.remi@remlab.net>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Tue, May 3, 2011 at 11:40 AM, Jarod Wilson <jarod@wilsonet.com> wrote:
-> So there are really two issues here. First up, the default keymap
-> isn't correct for this device, and second, the behavior of the
-> hardware and/or driver is terrible, as only ~20% of keypresses
-> are getting though. The first is easy enough to remedy. The second
-> probably requires someone with the hardware to dig into its IR
-> handling routines in the kernel. (I haven't got the hardware).
+Le mardi 24 mai 2011 17:09:45 Mauro Carvalho Chehab, vous avez écrit :
+> If we do that, then all other places where the association between an alsa
+> device and a video4linux node is needed will need to copy it, and we'll
+> have a fork. Also, we'll keep needing it at v4l-utils, as it is now needed
+> by the new version of v4l2-sysfs-path tool.
+> 
+> Btw, this lib were created due to a request from the vlc maintainer that
+> something like that would be needed. After finishing it, I decided to add
+> it at xawtv in order to have an example about how to use it.
 
-Jarod,
+Hmm errm, I said VLC would need to be able to match a V4L2 device to an ALSA 
+input (where applicable). Currently, V4L2 devices are enumerated with 
+(lib)udev though. I am not very clear how v4l2-utils fits there (and oh, ALSA 
+is a bitch for udev-hotplugging but I'm getting side tracked).
 
-If this is something you have an interest in digging into, I can
-probably find some cx88 hardware to loan you.  I don't have the
-Terratec board in question, but I probably have a PCTV 800i which I
-believe also does sampling via GPIO.
+I guess I misunderstood that /dev/media would logically group related devices.  
+Now I guess it is _solely_ intended to plug DSPs together à la OpenMAX IL. 
+Sorry about that.
 
-Let me know if you're interested,
+> > Mauro, I plan to do a new v4l-utils release soon (*), maybe even today. I
+> > consider it unpolite to revert other peoples commits, so I would prefer
+> > for you to revert the install libv4l2util.a patch yourself. But if you
+> > don't (or don't get around to doing it before I do the release), I will
+> > revert it, as this clearly needs more discussion before making it into
+> > an official release tarbal (we can always re-introduce the patch after
+> > the release).
+> 
+> I'm not a big fan or exporting the rest of stuff at libv4l2util.a either,
+> but I think that at least the get_media_devices stuff should be exported
+> somewhere, maybe as part of libv4l.
 
-Devin
+Should it be exposed as a udev device attribute instead then?
 
 -- 
-Devin J. Heitmueller - Kernel Labs
-http://www.kernellabs.com
+Rémi Denis-Courmont
+http://www.remlab.net/
+http://fi.linkedin.com/in/remidenis
