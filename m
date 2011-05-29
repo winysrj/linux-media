@@ -1,90 +1,243 @@
 Return-path: <mchehab@pedra>
-Received: from mailout3.w1.samsung.com ([210.118.77.13]:30707 "EHLO
-	mailout3.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756882Ab1ERQen (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 18 May 2011 12:34:43 -0400
-MIME-version: 1.0
-Content-transfer-encoding: 7BIT
-Content-type: text/plain; charset=ISO-8859-1
-Received: from eu_spt1 ([210.118.77.13]) by mailout3.w1.samsung.com
- (Sun Java(tm) System Messaging Server 6.3-8.04 (built Jul 29 2009; 32bit))
- with ESMTP id <0LLE00BN7GPTR870@mailout3.w1.samsung.com> for
- linux-media@vger.kernel.org; Wed, 18 May 2011 17:34:41 +0100 (BST)
-Received: from linux.samsung.com ([106.116.38.10])
- by spt1.w1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14
- 2004)) with ESMTPA id <0LLE00KLOGPS8G@spt1.w1.samsung.com> for
- linux-media@vger.kernel.org; Wed, 18 May 2011 17:34:40 +0100 (BST)
-Date: Wed, 18 May 2011 18:34:40 +0200
-From: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Subject: Re: Codec controls question
-In-reply-to: <201105181803.18893.laurent.pinchart@ideasonboard.com>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: Hans Verkuil <hverkuil@xs4all.nl>,
-	Kamil Debski <k.debski@samsung.com>,
-	linux-media@vger.kernel.org,
-	Marek Szyprowski <m.szyprowski@samsung.com>
-Message-id: <4DD3F520.4080609@samsung.com>
-References: <003801cc14ae$be448b90$3acda2b0$%debski@samsung.com>
- <16ed9ac8f44869af2d6ff7cded1c0023.squirrel@webmail.xs4all.nl>
- <4DD3EC71.5040100@samsung.com>
- <201105181803.18893.laurent.pinchart@ideasonboard.com>
+Received: from mx1.redhat.com ([209.132.183.28]:20706 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752525Ab1E2BBs (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 28 May 2011 21:01:48 -0400
+Message-ID: <4DE19AF7.2000401@redhat.com>
+Date: Sat, 28 May 2011 22:01:43 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+MIME-Version: 1.0
+To: Hans Verkuil <hverkuil@xs4all.nl>
+CC: Devin Heitmueller <dheitmueller@kernellabs.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Hans De Goede <hdegoede@redhat.com>
+Subject: [RFCv2] Add a library to retrieve associated media devices - was:
+ Re: [ANNOUNCE] experimental alsa stream support at xawtv3
+References: <4DDAC0C2.7090508@redhat.com> <201105260853.31065.hverkuil@xs4all.nl> <4DE0E7D5.9070000@redhat.com> <201105281724.25433.hverkuil@xs4all.nl> <4DE120D1.2020805@redhat.com>
+In-Reply-To: <4DE120D1.2020805@redhat.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Hi Laurent,
-
-On 05/18/2011 06:03 PM, Laurent Pinchart wrote:
-> On Wednesday 18 May 2011 17:57:37 Sylwester Nawrocki wrote:
->> On 05/18/2011 05:22 PM, Hans Verkuil wrote:
->>>
->>> I have experimented with control events to change ranges and while it can
->>> be done technically it is in practice a bit of a mess. I think personally
->>> it is just easier to have separate controls.
->>>
->>> We are going to have similar problems if different video inputs are
->>> controlled by different i2c devices with different (but partially
->>> overlapping) controls. So switching an input also changes the controls. I
->>> have experimented with this while working on control events and it became
->>> very messy indeed. I won't do this for the first version of control
->>> events.
->>>
->>> One subtle but real problem with changing control ranges on the fly is
->>> that it makes it next to impossible to save all control values to a file
->>> and restore them later. That is a desirable feature that AFAIK is
->>> actually in use already.
->>
->> What are your views on creating controls in subdev s_power operation ?
->> Some sensors/ISPs have control ranges dependant on a firmware revision.
->> So before creating the controls min/max/step values need to be read from
->> them over I2C. We chose to postpone enabling ISP's power until a
->> corresponding video (or subdev) device node is opened. And thus controls
->> are not created during driver probing, because there is no enough
->> information to do this.
+Em 28-05-2011 13:20, Mauro Carvalho Chehab escreveu:
+> Em 28-05-2011 12:24, Hans Verkuil escreveu:
+>> But I would really like to see an RFC with a proposal of the API and how
+>> it is to be used. Then after an agreement has been reached the library can
+>> be modified accordingly and we can release it.
 > 
-> You can power the device up during probe, read the hardware/firmware version, 
-> power it down and create/initialize controls depending on the retrieved 
-> information.
+> Ok, that's the RFC for the API. The code is already committed, on a separate
+> library at v4l-utils. So, feel free to test.
+http://git.linuxtv.org/v4l-utils.gi
+Just finished a version 2 of the library. I've addressed on it the two
+comments from Hans de Goede: to allow calling the seek method for the
+associated devices using an open file descriptor, and to allow listing
+all video nodes. The library is at utils/libmedia_dev dir, at 
+http://git.linuxtv.org/v4l-utils.git. IMO, the proper step is to move it
+to the libv4l, but it is better to wait to the release of the current
+version. After that, I'll change xawtv3 to link against the new library.
 
-Yes, I suppose this is what all drivers should normally do. But if for example
-there are 2 sensor's registered during a media device initialization and it takes
-about 100ms and 600 ms to initialize each one respectively, then if the driver
-is compiled in the kernel the system boot time would increase by 700ms.   
-If the whole driver is compiled as a LKM this could be acceptable though.
+Btw, it may be a good idea to also move the alsa thread code from xawtv3
+(and tvtime) to v4l-utils.
 
-I'm still not convinced, the most straightforward method would be to power up
-the sensor in probe(), but there comes that unfortunate delay. 
+-
 
-> 
->> I don't see a possibility for the applications to be able to access the
->> controls before they are created as this happens during a first device
->> (either video or subdev) open(). And they are destroyed only in
->> video/subdev device relase().
->>
->> Do you see any potential issues with this scheme ?
-> 
+1) Why such library is needed
+   ==========================
 
-Thanks,
--- 
-Sylwester Nawrocki
-Samsung Poland R&D Center
+Media devices can be very complex. It is not trivial how to detect what's the
+other devices associated with a video node.
+
+This API provides the capabilities of getting the associated devices with a
+video node.
+
+It is currently implemented at http://git.linuxtv.org/v4l-utils.git, at the
+utils/libmedia_dev/. After validating it, it makes sense to move it to be
+part of libv4l.
+
+2) Provided functions
+   ==================
+
+The API defines a macro with its current version. Currently, it is:
+
+	#define GET_MEDIA_DEVICES_VERSION	0x0104
+
+Each device type that is known by the API is defined inside enum device_type,
+currently defined as:
+
+	enum device_type {
+		UNKNOWN = 65535,
+		NONE    = 65534,
+		MEDIA_V4L_VIDEO = 0,
+		MEDIA_V4L_VBI,
+		MEDIA_DVB_FRONTEND,
+		MEDIA_DVB_DEMUX,
+		MEDIA_DVB_DVR,
+		MEDIA_DVB_NET,
+		MEDIA_DVB_CA,
+		MEDIA_SND_CARD,
+		MEDIA_SND_CAP,
+		MEDIA_SND_OUT,
+		MEDIA_SND_CONTROL,
+		MEDIA_SND_HW,
+	};
+
+The first function discovers the media devices and stores the information
+at an internal representation. Such representation should be opaque to
+the userspace applications, as it can change from version to version.
+
+2.1) Device discover and release functions
+     =====================================
+
+The device discover is done by calling:
+
+	void *discover_media_devices(void);
+
+In order to release the opaque structure, a free method is provided:
+
+	void free_media_devices(void *opaque);
+
+2.2) Functions to help printing the discovered devices
+     =================================================
+
+In order to allow printing the device type, a function is provided to
+convert from enum device_type into string:
+
+	char *media_device_type(enum device_type type);
+
+All discovered devices can be displayed by calling:
+
+	void display_media_devices(void *opaque);
+
+2.3) Functions to get device associations
+     ====================================
+
+The API provides 3 methods to get the associated devices:
+
+a) get_associated_device: returns the next device associated with another one
+
+	char *get_associated_device(void *opaque,
+				    char *last_seek,
+				    enum device_type desired_type,
+				    char *seek_device,
+				    enum device_type seek_type);
+The parameters are:
+
+	opaque:		media devices opaque descriptor
+	last_seek:	last seek result. Use NULL to get the first result
+	desired_type:	type of the desired device
+	seek_device:	name of the device with you want to get an association.
+	seek_type:	type of the seek device. Using NONE produces the same
+			result of using NULL for the seek_device.
+
+This function seeks inside the media_devices struct for the next device
+that it is associated with a seek parameter.
+It can be used to get an alsa device associated with a video device. If
+the seek_device is NULL or seek_type is NONE, it will just search for
+devices of the desired_type.
+
+
+b) fget_associated_device: returns the next device associated with another one
+
+	char *fget_associated_device(void *opaque,
+				    char *last_seek,
+				    enum device_type desired_type,
+				    int fd_seek_device,
+				    enum device_type seek_type);
+
+The parameters are:
+
+	opaque:		media devices opaque descriptor
+	last_seek:	last seek result. Use NULL to get the first result
+	desired_type:	type of the desired device
+	fd_seek_device:	file handler for the device where the association will
+			be made
+ 	seek_type:	type of the seek device. Using NONE produces the same
+			result of using NULL for the seek_device.
+
+This function seeks inside the media_devices struct for the next device
+that it is associated with a seek parameter.
+It can be used to get an alsa device associated with an open file descriptor
+
+c) get_not_associated_device: Returns the next device not associated with
+			      an specific device type.
+
+char *get_not_associated_device(void *opaque,
+			    char *last_seek,
+			    enum device_type desired_type,
+			    enum device_type not_desired_type);
+
+The parameters are:
+
+opaque:			media devices opaque descriptor
+last_seek:		last seek result. Use NULL to get the first result
+desired_type:		type of the desired device
+not_desired_type:	type of the seek device
+
+This function seeks inside the media_devices struct for the next physical
+device that doesn't support a non_desired type.
+This method is useful for example to return the audio devices that are
+provided by the motherboard.
+
+3) Examples with typical usecases
+   ==============================
+
+a) Just displaying all media devices:
+
+	void *md = discover_media_devices();
+	display_media_devices(md);
+	free_media_devices(md);
+
+The devices will be shown at the order they appear at the computer buses.
+
+b) For video0, prints the associated alsa capture device(s):
+
+	void *md = discover_media_devices();
+	char *devname = NULL, video0 = "/dev/video0";
+	do {
+		devname = get_associated_device(md, devname, MEDIA_SND_CAP,
+						video0, MEDIA_V4L_VIDEO);
+		if (devname)
+			printf("Alsa capture: %s\n", devname);
+	} while (devname);
+	free_media_devices(md);
+
+Note: the video0 string can be declarated as "/dev/video0" or as just "video0",
+as the search functions will discard any patch on it.
+
+c) Get the alsa capture device associated with an opened file descriptor:
+
+	int fd = open("/dev/video0", O_RDWR);
+	...
+	void *md = discover_media_devices();
+	vid = fget_associated_device(md, NULL, MEDIA_SND_CAP, fd, 
+				     MEDIA_V4L_VIDEO);
+	printf("\n\nAlsa device = %s\n", vid);
+	close(fd);
+	free_media_devices(md);
+
+d) Get the mainboard alsa playback devices:
+
+	char *devname = NULL;
+	void *md = discover_media_devices();
+	do {
+		devname = get_not_associated_device(md, devname, MEDIA_SND_OUT,
+						    MEDIA_V4L_VIDEO);
+		if (devname)
+			printf("Alsa playback: %s\n", devname);
+	} while (devname);
+	free_media_devices(md);
+
+e) Get all video devices:
+
+	md = discover_media_devices();
+
+	char *vid = NULL;
+	do {
+		vid = get_associated_device(md, vid, MEDIA_V4L_VIDEO,
+					    NULL, NONE);
+		if (!vid)
+			break;
+		printf("Video device: %s\n", vid);
+	} while (vid);
+	free_media_devices(md);
