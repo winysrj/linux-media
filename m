@@ -1,194 +1,88 @@
-Return-path: <mchehab@gaivota>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:55725 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757995Ab1ENP3P (ORCPT
+Return-path: <mchehab@pedra>
+Received: from mail-bw0-f46.google.com ([209.85.214.46]:55301 "EHLO
+	mail-bw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750992Ab1E2Mbg convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 14 May 2011 11:29:15 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Subject: Re: [PATCH 3/3 v5] v4l: Add v4l2 subdev driver for S5P/EXYNOS4 MIPI-CSI receivers
-Date: Sat, 14 May 2011 17:29:57 +0200
-Cc: linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org,
-	kyungmin.park@samsung.com, m.szyprowski@samsung.com,
-	riverful.kim@samsung.com, kgene.kim@samsung.com,
-	sungchun.kang@samsung.com, jonghun.han@samsung.com
-References: <1305127030-30162-1-git-send-email-s.nawrocki@samsung.com> <1305127030-30162-4-git-send-email-s.nawrocki@samsung.com>
-In-Reply-To: <1305127030-30162-4-git-send-email-s.nawrocki@samsung.com>
-MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-15"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201105141729.58363.laurent.pinchart@ideasonboard.com>
+	Sun, 29 May 2011 08:31:36 -0400
+Received: by bwz15 with SMTP id 15so2267367bwz.19
+        for <linux-media@vger.kernel.org>; Sun, 29 May 2011 05:31:35 -0700 (PDT)
+From: Steinel Andreas <a.steinel@googlemail.com>
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: 8BIT
+Subject: Remote control TechnoTrend S2-3650 CI not working
+Date: Sun, 29 May 2011 14:31:31 +0200
+Message-Id: <6C4E9A3B-EDC2-487B-90F9-734A0C349A4B@gmail.com>
+To: linux-media@vger.kernel.org
+Mime-Version: 1.0 (Apple Message framework v1084)
 List-ID: <linux-media.vger.kernel.org>
-Sender: Mauro Carvalho Chehab <mchehab@gaivota>
+Sender: <mchehab@pedra>
 
-Hi Sylwester,
+Hi everybody,
 
-On Wednesday 11 May 2011 17:17:10 Sylwester Nawrocki wrote:
-> Add the subdev driver for the MIPI CSIS units available in S5P and
-> Exynos4 SoC series. This driver supports both CSIS0 and CSIS1
-> MIPI-CSI2 receivers.
-> The driver requires Runtime PM to be enabled for proper operation.
-> 
-> Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
-> Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+I use the aforementioned USB DVB-S2 box and watching works fine. In the wiki (http://www.linuxtv.org/wiki/index.php/TechnoTrend_TT-connect_S2-3650_CI) is stated (and also some posts on the mailing list suggest) that the remote should work too, yet I unfortunately cannot get it to work.
 
-[snip]
+I'm running Debian Squeeze (default kernel - 2.6.32-5-amd64) with a recent S2 checkout
 
-> diff --git a/drivers/media/video/s5p-fimc/mipi-csis.c
-> b/drivers/media/video/s5p-fimc/mipi-csis.c new file mode 100644
-> index 0000000..d50efcb
-> --- /dev/null
-> +++ b/drivers/media/video/s5p-fimc/mipi-csis.c
-> @@ -0,0 +1,722 @@
 
-[snip]
+$ hg summary
+parent: 15387:41388e396e0f tip
+ dm1105: GPIO handling added, I2C on GPIO added, LNB control through GPIO reworked
+Zweig: default
+Übernehme: 1 modifiziert, 2 unbekannt
+Aktualisiere: (aktuell)
 
-> +static void s5pcsis_enable_interrupts(struct csis_state *state, bool on)
-> +{
-> +	u32 val = s5pcsis_read(state, S5PCSIS_INTMSK);
-> +
-> +	val = on ? val | S5PCSIS_INTMSK_EN_ALL :
-> +		   val & ~S5PCSIS_INTMSK_EN_ALL;
-> +	s5pcsis_write(state, S5PCSIS_INTMSK, val);
 
-Shouldn't you clear all interrupt flags by writing to S5PCSIS_INTSRC before 
-enabling interrupts, just in case ?
+$ hg log | head -4 
+Änderung:        15387:41388e396e0f
+Marke:           tip
+Nutzer:          Igor M. Liplianin <liplianin@me.by>
+Datum:           Mon May 23 00:50:21 2011 +0300
 
-> +}
 
-[snip]
+$ hg diff   
+diff -r 41388e396e0f linux/drivers/media/dvb/dvb-usb/pctv452e.c
+--- a/linux/drivers/media/dvb/dvb-usb/pctv452e.c	Mon May 23 00:50:21 2011 +0300
++++ b/linux/drivers/media/dvb/dvb-usb/pctv452e.c	Sun May 29 13:55:34 2011 +0200
+@@ -1353,7 +1353,7 @@
+ 	.rc_key_map		= tt_connect_s2_3600_rc_key,
+ 	.rc_key_map_size	= ARRAY_SIZE(tt_connect_s2_3600_rc_key),
+ 	.rc_query		= pctv452e_rc_query,
+-	.rc_interval		= 500,
++	.rc_interval		= 100,
+ 
+ 	.num_adapters		= 1,
+ 	.adapter = {{
 
-> +static void s5pcsis_set_hsync_settle(struct csis_state *state, int settle)
-> +{
-> +	u32 val = s5pcsis_read(state, S5PCSIS_DPHYCTRL);
-> +
-> +	val &= ~S5PCSIS_DPHYCTRL_HSS_MASK | (settle << 27);
 
-Do you mean
+The device is recognized (dmesg):
+[ 7849.369145] input: IR-receiver inside an USB DVB receiver as /devices/pci0000:00/0000:00:12.2/usb1/1-1/input/input10
 
-val = (val & ~S5PCSIS_DPHYCTRL_HSS_MASK) | (settle << 27);
 
-?
+The input device is created as expected:
+$ cat /sys/devices/pci0000:00/0000:00:12.2/usb1/1-1/input/input10/event8/uevent
+MAJOR=13
+MINOR=72
+DEVNAME=input/event8
 
-> +	s5pcsis_write(state, S5PCSIS_DPHYCTRL, val);
-> +}
 
-[snip]
+$ ls -l /dev/input/event8 
+crw-rw-r-- 1 root video 13, 72 29. Mai 13:37 /dev/input/event8
 
-> +static int s5pcsis_set_fmt(struct v4l2_subdev *sd, struct v4l2_subdev_fh
-> *fh, +			   struct v4l2_subdev_format *fmt)
-> +{
-> +	struct csis_state *state = sd_to_csis_state(sd);
-> +	struct csis_pix_format const *csis_fmt;
-> +	struct v4l2_mbus_framefmt *mf;
-> +
-> +	mf = __s5pcsis_get_format(state, fh, fmt->pad, fmt->which);
-> +
-> +	if (fmt->pad == CSIS_PAD_SOURCE) {
-> +		if (mf) {
-> +			mutex_lock(&state->lock);
-> +			fmt->format = *mf;
-> +			mutex_unlock(&state->lock);
-> +		}
-> +		return 0;
-> +	}
-> +	csis_fmt = s5pcsis_try_format(&fmt->format);
-> +	if (mf) {
-> +		mutex_lock(&state->lock);
-> +		*mf = fmt->format;
-> +		if (mf == &state->format) /* Store the active format */
 
-I would replace the test by
+$ cat /etc/default/inputlirc 
+# Options to be passed to inputlirc.
+EVENTS="/dev/input/by-path/pci-0000:00:12.2-event-ir"
+OPTIONS="-m 0 -g"
 
-if (fmt->which == V4L2_SUBDEV_FORMAT_TRY)
 
-It's more explicit.
+$ ls -l /dev/input/by-path/pci-0000:00:12.2-event-ir
+lrwxrwxrwx 1 root root 9 29. Mai 13:37 /dev/input/by-path/pci-0000:00:12.2-event-ir -> ../event8
 
-> +			state->csis_fmt = csis_fmt;
-> +		mutex_unlock(&state->lock);
-> +	}
-> +	return 0;
-> +}
 
-[snip]
+irw /dev/lircd does not show any input from the remote. I also checked the remote with a camera and it does emit infra red light.
 
-> +static int s5pcsis_suspend(struct device *dev)
-> +{
-> +	struct s5p_platform_mipi_csis *pdata = dev->platform_data;
-> +	struct platform_device *pdev = to_platform_device(dev);
-> +	struct v4l2_subdev *sd = platform_get_drvdata(pdev);
-> +	struct csis_state *state = sd_to_csis_state(sd);
-> +	int ret;
-> +
-> +	v4l2_dbg(1, debug, sd, "%s: flags: 0x%x\n",
-> +		 __func__, state->flags);
-> +
-> +	mutex_lock(&state->lock);
-> +	if (state->flags & ST_POWERED) {
-> +		s5pcsis_stop_stream(state);
-> +		ret = pdata->phy_enable(state->pdev, false);
-> +		if (ret)
-> +			goto unlock;
-> +
-> +		if (state->supply && regulator_disable(state->supply))
-> +			goto unlock;
-> +
-> +		clk_disable(state->clock[CSIS_CLK_GATE]);
-> +		state->flags &= ~ST_POWERED;
-> +	}
-> +	state->flags |= ST_SUSPENDED;
-> + unlock:
-> +	mutex_unlock(&state->lock);
-> +	return ret ? -EAGAIN : 0;
-> +}
-> +
-> +static int s5pcsis_resume(struct device *dev)
-> +{
-> +	struct s5p_platform_mipi_csis *pdata = dev->platform_data;
-> +	struct platform_device *pdev = to_platform_device(dev);
-> +	struct v4l2_subdev *sd = platform_get_drvdata(pdev);
-> +	struct csis_state *state = sd_to_csis_state(sd);
-> +	int ret = 0;
-> +
-> +	v4l2_dbg(1, debug, sd, "%s: flags: 0x%x\n",
-> +		 __func__, state->flags);
-> +
-> +	mutex_lock(&state->lock);
-> +	if (!(state->flags & ST_SUSPENDED))
-> +		goto unlock;
-> +
-> +	if (!(state->flags & ST_POWERED)) {
+Any suggestion or advice?
 
-If the device wasn't powered before being suspended, it should stay powered 
-off.
+Best,
+Andreas Steinel
 
-> +		if (state->supply)
-> +			ret = regulator_enable(state->supply);
-> +		if (ret)
-> +			goto unlock;
-> +
-> +		ret = pdata->phy_enable(state->pdev, true);
-> +		if (!ret) {
-> +			state->flags |= ST_POWERED;
-> +		} else {
-> +			regulator_disable(state->supply);
-> +			goto unlock;
-> +		}
-> +		clk_enable(state->clock[CSIS_CLK_GATE]);
-> +	}
-> +	if (state->flags & ST_STREAMING)
-> +		s5pcsis_start_stream(state);
-> +
-> +	state->flags &= ~ST_SUSPENDED;
-> + unlock:
-> +	mutex_unlock(&state->lock);
-> +	return ret ? -EAGAIN : 0;
-> +}
-
-[snip]
-
--- 
-Regards,
-
-Laurent Pinchart
