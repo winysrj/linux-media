@@ -1,244 +1,341 @@
 Return-path: <mchehab@pedra>
-Received: from smtp.nokia.com ([147.243.128.24]:51247 "EHLO mgw-da01.nokia.com"
+Received: from mx1.redhat.com ([209.132.183.28]:27405 "EHLO mx1.redhat.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932460Ab1ESIJG (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 19 May 2011 04:09:06 -0400
-Message-ID: <4DD4D0D2.7030609@maxwell.research.nokia.com>
-Date: Thu, 19 May 2011 11:12:02 +0300
-From: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
+	id S1750915Ab1E2MLK (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 29 May 2011 08:11:10 -0400
+Message-ID: <4DE237D9.8090306@redhat.com>
+Date: Sun, 29 May 2011 09:11:05 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
 MIME-Version: 1.0
-To: Sylwester Nawrocki <snjw23@gmail.com>
-CC: Hans Verkuil <hverkuil@xs4all.nl>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	Nayden Kanchev <nkanchev@mm-sol.com>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	David Cohen <dacohen@gmail.com>,
-	Kim HeungJun <riverful@gmail.com>, andrew.b.adams@gmail.com,
-	Sung Hee Park <shpark7@stanford.edu>
-Subject: Re: [RFC v4] V4L2 API for flash devices
-References: <4DC2F131.6090407@maxwell.research.nokia.com> <201105071446.56843.hverkuil@xs4all.nl> <4DC5849A.9050806@gmail.com> <4DC7151E.8070601@maxwell.research.nokia.com> <4DC9A2D0.2060709@gmail.com> <4DD2DBDC.6060303@maxwell.research.nokia.com> <4DD4464C.30702@gmail.com>
-In-Reply-To: <4DD4464C.30702@gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+To: Hans Verkuil <hverkuil@xs4all.nl>
+CC: Devin Heitmueller <dheitmueller@kernellabs.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Hans De Goede <hdegoede@redhat.com>
+Subject: Re: [RFCv2] Add a library to retrieve associated media devices -
+ was: Re: [ANNOUNCE] experimental alsa stream support at xawtv3
+References: <4DDAC0C2.7090508@redhat.com> <4DE120D1.2020805@redhat.com> <4DE19AF7.2000401@redhat.com> <201105291319.47207.hverkuil@xs4all.nl>
+In-Reply-To: <201105291319.47207.hverkuil@xs4all.nl>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Sylwester Nawrocki wrote:
-> Hi Sakari,
-
-Hi Sylwester,
-
-> On 05/17/2011 10:34 PM, Sakari Ailus wrote:
->> Sylwester Nawrocki wrote:
->>> On 05/09/2011 12:11 AM, Sakari Ailus wrote:
->>>> Sylwester Nawrocki wrote:
->>>>> On 05/07/2011 02:46 PM, Hans Verkuil wrote:
->>>>>> On Thursday, May 05, 2011 20:49:21 Sakari Ailus wrote:
->>>>>>> Hi,
->>>>>>>
->>>>>>> This is a fourth proposal for an interface for controlling flash devices
->>>>>>> on the V4L2/v4l2_subdev APIs.
-> ...
->>>>>>> 3. Sensor metadata on frames
->>>>>>> ----------------------------
->>>>>>>
->>>>>>> It'd be useful to be able to read back sensor metadata. If the flash is
->>>>>>> strobed (on sensor hardware) while streaming, it's difficult to know
->>>>>>> otherwise which frame in the stream has been exposed with flash.
->>>>>>
->>>>>> I wonder if it would make sense to have a V4L2_BUF_FLAG_FLASH buffer
->>>>>> flag?
->>>>>> That way userspace can tell if that particular frame was taken with
->>>>>> flash.
->>>>>
->>>>> This looks more as a workaround for the problem rather than a good long
->>>>> term solution. It might be tempting to use the buffer flags which seem
->>>>> to be be more or less intended for buffer control.
->>>>> I'd like much more to see a buffer flags to be used to indicate whether
->>>>> an additional plane of (meta)data is carried by the buffer.
->>>>> There seem to be many more parameters, than a single flag indicating
->>>>> whether the frame has been exposed with flash or not, needed to be
->>>>> carried over to user space.
->>>>> But then we might need some standard format of the meta data, perhaps
->>>>> control id/value pairs and possibly a per plane configurable memory
->>>>> type.
->>>>
->>>> There are multiple possible approaches for this.
->>>>
->>>> For sensors where metadata is register-value pairs, that is, essentially
->>>> V4L2 control values, I think this should be parsed by the sensor driver.
->>>> The ISP (camera bridge) driver does receive the data so it'd have to
->>>> "ask for help" from the sensor driver.
->>>
->>> I am inclined to let the ISP drivers parse the data but on the other hand
->>> it might be difficult to access same DMA buffers in kernel _and_ user space.
+Em 29-05-2011 08:19, Hans Verkuil escreveu:
+>> Each device type that is known by the API is defined inside enum device_type,
+>> currently defined as:
 >>
->> This is just about mapping the buffer to both kernel and user spaces. If
->> the ISP has an iommu the kernel mapping might already exist if it comes
->> from vmalloc().
+>> 	enum device_type {
+>> 		UNKNOWN = 65535,
+>> 		NONE    = 65534,
+>> 		MEDIA_V4L_VIDEO = 0,
 > 
-> Yes, I know. I was thinking of possibly required different mapping attributes
-> for kernel and user space and the problems on ARM with that.
+> Can you add MEDIA_V4L_RADIO as well? And MEDIA_V4L_SUBDEV too.
 
-As I replied to Laurent, this is not an issue since the memory wouldn't
-be mapped to user space. The user space would get the result which has
-been interpreted by the sensor driver.
+It doesn't make sense to add anything at the struct without having a code
+for discovering it. This RFC were made based on a real, working code.
 
-> Also as metadata is supposed to occupy only small part of a frame buffer perhaps
-> only one page or so could be mapped in kernel space.
-> I'm referring here mainly to SMIA++ method of storing metadata.
+That's said, the devices I used to test didn't create any radio node. I'll add it.
+the current class parsers should be able to get it with just a trivial change.
 
-Yes, I agree.
+With respect to V4L_SUBDEV, a separate patch will likely be needed for it.
+No sure how this would appear at sysfs.
 
-> In case of sensors I used to work with it wouldn't be necessary to touch the
-> main frame buffers as the metadata is transmitted out of band.
+> 
+>> 		MEDIA_V4L_VBI,
+>> 		MEDIA_DVB_FRONTEND,
+> 
+> It might be better to start at a new offset here, e.g. MEDIA_DVB_FRONTEND = 100
+> Ditto for SND. That makes it easier to insert new future device nodes.
 
-This depends on link a little, but on CSI-2 this is a separate channel.
-In other cases the metadata is part of the frame --- but I don't know
-anyone using metadata in such a case, so it _might_ be possible to just
-ignore this use case.
+Good point.
 
-Another alternative would be to pass binary blobs to user space and let
-a library to interpret the data. This might be the way to go at least
-with some more exotic cases.
+> 
+>> 		MEDIA_DVB_DEMUX,
+>> 		MEDIA_DVB_DVR,
+>> 		MEDIA_DVB_NET,
+>> 		MEDIA_DVB_CA,
+>> 		MEDIA_SND_CARD,
+>> 		MEDIA_SND_CAP,
+>> 		MEDIA_SND_OUT,
+>> 		MEDIA_SND_CONTROL,
+>> 		MEDIA_SND_HW,
+> 
+> Should we have IR (input) nodes as well? That would associate a IR input with
+> a particular card.
+
+>From the implementation POV, IR's are virtual devices, so they're not bound
+to an specific board at sysfs. So, if this will ever need, a different logic
+will be required.
+
+>From the usecase POV, I don't see why such type of relationship should be
+useful. The common usecase is that just one RC receiver/transmitter to be
+used on a given environment. The IR commands should be able to control
+everything.
+
+For example, I have here one machine with 2 cards installed: one with 2 DVB-C
+independent adapters and another with one analog/ISDB-T adapter. I want to 
+control all three devices with just one remote controller. Eventually, 2
+rc devices will be shown, but just one will be connected to a sensor.
+In this specific case, I don't use the RC remotes, but I prefer to have a 
+separate USB HID remote controller adapter for them.
+
+There are some cases, however, where more than one remote controller may be
+desired, like having one Linux system with several independent consoles,
+each one with its own remote controller. On such scenario, what is needed
+is to map each mouse/keyboard/IR/video adapter set to an specific Xorg
+configuration, not necessarily matching the v4l devices order. If not
+specified, X will just open all input devices and mix all of them.
+
+In other words, for event/input devices, if someone needs to have more than
+one IR, each directed to a different set of windows/applications, he will 
+need to manually configure what he needs. So, grouping RC with video apps
+doesn't make sense.
+
+>> 	};
+>>
+>> The first function discovers the media devices and stores the information
+>> at an internal representation. Such representation should be opaque to
+>> the userspace applications, as it can change from version to version.
+>>
+>> 2.1) Device discover and release functions
+>>      =====================================
+>>
+>> The device discover is done by calling:
+>>
+>> 	void *discover_media_devices(void);
+>>
+>> In order to release the opaque structure, a free method is provided:
+>>
+>> 	void free_media_devices(void *opaque);
+>>
+>> 2.2) Functions to help printing the discovered devices
+>>      =================================================
+>>
+>> In order to allow printing the device type, a function is provided to
+>> convert from enum device_type into string:
+>>
+>> 	char *media_device_type(enum device_type type);
+> 
+> const char *?
+
+Ok.
 
 >>
->>>> As discussed previously, using V4L2 control events shouldn't probably be
->>>> the way to go, but I think it's obvious that this is _somehow_ bound to
->>>> controls, at least control ids.
->>>>
->>>>> Also as Sakari indicated some sensors adopt custom meta data formats
->>>>> so maybe we need to introduce standard fourcc like IDs for meta data
->>>>> formats? I am not sure whether it is possible to create common
->>>>> description of an image meta data that fits all H/W.
->>>>
->>>> I'm not sure either since I know of only one example. That example, i.e.
->>>> register-value pairs, should be something that I'd assume _some_ other
->>>> hardware uses as well, but there could exist also hardware which
->>>> doesn't. This solution might not work on that hardware.
->>>
->>> Of course it's hard to find a silver bullet for a hardware we do not know ;)
->>>
->>>>
->>>> If there is metadata which does not associate to V4L2 controls (or
->>>> ioctls), either existing or not yet existing, then that probably should
->>>> be parsed by the driver. On the other hand, I can't think of metadata
->>>> that wouldn't fall under this right now. :-)
->>>
->>> Some metadata are arrays of length specific to a given attribute,
->>> I wonder how to support that with v4l2 controls ?
+>> All discovered devices can be displayed by calling:
 >>
->> Is the metadata something which really isn't associated to any V4L2
->> control? Are we now talking about a sensor which is more complex than a
->> regular raw bayer sensor?
+>> 	void display_media_devices(void *opaque);
 > 
-> I referred to tags defined in EXIF standard, as you may know every tag
-> is basically an array of specific data type. For most tag types the array
-> length is 1 though.
-> Similar problem is solved by the V4L extended string controls API.
+> This would be much more useful if a callback is provided.
+
+I can't see any usecase for a callback. Can you explain it better?
+
 > 
-> And yes this kind of tags are mostly produced by more powerful ISPs,
-> with, for instance, 3A or distortion corrections implemented in their firmware.
-> So this is a little bit different situation than a raw sensor with OMAP3 ISP.
-
-True.
-
->>>> Do you know more examples of sensor produced metadata than SMIA++?
->>>
->>> The only metadata I've had a bit experience with was regular EXIF tags
->>> which could be retrieved from ISP through I2C bus.
 >>
->> That obviously won't map to V4L2 controls.
+>> 2.3) Functions to get device associations
+>>      ====================================
 >>
->> This should very likely be just passed to user space as-is as
->> different... plane?
-> 
-> Yes, but I am trying to assess whether it's possible to create some
-> generic tag data structure so such plane contains an array of such 
-> data structures and application would know how to handle that. 
-> Independently of the underlying H/W.
-
-There's one issue I see --- the kernel drivers do know how to interpret
-the data, but then again the user space must be able to tell which part
-of the data the user space is interested in. In many cases I'd assume
-it's just one or two variables within a 8k (or so) metadata block.
-
-I think it would be ideal if the sensor driver would be able to
-interpret the data (or parts of it) and pass them to the user space. But
-I don't know how generic this is, taken your example of rational numbers
-used in metadata below.
-
->> In some cases it's time critical to pass data to user space that
->> otherwise could be associated with a video buffer. I wonder if this case
->> is time critical or not.
-> 
-> No, it's rather no time critical. The frame data is buffered inside ISP,
-> even in case of multi-frame capture mode.
-> But, of course, we also need to consider a time critical case.
-
-I think in a time critical case, there must be an event to tell that the
-data has arrived, or alternatively, if it's passed to user space as
-such, a new video node for that. The set of buffers is different from
-the image buffers, so a new video buffer queue is required.
-
->>> These were mostly fixed point arithmetic numbers in [32-bit numerator/
->>> 32-bit denominator] form carrying exposure time, shutter speed, aperture,
->>> brightness, flash, etc. information. The tags could be read from ISP after
->>> it buffered a frame in its memory and processed it.
->>> In case of a JPEG image format the tags can be embedded into the main
->>> image file. But the image processors not always supported that so we used
->>> to have an ioctl for the purpose of retrieving the metadata in user space.
->>> In some cases it is desired to read data directly from the driver rather
->>> than parsing a relatively large buffer.
->>> It would be good to have a uniform interface for passing such data to
->>> applications. I think in that particular use case a control id/value pair
->>> sequences would do.
+>> The API provides 3 methods to get the associated devices:
 >>
->> Do you think this is "control id" or non-control id, and whether the
->> value is the same data type than the V4L2 control would be? That would
->> match to what I'm aware of, too.
+>> a) get_associated_device: returns the next device associated with another one
+>>
+>> 	char *get_associated_device(void *opaque,
+>> 				    char *last_seek,
+>> 				    enum device_type desired_type,
+>> 				    char *seek_device,
+>> 				    enum device_type seek_type);
 > 
-> Whatever id ;) I started with controls because they have defined data types.
-> A list of attributes in my case could be mapped to control ids.
-> But data types are different, the values are represented by rational numbers.
+> const char *? Ditto elsewhere.
 
-What do they represent? They should be in the same units the sensor is
-programmed with, but somehow I feel the sensor is trying to be smarter
-than it should be.
+OK.
 
-> But perhaps we could define a generic list of attributes for metadata, together
-> with a generic tag data structure ?
+>> The parameters are:
+>>
+>> 	opaque:		media devices opaque descriptor
+>> 	last_seek:	last seek result. Use NULL to get the first result
+>> 	desired_type:	type of the desired device
+>> 	seek_device:	name of the device with you want to get an association.
+>> 	seek_type:	type of the seek device. Using NONE produces the same
+>> 			result of using NULL for the seek_device.
+>>
+>> This function seeks inside the media_devices struct for the next device
+>> that it is associated with a seek parameter.
+>> It can be used to get an alsa device associated with a video device. If
+>> the seek_device is NULL or seek_type is NONE, it will just search for
+>> devices of the desired_type.
+>>
+>>
+>> b) fget_associated_device: returns the next device associated with another one
+>>
+>> 	char *fget_associated_device(void *opaque,
+>> 				    char *last_seek,
+>> 				    enum device_type desired_type,
+>> 				    int fd_seek_device,
+>> 				    enum device_type seek_type);
+>>
+>> The parameters are:
+>>
+>> 	opaque:		media devices opaque descriptor
+>> 	last_seek:	last seek result. Use NULL to get the first result
+>> 	desired_type:	type of the desired device
+>> 	fd_seek_device:	file handler for the device where the association will
+>> 			be made
+>>  	seek_type:	type of the seek device. Using NONE produces the same
+>> 			result of using NULL for the seek_device.
+>>
+>> This function seeks inside the media_devices struct for the next device
+>> that it is associated with a seek parameter.
+>> It can be used to get an alsa device associated with an open file descriptor
+>>
+>> c) get_not_associated_device: Returns the next device not associated with
+>> 			      an specific device type.
+>>
+>> char *get_not_associated_device(void *opaque,
+>> 			    char *last_seek,
+>> 			    enum device_type desired_type,
+>> 			    enum device_type not_desired_type);
+>>
+>> The parameters are:
+>>
+>> opaque:			media devices opaque descriptor
+>> last_seek:		last seek result. Use NULL to get the first result
+>> desired_type:		type of the desired device
+>> not_desired_type:	type of the seek device
+>>
+>> This function seeks inside the media_devices struct for the next physical
+>> device that doesn't support a non_desired type.
+>> This method is useful for example to return the audio devices that are
+>> provided by the motherboard.
+> 
+> Hmmm. What you really want IMHO is to iterate over 'media hardware', and for
+> each piece of hardware you can find the associated device nodes.
 
-There are a few buts:
+The v4l2-sysfs-patch util does that, using those API calls [1]
+	http://git.linuxtv.org/v4l-utils.git?a=blob;f=utils/v4l2-sysfs-path/v4l2-sysfs-path.c;h=7579612bdcd888d49e78772ed7ff8c5e410b7687;hb=HEAD
 
-- The data can be something up to kilobytes in size. We don't want to
-parse all of it per every frame unless it's really necessary. Most often
-the user is interested in just a few items while it might like to get
-all of it sometimes. This could be probably resolved relatively easily,
-though.
+> 
+> It's what you expect to see in an application: a list of USB/PCI/Platform
+> devices to choose from.
 
-- Which formats are your rational numbers in? A kernel interface can't
-really have floating point numbers, so there would need to be a sane way
-to pass these to user space.
+A missing function is to return the device address, but it should be easy
+to add it if needed.
 
-- What kind of other types of metadata we could run into? Would it fit
-to this interface?
+It may make sense to have a function that will open each device, do a
+VIDIOC_QUERYCTL and export an enrich list of devices based on what's returned
+there.
 
-> I'm not yet even sure if it would be acceptable to interpret a data plane in user
-> space as an array of some type of data structure. 
+>>
+>> 3) Examples with typical usecases
+>>    ==============================
+>>
+>> a) Just displaying all media devices:
+>>
+>> 	void *md = discover_media_devices();
+>> 	display_media_devices(md);
+>> 	free_media_devices(md);
+>>
+>> The devices will be shown at the order they appear at the computer buses.
+>>
+>> b) For video0, prints the associated alsa capture device(s):
+>>
+>> 	void *md = discover_media_devices();
+>> 	char *devname = NULL, video0 = "/dev/video0";
+>> 	do {
+>> 		devname = get_associated_device(md, devname, MEDIA_SND_CAP,
+>> 						video0, MEDIA_V4L_VIDEO);
+>> 		if (devname)
+>> 			printf("Alsa capture: %s\n", devname);
+>> 	} while (devname);
+>> 	free_media_devices(md);
+>>
+>> Note: the video0 string can be declarated as "/dev/video0" or as just "video0",
+>> as the search functions will discard any patch on it.
+>>
+>> c) Get the alsa capture device associated with an opened file descriptor:
+>>
+>> 	int fd = open("/dev/video0", O_RDWR);
+>> 	...
+>> 	void *md = discover_media_devices();
+>> 	vid = fget_associated_device(md, NULL, MEDIA_SND_CAP, fd, 
+>> 				     MEDIA_V4L_VIDEO);
+>> 	printf("\n\nAlsa device = %s\n", vid);
+>> 	close(fd);
+>> 	free_media_devices(md);
+>>
+>> d) Get the mainboard alsa playback devices:
+>>
+>> 	char *devname = NULL;
+>> 	void *md = discover_media_devices();
+>> 	do {
+>> 		devname = get_not_associated_device(md, devname, MEDIA_SND_OUT,
+>> 						    MEDIA_V4L_VIDEO);
+>> 		if (devname)
+>> 			printf("Alsa playback: %s\n", devname);
+>> 	} while (devname);
+>> 	free_media_devices(md);
+>>
+>> e) Get all video devices:
+>>
+>> 	md = discover_media_devices();
+>>
+>> 	char *vid = NULL;
+>> 	do {
+>> 		vid = get_associated_device(md, vid, MEDIA_V4L_VIDEO,
+>> 					    NULL, NONE);
+>> 		if (!vid)
+>> 			break;
+>> 		printf("Video device: %s\n", vid);
+>> 	} while (vid);
+>> 	free_media_devices(md);
+>>
+> 
+> I did some testing: vivi video nodes do not show up at all. 
 
-If the data structure is known to user space, then it's definitely fine.
+Hmm... vivi nodes are not linked to any physical hardware: they are virtual devices:
 
-As an alternative, I'm thinking of a library which would be generic but
-its interface would not be a kernel/user space interface which will
-never change. My worry is that with two examples (or did you have
-more?), can we design an interface generic enough for hopefully
-everyone? My knowledge of sensor metadata is limited to just these
-examples. The answer may well be yes, though.
+$ tree /sys/class/video4linux/
+/sys/class/video4linux/
+└── video0 -> ../../devices/virtual/video4linux/video0
 
-Kind regards,
+The current implementation discards virtual devices, as there's no way to associate
+them with a physical device. I'll fix the code to allow it to show also virtual devices.
 
--- 
-Sakari Ailus
-sakari.ailus@maxwell.research.nokia.com
+> And since there is
+> no concept of 'media hardware' in this API the handling of devices with multiple
+> video nodes (e.g. ivtv) is very poor. 
+
+As I said before, with just one line of code, grouping multiple video nodes into
+different groups will work with sysfs. All it needs to know is the group name,
+passed via uevent interface.
+
+> One thing that we wanted to do with the MC
+> is to select default nodes for complex hardware. This gives applications a hint
+> as to what is the default video node to use for standard capture/output. This
+> concept can be used here as well. Perhaps we should introduce a 'V4L2_CAP_DEFAULT'
+> capabity that drivers can set?
+
+We may add one uevent for that too.
+
+> I think this library would also be more useful if it can filter devices: e.g.
+> filter on capture devices or output devices. Actually, I can't immediately think
+> of other useful filters than capture vs output.
+
+Yes, that makes sense: just like with SND devices, the library may classify the
+outputs and inputs with different types.
+
+> We also need some way to tell apps that certain devices are mutually exclusive.
+> Even if we cannot tell the app that through sysfs at the moment, this information
+> will become available in the future through the MC, so we should prepare the API
+> for this.
+
+Makes sense. Please propose a way for it. We may use group info for that, but
+in a few cases (like video/vbi), having two devices grouped don't mean that they're
+mutually exclusive.
+
+> Did anyone test what happens when the user renames device nodes using udev rules?
+> I haven't had the chance to test that yet.
+
+We'll probably need to do some glue with udev or dbus. Not sure if it announces
+it somehow.
+
+Cheers,
+Mauro
