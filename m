@@ -1,169 +1,80 @@
 Return-path: <mchehab@pedra>
-Received: from mailout3.w1.samsung.com ([210.118.77.13]:27840 "EHLO
-	mailout3.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756021Ab1ERP5k (ORCPT
+Received: from mxout002.mail.hostpoint.ch ([217.26.49.181]:59728 "EHLO
+	mxout002.mail.hostpoint.ch" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753882Ab1E2NpX (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 18 May 2011 11:57:40 -0400
-MIME-version: 1.0
-Content-transfer-encoding: 7BIT
-Content-type: text/plain; charset=ISO-8859-1
-Received: from eu_spt1 ([210.118.77.13]) by mailout3.w1.samsung.com
- (Sun Java(tm) System Messaging Server 6.3-8.04 (built Jul 29 2009; 32bit))
- with ESMTP id <0LLE00LX2F028Y60@mailout3.w1.samsung.com> for
- linux-media@vger.kernel.org; Wed, 18 May 2011 16:57:38 +0100 (BST)
-Received: from linux.samsung.com ([106.116.38.10])
- by spt1.w1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14
- 2004)) with ESMTPA id <0LLE00JIQF0195@spt1.w1.samsung.com> for
- linux-media@vger.kernel.org; Wed, 18 May 2011 16:57:37 +0100 (BST)
-Date: Wed, 18 May 2011 17:57:37 +0200
-From: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Subject: Re: Codec controls question
-In-reply-to: <16ed9ac8f44869af2d6ff7cded1c0023.squirrel@webmail.xs4all.nl>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Kamil Debski <k.debski@samsung.com>,
-	'Laurent Pinchart' <laurent.pinchart@ideasonboard.com>,
-	linux-media@vger.kernel.org,
-	Marek Szyprowski <m.szyprowski@samsung.com>
-Message-id: <4DD3EC71.5040100@samsung.com>
-References: <003801cc14ae$be448b90$3acda2b0$%debski@samsung.com>
- <201105181610.13231.laurent.pinchart@ideasonboard.com>
- <004501cc1569$58a24280$09e6c780$%debski@samsung.com>
- <16ed9ac8f44869af2d6ff7cded1c0023.squirrel@webmail.xs4all.nl>
+	Sun, 29 May 2011 09:45:23 -0400
+Received: from [10.0.2.20] (helo=asmtp002.mail.hostpoint.ch)
+	by mxout002.mail.hostpoint.ch with esmtp (Exim 4.76 (FreeBSD))
+	(envelope-from <hackfin@section5.ch>)
+	id 1QQfhy-0000iR-PC
+	for linux-media@vger.kernel.org; Sun, 29 May 2011 15:07:06 +0200
+Received: from [82.192.239.137] (helo=[0.0.0.0])
+	by asmtp002.mail.hostpoint.ch with esmtpsa (TLSv1:AES256-SHA:256)
+	(Exim 4.76 (FreeBSD))
+	(envelope-from <hackfin@section5.ch>)
+	id 1QQfhy-000E1u-8q
+	for linux-media@vger.kernel.org; Sun, 29 May 2011 15:07:06 +0200
+Message-ID: <4DE244F4.90203@section5.ch>
+Date: Sun, 29 May 2011 15:07:00 +0200
+From: Martin Strubel <hackfin@section5.ch>
+MIME-Version: 1.0
+To: linux-media@vger.kernel.org
+Subject: v4l2 device property framework in userspace
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Hi Hans,
+Hello,
 
-On 05/18/2011 05:22 PM, Hans Verkuil wrote:
->>> From: Laurent Pinchart [mailto:laurent.pinchart@ideasonboard.com]
->>> Sent: 18 May 2011 16:10
->>> Subject: Re: Codec controls question
->>> On Tuesday 17 May 2011 18:23:19 Kamil Debski wrote:
->>>> Hi,
->> Hi,
->>
->>>>
->>>> Some time ago we were discussing the set of controls that should be
->>>> implemented for codec support.
->>>>
->>>> I remember that the result of this discussion was that the controls
->>> should
->>>> be as "integrated" as possible. This included the V4L2_CID_MPEG_LEVEL
->>> and
->>>> all controls related to the quantization parameter.
->>>> The problem with such approach is that the levels are different for
->>> MPEG4,
->>>> H264 and H263. Same for quantization parameter - it ranges from 1 to
->>> 31
->>>> for MPEG4/H263 and from 0 to 51 for H264.
->>>>
->>>> Having single controls for the more than one codec seemed as a good
->>>> solution. Unfortunately I don't see a good option to implement it,
->>>> especially with the control framework. My idea was to have the min/max
->>>> values for QP set in the S_FMT call on the CAPTURE. For MPEG_LEVEL it
->>>> would be checked in the S_CTRL callback and if it did not fit the
->>> chosen
->>>> format it failed.
->>>>
->>>> So I see three solutions to this problem and I wanted to ask about
->>> your
->>>> opinion.
->>>>
->>>> 1) Have a separate controls whenever the range or valid value range
->>>> differs.
->>>>
->>>> This is the simplest and in my opinion the best solution I can think
->>> of.
->>>> This way we'll have different set of controls if the valid values are
->>>> different (e.g. V4L2_CID_MPEG_MPEG4_LEVEL, V4L2_CID_MPEG_H264_LEVEL).
->>>> User can set the controls at any time. The only con of this approach
->>> is
->>>> having more controls.
->>>>
->>>> 2) Permit the user to set the control only after running S_FMT on the
->>>> CAPTURE. This approach would enable us to keep less controls, but
->>> would
->>>> require to set the min/max values for controls in the S_FMT. This
->>> could be
->>>> done by adding controls in S_FMT or by manipulating their range and
->>>> disabling unused controls. In case of MPEG_LEVEL it would require
->>> s_ctrl
->>>> callback to check whether the requested level is valid for the chosen
->>>> codec.
->>>>
->>>> This would be somehow against the spec, but if we allow the "codec
->>>> interface" to have some differences this would be ok.
->>>>
->>>> 3) Let the user set the controls whenever and check them during the
->>>> STREAMON call.
->>>>
->>>> The controls could be set anytime, and the control range supplied to
->>> the
->>>> control framework would cover values possible for all supported
->>> codecs.
->>>>
->>>> This approach is more difficult than first approach. It is worse in
->>> case
->>> of
->>>> user space than the second approach - the user is unaware of any
->>> mistakes
->>>> until the STREAMON call. The argument for this approach is the
->>> possibility
->>>> to have a few controls less.
->>>>
->>>> So I would like to hear a comment about the above propositions.
->>> Personally
->>>> I would opt for the first solution.
->>>
->>> I think the question boils down to whether we want to support controls
->>> that
->>> have different valid ranges depending on formats, or even other
->>> controls. I
->>> think the issue isn't specific to codoc controls.
->>>
->>
->> So what is your opinion on this? If there are more controls where the
->> valid
->> range could depend on other controls or the chosen format then it might be
->> worth
->> implementing such functionality. If there would be only a few such
->> controls then
->> it might be better to just have separate controls (with the codec controls
->> - only
->> *_MPEG_LEVEL and quantization parameter related controls would have
->> different
->> valid range depending on the format).
-> 
-> I have experimented with control events to change ranges and while it can
-> be done technically it is in practice a bit of a mess. I think personally
-> it is just easier to have separate controls.
-> 
-> We are going to have similar problems if different video inputs are
-> controlled by different i2c devices with different (but partially
-> overlapping) controls. So switching an input also changes the controls. I
-> have experimented with this while working on control events and it became
-> very messy indeed. I won't do this for the first version of control
-> events.
-> 
-> One subtle but real problem with changing control ranges on the fly is
-> that it makes it next to impossible to save all control values to a file
-> and restore them later. That is a desirable feature that AFAIK is actually
-> in use already.
+I was wondering if it makes sense to raise a discussion about a few
+aspects listed below - my apology, if this might be old coffee, I
+haven't been following this list for long.
 
-What are your views on creating controls in subdev s_power operation ?
-Some sensors/ISPs have control ranges dependant on a firmware revision.
-So before creating the controls min/max/step values need to be read from them
-over I2C. We chose to postpone enabling ISP's power until a corresponding video
-(or subdev) device node is opened. And thus controls are not created during
-driver probing, because there is no enough information to do this.
+Since older kernels didn't have the matching functionality, we (a few
+losely connected developers) had "hacked" a userspace framework to
+address various extra features (multi sensor head, realtime stuff or
+special sensor properties). So, our kernel driver (specific to the PPI
+port of the Blackfin architecture) is covering frame acquisition only,
+all sensor specific properties (that were historically rather to be
+integrated into the v4l2 system) are controller from userspace or over
+network using our netpp library (which was just released into opensource).
 
-I don't see a possibility for the applications to be able to access the controls
-before they are created as this happens during a first device (either video
-or subdev) open(). And they are destroyed only in video/subdev device relase().
+The reasons for this were:
+1. 100's of register controlling various special properties on some SoC
+sensors
+2. One software and kernel should work with all sorts of camera
+configuration
+3. I'm lazy and hate to do a lot of boring code writing (ioctls()..).
+Also, we didn't want to bloat the kernel with property tables.
+4. Some implementations did not have much to do with classic "video"
 
-Do you see any potential issues with this scheme ?
+So nowadays we write or parse sensor properties into XML files and
+generate a library for it that wraps all sensor raw entities (registers
+and bits) into named entities for quick remote control and direct access
+to peripherals on the embedded target during the prototyping phase (this
+is what netpp does for us).
 
-Regards,
--- 
-Sylwester Nawrocki
-Samsung Poland R&D Center
+Now, the goal is to opensource stuff from the Blackfin-Side, too (as
+there seems to be no official v4l2 driver at the moment). Obviously, a
+lot of work has been done meanwhile on the upstream v4l2 side, but since
+I'm not completely into it yet, I'd like to ask the experts:
+
+1. Can we do multi sensor configurations on a tristated camera bus with
+the current kernel framework?
+2. Is there a preferred way to route ioctls() back to userspace
+"property handlers", so that standard v4l2 ioctls() can be implemented
+while special sensor properties are still accessible through userspace?
+3. Has anyone measured latencies (or is aware of such) with respect to
+process response to a just arrived video frame within the RT_PREEMPT
+context? (I assume any RT_PREEMPT latency research could be generalized
+to video, but asking anyhow)
+4. For some applications it's mandatory to queue commands that are
+commited to a sensor immediately during a frame blank. This makes the
+shared userspace and kernel access for example to an SPI bus rather
+tricky. Can this be solved with the current (new) v4l2 framework?
+
+Cheers,
+
+- Martin
