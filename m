@@ -1,141 +1,359 @@
 Return-path: <mchehab@pedra>
-Received: from mail-wy0-f174.google.com ([74.125.82.174]:63194 "EHLO
-	mail-wy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752798Ab1EET4J convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 5 May 2011 15:56:09 -0400
-Received: by wya21 with SMTP id 21so1885755wya.19
-        for <linux-media@vger.kernel.org>; Thu, 05 May 2011 12:56:08 -0700 (PDT)
+Received: from proofpoint-cluster.metrocast.net ([65.175.128.136]:53709 "EHLO
+	proofpoint-cluster.metrocast.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752933Ab1E2LrG (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 29 May 2011 07:47:06 -0400
+References: <4DDAC0C2.7090508@redhat.com> <4DE120D1.2020805@redhat.com> <4DE19AF7.2000401@redhat.com> <201105291319.47207.hverkuil@xs4all.nl>
+In-Reply-To: <201105291319.47207.hverkuil@xs4all.nl>
 MIME-Version: 1.0
-In-Reply-To: <1908281867.20110505213806@a-j.ru>
-References: <1908281867.20110505213806@a-j.ru>
-Date: Thu, 5 May 2011 21:56:07 +0200
-Message-ID: <BANLkTimL7qhNpXr8xBBcU4MccZKAAFURYw@mail.gmail.com>
-Subject: Re: [linux-dvb] TeVii S470 (cx23885 / ds3000) makes the machine unstable
-From: Josu Lazkano <josu.lazkano@gmail.com>
-To: linux-media@vger.kernel.org, Andrew Junev <a-j@a-j.ru>
-Cc: linux-dvb@linuxtv.org
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain;
+ charset=UTF-8
+Content-Transfer-Encoding: 8bit
+Subject: Re: [RFCv2] Add a library to retrieve associated media devices - was: Re: [ANNOUNCE] experimental alsa stream support at xawtv3
+From: Andy Walls <awalls@md.metrocast.net>
+Date: Sun, 29 May 2011 07:47:11 -0400
+To: Hans Verkuil <hverkuil@xs4all.nl>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>
+CC: Devin Heitmueller <dheitmueller@kernellabs.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Hans De Goede <hdegoede@redhat.com>
+Message-ID: <bcae2b56-57c0-4936-b4c5-1d57f65125fc@email.android.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-2011/5/5 Andrew Junev <a-j@a-j.ru>:
-> Hello All,
->
->  I'm  trying  to set up a TeVii S470 DVB-S2 card for use in my MythTV
->  system  running  on  Fedora 13. I already have a couple of TT S-1401
->  cards in that machine, and it works fine.
->
->  I  copied   the  firmware for my S470 as described on the Wiki page.
->  The  card is detected  and seem to work. I am able to watch existing
->  channels, and even found some DVB-S2 transponders.
->
->  But  the  machine  is  very  unstable. After a while, I get a lot of
->  errors in my /var/log/messages , like:
->
-> May  3 22:35:51 localhost kernel: ds3000_readreg: reg=0xd(error=-5)
-> May  3 22:35:51 localhost kernel: ds3000_readreg: reg=0xb2(error=-5)
-> May  3 22:35:51 localhost kernel: ds3000_writereg: writereg error(err == -5, reg == 0x03, value == 0x11)
-> May  3 22:35:51 localhost kernel: ds3000_tuner_writereg: writereg error(err == -5, reg == 0x42, value == 0x73)
-> May  3 22:35:51 localhost kernel: ds3000_writereg: writereg error(err == -5, reg == 0x03, value == 0x11)
-> May  3 22:35:51 localhost kernel: ds3000_tuner_writereg: writereg error(err == -5, reg == 0x05, value == 0x01)
-> May  3 22:35:51 localhost kernel: ds3000_writereg: writereg error(err == -5, reg == 0x03, value == 0x11)
-> May  3 22:35:51 localhost kernel: ds3000_tuner_writereg: writereg error(err == -5, reg == 0x62, value == 0xf5)
->
-> May  3 22:35:51 localhost kernel: ds3000_readreg: reg=0xd(error=-5)
-> May  3 22:35:51 localhost kernel: ds3000_readreg: reg=0xd(error=-5)
-> May  3 22:35:51 localhost kernel: ds3000_readreg: reg=0xd(error=-5)
-> May  3 22:35:51 localhost kernel: ds3000_readreg: reg=0xd(error=-5)
-> May  3 22:35:51 localhost kernel: ds3000_readreg: reg=0xd(error=-5)
-> May  3 22:35:51 localhost kernel: ds3000_readreg: reg=0xd(error=-5)
-> May  3 22:35:51 localhost kernel: ds3000_readreg: reg=0xd(error=-5)
-> May  3 22:35:51 localhost kernel: ds3000_readreg: reg=0xd(error=-5)
-> May  3 22:35:51 localhost kernel: ds3000_readreg: reg=0xd(error=-5)
-> May  3 22:35:51 localhost kernel: ds3000_readreg: reg=0xd(error=-5)
-> May  3 22:35:51 localhost kernel: ds3000_readreg: reg=0xd(error=-5)
-> May  3 22:35:51 localhost kernel: ds3000_readreg: reg=0xd(error=-5)
-> May  3 22:35:51 localhost kernel: ds3000_readreg: reg=0xd(error=-5)
-> May  3 22:35:51 localhost kernel: ds3000_readreg: reg=0xd(error=-5)
-> May  3 22:35:51 localhost kernel: ds3000_readreg: reg=0xd(error=-5)
->
->
-> There   are   a  lot  of  lines  like  these  in the log (tens or even
-> hundreds  per  second).  And  at some point the machine just freezes -
-> stops  responding  completely.  It  happens  even  if I'm not watching
-> anything.
->
-> If I take the S470 out, my machine works just fine again.
->
->
-> Some more info from the log - perhaps something could be useful:
->
-> May  2 20:39:15 localhost kernel: Linux video capture interface: v2.00
-> May  2 20:39:15 localhost kernel: cx23885 driver version 0.0.2 loaded
-> May  2 20:39:15 localhost kernel: cx23885 0000:04:00.0: PCI INT A -> GSI 18 (level, low) -> IRQ 18
-> May  2 20:39:15 localhost kernel: LNBx2x attached on addr=8
-> May  2 20:39:15 localhost kernel: DVB: registering adapter 0 frontend 0 (Philips TDA10086 DVB-S)...
-> May  2 20:39:15 localhost kernel: budget dvb 0000:06:02.0: PCI INT A -> GSI 18 (level, low) -> IRQ 18
-> May  2 20:39:15 localhost kernel: CORE cx23885[0]: subsystem: d470:9022, board: TeVii S470 [card=15,autodetected]
-> May  2 20:39:15 localhost kernel: IRQ 18/: IRQF_DISABLED is not guaranteed on shared IRQs
-> May  2 20:39:15 localhost kernel: saa7146: found saa7146 @ mem fb3f4800 (revision 1, irq 18) (0x13c2,0x1018).
-> May  2 20:39:15 localhost kernel: saa7146 (1): dma buffer size 192512
-> May  2 20:39:15 localhost kernel: DVB: registering new adapter (TT-Budget-S-1401 PCI)
-> May  2 20:39:15 localhost kernel: adapter has MAC addr = 00:d0:5c:0b:01:2d
-> May  2 20:39:15 localhost kernel: LNBx2x attached on addr=8
-> May  2 20:39:15 localhost kernel: DVB: registering adapter 1 frontend 0 (Philips TDA10086 DVB-S)...
-> May  2 20:39:15 localhost kernel: cx23885_dvb_register() allocating 1 frontend(s)
-> May  2 20:39:15 localhost kernel: cx23885[0]: cx23885 based dvb card
-> May  2 20:39:15 localhost kernel: DS3000 chip version: 0.192 attached.
-> May  2 20:39:15 localhost kernel: DVB: registering new adapter (cx23885[0])
-> May  2 20:39:15 localhost kernel: DVB: registering adapter 2 frontend 0 (Montage Technology DS3000/TS2020)...
-> May  2 20:39:15 localhost kernel: cx23885_dev_checkrevision() Hardware revision = 0xb0
-> May  2 20:39:15 localhost kernel: cx23885[0]/0: found at 0000:04:00.0, rev: 2, irq: 18, latency: 0, mmio: 0xfe800000
-> May  2 20:39:15 localhost kernel: IRQ 18/cx23885[0]: IRQF_DISABLED is not guaranteed on shared IRQs
->
->
-> # uname -a
-> Linux mythbackend 2.6.34.8-68.fc13.i686.PAE #1 SMP Thu Feb 17 14:54:10 UTC 2011 i686 i686 i386 GNU/Linux
-> #
->
->
-> I searched the Net and found a similar question that was raised some time
-> ago, but there was not even a discussion on this topic...
->
-> If  someone  else  has  the  same  DVB-S  card  -  please  share  your
-> experience! I'd appreciate any ideas!
->
-> --
-> Best regards,
->  Andrew
->
->
+Hans Verkuil <hverkuil@xs4all.nl> wrote:
 
-Hello Andrew, I have same DVB-S2 card on a Debian Squeeze system, I
-have installed this way:
+>Hi Mauro,
+>
+>Thanks for the RFC! Some initial comments below. I'll hope to do some
+>more
+>testing and reviewing in the coming week.
+>
+>On Sunday, May 29, 2011 03:01:43 Mauro Carvalho Chehab wrote:
+>> Em 28-05-2011 13:20, Mauro Carvalho Chehab escreveu:
+>> > Em 28-05-2011 12:24, Hans Verkuil escreveu:
+>> >> But I would really like to see an RFC with a proposal of the API
+>and how
+>> >> it is to be used. Then after an agreement has been reached the
+>library can
+>> >> be modified accordingly and we can release it.
+>> > 
+>> > Ok, that's the RFC for the API. The code is already committed, on a
+>separate
+>> > library at v4l-utils. So, feel free to test.
+>> http://git.linuxtv.org/v4l-utils.gi
+>> Just finished a version 2 of the library. I've addressed on it the
+>two
+>> comments from Hans de Goede: to allow calling the seek method for the
+>> associated devices using an open file descriptor, and to allow
+>listing
+>> all video nodes. The library is at utils/libmedia_dev dir, at 
+>> http://git.linuxtv.org/v4l-utils.git. IMO, the proper step is to move
+>it
+>> to the libv4l, but it is better to wait to the release of the current
+>> version. After that, I'll change xawtv3 to link against the new
+>library.
+>> 
+>> Btw, it may be a good idea to also move the alsa thread code from
+>xawtv3
+>> (and tvtime) to v4l-utils.
+>> 
+>> -
+>> 
+>> 1) Why such library is needed
+>>    ==========================
+>> 
+>> Media devices can be very complex. It is not trivial how to detect
+>what's the
+>> other devices associated with a video node.
+>> 
+>> This API provides the capabilities of getting the associated devices
+>with a
+>> video node.
+>> 
+>> It is currently implemented at http://git.linuxtv.org/v4l-utils.git,
+>at the
+>> utils/libmedia_dev/. After validating it, it makes sense to move it
+>to be
+>> part of libv4l.
+>> 
+>> 2) Provided functions
+>>    ==================
+>> 
+>> The API defines a macro with its current version. Currently, it is:
+>> 
+>> 	#define GET_MEDIA_DEVICES_VERSION	0x0104
+>> 
+>> Each device type that is known by the API is defined inside enum
+>device_type,
+>> currently defined as:
+>> 
+>> 	enum device_type {
+>> 		UNKNOWN = 65535,
+>> 		NONE    = 65534,
+>> 		MEDIA_V4L_VIDEO = 0,
+>
+>Can you add MEDIA_V4L_RADIO as well? And MEDIA_V4L_SUBDEV too.
+>
+>> 		MEDIA_V4L_VBI,
+>> 		MEDIA_DVB_FRONTEND,
+>
+>It might be better to start at a new offset here, e.g.
+>MEDIA_DVB_FRONTEND = 100
+>Ditto for SND. That makes it easier to insert new future device nodes.
+>
+>> 		MEDIA_DVB_DEMUX,
+>> 		MEDIA_DVB_DVR,
+>> 		MEDIA_DVB_NET,
+>> 		MEDIA_DVB_CA,
+>> 		MEDIA_SND_CARD,
+>> 		MEDIA_SND_CAP,
+>> 		MEDIA_SND_OUT,
+>> 		MEDIA_SND_CONTROL,
+>> 		MEDIA_SND_HW,
+>
+>Should we have IR (input) nodes as well? That would associate a IR
+>input with
+>a particular card.
+>
+>> 	};
+>> 
+>> The first function discovers the media devices and stores the
+>information
+>> at an internal representation. Such representation should be opaque
+>to
+>> the userspace applications, as it can change from version to version.
+>> 
+>> 2.1) Device discover and release functions
+>>      =====================================
+>> 
+>> The device discover is done by calling:
+>> 
+>> 	void *discover_media_devices(void);
+>> 
+>> In order to release the opaque structure, a free method is provided:
+>> 
+>> 	void free_media_devices(void *opaque);
+>> 
+>> 2.2) Functions to help printing the discovered devices
+>>      =================================================
+>> 
+>> In order to allow printing the device type, a function is provided to
+>> convert from enum device_type into string:
+>> 
+>> 	char *media_device_type(enum device_type type);
+>
+>const char *?
+>
+>> 
+>> All discovered devices can be displayed by calling:
+>> 
+>> 	void display_media_devices(void *opaque);
+>
+>This would be much more useful if a callback is provided.
+>
+>> 
+>> 2.3) Functions to get device associations
+>>      ====================================
+>> 
+>> The API provides 3 methods to get the associated devices:
+>> 
+>> a) get_associated_device: returns the next device associated with
+>another one
+>> 
+>> 	char *get_associated_device(void *opaque,
+>> 				    char *last_seek,
+>> 				    enum device_type desired_type,
+>> 				    char *seek_device,
+>> 				    enum device_type seek_type);
+>
+>const char *? Ditto elsewhere.
+>
+>> The parameters are:
+>> 
+>> 	opaque:		media devices opaque descriptor
+>> 	last_seek:	last seek result. Use NULL to get the first result
+>> 	desired_type:	type of the desired device
+>> 	seek_device:	name of the device with you want to get an association.
+>> 	seek_type:	type of the seek device. Using NONE produces the same
+>> 			result of using NULL for the seek_device.
+>> 
+>> This function seeks inside the media_devices struct for the next
+>device
+>> that it is associated with a seek parameter.
+>> It can be used to get an alsa device associated with a video device.
+>If
+>> the seek_device is NULL or seek_type is NONE, it will just search for
+>> devices of the desired_type.
+>> 
+>> 
+>> b) fget_associated_device: returns the next device associated with
+>another one
+>> 
+>> 	char *fget_associated_device(void *opaque,
+>> 				    char *last_seek,
+>> 				    enum device_type desired_type,
+>> 				    int fd_seek_device,
+>> 				    enum device_type seek_type);
+>> 
+>> The parameters are:
+>> 
+>> 	opaque:		media devices opaque descriptor
+>> 	last_seek:	last seek result. Use NULL to get the first result
+>> 	desired_type:	type of the desired device
+>> 	fd_seek_device:	file handler for the device where the association
+>will
+>> 			be made
+>>  	seek_type:	type of the seek device. Using NONE produces the same
+>> 			result of using NULL for the seek_device.
+>> 
+>> This function seeks inside the media_devices struct for the next
+>device
+>> that it is associated with a seek parameter.
+>> It can be used to get an alsa device associated with an open file
+>descriptor
+>> 
+>> c) get_not_associated_device: Returns the next device not associated
+>with
+>> 			      an specific device type.
+>> 
+>> char *get_not_associated_device(void *opaque,
+>> 			    char *last_seek,
+>> 			    enum device_type desired_type,
+>> 			    enum device_type not_desired_type);
+>> 
+>> The parameters are:
+>> 
+>> opaque:			media devices opaque descriptor
+>> last_seek:		last seek result. Use NULL to get the first result
+>> desired_type:		type of the desired device
+>> not_desired_type:	type of the seek device
+>> 
+>> This function seeks inside the media_devices struct for the next
+>physical
+>> device that doesn't support a non_desired type.
+>> This method is useful for example to return the audio devices that
+>are
+>> provided by the motherboard.
+>
+>Hmmm. What you really want IMHO is to iterate over 'media hardware',
+>and for
+>each piece of hardware you can find the associated device nodes.
+>
+>It's what you expect to see in an application: a list of
+>USB/PCI/Platform
+>devices to choose from.
+>
+>> 
+>> 3) Examples with typical usecases
+>>    ==============================
+>> 
+>> a) Just displaying all media devices:
+>> 
+>> 	void *md = discover_media_devices();
+>> 	display_media_devices(md);
+>> 	free_media_devices(md);
+>> 
+>> The devices will be shown at the order they appear at the computer
+>buses.
+>> 
+>> b) For video0, prints the associated alsa capture device(s):
+>> 
+>> 	void *md = discover_media_devices();
+>> 	char *devname = NULL, video0 = "/dev/video0";
+>> 	do {
+>> 		devname = get_associated_device(md, devname, MEDIA_SND_CAP,
+>> 						video0, MEDIA_V4L_VIDEO);
+>> 		if (devname)
+>> 			printf("Alsa capture: %s\n", devname);
+>> 	} while (devname);
+>> 	free_media_devices(md);
+>> 
+>> Note: the video0 string can be declarated as "/dev/video0" or as just
+>"video0",
+>> as the search functions will discard any patch on it.
+>> 
+>> c) Get the alsa capture device associated with an opened file
+>descriptor:
+>> 
+>> 	int fd = open("/dev/video0", O_RDWR);
+>> 	...
+>> 	void *md = discover_media_devices();
+>> 	vid = fget_associated_device(md, NULL, MEDIA_SND_CAP, fd, 
+>> 				     MEDIA_V4L_VIDEO);
+>> 	printf("\n\nAlsa device = %s\n", vid);
+>> 	close(fd);
+>> 	free_media_devices(md);
+>> 
+>> d) Get the mainboard alsa playback devices:
+>> 
+>> 	char *devname = NULL;
+>> 	void *md = discover_media_devices();
+>> 	do {
+>> 		devname = get_not_associated_device(md, devname, MEDIA_SND_OUT,
+>> 						    MEDIA_V4L_VIDEO);
+>> 		if (devname)
+>> 			printf("Alsa playback: %s\n", devname);
+>> 	} while (devname);
+>> 	free_media_devices(md);
+>> 
+>> e) Get all video devices:
+>> 
+>> 	md = discover_media_devices();
+>> 
+>> 	char *vid = NULL;
+>> 	do {
+>> 		vid = get_associated_device(md, vid, MEDIA_V4L_VIDEO,
+>> 					    NULL, NONE);
+>> 		if (!vid)
+>> 			break;
+>> 		printf("Video device: %s\n", vid);
+>> 	} while (vid);
+>> 	free_media_devices(md);
+>> 
+>
+>I did some testing: vivi video nodes do not show up at all. And since
+>there is
+>no concept of 'media hardware' in this API the handling of devices with
+>multiple
+>video nodes (e.g. ivtv) is very poor. One thing that we wanted to do
+>with the MC
+>is to select default nodes for complex hardware. This gives
+>applications a hint
+>as to what is the default video node to use for standard
+>capture/output. This
+>concept can be used here as well. Perhaps we should introduce a
+>'V4L2_CAP_DEFAULT'
+>capabity that drivers can set?
+>
+>I think this library would also be more useful if it can filter
+>devices: e.g.
+>filter on capture devices or output devices. Actually, I can't
+>immediately think
+>of other useful filters than capture vs output.
+>
+>We also need some way to tell apps that certain devices are mutually
+>exclusive.
+>Even if we cannot tell the app that through sysfs at the moment, this
+>information
+>will become available in the future through the MC, so we should
+>prepare the API
+>for this.
+>
+>Did anyone test what happens when the user renames device nodes using
+>udev rules?
+>I haven't had the chance to test that yet.
+>
+>Regards,
+>
+>	Hans
+>--
+>To unsubscribe from this list: send the line "unsubscribe linux-media"
+>in
+>the body of a message to majordomo@vger.kernel.org
+>More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
-mkdir /usr/local/src/dvb
-cd /usr/local/src/dvb
-wget http://tevii.com/100315_Beta_linux_tevii_ds3000.rar
-unrar x 100315_Beta_linux_tevii_ds3000.rar
-cp dvb-fe-ds3000.fw /lib/firmware/
-tar xjvf linux-tevii-ds3000.tar.bz2
-cd linux-tevii-ds3000
-make && make install
+Framebuffer devices are missing from the list.  Ivtv provides one at the moment.
 
-It works for me, sometimes I have those message on /var/log/messages:
-
-May  4 13:43:14 htpc kernel: [11575.306168] ds3000_firmware_ondemand:
-Waiting for firmware upload (dvb-fe-ds3000.fw)...
-May  4 13:43:14 htpc kernel: [11575.306181] cx23885 0000:05:00.0:
-firmware: requesting dvb-fe-ds3000.fw
-May  4 13:43:14 htpc kernel: [11575.358334] ds3000_firmware_ondemand:
-Waiting for firmware upload(2)...
-
-But it works well, I use it with MythTV, SD and HD channels.
-
-Let me know if you need some test.
-
-Kind regards.
-
--- 
-Josu Lazkano
+-Andy 
