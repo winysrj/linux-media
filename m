@@ -1,119 +1,59 @@
 Return-path: <mchehab@pedra>
-Received: from smtp-68.nebula.fi ([83.145.220.68]:39441 "EHLO
-	smtp-68.nebula.fi" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751257Ab1E1Ke1 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 28 May 2011 06:34:27 -0400
-Date: Sat, 28 May 2011 13:34:21 +0300
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media@vger.kernel.org, Hans Verkuil <hans.verkuil@cisco.com>
-Subject: Re: [RFCv2 PATCH 07/11] v4l2-ctrls: add control events.
-Message-ID: <20110528103421.GA4991@valkosipuli.localdomain>
-References: <6cea502820c1684f34b9e862a64be2972afb718f.1306329390.git.hans.verkuil@cisco.com>
- <2c6e1531f7f9ab33b60e8c7f972f58a0dd6fbbd1.1306329390.git.hans.verkuil@cisco.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <2c6e1531f7f9ab33b60e8c7f972f58a0dd6fbbd1.1306329390.git.hans.verkuil@cisco.com>
+Received: from lo.gmane.org ([80.91.229.12]:51749 "EHLO lo.gmane.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750731Ab1E2MLm (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 29 May 2011 08:11:42 -0400
+Received: from list by lo.gmane.org with local (Exim 4.69)
+	(envelope-from <gldv-linux-media@m.gmane.org>)
+	id 1QQeqL-00057d-2x
+	for linux-media@vger.kernel.org; Sun, 29 May 2011 14:11:41 +0200
+Received: from nemi.mork.no ([148.122.252.4])
+        by main.gmane.org with esmtp (Gmexim 0.1 (Debian))
+        id 1AlnuQ-0007hv-00
+        for <linux-media@vger.kernel.org>; Sun, 29 May 2011 14:11:41 +0200
+Received: from bjorn by nemi.mork.no with local (Gmexim 0.1 (Debian))
+        id 1AlnuQ-0007hv-00
+        for <linux-media@vger.kernel.org>; Sun, 29 May 2011 14:11:41 +0200
+To: linux-media@vger.kernel.org
+From: =?utf-8?Q?Bj=C3=B8rn_Mork?= <bjorn@mork.no>
+Subject: Re: [linux-dvb] Terratec Cinergy C HD - CAM support.... Need help?
+Date: Sun, 29 May 2011 14:11:23 +0200
+Message-ID: <87oc2lr9jo.fsf@nemi.mork.no>
+References: <201105272148.04347.willem@ereprijs.demon.nl>
+	<4DE002DB.8000304@dommel.be> <87wrhbql6b.fsf@nemi.mork.no>
+	<201105291142.33876.willem@ereprijs.demon.nl>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 8bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Hi Hans,
+Willem van Asperen <willem@ereprijs.demon.nl> writes:
 
-On Wed, May 25, 2011 at 03:33:51PM +0200, Hans Verkuil wrote:
-> From: Hans Verkuil <hans.verkuil@cisco.com>
-> 
-> Whenever a control changes value or state an event is sent to anyone
-> that subscribed to it.
-> 
-> This functionality is useful for control panels but also for applications
-> that need to wait for (usually status) controls to change value.
+> Actually, doing this on s2-liplianin-41388e396e0f (the one I downloaded today) 
+> gets:
+> $ grep mantis_ca_init *.c
+>
+> mantis_ca.c:int mantis_ca_init(struct mantis_pci *mantis)
+> mantis_dvb.c:   mantis_ca_init(mantis);
+>
+> And in the function __devinit mantis_dvb_init(struct mantis_pci *mantis) it 
+> actually says:
+>
+> ...
+> 	dvb_net_init(&mantis->dvb_adapter, &mantis->dvbnet, &mantis->demux.dmx);
+> 	tasklet_init(&mantis->tasklet, mantis_dma_xfer, (unsigned long) mantis);
+> 	mantis_frontend_init(mantis);
+> 	mantis_ca_init(mantis);
+>
+> 	return 0;
+> ...
+>
+> So it seems that this mantis_ca_init call is actually made nowadays.
 
-Thanks for the patch!
+In the s2-liplianin yes.  Not in mainline.  Investigating the
+differences might be useful.
 
-I agree that it's good to pass more information of the control (min, max
-etc.) to the user space with the event. However, to support events arriving
-from interrupt context which we've discussed in the past, such information
-must be also accessible in those situations.
 
-What do you think about more fine-grained locking of controls, say, spinlock
-for each control (cluster) as an idea?
+Bjørn
 
-> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-> ---
->  drivers/media/video/v4l2-ctrls.c |  101 ++++++++++++++++++++++++++++++
->  drivers/media/video/v4l2-event.c |  126 +++++++++++++++++++++++++++-----------
->  drivers/media/video/v4l2-fh.c    |    4 +-
->  include/linux/videodev2.h        |   29 ++++++++-
->  include/media/v4l2-ctrls.h       |   16 +++++-
->  include/media/v4l2-event.h       |    2 +
->  6 files changed, 237 insertions(+), 41 deletions(-)
-> 
-> diff --git a/drivers/media/video/v4l2-ctrls.c b/drivers/media/video/v4l2-ctrls.c
-> index 3e0d8ab..e2a7ac7 100644
-> --- a/drivers/media/video/v4l2-ctrls.c
-> +++ b/drivers/media/video/v4l2-ctrls.c
-> @@ -23,6 +23,7 @@
->  #include <media/v4l2-ioctl.h>
->  #include <media/v4l2-device.h>
->  #include <media/v4l2-ctrls.h>
-> +#include <media/v4l2-event.h>
->  #include <media/v4l2-dev.h>
->  
->  #define call_op(master, op) \
-> @@ -540,6 +541,44 @@ static bool type_is_int(const struct v4l2_ctrl *ctrl)
->  	}
->  }
->  
-> +static void fill_event(struct v4l2_event *ev, struct v4l2_ctrl *ctrl, u32 changes)
-> +{
-> +	memset(ev->reserved, 0, sizeof(ev->reserved));
-> +	ev->type = V4L2_EVENT_CTRL;
-> +	ev->id = ctrl->id;
-> +	ev->u.ctrl.changes = changes;
-> +	ev->u.ctrl.type = ctrl->type;
-> +	ev->u.ctrl.flags = ctrl->flags;
-> +	if (ctrl->type == V4L2_CTRL_TYPE_STRING)
-> +		ev->u.ctrl.value64 = 0;
-> +	else
-> +		ev->u.ctrl.value64 = ctrl->cur.val64;
-> +	ev->u.ctrl.minimum = ctrl->minimum;
-> +	ev->u.ctrl.maximum = ctrl->maximum;
-> +	if (ctrl->type == V4L2_CTRL_TYPE_MENU)
-> +		ev->u.ctrl.step = 1;
-> +	else
-> +		ev->u.ctrl.step = ctrl->step;
-> +	ev->u.ctrl.default_value = ctrl->default_value;
-> +}
-> +
-> +static void send_event(struct v4l2_fh *fh, struct v4l2_ctrl *ctrl, u32 changes)
-> +{
-> +	struct v4l2_event ev;
-> +	struct v4l2_ctrl_fh *pos;
-> +
-> +	if (list_empty(&ctrl->fhs))
-> +			return;
-> +	fill_event(&ev, ctrl, changes);
-> +
-> +	list_for_each_entry(pos, &ctrl->fhs, node) {
-> +		if (pos->fh == fh)
-> +			continue;
-> +		ev.u.ctrl.flags = ctrl->flags;
-
-What's the purpose of setting flags here as well? fill_event() above already
-does it.
-
-> +		v4l2_event_queue_fh(pos->fh, &ev);
-> +	}
-> +}
-> +
->  /* Helper function: copy the current control value back to the caller */
->  static int cur_to_user(struct v4l2_ext_control *c,
->  		       struct v4l2_ctrl *ctrl)
-
-Regards,
-
--- 
-Sakari Ailus
-sakari dot ailus at iki dot fi
