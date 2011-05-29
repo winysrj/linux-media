@@ -1,85 +1,66 @@
 Return-path: <mchehab@pedra>
-Received: from mailout-de.gmx.net ([213.165.64.22]:34066 "HELO
-	mailout-de.gmx.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1754622Ab1EFTGi (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 6 May 2011 15:06:38 -0400
-From: Oliver Endriss <o.endriss@gmx.de>
-Reply-To: linux-media@vger.kernel.org
+Received: from smtp-vbr9.xs4all.nl ([194.109.24.29]:3090 "EHLO
+	smtp-vbr9.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751098Ab1E2Mk4 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 29 May 2011 08:40:56 -0400
+Received: from basedrum.localnet (ereprijs.demon.nl [83.161.20.106])
+	by smtp-vbr9.xs4all.nl (8.13.8/8.13.8) with ESMTP id p4TCeox0071338
+	for <linux-media@vger.kernel.org>; Sun, 29 May 2011 14:40:54 +0200 (CEST)
+	(envelope-from willem@ereprijs.demon.nl)
+From: Willem van Asperen <willem@ereprijs.demon.nl>
 To: linux-media@vger.kernel.org
-Subject: media_build broken due to wrong indention of timberdale entry in Kconfig
-Date: Fri, 6 May 2011 21:04:50 +0200
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: Re: [linux-dvb] Terratec Cinergy C HD - CAM support.... Need help?
+Date: Sun, 29 May 2011 14:40:49 +0200
+References: <201105272148.04347.willem@ereprijs.demon.nl> <201105291142.33876.willem@ereprijs.demon.nl> <87oc2lr9jo.fsf@nemi.mork.no>
+In-Reply-To: <87oc2lr9jo.fsf@nemi.mork.no>
 MIME-Version: 1.0
-Content-Type: Multipart/Mixed;
-  boundary="Boundary-00=_TZExN1V+Qg99XUJ"
-Message-Id: <201105062104.51754@orion.escape-edv.de>
+Content-Type: Text/Plain;
+  charset="utf-8"
+Content-Transfer-Encoding: 8BIT
+Message-Id: <201105291440.49845.willem@ereprijs.demon.nl>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
---Boundary-00=_TZExN1V+Qg99XUJ
-Content-Type: text/plain;
-  charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+On Sunday 29 May 2011 14:11:23 Bjørn Mork wrote:
+> Willem van Asperen <willem@ereprijs.demon.nl> writes:
+> > Actually, doing this on s2-liplianin-41388e396e0f (the one I downloaded
+> > today) gets:
+> > $ grep mantis_ca_init *.c
+> >
+> > mantis_ca.c:int mantis_ca_init(struct mantis_pci *mantis)
+> > mantis_dvb.c:   mantis_ca_init(mantis);
+> >
+> > And in the function __devinit mantis_dvb_init(struct mantis_pci *mantis)
+> > it actually says:
+> >
+> > ...
+> > 	dvb_net_init(&mantis->dvb_adapter, &mantis->dvbnet, &mantis->demux.dmx);
+> > 	tasklet_init(&mantis->tasklet, mantis_dma_xfer, (unsigned long) mantis);
+> > 	mantis_frontend_init(mantis);
+> > 	mantis_ca_init(mantis);
+> >
+> > 	return 0;
+> > ...
+> >
+> > So it seems that this mantis_ca_init call is actually made nowadays.
+> 
+> In the s2-liplianin yes.  Not in mainline.  Investigating the
+> differences might be useful.
 
-Hi,
+Indeed.
 
-'make menuconfig' does not work anymore:
+% modprobe -r mantis
+% modprobe mantis
 
-[media_build]$make menuconfig
-make -C /usr/local/src/ARCHIVE/git-work/media_build/v4l menuconfig
-make[1]: Entering directory `/usr/local/src/ARCHIVE/git-work/media_build/v4l'
-/lib/modules/2.6.38.5/build/scripts/kconfig/mconf ./Kconfig
-./Kconfig:1527: unknown option "Add"
-make[1]: *** [menuconfig] Error 1
-make[1]: Leaving directory `/usr/local/src/ARCHIVE/git-work/media_build/v4l'
-make: *** [menuconfig] Error 2
-
-Fix attached.
-
-CU
-Oliver
-
--- 
-----------------------------------------------------------------
-VDR Remote Plugin 0.4.0: http://www.escape-edv.de/endriss/vdr/
-4 MByte Mod: http://www.escape-edv.de/endriss/dvb-mem-mod/
-Full-TS Mod: http://www.escape-edv.de/endriss/dvb-full-ts-mod/
-----------------------------------------------------------------
-
---Boundary-00=_TZExN1V+Qg99XUJ
-Content-Type: text/x-diff;
-  charset="us-ascii";
-  name="video-kconfig-timb-fix.diff"
-Content-Transfer-Encoding: quoted-printable
-Content-Disposition: attachment;
-	filename="video-kconfig-timb-fix.diff"
-
-=46rom 0903a2a1574541035a7fcaf7f83c95bb08a91a07 Mon Sep 17 00:00:00 2001
-=46rom: Oliver Endriss <o.endriss@gmx.de>
-Date: Fri, 6 May 2011 20:43:27 +0200
-Subject: [PATCH] Kconfig: Fix indention of ---help--- for timerdale driver
-
-Signed-off-by: Oliver Endriss <o.endriss@gmx.de>
-=2D--
- drivers/media/video/Kconfig |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
-
-diff --git a/drivers/media/video/Kconfig b/drivers/media/video/Kconfig
-index 3d25920..d61414e 100644
-=2D-- a/drivers/media/video/Kconfig
-+++ b/drivers/media/video/Kconfig
-@@ -689,7 +689,7 @@ config VIDEO_TIMBERDALE
- 	select VIDEO_ADV7180
- 	select VIDEOBUF_DMA_CONTIG
- 	---help---
-=2D	Add support for the Video In peripherial of the timberdale FPGA.
-+	  Add support for the Video In peripherial of the timberdale FPGA.
-=20
- source "drivers/media/video/cx88/Kconfig"
-=20
-=2D-=20
-1.6.5.3
+gives:
+May 29 14:37:51 mythbox kernel: Mantis 0000:03:02.0: PCI INT A -> GSI 17 
+(level, low) -> IRQ 17
+May 29 14:37:51 mythbox kernel: DVB: registering new adapter (Mantis DVB 
+adapter)
+May 29 14:37:52 mythbox kernel: DVB: registering adapter 0 frontend 0 (Philips 
+TDA10023 DVB-C)...
 
 
---Boundary-00=_TZExN1V+Qg99XUJ--
+Nothing about CA
+
