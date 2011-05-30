@@ -1,67 +1,67 @@
-Return-path: <mchehab@gaivota>
-Received: from mx1.redhat.com ([209.132.183.28]:37900 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755077Ab1ELBg7 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 11 May 2011 21:36:59 -0400
-Message-ID: <4DCB39AF.2000807@redhat.com>
-Date: Thu, 12 May 2011 03:36:47 +0200
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Return-path: <mchehab@pedra>
+Received: from moutng.kundenserver.de ([212.227.126.187]:49179 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751233Ab1E3GVR (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 30 May 2011 02:21:17 -0400
+Date: Mon, 30 May 2011 08:21:13 +0200 (CEST)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Chris Rodley <carlighting@yahoo.co.nz>
+cc: javier.martin@vista-silicon.com, koen@beagleboard.org,
+	beagleboard@googlegroups.com, linux-media@vger.kernel.org,
+	laurent.pinchart@ideasonboard.com
+Subject: Re: [beagleboard] [PATCH] Second RFC version of mt9p031 sensor with
+ power managament.
+In-Reply-To: <290776.52536.qm@web112005.mail.gq1.yahoo.com>
+Message-ID: <Pine.LNX.4.64.1105300819320.29224@axis700.grange>
+References: <290776.52536.qm@web112005.mail.gq1.yahoo.com>
 MIME-Version: 1.0
-To: Anssi Hannula <anssi.hannula@iki.fi>
-CC: Peter Hutterer <peter.hutterer@who-t.net>,
-	linux-media@vger.kernel.org,
-	"linux-input@vger.kernel.org" <linux-input@vger.kernel.org>,
-	xorg-devel@lists.freedesktop.org
-Subject: Re: IR remote control autorepeat / evdev
-References: <4DC61E28.4090301@iki.fi> <20110510041107.GA32552@barra.redhat.com> <4DC8C9B6.5000501@iki.fi> <20110510053038.GA5808@barra.redhat.com> <4DC940E5.2070902@iki.fi> <4DCA1496.20304@redhat.com> <4DCABA42.30505@iki.fi> <4DCABEAE.4080607@redhat.com> <4DCACE74.6050601@iki.fi> <4DCB213A.8040306@redhat.com> <4DCB2BD9.6090105@iki.fi> <4DCB336B.2090303@redhat.com>
-In-Reply-To: <4DCB336B.2090303@redhat.com>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 List-ID: <linux-media.vger.kernel.org>
-Sender: Mauro Carvalho Chehab <mchehab@gaivota>
+Sender: <mchehab@pedra>
 
-Em 12-05-2011 03:10, Mauro Carvalho Chehab escreveu:
-> Em 12-05-2011 02:37, Anssi Hannula escreveu:
+On Sun, 29 May 2011, Chris Rodley wrote:
 
->> I don't see any other places:
->> $ git grep 'REP_PERIOD' .
->> dvb/dvb-usb/dvb-usb-remote.c:   input_dev->rep[REP_PERIOD] =
->> d->props.rc.legacy.rc_interval;
+> On 29/05/11 03:04, Guennadi Liakhovetski wrote:
+> > On Sat, 28 May 2011, Guennadi Liakhovetski wrote:
+> >
+> >> Hi Javier
+> >>
+> >> On Thu, 26 May 2011, javier Martin wrote:
+> >>
+> >>> I use a patched version of yavta and Mplayer to see video
+> >>> (http://download.open-technology.de/BeagleBoard_xM-MT9P031/)
+> >>
+> >> Are you really using those versions and patches, as described in 
+> >> BBxM-MT9P031.txt? I don't think those versions still work with 2.6.39, 
+> >> they don't even compile for me. Whereas if I take current HEAD, it builds 
+> >> and media-ctl seems to run error-free, but yavta produces no output.
+> >
+> > Ok, sorry for the noise. It works with current media-ctl with no patches, 
+> > so, we better don't try to confuse our users / testers:)
+> >
+> > Thanks
+> > Guennadi
 > 
-> Indeed, the REP_PERIOD is not adjusted on other drivers. I agree that we
-> should change it to something like 125ms, for example, as 33ms is too 
-> short, as it takes up to 114ms for a repeat event to arrive.
+> Hi,
 > 
-IMO, the enclosed patch should do a better job with repeat events, without
-needing to change rc-core/input/event logic.
+> Still no luck getting the v3 patch working.
+> I did go back and re-test the first v1 patch that Javier released.
+> This works fine with the same version of media-ctl and yavta.
+> So it isn't either of those programs that is causing the problem.
 
--
+It is. For 2.6.39 + v3 of Javier's patches you need a current media-ctl 
+version unpatched. Interestingly, the new yavta version didn't work for 
+me, but maybe I've done something wrong. The old (patched) version did 
+work though.
 
-Subject: Use a more consistent value for RC repeat period
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
+> Must be something else.
+> 
+> Will wait and see how Koen goes.
 
-The default REP_PERIOD is 33 ms. This doesn't make sense for IR's,
-as, in general, an IR repeat scancode is provided at every 110/115ms,
-depending on the RC protocol. So, increase its default, to do a
-better job avoiding ghost repeat events.
-
-Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
-
-diff --git a/drivers/media/rc/rc-main.c b/drivers/media/rc/rc-main.c
-index f53f9c6..ee67169 100644
---- a/drivers/media/rc/rc-main.c
-+++ b/drivers/media/rc/rc-main.c
-@@ -1044,6 +1044,13 @@ int rc_register_device(struct rc_dev *dev)
- 	 */
- 	dev->input_dev->rep[REP_DELAY] = 500;
- 
-+	/*
-+	 * As a repeat event on protocols like RC-5 and NEC take as long as
-+	 * 110/114ms, using 33ms as a repeat period is not the right thing
-+	 * to do.
-+	 */
-+	dev->input_dev->rep[REP_PERIOD] = 125;
-+
- 	path = kobject_get_path(&dev->dev.kobj, GFP_KERNEL);
- 	printk(KERN_INFO "%s: %s as %s\n",
- 		dev_name(&dev->dev),
+Thanks
+Guennadi
+---
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
+http://www.open-technology.de/
