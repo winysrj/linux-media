@@ -1,108 +1,55 @@
-Return-path: <mchehab@gaivota>
-Received: from leo.clearchain.com ([199.73.29.74]:27117 "EHLO
-	mail.clearchain.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750851Ab1EJEfr (ORCPT
+Return-path: <mchehab@pedra>
+Received: from perceval.ideasonboard.com ([95.142.166.194]:44393 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751757Ab1E3Spo (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 10 May 2011 00:35:47 -0400
-Date: Tue, 10 May 2011 14:11:07 +1000
-From: Peter Hutterer <peter.hutterer@who-t.net>
-To: Anssi Hannula <anssi.hannula@iki.fi>
-Cc: linux-media@vger.kernel.org,
-	"linux-input@vger.kernel.org" <linux-input@vger.kernel.org>,
-	xorg-devel@lists.freedesktop.org
-Subject: Re: IR remote control autorepeat / evdev
-Message-ID: <20110510041107.GA32552@barra.redhat.com>
-References: <4DC61E28.4090301@iki.fi>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <4DC61E28.4090301@iki.fi>
+	Mon, 30 May 2011 14:45:44 -0400
+Received: from localhost.localdomain (unknown [91.178.186.233])
+	by perceval.ideasonboard.com (Postfix) with ESMTPSA id 187293599C
+	for <linux-media@vger.kernel.org>; Mon, 30 May 2011 18:45:43 +0000 (UTC)
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: linux-media@vger.kernel.org
+Subject: [PATCH] media: Fix media device minor registration
+Date: Mon, 30 May 2011 20:45:47 +0200
+Message-Id: <1306781147-25480-1-git-send-email-laurent.pinchart@ideasonboard.com>
 List-ID: <linux-media.vger.kernel.org>
-Sender: Mauro Carvalho Chehab <mchehab@gaivota>
+Sender: <mchehab@pedra>
 
-On Sun, May 08, 2011 at 07:38:00AM +0300, Anssi Hannula wrote:
-> Hi all!
-> 
-> Most IR/RF remotes differ from normal keyboards in that they don't
-> provide release events. They do provide native repeat events, though.
-> 
-> Currently the Linux kernel RC/input subsystems provide a simulated
-> autorepeat for remote controls (default delay 500ms, period 33ms), and
-> X.org server ignores these events and generates its own autorepeat for them.
->
-> The kernel RC subsystem provides a simulated release event when 250ms
-> has passed since the last native event (repeat or non-repeat) was
-> received from the device.
-> 
-> This is problematic, since it causes lots of extra repeat events to be
-> always sent (for up to 250ms) after the user has released the remote
-> control button, which makes the remote quite uncomfortable to use.
+The find_next_zero_bit() is called with the from and to arguments in the
+wrong order. This results in the function always returning 0, and all
+media devices being registered with minor 0. Furthermore, mdev->minor is
+then used before being assigned with the find_next_zero_bit() return
+value. This really makes sure we'll always use minor 0.
 
-I got a bit confused reading this description. Does this mean that remotes
-usually send:
-    key press - repeat - repeat - ... - repeat - <silence>
-where the silence indicates that the key has been released? Which the kernel
-after 250ms translates into a release event.
-And the kernel discards the repeats and generates it's own on 500/33?
-Do I get this right so far?
+Fix this and let the system support more than one media device.
 
-If so, I'm not sure how to avoid the 250ms delay since we have no indication
-from the hardware when the silence will stop, right?
+Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: stable@kernel.org
+---
+ drivers/media/media-devnode.c |    4 ++--
+ 1 files changed, 2 insertions(+), 2 deletions(-)
 
-Note that the repeat delay and ratio are configurable per-device using XKB,
-so you could set up the 500/33 in X too.
+diff --git a/drivers/media/media-devnode.c b/drivers/media/media-devnode.c
+index af5263c..7b42ace 100644
+--- a/drivers/media/media-devnode.c
++++ b/drivers/media/media-devnode.c
+@@ -213,14 +213,14 @@ int __must_check media_devnode_register(struct media_devnode *mdev)
+ 
+ 	/* Part 1: Find a free minor number */
+ 	mutex_lock(&media_devnode_lock);
+-	minor = find_next_zero_bit(media_devnode_nums, 0, MEDIA_NUM_DEVICES);
++	minor = find_next_zero_bit(media_devnode_nums, MEDIA_NUM_DEVICES, 0);
+ 	if (minor == MEDIA_NUM_DEVICES) {
+ 		mutex_unlock(&media_devnode_lock);
+ 		printk(KERN_ERR "could not get a free minor\n");
+ 		return -ENFILE;
+ 	}
+ 
+-	set_bit(mdev->minor, media_devnode_nums);
++	set_bit(minor, media_devnode_nums);
+ 	mutex_unlock(&media_devnode_lock);
+ 
+ 	mdev->minor = minor;
+-- 
+1.7.3.4
 
-Cheers,
-  Peter
-
-> Now, IMO something should be done to fix this. But what exactly?
-> 
-> Here are two ideas that would remove these ghost repeats:
-> 
-> 1. Do not provide any repeat/release simulation in the kernel for RC
-> devices (by default?), just provide both keydown and immediate release
-> events for every native keypress or repeat received from the device.
-> + Very simple to implement
-> - We lose the ability to track repeats, i.e. if a new event was a repeat
->   or a new keypress; "holding down" a key becomes impossible
-> 
-> or
-> 2. Replace kernel autorepeat simulation by passing through the native
-> repeat events (probably filtering them according to REP_DELAY and
-> REP_PERIOD), and have a device property bit (fetchable via EVIOCGPROP)
-> indicating that the keyrelease is simulated, and have the X server use
-> the native repeats instead of softrepeats for such a device.
-> + The userspace correctly gets repeat events tagged as repeats and
->   release events when appropriate (albeit a little late)
-> - Adds complexity. Also, while the kernel part is quite easy to
->   implement, I'm not sure if the X server part is.
-> 
-> or
-> 3. Same as 1., but indicate the repeatness of an event with a new
->    additional special event before EV_SYN (sync event).
-> + Simple to implement
-> - Quite hacky, and userspace still can't guess from initial
->   keypress/release if the key is still pressed down or not.
-> 
-> 4. Same as 1., but have a new EV_RC with RC_KEYDOWN and RC_KEYUP events,
->    with RC_KEYDOWN sent when a key is pressed down a first time along
->    with the normal EV_KEY event, and RC_KEYUP sent when the key is
->    surely released (e.g. 250ms without native repeat events or another
->    key got pressed, i.e. like the simulated keyup now).
-> + Simple to implement, works as expected with most userspace apps with
->   no changes to them; and if an app wants to know the repeatness of an
->   event or held-down-ness of a key, it can do that.
-> - Repeatness of the event is hidden behind a new API.
-> 
-> What do you think? Or any other ideas?
-> 
-> 2 and 4 seem nicest to me.
-> (I don't know how feasible 2 would be on X server side, though)
-> 
-> -- 
-> Anssi Hannula
-> _______________________________________________
-> xorg-devel@lists.x.org: X.Org development
-> Archives: http://lists.x.org/archives/xorg-devel
-> Info: http://lists.x.org/mailman/listinfo/xorg-devel
-> 
