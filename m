@@ -1,88 +1,96 @@
 Return-path: <mchehab@pedra>
-Received: from mail.nagios.lastar.com ([64.129.117.10]:51783 "EHLO
-	mail.lastar.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753050Ab1EUS1x convert rfc822-to-8bit (ORCPT
+Received: from smtp-vbr2.xs4all.nl ([194.109.24.22]:3593 "EHLO
+	smtp-vbr2.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751961Ab1E3HdD (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 21 May 2011 14:27:53 -0400
-Received: from localhost (localhost [127.0.0.1])
-	by mail.lastar.com (Postfix) with ESMTP id 5242E2A6006
-	for <linux-media@vger.kernel.org>; Sat, 21 May 2011 14:19:30 -0400 (EDT)
-Received: from mail.lastar.com ([127.0.0.1])
-	by localhost (mail.lastar.com [127.0.0.1]) (amavisd-new, port 10024)
-	with ESMTP id xg8l6AHuos3e for <linux-media@vger.kernel.org>;
-	Sat, 21 May 2011 14:19:30 -0400 (EDT)
-Received: from V-EXMAILBOX.ctg.com (v-exmailbox.ctg.com [192.168.74.76])
-	by mail.lastar.com (Postfix) with ESMTP id 185112A6004
-	for <linux-media@vger.kernel.org>; Sat, 21 May 2011 14:19:30 -0400 (EDT)
-From: Jason Gauthier <jgauthier@lastar.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: RE: Enable IR on hdpvr
-Date: Sat, 21 May 2011 18:19:28 +0000
-Message-ID: <65DE7931C559BF4DBEE42C3F8246249A2AB1230E@V-EXMAILBOX.ctg.com>
-References: <65DE7931C559BF4DBEE42C3F8246249A0B686EB0@V-EXMAILBOX.ctg.com>
-	 <8AFBEFD7-69E3-4E71-B155-EA773C2FED43@wilsonet.com>
-	 <65DE7931C559BF4DBEE42C3F8246249A0B69B014@V-ALBEXCHANGE.ctg.com>
-	 <EC37FC85-82B2-48AE-BB94-64ED00E7647D@wilsonet.com>
-	 <93CE8497-D6AB-43BA-A239-EE32D51582FC@wilsonet.com>
-	 <65DE7931C559BF4DBEE42C3F8246249A0B6A54C7@V-ALBEXCHANGE.ctg.com>,<1294875902.2485.19.camel@morgan.silverblock.net>
- <65DE7931C559BF4DBEE42C3F8246249A0B6A9B4A@V-ALBEXCHANGE.ctg.com>
-In-Reply-To: <65DE7931C559BF4DBEE42C3F8246249A0B6A9B4A@V-ALBEXCHANGE.ctg.com>
-Content-Language: en-US
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+	Mon, 30 May 2011 03:33:03 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Martin Strubel <hackfin@section5.ch>
+Subject: Re: v4l2 device property framework in userspace
+Date: Mon, 30 May 2011 09:32:59 +0200
+Cc: linux-media@vger.kernel.org
+References: <4DE244F4.90203@section5.ch>
+In-Reply-To: <4DE244F4.90203@section5.ch>
 MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201105300932.59570.hverkuil@xs4all.nl>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-All,
+On Sunday, May 29, 2011 15:07:00 Martin Strubel wrote:
+> Hello,
+> 
+> I was wondering if it makes sense to raise a discussion about a few
+> aspects listed below - my apology, if this might be old coffee, I
+> haven't been following this list for long.
+> 
+> Since older kernels didn't have the matching functionality, we (a few
+> losely connected developers) had "hacked" a userspace framework to
+> address various extra features (multi sensor head, realtime stuff or
+> special sensor properties). So, our kernel driver (specific to the PPI
+> port of the Blackfin architecture) is covering frame acquisition only,
+> all sensor specific properties (that were historically rather to be
+> integrated into the v4l2 system) are controller from userspace or over
+> network using our netpp library (which was just released into opensource).
+> 
+> The reasons for this were:
+> 1. 100's of register controlling various special properties on some SoC
+> sensors
+> 2. One software and kernel should work with all sorts of camera
+> configuration
+> 3. I'm lazy and hate to do a lot of boring code writing (ioctls()..).
+> Also, we didn't want to bloat the kernel with property tables.
+> 4. Some implementations did not have much to do with classic "video"
+> 
+> So nowadays we write or parse sensor properties into XML files and
+> generate a library for it that wraps all sensor raw entities (registers
+> and bits) into named entities for quick remote control and direct access
+> to peripherals on the embedded target during the prototyping phase (this
+> is what netpp does for us).
+> 
+> Now, the goal is to opensource stuff from the Blackfin-Side, too (as
+> there seems to be no official v4l2 driver at the moment). Obviously, a
+> lot of work has been done meanwhile on the upstream v4l2 side, but since
+> I'm not completely into it yet, I'd like to ask the experts:
+> 
+> 1. Can we do multi sensor configurations on a tristated camera bus with
+> the current kernel framework?
 
->>If all goes well, with Jarrod's change, you should be able to test the
->>hdpvr module with the ir-kbd-i2c module and test IR Rx.
+Yes. As long as the sensors are implemented as sub-devices (see
+Documentation/video4linux/v4l2-framework.txt) then you can add lots of custom
+controls to those subdevs that can be exposed to userspace. Writing directly
+to sensor registers from userspace is a no-go. If done correctly using the
+control framework (see Documentation/video4linux/v4l2-controls.txt) this shouldn't
+take a lot of code. The hardest part is probably documentation of those controls.
 
->>Strictly speaking, lirc_zilog needs some rework to use the kernel
->>internal interfaces properly.  It might still work, but don't be
->>surprised if it doesn't.
+> 2. Is there a preferred way to route ioctls() back to userspace
+> "property handlers", so that standard v4l2 ioctls() can be implemented
+> while special sensor properties are still accessible through userspace?
 
->>I might get to working on lirc_zilog tonight, but otherwise not until
->>this weekend.
+As mentioned, sensor properties should be implemented as V4L2 controls
 
->Sounds good. Will give any feedback I can!  Is Tx completely a no show at this point?  From my circle of friends that >use the hdpvr, they all use >the Tx for channel changing to cable boxes.  This small sample might not be indicative of >the larger hdpvr user base, though! :)
+> 3. Has anyone measured latencies (or is aware of such) with respect to
+> process response to a just arrived video frame within the RT_PREEMPT
+> context? (I assume any RT_PREEMPT latency research could be generalized
+> to video, but asking anyhow)
 
-Well, it's been a few very busy months!    I've upgraded my distribution, and coupled that with a move to kernel 2.6.38.  I noticed that many patches for hdpvr and zilog have made it into the kernel source (at least staging)
+I'm not aware of such measurements, but there is nothing special about video.
+So it would be the same as any other process response to an interrupt.
 
-Well, I am trying this out, and zilog does not probe the Tx on the HDPVR. Is that expected?
-Well, it sort of does.
+> 4. For some applications it's mandatory to queue commands that are
+> commited to a sensor immediately during a frame blank. This makes the
+> shared userspace and kernel access for example to an SPI bus rather
+> tricky. Can this be solved with the current (new) v4l2 framework?
 
-May 21 12:51:06 jgauthier-mythtv kernel: [   42.519404] lirc_zilog: Zilog/Hauppauge IR driver initializing
-May 21 12:51:06 jgauthier-mythtv kernel: [   42.521233] lirc_zilog: probing IR Rx on Hauppage HD PVR I2C (i2c-1)
-May 21 12:51:06 jgauthier-mythtv kernel: [   42.521239] lirc_zilog: probe of IR Rx on Hauppage HD PVR I2C (i2c-1) done. Waiting on IR Tx.
-May 21 12:51:06 jgauthier-mythtv kernel: [   42.521245] lirc_zilog: probing IR Tx on Hauppage HD PVR I2C (i2c-1)
-May 21 12:51:06 jgauthier-mythtv kernel: [   42.521372] i2c i2c-1: lirc_dev: driver lirc_zilog registered at minor = 1
-May 21 12:51:06 jgauthier-mythtv kernel: [   43.088260] lirc_zilog: Zilog/Hauppauge IR blaster firmware version 2.1.0 loaded
-May 21 12:51:06 jgauthier-mythtv kernel: [   43.088265] lirc_zilog: probe of IR Tx on Hauppage HD PVR I2C (i2c-1) done. IR unit ready.
-May 21 12:51:06 jgauthier-mythtv kernel: [   43.088279] lirc_zilog: probing IR Rx on Hauppage HD PVR I2C (i2c-2)
-May 21 12:51:06 jgauthier-mythtv kernel: [   43.088282] lirc_zilog: ir_probe: probing IR Rx on Hauppage HD PVR I2C (i2c-2) failed with 1
-May 21 12:51:06 jgauthier-mythtv kernel: [   43.088288] Zilog/Hauppauge i2c IR: probe of 2-0071 failed with error 1
-May 21 12:51:06 jgauthier-mythtv kernel: [   43.088293] lirc_zilog: probing IR Tx on Hauppage HD PVR I2C (i2c-2)
-May 21 12:51:06 jgauthier-mythtv kernel: [   43.088295] lirc_zilog: ir_probe: probing IR Tx on Hauppage HD PVR I2C (i2c-2) failed with 1
-May 21 12:51:06 jgauthier-mythtv kernel: [   43.088298] Zilog/Hauppauge i2c IR: probe of 2-0070 failed with error 1
-May 21 12:51:06 jgauthier-mythtv kernel: [   43.088329] lirc_zilog: initialization complete
+That's why you want to always go through a kernel driver instead of mixing
+kernel and userspace.
 
-Admittedly, I do not understand exactly what I am reading.  It seems to probe the IR Tx (i2c-1) successfully:
-May 21 12:51:06 jgauthier-mythtv kernel: [   43.088265] lirc_zilog: probe of IR Tx on Hauppage HD PVR I2C (i2c-1) done. IR unit ready.
+However, at the moment we do not have the ability to set and active a
+configuration at a specific time. It is something on our TODO list, though.
+You are not the only one that wants this.
 
-But, then below on (i2c-2) is failed:
-May 21 12:51:06 jgauthier-mythtv kernel: [   43.088282] lirc_zilog: ir_probe: probing IR Rx on Hauppage HD PVR I2C (i2c-2) failed with 1
-May 21 12:51:06 jgauthier-mythtv kernel: [   43.088288] Zilog/Hauppauge i2c IR: probe of 2-0071 failed with error 1
+Regards,
 
-Either way irsend doesn't work:
-
-irsend: command failed: SEND_ONCE blaster 0_74_KEY_2
-irsend: hardware does not support sending
-
-Are there other pieces I need to glue together?
-I attempted to move to lirc 0.9, and recompiled everything (including zilog) against it, (I read it somewhere) but that did not really make a difference.
-
-Thanks,
-
-Jason
+	Hans
