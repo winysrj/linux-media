@@ -1,70 +1,84 @@
 Return-path: <mchehab@pedra>
-Received: from mail-ey0-f174.google.com ([209.85.215.174]:51756 "EHLO
-	mail-ey0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932140Ab1EQUGb (ORCPT
+Received: from mail-qw0-f46.google.com ([209.85.216.46]:63187 "EHLO
+	mail-qw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751938Ab1E3VjO (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 17 May 2011 16:06:31 -0400
-Message-ID: <4DD2D53F.8020403@gmail.com>
-Date: Tue, 17 May 2011 22:06:23 +0200
-From: Sylwester Nawrocki <snjw23@gmail.com>
+	Mon, 30 May 2011 17:39:14 -0400
+Received: by qwk3 with SMTP id 3so1819190qwk.19
+        for <linux-media@vger.kernel.org>; Mon, 30 May 2011 14:39:13 -0700 (PDT)
 MIME-Version: 1.0
+In-Reply-To: <201105301045.24326.laurent.pinchart@ideasonboard.com>
+References: <BANLkTineUffG1yd3Ey30wr0xzAj3_Zd1KQ@mail.gmail.com>
+	<201105301045.24326.laurent.pinchart@ideasonboard.com>
+Date: Mon, 30 May 2011 23:39:13 +0200
+Message-ID: <BANLkTi=t99QM93psfrOK+t2cRtpmtwzu6w@mail.gmail.com>
+Subject: Re: Capabilities of the Omap3 ISP driver
+From: Bastian Hecht <hechtb@googlemail.com>
 To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-CC: Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org,
-	kyungmin.park@samsung.com, m.szyprowski@samsung.com,
-	riverful.kim@samsung.com, kgene.kim@samsung.com,
-	sungchun.kang@samsung.com, jonghun.han@samsung.com,
-	stern@rowland.harvard.edu, rjw@sisk.pl
-Subject: Re: [PATCH 3/3 v5] v4l: Add v4l2 subdev driver for S5P/EXYNOS4 MIPI-CSI
- receivers
-References: <1305127030-30162-1-git-send-email-s.nawrocki@samsung.com> <201105141729.58363.laurent.pinchart@ideasonboard.com> <4DCF9DDA.4060600@gmail.com> <201105152310.07178.laurent.pinchart@ideasonboard.com>
-In-Reply-To: <201105152310.07178.laurent.pinchart@ideasonboard.com>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	"Felix v. Hundelshausen" <felix.v.hundelshausen@live.de>
+Content-Type: text/plain; charset=ISO-8859-1
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Hi Laurent,
+Hello Laurent,
 
-On 05/15/2011 11:10 PM, Laurent Pinchart wrote:
-> On Sunday 15 May 2011 11:33:14 Sylwester Nawrocki wrote:
->> On 05/14/2011 05:29 PM, Laurent Pinchart wrote:
->>> On Wednesday 11 May 2011 17:17:10 Sylwester Nawrocki wrote:
-
-<snip>
-
+2011/5/30 Laurent Pinchart <laurent.pinchart@ideasonboard.com>:
+> Hi Bastian,
+>
+> On Sunday 29 May 2011 15:27:23 Bastian Hecht wrote:
+>> Hello Laurent,
 >>
->> I perhaps need to isolate functions out from of s5pcsis_resume/suspend and
->> then call that in s_power op and s5pcsis_resume/suspend. Don't really like
->> this idea though... It would virtually render pm_runtime_* calls unusable
->> in this sub-device driver, those would make sense only in the host driver..
-> 
-> I think using the pm_runtime_* calls make sense, they could replace the subdev
-> s_power operation in the long term. We'll need to evaluate that (I'm not sure
-> if runtime PM is available on all platforms targeted by V4L2 for instance).
+>> I'm on to a project that needs two synced separate small cameras for
+>> stereovision.
+>>
+>> I was thinking about realizing this on an DM3730 with 2 aptina csi2
+>> cameras that are used in snapshot mode.
+>
+> As far as I know, the DM3730 doesn't have CSI2 interfaces.
 
-That sounds like a really good direction. It would let us have clear standardized
-rules for power handling in V4L2. And with new chips of more complicated
-topologies the power handling details could be taken care of by the Runtime PM
-subsystem. As the runtime PM becomes more granular it appears a good alternative
-for simple subdev s_power call.
+If I don't mix up datasheets, it is stated very clearly that 2 csi2
+interfaces are supported. I took the datasheet at
+http://www.ti.com/litv/pdf/sprugn4k declared as AM/DM37x Multimedia
+Device Technical Reference Manual (Silicon Revision 1.x) (Rev. K)
+(PDF  26851 KB).
+"The camera ISP implements three receivers which are named CSI2A,
+CSI1/CCP2B, and CSI2C. The CSI2A and CSI2C are MIPI D-PHY CSI2
+compatible." on page 1070.
 
-Unfortunately still only a few architectures support runtime PM at device bus level
-in the mainline. What I identified is:
- arm/mach-exynos4
- arm/mach-omap1
- arm/mach-omap2
- arm/mach-shmobile
+>> The questions that arise are:
+>>
+>> - is the ISP driver capable of running 2 concurrent cameras?
+>
+> Yes it can, but only one of them can use the CCDC, preview engine and resizer.
+> The other will be captured directly to memory as raw data. You could capture
+> both raw streams to memory, and then feed them alternatively through the rest
+> of the pipeline. Whether this can work will depend on the image size and frame
+> rate.
+Ok I will check if it is sufficient to do any conversions on the cpu.
 
-So very few, no x86 here.
+>> - is it possible to simulate a kind of video stream that is externally
+>> triggered (I would use a gpio line that simply triggers 10 times a
+>> sec) or would there arise problems with the csi2 protocoll (timeouts
+>> or similar)?
+>
+> I don't think there will be CSI2 issues (although I'm not an expert there) if
+> you trigger the sensors externally.
 
-As we have I2C, SPI and platform device v4l subdevs ideally those buses should
-support Runtime PM.
+Nice, when the ISP side is probably no problem - do you have any
+experience with snapshot mode and know if cameras are capable of doing
+it at framerates about 10fps? It is just because snapshot mode sounds
+like taking 1 frame every now and then... can't they call it "trigger
+mode"? :)
 
->> I just wanted to put all what is needed to control device's power in the PM
->> helpers and then use pm_runtime_* calls where required.
+A million thanks for your answer,
 
---
-Regards,
+ Bastian Hecht
 
-Sylwester Nawrocki
+
+> --
+> Regards,
+>
+> Laurent Pinchart
+>
