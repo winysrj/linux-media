@@ -1,83 +1,59 @@
 Return-path: <mchehab@pedra>
-Received: from mail-ey0-f174.google.com ([209.85.215.174]:44613 "EHLO
-	mail-ey0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751055Ab1EaOHi (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 31 May 2011 10:07:38 -0400
-Received: by eyx24 with SMTP id 24so1662609eyx.19
-        for <linux-media@vger.kernel.org>; Tue, 31 May 2011 07:07:37 -0700 (PDT)
+Received: from mx1.redhat.com ([209.132.183.28]:52175 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752552Ab1E3LhU (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 30 May 2011 07:37:20 -0400
+Message-ID: <4DE3816B.6050204@redhat.com>
+Date: Mon, 30 May 2011 08:37:15 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
 MIME-Version: 1.0
-In-Reply-To: <6BEF1726-768F-45DC-BB9D-7D63127833B9@beagleboard.org>
-References: <1306835210-1345-1-git-send-email-javier.martin@vista-silicon.com>
-	<1306835210-1345-2-git-send-email-javier.martin@vista-silicon.com>
-	<3F25E36F-2420-4D9A-BF5E-77278EB3E238@beagleboard.org>
-	<BANLkTimNe8C73PEiP+LC+4tQhjJuixwdvQ@mail.gmail.com>
-	<6BEF1726-768F-45DC-BB9D-7D63127833B9@beagleboard.org>
-Date: Tue, 31 May 2011 16:07:37 +0200
-Message-ID: <BANLkTin5RYEhBkFvK8zvSiQ+D0QfcfBNGg@mail.gmail.com>
-Subject: Re: [beagleboard] [PATCH v5 2/2] Add support for mt9p031 (LI-5M03
- module) in Beagleboard xM.
-From: javier Martin <javier.martin@vista-silicon.com>
-To: Koen Kooi <koen@beagleboard.org>
-Cc: beagleboard@googlegroups.com, linux-media@vger.kernel.org,
-	g.liakhovetski@gmx.de, laurent.pinchart@ideasonboard.com,
-	carlighting@yahoo.co.nz, mch_kot@yahoo.com.cn
-Content-Type: text/plain; charset=ISO-8859-1
+To: Hans Verkuil <hverkuil@xs4all.nl>
+CC: Devin Heitmueller <dheitmueller@kernellabs.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Hans De Goede <hdegoede@redhat.com>
+Subject: Re: [RFCv2] Add a library to retrieve associated media devices -
+ was: Re: [ANNOUNCE] experimental alsa stream support at xawtv3
+References: <4DDAC0C2.7090508@redhat.com> <201105291319.47207.hverkuil@xs4all.nl> <4DE237D9.8090306@redhat.com> <201105300834.32362.hverkuil@xs4all.nl>
+In-Reply-To: <201105300834.32362.hverkuil@xs4all.nl>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On 31 May 2011 16:01, Koen Kooi <koen@beagleboard.org> wrote:
->
-> Op 31 mei 2011, om 15:42 heeft javier Martin het volgende geschreven:
->
->> On 31 May 2011 15:34, Koen Kooi <koen@beagleboard.org> wrote:
->>> root@beagleboardxMC:~# yavta -f SGRBG8 -s 320x240 -n 4 --capture=10 --skip 3 -F `media-ctl -e "OMAP3 ISP CCDC output"`
->>> Device /dev/video2 opened.
->>> Device `OMAP3 ISP CCDC output' on `media' is a video capture device.
->>> Video format set: SGRBG8 (47425247) 320x240 buffer size 76800
->>> Video format: SGRBG8 (47425247) 320x240 buffer size 76800
->>> 4 buffers requested.
->>> length: 76800 offset: 0
->>> Buffer 0 mapped at address 0x402cf000.
->>> length: 76800 offset: 77824
->>> Buffer 1 mapped at address 0x402fe000.
->>> length: 76800 offset: 155648
->>> Buffer 2 mapped at address 0x40362000.
->>> length: 76800 offset: 233472
->>> Buffer 3 mapped at address 0x40416000.
->>> 0 (0) [-] 4294967295 76800 bytes 167.403289 1306829219.931121 0.002 fps
->>> 1 (1) [-] 4294967295 76800 bytes 167.633148 1306829220.160980 4.350 fps
->>> 2 (2) [-] 4294967295 76800 bytes 167.744506 1306829220.272308 8.980 fps
->>> 3 (3) [-] 4294967295 76800 bytes 167.855865 1306829220.383667 8.980 fps
->>> 4 (0) [-] 4294967295 76800 bytes 167.967193 1306829220.495025 8.982 fps
->>> 5 (1) [-] 4294967295 76800 bytes 168.078552 1306829220.606384 8.980 fps
->>> 6 (2) [-] 4294967295 76800 bytes 168.189910 1306829220.717742 8.980 fps
->>> 7 (3) [-] 4294967295 76800 bytes 168.301269 1306829220.829071 8.980 fps
->>> 8 (0) [-] 4294967295 76800 bytes 168.412597 1306829220.940429 8.982 fps
->>> 9 (1) [-] 4294967295 76800 bytes 168.523956 1306829221.051788 8.980 fps
->>> Captured 10 frames in 1.254212 seconds (7.973134 fps, 612336.670356 B/s).
->>> 4 buffers released.
+Em 30-05-2011 03:34, Hans Verkuil escreveu:
+> On Sunday, May 29, 2011 14:11:05 Mauro Carvalho Chehab wrote:
+>> In other words, for event/input devices, if someone needs to have more than
+>> one IR, each directed to a different set of windows/applications, he will 
+>> need to manually configure what he needs. So, grouping RC with video apps
+>> doesn't make sense.
+> 
+> I'm not so sure about that. Wouldn't it be at least useful that an application
+> can discover that an IR exists? That may exist elsewhere already, though. I'm
+> no IR expert.
+
+ir-keytable does that. We may move part of its code to a library later.
+
+>>>>
+>>>> All discovered devices can be displayed by calling:
+>>>>
+>>>> 	void display_media_devices(void *opaque);
 >>>
->>> So that seems to be working! I haven't checked the frames yet, but is isn't throwing ISP errors anymore.
+>>> This would be much more useful if a callback is provided.
 >>
->> Great!
->> Do you have a monochrome version of the same sensor?
->
-> I think I only have the colour version, I got it with my leopard355 board way back.
->
-> So what can I do with an unpatched mediactl and unpatched yavta? Is it already possible to point something like mplayer or gstreamer to a v4l2 node and see something? I lost the track of which patch goes where :)
->
+>> I can't see any usecase for a callback. Can you explain it better?
+> 
+> Right now display_media_devices outputs to stdout. But what if the apps wants
+> to output to stderr? To some special console? To a GUI?
 
-I don't know, I haven't tried.
-I'm still using old yavta + Guennadi's patch to enable stdoutput and
-"nc" to view images in my PC with mplayer.
+Good point.
 
+If all userspace wants is to redirect it, fdup() may be used. Another option
+would be to just pass the file descriptor as a parameter.
 
--- 
-Javier Martin
-Vista Silicon S.L.
-CDTUC - FASE C - Oficina S-345
-Avda de los Castros s/n
-39005- Santander. Cantabria. Spain
-+34 942 25 32 60
-www.vista-silicon.com
+Passing a printf-like callback may require some work. I'm not sure if this
+is the proper way for doing it.
+
+Could you please propose a patch for it?
+
+Thanks,
+Mauro
