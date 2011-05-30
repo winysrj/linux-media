@@ -1,47 +1,44 @@
-Return-path: <mchehab@gaivota>
-Received: from stevekez.vm.bytemark.co.uk ([80.68.91.30]:39602 "EHLO
-	stevekerrison.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754805Ab1EHPv3 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sun, 8 May 2011 11:51:29 -0400
-From: Steve Kerrison <steve@stevekerrison.com>
-To: Antti Palosaari <crope@iki.fi>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	linux-media@vger.kernel.org
-Cc: Andreas Oberritter <obi@linuxtv.org>
-Subject: [PATCH 0/6] DVB-T2 API updates, documentation and accompanying small fixes
-Date: Sun,  8 May 2011 16:51:07 +0100
-Message-Id: <1304869873-9974-1-git-send-email-steve@stevekerrison.com>
-In-Reply-To: <4DC417DA.5030107@redhat.com>
-References: <4DC417DA.5030107@redhat.com>
+Return-path: <mchehab@pedra>
+Received: from perceval.ideasonboard.com ([95.142.166.194]:37391 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755140Ab1E3Os1 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 30 May 2011 10:48:27 -0400
+Received: from lancelot.localnet (unknown [91.178.186.233])
+	by perceval.ideasonboard.com (Postfix) with ESMTPSA id D7BCF359D1
+	for <linux-media@vger.kernel.org>; Mon, 30 May 2011 14:48:25 +0000 (UTC)
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: linux-media@vger.kernel.org
+Subject: [GIT PULL FOR 3.0] OMAP3 ISP fixes
+Date: Mon, 30 May 2011 16:48:31 +0200
+MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201105301648.32113.laurent.pinchart@ideasonboard.com>
 List-ID: <linux-media.vger.kernel.org>
-Sender: Mauro Carvalho Chehab <mchehab@gaivota>
+Sender: <mchehab@pedra>
 
-Hi Mauro, Antti, Andreas,
+Hi Mauro,
 
-I hope this patch set is formed appropriately - it is my first patch
-submission direct to the linux-media group.
+The following changes since commit 55922c9d1b84b89cb946c777fddccb3247e7df2c:
 
-Following the pull of Antti's work on support for the cxd2820r and PCTV
-nanoStick T2 290e, this patch set implements Andreas' modifications to the API
-to give provisional DVB-T2 support and the removal of a workaround for this
-in the cxd2820r module.
+  Linux 3.0-rc1 (2011-05-29 17:43:36 -0700)
 
-In addition, there are some minor fixes to compiler warnings as a result
-of the expanded enums. I cannot test these myself but they treat unrecognized
-values as *_AUTO and I can't see where a problem would be created.
+are available in the git repository at:
+  git://linuxtv.org/pinchartl/media.git omap3isp-stable-omap3isp
 
-I have updated the documentation a little. If I've done the right thing then
-I guess there is incentive there for me continue to expand DVB related
-elements of the API docs.
+Laurent Pinchart (1):
+      v4l: Fix media_entity_to_video_device macro argument name
 
-This patch set has been tested by me on two systems, with one running a MythTV
-backend utilising a long-supported DVB tuner. MythTV works fine with the old
-tuner and the nanoStick T2 290e works in VLC. I've yet to test the 290e in
-MythTV - I was more intent on making sure the patches hadn't broken userland
-or older devices.
+Sanjeev Premi (1):
+      omap3isp: fix compiler warning
 
-Feedback, testing  and discussion of where to go next is welcomed!
+ drivers/media/video/omap3isp/isp.c |    2 +-
+ include/media/v4l2-dev.h           |    4 ++--
+ 2 files changed, 3 insertions(+), 3 deletions(-)
 
+-- 
 Regards,
-Steve Kerrison.
 
+Laurent Pinchart
