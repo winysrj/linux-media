@@ -1,80 +1,82 @@
-Return-path: <mchehab@gaivota>
-Received: from mailout-de.gmx.net ([213.165.64.22]:55908 "HELO
-	mailout-de.gmx.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1751412Ab1EHKBd (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sun, 8 May 2011 06:01:33 -0400
-From: "Hans-Frieder Vogt" <hfvogt@gmx.net>
-To: linux-media@vger.kernel.org
-Subject: Re: [linux-dvb] Pinnacle PCTV Dual DVB-T Pro PCI 2000i
-Date: Sun, 8 May 2011 12:01:23 +0200
-Cc: "pigeonskiller@libero.it" <pigeonskiller@libero.it>,
-	Devin Heitmueller <dheitmueller@kernellabs.com>
-References: <15656328.2482791302255317486.JavaMail.defaultUser@defaultHost> <BANLkTikfZDqyEhb83fwv5BArb8qH6xHxew@mail.gmail.com>
-In-Reply-To: <BANLkTikfZDqyEhb83fwv5BArb8qH6xHxew@mail.gmail.com>
+Return-path: <mchehab@pedra>
+Received: from mail-ew0-f46.google.com ([209.85.215.46]:39872 "EHLO
+	mail-ew0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753208Ab1E3HIo (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 30 May 2011 03:08:44 -0400
+Received: by ewy4 with SMTP id 4so1230172ewy.19
+        for <linux-media@vger.kernel.org>; Mon, 30 May 2011 00:08:43 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201105081201.23621.hfvogt@gmx.net>
+In-Reply-To: <E74B8A99-B35F-4A98-AA25-AF0D4DDA37BC@beagleboard.org>
+References: <290776.52536.qm@web112005.mail.gq1.yahoo.com>
+	<E74B8A99-B35F-4A98-AA25-AF0D4DDA37BC@beagleboard.org>
+Date: Mon, 30 May 2011 09:08:42 +0200
+Message-ID: <BANLkTimFqgRJRRS+ejDkWO0-io9fSgvnQw@mail.gmail.com>
+Subject: Re: [beagleboard] [PATCH] Second RFC version of mt9p031 sensor with
+ power managament.
+From: javier Martin <javier.martin@vista-silicon.com>
+To: Koen Kooi <koen@beagleboard.org>
+Cc: Chris Rodley <carlighting@yahoo.co.nz>, g.liakhovetski@gmx.de,
+	beagleboard@googlegroups.com, linux-media@vger.kernel.org,
+	laurent.pinchart@ideasonboard.com
+Content-Type: text/plain; charset=ISO-8859-1
 List-ID: <linux-media.vger.kernel.org>
-Sender: Mauro Carvalho Chehab <mchehab@gaivota>
+Sender: <mchehab@pedra>
 
-Am Samstag, 9. April 2011 schrieb Devin Heitmueller:
-> On Fri, Apr 8, 2011 at 5:35 AM, pigeonskiller@libero.it
-> 
-> <pigeonskiller@libero.it> wrote:
-> > Pinnacle PCTV Dual DVB-T Pro PCI 2000i
-> > (http://linuxtv.org/wiki/index.php/DVB- T_PCI_Cards#Pinnacle) was
-> > introduced in 2006 and after 5 years it is still unsupported in linux!
-> > Unbelievable!
-> > Yet its chips Zarlink ZL10353 (http://linuxtv.org/wiki/index.
-> > php/Zarlink_ZL10353) and Microtune MT2060 (http://linuxtv.org/wiki/index.
-> > php/Microtune_MT2060) are supported (http://www.linuxtv.
-> > org/downloads/drivers/linux-media-LATEST.tar.bz2)!
-> > So, what is missing?
-> > Probably this is the reason why Linux is not so widespread: LACK OF
-> > DRIVERS! And this is the reason why a lot of users cannot migrate to
-> > Linux and are forced to use that stupid O.S. called Win****!
-> > If anyone wants to have a look at Windows' drivers and is able to develop
-> > drivers (I'm not), here are the drivers:
-> > ftp://ftp.pctvsystems.com/TV/driver/PCTV%202000i/PCTV%20250i%202000i.zip
-> > 
-> > Sorry for the outburst.
-> > A user wishing to migrate to Linux.
-> 
-> Just a quick followup.  I talked to my engineering contact over at
-> PCTV and got some more information about the product.  The PCI bridge
-> in question is proprietary to Pinnacle and only used in four of their
-> products.  By contrast, most of the bridges we add support for are
-> used by dozens of products by multiple vendors (and in most cases at
-> least somebody working on the Linux driver has documentation from the
-> chipset vendor under NDA).
-> 
-> Adding support for a new bridge often takes weeks or even months of
-> development (and that's when the developer has supporting
-> documentation).  It doesn't make sense for a LinuxTV developer to make
-> that sort of investment in time unless there is a good level of
-> confidence that the work would apply to a large number of products.
-> 
-> In other words, out of dumb lucked you happened to have bought a
-> device that will likely *never* be supported because of the components
-> used.  Your best bet is to spend a few bucks and buy a recent product
-> (five years is an eternity in the computer business).
-> 
-> Devin
+On 30 May 2011 08:48, Koen Kooi <koen@beagleboard.org> wrote:
+>
+> Op 30 mei 2011, om 04:13 heeft Chris Rodley het volgende geschreven:
+>
+>> On 29/05/11 03:04, Guennadi Liakhovetski wrote:
+>>> On Sat, 28 May 2011, Guennadi Liakhovetski wrote:
+>>>
+>>>> Hi Javier
+>>>>
+>>>> On Thu, 26 May 2011, javier Martin wrote:
+>>>>
+>>>>> I use a patched version of yavta and Mplayer to see video
+>>>>> (http://download.open-technology.de/BeagleBoard_xM-MT9P031/)
+>>>>
+>>>> Are you really using those versions and patches, as described in
+>>>> BBxM-MT9P031.txt? I don't think those versions still work with 2.6.39,
+>>>> they don't even compile for me. Whereas if I take current HEAD, it builds
+>>>> and media-ctl seems to run error-free, but yavta produces no output.
+>>>
+>>> Ok, sorry for the noise. It works with current media-ctl with no patches,
+>>> so, we better don't try to confuse our users / testers:)
+>>>
+>>> Thanks
+>>> Guennadi
+>>
+>> Hi,
+>>
+>> Still no luck getting the v3 patch working.
+>> I did go back and re-test the first v1 patch that Javier released.
+>> This works fine with the same version of media-ctl and yavta.
+>> So it isn't either of those programs that is causing the problem.
+>>
+>> Must be something else.
+>>
+>> Will wait and see how Koen goes.
+>
+> I'm still stuck in "isp did no go idle" land, so even if yavta works, I can't get any output. It did output 3 frames to disk a few days ago, but that got deleted on reboot :(
 
-Some years ago I started writing a driver for this card (which should have 
-covered as well the single tuner version and the DVB-S versions of that card).
-I found out quite a lot of the register set of the DTV bridge (e.g. I2C 
-communication, talking to the tuners and demodulators), but was stuck when it 
-came to DMA transfers (probably because I haven't written a driver for such a 
-complex piece of hardware before).
-Finally I lost interest because I switched to a PCIe based solution (DVICO 
-DVB-T Dual express, which worked practically "out of the box").
+I don't know guys what to tell you.
+I use kernel 2.6.39 + last version of my patches + old patched yavta
+version (http://download.open-technology.de/BeagleBoard_xM-MT9P031/).
 
-If anybody is interested I am happy to share my notes and the pieces of the 
-driver that I put together.
+Guennadi, did you manage to get it working?
+I'm preparing new patches for kernel 2.6.39 which I think should be
+ready for submission. I'll send them during the morning.
 
-Hans-Frieder
+Thank you.
 
-Hans-Frieder Vogt                       e-mail: hfvogt <at> gmx .dot. net
+
+-- 
+Javier Martin
+Vista Silicon S.L.
+CDTUC - FASE C - Oficina S-345
+Avda de los Castros s/n
+39005- Santander. Cantabria. Spain
++34 942 25 32 60
+www.vista-silicon.com
