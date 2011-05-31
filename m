@@ -1,85 +1,80 @@
 Return-path: <mchehab@pedra>
-Received: from mail.perches.com ([173.55.12.10]:2185 "EHLO mail.perches.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751971Ab1E1Rgz (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 28 May 2011 13:36:55 -0400
-From: Joe Perches <joe@perches.com>
-To: linux-atm-general@lists.sourceforge.net, netdev@vger.kernel.org,
-	drbd-user@lists.linbit.com, dm-devel@redhat.com,
-	linux-raid@vger.kernel.org, linux-mtd@lists.infradead.org,
-	linux-scsi@vger.kernel.org, linux-fbdev@vger.kernel.org,
-	xen-devel@lists.xensource.com,
-	virtualization@lists.linux-foundation.org,
-	codalist@coda.cs.cmu.edu, reiserfs-devel@vger.kernel.org,
-	linux-mm@kvack.org, containers@lists.linux-foundation.org,
-	netfilter-devel@vger.kernel.org, netfilter@vger.kernel.org,
-	coreteam@netfilter.org, rds-devel@oss.oracle.com
-Cc: linux-s390@vger.kernel.org, linux-kernel@vger.kernel.org,
-	linux-media@vger.kernel.org, devel@driverdev.osuosl.org,
-	xfs@oss.sgi.com
-Subject: [TRIVIAL PATCH next 00/15] treewide: Convert vmalloc/memset to vzalloc
-Date: Sat, 28 May 2011 10:36:20 -0700
-Message-Id: <cover.1306603968.git.joe@perches.com>
+Received: from perceval.ideasonboard.com ([95.142.166.194]:58804 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753098Ab1EaKBe (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 31 May 2011 06:01:34 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: "Daniel Lundborg" <Daniel.Lundborg@prevas.se>
+Subject: Re: omap3isp - H3A auto white balance
+Date: Tue, 31 May 2011 12:01:14 +0200
+Cc: linux-media@vger.kernel.org
+References: <CA7B7D6C54015B459601D68441548157C5A3FC@prevas1.prevas.se> <201105271647.12503.laurent.pinchart@ideasonboard.com> <CA7B7D6C54015B459601D68441548157C5A401@prevas1.prevas.se>
+In-Reply-To: <CA7B7D6C54015B459601D68441548157C5A401@prevas1.prevas.se>
+MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201105311201.15285.laurent.pinchart@ideasonboard.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Resubmittal of patches from November 2010 and a few new ones.
+Hi Daniel,
 
-Joe Perches (15):
-  s390: Convert vmalloc/memset to vzalloc
-  x86: Convert vmalloc/memset to vzalloc
-  atm: Convert vmalloc/memset to vzalloc
-  drbd: Convert vmalloc/memset to vzalloc
-  char: Convert vmalloc/memset to vzalloc
-  isdn: Convert vmalloc/memset to vzalloc
-  md: Convert vmalloc/memset to vzalloc
-  media: Convert vmalloc/memset to vzalloc
-  mtd: Convert vmalloc/memset to vzalloc
-  scsi: Convert vmalloc/memset to vzalloc
-  staging: Convert vmalloc/memset to vzalloc
-  video: Convert vmalloc/memset to vzalloc
-  fs: Convert vmalloc/memset to vzalloc
-  mm: Convert vmalloc/memset to vzalloc
-  net: Convert vmalloc/memset to vzalloc
+On Tuesday 31 May 2011 11:45:13 Daniel Lundborg wrote:
+> > On Thursday 26 May 2011 15:06:17 Daniel Lundborg wrote:
+> > > > On Thursday 26 May 2011 10:57:39 Daniel Lundborg wrote:
+> > > > > Hello,
+> > > > > 
+> > > > > I am developing a camera sensor driver for the Aptina MT9V034. I
+> > > > > am only using it in snapshot mode and I can successfully trigger
+> > > > > the sensor and receive pictures using the latest omap3isp driver
+> > > > > from git://linuxtv.org/pinchartl/media.git branch
+> > > > > omap3isp-next-sensors with kernel 2.6.38.
 
- arch/s390/hypfs/hypfs_diag.c           |    3 +--
- arch/x86/mm/pageattr-test.c            |    3 +--
- drivers/atm/idt77252.c                 |   11 ++++++-----
- drivers/atm/lanai.c                    |    3 +--
- drivers/block/drbd/drbd_bitmap.c       |    5 ++---
- drivers/char/agp/backend.c             |    3 +--
- drivers/char/raw.c                     |    3 +--
- drivers/isdn/i4l/isdn_common.c         |    4 ++--
- drivers/isdn/mISDN/dsp_core.c          |    3 +--
- drivers/isdn/mISDN/l1oip_codec.c       |    6 ++----
- drivers/md/dm-log.c                    |    3 +--
- drivers/md/dm-snap-persistent.c        |    3 +--
- drivers/md/dm-table.c                  |    4 +---
- drivers/media/video/videobuf2-dma-sg.c |    8 ++------
- drivers/mtd/mtdswap.c                  |    3 +--
- drivers/s390/cio/blacklist.c           |    3 +--
- drivers/scsi/bfa/bfad.c                |    3 +--
- drivers/scsi/bfa/bfad_debugfs.c        |    8 ++------
- drivers/scsi/cxgbi/libcxgbi.h          |    6 ++----
- drivers/scsi/qla2xxx/qla_attr.c        |    6 ++----
- drivers/scsi/qla2xxx/qla_bsg.c         |    3 +--
- drivers/scsi/scsi_debug.c              |    7 ++-----
- drivers/staging/rts_pstor/ms.c         |    3 +--
- drivers/staging/rts_pstor/rtsx_chip.c  |    6 ++----
- drivers/video/arcfb.c                  |    5 ++---
- drivers/video/broadsheetfb.c           |    4 +---
- drivers/video/hecubafb.c               |    5 ++---
- drivers/video/metronomefb.c            |    4 +---
- drivers/video/xen-fbfront.c            |    3 +--
- fs/coda/coda_linux.h                   |    5 ++---
- fs/reiserfs/journal.c                  |    9 +++------
- fs/reiserfs/resize.c                   |    4 +---
- fs/xfs/linux-2.6/kmem.h                |    7 +------
- mm/page_cgroup.c                       |    3 +--
- net/netfilter/x_tables.c               |    5 ++---
- net/rds/ib_cm.c                        |    6 ++----
- 36 files changed, 57 insertions(+), 113 deletions(-)
+[snip]
+
+> > > > > My trouble is that I am always receiving whiter pictures when I
+> > > > > wait a moment before triggering the sensor to take a picture. If I
+> > > > > take several pictures in a row with for instance 20 ms between
+> > > > > them, they all look ok. But if I wait for 100 ms the picture will
+> > > > > get much whiter.
+> > > > >
+> > > > > I have turned off auto exposure and auto gain in the sensor and
+> > > > > the LED_OUT signal always have the same length (in this case 8
+> > > > > msec).
+> > > >
+> > > > I assume you've measured it with a scope ?
+> > > > 
+> > > > Try disabling black level calibration and row noise correction as
+> > > > well.
+> > > >
+> > > > Please also double-check that AEC and AGC are disabled. I've had a
+> > > > similar issue with an MT9V032 sensor, where a bug in the driver
+> > > > enabled AEC/AGC instead of disabling them.
+> > > 
+> > > The register on 0xaf (MT9V034_AGC_AEC_ENABLE) is set to 0 and is 0
+> > > when I read from it.
+> > > bit 0 - AEC enable context A, bit 1 - AGC enable context A, bit 8 -
+> > > AEC enable context B, bit 9 - AGC enable context B
+> > > 
+> > > The register on 0x47 (MT9V034_BL_CALIB_CTRL) is set to 0 and is 0
+> > > when I read from it.
+> > > bit 0 - (1 = override with programmed values, 0 = normal operation),
+> > > bit 7:5 - Frames to average over
+> > 
+> > If I'm not mistaken "normal operation" means that automatic black
+> > level calibration is enabled. Try to set bit 0 to 1 to override the
+> > automatic algorithm (and program a zero value in register 0x48).
+> 
+> This did not work unfortunately.. :( I have solved this by always taking
+> 2 pictures and ignoring the first of them...
+
+:-/
+
+Any chance you will submit the driver for inclusion in the kernel ?
 
 -- 
-1.7.5.rc3.dirty
+Regards,
 
+Laurent Pinchart
