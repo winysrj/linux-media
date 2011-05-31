@@ -1,121 +1,252 @@
 Return-path: <mchehab@pedra>
-Received: from mx1.redhat.com ([209.132.183.28]:26861 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751778Ab1ECDmx (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 2 May 2011 23:42:53 -0400
-Message-ID: <4DBF79B4.5040000@redhat.com>
-Date: Tue, 03 May 2011 00:42:44 -0300
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-MIME-Version: 1.0
-To: Robby Workman <rworkman@slackware.com>
-CC: Andreas Oberritter <obi@linuxtv.org>, linux-media@vger.kernel.org,
-	Patrick Volkerding <volkerdi@slackware.com>,
-	Hans De Goede <hdegoede@redhat.com>,
-	linux-hotplug@vger.kernel.org
-Subject: Re: [PATCHES] Misc. trivial fixes
-References: <alpine.LNX.2.00.1104111908050.32072@connie.slackware.com> <4DA441D9.2000601@linuxtv.org> <alpine.LNX.2.00.1104120729280.7359@connie.slackware.com> <4DA5E957.3020702@linuxtv.org> <4DBF126D.6060807@redhat.com> <alpine.LNX.2.00.1105021926220.25339@connie.slackware.com>
-In-Reply-To: <alpine.LNX.2.00.1105021926220.25339@connie.slackware.com>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Received: from mail-ww0-f42.google.com ([74.125.82.42]:63931 "EHLO
+	mail-ww0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750818Ab1EaJra (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 31 May 2011 05:47:30 -0400
+Received: by wwk4 with SMTP id 4so2238397wwk.1
+        for <linux-media@vger.kernel.org>; Tue, 31 May 2011 02:47:29 -0700 (PDT)
+From: Javier Martin <javier.martin@vista-silicon.com>
+To: linux-media@vger.kernel.org
+Cc: g.liakhovetski@gmx.de, laurent.pinchart@ideasonboard.com,
+	carlighting@yahoo.co.nz, beagleboard@googlegroups.com,
+	mch_kot@yahoo.com.cn,
+	Javier Martin <javier.martin@vista-silicon.com>
+Subject: [PATCH v5 2/2] Add support for mt9p031 (LI-5M03 module) in Beagleboard xM.
+Date: Tue, 31 May 2011 11:46:50 +0200
+Message-Id: <1306835210-1345-2-git-send-email-javier.martin@vista-silicon.com>
+In-Reply-To: <1306835210-1345-1-git-send-email-javier.martin@vista-silicon.com>
+References: <1306835210-1345-1-git-send-email-javier.martin@vista-silicon.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Em 02-05-2011 23:48, Robby Workman escreveu:
-> On Mon, 2 May 2011, Mauro Carvalho Chehab wrote:
-> 
->> Not sure what happened, but I lost the original email, so let me quote
->> it from patchwork ID#699151.
->>
->>
->>> Subject: [PATCHES] Misc. trivial fixes
->>> Date: Tue, 12 Apr 2011 02:10:36 -0000
->>> From: Robby Workman <rworkman@slackware.com>
->>> X-Patchwork-Id: 699151
->>> Message-Id: <alpine.LNX.2.00.1104111908050.32072@connie.slackware.com>
->>> To: linux-media@vger.kernel.org
->>>
->>> Patch #1 installs udev rules files to /lib/udev/rules.d/ instead
->>> of /etc/udev/rules.d/ - see commit message for more info.
->>>
->>> Patch #2 allows override of manpage installation directory by
->>> packagers - see commit message for more info
->>
->> Please send each patch in-lined, one patch per email.
-> 
-> 
-> Okay, noted.  Should I resend, or is this for future reference?
+Since isp clocks have not been exposed yet, this patch
+includes a temporal solution for testing mt9p031 driver
+in Beagleboard xM.
 
-If you don't mind, please re-send it. Please c/c me, as we're having some 
-troubles with patchwork nowadays.
+Signed-off-by: Javier Martin <javier.martin@vista-silicon.com>
+---
+ arch/arm/mach-omap2/Makefile                   |    1 +
+ arch/arm/mach-omap2/board-omap3beagle-camera.c |   90 ++++++++++++++++++++++++
+ arch/arm/mach-omap2/board-omap3beagle.c        |   55 ++++++++++++++
+ 3 files changed, 146 insertions(+), 0 deletions(-)
+ create mode 100644 arch/arm/mach-omap2/board-omap3beagle-camera.c
 
->> Not all distros use /lib for it. In fact, RHEL5/RHEL6/Fedora 15 and Fedora rawhide
->> all use /etc/udev/rules.d.
-> 
-> If so, it's only older distros that I wouldn't expect to be packaging newer
-> versions of v4l-utils (e.g. RHEL won't as I understand it), and for Fedora,
-> if "rawhide" is devel tree, then I'm pretty sure you're mistaken.
+diff --git a/arch/arm/mach-omap2/Makefile b/arch/arm/mach-omap2/Makefile
+index 512b152..05cd983 100644
+--- a/arch/arm/mach-omap2/Makefile
++++ b/arch/arm/mach-omap2/Makefile
+@@ -179,6 +179,7 @@ obj-$(CONFIG_MACH_OMAP_2430SDP)		+= board-2430sdp.o \
+ 					   hsmmc.o
+ obj-$(CONFIG_MACH_OMAP_APOLLON)		+= board-apollon.o
+ obj-$(CONFIG_MACH_OMAP3_BEAGLE)		+= board-omap3beagle.o \
++					   board-omap3beagle-camera.o \
+ 					   hsmmc.o
+ obj-$(CONFIG_MACH_DEVKIT8000)     	+= board-devkit8000.o \
+                                            hsmmc.o
+diff --git a/arch/arm/mach-omap2/board-omap3beagle-camera.c b/arch/arm/mach-omap2/board-omap3beagle-camera.c
+new file mode 100644
+index 0000000..04365b2
+--- /dev/null
++++ b/arch/arm/mach-omap2/board-omap3beagle-camera.c
+@@ -0,0 +1,90 @@
++#include <linux/gpio.h>
++#include <linux/regulator/machine.h>
++
++#include <plat/i2c.h>
++
++#include <media/mt9p031.h>
++
++#include "devices.h"
++#include "../../../drivers/media/video/omap3isp/isp.h"
++
++#define MT9P031_RESET_GPIO	98
++#define MT9P031_XCLK		ISP_XCLK_A
++
++static struct regulator *reg_1v8, *reg_2v8;
++
++static int beagle_cam_set_xclk(struct v4l2_subdev *subdev, int hz)
++{
++	struct isp_device *isp = v4l2_dev_to_isp_device(subdev->v4l2_dev);
++	int ret;
++
++	ret = isp->platform_cb.set_xclk(isp, hz, MT9P031_XCLK);
++	return 0;
++}
++
++static int beagle_cam_reset(struct v4l2_subdev *subdev, int active)
++{
++	/* Set RESET_BAR to !active */
++	gpio_set_value(MT9P031_RESET_GPIO, !active);
++
++	return 0;
++}
++
++static struct mt9p031_platform_data beagle_mt9p031_platform_data = {
++	.set_xclk               = beagle_cam_set_xclk,
++	.reset                  = beagle_cam_reset,
++};
++
++static struct i2c_board_info mt9p031_camera_i2c_device = {
++	I2C_BOARD_INFO("mt9p031", 0x48),
++	.platform_data = &beagle_mt9p031_platform_data,
++};
++
++static struct isp_subdev_i2c_board_info mt9p031_camera_subdevs[] = {
++	{
++		.board_info = &mt9p031_camera_i2c_device,
++		.i2c_adapter_id = 2,
++	},
++	{ NULL, 0, },
++};
++
++static struct isp_v4l2_subdevs_group beagle_camera_subdevs[] = {
++	{
++		.subdevs = mt9p031_camera_subdevs,
++		.interface = ISP_INTERFACE_PARALLEL,
++		.bus = {
++				.parallel = {
++					.data_lane_shift = 0,
++					.clk_pol = 1,
++					.bridge = ISPCTRL_PAR_BRIDGE_DISABLE,
++				}
++		},
++	},
++	{ },
++};
++
++static struct isp_platform_data beagle_isp_platform_data = {
++	.subdevs = beagle_camera_subdevs,
++};
++
++static int __init beagle_camera_init(void)
++{
++	reg_1v8 = regulator_get(NULL, "cam_1v8");
++	if (IS_ERR(reg_1v8))
++		pr_err("%s: cannot get cam_1v8 regulator\n", __func__);
++	else
++		regulator_enable(reg_1v8);
++
++	reg_2v8 = regulator_get(NULL, "cam_2v8");
++	if (IS_ERR(reg_2v8))
++		pr_err("%s: cannot get cam_2v8 regulator\n", __func__);
++	else
++		regulator_enable(reg_2v8);
++
++	omap_register_i2c_bus(2, 100, NULL, 0);
++	gpio_request(MT9P031_RESET_GPIO, "cam_rst");
++	gpio_direction_output(MT9P031_RESET_GPIO, 0);
++	omap3_init_camera(&beagle_isp_platform_data);
++	return 0;
++}
++late_initcall(beagle_camera_init);
+diff --git a/arch/arm/mach-omap2/board-omap3beagle.c b/arch/arm/mach-omap2/board-omap3beagle.c
+index 33007fd..c18d21c 100644
+--- a/arch/arm/mach-omap2/board-omap3beagle.c
++++ b/arch/arm/mach-omap2/board-omap3beagle.c
+@@ -24,12 +24,16 @@
+ #include <linux/input.h>
+ #include <linux/gpio_keys.h>
+ #include <linux/opp.h>
++#include <linux/i2c.h>
++#include <linux/mm.h>
++#include <linux/videodev2.h>
+ 
+ #include <linux/mtd/mtd.h>
+ #include <linux/mtd/partitions.h>
+ #include <linux/mtd/nand.h>
+ #include <linux/mmc/host.h>
+ 
++#include <linux/gpio.h>
+ #include <linux/regulator/machine.h>
+ #include <linux/i2c/twl.h>
+ 
+@@ -47,6 +51,7 @@
+ #include <plat/nand.h>
+ #include <plat/usb.h>
+ #include <plat/omap_device.h>
++#include <plat/i2c.h>
+ 
+ #include "mux.h"
+ #include "hsmmc.h"
+@@ -273,6 +278,44 @@ static struct regulator_consumer_supply beagle_vsim_supply = {
+ 
+ static struct gpio_led gpio_leds[];
+ 
++static struct regulator_consumer_supply beagle_vaux3_supply = {
++	.supply         = "cam_1v8",
++};
++
++static struct regulator_consumer_supply beagle_vaux4_supply = {
++	.supply         = "cam_2v8",
++};
++
++/* VAUX3 for CAM_1V8 */
++static struct regulator_init_data beagle_vaux3 = {
++	.constraints = {
++		.min_uV			= 1800000,
++		.max_uV			= 1800000,
++		.apply_uV		= true,
++		.valid_modes_mask	= REGULATOR_MODE_NORMAL
++					| REGULATOR_MODE_STANDBY,
++		.valid_ops_mask		= REGULATOR_CHANGE_MODE
++					| REGULATOR_CHANGE_STATUS,
++	},
++	.num_consumer_supplies		= 1,
++	.consumer_supplies		= &beagle_vaux3_supply,
++};
++
++/* VAUX4 for CAM_2V8 */
++static struct regulator_init_data beagle_vaux4 = {
++	.constraints = {
++		.min_uV			= 1800000,
++		.max_uV			= 1800000,
++		.apply_uV		= true,
++		.valid_modes_mask	= REGULATOR_MODE_NORMAL
++					| REGULATOR_MODE_STANDBY,
++		.valid_ops_mask		= REGULATOR_CHANGE_MODE
++					| REGULATOR_CHANGE_STATUS,
++	},
++	.num_consumer_supplies  = 1,
++	.consumer_supplies      = &beagle_vaux4_supply,
++};
++
+ static int beagle_twl_gpio_setup(struct device *dev,
+ 		unsigned gpio, unsigned ngpio)
+ {
+@@ -309,6 +352,15 @@ static int beagle_twl_gpio_setup(struct device *dev,
+ 			pr_err("%s: unable to configure EHCI_nOC\n", __func__);
+ 	}
+ 
++	if (omap3_beagle_get_rev() == OMAP3BEAGLE_BOARD_XM) {
++		/*
++		 * Power on camera interface - only on pre-production, not
++		 * needed on production boards
++		 */
++		gpio_request(gpio + 2, "CAM_EN");
++		gpio_direction_output(gpio + 2, 1);
++	}
++
+ 	/*
+ 	 * TWL4030_GPIO_MAX + 0 == ledA, EHCI nEN_USB_PWR (out, XM active
+ 	 * high / others active low)
+@@ -451,6 +503,8 @@ static struct twl4030_platform_data beagle_twldata = {
+ 	.vsim		= &beagle_vsim,
+ 	.vdac		= &beagle_vdac,
+ 	.vpll2		= &beagle_vpll2,
++	.vaux3          = &beagle_vaux3,
++	.vaux4          = &beagle_vaux4,
+ };
+ 
+ static struct i2c_board_info __initdata beagle_i2c_boardinfo[] = {
+@@ -658,6 +712,7 @@ static void __init omap3_beagle_init(void)
+ {
+ 	omap3_mux_init(board_mux, OMAP_PACKAGE_CBB);
+ 	omap3_beagle_init_rev();
++
+ 	omap3_beagle_i2c_init();
+ 	platform_add_devices(omap3_beagle_devices,
+ 			ARRAY_SIZE(omap3_beagle_devices));
+-- 
+1.7.0.4
 
-We've packaged v4l-utils for RHEL, via epel[1]. I volunteered to maintain it for RHEL6,
-as I use it on my machine and I would be doing it anyway for me, so better to maintain
-it for the others also ;)
-
-[1] https://admin.fedoraproject.org/pkgdb/acls/name/v4l-utils
-
-I don't intend to maintain it for RHEL5, but I was told that lots of mythtv users run
-CentOS (based on RHEL5).  So, I won't doubt if someone from CentOS (or other rpm repos
-for .el5, like atrpms) would add v4l-utils there.
-
->> In a matter of fact, looking at RHEL6 (udev-147-2.35.el6.x86_64), it has both. I suspect
->> that /lib/udev/rules.d is meant to have the default scripts that are part of the
->> official packages, and /etc/udev/rules.d to be user-defined ones. So, at least on RHEL6,
->> it makes sense that a user-compiled tarball would install stuff into /etc/*, and
->> that a RHEL6 package would change it to install at /lib/*.
-> 
-> 
-> Every distro (recent) will have both /lib/udev/rules.d/ and /etc/udev/rules.d/ ;
-> more on that later...
-> 
-> 
->> So, it is better to have some Makefile var with some default, that
->> allows overriding it when doing a make install, for example:
->>
->> UDEVDIR=/etc/udev/rules.d
-> 
-> 
-> Well, if you *insist* on doing this, sure, but better to do this:
->   UDEVDIR=/lib/udev as the default, and then use $(UDEVDIR)/rules.d/ (and let packagers
-> redefine UDEVDIR if desired - though I don't think that will be as
-> common as you believe).
-
-Do you know, by any chance, what's the minimal udev version where /lib/udev exists?
-
-If it is too old, then I agree that pointing the default to /lib/udev is the better.
-
->> The default is a matter of personal taste. I would keep the current way as default,
->> as it avoids breaking for those that are using it on the current way. One alternative
->> would be to add some logic there to change the default to /lib/* if /etc/* doesn't
->> exist.
-> 
-> 
-> But /etc/udev/rules.d/ should exist regardless, and it's not at all a
-> matter of personal taste, as I understand it.  /lib/udev/rules.d/ is
-> the location for packaged and general default rules files to be placed,
-> and /etc/udev/rules.d/ is where autogenerated rules (such as those that
-> create persistent symlinks for optical and network devices) are placed,
-> as well as admin- and system-specific override rules (e.g. a file named
-> 10-blah.rules in /etc/udev/rules.d/ would completely override a file of
-> the same name in /lib/udev/rules.d/).
-
-Ok. 
-
-> 
-> The point I'm trying to make is this: you lose nothing in the way of user customization by defaulting to /lib/udev/rules.d/ - you simply force it to happen the way that upstream udev intends.  The only thing
-> you lose is support for older udev releases, and I'm not sure that's
-> a big concern :-)
-> 
-> (CC'd udev mail list so that someone can LART me if I'm wrong)  ;-)
-Thanks!
-> 
-> -RW
-
-Mauro.
