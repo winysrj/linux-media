@@ -1,74 +1,69 @@
 Return-path: <mchehab@pedra>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:38608 "EHLO
+Received: from perceval.ideasonboard.com ([95.142.166.194]:37504 "EHLO
 	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752237Ab1EVTZs (ORCPT
+	with ESMTP id S1754667Ab1EaOrG (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 22 May 2011 15:25:48 -0400
+	Tue, 31 May 2011 10:47:06 -0400
 From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-Subject: Re: [PATCH] omap3: isp: fix compiler warning
-Date: Sun, 22 May 2011 21:25:51 +0200
-Cc: Sanjeev Premi <premi@ti.com>, linux-media@vger.kernel.org
-References: <1305734811-2354-1-git-send-email-premi@ti.com> <4DD79A24.5080107@redhat.com>
-In-Reply-To: <4DD79A24.5080107@redhat.com>
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Subject: Re: [beagleboard] [PATCH v5 2/2] Add support for mt9p031 (LI-5M03 module) in Beagleboard xM.
+Date: Tue, 31 May 2011 16:46:59 +0200
+Cc: Koen Kooi <koen@beagleboard.org>, beagleboard@googlegroups.com,
+	linux-media@vger.kernel.org, carlighting@yahoo.co.nz,
+	mch_kot@yahoo.com.cn,
+	Javier Martin <javier.martin@vista-silicon.com>
+References: <1306835210-1345-1-git-send-email-javier.martin@vista-silicon.com> <0A19142F-45A6-44AB-8EFB-94D60875E7DC@beagleboard.org> <Pine.LNX.4.64.1105311553230.10863@axis700.grange>
+In-Reply-To: <Pine.LNX.4.64.1105311553230.10863@axis700.grange>
 MIME-Version: 1.0
 Content-Type: Text/Plain;
   charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
-Message-Id: <201105222125.51967.laurent.pinchart@ideasonboard.com>
+Message-Id: <201105311647.01034.laurent.pinchart@ideasonboard.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Hi Mauro and Sanjeev,
-
-On Saturday 21 May 2011 12:55:32 Mauro Carvalho Chehab wrote:
-> Em 18-05-2011 13:06, Sanjeev Premi escreveu:
-> > This patch fixes this compiler warning:
-> >   drivers/media/video/omap3isp/isp.c: In function 'isp_isr_dbg':
-> >   drivers/media/video/omap3isp/isp.c:392:2: warning: zero-length
-> >   
-> >    gnu_printf format string
+On Tuesday 31 May 2011 15:55:04 Guennadi Liakhovetski wrote:
+> On Tue, 31 May 2011, Koen Kooi wrote:
+> > Op 31 mei 2011, om 11:46 heeft Javier Martin het volgende geschreven:
+> > > diff --git a/arch/arm/mach-omap2/board-omap3beagle-camera.c
+> > > b/arch/arm/mach-omap2/board-omap3beagle-camera.c new file mode 100644
+> > > index 0000000..04365b2
+> > > --- /dev/null
+> > > +++ b/arch/arm/mach-omap2/board-omap3beagle-camera.c
+> > > 
+> > > +static int __init beagle_camera_init(void)
+> > > +{
+> > > +	reg_1v8 = regulator_get(NULL, "cam_1v8");
+> > > +	if (IS_ERR(reg_1v8))
+> > > +		pr_err("%s: cannot get cam_1v8 regulator\n", __func__);
+> > > +	else
+> > > +		regulator_enable(reg_1v8);
+> > > +
+> > > +	reg_2v8 = regulator_get(NULL, "cam_2v8");
+> > > +	if (IS_ERR(reg_2v8))
+> > > +		pr_err("%s: cannot get cam_2v8 regulator\n", __func__);
+> > > +	else
+> > > +		regulator_enable(reg_2v8);
+> > > +
+> > > +	omap_register_i2c_bus(2, 100, NULL, 0);
+> > > +	gpio_request(MT9P031_RESET_GPIO, "cam_rst");
+> > > +	gpio_direction_output(MT9P031_RESET_GPIO, 0);
+> > > +	omap3_init_camera(&beagle_isp_platform_data);
+> > > +	return 0;
+> > > +}
+> > > +late_initcall(beagle_camera_init);
 > > 
-> > Since printk() is used in next few statements, same was used
-> > here as well.
-> > 
-> > Signed-off-by: Sanjeev Premi <premi@ti.com>
-> > Cc: laurent.pinchart@ideasonboard.com
-> > ---
-> > 
-> >  Actually full block can be converted to dev_dbg()
-> >  as well; but i am not sure about original intent
-> >  of the mix.
-> >  
-> >  Based on comments, i can resubmit with all prints
-> >  converted to dev_dbg.
+> > There should probably a if (cpu_is_omap3630()) {} wrapped around that, so
+> > the camera doesn't get initted on a 3530 beagle.
 > 
-> It is probably better to convert the full block to dev_dbg.
+> ...speaking of which - if multiarch kernels are supported by OMAP3 you
+> probably want to use something like
+> 
+> 	if (!machine_is_omap3_beagle() || !cpu_is_omap3630())
+> 		return;
 
-You can't insert a KERN_CONT with dev_dbg().
-
-> >  drivers/media/video/omap3isp/isp.c |    2 +-
-> >  1 files changed, 1 insertions(+), 1 deletions(-)
-> > 
-> > diff --git a/drivers/media/video/omap3isp/isp.c
-> > b/drivers/media/video/omap3isp/isp.c index 503bd79..1d38d96 100644
-> > --- a/drivers/media/video/omap3isp/isp.c
-> > +++ b/drivers/media/video/omap3isp/isp.c
-> > @@ -387,7 +387,7 @@ static inline void isp_isr_dbg(struct isp_device
-> > *isp, u32 irqstatus)
-> > 
-> >  	};
-> >  	int i;
-> > 
-> > -	dev_dbg(isp->dev, "");
-> > +	printk(KERN_DEBUG "%s:\n", dev_driver_string(isp->dev));
-
-The original code doesn't include any \n. Is there a particular reason why you 
-want to add one ?
-
-> >  	for (i = 0; i < ARRAY_SIZE(name); i++) {
-> >  	
-> >  		if ((1 << i) & irqstatus)
+Shouldn't you check the Beagleboard version instead? The OMAP3530 has an ISP, 
+so there's nothing wrong with it per-se.
 
 -- 
 Regards,
