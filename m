@@ -1,89 +1,38 @@
 Return-path: <mchehab@pedra>
-Received: from mail.meprolight.com ([194.90.149.17]:50638 "EHLO meprolight.com"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1752696Ab1ESMFP convert rfc822-to-8bit (ORCPT
+Received: from perceval.ideasonboard.com ([95.142.166.194]:58358 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752056Ab1EaPK1 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 19 May 2011 08:05:15 -0400
-From: Alex Gershgorin <alexg@meprolight.com>
-To: "'linux-media@vger.kernel.org'" <linux-media@vger.kernel.org>
-CC: "'sakari.ailus@iki.fi'" <sakari.ailus@iki.fi>,
-	"'laurent.pinchart@ideasonboard.com'"
-	<laurent.pinchart@ideasonboard.com>,
-	"'agersh@rambler.ru'" <agersh@rambler.ru>
-Date: Thu, 19 May 2011 14:36:01 +0300
-Subject: FW: FW: OMAP 3 ISP
-Message-ID: <4875438356E7CA4A8F2145FCD3E61C0B15D3557D37@MEP-EXCH.meprolight.com>
-Content-Language: en-US
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+	Tue, 31 May 2011 11:10:27 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: "Daniel Lundborg" <Daniel.Lundborg@prevas.se>
+Subject: Re: omap3isp - H3A auto white balance
+Date: Tue, 31 May 2011 17:10:24 +0200
+Cc: linux-media@vger.kernel.org
+References: <CA7B7D6C54015B459601D68441548157C5A3FC@prevas1.prevas.se> <201105311201.15285.laurent.pinchart@ideasonboard.com> <CA7B7D6C54015B459601D68441548157C5A402@prevas1.prevas.se>
+In-Reply-To: <CA7B7D6C54015B459601D68441548157C5A402@prevas1.prevas.se>
 MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201105311710.25200.laurent.pinchart@ideasonboard.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Thanks for your quick response :-)
+Hi Daniel,
 
-Unfortunately, my video source has no additional interfaces.
+On Tuesday 31 May 2011 12:07:08 Daniel Lundborg wrote:
 
-Best Regards,
-Alex Gershgorin
-Embedded Software Engineer
-E-mail: alexg@meprolight.com
+[snip]
 
------Original Message-----
-From: Sakari Ailus [mailto:sakari.ailus@iki.fi]
-Sent: Thursday, May 19, 2011 2:09 PM
-To: Alex Gershgorin
-Cc: 'agersh@rambler.ru'
-Subject: Re: FW: OMAP 3 ISP
+> > Any chance you will submit the driver for inclusion in the kernel ?
+> 
+> Yes if there is an interest in it. I can create a patch from your
+> omap3isp-next-sensors tree if you want.
 
-On Thu, May 19, 2011 at 12:08:41PM +0300, Alex Gershgorin wrote:
->
->
->
->
->  Hi Sakari,
+That would be nice, thank you.
 
-Hi Alex,
-
->
->
-> We wish to develop video device and use omap3530.
->
-> Our video source has an 8-bit raw data, vertical and horizontal signals,
-> and has no i2c bus.
->
-> I was briefly acquainted with Linux OMAP 3 Image Signal Processor (ISP)
-> and found, that
->
-> to register video device I need to provide I2C subdevs board information
-> array, but my device does not have i2c information.
->
-> I'm asking for your support on this issue.
-
-Does your image data source have some other kind of control interface,
-possibly SPI?
-
-Please reply to linux-media@vger.kernel.org and cc myself and
-laurent.pinchart@ideasonboard.com.
-
+-- 
 Regards,
 
---
-Sakari Ailus
-sakari dot ailus at iki dot fi
-
-
-__________ Information from ESET NOD32 Antivirus, version of virus signature database 6134 (20110519) __________
-
-The message was checked by ESET NOD32 Antivirus.
-
-http://www.eset.com
-
-
-
-__________ Information from ESET NOD32 Antivirus, version of virus signature database 6134 (20110519) __________
-
-The message was checked by ESET NOD32 Antivirus.
-
-http://www.eset.com
-
+Laurent Pinchart
