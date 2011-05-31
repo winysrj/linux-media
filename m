@@ -1,72 +1,81 @@
-Return-path: <mchehab@gaivota>
-Received: from mgw2.diku.dk ([130.225.96.92]:41706 "EHLO mgw2.diku.dk"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755496Ab1ENOTB (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 14 May 2011 10:19:01 -0400
-From: Julia Lawall <julia@diku.dk>
-To: Mauro Carvalho Chehab <mchehab@infradead.org>
-Cc: kernel-janitors@vger.kernel.org, Jarod Wilson <jarod@redhat.com>,
-	Lucas De Marchi <lucas.demarchi@profusion.mobi>,
-	=?UTF-8?q?David=20H=C3=A4rdeman?= <david@hardeman.nu>,
-	Joe Perches <joe@perches.com>, linux-media@vger.kernel.org,
-	linux-kernel@vger.kernel.org
-Subject: [PATCH 2/2] drivers/media/rc/imon.c: Correct call to input_free_device
-Date: Sat, 14 May 2011 16:18:55 +0200
-Message-Id: <1305382735-11474-2-git-send-email-julia@diku.dk>
+Return-path: <mchehab@pedra>
+Received: from moutng.kundenserver.de ([212.227.17.9]:51107 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755543Ab1EaRKE (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 31 May 2011 13:10:04 -0400
+Date: Tue, 31 May 2011 19:09:53 +0200 (CEST)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Amber Jain <amber@ti.com>
+cc: linux-media@vger.kernel.org, hvaibhav@ti.com, sakari.ailus@iki.fi
+Subject: Re: [PATCH] OMAP: V4L2: Remove GFP_DMA allocation as ZONE_DMA is
+ not configured on OMAP
+In-Reply-To: <1306835503-24631-1-git-send-email-amber@ti.com>
+Message-ID: <Pine.LNX.4.64.1105311904440.10863@axis700.grange>
+References: <1306835503-24631-1-git-send-email-amber@ti.com>
+MIME-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 List-ID: <linux-media.vger.kernel.org>
-Sender: Mauro Carvalho Chehab <mchehab@gaivota>
+Sender: <mchehab@pedra>
 
-From: Julia Lawall <julia@diku.dk>
+On Tue, 31 May 2011, Amber Jain wrote:
 
-ictx->touch is intialied in imon_init_intf1, to the result of calling the
-function that contains this code.  Thus, in this code, input_free_device
-should be called on touch itself.
+> Remove GFP_DMA from the __get_free_pages() call as ZONE_DMA is not configured
+> on OMAP. Earlier the page allocator used to return a page from ZONE_NORMAL
+> even when GFP_DMA is passed and CONFIG_ZONE_DMA is disabled.
+> As a result of commit a197b59ae6e8bee56fcef37ea2482dc08414e2ac, page allocator
+> returns null in such a scenario with a warning emitted to kernel log.
+> 
+> Signed-off-by: Amber Jain <amber@ti.com>
+> ---
+>  drivers/media/video/omap/omap_vout.c |    2 +-
+>  drivers/media/video/omap24xxcam.c    |    4 ++--
+>  2 files changed, 3 insertions(+), 3 deletions(-)
+> 
+> diff --git a/drivers/media/video/omap/omap_vout.c b/drivers/media/video/omap/omap_vout.c
+> index 4ada9be..8cac624 100644
+> --- a/drivers/media/video/omap/omap_vout.c
+> +++ b/drivers/media/video/omap/omap_vout.c
+> @@ -181,7 +181,7 @@ static unsigned long omap_vout_alloc_buffer(u32 buf_size, u32 *phys_addr)
+>  
+>  	size = PAGE_ALIGN(buf_size);
+>  	order = get_order(size);
+> -	virt_addr = __get_free_pages(GFP_KERNEL | GFP_DMA, order);
+> +	virt_addr = __get_free_pages(GFP_KERNEL , order);
 
-A simplified version of the semantic match that finds this problem is:
-(http://coccinelle.lip6.fr/)
+Superfluous space before comma on all 3 occasions
 
-// <smpl>
-@r exists@
-local idexpression struct input_dev * x;
-expression ra,rr;
-position p1,p2;
-@@
-
-x = input_allocate_device@p1(...)
-...  when != x = rr
-     when != input_free_device(x,...)
-     when != if (...) { ... input_free_device(x,...) ...}
-if(...) { ... when != x = ra
-     when forall
-     when != input_free_device(x,...)
- \(return <+...x...+>; \| return@p2...; \) }
-
-@script:python@
-p1 << r.p1;
-p2 << r.p2;
-@@
-
-cocci.print_main("input_allocate_device",p1)
-cocci.print_secs("input_free_device",p2)
-// </smpl>
-
-Signed-off-by: Julia Lawall <julia@diku.dk>
+>  	addr = virt_addr;
+>  
+>  	if (virt_addr) {
+> diff --git a/drivers/media/video/omap24xxcam.c b/drivers/media/video/omap24xxcam.c
+> index f6626e8..ade9262 100644
+> --- a/drivers/media/video/omap24xxcam.c
+> +++ b/drivers/media/video/omap24xxcam.c
+> @@ -309,11 +309,11 @@ static int omap24xxcam_vbq_alloc_mmap_buffer(struct videobuf_buffer *vb)
+>  			order--;
+>  
+>  		/* try to allocate as many contiguous pages as possible */
+> -		page = alloc_pages(GFP_KERNEL | GFP_DMA, order);
+> +		page = alloc_pages(GFP_KERNEL , order);
+>  		/* if allocation fails, try to allocate smaller amount */
+>  		while (page == NULL) {
+>  			order--;
+> -			page = alloc_pages(GFP_KERNEL | GFP_DMA, order);
+> +			page = alloc_pages(GFP_KERNEL , order);
+>  			if (page == NULL && !order) {
+>  				err = -ENOMEM;
+>  				goto out;
+> -- 
+> 1.7.1
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
 
 ---
- drivers/media/rc/imon.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
-
-diff --git a/drivers/media/rc/imon.c b/drivers/media/rc/imon.c
-index 8fc0f08..c400318 100644
---- a/drivers/media/rc/imon.c
-+++ b/drivers/media/rc/imon.c
-@@ -1982,7 +1982,7 @@ static struct input_dev *imon_init_touch(struct imon_context *ictx)
- 	return touch;
- 
- touch_register_failed:
--	input_free_device(ictx->touch);
-+	input_free_device(touch);
- 
- touch_alloc_failed:
- 	return NULL;
-
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
+http://www.open-technology.de/
