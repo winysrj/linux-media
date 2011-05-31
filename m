@@ -1,57 +1,108 @@
 Return-path: <mchehab@pedra>
-Received: from hqemgate03.nvidia.com ([216.228.121.140]:16220 "EHLO
-	hqemgate03.nvidia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757467Ab1EXX5p (ORCPT
+Received: from devils.ext.ti.com ([198.47.26.153]:45892 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757586Ab1EaRN1 convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 24 May 2011 19:57:45 -0400
-From: <achew@nvidia.com>
-To: <g.liahkovetski@gmx.de>, <mchehab@redhat.com>, <olof@lixom.net>
-CC: <linux-media@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
-	Andrew Chew <achew@nvidia.com>
-Subject: [PATCH 2/3] [media] ov9740: Correct print in ov9740_reg_rmw()
-Date: Tue, 24 May 2011 16:55:37 -0700
-Message-ID: <1306281338-20247-2-git-send-email-achew@nvidia.com>
-In-Reply-To: <1306281338-20247-1-git-send-email-achew@nvidia.com>
-References: <1306281338-20247-1-git-send-email-achew@nvidia.com>
+	Tue, 31 May 2011 13:13:27 -0400
+From: "Hiremath, Vaibhav" <hvaibhav@ti.com>
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	"JAIN, AMBER" <amber@ti.com>
+CC: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	"sakari.ailus@iki.fi" <sakari.ailus@iki.fi>
+Date: Tue, 31 May 2011 22:43:11 +0530
+Subject: RE: [PATCH] OMAP: V4L2: Remove GFP_DMA allocation as ZONE_DMA is
+ not configured on OMAP
+Message-ID: <19F8576C6E063C45BE387C64729E739404E2DC74CD@dbde02.ent.ti.com>
+References: <1306835503-24631-1-git-send-email-amber@ti.com>
+ <Pine.LNX.4.64.1105311904440.10863@axis700.grange>
+In-Reply-To: <Pine.LNX.4.64.1105311904440.10863@axis700.grange>
+Content-Language: en-US
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 MIME-Version: 1.0
-Content-Type: text/plain
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-From: Andrew Chew <achew@nvidia.com>
 
-The register width of the ov9740 is 16-bits, so correct the debug print
-to reflect this.
+> -----Original Message-----
+> From: Guennadi Liakhovetski [mailto:g.liakhovetski@gmx.de]
+> Sent: Tuesday, May 31, 2011 10:40 PM
+> To: JAIN, AMBER
+> Cc: linux-media@vger.kernel.org; Hiremath, Vaibhav; sakari.ailus@iki.fi
+> Subject: Re: [PATCH] OMAP: V4L2: Remove GFP_DMA allocation as ZONE_DMA is
+> not configured on OMAP
+> 
+> On Tue, 31 May 2011, Amber Jain wrote:
+> 
+> > Remove GFP_DMA from the __get_free_pages() call as ZONE_DMA is not
+> configured
+> > on OMAP. Earlier the page allocator used to return a page from
+> ZONE_NORMAL
+> > even when GFP_DMA is passed and CONFIG_ZONE_DMA is disabled.
+> > As a result of commit a197b59ae6e8bee56fcef37ea2482dc08414e2ac, page
+> allocator
+> > returns null in such a scenario with a warning emitted to kernel log.
+> >
+> > Signed-off-by: Amber Jain <amber@ti.com>
+> > ---
+> >  drivers/media/video/omap/omap_vout.c |    2 +-
+> >  drivers/media/video/omap24xxcam.c    |    4 ++--
+> >  2 files changed, 3 insertions(+), 3 deletions(-)
+> >
+> > diff --git a/drivers/media/video/omap/omap_vout.c
+> b/drivers/media/video/omap/omap_vout.c
+> > index 4ada9be..8cac624 100644
+> > --- a/drivers/media/video/omap/omap_vout.c
+> > +++ b/drivers/media/video/omap/omap_vout.c
+> > @@ -181,7 +181,7 @@ static unsigned long omap_vout_alloc_buffer(u32
+> buf_size, u32 *phys_addr)
+> >
+> >  	size = PAGE_ALIGN(buf_size);
+> >  	order = get_order(size);
+> > -	virt_addr = __get_free_pages(GFP_KERNEL | GFP_DMA, order);
+> > +	virt_addr = __get_free_pages(GFP_KERNEL , order);
+> 
+> Superfluous space before comma on all 3 occasions
+> 
+[Hiremath, Vaibhav] He has submitted updated patch where it's taken care of.
 
-Signed-off-by: Andrew Chew <achew@nvidia.com>
----
- drivers/media/video/ov9740.c |    6 ++++--
- 1 files changed, 4 insertions(+), 2 deletions(-)
+Thanks,
+Vaibhav
 
-diff --git a/drivers/media/video/ov9740.c b/drivers/media/video/ov9740.c
-index 96811e4..d5c9061 100644
---- a/drivers/media/video/ov9740.c
-+++ b/drivers/media/video/ov9740.c
-@@ -537,7 +537,8 @@ static int ov9740_reg_rmw(struct i2c_client *client, u16 reg, u8 set, u8 unset)
- 	ret = ov9740_reg_read(client, reg, &val);
- 	if (ret < 0) {
- 		dev_err(&client->dev,
--			"[Read]-Modify-Write of register %02x failed!\n", reg);
-+			"[Read]-Modify-Write of register 0x%04x failed!\n",
-+			reg);
- 		return ret;
- 	}
- 
-@@ -547,7 +548,8 @@ static int ov9740_reg_rmw(struct i2c_client *client, u16 reg, u8 set, u8 unset)
- 	ret = ov9740_reg_write(client, reg, val);
- 	if (ret < 0) {
- 		dev_err(&client->dev,
--			"Read-Modify-[Write] of register %02x failed!\n", reg);
-+			"Read-Modify-[Write] of register 0x%04x failed!\n",
-+			reg);
- 		return ret;
- 	}
- 
--- 
-1.7.5.1
-
+> >  	addr = virt_addr;
+> >
+> >  	if (virt_addr) {
+> > diff --git a/drivers/media/video/omap24xxcam.c
+> b/drivers/media/video/omap24xxcam.c
+> > index f6626e8..ade9262 100644
+> > --- a/drivers/media/video/omap24xxcam.c
+> > +++ b/drivers/media/video/omap24xxcam.c
+> > @@ -309,11 +309,11 @@ static int
+> omap24xxcam_vbq_alloc_mmap_buffer(struct videobuf_buffer *vb)
+> >  			order--;
+> >
+> >  		/* try to allocate as many contiguous pages as possible */
+> > -		page = alloc_pages(GFP_KERNEL | GFP_DMA, order);
+> > +		page = alloc_pages(GFP_KERNEL , order);
+> >  		/* if allocation fails, try to allocate smaller amount */
+> >  		while (page == NULL) {
+> >  			order--;
+> > -			page = alloc_pages(GFP_KERNEL | GFP_DMA, order);
+> > +			page = alloc_pages(GFP_KERNEL , order);
+> >  			if (page == NULL && !order) {
+> >  				err = -ENOMEM;
+> >  				goto out;
+> > --
+> > 1.7.1
+> >
+> > --
+> > To unsubscribe from this list: send the line "unsubscribe linux-media"
+> in
+> > the body of a message to majordomo@vger.kernel.org
+> > More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> >
+> 
+> ---
+> Guennadi Liakhovetski, Ph.D.
+> Freelance Open-Source Software Developer
+> http://www.open-technology.de/
