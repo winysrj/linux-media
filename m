@@ -1,60 +1,63 @@
-Return-path: <mchehab@gaivota>
-Received: from moutng.kundenserver.de ([212.227.17.8]:57131 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758983Ab1EMUnX (ORCPT
+Return-path: <mchehab@pedra>
+Received: from mail-ew0-f46.google.com ([209.85.215.46]:51600 "EHLO
+	mail-ew0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754251Ab1EaJMx convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 13 May 2011 16:43:23 -0400
-Date: Fri, 13 May 2011 22:43:08 +0200 (CEST)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Sylwester Nawrocki <snjw23@gmail.com>
-cc: Josh Wu <josh.wu@atmel.com>, mchehab@redhat.com,
-	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-	linux-arm-kernel@lists.infradead.org, lars.haring@atmel.com
-Subject: Re: [PATCH] [media] at91: add Atmel Image Sensor Interface (ISI)
- support
-In-Reply-To: <4DCD960E.3020504@gmail.com>
-Message-ID: <Pine.LNX.4.64.1105132242380.29954@axis700.grange>
-References: <1305186138-5656-1-git-send-email-josh.wu@atmel.com>
- <Pine.LNX.4.64.1105130956090.26356@axis700.grange> <4DCD960E.3020504@gmail.com>
+	Tue, 31 May 2011 05:12:53 -0400
+Received: by ewy4 with SMTP id 4so1551200ewy.19
+        for <linux-media@vger.kernel.org>; Tue, 31 May 2011 02:12:51 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+In-Reply-To: <E9456CEE-9CC5-450F-BEC7-5E6D81D9466E@dominion.thruhere.net>
+References: <1306744637-9051-1-git-send-email-javier.martin@vista-silicon.com>
+	<1306744637-9051-2-git-send-email-javier.martin@vista-silicon.com>
+	<8EFA38E5-E9C6-4C2E-A552-3E7D07DBC596@beagleboard.org>
+	<E9456CEE-9CC5-450F-BEC7-5E6D81D9466E@dominion.thruhere.net>
+Date: Tue, 31 May 2011 11:12:51 +0200
+Message-ID: <BANLkTinU9h7m6BiCnsxf5oWRUWaS3ONwgg@mail.gmail.com>
+Subject: Re: [beagleboard] [PATCH v4 2/2] Add support for mt9p031 (LI-5M03
+ module) in Beagleboard xM.
+From: javier Martin <javier.martin@vista-silicon.com>
+To: Koen Kooi <koen@dominion.thruhere.net>
+Cc: "beagleboard@googlegroups.com Board" <beagleboard@googlegroups.com>,
+	linux-media@vger.kernel.org,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Chris Rodley <carlighting@yahoo.co.nz>, mch_kot@yahoo.com.cn
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 List-ID: <linux-media.vger.kernel.org>
-Sender: Mauro Carvalho Chehab <mchehab@gaivota>
+Sender: <mchehab@pedra>
 
-On Fri, 13 May 2011, Sylwester Nawrocki wrote:
+On 31 May 2011 09:59, Koen Kooi <koen@dominion.thruhere.net> wrote:
+>
+> Op 31 mei 2011, om 09:52 heeft Koen Kooi het volgende geschreven:
+>
+>>
+>> Op 30 mei 2011, om 10:37 heeft Javier Martin het volgende geschreven:
+>>
+>>> Since isp clocks have not been exposed yet, this patch
+>>> includes a temporal solution for testing mt9p031 driver
+>>> in Beagleboard xM.
+>>
+>> When compiling both as Y I get:
+>>
+>> [    4.231628] mt9p031 2-0048: Failed to reset the camera
+>> [    4.237030] omap3isp omap3isp: Failed to power on: -121
+>> [    4.242523] mt9p031 2-0048: Failed to power on device: -121
+>> [    4.248474] isp_register_subdev_group: Unable to register subdev mt9p031
+>
+> I tried on an xM rev A2 and xM rev C, same error on both
+>
 
-> On 05/13/2011 03:50 PM, Guennadi Liakhovetski wrote:
-> > On Thu, 12 May 2011, Josh Wu wrote:
-> > 
-> >> This patch is to enable Atmel Image Sensor Interface (ISI) driver support.
-> >> - Using soc-camera framework with videobuf2 dma-contig allocator
-> >> - Supporting video streaming of YUV packed format
-> >> - Tested on AT91SAM9M10G45-EK with OV2640
-> >>
-> >> Signed-off-by: Josh Wu<josh.wu@atmel.com>
-> >> ---
-> ...
-> >> diff --git a/drivers/media/video/Makefile b/drivers/media/video/Makefile
-> >> index a10e4c3..f734a65 100644
-> >> --- a/drivers/media/video/Makefile
-> >> +++ b/drivers/media/video/Makefile
-> >> @@ -166,6 +166,7 @@ obj-$(CONFIG_VIDEO_SH_MOBILE_CSI2)	+= sh_mobile_csi2.o
-> >>   obj-$(CONFIG_VIDEO_SH_MOBILE_CEU)	+= sh_mobile_ceu_camera.o
-> >>   obj-$(CONFIG_VIDEO_OMAP1)		+= omap1_camera.o
-> >>   obj-$(CONFIG_VIDEO_SAMSUNG_S5P_FIMC) 	+= s5p-fimc/
-> > 
-> > [OT] hm, wow, who has decided to put a generic V4L driver (set) in the
-> > Makefile together with other soc-camera drivers? It has to be converted now;)
-> 
-> In fact I've already converted that driver, but soc-camera wasn't unfortunately
-> my choice, just the media controller ;-) I'll probably move the entry when 
-> preparing upstream patches, it just doesn't feel safe here;)
+Crap,
+I get the same error here. Sorry for the inconvenience.
+I'll send a new version in some minutes.
 
-Yeah, you're right - it's a boilerplate here, nothing like safe;)
-
-Thanks
-Guennadi
----
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
-http://www.open-technology.de/
+-- 
+Javier Martin
+Vista Silicon S.L.
+CDTUC - FASE C - Oficina S-345
+Avda de los Castros s/n
+39005- Santander. Cantabria. Spain
++34 942 25 32 60
+www.vista-silicon.com
