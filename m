@@ -1,55 +1,90 @@
 Return-path: <mchehab@pedra>
-Received: from mailout1.samsung.com ([203.254.224.24]:46744 "EHLO
-	mailout1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754292Ab1EaHgK (ORCPT
+Received: from smtp-vbr2.xs4all.nl ([194.109.24.22]:2608 "EHLO
+	smtp-vbr2.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757303Ab1EaRCc (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 31 May 2011 03:36:10 -0400
-Received: from epcpsbgm1.samsung.com (mailout1.samsung.com [203.254.224.24])
- by mailout1.samsung.com
- (Oracle Communications Messaging Exchange Server 7u4-19.01 64bit (built Sep  7
- 2010)) with ESMTP id <0LM100L4AUFN61G0@mailout1.samsung.com> for
- linux-media@vger.kernel.org; Tue, 31 May 2011 16:36:09 +0900 (KST)
-Received: from TNRNDGASPAPP1.tn.corp.samsungelectronics.net ([165.213.149.150])
- by mmp2.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14 2004))
- with ESMTPA id <0LM10099JUG9EC@mmp2.samsung.com> for
- linux-media@vger.kernel.org; Tue, 31 May 2011 16:36:09 +0900 (KST)
-Date: Tue, 31 May 2011 16:35:58 +0900
-From: "HeungJun, Kim" <riverful.kim@samsung.com>
-Subject: [PATCH v2 0/4] Fix micellaneous issues for M-5MOLS driver
-In-reply-to: <1306501095-28267-1-git-send-email-riverful.kim@samsung.com>
-To: linux-media@vger.kernel.org
-Cc: mchehab@infradead.org, s.nawrocki@samsung.com, sakari.ailus@iki.fi
-Message-id: <1306827362-4064-1-git-send-email-riverful.kim@samsung.com>
-Content-transfer-encoding: 7BIT
-References: <1306501095-28267-1-git-send-email-riverful.kim@samsung.com>
+	Tue, 31 May 2011 13:02:32 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: vipul kumar samar <vipulkumar.samar@st.com>
+Subject: Re: About RFC of HDMI-CEC
+Date: Tue, 31 May 2011 19:01:28 +0200
+Cc: "Martin Bugge (marbugge)" <marbugge@cisco.com>,
+	"hdegoede@redhat.com" <hdegoede@redhat.com>,
+	"mchehab@infradead.org" <mchehab@infradead.org>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+References: <4DDCED60.3080907@st.com> <201105260835.45559.hverkuil@xs4all.nl> <4DDE44BA.6030808@st.com>
+In-Reply-To: <4DDE44BA.6030808@st.com>
+MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="iso-8859-15"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201105311901.28876.hverkuil@xs4all.nl>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Hello,
+On Thursday, May 26, 2011 14:16:58 vipul kumar samar wrote:
+> On 05/26/2011 12:05 PM, Hans Verkuil wrote:
+> > On Thursday, May 26, 2011 07:09:30 vipul kumar samar wrote:
+> >> Hello,
+> >>
+> >> On 05/25/2011 06:13 PM, Martin Bugge (marbugge) wrote:
+> >>> Hello
+> >>>
+> >>> To be honest I became a bit disengaded after all the discussion.
+> >>>
+> >>> What caused me a lot of problems was the request for AV link support
+> >>> (which is used in SCART connectors).
+> >>> Something I never plan to implement.
+> >>>
+> >>> But after the "v4l2 Warsaw Brainstroming meeting" it was sort of approved.
+> >>>
+> >>> It only need to be reworked to be a subdev level api.
+> >>> (for that I need some help from Hans Verkuil)
+> >>>
+> >>> But it is great that someone else also need an API for this.
+> >>> I include the latest version here so you can see if you agree, and
+> >>> together we will get it in.
+> >>>
+> >>
+> >> Yes, sure.
+> >>
+> >>> We currently have two drivers which uses this API for CEC.
+> >>>
+> >>> * Analog Devices adv7604
+> >>>
+> >>> * TMS320DM8x
+> >>>
+> >>
+> >> i want to see source code of these two drivers.From where i can get
+> >> source code of these drivers??
+> >
+> > The adv7604 driver is here:
+> >
+> > http://git.linuxtv.org/hverkuil/cisco.git?a=shortlog;h=refs/heads/cobalt
+> >
+> > But this tree hasn't been updated in quite some time and doesn't contain the
+> > CEC support. I need to work on this anyway today so I'll see if I can get
+> > this tree in sync with our internal tree.
+> >
+> > The other driver we can't release as open source. It will eventually become
+> > available, though.
+> >
+> > Regards,
+> >
+> >        Hans
+> 
+> Hello Hans,
+> 
+> Once i go through this driver then we will discuss it in more detail.
+> Thanks for your support.
 
-This is second verion of patch series to handle some issues about M-5MOLS
-driver.
+Hi Vipul,
 
-The difference against first patch series is as follows:
-
-1) Add contents for 1/5.
-	It should be the contents in the each patches, but I've missed it.
-	So, I added the contents in the patch.
-
-2) Discard 4/5 about changing m5mols_capture_error_handler()'s name.
-	When I saw the comments about timeout variable, I agreed to Sakari's
-	comments, and I would remove this. But, after thiking about that,
-	It's better not to remove the timeout, and to add more comments
-	about this functions's role for making more clearly.
-
-	But, it occurs more confuseness and looks like inconsistent and
-	impolite. If this patch gives confuseness to you, I apologize for
-	that. It was not my inttention.
-
-	So, my conclusion is to discard 4/5 patch for keeping the previous one.
-
-Thanks, and any comments welcome.
+I updated the adv7604 driver yesterday to the latest version. Be aware that it
+is work in progress, so there are still loose ends and TODOs. But at least the
+CEC support is in.
 
 Regards,
-Heungjun Kim
 
+	Hans
