@@ -1,63 +1,63 @@
-Return-path: <mchehab@gaivota>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:38182 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751477Ab1ELP3n (ORCPT
+Return-path: <mchehab@pedra>
+Received: from mail-bw0-f46.google.com ([209.85.214.46]:42154 "EHLO
+	mail-bw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751150Ab1EaGjp (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 12 May 2011 11:29:43 -0400
-Received: from lancelot.localnet (unknown [91.178.194.193])
-	by perceval.ideasonboard.com (Postfix) with ESMTPSA id 1EEB5359A1
-	for <linux-media@vger.kernel.org>; Thu, 12 May 2011 15:29:42 +0000 (UTC)
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: linux-media@vger.kernel.org
-Subject: [GIT PATCH FOR 2.6.40] uvcvideo patches
-Date: Thu, 12 May 2011 17:30:36 +0200
-MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201105121730.37321.laurent.pinchart@ideasonboard.com>
+	Tue, 31 May 2011 02:39:45 -0400
+Received: by bwz15 with SMTP id 15so3367229bwz.19
+        for <linux-media@vger.kernel.org>; Mon, 30 May 2011 23:39:44 -0700 (PDT)
+Date: Tue, 31 May 2011 17:43:23 +1000
+From: Dmitri Belimov <d.belimov@gmail.com>
+To: Devin Heitmueller <dheitmueller@kernellabs.com>
+Cc: linux-media@vger.kernel.org, thunder.m@email.cz,
+	"istvan_v@mailbox.hu" <istvan_v@mailbox.hu>, linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] XC4000 patches for kernel 2.6.37.2
+Message-ID: <20110531174323.0f0c45c0@glory.local>
+In-Reply-To: <BANLkTi=Lq+FF++yGhRmOa4NCigSt6ZurHg@mail.gmail.com>
+References: <4D764337.6050109@email.cz>
+	<20110531124843.377a2a80@glory.local>
+	<BANLkTi=Lq+FF++yGhRmOa4NCigSt6ZurHg@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=KOI8-R
+Content-Transfer-Encoding: 8bit
 List-ID: <linux-media.vger.kernel.org>
-Sender: Mauro Carvalho Chehab <mchehab@gaivota>
+Sender: <mchehab@pedra>
 
-Hi Mauro,
+Hi Devin
 
-The following changes since commit f9b51477fe540fb4c65a05027fdd6f2ecce4db3b:
+> On Mon, May 30, 2011 at 10:48 PM, Dmitri Belimov
+> <d.belimov@gmail.com> wrote:
+> > Hi
+> >
+> >> Hi Istvan
+> >>
+> >> š š š I am sending you modified patches for kernel 2.6.37.2, they
+> >> works as expected.
+> >>
+> >> First apply kernel_xc4000.diff (your patch) then
+> >> kernel_dtv3200h.diff for Leadtek DTV3200 XC4000 support.
+> >
+> > Can you resend your patches with right Signed-Off string for commit
+> > into kernel?
+> >
+> > With my best regards, Dmitry.
+> 
+> He cannot offer a Signed-off-by for the entire patch - it's not his
+> code.  The patches are based on the work that Davide Ferri and I did
+> about 17 months ago:
+> 
+> http://kernellabs.com/hg/~dheitmueller/pctv-340e-2/shortlog
+> 
+> I'm not against seeing the xc4000 support going in, but the history
+> needs to be preserved, which means it needs to be broken in to a patch
+> series that properly credits my and Davide's work.
 
-  [media] DVB: return meaningful error codes in dvb_frontend (2011-05-09 
-05:47:20 +0200)
+Is it possible make some patches and add support xc4000 into kernel?
 
-are available in the git repository at:
-  git://linuxtv.org/pinchartl/uvcvideo.git uvcvideo-next
-
-Bob Liu (2):
-      Revert "V4L/DVB: v4l2-dev: remove get_unmapped_area"
-      uvcvideo: Add support for NOMMU arch
-
-Hans de Goede (2):
-      v4l: Add M420 format definition
-      uvcvideo: Add M420 format support
-
-Laurent Pinchart (4):
-      v4l: Release module if subdev registration fails
-      uvcvideo: Register a v4l2_device
-      uvcvideo: Register subdevices for each entity
-      uvcvideo: Connect video devices to media entities
-
- drivers/media/video/uvc/Makefile     |    3 +
- drivers/media/video/uvc/uvc_driver.c |   71 ++++++++++++++++++--
- drivers/media/video/uvc/uvc_entity.c |  118 
-++++++++++++++++++++++++++++++++++
- drivers/media/video/uvc/uvc_queue.c  |   34 ++++++++++-
- drivers/media/video/uvc/uvc_v4l2.c   |   17 +++++
- drivers/media/video/uvc/uvcvideo.h   |   27 ++++++++
- drivers/media/video/v4l2-dev.c       |   18 +++++
- drivers/media/video/v4l2-device.c    |    5 +-
- include/linux/videodev2.h            |    1 +
- include/media/v4l2-dev.h             |    2 +
- 10 files changed, 287 insertions(+), 9 deletions(-)
- create mode 100644 drivers/media/video/uvc/uvc_entity.c
-
--- 
-Regards,
-
-Laurent Pinchart
+With my best regards, Dmitry.
+ 
+> Devin
+> 
+> -- 
+> Devin J. Heitmueller - Kernel Labs
+> http://www.kernellabs.com
