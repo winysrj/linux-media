@@ -1,186 +1,55 @@
 Return-path: <mchehab@pedra>
-Received: from eu1sys200aog106.obsmtp.com ([207.126.144.121]:44360 "EHLO
-	eu1sys200aog106.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932363Ab1ESGO6 convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 19 May 2011 02:14:58 -0400
-From: Bhupesh SHARMA <bhupesh.sharma@st.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: "Charlie X. Liu" <charlie@sensoray.com>,
-	"laurent.pinchart@ideasonboard.com"
-	<laurent.pinchart@ideasonboard.com>,
-	"g.liakhovetski@gmx.de" <g.liakhovetski@gmx.de>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	"alsa-devel@alsa-project.org" <alsa-devel@alsa-project.org>
-Date: Thu, 19 May 2011 13:39:32 +0800
-Subject: RE: Audio Video synchronization for data received from a HDMI
- receiver chip
-Message-ID: <D5ECB3C7A6F99444980976A8C6D896384DF11B615E@EAPEX1MAIL1.st.com>
-References: <D5ECB3C7A6F99444980976A8C6D896384DF1137013@EAPEX1MAIL1.st.com>
- <BANLkTi=rpQEkroia3kUqp6zUHTQk3k220Q@mail.gmail.com>
- <D5ECB3C7A6F99444980976A8C6D896384DF11B5D98@EAPEX1MAIL1.st.com>
- <201105180832.52333.hverkuil@xs4all.nl>
-In-Reply-To: <201105180832.52333.hverkuil@xs4all.nl>
-Content-Language: en-US
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-MIME-Version: 1.0
+Received: from mailout1.samsung.com ([203.254.224.24]:46744 "EHLO
+	mailout1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754292Ab1EaHgK (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 31 May 2011 03:36:10 -0400
+Received: from epcpsbgm1.samsung.com (mailout1.samsung.com [203.254.224.24])
+ by mailout1.samsung.com
+ (Oracle Communications Messaging Exchange Server 7u4-19.01 64bit (built Sep  7
+ 2010)) with ESMTP id <0LM100L4AUFN61G0@mailout1.samsung.com> for
+ linux-media@vger.kernel.org; Tue, 31 May 2011 16:36:09 +0900 (KST)
+Received: from TNRNDGASPAPP1.tn.corp.samsungelectronics.net ([165.213.149.150])
+ by mmp2.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14 2004))
+ with ESMTPA id <0LM10099JUG9EC@mmp2.samsung.com> for
+ linux-media@vger.kernel.org; Tue, 31 May 2011 16:36:09 +0900 (KST)
+Date: Tue, 31 May 2011 16:35:58 +0900
+From: "HeungJun, Kim" <riverful.kim@samsung.com>
+Subject: [PATCH v2 0/4] Fix micellaneous issues for M-5MOLS driver
+In-reply-to: <1306501095-28267-1-git-send-email-riverful.kim@samsung.com>
+To: linux-media@vger.kernel.org
+Cc: mchehab@infradead.org, s.nawrocki@samsung.com, sakari.ailus@iki.fi
+Message-id: <1306827362-4064-1-git-send-email-riverful.kim@samsung.com>
+Content-transfer-encoding: 7BIT
+References: <1306501095-28267-1-git-send-email-riverful.kim@samsung.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-> On Wednesday, May 18, 2011 06:10:43 Bhupesh SHARMA wrote:
-> > Hi,
-> >
-> > (adding alsa mailing list in cc)
-> >
-> > > On Thursday, May 12, 2011 18:59:33 Charlie X. Liu wrote:
-> > > > Which HDMI receiver chip?
-> > >
-> > > Indeed, that's my question as well :-)
-> >
-> > We use Sil 9135 receiver chip which is provided by Silicon Image.
-> > Please see details here:
-> http://www.siliconimage.com/products/product.aspx?pid=109
-> >
-> > > Anyway, this question comes up regularly. V4L2 provides timestamps
-> for
-> > > each
-> > > frame, so that's no problem. But my understanding is that ALSA does
-> not
-> > > give
-> > > you timestamps, so if there are processing delays between audio and
-> > > video, then
-> > > you have no way of knowing. The obvious solution is to talk to the
-> ALSA
-> > > people
-> > > to see if some sort of timestamping is possible, but nobody has
-> done
-> > > that.
-> >
-> > I am aware of the time stamping feature provided by V4L2, but I am
-> also
-> > not sure whether the same feature is supported by ALSA. I have
-> included
-> > alsa-mailing list also in copy of this mail. Let's see if we can get
-> > some sort of confirmation on this from them.
-> >
-> > > This is either because everyone that needs it hacks around it
-> instead
-> > > of trying
-> > > to really solve it, or because it is never a problem in practice.
-> >
-> > What should be the proper solution according to you to solve this
-> issue.
-> > Do we require a Audio-Video Bridge kind of utility/mechanism?
-> 
-> I don't believe so. All you need is reliable time stamping for your
-> audio
-> and video streams. That's enough for userspace to detect AV sync
-> issues.
-> 
+Hello,
 
-Hi Hans,
+This is second verion of patch series to handle some issues about M-5MOLS
+driver.
 
-I have another doubt regarding the framework choice for the entire
-system that I have, especially the video part of the system. The overall
-system is similar to the one depicted below:
+The difference against first patch series is as follows:
 
-HDMI data --> HDMI receiver chip --> Video Port IP on SoC --> System DDR
+1) Add contents for 1/5.
+	It should be the contents in the each patches, but I've missed it.
+	So, I added the contents in the patch.
 
-HDMI data is received from external world (from say a set-up box or dvd player),
-which is fed to the HDMI receiver chip on-board and then parallel data lines feed
-this data to a Video Port IP on the SoC which has a DMA master interface and
-hence can push the data thus received directly on system DDR.
+2) Discard 4/5 about changing m5mols_capture_error_handler()'s name.
+	When I saw the comments about timeout variable, I agreed to Sakari's
+	comments, and I would remove this. But, after thiking about that,
+	It's better not to remove the timeout, and to add more comments
+	about this functions's role for making more clearly.
 
-Now, I can figure out that there will be two drivers required here:
-# HDMI receiver chip driver (which is essentially a v4l2 subdev being controller via I2C)
-# Video Port driver (which is a v4l2 bridge driver)
+	But, it occurs more confuseness and looks like inconsistent and
+	impolite. If this patch gives confuseness to you, I apologize for
+	that. It was not my inttention.
 
-Is my understanding correct?
-Are there any HDMI receiver subdev driver and video bridge driver already available which I can 
-use for reference?
+	So, my conclusion is to discard 4/5 patch for keeping the previous one.
 
-Also will the audio ALSA driver fit as a subdev driver in the entire system?
+Thanks, and any comments welcome.
 
-P.S. I use the terminology 'bridge' and 'subdev' as mentioned in 'v4l2-subdev.h' header file.
 Regards,
-Bhupesh
+Heungjun Kim
 
-> Regards,
-> 
-> 	Hans
-> 
-> >
-> > Regards,
-> > Bhupesh
-> >
-> > >
-> > > >
-> > > > -----Original Message-----
-> > > > From: linux-media-owner@vger.kernel.org
-> > > > [mailto:linux-media-owner@vger.kernel.org] On Behalf Of Bhupesh
-> > > SHARMA
-> > > > Sent: Wednesday, May 11, 2011 10:49 PM
-> > > > To: linux-media@vger.kernel.org
-> > > > Cc: Laurent Pinchart; Guennadi Liakhovetski; Hans Verkuil
-> > > > Subject: Audio Video synchronization for data received from a
-> HDMI
-> > > receiver
-> > > > chip
-> > > >
-> > > > Hi Linux media folks,
-> > > >
-> > > > We are considering putting an advanced HDMI receiver chip on our
-> SoC,
-> > > > to allow reception of HDMI audio and video. The chip receives
-> HDMI
-> > > data
-> > > > from a host like a set-up box or DVD player. It provides a video
-> data
-> > > > interface
-> > > > and SPDIF/I2S audio data interface.
-> > > >
-> > > > We plan to support the HDMI video using the V4L2 framework and
-> the
-> > > HDMI
-> > > > audio using ALSA framework.
-> > > >
-> > > > Now, what seems to be intriguing us is how the audio-video
-> > > synchronization
-> > > > will be maintained? Will a separate bridging entity required to
-> > > ensure the
-> > > > same
-> > > > or whether this can be left upon a user space application like
-> > > mplayer or
-> > > > gstreamer.
-> > > >
-> > > > Also is there a existing interface between the V4L2 and ALSA
-> > > frameworks and
-> > > > the same
-> > > > can be used in our design?
-> > > >
-> > > > Regards,
-> > > > Bhupesh
-> > > > ST Microelectronics
-> > > > --
-> > > > To unsubscribe from this list: send the line "unsubscribe linux-
-> > > media" in
-> > > > the body of a message to majordomo@vger.kernel.org
-> > > > More majordomo info at  http://vger.kernel.org/majordomo-
-> info.html
-> > > >
-> > > >
-> > > --
-> > > To unsubscribe from this list: send the line "unsubscribe linux-
-> media"
-> > > in
-> > > the body of a message to majordomo@vger.kernel.org
-> > > More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> > >
-> > >
-> > >
-> > > --
-> > > regards
-> > > Shiraz Hashim
-> >
-> >
