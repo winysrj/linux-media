@@ -1,51 +1,63 @@
 Return-path: <mchehab@pedra>
-Received: from mail2.matrix-vision.com ([85.214.244.251]:35961 "EHLO
-	mail2.matrix-vision.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932157Ab1ETHwk (ORCPT
+Received: from devils.ext.ti.com ([198.47.26.153]:50493 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751034Ab1EaJv4 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 20 May 2011 03:52:40 -0400
-Message-ID: <4DD61DC6.10909@matrix-vision.de>
-Date: Fri, 20 May 2011 09:52:38 +0200
-From: Michael Jones <michael.jones@matrix-vision.de>
+	Tue, 31 May 2011 05:51:56 -0400
+From: Amber Jain <amber@ti.com>
+To: <linux-media@vger.kernel.org>
+CC: hvaibhav@ti.com, sakari.ailus@iki.fi, Amber Jain <amber@ti.com>
+Subject: [PATCH] OMAP: V4L2: Remove GFP_DMA allocation as ZONE_DMA is not configured on OMAP
+Date: Tue, 31 May 2011 15:21:43 +0530
+Message-ID: <1306835503-24631-1-git-send-email-amber@ti.com>
 MIME-Version: 1.0
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-CC: Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	linux-media@vger.kernel.org, sakari.ailus@iki.fi
-Subject: Re: [RFC/PATCH 1/2] v4l: Add generic board subdev  registration function
-References: <1305830080-18211-1-git-send-email-laurent.pinchart@ideasonboard.com> <4DD614DC.3070905@samsung.com> <201105200929.33226.laurent.pinchart@ideasonboard.com>
-In-Reply-To: <201105200929.33226.laurent.pinchart@ideasonboard.com>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On 05/20/2011 09:29 AM, Laurent Pinchart wrote:
+Remove GFP_DMA from the __get_free_pages() call as ZONE_DMA is not configured
+on OMAP. Earlier the page allocator used to return a page from ZONE_NORMAL
+even when GFP_DMA is passed and CONFIG_ZONE_DMA is disabled.
+As a result of commit a197b59ae6e8bee56fcef37ea2482dc08414e2ac, page allocator
+returns null in such a scenario with a warning emitted to kernel log.
 
-[snip]
+Signed-off-by: Amber Jain <amber@ti.com>
+---
+ drivers/media/video/omap/omap_vout.c |    2 +-
+ drivers/media/video/omap24xxcam.c    |    4 ++--
+ 2 files changed, 3 insertions(+), 3 deletions(-)
 
->> I had an issue when tried to call request_module, to register subdev of
->> platform device type, in probe() of other platform device. Driver's
->> probe() for devices belonging same bus type cannot be nested as the bus
->> lock is taken by the driver core before entering probe(), so this would
->> lead to a deadlock.
->> That exactly happens in __driver_attach().
->>
->> For the same reason v4l2_new_subdev_board could not be called from probe()
->> of devices belonging to I2C or SPI bus, as request_module is called inside
->> of it. I'm not sure how to solve it, yet:)
-> 
-> Ouch. I wasn't aware of that issue. Looks like it's indeed time to fix the 
-> subdev registration issue, including the module load race condition. Michael, 
-> you said you have a patch to add platform subdev support, how have you avoided 
-> the race condition ?
+diff --git a/drivers/media/video/omap/omap_vout.c b/drivers/media/video/omap/omap_vout.c
+index 4ada9be..8cac624 100644
+--- a/drivers/media/video/omap/omap_vout.c
++++ b/drivers/media/video/omap/omap_vout.c
+@@ -181,7 +181,7 @@ static unsigned long omap_vout_alloc_buffer(u32 buf_size, u32 *phys_addr)
+ 
+ 	size = PAGE_ALIGN(buf_size);
+ 	order = get_order(size);
+-	virt_addr = __get_free_pages(GFP_KERNEL | GFP_DMA, order);
++	virt_addr = __get_free_pages(GFP_KERNEL , order);
+ 	addr = virt_addr;
+ 
+ 	if (virt_addr) {
+diff --git a/drivers/media/video/omap24xxcam.c b/drivers/media/video/omap24xxcam.c
+index f6626e8..ade9262 100644
+--- a/drivers/media/video/omap24xxcam.c
++++ b/drivers/media/video/omap24xxcam.c
+@@ -309,11 +309,11 @@ static int omap24xxcam_vbq_alloc_mmap_buffer(struct videobuf_buffer *vb)
+ 			order--;
+ 
+ 		/* try to allocate as many contiguous pages as possible */
+-		page = alloc_pages(GFP_KERNEL | GFP_DMA, order);
++		page = alloc_pages(GFP_KERNEL , order);
+ 		/* if allocation fails, try to allocate smaller amount */
+ 		while (page == NULL) {
+ 			order--;
+-			page = alloc_pages(GFP_KERNEL | GFP_DMA, order);
++			page = alloc_pages(GFP_KERNEL , order);
+ 			if (page == NULL && !order) {
+ 				err = -ENOMEM;
+ 				goto out;
+-- 
+1.7.1
 
-I spoke too soon. This deadlock is staring me in the face right now,
-too.  Ouch, indeed.
-
-[snip]
-
-
-MATRIX VISION GmbH, Talstrasse 16, DE-71570 Oppenweiler
-Registergericht: Amtsgericht Stuttgart, HRB 271090
-Geschaeftsfuehrer: Gerhard Thullner, Werner Armingeon, Uwe Furtner
