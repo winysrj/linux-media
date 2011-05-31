@@ -1,172 +1,101 @@
 Return-path: <mchehab@pedra>
-Received: from mx1.redhat.com ([209.132.183.28]:37161 "EHLO mx1.redhat.com"
+Received: from mail01.prevas.se ([62.95.78.3]:31431 "EHLO mail01.prevas.se"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754282Ab1EQM5z (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 17 May 2011 08:57:55 -0400
-Message-ID: <4DD270CE.2080406@redhat.com>
-Date: Tue, 17 May 2011 09:57:50 -0300
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
+	id S1752675Ab1EaKHK convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 31 May 2011 06:07:10 -0400
+Content-class: urn:content-classes:message
 MIME-Version: 1.0
-To: Hans Verkuil <hverkuil@xs4all.nl>
-CC: dri-devel@lists.freedesktop.org, linux-media@vger.kernel.org,
-	Jesse Barker <jesse.barker@linaro.org>
-Subject: Re: Summary of the V4L2 discussions during LDS - was: Re: Embedded
- Linux memory management interest group list
-References: <BANLkTimoKzWrAyCBM2B9oTEKstPJjpG_MA@mail.gmail.com> <201105141302.55100.hverkuil@xs4all.nl> <4DCE6B7B.1080907@redhat.com> <201105152310.31678.hverkuil@xs4all.nl> <4DD26EBC.9040804@redhat.com>
-In-Reply-To: <4DD26EBC.9040804@redhat.com>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+Subject: Re: omap3isp - H3A auto white balance
+Date: Tue, 31 May 2011 12:07:08 +0200
+Message-ID: <CA7B7D6C54015B459601D68441548157C5A402@prevas1.prevas.se>
+In-Reply-To: <201105311201.15285.laurent.pinchart@ideasonboard.com>
+References: <CA7B7D6C54015B459601D68441548157C5A3FC@prevas1.prevas.se> <201105271647.12503.laurent.pinchart@ideasonboard.com> <CA7B7D6C54015B459601D68441548157C5A401@prevas1.prevas.se> <201105311201.15285.laurent.pinchart@ideasonboard.com>
+From: "Daniel Lundborg" <Daniel.Lundborg@prevas.se>
+To: "Laurent Pinchart" <laurent.pinchart@ideasonboard.com>
+Cc: <linux-media@vger.kernel.org>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Em 17-05-2011 09:49, Mauro Carvalho Chehab escreveu:
-> Em 15-05-2011 18:10, Hans Verkuil escreveu:
->> On Saturday, May 14, 2011 13:46:03 Mauro Carvalho Chehab wrote:
->>> Em 14-05-2011 13:02, Hans Verkuil escreveu:
->>>> On Saturday, May 14, 2011 12:19:18 Mauro Carvalho Chehab wrote:
->>>
->>>>> So, based at all I've seen, I'm pretty much convinced that the normal MMAP
->>>>> way of streaming (VIDIOC_[REQBUF|STREAMON|STREAMOFF|QBUF|DQBUF ioctl's)
->>>>> are not the best way to share data with framebuffers.
->>>>
->>>> I agree with that, but it is a different story between two V4L2 devices. There
->>>> you obviously want to use the streaming ioctls and still share buffers.
->>>
->>> I don't think so. the requirement for syncing the framebuffer between the two
->>> V4L2 devices is pretty much the same as we have with one V4L2 device and one GPU.
->>>
->>> On both cases, the requirement is to pass a framebuffer between two entities, 
->>> and not a video stream.
->>>
->>> For example, imagine something like:
->>>
->>> 	V4L2 camera =====> V4L2 encoder t MPEG2
->>> 		     ||
->>> 		     LL==> GPU
-> 
-> For the sake of clarity on my next comments, I'm naming the "V4L2 camera" buffer
-> write endpoint as "producer" and the 2 buffer read endpoints as "consumers". 
->>>
->>> Both GPU and the V4L2 encoder should use the same logic to be sure that they will
->>> use a buffer that were filled already by the camera. Also, the V4L2 camera
->>> driver can't re-use such framebuffer before being sure that both consumers 
->>> has already stopped using it.
->>
->> No. A camera whose output is sent to a resizer and then to a SW/FW/HW encoder
->> is a typical example where you want to queue/dequeue buffers.
-> 
-> Why? On a framebuffer-oriented set of ioctl's, some kernel internal calls will
-> need to take care of the buffer usage, in order to be sure when a buffer can
-> be rewritten, as userspace has no way to know when a buffer needs to be queued/dequeued.
-> 
-> In other words, the framebuffer kernel API will probably be using a kernel structure like:
-> 
-> struct v4l2_fb_handler {
-> 	bool has_finished;				/* Marks when a handler finishes to handle the buffer */
-> 	bool is_producer;				/* Used by the handler that writes data into the buffer */
-> 
-> 	struct list_head *handlers;			/* List with all handlers */
-> 
-> 	void (*qbuf)(struct v4l2_fb_handler *handler);	/* qbuf-like callback, called after having a buffer filled */
-> 
-> 	v4l2_buffer_ID	buf;				/* Buffer ID (or filehandler?) - In practice, it will probably be a list with the available buffers */
-> 
-> 	void *priv;					/* handler priv data */
-> }
-> 
-> While stream is on, a kernel logic will run a loop, doing basically the steps bellow:
-> 
-> 	1) Wait for the producer to rise the has_finished flag;
-> 
-> 	2) call qbuf() for all consumers. The qbuf() call shouldn't block; it just calls 
-> 	   a per-handler logic to start using that buffer;
-> 
-> 	3) When each fb handler finishes using its buffer, it will rise has_finished flag;
-> 
-> 	4) After having all buffer handlers marked as has_finished, cleans the has_finished
-> 	  flags and re-queue the buffer.
-> 
-> Step (2) is equivalent to VIDIOC_QBUF, and step (4) is equivalent to VIDIOC_DQBUF.
-> 
-> PS.: The above is just a simplified view of such handler. We'll probably need more steps. For
-> example, between (1) and (2) it may probably need some logic to check if is there an available
-> empty buffer. If not, create a new one and use it.
-> 
-> What happens with REQBUF/QBUF/DQBUF is that:
-> 	- with those calls, there's just one buffer consumer, and just one buffer producer;
-> 	- either the producer or the consumer is on userspace, and the other pair is
-> 	  at kernelspace;
-> 	- buffers are allocated before the start of a process, via an explicit call;
-> 	- buffers need to be mmapped, in order to be visible at userspace.
-> 
-> None of the above applies to a framebuffer-oriented API:
-> 	- more than one buffer consumer is allowed;
-> 	- consumers and producers are on kernelspace (it might be needed to have an
-> an API for handling such buffers also on userspace, although it doesn't sound a good
-> idea to me, IMHO);
+Hi Laurent,
 
-A side note: in the specific case of X server and display drivers, such kernelspace-userspace
-API  for buffers already exists. I don't know DRI/GEM/KMS enough to tell exactly how this work 
-or if it will require some changes or not, in order to work like the above, but it seems that
-the right approach is to try to use or extend the existing API's, instead of creating 
-something new.
+> Hi Daniel,
+> 
+> On Tuesday 31 May 2011 11:45:13 Daniel Lundborg wrote:
+> > > On Thursday 26 May 2011 15:06:17 Daniel Lundborg wrote:
+> > > > > On Thursday 26 May 2011 10:57:39 Daniel Lundborg wrote:
+> > > > > > Hello,
+> > > > > > 
+> > > > > > I am developing a camera sensor driver for the Aptina
+MT9V034. 
+> > > > > > I am only using it in snapshot mode and I can successfully 
+> > > > > > trigger the sensor and receive pictures using the latest 
+> > > > > > omap3isp driver from git://linuxtv.org/pinchartl/media.git 
+> > > > > > branch omap3isp-next-sensors with kernel 2.6.38.
+> 
+> [snip]
+> 
+> > > > > > My trouble is that I am always receiving whiter pictures
+when 
+> > > > > > I wait a moment before triggering the sensor to take a 
+> > > > > > picture. If I take several pictures in a row with for
+instance 
+> > > > > > 20 ms between them, they all look ok. But if I wait for 100
+ms 
+> > > > > > the picture will get much whiter.
+> > > > > >
+> > > > > > I have turned off auto exposure and auto gain in the sensor 
+> > > > > > and the LED_OUT signal always have the same length (in this 
+> > > > > > case 8 msec).
+> > > > >
+> > > > > I assume you've measured it with a scope ?
+> > > > > 
+> > > > > Try disabling black level calibration and row noise correction
 
-The main point is: DQBUF/QBUF API assumes that userspace has full control at the buffer usage,
-and buffer is handled at userspace (so, they should be mmapped there). This is not the general
-case where another IP block at the chip is re-using the buffer, or if is there another DMA engine
-doing direct transfers on it.
-
-> 	- buffers can be dynamically allocated/de-allocated;
-> 	- buffers don't need to be mmapped to userspace.
+> > > > > as well.
+> > > > >
+> > > > > Please also double-check that AEC and AGC are disabled. I've
+had 
+> > > > > a similar issue with an MT9V032 sensor, where a bug in the 
+> > > > > driver enabled AEC/AGC instead of disabling them.
+> > > > 
+> > > > The register on 0xaf (MT9V034_AGC_AEC_ENABLE) is set to 0 and is
+0 
+> > > > when I read from it.
+> > > > bit 0 - AEC enable context A, bit 1 - AGC enable context A, bit
+8 
+> > > > - AEC enable context B, bit 9 - AGC enable context B
+> > > > 
+> > > > The register on 0x47 (MT9V034_BL_CALIB_CTRL) is set to 0 and is
+0 
+> > > > when I read from it.
+> > > > bit 0 - (1 = override with programmed values, 0 = normal 
+> > > > operation), bit 7:5 - Frames to average over
+> > > 
+> > > If I'm not mistaken "normal operation" means that automatic black 
+> > > level calibration is enabled. Try to set bit 0 to 1 to override
+the 
+> > > automatic algorithm (and program a zero value in register 0x48).
+> > 
+> > This did not work unfortunately.. :( I have solved this by always 
+> > taking
+> > 2 pictures and ignoring the first of them...
 > 
->> Especially since
->> the various parts of the pipeline may stall for a bit so you don't want to lose
->> frames. That's not what the overlay API is for, that's what our streaming API
->> gives us.
->>
->> The use case above isn't even possible without copying. At least, I don't see a
->> way, unless the GPU buffer is non-destructive. In that case you can give the
->> frame to the GPU, and when the GPU is finished you can give it to the encoder.
->> I suspect that might become quite complex though.
+> :-/
 > 
-> Well, if some fb consumers would also be rewriting the buffers, serializing them is
-> needed, as you can't allow another process to access a memory that CPU is destroying 
-> at the same time, as you'll have unpredicted images being produced. The easiest
-> way is to make qbuf() callback block until the end of buffer rewrite, but I
-> don't think that this is a good idea.
+> Any chance you will submit the driver for inclusion in the kernel ?
 > 
-> On such situations, it is probably faster and cleaner to just copy data into a
-> second buffer, keeping the original one preserved.
-> 
->> Note that many video receivers cannot stall. You can't tell them to wait until
->> the last buffer finished processing. This is different from some/most? sensors.
->>
->> So if you try to send the input of a video receiver to some device that requires
->> syncing which can cause stalls, then that will not work without losing frames.
->> Which especially for video encoding is not desirable.
-> 
-> If you're sharing a buffer, kernel should be sure that the shared buffer won't
-> be rewritten before every shared-buffer consumer doesn't finish handling it.
-> 
-> So, assuming that the producer is generating frames at a rate of, let's say, 30
-> fps, the slowest consumer should be faster than 1/30 s, otherwise, it will loose
-> frames.
-> 
-> Yet, if, under certain circumstances (like, for example, input switch from one
-> source to another, requiring an mpeg2 encoder to re-encode the new scena),
-> one of the consumer is needing more than 1/30 s, but, at most of the time it runs
-> bellow the 1/30 s, by using dynamic buffer allocation it is still possible of
-> using shared buffers without loosing frames, if the machine has enough memory
-> to handle the worse case.
-> 
-> There's one problem with dynamic buffers, however: audio and video sync becomes 
-> a more complex task. So, we'll end by needing to add audio timestamps at 
-> kernelspace, at the alsa driver.
-> 
-> Cheers,
-> Mauro.
 > --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> Regards,
+> 
+> Laurent Pinchart
 
+Yes if there is an interest in it. I can create a patch from your
+omap3isp-next-sensors tree if you want.
+
+Regards,
+
+Daniel Lundborg
