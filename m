@@ -1,49 +1,68 @@
 Return-path: <mchehab@pedra>
-Received: from caramon.arm.linux.org.uk ([78.32.30.218]:57197 "EHLO
-	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932553Ab1EQXId (ORCPT
+Received: from mailout2.w1.samsung.com ([210.118.77.12]:50007 "EHLO
+	mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752650Ab1EaKVW (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 17 May 2011 19:08:33 -0400
-Date: Wed, 18 May 2011 00:08:21 +0100
-From: Russell King - ARM Linux <linux@arm.linux.org.uk>
-To: Javier Martin <javier.martin@vista-silicon.com>
-Cc: linux-media@vger.kernel.org, beagleboard@googlegroups.com,
-	carlighting@yahoo.co.nz, g.liakhovetski@gmx.de,
-	linux-arm-kernel@lists.infradead.org,
-	laurent.pinchart@ideasonboard.com
-Subject: Re: [PATCH 2/2] OMAP3BEAGLE: Add support for mt9p031 sensor
-	(LI-5M03 module).
-Message-ID: <20110517230821.GA5913@n2100.arm.linux.org.uk>
-References: <1305624528-5595-1-git-send-email-javier.martin@vista-silicon.com> <1305624528-5595-3-git-send-email-javier.martin@vista-silicon.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1305624528-5595-3-git-send-email-javier.martin@vista-silicon.com>
+	Tue, 31 May 2011 06:21:22 -0400
+Received: from eu_spt1 (mailout2.w1.samsung.com [210.118.77.12])
+ by mailout2.w1.samsung.com
+ (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14 2004))
+ with ESMTP id <0LM200DJU23KN6@mailout2.w1.samsung.com> for
+ linux-media@vger.kernel.org; Tue, 31 May 2011 11:21:20 +0100 (BST)
+Received: from [106.116.48.223] by spt1.w1.samsung.com
+ (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14 2004))
+ with ESMTPA id <0LM200M0J23IH7@spt1.w1.samsung.com> for
+ linux-media@vger.kernel.org; Tue, 31 May 2011 11:21:19 +0100 (BST)
+Date: Tue, 31 May 2011 12:20:07 +0200
+From: Tomasz Stanislawski <t.stanislaws@samsung.com>
+Subject: Re: [PATCH v4 0/3] TV driver for Samsung S5P platform (media part)
+In-reply-to: <599405.4311306668807678.JavaMail.weblogic@epml25>
+To: jiun.yu@samsung.com
+Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	Marek Szyprowski <m.szyprowski@samsung.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	"hverkuil@xs4all.nl" <hverkuil@xs4all.nl>,
+	=?UTF-8?B?7ISg6rK97J28?= <ki.sun@samsung.com>,
+	=?UTF-8?B?6rmA7JiB6529?= <younglak1004.kim@samsung.com>,
+	=?UTF-8?B?7J207J287Zi4?= <ilho215.lee@samsung.com>,
+	=?UTF-8?B?6rmA6rK97ZmY?= <kh.k.kim@samsung.com>
+Message-id: <4DE4C0D7.4070209@samsung.com>
+MIME-version: 1.0
+Content-type: text/plain; charset=UTF-8; format=flowed
+Content-transfer-encoding: 8BIT
+References: <599405.4311306668807678.JavaMail.weblogic@epml25>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Tue, May 17, 2011 at 11:28:48AM +0200, Javier Martin wrote:
-> +#include "devices.h"
-> +#include "../../../drivers/media/video/omap3isp/isp.h"
-> +#include "../../../drivers/media/video/omap3isp/ispreg.h"
+JiUn Yu wrote:
+>   
+>> 5. Mixer & Video Processor driver. It is called 's5p-mixer' because of
+>> historical reasons. It was decided combine VP and MXR drivers into one because
+>> of shared interrupt and very similar interface via V4L2 nodes. The driver is a
+>> realization of many-to-many relation between multiple input layers and multiple
+>> outputs. All shared resources are kept in struct mxr_device. It provides
+>> utilities for management and synchronization of access to resources and
+>> reference counting. The outputs are obtained from HDMI/SDO private data.  One
+>> layer is a single video node. Simple inheritance is applied because there only
+>> little difference between layer's types. Every layer type implements set of
+>> ops.  There are different ops for Mixer layers and other for VP layer.
+>>     
+>
+> I agreed with subdev of hdmi, hdmiphy, sdo and videoDAC. It is very flexible in case of adding new interface or removing current interface.
+> But 's5p-mixer' driver is not flexible. So, If new scaler is added instead of VP or mixer is someting changed,
+> I think current architecture of tvout driver can't support.
+> How about separating vp and mixer driver?
+>   
+Hi Yu,
+The designed architecture TV driver was not prepared for removal of VP, 
+or MIxer input nodes.
+I decided only to allow flexible outputs because I knew 2 boards with 
+different output configuration (Goni - only SDO, Universal - HDMI and SDO).
+I need more information about VP substitute before changing design of 
+the whole driver. Some of extensions could be applied by adding extra 
+layer type to existing layer_vp and layer_grp ones.
 
-This suggests that there's something very wrong with what's going on;
-it suggests that you're trying to access driver internals which should
-be handled via some better means.  And it looks like it's this:
+Best regards
+Tomasz Stanislawski
+> N떑꿩�r툤y鉉싕b쾊Ф푤v�^�)頻{.n�+돴쪐{콡�bj)�鍊w*jgП�텎쉸듶줷/곴�z받뻿�2듷솳鈺�&�)傘첺뛴��췍쳺�h��j:+v돣둾�明
 
-> @@ -654,6 +715,62 @@ static void __init beagle_opp_init(void)
->  	return;
->  }
->  
-> +extern struct platform_device omap3isp_device;
-> +
-> +static int beagle_cam_set_xclk(struct v4l2_subdev *subdev, int hz)
-> +{
-> +	struct isp_device *isp = platform_get_drvdata(&omap3isp_device);
-> +	int ret;
-> +
-> +	ret = isp->platform_cb.set_xclk(isp, hz, MT9P031_XCLK);
-> +	return 0;
-> +}
-
-That really needs fixing in a different way.
