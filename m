@@ -1,44 +1,130 @@
 Return-path: <mchehab@pedra>
-Received: from nm4-vm0.bullet.mail.bf1.yahoo.com ([98.139.213.129]:23426 "HELO
-	nm4-vm0.bullet.mail.bf1.yahoo.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with SMTP id S1757922Ab1EXBGl (ORCPT
+Received: from devils.ext.ti.com ([198.47.26.153]:35208 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753071Ab1EaOXI convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 23 May 2011 21:06:41 -0400
-Message-ID: <581271.44625.qm@web33201.mail.mud.yahoo.com>
-Date: Mon, 23 May 2011 18:06:39 -0700 (PDT)
-From: Moacyr Prado <mwprado@yahoo.com>
-Subject: em28xx new device
-To: linux-media@vger.kernel.org
+	Tue, 31 May 2011 10:23:08 -0400
+From: "JAIN, AMBER" <amber@ti.com>
+To: "Hiremath, Vaibhav" <hvaibhav@ti.com>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+CC: "sakari.ailus@iki.fi" <sakari.ailus@iki.fi>
+Date: Tue, 31 May 2011 19:52:54 +0530
+Subject: RE: [PATCH] OMAP: V4L2: Remove GFP_DMA allocation as ZONE_DMA is
+ not configured on OMAP
+Message-ID: <5A47E75E594F054BAF48C5E4FC4B92AB037B65864C@dbde02.ent.ti.com>
+References: <1306835503-24631-1-git-send-email-amber@ti.com>
+ <5A47E75E594F054BAF48C5E4FC4B92AB037B65850E@dbde02.ent.ti.com>
+ <19F8576C6E063C45BE387C64729E739404E2DC73EC@dbde02.ent.ti.com>
+In-Reply-To: <19F8576C6E063C45BE387C64729E739404E2DC73EC@dbde02.ent.ti.com>
+Content-Language: en-US
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Hi, I have a board with empia chipset. The em28xx driver not load, 
-because the device ID is not listed on source(cards.c, i guess). 
-Following bellow 
-have some infos from board:
-lsusb:
-Bus 001 Device 004: ID 1b80:e755 Afatech
-
-Opening the device, shows this ic:
-
-empia em2888 d351c-195 727-00ag (em28xx)
-nxp saa7136e/1/g SI5296.1 22 ZSD08411
-NXP TDA 18271??C2 HDC2? (tda18271)
-F JAPAN mb86a20s 0937 M01 E1 (mb86a20s)
-
-but... dmesg shows:
-
-[18373.454136] usb 6-1: USB disconnect, address 2
-[18376.744074] usb 2-1: new high speed USB device using ehci_hcd and address 9
-[18376.860283] usb 2-1: New USB device found, idVendor=1b80, idProduct=e755
-[18376.860293] usb 2-1: New USB device strings: Mfr=0, Product=1, SerialNumber=2
-[18376.860300] usb 2-1: Product: USB 2885 Device
-[18376.860306] usb 2-1: SerialNumber: 1
 
 
-The em28xx module can handle this device?
+> -----Original Message-----
+> From: Hiremath, Vaibhav
+> Sent: Tuesday, May 31, 2011 5:07 PM
+> To: JAIN, AMBER; linux-media@vger.kernel.org
+> Cc: sakari.ailus@iki.fi
+> Subject: RE: [PATCH] OMAP: V4L2: Remove GFP_DMA allocation as ZONE_DMA is
+> not configured on OMAP
+> 
+> 
+> > -----Original Message-----
+> > From: JAIN, AMBER
+> > Sent: Tuesday, May 31, 2011 3:59 PM
+> > To: linux-media@vger.kernel.org
+> > Cc: Hiremath, Vaibhav; sakari.ailus@iki.fi
+> > Subject: RE: [PATCH] OMAP: V4L2: Remove GFP_DMA allocation as ZONE_DMA
+> is
+> > not configured on OMAP
+> >
+> > I have tested it on OMAP4430 blaze and OMAP3430 SDP platforms.
+> >
+> > I do not have the hardware to test omap24xxcam change. Can someone
+> please
+> > help me on this?
+> >
+> [Hiremath, Vaibhav] I would suggest splitting this patch into 2, it would
+> be easier to handle.
+> 
+> I am validating the patch on OMAP3EVM as well; will update you shortly.
+> Pulling in the latest commits, git-fetch is taking huge time.
 
-Thanks,
-Moa
+Do you mean I should have it as a patch-set, or 2 different patches all together.
+
+~Amber
+> 
+> Thanks,
+> Vaibhav
+> 
+> > Thanks,
+> > Amber
+> >
+> > > -----Original Message-----
+> > > From: JAIN, AMBER
+> > > Sent: Tuesday, May 31, 2011 3:22 PM
+> > > To: linux-media@vger.kernel.org
+> > > Cc: Hiremath, Vaibhav; sakari.ailus@iki.fi; JAIN, AMBER
+> > > Subject: [PATCH] OMAP: V4L2: Remove GFP_DMA allocation as ZONE_DMA is
+> > not
+> > > configured on OMAP
+> > >
+> > > Remove GFP_DMA from the __get_free_pages() call as ZONE_DMA is not
+> > > configured
+> > > on OMAP. Earlier the page allocator used to return a page from
+> > ZONE_NORMAL
+> > > even when GFP_DMA is passed and CONFIG_ZONE_DMA is disabled.
+> > > As a result of commit a197b59ae6e8bee56fcef37ea2482dc08414e2ac, page
+> > > allocator
+> > > returns null in such a scenario with a warning emitted to kernel log.
+> > >
+> > > Signed-off-by: Amber Jain <amber@ti.com>
+> > > ---
+> > >  drivers/media/video/omap/omap_vout.c |    2 +-
+> > >  drivers/media/video/omap24xxcam.c    |    4 ++--
+> > >  2 files changed, 3 insertions(+), 3 deletions(-)
+> > >
+> > > diff --git a/drivers/media/video/omap/omap_vout.c
+> > > b/drivers/media/video/omap/omap_vout.c
+> > > index 4ada9be..8cac624 100644
+> > > --- a/drivers/media/video/omap/omap_vout.c
+> > > +++ b/drivers/media/video/omap/omap_vout.c
+> > > @@ -181,7 +181,7 @@ static unsigned long omap_vout_alloc_buffer(u32
+> > > buf_size, u32 *phys_addr)
+> > >
+> > >  	size = PAGE_ALIGN(buf_size);
+> > >  	order = get_order(size);
+> > > -	virt_addr = __get_free_pages(GFP_KERNEL | GFP_DMA, order);
+> > > +	virt_addr = __get_free_pages(GFP_KERNEL , order);
+> > >  	addr = virt_addr;
+> > >
+> > >  	if (virt_addr) {
+> > > diff --git a/drivers/media/video/omap24xxcam.c
+> > > b/drivers/media/video/omap24xxcam.c
+> > > index f6626e8..ade9262 100644
+> > > --- a/drivers/media/video/omap24xxcam.c
+> > > +++ b/drivers/media/video/omap24xxcam.c
+> > > @@ -309,11 +309,11 @@ static int
+> > omap24xxcam_vbq_alloc_mmap_buffer(struct
+> > > videobuf_buffer *vb)
+> > >  			order--;
+> > >
+> > >  		/* try to allocate as many contiguous pages as possible */
+> > > -		page = alloc_pages(GFP_KERNEL | GFP_DMA, order);
+> > > +		page = alloc_pages(GFP_KERNEL , order);
+> > >  		/* if allocation fails, try to allocate smaller amount */
+> > >  		while (page == NULL) {
+> > >  			order--;
+> > > -			page = alloc_pages(GFP_KERNEL | GFP_DMA, order);
+> > > +			page = alloc_pages(GFP_KERNEL , order);
+> > >  			if (page == NULL && !order) {
+> > >  				err = -ENOMEM;
+> > >  				goto out;
+> > > --
+> > > 1.7.1
+
