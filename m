@@ -1,59 +1,49 @@
 Return-path: <mchehab@pedra>
-Received: from mailout1.samsung.com ([203.254.224.24]:46744 "EHLO
-	mailout1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754431Ab1EaHgL (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 31 May 2011 03:36:11 -0400
-Received: from epcpsbgm1.samsung.com (mailout1.samsung.com [203.254.224.24])
- by mailout1.samsung.com
- (Oracle Communications Messaging Exchange Server 7u4-19.01 64bit (built Sep  7
- 2010)) with ESMTP id <0LM100L4AUFN61G0@mailout1.samsung.com> for
- linux-media@vger.kernel.org; Tue, 31 May 2011 16:36:09 +0900 (KST)
-Received: from TNRNDGASPAPP1.tn.corp.samsungelectronics.net ([165.213.149.150])
- by mmp2.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14 2004))
- with ESMTPA id <0LM10099JUG9EC@mmp2.samsung.com> for
- linux-media@vger.kernel.org; Tue, 31 May 2011 16:36:09 +0900 (KST)
-Date: Tue, 31 May 2011 16:35:59 +0900
-From: "HeungJun, Kim" <riverful.kim@samsung.com>
-Subject: [PATCH v2 1/4] m5mols: Fix capture image size register definition
-In-reply-to: <1306501095-28267-1-git-send-email-riverful.kim@samsung.com>
-To: linux-media@vger.kernel.org
-Cc: mchehab@infradead.org, s.nawrocki@samsung.com, sakari.ailus@iki.fi,
-	"HeungJun, Kim" <riverful.kim@samsung.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>
-Message-id: <1306827362-4064-2-git-send-email-riverful.kim@samsung.com>
-Content-transfer-encoding: 7BIT
-References: <1306501095-28267-1-git-send-email-riverful.kim@samsung.com>
+Received: from smtp.ispras.ru ([83.149.198.202]:43423 "EHLO smtp.ispras.ru"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S932601Ab1EaVTH (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 31 May 2011 17:19:07 -0400
+From: Alexey Khoroshilov <khoroshilov@ispras.ru>
+To: Mauro Carvalho Chehab <mchehab@infradead.org>
+Cc: Alexey Khoroshilov <khoroshilov@ispras.ru>,
+	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: [PATCH] V4L/DVB: radio-si470x: fix memory leak in si470x_usb_driver_probe()
+Date: Wed,  1 Jun 2011 00:54:40 +0400
+Message-Id: <1306875280-9949-1-git-send-email-khoroshilov@ispras.ru>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-The main capture and the thumbnail image size registers were
-erroneously defined to have 1 byte width, resulting in wrong
-reported image size. Fix this by changing the registers width
-to correct value.
+radio->int_in_urb is not deallocated on error paths in si470x_usb_driver_probe().
 
-Reported-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Signed-off-by: HeungJun, Kim <riverful.kim@samsung.com>
-Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+Found by Linux Driver Verification project (linuxtesting.org).
+
+Signed-off-by: Alexey Khoroshilov <khoroshilov@ispras.ru>
 ---
- drivers/media/video/m5mols/m5mols_reg.h |    4 ++--
- 1 files changed, 2 insertions(+), 2 deletions(-)
+ drivers/media/radio/si470x/radio-si470x-usb.c |    4 +++-
+ 1 files changed, 3 insertions(+), 1 deletions(-)
 
-diff --git a/drivers/media/video/m5mols/m5mols_reg.h b/drivers/media/video/m5mols/m5mols_reg.h
-index b83e36f..8260f50 100644
---- a/drivers/media/video/m5mols/m5mols_reg.h
-+++ b/drivers/media/video/m5mols/m5mols_reg.h
-@@ -382,8 +382,8 @@
- #define REG_CAP_START_MAIN	0x01
- #define REG_CAP_START_THUMB	0x03
- 
--#define CAPC_IMAGE_SIZE		I2C_REG(CAT_CAPT_CTRL, CATC_CAP_IMAGE_SIZE, 1)
--#define CAPC_THUMB_SIZE		I2C_REG(CAT_CAPT_CTRL, CATC_CAP_THUMB_SIZE, 1)
-+#define CAPC_IMAGE_SIZE		I2C_REG(CAT_CAPT_CTRL, CATC_CAP_IMAGE_SIZE, 4)
-+#define CAPC_THUMB_SIZE		I2C_REG(CAT_CAPT_CTRL, CATC_CAP_THUMB_SIZE, 4)
- 
- /*
-  * Category F - Flash
+diff --git a/drivers/media/radio/si470x/radio-si470x-usb.c b/drivers/media/radio/si470x/radio-si470x-usb.c
+index 392e84f..ccefdae 100644
+--- a/drivers/media/radio/si470x/radio-si470x-usb.c
++++ b/drivers/media/radio/si470x/radio-si470x-usb.c
+@@ -699,7 +699,7 @@ static int si470x_usb_driver_probe(struct usb_interface *intf,
+ 	radio->videodev = video_device_alloc();
+ 	if (!radio->videodev) {
+ 		retval = -ENOMEM;
+-		goto err_intbuffer;
++		goto err_urb;
+ 	}
+ 	memcpy(radio->videodev, &si470x_viddev_template,
+ 			sizeof(si470x_viddev_template));
+@@ -790,6 +790,8 @@ err_all:
+ 	kfree(radio->buffer);
+ err_video:
+ 	video_device_release(radio->videodev);
++err_urb:
++	usb_free_urb(radio->int_in_urb);
+ err_intbuffer:
+ 	kfree(radio->int_in_buffer);
+ err_radio:
 -- 
-1.7.0.4
+1.7.4.1
 
