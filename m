@@ -1,72 +1,72 @@
 Return-path: <mchehab@pedra>
-Received: from ffm.saftware.de ([83.141.3.46]:56489 "EHLO ffm.saftware.de"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:60939 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755101Ab1EFQIH (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 6 May 2011 12:08:07 -0400
-Message-ID: <4DC41CDF.8040001@linuxtv.org>
-Date: Fri, 06 May 2011 18:07:59 +0200
-From: Andreas Oberritter <obi@linuxtv.org>
+	id S932263Ab1EaR3k convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 31 May 2011 13:29:40 -0400
+From: "Hiremath, Vaibhav" <hvaibhav@ti.com>
+To: "JAIN, AMBER" <amber@ti.com>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+CC: "sakari.ailus@iki.fi" <sakari.ailus@iki.fi>
+Date: Tue, 31 May 2011 22:59:27 +0530
+Subject: RE: [PATCH] V4L2: omap_vout: Remove GFP_DMA allocation as ZONE_DMA
+ is not configured on OMAP
+Message-ID: <19F8576C6E063C45BE387C64729E739404E2DC74D1@dbde02.ent.ti.com>
+References: <1306853136-12106-1-git-send-email-amber@ti.com>
+In-Reply-To: <1306853136-12106-1-git-send-email-amber@ti.com>
+Content-Language: en-US
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 MIME-Version: 1.0
-To: Issa Gorissen <flop.m@usa.net>
-CC: Martin Vidovic <xtronom@gmail.com>,
-	Ralph Metzler <rjkm@metzlerbros.de>,
-	linux-media@vger.kernel.org
-Subject: Re: [PATCH] Ngene cam device name
-References: <724PeFNU87648S03.1304689679@web03.cms.usa.net>
-In-Reply-To: <724PeFNU87648S03.1304689679@web03.cms.usa.net>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On 05/06/2011 03:47 PM, Issa Gorissen wrote:
-> From: Andreas Oberritter <obi@linuxtv.org>
->>> The best would be to create independent adapters for each independent CA
->>> device (ca0/caio0 pair) - they are independent after all (physically and
->>> in the way they're used).
->>
->> Physically, it's a general purpose TS I/O interface of the nGene
->> chipset. It just happens to be connected to a CI slot. On another board,
->> it might be connected to a modulator or just to some kind of socket.
->>
->> If the next version gets a connector for two switchable CI modules, then
->> the physical independence is gone. You'd have two ca nodes but only one
->> caio node. Or two caio nodes, that can't be used concurrently.
->>
->> Maybe the next version gets the ability to directly connect the TS input
->> from the frontend to the TS output to the CI slot to save copying around
->> the data, by using some kind of pin mux. Not physically independent either.
->>
->> It just looks physically independent in the one configuration
->> implemented now.
+
+> -----Original Message-----
+> From: JAIN, AMBER
+> Sent: Tuesday, May 31, 2011 8:16 PM
+> To: linux-media@vger.kernel.org
+> Cc: Hiremath, Vaibhav; sakari.ailus@iki.fi; JAIN, AMBER
+> Subject: [PATCH] V4L2: omap_vout: Remove GFP_DMA allocation as ZONE_DMA is
+> not configured on OMAP
 > 
+> Remove GFP_DMA from the __get_free_pages() call from omap_vout as ZONE_DMA
+> is not configured on OMAP. Earlier the page allocator used to return a
+> page
+> from ZONE_NORMAL even when GFP_DMA is passed and CONFIG_ZONE_DMA is
+> disabled.
+> As a result of commit a197b59ae6e8bee56fcef37ea2482dc08414e2ac, page
+> allocator
+> returns null in such a scenario with a warning emitted to kernel log.
 > 
-> When I read the cxd2099ar datasheet, I can see that in dual slot
-> configuration, there is still one communication channel for the TS and one for
-> the control.
+> Signed-off-by: Amber Jain <amber@ti.com>
+> ---
+[Hiremath, Vaibhav] Tested on OMAP3EVM.
 
-It doesn't matter how the cxd2099ar works, because I'm talking about the
-nGene chipset in place of any chipset having at least two TS inputs and
-one TS output.
+Tested-by: Vaibhav Hiremath <hvaibhav@ti.com>
+Acked-by: Vaibhav Hiremath <hvaibhav@ti.com>
 
-Btw., I don't think the cxd2099 driver has any obvious problems. It's
-the nGene driver that registers the sec/caio interface.
+Thanks,
+Vaibhav
 
-> Also, it seems linux en50221 stack provides for the slot selection. So, why
-> would you need two ca nodes ?
+>  drivers/media/video/omap/omap_vout.c |    2 +-
+>  1 files changed, 1 insertions(+), 1 deletions(-)
+> 
+> diff --git a/drivers/media/video/omap/omap_vout.c
+> b/drivers/media/video/omap/omap_vout.c
+> index 4ada9be..8cac624 100644
+> --- a/drivers/media/video/omap/omap_vout.c
+> +++ b/drivers/media/video/omap/omap_vout.c
+> @@ -181,7 +181,7 @@ static unsigned long omap_vout_alloc_buffer(u32
+> buf_size, u32 *phys_addr)
+> 
+>  	size = PAGE_ALIGN(buf_size);
+>  	order = get_order(size);
+> -	virt_addr = __get_free_pages(GFP_KERNEL | GFP_DMA, order);
+> +	virt_addr = __get_free_pages(GFP_KERNEL, order);
+>  	addr = virt_addr;
+> 
+>  	if (virt_addr) {
+> --
+> 1.7.1
 
-Because it's the most obvious way to use it. And more importantly
-because the API sucks, if you have more than one device per node. You
-can have only one reader, one writer, one poll function per node. For
-example, you can't use one instance of mplayer to watch one channel with
-fe0+dmx0+ca0 and a second instance of mplayer to watch or record another
-channel with fe1+dmx1+ca0. You won't know which device has an event if
-you use poll. The API even allows mixing multiple CI slots and built-in
-descramblers in the same node. But try calling CA_RESET on a specific
-slot or on a descrambler. It won't work. It's broken by design.
-
-Do you know any implementation that has more than one CI slot per ca
-device and that really is in use?
-
-Regards,
-Andreas
