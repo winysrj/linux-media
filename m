@@ -1,99 +1,60 @@
 Return-path: <mchehab@pedra>
-Received: from moutng.kundenserver.de ([212.227.126.171]:63718 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752856Ab1EROsK (ORCPT
+Received: from mail-ww0-f44.google.com ([74.125.82.44]:62470 "EHLO
+	mail-ww0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750881Ab1EaNXo convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 18 May 2011 10:48:10 -0400
-Date: Wed, 18 May 2011 16:48:02 +0200 (CEST)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-cc: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: Re: [PATCH/RFC 1/4] V4L: add three new ioctl()s for multi-size
- videobuffer management
-In-Reply-To: <201105181601.23093.laurent.pinchart@ideasonboard.com>
-Message-ID: <Pine.LNX.4.64.1105181642510.16324@axis700.grange>
-References: <Pine.LNX.4.64.1104010959470.9530@axis700.grange>
- <Pine.LNX.4.64.1105162144200.29373@axis700.grange> <4DD20D1C.4020808@maxwell.research.nokia.com>
- <201105181601.23093.laurent.pinchart@ideasonboard.com>
-MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+	Tue, 31 May 2011 09:23:44 -0400
+Received: by wwa36 with SMTP id 36so4868991wwa.1
+        for <linux-media@vger.kernel.org>; Tue, 31 May 2011 06:23:43 -0700 (PDT)
+Subject: Re: [beagleboard] [PATCH v5 2/2] Add support for mt9p031 (LI-5M03 module) in Beagleboard xM.
+Mime-Version: 1.0 (Apple Message framework v1084)
+Content-Type: text/plain; charset=us-ascii
+From: Koen Kooi <koen@beagleboard.org>
+In-Reply-To: <1306835210-1345-2-git-send-email-javier.martin@vista-silicon.com>
+Date: Tue, 31 May 2011 15:23:40 +0200
+Cc: linux-media@vger.kernel.org, g.liakhovetski@gmx.de,
+	laurent.pinchart@ideasonboard.com, carlighting@yahoo.co.nz,
+	mch_kot@yahoo.com.cn,
+	Javier Martin <javier.martin@vista-silicon.com>
+Content-Transfer-Encoding: 8BIT
+Message-Id: <0A19142F-45A6-44AB-8EFB-94D60875E7DC@beagleboard.org>
+References: <1306835210-1345-1-git-send-email-javier.martin@vista-silicon.com> <1306835210-1345-2-git-send-email-javier.martin@vista-silicon.com>
+To: beagleboard@googlegroups.com
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Wed, 18 May 2011, Laurent Pinchart wrote:
+Op 31 mei 2011, om 11:46 heeft Javier Martin het volgende geschreven:
 
-> On Tuesday 17 May 2011 07:52:28 Sakari Ailus wrote:
-> > Guennadi Liakhovetski wrote:
-
-[snip]
-
-> > >> What about making it possible to pass an array of buffer indices to the
-> > >> user, just like VIDIOC_S_EXT_CTRLS does? I'm not sure if this would be
-> > >> perfect, but it would avoid the problem of requiring continuous ranges
-> > >> of buffer ids.
-> > >> 
-> > >> struct v4l2_create_buffers {
-> > >> 
-> > >> 	__u32			*index;
-> > >> 	__u32			count;
-> > >> 	__u32			flags;
-> > >> 	enum v4l2_memory        memory;
-> > >> 	__u32			size;
-> > >> 	struct v4l2_format	format;
-> > >> 
-> > >> };
-> > >> 
-> > >> Index would be a pointer to an array of buffer indices and its length
-> > >> would be count.
-> > > 
-> > > I don't understand this. We do _not_ want to allow holes in indices. For
-> > > now we decide to not implement DESTROY at all. In this case indices just
-> > > increment contiguously.
-> > > 
-> > > The next stage is to implement DESTROY, but only in strict reverse order
-> > > - without holes and in the same ranges, as buffers have been CREATEd
-> > > before. So, I really don't understand why we need arrays, sorry.
-> > 
-> > Well, now that we're defining a second interface to make new buffer
-> > objects, I just thought it should be made as future-proof as we can.
+> diff --git a/arch/arm/mach-omap2/board-omap3beagle-camera.c b/arch/arm/mach-omap2/board-omap3beagle-camera.c
+> new file mode 100644
+> index 0000000..04365b2
+> --- /dev/null
+> +++ b/arch/arm/mach-omap2/board-omap3beagle-camera.c
 > 
-> I second that. I don't like rushing new APIs to find out we need something 
-> else after 6 months.
+> +static int __init beagle_camera_init(void)
+> +{
+> +	reg_1v8 = regulator_get(NULL, "cam_1v8");
+> +	if (IS_ERR(reg_1v8))
+> +		pr_err("%s: cannot get cam_1v8 regulator\n", __func__);
+> +	else
+> +		regulator_enable(reg_1v8);
+> +
+> +	reg_2v8 = regulator_get(NULL, "cam_2v8");
+> +	if (IS_ERR(reg_2v8))
+> +		pr_err("%s: cannot get cam_2v8 regulator\n", __func__);
+> +	else
+> +		regulator_enable(reg_2v8);
+> +
+> +	omap_register_i2c_bus(2, 100, NULL, 0);
+> +	gpio_request(MT9P031_RESET_GPIO, "cam_rst");
+> +	gpio_direction_output(MT9P031_RESET_GPIO, 0);
+> +	omap3_init_camera(&beagle_isp_platform_data);
+> +	return 0;
+> +}
+> +late_initcall(beagle_camera_init);
 
-Ok, so, we pass an array from user-space with CREATE of size count. The 
-kernel fills it with as many buffers entries as it has allocated. But 
-currently drivers are also allowed to allocate more buffers, than the 
-user-space has requested. What do we do in such a case?
+There should probably a if (cpu_is_omap3630()) {} wrapped around that, so the camera doesn't get initted on a 3530 beagle.
 
-Thanks
-Guennadi
+regards,
 
-> > But even with single index, it's always possible to issue the ioctl more
-> > than once and achieve the same result as if there was an array of indices.
-> > 
-> > What would be the reason to disallow creating holes to index range? I
-> > don't see much reason from application or implementation point of view,
-> > as we're even being limited to such low numbers.
-> > 
-> > Speaking of which; perhaps I'm bringing this up rather late, but should
-> > we define the API to allow larger numbers than VIDEO_MAX_FRAME? 32 isn't
-> > all that much after all --- this might become a limiting factor later on
-> > when there are devices with huge amounts of memory.
-> > 
-> > Allowing CREATE_BUF to do that right now would be possible since
-> > applications using it are new users and can be expected to be using it
-> > properly. :-)
-> 
-> -- 
-> Regards,
-> 
-> Laurent Pinchart
-> 
-
----
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
-http://www.open-technology.de/
+Koen
