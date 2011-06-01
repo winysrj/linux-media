@@ -1,54 +1,64 @@
 Return-path: <mchehab@pedra>
-Received: from smtp5-g21.free.fr ([212.27.42.5]:46544 "EHLO smtp5-g21.free.fr"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752450Ab1EVISe convert rfc822-to-8bit (ORCPT
+Received: from hqemgate04.nvidia.com ([216.228.121.35]:6870 "EHLO
+	hqemgate04.nvidia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758548Ab1FABuw convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 22 May 2011 04:18:34 -0400
-Received: from tele (unknown [82.245.201.222])
-	by smtp5-g21.free.fr (Postfix) with ESMTP id 02CA3D4824C
-	for <linux-media@vger.kernel.org>; Sun, 22 May 2011 10:18:28 +0200 (CEST)
-Date: Sun, 22 May 2011 10:19:04 +0200
-From: Jean-Francois Moine <moinejf@free.fr>
-To: linux-media@vger.kernel.org
-Subject: [PATCH FOR 2.6.39] gspca - ov519: Change the ovfx2 bulk transfer
- size
-Message-ID: <20110522101904.5d12af63@tele>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+	Tue, 31 May 2011 21:50:52 -0400
+From: Andrew Chew <AChew@nvidia.com>
+To: 'Guennadi Liakhovetski' <g.liakhovetski@gmx.de>
+CC: "mchehab@redhat.com" <mchehab@redhat.com>,
+	"olof@lixom.net" <olof@lixom.net>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
+Date: Tue, 31 May 2011 18:50:45 -0700
+Subject: RE: [PATCH 4/5 v2] [media] ov9740: Remove hardcoded resolution regs
+Message-ID: <643E69AA4436674C8F39DCC2C05F76382A75BF37C3@HQMAIL03.nvidia.com>
+References: <1306368272-28279-1-git-send-email-achew@nvidia.com>
+ <1306368272-28279-4-git-send-email-achew@nvidia.com>
+ <Pine.LNX.4.64.1105291221450.18788@axis700.grange>
+In-Reply-To: <Pine.LNX.4.64.1105291221450.18788@axis700.grange>
+Content-Language: en-US
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 8BIT
+MIME-Version: 1.0
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-The 'normal' bulk transfer size did not work for 800x600.
-By git commit c42cedbb658b, this 'normal' size was used for 1600x1200 only.
-It will now be used back again for all resolutions but 800x600.
+> > +	/* Width must be a multiple of 4 pixels. */
+> > +	*width += *width % 4;
+> 
+> No, this doesn't make it a multiple of 4, unless it was 
+> even;) Just take 5 
+> as an example. What you really want here is
 
-Signed-off-by: Jean-François Moine <moinejf@free.fr>
----
- drivers/media/video/gspca/ov519.c |    4 ++--
- 1 files changed, 2 insertions(+), 2 deletions(-)
+Geez, you're right.  Not sure what was going on in my head when I did this.  Thanks for catching it.
 
-diff --git a/drivers/media/video/gspca/ov519.c b/drivers/media/video/gspca/ov519.c
-index 5ac2f3c..caf438a 100644
---- a/drivers/media/video/gspca/ov519.c
-+++ b/drivers/media/video/gspca/ov519.c
-@@ -609,7 +609,7 @@ static const struct v4l2_pix_format ovfx2_ov3610_mode[] = {
-  * buffers, there are some pretty strict real time constraints for
-  * isochronous transfer for larger frame sizes).
-  */
--/*jfm: this value works well for 1600x1200, but not 800x600 - see isoc_init */
-+/*jfm: this value does not work for 800x600 - see isoc_init */
- #define OVFX2_BULK_SIZE (13 * 4096)
- 
- /* I2C registers */
-@@ -3511,7 +3511,7 @@ static int sd_isoc_init(struct gspca_dev *gspca_dev)
- 
- 	switch (sd->bridge) {
- 	case BRIDGE_OVFX2:
--		if (gspca_dev->width == 1600)
-+		if (gspca_dev->width != 800)
- 			gspca_dev->cam.bulk_size = OVFX2_BULK_SIZE;
- 		else
- 			gspca_dev->cam.bulk_size = 7 * 4096;
--- 
-1.7.5.1
+
+> > +	/*
+> > +	 * Try to use as much of the sensor area as possible 
+> when supporting
+> > +	 * smaller resolutions.  Depending on the aspect ratio of the
+> > +	 * chosen resolution, we can either use the full width 
+> of the sensor,
+> > +	 * or the full height of the sensor (or both if the 
+> aspect ratio is
+> > +	 * the same as 1280x720.
+> > +	 */
+> > +	if ((OV9740_MAX_WIDTH * height) > (OV9740_MAX_HEIGHT * width)) {
+> > +		scale_input_x = (OV9740_MAX_HEIGHT * width) / height;
+> > +		scale_input_y = OV9740_MAX_HEIGHT;
+> >  	} else {
+> > -		dev_err(&client->dev, "Failed to select resolution!\n");
+> > -		return -EINVAL;
+> > +		scale_input_x = OV9740_MAX_WIDTH;
+> > +		scale_input_y = (OV9740_MAX_WIDTH * height) / width;
+> >  	}
+> 
+> I don'z know how this sensor works, but the above two divisions round 
+> down. And these are input sizes. Cannot it possibly lead to 
+> the output 
+> window being smaller, than required? Maybe you have to round 
+> up (hint: 
+> use DIV_ROUND_UP())?
+
+The intention is to do some ratio math without floating point instructions, which resulted in some algebraic twiddling (which is why that math looks so weird).  I think what's there is okay.  If there's any rounding at all (and there shouldn't be any rounding, if "standard" image dimensions are called for), then there's going to be some aspect ratio weirdness no matter which way you round that division.
