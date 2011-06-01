@@ -1,73 +1,46 @@
 Return-path: <mchehab@pedra>
-Received: from 5571f1ba.dsl.concepts.nl ([85.113.241.186]:50356 "EHLO
-	his10.thuis.hoogenraad.info" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S932094Ab1FPVgM (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 16 Jun 2011 17:36:12 -0400
-Message-ID: <4DFA7748.6000704@hoogenraad.net>
-Date: Thu, 16 Jun 2011 23:36:08 +0200
-From: Jan Hoogenraad <jan-conceptronic@hoogenraad.net>
+Received: from mx1.redhat.com ([209.132.183.28]:29796 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751999Ab1FAL3e (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 1 Jun 2011 07:29:34 -0400
+Message-ID: <4DE62298.70808@redhat.com>
+Date: Wed, 01 Jun 2011 08:29:28 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
 MIME-Version: 1.0
-To: =?UTF-8?B?U2FzY2hhIFfDvHN0ZW1hbm4=?= <sascha@killerhippy.de>
-CC: linux-media@vger.kernel.org,
-	Thomas Holzeisen <thomas@holzeisen.de>, stybla@turnovfree.net,
-	Maxim Levitsky <maximlevitsky@gmail.com>,
-	Antti Palosaari <crope@iki.fi>
-Subject: RTL2831U driver updates
-References: <4DF9BCAA.3030301@holzeisen.de> <4DF9EA62.2040008@killerhippy.de>
-In-Reply-To: <4DF9EA62.2040008@killerhippy.de>
-Content-Type: text/plain; charset=UTF-8; format=flowed
+To: Jean-Francois Moine <moinejf@free.fr>
+CC: linux-media@vger.kernel.org
+Subject: Re: [GIT PATCHES FOR 2.6.40] gspca for_v2.6.40
+References: <20110523112054.4d8b29ef@tele>
+In-Reply-To: <20110523112054.4d8b29ef@tele>
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Sascha: Thanks for the links
+Em 23-05-2011 06:20, Jean-Francois Moine escreveu:
+> The following changes since commit
+> 87cf028f3aa1ed51fe29c36df548aa714dc7438f:
+> 
+>   [media] dm1105: GPIO handling added, I2C on GPIO added, LNB control through GPIO reworked (2011-05-21 11:10:28 -0300)
+> 
+> are available in the git repository at:
+>   git://linuxtv.org/jfrancois/gspca.git for_v2.6.40
+> 
+> Jean-François Moine (6):
+>       gspca - ov519: Fix a regression for ovfx2 webcams
+>       gspca - ov519: Change the ovfx2 bulk transfer size
+>       gspca: Remove coarse_expo_autogain.h
+>       gspca - stv06xx: Set a lower default value of gain for hdcs sensors
+>       gspca - ov519: Set the default frame rate to 15 fps
 
-Would you know how to contact poma ?
-http://www.spinics.net/lists/linux-media/msg24890.html
+The above seems to be bug fixes. So, I'm adding them for the current
+version (Linux 3.0).
 
-I will be getting more info from Realtek soon.
-I did not realize that they were putting out updated drivers.
+>       gspca - ov519: New sensor ov9600 with bridge ovfx2
 
-Once the status becomes more clear, I'll update
-http://www.linuxtv.org/wiki/index.php/Realtek_RTL2831U
+This one is a new feature. Adding it for -next.
 
-Sascha Wüstemann wrote:
-> Thomas Holzeisen wrote:
->> Hi there,
->>
->> I tried to get an RTL2831U dvb-t usb-stick running with a more recent kernel (2.6.38) and failed.
->>
->> The hg respository ~jhoogenraad/rtl2831-r2 aborts on countless drivers, the rc coding seem have to
->> changed a lot since it got touched the last time.
->>
->> The hg respository ~anttip/rtl2831u wont compile as well, since its even older.
->>
->> The recent git respositories for media_tree and anttip dont contain drivers for the rtl2831u.
->>
->> Has this device been abandoned, or is anyone working on it?
->>
->> greetings,
->> Thomas
->
-> There are still people working on it and there is new sources, e.g. look at
-> http://www.spinics.net/lists/linux-media/msg24890.html
-> at the very bottom. Worked like a charm at my system with kernel 2.6.39.
->
-> I think, there will be announcements later at
-> http://wiki.zeratul.org/doku.php?id=linux:v4l:realtek:start
->
-> Greetings from Braunschweig, Germany.
-> Sascha
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->
+All patches added.
 
-
--- 
-Jan Hoogenraad
-Hoogenraad Interface Services
-Postbus 2717
-3500 GS Utrecht
+Thanks,
+Mauro
