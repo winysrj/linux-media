@@ -1,34 +1,93 @@
 Return-path: <mchehab@pedra>
-Received: from smtp1-g21.free.fr ([212.27.42.1]:48129 "EHLO smtp1-g21.free.fr"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754055Ab1FZSNC convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 26 Jun 2011 14:13:02 -0400
-Date: Sun, 26 Jun 2011 20:14:20 +0200
-From: Jean-Francois Moine <moinejf@free.fr>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: [PATCH 00/14] Remove linux/version.h from most drivers/media
-Message-ID: <20110626201420.018490cd@tele>
-In-Reply-To: <20110626130620.4b5ed679@pedra>
-References: <20110626130620.4b5ed679@pedra>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Received: from nm5-vm0.bullet.mail.ne1.yahoo.com ([98.138.90.251]:47458 "HELO
+	nm5-vm0.bullet.mail.ne1.yahoo.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with SMTP id S1753318Ab1FAWEx convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 1 Jun 2011 18:04:53 -0400
+Message-ID: <282734.7048.qm@web112010.mail.gq1.yahoo.com>
+Date: Wed, 1 Jun 2011 15:04:52 -0700 (PDT)
+From: Chris Rodley <carlighting@yahoo.co.nz>
+Subject: Re: [beagleboard] [PATCH v5 2/2] Add support for mt9p031 (LI-5M03 module) in Beagleboard xM.
+To: javier.martin@vista-silicon.com
+Cc: beagleboard@googlegroups.com, linux-media@vger.kernel.org,
+	g.liakhovetski@gmx.de, laurent.pinchart@ideasonboard.com,
+	mch_kot@yahoo.com.cn, koen@beagleboard.org
+MIME-Version: 1.0
+Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: 8BIT
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Sun, 26 Jun 2011 13:06:20 -0300
-Mauro Carvalho Chehab <mchehab@redhat.com> wrote:
+Hi Javier, Koen,
 
-> drivers/media/video/gspca/gspca.c                  |   12 +++-------
+On 02/06/11 06:08, Koen Kooi wrote:
+>
+> Op 1 jun 2011, om 17:36 heeft Javier Martin het volgende geschreven:
+>
+>> New "version" and "vdd_io" flags have been added.
+>>
+>> A subtle change now prevents camera from being registered
+>> in the wrong platform.
+>
+> I get a decent picture now with the following:
+>
+> media-ctl -r -l '"mt9p031 2-0048":0->"OMAP3 ISP CCDC":0[1], "OMAP3 ISP CCDC":1->"OMAP3 ISP CCDC output":0[1]'
+> media-ctl -f '"mt9p031 2-0048":0[SGRBG12 320x240], "OMAP3 ISP CCDC":0[SGRBG8 320x240], "OMAP3 ISP CCDC":1[SGRBG8 320x240]'
+>
+> yavta-nc --stdout -f SGRBG8 -s 320x240 -n 4 --capture=10000 --skip 3 -F $(media-ctl -e "OMAP3 ISP CCDC output") | mplayer-bayer - -demuxer  rawvideo -rawvideo w=320:h=240:format=ba81:size=76800 -vo fbdev2 -vf ba81
+>
+> 720p also seems to work.
+>
+> It is really, really dark though. Is this due to missing controls or due to the laneshifting?
+>
+> regards,
+>
+> Koen
 
-Hi Mauro,
+I made changes the same as my last post.
+Output is MUCH more encouraging now with v6 patch.
 
-I could not find the gspca.c changes in your patch set.
+# media-ctl -r -l '"mt9p031 2-0048":0->"OMAP3 ISP CCDC":0[1], "OMAP3 ISP CCDC":1->"OMAP3 ISP CCDC output":0[1]'
+Resetting all links to inactive
+Setting up link 16:0 -> 5:0 [1]
+Setting up link 5:1 -> 6:0 [1]
 
-Cheers.
+# media-ctl -f '"mt9p031 2-0048":0[SGRBG12 320x240], "OMAP3 ISP CCDC":0[SGRBG8 320x240], "OMAP3 ISP CCDC":1[SGRBG8 320x240]'
+Setting up format SGRBG12 320x240 on pad mt9p031 2-0048/0
+Format set: SGRBG12 320x240
+Setting up format SGRBG12 320x240 on pad OMAP3 ISP CCDC/0
+Format set: SGRBG12 320x240
+Setting up format SGRBG8 320x240 on pad OMAP3 ISP CCDC/0
+Format set: SGRBG8 320x240
+Setting up format SGRBG8 320x240 on pad OMAP3 ISP CCDC/1
+Format set: SGRBG8 320x240
 
--- 
-Ken ar c'hentañ	|	      ** Breizh ha Linux atav! **
-Jef		|		http://moinejf.free.fr/
+# yavta --stdout -f SGRBG8 -s 320x240 -n 4 --capture=100 --skip 3 -F `media-ctl -e "OMAP3 ISP CCDC output"` | nc 10.1.1.16 3000
+Device /dev/video2 opened.
+Device `OMAP3 ISP CCDC output' on `media' is a video capture device.
+Video format set: width: 320 height: 240 buffer size: 76800
+Video format: GRBG (47425247) 320x240
+4 buffers requested.
+length: 76800 offset: 0
+Buffer 0 mapped at address 0x40057000.
+length: 76800 offset: 77824
+Buffer 1 mapped at address 0x400aa000.
+length: 76800 offset: 155648
+Buffer 2 mapped at address 0x40220000.
+length: 76800 offset: 233472
+Buffer 3 mapped at address 0x402da000.
+0 (0) [-] 4294967295 76800 bytes 457.431406 1306964763.471233 -0.001 fps
+
+Hangs at this point - 'ctrl c'
+
+[  464.115386] omap3isp omap3isp: CCDC stop timeout!
+[  465.125488] omap3isp omap3isp: Unable to stop OMAP3 ISP CCDC
+
+I can look at the frame - looks like noise on the left hand side only.
+
+Regards,
+Chris
+
+
+
+
