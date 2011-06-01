@@ -1,91 +1,73 @@
 Return-path: <mchehab@pedra>
-Received: from smtp-vbr5.xs4all.nl ([194.109.24.25]:4926 "EHLO
-	smtp-vbr5.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932555Ab1EYNeP (ORCPT
+Received: from hqemgate03.nvidia.com ([216.228.121.140]:2819 "EHLO
+	hqemgate03.nvidia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753014Ab1FAB6h convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 25 May 2011 09:34:15 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [RFCv2 PATCH 01/11] v4l2-ctrls: introduce call_op define
-Date: Wed, 25 May 2011 15:33:45 +0200
-Message-Id: <6cea502820c1684f34b9e862a64be2972afb718f.1306329390.git.hans.verkuil@cisco.com>
-In-Reply-To: <1306330435-11799-1-git-send-email-hverkuil@xs4all.nl>
-References: <1306330435-11799-1-git-send-email-hverkuil@xs4all.nl>
+	Tue, 31 May 2011 21:58:37 -0400
+From: Andrew Chew <AChew@nvidia.com>
+To: 'Guennadi Liakhovetski' <g.liakhovetski@gmx.de>
+CC: "mchehab@redhat.com" <mchehab@redhat.com>,
+	"olof@lixom.net" <olof@lixom.net>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
+Date: Tue, 31 May 2011 18:58:29 -0700
+Subject: RE: [PATCH 5/5 v2] [media] ov9740: Add suspend/resume
+Message-ID: <643E69AA4436674C8F39DCC2C05F76382A75BF37C4@HQMAIL03.nvidia.com>
+References: <1306368272-28279-1-git-send-email-achew@nvidia.com>
+ <1306368272-28279-5-git-send-email-achew@nvidia.com>
+ <Pine.LNX.4.64.1105291249220.18788@axis700.grange>
+In-Reply-To: <Pine.LNX.4.64.1105291249220.18788@axis700.grange>
+Content-Language: en-US
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+MIME-Version: 1.0
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+> > +	/* For suspend/resume. */
+> > +	struct v4l2_mbus_framefmt	current_mf;
+> > +	int				current_enable;
+> 
+> bool?
 
-Add the call_op define to safely call the control ops. This also allows
-for controls without any ops such as the 'control class' controls.
+Are you sure you want this to be a bool?  This thing is trying to shadow the "enable" parameter of the s_stream() callback, and that enable parameter is int.
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- drivers/media/video/v4l2-ctrls.c |   19 +++++++++++--------
- 1 files changed, 11 insertions(+), 8 deletions(-)
 
-diff --git a/drivers/media/video/v4l2-ctrls.c b/drivers/media/video/v4l2-ctrls.c
-index 223e040..8b5f67f 100644
---- a/drivers/media/video/v4l2-ctrls.c
-+++ b/drivers/media/video/v4l2-ctrls.c
-@@ -25,6 +25,9 @@
- #include <media/v4l2-ctrls.h>
- #include <media/v4l2-dev.h>
- 
-+#define call_op(master, op) \
-+	((master->ops && master->ops->op) ? master->ops->op(master) : 0)
-+
- /* Internal temporary helper struct, one for each v4l2_ext_control */
- struct ctrl_helper {
- 	/* The control corresponding to the v4l2_ext_control ID field. */
-@@ -1306,7 +1309,7 @@ int v4l2_ctrl_handler_setup(struct v4l2_ctrl_handler *hdl)
- 		if (ctrl->type == V4L2_CTRL_TYPE_BUTTON ||
- 		    (ctrl->flags & V4L2_CTRL_FLAG_READ_ONLY))
- 			continue;
--		ret = master->ops->s_ctrl(master);
-+		ret = call_op(master, s_ctrl);
- 		if (ret)
- 			break;
- 		for (i = 0; i < master->ncontrols; i++)
-@@ -1583,8 +1586,8 @@ int v4l2_g_ext_ctrls(struct v4l2_ctrl_handler *hdl, struct v4l2_ext_controls *cs
- 
- 		v4l2_ctrl_lock(master);
- 		/* g_volatile_ctrl will update the current control values */
--		if (ctrl->is_volatile && master->ops->g_volatile_ctrl)
--			ret = master->ops->g_volatile_ctrl(master);
-+		if (ctrl->is_volatile)
-+			ret = call_op(master, g_volatile_ctrl);
- 		/* If OK, then copy the current control values to the caller */
- 		if (!ret)
- 			ret = cluster_walk(i, cs, helpers, cur_to_user);
-@@ -1615,8 +1618,8 @@ static int get_ctrl(struct v4l2_ctrl *ctrl, s32 *val)
- 
- 	v4l2_ctrl_lock(master);
- 	/* g_volatile_ctrl will update the current control values */
--	if (ctrl->is_volatile && master->ops->g_volatile_ctrl)
--		ret = master->ops->g_volatile_ctrl(master);
-+	if (ctrl->is_volatile)
-+		ret = call_op(master, g_volatile_ctrl);
- 	*val = ctrl->cur.val;
- 	v4l2_ctrl_unlock(master);
- 	return ret;
-@@ -1690,12 +1693,12 @@ static int try_or_set_control_cluster(struct v4l2_ctrl *master, bool set)
- 	/* For larger clusters you have to call try_ctrl again to
- 	   verify that the controls are still valid after the
- 	   'cur_to_new' above. */
--	if (!ret && master->ops->try_ctrl && try)
--		ret = master->ops->try_ctrl(master);
-+	if (!ret && try)
-+		ret = call_op(master, try_ctrl);
- 
- 	/* Don't set if there is no change */
- 	if (!ret && set && cluster_changed(master)) {
--		ret = master->ops->s_ctrl(master);
-+		ret = call_op(master, s_ctrl);
- 		/* If OK, then make the new values permanent. */
- 		if (!ret)
- 			for (i = 0; i < master->ncontrols; i++)
--- 
-1.7.1
+> > +static int ov9740_suspend(struct soc_camera_device *icd, 
+> pm_message_t state)
+> > +{
+> > +	struct v4l2_subdev *sd = soc_camera_to_subdev(icd);
+> > +	struct ov9740_priv *priv = to_ov9740(sd);
+> > +
+> > +	if (priv->current_enable) {
+> > +		int current_enable = priv->current_enable;
+> > +
+> > +		ov9740_s_stream(sd, 0);
+> > +		priv->current_enable = current_enable;
+> 
+> You don't need the local variable, just set
+> 
+> 	priv->current_enable = true;
 
+I think I do need that local variable, the way the code is arranged now.  I'm trying to save the state of enablement inside of priv->current_enable, at the time we are suspending, so it won't necessarily be true.  And one of the side effects of calling ov9740_s_stream(sd, 0) is that priv->current_enable will be set to false, which is why I save off the value of priv->current_enable, and then restore it after the call to ov9740_s_stream().
+
+
+> >  static struct soc_camera_ops ov9740_ops = {
+> > +	.suspend		= ov9740_suspend,
+> > +	.resume			= ov9740_resume,
+> 
+> No, we don't want to use these, whey should disappear some 
+> time... Please, 
+> use .s_power() from struct v4l2_subdev_core_ops, you can check 
+> http://article.gmane.org/gmane.linux.drivers.video-input-infra
+> structure/33105 
+> for an example. If your host is not using these ops, it has 
+> to be fixed. 
+> So far in the mainline only one soc-camera host driver is using these 
+> callbacks: pxa_camera.c, which, looking at your email 
+> address, I doubt is 
+> the driver, that you're using;)
+
+Okay, will do.  Thanks for pointing that out :)
+
+Is the camera host driver expected to directly call the sensor driver's s_power (via v4l2_subdev_call(sd, core, s_power, <some value>)?  Or does the v4l2 framework do this for you?  I didn't see an example of this in my last pull of linux-next.
