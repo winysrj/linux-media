@@ -1,81 +1,160 @@
 Return-path: <mchehab@pedra>
-Received: from mx1.redhat.com ([209.132.183.28]:49385 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1758297Ab1FVWYm (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 22 Jun 2011 18:24:42 -0400
-Message-ID: <4E026BA4.9010905@redhat.com>
-Date: Wed, 22 Jun 2011 19:24:36 -0300
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Received: from nm20-vm0.bullet.mail.sp2.yahoo.com ([98.139.91.218]:38601 "HELO
+	nm20-vm0.bullet.mail.sp2.yahoo.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with SMTP id S1759084Ab1FAX6n convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 1 Jun 2011 19:58:43 -0400
+Message-ID: <850588.91894.qm@web112012.mail.gq1.yahoo.com>
+Date: Wed, 1 Jun 2011 16:58:41 -0700 (PDT)
+From: Chris Rodley <carlighting@yahoo.co.nz>
+Subject: Re: [beagleboard] [PATCH v5 2/2] Add support for mt9p031 (LI-5M03 module) in Beagleboard xM.
+To: javier.martin@vista-silicon.com
+Cc: beagleboard@googlegroups.com, linux-media@vger.kernel.org,
+	g.liakhovetski@gmx.de, laurent.pinchart@ideasonboard.com,
+	mch_kot@yahoo.com.cn, koen@beagleboard.org
 MIME-Version: 1.0
-To: =?ISO-8859-1?Q?R=E9mi_Denis-Courmont?= <remi@remlab.net>
-CC: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: [RFC] vtunerc - virtual DVB device driver
-References: <BANLkTimtnbAzLTdFY2OiSddHTjmD_99CfA@mail.gmail.com> <BANLkTikmbVj1t7w3XmHXW58Kpvv0M_jbnQ@mail.gmail.com> <4E01DD57.3080508@redhat.com> <201106222218.14268.remi@remlab.net>
-In-Reply-To: <201106222218.14268.remi@remlab.net>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: 8BIT
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Em 22-06-2011 16:18, Rémi Denis-Courmont escreveu:
-> Le mercredi 22 juin 2011 15:17:27 Mauro Carvalho Chehab, vous avez écrit :
->>> My very little opinion is that waving GPL is way to the hell. Nobody told
->>> me why similar technologies, in different kernel parts are acceptable,
->>> but not here.
->>
->> If you want to do the networking code at userspace, why do you need a
->> kernel driver after all?
+Hi,
+
+--- On Wed, 1/6/11, Chris Rodley <carlighting@yahoo.co.nz> wrote:
+> From: Chris Rodley <carlighting@yahoo.co.nz>
+> Subject: Re: [beagleboard] [PATCH v5 2/2] Add support for mt9p031 (LI-5M03 module) in Beagleboard xM.
+> To: javier.martin@vista-silicon.com
+> Cc: beagleboard@googlegroups.com, linux-media@vger.kernel.org, g.liakhovetski@gmx.de, laurent.pinchart@ideasonboard.com, mch_kot@yahoo.com.cn, koen@beagleboard.org
+> Received: Wednesday, 1 June, 2011, 3:04 PM
+> Hi Javier, Koen,
 > 
-> Are you seriously asking why people write tunneling drivers in user-space? Or 
-> why they want to use the kernel-space socket API and protocol stack?
+> On 02/06/11 06:08, Koen Kooi wrote:
+> >
+> > Op 1 jun 2011, om 17:36 heeft Javier Martin het
+> volgende geschreven:
+> >
+> >> New "version" and "vdd_io" flags have been added.
+> >>
+> >> A subtle change now prevents camera from being
+> registered
+> >> in the wrong platform.
+> >
+> > I get a decent picture now with the following:
+> >
+> > media-ctl -r -l '"mt9p031 2-0048":0->"OMAP3 ISP
+> CCDC":0[1], "OMAP3 ISP CCDC":1->"OMAP3 ISP CCDC
+> output":0[1]'
+> > media-ctl -f '"mt9p031 2-0048":0[SGRBG12 320x240],
+> "OMAP3 ISP CCDC":0[SGRBG8 320x240], "OMAP3 ISP
+> CCDC":1[SGRBG8 320x240]'
+> >
+> > yavta-nc --stdout -f SGRBG8 -s 320x240 -n 4
+> --capture=10000 --skip 3 -F $(media-ctl -e "OMAP3 ISP CCDC
+> output") | mplayer-bayer - -demuxer  rawvideo -rawvideo
+> w=320:h=240:format=ba81:size=76800 -vo fbdev2 -vf ba81
+> >
+> > 720p also seems to work.
+> >
+> > It is really, really dark though. Is this due to
+> missing controls or due to the laneshifting?
+> >
+> > regards,
+> >
+> > Koen
 > 
->> The proper solution is to write an userspace
->> library for that, and either enclose such library inside the applications,
->> or use LD_PRELOAD to bind the library to handle the open/close/ioctl glibc
->> calls. libv4l does that. As it proofed to be a good library, now almost
->> all V4L applications are using it.
+> I made changes the same as my last post.
+> Output is MUCH more encouraging now with v6 patch.
 > 
-> No. Set aside the problem of licensing, the correct way is to reuse existing 
-> code, which means the layer-3/4 stacks and the socket API in net/*. That 
-> avoids duplicating efforts (and bugs) and allows socket API apps to run 
-> unchanged and without brittle hacks like LD_PRELOAD.
+> # media-ctl -r -l '"mt9p031 2-0048":0->"OMAP3 ISP
+> CCDC":0[1], "OMAP3 ISP CCDC":1->"OMAP3 ISP CCDC
+> output":0[1]'
+> Resetting all links to inactive
+> Setting up link 16:0 -> 5:0 [1]
+> Setting up link 5:1 -> 6:0 [1]
 > 
-> And indeed, that's what the Linux ecosystem does, thanks to the tuntap network 
-> device driver.
+> # media-ctl -f '"mt9p031 2-0048":0[SGRBG12 320x240], "OMAP3
+> ISP CCDC":0[SGRBG8 320x240], "OMAP3 ISP CCDC":1[SGRBG8
+> 320x240]'
+> Setting up format SGRBG12 320x240 on pad mt9p031 2-0048/0
+> Format set: SGRBG12 320x240
+> Setting up format SGRBG12 320x240 on pad OMAP3 ISP CCDC/0
+> Format set: SGRBG12 320x240
+> Setting up format SGRBG8 320x240 on pad OMAP3 ISP CCDC/0
+> Format set: SGRBG8 320x240
+> Setting up format SGRBG8 320x240 on pad OMAP3 ISP CCDC/1
+> Format set: SGRBG8 320x240
+> 
+> # yavta --stdout -f SGRBG8 -s 320x240 -n 4 --capture=100
+> --skip 3 -F `media-ctl -e "OMAP3 ISP CCDC output"` | nc
+> 10.1.1.16 3000
+> Device /dev/video2 opened.
+> Device `OMAP3 ISP CCDC output' on `media' is a video
+> capture device.
+> Video format set: width: 320 height: 240 buffer size:
+> 76800
+> Video format: GRBG (47425247) 320x240
+> 4 buffers requested.
+> length: 76800 offset: 0
+> Buffer 0 mapped at address 0x40057000.
+> length: 76800 offset: 77824
+> Buffer 1 mapped at address 0x400aa000.
+> length: 76800 offset: 155648
+> Buffer 2 mapped at address 0x40220000.
+> length: 76800 offset: 233472
+> Buffer 3 mapped at address 0x402da000.
+> 0 (0) [-] 4294967295 76800 bytes 457.431406
+> 1306964763.471233 -0.001 fps
+> 
+> Hangs at this point - 'ctrl c'
+> 
+> [  464.115386] omap3isp omap3isp: CCDC stop timeout!
+> [  465.125488] omap3isp omap3isp: Unable to stop OMAP3
+> ISP CCDC
+> 
+> I can look at the frame - looks like noise on the left hand
+> side only.
 
-Rémi,
+Now producing:
+# yavta --stdout -f SGRBG8 -s 320x240 -n 4 --captur
+e=100 --skip 3 -F `media-ctl -e "OMAP3 ISP CCDC output"` | nc 10.1.1.16 3000
+Device /dev/video2 opened.
+Device `OMAP3 ISP CCDC output' on `media' is a video capture device.
+Video format set: width: 320 height: 240 buffer size: 76800
+Video format: GRBG (47425247) 320x240
+4 buffers requested.
+length: 76800 offset: 0
+Buffer 0 mapped at address 0x40209000.
+length: 76800 offset: 77824
+Buffer 1 mapped at address 0x402a4000.
+length: 76800 offset: 155648
+Buffer 2 mapped at address 0x40305000.
+length: 76800 offset: 233472
+Buffer 3 mapped at address 0x4033d000.
+0 (0) [-] 4294967295 76800 bytes 161.364596 1306972315.470868 -0.001 fps
+1 (1) [-] 4294967295 76800 bytes 161.847217 1306972315.953520 2.072 fps
+2 (2) [-] 4294967295 76800 bytes 162.081111 1306972316.187383 4.275 fps
+3 (3) [-] 4294967295 76800 bytes 162.314970 1306972316.421212 4.276 fps
+4 (0) [-] 4294967295 76800 bytes 162.548792 1306972316.655095 4.277 fps
+5 (1) [-] 4294967295 76800 bytes 162.782648 1306972316.888951 4.276 fps
+6 (2) [-] 4294967295 76800 bytes 163.016504 1306972317.122807 4.276 fps
+7 (3) [-] 4294967295 76800 bytes 163.250330 1306972317.356633 4.277 fps
+8 (0) [-] 4294967295 76800 bytes 163.484186 1306972317.590489 4.276 fps
+9 (1) [-] 4294967295 76800 bytes 163.718012 1306972317.824345 4.277 fps
+10 (2) [-] 4294967295 76800 bytes 163.951868 1306972318.058171 4.276 fps
+11 (3) [-] 4294967295 76800 bytes 164.185694 1306972318.291997 4.277 fps
+12 (0) [-] 4294967295 76800 bytes 164.419550 1306972318.525883 4.276 fps
+13 (1) [-] 4294967295 76800 bytes 164.653406 1306972318.759709 4.276 fps
 
-Using the Kernel network layer is the right thing to do, but you don't need to add
-a new driver for it: it is already there. All that userspace needs to do is to use
-glibc socket's support.
+Changed mt9p031.c:
+#define MT9P031_EXTCLK_FREQ			12000000
 
-It could make sense to have some sort of virtualization driver that would allow 
-passing DVB API calls via, for example, the network socket API, to allow accessing
-a physical DVB driver (or a remote machine DVB driver)from a VM machine. That was 
-my original understanding.
+I was digging around and found an Aptina driver for 2.6.32:
+https://github.com/Aptina/BeagleBoard-xM/blob/master/MT9P031/Angstrom/mt9p031.c
 
-Instead, the proposal is wrapper, that will be a sort of kernelspace implementation for
-"LD_PRELOAD" that just returns the DVB commands back to some other application
-in userspace. The real code to transmit DVB commands will be in userspace.
+They set it to 12000000 or 24000000 depending.
 
-Technically speaking, this is a hack.
+Mine is very washed out.. opposite to what Koen has observed.
 
-If I would code something like that, I would write it as a library with some functions like:
-	connect_to_dvb()
-	get_dvb_properties()
-	get_frontend_parameters()
-	set_frontend_parameters()
-	get_dvb_ts()
-And write a few patches for the userspace applications I would care.
+Regards,
+Chris
 
-If I wanted to provide transparent access to it, I would simply implement a LD_PRELOAD
-schema, in order to help the new library deployment.
-
-With such approach, at the initial stages (the worse case, e. g. using LD_PRELOAD), it will
-be equivalent to have a kernel wrapper code, but, at long term, it will allow important
-optimizations, like avoiding the need of copying data from/to the wrapper, supporting the extra
-delays introducing by the network and allowing the applications to implement themselves the
-dialog windows to control the network properties.
-
-Thanks,
-Mauro.
