@@ -1,226 +1,873 @@
 Return-path: <mchehab@pedra>
-Received: from mx1.redhat.com ([209.132.183.28]:22751 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754337Ab1FVMzf (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 22 Jun 2011 08:55:35 -0400
-Message-ID: <4E01E63E.5030208@redhat.com>
-Date: Wed, 22 Jun 2011 09:55:26 -0300
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-MIME-Version: 1.0
-To: Andreas Oberritter <obi@linuxtv.org>
-CC: HoP <jpetrous@gmail.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: [RFC] vtunerc - virtual DVB device driver
-References: <BANLkTimtnbAzLTdFY2OiSddHTjmD_99CfA@mail.gmail.com>	<201106202037.19535.remi@remlab.net>	<BANLkTinn0uN3VwGfqCbYbxFoVf6aNo1VSA@mail.gmail.com>	<BANLkTin14LnwP+_K1m-RsEXza4M4CjqnEw@mail.gmail.com>	<BANLkTimR-zWnnLBcD2w8d8NpeFJi=eT9nQ@mail.gmail.com>	<005a01cc2f7d$a799be30$f6cd3a90$@coexsi.fr>	<BANLkTinbQ8oBJt7fScuT5vHGFktbaQNY5A@mail.gmail.com>	<BANLkTimTdMa_X1ygF8=B5gLdLXq1o-ER0g@mail.gmail.com>	<BANLkTimkZN9AtLanwvct+1p2DZOHSgF6Aw@mail.gmail.com>	<BANLkTimg0X5H5T8CsSR5Tr0CZbCZKiDEEA@mail.gmail.com>	<4DFFB1DA.5000602@redhat.com>	<BANLkTikZ++5dZssDRuxJzNUEG_TDkZPGRg@mail.gmail.com>	<4DFFF56D.5070602@redhat.com>	<4E007AA7.7070400@linuxtv.org>	<BANLkTik3ACfDwkyKVU2eZtxBeLH_mGh7pg@mail.gmail.com>	<4E00A78B.2020008@linuxtv.org>	<4E00AC2A.8060500@redhat.com>	<4E00B41B.50303@linuxtv.org>	<4E00D07B.5030202@redhat.com> <BANLkTikmbVj1t7w3XmHXW58Kpvv0M_jbnQ@mail.gmail.com> <4E01DD57.3080508@redhat.com> <4E01E05C.5000809@linuxtv.org>
-In-Reply-To: <4E01E05C.5000809@linuxtv.org>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Received: from mail-ww0-f44.google.com ([74.125.82.44]:53534 "EHLO
+	mail-ww0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752637Ab1FAPhL (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 1 Jun 2011 11:37:11 -0400
+Received: by wwa36 with SMTP id 36so6180983wwa.1
+        for <linux-media@vger.kernel.org>; Wed, 01 Jun 2011 08:37:10 -0700 (PDT)
+From: Javier Martin <javier.martin@vista-silicon.com>
+To: linux-media@vger.kernel.org
+Cc: g.liakhovetski@gmx.de, laurent.pinchart@ideasonboard.com,
+	carlighting@yahoo.co.nz, beagleboard@googlegroups.com,
+	mch_kot@yahoo.com.cn,
+	Javier Martin <javier.martin@vista-silicon.com>
+Subject: [PATCH v6 1/2] Add driver for Aptina (Micron) mt9p031 sensor.
+Date: Wed,  1 Jun 2011 17:36:48 +0200
+Message-Id: <1306942609-2440-1-git-send-email-javier.martin@vista-silicon.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Em 22-06-2011 09:30, Andreas Oberritter escreveu:
-> On 06/22/2011 02:17 PM, Mauro Carvalho Chehab wrote:
->> Em 21-06-2011 14:38, HoP escreveu:
->>> 2011/6/21 Mauro Carvalho Chehab <mchehab@redhat.com>:
->>>> Em 21-06-2011 12:09, Andreas Oberritter escreveu:
->>>>> On 06/21/2011 04:35 PM, Mauro Carvalho Chehab wrote:
->>>>>> Em 21-06-2011 11:15, Andreas Oberritter escreveu:
->>>>>>> On 06/21/2011 03:44 PM, Devin Heitmueller wrote:
->>>>>>>> On Tue, Jun 21, 2011 at 7:04 AM, Andreas Oberritter <obi@linuxtv.org> wrote:
->>>>>>>>> Mauro and Devin, I think you're missing the point. This is not about
->>>>>>>>> creating drivers in userspace. This is not about open or closed source.
->>>>>>>>> The "vtuner" interface, as implemented for the Dreambox, is used to
->>>>>>>>> access remote tuners: Put x tuners into y boxes and access them from
->>>>>>>>> another box as if they were local. It's used in conjunction with further
->>>>>>>>> software to receive the transport stream over a network connection.
->>>>>>>>> Honza's code does the same thing.
->>>>>>>>
->>>>>>>> I'm not missing the point at all.  I realize exactly what Honza is
->>>>>>>> trying to accomplish (and from a purely technical standpoint, it's not
->>>>>>>> a bad approach) - but I'm talking about the effects of such a driver
->>>>>>>> being introduced which changes the kernel/userland licensing boundary
->>>>>>>> and has very real implications with how the in-kernel code is
->>>>>>>> accessed.
->>>>>>>>
->>>>>>>>> You don't need it in order to create closed source drivers. You can
->>>>>>>>> already create closed kernel drivers now. Also, you can create tuner
->>>>>>>>> drivers in userspace using the i2c-dev interface. If you like to connect
->>>>>>>>> a userspace driver to a DVB API device node, you can distribute a small
->>>>>>>>> (open or closed) wrapper with it. So what are you arguing about?
->>>>>>>>> Everything you're feared of can already be done since virtually forever.
->>>>>>>>
->>>>>>>> I disagree.  There is currently no API which allows applications to
->>>>>>>> issue tuning requests into the DVB core, and have those requests
->>>>>>>> proxied back out to userland where an application can then use i2c-dev
->>>>>>>> to tune the actual device.  Meaning if somebody wants to write a
->>>>>>>> closed source userland application which controls the tuner, he/she
->>>>>>>> can do that (while not conforming to the DVB API).  But if if he wants
->>>>>>>> to reuse the GPL licensed DVB core, he has to replace the entire DVB
->>>>>>>> core.
->>>>>>>>
->>>>>>>> The introduction of this patch makes it trivial for a third party to
->>>>>>>> provide closed-source userland support for tuners while reusing all
->>>>>>>> the existing GPL driver code that makes up the framework.
->>>>>>>>
->>>>>>>> I used to work for a vendor that makes tuners, and they do a bunch of
->>>>>>>> Linux work.  And that work has resulted in a bunch of open source
->>>>>>>> drivers.  I can tell you though that *every* conversation I've had
->>>>>>>> regarding a new driver goes something like this:
->>>>>>>>
->>>>>>>> ===
->>>>>>>> "Devin, we need to support tuner X under Linux."
->>>>>>>>
->>>>>>>> "Great!  I'll be happy to write a new GPL driver for the
->>>>>>>> tuner/demodulator/whatever for that device"
->>>>>>>>
->>>>>>>> "But to save time/money, we just want to reuse the Windows driver code
->>>>>>>> (or reference code from the vendor)."
->>>>>>>>
->>>>>>>> "Ok.  Well, what is the licensing for that code?  Is it GPL compatible?"
->>>>>>>>
->>>>>>>> "Not currently.  So can we just make our driver closed source?"
->>>>>>>>
->>>>>>>> "Well, you can't reuse any of the existing DVB core functionality or
->>>>>>>> any of the other GPL drivers (tuners, bridges, demods), so you would
->>>>>>>> have rewrite all that from scratch."
->>>>>>>>
->>>>>>>> "Oh, that would be a ton of work.   Can we maybe write some userland
->>>>>>>> stuff that controls the demodulator which we can keep closed source?
->>>>>>>> Since it's not in the kernel, the GPL won't apply".
->>>>>>>>
->>>>>>>> "Well, you can't really do that because there is no way for the DVB
->>>>>>>> core to call back out to userland when the application makes the
->>>>>>>> tuning request to the DVB core."
->>>>>>>>
->>>>>>>> "Oh, ok then.  I guess we'll have to talk to the vendor and get them
->>>>>>>> to give us the reference driver code under the GPL."
->>>>>>>> ===
->>>>>>>>
->>>>>>>> I can tell you without a doubt that if this driver were present in the
->>>>>>>> kernel, that going forward that vendor would have *zero* interest in
->>>>>>>> doing any GPL driver work.  Why would they?  Why give away the code
->>>>>>>> which could potentially help their competitors if they can keep it
->>>>>>>> safe and protected while still being able to reuse everybody else's
->>>>>>>> contributions?
->>>>>>>>
->>>>>>>> Companies don't contribute GPL code out of "good will".  They do it
->>>>>>>> because they are compelled to by licenses or because there is no
->>>>>>>> economically viable alternative.
->>>>>>>>
->>>>>>>> Mauro, ultimately it is your decision as the maintainer which drivers
->>>>>>>> get accepted in to the kernel.  I can tell you though that this will
->>>>>>>> be a very bad thing for the driver ecosystem as a whole - it will
->>>>>>>> essentially make it trivial for vendors (some of which who are doing
->>>>>>>> GPL work now) to provide solutions that reuse the GPL'd DVB core
->>>>>>>> without having to make any of their stuff open source.
->>>>>>>>
->>>>>>>> Anyway, I said in my last email that would be my last email on the
->>>>>>>> topic.  I guess I lied.
->>>>>>>
->>>>>>> Yes, and you did lie to your vendor, too, as you did not mention the
->>>>>>> possibilities to create
->>>>>>> 1.) closed source modules derived from existing vendor drivers while
->>>>>>> still being able to use other drivers (c.f. EXPORT_SYMBOL vs.
->>>>>>> EXPORT_SYMBOL_GPL).
->>>>>>
->>>>>> AFAIK, the legal issues on writing a closed source driver using EXPORT_SYMBOL
->>>>>> are not proofed legally in any court. While EXPORT_SYMBOL_GPL explicitly
->>>>>> adds a restriction, not using it doesn't necessarily mean that the symbol
->>>>>> can be used by a closed source driver.
->>>>>>
->>>>>> If you take a look at Kernel's COPYING file, the only exception to GPL license
->>>>>> allowed there is:
->>>>>>
->>>>>>       NOTE! This copyright does *not* cover user programs that use kernel
->>>>>>       services by normal system calls - this is merely considered normal use
->>>>>>       of the kernel, and does *not* fall under the heading of "derived work".
->>>>>>
->>>>>> IANAL, but, as EXPORT_SYMBOL is not a "normal system call", my understanding is that
->>>>>> it is also covered by GPL.
->>>>>
->>>>> Of course. But as you should know, the GPL only covers derived work.
->>>>> Whether or not a driver is a derived work of the kernel can only be
->>>>> decided individually. It is my understanding that a Windows driver
->>>>> ported to Linux is unlikely to be a derived work of Linux.
->>>>>
->>>>>> I was told that several lawyers defend the idea that all software inside the
->>>>>> kernel tree is covered by GPL, even the aggregated ones. That was the rationale
->>>>>> used to split the firmware packages from the kernel itself.
->>>>>
->>>>> However, I wasn't referring to the kernel tree at all.
->>>>>
->>>>>>> 2.) a simple wrapper that calls userspace, therefore not having to open
->>>>>>> up any "secrets" at all.
->>>>>>
->>>>>> A wrapper for a closed source driver is illegal, as it is trying to circumvent
->>>>>> the GPL license.
->>>>>
->>>>> Is it? First, you are not a lawyer. Second, a wrapper is unlikely to be
->>>>> illegal by its pure existence and a wrapper does usually not try to do
->>>>> anything by itself. Third, you can implement a wrapper using normal
->>>>> system calls (read, write, mmap, ioctl ...). That's what vtuner does,
->>>>> too, to accomplish a totally different goal. Do you think vtuner is
->>>>> illegal? I would be very surprised if it was. It perfectly matches the
->>>>> license exception cited above. And even without the exception, a closed
->>>>> driver in userspace would only very unlikely be a derived work of the
->>>>> kernel.
->>>>
->>>> I think we're diverging from the subject. Most of those discussions are
->>>> interesting on some lawyers forum, not here.
->>>>
->>>> My view about this subject is that vtuner can't give any additional permissions
->>>> to the kernel GPL'd code, as vtuner were not made by the Kernel Copyright owners,
->>>> nor were approved by them. So, the extra permission at the COPYING clause
->>>> from kernel doesn't apply here, while the code is not merged into the Kernel.
->>>>
->>>> So, while it should be legal to use vtuner with a GPL'd client application,
->>>> using it by a closed source application violates GPL.
->>>>
->>>> My understanding is that an addition of a code that exposes the internal
->>>> DVB core API to userspace like that will require that all dvb developers
->>>> that have copyright rights at the dvb core should explicitly ack with such
->>>> change, otherwise adding such code will violate the original license.
->>>>
->>>> On the other hand, if vtunerc won't act as a proxy to userspace, it should
->>>> probably be ok.
->>>
->>> Are you serious? Why there is not same violation on NFS? Or even beter
->>> example NBD (network block device)? It sits in kernel for ages and nobody
->>> cares. It looks for me like you should send some patch for removal such
->>> "weak" places in kernel which allow to violate GPL.
->>>
->>> Do you really think that it is possible (in real, no in threory) to create
->>> any networked subsystem for sharing anything over net the way
->>> when it is not exposed (somehow) to the userspace? How will be
->>> such system managable? Why there is usually companion daemon
->>> there, which is responsible for managing connections etc?
->>>
->>> I think it is very evident you want find the way how to get yours word
->>> back and return to your original position = such code is not acceptable.
->>> Even if you still are not able to give anything clear.
->>>
->>> If I understand your last few mails, you won't accept such driver, isn't it?
->>
->> You got wrong. You can't change someone's else license without their acks.
->> It is as simple as that. Getting everybody's ack is not that hard, if they
->> accept that what you're doing is the right thing. We've got everybody's
->> ack in the past to change the licensing for videodev2.h for example, to allow
->> using the V4L2 API under BSD license (just the license API was changed, not the
->> code itself).
-> 
-> Is there anybode else who thinks that adding GPL'd code to the GPL'd
-> kernel would require any change in licensing? This is insane. What
-> change to whose license are you referring to, please?
+Clock frequency of 57MHz used in previous version was wrong since
+when VDD_IO is 1.8V it can only support 48MHz.
 
-Kernel licensing is not a pure GPL license. If it were a pure GPL license, all software
-that would run on the top of it would need to also be released under GPL.
+Two new platform flags have been added:
 
-Kernel license is GPLv2 + additional rights to allow binary code to run on the top 
-of it, for the system calls that are introduced in order to allow the usage of
-the hardware resources managed by the Kernel (drivers, network, memory, CPU's, etc).
+- vdd_io: indicates whether the chip is powered with 1.8 or 2.8 VDD_IO.
+So that it can use the maximum allowed frequency.
+- version: monochrome and color versions of the chip have exactly
+the same ID, so the only way to select one of them is through
+platform data.
 
-There are no doubts that dvb developers wanted their drivers to be controlled from
-userspace, but, from previous discussions about this subject, several developers
-explicitly said that they didn't want to allow any kind of wrapper module to be added.
+Internal PLL is now used to generate PIXCLK depending on VDD_IO.
 
-Mauro.
+Signed-off-by: Javier Martin <javier.martin@vista-silicon.com>
+---
+ drivers/media/video/Kconfig   |    7 +
+ drivers/media/video/Makefile  |    1 +
+ drivers/media/video/mt9p031.c |  763 +++++++++++++++++++++++++++++++++++++++++
+ include/media/mt9p031.h       |   23 ++
+ 4 files changed, 794 insertions(+), 0 deletions(-)
+ create mode 100644 drivers/media/video/mt9p031.c
+ create mode 100644 include/media/mt9p031.h
+
+diff --git a/drivers/media/video/Kconfig b/drivers/media/video/Kconfig
+index 00f51dd..cb87e35 100644
+--- a/drivers/media/video/Kconfig
++++ b/drivers/media/video/Kconfig
+@@ -329,6 +329,13 @@ config VIDEO_OV7670
+ 	  OV7670 VGA camera.  It currently only works with the M88ALP01
+ 	  controller.
+ 
++config VIDEO_MT9P031
++       tristate "Aptina MT9P031 support"
++       depends on I2C && VIDEO_V4L2
++       ---help---
++        This is a Video4Linux2 sensor-level driver for the Aptina
++        (Micron) mt9p031 5 Mpixel camera.
++
+ config VIDEO_MT9V011
+ 	tristate "Micron mt9v011 sensor support"
+ 	depends on I2C && VIDEO_V4L2
+diff --git a/drivers/media/video/Makefile b/drivers/media/video/Makefile
+index ace5d8b..912b29b 100644
+--- a/drivers/media/video/Makefile
++++ b/drivers/media/video/Makefile
+@@ -65,6 +65,7 @@ obj-$(CONFIG_VIDEO_UPD64083) += upd64083.o
+ obj-$(CONFIG_VIDEO_OV7670) 	+= ov7670.o
+ obj-$(CONFIG_VIDEO_TCM825X) += tcm825x.o
+ obj-$(CONFIG_VIDEO_TVEEPROM) += tveeprom.o
++obj-$(CONFIG_VIDEO_MT9P031) += mt9p031.o
+ obj-$(CONFIG_VIDEO_MT9V011) += mt9v011.o
+ obj-$(CONFIG_VIDEO_SR030PC30)	+= sr030pc30.o
+ obj-$(CONFIG_VIDEO_NOON010PC30)	+= noon010pc30.o
+diff --git a/drivers/media/video/mt9p031.c b/drivers/media/video/mt9p031.c
+new file mode 100644
+index 0000000..cd830b1
+--- /dev/null
++++ b/drivers/media/video/mt9p031.c
+@@ -0,0 +1,763 @@
++/*
++ * Driver for MT9P031 CMOS Image Sensor from Aptina
++ *
++ * Copyright (C) 2011, Javier Martin <javier.martin@vista-silicon.com>
++ *
++ * Copyright (C) 2011, Guennadi Liakhovetski <g.liakhovetski@gmx.de>
++ *
++ * Based on the MT9V032 driver and Bastian Hecht's code.
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
++ */
++
++#include <linux/delay.h>
++#include <linux/device.h>
++#include <linux/i2c.h>
++#include <linux/log2.h>
++#include <linux/pm.h>
++#include <linux/slab.h>
++#include <media/v4l2-subdev.h>
++#include <linux/videodev2.h>
++
++#include <media/mt9p031.h>
++#include <media/v4l2-chip-ident.h>
++#include <media/v4l2-subdev.h>
++#include <media/v4l2-device.h>
++
++#define MT9P031_EXTCLK_FREQ			20000000
++
++#define MT9P031_CHIP_VERSION			0x00
++#define		MT9P031_CHIP_VERSION_VALUE	0x1801
++#define MT9P031_ROW_START			0x01
++#define		MT9P031_ROW_START_MIN		1
++#define		MT9P031_ROW_START_MAX		2004
++#define		MT9P031_ROW_START_DEF		54
++#define MT9P031_COLUMN_START			0x02
++#define		MT9P031_COLUMN_START_MIN	1
++#define		MT9P031_COLUMN_START_MAX	2750
++#define		MT9P031_COLUMN_START_DEF	16
++#define MT9P031_WINDOW_HEIGHT			0x03
++#define		MT9P031_WINDOW_HEIGHT_MIN	2
++#define		MT9P031_WINDOW_HEIGHT_MAX	2003
++#define		MT9P031_WINDOW_HEIGHT_DEF	2003
++#define MT9P031_WINDOW_WIDTH			0x04
++#define		MT9P031_WINDOW_WIDTH_MIN	18
++#define		MT9P031_WINDOW_WIDTH_MAX	2751
++#define		MT9P031_WINDOW_WIDTH_DEF	2751
++#define MT9P031_H_BLANKING			0x05
++#define		MT9P031_H_BLANKING_VALUE	0
++#define MT9P031_V_BLANKING			0x06
++#define		MT9P031_V_BLANKING_VALUE	25
++#define MT9P031_OUTPUT_CONTROL			0x07
++#define		MT9P031_OUTPUT_CONTROL_CEN	2
++#define		MT9P031_OUTPUT_CONTROL_SYN	1
++#define MT9P031_SHUTTER_WIDTH_UPPER		0x08
++#define MT9P031_SHUTTER_WIDTH			0x09
++#define	MT9P031_PLL_CONTROL			0x10
++#define		MT9P031_PLL_CONTROL_PWROFF	0x0050
++#define		MT9P031_PLL_CONTROL_PWRON	0x0051
++#define		MT9P031_PLL_CONTROL_USEPLL	0x0052
++#define	MT9P031_PLL_CONFIG_1			0x11
++#define		MT9P031_PLL_CONFIG_1_M_48MHZ	0x5000
++#define		MT9P031_PLL_CONFIG_1_N_48MHZ	0x05
++#define		MT9P031_PLL_CONFIG_1_M_96MHZ	0x3600
++#define		MT9P031_PLL_CONFIG_1_N_96MHZ	0x05
++#define	MT9P031_PLL_CONFIG_2			0x12
++#define		MT9P031_PLL_CONFIG_2_P1_48MHZ	5
++#define		MT9P031_PLL_CONFIG_2_P1_96MHZ	2
++#define MT9P031_PIXEL_CLOCK_CONTROL		0x0a
++#define MT9P031_FRAME_RESTART			0x0b
++#define MT9P031_SHUTTER_DELAY			0x0c
++#define MT9P031_RST				0x0d
++#define		MT9P031_RST_ENABLE		1
++#define		MT9P031_RST_DISABLE		0
++#define MT9P031_READ_MODE_1			0x1e
++#define MT9P031_READ_MODE_2			0x20
++#define		MT9P031_READ_MODE_2_ROW_MIR	0x8000
++#define		MT9P031_READ_MODE_2_COL_MIR	0x4000
++#define MT9P031_ROW_ADDRESS_MODE		0x22
++#define MT9P031_COLUMN_ADDRESS_MODE		0x23
++#define MT9P031_GLOBAL_GAIN			0x35
++
++struct mt9p031 {
++	struct v4l2_subdev subdev;
++	struct media_pad pad;
++	struct v4l2_rect rect;  /* Sensor window */
++	struct v4l2_mbus_framefmt format;
++	struct mt9p031_platform_data *pdata;
++	struct mutex power_lock; /* lock to protect power_count */
++	int power_count;
++	u16 xskip;
++	u16 yskip;
++	/* cache register values */
++	u16 output_control;
++};
++
++static struct mt9p031 *to_mt9p031(const struct i2c_client *client)
++{
++	return container_of(i2c_get_clientdata(client), struct mt9p031, subdev);
++}
++
++static int reg_read(struct i2c_client *client, const u8 reg)
++{
++	s32 data = i2c_smbus_read_word_data(client, reg);
++	return data < 0 ? data : swab16(data);
++}
++
++static int reg_write(struct i2c_client *client, const u8 reg,
++			const u16 data)
++{
++	return i2c_smbus_write_word_data(client, reg, swab16(data));
++}
++
++static int mt9p031_set_output_control(struct mt9p031 *mt9p031, u16 clear,
++					u16 set)
++{
++	struct i2c_client *client = v4l2_get_subdevdata(&mt9p031->subdev);
++	u16 value = (mt9p031->output_control & ~clear) | set;
++	int ret;
++
++	ret = reg_write(client, MT9P031_OUTPUT_CONTROL, value);
++	if (ret < 0)
++		return ret;
++	mt9p031->output_control = value;
++	return 0;
++}
++
++static int mt9p031_reset(struct i2c_client *client)
++{
++	struct mt9p031 *mt9p031 = to_mt9p031(client);
++	int ret;
++
++	/* Disable chip output, synchronous option update */
++	ret = reg_write(client, MT9P031_RST, MT9P031_RST_ENABLE);
++	if (ret < 0)
++		return ret;
++	ret = reg_write(client, MT9P031_RST, MT9P031_RST_DISABLE);
++	if (ret < 0)
++		return ret;
++	return mt9p031_set_output_control(mt9p031,
++					MT9P031_OUTPUT_CONTROL_CEN, 0);
++}
++
++static int mt9p031_power_on(struct mt9p031 *mt9p031)
++{
++	struct i2c_client *client = v4l2_get_subdevdata(&mt9p031->subdev);
++	int ret;
++
++	/* Ensure RESET_BAR is low */
++	if (mt9p031->pdata->reset) {
++		mt9p031->pdata->reset(&mt9p031->subdev, 1);
++		msleep(1);
++	}
++	/* Emable clock */
++	if (mt9p031->pdata->set_xclk)
++		mt9p031->pdata->set_xclk(&mt9p031->subdev, MT9P031_EXTCLK_FREQ);
++	/* Now RESET_BAR must be high */
++	if (mt9p031->pdata->reset) {
++		mt9p031->pdata->reset(&mt9p031->subdev, 0);
++		msleep(1);
++	}
++	/* soft reset */
++	ret = mt9p031_reset(client);
++	if (ret < 0) {
++		dev_err(&client->dev, "Failed to reset the camera\n");
++		return ret;
++	}
++	return 0;
++}
++
++static void mt9p031_power_off(struct mt9p031 *mt9p031)
++{
++	if (mt9p031->pdata->reset) {
++		mt9p031->pdata->reset(&mt9p031->subdev, 1);
++		msleep(1);
++	}
++	if (mt9p031->pdata->set_xclk)
++		mt9p031->pdata->set_xclk(&mt9p031->subdev, 0);
++}
++
++static int mt9p031_enum_mbus_code(struct v4l2_subdev *sd,
++				struct v4l2_subdev_fh *fh,
++				struct v4l2_subdev_mbus_code_enum *code)
++{
++	struct mt9p031 *mt9p031 = container_of(sd, struct mt9p031, subdev);
++
++	if (code->pad || code->index)
++		return -EINVAL;
++
++	code->code = mt9p031->format.code;
++	return 0;
++}
++
++static struct v4l2_mbus_framefmt *mt9p031_get_pad_format(
++	struct mt9p031 *mt9p031,
++	struct v4l2_subdev_fh *fh,
++	unsigned int pad, u32 which)
++{
++	switch (which) {
++	case V4L2_SUBDEV_FORMAT_TRY:
++		return v4l2_subdev_get_try_format(fh, pad);
++	case V4L2_SUBDEV_FORMAT_ACTIVE:
++		return &mt9p031->format;
++	default:
++		return NULL;
++	}
++}
++
++static struct v4l2_rect *mt9p031_get_pad_crop(struct mt9p031 *mt9p031,
++			struct v4l2_subdev_fh *fh, unsigned int pad, u32 which)
++{
++	switch (which) {
++	case V4L2_SUBDEV_FORMAT_TRY:
++		return v4l2_subdev_get_try_crop(fh, pad);
++	case V4L2_SUBDEV_FORMAT_ACTIVE:
++		return &mt9p031->rect;
++	default:
++		return NULL;
++	}
++}
++
++static int mt9p031_get_crop(struct v4l2_subdev *sd,
++				struct v4l2_subdev_fh *fh,
++				struct v4l2_subdev_crop *crop)
++{
++	struct mt9p031 *mt9p031 = container_of(sd, struct mt9p031, subdev);
++	struct v4l2_rect *rect = mt9p031_get_pad_crop(mt9p031, fh, crop->pad,
++							crop->which);
++	if (!rect)
++		return -EINVAL;
++
++	crop->rect = *rect;
++
++	return 0;
++}
++
++static u16 mt9p031_skip_for_crop(s32 source, s32 *target, s32 max_skip)
++{
++	unsigned int skip;
++
++	if (source - source / 4 < *target) {
++		*target = source;
++		return 1;
++	}
++
++	skip = DIV_ROUND_CLOSEST(source, *target);
++	if (skip > max_skip)
++		skip = max_skip;
++	*target = 2 * DIV_ROUND_UP(source, 2 * skip);
++
++	return skip;
++}
++
++static int mt9p031_set_params(struct i2c_client *client,
++				struct v4l2_rect *rect, u16 xskip, u16 yskip)
++{
++	struct mt9p031 *mt9p031 = to_mt9p031(client);
++	int ret;
++	u16 xbin, ybin;
++	const u16 hblank = MT9P031_H_BLANKING_VALUE,
++		vblank = MT9P031_V_BLANKING_VALUE;
++	__s32 left;
++
++	/*
++	* TODO: Attention! When implementing horizontal flipping, adjust
++	* alignment according to R2 "Column Start" description in the datasheet
++	*/
++	if (xskip & 1) {
++		xbin = 1;
++		left = rect->left & (~3);
++	} else if (xskip & 2) {
++		xbin = 2;
++		left = rect->left & (~7);
++	} else {
++		xbin = 4;
++		left = rect->left & (~15);
++	}
++	ybin = min(yskip, (u16)4);
++
++	/* Disable register update, reconfigure atomically */
++	ret = mt9p031_set_output_control(mt9p031, 0,
++					MT9P031_OUTPUT_CONTROL_SYN);
++	if (ret < 0)
++		return ret;
++
++	dev_dbg(&client->dev, "skip %u:%u, rect %ux%u@%u:%u\n",
++		xskip, yskip, rect->width, rect->height, rect->left, rect->top);
++
++	/* Blanking and start values - default... */
++	ret = reg_write(client, MT9P031_H_BLANKING, hblank);
++	if (ret < 0)
++		return ret;
++	ret = reg_write(client, MT9P031_V_BLANKING, vblank);
++	if (ret < 0)
++		return ret;
++
++	ret = reg_write(client, MT9P031_COLUMN_ADDRESS_MODE,
++				((xbin - 1) << 4) | (xskip - 1));
++	if (ret < 0)
++		return ret;
++	ret = reg_write(client, MT9P031_ROW_ADDRESS_MODE,
++				((ybin - 1) << 4) | (yskip - 1));
++	if (ret < 0)
++		return ret;
++
++	dev_dbg(&client->dev, "new physical left %u, top %u\n",
++		rect->left, rect->top);
++
++	ret = reg_write(client, MT9P031_COLUMN_START,
++				rect->left);
++	if (ret < 0)
++		return ret;
++	ret = reg_write(client, MT9P031_ROW_START,
++				rect->top);
++	if (ret < 0)
++		return ret;
++
++	ret = reg_write(client, MT9P031_WINDOW_WIDTH,
++				rect->width - 1);
++	if (ret < 0)
++		return ret;
++	ret = reg_write(client, MT9P031_WINDOW_HEIGHT,
++				rect->height - 1);
++	if (ret < 0)
++		return ret;
++
++	/* Re-enable register update, commit all changes */
++	ret = mt9p031_set_output_control(mt9p031,
++					MT9P031_OUTPUT_CONTROL_SYN, 0);
++	if (ret < 0)
++		return ret;
++
++	mt9p031->xskip = xskip;
++	mt9p031->yskip = yskip;
++	return ret;
++}
++
++static int mt9p031_set_crop(struct v4l2_subdev *sd,
++				struct v4l2_subdev_fh *fh,
++				struct v4l2_subdev_crop *crop)
++{
++	struct mt9p031 *mt9p031 = container_of(sd, struct mt9p031, subdev);
++	struct v4l2_mbus_framefmt *f;
++	struct v4l2_rect *c;
++	struct v4l2_rect rect;
++	u16 xskip, yskip;
++	s32 width, height;
++
++	dev_dbg(mt9p031->subdev.v4l2_dev->dev, "%s(%ux%u@%u:%u : %u)\n",
++			__func__, crop->rect.width, crop->rect.height,
++			crop->rect.left, crop->rect.top, crop->which);
++
++	/*
++	* Clamp the crop rectangle boundaries and align them to a multiple of 2
++	* pixels.
++	*/
++	rect.width = ALIGN(clamp(crop->rect.width,
++				MT9P031_WINDOW_WIDTH_MIN,
++				MT9P031_WINDOW_WIDTH_MAX), 2);
++	rect.height = ALIGN(clamp(crop->rect.height,
++				MT9P031_WINDOW_HEIGHT_MIN,
++				MT9P031_WINDOW_HEIGHT_MAX), 2);
++	rect.left = ALIGN(clamp(crop->rect.left,
++				MT9P031_COLUMN_START_MIN,
++				MT9P031_COLUMN_START_MAX), 2);
++	rect.top = ALIGN(clamp(crop->rect.top,
++				MT9P031_ROW_START_MIN,
++				MT9P031_ROW_START_MAX), 2);
++
++	c = mt9p031_get_pad_crop(mt9p031, fh, crop->pad, crop->which);
++
++	if (rect.width != c->width || rect.height != c->height) {
++		/*
++		* Reset the output image size if the crop rectangle size has
++		* been modified.
++		*/
++		f = mt9p031_get_pad_format(mt9p031, fh, crop->pad,
++						crop->which);
++		width = f->width;
++		height = f->height;
++
++		xskip = mt9p031_skip_for_crop(rect.width, &width, 7);
++		yskip = mt9p031_skip_for_crop(rect.height, &height, 8);
++	} else {
++		xskip = mt9p031->xskip;
++		yskip = mt9p031->yskip;
++		f = NULL;
++	}
++	if (f) {
++		f->width = width;
++		f->height = height;
++	}
++
++	*c = rect;
++	crop->rect = rect;
++
++	mt9p031->xskip = xskip;
++	mt9p031->yskip = yskip;
++	mt9p031->rect = *c;
++	return 0;
++}
++
++static int mt9p031_get_format(struct v4l2_subdev *sd,
++				struct v4l2_subdev_fh *fh,
++				struct v4l2_subdev_format *fmt)
++{
++	struct mt9p031 *mt9p031 = container_of(sd, struct mt9p031, subdev);
++
++	fmt->format =
++		*mt9p031_get_pad_format(mt9p031, fh, fmt->pad, fmt->which);
++	return 0;
++}
++
++static u16 mt9p031_skip_for_scale(s32 *source, s32 target,
++					s32 max_skip, s32 max)
++{
++	unsigned int skip;
++
++	if (*source - *source / 4 < target) {
++		*source = target;
++		return 1;
++	}
++
++	skip = min(max, *source + target / 2) / target;
++	if (skip > max_skip)
++		skip = max_skip;
++	*source = target * skip;
++
++	return skip;
++}
++
++static int mt9p031_set_format(struct v4l2_subdev *sd,
++				struct v4l2_subdev_fh *fh,
++				struct v4l2_subdev_format *format)
++{
++	struct v4l2_mbus_framefmt *__format;
++	struct v4l2_rect *__crop, rect;
++	struct mt9p031 *mt9p031 = container_of(sd, struct mt9p031, subdev);
++	unsigned int width;
++	unsigned int height;
++	u16 xskip, yskip;
++
++	__crop = mt9p031_get_pad_crop(mt9p031, fh, format->pad, format->which);
++
++	width = clamp_t(int, ALIGN(format->format.width, 2), 2,
++						MT9P031_WINDOW_WIDTH_MAX);
++	height = clamp_t(int, ALIGN(format->format.height, 2), 2,
++						MT9P031_WINDOW_HEIGHT_MAX);
++
++	rect.width = __crop->width;
++	rect.height = __crop->height;
++
++	xskip = mt9p031_skip_for_scale(&rect.width, width, 7,
++				MT9P031_WINDOW_WIDTH_MAX);
++	if (rect.width + __crop->left > MT9P031_WINDOW_WIDTH_MAX)
++		rect.left = (MT9P031_WINDOW_WIDTH_MAX - rect.width) / 2;
++	else
++		rect.left = __crop->left;
++	yskip = mt9p031_skip_for_scale(&rect.height, height, 8,
++				MT9P031_WINDOW_HEIGHT_MAX);
++	if (rect.height + __crop->top > MT9P031_WINDOW_HEIGHT_MAX)
++		rect.top = (MT9P031_WINDOW_HEIGHT_MAX - rect.height) / 2;
++	else
++		rect.top = __crop->top;
++
++	dev_dbg(mt9p031->subdev.v4l2_dev->dev, "%s(%ux%u : %u)\n", __func__,
++		width, height, format->which);
++	if (__crop)
++		*__crop = rect;
++
++	__format = mt9p031_get_pad_format(mt9p031, fh, format->pad,
++						format->which);
++	__format->width = width;
++	__format->height = height;
++	format->format = *__format;
++
++	mt9p031->xskip = xskip;
++	mt9p031->yskip = yskip;
++	mt9p031->rect = *__crop;
++	return 0;
++}
++
++static int mt9p031_pll_enable(struct i2c_client *client)
++{
++	struct mt9p031 *mt9p031 = to_mt9p031(client);
++	int ret;
++
++	ret = reg_write(client, MT9P031_PLL_CONTROL, MT9P031_PLL_CONTROL_PWRON);
++	if (ret < 0)
++		return ret;
++
++	/* Always set the maximum frequency allowed by VDD_IO */
++	if (mt9p031->pdata->vdd_io == MT9P031_VDD_IO_2V8) {
++		ret = reg_write(client, MT9P031_PLL_CONFIG_1,
++			MT9P031_PLL_CONFIG_1_M_96MHZ |
++			MT9P031_PLL_CONFIG_1_N_96MHZ);
++		if (ret < 0)
++			return ret;
++		ret = reg_write(client, MT9P031_PLL_CONFIG_2,
++				MT9P031_PLL_CONFIG_2_P1_96MHZ);
++		if (ret < 0)
++			return ret;
++	} else {
++		ret = reg_write(client, MT9P031_PLL_CONFIG_1,
++			MT9P031_PLL_CONFIG_1_M_48MHZ |
++			MT9P031_PLL_CONFIG_1_N_48MHZ);
++		if (ret < 0)
++			return ret;
++		ret = reg_write(client, MT9P031_PLL_CONFIG_2,
++				MT9P031_PLL_CONFIG_2_P1_48MHZ);
++		if (ret < 0)
++			return ret;
++	}
++	mdelay(1);
++	ret = reg_write(client, MT9P031_PLL_CONTROL,
++			MT9P031_PLL_CONTROL_PWRON |
++			MT9P031_PLL_CONTROL_USEPLL);
++	mdelay(1);
++	return ret;
++}
++
++static inline int mt9p031_pll_disable(struct i2c_client *client)
++{
++	return reg_write(client, MT9P031_PLL_CONTROL,
++			 MT9P031_PLL_CONTROL_PWROFF);
++}
++
++static int mt9p031_s_stream(struct v4l2_subdev *sd, int enable)
++{
++	struct mt9p031 *mt9p031 = container_of(sd, struct mt9p031, subdev);
++	struct i2c_client *client = v4l2_get_subdevdata(&mt9p031->subdev);
++	struct v4l2_rect rect = mt9p031->rect;
++	u16 xskip = mt9p031->xskip;
++	u16 yskip = mt9p031->yskip;
++	int ret;
++
++	if (enable) {
++		ret = mt9p031_set_params(client, &rect, xskip, yskip);
++		if (ret < 0)
++			return ret;
++		/* Switch to master "normal" mode */
++		ret = mt9p031_set_output_control(mt9p031, 0,
++						MT9P031_OUTPUT_CONTROL_CEN);
++		if (ret < 0)
++			return ret;
++		ret = mt9p031_pll_enable(client);
++	} else {
++		/* Stop sensor readout */
++		ret = mt9p031_set_output_control(mt9p031,
++						MT9P031_OUTPUT_CONTROL_CEN, 0);
++		if (ret < 0)
++			return ret;
++		ret = mt9p031_pll_disable(client);
++	}
++	return ret;
++}
++
++static int mt9p031_video_probe(struct i2c_client *client)
++{
++	s32 data;
++
++	/* Read out the chip version register */
++	data = reg_read(client, MT9P031_CHIP_VERSION);
++	if (data != MT9P031_CHIP_VERSION_VALUE) {
++		dev_err(&client->dev,
++			"No MT9P031 chip detected, register read %x\n", data);
++		return -ENODEV;
++	}
++
++	dev_info(&client->dev, "Detected a MT9P031 chip ID %x\n", data);
++
++	return 0;
++}
++
++static int mt9p031_set_power(struct v4l2_subdev *sd, int on)
++{
++	struct mt9p031 *mt9p031 = container_of(sd, struct mt9p031, subdev);
++	int ret = 0;
++
++	mutex_lock(&mt9p031->power_lock);
++
++	/*
++	* If the power count is modified from 0 to != 0 or from != 0 to 0,
++	* update the power state.
++	*/
++	if (mt9p031->power_count == !on) {
++		if (on) {
++			ret = mt9p031_power_on(mt9p031);
++			if (ret) {
++				dev_err(mt9p031->subdev.v4l2_dev->dev,
++				"Failed to power on: %d\n", ret);
++				goto out;
++			}
++		} else {
++			mt9p031_power_off(mt9p031);
++		}
++	}
++
++	/* Update the power count. */
++	mt9p031->power_count += on ? 1 : -1;
++	WARN_ON(mt9p031->power_count < 0);
++
++out:
++	mutex_unlock(&mt9p031->power_lock);
++	return ret;
++}
++
++static int mt9p031_registered(struct v4l2_subdev *sd)
++{
++	struct mt9p031 *mt9p031 = container_of(sd, struct mt9p031, subdev);
++	struct i2c_client *client = v4l2_get_subdevdata(&mt9p031->subdev);
++	int ret;
++
++	ret = mt9p031_set_power(&mt9p031->subdev, 1);
++	if (ret) {
++		dev_err(&client->dev,
++			"Failed to power on device: %d\n", ret);
++		return ret;
++	}
++
++	ret = mt9p031_video_probe(client);
++
++	mt9p031_set_power(&mt9p031->subdev, 0);
++
++	return ret;
++}
++
++static int mt9p031_open(struct v4l2_subdev *sd, struct v4l2_subdev_fh *fh)
++{
++	struct mt9p031 *mt9p031;
++	mt9p031 = container_of(sd, struct mt9p031, subdev);
++
++	mt9p031->rect.width     = MT9P031_WINDOW_WIDTH_DEF;
++	mt9p031->rect.height    = MT9P031_WINDOW_HEIGHT_DEF;
++	mt9p031->rect.left      = MT9P031_COLUMN_START_DEF;
++	mt9p031->rect.top       = MT9P031_ROW_START_DEF;
++
++	if (mt9p031->pdata->version == MT9P031_MONOCHROME_VERSION)
++		mt9p031->format.code = V4L2_MBUS_FMT_Y12_1X12;
++	else
++		mt9p031->format.code = V4L2_MBUS_FMT_SGRBG12_1X12;
++
++	mt9p031->format.width = MT9P031_WINDOW_WIDTH_DEF;
++	mt9p031->format.height = MT9P031_WINDOW_HEIGHT_DEF;
++	mt9p031->format.field = V4L2_FIELD_NONE;
++	mt9p031->format.colorspace = V4L2_COLORSPACE_SRGB;
++
++	mt9p031->xskip = 1;
++	mt9p031->yskip = 1;
++	return mt9p031_set_power(sd, 1);
++}
++
++static int mt9p031_close(struct v4l2_subdev *sd, struct v4l2_subdev_fh *fh)
++{
++	return mt9p031_set_power(sd, 0);
++}
++
++static struct v4l2_subdev_core_ops mt9p031_subdev_core_ops = {
++	.s_power        = mt9p031_set_power,
++};
++
++static struct v4l2_subdev_video_ops mt9p031_subdev_video_ops = {
++	.s_stream       = mt9p031_s_stream,
++};
++
++static struct v4l2_subdev_pad_ops mt9p031_subdev_pad_ops = {
++	.enum_mbus_code = mt9p031_enum_mbus_code,
++	.get_fmt = mt9p031_get_format,
++	.set_fmt = mt9p031_set_format,
++	.get_crop = mt9p031_get_crop,
++	.set_crop = mt9p031_set_crop,
++};
++
++static struct v4l2_subdev_ops mt9p031_subdev_ops = {
++	.core   = &mt9p031_subdev_core_ops,
++	.video  = &mt9p031_subdev_video_ops,
++	.pad    = &mt9p031_subdev_pad_ops,
++};
++
++static const struct v4l2_subdev_internal_ops mt9p031_subdev_internal_ops = {
++	.registered = mt9p031_registered,
++	.open = mt9p031_open,
++	.close = mt9p031_close,
++};
++
++static int mt9p031_probe(struct i2c_client *client,
++				const struct i2c_device_id *did)
++{
++	int ret;
++	struct mt9p031 *mt9p031;
++	struct mt9p031_platform_data *pdata = client->dev.platform_data;
++	struct i2c_adapter *adapter = to_i2c_adapter(client->dev.parent);
++
++	if (!i2c_check_functionality(adapter, I2C_FUNC_SMBUS_WORD_DATA)) {
++		dev_warn(&adapter->dev,
++			"I2C-Adapter doesn't support I2C_FUNC_SMBUS_WORD\n");
++		return -EIO;
++	}
++
++	mt9p031 = kzalloc(sizeof(struct mt9p031), GFP_KERNEL);
++	if (!mt9p031)
++		return -ENOMEM;
++
++	mutex_init(&mt9p031->power_lock);
++	v4l2_i2c_subdev_init(&mt9p031->subdev, client, &mt9p031_subdev_ops);
++	mt9p031->subdev.internal_ops = &mt9p031_subdev_internal_ops;
++
++	mt9p031->pdata          = pdata;
++
++	mt9p031->pad.flags = MEDIA_PAD_FL_SOURCE;
++	ret = media_entity_init(&mt9p031->subdev.entity, 1, &mt9p031->pad, 0);
++	if (ret)
++		return ret;
++
++	mt9p031->subdev.flags |= V4L2_SUBDEV_FL_HAS_DEVNODE;
++
++	return 0;
++}
++
++static int mt9p031_remove(struct i2c_client *client)
++{
++	struct v4l2_subdev *sd = i2c_get_clientdata(client);
++	struct mt9p031 *mt9p031 = container_of(sd, struct mt9p031, subdev);
++
++	v4l2_device_unregister_subdev(sd);
++	media_entity_cleanup(&sd->entity);
++	kfree(mt9p031);
++
++	return 0;
++}
++
++static const struct i2c_device_id mt9p031_id[] = {
++	{ "mt9p031", 0 },
++	{ }
++};
++MODULE_DEVICE_TABLE(i2c, mt9p031_id);
++
++static struct i2c_driver mt9p031_i2c_driver = {
++	.driver = {
++		.name = "mt9p031",
++	},
++	.probe          = mt9p031_probe,
++	.remove         = mt9p031_remove,
++	.id_table       = mt9p031_id,
++};
++
++static int __init mt9p031_mod_init(void)
++{
++	return i2c_add_driver(&mt9p031_i2c_driver);
++}
++
++static void __exit mt9p031_mod_exit(void)
++{
++	i2c_del_driver(&mt9p031_i2c_driver);
++}
++
++module_init(mt9p031_mod_init);
++module_exit(mt9p031_mod_exit);
++
++MODULE_DESCRIPTION("Aptina MT9P031 Camera driver");
++MODULE_AUTHOR("Bastian Hecht <hechtb@gmail.com>");
++MODULE_LICENSE("GPL v2");
+diff --git a/include/media/mt9p031.h b/include/media/mt9p031.h
+new file mode 100644
+index 0000000..27b4c75
+--- /dev/null
++++ b/include/media/mt9p031.h
+@@ -0,0 +1,23 @@
++#ifndef MT9P031_H
++#define MT9P031_H
++
++struct v4l2_subdev;
++
++enum {
++	MT9P031_COLOR_VERSION = 0,
++	MT9P031_MONOCHROME_VERSION = 1,
++};
++
++enum {
++	MT9P031_VDD_IO_1V8 = 0,
++	MT9P031_VDD_IO_2V8 = 1,
++};
++
++struct mt9p031_platform_data {
++	int (*set_xclk)(struct v4l2_subdev *subdev, int hz);
++	int (*reset)(struct v4l2_subdev *subdev, int active);
++	int vdd_io; /* MT9P031_VDD_IO_1V8 or MT9P031_VDD_IO_2V8 */
++	int version; /* MT9P031_COLOR_VERSION or MT9P031_MONOCHROME_VERSION */
++};
++
++#endif
+-- 
+1.7.0.4
+
