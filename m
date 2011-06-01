@@ -1,115 +1,100 @@
 Return-path: <mchehab@pedra>
-Received: from moutng.kundenserver.de ([212.227.126.187]:54698 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750910Ab1FGHEm convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 7 Jun 2011 03:04:42 -0400
-Date: Tue, 7 Jun 2011 09:04:40 +0200 (CEST)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Kassey Lee <kassey1216@gmail.com>
-cc: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: [PATCH] V4L: soc-camera: MIPI flags are not sensor flags
-In-Reply-To: <BANLkTikFAgYcWLw=Pn142sXLVoqv9GtW7g@mail.gmail.com>
-Message-ID: <Pine.LNX.4.64.1106070847480.31635@axis700.grange>
-References: <Pine.LNX.4.64.1106061917080.11169@axis700.grange>
- <BANLkTikFAgYcWLw=Pn142sXLVoqv9GtW7g@mail.gmail.com>
+Received: from perceval.ideasonboard.com ([95.142.166.194]:47423 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1161201Ab1FAJaL (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 1 Jun 2011 05:30:11 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Bastian Hecht <hechtb@googlemail.com>
+Subject: Re: Capabilities of the Omap3 ISP driver
+Date: Wed, 1 Jun 2011 11:30:05 +0200
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	"Felix v. Hundelshausen" <felix.v.hundelshausen@live.de>
+References: <BANLkTineUffG1yd3Ey30wr0xzAj3_Zd1KQ@mail.gmail.com> <201105302347.24554.laurent.pinchart@ideasonboard.com> <BANLkTi=MY2soJTW50AgXHL4zQfoYRBzn3Q@mail.gmail.com>
+In-Reply-To: <BANLkTi=MY2soJTW50AgXHL4zQfoYRBzn3Q@mail.gmail.com>
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=ISO-8859-15
-Content-Transfer-Encoding: 8BIT
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201106011130.06049.laurent.pinchart@ideasonboard.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Hi Kassey
+Hi Bastian,
 
-On Tue, 7 Jun 2011, Kassey Lee wrote:
-
-> hi, Guennadi:
->         I'm a little confused.
->         there is possible that a board will connect the sensor with
-> [1234] lanes.
->         so this means it could be a board-specific flags too ?
-
-Yes, this is certainly possible. But first of all, please, look at 
-soc_camera_bus_param_compatible(), which is where we have added those MIPI 
-flags, along with other SOCAM_* flags. That was a bug - you certainly 
-cannot mix different flags in one bitmask. With a definition like
-
-#define SOCAM_MIPI_1LANE               (1 << 5)
-
-it just messes up with
-
-#define SOCAM_VSYNC_ACTIVE_LOW		(1 << 5)
-
-etc. So, to use these flags to configure the connection between the camera 
-and the host, these MIPI_*LANE flags has to belong to the same value 
-range. Of course, it is possible, that a camera driver need platform data 
-to find out, how many lanes it has connected. But that can be handled 
-privately by each such driver, similar to buswidth on parallel 
-connections. I would suggest using the .query_bus_param() callback in 
-struct soc_camera_link for that. You can have a look at mt9m001 for an 
-example.
-
-Thanks
-Guennadi
-
+On Wednesday 01 June 2011 10:18:21 Bastian Hecht wrote:
+> 2011/5/30 Laurent Pinchart <laurent.pinchart@ideasonboard.com>:
+> > On Monday 30 May 2011 23:39:13 Bastian Hecht wrote:
+> >> 2011/5/30 Laurent Pinchart <laurent.pinchart@ideasonboard.com>:
+> >> > On Sunday 29 May 2011 15:27:23 Bastian Hecht wrote:
+> >> >> Hello Laurent,
+> >> >> 
+> >> >> I'm on to a project that needs two synced separate small cameras for
+> >> >> stereovision.
+> >> >> 
+> >> >> I was thinking about realizing this on an DM3730 with 2 aptina csi2
+> >> >> cameras that are used in snapshot mode.
+> >> > 
+> >> > As far as I know, the DM3730 doesn't have CSI2 interfaces.
+> >> 
+> >> If I don't mix up datasheets, it is stated very clearly that 2 csi2
+> >> interfaces are supported. I took the datasheet at
+> >> http://www.ti.com/litv/pdf/sprugn4k declared as AM/DM37x Multimedia
+> >> Device Technical Reference Manual (Silicon Revision 1.x) (Rev. K)
+> >> (PDF  26851 KB).
+> >> "The camera ISP implements three receivers which are named CSI2A,
+> >> CSI1/CCP2B, and CSI2C. The CSI2A and CSI2C are MIPI D-PHY CSI2
+> >> compatible." on page 1070.
+> > 
+> > Chapter 6 starts with the following disclaimer:
+> > 
+> > "NOTE: This chapter gives information about all modules and features in
+> > the high-tier device. To check availability of modules and features, see
+> > Section 1.5, AM/DM37x Family, and the device-specific data manual. In
+> > unavailable modules and features, the memory area is reserved, read is
+> > undefined, and write can lead to unpredictable behavior."
+> > 
+> > And if you look at table 1-3 on page 195, the CSI2 receivers are not
+> > supported.
 > 
-> thanks!
-> 
-> Best regards
-> Kassey
-> Application Processor Systems Engineering, Marvell Technology Group Ltd.
-> Shanghai, China.
-> 
-> On Tue, Jun 7, 2011 at 1:17 AM, Guennadi Liakhovetski
-> <g.liakhovetski@gmx.de> wrote:
-> > SOCAM_MIPI_[1234]LANE flags are not board-specific sensor flags, they
-> > are bus configuration flags.
-> >
-> > Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-> > ---
-> >  include/media/soc_camera.h |   12 ++++++------
-> >  1 files changed, 6 insertions(+), 6 deletions(-)
-> >
-> > diff --git a/include/media/soc_camera.h b/include/media/soc_camera.h
-> > index 238bd33..e34b5e6 100644
-> > --- a/include/media/soc_camera.h
-> > +++ b/include/media/soc_camera.h
-> > @@ -109,12 +109,6 @@ struct soc_camera_host_ops {
-> >  #define SOCAM_SENSOR_INVERT_HSYNC      (1 << 2)
-> >  #define SOCAM_SENSOR_INVERT_VSYNC      (1 << 3)
-> >  #define SOCAM_SENSOR_INVERT_DATA       (1 << 4)
-> > -#define SOCAM_MIPI_1LANE               (1 << 5)
-> > -#define SOCAM_MIPI_2LANE               (1 << 6)
-> > -#define SOCAM_MIPI_3LANE               (1 << 7)
-> > -#define SOCAM_MIPI_4LANE               (1 << 8)
-> > -#define SOCAM_MIPI     (SOCAM_MIPI_1LANE | SOCAM_MIPI_2LANE | \
-> > -                       SOCAM_MIPI_3LANE | SOCAM_MIPI_4LANE)
-> >
-> >  struct i2c_board_info;
-> >  struct regulator_bulk_data;
-> > @@ -270,6 +264,12 @@ static inline struct v4l2_queryctrl const *soc_camera_find_qctrl(
-> >  #define SOCAM_PCLK_SAMPLE_FALLING      (1 << 13)
-> >  #define SOCAM_DATA_ACTIVE_HIGH         (1 << 14)
-> >  #define SOCAM_DATA_ACTIVE_LOW          (1 << 15)
-> > +#define SOCAM_MIPI_1LANE               (1 << 16)
-> > +#define SOCAM_MIPI_2LANE               (1 << 17)
-> > +#define SOCAM_MIPI_3LANE               (1 << 18)
-> > +#define SOCAM_MIPI_4LANE               (1 << 19)
-> > +#define SOCAM_MIPI     (SOCAM_MIPI_1LANE | SOCAM_MIPI_2LANE | \
-> > +                       SOCAM_MIPI_3LANE | SOCAM_MIPI_4LANE)
-> >
-> >  #define SOCAM_DATAWIDTH_MASK (SOCAM_DATAWIDTH_4 | SOCAM_DATAWIDTH_8 | \
-> >                              SOCAM_DATAWIDTH_9 | SOCAM_DATAWIDTH_10 | \
-> > --
-> > 1.7.2.5
-> >
-> > --
-> > To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> > the body of a message to majordomo@vger.kernel.org
-> > More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> >
-> 
+> OK, that potentially saved me tons of work! I saw that the omap4 has 2
+> csi2 interfaces (and I checked this note :). Unfortunately the panda
+> board only leads out 1 csi2 channel.
 
----
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
-http://www.open-technology.de/
+And the OMAP4 ISS doesn't have a V4L2 driver :-(
+
+> >> >> The questions that arise are:
+> >> >> 
+> >> >> - is the ISP driver capable of running 2 concurrent cameras?
+> >> > 
+> >> > Yes it can, but only one of them can use the CCDC, preview engine and
+> >> > resizer. The other will be captured directly to memory as raw data.
+> >> > You could capture both raw streams to memory, and then feed them
+> >> > alternatively through the rest of the pipeline. Whether this can work
+> >> > will depend on the image size and frame rate.
+> >> 
+> >> Ok I will check if it is sufficient to do any conversions on the cpu.
+> >> 
+> >> >> - is it possible to simulate a kind of video stream that is
+> >> >> externally triggered (I would use a gpio line that simply triggers
+> >> >> 10 times a sec) or would there arise problems with the csi2
+> >> >> protocoll (timeouts or similar)?
+> >> > 
+> >> > I don't think there will be CSI2 issues (although I'm not an expert
+> >> > there) if you trigger the sensors externally.
+> >> 
+> >> Nice, when the ISP side is probably no problem - do you have any
+> >> experience with snapshot mode and know if cameras are capable of doing
+> >> it at framerates about 10fps? It is just because snapshot mode sounds
+> >> like taking 1 frame every now and then... can't they call it "trigger
+> >> mode"? :)
+> > 
+> > I haven't personally tried it, but 10fps doesn't sound impossible to
+> > reach with external triggers.
+> 
+> Nice.
+
+-- 
+Regards,
+
+Laurent Pinchart
