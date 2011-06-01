@@ -1,103 +1,55 @@
 Return-path: <mchehab@pedra>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:56518 "EHLO
-	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932129Ab1F1QGq (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 28 Jun 2011 12:06:46 -0400
+Received: from arroyo.ext.ti.com ([192.94.94.40]:47033 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755490Ab1FAH2y convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 1 Jun 2011 03:28:54 -0400
+From: "JAIN, AMBER" <amber@ti.com>
+To: Sakari Ailus <sakari.ailus@iki.fi>
+CC: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	"Hiremath, Vaibhav" <hvaibhav@ti.com>
+Date: Wed, 1 Jun 2011 12:57:11 +0530
+Subject: RE: [PATCH] OMAP: V4L2: Remove GFP_DMA allocation as ZONE_DMA is
+ not configured on OMAP
+Message-ID: <5A47E75E594F054BAF48C5E4FC4B92AB037A28AD31@dbde02.ent.ti.com>
+References: <1306835503-24631-1-git-send-email-amber@ti.com>
+ <5A47E75E594F054BAF48C5E4FC4B92AB037B65850E@dbde02.ent.ti.com>,<20110601070733.GC4991@valkosipuli.localdomain>
+In-Reply-To: <20110601070733.GC4991@valkosipuli.localdomain>
+Content-Language: en-US
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 MIME-Version: 1.0
-In-Reply-To: <201106280804.48742.hverkuil@xs4all.nl>
-References: <4E0519B7.3000304@redhat.com> <201106271907.59067.hverkuil@xs4all.nl>
- <BANLkTin=PTbTwBR2s+owMLy+GmKigeoYvg@mail.gmail.com> <201106280804.48742.hverkuil@xs4all.nl>
-From: Linus Torvalds <torvalds@linux-foundation.org>
-Date: Tue, 28 Jun 2011 09:05:53 -0700
-Message-ID: <BANLkTi=6W0quy1M71UapwKDe97E67b4EiA@mail.gmail.com>
-Subject: Re: [PATCH] [media] v4l2 core: return -ENOIOCTLCMD if an ioctl
- doesn't exist
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Sakari Ailus <sakari.ailus@iki.fi>,
-	Arnd Bergmann <arnd@arndb.de>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
-Content-Type: text/plain; charset=ISO-8859-1
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Mon, Jun 27, 2011 at 11:04 PM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
+As per Vaibhav's review comments, I have split the patch into 2 different (independent) patches:
+- one for omap_vout
+- and another for omap24xxcam.c (name changed to [PATCH] OMAP2: V4L2: Remove GFP_DMA allocation as ZONE_DMA is not configured on OMAP )
+If you have difficulty in finding it I can send it again.
+
+Thanks,
+Amber
+
+________________________________________
+From: Sakari Ailus [sakari.ailus@iki.fi]
+Sent: Wednesday, June 01, 2011 12:37 PM
+To: JAIN, AMBER
+Cc: linux-media@vger.kernel.org; Hiremath, Vaibhav
+Subject: Re: [PATCH] OMAP: V4L2: Remove GFP_DMA allocation as ZONE_DMA is not configured on OMAP
+
+On Tue, May 31, 2011 at 03:58:46PM +0530, JAIN, AMBER wrote:
+> I have tested it on OMAP4430 blaze and OMAP3430 SDP platforms.
 >
-> Of course, since vfs_ioctl does the same thing this is clearly isn't some
-> isolated V4L thing. Pot. Kettle.
+> I do not have the hardware to test omap24xxcam change. Can someone please
+> help me on this?
 
-Oh, absolutely. V4L is not at all the only confused user around.
+I have the hardware, but this driver is not testable right now as it is in
+the mainline since the board code for the camera is missing from N8[01]0
+(besides cbus driver AFAIR). However the change seems practically mandatory
+to me --- I can ack it if you send a patch against omap24xxcam.c, as your
+new patch no longer contains the change for omap24xxcam.c.
 
-The EINVAL thing goes way back, and is a disaster. It predates Linux
-itself, as far as I can tell. You'll fin dlots of man-pages that have
-this line in it:
+Thanks.
 
-  EINVAL Request or argp is not valid.
-
-and it shows up in POSIX etc. And sadly, it generally shows up
-_before_ the line that says
-
-  ENOTTY The specified request does not apply to the kind of object
-that the descriptor d references.
-
-so a lot of people get to the EINVAL, and never even notice the ENOTTY.
-
-And the above is from the current Linux man-pages - they are better
-than most. Googling for posix and ioctl, the first hit is some
-streams-specific man-page that is much worse, and makes you really
-think that EINVAL would be the right error for a bad ioctl.
-
-The reason is probably that ENOTTY has always been a "wft?" kind of
-error code. It doesn't make sense as a name for some filesystem or
-driver writer. Any sane person goes "Of _course_ it's not a tty, why
-would I say that?"
-
-At least glibc (and hopefully other C libraries) use a _string_ that
-makes much more sense: strerror(ENOTTY) is "Inappropriate ioctl for
-device"
-
-The particular translation of ENOIOCTLCMD to EINVAL was always a
-mistake. I'll happily try to change it for 3.1, but I'll need to do it
-early in the merge window to check for any issues.
-
-(In fact, the _correct_ thing to do would probably be to just do
-
-   #define ENOIOCTLCMD ENOTTY
-
-and get rid of any translation - just giving ENOTTY a more appropriate
-name and less chance for confusion)
-
-> It was my understanding that we shouldn't break the userspace API. This breaks
-> the userspace API. If everyone else says it's fine to break the userspace API
-> this time, then who am I to object?
-
-We are indeed never supposed to break userspace.
-
-But that does not mean that we cannot fix bugs. It only means exactly
-what it says: we cannot break user space.
-
-If we fix a bug, and it turns out that user space actually depends on
-that bug, then we need to revert the fix. But it never means "you can
-never make any changes at all to interfaces". It only means "you
-cannot make any changes that break applications".
-
-There may be applications out there that really break when they get
-ENOTTY instead of EINVAL. But most cases that check for errors from
-ioctl's tend to just say "did this succeed or not" rather than "did
-this return EINVAL". That's *doubly* true since the error code has
-been ambiguous, so checking for the exact error code has always been
-pretty pointless.
-
-So the common use of the error code tends to be for things like
-strerror(), and then it would be a real improvement to show
-"Inappropriate ioctl for device" when the device doesn't support that
-ioctl, wouldn't it?
-
-But yes, let's try to fix it, and if it turns out that that breaks
-something, we must simply revert and probably add a comment to the
-source code ("EINVAL is wrong, it should be ENOTTY, but xyzzy only
-works with EINVAL").
-
-                                       Linus
+--
+Sakari Ailus
+sakari dot ailus at iki dot fi
