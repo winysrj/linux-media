@@ -1,37 +1,52 @@
 Return-path: <mchehab@pedra>
-Received: from mail2.matrix-vision.com ([85.214.244.251]:52008 "EHLO
-	mail2.matrix-vision.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752576Ab1FNPuQ (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 14 Jun 2011 11:50:16 -0400
-Message-ID: <4DF78335.80109@matrix-vision.de>
-Date: Tue, 14 Jun 2011 17:50:13 +0200
-From: Michael Jones <michael.jones@matrix-vision.de>
+Received: from canardo.mork.no ([148.122.252.1]:48073 "EHLO canardo.mork.no"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1757574Ab1FAKCP convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 1 Jun 2011 06:02:15 -0400
+From: =?utf-8?Q?Bj=C3=B8rn_Mork?= <bjorn@mork.no>
+To: Antti Palosaari <crope@iki.fi>
+Cc: Steve Kerrison <steve@stevekerrison.com>,
+	linux-media@vger.kernel.org
+Subject: [bug-report] unconditionally calling cxd2820r_get_tuner_i2c_adapter() from em28xx-dvb.c creates a hard module dependency
+Date: Wed, 01 Jun 2011 11:45:27 +0200
+Message-ID: <87vcwpnavc.fsf@nemi.mork.no>
 MIME-Version: 1.0
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-CC: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
-Subject: buffer index when streaming user-ptr buffers
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 8BIT
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-In the V4L2 spec, the description for v4l2_buffer.index says "This field
-is only used for memory mapping I/O..."
+Hello,
 
-However, in v4l-utils/contrib/capture-example.c, even user-pointer
-buffers are indeed given a buf.index before being passed to VIDIOC_QBUF.
- And at least in the OMAP ISP driver, this information is relied upon in
-QBUF regardless of V4L2_MEMORY_MMAP/USERPTR.  videobuf-core also uses
-v4l2_buffer->index even if b->memory == V4L2_MEMORY_USERPTR.
+I noticed this warning 
 
-Is this a bug in the OMAP driver and videobuf-core, and an unnecessary
-assignment in capture-example?  Or is the V4L2 spec out of touch/ out of
-date?
+    WARNING: "cxd2820r_get_tuner_i2c_adapter" [/usr/local/src/git/linux-2.6/drivers/media/video/em28xx/em28xx-dvb.ko] undefined!
 
--Michael
+while building the driver in 2.6.32 with backported 290e support.  This
+warning does not appear with 3.0.0-rc1, but the call still does cause a
+hard dependency on cxd2820r even if you build with CONFIG_MEDIA_ATTACH=y:
 
-MATRIX VISION GmbH, Talstrasse 16, DE-71570 Oppenweiler
-Registergericht: Amtsgericht Stuttgart, HRB 271090
-Geschaeftsfuehrer: Gerhard Thullner, Werner Armingeon, Uwe Furtner
+bjorn@canardo:/usr/local/src/git/linux-2.6$ modinfo drivers/media/video/em28xx/em28xx-dvb.ko
+filename:       drivers/media/video/em28xx/em28xx-dvb.ko
+license:        GPL
+author:         Mauro Carvalho Chehab <mchehab@infradead.org>
+description:    driver for em28xx based DVB cards
+depends:        cxd2820r,dvb-core,em28xx,usbcore
+vermagic:       3.0.0-rc1+ SMP mod_unload modversions 
+parm:           debug:enable debug messages [dvb] (int)
+parm:           adapter_nr:DVB adapter numbers (array of short)
+
+I assume this is unwanted.  As you can see, cxd2820r is the only
+frontend dependency....
+
+Don't know the proper fix.  My naïve quick-fix was just to move struct
+cxd2820r_priv into cxd2820r.h and making the function static inlined.
+However, I do see that you may not want the struct in cxd2820r.h.  But I
+trust that you have a brilliant solution to the problem :-)
+
+Thanks for your great work on the cxd2820r driver and nanostick T2 290e
+support!
+
+
+
+Bjørn
