@@ -1,130 +1,74 @@
 Return-path: <mchehab@pedra>
-Received: from mail-wy0-f174.google.com ([74.125.82.174]:41089 "EHLO
-	mail-wy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750974Ab1F1Vjt convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 28 Jun 2011 17:39:49 -0400
-Received: by wyg8 with SMTP id 8so464891wyg.19
-        for <linux-media@vger.kernel.org>; Tue, 28 Jun 2011 14:39:48 -0700 (PDT)
-References: <1302267045.1749.38.camel@gagarin> <AFEB19DA-4FD6-4472-9825-F13A112B0E2A@wilsonet.com> <1302276147.1749.46.camel@gagarin> <B9A35B3D-DC47-4D95-88F5-5453DD3F506C@wilsonet.com> <BANLkTimyT98dabuYsrwLrcm2wQFv2uQB9g@mail.gmail.com> <44DC1ED9-2697-4F92-A81A-CD024C913CCB@wilsonet.com> <BANLkTi=3Gq+8kXm40O55y55O6A6Q4-3g-g@mail.gmail.com> <CDB2A354-8564-447E-99A3-66502E83E4CB@wilsonet.com> <8f1c0f8a-e4cd-4e3b-8ad4-f58212dfd9d4@email.android.com> <099D978B-BC30-4527-870E-85ECEE74501D@wilsonet.com> <1302476895.2282.12.camel@localhost> <679F6706-8E38-4DF4-9F06-65EC3747339E@wilsonet.com> <444047a2-87a6-4823-a1cd-961493f6680f@email.android.com>
-In-Reply-To: <444047a2-87a6-4823-a1cd-961493f6680f@email.android.com>
-Mime-Version: 1.0 (Apple Message framework v1084)
-Content-Type: text/plain; charset=us-ascii
-Message-Id: <8450B359-034A-4DE2-BD8D-50DA6BE98A17@wilsonet.com>
-Content-Transfer-Encoding: 8BIT
-Cc: Devin Heitmueller <dheitmueller@kernellabs.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-From: Jarod Wilson <jarod@wilsonet.com>
-Subject: Re: HVR-1250/CX23885 IR Rx
-Date: Tue, 28 Jun 2011 17:39:29 -0400
-To: Andy Walls <awalls@md.metrocast.net>
+Received: from mail1-out1.atlantis.sk ([80.94.52.55]:36067 "EHLO
+	mail.atlantis.sk" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1759911Ab1FAT5P (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 1 Jun 2011 15:57:15 -0400
+From: Ondrej Zary <linux@rainbow-software.org>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+Subject: Re: [alsa-devel] [PATCH v5] [resend] radio-sf16fmr2: convert to generic TEA575x interface
+Date: Wed, 1 Jun 2011 21:56:59 +0200
+Cc: Takashi Iwai <tiwai@suse.de>, Hans Verkuil <hverkuil@xs4all.nl>,
+	alsa-devel@alsa-project.org,
+	Kernel development list <linux-kernel@vger.kernel.org>,
+	linux-media@vger.kernel.org
+References: <201105231417.17450.linux@rainbow-software.org> <s5hvcwx29co.wl%tiwai@suse.de> <4DE65E9B.7060509@redhat.com>
+In-Reply-To: <4DE65E9B.7060509@redhat.com>
+MIME-Version: 1.0
+Content-Type: text/plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+Message-Id: <201106012157.03928.linux@rainbow-software.org>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Jun 28, 2011, at 6:30 AM, Andy Walls wrote:
+On Wednesday 01 June 2011 17:45:31 Mauro Carvalho Chehab wrote:
+> Em 26-05-2011 04:45, Takashi Iwai escreveu:
+> > At Wed, 25 May 2011 21:21:30 -0300,
+> >
+> > Mauro Carvalho Chehab wrote:
+> >> Em 23-05-2011 09:17, Ondrej Zary escreveu:
+> >>> Convert radio-sf16fmr2 to use generic TEA575x implementation. Most of
+> >>> the driver code goes away as SF16-FMR2 is basically just a TEA5757
+> >>> tuner connected to ISA bus.
+> >>> The card can optionally be equipped with PT2254A volume control
+> >>> (equivalent of TC9154AP) - the volume setting is completely reworked
+> >>> (with balance control added) and tested.
+> >>
+> >> Ondrej,
+> >>
+> >> As your first series went via alsa tree, and we are close to the end of
+> >> the merge window, and assuming that Takashi didn't apply those patches
+> >> on his tree, as you're re-sending it, I think that the better is to wait
+> >> for the end of the merge window, in order to allow us to sync our
+> >> development tree with 2.6.40-rc1, and then review and apply it on the
+> >> top of it.
+> >
+> > Yeah, I didn't pick it up as the patches are rather V4L-side changes
+> > (although tea575x.c is in sound sub-directory).
+> > And I agree with Mauro - let's merge it after rc1, so that we stand on
+> > the same ground.  This sort of cross-tree change is better done at the
+> > fixed point than in flux like during merge window.
+>
+> Hmm.. I tried to apply it after -rc1. It didn't apply:
+>
+> Applying patch
+> patches/lmml_808552_v5_resend_radio_sf16fmr2_convert_to_generic_tea575x_int
+>erface.patch patching file sound/pci/Kconfig
+> patching file drivers/media/radio/radio-sf16fmr2.c
+> Hunk #1 FAILED at 1.
+> 1 out of 2 hunks FAILED -- rejects in file
+> drivers/media/radio/radio-sf16fmr2.c Patch
+> patches/lmml_808552_v5_resend_radio_sf16fmr2_convert_to_generic_tea575x_int
+>erface.patch does not apply (enforce with -f)
+>
+> Is there any missing patches, or is it just due to some other changes from
+> the alsa tree?
 
-> Jarod Wilson <jarod@wilsonet.com> wrote:
-> 
->> On Apr 10, 2011, at 7:08 PM, Andy Walls wrote:
->> 
->>> On Sat, 2011-04-09 at 21:39 -0400, Jarod Wilson wrote:
->>> 
->>>>> Jarod,
->>>>> 
->>>>> The HVR-1850 uses a raw IR receiver in the CX23888 and older
->>>> HVR-1250s use the raw IR receiver in the CX23885.  They both work
->> for
->>>> Rx (I need to tweak the Cx23885 rx watermark though), but I never
->>>> found time to finish Tx (lack of kernel interface when I had time).
->>>>> 
->>>>> If you obtain one of these I can answer any driver questions.
->>>> 
->>>> Quite some time back, I bought an HVR-1800 and an HVR-1250. I know
->> one of
->>>> them came with an mceusb transceiver and remote, as was pretty sure
->> it was
->>>> the 1800. For some reason, I didn't recall the 1250 coming with
->> anything at
->>>> all, but looking at dmesg output for it:
->>>> 
->>>> cx23885 driver version 0.0.2 loaded
->>>> cx23885 0000:03:00.0: PCI INT A -> GSI 16 (level, low) -> IRQ 16
->>>> CORE cx23885[0]: subsystem: 0070:7911, board: Hauppauge
->> WinTV-HVR1250 [card=3,autodetected]
->>>> tveeprom 0-0050: Hauppauge model 79001, rev E3D9, serial# 4904656
->>>> tveeprom 0-0050: MAC address is 00:0d:fe:4a:d6:d0
->>>> tveeprom 0-0050: tuner model is Microtune MT2131 (idx 139, type 4)
->>>> tveeprom 0-0050: TV standards NTSC(M) ATSC/DVB Digital (eeprom 0x88)
->>>> tveeprom 0-0050: audio processor is CX23885 (idx 39)
->>>> tveeprom 0-0050: decoder processor is CX23885 (idx 33)
->>>> tveeprom 0-0050: has no radio, has IR receiver, has no IR
->> transmitter
->>>> 
->>>> So it seems I do have hardware. However, its one of the two tuner
->> cards in
->>>> my "production" mythtv backend right now, making it a bit hard to do
->> any
->>>> experimenting with. If I can get it out of there, it looks like I
->> just add
->>>> an enable_885_ir=1, and I should be able to poke at it...
->>> 
->>> Yeah.  Igor's TeVii S470 CX23885 based card had interrupt storms when
->>> enabled, so IR for '885 chips is disabled by default.  To
->> investigate, I
->>> tried to by an HVR-1250 with a CX23885, but instead got an HVR-1275
->> with
->>> a CX23888.  dandel, on IRC, did a pretty decent job in testing
->> HVR-1250
->>> operation and finding it works, despite climbing kernel
->>> build/development learning curve at the time.
->> ...
->> 
->> Finally got some time to play with my 1250, dug out its rx cable, turns
->> out to
->> be the same one I special-ordered to work on the 1150 Devin sent me.
->> Oops.
->> Anyway. First impressions, not so good. Got a panic on boot, somewhere
->> in
->> cx23885_video_irq, iirc, when booting with enable_885_ir=1 set.
->> However, dmesg
->> was somewhere in the middle of cx18 init of the HVR-1600 in the box.
->> Dunno if
->> there's any way that's actually directly related, but I yanked the
->> 1600. After
->> doing that, the box managed to boot fine, but then while testing
->> w/ir-keytable
->> and an RC-6 remote, I got what I think was the same panic -- definitely
->> the
->> cx23885_video_irq bit in the trace, something about sleeping while
->> atomic, IP
->> at mwait_idle. (On the plus side, IR did seem to be working before
->> that).
->> 
->> Note also that this is a 2.6.32-based kernel with a 2.6.38-era backport
->> of the
->> driver code, because that's what was on this box. Was about to put it
->> back into
->> "production" use, but hey, its summer, there's nothing really for it to
->> record
->> for another few months, so I'll keep it out and throw it into another
->> box with
->> a newer kernel and serial console, etc., so I can further debug...
-> 
-> In a very early version of the CX23885 IR changes I made the mistake of performing I2C transactions in an interrupt handler.  That has been fixed in cx23885 for quite some time though.  It also required some I2C fixes in cx25840-core.c IIRC, which again, has been fixed for some time.
+It fails because of a stupid typo comment fix:
+-/* !!! not tested, in my card this does't work !!! */
++/* !!! not tested, in my card this doesn't work !!! */
 
-Up and running on 3.0-rc5 now, and I'm not seeing the panic, but the
-box keeps hard-locking after some number of keypresses. Can't get a
-peep out of it with sysrq, nmi watchdog doesn't seem to fire, etc.
-
-At the suggestion of "Dark Shadow", I've also tried booting the box
-with pci=nomsi. Works a treat then. Since his HVR-1270 and my HVR-1250
-both behave much better with pci=nomsi, I'm thinking that in the
-short-term, we should probably make sure msi doesn't get enabled in
-the cx23885 driver, and longer-term, we can look at fixing it.
 
 -- 
-Jarod Wilson
-jarod@wilsonet.com
-
-
-
+Ondrej Zary
