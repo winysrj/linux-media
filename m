@@ -1,171 +1,162 @@
 Return-path: <mchehab@pedra>
-Received: from smtp-vbr6.xs4all.nl ([194.109.24.26]:4272 "EHLO
-	smtp-vbr6.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753866Ab1FNHOx (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 14 Jun 2011 03:14:53 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Mike Isely <isely@isely.net>, Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [RFCv6 PATCH 01/10] tuner-core: fix s_std and s_tuner.
-Date: Tue, 14 Jun 2011 09:14:33 +0200
-Message-Id: <eff4df001ab17e78b7413b9ed51661777523dbac.1308035134.git.hans.verkuil@cisco.com>
-In-Reply-To: <1308035682-20447-1-git-send-email-hverkuil@xs4all.nl>
-References: <1308035682-20447-1-git-send-email-hverkuil@xs4all.nl>
+Received: from nm22-vm0.bullet.mail.sp2.yahoo.com ([98.139.91.222]:46298 "HELO
+	nm22-vm0.bullet.mail.sp2.yahoo.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with SMTP id S933153Ab1FADVy convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 31 May 2011 23:21:54 -0400
+Message-ID: <115690.73510.qm@web112018.mail.gq1.yahoo.com>
+Date: Tue, 31 May 2011 20:21:53 -0700 (PDT)
+From: Chris Rodley <carlighting@yahoo.co.nz>
+Subject: Re: [beagleboard] [PATCH v5 2/2] Add support for mt9p031 (LI-5M03 module) in Beagleboard xM.
+To: javier.martin@vista-silicon.com
+Cc: beagleboard@googlegroups.com, linux-media@vger.kernel.org,
+	g.liakhovetski@gmx.de, laurent.pinchart@ideasonboard.com,
+	mch_kot@yahoo.com.cn, koen@beagleboard.org
+MIME-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 8BIT
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+Hi Javier,
 
-Both s_std and s_tuner are broken because set_mode_freq is called before the
-new std (for s_std) and audmode (for s_tuner) are set.
+On 01/06/11 01:34, Koen Kooi wrote:
+> root@beagleboardxMC:~# yavta -f SGRBG8 -s 320x240 -n 4 --capture=10 --skip 3 -F `media-ctl -e "OMAP3 ISP CCDC output"`
+> Device /dev/video2 opened.
+> Device `OMAP3 ISP CCDC output' on `media' is a video capture device.
+> Video format set: SGRBG8 (47425247) 320x240 buffer size 76800
+> Video format: SGRBG8 (47425247) 320x240 buffer size 76800
+> 4 buffers requested.
+> length: 76800 offset: 0
+> Buffer 0 mapped at address 0x402cf000.
+> length: 76800 offset: 77824
+> Buffer 1 mapped at address 0x402fe000.
+> length: 76800 offset: 155648
+> Buffer 2 mapped at address 0x40362000.
+> length: 76800 offset: 233472
+> Buffer 3 mapped at address 0x40416000.
+> 0 (0) [-] 4294967295 76800 bytes 167.403289 1306829219.931121 0.002 fps
+> 1 (1) [-] 4294967295 76800 bytes 167.633148 1306829220.160980 4.350 fps
+> 2 (2) [-] 4294967295 76800 bytes 167.744506 1306829220.272308 8.980 fps
+> 3 (3) [-] 4294967295 76800 bytes 167.855865 1306829220.383667 8.980 fps
+> 4 (0) [-] 4294967295 76800 bytes 167.967193 1306829220.495025 8.982 fps
+> 5 (1) [-] 4294967295 76800 bytes 168.078552 1306829220.606384 8.980 fps
+> 6 (2) [-] 4294967295 76800 bytes 168.189910 1306829220.717742 8.980 fps
+> 7 (3) [-] 4294967295 76800 bytes 168.301269 1306829220.829071 8.980 fps
+> 8 (0) [-] 4294967295 76800 bytes 168.412597 1306829220.940429 8.982 fps
+> 9 (1) [-] 4294967295 76800 bytes 168.523956 1306829221.051788 8.980 fps
+> Captured 10 frames in 1.254212 seconds (7.973134 fps, 612336.670356 B/s).
+> 4 buffers released.
+>
+> So that seems to be working! I haven't checked the frames yet, but is isn't throwing ISP errors anymore.
 
-This patch splits set_mode_freq in a set_mode and a set_freq and in s_std/s_tuner
-first calls set_mode, and if that returns 0 (i.e. the mode is supported)
-then they set t->std/t->audmode and call set_freq.
+Unfortunately still not working for me.
+My board is not the BeagleBoard XM but is similar. It is an omap3530 board and power to the camera (VDD and VDD_IO) is controlled by GPIO 57 and 58.
 
-This fixes a bug where changing std or audmode would actually change it to
-the previous value.
+Here is my code for the board-omap3beagle-camera.c file.
+Instead of triggering the regulators I set them up in the board file and then turn them on - This approach worked fine in v1 of your patch, but has not worked on any version since - Is there anything you can see as an issue?:
 
-Discovered while testing analog TV standards for cx18 with a tda18271 tuner.
+#include <linux/gpio.h>
+//#include <linux/regulator/machine.h>
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- drivers/media/video/tuner-core.c |   59 ++++++++++++++++++++------------------
- 1 files changed, 31 insertions(+), 28 deletions(-)
+#include <plat/i2c.h>
 
-diff --git a/drivers/media/video/tuner-core.c b/drivers/media/video/tuner-core.c
-index 5748d04..accd9d4 100644
---- a/drivers/media/video/tuner-core.c
-+++ b/drivers/media/video/tuner-core.c
-@@ -742,19 +742,15 @@ static inline int check_mode(struct tuner *t, enum v4l2_tuner_type mode)
- }
- 
- /**
-- * set_mode_freq - Switch tuner to other mode.
-- * @client:	struct i2c_client pointer
-+ * set_mode - Switch tuner to other mode.
-  * @t:		a pointer to the module's internal struct_tuner
-  * @mode:	enum v4l2_type (radio or TV)
-- * @freq:	frequency to set (0 means to use the previous one)
-  *
-  * If tuner doesn't support the needed mode (radio or TV), prints a
-  * debug message and returns -EINVAL, changing its state to standby.
-- * Otherwise, changes the state and sets frequency to the last value, if
-- * the tuner can sleep or if it supports both Radio and TV.
-+ * Otherwise, changes the mode and returns 0.
-  */
--static int set_mode_freq(struct i2c_client *client, struct tuner *t,
--			 enum v4l2_tuner_type mode, unsigned int freq)
-+static int set_mode(struct tuner *t, enum v4l2_tuner_type mode)
- {
- 	struct analog_demod_ops *analog_ops = &t->fe.ops.analog_ops;
- 
-@@ -770,17 +766,27 @@ static int set_mode_freq(struct i2c_client *client, struct tuner *t,
- 		t->mode = mode;
- 		tuner_dbg("Changing to mode %d\n", mode);
- 	}
-+	return 0;
-+}
-+
-+/**
-+ * set_freq - Set the tuner to the desired frequency.
-+ * @t:		a pointer to the module's internal struct_tuner
-+ * @freq:	frequency to set (0 means to use the current frequency)
-+ */
-+static void set_freq(struct tuner *t, unsigned int freq)
-+{
-+	struct i2c_client *client = v4l2_get_subdevdata(&t->sd);
-+
- 	if (t->mode == V4L2_TUNER_RADIO) {
--		if (freq)
--			t->radio_freq = freq;
--		set_radio_freq(client, t->radio_freq);
-+		if (!freq)
-+			freq = t->radio_freq;
-+		set_radio_freq(client, freq);
- 	} else {
--		if (freq)
--			t->tv_freq = freq;
--		set_tv_freq(client, t->tv_freq);
-+		if (!freq)
-+			freq = t->tv_freq;
-+		set_tv_freq(client, freq);
- 	}
--
--	return 0;
- }
- 
- /*
-@@ -1076,10 +1082,9 @@ static void tuner_status(struct dvb_frontend *fe)
- static int tuner_s_radio(struct v4l2_subdev *sd)
- {
- 	struct tuner *t = to_tuner(sd);
--	struct i2c_client *client = v4l2_get_subdevdata(sd);
- 
--	if (set_mode_freq(client, t, V4L2_TUNER_RADIO, 0) == -EINVAL)
--		return 0;
-+	if (set_mode(t, V4L2_TUNER_RADIO) == 0)
-+		set_freq(t, 0);
- 	return 0;
- }
- 
-@@ -1111,25 +1116,22 @@ static int tuner_s_power(struct v4l2_subdev *sd, int on)
- static int tuner_s_std(struct v4l2_subdev *sd, v4l2_std_id std)
- {
- 	struct tuner *t = to_tuner(sd);
--	struct i2c_client *client = v4l2_get_subdevdata(sd);
- 
--	if (set_mode_freq(client, t, V4L2_TUNER_ANALOG_TV, 0) == -EINVAL)
-+	if (set_mode(t, V4L2_TUNER_ANALOG_TV))
- 		return 0;
- 
- 	t->std = std;
- 	tuner_fixup_std(t);
--
-+	set_freq(t, 0);
- 	return 0;
- }
- 
- static int tuner_s_frequency(struct v4l2_subdev *sd, struct v4l2_frequency *f)
- {
- 	struct tuner *t = to_tuner(sd);
--	struct i2c_client *client = v4l2_get_subdevdata(sd);
--
--	if (set_mode_freq(client, t, f->type, f->frequency) == -EINVAL)
--		return 0;
- 
-+	if (set_mode(t, f->type) == 0)
-+		set_freq(t, f->frequency);
- 	return 0;
- }
- 
-@@ -1198,13 +1200,13 @@ static int tuner_g_tuner(struct v4l2_subdev *sd, struct v4l2_tuner *vt)
- static int tuner_s_tuner(struct v4l2_subdev *sd, struct v4l2_tuner *vt)
- {
- 	struct tuner *t = to_tuner(sd);
--	struct i2c_client *client = v4l2_get_subdevdata(sd);
- 
--	if (set_mode_freq(client, t, vt->type, 0) == -EINVAL)
-+	if (set_mode(t, vt->type))
- 		return 0;
- 
- 	if (t->mode == V4L2_TUNER_RADIO)
- 		t->audmode = vt->audmode;
-+	set_freq(t, 0);
- 
- 	return 0;
- }
-@@ -1239,7 +1241,8 @@ static int tuner_resume(struct i2c_client *c)
- 	tuner_dbg("resume\n");
- 
- 	if (!t->standby)
--		set_mode_freq(c, t, t->type, 0);
-+		if (set_mode(t, t->type) == 0)
-+			set_freq(t, 0);
- 
- 	return 0;
- }
--- 
-1.7.1
+#include <media/mt9p031.h>
 
+#include "devices.h"
+#include "../../../drivers/media/video/omap3isp/isp.h"
+
+#define MT9P031_RESET_GPIO	98
+#define MT9P031_XCLK		ISP_XCLK_A
+
+//static struct regulator *reg_1v8, *reg_2v8;
+
+static int beagle_cam_set_xclk(struct v4l2_subdev *subdev, int hz)
+{
+	struct isp_device *isp = v4l2_dev_to_isp_device(subdev->v4l2_dev);
+	int ret;
+
+	ret = isp->platform_cb.set_xclk(isp, hz, MT9P031_XCLK);
+	return 0;
+}
+
+static int beagle_cam_reset(struct v4l2_subdev *subdev, int active)
+{
+	/* Set RESET_BAR to !active */
+	gpio_set_value(MT9P031_RESET_GPIO, !active);
+
+	return 0;
+}
+
+static struct mt9p031_platform_data beagle_mt9p031_platform_data = {
+	.set_xclk               = beagle_cam_set_xclk,
+	.reset                  = beagle_cam_reset,
+};
+
+static struct i2c_board_info mt9p031_camera_i2c_device = {
+	I2C_BOARD_INFO("mt9p031", 0x48),
+	.platform_data = &beagle_mt9p031_platform_data,
+};
+
+static struct isp_subdev_i2c_board_info mt9p031_camera_subdevs[] = {
+	{
+		.board_info = &mt9p031_camera_i2c_device,
+		.i2c_adapter_id = 2,
+	},
+	{ NULL, 0, },
+};
+
+static struct isp_v4l2_subdevs_group beagle_camera_subdevs[] = {
+	{
+		.subdevs = mt9p031_camera_subdevs,
+		.interface = ISP_INTERFACE_PARALLEL,
+		.bus = {
+				.parallel = {
+					.data_lane_shift = 0,
+					.clk_pol = 1,
+					.bridge = ISPCTRL_PAR_BRIDGE_DISABLE,
+				}
+		},
+	},
+	{ },
+};
+
+static struct isp_platform_data beagle_isp_platform_data = {
+	.subdevs = beagle_camera_subdevs,
+};
+
+static int __init beagle_camera_init(void)
+{
+/* New code START */
+	gpio_set_value(58, 0);
+ 	printk(KERN_INFO "Power on 58 1v8 init..\n");	
+
+	gpio_set_value(57, 0);
+	printk(KERN_INFO "Power on 57 2v8 init..\n");
+/* New code END */ 
+
+/* ORIG CODE
+{
+	reg_1v8 = regulator_get(NULL, "cam_1v8");
+	if (IS_ERR(reg_1v8))
+		pr_err("%s: cannot get cam_1v8 regulator\n", __func__);
+	else
+		regulator_enable(reg_1v8);
+
+	reg_2v8 = regulator_get(NULL, "cam_2v8");
+	if (IS_ERR(reg_2v8))
+		pr_err("%s: cannot get cam_2v8 regulator\n", __func__);
+	else
+		regulator_enable(reg_2v8);*/
+
+	omap_register_i2c_bus(2, 100, NULL, 0);
+	gpio_request(MT9P031_RESET_GPIO, "cam_rst");
+	gpio_direction_output(MT9P031_RESET_GPIO, 0);
+	omap3_init_camera(&beagle_isp_platform_data);
+	return 0;
+}
+late_initcall(beagle_camera_init);
+
+
+Regards,
+Chris
