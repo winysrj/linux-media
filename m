@@ -1,66 +1,70 @@
 Return-path: <mchehab@pedra>
-Received: from smtp-vbr6.xs4all.nl ([194.109.24.26]:2036 "EHLO
-	smtp-vbr6.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754376Ab1FNHOy (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 14 Jun 2011 03:14:54 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Mike Isely <isely@isely.net>, Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [RFCv6 PATCH 06/10] feature-removal-schedule: change in how radio device nodes are handled.
-Date: Tue, 14 Jun 2011 09:14:38 +0200
-Message-Id: <80ede17446fe736640549d37f8888e9de8a4405a.1308035134.git.hans.verkuil@cisco.com>
-In-Reply-To: <1308035682-20447-1-git-send-email-hverkuil@xs4all.nl>
-References: <1308035682-20447-1-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <eff4df001ab17e78b7413b9ed51661777523dbac.1308035134.git.hans.verkuil@cisco.com>
-References: <eff4df001ab17e78b7413b9ed51661777523dbac.1308035134.git.hans.verkuil@cisco.com>
+Received: from mx1.redhat.com ([209.132.183.28]:3345 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754916Ab1FANVD (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 1 Jun 2011 09:21:03 -0400
+Message-ID: <4DE63CCD.8050308@redhat.com>
+Date: Wed, 01 Jun 2011 15:21:17 +0200
+From: Hans de Goede <hdegoede@redhat.com>
+MIME-Version: 1.0
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Announcing v4l-utils-0.8.4
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+Hi,
 
-Radio devices have weird side-effects when used with combined TV/radio
-tuners and the V4L2 spec is ambiguous on how it should work. This results
-in inconsistent driver behavior which makes life hard for everyone.
+I'm happy to announce the release of v4l-utils-0.8.4. After some
+somewhat boring releases, this release contains some interesting
+improvements:
+* Various enhancements to libv4l which should result in
+   significantly less cpu usage with uvc HD cameras in several
+   scenarios
+* A library for associating video, audio, vbi and other devices with each
+   other. This will allow apps to automatically do things like figure out
+   which alsa input devices has the sound for the analog tv show you are
+   watching. Note atm this lib does not have a stable API yet, and thus
+   does not get installed by make install.
 
-Be more strict in when and how the switch between radio and tv mode
-takes place and make sure all drivers behave the same.
+Full changelog:
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- Documentation/feature-removal-schedule.txt |   22 ++++++++++++++++++++++
- 1 files changed, 22 insertions(+), 0 deletions(-)
+v4l-utils-0.8.4
+---------------
+* Utils changes
+   * Various small fixes (hverkuil, mchehab)
+   * qv4l2: Add support for configuring the framerate for devices which support
+     this like uvc cams (hdegoede)
+   * parse_tcpdump_log.pl: new parser for tcpdump / wireshark made usbmon
+     dumps (mchehab)
+   * New lib_media_dev lib, to pair audio devices with video devices
+     (and other combinations) for now this lives in utils and does not get
+     installed systemwide, as the API is not stable (mchehab)
+* libv4l changes
+   * Add many more laptop models to the upside down devices table (hdegoede)
+   * Some small bugfixes (hdegoede)
+   * Add vicam cameras to list of cameras need sw auto gain + whitebalance
+     (hdegoede)
+   * Add support for M420 pixelformat (hdegoede)
+   * Add support for Y10B pixelformat (Antonio Ospite)
+   * Add support for JPGL pixelformat (jfmoine)
+   * Modified (rewrote) jpeg decompression code to use libjpeg[-turbo], for
+     much lower cpu load when doing jpeg decompression (hdegoede)
+   * Detect usb connection speed of devices (hdegoede)
+   * Rewrite src format selection algorithm, taking bandwidth into account and
+     choosing the format which will give us the lowest CPU load while still
+     allowing 30 fps (hdegoede)
+   * Intercept S_PARM and redo src format selection based on new fps setting,
+     potentially switching from JPG to YUYV / M420 when the app lowers the
+     fps, resulting in a significant lower cpu load (hdegoede)
 
-diff --git a/Documentation/feature-removal-schedule.txt b/Documentation/feature-removal-schedule.txt
-index 1a9446b..9df0e09 100644
---- a/Documentation/feature-removal-schedule.txt
-+++ b/Documentation/feature-removal-schedule.txt
-@@ -600,3 +600,25 @@ Why:	Superseded by the UVCIOC_CTRL_QUERY ioctl.
- Who:	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
- 
- ----------------------------
-+
-+What:	For VIDIOC_S_FREQUENCY the type field must match the device node's type.
-+	If not, return -EINVAL.
-+When:	3.2
-+Why:	It makes no sense to switch the tuner to radio mode by calling
-+	VIDIOC_S_FREQUENCY on a video node, or to switch the tuner to tv mode by
-+	calling VIDIOC_S_FREQUENCY on a radio node. This is the first step of a
-+	move to more consistent handling of tv and radio tuners.
-+Who:	Hans Verkuil <hans.verkuil@cisco.com>
-+
-+----------------------------
-+
-+What:	Opening a radio device node will no longer automatically switch the
-+	tuner mode from tv to radio.
-+When:	3.3
-+Why:	Just opening a V4L device should not change the state of the hardware
-+	like that. It's very unexpected and against the V4L spec. Instead, you
-+	switch to radio mode by calling VIDIOC_S_FREQUENCY. This is the second
-+	and last step of the move to consistent handling of tv and radio tuners.
-+Who:	Hans Verkuil <hans.verkuil@cisco.com>
-+
-+----------------------------
--- 
-1.7.1
+Go get it here:
+http://linuxtv.org/downloads/v4l-utils/v4l-utils-0.8.4.tar.bz2
 
+You can always find the latest developments here:
+http://git.linuxtv.org/v4l-utils.git
+
+Regards,
+
+Hans
