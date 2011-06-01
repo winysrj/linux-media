@@ -1,75 +1,91 @@
 Return-path: <mchehab@pedra>
-Received: from 5571f1ba.dsl.concepts.nl ([85.113.241.186]:34358 "EHLO
-	his10.thuis.hoogenraad.info" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1751096Ab1FUFkQ (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 21 Jun 2011 01:40:16 -0400
-Message-ID: <4E002EBD.6050800@hoogenraad.net>
-Date: Tue, 21 Jun 2011 07:40:13 +0200
-From: Jan Hoogenraad <jan-conceptronic@hoogenraad.net>
+Received: from moutng.kundenserver.de ([212.227.126.171]:56939 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1759301Ab1FATfX (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 1 Jun 2011 15:35:23 -0400
+Date: Wed, 1 Jun 2011 21:35:17 +0200 (CEST)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Andrew Chew <AChew@nvidia.com>
+cc: "mchehab@redhat.com" <mchehab@redhat.com>,
+	"olof@lixom.net" <olof@lixom.net>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
+Subject: RE: [PATCH 4/5 v2] [media] ov9740: Remove hardcoded resolution regs
+In-Reply-To: <643E69AA4436674C8F39DCC2C05F76382A75BF37C3@HQMAIL03.nvidia.com>
+Message-ID: <Pine.LNX.4.64.1106012128080.29934@axis700.grange>
+References: <1306368272-28279-1-git-send-email-achew@nvidia.com>
+ <1306368272-28279-4-git-send-email-achew@nvidia.com>
+ <Pine.LNX.4.64.1105291221450.18788@axis700.grange>
+ <643E69AA4436674C8F39DCC2C05F76382A75BF37C3@HQMAIL03.nvidia.com>
 MIME-Version: 1.0
-To: Antti Palosaari <crope@iki.fi>, stybla@turnovfree.net
-CC: =?UTF-8?B?U2FzY2hhIFfDvHN0ZW1hbm4=?= <sascha@killerhippy.de>,
-	linux-media@vger.kernel.org,
-	Thomas Holzeisen <thomas@holzeisen.de>,
-	Maxim Levitsky <maximlevitsky@gmail.com>
-Subject: Re: RTL2831U driver updates
-References: <4DF9BCAA.3030301@holzeisen.de> <4DF9EA62.2040008@killerhippy.de> <4DFA7748.6000704@hoogenraad.net> <4DFFC82B.10402@iki.fi>
-In-Reply-To: <4DFFC82B.10402@iki.fi>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Antti:
+On Tue, 31 May 2011, Andrew Chew wrote:
 
-You are great !
+> > > +	/* Width must be a multiple of 4 pixels. */
+> > > +	*width += *width % 4;
+> > 
+> > No, this doesn't make it a multiple of 4, unless it was 
+> > even;) Just take 5 
+> > as an example. What you really want here is
+> 
+> Geez, you're right.  Not sure what was going on in my head when I did this.  Thanks for catching it.
+> 
+> 
+> > > +	/*
+> > > +	 * Try to use as much of the sensor area as possible 
+> > when supporting
+> > > +	 * smaller resolutions.  Depending on the aspect ratio of the
+> > > +	 * chosen resolution, we can either use the full width 
+> > of the sensor,
+> > > +	 * or the full height of the sensor (or both if the 
+> > aspect ratio is
+> > > +	 * the same as 1280x720.
+> > > +	 */
+> > > +	if ((OV9740_MAX_WIDTH * height) > (OV9740_MAX_HEIGHT * width)) {
+> > > +		scale_input_x = (OV9740_MAX_HEIGHT * width) / height;
+> > > +		scale_input_y = OV9740_MAX_HEIGHT;
+> > >  	} else {
+> > > -		dev_err(&client->dev, "Failed to select resolution!\n");
+> > > -		return -EINVAL;
+> > > +		scale_input_x = OV9740_MAX_WIDTH;
+> > > +		scale_input_y = (OV9740_MAX_WIDTH * height) / width;
+> > >  	}
+> > 
+> > I don'z know how this sensor works, but the above two divisions round 
+> > down. And these are input sizes. Cannot it possibly lead to 
+> > the output 
+> > window being smaller, than required? Maybe you have to round 
+> > up (hint: 
+> > use DIV_ROUND_UP())?
+> 
+> The intention is to do some ratio math without floating point 
+> instructions,
 
-So as far as I am concerned, it would be great if one of the others 
-could use up your work on the USB bridge, and add the IR remote 
-interface, based on the LIRC framework.
-It actually should yield little code, and mainly requires a) 
-understanding of LIRC and b) comparing code tables to that the in-kernel 
-code tables can be re-used.
+Of course, DIV_ROUND_UP is integer maths only too, as well as (almost) all 
+maths in the kernel.
 
-Note that Zdenek Styblik seems to have received updates from Realtek 
-THIS month
-http://wiki.zeratul.org/doku.php?id=linux:v4l:realtek:start
+> which resulted in some algebraic twiddling (which is why 
+> that math looks so weird).
 
-He has posted a Ver 2.2.0 of the driver at:
-http://www.turnovfree.net/~stybla/linux/v4l-dvb/lv5tdlx/
+No, it doesn't look weird, I just wasn't sure, whether your maths would 
+work in all situations. The only difference between yours and mine, is 
+that yours rounds down, and mine rounds up. So, I'm not sure which one is 
+better in this case.
 
-It supports the RTL2832U and RTL2836 and way more tuners (MT2266 FC2580 
-TUA9001 and MXL5007T E4000 FC0012  tda18272 fc0013)
+> I think what's there is okay.  If there's 
+> any rounding at all (and there shouldn't be any rounding, if "standard" 
+> image dimensions are called for), then there's going to be some aspect 
+> ratio weirdness no matter which way you round that division.
 
-However, the code is not split up.
+No, you should be prepared to handle all possible crazy resolution 
+requests.
 
-
-Antti Palosaari wrote:
-> It is Maxim who have been hacking with RTL2832/RTL2832U lately. But I
-> think he have given up since no noise anymore.
->
-> I have taken now it again up to my desk and have been hacking two days
-> now. Currently I am working with RTL2830 demod driver, I started it from
-> scratch. Take sniffs, make scripts to generate code from USB traffic,
-> copy pasted that to driver skeleton and now I have picture. Just
-> implement all one-by-one until ready :-) I think I will implement it as
-> minimum possible, no any signal statistic counters - lets add those
-> later if someone wants to do that.
->
-> USB-bridge part is rather OK as I did earlier and it is working with
-> RTL2831U and RTL2832U at least. No remote support yet.
->
-> I hope someone else would make missing driver for RTL2832U demod still...
->
->
-> Antti
->
->
-
-
--- 
-Jan Hoogenraad
-Hoogenraad Interface Services
-Postbus 2717
-3500 GS Utrecht
+Thanks
+Guennadi
+---
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
+http://www.open-technology.de/
