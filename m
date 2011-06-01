@@ -1,61 +1,71 @@
 Return-path: <mchehab@pedra>
-Received: from mail-iy0-f174.google.com ([209.85.210.174]:42175 "EHLO
-	mail-iy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756244Ab1FARhk convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 1 Jun 2011 13:37:40 -0400
-Received: by iyb14 with SMTP id 14so22673iyb.19
-        for <linux-media@vger.kernel.org>; Wed, 01 Jun 2011 10:37:40 -0700 (PDT)
+Received: from mx1.redhat.com ([209.132.183.28]:62163 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756382Ab1FAVeU (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 1 Jun 2011 17:34:20 -0400
+Message-ID: <4DE6B059.8080308@redhat.com>
+Date: Wed, 01 Jun 2011 18:34:17 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
 MIME-Version: 1.0
-In-Reply-To: <15083eb9eb32e906d296.1306844713@roadrunner>
-References: <15083eb9eb32e906d296.1306844713@roadrunner>
-Date: Wed, 1 Jun 2011 19:37:39 +0200
-Message-ID: <BANLkTim4vgoG_7_-pVqPkEijOHsymNt-sw@mail.gmail.com>
-Subject: Re: [PATCH] update dvb-c scanfile hu-Digikabel
-From: Christoph Pfister <christophpfister@gmail.com>
-To: Marton Balint <cus@fazekas.hu>
-Cc: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8BIT
+To: Randy Dunlap <rdunlap@xenotime.net>
+CC: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: [PATCH 3/3] [media] DocBook: Add rules to auto-generate some
+ media docbook
+References: <96c3a1277523b929bd27f5d68d5f40e2a0e5bdf3.1306337174.git.mchehab@redhat.com>	<20110525122642.7b4f381f@pedra>	<20110525201027.57e2acc4.rdunlap@xenotime.net>	<4DE619F1.6020807@redhat.com> <20110601090126.0fe77a14.rdunlap@xenotime.net>
+In-Reply-To: <20110601090126.0fe77a14.rdunlap@xenotime.net>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-2011/5/31 Marton Balint <cus@fazekas.hu>:
-> # HG changeset patch
-> # User Marton Balint <cus@fazekas.hu>
-> # Date 1306844422 -7200
-> # Node ID 15083eb9eb32e906d2961597965320d328b3782e
-> # Parent  7ebf32ed9124c7e58049dc9f59b514a222757b7d
-> update dvb-c scanfile hu-Digikabel
+Em 01-06-2011 13:01, Randy Dunlap escreveu:
+> On Wed, 01 Jun 2011 07:52:33 -0300 Mauro Carvalho Chehab wrote:
+> 
+>> Hi Randy,
+>>
+>> Em 26-05-2011 00:10, Randy Dunlap escreveu:
+>>> On Wed, 25 May 2011 12:26:42 -0300 Mauro Carvalho Chehab wrote:
+>>>
+>>>> Auto-generate the videodev2.h.xml,frontend.h.xml and the indexes.
+>>>>
+>>>> Some logic at the Makefile helps us to identify when a symbol is missing,
+>>>> like for example:
+>>>>
+>>>> Error: no ID for constraint linkend: V4L2-PIX-FMT-JPGL.
+>>>
+>>>
+>>> a.  Still get that message..  is that OK?
+>>>
+>>> b.  In the generated index.html file, "media" is listed first, but it should be
+>>> listed in alphabetical order, not first.
+>>>
+>>> c.  The generated files are (hidden) in .tmpmedia/
+>>>
+>>> d.  The link from the top-level index.html file to "media" is to
+>>> media/index.html, but the file is actually in .tmpmedia/media/index.html
+>>>
+>>> e.  patches 1/3 and 2/3 are OK.
+>>>
+>>>
+>>> Please build docs with and without using "O=builddir" and test that.
+>>>
+>>> I'm looking over the generated output now and will let you know if I see
+>>> any other problems.
+>>
+>> Fixed the pointed issues. I also moved the media-specific stuff into another
+>> Makefile. I opted to include it into the DocBook Makefile, as otherwise, I would
+>> need to duplicate the xml conversion stuff into the media/Makefile.
+> 
+> Sounds good.  Thanks.
+> 
+>> Patch is enclosed.
+> 
+> It will probably be a few days before I test this again,
+> so just merge it when you are ready...
 
-Pushed, thanks.
+Thanks for your review. I'll add it to my to my -next tree today. It is probably
+ok to wait for 3.1 merge window before merging it upstream. Just merging it at the
+development tree will help us to track troubles at the API changes.
 
-Christoph
-
-
-> diff -r 7ebf32ed9124 -r 15083eb9eb32 util/scan/dvb-c/hu-Digikabel
-> --- a/util/scan/dvb-c/hu-Digikabel      Tue May 17 08:50:08 2011 +0200
-> +++ b/util/scan/dvb-c/hu-Digikabel      Tue May 31 14:20:22 2011 +0200
-> @@ -6,6 +6,7 @@
->  #  Szazhalombatta, Bekescsaba, Bekes, Eger, Komlo, Oroszlany
->  # In some of the cities not all the frequencies are available.
->  # freq sr fec mod
-> +C 121000000 6900000 NONE QAM256
->  C 354000000 6900000 NONE QAM256
->  C 362000000 6900000 NONE QAM256
->  C 370000000 6900000 NONE QAM256
-> @@ -14,8 +15,11 @@
->  C 394000000 6900000 NONE QAM256
->  C 402000000 6900000 NONE QAM256
->  C 410000000 6900000 NONE QAM256
-> +C 746000000 6900000 NONE QAM256
-> +C 754000000 6900000 NONE QAM256
->  C 762000000 6900000 NONE QAM256
->  C 770000000 6900000 NONE QAM256
->  C 778000000 6900000 NONE QAM256
->  C 786000000 6900000 NONE QAM256
->  C 794000000 6900000 NONE QAM256
-> +C 850000000 6900000 NONE QAM256
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Thanks,
+Mauro
