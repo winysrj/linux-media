@@ -1,49 +1,97 @@
 Return-path: <mchehab@pedra>
-Received: from mx1.redhat.com ([209.132.183.28]:32996 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751847Ab1FLOn3 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 12 Jun 2011 10:43:29 -0400
-Message-ID: <4DF4D08C.8050801@redhat.com>
-Date: Sun, 12 Jun 2011 11:43:24 -0300
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Received: from moutng.kundenserver.de ([212.227.126.171]:56839 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1759225Ab1FATvx (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 1 Jun 2011 15:51:53 -0400
+Date: Wed, 1 Jun 2011 21:51:50 +0200 (CEST)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Andrew Chew <AChew@nvidia.com>
+cc: "mchehab@redhat.com" <mchehab@redhat.com>,
+	"olof@lixom.net" <olof@lixom.net>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
+Subject: RE: [PATCH 5/5 v2] [media] ov9740: Add suspend/resume
+In-Reply-To: <643E69AA4436674C8F39DCC2C05F76382A75BF37C4@HQMAIL03.nvidia.com>
+Message-ID: <Pine.LNX.4.64.1106012137320.29934@axis700.grange>
+References: <1306368272-28279-1-git-send-email-achew@nvidia.com>
+ <1306368272-28279-5-git-send-email-achew@nvidia.com>
+ <Pine.LNX.4.64.1105291249220.18788@axis700.grange>
+ <643E69AA4436674C8F39DCC2C05F76382A75BF37C4@HQMAIL03.nvidia.com>
 MIME-Version: 1.0
-To: Hans Verkuil <hverkuil@xs4all.nl>
-CC: linux-media@vger.kernel.org, Mike Isely <isely@isely.net>,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: Re: [RFCv4 PATCH 8/8] bttv: fix s_tuner for radio.
-References: <1307876389-30347-1-git-send-email-hverkuil@xs4all.nl> <cd5f6808084d0b1c2aba3e690c35cf3e7abfa445.1307875512.git.hans.verkuil@cisco.com>
-In-Reply-To: <cd5f6808084d0b1c2aba3e690c35cf3e7abfa445.1307875512.git.hans.verkuil@cisco.com>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Em 12-06-2011 07:59, Hans Verkuil escreveu:
-> From: Hans Verkuil <hans.verkuil@cisco.com>
-> 
-> Fix typo: g_tuner should have been s_tuner.
-> 
-> Tested with a bttv card.
+On Tue, 31 May 2011, Andrew Chew wrote:
 
-OK.
-
+> > > +	/* For suspend/resume. */
+> > > +	struct v4l2_mbus_framefmt	current_mf;
+> > > +	int				current_enable;
+> > 
+> > bool?
 > 
-> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-> ---
->  drivers/media/video/bt8xx/bttv-driver.c |    2 +-
->  1 files changed, 1 insertions(+), 1 deletions(-)
-> 
-> diff --git a/drivers/media/video/bt8xx/bttv-driver.c b/drivers/media/video/bt8xx/bttv-driver.c
-> index a97cf27..834a483 100644
-> --- a/drivers/media/video/bt8xx/bttv-driver.c
-> +++ b/drivers/media/video/bt8xx/bttv-driver.c
-> @@ -3474,7 +3474,7 @@ static int radio_s_tuner(struct file *file, void *priv,
->  	if (0 != t->index)
->  		return -EINVAL;
->  
-> -	bttv_call_all(btv, tuner, g_tuner, t);
-> +	bttv_call_all(btv, tuner, s_tuner, t);
->  	return 0;
->  }
->  
+> Are you sure you want this to be a bool?  This thing is trying to shadow 
+> the "enable" parameter of the s_stream() callback, and that enable 
+> parameter is int.
 
+You use it as a bool.
+
+> > > +static int ov9740_suspend(struct soc_camera_device *icd, 
+> > pm_message_t state)
+> > > +{
+> > > +	struct v4l2_subdev *sd = soc_camera_to_subdev(icd);
+> > > +	struct ov9740_priv *priv = to_ov9740(sd);
+> > > +
+> > > +	if (priv->current_enable) {
+> > > +		int current_enable = priv->current_enable;
+> > > +
+> > > +		ov9740_s_stream(sd, 0);
+> > > +		priv->current_enable = current_enable;
+> > 
+> > You don't need the local variable, just set
+> > 
+> > 	priv->current_enable = true;
+> 
+> I think I do need that local variable, the way the code is arranged now.  
+> I'm trying to save the state of enablement inside of 
+> priv->current_enable, at the time we are suspending, so it won't 
+> necessarily be true.  And one of the side effects of calling 
+> ov9740_s_stream(sd, 0) is that priv->current_enable will be set to 
+> false, which is why I save off the value of priv->current_enable, and 
+> then restore it after the call to ov9740_s_stream().
+
+? Sorry, don't understand. You only _enter_ that "if" statement, if 
+priv->current_enable is true. So, your local variable is _certainly_ true. 
+And that's what you're then writing in priv->current_enable back again.
+
+> > >  static struct soc_camera_ops ov9740_ops = {
+> > > +	.suspend		= ov9740_suspend,
+> > > +	.resume			= ov9740_resume,
+> > 
+> > No, we don't want to use these, whey should disappear some 
+> > time... Please, 
+> > use .s_power() from struct v4l2_subdev_core_ops, you can check 
+> > http://article.gmane.org/gmane.linux.drivers.video-input-infra
+> > structure/33105 
+> > for an example. If your host is not using these ops, it has 
+> > to be fixed. 
+> > So far in the mainline only one soc-camera host driver is using these 
+> > callbacks: pxa_camera.c, which, looking at your email 
+> > address, I doubt is 
+> > the driver, that you're using;)
+> 
+> Okay, will do.  Thanks for pointing that out :)
+> 
+> Is the camera host driver expected to directly call the sensor driver's 
+> s_power (via v4l2_subdev_call(sd, core, s_power, <some value>)?  Or does 
+> the v4l2 framework do this for you?  I didn't see an example of this in 
+> my last pull of linux-next.
+
+yes, the host driver has to call s_power explicitly.
+
+Thanks
+Guennadi
+---
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
+http://www.open-technology.de/
