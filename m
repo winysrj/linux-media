@@ -1,51 +1,61 @@
 Return-path: <mchehab@pedra>
-Received: from mail-ww0-f44.google.com ([74.125.82.44]:45575 "EHLO
-	mail-ww0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754245Ab1FGNqr (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 7 Jun 2011 09:46:47 -0400
+Received: from acoma.acyna.com ([72.9.254.68]:52854 "EHLO acoma.acyna.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1760012Ab1FAVtJ (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 1 Jun 2011 17:49:09 -0400
+Message-ID: <4DE6B3C6.5020706@hubstar.net>
+Date: Wed, 01 Jun 2011 22:48:54 +0100
+From: linuxtv <linuxtv@hubstar.net>
 MIME-Version: 1.0
-In-Reply-To: <201106071326.53106.laurent.pinchart@ideasonboard.com>
-References: <1307053663-24572-1-git-send-email-ohad@wizery.com>
- <201106071105.16262.laurent.pinchart@ideasonboard.com> <BANLkTi=nJXSEfWRXqwnHys1b5i5rgLcYpw@mail.gmail.com>
- <201106071326.53106.laurent.pinchart@ideasonboard.com>
-From: Ohad Ben-Cohen <ohad@wizery.com>
-Date: Tue, 7 Jun 2011 16:46:26 +0300
-Message-ID: <BANLkTimqt=yMGHcqEH5u-4GkMX9=+BuB6A@mail.gmail.com>
-Subject: Re: [RFC 2/6] omap: iovmm: generic iommu api migration
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: linux-media@vger.kernel.org, linux-omap@vger.kernel.org,
-	linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-	Hiroshi.DOYU@nokia.com, arnd@arndb.de, davidb@codeaurora.org,
-	Joerg.Roedel@amd.com
+To: Devin Heitmueller <dheitmueller@kernellabs.com>
+CC: Florent Audebert <florent.audebert@anevia.com>,
+	linux-media@vger.kernel.org
+Subject: Re: HVR-1300 analog inputs
+References: <4DE65C6D.2060806@anevia.com> <BANLkTi=zUfg9hAN8X9nrPEOMgtUzsKrbOw@mail.gmail.com>
+In-Reply-To: <BANLkTi=zUfg9hAN8X9nrPEOMgtUzsKrbOw@mail.gmail.com>
 Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Hi Laurent,
+Only FYI,
 
-On Tue, Jun 7, 2011 at 2:26 PM, Laurent Pinchart
-<laurent.pinchart@ideasonboard.com> wrote:
->> Right now we have a BUG_ON if pa is unaligned, but that can be changed
->> if needed (do we want it to handle offsets ?).
+I am using the HVR-1300 with the build-media.git repo (sorry I forget
+the correct name). UK PAL-I capturing fine at full res. Using mtythv and
+tested using smplayer on /dev/video0 (or video1). (Full UK PAL res).
+
+I know that won't directly help, but at least you know that is can/does
+work at full res.
+
+On 01/06/11 16:49, Devin Heitmueller wrote:
+> On Wed, Jun 1, 2011 at 11:36 AM, Florent Audebert
+> <florent.audebert@anevia.com> wrote:
+>   
+>> Hi,
+>>
+>> I'm experimenting around with an Hauppauge HVR-1300 (cx88_blackbird) analog
+>> inputs (PAL-I signal).
+>>
+>> Using qv4l2 (trunk) and 2.6.36.4, I successfully get a clean image on both
+>> composite and s-video inputs with resolutions of 640x480 or less.
+>>
+>> With any higher resolutions, I have thin horizontal lines at moving
+>> positions (seems to cycle)[1].
+>>
+>> I've tried various settings using qv4l2 on /dev/video0 and /dev/video1 with
+>> no success.
+>>
+>> Is there a way to get higher encoding resolution from this board ?
+>>     
+> You probably won't be able to go any higher than a width of 720.  That
+> said, it looks like either the driver is not responding properly or
+> the application doesn't realize that the driver returned it's maximum
+> field width (the V4L2 API specifies that in the S_FMT call that if the
+> calling application specifies an invalid width, the driver can return
+> a valid width and the application should recognize and use that
+> value).
 >
-> At least for the OMAP3 ISP we need to, as video buffers don't necessarily
-> start on page boundaries.
+> Devin
+>
+>   
 
-Where do you take care of those potential offsets today ? Or do you
-simply ignore the offsets and map the entire page ?
-
-Seems like omap's iommu (mostly) rejects unaligned pa addresses, see:
-
-4abb761749abfb4ec403e4054f9dae2ee604e54f "omap iommu: Reject unaligned
-addresses at setting page table entry"
-
-(this doesn't seem to cover 4KB entries though, only large pages,
-sections and super sections)
-
-> A separate patch is indeed needed, yes. As you're already working on iommu it
-> might be simpler if you add it to your tree.
-
-Sure, i'll send it.
-
-Thanks,
-Ohad.
