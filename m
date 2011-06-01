@@ -1,47 +1,85 @@
 Return-path: <mchehab@pedra>
-Received: from smtp6-g21.free.fr ([212.27.42.6]:40786 "EHLO smtp6-g21.free.fr"
+Received: from mx1.redhat.com ([209.132.183.28]:33297 "EHLO mx1.redhat.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753834Ab1FFUVK (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 6 Jun 2011 16:21:10 -0400
-Message-ID: <4DED36A8.5000300@free.fr>
-Date: Mon, 06 Jun 2011 22:20:56 +0200
-From: Robert Jarzmik <robert.jarzmik@free.fr>
-Reply-To: robert.jarzmik@free.fr
+	id S1753201Ab1FAVPp (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 1 Jun 2011 17:15:45 -0400
+Message-ID: <4DE6ABF5.6020008@redhat.com>
+Date: Wed, 01 Jun 2011 18:15:33 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
 MIME-Version: 1.0
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-CC: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	=?ISO-8859-1?Q?Teresa_G=E1mez?= <t.gamez@phytec.de>
-Subject: Re: [PATCH 1/2] V4L: mt9m111: propagate higher level abstraction
- down in functions
-References: <Pine.LNX.4.64.1106061918010.11169@axis700.grange>
-In-Reply-To: <Pine.LNX.4.64.1106061918010.11169@axis700.grange>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+To: Andreas Oberritter <obi@linuxtv.org>
+CC: Hans Petter Selasky <hselasky@c2i.net>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	linux-kernel@vger.kernel.org
+Subject: Re: [PATCH] FE_GET_PROPERTY should be _IOW, because the associated
+ structure is transferred from userspace to kernelspace. Keep the old ioctl
+ around for compatibility so that existing code is not broken.
+References: <201105231558.13084.hselasky@c2i.net> <4DDA711E.3030301@linuxtv.org> <201105231651.55945.hselasky@c2i.net> <4DDA7E07.7070907@linuxtv.org>
+In-Reply-To: <4DDA7E07.7070907@linuxtv.org>
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On 06/06/2011 07:20 PM, Guennadi Liakhovetski wrote:
-> It is more convenient to propagate the higher level abstraction - the
-> struct mt9m111 object into functions and then retrieve a pointer to
-> the i2c client, if needed, than to do the reverse.
-Agreed.
+Em 23-05-2011 12:32, Andreas Oberritter escreveu:
+> On 05/23/2011 04:51 PM, Hans Petter Selasky wrote:
+>> On Monday 23 May 2011 16:37:18 Andreas Oberritter wrote:
+>>> On 05/23/2011 03:58 PM, Hans Petter Selasky wrote:
+>>>> From be7d0f72ebf4d945cfb2a5c9cc871707f72e1e3c Mon Sep 17 00:00:00 2001
+>>>> From: Hans Petter Selasky <hselasky@c2i.net>
+>>>> Date: Mon, 23 May 2011 15:56:31 +0200
+>>>> Subject: [PATCH] FE_GET_PROPERTY should be _IOW, because the associated
+>>>> structure is transferred from userspace to kernelspace. Keep the old
+>>>> ioctl around for compatibility so that existing code is not broken.
+>>>
+>>
+>> Hi,
+>>
+>>> Good catch, but I think _IOWR would be right, because the result gets
+>>> copied from kernelspace to userspace.
+>>
+>> Those flags are only for the IOCTL associated structure itself. The V4L DVB 
+>> kernel only reads the dtv_properties structure in either case and does not 
+>> write any data back to it. That's why only _IOW is required.
+> 
+> I see.
+> 
+>> I checked somewhat and the R/W bits in the IOCTL command does not appear do be 
+>> matched to the R/W permissions you have on the file handle? Or am I mistaken?
+> 
+> You're right. There's no direct relationship between them, at least not
+> within dvb-core.
+> 
+>> In other words the IOCTL R/W (_IOC_READ, _IOC_WRITE) bits should not reflect 
+>> what the IOCTL actually does, like modifying indirect data?
+> 
+> I'm not sure. Your patch is certainly doing the right thing for the
+> current implementation of dvb_usercopy, which however wasn't designed
+> with variable length arrays in mind.
 
-One minor point, you ofter replace :
- > -	struct mt9m111 *mt9m111 = to_mt9m111(client);
- > +	struct mt9m111 *mt9m111 = container_of(sd, struct mt9m111, subdev);
+The dvb_usercopy will do the right thing, if we use _IOR or _IORW.
 
-Why haven't you replaced the signature of to_mt9m111() into :
-static struct mt9m111 *to_mt9m111(const struct v4l2_subdev *sd)
-{
-	return container_of(sd, struct mt9m111, subdev);
-}
+> Taking dvb_usercopy aside, my interpretation of the ioctl bits was:
+> - _IOC_READ is required if copy_to_user/put_user needs to be used during
+> the ioctl.
+> - _IOC_WRITE is required if copy_from_user/get_user needs to be used
+> during the ioctl.
 
-This way, each to_mt9m111(client) will become to_mt9m111(sd), and the 
-purpose of to_mt9m111() will be kept. Wouldn't that be better ?
+That is my understanding too. I agree that _IOWR seems to be the more appropriate
+definition for it.
 
-Else I agree with everything else.
+That's said, this is just a naming convention. Kernel core won't enforce
+any special behavior, as there are some violations about this convention
+on a few places.
 
-Cheers.
+> 
+> Whether that's limited to the structure directly encoded in the ioctl or
+> not is unclear to me. Maybe someone at LKML can shed some light on that.
 
---
-Robert
+I prefer to not apply this patch, as it won't fix anything. Adding an _OLD means
+that we'll need later to remove it, causing a regression. Ok, we may do like we did
+with V4L _OLD ioctl's that were marked as _OLD at 2.6.5 and were removed on a late
+2.6.3x.
+
+Cheers,
+Mauro
