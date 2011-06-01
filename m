@@ -1,67 +1,85 @@
 Return-path: <mchehab@pedra>
-Received: from smtp-vbr16.xs4all.nl ([194.109.24.36]:1568 "EHLO
-	smtp-vbr16.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753475Ab1FLMaK (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 12 Jun 2011 08:30:10 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-Subject: Re: [RFCv1 PATCH 7/7] tuner-core: s_tuner should not change tuner mode.
-Date: Sun, 12 Jun 2011 14:30:03 +0200
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Andy Walls <awalls@md.metrocast.net>
-References: <1307799283-15518-1-git-send-email-hverkuil@xs4all.nl> <4DF4AA3F.5040005@redhat.com> <4DF4AD6A.3080003@redhat.com>
-In-Reply-To: <4DF4AD6A.3080003@redhat.com>
+Received: from smtp-vbr8.xs4all.nl ([194.109.24.28]:3162 "EHLO
+	smtp-vbr8.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751164Ab1FAN11 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 1 Jun 2011 09:27:27 -0400
+Message-ID: <ef656b6325ca0b3c65337f7480f834f0.squirrel@webmail.xs4all.nl>
+In-Reply-To: <4DE636C5.7040604@redhat.com>
+References: <201105231315.29328.hverkuil@xs4all.nl>
+    <4DE636C5.7040604@redhat.com>
+Date: Wed, 1 Jun 2011 15:27:20 +0200
+Subject: Re: [GIT PATCHES FOR 2.6.41] Add bitmask controls
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: "Mauro Carvalho Chehab" <mchehab@redhat.com>
+Cc: "linux-media" <linux-media@vger.kernel.org>,
+	"Sakari Ailus" <sakari.ailus@maxwell.research.nokia.com>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201106121430.03114.hverkuil@xs4all.nl>
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Sunday, June 12, 2011 14:13:30 Mauro Carvalho Chehab wrote:
-> Em 12-06-2011 08:59, Mauro Carvalho Chehab escreveu:
-> > Em 12-06-2011 08:36, Hans Verkuil escreveu:
-> >>>> What about this:
-> >>>>
-> >>>> Opening /dev/radio effectively starts the radio mode. So if there is TV
-> >>>> capture in progress, then the open should return -EBUSY. Otherwise it
-> >>>> switches the tuner to radio mode. And it stays in radio mode until the
-> >>>> last filehandle of /dev/radio is closed. At that point it will automatically
-> >>>> switch back to TV mode (if there is one, of course).
-> >>>
-> >>> No. This would break existing applications. The mode switch should be done
-> >>> at S_FREQUENCY (e. g. when the radio application is tuning into a channel).
-> >>
-> >> This is not what happens today as the switch to radio occurs as soon as you open
-> >> the radio node. It's the reason for the s_radio op.
-> > 
-> > The s_radio op is something that I wanted to remove. It was there in the past to feed
-> > the TV/radio hint logic. I wrote a patch for it, but I ended by discarding from my
-> > final queue (I can't remember why).
-> > 
-> > I think that the hint logic were completely removed, but we may need to take a look
-> > on the callers for s_radio. I'll check it right now.
-> > 
-> 
-> The s_radio callback requires some care, as it is used on several places. It is probably
-> safe to remove it from tuner, but a few sub-drivers like msp3400 needs it. The actual
-> troubles seem to happen at the bridge drivers that call it during open(). It should be
-> called only at s_frequency. I opted to keep the callback just to avoid having a bridge
-> driver switching its registers to radio mode, and not having the tuner following it.
-> 
-> If we move the radio mode switch at the bridge drivers to s_frequency only, we can just
-> remove this callback from tuner, letting it to be implemented only at the audio decoders.
+> Hi Hans,
+>
+> Em 23-05-2011 08:15, Hans Verkuil escreveu:
+>> Hi Mauro,
+>>
+>> These patches for 2.6.41 add support for bitmask controls, needed for
+>> the
+>> upcoming Flash API and HDMI API.
+>
+> DocBook changes need do a s/2.6.41/3.1/.
 
-Why would the audio decoders need it? If we do the mode switch when s_freq is
-called, then the audio decoders can do the same and s_radio can disappear completely.
+Of course, I saw your DocBook changes going today.
 
-I would like that, but I'm a bit afraid of application breakage since we're changing
-the behavior of /dev/radio. It seems that pretty much every video driver with radio
-capability is calling s_radio during open(): bttv, ivtv, saa7134, usbvision, em28xx,
-cx18, cx88, cx231xx and tm6000.
+> That's said, I'm not sure if it is a good idea to add bitmask type,
+> instead of
+> just using a set of boolean controls.
+
+There are currently two use cases: Sakari's flash controller needs to
+report errors which are a bitmask of possible error conditions. It is way
+overkill to split that up in separate boolean controls, especially since
+apps will also want to get an event whenever such an error is raised.
+
+The other is in HDMI receivers where there can be multiple ports that do
+EDID handling, but only one can stream. You need a way to tell which ports
+received an EDID for example. Again, you can make multiple boolean
+controls like HDMI_PORT0_EDID_REC, PORT1, PORT2, PORT3, etc. but that is a
+waste of code and time.
+
+> One of the issues with bitmasks is
+> the
+> endness type: LE, BE or machine endianness. The specs don't mention how
+> this
+> is supposed to work.
+
+Good point. It's machine endianness, but that definitely has to be
+documented. I'll do that.
+
+> Also, I'd like to see a patch like that submitting with a driver or
+> feature
+> that needs it. Before you ask: no, vivi doesn't count ;)
+
+Sakari will hopefully be the first 'real' user for this for a flash driver.
 
 Regards,
 
-	Hans
+        Hans
+
+>
+>> Sakari, can you give your ack as well?
+>>
+>> The patch is the same as the original one posted April 4, except for a
+>> small
+>> change in the control logging based on feedback from Laurent and the new
+>> DocBook documentation.
+>
+> Cheers,
+> Mauro
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>
+
+
