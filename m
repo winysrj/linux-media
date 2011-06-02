@@ -1,56 +1,72 @@
 Return-path: <mchehab@pedra>
-Received: from mail-ey0-f174.google.com ([209.85.215.174]:53929 "EHLO
-	mail-ey0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754991Ab1FMWMv (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 13 Jun 2011 18:12:51 -0400
-Received: by eyx24 with SMTP id 24so1762486eyx.19
-        for <linux-media@vger.kernel.org>; Mon, 13 Jun 2011 15:12:50 -0700 (PDT)
+Received: from mail-ew0-f46.google.com ([209.85.215.46]:52336 "EHLO
+	mail-ew0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933181Ab1FBK4Q (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 2 Jun 2011 06:56:16 -0400
+Received: by ewy4 with SMTP id 4so232787ewy.19
+        for <linux-media@vger.kernel.org>; Thu, 02 Jun 2011 03:56:15 -0700 (PDT)
 MIME-Version: 1.0
-In-Reply-To: <BANLkTinH57qGYmw2_DNM5NXX_PoMwK8v7w@mail.gmail.com>
-References: <BANLkTinH57qGYmw2_DNM5NXX_PoMwK8v7w@mail.gmail.com>
-Date: Mon, 13 Jun 2011 18:12:49 -0400
-Message-ID: <BANLkTi=mURYJ78ETA1KKZjve=PNEP49ZOg@mail.gmail.com>
-Subject: Re: Status on DRX-K based tuner cards
+Date: Thu, 2 Jun 2011 06:56:14 -0400
+Message-ID: <BANLkTi=Dvj_B-8FF5NMgkv040pmbNp=aqA@mail.gmail.com>
+Subject: SOB for original xc4000 patch
 From: Devin Heitmueller <dheitmueller@kernellabs.com>
-To: Markus Partheymueller <mail@klee-parthy.de>
-Cc: linux-media@vger.kernel.org
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Davide Ferri <davidef1986@gmail.com>
 Content-Type: text/plain; charset=ISO-8859-1
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Mon, Jun 13, 2011 at 6:05 PM, Markus Partheymueller
-<mail@klee-parthy.de> wrote:
-> Hello there,
->
-> I just wanted to ask whether there is a change in the situation of
-> tuners used in e.g. Terratec H5 / WinTV HVR-930c / MSI Digivox Trio
-> etc. As far as I can understand all the information available in
-> various mailing lists and boards, the real problem was (or is) the
-> DRX-K chip. Now there's a driver for Terratec H7 which includes some
-> drxk-* source code. Is this a different chip or is this the desired
-> source code for providing linux support for those devices?
->
-> I would really appreciate linux support for this kind of tuners - of
-> course I've got one myself, but in general I hate the idea that there
-> are products not available to the linux domain. Especially when it
-> comes to TV - there are all kinds of custom VDR solutions featuring
-> Linux, as well as many lightweight laptops like the eeePC, which can't
-> access the huge variety of dvb tuner cards.
+Here is the email thread where Davide Ferri consented to having the
+SOB added to his original patch.  Whoever prepares the patch series
+should ensure that it has the following chain of SOBs:
 
-In the case of the drx-k, the problem is no longer with the chipset
-vendor - they have provided source code under a license that will
-permit merging into an upstream kernel.
-
-The problem at this point is simply a lack of developers who are both
-qualified and willing to do the work.  A secondary problem is that
-even if somebody gets a board working, a huge refactoring of the code
-is required in order for it to be accepted upstream.  This for example
-is why the drx-j (the ATSC/QAM equivalent to the drxk-) isn't in the
-mainline kernel despite there having been an out-of-tree GPL driver
-available for almost a year.
+Signed-off-by: Davide Ferri <davidef1986@gmail.com>
+Signed-off-by: Devin Heitmueller <dheitmueller@kernellabs.com>
 
 Devin
+
+---------- Forwarded message ----------
+From: Davide Ferri <davidef1986@gmail.com>
+Date: Sun, Mar 21, 2010 at 6:37 PM
+Subject: Re: Signed-off by for your patch
+To: Devin Heitmueller <dheitmueller@kernellabs.com>
+
+
+I don't know what exactly implies to sign-off that patch, anyway you
+can of course add my email there if you need to do so.
+If there's any thing I can do, please tell me.
+Davide
+P.s.: Have you investigated the module unload problem when the stick
+is removed while scanning/watching tv ?
+Currently I don't have much free time to investigate as I'm writing my
+bachelor's thesis on this project www.nbee.org
+
+On Sun, Mar 21, 2010 at 11:17 PM, Devin Heitmueller
+<dheitmueller@kernellabs.com> wrote:
+>
+> Hello Davide,
+>
+> I'm trying to get some stuff wrapped up for the 340e merge, and I
+> noticed that I never actually got your signed-off-by for the following
+> patch:
+>
+> http://kernellabs.com/hg/~dheitmueller/pctv-340e-2/rev/9eb9b35cef5a
+>
+> Could you please consent to the following SOB being added to the patch
+> so this can be submitted upstream?
+>
+> Signed-off-by: Davide Ferri <davidef1986@gmail.com>,
+>
+> Thanks,
+>
+> Devin
+>
+> --
+> Devin J. Heitmueller - Kernel Labs
+> http://www.kernellabs.com
+
+
+
 
 -- 
 Devin J. Heitmueller - Kernel Labs
