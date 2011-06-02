@@ -1,77 +1,61 @@
 Return-path: <mchehab@pedra>
-Received: from smtp-vbr10.xs4all.nl ([194.109.24.30]:3056 "EHLO
-	smtp-vbr10.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757322Ab1F1L0V (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 28 Jun 2011 07:26:21 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [RFCv2 PATCH 13/13] v4l2-event.h: add overview documentation to the header.
-Date: Tue, 28 Jun 2011 13:26:05 +0200
-Message-Id: <671351808887ca28ad4b844b343fefc5fa360641.1309260043.git.hans.verkuil@cisco.com>
-In-Reply-To: <1309260365-4831-1-git-send-email-hverkuil@xs4all.nl>
-References: <1309260365-4831-1-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <3d92b242dcf5e7766d128d6c1f05c0bd837a2633.1309260043.git.hans.verkuil@cisco.com>
-References: <3d92b242dcf5e7766d128d6c1f05c0bd837a2633.1309260043.git.hans.verkuil@cisco.com>
+Received: from mail-wy0-f174.google.com ([74.125.82.174]:45258 "EHLO
+	mail-wy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932177Ab1FBJTu convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 2 Jun 2011 05:19:50 -0400
+Received: by wya21 with SMTP id 21so449306wya.19
+        for <linux-media@vger.kernel.org>; Thu, 02 Jun 2011 02:19:49 -0700 (PDT)
+Subject: Re: [beagleboard] [PATCH v6 2/2] Add support for mt9p031 sensor in Beagleboard XM.
+Mime-Version: 1.0 (Apple Message framework v1084)
+Content-Type: text/plain; charset=us-ascii
+From: Koen Kooi <koen@beagleboard.org>
+In-Reply-To: <BANLkTimDJG3xgwhKznQG0sHKKutmHQSOpw@mail.gmail.com>
+Date: Thu, 2 Jun 2011 11:19:45 +0200
+Cc: beagleboard@googlegroups.com, linux-media@vger.kernel.org,
+	g.liakhovetski@gmx.de, laurent.pinchart@ideasonboard.com,
+	carlighting@yahoo.co.nz, mch_kot@yahoo.com.cn
+Content-Transfer-Encoding: 8BIT
+Message-Id: <9B67B12E-0A3B-4D31-A708-44C1AF06A242@beagleboard.org>
+References: <1306942609-2440-1-git-send-email-javier.martin@vista-silicon.com> <1306942609-2440-2-git-send-email-javier.martin@vista-silicon.com> <F6CCC3E5-67AF-4D22-9541-C31A91924DFE@beagleboard.org> <BANLkTimDJG3xgwhKznQG0sHKKutmHQSOpw@mail.gmail.com>
+To: javier Martin <javier.martin@vista-silicon.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
 
-It's getting confusing who is linking to what, so add an overview at
-the start of the header.
+Op 2 jun 2011, om 08:52 heeft javier Martin het volgende geschreven:
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- include/media/v4l2-event.h |   34 ++++++++++++++++++++++++++++++++++
- 1 files changed, 34 insertions(+), 0 deletions(-)
+> Hi Koen,
+> 
+> On 1 June 2011 20:08, Koen Kooi <koen@beagleboard.org> wrote:
+>> 
+>> Op 1 jun 2011, om 17:36 heeft Javier Martin het volgende geschreven:
+>> 
+>>> New "version" and "vdd_io" flags have been added.
+>>> 
+>>> A subtle change now prevents camera from being registered
+>>> in the wrong platform.
+>> 
+>> I get a decent picture now with the following:
+>> 
+>> media-ctl -r -l '"mt9p031 2-0048":0->"OMAP3 ISP CCDC":0[1], "OMAP3 ISP CCDC":1->"OMAP3 ISP CCDC output":0[1]'
+>> media-ctl -f '"mt9p031 2-0048":0[SGRBG12 320x240], "OMAP3 ISP CCDC":0[SGRBG8 320x240], "OMAP3 ISP CCDC":1[SGRBG8 320x240]'
+>> 
+>> yavta-nc --stdout -f SGRBG8 -s 320x240 -n 4 --capture=10000 --skip 3 -F $(media-ctl -e "OMAP3 ISP CCDC output") | mplayer-bayer - -demuxer  rawvideo -rawvideo w=320:h=240:format=ba81:size=76800 -vo fbdev2 -vf ba81
+>> 
+>> 720p also seems to work.
+>> 
+>> It is really, really dark though. Is this due to missing controls or due to the laneshifting?
+> 
+> I suspect it is due to the patched mplayer.
+> I know this because I have enabled some custom patterns in the sensor,
+> thus generating pure red, blue and green pictures and they didn't seem
+> so when played through mplayer-bayer.
+> 
+> You could try the same if you want. Just to confirm.
 
-diff --git a/include/media/v4l2-event.h b/include/media/v4l2-event.h
-index 7abeb39..5f14e88 100644
---- a/include/media/v4l2-event.h
-+++ b/include/media/v4l2-event.h
-@@ -29,6 +29,40 @@
- #include <linux/videodev2.h>
- #include <linux/wait.h>
- 
-+/*
-+ * Overview:
-+ *
-+ * Events are subscribed per-filehandle. An event specification consists of a
-+ * type and is optionally associated with an object identified through the
-+ * 'id' field. So an event is uniquely identified by the (type, id) tuple.
-+ *
-+ * The v4l2-fh struct has a list of subscribed events. The v4l2_subscribed_event
-+ * struct is added to that list, one for every subscribed event.
-+ *
-+ * Each v4l2_subscribed_event struct ends with an array of v4l2_kevent structs.
-+ * This array (ringbuffer, really) is used to store any events raised by the
-+ * driver. The v4l2_kevent struct links into the 'available' list of the
-+ * v4l2_fh struct so VIDIOC_DQEVENT will know which event to dequeue first.
-+ *
-+ * Finally, if the event subscription is associated with a particular object
-+ * such as a V4L2 control, then that object needs to know about that as well
-+ * so that an event can be raised by that object. So the 'node' field can
-+ * be used to link the v4l2_subscribed_event struct into a list of that
-+ * object.
-+ *
-+ * So to summarize:
-+ *
-+ * struct v4l2_fh has two lists: one of the subscribed events, and one of the
-+ * pending events.
-+ *
-+ * struct v4l2_subscribed_event has a ringbuffer of raised (pending) events of
-+ * that particular type.
-+ *
-+ * If struct v4l2_subscribed_event is associated with a specific object, then
-+ * that object will have an internal list of struct v4l2_subscribed_event so
-+ * it knows who subscribed an event to that object.
-+ */
-+
- struct v4l2_fh;
- struct v4l2_subscribed_event;
- struct video_device;
--- 
-1.7.1
+So mplayer-bayer is a bad test :) So what other tool(chain) can I use to display images captured with this driver? Ideally I would use mediactl to point the CCDC output to the v4l2 overlay, but I guess that would need some extra code in the ISP and omapvout drivers.
+I heard it's really sunny in Texas where they will be testing this, so the mplayer darkness might be OK for there.
 
+regards,
+
+Koen
