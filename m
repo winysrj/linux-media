@@ -1,68 +1,127 @@
 Return-path: <mchehab@pedra>
-Received: from mail-wy0-f174.google.com ([74.125.82.174]:35343 "EHLO
-	mail-wy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755967Ab1FEVrm (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sun, 5 Jun 2011 17:47:42 -0400
-Received: by wya21 with SMTP id 21so2396246wya.19
-        for <linux-media@vger.kernel.org>; Sun, 05 Jun 2011 14:47:41 -0700 (PDT)
-Subject: Re: DM04 USB DVB-S TUNER
-From: Malcolm Priestley <tvboxspy@gmail.com>
-To: Mehmet Altan Pire <baybesteci@gmail.com>
-Cc: linux-media@vger.kernel.org
-In-Reply-To: <1307306576.2064.13.camel@localhost>
-References: <4DEACF3F.9090305@gmail.com>
-	 <1307283393.22968.12.camel@localhost> <4DEBB00D.4040202@gmail.com>
-	 <1307306576.2064.13.camel@localhost>
-Content-Type: text/plain; charset="UTF-8"
-Date: Sun, 05 Jun 2011 22:47:35 +0100
-Message-ID: <1307310455.2547.9.camel@localhost>
-Mime-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Received: from mail-fx0-f46.google.com ([209.85.161.46]:64852 "EHLO
+	mail-fx0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752642Ab1FBQAH (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 2 Jun 2011 12:00:07 -0400
+From: Johannes Obermaier <johannes.obermaier@gmail.com>
+To: mchehab@infradead.org
+Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+	Johannes Obermaier <johannes.obermaier@gmail.com>
+Subject: [PATCH 3/3] V4L/DVB: mt9v011: Fixed gain calculation
+Date: Thu,  2 Jun 2011 18:03:41 +0200
+Message-Id: <1307030621-30701-1-git-send-email-johannes.obermaier@gmail.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Sun, 2011-06-05 at 21:42 +0100, Malcolm Priestley wrote:
-> On Sun, 2011-06-05 at 19:34 +0300, Mehmet Altan Pire wrote:
-> > 05-06-2011 17:16, Malcolm Priestley yazmış:
-> > > On Sun, 2011-06-05 at 03:35 +0300, Mehmet Altan Pire wrote:
-> > >> Hi,
-> > >> I have "DM04 USB DVBS TUNER", using ubuntu with v4l media-build
-> > >> drivers/modules but device  doesn't working (unknown device).
-> > >>
-> > >> lsusb message:
-> > >> ID 3344:22f0
-> > >>
-> > >> under of the box:
-> > >> DM04P2011050176
-> > >
-> > Yes, i have windows xp driver, name is "US2B0D.sys" I sending it,
-> > attached in this mail. Thanks. 
-> 
-> Here is a modified lmedm04.c and lme2510b_fw.sh using the US2B0D.sys
-> 
-> Tested here, it appears to work with the sharp7395 tuner.
-> 
-> Are you sure it works under Windows?  I can't find your ID in the
-> US2B0D.sys file. It may be a blank lme2510c chip.
-> 
-> I assume you are using the lastest media_build to update driver then
-> over write lmedm04.c 
-> 
-> found in;
-> media_build/linux/drivers/media/dvb/dvb-usb
-> 
-> If already build, just a make and sudo make install is required.
-I have done some further tests with this firmware and it does not return
-the correct signal lock data. By default the signal lock returns the
-last good lock and updated by interrupt. This just means when lock is
-lost the driver still returns lock.
+(This patch must be used AFTER the patch "V4L/DVB: mt9v011: Added exposure for mt9v011")
+The implementation of the gain calculation for this sensor is incorrect. It is only working for the first 127 values.
+The reason is, that the gain cannot be set directly by writing a value into the gain registers of the sensor. The gain register work this way (see datasheet page 24): bits 0 to 6 are called "initial gain". These are linear. But bits 7 and 8 ("analog multiplicative factors") and bits 9 and 10 ("digital multiplicative factors") work completely different: Each of these bits increase the gain by the factor 2. So if the bits 7-10 are 0011, 0110, 1100 or 0101 for example, the gain from bits 0-6 is multiplied by 4. The order of the bits 7-10 is not important for the resulting gain. (But there are some recommended values for low noise)
+The current driver doesn't do this correctly: If the current gain is 000 0111 1111 (127) and the gain is increased by 1, you would expect the image to become brighter. But the image is completly dark, because the new gain is 000 1000 0000 (128). This means: Initial gain of 0, multiplied by 2. The result is 0.
+This patch adds a new function which does the gain calculation and also fixes the same bug for red_balance and blue_balance. Additionally, the driver follows the recommendation from the datasheet, which says, that the gain should always be above 0x0020.
 
-I will need to modify the interrupt return.
+Signed-off-by: Johannes Obermaier <johannes.obermaier@gmail.com>
+---
+ drivers/media/video/mt9v011.c |   63 +++++++++++++++++++++++++++++++++-------
+ 1 files changed, 52 insertions(+), 11 deletions(-)
 
-However, it may be a different tuner.
-
-tvboxspy
-
-
-
+diff --git a/drivers/media/video/mt9v011.c b/drivers/media/video/mt9v011.c
+index fbbd018..893a8b8 100644
+--- a/drivers/media/video/mt9v011.c
++++ b/drivers/media/video/mt9v011.c
+@@ -54,7 +54,7 @@ static struct v4l2_queryctrl mt9v011_qctrl[] = {
+ 		.type = V4L2_CTRL_TYPE_INTEGER,
+ 		.name = "Gain",
+ 		.minimum = 0,
+-		.maximum = (1 << 10) - 1,
++		.maximum = (1 << 12) - 1 - 0x0020,
+ 		.step = 1,
+ 		.default_value = 0x0020,
+ 		.flags = 0,
+@@ -114,7 +114,8 @@ struct mt9v011 {
+ 	unsigned hflip:1;
+ 	unsigned vflip:1;
+ 
+-	u16 global_gain, exposure, red_bal, blue_bal;
++	u16 global_gain, exposure;
++	s16 red_bal, blue_bal;
+ };
+ 
+ static inline struct mt9v011 *to_mt9v011(struct v4l2_subdev *sd)
+@@ -189,25 +190,65 @@ static const struct i2c_reg_value mt9v011_init_default[] = {
+ 		{ R07_MT9V011_OUT_CTRL, 0x0002 },	/* chip enable */
+ };
+ 
++
++static u16 calc_mt9v011_gain(s16 lineargain)
++{
++
++	u16 digitalgain = 0;
++	u16 analogmult = 0;
++	u16 analoginit = 0;
++
++	if (lineargain < 0)
++		lineargain = 0;
++
++	/* recommended minimum */
++	lineargain += 0x0020;
++
++	if (lineargain > 2047)
++		lineargain = 2047;
++
++	if (lineargain > 1023) {
++		digitalgain = 3;
++		analogmult = 3;
++		analoginit = lineargain / 16;
++	} else if (lineargain > 511) {
++		digitalgain = 1;
++		analogmult = 3;
++		analoginit = lineargain / 8;
++	} else if (lineargain > 255) {
++		analogmult = 3;
++		analoginit = lineargain / 4;
++	} else if (lineargain > 127) {
++		analogmult = 1;
++		analoginit = lineargain / 2;
++	} else
++		analoginit = lineargain;
++
++	return analoginit + (analogmult << 7) + (digitalgain << 9);
++
++}
++
+ static void set_balance(struct v4l2_subdev *sd)
+ {
+ 	struct mt9v011 *core = to_mt9v011(sd);
+-	u16 green1_gain, green2_gain, blue_gain, red_gain;
++	u16 green_gain, blue_gain, red_gain;
+ 	u16 exposure;
++	s16 bal;
+ 
+ 	exposure = core->exposure;
+ 
+-	green1_gain = core->global_gain;
+-	green2_gain = core->global_gain;
++	green_gain = calc_mt9v011_gain(core->global_gain);
+ 
+-	blue_gain = core->global_gain +
+-		    core->global_gain * core->blue_bal / (1 << 9);
++	bal = core->global_gain;
++	bal += (core->blue_bal * core->global_gain / (1 << 7));
++	blue_gain = calc_mt9v011_gain(bal);
+ 
+-	red_gain = core->global_gain +
+-		   core->global_gain * core->blue_bal / (1 << 9);
++	bal = core->global_gain;
++	bal += (core->red_bal * core->global_gain / (1 << 7));
++	red_gain = calc_mt9v011_gain(bal);
+ 
+-	mt9v011_write(sd, R2B_MT9V011_GREEN_1_GAIN, green1_gain);
+-	mt9v011_write(sd, R2E_MT9V011_GREEN_2_GAIN,  green1_gain);
++	mt9v011_write(sd, R2B_MT9V011_GREEN_1_GAIN, green_gain);
++	mt9v011_write(sd, R2E_MT9V011_GREEN_2_GAIN, green_gain);
+ 	mt9v011_write(sd, R2C_MT9V011_BLUE_GAIN, blue_gain);
+ 	mt9v011_write(sd, R2D_MT9V011_RED_GAIN, red_gain);
+ 	mt9v011_write(sd, R09_MT9V011_SHUTTER_WIDTH, exposure);
+-- 
+1.6.4.2
 
