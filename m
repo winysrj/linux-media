@@ -1,51 +1,43 @@
 Return-path: <mchehab@pedra>
-Received: from smtp-vbr6.xs4all.nl ([194.109.24.26]:3258 "EHLO
-	smtp-vbr6.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752990Ab1FNPWz (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 14 Jun 2011 11:22:55 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: laurent.pinchart@ideasonboard.com, sakari.ailus@iki.fi,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [RFCv1 PATCH 5/8] v4l2-ctrls: don't initially set CH_VALUE for write-only controls
-Date: Tue, 14 Jun 2011 17:22:30 +0200
-Message-Id: <42c8e179d411e4b6290c20fddd707a96cd7549a8.1308063857.git.hans.verkuil@cisco.com>
-In-Reply-To: <1308064953-11156-1-git-send-email-hverkuil@xs4all.nl>
-References: <1308064953-11156-1-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <3d92b242dcf5e7766d128d6c1f05c0bd837a2633.1308063857.git.hans.verkuil@cisco.com>
-References: <3d92b242dcf5e7766d128d6c1f05c0bd837a2633.1308063857.git.hans.verkuil@cisco.com>
+Received: from mailout-de.gmx.net ([213.165.64.22]:51292 "HELO
+	mailout-de.gmx.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S932843Ab1FBJqQ (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 2 Jun 2011 05:46:16 -0400
+Message-ID: <4DE75BE7.4050403@gmx.net>
+Date: Thu, 02 Jun 2011 11:46:15 +0200
+From: Lutz Sammer <johns98@gmx.net>
+MIME-Version: 1.0
+To: hselasky@c2i.net
+CC: linux-media@vger.kernel.org
+Subject: RE: [PATCH v3 - resend] Fix the derot zig-zag to work with TT-USB2.0
+ TechnoTrend.
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+Hello Hans Petter,
 
-When sending the SEND_INITIAL event for write-only controls the
-V4L2_EVENT_CTRL_CH_VALUE flag should not be set. It's meaningless.
+I haven't tested your patch yet, but looking at the source I see some
+problems.
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- drivers/media/video/v4l2-ctrls.c |    6 ++++--
- 1 files changed, 4 insertions(+), 2 deletions(-)
+What does your patch fix and how?
 
-diff --git a/drivers/media/video/v4l2-ctrls.c b/drivers/media/video/v4l2-ctrls.c
-index 63a44fd..1b0422e 100644
---- a/drivers/media/video/v4l2-ctrls.c
-+++ b/drivers/media/video/v4l2-ctrls.c
-@@ -2032,9 +2032,11 @@ void v4l2_ctrl_add_event(struct v4l2_ctrl *ctrl,
- 	if (ctrl->type != V4L2_CTRL_TYPE_CTRL_CLASS &&
- 	    (sev->flags & V4L2_EVENT_SUB_FL_SEND_INITIAL)) {
- 		struct v4l2_event ev;
-+		u32 changes = V4L2_EVENT_CTRL_CH_FLAGS;
- 
--		fill_event(&ev, ctrl, V4L2_EVENT_CTRL_CH_VALUE |
--			V4L2_EVENT_CTRL_CH_FLAGS);
-+		if (!(ctrl->flags & V4L2_CTRL_FLAG_WRITE_ONLY))
-+			changes |= V4L2_EVENT_CTRL_CH_VALUE;
-+		fill_event(&ev, ctrl, changes);
- 		v4l2_event_queue_fh(sev->fh, &ev);
- 	}
- 	v4l2_ctrl_unlock(ctrl);
--- 
-1.7.1
+If you have problem locking channels, try my locking patch:
+https://patchwork.kernel.org/patch/753382/
 
+On each step (timing, carrier, data) you reset the derot:
+     stb0899_set_derot(state, 0);
+Why?
+
+Afaik you destroy already locked frequencies, which slows
+down the locking.
+
+Than you do 8 loops:
+    for (index = 0; index < 8; index++) {
+Why?
+
+All checks already contains some delays, if the delays are too
+short, you should fix this delays.
+
+Johns
