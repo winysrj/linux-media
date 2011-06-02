@@ -1,51 +1,53 @@
 Return-path: <mchehab@pedra>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:55944 "EHLO
-	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756308Ab1F0Cuc convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 26 Jun 2011 22:50:32 -0400
-MIME-Version: 1.0
-In-Reply-To: <20110626130607.5931a2f8@pedra>
-References: <cover.1309103285.git.mchehab@redhat.com> <20110626130607.5931a2f8@pedra>
-From: Linus Torvalds <torvalds@linux-foundation.org>
-Date: Sun, 26 Jun 2011 19:49:42 -0700
-Message-ID: <BANLkTimBxTpzK3Ooc-gz=nJbhZ1Mu5d1cQ@mail.gmail.com>
-Subject: Re: [PATCH 01/14] [media] v4l2 core: return -ENOIOCTLCMD if an ioctl
- doesn't exist
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	LKML <linux-kernel@vger.kernel.org>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+Received: from tex.lwn.net ([70.33.254.29]:43848 "EHLO vena.lwn.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S932771Ab1FBJWh (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 2 Jun 2011 05:22:37 -0400
+Date: Thu, 2 Jun 2011 03:24:37 -0600
+From: Jonathan Corbet <corbet@lwn.net>
+To: Kassey Lee <ygli@marvell.com>
+Cc: g.liakhovetski@gmx.de, linux-media@vger.kernel.org,
+	hverkuil@xs4all.nl, qingx@marvell.com, ytang5@marvell.com,
+	leiwen@marvell.com, jwan@marvell.com, hzhuang1@marvell.com,
+	njun@marvell.com
+Subject: Re: [PATCH V2] V4L/DVB: v4l: Add driver for Marvell PXA910 CCIC
+Message-ID: <20110602032437.3b911574@tpl.lwn.net>
+In-Reply-To: <1306934205-15154-1-git-send-email-ygli@marvell.com>
+References: <1306934205-15154-1-git-send-email-ygli@marvell.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 8bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Sun, Jun 26, 2011 at 9:06 AM, Mauro Carvalho Chehab
-<mchehab@redhat.com> wrote:
-> +       <term><errorcode>ENOIOCTLCMD</errorcode></term>
-> +       <listitem>
-> +         <para>The application attempted to use a non-existent ioctl. This is returned by the V4L2 core only.
-> +               Applications should be able to handle this error code, in order to detect if a new ioctl is
-> +               not implemented at the current Kernel version. Kernel versions lower than 3.0 returns EINVAL to
-> +               non-existing ioctl's.</para>
+On Wed,  1 Jun 2011 21:16:45 +0800
+Kassey Lee <ygli@marvell.com> wrote:
 
-This seems entirely bogus.
+> This driver exports a video device node per each CCIC
+> (CMOS Camera Interface Controller)
+> device contained in Marvell Mobile PXA910 SoC
+> The driver is based on soc-camera + videobuf2 frame
+> work, and only USERPTR is supported.
 
-ENOICTLCMD is meant to be an entirely kernel-internal one, which is
-meant to never be shown to user space. IOW, vfs_ioctl() turns it into
-EINVAL (which I personally think is bogus - traditionally ENOTTY is
-the right one for "not a valid ioctl", but there are people who
-disagree - whatever)
+This device looks awfully similar to the Cafe controller; you must
+certainly have known that, since some of the code in your driver is
+clearly copied (without attribution) from cafe_ccic.c.
 
-The rationale for it is mainly as a way for layers inside the kernel
-to determine the difference between "ioctl existed but failed with
-EINVAL" vs "ioctl doesn't actually exist". Some layers try first one
-thing and then another, and want to know the difference. An example of
-that might be some code that first tries to call device-specific
-version, and if that doesn't exist, do a generic emulation version.
+As it happens, I've just written a driver for the Armada 610 SoC found
+in the OLPC 1.75 system; I was planning to post it as early as next
+week.  I took a different approach, though: rather than duplicating the
+Cafe code, I split that driver into core and platform parts, then added
+a new platform piece for the Armada 610.  I do believe that is a better
+way of doing things.
 
-Of course, as far as I can tell, almost nothing does that anyway.
-Regardless, it's definitely wrong to document it as being returned to
-user land. It should never be user-visible.
+That said, your driver has useful stuff that mine doesn't - MIPI
+support, for example.
 
-                  Linus
+I'm traveling, but will be back next week.  I'll send out my work after
+that; then I would really like to find a way to make all these pieces
+work together with a common core for cafe-derived controllers.  Make
+sense?
+
+Thanks,
+
+jon
