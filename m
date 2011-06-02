@@ -1,153 +1,246 @@
 Return-path: <mchehab@pedra>
-Received: from proofpoint-cluster.metrocast.net ([65.175.128.136]:50635 "EHLO
-	proofpoint-cluster.metrocast.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751730Ab1FKSVK (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 11 Jun 2011 14:21:10 -0400
-References: <1307799283-15518-1-git-send-email-hverkuil@xs4all.nl> <2a85334a8d3f0861fc10f2d6adbf46946d12bb0e.1307798213.git.hans.verkuil@cisco.com> <4DF373B3.4000601@redhat.com> <201106111927.15981.hverkuil@xs4all.nl>
-In-Reply-To: <201106111927.15981.hverkuil@xs4all.nl>
+Received: from bear.ext.ti.com ([192.94.94.41]:34761 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753696Ab1FBRWM convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 2 Jun 2011 13:22:12 -0400
+From: "Nori, Sekhar" <nsekhar@ti.com>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+CC: LAK <linux-arm-kernel@lists.infradead.org>,
+	LMML <linux-media@vger.kernel.org>,
+	"Hadli, Manjunath" <manjunath.hadli@ti.com>,
+	dlos <davinci-linux-open-source@linux.davincidsp.com>
+Date: Thu, 2 Jun 2011 22:51:58 +0530
+Subject: RE: [PATCH 1/1] davinci: dm646x: move vpif related code to driver
+ core	header from platform
+Message-ID: <B85A65D85D7EB246BE421B3FB0FBB593024D2D28E3@dbde02.ent.ti.com>
+References: <1305899929-2509-1-git-send-email-manjunath.hadli@ti.com>
+In-Reply-To: <1305899929-2509-1-git-send-email-manjunath.hadli@ti.com>
+Content-Language: en-US
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 MIME-Version: 1.0
-Content-Type: text/plain;
- charset=UTF-8
-Content-Transfer-Encoding: 8bit
-Subject: Re: [RFCv1 PATCH 7/7] tuner-core: s_tuner should not change tuner mode.
-From: Andy Walls <awalls@md.metrocast.net>
-Date: Sat, 11 Jun 2011 14:21:05 -0400
-To: Hans Verkuil <hverkuil@xs4all.nl>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>
-CC: linux-media@vger.kernel.org, Hans Verkuil <hans.verkuil@cisco.com>
-Message-ID: <44600ba6-2e69-4c21-8683-abd57ab6a60a@email.android.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Hans Verkuil <hverkuil@xs4all.nl> wrote:
+Hi Mauro,
 
->On Saturday, June 11, 2011 15:54:59 Mauro Carvalho Chehab wrote:
->> Em 11-06-2011 10:34, Hans Verkuil escreveu:
->> > From: Hans Verkuil <hans.verkuil@cisco.com>
->> > 
->> > According to the spec the tuner type field is not used when calling
->> > S_TUNER: index, audmode and reserved are the only writable fields.
->> > 
->> > So remove the type check. Instead, just set the audmode if the
->current
->> > tuner mode is set to radio.
->> 
->> I suspect that this patch also breaks support for a separate radio
->tuner.
->> if tuner-type is not properly filled, then the easiest fix would be
->to
->> revert some changes done at the tuner cleanup/fixup patches applied
->on .39.
->> Yet, the previous logic were trying to hint the device mode, with is
->bad
->> (that's why it was changed).
->> 
->> The proper change seems to add a parameter to this callback, set by
->the
->> bridge driver, informing if the device is using radio or video mode.
->> We need also to patch the V4L API specs, as it allows using a video
->node
->> for radio, and vice versa. This is not well supported, and it seems
->silly
->> to keep it at the specs and needing to add hints at the drivers due
->to
->> that.
->
->So, just to make sure I understand correctly what you want. The bridge
->or
->platform drivers will fill in the vf->type (for g/s_frequency) or
->vt->type
->(for g/s_tuner) based on the device node: RADIO if /dev/radio is used,
->TV for anything else.
->
->What about VIDIOC_S_FREQUENCY? The spec says that the app needs to fill
->this
->in. Will we just overwrite vf->type or will we check and return -EINVAL
->if
->the app tries to set e.g. a TV frequency on /dev/radio?
->
->Is VIDIOC_S_FREQUENCY allowed to change the tuner mode? E.g. if
->/dev/radio was
->opened, and now I open /dev/video and call S_FREQUENCY with the TV
->tuner type,
->should that change the tuner to tv mode?
->
->I think the type passed to S_FREQUENCY should 1) match the device
->node's type
->(if not, then return -EINVAL) and 2) should match the current mode (if
->not,
->then return -EBUSY). So attempts to change the TV frequency when in
->radio
->mode should fail. This second rule should also be valid for S_TUNER.
->
->What should G_TUNER return on a video node when in radio mode or vice
->versa?
->For G_FREQUENCY you can still return the last used frequency, but
->that's
->much more ambiguous for G_TUNER. One option is to set rxsubchans,
->signal and
->afc all to 0 if you query G_TUNER when 'in the wrong mode'.
->
->The VIDIOC_G/S_MODULATOR ioctls do not have a type and they are RADIO
->only,
->so that's OK.
->
->And how do we switch between radio and TV? Right now opening the radio
->node
->will set the tuner in radio mode, and calling S_STD will change the
->mode to
->TV again. As mentioned above, what S_FREQUENCY is supposed to do is
->undefined
->at the moment.
->
->What about this:
->
->Opening /dev/radio effectively starts the radio mode. So if there is TV
->capture in progress, then the open should return -EBUSY. Otherwise it
->switches the tuner to radio mode. And it stays in radio mode until the
->last filehandle of /dev/radio is closed. At that point it will
->automatically
->switch back to TV mode (if there is one, of course).
->
->While it is in radio mode calls to S_STD and S_FREQUENCY from
->/dev/video
->will return -EBUSY. Any attempt to start streaming from /dev/video will
->also return -EBUSY (radio 'streaming' is in progress after all).
->
->Effectively, S_STD no longer switches back to TV mode. That only
->happens when
->the last user of /dev/radio left. It certainly sounds a lot saner to
->me.
->
->Of course, I'm ignoring DVB in this story. You may have to negotiate
->between
->radio, Tv and DVB.
->
->Anyway, this all sounds very nice, but it's a heck of a lot of work.
->I'd much
->rather just fix this bug without changing the spec and behavior of
->drivers.
->That's a nice project perhaps for a rainy day (or week...), but not for
->a fix
->that is needed asap and that works for kernel v3.0.
->
->The whole radio/tv/dvb tuner selection is a big mess and needs to be
->solved,
->but let's do that in a separate project.
->
->Regards,
->
->	Hans
->--
->To unsubscribe from this list: send the line "unsubscribe linux-media"
->in
->the body of a message to majordomo@vger.kernel.org
->More majordomo info at  http://vger.kernel.org/majordomo-info.html
+On Fri, May 20, 2011 at 19:28:49, Hadli, Manjunath wrote:
+> move vpif related code for capture and display drivers
+> from dm646x platform header file to vpif.h as these definitions
+> are related to driver code more than the platform or board.
+> 
+> Signed-off-by: Manjunath Hadli <manjunath.hadli@ti.com>
 
-You have to be able to stream from a video node /dev/video24 when /dev/radio is open.  /dev/radio is a control only node.  (Under current spec behavior.)
+Will you be taking this patch through your tree?
 
-Also there is at least one non-test app out there, brought up on the ivtv lists a few months ago in the context of v4l2 priorty handling, that, IIRC, makes calls on /dev/video24 with /dev/radio open.
+If not, with your ack, I can queue it for inclusion
+through the ARM tree.
 
-Regards,
-Andy
+Thanks,
+Sekhar
+
+> ---
+>  arch/arm/mach-davinci/include/mach/dm646x.h |   53 +-------------------
+>  drivers/media/video/davinci/vpif.h          |    1 +
+>  drivers/media/video/davinci/vpif_capture.h  |    2 +-
+>  drivers/media/video/davinci/vpif_display.h  |    1 +
+>  include/media/davinci/vpif.h                |   73 +++++++++++++++++++++++++++
+>  5 files changed, 77 insertions(+), 53 deletions(-)
+>  create mode 100644 include/media/davinci/vpif.h
+> 
+> diff --git a/arch/arm/mach-davinci/include/mach/dm646x.h b/arch/arm/mach-davinci/include/mach/dm646x.h
+> index 7a27f3f..245a1c0 100644
+> --- a/arch/arm/mach-davinci/include/mach/dm646x.h
+> +++ b/arch/arm/mach-davinci/include/mach/dm646x.h
+> @@ -17,6 +17,7 @@
+>  #include <linux/videodev2.h>
+>  #include <linux/clk.h>
+>  #include <linux/davinci_emac.h>
+> +#include <media/davinci/vpif.h>
+>  
+>  #define DM646X_EMAC_BASE		(0x01C80000)
+>  #define DM646X_EMAC_MDIO_BASE		(DM646X_EMAC_BASE + 0x4000)
+> @@ -36,58 +37,6 @@ int __init dm646x_init_edma(struct edma_rsv_info *rsv);
+>  
+>  void dm646x_video_init(void);
+>  
+> -enum vpif_if_type {
+> -	VPIF_IF_BT656,
+> -	VPIF_IF_BT1120,
+> -	VPIF_IF_RAW_BAYER
+> -};
+> -
+> -struct vpif_interface {
+> -	enum vpif_if_type if_type;
+> -	unsigned hd_pol:1;
+> -	unsigned vd_pol:1;
+> -	unsigned fid_pol:1;
+> -};
+> -
+> -struct vpif_subdev_info {
+> -	const char *name;
+> -	struct i2c_board_info board_info;
+> -	u32 input;
+> -	u32 output;
+> -	unsigned can_route:1;
+> -	struct vpif_interface vpif_if;
+> -};
+> -
+> -struct vpif_display_config {
+> -	int (*set_clock)(int, int);
+> -	struct vpif_subdev_info *subdevinfo;
+> -	int subdev_count;
+> -	const char **output;
+> -	int output_count;
+> -	const char *card_name;
+> -};
+> -
+> -struct vpif_input {
+> -	struct v4l2_input input;
+> -	const char *subdev_name;
+> -};
+> -
+> -#define VPIF_CAPTURE_MAX_CHANNELS	2
+> -
+> -struct vpif_capture_chan_config {
+> -	const struct vpif_input *inputs;
+> -	int input_count;
+> -};
+> -
+> -struct vpif_capture_config {
+> -	int (*setup_input_channel_mode)(int);
+> -	int (*setup_input_path)(int, const char *);
+> -	struct vpif_capture_chan_config chan_config[VPIF_CAPTURE_MAX_CHANNELS];
+> -	struct vpif_subdev_info *subdev_info;
+> -	int subdev_count;
+> -	const char *card_name;
+> -};
+> -
+>  void dm646x_setup_vpif(struct vpif_display_config *,
+>  		       struct vpif_capture_config *);
+>  
+> diff --git a/drivers/media/video/davinci/vpif.h b/drivers/media/video/davinci/vpif.h
+> index 10550bd..e76dded 100644
+> --- a/drivers/media/video/davinci/vpif.h
+> +++ b/drivers/media/video/davinci/vpif.h
+> @@ -20,6 +20,7 @@
+>  #include <linux/videodev2.h>
+>  #include <mach/hardware.h>
+>  #include <mach/dm646x.h>
+> +#include <media/davinci/vpif.h>
+>  
+>  /* Maximum channel allowed */
+>  #define VPIF_NUM_CHANNELS		(4)
+> diff --git a/drivers/media/video/davinci/vpif_capture.h b/drivers/media/video/davinci/vpif_capture.h
+> index 7a4196d..fa50b6b 100644
+> --- a/drivers/media/video/davinci/vpif_capture.h
+> +++ b/drivers/media/video/davinci/vpif_capture.h
+> @@ -28,7 +28,7 @@
+>  #include <media/v4l2-device.h>
+>  #include <media/videobuf-core.h>
+>  #include <media/videobuf-dma-contig.h>
+> -#include <mach/dm646x.h>
+> +#include <media/davinci/vpif.h>
+>  
+>  #include "vpif.h"
+>  
+> diff --git a/drivers/media/video/davinci/vpif_display.h b/drivers/media/video/davinci/vpif_display.h
+> index b53aaa8..b531a01 100644
+> --- a/drivers/media/video/davinci/vpif_display.h
+> +++ b/drivers/media/video/davinci/vpif_display.h
+> @@ -23,6 +23,7 @@
+>  #include <media/v4l2-device.h>
+>  #include <media/videobuf-core.h>
+>  #include <media/videobuf-dma-contig.h>
+> +#include <media/davinci/vpif.h>
+>  
+>  #include "vpif.h"
+>  
+> diff --git a/include/media/davinci/vpif.h b/include/media/davinci/vpif.h
+> new file mode 100644
+> index 0000000..e4a4dc1
+> --- /dev/null
+> +++ b/include/media/davinci/vpif.h
+> @@ -0,0 +1,73 @@
+> +/*
+> + * Copyright (C) 2011 Texas Instruments Inc
+> + *
+> + * This program is free software; you can redistribute it and/or modify
+> + * it under the terms of the GNU General Public License as published by
+> + * the Free Software Foundation version 2.
+> + *
+> + * This program is distributed in the hope that it will be useful,
+> + * but WITHOUT ANY WARRANTY; without even the implied warranty of
+> + * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+> + * GNU General Public License for more details.
+> + *
+> + * You should have received a copy of the GNU General Public License
+> + * along with this program; if not, write to the Free Software
+> + * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
+> + */
+> +#ifndef _VPIF_INC_H
+> +#define _VPIF_INC_H
+> +
+> +#include <linux/i2c.h>
+> +
+> +#define VPIF_CAPTURE_MAX_CHANNELS	2
+> +
+> +enum vpif_if_type {
+> +	VPIF_IF_BT656,
+> +	VPIF_IF_BT1120,
+> +	VPIF_IF_RAW_BAYER
+> +};
+> +
+> +struct vpif_interface {
+> +	enum vpif_if_type if_type;
+> +	unsigned hd_pol:1;
+> +	unsigned vd_pol:1;
+> +	unsigned fid_pol:1;
+> +};
+> +
+> +struct vpif_subdev_info {
+> +	const char *name;
+> +	struct i2c_board_info board_info;
+> +	u32 input;
+> +	u32 output;
+> +	unsigned can_route:1;
+> +	struct vpif_interface vpif_if;
+> +};
+> +
+> +struct vpif_display_config {
+> +	int (*set_clock)(int, int);
+> +	struct vpif_subdev_info *subdevinfo;
+> +	int subdev_count;
+> +	const char **output;
+> +	int output_count;
+> +	const char *card_name;
+> +};
+> +
+> +struct vpif_input {
+> +	struct v4l2_input input;
+> +	const char *subdev_name;
+> +};
+> +
+> +struct vpif_capture_chan_config {
+> +	const struct vpif_input *inputs;
+> +	int input_count;
+> +};
+> +
+> +struct vpif_capture_config {
+> +	int (*setup_input_channel_mode)(int);
+> +	int (*setup_input_path)(int, const char *);
+> +	struct vpif_capture_chan_config chan_config[VPIF_CAPTURE_MAX_CHANNELS];
+> +	struct vpif_subdev_info *subdev_info;
+> +	int subdev_count;
+> +	const char *card_name;
+> +};
+> +#endif /* _VPIF_INC_H */
+> -- 
+> 1.6.2.4
+> 
+> _______________________________________________
+> Davinci-linux-open-source mailing list
+> Davinci-linux-open-source@linux.davincidsp.com
+> http://linux.davincidsp.com/mailman/listinfo/davinci-linux-open-source
+> 
+
