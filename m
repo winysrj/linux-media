@@ -1,130 +1,74 @@
 Return-path: <mchehab@pedra>
-Received: from bear.ext.ti.com ([192.94.94.41]:60849 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753510Ab1FQKUX (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 17 Jun 2011 06:20:23 -0400
-Message-ID: <4DFB2C0E.4040100@ti.com>
-Date: Fri, 17 Jun 2011 15:57:26 +0530
-From: Archit Taneja <archit@ti.com>
-MIME-Version: 1.0
-To: "Hiremath, Vaibhav" <hvaibhav@ti.com>
-CC: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	"mchehab@redhat.com" <mchehab@redhat.com>,
-	"hverkuil@xs4all.nl" <hverkuil@xs4all.nl>
-Subject: Re: [PATCH] omap_vout: Added check in reqbuf & mmap for buf_size
- allocation
-References: <hvaibhav@ti.com> <1308255249-18762-1-git-send-email-hvaibhav@ti.com> <4DFB1445.3000102@ti.com> <19F8576C6E063C45BE387C64729E739404E30727E0@dbde02.ent.ti.com>
-In-Reply-To: <19F8576C6E063C45BE387C64729E739404E30727E0@dbde02.ent.ti.com>
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
-Content-Transfer-Encoding: 7bit
+Received: from mailout3.w1.samsung.com ([210.118.77.13]:43349 "EHLO
+	mailout3.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751362Ab1FBF4t (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 2 Jun 2011 01:56:49 -0400
+MIME-version: 1.0
+Content-transfer-encoding: 7BIT
+Content-type: text/plain; charset=iso-8859-2
+Received: from eu_spt1 ([210.118.77.13]) by mailout3.w1.samsung.com
+ (Sun Java(tm) System Messaging Server 6.3-8.04 (built Jul 29 2009; 32bit))
+ with ESMTP id <0LM5002VUF6NXB70@mailout3.w1.samsung.com> for
+ linux-media@vger.kernel.org; Thu, 02 Jun 2011 06:56:47 +0100 (BST)
+Received: from linux.samsung.com ([106.116.38.10])
+ by spt1.w1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14
+ 2004)) with ESMTPA id <0LM5008T8F6M8A@spt1.w1.samsung.com> for
+ linux-media@vger.kernel.org; Thu, 02 Jun 2011 06:56:47 +0100 (BST)
+Date: Thu, 02 Jun 2011 07:56:32 +0200
+From: Marek Szyprowski <m.szyprowski@samsung.com>
+Subject: RE: [PATCH] [media] V4L/videobuf2-memops: use pr_debug for debug
+ messages
+In-reply-to: <4DE6E8A7.2080305@infradead.org>
+To: 'Mauro Carvalho Chehab' <mchehab@infradead.org>,
+	'Kyungmin Park' <kmpark@infradead.org>
+Cc: =?iso-8859-2?Q?'Uwe_Kleine-K=F6nig'?=
+	<u.kleine-koenig@pengutronix.de>, linux-media@vger.kernel.org,
+	kernel@pengutronix.de, 'Pawel Osciak' <pawel@osciak.com>,
+	'Guennadi Liakhovetski' <g.liakhovetski@gmx.de>,
+	'Hans Verkuil' <hverkuil@xs4all.nl>
+Message-id: <000101cc20e9$d2d07f50$78717df0$%szyprowski@samsung.com>
+Content-language: pl
+References: <1306959563-7108-1-git-send-email-u.kleine-koenig@pengutronix.de>
+ <BANLkTimG=xP7qvpN7G8+Mmmy-JozEpyPNw@mail.gmail.com>
+ <4DE6E8A7.2080305@infradead.org>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Hi,
+Hello,
 
-On Friday 17 June 2011 03:33 PM, Hiremath, Vaibhav wrote:
->
->> -----Original Message-----
->> From: Taneja, Archit
->> Sent: Friday, June 17, 2011 2:16 PM
->> To: Hiremath, Vaibhav
->> Cc: linux-media@vger.kernel.org; mchehab@redhat.com; hverkuil@xs4all.nl
->> Subject: Re: [PATCH] omap_vout: Added check in reqbuf&  mmap for buf_size
->> allocation
->>
->> Hi,
->>
->> On Friday 17 June 2011 01:44 AM, Hiremath, Vaibhav wrote:
->>> From: Vaibhav Hiremath<hvaibhav@ti.com>
->>>
->>> The usecase where, user allocates small size of buffer
->>> through bootargs (video1_bufsize/video2_bufsize) and later from
->> application
->>> tries to set the format which requires larger buffer size, driver
->> doesn't
->>> check for insufficient buffer size and allows application to map extra
->> buffer.
->>> This leads to kernel crash, when user application tries to access memory
->>> beyond the allocation size.
->>
->> Query: Why do we pass the bufsize as bootargs in the first place? Is it
->> needed at probe time?
->>
-> [Hiremath, Vaibhav] Yes, look out for variable (video1_bufsize/video2_bufsize) in code.
+On Thursday, June 02, 2011 3:35 AM Mauro Carvalho Chehab wrote:
 
-Yes, but why do we need to allocate some fixed size buffers at boot 
-time? Is it done because it makes our allocation happens faster during 
-reqbufs? Or is it required for VRFB?
+> Hi Kyungmin,
+> 
+> Em 01-06-2011 21:50, Kyungmin Park escreveu:
+> > Acked-by: Kyungmin Park <kyunginn.,park@samsung.com>
+> 
+> As this patch is really trivial and makes sense, I've just applied it
+> earlier today.
 
-Could you explain the reason/startegy behind allocating buffers of a 
-particular size at boot time?
+thanks!
 
-Thanks,
-Archit
+> > ---
+> >
+> > I think it's better to add the videobuf2 maintainer entry for proper
+> > person to know the changes.
+> > In this case, Marek is missing.
+> >
+> > If any objection, I will make a patch.
+> 
+> No objections from my side. Having the proper driver maintainers written at
+> MAINTAINERS
+> help people when submitting patches to send the patch to the proper driver
+> maintainer.
 
->
-> Thanks,
-> Vaibhav
->
->> Thanks,
->> Archit
->>
->>>
->>> Added check in both mmap and reqbuf call back function,
->>> and return error if the size of the buffer allocated by user through
->>> bootargs is less than the S_FMT size.
->>>
->>> Signed-off-by: Vaibhav Hiremath<hvaibhav@ti.com>
->>> ---
->>>    drivers/media/video/omap/omap_vout.c |   16 ++++++++++++++++
->>>    1 files changed, 16 insertions(+), 0 deletions(-)
->>>
->>> diff --git a/drivers/media/video/omap/omap_vout.c
->> b/drivers/media/video/omap/omap_vout.c
->>> index 3bc909a..343b50c 100644
->>> --- a/drivers/media/video/omap/omap_vout.c
->>> +++ b/drivers/media/video/omap/omap_vout.c
->>> @@ -678,6 +678,14 @@ static int omap_vout_buffer_setup(struct
->> videobuf_queue *q, unsigned int *count,
->>>    	startindex = (vout->vid == OMAP_VIDEO1) ?
->>>    		video1_numbuffers : video2_numbuffers;
->>>
->>> +	/* Check the size of the buffer */
->>> +	if (*size>   vout->buffer_size) {
->>> +		v4l2_err(&vout->vid_dev->v4l2_dev,
->>> +				"buffer allocation mismatch [%u] [%u]\n",
->>> +				*size, vout->buffer_size);
->>> +		return -ENOMEM;
->>> +	}
->>> +
->>>    	for (i = startindex; i<   *count; i++) {
->>>    		vout->buffer_size = *size;
->>>
->>> @@ -856,6 +864,14 @@ static int omap_vout_mmap(struct file *file, struct
->> vm_area_struct *vma)
->>>    				(vma->vm_pgoff<<   PAGE_SHIFT));
->>>    		return -EINVAL;
->>>    	}
->>> +	/* Check the size of the buffer */
->>> +	if (size>   vout->buffer_size) {
->>> +		v4l2_err(&vout->vid_dev->v4l2_dev,
->>> +				"insufficient memory [%lu] [%u]\n",
->>> +				size, vout->buffer_size);
->>> +		return -ENOMEM;
->>> +	}
->>> +
->>>    	q->bufs[i]->baddr = vma->vm_start;
->>>
->>>    	vma->vm_flags |= VM_RESERVED;
->>> --
->>> 1.6.2.4
->>>
->>> --
->>> To unsubscribe from this list: send the line "unsubscribe linux-media"
->> in
->>> the body of a message to majordomo@vger.kernel.org
->>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->>>
->
->
+It looks that the patch for MAINTAINERS have been lost. It was initially
+posted by Pawel some time ago: https://lkml.org/lkml/2011/3/20/82
+
+I will resend it to linux-media ml.
+
+Best regards
+-- 
+Marek Szyprowski
+Samsung Poland R&D Center
+
 
