@@ -1,83 +1,85 @@
 Return-path: <mchehab@pedra>
-Received: from mx1.redhat.com ([209.132.183.28]:14749 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752468Ab1FNPvs (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 14 Jun 2011 11:51:48 -0400
-Message-ID: <4DF78390.7060304@redhat.com>
-Date: Tue, 14 Jun 2011 12:51:44 -0300
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Received: from mail-ew0-f46.google.com ([209.85.215.46]:47762 "EHLO
+	mail-ew0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751675Ab1FBPRC convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 2 Jun 2011 11:17:02 -0400
+Received: by ewy4 with SMTP id 4so310114ewy.19
+        for <linux-media@vger.kernel.org>; Thu, 02 Jun 2011 08:17:00 -0700 (PDT)
 MIME-Version: 1.0
-To: Devin Heitmueller <dheitmueller@kernellabs.com>,
-	Hans de Goede <hdegoede@redhat.com>
-CC: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: Some fixes for alsa_stream
-References: <4DF6C10C.8070605@redhat.com>	<4DF758AF.3010301@redhat.com>	<4DF75C84.9000200@redhat.com>	<4DF7667C.9030502@redhat.com>	<BANLkTi=9L+oxjpUaFo3ge0iqcZ2NCjJWWA@mail.gmail.com>	<4DF76D88.5000506@redhat.com>	<4DF77229.2020607@redhat.com>	<4DF77405.2070104@redhat.com> <BANLkTimXw37fZMsoOqN3ZcWtg7HY1T-w8Q@mail.gmail.com>
-In-Reply-To: <BANLkTimXw37fZMsoOqN3ZcWtg7HY1T-w8Q@mail.gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+In-Reply-To: <4DE7A131.7010208@redhat.com>
+References: <4D764337.6050109@email.cz>
+	<20110531124843.377a2a80@glory.local>
+	<BANLkTi=Lq+FF++yGhRmOa4NCigSt6ZurHg@mail.gmail.com>
+	<20110531174323.0f0c45c0@glory.local>
+	<BANLkTimEEGsMP6PDXf5W5p9wW7wdWEEOiA@mail.gmail.com>
+	<4DE7A131.7010208@redhat.com>
+Date: Thu, 2 Jun 2011 11:17:00 -0400
+Message-ID: <BANLkTinKOoSJUOBFKy=PK3jJgaonzWrPxQ@mail.gmail.com>
+Subject: Re: [linux-dvb] XC4000 patches for kernel 2.6.37.2
+From: Devin Heitmueller <dheitmueller@kernellabs.com>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Dmitri Belimov <d.belimov@gmail.com>, linux-media@vger.kernel.org,
+	thunder.m@email.cz, "istvan_v@mailbox.hu" <istvan_v@mailbox.hu>,
+	bahathir@gmail.com
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 8BIT
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Em 14-06-2011 11:48, Devin Heitmueller escreveu:
-> On Tue, Jun 14, 2011 at 10:45 AM, Mauro Carvalho Chehab
-> <mchehab@redhat.com> wrote:
->> Pulseaudio sucks. See what happens when I pass "-alsa-pb default" argument to pulseaudio:
->>
->> 1) ssh section. User is the same as the console owner:
->>
->> ALSA lib pulse.c:229:(pulse_connect) PulseAudio: Unable to connect: Connection refused
->> Cannot open ALSA Playback device default: Connection refused
->>
->> 2) console, with mmap enabled:
->>
->> Alsa devices: cap: hw:1,0 (/dev/video0), out: default
->> Access type not available for playback: Invalid argument
->> Unable to set parameters for playback stream: Invalid argument
->> Alsa stream started, capturing from hw:1,0, playing back on default at 1 Hz with mmap enabled
->> write error: File descriptor in bad state
->> ...
->> write error: File descriptor in bad state
->>
->> 3) console, with mmap disabled:
->>
->> Alsa devices: cap: hw:1,0 (/dev/video0), out: default
->> Alsa stream started, capturing from hw:1,0, playing back on default at 1 Hz
->> write error: Input/output error
->> ...
->> write error: Input/output error
->>
->> Pulseaudio needs first to be fixed in order to work like an alsa device, before
->> having applications supporting it as default.
+On Thu, Jun 2, 2011 at 10:41 AM, Mauro Carvalho Chehab
+<mchehab@redhat.com> wrote:
+>> 1.  Assemble tree with current patches
+>
+> It is probably easier for me to do this step, as I have my hg import
+> scripts. However, as I don't have the PCTV devices added at dib0700,
+> I can't test.
+>
+> OK, I did this work, as it just took me a few minutes to rebase patches
+> 1 and 2. I didn't apply the patches that started with "djh" since they
+> seemed to be a few hacks during the development time.
+>
+> The tree is at:
+>
+> git://linuxtv.org/mchehab/experimental.git branch xc4000
+>
+> There are two warnings there that needs to be fixed:
+>
+> drivers/media/common/tuners/xc4000.c:1293: warning: ‘xc4000_is_firmware_loaded’ defined but not used
+> drivers/media/common/tuners/xc4000.c: In function ‘check_firmware.clone.0’:
+> drivers/media/common/tuners/xc4000.c:1107: warning: ‘version’ may be used uninitialized in this function
+>
+> Both seems to be trivial.
+>
+> A disclaimer notice here: I didn't make any cleanup at the code,
+> (except by running a whitespace cleanup script) nor I've reviewed it.
+>
+> IMO, the next step is to test the rebases against a real hardware,
+> and adding a few patches fixing it, if the rebases broke.
+>
+> The next step would be fix the CodingStyle, and run checkpatch.pl.
+> There aren't many CodingStyle warnings/errors (13 errors, 28 warnings).
+> Most of the errors are due to the excess usage of printk's for debug,
+> and due to some obsolete code commented with //.
 
-Hans,
+Hi Mauro,
 
-Feel free to add pulseaudio support for it, if you want. I don't have time (or
-interest) on fixing support for it. Even after fixed, I think that it is safer
-to keep the default behavior to directly use alsa, but it is a good idea to
-allow users to override.
+Thanks for taking this on.  The tree you posted looks like a pretty
+reasonable start.  I agree that the "djh - " commits probably aren't
+required as they are most just from rebasing the tree.  We'll find out
+from testing though whether this is true.  There's one patch with
+subject "djh - more debugging" might actually be needed, but we'll see
+when users try the tree.
 
-> People have been screaming about Pulseaudio for *years*, and those
-> concerns/complaints have largely fallen on deaf ears. 
+This provides a pretty good base for istan_v to work off of, since he
+did a rather large amount of refactoring to get analog to work - which
+I was unable to even try given the two devices I had can't do analog
+support due to limitations in the dvb-usb framework.
 
-Hmm.. I forgot to add a disclaimer on my previous post that my comments express my
-own opinion, doesn't reflect the opinion of my employer, and so on ;)
+Mohammad, it would be great if you could try out Mauro's tree, since
+it should work as-is for the 340e.
 
-Seriously speaking, I'm not saying that pulseaudio is bad. I just said it didn't
-bring anything that _I_ was needing, and that, on the other hand, it broke several
-things, requiring some tricks to workaround about it. Well, it works most of the
-time, and, on my development machines, I generally don't start X, as I prefer to
-work via ssh.
+Devin
 
-> Lennart works
-> for Red Hat too - maybe you can convince him to take these issues
-> seriously.
-
-I don't have much contact with Lennart. Red Hat is a big company. I'll talk with
-him if I have an opportunity, but I don't think I'll be able to convince him. My
-usecase is to use my development machines as if they were servers, working on
-them remotely via ssh and tty consoles. This is not the typical usage for pulseaudio. 
-Clearly, it were designed thinking on a normal desktop user, as pulseaudio is started 
-via X session.
-
-Thanks,
-Mauro.
+-- 
+Devin J. Heitmueller - Kernel Labs
+http://www.kernellabs.com
