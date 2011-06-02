@@ -1,56 +1,47 @@
 Return-path: <mchehab@pedra>
-Received: from mx1.redhat.com ([209.132.183.28]:1630 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1758353Ab1F1Qbo (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 28 Jun 2011 12:31:44 -0400
-Date: Mon, 27 Jun 2011 23:17:20 -0300
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	LKML <linux-kernel@vger.kernel.org>
-Subject: [PATCHv2 01/13] [media] v4l2-ioctl: Add a default value for kernel
- version
-Message-ID: <20110627231720.32e5f14f@pedra>
-In-Reply-To: <cover.1309226359.git.mchehab@redhat.com>
-References: <cover.1309226359.git.mchehab@redhat.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
-To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
+Received: from mailout3.w1.samsung.com ([210.118.77.13]:9512 "EHLO
+	mailout3.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933337Ab1FBKN1 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 2 Jun 2011 06:13:27 -0400
+MIME-version: 1.0
+Content-transfer-encoding: 7BIT
+Content-type: TEXT/PLAIN
+Date: Thu, 02 Jun 2011 12:12:03 +0200
+From: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Subject: [PATCH 6/7] s5p-fimc: Use pix_mp for the color format lookup
+In-reply-to: <1307009524-1208-1-git-send-email-s.nawrocki@samsung.com>
+To: linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org
+Cc: m.szyprowski@samsung.com, kyungmin.park@samsung.com,
+	s.nawrocki@samsung.com, sw0312.kim@samsung.com,
+	riverful.kim@samsung.com
+Message-id: <1307009524-1208-7-git-send-email-s.nawrocki@samsung.com>
+References: <1307009524-1208-1-git-send-email-s.nawrocki@samsung.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Most drivers don't increase kernel versions as newer features are added or
-bug fixes are solved. So, vidioc_querycap returned value for cap->version is
-meaningless. Instead of keeping this situation forever, let's add a default
-value matching the current Linux version.
+With multi-planar formats fmt.pix_mp member of struct v4l2_format
+should be used rather than fmt.pix. Fix find_fmt() function to do
+the right thing.
 
-Drivers that want to keep their own version control can still do it, as they
-can override the default value for cap->version.
+Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+---
+ drivers/media/video/s5p-fimc/fimc-core.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
 
-Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
-Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
-
-diff --git a/drivers/media/video/v4l2-ioctl.c b/drivers/media/video/v4l2-ioctl.c
-index 213ba7d..61ac6bf 100644
---- a/drivers/media/video/v4l2-ioctl.c
-+++ b/drivers/media/video/v4l2-ioctl.c
-@@ -16,6 +16,7 @@
- #include <linux/slab.h>
- #include <linux/types.h>
- #include <linux/kernel.h>
-+#include <linux/version.h>
+diff --git a/drivers/media/video/s5p-fimc/fimc-core.c b/drivers/media/video/s5p-fimc/fimc-core.c
+index 85b47a3..873a879 100644
+--- a/drivers/media/video/s5p-fimc/fimc-core.c
++++ b/drivers/media/video/s5p-fimc/fimc-core.c
+@@ -841,7 +841,7 @@ struct fimc_fmt *find_format(struct v4l2_format *f, unsigned int mask)
  
- #include <linux/videodev2.h>
- 
-@@ -605,6 +606,7 @@ static long __video_do_ioctl(struct file *file,
- 		if (!ops->vidioc_querycap)
+ 	for (i = 0; i < ARRAY_SIZE(fimc_formats); ++i) {
+ 		fmt = &fimc_formats[i];
+-		if (fmt->fourcc == f->fmt.pix.pixelformat &&
++		if (fmt->fourcc == f->fmt.pix_mp.pixelformat &&
+ 		   (fmt->flags & mask))
  			break;
- 
-+		cap->version = LINUX_VERSION_CODE;
- 		ret = ops->vidioc_querycap(file, fh, cap);
- 		if (!ret)
- 			dbgarg(cmd, "driver=%s, card=%s, bus=%s, "
+ 	}
 -- 
-1.7.1
-
+1.7.5.2
 
