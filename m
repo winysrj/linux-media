@@ -1,528 +1,490 @@
 Return-path: <mchehab@pedra>
-Received: from mail-qw0-f46.google.com ([209.85.216.46]:41455 "EHLO
-	mail-qw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751352Ab1FTT3u convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 20 Jun 2011 15:29:50 -0400
-Received: by qwk3 with SMTP id 3so948136qwk.19
-        for <linux-media@vger.kernel.org>; Mon, 20 Jun 2011 12:29:49 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <4DF49E2A.9030804@iki.fi>
-References: <BANLkTimkYw70GAu1keW-N6ND=AyiRn2+CA@mail.gmail.com>
-	<4DF49E2A.9030804@iki.fi>
-Date: Mon, 20 Jun 2011 21:29:49 +0200
-Message-ID: <BANLkTi=dGyN8SEwwAStD0Ob99k+FKkQPFg@mail.gmail.com>
-Subject: Re: PCTV nanoStick T2 290e (Sony CXD2820R DVB-T/T2/C) - DVB-C channel
- scan in mythtv - missing
-From: Rune Evjen <rune.evjen@gmail.com>
-To: Antti Palosaari <crope@iki.fi>
-Cc: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+Received: from mail-ww0-f44.google.com ([74.125.82.44]:51844 "EHLO
+	mail-ww0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752851Ab1FBWbE (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 2 Jun 2011 18:31:04 -0400
+From: Ohad Ben-Cohen <ohad@wizery.com>
+To: <linux-media@vger.kernel.org>, <linux-omap@vger.kernel.org>,
+	<linux-kernel@vger.kernel.org>,
+	<linux-arm-kernel@lists.infradead.org>
+Cc: <laurent.pinchart@ideasonboard.com>, <Hiroshi.DOYU@nokia.com>,
+	<arnd@arndb.de>, <davidb@codeaurora.org>, <Joerg.Roedel@amd.com>,
+	Ohad Ben-Cohen <ohad@wizery.com>
+Subject: [RFC 1/6] omap: iommu: generic iommu api migration
+Date: Fri,  3 Jun 2011 01:27:38 +0300
+Message-Id: <1307053663-24572-2-git-send-email-ohad@wizery.com>
+In-Reply-To: <1307053663-24572-1-git-send-email-ohad@wizery.com>
+References: <1307053663-24572-1-git-send-email-ohad@wizery.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-2011/6/12 Antti Palosaari <crope@iki.fi>:
-> On 06/12/2011 11:23 AM, Rune Evjen wrote:
->>
->> I just tested a PCTV 290e device using the latest media_build drivers
->> in MythTV as a DVB-C device, and ran into some problems.
->>
->> The adapter is recognized by the em28xx-dvb driver [1] and dmesg
->> output seems to be correct [2]. I can successfully scan for channels
->> using the scan utility in dvb-apps but when I try to scan for channels
->> in mythtv I get the following errors logged by mythtv-setup:
->>
->> 2011-06-12 00:57:20.971556  PIDInfo(/dev/dvb/adapter0/
->> frontend1): Failed to open demux device /dev/dvb/adapter0/demux1 for
->> filter on pid 0x0
->>
->> The demux1 does not exist, I only have the following nodes under
->> /dev/dvb/adapter0:
->>
->> demux0  dvr0  frontend0  frontend1  net0
->>
->> When searching the linx-media I came across this thread:
->> http://www.mail-archive.com/linux-media@vger.kernel.org/msg31839.html
->>
->> Is there any way to circumvent with the current driver that there is
->> no corresponding demux1 for frontend1?
->> Or can the DVB-T/T2 part be disabled somehow so that there is only one
->> DVB-C frontend registered which corresponds to the demux0?
->
-> There is no way to say driver to create demux1 for frontend1.
->
-> After all it is not 100% clear even for me if that's correct or not, but
-> most likely it is correct as far as I understood.
->
-Thank you for your response, Antti.
-Your help is much appreciated.
+Migrate OMAP's iommu to the generic iommu api, so users can stay
+generic, and non-omap-specific code can be removed and eventually
+consolidated into a generic framework.
 
-I have tested the 290e as a DVB-C adapter with some success, to use it
-I created a new adapter directory under /dev/dvb, and symlinked the
-following:
-ln -s /dev/dvb/adapter0/frontend1 /dev/dvb/adapter1/frontend0
-ln -s /dev/dvb/adapter0/demux0 /dev/dvb/adapter1/demux0
-ln -s /dev/dvb/adapter0/dvr0 /dev/dvb/adapter1/dvr0
+Tested on both OMAP3 and OMAP4.
 
-When testing I can scan using the scan utility and mythtv, and receive
-QAM-64 channels.
-QAM-256 channels have distorted audio and video.
+Signed-off-by: Ohad Ben-Cohen <ohad@wizery.com>
+---
+ arch/arm/plat-omap/Kconfig              |    7 +-
+ arch/arm/plat-omap/include/plat/iommu.h |    3 +-
+ arch/arm/plat-omap/iommu.c              |  288 +++++++++++++++++++++++++++----
+ arch/arm/plat-omap/iopgtable.h          |   18 ++
+ 4 files changed, 278 insertions(+), 38 deletions(-)
 
-I tried to investigate the QAM-256 problem using the debug option on
-cxd2820r, but when this option is enabled I get no lock using mythtv
-or the scan utility.
+diff --git a/arch/arm/plat-omap/Kconfig b/arch/arm/plat-omap/Kconfig
+index 49a4c75..1c3acb5 100644
+--- a/arch/arm/plat-omap/Kconfig
++++ b/arch/arm/plat-omap/Kconfig
+@@ -131,8 +131,13 @@ config OMAP_MBOX_KFIFO_SIZE
+ 	  This can also be changed at runtime (via the mbox_kfifo_size
+ 	  module parameter).
+ 
++config IOMMU_API
++	bool
++
++#can't be tristate; iommu api doesn't support un-registration
+ config OMAP_IOMMU
+-	tristate
++	bool
++	select IOMMU_API
+ 
+ config OMAP_IOMMU_DEBUG
+        tristate "Export OMAP IOMMU internals in DebugFS"
+diff --git a/arch/arm/plat-omap/include/plat/iommu.h b/arch/arm/plat-omap/include/plat/iommu.h
+index 174f1b9..db1c492 100644
+--- a/arch/arm/plat-omap/include/plat/iommu.h
++++ b/arch/arm/plat-omap/include/plat/iommu.h
+@@ -167,8 +167,6 @@ extern void iopgtable_lookup_entry(struct iommu *obj, u32 da, u32 **ppgd,
+ extern size_t iopgtable_clear_entry(struct iommu *obj, u32 iova);
+ 
+ extern int iommu_set_da_range(struct iommu *obj, u32 start, u32 end);
+-extern struct iommu *iommu_get(const char *name);
+-extern void iommu_put(struct iommu *obj);
+ extern int iommu_set_isr(const char *name,
+ 			 int (*isr)(struct iommu *obj, u32 da, u32 iommu_errs,
+ 				    void *priv),
+@@ -185,5 +183,6 @@ extern int foreach_iommu_device(void *data,
+ 
+ extern ssize_t iommu_dump_ctx(struct iommu *obj, char *buf, ssize_t len);
+ extern size_t dump_tlb_entries(struct iommu *obj, char *buf, ssize_t len);
++struct device *omap_find_iommu_device(const char *name);
+ 
+ #endif /* __MACH_IOMMU_H */
+diff --git a/arch/arm/plat-omap/iommu.c b/arch/arm/plat-omap/iommu.c
+index 34fc31e..f06e99c 100644
+--- a/arch/arm/plat-omap/iommu.c
++++ b/arch/arm/plat-omap/iommu.c
+@@ -18,6 +18,8 @@
+ #include <linux/ioport.h>
+ #include <linux/clk.h>
+ #include <linux/platform_device.h>
++#include <linux/iommu.h>
++#include <linux/mutex.h>
+ 
+ #include <asm/cacheflush.h>
+ 
+@@ -30,6 +32,19 @@
+ 	     (__i < (n)) && (cr = __iotlb_read_cr((obj), __i), true);	\
+ 	     __i++)
+ 
++/**
++ * struct omap_iommu_domain - omap iommu domain
++ * @pgtable:	the page table
++ * @iommu_dev:	an omap iommu device attached to this domain. only a single
++ *		iommu device can be attached for now.
++ * @lock:	domain lock, should be taken when attaching/detaching
++ */
++struct omap_iommu_domain {
++	u32 *pgtable;
++	struct iommu *iommu_dev;
++	struct mutex lock;
++};
++
+ /* accommodate the difference between omap1 and omap2/3 */
+ static const struct iommu_functions *arch_iommu;
+ 
+@@ -852,31 +867,50 @@ int iommu_set_da_range(struct iommu *obj, u32 start, u32 end)
+ EXPORT_SYMBOL_GPL(iommu_set_da_range);
+ 
+ /**
+- * iommu_get - Get iommu handler
+- * @name:	target iommu name
++ * omap_find_iommu_device() - find an omap iommu device by name
++ * @name:	name of the iommu device
++ *
++ * The generic iommu API requires the caller to provide the device
++ * he wishes to attach to a certain iommu domain. Users of that API
++ * may look up the device using PCI credentials when relevent, and when
++ * not, this helper should be used to find a specific iommu device by name.
++ *
++ * This may be relevant to other platforms as well (msm ?) so consider
++ * moving this to the generic iommu framework.
++ */
++struct device *omap_find_iommu_device(const char *name)
++{
++	return driver_find_device(&omap_iommu_driver.driver, NULL,
++				(void *)name,
++				device_match_by_alias);
++}
++EXPORT_SYMBOL_GPL(omap_find_iommu_device);
++
++/**
++ * omap_iommu_attach() - attach iommu device to an iommu domain
++ * @dev:	target omap iommu device
++ * @iopgd:	page table
+  **/
+-struct iommu *iommu_get(const char *name)
++static struct iommu *omap_iommu_attach(struct device *dev, u32 *iopgd)
+ {
+ 	int err = -ENOMEM;
+-	struct device *dev;
+-	struct iommu *obj;
+-
+-	dev = driver_find_device(&omap_iommu_driver.driver, NULL, (void *)name,
+-				 device_match_by_alias);
+-	if (!dev)
+-		return ERR_PTR(-ENODEV);
+-
+-	obj = to_iommu(dev);
++	struct iommu *obj = to_iommu(dev);
+ 
+ 	mutex_lock(&obj->iommu_lock);
+ 
+-	if (obj->refcount++ == 0) {
+-		err = iommu_enable(obj);
+-		if (err)
+-			goto err_enable;
+-		flush_iotlb_all(obj);
++	/* an iommu device can only be attached once */
++	if (++obj->refcount > 1) {
++		dev_err(dev, "%s: already attached!\n", obj->name);
++		err = -EBUSY;
++		goto err_enable;
+ 	}
+ 
++	obj->iopgd = iopgd;
++	err = iommu_enable(obj);
++	if (err)
++		goto err_enable;
++	flush_iotlb_all(obj);
++
+ 	if (!try_module_get(obj->owner))
+ 		goto err_module;
+ 
+@@ -893,13 +927,12 @@ err_enable:
+ 	mutex_unlock(&obj->iommu_lock);
+ 	return ERR_PTR(err);
+ }
+-EXPORT_SYMBOL_GPL(iommu_get);
+ 
+ /**
+- * iommu_put - Put back iommu handler
++ * omap_iommu_detach - release iommu device
+  * @obj:	target iommu
+  **/
+-void iommu_put(struct iommu *obj)
++static void omap_iommu_detach(struct iommu *obj)
+ {
+ 	if (!obj || IS_ERR(obj))
+ 		return;
+@@ -911,11 +944,12 @@ void iommu_put(struct iommu *obj)
+ 
+ 	module_put(obj->owner);
+ 
++	obj->iopgd = NULL;
++
+ 	mutex_unlock(&obj->iommu_lock);
+ 
+ 	dev_dbg(obj->dev, "%s: %s\n", __func__, obj->name);
+ }
+-EXPORT_SYMBOL_GPL(iommu_put);
+ 
+ int iommu_set_isr(const char *name,
+ 		  int (*isr)(struct iommu *obj, u32 da, u32 iommu_errs,
+@@ -950,7 +984,6 @@ EXPORT_SYMBOL_GPL(iommu_set_isr);
+ static int __devinit omap_iommu_probe(struct platform_device *pdev)
+ {
+ 	int err = -ENODEV;
+-	void *p;
+ 	int irq;
+ 	struct iommu *obj;
+ 	struct resource *res;
+@@ -1009,22 +1042,9 @@ static int __devinit omap_iommu_probe(struct platform_device *pdev)
+ 		goto err_irq;
+ 	platform_set_drvdata(pdev, obj);
+ 
+-	p = (void *)__get_free_pages(GFP_KERNEL, get_order(IOPGD_TABLE_SIZE));
+-	if (!p) {
+-		err = -ENOMEM;
+-		goto err_pgd;
+-	}
+-	memset(p, 0, IOPGD_TABLE_SIZE);
+-	clean_dcache_area(p, IOPGD_TABLE_SIZE);
+-	obj->iopgd = p;
+-
+-	BUG_ON(!IS_ALIGNED((unsigned long)obj->iopgd, IOPGD_TABLE_SIZE));
+-
+ 	dev_info(&pdev->dev, "%s registered\n", obj->name);
+ 	return 0;
+ 
+-err_pgd:
+-	free_irq(irq, obj);
+ err_irq:
+ 	iounmap(obj->regbase);
+ err_ioremap:
+@@ -1072,6 +1092,202 @@ static void iopte_cachep_ctor(void *iopte)
+ 	clean_dcache_area(iopte, IOPTE_TABLE_SIZE);
+ }
+ 
++static int omap_iommu_map(struct iommu_domain *domain, unsigned long da,
++			 phys_addr_t pa, int order, int prot)
++{
++	struct omap_iommu_domain *omap_domain = domain->priv;
++	struct iommu *oiommu = omap_domain->iommu_dev;
++	struct device *dev = oiommu->dev;
++	size_t bytes = PAGE_SIZE << order;
++	struct iotlb_entry e;
++	int omap_pgsz;
++	u32 ret, flags;
++
++	/* we only support mapping a single iommu page for now */
++	omap_pgsz = bytes_to_iopgsz(bytes);
++	if (omap_pgsz < 0) {
++		dev_err(dev, "invalid size to map: %d\n", bytes);
++		return -EINVAL;
++	}
++
++	dev_dbg(dev, "mapping da 0x%lx to pa 0x%x size 0x%x\n", da, pa, bytes);
++
++	flags = omap_pgsz | prot;
++
++	iotlb_init_entry(&e, da, pa, flags);
++
++	ret = iopgtable_store_entry(oiommu, &e);
++	if (ret) {
++		dev_err(dev, "iopgtable_store_entry failed: %d\n", ret);
++		return ret;
++	}
++
++	return 0;
++}
++
++static int omap_iommu_unmap(struct iommu_domain *domain, unsigned long da,
++			    int order)
++{
++	struct omap_iommu_domain *omap_domain = domain->priv;
++	struct iommu *oiommu = omap_domain->iommu_dev;
++	struct device *dev = oiommu->dev;
++	size_t bytes = PAGE_SIZE << order;
++	size_t ret;
++
++	dev_dbg(dev, "unmapping da 0x%lx size 0x%x\n", da, bytes);
++
++	ret = iopgtable_clear_entry(oiommu, da);
++	if (ret != bytes) {
++		dev_err(dev, "entry @ 0x%lx was %d; not %d\n", da, ret, bytes);
++		return -EINVAL;
++	}
++
++	return 0;
++}
++
++static int
++omap_iommu_attach_dev(struct iommu_domain *domain, struct device *dev)
++{
++	struct omap_iommu_domain *omap_domain = domain->priv;
++	struct iommu *oiommu;
++	int ret = 0;
++
++	mutex_lock(&omap_domain->lock);
++
++	/* only a single device is supported per domain for now */
++	if (omap_domain->iommu_dev) {
++		dev_err(dev, "iommu domain is already attached\n");
++		ret = -EBUSY;
++		goto out;
++	}
++
++	/* get a handle to and enable the omap iommu */
++	oiommu = omap_iommu_attach(dev, omap_domain->pgtable);
++	if (IS_ERR(oiommu)) {
++		ret = PTR_ERR(oiommu);
++		dev_err(dev, "can't get omap iommu: %d\n", ret);
++		goto out;
++	}
++
++	omap_domain->iommu_dev = oiommu;
++
++out:
++	mutex_unlock(&omap_domain->lock);
++	return ret;
++}
++
++static void omap_iommu_detach_dev(struct iommu_domain *domain,
++				 struct device *dev)
++{
++	struct omap_iommu_domain *omap_domain = domain->priv;
++	struct iommu *oiommu = to_iommu(dev);
++
++	mutex_lock(&omap_domain->lock);
++
++	/* only a single device is supported per domain for now */
++	if (omap_domain->iommu_dev != oiommu) {
++		dev_err(dev, "invalid iommu device\n");
++		goto out;
++	}
++
++	iopgtable_clear_entry_all(oiommu);
++
++	omap_iommu_detach(oiommu);
++
++	omap_domain->iommu_dev = NULL;
++
++out:
++	mutex_unlock(&omap_domain->lock);
++}
++
++static int omap_iommu_domain_init(struct iommu_domain *domain)
++{
++	struct omap_iommu_domain *omap_domain;
++
++	omap_domain = kzalloc(sizeof(*omap_domain), GFP_KERNEL);
++	if (!omap_domain) {
++		pr_err("kzalloc failed\n");
++		goto fail_nomem;
++	}
++
++	omap_domain->pgtable = (u32 *)__get_free_pages(GFP_KERNEL,
++					get_order(IOPGD_TABLE_SIZE));
++	if (!omap_domain->pgtable) {
++		pr_err("__get_free_pages failed\n");
++		goto fail_nomem;
++	}
++
++	BUG_ON(!IS_ALIGNED((long)omap_domain->pgtable, IOPGD_TABLE_SIZE));
++	memset(omap_domain->pgtable, 0, IOPGD_TABLE_SIZE);
++	clean_dcache_area(omap_domain->pgtable, IOPGD_TABLE_SIZE);
++	mutex_init(&omap_domain->lock);
++
++	domain->priv = omap_domain;
++
++	return 0;
++
++fail_nomem:
++	kfree(omap_domain);
++	return -ENOMEM;
++}
++
++/* assume device was already detached */
++static void omap_iommu_domain_destroy(struct iommu_domain *domain)
++{
++	struct omap_iommu_domain *omap_domain = domain->priv;
++
++	domain->priv = NULL;
++
++	kfree(omap_domain);
++}
++
++static phys_addr_t omap_iommu_iova_to_phys(struct iommu_domain *domain,
++					  unsigned long da)
++{
++	struct omap_iommu_domain *omap_domain = domain->priv;
++	struct iommu *oiommu = omap_domain->iommu_dev;
++	struct device *dev = oiommu->dev;
++	u32 *pgd, *pte;
++	phys_addr_t ret = 0;
++
++	iopgtable_lookup_entry(oiommu, da, &pgd, &pte);
++
++	if (pte) {
++		if (iopte_is_small(*pte))
++			ret = omap_iommu_translate(*pte, da, IOPTE_MASK);
++		else if (iopte_is_large(*pte))
++			ret = omap_iommu_translate(*pte, da, IOLARGE_MASK);
++		else
++			dev_err(dev, "bogus pte 0x%x", *pte);
++	} else {
++		if (iopgd_is_section(*pgd))
++			ret = omap_iommu_translate(*pgd, da, IOSECTION_MASK);
++		else if (iopgd_is_super(*pgd))
++			ret = omap_iommu_translate(*pgd, da, IOSUPER_MASK);
++		else
++			dev_err(dev, "bogus pgd 0x%x", *pgd);
++	}
++
++	return ret;
++}
++
++static int omap_iommu_domain_has_cap(struct iommu_domain *domain,
++				    unsigned long cap)
++{
++	return 0;
++}
++
++static struct iommu_ops omap_iommu_ops = {
++	.domain_init	= omap_iommu_domain_init,
++	.domain_destroy	= omap_iommu_domain_destroy,
++	.attach_dev	= omap_iommu_attach_dev,
++	.detach_dev	= omap_iommu_detach_dev,
++	.map		= omap_iommu_map,
++	.unmap		= omap_iommu_unmap,
++	.iova_to_phys	= omap_iommu_iova_to_phys,
++	.domain_has_cap	= omap_iommu_domain_has_cap,
++};
++
+ static int __init omap_iommu_init(void)
+ {
+ 	struct kmem_cache *p;
+@@ -1084,6 +1300,8 @@ static int __init omap_iommu_init(void)
+ 		return -ENOMEM;
+ 	iopte_cachep = p;
+ 
++	register_iommu(&omap_iommu_ops);
++
+ 	return platform_driver_register(&omap_iommu_driver);
+ }
+ module_init(omap_iommu_init);
+diff --git a/arch/arm/plat-omap/iopgtable.h b/arch/arm/plat-omap/iopgtable.h
+index c3e93bb..33c7aa9 100644
+--- a/arch/arm/plat-omap/iopgtable.h
++++ b/arch/arm/plat-omap/iopgtable.h
+@@ -56,6 +56,19 @@
+ 
+ #define IOPAGE_MASK		IOPTE_MASK
+ 
++/**
++ * omap_iommu_translate() - va to pa translation
++ * @d:		omap iommu descriptor
++ * @va:		virtual address
++ * @mask:	omap iommu descriptor mask
++ *
++ * va to pa translation
++ */
++static inline phys_addr_t omap_iommu_translate(u32 d, u32 va, u32 mask)
++{
++	return (d & mask) | (va & (~mask));
++}
++
+ /*
+  * some descriptor attributes.
+  */
+@@ -64,10 +77,15 @@
+ #define IOPGD_SUPER		(1 << 18 | 2 << 0)
+ 
+ #define iopgd_is_table(x)	(((x) & 3) == IOPGD_TABLE)
++#define iopgd_is_section(x)	(((x) & (1 << 18 | 3)) == IOPGD_SECTION)
++#define iopgd_is_super(x)	(((x) & (1 << 18 | 3)) == IOPGD_SUPER)
+ 
+ #define IOPTE_SMALL		(2 << 0)
+ #define IOPTE_LARGE		(1 << 0)
+ 
++#define iopte_is_small(x)	(((x) & 2) == IOPTE_SMALL)
++#define iopte_is_large(x)	(((x) & 3) == IOPTE_LARGE)
++
+ /* to find an entry in a page-table-directory */
+ #define iopgd_index(da)		(((da) >> IOPGD_SHIFT) & (PTRS_PER_IOPGD - 1))
+ #define iopgd_offset(obj, da)	((obj)->iopgd + iopgd_index(da))
+-- 
+1.7.1
 
-This also happened intermittently without the debug option, and when I
-get the "no lock" status, the only way to solve this is to shutdown
-and start the computer (i.e not rebooting) to make sure the 290e gets
-a power cycle (and it seems that the debug option also has to be off,
-at least this is my experience after 3-4 power cycles with and without
-this option).
-
-I have attached the syslog output with failed locks [1] generated by
-the debug option in case this may help with the driver development.
-
-Best regards,
-
-Rune
-
-[1]: syslog output when performing a scan using the scan utility:
-Jun 20 21:04:21 server kernel: [  711.180370] cxd2820r:
-cxd2820r_set_frontend_c: RF=450000000 SR=6950000
-Jun 20 21:04:21 server kernel: [  711.180375] cxd2820r: cxd2820r_gpio: delsys=1
-Jun 20 21:04:22 server kernel: [  711.380429] cxd2820r:
-cxd2820r_read_status: delsys=1
-Jun 20 21:04:22 server kernel: [  711.380436] cxd2820r: cxd2820r_lock:
-active_fe=1
-Jun 20 21:04:22 server kernel: [  711.381308] cxd2820r:
-cxd2820r_read_status_c: lock=05 52
-Jun 20 21:04:22 server kernel: [  711.581398] cxd2820r:
-cxd2820r_read_status: delsys=1
-Jun 20 21:04:22 server kernel: [  711.581403] cxd2820r: cxd2820r_lock:
-active_fe=1
-Jun 20 21:04:22 server kernel: [  711.582206] cxd2820r:
-cxd2820r_read_status_c: lock=05 52
-Jun 20 21:04:22 server kernel: [  711.731275] cxd2820r:
-cxd2820r_read_status: delsys=1
-Jun 20 21:04:22 server kernel: [  711.731281] cxd2820r: cxd2820r_lock:
-active_fe=1
-Jun 20 21:04:22 server kernel: [  711.732101] cxd2820r:
-cxd2820r_read_status_c: lock=05 52
-Jun 20 21:04:22 server kernel: [  711.732108] cxd2820r:
-cxd2820r_set_frontend: delsys=1
-Jun 20 21:04:22 server kernel: [  711.732112] cxd2820r: cxd2820r_lock:
-active_fe=1
-Jun 20 21:04:22 server kernel: [  711.732118] cxd2820r:
-cxd2820r_set_frontend_c: RF=450000000 SR=6950000
-Jun 20 21:04:22 server kernel: [  711.732123] cxd2820r: cxd2820r_gpio: delsys=1
-Jun 20 21:04:22 server kernel: [  711.792010] cxd2820r:
-cxd2820r_read_status: delsys=1
-Jun 20 21:04:22 server kernel: [  711.792017] cxd2820r: cxd2820r_lock:
-active_fe=1
-Jun 20 21:04:22 server kernel: [  711.792863] cxd2820r:
-cxd2820r_read_status_c: lock=04 52
-Jun 20 21:04:22 server kernel: [  711.992944] cxd2820r:
-cxd2820r_read_status: delsys=1
-Jun 20 21:04:22 server kernel: [  711.992949] cxd2820r: cxd2820r_lock:
-active_fe=1
-Jun 20 21:04:22 server kernel: [  711.993769] cxd2820r:
-cxd2820r_read_status_c: lock=05 52
-Jun 20 21:04:22 server kernel: [  712.194200] cxd2820r:
-cxd2820r_read_status: delsys=1
-Jun 20 21:04:22 server kernel: [  712.194207] cxd2820r: cxd2820r_lock:
-active_fe=1
-Jun 20 21:04:22 server kernel: [  712.195052] cxd2820r:
-cxd2820r_read_status_c: lock=05 52
-Jun 20 21:04:23 server kernel: [  712.291281] cxd2820r:
-cxd2820r_read_status: delsys=1
-Jun 20 21:04:23 server kernel: [  712.291285] cxd2820r: cxd2820r_lock:
-active_fe=1
-Jun 20 21:04:23 server kernel: [  712.292073] cxd2820r:
-cxd2820r_read_status_c: lock=05 52
-Jun 20 21:04:23 server kernel: [  712.292079] cxd2820r:
-cxd2820r_set_frontend: delsys=1
-Jun 20 21:04:23 server kernel: [  712.292083] cxd2820r: cxd2820r_lock:
-active_fe=1
-Jun 20 21:04:23 server kernel: [  712.292088] cxd2820r:
-cxd2820r_set_frontend_c: RF=450000000 SR=6950000
-Jun 20 21:04:23 server kernel: [  712.292093] cxd2820r: cxd2820r_gpio: delsys=1
-Jun 20 21:04:23 server kernel: [  712.395130] cxd2820r:
-cxd2820r_read_status: delsys=1
-Jun 20 21:04:23 server kernel: [  712.395135] cxd2820r: cxd2820r_lock:
-active_fe=1
-Jun 20 21:04:23 server kernel: [  712.395960] cxd2820r:
-cxd2820r_read_status_c: lock=05 52
-Jun 20 21:04:23 server kernel: [  712.596040] cxd2820r:
-cxd2820r_read_status: delsys=1
-Jun 20 21:04:23 server kernel: [  712.596044] cxd2820r: cxd2820r_lock:
-active_fe=1
-Jun 20 21:04:23 server kernel: [  712.596867] cxd2820r:
-cxd2820r_read_status_c: lock=05 52
-Jun 20 21:04:23 server kernel: [  712.796947] cxd2820r:
-cxd2820r_read_status: delsys=1
-Jun 20 21:04:23 server kernel: [  712.796951] cxd2820r: cxd2820r_lock:
-active_fe=1
-Jun 20 21:04:23 server kernel: [  712.797775] cxd2820r:
-cxd2820r_read_status_c: lock=05 52
-Jun 20 21:04:23 server kernel: [  712.851274] cxd2820r:
-cxd2820r_read_status: delsys=1
-Jun 20 21:04:23 server kernel: [  712.851279] cxd2820r: cxd2820r_lock:
-active_fe=1
-Jun 20 21:04:23 server kernel: [  712.852033] cxd2820r:
-cxd2820r_read_status_c: lock=05 52
-Jun 20 21:04:23 server kernel: [  712.852038] cxd2820r:
-cxd2820r_set_frontend: delsys=1
-Jun 20 21:04:23 server kernel: [  712.852042] cxd2820r: cxd2820r_lock:
-active_fe=1
-Jun 20 21:04:23 server kernel: [  712.852047] cxd2820r:
-cxd2820r_set_frontend_c: RF=450000000 SR=6950000
-Jun 20 21:04:23 server kernel: [  712.852051] cxd2820r: cxd2820r_gpio: delsys=1
-Jun 20 21:04:23 server kernel: [  712.997852] cxd2820r:
-cxd2820r_read_status: delsys=1
-Jun 20 21:04:23 server kernel: [  712.997857] cxd2820r: cxd2820r_lock:
-active_fe=1
-Jun 20 21:04:23 server kernel: [  712.998683] cxd2820r:
-cxd2820r_read_status_c: lock=05 52
-Jun 20 21:04:23 server kernel: [  713.198774] cxd2820r:
-cxd2820r_read_status: delsys=1
-Jun 20 21:04:23 server kernel: [  713.198782] cxd2820r: cxd2820r_lock:
-active_fe=1
-Jun 20 21:04:23 server kernel: [  713.199591] cxd2820r:
-cxd2820r_read_status_c: lock=05 52
-Jun 20 21:04:23 server kernel: [  713.199668] cxd2820r:
-cxd2820r_get_tune_settings: delsys=1
-Jun 20 21:04:23 server kernel: [  713.199673] cxd2820r: cxd2820r_lock:
-active_fe=1
-Jun 20 21:04:23 server kernel: [  713.199700] cxd2820r:
-cxd2820r_set_frontend: delsys=1
-Jun 20 21:04:23 server kernel: [  713.199708] cxd2820r: cxd2820r_lock:
-active_fe=1
-Jun 20 21:04:23 server kernel: [  713.199713] cxd2820r:
-cxd2820r_set_frontend_c: RF=450000000 SR=6950000
-Jun 20 21:04:23 server kernel: [  713.199719] cxd2820r: cxd2820r_gpio: delsys=1
-Jun 20 21:04:24 server kernel: [  713.399764] cxd2820r:
-cxd2820r_read_status: delsys=1
-Jun 20 21:04:24 server kernel: [  713.399770] cxd2820r: cxd2820r_lock:
-active_fe=1
-Jun 20 21:04:24 server kernel: [  713.400623] cxd2820r:
-cxd2820r_read_status_c: lock=05 52
-Jun 20 21:04:24 server kernel: [  713.600699] cxd2820r:
-cxd2820r_read_status: delsys=1
-Jun 20 21:04:24 server kernel: [  713.600703] cxd2820r: cxd2820r_lock:
-active_fe=1
-Jun 20 21:04:24 server kernel: [  713.601556] cxd2820r:
-cxd2820r_read_status_c: lock=05 52
-Jun 20 21:04:24 server kernel: [  713.750028] cxd2820r:
-cxd2820r_read_status: delsys=1
-Jun 20 21:04:24 server kernel: [  713.750033] cxd2820r: cxd2820r_lock:
-active_fe=1
-Jun 20 21:04:24 server kernel: [  713.750803] cxd2820r:
-cxd2820r_read_status_c: lock=05 52
-Jun 20 21:04:24 server kernel: [  713.750809] cxd2820r:
-cxd2820r_set_frontend: delsys=1
-Jun 20 21:04:24 server kernel: [  713.750813] cxd2820r: cxd2820r_lock:
-active_fe=1
-Jun 20 21:04:24 server kernel: [  713.750818] cxd2820r:
-cxd2820r_set_frontend_c: RF=450000000 SR=6950000
-Jun 20 21:04:24 server kernel: [  713.750823] cxd2820r: cxd2820r_gpio: delsys=1
-Jun 20 21:04:24 server kernel: [  713.813083] cxd2820r:
-cxd2820r_read_status: delsys=1
-Jun 20 21:04:24 server kernel: [  713.813091] cxd2820r: cxd2820r_lock:
-active_fe=1
-Jun 20 21:04:24 server kernel: [  713.813939] cxd2820r:
-cxd2820r_read_status_c: lock=04 52
-Jun 20 21:04:24 server kernel: [  714.014015] cxd2820r:
-cxd2820r_read_status: delsys=1
-Jun 20 21:04:24 server kernel: [  714.014020] cxd2820r: cxd2820r_lock:
-active_fe=1
-Jun 20 21:04:24 server kernel: [  714.014846] cxd2820r:
-cxd2820r_read_status_c: lock=05 52
-Jun 20 21:04:25 server kernel: [  714.214938] cxd2820r:
-cxd2820r_read_status: delsys=1
-Jun 20 21:04:25 server kernel: [  714.214946] cxd2820r: cxd2820r_lock:
-active_fe=1
-Jun 20 21:04:25 server kernel: [  714.215754] cxd2820r:
-cxd2820r_read_status_c: lock=05 52
-Jun 20 21:04:25 server kernel: [  714.311277] cxd2820r:
-cxd2820r_read_status: delsys=1
-Jun 20 21:04:25 server kernel: [  714.311282] cxd2820r: cxd2820r_lock:
-active_fe=1
-Jun 20 21:04:25 server kernel: [  714.312143] cxd2820r:
-cxd2820r_read_status_c: lock=05 52
-Jun 20 21:04:25 server kernel: [  714.312149] cxd2820r:
-cxd2820r_set_frontend: delsys=1
-Jun 20 21:04:25 server kernel: [  714.312153] cxd2820r: cxd2820r_lock:
-active_fe=1
-Jun 20 21:04:25 server kernel: [  714.312159] cxd2820r:
-cxd2820r_set_frontend_c: RF=450000000 SR=6950000
-Jun 20 21:04:25 server kernel: [  714.312163] cxd2820r: cxd2820r_gpio: delsys=1
-Jun 20 21:04:25 server kernel: [  714.415831] cxd2820r:
-cxd2820r_read_status: delsys=1
-Jun 20 21:04:25 server kernel: [  714.415836] cxd2820r: cxd2820r_lock:
-active_fe=1
-Jun 20 21:04:25 server kernel: [  714.416660] cxd2820r:
-cxd2820r_read_status_c: lock=05 52
-Jun 20 21:04:25 server kernel: [  714.616734] cxd2820r:
-cxd2820r_read_status: delsys=1
-Jun 20 21:04:25 server kernel: [  714.616739] cxd2820r: cxd2820r_lock:
-active_fe=1
-Jun 20 21:04:25 server kernel: [  714.617568] cxd2820r:
-cxd2820r_read_status_c: lock=05 52
-Jun 20 21:04:25 server kernel: [  714.817644] cxd2820r:
-cxd2820r_read_status: delsys=1
-Jun 20 21:04:25 server kernel: [  714.817649] cxd2820r: cxd2820r_lock:
-active_fe=1
-Jun 20 21:04:25 server kernel: [  714.818475] cxd2820r:
-cxd2820r_read_status_c: lock=05 52
-Jun 20 21:04:25 server kernel: [  714.870123] cxd2820r:
-cxd2820r_read_status: delsys=1
-Jun 20 21:04:25 server kernel: [  714.870128] cxd2820r: cxd2820r_lock:
-active_fe=1
-Jun 20 21:04:25 server kernel: [  714.870984] cxd2820r:
-cxd2820r_read_status_c: lock=05 52
-Jun 20 21:04:25 server kernel: [  714.870989] cxd2820r:
-cxd2820r_set_frontend: delsys=1
-Jun 20 21:04:25 server kernel: [  714.870993] cxd2820r: cxd2820r_lock:
-active_fe=1
-Jun 20 21:04:25 server kernel: [  714.870997] cxd2820r:
-cxd2820r_set_frontend_c: RF=450000000 SR=6950000
-Jun 20 21:04:25 server kernel: [  714.871002] cxd2820r: cxd2820r_gpio: delsys=1
-Jun 20 21:04:25 server kernel: [  715.018554] cxd2820r:
-cxd2820r_read_status: delsys=1
-Jun 20 21:04:25 server kernel: [  715.018558] cxd2820r: cxd2820r_lock:
-active_fe=1
-Jun 20 21:04:25 server kernel: [  715.019383] cxd2820r:
-cxd2820r_read_status_c: lock=05 52
-Jun 20 21:04:26 server kernel: [  715.219470] cxd2820r:
-cxd2820r_read_status: delsys=1
-Jun 20 21:04:26 server kernel: [  715.219477] cxd2820r: cxd2820r_lock:
-active_fe=1
-Jun 20 21:04:26 server kernel: [  715.220291] cxd2820r:
-cxd2820r_read_status_c: lock=05 52
-Jun 20 21:04:26 server kernel: [  715.220363] cxd2820r:
-cxd2820r_get_tune_settings: delsys=1
-Jun 20 21:04:26 server kernel: [  715.220367] cxd2820r: cxd2820r_lock:
-active_fe=1
-Jun 20 21:04:26 server kernel: [  715.220403] cxd2820r:
-cxd2820r_set_frontend: delsys=1
-Jun 20 21:04:26 server kernel: [  715.220410] cxd2820r: cxd2820r_lock:
-active_fe=1
-Jun 20 21:04:26 server kernel: [  715.220416] cxd2820r:
-cxd2820r_set_frontend_c: RF=474000000 SR=6950000
-Jun 20 21:04:26 server kernel: [  715.220421] cxd2820r: cxd2820r_gpio: delsys=1
-Jun 20 21:04:26 server kernel: [  715.420455] cxd2820r:
-cxd2820r_read_status: delsys=1
-Jun 20 21:04:26 server kernel: [  715.420460] cxd2820r: cxd2820r_lock:
-active_fe=1
-Jun 20 21:04:26 server kernel: [  715.421330] cxd2820r:
-cxd2820r_read_status_c: lock=05 52
-Jun 20 21:04:26 server kernel: [  715.621409] cxd2820r:
-cxd2820r_read_status: delsys=1
-Jun 20 21:04:26 server kernel: [  715.621413] cxd2820r: cxd2820r_lock:
-active_fe=1
-Jun 20 21:04:26 server kernel: [  715.622230] cxd2820r:
-cxd2820r_read_status_c: lock=05 52
-Jun 20 21:04:26 server kernel: [  715.781273] cxd2820r:
-cxd2820r_read_status: delsys=1
-Jun 20 21:04:26 server kernel: [  715.781277] cxd2820r: cxd2820r_lock:
-active_fe=1
-Jun 20 21:04:26 server kernel: [  715.782131] cxd2820r:
-cxd2820r_read_status_c: lock=05 52
-Jun 20 21:04:26 server kernel: [  715.782137] cxd2820r:
-cxd2820r_set_frontend: delsys=1
-Jun 20 21:04:26 server kernel: [  715.782141] cxd2820r: cxd2820r_lock:
-active_fe=1
-Jun 20 21:04:26 server kernel: [  715.782146] cxd2820r:
-cxd2820r_set_frontend_c: RF=474000000 SR=6950000
-Jun 20 21:04:26 server kernel: [  715.782151] cxd2820r: cxd2820r_gpio: delsys=1
-Jun 20 21:04:26 server kernel: [  715.843040] cxd2820r:
-cxd2820r_read_status: delsys=1
-Jun 20 21:04:26 server kernel: [  715.843048] cxd2820r: cxd2820r_lock:
-active_fe=1
-Jun 20 21:04:26 server kernel: [  715.843892] cxd2820r:
-cxd2820r_read_status_c: lock=04 52
-Jun 20 21:04:26 server kernel: [  716.043968] cxd2820r:
-cxd2820r_read_status: delsys=1
-Jun 20 21:04:26 server kernel: [  716.043973] cxd2820r: cxd2820r_lock:
-active_fe=1
-Jun 20 21:04:26 server kernel: [  716.044798] cxd2820r:
-cxd2820r_read_status_c: lock=05 52
-Jun 20 21:04:27 server kernel: [  716.244887] cxd2820r:
-cxd2820r_read_status: delsys=1
-Jun 20 21:04:27 server kernel: [  716.244894] cxd2820r: cxd2820r_lock:
-active_fe=1
-Jun 20 21:04:27 server kernel: [  716.245707] cxd2820r:
-cxd2820r_read_status_c: lock=05 52
-Jun 20 21:04:27 server kernel: [  716.341278] cxd2820r:
-cxd2820r_read_status: delsys=1
-Jun 20 21:04:27 server kernel: [  716.341283] cxd2820r: cxd2820r_lock:
-active_fe=1
-Jun 20 21:04:27 server kernel: [  716.342096] cxd2820r:
-cxd2820r_read_status_c: lock=05 52
-Jun 20 21:04:27 server kernel: [  716.342102] cxd2820r:
-cxd2820r_set_frontend: delsys=1
-Jun 20 21:04:27 server kernel: [  716.342106] cxd2820r: cxd2820r_lock:
-active_fe=1
-Jun 20 21:04:27 server kernel: [  716.342111] cxd2820r:
-cxd2820r_set_frontend_c: RF=474000000 SR=6950000
-Jun 20 21:04:27 server kernel: [  716.342116] cxd2820r: cxd2820r_gpio: delsys=1
-Jun 20 21:04:27 server kernel: [  716.445785] cxd2820r:
-cxd2820r_read_status: delsys=1
-Jun 20 21:04:27 server kernel: [  716.445790] cxd2820r: cxd2820r_lock:
-active_fe=1
-Jun 20 21:04:27 server kernel: [  716.446613] cxd2820r:
-cxd2820r_read_status_c: lock=05 52
-Jun 20 21:04:27 server kernel: [  716.646688] cxd2820r:
-cxd2820r_read_status: delsys=1
-Jun 20 21:04:27 server kernel: [  716.646693] cxd2820r: cxd2820r_lock:
-active_fe=1
-Jun 20 21:04:27 server kernel: [  716.647521] cxd2820r:
-cxd2820r_read_status_c: lock=05 52
-Jun 20 21:04:27 server kernel: [  716.847594] cxd2820r:
-cxd2820r_read_status: delsys=1
-Jun 20 21:04:27 server kernel: [  716.847599] cxd2820r: cxd2820r_lock:
-active_fe=1
-Jun 20 21:04:27 server kernel: [  716.848428] cxd2820r:
-cxd2820r_read_status_c: lock=05 52
-Jun 20 21:04:27 server kernel: [  716.901281] cxd2820r:
-cxd2820r_read_status: delsys=1
-Jun 20 21:04:27 server kernel: [  716.901285] cxd2820r: cxd2820r_lock:
-active_fe=1
-Jun 20 21:04:27 server kernel: [  716.902062] cxd2820r:
-cxd2820r_read_status_c: lock=05 52
-Jun 20 21:04:27 server kernel: [  716.902067] cxd2820r:
-cxd2820r_set_frontend: delsys=1
-Jun 20 21:04:27 server kernel: [  716.902071] cxd2820r: cxd2820r_lock:
-active_fe=1
-Jun 20 21:04:27 server kernel: [  716.902075] cxd2820r:
-cxd2820r_set_frontend_c: RF=474000000 SR=6950000
-Jun 20 21:04:27 server kernel: [  716.902080] cxd2820r: cxd2820r_gpio: delsys=1
-Jun 20 21:04:27 server kernel: [  717.048508] cxd2820r:
-cxd2820r_read_status: delsys=1
-Jun 20 21:04:27 server kernel: [  717.048513] cxd2820r: cxd2820r_lock:
-active_fe=1
-Jun 20 21:04:27 server kernel: [  717.049335] cxd2820r:
-cxd2820r_read_status_c: lock=05 52
-Jun 20 21:04:28 server kernel: [  717.249425] cxd2820r:
-cxd2820r_read_status: delsys=1
-Jun 20 21:04:28 server kernel: [  717.249432] cxd2820r: cxd2820r_lock:
-active_fe=1
-Jun 20 21:04:28 server kernel: [  717.250242] cxd2820r:
-cxd2820r_read_status_c: lock=05 52
-Jun 20 21:04:28 server kernel: [  717.250317] cxd2820r:
-cxd2820r_get_tune_settings: delsys=1
-Jun 20 21:04:28 server kernel: [  717.250322] cxd2820r: cxd2820r_lock:
-active_fe=1
-Jun 20 21:04:28 server kernel: [  717.250352] cxd2820r:
-cxd2820r_set_frontend: delsys=1
-Jun 20 21:04:28 server kernel: [  717.250359] cxd2820r: cxd2820r_lock:
-active_fe=1
-Jun 20 21:04:28 server kernel: [  717.250365] cxd2820r:
-cxd2820r_set_frontend_c: RF=474000000 SR=6950000
-Jun 20 21:04:28 server kernel: [  717.250370] cxd2820r: cxd2820r_gpio: delsys=1
-Jun 20 21:04:28 server kernel: [  717.450404] cxd2820r:
-cxd2820r_read_status: delsys=1
-Jun 20 21:04:28 server kernel: [  717.450409] cxd2820r: cxd2820r_lock:
-active_fe=1
-Jun 20 21:04:28 server kernel: [  717.451150] cxd2820r:
-cxd2820r_read_status_c: lock=05 52
-Jun 20 21:04:28 server kernel: [  717.651228] cxd2820r:
-cxd2820r_read_status: delsys=1
-Jun 20 21:04:28 server kernel: [  717.651233] cxd2820r: cxd2820r_lock:
-active_fe=1
-Jun 20 21:04:28 server kernel: [  717.652058] cxd2820r:
-cxd2820r_read_status_c: lock=05 52
-Jun 20 21:04:28 server kernel: [  717.801289] cxd2820r:
-cxd2820r_read_status: delsys=1
-Jun 20 21:04:28 server kernel: [  717.801296] cxd2820r: cxd2820r_lock:
-active_fe=1
-Jun 20 21:04:28 server kernel: [  717.802082] cxd2820r:
-cxd2820r_read_status_c: lock=05 52
-Jun 20 21:04:28 server kernel: [  717.802089] cxd2820r:
-cxd2820r_set_frontend: delsys=1
-Jun 20 21:04:28 server kernel: [  717.802094] cxd2820r: cxd2820r_lock:
-active_fe=1
-Jun 20 21:04:28 server kernel: [  717.802100] cxd2820r:
-cxd2820r_set_frontend_c: RF=474000000 SR=6950000
-Jun 20 21:04:28 server kernel: [  717.802105] cxd2820r: cxd2820r_gpio: delsys=1
-Jun 20 21:04:28 server kernel: [  717.863117] cxd2820r:
-cxd2820r_read_status: delsys=1
-Jun 20 21:04:28 server kernel: [  717.863124] cxd2820r: cxd2820r_lock:
-active_fe=1
-Jun 20 21:04:28 server kernel: [  717.863968] cxd2820r:
-cxd2820r_read_status_c: lock=04 52
-Jun 20 21:04:28 server kernel: [  718.064051] cxd2820r:
-cxd2820r_read_status: delsys=1
-Jun 20 21:04:28 server kernel: [  718.064056] cxd2820r: cxd2820r_lock:
-active_fe=1
-Jun 20 21:04:28 server kernel: [  718.064873] cxd2820r:
-cxd2820r_read_status_c: lock=05 52
-Jun 20 21:04:29 server kernel: [  718.264961] cxd2820r:
-cxd2820r_read_status: delsys=1
-Jun 20 21:04:29 server kernel: [  718.264969] cxd2820r: cxd2820r_lock:
-active_fe=1
-Jun 20 21:04:29 server kernel: [  718.265783] cxd2820r:
-cxd2820r_read_status_c: lock=05 52
-Jun 20 21:04:29 server kernel: [  718.361273] cxd2820r:
-cxd2820r_read_status: delsys=1
-Jun 20 21:04:29 server kernel: [  718.361277] cxd2820r: cxd2820r_lock:
-active_fe=1
-Jun 20 21:04:29 server kernel: [  718.362046] cxd2820r:
-cxd2820r_read_status_c: lock=05 52
-Jun 20 21:04:29 server kernel: [  718.362052] cxd2820r:
-cxd2820r_set_frontend: delsys=1
-Jun 20 21:04:29 server kernel: [  718.362056] cxd2820r: cxd2820r_lock:
-active_fe=1
-Jun 20 21:04:29 server kernel: [  718.362063] cxd2820r:
-cxd2820r_set_frontend_c: RF=474000000 SR=6950000
-Jun 20 21:04:29 server kernel: [  718.362068] cxd2820r: cxd2820r_gpio: delsys=1
-Jun 20 21:04:29 server kernel: [  718.465860] cxd2820r:
-cxd2820r_read_status: delsys=1
-Jun 20 21:04:29 server kernel: [  718.465865] cxd2820r: cxd2820r_lock:
-active_fe=1
-Jun 20 21:04:29 server kernel: [  718.466688] cxd2820r:
-cxd2820r_read_status_c: lock=05 52
-Jun 20 21:04:29 server kernel: [  718.666765] cxd2820r:
-cxd2820r_read_status: delsys=1
-Jun 20 21:04:29 server kernel: [  718.666769] cxd2820r: cxd2820r_lock:
-active_fe=1
-Jun 20 21:04:29 server kernel: [  718.667596] cxd2820r:
-cxd2820r_read_status_c: lock=05 52
-Jun 20 21:04:29 server kernel: [  718.867673] cxd2820r:
-cxd2820r_read_status: delsys=1
-Jun 20 21:04:29 server kernel: [  718.867677] cxd2820r: cxd2820r_lock:
-active_fe=1
-Jun 20 21:04:29 server kernel: [  718.868504] cxd2820r:
-cxd2820r_read_status_c: lock=05 52
-Jun 20 21:04:29 server kernel: [  718.920621] cxd2820r:
-cxd2820r_read_status: delsys=1
-Jun 20 21:04:29 server kernel: [  718.920629] cxd2820r: cxd2820r_lock:
-active_fe=1
-Jun 20 21:04:29 server kernel: [  718.921388] cxd2820r:
-cxd2820r_read_status_c: lock=05 52
-Jun 20 21:04:29 server kernel: [  718.921394] cxd2820r:
-cxd2820r_set_frontend: delsys=1
-Jun 20 21:04:29 server kernel: [  718.921398] cxd2820r: cxd2820r_lock:
-active_fe=1
-Jun 20 21:04:29 server kernel: [  718.921403] cxd2820r:
-cxd2820r_set_frontend_c: RF=474000000 SR=6950000
-Jun 20 21:04:29 server kernel: [  718.921407] cxd2820r: cxd2820r_gpio: delsys=1
-Jun 20 21:04:29 server kernel: [  719.068584] cxd2820r:
-cxd2820r_read_status: delsys=1
-Jun 20 21:04:29 server kernel: [  719.068589] cxd2820r: cxd2820r_lock:
-active_fe=1
-Jun 20 21:04:29 server kernel: [  719.069411] cxd2820r:
-cxd2820r_read_status_c: lock=05 52
-Jun 20 21:04:30 server kernel: [  719.269498] cxd2820r:
-cxd2820r_read_status: delsys=1
-Jun 20 21:04:30 server kernel: [  719.269505] cxd2820r: cxd2820r_lock:
-active_fe=1
-Jun 20 21:04:30 server kernel: [  719.270320] cxd2820r:
-cxd2820r_read_status_c: lock=05 52
-Jun 20 21:04:30 server kernel: [  719.480741] cxd2820r: cxd2820r_sleep: delsys=1
-Jun 20 21:04:30 server kernel: [  719.480745] cxd2820r: cxd2820r_lock:
-active_fe=1
-Jun 20 21:04:30 server kernel: [  719.480749] cxd2820r: cxd2820r_sleep_c
-Jun 20 21:04:30 server kernel: [  719.482603] cxd2820r:
-cxd2820r_unlock: active_fe=1
