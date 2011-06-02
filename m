@@ -1,135 +1,254 @@
 Return-path: <mchehab@pedra>
-Received: from smtp-vbr5.xs4all.nl ([194.109.24.25]:3282 "EHLO
-	smtp-vbr5.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756189Ab1F1HeF (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 28 Jun 2011 03:34:05 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-Subject: Re: [RFCv3 PATCH 12/18] vb2_poll: don't start DMA, leave that to the first read().
-Date: Tue, 28 Jun 2011 09:33:57 +0200
-Cc: linux-media@vger.kernel.org, Hans Verkuil <hans.verkuil@cisco.com>
-References: <1307459123-17810-1-git-send-email-hverkuil@xs4all.nl> <f1a14e0985ddaa053e45522fe7bbdfae56057ec2.1307458245.git.hans.verkuil@cisco.com> <4E08FBA5.5080006@redhat.com>
-In-Reply-To: <4E08FBA5.5080006@redhat.com>
-MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201106280933.57364.hverkuil@xs4all.nl>
+Received: from mail-wy0-f174.google.com ([74.125.82.174]:35943 "EHLO
+	mail-wy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753040Ab1FBWbH (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 2 Jun 2011 18:31:07 -0400
+From: Ohad Ben-Cohen <ohad@wizery.com>
+To: <linux-media@vger.kernel.org>, <linux-omap@vger.kernel.org>,
+	<linux-kernel@vger.kernel.org>,
+	<linux-arm-kernel@lists.infradead.org>
+Cc: <laurent.pinchart@ideasonboard.com>, <Hiroshi.DOYU@nokia.com>,
+	<arnd@arndb.de>, <davidb@codeaurora.org>, <Joerg.Roedel@amd.com>,
+	Ohad Ben-Cohen <ohad@wizery.com>
+Subject: [RFC 3/6] media: omap3isp: generic iommu api migration
+Date: Fri,  3 Jun 2011 01:27:40 +0300
+Message-Id: <1307053663-24572-4-git-send-email-ohad@wizery.com>
+In-Reply-To: <1307053663-24572-1-git-send-email-ohad@wizery.com>
+References: <1307053663-24572-1-git-send-email-ohad@wizery.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Monday, June 27, 2011 23:52:37 Mauro Carvalho Chehab wrote:
-> Em 07-06-2011 12:05, Hans Verkuil escreveu:
-> > From: Hans Verkuil <hans.verkuil@cisco.com>
-> > 
-> > The vb2_poll function would start read-DMA if called without any streaming
-> > in progress. This unfortunately does not work if the application just wants
-> > to poll for exceptions. This information of what the application is polling
-> > for is sadly unavailable in the driver.
-> > 
-> > Andy Walls suggested to just return POLLIN | POLLRDNORM and let the first
-> > call to read() start the DMA. This initial read() call will return EAGAIN
-> > since no actual data is available yet, but it does start the DMA.
-> > 
-> > Applications must handle EAGAIN in any case since there can be other reasons
-> > for EAGAIN as well.
-> > 
-> > Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-> > ---
-> >  drivers/media/video/videobuf2-core.c |   17 +++--------------
-> >  1 files changed, 3 insertions(+), 14 deletions(-)
-> > 
-> > diff --git a/drivers/media/video/videobuf2-core.c b/drivers/media/video/videobuf2-core.c
-> > index 6ba1461..ad75c95 100644
-> > --- a/drivers/media/video/videobuf2-core.c
-> > +++ b/drivers/media/video/videobuf2-core.c
-> > @@ -1372,27 +1372,16 @@ static int __vb2_cleanup_fileio(struct vb2_queue *q);
-> >  unsigned int vb2_poll(struct vb2_queue *q, struct file *file, poll_table *wait)
-> >  {
-> >  	unsigned long flags;
-> > -	unsigned int ret;
-> >  	struct vb2_buffer *vb = NULL;
-> >  
-> >  	/*
-> >  	 * Start file I/O emulator only if streaming API has not been used yet.
-> >  	 */
-> >  	if (q->num_buffers == 0 && q->fileio == NULL) {
-> > -		if (!V4L2_TYPE_IS_OUTPUT(q->type) && (q->io_modes & VB2_READ)) {
-> > -			ret = __vb2_init_fileio(q, 1);
-> > -			if (ret)
-> > -				return POLLERR;
-> > -		}
-> > -		if (V4L2_TYPE_IS_OUTPUT(q->type) && (q->io_modes & VB2_WRITE)) {
-> > -			ret = __vb2_init_fileio(q, 0);
-> > -			if (ret)
-> > -				return POLLERR;
-> > -			/*
-> > -			 * Write to OUTPUT queue can be done immediately.
-> > -			 */
-> > +		if (!V4L2_TYPE_IS_OUTPUT(q->type) && (q->io_modes & VB2_READ))
-> > +			return POLLIN | POLLRDNORM;
-> > +		if (V4L2_TYPE_IS_OUTPUT(q->type) && (q->io_modes & VB2_WRITE))
-> >  			return POLLOUT | POLLWRNORM;
-> > -		}
-> >  	}
-> 
-> There is one behavior change on this patchset:  __vb2_init_fileio() checks for some
-> troubles that may happen during device streaming initialization, returning POLLERR
-> if there is a problem there.
-> 
-> By moving this code to be called only at read, it means the poll() will not fail
-> anymore, but the first read() will fail. The man page for read() doesn't tell that
-> -EBUSY or -ENOMEM could happen there. The same happens with V4L2 specs. So, it is
-> clearly violating kernel ABI.
-> 
-> NACK.
+First step towards migrating omap3isp to the generic iommu api.
 
-Actually, almost nothing changes in the ABI. It's counterintuitive, but
-this is what happens:
+At this point we still need a handle of the omap-specific iommu, mainly
+because we highly depend on omap's iovmm.
 
-1) The poll() function in a driver does not actually return any error codes.
-It never did. It returns a poll mask, which is expected to be POLLERR in case
-of any error. All that it does is that select() returns if it waits for reading
-or writing. Any actual error codes are never propagated. This means BTW that
-our poll manual page is wrong (what a surprise), most of those error codes can
-never be returned.
+Migration will be fully completed only once omap's iovmm will be generalized
+(or replaced by a generic virtual memory manager framework).
 
-2) Suppose we try to start streaming in poll. If this works, then poll returns,
-with POLLIN set, and the next read() will succeed (actually, it can return an
-error as well, but for other error conditions in case of e.g. hardware errors).
+Signed-off-by: Ohad Ben-Cohen <ohad@wizery.com>
+---
+ drivers/media/video/omap3isp/isp.c      |   41 +++++++++++++++++++++++++-----
+ drivers/media/video/omap3isp/isp.h      |    3 ++
+ drivers/media/video/omap3isp/ispccdc.c  |   16 ++++++------
+ drivers/media/video/omap3isp/ispstat.c  |    6 ++--
+ drivers/media/video/omap3isp/ispvideo.c |    4 +-
+ 5 files changed, 50 insertions(+), 20 deletions(-)
 
-The problem with this is of course that this will also start the streaming if
-all we wanted to wait for was an exception. That's not what we want at all.
-Ideally we could inspect in the driver what the caller wanted to wait for, but
-that information is not available, unfortunately.
+diff --git a/drivers/media/video/omap3isp/isp.c b/drivers/media/video/omap3isp/isp.c
+index 897a1cf..25bade9 100644
+--- a/drivers/media/video/omap3isp/isp.c
++++ b/drivers/media/video/omap3isp/isp.c
+@@ -80,6 +80,13 @@
+ #include "isph3a.h"
+ #include "isphist.h"
+ 
++/*
++ * this is provided as an interim solution until omap3isp doesn't need
++ * any omap-specific iommu API
++ */
++#define to_iommu(dev)							\
++	(struct iommu *)platform_get_drvdata(to_platform_device(dev))
++
+ static unsigned int autoidle;
+ module_param(autoidle, int, 0444);
+ MODULE_PARM_DESC(autoidle, "Enable OMAP3ISP AUTOIDLE support");
+@@ -1975,7 +1982,8 @@ static int isp_remove(struct platform_device *pdev)
+ 	isp_cleanup_modules(isp);
+ 
+ 	omap3isp_get(isp);
+-	iommu_put(isp->iommu);
++	iommu_detach_device(isp->domain, isp->iommu_dev);
++	iommu_domain_free(isp->domain);
+ 	omap3isp_put(isp);
+ 
+ 	free_irq(isp->irq_num, isp);
+@@ -2123,25 +2131,41 @@ static int isp_probe(struct platform_device *pdev)
+ 	}
+ 
+ 	/* IOMMU */
+-	isp->iommu = iommu_get("isp");
+-	if (IS_ERR_OR_NULL(isp->iommu)) {
+-		isp->iommu = NULL;
++	isp->iommu_dev = omap_find_iommu_device("isp");
++	if (!isp->iommu_dev) {
++		dev_err(isp->dev, "omap_find_iommu_device failed\n");
+ 		ret = -ENODEV;
+ 		goto error_isp;
+ 	}
+ 
++	/* to be removed once iommu migration is complete */
++	isp->iommu = to_iommu(isp->iommu_dev);
++
++	isp->domain = iommu_domain_alloc();
++	if (!isp->domain) {
++		dev_err(isp->dev, "can't alloc iommu domain\n");
++		ret = -ENOMEM;
++		goto error_isp;
++	}
++
++	ret = iommu_attach_device(isp->domain, isp->iommu_dev);
++	if (ret) {
++		dev_err(&pdev->dev, "can't attach iommu device: %d\n", ret);
++		goto free_domain;
++	}
++
+ 	/* Interrupt */
+ 	isp->irq_num = platform_get_irq(pdev, 0);
+ 	if (isp->irq_num <= 0) {
+ 		dev_err(isp->dev, "No IRQ resource\n");
+ 		ret = -ENODEV;
+-		goto error_isp;
++		goto detach_dev;
+ 	}
+ 
+ 	if (request_irq(isp->irq_num, isp_isr, IRQF_SHARED, "OMAP3 ISP", isp)) {
+ 		dev_err(isp->dev, "Unable to request IRQ\n");
+ 		ret = -EINVAL;
+-		goto error_isp;
++		goto detach_dev;
+ 	}
+ 
+ 	/* Entities */
+@@ -2162,8 +2186,11 @@ error_modules:
+ 	isp_cleanup_modules(isp);
+ error_irq:
+ 	free_irq(isp->irq_num, isp);
++detach_dev:
++	iommu_detach_device(isp->domain, isp->iommu_dev);
++free_domain:
++	iommu_domain_free(isp->domain);
+ error_isp:
+-	iommu_put(isp->iommu);
+ 	omap3isp_put(isp);
+ error:
+ 	isp_put_clocks(isp);
+diff --git a/drivers/media/video/omap3isp/isp.h b/drivers/media/video/omap3isp/isp.h
+index 2620c40..1b54aa4 100644
+--- a/drivers/media/video/omap3isp/isp.h
++++ b/drivers/media/video/omap3isp/isp.h
+@@ -32,6 +32,7 @@
+ #include <linux/io.h>
+ #include <linux/platform_device.h>
+ #include <linux/wait.h>
++#include <linux/iommu.h>
+ #include <plat/iommu.h>
+ #include <plat/iovmm.h>
+ 
+@@ -289,6 +290,8 @@ struct isp_device {
+ 	unsigned int subclk_resources;
+ 
+ 	struct iommu *iommu;
++	struct iommu_domain *domain;
++	struct device *iommu_dev;
+ 
+ 	struct isp_platform_callback platform_cb;
+ };
+diff --git a/drivers/media/video/omap3isp/ispccdc.c b/drivers/media/video/omap3isp/ispccdc.c
+index 39d501b..b59b06f 100644
+--- a/drivers/media/video/omap3isp/ispccdc.c
++++ b/drivers/media/video/omap3isp/ispccdc.c
+@@ -365,7 +365,7 @@ static void ccdc_lsc_free_request(struct isp_ccdc_device *ccdc,
+ 		dma_unmap_sg(isp->dev, req->iovm->sgt->sgl,
+ 			     req->iovm->sgt->nents, DMA_TO_DEVICE);
+ 	if (req->table)
+-		iommu_vfree(isp->iommu, req->table);
++		iommu_vfree(isp->domain, isp->iommu, req->table);
+ 	kfree(req);
+ }
+ 
+@@ -437,8 +437,8 @@ static int ccdc_lsc_config(struct isp_ccdc_device *ccdc,
+ 
+ 		req->enable = 1;
+ 
+-		req->table = iommu_vmalloc(isp->iommu, 0, req->config.size,
+-					   IOMMU_FLAG);
++		req->table = iommu_vmalloc(isp->domain, isp->iommu, 0,
++					req->config.size, IOMMU_FLAG);
+ 		if (IS_ERR_VALUE(req->table)) {
+ 			req->table = 0;
+ 			ret = -ENOMEM;
+@@ -733,15 +733,15 @@ static int ccdc_config(struct isp_ccdc_device *ccdc,
+ 			 * already done by iommu_vmalloc().
+ 			 */
+ 			size = ccdc->fpc.fpnum * 4;
+-			table_new = iommu_vmalloc(isp->iommu, 0, size,
+-						  IOMMU_FLAG);
++			table_new = iommu_vmalloc(isp->domain, isp->iommu, 0,
++							size, IOMMU_FLAG);
+ 			if (IS_ERR_VALUE(table_new))
+ 				return -ENOMEM;
+ 
+ 			if (copy_from_user(da_to_va(isp->iommu, table_new),
+ 					   (__force void __user *)
+ 					   ccdc->fpc.fpcaddr, size)) {
+-				iommu_vfree(isp->iommu, table_new);
++				iommu_vfree(isp->domain, isp->iommu, table_new);
+ 				return -EFAULT;
+ 			}
+ 
+@@ -751,7 +751,7 @@ static int ccdc_config(struct isp_ccdc_device *ccdc,
+ 
+ 		ccdc_configure_fpc(ccdc);
+ 		if (table_old != 0)
+-			iommu_vfree(isp->iommu, table_old);
++			iommu_vfree(isp->domain, isp->iommu, table_old);
+ 	}
+ 
+ 	return ccdc_lsc_config(ccdc, ccdc_struct);
+@@ -2287,5 +2287,5 @@ void omap3isp_ccdc_cleanup(struct isp_device *isp)
+ 	ccdc_lsc_free_queue(ccdc, &ccdc->lsc.free_queue);
+ 
+ 	if (ccdc->fpc.fpcaddr != 0)
+-		iommu_vfree(isp->iommu, ccdc->fpc.fpcaddr);
++		iommu_vfree(isp->domain, isp->iommu, ccdc->fpc.fpcaddr);
+ }
+diff --git a/drivers/media/video/omap3isp/ispstat.c b/drivers/media/video/omap3isp/ispstat.c
+index b44cb68..afb7d78 100644
+--- a/drivers/media/video/omap3isp/ispstat.c
++++ b/drivers/media/video/omap3isp/ispstat.c
+@@ -366,7 +366,7 @@ static void isp_stat_bufs_free(struct ispstat *stat)
+ 				dma_unmap_sg(isp->dev, buf->iovm->sgt->sgl,
+ 					     buf->iovm->sgt->nents,
+ 					     DMA_FROM_DEVICE);
+-			iommu_vfree(isp->iommu, buf->iommu_addr);
++			iommu_vfree(isp->domain, isp->iommu, buf->iommu_addr);
+ 		} else {
+ 			if (!buf->virt_addr)
+ 				continue;
+@@ -399,8 +399,8 @@ static int isp_stat_bufs_alloc_iommu(struct ispstat *stat, unsigned int size)
+ 		struct iovm_struct *iovm;
+ 
+ 		WARN_ON(buf->dma_addr);
+-		buf->iommu_addr = iommu_vmalloc(isp->iommu, 0, size,
+-						IOMMU_FLAG);
++		buf->iommu_addr = iommu_vmalloc(isp->domain, isp->iommu, 0,
++							size, IOMMU_FLAG);
+ 		if (IS_ERR((void *)buf->iommu_addr)) {
+ 			dev_err(stat->isp->dev,
+ 				 "%s: Can't acquire memory for "
+diff --git a/drivers/media/video/omap3isp/ispvideo.c b/drivers/media/video/omap3isp/ispvideo.c
+index 9cd8f1a..7bc7986 100644
+--- a/drivers/media/video/omap3isp/ispvideo.c
++++ b/drivers/media/video/omap3isp/ispvideo.c
+@@ -446,7 +446,7 @@ ispmmu_vmap(struct isp_device *isp, const struct scatterlist *sglist, int sglen)
+ 	sgt->nents = sglen;
+ 	sgt->orig_nents = sglen;
+ 
+-	da = iommu_vmap(isp->iommu, 0, sgt, IOMMU_FLAG);
++	da = iommu_vmap(isp->domain, isp->iommu, 0, sgt, IOMMU_FLAG);
+ 	if (IS_ERR_VALUE(da))
+ 		kfree(sgt);
+ 
+@@ -462,7 +462,7 @@ static void ispmmu_vunmap(struct isp_device *isp, dma_addr_t da)
+ {
+ 	struct sg_table *sgt;
+ 
+-	sgt = iommu_vunmap(isp->iommu, (u32)da);
++	sgt = iommu_vunmap(isp->domain, isp->iommu, (u32)da);
+ 	kfree(sgt);
+ }
+ 
+-- 
+1.7.1
 
-3) The other case is that we try to start streaming in poll and it fails.
-In that case any errors are lost and poll returns POLLERR (note that the poll(2)
-manual page says that POLLERR is for output only, but clearly in the linux
-kernel it is accepted both input and output).
-
-But for the select() call this POLLERR information is lost as well and the
-application will call read() anyway, which now will attempt to start the
-streaming (again after poll() tried it the first time) and this time it
-returns the actual error code.
-
-Just try this with capture-example: start it in mmap mode, then try to run
-it in read mode from a second console. The EBUSY error comes from the read()
-command, not from select(). With or without this patch, capture-example
-behaves exactly the same.
-
-The only ABI change I see is with poll(2) and epoll(7) where POLLERR is no
-longer returned. Since this isn't documented at all anyway (and the poll(2)
-manual page is actually unclear about whether you can expect it), I am
-actually quite happy with this change. After this analysis I realized it is
-even better than expected.
-
-I never liked that poll starts streaming, poll should be a fast function,
-not something that does a lot of other things.
-
-It's actually a very nice change, but I admit that it is tricky to analyze.
-
-Regards,
-
-	Hans
