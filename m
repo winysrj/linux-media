@@ -1,112 +1,190 @@
 Return-path: <mchehab@pedra>
-Received: from smtp-vbr7.xs4all.nl ([194.109.24.27]:3383 "EHLO
-	smtp-vbr7.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752895Ab1FJJTk (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 10 Jun 2011 05:19:40 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: "linux-media" <linux-media@vger.kernel.org>
-Subject: [GIT PATCHES FOR 3.1] Add autofoo/foo and control event support
-Date: Fri, 10 Jun 2011 11:19:33 +0200
-Cc: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201106101119.33512.hverkuil@xs4all.nl>
+Received: from mail-ww0-f44.google.com ([74.125.82.44]:51844 "EHLO
+	mail-ww0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755015Ab1FBWbM (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 2 Jun 2011 18:31:12 -0400
+From: Ohad Ben-Cohen <ohad@wizery.com>
+To: <linux-media@vger.kernel.org>, <linux-omap@vger.kernel.org>,
+	<linux-kernel@vger.kernel.org>,
+	<linux-arm-kernel@lists.infradead.org>
+Cc: <laurent.pinchart@ideasonboard.com>, <Hiroshi.DOYU@nokia.com>,
+	<arnd@arndb.de>, <davidb@codeaurora.org>, <Joerg.Roedel@amd.com>,
+	Ohad Ben-Cohen <ohad@wizery.com>
+Subject: [RFC 5/6] omap: iommu/iovmm: move to dedicated iommu folder
+Date: Fri,  3 Jun 2011 01:27:42 +0300
+Message-Id: <1307053663-24572-6-git-send-email-ohad@wizery.com>
+In-Reply-To: <1307053663-24572-1-git-send-email-ohad@wizery.com>
+References: <1307053663-24572-1-git-send-email-ohad@wizery.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Hi Mauro,
+Move OMAP's iommu drivers to the dedicated iommu drivers folder.
 
-This patch series adds support for handling autofoo/foo type controls (e.g.
-autogain/gain, autoexposure/exposure, etc) and adds a new event for control
-changes, either a value or a status change.
+While OMAP's iovmm (virtual memory manager) driver does not strictly
+belong to the iommu drivers folder, move it there as well, because
+it's by no means OMAP-specific (in concept. technically it is still
+coupled with the omap iommu), and exposing it will ease its generalization,
+consolidation, or removal (once a generic virtual memory manager and allocator
+would materialize).
 
-The changes against the RFCv3 patch series are minor: one small bug was fixed
-in the autofoo/foo support (a cluster_walk started one element too far) and
-I removed the v4l2_ctrl_handler_cnt that I added earlier. I'm working on a
-much better solution for this. See this thread:
+Move omap's iommu debug driver to the generic folder as well, for the
+same reasons.
 
-http://www.mail-archive.com/linux-media@vger.kernel.org/msg32552.html
+Signed-off-by: Ohad Ben-Cohen <ohad@wizery.com>
+---
+ arch/arm/plat-omap/Kconfig                         |   14 --------------
+ arch/arm/plat-omap/Makefile                        |    2 --
+ arch/arm/plat-omap/{ => include/plat}/iopgtable.h  |    0
+ drivers/iommu/Kconfig                              |   18 ++++++++++++++++++
+ drivers/iommu/Makefile                             |    3 +++
+ .../iommu/omap-iommu-debug.c                       |    2 +-
+ .../iommu.c => drivers/iommu/omap-iommu.c          |    2 +-
+ .../iovmm.c => drivers/iommu/omap-iovmm.c          |    2 +-
+ drivers/media/video/Kconfig                        |    2 +-
+ 9 files changed, 25 insertions(+), 20 deletions(-)
+ rename arch/arm/plat-omap/{ => include/plat}/iopgtable.h (100%)
+ rename arch/arm/plat-omap/iommu-debug.c => drivers/iommu/omap-iommu-debug.c (99%)
+ rename arch/arm/plat-omap/iommu.c => drivers/iommu/omap-iommu.c (99%)
+ rename arch/arm/plat-omap/iovmm.c => drivers/iommu/omap-iovmm.c (99%)
 
-So I decided not to add something that I'm going to remove soon anyway.
+diff --git a/arch/arm/plat-omap/Kconfig b/arch/arm/plat-omap/Kconfig
+index 1bb1981..14f067f 100644
+--- a/arch/arm/plat-omap/Kconfig
++++ b/arch/arm/plat-omap/Kconfig
+@@ -131,20 +131,6 @@ config OMAP_MBOX_KFIFO_SIZE
+ 	  This can also be changed at runtime (via the mbox_kfifo_size
+ 	  module parameter).
+ 
+-#can't be tristate; iommu api doesn't support un-registration
+-config OMAP_IOMMU
+-	bool
+-	select IOMMU_API
+-
+-config OMAP_IOMMU_DEBUG
+-       tristate "Export OMAP IOMMU internals in DebugFS"
+-       depends on OMAP_IOMMU && DEBUG_FS
+-       help
+-         Select this to see extensive information about
+-         the internal state of OMAP IOMMU in debugfs.
+-
+-         Say N unless you know you need this.
+-
+ config OMAP_IOMMU_IVA2
+ 	bool
+ 
+diff --git a/arch/arm/plat-omap/Makefile b/arch/arm/plat-omap/Makefile
+index f0233e6..9852622 100644
+--- a/arch/arm/plat-omap/Makefile
++++ b/arch/arm/plat-omap/Makefile
+@@ -18,8 +18,6 @@ obj-$(CONFIG_ARCH_OMAP3) += omap_device.o
+ obj-$(CONFIG_ARCH_OMAP4) += omap_device.o
+ 
+ obj-$(CONFIG_OMAP_MCBSP) += mcbsp.o
+-obj-$(CONFIG_OMAP_IOMMU) += iommu.o iovmm.o
+-obj-$(CONFIG_OMAP_IOMMU_DEBUG) += iommu-debug.o
+ 
+ obj-$(CONFIG_CPU_FREQ) += cpu-omap.o
+ obj-$(CONFIG_OMAP_DM_TIMER) += dmtimer.o
+diff --git a/arch/arm/plat-omap/iopgtable.h b/arch/arm/plat-omap/include/plat/iopgtable.h
+similarity index 100%
+rename from arch/arm/plat-omap/iopgtable.h
+rename to arch/arm/plat-omap/include/plat/iopgtable.h
+diff --git a/drivers/iommu/Kconfig b/drivers/iommu/Kconfig
+index 2c5dfb4..57378ac 100644
+--- a/drivers/iommu/Kconfig
++++ b/drivers/iommu/Kconfig
+@@ -1,3 +1,21 @@
+ # IOMMU_API always gets selected by whoever wants it.
+ config IOMMU_API
+ 	bool
++
++# can't be tristate; iommu api doesn't support un-registration
++config OMAP_IOMMU
++	bool
++	select IOMMU_API
++
++config OMAP_IOVMM
++	tristate
++	select OMAP_IOMMU
++
++config OMAP_IOMMU_DEBUG
++       tristate "Export OMAP IOMMU internals in DebugFS"
++       depends on OMAP_IOVMM && DEBUG_FS
++       help
++         Select this to see extensive information about
++         the internal state of OMAP IOMMU in debugfs.
++
++         Say N unless you know you need this.
+diff --git a/drivers/iommu/Makefile b/drivers/iommu/Makefile
+index 241ba4c..c094875 100644
+--- a/drivers/iommu/Makefile
++++ b/drivers/iommu/Makefile
+@@ -1 +1,4 @@
+ obj-$(CONFIG_IOMMU_API) += iommu.o
++obj-$(CONFIG_OMAP_IOMMU) += omap-iommu.o
++obj-$(CONFIG_OMAP_IOVMM) += omap-iovmm.o
++obj-$(CONFIG_OMAP_IOMMU_DEBUG) += omap-iommu-debug.o
+diff --git a/arch/arm/plat-omap/iommu-debug.c b/drivers/iommu/omap-iommu-debug.c
+similarity index 99%
+rename from arch/arm/plat-omap/iommu-debug.c
+rename to drivers/iommu/omap-iommu-debug.c
+index f07cf2f..0f8c8dd 100644
+--- a/arch/arm/plat-omap/iommu-debug.c
++++ b/drivers/iommu/omap-iommu-debug.c
+@@ -21,7 +21,7 @@
+ #include <plat/iommu.h>
+ #include <plat/iovmm.h>
+ 
+-#include "iopgtable.h"
++#include <plat/iopgtable.h>
+ 
+ #define MAXCOLUMN 100 /* for short messages */
+ 
+diff --git a/arch/arm/plat-omap/iommu.c b/drivers/iommu/omap-iommu.c
+similarity index 99%
+rename from arch/arm/plat-omap/iommu.c
+rename to drivers/iommu/omap-iommu.c
+index f06e99c..1526fea 100644
+--- a/arch/arm/plat-omap/iommu.c
++++ b/drivers/iommu/omap-iommu.c
+@@ -25,7 +25,7 @@
+ 
+ #include <plat/iommu.h>
+ 
+-#include "iopgtable.h"
++#include <plat/iopgtable.h>
+ 
+ #define for_each_iotlb_cr(obj, n, __i, cr)				\
+ 	for (__i = 0;							\
+diff --git a/arch/arm/plat-omap/iovmm.c b/drivers/iommu/omap-iovmm.c
+similarity index 99%
+rename from arch/arm/plat-omap/iovmm.c
+rename to drivers/iommu/omap-iovmm.c
+index 80bb2b6..42f4a2c 100644
+--- a/arch/arm/plat-omap/iovmm.c
++++ b/drivers/iommu/omap-iovmm.c
+@@ -23,7 +23,7 @@
+ #include <plat/iommu.h>
+ #include <plat/iovmm.h>
+ 
+-#include "iopgtable.h"
++#include <plat/iopgtable.h>
+ 
+ /*
+  * A device driver needs to create address mappings between:
+diff --git a/drivers/media/video/Kconfig b/drivers/media/video/Kconfig
+index bb53de7..4945f91 100644
+--- a/drivers/media/video/Kconfig
++++ b/drivers/media/video/Kconfig
+@@ -761,7 +761,7 @@ source "drivers/media/video/m5mols/Kconfig"
+ 
+ config VIDEO_OMAP3
+ 	tristate "OMAP 3 Camera support (EXPERIMENTAL)"
+-	select OMAP_IOMMU
++	select OMAP_IOVMM
+ 	depends on VIDEO_V4L2 && I2C && VIDEO_V4L2_SUBDEV_API && ARCH_OMAP3 && EXPERIMENTAL
+ 	---help---
+ 	  Driver for an OMAP 3 camera controller.
+-- 
+1.7.1
 
-Test code is available in qv4l2 from here:
-
-http://git.linuxtv.org/hverkuil/v4l-utils.git?a=shortlog;h=refs/heads/core
-
-It's been tested with vivi and ivtv. We (Cisco) have also been using an older
-version of this patch series at work for the past 2-3 months.
-
-I have added some additional notes to the various patches below.
-
-Regards,
-
-	Hans
-
-The following changes since commit 75125b9d44456e0cf2d1fbb72ae33c13415299d1:
-
-  [media] DocBook: Don't be noisy at make cleanmediadocs (2011-06-09 16:40:58 -0300)
-
-are available in the git repository at:
-  ssh://linuxtv.org/git/hverkuil/media_tree.git core8
-
-Hans Verkuil (18):
-      v4l2-ctrls: introduce call_op define
-      v4l2-ctrls: simplify error_idx handling.
-      v4l2-ctrls: drivers should be able to ignore the READ_ONLY flag
-      v4l2-ioctl: add ctrl_handler to v4l2_fh
-      v4l2-subdev: implement per-filehandle control handlers.
-      v4l2-ctrls: fix and improve volatile control handling.
-      v4l2-controls.txt: update to latest v4l2-ctrl.c changes.
-      v4l2-ctrls: add v4l2_ctrl_auto_cluster to simplify autogain/gain scenarios
-      DocBook: Improve cluster documentation and document the new autoclusters.
-      vivi: add autogain/gain support to test the autocluster functionality.
-
-These patches above all deal with autocluster support. I'm hoping that this
-set of patches can at least be merged since once this is in I can work on
-converting soc-camera to the control framework. That work depends on the
-autocluster support.
-
-      v4l2-ctrls: add v4l2_fh pointer to the set control functions.
-      vb2_poll: don't start DMA, leave that to the first read().
-      v4l2-ctrls: add control events.
-      v4l2-ctrls: simplify event subscription.
-      V4L2 spec: document control events.
-      vivi: support control events.
-      ivtv: add control event support.
-
-This set adds support for the new control events.
-
-      v4l2-compat-ioctl32: add VIDIOC_DQEVENT support.
-
-This adds a missing compat32 conversion. It didn't matter much in the past
-that this was missing, but control events are something that are much more
-likely to be used in a 32-bit app running in a 64-bit OS, so it is now more
-important to do this right.
-
- Documentation/DocBook/media/v4l/vidioc-dqevent.xml |   17 +-
- .../DocBook/media/v4l/vidioc-subscribe-event.xml   |  142 +++++++++-
- Documentation/video4linux/v4l2-controls.txt        |   69 ++++-
- drivers/media/radio/radio-wl1273.c                 |    2 +-
- drivers/media/radio/wl128x/fmdrv_v4l2.c            |    2 +-
- drivers/media/video/ivtv/ivtv-fileops.c            |   34 +--
- drivers/media/video/ivtv/ivtv-ioctl.c              |    2 +
- drivers/media/video/saa7115.c                      |    4 +-
- drivers/media/video/v4l2-compat-ioctl32.c          |   37 +++
- drivers/media/video/v4l2-ctrls.c                   |  332 ++++++++++++++++----
- drivers/media/video/v4l2-device.c                  |    1 +
- drivers/media/video/v4l2-event.c                   |  130 ++++++--
- drivers/media/video/v4l2-fh.c                      |    6 +-
- drivers/media/video/v4l2-ioctl.c                   |   40 ++-
- drivers/media/video/v4l2-subdev.c                  |   14 +-
- drivers/media/video/videobuf2-core.c               |   17 +-
- drivers/media/video/vivi.c                         |   53 +++-
- include/linux/videodev2.h                          |   29 ++-
- include/media/v4l2-ctrls.h                         |   92 +++++-
- include/media/v4l2-event.h                         |    2 +
- include/media/v4l2-fh.h                            |    2 +
- kernel/compat.c                                    |    1 +
- 22 files changed, 851 insertions(+), 177 deletions(-)
