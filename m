@@ -1,273 +1,1071 @@
 Return-path: <mchehab@pedra>
-Received: from mail-iy0-f174.google.com ([209.85.210.174]:50729 "EHLO
-	mail-iy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753924Ab1FVMhb convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 22 Jun 2011 08:37:31 -0400
-Received: by iyb12 with SMTP id 12so623838iyb.19
-        for <linux-media@vger.kernel.org>; Wed, 22 Jun 2011 05:37:31 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <4E01DD57.3080508@redhat.com>
-References: <BANLkTimtnbAzLTdFY2OiSddHTjmD_99CfA@mail.gmail.com>
-	<201106202037.19535.remi@remlab.net>
-	<BANLkTinn0uN3VwGfqCbYbxFoVf6aNo1VSA@mail.gmail.com>
-	<BANLkTin14LnwP+_K1m-RsEXza4M4CjqnEw@mail.gmail.com>
-	<BANLkTimR-zWnnLBcD2w8d8NpeFJi=eT9nQ@mail.gmail.com>
-	<005a01cc2f7d$a799be30$f6cd3a90$@coexsi.fr>
-	<BANLkTinbQ8oBJt7fScuT5vHGFktbaQNY5A@mail.gmail.com>
-	<BANLkTimTdMa_X1ygF8=B5gLdLXq1o-ER0g@mail.gmail.com>
-	<BANLkTimkZN9AtLanwvct+1p2DZOHSgF6Aw@mail.gmail.com>
-	<BANLkTimg0X5H5T8CsSR5Tr0CZbCZKiDEEA@mail.gmail.com>
-	<4DFFB1DA.5000602@redhat.com>
-	<BANLkTikZ++5dZssDRuxJzNUEG_TDkZPGRg@mail.gmail.com>
-	<4DFFF56D.5070602@redhat.com>
-	<4E007AA7.7070400@linuxtv.org>
-	<BANLkTik3ACfDwkyKVU2eZtxBeLH_mGh7pg@mail.gmail.com>
-	<4E00A78B.2020008@linuxtv.org>
-	<4E00AC2A.8060500@redhat.com>
-	<4E00B41B.50303@linuxtv.org>
-	<4E00D07B.5030202@redhat.com>
-	<BANLkTikmbVj1t7w3XmHXW58Kpvv0M_jbnQ@mail.gmail.com>
-	<4E01DD57.3080508@redhat.com>
-Date: Wed, 22 Jun 2011 14:37:30 +0200
-Message-ID: <BANLkTimpVu+Hz0j+WUmSAsyON4u=W3cr+g@mail.gmail.com>
-Subject: Re: [RFC] vtunerc - virtual DVB device driver
-From: HoP <jpetrous@gmail.com>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Andreas Oberritter <obi@linuxtv.org>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+Received: from mailout4.samsung.com ([203.254.224.34]:9349 "EHLO
+	mailout4.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755482Ab1FBHo1 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 2 Jun 2011 03:44:27 -0400
+Received: from epcpsbgm1.samsung.com (mailout4.samsung.com [203.254.224.34])
+ by mailout4.samsung.com
+ (Oracle Communications Messaging Exchange Server 7u4-19.01 64bit (built Sep  7
+ 2010)) with ESMTP id <0LM5003Q6K5KKOJ0@mailout4.samsung.com> for
+ linux-media@vger.kernel.org; Thu, 02 Jun 2011 16:44:25 +0900 (KST)
+Received: from jtppark ([12.23.121.105])
+ by mmp2.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14 2004))
+ with ESMTPA id <0LM500JU0K61KT@mmp2.samsung.com> for
+ linux-media@vger.kernel.org; Thu, 02 Jun 2011 16:44:25 +0900 (KST)
+Date: Thu, 02 Jun 2011 16:44:24 +0900
+From: Jeongtae Park <jtp.park@samsung.com>
+Subject: RE: [RFC/PATCH v2] v4l: add control definitions for codec devices.
+In-reply-to: <1306832883-12352-1-git-send-email-k.debski@samsung.com>
+To: 'Kamil Debski' <k.debski@samsung.com>, linux-media@vger.kernel.org
+Cc: jaeryul.oh@samsung.com, june.bae@samsung.com,
+	janghyuck.kim@samsung.com, kyungmin.park@samsung.com,
+	younglak1004.kim@samsung.com,
+	'Marek Szyprowski' <m.szyprowski@samsung.com>
+Reply-to: jtp.park@samsung.com
+Message-id: <001e01cc20f8$e4a441d0$adecc570$%park@samsung.com>
+MIME-version: 1.0
+Content-type: text/plain; charset=ks_c_5601-1987
+Content-language: ko
+Content-transfer-encoding: 7BIT
+References: <1306832883-12352-1-git-send-email-k.debski@samsung.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-2011/6/22 Mauro Carvalho Chehab <mchehab@redhat.com>:
-> Em 21-06-2011 14:38, HoP escreveu:
->> 2011/6/21 Mauro Carvalho Chehab <mchehab@redhat.com>:
->>> Em 21-06-2011 12:09, Andreas Oberritter escreveu:
->>>> On 06/21/2011 04:35 PM, Mauro Carvalho Chehab wrote:
->>>>> Em 21-06-2011 11:15, Andreas Oberritter escreveu:
->>>>>> On 06/21/2011 03:44 PM, Devin Heitmueller wrote:
->>>>>>> On Tue, Jun 21, 2011 at 7:04 AM, Andreas Oberritter <obi@linuxtv.org> wrote:
->>>>>>>> Mauro and Devin, I think you're missing the point. This is not about
->>>>>>>> creating drivers in userspace. This is not about open or closed source.
->>>>>>>> The "vtuner" interface, as implemented for the Dreambox, is used to
->>>>>>>> access remote tuners: Put x tuners into y boxes and access them from
->>>>>>>> another box as if they were local. It's used in conjunction with further
->>>>>>>> software to receive the transport stream over a network connection.
->>>>>>>> Honza's code does the same thing.
->>>>>>>
->>>>>>> I'm not missing the point at all.  I realize exactly what Honza is
->>>>>>> trying to accomplish (and from a purely technical standpoint, it's not
->>>>>>> a bad approach) - but I'm talking about the effects of such a driver
->>>>>>> being introduced which changes the kernel/userland licensing boundary
->>>>>>> and has very real implications with how the in-kernel code is
->>>>>>> accessed.
->>>>>>>
->>>>>>>> You don't need it in order to create closed source drivers. You can
->>>>>>>> already create closed kernel drivers now. Also, you can create tuner
->>>>>>>> drivers in userspace using the i2c-dev interface. If you like to connect
->>>>>>>> a userspace driver to a DVB API device node, you can distribute a small
->>>>>>>> (open or closed) wrapper with it. So what are you arguing about?
->>>>>>>> Everything you're feared of can already be done since virtually forever.
->>>>>>>
->>>>>>> I disagree.  There is currently no API which allows applications to
->>>>>>> issue tuning requests into the DVB core, and have those requests
->>>>>>> proxied back out to userland where an application can then use i2c-dev
->>>>>>> to tune the actual device.  Meaning if somebody wants to write a
->>>>>>> closed source userland application which controls the tuner, he/she
->>>>>>> can do that (while not conforming to the DVB API).  But if if he wants
->>>>>>> to reuse the GPL licensed DVB core, he has to replace the entire DVB
->>>>>>> core.
->>>>>>>
->>>>>>> The introduction of this patch makes it trivial for a third party to
->>>>>>> provide closed-source userland support for tuners while reusing all
->>>>>>> the existing GPL driver code that makes up the framework.
->>>>>>>
->>>>>>> I used to work for a vendor that makes tuners, and they do a bunch of
->>>>>>> Linux work.  And that work has resulted in a bunch of open source
->>>>>>> drivers.  I can tell you though that *every* conversation I've had
->>>>>>> regarding a new driver goes something like this:
->>>>>>>
->>>>>>> ===
->>>>>>> "Devin, we need to support tuner X under Linux."
->>>>>>>
->>>>>>> "Great!  I'll be happy to write a new GPL driver for the
->>>>>>> tuner/demodulator/whatever for that device"
->>>>>>>
->>>>>>> "But to save time/money, we just want to reuse the Windows driver code
->>>>>>> (or reference code from the vendor)."
->>>>>>>
->>>>>>> "Ok.  Well, what is the licensing for that code?  Is it GPL compatible?"
->>>>>>>
->>>>>>> "Not currently.  So can we just make our driver closed source?"
->>>>>>>
->>>>>>> "Well, you can't reuse any of the existing DVB core functionality or
->>>>>>> any of the other GPL drivers (tuners, bridges, demods), so you would
->>>>>>> have rewrite all that from scratch."
->>>>>>>
->>>>>>> "Oh, that would be a ton of work.   Can we maybe write some userland
->>>>>>> stuff that controls the demodulator which we can keep closed source?
->>>>>>> Since it's not in the kernel, the GPL won't apply".
->>>>>>>
->>>>>>> "Well, you can't really do that because there is no way for the DVB
->>>>>>> core to call back out to userland when the application makes the
->>>>>>> tuning request to the DVB core."
->>>>>>>
->>>>>>> "Oh, ok then.  I guess we'll have to talk to the vendor and get them
->>>>>>> to give us the reference driver code under the GPL."
->>>>>>> ===
->>>>>>>
->>>>>>> I can tell you without a doubt that if this driver were present in the
->>>>>>> kernel, that going forward that vendor would have *zero* interest in
->>>>>>> doing any GPL driver work.  Why would they?  Why give away the code
->>>>>>> which could potentially help their competitors if they can keep it
->>>>>>> safe and protected while still being able to reuse everybody else's
->>>>>>> contributions?
->>>>>>>
->>>>>>> Companies don't contribute GPL code out of "good will".  They do it
->>>>>>> because they are compelled to by licenses or because there is no
->>>>>>> economically viable alternative.
->>>>>>>
->>>>>>> Mauro, ultimately it is your decision as the maintainer which drivers
->>>>>>> get accepted in to the kernel.  I can tell you though that this will
->>>>>>> be a very bad thing for the driver ecosystem as a whole - it will
->>>>>>> essentially make it trivial for vendors (some of which who are doing
->>>>>>> GPL work now) to provide solutions that reuse the GPL'd DVB core
->>>>>>> without having to make any of their stuff open source.
->>>>>>>
->>>>>>> Anyway, I said in my last email that would be my last email on the
->>>>>>> topic.  I guess I lied.
->>>>>>
->>>>>> Yes, and you did lie to your vendor, too, as you did not mention the
->>>>>> possibilities to create
->>>>>> 1.) closed source modules derived from existing vendor drivers while
->>>>>> still being able to use other drivers (c.f. EXPORT_SYMBOL vs.
->>>>>> EXPORT_SYMBOL_GPL).
->>>>>
->>>>> AFAIK, the legal issues on writing a closed source driver using EXPORT_SYMBOL
->>>>> are not proofed legally in any court. While EXPORT_SYMBOL_GPL explicitly
->>>>> adds a restriction, not using it doesn't necessarily mean that the symbol
->>>>> can be used by a closed source driver.
->>>>>
->>>>> If you take a look at Kernel's COPYING file, the only exception to GPL license
->>>>> allowed there is:
->>>>>
->>>>>       NOTE! This copyright does *not* cover user programs that use kernel
->>>>>       services by normal system calls - this is merely considered normal use
->>>>>       of the kernel, and does *not* fall under the heading of "derived work".
->>>>>
->>>>> IANAL, but, as EXPORT_SYMBOL is not a "normal system call", my understanding is that
->>>>> it is also covered by GPL.
->>>>
->>>> Of course. But as you should know, the GPL only covers derived work.
->>>> Whether or not a driver is a derived work of the kernel can only be
->>>> decided individually. It is my understanding that a Windows driver
->>>> ported to Linux is unlikely to be a derived work of Linux.
->>>>
->>>>> I was told that several lawyers defend the idea that all software inside the
->>>>> kernel tree is covered by GPL, even the aggregated ones. That was the rationale
->>>>> used to split the firmware packages from the kernel itself.
->>>>
->>>> However, I wasn't referring to the kernel tree at all.
->>>>
->>>>>> 2.) a simple wrapper that calls userspace, therefore not having to open
->>>>>> up any "secrets" at all.
->>>>>
->>>>> A wrapper for a closed source driver is illegal, as it is trying to circumvent
->>>>> the GPL license.
->>>>
->>>> Is it? First, you are not a lawyer. Second, a wrapper is unlikely to be
->>>> illegal by its pure existence and a wrapper does usually not try to do
->>>> anything by itself. Third, you can implement a wrapper using normal
->>>> system calls (read, write, mmap, ioctl ...). That's what vtuner does,
->>>> too, to accomplish a totally different goal. Do you think vtuner is
->>>> illegal? I would be very surprised if it was. It perfectly matches the
->>>> license exception cited above. And even without the exception, a closed
->>>> driver in userspace would only very unlikely be a derived work of the
->>>> kernel.
->>>
->>> I think we're diverging from the subject. Most of those discussions are
->>> interesting on some lawyers forum, not here.
->>>
->>> My view about this subject is that vtuner can't give any additional permissions
->>> to the kernel GPL'd code, as vtuner were not made by the Kernel Copyright owners,
->>> nor were approved by them. So, the extra permission at the COPYING clause
->>> from kernel doesn't apply here, while the code is not merged into the Kernel.
->>>
->>> So, while it should be legal to use vtuner with a GPL'd client application,
->>> using it by a closed source application violates GPL.
->>>
->>> My understanding is that an addition of a code that exposes the internal
->>> DVB core API to userspace like that will require that all dvb developers
->>> that have copyright rights at the dvb core should explicitly ack with such
->>> change, otherwise adding such code will violate the original license.
->>>
->>> On the other hand, if vtunerc won't act as a proxy to userspace, it should
->>> probably be ok.
->>
->> Are you serious? Why there is not same violation on NFS? Or even beter
->> example NBD (network block device)? It sits in kernel for ages and nobody
->> cares. It looks for me like you should send some patch for removal such
->> "weak" places in kernel which allow to violate GPL.
->>
->> Do you really think that it is possible (in real, no in threory) to create
->> any networked subsystem for sharing anything over net the way
->> when it is not exposed (somehow) to the userspace? How will be
->> such system managable? Why there is usually companion daemon
->> there, which is responsible for managing connections etc?
->>
->> I think it is very evident you want find the way how to get yours word
->> back and return to your original position = such code is not acceptable.
->> Even if you still are not able to give anything clear.
->>
->> If I understand your last few mails, you won't accept such driver, isn't it?
->
-> You got wrong. You can't change someone's else license without their acks.
+Hi,
 
-That I understand very well. I never want to force anybody to change
-his licence.
+Thank you for your nice work. Here are my some comments. 
 
-I simply don't believe you that it is necessary. Why the same was not needed
-with USBIP driver? If you check theirs nice big picture on
-http://usbip.sourceforge.net/
-you see that it is exactly same technology like vtunerc, but for USB subsystem.
-Why such driver exists at all?
+> -----Original Message-----
+> From: Kamil Debski [mailto:k.debski@samsung.com]
+> Sent: Tuesday, May 31, 2011 6:08 PM
+> Cc: m.szyprowski@samsung.com; kyungmin.park@samsung.com; k.debski@samsung.com; jaeryul.oh@samsung.com;
+> hverkuil@xs4all.nl; laurent.pinchart@ideasonboard.com; jtp.park@samsung.com
+> Subject: [RFC/PATCH v2] v4l: add control definitions for codec devices.
+> 
+> Hi,
+> 
+> This is a second version of the patch that adds controls for the codec family of
+> devices. I have implemented the suggestions I got from Hans Verkuil on the #v4l
+> channel.
+> 
+> Change log:
+> - rename V4L2_CID_MIN_REQ_BUFS_(CAP/OUT) to V4L2_CID_MIN_BUFFERS_FOR_(CAPTURE/OUTPUT)
+> - use existing controls for GOP size, number of frames and GOP closure
+> - remove frame rate controls (in favour of the S_PARM call)
+> - split level into separate controls for MPEG4 and H264
+> 
+> I would welcome further comments.
+> 
+> Best regards,
+> Kamil Debski
+> 
+> Signed-off-by: Kamil Debski <k.debski@samsung.com>
+> Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+> ---
+>  Documentation/DocBook/v4l/controls.xml |  733 ++++++++++++++++++++++++++++++++
+>  include/linux/videodev2.h              |  147 +++++++
+>  2 files changed, 880 insertions(+), 0 deletions(-)
+> 
+> diff --git a/Documentation/DocBook/v4l/controls.xml b/Documentation/DocBook/v4l/controls.xml
+> index 6880798..7c2df42 100644
+> --- a/Documentation/DocBook/v4l/controls.xml
+> +++ b/Documentation/DocBook/v4l/controls.xml
+> @@ -325,6 +325,22 @@ minimum value disables backlight compensation.</entry>
+>  <constant>V4L2_CID_ILLUMINATORS_2</constant> + 1).</entry>
+>  	  </row>
+>  	  <row>
+> +	    <entry><constant>V4L2_CID_MIN_BUFFERS_FOR_CAPTURE</constant></entry>
+> +	    <entry>integer</entry>
+> +	    <entry>This is a read only control that can read by the application
+> +and used as a hint to determine the number of CAPTURE buffer to pass to REQBUFS.
+> +The value is the minimum number of CAPTURE buffer that it necessary for hardware
+> +to work.</entry>
+> +	  </row>
+> +	  <row>
+> +	    <entry><constant>V4L2_CID_MIN_BUFFERSS_FOR_OUTPUT</constant></entry>
+> +	    <entry>integer</entry>
+> +	    <entry>This is a read only control that can read by the application
+> +and used as a hint to determine the number of OUTPUT buffer to pass to REQBUFS.
+> +The value is the minimum number of OUTPUT buffer that it necessary for hardware
+> +to work.</entry>
+> +	  </row>
+> +	  <row>
+>  	    <entry><constant>V4L2_CID_PRIVATE_BASE</constant></entry>
+>  	    <entry></entry>
+>  	    <entry>ID of the first custom (driver specific) control.
+> @@ -1409,6 +1425,723 @@ of the video. The supplied 32-bit integer is interpreted as follows (bit
+>  		  </tbody>
+>  		</entrytbl>
+>  	      </row>
+> +
+> +
+> +	      <row><entry></entry></row>
+> +	      <row>
+> +		<entry spanname="id"><constant>V4L2_CID_MPEG_VIDEO_DECODER_SLICE_INTERFACE</constant>&nbsp;</entry>
+> +		<entry>boolean</entry>
+> +	      </row>
+> +	      <row><entry spanname="descr">If enabled the decoder expects a single slice in one buffer, otherwise
+> +the decoder expects a single frame in one input buffer.</entry>
+> +	      </row>
+> +
+> +	      <row><entry></entry></row>
+> +	      <row>
+> +		<entry spanname="id"><constant>V4L2_CID_MPEG_VIDEO_H264_VUI_AR_ENABLE</constant>&nbsp;</entry>
+> +		<entry>boolean</entry>
+> +	      </row>
+> +	      <row><entry spanname="descr">Enable writing aspect ratio in the Video Usability Information.</entry>
+> +	      </row>
+> +
+> +	      <row><entry></entry></row>
+> +	      <row>
+> +		<entry spanname="id"><constant>V4L2_CID_MPEG_VIDEO_H264_VUI_AR_IDC</constant>&nbsp;</entry>
+> +		<entry>integer</entry>
+> +	      </row>
+> +	      <row><entry spanname="descr">VUI aspect ratio IDC for H.264 encoding. The value is defined in VUI Table
+> +E-1 in the standard.
+> +	      </entry>
+> +	      </row>
+> +
+> +	      <row><entry></entry></row>
+> +	      <row>
+> +		<entry spanname="id"><constant>V4L2_CID_MPEG_VIDEO_H264_EXT_SAR_WIDTH</constant>&nbsp;</entry>
+> +		<entry>integer</entry>
+> +	      </row>
+> +	      <row><entry spanname="descr">Extended sample aspect ratio width for H.264 VUI encoding.</entry>
+> +	      </row>
+> +
+> +	      <row><entry></entry></row>
+> +	      <row>
+> +		<entry spanname="id"><constant>V4L2_CID_MPEG_VIDEO_H264_EXT_SAR_HEIGHT</constant>&nbsp;</entry>
+> +		<entry>integer</entry>
+> +	      </row>
+> +	      <row><entry spanname="descr">Extended sample aspect ratio height for H.264 VUI encoding.</entry>
+> +	      </row>
+> +
+> +	      <row><entry></entry></row>
+> +	      <row>
+> +		<entry spanname="id"><constant>V4L2_CID_MPEG_VIDEO_LEVEL</constant>&nbsp;</entry>
+> +		<entry>enum&nbsp;v4l2_mpeg_level</entry>
+> +	      </row>
+> +	      <row><entry spanname="descr">The level information for stream.
+> +Possible values are:</entry>
+> +	      </row>
+> +	      <row>
+> +		<entrytbl spanname="descr" cols="2">
+> +		  <tbody valign="top">
+> +		    <row>
+> +		      <entry><constant>V4L2_MPEG_VIDEO_LEVEL_0</constant>&nbsp;</entry>
+> +		      <entry>Level 0</entry>
+> +		    </row>
+> +		    <row>
+> +		      <entry><constant>V4L2_MPEG_VIDEO_LEVEL_0B</constant>&nbsp;</entry>
+> +		      <entry>Level 0b</entry>
+> +		    </row>
+> +		    <row>
+> +		      <entry><constant>V4L2_MPEG_VIDEO_LEVEL_1</constant>&nbsp;</entry>
+> +		      <entry>Level 1.0</entry>
+> +		    </row>
+> +		    <row>
+> +		      <entry><constant>V4L2_MPEG_VIDEO_LEVEL_1_1</constant>&nbsp;</entry>
+> +		      <entry>Level 1.1</entry>
+> +		    </row>
+> +		    <row>
+> +		      <entry><constant>V4L2_MPEG_VIDEO_LEVEL_1_2</constant>&nbsp;</entry>
+> +		      <entry>Level 1.2</entry>
+> +		    </row>
+> +		    <row>
+> +		      <entry><constant>V4L2_MPEG_VIDEO_LEVEL_1_3</constant>&nbsp;</entry>
+> +		      <entry>Level 1.3</entry>
+> +		    </row>
+> +		    <row>
+> +		      <entry><constant>V4L2_MPEG_VIDEO_LEVEL_2</constant>&nbsp;</entry>
+> +		      <entry>Level 2.0</entry>
+> +		    </row>
+> +		    <row>
+> +		      <entry><constant>V4L2_MPEG_VIDEO_LEVEL_2_1</constant>&nbsp;</entry>
+> +		      <entry>Level 2.1</entry>
+> +		    </row>
+> +		    <row>
+> +		      <entry><constant>V4L2_MPEG_VIDEO_LEVEL_2_2</constant>&nbsp;</entry>
+> +		      <entry>Level 2.2</entry>
+> +		    </row>
+> +		    <row>
+> +		      <entry><constant>V4L2_MPEG_VIDEO_LEVEL_3</constant>&nbsp;</entry>
+> +		      <entry>Level 3.0</entry>
+> +		    </row>
+> +		    <row>
+> +		      <entry><constant>V4L2_MPEG_VIDEO_LEVEL_3B</constant>&nbsp;</entry>
+> +		      <entry>Level 3b</entry>
+> +		    </row>
+> +		    <row>
+> +		      <entry><constant>V4L2_MPEG_VIDEO_LEVEL_3_1</constant>&nbsp;</entry>
+> +		      <entry>Level 3.1</entry>
+> +		    </row>
+> +		    <row>
+> +		      <entry><constant>V4L2_MPEG_VIDEO_LEVEL_3_2</constant>&nbsp;</entry>
+> +		      <entry>Level 3.2</entry>
+> +		    </row>
+> +		    <row>
+> +		      <entry><constant>V4L2_MPEG_VIDEO_LEVEL_4</constant>&nbsp;</entry>
+> +		      <entry>Level 4.0</entry>
+> +		    </row>
+> +		    <row>
+> +		      <entry><constant>V4L2_MPEG_VIDEO_LEVEL_4_1</constant>&nbsp;</entry>
+> +		      <entry>Level 4.1</entry>
+> +		    </row>
+> +		    <row>
+> +		      <entry><constant>V4L2_MPEG_VIDEO_LEVEL_4_2</constant>&nbsp;</entry>
+> +		      <entry>Level 4.2</entry>
+> +		    </row>
+> +		    <row>
+> +		      <entry><constant>V4L2_MPEG_VIDEO_LEVEL_5</constant>&nbsp;</entry>
+> +		      <entry>Level 5.0</entry>
+> +		    </row>
+> +		    <row>
+> +		      <entry><constant>V4L2_MPEG_VIDEO_LEVEL_5_1</constant>&nbsp;</entry>
+> +		      <entry>Level 5.1</entry>
+> +		    </row>
+> +		  </tbody>
+> +		</entrytbl>
+> +	      </row>
+> +
+> +	      <row><entry></entry></row>
+> +	      <row>
+> +		<entry spanname="id"><constant>V4L2_CID_MPEG_VIDEO_H264_PROFILE</constant>&nbsp;</entry>
+> +		<entry>enum&nbsp;v4l2_mpeg_h264_profile</entry>
+> +	      </row>
+> +	      <row><entry spanname="descr">The profile information for H264.
+> +Possible values are:</entry>
+> +	      </row>
+> +	      <row>
+> +		<entrytbl spanname="descr" cols="2">
+> +		  <tbody valign="top">
+> +		    <row>
+> +		      <entry><constant>V4L2_MPEG_VIDEO_H264_PROFILE_BASELINE</constant>&nbsp;</entry>
+> +		      <entry>Baseline profile</entry>
+> +		    </row>
+> +		    <row>
+> +		      <entry><constant>V4L2_MPEG_VIDEO_H264_PROFILE_CONSTRAINED_BASELINE</constant>&nbsp;</entry>
+> +		      <entry>Constrained Baseline profile</entry>
+> +		    </row>
+> +		    <row>
+> +		      <entry><constant>V4L2_MPEG_VIDEO_H264_PROFILE_MAIN</constant>&nbsp;</entry>
+> +		      <entry>Main profile</entry>
+> +		    </row>
+> +		    <row>
+> +		      <entry><constant>V4L2_MPEG_VIDEO_H264_PROFILE_HIGH_10</constant>&nbsp;</entry>
+> +		      <entry>High 10 profile</entry>
+> +		    </row>
+> +		    <row>
+> +		      <entry><constant>V4L2_MPEG_VIDEO_H264_PROFILE_HIGH_422</constant>&nbsp;</entry>
+> +		      <entry>High 422 profile</entry>
+> +		    </row>
+> +		    <row>
+> +		      <entry><constant>V4L2_MPEG_VIDEO_H264_PROFILE_HIGH_444_PREDICTIVE</constant>&nbsp;</entry>
+> +		      <entry>High 444 Predictive profile</entry>
+> +		    </row>
+> +		    <row>
+> +		      <entry><constant>V4L2_MPEG_VIDEO_H264_PROFILE_HIGH_10_INTRA</constant>&nbsp;</entry>
+> +		      <entry>High 10 Intra profile</entry>
+> +		    </row>
+> +		    <row>
+> +		      <entry><constant>V4L2_MPEG_VIDEO_H264_PROFILE_HIGH_422_INTRA</constant>&nbsp;</entry>
+> +		      <entry>High 422 Intra profile</entry>
+> +		    </row>
+> +		    <row>
+> +		      <entry><constant>V4L2_MPEG_VIDEO_H264_PROFILE_HIGH_444_INTRA</constant>&nbsp;</entry>
+> +		      <entry>High 444 Intra profile</entry>
+> +		    </row>
+> +		    <row>
+> +		      <entry><constant>V4L2_MPEG_VIDEO_H264_PROFILE_CAVLC_444_INTRA</constant>&nbsp;</entry>
+> +		      <entry>CAVLC 444 Intra profile</entry>
+> +		    </row>
+> +		  </tbody>
+> +		</entrytbl>
+> +	      </row>
+> +
+> +	      <row><entry></entry></row>
+> +	      <row>
+> +		<entry spanname="id"><constant>V4L2_CID_MPEG_VIDEO_MPEG4_PROFILE</constant>&nbsp;</entry>
+> +		<entry>enum&nbsp;v4l2_mpeg_mpeg4_profile</entry>
+> +	      </row>
+> +	      <row><entry spanname="descr">The profile information for MPEG4.
+> +Possible values are:</entry>
+> +	      </row>
+> +	      <row>
+> +		<entrytbl spanname="descr" cols="2">
+> +		  <tbody valign="top">
+> +		    <row>
+> +		      <entry><constant>V4L2_MPEG_VIDEO_PROFILE_SIMPLE</constant>&nbsp;</entry>
+> +		      <entry>Simple profile</entry>
+> +		    </row>
+> +		    <row>
+> +		      <entry><constant>V4L2_MPEG_VIDEO_PROFILE_ADVANCED_SIMPLE</constant>&nbsp;</entry>
+> +		      <entry>Advanced Simple profile</entry>
+> +		    </row>
+> +		    <row>
+> +		      <entry><constant>V4L2_MPEG_VIDEO_PROFILE_CORE</constant>&nbsp;</entry>
+> +		      <entry>Core profile</entry>
+> +		    </row>
+> +		    <row>
+> +		      <entry><constant>V4L2_MPEG_VIDEO_PROFILE_SIMPLE_SCALABLE</constant>&nbsp;</entry>
+> +		      <entry>Simple Scalable profile</entry>
+> +		    </row>
+> +		    <row>
+> +		      <entry><constant>V4L2_MPEG_VIDEO_PROFILE_ADVANCED_CODING_EFFICIENCY</constant>&nbsp;</entry>
+> +		      <entry></entry>
+> +		    </row>
+> +		  </tbody>
+> +		</entrytbl>
+> +	      </row>
+> +
+> +	      <row><entry></entry></row>
+> +	      <row>
+> +		<entry spanname="id"><constant>V4L2_CID_MPEG_VIDEO_MAX_REF_PIC</constant>&nbsp;</entry>
+> +		<entry>boolean</entry>
+> +	      </row>
+> +	      <row><entry spanname="descr">The maximum number of reference pictures used for encoding.</entry>
+> +	      </row>
 
-And I'm sure I can find more examples inside kernel tree. What about NBD
-(http://nbd.sourceforge.net)? Do you want find me more examples?
+Is it boolean type?
 
-> It is as simple as that. Getting everybody's ack is not that hard, if they
-> accept that what you're doing is the right thing. We've got everybody's
-> ack in the past to change the licensing for videodev2.h for example, to allow
-> using the V4L2 API under BSD license (just the license API was changed, not the
-> code itself).
->
->>> If people have different understandings, then we'll likely need to ask some
->>> support from Open source lawyers about this subject.
->>
->> My very little opinion is that waving GPL is way to the hell. Nobody told me
->> why similar technologies, in different kernel parts are acceptable,
->> but not here.
->
-> If you want to do the networking code at userspace, why do you need a kernel
-> driver after all? The proper solution is to write an userspace library for that,
-> and either enclose such library inside the applications, or use LD_PRELOAD to
-> bind the library to handle the open/close/ioctl glibc calls. libv4l does that.
-> As it proofed to be a good library, now almost all V4L applications are using
-> it.
+> +
+> +	      <row><entry></entry></row>
+> +	      <row>
+> +		<entry spanname="id"><constant>V4L2_CID_MPEG_VIDEO_MULTI_SLICE_MODE</constant>&nbsp;</entry>
+> +		<entry>enum&nbsp;v4l2_mpeg_multi_slice_mode</entry>
+> +	      </row>
+> +	      <row><entry spanname="descr">Determines how multiple slices are handled.
+> +Possible values are:</entry>
+> +	      </row>
+> +	      <row>
+> +		<entrytbl spanname="descr" cols="2">
+> +		  <tbody valign="top">
+> +		    <row>
+> +		      <entry><constant>V4L2_MPEG_VIDEO_MULTI_SLICE_MODE_SINGLE</constant>&nbsp;</entry>
+> +		      <entry>Single slice per frame.</entry>
+> +		    </row>
+> +		    <row>
+> +		      <entry><constant>V4L2_MPEG_VIDEO_MULTI_SLICE_MODE_MAX_MB</constant>&nbsp;</entry>
+> +		      <entry>Multiple slices with set maximum number of macroblocks per slice.</entry>
+> +		    </row>
+> +		    <row>
+> +		      <entry><constant>V4L2_MPEG_VIDEO_MULTI_SLICE_MODE_MAX_BITS</constant>&nbsp;</entry>
+> +		      <entry>Multiple slice with set maximum size in bits per slice.</entry>
+> +		    </row>
+> +		  </tbody>
+> +		</entrytbl>
+> +	      </row>
+> +
+> +	      <row><entry></entry></row>
+> +	      <row>
+> +		<entry spanname="id"><constant>V4L2_CID_MPEG_VIDEO_MULTI_SLICE_MAX_MB</constant>&nbsp;</entry>
+> +		<entry>integer</entry>
+> +	      </row>
+> +	      <row><entry spanname="descr">The upper limit of macroblocks of a slice.</entry>
+> +	      </row>
+> +
+> +	      <row><entry></entry></row>
+> +	      <row>
+> +		<entry spanname="id"><constant>V4L2_CID_MPEG_VIDEO_MULTI_SLICE_MAX_BITS</constant>&nbsp;</entry>
+> +		<entry>integer</entry>
+> +	      </row>
+> +	      <row><entry spanname="descr">The upper limit of size in bits of a slice.</entry>
+> +	      </row>
+> +
+> +	      <row><entry></entry></row>
+> +	      <row>
+> +		<entry spanname="id"><constant>V4L2_CID_MPEG_VIDEO_H264_LOOP_FILTER_MODE</constant>&nbsp;</entry>
+> +		<entry>enum&nbsp;v4l2_mpeg_h264_loop_filter_mode</entry>
+> +	      </row>
+> +	      <row><entry spanname="descr">Loop filter mode for H264.
+> +Possible values are:</entry>
+> +	      </row>
+> +	      <row>
+> +		<entrytbl spanname="descr" cols="2">
+> +		  <tbody valign="top">
+> +		    <row>
+> +		      <entry><constant>V4L2_MPEG_VIDEO_H264_LOOP_FILTER_MODE_ENABLED</constant>&nbsp;</entry>
+> +		      <entry>Loop filter is enabled.</entry>
+> +		    </row>
+> +		    <row>
+> +		      <entry><constant>V4L2_MPEG_VIDEO_H264_LOOP_FILTER_MODE_DISABLED</constant>&nbsp;</entry>
+> +		      <entry>Loop filter is disabled.</entry>
+> +		    </row>
+> +		    <row>
+> +
+> <entry><constant>V4L2_MPEG_VIDEO_H264_LOOP_FILTER_MODE_DISABLED_AT_SLICE_BOUNDARY</constant>&nbsp;</entry>
+> +		      <entry>Loop filter is disabled at the slice boundary.</entry>
+> +		    </row>
+> +		  </tbody>
+> +		</entrytbl>
+> +	      </row>
+> +
+> +	      <row><entry></entry></row>
+> +	      <row>
+> +		<entry spanname="id"><constant>V4L2_CID_MPEG_VIDEO_H264_LOOP_FILTER_ALPHA</constant>&nbsp;</entry>
+> +		<entry>integer</entry>
+> +	      </row>
+> +	      <row><entry spanname="descr">Loop filter alpha coefficient, defined in the standard.</entry>
+> +	      </row>
+> +
+> +	      <row><entry></entry></row>
+> +	      <row>
+> +		<entry spanname="id"><constant>V4L2_CID_MPEG_VIDEO_H264_LOOP_FILTER_BETA</constant>&nbsp;</entry>
+> +		<entry>integer</entry>
+> +	      </row>
+> +	      <row><entry spanname="descr">Loop filter alpha coefficient, defined in the standard.</entry>
+> +	      </row>
 
-LD_PELOAD is out of bussiness for normal work. It is technique for development
-and/or debugging. Library would be possible, but then you kill main advantage
-- totally independece of changes inside userland DVB applications.
+alpha -> beta.
 
-And about networking in userspace - do you know other way then using
-userspace daemon for management of connections and other control
-jobs? Can you describe me how to do it w/o userspace application (daemon).
-Why all are using it? Check networking filesystems.
+> +
+> +	      <row><entry></entry></row>
+> +	      <row>
+> +		<entry spanname="id"><constant>V4L2_CID_MPEG_VIDEO_H264_SYMBOL_MODE</constant>&nbsp;</entry>
+> +		<entry>enum&nbsp;v4l2_mpeg_h264_symbol_mode</entry>
+> +	      </row>
+> +	      <row><entry spanname="descr">Symbol mode for H264 - CABAC/CAVALC.
+> +Possible values are:</entry>
+> +	      </row>
+> +	      <row>
+> +		<entrytbl spanname="descr" cols="2">
+> +		  <tbody valign="top">
+> +		    <row>
+> +		      <entry><constant>V4L2_MPEG_VIDEO_H264_SYMBOL_MODE_CAVLC</constant>&nbsp;</entry>
+> +		      <entry>Use CAVLC entropy coding.</entry>
+> +		    </row>
+> +		    <row>
+> +		      <entry><constant>V4L2_MPEG_VIDEO_H264_SYMBOL_MODE_CABAC</constant>&nbsp;</entry>
+> +		      <entry>Use CABAC entropy coding.</entry>
+> +		    </row>
+> +		  </tbody>
+> +		</entrytbl>
+> +	      </row>
+> +
+> +	      <row><entry></entry></row>
+> +	      <row>
+> +		<entry spanname="id"><constant>V4L2_CID_MPEG_VIDEO_INTERLACE</constant>&nbsp;</entry>
+> +		<entry>boolean</entry>
+> +	      </row>
+> +	      <row><entry spanname="descr">Enable interlace mode.</entry>
+> +	      </row>
+> +
+> +	      <row><entry></entry></row>
+> +	      <row>
+> +		<entry spanname="id"><constant>V4L2_CID_MPEG_VIDEO_H264_8X8_TRANSFORM</constant>&nbsp;</entry>
+> +		<entry>boolean</entry>
+> +	      </row>
+> +	      <row><entry spanname="descr">Enable 8X8 transform for H264.</entry>
+> +	      </row>
+> +
+> +	      <row><entry></entry></row>
+> +	      <row>
+> +		<entry spanname="id"><constant>V4L2_CID_MPEG_VIDEO_INTRA_REFRESH_MB</constant>&nbsp;</entry>
+> +		<entry>integer</entry>
+> +	      </row>
+> +	      <row><entry spanname="descr">Period of random intra macroblock refresh.</entry>
+> +	      </row>
+> +
+> +	      <row><entry></entry></row>
+> +	      <row>
+> +		<entry spanname="id"><constant>V4L2_CID_MPEG_VIDEO_FRAME_RC_ENABLE</constant>&nbsp;</entry>
+> +		<entry>boolean</entry>
+> +	      </row>
+> +	      <row><entry spanname="descr">Padding enable - use a color instead of repeating border pixels.</entry>
+> +	      </row>
 
-I hope you can learn me how to do it correct way. I'm open for any
-discussion. But no talks like "it breaks GPL" without any evident
-argument from you.
+The description may be wrong.
 
-/Honza
+> +
+> +	      <row><entry></entry></row>
+> +	      <row>
+> +		<entry spanname="id"><constant>V4L2_CID_MPEG_VIDEO_H264_MB_RC_ENABLE</constant>&nbsp;</entry>
+> +		<entry>boolean</entry>
+> +	      </row>
+> +	      <row><entry spanname="descr">Macroblock level rate control enable for H264.</entry>
+> +	      </row>
+> +
+> +	      <row><entry></entry></row>
+> +	      <row>
+> +		<entry spanname="id"><constant>V4L2_CID_MPEG_VIDEO_FRAME_RATE_NOMINATOR</constant>&nbsp;</entry>
+> +		<entry>integer</entry>
+> +	      </row>
+> +	      <row><entry spanname="descr">Frames per second - nominator.</entry>
+> +	      </row>
+
+Removed as you mentioned.
+
+> +
+> +	      <row><entry></entry></row>
+> +	      <row>
+> +		<entry spanname="id"><constant>V4L2_CID_MPEG_VIDEO_FRAME_RATE_DENOMINATOR</constant>&nbsp;</entry>
+> +		<entry>integer</entry>
+> +	      </row>
+> +	      <row><entry spanname="descr">Frames per second - denominator</entry>
+> +	      </row>
+> +
+
+Removed as you mentioned.
+
+> +	      <row><entry></entry></row>
+> +	      <row>
+> +		<entry spanname="id"><constant>V4L2_CID_MPEG_VIDEO_RC_BITRATE</constant>&nbsp;</entry>
+> +		<entry>integer</entry>
+> +	      </row>
+> +	      <row><entry spanname="descr">Bitrate per second for rate control.</entry>
+> +	      </row>
+> +
+> +	      <row><entry></entry></row>
+> +	      <row>
+> +		<entry spanname="id"><constant>V4L2_CID_MPEG_VIDEO_MPEG4_QPEL</constant>&nbsp;</entry>
+> +		<entry>boolean</entry>
+> +	      </row>
+> +	      <row><entry spanname="descr">Quarter pixel motion estimation for MPEG4.</entry>
+> +	      </row>
+> +
+> +	      <row><entry></entry></row>
+> +	      <row>
+> +		<entry spanname="id"><constant>V4L2_CID_MPEG_VIDEO_I_FRAME_QP</constant>&nbsp;</entry>
+> +		<entry>integer</entry>
+> +	      </row>
+> +	      <row><entry spanname="descr">Quantization parameter for an I frame.</entry>
+> +	      </row>
+> +
+> +	      <row><entry></entry></row>
+> +	      <row>
+> +		<entry spanname="id"><constant>V4L2_CID_MPEG_VIDEO_MIN_QP</constant>&nbsp;</entry>
+> +		<entry>integer</entry>
+> +	      </row>
+> +	      <row><entry spanname="descr">Minimum quantization parameter.</entry>
+> +	      </row>
+> +
+> +	      <row><entry></entry></row>
+> +	      <row>
+> +		<entry spanname="id"><constant>V4L2_CID_MPEG_VIDEO_MAX_QP</constant>&nbsp;</entry>
+> +		<entry>integer</entry>
+> +	      </row>
+> +	      <row><entry spanname="descr">Maximum quantization parameter.</entry>
+> +	      </row>
+> +
+> +	      <row><entry></entry></row>
+> +	      <row>
+> +		<entry spanname="id"><constant>V4L2_CID_MPEG_VIDEO_P_FRAME_QP</constant>&nbsp;</entry>
+> +		<entry>integer</entry>
+> +	      </row>
+> +	      <row><entry spanname="descr">Quantization parameter for an P frame.</entry>
+> +	      </row>
+> +
+> +	      <row><entry></entry></row>
+> +	      <row>
+> +		<entry spanname="id"><constant>V4L2_CID_MPEG_VIDEO_B_FRAME_QP</constant>&nbsp;</entry>
+> +		<entry>integer</entry>
+> +	      </row>
+> +	      <row><entry spanname="descr">Quantization parameter for an B frame.</entry>
+> +	      </row>
+> +
+> +	      <row><entry></entry></row>
+> +	      <row>
+> +		<entry spanname="id"><constant>V4L2_CID_MPEG_VIDEO_VBV_BUF_SIZE</constant>&nbsp;</entry>
+> +		<entry>integer</entry>
+> +	      </row>
+> +	      <row><entry spanname="descr">Quantization parameter for an P frame.</entry>
+> +	      </row>
+
+The description may be wrong, How about this?
+'The VBV buffer size in kilo bytes, it used as a limitation of frame skip'
+
+> +
+> +	      <row><entry></entry></row>
+> +	      <row>
+> +		<entry spanname="id"><constant>V4L2_CID_MPEG_VIDEO_H264_OPEN_GOP</constant>&nbsp;</entry>
+> +		<entry>boolean</entry>
+> +	      </row>
+> +	      <row><entry spanname="descr">Enable open GOP in H264.</entry>
+> +	      </row>
+
+I cannot find V4L2_CID_MPEG_VIDEO_H264_OPEN_GOP definition at videodev2.h,
+we will use V4L2_CID_MPEG_VIDEO_GOP_CLOSURE instead, right?
+
+> +
+> +	      <row><entry></entry></row>
+> +	      <row>
+> +		<entry spanname="id"><constant>V4L2_CID_MPEG_VIDEO_H264_I_PERIOD</constant>&nbsp;</entry>
+> +		<entry>integer</entry>
+> +	      </row>
+> +	      <row><entry spanname="descr">Period between I frames in open GOP for H264.</entry>
+> +	      </row>
+> +
+> +	      <row><entry></entry></row>
+> +	      <row>
+> +		<entry spanname="id"><constant>V4L2_CID_MPEG_VIDEO_HEADER_MODE</constant>&nbsp;</entry>
+> +		<entry>enum&nbsp;v4l2_mpeg_header_mode</entry>
+> +	      </row>
+> +	      <row><entry spanname="descr">Determines whether the header is returned as the first buffer or is
+> +it returned together with the first frame.
+> +Possible values are:</entry>
+> +	      </row>
+> +	      <row>
+> +		<entrytbl spanname="descr" cols="2">
+> +		  <tbody valign="top">
+> +		    <row>
+> +		      <entry><constant>V4L2_MPEG_VIDEO_HEADER_MODE_SEPARATE</constant>&nbsp;</entry>
+> +		      <entry>The stream header is returned separately in the first buffer.</entry>
+> +		    </row>
+> +		    <row>
+> +		      <entry><constant>V4L2_MPEG_VIDEO_HEADER_MODE_JOINED_WITH_1ST_FRAME</constant>&nbsp;</entry>
+> +		      <entry>The stream header is returned together with the first encoded frame.</entry>
+> +		    </row>
+> +		  </tbody>
+> +		</entrytbl>
+> +	      </row>
+> +
+> +	      <row><entry></entry></row>
+> +	      <row>
+> +		<entry spanname="id"><constant>V4L2_CID_MPEG_VIDEO_FRAME_RC_ENABLE</constant>&nbsp;</entry>
+> +		<entry>boolean</entry>
+> +	      </row>
+> +	      <row><entry spanname="descr">Frame level rate control enable.</entry>
+> +	      </row>
+
+I saw the same CID above, previous definition have to remove.
+
+> +
+> +	      <row><entry></entry></row>
+> +	      <row>
+> +		<entry spanname="id"><constant>V4L2_CID_MPEG_VIDEO_H264_MB_RC_ENABLE</constant>&nbsp;</entry>
+> +		<entry>boolean</entry>
+> +	      </row>
+> +	      <row><entry spanname="descr">Macroblock level rate control enable.</entry>
+> +	      </row>
+> +
+> +	    </tbody>
+> +	  </tgroup>
+> +	</table>
+> +      </section>
+> +
+> +      <section>
+> +	<title>MFC 5.1 MPEG Controls</title>
+> +
+> +	<para>The following MPEG class controls deal with MPEG
+> +decoding and encoding settings that are specific to the MFC 5.1 device present
+> +in the S5P family of SoCs by Samsung.
+> +</para>
+> +
+> +	<table pgwide="1" frame="none" id="mfc51-control-id">
+> +	  <title>MFC 5.1 Control IDs</title>
+> +	  <tgroup cols="4">
+> +	    <colspec colname="c1" colwidth="1*" />
+> +	    <colspec colname="c2" colwidth="6*" />
+> +	    <colspec colname="c3" colwidth="2*" />
+> +	    <colspec colname="c4" colwidth="6*" />
+> +	    <spanspec namest="c1" nameend="c2" spanname="id" />
+> +	    <spanspec namest="c2" nameend="c4" spanname="descr" />
+> +	    <thead>
+> +	      <row>
+> +		<entry spanname="id" align="left">ID</entry>
+> +		<entry align="left">Type</entry>
+> +	      </row><row><entry spanname="descr" align="left">Description</entry>
+> +	      </row>
+> +	    </thead>
+> +	    <tbody valign="top">
+> +	      <row><entry></entry></row>
+> +	      <row>
+> +		<entry
+> spanname="id"><constant>V4L2_CID_MPEG_MFC51_VIDEO_DECODER_MPEG4_DEBLOCK_FILTER</constant>&nbsp;</entry>
+> +		<entry>boolean</entry>
+> +	      </row><row><entry spanname="descr">Enabled the deblocking post processing filter for MPEG4
+> decoder.</entry>
+> +	      </row>
+> +	      <row><entry></entry></row>
+> +	      <row>
+> +		<entry
+> spanname="id"><constant>V4L2_CID_MPEG_MFC51_VIDEO_DECODER_H264_DISPLAY_DELAY_ENABLE</constant>&nbsp;</entry>
+> +		<entry>integer</entry>
+> +	      </row><row><entry spanname="descr">If the display delay is enabled then the decoder has to return an
+> +CAPTURE buffer after processing a certain number of OUTPUT buffers. If this number is low, then it may result in
+> +buffers not being dequeued in display order. In addition hardware may still use those buffers as reference, thus
+> +application should not write to those buffers. This feature can be used for example for generating thumbnails of
+> videos.
+> +	      </entry>
+> +	      </row>
+> +	      <row><entry></entry></row>
+> +	      <row>
+> +		<entry
+> spanname="id"><constant>V4L2_CID_MPEG_MFC51_VIDEO_DECODER_H264_DISPLAY_DELAY</constant>&nbsp;</entry>
+> +		<entry>integer</entry>
+> +	      </row><row><entry spanname="descr">Display delay value for H264 decoder.</entry>
+> +	      </row>
+> +	      <row><entry></entry></row>
+> +	      <row>
+> +		<entry spanname="id"><constant>V4L2_CID_MPEG_MFC51_VIDEO_NUM_REF_PIC_FOR_P</constant>&nbsp;</entry>
+> +		<entry>integer</entry>
+> +	      </row><row><entry spanname="descr">The number of reference pictures used for encoding a P
+> picture.</entry>
+> +	      </row>
+> +	      <row><entry></entry></row>
+> +	      <row>
+> +		<entry spanname="id"><constant>V;4L2_CID_MPEG_MFC51_VIDEO_PADDING</constant>&nbsp;</entry>
+
+There is a miss typing(;).
+
+> +		<entry>integer</entry>
+> +	      </row><row><entry spanname="descr">Padding enable - use a color instead of repeating border
+> pixels.</entry>
+> +	      </row>
+> +	      <row><entry></entry></row>
+> +	      <row>
+> +		<entry spanname="id"><constant>V4L2_CID_MPEG_MFC51_VIDEO_PADDING_YUV</constant>&nbsp;</entry>
+> +		<entry>integer</entry>
+> +	      </row><row><entry spanname="descr">Padding color. The supplied 32-bit integer is interpreted as follows
+> (bit
+> +0 = least significant bit):</entry>
+> +	      </row>
+> +	      <row>
+> +		<entrytbl spanname="descr" cols="2">
+> +		  <tbody valign="top">
+> +		    <row>
+> +		      <entry>Bit 0:7</entry>
+> +		      <entry>V chrominance information</entry>
+> +		    </row>
+> +		    <row>
+> +		      <entry>Bit 8:15</entry>
+> +		      <entry>U chrominance information</entry>
+> +		    </row>
+> +		    <row>
+> +		      <entry>Bit 16:23</entry>
+> +		      <entry>Y luminance information</entry>
+> +		    </row>
+> +		    <row>
+> +		      <entry>Bit 24:31</entry>
+> +		      <entry>Must be zero.</entry>
+> +		    </row>
+> +		  </tbody>
+> +		</entrytbl>
+> +	      </row>
+> +	      <row><entry></entry></row>
+> +	      <row>
+> +		<entry spanname="id"><constant>V4L2_CID_MPEG_MFC51_VIDEO_RC_REACTION_COEFF</constant>&nbsp;</entry>
+> +		<entry>integer</entry>
+> +	      </row><row><entry spanname="descr">Reaction coefficient for MFC rate control.</entry>
+> +	      </row>
+> +	      <row><entry></entry></row>
+> +	      <row>
+> +		<entry
+> spanname="id"><constant>V4L2_CID_MPEG_MFC51_VIDEO_H264_ADAPTIVE_RC_DARK</constant>&nbsp;</entry>
+> +		<entry>integer</entry>
+> +	      </row><row><entry spanname="descr">Adaptive rate control for dark region.</entry>
+> +	      </row>
+> +	      <row><entry></entry></row>
+> +	      <row>
+> +		<entry
+> spanname="id"><constant>V4L2_CID_MPEG_MFC51_VIDEO_H264_ADAPTIVE_RC_SMOOTH</constant>&nbsp;</entry>
+> +		<entry>integer</entry>
+> +	      </row><row><entry spanname="descr">Adaptive rate control for smooth region.</entry>
+> +	      </row>
+> +	      <row><entry></entry></row>
+> +	      <row>
+> +		<entry
+> spanname="id"><constant>V4L2_CID_MPEG_MFC51_VIDEO_H264_ADAPTIVE_RC_STATIC</constant>&nbsp;</entry>
+> +		<entry>integer</entry>
+> +	      </row><row><entry spanname="descr">Adaptive rate control for static region.</entry>
+> +	      </row>
+> +	      <row><entry></entry></row>
+> +	      <row>
+> +		<entry
+> spanname="id"><constant>V4L2_CID_MPEG_MFC51_VIDEO_H264_ADAPTIVE_RC_ACTIVITY</constant>&nbsp;</entry>
+> +		<entry>integer</entry>
+> +	      </row><row><entry spanname="descr">Adaptive rate control for activity region.</entry>
+> +	      </row>
+> +	      <row><entry></entry></row>
+> +	      <row>
+> +		<entry spanname="id"><constant>V4L2_CID_MPEG_MFC51_VIDEO_FRAME_SKIP_MODE</constant>&nbsp;</entry>
+> +		<entry>enum&nbsp;v4l2_mpeg_mfc51_frame_skip_mode</entry>
+> +	      </row>
+> +	      <row><entry spanname="descr">
+> +Possible values are:</entry>
+> +	      </row>
+> +	      <row>
+> +		<entrytbl spanname="descr" cols="2">
+> +		  <tbody valign="top">
+> +		    <row>
+> +		      <entry><constant>V4L2_MPEG_MFC51_FRAME_SKIP_MODE_DISABLED</constant>&nbsp;</entry>
+> +		      <entry>Frame skip mode is disabled.</entry>
+> +		    </row>
+> +		    <row>
+> +		      <entry><constant>V4L2_MPEG_MFC51_FRAME_SKIP_MODE_LEVEL_LIMIT</constant>&nbsp;</entry>
+> +		      <entry>Frame skip mode enabled and buffer limit is set by the chosen level.</entry>
+> +		    </row>
+> +		    <row>
+> +		      <entry><constant>V4L2_MPEG_MFC51_FRAME_SKIP_MODE_VBV_LIMIT</constant>&nbsp;</entry>
+> +		      <entry>Frame skip mode enabled and buffer limit is set by the VBV buffer size control.</entry>
+> +		    </row>
+> +		  </tbody>
+> +		</entrytbl>
+> +	      </row>
+> +	      <row><entry></entry></row>
+> +	      <row>
+> +		<entry spanname="id"><constant>V4L2_CID_MPEG_MFC51_VIDEO_RC_FIXED_TARGET_BIT</constant>&nbsp;</entry>
+> +		<entry>integer</entry>
+> +	      </row><row><entry spanname="descr"></entry>
+
+How about below description?
+' Enable rate-control with fixed target bit. If enabled encoder targets bitrate in GOP, else try to meet average bitrate.'
+
+> +	      </row>
+> +	      <row><entry></entry></row>
+> +	      <row>
+> +		<entry spanname="id"><constant>V4L2_CID_MPEG_MFC51_VIDEO_MPEG4_VOP_TIME_RES</constant>&nbsp;</entry>
+> +		<entry>integer</entry>
+> +	      </row><row><entry spanname="descr">Used to compute vop_time_increment and modulo_time_base in
+> MPEG4.</entry>
+> +	      </row>
+> +	      <row><entry></entry></row>
+> +	      <row>
+> +		<entry
+> spanname="id"><constant>V4L2_CID_MPEG_MFC51_VIDEO_MPEG4_VOP_FRAME_DELTA</constant>&nbsp;</entry>
+> +		<entry>integer</entry>
+> +	      </row><row><entry spanname="descr">Used to compute vop_time_increment and modulo_time_base in
+> MPEG4.</entry>
+> +	      </row>
+> +	      <row><entry></entry></row>
+> +	      <row>
+> +		<entry spanname="id"><constant>V4L2_CID_MPEG_MFC51_VIDEO_FORCE_FRAME_TYPE</constant>&nbsp;</entry>
+> +		<entry>enum&nbsp;v4l2_mpeg_mfc51_force_frame_type</entry>
+> +	      </row>
+> +	      <row><entry spanname="descr">Force a frame type for the next queued buffer.
+> +Possible values are:</entry>
+> +	      </row>
+> +	      <row>
+> +		<entrytbl spanname="descr" cols="2">
+> +		  <tbody valign="top">
+> +		    <row>
+> +		      <entry><constant>V4L2_MPEG_MFC51_FORCE_FRAME_TYPE_DISABLED</constant>&nbsp;</entry>
+> +		      <entry>Forcing a specific frame type disabled.</entry>
+> +		    </row>
+> +		    <row>
+> +		      <entry><constant>V4L2_MPEG_MFC51_FORCE_FRAME_TYPE_I_FRAME</constant>&nbsp;</entry>
+> +		      <entry>Force an I-frame.</entry>
+> +		    </row>
+> +		    <row>
+> +		      <entry><constant>V4L2_MPEG_MFC51_FORCE_FRAME_TYPE_NOT_CODED</constant>&nbsp;</entry>
+> +		      <entry>Force a non-coded frame.</entry>
+> +		    </row>
+> +		  </tbody>
+> +		</entrytbl>
+> +	      </row>
+> +	      <row><entry></entry></row>
+> +	      <row>
+> +		<entry spanname="id"><constant>V4L2_CID_MPEG_MFC51_VIDEO_FRAME_TAG</constant>&nbsp;</entry>
+> +		<entry>integer</entry>
+> +	      </row><row><entry spanname="descr">Frame tag is assigned to an input buffer passed to hardware, and
+> +the same frame tag is then assigned to the buffer that contains the
+> +result of processing that frame.
+> +	      </entry>
+> +	      </row>
+>  	    </tbody>
+>  	  </tgroup>
+>  	</table>
+> diff --git a/include/linux/videodev2.h b/include/linux/videodev2.h
+> index 6168da0..5ec2aba 100644
+> --- a/include/linux/videodev2.h
+> +++ b/include/linux/videodev2.h
+> @@ -1157,6 +1157,10 @@ enum v4l2_colorfx {
+>  /* last CID + 1 */
+>  #define V4L2_CID_LASTP1                         (V4L2_CID_BASE+39)
+> 
+> +/* Minimum number of buffer neede by the device */
+> +#define V4L2_CID_MIN_BUFFERS_FOR_CAPTURE	(V4L2_CID_BASE+40)
+> +#define V4L2_CID_MIN_BUFFERS_FOR_OUTPUT		(V4L2_CID_BASE+41)
+> +
+>  /*  MPEG-class control IDs defined by V4L2 */
+>  #define V4L2_CID_MPEG_BASE 			(V4L2_CTRL_CLASS_MPEG | 0x900)
+>  #define V4L2_CID_MPEG_CLASS 			(V4L2_CTRL_CLASS_MPEG | 1)
+> @@ -1328,6 +1332,118 @@ enum v4l2_mpeg_video_bitrate_mode {
+>  #define V4L2_CID_MPEG_VIDEO_MUTE 		(V4L2_CID_MPEG_BASE+210)
+>  #define V4L2_CID_MPEG_VIDEO_MUTE_YUV 		(V4L2_CID_MPEG_BASE+211)
+> 
+> +#define V4L2_CID_MPEG_VIDEO_DECODER_SLICE_INTERFACE	(V4L2_CID_MPEG_BASE+212)
+> +#define V4L2_CID_MPEG_VIDEO_H264_VUI_AR_ENABLE		(V4L2_CID_MPEG_BASE+213)
+> +#define V4L2_CID_MPEG_VIDEO_H264_VUI_AR_IDC		(V4L2_CID_MPEG_BASE+214)
+> +#define V4L2_CID_MPEG_VIDEO_H264_EXT_SAR_WIDTH		(V4L2_CID_MPEG_BASE+215)
+> +#define V4L2_CID_MPEG_VIDEO_H264_EXT_SAR_HEIGHT		(V4L2_CID_MPEG_BASE+216)
+> +#define V4L2_CID_MPEG_VIDEO_H264_LEVEL			(V4L2_CID_MPEG_BASE+217)
+> +enum v4l2_mpeg_video_h264_level {
+> +	V4L2_MPEG_VIDEO_H264_LEVEL_1_0	= 0,
+> +	V4L2_MPEG_VIDEO_H264_LEVEL_1B	= 1,
+> +	V4L2_MPEG_VIDEO_H264_LEVEL_1_1	= 2,
+> +	V4L2_MPEG_VIDEO_H264_LEVEL_1_2	= 3,
+> +	V4L2_MPEG_VIDEO_H264_LEVEL_1_3	= 4,
+> +	V4L2_MPEG_VIDEO_H264_LEVEL_2_0	= 5,
+> +	V4L2_MPEG_VIDEO_H264_LEVEL_2_1	= 6,
+> +	V4L2_MPEG_VIDEO_H264_LEVEL_2_2	= 7,
+> +	V4L2_MPEG_VIDEO_H264_LEVEL_3_0	= 8,
+> +	V4L2_MPEG_VIDEO_H264_LEVEL_3_1	= 9,
+> +	V4L2_MPEG_VIDEO_H264_LEVEL_3_2	= 10,
+> +	V4L2_MPEG_VIDEO_H264_LEVEL_4_0	= 11,
+> +	V4L2_MPEG_VIDEO_H264_LEVEL_4_1	= 12,
+> +	V4L2_MPEG_VIDEO_H264_LEVEL_4_2	= 13,
+> +	V4L2_MPEG_VIDEO_H264_LEVEL_5_0	= 14,
+> +	V4L2_MPEG_VIDEO_H264_LEVEL_5_1	= 15,
+> +};
+> +#define V4L2_CID_MPEG_VIDEO_MPEG4_LEVEL		(V4L2_CID_MPEG_BASE+218)
+> +enum v4l2_mpeg_video_mpeg4_level {
+> +	V4L2_MPEG_VIDEO_MPEG4_LEVEL_0	= 0,
+> +	V4L2_MPEG_VIDEO_MPEG4_LEVEL_0B	= 1,
+> +	V4L2_MPEG_VIDEO_MPEG4_LEVEL_1	= 2,
+> +	V4L2_MPEG_VIDEO_MPEG4_LEVEL_2	= 3,
+> +	V4L2_MPEG_VIDEO_MPEG4_LEVEL_3	= 4,
+> +	V4L2_MPEG_VIDEO_MPEG4_LEVEL_3B	= 5,
+> +	V4L2_MPEG_VIDEO_MPEG4_LEVEL_4	= 6,
+> +	V4L2_MPEG_VIDEO_MPEG4_LEVEL_5	= 7,
+> +};
+> +#define V4L2_CID_MPEG_VIDEO_H264_PROFILE	(V4L2_CID_MPEG_BASE+219)
+> +enum v4l2_mpeg_video_h264_profile {
+> +	V4L2_MPEG_VIDEO_H264_PROFILE_BASELINE			= 0,
+> +	V4L2_MPEG_VIDEO_H264_PROFILE_CONSTRAINED_BASELINE	= 1,
+> +	V4L2_MPEG_VIDEO_H264_PROFILE_MAIN			= 2,
+> +	V4L2_MPEG_VIDEO_H264_PROFILE_EXTENDED			= 3,
+> +	V4L2_MPEG_VIDEO_H264_PROFILE_HIGH			= 4,
+> +	V4L2_MPEG_VIDEO_H264_PROFILE_HIGH_10			= 5,
+> +	V4L2_MPEG_VIDEO_H264_PROFILE_HIGH_422			= 6,
+> +	V4L2_MPEG_VIDEO_H264_PROFILE_HIGH_444_PREDICTIVE	= 7,
+> +	V4L2_MPEG_VIDEO_H264_PROFILE_HIGH_10_INTRA		= 8,
+> +	V4L2_MPEG_VIDEO_H264_PROFILE_HIGH_422_INTRA		= 9,
+> +	V4L2_MPEG_VIDEO_H264_PROFILE_HIGH_444_INTRA		= 10,
+> +	V4L2_MPEG_VIDEO_H264_PROFILE_CAVLC_444_INTRA		= 11,
+> +};
+
+How about include SVC, MVC extension profiles?
+
+> +#define V4L2_CID_MPEG_VIDEO_MPEG4_PROFILE	(V4L2_CID_MPEG_BASE+220)
+> +enum v4l2_mpeg_video_mpeg4_profile {
+> +	V4L2_MPEG_VIDEO_MPEG4_PROFILE_SIMPLE				= 0,
+> +	V4L2_MPEG_VIDEO_MPEG4_PROFILE_ADVANCED_SIMPLE			= 1,
+> +	V4L2_MPEG_VIDEO_MPEG4_PROFILE_CORE				= 2,
+> +	V4L2_MPEG_VIDEO_MPEG4_PROFILE_SIMPLE_SCALABLE			= 3,
+> +	V4L2_MPEG_VIDEO_MPEG4_PROFILE_ADVANCED_CODING_EFFICIENCY	= 4,
+> +};
+> +#define V4L2_CID_MPEG_VIDEO_MAX_REF_PIC		(V4L2_CID_MPEG_BASE+223)
+> +#define V4L2_CID_MPEG_VIDEO_MULTI_SLICE_MODE	(V4L2_CID_MPEG_BASE+224)
+> +enum v4l2_mpeg_video_multi_slice_mode {
+> +	V4L2_MPEG_VIDEO_MULTI_SLICE_MODE_SINGLE		= 0,
+> +	V4L2_MPEG_VIDEO_MULTI_SICE_MODE_MAX_MB		= 1,
+> +	V4L2_MPEG_VIDEO_MULTI_SICE_MODE_MAX_BITS	= 2,
+> +};
+> +#define V4L2_CID_MPEG_VIDEO_MULTI_SLICE_MAX_MB		(V4L2_CID_MPEG_BASE+225)
+> +#define V4L2_CID_MPEG_VIDEO_MULTI_SLICE_MAX_BITS	(V4L2_CID_MPEG_BASE+226)
+> +#define V4L2_CID_MPEG_VIDEO_H264_LOOP_FILTER_MODE	(V4L2_CID_MPEG_BASE+227)
+> +enum v4l2_mpeg_video_h264_loop_filter_mode {
+> +	V4L2_MPEG_VIDEO_H264_LOOP_FILTER_MODE_ENABLED				= 0,
+> +	V4L2_MPEG_VIDEO_H264_LOOP_FILTER_MODE_DISABLED				= 1,
+> +	V4L2_MPEG_VIDEO_H264_LOOP_FILTER_MODE_DISABLED_AT_SLICE_BOUNDARY	= 2,
+> +};
+> +#define V4L2_CID_MPEG_VIDEO_H264_LOOP_FILTER_ALPHA	(V4L2_CID_MPEG_BASE+228)
+> +#define V4L2_CID_MPEG_VIDEO_H264_LOOP_FILTER_BETA	(V4L2_CID_MPEG_BASE+229)
+> +#define V4L2_CID_MPEG_VIDEO_H264_SYMBOL_MODE		(V4L2_CID_MPEG_BASE+230)
+> +enum v4l2_mpeg_video_h264_symbol_mode {
+> +	V4L2_MPEG_VIDEO_H264_SYMBOL_MODE_CAVLC	= 0,
+> +	V4L2_MPEG_VIDEO_H264_SYMBOL_MODE_CABAC	= 1,
+> +};
+> +
+> +#define V4L2_CID_MPEG_VIDEO_INTERLACE		(V4L2_CID_MPEG_BASE+231)
+
+MFC encoder supports only H.264 the interlace encoding, and
+how about use v4l2_field in struct v4l2_pix_format_mplane with VIDIOC_*_FMT ioctl?
+
+> +#define V4L2_CID_MPEG_VIDEO_H264_8X8_TRANSFORM	(V4L2_CID_MPEG_BASE+232)
+> +#define V4L2_CID_MPEG_VIDEO_INTRA_REFRESH_MB	(V4L2_CID_MPEG_BASE+233)
+> +#define V4L2_CID_MPEG_VIDEO_FRAME_RC_ENABLE	(V4L2_CID_MPEG_BASE+234)
+> +#define V4L2_CID_MPEG_VIDEO_H264_MB_RC_ENABLE	(V4L2_CID_MPEG_BASE+235)
+> +#define V4L2_CID_MPEG_VIDEO_RC_BITRATE		(V4L2_CID_MPEG_BASE+236)
+
+How about use V4L2_CID_MPEG_VIDEO_BITRATE?
+
+> +#define V4L2_CID_MPEG_VIDEO_MPEG4_QPEL		(V4L2_CID_MPEG_BASE+237)
+> +#define V4L2_CID_MPEG_VIDEO_H263_I_FRAME_QP	(V4L2_CID_MPEG_BASE+238)
+> +#define V4L2_CID_MPEG_VIDEO_H263_MIN_QP		(V4L2_CID_MPEG_BASE+239)
+> +#define V4L2_CID_MPEG_VIDEO_H263_MAX_QP		(V4L2_CID_MPEG_BASE+240)
+> +#define V4L2_CID_MPEG_VIDEO_H263_P_FRAME_QP	(V4L2_CID_MPEG_BASE+241)
+> +#define V4L2_CID_MPEG_VIDEO_H263_B_FRAME_QP	(V4L2_CID_MPEG_BASE+242)
+> +#define V4L2_CID_MPEG_VIDEO_H264_I_FRAME_QP	(V4L2_CID_MPEG_BASE+243)
+> +#define V4L2_CID_MPEG_VIDEO_H264_MIN_QP		(V4L2_CID_MPEG_BASE+244)
+> +#define V4L2_CID_MPEG_VIDEO_H264_MAX_QP		(V4L2_CID_MPEG_BASE+245)
+> +#define V4L2_CID_MPEG_VIDEO_H264_P_FRAME_QP	(V4L2_CID_MPEG_BASE+246)
+> +#define V4L2_CID_MPEG_VIDEO_H264_B_FRAME_QP	(V4L2_CID_MPEG_BASE+247)
+> +#define V4L2_CID_MPEG_VIDEO_MPEG4_I_FRAME_QP	(V4L2_CID_MPEG_BASE+248)
+> +#define V4L2_CID_MPEG_VIDEO_MPEG4_MIN_QP	(V4L2_CID_MPEG_BASE+249)
+> +#define V4L2_CID_MPEG_VIDEO_MPEG4_MAX_QP	(V4L2_CID_MPEG_BASE+250)
+> +#define V4L2_CID_MPEG_VIDEO_MPEG4_P_FRAME_QP	(V4L2_CID_MPEG_BASE+251)
+> +#define V4L2_CID_MPEG_VIDEO_MPEG4_B_FRAME_QP	(V4L2_CID_MPEG_BASE+252)
+
+There are only V4L2_CID_MPEG_VIDEO_[I,P,B]_FRAME_QP descriptions in controls.xml.
+
+> +#define V4L2_CID_MPEG_VIDEO_VBV_BUF_SIZE	(V4L2_CID_MPEG_BASE+253)
+> +#define V4L2_CID_MPEG_VIDEO_H264_I_PERIOD	(V4L2_CID_MPEG_BASE+255)
+> +#define V4L2_CID_MPEG_VIDEO_HEADER_MODE		(V4L2_CID_MPEG_BASE+256)
+> +enum v4l2_mpeg_video_header_mode {
+> +	V4L2_MPEG_VIDEO_HEADER_MODE_SEPARATE			= 0,
+> +	V4L2_MPEG_VIDEO_HEADER_MODE_JOINED_WITH_1ST_FRAME	= 1,
+> +
+> +};
+> +
+>  /*  MPEG-class control IDs specific to the CX2341x driver as defined by V4L2 */
+>  #define V4L2_CID_MPEG_CX2341X_BASE 				(V4L2_CTRL_CLASS_MPEG | 0x1000)
+>  #define V4L2_CID_MPEG_CX2341X_VIDEO_SPATIAL_FILTER_MODE 	(V4L2_CID_MPEG_CX2341X_BASE+0)
+> @@ -1369,6 +1485,37 @@ enum v4l2_mpeg_cx2341x_video_median_filter_type {
+>  #define V4L2_CID_MPEG_CX2341X_VIDEO_CHROMA_MEDIAN_FILTER_TOP 	(V4L2_CID_MPEG_CX2341X_BASE+10)
+>  #define V4L2_CID_MPEG_CX2341X_STREAM_INSERT_NAV_PACKETS 	(V4L2_CID_MPEG_CX2341X_BASE+11)
+> 
+> +/*  MPEG-class control IDs specific to the Samsung MFC 5.1 driver as defined by V4L2 */
+> +#define V4L2_CID_MPEG_MFC51_BASE 			(V4L2_CTRL_CLASS_MPEG | 0x1000)
+> +
+> +#define V4L2_CID_MPEG_MFC51_VIDEO_DECODER_MPEG4_DEBLOCK_FILTER		(V4L2_CID_MPEG_MFC51_BASE+0)
+> +#define V4L2_CID_MPEG_MFC51_VIDEO_DECODER_H264_DISPLAY_DELAY		(V4L2_CID_MPEG_MFC51_BASE+1)
+> +#define V4L2_CID_MPEG_MFC51_VIDEO_DECODER_H264_DISPLAY_DELAY_ENABLE	(V4L2_CID_MPEG_MFC51_BASE+2)
+> +#define V4L2_CID_MPEG_MFC51_VIDEO_NUM_REF_PIC_FOR_P			(V4L2_CID_MPEG_MFC51_BASE+3)
+
+Support in H.264 only.
+
+> +#define V4L2_CID_MPEG_MFC51_VIDEO_PADDING				(V4L2_CID_MPEG_MFC51_BASE+4)
+> +#define V4L2_CID_MPEG_MFC51_VIDEO_PADDING_YUV				(V4L2_CID_MPEG_MFC51_BASE+5)
+> +#define V4L2_CID_MPEG_MFC51_VIDEO_RC_REACTION_COEFF			(V4L2_CID_MPEG_MFC51_BASE+8)
+> +#define V4L2_CID_MPEG_MFC51_VIDEO_H264_ADAPTIVE_RC_DARK			(V4L2_CID_MPEG_MFC51_BASE+9)
+> +#define V4L2_CID_MPEG_MFC51_VIDEO_H264_ADAPTIVE_RC_SMOOTH		(V4L2_CID_MPEG_MFC51_BASE+10)
+> +#define V4L2_CID_MPEG_MFC51_VIDEO_H264_ADAPTIVE_RC_STATIC		(V4L2_CID_MPEG_MFC51_BASE+11)
+> +#define V4L2_CID_MPEG_MFC51_VIDEO_H264_ADAPTIVE_RC_ACTIVITY		(V4L2_CID_MPEG_MFC51_BASE+12)
+> +#define V4L2_CID_MPEG_MFC51_VIDEO_FRAME_SKIP_MODE			(V4L2_CID_MPEG_MFC51_BASE+13)
+> +enum v4l2_mpeg_mfc51_video_frame_skip_mode {
+> +	V4L2_MPEG_MFC51_VIDEO_FRAME_SKIP_MODE_DISABLED		= 0,
+> +	V4L2_MPEG_MFC51_VIDEO_FRAME_SKIP_MODE_LEVEL_LIMIT	= 1,
+> +	V4L2_MPEG_MFC51_VIDEO_FRAME_SKIP_MODE_VBV_LIMIT		= 2,
+> +};
+> +#define V4L2_CID_MPEG_MFC51_VIDEO_RC_FIXED_TARGET_BIT	(V4L2_CID_MPEG_MFC51_BASE+14)
+> +#define V4L2_CID_MPEG_MFC51_VIDEO_MPEG4_VOP_TIME_RES	(V4L2_CID_MPEG_MFC51_BASE+15)
+> +#define V4L2_CID_MPEG_MFC51_VIDEO_MPEG4_VOP_FRAME_DELTA	(V4L2_CID_MPEG_MFC51_BASE+16)
+> +#define V4L2_CID_MPEG_MFC51_VIDEO_FORCE_FRAME_TYPE	(V4L2_CID_MPEG_MFC51_BASE+17)
+> +enum v4l2_mpeg_mfc51_video_force_frame_type {
+> +	V4L2_MPEG_MFC51_VIDEO_FORCE_FRAME_TYPE_DISABLED		= 0,
+> +	V4L2_MPEG_MFC51_VIDEO_FORCE_FRAME_TYPE_I_FRAME		= 1,
+> +	V4L2_MPEG_MFC51_VIDEO_FORCE_FRAME_TYPE_NOT_CODED	= 2,
+> +};
+> +#define V4L2_CID_MPEG_MFC51_VIDEO_FRAME_TAG	(V4L2_CID_MPEG_MFC51_BASE+18)
+> +
+
+I remember that you try to add extra frame type(SKIPPED or NOT_CODED) to V4L2_BUF_FLAG_*.
+How is it going?
+
+>  /*  Camera class control IDs */
+>  #define V4L2_CID_CAMERA_CLASS_BASE 	(V4L2_CTRL_CLASS_CAMERA | 0x900)
+>  #define V4L2_CID_CAMERA_CLASS 		(V4L2_CTRL_CLASS_CAMERA | 1)
+
+
+
+> --
+> 1.6.3.3
+
+Thanks
+Best Regards,
+
+/jtpark
+
