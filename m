@@ -1,51 +1,74 @@
 Return-path: <mchehab@pedra>
-Received: from smtp-vbr6.xs4all.nl ([194.109.24.26]:2175 "EHLO
-	smtp-vbr6.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753013Ab1FNPWv (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 14 Jun 2011 11:22:51 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: laurent.pinchart@ideasonboard.com, sakari.ailus@iki.fi
-Subject: [RFCv1 PATCH 0/8] Allocate events per-event-type, v4l2-ctrls cleanup
-Date: Tue, 14 Jun 2011 17:22:25 +0200
-Message-Id: <1308064953-11156-1-git-send-email-hverkuil@xs4all.nl>
+Received: from mail-ew0-f46.google.com ([209.85.215.46]:37442 "EHLO
+	mail-ew0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932591Ab1FBKwo (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 2 Jun 2011 06:52:44 -0400
+Received: by ewy4 with SMTP id 4so232012ewy.19
+        for <linux-media@vger.kernel.org>; Thu, 02 Jun 2011 03:52:42 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <20110531174323.0f0c45c0@glory.local>
+References: <4D764337.6050109@email.cz>
+	<20110531124843.377a2a80@glory.local>
+	<BANLkTi=Lq+FF++yGhRmOa4NCigSt6ZurHg@mail.gmail.com>
+	<20110531174323.0f0c45c0@glory.local>
+Date: Thu, 2 Jun 2011 06:52:41 -0400
+Message-ID: <BANLkTimEEGsMP6PDXf5W5p9wW7wdWEEOiA@mail.gmail.com>
+Subject: Re: [linux-dvb] XC4000 patches for kernel 2.6.37.2
+From: Devin Heitmueller <dheitmueller@kernellabs.com>
+To: Dmitri Belimov <d.belimov@gmail.com>
+Cc: linux-media@vger.kernel.org, thunder.m@email.cz,
+	"istvan_v@mailbox.hu" <istvan_v@mailbox.hu>, linux-dvb@linuxtv.org
+Content-Type: text/plain; charset=ISO-8859-1
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-This patch series consists of two parts: the first four patches change the
-way events are allocated and what to do when the event queue is full.
+2011/5/31 Dmitri Belimov <d.belimov@gmail.com>:
+> Is it possible make some patches and add support xc4000 into kernel?
+>
+> With my best regards, Dmitry.
 
-These first four patches are the most important ones to review. The big
-change is that event allocation now happens when subscribing an event.
-So you not only specify which event you want to subscribe to for a particular
-filehandle, but also how many events should be reserved for that event type.
-Currently the driver specifies the number of events to allocate, but later
-this can be something that the application might want to set manually.
+What needs to happen here is somebody needs to prepare a patch series
+which contains all the relevant patches, including the SOBs.  This is
+entirely an janitorial task which can be done by anyone and frankly I
+don't have time for this sort of crap anymore.
 
-This ensures that for each event type you will never entirely miss all events
-of a particular type. Currently this is a real possibility.
+Any volunteers?
 
-The other change is that instead of dropping the new event if there is no more
-space available, the oldest event is dropped. This ensures that you get at
-least the latest state. And optionally a merge function can be provided that
-merges information of two events into one. This allows the control event to
-require just one event: if a new event is raised, then the new and old one
-can be merged and all state is preserved. Only the intermediate steps are
-no longer available. This makes for very good behavior of events and is IMHO
-a requirement for using the control event in a real production environment.
+All my patches have my SOB attached.  I explicitly got Davide's
+permission to add his SOB to his original patch, but it's not in the
+HG tree since I got the permission after I committed his change to my
+repo.  I can forward the email with his SOB so the person constructing
+the tree can add it on (as well as my SOB to preserve the chain of
+custody).
 
-The second four patches reorganize the way extended controls are processed
-in the control framework. This is the first step towards allowing control
-changes from within interrupt handlers. The main purpose is to move as much
-code as possible out of the critical sections. This reduces the size of
-those sections, making it easier to eventually switch to spinlocks for
-certain kinds of controls.
+Secondly, we need to build a firmware image which is based off of the
+*actual* xceive firmware sources, so that we can be confident that all
+the blobs are from the same firmware revision and so that we can
+maintain them going forward.  I can provide them off-list to someone
+willing to do this work and testing.  Istann_v's firmware image is
+based off of i2c dumps and extracted by hand from disassembled
+firmware, which is less than ideal from an ongoing maintenance
+perspective.
 
-It's lots of internal churn, so it's probably not easy to review. There are
-no real functional changes, however.
+And of course it's worth mentioning that the driver itself still needs
+a ton of cleanup, doesn't meet the coding standards, and wouldn't be
+accepted upstream in its current state.  Somebody will need to do the
+work to clean up the driver, as well as testing to make sure he/she
+didn't cause any regressions.
 
-Regards,
+In summary, here are the four things that need to happen:
 
-	Hans
+1.  Assemble tree with current patches
+2.  Construct valid firmware image off of current sources
+3.  Cleanup/coding style
+4.  Testing
 
+Now that we've got a bunch of people who are interested in seeing this
+upstream, who is going to volunteer to do which items in the above
+list?
+
+Devin
+
+-- 
+Devin J. Heitmueller - Kernel Labs
+http://www.kernellabs.com
