@@ -1,564 +1,287 @@
 Return-path: <mchehab@pedra>
-Received: from mail-qw0-f46.google.com ([209.85.216.46]:53755 "EHLO
-	mail-qw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754439Ab1FTUzk convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 20 Jun 2011 16:55:40 -0400
-Received: by qwk3 with SMTP id 3so981405qwk.19
-        for <linux-media@vger.kernel.org>; Mon, 20 Jun 2011 13:55:39 -0700 (PDT)
+Received: from moutng.kundenserver.de ([212.227.17.8]:60212 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758489Ab1FBIGl (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 2 Jun 2011 04:06:41 -0400
+Date: Thu, 2 Jun 2011 10:06:39 +0200 (CEST)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Javier Martin <javier.martin@vista-silicon.com>
+cc: linux-media@vger.kernel.org, laurent.pinchart@ideasonboard.com,
+	carlighting@yahoo.co.nz, beagleboard@googlegroups.com,
+	mch_kot@yahoo.com.cn
+Subject: Re: [PATCH v6 2/2] Add support for mt9p031 sensor in Beagleboard
+ XM.
+In-Reply-To: <1306942609-2440-2-git-send-email-javier.martin@vista-silicon.com>
+Message-ID: <Pine.LNX.4.64.1106020958090.4067@axis700.grange>
+References: <1306942609-2440-1-git-send-email-javier.martin@vista-silicon.com>
+ <1306942609-2440-2-git-send-email-javier.martin@vista-silicon.com>
 MIME-Version: 1.0
-In-Reply-To: <BANLkTik=37qHUx273bSRN91HeyYrtUv6og@mail.gmail.com>
-References: <BANLkTimkYw70GAu1keW-N6ND=AyiRn2+CA@mail.gmail.com>
-	<4DF49E2A.9030804@iki.fi>
-	<BANLkTi=dGyN8SEwwAStD0Ob99k+FKkQPFg@mail.gmail.com>
-	<BANLkTik=37qHUx273bSRN91HeyYrtUv6og@mail.gmail.com>
-Date: Mon, 20 Jun 2011 22:55:38 +0200
-Message-ID: <BANLkTi=gdVhVKjF4tqUwy+DxFv9imUipHw@mail.gmail.com>
-Subject: Re: PCTV nanoStick T2 290e (Sony CXD2820R DVB-T/T2/C) - DVB-C channel
- scan in mythtv - missing
-From: Rune Evjen <rune.evjen@gmail.com>
-To: linux-media@vger.kernel.org
-Cc: Antti Palosaari <crope@iki.fi>,
-	Markus Rechberger <mrechberger@gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-2011/6/20 Markus Rechberger <mrechberger@gmail.com>:
-> On Mon, Jun 20, 2011 at 9:29 PM, Rune Evjen <rune.evjen@gmail.com> wrote:
->> 2011/6/12 Antti Palosaari <crope@iki.fi>:
->>> On 06/12/2011 11:23 AM, Rune Evjen wrote:
->>>>
->>>> I just tested a PCTV 290e device using the latest media_build drivers
->>>> in MythTV as a DVB-C device, and ran into some problems.
->>>>
->>>> The adapter is recognized by the em28xx-dvb driver [1] and dmesg
->>>> output seems to be correct [2]. I can successfully scan for channels
->>>> using the scan utility in dvb-apps but when I try to scan for channels
->>>> in mythtv I get the following errors logged by mythtv-setup:
->>>>
->>>> 2011-06-12 00:57:20.971556  PIDInfo(/dev/dvb/adapter0/
->>>> frontend1): Failed to open demux device /dev/dvb/adapter0/demux1 for
->>>> filter on pid 0x0
->>>>
->>>> The demux1 does not exist, I only have the following nodes under
->>>> /dev/dvb/adapter0:
->>>>
->>>> demux0  dvr0  frontend0  frontend1  net0
->>>>
->>>> When searching the linx-media I came across this thread:
->>>> http://www.mail-archive.com/linux-media@vger.kernel.org/msg31839.html
->>>>
->>>> Is there any way to circumvent with the current driver that there is
->>>> no corresponding demux1 for frontend1?
->>>> Or can the DVB-T/T2 part be disabled somehow so that there is only one
->>>> DVB-C frontend registered which corresponds to the demux0?
->>>
->>> There is no way to say driver to create demux1 for frontend1.
->>>
->>> After all it is not 100% clear even for me if that's correct or not, but
->>> most likely it is correct as far as I understood.
->>>
->> Thank you for your response, Antti.
->> Your help is much appreciated.
->>
->> I have tested the 290e as a DVB-C adapter with some success, to use it
->> I created a new adapter directory under /dev/dvb, and symlinked the
->> following:
->> ln -s /dev/dvb/adapter0/frontend1 /dev/dvb/adapter1/frontend0
->> ln -s /dev/dvb/adapter0/demux0 /dev/dvb/adapter1/demux0
->> ln -s /dev/dvb/adapter0/dvr0 /dev/dvb/adapter1/dvr0
->>
->> When testing I can scan using the scan utility and mythtv, and receive
->> QAM-64 channels.
->> QAM-256 channels have distorted audio and video.
->>
->> I tried to investigate the QAM-256 problem using the debug option on
->> cxd2820r, but when this option is enabled I get no lock using mythtv
->> or the scan utility.
->>
->> This also happened intermittently without the debug option, and when I
->> get the "no lock" status, the only way to solve this is to shutdown
->> and start the computer (i.e not rebooting) to make sure the 290e gets
->> a power cycle (and it seems that the debug option also has to be off,
->> at least this is my experience after 3-4 power cycles with and without
->> this option).
->>
->> I have attached the syslog output with failed locks [1] generated by
->> the debug option in case this may help with the driver development.
->>
->> Best regards,
->>
->> Rune
->>
->> [1]: syslog output when performing a scan using the scan utility:
->> Jun 20 21:04:21 server kernel: [  711.180370] cxd2820r:
->> cxd2820r_set_frontend_c: RF=450000000 SR=6950000
->> Jun 20 21:04:21 server kernel: [  711.180375] cxd2820r: cxd2820r_gpio: delsys=1
->> Jun 20 21:04:22 server kernel: [  711.380429] cxd2820r:
->> cxd2820r_read_status: delsys=1
->> Jun 20 21:04:22 server kernel: [  711.380436] cxd2820r: cxd2820r_lock:
->> active_fe=1
->> Jun 20 21:04:22 server kernel: [  711.381308] cxd2820r:
->> cxd2820r_read_status_c: lock=05 52
->> Jun 20 21:04:22 server kernel: [  711.581398] cxd2820r:
->> cxd2820r_read_status: delsys=1
->> Jun 20 21:04:22 server kernel: [  711.581403] cxd2820r: cxd2820r_lock:
->> active_fe=1
->> Jun 20 21:04:22 server kernel: [  711.582206] cxd2820r:
->> cxd2820r_read_status_c: lock=05 52
->> Jun 20 21:04:22 server kernel: [  711.731275] cxd2820r:
->> cxd2820r_read_status: delsys=1
->> Jun 20 21:04:22 server kernel: [  711.731281] cxd2820r: cxd2820r_lock:
->> active_fe=1
->> Jun 20 21:04:22 server kernel: [  711.732101] cxd2820r:
->> cxd2820r_read_status_c: lock=05 52
->> Jun 20 21:04:22 server kernel: [  711.732108] cxd2820r:
->> cxd2820r_set_frontend: delsys=1
->> Jun 20 21:04:22 server kernel: [  711.732112] cxd2820r: cxd2820r_lock:
->> active_fe=1
->> Jun 20 21:04:22 server kernel: [  711.732118] cxd2820r:
->> cxd2820r_set_frontend_c: RF=450000000 SR=6950000
->> Jun 20 21:04:22 server kernel: [  711.732123] cxd2820r: cxd2820r_gpio: delsys=1
->> Jun 20 21:04:22 server kernel: [  711.792010] cxd2820r:
->> cxd2820r_read_status: delsys=1
->> Jun 20 21:04:22 server kernel: [  711.792017] cxd2820r: cxd2820r_lock:
->> active_fe=1
->> Jun 20 21:04:22 server kernel: [  711.792863] cxd2820r:
->> cxd2820r_read_status_c: lock=04 52
->> Jun 20 21:04:22 server kernel: [  711.992944] cxd2820r:
->> cxd2820r_read_status: delsys=1
->> Jun 20 21:04:22 server kernel: [  711.992949] cxd2820r: cxd2820r_lock:
->> active_fe=1
->> Jun 20 21:04:22 server kernel: [  711.993769] cxd2820r:
->> cxd2820r_read_status_c: lock=05 52
->> Jun 20 21:04:22 server kernel: [  712.194200] cxd2820r:
->> cxd2820r_read_status: delsys=1
->> Jun 20 21:04:22 server kernel: [  712.194207] cxd2820r: cxd2820r_lock:
->> active_fe=1
->> Jun 20 21:04:22 server kernel: [  712.195052] cxd2820r:
->> cxd2820r_read_status_c: lock=05 52
->> Jun 20 21:04:23 server kernel: [  712.291281] cxd2820r:
->> cxd2820r_read_status: delsys=1
->> Jun 20 21:04:23 server kernel: [  712.291285] cxd2820r: cxd2820r_lock:
->> active_fe=1
->> Jun 20 21:04:23 server kernel: [  712.292073] cxd2820r:
->> cxd2820r_read_status_c: lock=05 52
->> Jun 20 21:04:23 server kernel: [  712.292079] cxd2820r:
->> cxd2820r_set_frontend: delsys=1
->> Jun 20 21:04:23 server kernel: [  712.292083] cxd2820r: cxd2820r_lock:
->> active_fe=1
->> Jun 20 21:04:23 server kernel: [  712.292088] cxd2820r:
->> cxd2820r_set_frontend_c: RF=450000000 SR=6950000
->> Jun 20 21:04:23 server kernel: [  712.292093] cxd2820r: cxd2820r_gpio: delsys=1
->> Jun 20 21:04:23 server kernel: [  712.395130] cxd2820r:
->> cxd2820r_read_status: delsys=1
->> Jun 20 21:04:23 server kernel: [  712.395135] cxd2820r: cxd2820r_lock:
->> active_fe=1
->> Jun 20 21:04:23 server kernel: [  712.395960] cxd2820r:
->> cxd2820r_read_status_c: lock=05 52
->> Jun 20 21:04:23 server kernel: [  712.596040] cxd2820r:
->> cxd2820r_read_status: delsys=1
->> Jun 20 21:04:23 server kernel: [  712.596044] cxd2820r: cxd2820r_lock:
->> active_fe=1
->> Jun 20 21:04:23 server kernel: [  712.596867] cxd2820r:
->> cxd2820r_read_status_c: lock=05 52
->> Jun 20 21:04:23 server kernel: [  712.796947] cxd2820r:
->> cxd2820r_read_status: delsys=1
->> Jun 20 21:04:23 server kernel: [  712.796951] cxd2820r: cxd2820r_lock:
->> active_fe=1
->> Jun 20 21:04:23 server kernel: [  712.797775] cxd2820r:
->> cxd2820r_read_status_c: lock=05 52
->> Jun 20 21:04:23 server kernel: [  712.851274] cxd2820r:
->> cxd2820r_read_status: delsys=1
->> Jun 20 21:04:23 server kernel: [  712.851279] cxd2820r: cxd2820r_lock:
->> active_fe=1
->> Jun 20 21:04:23 server kernel: [  712.852033] cxd2820r:
->> cxd2820r_read_status_c: lock=05 52
->> Jun 20 21:04:23 server kernel: [  712.852038] cxd2820r:
->> cxd2820r_set_frontend: delsys=1
->> Jun 20 21:04:23 server kernel: [  712.852042] cxd2820r: cxd2820r_lock:
->> active_fe=1
->> Jun 20 21:04:23 server kernel: [  712.852047] cxd2820r:
->> cxd2820r_set_frontend_c: RF=450000000 SR=6950000
->> Jun 20 21:04:23 server kernel: [  712.852051] cxd2820r: cxd2820r_gpio: delsys=1
->> Jun 20 21:04:23 server kernel: [  712.997852] cxd2820r:
->> cxd2820r_read_status: delsys=1
->> Jun 20 21:04:23 server kernel: [  712.997857] cxd2820r: cxd2820r_lock:
->> active_fe=1
->> Jun 20 21:04:23 server kernel: [  712.998683] cxd2820r:
->> cxd2820r_read_status_c: lock=05 52
->> Jun 20 21:04:23 server kernel: [  713.198774] cxd2820r:
->> cxd2820r_read_status: delsys=1
->> Jun 20 21:04:23 server kernel: [  713.198782] cxd2820r: cxd2820r_lock:
->> active_fe=1
->> Jun 20 21:04:23 server kernel: [  713.199591] cxd2820r:
->> cxd2820r_read_status_c: lock=05 52
->> Jun 20 21:04:23 server kernel: [  713.199668] cxd2820r:
->> cxd2820r_get_tune_settings: delsys=1
->> Jun 20 21:04:23 server kernel: [  713.199673] cxd2820r: cxd2820r_lock:
->> active_fe=1
->> Jun 20 21:04:23 server kernel: [  713.199700] cxd2820r:
->> cxd2820r_set_frontend: delsys=1
->> Jun 20 21:04:23 server kernel: [  713.199708] cxd2820r: cxd2820r_lock:
->> active_fe=1
->> Jun 20 21:04:23 server kernel: [  713.199713] cxd2820r:
->> cxd2820r_set_frontend_c: RF=450000000 SR=6950000
->> Jun 20 21:04:23 server kernel: [  713.199719] cxd2820r: cxd2820r_gpio: delsys=1
->> Jun 20 21:04:24 server kernel: [  713.399764] cxd2820r:
->> cxd2820r_read_status: delsys=1
->> Jun 20 21:04:24 server kernel: [  713.399770] cxd2820r: cxd2820r_lock:
->> active_fe=1
->> Jun 20 21:04:24 server kernel: [  713.400623] cxd2820r:
->> cxd2820r_read_status_c: lock=05 52
->> Jun 20 21:04:24 server kernel: [  713.600699] cxd2820r:
->> cxd2820r_read_status: delsys=1
->> Jun 20 21:04:24 server kernel: [  713.600703] cxd2820r: cxd2820r_lock:
->> active_fe=1
->> Jun 20 21:04:24 server kernel: [  713.601556] cxd2820r:
->> cxd2820r_read_status_c: lock=05 52
->> Jun 20 21:04:24 server kernel: [  713.750028] cxd2820r:
->> cxd2820r_read_status: delsys=1
->> Jun 20 21:04:24 server kernel: [  713.750033] cxd2820r: cxd2820r_lock:
->> active_fe=1
->> Jun 20 21:04:24 server kernel: [  713.750803] cxd2820r:
->> cxd2820r_read_status_c: lock=05 52
->> Jun 20 21:04:24 server kernel: [  713.750809] cxd2820r:
->> cxd2820r_set_frontend: delsys=1
->> Jun 20 21:04:24 server kernel: [  713.750813] cxd2820r: cxd2820r_lock:
->> active_fe=1
->> Jun 20 21:04:24 server kernel: [  713.750818] cxd2820r:
->> cxd2820r_set_frontend_c: RF=450000000 SR=6950000
->> Jun 20 21:04:24 server kernel: [  713.750823] cxd2820r: cxd2820r_gpio: delsys=1
->> Jun 20 21:04:24 server kernel: [  713.813083] cxd2820r:
->> cxd2820r_read_status: delsys=1
->> Jun 20 21:04:24 server kernel: [  713.813091] cxd2820r: cxd2820r_lock:
->> active_fe=1
->> Jun 20 21:04:24 server kernel: [  713.813939] cxd2820r:
->> cxd2820r_read_status_c: lock=04 52
->> Jun 20 21:04:24 server kernel: [  714.014015] cxd2820r:
->> cxd2820r_read_status: delsys=1
->> Jun 20 21:04:24 server kernel: [  714.014020] cxd2820r: cxd2820r_lock:
->> active_fe=1
->> Jun 20 21:04:24 server kernel: [  714.014846] cxd2820r:
->> cxd2820r_read_status_c: lock=05 52
->> Jun 20 21:04:25 server kernel: [  714.214938] cxd2820r:
->> cxd2820r_read_status: delsys=1
->> Jun 20 21:04:25 server kernel: [  714.214946] cxd2820r: cxd2820r_lock:
->> active_fe=1
->> Jun 20 21:04:25 server kernel: [  714.215754] cxd2820r:
->> cxd2820r_read_status_c: lock=05 52
->> Jun 20 21:04:25 server kernel: [  714.311277] cxd2820r:
->> cxd2820r_read_status: delsys=1
->> Jun 20 21:04:25 server kernel: [  714.311282] cxd2820r: cxd2820r_lock:
->> active_fe=1
->> Jun 20 21:04:25 server kernel: [  714.312143] cxd2820r:
->> cxd2820r_read_status_c: lock=05 52
->> Jun 20 21:04:25 server kernel: [  714.312149] cxd2820r:
->> cxd2820r_set_frontend: delsys=1
->> Jun 20 21:04:25 server kernel: [  714.312153] cxd2820r: cxd2820r_lock:
->> active_fe=1
->> Jun 20 21:04:25 server kernel: [  714.312159] cxd2820r:
->> cxd2820r_set_frontend_c: RF=450000000 SR=6950000
->> Jun 20 21:04:25 server kernel: [  714.312163] cxd2820r: cxd2820r_gpio: delsys=1
->> Jun 20 21:04:25 server kernel: [  714.415831] cxd2820r:
->> cxd2820r_read_status: delsys=1
->> Jun 20 21:04:25 server kernel: [  714.415836] cxd2820r: cxd2820r_lock:
->> active_fe=1
->> Jun 20 21:04:25 server kernel: [  714.416660] cxd2820r:
->> cxd2820r_read_status_c: lock=05 52
->> Jun 20 21:04:25 server kernel: [  714.616734] cxd2820r:
->> cxd2820r_read_status: delsys=1
->> Jun 20 21:04:25 server kernel: [  714.616739] cxd2820r: cxd2820r_lock:
->> active_fe=1
->> Jun 20 21:04:25 server kernel: [  714.617568] cxd2820r:
->> cxd2820r_read_status_c: lock=05 52
->> Jun 20 21:04:25 server kernel: [  714.817644] cxd2820r:
->> cxd2820r_read_status: delsys=1
->> Jun 20 21:04:25 server kernel: [  714.817649] cxd2820r: cxd2820r_lock:
->> active_fe=1
->> Jun 20 21:04:25 server kernel: [  714.818475] cxd2820r:
->> cxd2820r_read_status_c: lock=05 52
->> Jun 20 21:04:25 server kernel: [  714.870123] cxd2820r:
->> cxd2820r_read_status: delsys=1
->> Jun 20 21:04:25 server kernel: [  714.870128] cxd2820r: cxd2820r_lock:
->> active_fe=1
->> Jun 20 21:04:25 server kernel: [  714.870984] cxd2820r:
->> cxd2820r_read_status_c: lock=05 52
->> Jun 20 21:04:25 server kernel: [  714.870989] cxd2820r:
->> cxd2820r_set_frontend: delsys=1
->> Jun 20 21:04:25 server kernel: [  714.870993] cxd2820r: cxd2820r_lock:
->> active_fe=1
->> Jun 20 21:04:25 server kernel: [  714.870997] cxd2820r:
->> cxd2820r_set_frontend_c: RF=450000000 SR=6950000
->> Jun 20 21:04:25 server kernel: [  714.871002] cxd2820r: cxd2820r_gpio: delsys=1
->> Jun 20 21:04:25 server kernel: [  715.018554] cxd2820r:
->> cxd2820r_read_status: delsys=1
->> Jun 20 21:04:25 server kernel: [  715.018558] cxd2820r: cxd2820r_lock:
->> active_fe=1
->> Jun 20 21:04:25 server kernel: [  715.019383] cxd2820r:
->> cxd2820r_read_status_c: lock=05 52
->> Jun 20 21:04:26 server kernel: [  715.219470] cxd2820r:
->> cxd2820r_read_status: delsys=1
->> Jun 20 21:04:26 server kernel: [  715.219477] cxd2820r: cxd2820r_lock:
->> active_fe=1
->> Jun 20 21:04:26 server kernel: [  715.220291] cxd2820r:
->> cxd2820r_read_status_c: lock=05 52
->> Jun 20 21:04:26 server kernel: [  715.220363] cxd2820r:
->> cxd2820r_get_tune_settings: delsys=1
->> Jun 20 21:04:26 server kernel: [  715.220367] cxd2820r: cxd2820r_lock:
->> active_fe=1
->> Jun 20 21:04:26 server kernel: [  715.220403] cxd2820r:
->> cxd2820r_set_frontend: delsys=1
->> Jun 20 21:04:26 server kernel: [  715.220410] cxd2820r: cxd2820r_lock:
->> active_fe=1
->> Jun 20 21:04:26 server kernel: [  715.220416] cxd2820r:
->> cxd2820r_set_frontend_c: RF=474000000 SR=6950000
->> Jun 20 21:04:26 server kernel: [  715.220421] cxd2820r: cxd2820r_gpio: delsys=1
->> Jun 20 21:04:26 server kernel: [  715.420455] cxd2820r:
->> cxd2820r_read_status: delsys=1
->> Jun 20 21:04:26 server kernel: [  715.420460] cxd2820r: cxd2820r_lock:
->> active_fe=1
->> Jun 20 21:04:26 server kernel: [  715.421330] cxd2820r:
->> cxd2820r_read_status_c: lock=05 52
->> Jun 20 21:04:26 server kernel: [  715.621409] cxd2820r:
->> cxd2820r_read_status: delsys=1
->> Jun 20 21:04:26 server kernel: [  715.621413] cxd2820r: cxd2820r_lock:
->> active_fe=1
->> Jun 20 21:04:26 server kernel: [  715.622230] cxd2820r:
->> cxd2820r_read_status_c: lock=05 52
->> Jun 20 21:04:26 server kernel: [  715.781273] cxd2820r:
->> cxd2820r_read_status: delsys=1
->> Jun 20 21:04:26 server kernel: [  715.781277] cxd2820r: cxd2820r_lock:
->> active_fe=1
->> Jun 20 21:04:26 server kernel: [  715.782131] cxd2820r:
->> cxd2820r_read_status_c: lock=05 52
->> Jun 20 21:04:26 server kernel: [  715.782137] cxd2820r:
->> cxd2820r_set_frontend: delsys=1
->> Jun 20 21:04:26 server kernel: [  715.782141] cxd2820r: cxd2820r_lock:
->> active_fe=1
->> Jun 20 21:04:26 server kernel: [  715.782146] cxd2820r:
->> cxd2820r_set_frontend_c: RF=474000000 SR=6950000
->> Jun 20 21:04:26 server kernel: [  715.782151] cxd2820r: cxd2820r_gpio: delsys=1
->> Jun 20 21:04:26 server kernel: [  715.843040] cxd2820r:
->> cxd2820r_read_status: delsys=1
->> Jun 20 21:04:26 server kernel: [  715.843048] cxd2820r: cxd2820r_lock:
->> active_fe=1
->> Jun 20 21:04:26 server kernel: [  715.843892] cxd2820r:
->> cxd2820r_read_status_c: lock=04 52
->> Jun 20 21:04:26 server kernel: [  716.043968] cxd2820r:
->> cxd2820r_read_status: delsys=1
->> Jun 20 21:04:26 server kernel: [  716.043973] cxd2820r: cxd2820r_lock:
->> active_fe=1
->> Jun 20 21:04:26 server kernel: [  716.044798] cxd2820r:
->> cxd2820r_read_status_c: lock=05 52
->> Jun 20 21:04:27 server kernel: [  716.244887] cxd2820r:
->> cxd2820r_read_status: delsys=1
->> Jun 20 21:04:27 server kernel: [  716.244894] cxd2820r: cxd2820r_lock:
->> active_fe=1
->> Jun 20 21:04:27 server kernel: [  716.245707] cxd2820r:
->> cxd2820r_read_status_c: lock=05 52
->> Jun 20 21:04:27 server kernel: [  716.341278] cxd2820r:
->> cxd2820r_read_status: delsys=1
->> Jun 20 21:04:27 server kernel: [  716.341283] cxd2820r: cxd2820r_lock:
->> active_fe=1
->> Jun 20 21:04:27 server kernel: [  716.342096] cxd2820r:
->> cxd2820r_read_status_c: lock=05 52
->> Jun 20 21:04:27 server kernel: [  716.342102] cxd2820r:
->> cxd2820r_set_frontend: delsys=1
->> Jun 20 21:04:27 server kernel: [  716.342106] cxd2820r: cxd2820r_lock:
->> active_fe=1
->> Jun 20 21:04:27 server kernel: [  716.342111] cxd2820r:
->> cxd2820r_set_frontend_c: RF=474000000 SR=6950000
->> Jun 20 21:04:27 server kernel: [  716.342116] cxd2820r: cxd2820r_gpio: delsys=1
->> Jun 20 21:04:27 server kernel: [  716.445785] cxd2820r:
->> cxd2820r_read_status: delsys=1
->> Jun 20 21:04:27 server kernel: [  716.445790] cxd2820r: cxd2820r_lock:
->> active_fe=1
->> Jun 20 21:04:27 server kernel: [  716.446613] cxd2820r:
->> cxd2820r_read_status_c: lock=05 52
->> Jun 20 21:04:27 server kernel: [  716.646688] cxd2820r:
->> cxd2820r_read_status: delsys=1
->> Jun 20 21:04:27 server kernel: [  716.646693] cxd2820r: cxd2820r_lock:
->> active_fe=1
->> Jun 20 21:04:27 server kernel: [  716.647521] cxd2820r:
->> cxd2820r_read_status_c: lock=05 52
->> Jun 20 21:04:27 server kernel: [  716.847594] cxd2820r:
->> cxd2820r_read_status: delsys=1
->> Jun 20 21:04:27 server kernel: [  716.847599] cxd2820r: cxd2820r_lock:
->> active_fe=1
->> Jun 20 21:04:27 server kernel: [  716.848428] cxd2820r:
->> cxd2820r_read_status_c: lock=05 52
->> Jun 20 21:04:27 server kernel: [  716.901281] cxd2820r:
->> cxd2820r_read_status: delsys=1
->> Jun 20 21:04:27 server kernel: [  716.901285] cxd2820r: cxd2820r_lock:
->> active_fe=1
->> Jun 20 21:04:27 server kernel: [  716.902062] cxd2820r:
->> cxd2820r_read_status_c: lock=05 52
->> Jun 20 21:04:27 server kernel: [  716.902067] cxd2820r:
->> cxd2820r_set_frontend: delsys=1
->> Jun 20 21:04:27 server kernel: [  716.902071] cxd2820r: cxd2820r_lock:
->> active_fe=1
->> Jun 20 21:04:27 server kernel: [  716.902075] cxd2820r:
->> cxd2820r_set_frontend_c: RF=474000000 SR=6950000
->> Jun 20 21:04:27 server kernel: [  716.902080] cxd2820r: cxd2820r_gpio: delsys=1
->> Jun 20 21:04:27 server kernel: [  717.048508] cxd2820r:
->> cxd2820r_read_status: delsys=1
->> Jun 20 21:04:27 server kernel: [  717.048513] cxd2820r: cxd2820r_lock:
->> active_fe=1
->> Jun 20 21:04:27 server kernel: [  717.049335] cxd2820r:
->> cxd2820r_read_status_c: lock=05 52
->> Jun 20 21:04:28 server kernel: [  717.249425] cxd2820r:
->> cxd2820r_read_status: delsys=1
->> Jun 20 21:04:28 server kernel: [  717.249432] cxd2820r: cxd2820r_lock:
->> active_fe=1
->> Jun 20 21:04:28 server kernel: [  717.250242] cxd2820r:
->> cxd2820r_read_status_c: lock=05 52
->> Jun 20 21:04:28 server kernel: [  717.250317] cxd2820r:
->> cxd2820r_get_tune_settings: delsys=1
->> Jun 20 21:04:28 server kernel: [  717.250322] cxd2820r: cxd2820r_lock:
->> active_fe=1
->> Jun 20 21:04:28 server kernel: [  717.250352] cxd2820r:
->> cxd2820r_set_frontend: delsys=1
->> Jun 20 21:04:28 server kernel: [  717.250359] cxd2820r: cxd2820r_lock:
->> active_fe=1
->> Jun 20 21:04:28 server kernel: [  717.250365] cxd2820r:
->> cxd2820r_set_frontend_c: RF=474000000 SR=6950000
->> Jun 20 21:04:28 server kernel: [  717.250370] cxd2820r: cxd2820r_gpio: delsys=1
->> Jun 20 21:04:28 server kernel: [  717.450404] cxd2820r:
->> cxd2820r_read_status: delsys=1
->> Jun 20 21:04:28 server kernel: [  717.450409] cxd2820r: cxd2820r_lock:
->> active_fe=1
->> Jun 20 21:04:28 server kernel: [  717.451150] cxd2820r:
->> cxd2820r_read_status_c: lock=05 52
->> Jun 20 21:04:28 server kernel: [  717.651228] cxd2820r:
->> cxd2820r_read_status: delsys=1
->> Jun 20 21:04:28 server kernel: [  717.651233] cxd2820r: cxd2820r_lock:
->> active_fe=1
->> Jun 20 21:04:28 server kernel: [  717.652058] cxd2820r:
->> cxd2820r_read_status_c: lock=05 52
->> Jun 20 21:04:28 server kernel: [  717.801289] cxd2820r:
->> cxd2820r_read_status: delsys=1
->> Jun 20 21:04:28 server kernel: [  717.801296] cxd2820r: cxd2820r_lock:
->> active_fe=1
->> Jun 20 21:04:28 server kernel: [  717.802082] cxd2820r:
->> cxd2820r_read_status_c: lock=05 52
->> Jun 20 21:04:28 server kernel: [  717.802089] cxd2820r:
->> cxd2820r_set_frontend: delsys=1
->> Jun 20 21:04:28 server kernel: [  717.802094] cxd2820r: cxd2820r_lock:
->> active_fe=1
->> Jun 20 21:04:28 server kernel: [  717.802100] cxd2820r:
->> cxd2820r_set_frontend_c: RF=474000000 SR=6950000
->> Jun 20 21:04:28 server kernel: [  717.802105] cxd2820r: cxd2820r_gpio: delsys=1
->> Jun 20 21:04:28 server kernel: [  717.863117] cxd2820r:
->> cxd2820r_read_status: delsys=1
->> Jun 20 21:04:28 server kernel: [  717.863124] cxd2820r: cxd2820r_lock:
->> active_fe=1
->> Jun 20 21:04:28 server kernel: [  717.863968] cxd2820r:
->> cxd2820r_read_status_c: lock=04 52
->> Jun 20 21:04:28 server kernel: [  718.064051] cxd2820r:
->> cxd2820r_read_status: delsys=1
->> Jun 20 21:04:28 server kernel: [  718.064056] cxd2820r: cxd2820r_lock:
->> active_fe=1
->> Jun 20 21:04:28 server kernel: [  718.064873] cxd2820r:
->> cxd2820r_read_status_c: lock=05 52
->> Jun 20 21:04:29 server kernel: [  718.264961] cxd2820r:
->> cxd2820r_read_status: delsys=1
->> Jun 20 21:04:29 server kernel: [  718.264969] cxd2820r: cxd2820r_lock:
->> active_fe=1
->> Jun 20 21:04:29 server kernel: [  718.265783] cxd2820r:
->> cxd2820r_read_status_c: lock=05 52
->> Jun 20 21:04:29 server kernel: [  718.361273] cxd2820r:
->> cxd2820r_read_status: delsys=1
->> Jun 20 21:04:29 server kernel: [  718.361277] cxd2820r: cxd2820r_lock:
->> active_fe=1
->> Jun 20 21:04:29 server kernel: [  718.362046] cxd2820r:
->> cxd2820r_read_status_c: lock=05 52
->> Jun 20 21:04:29 server kernel: [  718.362052] cxd2820r:
->> cxd2820r_set_frontend: delsys=1
->> Jun 20 21:04:29 server kernel: [  718.362056] cxd2820r: cxd2820r_lock:
->> active_fe=1
->> Jun 20 21:04:29 server kernel: [  718.362063] cxd2820r:
->> cxd2820r_set_frontend_c: RF=474000000 SR=6950000
->> Jun 20 21:04:29 server kernel: [  718.362068] cxd2820r: cxd2820r_gpio: delsys=1
->> Jun 20 21:04:29 server kernel: [  718.465860] cxd2820r:
->> cxd2820r_read_status: delsys=1
->> Jun 20 21:04:29 server kernel: [  718.465865] cxd2820r: cxd2820r_lock:
->> active_fe=1
->> Jun 20 21:04:29 server kernel: [  718.466688] cxd2820r:
->> cxd2820r_read_status_c: lock=05 52
->> Jun 20 21:04:29 server kernel: [  718.666765] cxd2820r:
->> cxd2820r_read_status: delsys=1
->> Jun 20 21:04:29 server kernel: [  718.666769] cxd2820r: cxd2820r_lock:
->> active_fe=1
->> Jun 20 21:04:29 server kernel: [  718.667596] cxd2820r:
->> cxd2820r_read_status_c: lock=05 52
->> Jun 20 21:04:29 server kernel: [  718.867673] cxd2820r:
->> cxd2820r_read_status: delsys=1
->> Jun 20 21:04:29 server kernel: [  718.867677] cxd2820r: cxd2820r_lock:
->> active_fe=1
->> Jun 20 21:04:29 server kernel: [  718.868504] cxd2820r:
->> cxd2820r_read_status_c: lock=05 52
->> Jun 20 21:04:29 server kernel: [  718.920621] cxd2820r:
->> cxd2820r_read_status: delsys=1
->> Jun 20 21:04:29 server kernel: [  718.920629] cxd2820r: cxd2820r_lock:
->> active_fe=1
->> Jun 20 21:04:29 server kernel: [  718.921388] cxd2820r:
->> cxd2820r_read_status_c: lock=05 52
->> Jun 20 21:04:29 server kernel: [  718.921394] cxd2820r:
->> cxd2820r_set_frontend: delsys=1
->> Jun 20 21:04:29 server kernel: [  718.921398] cxd2820r: cxd2820r_lock:
->> active_fe=1
->> Jun 20 21:04:29 server kernel: [  718.921403] cxd2820r:
->> cxd2820r_set_frontend_c: RF=474000000 SR=6950000
->> Jun 20 21:04:29 server kernel: [  718.921407] cxd2820r: cxd2820r_gpio: delsys=1
->> Jun 20 21:04:29 server kernel: [  719.068584] cxd2820r:
->> cxd2820r_read_status: delsys=1
->> Jun 20 21:04:29 server kernel: [  719.068589] cxd2820r: cxd2820r_lock:
->> active_fe=1
->> Jun 20 21:04:29 server kernel: [  719.069411] cxd2820r:
->> cxd2820r_read_status_c: lock=05 52
->> Jun 20 21:04:30 server kernel: [  719.269498] cxd2820r:
->> cxd2820r_read_status: delsys=1
->> Jun 20 21:04:30 server kernel: [  719.269505] cxd2820r: cxd2820r_lock:
->> active_fe=1
->> Jun 20 21:04:30 server kernel: [  719.270320] cxd2820r:
->> cxd2820r_read_status_c: lock=05 52
->> Jun 20 21:04:30 server kernel: [  719.480741] cxd2820r: cxd2820r_sleep: delsys=1
->> Jun 20 21:04:30 server kernel: [  719.480745] cxd2820r: cxd2820r_lock:
->> active_fe=1
->> Jun 20 21:04:30 server kernel: [  719.480749] cxd2820r: cxd2820r_sleep_c
->> Jun 20 21:04:30 server kernel: [  719.482603] cxd2820r:
->> cxd2820r_unlock: active_fe=1
->
-> to tell the difference the amplifier is for DVB-T2, DVB-C is disabled
-> in windows because it's not reliable.
-> Technically the chip supports it but the LNA decreases the quality.
-> There are already some other PCI boards
-> out there with that chip which do not use that LNA which should have a
-> better performance with that Sony chip.
+Cosmetics again:)
 
-Is it possible to work around this by disabling the lna or is the
-quality decreased permanently as part of the hardware design,
-independently of whether the lna is enabled or not ?
+On Wed, 1 Jun 2011, Javier Martin wrote:
 
-I searched the linux-media list and it seems that an lna option was
-discussed as a module parameter, but modinfo for the module I use [1]
-(using the media_build git repository) doesn't show a lna parameter.
-Can the lna be disabled in another way ?
+> New "version" and "vdd_io" flags have been added.
+> 
+> A subtle change now prevents camera from being registered
+> in the wrong platform.
+> 
+> Signed-off-by: Javier Martin <javier.martin@vista-silicon.com>
+> ---
+>  arch/arm/mach-omap2/Makefile                   |    1 +
+>  arch/arm/mach-omap2/board-omap3beagle-camera.c |   95 ++++++++++++++++++++++++
+>  arch/arm/mach-omap2/board-omap3beagle.c        |   55 ++++++++++++++
+>  3 files changed, 151 insertions(+), 0 deletions(-)
+>  create mode 100644 arch/arm/mach-omap2/board-omap3beagle-camera.c
+> 
+> diff --git a/arch/arm/mach-omap2/Makefile b/arch/arm/mach-omap2/Makefile
+> index 512b152..05cd983 100644
+> --- a/arch/arm/mach-omap2/Makefile
+> +++ b/arch/arm/mach-omap2/Makefile
+> @@ -179,6 +179,7 @@ obj-$(CONFIG_MACH_OMAP_2430SDP)		+= board-2430sdp.o \
+>  					   hsmmc.o
+>  obj-$(CONFIG_MACH_OMAP_APOLLON)		+= board-apollon.o
+>  obj-$(CONFIG_MACH_OMAP3_BEAGLE)		+= board-omap3beagle.o \
+> +					   board-omap3beagle-camera.o \
+>  					   hsmmc.o
+>  obj-$(CONFIG_MACH_DEVKIT8000)     	+= board-devkit8000.o \
+>                                             hsmmc.o
+> diff --git a/arch/arm/mach-omap2/board-omap3beagle-camera.c b/arch/arm/mach-omap2/board-omap3beagle-camera.c
+> new file mode 100644
+> index 0000000..2632557
+> --- /dev/null
+> +++ b/arch/arm/mach-omap2/board-omap3beagle-camera.c
+> @@ -0,0 +1,95 @@
+> +#include <linux/gpio.h>
+> +#include <linux/regulator/machine.h>
+> +
+> +#include <plat/i2c.h>
+> +
+> +#include <media/mt9p031.h>
+> +#include <asm/mach-types.h>
+> +#include "devices.h"
+> +#include "../../../drivers/media/video/omap3isp/isp.h"
+> +
+> +#define MT9P031_RESET_GPIO	98
+> +#define MT9P031_XCLK		ISP_XCLK_A
+> +
+> +static struct regulator *reg_1v8, *reg_2v8;
+> +
+> +static int beagle_cam_set_xclk(struct v4l2_subdev *subdev, int hz)
+> +{
+> +	struct isp_device *isp = v4l2_dev_to_isp_device(subdev->v4l2_dev);
+> +	int ret;
+> +
+> +	ret = isp->platform_cb.set_xclk(isp, hz, MT9P031_XCLK);
+> +	return 0;
 
-Best regards,
+Why do you need "ret" if you always return 0?
 
-Rune
+> +}
+> +
+> +static int beagle_cam_reset(struct v4l2_subdev *subdev, int active)
+> +{
+> +	/* Set RESET_BAR to !active */
+> +	gpio_set_value(MT9P031_RESET_GPIO, !active);
+> +
+> +	return 0;
+> +}
+> +
+> +static struct mt9p031_platform_data beagle_mt9p031_platform_data = {
+> +	.set_xclk               = beagle_cam_set_xclk,
+> +	.reset                  = beagle_cam_reset,
+> +	.vdd_io			= MT9P031_VDD_IO_1V8,
+> +	.version		= MT9P031_COLOR_VERSION,
 
-[1] modinfo:
-filename:
-/lib/modules/2.6.35-22-generic/kernel/drivers/media/dvb/frontends/cxd2820r.ko
-license:        GPL
-description:    Sony CXD2820R demodulator driver
-author:         Antti Palosaari <crope@iki.fi>
-srcversion:     2EAFFA0EB73ED51DC3747DE
-depends:        dvb-core
-vermagic:       2.6.35-22-generic SMP mod_unload modversions
-parm:           debug:Turn on/off frontend debugging (default:off). (int)
+You could as well remove one TAB before "="
+
+> +};
+> +
+> +static struct i2c_board_info mt9p031_camera_i2c_device = {
+> +	I2C_BOARD_INFO("mt9p031", 0x48),
+> +	.platform_data = &beagle_mt9p031_platform_data,
+> +};
+> +
+> +static struct isp_subdev_i2c_board_info mt9p031_camera_subdevs[] = {
+> +	{
+> +		.board_info = &mt9p031_camera_i2c_device,
+> +		.i2c_adapter_id = 2,
+> +	},
+> +	{ NULL, 0, },
+> +};
+> +
+> +static struct isp_v4l2_subdevs_group beagle_camera_subdevs[] = {
+> +	{
+> +		.subdevs = mt9p031_camera_subdevs,
+> +		.interface = ISP_INTERFACE_PARALLEL,
+> +		.bus = {
+> +				.parallel = {
+> +					.data_lane_shift = 0,
+> +					.clk_pol = 1,
+> +					.bridge = ISPCTRL_PAR_BRIDGE_DISABLE,
+> +				}
+
+Too deep indentation
+
+> +		},
+> +	},
+> +	{ },
+> +};
+> +
+> +static struct isp_platform_data beagle_isp_platform_data = {
+> +	.subdevs = beagle_camera_subdevs,
+> +};
+> +
+> +static int __init beagle_camera_init(void)
+> +{
+> +	if (!machine_is_omap3_beagle() || !cpu_is_omap3630())
+> +		return 0;
+> +
+> +	reg_1v8 = regulator_get(NULL, "cam_1v8");
+> +	if (IS_ERR(reg_1v8))
+> +		pr_err("%s: cannot get cam_1v8 regulator\n", __func__);
+> +	else
+> +		regulator_enable(reg_1v8);
+> +
+> +	reg_2v8 = regulator_get(NULL, "cam_2v8");
+> +	if (IS_ERR(reg_2v8))
+> +		pr_err("%s: cannot get cam_2v8 regulator\n", __func__);
+> +	else
+> +		regulator_enable(reg_2v8);
+> +
+> +	omap_register_i2c_bus(2, 100, NULL, 0);
+> +	gpio_request(MT9P031_RESET_GPIO, "cam_rst");
+> +	gpio_direction_output(MT9P031_RESET_GPIO, 0);
+> +	omap3_init_camera(&beagle_isp_platform_data);
+> +	return 0;
+> +}
+> +late_initcall(beagle_camera_init);
+> diff --git a/arch/arm/mach-omap2/board-omap3beagle.c b/arch/arm/mach-omap2/board-omap3beagle.c
+> index 33007fd..c18d21c 100644
+> --- a/arch/arm/mach-omap2/board-omap3beagle.c
+> +++ b/arch/arm/mach-omap2/board-omap3beagle.c
+> @@ -24,12 +24,16 @@
+>  #include <linux/input.h>
+>  #include <linux/gpio_keys.h>
+>  #include <linux/opp.h>
+> +#include <linux/i2c.h>
+> +#include <linux/mm.h>
+> +#include <linux/videodev2.h>
+
+Don't see why you need to add these 3 headers with this patch.
+
+>  
+>  #include <linux/mtd/mtd.h>
+>  #include <linux/mtd/partitions.h>
+>  #include <linux/mtd/nand.h>
+>  #include <linux/mmc/host.h>
+>  
+> +#include <linux/gpio.h>
+>  #include <linux/regulator/machine.h>
+>  #include <linux/i2c/twl.h>
+>  
+> @@ -47,6 +51,7 @@
+>  #include <plat/nand.h>
+>  #include <plat/usb.h>
+>  #include <plat/omap_device.h>
+> +#include <plat/i2c.h>
+
+ditto
+
+>  
+>  #include "mux.h"
+>  #include "hsmmc.h"
+> @@ -273,6 +278,44 @@ static struct regulator_consumer_supply beagle_vsim_supply = {
+>  
+>  static struct gpio_led gpio_leds[];
+>  
+> +static struct regulator_consumer_supply beagle_vaux3_supply = {
+> +	.supply         = "cam_1v8",
+> +};
+> +
+> +static struct regulator_consumer_supply beagle_vaux4_supply = {
+> +	.supply         = "cam_2v8",
+> +};
+> +
+> +/* VAUX3 for CAM_1V8 */
+> +static struct regulator_init_data beagle_vaux3 = {
+> +	.constraints = {
+> +		.min_uV			= 1800000,
+> +		.max_uV			= 1800000,
+> +		.apply_uV		= true,
+> +		.valid_modes_mask	= REGULATOR_MODE_NORMAL
+> +					| REGULATOR_MODE_STANDBY,
+> +		.valid_ops_mask		= REGULATOR_CHANGE_MODE
+> +					| REGULATOR_CHANGE_STATUS,
+> +	},
+> +	.num_consumer_supplies		= 1,
+> +	.consumer_supplies		= &beagle_vaux3_supply,
+> +};
+> +
+> +/* VAUX4 for CAM_2V8 */
+> +static struct regulator_init_data beagle_vaux4 = {
+> +	.constraints = {
+> +		.min_uV			= 1800000,
+> +		.max_uV			= 1800000,
+> +		.apply_uV		= true,
+> +		.valid_modes_mask	= REGULATOR_MODE_NORMAL
+> +					| REGULATOR_MODE_STANDBY,
+> +		.valid_ops_mask		= REGULATOR_CHANGE_MODE
+> +					| REGULATOR_CHANGE_STATUS,
+> +	},
+> +	.num_consumer_supplies  = 1,
+> +	.consumer_supplies      = &beagle_vaux4_supply,
+> +};
+> +
+>  static int beagle_twl_gpio_setup(struct device *dev,
+>  		unsigned gpio, unsigned ngpio)
+>  {
+> @@ -309,6 +352,15 @@ static int beagle_twl_gpio_setup(struct device *dev,
+>  			pr_err("%s: unable to configure EHCI_nOC\n", __func__);
+>  	}
+>  
+> +	if (omap3_beagle_get_rev() == OMAP3BEAGLE_BOARD_XM) {
+> +		/*
+> +		 * Power on camera interface - only on pre-production, not
+> +		 * needed on production boards
+> +		 */
+> +		gpio_request(gpio + 2, "CAM_EN");
+> +		gpio_direction_output(gpio + 2, 1);
+> +	}
+> +
+>  	/*
+>  	 * TWL4030_GPIO_MAX + 0 == ledA, EHCI nEN_USB_PWR (out, XM active
+>  	 * high / others active low)
+> @@ -451,6 +503,8 @@ static struct twl4030_platform_data beagle_twldata = {
+>  	.vsim		= &beagle_vsim,
+>  	.vdac		= &beagle_vdac,
+>  	.vpll2		= &beagle_vpll2,
+> +	.vaux3          = &beagle_vaux3,
+> +	.vaux4          = &beagle_vaux4,
+>  };
+>  
+>  static struct i2c_board_info __initdata beagle_i2c_boardinfo[] = {
+> @@ -658,6 +712,7 @@ static void __init omap3_beagle_init(void)
+>  {
+>  	omap3_mux_init(board_mux, OMAP_PACKAGE_CBB);
+>  	omap3_beagle_init_rev();
+> +
+>  	omap3_beagle_i2c_init();
+>  	platform_add_devices(omap3_beagle_devices,
+>  			ARRAY_SIZE(omap3_beagle_devices));
+
+This hunk doesn't seem to belong here;)
+
+> -- 
+> 1.7.0.4
+> 
+
+Thanks
+Guennadi
+---
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
+http://www.open-technology.de/
