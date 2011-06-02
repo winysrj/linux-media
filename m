@@ -1,42 +1,58 @@
 Return-path: <mchehab@pedra>
-Received: from lo.gmane.org ([80.91.229.12]:45011 "EHLO lo.gmane.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752143Ab1FJIpR (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 10 Jun 2011 04:45:17 -0400
-Received: from list by lo.gmane.org with local (Exim 4.69)
-	(envelope-from <gldv-linux-media@m.gmane.org>)
-	id 1QUxL9-0003a0-MV
-	for linux-media@vger.kernel.org; Fri, 10 Jun 2011 10:45:15 +0200
-Received: from p4FD49369.dip0.t-ipconnect.de ([79.212.147.105])
-        by main.gmane.org with esmtp (Gmexim 0.1 (Debian))
-        id 1AlnuQ-0007hv-00
-        for <linux-media@vger.kernel.org>; Fri, 10 Jun 2011 10:45:15 +0200
-Received: from jannis_achstetter by p4FD49369.dip0.t-ipconnect.de with local (Gmexim 0.1 (Debian))
-        id 1AlnuQ-0007hv-00
-        for <linux-media@vger.kernel.org>; Fri, 10 Jun 2011 10:45:15 +0200
-To: linux-media@vger.kernel.org
-From: Jannis Achstetter <jannis_achstetter@web.de>
-Subject: Re: TechniSat SkyStar S2 / CX24120-13Z again
-Date: Fri, 10 Jun 2011 08:45:03 +0000 (UTC)
-Message-ID: <loom.20110610T104225-406@post.gmane.org>
-References: <4DF124C3.6020309@web.de> <loom.20110609T223743-685@post.gmane.org>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
+Received: from mailout1.w1.samsung.com ([210.118.77.11]:26141 "EHLO
+	mailout1.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933189Ab1FBKN2 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 2 Jun 2011 06:13:28 -0400
+Date: Thu, 02 Jun 2011 12:12:02 +0200
+From: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Subject: [PATCH 5/7] s5p-fimc: Remove empty buf_init operation
+In-reply-to: <1307009524-1208-1-git-send-email-s.nawrocki@samsung.com>
+To: linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org
+Cc: m.szyprowski@samsung.com, kyungmin.park@samsung.com,
+	s.nawrocki@samsung.com, sw0312.kim@samsung.com,
+	riverful.kim@samsung.com
+Message-id: <1307009524-1208-6-git-send-email-s.nawrocki@samsung.com>
+MIME-version: 1.0
+Content-type: TEXT/PLAIN
+Content-transfer-encoding: 7BIT
+References: <1307009524-1208-1-git-send-email-s.nawrocki@samsung.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Jannis Achstetter <jannis_achstetter <at> web.de> wrote:
+The buf_init buffer queue operation is optional and
+buffer_init() does nothing, remove it.
 
-> [...] I can't
-> test functionality right now since I'm not at home where the device is but I
-> will test first thing when I get home.
+Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+---
+ drivers/media/video/s5p-fimc/fimc-capture.c |    7 -------
+ 1 files changed, 0 insertions(+), 7 deletions(-)
 
-The card works absolutely fine. So it's not more than applying a single patch
-against 2.6.39.1 to get the card supported (+ a firmware file from userspace). I
-modified the patch a little to get rid of two compilation warnings and will
-modify it further to comply with kernel coding-style rules and post it to this
-list then.
-
-Jannis
+diff --git a/drivers/media/video/s5p-fimc/fimc-capture.c b/drivers/media/video/s5p-fimc/fimc-capture.c
+index 44fc26f..6901643 100644
+--- a/drivers/media/video/s5p-fimc/fimc-capture.c
++++ b/drivers/media/video/s5p-fimc/fimc-capture.c
+@@ -286,12 +286,6 @@ static int queue_setup(struct vb2_queue *vq, unsigned int *num_buffers,
+ 	return 0;
+ }
+ 
+-static int buffer_init(struct vb2_buffer *vb)
+-{
+-	/* TODO: */
+-	return 0;
+-}
+-
+ static int buffer_prepare(struct vb2_buffer *vb)
+ {
+ 	struct vb2_queue *vq = vb->vb2_queue;
+@@ -371,7 +365,6 @@ static struct vb2_ops fimc_capture_qops = {
+ 	.queue_setup		= queue_setup,
+ 	.buf_prepare		= buffer_prepare,
+ 	.buf_queue		= buffer_queue,
+-	.buf_init		= buffer_init,
+ 	.wait_prepare		= fimc_unlock,
+ 	.wait_finish		= fimc_lock,
+ 	.start_streaming	= start_streaming,
+-- 
+1.7.5.2
 
