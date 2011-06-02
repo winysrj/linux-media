@@ -1,103 +1,157 @@
 Return-path: <mchehab@pedra>
-Received: from mailout-de.gmx.net ([213.165.64.23]:50577 "HELO
-	mailout-de.gmx.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1752650Ab1FXJyj convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 24 Jun 2011 05:54:39 -0400
-From: Oliver Endriss <o.endriss@gmx.de>
-Reply-To: "Linux Media Mailing List" <linux-media@vger.kernel.org>
-To: =?iso-8859-1?q?S=E9bastien_RAILLARD?= (COEXSI) <sr@coexsi.fr>
-Subject: Re: [DVB] Octopus driver status
-Date: Fri, 24 Jun 2011 11:51:33 +0200
-Cc: "Linux Media Mailing List" <linux-media@vger.kernel.org>
-References: <017201cc31ec$de287ce0$9a7976a0$@coexsi.fr>
-In-Reply-To: <017201cc31ec$de287ce0$9a7976a0$@coexsi.fr>
-MIME-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 8BIT
-Content-Disposition: inline
-Message-Id: <201106241151.34019@orion.escape-edv.de>
+Received: from mail-wy0-f174.google.com ([74.125.82.174]:36061 "EHLO
+	mail-wy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752851Ab1FBWbK (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 2 Jun 2011 18:31:10 -0400
+From: Ohad Ben-Cohen <ohad@wizery.com>
+To: <linux-media@vger.kernel.org>, <linux-omap@vger.kernel.org>,
+	<linux-kernel@vger.kernel.org>,
+	<linux-arm-kernel@lists.infradead.org>
+Cc: <laurent.pinchart@ideasonboard.com>, <Hiroshi.DOYU@nokia.com>,
+	<arnd@arndb.de>, <davidb@codeaurora.org>, <Joerg.Roedel@amd.com>,
+	Ohad Ben-Cohen <ohad@wizery.com>
+Subject: [RFC 4/6] drivers: iommu: move to a dedicated folder
+Date: Fri,  3 Jun 2011 01:27:41 +0300
+Message-Id: <1307053663-24572-5-git-send-email-ohad@wizery.com>
+In-Reply-To: <1307053663-24572-1-git-send-email-ohad@wizery.com>
+References: <1307053663-24572-1-git-send-email-ohad@wizery.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Hi,
+Create a dedicated folder for iommu drivers, and move the base
+iommu implementation over there.
 
-On Thursday 23 June 2011 23:31:08 Sébastien RAILLARD wrote:
-> Dear all,
-> 
-> I'm looking at the Octopus DVB cards system from Digital Devices for a while
-> as their system seems to be very interesting 
-> 
-> Here is link with their products:
-> http://shop.digital-devices.de/epages/62357162.sf/en_GB/?ObjectPath=/Shops/6
-> 2357162/Categories
-> 
-> The good points I have found:
-> 
-> * They support most of the common DVB standards: DVB-C, DVB-T, DVB-S and
-> DVB-S2
-> * They are moderately priced
-> * There is a CAM support with a CI adapter for unscrambling channels
-> * They are using the now de-facto standard PCI-Express bus
-> * The new Octopus system is using a LATTICE PCI-Express bridge that seems to
-> be more future proof than the previous bridge Micronas APB7202A
-> * They seem to be well engineered ("Designed and manufactured in Germany" as
-> they say!)
-> 
-> And now the doubts :
-> 
-> * The DVB-C/T frontend driver is specific to this system and is very new, so
-> as Devin said one week ago, it's maybe not yet production ready
-> * The way the CAM is supported break all the existing userland DVB
-> applications (gnutv, mumudvb, vlc, etc.)
-> * There isn't so much information about the Digital Devices company and
-> their products roadmap (at least in English)
-> 
-> So, my two very simple questions to the developers who worked on the drivers
-> (I think Oliver and Ralph did) and know the product:
-> * How you feel the future about the Octopus driver?
+Grouping the varius iommu drivers in a single location will help
+finding similar problems shared by different platforms, so they
+could be solved once, in the iommu framework, instead of solved
+differently (or duplicated) in each driver.
 
-The drivers work fine. I am not aware of any problems.
+Signed-off-by: Ohad Ben-Cohen <ohad@wizery.com>
+---
+ arch/arm/mach-msm/Kconfig       |    3 ---
+ arch/arm/plat-omap/Kconfig      |    3 ---
+ arch/x86/Kconfig                |    5 ++---
+ drivers/Kconfig                 |    2 ++
+ drivers/Makefile                |    1 +
+ drivers/base/Makefile           |    1 -
+ drivers/iommu/Kconfig           |    3 +++
+ drivers/iommu/Makefile          |    1 +
+ drivers/{base => iommu}/iommu.c |    0
+ 9 files changed, 9 insertions(+), 10 deletions(-)
+ create mode 100644 drivers/iommu/Kconfig
+ create mode 100644 drivers/iommu/Makefile
+ rename drivers/{base => iommu}/iommu.c (100%)
 
-All Digital Devices cards and tuner variants are supported by the driver
-http://linuxtv.org/hg/~endriss/media_build_experimental
-
-ddbridge (Lattice bridge):
-- Octopus (all variants)
-- cineS2 v6
-- DuoFlex S2 (stv0900 + stv6110 + lnbp21)
-- DuoFlex C/T (Micronas DRXK + NXP TDA18271C2)
-
-ngene bridge:
-- cineS2 (v4,v5), Satix S2 Dual
-- PCIe bridge, mini PCIe bridge
-- DuoFlex S2 (stv0900 + stv6110 + lnbp21)
-- DuoFlex C/T (Micronas DRXK + NXP TDA18271C2)
-
-For a German description, see
-http://www.vdr-portal.de/board16-video-disk-recorder/board85-hdtv-dvb-s2/105803-aktuelle-treiber-für-octopus-ddbridge-cines2-ngene-ddbridge-duoflex-s2-duoflex-ct-sowie-tt-s2-6400
-
->From an operational point of view, the driver is ready for the kernel.
-Unfortunately I did not have the time yet to clean up the coding-style.
-There are thousands of coding-style issues waiting to be fixed...
-
-> * Do you think a compatibility mode (like module parameter) can be added to
-> simulate the way the CAM is handled in the other drivers?
-
-Yes, this could be done:
-++ The CI could be used with any application.
--- The CI will be attached to one tuner exclusively.
-
-It is not very hard to implement this.
-Patches are welcome. ;-)
-
-CU
-Oliver
-
+diff --git a/arch/arm/mach-msm/Kconfig b/arch/arm/mach-msm/Kconfig
+index 1516896..efb7b7d 100644
+--- a/arch/arm/mach-msm/Kconfig
++++ b/arch/arm/mach-msm/Kconfig
+@@ -205,9 +205,6 @@ config MSM_GPIOMUX
+ config MSM_V2_TLMM
+ 	bool
+ 
+-config IOMMU_API
+-	bool
+-
+ config MSM_SCM
+ 	bool
+ endif
+diff --git a/arch/arm/plat-omap/Kconfig b/arch/arm/plat-omap/Kconfig
+index 1c3acb5..1bb1981 100644
+--- a/arch/arm/plat-omap/Kconfig
++++ b/arch/arm/plat-omap/Kconfig
+@@ -131,9 +131,6 @@ config OMAP_MBOX_KFIFO_SIZE
+ 	  This can also be changed at runtime (via the mbox_kfifo_size
+ 	  module parameter).
+ 
+-config IOMMU_API
+-	bool
+-
+ #can't be tristate; iommu api doesn't support un-registration
+ config OMAP_IOMMU
+ 	bool
+diff --git a/arch/x86/Kconfig b/arch/x86/Kconfig
+index da34972..460d573 100644
+--- a/arch/x86/Kconfig
++++ b/arch/x86/Kconfig
+@@ -685,6 +685,7 @@ config AMD_IOMMU
+ 	select SWIOTLB
+ 	select PCI_MSI
+ 	select PCI_IOV
++	select IOMMU_API
+ 	depends on X86_64 && PCI && ACPI
+ 	---help---
+ 	  With this option you can enable support for AMD IOMMU hardware in
+@@ -720,9 +721,6 @@ config SWIOTLB
+ config IOMMU_HELPER
+ 	def_bool (CALGARY_IOMMU || GART_IOMMU || SWIOTLB || AMD_IOMMU)
+ 
+-config IOMMU_API
+-	def_bool (AMD_IOMMU || DMAR)
+-
+ config MAXSMP
+ 	bool "Enable Maximum number of SMP Processors and NUMA Nodes"
+ 	depends on X86_64 && SMP && DEBUG_KERNEL && EXPERIMENTAL
+@@ -1945,6 +1943,7 @@ config PCI_CNB20LE_QUIRK
+ config DMAR
+ 	bool "Support for DMA Remapping Devices (EXPERIMENTAL)"
+ 	depends on PCI_MSI && ACPI && EXPERIMENTAL
++	select IOMMU_API
+ 	help
+ 	  DMA remapping (DMAR) devices support enables independent address
+ 	  translations for Direct Memory Access (DMA) from devices.
+diff --git a/drivers/Kconfig b/drivers/Kconfig
+index 3bb154d..9d51318 100644
+--- a/drivers/Kconfig
++++ b/drivers/Kconfig
+@@ -126,4 +126,6 @@ source "drivers/hwspinlock/Kconfig"
+ 
+ source "drivers/clocksource/Kconfig"
+ 
++source "drivers/iommu/Kconfig"
++
+ endmenu
+diff --git a/drivers/Makefile b/drivers/Makefile
+index 09f3232..2f7a71a 100644
+--- a/drivers/Makefile
++++ b/drivers/Makefile
+@@ -122,3 +122,4 @@ obj-y				+= ieee802154/
+ obj-y				+= clk/
+ 
+ obj-$(CONFIG_HWSPINLOCK)	+= hwspinlock/
++obj-$(CONFIG_IOMMU_API)		+= iommu/
+diff --git a/drivers/base/Makefile b/drivers/base/Makefile
+index 4c5701c..5ab0d07 100644
+--- a/drivers/base/Makefile
++++ b/drivers/base/Makefile
+@@ -13,7 +13,6 @@ obj-$(CONFIG_FW_LOADER)	+= firmware_class.o
+ obj-$(CONFIG_NUMA)	+= node.o
+ obj-$(CONFIG_MEMORY_HOTPLUG_SPARSE) += memory.o
+ obj-$(CONFIG_SMP)	+= topology.o
+-obj-$(CONFIG_IOMMU_API) += iommu.o
+ ifeq ($(CONFIG_SYSFS),y)
+ obj-$(CONFIG_MODULES)	+= module.o
+ endif
+diff --git a/drivers/iommu/Kconfig b/drivers/iommu/Kconfig
+new file mode 100644
+index 0000000..2c5dfb4
+--- /dev/null
++++ b/drivers/iommu/Kconfig
+@@ -0,0 +1,3 @@
++# IOMMU_API always gets selected by whoever wants it.
++config IOMMU_API
++	bool
+diff --git a/drivers/iommu/Makefile b/drivers/iommu/Makefile
+new file mode 100644
+index 0000000..241ba4c
+--- /dev/null
++++ b/drivers/iommu/Makefile
+@@ -0,0 +1 @@
++obj-$(CONFIG_IOMMU_API) += iommu.o
+diff --git a/drivers/base/iommu.c b/drivers/iommu/iommu.c
+similarity index 100%
+rename from drivers/base/iommu.c
+rename to drivers/iommu/iommu.c
 -- 
-----------------------------------------------------------------
-VDR Remote Plugin 0.4.0: http://www.escape-edv.de/endriss/vdr/
-4 MByte Mod: http://www.escape-edv.de/endriss/dvb-mem-mod/
-Full-TS Mod: http://www.escape-edv.de/endriss/dvb-full-ts-mod/
-----------------------------------------------------------------
+1.7.1
+
