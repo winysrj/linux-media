@@ -1,115 +1,227 @@
 Return-path: <mchehab@pedra>
-Received: from mail-iy0-f174.google.com ([209.85.210.174]:64383 "EHLO
-	mail-iy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750705Ab1FGFYX (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 7 Jun 2011 01:24:23 -0400
-Received: by iyb14 with SMTP id 14so3708476iyb.19
-        for <linux-media@vger.kernel.org>; Mon, 06 Jun 2011 22:24:22 -0700 (PDT)
-Message-ID: <4DEDB623.2010200@gmail.com>
-Date: Mon, 06 Jun 2011 22:24:51 -0700
-From: John McMaster <johndmcmaster@gmail.com>
-MIME-Version: 1.0
-To: Hans de Goede <hdegoede@redhat.com>
-CC: linux-media@vger.kernel.org
-Subject: Re: Anchor Chips V4L2 driver
-References: <4DE873B4.4050306@gmail.com> <4DE8D065.7020502@redhat.com> <4DE8E018.7070007@redhat.com> <4DEC6862.8000006@gmail.com> <4DEC851B.7030000@redhat.com>
-In-Reply-To: <4DEC851B.7030000@redhat.com>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Received: from mail-wy0-f174.google.com ([74.125.82.174]:37395 "EHLO
+	mail-wy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933369Ab1FBLgz (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 2 Jun 2011 07:36:55 -0400
+Received: by wya21 with SMTP id 21so526915wya.19
+        for <linux-media@vger.kernel.org>; Thu, 02 Jun 2011 04:36:54 -0700 (PDT)
+From: Javier Martin <javier.martin@vista-silicon.com>
+To: linux-media@vger.kernel.org
+Cc: g.liakhovetski@gmx.de, laurent.pinchart@ideasonboard.com,
+	carlighting@yahoo.co.nz, beagleboard@googlegroups.com,
+	mch_kot@yahoo.com.cn,
+	Javier Martin <javier.martin@vista-silicon.com>
+Subject: [PATCH v7 2/2] Add support for mt9p031 sensor in Beagleboard XM.
+Date: Thu,  2 Jun 2011 13:36:43 +0200
+Message-Id: <1307014603-22944-2-git-send-email-javier.martin@vista-silicon.com>
+In-Reply-To: <1307014603-22944-1-git-send-email-javier.martin@vista-silicon.com>
+References: <1307014603-22944-1-git-send-email-javier.martin@vista-silicon.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On 06/06/2011 12:43 AM, Hans de Goede wrote:
-> Hi,
->
-> On 06/06/2011 07:40 AM, John McMaster wrote:
->> On 06/03/2011 06:22 AM, Hans de Goede wrote:
->>> Hi,
->>>
->>> On 06/03/2011 02:15 PM, Mauro Carvalho Chehab wrote:
->>>> Em 03-06-2011 02:40, John McMaster escreveu:
->>>>> I'd like to write a driver for an Anchor Chips (seems to be bought by
->>>>> Cypress) USB camera Linux driver sold as an AmScope MD1800.  It seems
->>>>> like this implies I need to write a V4L2 driver.  The camera does not
->>>>> seem its currently supported (checked on Fedora 13 / 2.6.34.8) and I
->>>>> did
->>>>> not find any information on it in mailing list archives.  Does anyone
->>>>> know or can help me identify if a similar camera might already be
->>>>> supported?
->>>>
->>>> I've no idea. Better to wait for a couple days for developers to
->>>> manifest
->>>> about that, if they're already working on it.
->>>>
->>>>> lsusb gives the following output:
->>>>>
->>>>> Bus 001 Device 111: ID 0547:4d88 Anchor Chips, Inc.
->>>>>
->>>>> I've started reading the "Video for Linux Two API Specification"
->>>>> which
->>>>> seems like a good starting point and will move onto using source
->>>>> code as
->>>>> appropriate.  Any help would be appreciated.  Thanks!
->>>>
->>>> You'll find other useful information at linuxtv.org wiki page. The
->>>> better
->>>> is to write it as a sub-driver for gspca. The gspca core have already
->>>> all
->>>> that it is needed for cameras. So, you'll need to focus only at the
->>>> device-specific
->>>> stuff.
->>>
->>> I can second that you should definitely use gspca for usb webcam(ish)
->>> device
->>> drivers. As for how to go about this, first of all grep through the
->>> windows drivers
->>> for strings which may hint on the actual bridge chip used, chances are
->>> good
->>> there is an already supported bridge inside the camera.
->>>
->>> If not then make usb dumps, and start reverse engineering ...
->>>
->>> Usually it is enough to replay the windows init sequence to get the
->>> device
->>> to stream over either an bulk or iso endpoint, and then it is time to
->>> figure out what that stream contains (jpeg, raw bayer, some custom
->>> format ???)
->>>
->>> Regards,
->>>
->>> Hans
->> Thanks for the response.  I replayed some packets (using libusb) and am
->> able to get something resembling the desired image through its bulk
->> endpoint.  So now I just need to figure out how to decode it better,
->> options, etc.  I'll post back to the list once I get something
->> moderately stable running and have taken a swing at the kernel driver.
->>
->
-> Hmm, bulk you say and cypress and 8mp usb2.0 have you tried looking
-> at the gspca-ovfx2 driver? Likely you've an ovfx2 cam with an as of
-> yet unknown usb-id. Chances are just adding the id is enough, although
-> your sensor may be unknown.
->
-> Regards,
->
-> Hans
-If it helps, I should have also mentioned that with a small amount of
-digging I found that the camera unit is put together by ScopeTek.  My
-reference WIP implementation is at
-https://github.com/JohnDMcMaster/uvscopetek which I'm comparing to
-2.6.39.1 drivers.
+Fixes some cosmetic issues pointed out by Guennadi.
 
-Anyway, looking at reg_w() I see that it likes to make 0x00, 0x02, or
-0x0A requests where as mine makes 0x01, 0x0A, and mostly 0x0B requests. 
-I do see that it tends to want a byte back though like mine (0x0A except
-at end).  My code has a few 3 byte returns (byte 0 varies, byte 1 fixed
-at 0x00, byte 2 fixed at 0x08 like others), so I'm not sure if its a
-good match for reg read.  Following that I tried to grep around some
-more for a number of the more interesting numbers (eg: 90D8 as opposed
-to 0001) in the $SRC/drivers/media/video dir and could only find
-scattered matches.  I do realize that a lot of the more esoteric numbers
-could be specific settings and not registers, commands, etc.  Or maybe
-tofx2 is related and I'm not understanding the bridge concept?
+Signed-off-by: Javier Martin <javier.martin@vista-silicon.com>
+---
+ arch/arm/mach-omap2/Makefile                   |    1 +
+ arch/arm/mach-omap2/board-omap3beagle-camera.c |   93 ++++++++++++++++++++++++
+ arch/arm/mach-omap2/board-omap3beagle.c        |   50 +++++++++++++
+ 3 files changed, 144 insertions(+), 0 deletions(-)
+ create mode 100644 arch/arm/mach-omap2/board-omap3beagle-camera.c
 
-John
+diff --git a/arch/arm/mach-omap2/Makefile b/arch/arm/mach-omap2/Makefile
+index 512b152..05cd983 100644
+--- a/arch/arm/mach-omap2/Makefile
++++ b/arch/arm/mach-omap2/Makefile
+@@ -179,6 +179,7 @@ obj-$(CONFIG_MACH_OMAP_2430SDP)		+= board-2430sdp.o \
+ 					   hsmmc.o
+ obj-$(CONFIG_MACH_OMAP_APOLLON)		+= board-apollon.o
+ obj-$(CONFIG_MACH_OMAP3_BEAGLE)		+= board-omap3beagle.o \
++					   board-omap3beagle-camera.o \
+ 					   hsmmc.o
+ obj-$(CONFIG_MACH_DEVKIT8000)     	+= board-devkit8000.o \
+                                            hsmmc.o
+diff --git a/arch/arm/mach-omap2/board-omap3beagle-camera.c b/arch/arm/mach-omap2/board-omap3beagle-camera.c
+new file mode 100644
+index 0000000..f68ae6c
+--- /dev/null
++++ b/arch/arm/mach-omap2/board-omap3beagle-camera.c
+@@ -0,0 +1,93 @@
++#include <linux/gpio.h>
++#include <linux/regulator/machine.h>
++
++#include <plat/i2c.h>
++
++#include <media/mt9p031.h>
++#include <asm/mach-types.h>
++#include "devices.h"
++#include "../../../drivers/media/video/omap3isp/isp.h"
++
++#define MT9P031_RESET_GPIO	98
++#define MT9P031_XCLK		ISP_XCLK_A
++
++static struct regulator *reg_1v8, *reg_2v8;
++
++static int beagle_cam_set_xclk(struct v4l2_subdev *subdev, int hz)
++{
++	struct isp_device *isp = v4l2_dev_to_isp_device(subdev->v4l2_dev);
++
++	return isp->platform_cb.set_xclk(isp, hz, MT9P031_XCLK);
++}
++
++static int beagle_cam_reset(struct v4l2_subdev *subdev, int active)
++{
++	/* Set RESET_BAR to !active */
++	gpio_set_value(MT9P031_RESET_GPIO, !active);
++
++	return 0;
++}
++
++static struct mt9p031_platform_data beagle_mt9p031_platform_data = {
++	.set_xclk	= beagle_cam_set_xclk,
++	.reset		= beagle_cam_reset,
++	.vdd_io		= MT9P031_VDD_IO_1V8,
++	.version	= MT9P031_COLOR_VERSION,
++};
++
++static struct i2c_board_info mt9p031_camera_i2c_device = {
++	I2C_BOARD_INFO("mt9p031", 0x48),
++	.platform_data = &beagle_mt9p031_platform_data,
++};
++
++static struct isp_subdev_i2c_board_info mt9p031_camera_subdevs[] = {
++	{
++		.board_info = &mt9p031_camera_i2c_device,
++		.i2c_adapter_id = 2,
++	},
++	{ NULL, 0, },
++};
++
++static struct isp_v4l2_subdevs_group beagle_camera_subdevs[] = {
++	{
++		.subdevs = mt9p031_camera_subdevs,
++		.interface = ISP_INTERFACE_PARALLEL,
++		.bus = {
++			.parallel = {
++				.data_lane_shift = 0,
++				.clk_pol = 1,
++				.bridge = ISPCTRL_PAR_BRIDGE_DISABLE,
++			}
++		},
++	},
++	{ },
++};
++
++static struct isp_platform_data beagle_isp_platform_data = {
++	.subdevs = beagle_camera_subdevs,
++};
++
++static int __init beagle_camera_init(void)
++{
++	if (!machine_is_omap3_beagle() || !cpu_is_omap3630())
++		return 0;
++
++	reg_1v8 = regulator_get(NULL, "cam_1v8");
++	if (IS_ERR(reg_1v8))
++		pr_err("%s: cannot get cam_1v8 regulator\n", __func__);
++	else
++		regulator_enable(reg_1v8);
++
++	reg_2v8 = regulator_get(NULL, "cam_2v8");
++	if (IS_ERR(reg_2v8))
++		pr_err("%s: cannot get cam_2v8 regulator\n", __func__);
++	else
++		regulator_enable(reg_2v8);
++
++	omap_register_i2c_bus(2, 100, NULL, 0);
++	gpio_request(MT9P031_RESET_GPIO, "cam_rst");
++	gpio_direction_output(MT9P031_RESET_GPIO, 0);
++	omap3_init_camera(&beagle_isp_platform_data);
++	return 0;
++}
++late_initcall(beagle_camera_init);
+diff --git a/arch/arm/mach-omap2/board-omap3beagle.c b/arch/arm/mach-omap2/board-omap3beagle.c
+index 33007fd..c14e9d6 100644
+--- a/arch/arm/mach-omap2/board-omap3beagle.c
++++ b/arch/arm/mach-omap2/board-omap3beagle.c
+@@ -30,6 +30,7 @@
+ #include <linux/mtd/nand.h>
+ #include <linux/mmc/host.h>
+ 
++#include <linux/gpio.h>
+ #include <linux/regulator/machine.h>
+ #include <linux/i2c/twl.h>
+ 
+@@ -273,6 +274,44 @@ static struct regulator_consumer_supply beagle_vsim_supply = {
+ 
+ static struct gpio_led gpio_leds[];
+ 
++static struct regulator_consumer_supply beagle_vaux3_supply = {
++	.supply         = "cam_1v8",
++};
++
++static struct regulator_consumer_supply beagle_vaux4_supply = {
++	.supply         = "cam_2v8",
++};
++
++/* VAUX3 for CAM_1V8 */
++static struct regulator_init_data beagle_vaux3 = {
++	.constraints = {
++		.min_uV			= 1800000,
++		.max_uV			= 1800000,
++		.apply_uV		= true,
++		.valid_modes_mask	= REGULATOR_MODE_NORMAL
++					| REGULATOR_MODE_STANDBY,
++		.valid_ops_mask		= REGULATOR_CHANGE_MODE
++					| REGULATOR_CHANGE_STATUS,
++	},
++	.num_consumer_supplies		= 1,
++	.consumer_supplies		= &beagle_vaux3_supply,
++};
++
++/* VAUX4 for CAM_2V8 */
++static struct regulator_init_data beagle_vaux4 = {
++	.constraints = {
++		.min_uV			= 1800000,
++		.max_uV			= 1800000,
++		.apply_uV		= true,
++		.valid_modes_mask	= REGULATOR_MODE_NORMAL
++					| REGULATOR_MODE_STANDBY,
++		.valid_ops_mask		= REGULATOR_CHANGE_MODE
++					| REGULATOR_CHANGE_STATUS,
++	},
++	.num_consumer_supplies  = 1,
++	.consumer_supplies      = &beagle_vaux4_supply,
++};
++
+ static int beagle_twl_gpio_setup(struct device *dev,
+ 		unsigned gpio, unsigned ngpio)
+ {
+@@ -309,6 +348,15 @@ static int beagle_twl_gpio_setup(struct device *dev,
+ 			pr_err("%s: unable to configure EHCI_nOC\n", __func__);
+ 	}
+ 
++	if (omap3_beagle_get_rev() == OMAP3BEAGLE_BOARD_XM) {
++		/*
++		 * Power on camera interface - only on pre-production, not
++		 * needed on production boards
++		 */
++		gpio_request(gpio + 2, "CAM_EN");
++		gpio_direction_output(gpio + 2, 1);
++	}
++
+ 	/*
+ 	 * TWL4030_GPIO_MAX + 0 == ledA, EHCI nEN_USB_PWR (out, XM active
+ 	 * high / others active low)
+@@ -451,6 +499,8 @@ static struct twl4030_platform_data beagle_twldata = {
+ 	.vsim		= &beagle_vsim,
+ 	.vdac		= &beagle_vdac,
+ 	.vpll2		= &beagle_vpll2,
++	.vaux3          = &beagle_vaux3,
++	.vaux4          = &beagle_vaux4,
+ };
+ 
+ static struct i2c_board_info __initdata beagle_i2c_boardinfo[] = {
+-- 
+1.7.0.4
 
