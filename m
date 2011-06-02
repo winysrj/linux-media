@@ -1,76 +1,57 @@
 Return-path: <mchehab@pedra>
-Received: from smtp-vbr15.xs4all.nl ([194.109.24.35]:4988 "EHLO
-	smtp-vbr15.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756318Ab1FVKko (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 22 Jun 2011 06:40:44 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Kamil Debski <k.debski@samsung.com>
-Subject: Re: [PATCH 2/4 v9] v4l: add control definitions for codec devices.
-Date: Wed, 22 Jun 2011 12:40:35 +0200
-Cc: linux-media@vger.kernel.org,
-	Marek Szyprowski <m.szyprowski@samsung.com>,
-	kyungmin.park@samsung.com, jaeryul.oh@samsung.com,
-	laurent.pinchart@ideasonboard.com, jtp.park@samsung.com
-References: <1308069416-24723-1-git-send-email-k.debski@samsung.com> <201106221025.53838.hverkuil@xs4all.nl> <00ac01cc30c7$754b5c40$5fe214c0$%debski@samsung.com>
-In-Reply-To: <00ac01cc30c7$754b5c40$5fe214c0$%debski@samsung.com>
+Received: from mail-ew0-f46.google.com ([209.85.215.46]:43502 "EHLO
+	mail-ew0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932682Ab1FBKLn (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 2 Jun 2011 06:11:43 -0400
+Received: by ewy4 with SMTP id 4so222952ewy.19
+        for <linux-media@vger.kernel.org>; Thu, 02 Jun 2011 03:11:42 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201106221240.35784.hverkuil@xs4all.nl>
+In-Reply-To: <Pine.LNX.4.64.1106020946030.4067@axis700.grange>
+References: <1306942609-2440-1-git-send-email-javier.martin@vista-silicon.com>
+	<Pine.LNX.4.64.1106020946030.4067@axis700.grange>
+Date: Thu, 2 Jun 2011 12:11:40 +0200
+Message-ID: <BANLkTimMrUm58CN6W56N+MR9pKbzZS0DAQ@mail.gmail.com>
+Subject: Re: [PATCH v6 1/2] Add driver for Aptina (Micron) mt9p031 sensor.
+From: javier Martin <javier.martin@vista-silicon.com>
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Cc: linux-media@vger.kernel.org, laurent.pinchart@ideasonboard.com,
+	carlighting@yahoo.co.nz, beagleboard@googlegroups.com,
+	mch_kot@yahoo.com.cn
+Content-Type: text/plain; charset=ISO-8859-1
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Wednesday, June 22, 2011 12:30:45 Kamil Debski wrote:
-> > > +	      <row>
-> > > +		<entry
-> > spanname="id"><constant>V4L2_CID_MPEG_VIDEO_MPEG4_VOP_TIME_RES</constant>&nb
-> > sp;</entry>
-> > > +		<entry>integer</entry>
-> > > +	      </row><row><entry spanname="descr">vop_time_increment_resolution
-> > value for MPEG4. Applicable to the MPEG4 encoder.</entry>
-> > > +	      </row>
-> > > +	      <row><entry></entry></row>
-> > > +	      <row>
-> > > +		<entry
-> > spanname="id"><constant>V4L2_CID_MPEG_VIDEO_MPEG4_VOP_TIME_INC</constant>&nb
-> > sp;</entry>
-> > > +		<entry>integer</entry>
-> > > +	      </row><row><entry spanname="descr">vop_time_increment value for
-> > MPEG4. Applicable to the MPEG4 encoder.</entry>
-> > 
-> > How should these two controls be used? Are you supposed to set them? Or do
-> > they
-> > have suitable default values?
-> 
-> They are used only in MPEG4 and are used instead of S_PARM to set fps.
-> You are supposed to set them, but I think the driver could set a default value
-> (such as vop_time_res = 30000 and vop_time_res_increment = 1000).
+OK Guennadi,
+I'll fix those cosmetics issues in my next version where I will add
+VFLIP and HFLIP control support (which I removed previously to make
+the code less complex).
 
-Hmm. Perhaps S_PARM should be used for this? I am not too keen on adding this
-when it looks like it is exactly the same as the S_PARM functionality.
+Now we talk about controls I have a question regarding controls
+defined in video subdevices like mt9p031 or mt9v032:
 
-How do other codecs do this?
+What device node should I use to set these controls through an ioctl() ?
+For instance, with mt9p031 + Beagleboard xM we have:
 
-> > > +
-> > <entry><constant>V4L2_MPEG_MFC51_FRAME_SKIP_MODE_DISABLED</constant>&nbsp;</
-> > entry>
-> > > +		      <entry>Frame skip mode is disabled.</entry>
-> > > +		    </row>
-> > > +		    <row>
-> > > +
-> > <entry><constant>V4L2_MPEG_MFC51_FRAME_SKIP_MODE_LEVEL_LIMIT</constant>&nbsp
-> > ;</entry>
-> > > +		      <entry>Frame skip mode enabled and buffer limit is set by
-> > the chosen level.</entry>
-> > 
-> > With which control do I set that level?
-> 
-> *_MPEG4_LEVEL and *_H264_LEVEL, I will add some clarification.
+./media-ctl -r -l '"mt9p031 2-0048":0->"OMAP3 ISP CCDC":0[1], "OMAP3
+ISP CCDC":1->"OMAP3 ISP CCDC output":0[1]'
+./media-ctl -f '"mt9p031 2-0048":0[SGRBG12 320x240], "OMAP3 ISP
+CCDC":0[SGRBG8 320x240], "OMAP3 ISP CCDC":1[SGRBG8 320x240]'
+./yavta --stdout -f SGRBG8 -s 320x240 -n 4 --capture=100 --skip 3 -F
+`./media-ctl -e "OMAP3 ISP CCDC output"` | nc 192.168.0.42 3000
 
-Ah! That level :-)
+Where
 
-Regards,
+root@beagleboard:~# ./media-ctl -e "OMAP3 ISP CCDC output"
+/dev/video2
 
-	Hans
+However, if I try to set sensor controls using /dev/video2 I get an
+error (invalid argument).
+
+-- 
+Javier Martin
+Vista Silicon S.L.
+CDTUC - FASE C - Oficina S-345
+Avda de los Castros s/n
+39005- Santander. Cantabria. Spain
++34 942 25 32 60
+www.vista-silicon.com
