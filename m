@@ -1,53 +1,60 @@
 Return-path: <mchehab@pedra>
-Received: from mail-yx0-f174.google.com ([209.85.213.174]:35699 "EHLO
-	mail-yx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750945Ab1FVHcU (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 22 Jun 2011 03:32:20 -0400
-Content-Type: text/plain; charset=utf-8; format=flowed; delsp=yes
-To: linaro-mm-sig@lists.linaro.org, "Hans Verkuil" <hverkuil@xs4all.nl>
-Cc: "Arnd Bergmann" <arnd@arndb.de>,
-	linux-arm-kernel@lists.infradead.org,
-	"'Daniel Walker'" <dwalker@codeaurora.org>, linux-mm@kvack.org,
-	"'Mel Gorman'" <mel@csn.ul.ie>, linux-kernel@vger.kernel.org,
-	"'Jesse Barker'" <jesse.barker@linaro.org>,
-	"'Kyungmin Park'" <kyungmin.park@samsung.com>,
-	"'Ankita Garg'" <ankita@in.ibm.com>,
-	"'Andrew Morton'" <akpm@linux-foundation.org>,
-	linux-media@vger.kernel.org,
-	"'KAMEZAWA Hiroyuki'" <kamezawa.hiroyu@jp.fujitsu.com>
-Subject: Re: [Linaro-mm-sig] [PATCH 08/10] mm: cma: Contiguous Memory
- Allocator added
-References: <1307699698-29369-1-git-send-email-m.szyprowski@samsung.com>
- <000501cc2b2b$789a54b0$69cefe10$%szyprowski@samsung.com>
- <201106150937.18524.arnd@arndb.de> <201106220903.31065.hverkuil@xs4all.nl>
-Date: Wed, 22 Jun 2011 09:32:13 +0200
+Received: from mailfe07.c2i.net ([212.247.154.194]:56497 "EHLO swip.net"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S932138Ab1FBKFL (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 2 Jun 2011 06:05:11 -0400
+From: Hans Petter Selasky <hselasky@c2i.net>
+To: Lutz Sammer <johns98@gmx.net>
+Subject: Re: [PATCH v3 - resend] Fix the derot zig-zag to work with TT-USB2.0 TechnoTrend.
+Date: Thu, 2 Jun 2011 12:03:47 +0200
+Cc: linux-media@vger.kernel.org
+References: <4DE75BE7.4050403@gmx.net>
+In-Reply-To: <4DE75BE7.4050403@gmx.net>
 MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
-From: "Michal Nazarewicz" <mina86@mina86.com>
-Message-ID: <op.vxgu7zgo3l0zgt@mnazarewicz-glaptop>
-In-Reply-To: <201106220903.31065.hverkuil@xs4all.nl>
+Message-Id: <201106021203.47366.hselasky@c2i.net>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Wed, 22 Jun 2011 09:03:30 +0200, Hans Verkuil <hverkuil@xs4all.nl>  
-wrote:
-> What I was wondering about is how this patch series changes the  
-> allocation in case it can't allocate from the CMA pool. Will it
-> attempt to fall back to a 'normal' allocation?
+On Thursday 02 June 2011 11:46:15 Lutz Sammer wrote:
+> Hello Hans Petter,
 
-Unless Marek changed something since I wrote the code, which I doubt,
-if CMA cannot obtain memory from CMA region, it will fail.
+Hi,
 
-Part of the reason is that CMA lacks the knowledge where to allocate
-memory from.  For instance, with the case of several memory banks,
-it does not know which memory bank to allocate from.
+> 
+> I haven't tested your patch yet, but looking at the source I see some
+> problems.
+> 
+> What does your patch fix and how?
 
-It is, in my opinion, a task for a higher level functions (read:
-DMA layer) to try another mechanism if CMA fails.
+It switches from software derot to hardware derot, by writing zero to the 
+derot register.
 
--- 
-Best regards,                                         _     _
-.o. | Liege of Serenely Enlightened Majesty of      o' \,=./ `o
-..o | Computer Science,  Michal "mina86" Nazarewicz    (o o)
-ooo +-----<email/xmpp: mnazarewicz@google.com>-----ooO--(_)--Ooo--
+> 
+> If you have problem locking channels, try my locking patch:
+> https://patchwork.kernel.org/patch/753382/
+> 
+> On each step (timing, carrier, data) you reset the derot:
+>      stb0899_set_derot(state, 0);
+> Why?
+
+I have no good reason. It just works.
+
+> 
+> Afaik you destroy already locked frequencies, which slows
+> down the locking.
+> 
+> Than you do 8 loops:
+>     for (index = 0; index < 8; index++) {
+> Why?
+
+> 
+> All checks already contains some delays, if the delays are too
+> short, you should fix this delays.
+
+I can test patches regarding channel locking. The initial problem was the the 
+stb0899 driver would not tune any channels.
+
+--HPS
