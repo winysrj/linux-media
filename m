@@ -1,64 +1,95 @@
 Return-path: <mchehab@pedra>
-Received: from mx1.redhat.com ([209.132.183.28]:40239 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754356Ab1FZSvz (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 26 Jun 2011 14:51:55 -0400
-Message-ID: <4E077FB9.7030600@redhat.com>
-Date: Sun, 26 Jun 2011 15:51:37 -0300
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Received: from mail-vw0-f46.google.com ([209.85.212.46]:38367 "EHLO
+	mail-vw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753691Ab1FBA51 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 1 Jun 2011 20:57:27 -0400
+Received: by vws1 with SMTP id 1so293980vws.19
+        for <linux-media@vger.kernel.org>; Wed, 01 Jun 2011 17:57:26 -0700 (PDT)
 MIME-Version: 1.0
-To: Arnd Bergmann <arnd@arndb.de>
-CC: Sakari Ailus <sakari.ailus@iki.fi>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
-	Linus Torvalds <torvalds@linux-foundation.org>
-Subject: Re: [PATCH] [media] v4l2 core: return -ENOIOCTLCMD if an ioctl doesn't
- exist
-References: <4E0519B7.3000304@redhat.com> <201106261913.05752.arnd@arndb.de> <4E076CC6.2070408@redhat.com> <201106262020.20432.arnd@arndb.de>
-In-Reply-To: <201106262020.20432.arnd@arndb.de>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+In-Reply-To: <4DE4C0D7.4070209@samsung.com>
+References: <599405.4311306668807678.JavaMail.weblogic@epml25>
+	<4DE4C0D7.4070209@samsung.com>
+Date: Thu, 2 Jun 2011 09:57:25 +0900
+Message-ID: <BANLkTin7nEeP+o734X7rV4AkK2zTCL81dA@mail.gmail.com>
+Subject: Re: [PATCH v4 0/3] TV driver for Samsung S5P platform (media part)
+From: Kyungmin Park <kmpark@infradead.org>
+To: Tomasz Stanislawski <t.stanislaws@samsung.com>
+Cc: jiun.yu@samsung.com,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	Marek Szyprowski <m.szyprowski@samsung.com>,
+	"hverkuil@xs4all.nl" <hverkuil@xs4all.nl>,
+	=?UTF-8?B?7ISg6rK97J28?= <ki.sun@samsung.com>,
+	=?UTF-8?B?6rmA7JiB6529?= <younglak1004.kim@samsung.com>,
+	=?UTF-8?B?7J207J287Zi4?= <ilho215.lee@samsung.com>,
+	=?UTF-8?B?6rmA6rK97ZmY?= <kh.k.kim@samsung.com>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8BIT
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Em 26-06-2011 15:20, Arnd Bergmann escreveu:
-> On Sunday 26 June 2011 19:30:46 Mauro Carvalho Chehab wrote:
->>> There was a lot of debate whether undefined ioctls on non-ttys should
->>> return -EINVAL or -ENOTTY, including mass-conversions from -ENOTTY to
->>> -EINVAL at some point in the pre-git era, IIRC.
+Hi,
+
+It's good to know the future chip design changes. but as it doesn't be
+known to others except the internal chip design team.
+So with restricted information. there's no way to implement it with
+current known chip.
+If you want to change the design. open and show the changed IPs.
+
+another thing is that current codes are pending for long time. so in
+our case, merge it first and expand it for next chips.
+
+Thank you,
+Kyungmin Park
+
+On Tue, May 31, 2011 at 7:20 PM, Tomasz Stanislawski
+<t.stanislaws@samsung.com> wrote:
+> JiUn Yu wrote:
+>>
+>>
 >>>
->>> Inside of v4l2, I believe this is handled by video_usercopy(), which
->>> turns the driver's -ENOIOCTLCMD into -ENOTTY. What cases do you observe
->>> where this is not done correctly and we do return ENOIOCTLCMD to
->>> vfs_ioctl?
+>>> 5. Mixer & Video Processor driver. It is called 's5p-mixer' because of
+>>> historical reasons. It was decided combine VP and MXR drivers into one
+>>> because
+>>> of shared interrupt and very similar interface via V4L2 nodes. The driver
+>>> is a
+>>> realization of many-to-many relation between multiple input layers and
+>>> multiple
+>>> outputs. All shared resources are kept in struct mxr_device. It provides
+>>> utilities for management and synchronization of access to resources and
+>>> reference counting. The outputs are obtained from HDMI/SDO private data.
+>>>  One
+>>> layer is a single video node. Simple inheritance is applied because there
+>>> only
+>>> little difference between layer's types. Every layer type implements set
+>>> of
+>>> ops.  There are different ops for Mixer layers and other for VP layer.
+>>>
 >>
->> Well, currently, it is returning -EINVAL maybe due to the mass-conversions
->> you've mentioned.
-> 
-> I mean what do you return *to* vfs_ioctl from v4l? The conversions must
-> have been long before we introduced compat_ioctl and ENOIOCTLCMD.
-> 
-> As far as I can tell, video_ioctl2 has always converted ENOIOCTLCMD into
-> EINVAL, so changing the vfs functions would not have any effect.
-
-Yes.  This discussion was originated by a RFC patch proposing to change 
-video_ioctl2 to return -ENOIOCTLCMD instead of -EINVAL.
-
->> The point is that -EINVAL has too many meanings at V4L. It currently can be
->> either that an ioctl is not supported, or that one of the parameters had
->> an invalid parameter. If the userspace can't distinguish between an unimplemented
->> ioctl and an invalid parameter, it can't decide if it needs to fall back to
->> some different methods of handling a V4L device.
+>> I agreed with subdev of hdmi, hdmiphy, sdo and videoDAC. It is very
+>> flexible in case of adding new interface or removing current interface.
+>> But 's5p-mixer' driver is not flexible. So, If new scaler is added instead
+>> of VP or mixer is someting changed,
+>> I think current architecture of tvout driver can't support.
+>> How about separating vp and mixer driver?
 >>
->> Maybe the answer would be to return -ENOTTY when an ioctl is not implemented.
-> 
-> That is what a lot of subsystems do these days. But wouldn't that change
-> your ABI?
-
-Yes. The patch in question is also changing the DocBook spec for the ABI. We'll
-likely need to drop some notes about that at the features-to-be-removed.txt.
-
-I don't think that applications are relying at -EINVAL in order to detect if
-an ioctl is not supported, but before merging such patch, we need to double-check.
-
-Mauro.
+>
+> Hi Yu,
+> The designed architecture TV driver was not prepared for removal of VP, or
+> MIxer input nodes.
+> I decided only to allow flexible outputs because I knew 2 boards with
+> different output configuration (Goni - only SDO, Universal - HDMI and SDO).
+> I need more information about VP substitute before changing design of the
+> whole driver. Some of extensions could be applied by adding extra layer type
+> to existing layer_vp and layer_grp ones.
+>
+> Best regards
+> Tomasz Stanislawski
+>>
+>> N떑꿩�r툤y鉉싕b쾊Ф푤v�^�)頻{.n�+돴쪐{콡�bj)�鍊w* jgП� 텎쉸듶줷/곴�z받뻿�2듷솳鈺�&�)傘첺뛴�� 췍쳺�h�
+>> �j:+v돣둾�明
+>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>
