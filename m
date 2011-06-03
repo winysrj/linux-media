@@ -1,138 +1,78 @@
 Return-path: <mchehab@pedra>
-Received: from mailout2.w1.samsung.com ([210.118.77.12]:20307 "EHLO
-	mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753037Ab1F2Kzu (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 29 Jun 2011 06:55:50 -0400
-Received: from eu_spt1 (mailout2.w1.samsung.com [210.118.77.12])
- by mailout2.w1.samsung.com
- (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14 2004))
- with ESMTP id <0LNJ00JC2T11J4@mailout2.w1.samsung.com> for
- linux-media@vger.kernel.org; Wed, 29 Jun 2011 11:55:49 +0100 (BST)
-Received: from linux.samsung.com ([106.116.38.10])
- by spt1.w1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14
- 2004)) with ESMTPA id <0LNJ002E2T0ZZK@spt1.w1.samsung.com> for
- linux-media@vger.kernel.org; Wed, 29 Jun 2011 11:55:47 +0100 (BST)
-Date: Wed, 29 Jun 2011 12:55:27 +0200
-From: Marek Szyprowski <m.szyprowski@samsung.com>
-Subject: RE: [PATCH/RFC] media: vb2: change queue initialization order
-In-reply-to: <201106291244.48473.laurent.pinchart@ideasonboard.com>
-To: 'Laurent Pinchart' <laurent.pinchart@ideasonboard.com>
-Cc: linux-media@vger.kernel.org,
-	'Kyungmin Park' <kyungmin.park@samsung.com>,
-	'Pawel Osciak' <pawel@osciak.com>,
-	'Jonathan Corbet' <corbet@lwn.net>,
-	=?iso-8859-2?Q?'Uwe_Kleine-K=F6nig'?=
-	<u.kleine-koenig@pengutronix.de>,
-	'Hans Verkuil' <hverkuil@xs4all.nl>,
-	'Marin Mitov' <mitov@issp.bas.bg>,
-	'Guennadi Liakhovetski' <g.liakhovetski@gmx.de>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>
-Message-id: <001d01cc364b$0e5106a0$2af313e0$%szyprowski@samsung.com>
-MIME-version: 1.0
-Content-type: text/plain; charset=iso-8859-2
-Content-language: pl
-Content-transfer-encoding: 7BIT
-References: <1309340946-5658-1-git-send-email-m.szyprowski@samsung.com>
- <201106291244.48473.laurent.pinchart@ideasonboard.com>
+Received: from lo.gmane.org ([80.91.229.12]:40002 "EHLO lo.gmane.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754666Ab1FCN3s (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 3 Jun 2011 09:29:48 -0400
+Received: from list by lo.gmane.org with local (Exim 4.69)
+	(envelope-from <gldv-linux-media@m.gmane.org>)
+	id 1QSURe-0000Gb-FI
+	for linux-media@vger.kernel.org; Fri, 03 Jun 2011 15:29:46 +0200
+Received: from 193.160.199.2 ([193.160.199.2])
+        by main.gmane.org with esmtp (Gmexim 0.1 (Debian))
+        id 1AlnuQ-0007hv-00
+        for <linux-media@vger.kernel.org>; Fri, 03 Jun 2011 15:29:46 +0200
+Received: from bjorn by 193.160.199.2 with local (Gmexim 0.1 (Debian))
+        id 1AlnuQ-0007hv-00
+        for <linux-media@vger.kernel.org>; Fri, 03 Jun 2011 15:29:46 +0200
+To: linux-media@vger.kernel.org
+From: =?utf-8?Q?Bj=C3=B8rn_Mork?= <bjorn@mork.no>
+Subject: Re: [GIT PULL FOR 2.6.40] PCTV nanoStick T2 290e (Sony CXD2820R DVB-T/T2/C)
+Date: Fri, 03 Jun 2011 15:29:31 +0200
+Message-ID: <8762onxcuc.fsf@nemi.mork.no>
+References: <4DDD69AE.3070606@iki.fi> <4DE63E43.1090208@redhat.com>
+	<4DE8D4CD.7070708@iki.fi>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 8bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Hello,
+Antti Palosaari <crope@iki.fi> writes:
+> On 06/01/2011 04:27 PM, Mauro Carvalho Chehab wrote:
+>> Em 25-05-2011 17:42, Antti Palosaari escreveu:
+>>> Antti Palosaari (7):
+>>>        em28xx-dvb: add module param "options" and use it for LNA
+>>
+>> That patch is ugly, for several reasons:
+>>
+>> 1) we don't want a generic "options" parameter, whose meaning changes from
+>>     device to devices;
+>
+> I agree it is not proper solution, but in my mind it is better to
+> offer some solution than no solution at all.
+>
+>> 2) what happens if someone has two em28xx devices plugged?
+>
+> It depends depends devices, currently only nanoStick T2 only looks
+> that param, other just ignore. If there is two nanoStics then both
+> have same LNA settings.
+>
+> That's just like same behaviour as for example remote controller
+> polling. Or for example DiBcom driver LNA, since it does have similar
+> module param already. Will you you commit it if I rename it similarly
+> as DiBcom?
+>
+>> 3) the better would be to detect if LNA is needed, or to add a DVBS2API
+>>     call to enable/disable LNA.
+>
+> True, but it needs some research. There is many hardware which gets
+> signal input from demod or tuner and makes some fine tune according to
+> that. We need to define some new callbacks for demod and tuner in
+> order to do this kind of actions.
+> Or just add new LNA param to API use it manually.
 
-On Wednesday, June 29, 2011 12:45 PM Laurent Pinchart wrote:
 
-> On Wednesday 29 June 2011 11:49:06 Marek Szyprowski wrote:
-> > This patch introduces VB2_STREAMON_WITHOUT_BUFFERS io flag and changes
-> > the order of operations during stream on operation. Now the buffer are
-> > first queued to the driver and then the start_streaming method is called.
-> > This resolves the most common case when the driver needs to know buffer
-> > addresses to enable dma engine and start streaming. For drivers that can
-> > handle start_streaming without queued buffers (mem2mem and 'one shot'
-> > capture case) a new VB2_STREAMON_WITHOUT_BUFFERS io flag has been
-> > introduced. Driver can set it to let videobuf2 know that it support this
-> > mode.
-> 
-> Is starting/stopping DMA engines that expensive on most hardware ?
-> Several
-> mails mentioned that drivers should keep one buffer around to avoid
-> stopping
-> the DMA engine in case of buffer underrun. The OMAP3 ISP driver just stops
-> the
-> ISP when it runs out of buffers, and restart it when a new buffer is queued.
-> Switching the order of the start_streaming and __enqueue_in_driver calls
-> would
-> make my life more difficult on the OMAP3 because I will have to check if
-> the
-> queue is streaming in the qbuf callback. Your s5p-fimc driver has to check
-> for
-> that as well. I wonder if it really helps for other drivers.
+Or option 
+4) just enable the LNA unconditionally.  
 
-I'm not an expert, but it looks that most drivers for consumer cards doesn't
-stop/suspend dma engine until streamoff is called. I would also like to get
-some more feedback on this issue.
+I did some testing in my environment, and I was unable to tune anything
+on either DVB-T or DVB-C without the LNA enabled.  I'm of course aware
+that this depends on your signal, but have you actually seen a real life
+signal where tuning fails with the LNA enabled and works without it?
 
-> > This patch also updates videobuf2 clients (s5p-fimc, mem2mem_testdev and
-> > vivi) to work properly with the changed order of operations and enables
-> > use of the newly introduced flag.
-> >
-> > Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
-> > Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
-> > Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
-> > CC: Pawel Osciak <pawel@osciak.com>
-> > ---
-> >
-> >  drivers/media/video/mem2mem_testdev.c       |    4 +-
-> >  drivers/media/video/s5p-fimc/fimc-capture.c |   65
-> > ++++++++++++++++----------
-> > drivers/media/video/s5p-fimc/fimc-core.c    |    4 +-
-> >  drivers/media/video/videobuf2-core.c        |   21 ++++-----
-> >  drivers/media/video/vivi.c                  |    2 +-
-> >  include/media/videobuf2-core.h              |   11 +++--
-> >  6 files changed, 62 insertions(+), 45 deletions(-)
-> >
-> >
-> > ---
-> >
-> > Hello,
-> >
-> > This patch introduces significant changes in the vb2 streamon operation,
-> > so all vb2 clients need to be checked and updated. Right now I didn't
-> > update mx3_camera and sh_mobile_ceu_camera drivers. Once we agree that
-> > this patch can be merged, I will update it to include all the required
-> > changes to these two drivers as well.
-> >
-> > Best regards
-> > --
-> > Marek Szyprowski
-> > Samsung Poland R&D Center
-> 
-> [snip]
-> 
-> > diff --git a/drivers/media/video/vivi.c b/drivers/media/video/vivi.c
-> > index 2238a61..e740a44 100644
-> > --- a/drivers/media/video/vivi.c
-> > +++ b/drivers/media/video/vivi.c
-> > @@ -1232,7 +1232,7 @@ static int __init vivi_create_instance(int inst)
-> >         q = &dev->vb_vidq;
-> >         memset(q, 0, sizeof(dev->vb_vidq));
-> >         q->type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
-> > -       q->io_modes = VB2_MMAP | VB2_USERPTR | VB2_READ;
-> > +       q->io_modes = VB2_MMAP | VB2_READ | VB2_STREAMON_WITHOUT_BUFFERS;
-> 
-> Why do you remove VB2_USERPTR support from vivi ?
+I do believe that my DVB-C signal at least is pretty strong.
 
-Huh, this should go as a separate patch. vmalloc allocator still lacks support
-for user pointer mode so there is no point advertising that vivi supports it.
 
-> 
-> >         q->drv_priv = dev;
-> >         q->buf_struct_size = sizeof(struct vivi_buffer);
-> >         q->ops = &vivi_video_qops;
 
-Best regards
--- 
-Marek Szyprowski
-Samsung Poland R&D Center
-
+Bjørn
 
