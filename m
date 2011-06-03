@@ -1,73 +1,61 @@
 Return-path: <mchehab@pedra>
-Received: from mail-iy0-f174.google.com ([209.85.210.174]:47624 "EHLO
-	mail-iy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756346Ab1F0Gbg (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 27 Jun 2011 02:31:36 -0400
-Received: by iyb12 with SMTP id 12so3830580iyb.19
-        for <linux-media@vger.kernel.org>; Sun, 26 Jun 2011 23:31:36 -0700 (PDT)
+Received: from mail.kapsi.fi ([217.30.184.167]:54410 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754477Ab1FCMeY (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 3 Jun 2011 08:34:24 -0400
+Message-ID: <4DE8D4CD.7070708@iki.fi>
+Date: Fri, 03 Jun 2011 15:34:21 +0300
+From: Antti Palosaari <crope@iki.fi>
 MIME-Version: 1.0
-In-Reply-To: <1309125622.5421.15.camel@wide>
-References: <4DFFA7B6.9070906@free.fr>
-	<4DFFA917.5060509@iki.fi>
-	<4E017D7D.4050307@free.fr>
-	<BANLkTimQymz5K6YhhUgPeWjMFkkVoU6j4A@mail.gmail.com>
-	<4E079E9F.7050004@free.fr>
-	<1309125622.5421.15.camel@wide>
-Date: Mon, 27 Jun 2011 08:31:35 +0200
-Message-ID: <BANLkTi=we3eOeFq6ru245i20e5uD-YRyMA@mail.gmail.com>
-Subject: Re: Updates to French scan files
-From: Johann Ollivier Lapeyre <johann.ollivierlapeyre@gmail.com>
-To: Alexis de Lattre <alexis@via.ecp.fr>
-Cc: mossroy <mossroy@free.fr>, linux-media@vger.kernel.org,
-	Christoph Pfister <christophpfister@gmail.com>,
-	n_estre@yahoo.fr, alkahan@free.fr, ben@geexbox.org,
-	xavier@dalaen.com, jean-michel.baudrey@orange.fr,
-	lissyx@dyndns.org, sylvestre.cartier@gmail.com,
-	brossard.damien@gmail.com, jean-michel-62@orange.fr
-Content-Type: text/plain; charset=ISO-8859-1
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+CC: linux-media@vger.kernel.org,
+	Steve Kerrison <steve@stevekerrison.com>,
+	Dan Carpenter <error27@gmail.com>
+Subject: Re: [GIT PULL FOR 2.6.40] PCTV nanoStick T2 290e (Sony CXD2820R DVB-T/T2/C)
+References: <4DDD69AE.3070606@iki.fi> <4DE63E43.1090208@redhat.com>
+In-Reply-To: <4DE63E43.1090208@redhat.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Dear LinuxTV friends,
+On 06/01/2011 04:27 PM, Mauro Carvalho Chehab wrote:
+> Em 25-05-2011 17:42, Antti Palosaari escreveu:
+>> Antti Palosaari (7):
+>>        em28xx-dvb: add module param "options" and use it for LNA
+>
+> That patch is ugly, for several reasons:
+>
+> 1) we don't want a generic "options" parameter, whose meaning changes from
+>     device to devices;
 
-> In order to simplify things, I would propose only ONE scan file with
-> offset -166, 0, 166, 333 and 500. OK, it will take more time for users
-> to run a scan (+66 %) compared to having a file with only offsets -166,
-> 0, 166 but at least we are sure to cover all the possible offset that
-> can be used in France, and we simplify things as much as we can for
-> users.
+I agree it is not proper solution, but in my mind it is better to offer 
+some solution than no solution at all.
 
-As a simple user regarding LinuxTV, i had to:
-1) Buy a TV card, and plug it
-2) Try TV software to "scan", and see this is not working
-3) google the issue and found a tuto
-4) try the tuto
-5) scan
-6) scream "this fucking card **** **** * ****" to everyone ( false, i
-keep it in my head)
+> 2) what happens if someone has two em28xx devices plugged?
 
-7 to 34) Iterate many many time between 3 and 6
+It depends depends devices, currently only nanoStick T2 only looks that 
+param, other just ignore. If there is two nanoStics then both have same 
+LNA settings.
 
-35) At least found the Freq in Mhz = 306 + (8 x N) + (0,166 x D) thing
-on an obscure and random forum
-36) take  an editor, my favorite scripting language, and program
-something to get the good file for Brest
-37) test a scan
-38) See this is not working
-39) scream " i don't know the **** others parameter like polarisation"
-(yes, still in my head)
-...
-87) Found how to finally get a working file for brest
-88) Send the Brest file to [i don't remember], and Alexis gently said
-he commited it.
+That's just like same behaviour as for example remote controller 
+polling. Or for example DiBcom driver LNA, since it does have similar 
+module param already. Will you you commit it if I rename it similarly as 
+DiBcom?
 
-I think this took me enough lifetime to say that +66% on scan is
-really not an issue. +66% is good, even 200% is good!
-1) You launch the scan, and see how it's progressing
-2) take a coffee and read some news on the net.
-3) And finally enjoy the fact the card found all TV channel.
-4) At the end, say to the world "the linux/linux-media developers are
-fu***** good"
+> 3) the better would be to detect if LNA is needed, or to add a DVBS2API
+>     call to enable/disable LNA.
 
-IMHO, this is a much better process ;-)
+True, but it needs some research. There is many hardware which gets 
+signal input from demod or tuner and makes some fine tune according to 
+that. We need to define some new callbacks for demod and tuner in order 
+to do this kind of actions.
+Or just add new LNA param to API use it manually.
+
+
+regards,
+Antti
+
+
+-- 
+http://palosaari.fi/
