@@ -1,79 +1,92 @@
 Return-path: <mchehab@pedra>
-Received: from am1ehsobe005.messaging.microsoft.com ([213.199.154.208]:54071
-	"EHLO AM1EHSOBE005.bigfish.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750998Ab1FFKJk (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 6 Jun 2011 06:09:40 -0400
-Date: Mon, 6 Jun 2011 12:09:51 +0200
-From: "Roedel, Joerg" <Joerg.Roedel@amd.com>
-To: Ohad Ben-Cohen <ohad@wizery.com>
-CC: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	"linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>,
-	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
-	"linux-arm-kernel@lists.infradead.org"
-	<linux-arm-kernel@lists.infradead.org>,
-	"laurent.pinchart@ideasonboard.com"
-	<laurent.pinchart@ideasonboard.com>,
-	"Hiroshi.DOYU@nokia.com" <Hiroshi.DOYU@nokia.com>,
-	"arnd@arndb.de" <arnd@arndb.de>,
-	"davidb@codeaurora.org" <davidb@codeaurora.org>
-Subject: Re: [RFC 0/6] iommu: generic api migration and grouping
-Message-ID: <20110606100950.GC30762@amd.com>
-References: <1307053663-24572-1-git-send-email-ohad@wizery.com>
+Received: from metis.ext.pengutronix.de ([92.198.50.35]:40297 "EHLO
+	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754763Ab1FCTuc (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 3 Jun 2011 15:50:32 -0400
+Date: Fri, 3 Jun 2011 21:50:22 +0200
+From: Uwe =?iso-8859-1?Q?Kleine-K=F6nig?=
+	<u.kleine-koenig@pengutronix.de>
+To: Mauro Carvalho Chehab <mchehab@infradead.org>
+Cc: Kyungmin Park <kmpark@infradead.org>, linux-media@vger.kernel.org,
+	kernel@pengutronix.de, Pawel Osciak <pawel@osciak.com>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	Marek Szyprowski <m.szyprowski@samsung.com>,
+	Jeremy Kerr <jk@ozlabs.org>
+Subject: Re: [PATCH] [media] V4L/videobuf2-memops: use pr_debug for debug
+ messages
+Message-ID: <20110603195022.GF9907@pengutronix.de>
+References: <1306959563-7108-1-git-send-email-u.kleine-koenig@pengutronix.de>
+ <BANLkTimG=xP7qvpN7G8+Mmmy-JozEpyPNw@mail.gmail.com>
+ <4DE6E8A7.2080305@infradead.org>
+ <20110603073908.GC9907@pengutronix.de>
+ <4DE90048.2060407@infradead.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset=utf-8
 Content-Disposition: inline
-In-Reply-To: <1307053663-24572-1-git-send-email-ohad@wizery.com>
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <4DE90048.2060407@infradead.org>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Hi,
+Hello Mauro,
 
-On Thu, Jun 02, 2011 at 06:27:37PM -0400, Ohad Ben-Cohen wrote:
-> First stab at iommu consolidation:
+On Fri, Jun 03, 2011 at 12:39:52PM -0300, Mauro Carvalho Chehab wrote:
+> Em 03-06-2011 04:39, Uwe Kleine-König escreveu:
+> > Hello Mauro,
+> > 
+> > On Wed, Jun 01, 2011 at 10:34:31PM -0300, Mauro Carvalho Chehab wrote:
+> >> Hi Kyungmin,
+> >>
+> >> Em 01-06-2011 21:50, Kyungmin Park escreveu:
+> >>> Acked-by: Kyungmin Park <kyunginn.,park@samsung.com>
+> >>
+> >> As this patch is really trivial and makes sense, I've just applied it earlier
+> >> today.
+> > You somehow screwed up my name in the Author field more than I'm used
+> > to:
+> > 
+> >  $ git cat-file commit 215c52702775556f4caf5872cc84fa8810e6fc7d | grep Uwe
+> >  author Uwe Kleine-KÃƒÆ’Ã‚Â¶nig <u.kleine-koenig@pengutronix.de> 1306959562 -0300
+> >  Signed-off-by: Uwe Kleine-König <u.kleine-koenig@pengutronix.de>
+> > 
+> > Strange enough my name in the commitlog looks fine.
 > 
-> - Migrate OMAP's iommu driver to the generic iommu API. With this in hand,
->   users can now start using the generic iommu layer instead of calling
->   omap-specific iommu API.
+> You should thank Python for that. We use patchwork to retrieve patches. It is written
+> in Python. Python seems to have serious troubles handling anything that it is not pure
+> ASCII. In the past, a non-north-american name in Patchwork would be simply discarded,
+> as python used to abort patchwork. Lots of locale-fix patches later trying to address
+> this issue and now, it sometimes do the right thing.
+I added Jeremy Kerr to Cc:, maybe he is interested to look into that.
+
+> > If you care to fix it, you can easily do so using git filter-branch.
+> > E.g.:
+> > 
+> > 	$ git filter-branch --env-filter 'test "x$GIT_COMMIT" != "x215c52702775556f4caf5872cc84fa8810e6fc7d" || { GIT_AUTHOR_NAME="Uwe Kleine-König"; export GIT_AUTHOR_NAME; }' ^215c5270277^ HEAD
+> > 
+> > (Assuming an UTF-8 locale.)
+> > 
+> > This converts 215c527 to a commit c6cbbfc that has my name fixed and
+> > rebases all following commits on top of this. In your master branch this
+> > only affects "00c4526 (Merge /home/v4l/v4l/for_upstream)"
 > 
->   New code that requires functionality missing from the generic iommu api,
->   will add that functionality in the generic framework (e.g. adding framework
->   awareness to multi page sizes, supported by the underlying hardware, will
->   avoid the otherwise-inevitable code duplication when mapping a memory
->   region).
+> This breaks merge. 
+> 
+> $ git push
+> To /home/v4l/bare_trees/v4l-dvb.git/
+>  ! [rejected]        staging/for_v3.0 -> staging/for_v3.0 (non-fast-forward)
+> 
+> 
+> Fortunately, as the patches on this branch are meant to go to v3.1,
+> I just renamed the branch to staging/for_v3.1, keeping the wrong patch
+> at the old branch. This way, the need of rebasing was avoided.
+I don't get what you mean here. Which merge is broken? Just in case you
+didn't know, git push -f should be able to overwrite the remote branch,
+with all the downside that brings that with it.
 
-The IOMMU-API already supports multiple page-sizes. See the
-'order'-parameter of the map/unmap functions.
-
->   Further generalizing of iovmm strongly depends on our broader plans for
->   providing a generic virtual memory manager and allocation framework
->   (which, as discussed, should be separated from a specific mapper).
-
-The generic vmm for DMA is called DMA-API :) Any reason for not using
-that (those reasons should be fixed)?
-
->   iovmm has a mainline user: omap3isp, and therefore must be maintained,
->   but new potential users will either have to generalize it, or come up
->   with a different generic framework that will replace it.
-
-Moving to the DMA-API should be considered here. If it is too much work
-iovmm can stay for a while, but the goal should be to get rid of it and
-only use the DMA-API.
-
-> - Create a dedicated iommu drivers folder (and put the base iommu code there)
-
-Very good idea.
-
-
-	Joerg
-
-P.S.: Please also Cc the iommu-list (iommu@lists.linux-foundation.org)
-      in the future for IOMMU related patches.
+Best regards and thanks
+Uwe
 
 -- 
-AMD Operating System Research Center
-
-Advanced Micro Devices GmbH Einsteinring 24 85609 Dornach
-General Managers: Alberto Bozzo, Andrew Bowd
-Registration: Dornach, Landkr. Muenchen; Registerger. Muenchen, HRB Nr. 43632
-
+Pengutronix e.K.                           | Uwe Kleine-König            |
+Industrial Linux Solutions                 | http://www.pengutronix.de/  |
