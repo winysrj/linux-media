@@ -1,72 +1,61 @@
 Return-path: <mchehab@pedra>
-Received: from moutng.kundenserver.de ([212.227.126.171]:51619 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755956Ab1FFRWG (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 6 Jun 2011 13:22:06 -0400
-Received: from localhost (localhost [127.0.0.1])
-	by axis700.grange (Postfix) with ESMTP id C0352189B77
-	for <linux-media@vger.kernel.org>; Mon,  6 Jun 2011 19:22:04 +0200 (CEST)
-Date: Mon, 6 Jun 2011 19:22:04 +0200 (CEST)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: [PATCH] V4L: soc-camera: remove now unused soc-camera .enum_input()
- operation
-Message-ID: <Pine.LNX.4.64.1106061921260.11169@axis700.grange>
+Received: from mx1.redhat.com ([209.132.183.28]:45924 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755136Ab1FCNWP (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 3 Jun 2011 09:22:15 -0400
+Message-ID: <4DE8E018.7070007@redhat.com>
+Date: Fri, 03 Jun 2011 15:22:32 +0200
+From: Hans de Goede <hdegoede@redhat.com>
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+To: John McMaster <johndmcmaster@gmail.com>
+CC: linux-media@vger.kernel.org
+Subject: Re: Anchor Chips V4L2 driver
+References: <4DE873B4.4050306@gmail.com> <4DE8D065.7020502@redhat.com>
+In-Reply-To: <4DE8D065.7020502@redhat.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Also this functionality should be implemented, if needed, using the
-v4l2-subdev API.
+Hi,
 
-Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
----
- drivers/media/video/soc_camera.c |   13 ++++---------
- include/media/soc_camera.h       |    1 -
- 2 files changed, 4 insertions(+), 10 deletions(-)
+On 06/03/2011 02:15 PM, Mauro Carvalho Chehab wrote:
+> Em 03-06-2011 02:40, John McMaster escreveu:
+>> I'd like to write a driver for an Anchor Chips (seems to be bought by
+>> Cypress) USB camera Linux driver sold as an AmScope MD1800.  It seems
+>> like this implies I need to write a V4L2 driver.  The camera does not
+>> seem its currently supported (checked on Fedora 13 / 2.6.34.8) and I did
+>> not find any information on it in mailing list archives.  Does anyone
+>> know or can help me identify if a similar camera might already be
+>> supported?
+>
+> I've no idea. Better to wait for a couple days for developers to manifest
+> about that, if they're already working on it.
+>
+>> lsusb gives the following output:
+>>
+>> Bus 001 Device 111: ID 0547:4d88 Anchor Chips, Inc.
+>>
+>> I've started reading the "Video for Linux Two API Specification" which
+>> seems like a good starting point and will move onto using source code as
+>> appropriate.  Any help would be appreciated.  Thanks!
+>
+> You'll find other useful information at linuxtv.org wiki page. The better
+> is to write it as a sub-driver for gspca. The gspca core have already all
+> that it is needed for cameras. So, you'll need to focus only at the device-specific
+> stuff.
 
-diff --git a/drivers/media/video/soc_camera.c b/drivers/media/video/soc_camera.c
-index 3988643..faf1e6c 100644
---- a/drivers/media/video/soc_camera.c
-+++ b/drivers/media/video/soc_camera.c
-@@ -199,20 +199,15 @@ static int soc_camera_try_fmt_vid_cap(struct file *file, void *priv,
- static int soc_camera_enum_input(struct file *file, void *priv,
- 				 struct v4l2_input *inp)
- {
--	struct soc_camera_device *icd = file->private_data;
- 	int ret = 0;
- 
- 	if (inp->index != 0)
- 		return -EINVAL;
- 
--	if (icd->ops->enum_input)
--		ret = icd->ops->enum_input(icd, inp);
--	else {
--		/* default is camera */
--		inp->type = V4L2_INPUT_TYPE_CAMERA;
--		inp->std  = V4L2_STD_UNKNOWN;
--		strcpy(inp->name, "Camera");
--	}
-+	/* default is camera */
-+	inp->type = V4L2_INPUT_TYPE_CAMERA;
-+	inp->std  = V4L2_STD_UNKNOWN;
-+	strcpy(inp->name, "Camera");
- 
- 	return ret;
- }
-diff --git a/include/media/soc_camera.h b/include/media/soc_camera.h
-index 790f422..5a26d4e 100644
---- a/include/media/soc_camera.h
-+++ b/include/media/soc_camera.h
-@@ -206,7 +206,6 @@ struct soc_camera_ops {
- 	int (*resume)(struct soc_camera_device *);
- 	unsigned long (*query_bus_param)(struct soc_camera_device *);
- 	int (*set_bus_param)(struct soc_camera_device *, unsigned long);
--	int (*enum_input)(struct soc_camera_device *, struct v4l2_input *);
- 	const struct v4l2_queryctrl *controls;
- 	int num_controls;
- };
--- 
-1.7.2.5
+I can second that you should definitely use gspca for usb webcam(ish) device
+drivers. As for how to go about this, first of all grep through the windows drivers
+for strings which may hint on the actual bridge chip used, chances are good
+there is an already supported bridge inside the camera.
 
+If not then make usb dumps, and start reverse engineering ...
+
+Usually it is enough to replay the windows init sequence to get the device
+to stream over either an bulk or iso endpoint, and then it is time to
+figure out what that stream contains (jpeg, raw bayer, some custom format ???)
+
+Regards,
+
+Hans
