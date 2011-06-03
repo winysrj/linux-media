@@ -1,58 +1,141 @@
 Return-path: <mchehab@pedra>
-Received: from smtp-vbr6.xs4all.nl ([194.109.24.26]:4682 "EHLO
-	smtp-vbr6.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754323Ab1FNHOx (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 14 Jun 2011 03:14:53 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
+Received: from mail.juropnet.hu ([212.24.188.131]:36922 "EHLO mail.juropnet.hu"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755846Ab1FCO0h (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 3 Jun 2011 10:26:37 -0400
+Received: from [94.248.227.103]
+	by mail.juropnet.hu with esmtps (TLS1.0:DHE_RSA_AES_256_CBC_SHA1:32)
+	(Exim 4.69)
+	(envelope-from <istvan_v@mailbox.hu>)
+	id 1QSUqT-0003LM-Qa
+	for linux-media@vger.kernel.org; Fri, 03 Jun 2011 15:55:31 +0200
+Message-ID: <4DE8E7CC.1060200@mailbox.hu>
+Date: Fri, 03 Jun 2011 15:55:24 +0200
+From: "istvan_v@mailbox.hu" <istvan_v@mailbox.hu>
+MIME-Version: 1.0
 To: linux-media@vger.kernel.org
-Cc: Mike Isely <isely@isely.net>, Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [RFCv6 PATCH 04/10] pvrusb2: fix g/s_tuner support.
-Date: Tue, 14 Jun 2011 09:14:36 +0200
-Message-Id: <3cc586adf9fd70cb319bc3bcad1e7b20c13faab0.1308035134.git.hans.verkuil@cisco.com>
-In-Reply-To: <1308035682-20447-1-git-send-email-hverkuil@xs4all.nl>
-References: <1308035682-20447-1-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <eff4df001ab17e78b7413b9ed51661777523dbac.1308035134.git.hans.verkuil@cisco.com>
-References: <eff4df001ab17e78b7413b9ed51661777523dbac.1308035134.git.hans.verkuil@cisco.com>
+Subject: XC4000: updated standards table
+References: <4D764337.6050109@email.cz>	<20110531124843.377a2a80@glory.local>	<BANLkTi=Lq+FF++yGhRmOa4NCigSt6ZurHg@mail.gmail.com>	<20110531174323.0f0c45c0@glory.local> <BANLkTimEEGsMP6PDXf5W5p9wW7wdWEEOiA@mail.gmail.com>
+In-Reply-To: <BANLkTimEEGsMP6PDXf5W5p9wW7wdWEEOiA@mail.gmail.com>
+Content-Type: multipart/mixed;
+ boundary="------------010803020708060507030706"
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+This is a multi-part message in MIME format.
+--------------010803020708060507030706
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 
-The tuner-core subdev requires that the type field of v4l2_tuner is
-filled in correctly. This is done in v4l2-ioctl.c, but pvrusb2 doesn't
-use that yet, so we have to do it manually based on whether the current
-input is radio or not.
+This patch makes the following changes to the standards table:
+  - added 'u16 int_freq' to struct XC_TV_STANDARD (needed for analog TV
+    and radio, 0 for DVB-T)
+  - added new standard for SECAM-D/K video with PAL-D/K audio
+  - the 'int_freq' values are now specified in the table
+  - changed VideoMode for NTSC and PAL-B/G standards
 
-Tested with my pvrusb2.
+Signed-off-by: Istvan Varga <istvan_v@mailbox.hu>
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- drivers/media/video/pvrusb2/pvrusb2-hdw.c |    4 ++++
- 1 files changed, 4 insertions(+), 0 deletions(-)
 
-diff --git a/drivers/media/video/pvrusb2/pvrusb2-hdw.c b/drivers/media/video/pvrusb2/pvrusb2-hdw.c
-index 9d0dd08..e98d382 100644
---- a/drivers/media/video/pvrusb2/pvrusb2-hdw.c
-+++ b/drivers/media/video/pvrusb2/pvrusb2-hdw.c
-@@ -3046,6 +3046,8 @@ static void pvr2_subdev_update(struct pvr2_hdw *hdw)
- 	if (hdw->input_dirty || hdw->audiomode_dirty || hdw->force_dirty) {
- 		struct v4l2_tuner vt;
- 		memset(&vt, 0, sizeof(vt));
-+		vt.type = (hdw->input_val == PVR2_CVAL_INPUT_RADIO) ?
-+			V4L2_TUNER_RADIO : V4L2_TUNER_ANALOG_TV;
- 		vt.audmode = hdw->audiomode_val;
- 		v4l2_device_call_all(&hdw->v4l2_dev, 0, tuner, s_tuner, &vt);
- 	}
-@@ -5171,6 +5173,8 @@ void pvr2_hdw_status_poll(struct pvr2_hdw *hdw)
- {
- 	struct v4l2_tuner *vtp = &hdw->tuner_signal_info;
- 	memset(vtp, 0, sizeof(*vtp));
-+	vtp->type = (hdw->input_val == PVR2_CVAL_INPUT_RADIO) ?
-+		V4L2_TUNER_RADIO : V4L2_TUNER_ANALOG_TV;
- 	hdw->tuner_signal_stale = 0;
- 	/* Note: There apparently is no replacement for VIDIOC_CROPCAP
- 	   using v4l2-subdev - therefore we can't support that AT ALL right
--- 
-1.7.1
+--------------010803020708060507030706
+Content-Type: text/x-patch;
+ name="xc4000_standards.patch"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: attachment;
+ filename="xc4000_standards.patch"
 
+diff -uNr xc4000_orig/drivers/media/common/tuners/xc4000.c xc4000/drivers/media/common/tuners/xc4000.c
+--- xc4000_orig/drivers/media/common/tuners/xc4000.c	2011-06-03 14:33:40.000000000 +0200
++++ xc4000/drivers/media/common/tuners/xc4000.c	2011-06-03 15:41:55.000000000 +0200
+@@ -94,7 +94,7 @@
+ };
+ 
+ /* Misc Defines */
+-#define MAX_TV_STANDARD			23
++#define MAX_TV_STANDARD			24
+ #define XC_MAX_I2C_WRITE_LENGTH		64
+ 
+ /* Signal Types */
+@@ -172,6 +172,7 @@
+ 	const char  *Name;
+ 	u16	    AudioMode;
+ 	u16	    VideoMode;
++	u16	    int_freq;
+ };
+ 
+ /* Tuner standards */
+@@ -190,39 +191,41 @@
+ #define XC4000_DK_SECAM_A2DK1		12
+ #define XC4000_DK_SECAM_A2LDK3		13
+ #define XC4000_DK_SECAM_A2MONO		14
+-#define XC4000_L_SECAM_NICAM		15
+-#define XC4000_LC_SECAM_NICAM		16
+-#define XC4000_DTV6			17
+-#define XC4000_DTV8			18
+-#define XC4000_DTV7_8			19
+-#define XC4000_DTV7			20
+-#define XC4000_FM_Radio_INPUT2		21
+-#define XC4000_FM_Radio_INPUT1	22
++#define XC4000_DK_SECAM_NICAM		15
++#define XC4000_L_SECAM_NICAM		16
++#define XC4000_LC_SECAM_NICAM		17
++#define XC4000_DTV6			18
++#define XC4000_DTV8			19
++#define XC4000_DTV7_8			20
++#define XC4000_DTV7			21
++#define XC4000_FM_Radio_INPUT2		22
++#define XC4000_FM_Radio_INPUT1		23
+ 
+ static struct XC_TV_STANDARD XC4000_Standard[MAX_TV_STANDARD] = {
+-	{"M/N-NTSC/PAL-BTSC", 0x0000, 0x8020},
+-	{"M/N-NTSC/PAL-A2",   0x0000, 0x8020},
+-	{"M/N-NTSC/PAL-EIAJ", 0x0040, 0x8020},
+-	{"M/N-NTSC/PAL-Mono", 0x0078, 0x8020},
+-	{"B/G-PAL-A2",        0x0000, 0x8059},
+-	{"B/G-PAL-NICAM",     0x0004, 0x8059},
+-	{"B/G-PAL-MONO",      0x0078, 0x8059},
+-	{"I-PAL-NICAM",       0x0080, 0x8049},
+-	{"I-PAL-NICAM-MONO",  0x0078, 0x8049},
+-	{"D/K-PAL-A2",        0x0000, 0x8049},
+-	{"D/K-PAL-NICAM",     0x0080, 0x8049},
+-	{"D/K-PAL-MONO",      0x0078, 0x8049},
+-	{"D/K-SECAM-A2 DK1",  0x0000, 0x8049},
+-	{"D/K-SECAM-A2 L/DK3", 0x0000, 0x8049},
+-	{"D/K-SECAM-A2 MONO", 0x0078, 0x8049},
+-	{"L-SECAM-NICAM",     0x8080, 0x0009},
+-	{"L'-SECAM-NICAM",    0x8080, 0x4009},
+-	{"DTV6",              0x00C0, 0x8002},
+-	{"DTV8",              0x00C0, 0x800B},
+-	{"DTV7/8",            0x00C0, 0x801B},
+-	{"DTV7",              0x00C0, 0x8007},
+-	{"FM Radio-INPUT2",   0x0008, 0x9800},
+-	{"FM Radio-INPUT1",   0x0008, 0x9000}
++	{"M/N-NTSC/PAL-BTSC",	0x0000, 0x80A0, 4500},
++	{"M/N-NTSC/PAL-A2",	0x0000, 0x80A0, 4600},
++	{"M/N-NTSC/PAL-EIAJ",	0x0040, 0x80A0, 4500},
++	{"M/N-NTSC/PAL-Mono",	0x0078, 0x80A0, 4500},
++	{"B/G-PAL-A2",		0x0000, 0x8159, 5640},
++	{"B/G-PAL-NICAM",	0x0004, 0x8159, 5740},
++	{"B/G-PAL-MONO",	0x0078, 0x8159, 5500},
++	{"I-PAL-NICAM",		0x0080, 0x8049, 6240},
++	{"I-PAL-NICAM-MONO",	0x0078, 0x8049, 6000},
++	{"D/K-PAL-A2",		0x0000, 0x8049, 6380},
++	{"D/K-PAL-NICAM",	0x0080, 0x8049, 6200},
++	{"D/K-PAL-MONO",	0x0078, 0x8049, 6500},
++	{"D/K-SECAM-A2 DK1",	0x0000, 0x8049, 6340},
++	{"D/K-SECAM-A2 L/DK3",	0x0000, 0x8049, 6000},
++	{"D/K-SECAM-A2 MONO",	0x0078, 0x8049, 6500},
++	{"D/K-SECAM-NICAM",	0x0080, 0x8049, 6200},
++	{"L-SECAM-NICAM",	0x8080, 0x0009, 6200},
++	{"L'-SECAM-NICAM",	0x8080, 0x4009, 6200},
++	{"DTV6",		0x00C0, 0x8002,    0},
++	{"DTV8",		0x00C0, 0x800B,    0},
++	{"DTV7/8",		0x00C0, 0x801B,    0},
++	{"DTV7",		0x00C0, 0x8007,    0},
++	{"FM Radio-INPUT2",	0x0008, 0x9800,10700},
++	{"FM Radio-INPUT1",	0x0008, 0x9000,10700}
+ };
+ 
+ static int xc4000_readreg(struct xc4000_priv *priv, u16 reg, u16 *val);
+
+--------------010803020708060507030706--
