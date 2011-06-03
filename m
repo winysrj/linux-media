@@ -1,93 +1,100 @@
 Return-path: <mchehab@pedra>
-Received: from mail-wy0-f174.google.com ([74.125.82.174]:49983 "EHLO
-	mail-wy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750705Ab1FGFb4 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 7 Jun 2011 01:31:56 -0400
-Received: by wya21 with SMTP id 21so3284451wya.19
-        for <linux-media@vger.kernel.org>; Mon, 06 Jun 2011 22:31:55 -0700 (PDT)
-Subject: Re: DM04 USB DVB-S TUNER
-From: Malcolm Priestley <tvboxspy@gmail.com>
-To: Mehmet Altan Pire <baybesteci@gmail.com>
-Cc: linux-media@vger.kernel.org
-In-Reply-To: <4DED628E.9070502@gmail.com>
-References: <4DEACF3F.9090305@gmail.com>
-	 <1307283393.22968.12.camel@localhost> <4DEBB00D.4040202@gmail.com>
-	 <1307306576.2064.13.camel@localhost> <1307310455.2547.9.camel@localhost>
-	 <4DED628E.9070502@gmail.com>
-Content-Type: text/plain; charset="UTF-8"
-Date: Tue, 07 Jun 2011 06:31:41 +0100
-Message-ID: <1307424701.2117.13.camel@localhost>
-Mime-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Received: from perceval.ideasonboard.com ([95.142.166.194]:36664 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755850Ab1FCWC3 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 3 Jun 2011 18:02:29 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Subject: Re: [RFCv2 PATCH 08/11] v4l2-ctrls: simplify event subscription.
+Date: Fri, 3 Jun 2011 21:55:10 +0200
+Cc: linux-media@vger.kernel.org, Hans Verkuil <hans.verkuil@cisco.com>
+References: <1306330435-11799-1-git-send-email-hverkuil@xs4all.nl> <2993c04b0ba330b3f634e281a6b50ee8cd7e6f7c.1306329390.git.hans.verkuil@cisco.com>
+In-Reply-To: <2993c04b0ba330b3f634e281a6b50ee8cd7e6f7c.1306329390.git.hans.verkuil@cisco.com>
+MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="iso-8859-15"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201106032155.10808.laurent.pinchart@ideasonboard.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Tue, 2011-06-07 at 02:28 +0300, Mehmet Altan Pire wrote:
-> 06-06-2011 00:47, Malcolm Priestley yazmış:
-> > On Sun, 2011-06-05 at 21:42 +0100, Malcolm Priestley wrote:
-> >> On Sun, 2011-06-05 at 19:34 +0300, Mehmet Altan Pire wrote:
-> >>> 05-06-2011 17:16, Malcolm Priestley yazmış:
-> >>>> On Sun, 2011-06-05 at 03:35 +0300, Mehmet Altan Pire wrote:
-> >>>>> Hi,
-> >>>>> I have "DM04 USB DVBS TUNER", using ubuntu with v4l media-build
-> >>>>> drivers/modules but device  doesn't working (unknown device).
-> >>>>>
-> >>>>> lsusb message:
-> >>>>> ID 3344:22f0
-> >>>>>
-> >>>>> under of the box:
-> >>>>> DM04P2011050176
-> >>> Yes, i have windows xp driver, name is "US2B0D.sys" I sending it,
-> >>> attached in this mail. Thanks. 
-> >> Here is a modified lmedm04.c and lme2510b_fw.sh using the US2B0D.sys
-> >>
-> to modify the interrupt return.
-> >
+Hi Hans,
 
-> >
-> Ok, i tested it. Device recognized on WinXP with original driver, but tv
-> application says "no lock".
-> I'm not sure it worked on WinXP but driver cd is original and
-> succesfully loaded and recognized.
-> Again tested on ubuntu with new lmedm04.c and lme2510b_fw.sh than make,
-> make install, and restart.
+Thanks for the patch.
+
+On Wednesday 25 May 2011 15:33:52 Hans Verkuil wrote:
+> From: Hans Verkuil <hans.verkuil@cisco.com>
 > 
-> lsusb says:
-> Bus 001 Device 008: ID 3344:1120  (changes 22f0 to 1120)
-> dmesg says:
-Yes this should happen. The firmware will reboot with the correct id.
+> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+> ---
+>  drivers/media/video/v4l2-ctrls.c |   31 +++++++++++++++++++++++++++++++
+>  include/media/v4l2-ctrls.h       |   25 +++++++++++++++++++++++++
+>  2 files changed, 56 insertions(+), 0 deletions(-)
+> 
+> diff --git a/drivers/media/video/v4l2-ctrls.c
+> b/drivers/media/video/v4l2-ctrls.c index e2a7ac7..9807a20 100644
+> --- a/drivers/media/video/v4l2-ctrls.c
+> +++ b/drivers/media/video/v4l2-ctrls.c
+> @@ -831,6 +831,22 @@ int v4l2_ctrl_handler_init(struct v4l2_ctrl_handler
+> *hdl, }
+>  EXPORT_SYMBOL(v4l2_ctrl_handler_init);
+> 
+> +/* Count the number of controls */
+> +unsigned v4l2_ctrl_handler_cnt(struct v4l2_ctrl_handler *hdl)
+> +{
+> +	struct v4l2_ctrl_ref *ref;
+> +	unsigned cnt = 0;
+> +
+> +	if (hdl == NULL)
+> +		return 0;
+> +	mutex_lock(&hdl->lock);
+> +	list_for_each_entry(ref, &hdl->ctrl_refs, node)
+> +		cnt++;
 
-> [ 1281.102958] LME2510(C): Firmware Status: 6 (44)
-> [ 1281.107948] LME2510(C): FRM Loading dvb-usb-lme2510c-lg.fw file
-> [ 1281.107958] LME2510(C): FRM Starting Firmware Download
-> [ 1283.548064] LME2510(C): FRM Firmware Download Completed - Resetting
-> Device
-It found a LG tuner
+As you don't use the entry, you can replace list_for_each_entry with 
+list_for_each.
 
-remove the dvb-usb-lme2510c-lg.fw firmware file.
+Should the handler keep a controls count ? In that case you wouldn't need this 
+function.
 
-rename dvb-usb-lme2510c-s7395.fw to dvb-usb-lme2510c-lg.fw.
+> +	mutex_unlock(&hdl->lock);
+> +	return cnt;
+> +}
+> +EXPORT_SYMBOL(v4l2_ctrl_handler_cnt);
+> +
+>  /* Free all controls and control refs */
+>  void v4l2_ctrl_handler_free(struct v4l2_ctrl_handler *hdl)
+>  {
+> @@ -1999,3 +2015,18 @@ void v4l2_ctrl_del_fh(struct v4l2_ctrl *ctrl, struct
+> v4l2_fh *fh) v4l2_ctrl_unlock(ctrl);
+>  }
+>  EXPORT_SYMBOL(v4l2_ctrl_del_fh);
+> +
+> +int v4l2_ctrl_sub_fh(struct v4l2_fh *fh, struct v4l2_event_subscription
+> *sub, +		     unsigned n)
 
-> [ 1283.548221] usb 1-2: USB disconnect, address 7
-> [ 1283.792067] usb 1-2: new high speed USB device using ehci_hcd and
-> address 8
-> [ 1283.928354] usb 1-2: config 1 interface 0 altsetting 1 bulk endpoint
-> 0x81 has invalid maxpacket 64
-> [ 1283.928360] usb 1-2: config 1 interface 0 altsetting 1 bulk endpoint
-> 0x1 has invalid maxpacket 64
-> [ 1283.928364] usb 1-2: config 1 interface 0 altsetting 1 bulk endpoint
-> 0x2 has invalid maxpacket 64
-> [ 1283.929850] LME2510(C): Firmware Status: 6 (47)
-> [ 1283.929855] dvb-usb: found a 'DM04_LME2510C_DVB-S' in warm state.
-> [ 1283.954607] dvb-usb: will use the device's hardware PID filter (table
-> count: 15).
+I would rename this to v4l2_ctrl_subscribe_fh(). I had trouble understanding 
+what v4l2_ctrl_sub_fh() before reading the documentation. sub makes me think 
+about sub-devices and subtract, not subscription.
 
-> My device different or chip is damaged? Label, box and driver cd title
-> writes "DM04P". DM04 and DM04P different devices?
+> +{
+> +	int ret = 0;
+> +
+> +	if (!fh->events)
+> +		ret = v4l2_event_init(fh);
+> +	if (!ret)
+> +		ret = v4l2_event_alloc(fh, n);
+> +	if (!ret)
+> +		ret = v4l2_event_subscribe(fh, sub);
 
-I think the id of the chip is faulty or default.
+I tend to return errors when they occur instead of continuing to the end of 
+the function. Handling errors on the spot makes code easier to read in my 
+opinion, as I expect the main code flow to be the error-free path.
 
-I will test the firmware with LG tuner later.
+> +	return ret;
+> +}
 
-tvboxspy
+-- 
+Regards,
 
+Laurent Pinchart
