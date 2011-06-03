@@ -1,40 +1,39 @@
 Return-path: <mchehab@pedra>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:50929 "EHLO
+Received: from perceval.ideasonboard.com ([95.142.166.194]:36667 "EHLO
 	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751277Ab1FHL5z (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 8 Jun 2011 07:57:55 -0400
+	with ESMTP id S1753446Ab1FCWCa (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 3 Jun 2011 18:02:30 -0400
 From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Javier Martin <javier.martin@vista-silicon.com>
-Subject: Re: [PATCH v7 1/2] Add driver for Aptina (Micron) mt9p031 sensor.
-Date: Wed, 8 Jun 2011 13:57:51 +0200
-Cc: linux-media@vger.kernel.org, g.liakhovetski@gmx.de,
-	carlighting@yahoo.co.nz, beagleboard@googlegroups.com,
-	mch_kot@yahoo.com.cn
-References: <1307014603-22944-1-git-send-email-javier.martin@vista-silicon.com>
-In-Reply-To: <1307014603-22944-1-git-send-email-javier.martin@vista-silicon.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Subject: Re: [RFCv2 PATCH 05/11] v4l2-ctrls: add v4l2_fh pointer to the set control functions.
+Date: Fri, 3 Jun 2011 21:55:23 +0200
+Cc: linux-media@vger.kernel.org, Hans Verkuil <hans.verkuil@cisco.com>
+References: <1306330435-11799-1-git-send-email-hverkuil@xs4all.nl> <f3f32913df4962bdb541abe87348e561c5e6d325.1306329390.git.hans.verkuil@cisco.com>
+In-Reply-To: <f3f32913df4962bdb541abe87348e561c5e6d325.1306329390.git.hans.verkuil@cisco.com>
 MIME-Version: 1.0
 Content-Type: Text/Plain;
   charset="iso-8859-15"
 Content-Transfer-Encoding: 7bit
-Message-Id: <201106081357.51578.laurent.pinchart@ideasonboard.com>
+Message-Id: <201106032155.23482.laurent.pinchart@ideasonboard.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Hi Javier,
+Hi Hans,
 
-I'm testing your patch on a 2.6.39 kernel. Here's what I get when loading the 
-omap3-isp module.
+Thanks for the patch.
 
-root@arago:~# modprobe omap3-isp
-[  159.523681] omap3isp omap3isp: Revision 15.0 found
-[  159.528991] omap-iommu omap-iommu.0: isp: version 1.1
-[  159.875701] omap_i2c omap_i2c.2: Arbitration lost
-[  159.881622] mt9p031 2-0048: Failed to reset the camera
-[  159.887054] omap3isp omap3isp: Failed to power on: -5
-[  159.892425] mt9p031 2-0048: Failed to power on device: -5
-[  159.898956] isp_register_subdev_group: Unable to register subdev mt9p031
+On Wednesday 25 May 2011 15:33:49 Hans Verkuil wrote:
+> From: Hans Verkuil <hans.verkuil@cisco.com>
+> 
+> When an application changes a control you want to generate an event.
+> However, you want to avoid sending such an event back to the application
+> (file handle) that caused the change.
+> 
+> Add the filehandle to the various set control functions.
 
-Have you (or anyone else) seen that issue ?
+To implement per-file handle controls, the get/try functions will need the 
+file handle as well. Should this patch handle that, or do you want to postpone 
+it until a driver uses per-file handle controls ?
 
 -- 
 Regards,
