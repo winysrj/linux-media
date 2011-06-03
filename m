@@ -1,173 +1,135 @@
 Return-path: <mchehab@pedra>
-Received: from tex.lwn.net ([70.33.254.29]:54689 "EHLO vena.lwn.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752235Ab1FKRrG (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 11 Jun 2011 13:47:06 -0400
-From: Jonathan Corbet <corbet@lwn.net>
+Received: from smtp-vbr7.xs4all.nl ([194.109.24.27]:2325 "EHLO
+	smtp-vbr7.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752434Ab1FCIGQ (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 3 Jun 2011 04:06:16 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
 To: linux-media@vger.kernel.org
-Cc: g.liakhovetski@gmx.de, Kassey Lee <ygli@marvell.com>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Jonathan Corbet <corbet@lwn.net>
-Subject: [PATCH 5/8] marvell-cam: Move Cafe-specific register definitions to cafe-driver.c
-Date: Sat, 11 Jun 2011 11:46:46 -0600
-Message-Id: <1307814409-46282-6-git-send-email-corbet@lwn.net>
-In-Reply-To: <1307814409-46282-1-git-send-email-corbet@lwn.net>
-References: <1307814409-46282-1-git-send-email-corbet@lwn.net>
+Subject: Re: [RFCv1 PATCH 4/5] DocBook: document autoclusters.
+Date: Fri, 3 Jun 2011 10:06:11 +0200
+Cc: Hans Verkuil <hans.verkuil@cisco.com>
+References: <1306508275-9228-1-git-send-email-hverkuil@xs4all.nl> <078067fab856b8b055f1e0e5442489ffa4bebd8b.1306507763.git.hans.verkuil@cisco.com>
+In-Reply-To: <078067fab856b8b055f1e0e5442489ffa4bebd8b.1306507763.git.hans.verkuil@cisco.com>
+MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="iso-8859-15"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201106031006.11520.hverkuil@xs4all.nl>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Nobody else ever needs to see these, so let's hide them.
+On Friday, May 27, 2011 16:57:54 Hans Verkuil wrote:
+> From: Hans Verkuil <hans.verkuil@cisco.com>
+> 
+> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+> ---
+>  Documentation/video4linux/v4l2-controls.txt |   56 +++++++++++++++++++++++++++
+>  1 files changed, 56 insertions(+), 0 deletions(-)
+> 
+> diff --git a/Documentation/video4linux/v4l2-controls.txt b/Documentation/video4linux/v4l2-controls.txt
+> index 65d4652..6e277fe 100644
+> --- a/Documentation/video4linux/v4l2-controls.txt
+> +++ b/Documentation/video4linux/v4l2-controls.txt
+> @@ -452,6 +452,25 @@ In the example above the following are equivalent for the VOLUME case:
+>  	ctrl == ctrl->cluster[AUDIO_CL_VOLUME] == state->audio_cluster[AUDIO_CL_VOLUME]
+>  	ctrl->cluster[AUDIO_CL_MUTE] == state->audio_cluster[AUDIO_CL_MUTE]
+>  
+> +In practice using cluster arrays like this becomes very tiresome. So instead
+> +the following equivalent method is used:
+> +
+> +	struct {
+> +		/* audio cluster */
+> +		struct v4l2_ctrl *volume;
+> +		struct v4l2_ctrl *mute;
+> +	};
+> +
+> +The anonymous struct is used to clearly 'cluster' these two control pointers,
+> +but it serves no other purpose. The effect is the same as creating an
+> +array with two control pointers. So you can just do:
+> +
+> +	state->volume = v4l2_ctrl_new_std(&state->ctrl_handler, ...);
+> +	state->mute = v4l2_ctrl_new_std(&state->ctrl_handler, ...);
+> +	v4l2_ctrl_cluster(2, &state->volume);
+> +
+> +And in foo_s_ctrl you can use these pointers directly: state->mute->val.
+> +
+>  Note that controls in a cluster may be NULL. For example, if for some
+>  reason mute was never added (because the hardware doesn't support that
+>  particular feature), then mute will be NULL. So in that case we have a
+> @@ -474,6 +493,43 @@ controls, then the 'is_new' flag would be 1 for both controls.
+>  The 'is_new' flag is always 1 when called from v4l2_ctrl_handler_setup().
+>  
+>  
+> +Handling autogain/gain-type Controls with Auto Clusters
+> +=======================================================
+> +
+> +A common type of control cluster is one that handles 'auto-foo/foo'-type
+> +controls. Typical examples are autogain/gain, autoexposure/exposure,
+> +autowhitebalance/red balance/blue balance. In all cases you have one controls
+> +that determines whether another control is handled automatically by the hardware,
+> +or whether it is under manual control from the user.
+> +
+> +If the cluster is in automatic mode, then the manual controls should be
+> +marked read-only if they are volatile and inactive if they are non-volatile.
 
-Signed-off-by: Jonathan Corbet <corbet@lwn.net>
----
- drivers/media/video/marvell-ccic/cafe-driver.c |   63 ++++++++++++++++++++++++
- drivers/media/video/marvell-ccic/mcam-core.h   |   56 +---------------------
- 2 files changed, 64 insertions(+), 55 deletions(-)
+I have slept on this some more and I really don't like the idea of marking
+controls as read-only in this case. While this is fine in theory, in practice
+it leads to awkward situations.
 
-diff --git a/drivers/media/video/marvell-ccic/cafe-driver.c b/drivers/media/video/marvell-ccic/cafe-driver.c
-index 91ba74b..1027265 100644
---- a/drivers/media/video/marvell-ccic/cafe-driver.c
-+++ b/drivers/media/video/marvell-ccic/cafe-driver.c
-@@ -57,6 +57,69 @@ struct cafe_camera {
- };
- 
- /*
-+ * Most of the camera controller registers are defined in mcam-core.h,
-+ * but the Cafe platform has some additional registers of its own;
-+ * they are described here.
-+ */
-+
-+/*
-+ * "General purpose register" has a couple of GPIOs used for sensor
-+ * power and reset on OLPC XO 1.0 systems.
-+ */
-+#define REG_GPR		0xb4
-+#define	  GPR_C1EN	  0x00000020	/* Pad 1 (power down) enable */
-+#define	  GPR_C0EN	  0x00000010	/* Pad 0 (reset) enable */
-+#define	  GPR_C1	  0x00000002	/* Control 1 value */
-+/*
-+ * Control 0 is wired to reset on OLPC machines.  For ov7x sensors,
-+ * it is active low.
-+ */
-+#define	  GPR_C0	  0x00000001	/* Control 0 value */
-+
-+/*
-+ * These registers control the SMBUS module for communicating
-+ * with the sensor.
-+ */
-+#define REG_TWSIC0	0xb8	/* TWSI (smbus) control 0 */
-+#define	  TWSIC0_EN	  0x00000001	/* TWSI enable */
-+#define	  TWSIC0_MODE	  0x00000002	/* 1 = 16-bit, 0 = 8-bit */
-+#define	  TWSIC0_SID	  0x000003fc	/* Slave ID */
-+#define	  TWSIC0_SID_SHIFT 2
-+#define	  TWSIC0_CLKDIV	  0x0007fc00	/* Clock divider */
-+#define	  TWSIC0_MASKACK  0x00400000	/* Mask ack from sensor */
-+#define	  TWSIC0_OVMAGIC  0x00800000	/* Make it work on OV sensors */
-+
-+#define REG_TWSIC1	0xbc	/* TWSI control 1 */
-+#define	  TWSIC1_DATA	  0x0000ffff	/* Data to/from camchip */
-+#define	  TWSIC1_ADDR	  0x00ff0000	/* Address (register) */
-+#define	  TWSIC1_ADDR_SHIFT 16
-+#define	  TWSIC1_READ	  0x01000000	/* Set for read op */
-+#define	  TWSIC1_WSTAT	  0x02000000	/* Write status */
-+#define	  TWSIC1_RVALID	  0x04000000	/* Read data valid */
-+#define	  TWSIC1_ERROR	  0x08000000	/* Something screwed up */
-+
-+/*
-+ * Here's the weird global control registers
-+ */
-+#define REG_GL_CSR     0x3004  /* Control/status register */
-+#define	  GCSR_SRS	 0x00000001	/* SW Reset set */
-+#define	  GCSR_SRC	 0x00000002	/* SW Reset clear */
-+#define	  GCSR_MRS	 0x00000004	/* Master reset set */
-+#define	  GCSR_MRC	 0x00000008	/* HW Reset clear */
-+#define	  GCSR_CCIC_EN	 0x00004000    /* CCIC Clock enable */
-+#define REG_GL_IMASK   0x300c  /* Interrupt mask register */
-+#define	  GIMSK_CCIC_EN		 0x00000004    /* CCIC Interrupt enable */
-+
-+#define REG_GL_FCR	0x3038	/* GPIO functional control register */
-+#define	  GFCR_GPIO_ON	  0x08		/* Camera GPIO enabled */
-+#define REG_GL_GPIOR	0x315c	/* GPIO register */
-+#define	  GGPIO_OUT		0x80000	/* GPIO output */
-+#define	  GGPIO_VAL		0x00008	/* Output pin value */
-+
-+#define REG_LEN		       (REG_GL_IMASK + 4)
-+
-+
-+/*
-  * Debugging and related.
-  */
- #define cam_err(cam, fmt, arg...) \
-diff --git a/drivers/media/video/marvell-ccic/mcam-core.h b/drivers/media/video/marvell-ccic/mcam-core.h
-index 21485e7..e8a7de0 100644
---- a/drivers/media/video/marvell-ccic/mcam-core.h
-+++ b/drivers/media/video/marvell-ccic/mcam-core.h
-@@ -249,64 +249,10 @@ int mccic_resume(struct mcam_camera *cam);
- #define REG_CLKCTRL	0x88	/* Clock control */
- #define	  CLK_DIV_MASK	  0x0000ffff	/* Upper bits RW "reserved" */
- 
--#define REG_GPR		0xb4	/* General purpose register.  This
--				   controls inputs to the power and reset
--				   pins on the OV7670 used with OLPC;
--				   other deployments could differ.  */
--#define	  GPR_C1EN	  0x00000020	/* Pad 1 (power down) enable */
--#define	  GPR_C0EN	  0x00000010	/* Pad 0 (reset) enable */
--#define	  GPR_C1	  0x00000002	/* Control 1 value */
--/*
-- * Control 0 is wired to reset on OLPC machines.  For ov7x sensors,
-- * it is active low, for 0v6x, instead, it's active high.  What
-- * fun.
-- */
--#define	  GPR_C0	  0x00000001	/* Control 0 value */
--
--#define REG_TWSIC0	0xb8	/* TWSI (smbus) control 0 */
--#define	  TWSIC0_EN	  0x00000001	/* TWSI enable */
--#define	  TWSIC0_MODE	  0x00000002	/* 1 = 16-bit, 0 = 8-bit */
--#define	  TWSIC0_SID	  0x000003fc	/* Slave ID */
--#define	  TWSIC0_SID_SHIFT 2
--#define	  TWSIC0_CLKDIV	  0x0007fc00	/* Clock divider */
--#define	  TWSIC0_MASKACK  0x00400000	/* Mask ack from sensor */
--#define	  TWSIC0_OVMAGIC  0x00800000	/* Make it work on OV sensors */
--
--#define REG_TWSIC1	0xbc	/* TWSI control 1 */
--#define	  TWSIC1_DATA	  0x0000ffff	/* Data to/from camchip */
--#define	  TWSIC1_ADDR	  0x00ff0000	/* Address (register) */
--#define	  TWSIC1_ADDR_SHIFT 16
--#define	  TWSIC1_READ	  0x01000000	/* Set for read op */
--#define	  TWSIC1_WSTAT	  0x02000000	/* Write status */
--#define	  TWSIC1_RVALID	  0x04000000	/* Read data valid */
--#define	  TWSIC1_ERROR	  0x08000000	/* Something screwed up */
--
--
-+/* This appears to be a Cafe-only register */
- #define REG_UBAR	0xc4	/* Upper base address register */
- 
- /*
-- * Here's the weird global control registers which are said to live
-- * way up here.
-- */
--#define REG_GL_CSR     0x3004  /* Control/status register */
--#define	  GCSR_SRS	 0x00000001	/* SW Reset set */
--#define	  GCSR_SRC	 0x00000002	/* SW Reset clear */
--#define	  GCSR_MRS	 0x00000004	/* Master reset set */
--#define	  GCSR_MRC	 0x00000008	/* HW Reset clear */
--#define	  GCSR_CCIC_EN	 0x00004000    /* CCIC Clock enable */
--#define REG_GL_IMASK   0x300c  /* Interrupt mask register */
--#define	  GIMSK_CCIC_EN		 0x00000004    /* CCIC Interrupt enable */
--
--#define REG_GL_FCR	0x3038	/* GPIO functional control register */
--#define	  GFCR_GPIO_ON	  0x08		/* Camera GPIO enabled */
--#define REG_GL_GPIOR	0x315c	/* GPIO register */
--#define	  GGPIO_OUT		0x80000	/* GPIO output */
--#define	  GGPIO_VAL		0x00008	/* Output pin value */
--
--#define REG_LEN		       (REG_GL_IMASK + 4)
--
--
--/*
-  * Useful stuff that probably belongs somewhere global.
-  */
- #define VGA_WIDTH	640
--- 
-1.7.5.4
+One problem with this is that when you set e.g. autogain and gain together using
+VIDIOC_S_EXT_CTRLS you would have to return -EACCES if you set autogain to 1.
+After all, if autogain is 1, then gain would be marked read-only and so setting
+it should return -EACCES. But before the call to S_EXT_CTRLS the gain control is
+marked writable (assuming autogain was 0). That's really unexpected behavior,
+even though it is correct in theory.
 
+Another problem is that there is no application currently that assumes that the
+read-only flag can change on the fly. So control panels and such will not work
+correctly. So making this change will most likely break existing applications.
+
+I propose instead to change the behavior to set the INACTIVE flag instead.
+So setting the gain control will always work, except that the manual gain
+value won't be used (activated) until autogain is set to 0.
+
+Reading the gain value will either return the manual gain that you set (if
+gain is a non-volatile control) or the gain value as calculated by the autogain
+hardware (if autogain is 1 and the gain control was marked volatile).
+
+This will also simplify the patches (an additional bonus).
+
+I will prepare an RFCv2 for this.
+
+Regards,
+
+	Hans
+
+> +When the volatile controls are read the g_volatile_ctrl operation should return
+> +the value that the hardware's automatic mode set up automatically.
+> +
+> +If the cluster is put in manual mode, then the manual controls should become
+> +writable/active again and the is_volatile flag should be ignored (so
+> +g_volatile_ctrl is no longer called while in manual mode).
+> +
+> +Finally the V4L2_CTRL_FLAG_UPDATE should be set for the auto control since
+> +changing that control affects the control flags of the manual controls.
+> +
+> +In order to simplify this a special variation of v4l2_ctrl_cluster was
+> +introduced:
+> +
+> +void v4l2_ctrl_auto_cluster(unsigned ncontrols, struct v4l2_ctrl **controls,
+> +			u8 manual_val, bool set_volatile);
+> +
+> +The first two arguments are identical to v4l2_ctrl_cluster. The third argument
+> +tells the framework which value switches the cluster into manual mode. The
+> +last argument will optionally set is_volatile flag for the non-auto controls.
+> +
+> +The first control of the cluster is assumed to be the 'auto' control.
+> +
+> +Using this function will ensure that you don't need to handle all the complex
+> +flag and volatile handling.
+> +
+> +
+>  VIDIOC_LOG_STATUS Support
+>  =========================
+>  
+> 
