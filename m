@@ -1,105 +1,56 @@
 Return-path: <mchehab@pedra>
-Received: from out4.smtp.messagingengine.com ([66.111.4.28]:40859 "EHLO
-	out4.smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754414Ab1FMQk3 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 13 Jun 2011 12:40:29 -0400
-Date: Mon, 13 Jun 2011 09:29:12 -0700
-From: Greg KH <greg@kroah.com>
-To: Alexander Graf <agraf@suse.de>
-Cc: Sarah Sharp <sarah.a.sharp@linux.intel.com>,
-	"linux-usb@vger.kernel.org" <linux-usb@vger.kernel.org>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
-	"libusb-devel@lists.sourceforge.net"
-	<libusb-devel@lists.sourceforge.net>,
-	Gerd Hoffmann <kraxel@redhat.com>,
-	"hector@marcansoft.com" <hector@marcansoft.com>,
-	Jan Kiszka <jan.kiszka@siemens.com>,
-	Stefan Hajnoczi <stefanha@linux.vnet.ibm.com>,
-	"pbonzini@redhat.com" <pbonzini@redhat.com>,
-	Anthony Liguori <aliguori@us.ibm.com>,
-	Jes Sorensen <Jes.Sorensen@redhat.com>,
-	Alan Stern <stern@rowland.harvard.edu>,
-	Oliver Neukum <oliver@neukum.org>, Felipe Balbi <balbi@ti.com>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Clemens Ladisch <clemens@ladisch.de>,
-	Jaroslav Kysela <perex@perex.cz>, Takashi Iwai <tiwai@suse.de>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Hans de Goede <hdegoede@redhat.com>
-Subject: Re: USB mini-summit at LinuxCon Vancouver
-Message-ID: <20110613162912.GA1705@kroah.com>
-References: <20110610002103.GA7169@xanatos>
- <20110610031805.GA15774@kroah.com>
- <20110610194815.GA6646@xanatos>
- <20110610205035.GC13450@kroah.com>
- <5330D332-119F-40AD-B06F-CEDBD0D02D8D@suse.de>
+Received: from mx1.redhat.com ([209.132.183.28]:6566 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751465Ab1FCOAp (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 3 Jun 2011 10:00:45 -0400
+Message-ID: <4DE8E8FF.8050203@redhat.com>
+Date: Fri, 03 Jun 2011 11:00:31 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <5330D332-119F-40AD-B06F-CEDBD0D02D8D@suse.de>
+To: "istvan_v@mailbox.hu" <istvan_v@mailbox.hu>
+CC: Devin Heitmueller <dheitmueller@kernellabs.com>,
+	Dmitri Belimov <d.belimov@gmail.com>, thunder.m@email.cz,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: XC4000: added card_type
+References: <4D764337.6050109@email.cz>	<20110531124843.377a2a80@glory.local>	<BANLkTi=Lq+FF++yGhRmOa4NCigSt6ZurHg@mail.gmail.com>	<20110531174323.0f0c45c0@glory.local>	<BANLkTimEEGsMP6PDXf5W5p9wW7wdWEEOiA@mail.gmail.com>	<4DE8D5AC.7060002@mailbox.hu> <BANLkTi=c+OQvh9Mj4njF4dJtSQdR=cAMaA@mail.gmail.com> <4DE8DEC6.6080008@mailbox.hu>
+In-Reply-To: <4DE8DEC6.6080008@mailbox.hu>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Mon, Jun 13, 2011 at 12:44:57PM +0200, Alexander Graf wrote:
+Em 03-06-2011 10:16, istvan_v@mailbox.hu escreveu:
+> On 06/03/2011 02:46 PM, Devin Heitmueller wrote:
 > 
-> Am 10.06.2011 um 22:50 schrieb Greg KH <greg@kroah.com>:
+>> I understand what you're trying to do here, but this is not a good
+>> approach.  We do not want to be littering tuner drivers with
+>> card-specific if() statements.  Also, this is inconsistent with the
+>> way all other tuner drivers work.
+>>
+>> The approach you are attempting may seem easier at first, but it gets
+>> very difficult to manage over time as the number of boards that use
+>> the driver increases.
+>>
+>> You should have the bridge driver be setting up the cfg structure and
+>> passing it to the xc4000 driver, just like the xc5000 and xc3028 do.
 > 
-> > On Fri, Jun 10, 2011 at 12:48:15PM -0700, Sarah Sharp wrote:
-> >> On Thu, Jun 09, 2011 at 08:18:05PM -0700, Greg KH wrote:
-> >>> On Thu, Jun 09, 2011 at 05:21:03PM -0700, Sarah Sharp wrote:
-> >>>> Topic 1
-> >>>> -------
-> >>>> 
-> >>>> The KVM folks suggested that it would be good to get USB and
-> >>>> virtualization developers together to talk about how to virtualize the
-> >>>> xHCI host controller.  The xHCI spec architect worked closely with
-> >>>> VMWare to get some extra goodies in the spec to help virtualization, and
-> >>>> I'd like to see the other virtualization developers take advantage of
-> >>>> that.  I'd also like us to hash out any issues they have been finding in
-> >>>> the USB core or xHCI driver during the virtualization effort.
-> >>> 
-> >>> Do people really want to virtualize the whole xHCI controller, or just
-> >>> specific ports or devices to the guest operating system?
-> >> 
-> >> A host OS could chose to virtualize the whole xHCI controller if it
-> >> wanted to.  That's part of the reason why xHCI does all the bandwidth
-> >> checking in hardware, not in software.
-> > 
-> > And here I thought it did that so it would be "correct" :)
-> > 
-> >> 
-> >>> If just specific ports, would something like usbip be better for virtual
-> >>> machines, with the USB traffic going over the network connection between
-> >>> the guest/host?
-> >> 
-> >> It could be done that way too.  But that doesn't help if you're trying
-> >> to run Windows under Linux, right?  Only if all the guest OSes use the
-> >> same USB IP protocol then it would work.
-> > 
-> > usbip works on Windows as well as Linux.
+> Well, for now, I just create patches that reproduce all the changes
+> I have made to the driver. Of course, these may not always be the
+> best or most elegant possible solutions, and I expect many will not be
+> accepted, or further changes/cleanup will be needed later.
 > 
-> Do you have a reliable, working usbip solution at hand that work on
-> Windows and Linux and doesn't require real network access, which can
-> be a no-go for some scenarios?
+> I do not think the number of boards that use this tuner is likely to
+> increase much in the future, though, since the XC4000 seems to be a
+> discontinued product (at least it no longer appears anywhere on the
+> Xceive web site).
 
-What do you mean by "real network access"?  A virtual network connection
-to the guest and host should be sufficient, right?
+While the xc4000 is not merged upstream, we may have such hack, but
+before merging, this issue should be solved.
 
-> > But how could you run Windows with a xHCI controller in a guest, as
-> > Windows has no xHCI driver?  What would it expect to see?
-> 
-> There are drivers for xhci adapters on Windows.
+However, it seems better to just do the right thing since the beginning:
 
-Not well-working ones, see the windows driver mailing list as well as
-the libusb mailing list for problems that people are having due to there
-not being any "official" Microsoft xhci drivers shipping yet.
+just add a patch for cx88 adding the xc4000 boards there and filling
+the config stuff inside cx88 driver.
 
-> Also, this whole discussion is pretty much future oriented - which
-> most likely means built-in xhci drivers anywhere.
-
-Agreed.
-
-thanks,
-
-greg k-h
+Cheers,
+Mauro
