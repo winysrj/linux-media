@@ -1,69 +1,40 @@
 Return-path: <mchehab@pedra>
-Received: from mail-yw0-f46.google.com ([209.85.213.46]:41495 "EHLO
-	mail-yw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754192Ab1FVKFU (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 22 Jun 2011 06:05:20 -0400
-Received: by ywe9 with SMTP id 9so251690ywe.19
-        for <linux-media@vger.kernel.org>; Wed, 22 Jun 2011 03:05:19 -0700 (PDT)
-MIME-Version: 1.0
-Date: Wed, 22 Jun 2011 12:05:19 +0200
-Message-ID: <BANLkTi=73UGtcMTE5dUWSQEeyke8T-HB8Q@mail.gmail.com>
-Subject: impossible to tune card, but I can watch TV :?
-From: mutoid <mutoid@gmail.com>
+Received: from lo.gmane.org ([80.91.229.12]:41736 "EHLO lo.gmane.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753268Ab1FCQmu convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 3 Jun 2011 12:42:50 -0400
+Received: from list by lo.gmane.org with local (Exim 4.69)
+	(envelope-from <gldv-linux-media@m.gmane.org>)
+	id 1QSXSR-0002rq-3j
+	for linux-media@vger.kernel.org; Fri, 03 Jun 2011 18:42:47 +0200
+Received: from gimpelevich.san-francisco.ca.us ([66.218.55.33])
+        by main.gmane.org with esmtp (Gmexim 0.1 (Debian))
+        id 1AlnuQ-0007hv-00
+        for <linux-media@vger.kernel.org>; Fri, 03 Jun 2011 18:42:47 +0200
+Received: from daniel by gimpelevich.san-francisco.ca.us with local (Gmexim 0.1 (Debian))
+        id 1AlnuQ-0007hv-00
+        for <linux-media@vger.kernel.org>; Fri, 03 Jun 2011 18:42:47 +0200
 To: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
+From: Daniel Gimpelevich <daniel@gimpelevich.san-francisco.ca.us>
+Subject: Re: AverMedia A306 (cx23385, xc3028, af9013) (A577 too ?)
+Date: Fri, 03 Jun 2011 09:42:32 -0700
+Message-ID: <1307119353.15402.5.camel@chimera>
+References: <S932606Ab1ESVJJ/20110519210909Z+86@vger.kernel.org>
+	 <1305839612.4dd587fc20a03@imp.free.fr>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 8BIT
+In-Reply-To: <1305839612.4dd587fc20a03@imp.free.fr>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Hello,
+On Thu, 2011-05-19 at 23:13 +0200, wallak@free.fr wrote:
+> I've tried to use my A306 board on my system. All the main chips are
+> fully
+> supported by linux.
 
-I have an Avermedia Super 007, installed in a headless Linux machine to
-multicast some TV channels.
-
-I use "mumudvb" and works fine, without problem. I can stream 4 TV channels
-and 4 radios at once
-
-But now I need to extract EPG data, using dbvtune and tv_grab_dvb
-
-I tried 2 configurations:
-
-* Kworld USB DVB-T + dvbtune + tv_grab_dvb = works fine
-
-~# dvbtune -c 1 -f 770000
-Using DVB card "Afatech AF9013 DVB-T"
-tuning DVB-T (in United Kingdom) to 770000000 Hz
-polling....
-Getting frontend event
-FE_STATUS:
-polling....
-Getting frontend event
-FE_STATUS: FE_HAS_SIGNAL FE_HAS_LOCK FE_HAS_CARRIER FE_HAS_VITERBI
-FE_HAS_SYNC
-Event:  Frequency: 780600000
-        SymbolRate: 0
-        FEC_inner:  2
-
-Bit error rate: 0
-Signal strength: 51993
-SNR: 120
-FE_STATUS: FE_HAS_SIGNAL FE_HAS_LOCK FE_HAS_CARRIER FE_HAS_VITERBI
-FE_HAS_SYNC
+I have the A307 (product ID 0xc939) and I'd like to coordinate with you
+regarding adapting your A306 support for it. If you use IRC at all, just
+tell me when to be in #linuxtv, and if not, we'll keep this on-list.
 
 
-* Avermedia Super 007 + dvbtune = no working
-
-~# dvbtune -c 0 -f 770000
-Using DVB card "Philips TDA10046H DVB-T"
-tuning DVB-T (in United Kingdom) to 770000000 Hz
-polling....
-Getting frontend event
-FE_STATUS:
-polling....
-polling....
-polling....
-polling....
-
-Why can I use dvbtune with one USB card but not with a PCI card?
-
-Thanks.
