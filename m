@@ -1,64 +1,113 @@
 Return-path: <mchehab@pedra>
-Received: from smtp-vbr4.xs4all.nl ([194.109.24.24]:3830 "EHLO
-	smtp-vbr4.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752085Ab1FGL3r (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 7 Jun 2011 07:29:47 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: RFC: Proposal to change the way pending events are handled
-Date: Tue, 7 Jun 2011 13:29:42 +0200
-Cc: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Received: from mx1.redhat.com ([209.132.183.28]:24720 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755196Ab1FCNRR (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 3 Jun 2011 09:17:17 -0400
+Message-ID: <4DE8DED3.1010809@redhat.com>
+Date: Fri, 03 Jun 2011 10:17:07 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="us-ascii"
+To: "istvan_v@mailbox.hu" <istvan_v@mailbox.hu>
+CC: Devin Heitmueller <dheitmueller@kernellabs.com>,
+	Dmitri Belimov <d.belimov@gmail.com>, thunder.m@email.cz,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: XC4000: added card_type
+References: <4D764337.6050109@email.cz>	<20110531124843.377a2a80@glory.local>	<BANLkTi=Lq+FF++yGhRmOa4NCigSt6ZurHg@mail.gmail.com>	<20110531174323.0f0c45c0@glory.local> <BANLkTimEEGsMP6PDXf5W5p9wW7wdWEEOiA@mail.gmail.com> <4DE8D5AC.7060002@mailbox.hu>
+In-Reply-To: <4DE8D5AC.7060002@mailbox.hu>
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Message-Id: <201106071329.42447.hverkuil@xs4all.nl>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-While working on the control events I realized that the way we handle pending
-events is rather complicated.
+Em 03-06-2011 09:38, istvan_v@mailbox.hu escreveu:
+> This patch adds support for selecting a card type in struct
+> xc4000_config, to allow for implementing some card specific code
+> in the driver.
 
-What currently happens internally is that you have to allocate a fixed sized
-list of events. New events are queued on the 'available' list and when they
-are processed by the application they are queued on the 'free' list.
+Hi Istvan,
 
-If the 'free' list is empty, then no new events can be queued and you will
-drop events.
+Please send your patches to linux-media@vger.kernel.org. The linux-dvb
+ML is obsolete. I didn't remove it from the server just to avoid loosing
+the mail history.
 
-Dropping events can be nasty and in the case of control events can cause a
-control panel to contain stale control values if it missed a value change
-event.
+With respect to this specific patch, as Devin pointed, the proper way is to
+set the configurable data via the boards entries, and not inside xc4000.
 
-One option is to allocate enough events, but what is 'enough' events? That
-depends on many factors. And allocating more events than is necessary wastes
-memory.
+So, feel free to send us patches to cx88 and other bridge drivers whose
+boards require different configs, in order to work with xc4000.
 
-But what might be a better option is this: for each event a filehandle
-subscribes to there is only one internal v4l2_kevent allocated.
+Thanks,
+Mauro
 
-This struct is either marked empty (no event was raised) or contains the
-latest state of this event. When the event is dequeued by the application
-the struct is marked empty again.
+> 
+> Signed-off-by: Istvan Varga <istvan_v@mailbox.hu>
+> 
+> 
+> xc4000_card_type.patch
+> 
+> 
+> diff -uNr xc4000_orig/drivers/media/common/tuners/xc4000.c xc4000/drivers/media/common/tuners/xc4000.c
+> --- xc4000_orig/drivers/media/common/tuners/xc4000.c	2011-06-03 11:54:19.000000000 +0200
+> +++ xc4000/drivers/media/common/tuners/xc4000.c	2011-06-03 14:32:59.000000000 +0200
+> @@ -85,6 +85,7 @@
+>  	u32	bandwidth;
+>  	u8	video_standard;
+>  	u8	rf_mode;
+> +	u8	card_type;
+>  	u8	ignore_i2c_write_errors;
+>   /*	struct xc2028_ctrl	ctrl; */
+>  	struct firmware_properties cur_fw;
+> @@ -1426,6 +1427,16 @@
+>  	int	instance;
+>  	u16	id = 0;
+>  
+> +	if (cfg->card_type != XC4000_CARD_GENERIC) {
+> +		if (cfg->card_type == XC4000_CARD_WINFAST_CX88) {
+> +			cfg->i2c_address = 0x61;
+> +			cfg->if_khz = 4560;
+> +		} else {			/* default to PCTV 340E */
+> +			cfg->i2c_address = 0x61;
+> +			cfg->if_khz = 5400;
+> +		}
+> +	}
+> +
+>  	dprintk(1, "%s(%d-%04x)\n", __func__,
+>  		i2c ? i2c_adapter_id(i2c) : -1,
+>  		cfg ? cfg->i2c_address : -1);
+> @@ -1435,6 +1446,8 @@
+>  	instance = hybrid_tuner_request_state(struct xc4000_priv, priv,
+>  					      hybrid_tuner_instance_list,
+>  					      i2c, cfg->i2c_address, "xc4000");
+> +	if (cfg->card_type != XC4000_CARD_GENERIC)
+> +		priv->card_type = cfg->card_type;
+>  	switch (instance) {
+>  	case 0:
+>  		goto fail;
+> @@ -1450,7 +1463,7 @@
+>  		break;
+>  	}
+>  
+> -	if (priv->if_khz == 0) {
+> +	if (cfg->if_khz != 0) {
+>  		/* If the IF hasn't been set yet, use the value provided by
+>  		   the caller (occurs in hybrid devices where the analog
+>  		   call to xc4000_attach occurs before the digital side) */
+> diff -uNr xc4000_orig/drivers/media/common/tuners/xc4000.h xc4000/drivers/media/common/tuners/xc4000.h
+> --- xc4000_orig/drivers/media/common/tuners/xc4000.h	2011-06-03 11:54:19.000000000 +0200
+> +++ xc4000/drivers/media/common/tuners/xc4000.h	2011-06-03 14:29:32.000000000 +0200
+> @@ -27,8 +27,13 @@
+>  struct dvb_frontend;
+>  struct i2c_adapter;
+>  
+> +#define XC4000_CARD_GENERIC		0
+> +#define XC4000_CARD_PCTV_340E		1
+> +#define XC4000_CARD_WINFAST_CX88	2
+> +
+>  struct xc4000_config {
+> -	u8	i2c_address;
+> +	u8	card_type;	/* if card type is not generic, all other */
+> +	u8	i2c_address;	/* parameters are automatically set */
+>  	u32	if_khz;
+>  };
+>  
 
-So you never get duplicate events, instead, if a 'duplicate' event is raised
-it will just overwrite the 'old' event and move it to the end of the list of
-pending events. In other words, the old event is removed and the new event is
-inserted instead.
-
-The nice thing about this is that for each subscribed event type you will
-never lose a raised event completely. You may lose intermediate events, but 
-the latest event for that type will always be available.
-
-E.g. supposed you subscribed to a control containing the status of the HDMI
-hotplug. Connecting an HDMI cable can cause a bounce condition where the HDMI
-hotplug toggles many times in quick succession. This could currently flood
-the event queue and you may lose the last event. With the proposed change the
-last event will always arrive, although the intermediate events will be lost.
-
-Comments?
-
-Regards,
-
-	Hans
