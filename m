@@ -1,66 +1,111 @@
 Return-path: <mchehab@pedra>
-Received: from mailout4.w1.samsung.com ([210.118.77.14]:56340 "EHLO
-	mailout4.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753886Ab1FIMFM (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 9 Jun 2011 08:05:12 -0400
-MIME-version: 1.0
-Content-transfer-encoding: 7BIT
-Content-type: text/plain; charset=ISO-8859-1
-Received: from eu_spt1 ([210.118.77.14]) by mailout4.w1.samsung.com
- (Sun Java(tm) System Messaging Server 6.3-8.04 (built Jul 29 2009; 32bit))
- with ESMTP id <0LMI00JX4UWKEG90@mailout4.w1.samsung.com> for
- linux-media@vger.kernel.org; Thu, 09 Jun 2011 13:05:11 +0100 (BST)
-Received: from linux.samsung.com ([106.116.38.10])
- by spt1.w1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14
- 2004)) with ESMTPA id <0LMI007HZUWJA0@spt1.w1.samsung.com> for
- linux-media@vger.kernel.org; Thu, 09 Jun 2011 13:05:07 +0100 (BST)
-Date: Thu, 09 Jun 2011 14:05:07 +0200
-From: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Subject: [GIT PULL FOR 3.0] s5p-fimc and m5mols driver fixes
-To: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>
-Message-id: <4DF0B6F3.6010804@samsung.com>
+Received: from mail.juropnet.hu ([212.24.188.131]:55001 "EHLO mail.juropnet.hu"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756490Ab1FDPEz (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 4 Jun 2011 11:04:55 -0400
+Received: from [94.248.226.52]
+	by mail.juropnet.hu with esmtps (TLS1.0:DHE_RSA_AES_256_CBC_SHA1:32)
+	(Exim 4.69)
+	(envelope-from <istvan_v@mailbox.hu>)
+	id 1QSsPE-0002pl-51
+	for linux-media@vger.kernel.org; Sat, 04 Jun 2011 17:04:54 +0200
+Message-ID: <4DEA4993.1060906@mailbox.hu>
+Date: Sat, 04 Jun 2011 17:04:51 +0200
+From: "istvan_v@mailbox.hu" <istvan_v@mailbox.hu>
+MIME-Version: 1.0
+To: linux-media@vger.kernel.org
+Subject: XC4000: firmware initialization
+References: <4D764337.6050109@email.cz>	<20110531124843.377a2a80@glory.local>	<BANLkTi=Lq+FF++yGhRmOa4NCigSt6ZurHg@mail.gmail.com>	<20110531174323.0f0c45c0@glory.local> <BANLkTimEEGsMP6PDXf5W5p9wW7wdWEEOiA@mail.gmail.com>
+In-Reply-To: <BANLkTimEEGsMP6PDXf5W5p9wW7wdWEEOiA@mail.gmail.com>
+Content-Type: multipart/mixed;
+ boundary="------------020209090208020901040403"
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Mauro, please pull the following s5p-fimc and m5mols driver updates.
+This is a multi-part message in MIME format.
+--------------020209090208020901040403
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
+
+This patch fixes/cleans up the loading of the firmware file when the
+driver is loaded and initialized.
+
+Signed-off-by: Istvan Varga <istvan_v@mailbox.hu>
 
 
-The following changes since commit 215c52702775556f4caf5872cc84fa8810e6fc7d:
+--------------020209090208020901040403
+Content-Type: text/x-patch;
+ name="xc4000_fwinit.patch"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: attachment;
+ filename="xc4000_fwinit.patch"
 
-  [media] V4L/videobuf2-memops: use pr_debug for debug messages (2011-06-01
-18:20:34 -0300)
+diff -uNr xc4000_orig/drivers/media/common/tuners/xc4000.c xc4000/drivers/media/common/tuners/xc4000.c
+--- xc4000_orig/drivers/media/common/tuners/xc4000.c	2011-06-04 13:58:03.000000000 +0200
++++ xc4000/drivers/media/common/tuners/xc4000.c	2011-06-04 14:12:06.000000000 +0200
+@@ -1400,21 +1400,8 @@
+ 
+ static int xc4000_init(struct dvb_frontend *fe)
+ {
+-	struct xc4000_priv *priv = fe->tuner_priv;
+-	int	ret;
+ 	dprintk(1, "%s()\n", __func__);
+ 
+-	mutex_lock(&priv->lock);
+-	ret = check_firmware(fe, DTV8, 0, priv->if_khz);
+-	mutex_unlock(&priv->lock);
+-	if (ret != XC_RESULT_SUCCESS) {
+-		printk(KERN_ERR "xc4000: Unable to initialise tuner\n");
+-		return -EREMOTEIO;
+-	}
+-
+-	if (debug)
+-		xc_debug_dump(priv);
+-
+ 	return 0;
+ }
+ 
+@@ -1511,8 +1498,14 @@
+ 	   instance of the driver has loaded the firmware.
+ 	 */
+ 
+-	if (xc4000_readreg(priv, XREG_PRODUCT_ID, &id) != XC_RESULT_SUCCESS)
++	if (instance == 1) {
++		if (xc4000_readreg(priv, XREG_PRODUCT_ID, &id)
++		    != XC_RESULT_SUCCESS)
+ 			goto fail;
++	} else {
++		id = ((priv->cur_fw.type & BASE) != 0 ?
++		      priv->hwmodel : XC_PRODUCT_ID_FW_NOT_LOADED);
++	}
+ 
+ 	switch (id) {
+ 	case XC_PRODUCT_ID_FW_LOADED:
+@@ -1541,16 +1534,19 @@
+ 	memcpy(&fe->ops.tuner_ops, &xc4000_tuner_ops,
+ 		sizeof(struct dvb_tuner_ops));
+ 
+-	/* FIXME: For now, load the firmware at startup.  We will remove this
+-	   before the code goes to production... */
+-	mutex_lock(&priv->lock);
+-	check_firmware(fe, DTV8, 0, priv->if_khz);
+-	mutex_unlock(&priv->lock);
++	if (instance == 1) {
++		int	ret;
++		mutex_lock(&priv->lock);
++		ret = xc4000_fwupload(fe);
++		mutex_unlock(&priv->lock);
++		if (ret != XC_RESULT_SUCCESS)
++			goto fail2;
++	}
+ 
+ 	return fe;
+ fail:
+ 	mutex_unlock(&xc4000_list_mutex);
+-
++fail2:
+ 	xc4000_release(fe);
+ 	return NULL;
+ }
 
-are available in the git repository at:
-  git://git.infradead.org/users/kmpark/linux-2.6-samsung s5p-fimc
-
-HeungJun, Kim (4):
-      m5mols: Fix capture image size register definition
-      m5mols: add m5mols_read_u8/u16/u32() according to I2C byte width
-      m5mols: remove union in the m5mols_get_version(), and VERSION_SIZE
-      m5mols: Use proper email address format
-
-Sylwester Nawrocki (7):
-      s5p-fimc: Fix possible memory leak during capture devnode registration
-      s5p-fimc: Fix V4L2_PIX_FMT_RGB565X description
-      s5p-fimc: Fix data structures documentation and cleanup debug trace
-      s5p-fimc: Fix wrong buffer size in queue_setup
-      s5p-fimc: Remove empty buf_init operation
-      s5p-fimc: Use pix_mp for the color format lookup
-      s5p-fimc: Update copyright notices
-
- drivers/media/video/m5mols/m5mols.h          |   57 +++++-----
- drivers/media/video/m5mols/m5mols_capture.c  |   22 ++--
- drivers/media/video/m5mols/m5mols_controls.c |    6 +-
- drivers/media/video/m5mols/m5mols_core.c     |  144 ++++++++++++++++----------
- drivers/media/video/m5mols/m5mols_reg.h      |   21 +++-
- drivers/media/video/s5p-fimc/fimc-capture.c  |   21 +---
- drivers/media/video/s5p-fimc/fimc-core.c     |   28 ++----
- drivers/media/video/s5p-fimc/fimc-core.h     |   29 +++---
- include/media/m5mols.h                       |    4 +-
- 9 files changed, 176 insertions(+), 156 deletions(-)
-
-
-Thanks,
-
-Sylwester Nawrocki
+--------------020209090208020901040403--
