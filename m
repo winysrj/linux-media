@@ -1,228 +1,143 @@
 Return-path: <mchehab@pedra>
-Received: from moutng.kundenserver.de ([212.227.126.186]:63693 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933553Ab1FWVxV (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 23 Jun 2011 17:53:21 -0400
-Date: Thu, 23 Jun 2011 23:53:11 +0200 (CEST)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	sakari.ailus@maxwell.research.nokia.com,
-	Sylwester Nawrocki <snjw23@gmail.com>,
-	Stan <svarbanov@mm-sol.com>, Hans Verkuil <hansverk@cisco.com>,
-	saaguirre@ti.com, Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: [PATCH v3] V4L: add media bus configuration subdev operations
-Message-ID: <Pine.LNX.4.64.1106232340360.5348@axis700.grange>
+Received: from mail.juropnet.hu ([212.24.188.131]:55200 "EHLO mail.juropnet.hu"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756896Ab1FDOwi (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 4 Jun 2011 10:52:38 -0400
+Received: from [94.248.226.52]
+	by mail.juropnet.hu with esmtps (TLS1.0:DHE_RSA_AES_256_CBC_SHA1:32)
+	(Exim 4.69)
+	(envelope-from <istvan_v@mailbox.hu>)
+	id 1QSsDL-0002Cv-Af
+	for linux-media@vger.kernel.org; Sat, 04 Jun 2011 16:52:37 +0200
+Message-ID: <4DEA46B2.7090409@mailbox.hu>
+Date: Sat, 04 Jun 2011 16:52:34 +0200
+From: "istvan_v@mailbox.hu" <istvan_v@mailbox.hu>
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+To: linux-media@vger.kernel.org
+Subject: XC4000: simplified seek_firmware()
+References: <4D764337.6050109@email.cz>	<20110531124843.377a2a80@glory.local>	<BANLkTi=Lq+FF++yGhRmOa4NCigSt6ZurHg@mail.gmail.com>	<20110531174323.0f0c45c0@glory.local> <BANLkTimEEGsMP6PDXf5W5p9wW7wdWEEOiA@mail.gmail.com>
+In-Reply-To: <BANLkTimEEGsMP6PDXf5W5p9wW7wdWEEOiA@mail.gmail.com>
+Content-Type: multipart/mixed;
+ boundary="------------000107010204010907090603"
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Add media bus configuration types and two subdev operations to get
-supported mediabus configurations and to set a specific configuration.
-Subdevs can support several configurations, e.g., they can send video data
-on 1 or several lanes, can be configured to use a specific CSI-2 channel,
-in such cases subdevice drivers return bitmasks with all respective bits
-set. When a set-configuration operation is called, it has to specify a
-non-ambiguous configuration.
+This is a multi-part message in MIME format.
+--------------000107010204010907090603
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 
-Signed-off-by: Stanimir Varbanov <svarbanov@mm-sol.com>
-Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
----
+This patch simplifies the code in seek_firmware().
 
-v3: addressed comments by Hans - thanks!
+Signed-off-by: Istvan Varga <istvan_v@mailbox.hu>
 
-1. moved too big inline function into a new .c file
 
-2. changed flags types to int, local variables to bool, added "const"
+--------------000107010204010907090603
+Content-Type: text/x-patch;
+ name="xc4000_fwseek.patch"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: attachment;
+ filename="xc4000_fwseek.patch"
 
-3. accepting BT.656 now too
-
-v2:
-
-1. Removed parallel bus width flags. As Laurent correctly pointed out, bus 
-width can be configured based on the mediabus format.
-
-2. Removed the clock parameter for now. Passing timing information between 
-the subdevices and the host / bridge driver is indeed necessary, but it is 
-not yet quite clear, what is the best way to do this. This requires more 
-thinking and can be added as an extra field to struct v4l2_mbus_config 
-later. The argument, that "struct clk" is still platform specific is 
-correct, but I am too tempted by the possibilities, the clkdev offers us 
-to give up this idea immediatrely. Maybe drivers, that need such a clock, 
-could use a platform callback to create a clock instance for them, or get 
-a clock object from the platform with platform data. However, there are 
-also opinions, that the clkdev API is completely unsuitable for this 
-purpose. I'd commit this without any timing first, and consider 
-possibilities as a second step.
-
- drivers/media/video/Makefile        |    2 +-
- drivers/media/video/v4l2-mediabus.c |   45 ++++++++++++++++++++++++++
- include/media/v4l2-mediabus.h       |   59 +++++++++++++++++++++++++++++++++++
- include/media/v4l2-subdev.h         |    8 +++++
- 4 files changed, 113 insertions(+), 1 deletions(-)
- create mode 100644 drivers/media/video/v4l2-mediabus.c
-
-diff --git a/drivers/media/video/Makefile b/drivers/media/video/Makefile
-index d9833f4..7adb683 100644
---- a/drivers/media/video/Makefile
-+++ b/drivers/media/video/Makefile
-@@ -11,7 +11,7 @@ stkwebcam-objs	:=	stk-webcam.o stk-sensor.o
- omap2cam-objs	:=	omap24xxcam.o omap24xxcam-dma.o
- 
- videodev-objs	:=	v4l2-dev.o v4l2-ioctl.o v4l2-device.o v4l2-fh.o \
--			v4l2-event.o v4l2-ctrls.o v4l2-subdev.o
-+			v4l2-event.o v4l2-ctrls.o v4l2-subdev.o v4l2-mediabus.o
- 
- # V4L2 core modules
- 
-diff --git a/drivers/media/video/v4l2-mediabus.c b/drivers/media/video/v4l2-mediabus.c
-new file mode 100644
-index 0000000..c181e02
---- /dev/null
-+++ b/drivers/media/video/v4l2-mediabus.c
-@@ -0,0 +1,45 @@
-+/*
-+ * V4L2 mediabus
-+ *
-+ * Copyright (C) 2011, Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License version 2 as
-+ * published by the Free Software Foundation.
-+ */
-+
-+#include <linux/module.h>
-+#include <media/v4l2-mediabus.h>
-+
-+unsigned int v4l2_mbus_config_compatible(const struct v4l2_mbus_config *cfg,
-+					 unsigned int flags)
-+{
-+	unsigned long common_flags;
-+	bool hsync = true, vsync = true, pclk, data, mode;
-+	bool mipi_lanes, mipi_clock;
-+
-+	common_flags = cfg->flags & flags;
-+
-+	switch (cfg->type) {
-+	case V4L2_MBUS_PARALLEL:
-+		hsync = common_flags & (V4L2_MBUS_HSYNC_ACTIVE_HIGH |
-+					V4L2_MBUS_HSYNC_ACTIVE_LOW);
-+		vsync = common_flags & (V4L2_MBUS_VSYNC_ACTIVE_HIGH |
-+					V4L2_MBUS_VSYNC_ACTIVE_LOW);
-+	case V4L2_MBUS_BT656:
-+		pclk = common_flags & (V4L2_MBUS_PCLK_SAMPLE_RISING |
-+				       V4L2_MBUS_PCLK_SAMPLE_FALLING);
-+		data = common_flags & (V4L2_MBUS_DATA_ACTIVE_HIGH |
-+				       V4L2_MBUS_DATA_ACTIVE_LOW);
-+		mode = common_flags & (V4L2_MBUS_MASTER | V4L2_MBUS_SLAVE);
-+		return (!hsync || !vsync || !pclk || !data || !mode) ?
-+			0 : common_flags;
-+	case V4L2_MBUS_CSI2:
-+		mipi_lanes = common_flags & V4L2_MBUS_CSI2_LANES;
-+		mipi_clock = common_flags & (V4L2_MBUS_CSI2_NONCONTINUOUS_CLOCK |
-+					     V4L2_MBUS_CSI2_CONTINUOUS_CLOCK);
-+		return (!mipi_lanes || !mipi_clock) ? 0 : common_flags;
-+	}
-+	return 0;
-+}
-+EXPORT_SYMBOL(v4l2_mbus_config_compatible);
-diff --git a/include/media/v4l2-mediabus.h b/include/media/v4l2-mediabus.h
-index 971c7fa..5fb5022 100644
---- a/include/media/v4l2-mediabus.h
-+++ b/include/media/v4l2-mediabus.h
-@@ -13,6 +13,65 @@
- 
- #include <linux/v4l2-mediabus.h>
- 
-+/* Parallel flags */
-+/* Can the client run in master or in slave mode */
-+#define V4L2_MBUS_MASTER			(1 << 0)
-+#define V4L2_MBUS_SLAVE				(1 << 1)
-+/* Which signal polarities it supports */
-+#define V4L2_MBUS_HSYNC_ACTIVE_HIGH		(1 << 2)
-+#define V4L2_MBUS_HSYNC_ACTIVE_LOW		(1 << 3)
-+#define V4L2_MBUS_VSYNC_ACTIVE_HIGH		(1 << 4)
-+#define V4L2_MBUS_VSYNC_ACTIVE_LOW		(1 << 5)
-+#define V4L2_MBUS_PCLK_SAMPLE_RISING		(1 << 6)
-+#define V4L2_MBUS_PCLK_SAMPLE_FALLING		(1 << 7)
-+#define V4L2_MBUS_DATA_ACTIVE_HIGH		(1 << 8)
-+#define V4L2_MBUS_DATA_ACTIVE_LOW		(1 << 9)
-+
-+/* Serial flags */
-+/* How many lanes the client can use */
-+#define V4L2_MBUS_CSI2_1_LANE			(1 << 0)
-+#define V4L2_MBUS_CSI2_2_LANE			(1 << 1)
-+#define V4L2_MBUS_CSI2_3_LANE			(1 << 2)
-+#define V4L2_MBUS_CSI2_4_LANE			(1 << 3)
-+/* On which channels it can send video data */
-+#define V4L2_MBUS_CSI2_CHANNEL_0		(1 << 4)
-+#define V4L2_MBUS_CSI2_CHANNEL_1		(1 << 5)
-+#define V4L2_MBUS_CSI2_CHANNEL_2		(1 << 6)
-+#define V4L2_MBUS_CSI2_CHANNEL_3		(1 << 7)
-+/* Does it support only continuous or also non-continuous clock mode */
-+#define V4L2_MBUS_CSI2_CONTINUOUS_CLOCK		(1 << 8)
-+#define V4L2_MBUS_CSI2_NONCONTINUOUS_CLOCK	(1 << 9)
-+
-+#define V4L2_MBUS_CSI2_LANES		(V4L2_MBUS_CSI2_1_LANE | V4L2_MBUS_CSI2_2_LANE | \
-+					 V4L2_MBUS_CSI2_3_LANE | V4L2_MBUS_CSI2_4_LANE)
-+#define V4L2_MBUS_CSI2_CHANNELS		(V4L2_MBUS_CSI2_CHANNEL_0 | V4L2_MBUS_CSI2_CHANNEL_1 | \
-+					 V4L2_MBUS_CSI2_CHANNEL_2 | V4L2_MBUS_CSI2_CHANNEL_3)
-+
-+/**
-+ * v4l2_mbus_type - media bus type
-+ * @V4L2_MBUS_PARALLEL:	parallel interface with hsync and vsync
-+ * @V4L2_MBUS_BT656:	parallel interface with embedded synchronisation
-+ * @V4L2_MBUS_CSI2:	MIPI CSI-2 serial interface
-+ */
-+enum v4l2_mbus_type {
-+	V4L2_MBUS_PARALLEL,
-+	V4L2_MBUS_BT656,
-+	V4L2_MBUS_CSI2,
-+};
-+
-+/**
-+ * v4l2_mbus_config - media bus configuration
-+ * @type:	in: interface type
-+ * @flags:	in / out: configuration flags, depending on @type
-+ */
-+struct v4l2_mbus_config {
-+	enum v4l2_mbus_type type;
-+	unsigned int flags;
-+};
-+
-+unsigned int v4l2_mbus_config_compatible(const struct v4l2_mbus_config *cfg,
-+					 unsigned int flags);
-+
- static inline void v4l2_fill_pix_format(struct v4l2_pix_format *pix_fmt,
- 				const struct v4l2_mbus_framefmt *mbus_fmt)
+diff -uNr xc4000_orig/drivers/media/common/tuners/xc4000.c xc4000/drivers/media/common/tuners/xc4000.c
+--- xc4000_orig/drivers/media/common/tuners/xc4000.c	2011-06-04 12:50:41.000000000 +0200
++++ xc4000/drivers/media/common/tuners/xc4000.c	2011-06-04 13:10:00.000000000 +0200
+@@ -606,8 +606,8 @@
+ 			 v4l2_std_id *id)
  {
-diff --git a/include/media/v4l2-subdev.h b/include/media/v4l2-subdev.h
-index 1562c4f..aa17713 100644
---- a/include/media/v4l2-subdev.h
-+++ b/include/media/v4l2-subdev.h
-@@ -255,6 +255,10 @@ struct v4l2_subdev_audio_ops {
-    try_mbus_fmt: try to set a pixel format on a video data source
+ 	struct xc4000_priv *priv = fe->tuner_priv;
+-	int                 i, best_i = -1, best_nr_matches = 0;
+-	unsigned int        type_mask = 0;
++	int		i, best_i = -1;
++	unsigned int	best_nr_diffs = 255U;
  
-    s_mbus_fmt: set a pixel format on a video data source
-+
-+   g_mbus_config: get supported mediabus configurations
-+
-+   s_mbus_config: set a certain mediabus configuration
-  */
- struct v4l2_subdev_video_ops {
- 	int (*s_routing)(struct v4l2_subdev *sd, u32 input, u32 output, u32 config);
-@@ -294,6 +298,10 @@ struct v4l2_subdev_video_ops {
- 			    struct v4l2_mbus_framefmt *fmt);
- 	int (*s_mbus_fmt)(struct v4l2_subdev *sd,
- 			  struct v4l2_mbus_framefmt *fmt);
-+	int (*g_mbus_config)(struct v4l2_subdev *sd,
-+			     struct v4l2_mbus_config *cfg);
-+	int (*s_mbus_config)(struct v4l2_subdev *sd,
-+			     const struct v4l2_mbus_config *cfg);
- };
+ 	if (!priv->firm) {
+ 		printk("Error! firmware not loaded\n");
+@@ -617,63 +617,42 @@
+ 	if (((type & ~SCODE) == 0) && (*id == 0))
+ 		*id = V4L2_STD_PAL;
  
- /*
--- 
-1.7.2.5
+-	if (type & BASE)
+-		type_mask = BASE_TYPES;
+-	else if (type & SCODE) {
+-		type &= SCODE_TYPES;
+-		type_mask = SCODE_TYPES & ~HAS_IF;
+-	} else if (type & DTV_TYPES)
+-		type_mask = DTV_TYPES;
+-	else if (type & STD_SPECIFIC_TYPES)
+-		type_mask = STD_SPECIFIC_TYPES;
+-
+-	type &= type_mask;
+-
+-	if (!(type & SCODE))
+-		type_mask = ~0;
+-
+-	/* Seek for exact match */
+-	for (i = 0; i < priv->firm_size; i++) {
+-		if ((type == (priv->firm[i].type & type_mask)) &&
+-		    (*id == priv->firm[i].id))
+-			goto found;
+-	}
+-
+ 	/* Seek for generic video standard match */
+ 	for (i = 0; i < priv->firm_size; i++) {
+-		v4l2_std_id match_mask;
+-		int nr_matches;
++		v4l2_std_id	id_diff_mask =
++			(priv->firm[i].id ^ (*id)) & (*id);
++		unsigned int	type_diff_mask =
++			(priv->firm[i].type ^ type)
++			& (BASE_TYPES | DTV_TYPES | LCD | NOGD | MONO | SCODE);
++		unsigned int	nr_diffs;
+ 
+-		if (type != (priv->firm[i].type & type_mask))
++		if (type_diff_mask
++		    & (BASE | INIT1 | FM | DTV6 | DTV7 | DTV78 | DTV8 | SCODE))
+ 			continue;
+ 
+-		match_mask = *id & priv->firm[i].id;
+-		if (!match_mask)
+-			continue;
+-
+-		if ((*id & match_mask) == *id)
+-			goto found; /* Supports all the requested standards */
++		nr_diffs = hweight64(id_diff_mask) + hweight32(type_diff_mask);
++		if (!nr_diffs)	/* Supports all the requested standards */
++			goto found;
+ 
+-		nr_matches = hweight64(match_mask);
+-		if (nr_matches > best_nr_matches) {
+-			best_nr_matches = nr_matches;
++		if (nr_diffs < best_nr_diffs) {
++			best_nr_diffs = nr_diffs;
+ 			best_i = i;
+ 		}
+ 	}
+ 
+-	if (best_nr_matches > 0) {
+-		printk("Selecting best matching firmware (%d bits) for "
+-			  "type=", best_nr_matches);
++	/* FIXME: Would make sense to seek for type "hint" match ? */
++	if (best_i < 0) {
++		i = -ENOENT;
++		goto ret;
++	}
++
++	if (best_nr_diffs > 0U) {
++		printk("Selecting best matching firmware (%u bits differ) for "
++		       "type=", best_nr_diffs);
+ 		printk("(%x), id %016llx:\n", type, (unsigned long long)*id);
+ 		i = best_i;
+-		goto found;
+ 	}
+ 
+-	/*FIXME: Would make sense to seek for type "hint" match ? */
+-
+-	i = -ENOENT;
+-	goto ret;
+-
+ found:
+ 	*id = priv->firm[i].id;
+ 
+
+--------------000107010204010907090603--
