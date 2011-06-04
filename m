@@ -1,93 +1,110 @@
 Return-path: <mchehab@pedra>
-Received: from cantor.suse.de ([195.135.220.2]:32800 "EHLO mx1.suse.de"
+Received: from mail.juropnet.hu ([212.24.188.131]:44870 "EHLO mail.juropnet.hu"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750826Ab1FMKqA convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 13 Jun 2011 06:46:00 -0400
-References: <20110610002103.GA7169@xanatos> <20110610031805.GA15774@kroah.com> <20110610194815.GA6646@xanatos> <20110610205035.GC13450@kroah.com>
-In-Reply-To: <20110610205035.GC13450@kroah.com>
-Mime-Version: 1.0 (iPhone Mail 8G4)
-Content-Transfer-Encoding: 8BIT
-Content-Type: text/plain;
-	charset=us-ascii
-Message-Id: <5330D332-119F-40AD-B06F-CEDBD0D02D8D@suse.de>
-Cc: Sarah Sharp <sarah.a.sharp@linux.intel.com>,
-	"linux-usb@vger.kernel.org" <linux-usb@vger.kernel.org>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
-	"libusb-devel@lists.sourceforge.net"
-	<libusb-devel@lists.sourceforge.net>,
-	Gerd Hoffmann <kraxel@redhat.com>,
-	"hector@marcansoft.com" <hector@marcansoft.com>,
-	Jan Kiszka <jan.kiszka@siemens.com>,
-	Stefan Hajnoczi <stefanha@linux.vnet.ibm.com>,
-	"pbonzini@redhat.com" <pbonzini@redhat.com>,
-	Anthony Liguori <aliguori@us.ibm.com>,
-	Jes Sorensen <Jes.Sorensen@redhat.com>,
-	Alan Stern <stern@rowland.harvard.edu>,
-	Oliver Neukum <oliver@neukum.org>, Felipe Balbi <balbi@ti.com>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Clemens Ladisch <clemens@ladisch.de>,
-	Jaroslav Kysela <perex@perex.cz>, Takashi Iwai <tiwai@suse.de>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Hans de Goede <hdegoede@redhat.com>
-From: Alexander Graf <agraf@suse.de>
-Subject: Re: USB mini-summit at LinuxCon Vancouver
-Date: Mon, 13 Jun 2011 12:44:57 +0200
-To: Greg KH <greg@kroah.com>
+	id S1756490Ab1FDPDI (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 4 Jun 2011 11:03:08 -0400
+Received: from [94.248.226.52]
+	by mail.juropnet.hu with esmtps (TLS1.0:DHE_RSA_AES_256_CBC_SHA1:32)
+	(Exim 4.69)
+	(envelope-from <istvan_v@mailbox.hu>)
+	id 1QSsNT-0002mK-Ur
+	for linux-media@vger.kernel.org; Sat, 04 Jun 2011 17:03:06 +0200
+Message-ID: <4DEA4927.2060007@mailbox.hu>
+Date: Sat, 04 Jun 2011 17:03:03 +0200
+From: "istvan_v@mailbox.hu" <istvan_v@mailbox.hu>
+MIME-Version: 1.0
+To: linux-media@vger.kernel.org
+Subject: XC4000: implemented power management
+References: <4D764337.6050109@email.cz>	<20110531124843.377a2a80@glory.local>	<BANLkTi=Lq+FF++yGhRmOa4NCigSt6ZurHg@mail.gmail.com>	<20110531174323.0f0c45c0@glory.local> <BANLkTimEEGsMP6PDXf5W5p9wW7wdWEEOiA@mail.gmail.com>
+In-Reply-To: <BANLkTimEEGsMP6PDXf5W5p9wW7wdWEEOiA@mail.gmail.com>
+Content-Type: multipart/mixed;
+ boundary="------------020508080603050407010702"
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
+This is a multi-part message in MIME format.
+--------------020508080603050407010702
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 
-Am 10.06.2011 um 22:50 schrieb Greg KH <greg@kroah.com>:
+The following patch implements the xc4000_sleep() function.
+The 'no_powerdown' module parameter is now interpreted differently:
+  - 0 uses a device-specific default
+  - 1 disables power management like before
+  - 2 enables power management
 
-> On Fri, Jun 10, 2011 at 12:48:15PM -0700, Sarah Sharp wrote:
->> On Thu, Jun 09, 2011 at 08:18:05PM -0700, Greg KH wrote:
->>> On Thu, Jun 09, 2011 at 05:21:03PM -0700, Sarah Sharp wrote:
->>>> Topic 1
->>>> -------
->>>> 
->>>> The KVM folks suggested that it would be good to get USB and
->>>> virtualization developers together to talk about how to virtualize the
->>>> xHCI host controller.  The xHCI spec architect worked closely with
->>>> VMWare to get some extra goodies in the spec to help virtualization, and
->>>> I'd like to see the other virtualization developers take advantage of
->>>> that.  I'd also like us to hash out any issues they have been finding in
->>>> the USB core or xHCI driver during the virtualization effort.
->>> 
->>> Do people really want to virtualize the whole xHCI controller, or just
->>> specific ports or devices to the guest operating system?
->> 
->> A host OS could chose to virtualize the whole xHCI controller if it
->> wanted to.  That's part of the reason why xHCI does all the bandwidth
->> checking in hardware, not in software.
-> 
-> And here I thought it did that so it would be "correct" :)
-> 
->> 
->>> If just specific ports, would something like usbip be better for virtual
->>> machines, with the USB traffic going over the network connection between
->>> the guest/host?
->> 
->> It could be done that way too.  But that doesn't help if you're trying
->> to run Windows under Linux, right?  Only if all the guest OSes use the
->> same USB IP protocol then it would work.
-> 
-> usbip works on Windows as well as Linux.
+Signed-off-by: Istvan Varga <istvan_v@mailbox.hu>
 
-Do you have a reliable, working usbip solution at hand that work on Windows and Linux and doesn't require real network access, which can be a no-go for some scenarios?
 
-> 
-> But how could you run Windows with a xHCI controller in a guest, as
-> Windows has no xHCI driver?  What would it expect to see?
+--------------020508080603050407010702
+Content-Type: text/x-patch;
+ name="xc4000_powerdown.patch"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: attachment;
+ filename="xc4000_powerdown.patch"
 
-There are drivers for xhci adapters on Windows. Also, this whole discussion is pretty much future oriented - which most likely means built-in xhci drivers anywhere.
+diff -uNr xc4000_orig/drivers/media/common/tuners/xc4000.c xc4000/drivers/media/common/tuners/xc4000.c
+--- xc4000_orig/drivers/media/common/tuners/xc4000.c	2011-06-04 13:35:59.000000000 +0200
++++ xc4000/drivers/media/common/tuners/xc4000.c	2011-06-04 13:57:11.000000000 +0200
+@@ -43,9 +43,11 @@
+ 
+ static int no_poweroff;
+ module_param(no_poweroff, int, 0644);
+-MODULE_PARM_DESC(no_poweroff, "0 (default) powers device off when not used.\n"
+-	"\t\t1 keep device energized and with tuner ready all the times.\n"
+-	"\t\tFaster, but consumes more power and keeps the device hotter");
++MODULE_PARM_DESC(no_poweroff, "\n\t\t1: keep device energized and with tuner "
++	"ready all the times.\n"
++	"\t\tFaster, but consumes more power and keeps the device hotter.\n"
++	"\t\t2: powers device off when not used.\n"
++	"\t\t0 (default): use device-specific default mode.");
+ 
+ #define XC4000_DEFAULT_FIRMWARE "xc4000.fw"
+ 
+@@ -102,6 +104,7 @@
+ /* Misc Defines */
+ #define MAX_TV_STANDARD			24
+ #define XC_MAX_I2C_WRITE_LENGTH		64
++#define XC_POWERED_DOWN			0x80000000U
+ 
+ /* Signal Types */
+ #define XC_RF_MODE_AIR			0
+@@ -1365,8 +1368,34 @@
+ 
+ static int xc4000_sleep(struct dvb_frontend *fe)
+ {
+-	/* FIXME: djh disable this for now... */
+-	return XC_RESULT_SUCCESS;
++	struct xc4000_priv *priv = fe->tuner_priv;
++	int	ret = XC_RESULT_SUCCESS;
++
++	dprintk(1, "%s()\n", __func__);
++
++	mutex_lock(&priv->lock);
++
++	/* Avoid firmware reload on slow devices */
++	if ((no_poweroff == 2 ||
++	     (no_poweroff == 0 &&
++	      priv->card_type != XC4000_CARD_WINFAST_CX88)) &&
++	    (priv->cur_fw.type & BASE) != 0) {
++		/* force reset and firmware reload */
++		priv->cur_fw.type = XC_POWERED_DOWN;
++
++		if (xc_write_reg(priv, XREG_POWER_DOWN, 0)
++		    != XC_RESULT_SUCCESS) {
++			printk(KERN_ERR
++			       "xc4000: %s() unable to shutdown tuner\n",
++			       __func__);
++			ret = -EREMOTEIO;
++		}
++		xc_wait(20);
++	}
++
++	mutex_unlock(&priv->lock);
++
++	return ret;
+ }
+ 
+ static int xc4000_init(struct dvb_frontend *fe)
 
-No, in all seriousity, the main reason to go for FV vs PV is that so far, the best tested and working drivers are built for real hardware. I'm still unsatisfied with the PV driver situation for virtio on Windows. It's just incredibly hard to get Windows drivers right - and open source developers sure are not good at it :)
-
-But sure, let's talk about it during LinuxCon as well - there's a good chance you know more there than me :)
-
-> 
-
-Alex
-
+--------------020508080603050407010702--
