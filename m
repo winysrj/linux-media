@@ -1,81 +1,63 @@
 Return-path: <mchehab@pedra>
-Received: from moutng.kundenserver.de ([212.227.126.187]:50830 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753889Ab1F2T2c (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 29 Jun 2011 15:28:32 -0400
-Date: Wed, 29 Jun 2011 21:28:06 +0200 (CEST)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Sakari Ailus <sakari.ailus@iki.fi>
-cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	sakari.ailus@maxwell.research.nokia.com,
-	Sylwester Nawrocki <snjw23@gmail.com>,
-	Stan <svarbanov@mm-sol.com>, Hans Verkuil <hansverk@cisco.com>,
-	saaguirre@ti.com, Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: Re: [PATCH v2] V4L: add media bus configuration subdev operations
-In-Reply-To: <4E0B7AAE.7010900@iki.fi>
-Message-ID: <Pine.LNX.4.64.1106292122220.17571@axis700.grange>
-References: <Pine.LNX.4.64.1106222314570.3535@axis700.grange>
- <20110623220129.GA10918@valkosipuli.localdomain> <Pine.LNX.4.64.1106240021540.5348@axis700.grange>
- <20110627081912.GC12671@valkosipuli.localdomain> <Pine.LNX.4.64.1106271029240.9394@axis700.grange>
- <Pine.LNX.4.64.1106291806260.12577@axis700.grange> <4E0B7AAE.7010900@iki.fi>
+Received: from mail.juropnet.hu ([212.24.188.131]:56685 "EHLO mail.juropnet.hu"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756337Ab1FDPVu (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 4 Jun 2011 11:21:50 -0400
+Received: from [94.248.226.52]
+	by mail.juropnet.hu with esmtps (TLS1.0:DHE_RSA_AES_256_CBC_SHA1:32)
+	(Exim 4.69)
+	(envelope-from <istvan_v@mailbox.hu>)
+	id 1QSsf7-00048L-VS
+	for linux-media@vger.kernel.org; Sat, 04 Jun 2011 17:21:49 +0200
+Message-ID: <4DEA4D6D.5030508@mailbox.hu>
+Date: Sat, 04 Jun 2011 17:21:17 +0200
+From: "istvan_v@mailbox.hu" <istvan_v@mailbox.hu>
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+To: linux-media@vger.kernel.org
+Subject: XC4000: removed redundant tuner reset
+References: <4D764337.6050109@email.cz>	<20110531124843.377a2a80@glory.local>	<BANLkTi=Lq+FF++yGhRmOa4NCigSt6ZurHg@mail.gmail.com>	<20110531174323.0f0c45c0@glory.local> <BANLkTimEEGsMP6PDXf5W5p9wW7wdWEEOiA@mail.gmail.com>
+In-Reply-To: <BANLkTimEEGsMP6PDXf5W5p9wW7wdWEEOiA@mail.gmail.com>
+Content-Type: multipart/mixed;
+ boundary="------------000009090303050708040506"
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Wed, 29 Jun 2011, Sakari Ailus wrote:
+This is a multi-part message in MIME format.
+--------------000009090303050708040506
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 
-> Guennadi Liakhovetski wrote:
-> > On Mon, 27 Jun 2011, Guennadi Liakhovetski wrote:
-> > 
-> > [snip]
-> > 
-> >>> If the structures are expected to be generic I somehow feel that a field of
-> >>> flags isn't the best way to describe the configuration of CSI-2 or other
-> >>> busses. Why not to just use a structure with bus type and an union for
-> >>> bus-specific configuration parameters? It'd be easier to access and also to
-> >>> change as needed than flags in an unsigned long field.
-> >>
-> >> Well, yes, a union can be a good idea, thanks.
-> > 
-> > ...on a second thought, we currently only have one field: flags, and it is 
-> > common for all 3 bus types: parallel, reduced parallel (bt.656, etc.), and 
-> > CSI-2. In the future, when we need more parameters for any of these busses 
-> > we'll just add such a union, shouldn't be a problem.
-> 
-> What I meant above was that I would prefer to describe the capabilities
-> in a structure which would contain appropriate data type for the field,
-> not as flags or sets of flags in a bit field.
-> 
-> This would allow e.g. just testing for
-> v4l2_mbus_config.u.parallel.hsync_active_low instead of
-> v4l2_mbus_config.flags & V4L2_MBUS_HSYNC_ACTIVE_LOW. This way the flags
-> used for the bus also express the bus explicitly rather than implicitly.
+This patch causes the tuner reset command to be ignored in the firmware
+code, since this only happens when the BASE/INIT1 firmware is loaded by
+check_firmware(), and in that case check_firmware() already calls the
+reset callback before starting to load the firmware.
 
-I don't think, using flags is any less explicit, than using struct 
-members. As I already explained, I'd like to use the same interface for 
-querying capabilities, the present configuration, and setting a 
-configuration. This is easily achieved with flags. See the 
-v4l2_mbus_config_compatible() function and try to rewrite all the bitwise 
-operations in it, using your struct.
+Signed-off-by: Istvan Varga <istvan_v@mailbox.hu>
 
-Thanks
-Guennadi
 
-> 
-> Do you see downsides with this compared to using an integer field as
-> flags? The other benefits of this are described in my earlier comment.
-> 
-> Regards,
-> 
-> -- 
-> Sakari Ailus
-> sakari.ailus@iki.fi
-> 
+--------------000009090303050708040506
+Content-Type: text/x-patch;
+ name="xc4000_noreset.patch"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: attachment;
+ filename="xc4000_noreset.patch"
 
----
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
-http://www.open-technology.de/
+diff -uNr xc4000_orig/drivers/media/common/tuners/xc4000.c xc4000/drivers/media/common/tuners/xc4000.c
+--- xc4000_orig/drivers/media/common/tuners/xc4000.c	2011-06-04 16:30:28.000000000 +0200
++++ xc4000/drivers/media/common/tuners/xc4000.c	2011-06-04 16:35:17.000000000 +0200
+@@ -338,10 +338,12 @@
+ 		len = i2c_sequence[index] * 256 + i2c_sequence[index+1];
+ 		if (len == 0x0000) {
+ 			/* RESET command */
+-			result = xc4000_TunerReset(fe);
+ 			index += 2;
++#if 0			/* not needed, as already called by check_firmware() */
++			result = xc4000_TunerReset(fe);
+ 			if (result != XC_RESULT_SUCCESS)
+ 				return result;
++#endif
+ 		} else if (len & 0x8000) {
+ 			/* WAIT command */
+ 			xc_wait(len & 0x7FFF);
+
+--------------000009090303050708040506--
