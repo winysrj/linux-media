@@ -1,46 +1,91 @@
 Return-path: <mchehab@pedra>
-Received: from mx1.redhat.com ([209.132.183.28]:20484 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751797Ab1FCMPg (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 3 Jun 2011 08:15:36 -0400
-Message-ID: <4DE8D065.7020502@redhat.com>
-Date: Fri, 03 Jun 2011 09:15:33 -0300
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Received: from casper.infradead.org ([85.118.1.10]:56925 "EHLO
+	casper.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754505Ab1FDNhC (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sat, 4 Jun 2011 09:37:02 -0400
+Message-ID: <4DEA34F1.1020401@infradead.org>
+Date: Sat, 04 Jun 2011 10:36:49 -0300
+From: Mauro Carvalho Chehab <mchehab@infradead.org>
 MIME-Version: 1.0
-To: John McMaster <johndmcmaster@gmail.com>
-CC: linux-media@vger.kernel.org
-Subject: Re: Anchor Chips V4L2 driver
-References: <4DE873B4.4050306@gmail.com>
-In-Reply-To: <4DE873B4.4050306@gmail.com>
+To: Andreas Oberritter <obi@linuxtv.org>
+CC: Dan Carpenter <error27@gmail.com>, Arnd Bergmann <arnd@arndb.de>,
+	Steven Toth <stoth@kernellabs.com>,
+	Lucas De Marchi <lucas.demarchi@profusion.mobi>,
+	linux-media@vger.kernel.org, kernel-janitors@vger.kernel.org
+Subject: Re: [patch] [media] DVB: dvb_frontend: off by one in dtv_property_dump()
+References: <20110526084452.GB14591@shale.localdomain> <4DDE36AB.2070202@linuxtv.org>
+In-Reply-To: <4DDE36AB.2070202@linuxtv.org>
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Em 03-06-2011 02:40, John McMaster escreveu:
-> I'd like to write a driver for an Anchor Chips (seems to be bought by
-> Cypress) USB camera Linux driver sold as an AmScope MD1800.  It seems
-> like this implies I need to write a V4L2 driver.  The camera does not
-> seem its currently supported (checked on Fedora 13 / 2.6.34.8) and I did
-> not find any information on it in mailing list archives.  Does anyone
-> know or can help me identify if a similar camera might already be
-> supported? 
-
-I've no idea. Better to wait for a couple days for developers to manifest
-about that, if they're already working on it.
-
-> lsusb gives the following output:
+Em 26-05-2011 08:16, Andreas Oberritter escreveu:
+> Hi Dan,
 > 
-> Bus 001 Device 111: ID 0547:4d88 Anchor Chips, Inc.
+> On 05/26/2011 10:44 AM, Dan Carpenter wrote:
+>> If the tvp->cmd == DTV_MAX_COMMAND then we read past the end of the
+>> array.
+>>
+>> Signed-off-by: Dan Carpenter <error27@gmail.com>
+>>
+>> diff --git a/drivers/media/dvb/dvb-core/dvb_frontend.c b/drivers/media/dvb/dvb-core/dvb_frontend.c
+>> index 9827804..607e293 100644
+>> --- a/drivers/media/dvb/dvb-core/dvb_frontend.c
+>> +++ b/drivers/media/dvb/dvb-core/dvb_frontend.c
+>> @@ -981,7 +981,7 @@ static void dtv_property_dump(struct dtv_property *tvp)
+>>  {
+>>  	int i;
+>>  
+>> -	if (tvp->cmd <= 0 || tvp->cmd > DTV_MAX_COMMAND) {
+>> +	if (tvp->cmd <= 0 || tvp->cmd >= DTV_MAX_COMMAND) {
+>>  		printk(KERN_WARNING "%s: tvp.cmd = 0x%08x undefined\n",
+>>  			__func__, tvp->cmd);
+>>  		return;
 > 
-> I've started reading the "Video for Linux Two API Specification" which
-> seems like a good starting point and will move onto using source code as
-> appropriate.  Any help would be appreciated.  Thanks!
+> thanks for spotting this, but this fixes the wrong end. This does not need to
+> be applied to kernels older than 2.6.40.
+> 
+> From 6d8588a4546fd4df717ca61450f99fb9c1b13a5f Mon Sep 17 00:00:00 2001
+> From: Andreas Oberritter <obi@linuxtv.org>
+> Date: Thu, 26 May 2011 10:54:14 +0000
+> Subject: [PATCH] DVB: dvb_frontend: fix dtv_property_dump for DTV_DVBT2_PLP_ID
+> 
+> - Add missing entry to array "dtv_cmds".
+> - Set array size to DTV_MAX_COMMAND + 1 to avoid future off-by-ones.
 
-You'll find other useful information at linuxtv.org wiki page. The better
-is to write it as a sub-driver for gspca. The gspca core have already all
-that it is needed for cameras. So, you'll need to focus only at the device-specific
-stuff.
+Patchwork.kernel.org is not reliable at all. It missed this entire thread.
 
-Cheers,
-Mauro
+Andreas patch is the right thing to do.
+
+Thank you both for reporting and fixing this issue. I'm applying the
+patch right now.
+
+> 
+> Signed-off-by: Andreas Oberritter <obi@linuxtv.org>
+> ---
+>  drivers/media/dvb/dvb-core/dvb_frontend.c |    3 ++-
+>  1 files changed, 2 insertions(+), 1 deletions(-)
+> 
+> diff --git a/drivers/media/dvb/dvb-core/dvb_frontend.c b/drivers/media/dvb/dvb-core/dvb_frontend.c
+> index 9827804..bed7bfe 100644
+> --- a/drivers/media/dvb/dvb-core/dvb_frontend.c
+> +++ b/drivers/media/dvb/dvb-core/dvb_frontend.c
+> @@ -904,7 +904,7 @@ static int dvb_frontend_clear_cache(struct dvb_frontend *fe)
+>  	.buffer = b \
+>  }
+>  
+> -static struct dtv_cmds_h dtv_cmds[] = {
+> +static struct dtv_cmds_h dtv_cmds[DTV_MAX_COMMAND + 1] = {
+>  	_DTV_CMD(DTV_TUNE, 1, 0),
+>  	_DTV_CMD(DTV_CLEAR, 1, 0),
+>  
+> @@ -966,6 +966,7 @@ static struct dtv_cmds_h dtv_cmds[] = {
+>  	_DTV_CMD(DTV_ISDBT_LAYERC_TIME_INTERLEAVING, 0, 0),
+>  
+>  	_DTV_CMD(DTV_ISDBS_TS_ID, 1, 0),
+> +	_DTV_CMD(DTV_DVBT2_PLP_ID, 1, 0),
+>  
+>  	/* Get */
+>  	_DTV_CMD(DTV_DISEQC_SLAVE_REPLY, 0, 1),
+
