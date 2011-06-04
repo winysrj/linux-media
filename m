@@ -1,37 +1,107 @@
 Return-path: <mchehab@pedra>
-Received: from mx1.redhat.com ([209.132.183.28]:6080 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752120Ab1FCMMY (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 3 Jun 2011 08:12:24 -0400
-Message-ID: <4DE8CF9C.4040004@redhat.com>
-Date: Fri, 03 Jun 2011 09:12:12 -0300
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Received: from smtp-vbr18.xs4all.nl ([194.109.24.38]:1330 "EHLO
+	smtp-vbr18.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754443Ab1FDK2N (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sat, 4 Jun 2011 06:28:13 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Subject: Re: [RFCv2 PATCH 08/11] v4l2-ctrls: simplify event subscription.
+Date: Sat, 4 Jun 2011 12:28:04 +0200
+Cc: linux-media@vger.kernel.org, Hans Verkuil <hans.verkuil@cisco.com>
+References: <1306330435-11799-1-git-send-email-hverkuil@xs4all.nl> <2993c04b0ba330b3f634e281a6b50ee8cd7e6f7c.1306329390.git.hans.verkuil@cisco.com> <201106032155.10808.laurent.pinchart@ideasonboard.com>
+In-Reply-To: <201106032155.10808.laurent.pinchart@ideasonboard.com>
 MIME-Version: 1.0
-To: Dmitri Belimov <d.belimov@gmail.com>
-CC: Devin Heitmueller <dheitmueller@kernellabs.com>,
-	linux-media@vger.kernel.org, thunder.m@email.cz,
-	"istvan_v@mailbox.hu" <istvan_v@mailbox.hu>, bahathir@gmail.com
-Subject: Re: [linux-dvb] XC4000 patches for kernel 2.6.37.2
-References: <4D764337.6050109@email.cz>	<20110531124843.377a2a80@glory.local>	<BANLkTi=Lq+FF++yGhRmOa4NCigSt6ZurHg@mail.gmail.com>	<20110531174323.0f0c45c0@glory.local>	<BANLkTimEEGsMP6PDXf5W5p9wW7wdWEEOiA@mail.gmail.com>	<4DE7A131.7010208@redhat.com> <20110603114103.451f1375@glory.local>
-In-Reply-To: <20110603114103.451f1375@glory.local>
-Content-Type: text/plain; charset=windows-1252
+Content-Type: Text/Plain;
+  charset="iso-8859-15"
 Content-Transfer-Encoding: 7bit
+Message-Id: <201106041228.04249.hverkuil@xs4all.nl>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Em 02-06-2011 22:41, Dmitri Belimov escreveu:
-> On Thu, 02 Jun 2011 11:41:53 -0300
-> Mauro Carvalho Chehab <mchehab@redhat.com> wrote:
-
-> One of our TV card has this tuner. It works in analog mode. I try get right firmware
-> cleanup and test.
+On Friday, June 03, 2011 21:55:10 Laurent Pinchart wrote:
+> Hi Hans,
 > 
-> Can I use 
-> git://linuxtv.org/mchehab/experimental.git branch xc4000
-> for do it?
+> Thanks for the patch.
+> 
+> On Wednesday 25 May 2011 15:33:52 Hans Verkuil wrote:
+> > From: Hans Verkuil <hans.verkuil@cisco.com>
+> > 
+> > Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+> > ---
+> >  drivers/media/video/v4l2-ctrls.c |   31 +++++++++++++++++++++++++++++++
+> >  include/media/v4l2-ctrls.h       |   25 +++++++++++++++++++++++++
+> >  2 files changed, 56 insertions(+), 0 deletions(-)
+> > 
+> > diff --git a/drivers/media/video/v4l2-ctrls.c
+> > b/drivers/media/video/v4l2-ctrls.c index e2a7ac7..9807a20 100644
+> > --- a/drivers/media/video/v4l2-ctrls.c
+> > +++ b/drivers/media/video/v4l2-ctrls.c
+> > @@ -831,6 +831,22 @@ int v4l2_ctrl_handler_init(struct v4l2_ctrl_handler
+> > *hdl, }
+> >  EXPORT_SYMBOL(v4l2_ctrl_handler_init);
+> > 
+> > +/* Count the number of controls */
+> > +unsigned v4l2_ctrl_handler_cnt(struct v4l2_ctrl_handler *hdl)
+> > +{
+> > +	struct v4l2_ctrl_ref *ref;
+> > +	unsigned cnt = 0;
+> > +
+> > +	if (hdl == NULL)
+> > +		return 0;
+> > +	mutex_lock(&hdl->lock);
+> > +	list_for_each_entry(ref, &hdl->ctrl_refs, node)
+> > +		cnt++;
+> 
+> As you don't use the entry, you can replace list_for_each_entry with 
+> list_for_each.
 
-Sure. Feel free to use it. I'll be adding there the xc4000-related patches
-until they're ok for review.
+True.
 
-Thanks,
-Mauro
+> Should the handler keep a controls count ? In that case you wouldn't need this 
+> function.
+
+I'll look into this.
+
+> 
+> > +	mutex_unlock(&hdl->lock);
+> > +	return cnt;
+> > +}
+> > +EXPORT_SYMBOL(v4l2_ctrl_handler_cnt);
+> > +
+> >  /* Free all controls and control refs */
+> >  void v4l2_ctrl_handler_free(struct v4l2_ctrl_handler *hdl)
+> >  {
+> > @@ -1999,3 +2015,18 @@ void v4l2_ctrl_del_fh(struct v4l2_ctrl *ctrl, struct
+> > v4l2_fh *fh) v4l2_ctrl_unlock(ctrl);
+> >  }
+> >  EXPORT_SYMBOL(v4l2_ctrl_del_fh);
+> > +
+> > +int v4l2_ctrl_sub_fh(struct v4l2_fh *fh, struct v4l2_event_subscription
+> > *sub, +		     unsigned n)
+> 
+> I would rename this to v4l2_ctrl_subscribe_fh(). I had trouble understanding 
+> what v4l2_ctrl_sub_fh() before reading the documentation. sub makes me think 
+> about sub-devices and subtract, not subscription.
+
+Good point.
+
+> > +{
+> > +	int ret = 0;
+> > +
+> > +	if (!fh->events)
+> > +		ret = v4l2_event_init(fh);
+> > +	if (!ret)
+> > +		ret = v4l2_event_alloc(fh, n);
+> > +	if (!ret)
+> > +		ret = v4l2_event_subscribe(fh, sub);
+> 
+> I tend to return errors when they occur instead of continuing to the end of 
+> the function. Handling errors on the spot makes code easier to read in my 
+> opinion, as I expect the main code flow to be the error-free path.
+
+Hmmm, I rather like the way the code looks in this particular case. But it;s
+no big deal and I can change it.
+
+Regards,
+
+	Hans
