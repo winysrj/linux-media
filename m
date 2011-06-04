@@ -1,139 +1,84 @@
 Return-path: <mchehab@pedra>
-Received: from moutng.kundenserver.de ([212.227.17.8]:58355 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754312Ab1FZRNq (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 26 Jun 2011 13:13:46 -0400
-From: Arnd Bergmann <arnd@arndb.de>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-Subject: Re: [PATCH] [media] v4l2 core: return -ENOIOCTLCMD if an ioctl doesn't exist
-Date: Sun, 26 Jun 2011 19:13:05 +0200
-Cc: Sakari Ailus <sakari.ailus@iki.fi>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
-	Linus Torvalds <torvalds@linux-foundation.org>
-References: <4E0519B7.3000304@redhat.com> <4E0752E0.5030901@iki.fi> <4E075C45.3010200@redhat.com>
-In-Reply-To: <4E075C45.3010200@redhat.com>
+Received: from mail.juropnet.hu ([212.24.188.131]:55729 "EHLO mail.juropnet.hu"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756694Ab1FDOsZ (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 4 Jun 2011 10:48:25 -0400
+Received: from [94.248.226.52]
+	by mail.juropnet.hu with esmtps (TLS1.0:DHE_RSA_AES_256_CBC_SHA1:32)
+	(Exim 4.69)
+	(envelope-from <istvan_v@mailbox.hu>)
+	id 1QSs9B-0001uy-Hv
+	for linux-media@vger.kernel.org; Sat, 04 Jun 2011 16:48:22 +0200
+Message-ID: <4DEA45B0.6090007@mailbox.hu>
+Date: Sat, 04 Jun 2011 16:48:16 +0200
+From: "istvan_v@mailbox.hu" <istvan_v@mailbox.hu>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201106261913.05752.arnd@arndb.de>
+To: linux-media@vger.kernel.org
+Subject: XC4000: added firmware_name parameter
+References: <4D764337.6050109@email.cz>	<20110531124843.377a2a80@glory.local>	<BANLkTi=Lq+FF++yGhRmOa4NCigSt6ZurHg@mail.gmail.com>	<20110531174323.0f0c45c0@glory.local> <BANLkTimEEGsMP6PDXf5W5p9wW7wdWEEOiA@mail.gmail.com>
+In-Reply-To: <BANLkTimEEGsMP6PDXf5W5p9wW7wdWEEOiA@mail.gmail.com>
+Content-Type: multipart/mixed;
+ boundary="------------050109080500020406040308"
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Sunday 26 June 2011 18:20:21 Mauro Carvalho Chehab wrote:
+This is a multi-part message in MIME format.
+--------------050109080500020406040308
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 
-> > The V4L2 core probably should return -ENOIOCTLCMD when an IOCTL isn't implemented, but as long as vfs_ioctl() would stay as it is, the user space would still get -EINVAL. Or is vfs_ioctl() about to change?
-> > 
-> > fs/ioctl.c:
-> > ----8<-----------
-> > static long vfs_ioctl(struct file *filp, unsigned int cmd,
-> >                       unsigned long arg)
-> > {
-> >         int error = -ENOTTY;
-> > 
-> >         if (!filp->f_op || !filp->f_op->unlocked_ioctl)
-> >                 goto out;
-> > 
-> >         error = filp->f_op->unlocked_ioctl(filp, cmd, arg);
-> >         if (error == -ENOIOCTLCMD)
-> >                 error = -EINVAL;
-> >  out:
-> >         return error;
-> > }
-> > ----8<-----------
+The firmware_name module parameter makes it possible to set the firmware
+file name. It defaults to "xc4000.fw" if not specified.
 
-One of the differences between the old ->ioctl() and the ->unlocked_ioctl()
-function is that unlocked_ioctl could point to the same function as
-->compat_ioctl(), so we have to catch functions returning -ENOIOCTLCMD.
+Signed-off-by: Istvan Varga <istvan_v@mailbox.hu>
 
-> Good catch!
-> 
-> At the recent git history, the return for -ENOIOCTLCMD were modified
-> by this changeset:
-> 
-> commit b19dd42faf413b4705d4adb38521e82d73fa4249
-> Author: Arnd Bergmann <arnd@arndb.de>
-> Date:   Sun Jul 4 00:15:10 2010 +0200
-> 
->     bkl: Remove locked .ioctl file operation
-> ...
-> @@ -39,21 +38,12 @@ static long vfs_ioctl(struct file *filp, unsigned int cmd,
->  {
->         int error = -ENOTTY;
->  
-> -   if (!filp->f_op)
-> + if (!filp->f_op || !filp->f_op->unlocked_ioctl)
->                 goto out;
->  
-> -   if (filp->f_op->unlocked_ioctl) {
-> -           error = filp->f_op->unlocked_ioctl(filp, cmd, arg);
-> -           if (error == -ENOIOCTLCMD)
-> -                   error = -EINVAL;
-> -           goto out;
-> -   } else if (filp->f_op->ioctl) {
-> -           lock_kernel();
-> -           error = filp->f_op->ioctl(filp->f_path.dentry->d_inode,
-> -                                     filp, cmd, arg);
-> -           unlock_kernel();
-> ...
-> 
-> Before Arnd's patch, locked ioctl's were returning -ENOIOCTLCMD, and
-> unlocked ones were returning -EINVAL. Now, the return of -ENOIOCTLCMD
-> doesn't go to userspace anymore. IMO, that's wrong and can cause
-> regressions, as some subsystems like DVB were returning -ENOIOCTLCMD
-> to userspace.
 
-ENOIOCTLCMD should never be returned to user space, see the comment
-in include/linux/errno.h:
+--------------050109080500020406040308
+Content-Type: text/x-patch;
+ name="xc4000_fwname.patch"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: attachment;
+ filename="xc4000_fwname.patch"
 
-/*
- * These should never be seen by user programs.  To return one of ERESTART*
- * codes, signal_pending() MUST be set.  Note that ptrace can observe these
- * at syscall exit tracing, but they will never be left for the debugged user
- * process to see.
- */
+diff -uNr xc4000_orig/drivers/media/common/tuners/xc4000.c xc4000/drivers/media/common/tuners/xc4000.c
+--- xc4000_orig/drivers/media/common/tuners/xc4000.c	2011-06-03 17:14:59.000000000 +0200
++++ xc4000/drivers/media/common/tuners/xc4000.c	2011-06-04 12:29:31.000000000 +0200
+@@ -47,16 +47,20 @@
+ 	"\t\t1 keep device energized and with tuner ready all the times.\n"
+ 	"\t\tFaster, but consumes more power and keeps the device hotter");
+ 
++#define XC4000_DEFAULT_FIRMWARE "xc4000.fw"
++
++static char firmware_name[30];
++module_param_string(firmware_name, firmware_name, sizeof(firmware_name), 0);
++MODULE_PARM_DESC(firmware_name, "\n\t\tFirmware file name. Allows overriding "
++	"the default firmware\n"
++	"\t\tname.");
++
+ static DEFINE_MUTEX(xc4000_list_mutex);
+ static LIST_HEAD(hybrid_tuner_instance_list);
+ 
+ #define dprintk(level, fmt, arg...) if (debug >= level) \
+ 	printk(KERN_INFO "%s: " fmt, "xc4000", ## arg)
+ 
+-/* Note that the last version digit is my internal build number (so I can
+-   rev the firmware even if the core Xceive firmware was unchanged) */
+-#define XC4000_DEFAULT_FIRMWARE "dvb-fe-xc4000-1.4.1.fw"
+-
+ /* struct for storing firmware table */
+ struct firmware_description {
+ 	unsigned int  type;
+@@ -714,7 +718,10 @@
+ 	char		      name[33];
+ 	const char	      *fname;
+ 
+-	fname = XC4000_DEFAULT_FIRMWARE;
++	if (firmware_name[0] != '\0')
++		fname = firmware_name;
++	else
++		fname = XC4000_DEFAULT_FIRMWARE;
+ 
+ 	printk("Reading firmware %s\n",  fname);
+ 	rc = request_firmware(&fw, fname, priv->i2c_props.adap->dev.parent);
 
-There was a lot of debate whether undefined ioctls on non-ttys should
-return -EINVAL or -ENOTTY, including mass-conversions from -ENOTTY to
--EINVAL at some point in the pre-git era, IIRC.
-
-Inside of v4l2, I believe this is handled by video_usercopy(), which
-turns the driver's -ENOIOCTLCMD into -ENOTTY. What cases do you observe
-where this is not done correctly and we do return ENOIOCTLCMD to
-vfs_ioctl?
-
-> The right fix would be to remove this from fs:
-> 
-> diff --git a/fs/ioctl.c b/fs/ioctl.c
-> index 1d9b9fc..802fbbd 100644
-> --- a/fs/ioctl.c
-> +++ b/fs/ioctl.c
-> @@ -41,8 +41,6 @@ static long vfs_ioctl(struct file *filp, unsigned int cmd,
->  		goto out;
->  
->  	error = filp->f_op->unlocked_ioctl(filp, cmd, arg);
-> -	if (error == -ENOIOCTLCMD)
-> -		error = -EINVAL;
->   out:
->  	return error;
->  }
-> 
-> However, the replacement from -EINVAL to -ENOIOCTLCMD is there since 2.6.12 for
-> unlocked_ioctl:
-> 
-> $ git blame b19dd42f^1 fs/ioctl.c 
-> ...
-> ^1da177e (Linus Torvalds    2005-04-16 15:20:36 -0700  46)              error = filp->f_op->unlocked_ioctl(filp, cmd, arg);
-> ^1da177e (Linus Torvalds    2005-04-16 15:20:36 -0700  47)              if (error == -ENOIOCTLCMD)
-> ^1da177e (Linus Torvalds    2005-04-16 15:20:36 -0700  48)                      error = -EINVAL;
-> 
-> Linus,
-> 
-> what would be the expected behaviour?
-
-Note that 1da177e is the initial commit to git, Linus did not write that
-code, although he might have an opinion.
-
-	Arnd
+--------------050109080500020406040308--
