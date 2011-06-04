@@ -1,114 +1,69 @@
 Return-path: <mchehab@pedra>
-Received: from mailout2.w1.samsung.com ([210.118.77.12]:15443 "EHLO
-	mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755211Ab1FJJzS (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 10 Jun 2011 05:55:18 -0400
-Date: Fri, 10 Jun 2011 11:54:58 +0200
-From: Marek Szyprowski <m.szyprowski@samsung.com>
-Subject: [PATCH 10/10] ARM: S5PV210: add CMA support for FIMC devices on Aquila
- board
-In-reply-to: <1307699698-29369-1-git-send-email-m.szyprowski@samsung.com>
-To: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-	linux-media@vger.kernel.org, linux-mm@kvack.org,
-	linaro-mm-sig@lists.linaro.org
-Cc: Michal Nazarewicz <mina86@mina86.com>,
-	Marek Szyprowski <m.szyprowski@samsung.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	Andrew Morton <akpm@linux-foundation.org>,
-	KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>,
-	Ankita Garg <ankita@in.ibm.com>,
-	Daniel Walker <dwalker@codeaurora.org>,
-	Johan MOSSBERG <johan.xx.mossberg@stericsson.com>,
-	Mel Gorman <mel@csn.ul.ie>, Arnd Bergmann <arnd@arndb.de>,
-	Jesse Barker <jesse.barker@linaro.org>
-Message-id: <1307699698-29369-11-git-send-email-m.szyprowski@samsung.com>
-MIME-version: 1.0
-Content-type: TEXT/PLAIN
-Content-transfer-encoding: 7BIT
-References: <1307699698-29369-1-git-send-email-m.szyprowski@samsung.com>
+Received: from mail-qw0-f46.google.com ([209.85.216.46]:58360 "EHLO
+	mail-qw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754435Ab1FDRwe convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sat, 4 Jun 2011 13:52:34 -0400
+Received: by qwk3 with SMTP id 3so1187591qwk.19
+        for <linux-media@vger.kernel.org>; Sat, 04 Jun 2011 10:52:34 -0700 (PDT)
+Content-Type: text/plain; charset=us-ascii
+Mime-Version: 1.0 (Apple Message framework v1084)
+Subject: Re: [PATCH] [media] rc-core support for Microsoft IR keyboard/mouse
+From: Jarod Wilson <jarod@wilsonet.com>
+In-Reply-To: <1307136508-19455-1-git-send-email-jarod@redhat.com>
+Date: Sat, 4 Jun 2011 13:52:31 -0400
+Content-Transfer-Encoding: 8BIT
+Message-Id: <A3D446C7-183C-4471-A90E-F9DF5EA27CF2@wilsonet.com>
+References: <1307136508-19455-1-git-send-email-jarod@redhat.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-This patch is an example how CMA can be activated for particular devices
-in the system. It creates one CMA region and assigns it to all s5p-fimc
-devices on Samsung Aquila S5PC110 board.
+On Jun 3, 2011, at 5:28 PM, Jarod Wilson wrote:
 
-Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
-Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
----
- arch/arm/mach-s5pv210/Kconfig       |    1 +
- arch/arm/mach-s5pv210/mach-aquila.c |   26 ++++++++++++++++++++++++++
- 2 files changed, 27 insertions(+), 0 deletions(-)
+> This is a custom IR protocol decoder, for the RC-6-ish protocol used by
+> the Microsoft Remote Keyboard.
+> 
+> http://www.amazon.com/Microsoft-Remote-Keyboard-Windows-ZV1-00004/dp/B000AOAAN8
+> 
+> Its a standard keyboard with embedded thumb stick mouse pointer and
+> mouse buttons, along with a number of media keys. The media keys are
+> standard RC-6, identical to the signals from the stock MCE remotes, and
+> will be handled as such. The keyboard and mouse signals will be decoded
+> and delivered to the system by an input device registered specifically
+> by this driver.
+> 
+> Successfully tested with an mceusb-driven receiver, but this should
+> actually work with any raw IR rc-core receiver.
+> 
+> This work is inspired by lirc_mod_mce:
+> 
+> http://mod-mce.sourceforge.net/
+> 
+> The documentation there and code aided in understanding and decoding the
+> protocol, but the bulk of the code is actually borrowed more from the
+> existing in-kernel decoders than anything. I did recycle the keyboard
+> keycode table and a few defines from lirc_mod_mce though.
 
-diff --git a/arch/arm/mach-s5pv210/Kconfig b/arch/arm/mach-s5pv210/Kconfig
-index 37b5a97..c09a92c 100644
---- a/arch/arm/mach-s5pv210/Kconfig
-+++ b/arch/arm/mach-s5pv210/Kconfig
-@@ -64,6 +64,7 @@ menu "S5PC110 Machines"
- config MACH_AQUILA
- 	bool "Aquila"
- 	select CPU_S5PV210
-+	select CMA
- 	select S3C_DEV_FB
- 	select S5P_DEV_FIMC0
- 	select S5P_DEV_FIMC1
-diff --git a/arch/arm/mach-s5pv210/mach-aquila.c b/arch/arm/mach-s5pv210/mach-aquila.c
-index 4e1d8ff..8c404e5 100644
---- a/arch/arm/mach-s5pv210/mach-aquila.c
-+++ b/arch/arm/mach-s5pv210/mach-aquila.c
-@@ -21,6 +21,8 @@
- #include <linux/gpio_keys.h>
- #include <linux/input.h>
- #include <linux/gpio.h>
-+#include <linux/cma.h>
-+#include <linux/dma-mapping.h>
- 
- #include <asm/mach/arch.h>
- #include <asm/mach/map.h>
-@@ -650,6 +652,19 @@ static void __init aquila_map_io(void)
- 	s5p_set_timer_source(S5P_PWM3, S5P_PWM4);
- }
- 
-+unsigned long cma_area_start;
-+unsigned long cma_area_size = 32 << 20;
-+
-+static void __init aquila_reserve(void)
-+{
-+	unsigned long ret = cma_reserve(cma_area_start, cma_area_size);
-+	
-+	if (!IS_ERR_VALUE(ret)) {
-+		cma_area_start = ret;
-+		printk(KERN_INFO "cma: reserved %ld bytes at %lx\n", cma_area_size, cma_area_start);
-+	}
-+}
-+
- static void __init aquila_machine_init(void)
- {
- 	/* PMIC */
-@@ -672,6 +687,16 @@ static void __init aquila_machine_init(void)
- 	s3c_fb_set_platdata(&aquila_lcd_pdata);
- 
- 	platform_add_devices(aquila_devices, ARRAY_SIZE(aquila_devices));
-+
-+	if (cma_area_start) {
-+		struct cma *cma;
-+		cma = cma_create(cma_area_start, cma_area_size);
-+		if (cma) {
-+			set_dev_cma_area(&s5p_device_fimc0.dev, cma);
-+			set_dev_cma_area(&s5p_device_fimc1.dev, cma);
-+			set_dev_cma_area(&s5p_device_fimc2.dev, cma);
-+		}
-+	}
- }
- 
- MACHINE_START(AQUILA, "Aquila")
-@@ -683,4 +708,5 @@ MACHINE_START(AQUILA, "Aquila")
- 	.map_io		= aquila_map_io,
- 	.init_machine	= aquila_machine_init,
- 	.timer		= &s5p_timer,
-+	.reserve	= aquila_reserve,
- MACHINE_END
+Nb: this should more or less be considered as an RFC.
+
+One thing I already know I need/want to add is a timer callback to make
+sure we don't get stuck keys due to missing a release event signal.
+
+The main area of contention though is over how the keyboard/mouse device is
+set up. Currently, if you have three raw rc-core IR receivers in your system,
+you get three separate keyboard/mouse event devices, stored inside
+rc_dev->raw->mce_kbd->idev. I *think* this is the right way to do this, but
+one could argue that the decoder should just have a single input_dev within
+the decoder itself, which is used to feed along signals from any raw IR device.
+
+The other question is whether or not this module should be loaded by default
+when rc-core is initialized. The current implementation means this is loaded,
+and input devices are set up for every raw IR device, and I doubt the vast
+majority of people with raw IR receivers actually have this keyboard.
+
 -- 
-1.7.1.569.g6f426
+Jarod Wilson
+jarod@wilsonet.com
+
+
 
