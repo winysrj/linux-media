@@ -1,59 +1,47 @@
 Return-path: <mchehab@pedra>
-Received: from lo.gmane.org ([80.91.229.12]:33155 "EHLO lo.gmane.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755099Ab1FTWLo (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 20 Jun 2011 18:11:44 -0400
-Received: from list by lo.gmane.org with local (Exim 4.69)
-	(envelope-from <gldv-linux-media@m.gmane.org>)
-	id 1QYmh5-0002CD-8k
-	for linux-media@vger.kernel.org; Tue, 21 Jun 2011 00:11:43 +0200
-Received: from nemi.mork.no ([148.122.252.4])
-        by main.gmane.org with esmtp (Gmexim 0.1 (Debian))
-        id 1AlnuQ-0007hv-00
-        for <linux-media@vger.kernel.org>; Tue, 21 Jun 2011 00:11:42 +0200
-Received: from bjorn by nemi.mork.no with local (Gmexim 0.1 (Debian))
-        id 1AlnuQ-0007hv-00
-        for <linux-media@vger.kernel.org>; Tue, 21 Jun 2011 00:11:42 +0200
+Received: from mail-px0-f179.google.com ([209.85.212.179]:62305 "EHLO
+	mail-px0-f179.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751790Ab1FDHiM convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sat, 4 Jun 2011 03:38:12 -0400
+Received: by pxi2 with SMTP id 2so1678350pxi.10
+        for <linux-media@vger.kernel.org>; Sat, 04 Jun 2011 00:38:12 -0700 (PDT)
+MIME-Version: 1.0
+Date: Sat, 4 Jun 2011 04:38:12 -0300
+Message-ID: <BANLkTikCgTWA92P2Qw4hqyvmQFRZm7+Aog@mail.gmail.com>
+Subject: [PATCH] Increase max exposure value to 255 from 26.
+From: =?ISO-8859-1?Q?Marco_Diego_Aur=E9lio_Mesquita?=
+	<marcodiegomesquita@gmail.com>
 To: linux-media@vger.kernel.org
-From: =?utf-8?Q?Bj=C3=B8rn_Mork?= <bjorn@mork.no>
-Subject: Re: [RFC] vtunerc - virtual DVB device driver
-Date: Tue, 21 Jun 2011 00:11:31 +0200
-Message-ID: <87wrggb1bg.fsf@nemi.mork.no>
-References: <BANLkTimtnbAzLTdFY2OiSddHTjmD_99CfA@mail.gmail.com>
-	<201106202037.19535.remi@remlab.net>
-	<BANLkTinn0uN3VwGfqCbYbxFoVf6aNo1VSA@mail.gmail.com>
-	<BANLkTin14LnwP+_K1m-RsEXza4M4CjqnEw@mail.gmail.com>
-	<BANLkTimR-zWnnLBcD2w8d8NpeFJi=eT9nQ@mail.gmail.com>
-	<005a01cc2f7d$a799be30$f6cd3a90$@coexsi.fr>
-	<BANLkTinbQ8oBJt7fScuT5vHGFktbaQNY5A@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Devin Heitmueller <dheitmueller@kernellabs.com> writes:
+The inline patch increases maximum exposure value from 26 to 255. It
+has been tested and works well. Without the patch the captured image
+is too dark and can't be improved too much.
 
-> Nothing prevents a third-party from writing closed source drivers.
-> What we do *not* think is fair though is that those third parties
-> should be able to take advantage of all the GPL code that makes up the
-> DVB core, and the man-years spent developing that code.
-
-You could use the same argument against adding a loadable module
-interface to the Linux kernel (and I'm pretty sure it was used).
-Thankfully, usability won back then.  Or we most likely wouldn't have
-had a single Linux DVB driver.  Or Linux at all, except as a historical
-footnote.
-
-Honza posted a GPL licensed driver and gave a pretty good usage
-scenario.  Please don't reject it based on fear of abuse.  If you think
-about it, almost any usability improvement will also make abuse easier.
-And if you reject all of them based on such fear, then your system will
-die.
+Please CC answers as I'm not subscribed to the list.
 
 
-Thanks.
+Signed-off-by: Marco Diego Aurélio Mesquita <marcodiegomesquita@gmail.com>
+---
+ drivers/media/video/gspca/pac207.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
 
+diff --git a/drivers/media/video/gspca/pac207.c
+b/drivers/media/video/gspca/pac207.c
+index 892b454..6a2fb26 100644
+--- a/drivers/media/video/gspca/pac207.c
++++ b/drivers/media/video/gspca/pac207.c
+@@ -39,7 +39,7 @@ MODULE_LICENSE("GPL");
+ #define PAC207_BRIGHTNESS_DEFAULT	46
 
-BjÃ¸rn
+ #define PAC207_EXPOSURE_MIN		3
+-#define PAC207_EXPOSURE_MAX		26
++#define PAC207_EXPOSURE_MAX		255
+ #define PAC207_EXPOSURE_DEFAULT		5 /* power on default: 3 */
+ #define PAC207_EXPOSURE_KNEE		8 /* 4 = 30 fps, 11 = 8, 15 = 6 */
 
+-- 
+1.6.3.3
