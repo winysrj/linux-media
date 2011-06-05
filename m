@@ -1,69 +1,41 @@
 Return-path: <mchehab@pedra>
-Received: from casper.infradead.org ([85.118.1.10]:46588 "EHLO
-	casper.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751493Ab1FUP2B (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 21 Jun 2011 11:28:01 -0400
-Message-ID: <4E00B87A.20205@infradead.org>
-Date: Tue, 21 Jun 2011 12:27:54 -0300
-From: Mauro Carvalho Chehab <mchehab@infradead.org>
+Received: from smtp-68.nebula.fi ([83.145.220.68]:37645 "EHLO
+	smtp-68.nebula.fi" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753010Ab1FEMLe (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sun, 5 Jun 2011 08:11:34 -0400
+Date: Sun, 5 Jun 2011 15:11:30 +0300
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: "HeungJun, Kim" <riverful.kim@samsung.com>
+Cc: linux-media@vger.kernel.org, mchehab@infradead.org,
+	s.nawrocki@samsung.com, Kyungmin Park <kyungmin.park@samsung.com>
+Subject: Re: [PATCH v2 3/4] m5mols: remove union in the
+ m5mols_get_version(), and VERSION_SIZE
+Message-ID: <20110605121129.GE6073@valkosipuli.localdomain>
+References: <1306501095-28267-1-git-send-email-riverful.kim@samsung.com>
+ <1306827362-4064-4-git-send-email-riverful.kim@samsung.com>
+ <20110605120347.GD6073@valkosipuli.localdomain>
 MIME-Version: 1.0
-To: Chain von den Keiya <Chain@rpgfiction.net>
-CC: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	cavedon@sssup.it
-Subject: Re: [em28xx] Support for TerraTec G3?
-References: <201106090038.18115.Chain@rpgfiction.net>
-In-Reply-To: <201106090038.18115.Chain@rpgfiction.net>
-Content-Type: text/plain; charset=ISO-8859-15
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20110605120347.GD6073@valkosipuli.localdomain>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Em 08-06-2011 19:38, Chain von den Keiya escreveu:
-> Hello,
+On Sun, Jun 05, 2011 at 03:03:47PM +0300, Sakari Ailus wrote:
+[clip]
+> > -	/* store version information swapped for being readable */
+> > -	info->ver	= version.ver;
+> >  	info->ver.fw	= be16_to_cpu(info->ver.fw);
+> >  	info->ver.hw	= be16_to_cpu(info->ver.hw);
+> >  	info->ver.param	= be16_to_cpu(info->ver.param);
 > 
-> I hope this is the correct way to ask, so if it isn't, I am truly sorry.
+> As you have a local variable ver pointing to info->ver, you should also use
+> it here.
 
-c/c the linux-media mailing list, as other people may also have the same issue.
+With this change,
 
-> 
-> I have aquired a TerraTec G3 Video Grabber, USB-ID 0ccd:10a7. Now, I was 
-> hoping that it would get detected by the em28xx driver - it contains an em2860 
-> chip - but it wasn't (as of 2.6.38). However, I could see that there are quite 
-> some models which look similar, so I tried out the whole card=xx range. Didn't 
-> help. So now the question is, can this be done? Or is it impossible and I have 
-> to scrap this nice little device? I would be willing to help - testing 
-> drivers, opening the device up and identify chips, et cetera. Because I think 
-> if it's not that hard, it won't hurt if Linux supports a few more devices. 
-> (Actually, the G1 looks similar to this one again...)
-> 
-> The only thing I could find was:
-> http://linux.terratec.de/video_en.html - but no driver? I don't really 
-> understand this. So, now I am at a loss, but not giving up yet. So please help 
-> me, either by pointing me into the right direction - or by enhancing the 
-> driver to work with this card.
+Acked-by: Sakari Ailus <sakari.ailus@iki.fi>
 
-I pushed yesterday some patches for em2861 audio that may help to make your
-device work. If the model is similar to Terratec Grabby, then perhaps all that it is
-needed is to add your device USB ID into the kernel driver.
-
-Please test the enclosed patch.
-
-em28xx: add support for TerraTec G3
-
-Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
-
-
-diff --git a/drivers/media/video/em28xx/em28xx-cards.c b/drivers/media/video/em28xx/em28xx-cards.c
-index c892a1e..d6af828 100644
---- a/drivers/media/video/em28xx/em28xx-cards.c
-+++ b/drivers/media/video/em28xx/em28xx-cards.c
-@@ -1861,6 +1861,8 @@ struct usb_device_id em28xx_id_table[] = {
- 			.driver_info = EM2860_BOARD_TERRATEC_AV350 },
- 	{ USB_DEVICE(0x0ccd, 0x0096),
- 			.driver_info = EM2860_BOARD_TERRATEC_GRABBY },
-+	{ USB_DEVICE(0x0ccd, 0x10a7),
-+			.driver_info = EM2860_BOARD_TERRATEC_GRABBY },
- 	{ USB_DEVICE(0x0fd9, 0x0033),
- 			.driver_info = EM2860_BOARD_ELGATO_VIDEO_CAPTURE},
- 	{ USB_DEVICE(0x185b, 0x2870),
+-- 
+Sakari Ailus
+sakari dot ailus at iki dot fi
