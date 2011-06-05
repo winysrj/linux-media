@@ -1,2250 +1,2264 @@
 Return-path: <mchehab@pedra>
-Received: from smtprelay05.ispgateway.de ([80.67.31.100]:46893 "EHLO
-	smtprelay05.ispgateway.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751604Ab1FVHfe (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 22 Jun 2011 03:35:34 -0400
-Date: Wed, 22 Jun 2011 09:29:05 +0200
-From: Heiko Baums <lists@baums-on-web.de>
-To: Jarod Wilson <jarod@wilsonet.com>
-Cc: Devin Heitmueller <dheitmueller@kernellabs.com>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	"mailing list: lirc" <lirc-list@lists.sourceforge.net>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: Terratec Cinergy 1400 DVB-T RC not working anymore
-Message-ID: <20110622092905.436fb896@darkstar>
-In-Reply-To: <8706FD7A-A020-4357-867E-BF6FBA818C3B@wilsonet.com>
-References: <20110423005412.12978e29@darkstar>
-	<20110424163530.2bc1b365@darkstar>
-	<BCCEA9F4-16D7-4E63-B32C-15217AA094F3@wilsonet.com>
-	<20110425201835.0fbb84ee@darkstar>
-	<A4226E90-09BE-45FE-AEEF-0EA7E9414B4B@wilsonet.com>
-	<20110425230658.22551665@darkstar>
-	<59898A0D-573E-46E9-A3B7-9054B24E69DF@wilsonet.com>
-	<20110427151621.5ac73e12@darkstar>
-	<1FB1ED64-0EEC-4E15-8178-D2CCCA915B1D@wilsonet.com>
-	<20110427204725.2923ac99@darkstar>
-	<91CD2A5E-418A-4217-8D9F-1B29FC9DD24D@wilsonet.com>
-	<20110427222855.2e3a3a4d@darkstar>
-	<63E3BF90-BF19-43E3-B8DD-6D6F4896F2E7@wilsonet.com>
-	<BANLkTik+gYRfhDBy9JWgvo+GWJk5Uz7RMQ@mail.gmail.com>
-	<14961B2E-36D9-4CD2-87E7-629F115055F2@wilsonet.com>
-	<20110503222149.1ce726d9@darkstar>
-	<8706FD7A-A020-4357-867E-BF6FBA818C3B@wilsonet.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Received: from mx1.redhat.com ([209.132.183.28]:56752 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755569Ab1FENDa (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 5 Jun 2011 09:03:30 -0400
+Received: from int-mx02.intmail.prod.int.phx2.redhat.com (int-mx02.intmail.prod.int.phx2.redhat.com [10.5.11.12])
+	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id p55D3Uk7013965
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
+	for <linux-media@vger.kernel.org>; Sun, 5 Jun 2011 09:03:30 -0400
+Received: from [10.36.5.134] (vpn1-5-134.ams2.redhat.com [10.36.5.134])
+	by int-mx02.intmail.prod.int.phx2.redhat.com (8.13.8/8.13.8) with ESMTP id p55D3Q4I030663
+	for <linux-media@vger.kernel.org>; Sun, 5 Jun 2011 09:03:28 -0400
+Message-ID: <4DEB7E9E.6040102@redhat.com>
+Date: Sun, 05 Jun 2011 10:03:26 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+MIME-Version: 1.0
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: xc4000  patches folded
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Am Wed, 25 May 2011 16:41:35 -0400
-schrieb Jarod Wilson <jarod@wilsonet.com>:
+In order to make easier for review, I've folded all the following xc4000 patches into one
+patch:
 
-> So... I have the card finally up and running in a test rig, but I
-> don't yet have the necessary IR receiver cable. A glance at
-> cx88-input.c and the default key table for the 800i gives some clues
-> as to what is wrong though -- this is another case where the cx88
-> driver was only passing along the last byte of the remote's scancode,
-> after the raw IR was decoded in cx88's private decoder. Now, we
-> should be delivering the raw IR to the generic in-kernel IR decoders,
-> which are then going to be passing along full scancodes for lookup
-> table matching.
-> 
-> If someone with the 800i (and/or the Terratec card) can load rc-core
-> with debug=2, and provide dmesg output after punching a few buttons,
-> it might be possible to get this squared away even before I have the
-> necessary receiver cable. :)
+Davide Ferri (1):
+      [media] dib0700: add initial code for PCTV 340e by Davide Ferri
 
-Sorry for the long delay.
+Devin Heitmueller (22):
+      [media] dib0700: add USB id for PCTV 340eSE
+      [media] dib0700: properly setup GPIOs for PCTV 340e
+      [media] dib0700: successfully connect to xc4000 over i2c for PCTV 340e
+      [media] dib0700: add a sleep before attempting to detect dib7000p
+      [media] dib7000p: setup dev.parent for i2c master built into 7000p
+      [media] xc4000: pull in firmware management code from xc3028
+      [media] xc4000: cut over to using xc5000 version for loading i2c sequences
+      [media] xc4000: properly set type for init1 firmware
+      [media] xc4000: remove XREG_BUSY code only supported in xc5000
+      [media] xc4000: remove xc5000 firmware loading routine
+      [media] xc4000: add code to do standard and scode firmware loading
+      [media] xc4000: continued cleanup of the firmware loading routine
+      [media] xc4000: use if_khz provided in xc4000_config
+      [media] xc4000: setup dib7000p AGC config for PCTV 340e
+      [media] xc4000: handle dib0700 broken i2c stretching
+      [media] dib0700: fixup PLL config for PCTV 340e
+      [media] xc4000: get rid of hard-coded 8MHz firmware config
+      [media] dib0700: make PCTV 340e work!
+      [media] xc4000: turn off debug logging by default
+      [media] xc4000: rename firmware image filename
+      [media] xc4000: cleanup dmesg logging
+      [media] dib0700: remove notes from bringup of PCTV 340e
 
-Did you made any progress in the meantime?
+Istvan Varga (19):
+      [media] XC4000: code cleanup
+      [media] XC4000: updated standards table
+      [media] XC4000: added support for 7 MHz DVB-T
+      [media] XC4000: added mutex
+      [media] XC4000: fixed frequency error
+      [media] XC4000: added firmware_name parameter
+      [media] XC4000: simplified seek_firmware()
+      [media] XC4000: simplified load_scode
+      [media] XC4000: check_firmware() cleanup
+      [media] XC4000: added card_type
+      [media] XC4000: implemented power management
+      [media] XC4000: firmware initialization
+      [media] XC4000: debug message improvements
+      [media] XC4000: setting registers
+      [media] XC4000: added audio_std module parameter
+      [media] XC4000: implemented analog TV and radio
+      [media] XC4000: xc_tune_channel() cleanup
+      [media] XC4000: removed redundant tuner reset
+      [media] XC4000: detect XC4100
 
-I tried pressing some buttons of the IR for my Terratec Cinergy 1400
-DVB-T with kernel 2.6.39.1 and with all possible protocols disabled,
-with all protocols enabled and with only nec enabled, but I still get
-only a very few reactions (scancodes) randomly and sporadically, not
-replicable.
+Mauro Carvalho Chehab (1):
+      [media] xc4000: Fix a few bad whitespaces on it
 
-Please, tell me, if you need more infos or tests.
+ Documentation/video4linux/CARDLIST.tuner    |    1 +
+ drivers/media/common/tuners/Kconfig         |   10 +
+ drivers/media/common/tuners/Makefile        |    1 +
+ drivers/media/common/tuners/tuner-types.c   |    4 +
+ drivers/media/common/tuners/xc4000.c        | 1731 +++++++++++++++++++++++++++
+ drivers/media/common/tuners/xc4000.h        |   66 +
+ drivers/media/dvb/dvb-usb/dib0700_devices.c |  185 +++
+ drivers/media/dvb/dvb-usb/dvb-usb-ids.h     |    2 +
+ drivers/media/dvb/frontends/dib7000p.c      |    5 +
+ drivers/media/video/tuner-core.c            |   14 +
+ include/media/tuner.h                       |    2 +
+ 11 files changed, 2021 insertions(+), 0 deletions(-)
+ create mode 100644 drivers/media/common/tuners/xc4000.c
+ create mode 100644 drivers/media/common/tuners/xc4000.h
 
-This is the dmesg output at boot time:
+I'll be replying to this email for the xc4000 driver review.
 
-[   12.241118] Linux media interface: v0.10
-[   12.250204] Linux video capture interface: v2.00
-...
-[   12.519431] IR NEC protocol handler initialized
-[   12.524054] IR RC5(x) protocol handler initialized
-[   12.592137] cx88/0: cx2388x v4l2 driver version 0.0.8 loaded
-[   12.593962] IR RC6 protocol handler initialized
-[   12.595577] cx8800 0000:03:06.0: PCI INT A -> GSI 20 (level, low) ->
-IRQ 20
-[   12.596848] cx88[0]: subsystem: 153b:1166, board: TerraTec Cinergy
-1400 DVB-T [card=30,autodetected], frontend(s): 1
-[   12.596850] cx88[0]: TV tuner type 4, Radio tuner type 0
-[   12.601482] IR JVC protocol handler initialized
-[   12.605605] input: ImPS/2 Logitech Wheel Mouse
-as /devices/platform/i8042/serio1/input/input3
-[   12.628496] IR Sony protocol handler initialized
-[   12.631017] cx88/2: cx2388x MPEG-TS Driver Manager version 0.0.8
-loaded
-[   12.635389] lirc_dev: IR Remote Control driver registered, major 251 
-[   12.636775] IR LIRC bridge handler initialized
-[   12.786685] Registered IR keymap rc-cinergy-1400
-[   12.786721] ir_create_table: Allocated space for 64 keycode entries
-(512 bytes)
-[   12.786723] ir_setkeytable: Allocated space for 64 keycode entries
-(512 bytes)
-[   12.786726] ir_update_mapping: #0: New scan 0x0001 with key 0x0074
-[   12.786728] ir_update_mapping: #1: New scan 0x0002 with key 0x0002
-[   12.786730] ir_update_mapping: #2: New scan 0x0003 with key 0x0003
-[   12.786732] ir_update_mapping: #3: New scan 0x0004 with key 0x0004
-[   12.786733] ir_update_mapping: #4: New scan 0x0005 with key 0x0005
-[   12.786735] ir_update_mapping: #5: New scan 0x0006 with key 0x0006
-[   12.786736] ir_update_mapping: #6: New scan 0x0007 with key 0x0007
-[   12.786738] ir_update_mapping: #7: New scan 0x0008 with key 0x0008
-[   12.786740] ir_update_mapping: #8: New scan 0x0009 with key 0x0009
-[   12.786742] ir_update_mapping: #9: New scan 0x000a with key 0x000a
-[   12.786743] ir_update_mapping: #10: New scan 0x000c with key 0x000b
-[   12.786745] ir_update_mapping: #10: New scan 0x000b with key 0x0189
-[   12.786747] ir_update_mapping: #12: New scan 0x000d with key 0x00ad
-[   12.786749] ir_update_mapping: #13: New scan 0x000e with key 0x0161
-[   12.786750] ir_update_mapping: #14: New scan 0x000f with key 0x016d
-[   12.786752] ir_update_mapping: #15: New scan 0x0010 with key 0x0067
-[   12.786754] ir_update_mapping: #16: New scan 0x0011 with key 0x0069
-[   12.786755] ir_update_mapping: #17: New scan 0x0012 with key 0x0160
-[   12.786757] ir_update_mapping: #18: New scan 0x0013 with key 0x006a
-[   12.786759] ir_update_mapping: #19: New scan 0x0014 with key 0x006c
-[   12.786760] ir_update_mapping: #20: New scan 0x0015 with key 0x0184
-[   12.786762] ir_update_mapping: #21: New scan 0x0016 with key 0x0166
-[   12.786764] ir_update_mapping: #22: New scan 0x0017 with key 0x018e
-[   12.786766] ir_update_mapping: #23: New scan 0x0018 with key 0x018f
-[   12.786767] ir_update_mapping: #24: New scan 0x0019 with key 0x0190
-[   12.786769] ir_update_mapping: #25: New scan 0x001a with key 0x0191
-[   12.786771] ir_update_mapping: #26: New scan 0x001b with key 0x0192
-[   12.786773] ir_update_mapping: #27: New scan 0x001c with key 0x0073
-[   12.786774] ir_update_mapping: #28: New scan 0x001d with key 0x0071
-[   12.786776] ir_update_mapping: #29: New scan 0x001e with key 0x0072
-[   12.786778] ir_update_mapping: #30: New scan 0x001f with key 0x0193
-[   12.786779] ir_update_mapping: #31: New scan 0x0040 with key 0x0077
-[   12.786781] ir_update_mapping: #32: New scan 0x004c with key 0x00cf
-[   12.786783] ir_update_mapping: #33: New scan 0x0058 with key 0x00a7
-[   12.786785] ir_update_mapping: #33: New scan 0x0054 with key 0x019c
-[   12.786786] ir_update_mapping: #32: New scan 0x0048 with key 0x0080
-[   12.786788] ir_update_mapping: #36: New scan 0x005c with key 0x0197
-[   12.786835] input: cx88 IR (TerraTec Cinergy 1400
-as /devices/pci0000:00/0000:00:14.4/0000:03:06.0/rc/rc0/input4
-[   12.786887] rc0: cx88 IR (TerraTec Cinergy 1400
-as /devices/pci0000:00/0000:00:14.4/0000:03:06.0/rc/rc0
-[   12.786958] rc rc0: lirc_dev: driver ir-lirc-codec (cx88xx)
-registered at minor = 0
-[   12.786961] rc_register_device: Registered rc0 (driver: cx88xx,
-remote: rc-cinergy-1400, mode raw)
-[   12.786968] cx88[0]/0: found at 0000:03:06.0, rev: 5, irq: 20,
-latency: 32, mmio: 0xfb000000
-[   12.787079] cx88[0]/0: registered device video0 [v4l2]
-[   12.787108] cx88[0]/0: registered device vbi0
-[   12.787491] cx88[0]/2: cx2388x 8802 Driver Manager
-[   12.787504] cx88-mpeg driver manager 0000:03:06.2: PCI INT A -> GSI
-20 (level, low) -> IRQ 20
-[   12.787514] cx88[0]/2: found at 0000:03:06.2, rev: 5, irq: 20,
-latency: 32, mmio: 0xfa000000
-[   12.802856] ir_raw_event_set_idle: enter idle mode
-[   12.802860] ir_raw_event_store: sample: (16000us space)
-[   12.802867] ir_nec_decode: NEC decode started at state 0 (16000us
-space)
-[   12.802869] ir_nec_decode: NEC decode failed at state 0 (16000us
-space)
-[   12.802871] ir_rc5_decode: RC5(x) decode started at state 0 (16000us
-space)
-[   12.802873] ir_rc5_decode: RC5(x) decode failed at state 0 (16000us
-space)
-[   12.802875] ir_rc6_decode: RC6 decode started at state 0 (16000us
-space)
-[   12.802877] ir_rc6_decode: RC6 decode failed at state 0 (16000us
-space)
-[   12.802879] ir_jvc_decode: JVC decode started at state 0 (16000us
-space)
-[   12.802880] ir_jvc_decode: JVC decode failed at state 0 (16000us
-space)
-[   12.802882] ir_sony_decode: Sony decode started at state 0 (16000us
-space)
-[   12.802884] ir_sony_decode: Sony decode failed at state 0 (16000us
-space)
-[   12.859003] cx88/2: cx2388x dvb driver version 0.0.8 loaded
-[   12.859006] cx88/2: registering cx8802 driver, type: dvb access:
-shared
-[   12.859008] cx88[0]/2: subsystem: 153b:1166, board: TerraTec Cinergy
-1400 DVB-T [card=30]
-[   12.859011] cx88[0]/2: cx2388x based DVB/ATSC card
-[   12.859013] cx8802_alloc_frontends() allocating 1 frontend(s)
-[   12.998971] DVB: registering new adapter (cx88[0])
-[   12.998976] DVB: registering adapter 0 frontend 0 (Conexant CX22702
-DVB-T)...
-[   13.160499] show_protocols: allowed - 0x4000001f, enabled -
-0xffffffffffffffff
-[   13.196696] ir_update_mapping: #0: Deleting scan 0x0001
-[   13.196700] ir_update_mapping: #0: Deleting scan 0x0002
-[   13.196702] ir_update_mapping: #0: Deleting scan 0x0003
-[   13.196704] ir_update_mapping: #0: Deleting scan 0x0004
-[   13.196706] ir_update_mapping: #0: Deleting scan 0x0005
-[   13.196707] ir_update_mapping: #0: Deleting scan 0x0006
-[   13.196709] ir_update_mapping: #0: Deleting scan 0x0007
-[   13.196711] ir_update_mapping: #0: Deleting scan 0x0008
-[   13.196713] ir_update_mapping: #0: Deleting scan 0x0009
-[   13.196715] ir_update_mapping: #0: Deleting scan 0x000a
-[   13.196717] ir_update_mapping: #0: Deleting scan 0x000b
-[   13.196719] ir_update_mapping: #0: Deleting scan 0x000c
-[   13.196720] ir_update_mapping: #0: Deleting scan 0x000d
-[   13.196722] ir_update_mapping: #0: Deleting scan 0x000e
-[   13.196724] ir_update_mapping: #0: Deleting scan 0x000f
-[   13.196726] ir_update_mapping: #0: Deleting scan 0x0010
-[   13.196727] ir_resize_table: Shrinking table to 256 bytes
-[   13.196730] ir_update_mapping: #0: Deleting scan 0x0011
-[   13.196732] ir_update_mapping: #0: Deleting scan 0x0012
-[   13.196734] ir_update_mapping: #0: Deleting scan 0x0013
-[   13.196736] ir_update_mapping: #0: Deleting scan 0x0014
-[   13.196738] ir_update_mapping: #0: Deleting scan 0x0015
-[   13.196739] ir_update_mapping: #0: Deleting scan 0x0016
-[   13.196741] ir_update_mapping: #0: Deleting scan 0x0017
-[   13.196743] ir_update_mapping: #0: Deleting scan 0x0018
-[   13.196745] ir_update_mapping: #0: Deleting scan 0x0019
-[   13.196747] ir_update_mapping: #0: Deleting scan 0x001a
-[   13.196749] ir_update_mapping: #0: Deleting scan 0x001b
-[   13.196751] ir_update_mapping: #0: Deleting scan 0x001c
-[   13.196753] ir_update_mapping: #0: Deleting scan 0x001d
-[   13.196755] ir_update_mapping: #0: Deleting scan 0x001e
-[   13.196757] ir_update_mapping: #0: Deleting scan 0x001f
-[   13.196759] ir_update_mapping: #0: Deleting scan 0x0040
-[   13.196761] ir_update_mapping: #0: Deleting scan 0x0048
-[   13.196763] ir_update_mapping: #0: Deleting scan 0x004c
-[   13.196764] ir_update_mapping: #0: Deleting scan 0x0054
-[   13.196766] ir_update_mapping: #0: Deleting scan 0x0058
-[   13.196768] ir_update_mapping: #0: Deleting scan 0x005c
-[   13.196775] ir_update_mapping: #0: New scan 0x0001 with key 0x0074
-[   13.196777] ir_update_mapping: #1: New scan 0x0002 with key 0x0002
-[   13.196779] ir_update_mapping: #2: New scan 0x0003 with key 0x0003
-[   13.196782] ir_update_mapping: #3: New scan 0x0004 with key 0x0004
-[   13.196784] ir_update_mapping: #4: New scan 0x0005 with key 0x0005
-[   13.196786] ir_update_mapping: #5: New scan 0x0006 with key 0x0006
-[   13.196789] ir_update_mapping: #6: New scan 0x0007 with key 0x0007
-[   13.196791] ir_update_mapping: #7: New scan 0x0008 with key 0x0008
-[   13.196793] ir_update_mapping: #8: New scan 0x0009 with key 0x0009
-[   13.196795] ir_update_mapping: #9: New scan 0x000a with key 0x000a
-[   13.196798] ir_update_mapping: #10: New scan 0x000c with key 0x000b
-[   13.196800] ir_update_mapping: #10: New scan 0x000b with key 0x0189
-[   13.196803] ir_update_mapping: #12: New scan 0x000d with key 0x00ad
-[   13.196805] ir_update_mapping: #13: New scan 0x000e with key 0x0161
-[   13.196807] ir_update_mapping: #14: New scan 0x000f with key 0x016d
-[   13.196809] ir_update_mapping: #15: New scan 0x0010 with key 0x0067
-[   13.196811] ir_update_mapping: #16: New scan 0x0011 with key 0x0069
-[   13.196814] ir_update_mapping: #17: New scan 0x0012 with key 0x0160
-[   13.196816] ir_update_mapping: #18: New scan 0x0013 with key 0x006a
-[   13.196819] ir_update_mapping: #19: New scan 0x0014 with key 0x006c
-[   13.196821] ir_update_mapping: #20: New scan 0x0015 with key 0x0184
-[   13.196823] ir_update_mapping: #21: New scan 0x0016 with key 0x0166
-[   13.196825] ir_update_mapping: #22: New scan 0x0017 with key 0x018e
-[   13.196828] ir_update_mapping: #23: New scan 0x0018 with key 0x018f
-[   13.196830] ir_update_mapping: #24: New scan 0x0019 with key 0x0190
-[   13.196833] ir_update_mapping: #25: New scan 0x001a with key 0x0191
-[   13.196835] ir_update_mapping: #26: New scan 0x001b with key 0x0192
-[   13.196837] ir_update_mapping: #27: New scan 0x001c with key 0x0073
-[   13.196839] ir_update_mapping: #28: New scan 0x001d with key 0x0071
-[   13.196842] ir_update_mapping: #29: New scan 0x001e with key 0x0072
-[   13.196844] ir_update_mapping: #30: New scan 0x001f with key 0x0193
-[   13.196847] ir_update_mapping: #31: New scan 0x0040 with key 0x0077
-[   13.196849] ir_resize_table: Growing table to 512 bytes
-[   13.196851] ir_update_mapping: #32: New scan 0x004c with key 0x00cf
-[   13.196853] ir_update_mapping: #33: New scan 0x0058 with key 0x00a7
-[   13.196855] ir_update_mapping: #33: New scan 0x0054 with key 0x019c
-[   13.196858] ir_update_mapping: #32: New scan 0x0048 with key 0x0080
-[   13.196860] ir_update_mapping: #36: New scan 0x005c with key 0x0197
-[   13.196914] store_protocols: Current protocol(s): 0x0
-...
-[   19.771595] ir_raw_event_set_idle: leave idle mode
-[   19.771599] ir_raw_event_store: sample: (00250us pulse)
-[   19.787595] ir_raw_event_set_idle: enter idle mode
-[   19.787596] ir_raw_event_store: sample: (17000us space)
-...
-[   48.334641] ir_raw_event_set_idle: leave idle mode
-[   48.334652] ir_raw_event_store: sample: (00250us pulse)
-[   48.342636] ir_raw_event_set_idle: enter idle mode
-[   48.342642] ir_raw_event_store: sample: (12250us space)
+Cheers,
+Mauro.
 
-This is dmesg after pressing button 1 with all protocols disabled:
-
-[  194.670465] ir_raw_event_set_idle: leave idle mode
-[  194.678462] ir_raw_event_store: sample: (09250us pulse)
-[  194.686470] ir_raw_event_store: sample: (04500us space)
-[  194.686477] ir_raw_event_store: sample: (00500us pulse)
-[  194.686483] ir_raw_event_store: sample: (00500us space)
-[  194.686487] ir_raw_event_store: sample: (00750us pulse)
-[  194.686492] ir_raw_event_store: sample: (00500us space)
-[  194.686496] ir_raw_event_store: sample: (00500us pulse)
-[  194.686501] ir_raw_event_store: sample: (01750us space)
-[  194.694473] ir_raw_event_store: sample: (00500us pulse)
-[  194.694481] ir_raw_event_store: sample: (00500us space)
-[  194.694486] ir_raw_event_store: sample: (00750us pulse)
-[  194.694490] ir_raw_event_store: sample: (00500us space)
-[  194.694494] ir_raw_event_store: sample: (00500us pulse)
-[  194.694499] ir_raw_event_store: sample: (00500us space)
-[  194.694503] ir_raw_event_store: sample: (00750us pulse)
-[  194.694507] ir_raw_event_store: sample: (00500us space)
-[  194.694511] ir_raw_event_store: sample: (00500us pulse)
-[  194.694515] ir_raw_event_store: sample: (00500us space)
-[  194.694520] ir_raw_event_store: sample: (00750us pulse)
-[  194.694524] ir_raw_event_store: sample: (01500us space)
-[  194.702467] ir_raw_event_store: sample: (00750us pulse)
-[  194.702473] ir_raw_event_store: sample: (01500us space)
-[  194.702477] ir_raw_event_store: sample: (00750us pulse)
-[  194.702481] ir_raw_event_store: sample: (00500us space)
-[  194.702486] ir_raw_event_store: sample: (00500us pulse)
-[  194.702490] ir_raw_event_store: sample: (01750us space)
-[  194.702494] ir_raw_event_store: sample: (00750us pulse)
-[  194.702498] ir_raw_event_store: sample: (00250us space)
-[  194.702503] ir_raw_event_store: sample: (00750us pulse)
-[  194.710467] ir_raw_event_store: sample: (01500us space)
-[  194.710471] ir_raw_event_store: sample: (00750us pulse)
-[  194.710476] ir_raw_event_store: sample: (01500us space)
-[  194.710480] ir_raw_event_store: sample: (00750us pulse)
-[  194.710485] ir_raw_event_store: sample: (01500us space)
-[  194.710490] ir_raw_event_store: sample: (00750us pulse)
-[  194.710494] ir_raw_event_store: sample: (00500us space)
-[  194.710499] ir_raw_event_store: sample: (00750us pulse)
-[  194.718466] ir_raw_event_store: sample: (01500us space)
-[  194.718472] ir_raw_event_store: sample: (00750us pulse)
-[  194.718476] ir_raw_event_store: sample: (00250us space)
-[  194.718481] ir_raw_event_store: sample: (00750us pulse)
-[  194.718485] ir_raw_event_store: sample: (00500us space)
-[  194.718489] ir_raw_event_store: sample: (00750us pulse)
-[  194.718494] ir_raw_event_store: sample: (00500us space)
-[  194.718498] ir_raw_event_store: sample: (00500us pulse)
-[  194.718502] ir_raw_event_store: sample: (00500us space)
-[  194.718507] ir_raw_event_store: sample: (00750us pulse)
-[  194.718511] ir_raw_event_store: sample: (00500us space)
-[  194.718516] ir_raw_event_store: sample: (00500us pulse)
-[  194.718520] ir_raw_event_store: sample: (00500us space)
-[  194.726468] ir_raw_event_store: sample: (00750us pulse)
-[  194.726473] ir_raw_event_store: sample: (01500us space)
-[  194.726477] ir_raw_event_store: sample: (00750us pulse)
-[  194.726481] ir_raw_event_store: sample: (00500us space)
-[  194.726486] ir_raw_event_store: sample: (00500us pulse)
-[  194.726490] ir_raw_event_store: sample: (01750us space)
-[  194.726494] ir_raw_event_store: sample: (00500us pulse)
-[  194.726499] ir_raw_event_store: sample: (01750us space)
-[  194.726503] ir_raw_event_store: sample: (00500us pulse)
-[  194.734470] ir_raw_event_store: sample: (01750us space)
-[  194.734475] ir_raw_event_store: sample: (00500us pulse)
-[  194.734479] ir_raw_event_store: sample: (01750us space)
-[  194.734483] ir_raw_event_store: sample: (00500us pulse)
-[  194.734488] ir_raw_event_store: sample: (01750us space)
-[  194.734492] ir_raw_event_store: sample: (00500us pulse)
-[  194.742468] ir_raw_event_store: sample: (01750us space)
-[  194.742473] ir_raw_event_store: sample: (00500us pulse)
-[  194.750471] ir_raw_event_set_idle: enter idle mode
-[  194.750476] ir_raw_event_store: sample: (15250us space)
-[  194.782476] ir_raw_event_set_idle: leave idle mode
-[  194.790480] ir_raw_event_store: sample: (09250us pulse)
-[  194.790487] ir_raw_event_store: sample: (02250us space)
-[  194.790492] ir_raw_event_store: sample: (00500us pulse)
-[  194.798481] ir_raw_event_set_idle: enter idle mode
-[  194.798491] ir_raw_event_store: sample: (10250us space)
-[  194.886488] ir_raw_event_set_idle: leave idle mode
-[  194.894495] ir_raw_event_store: sample: (09250us pulse)
-[  194.902489] ir_raw_event_store: sample: (02000us space)
-[  194.902494] ir_raw_event_store: sample: (00750us pulse)
-[  194.910486] ir_raw_event_set_idle: enter idle mode
-[  194.910491] ir_raw_event_store: sample: (14000us space)
-[  194.998503] ir_raw_event_set_idle: leave idle mode
-[  195.006498] ir_raw_event_store: sample: (09250us pulse)
-[  195.006503] ir_raw_event_store: sample: (02000us space)
-[  195.006508] ir_raw_event_store: sample: (00750us pulse)
-[  195.022498] ir_raw_event_set_idle: enter idle mode
-[  195.022504] ir_raw_event_store: sample: (17750us space)
-
-This is dmesg after pressing button 1 with all protocols enabled:
-
-[  234.634837] ir_raw_event_set_idle: leave idle mode
-[  234.642834] ir_raw_event_store: sample: (09000us pulse)
-[  234.642854] ir_nec_decode: NEC decode started at state 0 (9000us
-pulse)
-[  234.642861] ir_rc5_decode: RC5(x) decode started at state 0 (9000us
-pulse)
-[  234.642866] ir_rc5_decode: RC5(x) decode started at state 1 (8111us
-pulse)
-[  234.642872] ir_rc5_decode: RC5(x) decode failed at state 1 (8111us
-pulse)
-[  234.642878] ir_rc6_decode: RC6 decode started at state 0 (9000us
-pulse)
-[  234.642883] ir_rc6_decode: RC6 decode failed at state 0 (9000us
-pulse)
-[  234.642889] ir_jvc_decode: JVC decode started at state 0 (9000us
-pulse)
-[  234.642894] ir_jvc_decode: JVC decode failed at state 0 (9000us
-pulse)
-[  234.642900] ir_sony_decode: Sony decode started at state 0 (9000us
-pulse)
-[  234.642905] ir_sony_decode: Sony decode failed at state 0 (9000us
-pulse)
-[  234.642913] ir_lirc_decode: delivering 9000us pulse to lirc_dev
-[  234.650836] ir_raw_event_store: sample: (04500us space)
-[  234.650841] ir_raw_event_store: sample: (00750us pulse)
-[  234.650846] ir_raw_event_store: sample: (00250us space)
-[  234.650850] ir_raw_event_store: sample: (00750us pulse)
-[  234.650855] ir_raw_event_store: sample: (00500us space)
-[  234.650859] ir_raw_event_store: sample: (00750us pulse)
-[  234.650864] ir_raw_event_store: sample: (01500us space)
-[  234.650882] ir_nec_decode: NEC decode started at state 1 (4500us
-space)
-[  234.650888] ir_rc5_decode: RC5(x) decode started at state 0 (4500us
-space)
-[  234.650893] ir_rc5_decode: RC5(x) decode failed at state 0 (4500us
-space)
-[  234.650899] ir_rc6_decode: RC6 decode started at state 0 (4500us
-space)
-[  234.650904] ir_rc6_decode: RC6 decode failed at state 0 (4500us
-space)
-[  234.650909] ir_jvc_decode: JVC decode started at state 0 (4500us
-space)
-[  234.650914] ir_jvc_decode: JVC decode failed at state 0 (4500us
-space)
-[  234.650920] ir_sony_decode: Sony decode started at state 0 (4500us
-space)
-[  234.650925] ir_sony_decode: Sony decode failed at state 0 (4500us
-space)
-[  234.650930] ir_lirc_decode: delivering 4500us space to lirc_dev
-[  234.650936] ir_nec_decode: NEC decode started at state 2 (750us
-pulse)
-[  234.650941] ir_rc5_decode: RC5(x) decode started at state 0 (750us
-pulse)
-[  234.650946] ir_rc5_decode: RC5(x) decode started at state 1 (0us
-pulse)
-[  234.650951] ir_rc6_decode: RC6 decode started at state 0 (750us
-pulse)
-[  234.650956] ir_rc6_decode: RC6 decode failed at state 0 (750us pulse)
-[  234.650962] ir_jvc_decode: JVC decode started at state 0 (750us
-pulse)
-[  234.650967] ir_jvc_decode: JVC decode failed at state 0 (750us pulse)
-[  234.650972] ir_sony_decode: Sony decode started at state 0 (750us
-pulse)
-[  234.650977] ir_sony_decode: Sony decode failed at state 0 (750us
-pulse)
-[  234.650981] ir_lirc_decode: delivering 750us pulse to lirc_dev
-[  234.650987] ir_nec_decode: NEC decode started at state 3 (250us
-space)
-[  234.650993] ir_nec_decode: NEC decode failed at state 3 (250us space)
-[  234.650998] ir_rc5_decode: RC5(x) decode failed at state 1 (250us
-space)
-[  234.651003] ir_rc6_decode: RC6 decode started at state 0 (250us
-space)
-[  234.651007] ir_rc6_decode: RC6 decode failed at state 0 (250us space)
-[  234.651012] ir_jvc_decode: JVC decode failed at state 0 (250us space)
-[  234.651018] ir_sony_decode: Sony decode failed at state 0 (250us
-space)
-[  234.651022] ir_lirc_decode: delivering 250us space to lirc_dev
-[  234.651028] ir_nec_decode: NEC decode started at state 0 (750us
-pulse)
-[  234.651033] ir_nec_decode: NEC decode failed at state 0 (750us pulse)
-[  234.651038] ir_rc5_decode: RC5(x) decode started at state 0 (750us
-pulse)
-[  234.651043] ir_rc5_decode: RC5(x) decode started at state 1 (0us
-pulse)
-[  234.651048] ir_rc6_decode: RC6 decode started at state 0 (750us
-pulse)
-[  234.651052] ir_rc6_decode: RC6 decode failed at state 0 (750us pulse)
-[  234.651057] ir_jvc_decode: JVC decode started at state 0 (750us
-pulse)
-[  234.651062] ir_jvc_decode: JVC decode failed at state 0 (750us pulse)
-[  234.651068] ir_sony_decode: Sony decode started at state 0 (750us
-pulse)
-[  234.651073] ir_sony_decode: Sony decode failed at state 0 (750us
-pulse)
-[  234.651077] ir_lirc_decode: delivering 750us pulse to lirc_dev
-[  234.651083] ir_nec_decode: NEC decode started at state 0 (500us
-space)
-[  234.651088] ir_nec_decode: NEC decode failed at state 0 (500us space)
-[  234.651093] ir_rc5_decode: RC5(x) decode started at state 1 (500us
-space)
-[  234.651098] ir_rc6_decode: RC6 decode started at state 0 (500us
-space)
-[  234.651103] ir_rc6_decode: RC6 decode failed at state 0 (500us space)
-[  234.651108] ir_jvc_decode: JVC decode started at state 0 (500us
-space)
-[  234.651113] ir_jvc_decode: JVC decode failed at state 0 (500us space)
-[  234.651118] ir_sony_decode: Sony decode started at state 0 (500us
-space)
-[  234.651123] ir_sony_decode: Sony decode failed at state 0 (500us
-space)
-[  234.651127] ir_lirc_decode: delivering 500us space to lirc_dev
-[  234.651133] ir_nec_decode: NEC decode started at state 0 (750us
-pulse)
-[  234.651138] ir_nec_decode: NEC decode failed at state 0 (750us pulse)
-[  234.651143] ir_rc5_decode: RC5(x) decode started at state 2 (750us
-pulse)
-[  234.651148] ir_rc5_decode: RC5(x) decode started at state 1 (0us
-pulse)
-[  234.651153] ir_rc6_decode: RC6 decode started at state 0 (750us
-pulse)
-[  234.651158] ir_rc6_decode: RC6 decode failed at state 0 (750us pulse)
-[  234.651163] ir_jvc_decode: JVC decode started at state 0 (750us
-pulse)
-[  234.651168] ir_jvc_decode: JVC decode failed at state 0 (750us pulse)
-[  234.651173] ir_sony_decode: Sony decode started at state 0 (750us
-pulse)
-[  234.651178] ir_sony_decode: Sony decode failed at state 0 (750us
-pulse)
-[  234.651182] ir_lirc_decode: delivering 750us pulse to lirc_dev
-[  234.651188] ir_nec_decode: NEC decode started at state 0 (1500us
-space)
-[  234.651193] ir_nec_decode: NEC decode failed at state 0 (1500us
-space)
-[  234.651198] ir_rc5_decode: RC5(x) decode started at state 1 (1500us
-space)
-[  234.651203] ir_rc5_decode: RC5(x) decode failed at state 1 (1500us
-space)
-[  234.651208] ir_rc6_decode: RC6 decode started at state 0 (1500us
-space)
-[  234.651213] ir_rc6_decode: RC6 decode failed at state 0 (1500us
-space)
-[  234.651218] ir_jvc_decode: JVC decode started at state 0 (1500us
-space)
-[  234.651223] ir_jvc_decode: JVC decode failed at state 0 (1500us
-space)
-[  234.651228] ir_sony_decode: Sony decode started at state 0 (1500us
-space)
-[  234.651233] ir_sony_decode: Sony decode failed at state 0 (1500us
-space)
-[  234.651237] ir_lirc_decode: delivering 1500us space to lirc_dev
-[  234.658835] ir_raw_event_store: sample: (00750us pulse)
-[  234.658840] ir_raw_event_store: sample: (00500us space)
-[  234.658844] ir_raw_event_store: sample: (00500us pulse)
-[  234.658849] ir_raw_event_store: sample: (00500us space)
-[  234.658853] ir_raw_event_store: sample: (00750us pulse)
-[  234.658857] ir_raw_event_store: sample: (00500us space)
-[  234.658862] ir_raw_event_store: sample: (00500us pulse)
-[  234.658866] ir_raw_event_store: sample: (00500us space)
-[  234.658870] ir_raw_event_store: sample: (00750us pulse)
-[  234.658875] ir_raw_event_store: sample: (00500us space)
-[  234.658879] ir_raw_event_store: sample: (00500us pulse)
-[  234.658884] ir_raw_event_store: sample: (01750us space)
-[  234.658888] ir_raw_event_store: sample: (00500us pulse)
-[  234.658904] ir_nec_decode: NEC decode started at state 0 (750us
-pulse)
-[  234.658909] ir_nec_decode: NEC decode failed at state 0 (750us pulse)
-[  234.658914] ir_rc5_decode: RC5(x) decode started at state 0 (750us
-pulse)
-[  234.658919] ir_rc5_decode: RC5(x) decode started at state 1 (0us
-pulse)
-[  234.658924] ir_rc6_decode: RC6 decode started at state 0 (750us
-pulse)
-[  234.658929] ir_rc6_decode: RC6 decode failed at state 0 (750us pulse)
-[  234.658934] ir_jvc_decode: JVC decode started at state 0 (750us
-pulse)
-[  234.658939] ir_jvc_decode: JVC decode failed at state 0 (750us pulse)
-[  234.658944] ir_sony_decode: Sony decode started at state 0 (750us
-pulse)
-[  234.658949] ir_sony_decode: Sony decode failed at state 0 (750us
-pulse)
-[  234.658954] ir_lirc_decode: delivering 750us pulse to lirc_dev
-[  234.658960] ir_nec_decode: NEC decode started at state 0 (500us
-space)
-[  234.658965] ir_nec_decode: NEC decode failed at state 0 (500us space)
-[  234.658970] ir_rc5_decode: RC5(x) decode started at state 1 (500us
-space)
-[  234.658975] ir_rc6_decode: RC6 decode started at state 0 (500us
-space)
-[  234.658980] ir_rc6_decode: RC6 decode failed at state 0 (500us space)
-[  234.658985] ir_jvc_decode: JVC decode started at state 0 (500us
-space)
-[  234.658990] ir_jvc_decode: JVC decode failed at state 0 (500us space)
-[  234.658995] ir_sony_decode: Sony decode started at state 0 (500us
-space)
-[  234.659000] ir_sony_decode: Sony decode failed at state 0 (500us
-space)
-[  234.659004] ir_lirc_decode: delivering 500us space to lirc_dev
-[  234.659010] ir_nec_decode: NEC decode started at state 0 (500us
-pulse)
-[  234.659015] ir_nec_decode: NEC decode failed at state 0 (500us pulse)
-[  234.659020] ir_rc5_decode: RC5(x) decode started at state 2 (500us
-pulse)
-[  234.659025] ir_rc5_decode: RC5(x) decode started at state 1 (0us
-pulse)
-[  234.659030] ir_rc6_decode: RC6 decode started at state 0 (500us
-pulse)
-[  234.659035] ir_rc6_decode: RC6 decode failed at state 0 (500us pulse)
-[  234.659039] ir_jvc_decode: JVC decode started at state 0 (500us
-pulse)
-[  234.659044] ir_jvc_decode: JVC decode failed at state 0 (500us pulse)
-[  234.659049] ir_sony_decode: Sony decode started at state 0 (500us
-pulse)
-[  234.659054] ir_sony_decode: Sony decode failed at state 0 (500us
-pulse)
-[  234.659059] ir_lirc_decode: delivering 500us pulse to lirc_dev
-[  234.659065] ir_nec_decode: NEC decode started at state 0 (500us
-space)
-[  234.659069] ir_nec_decode: NEC decode failed at state 0 (500us space)
-[  234.659074] ir_rc5_decode: RC5(x) decode started at state 1 (500us
-space)
-[  234.659079] ir_rc6_decode: RC6 decode started at state 0 (500us
-space)
-[  234.659084] ir_rc6_decode: RC6 decode failed at state 0 (500us space)
-[  234.659089] ir_jvc_decode: JVC decode started at state 0 (500us
-space)
-[  234.659094] ir_jvc_decode: JVC decode failed at state 0 (500us space)
-[  234.659099] ir_sony_decode: Sony decode started at state 0 (500us
-space)
-[  234.659104] ir_sony_decode: Sony decode failed at state 0 (500us
-space)
-[  234.659109] ir_lirc_decode: delivering 500us space to lirc_dev
-[  234.659115] ir_nec_decode: NEC decode started at state 0 (750us
-pulse)
-[  234.659119] ir_nec_decode: NEC decode failed at state 0 (750us pulse)
-[  234.659124] ir_rc5_decode: RC5(x) decode started at state 2 (750us
-pulse)
-[  234.659129] ir_rc5_decode: RC5(x) decode started at state 1 (0us
-pulse)
-[  234.659134] ir_rc6_decode: RC6 decode started at state 0 (750us
-pulse)
-[  234.659139] ir_rc6_decode: RC6 decode failed at state 0 (750us pulse)
-[  234.659144] ir_jvc_decode: JVC decode started at state 0 (750us
-pulse)
-[  234.659149] ir_jvc_decode: JVC decode failed at state 0 (750us pulse)
-[  234.659154] ir_sony_decode: Sony decode started at state 0 (750us
-pulse)
-[  234.659159] ir_sony_decode: Sony decode failed at state 0 (750us
-pulse)
-[  234.659164] ir_lirc_decode: delivering 750us pulse to lirc_dev
-[  234.659169] ir_nec_decode: NEC decode started at state 0 (500us
-space)
-[  234.659174] ir_nec_decode: NEC decode failed at state 0 (500us space)
-[  234.659179] ir_rc5_decode: RC5(x) decode started at state 1 (500us
-space)
-[  234.659184] ir_rc6_decode: RC6 decode started at state 0 (500us
-space)
-[  234.659189] ir_rc6_decode: RC6 decode failed at state 0 (500us space)
-[  234.659194] ir_jvc_decode: JVC decode started at state 0 (500us
-space)
-[  234.659199] ir_jvc_decode: JVC decode failed at state 0 (500us space)
-[  234.659204] ir_sony_decode: Sony decode started at state 0 (500us
-space)
-[  234.659209] ir_sony_decode: Sony decode failed at state 0 (500us
-space)
-[  234.659213] ir_lirc_decode: delivering 500us space to lirc_dev
-[  234.659219] ir_nec_decode: NEC decode started at state 0 (500us
-pulse)
-[  234.659224] ir_nec_decode: NEC decode failed at state 0 (500us pulse)
-[  234.659229] ir_rc5_decode: RC5(x) decode started at state 2 (500us
-pulse)
-[  234.659233] ir_rc5_decode: RC5(x) decode started at state 1 (0us
-pulse)
-[  234.659239] ir_rc6_decode: RC6 decode started at state 0 (500us
-pulse)
-[  234.659243] ir_rc6_decode: RC6 decode failed at state 0 (500us pulse)
-[  234.659248] ir_jvc_decode: JVC decode started at state 0 (500us
-pulse)
-[  234.659253] ir_jvc_decode: JVC decode failed at state 0 (500us pulse)
-[  234.659258] ir_sony_decode: Sony decode started at state 0 (500us
-pulse)
-[  234.659263] ir_sony_decode: Sony decode failed at state 0 (500us
-pulse)
-[  234.659268] ir_lirc_decode: delivering 500us pulse to lirc_dev
-[  234.659273] ir_nec_decode: NEC decode started at state 0 (500us
-space)
-[  234.659278] ir_nec_decode: NEC decode failed at state 0 (500us space)
-[  234.659283] ir_rc5_decode: RC5(x) decode started at state 1 (500us
-space)
-[  234.659288] ir_rc6_decode: RC6 decode started at state 0 (500us
-space)
-[  234.659293] ir_rc6_decode: RC6 decode failed at state 0 (500us space)
-[  234.659298] ir_jvc_decode: JVC decode started at state 0 (500us
-space)
-[  234.659303] ir_jvc_decode: JVC decode failed at state 0 (500us space)
-[  234.659309] ir_sony_decode: Sony decode started at state 0 (500us
-space)
-[  234.659314] ir_sony_decode: Sony decode failed at state 0 (500us
-space)
-[  234.659319] ir_lirc_decode: delivering 500us space to lirc_dev
-[  234.659324] ir_nec_decode: NEC decode started at state 0 (750us
-pulse)
-[  234.659329] ir_nec_decode: NEC decode failed at state 0 (750us pulse)
-[  234.659334] ir_rc5_decode: RC5(x) decode started at state 2 (750us
-pulse)
-[  234.659339] ir_rc5_decode: RC5(x) decode started at state 1 (0us
-pulse)
-[  234.659344] ir_rc6_decode: RC6 decode started at state 0 (750us
-pulse)
-[  234.659349] ir_rc6_decode: RC6 decode failed at state 0 (750us pulse)
-[  234.659354] ir_jvc_decode: JVC decode started at state 0 (750us
-pulse)
-[  234.659359] ir_jvc_decode: JVC decode failed at state 0 (750us pulse)
-[  234.659364] ir_sony_decode: Sony decode started at state 0 (750us
-pulse)
-[  234.659369] ir_sony_decode: Sony decode failed at state 0 (750us
-pulse)
-[  234.659373] ir_lirc_decode: delivering 750us pulse to lirc_dev
-[  234.659379] ir_nec_decode: NEC decode started at state 0 (500us
-space)
-[  234.659384] ir_nec_decode: NEC decode failed at state 0 (500us space)
-[  234.659389] ir_rc5_decode: RC5(x) decode started at state 1 (500us
-space)
-[  234.659394] ir_rc6_decode: RC6 decode started at state 0 (500us
-space)
-[  234.659399] ir_rc6_decode: RC6 decode failed at state 0 (500us space)
-[  234.659403] ir_jvc_decode: JVC decode started at state 0 (500us
-space)
-[  234.659408] ir_jvc_decode: JVC decode failed at state 0 (500us space)
-[  234.659413] ir_sony_decode: Sony decode started at state 0 (500us
-space)
-[  234.659418] ir_sony_decode: Sony decode failed at state 0 (500us
-space)
-[  234.659423] ir_lirc_decode: delivering 500us space to lirc_dev
-[  234.659429] ir_nec_decode: NEC decode started at state 0 (500us
-pulse)
-[  234.659434] ir_nec_decode: NEC decode failed at state 0 (500us pulse)
-[  234.659439] ir_rc5_decode: RC5(x) decode started at state 2 (500us
-pulse)
-[  234.659444] ir_rc5_decode: RC5(x) decode started at state 1 (0us
-pulse)
-[  234.659449] ir_rc6_decode: RC6 decode started at state 0 (500us
-pulse)
-[  234.659453] ir_rc6_decode: RC6 decode failed at state 0 (500us pulse)
-[  234.659459] ir_jvc_decode: JVC decode started at state 0 (500us
-pulse)
-[  234.659464] ir_jvc_decode: JVC decode failed at state 0 (500us pulse)
-[  234.659469] ir_sony_decode: Sony decode started at state 0 (500us
-pulse)
-[  234.659474] ir_sony_decode: Sony decode failed at state 0 (500us
-pulse)
-[  234.659479] ir_lirc_decode: delivering 500us pulse to lirc_dev
-[  234.659484] ir_nec_decode: NEC decode started at state 0 (1750us
-space)
-[  234.659489] ir_nec_decode: NEC decode failed at state 0 (1750us
-space)
-[  234.659494] ir_rc5_decode: RC5(x) decode started at state 1 (1750us
-space)
-[  234.659499] ir_rc5_decode: RC5(x) decode failed at state 1 (1750us
-space)
-[  234.659504] ir_rc6_decode: RC6 decode started at state 0 (1750us
-space)
-[  234.659509] ir_rc6_decode: RC6 decode failed at state 0 (1750us
-space)
-[  234.659514] ir_jvc_decode: JVC decode started at state 0 (1750us
-space)
-[  234.659519] ir_jvc_decode: JVC decode failed at state 0 (1750us
-space)
-[  234.659524] ir_sony_decode: Sony decode started at state 0 (1750us
-space)
-[  234.659529] ir_sony_decode: Sony decode failed at state 0 (1750us
-space)
-[  234.659534] ir_lirc_decode: delivering 1750us space to lirc_dev
-[  234.659539] ir_nec_decode: NEC decode started at state 0 (500us
-pulse)
-[  234.659545] ir_nec_decode: NEC decode failed at state 0 (500us pulse)
-[  234.659550] ir_rc5_decode: RC5(x) decode started at state 0 (500us
-pulse)
-[  234.659554] ir_rc5_decode: RC5(x) decode started at state 1 (0us
-pulse)
-[  234.659559] ir_rc6_decode: RC6 decode started at state 0 (500us
-pulse)
-[  234.659564] ir_rc6_decode: RC6 decode failed at state 0 (500us pulse)
-[  234.659570] ir_jvc_decode: JVC decode started at state 0 (500us
-pulse)
-[  234.659575] ir_jvc_decode: JVC decode failed at state 0 (500us pulse)
-[  234.659580] ir_sony_decode: Sony decode started at state 0 (500us
-pulse)
-[  234.659585] ir_sony_decode: Sony decode failed at state 0 (500us
-pulse)
-[  234.659590] ir_lirc_decode: delivering 500us pulse to lirc_dev
-[  234.666833] ir_raw_event_store: sample: (01750us space)
-[  234.666838] ir_raw_event_store: sample: (00500us pulse)
-[  234.666843] ir_raw_event_store: sample: (00500us space)
-[  234.666847] ir_raw_event_store: sample: (00750us pulse)
-[  234.666852] ir_raw_event_store: sample: (01500us space)
-[  234.666857] ir_raw_event_store: sample: (00750us pulse)
-[  234.666861] ir_raw_event_store: sample: (00500us space)
-[  234.666866] ir_raw_event_store: sample: (00500us pulse)
-[  234.666899] ir_nec_decode: NEC decode started at state 0 (1750us
-space)
-[  234.666908] ir_nec_decode: NEC decode failed at state 0 (1750us
-space)
-[  234.666915] ir_rc5_decode: RC5(x) decode started at state 1 (1750us
-space)
-[  234.666920] ir_rc5_decode: RC5(x) decode failed at state 1 (1750us
-space)
-[  234.666926] ir_rc6_decode: RC6 decode started at state 0 (1750us
-space)
-[  234.666932] ir_rc6_decode: RC6 decode failed at state 0 (1750us
-space)
-[  234.666937] ir_jvc_decode: JVC decode started at state 0 (1750us
-space)
-[  234.666943] ir_jvc_decode: JVC decode failed at state 0 (1750us
-space)
-[  234.666949] ir_sony_decode: Sony decode started at state 0 (1750us
-space)
-[  234.666954] ir_sony_decode: Sony decode failed at state 0 (1750us
-space)
-[  234.666960] ir_lirc_decode: delivering 1750us space to lirc_dev
-[  234.666967] ir_nec_decode: NEC decode started at state 0 (500us
-pulse)
-[  234.666972] ir_nec_decode: NEC decode failed at state 0 (500us pulse)
-[  234.666977] ir_rc5_decode: RC5(x) decode started at state 0 (500us
-pulse)
-[  234.666982] ir_rc5_decode: RC5(x) decode started at state 1 (0us
-pulse)
-[  234.666987] ir_rc6_decode: RC6 decode started at state 0 (500us
-pulse)
-[  234.666992] ir_rc6_decode: RC6 decode failed at state 0 (500us pulse)
-[  234.666998] ir_jvc_decode: JVC decode started at state 0 (500us
-pulse)
-[  234.667003] ir_jvc_decode: JVC decode failed at state 0 (500us pulse)
-[  234.667008] ir_sony_decode: Sony decode started at state 0 (500us
-pulse)
-[  234.667013] ir_sony_decode: Sony decode failed at state 0 (500us
-pulse)
-[  234.667017] ir_lirc_decode: delivering 500us pulse to lirc_dev
-[  234.667023] ir_nec_decode: NEC decode started at state 0 (500us
-space)
-[  234.667028] ir_nec_decode: NEC decode failed at state 0 (500us space)
-[  234.667033] ir_rc5_decode: RC5(x) decode started at state 1 (500us
-space)
-[  234.667038] ir_rc6_decode: RC6 decode started at state 0 (500us
-space)
-[  234.667043] ir_rc6_decode: RC6 decode failed at state 0 (500us space)
-[  234.667048] ir_jvc_decode: JVC decode started at state 0 (500us
-space)
-[  234.667053] ir_jvc_decode: JVC decode failed at state 0 (500us space)
-[  234.667058] ir_sony_decode: Sony decode started at state 0 (500us
-space)
-[  234.667063] ir_sony_decode: Sony decode failed at state 0 (500us
-space)
-[  234.667068] ir_lirc_decode: delivering 500us space to lirc_dev
-[  234.667074] ir_nec_decode: NEC decode started at state 0 (750us
-pulse)
-[  234.667078] ir_nec_decode: NEC decode failed at state 0 (750us pulse)
-[  234.667083] ir_rc5_decode: RC5(x) decode started at state 2 (750us
-pulse)
-[  234.667089] ir_rc5_decode: RC5(x) decode started at state 1 (0us
-pulse)
-[  234.667094] ir_rc6_decode: RC6 decode started at state 0 (750us
-pulse)
-[  234.667099] ir_rc6_decode: RC6 decode failed at state 0 (750us pulse)
-[  234.667104] ir_jvc_decode: JVC decode started at state 0 (750us
-pulse)
-[  234.667109] ir_jvc_decode: JVC decode failed at state 0 (750us pulse)
-[  234.667114] ir_sony_decode: Sony decode started at state 0 (750us
-pulse)
-[  234.667119] ir_sony_decode: Sony decode failed at state 0 (750us
-pulse)
-[  234.667124] ir_lirc_decode: delivering 750us pulse to lirc_dev
-[  234.667130] ir_nec_decode: NEC decode started at state 0 (1500us
-space)
-[  234.667135] ir_nec_decode: NEC decode failed at state 0 (1500us
-space)
-[  234.667139] ir_rc5_decode: RC5(x) decode started at state 1 (1500us
-space)
-[  234.667145] ir_rc5_decode: RC5(x) decode failed at state 1 (1500us
-space)
-[  234.667150] ir_rc6_decode: RC6 decode started at state 0 (1500us
-space)
-[  234.667155] ir_rc6_decode: RC6 decode failed at state 0 (1500us
-space)
-[  234.667160] ir_jvc_decode: JVC decode started at state 0 (1500us
-space)
-[  234.667165] ir_jvc_decode: JVC decode failed at state 0 (1500us
-space)
-[  234.667170] ir_sony_decode: Sony decode started at state 0 (1500us
-space)
-[  234.667175] ir_sony_decode: Sony decode failed at state 0 (1500us
-space)
-[  234.667181] ir_lirc_decode: delivering 1500us space to lirc_dev
-[  234.667186] ir_nec_decode: NEC decode started at state 0 (750us
-pulse)
-[  234.667191] ir_nec_decode: NEC decode failed at state 0 (750us pulse)
-[  234.667196] ir_rc5_decode: RC5(x) decode started at state 0 (750us
-pulse)
-[  234.667201] ir_rc5_decode: RC5(x) decode started at state 1 (0us
-pulse)
-[  234.667206] ir_rc6_decode: RC6 decode started at state 0 (750us
-pulse)
-[  234.667211] ir_rc6_decode: RC6 decode failed at state 0 (750us pulse)
-[  234.667216] ir_jvc_decode: JVC decode started at state 0 (750us
-pulse)
-[  234.667221] ir_jvc_decode: JVC decode failed at state 0 (750us pulse)
-[  234.667226] ir_sony_decode: Sony decode started at state 0 (750us
-pulse)
-[  234.667231] ir_sony_decode: Sony decode failed at state 0 (750us
-pulse)
-[  234.667235] ir_lirc_decode: delivering 750us pulse to lirc_dev
-[  234.667241] ir_nec_decode: NEC decode started at state 0 (500us
-space)
-[  234.667246] ir_nec_decode: NEC decode failed at state 0 (500us space)
-[  234.667251] ir_rc5_decode: RC5(x) decode started at state 1 (500us
-space)
-[  234.667256] ir_rc6_decode: RC6 decode started at state 0 (500us
-space)
-[  234.667261] ir_rc6_decode: RC6 decode failed at state 0 (500us space)
-[  234.667266] ir_jvc_decode: JVC decode started at state 0 (500us
-space)
-[  234.667271] ir_jvc_decode: JVC decode failed at state 0 (500us space)
-[  234.667276] ir_sony_decode: Sony decode started at state 0 (500us
-space)
-[  234.667281] ir_sony_decode: Sony decode failed at state 0 (500us
-space)
-[  234.667286] ir_lirc_decode: delivering 500us space to lirc_dev
-[  234.667292] ir_nec_decode: NEC decode started at state 0 (500us
-pulse)
-[  234.667297] ir_nec_decode: NEC decode failed at state 0 (500us pulse)
-[  234.667302] ir_rc5_decode: RC5(x) decode started at state 2 (500us
-pulse)
-[  234.667307] ir_rc5_decode: RC5(x) decode started at state 1 (0us
-pulse)
-[  234.667312] ir_rc6_decode: RC6 decode started at state 0 (500us
-pulse)
-[  234.667317] ir_rc6_decode: RC6 decode failed at state 0 (500us pulse)
-[  234.667322] ir_jvc_decode: JVC decode started at state 0 (500us
-pulse)
-[  234.667326] ir_jvc_decode: JVC decode failed at state 0 (500us pulse)
-[  234.667331] ir_sony_decode: Sony decode started at state 0 (500us
-pulse)
-[  234.667336] ir_sony_decode: Sony decode failed at state 0 (500us
-pulse)
-[  234.667341] ir_lirc_decode: delivering 500us pulse to lirc_dev
-[  234.674838] ir_raw_event_store: sample: (01750us space)
-[  234.674844] ir_raw_event_store: sample: (00500us pulse)
-[  234.674849] ir_raw_event_store: sample: (01750us space)
-[  234.674854] ir_raw_event_store: sample: (00500us pulse)
-[  234.674859] ir_raw_event_store: sample: (01750us space)
-[  234.674864] ir_raw_event_store: sample: (00500us pulse)
-[  234.674868] ir_raw_event_store: sample: (00500us space)
-[  234.674873] ir_raw_event_store: sample: (00750us pulse)
-[  234.674891] ir_nec_decode: NEC decode started at state 0 (1750us
-space)
-[  234.674897] ir_nec_decode: NEC decode failed at state 0 (1750us
-space)
-[  234.674902] ir_rc5_decode: RC5(x) decode started at state 1 (1750us
-space)
-[  234.674907] ir_rc5_decode: RC5(x) decode failed at state 1 (1750us
-space)
-[  234.674912] ir_rc6_decode: RC6 decode started at state 0 (1750us
-space)
-[  234.674918] ir_rc6_decode: RC6 decode failed at state 0 (1750us
-space)
-[  234.674923] ir_jvc_decode: JVC decode started at state 0 (1750us
-space)
-[  234.674928] ir_jvc_decode: JVC decode failed at state 0 (1750us
-space)
-[  234.674933] ir_sony_decode: Sony decode started at state 0 (1750us
-space)
-[  234.674938] ir_sony_decode: Sony decode failed at state 0 (1750us
-space)
-[  234.674943] ir_lirc_decode: delivering 1750us space to lirc_dev
-[  234.674950] ir_nec_decode: NEC decode started at state 0 (500us
-pulse)
-[  234.674954] ir_nec_decode: NEC decode failed at state 0 (500us pulse)
-[  234.674959] ir_rc5_decode: RC5(x) decode started at state 0 (500us
-pulse)
-[  234.674964] ir_rc5_decode: RC5(x) decode started at state 1 (0us
-pulse)
-[  234.674969] ir_rc6_decode: RC6 decode started at state 0 (500us
-pulse)
-[  234.674974] ir_rc6_decode: RC6 decode failed at state 0 (500us pulse)
-[  234.674979] ir_jvc_decode: JVC decode started at state 0 (500us
-pulse)
-[  234.674984] ir_jvc_decode: JVC decode failed at state 0 (500us pulse)
-[  234.674989] ir_sony_decode: Sony decode started at state 0 (500us
-pulse)
-[  234.674994] ir_sony_decode: Sony decode failed at state 0 (500us
-pulse)
-[  234.674999] ir_lirc_decode: delivering 500us pulse to lirc_dev
-[  234.675004] ir_nec_decode: NEC decode started at state 0 (1750us
-space)
-[  234.675009] ir_nec_decode: NEC decode failed at state 0 (1750us
-space)
-[  234.675014] ir_rc5_decode: RC5(x) decode started at state 1 (1750us
-space)
-[  234.675019] ir_rc5_decode: RC5(x) decode failed at state 1 (1750us
-space)
-[  234.675024] ir_rc6_decode: RC6 decode started at state 0 (1750us
-space)
-[  234.675029] ir_rc6_decode: RC6 decode failed at state 0 (1750us
-space)
-[  234.675034] ir_jvc_decode: JVC decode started at state 0 (1750us
-space)
-[  234.675039] ir_jvc_decode: JVC decode failed at state 0 (1750us
-space)
-[  234.675044] ir_sony_decode: Sony decode started at state 0 (1750us
-space)
-[  234.675049] ir_sony_decode: Sony decode failed at state 0 (1750us
-space)
-[  234.675054] ir_lirc_decode: delivering 1750us space to lirc_dev
-[  234.675059] ir_nec_decode: NEC decode started at state 0 (500us
-pulse)
-[  234.675064] ir_nec_decode: NEC decode failed at state 0 (500us pulse)
-[  234.675069] ir_rc5_decode: RC5(x) decode started at state 0 (500us
-pulse)
-[  234.675074] ir_rc5_decode: RC5(x) decode started at state 1 (0us
-pulse)
-[  234.675079] ir_rc6_decode: RC6 decode started at state 0 (500us
-pulse)
-[  234.675084] ir_rc6_decode: RC6 decode failed at state 0 (500us pulse)
-[  234.675089] ir_jvc_decode: JVC decode started at state 0 (500us
-pulse)
-[  234.675094] ir_jvc_decode: JVC decode failed at state 0 (500us pulse)
-[  234.675099] ir_sony_decode: Sony decode started at state 0 (500us
-pulse)
-[  234.675104] ir_sony_decode: Sony decode failed at state 0 (500us
-pulse)
-[  234.675109] ir_lirc_decode: delivering 500us pulse to lirc_dev
-[  234.675114] ir_nec_decode: NEC decode started at state 0 (1750us
-space)
-[  234.675119] ir_nec_decode: NEC decode failed at state 0 (1750us
-space)
-[  234.675124] ir_rc5_decode: RC5(x) decode started at state 1 (1750us
-space)
-[  234.675129] ir_rc5_decode: RC5(x) decode failed at state 1 (1750us
-space)
-[  234.675134] ir_rc6_decode: RC6 decode started at state 0 (1750us
-space)
-[  234.675139] ir_rc6_decode: RC6 decode failed at state 0 (1750us
-space)
-[  234.675145] ir_jvc_decode: JVC decode started at state 0 (1750us
-space)
-[  234.675150] ir_jvc_decode: JVC decode failed at state 0 (1750us
-space)
-[  234.675155] ir_sony_decode: Sony decode started at state 0 (1750us
-space)
-[  234.675160] ir_sony_decode: Sony decode failed at state 0 (1750us
-space)
-[  234.675165] ir_lirc_decode: delivering 1750us space to lirc_dev
-[  234.675170] ir_nec_decode: NEC decode started at state 0 (500us
-pulse)
-[  234.675175] ir_nec_decode: NEC decode failed at state 0 (500us pulse)
-[  234.675180] ir_rc5_decode: RC5(x) decode started at state 0 (500us
-pulse)
-[  234.675185] ir_rc5_decode: RC5(x) decode started at state 1 (0us
-pulse)
-[  234.675190] ir_rc6_decode: RC6 decode started at state 0 (500us
-pulse)
-[  234.675195] ir_rc6_decode: RC6 decode failed at state 0 (500us pulse)
-[  234.675200] ir_jvc_decode: JVC decode started at state 0 (500us
-pulse)
-[  234.675205] ir_jvc_decode: JVC decode failed at state 0 (500us pulse)
-[  234.675210] ir_sony_decode: Sony decode started at state 0 (500us
-pulse)
-[  234.675215] ir_sony_decode: Sony decode failed at state 0 (500us
-pulse)
-[  234.675219] ir_lirc_decode: delivering 500us pulse to lirc_dev
-[  234.675225] ir_nec_decode: NEC decode started at state 0 (500us
-space)
-[  234.675230] ir_nec_decode: NEC decode failed at state 0 (500us space)
-[  234.675235] ir_rc5_decode: RC5(x) decode started at state 1 (500us
-space)
-[  234.675240] ir_rc6_decode: RC6 decode started at state 0 (500us
-space)
-[  234.675245] ir_rc6_decode: RC6 decode failed at state 0 (500us space)
-[  234.675250] ir_jvc_decode: JVC decode started at state 0 (500us
-space)
-[  234.675255] ir_jvc_decode: JVC decode failed at state 0 (500us space)
-[  234.675260] ir_sony_decode: Sony decode started at state 0 (500us
-space)
-[  234.675265] ir_sony_decode: Sony decode failed at state 0 (500us
-space)
-[  234.675269] ir_lirc_decode: delivering 500us space to lirc_dev
-[  234.675275] ir_nec_decode: NEC decode started at state 0 (750us
-pulse)
-[  234.675280] ir_nec_decode: NEC decode failed at state 0 (750us pulse)
-[  234.675285] ir_rc5_decode: RC5(x) decode started at state 2 (750us
-pulse)
-[  234.675290] ir_rc5_decode: RC5(x) decode started at state 1 (0us
-pulse)
-[  234.675295] ir_rc6_decode: RC6 decode started at state 0 (750us
-pulse)
-[  234.675299] ir_rc6_decode: RC6 decode failed at state 0 (750us pulse)
-[  234.675304] ir_jvc_decode: JVC decode started at state 0 (750us
-pulse)
-[  234.675309] ir_jvc_decode: JVC decode failed at state 0 (750us pulse)
-[  234.675314] ir_sony_decode: Sony decode started at state 0 (750us
-pulse)
-[  234.675319] ir_sony_decode: Sony decode failed at state 0 (750us
-pulse)
-[  234.675324] ir_lirc_decode: delivering 750us pulse to lirc_dev
-[  234.682839] ir_raw_event_store: sample: (01500us space)
-[  234.682844] ir_raw_event_store: sample: (00750us pulse)
-[  234.682848] ir_raw_event_store: sample: (00500us space)
-[  234.682853] ir_raw_event_store: sample: (00500us pulse)
-[  234.682857] ir_raw_event_store: sample: (00500us space)
-[  234.682861] ir_raw_event_store: sample: (00750us pulse)
-[  234.682866] ir_raw_event_store: sample: (00500us space)
-[  234.682870] ir_raw_event_store: sample: (00500us pulse)
-[  234.682874] ir_raw_event_store: sample: (00500us space)
-[  234.682879] ir_raw_event_store: sample: (00750us pulse)
-[  234.682883] ir_raw_event_store: sample: (00500us space)
-[  234.682887] ir_raw_event_store: sample: (00500us pulse)
-[  234.682892] ir_raw_event_store: sample: (00500us space)
-[  234.682896] ir_raw_event_store: sample: (00750us pulse)
-[  234.682912] ir_nec_decode: NEC decode started at state 0 (1500us
-space)
-[  234.682917] ir_nec_decode: NEC decode failed at state 0 (1500us
-space)
-[  234.682922] ir_rc5_decode: RC5(x) decode started at state 1 (1500us
-space)
-[  234.682927] ir_rc5_decode: RC5(x) decode failed at state 1 (1500us
-space)
-[  234.682932] ir_rc6_decode: RC6 decode started at state 0 (1500us
-space)
-[  234.682938] ir_rc6_decode: RC6 decode failed at state 0 (1500us
-space)
-[  234.682943] ir_jvc_decode: JVC decode started at state 0 (1500us
-space)
-[  234.682948] ir_jvc_decode: JVC decode failed at state 0 (1500us
-space)
-[  234.682953] ir_sony_decode: Sony decode started at state 0 (1500us
-space)
-[  234.682958] ir_sony_decode: Sony decode failed at state 0 (1500us
-space)
-[  234.682963] ir_lirc_decode: delivering 1500us space to lirc_dev
-[  234.682969] ir_nec_decode: NEC decode started at state 0 (750us
-pulse)
-[  234.682974] ir_nec_decode: NEC decode failed at state 0 (750us pulse)
-[  234.682979] ir_rc5_decode: RC5(x) decode started at state 0 (750us
-pulse)
-[  234.682984] ir_rc5_decode: RC5(x) decode started at state 1 (0us
-pulse)
-[  234.682989] ir_rc6_decode: RC6 decode started at state 0 (750us
-pulse)
-[  234.682994] ir_rc6_decode: RC6 decode failed at state 0 (750us pulse)
-[  234.682999] ir_jvc_decode: JVC decode started at state 0 (750us
-pulse)
-[  234.683004] ir_jvc_decode: JVC decode failed at state 0 (750us pulse)
-[  234.683009] ir_sony_decode: Sony decode started at state 0 (750us
-pulse)
-[  234.683014] ir_sony_decode: Sony decode failed at state 0 (750us
-pulse)
-[  234.683019] ir_lirc_decode: delivering 750us pulse to lirc_dev
-[  234.683024] ir_nec_decode: NEC decode started at state 0 (500us
-space)
-[  234.683029] ir_nec_decode: NEC decode failed at state 0 (500us space)
-[  234.683034] ir_rc5_decode: RC5(x) decode started at state 1 (500us
-space)
-[  234.683039] ir_rc6_decode: RC6 decode started at state 0 (500us
-space)
-[  234.683044] ir_rc6_decode: RC6 decode failed at state 0 (500us space)
-[  234.683049] ir_jvc_decode: JVC decode started at state 0 (500us
-space)
-[  234.683054] ir_jvc_decode: JVC decode failed at state 0 (500us space)
-[  234.683060] ir_sony_decode: Sony decode started at state 0 (500us
-space)
-[  234.683065] ir_sony_decode: Sony decode failed at state 0 (500us
-space)
-[  234.683069] ir_lirc_decode: delivering 500us space to lirc_dev
-[  234.683075] ir_nec_decode: NEC decode started at state 0 (500us
-pulse)
-[  234.683080] ir_nec_decode: NEC decode failed at state 0 (500us pulse)
-[  234.683085] ir_rc5_decode: RC5(x) decode started at state 2 (500us
-pulse)
-[  234.683090] ir_rc5_decode: RC5(x) decode started at state 1 (0us
-pulse)
-[  234.683095] ir_rc6_decode: RC6 decode started at state 0 (500us
-pulse)
-[  234.683100] ir_rc6_decode: RC6 decode failed at state 0 (500us pulse)
-[  234.683105] ir_jvc_decode: JVC decode started at state 0 (500us
-pulse)
-[  234.683109] ir_jvc_decode: JVC decode failed at state 0 (500us pulse)
-[  234.683114] ir_sony_decode: Sony decode started at state 0 (500us
-pulse)
-[  234.683119] ir_sony_decode: Sony decode failed at state 0 (500us
-pulse)
-[  234.683124] ir_lirc_decode: delivering 500us pulse to lirc_dev
-[  234.683130] ir_nec_decode: NEC decode started at state 0 (500us
-space)
-[  234.683134] ir_nec_decode: NEC decode failed at state 0 (500us space)
-[  234.683139] ir_rc5_decode: RC5(x) decode started at state 1 (500us
-space)
-[  234.683145] ir_rc6_decode: RC6 decode started at state 0 (500us
-space)
-[  234.683149] ir_rc6_decode: RC6 decode failed at state 0 (500us space)
-[  234.683154] ir_jvc_decode: JVC decode started at state 0 (500us
-space)
-[  234.683159] ir_jvc_decode: JVC decode failed at state 0 (500us space)
-[  234.683164] ir_sony_decode: Sony decode started at state 0 (500us
-space)
-[  234.683169] ir_sony_decode: Sony decode failed at state 0 (500us
-space)
-[  234.683174] ir_lirc_decode: delivering 500us space to lirc_dev
-[  234.683179] ir_nec_decode: NEC decode started at state 0 (750us
-pulse)
-[  234.683184] ir_nec_decode: NEC decode failed at state 0 (750us pulse)
-[  234.683189] ir_rc5_decode: RC5(x) decode started at state 2 (750us
-pulse)
-[  234.683194] ir_rc5_decode: RC5(x) decode started at state 1 (0us
-pulse)
-[  234.683199] ir_rc6_decode: RC6 decode started at state 0 (750us
-pulse)
-[  234.683204] ir_rc6_decode: RC6 decode failed at state 0 (750us pulse)
-[  234.683210] ir_jvc_decode: JVC decode started at state 0 (750us
-pulse)
-[  234.683215] ir_jvc_decode: JVC decode failed at state 0 (750us pulse)
-[  234.683220] ir_sony_decode: Sony decode started at state 0 (750us
-pulse)
-[  234.683224] ir_sony_decode: Sony decode failed at state 0 (750us
-pulse)
-[  234.683229] ir_lirc_decode: delivering 750us pulse to lirc_dev
-[  234.683235] ir_nec_decode: NEC decode started at state 0 (500us
-space)
-[  234.683240] ir_nec_decode: NEC decode failed at state 0 (500us space)
-[  234.683245] ir_rc5_decode: RC5(x) decode started at state 1 (500us
-space)
-[  234.683250] ir_rc6_decode: RC6 decode started at state 0 (500us
-space)
-[  234.683255] ir_rc6_decode: RC6 decode failed at state 0 (500us space)
-[  234.683260] ir_jvc_decode: JVC decode started at state 0 (500us
-space)
-[  234.683265] ir_jvc_decode: JVC decode failed at state 0 (500us space)
-[  234.683270] ir_sony_decode: Sony decode started at state 0 (500us
-space)
-[  234.683275] ir_sony_decode: Sony decode failed at state 0 (500us
-space)
-[  234.683279] ir_lirc_decode: delivering 500us space to lirc_dev
-[  234.683285] ir_nec_decode: NEC decode started at state 0 (500us
-pulse)
-[  234.683290] ir_nec_decode: NEC decode failed at state 0 (500us pulse)
-[  234.683295] ir_rc5_decode: RC5(x) decode started at state 2 (500us
-pulse)
-[  234.683300] ir_rc5_decode: RC5(x) decode started at state 1 (0us
-pulse)
-[  234.683304] ir_rc6_decode: RC6 decode started at state 0 (500us
-pulse)
-[  234.683309] ir_rc6_decode: RC6 decode failed at state 0 (500us pulse)
-[  234.683337] ir_jvc_decode: JVC decode started at state 0 (500us
-pulse)
-[  234.683342] ir_jvc_decode: JVC decode failed at state 0 (500us pulse)
-[  234.683347] ir_sony_decode: Sony decode started at state 0 (500us
-pulse)
-[  234.683352] ir_sony_decode: Sony decode failed at state 0 (500us
-pulse)
-[  234.683357] ir_lirc_decode: delivering 500us pulse to lirc_dev
-[  234.683363] ir_nec_decode: NEC decode started at state 0 (500us
-space)
-[  234.683368] ir_nec_decode: NEC decode failed at state 0 (500us space)
-[  234.683373] ir_rc5_decode: RC5(x) decode started at state 1 (500us
-space)
-[  234.683378] ir_rc6_decode: RC6 decode started at state 0 (500us
-space)
-[  234.683383] ir_rc6_decode: RC6 decode failed at state 0 (500us space)
-[  234.683391] ir_jvc_decode: JVC decode started at state 0 (500us
-space)
-[  234.683400] ir_jvc_decode: JVC decode failed at state 0 (500us space)
-[  234.683408] ir_sony_decode: Sony decode started at state 0 (500us
-space)
-[  234.683418] ir_sony_decode: Sony decode failed at state 0 (500us
-space)
-[  234.683426] ir_lirc_decode: delivering 500us space to lirc_dev
-[  234.683435] ir_nec_decode: NEC decode started at state 0 (750us
-pulse)
-[  234.683444] ir_nec_decode: NEC decode failed at state 0 (750us pulse)
-[  234.683453] ir_rc5_decode: RC5(x) decode started at state 2 (750us
-pulse)
-[  234.683462] ir_rc5_decode: RC5(x) decode started at state 1 (0us
-pulse)
-[  234.683471] ir_rc6_decode: RC6 decode started at state 0 (750us
-pulse)
-[  234.683479] ir_rc6_decode: RC6 decode failed at state 0 (750us pulse)
-[  234.683488] ir_jvc_decode: JVC decode started at state 0 (750us
-pulse)
-[  234.683496] ir_jvc_decode: JVC decode failed at state 0 (750us pulse)
-[  234.683505] ir_sony_decode: Sony decode started at state 0 (750us
-pulse)
-[  234.683514] ir_sony_decode: Sony decode failed at state 0 (750us
-pulse)
-[  234.683522] ir_lirc_decode: delivering 750us pulse to lirc_dev
-[  234.683532] ir_nec_decode: NEC decode started at state 0 (500us
-space)
-[  234.683540] ir_nec_decode: NEC decode failed at state 0 (500us space)
-[  234.683549] ir_rc5_decode: RC5(x) decode started at state 1 (500us
-space)
-[  234.683559] ir_rc6_decode: RC6 decode started at state 0 (500us
-space)
-[  234.683567] ir_rc6_decode: RC6 decode failed at state 0 (500us space)
-[  234.683576] ir_jvc_decode: JVC decode started at state 0 (500us
-space)
-[  234.683585] ir_jvc_decode: JVC decode failed at state 0 (500us space)
-[  234.683593] ir_sony_decode: Sony decode started at state 0 (500us
-space)
-[  234.683602] ir_sony_decode: Sony decode failed at state 0 (500us
-space)
-[  234.683610] ir_lirc_decode: delivering 500us space to lirc_dev
-[  234.683620] ir_nec_decode: NEC decode started at state 0 (500us
-pulse)
-[  234.683629] ir_nec_decode: NEC decode failed at state 0 (500us pulse)
-[  234.683637] ir_rc5_decode: RC5(x) decode started at state 2 (500us
-pulse)
-[  234.683646] ir_rc5_decode: RC5(x) decode started at state 1 (0us
-pulse)
-[  234.683655] ir_rc6_decode: RC6 decode started at state 0 (500us
-pulse)
-[  234.683664] ir_rc6_decode: RC6 decode failed at state 0 (500us pulse)
-[  234.683673] ir_jvc_decode: JVC decode started at state 0 (500us
-pulse)
-[  234.683681] ir_jvc_decode: JVC decode failed at state 0 (500us pulse)
-[  234.683690] ir_sony_decode: Sony decode started at state 0 (500us
-pulse)
-[  234.683699] ir_sony_decode: Sony decode failed at state 0 (500us
-pulse)
-[  234.683708] ir_lirc_decode: delivering 500us pulse to lirc_dev
-[  234.683718] ir_nec_decode: NEC decode started at state 0 (500us
-space)
-[  234.683726] ir_nec_decode: NEC decode failed at state 0 (500us space)
-[  234.683735] ir_rc5_decode: RC5(x) decode started at state 1 (500us
-space)
-[  234.683744] ir_rc6_decode: RC6 decode started at state 0 (500us
-space)
-[  234.683752] ir_rc6_decode: RC6 decode failed at state 0 (500us space)
-[  234.683761] ir_jvc_decode: JVC decode started at state 0 (500us
-space)
-[  234.683770] ir_jvc_decode: JVC decode failed at state 0 (500us space)
-[  234.683779] ir_sony_decode: Sony decode started at state 0 (500us
-space)
-[  234.683788] ir_sony_decode: Sony decode failed at state 0 (500us
-space)
-[  234.683797] ir_lirc_decode: delivering 500us space to lirc_dev
-[  234.683806] ir_nec_decode: NEC decode started at state 0 (750us
-pulse)
-[  234.683815] ir_nec_decode: NEC decode failed at state 0 (750us pulse)
-[  234.683824] ir_rc5_decode: RC5(x) decode started at state 2 (750us
-pulse)
-[  234.683833] ir_rc5_decode: RC5(x) decode started at state 1 (0us
-pulse)
-[  234.683842] ir_rc6_decode: RC6 decode started at state 0 (750us
-pulse)
-[  234.683850] ir_rc6_decode: RC6 decode failed at state 0 (750us pulse)
-[  234.683859] ir_jvc_decode: JVC decode started at state 0 (750us
-pulse)
-[  234.683868] ir_jvc_decode: JVC decode failed at state 0 (750us pulse)
-[  234.683877] ir_sony_decode: Sony decode started at state 0 (750us
-pulse)
-[  234.683886] ir_sony_decode: Sony decode failed at state 0 (750us
-pulse)
-[  234.683894] ir_lirc_decode: delivering 750us pulse to lirc_dev
-[  234.690837] ir_raw_event_store: sample: (01500us space)
-[  234.690841] ir_raw_event_store: sample: (00750us pulse)
-[  234.690846] ir_raw_event_store: sample: (00500us space)
-[  234.690850] ir_raw_event_store: sample: (00500us pulse)
-[  234.690855] ir_raw_event_store: sample: (01750us space)
-[  234.690859] ir_raw_event_store: sample: (00500us pulse)
-[  234.690864] ir_raw_event_store: sample: (01750us space)
-[  234.690869] ir_raw_event_store: sample: (00500us pulse)
-[  234.690883] ir_nec_decode: NEC decode started at state 0 (1500us
-space)
-[  234.690889] ir_nec_decode: NEC decode failed at state 0 (1500us
-space)
-[  234.690894] ir_rc5_decode: RC5(x) decode started at state 1 (1500us
-space)
-[  234.690899] ir_rc5_decode: RC5(x) decode failed at state 1 (1500us
-space)
-[  234.690904] ir_rc6_decode: RC6 decode started at state 0 (1500us
-space)
-[  234.690909] ir_rc6_decode: RC6 decode failed at state 0 (1500us
-space)
-[  234.690914] ir_jvc_decode: JVC decode started at state 0 (1500us
-space)
-[  234.690919] ir_jvc_decode: JVC decode failed at state 0 (1500us
-space)
-[  234.690924] ir_sony_decode: Sony decode started at state 0 (1500us
-space)
-[  234.690929] ir_sony_decode: Sony decode failed at state 0 (1500us
-space)
-[  234.690934] ir_lirc_decode: delivering 1500us space to lirc_dev
-[  234.690939] ir_nec_decode: NEC decode started at state 0 (750us
-pulse)
-[  234.690944] ir_nec_decode: NEC decode failed at state 0 (750us pulse)
-[  234.690949] ir_rc5_decode: RC5(x) decode started at state 0 (750us
-pulse)
-[  234.690954] ir_rc5_decode: RC5(x) decode started at state 1 (0us
-pulse)
-[  234.690959] ir_rc6_decode: RC6 decode started at state 0 (750us
-pulse)
-[  234.690964] ir_rc6_decode: RC6 decode failed at state 0 (750us pulse)
-[  234.690969] ir_jvc_decode: JVC decode started at state 0 (750us
-pulse)
-[  234.690974] ir_jvc_decode: JVC decode failed at state 0 (750us pulse)
-[  234.690979] ir_sony_decode: Sony decode started at state 0 (750us
-pulse)
-[  234.690984] ir_sony_decode: Sony decode failed at state 0 (750us
-pulse)
-[  234.690989] ir_lirc_decode: delivering 750us pulse to lirc_dev
-[  234.690994] ir_nec_decode: NEC decode started at state 0 (500us
-space)
-[  234.690999] ir_nec_decode: NEC decode failed at state 0 (500us space)
-[  234.691004] ir_rc5_decode: RC5(x) decode started at state 1 (500us
-space)
-[  234.691009] ir_rc6_decode: RC6 decode started at state 0 (500us
-space)
-[  234.691014] ir_rc6_decode: RC6 decode failed at state 0 (500us space)
-[  234.691019] ir_jvc_decode: JVC decode started at state 0 (500us
-space)
-[  234.691024] ir_jvc_decode: JVC decode failed at state 0 (500us space)
-[  234.691030] ir_sony_decode: Sony decode started at state 0 (500us
-space)
-[  234.691035] ir_sony_decode: Sony decode failed at state 0 (500us
-space)
-[  234.691039] ir_lirc_decode: delivering 500us space to lirc_dev
-[  234.691045] ir_nec_decode: NEC decode started at state 0 (500us
-pulse)
-[  234.691050] ir_nec_decode: NEC decode failed at state 0 (500us pulse)
-[  234.691055] ir_rc5_decode: RC5(x) decode started at state 2 (500us
-pulse)
-[  234.691060] ir_rc5_decode: RC5(x) decode started at state 1 (0us
-pulse)
-[  234.691066] ir_rc6_decode: RC6 decode started at state 0 (500us
-pulse)
-[  234.691070] ir_rc6_decode: RC6 decode failed at state 0 (500us pulse)
-[  234.691076] ir_jvc_decode: JVC decode started at state 0 (500us
-pulse)
-[  234.691081] ir_jvc_decode: JVC decode failed at state 0 (500us pulse)
-[  234.691086] ir_sony_decode: Sony decode started at state 0 (500us
-pulse)
-[  234.691091] ir_sony_decode: Sony decode failed at state 0 (500us
-pulse)
-[  234.691096] ir_lirc_decode: delivering 500us pulse to lirc_dev
-[  234.691102] ir_nec_decode: NEC decode started at state 0 (1750us
-space)
-[  234.691107] ir_nec_decode: NEC decode failed at state 0 (1750us
-space)
-[  234.691112] ir_rc5_decode: RC5(x) decode started at state 1 (1750us
-space)
-[  234.691117] ir_rc5_decode: RC5(x) decode failed at state 1 (1750us
-space)
-[  234.691122] ir_rc6_decode: RC6 decode started at state 0 (1750us
-space)
-[  234.691128] ir_rc6_decode: RC6 decode failed at state 0 (1750us
-space)
-[  234.691133] ir_jvc_decode: JVC decode started at state 0 (1750us
-space)
-[  234.691138] ir_jvc_decode: JVC decode failed at state 0 (1750us
-space)
-[  234.691143] ir_sony_decode: Sony decode started at state 0 (1750us
-space)
-[  234.691148] ir_sony_decode: Sony decode failed at state 0 (1750us
-space)
-[  234.691153] ir_lirc_decode: delivering 1750us space to lirc_dev
-[  234.691159] ir_nec_decode: NEC decode started at state 0 (500us
-pulse)
-[  234.691164] ir_nec_decode: NEC decode failed at state 0 (500us pulse)
-[  234.691169] ir_rc5_decode: RC5(x) decode started at state 0 (500us
-pulse)
-[  234.691174] ir_rc5_decode: RC5(x) decode started at state 1 (0us
-pulse)
-[  234.691179] ir_rc6_decode: RC6 decode started at state 0 (500us
-pulse)
-[  234.691184] ir_rc6_decode: RC6 decode failed at state 0 (500us pulse)
-[  234.691189] ir_jvc_decode: JVC decode started at state 0 (500us
-pulse)
-[  234.691195] ir_jvc_decode: JVC decode failed at state 0 (500us pulse)
-[  234.691199] ir_sony_decode: Sony decode started at state 0 (500us
-pulse)
-[  234.691205] ir_sony_decode: Sony decode failed at state 0 (500us
-pulse)
-[  234.691210] ir_lirc_decode: delivering 500us pulse to lirc_dev
-[  234.691216] ir_nec_decode: NEC decode started at state 0 (1750us
-space)
-[  234.691221] ir_nec_decode: NEC decode failed at state 0 (1750us
-space)
-[  234.691226] ir_rc5_decode: RC5(x) decode started at state 1 (1750us
-space)
-[  234.691231] ir_rc5_decode: RC5(x) decode failed at state 1 (1750us
-space)
-[  234.691236] ir_rc6_decode: RC6 decode started at state 0 (1750us
-space)
-[  234.691241] ir_rc6_decode: RC6 decode failed at state 0 (1750us
-space)
-[  234.691246] ir_jvc_decode: JVC decode started at state 0 (1750us
-space)
-[  234.691251] ir_jvc_decode: JVC decode failed at state 0 (1750us
-space)
-[  234.691256] ir_sony_decode: Sony decode started at state 0 (1750us
-space)
-[  234.691261] ir_sony_decode: Sony decode failed at state 0 (1750us
-space)
-[  234.691266] ir_lirc_decode: delivering 1750us space to lirc_dev
-[  234.691272] ir_nec_decode: NEC decode started at state 0 (500us
-pulse)
-[  234.691277] ir_nec_decode: NEC decode failed at state 0 (500us pulse)
-[  234.691282] ir_rc5_decode: RC5(x) decode started at state 0 (500us
-pulse)
-[  234.691287] ir_rc5_decode: RC5(x) decode started at state 1 (0us
-pulse)
-[  234.691293] ir_rc6_decode: RC6 decode started at state 0 (500us
-pulse)
-[  234.691298] ir_rc6_decode: RC6 decode failed at state 0 (500us pulse)
-[  234.691303] ir_jvc_decode: JVC decode started at state 0 (500us
-pulse)
-[  234.691308] ir_jvc_decode: JVC decode failed at state 0 (500us pulse)
-[  234.691313] ir_sony_decode: Sony decode started at state 0 (500us
-pulse)
-[  234.691318] ir_sony_decode: Sony decode failed at state 0 (500us
-pulse)
-[  234.691323] ir_lirc_decode: delivering 500us pulse to lirc_dev
-[  234.698850] ir_raw_event_store: sample: (01750us space)
-[  234.698858] ir_raw_event_store: sample: (00500us pulse)
-[  234.698863] ir_raw_event_store: sample: (01750us space)
-[  234.698867] ir_raw_event_store: sample: (00750us pulse)
-[  234.698872] ir_raw_event_store: sample: (01500us space)
-[  234.698876] ir_raw_event_store: sample: (00750us pulse)
-[  234.698880] ir_raw_event_store: sample: (01500us space)
-[  234.698900] ir_nec_decode: NEC decode started at state 0 (1750us
-space)
-[  234.698905] ir_nec_decode: NEC decode failed at state 0 (1750us
-space)
-[  234.698912] ir_rc5_decode: RC5(x) decode started at state 1 (1750us
-space)
-[  234.698917] ir_rc5_decode: RC5(x) decode failed at state 1 (1750us
-space)
-[  234.698923] ir_rc6_decode: RC6 decode started at state 0 (1750us
-space)
-[  234.698928] ir_rc6_decode: RC6 decode failed at state 0 (1750us
-space)
-[  234.698933] ir_jvc_decode: JVC decode started at state 0 (1750us
-space)
-[  234.698939] ir_jvc_decode: JVC decode failed at state 0 (1750us
-space)
-[  234.698945] ir_sony_decode: Sony decode started at state 0 (1750us
-space)
-[  234.698950] ir_sony_decode: Sony decode failed at state 0 (1750us
-space)
-[  234.698956] ir_lirc_decode: delivering 1750us space to lirc_dev
-[  234.698962] ir_nec_decode: NEC decode started at state 0 (500us
-pulse)
-[  234.698967] ir_nec_decode: NEC decode failed at state 0 (500us pulse)
-[  234.698972] ir_rc5_decode: RC5(x) decode started at state 0 (500us
-pulse)
-[  234.698977] ir_rc5_decode: RC5(x) decode started at state 1 (0us
-pulse)
-[  234.698982] ir_rc6_decode: RC6 decode started at state 0 (500us
-pulse)
-[  234.698988] ir_rc6_decode: RC6 decode failed at state 0 (500us pulse)
-[  234.698993] ir_jvc_decode: JVC decode started at state 0 (500us
-pulse)
-[  234.698998] ir_jvc_decode: JVC decode failed at state 0 (500us pulse)
-[  234.699003] ir_sony_decode: Sony decode started at state 0 (500us
-pulse)
-[  234.699008] ir_sony_decode: Sony decode failed at state 0 (500us
-pulse)
-[  234.699013] ir_lirc_decode: delivering 500us pulse to lirc_dev
-[  234.699018] ir_nec_decode: NEC decode started at state 0 (1750us
-space)
-[  234.699023] ir_nec_decode: NEC decode failed at state 0 (1750us
-space)
-[  234.699028] ir_rc5_decode: RC5(x) decode started at state 1 (1750us
-space)
-[  234.699034] ir_rc5_decode: RC5(x) decode failed at state 1 (1750us
-space)
-[  234.699039] ir_rc6_decode: RC6 decode started at state 0 (1750us
-space)
-[  234.699044] ir_rc6_decode: RC6 decode failed at state 0 (1750us
-space)
-[  234.699049] ir_jvc_decode: JVC decode started at state 0 (1750us
-space)
-[  234.699054] ir_jvc_decode: JVC decode failed at state 0 (1750us
-space)
-[  234.699059] ir_sony_decode: Sony decode started at state 0 (1750us
-space)
-[  234.699064] ir_sony_decode: Sony decode failed at state 0 (1750us
-space)
-[  234.699068] ir_lirc_decode: delivering 1750us space to lirc_dev
-[  234.699074] ir_nec_decode: NEC decode started at state 0 (750us
-pulse)
-[  234.699079] ir_nec_decode: NEC decode failed at state 0 (750us pulse)
-[  234.699084] ir_rc5_decode: RC5(x) decode started at state 0 (750us
-pulse)
-[  234.699089] ir_rc5_decode: RC5(x) decode started at state 1 (0us
-pulse)
-[  234.699093] ir_rc6_decode: RC6 decode started at state 0 (750us
-pulse)
-[  234.699098] ir_rc6_decode: RC6 decode failed at state 0 (750us pulse)
-[  234.699103] ir_jvc_decode: JVC decode started at state 0 (750us
-pulse)
-[  234.699108] ir_jvc_decode: JVC decode failed at state 0 (750us pulse)
-[  234.699113] ir_sony_decode: Sony decode started at state 0 (750us
-pulse)
-[  234.699118] ir_sony_decode: Sony decode failed at state 0 (750us
-pulse)
-[  234.699123] ir_lirc_decode: delivering 750us pulse to lirc_dev
-[  234.699128] ir_nec_decode: NEC decode started at state 0 (1500us
-space)
-[  234.699133] ir_nec_decode: NEC decode failed at state 0 (1500us
-space)
-[  234.699138] ir_rc5_decode: RC5(x) decode started at state 1 (1500us
-space)
-[  234.699143] ir_rc5_decode: RC5(x) decode failed at state 1 (1500us
-space)
-[  234.699148] ir_rc6_decode: RC6 decode started at state 0 (1500us
-space)
-[  234.699153] ir_rc6_decode: RC6 decode failed at state 0 (1500us
-space)
-[  234.699158] ir_jvc_decode: JVC decode started at state 0 (1500us
-space)
-[  234.699163] ir_jvc_decode: JVC decode failed at state 0 (1500us
-space)
-[  234.699168] ir_sony_decode: Sony decode started at state 0 (1500us
-space)
-[  234.699173] ir_sony_decode: Sony decode failed at state 0 (1500us
-space)
-[  234.699178] ir_lirc_decode: delivering 1500us space to lirc_dev
-[  234.699184] ir_nec_decode: NEC decode started at state 0 (750us
-pulse)
-[  234.699188] ir_nec_decode: NEC decode failed at state 0 (750us pulse)
-[  234.699193] ir_rc5_decode: RC5(x) decode started at state 0 (750us
-pulse)
-[  234.699198] ir_rc5_decode: RC5(x) decode started at state 1 (0us
-pulse)
-[  234.699203] ir_rc6_decode: RC6 decode started at state 0 (750us
-pulse)
-[  234.699208] ir_rc6_decode: RC6 decode failed at state 0 (750us pulse)
-[  234.699213] ir_jvc_decode: JVC decode started at state 0 (750us
-pulse)
-[  234.699218] ir_jvc_decode: JVC decode failed at state 0 (750us pulse)
-[  234.699223] ir_sony_decode: Sony decode started at state 0 (750us
-pulse)
-[  234.699228] ir_sony_decode: Sony decode failed at state 0 (750us
-pulse)
-[  234.699232] ir_lirc_decode: delivering 750us pulse to lirc_dev
-[  234.699238] ir_nec_decode: NEC decode started at state 0 (1500us
-space)
-[  234.699243] ir_nec_decode: NEC decode failed at state 0 (1500us
-space)
-[  234.699248] ir_rc5_decode: RC5(x) decode started at state 1 (1500us
-space)
-[  234.699253] ir_rc5_decode: RC5(x) decode failed at state 1 (1500us
-space)
-[  234.699258] ir_rc6_decode: RC6 decode started at state 0 (1500us
-space)
-[  234.699263] ir_rc6_decode: RC6 decode failed at state 0 (1500us
-space)
-[  234.699267] ir_jvc_decode: JVC decode started at state 0 (1500us
-space)
-[  234.699272] ir_jvc_decode: JVC decode failed at state 0 (1500us
-space)
-[  234.699277] ir_sony_decode: Sony decode started at state 0 (1500us
-space)
-[  234.699282] ir_sony_decode: Sony decode failed at state 0 (1500us
-space)
-[  234.699287] ir_lirc_decode: delivering 1500us space to lirc_dev
-[  234.706842] ir_raw_event_store: sample: (00750us pulse)
-[  234.706858] ir_nec_decode: NEC decode started at state 0 (750us
-pulse)
-[  234.706864] ir_nec_decode: NEC decode failed at state 0 (750us pulse)
-[  234.706869] ir_rc5_decode: RC5(x) decode started at state 0 (750us
-pulse)
-[  234.706874] ir_rc5_decode: RC5(x) decode started at state 1 (0us
-pulse)
-[  234.706879] ir_rc6_decode: RC6 decode started at state 0 (750us
-pulse)
-[  234.706885] ir_rc6_decode: RC6 decode failed at state 0 (750us pulse)
-[  234.706890] ir_jvc_decode: JVC decode started at state 0 (750us
-pulse)
-[  234.706895] ir_jvc_decode: JVC decode failed at state 0 (750us pulse)
-[  234.706900] ir_sony_decode: Sony decode started at state 0 (750us
-pulse)
-[  234.706905] ir_sony_decode: Sony decode failed at state 0 (750us
-pulse)
-[  234.706910] ir_lirc_decode: delivering 750us pulse to lirc_dev
-[  234.714840] ir_raw_event_set_idle: enter idle mode
-[  234.714845] ir_raw_event_store: sample: (15500us space)
-[  234.714859] ir_nec_decode: NEC decode started at state 0 (15500us
-space)
-[  234.714864] ir_nec_decode: NEC decode failed at state 0 (15500us
-space)
-[  234.714869] ir_rc5_decode: RC5(x) decode started at state 1 (15500us
-space)
-[  234.714874] ir_rc5_decode: RC5(x) decode failed at state 1 (15500us
-space)
-[  234.714879] ir_rc6_decode: RC6 decode started at state 0 (15500us
-space)
-[  234.714884] ir_rc6_decode: RC6 decode failed at state 0 (15500us
-space)
-[  234.714890] ir_jvc_decode: JVC decode started at state 0 (15500us
-space)
-[  234.714895] ir_jvc_decode: JVC decode failed at state 0 (15500us
-space)
-[  234.714900] ir_sony_decode: Sony decode started at state 0 (15500us
-space)
-[  234.714905] ir_sony_decode: Sony decode failed at state 0 (15500us
-space)
-[  234.746845] ir_raw_event_set_idle: leave idle mode
-[  234.754852] ir_raw_event_store: sample: (09000us pulse)
-[  234.754858] ir_raw_event_store: sample: (02250us space)
-[  234.754863] ir_raw_event_store: sample: (00750us pulse)
-[  234.754883] ir_nec_decode: NEC decode started at state 0 (9000us
-pulse)
-[  234.754889] ir_rc5_decode: RC5(x) decode started at state 0 (9000us
-pulse)
-[  234.754894] ir_rc5_decode: RC5(x) decode started at state 1 (8111us
-pulse)
-[  234.754899] ir_rc5_decode: RC5(x) decode failed at state 1 (8111us
-pulse)
-[  234.754904] ir_rc6_decode: RC6 decode started at state 0 (9000us
-pulse)
-[  234.754910] ir_rc6_decode: RC6 decode failed at state 0 (9000us
-pulse)
-[  234.754915] ir_jvc_decode: JVC decode started at state 0 (9000us
-pulse)
-[  234.754920] ir_jvc_decode: JVC decode failed at state 0 (9000us
-pulse)
-[  234.754926] ir_sony_decode: Sony decode started at state 0 (9000us
-pulse)
-[  234.754932] ir_sony_decode: Sony decode failed at state 0 (9000us
-pulse)
-[  234.754939] ir_lirc_decode: delivering 9000us pulse to lirc_dev
-[  234.754944] ir_nec_decode: NEC decode started at state 1 (2250us
-space)
-[  234.754949] ir_nec_decode: Discarding last key repeat: event after
-key up
-[  234.754954] ir_rc5_decode: RC5(x) decode started at state 0 (2250us
-space)
-[  234.754959] ir_rc5_decode: RC5(x) decode failed at state 0 (2250us
-space)
-[  234.754964] ir_rc6_decode: RC6 decode started at state 0 (2250us
-space)
-[  234.754969] ir_rc6_decode: RC6 decode failed at state 0 (2250us
-space)
-[  234.754974] ir_jvc_decode: JVC decode started at state 0 (2250us
-space)
-[  234.754979] ir_jvc_decode: JVC decode failed at state 0 (2250us
-space)
-[  234.754984] ir_sony_decode: Sony decode started at state 0 (2250us
-space)
-[  234.754989] ir_sony_decode: Sony decode failed at state 0 (2250us
-space)
-[  234.754994] ir_lirc_decode: delivering 2250us space to lirc_dev
-[  234.755000] ir_nec_decode: NEC decode started at state 1 (750us
-pulse)
-[  234.755005] ir_nec_decode: NEC decode failed at state 1 (750us pulse)
-[  234.755009] ir_rc5_decode: RC5(x) decode started at state 0 (750us
-pulse)
-[  234.755014] ir_rc5_decode: RC5(x) decode started at state 1 (0us
-pulse)
-[  234.755019] ir_rc6_decode: RC6 decode started at state 0 (750us
-pulse)
-[  234.755025] ir_rc6_decode: RC6 decode failed at state 0 (750us pulse)
-[  234.755030] ir_jvc_decode: JVC decode started at state 0 (750us
-pulse)
-[  234.755035] ir_jvc_decode: JVC decode failed at state 0 (750us pulse)
-[  234.755040] ir_sony_decode: Sony decode started at state 0 (750us
-pulse)
-[  234.755045] ir_sony_decode: Sony decode failed at state 0 (750us
-pulse)
-[  234.755050] ir_lirc_decode: delivering 750us pulse to lirc_dev
-[  234.762854] ir_raw_event_set_idle: enter idle mode
-[  234.762865] ir_raw_event_store: sample: (10500us space)
-[  234.762888] ir_nec_decode: NEC decode started at state 0 (10500us
-space)
-[  234.762894] ir_nec_decode: NEC decode failed at state 0 (10500us
-space)
-[  234.762900] ir_rc5_decode: RC5(x) decode started at state 1 (10500us
-space)
-[  234.762905] ir_rc5_decode: RC5(x) decode failed at state 1 (10500us
-space)
-[  234.762911] ir_rc6_decode: RC6 decode started at state 0 (10500us
-space)
-[  234.762916] ir_rc6_decode: RC6 decode failed at state 0 (10500us
-space)
-[  234.762922] ir_jvc_decode: JVC decode started at state 0 (10500us
-space)
-[  234.762927] ir_jvc_decode: JVC decode failed at state 0 (10500us
-space)
-[  234.762933] ir_sony_decode: Sony decode started at state 0 (10500us
-space)
-[  234.762938] ir_sony_decode: Sony decode failed at state 0 (10500us
-space)
-[  234.850860] ir_raw_event_set_idle: leave idle mode
-[  234.858857] ir_raw_event_store: sample: (09000us pulse)
-[  234.858876] ir_nec_decode: NEC decode started at state 0 (9000us
-pulse)
-[  234.858882] ir_rc5_decode: RC5(x) decode started at state 0 (9000us
-pulse)
-[  234.858888] ir_rc5_decode: RC5(x) decode started at state 1 (8111us
-pulse)
-[  234.858893] ir_rc5_decode: RC5(x) decode failed at state 1 (8111us
-pulse)
-[  234.858899] ir_rc6_decode: RC6 decode started at state 0 (9000us
-pulse)
-[  234.858904] ir_rc6_decode: RC6 decode failed at state 0 (9000us
-pulse)
-[  234.858910] ir_jvc_decode: JVC decode started at state 0 (9000us
-pulse)
-[  234.858916] ir_jvc_decode: JVC decode failed at state 0 (9000us
-pulse)
-[  234.858922] ir_sony_decode: Sony decode started at state 0 (9000us
-pulse)
-[  234.858927] ir_sony_decode: Sony decode failed at state 0 (9000us
-pulse)
-[  234.858934] ir_lirc_decode: delivering 9000us pulse to lirc_dev
-[  234.866866] ir_raw_event_store: sample: (02250us space)
-[  234.866874] ir_raw_event_store: sample: (00500us pulse)
-[  234.866892] ir_nec_decode: NEC decode started at state 1 (2250us
-space)
-[  234.866897] ir_nec_decode: Discarding last key repeat: event after
-key up
-[  234.866903] ir_rc5_decode: RC5(x) decode started at state 0 (2250us
-space)
-[  234.866908] ir_rc5_decode: RC5(x) decode failed at state 0 (2250us
-space)
-[  234.866914] ir_rc6_decode: RC6 decode started at state 0 (2250us
-space)
-[  234.866919] ir_rc6_decode: RC6 decode failed at state 0 (2250us
-space)
-[  234.866925] ir_jvc_decode: JVC decode started at state 0 (2250us
-space)
-[  234.866930] ir_jvc_decode: JVC decode failed at state 0 (2250us
-space)
-[  234.866936] ir_sony_decode: Sony decode started at state 0 (2250us
-space)
-[  234.866941] ir_sony_decode: Sony decode failed at state 0 (2250us
-space)
-[  234.866947] ir_lirc_decode: delivering 2250us space to lirc_dev
-[  234.866953] ir_nec_decode: NEC decode started at state 1 (500us
-pulse)
-[  234.866958] ir_nec_decode: NEC decode failed at state 1 (500us pulse)
-[  234.866963] ir_rc5_decode: RC5(x) decode started at state 0 (500us
-pulse)
-[  234.866968] ir_rc5_decode: RC5(x) decode started at state 1 (0us
-pulse)
-[  234.866973] ir_rc6_decode: RC6 decode started at state 0 (500us
-pulse)
-[  234.866978] ir_rc6_decode: RC6 decode failed at state 0 (500us pulse)
-[  234.866983] ir_jvc_decode: JVC decode started at state 0 (500us
-pulse)
-[  234.866988] ir_jvc_decode: JVC decode failed at state 0 (500us pulse)
-[  234.866993] ir_sony_decode: Sony decode started at state 0 (500us
-pulse)
-[  234.866998] ir_sony_decode: Sony decode failed at state 0 (500us
-pulse)
-[  234.867003] ir_lirc_decode: delivering 500us pulse to lirc_dev
-[  234.874861] ir_raw_event_set_idle: enter idle mode
-[  234.874869] ir_raw_event_store: sample: (14500us space)
-[  234.874888] ir_nec_decode: NEC decode started at state 0 (14500us
-space)
-[  234.874893] ir_nec_decode: NEC decode failed at state 0 (14500us
-space)
-[  234.874898] ir_rc5_decode: RC5(x) decode started at state 1 (14500us
-space)
-[  234.874904] ir_rc5_decode: RC5(x) decode failed at state 1 (14500us
-space)
-[  234.874909] ir_rc6_decode: RC6 decode started at state 0 (14500us
-space)
-[  234.874915] ir_rc6_decode: RC6 decode failed at state 0 (14500us
-space)
-[  234.874920] ir_jvc_decode: JVC decode started at state 0 (14500us
-space)
-[  234.874926] ir_jvc_decode: JVC decode failed at state 0 (14500us
-space)
-[  234.874931] ir_sony_decode: Sony decode started at state 0 (14500us
-space)
-[  234.874936] ir_sony_decode: Sony decode failed at state 0 (14500us
-space)
-[  234.962877] ir_raw_event_set_idle: leave idle mode
-[  234.970876] ir_raw_event_store: sample: (09250us pulse)
-[  234.970884] ir_raw_event_store: sample: (02250us space)
-[  234.970890] ir_raw_event_store: sample: (00500us pulse)
-[  234.970930] ir_nec_decode: NEC decode started at state 0 (9250us
-pulse)
-[  234.970941] ir_rc5_decode: RC5(x) decode started at state 0 (9250us
-pulse)
-[  234.970947] ir_rc5_decode: RC5(x) decode started at state 1 (8361us
-pulse)
-[  234.970953] ir_rc5_decode: RC5(x) decode failed at state 1 (8361us
-pulse)
-[  234.970958] ir_rc6_decode: RC6 decode started at state 0 (9250us
-pulse)
-[  234.970964] ir_rc6_decode: RC6 decode failed at state 0 (9250us
-pulse)
-[  234.970969] ir_jvc_decode: JVC decode started at state 0 (9250us
-pulse)
-[  234.970974] ir_jvc_decode: JVC decode failed at state 0 (9250us
-pulse)
-[  234.970980] ir_sony_decode: Sony decode started at state 0 (9250us
-pulse)
-[  234.970985] ir_sony_decode: Sony decode failed at state 0 (9250us
-pulse)
-[  234.970993] ir_lirc_decode: delivering 9250us pulse to lirc_dev
-[  234.970999] ir_nec_decode: NEC decode started at state 1 (2250us
-space)
-[  234.971003] ir_nec_decode: Discarding last key repeat: event after
-key up
-[  234.971009] ir_rc5_decode: RC5(x) decode started at state 0 (2250us
-space)
-[  234.971014] ir_rc5_decode: RC5(x) decode failed at state 0 (2250us
-space)
-[  234.971019] ir_rc6_decode: RC6 decode started at state 0 (2250us
-space)
-[  234.971023] ir_rc6_decode: RC6 decode failed at state 0 (2250us
-space)
-[  234.971029] ir_jvc_decode: JVC decode started at state 0 (2250us
-space)
-[  234.971033] ir_jvc_decode: JVC decode failed at state 0 (2250us
-space)
-[  234.971038] ir_sony_decode: Sony decode started at state 0 (2250us
-space)
-[  234.971043] ir_sony_decode: Sony decode failed at state 0 (2250us
-space)
-[  234.971048] ir_lirc_decode: delivering 2250us space to lirc_dev
-[  234.971054] ir_nec_decode: NEC decode started at state 1 (500us
-pulse)
-[  234.971059] ir_nec_decode: NEC decode failed at state 1 (500us pulse)
-[  234.971064] ir_rc5_decode: RC5(x) decode started at state 0 (500us
-pulse)
-[  234.971069] ir_rc5_decode: RC5(x) decode started at state 1 (0us
-pulse)
-[  234.971074] ir_rc6_decode: RC6 decode started at state 0 (500us
-pulse)
-[  234.971079] ir_rc6_decode: RC6 decode failed at state 0 (500us pulse)
-[  234.971084] ir_jvc_decode: JVC decode started at state 0 (500us
-pulse)
-[  234.971089] ir_jvc_decode: JVC decode failed at state 0 (500us pulse)
-[  234.971094] ir_sony_decode: Sony decode started at state 0 (500us
-pulse)
-[  234.971099] ir_sony_decode: Sony decode failed at state 0 (500us
-pulse)
-[  234.971103] ir_lirc_decode: delivering 500us pulse to lirc_dev
-[  234.978878] ir_raw_event_set_idle: enter idle mode
-[  234.978886] ir_raw_event_store: sample: (10250us space)
-[  234.978910] ir_nec_decode: NEC decode started at state 0 (10250us
-space)
-[  234.978916] ir_nec_decode: NEC decode failed at state 0 (10250us
-space)
-[  234.978922] ir_rc5_decode: RC5(x) decode started at state 1 (10250us
-space)
-[  234.978927] ir_rc5_decode: RC5(x) decode failed at state 1 (10250us
-space)
-[  234.978933] ir_rc6_decode: RC6 decode started at state 0 (10250us
-space)
-[  234.978938] ir_rc6_decode: RC6 decode failed at state 0 (10250us
-space)
-[  234.978944] ir_jvc_decode: JVC decode started at state 0 (10250us
-space)
-[  234.978949] ir_jvc_decode: JVC decode failed at state 0 (10250us
-space)
-[  234.978955] ir_sony_decode: Sony decode started at state 0 (10250us
-space)
-[  234.978961] ir_sony_decode: Sony decode failed at state 0 (10250us
-space)
-
-This is dmesg after pressing button 1 with only nec protocol enabled:
-
-[  343.918855] ir_raw_event_set_idle: leave idle mode
-[  343.926856] ir_raw_event_store: sample: (09250us pulse)
-[  343.926875] ir_nec_decode: NEC decode started at state 0 (9250us
-pulse)
-[  343.934852] ir_raw_event_store: sample: (04250us space)
-[  343.934857] ir_raw_event_store: sample: (00750us pulse)
-[  343.934862] ir_raw_event_store: sample: (00500us space)
-[  343.934867] ir_raw_event_store: sample: (00500us pulse)
-[  343.934871] ir_raw_event_store: sample: (00500us space)
-[  343.934876] ir_raw_event_store: sample: (00750us pulse)
-[  343.934881] ir_raw_event_store: sample: (01500us space)
-[  343.934885] ir_raw_event_store: sample: (00750us pulse)
-[  343.934890] ir_raw_event_store: sample: (00500us space)
-[  343.934895] ir_raw_event_store: sample: (00500us pulse)
-[  343.934899] ir_raw_event_store: sample: (00500us space)
-[  343.934904] ir_raw_event_store: sample: (00750us pulse)
-[  343.934940] ir_nec_decode: NEC decode started at state 1 (4250us
-space)
-[  343.934953] ir_nec_decode: NEC decode started at state 2 (750us
-pulse)
-[  343.934961] ir_nec_decode: NEC decode started at state 3 (500us
-space)
-[  343.934968] ir_nec_decode: NEC decode started at state 2 (500us
-pulse)
-[  343.934973] ir_nec_decode: NEC decode started at state 3 (500us
-space)
-[  343.934979] ir_nec_decode: NEC decode started at state 2 (750us
-pulse)
-[  343.934985] ir_nec_decode: NEC decode started at state 3 (1500us
-space)
-[  343.934991] ir_nec_decode: NEC decode started at state 2 (750us
-pulse)
-[  343.934996] ir_nec_decode: NEC decode started at state 3 (500us
-space)
-[  343.935002] ir_nec_decode: NEC decode started at state 2 (500us
-pulse)
-[  343.935007] ir_nec_decode: NEC decode started at state 3 (500us
-space)
-[  343.935013] ir_nec_decode: NEC decode started at state 2 (750us
-pulse)
-[  343.942862] ir_raw_event_store: sample: (00500us space)
-[  343.942871] ir_raw_event_store: sample: (00500us pulse)
-[  343.942876] ir_raw_event_store: sample: (00500us space)
-[  343.942881] ir_raw_event_store: sample: (00750us pulse)
-[  343.942885] ir_raw_event_store: sample: (00500us space)
-[  343.942889] ir_raw_event_store: sample: (00750us pulse)
-[  343.942894] ir_raw_event_store: sample: (01500us space)
-[  343.942898] ir_raw_event_store: sample: (00750us pulse)
-[  343.942903] ir_raw_event_store: sample: (01500us space)
-[  343.942907] ir_raw_event_store: sample: (00500us pulse)
-[  343.942911] ir_raw_event_store: sample: (00500us space)
-[  343.942932] ir_nec_decode: NEC decode started at state 3 (500us
-space)
-[  343.942940] ir_nec_decode: NEC decode started at state 2 (500us
-pulse)
-[  343.942946] ir_nec_decode: NEC decode started at state 3 (500us
-space)
-[  343.942951] ir_nec_decode: NEC decode started at state 2 (750us
-pulse)
-[  343.942957] ir_nec_decode: NEC decode started at state 3 (500us
-space)
-[  343.942962] ir_nec_decode: NEC decode started at state 2 (750us
-pulse)
-[  343.942968] ir_nec_decode: NEC decode started at state 3 (1500us
-space)
-[  343.942974] ir_nec_decode: NEC decode started at state 2 (750us
-pulse)
-[  343.942980] ir_nec_decode: NEC decode started at state 3 (1500us
-space)
-[  343.942985] ir_nec_decode: NEC decode started at state 2 (500us
-pulse)
-[  343.942991] ir_nec_decode: NEC decode started at state 3 (500us
-space)
-[  343.950857] ir_raw_event_store: sample: (00750us pulse)
-[  343.950863] ir_raw_event_store: sample: (01500us space)
-[  343.950867] ir_raw_event_store: sample: (00750us pulse)
-[  343.950871] ir_raw_event_store: sample: (00500us space)
-[  343.950875] ir_raw_event_store: sample: (00750us pulse)
-[  343.950880] ir_raw_event_store: sample: (01500us space)
-[  343.950885] ir_raw_event_store: sample: (00750us pulse)
-[  343.950889] ir_raw_event_store: sample: (01500us space)
-[  343.950902] ir_nec_decode: NEC decode started at state 2 (750us
-pulse)
-[  343.950909] ir_nec_decode: NEC decode started at state 3 (1500us
-space)
-[  343.950916] ir_nec_decode: NEC decode started at state 2 (750us
-pulse)
-[  343.950921] ir_nec_decode: NEC decode started at state 3 (500us
-space)
-[  343.950927] ir_nec_decode: NEC decode started at state 2 (750us
-pulse)
-[  343.950933] ir_nec_decode: NEC decode started at state 3 (1500us
-space)
-[  343.950939] ir_nec_decode: NEC decode started at state 2 (750us
-pulse)
-[  343.950944] ir_nec_decode: NEC decode started at state 3 (1500us
-space)
-[  343.958856] ir_raw_event_store: sample: (00750us pulse)
-[  343.958861] ir_raw_event_store: sample: (01500us space)
-[  343.958865] ir_raw_event_store: sample: (00750us pulse)
-[  343.958869] ir_raw_event_store: sample: (00250us space)
-[  343.958874] ir_raw_event_store: sample: (00750us pulse)
-[  343.958878] ir_raw_event_store: sample: (01500us space)
-[  343.958883] ir_raw_event_store: sample: (00750us pulse)
-[  343.958887] ir_raw_event_store: sample: (00500us space)
-[  343.958892] ir_raw_event_store: sample: (00750us pulse)
-[  343.958896] ir_raw_event_store: sample: (00500us space)
-[  343.958910] ir_nec_decode: NEC decode started at state 2 (750us
-pulse)
-[  343.958916] ir_nec_decode: NEC decode started at state 3 (1500us
-space)
-[  343.958922] ir_nec_decode: NEC decode started at state 2 (750us
-pulse)
-[  343.958927] ir_nec_decode: NEC decode started at state 3 (250us
-space)
-[  343.958932] ir_nec_decode: NEC decode failed at state 3 (250us space)
-[  343.958938] ir_nec_decode: NEC decode started at state 0 (750us
-pulse)
-[  343.958943] ir_nec_decode: NEC decode failed at state 0 (750us pulse)
-[  343.958949] ir_nec_decode: NEC decode started at state 0 (1500us
-space)
-[  343.958954] ir_nec_decode: NEC decode failed at state 0 (1500us
-space)
-[  343.958959] ir_nec_decode: NEC decode started at state 0 (750us
-pulse)
-[  343.958964] ir_nec_decode: NEC decode failed at state 0 (750us pulse)
-[  343.958970] ir_nec_decode: NEC decode started at state 0 (500us
-space)
-[  343.958975] ir_nec_decode: NEC decode failed at state 0 (500us space)
-[  343.958980] ir_nec_decode: NEC decode started at state 0 (750us
-pulse)
-[  343.958985] ir_nec_decode: NEC decode failed at state 0 (750us pulse)
-[  343.958991] ir_nec_decode: NEC decode started at state 0 (500us
-space)
-[  343.958995] ir_nec_decode: NEC decode failed at state 0 (500us space)
-[  343.966858] ir_raw_event_store: sample: (00500us pulse)
-[  343.966863] ir_raw_event_store: sample: (00500us space)
-[  343.966867] ir_raw_event_store: sample: (00750us pulse)
-[  343.966871] ir_raw_event_store: sample: (00500us space)
-[  343.966876] ir_raw_event_store: sample: (00500us pulse)
-[  343.966880] ir_raw_event_store: sample: (00500us space)
-[  343.966884] ir_raw_event_store: sample: (00750us pulse)
-[  343.966889] ir_raw_event_store: sample: (00500us space)
-[  343.966893] ir_raw_event_store: sample: (00500us pulse)
-[  343.966898] ir_raw_event_store: sample: (01750us space)
-[  343.966902] ir_raw_event_store: sample: (00500us pulse)
-[  343.966907] ir_raw_event_store: sample: (00500us space)
-[  343.966924] ir_nec_decode: NEC decode started at state 0 (500us
-pulse)
-[  343.966929] ir_nec_decode: NEC decode failed at state 0 (500us pulse)
-[  343.966935] ir_nec_decode: NEC decode started at state 0 (500us
-space)
-[  343.966940] ir_nec_decode: NEC decode failed at state 0 (500us space)
-[  343.966945] ir_nec_decode: NEC decode started at state 0 (750us
-pulse)
-[  343.966950] ir_nec_decode: NEC decode failed at state 0 (750us pulse)
-[  343.966956] ir_nec_decode: NEC decode started at state 0 (500us
-space)
-[  343.966960] ir_nec_decode: NEC decode failed at state 0 (500us space)
-[  343.966966] ir_nec_decode: NEC decode started at state 0 (500us
-pulse)
-[  343.966972] ir_nec_decode: NEC decode failed at state 0 (500us pulse)
-[  343.966977] ir_nec_decode: NEC decode started at state 0 (500us
-space)
-[  343.966982] ir_nec_decode: NEC decode failed at state 0 (500us space)
-[  343.966988] ir_nec_decode: NEC decode started at state 0 (750us
-pulse)
-[  343.966992] ir_nec_decode: NEC decode failed at state 0 (750us pulse)
-[  343.966998] ir_nec_decode: NEC decode started at state 0 (500us
-space)
-[  343.967003] ir_nec_decode: NEC decode failed at state 0 (500us space)
-[  343.967008] ir_nec_decode: NEC decode started at state 0 (500us
-pulse)
-[  343.967013] ir_nec_decode: NEC decode failed at state 0 (500us pulse)
-[  343.967019] ir_nec_decode: NEC decode started at state 0 (1750us
-space)
-[  343.967024] ir_nec_decode: NEC decode failed at state 0 (1750us
-space)
-[  343.967029] ir_nec_decode: NEC decode started at state 0 (500us
-pulse)
-[  343.967034] ir_nec_decode: NEC decode failed at state 0 (500us pulse)
-[  343.967040] ir_nec_decode: NEC decode started at state 0 (500us
-space)
-[  343.967045] ir_nec_decode: NEC decode failed at state 0 (500us space)
-[  343.974857] ir_raw_event_store: sample: (00750us pulse)
-[  343.974862] ir_raw_event_store: sample: (01500us space)
-[  343.974867] ir_raw_event_store: sample: (00750us pulse)
-[  343.974871] ir_raw_event_store: sample: (01500us space)
-[  343.974876] ir_raw_event_store: sample: (00750us pulse)
-[  343.974880] ir_raw_event_store: sample: (01500us space)
-[  343.974884] ir_raw_event_store: sample: (00750us pulse)
-[  343.974902] ir_nec_decode: NEC decode started at state 0 (750us
-pulse)
-[  343.974907] ir_nec_decode: NEC decode failed at state 0 (750us pulse)
-[  343.974913] ir_nec_decode: NEC decode started at state 0 (1500us
-space)
-[  343.974918] ir_nec_decode: NEC decode failed at state 0 (1500us
-space)
-[  343.974924] ir_nec_decode: NEC decode started at state 0 (750us
-pulse)
-[  343.974928] ir_nec_decode: NEC decode failed at state 0 (750us pulse)
-[  343.974934] ir_nec_decode: NEC decode started at state 0 (1500us
-space)
-[  343.974939] ir_nec_decode: NEC decode failed at state 0 (1500us
-space)
-[  343.974944] ir_nec_decode: NEC decode started at state 0 (750us
-pulse)
-[  343.974949] ir_nec_decode: NEC decode failed at state 0 (750us pulse)
-[  343.974955] ir_nec_decode: NEC decode started at state 0 (1500us
-space)
-[  343.974960] ir_nec_decode: NEC decode failed at state 0 (1500us
-space)
-[  343.974965] ir_nec_decode: NEC decode started at state 0 (750us
-pulse)
-[  343.974970] ir_nec_decode: NEC decode failed at state 0 (750us pulse)
-[  343.982859] ir_raw_event_store: sample: (01500us space)
-[  343.982864] ir_raw_event_store: sample: (00750us pulse)
-[  343.982868] ir_raw_event_store: sample: (01500us space)
-[  343.982873] ir_raw_event_store: sample: (00750us pulse)
-[  343.982877] ir_raw_event_store: sample: (01500us space)
-[  343.982882] ir_raw_event_store: sample: (00750us pulse)
-[  343.982899] ir_nec_decode: NEC decode started at state 0 (1500us
-space)
-[  343.982904] ir_nec_decode: NEC decode failed at state 0 (1500us
-space)
-[  343.982910] ir_nec_decode: NEC decode started at state 0 (750us
-pulse)
-[  343.982915] ir_nec_decode: NEC decode failed at state 0 (750us pulse)
-[  343.982920] ir_nec_decode: NEC decode started at state 0 (1500us
-space)
-[  343.982925] ir_nec_decode: NEC decode failed at state 0 (1500us
-space)
-[  343.982931] ir_nec_decode: NEC decode started at state 0 (750us
-pulse)
-[  343.982936] ir_nec_decode: NEC decode failed at state 0 (750us pulse)
-[  343.982941] ir_nec_decode: NEC decode started at state 0 (1500us
-space)
-[  343.982946] ir_nec_decode: NEC decode failed at state 0 (1500us
-space)
-[  343.982952] ir_nec_decode: NEC decode started at state 0 (750us
-pulse)
-[  343.982957] ir_nec_decode: NEC decode failed at state 0 (750us pulse)
-[  343.990859] ir_raw_event_set_idle: enter idle mode
-[  343.990865] ir_raw_event_store: sample: (10250us space)
-[  343.990884] ir_nec_decode: NEC decode started at state 0 (10250us
-space)
-[  343.990889] ir_nec_decode: NEC decode failed at state 0 (10250us
-space)
-[  344.022862] ir_raw_event_set_idle: leave idle mode
-[  344.038873] ir_raw_event_store: sample: (09250us pulse)
-[  344.038881] ir_raw_event_store: sample: (02000us space)
-[  344.038886] ir_raw_event_store: sample: (00750us pulse)
-[  344.038904] ir_nec_decode: NEC decode started at state 0 (9250us
-pulse)
-[  344.038912] ir_nec_decode: NEC decode started at state 1 (2000us
-space)
-[  344.038917] ir_nec_decode: Discarding last key repeat: event after
-key up
-[  344.038923] ir_nec_decode: NEC decode started at state 1 (750us
-pulse)
-[  344.038928] ir_nec_decode: NEC decode failed at state 1 (750us pulse)
-[  344.046864] ir_raw_event_set_idle: enter idle mode
-[  344.046869] ir_raw_event_store: sample: (13250us space)
-[  344.046883] ir_nec_decode: NEC decode started at state 0 (13250us
-space)
-[  344.046888] ir_nec_decode: NEC decode failed at state 0 (13250us
-space)
-[  344.134878] ir_raw_event_set_idle: leave idle mode
-[  344.142884] ir_raw_event_store: sample: (09000us pulse)
-[  344.142892] ir_raw_event_store: sample: (02250us space)
-[  344.142897] ir_raw_event_store: sample: (00500us pulse)
-[  344.142914] ir_nec_decode: NEC decode started at state 0 (9000us
-pulse)
-[  344.142922] ir_nec_decode: NEC decode started at state 1 (2250us
-space)
-[  344.142927] ir_nec_decode: Discarding last key repeat: event after
-key up
-[  344.142932] ir_nec_decode: NEC decode started at state 1 (500us
-pulse)
-[  344.142937] ir_nec_decode: NEC decode failed at state 1 (500us pulse)
-[  344.158879] ir_raw_event_set_idle: enter idle mode
-[  344.158888] ir_raw_event_store: sample: (17250us space)
-[  344.158902] ir_nec_decode: NEC decode started at state 0 (17250us
-space)
-[  344.158907] ir_nec_decode: NEC decode failed at state 0 (17250us
-space)
-[  344.238887] ir_raw_event_set_idle: leave idle mode
-[  344.254895] ir_raw_event_store: sample: (09000us pulse)
-[  344.254902] ir_raw_event_store: sample: (02250us space)
-[  344.254907] ir_raw_event_store: sample: (00750us pulse)
-[  344.254923] ir_nec_decode: NEC decode started at state 0 (9000us
-pulse)
-[  344.254931] ir_nec_decode: NEC decode started at state 1 (2250us
-space)
-[  344.254936] ir_nec_decode: Discarding last key repeat: event after
-key up
-[  344.254942] ir_nec_decode: NEC decode started at state 1 (750us
-pulse)
-[  344.254947] ir_nec_decode: NEC decode failed at state 1 (750us pulse)
-[  344.262890] ir_raw_event_set_idle: enter idle mode
-[  344.262895] ir_raw_event_store: sample: (12750us space)
-[  344.262909] ir_nec_decode: NEC decode started at state 0 (12750us
-space)
-[  344.262914] ir_nec_decode: NEC decode failed at state 0 (12750us
-space)
-[  349.039421] ir_raw_event_set_idle: leave idle mode
-[  349.039430] ir_raw_event_store: sample: (00250us pulse)
-[  349.039448] ir_nec_decode: NEC decode started at state 0 (250us
-pulse)
-[  349.039454] ir_nec_decode: NEC decode failed at state 0 (250us pulse)
-[  349.047418] ir_raw_event_set_idle: enter idle mode
-[  349.047424] ir_raw_event_store: sample: (10750us space)
-[  349.047441] ir_nec_decode: NEC decode started at state 0 (10750us
-space)
-[  349.047447] ir_nec_decode: NEC decode failed at state 0 (10750us
-space)
-
-Heiko
+diff --git a/Documentation/video4linux/CARDLIST.tuner b/Documentation/video4linux/CARDLIST.tuner
+index 562d7fa..6323b7a 100644
+--- a/Documentation/video4linux/CARDLIST.tuner
++++ b/Documentation/video4linux/CARDLIST.tuner
+@@ -78,6 +78,7 @@ tuner=77 - TCL tuner MF02GIP-5N-E
+ tuner=78 - Philips FMD1216MEX MK3 Hybrid Tuner
+ tuner=79 - Philips PAL/SECAM multi (FM1216 MK5)
+ tuner=80 - Philips FQ1216LME MK3 PAL/SECAM w/active loopthrough
++tuner=81 - Xceive 4000 tuner
+ tuner=81 - Partsnic (Daewoo) PTI-5NF05
+ tuner=82 - Philips CU1216L
+ tuner=83 - NXP TDA18271
+diff --git a/drivers/media/common/tuners/Kconfig b/drivers/media/common/tuners/Kconfig
+index 22d3ca3..996302a 100644
+--- a/drivers/media/common/tuners/Kconfig
++++ b/drivers/media/common/tuners/Kconfig
+@@ -23,6 +23,7 @@ config MEDIA_TUNER
+ 	depends on VIDEO_MEDIA && I2C
+ 	select MEDIA_TUNER_XC2028 if !MEDIA_TUNER_CUSTOMISE
+ 	select MEDIA_TUNER_XC5000 if !MEDIA_TUNER_CUSTOMISE
++	select MEDIA_TUNER_XC4000 if !MEDIA_TUNER_CUSTOMISE
+ 	select MEDIA_TUNER_MT20XX if !MEDIA_TUNER_CUSTOMISE
+ 	select MEDIA_TUNER_TDA8290 if !MEDIA_TUNER_CUSTOMISE
+ 	select MEDIA_TUNER_TEA5761 if !MEDIA_TUNER_CUSTOMISE
+@@ -152,6 +153,15 @@ config MEDIA_TUNER_XC5000
+ 	  This device is only used inside a SiP called together with a
+ 	  demodulator for now.
+ 
++config MEDIA_TUNER_XC4000
++	tristate "Xceive XC4000 silicon tuner"
++	depends on VIDEO_MEDIA && I2C
++	default m if MEDIA_TUNER_CUSTOMISE
++	help
++	  A driver for the silicon tuner XC4000 from Xceive.
++	  This device is only used inside a SiP called together with a
++	  demodulator for now.
++
+ config MEDIA_TUNER_MXL5005S
+ 	tristate "MaxLinear MSL5005S silicon tuner"
+ 	depends on VIDEO_MEDIA && I2C
+diff --git a/drivers/media/common/tuners/Makefile b/drivers/media/common/tuners/Makefile
+index 2cb4f53..20d24fc 100644
+--- a/drivers/media/common/tuners/Makefile
++++ b/drivers/media/common/tuners/Makefile
+@@ -16,6 +16,7 @@ obj-$(CONFIG_MEDIA_TUNER_TDA9887) += tda9887.o
+ obj-$(CONFIG_MEDIA_TUNER_TDA827X) += tda827x.o
+ obj-$(CONFIG_MEDIA_TUNER_TDA18271) += tda18271.o
+ obj-$(CONFIG_MEDIA_TUNER_XC5000) += xc5000.o
++obj-$(CONFIG_MEDIA_TUNER_XC4000) += xc4000.o
+ obj-$(CONFIG_MEDIA_TUNER_MT2060) += mt2060.o
+ obj-$(CONFIG_MEDIA_TUNER_MT2266) += mt2266.o
+ obj-$(CONFIG_MEDIA_TUNER_QT1010) += qt1010.o
+diff --git a/drivers/media/common/tuners/tuner-types.c b/drivers/media/common/tuners/tuner-types.c
+index afba6dc..94a603a 100644
+--- a/drivers/media/common/tuners/tuner-types.c
++++ b/drivers/media/common/tuners/tuner-types.c
+@@ -1805,6 +1805,10 @@ struct tunertype tuners[] = {
+ 		.name   = "Xceive 5000 tuner",
+ 		/* see xc5000.c for details */
+ 	},
++	[TUNER_XC4000] = { /* Xceive 4000 */
++		.name   = "Xceive 4000 tuner",
++		/* see xc4000.c for details */
++	},
+ 	[TUNER_TCL_MF02GIP_5N] = { /* TCL tuner MF02GIP-5N-E */
+ 		.name   = "TCL tuner MF02GIP-5N-E",
+ 		.params = tuner_tcl_mf02gip_5n_params,
+diff --git a/drivers/media/common/tuners/xc4000.c b/drivers/media/common/tuners/xc4000.c
+new file mode 100644
+index 0000000..160ca26
+--- /dev/null
++++ b/drivers/media/common/tuners/xc4000.c
+@@ -0,0 +1,1731 @@
++/*
++ *  Driver for Xceive XC4000 "QAM/8VSB single chip tuner"
++ *
++ *  Copyright (c) 2007 Xceive Corporation
++ *  Copyright (c) 2007 Steven Toth <stoth@linuxtv.org>
++ *  Copyright (c) 2009 Devin Heitmueller <dheitmueller@kernellabs.com>
++ *  Copyright (c) 2009 Davide Ferri <d.ferri@zero11.it>
++ *
++ *  This program is free software; you can redistribute it and/or modify
++ *  it under the terms of the GNU General Public License as published by
++ *  the Free Software Foundation; either version 2 of the License, or
++ *  (at your option) any later version.
++ *
++ *  This program is distributed in the hope that it will be useful,
++ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
++ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ *
++ *  GNU General Public License for more details.
++ *
++ *  You should have received a copy of the GNU General Public License
++ *  along with this program; if not, write to the Free Software
++ *  Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
++ */
++
++#include <linux/module.h>
++#include <linux/moduleparam.h>
++#include <linux/videodev2.h>
++#include <linux/delay.h>
++#include <linux/dvb/frontend.h>
++#include <linux/i2c.h>
++#include <linux/mutex.h>
++#include <asm/unaligned.h>
++
++#include "dvb_frontend.h"
++
++#include "xc4000.h"
++#include "tuner-i2c.h"
++#include "tuner-xc2028-types.h"
++
++static int debug;
++module_param(debug, int, 0644);
++MODULE_PARM_DESC(debug, "\n\t\tDebugging level (0 to 2, default: 0 (off)).");
++
++static int no_poweroff;
++module_param(no_poweroff, int, 0644);
++MODULE_PARM_DESC(no_poweroff, "\n\t\t1: keep device energized and with tuner "
++	"ready all the times.\n"
++	"\t\tFaster, but consumes more power and keeps the device hotter.\n"
++	"\t\t2: powers device off when not used.\n"
++	"\t\t0 (default): use device-specific default mode.");
++
++#define XC4000_AUDIO_STD_B		 1
++#define XC4000_AUDIO_STD_A2		 2
++#define XC4000_AUDIO_STD_K3		 4
++#define XC4000_AUDIO_STD_L		 8
++#define XC4000_AUDIO_STD_INPUT1		16
++#define XC4000_AUDIO_STD_MONO		32
++
++static int audio_std;
++module_param(audio_std, int, 0644);
++MODULE_PARM_DESC(audio_std, "\n\t\tAudio standard. XC4000 audio decoder "
++	"explicitly needs to know\n"
++	"\t\twhat audio standard is needed for some video standards with\n"
++	"\t\taudio A2 or NICAM.\n"
++	"\t\tThe valid settings are a sum of:\n"
++	"\t\t 1: use NICAM/B or A2/B instead of NICAM/A or A2/A\n"
++	"\t\t 2: use A2 instead of NICAM or BTSC\n"
++	"\t\t 4: use SECAM/K3 instead of K1\n"
++	"\t\t 8: use PAL-D/K audio for SECAM-D/K\n"
++	"\t\t16: use FM radio input 1 instead of input 2\n"
++	"\t\t32: use mono audio (the lower three bits are ignored)");
++
++#define XC4000_DEFAULT_FIRMWARE "xc4000.fw"
++
++static char firmware_name[30];
++module_param_string(firmware_name, firmware_name, sizeof(firmware_name), 0);
++MODULE_PARM_DESC(firmware_name, "\n\t\tFirmware file name. Allows overriding "
++	"the default firmware\n"
++	"\t\tname.");
++
++static DEFINE_MUTEX(xc4000_list_mutex);
++static LIST_HEAD(hybrid_tuner_instance_list);
++
++#define dprintk(level, fmt, arg...) if (debug >= level) \
++	printk(KERN_INFO "%s: " fmt, "xc4000", ## arg)
++
++/* struct for storing firmware table */
++struct firmware_description {
++	unsigned int  type;
++	v4l2_std_id   id;
++	__u16         int_freq;
++	unsigned char *ptr;
++	unsigned int  size;
++};
++
++struct firmware_properties {
++	unsigned int	type;
++	v4l2_std_id	id;
++	v4l2_std_id	std_req;
++	__u16		int_freq;
++	unsigned int	scode_table;
++	int		scode_nr;
++};
++
++struct xc4000_priv {
++	struct tuner_i2c_props i2c_props;
++	struct list_head hybrid_tuner_instance_list;
++	struct firmware_description *firm;
++	int	firm_size;
++	__u16	firm_version;
++	u32	if_khz;
++	u32	freq_hz;
++	u32	bandwidth;
++	u8	video_standard;
++	u8	rf_mode;
++	u8	card_type;
++	u8	ignore_i2c_write_errors;
++ /*	struct xc2028_ctrl	ctrl; */
++	struct firmware_properties cur_fw;
++	__u16	hwmodel;
++	__u16	hwvers;
++	struct mutex	lock;
++};
++
++/* Misc Defines */
++#define MAX_TV_STANDARD			24
++#define XC_MAX_I2C_WRITE_LENGTH		64
++#define XC_POWERED_DOWN			0x80000000U
++
++/* Signal Types */
++#define XC_RF_MODE_AIR			0
++#define XC_RF_MODE_CABLE		1
++
++/* Result codes */
++#define XC_RESULT_SUCCESS		0
++#define XC_RESULT_RESET_FAILURE		1
++#define XC_RESULT_I2C_WRITE_FAILURE	2
++#define XC_RESULT_I2C_READ_FAILURE	3
++#define XC_RESULT_OUT_OF_RANGE		5
++
++/* Product id */
++#define XC_PRODUCT_ID_FW_NOT_LOADED	0x2000
++#define XC_PRODUCT_ID_XC4000		0x0FA0
++#define XC_PRODUCT_ID_XC4100		0x1004
++
++/* Registers (Write-only) */
++#define XREG_INIT         0x00
++#define XREG_VIDEO_MODE   0x01
++#define XREG_AUDIO_MODE   0x02
++#define XREG_RF_FREQ      0x03
++#define XREG_D_CODE       0x04
++#define XREG_DIRECTSITTING_MODE 0x05
++#define XREG_SEEK_MODE    0x06
++#define XREG_POWER_DOWN   0x08
++#define XREG_SIGNALSOURCE 0x0A
++#define XREG_SMOOTHEDCVBS 0x0E
++#define XREG_AMPLITUDE    0x10
++
++/* Registers (Read-only) */
++#define XREG_ADC_ENV      0x00
++#define XREG_QUALITY      0x01
++#define XREG_FRAME_LINES  0x02
++#define XREG_HSYNC_FREQ   0x03
++#define XREG_LOCK         0x04
++#define XREG_FREQ_ERROR   0x05
++#define XREG_SNR          0x06
++#define XREG_VERSION      0x07
++#define XREG_PRODUCT_ID   0x08
++
++/*
++   Basic firmware description. This will remain with
++   the driver for documentation purposes.
++
++   This represents an I2C firmware file encoded as a
++   string of unsigned char. Format is as follows:
++
++   char[0  ]=len0_MSB  -> len = len_MSB * 256 + len_LSB
++   char[1  ]=len0_LSB  -> length of first write transaction
++   char[2  ]=data0 -> first byte to be sent
++   char[3  ]=data1
++   char[4  ]=data2
++   char[   ]=...
++   char[M  ]=dataN  -> last byte to be sent
++   char[M+1]=len1_MSB  -> len = len_MSB * 256 + len_LSB
++   char[M+2]=len1_LSB  -> length of second write transaction
++   char[M+3]=data0
++   char[M+4]=data1
++   ...
++   etc.
++
++   The [len] value should be interpreted as follows:
++
++   len= len_MSB _ len_LSB
++   len=1111_1111_1111_1111   : End of I2C_SEQUENCE
++   len=0000_0000_0000_0000   : Reset command: Do hardware reset
++   len=0NNN_NNNN_NNNN_NNNN   : Normal transaction: number of bytes = {1:32767)
++   len=1WWW_WWWW_WWWW_WWWW   : Wait command: wait for {1:32767} ms
++
++   For the RESET and WAIT commands, the two following bytes will contain
++   immediately the length of the following transaction.
++*/
++
++struct XC_TV_STANDARD {
++	const char  *Name;
++	u16	    AudioMode;
++	u16	    VideoMode;
++	u16	    int_freq;
++};
++
++/* Tuner standards */
++#define XC4000_MN_NTSC_PAL_BTSC		0
++#define XC4000_MN_NTSC_PAL_A2		1
++#define XC4000_MN_NTSC_PAL_EIAJ		2
++#define XC4000_MN_NTSC_PAL_Mono		3
++#define XC4000_BG_PAL_A2		4
++#define XC4000_BG_PAL_NICAM		5
++#define XC4000_BG_PAL_MONO		6
++#define XC4000_I_PAL_NICAM		7
++#define XC4000_I_PAL_NICAM_MONO		8
++#define XC4000_DK_PAL_A2		9
++#define XC4000_DK_PAL_NICAM		10
++#define XC4000_DK_PAL_MONO		11
++#define XC4000_DK_SECAM_A2DK1		12
++#define XC4000_DK_SECAM_A2LDK3		13
++#define XC4000_DK_SECAM_A2MONO		14
++#define XC4000_DK_SECAM_NICAM		15
++#define XC4000_L_SECAM_NICAM		16
++#define XC4000_LC_SECAM_NICAM		17
++#define XC4000_DTV6			18
++#define XC4000_DTV8			19
++#define XC4000_DTV7_8			20
++#define XC4000_DTV7			21
++#define XC4000_FM_Radio_INPUT2		22
++#define XC4000_FM_Radio_INPUT1		23
++
++static struct XC_TV_STANDARD XC4000_Standard[MAX_TV_STANDARD] = {
++	{"M/N-NTSC/PAL-BTSC",	0x0000, 0x80A0, 4500},
++	{"M/N-NTSC/PAL-A2",	0x0000, 0x80A0, 4600},
++	{"M/N-NTSC/PAL-EIAJ",	0x0040, 0x80A0, 4500},
++	{"M/N-NTSC/PAL-Mono",	0x0078, 0x80A0, 4500},
++	{"B/G-PAL-A2",		0x0000, 0x8159, 5640},
++	{"B/G-PAL-NICAM",	0x0004, 0x8159, 5740},
++	{"B/G-PAL-MONO",	0x0078, 0x8159, 5500},
++	{"I-PAL-NICAM",		0x0080, 0x8049, 6240},
++	{"I-PAL-NICAM-MONO",	0x0078, 0x8049, 6000},
++	{"D/K-PAL-A2",		0x0000, 0x8049, 6380},
++	{"D/K-PAL-NICAM",	0x0080, 0x8049, 6200},
++	{"D/K-PAL-MONO",	0x0078, 0x8049, 6500},
++	{"D/K-SECAM-A2 DK1",	0x0000, 0x8049, 6340},
++	{"D/K-SECAM-A2 L/DK3",	0x0000, 0x8049, 6000},
++	{"D/K-SECAM-A2 MONO",	0x0078, 0x8049, 6500},
++	{"D/K-SECAM-NICAM",	0x0080, 0x8049, 6200},
++	{"L-SECAM-NICAM",	0x8080, 0x0009, 6200},
++	{"L'-SECAM-NICAM",	0x8080, 0x4009, 6200},
++	{"DTV6",		0x00C0, 0x8002,    0},
++	{"DTV8",		0x00C0, 0x800B,    0},
++	{"DTV7/8",		0x00C0, 0x801B,    0},
++	{"DTV7",		0x00C0, 0x8007,    0},
++	{"FM Radio-INPUT2",	0x0008, 0x9800,10700},
++	{"FM Radio-INPUT1",	0x0008, 0x9000,10700}
++};
++
++static int xc4000_readreg(struct xc4000_priv *priv, u16 reg, u16 *val);
++static int xc4000_TunerReset(struct dvb_frontend *fe);
++static void xc_debug_dump(struct xc4000_priv *priv);
++
++static int xc_send_i2c_data(struct xc4000_priv *priv, u8 *buf, int len)
++{
++	struct i2c_msg msg = { .addr = priv->i2c_props.addr,
++			       .flags = 0, .buf = buf, .len = len };
++	if (i2c_transfer(priv->i2c_props.adap, &msg, 1) != 1) {
++		if (priv->ignore_i2c_write_errors == 0) {
++			printk(KERN_ERR "xc4000: I2C write failed (len=%i)\n",
++			       len);
++			if (len == 4) {
++				printk("bytes %02x %02x %02x %02x\n", buf[0],
++				       buf[1], buf[2], buf[3]);
++			}
++			return XC_RESULT_I2C_WRITE_FAILURE;
++		}
++	}
++	return XC_RESULT_SUCCESS;
++}
++
++static void xc_wait(int wait_ms)
++{
++	msleep(wait_ms);
++}
++
++static int xc4000_TunerReset(struct dvb_frontend *fe)
++{
++	struct xc4000_priv *priv = fe->tuner_priv;
++	int ret;
++
++	dprintk(1, "%s()\n", __func__);
++
++	if (fe->callback) {
++		ret = fe->callback(((fe->dvb) && (fe->dvb->priv)) ?
++					   fe->dvb->priv :
++					   priv->i2c_props.adap->algo_data,
++					   DVB_FRONTEND_COMPONENT_TUNER,
++					   XC4000_TUNER_RESET, 0);
++		if (ret) {
++			printk(KERN_ERR "xc4000: reset failed\n");
++			return XC_RESULT_RESET_FAILURE;
++		}
++	} else {
++		printk(KERN_ERR "xc4000: no tuner reset callback function, fatal\n");
++		return XC_RESULT_RESET_FAILURE;
++	}
++	return XC_RESULT_SUCCESS;
++}
++
++static int xc_write_reg(struct xc4000_priv *priv, u16 regAddr, u16 i2cData)
++{
++	u8 buf[4];
++	int result;
++
++	buf[0] = (regAddr >> 8) & 0xFF;
++	buf[1] = regAddr & 0xFF;
++	buf[2] = (i2cData >> 8) & 0xFF;
++	buf[3] = i2cData & 0xFF;
++	result = xc_send_i2c_data(priv, buf, 4);
++
++	return result;
++}
++
++static int xc_load_i2c_sequence(struct dvb_frontend *fe, const u8 *i2c_sequence)
++{
++	struct xc4000_priv *priv = fe->tuner_priv;
++
++	int i, nbytes_to_send, result;
++	unsigned int len, pos, index;
++	u8 buf[XC_MAX_I2C_WRITE_LENGTH];
++
++	index = 0;
++	while ((i2c_sequence[index] != 0xFF) ||
++		(i2c_sequence[index + 1] != 0xFF)) {
++		len = i2c_sequence[index] * 256 + i2c_sequence[index+1];
++		if (len == 0x0000) {
++			/* RESET command */
++			index += 2;
++#if 0			/* not needed, as already called by check_firmware() */
++			result = xc4000_TunerReset(fe);
++			if (result != XC_RESULT_SUCCESS)
++				return result;
++#endif
++		} else if (len & 0x8000) {
++			/* WAIT command */
++			xc_wait(len & 0x7FFF);
++			index += 2;
++		} else {
++			/* Send i2c data whilst ensuring individual transactions
++			 * do not exceed XC_MAX_I2C_WRITE_LENGTH bytes.
++			 */
++			index += 2;
++			buf[0] = i2c_sequence[index];
++			buf[1] = i2c_sequence[index + 1];
++			pos = 2;
++			while (pos < len) {
++				if ((len - pos) > XC_MAX_I2C_WRITE_LENGTH - 2)
++					nbytes_to_send =
++						XC_MAX_I2C_WRITE_LENGTH;
++				else
++					nbytes_to_send = (len - pos + 2);
++				for (i = 2; i < nbytes_to_send; i++) {
++					buf[i] = i2c_sequence[index + pos +
++						i - 2];
++				}
++				result = xc_send_i2c_data(priv, buf,
++					nbytes_to_send);
++
++				if (result != XC_RESULT_SUCCESS)
++					return result;
++
++				pos += nbytes_to_send - 2;
++			}
++			index += len;
++		}
++	}
++	return XC_RESULT_SUCCESS;
++}
++
++static int xc_SetTVStandard(struct xc4000_priv *priv,
++	u16 VideoMode, u16 AudioMode)
++{
++	int ret;
++	dprintk(1, "%s(0x%04x,0x%04x)\n", __func__, VideoMode, AudioMode);
++	dprintk(1, "%s() Standard = %s\n",
++		__func__,
++		XC4000_Standard[priv->video_standard].Name);
++
++	/* Don't complain when the request fails because of i2c stretching */
++	priv->ignore_i2c_write_errors = 1;
++
++	ret = xc_write_reg(priv, XREG_VIDEO_MODE, VideoMode);
++	if (ret == XC_RESULT_SUCCESS)
++		ret = xc_write_reg(priv, XREG_AUDIO_MODE, AudioMode);
++
++	priv->ignore_i2c_write_errors = 0;
++
++	return ret;
++}
++
++static int xc_SetSignalSource(struct xc4000_priv *priv, u16 rf_mode)
++{
++	dprintk(1, "%s(%d) Source = %s\n", __func__, rf_mode,
++		rf_mode == XC_RF_MODE_AIR ? "ANTENNA" : "CABLE");
++
++	if ((rf_mode != XC_RF_MODE_AIR) && (rf_mode != XC_RF_MODE_CABLE)) {
++		rf_mode = XC_RF_MODE_CABLE;
++		printk(KERN_ERR
++			"%s(), Invalid mode, defaulting to CABLE",
++			__func__);
++	}
++	return xc_write_reg(priv, XREG_SIGNALSOURCE, rf_mode);
++}
++
++static const struct dvb_tuner_ops xc4000_tuner_ops;
++
++static int xc_set_RF_frequency(struct xc4000_priv *priv, u32 freq_hz)
++{
++	u16 freq_code;
++
++	dprintk(1, "%s(%u)\n", __func__, freq_hz);
++
++	if ((freq_hz > xc4000_tuner_ops.info.frequency_max) ||
++		(freq_hz < xc4000_tuner_ops.info.frequency_min))
++		return XC_RESULT_OUT_OF_RANGE;
++
++	freq_code = (u16)(freq_hz / 15625);
++
++	/* WAS: Starting in firmware version 1.1.44, Xceive recommends using the
++	   FINERFREQ for all normal tuning (the doc indicates reg 0x03 should
++	   only be used for fast scanning for channel lock) */
++	return xc_write_reg(priv, XREG_RF_FREQ, freq_code); /* WAS: XREG_FINERFREQ */
++}
++
++static int xc_get_ADC_Envelope(struct xc4000_priv *priv, u16 *adc_envelope)
++{
++	return xc4000_readreg(priv, XREG_ADC_ENV, adc_envelope);
++}
++
++static int xc_get_frequency_error(struct xc4000_priv *priv, u32 *freq_error_hz)
++{
++	int result;
++	u16 regData;
++	u32 tmp;
++
++	result = xc4000_readreg(priv, XREG_FREQ_ERROR, &regData);
++	if (result != XC_RESULT_SUCCESS)
++		return result;
++
++	tmp = (u32)regData & 0xFFFFU;
++	tmp = (tmp < 0x8000U ? tmp : 0x10000U - tmp);
++	(*freq_error_hz) = tmp * 15625;
++	return result;
++}
++
++static int xc_get_lock_status(struct xc4000_priv *priv, u16 *lock_status)
++{
++	return xc4000_readreg(priv, XREG_LOCK, lock_status);
++}
++
++static int xc_get_version(struct xc4000_priv *priv,
++	u8 *hw_majorversion, u8 *hw_minorversion,
++	u8 *fw_majorversion, u8 *fw_minorversion)
++{
++	u16 data;
++	int result;
++
++	result = xc4000_readreg(priv, XREG_VERSION, &data);
++	if (result != XC_RESULT_SUCCESS)
++		return result;
++
++	(*hw_majorversion) = (data >> 12) & 0x0F;
++	(*hw_minorversion) = (data >>  8) & 0x0F;
++	(*fw_majorversion) = (data >>  4) & 0x0F;
++	(*fw_minorversion) = data & 0x0F;
++
++	return 0;
++}
++
++static int xc_get_hsync_freq(struct xc4000_priv *priv, u32 *hsync_freq_hz)
++{
++	u16 regData;
++	int result;
++
++	result = xc4000_readreg(priv, XREG_HSYNC_FREQ, &regData);
++	if (result != XC_RESULT_SUCCESS)
++		return result;
++
++	(*hsync_freq_hz) = ((regData & 0x0fff) * 763)/100;
++	return result;
++}
++
++static int xc_get_frame_lines(struct xc4000_priv *priv, u16 *frame_lines)
++{
++	return xc4000_readreg(priv, XREG_FRAME_LINES, frame_lines);
++}
++
++static int xc_get_quality(struct xc4000_priv *priv, u16 *quality)
++{
++	return xc4000_readreg(priv, XREG_QUALITY, quality);
++}
++
++static u16 WaitForLock(struct xc4000_priv *priv)
++{
++	u16 lockState = 0;
++	int watchDogCount = 40;
++
++	while ((lockState == 0) && (watchDogCount > 0)) {
++		xc_get_lock_status(priv, &lockState);
++		if (lockState != 1) {
++			xc_wait(5);
++			watchDogCount--;
++		}
++	}
++	return lockState;
++}
++
++static int xc_tune_channel(struct xc4000_priv *priv, u32 freq_hz)
++{
++	int	found = 1;
++	int	result;
++
++	dprintk(1, "%s(%u)\n", __func__, freq_hz);
++
++	/* Don't complain when the request fails because of i2c stretching */
++	priv->ignore_i2c_write_errors = 1;
++	result = xc_set_RF_frequency(priv, freq_hz);
++	priv->ignore_i2c_write_errors = 0;
++
++	if (result != XC_RESULT_SUCCESS)
++		return 0;
++
++	/* wait for lock only in analog TV mode */
++	if ((priv->cur_fw.type & (FM | DTV6 | DTV7 | DTV78 | DTV8)) == 0) {
++		if (WaitForLock(priv) != 1)
++			found = 0;
++	}
++
++	/* Wait for stats to stabilize.
++	 * Frame Lines needs two frame times after initial lock
++	 * before it is valid.
++	 */
++	xc_wait(debug ? 100 : 10);
++
++	if (debug)
++		xc_debug_dump(priv);
++
++	return found;
++}
++
++static int xc4000_readreg(struct xc4000_priv *priv, u16 reg, u16 *val)
++{
++	u8 buf[2] = { reg >> 8, reg & 0xff };
++	u8 bval[2] = { 0, 0 };
++	struct i2c_msg msg[2] = {
++		{ .addr = priv->i2c_props.addr,
++			.flags = 0, .buf = &buf[0], .len = 2 },
++		{ .addr = priv->i2c_props.addr,
++			.flags = I2C_M_RD, .buf = &bval[0], .len = 2 },
++	};
++
++	if (i2c_transfer(priv->i2c_props.adap, msg, 2) != 2) {
++		printk(KERN_WARNING "xc4000: I2C read failed\n");
++		return -EREMOTEIO;
++	}
++
++	*val = (bval[0] << 8) | bval[1];
++	return XC_RESULT_SUCCESS;
++}
++
++#define dump_firm_type(t)	dump_firm_type_and_int_freq(t, 0)
++static void dump_firm_type_and_int_freq(unsigned int type, u16 int_freq)
++{
++	 if (type & BASE)
++		printk("BASE ");
++	 if (type & INIT1)
++		printk("INIT1 ");
++	 if (type & F8MHZ)
++		printk("F8MHZ ");
++	 if (type & MTS)
++		printk("MTS ");
++	 if (type & D2620)
++		printk("D2620 ");
++	 if (type & D2633)
++		printk("D2633 ");
++	 if (type & DTV6)
++		printk("DTV6 ");
++	 if (type & QAM)
++		printk("QAM ");
++	 if (type & DTV7)
++		printk("DTV7 ");
++	 if (type & DTV78)
++		printk("DTV78 ");
++	 if (type & DTV8)
++		printk("DTV8 ");
++	 if (type & FM)
++		printk("FM ");
++	 if (type & INPUT1)
++		printk("INPUT1 ");
++	 if (type & LCD)
++		printk("LCD ");
++	 if (type & NOGD)
++		printk("NOGD ");
++	 if (type & MONO)
++		printk("MONO ");
++	 if (type & ATSC)
++		printk("ATSC ");
++	 if (type & IF)
++		printk("IF ");
++	 if (type & LG60)
++		printk("LG60 ");
++	 if (type & ATI638)
++		printk("ATI638 ");
++	 if (type & OREN538)
++		printk("OREN538 ");
++	 if (type & OREN36)
++		printk("OREN36 ");
++	 if (type & TOYOTA388)
++		printk("TOYOTA388 ");
++	 if (type & TOYOTA794)
++		printk("TOYOTA794 ");
++	 if (type & DIBCOM52)
++		printk("DIBCOM52 ");
++	 if (type & ZARLINK456)
++		printk("ZARLINK456 ");
++	 if (type & CHINA)
++		printk("CHINA ");
++	 if (type & F6MHZ)
++		printk("F6MHZ ");
++	 if (type & INPUT2)
++		printk("INPUT2 ");
++	 if (type & SCODE)
++		printk("SCODE ");
++	 if (type & HAS_IF)
++		printk("HAS_IF_%d ", int_freq);
++}
++
++static int seek_firmware(struct dvb_frontend *fe, unsigned int type,
++			 v4l2_std_id *id)
++{
++	struct xc4000_priv *priv = fe->tuner_priv;
++	int		i, best_i = -1;
++	unsigned int	best_nr_diffs = 255U;
++
++	if (!priv->firm) {
++		printk("Error! firmware not loaded\n");
++		return -EINVAL;
++	}
++
++	if (((type & ~SCODE) == 0) && (*id == 0))
++		*id = V4L2_STD_PAL;
++
++	/* Seek for generic video standard match */
++	for (i = 0; i < priv->firm_size; i++) {
++		v4l2_std_id	id_diff_mask =
++			(priv->firm[i].id ^ (*id)) & (*id);
++		unsigned int	type_diff_mask =
++			(priv->firm[i].type ^ type)
++			& (BASE_TYPES | DTV_TYPES | LCD | NOGD | MONO | SCODE);
++		unsigned int	nr_diffs;
++
++		if (type_diff_mask
++		    & (BASE | INIT1 | FM | DTV6 | DTV7 | DTV78 | DTV8 | SCODE))
++			continue;
++
++		nr_diffs = hweight64(id_diff_mask) + hweight32(type_diff_mask);
++		if (!nr_diffs)	/* Supports all the requested standards */
++			goto found;
++
++		if (nr_diffs < best_nr_diffs) {
++			best_nr_diffs = nr_diffs;
++			best_i = i;
++		}
++	}
++
++	/* FIXME: Would make sense to seek for type "hint" match ? */
++	if (best_i < 0) {
++		i = -ENOENT;
++		goto ret;
++	}
++
++	if (best_nr_diffs > 0U) {
++		printk("Selecting best matching firmware (%u bits differ) for "
++		       "type=", best_nr_diffs);
++		printk("(%x), id %016llx:\n", type, (unsigned long long)*id);
++		i = best_i;
++	}
++
++found:
++	*id = priv->firm[i].id;
++
++ret:
++	if (debug) {
++		printk("%s firmware for type=", (i < 0) ? "Can't find" :
++		       "Found");
++		dump_firm_type(type);
++		printk("(%x), id %016llx.\n", type, (unsigned long long)*id);
++	}
++	return i;
++}
++
++static int load_firmware(struct dvb_frontend *fe, unsigned int type,
++			 v4l2_std_id *id)
++{
++	struct xc4000_priv *priv = fe->tuner_priv;
++	int                pos, rc;
++	unsigned char      *p;
++
++	pos = seek_firmware(fe, type, id);
++	if (pos < 0)
++		return pos;
++
++	p = priv->firm[pos].ptr;
++
++	/* Don't complain when the request fails because of i2c stretching */
++	priv->ignore_i2c_write_errors = 1;
++
++	rc = xc_load_i2c_sequence(fe, p);
++
++	priv->ignore_i2c_write_errors = 0;
++
++	return rc;
++}
++
++static int xc4000_fwupload(struct dvb_frontend *fe)
++{
++	struct xc4000_priv *priv = fe->tuner_priv;
++	const struct firmware *fw   = NULL;
++	const unsigned char   *p, *endp;
++	int                   rc = 0;
++	int		      n, n_array;
++	char		      name[33];
++	const char	      *fname;
++
++	if (firmware_name[0] != '\0')
++		fname = firmware_name;
++	else
++		fname = XC4000_DEFAULT_FIRMWARE;
++
++	printk("Reading firmware %s\n",  fname);
++	rc = request_firmware(&fw, fname, priv->i2c_props.adap->dev.parent);
++	if (rc < 0) {
++		if (rc == -ENOENT)
++			printk("Error: firmware %s not found.\n",
++				   fname);
++		else
++			printk("Error %d while requesting firmware %s \n",
++				   rc, fname);
++
++		return rc;
++	}
++	p = fw->data;
++	endp = p + fw->size;
++
++	if (fw->size < sizeof(name) - 1 + 2 + 2) {
++		printk("Error: firmware file %s has invalid size!\n",
++		       fname);
++		goto corrupt;
++	}
++
++	memcpy(name, p, sizeof(name) - 1);
++	name[sizeof(name) - 1] = 0;
++	p += sizeof(name) - 1;
++
++	priv->firm_version = get_unaligned_le16(p);
++	p += 2;
++
++	n_array = get_unaligned_le16(p);
++	p += 2;
++
++	dprintk(1, "Loading %d firmware images from %s, type: %s, ver %d.%d\n",
++		n_array, fname, name,
++		priv->firm_version >> 8, priv->firm_version & 0xff);
++
++	priv->firm = kzalloc(sizeof(*priv->firm) * n_array, GFP_KERNEL);
++	if (priv->firm == NULL) {
++		printk("Not enough memory to load firmware file.\n");
++		rc = -ENOMEM;
++		goto err;
++	}
++	priv->firm_size = n_array;
++
++	n = -1;
++	while (p < endp) {
++		__u32 type, size;
++		v4l2_std_id id;
++		__u16 int_freq = 0;
++
++		n++;
++		if (n >= n_array) {
++			printk("More firmware images in file than "
++			       "were expected!\n");
++			goto corrupt;
++		}
++
++		/* Checks if there's enough bytes to read */
++		if (endp - p < sizeof(type) + sizeof(id) + sizeof(size))
++			goto header;
++
++		type = get_unaligned_le32(p);
++		p += sizeof(type);
++
++		id = get_unaligned_le64(p);
++		p += sizeof(id);
++
++		if (type & HAS_IF) {
++			int_freq = get_unaligned_le16(p);
++			p += sizeof(int_freq);
++			if (endp - p < sizeof(size))
++				goto header;
++		}
++
++		size = get_unaligned_le32(p);
++		p += sizeof(size);
++
++		if (!size || size > endp - p) {
++			printk("Firmware type (%x), id %llx is corrupted "
++			       "(size=%d, expected %d)\n",
++			       type, (unsigned long long)id,
++			       (unsigned)(endp - p), size);
++			goto corrupt;
++		}
++
++		priv->firm[n].ptr = kzalloc(size, GFP_KERNEL);
++		if (priv->firm[n].ptr == NULL) {
++			printk("Not enough memory to load firmware file.\n");
++			rc = -ENOMEM;
++			goto err;
++		}
++
++		if (debug) {
++			printk("Reading firmware type ");
++			dump_firm_type_and_int_freq(type, int_freq);
++			printk("(%x), id %llx, size=%d.\n",
++			       type, (unsigned long long)id, size);
++		}
++
++		memcpy(priv->firm[n].ptr, p, size);
++		priv->firm[n].type = type;
++		priv->firm[n].id   = id;
++		priv->firm[n].size = size;
++		priv->firm[n].int_freq = int_freq;
++
++		p += size;
++	}
++
++	if (n + 1 != priv->firm_size) {
++		printk("Firmware file is incomplete!\n");
++		goto corrupt;
++	}
++
++	goto done;
++
++header:
++	printk("Firmware header is incomplete!\n");
++corrupt:
++	rc = -EINVAL;
++	printk("Error: firmware file is corrupted!\n");
++
++err:
++	printk("Releasing partially loaded firmware file.\n");
++
++done:
++	release_firmware(fw);
++	if (rc == 0)
++		dprintk(1, "Firmware files loaded.\n");
++
++	return rc;
++}
++
++static int load_scode(struct dvb_frontend *fe, unsigned int type,
++			 v4l2_std_id *id, __u16 int_freq, int scode)
++{
++	struct xc4000_priv *priv = fe->tuner_priv;
++	int		pos, rc;
++	unsigned char	*p;
++	u8		scode_buf[13];
++	u8		indirect_mode[5];
++
++	dprintk(1, "%s called int_freq=%d\n", __func__, int_freq);
++
++	if (!int_freq) {
++		pos = seek_firmware(fe, type, id);
++		if (pos < 0)
++			return pos;
++	} else {
++		for (pos = 0; pos < priv->firm_size; pos++) {
++			if ((priv->firm[pos].int_freq == int_freq) &&
++			    (priv->firm[pos].type & HAS_IF))
++				break;
++		}
++		if (pos == priv->firm_size)
++			return -ENOENT;
++	}
++
++	p = priv->firm[pos].ptr;
++
++	if (priv->firm[pos].size != 12 * 16 || scode >= 16)
++		return -EINVAL;
++	p += 12 * scode;
++
++	tuner_info("Loading SCODE for type=");
++	dump_firm_type_and_int_freq(priv->firm[pos].type,
++				    priv->firm[pos].int_freq);
++	printk("(%x), id %016llx.\n", priv->firm[pos].type,
++	       (unsigned long long)*id);
++
++	scode_buf[0] = 0x00;
++	memcpy(&scode_buf[1], p, 12);
++
++	/* Enter direct-mode */
++	rc = xc_write_reg(priv, XREG_DIRECTSITTING_MODE, 0);
++	if (rc < 0) {
++		printk("failed to put device into direct mode!\n");
++		return -EIO;
++	}
++
++	rc = xc_send_i2c_data(priv, scode_buf, 13);
++	if (rc != XC_RESULT_SUCCESS) {
++		/* Even if the send failed, make sure we set back to indirect
++		   mode */
++		printk("Failed to set scode %d\n", rc);
++	}
++
++	/* Switch back to indirect-mode */
++	memset(indirect_mode, 0, sizeof(indirect_mode));
++	indirect_mode[4] = 0x88;
++	xc_send_i2c_data(priv, indirect_mode, sizeof(indirect_mode));
++	msleep(10);
++
++	return 0;
++}
++
++static int check_firmware(struct dvb_frontend *fe, unsigned int type,
++			  v4l2_std_id std, __u16 int_freq)
++{
++	struct xc4000_priv         *priv = fe->tuner_priv;
++	struct firmware_properties new_fw;
++	int			   rc = 0, is_retry = 0;
++	u16			   version = 0, hwmodel;
++	v4l2_std_id		   std0;
++	u8			   hw_major, hw_minor, fw_major, fw_minor;
++
++	dprintk(1, "%s called\n", __func__);
++
++	if (!priv->firm) {
++		rc = xc4000_fwupload(fe);
++		if (rc < 0)
++			return rc;
++	}
++
++#ifdef DJH_DEBUG
++	if (priv->ctrl.mts && !(type & FM))
++		type |= MTS;
++#endif
++
++retry:
++	new_fw.type = type;
++	new_fw.id = std;
++	new_fw.std_req = std;
++	new_fw.scode_table = SCODE /* | priv->ctrl.scode_table */;
++	new_fw.scode_nr = 0;
++	new_fw.int_freq = int_freq;
++
++	dprintk(1, "checking firmware, user requested type=");
++	if (debug) {
++		dump_firm_type(new_fw.type);
++		printk("(%x), id %016llx, ", new_fw.type,
++		       (unsigned long long)new_fw.std_req);
++		if (!int_freq) {
++			printk("scode_tbl ");
++#ifdef DJH_DEBUG
++			dump_firm_type(priv->ctrl.scode_table);
++			printk("(%x), ", priv->ctrl.scode_table);
++#endif
++		} else
++			printk("int_freq %d, ", new_fw.int_freq);
++		printk("scode_nr %d\n", new_fw.scode_nr);
++	}
++
++	/* No need to reload base firmware if it matches */
++	if (priv->cur_fw.type & BASE) {
++		dprintk(1, "BASE firmware not changed.\n");
++		goto skip_base;
++	}
++
++	/* Updating BASE - forget about all currently loaded firmware */
++	memset(&priv->cur_fw, 0, sizeof(priv->cur_fw));
++
++	/* Reset is needed before loading firmware */
++	rc = xc4000_TunerReset(fe);
++	if (rc < 0)
++		goto fail;
++
++	/* BASE firmwares are all std0 */
++	std0 = 0;
++	rc = load_firmware(fe, BASE, &std0);
++	if (rc < 0) {
++		printk("Error %d while loading base firmware\n", rc);
++		goto fail;
++	}
++
++	/* Load INIT1, if needed */
++	dprintk(1, "Load init1 firmware, if exists\n");
++
++	rc = load_firmware(fe, BASE | INIT1, &std0);
++	if (rc == -ENOENT)
++		rc = load_firmware(fe, BASE | INIT1, &std0);
++	if (rc < 0 && rc != -ENOENT) {
++		tuner_err("Error %d while loading init1 firmware\n",
++			  rc);
++		goto fail;
++	}
++
++skip_base:
++	/*
++	 * No need to reload standard specific firmware if base firmware
++	 * was not reloaded and requested video standards have not changed.
++	 */
++	if (priv->cur_fw.type == (BASE | new_fw.type) &&
++	    priv->cur_fw.std_req == std) {
++		dprintk(1, "Std-specific firmware already loaded.\n");
++		goto skip_std_specific;
++	}
++
++	/* Reloading std-specific firmware forces a SCODE update */
++	priv->cur_fw.scode_table = 0;
++
++	/* Load the standard firmware */
++	rc = load_firmware(fe, new_fw.type, &new_fw.id);
++
++	if (rc < 0)
++		goto fail;
++
++skip_std_specific:
++	if (priv->cur_fw.scode_table == new_fw.scode_table &&
++	    priv->cur_fw.scode_nr == new_fw.scode_nr) {
++		dprintk(1, "SCODE firmware already loaded.\n");
++		goto check_device;
++	}
++
++	/* Load SCODE firmware, if exists */
++	rc = load_scode(fe, new_fw.type | new_fw.scode_table, &new_fw.id,
++			new_fw.int_freq, new_fw.scode_nr);
++	if (rc != XC_RESULT_SUCCESS)
++		dprintk(1, "load scode failed %d\n", rc);
++
++check_device:
++	rc = xc4000_readreg(priv, XREG_PRODUCT_ID, &hwmodel);
++
++	if (xc_get_version(priv, &hw_major, &hw_minor, &fw_major,
++			   &fw_minor) != XC_RESULT_SUCCESS) {
++		printk("Unable to read tuner registers.\n");
++		goto fail;
++	}
++
++	dprintk(1, "Device is Xceive %d version %d.%d, "
++		"firmware version %d.%d\n",
++		hwmodel, hw_major, hw_minor, fw_major, fw_minor);
++
++	/* Check firmware version against what we downloaded. */
++#ifdef DJH_DEBUG
++	if (priv->firm_version != ((version & 0xf0) << 4 | (version & 0x0f))) {
++		printk("Incorrect readback of firmware version %x.\n",
++		       (version & 0xff));
++		goto fail;
++	}
++#endif
++
++	/* Check that the tuner hardware model remains consistent over time. */
++	if (priv->hwmodel == 0 &&
++	    (hwmodel == XC_PRODUCT_ID_XC4000 ||
++	     hwmodel == XC_PRODUCT_ID_XC4100)) {
++		priv->hwmodel = hwmodel;
++		priv->hwvers  = version & 0xff00;
++	} else if (priv->hwmodel == 0 || priv->hwmodel != hwmodel ||
++		   priv->hwvers != (version & 0xff00)) {
++		printk("Read invalid device hardware information - tuner "
++		       "hung?\n");
++		goto fail;
++	}
++
++	memcpy(&priv->cur_fw, &new_fw, sizeof(priv->cur_fw));
++
++	/*
++	 * By setting BASE in cur_fw.type only after successfully loading all
++	 * firmwares, we can:
++	 * 1. Identify that BASE firmware with type=0 has been loaded;
++	 * 2. Tell whether BASE firmware was just changed the next time through.
++	 */
++	priv->cur_fw.type |= BASE;
++
++	return 0;
++
++fail:
++	memset(&priv->cur_fw, 0, sizeof(priv->cur_fw));
++	if (!is_retry) {
++		msleep(50);
++		is_retry = 1;
++		dprintk(1, "Retrying firmware load\n");
++		goto retry;
++	}
++
++	if (rc == -ENOENT)
++		rc = -EINVAL;
++	return rc;
++}
++
++static void xc_debug_dump(struct xc4000_priv *priv)
++{
++	u16	adc_envelope;
++	u32	freq_error_hz = 0;
++	u16	lock_status;
++	u32	hsync_freq_hz = 0;
++	u16	frame_lines;
++	u16	quality;
++	u8	hw_majorversion = 0, hw_minorversion = 0;
++	u8	fw_majorversion = 0, fw_minorversion = 0;
++
++	xc_get_ADC_Envelope(priv, &adc_envelope);
++	dprintk(1, "*** ADC envelope (0-1023) = %d\n", adc_envelope);
++
++	xc_get_frequency_error(priv, &freq_error_hz);
++	dprintk(1, "*** Frequency error = %d Hz\n", freq_error_hz);
++
++	xc_get_lock_status(priv, &lock_status);
++	dprintk(1, "*** Lock status (0-Wait, 1-Locked, 2-No-signal) = %d\n",
++		lock_status);
++
++	xc_get_version(priv, &hw_majorversion, &hw_minorversion,
++		       &fw_majorversion, &fw_minorversion);
++	dprintk(1, "*** HW: V%02x.%02x, FW: V%02x.%02x\n",
++		hw_majorversion, hw_minorversion,
++		fw_majorversion, fw_minorversion);
++
++	if (priv->video_standard < XC4000_DTV6) {
++		xc_get_hsync_freq(priv, &hsync_freq_hz);
++		dprintk(1, "*** Horizontal sync frequency = %d Hz\n",
++			hsync_freq_hz);
++
++		xc_get_frame_lines(priv, &frame_lines);
++		dprintk(1, "*** Frame lines = %d\n", frame_lines);
++	}
++
++	xc_get_quality(priv, &quality);
++	dprintk(1, "*** Quality (0:<8dB, 7:>56dB) = %d\n", quality);
++}
++
++static int xc4000_set_params(struct dvb_frontend *fe,
++	struct dvb_frontend_parameters *params)
++{
++	struct xc4000_priv *priv = fe->tuner_priv;
++	unsigned int type;
++	int	ret = -EREMOTEIO;
++
++	dprintk(1, "%s() frequency=%d (Hz)\n", __func__, params->frequency);
++
++	mutex_lock(&priv->lock);
++
++	if (fe->ops.info.type == FE_ATSC) {
++		dprintk(1, "%s() ATSC\n", __func__);
++		switch (params->u.vsb.modulation) {
++		case VSB_8:
++		case VSB_16:
++			dprintk(1, "%s() VSB modulation\n", __func__);
++			priv->rf_mode = XC_RF_MODE_AIR;
++			priv->freq_hz = params->frequency - 1750000;
++			priv->bandwidth = BANDWIDTH_6_MHZ;
++			priv->video_standard = XC4000_DTV6;
++			type = DTV6;
++			break;
++		case QAM_64:
++		case QAM_256:
++		case QAM_AUTO:
++			dprintk(1, "%s() QAM modulation\n", __func__);
++			priv->rf_mode = XC_RF_MODE_CABLE;
++			priv->freq_hz = params->frequency - 1750000;
++			priv->bandwidth = BANDWIDTH_6_MHZ;
++			priv->video_standard = XC4000_DTV6;
++			type = DTV6;
++			break;
++		default:
++			ret = -EINVAL;
++			goto fail;
++		}
++	} else if (fe->ops.info.type == FE_OFDM) {
++		dprintk(1, "%s() OFDM\n", __func__);
++		switch (params->u.ofdm.bandwidth) {
++		case BANDWIDTH_6_MHZ:
++			priv->bandwidth = BANDWIDTH_6_MHZ;
++			priv->video_standard = XC4000_DTV6;
++			priv->freq_hz = params->frequency - 1750000;
++			type = DTV6;
++			break;
++		case BANDWIDTH_7_MHZ:
++			priv->bandwidth = BANDWIDTH_7_MHZ;
++			priv->video_standard = XC4000_DTV7;
++			priv->freq_hz = params->frequency - 2250000;
++			type = DTV7;
++			break;
++		case BANDWIDTH_8_MHZ:
++			priv->bandwidth = BANDWIDTH_8_MHZ;
++			priv->video_standard = XC4000_DTV8;
++			priv->freq_hz = params->frequency - 2750000;
++			type = DTV8;
++			break;
++		case BANDWIDTH_AUTO:
++			if (params->frequency < 400000000) {
++				priv->bandwidth = BANDWIDTH_7_MHZ;
++				priv->freq_hz = params->frequency - 2250000;
++			} else {
++				priv->bandwidth = BANDWIDTH_8_MHZ;
++				priv->freq_hz = params->frequency - 2750000;
++			}
++			priv->video_standard = XC4000_DTV7_8;
++			type = DTV78;
++			break;
++		default:
++			printk(KERN_ERR "xc4000 bandwidth not set!\n");
++			ret = -EINVAL;
++			goto fail;
++		}
++		priv->rf_mode = XC_RF_MODE_AIR;
++	} else {
++		printk(KERN_ERR "xc4000 modulation type not supported!\n");
++		ret = -EINVAL;
++		goto fail;
++	}
++
++	dprintk(1, "%s() frequency=%d (compensated)\n",
++		__func__, priv->freq_hz);
++
++	/* Make sure the correct firmware type is loaded */
++	if (check_firmware(fe, type, 0, priv->if_khz) != XC_RESULT_SUCCESS)
++		goto fail;
++
++	ret = xc_SetSignalSource(priv, priv->rf_mode);
++	if (ret != XC_RESULT_SUCCESS) {
++		printk(KERN_ERR
++		       "xc4000: xc_SetSignalSource(%d) failed\n",
++		       priv->rf_mode);
++		goto fail;
++	} else {
++		u16	video_mode, audio_mode;
++		video_mode = XC4000_Standard[priv->video_standard].VideoMode;
++		audio_mode = XC4000_Standard[priv->video_standard].AudioMode;
++		if (type == DTV6 && priv->firm_version != 0x0102)
++			video_mode |= 0x0001;
++		ret = xc_SetTVStandard(priv, video_mode, audio_mode);
++		if (ret != XC_RESULT_SUCCESS) {
++			printk(KERN_ERR "xc4000: xc_SetTVStandard failed\n");
++			/* DJH - do not return when it fails... */
++			/* goto fail; */
++		}
++	}
++
++	if (priv->card_type == XC4000_CARD_WINFAST_CX88) {
++		if (xc_write_reg(priv, XREG_D_CODE, 0) == 0)
++			ret = 0;
++		if (xc_write_reg(priv, XREG_AMPLITUDE,
++				 (priv->firm_version == 0x0102 ? 132 : 134))
++		    != 0)
++			ret = -EREMOTEIO;
++		if (xc_write_reg(priv, XREG_SMOOTHEDCVBS, 1) != 0)
++			ret = -EREMOTEIO;
++		if (ret != 0) {
++			printk(KERN_ERR "xc4000: setting registers failed\n");
++			/* goto fail; */
++		}
++	}
++
++	xc_tune_channel(priv, priv->freq_hz);
++
++	ret = 0;
++
++fail:
++	mutex_unlock(&priv->lock);
++
++	return ret;
++}
++
++static int xc4000_set_analog_params(struct dvb_frontend *fe,
++	struct analog_parameters *params)
++{
++	struct xc4000_priv *priv = fe->tuner_priv;
++	unsigned int type = 0;
++	int	ret = -EREMOTEIO;
++
++	if (params->mode == V4L2_TUNER_RADIO) {
++		dprintk(1, "%s() frequency=%d (in units of 62.5Hz)\n",
++			__func__, params->frequency);
++
++		mutex_lock(&priv->lock);
++
++		params->std = 0;
++		priv->freq_hz = params->frequency * 125L / 2;
++
++		if (audio_std & XC4000_AUDIO_STD_INPUT1) {
++			priv->video_standard = XC4000_FM_Radio_INPUT1;
++			type = FM | INPUT1;
++		} else {
++			priv->video_standard = XC4000_FM_Radio_INPUT2;
++			type = FM | INPUT2;
++		}
++
++		goto tune_channel;
++	}
++
++	dprintk(1, "%s() frequency=%d (in units of 62.5khz)\n",
++		__func__, params->frequency);
++
++	mutex_lock(&priv->lock);
++
++	/* params->frequency is in units of 62.5khz */
++	priv->freq_hz = params->frequency * 62500;
++
++	params->std &= V4L2_STD_ALL;
++	/* if std is not defined, choose one */
++	if (!params->std)
++		params->std = V4L2_STD_PAL_BG;
++
++	if (audio_std & XC4000_AUDIO_STD_MONO)
++		type = MONO;
++
++	if (params->std & V4L2_STD_MN) {
++		params->std = V4L2_STD_MN;
++		if (audio_std & XC4000_AUDIO_STD_MONO) {
++			priv->video_standard = XC4000_MN_NTSC_PAL_Mono;
++		} else if (audio_std & XC4000_AUDIO_STD_A2) {
++			params->std |= V4L2_STD_A2;
++			priv->video_standard = XC4000_MN_NTSC_PAL_A2;
++		} else {
++			params->std |= V4L2_STD_BTSC;
++			priv->video_standard = XC4000_MN_NTSC_PAL_BTSC;
++		}
++		goto tune_channel;
++	}
++
++	if (params->std & V4L2_STD_PAL_BG) {
++		params->std = V4L2_STD_PAL_BG;
++		if (audio_std & XC4000_AUDIO_STD_MONO) {
++			priv->video_standard = XC4000_BG_PAL_MONO;
++		} else if (!(audio_std & XC4000_AUDIO_STD_A2)) {
++			if (!(audio_std & XC4000_AUDIO_STD_B)) {
++				params->std |= V4L2_STD_NICAM_A;
++				priv->video_standard = XC4000_BG_PAL_NICAM;
++			} else {
++				params->std |= V4L2_STD_NICAM_B;
++				priv->video_standard = XC4000_BG_PAL_NICAM;
++			}
++		} else {
++			if (!(audio_std & XC4000_AUDIO_STD_B)) {
++				params->std |= V4L2_STD_A2_A;
++				priv->video_standard = XC4000_BG_PAL_A2;
++			} else {
++				params->std |= V4L2_STD_A2_B;
++				priv->video_standard = XC4000_BG_PAL_A2;
++			}
++		}
++		goto tune_channel;
++	}
++
++	if (params->std & V4L2_STD_PAL_I) {
++		/* default to NICAM audio standard */
++		params->std = V4L2_STD_PAL_I | V4L2_STD_NICAM;
++		if (audio_std & XC4000_AUDIO_STD_MONO) {
++			priv->video_standard = XC4000_I_PAL_NICAM_MONO;
++		} else {
++			priv->video_standard = XC4000_I_PAL_NICAM;
++		}
++		goto tune_channel;
++	}
++
++	if (params->std & V4L2_STD_PAL_DK) {
++		params->std = V4L2_STD_PAL_DK;
++		if (audio_std & XC4000_AUDIO_STD_MONO) {
++			priv->video_standard = XC4000_DK_PAL_MONO;
++		} else if (audio_std & XC4000_AUDIO_STD_A2) {
++			params->std |= V4L2_STD_A2;
++			priv->video_standard = XC4000_DK_PAL_A2;
++		} else {
++			params->std |= V4L2_STD_NICAM;
++			priv->video_standard = XC4000_DK_PAL_NICAM;
++		}
++		goto tune_channel;
++	}
++
++	if (params->std & V4L2_STD_SECAM_DK) {
++		/* default to A2 audio standard */
++		params->std = V4L2_STD_SECAM_DK | V4L2_STD_A2;
++		if (audio_std & XC4000_AUDIO_STD_L) {
++			type = 0;
++			priv->video_standard = XC4000_DK_SECAM_NICAM;
++		} else if (audio_std & XC4000_AUDIO_STD_MONO) {
++			priv->video_standard = XC4000_DK_SECAM_A2MONO;
++		} else if (audio_std & XC4000_AUDIO_STD_K3) {
++			params->std |= V4L2_STD_SECAM_K3;
++			priv->video_standard = XC4000_DK_SECAM_A2LDK3;
++		} else {
++			priv->video_standard = XC4000_DK_SECAM_A2DK1;
++		}
++		goto tune_channel;
++	}
++
++	if (params->std & V4L2_STD_SECAM_L) {
++		/* default to NICAM audio standard */
++		type = 0;
++		params->std = V4L2_STD_SECAM_L | V4L2_STD_NICAM;
++		priv->video_standard = XC4000_L_SECAM_NICAM;
++		goto tune_channel;
++	}
++
++	if (params->std & V4L2_STD_SECAM_LC) {
++		/* default to NICAM audio standard */
++		type = 0;
++		params->std = V4L2_STD_SECAM_LC | V4L2_STD_NICAM;
++		priv->video_standard = XC4000_LC_SECAM_NICAM;
++		goto tune_channel;
++	}
++
++tune_channel:
++	/* Fix me: it could be air. */
++	priv->rf_mode = XC_RF_MODE_CABLE;
++
++	if (check_firmware(fe, type, params->std,
++			   XC4000_Standard[priv->video_standard].int_freq)
++	    != XC_RESULT_SUCCESS) {
++		goto fail;
++	}
++
++	ret = xc_SetSignalSource(priv, priv->rf_mode);
++	if (ret != XC_RESULT_SUCCESS) {
++		printk(KERN_ERR
++		       "xc4000: xc_SetSignalSource(%d) failed\n",
++		       priv->rf_mode);
++		goto fail;
++	} else {
++		u16	video_mode, audio_mode;
++		video_mode = XC4000_Standard[priv->video_standard].VideoMode;
++		audio_mode = XC4000_Standard[priv->video_standard].AudioMode;
++		if (priv->video_standard < XC4000_BG_PAL_A2) {
++			if (0 /*type & NOGD*/)
++				video_mode &= 0xFF7F;
++		} else if (priv->video_standard < XC4000_I_PAL_NICAM) {
++			if (priv->card_type == XC4000_CARD_WINFAST_CX88 &&
++			    priv->firm_version == 0x0102)
++				video_mode &= 0xFEFF;
++			if (audio_std & XC4000_AUDIO_STD_B)
++				video_mode |= 0x0080;
++		}
++		ret = xc_SetTVStandard(priv, video_mode, audio_mode);
++		if (ret != XC_RESULT_SUCCESS) {
++			printk(KERN_ERR "xc4000: xc_SetTVStandard failed\n");
++			goto fail;
++		}
++	}
++
++	if (priv->card_type == XC4000_CARD_WINFAST_CX88) {
++		if (xc_write_reg(priv, XREG_D_CODE, 0) == 0)
++			ret = 0;
++		if (xc_write_reg(priv, XREG_AMPLITUDE, 1) != 0)
++			ret = -EREMOTEIO;
++		if (xc_write_reg(priv, XREG_SMOOTHEDCVBS, 1) != 0)
++			ret = -EREMOTEIO;
++		if (ret != 0) {
++			printk(KERN_ERR "xc4000: setting registers failed\n");
++			goto fail;
++		}
++	}
++
++	xc_tune_channel(priv, priv->freq_hz);
++
++	ret = 0;
++
++fail:
++	mutex_unlock(&priv->lock);
++
++	return ret;
++}
++
++static int xc4000_get_frequency(struct dvb_frontend *fe, u32 *freq)
++{
++	struct xc4000_priv *priv = fe->tuner_priv;
++
++	*freq = priv->freq_hz;
++
++	if (debug) {
++		mutex_lock(&priv->lock);
++		if ((priv->cur_fw.type
++		     & (BASE | FM | DTV6 | DTV7 | DTV78 | DTV8)) == BASE) {
++			u16	snr = 0;
++			if (xc4000_readreg(priv, XREG_SNR, &snr) == 0) {
++				mutex_unlock(&priv->lock);
++				dprintk(1, "%s() freq = %u, SNR = %d\n",
++					__func__, *freq, snr);
++				return 0;
++			}
++		}
++		mutex_unlock(&priv->lock);
++	}
++
++	dprintk(1, "%s()\n", __func__);
++
++	return 0;
++}
++
++static int xc4000_get_bandwidth(struct dvb_frontend *fe, u32 *bw)
++{
++	struct xc4000_priv *priv = fe->tuner_priv;
++	dprintk(1, "%s()\n", __func__);
++
++	*bw = priv->bandwidth;
++	return 0;
++}
++
++static int xc4000_get_status(struct dvb_frontend *fe, u32 *status)
++{
++	struct xc4000_priv *priv = fe->tuner_priv;
++	u16	lock_status = 0;
++
++	mutex_lock(&priv->lock);
++
++	if (priv->cur_fw.type & BASE)
++		xc_get_lock_status(priv, &lock_status);
++
++	*status = (lock_status == 1 ?
++		   TUNER_STATUS_LOCKED | TUNER_STATUS_STEREO : 0);
++	if (priv->cur_fw.type & (DTV6 | DTV7 | DTV78 | DTV8))
++		*status &= (~TUNER_STATUS_STEREO);
++
++	mutex_unlock(&priv->lock);
++
++	dprintk(2, "%s() lock_status = %d\n", __func__, lock_status);
++
++	return 0;
++}
++
++static int xc4000_sleep(struct dvb_frontend *fe)
++{
++	struct xc4000_priv *priv = fe->tuner_priv;
++	int	ret = XC_RESULT_SUCCESS;
++
++	dprintk(1, "%s()\n", __func__);
++
++	mutex_lock(&priv->lock);
++
++	/* Avoid firmware reload on slow devices */
++	if ((no_poweroff == 2 ||
++	     (no_poweroff == 0 &&
++	      priv->card_type != XC4000_CARD_WINFAST_CX88)) &&
++	    (priv->cur_fw.type & BASE) != 0) {
++		/* force reset and firmware reload */
++		priv->cur_fw.type = XC_POWERED_DOWN;
++
++		if (xc_write_reg(priv, XREG_POWER_DOWN, 0)
++		    != XC_RESULT_SUCCESS) {
++			printk(KERN_ERR
++			       "xc4000: %s() unable to shutdown tuner\n",
++			       __func__);
++			ret = -EREMOTEIO;
++		}
++		xc_wait(20);
++	}
++
++	mutex_unlock(&priv->lock);
++
++	return ret;
++}
++
++static int xc4000_init(struct dvb_frontend *fe)
++{
++	dprintk(1, "%s()\n", __func__);
++
++	return 0;
++}
++
++static int xc4000_release(struct dvb_frontend *fe)
++{
++	struct xc4000_priv *priv = fe->tuner_priv;
++
++	dprintk(1, "%s()\n", __func__);
++
++	mutex_lock(&xc4000_list_mutex);
++
++	if (priv)
++		hybrid_tuner_release_state(priv);
++
++	mutex_unlock(&xc4000_list_mutex);
++
++	fe->tuner_priv = NULL;
++
++	return 0;
++}
++
++static const struct dvb_tuner_ops xc4000_tuner_ops = {
++	.info = {
++		.name           = "Xceive XC4000",
++		.frequency_min  =    1000000,
++		.frequency_max  = 1023000000,
++		.frequency_step =      50000,
++	},
++
++	.release	   = xc4000_release,
++	.init		   = xc4000_init,
++	.sleep		   = xc4000_sleep,
++
++	.set_params	   = xc4000_set_params,
++	.set_analog_params = xc4000_set_analog_params,
++	.get_frequency	   = xc4000_get_frequency,
++	.get_bandwidth	   = xc4000_get_bandwidth,
++	.get_status	   = xc4000_get_status
++};
++
++struct dvb_frontend *xc4000_attach(struct dvb_frontend *fe,
++				   struct i2c_adapter *i2c,
++				   struct xc4000_config *cfg)
++{
++	struct xc4000_priv *priv = NULL;
++	int	instance;
++	u16	id = 0;
++
++	if (cfg->card_type != XC4000_CARD_GENERIC) {
++		if (cfg->card_type == XC4000_CARD_WINFAST_CX88) {
++			cfg->i2c_address = 0x61;
++			cfg->if_khz = 4560;
++		} else {			/* default to PCTV 340E */
++			cfg->i2c_address = 0x61;
++			cfg->if_khz = 5400;
++		}
++	}
++
++	dprintk(1, "%s(%d-%04x)\n", __func__,
++		i2c ? i2c_adapter_id(i2c) : -1,
++		cfg ? cfg->i2c_address : -1);
++
++	mutex_lock(&xc4000_list_mutex);
++
++	instance = hybrid_tuner_request_state(struct xc4000_priv, priv,
++					      hybrid_tuner_instance_list,
++					      i2c, cfg->i2c_address, "xc4000");
++	if (cfg->card_type != XC4000_CARD_GENERIC)
++		priv->card_type = cfg->card_type;
++	switch (instance) {
++	case 0:
++		goto fail;
++		break;
++	case 1:
++		/* new tuner instance */
++		priv->bandwidth = BANDWIDTH_6_MHZ;
++		mutex_init(&priv->lock);
++		fe->tuner_priv = priv;
++		break;
++	default:
++		/* existing tuner instance */
++		fe->tuner_priv = priv;
++		break;
++	}
++
++	if (cfg->if_khz != 0) {
++		/* If the IF hasn't been set yet, use the value provided by
++		   the caller (occurs in hybrid devices where the analog
++		   call to xc4000_attach occurs before the digital side) */
++		priv->if_khz = cfg->if_khz;
++	}
++
++	/* Check if firmware has been loaded. It is possible that another
++	   instance of the driver has loaded the firmware.
++	 */
++
++	if (instance == 1) {
++		if (xc4000_readreg(priv, XREG_PRODUCT_ID, &id)
++		    != XC_RESULT_SUCCESS)
++			goto fail;
++	} else {
++		id = ((priv->cur_fw.type & BASE) != 0 ?
++		      priv->hwmodel : XC_PRODUCT_ID_FW_NOT_LOADED);
++	}
++
++	switch (id) {
++	case XC_PRODUCT_ID_XC4000:
++	case XC_PRODUCT_ID_XC4100:
++		printk(KERN_INFO
++			"xc4000: Successfully identified at address 0x%02x\n",
++			cfg->i2c_address);
++		printk(KERN_INFO
++			"xc4000: Firmware has been loaded previously\n");
++		break;
++	case XC_PRODUCT_ID_FW_NOT_LOADED:
++		printk(KERN_INFO
++			"xc4000: Successfully identified at address 0x%02x\n",
++			cfg->i2c_address);
++		printk(KERN_INFO
++			"xc4000: Firmware has not been loaded previously\n");
++		break;
++	default:
++		printk(KERN_ERR
++			"xc4000: Device not found at addr 0x%02x (0x%x)\n",
++			cfg->i2c_address, id);
++		goto fail;
++	}
++
++	mutex_unlock(&xc4000_list_mutex);
++
++	memcpy(&fe->ops.tuner_ops, &xc4000_tuner_ops,
++		sizeof(struct dvb_tuner_ops));
++
++	if (instance == 1) {
++		int	ret;
++		mutex_lock(&priv->lock);
++		ret = xc4000_fwupload(fe);
++		mutex_unlock(&priv->lock);
++		if (ret != XC_RESULT_SUCCESS)
++			goto fail2;
++	}
++
++	return fe;
++fail:
++	mutex_unlock(&xc4000_list_mutex);
++fail2:
++	xc4000_release(fe);
++	return NULL;
++}
++EXPORT_SYMBOL(xc4000_attach);
++
++MODULE_AUTHOR("Steven Toth, Davide Ferri");
++MODULE_DESCRIPTION("Xceive xc4000 silicon tuner driver");
++MODULE_LICENSE("GPL");
+diff --git a/drivers/media/common/tuners/xc4000.h b/drivers/media/common/tuners/xc4000.h
+new file mode 100644
+index 0000000..d560d01
+--- /dev/null
++++ b/drivers/media/common/tuners/xc4000.h
+@@ -0,0 +1,66 @@
++/*
++ *  Driver for Xceive XC4000 "QAM/8VSB single chip tuner"
++ *
++ *  Copyright (c) 2007 Steven Toth <stoth@linuxtv.org>
++ *
++ *  This program is free software; you can redistribute it and/or modify
++ *  it under the terms of the GNU General Public License as published by
++ *  the Free Software Foundation; either version 2 of the License, or
++ *  (at your option) any later version.
++ *
++ *  This program is distributed in the hope that it will be useful,
++ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
++ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ *
++ *  GNU General Public License for more details.
++ *
++ *  You should have received a copy of the GNU General Public License
++ *  along with this program; if not, write to the Free Software
++ *  Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
++ */
++
++#ifndef __XC4000_H__
++#define __XC4000_H__
++
++#include <linux/firmware.h>
++
++struct dvb_frontend;
++struct i2c_adapter;
++
++#define XC4000_CARD_GENERIC		0
++#define XC4000_CARD_PCTV_340E		1
++#define XC4000_CARD_WINFAST_CX88	2
++
++struct xc4000_config {
++	u8	card_type;	/* if card type is not generic, all other */
++	u8	i2c_address;	/* parameters are automatically set */
++	u32	if_khz;
++};
++
++/* xc4000 callback command */
++#define XC4000_TUNER_RESET		0
++
++/* For each bridge framework, when it attaches either analog or digital,
++ * it has to store a reference back to its _core equivalent structure,
++ * so that it can service the hardware by steering gpio's etc.
++ * Each bridge implementation is different so cast devptr accordingly.
++ * The xc4000 driver cares not for this value, other than ensuring
++ * it's passed back to a bridge during tuner_callback().
++ */
++
++#if defined(CONFIG_MEDIA_TUNER_XC4000) || \
++    (defined(CONFIG_MEDIA_TUNER_XC4000_MODULE) && defined(MODULE))
++extern struct dvb_frontend *xc4000_attach(struct dvb_frontend *fe,
++					  struct i2c_adapter *i2c,
++					  struct xc4000_config *cfg);
++#else
++static inline struct dvb_frontend *xc4000_attach(struct dvb_frontend *fe,
++						 struct i2c_adapter *i2c,
++						 struct xc4000_config *cfg)
++{
++	printk(KERN_WARNING "%s: driver disabled by Kconfig\n", __func__);
++	return NULL;
++}
++#endif
++
++#endif
+diff --git a/drivers/media/dvb/dvb-usb/dib0700_devices.c b/drivers/media/dvb/dvb-usb/dib0700_devices.c
+index c519ad5..a5212a5 100644
+--- a/drivers/media/dvb/dvb-usb/dib0700_devices.c
++++ b/drivers/media/dvb/dvb-usb/dib0700_devices.c
+@@ -17,6 +17,7 @@
+ #include "mt2266.h"
+ #include "tuner-xc2028.h"
+ #include "xc5000.h"
++#include "xc4000.h"
+ #include "s5h1411.h"
+ #include "dib0070.h"
+ #include "dib0090.h"
+@@ -2655,6 +2656,153 @@ static int xc5000_tuner_attach(struct dvb_usb_adapter *adap)
+ 		== NULL ? -ENODEV : 0;
+ }
+ 
++static int dib0700_xc4000_tuner_callback(void *priv, int component,
++					 int command, int arg)
++{
++	struct dvb_usb_adapter *adap = priv;
++
++	if (command == XC4000_TUNER_RESET) {
++		/* Reset the tuner */
++		dib7000p_set_gpio(adap->fe, 8, 0, 0);
++		msleep(10);
++		dib7000p_set_gpio(adap->fe, 8, 0, 1);
++	} else {
++		err("xc4000: unknown tuner callback command: %d\n", command);
++		return -EINVAL;
++	}
++
++	return 0;
++}
++
++static struct dibx000_agc_config stk7700p_7000p_xc4000_agc_config = {
++	.band_caps = BAND_UHF | BAND_VHF,
++	.setup = 0x64,
++	.inv_gain = 0x02c8,
++	.time_stabiliz = 0x15,
++	.alpha_level = 0x00,
++	.thlock = 0x76,
++	.wbd_inv = 0x01,
++	.wbd_ref = 0x0b33,
++	.wbd_sel = 0x00,
++	.wbd_alpha = 0x02,
++	.agc1_max = 0x00,
++	.agc1_min = 0x00,
++	.agc2_max = 0x9b26,
++	.agc2_min = 0x26ca,
++	.agc1_pt1 = 0x00,
++	.agc1_pt2 = 0x00,
++	.agc1_pt3 = 0x00,
++	.agc1_slope1 = 0x00,
++	.agc1_slope2 = 0x00,
++	.agc2_pt1 = 0x00,
++	.agc2_pt2 = 0x80,
++	.agc2_slope1 = 0x1d,
++	.agc2_slope2 = 0x1d,
++	.alpha_mant = 0x11,
++	.alpha_exp = 0x1b,
++	.beta_mant = 0x17,
++	.beta_exp = 0x33,
++	.perform_agc_softsplit = 0x00,
++};
++
++static struct dibx000_bandwidth_config stk7700p_xc4000_pll_config = {
++	60000, 30000, // internal, sampling
++	1, 8, 3, 1, 0, // pll_cfg: prediv, ratio, range, reset, bypass
++	0, 0, 1, 1, 0, // misc: refdiv, bypclk_div, IO_CLK_en_core, ADClkSrc, modulo
++	(3 << 14) | (1 << 12) | (524 << 0), // sad_cfg: refsel, sel, freq_15k
++	39370534, // ifreq
++	20452225, // timf
++	30000000, // xtal
++};
++
++/* FIXME: none of these inputs are validated yet */
++static struct dib7000p_config pctv_340e_config = {
++	.output_mpeg2_in_188_bytes = 1,
++
++	.agc_config_count = 1,
++	.agc = &stk7700p_7000p_xc4000_agc_config,
++	.bw  = &stk7700p_xc4000_pll_config,
++
++	.gpio_dir = DIB7000M_GPIO_DEFAULT_DIRECTIONS,
++	.gpio_val = DIB7000M_GPIO_DEFAULT_VALUES,
++	.gpio_pwm_pos = DIB7000M_GPIO_DEFAULT_PWM_POS,
++};
++
++/* PCTV 340e GPIOs map:
++   dib0700:
++   GPIO2  - CX25843 sleep
++   GPIO3  - CS5340 reset
++   GPIO5  - IRD
++   GPIO6  - Power Supply
++   GPIO8  - LNA (1=off 0=on)
++   GPIO10 - CX25843 reset
++   dib7000:
++   GPIO8  - xc4000 reset
++ */
++static int pctv340e_frontend_attach(struct dvb_usb_adapter *adap)
++{
++	struct dib0700_state *st = adap->dev->priv;
++
++	/* Power Supply on */
++	dib0700_set_gpio(adap->dev, GPIO6,  GPIO_OUT, 0);
++	msleep(50);
++	dib0700_set_gpio(adap->dev, GPIO6,  GPIO_OUT, 1);
++	msleep(100); /* Allow power supply to settle before probing */
++
++	/* cx25843 reset */
++	dib0700_set_gpio(adap->dev, GPIO10,  GPIO_OUT, 0);
++	msleep(1); /* cx25843 datasheet say 350us required */
++	dib0700_set_gpio(adap->dev, GPIO10,  GPIO_OUT, 1);
++
++	/* LNA off for now */
++	dib0700_set_gpio(adap->dev, GPIO8,  GPIO_OUT, 1);
++
++	/* Put the CX25843 to sleep for now since we're in digital mode */
++	dib0700_set_gpio(adap->dev, GPIO2, GPIO_OUT, 1);
++
++	/* FIXME: not verified yet */
++	dib0700_ctrl_clock(adap->dev, 72, 1);
++
++	msleep(500);
++
++	if (dib7000pc_detection(&adap->dev->i2c_adap) == 0) {
++		/* Demodulator not found for some reason? */
++		return -ENODEV;
++	}
++
++	adap->fe = dvb_attach(dib7000p_attach, &adap->dev->i2c_adap, 0x12,
++			      &pctv_340e_config);
++	st->is_dib7000pc = 1;
++
++	return adap->fe == NULL ? -ENODEV : 0;
++}
++
++
++static struct xc4000_config dib7000p_xc4000_tunerconfig = {
++	.i2c_address      = 0x61,
++	.if_khz           = 5400,
++};
++
++static int xc4000_tuner_attach(struct dvb_usb_adapter *adap)
++{
++	struct i2c_adapter *tun_i2c;
++
++	/* The xc4000 is not on the main i2c bus */
++	tun_i2c = dib7000p_get_i2c_master(adap->fe,
++					  DIBX000_I2C_INTERFACE_TUNER, 1);
++	if (tun_i2c == NULL) {
++		printk("Could not reach tuner i2c bus\n");
++		return 0;
++	}
++
++	/* Setup the reset callback */
++	adap->fe->callback = dib0700_xc4000_tuner_callback;
++
++	return dvb_attach(xc4000_attach, adap->fe, tun_i2c,
++			  &dib7000p_xc4000_tunerconfig)
++		== NULL ? -ENODEV : 0;
++}
++
+ static struct lgdt3305_config hcw_lgdt3305_config = {
+ 	.i2c_addr           = 0x0e,
+ 	.mpeg_mode          = LGDT3305_MPEG_PARALLEL,
+@@ -2802,6 +2950,8 @@ struct usb_device_id dib0700_usb_id_table[] = {
+ 	{ USB_DEVICE(USB_VID_DIBCOM,    USB_PID_DIBCOM_TFE7090PVR) },
+ 	{ USB_DEVICE(USB_VID_TECHNISAT, USB_PID_TECHNISAT_AIRSTAR_TELESTICK_2) },
+ /* 75 */{ USB_DEVICE(USB_VID_MEDION,    USB_PID_CREATIX_CTX1921) },
++	{ USB_DEVICE(USB_VID_PINNACLE,  USB_PID_PINNACLE_PCTV340E) },
++	{ USB_DEVICE(USB_VID_PINNACLE,  USB_PID_PINNACLE_PCTV340E_SE) },
+ 	{ 0 }		/* Terminating entry */
+ };
+ MODULE_DEVICE_TABLE(usb, dib0700_usb_id_table);
+@@ -3772,6 +3922,41 @@ struct dvb_usb_device_properties dib0700_devices[] = {
+ 					    RC_TYPE_NEC,
+ 			.change_protocol  = dib0700_change_protocol,
+ 		},
++	}, { DIB0700_DEFAULT_DEVICE_PROPERTIES,
++		.num_adapters = 1,
++		.adapter = {
++			{
++				.frontend_attach  = pctv340e_frontend_attach,
++				.tuner_attach     = xc4000_tuner_attach,
++
++				DIB0700_DEFAULT_STREAMING_CONFIG(0x02),
++
++				.size_of_priv = sizeof(struct
++						dib0700_adapter_state),
++			},
++		},
++
++		.num_device_descs = 2,
++		.devices = {
++			{   "Pinnacle PCTV 340e HD Pro USB Stick",
++				{ &dib0700_usb_id_table[76], NULL },
++				{ NULL },
++			},
++			{   "Pinnacle PCTV Hybrid Stick Solo",
++				{ &dib0700_usb_id_table[77], NULL },
++				{ NULL },
++			},
++		},
++		.rc.core = {
++			.rc_interval      = DEFAULT_RC_INTERVAL,
++			.rc_codes         = RC_MAP_DIB0700_RC5_TABLE,
++			.module_name	  = "dib0700",
++			.rc_query         = dib0700_rc_query_old_firmware,
++			.allowed_protos   = RC_TYPE_RC5 |
++					    RC_TYPE_RC6 |
++					    RC_TYPE_NEC,
++			.change_protocol  = dib0700_change_protocol,
++		},
+ 	},
+ };
+ 
+diff --git a/drivers/media/dvb/dvb-usb/dvb-usb-ids.h b/drivers/media/dvb/dvb-usb/dvb-usb-ids.h
+index 21b1549..20e4788 100644
+--- a/drivers/media/dvb/dvb-usb/dvb-usb-ids.h
++++ b/drivers/media/dvb/dvb-usb/dvb-usb-ids.h
+@@ -230,6 +230,8 @@
+ #define USB_PID_PINNACLE_PCTV310E			0x3211
+ #define USB_PID_PINNACLE_PCTV801E			0x023a
+ #define USB_PID_PINNACLE_PCTV801E_SE			0x023b
++#define USB_PID_PINNACLE_PCTV340E			0x023d
++#define USB_PID_PINNACLE_PCTV340E_SE			0x023e
+ #define USB_PID_PINNACLE_PCTV73A			0x0243
+ #define USB_PID_PINNACLE_PCTV73ESE			0x0245
+ #define USB_PID_PINNACLE_PCTV74E			0x0246
+diff --git a/drivers/media/dvb/frontends/dib7000p.c b/drivers/media/dvb/frontends/dib7000p.c
+index 0c9f40c..a64a538 100644
+--- a/drivers/media/dvb/frontends/dib7000p.c
++++ b/drivers/media/dvb/frontends/dib7000p.c
+@@ -2336,6 +2336,11 @@ struct dvb_frontend *dib7000p_attach(struct i2c_adapter *i2c_adap, u8 i2c_addr,
+ 		request_firmware() will hit an OOPS (this should be moved somewhere
+ 		more common) */
+ 
++	/* FIXME: make sure the dev.parent field is initialized, or else
++	   request_firmware() will hit an OOPS (this should be moved somewhere
++	   more common) */
++	st->i2c_master.gated_tuner_i2c_adap.dev.parent = i2c_adap->dev.parent;
++
+ 	dibx000_init_i2c_master(&st->i2c_master, DIB7000P, st->i2c_adap, st->i2c_addr);
+ 
+ 	/* init 7090 tuner adapter */
+diff --git a/drivers/media/video/tuner-core.c b/drivers/media/video/tuner-core.c
+index 9363ed9..417c6d1 100644
+--- a/drivers/media/video/tuner-core.c
++++ b/drivers/media/video/tuner-core.c
+@@ -39,6 +39,7 @@
+ #include "tda9887.h"
+ #include "xc5000.h"
+ #include "tda18271.h"
++#include "xc4000.h"
+ 
+ #define UNSET (-1U)
+ 
+@@ -391,6 +392,19 @@ static void set_type(struct i2c_client *c, unsigned int type,
+ 		tune_now = 0;
+ 		break;
+ 	}
++	case TUNER_XC4000:
++	{
++		struct xc4000_config xc4000_cfg = {
++			.i2c_address	  = t->i2c->addr,
++			/* if_khz will be set when the digital dvb_attach() occurs */
++			.if_khz	  = 0,
++		};
++		if (!dvb_attach(xc4000_attach,
++				&t->fe, t->i2c->adapter, &xc4000_cfg))
++			goto attach_failed;
++		tune_now = 0;
++		break;
++	}
+ 	default:
+ 		if (!dvb_attach(simple_tuner_attach, &t->fe,
+ 				t->i2c->adapter, t->i2c->addr, t->type))
+diff --git a/include/media/tuner.h b/include/media/tuner.h
+index 963e334..89c290b 100644
+--- a/include/media/tuner.h
++++ b/include/media/tuner.h
+@@ -127,6 +127,8 @@
+ #define TUNER_PHILIPS_FMD1216MEX_MK3	78
+ #define TUNER_PHILIPS_FM1216MK5		79
+ #define TUNER_PHILIPS_FQ1216LME_MK3	80	/* Active loopthrough, no FM */
++#define TUNER_XC4000			81	/* Xceive Silicon Tuner */
++
+ #define TUNER_PARTSNIC_PTI_5NF05	81
+ #define TUNER_PHILIPS_CU1216L           82
+ #define TUNER_NXP_TDA18271		83
