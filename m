@@ -1,34 +1,31 @@
 Return-path: <mchehab@pedra>
-Received: from mail-fx0-f46.google.com ([209.85.161.46]:47229 "EHLO
+Received: from mail-fx0-f46.google.com ([209.85.161.46]:38013 "EHLO
 	mail-fx0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752722Ab1FTQKK (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 20 Jun 2011 12:10:10 -0400
-Received: by fxm17 with SMTP id 17so1065412fxm.19
-        for <linux-media@vger.kernel.org>; Mon, 20 Jun 2011 09:10:09 -0700 (PDT)
-Message-ID: <4DFF70DD.2070000@gmail.com>
-Date: Mon, 20 Jun 2011 18:10:05 +0200
-From: poma <pomidorabelisima@gmail.com>
-MIME-Version: 1.0
+	with ESMTP id S1755167Ab1FEJzD (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sun, 5 Jun 2011 05:55:03 -0400
+Received: by fxm17 with SMTP id 17so1945845fxm.19
+        for <linux-media@vger.kernel.org>; Sun, 05 Jun 2011 02:55:01 -0700 (PDT)
+From: "Igor M. Liplianin" <liplianin@tut.by>
 To: linux-media@vger.kernel.org
-Subject: Re: RTL2831U driver updates
-References: <4DF9BCAA.3030301@holzeisen.de> <4DF9EA62.2040008@killerhippy.de> <4DFA7748.6000704@hoogenraad.net>
-In-Reply-To: <4DFA7748.6000704@hoogenraad.net>
-Content-Type: text/plain; charset=UTF-8; format=flowed
+Subject: Doman me.by is dead ...
+Date: Sun, 5 Jun 2011 12:55:03 +0300
+Cc: Mauro Chehab <mchehab@infradead.org>
+MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="us-ascii"
 Content-Transfer-Encoding: 7bit
+Message-Id: <201106051255.03383.liplianin@tut.by>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Jan Hoogenraad wrote:
-> Sascha: Thanks for the links
-> 
-> Would you know how to contact poma ?
+It happens domain "me.by" died :(
+I'm subscribed using "liplianin@tut.by" for now.
+I have couple addresses yet
+	liplianin@netup.ru
+	liplianin@tcm.by
 
-I know ;)
-Really, the right person to contact:
-http://article.gmane.org/gmane.linux.drivers.video-input-infrastructure/26131
-http://news.gmane.org/find-root.php?message_id=%3c1291503774.1874.90.camel%40maxim%2dlaptop%3e
-
-rgds,
-poma
-
+Best regards
+Igor
+-- 
+Igor M. Liplianin
+Microsoft Windows Free Zone - Linux used for all Computing Tasks
