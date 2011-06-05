@@ -1,79 +1,55 @@
 Return-path: <mchehab@pedra>
-Received: from moutng.kundenserver.de ([212.227.17.9]:51867 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752292Ab1FFRZQ (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 6 Jun 2011 13:25:16 -0400
-Date: Mon, 6 Jun 2011 19:25:14 +0200 (CEST)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-cc: Kuninori Morimoto <kuninori.morimoto.gx@renesas.com>
-Subject: Re: [PATCH] V4L: tw9910: remove bogus ENUMINPUT implementation
-In-Reply-To: <Pine.LNX.4.64.1106061915210.11169@axis700.grange>
-Message-ID: <Pine.LNX.4.64.1106061922460.11169@axis700.grange>
-References: <Pine.LNX.4.64.1106061915210.11169@axis700.grange>
+Received: from smtp-68.nebula.fi ([83.145.220.68]:41975 "EHLO
+	smtp-68.nebula.fi" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755803Ab1FENKe (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sun, 5 Jun 2011 09:10:34 -0400
+Date: Sun, 5 Jun 2011 16:10:31 +0300
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-media@vger.kernel.org, Hans Verkuil <hans.verkuil@cisco.com>
+Subject: Re: [RFCv2 PATCH 07/11] v4l2-ctrls: add control events.
+Message-ID: <20110605131031.GG6073@valkosipuli.localdomain>
+References: <6cea502820c1684f34b9e862a64be2972afb718f.1306329390.git.hans.verkuil@cisco.com>
+ <2c6e1531f7f9ab33b60e8c7f972f58a0dd6fbbd1.1306329390.git.hans.verkuil@cisco.com>
+ <20110528103421.GA4991@valkosipuli.localdomain>
+ <201105281658.20086.hverkuil@xs4all.nl>
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <201105281658.20086.hverkuil@xs4all.nl>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Morimoto-san, sorry, that was a wrong address of yours again in the 
-original mail. With the correct request also comes a request: would it be 
-difficult for you to give this patch a try? If you don't happen to have a 
-set up ready at hand, no problem, I'll dig out some video signal source 
-myself and test.
+Hi Hans,
 
-Thanks
-Guennadi
+On Sat, May 28, 2011 at 04:58:20PM +0200, Hans Verkuil wrote:
+> On Saturday, May 28, 2011 12:34:21 Sakari Ailus wrote:
+> > Hi Hans,
+> > 
+> > On Wed, May 25, 2011 at 03:33:51PM +0200, Hans Verkuil wrote:
+> > > From: Hans Verkuil <hans.verkuil@cisco.com>
+> > > 
+> > > Whenever a control changes value or state an event is sent to anyone
+> > > that subscribed to it.
+> > > 
+> > > This functionality is useful for control panels but also for applications
+> > > that need to wait for (usually status) controls to change value.
+> > 
+> > Thanks for the patch!
+> > 
+> > I agree that it's good to pass more information of the control (min, max
+> > etc.) to the user space with the event. However, to support events arriving
+> > from interrupt context which we've discussed in the past, such information
+> > must be also accessible in those situations.
+> > 
+> > What do you think about more fine-grained locking of controls, say, spinlock
+> > for each control (cluster) as an idea?
+> 
+> It's on my TODO list, but I need to think carefully on how to do it.
+> One thing at a time :-)
 
-On Mon, 6 Jun 2011, Guennadi Liakhovetski wrote:
+I agree. I just wanted to hear your thoughts about this. :)
 
-> tw9910 is a TV decoder, it doesn't have a tuner. Besides, the
-> .enum_input soc-camera operation is optional and normally not needed.
-> 
-> Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-> ---
->  drivers/media/video/tw9910.c |   11 -----------
->  1 files changed, 0 insertions(+), 11 deletions(-)
-> 
-> diff --git a/drivers/media/video/tw9910.c b/drivers/media/video/tw9910.c
-> index 0347bbe..a722f66 100644
-> --- a/drivers/media/video/tw9910.c
-> +++ b/drivers/media/video/tw9910.c
-> @@ -552,16 +552,6 @@ static int tw9910_s_std(struct v4l2_subdev *sd, v4l2_std_id norm)
->  	return ret;
->  }
->  
-> -static int tw9910_enum_input(struct soc_camera_device *icd,
-> -			     struct v4l2_input *inp)
-> -{
-> -	inp->type = V4L2_INPUT_TYPE_TUNER;
-> -	inp->std  = V4L2_STD_UNKNOWN;
-> -	strcpy(inp->name, "Video");
-> -
-> -	return 0;
-> -}
-> -
->  static int tw9910_g_chip_ident(struct v4l2_subdev *sd,
->  			       struct v4l2_dbg_chip_ident *id)
->  {
-> @@ -891,7 +881,6 @@ static int tw9910_video_probe(struct soc_camera_device *icd,
->  static struct soc_camera_ops tw9910_ops = {
->  	.set_bus_param		= tw9910_set_bus_param,
->  	.query_bus_param	= tw9910_query_bus_param,
-> -	.enum_input		= tw9910_enum_input,
->  };
->  
->  static struct v4l2_subdev_core_ops tw9910_subdev_core_ops = {
-> -- 
-> 1.7.2.5
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
-
----
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
-http://www.open-technology.de/
+-- 
+Sakari Ailus
+sakari dot ailus at iki dot fi
