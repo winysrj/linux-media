@@ -1,42 +1,64 @@
 Return-path: <mchehab@pedra>
-Received: from pitbull.cosy.sbg.ac.at ([141.201.2.122]:37199 "EHLO
-	pitbull.cosy.sbg.ac.at" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751735Ab1FXKU5 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 24 Jun 2011 06:20:57 -0400
-Date: Fri, 24 Jun 2011 11:56:42 +0200 (CEST)
-From: Peter Meerwald <pmeerw@pmeerw.net>
-To: linux-media@vger.kernel.org
-cc: Javier Martin <javier.martin@vista-silicon.com>
-Subject: mt9p031 on beagle-xm
-Message-ID: <alpine.DEB.2.00.1106241140590.2058@hippogriff.cosy.sbg.ac.at>
+Received: from mail-vx0-f174.google.com ([209.85.220.174]:56226 "EHLO
+	mail-vx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753163Ab1FETj6 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sun, 5 Jun 2011 15:39:58 -0400
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+In-Reply-To: <201106031753.16095.arnd@arndb.de>
+References: <1307053663-24572-1-git-send-email-ohad@wizery.com> <201106031753.16095.arnd@arndb.de>
+From: Ohad Ben-Cohen <ohad@wizery.com>
+Date: Sun, 5 Jun 2011 22:39:37 +0300
+Message-ID: <BANLkTim2pDu25ZudZ7ZzOwka0V1sYEhDKw@mail.gmail.com>
+Subject: Re: [RFC 0/6] iommu: generic api migration and grouping
+To: Arnd Bergmann <arnd@arndb.de>
+Cc: linux-media@vger.kernel.org, linux-omap@vger.kernel.org,
+	linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+	laurent.pinchart@ideasonboard.com, Hiroshi.DOYU@nokia.com,
+	davidb@codeaurora.org, Joerg.Roedel@amd.com,
+	Marek Szyprowski <m.szyprowski@samsung.com>,
+	David Woodhouse <dwmw2@infradead.org>,
+	anil.s.keshavamurthy@intel.com
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Hello,
+Hi Arnd,
 
-I have seen Javier's v8 patch for the Aptina/Micron mt9p031 on 
-beagleboard-xm and I'd be interested in getting the mt9m112 (Leopard 
-Imaging LBCM1M1) to work
+On Fri, Jun 3, 2011 at 6:53 PM, Arnd Bergmann <arnd@arndb.de> wrote:
+> I think the future of iovmm is looking not so good. Marek Szyprowski
+> is working on a generic version of the dma-mapping API (dma_map_ops)
+> based on the iommu API.
 
-can the LI-5M03 be used to test the patch?
+Nice! I missed Marek's work somehow.
 
-what is supposed to work / what not?
+> As far as I can tell, once we have that in
+> place, we you can migrate omap3isp from iovmm to dma-mapping and
+> remove iovmm.
 
-on which tree is the patch based?
+Sounds like a plan.
 
-is someone working on support for the LBCM1M1 (mt9m112)?
+I'd still prefer us to take small steps here, and not gate the omap
+iommu cleanups with Marek's generic dma_map_ops work though. Let's go
+forward and migrate omap's iommu to the generic iommu API, so new code
+will be able to use it (e.g. the long coming virtio-based IPC/AMP
+framework).
 
-since there is already support for the mt9m112 sensor in 
-drivers/media/video/mt9m111.c for the soc-camera framework what would be 
-the stragegy w.r.t. the omap3isp framework?
+We'll migrate iovmm/omap3isp just enough so they don't break, but once
+the generic dma_map_ops work materializes, we'd be able to complete
+the migration, remove iovmm, and decouple omap3isp from omap-specific
+iommu APIs for good.
 
+>>   I've only moved the omap and msm implementations for now, to demonstrate
+>>   the idea (and support the ARM diet :), but if this is found desirable,
+>>   we can bring in intel-iommu.c and amd_iommu.c as well.
+>
+> Yes, very good idea.
 
-thanks, regards, p.
+Great!
+(to move intel-iommu.c, we'll have to move the declaration of
+pci_find_upstream_pcie_bridge() from drivers/pci/pci.h to
+include/linux/pci.h, but that's probably not too bad).
 
--- 
-
-Peter Meerwald
-+43-664-2444418 (mobile)
+Thanks,
+Ohad.
