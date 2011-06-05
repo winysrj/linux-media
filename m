@@ -1,44 +1,70 @@
 Return-path: <mchehab@pedra>
-Received: from mail-ew0-f46.google.com ([209.85.215.46]:43670 "EHLO
-	mail-ew0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1759413Ab1FQP03 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 17 Jun 2011 11:26:29 -0400
-Received: by ewy4 with SMTP id 4so556044ewy.19
-        for <linux-media@vger.kernel.org>; Fri, 17 Jun 2011 08:26:28 -0700 (PDT)
+Received: from mx1.redhat.com ([209.132.183.28]:14141 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755710Ab1FEMFh (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 5 Jun 2011 08:05:37 -0400
+Message-ID: <4DEB710B.4090704@redhat.com>
+Date: Sun, 05 Jun 2011 09:05:31 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
 MIME-Version: 1.0
-In-Reply-To: <BANLkTinqZ5xbTG=h+64rxVui=kXjjtehig@mail.gmail.com>
-References: <1307014603-22944-1-git-send-email-javier.martin@vista-silicon.com>
-	<BANLkTinw6GoHgQYqJexbD-4=qitP6j0hDg@mail.gmail.com>
-	<51BA5835-2D1F-4BD3-B5BF-B01B339C347E@beagleboard.org>
-	<201106081824.46027.laurent.pinchart@ideasonboard.com>
-	<BANLkTinqZ5xbTG=h+64rxVui=kXjjtehig@mail.gmail.com>
-Date: Fri, 17 Jun 2011 17:26:26 +0200
-Message-ID: <BANLkTimS=7a2arnrSXtsvoS46nFwaEH1Vg@mail.gmail.com>
-Subject: Re: [beagleboard] Re: [PATCH v7 1/2] Add driver for Aptina (Micron)
- mt9p031 sensor.
-From: javier Martin <javier.martin@vista-silicon.com>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: Koen Kooi <koen@beagleboard.org>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	beagleboard@googlegroups.com, linux-media@vger.kernel.org,
-	carlighting@yahoo.co.nz, mch_kot@yahoo.com.cn
-Content-Type: text/plain; charset=ISO-8859-1
+To: "istvan_v@mailbox.hu" <istvan_v@mailbox.hu>
+CC: linux-media@vger.kernel.org,
+	"Igor M. Liplianin" <liplianin@tut.by>,
+	Devin Heitmueller <dheitmueller@kernellabs.com>
+Subject: Re: XC4000: setting registers
+References: <4D764337.6050109@email.cz>	<20110531124843.377a2a80@glory.local>	<BANLkTi=Lq+FF++yGhRmOa4NCigSt6ZurHg@mail.gmail.com>	<20110531174323.0f0c45c0@glory.local> <BANLkTimEEGsMP6PDXf5W5p9wW7wdWEEOiA@mail.gmail.com> <4DEA4B6A.70602@mailbox.hu>
+In-Reply-To: <4DEA4B6A.70602@mailbox.hu>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 8bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Laurent,
-have you been able to successfully test the driver?
+Hi Istvan,
 
-I've found some issues and I don't know whether I should send a new
-version or just wait for you to mainline the last one and send a patch
-later.
+Em 04-06-2011 12:12, istvan_v@mailbox.hu escreveu:
+> This patch implements setting the registers in xc4000_set_params()
+> and xc4000_set_analog_params(). A new register is defined which enables
+> filtering of the composite video output (this is needed to avoid bad
+> picture quality with some boards).
+> 
+> Signed-off-by: Istvan Varga <istvan_v@mailbox.hu>
+> 
 
--- 
-Javier Martin
-Vista Silicon S.L.
-CDTUC - FASE C - Oficina S-345
-Avda de los Castros s/n
-39005- Santander. Cantabria. Spain
-+34 942 25 32 60
-www.vista-silicon.com
+This one breaks compilation:
+
+drivers/media/common/tuners/xc4000.c: In function ‘xc4000_set_analog_params’:
+drivers/media/common/tuners/xc4000.c:1340: error: ‘type’ undeclared (first use in this function)
+drivers/media/common/tuners/xc4000.c:1340: error: (Each undeclared identifier is reported only once
+drivers/media/common/tuners/xc4000.c:1340: error: for each function it appears in.)
+make[3]: ** [drivers/media/common/tuners/xc4000.o] Erro 1
+make[2]: ** [drivers/media/common/tuners] Erro 2
+make[1]: ** [drivers/media/common] Erro 2
+make: ** [drivers/media/] Erro 2
+
+We should not allow that a patch in the middle of a series to break the compilation,
+as this breaks git bisect command. I fixed it with a hack.
+
+All patches you've sent were added at my experimental tree, including the one that
+added a card type inside the struct.
+
+I had to rebase the tree with:
+
+git filter-branch -f --env-filter '{ GIT_AUTHOR_NAME="Istvan Varga"; GIT_AUTHOR_EMAIL="istvan_v@mailbox.hu"; export GIT_AUTHOR_NAME;}' ^3be84e2e789af734a35ad0559c2d7c4931d0fe91^ HEAD 
+
+As your emails are being sent without your name on it (from is: istvan_v@mailbox.hu <istvan_v@mailbox.hu>).
+
+I didn't made any review of them. Please let me know when you finish submitting
+the patches for me to do a review at the resulting code.
+
+Ah, I'd appreciate if you could fix your emails. It takes me some time to
+reformat the patches, as you're sending the patches as attachments, but my
+email scripts aren't ready for patches with multiple mime types. Patchwork
+might help, but it also got only 4 patches from you (not sure if this is due
+to patchwork bugs or due to the attachments). It also helps if you could add
+[PATCH] at the email subject. I'm setting a backup process due to the constant
+patchwork failures, but my alternative logic relies on having [PATCH] at the
+subject logic, to move the patches into a separate mail directory.
+
+thanks,
+Mauro.
+
