@@ -1,415 +1,401 @@
 Return-path: <mchehab@pedra>
-Received: from mx1.redhat.com ([209.132.183.28]:32799 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755294Ab1FCNLv (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 3 Jun 2011 09:11:51 -0400
-Received: from int-mx12.intmail.prod.int.phx2.redhat.com (int-mx12.intmail.prod.int.phx2.redhat.com [10.5.11.25])
-	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id p53DBorC029868
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
-	for <linux-media@vger.kernel.org>; Fri, 3 Jun 2011 09:11:50 -0400
-Received: from [10.11.9.109] (vpn-9-109.rdu.redhat.com [10.11.9.109])
-	by int-mx12.intmail.prod.int.phx2.redhat.com (8.14.4/8.14.4) with ESMTP id p53DBnxu018938
-	for <linux-media@vger.kernel.org>; Fri, 3 Jun 2011 09:11:49 -0400
-Message-ID: <4DE8DD94.5040609@redhat.com>
-Date: Fri, 03 Jun 2011 10:11:48 -0300
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Received: from emh05.mail.saunalahti.fi ([62.142.5.111]:37922 "EHLO
+	emh05.mail.saunalahti.fi" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755174Ab1FEL01 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sun, 5 Jun 2011 07:26:27 -0400
+Message-ID: <4DEB67DC.8080602@kolumbus.fi>
+Date: Sun, 05 Jun 2011 14:26:20 +0300
+From: Marko Ristola <marko.ristola@kolumbus.fi>
 MIME-Version: 1.0
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Fwd: XC4000: code cleanup
-Content-Type: multipart/mixed;
- boundary="------------040103090708040302080007"
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+CC: Manu Abraham <abraham.manu@gmail.com>, tuxoholic@hotmail.de,
+	linux-media@vger.kernel.org
+Subject: Re: [PATCH] Refactor Mantis DMA transfer to deliver 16Kb TS data
+ per interrupt
+References: <BLU0-SMTP664E69E794AD6D8EAB4A1BD8980@phx.gbl> <4DE64679.8040302@redhat.com>
+In-Reply-To: <4DE64679.8040302@redhat.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-This is a multi-part message in MIME format.
---------------040103090708040302080007
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+
+Hi Mauro and Manu
+
+I think that the patch is robust enough to be accepted.
+Please Mauro accept this patch at appropriate time.
+
+Would you Manu, please, read my lengthy detailed description
+of this patch when you have time? Then you know what it does and why.
+
+I provided a descriptive table of the garbage generating problem,
+if you want to have a quick look.
+
+Regards,
+Marko Ristola
+
+----------------------------------------
+
+When I wrote this patch, I took lots of time to understand
+the RISC processor's commands from Manu's existing code and from
+Manu's old Internet references found by Google.
+
+I have verified thoroughly that the code is correct.
+It doesn't do any new assumptions on the RISC processor or DMA transfer
+in addition to Manu's existing assumptions. Users know by experience
+that this patch work.
+
+------------------------------------
+
+
+Why this increases performance so much?
+
+Mantis I2C transfer (and thus Hopper too) does busy looping, reserving the CPU
+for the entire I2C transfer time (under 1ms, big single latency point).
+So having a faster CPU doesn't solve this latency problem, but
+having more than one CPU helps. Easiest way to reduce these IRQ
+activated latencies is to generate the IRQ less often.
 
 
 
--------- Mensagem original --------
-Assunto: XC4000: code cleanup
-Data: Fri, 03 Jun 2011 12:02:15 +0200
-De: istvan_v@mailbox.hu <istvan_v@mailbox.hu>
-Para: Devin Heitmueller <dheitmueller@kernellabs.com>
-CC: Dmitri Belimov <d.belimov@gmail.com>,        Mauro Carvalho Chehab <mchehab@redhat.com>, thunder.m@email.cz,        linux-dvb@linuxtv.org
+Reduce interrupts by emitting IRQ less often
 
-This is the first of a set of patches that update the original xc4000
-sources to my modified version. It removes some unused code, and makes
-a few minor formatting changes.
+I wanted to reduce IRQs into one third (one per 16K instead of one per 4K).
+So instead of RISC processor doing two 2048 byte DMA transfers per IRQ I do 
+16384 / 2048 = 8 DMA transfers and then emit IRQ.
 
-Signed-off-by: Istvan Varga <istvan_v@mailbox.hu>
+The RISC processor can do DMA transfers up to 4095 bytes per RISC instruction.
+That's why Manu's code does single DMA transfer per 2048 bytes and emits
+IRQ on every second instruction.
 
 
---------------040103090708040302080007
-Content-Type: text/x-patch;
- name="xc4000_cleanup.patch"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: attachment;
- filename="xc4000_cleanup.patch"
+DMA transfer garbage problem
 
-diff -uNr xc4000_orig/drivers/media/common/tuners/xc4000.c xc4000/drivers/media/common/tuners/xc4000.c
---- xc4000_orig/drivers/media/common/tuners/xc4000.c	2011-06-02 17:36:36.000000000 +0200
-+++ xc4000/drivers/media/common/tuners/xc4000.c	2011-06-03 11:50:53.000000000 +0200
-@@ -55,8 +55,6 @@
- /* Note that the last version digit is my internal build number (so I can
-    rev the firmware even if the core Xceive firmware was unchanged) */
- #define XC4000_DEFAULT_FIRMWARE "dvb-fe-xc4000-1.4.1.fw"
--#define XC4000_DEFAULT_FIRMWARE_SIZE 18643
--
- 
- /* struct for storing firmware table */
- struct firmware_description {
-@@ -80,18 +78,18 @@
- 	struct tuner_i2c_props i2c_props;
- 	struct list_head hybrid_tuner_instance_list;
- 	struct firmware_description *firm;
--	int			firm_size;
--	__u16			firm_version;
--	u32 if_khz;
--	u32 freq_hz;
--	u32 bandwidth;
--	u8  video_standard;
--	u8  rf_mode;
--//	struct xc2028_ctrl	ctrl;
-+	int	firm_size;
-+	__u16	firm_version;
-+	u32	if_khz;
-+	u32	freq_hz;
-+	u32	bandwidth;
-+	u8	video_standard;
-+	u8	rf_mode;
-+	u8	ignore_i2c_write_errors;
-+ /*	struct xc2028_ctrl	ctrl; */
- 	struct firmware_properties cur_fw;
--	__u16			hwmodel;
--	__u16			hwvers;
--	u8 ignore_i2c_write_errors;
-+	__u16	hwmodel;
-+	__u16	hwvers;
- };
- 
- /* Misc Defines */
-@@ -167,12 +165,12 @@
- 
-    For the RESET and WAIT commands, the two following bytes will contain
-    immediately the length of the following transaction.
--
- */
-+
- struct XC_TV_STANDARD {
--	char *Name;
--	u16 AudioMode;
--	u16 VideoMode;
-+	const char  *Name;
-+	u16	    AudioMode;
-+	u16	    VideoMode;
- };
- 
- /* Tuner standards */
-@@ -200,33 +198,6 @@
- #define XC4000_FM_Radio_INPUT2		21
- #define XC4000_FM_Radio_INPUT1	22
- 
--/* WAS :
--static struct XC_TV_STANDARD XC4000_Standard[MAX_TV_STANDARD] = {
--	{"M/N-NTSC/PAL-BTSC", 0x0400, 0x8020},
--	{"M/N-NTSC/PAL-A2",   0x0600, 0x8020},
--	{"M/N-NTSC/PAL-EIAJ", 0x0440, 0x8020},
--	{"M/N-NTSC/PAL-Mono", 0x0478, 0x8020},
--	{"B/G-PAL-A2",        0x0A00, 0x8049},
--	{"B/G-PAL-NICAM",     0x0C04, 0x8049},
--	{"B/G-PAL-MONO",      0x0878, 0x8059},
--	{"I-PAL-NICAM",       0x1080, 0x8009},
--	{"I-PAL-NICAM-MONO",  0x0E78, 0x8009},
--	{"D/K-PAL-A2",        0x1600, 0x8009},
--	{"D/K-PAL-NICAM",     0x0E80, 0x8009},
--	{"D/K-PAL-MONO",      0x1478, 0x8009},
--	{"D/K-SECAM-A2 DK1",  0x1200, 0x8009},
--	{"D/K-SECAM-A2 L/DK3", 0x0E00, 0x8009},
--	{"D/K-SECAM-A2 MONO", 0x1478, 0x8009},
--	{"L-SECAM-NICAM",     0x8E82, 0x0009},
--	{"L'-SECAM-NICAM",    0x8E82, 0x4009},
--	{"DTV6",              0x00C0, 0x8002},
--	{"DTV8",              0x00C0, 0x800B},
--	{"DTV7/8",            0x00C0, 0x801B},
--	{"DTV7",              0x00C0, 0x8007},
--	{"FM Radio-INPUT2",   0x9802, 0x9002},
--	{"FM Radio-INPUT1",   0x0208, 0x9002}
--};*/
--
- static struct XC_TV_STANDARD XC4000_Standard[MAX_TV_STANDARD] = {
- 	{"M/N-NTSC/PAL-BTSC", 0x0000, 0x8020},
- 	{"M/N-NTSC/PAL-A2",   0x0000, 0x8020},
-@@ -253,7 +224,6 @@
- 	{"FM Radio-INPUT1",   0x0008, 0x9000}
- };
- 
--static int xc4000_is_firmware_loaded(struct dvb_frontend *fe);
- static int xc4000_readreg(struct xc4000_priv *priv, u16 reg, u16 *val);
- static int xc4000_TunerReset(struct dvb_frontend *fe);
- 
-@@ -275,10 +245,6 @@
- 	return XC_RESULT_SUCCESS;
- }
- 
--/* This routine is never used because the only time we read data from the
--   i2c bus is when we read registers, and we want that to be an atomic i2c
--   transaction in case we are on a multi-master bus */
--
- static void xc_wait(int wait_ms)
- {
- 	msleep(wait_ms);
-@@ -431,7 +397,6 @@
- 	return xc_write_reg(priv, XREG_RF_FREQ, freq_code); /* WAS: XREG_FINERFREQ */
- }
- 
--
- static int xc_get_ADC_Envelope(struct xc4000_priv *priv, u16 *adc_envelope)
- {
- 	return xc4000_readreg(priv, XREG_ADC_ENV, adc_envelope);
-@@ -476,12 +441,6 @@
- 	return 0;
- }
- 
--/* WAS THERE
--static int xc_get_buildversion(struct xc4000_priv *priv, u16 *buildrev)
--{
--	return xc4000_readreg(priv, XREG_BUILD, buildrev);
--}*/
--
- static int xc_get_hsync_freq(struct xc4000_priv *priv, u32 *hsync_freq_hz)
- {
- 	u16 regData;
-@@ -520,12 +479,10 @@
- 	return lockState;
- }
- 
--#define XC_TUNE_ANALOG  0
--#define XC_TUNE_DIGITAL 1
- static int xc_tune_channel(struct xc4000_priv *priv, u32 freq_hz, int mode)
- {
--	int found = 0;
--	int result = 0;
-+	int	found = 0;
-+	int	result = 0;
- 
- 	dprintk(1, "%s(%u)\n", __func__, freq_hz);
- 
-@@ -694,7 +651,6 @@
- 	if (best_nr_matches > 0) {
- 		printk("Selecting best matching firmware (%d bits) for "
- 			  "type=", best_nr_matches);
--//		dump_firm_type(type);
- 		printk("(%x), id %016llx:\n", type, (unsigned long long)*id);
- 		i = best_i;
- 		goto found;
-@@ -749,7 +705,7 @@
- 	int                   rc = 0;
- 	int		      n, n_array;
- 	char		      name[33];
--	char		      *fname;
-+	const char	      *fname;
- 
- 	fname = XC4000_DEFAULT_FIRMWARE;
- 
-@@ -770,7 +726,7 @@
- 
- 	if (fw->size < sizeof(name) - 1 + 2 + 2) {
- 		printk("Error: firmware file %s has invalid size!\n",
--			  fname);
-+		       fname);
- 		goto corrupt;
- 	}
- 
-@@ -805,7 +761,7 @@
- 		n++;
- 		if (n >= n_array) {
- 			printk("More firmware images in file than "
--				  "were expected!\n");
-+			       "were expected!\n");
- 			goto corrupt;
- 		}
- 
-@@ -831,7 +787,6 @@
- 
- 		if (!size || size > endp - p) {
- 			printk("Firmware type ");
--//			dump_firm_type(type);
- 			printk("(%x), id %llx is corrupted "
- 			       "(size=%d, expected %d)\n",
- 			       type, (unsigned long long)id,
-@@ -877,7 +832,6 @@
- 
- err:
- 	printk("Releasing partially loaded firmware file.\n");
--//	free_firmware(priv);
- 
- done:
- 	release_firmware(fw);
-@@ -986,8 +940,7 @@
- 	new_fw.type = type;
- 	new_fw.id = std;
- 	new_fw.std_req = std;
--//	new_fw.scode_table = SCODE | priv->ctrl.scode_table;
--	new_fw.scode_table = SCODE;
-+	new_fw.scode_table = SCODE /* | priv->ctrl.scode_table */;
- 	new_fw.scode_nr = 0;
- 	new_fw.int_freq = int_freq;
- 
-@@ -1108,7 +1061,7 @@
- 	} else if (priv->hwmodel == 0 || priv->hwmodel != hwmodel ||
- 		   priv->hwvers != (version & 0xff00)) {
- 		printk("Read invalid device hardware information - tuner "
--			  "hung?\n");
-+		       "hung?\n");
- 		goto fail;
- 	}
- 
-@@ -1140,15 +1093,14 @@
- 
- static void xc_debug_dump(struct xc4000_priv *priv)
- {
--	u16 adc_envelope;
--	u32 freq_error_hz = 0;
--	u16 lock_status;
--	u32 hsync_freq_hz = 0;
--	u16 frame_lines;
--	u16 quality;
--	u8 hw_majorversion = 0, hw_minorversion = 0;
--	u8 fw_majorversion = 0, fw_minorversion = 0;
--//	u16 fw_buildversion = 0;
-+	u16	adc_envelope;
-+	u32	freq_error_hz = 0;
-+	u16	lock_status;
-+	u32	hsync_freq_hz = 0;
-+	u16	frame_lines;
-+	u16	quality;
-+	u8	hw_majorversion = 0, hw_minorversion = 0;
-+	u8	fw_majorversion = 0, fw_minorversion = 0;
- 
- 	/* Wait for stats to stabilize.
- 	 * Frame Lines needs two frame times after initial lock
-@@ -1156,35 +1108,30 @@
- 	 */
- 	xc_wait(100);
- 
--	xc_get_ADC_Envelope(priv,  &adc_envelope);
-+	xc_get_ADC_Envelope(priv, &adc_envelope);
- 	dprintk(1, "*** ADC envelope (0-1023) = %d\n", adc_envelope);
- 
- 	xc_get_frequency_error(priv, &freq_error_hz);
- 	dprintk(1, "*** Frequency error = %d Hz\n", freq_error_hz);
- 
--	xc_get_lock_status(priv,  &lock_status);
-+	xc_get_lock_status(priv, &lock_status);
- 	dprintk(1, "*** Lock status (0-Wait, 1-Locked, 2-No-signal) = %d\n",
- 		lock_status);
- 
--	xc_get_version(priv,  &hw_majorversion, &hw_minorversion,
--		&fw_majorversion, &fw_minorversion);
--// WAS:
--//	xc_get_buildversion(priv,  &fw_buildversion);
--//	dprintk(1, "*** HW: V%02x.%02x, FW: V%02x.%02x.%04x\n",
--//		hw_majorversion, hw_minorversion,
--//		fw_majorversion, fw_minorversion, fw_buildversion);
--// NOW:
-+	xc_get_version(priv, &hw_majorversion, &hw_minorversion,
-+		       &fw_majorversion, &fw_minorversion);
-+
- 	dprintk(1, "*** HW: V%02x.%02x, FW: V%02x.%02x\n",
- 		hw_majorversion, hw_minorversion,
- 		fw_majorversion, fw_minorversion);
- 
--	xc_get_hsync_freq(priv,  &hsync_freq_hz);
-+	xc_get_hsync_freq(priv, &hsync_freq_hz);
- 	dprintk(1, "*** Horizontal sync frequency = %d Hz\n", hsync_freq_hz);
- 
--	xc_get_frame_lines(priv,  &frame_lines);
-+	xc_get_frame_lines(priv, &frame_lines);
- 	dprintk(1, "*** Frame lines = %d\n", frame_lines);
- 
--	xc_get_quality(priv,  &quality);
-+	xc_get_quality(priv, &quality);
- 	dprintk(1, "*** Quality (0:<8dB, 7:>56dB) = %d\n", quality);
- }
- 
-@@ -1193,7 +1140,7 @@
- {
- 	struct xc4000_priv *priv = fe->tuner_priv;
- 	unsigned int type;
--	int ret;
-+	int	ret;
- 
- 	dprintk(1, "%s() frequency=%d (Hz)\n", __func__, params->frequency);
- 
-@@ -1290,30 +1237,11 @@
- 	return 0;
- }
- 
--static int xc4000_is_firmware_loaded(struct dvb_frontend *fe)
--{
--	struct xc4000_priv *priv = fe->tuner_priv;
--	int ret;
--	u16 id;
--
--	ret = xc4000_readreg(priv, XREG_PRODUCT_ID, &id);
--	if (ret == XC_RESULT_SUCCESS) {
--		if (id == XC_PRODUCT_ID_FW_NOT_LOADED)
--			ret = XC_RESULT_RESET_FAILURE;
--		else
--			ret = XC_RESULT_SUCCESS;
--	}
--
--	dprintk(1, "%s() returns %s id = 0x%x\n", __func__,
--		ret == XC_RESULT_SUCCESS ? "True" : "False", id);
--	return ret;
--}
--
- static int xc4000_set_analog_params(struct dvb_frontend *fe,
- 	struct analog_parameters *params)
- {
- 	struct xc4000_priv *priv = fe->tuner_priv;
--	int ret;
-+	int	ret;
- 
- 	dprintk(1, "%s() frequency=%d (in units of 62.5khz)\n",
- 		__func__, params->frequency);
-@@ -1420,7 +1348,7 @@
- static int xc4000_get_status(struct dvb_frontend *fe, u32 *status)
- {
- 	struct xc4000_priv *priv = fe->tuner_priv;
--	u16 lock_status = 0;
-+	u16	lock_status = 0;
- 
- 	xc_get_lock_status(priv, &lock_status);
- 
-@@ -1495,8 +1423,8 @@
- 				   struct xc4000_config *cfg)
- {
- 	struct xc4000_priv *priv = NULL;
--	int instance;
--	u16 id = 0;
-+	int	instance;
-+	u16	id = 0;
- 
- 	dprintk(1, "%s(%d-%04x)\n", __func__,
- 		i2c ? i2c_adapter_id(i2c) : -1,
-diff -uNr xc4000_orig/drivers/media/common/tuners/xc4000.h xc4000/drivers/media/common/tuners/xc4000.h
---- xc4000_orig/drivers/media/common/tuners/xc4000.h	2011-06-02 17:36:52.000000000 +0200
-+++ xc4000/drivers/media/common/tuners/xc4000.h	2011-06-03 11:51:29.000000000 +0200
-@@ -28,8 +28,8 @@
- struct i2c_adapter;
- 
- struct xc4000_config {
--	u8   i2c_address;
--	u32  if_khz;
-+	u8	i2c_address;
-+	u32	if_khz;
- };
- 
- /* xc4000 callback command */
+DMA transfer garbage problem is another thing that this patch fixes.
+
+When Mantis/Hopper tunes into a TS,
+first DMA transfer will deliver almost the whole 64K DMA buffer into dvb_dmx_swfilter(_204).
+This has caused application crashes and delays on tuning into the channel and occurrences
+of wrong audio/video on application.
+Over these years application robustness has improved.
 
 
---------------040103090708040302080007--
+Here is original buggy code's DMA transfer variables as a table:
+
+Table: Garbage generating block iteration without my patch
+line	buf_pos	finished_block_by_IRQ  original_last_block last_block_after_driver_processing
+0	0	15                     0	                15 ( driver processes garbage 4K blocks indexed 0 - 14).
+1	2048			
+2	4096	0                      15	                0 ( driver processes garbage 4K block at index 15).
+3	6144			
+4	8192	1                      0                        1 (first valid 4K data block at index 0).
+<snip>
+
+- line                   goes from 0 to 31: one RISC CPU DMA transfer instruction per line.
+- buf_pos                tracks pointer where RISC CPU will copy 2048 bytes with the DMA transfer.
+- finished_block_by_IRQ  RISC CPU reports via IRQ: "I have finished block 15, driver can process it".
+- original_last_block    Driver will copy this 4K block first, until just before finished_block_by_IRQ.
+- last_block_after_driver_processing The value of last_block after driver has processed 4K DMA buffer blocks.
+
+I fix this by thinking it in another way:
+RISC CPU doesn't report what is the previous acceptable block. It reports:
+"I'm writing into block XXX. Don't touch it!"
+
+The fix is here:
+> +				RISC_INSTR(risc_pos, RISC_WRITE	|
+> +					   RISC_IRQ	|
+> +					   RISC_STATUS(line) |
+> +					   MANTIS_DMA_TR_BYTES);
+RISC CPU informs Mantis/Hopper driver that 16K buffer at "line" will be overwritten.
+
+
+Table: Working block iteration after my patch
+line	step	buf_pos	busy_block	original_last_block	last_block_after_driver_processing
+0	0	0	0	        0	                0 (kernel driver wakened, block 0 is busy, do nothing)
+0	1	2048			
+<snip>
+0	6	12288			
+0	7	14336			
+1	0	16384	1	        0	                1 (kernel driver writes valid 16K block at index 0, block 1 is busy)
+1	1	18432			
+<snip>
+1	7	30720			
+2	0	32768	2	        1	                2 (kernel driver writes valid 16K block at index 1, block 2 is busy)
+2	1	34816			
+<snip>
+
+- line			goes from 0 to 3. It counts 16K blocks.
+- step                  goes from 0 to 8. It counts 2K blocks within a 16K block.
+- buf_pos               goes from 0 to under 64K, in 2K byte steps.
+- busy_block            RISC IRQ reports via IRQ: "I will write to block X. Don't touch it." (index is between 0 and 3).
+- original_last_block   Driver will copy this 16K block first, until the block before "busy block". 
+- last_block_after_driver_processing Driver copies blocks, until band stops here. This block isn't copied yet.
+
+Thanks,
+Marko Ristola
+
+01.06.2011 17:02, Mauro Carvalho Chehab kirjoitti:
+> Manu,
+> 
+> Em 13-08-2010 10:51, Stefan escreveu:
+>> Hello Marko
+>>
+>> I confirm this patch reduces the amount of interrupts to nearly one third:
+>>
+>> [*] v4l mercurial wo patch: about 600 calls/sec over a 10 seconds interval
+>> [*] v4l mercurial with patch: about 160 calls/sec over a 10 seconds interval
+>>
+>> Measured using powertop -t 10
+>> Tuning a Twinhan/Azurewave AD SP400 CI (VP-1041) with szap
+>>
+>> The same ratio using vdr 1.7.15 + xineliboutput + vdr-sfxe:
+>>
+>> [*] wo patch: about 1100 calls/sec over a 10 seconds interval
+>> [*] with patch: about 320 calls/sec over a 10 seconds interval
+>>
+>> Regards,
+>> Stefan
+>>
+>>>
+>>> This patch obsoletes patch with broken spaces
+>>> https://patchwork.kernel.org/patch/107036/
+>>>
+>>> With VDR streaming HDTV into network, generating an interrupt once per 16kb,
+>>> implemented in this patch, seems to support more robust throughput with 
+>>> HDTV.
+>>> Fix leaking almost 64kb data from the previous TS after changing the TS.
+>>> One effect of the old version was, that the DMA transfer and driver's
+>>> DMA buffer access might happen at the same time - a race condition.
+>>>
+>>> Signed-off-by: Marko M. Ristola <marko.ristola@xxxxxxxxxxxx>
+>>>
+>>> Regards,
+>>> Marko Ristola
+>>>
+> 
+> This is another patch sitting at your queue for about one year. Please ack it
+> or comment. Otherwise, I'll assume that the patch is correct and I'll apply it.
+> 
+> Thanks,
+> Mauro
+> 
+> patches/lmml_118173_refactor_mantis_dma_transfer_to_deliver_16kb_ts_data_per_interrupt.patch
+> Content-Type: text/plain; charset="utf-8"
+> MIME-Version: 1.0
+> Content-Transfer-Encoding: 7bit
+> Subject: Refactor Mantis DMA transfer to deliver 16Kb TS data per interrupt
+> Date: Sat, 07 Aug 2010 12:16:15 -0000
+> From: Marko Ristola <marko.ristola@kolumbus.fi>
+> X-Patchwork-Id: 118173
+> Message-Id: <4C5D4E8F.6080602@kolumbus.fi>
+> To: Linux Media Mailing List <linux-media@vger.kernel.org>
+> 
+> This patch obsoletes patch with broken spaces
+> https://patchwork.kernel.org/patch/107036/
+> 
+> With VDR streaming HDTV into network, generating an interrupt once per 16kb,
+> implemented in this patch, seems to support more robust throughput with HDTV.
+> 
+> Fix leaking almost 64kb data from the previous TS after changing the TS.
+> One effect of the old version was, that the DMA transfer and driver's
+> DMA buffer access might happen at the same time - a race condition.
+> 
+> Signed-off-by: Marko M. Ristola <marko.ristola@kolumbus.fi>
+> 
+> Regards,
+> Marko Ristola
+> 
+> diff --git a/drivers/media/dvb/mantis/hopper_cards.c b/drivers/media/dvb/mantis/hopper_cards.c
+> index 09e9fc7..3b7e376 100644
+> --- a/drivers/media/dvb/mantis/hopper_cards.c
+> +++ b/drivers/media/dvb/mantis/hopper_cards.c
+> @@ -126,7 +126,7 @@ static irqreturn_t hopper_irq_handler(int irq, void *dev_id)
+>  	}
+>  	if (stat & MANTIS_INT_RISCI) {
+>  		dprintk(MANTIS_DEBUG, 0, "<%s>", label[8]);
+> -		mantis->finished_block = (stat & MANTIS_INT_RISCSTAT) >> 28;
+> +		mantis->busy_block = (stat & MANTIS_INT_RISCSTAT) >> 28;
+>  		tasklet_schedule(&mantis->tasklet);
+>  	}
+>  	if (stat & MANTIS_INT_I2CDONE) {
+> diff --git a/drivers/media/dvb/mantis/mantis_cards.c b/drivers/media/dvb/mantis/mantis_cards.c
+> index cf4b39f..8f048d5 100644
+> --- a/drivers/media/dvb/mantis/mantis_cards.c
+> +++ b/drivers/media/dvb/mantis/mantis_cards.c
+> @@ -134,7 +134,7 @@ static irqreturn_t mantis_irq_handler(int irq, void *dev_id)
+>  	}
+>  	if (stat & MANTIS_INT_RISCI) {
+>  		dprintk(MANTIS_DEBUG, 0, "<%s>", label[8]);
+> -		mantis->finished_block = (stat & MANTIS_INT_RISCSTAT) >> 28;
+> +		mantis->busy_block = (stat & MANTIS_INT_RISCSTAT) >> 28;
+>  		tasklet_schedule(&mantis->tasklet);
+>  	}
+>  	if (stat & MANTIS_INT_I2CDONE) {
+> diff --git a/drivers/media/dvb/mantis/mantis_common.h b/drivers/media/dvb/mantis/mantis_common.h
+> index d0b645a..23b23b7 100644
+> --- a/drivers/media/dvb/mantis/mantis_common.h
+> +++ b/drivers/media/dvb/mantis/mantis_common.h
+> @@ -122,11 +122,8 @@ struct mantis_pci {
+>  	unsigned int		num;
+>  
+>  	/*	RISC Core		*/
+> -	u32			finished_block;
+> +	u32			busy_block;
+>  	u32			last_block;
+> -	u32			line_bytes;
+> -	u32			line_count;
+> -	u32			risc_pos;
+>  	u8			*buf_cpu;
+>  	dma_addr_t		buf_dma;
+>  	u32			*risc_cpu;
+> diff --git a/drivers/media/dvb/mantis/mantis_dma.c b/drivers/media/dvb/mantis/mantis_dma.c
+> index 46202a4..c61ca7d 100644
+> --- a/drivers/media/dvb/mantis/mantis_dma.c
+> +++ b/drivers/media/dvb/mantis/mantis_dma.c
+> @@ -43,13 +43,17 @@
+>  #define RISC_IRQ		(0x01 << 24)
+>  
+>  #define RISC_STATUS(status)	((((~status) & 0x0f) << 20) | ((status & 0x0f) << 16))
+> -#define RISC_FLUSH()		(mantis->risc_pos = 0)
+> -#define RISC_INSTR(opcode)	(mantis->risc_cpu[mantis->risc_pos++] = cpu_to_le32(opcode))
+> +#define RISC_FLUSH(risc_pos)		(risc_pos = 0)
+> +#define RISC_INSTR(risc_pos, opcode)	(mantis->risc_cpu[risc_pos++] = cpu_to_le32(opcode))
+>  
+>  #define MANTIS_BUF_SIZE		(64 * 1024)
+> -#define MANTIS_BLOCK_BYTES	(MANTIS_BUF_SIZE >> 4)
+> -#define MANTIS_BLOCK_COUNT	(1 << 4)
+> -#define MANTIS_RISC_SIZE	PAGE_SIZE
+> +#define MANTIS_BLOCK_BYTES      (MANTIS_BUF_SIZE / 4)
+> +#define MANTIS_DMA_TR_BYTES     (2 * 1024) /* upper limit: 4095 bytes. */
+> +#define MANTIS_BLOCK_COUNT	(MANTIS_BUF_SIZE / MANTIS_BLOCK_BYTES)
+> +
+> +#define MANTIS_DMA_TR_UNITS     (MANTIS_BLOCK_BYTES / MANTIS_DMA_TR_BYTES)
+> +/* MANTIS_BUF_SIZE / MANTIS_DMA_TR_UNITS must not exceed MANTIS_RISC_SIZE (4k RISC cmd buffer) */
+> +#define MANTIS_RISC_SIZE	PAGE_SIZE /* RISC program must fit here. */
+>  
+>  int mantis_dma_exit(struct mantis_pci *mantis)
+>  {
+> @@ -124,27 +128,6 @@ err:
+>  	return -ENOMEM;
+>  }
+>  
+> -static inline int mantis_calc_lines(struct mantis_pci *mantis)
+> -{
+> -	mantis->line_bytes = MANTIS_BLOCK_BYTES;
+> -	mantis->line_count = MANTIS_BLOCK_COUNT;
+> -
+> -	while (mantis->line_bytes > 4095) {
+> -		mantis->line_bytes >>= 1;
+> -		mantis->line_count <<= 1;
+> -	}
+> -
+> -	dprintk(MANTIS_DEBUG, 1, "Mantis RISC block bytes=[%d], line bytes=[%d], line count=[%d]",
+> -		MANTIS_BLOCK_BYTES, mantis->line_bytes, mantis->line_count);
+> -
+> -	if (mantis->line_count > 255) {
+> -		dprintk(MANTIS_ERROR, 1, "Buffer size error");
+> -		return -EINVAL;
+> -	}
+> -
+> -	return 0;
+> -}
+> -
+>  int mantis_dma_init(struct mantis_pci *mantis)
+>  {
+>  	int err = 0;
+> @@ -158,12 +141,6 @@ int mantis_dma_init(struct mantis_pci *mantis)
+>  
+>  		goto err;
+>  	}
+> -	err = mantis_calc_lines(mantis);
+> -	if (err < 0) {
+> -		dprintk(MANTIS_ERROR, 1, "Mantis calc lines failed");
+> -
+> -		goto err;
+> -	}
+>  
+>  	return 0;
+>  err:
+> @@ -174,31 +151,32 @@ EXPORT_SYMBOL_GPL(mantis_dma_init);
+>  static inline void mantis_risc_program(struct mantis_pci *mantis)
+>  {
+>  	u32 buf_pos = 0;
+> -	u32 line;
+> +	u32 line, step;
+> +	u32 risc_pos;
+>  
+>  	dprintk(MANTIS_DEBUG, 1, "Mantis create RISC program");
+> -	RISC_FLUSH();
+> -
+> -	dprintk(MANTIS_DEBUG, 1, "risc len lines %u, bytes per line %u",
+> -		mantis->line_count, mantis->line_bytes);
+> -
+> -	for (line = 0; line < mantis->line_count; line++) {
+> -		dprintk(MANTIS_DEBUG, 1, "RISC PROG line=[%d]", line);
+> -		if (!(buf_pos % MANTIS_BLOCK_BYTES)) {
+> -			RISC_INSTR(RISC_WRITE	|
+> -				   RISC_IRQ	|
+> -				   RISC_STATUS(((buf_pos / MANTIS_BLOCK_BYTES) +
+> -				   (MANTIS_BLOCK_COUNT - 1)) %
+> -				    MANTIS_BLOCK_COUNT) |
+> -				    mantis->line_bytes);
+> -		} else {
+> -			RISC_INSTR(RISC_WRITE	| mantis->line_bytes);
+> -		}
+> -		RISC_INSTR(mantis->buf_dma + buf_pos);
+> -		buf_pos += mantis->line_bytes;
+> +	RISC_FLUSH(risc_pos);
+> +
+> +	dprintk(MANTIS_DEBUG, 1, "risc len lines %u, bytes per line %u, bytes per DMA tr %u",
+> +		MANTIS_BLOCK_COUNT, MANTIS_BLOCK_BYTES, MANTIS_DMA_TR_BYTES);
+> +
+> +	for (line = 0; line < MANTIS_BLOCK_COUNT; line++) {
+> +		for (step = 0; step < MANTIS_DMA_TR_UNITS; step++) {
+> +			dprintk(MANTIS_DEBUG, 1, "RISC PROG line=[%d], step=[%d]", line, step);
+> +			if (step == 0) {
+> +				RISC_INSTR(risc_pos, RISC_WRITE	|
+> +					   RISC_IRQ	|
+> +					   RISC_STATUS(line) |
+> +					   MANTIS_DMA_TR_BYTES);
+> +			} else {
+> +				RISC_INSTR(risc_pos, RISC_WRITE | MANTIS_DMA_TR_BYTES);
+> +			}
+> +			RISC_INSTR(risc_pos, mantis->buf_dma + buf_pos);
+> +			buf_pos += MANTIS_DMA_TR_BYTES;
+> +		  }
+>  	}
+> -	RISC_INSTR(RISC_JUMP);
+> -	RISC_INSTR(mantis->risc_dma);
+> +	RISC_INSTR(risc_pos, RISC_JUMP);
+> +	RISC_INSTR(risc_pos, mantis->risc_dma);
+>  }
+>  
+>  void mantis_dma_start(struct mantis_pci *mantis)
+> @@ -210,7 +188,7 @@ void mantis_dma_start(struct mantis_pci *mantis)
+>  	mmwrite(mmread(MANTIS_GPIF_ADDR) | MANTIS_GPIF_HIFRDWRN, MANTIS_GPIF_ADDR);
+>  
+>  	mmwrite(0, MANTIS_DMA_CTL);
+> -	mantis->last_block = mantis->finished_block = 0;
+> +	mantis->last_block = mantis->busy_block = 0;
+>  
+>  	mmwrite(mmread(MANTIS_INT_MASK) | MANTIS_INT_RISCI, MANTIS_INT_MASK);
+>  
+> @@ -245,9 +223,9 @@ void mantis_dma_xfer(unsigned long data)
+>  	struct mantis_pci *mantis = (struct mantis_pci *) data;
+>  	struct mantis_hwconfig *config = mantis->hwconfig;
+>  
+> -	while (mantis->last_block != mantis->finished_block) {
+> +	while (mantis->last_block != mantis->busy_block) {
+>  		dprintk(MANTIS_DEBUG, 1, "last block=[%d] finished block=[%d]",
+> -			mantis->last_block, mantis->finished_block);
+> +			mantis->last_block, mantis->busy_block);
+>  
+>  		(config->ts_size ? dvb_dmx_swfilter_204 : dvb_dmx_swfilter)
+>  		(&mantis->demux, &mantis->buf_cpu[mantis->last_block * MANTIS_BLOCK_BYTES], MANTIS_BLOCK_BYTES);
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
+
