@@ -1,75 +1,98 @@
 Return-path: <mchehab@pedra>
-Received: from smtp-vbr6.xs4all.nl ([194.109.24.26]:3838 "EHLO
-	smtp-vbr6.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756593Ab1F0Fiv (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 27 Jun 2011 01:38:51 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-Subject: Re: [PATCH] [media] v4l2 core: return -ENOIOCTLCMD if an ioctl doesn't exist
-Date: Mon, 27 Jun 2011 07:38:27 +0200
-Cc: Arnd Bergmann <arnd@arndb.de>, Sakari Ailus <sakari.ailus@iki.fi>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
-	Linus Torvalds <torvalds@linux-foundation.org>
-References: <4E0519B7.3000304@redhat.com> <201106262020.20432.arnd@arndb.de> <4E077FB9.7030600@redhat.com>
-In-Reply-To: <4E077FB9.7030600@redhat.com>
+Received: from mail-ey0-f174.google.com ([209.85.215.174]:41989 "EHLO
+	mail-ey0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755757Ab1FESLs convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sun, 5 Jun 2011 14:11:48 -0400
+Received: by eyx24 with SMTP id 24so1140574eyx.19
+        for <linux-media@vger.kernel.org>; Sun, 05 Jun 2011 11:11:47 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201106270738.27417.hverkuil@xs4all.nl>
+In-Reply-To: <4DEBB18A.4020504@redhat.com>
+References: <4DEB7E9E.6040102@redhat.com>
+	<4DEB8B7E.6070507@redhat.com>
+	<4DEB9D32.2070105@mailbox.hu>
+	<4DEBB18A.4020504@redhat.com>
+Date: Sun, 5 Jun 2011 14:11:46 -0400
+Message-ID: <BANLkTikK4PsBkUkC_99F92H3A=ubxYo4Bw@mail.gmail.com>
+Subject: Re: xc4000 patches folded
+From: Devin Heitmueller <dheitmueller@kernellabs.com>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Istvan Varga <istvan_v@mailbox.hu>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Sunday, June 26, 2011 20:51:37 Mauro Carvalho Chehab wrote:
-> Em 26-06-2011 15:20, Arnd Bergmann escreveu:
-> > On Sunday 26 June 2011 19:30:46 Mauro Carvalho Chehab wrote:
-> >>> There was a lot of debate whether undefined ioctls on non-ttys should
-> >>> return -EINVAL or -ENOTTY, including mass-conversions from -ENOTTY to
-> >>> -EINVAL at some point in the pre-git era, IIRC.
-> >>>
-> >>> Inside of v4l2, I believe this is handled by video_usercopy(), which
-> >>> turns the driver's -ENOIOCTLCMD into -ENOTTY. What cases do you observe
-> >>> where this is not done correctly and we do return ENOIOCTLCMD to
-> >>> vfs_ioctl?
-> >>
-> >> Well, currently, it is returning -EINVAL maybe due to the mass-conversions
-> >> you've mentioned.
-> > 
-> > I mean what do you return *to* vfs_ioctl from v4l? The conversions must
-> > have been long before we introduced compat_ioctl and ENOIOCTLCMD.
-> > 
-> > As far as I can tell, video_ioctl2 has always converted ENOIOCTLCMD into
-> > EINVAL, so changing the vfs functions would not have any effect.
-> 
-> Yes.  This discussion was originated by a RFC patch proposing to change 
-> video_ioctl2 to return -ENOIOCTLCMD instead of -EINVAL.
-> 
-> >> The point is that -EINVAL has too many meanings at V4L. It currently can be
-> >> either that an ioctl is not supported, or that one of the parameters had
-> >> an invalid parameter. If the userspace can't distinguish between an unimplemented
-> >> ioctl and an invalid parameter, it can't decide if it needs to fall back to
-> >> some different methods of handling a V4L device.
-> >>
-> >> Maybe the answer would be to return -ENOTTY when an ioctl is not implemented.
-> > 
-> > That is what a lot of subsystems do these days. But wouldn't that change
-> > your ABI?
-> 
-> Yes. The patch in question is also changing the DocBook spec for the ABI. We'll
-> likely need to drop some notes about that at the features-to-be-removed.txt.
-> 
-> I don't think that applications are relying at -EINVAL in order to detect if
-> an ioctl is not supported, but before merging such patch, we need to double-check.
+On Sunday, June 5, 2011, Mauro Carvalho Chehab <mchehab@redhat.com> wrote:
+> Em 05-06-2011 12:13, Istvan Varga escreveu:
+>> On 06/05/2011 03:58 PM, Mauro Carvalho Chehab wrote:
+>>
+>>> Don't add \n\t\t at the beginning of the param_desc. Even the extra \t and \n
+>>> format stuff in the middle of the description is unusual. It is better to avoid,
+>>> as it may break scripts.
+>>
+>> OK, I will remove the tabs. Is the use of \n allowed in the description?
+>
+> Never saw \n on a param description. The description is generally just a
+> summary. The full parameters description should be at
+> Documentation/kernel-parameters.txt (although, unfortunately, people
+> generally forget to update the parameters there).
+>
+>>> Please put all parameters together.
+>>
+>> Does this mean that the macro definitions should be moved from between
+>> the parameter definitions ?
+>
+> We generally put macro definitions after that. Some drivers just move all
+> parameters to the end of the file.
+>
+>>> Don't add a card_type. Just add the features that are needed for
+>>> XC4000_CARD_WINFAST_CX88 to work.
+>>
+>> Yes, this is a change I have already planned. The following parameters
+>> will be added to the priv and config structures:
+>>   - the default enabling of power management
+>>   - amplitude for DVB-T
+>> The other conditionals might not actually be necessary, they were just
+>> added to avoid changing the behavior of the driver with the PCTV 340e
+>> which I cannot test.
+>
+> Ok. Well, we can ask Devin or one of the PCTV owners to test.
+>
+>> A third parameter could be added to enable/disable
+>> the use of XREG_SMOOTHEDCVBS, although it is not really needed with the
+>> currently supported cards (always enabling it should not be a problem).
+>
+> Ok.
+>
+>>> Please use a generic parameter. In this case, it seems that it is just
+>>> disabling one video mode. I don't think you need this here, as the better
+>>> is to disable such video mode in cx88. Hard to tell without seeing the
+>>> cx88 code that adds support for the Winfast xc4000-based card.
+>>
+>> I do not think making it card-specific is really needed. It is probably
+>> best to just remove the card_type check here. Also, the code is there
+>> only to improve support for old (1.2) firmware versions.
+>
+> Ok.
+>
+>> For xc4000.c and xc4000.h, is it enough to create the following three
+>> patches, or should the changes be broken up into more smaller patches ?
+>>   - removing the use of card_type
+>>   - uncommenting the firmware version check
+>>   - coding style / cleanup
+>
+> I think so.
+>
+> Ah, we need also to work at the firmware stuff. The better is to add the
+> firmware files at the firmware tree, at kernel.org. If this is not possible,
+> then we need to work on another way to provide it.
 
-I really don't think we can change this behavior. It's been part of the spec since
-forever and it is not just open source apps that can rely on this, but also closed
-source. Making an ABI change like this can really mess up applications.
+I'll be working with Istvan on this.  I secured the redistribution
+rights with xceive so this shouldn't be an issue.
 
-We should instead review the spec and ensure that applications can discover what
-is and what isn't supported through e.g. capabilities.
+Devin
 
-Regards,
-
-	Hans
+-- 
+Devin J. Heitmueller - Kernel Labs
+http://www.kernellabs.com
