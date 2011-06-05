@@ -1,45 +1,90 @@
 Return-path: <mchehab@pedra>
-Received: from moutng.kundenserver.de ([212.227.17.8]:49355 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751695Ab1FFRPV (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 6 Jun 2011 13:15:21 -0400
-Received: from localhost (localhost [127.0.0.1])
-	by axis700.grange (Postfix) with ESMTP id F3822189B77
-	for <linux-media@vger.kernel.org>; Mon,  6 Jun 2011 19:15:19 +0200 (CEST)
-Date: Mon, 6 Jun 2011 19:15:19 +0200 (CEST)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: [PATCH] V4L: sh_mobile_ceu_camera: remove redundant calculations
-Message-ID: <Pine.LNX.4.64.1106061912320.11169@axis700.grange>
+Received: from mx1.redhat.com ([209.132.183.28]:7020 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756108Ab1FEMwZ (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 5 Jun 2011 08:52:25 -0400
+Message-ID: <4DEB7C01.3050905@redhat.com>
+Date: Sun, 05 Jun 2011 09:52:17 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+To: =?UTF-8?B?RGF2aWQgSMOkcmRlbWFu?= <david@hardeman.nu>
+CC: linux-media@vger.kernel.org, skandalfo@gmail.com
+Subject: Re: [PATCH] rc-core: fix winbond-cir issues
+References: <20110330141952.11373.16400.stgit@felix.hardeman.nu>
+In-Reply-To: <20110330141952.11373.16400.stgit@felix.hardeman.nu>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-soc_camera core now performs the standard .bytesperline and .sizeimage
-calculations internally, no need to duplicate in drivers.
+Em 30-03-2011 11:20, David Härdeman escreveu:
+> The conversion of winbond-cir to use rc-core seems to have missed a
+> a few bits and pieces which were in my local tree. Kudos to
+> Juan Jesús García de Soria Lucena <skandalfo@gmail.com> for noticing.
+> 
+> Signed-off-by: David Härdeman <david@hardeman.nu>
 
-Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
----
- drivers/media/video/sh_mobile_ceu_camera.c |    5 -----
- 1 files changed, 0 insertions(+), 5 deletions(-)
+Hi David,
 
-diff --git a/drivers/media/video/sh_mobile_ceu_camera.c b/drivers/media/video/sh_mobile_ceu_camera.c
-index 3ae5c9c..b08debc 100644
---- a/drivers/media/video/sh_mobile_ceu_camera.c
-+++ b/drivers/media/video/sh_mobile_ceu_camera.c
-@@ -1701,11 +1701,6 @@ static int sh_mobile_ceu_try_fmt(struct soc_camera_device *icd,
- 	width = pix->width;
- 	height = pix->height;
- 
--	pix->bytesperline = soc_mbus_bytes_per_line(width, xlate->host_fmt);
--	if ((int)pix->bytesperline < 0)
--		return pix->bytesperline;
--	pix->sizeimage = height * pix->bytesperline;
--
- 	/* limit to sensor capabilities */
- 	mf.width	= pix->width;
- 	mf.height	= pix->height;
--- 
-1.7.2.5
+This patch got missed by patchwork. I'm applying it right now on my tree.
+Please check if is there anything else missed.
+
+Thanks,
+Mauro.
+
+> ---
+>  drivers/media/rc/winbond-cir.c |   20 +++++---------------
+>  1 files changed, 5 insertions(+), 15 deletions(-)
+> 
+> diff --git a/drivers/media/rc/winbond-cir.c b/drivers/media/rc/winbond-cir.c
+> index 186de55..16f4178 100644
+> --- a/drivers/media/rc/winbond-cir.c
+> +++ b/drivers/media/rc/winbond-cir.c
+> @@ -7,7 +7,7 @@
+>   *  with minor modifications.
+>   *
+>   *  Original Author: David H�rdeman <david@hardeman.nu>
+> - *     Copyright (C) 2009 - 2010 David H�rdeman <david@hardeman.nu>
+> + *     Copyright (C) 2009 - 2011 David H�rdeman <david@hardeman.nu>
+>   *
+>   *  Dedicated to my daughter Matilda, without whose loving attention this
+>   *  driver would have been finished in half the time and with a fraction
+> @@ -629,18 +629,8 @@ wbcir_init_hw(struct wbcir_data *data)
+>  	/* prescaler 1.0, tx/rx fifo lvl 16 */
+>  	outb(0x30, data->sbase + WBCIR_REG_SP3_EXCR2);
+>  
+> -	/* Set baud divisor to generate one byte per bit/cell */
+> -	switch (protocol) {
+> -	case IR_PROTOCOL_RC5:
+> -		outb(0xA7, data->sbase + WBCIR_REG_SP3_BGDL);
+> -		break;
+> -	case IR_PROTOCOL_RC6:
+> -		outb(0x53, data->sbase + WBCIR_REG_SP3_BGDL);
+> -		break;
+> -	case IR_PROTOCOL_NEC:
+> -		outb(0x69, data->sbase + WBCIR_REG_SP3_BGDL);
+> -		break;
+> -	}
+> +	/* Set baud divisor to sample every 10 us */
+> +	outb(0x0F, data->sbase + WBCIR_REG_SP3_BGDL);
+>  	outb(0x00, data->sbase + WBCIR_REG_SP3_BGDH);
+>  
+>  	/* Set CEIR mode */
+> @@ -649,9 +639,9 @@ wbcir_init_hw(struct wbcir_data *data)
+>  	inb(data->sbase + WBCIR_REG_SP3_LSR); /* Clear LSR */
+>  	inb(data->sbase + WBCIR_REG_SP3_MSR); /* Clear MSR */
+>  
+> -	/* Disable RX demod, run-length encoding/decoding, set freq span */
+> +	/* Disable RX demod, enable run-length enc/dec, set freq span */
+>  	wbcir_select_bank(data, WBCIR_BANK_7);
+> -	outb(0x10, data->sbase + WBCIR_REG_SP3_RCCFG);
+> +	outb(0x90, data->sbase + WBCIR_REG_SP3_RCCFG);
+>  
+>  	/* Disable timer */
+>  	wbcir_select_bank(data, WBCIR_BANK_4);
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
