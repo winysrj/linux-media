@@ -1,72 +1,152 @@
 Return-path: <mchehab@pedra>
-Received: from wolverine02.qualcomm.com ([199.106.114.251]:53042 "EHLO
-	wolverine02.qualcomm.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752180Ab1FPRBf (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 16 Jun 2011 13:01:35 -0400
-Date: Thu, 16 Jun 2011 10:01:33 -0700
-From: Larry Bassel <lbassel@codeaurora.org>
-To: Arnd Bergmann <arnd@arndb.de>
-Cc: Larry Bassel <lbassel@codeaurora.org>,
-	Marek Szyprowski <m.szyprowski@samsung.com>,
-	'Zach Pfeffer' <zach.pfeffer@linaro.org>,
-	'Daniel Walker' <dwalker@codeaurora.org>,
-	'Daniel Stone' <daniels@collabora.com>,
-	'Jesse Barker' <jesse.barker@linaro.org>,
-	'Mel Gorman' <mel@csn.ul.ie>,
-	'KAMEZAWA Hiroyuki' <kamezawa.hiroyu@jp.fujitsu.com>,
-	linux-kernel@vger.kernel.org,
-	'Michal Nazarewicz' <mina86@mina86.com>,
-	linaro-mm-sig@lists.linaro.org, linux-mm@kvack.org,
-	'Kyungmin Park' <kyungmin.park@samsung.com>,
-	'Ankita Garg' <ankita@in.ibm.com>,
-	'Andrew Morton' <akpm@linux-foundation.org>,
-	linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org
-Subject: Re: [Linaro-mm-sig] [PATCH 08/10] mm: cma: Contiguous Memory
- Allocator added
-Message-ID: <20110616170133.GC28032@labbmf-linux.qualcomm.com>
-References: <1307699698-29369-1-git-send-email-m.szyprowski@samsung.com>
- <000901cc2b37$4c21f030$e465d090$%szyprowski@samsung.com>
- <20110615213958.GB28032@labbmf-linux.qualcomm.com>
- <201106160006.07742.arnd@arndb.de>
+Received: from smtp-68.nebula.fi ([83.145.220.68]:53511 "EHLO
+	smtp-68.nebula.fi" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751211Ab1FEMDv (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sun, 5 Jun 2011 08:03:51 -0400
+Date: Sun, 5 Jun 2011 15:03:47 +0300
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: "HeungJun, Kim" <riverful.kim@samsung.com>
+Cc: linux-media@vger.kernel.org, mchehab@infradead.org,
+	s.nawrocki@samsung.com, Kyungmin Park <kyungmin.park@samsung.com>
+Subject: Re: [PATCH v2 3/4] m5mols: remove union in the
+ m5mols_get_version(), and VERSION_SIZE
+Message-ID: <20110605120347.GD6073@valkosipuli.localdomain>
+References: <1306501095-28267-1-git-send-email-riverful.kim@samsung.com>
+ <1306827362-4064-4-git-send-email-riverful.kim@samsung.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <201106160006.07742.arnd@arndb.de>
+In-Reply-To: <1306827362-4064-4-git-send-email-riverful.kim@samsung.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On 16 Jun 11 00:06, Arnd Bergmann wrote:
-> On Wednesday 15 June 2011 23:39:58 Larry Bassel wrote:
-> > On 15 Jun 11 10:36, Marek Szyprowski wrote:
-> > > On Tuesday, June 14, 2011 10:42 PM Arnd Bergmann wrote:
-> > > 
-> > > > On Tuesday 14 June 2011 20:58:25 Zach Pfeffer wrote:
-> > > > > I've seen this split bank allocation in Qualcomm and TI SoCs, with
-> > > > > Samsung, that makes 3 major SoC vendors (I would be surprised if
-> > > > > Nvidia didn't also need to do this) - so I think some configurable
-> > > > > method to control allocations is necessarily. The chips can't do
-> > > > > decode without it (and by can't do I mean 1080P and higher decode is
-> > > > > not functionally useful). Far from special, this would appear to be
-> > > > > the default.
-> > 
-> > We at Qualcomm have some platforms that have memory of different
-> > performance characteristics, some drivers will need a way of
-> > specifying that they need fast memory for an allocation (and would prefer
-> > an error if it is not available rather than a fallback to slower
-> > memory). It would also be bad if allocators who don't need fast
-> > memory got it "accidentally", depriving those who really need it.
+Hi HeungJun,
+
+Thanks for the patch.
+
+On Tue, May 31, 2011 at 04:36:01PM +0900, HeungJun, Kim wrote:
+> Remove union version in the m5mols_get_version(), and read version information
+> directly. Also remove VERSION_SIZE.
 > 
-> Can you describe how the memory areas differ specifically?
-> Is there one that is always faster but very small, or are there
-> just specific circumstances under which some memory is faster than
-> another?
+> Signed-off-by: HeungJun, Kim <riverful.kim@samsung.com>
+> Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+> ---
+>  drivers/media/video/m5mols/m5mols.h      |    1 -
+>  drivers/media/video/m5mols/m5mols_core.c |   42 +++++++++++++++---------------
+>  drivers/media/video/m5mols/m5mols_reg.h  |   13 ++++++++-
+>  3 files changed, 33 insertions(+), 23 deletions(-)
+> 
+> diff --git a/drivers/media/video/m5mols/m5mols.h b/drivers/media/video/m5mols/m5mols.h
+> index dbe8928..9ae1709 100644
+> --- a/drivers/media/video/m5mols/m5mols.h
+> +++ b/drivers/media/video/m5mols/m5mols.h
+> @@ -154,7 +154,6 @@ struct m5mols_version {
+>  	u8	str[VERSION_STRING_SIZE];
+>  	u8	af;
+>  };
+> -#define VERSION_SIZE sizeof(struct m5mols_version)
+>  
+>  /**
+>   * struct m5mols_info - M-5MOLS driver data structure
+> diff --git a/drivers/media/video/m5mols/m5mols_core.c b/drivers/media/video/m5mols/m5mols_core.c
+> index 2b1f23f..8ccab95 100644
+> --- a/drivers/media/video/m5mols/m5mols_core.c
+> +++ b/drivers/media/video/m5mols/m5mols_core.c
+> @@ -386,33 +386,33 @@ int m5mols_mode(struct m5mols_info *info, u8 mode)
+>  static int m5mols_get_version(struct v4l2_subdev *sd)
+>  {
+>  	struct m5mols_info *info = to_m5mols(sd);
+> -	union {
+> -		struct m5mols_version ver;
+> -		u8 bytes[VERSION_SIZE];
+> -	} version;
+> -	u8 cmd = CAT0_VER_CUSTOMER;
+> +	struct m5mols_version *ver = &info->ver;
+> +	u8 *str = ver->str;
+> +	int i;
+>  	int ret;
+>  
+> -	do {
+> -		ret = m5mols_read_u8(sd, SYSTEM_CMD(cmd), &version.bytes[cmd]);
+> -		if (ret)
+> -			return ret;
+> -	} while (cmd++ != CAT0_VER_AWB);
+> +	ret = m5mols_read_u8(sd, SYSTEM_VER_CUSTOMER, &ver->customer);
+> +	if (!ret)
+> +		ret = m5mols_read_u8(sd, SYSTEM_VER_PROJECT, &ver->project);
+> +	if (!ret)
+> +		ret = m5mols_read_u16(sd, SYSTEM_VER_FIRMWARE, &ver->fw);
+> +	if (!ret)
+> +		ret = m5mols_read_u16(sd, SYSTEM_VER_HARDWARE, &ver->hw);
+> +	if (!ret)
+> +		ret = m5mols_read_u16(sd, SYSTEM_VER_PARAMETER, &ver->param);
+> +	if (!ret)
+> +		ret = m5mols_read_u16(sd, SYSTEM_VER_AWB, &ver->awb);
+> +	if (!ret)
+> +		ret = m5mols_read_u8(sd, AF_VERSION, &ver->af);
+> +	if (ret)
+> +		return ret;
+>  
+> -	do {
+> -		ret = m5mols_read_u8(sd, SYSTEM_VER_STRING, &version.bytes[cmd]);
+> +	for (i = 0; i < VERSION_STRING_SIZE; i++) {
+> +		ret = m5mols_read_u8(sd, SYSTEM_VER_STRING, &str[i]);
+>  		if (ret)
+>  			return ret;
+> -		if (cmd >= VERSION_SIZE - 1)
+> -			return -EINVAL;
+> -	} while (version.bytes[cmd++]);
+> -
+> -	ret = m5mols_read_u8(sd, AF_VERSION, &version.bytes[cmd]);
+> -	if (ret)
+> -		return ret;
+> +	}
+>  
+> -	/* store version information swapped for being readable */
+> -	info->ver	= version.ver;
+>  	info->ver.fw	= be16_to_cpu(info->ver.fw);
+>  	info->ver.hw	= be16_to_cpu(info->ver.hw);
+>  	info->ver.param	= be16_to_cpu(info->ver.param);
 
-One is always faster, but very small (generally 2-10% the size
-of "normal" memory).
+As you have a local variable ver pointing to info->ver, you should also use
+it here.
 
-Larry
+> diff --git a/drivers/media/video/m5mols/m5mols_reg.h b/drivers/media/video/m5mols/m5mols_reg.h
+> index 8260f50..5f5bdcf 100644
+> --- a/drivers/media/video/m5mols/m5mols_reg.h
+> +++ b/drivers/media/video/m5mols/m5mols_reg.h
+> @@ -56,13 +56,24 @@
+>   * more specific contents, see definition if file m5mols.h.
+>   */
+>  #define CAT0_VER_CUSTOMER	0x00	/* customer version */
+> -#define CAT0_VER_AWB		0x09	/* Auto WB version */
+> +#define CAT0_VER_PROJECT	0x01	/* project version */
+> +#define CAT0_VER_FIRMWARE	0x02	/* Firmware version */
+> +#define CAT0_VER_HARDWARE	0x04	/* Hardware version */
+> +#define CAT0_VER_PARAMETER	0x06	/* Parameter version */
+> +#define CAT0_VER_AWB		0x08	/* Auto WB version */
+>  #define CAT0_VER_STRING		0x0a	/* string including M-5MOLS */
+>  #define CAT0_SYSMODE		0x0b	/* SYSTEM mode register */
+>  #define CAT0_STATUS		0x0c	/* SYSTEM mode status register */
+>  #define CAT0_INT_FACTOR		0x10	/* interrupt pending register */
+>  #define CAT0_INT_ENABLE		0x11	/* interrupt enable register */
+>  
+> +#define SYSTEM_VER_CUSTOMER	I2C_REG(CAT_SYSTEM, CAT0_VER_CUSTOMER, 1)
+> +#define SYSTEM_VER_PROJECT	I2C_REG(CAT_SYSTEM, CAT0_VER_PROJECT, 1)
+> +#define SYSTEM_VER_FIRMWARE	I2C_REG(CAT_SYSTEM, CAT0_VER_FIRMWARE, 2)
+> +#define SYSTEM_VER_HARDWARE	I2C_REG(CAT_SYSTEM, CAT0_VER_HARDWARE, 2)
+> +#define SYSTEM_VER_PARAMETER	I2C_REG(CAT_SYSTEM, CAT0_VER_PARAMETER, 2)
+> +#define SYSTEM_VER_AWB		I2C_REG(CAT_SYSTEM, CAT0_VER_AWB, 2)
+> +
+>  #define SYSTEM_SYSMODE		I2C_REG(CAT_SYSTEM, CAT0_SYSMODE, 1)
+>  #define REG_SYSINIT		0x00	/* SYSTEM mode */
+>  #define REG_PARAMETER		0x01	/* PARAMETER mode */
+> -- 
+> 1.7.0.4
+> 
+
+Cheers,
 
 -- 
-Sent by an employee of the Qualcomm Innovation Center, Inc.
-The Qualcomm Innovation Center, Inc. is a member of the Code Aurora Forum.
+Sakari Ailus
+sakari dot ailus at iki dot fi
