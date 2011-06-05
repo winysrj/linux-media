@@ -1,92 +1,76 @@
 Return-path: <mchehab@pedra>
-Received: from smtp-vbr10.xs4all.nl ([194.109.24.30]:2328 "EHLO
-	smtp-vbr10.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758065Ab1F1OBj (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 28 Jun 2011 10:01:39 -0400
-Received: from tschai.localnet (64-103-25-233.cisco.com [64.103.25.233])
-	(authenticated bits=0)
-	by smtp-vbr10.xs4all.nl (8.13.8/8.13.8) with ESMTP id p5SE1cHa042726
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-media@vger.kernel.org>; Tue, 28 Jun 2011 16:01:38 +0200 (CEST)
-	(envelope-from hverkuil@xs4all.nl)
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: [GIT PATCHES FOR 3.1] Add Control Event and autofoo/foo support
-Date: Tue, 28 Jun 2011 16:01:37 +0200
+Received: from mx1.redhat.com ([209.132.183.28]:37766 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755889Ab1FEM4R (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 5 Jun 2011 08:56:17 -0400
+Message-ID: <4DEB7CEC.9090305@redhat.com>
+Date: Sun, 05 Jun 2011 09:56:12 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201106281601.37915.hverkuil@xs4all.nl>
+To: Istvan Varga <istvan_v@mailbox.hu>
+CC: linux-media@vger.kernel.org
+Subject: Re: XC4000: setting registers
+References: <4D764337.6050109@email.cz>	<20110531124843.377a2a80@glory.local>	<BANLkTi=Lq+FF++yGhRmOa4NCigSt6ZurHg@mail.gmail.com>	<20110531174323.0f0c45c0@glory.local> <BANLkTimEEGsMP6PDXf5W5p9wW7wdWEEOiA@mail.gmail.com> <4DEA4B6A.70602@mailbox.hu> <4DEB710B.4090704@redhat.com> <4DEB766D.4040509@mailbox.hu>
+In-Reply-To: <4DEB766D.4040509@mailbox.hu>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 8bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Hi Mauro,
+Em 05-06-2011 09:28, Istvan Varga escreveu:
+> On 06/05/2011 02:05 PM, Mauro Carvalho Chehab wrote:
+> 
+>> This one breaks compilation:
+>>
+>> drivers/media/common/tuners/xc4000.c: In function
+> ‘xc4000_set_analog_params’:
+>> drivers/media/common/tuners/xc4000.c:1340: error: ‘type’ undeclared
+> (first use in this function)
+>> drivers/media/common/tuners/xc4000.c:1340: error: (Each undeclared
+> identifier is reported only once
+>> drivers/media/common/tuners/xc4000.c:1340: error: for each function it
+> appears in.)
+>> make[3]: ** [drivers/media/common/tuners/xc4000.o] Erro 1
+>> make[2]: ** [drivers/media/common/tuners] Erro 2
+>> make[1]: ** [drivers/media/common] Erro 2
+>> make: ** [drivers/media/] Erro 2
+> 
+> Yes, it depends on the 'unsigned int type = 0;' declaration that is in
+> the xc4000_analog.patch posted later. Sorry for this mistake. Although
+> perhaps it would have been a better idea to make all the changes to
+> xc4000_set_analog_params() in the analog patch as well, since the
+> function does not work correctly until that is applied.
 
-This is the same as the first pull request, except for:
+Ok.
 
-- the poll patch has been removed (to be discussed further)
-- the corresponding poll changes in ivtv were removed (pending same
-  discussion).
-- a new patch has been added that fixes your manual_mode_value comments.
+It is a good idea to number a series of patches, for me to apply them
+at the right order ;)
+> 
+>> I didn't made any review of them. Please let me know when you finish
+>> submitting the patches for me to do a review at the resulting code.
+> 
+> For now, I do not have more patches. I will wait for the modified code
+> to appear on GIT, and use that as a base for further patches.
 
-Note that I have left out the 'event feedback' fix in this patch series.
-I'm going to make a patch for the second patch series instead: it's much
-easier to implement there (that may have been a reason why I didn't
-implement such a flag in the first place). I'll post that fix later for
-review.
+Ok, just pushed it (I forgot to use the -f tag). Please double check
+if the code is working on the devices you have.
 
-Regards,
+>> Ah, I'd appreciate if you could fix your emails. It takes me some
+>> time to reformat the patches, as you're sending the patches as
+>> attachments, but my email scripts aren't ready for patches with
+>> multiple mime types. Patchwork might help, but it also got only 4
+>> patches from you (not sure if this is due to patchwork bugs or due to
+>> the attachments). It also helps if you could add [PATCH] at the email
+>> subject. I'm setting a backup process due to the constant patchwork
+>> failures, but my alternative logic relies on having [PATCH] at the
+>> subject logic, to move the patches into a separate mail directory.
+> 
+> OK, I have changed the name in "from", and will send any later patches
+> as plain text with [PATCH] in the subject. Should I re-send the previous
+> patches in this format ?
 
-        Hans
+No, there's no need. I'll get a diff from all those x4000 series any post
+a review about the entire series, as if it were just one big patch.
 
-The following changes since commit 7023c7dbc3944f42aa1d6910a6098c5f9e23d3f1:
-
-  [media] DVB: dvb-net, make the kconfig text helpful (2011-06-21 15:55:15 -0300)
-
-are available in the git repository at:
-  ssh://linuxtv.org/git/hverkuil/media_tree.git core8b
-
-Hans Verkuil (18):
-      v4l2-ctrls: introduce call_op define
-      v4l2-ctrls: simplify error_idx handling.
-      v4l2-ctrls: drivers should be able to ignore the READ_ONLY flag
-      v4l2-ioctl: add ctrl_handler to v4l2_fh
-      v4l2-subdev: implement per-filehandle control handlers.
-      v4l2-ctrls: fix and improve volatile control handling.
-      v4l2-controls.txt: update to latest v4l2-ctrl.c changes.
-      v4l2-ctrls: add v4l2_ctrl_auto_cluster to simplify autogain/gain scenarios
-      DocBook: Improve cluster documentation and document the new autoclusters.
-      vivi: add autogain/gain support to test the autocluster functionality.
-      v4l2-ctrls: add v4l2_fh pointer to the set control functions.
-      v4l2-ctrls: add control events.
-      v4l2-ctrls: simplify event subscription.
-      V4L2 spec: document control events.
-      vivi: support control events.
-      ivtv: add control event support.
-      v4l2-compat-ioctl32: add VIDIOC_DQEVENT support.
-      v4l2-ctrls: make manual_mode_value 8 bits and check against control range.
-
- Documentation/DocBook/media/v4l/vidioc-dqevent.xml |   17 +-
- .../DocBook/media/v4l/vidioc-subscribe-event.xml   |  142 +++++++++-
- Documentation/video4linux/v4l2-controls.txt        |   69 ++++-
- drivers/media/radio/radio-wl1273.c                 |    2 +-
- drivers/media/radio/wl128x/fmdrv_v4l2.c            |    2 +-
- drivers/media/video/ivtv/ivtv-fileops.c            |   11 +-
- drivers/media/video/ivtv/ivtv-ioctl.c              |    2 +
- drivers/media/video/saa7115.c                      |    4 +-
- drivers/media/video/v4l2-compat-ioctl32.c          |   37 +++
- drivers/media/video/v4l2-ctrls.c                   |  333 ++++++++++++++++----
- drivers/media/video/v4l2-device.c                  |    1 +
- drivers/media/video/v4l2-event.c                   |  130 ++++++--
- drivers/media/video/v4l2-fh.c                      |    6 +-
- drivers/media/video/v4l2-ioctl.c                   |   40 ++-
- drivers/media/video/v4l2-subdev.c                  |   14 +-
- drivers/media/video/vivi.c                         |   53 +++-
- include/linux/videodev2.h                          |   29 ++-
- include/media/v4l2-ctrls.h                         |   92 +++++-
- include/media/v4l2-event.h                         |    2 +
- include/media/v4l2-fh.h                            |    2 +
- kernel/compat.c                                    |    1 +
- 21 files changed, 842 insertions(+), 147 deletions(-)
+Cheers,
+Mauro
