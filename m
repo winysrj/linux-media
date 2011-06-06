@@ -1,122 +1,43 @@
 Return-path: <mchehab@pedra>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:33857 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753919Ab1F2Py7 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 29 Jun 2011 11:54:59 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Alex Gershgorin <alexg@meprolight.com>
-Subject: Re: FW: OMAP 3 ISP
-Date: Wed, 29 Jun 2011 17:55:06 +0200
-Cc: "'Sakari Ailus'" <sakari.ailus@iki.fi>,
-	"'Michael Jones'" <michael.jones@matrix-vision.de>,
-	"'linux-media@vger.kernel.org'" <linux-media@vger.kernel.org>,
-	"'agersh@rambler.ru'" <agersh@rambler.ru>
-References: <4875438356E7CA4A8F2145FCD3E61C0B2A5D211E43@MEP-EXCH.meprolight.com>
-In-Reply-To: <4875438356E7CA4A8F2145FCD3E61C0B2A5D211E43@MEP-EXCH.meprolight.com>
+Received: from mail-iw0-f174.google.com ([209.85.214.174]:59354 "EHLO
+	mail-iw0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750875Ab1FFI5E (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 6 Jun 2011 04:57:04 -0400
+Received: by iwn34 with SMTP id 34so2950588iwn.19
+        for <linux-media@vger.kernel.org>; Mon, 06 Jun 2011 01:57:04 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-15"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201106291755.07304.laurent.pinchart@ideasonboard.com>
+Date: Mon, 6 Jun 2011 10:57:04 +0200
+Message-ID: <BANLkTik8JCCB2zri7nAmTX+gvUwOunbYcg@mail.gmail.com>
+Subject: EM28188 and TDA18271HDC2
+From: Kristoffer Edwardsson <krisse02@gmail.com>
+To: linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Hi Alex,
+HI
 
-On Wednesday 29 June 2011 15:50:54 Alex Gershgorin wrote:
-> On Wednesday, June 29, 2011 2:33 PM Laurent Pinchart wrote:
-> > On Wednesday 29 June 2011 13:18:10 Alex Gershgorin wrote:
-> > > 
-> > > From previous correspondence:
-> > > 
-> > > My video source is not the video camera and performs many other
-> > > functions.
-> > > 
-> > > For this purpose I have RS232 port.
-> > > 
-> > > As for the video, it runs continuously and is not subject to control
-> > > except for the power supply.
-> > > 
-> > > > As a quick hack, you can create an I2C driver for your video source
-> > > > that doesn't access the device and just returns fixed format and frame
-> > > > size.
-> > > > 
-> > > > The correct fix is to implement support for platform subdevs in the
-> > > > V4L2 core.
-> > > 
-> > > Yes, I wrote a simple driver, now it looks like this:
-> > > 
-> > > [    2.029754] Linux media interface: v0.10
-> > > [    2.034851] Linux video capture interface: v2.00
-> > > [    2.041015] My_probe I2C subdev probed
+I Noticed the em28xx driver in kernel but the EM28188 is not supported.
 
-[snip]
+I dont know if it can be supported but here is some info about the device.
+Its a DVB-CT hybrid device without analog from Sundtek.
 
-> > > [    2.047058] omap3isp omap3isp: Revision 2.0 found
-> > > [    2.052307] omap-iommu omap-iommu.0: isp: version 1.1
-> > > [    2.069854] i2c i2c-3: Failed to register i2c client my-te at 0x21
-> > > -16)
-> > 
-> > Make sure you don't already have an I2C device at address 0x21 on the same
-> > bus.
 
-[snip]
+Device Descriptor:
+  bLength                18
+  bDescriptorType         1
+  bcdUSB               2.00
+  bDeviceClass            0 (Defined at Interface level)
+  bDeviceSubClass         0
+  bDeviceProtocol         0
+  bMaxPacketSize0        64
+  idVendor           0xeb1a eMPIA Technology, Inc.
+  idProduct          0x51b2
+  bcdDevice            1.00
+  iManufacturer           0
+  iProduct                1 USB 28185 Device
+  iSerial                 2 ODVBTB
+  bNumConfigurations      1
+  Configuration Descriptor:
 
-> Here is my platform device registration
-> 
-> #define SENSOR_I2C_BUS_NUM    3
-> 
-> static struct i2c_board_info __initdata camera_i2c_devices[] = {
->       {
->              I2C_BOARD_INFO("my-te", 0x21),
->       },
-> };
-> 
-> static struct isp_subdev_i2c_board_info camera_i2c_subdevs[] = {
->       {
->             .board_info = &camera_i2c_devices[0],
->             .i2c_adapter_id = SENSOR_I2C_BUS_NUM,
->       },
->       { NULL, 0, },
-> };
-> 
-> static struct isp_v4l2_subdevs_group camera_subdevs[] = {
->       {
->             .subdevs = camera_i2c_subdevs,
->             .interface = ISP_INTERFACE_PARALLEL,
->             .bus = {
->                   .parallel = {
->                         .data_lane_shift = 1,
->                         .clk_pol = 0,
->                         .hs_pol  = 0,
->                         .vs_pol  = 0,
->                         .bridge = ISPCTRL_PAR_BRIDGE_DISABLE,
->                   }
->             },
->       },
->       {},
-> };
-> 
-> static struct isp_platform_data isp_platform_data = {
->       .subdevs = camera_subdevs,
-> };
-> 
-> int __init camera_init(void)
-> {       
-> omap_register_i2c_bus(3,camera_i2c_devices,ARRAY_SIZE(camera_i2c_devices))
-> ;
-
-Doesn't omap_register_i2c_bus() take 4 arguments ?
-
-Anyway, you must not register the I2C devices here, they will be registered by 
-the OMAP3 ISP driver. You still need to register the bus though, with the last 
-two arguments sets to NULL, 0.
-
-> return omap3_init_camera(&isp_platform_data);
-> }
-
--- 
-Regards,
-
-Laurent Pinchart
+//Kristoffer
