@@ -1,90 +1,67 @@
 Return-path: <mchehab@pedra>
-Received: from mailout3.w1.samsung.com ([210.118.77.13]:16117 "EHLO
-	mailout3.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751554Ab1FUQHN (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 21 Jun 2011 12:07:13 -0400
-MIME-version: 1.0
-Content-transfer-encoding: 7BIT
-Content-type: text/plain; charset=us-ascii
-Received: from eu_spt1 ([210.118.77.13]) by mailout3.w1.samsung.com
- (Sun Java(tm) System Messaging Server 6.3-8.04 (built Jul 29 2009; 32bit))
- with ESMTP id <0LN500A7TE3Z8UA0@mailout3.w1.samsung.com> for
- linux-media@vger.kernel.org; Tue, 21 Jun 2011 17:07:11 +0100 (BST)
-Received: from linux.samsung.com ([106.116.38.10])
- by spt1.w1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14
- 2004)) with ESMTPA id <0LN500C0FE3YKQ@spt1.w1.samsung.com> for
- linux-media@vger.kernel.org; Tue, 21 Jun 2011 17:07:10 +0100 (BST)
-Date: Tue, 21 Jun 2011 18:07:03 +0200
-From: Marek Szyprowski <m.szyprowski@samsung.com>
-Subject: RE: vb2: holding buffers until after start_streaming()
-In-reply-to: <20110620094838.56daf754@bike.lwn.net>
-To: 'Jonathan Corbet' <corbet@lwn.net>
-Cc: 'Pawel Osciak' <pawel@osciak.com>, linux-media@vger.kernel.org
-Message-id: <005601cc302d$427c0f70$c7742e50$%szyprowski@samsung.com>
-Content-language: pl
-References: <20110617125713.293f484d@bike.lwn.net>
- <BANLkTimPrkXUuTGCfrp8KyqhFNvfjoCzSw@mail.gmail.com>
- <003101cc2f0b$207f9680$617ec380$%szyprowski@samsung.com>
- <20110620094838.56daf754@bike.lwn.net>
+Received: from mxh2.seznam.cz ([77.75.76.26]:48321 "EHLO mxh2.seznam.cz"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750920Ab1FFS0W (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 6 Jun 2011 14:26:22 -0400
+To: linux-media@vger.kernel.org
+Date: Mon, 06 Jun 2011 20:13:29 +0200 (CEST)
+From: Radim <radim100@seznam.cz>
+Subject: =?us-ascii?Q?Last=20key=20repeated=20after=20every=20keypress=20on=20remote=20control=20=28saa7134=20lirc=20devinput=20driver=29?=
+Mime-Version: 1.0
+Message-Id: <22534.4159.11253-14366-1925523856-1307384009@seznam.cz>
+Content-Transfer-Encoding: 7bit
+Content-Type: text/plain;	charset="us-ascii"
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Hello,
+Hello to everybody,
+I was redirected here from lirc mailinglist (reason is at the end).
 
-On Monday, June 20, 2011 5:49 PM Jonathan Corbet wrote:
+I'm asking for any help because I wasn't able to solve
+this problem by my self (and google of course).
+ 
+When I'm testing lirc configuration using irw, last pressed key is repeated
+just befor the new one:
+ 
+after pressing key 1:
+0000000080010002 00 KEY_1 devinput
 
-> On Mon, 20 Jun 2011 07:30:11 +0200
-> Marek Szyprowski <m.szyprowski@samsung.com> wrote:
-> 
-> > Because of that I decided to call start_streaming first, before the
-> > __enqueue_in_driver() to ensure the drivers will get their methods
-> > called always in the same order, whatever used does.
-> 
-> It still seems like the "wrong" order to me; it means that
-> start_streaming() can't actually start streaming.  But, as has been
-> pointed out, the driver can't count on the buffers being there in any
-> case.  This ordering does, at least, expose situations where the driver
-> author didn't think that buffers might not have been queued yet.
-> 
-> (BTW, lest people think I'm complaining too much, let it be said that vb2
-> is, indeed, a big improvement over its predecessor.)
+after pressing key 2:
+0000000080010002 00 KEY_1 devinput
+0000000080010003 00 KEY_2 devinput
 
-I'm aware of this issue and I definitely don't threat your comments as
-complaining. Right now there are just a few drivers that use vb2 so it
-is quite easy to fix or change some design ideas.
+after pressing key 3:
+0000000080010003 00 KEY_2 devinput
+0000000080010004 00 KEY_3 devinput
 
-I've thought a bit more about the current design and I must confess that
-in fact it is suboptimal. Probably during vb2 development I've focused too
-much on vivi and mem2mem devices which were used for testing the framework.
+after pressing key 4:
+0000000080010004 00 KEY_3 devinput
+0000000080010005 00 KEY_4 devinput
 
-Usually for mem2mem case streamon() operations don't touch DMA engines,
-so I've missed the point that DMA engine for typical capture or output
-device should be activated there with some buffers already queued.
-
-Now we also know that there are drivers that may need to start dma engine
-in buffer_queue and stop it in the isr (before buffer_done). Capturing a 
-single frame with camera sensor (taking a picture) is one of such
-examples.
-
-I have an idea to introduce a new flags to let device driver tell vb2
-weather it supports 'streaming without buffers' or not. This way the
-order of operations in vb2_streamon() function can be switched and vb2
-can also return an error if one will try to enable streaming on device
-that cannot do it without buffers pre-queued. This way most of typical
-capture and output drivers will be happy. They will just use the 
-'overwrite last frame' technique to guarantee that there is at least
-one buffer for the dma engine all the time when streaming is enable. 
-Mem2mem (and these special 'streaming without buffers' capable) drivers
-will just set these flags and continue enabling/disabling dma engine 
-per-frame basis.
-
-I will try to post the patches soon.
-
-Best regards
--- 
-Marek Szyprowski
-Samsung Poland R&D Center
+after pressing key 5:
+0000000080010005 00 KEY_4 devinput
+0000000080010006 00 KEY_5 devinput
 
 
+My configuration:
+Archlinux (allways up-to-date)
+Asus MyCinema P7131 with remote control PC-39
+lircd 0.9.0, driver devinput, default config file lirc.conf.devinput
+kernel 2.6.38
 
+# ir-keytable
+Found /sys/class/rc/rc0/ (/dev/input/event5) with:
+       Driver saa7134, table rc-asus-pc39
+       Supported protocols: NEC RC-5 RC-6 JVC SONY LIRC
+       Enabled protocols: RC-5
+       Repeat delay = 500 ms, repeat period = 33 ms
+
+Answare from lirc-mainlinglist (Jarod Wilson):
+Looks like a bug in saa7134-input.c, which doesn't originate in lirc land,
+its from the kernel itself. The more apropos location to tackle this issue
+is linux-media@vger.kernel.org.
+
+I can provide any other listings, just ask for them.
+
+Thank you for any help,
+Radim
