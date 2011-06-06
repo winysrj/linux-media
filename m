@@ -1,78 +1,192 @@
 Return-path: <mchehab@pedra>
-Received: from mailout3.w1.samsung.com ([210.118.77.13]:12722 "EHLO
-	mailout3.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750695Ab1FMG0p convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 13 Jun 2011 02:26:45 -0400
-MIME-version: 1.0
-Content-type: text/plain; charset=iso-8859-2
-Received: from spt2.w1.samsung.com ([210.118.77.13]) by mailout3.w1.samsung.com
- (Sun Java(tm) System Messaging Server 6.3-8.04 (built Jul 29 2009; 32bit))
- with ESMTP id <0LMP00F87TWIWW70@mailout3.w1.samsung.com> for
- linux-media@vger.kernel.org; Mon, 13 Jun 2011 07:26:43 +0100 (BST)
-Received: from linux.samsung.com ([106.116.38.10])
- by spt2.w1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14
- 2004)) with ESMTPA id <0LMP00I1RTWHNV@spt2.w1.samsung.com> for
- linux-media@vger.kernel.org; Mon, 13 Jun 2011 07:26:42 +0100 (BST)
-Date: Mon, 13 Jun 2011 08:26:13 +0200
-From: Marek Szyprowski <m.szyprowski@samsung.com>
-Subject: RE: vb2: about vb2_queue->queued_count
-In-reply-to: <20110610162849.GI15070@pengutronix.de>
-To: =?iso-8859-2?Q?'Uwe_Kleine-K=F6nig'?=
-	<u.kleine-koenig@pengutronix.de>
-Cc: linux-media@vger.kernel.org, kernel@pengutronix.de,
-	'Kyungmin Park' <kyungmin.park@samsung.com>,
-	'Pawel Osciak' <pawel@osciak.com>,
-	'Hans Verkuil' <hverkuil@xs4all.nl>
-Message-id: <006501cc2992$cb5633d0$62029b70$%szyprowski@samsung.com>
-Content-language: pl
-Content-transfer-encoding: 8BIT
-References: <20110608204758.GA15070@pengutronix.de>
- <000b01cc2764$9cf53430$d6df9c90$%szyprowski@samsung.com>
- <20110610162849.GI15070@pengutronix.de>
+Received: from moutng.kundenserver.de ([212.227.126.187]:59140 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753235Ab1FFOhW convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 6 Jun 2011 10:37:22 -0400
+Date: Mon, 6 Jun 2011 16:37:06 +0200 (CEST)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: "Aguirre, Sergio" <saaguirre@ti.com>
+cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	sakari.ailus@maxwell.research.nokia.com,
+	Sylwester Nawrocki <snjw23@gmail.com>,
+	Stan <svarbanov@mm-sol.com>, Hans Verkuil <hansverk@cisco.com>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: Re: [PATCH/RFC] V4L: add media bus configuration subdev operations
+In-Reply-To: <BANLkTi=fMRyKqRTb_Twt9wSt_H9_eg_rrQ@mail.gmail.com>
+Message-ID: <Pine.LNX.4.64.1106061629450.11169@axis700.grange>
+References: <Pine.LNX.4.64.1106061358310.11169@axis700.grange>
+ <BANLkTi=fMRyKqRTb_Twt9wSt_H9_eg_rrQ@mail.gmail.com>
+MIME-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Hello,
+Hi Sergio
 
-On Friday, June 10, 2011 6:29 PM Uwe Kleine-König wrote:
+On Mon, 6 Jun 2011, Aguirre, Sergio wrote:
 
-> On Fri, Jun 10, 2011 at 01:50:37PM +0200, Marek Szyprowski wrote:
-> > Hello,
+> Hi Guennadi,
+> 
+> Thanks for the patch.
+> 
+> On Mon, Jun 6, 2011 at 7:31 AM, Guennadi Liakhovetski
+> <g.liakhovetski@gmx.de> wrote:
+> > Add media bus configuration types and two subdev operations to get
+> > supported mediabus configurations and to set a specific configuration.
+> > Subdevs can support several configurations, e.g., they can send video data
+> > on 1 or several lanes, can be configured to use a specific CSI-2 channel,
+> > in such cases subdevice drivers return bitmasks with all respective bits
+> > set. When a set-configuration operation is called, it has to specify a
+> > non-ambiguous configuration.
 > >
-> > On Wednesday, June 08, 2011 10:48 PM Uwe Kleine-König wrote:
+> > Signed-off-by: Stanimir Varbanov <svarbanov@mm-sol.com>
+> > Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+> > ---
 > >
-> > > I'm still debugging my new video overlay device driver. The current
-> > > problem is again when playing back a second video.
-> > >
-> > > After streamoff is called at the end of the first video, I disable the
-> > > overlay and call vb2_buffer_done on the last buffer. This is exited
-> > > early because vb->state == VB2_BUF_STATE_DEQUEUED.
-> > > This results in vb->vb2_queue->queued_count being 1.
-> > >
-> > > Now if the new video starts I call vb2_queue_init in
-> the .vidioc_reqbufs
-> > > callback on my queue (that still has queued_count == 1). After
-> > > vb2_queue_init returns queued_count is still 1 though q->queued_list is
-> > > reset to be empty.
-> > >
-> > > __vb2_queue_cancel has a similar problem, &q->queued_list is reset, but
-> > > queued_count is not.
+> > This change would allow a re-use of soc-camera and "standard" subdev
+> > drivers. It is a modified and extended version of
 > >
-> > Thanks again for finding the bug. You are right, __vb2_queue_cancel
-> should
-> > reset queued_count too. I will post a patch soon.
-> IMHO vb2_queue_init should reset queued_count, too. Not sure if you just
-> skipped to mention it here ....
+> > http://article.gmane.org/gmane.linux.drivers.video-input-infrastructure/29408
+> >
+> > therefore the original Sob. After this we only would have to switch to the
+> > control framework:) Please, comment.
+> >
+> > diff --git a/include/media/v4l2-mediabus.h b/include/media/v4l2-mediabus.h
+> > index 971c7fa..0983b7b 100644
+> > --- a/include/media/v4l2-mediabus.h
+> > +++ b/include/media/v4l2-mediabus.h
+> > @@ -13,6 +13,76 @@
+> >
+> >  #include <linux/v4l2-mediabus.h>
+> >
+> > +/* Parallel flags */
+> > +/* Can the client run in master or in slave mode */
+> > +#define V4L2_MBUS_MASTER                       (1 << 0)
+> > +#define V4L2_MBUS_SLAVE                                (1 << 1)
+> > +/* Which signal polarities it supports */
+> > +#define V4L2_MBUS_HSYNC_ACTIVE_HIGH            (1 << 2)
+> > +#define V4L2_MBUS_HSYNC_ACTIVE_LOW             (1 << 3)
+> > +#define V4L2_MBUS_VSYNC_ACTIVE_HIGH            (1 << 4)
+> > +#define V4L2_MBUS_VSYNC_ACTIVE_LOW             (1 << 5)
+> > +#define V4L2_MBUS_PCLK_SAMPLE_RISING           (1 << 6)
+> > +#define V4L2_MBUS_PCLK_SAMPLE_FALLING          (1 << 7)
+> > +#define V4L2_MBUS_DATA_ACTIVE_HIGH             (1 << 8)
+> > +#define V4L2_MBUS_DATA_ACTIVE_LOW              (1 << 9)
+> > +/* Which datawidths are supported */
+> > +#define V4L2_MBUS_DATAWIDTH_4                  (1 << 10)
+> > +#define V4L2_MBUS_DATAWIDTH_8                  (1 << 11)
+> > +#define V4L2_MBUS_DATAWIDTH_9                  (1 << 12)
+> > +#define V4L2_MBUS_DATAWIDTH_10                 (1 << 13)
+> > +#define V4L2_MBUS_DATAWIDTH_15                 (1 << 14)
+> > +#define V4L2_MBUS_DATAWIDTH_16                 (1 << 15)
+> > +
+> > +#define V4L2_MBUS_DATAWIDTH_MASK       (V4L2_MBUS_DATAWIDTH_4 | V4L2_MBUS_DATAWIDTH_8 | \
+> > +                                        V4L2_MBUS_DATAWIDTH_9 | V4L2_MBUS_DATAWIDTH_10 | \
+> > +                                        V4L2_MBUS_DATAWIDTH_15 | V4L2_MBUS_DATAWIDTH_16)
+> > +
+> > +/* Serial flags */
+> > +/* How many lanes the client can use */
+> > +#define V4L2_MBUS_CSI2_1_LANE                  (1 << 0)
+> > +#define V4L2_MBUS_CSI2_2_LANE                  (1 << 1)
+> > +#define V4L2_MBUS_CSI2_3_LANE                  (1 << 2)
+> > +#define V4L2_MBUS_CSI2_4_LANE                  (1 << 3)
+> > +/* On which channels it can send video data */
+> > +#define V4L2_MBUS_CSI2_CHANNEL_0                       (1 << 4)
+> > +#define V4L2_MBUS_CSI2_CHANNEL_1                       (1 << 5)
+> > +#define V4L2_MBUS_CSI2_CHANNEL_2                       (1 << 6)
+> > +#define V4L2_MBUS_CSI2_CHANNEL_3                       (1 << 7)
+> > +/* Does it support only continuous or also non-contimuous clock mode */
+> 
+> Typo: non-continuous
 
-vb2_queue_init assumes that the called allocated vb2_queue with kzalloc()
-or did memset(q, 0, sizeof(struct vb2_queue)), so it is not really required
-to explicitly set queued_count to zero.
+Right, thanks:)
 
-Best regards
--- 
-Marek Szyprowski
-Samsung Poland R&D Center
+> > +#define V4L2_MBUS_CSI2_CONTINUOUS_CLOCK                (1 << 8)
+> 
+> Doesn't having above bit disabled, imply a non-continuous clock already?
 
+Well, actually, yes, we coult drop one of these, because continuous clock 
+mode is obligatory, so, we can just always assume, that all clients 
+support it and only check whether they _also_ support non-continuous. 
+Similarly when setting - if the non-continuous flag is not set, obviously, 
+the subdev has to configure the continuous mode. But if we ever encounter 
+a device, that only supports the non-continuous mode, we get a problem:) 
+Also, maybe the driver for some reason decides not to accept the 
+continuous mode, so, I think, it's better to keep both.
 
+Thanks
+Guennadi
 
+> 
+> > +#define V4L2_MBUS_CSI2_NONCONTINUOUS_CLOCK     (1 << 9)
+> 
+> Regards,
+> Sergio
+> 
+> > +
+> > +#define V4L2_MBUS_CSI2_LANES           (V4L2_MBUS_CSI2_1_LANE | V4L2_MBUS_CSI2_2_LANE | \
+> > +                                        V4L2_MBUS_CSI2_3_LANE | V4L2_MBUS_CSI2_4_LANE)
+> > +#define V4L2_MBUS_CSI2_CHANNELS                (V4L2_MBUS_CSI2_CHANNEL_0 | V4L2_MBUS_CSI2_CHANNEL_1 | \
+> > +                                        V4L2_MBUS_CSI2_CHANNEL_2 | V4L2_MBUS_CSI2_CHANNEL_3)
+> > +
+> > +/**
+> > + * v4l2_mbus_type - media bus type
+> > + * @V4L2_MBUS_PARALLEL:        parallel interface with hsync and vsync
+> > + * @V4L2_MBUS_BT656:   parallel interface with embedded synchronisation
+> > + * @V4L2_MBUS_CSI2:    MIPI CSI-2 serial interface
+> > + */
+> > +enum v4l2_mbus_type {
+> > +       V4L2_MBUS_PARALLEL,
+> > +       V4L2_MBUS_BT656,
+> > +       V4L2_MBUS_CSI2,
+> > +};
+> > +
+> > +/**
+> > + * v4l2_mbus_config - media bus configuration
+> > + * @type:      interface type
+> > + * @flags:     configuration flags, depending on @type
+> > + * @clk:       output clock, the bridge driver can try to use clk_set_parent()
+> > + *             to specify the master clock to the client
+> > + */
+> > +struct v4l2_mbus_config {
+> > +       enum v4l2_mbus_type type;
+> > +       unsigned long flags;
+> > +       struct clk *clk;
+> > +};
+> > +
+> >  static inline void v4l2_fill_pix_format(struct v4l2_pix_format *pix_fmt,
+> >                                const struct v4l2_mbus_framefmt *mbus_fmt)
+> >  {
+> > diff --git a/include/media/v4l2-subdev.h b/include/media/v4l2-subdev.h
+> > index 1562c4f..6ea25f4 100644
+> > --- a/include/media/v4l2-subdev.h
+> > +++ b/include/media/v4l2-subdev.h
+> > @@ -255,6 +255,10 @@ struct v4l2_subdev_audio_ops {
+> >    try_mbus_fmt: try to set a pixel format on a video data source
+> >
+> >    s_mbus_fmt: set a pixel format on a video data source
+> > +
+> > +   g_mbus_param: get supported mediabus configurations
+> > +
+> > +   s_mbus_param: set a certain mediabus configuration
+> >  */
+> >  struct v4l2_subdev_video_ops {
+> >        int (*s_routing)(struct v4l2_subdev *sd, u32 input, u32 output, u32 config);
+> > @@ -294,6 +298,8 @@ struct v4l2_subdev_video_ops {
+> >                            struct v4l2_mbus_framefmt *fmt);
+> >        int (*s_mbus_fmt)(struct v4l2_subdev *sd,
+> >                          struct v4l2_mbus_framefmt *fmt);
+> > +       int (*g_mbus_param)(struct v4l2_subdev *sd, struct v4l2_mbus_config *cfg);
+> > +       int (*s_mbus_param)(struct v4l2_subdev *sd, struct v4l2_mbus_config *cfg);
+> >  };
+> >
+> >  /*
+> >
+> 
+
+---
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
+http://www.open-technology.de/
