@@ -1,74 +1,79 @@
 Return-path: <mchehab@pedra>
-Received: from mail.kapsi.fi ([217.30.184.167]:54428 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756985Ab1FVLMF (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 22 Jun 2011 07:12:05 -0400
-Message-ID: <4E01CDFF.8050502@iki.fi>
-Date: Wed, 22 Jun 2011 14:11:59 +0300
-From: Antti Palosaari <crope@iki.fi>
+Received: from moutng.kundenserver.de ([212.227.126.187]:61254 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751889Ab1FFRCv (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 6 Jun 2011 13:02:51 -0400
+Date: Mon, 6 Jun 2011 19:02:48 +0200 (CEST)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+cc: Robert Jarzmik <robert.jarzmik@free.fr>
+Subject: [PATCH] V4L: pxa_camera: remove redundant calculations
+Message-ID: <Pine.LNX.4.64.1106061900480.11169@axis700.grange>
 MIME-Version: 1.0
-To: Steffen Barszus <steffenbpunkt@googlemail.com>
-CC: Jan Hoogenraad <jan-conceptronic@hoogenraad.net>,
-	Jarod Wilson <jarod@wilsonet.com>, stybla@turnovfree.net,
-	=?ISO-8859-1?Q?Sascha_W=FCstemann?= <sascha@killerhippy.de>,
-	linux-media@vger.kernel.org,
-	Thomas Holzeisen <thomas@holzeisen.de>,
-	Maxim Levitsky <maximlevitsky@gmail.com>
-Subject: Re: RTL2831U driver updates
-References: <4DF9BCAA.3030301@holzeisen.de>	<4DF9EA62.2040008@killerhippy.de>	<4DFA7748.6000704@hoogenraad.net>	<4DFFC82B.10402@iki.fi>	<4E002EBD.6050800@hoogenraad.net>	<BANLkTim76FRL+ZNapHyjgFyOvuMXxGVzJQ@mail.gmail.com>	<4E017EE7.9040902@hoogenraad.net> <20110622081359.6d55979a@grobi>
-In-Reply-To: <20110622081359.6d55979a@grobi>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On 06/22/2011 09:13 AM, Steffen Barszus wrote:
-> On Wed, 22 Jun 2011 07:34:31 +0200
-> Jan Hoogenraad<jan-conceptronic@hoogenraad.net>  wrote:
->
->> Thanks. Do you know more about this subject ?
->>
->> We do have specs about the chipset, but
->>
->> http://linuxtv.org/downloads/v4l-dvb-apis/remote_controllers.html#Remote_controllers_Intro
->>
->> only mentions lirc, not rc-core.
->> This is about where my knowledge stops, however.
->>
->> rc-core is only mentioned shortly in:
->> http://linuxtv.org/wiki/index.php/Remote_Controllers
->
-> I think/hope Jarod can comment on this - i just know that new remotes
-> should use rc-core, as this is the "new thing" for this. I'm no
-> developer whatsoever :)
+soc_camera core now performs the standard .bytesperline and .sizeimage
+calculations internally, no need to duplicate in drivers.
 
-No problem there, I already know rather well how rc-core is working :) 
-Will do that.
+Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+---
+ drivers/media/video/pxa_camera.c |   24 +++++++++++++-----------
+ 1 files changed, 13 insertions(+), 11 deletions(-)
 
-RTL2830 demod driver seems to be now rather OK, missing all statistics 
-as I planned, but otherwise rather ready. Seems to have some more work 
-for getting statistic since looks like it polls huge amount of regs when 
-updating those.
-
-I am now finalizing that USB-bridge part. Do you have idea if that 
-should be called;
-
-as used chipset names:
-dvb_usb_rtl2831u
-dvb_usb_rtl2832u
-dvb_usb_rtl2836u
-dvb_usb_rtl2840u
-
-or just name it as generic:
-dvb_usb_rtl28xxu
-dvb_usb_rtl2800u
-
-or some other.
-
-rtl28xxu or rtl2800u sounds best for me.
-
-regards
-Antti
-
+diff --git a/drivers/media/video/pxa_camera.c b/drivers/media/video/pxa_camera.c
+index b42bfa5..9968a6f 100644
+--- a/drivers/media/video/pxa_camera.c
++++ b/drivers/media/video/pxa_camera.c
+@@ -1499,16 +1499,10 @@ static int pxa_camera_try_fmt(struct soc_camera_device *icd,
+ 			      &pix->height, 32, 2048, 0,
+ 			      pixfmt == V4L2_PIX_FMT_YUV422P ? 4 : 0);
+ 
+-	pix->bytesperline = soc_mbus_bytes_per_line(pix->width,
+-						    xlate->host_fmt);
+-	if (pix->bytesperline < 0)
+-		return pix->bytesperline;
+-	pix->sizeimage = pix->height * pix->bytesperline;
+-
+ 	/* limit to sensor capabilities */
+ 	mf.width	= pix->width;
+ 	mf.height	= pix->height;
+-	mf.field	= pix->field;
++	mf.field	= V4L2_FIELD_NONE;
+ 	mf.colorspace	= pix->colorspace;
+ 	mf.code		= xlate->code;
+ 
+@@ -1596,8 +1590,12 @@ static int pxa_camera_suspend(struct soc_camera_device *icd, pm_message_t state)
+ 	pcdev->save_cicr[i++] = __raw_readl(pcdev->base + CICR3);
+ 	pcdev->save_cicr[i++] = __raw_readl(pcdev->base + CICR4);
+ 
+-	if ((pcdev->icd) && (pcdev->icd->ops->suspend))
+-		ret = pcdev->icd->ops->suspend(pcdev->icd, state);
++	if (pcdev->icd) {
++		struct v4l2_subdev *sd = soc_camera_to_subdev(icd);
++		ret = v4l2_subdev_call(sd, core, s_power, 0);
++		if (ret == -ENOIOCTLCMD)
++			ret = 0;
++	}
+ 
+ 	return ret;
+ }
+@@ -1618,8 +1616,12 @@ static int pxa_camera_resume(struct soc_camera_device *icd)
+ 	__raw_writel(pcdev->save_cicr[i++], pcdev->base + CICR3);
+ 	__raw_writel(pcdev->save_cicr[i++], pcdev->base + CICR4);
+ 
+-	if ((pcdev->icd) && (pcdev->icd->ops->resume))
+-		ret = pcdev->icd->ops->resume(pcdev->icd);
++	if (pcdev->icd) {
++		struct v4l2_subdev *sd = soc_camera_to_subdev(icd);
++		ret = v4l2_subdev_call(sd, core, s_power, 1);
++		if (ret == -ENOIOCTLCMD)
++			ret = 0;
++	}
+ 
+ 	/* Restart frame capture if active buffer exists */
+ 	if (!ret && pcdev->active)
 -- 
-http://palosaari.fi/
+1.7.2.5
+
