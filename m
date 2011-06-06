@@ -1,40 +1,51 @@
 Return-path: <mchehab@pedra>
-Received: from mail-wy0-f174.google.com ([74.125.82.174]:38212 "EHLO
+Received: from mail-wy0-f174.google.com ([74.125.82.174]:53041 "EHLO
 	mail-wy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751855Ab1FIGmn (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 9 Jun 2011 02:42:43 -0400
+	with ESMTP id S1757213Ab1FFUJy (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 6 Jun 2011 16:09:54 -0400
 MIME-Version: 1.0
-In-Reply-To: <201106081246.53106.laurent.pinchart@ideasonboard.com>
+In-Reply-To: <20110606192030.GA4356@amd.com>
 References: <1307053663-24572-1-git-send-email-ohad@wizery.com>
- <201106071326.53106.laurent.pinchart@ideasonboard.com> <BANLkTimqt=yMGHcqEH5u-4GkMX9=+BuB6A@mail.gmail.com>
- <201106081246.53106.laurent.pinchart@ideasonboard.com>
+ <20110606100950.GC30762@amd.com> <BANLkTi=i2s-Ujiy4qn_XQv+9dMjUC9R66A@mail.gmail.com>
+ <20110606153557.GE1953@amd.com> <BANLkTinwwVO4TmsxuTfSBf6jqYrEVV3b_A@mail.gmail.com>
+ <20110606192030.GA4356@amd.com>
 From: Ohad Ben-Cohen <ohad@wizery.com>
-Date: Thu, 9 Jun 2011 09:42:22 +0300
-Message-ID: <BANLkTikowqhMj=stjziwHeN4UxEKo09qrw@mail.gmail.com>
-Subject: Re: [RFC 2/6] omap: iovmm: generic iommu api migration
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: linux-media@vger.kernel.org, linux-omap@vger.kernel.org,
-	linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-	Hiroshi.DOYU@nokia.com, arnd@arndb.de, davidb@codeaurora.org,
-	Joerg.Roedel@amd.com
+Date: Mon, 6 Jun 2011 23:09:33 +0300
+Message-ID: <BANLkTinx21-E3DRe9D7LRB8e1aeOwv=-9A@mail.gmail.com>
+Subject: Re: [RFC 0/6] iommu: generic api migration and grouping
+To: "Roedel, Joerg" <Joerg.Roedel@amd.com>
+Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	"linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>,
+	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
+	"linux-arm-kernel@lists.infradead.org"
+	<linux-arm-kernel@lists.infradead.org>,
+	"laurent.pinchart@ideasonboard.com"
+	<laurent.pinchart@ideasonboard.com>,
+	"Hiroshi.DOYU@nokia.com" <Hiroshi.DOYU@nokia.com>,
+	"arnd@arndb.de" <arnd@arndb.de>,
+	"davidb@codeaurora.org" <davidb@codeaurora.org>,
+	Omar Ramirez Luna <omar.ramirez@ti.com>
 Content-Type: text/plain; charset=ISO-8859-1
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Wed, Jun 8, 2011 at 1:46 PM, Laurent Pinchart
-<laurent.pinchart@ideasonboard.com> wrote:
-> On Tuesday 07 June 2011 15:46:26 Ohad Ben-Cohen wrote:
->> Where do you take care of those potential offsets today ? Or do you
->> simply ignore the offsets and map the entire page ?
->
-> Here http://marc.info/?l=linux-omap&m=130693502326513&w=2 :-)
+On Mon, Jun 6, 2011 at 10:20 PM, Roedel, Joerg <Joerg.Roedel@amd.com> wrote:
+> Well, it certainly makes sense to have a single implementation for this.
+> But I want to hide this complexity to the user of the IOMMU-API. The
+> best choice is to put this into the layer between the IOMMU-API and the
+> backend implementation.
 
-:)
+I agree.
 
-Ok so it seems iovmm will take care of that for now ?
+The IOMMU API should take physically contiguous regions from the user,
+split them up according to page-sizes (/alignment requirements)
+supported by the hardware, and then tell the underlying implementation
+what to map where.
 
-Let's get the basics working with the IOMMU API and then revise this
-when we switch from iovmm to the generic dma.
+> That interface is not put into stone. There were other complains about
+> the ->unmap part recently, so there is certainly room for improvement
+> there.
 
-Thanks,
-Ohad.
+Once the supported page sizes are exposed to the framework, the
+current ->unmap API should probably be enough. 'va' + 'order' sounds
+like all the information an implementation needs to unmap a page.
