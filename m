@@ -1,54 +1,114 @@
 Return-path: <mchehab@pedra>
-Received: from einhorn.in-berlin.de ([192.109.42.8]:38622 "EHLO
-	einhorn.in-berlin.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753228Ab1FXVVB (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 24 Jun 2011 17:21:01 -0400
-Date: Fri, 24 Jun 2011 23:20:48 +0200
-From: Stefan Richter <stefanr@s5r6.in-berlin.de>
-To: Andy Walls <awalls@md.metrocast.net>
-Cc: Devin Heitmueller <dheitmueller@kernellabs.com>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
+Received: from smtp-68.nebula.fi ([83.145.220.68]:60226 "EHLO
+	smtp-68.nebula.fi" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755357Ab1FFR2H (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 6 Jun 2011 13:28:07 -0400
+Date: Mon, 6 Jun 2011 20:28:03 +0300
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Cc: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
 	Hans Verkuil <hverkuil@xs4all.nl>,
-	Jesper Juhl <jj@chaosbits.net>,
-	LKML <linux-kernel@vger.kernel.org>, trivial@kernel.org,
-	linux-media@vger.kernel.org, ceph-devel@vger.kernel.org,
-	Sage Weil <sage@newdream.net>
-Subject: Re: [RFC] Don't use linux/version.h anymore to indicate a
- per-driver version - Was: Re: [PATCH 03/37] Remove unneeded version.h
- includes from include/
-Message-ID: <20110624232048.66f1f98c@stein>
-In-Reply-To: <1308949448.2093.20.camel@morgan.silverblock.net>
-References: <alpine.LNX.2.00.1106232344480.17688@swampdragon.chaosbits.net>
-	<4E04912A.4090305@infradead.org>
-	<BANLkTim9cBiiK_GsZaspxpPJQDBvAcKCWg@mail.gmail.com>
-	<201106241554.10751.hverkuil@xs4all.nl>
-	<4E04A122.2080002@infradead.org>
-	<20110624203404.7a3f6f6a@stein>
-	<BANLkTimj-oEDvWxMao6zJ_sudUntEVjO1w@mail.gmail.com>
-	<1308949448.2093.20.camel@morgan.silverblock.net>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: Re: [PATCH/RFC 1/4] V4L: add three new ioctl()s for multi-size
+ videobuffer management
+Message-ID: <20110606172802.GB7498@valkosipuli.localdomain>
+References: <Pine.LNX.4.64.1104010959470.9530@axis700.grange>
+ <Pine.LNX.4.64.1105162144200.29373@axis700.grange>
+ <4DD20D1C.4020808@maxwell.research.nokia.com>
+ <201105181601.23093.laurent.pinchart@ideasonboard.com>
+ <Pine.LNX.4.64.1105181642510.16324@axis700.grange>
+ <4DD424DD.2070508@maxwell.research.nokia.com>
+ <Pine.LNX.4.64.1106061500330.11169@axis700.grange>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <Pine.LNX.4.64.1106061500330.11169@axis700.grange>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Jun 24 Andy Walls wrote:
-> I also use the driver version for troubleshooting problem with users.  I
-> roughly know what wasn't working in what version of the cx18 and ivtv
-> drivers.  If the end user can tell me the driver version (using v4l2-ctl
-> --log-status) along with his symptoms, it makes my life easier.
+Hi Guennadi,
 
-Easier:
-  "I run Ubuntu 10.4".
-  "I run kernel 2.6.32."
-One of these is usually already included in the first post or IRC message
-from the user.
+On Mon, Jun 06, 2011 at 03:10:54PM +0200, Guennadi Liakhovetski wrote:
+> On Wed, 18 May 2011, Sakari Ailus wrote:
+> 
+> > Hi Guennadi and Laurent,
+> > 
+> > Guennadi Liakhovetski wrote:
+> > > On Wed, 18 May 2011, Laurent Pinchart wrote:
+> > > 
+> > >> On Tuesday 17 May 2011 07:52:28 Sakari Ailus wrote:
+> > >>> Guennadi Liakhovetski wrote:
+> > > 
+> > > [snip]
+> > > 
+> > >>>>> What about making it possible to pass an array of buffer indices to the
+> > >>>>> user, just like VIDIOC_S_EXT_CTRLS does? I'm not sure if this would be
+> > >>>>> perfect, but it would avoid the problem of requiring continuous ranges
+> > >>>>> of buffer ids.
+> > >>>>>
+> > >>>>> struct v4l2_create_buffers {
+> > >>>>>
+> > >>>>> 	__u32			*index;
+> > >>>>> 	__u32			count;
+> > >>>>> 	__u32			flags;
+> > >>>>> 	enum v4l2_memory        memory;
+> > >>>>> 	__u32			size;
+> > >>>>> 	struct v4l2_format	format;
+> > >>>>>
+> > >>>>> };
+> > >>>>>
+> > >>>>> Index would be a pointer to an array of buffer indices and its length
+> > >>>>> would be count.
+> > >>>>
+> > >>>> I don't understand this. We do _not_ want to allow holes in indices. For
+> > >>>> now we decide to not implement DESTROY at all. In this case indices just
+> > >>>> increment contiguously.
+> > >>>>
+> > >>>> The next stage is to implement DESTROY, but only in strict reverse order
+> > >>>> - without holes and in the same ranges, as buffers have been CREATEd
+> > >>>> before. So, I really don't understand why we need arrays, sorry.
+> > >>>
+> > >>> Well, now that we're defining a second interface to make new buffer
+> > >>> objects, I just thought it should be made as future-proof as we can.
+> > >>
+> > >> I second that. I don't like rushing new APIs to find out we need something 
+> > >> else after 6 months.
+> > > 
+> > > Ok, so, we pass an array from user-space with CREATE of size count. The 
+> > > kernel fills it with as many buffers entries as it has allocated. But 
+> > > currently drivers are also allowed to allocate more buffers, than the 
+> > > user-space has requested. What do we do in such a case?
+> > 
+> > That's a good point.
+> > 
+> > But even if there was no array, shouldn't the user be allowed to create
+> > the buffers using a number of separate CREATE_BUF calls? The result
+> > would be still the same n buffers as with a single call allocating the n
+> > buffers at once.
+> > 
+> > Also, consider the (hopefully!) forthcoming DMA buffer management API
+> > patches. It looks like that those buffers will be referred to by file
+> > handles. To associate several DMA buffer objects to V4L2 buffers at
+> > once, there would have to be an array of those objects.
+> > 
+> > <URL:http://www.spinics.net/lists/linux-media/msg32448.html>
+> 
+> So, does this mean now, that we have to wait for those APIs to become 
+> solid before or even implemented we proceed with this one?
 
-Separate driver versions are only needed on platforms where drivers are
-not distributed by the operating system distributor, or driver source code
-is not released within kernel source code.
+No. But I think we should take into account the foreseeable future. Any
+which form the buffer id passing mechanism will take, it will very likely
+involve referring to individual memory buffers the ids of which are not
+contiguous ranges in a general case. In short, my point is that CREATE_BUF
+should allow associating generic buffer ids to V4L2 buffers.
+
+If the hardware requires more than one buffer to operate, STREAMON could
+return ERANGE in a case there ane not enough queued, for example.
+
+Regards,
+
 -- 
-Stefan Richter
--=====-==-== -==- ==---
-http://arcgraph.de/sr/
+Sakari Ailus
+sakari.ailus@iki.fi
