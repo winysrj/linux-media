@@ -1,96 +1,83 @@
 Return-path: <mchehab@pedra>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:32999 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755921Ab1F0KG5 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 27 Jun 2011 06:06:57 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Raghavendra D Prabhu <rprabhu@wnohang.net>
-Subject: Re: Oops while modprobing uvcvideo module
-Date: Mon, 27 Jun 2011 12:07:07 +0200
-Cc: mchehab@infradead.org, linux-media@vger.kernel.org,
-	linux-kernel@vger.kernel.org
-References: <20110625191929.GA4411@Xye>
-In-Reply-To: <20110625191929.GA4411@Xye>
+Received: from mail-pz0-f46.google.com ([209.85.210.46]:39195 "EHLO
+	mail-pz0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751617Ab1FFFkY (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 6 Jun 2011 01:40:24 -0400
+Received: by pzk9 with SMTP id 9so1691758pzk.19
+        for <linux-media@vger.kernel.org>; Sun, 05 Jun 2011 22:40:24 -0700 (PDT)
+Message-ID: <4DEC6862.8000006@gmail.com>
+Date: Sun, 05 Jun 2011 22:40:50 -0700
+From: John McMaster <johndmcmaster@gmail.com>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-15"
+To: Hans de Goede <hdegoede@redhat.com>, mchehab@redhat.com
+CC: linux-media@vger.kernel.org
+Subject: Re: Anchor Chips V4L2 driver
+References: <4DE873B4.4050306@gmail.com> <4DE8D065.7020502@redhat.com> <4DE8E018.7070007@redhat.com>
+In-Reply-To: <4DE8E018.7070007@redhat.com>
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Message-Id: <201106271207.08227.laurent.pinchart@ideasonboard.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Hi Raghavendra,
-
-On Saturday 25 June 2011 21:19:29 Raghavendra D Prabhu wrote:
+On 06/03/2011 06:22 AM, Hans de Goede wrote:
 > Hi,
-> 
->      While modprobing uvcvideo I am getting the following oops. This is
->      on a kernel built with latest linus master
->      (536142f950f7ea4f3d146a138ad6938f28a34f33). I have also attached the
->      full dmesg.
-> 
-> =============================================================
-> [ 1985.732475] uvcvideo: Found UVC 1.00 device Laptop_Integrated_Webcam_2HDM
-> (0408:2fb1)
+>
+> On 06/03/2011 02:15 PM, Mauro Carvalho Chehab wrote:
+>> Em 03-06-2011 02:40, John McMaster escreveu:
+>>> I'd like to write a driver for an Anchor Chips (seems to be bought by
+>>> Cypress) USB camera Linux driver sold as an AmScope MD1800.  It seems
+>>> like this implies I need to write a V4L2 driver.  The camera does not
+>>> seem its currently supported (checked on Fedora 13 / 2.6.34.8) and I
+>>> did
+>>> not find any information on it in mailing list archives.  Does anyone
+>>> know or can help me identify if a similar camera might already be
+>>> supported?
+>>
+>> I've no idea. Better to wait for a couple days for developers to
+>> manifest
+>> about that, if they're already working on it.
+>>
+>>> lsusb gives the following output:
+>>>
+>>> Bus 001 Device 111: ID 0547:4d88 Anchor Chips, Inc.
+>>>
+>>> I've started reading the "Video for Linux Two API Specification" which
+>>> seems like a good starting point and will move onto using source
+>>> code as
+>>> appropriate.  Any help would be appreciated.  Thanks!
+>>
+>> You'll find other useful information at linuxtv.org wiki page. The
+>> better
+>> is to write it as a sub-driver for gspca. The gspca core have already
+>> all
+>> that it is needed for cameras. So, you'll need to focus only at the
+>> device-specific
+>> stuff.
+>
+> I can second that you should definitely use gspca for usb webcam(ish)
+> device
+> drivers. As for how to go about this, first of all grep through the
+> windows drivers
+> for strings which may hint on the actual bridge chip used, chances are
+> good
+> there is an already supported bridge inside the camera.
+>
+> If not then make usb dumps, and start reverse engineering ...
+>
+> Usually it is enough to replay the windows init sequence to get the
+> device
+> to stream over either an bulk or iso endpoint, and then it is time to
+> figure out what that stream contains (jpeg, raw bayer, some custom
+> format ???)
+>
+> Regards,
+>
+> Hans
+Thanks for the response.  I replayed some packets (using libusb) and am
+able to get something resembling the desired image through its bulk
+endpoint.  So now I just need to figure out how to decode it better,
+options, etc.  I'll post back to the list once I get something
+moderately stable running and have taken a swing at the kernel driver.
 
-Could you please send me the output of
+John
 
-lsusb -v -d 0408:2fb1
-
-running as root if possible ?
-
-> [ 1985.759844] uvcvideo: No streaming interface found for terminal 6.
-> [ 1985.759863] BUG: unable to handle kernel NULL pointer dereference at
-> 0000000000000050
-> [ 1985.759871] IP: [<ffffffffa0da23e0>] media_entity_init+0x40/0xa0 [media]
-
-[snip]
-
-> I was able to observe this at boot and also reproduce it later.
-> 
-> Further analyzing the oops revealed this:
-> ========================================================
-> perl scripts/markup_oops.pl < ~/oops
-> 
-> No vmlinux specified, assuming /lib/modules/3.0.0-rc4-LYM/build/vmlinux
->          unsigned int max_links = num_pads + extra_links;
->          unsigned int i;
-> 
->          links = kzalloc(max_links * sizeof(links[0]), GFP_KERNEL);
->   ffffffffa01573d2:      48 c1 e7 05             shl    $0x5,%rdi   |  %edi
-> => ffff88013ac31200 ffffffffa01573d6:      e8 00 00 00 00          callq 
-> ffffffffa01573db <media_entity_init+0x3b> if (links == NULL)
->   ffffffffa01573db:      48 85 c0                test   %rax,%rax   |  %eax
-> => ffff88013ac311e0 ffffffffa01573de:      74 56                   je    
-> ffffffffa0157436 <media_entity_init+0x96> entity->max_links = max_links;
->          entity->num_links = 0;
->          entity->num_backlinks = 0;
->          entity->num_pads = num_pads;
->          entity->pads = pads;
->          entity->links = links;
-> *ffffffffa01573e0:      48 89 43 50             mov    %rax,0x50(%rbx) | 
-> %eax = ffff88013ac311e0 <--- faulting instruction
-
-It looks like entity is NULL.
-
->          for (i = 0; i < num_pads; i++) {
->                  pads[i].entity = entity;
->                  pads[i].index = i;
->          }
-> 
->          return 0;
->   ffffffffa01573e4:      31 c0                   xor    %eax,%eax
->          entity->num_backlinks = 0;
->          entity->num_pads = num_pads;
->          entity->pads = pads;
->          entity->links = links;
-> ==================================================================
-
-I can't reproduce the problem with my webcams. Can you try a diagnosis patch 
-if needed ?
-
--- 
-Regards,
-
-Laurent Pinchart
