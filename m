@@ -1,55 +1,61 @@
 Return-path: <mchehab@pedra>
-Received: from mail.kapsi.fi ([217.30.184.167]:39084 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755687Ab1FTVCh (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 20 Jun 2011 17:02:37 -0400
-Message-ID: <4DFFB56B.3000802@iki.fi>
-Date: Tue, 21 Jun 2011 00:02:35 +0300
-From: Antti Palosaari <crope@iki.fi>
-MIME-Version: 1.0
-To: Rune Evjen <rune.evjen@gmail.com>
-CC: linux-media@vger.kernel.org,
-	Markus Rechberger <mrechberger@gmail.com>
-Subject: Re: PCTV nanoStick T2 290e (Sony CXD2820R DVB-T/T2/C) - DVB-C channel
- scan in mythtv - missing
-References: <BANLkTimkYw70GAu1keW-N6ND=AyiRn2+CA@mail.gmail.com>	<4DF49E2A.9030804@iki.fi>	<BANLkTi=dGyN8SEwwAStD0Ob99k+FKkQPFg@mail.gmail.com>	<BANLkTik=37qHUx273bSRN91HeyYrtUv6og@mail.gmail.com> <BANLkTi=gdVhVKjF4tqUwy+DxFv9imUipHw@mail.gmail.com>
-In-Reply-To: <BANLkTi=gdVhVKjF4tqUwy+DxFv9imUipHw@mail.gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Received: from asmtpout021.mac.com ([17.148.16.96]:59757 "EHLO
+	asmtpout021.mac.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751965Ab1FFKU4 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 6 Jun 2011 06:20:56 -0400
+MIME-version: 1.0
+Content-type: text/plain; charset=euc-kr
+Received: from [192.168.129.14] ([125.178.234.180])
+ by asmtp021.mac.com (Oracle Communications Messaging Exchange Server 7u4-20.01
+ 64bit (built Nov 21 2010)) with ESMTPSA id <0LMD008VC3A2OB60@asmtp021.mac.com>
+ for linux-media@vger.kernel.org; Mon, 06 Jun 2011 02:20:36 -0700 (PDT)
+Subject: Re: [PATCH v2 3/4] m5mols: remove union in the m5mols_get_version(),
+ and VERSION_SIZE
+From: Kim HeungJun <riverful.kim@me.com>
+In-reply-to: <20110605121129.GE6073@valkosipuli.localdomain>
+Date: Mon, 06 Jun 2011 18:20:25 +0900
+Cc: Kim HeungJun <riverful.kim@me.com>,
+	"HeungJun, Kim" <riverful.kim@samsung.com>,
+	linux-media@vger.kernel.org, mchehab@infradead.org,
+	s.nawrocki@samsung.com, Kyungmin Park <kyungmin.park@samsung.com>
+Content-transfer-encoding: 8BIT
+Message-id: <5B70BEF2-0968-4591-8B39-CA95620CA329@me.com>
+References: <1306501095-28267-1-git-send-email-riverful.kim@samsung.com>
+ <1306827362-4064-4-git-send-email-riverful.kim@samsung.com>
+ <20110605120347.GD6073@valkosipuli.localdomain>
+ <20110605121129.GE6073@valkosipuli.localdomain>
+To: Sakari Ailus <sakari.ailus@iki.fi>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On 06/20/2011 11:55 PM, Rune Evjen wrote:
-> 2011/6/20 Markus Rechberger<mrechberger@gmail.com>:
->> to tell the difference the amplifier is for DVB-T2, DVB-C is disabled
->> in windows because it's not reliable.
->> Technically the chip supports it but the LNA decreases the quality.
->> There are already some other PCI boards
->> out there with that chip which do not use that LNA which should have a
->> better performance with that Sony chip.
->
-> Is it possible to work around this by disabling the lna or is the
-> quality decreased permanently as part of the hardware design,
-> independently of whether the lna is enabled or not ?
->
-> I searched the linux-media list and it seems that an lna option was
-> discussed as a module parameter, but modinfo for the module I use [1]
-> (using the media_build git repository) doesn't show a lna parameter.
-> Can the lna be disabled in another way ?
 
-LNA is controlled by demod GPIO line. I don't remember if it is on or 
-off for DVB-C currently. Look em28xx-dvb.c file, you can disable or 
-enable it from there (needs re-compiling driver).
+2011. 6. 5., 오후 9:11, Sakari Ailus 작성:
 
-I also saw BER counter running some muxes during development, but I 
-think all channels I have are still working. And I didn't even have time 
-to optimal parameters for tuner / demod. I will try to examine those 
-later...
+> On Sun, Jun 05, 2011 at 03:03:47PM +0300, Sakari Ailus wrote:
+> [clip]
+>>> -	/* store version information swapped for being readable */
+>>> -	info->ver	= version.ver;
+>>> 	info->ver.fw	= be16_to_cpu(info->ver.fw);
+>>> 	info->ver.hw	= be16_to_cpu(info->ver.hw);
+>>> 	info->ver.param	= be16_to_cpu(info->ver.param);
+>> 
+>> As you have a local variable ver pointing to info->ver, you should also use
+>> it here.
+> 
+> With this change,
+Ok, I missed that. I'll fix this and resend another version.
 
-regards
-Antti
+Thanks!
 
 
+> 
+> Acked-by: Sakari Ailus <sakari.ailus@iki.fi>
+> 
+> -- 
+> Sakari Ailus
+> sakari dot ailus at iki dot fi
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
--- 
-http://palosaari.fi/
