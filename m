@@ -1,128 +1,84 @@
 Return-path: <mchehab@pedra>
-Received: from smtp-vbr12.xs4all.nl ([194.109.24.32]:3538 "EHLO
-	smtp-vbr12.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752900Ab1FOHCT (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 15 Jun 2011 03:02:19 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Kamil Debski <k.debski@samsung.com>
-Subject: Re: [PATCH 4/4 v9] MFC: Add MFC 5.1 V4L2 driver
-Date: Wed, 15 Jun 2011 09:02:05 +0200
-Cc: linux-media@vger.kernel.org, m.szyprowski@samsung.com,
-	kyungmin.park@samsung.com, jaeryul.oh@samsung.com,
-	laurent.pinchart@ideasonboard.com, jtp.park@samsung.com
-References: <1308069416-24723-1-git-send-email-k.debski@samsung.com> <1308069416-24723-5-git-send-email-k.debski@samsung.com>
-In-Reply-To: <1308069416-24723-5-git-send-email-k.debski@samsung.com>
+Received: from mail-ey0-f174.google.com ([209.85.215.174]:59469 "EHLO
+	mail-ey0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753300Ab1FFSdF convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 6 Jun 2011 14:33:05 -0400
+Received: by eyx24 with SMTP id 24so1458031eyx.19
+        for <linux-media@vger.kernel.org>; Mon, 06 Jun 2011 11:33:03 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-15"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201106150902.05493.hverkuil@xs4all.nl>
+In-Reply-To: <22534.4159.11253-14366-1925523856-1307384009@seznam.cz>
+References: <22534.4159.11253-14366-1925523856-1307384009@seznam.cz>
+Date: Mon, 6 Jun 2011 14:33:02 -0400
+Message-ID: <BANLkTi=qznm0gKPxsTSET-Se0iOtLkHRpA@mail.gmail.com>
+Subject: Re: Last key repeated after every keypress on remote control (saa7134
+ lirc devinput driver)
+From: Devin Heitmueller <dheitmueller@kernellabs.com>
+To: Radim <radim100@seznam.cz>
+Cc: linux-media@vger.kernel.org, Jarod Wilson <jarod@redhat.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Tuesday, June 14, 2011 18:36:56 Kamil Debski wrote:
-> Multi Format Codec 5.1 is a hardware video coding acceleration
-> module found in the S5PV210 and Exynos4 Samsung SoCs. It is
-> capable of handling a range of video codecs and this driver
-> provides a V4L2 interface for video decoding and encoding.
-> 
-> Signed-off-by: Kamil Debski <k.debski@samsung.com>
-> Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
-> Cc: Jeongtae Park <jtp.park@samsung.com>
+On Mon, Jun 6, 2011 at 2:13 PM, Radim <radim100@seznam.cz> wrote:
+> Hello to everybody,
+> I was redirected here from lirc mailinglist (reason is at the end).
+>
+> I'm asking for any help because I wasn't able to solve
+> this problem by my self (and google of course).
+>
+> When I'm testing lirc configuration using irw, last pressed key is repeated
+> just befor the new one:
+>
+> after pressing key 1:
+> 0000000080010002 00 KEY_1 devinput
+>
+> after pressing key 2:
+> 0000000080010002 00 KEY_1 devinput
+> 0000000080010003 00 KEY_2 devinput
+>
+> after pressing key 3:
+> 0000000080010003 00 KEY_2 devinput
+> 0000000080010004 00 KEY_3 devinput
+>
+> after pressing key 4:
+> 0000000080010004 00 KEY_3 devinput
+> 0000000080010005 00 KEY_4 devinput
+>
+> after pressing key 5:
+> 0000000080010005 00 KEY_4 devinput
+> 0000000080010006 00 KEY_5 devinput
+>
+>
+> My configuration:
+> Archlinux (allways up-to-date)
+> Asus MyCinema P7131 with remote control PC-39
+> lircd 0.9.0, driver devinput, default config file lirc.conf.devinput
+> kernel 2.6.38
+>
+> # ir-keytable
+> Found /sys/class/rc/rc0/ (/dev/input/event5) with:
+>       Driver saa7134, table rc-asus-pc39
+>       Supported protocols: NEC RC-5 RC-6 JVC SONY LIRC
+>       Enabled protocols: RC-5
+>       Repeat delay = 500 ms, repeat period = 33 ms
+>
+> Answare from lirc-mainlinglist (Jarod Wilson):
+> Looks like a bug in saa7134-input.c, which doesn't originate in lirc land,
+> its from the kernel itself. The more apropos location to tackle this issue
+> is linux-media@vger.kernel.org.
+>
+> I can provide any other listings, just ask for them.
+>
+> Thank you for any help,
+> Radim
 
-Just a quick one:
+I actually sent Jarod a board specifically to investigate this issue
+(the same issue occurs on the saa7134 based HVR-1150).  I believe it's
+on his TODO list.
 
-> diff --git a/drivers/media/video/s5p-mfc/s5p_mfc_dec.c b/drivers/media/video/s5p-mfc/s5p_mfc_dec.c
-> new file mode 100644
-> index 0000000..a3d7378
-> --- /dev/null
-> +++ b/drivers/media/video/s5p-mfc/s5p_mfc_dec.c
-> +static struct mfc_control controls[] = {
-> +	{
-> +		.id = V4L2_CID_MPEG_MFC51_VIDEO_DECODER_H264_DISPLAY_DELAY,
-> +		.type = V4L2_CTRL_TYPE_INTEGER,
-> +		.name = "H264 Display Delay",
-> +		.minimum = 0,
-> +		.maximum = 16383,
-> +		.step = 1,
-> +		.default_value = 0,
-> +	},
-> +	{
-> +		.id = V4L2_CID_MPEG_MFC51_VIDEO_DECODER_H264_DISPLAY_DELAY_ENABLE,
-> +		.type = V4L2_CTRL_TYPE_BOOLEAN,
-> +		.name = "H264 Display Delay Enable",
-> +		.minimum = 0,
-> +		.maximum = 1,
-> +		.step = 1,
-> +		.default_value = 0,
-> +	},
-> +	{
-> +		.id = V4L2_CID_MPEG_VIDEO_DECODER_MPEG4_DEBLOCK_FILTER,
-> +		.type = V4L2_CTRL_TYPE_BOOLEAN,
-> +		.name = "Mpeg4 Loop Filter Enable",
-> +		.minimum = 0,
-> +		.maximum = 1,
-> +		.step = 1,
-> +		.default_value = 0,
-> +	},
-> +	{
-> +		.id = V4L2_CID_MPEG_VIDEO_DECODER_SLICE_INTERFACE,
-> +		.type = V4L2_CTRL_TYPE_BOOLEAN,
-> +		.name = "Slice Interface Enable",
-> +		.minimum = 0,
-> +		.maximum = 1,
-> +		.step = 1,
-> +		.default_value = 0,
-> +	},
-> +	{
-> +		.id = V4L2_CID_MIN_BUFFERS_FOR_CAPTURE,
-> +		.type = V4L2_CTRL_TYPE_INTEGER,
-> +		.name = "Minimum number of cap bufs",
-> +		.minimum = 1,
-> +		.maximum = 32,
-> +		.step = 1,
-> +		.default_value = 1,
-> +		.is_volatile = 1,
-> +	},
-> +};
-> +
+Devin
 
-...
-
-> +	for (i = 0; i < NUM_CTRLS; i++) {
-> +
-> +		ctx->ctrls[i] = v4l2_ctrl_new_std(&ctx->ctrl_handler,
-> +				&s5p_mfc_dec_ctrl_ops,
-> +				controls[i].id, controls[i].minimum,
-> +				controls[i].maximum, controls[i].step,
-> +				controls[i].default_value);
-> +		if (ctx->ctrl_handler.error) {
-> +			mfc_err("Adding control (%d) failed\n", i);
-> +			return ctx->ctrl_handler.error;
-> +		}
-> +		if (controls[i].is_volatile && ctx->ctrls[i]) {
-> +			ctx->ctrls[i]->is_volatile = 1;
-> +			ctx->ctrls[i]->flags = V4L2_CTRL_FLAG_READ_ONLY;
-
-This flag for V4L2_CID_MIN_BUFFERS_FOR_CAPTURE should have been set in
-v4l2_ctrl_fill().
-
-Regards,
-
-	Hans
-
-> +		}
-> +	}
-> +
-> +	return 0;
-> +}
-
-Why not just call v4l2_ctrl_new_std? A good non-trivial example of how I would
-do things is in media/video/cx2341x.c, cx2341x_handler_init(). Although for the
-new_custom calls I would probably use an array of static const struct v4l2_ctrl_config
-these days.
-
-Regards,
-
-	Hans
+-- 
+Devin J. Heitmueller - Kernel Labs
+http://www.kernellabs.com
