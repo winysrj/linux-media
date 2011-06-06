@@ -1,40 +1,24 @@
 Return-path: <mchehab@pedra>
-Received: from lo.gmane.org ([80.91.229.12]:41736 "EHLO lo.gmane.org"
+Received: from mx1.redhat.com ([209.132.183.28]:2837 "EHLO mx1.redhat.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753268Ab1FCQmu convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 3 Jun 2011 12:42:50 -0400
-Received: from list by lo.gmane.org with local (Exim 4.69)
-	(envelope-from <gldv-linux-media@m.gmane.org>)
-	id 1QSXSR-0002rq-3j
-	for linux-media@vger.kernel.org; Fri, 03 Jun 2011 18:42:47 +0200
-Received: from gimpelevich.san-francisco.ca.us ([66.218.55.33])
-        by main.gmane.org with esmtp (Gmexim 0.1 (Debian))
-        id 1AlnuQ-0007hv-00
-        for <linux-media@vger.kernel.org>; Fri, 03 Jun 2011 18:42:47 +0200
-Received: from daniel by gimpelevich.san-francisco.ca.us with local (Gmexim 0.1 (Debian))
-        id 1AlnuQ-0007hv-00
-        for <linux-media@vger.kernel.org>; Fri, 03 Jun 2011 18:42:47 +0200
-To: linux-media@vger.kernel.org
-From: Daniel Gimpelevich <daniel@gimpelevich.san-francisco.ca.us>
-Subject: Re: AverMedia A306 (cx23385, xc3028, af9013) (A577 too ?)
-Date: Fri, 03 Jun 2011 09:42:32 -0700
-Message-ID: <1307119353.15402.5.camel@chimera>
-References: <S932606Ab1ESVJJ/20110519210909Z+86@vger.kernel.org>
-	 <1305839612.4dd587fc20a03@imp.free.fr>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 8BIT
-In-Reply-To: <1305839612.4dd587fc20a03@imp.free.fr>
+	id S1756618Ab1FFRnD (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 6 Jun 2011 13:43:03 -0400
+From: Hans de Goede <hdegoede@redhat.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: stable@kernel.org
+Subject: [PATCH for 3.0] pwc fix oops / reference of free-ed memory on unplug
+Date: Mon,  6 Jun 2011 19:42:56 +0200
+Message-Id: <1307382177-2708-1-git-send-email-hdegoede@redhat.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Thu, 2011-05-19 at 23:13 +0200, wallak@free.fr wrote:
-> I've tried to use my A306 board on my system. All the main chips are
-> fully
-> supported by linux.
+Hi Mauro et all,
 
-I have the A307 (product ID 0xc939) and I'd like to coordinate with you
-regarding adapting your A306 support for it. If you use IRC at all, just
-tell me when to be in #linuxtv, and if not, we'll keep this on-list.
+I'm working on (much needed) large cleanup + v4l2 compliance series for the
+pwc driver, more on that later (targetting 3.1). But this particular patch
+(the first of the series) seems one which we should have in 3.0 and stable
+releases for older kernels too, since it fixes a real (and nasty) bug.
 
+Regards,
 
+Hans
