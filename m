@@ -1,72 +1,59 @@
 Return-path: <mchehab@pedra>
-Received: from relay4-d.mail.gandi.net ([217.70.183.196]:58949 "EHLO
-	relay4-d.mail.gandi.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752784Ab1FWVbI (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 23 Jun 2011 17:31:08 -0400
-Received: from mfilter4-d.gandi.net (mfilter4-d.gandi.net [217.70.178.134])
-	by relay4-d.mail.gandi.net (Postfix) with ESMTP id 24E3D17207C
-	for <linux-media@vger.kernel.org>; Thu, 23 Jun 2011 23:31:06 +0200 (CEST)
-Received: from relay4-d.mail.gandi.net ([217.70.183.196])
-	by mfilter4-d.gandi.net (mfilter4-d.gandi.net [10.0.15.180]) (amavisd-new, port 10024)
-	with ESMTP id fa5+ud2LbtcS for <linux-media@vger.kernel.org>;
-	Thu, 23 Jun 2011 23:31:04 +0200 (CEST)
-Received: from WIN7PC (ALyon-157-1-176-152.w109-213.abo.wanadoo.fr [109.213.63.152])
-	(Authenticated sender: sr@coexsi.fr)
-	by relay4-d.mail.gandi.net (Postfix) with ESMTPSA id 8518817208C
-	for <linux-media@vger.kernel.org>; Thu, 23 Jun 2011 23:31:04 +0200 (CEST)
-From: =?iso-8859-1?Q?S=E9bastien_RAILLARD_=28COEXSI=29?= <sr@coexsi.fr>
-To: "Linux Media Mailing List" <linux-media@vger.kernel.org>
-Subject: [DVB] Octopus driver status
-Date: Thu, 23 Jun 2011 23:31:08 +0200
-Message-ID: <017201cc31ec$de287ce0$9a7976a0$@coexsi.fr>
+Received: from moutng.kundenserver.de ([212.227.17.10]:54204 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751596Ab1FFRMh (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 6 Jun 2011 13:12:37 -0400
+Date: Mon, 6 Jun 2011 19:12:28 +0200 (CEST)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+cc: Baruch Siach <baruch@tkos.co.il>,
+	Sascha Hauer <s.hauer@pengutronix.de>
+Subject: [PATCH] V4L: mx2_camera: .try_fmt shouldn't fail
+Message-ID: <Pine.LNX.4.64.1106061902500.11169@axis700.grange>
 MIME-Version: 1.0
-Content-Type: text/plain;
-	charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Content-Language: fr
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Dear all,
+If the user is requesting too large a frame, instead of failing
+select an acceptable geometry, preserving the requested aspect ratio.
 
-I'm looking at the Octopus DVB cards system from Digital Devices for a while
-as their system seems to be very interesting 
+Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+---
 
-Here is link with their products:
-http://shop.digital-devices.de/epages/62357162.sf/en_GB/?ObjectPath=/Shops/6
-2357162/Categories
+Attention: completely untested! Please, give it a spin on an i.MX25, 
+specifically, please, try to force a TRY_FMT with too large a frame to 
+test this path. Maybe you'll need to use some debugging printk().
 
-The good points I have found:
+ drivers/media/video/mx2_camera.c |   15 ++++++++++-----
+ 1 files changed, 10 insertions(+), 5 deletions(-)
 
-* They support most of the common DVB standards: DVB-C, DVB-T, DVB-S and
-DVB-S2
-* They are moderately priced
-* There is a CAM support with a CI adapter for unscrambling channels
-* They are using the now de-facto standard PCI-Express bus
-* The new Octopus system is using a LATTICE PCI-Express bridge that seems to
-be more future proof than the previous bridge Micronas APB7202A
-* They seem to be well engineered ("Designed and manufactured in Germany" as
-they say!)
-
-And now the doubts :
-
-* The DVB-C/T frontend driver is specific to this system and is very new, so
-as Devin said one week ago, it's maybe not yet production ready
-* The way the CAM is supported break all the existing userland DVB
-applications (gnutv, mumudvb, vlc, etc.)
-* There isn't so much information about the Digital Devices company and
-their products roadmap (at least in English)
-
-So, my two very simple questions to the developers who worked on the drivers
-(I think Oliver and Ralph did) and know the product:
-* How you feel the future about the Octopus driver?
-* Do you think a compatibility mode (like module parameter) can be added to
-simulate the way the CAM is handled in the other drivers?
-
-I'm ready to buy the different cards and do some testing if it can help.
-
-Best regards,
-Sebastien.
-
+diff --git a/drivers/media/video/mx2_camera.c b/drivers/media/video/mx2_camera.c
+index 4eab1c6..8e073a3 100644
+--- a/drivers/media/video/mx2_camera.c
++++ b/drivers/media/video/mx2_camera.c
+@@ -974,11 +974,16 @@ static int mx2_camera_try_fmt(struct soc_camera_device *icd,
+ 		if (pix->bytesperline < 0)
+ 			return pix->bytesperline;
+ 		pix->sizeimage = pix->height * pix->bytesperline;
+-		if (pix->sizeimage > (4 * 0x3ffff)) { /* CSIRXCNT limit */
+-			dev_warn(icd->dev.parent,
+-					"Image size (%u) above limit\n",
+-					pix->sizeimage);
+-			return -EINVAL;
++		/* Check against the CSIRXCNT limit */
++		if (pix->sizeimage > 4 * 0x3ffff) {
++			/* Adjust geometry, preserve aspect ratio */
++			unsigned int new_height = int_sqrt(4 * 0x3ffff *
++					pix->height / pix->bytesperline);
++			pix->width = new_height * pix->width / pix->height;
++			pix->height = new_height;
++			pix->bytesperline = soc_mbus_bytes_per_line(pix->width,
++							xlate->host_fmt);
++			BUG_ON(pix->bytesperline < 0);
+ 		}
+ 	}
+ 
+-- 
+1.7.2.5
 
