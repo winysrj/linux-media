@@ -1,46 +1,45 @@
 Return-path: <mchehab@pedra>
-Received: from cmsout02.mbox.net ([165.212.64.32]:52436 "EHLO
-	cmsout02.mbox.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754362Ab1FNLQC (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 14 Jun 2011 07:16:02 -0400
-Message-ID: <4DF742D7.5020606@usa.net>
-Date: Tue, 14 Jun 2011 13:15:35 +0200
-From: Issa Gorissen <flop.m@usa.net>
+Received: from moutng.kundenserver.de ([212.227.17.8]:49355 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751695Ab1FFRPV (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 6 Jun 2011 13:15:21 -0400
+Received: from localhost (localhost [127.0.0.1])
+	by axis700.grange (Postfix) with ESMTP id F3822189B77
+	for <linux-media@vger.kernel.org>; Mon,  6 Jun 2011 19:15:19 +0200 (CEST)
+Date: Mon, 6 Jun 2011 19:15:19 +0200 (CEST)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: [PATCH] V4L: sh_mobile_ceu_camera: remove redundant calculations
+Message-ID: <Pine.LNX.4.64.1106061912320.11169@axis700.grange>
 MIME-Version: 1.0
-To: Bart Coninckx <bart.coninckx@telenet.be>
-CC: linux-media@vger.kernel.org
-Subject: Re: "dvb_ca adaptor 0: PC card did not respond :(" with Technotrend
- S2-3200
-References: <4DF53E1F.7010903@telenet.be> <4DF73B45.7000900@usa.net> <4DF73C94.7010003@telenet.be>
-In-Reply-To: <4DF73C94.7010003@telenet.be>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On 14/06/2011 12:48, Bart Coninckx wrote:
->
-> I will try your suggestion though. Off topic, but would you advice
-> 11.4 in favor of 11.3? As a secondary route, I was thinking about
-> using sasc-ng (softcamming, legal in this case) and the code seems not
-> to want to compile on 11.4. Also 11.4 broke after updating the kernel.
+soc_camera core now performs the standard .bytesperline and .sizeimage
+calculations internally, no need to duplicate in drivers.
 
-Except from the different kernel version, you can go for 11.3, as far as
-you're concerned only by TV related stuff.
+Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+---
+ drivers/media/video/sh_mobile_ceu_camera.c |    5 -----
+ 1 files changed, 0 insertions(+), 5 deletions(-)
 
-You might want to recompile the kernel with a newer version to get all
-the patches related to the S2 3200.
+diff --git a/drivers/media/video/sh_mobile_ceu_camera.c b/drivers/media/video/sh_mobile_ceu_camera.c
+index 3ae5c9c..b08debc 100644
+--- a/drivers/media/video/sh_mobile_ceu_camera.c
++++ b/drivers/media/video/sh_mobile_ceu_camera.c
+@@ -1701,11 +1701,6 @@ static int sh_mobile_ceu_try_fmt(struct soc_camera_device *icd,
+ 	width = pix->width;
+ 	height = pix->height;
+ 
+-	pix->bytesperline = soc_mbus_bytes_per_line(width, xlate->host_fmt);
+-	if ((int)pix->bytesperline < 0)
+-		return pix->bytesperline;
+-	pix->sizeimage = height * pix->bytesperline;
+-
+ 	/* limit to sensor capabilities */
+ 	mf.width	= pix->width;
+ 	mf.height	= pix->height;
+-- 
+1.7.2.5
 
-Also, do not hesitate to try out different versions of the kernel if you
-stumble upon problem with the S2 3200; I had some trouble with it and
-some recent patches do not suit my setup (dish, cable length, diseqc
-switch, etc ...)
-
-For the sasc-ng matter, I did play with it last year but figured it is a
-time black hole when it does not work. I guess you have a legal
-subscription card. Then unless you like to play around, just drop
-softcams. And CAMs are not that expensive.
-
---
-Issa
