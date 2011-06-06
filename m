@@ -1,56 +1,56 @@
 Return-path: <mchehab@pedra>
-Received: from smtp-vbr1.xs4all.nl ([194.109.24.21]:3400 "EHLO
-	smtp-vbr1.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754950Ab1FEML7 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sun, 5 Jun 2011 08:11:59 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Sakari Ailus <sakari.ailus@iki.fi>
-Subject: Re: [PATCH v9] Add support for M-5MOLS 8 Mega Pixel camera ISP
-Date: Sun, 5 Jun 2011 14:11:14 +0200
-Cc: "Kim, HeungJun" <riverful.kim@samsung.com>,
-	linux-media@vger.kernel.org, mchehab@infradead.org,
-	laurent.pinchart@ideasonboard.com,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>
-References: <1305507806-10692-1-git-send-email-riverful.kim@samsung.com> <4DDDFD6F.9000601@samsung.com> <20110605115529.GC6073@valkosipuli.localdomain>
-In-Reply-To: <20110605115529.GC6073@valkosipuli.localdomain>
+Received: from mail-wy0-f174.google.com ([74.125.82.174]:61591 "EHLO
+	mail-wy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750941Ab1FFQgf (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 6 Jun 2011 12:36:35 -0400
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201106051411.15067.hverkuil@xs4all.nl>
+In-Reply-To: <20110606153557.GE1953@amd.com>
+References: <1307053663-24572-1-git-send-email-ohad@wizery.com>
+ <20110606100950.GC30762@amd.com> <BANLkTi=i2s-Ujiy4qn_XQv+9dMjUC9R66A@mail.gmail.com>
+ <20110606153557.GE1953@amd.com>
+From: Ohad Ben-Cohen <ohad@wizery.com>
+Date: Mon, 6 Jun 2011 19:36:13 +0300
+Message-ID: <BANLkTinwwVO4TmsxuTfSBf6jqYrEVV3b_A@mail.gmail.com>
+Subject: Re: [RFC 0/6] iommu: generic api migration and grouping
+To: "Roedel, Joerg" <Joerg.Roedel@amd.com>
+Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	"linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>,
+	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
+	"linux-arm-kernel@lists.infradead.org"
+	<linux-arm-kernel@lists.infradead.org>,
+	"laurent.pinchart@ideasonboard.com"
+	<laurent.pinchart@ideasonboard.com>,
+	"Hiroshi.DOYU@nokia.com" <Hiroshi.DOYU@nokia.com>,
+	"arnd@arndb.de" <arnd@arndb.de>,
+	"davidb@codeaurora.org" <davidb@codeaurora.org>,
+	Omar Ramirez Luna <omar.ramirez@ti.com>
+Content-Type: text/plain; charset=ISO-8859-1
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Sunday, June 05, 2011 13:55:30 Sakari Ailus wrote:
-> On Thu, May 26, 2011 at 04:12:47PM +0900, Kim, HeungJun wrote:
-> > >> +
-> > >> +	struct v4l2_ctrl_handler handle;
-> > >> +	/* Autoexposure/exposure control cluster */
-> > >> +	struct {
-> > >> +		struct v4l2_ctrl *autoexposure;
-> > >> +		struct v4l2_ctrl *exposure;
-> > >> +	};
-> > > 
-> > > Would it be different without the anonymous struct?
-> > These two v4l2_ctrl is clustered. So, anonymous struct should be used
-> > for v4l2_ctrl_cluster().
-> 
-> It makes no difference in how the pointers are arranged in the memory.
+On Mon, Jun 6, 2011 at 6:35 PM, Roedel, Joerg <Joerg.Roedel@amd.com> wrote:
+> On Mon, Jun 06, 2011 at 11:15:30AM -0400, Ohad Ben-Cohen wrote:
+>
+>> This is insufficient; users need somehow to tell what page sizes are
+>> supported by the underlying hardware (we can't assume host page-sizes,
+>> and we want to use bigger pages whenever possible, to relax the TLB
+>> pressure).
+> /
+> What does the IOMMU-API user need this info for? On the x86 IOMMUs these
+> details are handled transparently by the IOMMU driver.
 
-The reason I use an anonymous struct for control clusters is that they
-nicely highlight that these two pointers belong together.
+That's one way to do that, but then it means duplicating this logic
+inside the different IOMMU implementations.
 
-You don't need to do this, of course, but in that case you have to clearly
-group such pointers using comment(s). Alternatively, you can use a pointer
-array, but that's a pain in the ass to use in practice.
+Take the OMAP (and seemingly MSM too) example: we have 4KB, 64KB, 1MB
+and 16MB page-table entries. When we map a memory region, we need to
+break it up to a minimum number of pages (while validating
+sizes/alignments are sane). It's not complicated, but it can be nice
+if it'd be implemented only once.
 
-So the sole purpose of the anonymous struct is to visually group the pointers
-without making it harder to access them.
-
-It is debatable whether it is needed if you have only one cluster. But when
-you have more than one cluster this approach is very effective.
-
-Regards,
-
-	Hans
+In addition, unless we require 'va' and 'pa' to have the exact same
+alignment, we might run into specific page configuration that the
+IOMMU implementation cannot restore on ->unmap, since unmap only takes
+'va' and 'order'. So we will either have to supply 'pa' too, or have
+the implementation remember the mapping in order to unmap it later.
+That begins to be a bit messy...
