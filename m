@@ -1,66 +1,79 @@
 Return-path: <mchehab@pedra>
-Received: from mx1.redhat.com ([209.132.183.28]:54178 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751379Ab1F3NYL (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 30 Jun 2011 09:24:11 -0400
-Received: from int-mx02.intmail.prod.int.phx2.redhat.com (int-mx02.intmail.prod.int.phx2.redhat.com [10.5.11.12])
-	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id p5UDOBfY003708
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
-	for <linux-media@vger.kernel.org>; Thu, 30 Jun 2011 09:24:11 -0400
-Message-ID: <4E0C78F9.2010302@redhat.com>
-Date: Thu, 30 Jun 2011 10:24:09 -0300
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Received: from am1ehsobe005.messaging.microsoft.com ([213.199.154.208]:54071
+	"EHLO AM1EHSOBE005.bigfish.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1750998Ab1FFKJk (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 6 Jun 2011 06:09:40 -0400
+Date: Mon, 6 Jun 2011 12:09:51 +0200
+From: "Roedel, Joerg" <Joerg.Roedel@amd.com>
+To: Ohad Ben-Cohen <ohad@wizery.com>
+CC: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	"linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>,
+	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
+	"linux-arm-kernel@lists.infradead.org"
+	<linux-arm-kernel@lists.infradead.org>,
+	"laurent.pinchart@ideasonboard.com"
+	<laurent.pinchart@ideasonboard.com>,
+	"Hiroshi.DOYU@nokia.com" <Hiroshi.DOYU@nokia.com>,
+	"arnd@arndb.de" <arnd@arndb.de>,
+	"davidb@codeaurora.org" <davidb@codeaurora.org>
+Subject: Re: [RFC 0/6] iommu: generic api migration and grouping
+Message-ID: <20110606100950.GC30762@amd.com>
+References: <1307053663-24572-1-git-send-email-ohad@wizery.com>
 MIME-Version: 1.0
-To: Hans de Goede <hdegoede@redhat.com>
-CC: linux-media@vger.kernel.org
-Subject: Re: [git:xawtv3/master] xawtv: reenable its usage with webcam's
-References: <E1Qbdw6-0007wL-E8@www.linuxtv.org> <4E0B05F5.1000704@redhat.com> <4E0B1407.8000907@redhat.com> <4E0B199B.4010008@redhat.com> <4E0B7CA3.3010104@redhat.com> <4E0C5639.9030501@redhat.com> <4E0C6D7E.4080800@redhat.com> <4E0C7815.3010907@redhat.com>
-In-Reply-To: <4E0C7815.3010907@redhat.com>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset="us-ascii"
+Content-Disposition: inline
+In-Reply-To: <1307053663-24572-1-git-send-email-ohad@wizery.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Em 30-06-2011 10:20, Mauro Carvalho Chehab escreveu:
-> Em 30-06-2011 09:35, Mauro Carvalho Chehab escreveu:
->> Em 30-06-2011 07:55, Hans de Goede escreveu:
-> 
->>> 1) This bit should be #ifdef __linux__ since we only support
->>> auto* on linux because of the sysfs dep:
->>
->> True, but instead of adding it on every place, the better would be to replace auto/auto_tv
->> at the library, instead of adding the test at each place we change to auto mode.
-> 
-> I fixed it using this approach.
-> 
->>> 2) The added return NULL in case no device can be found lacks
->>> printing an error message:
-> 
->>> I propose changing the return NULL, with a goto to the error print further down.
->>
->> Yes, that sounds better to me.
-> 
-> The error message didn't look good, so I added an specific message for it.
-> 
-> Yet, IMO, we're being too verbose:
-> 
-> $ scantv 
-> vid-open-auto: failed to open an analog TV device at /dev/video0
-> vid-open: could not find a suitable videodev
-> no analog TV device available
+Hi,
 
-Ah, calling it without any media driver is also verbose and wrong:
+On Thu, Jun 02, 2011 at 06:27:37PM -0400, Ohad Ben-Cohen wrote:
+> First stab at iommu consolidation:
+> 
+> - Migrate OMAP's iommu driver to the generic iommu API. With this in hand,
+>   users can now start using the generic iommu layer instead of calling
+>   omap-specific iommu API.
+> 
+>   New code that requires functionality missing from the generic iommu api,
+>   will add that functionality in the generic framework (e.g. adding framework
+>   awareness to multi page sizes, supported by the underlying hardware, will
+>   avoid the otherwise-inevitable code duplication when mapping a memory
+>   region).
 
-$ xawtv
-This is xawtv-, running on Linux/x86_64 (2.6.32-131.0.15.el6.x86_64)
-vid-open-auto: failed to open a capture device at 
-vid-open: could not find a suitable videodev
-no video grabber device available
+The IOMMU-API already supports multiple page-sizes. See the
+'order'-parameter of the map/unmap functions.
 
-$ scantv
-vid-open-auto: failed to open an analog TV device at �7
-                                                       
-vid-open: could not find a suitable videodev
-no analog TV device available
+>   Further generalizing of iovmm strongly depends on our broader plans for
+>   providing a generic virtual memory manager and allocation framework
+>   (which, as discussed, should be separated from a specific mapper).
 
-Mauro
+The generic vmm for DMA is called DMA-API :) Any reason for not using
+that (those reasons should be fixed)?
+
+>   iovmm has a mainline user: omap3isp, and therefore must be maintained,
+>   but new potential users will either have to generalize it, or come up
+>   with a different generic framework that will replace it.
+
+Moving to the DMA-API should be considered here. If it is too much work
+iovmm can stay for a while, but the goal should be to get rid of it and
+only use the DMA-API.
+
+> - Create a dedicated iommu drivers folder (and put the base iommu code there)
+
+Very good idea.
+
+
+	Joerg
+
+P.S.: Please also Cc the iommu-list (iommu@lists.linux-foundation.org)
+      in the future for IOMMU related patches.
+
+-- 
+AMD Operating System Research Center
+
+Advanced Micro Devices GmbH Einsteinring 24 85609 Dornach
+General Managers: Alberto Bozzo, Andrew Bowd
+Registration: Dornach, Landkr. Muenchen; Registerger. Muenchen, HRB Nr. 43632
+
