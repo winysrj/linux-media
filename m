@@ -1,200 +1,374 @@
 Return-path: <mchehab@pedra>
-Received: from moutng.kundenserver.de ([212.227.17.9]:63349 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756121Ab1FFNGg (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 6 Jun 2011 09:06:36 -0400
-Date: Mon, 6 Jun 2011 15:06:25 +0200 (CEST)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	sakari.ailus@maxwell.research.nokia.com,
-	Sylwester Nawrocki <snjw23@gmail.com>,
-	Stan <svarbanov@mm-sol.com>, Hans Verkuil <hansverk@cisco.com>,
-	saaguirre@ti.com, Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: Re: [PATCH/RFC] V4L: add media bus configuration subdev operations
-In-Reply-To: <909d9f71c0ed2e9dc6f81a20e20f9f6a.squirrel@webmail.xs4all.nl>
-Message-ID: <Pine.LNX.4.64.1106061502240.11169@axis700.grange>
-References: <Pine.LNX.4.64.1106061358310.11169@axis700.grange>
- <909d9f71c0ed2e9dc6f81a20e20f9f6a.squirrel@webmail.xs4all.nl>
-MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Received: from mx1.redhat.com ([209.132.183.28]:12498 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756618Ab1FFRnq (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 6 Jun 2011 13:43:46 -0400
+From: Hans de Goede <hdegoede@redhat.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: stable@kernel.org, Hans de Goede <hdegoede@redhat.com>
+Subject: [PATCH] pwc: better usb disconnect handling
+Date: Mon,  6 Jun 2011 19:43:39 +0200
+Message-Id: <1307382219-2763-2-git-send-email-hdegoede@redhat.com>
+In-Reply-To: <1307382219-2763-1-git-send-email-hdegoede@redhat.com>
+References: <1307382219-2763-1-git-send-email-hdegoede@redhat.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Hi Hans
+Unplugging a pwc cam while an app has the /dev/video# node open leads
+to an oops in pwc_video_close when the app closes the node, because
+the disconnect handler has free-ed the pdev struct pwc_video_close
+tries to use. Instead of adding some sort of bandaid for this.
+fix it properly using the v4l2 core's new(ish) behavior of keeping the
+v4l2_dev structure around until both unregister has been called, and
+all file handles referring  to it have been closed:
 
-Thanks for your comments
+Embed the v4l2_dev structure in the pdev structure and define a v4l2 dev
+release callback releasing the pdev structure (and thus also the embedded
+v4l2 dev structure.
 
-On Mon, 6 Jun 2011, Hans Verkuil wrote:
-
-> > Add media bus configuration types and two subdev operations to get
-> > supported mediabus configurations and to set a specific configuration.
-> > Subdevs can support several configurations, e.g., they can send video data
-> > on 1 or several lanes, can be configured to use a specific CSI-2 channel,
-> > in such cases subdevice drivers return bitmasks with all respective bits
-> > set. When a set-configuration operation is called, it has to specify a
-> > non-ambiguous configuration.
-> >
-> > Signed-off-by: Stanimir Varbanov <svarbanov@mm-sol.com>
-> > Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-> > ---
-> >
-> > This change would allow a re-use of soc-camera and "standard" subdev
-> > drivers. It is a modified and extended version of
-> >
-> > http://article.gmane.org/gmane.linux.drivers.video-input-infrastructure/29408
-> >
-> > therefore the original Sob. After this we only would have to switch to the
-> > control framework:) Please, comment.
-> >
-> > diff --git a/include/media/v4l2-mediabus.h b/include/media/v4l2-mediabus.h
-> > index 971c7fa..0983b7b 100644
-> > --- a/include/media/v4l2-mediabus.h
-> > +++ b/include/media/v4l2-mediabus.h
-> > @@ -13,6 +13,76 @@
-> >
-> >  #include <linux/v4l2-mediabus.h>
-> >
-> > +/* Parallel flags */
-> > +/* Can the client run in master or in slave mode */
-> > +#define V4L2_MBUS_MASTER			(1 << 0)
-> > +#define V4L2_MBUS_SLAVE				(1 << 1)
-> > +/* Which signal polarities it supports */
-> > +#define V4L2_MBUS_HSYNC_ACTIVE_HIGH		(1 << 2)
-> > +#define V4L2_MBUS_HSYNC_ACTIVE_LOW		(1 << 3)
-> > +#define V4L2_MBUS_VSYNC_ACTIVE_HIGH		(1 << 4)
-> > +#define V4L2_MBUS_VSYNC_ACTIVE_LOW		(1 << 5)
-> > +#define V4L2_MBUS_PCLK_SAMPLE_RISING		(1 << 6)
-> > +#define V4L2_MBUS_PCLK_SAMPLE_FALLING		(1 << 7)
-> > +#define V4L2_MBUS_DATA_ACTIVE_HIGH		(1 << 8)
-> > +#define V4L2_MBUS_DATA_ACTIVE_LOW		(1 << 9)
-> > +/* Which datawidths are supported */
-> > +#define V4L2_MBUS_DATAWIDTH_4			(1 << 10)
-> > +#define V4L2_MBUS_DATAWIDTH_8			(1 << 11)
-> > +#define V4L2_MBUS_DATAWIDTH_9			(1 << 12)
-> > +#define V4L2_MBUS_DATAWIDTH_10			(1 << 13)
-> > +#define V4L2_MBUS_DATAWIDTH_15			(1 << 14)
-> > +#define V4L2_MBUS_DATAWIDTH_16			(1 << 15)
-> > +
-> > +#define V4L2_MBUS_DATAWIDTH_MASK	(V4L2_MBUS_DATAWIDTH_4 |
-> > V4L2_MBUS_DATAWIDTH_8 | \
-> > +					 V4L2_MBUS_DATAWIDTH_9 | V4L2_MBUS_DATAWIDTH_10 | \
-> > +					 V4L2_MBUS_DATAWIDTH_15 | V4L2_MBUS_DATAWIDTH_16)
-> 
-> This is too limited. Video receivers for example can use 8, 10, 12, 20,
-> 24, 30 and 36 data widths. Perhaps we should have a u64 bitmask instead.
-> Bit 0 is a width of 1, bit 63 is a width of 64. It's much easier to
-> understand.
-
-So, you want a separate 64-bit bitmask field in struct v4l2_mbus_config 
-only for parallel bus width? Ok, can do that, np.
-
-> 
-> > +
-> > +/* Serial flags */
-> > +/* How many lanes the client can use */
-> > +#define V4L2_MBUS_CSI2_1_LANE			(1 << 0)
-> > +#define V4L2_MBUS_CSI2_2_LANE			(1 << 1)
-> > +#define V4L2_MBUS_CSI2_3_LANE			(1 << 2)
-> > +#define V4L2_MBUS_CSI2_4_LANE			(1 << 3)
-> > +/* On which channels it can send video data */
-> > +#define V4L2_MBUS_CSI2_CHANNEL_0			(1 << 4)
-> > +#define V4L2_MBUS_CSI2_CHANNEL_1			(1 << 5)
-> > +#define V4L2_MBUS_CSI2_CHANNEL_2			(1 << 6)
-> > +#define V4L2_MBUS_CSI2_CHANNEL_3			(1 << 7)
-> > +/* Does it support only continuous or also non-contimuous clock mode */
-> > +#define V4L2_MBUS_CSI2_CONTINUOUS_CLOCK		(1 << 8)
-> > +#define V4L2_MBUS_CSI2_NONCONTINUOUS_CLOCK	(1 << 9)
-> > +
-> > +#define V4L2_MBUS_CSI2_LANES		(V4L2_MBUS_CSI2_1_LANE |
-> > V4L2_MBUS_CSI2_2_LANE | \
-> > +					 V4L2_MBUS_CSI2_3_LANE | V4L2_MBUS_CSI2_4_LANE)
-> > +#define V4L2_MBUS_CSI2_CHANNELS		(V4L2_MBUS_CSI2_CHANNEL_0 |
-> > V4L2_MBUS_CSI2_CHANNEL_1 | \
-> > +					 V4L2_MBUS_CSI2_CHANNEL_2 | V4L2_MBUS_CSI2_CHANNEL_3)
-> > +
-> > +/**
-> > + * v4l2_mbus_type - media bus type
-> > + * @V4L2_MBUS_PARALLEL:	parallel interface with hsync and vsync
-> > + * @V4L2_MBUS_BT656:	parallel interface with embedded synchronisation
-> > + * @V4L2_MBUS_CSI2:	MIPI CSI-2 serial interface
-> > + */
-> > +enum v4l2_mbus_type {
-> > +	V4L2_MBUS_PARALLEL,
-> > +	V4L2_MBUS_BT656,
-> > +	V4L2_MBUS_CSI2,
-> > +};
-> > +
-> > +/**
-> > + * v4l2_mbus_config - media bus configuration
-> > + * @type:	interface type
-> > + * @flags:	configuration flags, depending on @type
-> > + * @clk:	output clock, the bridge driver can try to use clk_set_parent()
-> > + *		to specify the master clock to the client
-> > + */
-> > +struct v4l2_mbus_config {
-> > +	enum v4l2_mbus_type type;
-> > +	unsigned long flags;
-> > +	struct clk *clk;
-> > +};
-> > +
-> >  static inline void v4l2_fill_pix_format(struct v4l2_pix_format *pix_fmt,
-> >  				const struct v4l2_mbus_framefmt *mbus_fmt)
-> >  {
-> > diff --git a/include/media/v4l2-subdev.h b/include/media/v4l2-subdev.h
-> > index 1562c4f..6ea25f4 100644
-> > --- a/include/media/v4l2-subdev.h
-> > +++ b/include/media/v4l2-subdev.h
-> > @@ -255,6 +255,10 @@ struct v4l2_subdev_audio_ops {
-> >     try_mbus_fmt: try to set a pixel format on a video data source
-> >
-> >     s_mbus_fmt: set a pixel format on a video data source
-> > +
-> > +   g_mbus_param: get supported mediabus configurations
-> > +
-> > +   s_mbus_param: set a certain mediabus configuration
-> >   */
-> >  struct v4l2_subdev_video_ops {
-> >  	int (*s_routing)(struct v4l2_subdev *sd, u32 input, u32 output, u32
-> > config);
-> > @@ -294,6 +298,8 @@ struct v4l2_subdev_video_ops {
-> >  			    struct v4l2_mbus_framefmt *fmt);
-> >  	int (*s_mbus_fmt)(struct v4l2_subdev *sd,
-> >  			  struct v4l2_mbus_framefmt *fmt);
-> > +	int (*g_mbus_param)(struct v4l2_subdev *sd, struct v4l2_mbus_config
-> > *cfg);
-> 
-> The struct and op should either use the term 'config' or the term 'param',
-> but not mix them.
-
-Ok
-
-> I also strongly recommend that sensor drivers can accept a struct
-> v4l2_mbus_config as part of their platform_data to initialize the sensor
-> config at load time (and allow for hardcoding in board code).
-
-Sure, subdev drivers are free to do so. Also, these methods are designed 
-to be optional.
-
-Thanks
-Guennadi
-
-> Regards,
-> 
->        Hans
-> 
-> > +	int (*s_mbus_param)(struct v4l2_subdev *sd, struct v4l2_mbus_config
-> > *cfg);
-> >  };
-> >
-> >  /*
-> > --
-> > To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> > the body of a message to majordomo@vger.kernel.org
-> > More majordomo info at  http://vger.kernel.org/majordomo-info.html
-
+Signed-off-by: Hans de Goede <hdegoede@redhat.com>
 ---
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
-http://www.open-technology.de/
+ drivers/media/video/pwc/pwc-ctrl.c |    2 +-
+ drivers/media/video/pwc/pwc-if.c   |  152 +++++++++++-------------------------
+ drivers/media/video/pwc/pwc.h      |    4 +-
+ 3 files changed, 50 insertions(+), 108 deletions(-)
+
+diff --git a/drivers/media/video/pwc/pwc-ctrl.c b/drivers/media/video/pwc/pwc-ctrl.c
+index 1593f8d..760b4de 100644
+--- a/drivers/media/video/pwc/pwc-ctrl.c
++++ b/drivers/media/video/pwc/pwc-ctrl.c
+@@ -1414,7 +1414,7 @@ long pwc_ioctl(struct pwc_device *pdev, unsigned int cmd, void *arg)
+ 	{
+ 		ARG_DEF(struct pwc_probe, probe)
+ 
+-		strcpy(ARGR(probe).name, pdev->vdev->name);
++		strcpy(ARGR(probe).name, pdev->vdev.name);
+ 		ARGR(probe).type = pdev->type;
+ 		ARG_OUT(probe)
+ 		break;
+diff --git a/drivers/media/video/pwc/pwc-if.c b/drivers/media/video/pwc/pwc-if.c
+index b81024c..592f966 100644
+--- a/drivers/media/video/pwc/pwc-if.c
++++ b/drivers/media/video/pwc/pwc-if.c
+@@ -40,7 +40,7 @@
+    Oh yes, convention: to disctinguish between all the various pointers to
+    device-structures, I use these names for the pointer variables:
+    udev: struct usb_device *
+-   vdev: struct video_device *
++   vdev: struct video_device (member of pwc_dev)
+    pdev: struct pwc_devive *
+ */
+ 
+@@ -152,6 +152,7 @@ static ssize_t pwc_video_read(struct file *file, char __user *buf,
+ 			  size_t count, loff_t *ppos);
+ static unsigned int pwc_video_poll(struct file *file, poll_table *wait);
+ static int  pwc_video_mmap(struct file *file, struct vm_area_struct *vma);
++static void pwc_video_release(struct video_device *vfd);
+ 
+ static const struct v4l2_file_operations pwc_fops = {
+ 	.owner =	THIS_MODULE,
+@@ -164,42 +165,12 @@ static const struct v4l2_file_operations pwc_fops = {
+ };
+ static struct video_device pwc_template = {
+ 	.name =		"Philips Webcam",	/* Filled in later */
+-	.release =	video_device_release,
++	.release =	pwc_video_release,
+ 	.fops =         &pwc_fops,
++	.ioctl_ops =	&pwc_ioctl_ops,
+ };
+ 
+ /***************************************************************************/
+-
+-/* Okay, this is some magic that I worked out and the reasoning behind it...
+-
+-   The biggest problem with any USB device is of course: "what to do
+-   when the user unplugs the device while it is in use by an application?"
+-   We have several options:
+-   1) Curse them with the 7 plagues when they do (requires divine intervention)
+-   2) Tell them not to (won't work: they'll do it anyway)
+-   3) Oops the kernel (this will have a negative effect on a user's uptime)
+-   4) Do something sensible.
+-
+-   Of course, we go for option 4.
+-
+-   It happens that this device will be linked to two times, once from
+-   usb_device and once from the video_device in their respective 'private'
+-   pointers. This is done when the device is probed() and all initialization
+-   succeeded. The pwc_device struct links back to both structures.
+-
+-   When a device is unplugged while in use it will be removed from the
+-   list of known USB devices; I also de-register it as a V4L device, but
+-   unfortunately I can't free the memory since the struct is still in use
+-   by the file descriptor. This free-ing is then deferend until the first
+-   opportunity. Crude, but it works.
+-
+-   A small 'advantage' is that if a user unplugs the cam and plugs it back
+-   in, it should get assigned the same video device minor, but unfortunately
+-   it's non-trivial to re-link the cam back to the video device... (that
+-   would surely be magic! :))
+-*/
+-
+-/***************************************************************************/
+ /* Private functions */
+ 
+ /* Here we want the physical address of the memory.
+@@ -1017,16 +988,15 @@ static ssize_t show_snapshot_button_status(struct device *class_dev,
+ static DEVICE_ATTR(button, S_IRUGO | S_IWUSR, show_snapshot_button_status,
+ 		   NULL);
+ 
+-static int pwc_create_sysfs_files(struct video_device *vdev)
++static int pwc_create_sysfs_files(struct pwc_device *pdev)
+ {
+-	struct pwc_device *pdev = video_get_drvdata(vdev);
+ 	int rc;
+ 
+-	rc = device_create_file(&vdev->dev, &dev_attr_button);
++	rc = device_create_file(&pdev->vdev.dev, &dev_attr_button);
+ 	if (rc)
+ 		goto err;
+ 	if (pdev->features & FEATURE_MOTOR_PANTILT) {
+-		rc = device_create_file(&vdev->dev, &dev_attr_pan_tilt);
++		rc = device_create_file(&pdev->vdev.dev, &dev_attr_pan_tilt);
+ 		if (rc)
+ 			goto err_button;
+ 	}
+@@ -1034,19 +1004,17 @@ static int pwc_create_sysfs_files(struct video_device *vdev)
+ 	return 0;
+ 
+ err_button:
+-	device_remove_file(&vdev->dev, &dev_attr_button);
++	device_remove_file(&pdev->vdev.dev, &dev_attr_button);
+ err:
+ 	PWC_ERROR("Could not create sysfs files.\n");
+ 	return rc;
+ }
+ 
+-static void pwc_remove_sysfs_files(struct video_device *vdev)
++static void pwc_remove_sysfs_files(struct pwc_device *pdev)
+ {
+-	struct pwc_device *pdev = video_get_drvdata(vdev);
+-
+ 	if (pdev->features & FEATURE_MOTOR_PANTILT)
+-		device_remove_file(&vdev->dev, &dev_attr_pan_tilt);
+-	device_remove_file(&vdev->dev, &dev_attr_button);
++		device_remove_file(&pdev->vdev.dev, &dev_attr_pan_tilt);
++	device_remove_file(&pdev->vdev.dev, &dev_attr_button);
+ }
+ 
+ #ifdef CONFIG_USB_PWC_DEBUG
+@@ -1107,7 +1075,7 @@ static int pwc_video_open(struct file *file)
+ 		if (ret >= 0)
+ 		{
+ 			PWC_DEBUG_OPEN("This %s camera is equipped with a %s (%d).\n",
+-					pdev->vdev->name,
++					pdev->vdev.name,
+ 					pwc_sensor_type_to_string(i), i);
+ 		}
+ 	}
+@@ -1181,16 +1149,15 @@ static int pwc_video_open(struct file *file)
+ 	return 0;
+ }
+ 
+-
+-static void pwc_cleanup(struct pwc_device *pdev)
++static void pwc_video_release(struct video_device *vfd)
+ {
+-	pwc_remove_sysfs_files(pdev->vdev);
+-	video_unregister_device(pdev->vdev);
++	struct pwc_device *pdev = container_of(vfd, struct pwc_device, vdev);
++	int hint;
+ 
+-#ifdef CONFIG_USB_PWC_INPUT_EVDEV
+-	if (pdev->button_dev)
+-		input_unregister_device(pdev->button_dev);
+-#endif
++	/* search device_hint[] table if we occupy a slot, by any chance */
++	for (hint = 0; hint < MAX_DEV_HINTS; hint++)
++		if (device_hint[hint].pdev == pdev)
++			device_hint[hint].pdev = NULL;
+ 
+ 	kfree(pdev);
+ }
+@@ -1200,7 +1167,7 @@ static int pwc_video_close(struct file *file)
+ {
+ 	struct video_device *vdev = file->private_data;
+ 	struct pwc_device *pdev;
+-	int i, hint;
++	int i;
+ 
+ 	PWC_DEBUG_OPEN(">> video_close called(vdev = 0x%p).\n", vdev);
+ 
+@@ -1235,12 +1202,6 @@ static int pwc_video_close(struct file *file)
+ 		}
+ 		pdev->vopen--;
+ 		PWC_DEBUG_OPEN("<< video_close() vopen=%d\n", pdev->vopen);
+-	} else {
+-		pwc_cleanup(pdev);
+-		/* search device_hint[] table if we occupy a slot, by any chance */
+-		for (hint = 0; hint < MAX_DEV_HINTS; hint++)
+-			if (device_hint[hint].pdev == pdev)
+-				device_hint[hint].pdev = NULL;
+ 	}
+ 
+ 	return 0;
+@@ -1716,19 +1677,12 @@ static int usb_pwc_probe(struct usb_interface *intf, const struct usb_device_id
+ 	init_waitqueue_head(&pdev->frameq);
+ 	pdev->vcompression = pwc_preferred_compression;
+ 
+-	/* Allocate video_device structure */
+-	pdev->vdev = video_device_alloc();
+-	if (!pdev->vdev) {
+-		PWC_ERROR("Err, cannot allocate video_device struture. Failing probe.");
+-		rc = -ENOMEM;
+-		goto err_free_mem;
+-	}
+-	memcpy(pdev->vdev, &pwc_template, sizeof(pwc_template));
+-	pdev->vdev->parent = &intf->dev;
+-	pdev->vdev->lock = &pdev->modlock;
+-	pdev->vdev->ioctl_ops = &pwc_ioctl_ops;
+-	strcpy(pdev->vdev->name, name);
+-	video_set_drvdata(pdev->vdev, pdev);
++	/* Init video_device structure */
++	memcpy(&pdev->vdev, &pwc_template, sizeof(pwc_template));
++	pdev->vdev.parent = &intf->dev;
++	pdev->vdev.lock = &pdev->modlock;
++	strcpy(pdev->vdev.name, name);
++	video_set_drvdata(&pdev->vdev, pdev);
+ 
+ 	pdev->release = le16_to_cpu(udev->descriptor.bcdDevice);
+ 	PWC_DEBUG_PROBE("Release: %04x\n", pdev->release);
+@@ -1747,8 +1701,6 @@ static int usb_pwc_probe(struct usb_interface *intf, const struct usb_device_id
+ 		}
+ 	}
+ 
+-	pdev->vdev->release = video_device_release;
+-
+ 	/* occupy slot */
+ 	if (hint < MAX_DEV_HINTS)
+ 		device_hint[hint].pdev = pdev;
+@@ -1760,16 +1712,16 @@ static int usb_pwc_probe(struct usb_interface *intf, const struct usb_device_id
+ 	pwc_set_leds(pdev, 0, 0);
+ 	pwc_camera_power(pdev, 0);
+ 
+-	rc = video_register_device(pdev->vdev, VFL_TYPE_GRABBER, video_nr);
++	rc = video_register_device(&pdev->vdev, VFL_TYPE_GRABBER, video_nr);
+ 	if (rc < 0) {
+ 		PWC_ERROR("Failed to register as video device (%d).\n", rc);
+-		goto err_video_release;
++		goto err_free_mem;
+ 	}
+-	rc = pwc_create_sysfs_files(pdev->vdev);
++	rc = pwc_create_sysfs_files(pdev);
+ 	if (rc)
+ 		goto err_video_unreg;
+ 
+-	PWC_INFO("Registered as %s.\n", video_device_node_name(pdev->vdev));
++	PWC_INFO("Registered as %s.\n", video_device_node_name(&pdev->vdev));
+ 
+ #ifdef CONFIG_USB_PWC_INPUT_EVDEV
+ 	/* register webcam snapshot button input device */
+@@ -1777,7 +1729,7 @@ static int usb_pwc_probe(struct usb_interface *intf, const struct usb_device_id
+ 	if (!pdev->button_dev) {
+ 		PWC_ERROR("Err, insufficient memory for webcam snapshot button device.");
+ 		rc = -ENOMEM;
+-		pwc_remove_sysfs_files(pdev->vdev);
++		pwc_remove_sysfs_files(pdev);
+ 		goto err_video_unreg;
+ 	}
+ 
+@@ -1795,7 +1747,7 @@ static int usb_pwc_probe(struct usb_interface *intf, const struct usb_device_id
+ 	if (rc) {
+ 		input_free_device(pdev->button_dev);
+ 		pdev->button_dev = NULL;
+-		pwc_remove_sysfs_files(pdev->vdev);
++		pwc_remove_sysfs_files(pdev);
+ 		goto err_video_unreg;
+ 	}
+ #endif
+@@ -1805,10 +1757,7 @@ static int usb_pwc_probe(struct usb_interface *intf, const struct usb_device_id
+ err_video_unreg:
+ 	if (hint < MAX_DEV_HINTS)
+ 		device_hint[hint].pdev = NULL;
+-	video_unregister_device(pdev->vdev);
+-	pdev->vdev = NULL;	/* So we don't try to release it below */
+-err_video_release:
+-	video_device_release(pdev->vdev);
++	video_unregister_device(&pdev->vdev);
+ err_free_mem:
+ 	kfree(pdev);
+ 	return rc;
+@@ -1817,10 +1766,8 @@ err_free_mem:
+ /* The user yanked out the cable... */
+ static void usb_pwc_disconnect(struct usb_interface *intf)
+ {
+-	struct pwc_device *pdev;
+-	int hint;
++	struct pwc_device *pdev  = usb_get_intfdata(intf);
+ 
+-	pdev = usb_get_intfdata (intf);
+ 	mutex_lock(&pdev->modlock);
+ 	usb_set_intfdata (intf, NULL);
+ 	if (pdev == NULL) {
+@@ -1837,30 +1784,25 @@ static void usb_pwc_disconnect(struct usb_interface *intf)
+ 	}
+ 
+ 	/* We got unplugged; this is signalled by an EPIPE error code */
+-	if (pdev->vopen) {
+-		PWC_INFO("Disconnected while webcam is in use!\n");
+-		pdev->error_status = EPIPE;
+-	}
++	pdev->error_status = EPIPE;
++	pdev->unplugged = 1;
+ 
+ 	/* Alert waiting processes */
+ 	wake_up_interruptible(&pdev->frameq);
+-	/* Wait until device is closed */
+-	if (pdev->vopen) {
+-		pdev->unplugged = 1;
+-		pwc_iso_stop(pdev);
+-	} else {
+-		/* Device is closed, so we can safely unregister it */
+-		PWC_DEBUG_PROBE("Unregistering video device in disconnect().\n");
+ 
+-disconnect_out:
+-		/* search device_hint[] table if we occupy a slot, by any chance */
+-		for (hint = 0; hint < MAX_DEV_HINTS; hint++)
+-			if (device_hint[hint].pdev == pdev)
+-				device_hint[hint].pdev = NULL;
+-	}
++	/* No need to keep the urbs around after disconnection */
++	pwc_isoc_cleanup(pdev);
+ 
++disconnect_out:
+ 	mutex_unlock(&pdev->modlock);
+-	pwc_cleanup(pdev);
++
++	pwc_remove_sysfs_files(pdev);
++	video_unregister_device(&pdev->vdev);
++
++#ifdef CONFIG_USB_PWC_INPUT_EVDEV
++	if (pdev->button_dev)
++		input_unregister_device(pdev->button_dev);
++#endif
+ }
+ 
+ 
+diff --git a/drivers/media/video/pwc/pwc.h b/drivers/media/video/pwc/pwc.h
+index e947766..083f8b1 100644
+--- a/drivers/media/video/pwc/pwc.h
++++ b/drivers/media/video/pwc/pwc.h
+@@ -162,9 +162,9 @@ struct pwc_imgbuf
+ 
+ struct pwc_device
+ {
+-   struct video_device *vdev;
++	struct video_device vdev;
+ 
+-   /* Pointer to our usb_device */
++   /* Pointer to our usb_device, may be NULL after unplug */
+    struct usb_device *udev;
+ 
+    int type;                    /* type of cam (645, 646, 675, 680, 690, 720, 730, 740, 750) */
+-- 
+1.7.5.1
+
