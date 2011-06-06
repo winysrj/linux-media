@@ -1,110 +1,124 @@
 Return-path: <mchehab@pedra>
-Received: from smtp-68.nebula.fi ([83.145.220.68]:60350 "EHLO
-	smtp-68.nebula.fi" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751461Ab1FORGx (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 15 Jun 2011 13:06:53 -0400
-Message-ID: <4DF8E4D9.1050604@iki.fi>
-Date: Wed, 15 Jun 2011 19:59:05 +0300
-From: Sakari Ailus <sakari.ailus@iki.fi>
+Received: from moutng.kundenserver.de ([212.227.17.10]:61870 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757145Ab1FFNLA (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 6 Jun 2011 09:11:00 -0400
+Date: Mon, 6 Jun 2011 15:10:54 +0200 (CEST)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
+cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: Re: [PATCH/RFC 1/4] V4L: add three new ioctl()s for multi-size
+ videobuffer management
+In-Reply-To: <4DD424DD.2070508@maxwell.research.nokia.com>
+Message-ID: <Pine.LNX.4.64.1106061500330.11169@axis700.grange>
+References: <Pine.LNX.4.64.1104010959470.9530@axis700.grange>
+ <Pine.LNX.4.64.1105162144200.29373@axis700.grange> <4DD20D1C.4020808@maxwell.research.nokia.com>
+ <201105181601.23093.laurent.pinchart@ideasonboard.com>
+ <Pine.LNX.4.64.1105181642510.16324@axis700.grange> <4DD424DD.2070508@maxwell.research.nokia.com>
 MIME-Version: 1.0
-To: Hans Verkuil <hverkuil@xs4all.nl>
-CC: linux-media@vger.kernel.org, laurent.pinchart@ideasonboard.com,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: Re: [RFCv1 PATCH 1/8] v4l2-events/fh: merge v4l2_events into v4l2_fh
-References: <1308064953-11156-1-git-send-email-hverkuil@xs4all.nl> <3d92b242dcf5e7766d128d6c1f05c0bd837a2633.1308063857.git.hans.verkuil@cisco.com> <20110615093007.GD9432@valkosipuli.localdomain> <201106151839.35935.hverkuil@xs4all.nl>
-In-Reply-To: <201106151839.35935.hverkuil@xs4all.nl>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Hans Verkuil wrote:
-> On Wednesday, June 15, 2011 11:30:07 Sakari Ailus wrote:
->> Hi Hans,
->>
->> Many thanks for the patch. I'm very happy to see this!
->>
->> I have just one comment below.
->>
->>> diff --git a/include/media/v4l2-event.h b/include/media/v4l2-event.h
->>> index 45e9c1e..042b893 100644
->>> --- a/include/media/v4l2-event.h
->>> +++ b/include/media/v4l2-event.h
->>> @@ -43,17 +43,6 @@ struct v4l2_subscribed_event {
->>>   	u32			id;
->>>   };
->>>
->>> -struct v4l2_events {
->>> -	wait_queue_head_t	wait;
->>> -	struct list_head	subscribed; /* Subscribed events */
->>> -	struct list_head	free; /* Events ready for use */
->>> -	struct list_head	available; /* Dequeueable event */
->>> -	unsigned int		navailable;
->>> -	unsigned int		nallocated; /* Number of allocated events */
->>> -	u32			sequence;
->>> -};
->>> -
->>> -int v4l2_event_init(struct v4l2_fh *fh);
->>>   int v4l2_event_alloc(struct v4l2_fh *fh, unsigned int n);
->>>   void v4l2_event_free(struct v4l2_fh *fh);
->>>   int v4l2_event_dequeue(struct v4l2_fh *fh, struct v4l2_event *event,
->>> diff --git a/include/media/v4l2-fh.h b/include/media/v4l2-fh.h
->>> index d247111..bfc0457 100644
->>> --- a/include/media/v4l2-fh.h
->>> +++ b/include/media/v4l2-fh.h
->>> @@ -29,15 +29,22 @@
->>>   #include<linux/list.h>
->>>
->>>   struct video_device;
->>> -struct v4l2_events;
->>>   struct v4l2_ctrl_handler;
->>>
->>>   struct v4l2_fh {
->>>   	struct list_head	list;
->>>   	struct video_device	*vdev;
->>> -	struct v4l2_events      *events; /* events, pending and subscribed */
->>>   	struct v4l2_ctrl_handler *ctrl_handler;
->>>   	enum v4l2_priority	prio;
->>> +
->>> +	/* Events */
->>> +	wait_queue_head_t	wait;
->>> +	struct list_head	subscribed; /* Subscribed events */
->>> +	struct list_head	free; /* Events ready for use */
->>> +	struct list_head	available; /* Dequeueable event */
->>> +	unsigned int		navailable;
->>> +	unsigned int		nallocated; /* Number of allocated events */
->>> +	u32			sequence;
->>
->> A question: why to move the fields from v4l2_events to v4l2_fh? Events may
->> be more important part of V4L2 than before but they're still not file
->> handles. :-) The event related field names have no hing they'd be related to
->> events --- "free", for example.
->
-> The only reason that the v4l2_events struct existed was that there were so few
-> drivers that needed events. So why allocate memory that you don't need? That
-> all changes with the control event: almost all drivers will need that since
-> almost all drivers have events.
->
-> Merging it makes the code easier and v4l2_fh_init can become a void function
-> (so no more error checking needed). And since these fields are always there, I
-> no longer need to check whether fh->events is NULL or not.
->
-> I can add a patch renaming some of the event fields if you prefer, but I don't
-> think they are that bad. Note that 'free' and 'nallocated' are removed
-> completely in a later patch.
+On Wed, 18 May 2011, Sakari Ailus wrote:
 
-Thanks for the explanation. What I had in mind that what other fields 
-possibly would be added to v4l2_fh in the future? If there will be many, 
-in that case keeping event related fields in a separate structure might 
-make sense. I have none in mind right now, though, so perhaps this could 
-be given a second thought if we're adding more things to the v4l2_fh 
-structure?
+> Hi Guennadi and Laurent,
+> 
+> Guennadi Liakhovetski wrote:
+> > On Wed, 18 May 2011, Laurent Pinchart wrote:
+> > 
+> >> On Tuesday 17 May 2011 07:52:28 Sakari Ailus wrote:
+> >>> Guennadi Liakhovetski wrote:
+> > 
+> > [snip]
+> > 
+> >>>>> What about making it possible to pass an array of buffer indices to the
+> >>>>> user, just like VIDIOC_S_EXT_CTRLS does? I'm not sure if this would be
+> >>>>> perfect, but it would avoid the problem of requiring continuous ranges
+> >>>>> of buffer ids.
+> >>>>>
+> >>>>> struct v4l2_create_buffers {
+> >>>>>
+> >>>>> 	__u32			*index;
+> >>>>> 	__u32			count;
+> >>>>> 	__u32			flags;
+> >>>>> 	enum v4l2_memory        memory;
+> >>>>> 	__u32			size;
+> >>>>> 	struct v4l2_format	format;
+> >>>>>
+> >>>>> };
+> >>>>>
+> >>>>> Index would be a pointer to an array of buffer indices and its length
+> >>>>> would be count.
+> >>>>
+> >>>> I don't understand this. We do _not_ want to allow holes in indices. For
+> >>>> now we decide to not implement DESTROY at all. In this case indices just
+> >>>> increment contiguously.
+> >>>>
+> >>>> The next stage is to implement DESTROY, but only in strict reverse order
+> >>>> - without holes and in the same ranges, as buffers have been CREATEd
+> >>>> before. So, I really don't understand why we need arrays, sorry.
+> >>>
+> >>> Well, now that we're defining a second interface to make new buffer
+> >>> objects, I just thought it should be made as future-proof as we can.
+> >>
+> >> I second that. I don't like rushing new APIs to find out we need something 
+> >> else after 6 months.
+> > 
+> > Ok, so, we pass an array from user-space with CREATE of size count. The 
+> > kernel fills it with as many buffers entries as it has allocated. But 
+> > currently drivers are also allowed to allocate more buffers, than the 
+> > user-space has requested. What do we do in such a case?
+> 
+> That's a good point.
+> 
+> But even if there was no array, shouldn't the user be allowed to create
+> the buffers using a number of separate CREATE_BUF calls? The result
+> would be still the same n buffers as with a single call allocating the n
+> buffers at once.
+> 
+> Also, consider the (hopefully!) forthcoming DMA buffer management API
+> patches. It looks like that those buffers will be referred to by file
+> handles. To associate several DMA buffer objects to V4L2 buffers at
+> once, there would have to be an array of those objects.
+> 
+> <URL:http://www.spinics.net/lists/linux-media/msg32448.html>
 
-I think this patchset is a significant improvement to the old behaviour.
+So, does this mean now, that we have to wait for those APIs to become 
+solid before or even implemented we proceed with this one?
 
-Regards,
+Thanks
+Guennadi
 
--- 
-Sakari Ailus
-sakari.ailus@iki.fi
+> 
+> (See the links, too!)
+> 
+> Thus, I would think that CREATE_BUF can be used to create buffers but
+> not to enforce how many of them are required by a device on a single
+> CREATE_BUF call.
+> 
+> I don't have a good answer for the stated problem, but these ones
+> crossed my mind:
+> 
+> - Have a new ioctl to tell the minimum number of buffers to make
+> streaming possible.
+> 
+> - Add a field for the minimum number of buffers to CREATE_BUF.
+> 
+> - Use the old REQBUFS to tell the number. It didn't do much other work
+> in the past either, right?
+> 
+> Regards,
+> 
+> -- 
+> Sakari Ailus
+> sakari.ailus@maxwell.research.nokia.com
+> 
+
+---
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
+http://www.open-technology.de/
