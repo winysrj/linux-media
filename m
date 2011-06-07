@@ -1,96 +1,57 @@
 Return-path: <mchehab@pedra>
-Received: from h5.dl5rb.org.uk ([81.2.74.5]:35637 "EHLO duck.linux-mips.net"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1754488Ab1FXLQj (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 24 Jun 2011 07:16:39 -0400
-Date: Fri, 24 Jun 2011 12:16:08 +0100
-From: Ralf Baechle <ralf@linux-mips.org>
-To: Takashi Iwai <tiwai@suse.de>
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Jaroslav Kysela <perex@perex.cz>, linux-media@vger.kernel.org,
-	linux-kernel@vger.kernel.org, alsa-devel@alsa-project.org,
-	linux-mips@linux-mips.org
-Subject: Re: [PATCH] SOUND: Fix non-ISA_DMA_API build failure
-Message-ID: <20110624111608.GA6327@linux-mips.org>
-References: <20110623144750.GA10180@linux-mips.org>
- <s5hzkl7zlcq.wl%tiwai@suse.de>
+Received: from moutng.kundenserver.de ([212.227.126.186]:52433 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752690Ab1FGKCU (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 7 Jun 2011 06:02:20 -0400
+Date: Tue, 7 Jun 2011 12:02:18 +0200 (CEST)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Robert Jarzmik <robert.jarzmik@free.fr>
+cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	=?ISO-8859-1?Q?Teresa_G=E1mez?= <t.gamez@phytec.de>
+Subject: Re: [PATCH 1/2] V4L: mt9m111: propagate higher level abstraction
+ down in functions
+In-Reply-To: <4DED36A8.5000300@free.fr>
+Message-ID: <Pine.LNX.4.64.1106071159030.31635@axis700.grange>
+References: <Pine.LNX.4.64.1106061918010.11169@axis700.grange>
+ <4DED36A8.5000300@free.fr>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <s5hzkl7zlcq.wl%tiwai@suse.de>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Fri, Jun 24, 2011 at 10:26:13AM +0200, Takashi Iwai wrote:
+On Mon, 6 Jun 2011, Robert Jarzmik wrote:
 
-> Hrm...  I still don't understand why ES18XX or others were selected at
-> the first place.  Isn't it covered by the conditional in
-> sound/isa/Kconfig like below?
+> On 06/06/2011 07:20 PM, Guennadi Liakhovetski wrote:
+> > It is more convenient to propagate the higher level abstraction - the
+> > struct mt9m111 object into functions and then retrieve a pointer to
+> > the i2c client, if needed, than to do the reverse.
+> Agreed.
 > 
-> ================================================================
-> menuconfig SND_ISA
-> 	bool "ISA sound devices"
-> 	depends on ISA && ISA_DMA_API
-> ...
-> if SND_ISA
-> ...
-> config SND_ES18XX
-> 	tristate "Generic ESS ES18xx driver"
-> ...
-> endif	# SND_ISA
-> ================================================================
+> One minor point, you ofter replace :
+> > -	struct mt9m111 *mt9m111 = to_mt9m111(client);
+> > +	struct mt9m111 *mt9m111 = container_of(sd, struct mt9m111, subdev);
 > 
-> Isn't SND_ISA=n in your case although ISA_DMA_API=n?
+> Why haven't you replaced the signature of to_mt9m111() into :
+> static struct mt9m111 *to_mt9m111(const struct v4l2_subdev *sd)
+> {
+> 	return container_of(sd, struct mt9m111, subdev);
+> }
+> 
+> This way, each to_mt9m111(client) will become to_mt9m111(sd), and the purpose
+> of to_mt9m111() will be kept. Wouldn't that be better ?
 
-The answer is hidden in this Kconfig warning:
+Because "container_of(sd, struct mt9m111, subdev)" is still easy enough to 
+write (copy-paste, of course:)) and understand, whereas 
+"container_of(i2c_get_clientdata(client), struct mt9m111, subdev)" is 
+already too awkward to look at, even though it is now only used at 4 
+locations.
 
-warning: (RADIO_MIROPCM20) selects SND_ISA which has unmet direct dependencies (SOUND && !M68K && SND && ISA && ISA_DMA_API)
+A general question to you: from your comments I haven't understood: have 
+you also tested the patches or only reviewed them?
 
-This is due to the following in drivers/media/radio/Kconfig:
-
-config RADIO_MIROPCM20
-        tristate "miroSOUND PCM20 radio"
-        depends on ISA && VIDEO_V4L2 && SND
-        select SND_ISA
-        select SND_MIRO
-
-So SND_ISA gets forced on even though the dependency on ISA_DMA_API is not
-fulfilled.  That's solved by adding the dependency on ISA_DMA_API to
-RADIO_MIROPCM20.
-
-> Also, adlib driver is really only for ISA, so I see no big reason to
-> allow this built for non-ISA.
-
-With the patch applied:
-
-[...]
-menuconfig SND_ISA
-        bool "ISA sound devices"
-        depends on ISA
-[...]
-
-if SND_ISA
-
-config SND_ADLIB
-        tristate "AdLib FM card"
-        select SND_OPL3_LIB
-[...]
-
-So the Adlib driver will still only be built with ISA enabled.  The only
-thing that makes the Adlib driver different from all the others in the
-ifdef SND_ISA ... endif bracket is that it does not directly or indirectly
-use the ISA DMA API and that's in the end the reason why sound/isa/Kconfig
-needs to be changed.
-
-I originally approach this a different way but now that I'm explaining the
-details I notice that it probably makes sense to split this patch into two:
-
- o The drivers/media/radio/Kconfig part should be applied for 3.0 and
-   maybe -stable.
- o The sound/isa/Kconfig part is basically only fixing the dependency for
-   the Adlib driver allowing it to be built on non-ISA_DMA_API system and
-   is material for the next release after 3.0.
-
-If you agree I'm going to repost the patch with aproprite log messages.
-
-  Ralf
+Thanks
+Guennadi
+---
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
+http://www.open-technology.de/
