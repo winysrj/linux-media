@@ -1,107 +1,150 @@
 Return-path: <mchehab@pedra>
-Received: from hqemgate04.nvidia.com ([216.228.121.35]:16518 "EHLO
-	hqemgate04.nvidia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S934556Ab1FWXUH (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 23 Jun 2011 19:20:07 -0400
-From: <achew@nvidia.com>
-To: <linux-kernel@vger.kernel.org>, <linux-media@vger.kernel.org>
-CC: <g.liakhovetski@gmx.de>, <mchehab@redhat.com>, <olof@lixom.net>,
-	Andrew Chew <achew@nvidia.com>
-Subject: [PATCH 6/6 v3] [media] ov9740: Add suspend/resume
-Date: Thu, 23 Jun 2011 16:19:44 -0700
-Message-ID: <1308871184-6307-6-git-send-email-achew@nvidia.com>
-In-Reply-To: <1308871184-6307-1-git-send-email-achew@nvidia.com>
-References: <1308871184-6307-1-git-send-email-achew@nvidia.com>
+Received: from mail-wy0-f174.google.com ([74.125.82.174]:50008 "EHLO
+	mail-wy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753205Ab1FGMuI convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 7 Jun 2011 08:50:08 -0400
+Received: by wya21 with SMTP id 21so3525909wya.19
+        for <linux-media@vger.kernel.org>; Tue, 07 Jun 2011 05:50:07 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: text/plain
+In-Reply-To: <201106071446.59932.hverkuil@xs4all.nl>
+References: <201106071329.42447.hverkuil@xs4all.nl>
+	<201106071404.11115.laurent.pinchart@ideasonboard.com>
+	<4DEE19EE.3000400@maxwell.research.nokia.com>
+	<201106071446.59932.hverkuil@xs4all.nl>
+Date: Tue, 7 Jun 2011 15:50:07 +0300
+Message-ID: <BANLkTinzUZmb7y9o6bo2mRxwdLDG4ZUsUA@mail.gmail.com>
+Subject: Re: RFC: Proposal to change the way pending events are handled
+From: David Cohen <dacohen@gmail.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	linux-media@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8BIT
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-From: Andrew Chew <achew@nvidia.com>
+On Tue, Jun 7, 2011 at 3:46 PM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
+> On Tuesday, June 07, 2011 14:30:38 Sakari Ailus wrote:
+>> Laurent Pinchart wrote:
+>> > Hi Hans and David,
+>> >
+>> > On Tuesday 07 June 2011 13:51:38 David Cohen wrote:
+>> >> On Tue, Jun 7, 2011 at 2:29 PM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
+>> >>> While working on the control events I realized that the way we handle
+>> >>> pending events is rather complicated.
+>> >>>
+>> >>> What currently happens internally is that you have to allocate a fixed
+>> >>> sized list of events. New events are queued on the 'available' list and
+>> >>> when they are processed by the application they are queued on the 'free'
+>> >>> list.
+>> >>>
+>> >>> If the 'free' list is empty, then no new events can be queued and you
+>> >>> will drop events.
+>> >>>
+>> >>> Dropping events can be nasty and in the case of control events can cause
+>> >>> a control panel to contain stale control values if it missed a value
+>> >>> change event.
+>> >>
+>> >> I remember it was a topic I discussed with Sakari.
+>> >>
+>> >>> One option is to allocate enough events, but what is 'enough' events?
+>> >>> That depends on many factors. And allocating more events than is
+>> >>> necessary wastes memory.
+>> >>
+>> >> Cases where events are lost are exception and IMO "enough" events
+>> >> would be almost always waste of memory.
+>> >>
+>> >>> But what might be a better option is this: for each event a filehandle
+>> >>> subscribes to there is only one internal v4l2_kevent allocated.
+>> >>>
+>> >>> This struct is either marked empty (no event was raised) or contains the
+>> >>> latest state of this event. When the event is dequeued by the application
+>> >>> the struct is marked empty again.
+>> >>>
+>> >>> So you never get duplicate events, instead, if a 'duplicate' event is
+>> >>> raised it will just overwrite the 'old' event and move it to the end of
+>> >>> the list of pending events. In other words, the old event is removed and
+>> >>> the new event is inserted instead.
+>> >>
+>> >> That's an interesting proposal. Currently it will have impact at least
+>> >> on statistics collection OMAP3ISP driver. It brings to my mind 2
+>> >> points:
+>> >>  - OMAP3ISP triggers one event for each statistic buffers produced. If
+>> >> we avoid events "duplication", userapp will miss a statistic buffer.
+>> >> It's possible to bypass this problem, but the OMAP3 ISP statistics'
+>> >> private interface should be updated as well.
+>> >>  - To define a standard for statistics collection is something we need
+>> >> to do to avoid new ISP's to always create custom interfaces.
+>> >>
+>> >>> The nice thing about this is that for each subscribed event type you will
+>> >>> never lose a raised event completely. You may lose intermediate events,
+>> >>> but the latest event for that type will always be available.
+>> >>
+>> >> I may have a suggestion. If some event is affected by the number of
+>> >> times it was triggered (like the statistic ones mentioned above),
+>> >> instead of a bool "empty flag", it may contain a counter. Then a
+>> >> "duplicated" event will be raised and will still inform how many
+>> >> intermediate events were "lost". After event is dequeued once, the
+>> >> counter could be reset.
+>> >
+>> > A counter would help mitigate events loss issues, when an application is not
+>> > only interested in the last event "state" (like for HDMI hotplug for
+>> > instance), but also on the intermediate events. This isn't a perfect solution
+>> > though, applications can still make use of detailed event informations (such
+>> > as timestamps, and event-specific data) even if they arrive "late". It really
+>> > depends on the event type.
+>>
+>> I agree with Laurent.
+>>
+>> When the interface was originally defined, the assumption was that any
+>> kind of event loss would be a major nuisance and should ideally never
+>> happen. It's a good question what is best when there's not enough room
+>> for new events.
+>>
+>> Definitely your proposal does have its advantages, but also causes loss
+>> of information such as timestamps much more easily in cases such as the
+>> OMAP 3 ISP driver where many events are generated per frame, usually one
+>> per type.
+>>
+>> On the other hand, the importance of timestamps generally decreases when
+>> as they get older. I'm uncertain whether such a change would actually
+>> break something, at least I can't say it wouldn't right now.
+>>
+>> I wonder if it would be too complicated to pre-allocate n events per
+>> event type, n being be a small natural number. This might be wasteful,
+>> however.
+>
+> I think this is actually the best approach. It is even possible to let the
+> application select 'N' when subscribing an event. This ensures that you never
+> completely miss an event: e.g. if X events of type T are raised, then you
+> will at least get min(N, X) events of that type.
+>
+> It's much nicer that way since it gives you useful guarantees that you don't
+> have today. And the allocation can be done when subscribing events instead
+> of having to guess some global maximum for the total number of events.
 
-On suspend, remember whether we are streaming or not, and at what frame format,
-so that on resume, we can start streaming again.
+I agree with this proposal. I won't affect OMAP3ISP statistic drivers either.
 
-Signed-off-by: Andrew Chew <achew@nvidia.com>
----
- drivers/media/video/ov9740.c |   28 ++++++++++++++++++++++++++++
- 1 files changed, 28 insertions(+), 0 deletions(-)
+Br,
 
-diff --git a/drivers/media/video/ov9740.c b/drivers/media/video/ov9740.c
-index cd63eaa..ede48f2 100644
---- a/drivers/media/video/ov9740.c
-+++ b/drivers/media/video/ov9740.c
-@@ -201,6 +201,10 @@ struct ov9740_priv {
- 
- 	bool				flag_vflip;
- 	bool				flag_hflip;
-+
-+	/* For suspend/resume. */
-+	struct v4l2_mbus_framefmt	current_mf;
-+	bool				current_enable;
- };
- 
- static const struct ov9740_reg ov9740_defaults[] = {
-@@ -551,6 +555,8 @@ static int ov9740_s_stream(struct v4l2_subdev *sd, int enable)
- 					       0x00);
- 	}
- 
-+	priv->current_enable = enable;
-+
- 	return ret;
- }
- 
-@@ -702,6 +708,7 @@ static int ov9740_s_fmt(struct v4l2_subdev *sd,
- 			struct v4l2_mbus_framefmt *mf)
- {
- 	struct i2c_client *client = v4l2_get_subdevdata(sd);
-+	struct ov9740_priv *priv = to_ov9740(sd);
- 	enum v4l2_colorspace cspace;
- 	enum v4l2_mbus_pixelcode code = mf->code;
- 	int ret;
-@@ -728,6 +735,8 @@ static int ov9740_s_fmt(struct v4l2_subdev *sd,
- 	mf->code	= code;
- 	mf->colorspace	= cspace;
- 
-+	memcpy(&priv->current_mf, mf, sizeof(struct v4l2_mbus_framefmt));
-+
- 	return ret;
- }
- 
-@@ -829,6 +838,24 @@ static int ov9740_g_chip_ident(struct v4l2_subdev *sd,
- 	return 0;
- }
- 
-+static int ov9740_s_power(struct v4l2_subdev *sd, int on)
-+{
-+	struct ov9740_priv *priv = to_ov9740(sd);
-+
-+	if (!priv->current_enable)
-+		return 0;
-+
-+	if (on) {
-+		ov9740_s_fmt(sd, &priv->current_mf);
-+		ov9740_s_stream(sd, priv->current_enable);
-+	} else {
-+		ov9740_s_stream(sd, 0);
-+		priv->current_enable = true;
-+	}
-+
-+	return 0;
-+}
-+
- #ifdef CONFIG_VIDEO_ADV_DEBUG
- static int ov9740_get_register(struct v4l2_subdev *sd,
- 			       struct v4l2_dbg_register *reg)
-@@ -942,6 +969,7 @@ static struct v4l2_subdev_core_ops ov9740_core_ops = {
- 	.g_ctrl			= ov9740_g_ctrl,
- 	.s_ctrl			= ov9740_s_ctrl,
- 	.g_chip_ident		= ov9740_g_chip_ident,
-+	.s_power		= ov9740_s_power,
- #ifdef CONFIG_VIDEO_ADV_DEBUG
- 	.g_register		= ov9740_get_register,
- 	.s_register		= ov9740_set_register,
--- 
-1.7.5.4
+David
 
+>
+> The current approach is definitely problematic since there are no guarantees
+> whatsoever.
+>
+> Regards,
+>
+>        Hans
+>
+>> Or allow at least one event per event type in the queue. Also this
+>> option would have the property that not all events of a specific type
+>> would be lost.
+>>
+>> Or, limit the number of events of certain type in queue to m, where m < n.
+>>
+>> Regards,
+>>
+>>
+>
