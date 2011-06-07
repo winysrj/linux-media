@@ -1,73 +1,51 @@
 Return-path: <mchehab@pedra>
-Received: from mx1.redhat.com ([209.132.183.28]:35553 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751191Ab1F3Kyy (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 30 Jun 2011 06:54:54 -0400
-Received: from int-mx10.intmail.prod.int.phx2.redhat.com (int-mx10.intmail.prod.int.phx2.redhat.com [10.5.11.23])
-	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id p5UAspNc006206
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
-	for <linux-media@vger.kernel.org>; Thu, 30 Jun 2011 06:54:51 -0400
-Message-ID: <4E0C5639.9030501@redhat.com>
-Date: Thu, 30 Jun 2011 12:55:53 +0200
-From: Hans de Goede <hdegoede@redhat.com>
+Received: from mail-ww0-f44.google.com ([74.125.82.44]:45575 "EHLO
+	mail-ww0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754245Ab1FGNqr (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 7 Jun 2011 09:46:47 -0400
 MIME-Version: 1.0
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-CC: linux-media@vger.kernel.org
-Subject: Re: [git:xawtv3/master] xawtv: reenable its usage with webcam's
-References: <E1Qbdw6-0007wL-E8@www.linuxtv.org> <4E0B05F5.1000704@redhat.com> <4E0B1407.8000907@redhat.com> <4E0B199B.4010008@redhat.com> <4E0B7CA3.3010104@redhat.com>
-In-Reply-To: <4E0B7CA3.3010104@redhat.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+In-Reply-To: <201106071326.53106.laurent.pinchart@ideasonboard.com>
+References: <1307053663-24572-1-git-send-email-ohad@wizery.com>
+ <201106071105.16262.laurent.pinchart@ideasonboard.com> <BANLkTi=nJXSEfWRXqwnHys1b5i5rgLcYpw@mail.gmail.com>
+ <201106071326.53106.laurent.pinchart@ideasonboard.com>
+From: Ohad Ben-Cohen <ohad@wizery.com>
+Date: Tue, 7 Jun 2011 16:46:26 +0300
+Message-ID: <BANLkTimqt=yMGHcqEH5u-4GkMX9=+BuB6A@mail.gmail.com>
+Subject: Re: [RFC 2/6] omap: iovmm: generic iommu api migration
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: linux-media@vger.kernel.org, linux-omap@vger.kernel.org,
+	linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+	Hiroshi.DOYU@nokia.com, arnd@arndb.de, davidb@codeaurora.org,
+	Joerg.Roedel@amd.com
+Content-Type: text/plain; charset=ISO-8859-1
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Hi,
+Hi Laurent,
 
-On 06/29/2011 09:27 PM, Mauro Carvalho Chehab wrote:
-
-<snip>
-
+On Tue, Jun 7, 2011 at 2:26 PM, Laurent Pinchart
+<laurent.pinchart@ideasonboard.com> wrote:
+>> Right now we have a BUG_ON if pa is unaligned, but that can be changed
+>> if needed (do we want it to handle offsets ?).
 >
-> Anyway, it is fixed. I also made scantv to force for a TV device at auto mode, as it
-> doesn't sense to scan for TV channels on devices without tuner.
+> At least for the OMAP3 ISP we need to, as video buffers don't necessarily
+> start on page boundaries.
 
-Thanks for fixing this, 2 remarks wrt the auto patch for
-scantv:
+Where do you take care of those potential offsets today ? Or do you
+simply ignore the offsets and map the entire page ?
 
-1) This bit should be #ifdef __linux__ since we only support
-auto* on linux because of the sysfs dep:
+Seems like omap's iommu (mostly) rejects unaligned pa addresses, see:
 
-@@ -149,6 +149,9 @@ main(int argc, char **argv)
+4abb761749abfb4ec403e4054f9dae2ee604e54f "omap iommu: Reject unaligned
+addresses at setting page table entry"
 
-      /* parse options */
-      ng_init();
-+    /* Autodetect devices */
-+    ng_dev.video = "auto_tv";
-+
-      for (;;) {
-  	if (-1 == (c = getopt(argc, argv, "hsadi:n:f:o:c:C:D:")))
-  	    break;
+(this doesn't seem to cover 4KB entries though, only large pages,
+sections and super sections)
 
-2) The added return NULL in case no device can be found lacks
-printing an error message:
+> A separate patch is indeed needed, yes. As you're already working on iommu it
+> might be simpler if you add it to your tree.
 
-@@ -568,6 +569,8 @@ static void *ng_vid_open_auto(struct ng_vid_driver *drv, char *devpath)
+Sure, i'll send it.
 
-      /* Step 2: try grabber devices and webcams */
-      if (!handle) {
-+	if (!allow_grabber)
-+	    return NULL;
-  	device = NULL;
-  	while (1) {
-  	    device = get_associated_device(md, device, MEDIA_V4L_VIDEO, NULL, NONE);
-
-I propose changing the return NULL, with a goto to the error print further down.
-
->  From my side, I don't intend to touch on xawtv any time soon. So, maybe we can wait
-> for a couple days and release version 1.101.
-
-Assuming the 2 things mentioned above get fixed that sounds like a good plan to me.
-
-Regards,
-
-Hans
+Thanks,
+Ohad.
