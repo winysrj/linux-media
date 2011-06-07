@@ -1,63 +1,88 @@
 Return-path: <mchehab@pedra>
-Received: from mx1.redhat.com ([209.132.183.28]:19192 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754930Ab1FKMQs (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 11 Jun 2011 08:16:48 -0400
-Message-ID: <4DF35CAB.6000408@redhat.com>
-Date: Sat, 11 Jun 2011 09:16:43 -0300
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Received: from moutng.kundenserver.de ([212.227.126.171]:58195 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751055Ab1FGHor (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 7 Jun 2011 03:44:47 -0400
+Date: Tue, 7 Jun 2011 09:44:45 +0200 (CEST)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Jonathan Corbet <corbet@lwn.net>
+cc: linux-media@vger.kernel.org, Kassey Lee <ygli@marvell.com>
+Subject: Re: [PATCH 7/7] marvell-cam: Basic working MMP camera driver
+In-Reply-To: <1307400003-94758-8-git-send-email-corbet@lwn.net>
+Message-ID: <Pine.LNX.4.64.1106070941140.31635@axis700.grange>
+References: <1307400003-94758-1-git-send-email-corbet@lwn.net>
+ <1307400003-94758-8-git-send-email-corbet@lwn.net>
 MIME-Version: 1.0
-To: =?UTF-8?B?RGF2aWQgSMOkcmRlbWFu?= <david@hardeman.nu>
-CC: linux-media@vger.kernel.org, jarod@wilsonet.com
-Subject: Re: [PATCH 09/10] rc-core: lirc use unsigned int
-References: <20110428151311.8272.17290.stgit@felix.hardeman.nu> <20110428151358.8272.94634.stgit@felix.hardeman.nu> <4DC16F57.4030304@redhat.com> <c8ca8a9312f5bb8cd04b7f465e66d268@hardeman.nu>
-In-Reply-To: <c8ca8a9312f5bb8cd04b7f465e66d268@hardeman.nu>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Em 06-05-2011 06:46, David Härdeman escreveu:
-> On Wed, 04 May 2011 12:23:03 -0300, Mauro Carvalho Chehab
-> <mchehab@redhat.com> wrote:
->> Em 28-04-2011 12:13, David Härdeman escreveu:
->>> Durations can never be negative, so it makes sense to consistently use
->>> unsigned int for LIRC transmission. Contrary to the initial impression,
->>> this shouldn't actually change the userspace API.
->>
->> Patch looked ok to me (except for one small issue - see bellow). 
->>
-> ...
->>> diff --git a/drivers/media/rc/ene_ir.c b/drivers/media/rc/ene_ir.c
->>> index 569b07b..2b1d2df 100644
->>> --- a/drivers/media/rc/ene_ir.c
->>> +++ b/drivers/media/rc/ene_ir.c
->>> @@ -953,13 +953,13 @@ static void ene_set_idle(struct rc_dev *rdev,
-> bool
->>> idle)
->>>  }
->>>  
->>>  /* outside interface: transmit */
->>> -static int ene_transmit(struct rc_dev *rdev, int *buf, u32 n)
->>> +static int ene_transmit(struct rc_dev *rdev, unsigned *buf, unsigned
-> n)
->>>  {
->>>  	struct ene_device *dev = rdev->priv;
->>>  	unsigned long flags;
->>>  
->>>  	dev->tx_buffer = buf;
->>> -	dev->tx_len = n / sizeof(int);
->>> +	dev->tx_len = n;
->>
->> That hunk seems wrong to me. Or is it a bug fix that you're solving?
+Not doing a full review, just a small nit-pick:
+
+On Mon, 6 Jun 2011, Jonathan Corbet wrote:
+
+> Now we have a camera working over the marvell cam controller core.  It
+> works like the cafe driver and has all the same limitations, contiguous DMA
+> only being one of them.  But it's a start.
 > 
-> My fault, I didn't mention in the patch description that the third
-> argument of the tx function is also changed to mean array size rather
-> than size in number of bytes.
+> Signed-off-by: Jonathan Corbet <corbet@lwn.net>
+> ---
+>  drivers/media/video/Makefile                   |    1 +
+>  drivers/media/video/marvell-ccic/Kconfig       |   11 +
+>  drivers/media/video/marvell-ccic/Makefile      |    4 +
+>  drivers/media/video/marvell-ccic/cafe-driver.c |    9 +-
+>  drivers/media/video/marvell-ccic/mcam-core.c   |   31 ++-
+>  drivers/media/video/marvell-ccic/mcam-core.h   |    2 +-
+>  drivers/media/video/marvell-ccic/mmp-driver.c  |  337 ++++++++++++++++++++++++
+>  include/media/mmp-camera.h                     |    9 +
+>  8 files changed, 392 insertions(+), 12 deletions(-)
+>  create mode 100644 drivers/media/video/marvell-ccic/mmp-driver.c
+>  create mode 100644 include/media/mmp-camera.h
+> 
+> diff --git a/drivers/media/video/Makefile b/drivers/media/video/Makefile
+> index 42b6a7a..89478f0 100644
+> --- a/drivers/media/video/Makefile
+> +++ b/drivers/media/video/Makefile
+> @@ -128,6 +128,7 @@ obj-$(CONFIG_VIDEO_M32R_AR_M64278) += arv.o
+>  obj-$(CONFIG_VIDEO_CX2341X) += cx2341x.o
+>  
+>  obj-$(CONFIG_VIDEO_CAFE_CCIC) += marvell-ccic/
+> +obj-$(CONFIG_VIDEO_MMP_CAMERA) += marvell-ccic/
 
-Sorry for the long delay. Got sidetracked with other things.
+Wouldn't it be better to have only one symbol, selecting the marvell-ccic 
+directory in the Makefile and have all CAFE implementations select that 
+symbol?
 
-Patch applied.
+>  
+>  obj-$(CONFIG_VIDEO_VIA_CAMERA) += via-camera.o
+>  
+> diff --git a/drivers/media/video/marvell-ccic/Kconfig b/drivers/media/video/marvell-ccic/Kconfig
+> index 80136a8..b4f7260 100644
+> --- a/drivers/media/video/marvell-ccic/Kconfig
+> +++ b/drivers/media/video/marvell-ccic/Kconfig
+> @@ -7,3 +7,14 @@ config VIDEO_CAFE_CCIC
+>  	  CMOS camera controller.  This is the controller found on first-
+>  	  generation OLPC systems.
+>  
+> +config VIDEO_MMP_CAMERA
+> +	tristate "Marvell Armada 610 integrated camera controller support"
+> +	depends on ARCH_MMP && I2C && VIDEO_V4L2
+> +	select VIDEO_OV7670
 
-Thanks,
-Mauro
+Is ov7670 really _integrated_ with the camera controller? Can it not be 
+used with any other sensor?
+
+> +	select I2C_GPIO
+> +	---help---
+> +	  This is a Video4Linux2 driver for the integrated camera
+> +	  controller found on Marvell Armada 610 application
+> +	  processors (and likely beyond).  This is the controller found
+> +	  in OLPC XO 1.75 systems.
+> +
+
+Thanks
+Guennadi
+---
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
+http://www.open-technology.de/
