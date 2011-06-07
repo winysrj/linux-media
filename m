@@ -1,56 +1,64 @@
 Return-path: <mchehab@pedra>
-Received: from mail-vw0-f46.google.com ([209.85.212.46]:58263 "EHLO
-	mail-vw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750904Ab1FOLxY (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 15 Jun 2011 07:53:24 -0400
+Received: from moutng.kundenserver.de ([212.227.17.10]:54562 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752497Ab1FGJ6T (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 7 Jun 2011 05:58:19 -0400
+Date: Tue, 7 Jun 2011 11:58:14 +0200 (CEST)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+cc: Robert Jarzmik <robert.jarzmik@free.fr>
+Subject: [PATCH 3/3 v2] V4L: pxa-camera: switch to using subdev .s_power()
+ core operation
+In-Reply-To: <Pine.LNX.4.64.1106071150080.31635@axis700.grange>
+Message-ID: <Pine.LNX.4.64.1106071157280.31635@axis700.grange>
+References: <Pine.LNX.4.64.1106071150080.31635@axis700.grange>
 MIME-Version: 1.0
-In-Reply-To: <201106142030.07549.arnd@arndb.de>
-References: <1307699698-29369-1-git-send-email-m.szyprowski@samsung.com>
-	<201106141803.00876.arnd@arndb.de>
-	<op.vw2r3xrj3l0zgt@mnazarewicz-glaptop>
-	<201106142030.07549.arnd@arndb.de>
-Date: Wed, 15 Jun 2011 13:53:22 +0200
-Message-ID: <BANLkTi=XTJuF4np7+rYHzJqWK20OxMrBsw@mail.gmail.com>
-Subject: Re: [Linaro-mm-sig] [PATCH 08/10] mm: cma: Contiguous Memory
- Allocator added
-From: Daniel Vetter <daniel.vetter@ffwll.ch>
-To: Arnd Bergmann <arnd@arndb.de>
-Cc: Michal Nazarewicz <mina86@mina86.com>,
-	Ankita Garg <ankita@in.ibm.com>,
-	Daniel Walker <dwalker@codeaurora.org>,
-	Jesse Barker <jesse.barker@linaro.org>,
-	Mel Gorman <mel@csn.ul.ie>, linux-kernel@vger.kernel.org,
-	linaro-mm-sig@lists.linaro.org, linux-mm@kvack.org,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>,
-	Andrew Morton <akpm@linux-foundation.org>,
-	linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Tue, Jun 14, 2011 at 20:30, Arnd Bergmann <arnd@arndb.de> wrote:
-> On Tuesday 14 June 2011 18:58:35 Michal Nazarewicz wrote:
->> Ah yes, I forgot that separate regions for different purposes could
->> decrease fragmentation.
->
-> That is indeed a good point, but having a good allocator algorithm
-> could also solve this. I don't know too much about these allocation
-> algorithms, but there are probably multiple working approaches to this.
+soc-camera specific .suspend() and .resume() methods are deprecated
+and should be replaced by the subdev standard .s_power() operation.
 
-imo no allocator algorithm is gonna help if you have comparably large,
-variable-sized contiguous allocations out of a restricted address range.
-It might work well enough if there are only a few sizes and/or there's
-decent headroom. But for really generic workloads this would require
-sync objects and eviction callbacks (i.e. what Thomas Hellstrom pushed
-with ttm).
+Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+---
+ drivers/media/video/pxa_camera.c |   16 ++++++++++++----
+ 1 files changed, 12 insertions(+), 4 deletions(-)
 
-So if this is only a requirement on very few platforms and can be
-cheaply fixed with multiple cma allocation areas (heck, we have
-slabs for the same reasons in the kernel), it might be a sensible
-compromise.
--Daniel
+diff --git a/drivers/media/video/pxa_camera.c b/drivers/media/video/pxa_camera.c
+index 88aa1ba..3b3ad08 100644
+--- a/drivers/media/video/pxa_camera.c
++++ b/drivers/media/video/pxa_camera.c
+@@ -1591,8 +1591,12 @@ static int pxa_camera_suspend(struct soc_camera_device *icd, pm_message_t state)
+ 	pcdev->save_cicr[i++] = __raw_readl(pcdev->base + CICR3);
+ 	pcdev->save_cicr[i++] = __raw_readl(pcdev->base + CICR4);
+ 
+-	if ((pcdev->icd) && (pcdev->icd->ops->suspend))
+-		ret = pcdev->icd->ops->suspend(pcdev->icd, state);
++	if (pcdev->icd) {
++		struct v4l2_subdev *sd = soc_camera_to_subdev(icd);
++		ret = v4l2_subdev_call(sd, core, s_power, 0);
++		if (ret == -ENOIOCTLCMD)
++			ret = 0;
++	}
+ 
+ 	return ret;
+ }
+@@ -1613,8 +1617,12 @@ static int pxa_camera_resume(struct soc_camera_device *icd)
+ 	__raw_writel(pcdev->save_cicr[i++], pcdev->base + CICR3);
+ 	__raw_writel(pcdev->save_cicr[i++], pcdev->base + CICR4);
+ 
+-	if ((pcdev->icd) && (pcdev->icd->ops->resume))
+-		ret = pcdev->icd->ops->resume(pcdev->icd);
++	if (pcdev->icd) {
++		struct v4l2_subdev *sd = soc_camera_to_subdev(icd);
++		ret = v4l2_subdev_call(sd, core, s_power, 1);
++		if (ret == -ENOIOCTLCMD)
++			ret = 0;
++	}
+ 
+ 	/* Restart frame capture if active buffer exists */
+ 	if (!ret && pcdev->active)
 -- 
-Daniel Vetter
-daniel.vetter@ffwll.ch - +41 (0) 79 365 57 48 - http://blog.ffwll.ch
+1.7.2.5
+
