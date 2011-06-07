@@ -1,63 +1,105 @@
 Return-path: <mchehab@pedra>
-Received: from mail-iw0-f174.google.com ([209.85.214.174]:63285 "EHLO
-	mail-iw0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751386Ab1FTSRT convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 20 Jun 2011 14:17:19 -0400
-Received: by iwn6 with SMTP id 6so1399353iwn.19
-        for <linux-media@vger.kernel.org>; Mon, 20 Jun 2011 11:17:18 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <BANLkTinn0uN3VwGfqCbYbxFoVf6aNo1VSA@mail.gmail.com>
-References: <BANLkTimtnbAzLTdFY2OiSddHTjmD_99CfA@mail.gmail.com>
-	<201106202037.19535.remi@remlab.net>
-	<BANLkTinn0uN3VwGfqCbYbxFoVf6aNo1VSA@mail.gmail.com>
-Date: Mon, 20 Jun 2011 20:17:18 +0200
-Message-ID: <BANLkTin14LnwP+_K1m-RsEXza4M4CjqnEw@mail.gmail.com>
-Subject: Re: [RFC] vtunerc - virtual DVB device driver
-From: HoP <jpetrous@gmail.com>
-To: Devin Heitmueller <dheitmueller@kernellabs.com>
-Cc: =?ISO-8859-1?Q?R=E9mi_Denis=2DCourmont?= <remi@remlab.net>,
-	linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
+Received: from mail-qy0-f181.google.com ([209.85.216.181]:55173 "EHLO
+	mail-qy0-f181.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753806Ab1FGQE5 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 7 Jun 2011 12:04:57 -0400
+Received: by qyg14 with SMTP id 14so2585528qyg.19
+        for <linux-media@vger.kernel.org>; Tue, 07 Jun 2011 09:04:56 -0700 (PDT)
+References: <22615.4194.11299-2628-1588834168-1307429140@seznam.cz>
+In-Reply-To: <22615.4194.11299-2628-1588834168-1307429140@seznam.cz>
+Mime-Version: 1.0 (Apple Message framework v1084)
+Content-Type: text/plain; charset=iso-8859-1
+Message-Id: <201DD109-A022-4E54-B595-D9C08E8C1D87@wilsonet.com>
 Content-Transfer-Encoding: 8BIT
+Cc: linux-media@vger.kernel.org
+From: Jarod Wilson <jarod@wilsonet.com>
+Subject: Re: Last key repeated after every keypress on remote control (saa7134 lirc devinput driver)
+Date: Tue, 7 Jun 2011 12:04:48 -0400
+To: Radim <radim100@seznam.cz>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Hi Devin.
+On Jun 7, 2011, at 2:45 AM, Radim wrote:
 
-2011/6/20 Devin Heitmueller <dheitmueller@kernellabs.com>:
-> 2011/6/20 Rémi Denis-Courmont <remi@remlab.net>:
->>        Hello,
->>
->> Le dimanche 19 juin 2011 03:10:15 HoP, vous avez écrit :
->>> get inspired by (unfortunately close-source) solution on stb
->>> Dreambox 800 I have made my own implementation
->>> of virtual DVB device, based on the same device API.
->>
->> Some might argue that CUSE can already do this. Then again, CUSE would not be
->> able to reuse the kernel DVB core infrastructure: everything would need to be
->> reinvented in userspace.
->
-> Generally speaking, this is the key reason that "virtual dvb" drivers
-> have been rejected in the past for upstream inclusion - it makes it
+> 
+>> ------------ Pôvodná správa ------------
+>> Od: Jarod Wilson <jarod@redhat.com>
+>> Predmet: Re: Last key repeated after every keypress on remote control (saa7134
+>> lirc devinput driver)
+>> Dátum: 06.6.2011 20:39:50
+>> ----------------------------------------
+>> Devin Heitmueller wrote:
+>> > On Mon, Jun 6, 2011 at 2:13 PM, Radim<radim100@seznam.cz>  wrote:
+>> >> Hello to everybody,
+>> >> I was redirected here from lirc mailinglist (reason is at the end).
+>> >>
+>> >> I'm asking for any help because I wasn't able to solve
+>> >> this problem by my self (and google of course).
+>> >>
+>> >> When I'm testing lirc configuration using irw, last pressed key is repeated
+>> >> just befor the new one:
+>> >>
+>> >> after pressing key 1:
+>> >> 0000000080010002 00 KEY_1 devinput
+>> >>
+>> >> after pressing key 2:
+>> >> 0000000080010002 00 KEY_1 devinput
+>> >> 0000000080010003 00 KEY_2 devinput
+>> >>
+>> >> after pressing key 3:
+>> >> 0000000080010003 00 KEY_2 devinput
+>> >> 0000000080010004 00 KEY_3 devinput
+>> >>
+>> >> after pressing key 4:
+>> >> 0000000080010004 00 KEY_3 devinput
+>> >> 0000000080010005 00 KEY_4 devinput
+>> >>
+>> >> after pressing key 5:
+>> >> 0000000080010005 00 KEY_4 devinput
+>> >> 0000000080010006 00 KEY_5 devinput
+>> >>
+>> >>
+>> >> My configuration:
+>> >> Archlinux (allways up-to-date)
+>> >> Asus MyCinema P7131 with remote control PC-39
+>> >> lircd 0.9.0, driver devinput, default config file lirc.conf.devinput
+>> >> kernel 2.6.38
+>> >>
+>> >> # ir-keytable
+>> >> Found /sys/class/rc/rc0/ (/dev/input/event5) with:
+>> >>        Driver saa7134, table rc-asus-pc39
+>> >>        Supported protocols: NEC RC-5 RC-6 JVC SONY LIRC
+>> >>        Enabled protocols: RC-5
+>> >>        Repeat delay = 500 ms, repeat period = 33 ms
+>> >>
+>> >> Answare from lirc-mainlinglist (Jarod Wilson):
+>> >> Looks like a bug in saa7134-input.c, which doesn't originate in lirc land,
+>> >> its from the kernel itself. The more apropos location to tackle this issue
+>> >> is linux-media@vger.kernel.org.
+>> >>
+>> >> I can provide any other listings, just ask for them.
+>> >>
+>> >> Thank you for any help,
+>> >> Radim
+>> >
+>> > I actually sent Jarod a board specifically to investigate this issue
+>> > (the same issue occurs on the saa7134 based HVR-1150).  I believe it's
+>> > on his TODO list.
+>> Yep, he chopped out the part of my reply where I said as much. :)
+>> Just waiting on the IR receiver cable to arrive, could well be here in today's mail...
+> 
+> Oh, I misunderstood Jarod answer - he pointed me to this list as a right place for posting this possible bug in saa7134 driver, so I sent it also here. I was thinking that this is not a job for member of lirc developers, so I was trying luck here..
 
-Can you tell me when such disscussion was done? I did a big attempt
-to check if my work is not reinventing wheels, but I found only some
-very generic frontend template by Emard <emard@softhome.net>.
+I work on both lirc and media tree drivers. In this case, lircd is doing
+exactly the right thing with the data its being fed, the bug is in the
+kernel driver, which is from the media tree. Best to discuss the bug on
+the list for the layer at which it exists. :)
 
-> easier for evil tuner manufacturers to leverage all the hard work done
-> by the LinuxTV developers while providing a closed-source solution.
+(No cable yet, still awaiting its arrival).
 
-May be I missunderstood something, but I can't see how frontend
-virtualization/sharing can help to leverage others work.
+-- 
+Jarod Wilson
+jarod@wilsonet.com
 
-> It was an explicit goal to *not* allow third parties to reuse the
-> Linux DVB core unless they were providing in-kernel drivers which
-> conform to the GPL.
 
-I'm again not sure if you try to argument against vtunerc code
-or nope.
 
-Thanks
-
-/Honza
