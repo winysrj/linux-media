@@ -1,68 +1,69 @@
 Return-path: <mchehab@pedra>
-Received: from mail-fx0-f46.google.com ([209.85.161.46]:34998 "EHLO
-	mail-fx0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750947Ab1FNQ6j (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 14 Jun 2011 12:58:39 -0400
-Content-Type: text/plain; charset=utf-8; format=flowed; delsp=yes
-To: "Arnd Bergmann" <arnd@arndb.de>
-Cc: "Marek Szyprowski" <m.szyprowski@samsung.com>,
-	linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-	linux-media@vger.kernel.org, linux-mm@kvack.org,
-	linaro-mm-sig@lists.linaro.org,
-	"'Kyungmin Park'" <kyungmin.park@samsung.com>,
-	"'Andrew Morton'" <akpm@linux-foundation.org>,
-	"'KAMEZAWA Hiroyuki'" <kamezawa.hiroyu@jp.fujitsu.com>,
-	"'Ankita Garg'" <ankita@in.ibm.com>,
-	"'Daniel Walker'" <dwalker@codeaurora.org>,
-	"'Mel Gorman'" <mel@csn.ul.ie>,
-	"'Jesse Barker'" <jesse.barker@linaro.org>
-Subject: Re: [PATCH 08/10] mm: cma: Contiguous Memory Allocator added
-References: <1307699698-29369-1-git-send-email-m.szyprowski@samsung.com>
- <201106141549.29315.arnd@arndb.de> <op.vw2jmhir3l0zgt@mnazarewicz-glaptop>
- <201106141803.00876.arnd@arndb.de>
-Date: Tue, 14 Jun 2011 18:58:35 +0200
+Received: from moutng.kundenserver.de ([212.227.17.9]:50980 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751976Ab1FGIK5 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 7 Jun 2011 04:10:57 -0400
+Date: Tue, 7 Jun 2011 10:10:50 +0200 (CEST)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Kassey Lee <kassey1216@gmail.com>
+cc: Kassey Lee <ygli@marvell.com>, linux-media@vger.kernel.org,
+	hverkuil@xs4all.nl, qingx@marvell.com, ytang5@marvell.com,
+	leiwen@marvell.com, jwan@marvell.com, hzhuang1@marvell.com,
+	njun@marvell.com
+Subject: Re: [PATCH V2] V4L/DVB: v4l: Add driver for Marvell PXA910 CCIC
+In-Reply-To: <BANLkTim6Jp6Uh7Fnb4rNgHQNNhsuyBQWvA@mail.gmail.com>
+Message-ID: <Pine.LNX.4.64.1106071008470.31635@axis700.grange>
+References: <1306934205-15154-1-git-send-email-ygli@marvell.com>
+ <Pine.LNX.4.64.1106012219350.29934@axis700.grange>
+ <BANLkTim6Jp6Uh7Fnb4rNgHQNNhsuyBQWvA@mail.gmail.com>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-From: "Michal Nazarewicz" <mina86@mina86.com>
-Message-ID: <op.vw2r3xrj3l0zgt@mnazarewicz-glaptop>
-In-Reply-To: <201106141803.00876.arnd@arndb.de>
+Content-Type: TEXT/PLAIN; charset=ISO-8859-15
+Content-Transfer-Encoding: 8BIT
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
->> On Tue, 14 Jun 2011 15:49:29 +0200, Arnd Bergmann <arnd@arndb.de> wrote:
->>> Please explain the exact requirements that lead you to defining  
->>> multiple contexts.
+On Tue, 7 Jun 2011, Kassey Lee wrote:
 
-> On Tuesday 14 June 2011, Michal Nazarewicz wrote:
->> Some devices may have access only to some banks of memory.  Some devices
->> may use different banks of memory for different purposes.
+> Guennadi
+> 
+>           thanks for your comments very much! I will update the V3 patch  later.
+> 
+> 
+> On Fri, Jun 3, 2011 at 6:22 PM, Guennadi Liakhovetski
+> <g.liakhovetski@gmx.de> wrote:
+> > Ok, this will be converted to use a common "cafe" code, but I'll comment
+> > on this version anyway, for your future reference.
+> >
+> > On Wed, 1 Jun 2011, Kassey Lee wrote:
 
-On Tue, 14 Jun 2011 18:03:00 +0200, Arnd Bergmann wrote:
-> For all I know, that is something that is only true for a few very  
-> special Samsung devices,
+[snip]
 
-Maybe.  I'm just answering your question. :)
+> >
+> > Did you remove your pass-through code here on purpose or because you
+> > misunderstood my comment? I meant, that in your original code
+> >
+> Sorry, I misunderstood your comment, do you mean remove the wrong comment only ?
 
-Ah yes, I forgot that separate regions for different purposes could
-decrease fragmentation.
+Yes.
 
-> I would suggest going forward without having multiple regions:
+>  > +       /* Generic pass-through */
+> > +       formats++;
+> > +       if (xlate) {
+> > +               xlate->host_fmt = fmt;
+> > +               xlate->code = code;
+> > +               xlate++;
+> > +       }
+> >
+> > the comment "generic" was wrong, because in generic case you run on
+> > default case above and bail out. However, that block allowed you to use
+> > the "standard" V4L2_MBUS_FMT_YUYV8_2X8 -> V4L2_PIX_FMT_YUYV conversion, or
+> > is it not supported by your hardware / driver?
+> >
+> it is supported.
 
-Is having support for multiple regions a bad thing?  Frankly,
-removing this support will change code from reading context passed
-as argument to code reading context from global variable.  Nothing
-is gained; functionality is lost.
-
-> * Remove the registration of specific addresses from the initial patch
->   set (but keep the patch).
-> * Add a heuristic plus command-line override to automatically come up
->   with a reasonable location+size for *one* CMA area in the system.
-
-I'm not arguing those.
-
--- 
-Best regards,                                         _     _
-.o. | Liege of Serenely Enlightened Majesty of      o' \,=./ `o
-..o | Computer Science,  Michal "mina86" Nazarewicz    (o o)
-ooo +-----<email/xmpp: mnazarewicz@google.com>-----ooO--(_)--Ooo--
+Thanks
+Guennadi
+---
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
+http://www.open-technology.de/
