@@ -1,143 +1,113 @@
 Return-path: <mchehab@pedra>
-Received: from proofpoint-cluster.metrocast.net ([65.175.128.136]:58620 "EHLO
-	proofpoint-cluster.metrocast.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751711Ab1F2Dxv (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 28 Jun 2011 23:53:51 -0400
-Subject: Re: HVR-1250/CX23885 IR Rx
-From: Andy Walls <awalls@md.metrocast.net>
-To: Jarod Wilson <jarod@wilsonet.com>
-Cc: Devin Heitmueller <dheitmueller@kernellabs.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Date: Tue, 28 Jun 2011 23:54:12 -0400
-In-Reply-To: <810E4A6F-80BA-417F-9F9E-3B1274DAFD1B@wilsonet.com>
-References: <1302267045.1749.38.camel@gagarin>
-	 <AFEB19DA-4FD6-4472-9825-F13A112B0E2A@wilsonet.com>
-	 <1302276147.1749.46.camel@gagarin>
-	 <B9A35B3D-DC47-4D95-88F5-5453DD3F506C@wilsonet.com>
-	 <BANLkTimyT98dabuYsrwLrcm2wQFv2uQB9g@mail.gmail.com>
-	 <44DC1ED9-2697-4F92-A81A-CD024C913CCB@wilsonet.com>
-	 <BANLkTi=3Gq+8kXm40O55y55O6A6Q4-3g-g@mail.gmail.com>
-	 <CDB2A354-8564-447E-99A3-66502E83E4CB@wilsonet.com>
-	 <8f1c0f8a-e4cd-4e3b-8ad4-f58212dfd9d4@email.android.com>
-	 <099D978B-BC30-4527-870E-85ECEE74501D@wilsonet.com>
-	 <1302476895.2282.12.camel@localhost>
-	 <679F6706-8E38-4DF4-9F06-65EC3747339E@wilsonet.com>
-	 <444047a2-87a6-4823-a1cd-961493f6680f@email.android.com>
-	 <8450B359-034A-4DE2-BD8D-50DA6BE98A17@wilsonet.com>
-	 <1309300374.2377.6.camel@palomino.walls.org>
-	 <810E4A6F-80BA-417F-9F9E-3B1274DAFD1B@wilsonet.com>
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
-Message-ID: <1309319653.2359.37.camel@palomino.walls.org>
-Mime-Version: 1.0
+Received: from smtp-vbr1.xs4all.nl ([194.109.24.21]:3407 "EHLO
+	smtp-vbr1.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755295Ab1FGPFg (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 7 Jun 2011 11:05:36 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [RFCv3 PATCH 10/18] vivi: add autogain/gain support to test the autocluster functionality.
+Date: Tue,  7 Jun 2011 17:05:15 +0200
+Message-Id: <d7900e5fef93bfa3c0209ac07ee9ecea37bb4439.1307458245.git.hans.verkuil@cisco.com>
+In-Reply-To: <1307459123-17810-1-git-send-email-hverkuil@xs4all.nl>
+References: <1307459123-17810-1-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <a1daecb26b464ddd980297783d04941f1f34666b.1307458245.git.hans.verkuil@cisco.com>
+References: <a1daecb26b464ddd980297783d04941f1f34666b.1307458245.git.hans.verkuil@cisco.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Tue, 2011-06-28 at 22:17 -0400, Jarod Wilson wrote:
-> On Jun 28, 2011, at 6:32 PM, Andy Walls wrote:
-> 
-> > On Tue, 2011-06-28 at 17:39 -0400, Jarod Wilson wrote:
-> > 
-> >> I'm thinking that in the
-> >> short-term, we should probably make sure msi doesn't get enabled in
-> >> the cx23885 driver, and longer-term, we can look at fixing it.
-> > 
-> > Sounds fine.  But fixcing the cx23885 driver to deal with both PCIe
-> > emulation of legacy PCI INTx and PCIe MSI will likely be very involved.
-> > (Maybe I'm wrong?)
-> 
-> I'm not sure either, but I know a few PCI gurus at work who could
-> probably lend some insight.
-> 
-> 
-> > Taking a trip down memory lane to 2 Dec 2010...
-> > http://www.spinics.net/lists/linux-media/msg25956.html
-> 
-> Man. I really gotta learn to search the list archive (and bugzillas
-> assigned to me...) before sending mail to the list, eh? ;)
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-You seem to stumble across things that I happened to run across about
-6-7 months ago.  So use that as your starting search window. ;)
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ drivers/media/video/vivi.c |   25 ++++++++++++++++++++++++-
+ 1 files changed, 24 insertions(+), 1 deletions(-)
 
-
-> > On Wed, 2010-12-01 at 21:52 -0800, David Liontooth wrote:
-> >> On 11/29/2010 04:38 AM, Andy Walls wrote:
-> >>> On Sun, 2010-11-28 at 23:49 -0800, David Liontooth wrote:
-> > 
-> >>> For a quick band-aid, use "pci=nomsi" on your kernel command line, and
-> >>> reboot to reset the CX23888 hardware.
-> >>> 
-> >>> The problem is MSI.  The cx23885 driver isn't ready for it.  The patch
-> >>> that enabled MSI for cx23885 probably needs to be reverted until some of
-> >>> these issues are sorted out.
-> > 
-> >> -- what do we lose by removing the MSI support patch?
-> > 
-> > Problems mostly. The driver was written to work with emulated legacy PCI
-> > INTx interrupts, which are to be treated as level triggered, and not
-> > PCIe MSI, which are to be treated as edge triggered.  That's why I say
-> > the cx23885 driver isn't ready for MSI, but I'm not sure how involved an
-> > audit and conversion would be.  I know an audit will take time and
-> > expertise.
-> 
-> Dropping msi support looks to be quite trivial,
-
-It is trivial.
-
->  I got the card behaving
-> after only a few lines of change in cx23885-core.c without having to pass
-> in pci=nomsi, but I *only* tried IR, I haven't tried video capture. I'll
-> see if I can give that a spin tomorrow, and if that behaves, I can send
-> along the diff.
-
-It should.  MSI was an ill tested addition to cx23885 IMHO.
-
-BTW, IR interrupts with the CX23885 IR unit are tricky.  The CX23885
-(CX25843) A/V core is I2C connected.  Getting the A/V core to clear it's
-INT_N line (wired to the main core of the CX23885) requires clearing all
-the audio, video, and IR interrupts in the A/V core unit.  The video and
-audio interrupts from the A/V core are currently masked.  The IR
-interrupts have to be cleared by actually servicing the IR unit.
-
-To deal with that headache, when an A/V core interrupt comes in, I
-masked the PCI_AVCORE_INT (or whatever) interuupt on the CX23885 bridge
-until the IR unit can be serviced.  Since the A/V core is I2C connected,
-the IR unit is serviced in a workqueue work handler thread, where
-sleeping is allowed.
-
-I'm not sure how MSI can get a storming or stuck interrupt from the
-CX23885 with me masking the PCI_AVCORE_INT.
-
-IIRC the cx23885_irq handler calls some functions that might take a long
-time to execute.  Maybe that matters with MSI enabled.  With MSI
-disabled, you might want to set up ftrace on the cx23885 driver
-functions and look to see if there are any slow paths being encountered
-by the cx23885_irq handler.  I suspect the cx23885_irq handler should be
-deferring some work other than just IR handling.
-
-http://www.spinics.net/lists/linux-media/msg15762.html
-
-Or, of course, my IR handling could be just so f---ed up that it fails
-to clear the IR interrupt.  ;) ftrace might let you see that too.
-(I don't have a CX23885 chip, only CX23888's, so I can't experiment.)
-
->  If we wanted to get really fancy, I could add a modparam
-> to let people turn msi back on. (Never had a single issue with this card
-> recording with msi enabled, only IR seems busted).
-
-Getting the driver to properly support both MSI and INTx emulation might
-take a few changes.  (a bunch of if statements maybe?)  I don't think
-letting users choose without the driver being inspected and/or corrected
-to handle both is a good idea.
-
-
-> Just had another thought though... I have an HVR-1800 that *does* have
-> issues recording, and the way the video is corrupted, its possible that
-> its msi-related... Will have to keep that in mind next time I poke at it.
-
-Uh, huh.
-
-Regards,
-Andy
+diff --git a/drivers/media/video/vivi.c b/drivers/media/video/vivi.c
+index 2238a61..6e62ddf 100644
+--- a/drivers/media/video/vivi.c
++++ b/drivers/media/video/vivi.c
+@@ -167,6 +167,11 @@ struct vivi_dev {
+ 	struct v4l2_ctrl	   *contrast;
+ 	struct v4l2_ctrl	   *saturation;
+ 	struct v4l2_ctrl	   *hue;
++	struct {
++		/* autogain/gain cluster */
++		struct v4l2_ctrl	   *autogain;
++		struct v4l2_ctrl	   *gain;
++	};
+ 	struct v4l2_ctrl	   *volume;
+ 	struct v4l2_ctrl	   *button;
+ 	struct v4l2_ctrl	   *boolean;
+@@ -457,6 +462,7 @@ static void vivi_fillbuff(struct vivi_dev *dev, struct vivi_buffer *buf)
+ 	unsigned ms;
+ 	char str[100];
+ 	int h, line = 1;
++	s32 gain;
+ 
+ 	if (!vbuf)
+ 		return;
+@@ -479,6 +485,7 @@ static void vivi_fillbuff(struct vivi_dev *dev, struct vivi_buffer *buf)
+ 			dev->width, dev->height, dev->input);
+ 	gen_text(dev, vbuf, line++ * 16, 16, str);
+ 
++	gain = v4l2_ctrl_g_ctrl(dev->gain);
+ 	mutex_lock(&dev->ctrl_handler.lock);
+ 	snprintf(str, sizeof(str), " brightness %3d, contrast %3d, saturation %3d, hue %d ",
+ 			dev->brightness->cur.val,
+@@ -486,7 +493,8 @@ static void vivi_fillbuff(struct vivi_dev *dev, struct vivi_buffer *buf)
+ 			dev->saturation->cur.val,
+ 			dev->hue->cur.val);
+ 	gen_text(dev, vbuf, line++ * 16, 16, str);
+-	snprintf(str, sizeof(str), " volume %3d ", dev->volume->cur.val);
++	snprintf(str, sizeof(str), " autogain %d, gain %3d, volume %3d ",
++			dev->autogain->cur.val, gain, dev->volume->cur.val);
+ 	gen_text(dev, vbuf, line++ * 16, 16, str);
+ 	snprintf(str, sizeof(str), " int32 %d, int64 %lld ",
+ 			dev->int32->cur.val,
+@@ -983,6 +991,15 @@ static int vidioc_s_input(struct file *file, void *priv, unsigned int i)
+ 
+ /* --- controls ---------------------------------------------- */
+ 
++static int vivi_g_volatile_ctrl(struct v4l2_ctrl *ctrl)
++{
++	struct vivi_dev *dev = container_of(ctrl->handler, struct vivi_dev, ctrl_handler);
++
++	if (ctrl == dev->autogain)
++		dev->gain->val = jiffies & 0xff;
++	return 0;
++}
++
+ static int vivi_s_ctrl(struct v4l2_ctrl *ctrl)
+ {
+ 	struct vivi_dev *dev = container_of(ctrl->handler, struct vivi_dev, ctrl_handler);
+@@ -1045,6 +1062,7 @@ static int vivi_mmap(struct file *file, struct vm_area_struct *vma)
+ }
+ 
+ static const struct v4l2_ctrl_ops vivi_ctrl_ops = {
++	.g_volatile_ctrl = vivi_g_volatile_ctrl,
+ 	.s_ctrl = vivi_s_ctrl,
+ };
+ 
+@@ -1213,6 +1231,10 @@ static int __init vivi_create_instance(int inst)
+ 			V4L2_CID_SATURATION, 0, 255, 1, 127);
+ 	dev->hue = v4l2_ctrl_new_std(hdl, &vivi_ctrl_ops,
+ 			V4L2_CID_HUE, -128, 127, 1, 0);
++	dev->autogain = v4l2_ctrl_new_std(hdl, &vivi_ctrl_ops,
++			V4L2_CID_AUTOGAIN, 0, 1, 1, 1);
++	dev->gain = v4l2_ctrl_new_std(hdl, &vivi_ctrl_ops,
++			V4L2_CID_GAIN, 0, 255, 1, 100);
+ 	dev->button = v4l2_ctrl_new_custom(hdl, &vivi_ctrl_button, NULL);
+ 	dev->int32 = v4l2_ctrl_new_custom(hdl, &vivi_ctrl_int32, NULL);
+ 	dev->int64 = v4l2_ctrl_new_custom(hdl, &vivi_ctrl_int64, NULL);
+@@ -1223,6 +1245,7 @@ static int __init vivi_create_instance(int inst)
+ 		ret = hdl->error;
+ 		goto unreg_dev;
+ 	}
++	v4l2_ctrl_auto_cluster(2, &dev->autogain, 0, true);
+ 	dev->v4l2_dev.ctrl_handler = hdl;
+ 
+ 	/* initialize locks */
+-- 
+1.7.1
 
