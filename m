@@ -1,49 +1,40 @@
 Return-path: <mchehab@pedra>
-Received: from tex.lwn.net ([70.33.254.29]:42684 "EHLO vena.lwn.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751719Ab1FXU1C (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 24 Jun 2011 16:27:02 -0400
-Date: Fri, 24 Jun 2011 14:27:01 -0600
-From: Jonathan Corbet <corbet@lwn.net>
-To: Marek Szyprowski <m.szyprowski@samsung.com>,
-	'Pawel Osciak' <pawel@osciak.com>
-Cc: linux-media@vger.kernel.org
-Subject: The return value of __vb2_queue_alloc()
-Message-ID: <20110624142701.0c5c7a7e@bike.lwn.net>
-In-Reply-To: <20110624141927.1c89a033@bike.lwn.net>
-References: <20110624141927.1c89a033@bike.lwn.net>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 8bit
+Received: from mail-ww0-f44.google.com ([74.125.82.44]:43015 "EHLO
+	mail-ww0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753034Ab1FGM2Q (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 7 Jun 2011 08:28:16 -0400
+MIME-Version: 1.0
+In-Reply-To: <201106071340.15199.laurent.pinchart@ideasonboard.com>
+References: <1307053663-24572-1-git-send-email-ohad@wizery.com>
+ <201106071122.47804.laurent.pinchart@ideasonboard.com> <BANLkTineGVvmph=Om2FGR_+mkiMW6k7UAw@mail.gmail.com>
+ <201106071340.15199.laurent.pinchart@ideasonboard.com>
+From: Ohad Ben-Cohen <ohad@wizery.com>
+Date: Tue, 7 Jun 2011 15:27:55 +0300
+Message-ID: <BANLkTikGvCDhOev02=n3H1pQvF69fn1uuw@mail.gmail.com>
+Subject: Re: [RFC 1/6] omap: iommu: generic iommu api migration
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: linux-media@vger.kernel.org, linux-omap@vger.kernel.org,
+	linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+	Hiroshi.DOYU@nokia.com, arnd@arndb.de, davidb@codeaurora.org,
+	Joerg.Roedel@amd.com
+Content-Type: text/plain; charset=ISO-8859-1
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Fri, 24 Jun 2011 14:19:27 -0600
-Jonathan Corbet <corbet@lwn.net> wrote:
+On Tue, Jun 7, 2011 at 2:40 PM, Laurent Pinchart
+<laurent.pinchart@ideasonboard.com> wrote:
+> My point is that if the allocator guarantees the alignment (not as a side
+> effect of the implementation, but per its API) there's no need to check it
+> again. As the alignement is required, we need an allocator that guarantees it
+> anyway.
 
-> Here's a little something I decided to hack on rather than addressing all
-> the real work I have to do.
+I understand, but I'd still prefer to have an explicit check that the
+hardware alignment requirement is met.
 
-...and while I was looking at this code, I noticed one little curious
-thing:
-
-int vb2_reqbufs(struct vb2_queue *q, struct v4l2_requestbuffers *req)
-{
-/* ... */
-	/* Finally, allocate buffers and video memory */
-	ret = __vb2_queue_alloc(q, req->memory, num_buffers, num_planes,
-				plane_sizes);
-	if (ret < 0) {
-		dprintk(1, "Memory allocation failed with error: %d\n", ret);
-		return ret;
-	}
-
-If you actually look at __vb2_queue_alloc(), it claims to return the
-number of buffers actually allocated, and an inspection of the code bears
-up that claim.  So it can never return a negative value.  Do you maybe
-want "if (ret <= 0) {" there instead?  One assumes there will be few
-drivers so accommodating as to work with zero buffers.
+There's no cost in doing that (it's a cold path), and even if it would
+only fail once and with an extremely broken kernel - it's worth it.
+Will save huge amount of debugging pain (think of the poor guy that
+will have to debug this...).
 
 Thanks,
-
-jon
+Ohad.
