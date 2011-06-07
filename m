@@ -1,134 +1,366 @@
 Return-path: <mchehab@pedra>
-Received: from ffm.saftware.de ([83.141.3.46]:43591 "EHLO ffm.saftware.de"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:40467 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751599Ab1FUOPn (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 21 Jun 2011 10:15:43 -0400
-Message-ID: <4E00A78B.2020008@linuxtv.org>
-Date: Tue, 21 Jun 2011 16:15:39 +0200
-From: Andreas Oberritter <obi@linuxtv.org>
+	id S1754845Ab1FGOsA (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 7 Jun 2011 10:48:00 -0400
+Received: from dlep34.itg.ti.com ([157.170.170.115])
+	by arroyo.ext.ti.com (8.13.7/8.13.7) with ESMTP id p57ElxtS029912
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-media@vger.kernel.org>; Tue, 7 Jun 2011 09:47:59 -0500
+Received: from dlep26.itg.ti.com (smtp-le.itg.ti.com [157.170.170.27])
+	by dlep34.itg.ti.com (8.13.7/8.13.8) with ESMTP id p57ElxCr024079
+	for <linux-media@vger.kernel.org>; Tue, 7 Jun 2011 09:47:59 -0500 (CDT)
+From: Amber Jain <amber@ti.com>
+To: <linux-media@vger.kernel.org>
+CC: <hvaibhav@ti.com>, <sumit.semwal@ti.com>, Amber Jain <amber@ti.com>
+Subject: [PATCH 5/6] V4L2: OMAP: VOUT: Changes for NV12 format support for OMAP4
+Date: Tue, 7 Jun 2011 20:17:37 +0530
+Message-ID: <1307458058-29030-6-git-send-email-amber@ti.com>
+In-Reply-To: <1307458058-29030-1-git-send-email-amber@ti.com>
+References: <1307458058-29030-1-git-send-email-amber@ti.com>
 MIME-Version: 1.0
-To: Devin Heitmueller <dheitmueller@kernellabs.com>
-CC: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	HoP <jpetrous@gmail.com>,
-	=?ISO-8859-1?Q?=22S=E9bastien_RAILLARD_=28COEXSI=29=22?=
-	<sr@coexsi.fr>,
-	=?ISO-8859-1?Q?R=E9mi_Denis-Courmont?= <remi@remlab.net>,
-	linux-media@vger.kernel.org
-Subject: Re: [RFC] vtunerc - virtual DVB device driver
-References: <BANLkTimtnbAzLTdFY2OiSddHTjmD_99CfA@mail.gmail.com>	<201106202037.19535.remi@remlab.net>	<BANLkTinn0uN3VwGfqCbYbxFoVf6aNo1VSA@mail.gmail.com>	<BANLkTin14LnwP+_K1m-RsEXza4M4CjqnEw@mail.gmail.com>	<BANLkTimR-zWnnLBcD2w8d8NpeFJi=eT9nQ@mail.gmail.com>	<005a01cc2f7d$a799be30$f6cd3a90$@coexsi.fr>	<BANLkTinbQ8oBJt7fScuT5vHGFktbaQNY5A@mail.gmail.com>	<BANLkTimTdMa_X1ygF8=B5gLdLXq1o-ER0g@mail.gmail.com>	<BANLkTimkZN9AtLanwvct+1p2DZOHSgF6Aw@mail.gmail.com>	<BANLkTimg0X5H5T8CsSR5Tr0CZbCZKiDEEA@mail.gmail.com>	<4DFFB1DA.5000602@redhat.com>	<BANLkTikZ++5dZssDRuxJzNUEG_TDkZPGRg@mail.gmail.com>	<4DFFF56D.5070602@redhat.com>	<4E007AA7.7070400@linuxtv.org> <BANLkTik3ACfDwkyKVU2eZtxBeLH_mGh7pg@mail.gmail.com>
-In-Reply-To: <BANLkTik3ACfDwkyKVU2eZtxBeLH_mGh7pg@mail.gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On 06/21/2011 03:44 PM, Devin Heitmueller wrote:
-> On Tue, Jun 21, 2011 at 7:04 AM, Andreas Oberritter <obi@linuxtv.org> wrote:
->> Mauro and Devin, I think you're missing the point. This is not about
->> creating drivers in userspace. This is not about open or closed source.
->> The "vtuner" interface, as implemented for the Dreambox, is used to
->> access remote tuners: Put x tuners into y boxes and access them from
->> another box as if they were local. It's used in conjunction with further
->> software to receive the transport stream over a network connection.
->> Honza's code does the same thing.
-> 
-> I'm not missing the point at all.  I realize exactly what Honza is
-> trying to accomplish (and from a purely technical standpoint, it's not
-> a bad approach) - but I'm talking about the effects of such a driver
-> being introduced which changes the kernel/userland licensing boundary
-> and has very real implications with how the in-kernel code is
-> accessed.
-> 
->> You don't need it in order to create closed source drivers. You can
->> already create closed kernel drivers now. Also, you can create tuner
->> drivers in userspace using the i2c-dev interface. If you like to connect
->> a userspace driver to a DVB API device node, you can distribute a small
->> (open or closed) wrapper with it. So what are you arguing about?
->> Everything you're feared of can already be done since virtually forever.
-> 
-> I disagree.  There is currently no API which allows applications to
-> issue tuning requests into the DVB core, and have those requests
-> proxied back out to userland where an application can then use i2c-dev
-> to tune the actual device.  Meaning if somebody wants to write a
-> closed source userland application which controls the tuner, he/she
-> can do that (while not conforming to the DVB API).  But if if he wants
-> to reuse the GPL licensed DVB core, he has to replace the entire DVB
-> core.
-> 
-> The introduction of this patch makes it trivial for a third party to
-> provide closed-source userland support for tuners while reusing all
-> the existing GPL driver code that makes up the framework.
-> 
-> I used to work for a vendor that makes tuners, and they do a bunch of
-> Linux work.  And that work has resulted in a bunch of open source
-> drivers.  I can tell you though that *every* conversation I've had
-> regarding a new driver goes something like this:
-> 
-> ===
-> "Devin, we need to support tuner X under Linux."
-> 
-> "Great!  I'll be happy to write a new GPL driver for the
-> tuner/demodulator/whatever for that device"
-> 
-> "But to save time/money, we just want to reuse the Windows driver code
-> (or reference code from the vendor)."
-> 
-> "Ok.  Well, what is the licensing for that code?  Is it GPL compatible?"
-> 
-> "Not currently.  So can we just make our driver closed source?"
-> 
-> "Well, you can't reuse any of the existing DVB core functionality or
-> any of the other GPL drivers (tuners, bridges, demods), so you would
-> have rewrite all that from scratch."
-> 
-> "Oh, that would be a ton of work.   Can we maybe write some userland
-> stuff that controls the demodulator which we can keep closed source?
-> Since it's not in the kernel, the GPL won't apply".
-> 
-> "Well, you can't really do that because there is no way for the DVB
-> core to call back out to userland when the application makes the
-> tuning request to the DVB core."
-> 
-> "Oh, ok then.  I guess we'll have to talk to the vendor and get them
-> to give us the reference driver code under the GPL."
-> ===
-> 
-> I can tell you without a doubt that if this driver were present in the
-> kernel, that going forward that vendor would have *zero* interest in
-> doing any GPL driver work.  Why would they?  Why give away the code
-> which could potentially help their competitors if they can keep it
-> safe and protected while still being able to reuse everybody else's
-> contributions?
-> 
-> Companies don't contribute GPL code out of "good will".  They do it
-> because they are compelled to by licenses or because there is no
-> economically viable alternative.
-> 
-> Mauro, ultimately it is your decision as the maintainer which drivers
-> get accepted in to the kernel.  I can tell you though that this will
-> be a very bad thing for the driver ecosystem as a whole - it will
-> essentially make it trivial for vendors (some of which who are doing
-> GPL work now) to provide solutions that reuse the GPL'd DVB core
-> without having to make any of their stuff open source.
-> 
-> Anyway, I said in my last email that would be my last email on the
-> topic.  I guess I lied.
+V4l2 side changes to add NV12 format supportted by OMAP4.
 
-Yes, and you did lie to your vendor, too, as you did not mention the
-possibilities to create
-1.) closed source modules derived from existing vendor drivers while
-still being able to use other drivers (c.f. EXPORT_SYMBOL vs.
-EXPORT_SYMBOL_GPL).
-2.) a simple wrapper that calls userspace, therefore not having to open
-up any "secrets" at all.
+Signed-off-by: Amber Jain <amber@ti.com>
+---
+ drivers/media/video/omap/omap_vout.c    |  113 ++++++++++++++++++++++++++-----
+ drivers/media/video/omap/omap_voutdef.h |    3 +
+ 2 files changed, 99 insertions(+), 17 deletions(-)
 
-Of course it's nice that you could trick that vendor into publishing
-code under GPL terms. And while everyone appreciates it, I would also
-appreciate keeping politics off the table.
+diff --git a/drivers/media/video/omap/omap_vout.c b/drivers/media/video/omap/omap_vout.c
+index f0946ea..25025a1 100644
+--- a/drivers/media/video/omap/omap_vout.c
++++ b/drivers/media/video/omap/omap_vout.c
+@@ -138,6 +138,10 @@ const static struct v4l2_fmtdesc omap_formats[] = {
+ 		.description = "UYVY, packed",
+ 		.pixelformat = V4L2_PIX_FMT_UYVY,
+ 	},
++	{
++		.description = "NV12 - YUV420 format",
++		.pixelformat = V4L2_PIX_FMT_NV12,
++	},
+ };
+ 
+ #define NUM_OUTPUT_FORMATS (ARRAY_SIZE(omap_formats))
+@@ -185,12 +189,23 @@ static int omap_vout_try_format(struct v4l2_pix_format_mplane *pix_mp)
+ 		pix_mp->colorspace = V4L2_COLORSPACE_SRGB;
+ 		bpp = RGB32_BPP;
+ 		break;
++	case V4L2_PIX_FMT_NV12:
++		pix_mp->colorspace = V4L2_COLORSPACE_JPEG;
++		bpp = 1;
++		break;
+ 	}
+ 
+ 	for (i = 0; i < pix_mp->num_planes; ++i) {
+ 		int bpl = pix_mp->width * bpp;
+-		pix_mp->plane_fmt[i].bytesperline = bpl;
++		pix_mp->plane_fmt[i].bytesperline = (bpl + PAGE_SIZE - 1) &
++					~(PAGE_SIZE - 1);
++		bpl = pix_mp->plane_fmt[i].bytesperline;
++
+ 		pix_mp->plane_fmt[i].sizeimage = bpl * pix_mp->height;
++
++		/* :NOTE: NV12 has width bytes per line in both Y and UV sections */
++		if (V4L2_PIX_FMT_NV12 == pix_mp->pixelformat)
++			pix_mp->plane_fmt[i].sizeimage += pix_mp->plane_fmt[i].sizeimage >> 1;
+ 	}
+ 
+ 	return bpp;
+@@ -292,6 +307,7 @@ static int omap_vout_calculate_offset(struct omap_vout_device *vout)
+ 	struct v4l2_pix_format_mplane *pix_mp = &vout->pix_mp;
+ 	int *cropped_offset = &vout->cropped_offset;
+ 	int ps = 2, line_length = 0;
++	u32 *cropped_uv_offset = &vout->cropped_uv_offset;
+ 
+ 	ovid = &vout->vid_info;
+ 
+@@ -307,11 +323,17 @@ static int omap_vout_calculate_offset(struct omap_vout_device *vout)
+ 			ps = 4;
+ 		else if (V4L2_PIX_FMT_RGB24 == pix_mp->pixelformat)
+ 			ps = 3;
++		else if (V4L2_PIX_FMT_NV12 == pix_mp->pixelformat)
++			ps = 1;
+ 
+ 		vout->ps = ps;
+ 
+ 		*cropped_offset = (line_length * ps) *
+ 			crop->top + crop->left * ps;
++
++		if (V4L2_PIX_FMT_NV12 == pix_mp->pixelformat)
++			*cropped_uv_offset = (line_length * ps) *
++				(crop->top >> 1) + (crop->left & ~1) * ps;
+ 	}
+ 
+ 	v4l2_dbg(1, debug, &vout->vid_dev->v4l2_dev, "%s Offset:%x\n",
+@@ -355,6 +377,9 @@ static int video_mode_to_dss_mode(struct omap_vout_device *vout)
+ 	case V4L2_PIX_FMT_BGR32:
+ 		mode = OMAP_DSS_COLOR_RGBX32;
+ 		break;
++	case V4L2_PIX_FMT_NV12:
++		mode = OMAP_DSS_COLOR_NV12;
++		break;
+ 	default:
+ 		mode = -EINVAL;
+ 	}
+@@ -366,7 +391,7 @@ static int video_mode_to_dss_mode(struct omap_vout_device *vout)
+  */
+ int omapvid_setup_overlay(struct omap_vout_device *vout,
+ 		struct omap_overlay *ovl, int posx, int posy, int outw,
+-		int outh, u32 addr)
++		int outh, u32 addr, u32 uv_addr)
+ {
+ 	int ret = 0;
+ 	struct omap_overlay_info info;
+@@ -400,7 +425,15 @@ int omapvid_setup_overlay(struct omap_vout_device *vout,
+ 	}
+ 
+ 	ovl->get_overlay_info(ovl, &info);
+-	info.paddr = addr;
++
++	if (addr)
++		info.paddr = addr;
++
++	if (OMAP_DSS_COLOR_NV12 == vout->dss_mode)
++		info.p_uv_addr = uv_addr;
++	else
++		info.p_uv_addr = (u32) NULL;
++
+ 	info.vaddr = NULL;
+ 	info.width = cropwidth;
+ 	info.height = cropheight;
+@@ -430,6 +463,9 @@ int omapvid_setup_overlay(struct omap_vout_device *vout,
+ 		info.pos_y, info.out_width, info.out_height, info.rotation_type,
+ 		info.screen_width);
+ 
++	v4l2_dbg(1, debug, &vout->vid_dev->v4l2_dev, "info.puvaddr=%x\n",
++		info.p_uv_addr);
++
+ 	ret = ovl->set_overlay_info(ovl, &info);
+ 	if (ret)
+ 		goto setup_ovl_err;
+@@ -444,7 +480,7 @@ setup_ovl_err:
+ /*
+  * Initialize the overlay structure
+  */
+-int omapvid_init(struct omap_vout_device *vout, u32 addr)
++int omapvid_init(struct omap_vout_device *vout, u32 addr, u32 uv_addr)
+ {
+ 	int ret = 0, i;
+ 	struct v4l2_window *win;
+@@ -495,7 +531,7 @@ int omapvid_init(struct omap_vout_device *vout, u32 addr)
+ 		}
+ 
+ 		ret = omapvid_setup_overlay(vout, ovl, posx, posy,
+-				outw, outh, addr);
++				outw, outh, addr, uv_addr);
+ 		if (ret)
+ 			goto omapvid_init_err;
+ 	}
+@@ -529,6 +565,7 @@ void omap_vout_isr(void *arg, unsigned int irqstatus)
+ {
+ 	int ret;
+ 	u32 addr, fid;
++	u32 uv_addr;
+ 	struct omap_overlay *ovl;
+ 	struct timeval timevalue;
+ 	struct omapvideo_info *ovid;
+@@ -581,8 +618,11 @@ void omap_vout_isr(void *arg, unsigned int irqstatus)
+ 		addr = (unsigned long) vout->queued_buf_addr[vout->next_frm->i]
+ 			+ vout->cropped_offset;
+ 
++		uv_addr = (unsigned long)vout->queued_buf_uv_addr[vout->next_frm->i]
++			+ vout->cropped_uv_offset;
++
+ 		/* First save the configuration in ovelray structure */
+-		ret = omapvid_init(vout, addr);
++		ret = omapvid_init(vout, addr, uv_addr);
+ 		if (ret)
+ 			printk(KERN_ERR VOUT_NAME
+ 				"failed to set overlay info\n");
+@@ -631,8 +671,12 @@ void omap_vout_isr(void *arg, unsigned int irqstatus)
+ 			addr = (unsigned long)
+ 				vout->queued_buf_addr[vout->next_frm->i] +
+ 				vout->cropped_offset;
++
++			uv_addr = (unsigned long)vout->queued_buf_uv_addr[vout->next_frm->i]
++				+ vout->cropped_uv_offset;
++
+ 			/* First save the configuration in ovelray structure */
+-			ret = omapvid_init(vout, addr);
++			ret = omapvid_init(vout, addr, uv_addr);
+ 			if (ret)
+ 				printk(KERN_ERR VOUT_NAME
+ 						"failed to set overlay info\n");
+@@ -686,7 +730,11 @@ static int omap_vout_buffer_setup(struct videobuf_queue *q, unsigned int *count,
+ 		return 0;
+ 
+ 	/* Now allocated the V4L2 buffers */
+-	*size = PAGE_ALIGN(vout->pix_mp.width * vout->pix_mp.height * vout->bpp);
++	if (V4L2_PIX_FMT_NV12 == vout->pix_mp.pixelformat)
++		*size = PAGE_ALIGN(vout->pix_mp.width * vout->pix_mp.height * vout->bpp * 3/2);
++	else
++		*size = PAGE_ALIGN(vout->pix_mp.width * vout->pix_mp.height * vout->bpp);
++
+ 	startindex = (vout->vid == OMAP_VIDEO1) ?
+ 		video1_numbuffers : video2_numbuffers;
+ 
+@@ -771,19 +819,34 @@ static int omap_vout_buffer_prepare(struct videobuf_queue *q,
+ 		/* Physical address */
+ 		vout->queued_buf_addr[vb->i] = (u8 *)
+ 			omap_vout_uservirt_to_phys(vb->baddr);
++		vout->queued_buf_uv_addr[vb->i] = (u8 *)
++			omap_vout_uservirt_to_phys(vb->baddr + vb->size);
+ 	} else {
+-		int addr, dma_addr;
+-		unsigned long size;
++		int addr, uv_addr, dma_addr, dma_uv_addr;
++		unsigned long size, size_uv;
+ 
+ 		addr = (unsigned long) vout->buf_virt_addr[vb->i];
+ 		size = (unsigned long) vb->size;
+ 
++		uv_addr = (unsigned long) (vout->buf_virt_addr[vb->i]
++			+ vb->size);
++
+ 		dma_addr = dma_map_single(vout->vid_dev->v4l2_dev.dev, (void *) addr,
+ 				(unsigned) size, DMA_TO_DEVICE);
+ 		if (dma_mapping_error(vout->vid_dev->v4l2_dev.dev, dma_addr))
+ 			printk(KERN_ERR "dma_map_single failed\n");
+ 
+-		vout->queued_buf_addr[vb->i] = (u8 *)vout->buf_phy_addr[vb->i];
++		if (vout->dss_mode == OMAP_DSS_COLOR_NV12) {
++			size_uv = (unsigned long) (vb->size)/2;
++			dma_uv_addr = dma_map_single(vout->vid_dev->v4l2_dev.dev, (void *) uv_addr,
++							(unsigned) size_uv, DMA_TO_DEVICE);
++			if (dma_mapping_error(vout->vid_dev->v4l2_dev.dev, dma_uv_addr))
++				printk(KERN_ERR "dma_map_single failed\n");
++		}
++
++		vout->queued_buf_addr[vb->i] = (u8 *) vout->buf_phy_addr[vb->i];
++		vout->queued_buf_uv_addr[vb->i] = (u8 *) (vout->buf_phy_addr[vb->i]
++						+ vb->size);
+ 	}
+ 
+ 	if (ovid->rotation_type == VOUT_ROT_VRFB)
+@@ -1121,9 +1184,13 @@ static int vidioc_s_fmt_vid_out_mplane(struct file *file, void *fh,
+ 
+ 	bpp = omap_vout_try_format(&f->fmt.pix_mp);
+ 
+-	for (i = 0; i < f->fmt.pix_mp.num_planes; ++i)
++	for (i = 0; i < f->fmt.pix_mp.num_planes; ++i) {
+ 		f->fmt.pix_mp.plane_fmt[i].sizeimage = f->fmt.pix_mp.width *
+ 						f->fmt.pix_mp.height * bpp;
++		if (V4L2_PIX_FMT_NV12 == f->fmt.pix_mp.pixelformat)
++			f->fmt.pix_mp.plane_fmt[i].sizeimage +=
++				f->fmt.pix_mp.plane_fmt[i].sizeimage >> 1;
++	}
+ 	/* try & set the new output format */
+ 	vout->bpp = bpp;
+ 	vout->pix_mp = f->fmt.pix_mp;
+@@ -1138,7 +1205,7 @@ static int vidioc_s_fmt_vid_out_mplane(struct file *file, void *fh,
+ 	omap_vout_new_format(&vout->pix_mp, &vout->fbuf, &vout->crop, &vout->win);
+ 
+ 	/* Save the changes in the overlay strcuture */
+-	ret = omapvid_init(vout, 0);
++	ret = omapvid_init(vout, 0, 0);
+ 	if (ret) {
+ 		v4l2_err(&vout->vid_dev->v4l2_dev, "failed to change mode\n");
+ 		goto s_fmt_vid_out_exit;
+@@ -1567,8 +1634,8 @@ static int vidioc_dqbuf(struct file *file, void *fh, struct v4l2_buffer *b)
+ 	struct omap_vout_device *vout = fh;
+ 	struct videobuf_queue *q = &vout->vbq;
+ 
+-	unsigned long size;
+-	u32 addr;
++	unsigned long size, size_uv;
++	u32 addr, uv_addr;
+ 	struct videobuf_buffer *vb;
+ 	int ret;
+ 
+@@ -1588,6 +1655,13 @@ static int vidioc_dqbuf(struct file *file, void *fh, struct v4l2_buffer *b)
+ 	size = (unsigned long) vb->size;
+ 	dma_unmap_single(vout->vid_dev->v4l2_dev.dev,  addr,
+ 				(unsigned) size, DMA_TO_DEVICE);
++	if (vout->dss_mode == OMAP_DSS_COLOR_NV12) {
++		uv_addr = (unsigned long) (vout->buf_phy_addr[vb->i]
++			+ vb->size);
++		size_uv = (unsigned long) (vb->size)/2;
++		dma_unmap_single(vout->vid_dev->v4l2_dev.dev, uv_addr,
++					(unsigned) size_uv, DMA_TO_DEVICE);
++	}
+ 	return ret;
+ }
+ 
+@@ -1595,6 +1669,7 @@ static int vidioc_streamon(struct file *file, void *fh, enum v4l2_buf_type i)
+ {
+ 	int ret = 0, j;
+ 	u32 addr = 0, mask = 0;
++	u32 uv_addr = 0;
+ 	struct omap_vout_device *vout = fh;
+ 	struct videobuf_queue *q = &vout->vbq;
+ 	struct omapvideo_info *ovid = &vout->vid_info;
+@@ -1637,6 +1712,9 @@ static int vidioc_streamon(struct file *file, void *fh, enum v4l2_buf_type i)
+ 	addr = (unsigned long) vout->queued_buf_addr[vout->cur_frm->i]
+ 		+ vout->cropped_offset;
+ 
++	uv_addr = (unsigned long) vout->queued_buf_uv_addr[vout->cur_frm->i]
++		+ vout->cropped_uv_offset;
++
+ 	mask = DISPC_IRQ_VSYNC | DISPC_IRQ_EVSYNC_EVEN | DISPC_IRQ_EVSYNC_ODD
+ 		| DISPC_IRQ_VSYNC2;
+ 
+@@ -1650,6 +1728,7 @@ static int vidioc_streamon(struct file *file, void *fh, enum v4l2_buf_type i)
+ 			ovl->get_overlay_info(ovl, &info);
+ 			info.enabled = 1;
+ 			info.paddr = addr;
++			info.p_uv_addr = uv_addr;
+ 			if (ovl->set_overlay_info(ovl, &info)) {
+ 				ret = -EINVAL;
+ 				goto streamon_err1;
+@@ -1658,7 +1737,7 @@ static int vidioc_streamon(struct file *file, void *fh, enum v4l2_buf_type i)
+ 	}
+ 
+ 	/* First save the configuration in ovelray structure */
+-	ret = omapvid_init(vout, addr);
++	ret = omapvid_init(vout, addr, uv_addr);
+ 	if (ret)
+ 		v4l2_err(&vout->vid_dev->v4l2_dev,
+ 				"failed to set overlay info\n");
+@@ -2045,7 +2124,7 @@ static int __init omap_vout_create_video_devices(struct platform_device *pdev)
+ 		video_set_drvdata(vfd, vout);
+ 
+ 		/* Configure the overlay structure */
+-		ret = omapvid_init(vid_dev->vouts[k], 0);
++		ret = omapvid_init(vid_dev->vouts[k], 0, 0);
+ 		if (!ret)
+ 			goto success;
+ 
+diff --git a/drivers/media/video/omap/omap_voutdef.h b/drivers/media/video/omap/omap_voutdef.h
+index 6f94ea1..a2ae56a 100644
+--- a/drivers/media/video/omap/omap_voutdef.h
++++ b/drivers/media/video/omap/omap_voutdef.h
+@@ -128,6 +128,8 @@ struct omap_vout_device {
+ 	/* keep buffer info across opens */
+ 	unsigned long buf_virt_addr[VIDEO_MAX_FRAME];
+ 	unsigned long buf_phy_addr[VIDEO_MAX_FRAME];
++	u8 *queued_buf_uv_addr[VIDEO_MAX_FRAME];
++
+ 	enum omap_color_mode dss_mode;
+ 
+ 	/* we don't allow to request new buffer when old buffers are
+@@ -174,6 +176,7 @@ struct omap_vout_device {
+ 	struct list_head dma_queue;
+ 	u8 *queued_buf_addr[VIDEO_MAX_FRAME];
+ 	u32 cropped_offset;
++	u32 cropped_uv_offset;
+ 	s32 tv_field1_offset;
+ 	void *isr_handle;
+ 
+-- 
+1.7.1
 
-If the proposed interface results in closed userspace drivers, better or
-worse than the kernel drivers, then so be it. It will be very easy to
-log their I2C transactions and to create open source drivers from that.
-
-Regards,
-Andreas
