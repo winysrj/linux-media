@@ -1,92 +1,63 @@
 Return-path: <mchehab@pedra>
-Received: from mail.mnsspb.ru ([84.204.75.2]:33601 "EHLO mail.mnsspb.ru"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756419Ab1FUScx (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 21 Jun 2011 14:32:53 -0400
-From: Kirill Smelkov <kirr@mns.spb.ru>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: linux-uvc-devel@lists.berlios.de, linux-media@vger.kernel.org,
-	linux-kernel@vger.kernel.org, Kirill Smelkov <kirr@mns.spb.ru>
-Subject: [PATCH] uvcvideo: Add FIX_BANDWIDTH quirk to HP Webcam found on HP Mini 5103 netbook
-Date: Tue, 21 Jun 2011 22:07:43 +0400
-Message-Id: <1308679663-11431-1-git-send-email-kirr@mns.spb.ru>
+Received: from tx2ehsobe002.messaging.microsoft.com ([65.55.88.12]:1190 "EHLO
+	TX2EHSOBE003.bigfish.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751647Ab1FGHwE (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 7 Jun 2011 03:52:04 -0400
+Date: Tue, 7 Jun 2011 09:52:21 +0200
+From: "Roedel, Joerg" <Joerg.Roedel@amd.com>
+To: Ohad Ben-Cohen <ohad@wizery.com>
+CC: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	"linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>,
+	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
+	"linux-arm-kernel@lists.infradead.org"
+	<linux-arm-kernel@lists.infradead.org>,
+	"laurent.pinchart@ideasonboard.com"
+	<laurent.pinchart@ideasonboard.com>,
+	"Hiroshi.DOYU@nokia.com" <Hiroshi.DOYU@nokia.com>,
+	"arnd@arndb.de" <arnd@arndb.de>,
+	"davidb@codeaurora.org" <davidb@codeaurora.org>,
+	Omar Ramirez Luna <omar.ramirez@ti.com>
+Subject: Re: [RFC 0/6] iommu: generic api migration and grouping
+Message-ID: <20110607075221.GB4407@amd.com>
+References: <1307053663-24572-1-git-send-email-ohad@wizery.com>
+ <20110606100950.GC30762@amd.com>
+ <BANLkTi=i2s-Ujiy4qn_XQv+9dMjUC9R66A@mail.gmail.com>
+ <20110606153557.GE1953@amd.com>
+ <BANLkTinwwVO4TmsxuTfSBf6jqYrEVV3b_A@mail.gmail.com>
+ <20110606192030.GA4356@amd.com>
+ <BANLkTinx21-E3DRe9D7LRB8e1aeOwv=-9A@mail.gmail.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Disposition: inline
+In-Reply-To: <BANLkTinx21-E3DRe9D7LRB8e1aeOwv=-9A@mail.gmail.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-The camera there identifeis itself as being manufactured by Cheng Uei
-Precision Industry Co., Ltd (Foxlink), and product is titled as "HP
-Webcam [2 MP Fixed]".
+On Mon, Jun 06, 2011 at 04:09:33PM -0400, Ohad Ben-Cohen wrote:
+> On Mon, Jun 6, 2011 at 10:20 PM, Roedel, Joerg <Joerg.Roedel@amd.com> wrote:
+> > Well, it certainly makes sense to have a single implementation for this.
+> > But I want to hide this complexity to the user of the IOMMU-API. The
+> > best choice is to put this into the layer between the IOMMU-API and the
+> > backend implementation.
+> 
+> I agree.
+> 
+> The IOMMU API should take physically contiguous regions from the user,
+> split them up according to page-sizes (/alignment requirements)
+> supported by the hardware, and then tell the underlying implementation
+> what to map where.
 
-I was trying to get 2 USB video capture devices to work simultaneously,
-and noticed that the above mentioned webcam always requires packet size
-= 3072 bytes per micro frame (~= 23.4 MB/s isoc bandwidth), which is far
-more than enough to get standard NTSC 640x480x2x30 = ~17.6 MB/s isoc
-bandwidth.
+Yup. Btw, is there any IOMMU hardware which supports non-natural
+alignment? In this case we need to expose these requirements somehow.
 
-As there are alt interfaces with smaller MxPS
+Regards,
 
-    T:  Bus=01 Lev=01 Prnt=01 Port=03 Cnt=01 Dev#=  2 Spd=480  MxCh= 0
-    D:  Ver= 2.00 Cls=ef(misc ) Sub=02 Prot=01 MxPS=64 #Cfgs=  1
-    P:  Vendor=05c8 ProdID=0403 Rev= 1.06
-    S:  Manufacturer=Foxlink
-    S:  Product=HP Webcam [2 MP Fixed]
-    S:  SerialNumber=200909240102
-    C:* #Ifs= 2 Cfg#= 1 Atr=80 MxPwr=500mA
-    A:  FirstIf#= 0 IfCount= 2 Cls=0e(video) Sub=03 Prot=00
-    I:* If#= 0 Alt= 0 #EPs= 1 Cls=0e(video) Sub=01 Prot=00 Driver=uvcvideo
-    E:  Ad=83(I) Atr=03(Int.) MxPS=  16 Ivl=4ms
-    I:* If#= 1 Alt= 0 #EPs= 0 Cls=0e(video) Sub=02 Prot=00 Driver=uvcvideo
-    I:  If#= 1 Alt= 1 #EPs= 1 Cls=0e(video) Sub=02 Prot=00 Driver=uvcvideo
-    E:  Ad=81(I) Atr=05(Isoc) MxPS= 128 Ivl=125us
-    I:  If#= 1 Alt= 2 #EPs= 1 Cls=0e(video) Sub=02 Prot=00 Driver=uvcvideo
-    E:  Ad=81(I) Atr=05(Isoc) MxPS= 512 Ivl=125us
-    I:  If#= 1 Alt= 3 #EPs= 1 Cls=0e(video) Sub=02 Prot=00 Driver=uvcvideo
-    E:  Ad=81(I) Atr=05(Isoc) MxPS=1024 Ivl=125us
-    I:  If#= 1 Alt= 4 #EPs= 1 Cls=0e(video) Sub=02 Prot=00 Driver=uvcvideo
-    E:  Ad=81(I) Atr=05(Isoc) MxPS=1536 Ivl=125us
-    I:  If#= 1 Alt= 5 #EPs= 1 Cls=0e(video) Sub=02 Prot=00 Driver=uvcvideo
-    E:  Ad=81(I) Atr=05(Isoc) MxPS=2048 Ivl=125us
-    I:  If#= 1 Alt= 6 #EPs= 1 Cls=0e(video) Sub=02 Prot=00 Driver=uvcvideo
-    E:  Ad=81(I) Atr=05(Isoc) MxPS=2688 Ivl=125us
-    I:  If#= 1 Alt= 7 #EPs= 1 Cls=0e(video) Sub=02 Prot=00 Driver=uvcvideo
-    E:  Ad=81(I) Atr=05(Isoc) MxPS=3072 Ivl=125us
+	Joerg
 
-UVC_QUIRK_FIX_BANDWIDTH helps here and NTSC video can be served with
-MxPS=2688 i.e. 20.5 MB/s isoc bandwidth.
-
-In terms of microframe time allocation, before the quirk NTSC video
-required 60 usecs / microframe and 53 usecs / microframe after.
-
-
-P.S. Now with tweaked ehci-hcd to allow up to 90% isoc bandwith (instead of
-allowed for high speed 80%) I can capture two video sources -- PAL 720x576
-YUV422 @25fps + NTSC 640x480 YUV422 @30fps simultaneously. Hooray!
-
-Signed-off-by: Kirill Smelkov <kirr@mns.spb.ru>
----
- drivers/media/video/uvc/uvc_driver.c |    9 +++++++++
- 1 files changed, 9 insertions(+), 0 deletions(-)
-
-diff --git a/drivers/media/video/uvc/uvc_driver.c b/drivers/media/video/uvc/uvc_driver.c
-index b6eae48..f633700 100644
---- a/drivers/media/video/uvc/uvc_driver.c
-+++ b/drivers/media/video/uvc/uvc_driver.c
-@@ -2130,6 +2130,15 @@ static struct usb_device_id uvc_ids[] = {
- 	  .bInterfaceProtocol	= 0,
- 	  .driver_info 		= UVC_QUIRK_PROBE_MINMAX
- 				| UVC_QUIRK_BUILTIN_ISIGHT },
-+	/* Foxlink ("HP Webcam" on HP Mini 5103) */
-+	{ .match_flags		= USB_DEVICE_ID_MATCH_DEVICE
-+				| USB_DEVICE_ID_MATCH_INT_INFO,
-+	  .idVendor		= 0x05c8,
-+	  .idProduct		= 0x0403,
-+	  .bInterfaceClass	= USB_CLASS_VIDEO,
-+	  .bInterfaceSubClass	= 1,
-+	  .bInterfaceProtocol	= 0,
-+	  .driver_info		= UVC_QUIRK_FIX_BANDWIDTH },
- 	/* Genesys Logic USB 2.0 PC Camera */
- 	{ .match_flags		= USB_DEVICE_ID_MATCH_DEVICE
- 				| USB_DEVICE_ID_MATCH_INT_INFO,
 -- 
-1.7.6.rc1
+AMD Operating System Research Center
+
+Advanced Micro Devices GmbH Einsteinring 24 85609 Dornach
+General Managers: Alberto Bozzo, Andrew Bowd
+Registration: Dornach, Landkr. Muenchen; Registerger. Muenchen, HRB Nr. 43632
 
