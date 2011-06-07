@@ -1,133 +1,77 @@
 Return-path: <mchehab@pedra>
-Received: from iolanthe.rowland.org ([192.131.102.54]:55150 "HELO
-	iolanthe.rowland.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S932437Ab1FVTW1 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 22 Jun 2011 15:22:27 -0400
-Date: Wed, 22 Jun 2011 15:22:28 -0400 (EDT)
-From: Alan Stern <stern@rowland.harvard.edu>
-To: Kirill Smelkov <kirr@mns.spb.ru>
-cc: linux-usb@vger.kernel.org, Greg Kroah-Hartman <gregkh@suse.de>,
-	<linux-uvc-devel@lists.berlios.de>, <linux-media@vger.kernel.org>,
-	<linux-kernel@vger.kernel.org>
-Subject: Re: [RFC, PATCH] USB: EHCI: Allow users to override 80% max periodic
- bandwidth
-In-Reply-To: <1308758567-8205-1-git-send-email-kirr@mns.spb.ru>
-Message-ID: <Pine.LNX.4.44L0.1106221514350.1977-100000@iolanthe.rowland.org>
-MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Received: from mail-wy0-f174.google.com ([74.125.82.174]:44384 "EHLO
+	mail-wy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754536Ab1FGTfA (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 7 Jun 2011 15:35:00 -0400
+Received: by wya21 with SMTP id 21so3819855wya.19
+        for <linux-media@vger.kernel.org>; Tue, 07 Jun 2011 12:34:59 -0700 (PDT)
+Subject: Re: DM04 USB DVB-S TUNER
+From: Malcolm Priestley <tvboxspy@gmail.com>
+To: Mehmet Altan Pire <baybesteci@gmail.com>
+Cc: linux-media@vger.kernel.org
+In-Reply-To: <1307424701.2117.13.camel@localhost>
+References: <4DEACF3F.9090305@gmail.com>
+	 <1307283393.22968.12.camel@localhost> <4DEBB00D.4040202@gmail.com>
+	 <1307306576.2064.13.camel@localhost> <1307310455.2547.9.camel@localhost>
+	 <4DED628E.9070502@gmail.com>  <1307424701.2117.13.camel@localhost>
+Content-Type: text/plain; charset="UTF-8"
+Date: Tue, 07 Jun 2011 20:34:50 +0100
+Message-ID: <1307475290.3453.14.camel@localhost>
+Mime-Version: 1.0
+Content-Transfer-Encoding: 8bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Wed, 22 Jun 2011, Kirill Smelkov wrote:
-
-> There are cases, when 80% max isochronous bandwidth is too limiting.
+On Tue, 2011-06-07 at 06:31 +0100, Malcolm Priestley wrote:
+> On Tue, 2011-06-07 at 02:28 +0300, Mehmet Altan Pire wrote:
+> > 06-06-2011 00:47, Malcolm Priestley yazmış:
+> > > On Sun, 2011-06-05 at 21:42 +0100, Malcolm Priestley wrote:
+> > >> On Sun, 2011-06-05 at 19:34 +0300, Mehmet Altan Pire wrote:
+> > >>> 05-06-2011 17:16, Malcolm Priestley yazmış:
+> > >>>> On Sun, 2011-06-05 at 03:35 +0300, Mehmet Altan Pire wrote:
+> > >>>>> Hi,
+> > >>>>> I have "DM04 USB DVBS TUNER", using ubuntu with v4l media-build
+> > >>>>> drivers/modules but device  doesn't working (unknown device).
+> > >>>>>
+> > >>>>> lsusb message:
+> > >>>>> ID 3344:22f0
+> > >>>>>
+> > >>>>> under of the box:
+> > >>>>> DM04P2011050176
+> > >>> Yes, i have windows xp driver, name is "US2B0D.sys" I sending it,
+> > >>> attached in this mail. Thanks. 
+> > >> Here is a modified lmedm04.c and lme2510b_fw.sh using the US2B0D.sys
+> > >>
+> > to modify the interrupt return.
+> > >
 > 
-> For example I have two USB video capture cards which stream uncompressed
-> video, and to stream full NTSC + PAL videos we'd need
-> 
->     NTSC 640x480 YUV422 @30fps      ~17.6 MB/s
->     PAL  720x576 YUV422 @25fps      ~19.7 MB/s
-> 
-> isoc bandwidth.
-> 
-> Now, due to limited alt settings in capture devices NTSC one ends up
-> streaming with max_pkt_size=2688  and  PAL with max_pkt_size=2892, both
-> with interval=1. In terms of microframe time allocation this gives
-> 
->     NTSC    ~53us
->     PAL     ~57us
-> 
-> and together
-> 
->     ~110us  >  100us == 80% of 125us uframe time.
-> 
-> So those two devices can't work together simultaneously because the'd
-> over allocate isochronous bandwidth.
-> 
-> 80% seemed a bit arbitrary to me, and I've tried to raise it to 90% and
-> both devices started to work together, so I though sometimes it would be
-> a good idea for users to override hardcoded default of max 80% isoc
-> bandwidth.
-> 
-> After all, isn't it a user who should decide how to load the bus? If I
-> can live with 10% or even 5% bulk bandwidth that should be ok. I'm a USB
-> newcomer, but that 80% seems to be chosen pretty arbitrary to me, just
-> to serve as a reasonable default.
+> > >
+> > Ok, i tested it. Device recognized on WinXP with original driver, but tv
+> > application says "no lock".
+> > I'm not sure it worked on WinXP but driver cd is original and
+> > succesfully loaded and recognized.
+> > Again tested on ubuntu with new lmedm04.c and lme2510b_fw.sh than make,
+> > make install, and restart.
+> > 
+> > lsusb says:
+> > Bus 001 Device 008: ID 3344:1120  (changes 22f0 to 1120)
+> > dmesg says:
+> Yes this should happen. The firmware will reboot with the correct id.
 
-This seems like the sort of feature somebody might reasonably want to 
-use -- if they know exactly what they're doing.
-
-> NOTE: for two streams with max_pkt_size=3072 (worst case) both time
-> allocation would be 60us+60us=120us which is 96% periodic bandwidth
-> leaving 4% for bulk and control. I think this should work too.
-
-At 480 Mb/s, each microframe holds 7500 bytes (less if you count 
-bit-stuffing).  4% of that is 300 bytes, which is not enough for a 
-512-byte bulk packet.  I think you'd run into trouble trying to do any 
-serious bulk transfers on such a tight schedule.
-
-> Signed-off-by: Kirill Smelkov <kirr@mns.spb.ru>
-> Cc: Alan Stern <stern@rowland.harvard.edu>
-> ---
->  drivers/usb/host/ehci-hcd.c   |   16 ++++++++++++++++
->  drivers/usb/host/ehci-sched.c |   17 +++++++----------
->  2 files changed, 23 insertions(+), 10 deletions(-)
 > 
-> diff --git a/drivers/usb/host/ehci-hcd.c b/drivers/usb/host/ehci-hcd.c
-> index c606b02..1d36e72 100644
-> --- a/drivers/usb/host/ehci-hcd.c
-> +++ b/drivers/usb/host/ehci-hcd.c
-> @@ -112,6 +112,14 @@ static unsigned int hird;
->  module_param(hird, int, S_IRUGO);
->  MODULE_PARM_DESC(hird, "host initiated resume duration, +1 for each 75us\n");
->  
-> +/*
-> + * max periodic time per microframe
-> + * (be careful, USB 2.0 requires it to be 100us = 80% of 125us)
-> + */
-> +static unsigned int uframe_periodic_max = 100;
-> +module_param(uframe_periodic_max, uint, S_IRUGO);
-> +MODULE_PARM_DESC(uframe_periodic_max, "maximum allowed periodic part of a microframe, us");
-> +
+> > My device different or chip is damaged? Label, box and driver cd title
+> > writes "DM04P". DM04 and DM04P different devices?
+> 
+> I think the id of the chip is faulty or default.
+> 
+> I will test the firmware with LG tuner later.
 
-This probably should be a sysfs attribute rather than a module 
-parameter, so that it can be applied to individual buses separately.
+It is not the LG, s7395 or S0194 tuner.
 
->  #define	INTR_MASK (STS_IAA | STS_FATAL | STS_PCD | STS_ERR | STS_INT)
->  
->  /*-------------------------------------------------------------------------*/
-> @@ -571,6 +579,14 @@ static int ehci_init(struct usb_hcd *hcd)
->  	hcc_params = ehci_readl(ehci, &ehci->caps->hcc_params);
->  
->  	/*
-> +	 * tell user, if using non-standard (80% == 100 usec/uframe) bandwidth
-> +	 */
-> +	if (uframe_periodic_max != 100)
-> +		ehci_info(ehci, "using non-standard max periodic bandwith "
-> +				"(%u%% == %u usec/uframe)",
-> +				100*uframe_periodic_max/125, uframe_periodic_max);
-> +
-> +	/*
+So the id is intentional. 
 
-Check for invalid values.  This should never be less than 100 or 
-greater than 125.
+How does it identify itself in windows?
 
->  	 * hw default: 1K periodic list heads, one per frame.
->  	 * periodic_size can shrink by USBCMD update if hcc_params allows.
->  	 */
-> diff --git a/drivers/usb/host/ehci-sched.c b/drivers/usb/host/ehci-sched.c
-> index d12426f..fb374f2 100644
-> --- a/drivers/usb/host/ehci-sched.c
-> +++ b/drivers/usb/host/ehci-sched.c
-> @@ -172,7 +172,7 @@ periodic_usecs (struct ehci_hcd *ehci, unsigned frame, unsigned uframe)
->  		}
->  	}
->  #ifdef	DEBUG
-> -	if (usecs > 100)
-> +	if (usecs > uframe_periodic_max)
 
-These changes all seem right.
-
-Alan Stern
+tvboxspy
 
