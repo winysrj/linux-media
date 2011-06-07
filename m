@@ -1,58 +1,174 @@
 Return-path: <mchehab@pedra>
-Received: from 5571f1ba.dsl.concepts.nl ([85.113.241.186]:40097 "EHLO
-	his10.thuis.hoogenraad.info" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1750724Ab1FVFed (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 22 Jun 2011 01:34:33 -0400
-Message-ID: <4E017EE7.9040902@hoogenraad.net>
-Date: Wed, 22 Jun 2011 07:34:31 +0200
-From: Jan Hoogenraad <jan-conceptronic@hoogenraad.net>
+Received: from perceval.ideasonboard.com ([95.142.166.194]:41187 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752067Ab1FGPZV (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 7 Jun 2011 11:25:21 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Subject: Re: [PATCH/RFC] V4L: add media bus configuration subdev operations
+Date: Tue, 7 Jun 2011 17:25:32 +0200
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	sakari.ailus@maxwell.research.nokia.com,
+	Sylwester Nawrocki <snjw23@gmail.com>,
+	Stan <svarbanov@mm-sol.com>, Hans Verkuil <hansverk@cisco.com>,
+	saaguirre@ti.com, Mauro Carvalho Chehab <mchehab@infradead.org>
+References: <Pine.LNX.4.64.1106061358310.11169@axis700.grange>
+In-Reply-To: <Pine.LNX.4.64.1106061358310.11169@axis700.grange>
 MIME-Version: 1.0
-To: Steffen Barszus <steffenbpunkt@googlemail.com>
-CC: Antti Palosaari <crope@iki.fi>, stybla@turnovfree.net,
-	=?ISO-8859-1?Q?Sascha_W=FCstemann?= <sascha@killerhippy.de>,
-	linux-media@vger.kernel.org,
-	Thomas Holzeisen <thomas@holzeisen.de>,
-	Maxim Levitsky <maximlevitsky@gmail.com>
-Subject: Re: RTL2831U driver updates
-References: <4DF9BCAA.3030301@holzeisen.de>	<4DF9EA62.2040008@killerhippy.de>	<4DFA7748.6000704@hoogenraad.net>	<4DFFC82B.10402@iki.fi>	<4E002EBD.6050800@hoogenraad.net> <BANLkTim76FRL+ZNapHyjgFyOvuMXxGVzJQ@mail.gmail.com>
-In-Reply-To: <BANLkTim76FRL+ZNapHyjgFyOvuMXxGVzJQ@mail.gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
+Message-Id: <201106071725.32948.laurent.pinchart@ideasonboard.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Thanks. Do you know more about this subject ?
+Hi Guennadi,
 
-We do have specs about the chipset, but
+Thanks for the patch.
 
-http://linuxtv.org/downloads/v4l-dvb-apis/remote_controllers.html#Remote_controllers_Intro
+On Monday 06 June 2011 14:31:57 Guennadi Liakhovetski wrote:
+> Add media bus configuration types and two subdev operations to get
+> supported mediabus configurations and to set a specific configuration.
+> Subdevs can support several configurations, e.g., they can send video data
+> on 1 or several lanes, can be configured to use a specific CSI-2 channel,
+> in such cases subdevice drivers return bitmasks with all respective bits
+> set. When a set-configuration operation is called, it has to specify a
+> non-ambiguous configuration.
+> 
+> Signed-off-by: Stanimir Varbanov <svarbanov@mm-sol.com>
+> Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+> ---
+> 
+> This change would allow a re-use of soc-camera and "standard" subdev
+> drivers. It is a modified and extended version of
+> 
+> http://article.gmane.org/gmane.linux.drivers.video-input-infrastructure/294
+> 08
+> 
+> therefore the original Sob. After this we only would have to switch to the
+> control framework:) Please, comment.
 
-only mentions lirc, not rc-core.
-This is about where my knowledge stops, however.
+I still believe we shouldn't use any set operation :-) The host/bridge driver 
+should just use the get operation before starting the stream to configure it's 
+sensor interface. 
 
-rc-core is only mentioned shortly in:
-http://linuxtv.org/wiki/index.php/Remote_Controllers
+> diff --git a/include/media/v4l2-mediabus.h b/include/media/v4l2-mediabus.h
+> index 971c7fa..0983b7b 100644
+> --- a/include/media/v4l2-mediabus.h
+> +++ b/include/media/v4l2-mediabus.h
+> @@ -13,6 +13,76 @@
+> 
+>  #include <linux/v4l2-mediabus.h>
+> 
+> +/* Parallel flags */
+> +/* Can the client run in master or in slave mode */
+> +#define V4L2_MBUS_MASTER			(1 << 0)
+> +#define V4L2_MBUS_SLAVE				(1 << 1)
+> +/* Which signal polarities it supports */
+> +#define V4L2_MBUS_HSYNC_ACTIVE_HIGH		(1 << 2)
+> +#define V4L2_MBUS_HSYNC_ACTIVE_LOW		(1 << 3)
+> +#define V4L2_MBUS_VSYNC_ACTIVE_HIGH		(1 << 4)
+> +#define V4L2_MBUS_VSYNC_ACTIVE_LOW		(1 << 5)
+> +#define V4L2_MBUS_PCLK_SAMPLE_RISING		(1 << 6)
+> +#define V4L2_MBUS_PCLK_SAMPLE_FALLING		(1 << 7)
+> +#define V4L2_MBUS_DATA_ACTIVE_HIGH		(1 << 8)
+> +#define V4L2_MBUS_DATA_ACTIVE_LOW		(1 << 9)
+> +/* Which datawidths are supported */
+> +#define V4L2_MBUS_DATAWIDTH_4			(1 << 10)
+> +#define V4L2_MBUS_DATAWIDTH_8			(1 << 11)
+> +#define V4L2_MBUS_DATAWIDTH_9			(1 << 12)
+> +#define V4L2_MBUS_DATAWIDTH_10			(1 << 13)
+> +#define V4L2_MBUS_DATAWIDTH_15			(1 << 14)
+> +#define V4L2_MBUS_DATAWIDTH_16			(1 << 15)
+> +
+> +#define V4L2_MBUS_DATAWIDTH_MASK	(V4L2_MBUS_DATAWIDTH_4 |
+> V4L2_MBUS_DATAWIDTH_8 | \ +					 V4L2_MBUS_DATAWIDTH_9 |
+> V4L2_MBUS_DATAWIDTH_10 | \
+> +					 V4L2_MBUS_DATAWIDTH_15 | V4L2_MBUS_DATAWIDTH_16)
 
-Steffen Barszus wrote:
-> 2011/6/21 Jan Hoogenraad<jan-conceptronic@hoogenraad.net>:
->> and add the IR remote interface, based
->> on the LIRC framework.
->> It actually should yield little code, and mainly requires a) understanding
->> of LIRC and b) comparing code tables to that the in-kernel code tables can
->> be re-used.
->
->
-> sorry for the noise , but i guess you mean rc-core not Lirc
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->
+The mbus data width is selected by the mbus format. Why do we need an explicit 
+width here ?
 
+> +/* Serial flags */
+> +/* How many lanes the client can use */
+> +#define V4L2_MBUS_CSI2_1_LANE			(1 << 0)
+> +#define V4L2_MBUS_CSI2_2_LANE			(1 << 1)
+> +#define V4L2_MBUS_CSI2_3_LANE			(1 << 2)
+> +#define V4L2_MBUS_CSI2_4_LANE			(1 << 3)
+> +/* On which channels it can send video data */
+> +#define V4L2_MBUS_CSI2_CHANNEL_0			(1 << 4)
+> +#define V4L2_MBUS_CSI2_CHANNEL_1			(1 << 5)
+> +#define V4L2_MBUS_CSI2_CHANNEL_2			(1 << 6)
+> +#define V4L2_MBUS_CSI2_CHANNEL_3			(1 << 7)
+> +/* Does it support only continuous or also non-contimuous clock mode */
+> +#define V4L2_MBUS_CSI2_CONTINUOUS_CLOCK		(1 << 8)
+> +#define V4L2_MBUS_CSI2_NONCONTINUOUS_CLOCK	(1 << 9)
+> +
+> +#define V4L2_MBUS_CSI2_LANES		(V4L2_MBUS_CSI2_1_LANE |
+> V4L2_MBUS_CSI2_2_LANE | \ +					 V4L2_MBUS_CSI2_3_LANE |
+> V4L2_MBUS_CSI2_4_LANE)
+> +#define V4L2_MBUS_CSI2_CHANNELS		(V4L2_MBUS_CSI2_CHANNEL_0 |
+> V4L2_MBUS_CSI2_CHANNEL_1 | \ +					 V4L2_MBUS_CSI2_CHANNEL_2 |
+> V4L2_MBUS_CSI2_CHANNEL_3)
+> +
+> +/**
+> + * v4l2_mbus_type - media bus type
+> + * @V4L2_MBUS_PARALLEL:	parallel interface with hsync and vsync
+> + * @V4L2_MBUS_BT656:	parallel interface with embedded synchronisation
+> + * @V4L2_MBUS_CSI2:	MIPI CSI-2 serial interface
+> + */
+> +enum v4l2_mbus_type {
+> +	V4L2_MBUS_PARALLEL,
+> +	V4L2_MBUS_BT656,
+> +	V4L2_MBUS_CSI2,
+> +};
+> +
+> +/**
+> + * v4l2_mbus_config - media bus configuration
+> + * @type:	interface type
+> + * @flags:	configuration flags, depending on @type
+> + * @clk:	output clock, the bridge driver can try to use clk_set_parent()
+> + *		to specify the master clock to the client
+> + */
+> +struct v4l2_mbus_config {
+> +	enum v4l2_mbus_type type;
+> +	unsigned long flags;
+> +	struct clk *clk;
+> +};
+
+struct clk is being generalized as part of the ARM clock consolidation work, 
+but we're not there yet. I don't think we can use it yet.
+
+> +
+>  static inline void v4l2_fill_pix_format(struct v4l2_pix_format *pix_fmt,
+>  				const struct v4l2_mbus_framefmt *mbus_fmt)
+>  {
+> diff --git a/include/media/v4l2-subdev.h b/include/media/v4l2-subdev.h
+> index 1562c4f..6ea25f4 100644
+> --- a/include/media/v4l2-subdev.h
+> +++ b/include/media/v4l2-subdev.h
+> @@ -255,6 +255,10 @@ struct v4l2_subdev_audio_ops {
+>     try_mbus_fmt: try to set a pixel format on a video data source
+> 
+>     s_mbus_fmt: set a pixel format on a video data source
+> +
+> +   g_mbus_param: get supported mediabus configurations
+> +
+> +   s_mbus_param: set a certain mediabus configuration
+>   */
+>  struct v4l2_subdev_video_ops {
+>  	int (*s_routing)(struct v4l2_subdev *sd, u32 input, u32 output, u32
+> config); @@ -294,6 +298,8 @@ struct v4l2_subdev_video_ops {
+>  			    struct v4l2_mbus_framefmt *fmt);
+>  	int (*s_mbus_fmt)(struct v4l2_subdev *sd,
+>  			  struct v4l2_mbus_framefmt *fmt);
+> +	int (*g_mbus_param)(struct v4l2_subdev *sd, struct v4l2_mbus_config
+> *cfg); +	int (*s_mbus_param)(struct v4l2_subdev *sd, struct
+> v4l2_mbus_config *cfg); };
+> 
+>  /*
 
 -- 
-Jan Hoogenraad
-Hoogenraad Interface Services
-Postbus 2717
-3500 GS Utrecht
+Regards,
+
+Laurent Pinchart
