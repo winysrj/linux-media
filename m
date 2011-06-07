@@ -1,44 +1,46 @@
 Return-path: <mchehab@pedra>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:46101 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752899Ab1FPJGT (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 16 Jun 2011 05:06:19 -0400
-Received: from lancelot.localnet (unknown [91.178.46.230])
-	by perceval.ideasonboard.com (Postfix) with ESMTPSA id 08E6A3599B
-	for <linux-media@vger.kernel.org>; Thu, 16 Jun 2011 09:06:19 +0000 (UTC)
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Received: from mail.juropnet.hu ([212.24.188.131]:37230 "EHLO mail.juropnet.hu"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754071Ab1FGQVM (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 7 Jun 2011 12:21:12 -0400
+Received: from [94.248.227.150] (helo=linux-mrjj.localnet)
+	by mail.juropnet.hu with esmtps (TLS1.0:DHE_RSA_AES_256_CBC_SHA1:32)
+	(Exim 4.69)
+	(envelope-from <istvan_v@mailbox.hu>)
+	id 1QTz1b-0006mD-8V
+	for linux-media@vger.kernel.org; Tue, 07 Jun 2011 18:21:10 +0200
+From: Istvan Varga <istvan_v@mailbox.hu>
 To: linux-media@vger.kernel.org
-Subject: [GIT PULL FOR v3.0] OMAP3 ISP and media controller fixes
-Date: Thu, 16 Jun 2011 11:06:25 +0200
+Subject: [PATCH 4/4] cx88: replaced duplicated code with function call
 MIME-Version: 1.0
+Date: Tue, 7 Jun 2011 18:21:02 +0200
 Content-Type: Text/Plain;
   charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Message-Id: <201106161106.26227.laurent.pinchart@ideasonboard.com>
+Message-Id: <201106071821.02820.istvan_v@mailbox.hu>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Hi Mauro,
+The following patch replaces code to reset the XC3028 tuner with a call
+to the tuner reset callback.
 
-The following changes since commit 2c53b436a30867eb6b47dd7bab23ba638d1fb0d2:
+Signed-off-by: Istvan Varga <istvan_v@mailbox.hu>
 
-  Linux 3.0-rc3 (2011-06-13 15:29:59 -0700)
-
-are available in the git repository at:
-  git://linuxtv.org/pinchartl/media.git omap3isp-stable-omap3isp
-
-Laurent Pinchart (1):
-      v4l: Don't access media entity after is has been destroyed
-
-Ohad Ben-Cohen (1):
-      media: omap3isp: fix a potential NULL deref
-
- drivers/media/video/omap3isp/isp.c |    2 +-
- drivers/media/video/v4l2-dev.c     |   39 ++++++-----------------------------
- 2 files changed, 8 insertions(+), 33 deletions(-)
-
--- 
-Regards,
-
-Laurent Pinchart
+diff -uNr xc4000_orig/drivers/media/video/cx88/cx88-cards.c xc4000/drivers/media/video/cx88/cx88-cards.c
+--- xc4000_orig/drivers/media/video/cx88/cx88-cards.c	2011-06-07 18:02:28.000000000 +0200
++++ xc4000/drivers/media/video/cx88/cx88-cards.c	2011-06-07 18:09:01.000000000 +0200
+@@ -3245,13 +3245,7 @@
+ 
+ 	case CX88_BOARD_WINFAST_TV2000_XP_GLOBAL:
+ 	case CX88_BOARD_WINFAST_DTV1800H:
+-		/* GPIO 12 (xc3028 tuner reset) */
+-		cx_set(MO_GP1_IO, 0x1010);
+-		mdelay(50);
+-		cx_clear(MO_GP1_IO, 0x10);
+-		mdelay(50);
+-		cx_set(MO_GP1_IO, 0x10);
+-		mdelay(50);
++		cx88_xc3028_winfast1800h_callback(core, XC2028_TUNER_RESET, 0);
+ 		break;
+ 
+ 	case CX88_BOARD_WINFAST_DTV1800H_XC4000:
