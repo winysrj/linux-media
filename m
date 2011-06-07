@@ -1,74 +1,58 @@
 Return-path: <mchehab@pedra>
-Received: from mga14.intel.com ([143.182.124.37]:60901 "EHLO mga14.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755686Ab1FJTsb (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 10 Jun 2011 15:48:31 -0400
-Date: Fri, 10 Jun 2011 12:48:15 -0700
-From: Sarah Sharp <sarah.a.sharp@linux.intel.com>
-To: Greg KH <greg@kroah.com>
-Cc: linux-usb@vger.kernel.org, linux-media@vger.kernel.org,
-	linux-kernel@vger.kernel.org, libusb-devel@lists.sourceforge.net,
-	Alexander Graf <agraf@suse.de>,
-	Gerd Hoffmann <kraxel@redhat.com>, hector@marcansoft.com,
-	Jan Kiszka <jan.kiszka@siemens.com>,
-	Stefan Hajnoczi <stefanha@linux.vnet.ibm.com>,
-	pbonzini@redhat.com, Anthony Liguori <aliguori@us.ibm.com>,
-	Jes Sorensen <Jes.Sorensen@redhat.com>,
-	Alan Stern <stern@rowland.harvard.edu>,
-	Oliver Neukum <oliver@neukum.org>, Felipe Balbi <balbi@ti.com>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Clemens Ladisch <clemens@ladisch.de>,
-	Jaroslav Kysela <perex@perex.cz>, Takashi Iwai <tiwai@suse.de>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Hans de Goede <hdegoede@redhat.com>
-Subject: Re: USB mini-summit at LinuxCon Vancouver
-Message-ID: <20110610194815.GA6646@xanatos>
-References: <20110610002103.GA7169@xanatos>
- <20110610031805.GA15774@kroah.com>
+Received: from perceval.ideasonboard.com ([95.142.166.194]:42945 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751913Ab1FGL0i (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 7 Jun 2011 07:26:38 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: "Ohad Ben-Cohen" <ohad@wizery.com>
+Subject: Re: [RFC 2/6] omap: iovmm: generic iommu api migration
+Date: Tue, 7 Jun 2011 13:26:52 +0200
+Cc: linux-media@vger.kernel.org, linux-omap@vger.kernel.org,
+	linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+	Hiroshi.DOYU@nokia.com, arnd@arndb.de, davidb@codeaurora.org,
+	Joerg.Roedel@amd.com
+References: <1307053663-24572-1-git-send-email-ohad@wizery.com> <201106071105.16262.laurent.pinchart@ideasonboard.com> <BANLkTi=nJXSEfWRXqwnHys1b5i5rgLcYpw@mail.gmail.com>
+In-Reply-To: <BANLkTi=nJXSEfWRXqwnHys1b5i5rgLcYpw@mail.gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20110610031805.GA15774@kroah.com>
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201106071326.53106.laurent.pinchart@ideasonboard.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Thu, Jun 09, 2011 at 08:18:05PM -0700, Greg KH wrote:
-> On Thu, Jun 09, 2011 at 05:21:03PM -0700, Sarah Sharp wrote:
-> > Topic 1
-> > -------
+Hi Ohad,
+
+On Tuesday 07 June 2011 12:28:53 Ohad Ben-Cohen wrote:
+> On Tue, Jun 7, 2011 at 12:05 PM, Laurent Pinchart wrote:
+> > pgsz isn't used anymore, you can remove it.
+> 
+> Ok.
+> 
+> >> +             order = get_order(bytes);
 > > 
-> > The KVM folks suggested that it would be good to get USB and
-> > virtualization developers together to talk about how to virtualize the
-> > xHCI host controller.  The xHCI spec architect worked closely with
-> > VMWare to get some extra goodies in the spec to help virtualization, and
-> > I'd like to see the other virtualization developers take advantage of
-> > that.  I'd also like us to hash out any issues they have been finding in
-> > the USB core or xHCI driver during the virtualization effort.
+> > Does iommu_map() handle offsets correctly, or does it expect pa to be
+> > aligned to an order (or other) boundary ?
 > 
-> Do people really want to virtualize the whole xHCI controller, or just
-> specific ports or devices to the guest operating system?
+> Right now we have a BUG_ON if pa is unaligned, but that can be changed
+> if needed (do we want it to handle offsets ?).
 
-A host OS could chose to virtualize the whole xHCI controller if it
-wanted to.  That's part of the reason why xHCI does all the bandwidth
-checking in hardware, not in software.
+At least for the OMAP3 ISP we need to, as video buffers don't necessarily 
+start on page boundaries.
 
-> If just specific ports, would something like usbip be better for virtual
-> machines, with the USB traffic going over the network connection between
-> the guest/host?
-
-It could be done that way too.  But that doesn't help if you're trying
-to run Windows under Linux, right?  Only if all the guest OSes use the
-same USB IP protocol then it would work.
-
-> > Hope to see you there!
+> > As Russell pointed out, we should use sg->length instead of
+> > sg_dma_length(sg). sg_dma_length(sg) is only valid after the scatter
+> > list has been DMA-mapped, which doesn't happen in the iovmm driver. This
+> > applies to all sg_dma_len(sg) calls.
 > 
-> Thanks for putting this together.
-> 
-> Do we need to sign up somewhere to give the organizers a sense of how
-> many people will be attending?
+> I'll make sure I don't introduce such calls, but it sounds like a
+> separate patch should take care of the existing ones; pls tell me if
+> you want me to send one.
 
-I private ack by email would be great.  Or you can ack by facebook:
-https://www.facebook.com/event.php?eid=229532200405657  I could add the
-event in upcoming.yahoo.com if anyone uses that.
+A separate patch is indeed needed, yes. As you're already working on iommu it 
+might be simpler if you add it to your tree. Otherwise I can send it.
 
-Sarah Sharp
+-- 
+Regards,
+
+Laurent Pinchart
