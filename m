@@ -1,67 +1,109 @@
 Return-path: <mchehab@pedra>
-Received: from mail-ww0-f44.google.com ([74.125.82.44]:35275 "EHLO
-	mail-ww0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755266Ab1FTWnM convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 20 Jun 2011 18:43:12 -0400
-Received: by wwe5 with SMTP id 5so3022002wwe.1
-        for <linux-media@vger.kernel.org>; Mon, 20 Jun 2011 15:43:11 -0700 (PDT)
+Received: from perceval.ideasonboard.com ([95.142.166.194]:51737 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752315Ab1FGJFD (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 7 Jun 2011 05:05:03 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: "Ohad Ben-Cohen" <ohad@wizery.com>
+Subject: Re: [RFC 2/6] omap: iovmm: generic iommu api migration
+Date: Tue, 7 Jun 2011 11:05:15 +0200
+Cc: linux-media@vger.kernel.org, linux-omap@vger.kernel.org,
+	linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+	Hiroshi.DOYU@nokia.com, arnd@arndb.de, davidb@codeaurora.org,
+	Joerg.Roedel@amd.com
+References: <1307053663-24572-1-git-send-email-ohad@wizery.com> <1307053663-24572-3-git-send-email-ohad@wizery.com>
+In-Reply-To: <1307053663-24572-3-git-send-email-ohad@wizery.com>
 MIME-Version: 1.0
-In-Reply-To: <87wrggb1bg.fsf@nemi.mork.no>
-References: <BANLkTimtnbAzLTdFY2OiSddHTjmD_99CfA@mail.gmail.com>
-	<201106202037.19535.remi@remlab.net>
-	<BANLkTinn0uN3VwGfqCbYbxFoVf6aNo1VSA@mail.gmail.com>
-	<BANLkTin14LnwP+_K1m-RsEXza4M4CjqnEw@mail.gmail.com>
-	<BANLkTimR-zWnnLBcD2w8d8NpeFJi=eT9nQ@mail.gmail.com>
-	<005a01cc2f7d$a799be30$f6cd3a90$@coexsi.fr>
-	<BANLkTinbQ8oBJt7fScuT5vHGFktbaQNY5A@mail.gmail.com>
-	<87wrggb1bg.fsf@nemi.mork.no>
-Date: Mon, 20 Jun 2011 18:43:11 -0400
-Message-ID: <BANLkTi=0nCm6p82bNdjPpWyRKT17ZOKP-g@mail.gmail.com>
-Subject: Re: [RFC] vtunerc - virtual DVB device driver
-From: Devin Heitmueller <dheitmueller@kernellabs.com>
-To: =?ISO-8859-1?Q?Bj=F8rn_Mork?= <bjorn@mork.no>
-Cc: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+Content-Type: Text/Plain;
+  charset="iso-8859-15"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201106071105.16262.laurent.pinchart@ideasonboard.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Mon, Jun 20, 2011 at 6:11 PM, Bjørn Mork <bjorn@mork.no> wrote:
-> Devin Heitmueller <dheitmueller@kernellabs.com> writes:
->
->> Nothing prevents a third-party from writing closed source drivers.
->> What we do *not* think is fair though is that those third parties
->> should be able to take advantage of all the GPL code that makes up the
->> DVB core, and the man-years spent developing that code.
->
-> You could use the same argument against adding a loadable module
-> interface to the Linux kernel (and I'm pretty sure it was used).
-> Thankfully, usability won back then.  Or we most likely wouldn't have
-> had a single Linux DVB driver.  Or Linux at all, except as a historical
-> footnote.
->
-> Honza posted a GPL licensed driver and gave a pretty good usage
-> scenario.  Please don't reject it based on fear of abuse.  If you think
-> about it, almost any usability improvement will also make abuse easier.
-> And if you reject all of them based on such fear, then your system will
-> die.
+Hi Ohad,
 
-There isn't much sense in having this discussion again (and kicking
-off yet another flamewar).  All of your arguments have been made
-before (and in the case of Linux DVB, they failed).  I would suggest
-you read the archives and see how the developers arrived at their
-conclusions.
+Thanks for the patch.
 
-If you have some *new* argument to offer, then feel free.  Otherwise
-it's just flamebait.
+On Friday 03 June 2011 00:27:39 Ohad Ben-Cohen wrote:
+> Migrate omap's iovmm (virtual memory manager) to the generic iommu api.
+> 
+> This brings iovmm a step forward towards being completely non
+> omap-specific (it's still assuming omap's iommu page sizes, and also
+> maintaining state inside omap's internal iommu structure, but it no
+> longer calls omap-specific iommu map/unmap api).
+> 
+> Further generalizing of iovmm (or complete removal) should take place
+> together with broader plans of providing a generic virtual memory manager
+> and allocation framework (de-coupled from specific mappers).
+> 
+> Signed-off-by: Ohad Ben-Cohen <ohad@wizery.com>
 
-Anyway, I've said what I have to say on this topic.
+[snip]
 
-Cheers,
+> diff --git a/arch/arm/plat-omap/iovmm.c b/arch/arm/plat-omap/iovmm.c
+> index 51ef43e..80bb2b6 100644
+> --- a/arch/arm/plat-omap/iovmm.c
+> +++ b/arch/arm/plat-omap/iovmm.c
 
-Devin
+[snip]
+
+> @@ -473,22 +475,22 @@ static int map_iovm_area(struct iommu *obj, struct
+> iovm_struct *new, u32 pa;
+>  		int pgsz;
+>  		size_t bytes;
+> -		struct iotlb_entry e;
+> 
+>  		pa = sg_phys(sg);
+>  		bytes = sg_dma_len(sg);
+> 
+>  		flags &= ~IOVMF_PGSZ_MASK;
+> +
+>  		pgsz = bytes_to_iopgsz(bytes);
+>  		if (pgsz < 0)
+>  			goto err_out;
+> -		flags |= pgsz;
+
+pgsz isn't used anymore, you can remove it.
+
+> +
+> +		order = get_order(bytes);
+
+Does iommu_map() handle offsets correctly, or does it expect pa to be aligned 
+to an order (or other) boundary ? Same comment for iommu_unmap() in 
+unmap_iovm_area().
+
+>  		pr_debug("%s: [%d] %08x %08x(%x)\n", __func__,
+>  			 i, da, pa, bytes);
+> 
+> -		iotlb_init_entry(&e, da, pa, flags);
+> -		err = iopgtable_store_entry(obj, &e);
+> +		err = iommu_map(domain, da, pa, order, flags);
+>  		if (err)
+>  			goto err_out;
+> 
+> @@ -502,9 +504,11 @@ err_out:
+>  	for_each_sg(sgt->sgl, sg, i, j) {
+>  		size_t bytes;
+> 
+> -		bytes = iopgtable_clear_entry(obj, da);
+> +		bytes = sg_dma_len(sg);
+
+As Russell pointed out, we should use sg->length instead of sg_dma_length(sg). 
+sg_dma_length(sg) is only valid after the scatter list has been DMA-mapped, 
+which doesn't happen in the iovmm driver. This applies to all sg_dma_len(sg) 
+calls.
+
+> +		order = get_order(bytes);
+> 
+> -		BUG_ON(!iopgsz_ok(bytes));
+> +		/* ignore failures.. we're already handling one */
+> +		iommu_unmap(domain, da, order);
+> 
+>  		da += bytes;
+>  	}
 
 -- 
-Devin J. Heitmueller - Kernel Labs
-http://www.kernellabs.com
+Regards,
+
+Laurent Pinchart
