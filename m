@@ -1,74 +1,106 @@
 Return-path: <mchehab@pedra>
-Received: from mail1-out1.atlantis.sk ([80.94.52.55]:36067 "EHLO
-	mail.atlantis.sk" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1759911Ab1FAT5P (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 1 Jun 2011 15:57:15 -0400
-From: Ondrej Zary <linux@rainbow-software.org>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-Subject: Re: [alsa-devel] [PATCH v5] [resend] radio-sf16fmr2: convert to generic TEA575x interface
-Date: Wed, 1 Jun 2011 21:56:59 +0200
-Cc: Takashi Iwai <tiwai@suse.de>, Hans Verkuil <hverkuil@xs4all.nl>,
-	alsa-devel@alsa-project.org,
-	Kernel development list <linux-kernel@vger.kernel.org>,
-	linux-media@vger.kernel.org
-References: <201105231417.17450.linux@rainbow-software.org> <s5hvcwx29co.wl%tiwai@suse.de> <4DE65E9B.7060509@redhat.com>
-In-Reply-To: <4DE65E9B.7060509@redhat.com>
+Received: from mail-wy0-f174.google.com ([74.125.82.174]:39063 "EHLO
+	mail-wy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752261Ab1FGLvk convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 7 Jun 2011 07:51:40 -0400
+Received: by wya21 with SMTP id 21so3488110wya.19
+        for <linux-media@vger.kernel.org>; Tue, 07 Jun 2011 04:51:39 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-Message-Id: <201106012157.03928.linux@rainbow-software.org>
+In-Reply-To: <201106071329.42447.hverkuil@xs4all.nl>
+References: <201106071329.42447.hverkuil@xs4all.nl>
+Date: Tue, 7 Jun 2011 14:51:38 +0300
+Message-ID: <BANLkTineZ1ucUXhBYXXSDYO_AYWoQ1hEbw@mail.gmail.com>
+Subject: Re: RFC: Proposal to change the way pending events are handled
+From: David Cohen <dacohen@gmail.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-media@vger.kernel.org,
+	Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8BIT
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Wednesday 01 June 2011 17:45:31 Mauro Carvalho Chehab wrote:
-> Em 26-05-2011 04:45, Takashi Iwai escreveu:
-> > At Wed, 25 May 2011 21:21:30 -0300,
-> >
-> > Mauro Carvalho Chehab wrote:
-> >> Em 23-05-2011 09:17, Ondrej Zary escreveu:
-> >>> Convert radio-sf16fmr2 to use generic TEA575x implementation. Most of
-> >>> the driver code goes away as SF16-FMR2 is basically just a TEA5757
-> >>> tuner connected to ISA bus.
-> >>> The card can optionally be equipped with PT2254A volume control
-> >>> (equivalent of TC9154AP) - the volume setting is completely reworked
-> >>> (with balance control added) and tested.
-> >>
-> >> Ondrej,
-> >>
-> >> As your first series went via alsa tree, and we are close to the end of
-> >> the merge window, and assuming that Takashi didn't apply those patches
-> >> on his tree, as you're re-sending it, I think that the better is to wait
-> >> for the end of the merge window, in order to allow us to sync our
-> >> development tree with 2.6.40-rc1, and then review and apply it on the
-> >> top of it.
-> >
-> > Yeah, I didn't pick it up as the patches are rather V4L-side changes
-> > (although tea575x.c is in sound sub-directory).
-> > And I agree with Mauro - let's merge it after rc1, so that we stand on
-> > the same ground.  This sort of cross-tree change is better done at the
-> > fixed point than in flux like during merge window.
->
-> Hmm.. I tried to apply it after -rc1. It didn't apply:
->
-> Applying patch
-> patches/lmml_808552_v5_resend_radio_sf16fmr2_convert_to_generic_tea575x_int
->erface.patch patching file sound/pci/Kconfig
-> patching file drivers/media/radio/radio-sf16fmr2.c
-> Hunk #1 FAILED at 1.
-> 1 out of 2 hunks FAILED -- rejects in file
-> drivers/media/radio/radio-sf16fmr2.c Patch
-> patches/lmml_808552_v5_resend_radio_sf16fmr2_convert_to_generic_tea575x_int
->erface.patch does not apply (enforce with -f)
->
-> Is there any missing patches, or is it just due to some other changes from
-> the alsa tree?
+Hi Hans,
 
-It fails because of a stupid typo comment fix:
--/* !!! not tested, in my card this does't work !!! */
-+/* !!! not tested, in my card this doesn't work !!! */
+On Tue, Jun 7, 2011 at 2:29 PM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
+> While working on the control events I realized that the way we handle pending
+> events is rather complicated.
+>
+> What currently happens internally is that you have to allocate a fixed sized
+> list of events. New events are queued on the 'available' list and when they
+> are processed by the application they are queued on the 'free' list.
+>
+> If the 'free' list is empty, then no new events can be queued and you will
+> drop events.
+>
+> Dropping events can be nasty and in the case of control events can cause a
+> control panel to contain stale control values if it missed a value change
+> event.
 
+I remember it was a topic I discussed with Sakari.
 
--- 
-Ondrej Zary
+>
+> One option is to allocate enough events, but what is 'enough' events? That
+> depends on many factors. And allocating more events than is necessary wastes
+> memory.
+
+Cases where events are lost are exception and IMO "enough" events
+would be almost always waste of memory.
+
+>
+> But what might be a better option is this: for each event a filehandle
+> subscribes to there is only one internal v4l2_kevent allocated.
+>
+> This struct is either marked empty (no event was raised) or contains the
+> latest state of this event. When the event is dequeued by the application
+> the struct is marked empty again.
+>
+> So you never get duplicate events, instead, if a 'duplicate' event is raised
+> it will just overwrite the 'old' event and move it to the end of the list of
+> pending events. In other words, the old event is removed and the new event is
+> inserted instead.
+
+That's an interesting proposal. Currently it will have impact at least
+on statistics collection OMAP3ISP driver. It brings to my mind 2
+points:
+ - OMAP3ISP triggers one event for each statistic buffers produced. If
+we avoid events "duplication", userapp will miss a statistic buffer.
+It's possible to bypass this problem, but the OMAP3 ISP statistics'
+private interface should be updated as well.
+ - To define a standard for statistics collection is something we need
+to do to avoid new ISP's to always create custom interfaces.
+
+>
+> The nice thing about this is that for each subscribed event type you will
+> never lose a raised event completely. You may lose intermediate events, but
+> the latest event for that type will always be available.
+
+I may have a suggestion. If some event is affected by the number of
+times it was triggered (like the statistic ones mentioned above),
+instead of a bool "empty flag", it may contain a counter. Then a
+"duplicated" event will be raised and will still inform how many
+intermediate events were "lost". After event is dequeued once, the
+counter could be reset.
+
+Regards,
+
+David Cohen
+
+>
+> E.g. supposed you subscribed to a control containing the status of the HDMI
+> hotplug. Connecting an HDMI cable can cause a bounce condition where the HDMI
+> hotplug toggles many times in quick succession. This could currently flood
+> the event queue and you may lose the last event. With the proposed change the
+> last event will always arrive, although the intermediate events will be lost.
+>
+> Comments?
+>
+> Regards,
+>
+>        Hans
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>
