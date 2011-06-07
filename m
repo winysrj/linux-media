@@ -1,72 +1,51 @@
 Return-path: <mchehab@pedra>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:56496 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753490Ab1FTMev (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 20 Jun 2011 08:34:51 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-Subject: Re: Bug: media_build always compiles with '-DDEBUG'
-Date: Mon, 20 Jun 2011 14:35:11 +0200
-Cc: Helmut Auer <helmut@helmutauer.de>, linux-media@vger.kernel.org,
-	Oliver Endriss <o.endriss@gmx.de>
-References: <201106182246.03051@orion.escape-edv.de> <4DFD827E.3000605@helmutauer.de> <4DFDE1C4.7000006@redhat.com>
-In-Reply-To: <4DFDE1C4.7000006@redhat.com>
-MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201106201435.11432.laurent.pinchart@ideasonboard.com>
+Received: from smtp-vbr1.xs4all.nl ([194.109.24.21]:4682 "EHLO
+	smtp-vbr1.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754673Ab1FGPF2 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 7 Jun 2011 11:05:28 -0400
+Received: from tschai.lan (215.80-203-102.nextgentel.com [80.203.102.215])
+	(authenticated bits=0)
+	by smtp-vbr1.xs4all.nl (8.13.8/8.13.8) with ESMTP id p57F5QqK037616
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-media@vger.kernel.org>; Tue, 7 Jun 2011 17:05:27 +0200 (CEST)
+	(envelope-from hverkuil@xs4all.nl)
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: [RFCv3 PATCH 00/18] Add Control Event and autofoo/foo support
+Date: Tue,  7 Jun 2011 17:05:05 +0200
+Message-Id: <1307459123-17810-1-git-send-email-hverkuil@xs4all.nl>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Hi Mauro,
+This is the third (and hopefully last) patch series for control events
+and autofoo/foo support. If there are no more major comments, then I will
+post a pull request by the end of the week.
 
-On Sunday 19 June 2011 13:47:16 Mauro Carvalho Chehab wrote:
-> Em 19-06-2011 02:00, Helmut Auer escreveu:
-> > Am 18.06.2011 23:38, schrieb Oliver Endriss:
-> >> On Saturday 18 June 2011 23:11:21 Helmut Auer wrote:
-> >>> Hi
-> >>> 
-> >>>> Replacing
-> >>>> 
-> >>>>       ifdef CONFIG_VIDEO_OMAP3_DEBUG
-> >>>> 
-> >>>> by
-> >>>> 
-> >>>>       ifeq ($(CONFIG_VIDEO_OMAP3_DEBUG),y)
-> >>>> 
-> >>>> would do the trick.
-> >>> 
-> >>> I guess that would not ive the intended result.
-> >>> Setting CONFIG_VIDEO_OMAP3_DEBUG to yes should not lead to debug
-> >>> messages in all media modules,
-> >> 
-> >> True, but it will happen only if you manually enable
-> >> CONFIG_VIDEO_OMAP3_DEBUG in Kconfig.
-> >> 
-> >> You cannot avoid this without major changes of the
-> >> media_build system - imho not worth the effort.
-> > 
-> > Then imho it would be better to drop the  CONFIG_VIDEO_OMAP3_DEBUG
-> > variable completely, you can set CONFIG_DEBUG which would give the same
-> > results.
-> 
-> Good catch!
-> 
-> Yes, I agree that the better is to just drop CONFIG_VIDEO_OMAP3_DEBUG
-> variable completely. If someone wants to build with -DDEBUG, he can just
-> use CONFIG_DEBUG.
-> 
-> Laurent,
-> 
-> Any comments?
+Main changes since the previous series:
 
-CONFIG_VIDEO_OMAP3_DEBUG is used to build the OMAP3 ISP driver in debug mode, 
-without having to compile the whole kernel with debugging enabled. I'd like to 
-keep that feature if possible.
+- The original plan was to toggle the READ_ONLY flag for the manual controls
+  in an autocluster if e.g. autogain was set to true. But that caused weird
+  behavior, so it was changed to toggling the INACTIVE flag. See also this:
+  http://www.spinics.net/lists/linux-media/msg33297.html for more background
+  information regarding this decision.
 
--- 
+  This decision also simplified some of the patches, so the v4l2_ctrl_flags
+  and v4l2_ctrl_flags_lock functions in RFCv2 are no longer present in this v3.
+
+- Added compat32 support for VIDIOC_DQEVENT. This turned out to be missing.
+
+- Add control event support in ivtv.
+
+- The vivi patches were cleaned up substantially. They contained some old
+  stuff from earlier experiments. All that has been removed.
+
+- Rebased everything on top of for_v3.1.
+
+Once this is merged, then I want to look into allowing drivers to change
+control values from interrupt context (this will only work for certain
+types of controls) and to redo the event internals.
+
 Regards,
 
-Laurent Pinchart
+	Hans
+
