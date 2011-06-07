@@ -1,60 +1,45 @@
 Return-path: <mchehab@pedra>
-Received: from iolanthe.rowland.org ([192.131.102.54]:53242 "HELO
-	iolanthe.rowland.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1759533Ab1FWROF (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 23 Jun 2011 13:14:05 -0400
-Date: Thu, 23 Jun 2011 13:14:04 -0400 (EDT)
-From: Alan Stern <stern@rowland.harvard.edu>
-To: Kirill Smelkov <kirr@mns.spb.ru>
-cc: linux-usb@vger.kernel.org, Greg Kroah-Hartman <gregkh@suse.de>,
-	<linux-uvc-devel@lists.berlios.de>, <linux-media@vger.kernel.org>,
-	<linux-kernel@vger.kernel.org>
-Subject: Re: [RFC, PATCH] USB: EHCI: Allow users to override 80% max periodic
- bandwidth
-In-Reply-To: <20110623140539.GA4403@tugrik.mns.mnsspb.ru>
-Message-ID: <Pine.LNX.4.44L0.1106231312270.2033-100000@iolanthe.rowland.org>
+Received: from mail-qw0-f46.google.com ([209.85.216.46]:59652 "EHLO
+	mail-qw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753645Ab1FGQM4 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 7 Jun 2011 12:12:56 -0400
+Received: by qwk3 with SMTP id 3so2217631qwk.19
+        for <linux-media@vger.kernel.org>; Tue, 07 Jun 2011 09:12:55 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+In-Reply-To: <BANLkTi=3eyHgiXCsH2uibPsV0L7Eq79fnw@mail.gmail.com>
+References: <BANLkTimFT+D3_vZVj5KMiB7jMvq=088Y7A@mail.gmail.com>
+	<BANLkTim9d3yi3OQn4AxfwV6pfv+KY-KseA@mail.gmail.com>
+	<BANLkTi=3eyHgiXCsH2uibPsV0L7Eq79fnw@mail.gmail.com>
+Date: Tue, 7 Jun 2011 18:12:55 +0200
+Message-ID: <BANLkTi=B5NmqnFqt5f90VdTEZUCZ_Tvuew@mail.gmail.com>
+Subject: Re: [PATCH] cx231xx: Add support for Hauppauge WinTV USB2-FM
+From: Peter Moon <pomoon@gmail.com>
+To: Devin Heitmueller <dheitmueller@kernellabs.com>
+Cc: linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Thu, 23 Jun 2011, Kirill Smelkov wrote:
+On Mon, Jun 6, 2011 at 10:00 PM, Devin Heitmueller
+<dheitmueller@kernellabs.com> wrote:
+> On Mon, Jun 6, 2011 at 3:22 PM, Peter Moon <pomoon@gmail.com> wrote:
+>> This patch adds support for the " Hauppauge WinTV USB2-FM" Analog Stick.
+>>
+>> Signed-off-by: Peter Moon <pomoon@gmail.com>
+>
+> My only comment is that the func_mode in cx231xx_dif_set_standard()
+> should be 0x01, not 0x03.  Change that, resubmit the patch after
+> testing, and I will put my Reviewed-By on it.
 
-> > At 480 Mb/s, each microframe holds 7500 bytes (less if you count 
-> > bit-stuffing).  4% of that is 300 bytes, which is not enough for a 
-> > 512-byte bulk packet.  I think you'd run into trouble trying to do any 
-> > serious bulk transfers on such a tight schedule.
-> 
-> Yes, you seem to be right.
-> 
-> I still think 4% is maybe enough for control traffic.
+I will make the change you suggest and retest.
 
-It should be.
+> Also, there is actually another USB ID which is the exact same product
+> (but targeted at NTSC by default).  I'll have to lookup the ID though.
 
-> > > @@ -571,6 +579,14 @@ static int ehci_init(struct usb_hcd *hcd)
-> > >  	hcc_params = ehci_readl(ehci, &ehci->caps->hcc_params);
-> > >  
-> > >  	/*
-> > > +	 * tell user, if using non-standard (80% == 100 usec/uframe) bandwidth
-> > > +	 */
-> > > +	if (uframe_periodic_max != 100)
-> > > +		ehci_info(ehci, "using non-standard max periodic bandwith "
-> > > +				"(%u%% == %u usec/uframe)",
-> > > +				100*uframe_periodic_max/125, uframe_periodic_max);
-> > > +
-> > > +	/*
-> > 
-> > Check for invalid values.  This should never be less than 100 or 
-> > greater than 125.
-> 
-> Ok. By the way, why should we limit it to be not less than 100?
-> Likewise, a user who knows exactly what he/she is doing could limit
-> periodic bandwidth to be less than 80% required by USB specification.
+According to the Windows driver inf file that I have, the USB ID of
+the NTSC version is 2040:b111.
 
-What's the point?  If you want to use less than 80% of your bandwidth 
-for periodic transfers, go ahead and do so.  You don't need to change 
-the limit.
+I can add the USB device definition for the NTSC targeted device as well.
 
-Alan Stern
-
+Peter Moon
