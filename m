@@ -1,213 +1,115 @@
 Return-path: <mchehab@pedra>
-Received: from mailout1.w1.samsung.com ([210.118.77.11]:36591 "EHLO
-	mailout1.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751181Ab1FNQhN (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 14 Jun 2011 12:37:13 -0400
-Received: from eu_spt1 (mailout1.w1.samsung.com [210.118.77.11])
- by mailout1.w1.samsung.com
- (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14 2004))
- with ESMTP id <0LMS00KA6GTY6C@mailout1.w1.samsung.com> for
- linux-media@vger.kernel.org; Tue, 14 Jun 2011 17:37:11 +0100 (BST)
-Received: from linux.samsung.com ([106.116.38.10])
- by spt1.w1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14
- 2004)) with ESMTPA id <0LMS00F74GTXC8@spt1.w1.samsung.com> for
- linux-media@vger.kernel.org; Tue, 14 Jun 2011 17:37:10 +0100 (BST)
-Date: Tue, 14 Jun 2011 18:36:53 +0200
-From: Kamil Debski <k.debski@samsung.com>
-Subject: [PATCH 1/4 v9] v4l: add fourcc definitions for compressed formats.
-In-reply-to: <1308069416-24723-1-git-send-email-k.debski@samsung.com>
-To: linux-media@vger.kernel.org
-Cc: m.szyprowski@samsung.com, kyungmin.park@samsung.com,
-	k.debski@samsung.com, jaeryul.oh@samsung.com, hverkuil@xs4all.nl,
-	laurent.pinchart@ideasonboard.com, jtp.park@samsung.com
-Message-id: <1308069416-24723-2-git-send-email-k.debski@samsung.com>
-MIME-version: 1.0
-Content-type: TEXT/PLAIN
-Content-transfer-encoding: 7BIT
-References: <1308069416-24723-1-git-send-email-k.debski@samsung.com>
+Received: from mail-iy0-f174.google.com ([209.85.210.174]:64383 "EHLO
+	mail-iy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750705Ab1FGFYX (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 7 Jun 2011 01:24:23 -0400
+Received: by iyb14 with SMTP id 14so3708476iyb.19
+        for <linux-media@vger.kernel.org>; Mon, 06 Jun 2011 22:24:22 -0700 (PDT)
+Message-ID: <4DEDB623.2010200@gmail.com>
+Date: Mon, 06 Jun 2011 22:24:51 -0700
+From: John McMaster <johndmcmaster@gmail.com>
+MIME-Version: 1.0
+To: Hans de Goede <hdegoede@redhat.com>
+CC: linux-media@vger.kernel.org
+Subject: Re: Anchor Chips V4L2 driver
+References: <4DE873B4.4050306@gmail.com> <4DE8D065.7020502@redhat.com> <4DE8E018.7070007@redhat.com> <4DEC6862.8000006@gmail.com> <4DEC851B.7030000@redhat.com>
+In-Reply-To: <4DEC851B.7030000@redhat.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Add fourcc definitions and documentation for the following
-compressed formats: H264, H264 without start codes,
-MPEG1/2/4 ES, DIVX versions 3.11, 4, 5.0-5.0.2, 5.03 and up,
-XVID, VC1 Annex G and Annex L compliant.
+On 06/06/2011 12:43 AM, Hans de Goede wrote:
+> Hi,
+>
+> On 06/06/2011 07:40 AM, John McMaster wrote:
+>> On 06/03/2011 06:22 AM, Hans de Goede wrote:
+>>> Hi,
+>>>
+>>> On 06/03/2011 02:15 PM, Mauro Carvalho Chehab wrote:
+>>>> Em 03-06-2011 02:40, John McMaster escreveu:
+>>>>> I'd like to write a driver for an Anchor Chips (seems to be bought by
+>>>>> Cypress) USB camera Linux driver sold as an AmScope MD1800.  It seems
+>>>>> like this implies I need to write a V4L2 driver.  The camera does not
+>>>>> seem its currently supported (checked on Fedora 13 / 2.6.34.8) and I
+>>>>> did
+>>>>> not find any information on it in mailing list archives.  Does anyone
+>>>>> know or can help me identify if a similar camera might already be
+>>>>> supported?
+>>>>
+>>>> I've no idea. Better to wait for a couple days for developers to
+>>>> manifest
+>>>> about that, if they're already working on it.
+>>>>
+>>>>> lsusb gives the following output:
+>>>>>
+>>>>> Bus 001 Device 111: ID 0547:4d88 Anchor Chips, Inc.
+>>>>>
+>>>>> I've started reading the "Video for Linux Two API Specification"
+>>>>> which
+>>>>> seems like a good starting point and will move onto using source
+>>>>> code as
+>>>>> appropriate.  Any help would be appreciated.  Thanks!
+>>>>
+>>>> You'll find other useful information at linuxtv.org wiki page. The
+>>>> better
+>>>> is to write it as a sub-driver for gspca. The gspca core have already
+>>>> all
+>>>> that it is needed for cameras. So, you'll need to focus only at the
+>>>> device-specific
+>>>> stuff.
+>>>
+>>> I can second that you should definitely use gspca for usb webcam(ish)
+>>> device
+>>> drivers. As for how to go about this, first of all grep through the
+>>> windows drivers
+>>> for strings which may hint on the actual bridge chip used, chances are
+>>> good
+>>> there is an already supported bridge inside the camera.
+>>>
+>>> If not then make usb dumps, and start reverse engineering ...
+>>>
+>>> Usually it is enough to replay the windows init sequence to get the
+>>> device
+>>> to stream over either an bulk or iso endpoint, and then it is time to
+>>> figure out what that stream contains (jpeg, raw bayer, some custom
+>>> format ???)
+>>>
+>>> Regards,
+>>>
+>>> Hans
+>> Thanks for the response.  I replayed some packets (using libusb) and am
+>> able to get something resembling the desired image through its bulk
+>> endpoint.  So now I just need to figure out how to decode it better,
+>> options, etc.  I'll post back to the list once I get something
+>> moderately stable running and have taken a swing at the kernel driver.
+>>
+>
+> Hmm, bulk you say and cypress and 8mp usb2.0 have you tried looking
+> at the gspca-ovfx2 driver? Likely you've an ovfx2 cam with an as of
+> yet unknown usb-id. Chances are just adding the id is enough, although
+> your sensor may be unknown.
+>
+> Regards,
+>
+> Hans
+If it helps, I should have also mentioned that with a small amount of
+digging I found that the camera unit is put together by ScopeTek.  My
+reference WIP implementation is at
+https://github.com/JohnDMcMaster/uvscopetek which I'm comparing to
+2.6.39.1 drivers.
 
-Signed-off-by: Kamil Debski <k.debski@samsung.com>
-Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
----
- Documentation/DocBook/media/v4l/controls.xml |    7 ++-
- Documentation/DocBook/media/v4l/pixfmt.xml   |   67 +++++++++++++++++++++++++-
- include/linux/videodev2.h                    |   21 +++++++--
- 3 files changed, 88 insertions(+), 7 deletions(-)
+Anyway, looking at reg_w() I see that it likes to make 0x00, 0x02, or
+0x0A requests where as mine makes 0x01, 0x0A, and mostly 0x0B requests. 
+I do see that it tends to want a byte back though like mine (0x0A except
+at end).  My code has a few 3 byte returns (byte 0 varies, byte 1 fixed
+at 0x00, byte 2 fixed at 0x08 like others), so I'm not sure if its a
+good match for reg read.  Following that I tried to grep around some
+more for a number of the more interesting numbers (eg: 90D8 as opposed
+to 0001) in the $SRC/drivers/media/video dir and could only find
+scattered matches.  I do realize that a lot of the more esoteric numbers
+could be specific settings and not registers, commands, etc.  Or maybe
+tofx2 is related and I'm not understanding the bridge concept?
 
-diff --git a/Documentation/DocBook/media/v4l/controls.xml b/Documentation/DocBook/media/v4l/controls.xml
-index a920ee8..6880798 100644
---- a/Documentation/DocBook/media/v4l/controls.xml
-+++ b/Documentation/DocBook/media/v4l/controls.xml
-@@ -670,7 +670,8 @@ caption of a Tab page in a GUI, for example.</entry>
- 	      </row><row><entry spanname="descr">The MPEG-1, -2 or -4
- output stream type. One cannot assume anything here. Each hardware
- MPEG encoder tends to support different subsets of the available MPEG
--stream types. The currently defined stream types are:</entry>
-+stream types. This control is specific to multiplexed MPEG streams.
-+The currently defined stream types are:</entry>
- 	      </row>
- 	      <row>
- 		<entrytbl spanname="descr" cols="2">
-@@ -800,6 +801,7 @@ frequency. Possible values are:</entry>
- 		<entry spanname="id"><constant>V4L2_CID_MPEG_AUDIO_ENCODING</constant>&nbsp;</entry>
- 		<entry>enum&nbsp;v4l2_mpeg_audio_encoding</entry>
- 	      </row><row><entry spanname="descr">MPEG Audio encoding.
-+This control is specific to multiplexed MPEG streams.
- Possible values are:</entry>
- 	      </row>
- 	      <row>
-@@ -1250,7 +1252,8 @@ and reproducible audio bitstream. 0 = unmuted, 1 = muted.</entry>
- 		<entry spanname="id"><constant>V4L2_CID_MPEG_VIDEO_ENCODING</constant>&nbsp;</entry>
- 		<entry>enum&nbsp;v4l2_mpeg_video_encoding</entry>
- 	      </row><row><entry spanname="descr">MPEG Video encoding
--method. Possible values are:</entry>
-+method. This control is specific to multiplexed MPEG streams.
-+Possible values are:</entry>
- 	      </row>
- 	      <row>
- 		<entrytbl spanname="descr" cols="2">
-diff --git a/Documentation/DocBook/media/v4l/pixfmt.xml b/Documentation/DocBook/media/v4l/pixfmt.xml
-index 88e5c21..7f0f447 100644
---- a/Documentation/DocBook/media/v4l/pixfmt.xml
-+++ b/Documentation/DocBook/media/v4l/pixfmt.xml
-@@ -741,10 +741,75 @@ information.</para>
- 	  <row id="V4L2-PIX-FMT-MPEG">
- 	    <entry><constant>V4L2_PIX_FMT_MPEG</constant></entry>
- 	    <entry>'MPEG'</entry>
--	    <entry>MPEG stream. The actual format is determined by
-+	    <entry>MPEG multiplexed stream. The actual format is determined by
- extended control <constant>V4L2_CID_MPEG_STREAM_TYPE</constant>, see
- <xref linkend="mpeg-control-id" />.</entry>
- 	  </row>
-+	  <row id="V4L2-PIX-FMT-H264">
-+		<entry><constant>V4L2_PIX_FMT_H264</constant></entry>
-+		<entry>'H264'</entry>
-+		<entry>H264 video elementary stream with start codes.</entry>
-+	  </row>
-+	  <row id="V4L2-PIX-FMT-H264-NO-SC">
-+		<entry><constant>V4L2_PIX_FMT_H264_NO_SC</constant></entry>
-+		<entry>'AVC1'</entry>
-+		<entry>H264 video elementary stream without start codes.</entry>
-+	  </row>
-+	  <row id="V4L2-PIX-FMT-H263">
-+		<entry><constant>V4L2_PIX_FMT_H263</constant></entry>
-+		<entry>'H263'</entry>
-+		<entry>H263 video elementary stream.</entry>
-+	  </row>
-+	  <row id="V4L2-PIX-FMT-MPEG1">
-+		<entry><constant>V4L2_PIX_FMT_MPEG1</constant></entry>
-+		<entry>'MPG1'</entry>
-+		<entry>MPEG1 video elementary stream.</entry>
-+	  </row>
-+	  <row id="V4L2-PIX-FMT-MPEG2">
-+		<entry><constant>V4L2_PIX_FMT_MPEG2</constant></entry>
-+		<entry>'MPG2'</entry>
-+		<entry>MPEG2 video elementary stream.</entry>
-+	  </row>
-+	  <row id="V4L2-PIX-FMT-MPEG4">
-+		<entry><constant>V4L2_PIX_FMT_MPEG4</constant></entry>
-+		<entry>'MPG4'</entry>
-+		<entry>MPEG4 video elementary stream.</entry>
-+	  </row>
-+	  <row id="V4L2-PIX-FMT-DIVX3">
-+		<entry><constant>V4L2_PIX_FMT_DIVX3</constant></entry>
-+		<entry>'DIV3'</entry>
-+		<entry>Divx 3.11 video elementary stream.</entry>
-+	  </row>
-+	  <row id="V4L2-PIX-FMT-DIVX4">
-+		<entry><constant>V4L2_PIX_FMT_DIVX4</constant></entry>
-+		<entry>'DIV4'</entry>
-+		<entry>Divx 4 video elementary stream.</entry>
-+	  </row>
-+	  <row id="V4L2-PIX-FMT-DIVX500">
-+		<entry><constant>V4L2_PIX_FMT_DIVX500</constant></entry>
-+		<entry>'DX50'</entry>
-+		<entry>Divx 5.0-5.0.2 video elementary stream.</entry>
-+	  </row>
-+	  <row id="V4L2-PIX-FMT-DIVX5">
-+		<entry><constant>V4L2_PIX_FMT_DIVX5</constant></entry>
-+		<entry>'DIV5'</entry>
-+		<entry>Divx 5.0.3+ video elementary stream.</entry>
-+	  </row>
-+	  <row id="V4L2-PIX-FMT-XVID">
-+		<entry><constant>V4L2_PIX_FMT_XVID</constant></entry>
-+		<entry>'XVID'</entry>
-+		<entry>Xvid video elementary stream.</entry>
-+	  </row>
-+	  <row id="V4L2-PIX-FMT-VC1-ANNEX-G">
-+		<entry><constant>V4L2_PIX_FMT_VC1_ANNEX_G</constant></entry>
-+		<entry>'VC1G'</entry>
-+		<entry>VC1, SMPTE 421M Annex G compliant stream.</entry>
-+	  </row>
-+	  <row id="V4L2-PIX-FMT-VC1-ANNEX-L">
-+		<entry><constant>V4L2_PIX_FMT_VC1_ANNEX_L</constant></entry>
-+		<entry>'VC1L'</entry>
-+		<entry>VC1, SMPTE 421M Annex L compliant stream.</entry>
-+	  </row>
- 	</tbody>
-       </tgroup>
-     </table>
-diff --git a/include/linux/videodev2.h b/include/linux/videodev2.h
-index 8a4c309..65bcb61 100644
---- a/include/linux/videodev2.h
-+++ b/include/linux/videodev2.h
-@@ -376,7 +376,20 @@ struct v4l2_pix_format {
- #define V4L2_PIX_FMT_MJPEG    v4l2_fourcc('M', 'J', 'P', 'G') /* Motion-JPEG   */
- #define V4L2_PIX_FMT_JPEG     v4l2_fourcc('J', 'P', 'E', 'G') /* JFIF JPEG     */
- #define V4L2_PIX_FMT_DV       v4l2_fourcc('d', 'v', 's', 'd') /* 1394          */
--#define V4L2_PIX_FMT_MPEG     v4l2_fourcc('M', 'P', 'E', 'G') /* MPEG-1/2/4    */
-+#define V4L2_PIX_FMT_MPEG     v4l2_fourcc('M', 'P', 'E', 'G') /* MPEG-1/2/4 Multiplexed */
-+#define V4L2_PIX_FMT_H264     v4l2_fourcc('H', '2', '6', '4') /* H264 with start codes */
-+#define V4L2_PIX_FMT_H264_NO_SC v4l2_fourcc('A', 'V', 'C', '1') /* H264 without start codes */
-+#define V4L2_PIX_FMT_H263     v4l2_fourcc('H', '2', '6', '3') /* H263          */
-+#define V4L2_PIX_FMT_MPEG1    v4l2_fourcc('M', 'P', 'G', '1') /* MPEG-1 ES     */
-+#define V4L2_PIX_FMT_MPEG2    v4l2_fourcc('M', 'P', 'G', '2') /* MPEG-2 ES     */
-+#define V4L2_PIX_FMT_MPEG4    v4l2_fourcc('M', 'P', 'G', '4') /* MPEG-4 ES     */
-+#define V4L2_PIX_FMT_DIVX3    v4l2_fourcc('D', 'I', 'V', '3') /* DivX 3.11     */
-+#define V4L2_PIX_FMT_DIVX4    v4l2_fourcc('D', 'I', 'V', '4') /* DivX 4.12     */
-+#define V4L2_PIX_FMT_DIVX500  v4l2_fourcc('D', 'X', '5', '0') /* DivX 5.00 - 5.02  */
-+#define V4L2_PIX_FMT_DIVX5    v4l2_fourcc('D', 'I', 'V', '5') /* DivX 5.03 - x  */
-+#define V4L2_PIX_FMT_XVID     v4l2_fourcc('X', 'V', 'I', 'D') /* Xvid           */
-+#define V4L2_PIX_FMT_VC1_ANNEX_G v4l2_fourcc('V', 'C', '1', 'G') /* SMPTE 421M Annex G compliant stream */
-+#define V4L2_PIX_FMT_VC1_ANNEX_L v4l2_fourcc('V', 'C', '1', 'L') /* SMPTE 421M Annex L compliant stream */
- 
- /*  Vendor-specific formats   */
- #define V4L2_PIX_FMT_CPIA1    v4l2_fourcc('C', 'P', 'I', 'A') /* cpia1 YUV */
-@@ -1151,7 +1164,7 @@ enum v4l2_colorfx {
- #define V4L2_CID_MPEG_BASE 			(V4L2_CTRL_CLASS_MPEG | 0x900)
- #define V4L2_CID_MPEG_CLASS 			(V4L2_CTRL_CLASS_MPEG | 1)
- 
--/*  MPEG streams */
-+/*  MPEG streams, specific to multiplexed streams */
- #define V4L2_CID_MPEG_STREAM_TYPE 		(V4L2_CID_MPEG_BASE+0)
- enum v4l2_mpeg_stream_type {
- 	V4L2_MPEG_STREAM_TYPE_MPEG2_PS   = 0, /* MPEG-2 program stream */
-@@ -1173,7 +1186,7 @@ enum v4l2_mpeg_stream_vbi_fmt {
- 	V4L2_MPEG_STREAM_VBI_FMT_IVTV = 1,  /* VBI in private packets, IVTV format */
- };
- 
--/*  MPEG audio */
-+/*  MPEG audio controls specific to multiplexed streams  */
- #define V4L2_CID_MPEG_AUDIO_SAMPLING_FREQ 	(V4L2_CID_MPEG_BASE+100)
- enum v4l2_mpeg_audio_sampling_freq {
- 	V4L2_MPEG_AUDIO_SAMPLING_FREQ_44100 = 0,
-@@ -1289,7 +1302,7 @@ enum v4l2_mpeg_audio_ac3_bitrate {
- 	V4L2_MPEG_AUDIO_AC3_BITRATE_640K = 18,
- };
- 
--/*  MPEG video */
-+/*  MPEG video controls specific to multiplexed streams */
- #define V4L2_CID_MPEG_VIDEO_ENCODING 		(V4L2_CID_MPEG_BASE+200)
- enum v4l2_mpeg_video_encoding {
- 	V4L2_MPEG_VIDEO_ENCODING_MPEG_1     = 0,
--- 
-1.6.3.3
+John
 
