@@ -1,62 +1,78 @@
 Return-path: <mchehab@pedra>
-Received: from smtp-68.nebula.fi ([83.145.220.68]:46134 "EHLO
-	smtp-68.nebula.fi" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754903Ab1FHKyi (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 8 Jun 2011 06:54:38 -0400
-Date: Wed, 8 Jun 2011 13:54:32 +0300
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Hans Verkuil <hverkuil@xs4all.nl>,
-	linux-media <linux-media@vger.kernel.org>,
-	Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
-Subject: Re: [GIT PATCHES FOR 2.6.41] Add bitmask controls
-Message-ID: <20110608105432.GE7830@valkosipuli.localdomain>
-References: <201105231315.29328.hverkuil@xs4all.nl>
- <4DE636C5.7040604@redhat.com>
- <ef656b6325ca0b3c65337f7480f834f0.squirrel@webmail.xs4all.nl>
- <4DE64181.6050007@redhat.com>
- <20110605132802.GH6073@valkosipuli.localdomain>
+Received: from perceval.ideasonboard.com ([95.142.166.194]:46841 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752531Ab1FGLkA (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 7 Jun 2011 07:40:00 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: "Ohad Ben-Cohen" <ohad@wizery.com>
+Subject: Re: [RFC 1/6] omap: iommu: generic iommu api migration
+Date: Tue, 7 Jun 2011 13:40:14 +0200
+Cc: linux-media@vger.kernel.org, linux-omap@vger.kernel.org,
+	linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+	Hiroshi.DOYU@nokia.com, arnd@arndb.de, davidb@codeaurora.org,
+	Joerg.Roedel@amd.com
+References: <1307053663-24572-1-git-send-email-ohad@wizery.com> <201106071122.47804.laurent.pinchart@ideasonboard.com> <BANLkTineGVvmph=Om2FGR_+mkiMW6k7UAw@mail.gmail.com>
+In-Reply-To: <BANLkTineGVvmph=Om2FGR_+mkiMW6k7UAw@mail.gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20110605132802.GH6073@valkosipuli.localdomain>
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201106071340.15199.laurent.pinchart@ideasonboard.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Sun, Jun 05, 2011 at 04:28:03PM +0300, Sakari Ailus wrote:
-> On Wed, Jun 01, 2011 at 10:41:21AM -0300, Mauro Carvalho Chehab wrote:
-> > > There are currently two use cases: Sakari's flash controller needs to
-> > > report errors which are a bitmask of possible error conditions. It is way
-> > > overkill to split that up in separate boolean controls, especially since
-> > > apps will also want to get an event whenever such an error is raised.
+Hi Ohad,
+
+On Tuesday 07 June 2011 13:19:05 Ohad Ben-Cohen wrote:
+> On Tue, Jun 7, 2011 at 12:22 PM, Laurent Pinchart wrote:
+> >> +     BUG_ON(!IS_ALIGNED((long)omap_domain->pgtable, IOPGD_TABLE_SIZE));
 > > 
-> > Hmm... returning errors via V4L2 controls don't seem to be a good implementation.
-> > I need to review his RFC to better understand his idea.
+> > Either __get_free_pages() guarantees that the allocated memory will be
+> > aligned on an IOPGD_TABLE_SIZE boundary, in which case the BUG_ON() is
+> > unnecessary, or doesn't offer such guarantee, in which case the BUG_ON()
+> > will oops randomly.
 > 
-> The "errors" are not errors in the traditional meaning --- they also are
-> called faults. They signal that there's either a temporary or a permanent
-> hardware problem with the flash controller. The user will be able to
-> mitigate with many of these. Also the faults do arrive asynchronously,
-> making traditional error handling unsuitable for them. For example, the LED
-> controller may overheat in some situations which cause immediate LED
-> shutdown, leading to only partially flash exposed frame. When this happens
-> the user has to be notified of the condition, and to avoid reading a large
-> set of controls, a single bitmask control telling directly the reason for
-> the trouble is ideal.
+> Curious, does it oops randomly today ?
+> (i just copied this from omap_iommu_probe, where it always existed).
+
+No that I know of :-)
+
+> It is a bit ugly though, and thinking on it again, 16KB is not that
+> big. We can just use kmalloc here, which does ensure the alignment
+> (or, better yet, kzalloc, and then ditch the memset).
 > 
-> The full RFC may be found here: 
+> > In both cases BUG_ON() should probably be avoided.
 > 
-> <USR:http://www.spinics.net/lists/linux-media/msg32030.html>
+> I disagree; we must check this so user data won't be harmed (hardware
+> requirement), and if a memory allocation API fails to meet its
+> requirements - that's really bad and user data is again at stake (much
+> more will break, not only the iommu driver).
 
-That was supposed to be 
+My point is that if the allocator guarantees the alignment (not as a side 
+effect of the implementation, but per its API) there's no need to check it 
+again. As the alignement is required, we need an allocator that guarantees it 
+anyway.
 
-<URL:http://www.spinics.net/lists/linux-media/msg32030.html>
+> > This leaks omap_domain->pgtable.
+> > 
+> > The free_pages() call in omap_iommu_remove() should be removed, as
+> > omap_iommu_probe() doesn't allocate the pages table anymore.
+> 
+> thanks !
+> 
+> > You can also remove the the struct iommu::iopgd field.
+> 
+> No, I can't; it's used when the device is attached to an address space
+> domain.
 
-The adp1653 flash controller driver using the flash API. The patches have
-been acked by Laurent already.
+Right, my bad.
 
-Regards,
+> > You return 0 in the bogus pte/pgd cases. Is that intentional ?
+> 
+> Yes, that's probably the most (if any) reasonable value to return here
+> (all other iommu implementations are doing so too).
 
 -- 
-Sakari Ailus
-sakari.ailus@iki.fi
+Regards,
+
+Laurent Pinchart
