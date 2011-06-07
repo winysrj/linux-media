@@ -1,134 +1,107 @@
 Return-path: <mchehab@pedra>
-Received: from blu0-omc2-s30.blu0.hotmail.com ([65.55.111.105]:17648 "EHLO
-	blu0-omc2-s30.blu0.hotmail.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752635Ab1FKI4S (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 11 Jun 2011 04:56:18 -0400
-Message-ID: <BLU0-SMTP649F33D5A9FCF7358F6807D8670@phx.gbl>
-From: Manoel Pinheiro <pinusdtv@hotmail.com>
-To: linux-media@vger.kernel.org
-Subject: [PATCH 3/5] [media] Add Keytable for tbs_dtb08 remote controller
-Date: Sat, 11 Jun 2011 05:56:02 -0300
+Received: from moutng.kundenserver.de ([212.227.126.171]:61946 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751135Ab1FGIFf convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 7 Jun 2011 04:05:35 -0400
+Date: Tue, 7 Jun 2011 10:05:33 +0200 (CEST)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Kassey Lee <kassey1216@gmail.com>
+cc: Jonathan Corbet <corbet@lwn.net>, linux-media@vger.kernel.org,
+	Kassey Lee <ygli@marvell.com>
+Subject: Re: [RFC] Refactor the cafe_ccic driver and add Armada 610 support
+In-Reply-To: <BANLkTim3ZCCti79FKn9-3toc56jZ9=w3-A@mail.gmail.com>
+Message-ID: <Pine.LNX.4.64.1106071001240.31635@axis700.grange>
+References: <1307400003-94758-1-git-send-email-corbet@lwn.net>
+ <BANLkTim3ZCCti79FKn9-3toc56jZ9=w3-A@mail.gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain
+Content-Type: TEXT/PLAIN; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Signed-off-by: Manoel Pinheiro <pinusdtv@hotmail.com>
+On Tue, 7 Jun 2011, Kassey Lee wrote:
+
+> hi, Jon:
+>        thanks for your work! it is good to know that your brought up
+> MMP2(610) SoC with OV7670
+>        I have some questions:
+>       1)  this driver is still based on cafe_ccic.c, as you said, we
+> can abstract the low level register function, and use soc_camera and
+> videofbu2 to manage the buff and state machine,  how do you think ?
+
+Right, _if_ you really want to usesoc-camera and videobuf2 with your new 
+driver, which you're certainly very welcome to do, all the v4l interfacing 
+has to be removed from the core. Otherwise you can consider re-using it 
+and just implementing a complete v4l2 video bridge / host driver. That's 
+up to you.
+
+>       2) i2c_adapter, how about move this code to driver/i2c, then
+> ccic driver will become clean?
+
+Not sure, what other V4L drivers do? Don't they implement their I2C 
+adapters internally under drivers/video?
+
+>       3) in mmp_driver.c, it has the sensor name, OV7670,  we wish
+> that ccic driver do not need to aware of the sensor, also we need to
+> support front and back camera sensor cases.
+
+Yes, that hard-coded bond has to be removed.
+
+Thanks
+Guennadi
+
+> 
+> Guennadi, what is your suggestions ?
+> 
+>     great thanks!
+> 
+> 
+> On Tue, Jun 7, 2011 at 6:39 AM, Jonathan Corbet <corbet@lwn.net> wrote:
+> > Hello, all,
+> >
+> > As I promised last week, here's the state of my work refactoring the Cafe
+> > driver and adding Armada 610 support.  I intend to have them ready for 3.1,
+> > but they are not ready for merging yet.  There's a couple of things I'd
+> > like to clean up, and I'd like to let the OLPC people test things a bit
+> > more.  But I figured it would be good to get it out there for comments.
+> >
+> > Essentially, Marvell has taken the camera controller from the old Cafe chip
+> > and dropped it into some ARM SoC setups, one of which is the Armada 610.  I
+> > pondered just making a new driver, but, given that the controller has
+> > changed very little, it made a lot more sense to reuse the existing code.
+> >
+> > The patches here split cafe_ccic.c into "platform" and "core" pieces while
+> > leaving functionality unchanged.  The new "mmp-camera" driver is then added
+> > as a second platform.
+> >
+> > This work is not done; at a minimum, I plan to convert it over to videobuf2
+> > and make use of the Armada's s/g DMA capabilities.  Doubtless there is
+> > plenty more to be done; I would also sure like to see Kassey Lee's Marvell
+> > driver integrated with this one if at all possible.
+> >
+> > Comments?
+> >
+> > Thanks,
+> >
+> > jon
+> >
+> >
+> > --
+> > To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> > the body of a message to majordomo@vger.kernel.org
+> > More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> >
+> 
+> 
+> 
+> -- 
+> Best regards
+> Kassey
+> Application Processor Systems Engineering, Marvell Technology Group Ltd.
+> Shanghai, China.
+> 
+
 ---
- drivers/media/rc/keymaps/Makefile       |    1 +
- drivers/media/rc/keymaps/rc-tbs-dtb08.c |   77 +++++++++++++++++++++++++++++++
- include/media/rc-map.h                  |    1 +
- 3 files changed, 79 insertions(+), 0 deletions(-)
- create mode 100644 drivers/media/rc/keymaps/rc-tbs-dtb08.c
-
-diff --git a/drivers/media/rc/keymaps/Makefile b/drivers/media/rc/keymaps/Makefile
-index b57fc83..670febd 100644
---- a/drivers/media/rc/keymaps/Makefile
-+++ b/drivers/media/rc/keymaps/Makefile
-@@ -71,6 +71,7 @@ obj-$(CONFIG_RC_MAP) += rc-adstech-dvb-t-pci.o \
- 			rc-rc6-mce.o \
- 			rc-real-audio-220-32-keys.o \
- 			rc-streamzap.o \
-+			rc-tbs-dtb08.o \
- 			rc-tbs-nec.o \
- 			rc-technisat-usb2.o \
- 			rc-terratec-cinergy-xs.o \
-diff --git a/drivers/media/rc/keymaps/rc-tbs-dtb08.c b/drivers/media/rc/keymaps/rc-tbs-dtb08.c
-new file mode 100644
-index 0000000..bd2562a
---- /dev/null
-+++ b/drivers/media/rc/keymaps/rc-tbs-dtb08.c
-@@ -0,0 +1,77 @@
-+/*
-+ *  TBS-Tech ISDB-T Full Seg DTB08 remote controller keytable
-+ *
-+ *  Copyright (C) 2011 Manoel Pinheiro <pinusdtv@pdtv.cjb.net>
-+ *
-+ *  This program is free software; you can redistribute it and/or modify
-+ *  it under the terms of the GNU General Public License as published by
-+ *  the Free Software Foundation; either version 2 of the License, or
-+ *  (at your option) any later version.
-+ *
-+ *  This program is distributed in the hope that it will be useful,
-+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
-+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-+ *  GNU General Public License for more details.
-+ *
-+ *  You should have received a copy of the GNU General Public License along
-+ *  with this program; if not, write to the Free Software Foundation, Inc.,
-+ *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
-+ */
-+
-+#include <media/rc-map.h>
-+
-+static struct rc_map_table tbs_dtb08[] = {
-+	{ 0x10, KEY_POWER },		/* power */
-+	{ 0x06, KEY_MUTE },		/* mute */
-+	{ 0x4c, KEY_1 },
-+	{ 0x04, KEY_2 },
-+	{ 0x00, KEY_3 },
-+	{ 0x1e, KEY_4 },
-+	{ 0x0e, KEY_5 },
-+	{ 0x1a, KEY_6 },
-+	{ 0x14, KEY_7 },
-+	{ 0x0f, KEY_8 },
-+	{ 0x0c, KEY_9 },
-+	{ 0x1c, KEY_0 },
-+	{ 0x40, KEY_CHANNELUP },	/* ch+ */
-+	{ 0x0a, KEY_CHANNELDOWN },	/* ch- */
-+	{ 0x19, KEY_VOLUMEUP },		/* vol+ */
-+	{ 0x17, KEY_VOLUMEDOWN },	/* vol- */
-+	{ 0x11, KEY_OK },		/* ok */
-+	{ 0x09, KEY_SHUFFLE },		/* scrn shot */
-+	{ 0x1f, KEY_UP },
-+	{ 0x1b, KEY_LEFT },
-+	{ 0x15, KEY_RIGHT },
-+	{ 0x16, KEY_DOWN },
-+	{ 0x4d, KEY_FAVORITES },	/* fav */
-+	{ 0x01, KEY_ZOOM },
-+	{ 0x03, KEY_EPG },
-+	{ 0x1d, KEY_PLAY },
-+	{ 0x0d, KEY_STOP },
-+	/* { 0x12, FIXME:  }, */	/* recall */
-+};
-+
-+static struct rc_map_list tbs_dtb08_map = {
-+	.map = {
-+		.scan    = tbs_dtb08,
-+		.size    = ARRAY_SIZE(tbs_dtb08),
-+		.rc_type = RC_TYPE_UNKNOWN,	/* Legacy IR type */
-+		.name    = RC_MAP_TBS_DTB08,
-+	}
-+};
-+
-+static int __init init_rc_map_tbs_dtb08(void)
-+{
-+	return rc_map_register(&tbs_dtb08_map);
-+}
-+
-+static void __exit exit_rc_map_tbs_dtb08(void)
-+{
-+	rc_map_unregister(&tbs_dtb08_map);
-+}
-+
-+module_init(init_rc_map_tbs_dtb08)
-+module_exit(exit_rc_map_tbs_dtb08)
-+
-+MODULE_LICENSE("GPL");
-+MODULE_AUTHOR("Manoel Pinheiro <pinusdtv@pdtv.cjb.net>");
-diff --git a/include/media/rc-map.h b/include/media/rc-map.h
-index 4e1409e..9a8159a 100644
---- a/include/media/rc-map.h
-+++ b/include/media/rc-map.h
-@@ -130,6 +130,7 @@ void rc_map_init(void);
- #define RC_MAP_RC6_MCE                   "rc-rc6-mce"
- #define RC_MAP_REAL_AUDIO_220_32_KEYS    "rc-real-audio-220-32-keys"
- #define RC_MAP_STREAMZAP                 "rc-streamzap"
-+#define RC_MAP_TBS_DTB08                 "rc-tbs-dtb08"
- #define RC_MAP_TBS_NEC                   "rc-tbs-nec"
- #define RC_MAP_TECHNISAT_USB2            "rc-technisat-usb2"
- #define RC_MAP_TERRATEC_CINERGY_XS       "rc-terratec-cinergy-xs"
--- 
-1.7.3.4
-
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
+http://www.open-technology.de/
