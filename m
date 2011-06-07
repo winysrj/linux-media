@@ -1,145 +1,59 @@
 Return-path: <mchehab@pedra>
-Received: from moutng.kundenserver.de ([212.227.17.9]:51674 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755149Ab1FFMcE (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 6 Jun 2011 08:32:04 -0400
-Date: Mon, 6 Jun 2011 14:31:57 +0200 (CEST)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	sakari.ailus@maxwell.research.nokia.com,
-	Sylwester Nawrocki <snjw23@gmail.com>,
-	Stan <svarbanov@mm-sol.com>, Hans Verkuil <hansverk@cisco.com>,
-	saaguirre@ti.com, Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: [PATCH/RFC] V4L: add media bus configuration subdev operations
-Message-ID: <Pine.LNX.4.64.1106061358310.11169@axis700.grange>
+Received: from ch1ehsobe002.messaging.microsoft.com ([216.32.181.182]:34541
+	"EHLO CH1EHSOBE008.bigfish.com" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1752484Ab1FGKD7 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 7 Jun 2011 06:03:59 -0400
+Date: Tue, 7 Jun 2011 11:58:29 +0200
+From: "Roedel, Joerg" <Joerg.Roedel@amd.com>
+To: Ohad Ben-Cohen <ohad@wizery.com>
+CC: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	"linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>,
+	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
+	"linux-arm-kernel@lists.infradead.org"
+	<linux-arm-kernel@lists.infradead.org>,
+	"laurent.pinchart@ideasonboard.com"
+	<laurent.pinchart@ideasonboard.com>,
+	"Hiroshi.DOYU@nokia.com" <Hiroshi.DOYU@nokia.com>,
+	"arnd@arndb.de" <arnd@arndb.de>,
+	"davidb@codeaurora.org" <davidb@codeaurora.org>,
+	Omar Ramirez Luna <omar.ramirez@ti.com>
+Subject: Re: [RFC 0/6] iommu: generic api migration and grouping
+Message-ID: <20110607095829.GD4407@amd.com>
+References: <1307053663-24572-1-git-send-email-ohad@wizery.com>
+ <20110606100950.GC30762@amd.com>
+ <BANLkTi=i2s-Ujiy4qn_XQv+9dMjUC9R66A@mail.gmail.com>
+ <20110606153557.GE1953@amd.com>
+ <BANLkTinwwVO4TmsxuTfSBf6jqYrEVV3b_A@mail.gmail.com>
+ <20110606192030.GA4356@amd.com>
+ <BANLkTinx21-E3DRe9D7LRB8e1aeOwv=-9A@mail.gmail.com>
+ <20110607075221.GB4407@amd.com>
+ <BANLkTimR3KofKA3LSKXdX8k1FGR0XUxu=Q@mail.gmail.com>
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset="us-ascii"
+Content-Disposition: inline
+In-Reply-To: <BANLkTimR3KofKA3LSKXdX8k1FGR0XUxu=Q@mail.gmail.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Add media bus configuration types and two subdev operations to get 
-supported mediabus configurations and to set a specific configuration. 
-Subdevs can support several configurations, e.g., they can send video data 
-on 1 or several lanes, can be configured to use a specific CSI-2 channel, 
-in such cases subdevice drivers return bitmasks with all respective bits 
-set. When a set-configuration operation is called, it has to specify a 
-non-ambiguous configuration.
+On Tue, Jun 07, 2011 at 05:22:11AM -0400, Ohad Ben-Cohen wrote:
+> On Tue, Jun 7, 2011 at 10:52 AM, Roedel, Joerg <Joerg.Roedel@amd.com> wrote:
+> > Yup. Btw, is there any IOMMU hardware which supports non-natural
+> > alignment? In this case we need to expose these requirements somehow.
+> 
+> Not sure there are. Let's start with natural alignment, and extend it
+> only if someone with additional requirements shows up.
 
-Signed-off-by: Stanimir Varbanov <svarbanov@mm-sol.com>
-Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
----
+Btw, mind to split out your changes which move the iommu-api into
+drivers/iommu? I can merge them meanwhile into my iommu tree and start
+working on a proposal for the generic large page-size support.
 
-This change would allow a re-use of soc-camera and "standard" subdev 
-drivers. It is a modified and extended version of
+	Joerg
 
-http://article.gmane.org/gmane.linux.drivers.video-input-infrastructure/29408
+-- 
+AMD Operating System Research Center
 
-therefore the original Sob. After this we only would have to switch to the 
-control framework:) Please, comment.
+Advanced Micro Devices GmbH Einsteinring 24 85609 Dornach
+General Managers: Alberto Bozzo, Andrew Bowd
+Registration: Dornach, Landkr. Muenchen; Registerger. Muenchen, HRB Nr. 43632
 
-diff --git a/include/media/v4l2-mediabus.h b/include/media/v4l2-mediabus.h
-index 971c7fa..0983b7b 100644
---- a/include/media/v4l2-mediabus.h
-+++ b/include/media/v4l2-mediabus.h
-@@ -13,6 +13,76 @@
- 
- #include <linux/v4l2-mediabus.h>
- 
-+/* Parallel flags */
-+/* Can the client run in master or in slave mode */
-+#define V4L2_MBUS_MASTER			(1 << 0)
-+#define V4L2_MBUS_SLAVE				(1 << 1)
-+/* Which signal polarities it supports */
-+#define V4L2_MBUS_HSYNC_ACTIVE_HIGH		(1 << 2)
-+#define V4L2_MBUS_HSYNC_ACTIVE_LOW		(1 << 3)
-+#define V4L2_MBUS_VSYNC_ACTIVE_HIGH		(1 << 4)
-+#define V4L2_MBUS_VSYNC_ACTIVE_LOW		(1 << 5)
-+#define V4L2_MBUS_PCLK_SAMPLE_RISING		(1 << 6)
-+#define V4L2_MBUS_PCLK_SAMPLE_FALLING		(1 << 7)
-+#define V4L2_MBUS_DATA_ACTIVE_HIGH		(1 << 8)
-+#define V4L2_MBUS_DATA_ACTIVE_LOW		(1 << 9)
-+/* Which datawidths are supported */
-+#define V4L2_MBUS_DATAWIDTH_4			(1 << 10)
-+#define V4L2_MBUS_DATAWIDTH_8			(1 << 11)
-+#define V4L2_MBUS_DATAWIDTH_9			(1 << 12)
-+#define V4L2_MBUS_DATAWIDTH_10			(1 << 13)
-+#define V4L2_MBUS_DATAWIDTH_15			(1 << 14)
-+#define V4L2_MBUS_DATAWIDTH_16			(1 << 15)
-+
-+#define V4L2_MBUS_DATAWIDTH_MASK	(V4L2_MBUS_DATAWIDTH_4 | V4L2_MBUS_DATAWIDTH_8 | \
-+					 V4L2_MBUS_DATAWIDTH_9 | V4L2_MBUS_DATAWIDTH_10 | \
-+					 V4L2_MBUS_DATAWIDTH_15 | V4L2_MBUS_DATAWIDTH_16)
-+
-+/* Serial flags */
-+/* How many lanes the client can use */
-+#define V4L2_MBUS_CSI2_1_LANE			(1 << 0)
-+#define V4L2_MBUS_CSI2_2_LANE			(1 << 1)
-+#define V4L2_MBUS_CSI2_3_LANE			(1 << 2)
-+#define V4L2_MBUS_CSI2_4_LANE			(1 << 3)
-+/* On which channels it can send video data */
-+#define V4L2_MBUS_CSI2_CHANNEL_0			(1 << 4)
-+#define V4L2_MBUS_CSI2_CHANNEL_1			(1 << 5)
-+#define V4L2_MBUS_CSI2_CHANNEL_2			(1 << 6)
-+#define V4L2_MBUS_CSI2_CHANNEL_3			(1 << 7)
-+/* Does it support only continuous or also non-contimuous clock mode */
-+#define V4L2_MBUS_CSI2_CONTINUOUS_CLOCK		(1 << 8)
-+#define V4L2_MBUS_CSI2_NONCONTINUOUS_CLOCK	(1 << 9)
-+
-+#define V4L2_MBUS_CSI2_LANES		(V4L2_MBUS_CSI2_1_LANE | V4L2_MBUS_CSI2_2_LANE | \
-+					 V4L2_MBUS_CSI2_3_LANE | V4L2_MBUS_CSI2_4_LANE)
-+#define V4L2_MBUS_CSI2_CHANNELS		(V4L2_MBUS_CSI2_CHANNEL_0 | V4L2_MBUS_CSI2_CHANNEL_1 | \
-+					 V4L2_MBUS_CSI2_CHANNEL_2 | V4L2_MBUS_CSI2_CHANNEL_3)
-+
-+/**
-+ * v4l2_mbus_type - media bus type
-+ * @V4L2_MBUS_PARALLEL:	parallel interface with hsync and vsync
-+ * @V4L2_MBUS_BT656:	parallel interface with embedded synchronisation
-+ * @V4L2_MBUS_CSI2:	MIPI CSI-2 serial interface
-+ */
-+enum v4l2_mbus_type {
-+	V4L2_MBUS_PARALLEL,
-+	V4L2_MBUS_BT656,
-+	V4L2_MBUS_CSI2,
-+};
-+
-+/**
-+ * v4l2_mbus_config - media bus configuration
-+ * @type:	interface type
-+ * @flags:	configuration flags, depending on @type
-+ * @clk:	output clock, the bridge driver can try to use clk_set_parent()
-+ *		to specify the master clock to the client
-+ */
-+struct v4l2_mbus_config {
-+	enum v4l2_mbus_type type;
-+	unsigned long flags;
-+	struct clk *clk;
-+};
-+
- static inline void v4l2_fill_pix_format(struct v4l2_pix_format *pix_fmt,
- 				const struct v4l2_mbus_framefmt *mbus_fmt)
- {
-diff --git a/include/media/v4l2-subdev.h b/include/media/v4l2-subdev.h
-index 1562c4f..6ea25f4 100644
---- a/include/media/v4l2-subdev.h
-+++ b/include/media/v4l2-subdev.h
-@@ -255,6 +255,10 @@ struct v4l2_subdev_audio_ops {
-    try_mbus_fmt: try to set a pixel format on a video data source
- 
-    s_mbus_fmt: set a pixel format on a video data source
-+
-+   g_mbus_param: get supported mediabus configurations
-+
-+   s_mbus_param: set a certain mediabus configuration
-  */
- struct v4l2_subdev_video_ops {
- 	int (*s_routing)(struct v4l2_subdev *sd, u32 input, u32 output, u32 config);
-@@ -294,6 +298,8 @@ struct v4l2_subdev_video_ops {
- 			    struct v4l2_mbus_framefmt *fmt);
- 	int (*s_mbus_fmt)(struct v4l2_subdev *sd,
- 			  struct v4l2_mbus_framefmt *fmt);
-+	int (*g_mbus_param)(struct v4l2_subdev *sd, struct v4l2_mbus_config *cfg);
-+	int (*s_mbus_param)(struct v4l2_subdev *sd, struct v4l2_mbus_config *cfg);
- };
- 
- /*
