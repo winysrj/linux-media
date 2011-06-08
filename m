@@ -1,44 +1,42 @@
 Return-path: <mchehab@pedra>
-Received: from mail-ey0-f174.google.com ([209.85.215.174]:57329 "EHLO
-	mail-ey0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750835Ab1FKQ5S convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 11 Jun 2011 12:57:18 -0400
-Received: by eyx24 with SMTP id 24so1211587eyx.19
-        for <linux-media@vger.kernel.org>; Sat, 11 Jun 2011 09:57:17 -0700 (PDT)
+Received: from perceval.ideasonboard.com ([95.142.166.194]:50929 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751277Ab1FHL5z (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 8 Jun 2011 07:57:55 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Javier Martin <javier.martin@vista-silicon.com>
+Subject: Re: [PATCH v7 1/2] Add driver for Aptina (Micron) mt9p031 sensor.
+Date: Wed, 8 Jun 2011 13:57:51 +0200
+Cc: linux-media@vger.kernel.org, g.liakhovetski@gmx.de,
+	carlighting@yahoo.co.nz, beagleboard@googlegroups.com,
+	mch_kot@yahoo.com.cn
+References: <1307014603-22944-1-git-send-email-javier.martin@vista-silicon.com>
+In-Reply-To: <1307014603-22944-1-git-send-email-javier.martin@vista-silicon.com>
 MIME-Version: 1.0
-In-Reply-To: <4a3fc9cd-d7e1-4692-92cb-af4d652c0224@email.android.com>
-References: <1307804731-16430-1-git-send-email-hverkuil@xs4all.nl>
-	<BANLkTikWiEb+aGGbSNSZ+YtdeVRB6QaJtg@mail.gmail.com>
-	<201106111753.21581.hverkuil@xs4all.nl>
-	<4a3fc9cd-d7e1-4692-92cb-af4d652c0224@email.android.com>
-Date: Sat, 11 Jun 2011 12:57:16 -0400
-Message-ID: <BANLkTikJbhC--Qp4KUBjFdrCMuvvoMuxaA@mail.gmail.com>
-Subject: Re: [RFCv2 PATCH 0/5] tuner-core: fix s_std and s_tuner
-From: Devin Heitmueller <dheitmueller@kernellabs.com>
-To: Andy Walls <awalls@md.metrocast.net>
-Cc: Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+Content-Type: Text/Plain;
+  charset="iso-8859-15"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201106081357.51578.laurent.pinchart@ideasonboard.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Sat, Jun 11, 2011 at 12:06 PM, Andy Walls <awalls@md.metrocast.net> wrote:
-> Devin,
->
-> I think I have a Gotview or compro card with an xc2028.  Is that tuner capable of standby?  Would the cx18 or ivtv driver need to actively support using stand by?
+Hi Javier,
 
-An xc2028/xc3028 should be fine, as that does support standby.  The
-problems we saw with VLC were related to calls like G_TUNER returning
-prematurely if the device was in standby, leaving the returned
-structure populated with garbage.
+I'm testing your patch on a 2.6.39 kernel. Here's what I get when loading the 
+omap3-isp module.
 
-FWIW, I don't dispute your assertion that Hans found legitimate bugs -
-just that we need to be careful to not cause regressions in the cases
-that the last round of bug fixes addressed.
+root@arago:~# modprobe omap3-isp
+[  159.523681] omap3isp omap3isp: Revision 15.0 found
+[  159.528991] omap-iommu omap-iommu.0: isp: version 1.1
+[  159.875701] omap_i2c omap_i2c.2: Arbitration lost
+[  159.881622] mt9p031 2-0048: Failed to reset the camera
+[  159.887054] omap3isp omap3isp: Failed to power on: -5
+[  159.892425] mt9p031 2-0048: Failed to power on device: -5
+[  159.898956] isp_register_subdev_group: Unable to register subdev mt9p031
 
-Devin
+Have you (or anyone else) seen that issue ?
 
 -- 
-Devin J. Heitmueller - Kernel Labs
-http://www.kernellabs.com
+Regards,
+
+Laurent Pinchart
