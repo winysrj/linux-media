@@ -1,475 +1,185 @@
 Return-path: <mchehab@pedra>
-Received: from smtp-vbr6.xs4all.nl ([194.109.24.26]:4176 "EHLO
-	smtp-vbr6.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752990Ab1FNPWy (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 14 Jun 2011 11:22:54 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: laurent.pinchart@ideasonboard.com, sakari.ailus@iki.fi,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [RFCv1 PATCH 1/8] v4l2-events/fh: merge v4l2_events into v4l2_fh
-Date: Tue, 14 Jun 2011 17:22:26 +0200
-Message-Id: <3d92b242dcf5e7766d128d6c1f05c0bd837a2633.1308063857.git.hans.verkuil@cisco.com>
-In-Reply-To: <1308064953-11156-1-git-send-email-hverkuil@xs4all.nl>
-References: <1308064953-11156-1-git-send-email-hverkuil@xs4all.nl>
+Received: from mail-vw0-f46.google.com ([209.85.212.46]:45768 "EHLO
+	mail-vw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754532Ab1FHTS3 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 8 Jun 2011 15:18:29 -0400
+Received: by vws1 with SMTP id 1so621228vws.19
+        for <linux-media@vger.kernel.org>; Wed, 08 Jun 2011 12:18:28 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <3527e900-1d63-46cc-ba72-af763111a16a@email.android.com>
+References: <BANLkTikSacfHp6ndaf8FPJi-PDu-PFSTsg@mail.gmail.com>
+	<3527e900-1d63-46cc-ba72-af763111a16a@email.android.com>
+Date: Wed, 8 Jun 2011 13:18:27 -0600
+Message-ID: <BANLkTi=OgqhmkYLd9_YnyW8JSvZgiQWTfw@mail.gmail.com>
+Subject: Re: Getting IR to work on a hvr-1250 tuner.
+From: Dark Shadow <shadowofdarkness@gmail.com>
+To: Andy Walls <awalls@md.metrocast.net>
+Cc: linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+On Wed, Jun 8, 2011 at 4:19 AM, Andy Walls <awalls@md.metrocast.net> wrote:
+> Dark Shadow <shadowofdarkness@gmail.com> wrote:
+>
+>>I have a capture card that was sold as a Hauppauge HVR-1250 (according
+>>to the box) that I am trying to use but I am having trouble getting
+>>all it's features at once. When I leave it auto detected by the module
+>>I have working TV in MythTV even though it thinks it is a 1270 but IR
+>>isn't setup.
+>>
+>>dmesg outputs
+>>#modprobe cx23885 enable_885_ir=1
+>>[    7.592714] cx23885 driver version 0.0.2 loaded
+>>[    7.592748] cx23885 0000:07:00.0: PCI INT A -> GSI 17 (level, low)
+>>-> IRQ 17
+>>[    7.592926] CORE cx23885[0]: subsystem: 0070:2211, board: Hauppauge
+>>WinTV-HVR1270 [card=18,autodetected]
+>>[    7.728163] IR JVC protocol handler initialized
+>>[    7.738971] tveeprom 0-0050: Hauppauge model 22111, rev C2F5,
+>>serial# 6429897
+>>[    7.738974] tveeprom 0-0050: MAC address is 00:0d:fe:62:1c:c9
+>>[    7.738975] tveeprom 0-0050: tuner model is NXP 18271C2 (idx 155,
+>>type 54)
+>>[    7.738977] tveeprom 0-0050: TV standards NTSC(M) ATSC/DVB Digital
+>>(eeprom 0x88)
+>>[    7.738979] tveeprom 0-0050: audio processor is CX23888 (idx 40)
+>>[    7.738980] tveeprom 0-0050: decoder processor is CX23888 (idx 34)
+>>[    7.738982] tveeprom 0-0050: has no radio, has IR receiver, has no
+>>IR transmitter
+>>[    7.738983] cx23885[0]: hauppauge eeprom: model=22111
+>>[    7.738985] cx23885_dvb_register() allocating 1 frontend(s)
+>>[    7.738991] cx23885[0]: cx23885 based dvb card
+>>[    7.961122] IR Sony protocol handler initialized
+>>[    7.977301] tda18271 1-0060: creating new instance
+>>[    7.979325] TDA18271HD/C2 detected @ 1-0060
+>>[    8.209663] DVB: registering new adapter (cx23885[0])
+>>[    8.209668] DVB: registering adapter 0 frontend 0 (LG Electronics
+>>LGDT3305 VSB/QAM Frontend)...
+>>[    8.210095] cx23885_dev_checkrevision() Hardware revision = 0xd0
+>>[    8.210101] cx23885[0]/0: found at 0000:07:00.0, rev: 4, irq: 17,
+>>latency: 0, mmio: 0xf7c00000
+>>[    8.210109] cx23885 0000:07:00.0: setting latency timer to 64
+>>[    8.210186] cx23885 0000:07:00.0: irq 49 for MSI/MSI-X
+>>
+>>
+>>When I force it to be a 1250 no video works but IR seems to show up
+>>(with the exception that it never seems to receive signals from the
+>>remote)
+>>
+>>#modprobe cx23885 enable_885_ir=1 card=3
+>>[38647.660740] cx23885 driver version 0.0.2 loaded
+>>[38647.660779] cx23885 0000:07:00.0: PCI INT A -> GSI 17 (level, low)
+>>-> IRQ 17
+>>[38647.661009] CORE cx23885[0]: subsystem: 0070:2211, board: Hauppauge
+>>WinTV-HVR1250 [card=3,insmod option]
+>>[38647.787427] tveeprom 0-0050: Hauppauge model 22111, rev C2F5,
+>>serial# 6429897
+>>[38647.787431] tveeprom 0-0050: MAC address is 00:0d:fe:62:1c:c9
+>>[38647.787434] tveeprom 0-0050: tuner model is NXP 18271C2 (idx 155,
+>>type 54)
+>>[38647.787437] tveeprom 0-0050: TV standards NTSC(M) ATSC/DVB Digital
+>>(eeprom 0x88)
+>>[38647.787439] tveeprom 0-0050: audio processor is CX23888 (idx 40)
+>>[38647.787442] tveeprom 0-0050: decoder processor is CX23888 (idx 34)
+>>[38647.787444] tveeprom 0-0050: has no radio, has IR receiver, has no
+>>IR transmitter
+>>[38647.787447] cx23885[0]: hauppauge eeprom: model=22111
+>>[38647.824508] cx25840 2-0044: cx23888 A/V decoder found @ 0x88
+>>(cx23885[0])
+>>[38648.457502] cx25840 2-0044: loaded v4l-cx23885-avcore-01.fw
+>>firmware (16382 bytes)
+>>[38648.465061] cx23885_dvb_register() allocating 1 frontend(s)
+>>[38648.465064] cx23885[0]: cx23885 based dvb card
+>>[38648.492632] cx23885[0]: frontend initialization failed
+>>[38648.492637] cx23885_dvb_register() dvb_register failed err = -22
+>>[38648.492640] cx23885_dev_setup() Failed to register dvb on VID_C
+>>[38648.492644] cx23885_dev_checkrevision() Hardware revision = 0xd0
+>>[38648.492650] cx23885[0]/0: found at 0000:07:00.0, rev: 4, irq: 17,
+>>latency: 0, mmio: 0xf7c00000
+>>[38648.492660] cx23885 0000:07:00.0: setting latency timer to 64
+>>[38648.492740] cx23885 0000:07:00.0: irq 48 for MSI/MSI-X
+>>[38648.539598] Registered IR keymap rc-hauppauge
+>>[38648.539775] input: cx23885 IR (Hauppauge WinTV-HVR1250) as
+>>/devices/pci0000:00/0000:00:1c.1/0000:07:00.0/rc/rc0/input4
+>>[38648.539852] rc0: cx23885 IR (Hauppauge WinTV-HVR1250) as
+>>/devices/pci0000:00/0000:00:1c.1/0000:07:00.0/rc/rc0
+>>[38648.539926] rc rc0: lirc_dev: driver ir-lirc-codec (cx23885)
+>>registered at minor = 0
+>>
+>>
+>>My setup commands for it's settings when using card=3
+>>
+>>(I have read this is needed for this remote although according to the
+>>Internet my grey remote is supposed to need a "hauppauge=1" parameter
+>>but it doesn't exist (modinfo) in my version of the module from kernel
+>>3.0-rc1
+>>#modprobe ir-kbd-i2c
+>>
+>>#ir-keytable -a /etc/rc_maps.cfg
+>>Old keytable cleared
+>>Wrote 136 keycode(s) to driver
+>>Protocols changed to RC-5
+>>
+>>#lsinput
+>>/dev/input/event4
+>>   bustype : BUS_PCI
+>>   vendor  : 0x70
+>>   product : 0x2211
+>>   version : 1
+>>   name    : "cx23885 IR (Hauppauge WinTV-HVR1"
+>>   phys    : "pci-0000:07:00.0/ir0"
+>>   bits ev : EV_SYN EV_KEY EV_MSC EV_REP
+>>
+>>#lspci -v (plus a little -n)
+>>07:00.0 0400: 14f1:8880 (rev 04)
+>>       Subsystem: 0070:2211
+>>
+>>07:00.0 Multimedia video controller: Conexant Systems, Inc. Hauppauge
+>>Inc. HDPVR-1250 model 1196 (rev 04)
+>>       Subsystem: Hauppauge computer works Inc. Device 2211
+>>       Flags: bus master, fast devsel, latency 0, IRQ 48
+>>       Memory at f7c00000 (64-bit, non-prefetchable) [size=2M]
+>>       Capabilities: [40] Express Endpoint, MSI 00
+>>       Capabilities: [80] Power Management version 3
+>>       Capabilities: [90] Vital Product Data <?>
+>>       Capabilities: [a0] Message Signalled Interrupts: Mask- 64bit+
+>>Queue=0/0 Enable+
+>>       Capabilities: [100] Advanced Error Reporting <?>
+>>       Capabilities: [200] Virtual Channel <?>
+>>       Kernel driver in use: cx23885
+>>       Kernel modules: cx23885
+>>
+>>
+>>I have heard this should show up as a normal keyboard to the system
+>>but no button presses cause anything to happen to the system and
+>>trying lirc with devinput (with devinput lircd.conf) and then opening
+>>irw doesn't show any button presses either
+>>--
+>>To unsubscribe from this list: send the line "unsubscribe linux-media"
+>>in
+>>the body of a message to majordomo@vger.kernel.org
+>>More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>
+> Don't force your card to a 1250, if the driver detects it is a 1270 with a CX23888 chip.  No need to use the enable_885_ir parameter with a CX23888 chip, either.  It only applies for two board models with actual CX23885 chips.
+>
+> Use of IR with the CX23888 chip should be realtively trouble free, *if* the 1270's IR has been enabled in the driver code.  It likely has not been.  I don't have the source code in front of me at the moment to check.
+>
+> It shouldn't be hard for anyone to patch a few files in the cx23885 driver to add it.  Patches are welcome...
+>
+> Regards,
+> Andy
+>
+>
+>
 
-Drivers that supported events used to be rare, but now that controls can also
-raise events this will become much more common since almost all drivers have
-controls.
+Under auto detect without the enable_885_ir there is no difference so
+I can only hope someone will add support for it.
 
-This means that keeping struct v4l2_events as a separate struct make no more
-sense. Merging it into struct v4l2_fh simplifies things substantially as it
-is now an integral part of the filehandle struct.
-
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- drivers/media/video/ivtv/ivtv-fileops.c |    6 +-
- drivers/media/video/v4l2-ctrls.c        |    2 -
- drivers/media/video/v4l2-event.c        |   93 ++++++++----------------------
- drivers/media/video/v4l2-fh.c           |   17 ++----
- drivers/media/video/v4l2-subdev.c       |   10 +---
- drivers/media/video/vivi.c              |    2 +-
- drivers/usb/gadget/uvc_v4l2.c           |   10 +---
- include/media/v4l2-event.h              |   11 ----
- include/media/v4l2-fh.h                 |   13 +++-
- 9 files changed, 49 insertions(+), 115 deletions(-)
-
-diff --git a/drivers/media/video/ivtv/ivtv-fileops.c b/drivers/media/video/ivtv/ivtv-fileops.c
-index 75c0354..e507766 100644
---- a/drivers/media/video/ivtv/ivtv-fileops.c
-+++ b/drivers/media/video/ivtv/ivtv-fileops.c
-@@ -722,8 +722,8 @@ unsigned int ivtv_v4l2_dec_poll(struct file *filp, poll_table *wait)
- 
- 	/* If there are subscribed events, then only use the new event
- 	   API instead of the old video.h based API. */
--	if (!list_empty(&id->fh.events->subscribed)) {
--		poll_wait(filp, &id->fh.events->wait, wait);
-+	if (!list_empty(&id->fh.subscribed)) {
-+		poll_wait(filp, &id->fh.wait, wait);
- 		/* Turn off the old-style vsync events */
- 		clear_bit(IVTV_F_I_EV_VSYNC_ENABLED, &itv->i_flags);
- 		if (v4l2_event_pending(&id->fh))
-@@ -761,7 +761,7 @@ unsigned int ivtv_v4l2_enc_poll(struct file *filp, poll_table * wait)
- 	if (v4l2_event_pending(&id->fh))
- 		res |= POLLPRI;
- 	else
--		poll_wait(filp, &id->fh.events->wait, wait);
-+		poll_wait(filp, &id->fh.wait, wait);
- 
- 	if (s->q_full.length || s->q_io.length)
- 		return res | POLLIN | POLLRDNORM;
-diff --git a/drivers/media/video/v4l2-ctrls.c b/drivers/media/video/v4l2-ctrls.c
-index d084cea..f581910 100644
---- a/drivers/media/video/v4l2-ctrls.c
-+++ b/drivers/media/video/v4l2-ctrls.c
-@@ -2069,8 +2069,6 @@ int v4l2_ctrl_subscribe_fh(struct v4l2_fh *fh,
- 	struct v4l2_ctrl_handler *hdl = fh->ctrl_handler;
- 	int ret = 0;
- 
--	if (!fh->events)
--		ret = v4l2_event_init(fh);
- 	if (!ret) {
- 		if (hdl->nr_of_refs * 2 > n)
- 			n = hdl->nr_of_refs * 2;
-diff --git a/drivers/media/video/v4l2-event.c b/drivers/media/video/v4l2-event.c
-index 670f2f8..70fa82d 100644
---- a/drivers/media/video/v4l2-event.c
-+++ b/drivers/media/video/v4l2-event.c
-@@ -32,35 +32,11 @@
- 
- static void v4l2_event_unsubscribe_all(struct v4l2_fh *fh);
- 
--int v4l2_event_init(struct v4l2_fh *fh)
--{
--	fh->events = kzalloc(sizeof(*fh->events), GFP_KERNEL);
--	if (fh->events == NULL)
--		return -ENOMEM;
--
--	init_waitqueue_head(&fh->events->wait);
--
--	INIT_LIST_HEAD(&fh->events->free);
--	INIT_LIST_HEAD(&fh->events->available);
--	INIT_LIST_HEAD(&fh->events->subscribed);
--
--	fh->events->sequence = -1;
--
--	return 0;
--}
--EXPORT_SYMBOL_GPL(v4l2_event_init);
--
- int v4l2_event_alloc(struct v4l2_fh *fh, unsigned int n)
- {
--	struct v4l2_events *events = fh->events;
- 	unsigned long flags;
- 
--	if (!events) {
--		WARN_ON(1);
--		return -ENOMEM;
--	}
--
--	while (events->nallocated < n) {
-+	while (fh->nallocated < n) {
- 		struct v4l2_kevent *kev;
- 
- 		kev = kzalloc(sizeof(*kev), GFP_KERNEL);
-@@ -68,8 +44,8 @@ int v4l2_event_alloc(struct v4l2_fh *fh, unsigned int n)
- 			return -ENOMEM;
- 
- 		spin_lock_irqsave(&fh->vdev->fh_lock, flags);
--		list_add_tail(&kev->list, &events->free);
--		events->nallocated++;
-+		list_add_tail(&kev->list, &fh->free);
-+		fh->nallocated++;
- 		spin_unlock_irqrestore(&fh->vdev->fh_lock, flags);
- 	}
- 
-@@ -87,40 +63,31 @@ EXPORT_SYMBOL_GPL(v4l2_event_alloc);
- 
- void v4l2_event_free(struct v4l2_fh *fh)
- {
--	struct v4l2_events *events = fh->events;
--
--	if (!events)
--		return;
--
--	list_kfree(&events->free, struct v4l2_kevent, list);
--	list_kfree(&events->available, struct v4l2_kevent, list);
-+	list_kfree(&fh->free, struct v4l2_kevent, list);
-+	list_kfree(&fh->available, struct v4l2_kevent, list);
- 	v4l2_event_unsubscribe_all(fh);
--
--	kfree(events);
--	fh->events = NULL;
- }
- EXPORT_SYMBOL_GPL(v4l2_event_free);
- 
- static int __v4l2_event_dequeue(struct v4l2_fh *fh, struct v4l2_event *event)
- {
--	struct v4l2_events *events = fh->events;
- 	struct v4l2_kevent *kev;
- 	unsigned long flags;
- 
- 	spin_lock_irqsave(&fh->vdev->fh_lock, flags);
- 
--	if (list_empty(&events->available)) {
-+	if (list_empty(&fh->available)) {
- 		spin_unlock_irqrestore(&fh->vdev->fh_lock, flags);
- 		return -ENOENT;
- 	}
- 
--	WARN_ON(events->navailable == 0);
-+	WARN_ON(fh->navailable == 0);
- 
--	kev = list_first_entry(&events->available, struct v4l2_kevent, list);
--	list_move(&kev->list, &events->free);
--	events->navailable--;
-+	kev = list_first_entry(&fh->available, struct v4l2_kevent, list);
-+	list_move(&kev->list, &fh->free);
-+	fh->navailable--;
- 
--	kev->event.pending = events->navailable;
-+	kev->event.pending = fh->navailable;
- 	*event = kev->event;
- 
- 	spin_unlock_irqrestore(&fh->vdev->fh_lock, flags);
-@@ -131,7 +98,6 @@ static int __v4l2_event_dequeue(struct v4l2_fh *fh, struct v4l2_event *event)
- int v4l2_event_dequeue(struct v4l2_fh *fh, struct v4l2_event *event,
- 		       int nonblocking)
- {
--	struct v4l2_events *events = fh->events;
- 	int ret;
- 
- 	if (nonblocking)
-@@ -142,8 +108,8 @@ int v4l2_event_dequeue(struct v4l2_fh *fh, struct v4l2_event *event,
- 		mutex_unlock(fh->vdev->lock);
- 
- 	do {
--		ret = wait_event_interruptible(events->wait,
--					       events->navailable != 0);
-+		ret = wait_event_interruptible(fh->wait,
-+					       fh->navailable != 0);
- 		if (ret < 0)
- 			break;
- 
-@@ -161,12 +127,11 @@ EXPORT_SYMBOL_GPL(v4l2_event_dequeue);
- static struct v4l2_subscribed_event *v4l2_event_subscribed(
- 		struct v4l2_fh *fh, u32 type, u32 id)
- {
--	struct v4l2_events *events = fh->events;
- 	struct v4l2_subscribed_event *sev;
- 
- 	assert_spin_locked(&fh->vdev->fh_lock);
- 
--	list_for_each_entry(sev, &events->subscribed, list) {
-+	list_for_each_entry(sev, &fh->subscribed, list) {
- 		if (sev->type == type && sev->id == id)
- 			return sev;
- 	}
-@@ -177,7 +142,6 @@ static struct v4l2_subscribed_event *v4l2_event_subscribed(
- static void __v4l2_event_queue_fh(struct v4l2_fh *fh, const struct v4l2_event *ev,
- 		const struct timespec *ts)
- {
--	struct v4l2_events *events = fh->events;
- 	struct v4l2_subscribed_event *sev;
- 	struct v4l2_kevent *kev;
- 
-@@ -187,24 +151,24 @@ static void __v4l2_event_queue_fh(struct v4l2_fh *fh, const struct v4l2_event *e
- 		return;
- 
- 	/* Increase event sequence number on fh. */
--	events->sequence++;
-+	fh->sequence++;
- 
- 	/* Do we have any free events? */
--	if (list_empty(&events->free))
-+	if (list_empty(&fh->free))
- 		return;
- 
- 	/* Take one and fill it. */
--	kev = list_first_entry(&events->free, struct v4l2_kevent, list);
-+	kev = list_first_entry(&fh->free, struct v4l2_kevent, list);
- 	kev->event.type = ev->type;
- 	kev->event.u = ev->u;
- 	kev->event.id = ev->id;
- 	kev->event.timestamp = *ts;
--	kev->event.sequence = events->sequence;
--	list_move_tail(&kev->list, &events->available);
-+	kev->event.sequence = fh->sequence;
-+	list_move_tail(&kev->list, &fh->available);
- 
--	events->navailable++;
-+	fh->navailable++;
- 
--	wake_up_all(&events->wait);
-+	wake_up_all(&fh->wait);
- }
- 
- void v4l2_event_queue(struct video_device *vdev, const struct v4l2_event *ev)
-@@ -240,24 +204,18 @@ EXPORT_SYMBOL_GPL(v4l2_event_queue_fh);
- 
- int v4l2_event_pending(struct v4l2_fh *fh)
- {
--	return fh->events->navailable;
-+	return fh->navailable;
- }
- EXPORT_SYMBOL_GPL(v4l2_event_pending);
- 
- int v4l2_event_subscribe(struct v4l2_fh *fh,
- 			 struct v4l2_event_subscription *sub)
- {
--	struct v4l2_events *events = fh->events;
- 	struct v4l2_subscribed_event *sev, *found_ev;
- 	struct v4l2_ctrl *ctrl = NULL;
- 	struct v4l2_ctrl_fh *ctrl_fh = NULL;
- 	unsigned long flags;
- 
--	if (fh->events == NULL) {
--		WARN_ON(1);
--		return -ENOMEM;
--	}
--
- 	if (sub->type == V4L2_EVENT_CTRL) {
- 		ctrl = v4l2_ctrl_find(fh->ctrl_handler, sub->id);
- 		if (ctrl == NULL)
-@@ -284,7 +242,7 @@ int v4l2_event_subscribe(struct v4l2_fh *fh,
- 		sev->type = sub->type;
- 		sev->id = sub->id;
- 
--		list_add(&sev->list, &events->subscribed);
-+		list_add(&sev->list, &fh->subscribed);
- 		sev = NULL;
- 	}
- 
-@@ -306,7 +264,6 @@ EXPORT_SYMBOL_GPL(v4l2_event_subscribe);
- 
- static void v4l2_event_unsubscribe_all(struct v4l2_fh *fh)
- {
--	struct v4l2_events *events = fh->events;
- 	struct v4l2_event_subscription sub;
- 	struct v4l2_subscribed_event *sev;
- 	unsigned long flags;
-@@ -315,8 +272,8 @@ static void v4l2_event_unsubscribe_all(struct v4l2_fh *fh)
- 		sev = NULL;
- 
- 		spin_lock_irqsave(&fh->vdev->fh_lock, flags);
--		if (!list_empty(&events->subscribed)) {
--			sev = list_first_entry(&events->subscribed,
-+		if (!list_empty(&fh->subscribed)) {
-+			sev = list_first_entry(&fh->subscribed,
- 					struct v4l2_subscribed_event, list);
- 			sub.type = sev->type;
- 			sub.id = sev->id;
-diff --git a/drivers/media/video/v4l2-fh.c b/drivers/media/video/v4l2-fh.c
-index c6aef84..333b8c8 100644
---- a/drivers/media/video/v4l2-fh.c
-+++ b/drivers/media/video/v4l2-fh.c
-@@ -29,7 +29,7 @@
- #include <media/v4l2-event.h>
- #include <media/v4l2-ioctl.h>
- 
--int v4l2_fh_init(struct v4l2_fh *fh, struct video_device *vdev)
-+void v4l2_fh_init(struct v4l2_fh *fh, struct video_device *vdev)
- {
- 	fh->vdev = vdev;
- 	/* Inherit from video_device. May be overridden by the driver. */
-@@ -38,16 +38,11 @@ int v4l2_fh_init(struct v4l2_fh *fh, struct video_device *vdev)
- 	set_bit(V4L2_FL_USES_V4L2_FH, &fh->vdev->flags);
- 	fh->prio = V4L2_PRIORITY_UNSET;
- 
--	/*
--	 * fh->events only needs to be initialized if the driver
--	 * supports the VIDIOC_SUBSCRIBE_EVENT ioctl.
--	 */
--	if (vdev->ioctl_ops && vdev->ioctl_ops->vidioc_subscribe_event)
--		return v4l2_event_init(fh);
--
--	fh->events = NULL;
--
--	return 0;
-+	init_waitqueue_head(&fh->wait);
-+	INIT_LIST_HEAD(&fh->free);
-+	INIT_LIST_HEAD(&fh->available);
-+	INIT_LIST_HEAD(&fh->subscribed);
-+	fh->sequence = -1;
- }
- EXPORT_SYMBOL_GPL(v4l2_fh_init);
- 
-diff --git a/drivers/media/video/v4l2-subdev.c b/drivers/media/video/v4l2-subdev.c
-index fd5dcca..3b67a85 100644
---- a/drivers/media/video/v4l2-subdev.c
-+++ b/drivers/media/video/v4l2-subdev.c
-@@ -75,15 +75,9 @@ static int subdev_open(struct file *file)
- 		return ret;
- 	}
- 
--	ret = v4l2_fh_init(&subdev_fh->vfh, vdev);
--	if (ret)
--		goto err;
-+	v4l2_fh_init(&subdev_fh->vfh, vdev);
- 
- 	if (sd->flags & V4L2_SUBDEV_FL_HAS_EVENTS) {
--		ret = v4l2_event_init(&subdev_fh->vfh);
--		if (ret)
--			goto err;
--
- 		ret = v4l2_event_alloc(&subdev_fh->vfh, sd->nevents);
- 		if (ret)
- 			goto err;
-@@ -297,7 +291,7 @@ static unsigned int subdev_poll(struct file *file, poll_table *wait)
- 	if (!(sd->flags & V4L2_SUBDEV_FL_HAS_EVENTS))
- 		return POLLERR;
- 
--	poll_wait(file, &fh->events->wait, wait);
-+	poll_wait(file, &fh->wait, wait);
- 
- 	if (v4l2_event_pending(fh))
- 		return POLLPRI;
-diff --git a/drivers/media/video/vivi.c b/drivers/media/video/vivi.c
-index f4f599a..99dbaea 100644
---- a/drivers/media/video/vivi.c
-+++ b/drivers/media/video/vivi.c
-@@ -1051,7 +1051,7 @@ vivi_poll(struct file *file, struct poll_table_struct *wait)
- 	if (v4l2_event_pending(fh))
- 		res |= POLLPRI;
- 	else
--		poll_wait(file, &fh->events->wait, wait);
-+		poll_wait(file, &fh->wait, wait);
- 	return res;
- }
- 
-diff --git a/drivers/usb/gadget/uvc_v4l2.c b/drivers/usb/gadget/uvc_v4l2.c
-index 5e807f0..5582870 100644
---- a/drivers/usb/gadget/uvc_v4l2.c
-+++ b/drivers/usb/gadget/uvc_v4l2.c
-@@ -130,13 +130,7 @@ uvc_v4l2_open(struct file *file)
- 	if (handle == NULL)
- 		return -ENOMEM;
- 
--	ret = v4l2_fh_init(&handle->vfh, vdev);
--	if (ret < 0)
--		goto error;
--
--	ret = v4l2_event_init(&handle->vfh);
--	if (ret < 0)
--		goto error;
-+	v4l2_fh_init(&handle->vfh, vdev);
- 
- 	ret = v4l2_event_alloc(&handle->vfh, 8);
- 	if (ret < 0)
-@@ -354,7 +348,7 @@ uvc_v4l2_poll(struct file *file, poll_table *wait)
- 	struct uvc_file_handle *handle = to_uvc_file_handle(file->private_data);
- 	unsigned int mask = 0;
- 
--	poll_wait(file, &handle->vfh.events->wait, wait);
-+	poll_wait(file, &handle->vfh.wait, wait);
- 	if (v4l2_event_pending(&handle->vfh))
- 		mask |= POLLPRI;
- 
-diff --git a/include/media/v4l2-event.h b/include/media/v4l2-event.h
-index 45e9c1e..042b893 100644
---- a/include/media/v4l2-event.h
-+++ b/include/media/v4l2-event.h
-@@ -43,17 +43,6 @@ struct v4l2_subscribed_event {
- 	u32			id;
- };
- 
--struct v4l2_events {
--	wait_queue_head_t	wait;
--	struct list_head	subscribed; /* Subscribed events */
--	struct list_head	free; /* Events ready for use */
--	struct list_head	available; /* Dequeueable event */
--	unsigned int		navailable;
--	unsigned int		nallocated; /* Number of allocated events */
--	u32			sequence;
--};
--
--int v4l2_event_init(struct v4l2_fh *fh);
- int v4l2_event_alloc(struct v4l2_fh *fh, unsigned int n);
- void v4l2_event_free(struct v4l2_fh *fh);
- int v4l2_event_dequeue(struct v4l2_fh *fh, struct v4l2_event *event,
-diff --git a/include/media/v4l2-fh.h b/include/media/v4l2-fh.h
-index d247111..bfc0457 100644
---- a/include/media/v4l2-fh.h
-+++ b/include/media/v4l2-fh.h
-@@ -29,15 +29,22 @@
- #include <linux/list.h>
- 
- struct video_device;
--struct v4l2_events;
- struct v4l2_ctrl_handler;
- 
- struct v4l2_fh {
- 	struct list_head	list;
- 	struct video_device	*vdev;
--	struct v4l2_events      *events; /* events, pending and subscribed */
- 	struct v4l2_ctrl_handler *ctrl_handler;
- 	enum v4l2_priority	prio;
-+
-+	/* Events */
-+	wait_queue_head_t	wait;
-+	struct list_head	subscribed; /* Subscribed events */
-+	struct list_head	free; /* Events ready for use */
-+	struct list_head	available; /* Dequeueable event */
-+	unsigned int		navailable;
-+	unsigned int		nallocated; /* Number of allocated events */
-+	u32			sequence;
- };
- 
- /*
-@@ -46,7 +53,7 @@ struct v4l2_fh {
-  * from driver's v4l2_file_operations->open() handler if the driver
-  * uses v4l2_fh.
-  */
--int v4l2_fh_init(struct v4l2_fh *fh, struct video_device *vdev);
-+void v4l2_fh_init(struct v4l2_fh *fh, struct video_device *vdev);
- /*
-  * Add the fh to the list of file handles on a video_device. The file
-  * handle must be initialised first.
--- 
-1.7.1
-
+As a side problem until then do you know if it would it be possible to
+use the Hauppauge remote that came with this card with a or Pinnacle
+PCTV Pro IR Receiver It is serial port and uses Lirc "pinsys" driver
+but I hate the remote that came with it. So far it works with it's
+normal remote but changing lircd.conf to a hauppauge one doesn't allow
+me to use a better remote.
