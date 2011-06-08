@@ -1,215 +1,62 @@
 Return-path: <mchehab@pedra>
-Received: from newsmtp5.atmel.com ([204.2.163.5]:62560 "EHLO
-	sjogate2.atmel.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752311Ab1FCIw7 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 3 Jun 2011 04:52:59 -0400
-Content-class: urn:content-classes:message
+Received: from smtp-68.nebula.fi ([83.145.220.68]:46134 "EHLO
+	smtp-68.nebula.fi" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754903Ab1FHKyi (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 8 Jun 2011 06:54:38 -0400
+Date: Wed, 8 Jun 2011 13:54:32 +0300
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Hans Verkuil <hverkuil@xs4all.nl>,
+	linux-media <linux-media@vger.kernel.org>,
+	Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
+Subject: Re: [GIT PATCHES FOR 2.6.41] Add bitmask controls
+Message-ID: <20110608105432.GE7830@valkosipuli.localdomain>
+References: <201105231315.29328.hverkuil@xs4all.nl>
+ <4DE636C5.7040604@redhat.com>
+ <ef656b6325ca0b3c65337f7480f834f0.squirrel@webmail.xs4all.nl>
+ <4DE64181.6050007@redhat.com>
+ <20110605132802.GH6073@valkosipuli.localdomain>
 MIME-Version: 1.0
-Content-Type: text/plain;
-	charset="US-ASCII"
-Content-Transfer-Encoding: 8BIT
-Subject: RE: [PATCH v2] [media] at91: add Atmel Image Sensor Interface (ISI) support
-Date: Fri, 3 Jun 2011 16:52:38 +0800
-Message-ID: <4C79549CB6F772498162A641D92D532801DAC995@penmb01.corp.atmel.com>
-In-Reply-To: <20110527120629.GA3603@game.jcrosoft.org>
-References: <1306496329-14535-1-git-send-email-josh.wu@atmel.com> <20110527120629.GA3603@game.jcrosoft.org>
-From: "Wu, Josh" <Josh.wu@atmel.com>
-To: "Jean-Christophe PLAGNIOL-VILLARD" <plagnioj@jcrosoft.com>
-Cc: <mchehab@redhat.com>, <g.liakhovetski@gmx.de>,
-	<linux-media@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
-	<linux-arm-kernel@lists.infradead.org>,
-	"Haring, Lars" <Lars.Haring@atmel.com>, <ryan@bluewatersys.com>,
-	<arnd@arndb.de>
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20110605132802.GH6073@valkosipuli.localdomain>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Hi, Jean-Christophe
+On Sun, Jun 05, 2011 at 04:28:03PM +0300, Sakari Ailus wrote:
+> On Wed, Jun 01, 2011 at 10:41:21AM -0300, Mauro Carvalho Chehab wrote:
+> > > There are currently two use cases: Sakari's flash controller needs to
+> > > report errors which are a bitmask of possible error conditions. It is way
+> > > overkill to split that up in separate boolean controls, especially since
+> > > apps will also want to get an event whenever such an error is raised.
+> > 
+> > Hmm... returning errors via V4L2 controls don't seem to be a good implementation.
+> > I need to review his RFC to better understand his idea.
+> 
+> The "errors" are not errors in the traditional meaning --- they also are
+> called faults. They signal that there's either a temporary or a permanent
+> hardware problem with the flash controller. The user will be able to
+> mitigate with many of these. Also the faults do arrive asynchronously,
+> making traditional error handling unsuitable for them. For example, the LED
+> controller may overheat in some situations which cause immediate LED
+> shutdown, leading to only partially flash exposed frame. When this happens
+> the user has to be notified of the condition, and to avoid reading a large
+> set of controls, a single bitmask control telling directly the reason for
+> the trouble is ideal.
+> 
+> The full RFC may be found here: 
+> 
+> <USR:http://www.spinics.net/lists/linux-media/msg32030.html>
 
-Thank you for the review.
+That was supposed to be 
 
-Jean-Christophe PLAGNIOL-VILLARD wrote on Friday, May 27, 2011 8:06 PM:
+<URL:http://www.spinics.net/lists/linux-media/msg32030.html>
 
->> +/* ISI interrupt service routine */
->> +static irqreturn_t isi_interrupt(int irq, void *dev_id) {
->> +	struct atmel_isi *isi = dev_id;
->> +	u32 status, mask, pending;
->> +	irqreturn_t ret = IRQ_NONE;
->> +
->> +	spin_lock(&isi->lock);
->> +
->> +	status = isi_readl(isi, ISI_STATUS);
->> +	mask = isi_readl(isi, ISI_INTMASK);
->> +	pending = status & mask;
->> +
->> +	if (pending & ISI_CTRL_SRST) {
->> +		complete(&isi->isi_complete);
->> +		isi_writel(isi, ISI_INTDIS, ISI_CTRL_SRST);
->> +		ret = IRQ_HANDLED;
->> +	}
->> +	if (pending & ISI_CTRL_DIS) {
->> +		complete(&isi->isi_complete);
->> +		isi_writel(isi, ISI_INTDIS, ISI_CTRL_DIS);
->> +		ret = IRQ_HANDLED;
->> +	}
+The adp1653 flash controller driver using the flash API. The patches have
+been acked by Laurent already.
 
-> no else here?
+Regards,
 
->> +
->> +	if (pending & ISI_SR_VSYNC) {
->> +		switch (isi->state) {
->> +		case ISI_STATE_IDLE:
->> +			isi->state = ISI_STATE_READY;
->> +			wake_up_interruptible(&isi->capture_wq);
->> +			break;
->> +		}
-
-> really switch here?
-
-I will remove the switch here.
-
-I think this part of IRQ handling code need to refine a little bit. The SRST and DIS_DONE is more independent. And other interrupts can compose together.
-Following is the latest code, I think is more reasonable.
-
-if (pending & ISI_CTRL_SRST) {
-	complete(&isi->complete);
-	isi_writel(isi, ISI_INTDIS, ISI_CTRL_SRST);
-	ret = IRQ_HANDLED;
-} else if (pending & ISI_CTRL_DIS) {
-	complete(&isi->complete);
-	isi_writel(isi, ISI_INTDIS, ISI_CTRL_DIS);
-	ret = IRQ_HANDLED;
-} else {
-	if ((pending & ISI_SR_VSYNC) &&
-			(isi->state == ISI_STATE_IDLE)) {
-		isi->state = ISI_STATE_READY;
-		wake_up_interruptible(&isi->vsync_wq);
-		ret = IRQ_HANDLED;
-	}
-	if (likely(pending & ISI_SR_CXFR_DONE))
-		ret = atmel_isi_handle_streaming(isi);
-}
-
->> +	} else if (likely(pending & ISI_SR_CXFR_DONE)) {
->> +		ret = atmel_isi_handle_streaming(isi);
->> +	}
->> +
->> +	spin_unlock(&isi->lock);
->> +
->> +	return ret;
->> +}
->> +
->> +#define	WAIT_ISI_RESET		1
->> +#define	WAIT_ISI_DISABLE	0
->> +static int atmel_isi_wait_status(int wait_reset, struct atmel_isi 
->> +*isi)
-
->I thinkhave teh atmel_isti first parameter is better
-
-I will fix it.
-
->> +{
->> +	unsigned long timeout;
->> +	/*
->> +	 * The reset or disable will only succeed if we have a
->> +	 * pixel clock from the camera.
->> +	 */
->> +	init_completion(&isi->isi_complete);
->> +
->> +	if (wait_reset) {
->> +		isi_writel(isi, ISI_INTEN, ISI_CTRL_SRST);
->> +		isi_writel(isi, ISI_CTRL, ISI_CTRL_SRST);
->> +	} else {
->> +		isi_writel(isi, ISI_INTEN, ISI_CTRL_DIS);
->> +		isi_writel(isi, ISI_CTRL, ISI_CTRL_DIS);
->> +	}
->> +
->> +	timeout = wait_for_completion_timeout(&isi->isi_complete,
->> +			msecs_to_jiffies(100));
->> +	if (timeout == 0)
->> +		return -ETIMEDOUT;
->> +
->> +	return 0;
->> +}
->> +
->> +/* ------------------------------------------------------------------
->> +	Videobuf operations
->> +   
->> +------------------------------------------------------------------*/
->> +static int queue_setup(struct vb2_queue *vq, unsigned int *nbuffers,
->> +				unsigned int *nplanes, unsigned long sizes[],
->> +				void *alloc_ctxs[])
->> +{
->> +	struct soc_camera_device *icd = soc_camera_from_vb2q(vq);
->> +	struct soc_camera_host *ici = to_soc_camera_host(icd->dev.parent);
->> +	struct atmel_isi *isi = ici->priv;
->> +	unsigned long size;
->> +	int ret, bytes_per_line;
->> +
->> +	/* Reset ISI */
->> +	ret = atmel_isi_wait_status(WAIT_ISI_RESET, isi);
->> +	if (ret < 0) {
->> +		dev_err(icd->dev.parent, "Reset ISI timed out\n");
->> +		return ret;
->> +	}
->> +	/* Disable all interrupts */
->> +	isi_writel(isi, ISI_INTDIS, ~0UL);
->> +
->> +	bytes_per_line = soc_mbus_bytes_per_line(icd->user_width,
->> +						icd->current_fmt->host_fmt);
->> +
->> +	if (bytes_per_line < 0)
->> +		return bytes_per_line;
->> +
->> +	size = bytes_per_line * icd->user_height;
->> +
->> +	if (*nbuffers == 0)
->> +		*nbuffers = MAX_BUFFER_NUMS;
->> +	if (*nbuffers > MAX_BUFFER_NUMS)
-
-> else here
-
-I will add it.
-
->> +		*nbuffers = MAX_BUFFER_NUMS;
->> +
->> +	if (size * *nbuffers > VID_LIMIT_BYTES)
->> +		*nbuffers = VID_LIMIT_BYTES / size;
->> +
->> +	*nplanes = 1;
->> +	sizes[0] = size;
->> +	alloc_ctxs[0] = isi->alloc_ctx;
->> +
->> +	isi->sequence = 0;
->> +	isi->active = NULL;
->> +
->> +	dev_dbg(icd->dev.parent, "%s, count=%d, size=%ld\n", __func__,
->> +		*nbuffers, size);
->> +
->> +	return 0;
->> +}
->> +
->> +static int buffer_init(struct vb2_buffer *vb) {
->> +	struct frame_buffer *buf = container_of(vb, struct frame_buffer, 
->> +vb);
->> +
->> +	buf->p_fb_desc = NULL;
->> +	buf->fb_desc_phys = 0;
-
-> memset 0?
-
-OK.
-
->> +	INIT_LIST_HEAD(&buf->list);
->> +
->> +	return 0;
->> +}
->> +
-
->otherwise the patch look good
->if you fix the upper issue
->Acked-by: Jean-Christophe PLAGNIOL-VILLARD <plagnioj@jcrosoft.com>
-
-Thank you very much. I will send out version3 soon.
-
-Best Regards,
-Josh Wu
+-- 
+Sakari Ailus
+sakari.ailus@iki.fi
