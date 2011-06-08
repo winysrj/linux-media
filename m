@@ -1,231 +1,189 @@
 Return-path: <mchehab@pedra>
-Received: from mailout1.w1.samsung.com ([210.118.77.11]:24183 "EHLO
-	mailout1.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758529Ab1FVSBj (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 22 Jun 2011 14:01:39 -0400
-Date: Wed, 22 Jun 2011 20:01:11 +0200
-From: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Subject: [PATCH v2 05/18] s5p-fimc: Remove sensor management code from FIMC
- capture driver
-In-reply-to: <1308765684-10677-1-git-send-email-s.nawrocki@samsung.com>
-To: linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org
-Cc: m.szyprowski@samsung.com, kyungmin.park@samsung.com,
-	s.nawrocki@samsung.com, sw0312.kim@samsung.com,
-	riverful.kim@samsung.com
-Message-id: <1308765684-10677-6-git-send-email-s.nawrocki@samsung.com>
-MIME-version: 1.0
-Content-type: TEXT/PLAIN
-Content-transfer-encoding: 7BIT
-References: <1308765684-10677-1-git-send-email-s.nawrocki@samsung.com>
+Received: from mx1.redhat.com ([209.132.183.28]:50850 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751576Ab1FHUZO (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 8 Jun 2011 16:25:14 -0400
+Received: from int-mx02.intmail.prod.int.phx2.redhat.com (int-mx02.intmail.prod.int.phx2.redhat.com [10.5.11.12])
+	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id p58KPE1J016036
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
+	for <linux-media@vger.kernel.org>; Wed, 8 Jun 2011 16:25:14 -0400
+Received: from pedra (vpn-10-126.rdu.redhat.com [10.11.10.126])
+	by int-mx02.intmail.prod.int.phx2.redhat.com (8.13.8/8.13.8) with ESMTP id p58KP4Ui024316
+	for <linux-media@vger.kernel.org>; Wed, 8 Jun 2011 16:25:13 -0400
+Date: Wed, 8 Jun 2011 17:23:03 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: [PATCH 06/13] [media] Docbook/ca.xml: match section ID's with the
+ reference links
+Message-ID: <20110608172303.69e87fbb@pedra>
+In-Reply-To: <cover.1307563765.git.mchehab@redhat.com>
+References: <cover.1307563765.git.mchehab@redhat.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
+To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-The sensor subdevs need to be shared between all available FIMC instances.
-Remove their registration from FIMC capture driver so they can then be
-registered to the media device driver.
+Make sure that both ca.h.xml and ca.xml will match the same names for
+the sections/links.
 
-Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
----
- drivers/media/video/s5p-fimc/fimc-capture.c |  139 +--------------------------
- drivers/media/video/s5p-fimc/fimc-core.h    |    2 +-
- 2 files changed, 2 insertions(+), 139 deletions(-)
+This way, it is now possible to identify API spec gaps:
 
-diff --git a/drivers/media/video/s5p-fimc/fimc-capture.c b/drivers/media/video/s5p-fimc/fimc-capture.c
-index f42cda3..cef8879 100644
---- a/drivers/media/video/s5p-fimc/fimc-capture.c
-+++ b/drivers/media/video/s5p-fimc/fimc-capture.c
-@@ -17,12 +17,9 @@
- #include <linux/bug.h>
- #include <linux/interrupt.h>
- #include <linux/device.h>
--#include <linux/platform_device.h>
- #include <linux/pm_runtime.h>
- #include <linux/list.h>
- #include <linux/slab.h>
--#include <linux/clk.h>
--#include <linux/i2c.h>
+Error: no ID for constraint linkend: ca-pid.
+Error: no ID for constraint linkend: ca-pid.
+Error: no ID for constraint linkend: CA_RESET.
+Error: no ID for constraint linkend: CA_GET_CAP.
+Error: no ID for constraint linkend: CA_GET_SLOT_INFO.
+Error: no ID for constraint linkend: CA_GET_DESCR_INFO.
+Error: no ID for constraint linkend: CA_GET_MSG.
+Error: no ID for constraint linkend: CA_SEND_MSG.
+Error: no ID for constraint linkend: CA_SET_DESCR.
+Error: no ID for constraint linkend: CA_SET_PID.
+
+Basically, in this case, no CA ioctl is described at the specs, and one
+file structure (ca-pid) is missing.
+
+Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+
+diff --git a/Documentation/DocBook/media/Makefile b/Documentation/DocBook/media/Makefile
+index 18604dd..249edd3 100644
+--- a/Documentation/DocBook/media/Makefile
++++ b/Documentation/DocBook/media/Makefile
+@@ -150,7 +150,7 @@ DVB_DOCUMENTED = \
+ 	-e "s,\(define\s\+\)\(DTV_[A-Z0-9_]\+\)\(\s\+[0-9]\+\),\1\<link linkend=\"\2\">\2\<\/link\>\3,g" \
+ 	-e "s,<link linkend=\".*\">\(DTV_IOCTL_MAX_MSGS\|dtv_cmds_h\)<\/link>,\1,g" \
+ 	-e ":a;s/\(linkend=\".*\)_\(.*\">\)/\1-\2/;ta" \
+-	-e "s,\(audio-mixer\|audio-karaoke\|audio-status\)-t,\1,g" \
++	-e "s,\(audio-mixer\|audio-karaoke\|audio-status\|ca-slot-info\|ca-descr-info\|ca-caps\|ca-msg\|ca-descr\|ca-pid\)-t,\1,g" \
+ 	-e "s,DTV-ISDBT-LAYER[A-C],DTV-ISDBT-LAYER,g" \
+ 	-e "s,\(define\s\+\)\([A-Z0-9_]\+\)\(\s\+_IO\),\1\<link linkend=\"\2\">\2\<\/link\>\3,g" \
  
- #include <linux/videodev2.h>
- #include <media/v4l2-device.h>
-@@ -33,126 +30,6 @@
+diff --git a/Documentation/DocBook/media/dvb/ca.xml b/Documentation/DocBook/media/dvb/ca.xml
+index b1f1d2f..143ec5b 100644
+--- a/Documentation/DocBook/media/dvb/ca.xml
++++ b/Documentation/DocBook/media/dvb/ca.xml
+@@ -8,73 +8,72 @@ including <emphasis role="tt">linux/dvb/ca.h</emphasis> in your application.
+ <title>CA Data Types</title>
  
- #include "fimc-core.h"
  
--static struct v4l2_subdev *fimc_subdev_register(struct fimc_dev *fimc,
--					    struct s5p_fimc_isp_info *isp_info)
--{
--	struct i2c_adapter *i2c_adap;
--	struct fimc_vid_cap *vid_cap = &fimc->vid_cap;
--	struct v4l2_subdev *sd = NULL;
--
--	i2c_adap = i2c_get_adapter(isp_info->i2c_bus_num);
--	if (!i2c_adap)
--		return ERR_PTR(-ENOMEM);
--
--	sd = v4l2_i2c_new_subdev_board(&vid_cap->v4l2_dev, i2c_adap,
--				       isp_info->board_info, NULL);
--	if (!sd) {
--		v4l2_err(&vid_cap->v4l2_dev, "failed to acquire subdev\n");
--		return NULL;
--	}
--
--	v4l2_info(&vid_cap->v4l2_dev, "subdevice %s registered successfuly\n",
--		isp_info->board_info->type);
--
--	return sd;
--}
--
--static void fimc_subdev_unregister(struct fimc_dev *fimc)
--{
--	struct fimc_vid_cap *vid_cap = &fimc->vid_cap;
--	struct i2c_client *client;
--
--	if (vid_cap->input_index < 0)
--		return;	/* Subdevice already released or not registered. */
--
--	if (vid_cap->sd) {
--		v4l2_device_unregister_subdev(vid_cap->sd);
--		client = v4l2_get_subdevdata(vid_cap->sd);
--		i2c_unregister_device(client);
--		i2c_put_adapter(client->adapter);
--		vid_cap->sd = NULL;
--	}
--
--	vid_cap->input_index = -1;
--}
--
--/**
-- * fimc_subdev_attach - attach v4l2_subdev to camera host interface
-- *
-- * @fimc: FIMC device information
-- * @index: index to the array of available subdevices,
-- *	   -1 for full array search or non negative value
-- *	   to select specific subdevice
-- */
--static int fimc_subdev_attach(struct fimc_dev *fimc, int index)
--{
--	struct fimc_vid_cap *vid_cap = &fimc->vid_cap;
--	struct s5p_platform_fimc *pdata = fimc->pdata;
--	struct s5p_fimc_isp_info *isp_info;
--	struct v4l2_subdev *sd;
--	int i;
--
--	for (i = 0; i < pdata->num_clients; ++i) {
--		isp_info = &pdata->isp_info[i];
--
--		if (index >= 0 && i != index)
--			continue;
--
--		sd = fimc_subdev_register(fimc, isp_info);
--		if (!IS_ERR_OR_NULL(sd)) {
--			vid_cap->sd = sd;
--			vid_cap->input_index = i;
--
--			return 0;
--		}
--	}
--
--	vid_cap->input_index = -1;
--	vid_cap->sd = NULL;
--	v4l2_err(&vid_cap->v4l2_dev, "fimc%d: sensor attach failed\n",
--		 fimc->id);
--	return -ENODEV;
--}
--
--static int fimc_isp_subdev_init(struct fimc_dev *fimc, unsigned int index)
--{
--	struct s5p_fimc_isp_info *isp_info;
--	struct s5p_platform_fimc *pdata = fimc->pdata;
--	int ret;
--
--	if (index >= pdata->num_clients)
--		return -EINVAL;
--
--	isp_info = &pdata->isp_info[index];
--
--	if (isp_info->clk_frequency)
--		clk_set_rate(fimc->clock[CLK_CAM], isp_info->clk_frequency);
--
--	ret = clk_enable(fimc->clock[CLK_CAM]);
--	if (ret)
--		return ret;
--
--	ret = fimc_subdev_attach(fimc, index);
--	if (ret)
--		return ret;
--
--	ret = fimc_hw_set_camera_polarity(fimc, isp_info);
--	if (ret)
--		return ret;
--
--	ret = v4l2_subdev_call(fimc->vid_cap.sd, core, s_power, 1);
--	if (!ret)
--		return ret;
--
--	/* enabling power failed so unregister subdev */
--	fimc_subdev_unregister(fimc);
--
--	v4l2_err(&fimc->vid_cap.v4l2_dev, "ISP initialization failed: %d\n",
--		 ret);
--
--	return ret;
--}
--
- static int fimc_stop_capture(struct fimc_dev *fimc)
- {
- 	unsigned long flags;
-@@ -399,15 +276,7 @@ static int fimc_capture_open(struct file *file)
- 	if (ret)
- 		return ret;
+-<section id="ca_slot_info_t">
++<section id="ca-slot-info">
+ <title>ca_slot_info_t</title>
+  <programlisting>
+- /&#x22C6; slot interface types and info &#x22C6;/
++typedef struct ca_slot_info {
++	int num;               /&#x22C6; slot number &#x22C6;/
  
--	if (++fimc->vid_cap.refcnt == 1) {
--		ret = fimc_isp_subdev_init(fimc, 0);
--		if (ret) {
--			pm_runtime_put_sync(&fimc->pdev->dev);
--			fimc->vid_cap.refcnt--;
--			return -EIO;
--		}
--	}
+- typedef struct ca_slot_info_s {
+-	 int num;               /&#x22C6; slot number &#x22C6;/
++	int type;              /&#x22C6; CA interface this slot supports &#x22C6;/
++#define CA_CI            1     /&#x22C6; CI high level interface &#x22C6;/
++#define CA_CI_LINK       2     /&#x22C6; CI link layer level interface &#x22C6;/
++#define CA_CI_PHYS       4     /&#x22C6; CI physical layer level interface &#x22C6;/
++#define CA_DESCR         8     /&#x22C6; built-in descrambler &#x22C6;/
++#define CA_SC          128     /&#x22C6; simple smart card interface &#x22C6;/
+ 
+-	 int type;           /&#x22C6; CA interface this slot supports &#x22C6;/
+- #define CA_CI            1  /&#x22C6; CI high level interface &#x22C6;/
+- #define CA_CI_LINK       2  /&#x22C6; CI link layer level interface &#x22C6;/
+- #define CA_CI_PHYS       4  /&#x22C6; CI physical layer level interface &#x22C6;/
+- #define CA_SC          128  /&#x22C6; simple smart card interface &#x22C6;/
 -
-+	++fimc->vid_cap.refcnt;
- 	file->private_data = fimc->vid_cap.ctx;
+-	 unsigned int flags;
+- #define CA_CI_MODULE_PRESENT 1 /&#x22C6; module (or card) inserted &#x22C6;/
+- #define CA_CI_MODULE_READY   2
+- } ca_slot_info_t;
++	unsigned int flags;
++#define CA_CI_MODULE_PRESENT 1 /&#x22C6; module (or card) inserted &#x22C6;/
++#define CA_CI_MODULE_READY   2
++} ca_slot_info_t;
+ </programlisting>
  
- 	return 0;
-@@ -422,12 +291,6 @@ static int fimc_capture_close(struct file *file)
- 	if (--fimc->vid_cap.refcnt == 0) {
- 		fimc_stop_capture(fimc);
- 		vb2_queue_release(&fimc->vid_cap.vbq);
--
--		v4l2_err(&fimc->vid_cap.v4l2_dev, "releasing ISP\n");
--
--		v4l2_subdev_call(fimc->vid_cap.sd, core, s_power, 0);
--		clk_disable(fimc->clock[CLK_CAM]);
--		fimc_subdev_unregister(fimc);
- 	}
+ </section>
+-<section id="ca_descr_info_t">
++<section id="ca-descr-info">
+ <title>ca_descr_info_t</title>
+- <programlisting>
+- typedef struct ca_descr_info_s {
+-	 unsigned int num;  /&#x22C6; number of available descramblers (keys) &#x22C6;/
+-	 unsigned int type; /&#x22C6; type of supported scrambling system &#x22C6;/
+- #define CA_ECD           1
+- #define CA_NDS           2
+- #define CA_DSS           4
+- } ca_descr_info_t;
++<programlisting>
++typedef struct ca_descr_info {
++	unsigned int num;  /&#x22C6; number of available descramblers (keys) &#x22C6;/
++	unsigned int type; /&#x22C6; type of supported scrambling system &#x22C6;/
++#define CA_ECD           1
++#define CA_NDS           2
++#define CA_DSS           4
++} ca_descr_info_t;
+ </programlisting>
  
- 	pm_runtime_put_sync(&fimc->pdev->dev);
-diff --git a/drivers/media/video/s5p-fimc/fimc-core.h b/drivers/media/video/s5p-fimc/fimc-core.h
-index f059216..210301e 100644
---- a/drivers/media/video/s5p-fimc/fimc-core.h
-+++ b/drivers/media/video/s5p-fimc/fimc-core.h
-@@ -11,6 +11,7 @@
+ </section>
+-<section id="ca_cap_t">
+-<title>ca_cap_t</title>
+- <programlisting>
+- typedef struct ca_cap_s {
+-	 unsigned int slot_num;  /&#x22C6; total number of CA card and module slots &#x22C6;/
+-	 unsigned int slot_type; /&#x22C6; OR of all supported types &#x22C6;/
+-	 unsigned int descr_num; /&#x22C6; total number of descrambler slots (keys) &#x22C6;/
+-	 unsigned int descr_type;/&#x22C6; OR of all supported types &#x22C6;/
++<section id="ca-caps">
++<title>ca_caps_t</title>
++<programlisting>
++typedef struct ca_cap_s {
++	unsigned int slot_num;  /&#x22C6; total number of CA card and module slots &#x22C6;/
++	unsigned int slot_type; /&#x22C6; OR of all supported types &#x22C6;/
++	unsigned int descr_num; /&#x22C6; total number of descrambler slots (keys) &#x22C6;/
++	unsigned int descr_type;/&#x22C6; OR of all supported types &#x22C6;/
+  } ca_cap_t;
+ </programlisting>
  
- /*#define DEBUG*/
+ </section>
+-<section id="ca_msg_t">
++<section id="ca-msg">
+ <title>ca_msg_t</title>
+- <programlisting>
+- /&#x22C6; a message to/from a CI-CAM &#x22C6;/
+- typedef struct ca_msg_s {
+-	 unsigned int index;
+-	 unsigned int type;
+-	 unsigned int length;
+-	 unsigned char msg[256];
+- } ca_msg_t;
++<programlisting>
++/&#x22C6; a message to/from a CI-CAM &#x22C6;/
++typedef struct ca_msg {
++	unsigned int index;
++	unsigned int type;
++	unsigned int length;
++	unsigned char msg[256];
++} ca_msg_t;
+ </programlisting>
  
-+#include <linux/platform_device.h>
- #include <linux/sched.h>
- #include <linux/spinlock.h>
- #include <linux/types.h>
-@@ -649,7 +650,6 @@ int fimc_register_m2m_device(struct fimc_dev *fimc);
- /* fimc-capture.c					*/
- int fimc_register_capture_device(struct fimc_dev *fimc);
- void fimc_unregister_capture_device(struct fimc_dev *fimc);
--int fimc_sensor_sd_init(struct fimc_dev *fimc, int index);
- int fimc_vid_cap_buf_queue(struct fimc_dev *fimc,
- 			     struct fimc_vid_buffer *fimc_vb);
- int fimc_capture_suspend(struct fimc_dev *fimc);
+ </section>
+-<section id="ca_descr_t">
++<section id="ca-descr">
+ <title>ca_descr_t</title>
+- <programlisting>
+- typedef struct ca_descr_s {
+-	 unsigned int index;
+-	 unsigned int parity;
+-	 unsigned char cw[8];
+- } ca_descr_t;
++<programlisting>
++typedef struct ca_descr {
++	unsigned int index;
++	unsigned int parity;
++	unsigned char cw[8];
++} ca_descr_t;
+ </programlisting>
+  </section></section>
+ <section id="ca_function_calls">
 -- 
-1.7.5.4
+1.7.1
+
 
