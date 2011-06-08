@@ -1,106 +1,68 @@
 Return-path: <mchehab@pedra>
-Received: from mx1.redhat.com ([209.132.183.28]:33276 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932067Ab1FPOi3 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 16 Jun 2011 10:38:29 -0400
-Message-ID: <4DFA1561.1030905@redhat.com>
-Date: Thu, 16 Jun 2011 11:38:25 -0300
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Received: from mail-ey0-f174.google.com ([209.85.215.174]:55578 "EHLO
+	mail-ey0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752016Ab1FHMmT convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 8 Jun 2011 08:42:19 -0400
+Received: by eyx24 with SMTP id 24so156904eyx.19
+        for <linux-media@vger.kernel.org>; Wed, 08 Jun 2011 05:42:18 -0700 (PDT)
 MIME-Version: 1.0
-To: Hans de Goede <hdegoede@redhat.com>
-CC: Devin Heitmueller <dheitmueller@kernellabs.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: Some fixes for alsa_stream
-References: <4DF6C10C.8070605@redhat.com>	<4DF758AF.3010301@redhat.com>	<4DF75C84.9000200@redhat.com>	<4DF7667C.9030502@redhat.com> <BANLkTi=9L+oxjpUaFo3ge0iqcZ2NCjJWWA@mail.gmail.com> <4DF76D88.5000506@redhat.com> <4DF77229.2020607@redhat.com> <4DF77405.2070104@redhat.com> <4DF8B716.1020406@redhat.com> <4DF8C0D2.5070900@redhat.com> <4DF8C32A.7090004@redhat.com> <4DF8D37C.7010307@redhat.com> <4DF9F734.1090508@redhat.com>
-In-Reply-To: <4DF9F734.1090508@redhat.com>
+In-Reply-To: <Pine.LNX.4.64.1106081439030.24274@axis700.grange>
+References: <1307014603-22944-1-git-send-email-javier.martin@vista-silicon.com>
+	<201106081357.51578.laurent.pinchart@ideasonboard.com>
+	<4CF44DCA-BCCA-4AA6-AE14-DAADE66767B4@beagleboard.org>
+	<Pine.LNX.4.64.1106081439030.24274@axis700.grange>
+Date: Wed, 8 Jun 2011 14:42:17 +0200
+Message-ID: <BANLkTinw6GoHgQYqJexbD-4=qitP6j0hDg@mail.gmail.com>
+Subject: Re: [beagleboard] Re: [PATCH v7 1/2] Add driver for Aptina (Micron)
+ mt9p031 sensor.
+From: javier Martin <javier.martin@vista-silicon.com>
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Cc: Koen Kooi <koen@beagleboard.org>, beagleboard@googlegroups.com,
+	linux-media@vger.kernel.org, carlighting@yahoo.co.nz,
+	mch_kot@yahoo.com.cn
 Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 8BIT
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Em 16-06-2011 09:29, Hans de Goede escreveu:
-> Hi,
-> 
-> On 06/15/2011 05:45 PM, Mauro Carvalho Chehab wrote:
-> 
-> <snip>
-> 
->> 1) try to find a common buffer size that are acceptable by both drivers,
->>     as using the same buffer size helps to avoid memcpy's, especially if
->>     mmap mode is enabled;
+On 8 June 2011 14:39, Guennadi Liakhovetski <g.liakhovetski@gmx.de> wrote:
+> On Wed, 8 Jun 2011, Koen Kooi wrote:
+>
 >>
-> 
-> This is not needed, using the same buffer size does nothing to avoid memcpy's
-> there are 2 possible scenarios:
-> 1) Use read() + write() like we do now, this means 2 memcpy's in the form
->    of copy_to_user to our buffer followed by a copy_from_user, and we don't
->    need to care about buffer sizes, we just write the amount of samples we
->    managed to read.
-> 
-> 2) Properly implemented mmap, in this case we need to do a regular
->    memcpy in userspace from the mmap-ed capture buffers to the mmapped
->    playback buffers. In this case having indentical buffersizes would
->    simplify the code, as it avoids the need to split the memcpy into
->    multiple memcpy's when crossing a buffer boundary. But we
->    need to handle this case anyways in case we cannot find a shared
->    period size. More over mmap mode is a pain and just not worth it IMHO.
-> 
->> 2) If the buffer size means that the latency will be more than a reasonable
->>     time interval [1], then fall back to use different periods;
-> 
-> It is better to just aim for the optimal period size right away, this
-> greatly simplifies the code, as said before trying to get identical buffer
-> sizes is premature optimization IMHO. xawtv barely registers in top on
-> my machine and this includes copying over the actual video data from
-> /dev/video# to shared memory xv pixmaps. If that part does not even
-> register imagine how little CPU the audio part is using. There is no
-> need to make the code more complicated for some theoretical performance
-> gain here, instead we should KISS.
+>> Op 8 jun 2011, om 13:57 heeft Laurent Pinchart het volgende geschreven:
+>>
+>> > Hi Javier,
+>> >
+>> > I'm testing your patch on a 2.6.39 kernel. Here's what I get when loading the
+>> > omap3-isp module.
+>> >
+>> > root@arago:~# modprobe omap3-isp
+>> > [  159.523681] omap3isp omap3isp: Revision 15.0 found
+>> > [  159.528991] omap-iommu omap-iommu.0: isp: version 1.1
+>> > [  159.875701] omap_i2c omap_i2c.2: Arbitration lost
+>> > [  159.881622] mt9p031 2-0048: Failed to reset the camera
+>> > [  159.887054] omap3isp omap3isp: Failed to power on: -5
+>> > [  159.892425] mt9p031 2-0048: Failed to power on device: -5
+>> > [  159.898956] isp_register_subdev_group: Unable to register subdev mt9p031
+>> >
+>> > Have you (or anyone else) seen that issue ?
+>>
+>> I build in both statically to avoid that problem.
+>
+> I used modules and it worked for me.
 
-xawtv has an option to use zerocopy, if the X11 v4l driver is loaded and
-if the display adapter supports the old overlay mode. It works fine with
-a bttv or saa7134 board with an older Nvidia hardware, like FX-5200. This
-works also with older ATI hardware.
+Maybe u-boot version Laurent uses does not enable internal pull-up
+resistors for i2c2 interface.
+You could either use a different u-boot version or attach external
+pull-up resistors to that interface.
 
-I intend to make v4l Xorg driver to work with newer display adapters using
-texture, but I  didn't have time for it yet. It would be good if we could
-do the same for the mmap mode for audio as well, but I don't think this has
-a top priority.
 
-> Note that I've just pushed a patch set which includes rewritten period
-> / buf size negotiation and a bunch of cleanups in general. This removes
-> over 150 lines of code, while at the same time making the code more
-> flexible. 
 
-You removed mmap support, but you didn't removed the alsa-mmap option at xawtv.
-
-> It should now work with pretty much any combination of
-> input / output device (tested with a bt878 input and intel hda,
-> usb-audio or pulseaudio output).
-
-I'll run some tests later with the boards I have here.
-
-> I've also changed the default -alsa-pb value to "default" as we should
-> not be picking something else then the user / distro configured defaults
-> for output IMHO. The user can set a generic default in alsarc, and override
-> that on the cmdline if he/she wants, but unless overridden on the cmdline
-> we should respect the users generic default as specified in his
-> alsarc.
-
-While pulseaudio refuses to work via ssh, this is actually a very bad idea.
-Xawtv is used by developers to test their stuff, and they generally do it
-on a remote machine, with the console captured via tty port, in order to
-be able to catch panic messages.
-
-For now, please revert this patch. After having pulseaudio fixed to properly
-handle the audio group, I'm ok to re-add it.
-
-> We could consider making the desired latency configurable, currently
-> I've hardcoded it to 30 ms (was 38 with the old code on my system) note
-> that I've chosen to specify the latency in ms rather then in a number
-> of samples, since it should be samplerate independent IMO.
-
-Yeah, having latency configurable sounds a good idea to me.
-
-Thanks,
-Mauro
+-- 
+Javier Martin
+Vista Silicon S.L.
+CDTUC - FASE C - Oficina S-345
+Avda de los Castros s/n
+39005- Santander. Cantabria. Spain
++34 942 25 32 60
+www.vista-silicon.com
