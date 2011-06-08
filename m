@@ -1,80 +1,68 @@
 Return-path: <mchehab@pedra>
-Received: from proofpoint-cluster.metrocast.net ([65.175.128.136]:47493 "EHLO
-	proofpoint-cluster.metrocast.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753556Ab1FLMwt (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 12 Jun 2011 08:52:49 -0400
-Subject: Re: [RFCv1 PATCH 7/7] tuner-core: s_tuner should not change tuner
- mode.
-From: Andy Walls <awalls@md.metrocast.net>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-In-Reply-To: <201106121430.03114.hverkuil@xs4all.nl>
-References: <1307799283-15518-1-git-send-email-hverkuil@xs4all.nl>
-	 <4DF4AA3F.5040005@redhat.com> <4DF4AD6A.3080003@redhat.com>
-	 <201106121430.03114.hverkuil@xs4all.nl>
-Content-Type: text/plain; charset="UTF-8"
-Date: Sun, 12 Jun 2011 08:53:06 -0400
-Message-ID: <1307883186.2592.10.camel@localhost>
+Received: from mx1.redhat.com ([209.132.183.28]:33809 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752510Ab1FHUZQ (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 8 Jun 2011 16:25:16 -0400
+Received: from int-mx02.intmail.prod.int.phx2.redhat.com (int-mx02.intmail.prod.int.phx2.redhat.com [10.5.11.12])
+	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id p58KPGKb016092
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
+	for <linux-media@vger.kernel.org>; Wed, 8 Jun 2011 16:25:16 -0400
+Received: from pedra (vpn-10-126.rdu.redhat.com [10.11.10.126])
+	by int-mx02.intmail.prod.int.phx2.redhat.com (8.13.8/8.13.8) with ESMTP id p58KP4Uj024316
+	for <linux-media@vger.kernel.org>; Wed, 8 Jun 2011 16:25:15 -0400
+Date: Wed, 8 Jun 2011 17:23:04 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: [PATCH 07/13] [media] DocBook/ca.xml: Describe structure ca_pid
+Message-ID: <20110608172304.6001886d@pedra>
+In-Reply-To: <cover.1307563765.git.mchehab@redhat.com>
+References: <cover.1307563765.git.mchehab@redhat.com>
 Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
+To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Sun, 2011-06-12 at 14:30 +0200, Hans Verkuil wrote:
-> On Sunday, June 12, 2011 14:13:30 Mauro Carvalho Chehab wrote:
-> > Em 12-06-2011 08:59, Mauro Carvalho Chehab escreveu:
-> > > Em 12-06-2011 08:36, Hans Verkuil escreveu:
-> > >>>> What about this:
-> > >>>>
-> > >>>> Opening /dev/radio effectively starts the radio mode. So if there is TV
-> > >>>> capture in progress, then the open should return -EBUSY. Otherwise it
-> > >>>> switches the tuner to radio mode. And it stays in radio mode until the
-> > >>>> last filehandle of /dev/radio is closed. At that point it will automatically
-> > >>>> switch back to TV mode (if there is one, of course).
-> > >>>
-> > >>> No. This would break existing applications. The mode switch should be done
-> > >>> at S_FREQUENCY (e. g. when the radio application is tuning into a channel).
-> > >>
-> > >> This is not what happens today as the switch to radio occurs as soon as you open
-> > >> the radio node. It's the reason for the s_radio op.
-> > > 
-> > > The s_radio op is something that I wanted to remove. It was there in the past to feed
-> > > the TV/radio hint logic. I wrote a patch for it, but I ended by discarding from my
-> > > final queue (I can't remember why).
-> > > 
-> > > I think that the hint logic were completely removed, but we may need to take a look
-> > > on the callers for s_radio. I'll check it right now.
-> > > 
-> > 
-> > The s_radio callback requires some care, as it is used on several places. It is probably
-> > safe to remove it from tuner, but a few sub-drivers like msp3400 needs it. The actual
-> > troubles seem to happen at the bridge drivers that call it during open(). It should be
-> > called only at s_frequency. I opted to keep the callback just to avoid having a bridge
-> > driver switching its registers to radio mode, and not having the tuner following it.
-> > 
-> > If we move the radio mode switch at the bridge drivers to s_frequency only, we can just
-> > remove this callback from tuner, letting it to be implemented only at the audio decoders.
-> 
-> Why would the audio decoders need it? If we do the mode switch when s_freq is
-> called, then the audio decoders can do the same and s_radio can disappear completely.
-> 
-> I would like that, but I'm a bit afraid of application breakage since we're changing
-> the behavior of /dev/radio. It seems that pretty much every video driver with radio
-> capability is calling s_radio during open(): bttv, ivtv, saa7134, usbvision, em28xx,
-> cx18, cx88, cx231xx and tm6000.
+This is the remaining missing structure at ca.xml. The ioctl's are still
+missing through.
 
-I think ivtvhopper relies on it:
+Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
 
-http://www.gateways-home.org/wb/pages/mycoding/--ivtvhopper-java.php
-
-Also, per my recommendation, ivtvhopper changes radio freq by
-using /dev/video24, since V4L2 priorities got in the way:
-
-http://ivtvdriver.org/pipermail/ivtv-users/2010-December/010097.html
-
-Regards,
-Andy
+diff --git a/Documentation/DocBook/media/dvb/ca.xml b/Documentation/DocBook/media/dvb/ca.xml
+index 143ec5b..a6cb952 100644
+--- a/Documentation/DocBook/media/dvb/ca.xml
++++ b/Documentation/DocBook/media/dvb/ca.xml
+@@ -44,7 +44,7 @@ typedef struct ca_descr_info {
+ <section id="ca-caps">
+ <title>ca_caps_t</title>
+ <programlisting>
+-typedef struct ca_cap_s {
++typedef struct ca_caps {
+ 	unsigned int slot_num;  /&#x22C6; total number of CA card and module slots &#x22C6;/
+ 	unsigned int slot_type; /&#x22C6; OR of all supported types &#x22C6;/
+ 	unsigned int descr_num; /&#x22C6; total number of descrambler slots (keys) &#x22C6;/
+@@ -75,7 +75,18 @@ typedef struct ca_descr {
+ 	unsigned char cw[8];
+ } ca_descr_t;
+ </programlisting>
+- </section></section>
++</section>
++
++<section id="ca-pid">
++<title>ca-pid</title>
++<programlisting>
++typedef struct ca_pid {
++	unsigned int pid;
++	int index;		/&#x22C6; -1 == disable&#x22C6;/
++} ca_pid_t;
++</programlisting>
++</section></section>
++
+ <section id="ca_function_calls">
+ <title>CA Function Calls</title>
+ 
+-- 
+1.7.1
 
 
