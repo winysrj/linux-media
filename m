@@ -1,714 +1,136 @@
 Return-path: <mchehab@pedra>
-Received: from devils.ext.ti.com ([198.47.26.153]:44745 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753263Ab1F3NN3 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 30 Jun 2011 09:13:29 -0400
-Received: from dbdp20.itg.ti.com ([172.24.170.38])
-	by devils.ext.ti.com (8.13.7/8.13.7) with ESMTP id p5UDDPNS022404
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-media@vger.kernel.org>; Thu, 30 Jun 2011 08:13:27 -0500
-From: Manjunath Hadli <manjunath.hadli@ti.com>
-To: LMML <linux-media@vger.kernel.org>
-CC: dlos <davinci-linux-open-source@linux.davincidsp.com>,
-	Manjunath Hadli <manjunath.hadli@ti.com>,
-	Nagabhushana Netagunte <nagabhushana.netagunte@ti.com>
-Subject: [RFC PATCH 1/8] davinci: vpfe: add dm3xx IPIPEIF hardware support module
-Date: Thu, 30 Jun 2011 18:43:10 +0530
-Message-ID: <1309439597-15998-2-git-send-email-manjunath.hadli@ti.com>
-In-Reply-To: <1309439597-15998-1-git-send-email-manjunath.hadli@ti.com>
-References: <1309439597-15998-1-git-send-email-manjunath.hadli@ti.com>
-MIME-Version: 1.0
-Content-Type: text/plain
+Received: from mx1.redhat.com ([209.132.183.28]:27350 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754358Ab1FHBqB (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 7 Jun 2011 21:46:01 -0400
+Received: from int-mx02.intmail.prod.int.phx2.redhat.com (int-mx02.intmail.prod.int.phx2.redhat.com [10.5.11.12])
+	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id p581k17P028970
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
+	for <linux-media@vger.kernel.org>; Tue, 7 Jun 2011 21:46:01 -0400
+Received: from pedra (vpn-236-210.phx2.redhat.com [10.3.236.210])
+	by int-mx02.intmail.prod.int.phx2.redhat.com (8.13.8/8.13.8) with ESMTP id p581jnc9007506
+	for <linux-media@vger.kernel.org>; Tue, 7 Jun 2011 21:46:00 -0400
+Date: Tue, 7 Jun 2011 22:45:35 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: [PATCH 08/15] [media] DocBook/dvbproperty.xml: Use links for all
+ parameters
+Message-ID: <20110607224535.0a82e96e@pedra>
+In-Reply-To: <cover.1307496835.git.mchehab@redhat.com>
+References: <cover.1307496835.git.mchehab@redhat.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
+To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-add support for dm3xx IPIPEIF hardware setup. This is the
-lowest software layer for the dm3x vpfe driver which directly
-accesses hardware. Add support for features like default
-pixel correction, dark frame substraction  and hardware setup.
+Instead of adding a program listing, just add there all parameters.
 
-Signed-off-by: Manjunath Hadli <manjunath.hadli@ti.com>
-Signed-off-by: Nagabhushana Netagunte <nagabhushana.netagunte@ti.com>
----
- drivers/media/video/davinci/dm3xx_ipipeif.c |  368 +++++++++++++++++++++++++++
- include/media/davinci/dm3xx_ipipeif.h       |  292 +++++++++++++++++++++
- 2 files changed, 660 insertions(+), 0 deletions(-)
- create mode 100644 drivers/media/video/davinci/dm3xx_ipipeif.c
- create mode 100644 include/media/davinci/dm3xx_ipipeif.h
+Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
 
-diff --git a/drivers/media/video/davinci/dm3xx_ipipeif.c b/drivers/media/video/davinci/dm3xx_ipipeif.c
-new file mode 100644
-index 0000000..36cb61b
---- /dev/null
-+++ b/drivers/media/video/davinci/dm3xx_ipipeif.c
-@@ -0,0 +1,368 @@
-+/*
-+* Copyright (C) 2011 Texas Instruments Inc
-+*
-+* This program is free software; you can redistribute it and/or
-+* modify it under the terms of the GNU General Public License as
-+* published by the Free Software Foundation version 2.
-+*
-+* This program is distributed in the hope that it will be useful,
-+* but WITHOUT ANY WARRANTY; without even the implied warranty of
-+* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-+* GNU General Public License for more details.
-+*
-+* You should have received a copy of the GNU General Public License
-+* along with this program; if not, write to the Free Software
-+* Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307 USA
-+*
-+* ipipe module to hold common functionality across DM355 and DM365
-+*/
-+#include <linux/kernel.h>
-+#include <linux/platform_device.h>
-+#include <linux/uaccess.h>
-+#include <linux/io.h>
-+#include <linux/v4l2-mediabus.h>
-+#include <media/davinci/dm3xx_ipipeif.h>
-+
-+#define DM355	0
-+#define DM365	1
-+
-+static void *__iomem ipipeif_base_addr;
-+static int device_type;
-+
-+static inline u32 regr_if(u32 offset)
-+{
-+	return readl(ipipeif_base_addr + offset);
-+}
-+
-+static inline void regw_if(u32 val, u32 offset)
-+{
-+	writel(val, ipipeif_base_addr + offset);
-+}
-+
-+void ipipeif_set_enable(char en, unsigned int mode)
-+{
-+	regw_if(1, IPIPEIF_ENABLE);
-+}
-+
-+u32 ipipeif_get_enable(void)
-+{
-+	return regr_if(IPIPEIF_ENABLE);
-+}
-+
-+int ipipeif_set_address(struct ipipeif *params, unsigned int address)
-+{
-+	unsigned int val1;
-+	unsigned int val;
-+
-+	if (params->source != 0) {
-+		val = ((params->adofs >> 5) & IPIPEIF_ADOFS_LSB_MASK);
-+		regw_if(val, IPIPEIF_ADOFS);
-+
-+		/* lower sixteen bit */
-+		val = ((address >> IPIPEIF_ADDRL_SHIFT) & IPIPEIF_ADDRL_MASK);
-+		regw_if(val, IPIPEIF_ADDRL);
-+
-+		/* upper next seven bit */
-+		val1 =
-+		    ((address >> IPIPEIF_ADDRU_SHIFT) & IPIPEIF_ADDRU_MASK);
-+		regw_if(val1, IPIPEIF_ADDRU);
-+	} else
-+		return -1;
-+
-+	return 0;
-+}
-+
-+static void ipipeif_config_dpc(struct ipipeif_dpc *dpc)
-+{
-+	u32 val;
-+
-+	if (dpc->en) {
-+		val = ((dpc->en & 1) << IPIPEIF_DPC2_EN_SHIFT);
-+		val |= (dpc->thr & IPIPEIF_DPC2_THR_MASK);
-+	} else
-+		val = 0;
-+
-+	regw_if(val, IPIPEIF_DPC2);
-+}
-+
-+/* This function sets up IPIPEIF and is called from
-+ * ipipe_hw_setup()
-+ */
-+int ipipeif_hw_setup(struct ipipeif *params)
-+{
-+	enum v4l2_mbus_pixelcode isif_port_if;
-+	unsigned int val1 = 0x7;
-+	unsigned int val;
-+
-+	if (NULL == params)
-+		return -1;
-+
-+	/* Enable clock to IPIPEIF and IPIPE */
-+	if (device_type == DM365)
-+		vpss_enable_clock(VPSS_IPIPEIF_CLOCK, 1);
-+
-+	/* Combine all the fields to make CFG1 register of IPIPEIF */
-+	val = params->mode << ONESHOT_SHIFT;
-+	val |= params->source << INPSRC_SHIFT;
-+	val |= params->clock_select << CLKSEL_SHIFT;
-+	val |= params->avg_filter << AVGFILT_SHIFT;
-+	val |= params->decimation << DECIM_SHIFT;
-+
-+	if (device_type == DM355) {
-+		val |= params->var.if_base.ialaw << IALAW_SHIFT;
-+		val |= params->var.if_base.pack_mode << PACK8IN_SHIFT;
-+		val |= params->var.if_base.clk_div << CLKDIV_SHIFT;
-+		val |= params->var.if_base.data_shift << DATASFT_SHIFT;
-+	} else {
-+		/* DM365 IPIPE 5.1 */
-+		val |= params->var.if_5_1.pack_mode << PACK8IN_SHIFT;
-+		val |= params->var.if_5_1.source1 << INPSRC1_SHIFT;
-+		if (params->source != SDRAM_YUV)
-+			val |= params->var.if_5_1.data_shift << DATASFT_SHIFT;
-+		else
-+			val &= (~(val1 << DATASFT_SHIFT));
-+	}
-+	regw_if(val, IPIPEIF_GFG1);
-+
-+	switch (params->source) {
-+	case CCDC:
-+		{
-+			regw_if(params->gain, IPIPEIF_GAIN);
-+			break;
-+		}
-+	case SDRAM_RAW:
-+	case CCDC_DARKFM:
-+		{
-+			regw_if(params->gain, IPIPEIF_GAIN);
-+			/* fall through */
-+		}
-+	case SDRAM_YUV:
-+		{
-+			val |= params->var.if_5_1.data_shift << DATASFT_SHIFT;
-+			regw_if(params->glob_hor_size, IPIPEIF_PPLN);
-+			regw_if(params->glob_ver_size, IPIPEIF_LPFR);
-+			regw_if(params->hnum, IPIPEIF_HNUM);
-+			regw_if(params->vnum, IPIPEIF_VNUM);
-+
-+			break;
-+		}
-+	default:
-+		/* Do nothing */
-+		;
-+	}
-+
-+	/*check if decimation is enable or not */
-+	if (params->decimation)
-+		regw_if(params->rsz, IPIPEIF_RSZ);
-+
-+	if (device_type == DM365) {
-+		/* Setup sync alignment and initial rsz position */
-+		val = params->var.if_5_1.align_sync & 1;
-+		val <<= IPIPEIF_INIRSZ_ALNSYNC_SHIFT;
-+		val |= (params->var.if_5_1.rsz_start & IPIPEIF_INIRSZ_MASK);
-+		regw_if(val, IPIPEIF_INIRSZ);
-+
-+		/* Enable DPCM decompression */
-+		switch (params->source) {
-+		case SDRAM_RAW:
-+			{
-+				val = 0;
-+				if (params->var.if_5_1.dpcm.en) {
-+					val = params->var.if_5_1.dpcm.en & 1;
-+					val |= (params->var.if_5_1.dpcm.type
-+						  & 1)
-+					    << IPIPEIF_DPCM_BITS_SHIFT;
-+					val |=
-+					    (params->var.if_5_1.dpcm.pred & 1)
-+					    << IPIPEIF_DPCM_PRED_SHIFT;
-+				}
-+				regw_if(val, IPIPEIF_DPCM);
-+
-+				/* set DPC */
-+				ipipeif_config_dpc(&params->var.if_5_1.dpc);
-+
-+				regw_if(params->var.if_5_1.clip, IPIPEIF_OCLIP);
-+				/* fall through for SDRAM YUV mode */
-+				isif_port_if =
-+				    params->var.if_5_1.isif_port.if_type;
-+				/* configure CFG2 */
-+				switch (isif_port_if) {
-+				case V4L2_MBUS_FMT_YUYV8_1X16:
-+					val |=
-+					    (0 <<
-+					      IPIPEIF_CFG2_YUV8_SHIFT);
-+					val |=
-+					    (1 <<
-+					      IPIPEIF_CFG2_YUV16_SHIFT);
-+					regw_if(val, IPIPEIF_CFG2);
-+					break;
-+				default:
-+					val |=
-+					    (0 <<
-+					      IPIPEIF_CFG2_YUV8_SHIFT);
-+					val |=
-+					    (0 <<
-+					      IPIPEIF_CFG2_YUV16_SHIFT);
-+					regw_if(val, IPIPEIF_CFG2);
-+					break;
-+				}
-+			}
-+		case SDRAM_YUV:
-+			{
-+				/* Set clock divider */
-+				if (params->clock_select == SDRAM_CLK) {
-+					val |=
-+					    ((params->var.if_5_1.clk_div.m - 1)
-+					     << IPIPEIF_CLKDIV_M_SHIFT);
-+					val |=
-+					    (params->var.if_5_1.clk_div.n - 1);
-+					regw_if(val, IPIPEIF_CLKDIV);
-+				}
-+
-+				break;
-+			}
-+		case CCDC:
-+		case CCDC_DARKFM:
-+			{
-+				/* set DPC */
-+				ipipeif_config_dpc(&params->var.if_5_1.dpc);
-+
-+				/* Set DF gain & threshold control */
-+				val = 0;
-+				if (params->var.if_5_1.df_gain_en) {
-+					val = (params->var.if_5_1.df_gain_thr
-+						 & IPIPEIF_DF_GAIN_THR_MASK);
-+					regw_if(val, IPIPEIF_DFSGTH);
-+					val = ((params->var.if_5_1.df_gain_en
-+						  & 1)
-+						 << IPIPEIF_DF_GAIN_EN_SHIFT);
-+					val |= (params->var.if_5_1.df_gain
-+						  & IPIPEIF_DF_GAIN_MASK);
-+				}
-+				regw_if(val, IPIPEIF_DFSGVL);
-+				isif_port_if =
-+				    params->var.if_5_1.isif_port.if_type;
-+
-+				/* configure CFG2 */
-+				val =
-+				    params->var.if_5_1.isif_port.hdpol
-+				    << IPIPEIF_CFG2_HDPOL_SHIFT;
-+				val |=
-+				    params->var.if_5_1.isif_port.vdpol
-+				    << IPIPEIF_CFG2_VDPOL_SHIFT;
-+				switch (isif_port_if) {
-+				case V4L2_MBUS_FMT_YUYV8_1X16:
-+				case V4L2_MBUS_FMT_YUYV10_1X20:
-+					{
-+						val |=
-+						    (0 <<
-+						     IPIPEIF_CFG2_YUV8_SHIFT);
-+						val |=
-+						    (1 <<
-+						     IPIPEIF_CFG2_YUV16_SHIFT);
-+						break;
-+					}
-+				case V4L2_MBUS_FMT_YUYV8_2X8:
-+				case V4L2_MBUS_FMT_Y8_1X8:
-+				case V4L2_MBUS_FMT_YUYV10_2X10:
-+					{
-+						val |=
-+						    (1 <<
-+						     IPIPEIF_CFG2_YUV8_SHIFT);
-+						val |=
-+						    (1 <<
-+						     IPIPEIF_CFG2_YUV16_SHIFT);
-+						val |=
-+						    ((params->var.if_5_1.
-+						      pix_order)
-+						     <<
-+						     IPIPEIF_CFG2_YUV8P_SHIFT);
-+						break;
-+					}
-+				default:
-+					{
-+						/* Bayer */
-+						regw_if(params->var.if_5_1.clip,
-+							IPIPEIF_OCLIP);
-+						val |=
-+						    (0 <<
-+						     IPIPEIF_CFG2_YUV16_SHIFT);
-+					}
-+				}
-+				regw_if(val, IPIPEIF_CFG2);
-+				break;
-+			}
-+		default:
-+			/* do nothing */
-+			;
-+		}
-+	}
-+	return 0;
-+}
-+
-+static int __devinit dm3xx_ipipeif_probe(struct platform_device *pdev)
-+{
-+	static resource_size_t  res_len;
-+	struct resource *res;
-+	int status;
-+
-+	if (NULL != pdev->dev.platform_data)
-+		device_type = DM365;
-+
-+	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
-+	if (!res)
-+		return -ENOENT;
-+
-+	res_len = res->end - res->start + 1;
-+
-+	res = request_mem_region(res->start, res_len, res->name);
-+	if (!res)
-+		return -EBUSY;
-+
-+	ipipeif_base_addr = ioremap_nocache(res->start, res_len);
-+	if (!ipipeif_base_addr) {
-+		status = -EBUSY;
-+		goto fail;
-+	}
-+	return 0;
-+
-+fail:
-+	release_mem_region(res->start, res_len);
-+
-+	return status;
-+}
-+
-+static int dm3xx_ipipeif_remove(struct platform_device *pdev)
-+{
-+	struct resource *res;
-+
-+	iounmap(ipipeif_base_addr);
-+	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
-+	if (res)
-+		release_mem_region(res->start, res->end - res->start + 1);
-+	return 0;
-+}
-+
-+static struct platform_driver dm3xx_ipipeif_driver = {
-+	.driver = {
-+		.name   = "dm3xx_ipipeif",
-+		.owner = THIS_MODULE,
-+	},
-+	.remove = __devexit_p(dm3xx_ipipeif_remove),
-+	.probe = dm3xx_ipipeif_probe,
-+};
-+
-+static int dm3xx_ipipeif_init(void)
-+{
-+	return platform_driver_register(&dm3xx_ipipeif_driver);
-+}
-+
-+static void dm3xx_ipipeif_exit(void)
-+{
-+	platform_driver_unregister(&dm3xx_ipipeif_driver);
-+}
-+
-+module_init(dm3xx_ipipeif_init);
-+module_exit(dm3xx_ipipeif_exit);
-+
-+MODULE_LICENSE("GPL2");
-diff --git a/include/media/davinci/dm3xx_ipipeif.h b/include/media/davinci/dm3xx_ipipeif.h
-new file mode 100644
-index 0000000..87389ff
---- /dev/null
-+++ b/include/media/davinci/dm3xx_ipipeif.h
-@@ -0,0 +1,292 @@
-+/*
-+* Copyright (C) 2011 Texas Instruments Inc
-+*
-+* This program is free software; you can redistribute it and/or
-+* modify it under the terms of the GNU General Public License as
-+* published by the Free Software Foundation version 2.
-+*
-+* This program is distributed in the hope that it will be useful,
-+* but WITHOUT ANY WARRANTY; without even the implied warranty of
-+* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-+* GNU General Public License for more details.
-+*
-+* You should have received a copy of the GNU General Public License
-+* along with this program; if not, write to the Free Software
-+* Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307 USA
-+*/
-+
-+#ifndef _DM3XX_IPIPEIF_H
-+#define _DM3XX_IPIPEIF_H
-+/* Used to shift input image data based on the data lines connected
-+ * to parallel port
-+ */
-+/* IPIPE base specific types */
-+enum ipipeif_data_shift {
-+	IPIPEIF_BITS15_2,
-+	IPIPEIF_BITS14_1,
-+	IPIPEIF_BITS13_0,
-+	IPIPEIF_BITS12_0,
-+	IPIPEIF_BITS11_0,
-+	IPIPEIF_BITS10_0,
-+	IPIPEIF_BITS9_0
-+};
-+
-+enum ipipeif_clkdiv {
-+	IPIPEIF_DIVIDE_HALF,
-+	IPIPEIF_DIVIDE_THIRD,
-+	IPIPEIF_DIVIDE_FOURTH,
-+	IPIPEIF_DIVIDE_FIFTH,
-+	IPIPEIF_DIVIDE_SIXTH,
-+	IPIPEIF_DIVIDE_EIGHTH,
-+	IPIPEIF_DIVIDE_SIXTEENTH,
-+	IPIPEIF_DIVIDE_THIRTY
-+};
-+
-+/* IPIPE 5.1 interface types */
-+/* dpcm predicator for IPIPE 5.1 */
-+enum ipipeif_dpcm_pred {
-+	DPCM_SIMPLE_PRED,
-+	DPCM_ADV_PRED
-+};
-+/* data shift for IPIPE 5.1 */
-+enum ipipeif_5_1_data_shift {
-+	IPIPEIF_5_1_BITS11_0,
-+	IPIPEIF_5_1_BITS10_0,
-+	IPIPEIF_5_1_BITS9_0,
-+	IPIPEIF_5_1_BITS8_0,
-+	IPIPEIF_5_1_BITS7_0,
-+	IPIPEIF_5_1_BITS15_4,
-+};
-+
-+/* clockdiv for IPIPE 5.1 */
-+struct ipipeif_5_1_clkdiv {
-+	unsigned char m;
-+	unsigned char n;
-+};
-+
-+/* DPC at the if for IPIPE 5.1 */
-+struct ipipeif_dpc {
-+	/* 0 - disable, 1 - enable */
-+	unsigned char en;
-+	/* threshold */
-+	unsigned short thr;
-+};
-+
-+enum ipipeif_decimation {
-+	IPIPEIF_DECIMATION_OFF,
-+	IPIPEIF_DECIMATION_ON
-+};
-+
-+enum	ipipeif_pixel_order {
-+	IPIPEIF_CBCR_Y,
-+	IPIPEIF_Y_CBCR
-+};
-+
-+#ifdef __KERNEL__
-+#include <linux/kernel.h>
-+#include <mach/hardware.h>
-+#include <linux/io.h>
-+#include <media/davinci/vpss.h>
-+#include <media/davinci/vpfe_types.h>
-+
-+enum ipipeif_clock {
-+	PIXCEL_CLK,
-+	SDRAM_CLK
-+};
-+
-+enum ipipeif_pack_mode  {
-+	IPIPEIF_PACK_16_BIT,
-+	IPIPEIF_PACK_8_BIT
-+};
-+
-+enum ipipe_oper_mode {
-+	CONTINUOUS,
-+	ONE_SHOT
-+};
-+
-+enum ipipeif_5_1_pack_mode  {
-+	IPIPEIF_5_1_PACK_16_BIT,
-+	IPIPEIF_5_1_PACK_8_BIT,
-+	IPIPEIF_5_1_PACK_8_BIT_A_LAW,
-+	IPIPEIF_5_1_PACK_12_BIT
-+};
-+
-+enum  ipipeif_avg_filter {
-+	AVG_OFF,
-+	AVG_ON
-+};
-+
-+enum  ipipeif_input_source {
-+	CCDC,
-+	SDRAM_RAW,
-+	CCDC_DARKFM,
-+	SDRAM_YUV
-+};
-+
-+enum ipipeif_ialaw {
-+	ALAW_OFF,
-+	ALAW_ON
-+};
-+
-+struct ipipeif_base {
-+	enum ipipeif_ialaw ialaw;
-+	enum ipipeif_pack_mode pack_mode;
-+	enum ipipeif_data_shift data_shift;
-+	enum ipipeif_clkdiv clk_div;
-+};
-+
-+enum  ipipeif_input_src1 {
-+	SRC1_PARALLEL_PORT,
-+	SRC1_SDRAM_RAW,
-+	SRC1_ISIF_DARKFM,
-+	SRC1_SDRAM_YUV
-+};
-+
-+enum ipipeif_dpcm_type {
-+	DPCM_8BIT_10BIT,
-+	DPCM_8BIT_12BIT
-+};
-+
-+struct ipipeif_dpcm_decomp {
-+	unsigned char en;
-+	enum ipipeif_dpcm_type type;
-+	enum ipipeif_dpcm_pred pred;
-+};
-+
-+enum ipipeif_dfs_dir {
-+	IPIPEIF_PORT_MINUS_SDRAM,
-+	IPIPEIF_SDRAM_MINUS_PORT
-+};
-+
-+struct ipipeif_5_1 {
-+	enum ipipeif_5_1_pack_mode pack_mode;
-+	enum ipipeif_5_1_data_shift data_shift;
-+	enum ipipeif_input_src1 source1;
-+	struct ipipeif_5_1_clkdiv clk_div;
-+	/* Defect pixel correction */
-+	struct ipipeif_dpc dpc;
-+	/* DPCM decompression */
-+	struct ipipeif_dpcm_decomp dpcm;
-+	/* ISIF port pixel order */
-+	enum ipipeif_pixel_order pix_order;
-+	/* interface parameters from isif */
-+	struct vpfe_hw_if_param isif_port;
-+	/* clipped to this value */
-+	unsigned short clip;
-+	/* Align HSync and VSync to rsz_start */
-+	unsigned char align_sync;
-+	/* resizer start position */
-+	unsigned int rsz_start;
-+	/* DF gain enable */
-+	unsigned char df_gain_en;
-+	/* DF gain value */
-+	unsigned short df_gain;
-+	/* DF gain threshold value */
-+	unsigned short df_gain_thr;
-+};
-+
-+/* ipipeif structures common to DM350 and DM365 used by ipipeif API */
-+struct ipipeif {
-+	enum ipipe_oper_mode mode;
-+	enum ipipeif_input_source source;
-+	enum ipipeif_clock clock_select;
-+	unsigned int glob_hor_size;
-+	unsigned int glob_ver_size;
-+	unsigned int hnum;
-+	unsigned int vnum;
-+	unsigned int adofs;
-+	unsigned char rsz;
-+	enum ipipeif_decimation decimation;
-+	enum ipipeif_avg_filter avg_filter;
-+	unsigned short gain;
-+	/* IPIPE 5.1 */
-+	union var_part {
-+		struct ipipeif_base if_base;
-+		struct ipipeif_5_1  if_5_1;
-+	} var;
-+};
-+
-+/* IPIPEIF Register Offsets from the base address */
-+#define IPIPEIF_ENABLE			(0x00)
-+#define IPIPEIF_GFG1			(0x04)
-+#define IPIPEIF_PPLN			(0x08)
-+#define IPIPEIF_LPFR			(0x0C)
-+#define IPIPEIF_HNUM			(0x10)
-+#define IPIPEIF_VNUM			(0x14)
-+#define IPIPEIF_ADDRU			(0x18)
-+#define IPIPEIF_ADDRL			(0x1C)
-+#define IPIPEIF_ADOFS			(0x20)
-+#define IPIPEIF_RSZ			(0x24)
-+#define IPIPEIF_GAIN			(0x28)
-+
-+/* Below registers are available only on IPIPE 5.1 */
-+#define IPIPEIF_DPCM			(0x2C)
-+#define IPIPEIF_CFG2			(0x30)
-+#define IPIPEIF_INIRSZ			(0x34)
-+#define IPIPEIF_OCLIP			(0x38)
-+#define IPIPEIF_DTUDF			(0x3C)
-+#define IPIPEIF_CLKDIV			(0x40)
-+#define IPIPEIF_DPC1			(0x44)
-+#define IPIPEIF_DPC2			(0x48)
-+#define IPIPEIF_DFSGVL			(0x4C)
-+#define IPIPEIF_DFSGTH			(0x50)
-+#define IPIPEIF_RSZ3A			(0x54)
-+#define IPIPEIF_INIRSZ3A		(0x58)
-+#define IPIPEIF_RSZ_MIN			(16)
-+#define IPIPEIF_RSZ_MAX			(112)
-+#define IPIPEIF_RSZ_CONST		(16)
-+#define SETBIT(reg, bit)   (reg = ((reg) | ((0x00000001)<<(bit))))
-+#define RESETBIT(reg, bit) (reg = ((reg) & (~(0x00000001<<(bit)))))
-+
-+#define IPIPEIF_ADOFS_LSB_MASK		(0x1FF)
-+#define IPIPEIF_ADOFS_LSB_SHIFT		(5)
-+#define IPIPEIF_ADOFS_MSB_MASK		(0x200)
-+#define IPIPEIF_ADDRU_MASK		(0x7FF)
-+#define IPIPEIF_ADDRL_SHIFT		(5)
-+#define IPIPEIF_ADDRL_MASK		(0xFFFF)
-+#define IPIPEIF_ADDRU_SHIFT		(21)
-+#define IPIPEIF_ADDRMSB_SHIFT		(31)
-+#define IPIPEIF_ADDRMSB_LEFT_SHIFT	(10)
-+
-+/* CFG1 Masks and shifts */
-+#define ONESHOT_SHIFT			(0)
-+#define DECIM_SHIFT			(1)
-+#define INPSRC_SHIFT			(2)
-+#define CLKDIV_SHIFT			(4)
-+#define AVGFILT_SHIFT			(7)
-+#define PACK8IN_SHIFT			(8)
-+#define IALAW_SHIFT			(9)
-+#define CLKSEL_SHIFT			(10)
-+#define DATASFT_SHIFT			(11)
-+#define INPSRC1_SHIFT			(14)
-+
-+/* DPC2 */
-+#define IPIPEIF_DPC2_EN_SHIFT		(12)
-+#define IPIPEIF_DPC2_THR_MASK		(0xFFF)
-+#define IPIPEIF_DF_GAIN_EN_SHIFT	(10)
-+#define IPIPEIF_DF_GAIN_MASK		(0x3FF)
-+#define IPIPEIF_DF_GAIN_THR_MASK	(0xFFF)
-+/* DPCM */
-+#define IPIPEIF_DPCM_BITS_SHIFT		(2)
-+#define IPIPEIF_DPCM_PRED_SHIFT		(1)
-+/* CFG2 */
-+#define IPIPEIF_CFG2_HDPOL_SHIFT	(1)
-+#define IPIPEIF_CFG2_VDPOL_SHIFT	(2)
-+#define IPIPEIF_CFG2_YUV8_SHIFT		(6)
-+#define	IPIPEIF_CFG2_YUV16_SHIFT	(3)
-+#define	IPIPEIF_CFG2_YUV8P_SHIFT	(7)
-+
-+/* INIRSZ */
-+#define IPIPEIF_INIRSZ_ALNSYNC_SHIFT	(13)
-+#define IPIPEIF_INIRSZ_MASK		(0x1FFF)
-+
-+/* CLKDIV */
-+#define IPIPEIF_CLKDIV_M_SHIFT		8
-+
-+int ipipeif_set_address(struct ipipeif *if_params, unsigned int address);
-+void ipipeif_set_enable(char en, unsigned int mode);
-+int ipipeif_hw_setup(struct ipipeif *if_params);
-+u32 ipipeif_get_enable(void);
-+
-+#endif
-+#endif
+diff --git a/Documentation/DocBook/media/dvb/dvbproperty.xml b/Documentation/DocBook/media/dvb/dvbproperty.xml
+index 67a2deb..01f3933 100644
+--- a/Documentation/DocBook/media/dvb/dvbproperty.xml
++++ b/Documentation/DocBook/media/dvb/dvbproperty.xml
+@@ -150,51 +150,51 @@ get/set up to 64 properties. The actual meaning of each property is described on
+ </para>
+ 
+ <para>The available frontend property types are:</para>
+-<programlisting>
+-#define DTV_UNDEFINED		0
+-#define DTV_TUNE		1
+-#define DTV_CLEAR		2
+-#define DTV_FREQUENCY		3
+-#define DTV_MODULATION		4
+-#define DTV_BANDWIDTH_HZ	5
+-#define DTV_INVERSION		6
+-#define DTV_DISEQC_MASTER	7
+-#define DTV_SYMBOL_RATE		8
+-#define DTV_INNER_FEC		9
+-#define DTV_VOLTAGE		10
+-#define DTV_TONE		11
+-#define DTV_PILOT		12
+-#define DTV_ROLLOFF		13
+-#define DTV_DISEQC_SLAVE_REPLY	14
+-#define DTV_FE_CAPABILITY_COUNT	15
+-#define DTV_FE_CAPABILITY	16
+-#define DTV_DELIVERY_SYSTEM	17
+-#define DTV_ISDBT_PARTIAL_RECEPTION	18
+-#define DTV_ISDBT_SOUND_BROADCASTING	19
+-#define DTV_ISDBT_SB_SUBCHANNEL_ID	20
+-#define DTV_ISDBT_SB_SEGMENT_IDX	21
+-#define DTV_ISDBT_SB_SEGMENT_COUNT	22
+-#define DTV_ISDBT_LAYERA_FEC			23
+-#define DTV_ISDBT_LAYERA_MODULATION		24
+-#define DTV_ISDBT_LAYERA_SEGMENT_COUNT		25
+-#define DTV_ISDBT_LAYERA_TIME_INTERLEAVING	26
+-#define DTV_ISDBT_LAYERB_FEC			27
+-#define DTV_ISDBT_LAYERB_MODULATION		28
+-#define DTV_ISDBT_LAYERB_SEGMENT_COUNT		29
+-#define DTV_ISDBT_LAYERB_TIME_INTERLEAVING	30
+-#define DTV_ISDBT_LAYERC_FEC			31
+-#define DTV_ISDBT_LAYERC_MODULATION		32
+-#define DTV_ISDBT_LAYERC_SEGMENT_COUNT		33
+-#define DTV_ISDBT_LAYERC_TIME_INTERLEAVING	34
+-#define DTV_API_VERSION		35
+-#define DTV_CODE_RATE_HP	36
+-#define DTV_CODE_RATE_LP	37
+-#define DTV_GUARD_INTERVAL	38
+-#define DTV_TRANSMISSION_MODE	39
+-#define DTV_HIERARCHY		40
+-#define DTV_ISDBT_LAYER_ENABLED	41
+-#define DTV_ISDBS_TS_ID		42
+-</programlisting>
++
++<para><link linkend="DTV-UNDEFINED">DTV_UNDEFINED</link></para>
++<para><link linkend="DTV-TUNE">DTV_TUNE</link></para>
++<para><link linkend="DTV-CLEAR">DTV_CLEAR</link></para>
++<para><link linkend="DTV-FREQUENCY">DTV_FREQUENCY</link></para>
++<para><link linkend="DTV-MODULATION">DTV_MODULATION</link></para>
++<para><link linkend="DTV-BANDWIDTH-HZ">DTV_BANDWIDTH_HZ</link></para>
++<para><link linkend="DTV-INVERSION">DTV_INVERSION</link></para>
++<para><link linkend="DTV-DISEQC-MASTER">DTV_DISEQC_MASTER</link></para>
++<para><link linkend="DTV-SYMBOL-RATE">DTV_SYMBOL_RATE</link></para>
++<para><link linkend="DTV-INNER-FEC">DTV_INNER_FEC</link></para>
++<para><link linkend="DTV-VOLTAGE">DTV_VOLTAGE</link></para>
++<para><link linkend="DTV-TONE">DTV_TONE</link></para>
++<para><link linkend="DTV-PILOT">DTV_PILOT</link></para>
++<para><link linkend="DTV-ROLLOFF">DTV_ROLLOFF</link></para>
++<para><link linkend="DTV-DISEQC-SLAVE-REPLY">DTV_DISEQC_SLAVE_REPLY</link></para>
++<para><link linkend="DTV-FE-CAPABILITY-COUNT">DTV_FE_CAPABILITY_COUNT</link></para>
++<para><link linkend="DTV-FE-CAPABILITY">DTV_FE_CAPABILITY</link></para>
++<para><link linkend="DTV-DELIVERY-SYSTEM">DTV_DELIVERY_SYSTEM</link></para>
++<para><link linkend="DTV-ISDBT-PARTIAL-RECEPTION">DTV_ISDBT_PARTIAL_RECEPTION</link></para>
++<para><link linkend="DTV-ISDBT-SOUND-BROADCASTING">DTV_ISDBT_SOUND_BROADCASTING</link></para>
++<para><link linkend="DTV-ISDBT-SB-SUBCHANNEL-ID">DTV_ISDBT_SB_SUBCHANNEL_ID</link></para>
++<para><link linkend="DTV-ISDBT-SB-SEGMENT-IDX">DTV_ISDBT_SB_SEGMENT_IDX</link></para>
++<para><link linkend="DTV-ISDBT-SB-SEGMENT-COUNT">DTV_ISDBT_SB_SEGMENT_COUNT</link></para>
++<para><link linkend="DTV-ISDBT-LAYER-FEC">DTV_ISDBT_LAYERA_FEC</link></para>
++<para><link linkend="DTV-ISDBT-LAYER-MODULATION">DTV_ISDBT_LAYERA_MODULATION</link></para>
++<para><link linkend="DTV-ISDBT-LAYER-SEGMENT-COUNT">DTV_ISDBT_LAYERA_SEGMENT_COUNT</link></para>
++<para><link linkend="DTV-ISDBT-LAYER-TIME-INTERLEAVING">DTV_ISDBT_LAYERA_TIME_INTERLEAVING</link></para>
++<para><link linkend="DTV-ISDBT-LAYER-FEC">DTV_ISDBT_LAYERB_FEC</link></para>
++<para><link linkend="DTV-ISDBT-LAYER-MODULATION">DTV_ISDBT_LAYERB_MODULATION</link></para>
++<para><link linkend="DTV-ISDBT-LAYER-SEGMENT-COUNT">DTV_ISDBT_LAYERB_SEGMENT_COUNT</link></para>
++<para><link linkend="DTV-ISDBT-LAYER-TIME-INTERLEAVING">DTV_ISDBT_LAYERB_TIME_INTERLEAVING</link></para>
++<para><link linkend="DTV-ISDBT-LAYER-FEC">DTV_ISDBT_LAYERC_FEC</link></para>
++<para><link linkend="DTV-ISDBT-LAYER-MODULATION">DTV_ISDBT_LAYERC_MODULATION</link></para>
++<para><link linkend="DTV-ISDBT-LAYER-SEGMENT-COUNT">DTV_ISDBT_LAYERC_SEGMENT_COUNT</link></para>
++<para><link linkend="DTV-ISDBT-LAYER-TIME-INTERLEAVING">DTV_ISDBT_LAYERC_TIME_INTERLEAVING</link></para>
++<para><link linkend="DTV-API-VERSION">DTV_API_VERSION</link></para>
++<para><link linkend="DTV-CODE-RATE-HP">DTV_CODE_RATE_HP</link></para>
++<para><link linkend="DTV-CODE-RATE-LP">DTV_CODE_RATE_LP</link></para>
++<para><link linkend="DTV-GUARD-INTERVAL">DTV_GUARD_INTERVAL</link></para>
++<para><link linkend="DTV-TRANSMISSION-MODE">DTV_TRANSMISSION_MODE</link></para>
++<para><link linkend="DTV-HIERARCHY">DTV_HIERARCHY</link></para>
++<para><link linkend="DTV-ISDBT-LAYER-ENABLED">DTV_ISDBT_LAYER_ENABLED</link></para>
++<para><link linkend="DTV-ISDBS-TS-ID">DTV_ISDBS_TS_ID</link></para>
++<para><link linkend="DTV-DVBT2-PLP-ID">DTV_DVBT2_PLP_ID</link></para>
+ </section>
+ 
+ <section id="fe_property_common">
 -- 
-1.6.2.4
+1.7.1
+
 
