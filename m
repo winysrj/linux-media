@@ -1,75 +1,123 @@
 Return-path: <mchehab@pedra>
-Received: from ffm.saftware.de ([83.141.3.46]:38968 "EHLO ffm.saftware.de"
+Received: from mx1.redhat.com ([209.132.183.28]:18837 "EHLO mx1.redhat.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757515Ab1FINH6 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 9 Jun 2011 09:07:58 -0400
-Message-ID: <4DF0C5AB.5040304@linuxtv.org>
-Date: Thu, 09 Jun 2011 15:07:55 +0200
-From: Andreas Oberritter <obi@linuxtv.org>
-MIME-Version: 1.0
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-CC: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: [PATCH 05/13] [media] dvb/audio.h: Remove definition for AUDIO_GET_PTS
-References: <cover.1307563765.git.mchehab@redhat.com> <20110608172302.3e2294af@pedra> <4DF0C015.1090807@linuxtv.org> <4DF0C4E1.1020406@redhat.com>
-In-Reply-To: <4DF0C4E1.1020406@redhat.com>
-Content-Type: text/plain; charset=ISO-8859-1
+	id S1752710Ab1FHBqJ (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 7 Jun 2011 21:46:09 -0400
+Received: from int-mx02.intmail.prod.int.phx2.redhat.com (int-mx02.intmail.prod.int.phx2.redhat.com [10.5.11.12])
+	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id p581k9gC030528
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
+	for <linux-media@vger.kernel.org>; Tue, 7 Jun 2011 21:46:09 -0400
+Received: from pedra (vpn-236-210.phx2.redhat.com [10.3.236.210])
+	by int-mx02.intmail.prod.int.phx2.redhat.com (8.13.8/8.13.8) with ESMTP id p581jncE007506
+	for <linux-media@vger.kernel.org>; Tue, 7 Jun 2011 21:46:09 -0400
+Date: Tue, 7 Jun 2011 22:45:40 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: [PATCH 13/15] [media] DocBook/dvbproperty.xml: Add Cable standards
+Message-ID: <20110607224540.689bc431@pedra>
+In-Reply-To: <cover.1307496835.git.mchehab@redhat.com>
+References: <cover.1307496835.git.mchehab@redhat.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
+To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On 06/09/2011 03:04 PM, Mauro Carvalho Chehab wrote:
-> Hi Andreas,
-> 
-> Em 09-06-2011 09:44, Andreas Oberritter escreveu:
->> On 06/08/2011 10:23 PM, Mauro Carvalho Chehab wrote:
->>> While this ioctl is defined inside dvb/audio.h, it is not docummented
->>> at the API specs, nor implemented on any driver inside the Linux Kernel.
->>> So, it doesn't make sense to keep it here.
->>>
->>> As this is not used anywere, removing it is not a regression. So,
->>> there's no need to use the normal features-to-be-removed process.
->>>
->>> Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
->>>
->>> diff --git a/include/linux/dvb/audio.h b/include/linux/dvb/audio.h
->>> index d47bccd..c1b3555 100644
->>> --- a/include/linux/dvb/audio.h
->>> +++ b/include/linux/dvb/audio.h
->>> @@ -118,18 +118,6 @@ typedef __u16 audio_attributes_t;
->>>  #define AUDIO_SET_ATTRIBUTES       _IOW('o', 17, audio_attributes_t)
->>>  #define AUDIO_SET_KARAOKE          _IOW('o', 18, audio_karaoke_t)
->>>  
->>> -/**
->>> - * AUDIO_GET_PTS
->>> - *
->>> - * Read the 33 bit presentation time stamp as defined
->>> - * in ITU T-REC-H.222.0 / ISO/IEC 13818-1.
->>> - *
->>> - * The PTS should belong to the currently played
->>> - * frame if possible, but may also be a value close to it
->>> - * like the PTS of the last decoded frame or the last PTS
->>> - * extracted by the PES parser.
->>> - */
->>> -#define AUDIO_GET_PTS              _IOR('o', 19, __u64)
->>>  #define AUDIO_BILINGUAL_CHANNEL_SELECT _IO('o', 20)
->>>  
->>>  #endif /* _DVBAUDIO_H_ */
->>
->> Please don't apply this patch. In general, many ioctls aren't
->> implemented in mainline drivers, because most if not all supported
->> devices inside the kernel tree are either PCI or USB add-in devices and
->> usually quite simple compared to a STB.
->>
->> This ioctl is used at least by enigma2 in userspace and implemented in
->> drivers for several generations of the dreambox.
-> 
-> If this is implemented on userspace only, what's the point of having it
-> inside the kernel API?
+Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
 
-... implemented in *kernel* drivers for several generations of the dreambox.
+diff --git a/Documentation/DocBook/media/dvb/dvbproperty.xml b/Documentation/DocBook/media/dvb/dvbproperty.xml
+index 64151bb..262d995 100644
+--- a/Documentation/DocBook/media/dvb/dvbproperty.xml
++++ b/Documentation/DocBook/media/dvb/dvbproperty.xml
+@@ -672,6 +672,7 @@ typedef enum fe_hierarchy {
+ 			<para>The following parameters are valid for DVB-T:</para>
+ 			<itemizedlist mark='opencircle'>
+ 				<listitem><para><link linkend="DTV-API-VERSION"><constant>DTV_API_VERSION</constant></link></para></listitem>
++				<listitem><para><link linkend="DTV-DELIVERY-SYSTEM"><constant>DTV_DELIVERY_SYSTEM</constant></link></para></listitem>
+ 				<listitem><para><link linkend="DTV-TUNE"><constant>DTV_TUNE</constant></link></para></listitem>
+ 				<listitem><para><link linkend="DTV-CLEAR"><constant>DTV_CLEAR</constant></link></para></listitem>
+ 				<listitem><para><link linkend="DTV-FREQUENCY"><constant>DTV_FREQUENCY</constant></link></para></listitem>
+@@ -683,7 +684,6 @@ typedef enum fe_hierarchy {
+ 				<listitem><para><link linkend="DTV-GUARD-INTERVAL"><constant>DTV_GUARD_INTERVAL</constant></link></para></listitem>
+ 				<listitem><para><link linkend="DTV-TRANSMISSION-MODE"><constant>DTV_TRANSMISSION_MODE</constant></link></para></listitem>
+ 				<listitem><para><link linkend="DTV-HIERARCHY"><constant>DTV_HIERARCHY</constant></link></para></listitem>
+-				<listitem><para><link linkend="DTV-DELIVERY-SYSTEM"><constant>DTV_DELIVERY_SYSTEM</constant></link></para></listitem>
+ 			</itemizedlist>
+ 		</section>
+ 		<section id="dvbt2-params">
+@@ -694,6 +694,7 @@ typedef enum fe_hierarchy {
+ 		<para>The following parameters are valid for DVB-T2:</para>
+ 		<itemizedlist mark='opencircle'>
+ 			<listitem><para><link linkend="DTV-API-VERSION"><constant>DTV_API_VERSION</constant></link></para></listitem>
++			<listitem><para><link linkend="DTV-DELIVERY-SYSTEM"><constant>DTV_DELIVERY_SYSTEM</constant></link></para></listitem>
+ 			<listitem><para><link linkend="DTV-TUNE"><constant>DTV_TUNE</constant></link></para></listitem>
+ 			<listitem><para><link linkend="DTV-CLEAR"><constant>DTV_CLEAR</constant></link></para></listitem>
+ 			<listitem><para><link linkend="DTV-FREQUENCY"><constant>DTV_FREQUENCY</constant></link></para></listitem>
+@@ -705,7 +706,6 @@ typedef enum fe_hierarchy {
+ 			<listitem><para><link linkend="DTV-GUARD-INTERVAL"><constant>DTV_GUARD_INTERVAL</constant></link></para></listitem>
+ 			<listitem><para><link linkend="DTV-TRANSMISSION-MODE"><constant>DTV_TRANSMISSION_MODE</constant></link></para></listitem>
+ 			<listitem><para><link linkend="DTV-HIERARCHY"><constant>DTV_HIERARCHY</constant></link></para></listitem>
+-			<listitem><para><link linkend="DTV-DELIVERY-SYSTEM"><constant>DTV_DELIVERY_SYSTEM</constant></link></para></listitem>
+ 			<listitem><para><link linkend="DTV-DVBT2-PLP-ID"><constant>DTV_DVBT2_PLP_ID</constant></link></para></listitem>
+ 		</itemizedlist>
+ 		</section>
+@@ -734,6 +734,7 @@ typedef enum fe_hierarchy {
+ 		<para>The following parameters are valid for ISDB-T:</para>
+ 		<itemizedlist mark='opencircle'>
+ 			<listitem><para><link linkend="DTV-API-VERSION"><constant>DTV_API_VERSION</constant></link></para></listitem>
++			<listitem><para><link linkend="DTV-DELIVERY-SYSTEM"><constant>DTV_DELIVERY_SYSTEM</constant></link></para></listitem>
+ 			<listitem><para><link linkend="DTV-TUNE"><constant>DTV_TUNE</constant></link></para></listitem>
+ 			<listitem><para><link linkend="DTV-CLEAR"><constant>DTV_CLEAR</constant></link></para></listitem>
+ 			<listitem><para><link linkend="DTV-FREQUENCY"><constant>DTV_FREQUENCY</constant></link></para></listitem>
+@@ -745,7 +746,6 @@ typedef enum fe_hierarchy {
+ 			<listitem><para><link linkend="DTV-GUARD-INTERVAL"><constant>DTV_GUARD_INTERVAL</constant></link></para></listitem>
+ 			<listitem><para><link linkend="DTV-TRANSMISSION-MODE"><constant>DTV_TRANSMISSION_MODE</constant></link></para></listitem>
+ 			<listitem><para><link linkend="DTV-HIERARCHY"><constant>DTV_HIERARCHY</constant></link></para></listitem>
+-			<listitem><para><link linkend="DTV-DELIVERY-SYSTEM"><constant>DTV_DELIVERY_SYSTEM</constant></link></para></listitem>
+ 			<listitem><para><link linkend="DTV-ISDBT-LAYER-ENABLED"><constant>DTV_ISDBT_LAYER_ENABLED</constant></link></para></listitem>
+ 			<listitem><para><link linkend="DTV-ISDBT-PARTIAL-RECEPTION"><constant>DTV_ISDBT_PARTIAL_RECEPTION</constant></link></para></listitem>
+ 			<listitem><para><link linkend="DTV-ISDBT-SOUND-BROADCASTING"><constant>DTV_ISDBT_SOUND_BROADCASTING</constant></link></para></listitem>
+@@ -768,6 +768,38 @@ typedef enum fe_hierarchy {
+ 		</section>
+ 	</section>
+ 	<section id="frontend-property-cable-systems">
++	<section id="dvbc-params">
++		<title>DVB-C delivery system</title>
++		<para>The DVB-C Annex-A/C is the widely used cable standard. Transmission uses QAM modulation.</para>
++		<para>The following parameters are valid for DVB-C Annex A/C:</para>
++		<itemizedlist mark='opencircle'>
++			<listitem><para><link linkend="DTV-API-VERSION"><constant>DTV_API_VERSION</constant></link></para></listitem>
++			<listitem><para><link linkend="DTV-DELIVERY-SYSTEM"><constant>DTV_DELIVERY_SYSTEM</constant></link></para></listitem>
++			<listitem><para><link linkend="DTV-TUNE"><constant>DTV_TUNE</constant></link></para></listitem>
++			<listitem><para><link linkend="DTV-CLEAR"><constant>DTV_CLEAR</constant></link></para></listitem>
++			<listitem><para><link linkend="DTV-FREQUENCY"><constant>DTV_FREQUENCY</constant></link></para></listitem>
++			<listitem><para><link linkend="DTV-MODULATION"><constant>DTV_MODULATION</constant></link></para></listitem>
++			<listitem><para><link linkend="DTV-INVERSION"><constant>DTV_INVERSION</constant></link></para></listitem>
++			<listitem><para><link linkend="DTV-SYMBOL-RATE"><constant>DTV_SYMBOL_RATE</constant></link></para></listitem>
++			<listitem><para><link linkend="DTV-INNER-FEC"><constant>DTV_INNER_FEC</constant></link></para></listitem>
++		</itemizedlist>
++	</section>
++	<section id="dvbc-annex-b-params">
++		<title>DVB-C Annex B delivery system</title>
++		<para>The DVB-C Annex-B is only used on a few Countries like the United States.</para>
++		<para>The following parameters are valid for DVB-C Annex B:</para>
++		<itemizedlist mark='opencircle'>
++			<listitem><para><link linkend="DTV-API-VERSION"><constant>DTV_API_VERSION</constant></link></para></listitem>
++			<listitem><para><link linkend="DTV-DELIVERY-SYSTEM"><constant>DTV_DELIVERY_SYSTEM</constant></link></para></listitem>
++			<listitem><para><link linkend="DTV-TUNE"><constant>DTV_TUNE</constant></link></para></listitem>
++			<listitem><para><link linkend="DTV-CLEAR"><constant>DTV_CLEAR</constant></link></para></listitem>
++			<listitem><para><link linkend="DTV-FREQUENCY"><constant>DTV_FREQUENCY</constant></link></para></listitem>
++			<listitem><para><link linkend="DTV-MODULATION"><constant>DTV_MODULATION</constant></link></para></listitem>
++			<listitem><para><link linkend="DTV-INVERSION"><constant>DTV_INVERSION</constant></link></para></listitem>
++			<listitem><para><link linkend="DTV-SYMBOL-RATE"><constant>DTV_SYMBOL_RATE</constant></link></para></listitem>
++			<listitem><para><link linkend="DTV-INNER-FEC"><constant>DTV_INNER_FEC</constant></link></para></listitem>
++		</itemizedlist>
++	</section>
+ 	<title>Properties used on cable delivery systems</title>
+ 	<para>TODO</para>
+ 	</section>
+-- 
+1.7.1
 
-I mentioned enigma2, because a kernel API without a user wouldn't make
-much sense either.
 
-Regards,
-Andreas
