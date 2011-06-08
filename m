@@ -1,190 +1,106 @@
 Return-path: <mchehab@pedra>
-Received: from comal.ext.ti.com ([198.47.26.152]:55693 "EHLO comal.ext.ti.com"
+Received: from mx1.redhat.com ([209.132.183.28]:41850 "EHLO mx1.redhat.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757847Ab1F1McM convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 28 Jun 2011 08:32:12 -0400
-From: "Hadli, Manjunath" <manjunath.hadli@ti.com>
-To: "'Laurent Pinchart'" <laurent.pinchart@ideasonboard.com>
-CC: "davinci-linux-open-source@linux.davincidsp.com"
-	<davinci-linux-open-source@linux.davincidsp.com>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Date: Tue, 28 Jun 2011 18:02:01 +0530
-Subject: RE: [RFC] Media Controller Capture driver for DM365
-Message-ID: <B85A65D85D7EB246BE421B3FB0FBB593024BCEF738@dbde02.ent.ti.com>
-References: <B85A65D85D7EB246BE421B3FB0FBB593024BBC5CB6@dbde02.ent.ti.com>
- <201105020006.24338.laurent.pinchart@ideasonboard.com>
-In-Reply-To: <201105020006.24338.laurent.pinchart@ideasonboard.com>
-Content-Language: en-US
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-MIME-Version: 1.0
+	id S1753464Ab1FHUZ1 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 8 Jun 2011 16:25:27 -0400
+Received: from int-mx02.intmail.prod.int.phx2.redhat.com (int-mx02.intmail.prod.int.phx2.redhat.com [10.5.11.12])
+	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id p58KPRcm011479
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
+	for <linux-media@vger.kernel.org>; Wed, 8 Jun 2011 16:25:27 -0400
+Received: from pedra (vpn-10-126.rdu.redhat.com [10.11.10.126])
+	by int-mx02.intmail.prod.int.phx2.redhat.com (8.13.8/8.13.8) with ESMTP id p58KP4Up024316
+	for <linux-media@vger.kernel.org>; Wed, 8 Jun 2011 16:25:26 -0400
+Date: Wed, 8 Jun 2011 17:23:10 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: [PATCH 13/13] [media] DocBook/video.xml: Document the remaining
+ data structures
+Message-ID: <20110608172310.6d91b712@pedra>
+In-Reply-To: <cover.1307563765.git.mchehab@redhat.com>
+References: <cover.1307563765.git.mchehab@redhat.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
+To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
+Now, all data structures are commented. A few ioctls remain undocumented:
 
-Laurent,
-  Sorry for getting back late on this. I was also tied up. I am following it up with the patches.
+Error: no ID for constraint linkend: VIDEO_GET_SIZE.
+Error: no ID for constraint linkend: VIDEO_GET_FRAME_RATE.
+Error: no ID for constraint linkend: VIDEO_GET_PTS.
+Error: no ID for constraint linkend: VIDEO_GET_FRAME_COUNT.
+Error: no ID for constraint linkend: VIDEO_COMMAND.
+Error: no ID for constraint linkend: VIDEO_TRY_COMMAND.
 
--Manju
+Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
 
-On Mon, May 02, 2011 at 03:36:23, Laurent Pinchart wrote:
-> Hi Manjunath,
-> 
-> On Wednesday 27 April 2011 16:14:03 Hadli, Manjunath wrote:
-> > Introduction
-> > ------------
-> > This is the proposal of the initial version of design and 
-> > implementation of the DM365 VPFE (Video Port Front End) drivers using 
-> > Media Controloler , the initial version which supports the following:
-> > 1) dm365 vpfe
-> > 2) ccdc,previewer,resizer,h3a,af blocks
-> > 3) supports both continuous and single-shot modes
-> > 4) supports user pointer exchange and memory mapped modes for buffer 
-> > allocation
-> > 
-> > This driver bases its design on Laurent Pinchart's Media Controller 
-> > Design whose patches for Media Controller and subdev enhancements form the base.
-> > The driver also takes copious elements taken from Laurent Pinchart and 
-> > others' OMAP ISP driver based on Media Controller. So thank you all 
-> > the people who are responsible for the Media Controller and the OMAP 
-> > ISP driver.
-> 
-> You're welcome.
-> 
-> > Also, the core functionality of the driver comes from the arago vpfe 
-> > capture driver of which the CCDC capture was based on V4L2, with other 
-> > drivers like Previwer, and Resizer.
-> > 
-> > The specification for DM365 can be found here:
-> > dm365  vpfe: http://www.ti.com/litv/pdf/sprufg8c
-> > 
-> > The initial version of the  driver implementation can be found here:
-> > 
-> > http://git.linuxtv.org/mhadli/v4l-dvb-davinci_devices.git?a=shortlog;h
-> > =refs
-> > /heads/mc_release
-> 
-> I'll try to review the code, but I got the DM644x V4L2 display driver on my todo-list first :-)
-> 
-> > Driver Design: Main entities
-> > ----------------------------
-> > The hardware modules for dm355,dm365 are mainly ipipe, ipipeif,isif. 
-> > These hardware modules are generically exposed to the user level in 
-> > the for of
-> > dm6446 style modules. Mainly -
-> > ccdc, previewer, resizer in addition to the other histogram and auto 
-> > color/white balance correction and auto focus modules.
-> 
-> I'm curious, why do you name the modules CCDC and previewer in the code, when they're called ISIF, IPIPEIF and IPIPE in the documentation ? That's quite confusing.
-The driver is intended to support Dm365, Dm355 and Dm6446. The three are similar and there are some internal differences. The counterparts for IPIPE in Dm6446 are known by names as CCDC , previewer etc and a good part of the world knows the driver by that name. So rather than changing the names, we decided to keep them as-is.
-> 
-> > 1)MT9P031 sensor  module for RAW capture
-> > 2)TVP7002 decoder module for HD inputs 3)TVP514x decoder module for SD 
-> > inputs 4)CCDC capture module 5)Previewer Module for Bayer to YUV 
-> > conversion 6)Resizer Module for scaling
-> > 
-> > Connection for on-the-fly capture
-> > ---------------------------------
-> > Mt9P031 
-> > ------>CCDC--->Previewer(optional)--->Resizer(optional)--->Video
-> > 
-> > TVP7002 ---
-> > 
-> > TV514x  ---
-> > 
-> > File Organisation
-> > -----------------
-> > 
-> > main driver files
-> > ----------------
-> > drivers/media/video/davinci/vpfe_capture.c
-> > include/media/davinci/vpfe_capture.h
-> > 
-> > Instantiatiation of the v4l2 device, media device and all  subdevs 
-> > from here.
-> > 
-> > video Interface files
-> > ---------------------
-> > drivers/media/video/davinci/vpfe_video.c
-> > include/media/davinci/vpfe_video.h
-> > 
-> > Implements all the v4l2 video operations with a generic implementation 
-> > for continuous and one shot mode.
-> > 
-> > subdev interface files
-> > ----------------------
-> > These file implement the subdev interface functionality for each of 
-> > the subdev entities - mainly the entry points and their 
-> > implementations in a IP generic way.
-> > 
-> > drivers/media/video/davinci/vpfe_ccdc.c
-> > drivers/media/video/davinci/vpfe_previewer.c
-> > drivers/media/video/davinci/vpfe_resizer.c
-> > drivers/media/video/davinci/vpfe_af.c
-> > drivers/media/video/davinci/vpfe_aew.c
-> > drivers/media/video/mt9p031.c
-> > drivers/media/video/tvp514x.c
-> > drivers/media/video/tvp7002.c
-> > drivers/media/video/ths7353.c
-> > 
-> > include/media/davinci/vpfe_ccdc.h
-> > include/media/davinci/vpfe_previewer.h
-> > include/media/davinci/vpfe_resizer.h
-> > include/media/davinci/vpfe_af.h
-> > include/media/davinci/vpfe_aew.h
-> > include/media/tvp514x.h
-> > drivers/media/video/tvp514x_regs.h
-> > include/media/tvp7002.h
-> > drivers/media/video/tvp7002_reg.h
-> > 
-> > core implementation files
-> > -------------------------
-> > These provide a core implementation routines for ccdc, ipipeif, 
-> > ipipe,aew, af, resizer hardware modules.
-> > 
-> > drivers/media/video/davinci/dm365_ccdc.c
-> > drivers/media/video/davinci/dm365_ipipe.c
-> > drivers/media/video/davinci/dm365_def_para.c
-> > drivers/media/video/davinci/dm365_ipipe_hw.c
-> > drivers/media/video/davinci/dm3xx_ipipe.c
-> > drivers/media/video/davinci/dm365_aew.c
-> > drivers/media/video/davinci/dm365_af.c
-> > drivers/media/video/davinci/dm365_a3_hw.c
-> 
-> Why don't you combine the davinci/vpfe_*.c files with the davinci/dm365_*.c files ? What's the reason for splitting functionality between vpfe_ccdc.c and dm365_ccdc.c for instance ?
-The driver is intended to support DM365, DM355 and DM6446. So the vpfe_ files implement the high level interfaces whereas the dm365_ files implement the specifics for the device.
-> 
-> > include/media/davinci/imp_common.h
-> > include/media/davinci/dm365_ccdc.h
-> > include/media/davinci/dm365_ipipe.h
-> > include/media/davinci/imp_hw_if.h
-> > include/media/davinci/dm3xx_ipipe.h
-> > include/media/davinci/dm365_aew.h
-> > include/media/davinci/dm365_af.h
-> > include/media/davinci/dm365_a3_hw.h
-> > include/media/davinci/vpfe_types.h
-> > 
-> > drivers/media/video/davinci/dm365_ccdc_regs.h
-> > drivers/media/video/davinci/ccdc_hw_device.h
-> > drivers/media/video/davinci/dm365_def_para.h
-> > drivers/media/video/davinci/dm365_ipipe_hw.h
-> > 
-> > TODOs:
-> > ======
-> > 
-> > 1. Support NV12/YUYV format
-> > 2. Support more than 1 buffer for single-shot mode 3. Enable Resizer-B 
-> > 4. Remove duplicate format setting in ipipe 5. Remove function 
-> > declarations in dm365_ipipe.c by removing function pointer table 6. 
-> > Remove function declarations in dm365_ccdc.c by removing function 
-> > pointer table 7. Make multilevel previewer module ioctl into single 
-> > level 8. Move kernel only headers into drivers/media/video/davinci 
-> > from include/media/davinci
-> 
-> --
-> Regards,
-> 
-> Laurent Pinchart
-> 
+diff --git a/Documentation/DocBook/media/dvb/video.xml b/Documentation/DocBook/media/dvb/video.xml
+index ef30f69..539c79b 100644
+--- a/Documentation/DocBook/media/dvb/video.xml
++++ b/Documentation/DocBook/media/dvb/video.xml
+@@ -37,8 +37,8 @@ stream.
+ </para>
+ </section>
+ 
+-<section id="video-display-format-t">
+-<title>video_display_format_t</title>
++<section id="video-displayformat-t">
++<title>video_displayformat_t</title>
+ <para>In case the display format of the video stream and of the display hardware differ the
+ application has to specify how to handle the cropping of the picture. This can be done using
+ the VIDEO_SET_DISPLAY_FORMAT call (??) which accepts
+@@ -89,6 +89,49 @@ typedef enum {
+ </programlisting>
+ </section>
+ 
++<section id="video-command">
++<para>The structure must be zeroed before use by the application
++This ensures it can be extended safely in the future.</para>
++<title>struct video-command</title>
++<programlisting>
++struct video_command {
++	__u32 cmd;
++	__u32 flags;
++	union {
++		struct {
++			__u64 pts;
++		} stop;
++
++		struct {
++			/&#x22C6; 0 or 1000 specifies normal speed,
++			   1 specifies forward single stepping,
++			   -1 specifies backward single stepping,
++			   &gt;>1: playback at speed/1000 of the normal speed,
++			   &lt;-1: reverse playback at (-speed/1000) of the normal speed. &#x22C6;/
++			__s32 speed;
++			__u32 format;
++		} play;
++
++		struct {
++			__u32 data[16];
++		} raw;
++	};
++};
++</programlisting>
++</section>
++
++<section id="video-size-t">
++<title>struct video_size-t</title>
++<programlisting>
++typedef struct {
++	int w;
++	int h;
++	video_format_t aspect_ratio;
++} video_size_t;
++</programlisting>
++</section>
++
++
+ <section id="video-event">
+ <title>struct video_event</title>
+ <para>The following is the structure of a video event as it is returned by the VIDEO_GET_EVENT
+-- 
+1.7.1
 
