@@ -1,113 +1,62 @@
 Return-path: <mchehab@pedra>
-Received: from smtp-vbr16.xs4all.nl ([194.109.24.36]:1461 "EHLO
-	smtp-vbr16.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757205Ab1F1N6z (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 28 Jun 2011 09:58:55 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-Subject: Re: [RFCv3 PATCH 12/18] vb2_poll: don't start DMA, leave that to the first read().
-Date: Tue, 28 Jun 2011 15:58:36 +0200
-Cc: Andy Walls <awalls@md.metrocast.net>, linux-media@vger.kernel.org,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	Pawel Osciak <pawel@osciak.com>,
-	Marek Szyprowski <m.szyprowski@samsung.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>
-References: <1307459123-17810-1-git-send-email-hverkuil@xs4all.nl> <cd2c9732-aee5-492b-ade2-bee084f79739@email.android.com> <4E09CC6A.8080900@redhat.com>
-In-Reply-To: <4E09CC6A.8080900@redhat.com>
+Received: from mx1.redhat.com ([209.132.183.28]:6474 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750874Ab1FHCUJ (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 7 Jun 2011 22:20:09 -0400
+Received: from int-mx01.intmail.prod.int.phx2.redhat.com (int-mx01.intmail.prod.int.phx2.redhat.com [10.5.11.11])
+	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id p582K8cj010424
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
+	for <linux-media@vger.kernel.org>; Tue, 7 Jun 2011 22:20:09 -0400
+Received: from [10.3.236.210] (vpn-236-210.phx2.redhat.com [10.3.236.210])
+	by int-mx01.intmail.prod.int.phx2.redhat.com (8.13.8/8.13.8) with ESMTP id p582K7g1014694
+	for <linux-media@vger.kernel.org>; Tue, 7 Jun 2011 22:20:08 -0400
+Message-ID: <4DEEDC57.7050707@redhat.com>
+Date: Tue, 07 Jun 2011 23:20:07 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="utf-8"
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: [PATCH 00/15] DVB Frontend Documentation patches
+References: <20110607224542.597d46bc@pedra>
+In-Reply-To: <20110607224542.597d46bc@pedra>
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Message-Id: <201106281558.37065.hverkuil@xs4all.nl>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Tuesday, June 28, 2011 14:43:22 Mauro Carvalho Chehab wrote:
-> Em 28-06-2011 09:21, Andy Walls escreveu:
-> > Mauro Carvalho Chehab <mchehab@redhat.com> wrote:
+Em 07-06-2011 22:45, Mauro Carvalho Chehab escreveu:
+> This series of patches updates the DVB v5 documentation, sinchronizing
+> the current implementation with the API spec.
+> Among other things, it:
+> 	- adds a logic that discovers API gaps between the header
+> 	  file and the API specs;
+> 	- adds/fixes the DVB S2API (DVBv5) additions;
+> 	- adds the FE_ATSC frontend descriptions (both v3 and v5);
+> 	- adds a relation of DVBv5 parameters for usage for each
+> 	  supported delivery system.
 > 
-> >> I'm not very comfortable with vb2 returning unexpected errors there.
-> >> Also,
-> >> for me it is clear that, if read will fail, POLLERR should be rised.
-> >>
-> >> Mauro. 
-> >> --
-> >> To unsubscribe from this list: send the line "unsubscribe linux-media"
-> >> in
-> >> the body of a message to majordomo@vger.kernel.org
-> >> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> > 
-> > It is also the case that a driver's poll method should never sleep.
+> The API updates were made at the best effort basis, by doing a sort
+> of "reverse engineering" approach, e. g., by looking at the code
+> and trying to figure out what changed, why and how. Due to that,
+> I bet people will find errors on it. Also, English is not my native
+> language, and I didn't have time for doing a language review.
 > 
-> True.
-
-Actually, it is allowed, but only since kernel 2.6.29 (before that it could
-apparently give rise to busy looping if you were unlucky). But the main use
-case is userspace file systems like fuse. Not so much in regular drivers.
-
-Since drivers can sleep when starting streaming (ivtv will do that, in any
-case), we were in violation of the poll kernel API for a long time :-)
-
-> > I will try to find the conversation I had with laurent on interpreting the POSIX spec on error returns from select() and poll().  I will also try to find links to previos discussion with Hans on this.
-> > 
-> > One issue is how to start streaming with apps that:
-> > - Open /dev/video/ in a nonblocking mode, and
-> > - Use the read() method
-> > 
-> > while doing it in a way that is POSIX compliant and doesn't break existing apps.  
+> so I'm sure that language/style/typo fixes are needed.
 > 
-> Well, a first call for poll() may rise a thread that will prepare the buffers, and
-> return with 0 while there's no data available.
-
-There is actually no guarantee whatsoever that if poll says you can read(), that that
-read also has to succeed. Other threads can have read the data already, and errors may
-have occured. And in fact, just starting streaming gives no guarantee that there is
-anything to read. For example, starting the DMA engine when there is no valid input
-signal. Many drivers (certainly those dealing with digital interfaces as opposed to
-analog) will just sit and wait. A non-blocking read will just return 0 without
-reading anything.
-
-So the current poll implementation (and that includes the one in videobuf-core.c as
-well) actually does *not* give any guarantee about whether data will be available
-in read().
-
-And from the same POSIX link you posted:
-
-"The poll() function shall support regular files, terminal and pseudo-terminal devices,
-FIFOs, pipes, sockets and [XSR] [Option Start]  STREAMS-based files. [Option End]
-The behavior of poll() on elements of fds that refer to other types of file is unspecified."
-
-Note the last line: we do not fall under this posix document.
- 
-> > The other constraint is to ensure when only poll()-ing for exception conditions, not having significant IO side effects.
-> > 
-> > I'm pretty sure sleeping in a driver's poll() method, or having significant side effects, is not ine the spirit of the POSIX select() and poll(), even if the letter of POSIX says nothing about it.
-> > 
-> > The method I suggested to Hans is completely POSIX compliant for apps using read() and select() and was checked against MythTV as having no bad side effects.  (And by thought experiment doesn't break any sensible app using nonblocking IO with select() and read().)
-> > 
-> > I did not do analysis for apps that use mmap(), which I guess is the current concern.
-
-There isn't a problem with mmap(). For the stream I/O API you have to call STREAMON
-explicitly in order to start streaming. poll() will not do that for you.
-
-I was thinking that one improvement that could be realized is that vb2_poll could
-do some basic checks, such as checking whether streaming was already in progress
-(EBUSY), but then I realized that it already does that: this code is only active
-if there is no streaming in progress anyway.
-
-Regards,
-
-	Hans
-
+> So, I'd like to encourage people to carefully read the docs and
+> send us patches with fixes.
 > 
-> The concern is that it is pointing that there are available data, even when there is an error.
-> This looks like a POSIX violation for me.
-> 
-> Cheers,
-> Mauro.
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
+> Anyway, as the situation after those patches are better than before them,
+> I'm pushing it to the main repository. This helps to review, as the
+> linuxtv scripts will re-format the DocBook into html.
+
+The linuxtv API specs were updated at linuxtv.org. For those that want 
+to review, the changes were at chapter 9 of the API spec[1], mainly at:
+
+http://linuxtv.org/downloads/v4l-dvb-apis/dvb_frontend.html
+http://linuxtv.org/downloads/v4l-dvb-apis/FE_GET_SET_PROPERTY.html
+http://linuxtv.org/downloads/v4l-dvb-apis/frontend_h.html
+
+[1] http://linuxtv.org/downloads/v4l-dvb-apis/
+
+Cheers,
+Mauro.
