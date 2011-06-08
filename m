@@ -1,112 +1,65 @@
 Return-path: <mchehab@pedra>
-Received: from mail-gx0-f174.google.com ([209.85.161.174]:33771 "EHLO
-	mail-gx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757947Ab1FWO6F (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 23 Jun 2011 10:58:05 -0400
-Received: by mail-gx0-f174.google.com with SMTP id 21so800751gxk.19
-        for <linux-media@vger.kernel.org>; Thu, 23 Jun 2011 07:58:05 -0700 (PDT)
-MIME-Version: 1.0
-From: "Adam M. Dutko" <dutko.adam@gmail.com>
-Date: Thu, 23 Jun 2011 10:57:45 -0400
-Message-ID: <BANLkTin8z+bOS8HTbypCnrdPZ=hpNThoDw@mail.gmail.com>
-Subject: [PATCH] [media] TM6000: alsa: Clean up kernel coding style errors.
-To: mchehab@redhat.com
-Cc: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=UTF-8
+Received: from mail-wy0-f174.google.com ([74.125.82.174]:62493 "EHLO
+	mail-wy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752103Ab1FHMrS convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 8 Jun 2011 08:47:18 -0400
+Received: by wya21 with SMTP id 21so325161wya.19
+        for <linux-media@vger.kernel.org>; Wed, 08 Jun 2011 05:47:17 -0700 (PDT)
+Subject: Re: [beagleboard] Re: [PATCH v7 1/2] Add driver for Aptina (Micron) mt9p031 sensor.
+Mime-Version: 1.0 (Apple Message framework v1084)
+Content-Type: text/plain; charset=us-ascii
+From: Koen Kooi <koen@beagleboard.org>
+In-Reply-To: <BANLkTinw6GoHgQYqJexbD-4=qitP6j0hDg@mail.gmail.com>
+Date: Wed, 8 Jun 2011 14:47:13 +0200
+Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	beagleboard@googlegroups.com, linux-media@vger.kernel.org,
+	carlighting@yahoo.co.nz, mch_kot@yahoo.com.cn
+Content-Transfer-Encoding: 8BIT
+Message-Id: <51BA5835-2D1F-4BD3-B5BF-B01B339C347E@beagleboard.org>
+References: <1307014603-22944-1-git-send-email-javier.martin@vista-silicon.com> <201106081357.51578.laurent.pinchart@ideasonboard.com> <4CF44DCA-BCCA-4AA6-AE14-DAADE66767B4@beagleboard.org> <Pine.LNX.4.64.1106081439030.24274@axis700.grange> <BANLkTinw6GoHgQYqJexbD-4=qitP6j0hDg@mail.gmail.com>
+To: javier Martin <javier.martin@vista-silicon.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-There were several coding style errors as reported by checkpatch.pl. This
-patch should fix those errors with the single exception of the open square
-bracket issue on line 45.
 
-Signed-off-by: Adam M. Dutko <dutko.adam@gmail.com>
----
- drivers/staging/tm6000/tm6000-alsa.c |   24 ++++++++++++------------
- 1 files changed, 12 insertions(+), 12 deletions(-)
+Op 8 jun 2011, om 14:42 heeft javier Martin het volgende geschreven:
 
-diff --git a/drivers/staging/tm6000/tm6000-alsa.c
-b/drivers/staging/tm6000/tm6000-alsa.c
-index 2b96047..679aa8f 100644
---- a/drivers/staging/tm6000/tm6000-alsa.c
-+++ b/drivers/staging/tm6000/tm6000-alsa.c
-@@ -18,7 +18,7 @@
- #include <linux/slab.h>
- #include <linux/vmalloc.h>
+> On 8 June 2011 14:39, Guennadi Liakhovetski <g.liakhovetski@gmx.de> wrote:
+>> On Wed, 8 Jun 2011, Koen Kooi wrote:
+>> 
+>>> 
+>>> Op 8 jun 2011, om 13:57 heeft Laurent Pinchart het volgende geschreven:
+>>> 
+>>>> Hi Javier,
+>>>> 
+>>>> I'm testing your patch on a 2.6.39 kernel. Here's what I get when loading the
+>>>> omap3-isp module.
+>>>> 
+>>>> root@arago:~# modprobe omap3-isp
+>>>> [  159.523681] omap3isp omap3isp: Revision 15.0 found
+>>>> [  159.528991] omap-iommu omap-iommu.0: isp: version 1.1
+>>>> [  159.875701] omap_i2c omap_i2c.2: Arbitration lost
+>>>> [  159.881622] mt9p031 2-0048: Failed to reset the camera
+>>>> [  159.887054] omap3isp omap3isp: Failed to power on: -5
+>>>> [  159.892425] mt9p031 2-0048: Failed to power on device: -5
+>>>> [  159.898956] isp_register_subdev_group: Unable to register subdev mt9p031
+>>>> 
+>>>> Have you (or anyone else) seen that issue ?
+>>> 
+>>> I build in both statically to avoid that problem.
+>> 
+>> I used modules and it worked for me.
+> 
+> Maybe u-boot version Laurent uses does not enable internal pull-up
+> resistors for i2c2 interface.
+> You could either use a different u-boot version or attach external
+> pull-up resistors to that interface.
 
--#include <asm/delay.h>
-+#include <linux/delay.h>
- #include <sound/core.h>
- #include <sound/pcm.h>
- #include <sound/pcm_params.h>
-@@ -84,7 +84,6 @@ static int _tm6000_start_audio_dma(struct
-snd_tm6000_card *chip)
+http://dominion.thruhere.net/koen/angstrom/beagleboard/2.6.39/MLO
+http://dominion.thruhere.net/koen/angstrom/beagleboard/2.6.39/u-boot.bin
 
- 	tm6000_set_audio_bitrate(core, 48000);
+The above MLO and uboot enable the pullups and work will all released versions of the beagleboard.
 
--
- 	return 0;
- }
+regards,
 
-@@ -123,6 +122,7 @@ static int dsp_buffer_alloc(struct
-snd_pcm_substream *substream, int size)
- 	if (substream->runtime->dma_area) {
- 		if (substream->runtime->dma_bytes > size)
- 			return 0;
-+
- 		dsp_buffer_free(substream);
- 	}
-
-@@ -152,9 +152,9 @@ static struct snd_pcm_hardware snd_tm6000_digital_hw = {
- 		SNDRV_PCM_INFO_MMAP_VALID,
- 	.formats = SNDRV_PCM_FMTBIT_S16_LE,
-
--	.rates =		SNDRV_PCM_RATE_CONTINUOUS,
--	.rate_min =		48000,
--	.rate_max =		48000,
-+	.rates = SNDRV_PCM_RATE_CONTINUOUS,
-+	.rate_min = 48000,
-+	.rate_max = 48000,
- 	.channels_min = 2,
- 	.channels_max = 2,
- 	.period_bytes_min = 64,
-@@ -254,9 +254,9 @@ static int tm6000_fillbuf(struct tm6000_core
-*core, char *buf, int size)
- 		memcpy(runtime->dma_area + buf_pos * stride, buf,
- 			length * stride);
-
--#ifndef NO_PCM_LOCK
--       snd_pcm_stream_lock(substream);
--#endif
-+	#ifndef NO_PCM_LOCK
-+	snd_pcm_stream_lock(substream);
-+	#endif
-
- 	chip->buf_pos += length;
- 	if (chip->buf_pos >= runtime->buffer_size)
-@@ -268,9 +268,9 @@ static int tm6000_fillbuf(struct tm6000_core
-*core, char *buf, int size)
- 		period_elapsed = 1;
- 	}
-
--#ifndef NO_PCM_LOCK
--       snd_pcm_stream_unlock(substream);
--#endif
-+	#ifndef NO_PCM_LOCK
-+	snd_pcm_stream_unlock(substream);
-+	#endif
-
- 	if (period_elapsed)
- 		snd_pcm_period_elapsed(substream);
-@@ -461,7 +461,7 @@ int tm6000_audio_init(struct tm6000_core *dev)
- 	if (rc < 0)
- 		goto error_chip;
-
--	dprintk(1,"Registered audio driver for %s\n", card->longname);
-+	dprintk(1, "Registered audio driver for %s\n", card->longname);
-
- 	return 0;
-
--- 
-1.7.1
+Koen
