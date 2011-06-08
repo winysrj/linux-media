@@ -1,48 +1,78 @@
 Return-path: <mchehab@pedra>
-Received: from mail.kapsi.fi ([217.30.184.167]:51542 "EHLO mail.kapsi.fi"
+Received: from mx1.redhat.com ([209.132.183.28]:27218 "EHLO mx1.redhat.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752552Ab1FVK7N (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 22 Jun 2011 06:59:13 -0400
-Message-ID: <4E01CAFE.9070801@iki.fi>
-Date: Wed, 22 Jun 2011 13:59:10 +0300
-From: Antti Palosaari <crope@iki.fi>
-MIME-Version: 1.0
-To: David <reality_es@yahoo.es>
-CC: linux-media@vger.kernel.org
-Subject: Re: Sveon stv22 patches
-References: <BANLkTimY_RKO4TxSu5GQo84_7VCMjLEFDg@mail.gmail.com>
-In-Reply-To: <BANLkTimY_RKO4TxSu5GQo84_7VCMjLEFDg@mail.gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+	id S1753037Ab1FHBqL (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 7 Jun 2011 21:46:11 -0400
+Received: from int-mx02.intmail.prod.int.phx2.redhat.com (int-mx02.intmail.prod.int.phx2.redhat.com [10.5.11.12])
+	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id p581kBTG006761
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
+	for <linux-media@vger.kernel.org>; Tue, 7 Jun 2011 21:46:11 -0400
+Received: from pedra (vpn-236-210.phx2.redhat.com [10.3.236.210])
+	by int-mx02.intmail.prod.int.phx2.redhat.com (8.13.8/8.13.8) with ESMTP id p581jncF007506
+	for <linux-media@vger.kernel.org>; Tue, 7 Jun 2011 21:46:10 -0400
+Date: Tue, 7 Jun 2011 22:45:41 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: [PATCH 14/15] [media] DocBook/dvbproperty.xml: Add ATSC standard
+Message-ID: <20110607224541.58803d24@pedra>
+In-Reply-To: <cover.1307496835.git.mchehab@redhat.com>
+References: <cover.1307496835.git.mchehab@redhat.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
+To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Hello
-Comments below.
+Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
 
-Could you use Git since you have latest Kernel? If that's too hard don't 
-try it, I can leave without, but it will easy my work a little.
-
-You have diffed wrong direction, those patches are removing lines rather 
-than adding (- vs. +). Also you your signed off by is needed.
-See:
-http://linuxtv.org/wiki/index.php/Development:_Submitting_Patches
-
-> --- ./rc-map.h	2011-06-21 11:16:55.000000000 +0200
-> +++ ./include/media/rc-map.h	2011-06-21 12:41:34.114509214 +0200
-> @@ -130,7 +130,6 @@
->   #define RC_MAP_RC6_MCE                   "rc-rc6-mce"
->   #define RC_MAP_REAL_AUDIO_220_32_KEYS    "rc-real-audio-220-32-keys"
->   #define RC_MAP_STREAMZAP                 "rc-streamzap"
-> -#define RC_MAP_SVEON_STV22		 "rc-msi-digivox-iii"
->   #define RC_MAP_TBS_NEC                   "rc-tbs-nec"
->   #define RC_MAP_TECHNISAT_USB2            "rc-technisat-usb2"
->   #define RC_MAP_TERRATEC_CINERGY_XS       "rc-terratec-cinergy-xs"
-
-That's wrong, it is not needed at all. All the other seems to be rather OK.
-
-regards
-Antti
-
+diff --git a/Documentation/DocBook/media/dvb/dvbproperty.xml b/Documentation/DocBook/media/dvb/dvbproperty.xml
+index 262d995..9cbb289 100644
+--- a/Documentation/DocBook/media/dvb/dvbproperty.xml
++++ b/Documentation/DocBook/media/dvb/dvbproperty.xml
+@@ -766,6 +766,19 @@ typedef enum fe_hierarchy {
+ 			<listitem><para><link linkend="DTV-ISDBT-LAYER-TIME-INTERLEAVING"><constant>DTV_ISDBT_LAYERC_TIME_INTERLEAVING</constant></link></para></listitem>
+ 		</itemizedlist>
+ 		</section>
++		<section id="atsc-params">
++			<title>ATSC delivery system</title>
++			<para>The following parameters are valid for ATSC:</para>
++			<itemizedlist mark='opencircle'>
++				<listitem><para><link linkend="DTV-API-VERSION"><constant>DTV_API_VERSION</constant></link></para></listitem>
++				<listitem><para><link linkend="DTV-DELIVERY-SYSTEM"><constant>DTV_DELIVERY_SYSTEM</constant></link></para></listitem>
++				<listitem><para><link linkend="DTV-TUNE"><constant>DTV_TUNE</constant></link></para></listitem>
++				<listitem><para><link linkend="DTV-CLEAR"><constant>DTV_CLEAR</constant></link></para></listitem>
++				<listitem><para><link linkend="DTV-FREQUENCY"><constant>DTV_FREQUENCY</constant></link></para></listitem>
++				<listitem><para><link linkend="DTV-MODULATION"><constant>DTV_MODULATION</constant></link></para></listitem>
++				<listitem><para><link linkend="DTV-BANDWIDTH-HZ"><constant>DTV_BANDWIDTH_HZ</constant></link></para></listitem>
++			</itemizedlist>
++		</section>
+ 	</section>
+ 	<section id="frontend-property-cable-systems">
+ 	<section id="dvbc-params">
+@@ -796,8 +809,6 @@ typedef enum fe_hierarchy {
+ 			<listitem><para><link linkend="DTV-FREQUENCY"><constant>DTV_FREQUENCY</constant></link></para></listitem>
+ 			<listitem><para><link linkend="DTV-MODULATION"><constant>DTV_MODULATION</constant></link></para></listitem>
+ 			<listitem><para><link linkend="DTV-INVERSION"><constant>DTV_INVERSION</constant></link></para></listitem>
+-			<listitem><para><link linkend="DTV-SYMBOL-RATE"><constant>DTV_SYMBOL_RATE</constant></link></para></listitem>
+-			<listitem><para><link linkend="DTV-INNER-FEC"><constant>DTV_INNER_FEC</constant></link></para></listitem>
+ 		</itemizedlist>
+ 	</section>
+ 	<title>Properties used on cable delivery systems</title>
+diff --git a/Documentation/DocBook/media/dvb/frontend.xml b/Documentation/DocBook/media/dvb/frontend.xml
+index 1417d50..304d54e 100644
+--- a/Documentation/DocBook/media/dvb/frontend.xml
++++ b/Documentation/DocBook/media/dvb/frontend.xml
+@@ -276,7 +276,7 @@ OFDM frontends the <constant>frequency</constant> specifies the absolute frequen
+ </section>
+ <section id="dvb-vsb-parameters">
+ <title>VSB parameters</title>
+-<para>DVB-T frontends are supported by the <constant>dvb_vsb_parameters</constant> structure:</para>
++<para>ATSC frontends are supported by the <constant>dvb_vsb_parameters</constant> structure:</para>
+ <programlisting>
+ struct dvb_vsb_parameters {
+ 	fe_modulation_t modulation;	/&#x22C6; modulation type (see above) &#x22C6;/
 -- 
-http://palosaari.fi/
+1.7.1
+
+
