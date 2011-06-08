@@ -1,100 +1,85 @@
 Return-path: <mchehab@pedra>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:47423 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1161201Ab1FAJaL (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 1 Jun 2011 05:30:11 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Bastian Hecht <hechtb@googlemail.com>
-Subject: Re: Capabilities of the Omap3 ISP driver
-Date: Wed, 1 Jun 2011 11:30:05 +0200
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	"Felix v. Hundelshausen" <felix.v.hundelshausen@live.de>
-References: <BANLkTineUffG1yd3Ey30wr0xzAj3_Zd1KQ@mail.gmail.com> <201105302347.24554.laurent.pinchart@ideasonboard.com> <BANLkTi=MY2soJTW50AgXHL4zQfoYRBzn3Q@mail.gmail.com>
-In-Reply-To: <BANLkTi=MY2soJTW50AgXHL4zQfoYRBzn3Q@mail.gmail.com>
-MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
+Received: from mx1.redhat.com ([209.132.183.28]:1124 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752832Ab1FHBpv (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 7 Jun 2011 21:45:51 -0400
+Received: from int-mx02.intmail.prod.int.phx2.redhat.com (int-mx02.intmail.prod.int.phx2.redhat.com [10.5.11.12])
+	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id p581jpGM028936
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
+	for <linux-media@vger.kernel.org>; Tue, 7 Jun 2011 21:45:51 -0400
+Received: from pedra (vpn-236-210.phx2.redhat.com [10.3.236.210])
+	by int-mx02.intmail.prod.int.phx2.redhat.com (8.13.8/8.13.8) with ESMTP id p581jnc2007506
+	for <linux-media@vger.kernel.org>; Tue, 7 Jun 2011 21:45:50 -0400
+Date: Tue, 7 Jun 2011 22:45:29 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: [PATCH 01/15] [media] DocBook/Makefile: add references for several
+ dvb structures
+Message-ID: <20110607224529.142473c4@pedra>
+In-Reply-To: <cover.1307496835.git.mchehab@redhat.com>
+References: <cover.1307496835.git.mchehab@redhat.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
-Message-Id: <201106011130.06049.laurent.pinchart@ideasonboard.com>
+To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Hi Bastian,
+With this change, it is now possible to discover the gap between
+the API defined inside include/dvb/frontend.h and the one documented
+into the specs.
 
-On Wednesday 01 June 2011 10:18:21 Bastian Hecht wrote:
-> 2011/5/30 Laurent Pinchart <laurent.pinchart@ideasonboard.com>:
-> > On Monday 30 May 2011 23:39:13 Bastian Hecht wrote:
-> >> 2011/5/30 Laurent Pinchart <laurent.pinchart@ideasonboard.com>:
-> >> > On Sunday 29 May 2011 15:27:23 Bastian Hecht wrote:
-> >> >> Hello Laurent,
-> >> >> 
-> >> >> I'm on to a project that needs two synced separate small cameras for
-> >> >> stereovision.
-> >> >> 
-> >> >> I was thinking about realizing this on an DM3730 with 2 aptina csi2
-> >> >> cameras that are used in snapshot mode.
-> >> > 
-> >> > As far as I know, the DM3730 doesn't have CSI2 interfaces.
-> >> 
-> >> If I don't mix up datasheets, it is stated very clearly that 2 csi2
-> >> interfaces are supported. I took the datasheet at
-> >> http://www.ti.com/litv/pdf/sprugn4k declared as AM/DM37x Multimedia
-> >> Device Technical Reference Manual (Silicon Revision 1.x) (Rev. K)
-> >> (PDF  26851 KB).
-> >> "The camera ISP implements three receivers which are named CSI2A,
-> >> CSI1/CCP2B, and CSI2C. The CSI2A and CSI2C are MIPI D-PHY CSI2
-> >> compatible." on page 1070.
-> > 
-> > Chapter 6 starts with the following disclaimer:
-> > 
-> > "NOTE: This chapter gives information about all modules and features in
-> > the high-tier device. To check availability of modules and features, see
-> > Section 1.5, AM/DM37x Family, and the device-specific data manual. In
-> > unavailable modules and features, the memory area is reserved, read is
-> > undefined, and write can lead to unpredictable behavior."
-> > 
-> > And if you look at table 1-3 on page 195, the CSI2 receivers are not
-> > supported.
-> 
-> OK, that potentially saved me tons of work! I saw that the omap4 has 2
-> csi2 interfaces (and I checked this note :). Unfortunately the panda
-> board only leads out 1 csi2 channel.
+Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
 
-And the OMAP4 ISS doesn't have a V4L2 driver :-(
-
-> >> >> The questions that arise are:
-> >> >> 
-> >> >> - is the ISP driver capable of running 2 concurrent cameras?
-> >> > 
-> >> > Yes it can, but only one of them can use the CCDC, preview engine and
-> >> > resizer. The other will be captured directly to memory as raw data.
-> >> > You could capture both raw streams to memory, and then feed them
-> >> > alternatively through the rest of the pipeline. Whether this can work
-> >> > will depend on the image size and frame rate.
-> >> 
-> >> Ok I will check if it is sufficient to do any conversions on the cpu.
-> >> 
-> >> >> - is it possible to simulate a kind of video stream that is
-> >> >> externally triggered (I would use a gpio line that simply triggers
-> >> >> 10 times a sec) or would there arise problems with the csi2
-> >> >> protocoll (timeouts or similar)?
-> >> > 
-> >> > I don't think there will be CSI2 issues (although I'm not an expert
-> >> > there) if you trigger the sensors externally.
-> >> 
-> >> Nice, when the ISP side is probably no problem - do you have any
-> >> experience with snapshot mode and know if cameras are capable of doing
-> >> it at framerates about 10fps? It is just because snapshot mode sounds
-> >> like taking 1 frame every now and then... can't they call it "trigger
-> >> mode"? :)
-> > 
-> > I haven't personally tried it, but 10fps doesn't sound impossible to
-> > reach with external triggers.
-> 
-> Nice.
-
+diff --git a/Documentation/DocBook/media/Makefile b/Documentation/DocBook/media/Makefile
+index baeea17..d9a21d3 100644
+--- a/Documentation/DocBook/media/Makefile
++++ b/Documentation/DocBook/media/Makefile
+@@ -51,6 +51,7 @@ FUNCS = \
+ 
+ IOCTLS = \
+ 	$(shell perl -ne 'print "$$1 " if /\#define\s+([^\s]+)\s+_IO/' $(srctree)/include/linux/videodev2.h) \
++	$(shell perl -ne 'print "$$1 " if /\#define\s+([^\s]+)\s+_IO/' $(srctree)/include/linux/dvb/frontend.h) \
+ 	$(shell perl -ne 'print "$$1 " if /\#define\s+([^\s]+)\s+_IO/' $(srctree)/include/linux/media.h) \
+ 	$(shell perl -ne 'print "$$1 " if /\#define\s+([^\s]+)\s+_IO/' $(srctree)/include/linux/v4l2-subdev.h) \
+ 	VIDIOC_SUBDEV_G_FRAME_INTERVAL \
+@@ -60,16 +61,19 @@ IOCTLS = \
+ 	VIDIOC_SUBDEV_ENUM_FRAME_INTERVAL \
+ 
+ TYPES = \
+-	$(shell perl -ne 'print "$$1 " if /^typedef\s+[^\s]+\s+([^\s]+)\;/' $(srctree)/include/linux/videodev2.h)
++	$(shell perl -ne 'print "$$1 " if /^typedef\s+[^\s]+\s+([^\s]+)\;/' $(srctree)/include/linux/videodev2.h) \
++	$(shell perl -ne 'print "$$1 " if /^}\s+([a-z0-9_]+_t)/' $(srctree)/include/linux/dvb/frontend.h)
+ 
+ ENUMS = \
+ 	$(shell perl -ne 'print "$$1 " if /^enum\s+([^\s]+)\s+/' $(srctree)/include/linux/videodev2.h) \
++	$(shell perl -ne 'print "$$1 " if /^enum\s+([^\s]+)\s+/' $(srctree)/include/linux/dvb/frontend.h) \
+ 	$(shell perl -ne 'print "$$1 " if /^enum\s+([^\s]+)\s+/' $(srctree)/include/linux/media.h) \
+ 	$(shell perl -ne 'print "$$1 " if /^enum\s+([^\s]+)\s+/' $(srctree)/include/linux/v4l2-mediabus.h) \
+ 	$(shell perl -ne 'print "$$1 " if /^enum\s+([^\s]+)\s+/' $(srctree)/include/linux/v4l2-subdev.h)
+ 
+ STRUCTS = \
+ 	$(shell perl -ne 'print "$$1 " if /^struct\s+([^\s]+)\s+/' $(srctree)/include/linux/videodev2.h) \
++	$(shell perl -ne 'print "$$1 " if /^struct\s+([^\s]+)\s+/' $(srctree)/include/linux/dvb/frontend.h) \
+ 	$(shell perl -ne 'print "$$1 " if /^struct\s+([^\s]+)\s+/' $(srctree)/include/linux/media.h) \
+ 	$(shell perl -ne 'print "$$1 " if /^struct\s+([^\s]+)\s+/' $(srctree)/include/linux/v4l2-subdev.h) \
+ 	$(shell perl -ne 'print "$$1 " if /^struct\s+([^\s]+)\s+/' $(srctree)/include/linux/v4l2-mediabus.h)
+@@ -116,9 +120,11 @@ DOCUMENTED = \
+ 	-e "s/v4l2\-mpeg\-vbi\-ITV0/v4l2-mpeg-vbi-itv0-1/g"
+ 
+ DVB_DOCUMENTED = \
+-	-e "s,\(define \)\([A-Z0-9_]\+\)\(\s\+_IO\),\1\<link linkend=\"\2\">\2\<\/link\>\3,g" \
+-	-e "s/\(linkend\=\"\)FE_SET_PROPERTY/\1FE_GET_PROPERTY/g"
+-
++	-e "s,\(define\s\+\)\([A-Z0-9_]\+\)\(\s\+_IO\),\1\<link linkend=\"\2\">\2\<\/link\>\3,g" \
++	-e "s/\(linkend\=\"\)FE_SET_PROPERTY/\1FE_GET_PROPERTY/g" \
++	-e "s,\(struct\s\+\)\([a-z0-9_]\+\)\(\s\+{\),\1\<link linkend=\"\2\">\2\<\/link\>\3,g" \
++	-e "s,\(}\s\+\)\([a-z0-9_]\+_t\+\),\1\<link linkend=\"\2\">\2\<\/link\>,g" \
++#	-e "s,\(\s\+\)\(FE_[A-Z0-9_]\+\)\([\s\=\,]*\),\1\<link linkend=\"\2\">\2\<\/link\>\3,g" \
+ 
+ #
+ # Media targets and dependencies
 -- 
-Regards,
+1.7.1
 
-Laurent Pinchart
+
