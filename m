@@ -1,146 +1,103 @@
 Return-path: <mchehab@pedra>
-Received: from mailout2.w1.samsung.com ([210.118.77.12]:22084 "EHLO
-	mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752321Ab1FOID0 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 15 Jun 2011 04:03:26 -0400
-Date: Wed, 15 Jun 2011 10:02:48 +0200
-From: Marek Szyprowski <m.szyprowski@samsung.com>
-Subject: RE: [PATCH 08/10] mm: cma: Contiguous Memory Allocator added
-In-reply-to: <201106141549.29315.arnd@arndb.de>
-To: 'Arnd Bergmann' <arnd@arndb.de>
-Cc: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-	linux-media@vger.kernel.org, linux-mm@kvack.org,
-	linaro-mm-sig@lists.linaro.org,
-	'Michal Nazarewicz' <mina86@mina86.com>,
-	'Kyungmin Park' <kyungmin.park@samsung.com>,
-	'Andrew Morton' <akpm@linux-foundation.org>,
-	'KAMEZAWA Hiroyuki' <kamezawa.hiroyu@jp.fujitsu.com>,
-	'Ankita Garg' <ankita@in.ibm.com>,
-	'Daniel Walker' <dwalker@codeaurora.org>,
-	'Mel Gorman' <mel@csn.ul.ie>,
-	'Jesse Barker' <jesse.barker@linaro.org>,
-	Marek Szyprowski <m.szyprowski@samsung.com>
-Message-id: <000601cc2b32$9e2a4030$da7ec090$%szyprowski@samsung.com>
-MIME-version: 1.0
-Content-type: text/plain; charset=us-ascii
-Content-language: pl
-Content-transfer-encoding: 7BIT
-References: <1307699698-29369-1-git-send-email-m.szyprowski@samsung.com>
- <201106101821.50437.arnd@arndb.de>
- <006a01cc29a9$1394c330$3abe4990$%szyprowski@samsung.com>
- <201106141549.29315.arnd@arndb.de>
+Received: from mx1.redhat.com ([209.132.183.28]:31865 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753703Ab1FHUZ3 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 8 Jun 2011 16:25:29 -0400
+Received: from int-mx02.intmail.prod.int.phx2.redhat.com (int-mx02.intmail.prod.int.phx2.redhat.com [10.5.11.12])
+	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id p58KPTVH011493
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
+	for <linux-media@vger.kernel.org>; Wed, 8 Jun 2011 16:25:29 -0400
+Received: from pedra (vpn-10-126.rdu.redhat.com [10.11.10.126])
+	by int-mx02.intmail.prod.int.phx2.redhat.com (8.13.8/8.13.8) with ESMTP id p58KP4Uq024316
+	for <linux-media@vger.kernel.org>; Wed, 8 Jun 2011 16:25:28 -0400
+Date: Wed, 8 Jun 2011 17:23:11 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: [PATCH 00/13] Reduce the gap between DVBv5 API and the specs
+Message-ID: <20110608172311.0d350ab7@pedra>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
+To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Hello,
+There's a huge gap between the DVB specs and the current implementation.
+This were caused by years of changes that happened at the code but
+no updates to the specs were done.
 
-On Tuesday, June 14, 2011 3:49 PM Arnd Bergmann wrote:
+This patch series tries to reduce this gap.
 
-> On Monday 13 June 2011, Marek Szyprowski wrote:
-> > cm_alloc/free are definitely not meant to be called from device drivers.
-> > They should be only considered as a backend for dma-mapping.
-> >
-> > 'Raw' contiguous memory block doesn't really make sense for the device
-> > drivers. What the drivers require is a contiguous memory block that is
-> > somehow mapped into respective bus address space, so dma-mapping
-> > framework is the right interface.
-> >
-> > alloc_pages(..., GFP_CMA) looks nice but in fact it is really impractical.
-> > The driver will need to map such buffer to dma context anyway, so imho
-> > dma_alloc_attributed() will give the drivers much more flexibility. In
-> > terms of dma-mapping the context argument isn't anything odd.
-> 
-> Ok.
-> 
-> > If possible I would like to make cma something similar to
-> > declare_dma_coherent()&friends, so the board/platform/bus startup code
-> > will just call declare_dma_contiguous() to enable support for cma for
-> > particular devices.
-> 
-> Sounds good, I like that.
- 
-Thanks. I thought a bit more on this and decided that I want to make this
-declare_dma_contiguous() optional for the drivers. It should be used only
-for some sophisticated cases like for example our video codec with two
-memory interfaces for 2 separate banks. By default the dma-mapping will
-use system-wide cma pool.
+Basically, the headers at include/linux/dvb were included at the API.
+The Makefile scripting auto-generate references for structs, typedefs
+and ioctls. With this, it is now easy to identify when something is
+missing.
 
-(snipped)
+After adding such logic, I've manually synchronized the specs with the
+header file and updated the data structures.
 
-> > > * It requires you to pass the exact location of the area. I can see why
-> > >   you want that on certain machines that require DMA areas to be spread
-> > >   across multiple memory buses, but IMHO it's not appropriate for a
-> > >   generic API.
-> >
-> > IMHO we can also use some NULL context to indicate some global, system
-> > wide CMA area and again -> in terms of dma-mapping api having a context
-> > isn't anything uncommon.
-> 
-> Please explain the exact requirements that lead you to defining multiple
-> contexts. My feeling is that in most cases we don't need them and can
-> simply live with a single area. Depending on how obscure the cases are
-> where we do need something beyond that, we can then come up with
-> special-case solutions for them.
+The work is not complete yet: there are still several ioctl's not
+documented at the specs:
 
-Like it was already stated we need such feature for our multimedia codec
-to allocate buffers from different memory banks. I really don't see any
-problems with the possibility to have additional cma areas for special
-purposes.
+Error: no ID for constraint linkend: AUDIO_BILINGUAL_CHANNEL_SELECT.
+Error: no ID for constraint linkend: CA_RESET.
+Error: no ID for constraint linkend: CA_GET_CAP.
+Error: no ID for constraint linkend: CA_GET_SLOT_INFO.
+Error: no ID for constraint linkend: CA_GET_DESCR_INFO.
+Error: no ID for constraint linkend: CA_GET_MSG.
+Error: no ID for constraint linkend: CA_SEND_MSG.
+Error: no ID for constraint linkend: CA_SET_DESCR.
+Error: no ID for constraint linkend: CA_SET_PID.
+Error: no ID for constraint linkend: DMX_GET_PES_PIDS.
+Error: no ID for constraint linkend: DMX_GET_CAPS.
+Error: no ID for constraint linkend: DMX_SET_SOURCE.
+Error: no ID for constraint linkend: DMX_ADD_PID.
+Error: no ID for constraint linkend: DMX_REMOVE_PID.
+Error: no ID for constraint linkend: NET_ADD_IF.
+Error: no ID for constraint linkend: NET_REMOVE_IF.
+Error: no ID for constraint linkend: NET_GET_IF.
+Error: no ID for constraint linkend: VIDEO_GET_SIZE.
+Error: no ID for constraint linkend: VIDEO_GET_FRAME_RATE.
+Error: no ID for constraint linkend: VIDEO_GET_PTS.
+Error: no ID for constraint linkend: VIDEO_GET_FRAME_COUNT.
+Error: no ID for constraint linkend: VIDEO_COMMAND.
+Error: no ID for constraint linkend: VIDEO_TRY_COMMAND.
 
-> > > * It requires you to hardcode the size in a machine specific source
-> file.
-> > >   This probably seems to be a natural thing to do when you have worked
-> a
-> > >   lot on the ARM architecture, but it's really not. We really want to
-> > >   get rid of board files and replace them with generic probing based on
-> > >   the device tree, and the size of the area is more policy than a
-> property
-> > >   of the hardware that can be accurately described in the device tree
-> or
-> > >   a board file.
-> >
-> > The problem is the fact that right now, we still have board files and we
-> > have to live with them for a while (with all advantages and
-> disadvantages).
-> > I hope that you won't require me to rewrite the whole support for all ARM
-> > platforms to get rid of board files to get CMA merged ;)
-> 
-> Of course not. But we need to know what we want a platform with device
-> tree support to look like when it's using CMA, so we don't make it
-> harder to change the platforms over than it already is.
-> 
-> > I see no problem defining CMA areas in device tree, as this is something
-> > really specific to particular board configuration.
-> 
-> The problem with defining CMA areas in the device tree is that it's not
-> a property of the hardware, but really policy. The device tree file
-> should not contain anything related to a specific operating system
-> because you might want to boot something on the board that doesn't
-> know about CMA, and even when you only care about using Linux, the
-> implementation might change to the point where hardcoded CMA areas
-> no longer make sense.
+I also opted to not add the osd.h header into the DocBook, as it seemed
+odd on my eyes, and it is used only by one legacy hardware.
 
-I really doubt that the device tree will carry only system-independent
-information. Anyway, the preferred or required memory areas/banks for
-buffer allocation is something that is a property of the hardware not
-the OS policy.
+While here, I noticed that one audio ioctl is not used anyware
+(AUDIO_GET_PTS). There is just the ioctl definition and that's it. 
+I just removed this definition, as removing it won't cause any 
+regression, as no in-kernel driver or dvb-core uses it.
 
-> IMHO we should first aim for a solution that works almost everywhere
-> without the kernel knowing what board it's running on, and then we
-> can add quirks for devices that have special requirements. I think
-> the situation is similar to the vmalloc virtual address space, which
-> normally has a hardcoded size that works almost everywhere, but there
-> are certain drivers etc that require much more, or there are situations
-> where you want to make it smaller in order to avoid highmem.
+Btw, there are several ioctl's and correponding data structures that
+are used on just one or two old drivers. I think we should consider
+to deprecate those old stuff.
 
-I'm trying to create something that will fulfill the requirements of my
-hardware, that's why I cannot focus on a generic case only.
+Mauro Carvalho Chehab (13):
+  [media] DocBook: Add the other DVB API header files
+  [media] DocBook/audio.xml: match section ID's with the reference links
+  [media] DocBook/audio.xml: synchronize attribute changes
+  [media] DocBook: Document AUDIO_CONTINUE ioctl
+  [media] dvb/audio.h: Remove definition for AUDIO_GET_PTS
+  [media] Docbook/ca.xml: match section ID's with the reference links
+  [media] DocBook/ca.xml: Describe structure ca_pid
+  [media] DocBook/demux.xml: Fix section references with dmx.h.xml
+  [media] DocBook/demux.xml: Add the remaining data structures to the API spec
+  [media] DocBook/net.xml: Synchronize Network data structure
+  [media] DocBook/Makefile: Remove osd.h header
+  [media] DocBook/video.xml: Fix section references with video.h.xml
+  [media] DocBook/video.xml: Document the remaining data structures
 
-Best regards
--- 
-Marek Szyprowski
-Samsung Poland R&D Center
-
-
+ Documentation/DocBook/media/Makefile       |   81 ++++++++++-
+ Documentation/DocBook/media/dvb/audio.xml  |  176 +++++++++++++++--------
+ Documentation/DocBook/media/dvb/ca.xml     |  106 ++++++++------
+ Documentation/DocBook/media/dvb/demux.xml  |  206 +++++++++++++++-----------
+ Documentation/DocBook/media/dvb/dvbapi.xml |   20 +++
+ Documentation/DocBook/media/dvb/intro.xml  |   19 +++-
+ Documentation/DocBook/media/dvb/net.xml    |   17 ++
+ Documentation/DocBook/media/dvb/video.xml  |  220 +++++++++++++++++-----------
+ include/linux/dvb/audio.h                  |   14 +--
+ 9 files changed, 564 insertions(+), 295 deletions(-)
 
