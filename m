@@ -1,669 +1,298 @@
 Return-path: <mchehab@pedra>
-Received: from smtp-vbr1.xs4all.nl ([194.109.24.21]:1637 "EHLO
-	smtp-vbr1.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755257Ab1FGPFi (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 7 Jun 2011 11:05:38 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
+Received: from mailout3.w1.samsung.com ([210.118.77.13]:34431 "EHLO
+	mailout3.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751705Ab1FHMDr (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 8 Jun 2011 08:03:47 -0400
+MIME-version: 1.0
+Content-transfer-encoding: 7BIT
+Content-type: TEXT/PLAIN
+Received: from spt2.w1.samsung.com ([210.118.77.13]) by mailout3.w1.samsung.com
+ (Sun Java(tm) System Messaging Server 6.3-8.04 (built Jul 29 2009; 32bit))
+ with ESMTP id <0LMH001NB0680E40@mailout3.w1.samsung.com> for
+ linux-media@vger.kernel.org; Wed, 08 Jun 2011 13:03:44 +0100 (BST)
+Received: from linux.samsung.com ([106.116.38.10])
+ by spt2.w1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14
+ 2004)) with ESMTPA id <0LMH00GKI067SM@spt2.w1.samsung.com> for
+ linux-media@vger.kernel.org; Wed, 08 Jun 2011 13:03:43 +0100 (BST)
+Date: Wed, 08 Jun 2011 14:03:28 +0200
+From: Tomasz Stanislawski <t.stanislaws@samsung.com>
+Subject: [PATCH v5 0/3] TV driver for Samsung S5P platform (media part)
 To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [RFCv3 PATCH 13/18] v4l2-ctrls: add control events.
-Date: Tue,  7 Jun 2011 17:05:18 +0200
-Message-Id: <fe0a2747088972ad92088ce06c701a8f722c0831.1307458245.git.hans.verkuil@cisco.com>
-In-Reply-To: <1307459123-17810-1-git-send-email-hverkuil@xs4all.nl>
-References: <1307459123-17810-1-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <a1daecb26b464ddd980297783d04941f1f34666b.1307458245.git.hans.verkuil@cisco.com>
-References: <a1daecb26b464ddd980297783d04941f1f34666b.1307458245.git.hans.verkuil@cisco.com>
+Cc: m.szyprowski@samsung.com, t.stanislaws@samsung.com,
+	kyungmin.park@samsung.com, hverkuil@xs4all.nl,
+	laurent.pinchart@ideasonboard.com,
+	sakari.ailus@maxwell.research.nokia.com, mchehab@redhat.com
+Message-id: <1307534611-32283-1-git-send-email-t.stanislaws@samsung.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+Hello,
 
-Whenever a control changes value or state an event is sent to anyone
-that subscribed to it.
+I would like to present the 5th version of TV drivers for Samsung S5P platform.
+The most recent changes are:
 
-This functionality is useful for control panels but also for applications
-that need to wait for (usually status) controls to change value.
+1. Code cleanup
+- shortened header of devices' registers
+- fixed license texts, email formats
+- fixes to coding style
+- removed useless code
+- removed much of debugs
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- drivers/media/video/v4l2-ctrls.c |  115 ++++++++++++++++++++++++++++++++--
- drivers/media/video/v4l2-event.c |  130 +++++++++++++++++++++++++++----------
- drivers/media/video/v4l2-fh.c    |    4 +-
- include/linux/videodev2.h        |   29 ++++++++-
- include/media/v4l2-ctrls.h       |   23 +++++--
- include/media/v4l2-event.h       |    2 +
- 6 files changed, 253 insertions(+), 50 deletions(-)
+2. Fixed Kconfig
+- added I2C dependency
+- fixed dependency between HDMI and HDMIPHY
+- introduced 'video output devices' to multimedia folder
 
-diff --git a/drivers/media/video/v4l2-ctrls.c b/drivers/media/video/v4l2-ctrls.c
-index a38bdf9..99987fe 100644
---- a/drivers/media/video/v4l2-ctrls.c
-+++ b/drivers/media/video/v4l2-ctrls.c
-@@ -23,6 +23,7 @@
- #include <media/v4l2-ioctl.h>
- #include <media/v4l2-device.h>
- #include <media/v4l2-ctrls.h>
-+#include <media/v4l2-event.h>
- #include <media/v4l2-dev.h>
- 
- #define has_op(master, op) \
-@@ -556,6 +557,41 @@ static bool type_is_int(const struct v4l2_ctrl *ctrl)
- 	}
- }
- 
-+static void fill_event(struct v4l2_event *ev, struct v4l2_ctrl *ctrl, u32 changes)
-+{
-+	memset(ev->reserved, 0, sizeof(ev->reserved));
-+	ev->type = V4L2_EVENT_CTRL;
-+	ev->id = ctrl->id;
-+	ev->u.ctrl.changes = changes;
-+	ev->u.ctrl.type = ctrl->type;
-+	ev->u.ctrl.flags = ctrl->flags;
-+	if (ctrl->type == V4L2_CTRL_TYPE_STRING)
-+		ev->u.ctrl.value64 = 0;
-+	else
-+		ev->u.ctrl.value64 = ctrl->cur.val64;
-+	ev->u.ctrl.minimum = ctrl->minimum;
-+	ev->u.ctrl.maximum = ctrl->maximum;
-+	if (ctrl->type == V4L2_CTRL_TYPE_MENU)
-+		ev->u.ctrl.step = 1;
-+	else
-+		ev->u.ctrl.step = ctrl->step;
-+	ev->u.ctrl.default_value = ctrl->default_value;
-+}
-+
-+static void send_event(struct v4l2_fh *fh, struct v4l2_ctrl *ctrl, u32 changes)
-+{
-+	struct v4l2_event ev;
-+	struct v4l2_ctrl_fh *pos;
-+
-+	if (list_empty(&ctrl->fhs))
-+			return;
-+	fill_event(&ev, ctrl, changes);
-+
-+	list_for_each_entry(pos, &ctrl->fhs, node)
-+		if (pos->fh != fh)
-+			v4l2_event_queue_fh(pos->fh, &ev);
-+}
-+
- /* Helper function: copy the current control value back to the caller */
- static int cur_to_user(struct v4l2_ext_control *c,
- 		       struct v4l2_ctrl *ctrl)
-@@ -660,17 +696,25 @@ static int ctrl_is_volatile(struct v4l2_ext_control *c,
- static void new_to_cur(struct v4l2_fh *fh, struct v4l2_ctrl *ctrl,
- 						bool update_inactive)
- {
-+	bool changed = false;
-+
- 	if (ctrl == NULL)
- 		return;
- 	switch (ctrl->type) {
-+	case V4L2_CTRL_TYPE_BUTTON:
-+		changed = true;
-+		break;
- 	case V4L2_CTRL_TYPE_STRING:
- 		/* strings are always 0-terminated */
-+		changed = strcmp(ctrl->string, ctrl->cur.string);
- 		strcpy(ctrl->cur.string, ctrl->string);
- 		break;
- 	case V4L2_CTRL_TYPE_INTEGER64:
-+		changed = ctrl->val64 != ctrl->cur.val64;
- 		ctrl->cur.val64 = ctrl->val64;
- 		break;
- 	default:
-+		changed = ctrl->val != ctrl->cur.val;
- 		ctrl->cur.val = ctrl->val;
- 		break;
- 	}
-@@ -679,6 +723,10 @@ static void new_to_cur(struct v4l2_fh *fh, struct v4l2_ctrl *ctrl,
- 		if (!is_cur_manual(ctrl->cluster[0]))
- 			ctrl->flags |= V4L2_CTRL_FLAG_INACTIVE;
- 	}
-+	if (changed || update_inactive)
-+		send_event(fh, ctrl,
-+			(changed ? V4L2_EVENT_CTRL_CH_VALUE : 0) |
-+			(update_inactive ? V4L2_EVENT_CTRL_CH_FLAGS : 0));
- }
- 
- /* Copy the current value to the new value */
-@@ -819,6 +867,7 @@ void v4l2_ctrl_handler_free(struct v4l2_ctrl_handler *hdl)
- {
- 	struct v4l2_ctrl_ref *ref, *next_ref;
- 	struct v4l2_ctrl *ctrl, *next_ctrl;
-+	struct v4l2_ctrl_fh *ctrl_fh, *next_ctrl_fh;
- 
- 	if (hdl == NULL || hdl->buckets == NULL)
- 		return;
-@@ -832,6 +881,10 @@ void v4l2_ctrl_handler_free(struct v4l2_ctrl_handler *hdl)
- 	/* Free all controls owned by the handler */
- 	list_for_each_entry_safe(ctrl, next_ctrl, &hdl->ctrls, node) {
- 		list_del(&ctrl->node);
-+		list_for_each_entry_safe(ctrl_fh, next_ctrl_fh, &ctrl->fhs, node) {
-+			list_del(&ctrl_fh->node);
-+			kfree(ctrl_fh);
-+		}
- 		kfree(ctrl);
- 	}
- 	kfree(hdl->buckets);
-@@ -1030,6 +1083,7 @@ static struct v4l2_ctrl *v4l2_ctrl_new(struct v4l2_ctrl_handler *hdl,
- 	}
- 
- 	INIT_LIST_HEAD(&ctrl->node);
-+	INIT_LIST_HEAD(&ctrl->fhs);
- 	ctrl->handler = hdl;
- 	ctrl->ops = ops;
- 	ctrl->id = id;
-@@ -1171,6 +1225,9 @@ int v4l2_ctrl_add_handler(struct v4l2_ctrl_handler *hdl,
- 		/* Skip handler-private controls. */
- 		if (ctrl->is_private)
- 			continue;
-+		/* And control classes */
-+		if (ctrl->type == V4L2_CTRL_TYPE_CTRL_CLASS)
-+			continue;
- 		ret = handler_new_ref(hdl, ctrl);
- 		if (ret)
- 			break;
-@@ -1222,15 +1279,21 @@ EXPORT_SYMBOL(v4l2_ctrl_auto_cluster);
- /* Activate/deactivate a control. */
- void v4l2_ctrl_activate(struct v4l2_ctrl *ctrl, bool active)
- {
-+	/* invert since the actual flag is called 'inactive' */
-+	bool inactive = !active;
-+	bool old;
-+
- 	if (ctrl == NULL)
- 		return;
- 
--	if (!active)
-+	if (inactive)
- 		/* set V4L2_CTRL_FLAG_INACTIVE */
--		set_bit(4, &ctrl->flags);
-+		old = test_and_set_bit(4, &ctrl->flags);
- 	else
- 		/* clear V4L2_CTRL_FLAG_INACTIVE */
--		clear_bit(4, &ctrl->flags);
-+		old = test_and_clear_bit(4, &ctrl->flags);
-+	if (old != inactive)
-+		send_event(NULL, ctrl, V4L2_EVENT_CTRL_CH_FLAGS);
- }
- EXPORT_SYMBOL(v4l2_ctrl_activate);
- 
-@@ -1242,15 +1305,21 @@ EXPORT_SYMBOL(v4l2_ctrl_activate);
-    these controls. */
- void v4l2_ctrl_grab(struct v4l2_ctrl *ctrl, bool grabbed)
- {
-+	bool old;
-+
- 	if (ctrl == NULL)
- 		return;
- 
-+	v4l2_ctrl_lock(ctrl);
- 	if (grabbed)
- 		/* set V4L2_CTRL_FLAG_GRABBED */
--		set_bit(1, &ctrl->flags);
-+		old = test_and_set_bit(1, &ctrl->flags);
- 	else
- 		/* clear V4L2_CTRL_FLAG_GRABBED */
--		clear_bit(1, &ctrl->flags);
-+		old = test_and_clear_bit(1, &ctrl->flags);
-+	if (old != grabbed)
-+		send_event(NULL, ctrl, V4L2_EVENT_CTRL_CH_FLAGS);
-+	v4l2_ctrl_unlock(ctrl);
- }
- EXPORT_SYMBOL(v4l2_ctrl_grab);
- 
-@@ -1956,3 +2025,39 @@ int v4l2_ctrl_s_ctrl(struct v4l2_ctrl *ctrl, s32 val)
- 	return set_ctrl(NULL, ctrl, &val);
- }
- EXPORT_SYMBOL(v4l2_ctrl_s_ctrl);
-+
-+void v4l2_ctrl_add_fh(struct v4l2_ctrl_handler *hdl,
-+		struct v4l2_ctrl_fh *ctrl_fh,
-+		struct v4l2_event_subscription *sub)
-+{
-+	struct v4l2_ctrl *ctrl = v4l2_ctrl_find(hdl, sub->id);
-+
-+	v4l2_ctrl_lock(ctrl);
-+	list_add_tail(&ctrl_fh->node, &ctrl->fhs);
-+	if (ctrl->type != V4L2_CTRL_TYPE_CTRL_CLASS &&
-+	    (sub->flags & V4L2_EVENT_SUB_FL_SEND_INITIAL)) {
-+		struct v4l2_event ev;
-+
-+		fill_event(&ev, ctrl, V4L2_EVENT_CTRL_CH_VALUE |
-+			V4L2_EVENT_CTRL_CH_FLAGS);
-+		v4l2_event_queue_fh(ctrl_fh->fh, &ev);
-+	}
-+	v4l2_ctrl_unlock(ctrl);
-+}
-+EXPORT_SYMBOL(v4l2_ctrl_add_fh);
-+
-+void v4l2_ctrl_del_fh(struct v4l2_ctrl *ctrl, struct v4l2_fh *fh)
-+{
-+	struct v4l2_ctrl_fh *pos;
-+
-+	v4l2_ctrl_lock(ctrl);
-+	list_for_each_entry(pos, &ctrl->fhs, node) {
-+		if (pos->fh == fh) {
-+			list_del(&pos->node);
-+			kfree(pos);
-+			break;
-+		}
-+	}
-+	v4l2_ctrl_unlock(ctrl);
-+}
-+EXPORT_SYMBOL(v4l2_ctrl_del_fh);
-diff --git a/drivers/media/video/v4l2-event.c b/drivers/media/video/v4l2-event.c
-index 69fd343..670f2f8 100644
---- a/drivers/media/video/v4l2-event.c
-+++ b/drivers/media/video/v4l2-event.c
-@@ -25,10 +25,13 @@
- #include <media/v4l2-dev.h>
- #include <media/v4l2-fh.h>
- #include <media/v4l2-event.h>
-+#include <media/v4l2-ctrls.h>
- 
- #include <linux/sched.h>
- #include <linux/slab.h>
- 
-+static void v4l2_event_unsubscribe_all(struct v4l2_fh *fh);
-+
- int v4l2_event_init(struct v4l2_fh *fh)
- {
- 	fh->events = kzalloc(sizeof(*fh->events), GFP_KERNEL);
-@@ -91,7 +94,7 @@ void v4l2_event_free(struct v4l2_fh *fh)
- 
- 	list_kfree(&events->free, struct v4l2_kevent, list);
- 	list_kfree(&events->available, struct v4l2_kevent, list);
--	list_kfree(&events->subscribed, struct v4l2_subscribed_event, list);
-+	v4l2_event_unsubscribe_all(fh);
- 
- 	kfree(events);
- 	fh->events = NULL;
-@@ -154,9 +157,9 @@ int v4l2_event_dequeue(struct v4l2_fh *fh, struct v4l2_event *event,
- }
- EXPORT_SYMBOL_GPL(v4l2_event_dequeue);
- 
--/* Caller must hold fh->event->lock! */
-+/* Caller must hold fh->vdev->fh_lock! */
- static struct v4l2_subscribed_event *v4l2_event_subscribed(
--	struct v4l2_fh *fh, u32 type)
-+		struct v4l2_fh *fh, u32 type, u32 id)
- {
- 	struct v4l2_events *events = fh->events;
- 	struct v4l2_subscribed_event *sev;
-@@ -164,13 +167,46 @@ static struct v4l2_subscribed_event *v4l2_event_subscribed(
- 	assert_spin_locked(&fh->vdev->fh_lock);
- 
- 	list_for_each_entry(sev, &events->subscribed, list) {
--		if (sev->type == type)
-+		if (sev->type == type && sev->id == id)
- 			return sev;
- 	}
- 
- 	return NULL;
- }
- 
-+static void __v4l2_event_queue_fh(struct v4l2_fh *fh, const struct v4l2_event *ev,
-+		const struct timespec *ts)
-+{
-+	struct v4l2_events *events = fh->events;
-+	struct v4l2_subscribed_event *sev;
-+	struct v4l2_kevent *kev;
-+
-+	/* Are we subscribed? */
-+	sev = v4l2_event_subscribed(fh, ev->type, ev->id);
-+	if (sev == NULL)
-+		return;
-+
-+	/* Increase event sequence number on fh. */
-+	events->sequence++;
-+
-+	/* Do we have any free events? */
-+	if (list_empty(&events->free))
-+		return;
-+
-+	/* Take one and fill it. */
-+	kev = list_first_entry(&events->free, struct v4l2_kevent, list);
-+	kev->event.type = ev->type;
-+	kev->event.u = ev->u;
-+	kev->event.id = ev->id;
-+	kev->event.timestamp = *ts;
-+	kev->event.sequence = events->sequence;
-+	list_move_tail(&kev->list, &events->available);
-+
-+	events->navailable++;
-+
-+	wake_up_all(&events->wait);
-+}
-+
- void v4l2_event_queue(struct video_device *vdev, const struct v4l2_event *ev)
- {
- 	struct v4l2_fh *fh;
-@@ -182,37 +218,26 @@ void v4l2_event_queue(struct video_device *vdev, const struct v4l2_event *ev)
- 	spin_lock_irqsave(&vdev->fh_lock, flags);
- 
- 	list_for_each_entry(fh, &vdev->fh_list, list) {
--		struct v4l2_events *events = fh->events;
--		struct v4l2_kevent *kev;
--
--		/* Are we subscribed? */
--		if (!v4l2_event_subscribed(fh, ev->type))
--			continue;
--
--		/* Increase event sequence number on fh. */
--		events->sequence++;
--
--		/* Do we have any free events? */
--		if (list_empty(&events->free))
--			continue;
--
--		/* Take one and fill it. */
--		kev = list_first_entry(&events->free, struct v4l2_kevent, list);
--		kev->event.type = ev->type;
--		kev->event.u = ev->u;
--		kev->event.timestamp = timestamp;
--		kev->event.sequence = events->sequence;
--		list_move_tail(&kev->list, &events->available);
--
--		events->navailable++;
--
--		wake_up_all(&events->wait);
-+		__v4l2_event_queue_fh(fh, ev, &timestamp);
- 	}
- 
- 	spin_unlock_irqrestore(&vdev->fh_lock, flags);
- }
- EXPORT_SYMBOL_GPL(v4l2_event_queue);
- 
-+void v4l2_event_queue_fh(struct v4l2_fh *fh, const struct v4l2_event *ev)
-+{
-+	unsigned long flags;
-+	struct timespec timestamp;
-+
-+	ktime_get_ts(&timestamp);
-+
-+	spin_lock_irqsave(&fh->vdev->fh_lock, flags);
-+	__v4l2_event_queue_fh(fh, ev, &timestamp);
-+	spin_unlock_irqrestore(&fh->vdev->fh_lock, flags);
-+}
-+EXPORT_SYMBOL_GPL(v4l2_event_queue_fh);
-+
- int v4l2_event_pending(struct v4l2_fh *fh)
- {
- 	return fh->events->navailable;
-@@ -223,7 +248,9 @@ int v4l2_event_subscribe(struct v4l2_fh *fh,
- 			 struct v4l2_event_subscription *sub)
- {
- 	struct v4l2_events *events = fh->events;
--	struct v4l2_subscribed_event *sev;
-+	struct v4l2_subscribed_event *sev, *found_ev;
-+	struct v4l2_ctrl *ctrl = NULL;
-+	struct v4l2_ctrl_fh *ctrl_fh = NULL;
- 	unsigned long flags;
- 
- 	if (fh->events == NULL) {
-@@ -231,15 +258,31 @@ int v4l2_event_subscribe(struct v4l2_fh *fh,
- 		return -ENOMEM;
- 	}
- 
-+	if (sub->type == V4L2_EVENT_CTRL) {
-+		ctrl = v4l2_ctrl_find(fh->ctrl_handler, sub->id);
-+		if (ctrl == NULL)
-+			return -EINVAL;
-+	}
-+
- 	sev = kmalloc(sizeof(*sev), GFP_KERNEL);
- 	if (!sev)
- 		return -ENOMEM;
-+	if (ctrl) {
-+		ctrl_fh = kzalloc(sizeof(*ctrl_fh), GFP_KERNEL);
-+		if (!ctrl_fh) {
-+			kfree(sev);
-+			return -ENOMEM;
-+		}
-+		ctrl_fh->fh = fh;
-+	}
- 
- 	spin_lock_irqsave(&fh->vdev->fh_lock, flags);
- 
--	if (v4l2_event_subscribed(fh, sub->type) == NULL) {
-+	found_ev = v4l2_event_subscribed(fh, sub->type, sub->id);
-+	if (!found_ev) {
- 		INIT_LIST_HEAD(&sev->list);
- 		sev->type = sub->type;
-+		sev->id = sub->id;
- 
- 		list_add(&sev->list, &events->subscribed);
- 		sev = NULL;
-@@ -247,6 +290,14 @@ int v4l2_event_subscribe(struct v4l2_fh *fh,
- 
- 	spin_unlock_irqrestore(&fh->vdev->fh_lock, flags);
- 
-+	/* v4l2_ctrl_add_fh uses a mutex, so do this outside the spin lock */
-+	if (ctrl) {
-+		if (found_ev)
-+			kfree(ctrl_fh);
-+		else
-+			v4l2_ctrl_add_fh(fh->ctrl_handler, ctrl_fh, sub);
-+	}
-+
- 	kfree(sev);
- 
- 	return 0;
-@@ -256,6 +307,7 @@ EXPORT_SYMBOL_GPL(v4l2_event_subscribe);
- static void v4l2_event_unsubscribe_all(struct v4l2_fh *fh)
- {
- 	struct v4l2_events *events = fh->events;
-+	struct v4l2_event_subscription sub;
- 	struct v4l2_subscribed_event *sev;
- 	unsigned long flags;
- 
-@@ -265,11 +317,13 @@ static void v4l2_event_unsubscribe_all(struct v4l2_fh *fh)
- 		spin_lock_irqsave(&fh->vdev->fh_lock, flags);
- 		if (!list_empty(&events->subscribed)) {
- 			sev = list_first_entry(&events->subscribed,
--				       struct v4l2_subscribed_event, list);
--			list_del(&sev->list);
-+					struct v4l2_subscribed_event, list);
-+			sub.type = sev->type;
-+			sub.id = sev->id;
- 		}
- 		spin_unlock_irqrestore(&fh->vdev->fh_lock, flags);
--		kfree(sev);
-+		if (sev)
-+			v4l2_event_unsubscribe(fh, &sub);
- 	} while (sev);
- }
- 
-@@ -286,11 +340,17 @@ int v4l2_event_unsubscribe(struct v4l2_fh *fh,
- 
- 	spin_lock_irqsave(&fh->vdev->fh_lock, flags);
- 
--	sev = v4l2_event_subscribed(fh, sub->type);
-+	sev = v4l2_event_subscribed(fh, sub->type, sub->id);
- 	if (sev != NULL)
- 		list_del(&sev->list);
- 
- 	spin_unlock_irqrestore(&fh->vdev->fh_lock, flags);
-+	if (sev->type == V4L2_EVENT_CTRL) {
-+		struct v4l2_ctrl *ctrl = v4l2_ctrl_find(fh->ctrl_handler, sev->id);
-+
-+		if (ctrl)
-+			v4l2_ctrl_del_fh(ctrl, fh);
-+	}
- 
- 	kfree(sev);
- 
-diff --git a/drivers/media/video/v4l2-fh.c b/drivers/media/video/v4l2-fh.c
-index 8635011..c6aef84 100644
---- a/drivers/media/video/v4l2-fh.c
-+++ b/drivers/media/video/v4l2-fh.c
-@@ -93,10 +93,8 @@ void v4l2_fh_exit(struct v4l2_fh *fh)
- {
- 	if (fh->vdev == NULL)
- 		return;
--
--	fh->vdev = NULL;
--
- 	v4l2_event_free(fh);
-+	fh->vdev = NULL;
- }
- EXPORT_SYMBOL_GPL(v4l2_fh_exit);
- 
-diff --git a/include/linux/videodev2.h b/include/linux/videodev2.h
-index 8a4c309..baafe2f 100644
---- a/include/linux/videodev2.h
-+++ b/include/linux/videodev2.h
-@@ -1791,6 +1791,7 @@ struct v4l2_streamparm {
- #define V4L2_EVENT_ALL				0
- #define V4L2_EVENT_VSYNC			1
- #define V4L2_EVENT_EOS				2
-+#define V4L2_EVENT_CTRL				3
- #define V4L2_EVENT_PRIVATE_START		0x08000000
- 
- /* Payload for V4L2_EVENT_VSYNC */
-@@ -1799,21 +1800,45 @@ struct v4l2_event_vsync {
- 	__u8 field;
- } __attribute__ ((packed));
- 
-+/* Payload for V4L2_EVENT_CTRL */
-+#define V4L2_EVENT_CTRL_CH_VALUE		(1 << 0)
-+#define V4L2_EVENT_CTRL_CH_FLAGS		(1 << 1)
-+
-+struct v4l2_event_ctrl {
-+	__u32 changes;
-+	__u32 type;
-+	union {
-+		__s32 value;
-+		__s64 value64;
-+	};
-+	__u32 flags;
-+	__s32 minimum;
-+	__s32 maximum;
-+	__s32 step;
-+	__s32 default_value;
-+};
-+
- struct v4l2_event {
- 	__u32				type;
- 	union {
- 		struct v4l2_event_vsync vsync;
-+		struct v4l2_event_ctrl	ctrl;
- 		__u8			data[64];
- 	} u;
- 	__u32				pending;
- 	__u32				sequence;
- 	struct timespec			timestamp;
--	__u32				reserved[9];
-+	__u32				id;
-+	__u32				reserved[8];
- };
- 
-+#define V4L2_EVENT_SUB_FL_SEND_INITIAL (1 << 0)
-+
- struct v4l2_event_subscription {
- 	__u32				type;
--	__u32				reserved[7];
-+	__u32				id;
-+	__u32				flags;
-+	__u32				reserved[5];
- };
- 
- /*
-diff --git a/include/media/v4l2-ctrls.h b/include/media/v4l2-ctrls.h
-index e720f11..c45bf40 100644
---- a/include/media/v4l2-ctrls.h
-+++ b/include/media/v4l2-ctrls.h
-@@ -28,9 +28,10 @@
- /* forward references */
- struct v4l2_ctrl_handler;
- struct v4l2_ctrl;
--struct v4l2_fh;
- struct video_device;
- struct v4l2_subdev;
-+struct v4l2_event_subscription;
-+struct v4l2_fh;
- 
- /** struct v4l2_ctrl_ops - The control operations that the driver has to provide.
-   * @g_volatile_ctrl: Get a new value for this control. Generally only relevant
-@@ -107,6 +108,7 @@ struct v4l2_ctrl_ops {
- struct v4l2_ctrl {
- 	/* Administrative fields */
- 	struct list_head node;
-+	struct list_head fhs;
- 	struct v4l2_ctrl_handler *handler;
- 	struct v4l2_ctrl **cluster;
- 	unsigned ncontrols;
-@@ -180,6 +182,11 @@ struct v4l2_ctrl_handler {
- 	int error;
- };
- 
-+struct v4l2_ctrl_fh {
-+	struct list_head node;
-+	struct v4l2_fh *fh;
-+};
-+
- /** struct v4l2_ctrl_config - Control configuration structure.
-   * @ops:	The control ops.
-   * @id:	The control ID.
-@@ -425,9 +432,9 @@ struct v4l2_ctrl *v4l2_ctrl_find(struct v4l2_ctrl_handler *hdl, u32 id);
-   * This sets or clears the V4L2_CTRL_FLAG_INACTIVE flag atomically.
-   * Does nothing if @ctrl == NULL.
-   * This will usually be called from within the s_ctrl op.
-+  * The V4L2_EVENT_CTRL event will be generated afterwards.
-   *
--  * This function can be called regardless of whether the control handler
--  * is locked or not.
-+  * This function assumes that the control handler is locked.
-   */
- void v4l2_ctrl_activate(struct v4l2_ctrl *ctrl, bool active);
- 
-@@ -437,11 +444,12 @@ void v4l2_ctrl_activate(struct v4l2_ctrl *ctrl, bool active);
-   *
-   * This sets or clears the V4L2_CTRL_FLAG_GRABBED flag atomically.
-   * Does nothing if @ctrl == NULL.
-+  * The V4L2_EVENT_CTRL event will be generated afterwards.
-   * This will usually be called when starting or stopping streaming in the
-   * driver.
-   *
--  * This function can be called regardless of whether the control handler
--  * is locked or not.
-+  * This function assumes that the control handler is not locked and will
-+  * take the lock itself.
-   */
- void v4l2_ctrl_grab(struct v4l2_ctrl *ctrl, bool grabbed);
- 
-@@ -486,6 +494,11 @@ s32 v4l2_ctrl_g_ctrl(struct v4l2_ctrl *ctrl);
-   */
- int v4l2_ctrl_s_ctrl(struct v4l2_ctrl *ctrl, s32 val);
- 
-+void v4l2_ctrl_add_fh(struct v4l2_ctrl_handler *hdl,
-+		struct v4l2_ctrl_fh *ctrl_fh,
-+		struct v4l2_event_subscription *sub);
-+void v4l2_ctrl_del_fh(struct v4l2_ctrl *ctrl, struct v4l2_fh *fh);
-+
- /* Helpers for ioctl_ops. If hdl == NULL then they will all return -EINVAL. */
- int v4l2_queryctrl(struct v4l2_ctrl_handler *hdl, struct v4l2_queryctrl *qc);
- int v4l2_querymenu(struct v4l2_ctrl_handler *hdl, struct v4l2_querymenu *qm);
-diff --git a/include/media/v4l2-event.h b/include/media/v4l2-event.h
-index 3b86177..45e9c1e 100644
---- a/include/media/v4l2-event.h
-+++ b/include/media/v4l2-event.h
-@@ -40,6 +40,7 @@ struct v4l2_kevent {
- struct v4l2_subscribed_event {
- 	struct list_head	list;
- 	u32			type;
-+	u32			id;
- };
- 
- struct v4l2_events {
-@@ -58,6 +59,7 @@ void v4l2_event_free(struct v4l2_fh *fh);
- int v4l2_event_dequeue(struct v4l2_fh *fh, struct v4l2_event *event,
- 		       int nonblocking);
- void v4l2_event_queue(struct video_device *vdev, const struct v4l2_event *ev);
-+void v4l2_event_queue_fh(struct v4l2_fh *fh, const struct v4l2_event *ev);
- int v4l2_event_pending(struct v4l2_fh *fh);
- int v4l2_event_subscribe(struct v4l2_fh *fh,
- 			 struct v4l2_event_subscription *sub);
+3. Fix Mixer configuration
+- waiting for output's vsync signal during mixer initialization
+- Mixer's registers are accessed only if output is active
+
+4. Removed redundant runtime-debug level from Mixer.
+
+Updated RFC for TV driver:
+
+==============
+ Introduction
+==============
+
+The purpose of this RFC is to discuss the driver for a TV output interface
+available in upcoming Samsung SoC. The HW is able to generate digital and
+analog signals. Current version of the driver supports only digital output.
+
+Internally the driver uses videobuf2 framework, and DMA-CONTIG memory allocator.
+Not all of them are merged by now, but I decided to post the sources to start
+discussion driver's design.
+
+======================
+ Hardware description
+======================
+
+The SoC contains a few HW sub-blocks:
+
+1. Video Processor (VP). It is used for processing of NV12 data.  An image
+stored in RAM is accessed by DMA. Pixels are cropped, scaled. Additionally,
+post processing operations like brightness, sharpness and contrast adjustments
+could be performed. The output in YCbCr444 format is send to Mixer.
+
+2. Mixer (MXR). The piece of hardware responsible for mixing and blending
+multiple data inputs before passing it to an output device.  The MXR is capable
+of handling up to three image layers. One is the output of VP.  Other two are
+images in RGB format (multiple variants are supported).  The layers are scaled,
+cropped and blended with background color.  The blending factor, and layers'
+priority are controlled by MXR's registers. The output is passed either to HDMI
+or SDO.
+
+3. HDMI. The piece of HW responsible for generation of HDMI packets. It takes
+pixel data from mixer and transforms it into data frames. The output is send
+to HDMIPHY interface.
+
+4. HDMIPHY. Physical interface for HDMI. Its duties are sending HDMI packets to
+HDMI connector. Basically, it contains a PLL that produces source clock for
+Mixer, VP and HDMI during streaming.
+
+5. SDO. Generation of TV analog signal. The alternative output for the Mixer.
+It receives data and passes it to VideoDAC. The SDO is responsible for timing
+generation of analog TV signal. It supports multiple standards.
+
+6. VideoDAC. Modulator for TVOUT signal. Receives data from SDO. Converts
+it to analog domain. Next, the signal is modulated to CVBS format, amplified
+and sent to Comosite Connector.
+
+The diagram below depicts connection between all HW pieces.
+                    +-----------+
+NV12 data ---dma--->|   Video   |
+                    | Processor |
+                    +-----------+
+                          |
+                          V
+                    +-----------+
+RGB data  ---dma--->|           |
+                    |   Mixer   |
+RGB data  ---dma--->|           |
+                    +-----------+
+                          |
+                          * dmux
+                         /
+                  +-----*   *------+
+                  |                |
+                  V                V
+            +-----------+    +-----------+
+            |    HDMI   |    |    SDO    |
+            +-----------+    +-----------+
+                  |                |
+                  V                V
+            +-----------+    +-----------+
+            |  HDMIPHY  |    |  VideoDAC |
+            +-----------+    +-----------+
+                  |                |
+                  V                V
+                HDMI           Composite
+             connector         connector
+
+
+==================
+ Driver interface
+==================
+
+The posted driver implements three V4L2 nodes. Every video node implements V4L2
+output buffer. One of nodes corresponds to input of Video Processor. The other
+two nodes correspond to RGB inputs of Mixer. All nodes share the same output.
+It is one of the Mixer's outputs: SDO or HDMI. Changing output in one layer
+using S_OUTPUT would change outputs of all other video nodes. The same thing
+happens if one try to reconfigure output i.e. by calling S_DV_PRESET. However
+it not possible to change or reconfigure the output while streaming. To sum up,
+all features in posted version of driver goes as follows:
+
+1. QUERYCAP
+2. S_FMT, G_FMT - single and multiplanar API
+  a) node named video0 supports formats NV12, NV12, NV12T (tiled version of
+NV12), NV12MT (multiplane version of NV12T).
+  b) nodes named graph0 and graph1 support formats RGB565, ARGB1555, ARGB4444,
+ARGB8888.
+3. Buffer with USERPTR and MMAP memory.
+4. Streaming and buffer control. (STREAMON, STREAMOFF, REQBUF, QBUF, DQBUF)
+5. OUTPUT configurations and enumeration using VIDIOC_{ENUM/S/G}_OUTPUT.
+6. DV preset control (SET, GET, ENUM). Currently modes 480P59_94, 720P59_94,
+1080P30, 1080P59_94 and 1080P60 work.
+7. Analog standards using VIDIOC_S_STD.
+8. Positioning layer's window on output display using S_CROP, G_GROP, CROPCAP.
+9. Positioning and cropping data in buffer using S_CROP, G_GROP, CROPCAP with
+buffer type OVERLAY. *
+
+TODOs:
+- add control of alpha blending / chroma keying via V4L2 controls
+- add controls for luminance curve and sharpness in VP
+- consider exporting all output functionalities to separate video node
+- consider media controller framework
+- fix dependency between all TV drivers
+- move all subroutines for power management to PM runtime callbacks
+
+* The need of cropping in source buffers came from problem with MFC driver for
+S5P. The MFC supports only width divisible by 64. If a width of a decoded movie
+is not aligned do 64 then padding pixels are filled with zeros. This is an ugly
+green color in YCbCr colorspace. Filling it with zeros by a CPU is a waste of
+resources since an image can be cropped in VP. Is it possible to set crops for
+user data for M2M devices. V4L2 lacks such functionality of non-M2M devices.
+Therefore cropping in buffer V4L2_BUF_TYPE_VIDEO_OVERLAY was used as an work
+around.
+
+=====================
+ Device Architecture
+=====================
+
+Three drivers are added in this patch.
+
+1. HDMIPHY. It is an I2C driver for HDMIPHY interface. It exports following
+callback by V4L2 subdevice:
+- s_power: currently stub
+- s_stream: configures and starts/stops HDMIPHY
+- s_dv_preset: used to choose proper frequency of clock for other TV devices
+
+2. HDMI. The auxiliary driver used to control HDMI interface. It exports its
+subdev in its private data for use by other drivers. The following callbacks are
+implemented:
+- s_power: runs HDMI hardware, regulators and clocks.
+- s_stream: runs HDMIPHY and starts generation of video frames.
+- enum_dv_presets
+- s_dv_preset
+- g_mbus_format: returns information on data format expected by on HDMI input
+  The driver supports an interrupt. It is used to detect plug/unplug events in
+kernel debugs.  The API for detection of such an events in V4L2 API is to be
+defined.
+
+3. SDO. The auxiliary driver used to control analog TV. It also exports its
+subdev for other drivers. The following callbacks are implemented.
+- s_power: runs TV hardware, regulators and clocks.
+- s_stream: runs TV clock and starts generation of video signal.
+- s_std: configuration of TV standard from one of PAL/NTSC family
+- g_tvnorms: used by Mixer to obtain tv standards supported by SDO
+- g_mbus_format: returns information on data format expected by on SDO input
+
+5. Mixer & Video Processor driver. It is called 's5p-mixer' because of
+historical reasons. It was decided combine VP and MXR drivers into one because
+of shared interrupt and very similar interface via V4L2 nodes. The driver is a
+realization of many-to-many relation between multiple input layers and multiple
+outputs. All shared resources are kept in struct mxr_device. It provides
+utilities for management and synchronization of access to resources and
+reference counting. The outputs are obtained from HDMI/SDO private data.  One
+layer is a single video node. Simple inheritance is applied because there only
+little difference between layer's types. Every layer type implements set of
+ops.  There are different ops for Mixer layers and other for VP layer.
+
+The videobuf2 framework was used for the management of buffers and streaming.
+All other V4L2 ioctls are processed in layers common interface. The DMA-IOMMU
+was used as memory allocator for Mixer's buffers. It could be easily exchanged
+with any other allocator integrated with videobuf2 framework.
+
+===============
+ Usage summary
+===============
+
+Follow steps below to display double-buffered animation on output.
+In order to use other output please use VIDIOC_S_OUTPUT.
+
+01. Open video node named graph0.
+02. S_FMT(type = OUTPUT, pixelformat = V4L2_PIX_FMT_RGB*, width, height, ...)
+03. REQ_BUFS(type = OUTPUT, memory = MMAP, count = 2)
+04. MMAP(type = OUTPUT, index = 0)
+05. MMAP(type = OUTPUT, index = 1)
+06. Fill buffer 0 with data
+07. QBUF(type = OUTPUT, index = 0)
+08. STREAM_ON(type = OUTPUT)
+09. Fill buffer 1 with data
+10. QBUF(type = OUTPUT, index = 1)
+11. DQBUF(type = OUTPUT)
+12. QBUF(type = OUTPUT, index = 0)
+13. DQBUF(type = OUTPUT)
+14. Goto 09
+
+===============
+ Patch Summary
+===============
+
+Tomasz Stanislawski (3):
+  v4l: add macro for 1080p59_54 preset
+  v4l: add g_tvnorms callback to V4L2 subdev
+  s5p-tv: add drivers for TV on Samsung S5P platform
+
+ drivers/media/video/Kconfig                  |   15 +
+ drivers/media/video/Makefile                 |    1 +
+ drivers/media/video/s5p-tv/Kconfig           |   69 ++
+ drivers/media/video/s5p-tv/Makefile          |   17 +
+ drivers/media/video/s5p-tv/hdmi.h            |   73 ++
+ drivers/media/video/s5p-tv/hdmi_drv.c        |  999 ++++++++++++++++++++++++++
+ drivers/media/video/s5p-tv/hdmiphy_drv.c     |  202 ++++++
+ drivers/media/video/s5p-tv/mixer.h           |  368 ++++++++++
+ drivers/media/video/s5p-tv/mixer_drv.c       |  494 +++++++++++++
+ drivers/media/video/s5p-tv/mixer_grp_layer.c |  181 +++++
+ drivers/media/video/s5p-tv/mixer_reg.c       |  540 ++++++++++++++
+ drivers/media/video/s5p-tv/mixer_video.c     |  956 ++++++++++++++++++++++++
+ drivers/media/video/s5p-tv/mixer_vp_layer.c  |  207 ++++++
+ drivers/media/video/s5p-tv/regs-hdmi.h       |  141 ++++
+ drivers/media/video/s5p-tv/regs-mixer.h      |  121 ++++
+ drivers/media/video/s5p-tv/regs-sdo.h        |   63 ++
+ drivers/media/video/s5p-tv/regs-vp.h         |   88 +++
+ drivers/media/video/s5p-tv/sdo_drv.c         |  498 +++++++++++++
+ drivers/media/video/v4l2-common.c            |    1 +
+ include/linux/videodev2.h                    |    1 +
+ include/media/v4l2-subdev.h                  |    1 +
+ 21 files changed, 5036 insertions(+), 0 deletions(-)
+ create mode 100644 drivers/media/video/s5p-tv/Kconfig
+ create mode 100644 drivers/media/video/s5p-tv/Makefile
+ create mode 100644 drivers/media/video/s5p-tv/hdmi.h
+ create mode 100644 drivers/media/video/s5p-tv/hdmi_drv.c
+ create mode 100644 drivers/media/video/s5p-tv/hdmiphy_drv.c
+ create mode 100644 drivers/media/video/s5p-tv/mixer.h
+ create mode 100644 drivers/media/video/s5p-tv/mixer_drv.c
+ create mode 100644 drivers/media/video/s5p-tv/mixer_grp_layer.c
+ create mode 100644 drivers/media/video/s5p-tv/mixer_reg.c
+ create mode 100644 drivers/media/video/s5p-tv/mixer_video.c
+ create mode 100644 drivers/media/video/s5p-tv/mixer_vp_layer.c
+ create mode 100644 drivers/media/video/s5p-tv/regs-hdmi.h
+ create mode 100644 drivers/media/video/s5p-tv/regs-mixer.h
+ create mode 100644 drivers/media/video/s5p-tv/regs-sdo.h
+ create mode 100644 drivers/media/video/s5p-tv/regs-vp.h
+ create mode 100644 drivers/media/video/s5p-tv/sdo_drv.c
+
 -- 
-1.7.1
-
+1.7.5.4
