@@ -1,305 +1,200 @@
 Return-path: <mchehab@pedra>
-Received: from smtp-vbr10.xs4all.nl ([194.109.24.30]:3251 "EHLO
-	smtp-vbr10.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757176Ab1F1L0P (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 28 Jun 2011 07:26:15 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [RFCv2 PATCH 02/13] v4l2-ctrls/event: remove struct v4l2_ctrl_fh, instead use v4l2_subscribed_event
-Date: Tue, 28 Jun 2011 13:25:54 +0200
-Message-Id: <45c38fb3f55b993136692e1d900dacd6cd2d85ad.1309260043.git.hans.verkuil@cisco.com>
-In-Reply-To: <1309260365-4831-1-git-send-email-hverkuil@xs4all.nl>
-References: <1309260365-4831-1-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <3d92b242dcf5e7766d128d6c1f05c0bd837a2633.1309260043.git.hans.verkuil@cisco.com>
-References: <3d92b242dcf5e7766d128d6c1f05c0bd837a2633.1309260043.git.hans.verkuil@cisco.com>
+Received: from mx1.redhat.com ([209.132.183.28]:28180 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752832Ab1FHBpy (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 7 Jun 2011 21:45:54 -0400
+Received: from int-mx02.intmail.prod.int.phx2.redhat.com (int-mx02.intmail.prod.int.phx2.redhat.com [10.5.11.12])
+	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id p581js5a028944
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
+	for <linux-media@vger.kernel.org>; Tue, 7 Jun 2011 21:45:54 -0400
+Received: from pedra (vpn-236-210.phx2.redhat.com [10.3.236.210])
+	by int-mx02.intmail.prod.int.phx2.redhat.com (8.13.8/8.13.8) with ESMTP id p581jnc4007506
+	for <linux-media@vger.kernel.org>; Tue, 7 Jun 2011 21:45:53 -0400
+Date: Tue, 7 Jun 2011 22:45:31 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: [PATCH 03/15] [media] DocBook/frontend.xml: Link DVB S2API
+ parameters
+Message-ID: <20110607224531.56b2744a@pedra>
+In-Reply-To: <cover.1307496835.git.mchehab@redhat.com>
+References: <cover.1307496835.git.mchehab@redhat.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
+To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+Associate the frontend.h DVB S2API parmeters to the corresponding
+documentation at the spec.
 
-The v4l2_ctrl_fh struct connected v4l2_ctrl with v4l2_fh so the control
-would know which filehandles subscribed to it. However, it is much easier
-to use struct v4l2_subscribed_event directly for that and get rid of that
-intermediate struct.
+Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- drivers/media/video/v4l2-ctrls.c |   50 ++++++++++++++-----------------------
- drivers/media/video/v4l2-event.c |   34 +++++++++----------------
- include/media/v4l2-ctrls.h       |   17 +++++-------
- include/media/v4l2-event.h       |    9 +++++++
- 4 files changed, 47 insertions(+), 63 deletions(-)
-
-diff --git a/drivers/media/video/v4l2-ctrls.c b/drivers/media/video/v4l2-ctrls.c
-index f581910..079f952 100644
---- a/drivers/media/video/v4l2-ctrls.c
-+++ b/drivers/media/video/v4l2-ctrls.c
-@@ -581,15 +581,15 @@ static void fill_event(struct v4l2_event *ev, struct v4l2_ctrl *ctrl, u32 change
- static void send_event(struct v4l2_fh *fh, struct v4l2_ctrl *ctrl, u32 changes)
- {
- 	struct v4l2_event ev;
--	struct v4l2_ctrl_fh *pos;
-+	struct v4l2_subscribed_event *sev;
+diff --git a/Documentation/DocBook/media/Makefile b/Documentation/DocBook/media/Makefile
+index 34afc54..3036070 100644
+--- a/Documentation/DocBook/media/Makefile
++++ b/Documentation/DocBook/media/Makefile
+@@ -124,7 +124,9 @@ DVB_DOCUMENTED = \
+ 	-e "s/\(linkend\=\"\)FE_SET_PROPERTY/\1FE_GET_PROPERTY/g" \
+ 	-e "s,\(struct\s\+\)\([a-z0-9_]\+\)\(\s\+{\),\1\<link linkend=\"\2\">\2\<\/link\>\3,g" \
+ 	-e "s,\(}\s\+\)\([a-z0-9_]\+_t\+\),\1\<link linkend=\"\2\">\2\<\/link\>,g" \
++	-e "s,\(define\s\+\)\(DTV_[A-Z0-9_]\+\)\(\s\+[0-9]\+\),\1\<link linkend=\"\2\">\2\<\/link\>\3,g" \
+ 	-e ":a;s/\(linkend=\".*\)_\(.*\">\)/\1-\2/;ta" \
++	-e "s,DTV-ISDBT-LAYER[A-C],DTV-ISDBT-LAYER,g" \
+ #	-e "s,\(\s\+\)\(FE_[A-Z0-9_]\+\)\([\s\=\,]*\),\1\<link linkend=\"\2\">\2\<\/link\>\3,g" \
  
--	if (list_empty(&ctrl->fhs))
-+	if (list_empty(&ctrl->ev_subs))
- 			return;
- 	fill_event(&ev, ctrl, changes);
+ #
+diff --git a/Documentation/DocBook/media/dvb/dvbproperty.xml b/Documentation/DocBook/media/dvb/dvbproperty.xml
+index b5365f6..3a1ecb2 100644
+--- a/Documentation/DocBook/media/dvb/dvbproperty.xml
++++ b/Documentation/DocBook/media/dvb/dvbproperty.xml
+@@ -199,7 +199,7 @@ get/set up to 64 properties. The actual meaning of each property is described on
  
--	list_for_each_entry(pos, &ctrl->fhs, node)
--		if (pos->fh != fh)
--			v4l2_event_queue_fh(pos->fh, &ev);
-+	list_for_each_entry(sev, &ctrl->ev_subs, node)
-+		if (sev->fh && sev->fh != fh)
-+			v4l2_event_queue_fh(sev->fh, &ev);
- }
+ <section id="fe_property_common">
+ 	<title>Parameters that are common to all Digital TV standards</title>
+-	<section id="DTV_FREQUENCY">
++	<section id="DTV-FREQUENCY">
+ 		<title><constant>DTV_FREQUENCY</constant></title>
  
- /* Helper function: copy the current control value back to the caller */
-@@ -867,7 +867,7 @@ void v4l2_ctrl_handler_free(struct v4l2_ctrl_handler *hdl)
- {
- 	struct v4l2_ctrl_ref *ref, *next_ref;
- 	struct v4l2_ctrl *ctrl, *next_ctrl;
--	struct v4l2_ctrl_fh *ctrl_fh, *next_ctrl_fh;
-+	struct v4l2_subscribed_event *sev, *next_sev;
+ 		<para>Central frequency of the channel, in HZ.</para>
+@@ -214,7 +214,7 @@ get/set up to 64 properties. The actual meaning of each property is described on
+ 			central frequency of the channel is expected.</para>
+ 	</section>
  
- 	if (hdl == NULL || hdl->buckets == NULL)
- 		return;
-@@ -881,10 +881,8 @@ void v4l2_ctrl_handler_free(struct v4l2_ctrl_handler *hdl)
- 	/* Free all controls owned by the handler */
- 	list_for_each_entry_safe(ctrl, next_ctrl, &hdl->ctrls, node) {
- 		list_del(&ctrl->node);
--		list_for_each_entry_safe(ctrl_fh, next_ctrl_fh, &ctrl->fhs, node) {
--			list_del(&ctrl_fh->node);
--			kfree(ctrl_fh);
--		}
-+		list_for_each_entry_safe(sev, next_sev, &ctrl->ev_subs, node)
-+			list_del(&sev->node);
- 		kfree(ctrl);
- 	}
- 	kfree(hdl->buckets);
-@@ -1084,7 +1082,7 @@ static struct v4l2_ctrl *v4l2_ctrl_new(struct v4l2_ctrl_handler *hdl,
- 	}
+-	<section id="DTV_BANDWIDTH_HZ">
++	<section id="DTV-BANDWIDTH-HZ">
+ 		<title><constant>DTV_BANDWIDTH_HZ</constant></title>
  
- 	INIT_LIST_HEAD(&ctrl->node);
--	INIT_LIST_HEAD(&ctrl->fhs);
-+	INIT_LIST_HEAD(&ctrl->ev_subs);
- 	ctrl->handler = hdl;
- 	ctrl->ops = ops;
- 	ctrl->id = id;
-@@ -2027,41 +2025,31 @@ int v4l2_ctrl_s_ctrl(struct v4l2_ctrl *ctrl, s32 val)
- }
- EXPORT_SYMBOL(v4l2_ctrl_s_ctrl);
+ 		<para>Bandwidth for the channel, in HZ.</para>
+@@ -241,7 +241,7 @@ get/set up to 64 properties. The actual meaning of each property is described on
+ 		<para>6) In addition, DVB-T2 supports 1.172, 5 and 10MHz.</para>
+ 	</section>
  
--void v4l2_ctrl_add_fh(struct v4l2_ctrl_handler *hdl,
--		struct v4l2_ctrl_fh *ctrl_fh,
--		struct v4l2_event_subscription *sub)
-+void v4l2_ctrl_add_event(struct v4l2_ctrl *ctrl,
-+				struct v4l2_subscribed_event *sev)
- {
--	struct v4l2_ctrl *ctrl = v4l2_ctrl_find(hdl, sub->id);
--
- 	v4l2_ctrl_lock(ctrl);
--	list_add_tail(&ctrl_fh->node, &ctrl->fhs);
-+	list_add_tail(&sev->node, &ctrl->ev_subs);
- 	if (ctrl->type != V4L2_CTRL_TYPE_CTRL_CLASS &&
--	    (sub->flags & V4L2_EVENT_SUB_FL_SEND_INITIAL)) {
-+	    (sev->flags & V4L2_EVENT_SUB_FL_SEND_INITIAL)) {
- 		struct v4l2_event ev;
+-	<section id="DTV_DELIVERY_SYSTEM">
++	<section id="DTV-DELIVERY-SYSTEM">
+ 		<title><constant>DTV_DELIVERY_SYSTEM</constant></title>
  
- 		fill_event(&ev, ctrl, V4L2_EVENT_CTRL_CH_VALUE |
- 			V4L2_EVENT_CTRL_CH_FLAGS);
--		v4l2_event_queue_fh(ctrl_fh->fh, &ev);
-+		v4l2_event_queue_fh(sev->fh, &ev);
- 	}
- 	v4l2_ctrl_unlock(ctrl);
- }
--EXPORT_SYMBOL(v4l2_ctrl_add_fh);
-+EXPORT_SYMBOL(v4l2_ctrl_add_event);
+ 		<para>Specifies the type of Delivery system</para>
+@@ -271,7 +271,7 @@ typedef enum fe_delivery_system {
  
--void v4l2_ctrl_del_fh(struct v4l2_ctrl *ctrl, struct v4l2_fh *fh)
-+void v4l2_ctrl_del_event(struct v4l2_ctrl *ctrl,
-+				struct v4l2_subscribed_event *sev)
- {
--	struct v4l2_ctrl_fh *pos;
--
- 	v4l2_ctrl_lock(ctrl);
--	list_for_each_entry(pos, &ctrl->fhs, node) {
--		if (pos->fh == fh) {
--			list_del(&pos->node);
--			kfree(pos);
--			break;
--		}
--	}
-+	list_del(&sev->node);
- 	v4l2_ctrl_unlock(ctrl);
- }
--EXPORT_SYMBOL(v4l2_ctrl_del_fh);
-+EXPORT_SYMBOL(v4l2_ctrl_del_event);
+ 	</section>
  
- int v4l2_ctrl_subscribe_fh(struct v4l2_fh *fh,
- 			struct v4l2_event_subscription *sub, unsigned n)
-diff --git a/drivers/media/video/v4l2-event.c b/drivers/media/video/v4l2-event.c
-index 70fa82d..dc68f60 100644
---- a/drivers/media/video/v4l2-event.c
-+++ b/drivers/media/video/v4l2-event.c
-@@ -213,7 +213,6 @@ int v4l2_event_subscribe(struct v4l2_fh *fh,
- {
- 	struct v4l2_subscribed_event *sev, *found_ev;
- 	struct v4l2_ctrl *ctrl = NULL;
--	struct v4l2_ctrl_fh *ctrl_fh = NULL;
- 	unsigned long flags;
+-	<section id="DTV_TRANSMISSION_MODE">
++	<section id="DTV-TRANSMISSION-MODE">
+ 		<title><constant>DTV_TRANSMISSION_MODE</constant></title>
  
- 	if (sub->type == V4L2_EVENT_CTRL) {
-@@ -222,17 +221,9 @@ int v4l2_event_subscribe(struct v4l2_fh *fh,
- 			return -EINVAL;
- 	}
+ 		<para>Specifies the number of carriers used by the standard</para>
+@@ -300,7 +300,7 @@ typedef enum fe_transmit_mode {
+ 		<para>4) DVB-T2 specifies 1K, 2K, 4K, 8K, 16K and 32K.</para>
+ 	</section>
  
--	sev = kmalloc(sizeof(*sev), GFP_KERNEL);
-+	sev = kzalloc(sizeof(*sev), GFP_KERNEL);
- 	if (!sev)
- 		return -ENOMEM;
--	if (ctrl) {
--		ctrl_fh = kzalloc(sizeof(*ctrl_fh), GFP_KERNEL);
--		if (!ctrl_fh) {
--			kfree(sev);
--			return -ENOMEM;
--		}
--		ctrl_fh->fh = fh;
--	}
+-	<section id="DTV_GUARD_INTERVAL">
++	<section id="DTV-GUARD-INTERVAL">
+ 		<title><constant>DTV_GUARD_INTERVAL</constant></title>
  
- 	spin_lock_irqsave(&fh->vdev->fh_lock, flags);
+ 		<para>Possible values are:</para>
+@@ -359,10 +359,10 @@ typedef enum fe_guard_interval {
+ 	<section id="isdbt-new-parms">
+ 		<title>ISDB-T only parameters</title>
  
-@@ -241,22 +232,19 @@ int v4l2_event_subscribe(struct v4l2_fh *fh,
- 		INIT_LIST_HEAD(&sev->list);
- 		sev->type = sub->type;
- 		sev->id = sub->id;
-+		sev->fh = fh;
-+		sev->flags = sub->flags;
+-		<section id="isdbt-part-rec">
++		<section id="DTV-ISDBT-PARTIAL-RECEPTION">
+ 			<title><constant>DTV_ISDBT_PARTIAL_RECEPTION</constant></title>
  
- 		list_add(&sev->list, &fh->subscribed);
--		sev = NULL;
- 	}
+-			<para><constant>If DTV_ISDBT_SOUND_BROADCASTING</constant> is '0' this bit-field represents whether
++			<para>If <constant>DTV_ISDBT_SOUND_BROADCASTING</constant> is '0' this bit-field represents whether
+ 				the channel is in partial reception mode or not.</para>
  
- 	spin_unlock_irqrestore(&fh->vdev->fh_lock, flags);
+ 			<para>If '1' <constant>DTV_ISDBT_LAYERA_*</constant> values are assigned to the center segment and
+@@ -375,7 +375,7 @@ typedef enum fe_guard_interval {
+ 			<para>Possible values: 0, 1, -1 (AUTO)</para>
+ 		</section>
  
- 	/* v4l2_ctrl_add_fh uses a mutex, so do this outside the spin lock */
--	if (ctrl) {
--		if (found_ev)
--			kfree(ctrl_fh);
--		else
--			v4l2_ctrl_add_fh(fh->ctrl_handler, ctrl_fh, sub);
--	}
--
--	kfree(sev);
-+	if (found_ev)
-+		kfree(sev);
-+	else if (ctrl)
-+		v4l2_ctrl_add_event(ctrl, sev);
+-		<section id="isdbt-sound-bcast">
++		<section id="DTV-ISDBT-SOUND-BROADCASTING">
+ 			<title><constant>DTV_ISDBT_SOUND_BROADCASTING</constant></title>
  
- 	return 0;
- }
-@@ -298,15 +286,17 @@ int v4l2_event_unsubscribe(struct v4l2_fh *fh,
- 	spin_lock_irqsave(&fh->vdev->fh_lock, flags);
+ 			<para>This field represents whether the other DTV_ISDBT_*-parameters are
+@@ -385,7 +385,7 @@ typedef enum fe_guard_interval {
+ 			<para>Possible values: 0, 1, -1 (AUTO)</para>
+ 		</section>
  
- 	sev = v4l2_event_subscribed(fh, sub->type, sub->id);
--	if (sev != NULL)
-+	if (sev != NULL) {
- 		list_del(&sev->list);
-+		sev->fh = NULL;
-+	}
+-		<section id="isdbt-sb-ch-id">
++		<section id="DTV-ISDBT-SB-SUBCHANNEL-ID">
+ 			<title><constant>DTV_ISDBT_SB_SUBCHANNEL_ID</constant></title>
  
- 	spin_unlock_irqrestore(&fh->vdev->fh_lock, flags);
--	if (sev->type == V4L2_EVENT_CTRL) {
-+	if (sev && sev->type == V4L2_EVENT_CTRL) {
- 		struct v4l2_ctrl *ctrl = v4l2_ctrl_find(fh->ctrl_handler, sev->id);
+ 			<para>This field only applies if <constant>DTV_ISDBT_SOUND_BROADCASTING</constant> is '1'.</para>
+@@ -418,7 +418,7 @@ typedef enum fe_guard_interval {
+ 			<para>Possible values: 0 .. 41, -1 (AUTO)</para>
+ 		</section>
  
- 		if (ctrl)
--			v4l2_ctrl_del_fh(ctrl, fh);
-+			v4l2_ctrl_del_event(ctrl, sev);
- 	}
+-		<section id="isdbt-sb-seg-idx">
++		<section id="DTV-ISDBT-SB-SEGMENT-IDX">
  
- 	kfree(sev);
-diff --git a/include/media/v4l2-ctrls.h b/include/media/v4l2-ctrls.h
-index de68a59..635adc2 100644
---- a/include/media/v4l2-ctrls.h
-+++ b/include/media/v4l2-ctrls.h
-@@ -31,6 +31,7 @@ struct v4l2_ctrl;
- struct video_device;
- struct v4l2_subdev;
- struct v4l2_event_subscription;
-+struct v4l2_subscribed_event;
- struct v4l2_fh;
+ 			<title><constant>DTV_ISDBT_SB_SEGMENT_IDX</constant></title>
  
- /** struct v4l2_ctrl_ops - The control operations that the driver has to provide.
-@@ -53,6 +54,7 @@ struct v4l2_ctrl_ops {
+@@ -433,7 +433,7 @@ typedef enum fe_guard_interval {
+ 			<para>Note: This value cannot be determined by an automatic channel search.</para>
+ 		</section>
  
- /** struct v4l2_ctrl - The control structure.
-   * @node:	The list node.
-+  * @ev_subs:	The list of control event subscriptions.
-   * @handler:	The handler that owns the control.
-   * @cluster:	Point to start of cluster array.
-   * @ncontrols:	Number of controls in cluster array.
-@@ -108,7 +110,7 @@ struct v4l2_ctrl_ops {
- struct v4l2_ctrl {
- 	/* Administrative fields */
- 	struct list_head node;
--	struct list_head fhs;
-+	struct list_head ev_subs;
- 	struct v4l2_ctrl_handler *handler;
- 	struct v4l2_ctrl **cluster;
- 	unsigned ncontrols;
-@@ -184,11 +186,6 @@ struct v4l2_ctrl_handler {
- 	int error;
- };
+-		<section id="isdbt-sb-seg-cnt">
++		<section id="DTV-ISDBT-SB-SEGMENT-COUNT">
+ 			<title><constant>DTV_ISDBT_SB_SEGMENT_COUNT</constant></title>
  
--struct v4l2_ctrl_fh {
--	struct list_head node;
--	struct v4l2_fh *fh;
--};
--
- /** struct v4l2_ctrl_config - Control configuration structure.
-   * @ops:	The control ops.
-   * @id:	The control ID.
-@@ -497,10 +494,10 @@ s32 v4l2_ctrl_g_ctrl(struct v4l2_ctrl *ctrl);
- int v4l2_ctrl_s_ctrl(struct v4l2_ctrl *ctrl, s32 val);
+ 			<para>This field only applies if <constant>DTV_ISDBT_SOUND_BROADCASTING</constant> is '1'.</para>
+@@ -457,7 +457,7 @@ typedef enum fe_guard_interval {
+ 				available segments. The total number of segments over all layers has
+ 				to 13 in ISDB-T.</para>
  
- /* Internal helper functions that deal with control events. */
--void v4l2_ctrl_add_fh(struct v4l2_ctrl_handler *hdl,
--		struct v4l2_ctrl_fh *ctrl_fh,
--		struct v4l2_event_subscription *sub);
--void v4l2_ctrl_del_fh(struct v4l2_ctrl *ctrl, struct v4l2_fh *fh);
-+void v4l2_ctrl_add_event(struct v4l2_ctrl *ctrl,
-+		struct v4l2_subscribed_event *sev);
-+void v4l2_ctrl_del_event(struct v4l2_ctrl *ctrl,
-+		struct v4l2_subscribed_event *sev);
+-			<section id="isdbt-layer-ena">
++			<section id="DTV-ISDBT-LAYER-ENABLED">
+ 				<title><constant>DTV_ISDBT_LAYER_ENABLED</constant></title>
  
- /** v4l2_ctrl_subscribe_fh() - Helper function that subscribes a control event.
-   * @fh:	The file handler that subscribed the control event.
-diff --git a/include/media/v4l2-event.h b/include/media/v4l2-event.h
-index 042b893..eda17f8 100644
---- a/include/media/v4l2-event.h
-+++ b/include/media/v4l2-event.h
-@@ -38,9 +38,18 @@ struct v4l2_kevent {
- };
+ 				<para>Hierarchical reception in ISDB-T is achieved by enabling or disabling
+@@ -482,13 +482,13 @@ typedef enum fe_guard_interval {
+ 				<para><constant>DTV_ISDBT_LAYER_ENABLED[31:3]</constant> unused</para>
+ 			</section>
  
- struct v4l2_subscribed_event {
-+	/* list node for the v4l2_fh->subscribed list */
- 	struct list_head	list;
-+	/* event type */
- 	u32			type;
-+	/* associated object ID (e.g. control ID) */
- 	u32			id;
-+	/* copy of v4l2_event_subscription->flags */
-+	u32			flags;
-+	/* filehandle that subscribed to this event */
-+	struct v4l2_fh		*fh;
-+	/* list node that hooks into the object's event list (if there is one) */
-+	struct list_head	node;
- };
+-			<section id="isdbt-layer-fec">
++			<section id="DTV-ISDBT-LAYER-FEC">
+ 				<title><constant>DTV_ISDBT_LAYER*_FEC</constant></title>
  
- int v4l2_event_alloc(struct v4l2_fh *fh, unsigned int n);
+ 				<para>Possible values: <constant>FEC_AUTO</constant>, <constant>FEC_1_2</constant>, <constant>FEC_2_3</constant>, <constant>FEC_3_4</constant>, <constant>FEC_5_6</constant>, <constant>FEC_7_8</constant></para>
+ 			</section>
+ 
+-			<section id="isdbt-layer-mod">
++			<section id="DTV-ISDBT-LAYER-MODULATION">
+ 				<title><constant>DTV_ISDBT_LAYER*_MODULATION</constant></title>
+ 
+ 				<para>Possible values: <constant>QAM_AUTO</constant>, QP<constant>SK, QAM_16</constant>, <constant>QAM_64</constant>, <constant>DQPSK</constant></para>
+@@ -497,7 +497,7 @@ typedef enum fe_guard_interval {
+ 					and <constant>DTV_ISDBT_PARTIAL_RECEPTION</constant>=0 layer has to be <constant>DQPSK</constant>.</para>
+ 			</section>
+ 
+-			<section id="isdbt-layer-seg-cnt">
++			<section id="DTV-ISDBT-LAYER-SEGMENT-COUNT">
+ 				<title><constant>DTV_ISDBT_LAYER*_SEGMENT_COUNT</constant></title>
+ 
+ 				<para>Possible values: 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, -1 (AUTO)</para>
+@@ -560,7 +560,7 @@ typedef enum fe_guard_interval {
+ 
+ 			</section>
+ 
+-			<section id="isdbt_layer_t_interl">
++			<section id="DTV-ISDBT-LAYER-TIME-INTERLEAVING">
+ 				<title><constant>DTV_ISDBT_LAYER*_TIME_INTERLEAVING</constant></title>
+ 
+ 				<para>Possible values: 0, 1, 2, 3, -1 (AUTO)</para>
+@@ -578,7 +578,7 @@ typedef enum fe_guard_interval {
+ 			support is currently in the early stages development so expect this section to grow
+ 			and become more detailed with time.</para>
+ 
+-		<section id="dvbt2-plp-id">
++		<section id="DTV-DVBT2-PLP-ID">
+ 			<title><constant>DTV_DVBT2_PLP_ID</constant></title>
+ 
+ 			<para>DVB-T2 supports Physical Layer Pipes (PLP) to allow transmission of
 -- 
 1.7.1
+
 
