@@ -1,72 +1,58 @@
 Return-path: <mchehab@pedra>
-Received: from moutng.kundenserver.de ([212.227.17.10]:63255 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933354Ab1FBKgY (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 2 Jun 2011 06:36:24 -0400
-Date: Thu, 2 Jun 2011 12:36:22 +0200 (CEST)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: javier Martin <javier.martin@vista-silicon.com>
-cc: linux-media@vger.kernel.org, laurent.pinchart@ideasonboard.com,
-	carlighting@yahoo.co.nz, beagleboard@googlegroups.com,
-	mch_kot@yahoo.com.cn
-Subject: Re: [PATCH v6 1/2] Add driver for Aptina (Micron) mt9p031 sensor.
-In-Reply-To: <BANLkTimMrUm58CN6W56N+MR9pKbzZS0DAQ@mail.gmail.com>
-Message-ID: <Pine.LNX.4.64.1106021233560.4067@axis700.grange>
-References: <1306942609-2440-1-git-send-email-javier.martin@vista-silicon.com>
- <Pine.LNX.4.64.1106020946030.4067@axis700.grange>
- <BANLkTimMrUm58CN6W56N+MR9pKbzZS0DAQ@mail.gmail.com>
+Received: from metis.ext.pengutronix.de ([92.198.50.35]:46519 "EHLO
+	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754487Ab1FHIyA (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 8 Jun 2011 04:54:00 -0400
+Date: Wed, 8 Jun 2011 10:53:55 +0200
+From: Uwe =?iso-8859-1?Q?Kleine-K=F6nig?=
+	<u.kleine-koenig@pengutronix.de>
+To: linux-media@vger.kernel.org
+Cc: kernel@pengutronix.de, Marek Szyprowski <m.szyprowski@samsung.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	Pawel Osciak <p.osciak@samsung.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>
+Subject: vb2 queue setup skipped when playing bigger video
+Message-ID: <20110608085355.GS9907@pengutronix.de>
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=iso-8859-1
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Thu, 2 Jun 2011, javier Martin wrote:
+Hello,
 
-> OK Guennadi,
-> I'll fix those cosmetics issues in my next version where I will add
-> VFLIP and HFLIP control support (which I removed previously to make
-> the code less complex).
+I'm writing a driver for a video overlay device and have the problem
+that if I first playback a video with a resolution of say 320x240 and
+then another one with 640x400 the buffers allocated for the first
+playback are too small, but my .queue_setup callback isn't called.
 
-Please, don't. Let's first get the simple version of your driver in the 
-mainline, then it can be extended. Just, please, make sure to address all 
-remaining issues without changing anything else:)
+I think the culprit is the following line in vb2_reqbufs()
+(drivers/media/video/videobuf2-core.c):
 
-Thanks
-Guennadi
+	/*
+	 * If the same number of buffers and memory access method is requested
+	 * then return immediately.
+	 */
+	if (q->memory == req->memory && req->count == q->num_buffers)
+		return 0;
 
-> 
-> Now we talk about controls I have a question regarding controls
-> defined in video subdevices like mt9p031 or mt9v032:
-> 
-> What device node should I use to set these controls through an ioctl() ?
-> For instance, with mt9p031 + Beagleboard xM we have:
-> 
-> ./media-ctl -r -l '"mt9p031 2-0048":0->"OMAP3 ISP CCDC":0[1], "OMAP3
-> ISP CCDC":1->"OMAP3 ISP CCDC output":0[1]'
-> ./media-ctl -f '"mt9p031 2-0048":0[SGRBG12 320x240], "OMAP3 ISP
-> CCDC":0[SGRBG8 320x240], "OMAP3 ISP CCDC":1[SGRBG8 320x240]'
-> ./yavta --stdout -f SGRBG8 -s 320x240 -n 4 --capture=100 --skip 3 -F
-> `./media-ctl -e "OMAP3 ISP CCDC output"` | nc 192.168.0.42 3000
-> 
-> Where
-> 
-> root@beagleboard:~# ./media-ctl -e "OMAP3 ISP CCDC output"
-> /dev/video2
-> 
-> However, if I try to set sensor controls using /dev/video2 I get an
-> error (invalid argument).
-> 
-> -- 
-> Javier Martin
-> Vista Silicon S.L.
-> CDTUC - FASE C - Oficina S-345
-> Avda de los Castros s/n
-> 39005- Santander. Cantabria. Spain
-> +34 942 25 32 60
-> www.vista-silicon.com
-> 
+which exits vb2_reqbufs before
 
----
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
-http://www.open-technology.de/
+	ret = call_qop(q, queue_setup, q, &num_buffers, &num_planes,
+		       plane_sizes, q->alloc_ctx);
+
+Reading the vb1 code, this shortcut isn't implemented there.
+
+As I'm quite new to all that v4l2 stuff, I'm not sure what to do.
+Just removing the return 0 (i.e. reverting 31901a07) seems to do the
+right thing for me.
+
+Thoughts?
+
+Thanks and best regards,
+Uwe
+
+-- 
+Pengutronix e.K.                           | Uwe Kleine-König            |
+Industrial Linux Solutions                 | http://www.pengutronix.de/  |
