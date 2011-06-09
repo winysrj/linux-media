@@ -1,174 +1,53 @@
 Return-path: <mchehab@pedra>
-Received: from mx1.redhat.com ([209.132.183.28]:34509 "EHLO mx1.redhat.com"
+Received: from mx1.redhat.com ([209.132.183.28]:10398 "EHLO mx1.redhat.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1758913Ab1F1QcQ (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 28 Jun 2011 12:32:16 -0400
-Date: Mon, 27 Jun 2011 23:17:35 -0300
+	id S1757591Ab1FINTe (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 9 Jun 2011 09:19:34 -0400
+Message-ID: <4DF0C860.1020908@redhat.com>
+Date: Thu, 09 Jun 2011 10:19:28 -0300
 From: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	LKML <linux-kernel@vger.kernel.org>
-Subject: [PATCHv2 00/13] Remove linux/version.h from most drivers/media/
-Message-ID: <20110627231735.3682c84a@pedra>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+MIME-Version: 1.0
+To: Manu Abraham <abraham.manu@gmail.com>
+CC: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Andreas Oberritter <obi@linuxtv.org>
+Subject: Re: [PATCH 00/13] Reduce the gap between DVBv5 API and the specs
+References: <20110608172311.0d350ab7@pedra> <BANLkTinhCz0cuu5c52DvFV+Gi0uJc3corg@mail.gmail.com>
+In-Reply-To: <BANLkTinhCz0cuu5c52DvFV+Gi0uJc3corg@mail.gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-At the V4L2 API, one of the fields of VIDIOC_QUERYCAP requires the usage
-of KERNEL_VERSION macro, in order to provide the driver version. However,
-this is not handled consistently across subsystems. There are very few
-drivers that take it seriously.
+Em 09-06-2011 10:06, Manu Abraham escreveu:
+> On 6/9/11, Mauro Carvalho Chehab <mchehab@redhat.com> wrote:
+>> There's a huge gap between the DVB specs and the current implementation.
+>> This were caused by years of changes that happened at the code but
+>> no updates to the specs were done.
+>>
+>> This patch series tries to reduce this gap.
+>>
+>> Basically, the headers at include/linux/dvb were included at the API.
+>> The Makefile scripting auto-generate references for structs, typedefs
+>> and ioctls. With this, it is now easy to identify when something is
+>> missing.
+>>
+>> After adding such logic, I've manually synchronized the specs with the
+>> header file and updated the data structures.
+>>
+>> The work is not complete yet: there are still several ioctl's not
+>> documented at the specs:
+> 
+>> While here, I noticed that one audio ioctl is not used anyware
+>> (AUDIO_GET_PTS). There is just the ioctl definition and that's it.
+>> I just removed this definition, as removing it won't cause any
+>> regression, as no in-kernel driver or dvb-core uses it.
+> 
+> 
+> Please do not apply this patch; the SAA716x FF DVB driver uses the same ioctl.
 
-So, instead of the current way, let's replace it by a subsystem version.
-After this patch series, only 4 drivers will keep including linux/version.h
-on their c files, as they don't use the V4L2 core ioctl handler
-(uvc, pvrusb2, sn9c102 and et61x251).
+I'll revert this patch for now, in order to wait for driver submissions
+that use this ioctl (and the other ioctl's that are not used anywhere
+inside the Kernel).
 
-After this patch series, if VIDIOC_QUERYCAP returns version 3.x.y,
-with x > 0, then userspace applications can be sure that the V4L2 core
-is using V4L2 API version 3.x.y.
-
--
-
-The version 2 of this patch series removes the patches that were
-replacing -EINVAL error code when an ioctl is not implemented, as
-more changes will likely be needed at the DocBook and on drivers,
-in order to fix the inconsistencies. I'll be working on that and
-submit those changes later.
-
-Per Jean-Francois request, I broke the gspca patch into a separate
-one, and simplified the info() call.
-
-Also added Hans ack into the patch series.
-
-Mauro Carvalho Chehab (13):
-  [media] v4l2-ioctl: Add a default value for kernel version
-  [media] drxd, siano: Remove unused include linux/version.h
-  [media] Stop using linux/version.h on most video drivers
-  [media] pwc: Use the default version for VIDIOC_QUERYCAP
-  [media] ivtv,cx18: Use default version control for VIDIOC_QUERYCAP
-  [media] et61x251: Use LINUX_VERSION_CODE for VIDIOC_QUERYCAP
-  [media] pvrusb2: Use LINUX_VERSION_CODE for VIDIOC_QUERYCAP
-  [media] sn9c102: Use LINUX_VERSION_CODE for VIDIOC_QUERYCAP
-  [media] uvcvideo: Use LINUX_VERSION_CODE for VIDIOC_QUERYCAP
-  [media] gspca: don't include linux/version.h
-  [media] Stop using linux/version.h the remaining video drivers
-  [media] radio: Use the subsystem version control for VIDIOC_QUERYCAP
-  [media] DocBook/v4l: Document the new system-wide version behavior
-
- Documentation/DocBook/media/v4l/common.xml         |   10 ++++++++-
- Documentation/DocBook/media/v4l/v4l2.xml           |    6 +++++
- .../DocBook/media/v4l/vidioc-querycap.xml          |   15 ++++++++-----
- drivers/media/dvb/frontends/drxd_hard.c            |    1 -
- drivers/media/dvb/siano/smscoreapi.h               |    1 -
- drivers/media/radio/dsbr100.c                      |    7 +----
- drivers/media/radio/radio-aimslab.c                |    5 +---
- drivers/media/radio/radio-aztech.c                 |    5 +---
- drivers/media/radio/radio-cadet.c                  |    5 +---
- drivers/media/radio/radio-gemtek.c                 |    7 +----
- drivers/media/radio/radio-maxiradio.c              |   10 +++-----
- drivers/media/radio/radio-mr800.c                  |    6 +---
- drivers/media/radio/radio-rtrack2.c                |    5 +---
- drivers/media/radio/radio-sf16fmi.c                |    5 +---
- drivers/media/radio/radio-tea5764.c                |    6 +---
- drivers/media/radio/radio-terratec.c               |    5 +---
- drivers/media/radio/radio-timb.c                   |    3 +-
- drivers/media/radio/radio-trust.c                  |    5 +---
- drivers/media/radio/radio-typhoon.c                |    9 +++----
- drivers/media/radio/radio-zoltrix.c                |    5 +---
- drivers/media/radio/si470x/radio-si470x-i2c.c      |    4 +--
- drivers/media/radio/si470x/radio-si470x-usb.c      |    2 -
- drivers/media/radio/si470x/radio-si470x.h          |    1 -
- drivers/media/radio/wl128x/fmdrv.h                 |    5 +---
- drivers/media/radio/wl128x/fmdrv_v4l2.c            |    1 -
- drivers/media/video/arv.c                          |    5 +--
- drivers/media/video/au0828/au0828-core.c           |    1 +
- drivers/media/video/au0828/au0828-video.c          |    5 ----
- drivers/media/video/bt8xx/bttv-driver.c            |   14 +++---------
- drivers/media/video/bt8xx/bttvp.h                  |    3 --
- drivers/media/video/bw-qcam.c                      |    3 +-
- drivers/media/video/c-qcam.c                       |    3 +-
- drivers/media/video/cpia2/cpia2.h                  |    5 ----
- drivers/media/video/cpia2/cpia2_v4l.c              |   12 +++-------
- drivers/media/video/cx18/cx18-driver.h             |    1 -
- drivers/media/video/cx18/cx18-ioctl.c              |    1 -
- drivers/media/video/cx18/cx18-version.h            |    8 +------
- drivers/media/video/cx231xx/cx231xx-video.c        |   14 +++---------
- drivers/media/video/cx231xx/cx231xx.h              |    1 -
- drivers/media/video/cx23885/altera-ci.c            |    1 -
- drivers/media/video/cx23885/cx23885-417.c          |    1 -
- drivers/media/video/cx23885/cx23885-core.c         |   13 ++---------
- drivers/media/video/cx23885/cx23885-video.c        |    1 -
- drivers/media/video/cx23885/cx23885.h              |    3 +-
- drivers/media/video/cx88/cx88-alsa.c               |   19 +++--------------
- drivers/media/video/cx88/cx88-blackbird.c          |   20 ++----------------
- drivers/media/video/cx88/cx88-dvb.c                |   18 ++--------------
- drivers/media/video/cx88/cx88-mpeg.c               |   11 ++-------
- drivers/media/video/cx88/cx88-video.c              |   21 ++-----------------
- drivers/media/video/cx88/cx88.h                    |    4 +-
- drivers/media/video/davinci/vpif_capture.c         |    9 ++-----
- drivers/media/video/davinci/vpif_capture.h         |    7 +-----
- drivers/media/video/davinci/vpif_display.c         |    9 ++-----
- drivers/media/video/davinci/vpif_display.h         |    8 +------
- drivers/media/video/em28xx/em28xx-video.c          |   14 ++++--------
- drivers/media/video/et61x251/et61x251.h            |    1 -
- drivers/media/video/et61x251/et61x251_core.c       |    6 ++--
- drivers/media/video/fsl-viu.c                      |   10 +-------
- drivers/media/video/gspca/gl860/gl860.h            |    1 -
- drivers/media/video/gspca/gspca.c                  |   12 +++-------
- drivers/media/video/hdpvr/hdpvr-core.c             |    1 +
- drivers/media/video/hdpvr/hdpvr-video.c            |    2 -
- drivers/media/video/hdpvr/hdpvr.h                  |    6 -----
- drivers/media/video/ivtv/ivtv-driver.h             |    1 -
- drivers/media/video/ivtv/ivtv-ioctl.c              |    1 -
- drivers/media/video/ivtv/ivtv-version.h            |    7 +-----
- drivers/media/video/m5mols/m5mols_capture.c        |    2 -
- drivers/media/video/m5mols/m5mols_core.c           |    1 -
- drivers/media/video/mem2mem_testdev.c              |    4 +--
- drivers/media/video/mx1_camera.c                   |    5 +--
- drivers/media/video/mx2_camera.c                   |    5 +--
- drivers/media/video/mx3_camera.c                   |    3 +-
- drivers/media/video/omap1_camera.c                 |    5 +--
- drivers/media/video/omap24xxcam.c                  |    5 +--
- drivers/media/video/omap3isp/isp.c                 |    1 +
- drivers/media/video/omap3isp/ispvideo.c            |    1 -
- drivers/media/video/omap3isp/ispvideo.h            |    3 +-
- drivers/media/video/pms.c                          |    4 +--
- drivers/media/video/pvrusb2/pvrusb2-main.c         |    1 +
- drivers/media/video/pvrusb2/pvrusb2-v4l2.c         |    2 +-
- drivers/media/video/pwc/pwc-ioctl.h                |    1 -
- drivers/media/video/pwc/pwc-v4l.c                  |    1 -
- drivers/media/video/pwc/pwc.h                      |    7 +-----
- drivers/media/video/pxa_camera.c                   |    5 +--
- drivers/media/video/s2255drv.c                     |   15 +++----------
- drivers/media/video/s5p-fimc/fimc-capture.c        |    2 -
- drivers/media/video/s5p-fimc/fimc-core.c           |    3 +-
- drivers/media/video/saa7134/saa7134-core.c         |   12 +++-------
- drivers/media/video/saa7134/saa7134-empress.c      |    1 -
- drivers/media/video/saa7134/saa7134-video.c        |    2 -
- drivers/media/video/saa7134/saa7134.h              |    3 +-
- drivers/media/video/saa7164/saa7164.h              |    1 -
- drivers/media/video/sh_mobile_ceu_camera.c         |    3 +-
- drivers/media/video/sh_vou.c                       |    3 +-
- drivers/media/video/sn9c102/sn9c102.h              |    1 -
- drivers/media/video/sn9c102/sn9c102_core.c         |    6 ++--
- drivers/media/video/timblogiw.c                    |    1 -
- drivers/media/video/tlg2300/pd-common.h            |    1 -
- drivers/media/video/tlg2300/pd-main.c              |    1 +
- drivers/media/video/tlg2300/pd-radio.c             |    2 -
- drivers/media/video/usbvision/usbvision-video.c    |   12 +----------
- drivers/media/video/uvc/uvc_driver.c               |    3 +-
- drivers/media/video/uvc/uvc_v4l2.c                 |    2 +-
- drivers/media/video/uvc/uvcvideo.h                 |    3 +-
- drivers/media/video/v4l2-ioctl.c                   |    2 +
- drivers/media/video/vino.c                         |    5 +---
- drivers/media/video/vivi.c                         |   14 +++---------
- drivers/media/video/w9966.c                        |    4 +--
- drivers/media/video/zoran/zoran.h                  |    4 ---
- drivers/media/video/zoran/zoran_card.c             |    7 ++++-
- drivers/media/video/zoran/zoran_driver.c           |    3 --
- drivers/media/video/zr364xx.c                      |    6 +---
- 112 files changed, 169 insertions(+), 426 deletions(-)
-
+Thanks,
+Mauro
