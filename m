@@ -1,186 +1,75 @@
 Return-path: <mchehab@pedra>
-Received: from mx1.redhat.com ([209.132.183.28]:25164 "EHLO mx1.redhat.com"
+Received: from ffm.saftware.de ([83.141.3.46]:38968 "EHLO ffm.saftware.de"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757164Ab1FURK3 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 21 Jun 2011 13:10:29 -0400
-Message-ID: <4E00D07B.5030202@redhat.com>
-Date: Tue, 21 Jun 2011 14:10:19 -0300
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
+	id S1757515Ab1FINH6 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 9 Jun 2011 09:07:58 -0400
+Message-ID: <4DF0C5AB.5040304@linuxtv.org>
+Date: Thu, 09 Jun 2011 15:07:55 +0200
+From: Andreas Oberritter <obi@linuxtv.org>
 MIME-Version: 1.0
-To: Andreas Oberritter <obi@linuxtv.org>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
 CC: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: [RFC] vtunerc - virtual DVB device driver
-References: <BANLkTimtnbAzLTdFY2OiSddHTjmD_99CfA@mail.gmail.com>	<201106202037.19535.remi@remlab.net>	<BANLkTinn0uN3VwGfqCbYbxFoVf6aNo1VSA@mail.gmail.com>	<BANLkTin14LnwP+_K1m-RsEXza4M4CjqnEw@mail.gmail.com>	<BANLkTimR-zWnnLBcD2w8d8NpeFJi=eT9nQ@mail.gmail.com>	<005a01cc2f7d$a799be30$f6cd3a90$@coexsi.fr>	<BANLkTinbQ8oBJt7fScuT5vHGFktbaQNY5A@mail.gmail.com>	<BANLkTimTdMa_X1ygF8=B5gLdLXq1o-ER0g@mail.gmail.com>	<BANLkTimkZN9AtLanwvct+1p2DZOHSgF6Aw@mail.gmail.com>	<BANLkTimg0X5H5T8CsSR5Tr0CZbCZKiDEEA@mail.gmail.com>	<4DFFB1DA.5000602@redhat.com>	<BANLkTikZ++5dZssDRuxJzNUEG_TDkZPGRg@mail.gmail.com>	<4DFFF56D.5070602@redhat.com>	<4E007AA7.7070400@linuxtv.org> <BANLkTik3ACfDwkyKVU2eZtxBeLH_mGh7pg@mail.gmail.com> <4E00A78B.2020008@linuxtv.org> <4E00AC2A.8060500@redhat.com> <4E00B41B.50303@linuxtv.org>
-In-Reply-To: <4E00B41B.50303@linuxtv.org>
+Subject: Re: [PATCH 05/13] [media] dvb/audio.h: Remove definition for AUDIO_GET_PTS
+References: <cover.1307563765.git.mchehab@redhat.com> <20110608172302.3e2294af@pedra> <4DF0C015.1090807@linuxtv.org> <4DF0C4E1.1020406@redhat.com>
+In-Reply-To: <4DF0C4E1.1020406@redhat.com>
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Em 21-06-2011 12:09, Andreas Oberritter escreveu:
-> On 06/21/2011 04:35 PM, Mauro Carvalho Chehab wrote:
->> Em 21-06-2011 11:15, Andreas Oberritter escreveu:
->>> On 06/21/2011 03:44 PM, Devin Heitmueller wrote:
->>>> On Tue, Jun 21, 2011 at 7:04 AM, Andreas Oberritter <obi@linuxtv.org> wrote:
->>>>> Mauro and Devin, I think you're missing the point. This is not about
->>>>> creating drivers in userspace. This is not about open or closed source.
->>>>> The "vtuner" interface, as implemented for the Dreambox, is used to
->>>>> access remote tuners: Put x tuners into y boxes and access them from
->>>>> another box as if they were local. It's used in conjunction with further
->>>>> software to receive the transport stream over a network connection.
->>>>> Honza's code does the same thing.
->>>>
->>>> I'm not missing the point at all.  I realize exactly what Honza is
->>>> trying to accomplish (and from a purely technical standpoint, it's not
->>>> a bad approach) - but I'm talking about the effects of such a driver
->>>> being introduced which changes the kernel/userland licensing boundary
->>>> and has very real implications with how the in-kernel code is
->>>> accessed.
->>>>
->>>>> You don't need it in order to create closed source drivers. You can
->>>>> already create closed kernel drivers now. Also, you can create tuner
->>>>> drivers in userspace using the i2c-dev interface. If you like to connect
->>>>> a userspace driver to a DVB API device node, you can distribute a small
->>>>> (open or closed) wrapper with it. So what are you arguing about?
->>>>> Everything you're feared of can already be done since virtually forever.
->>>>
->>>> I disagree.  There is currently no API which allows applications to
->>>> issue tuning requests into the DVB core, and have those requests
->>>> proxied back out to userland where an application can then use i2c-dev
->>>> to tune the actual device.  Meaning if somebody wants to write a
->>>> closed source userland application which controls the tuner, he/she
->>>> can do that (while not conforming to the DVB API).  But if if he wants
->>>> to reuse the GPL licensed DVB core, he has to replace the entire DVB
->>>> core.
->>>>
->>>> The introduction of this patch makes it trivial for a third party to
->>>> provide closed-source userland support for tuners while reusing all
->>>> the existing GPL driver code that makes up the framework.
->>>>
->>>> I used to work for a vendor that makes tuners, and they do a bunch of
->>>> Linux work.  And that work has resulted in a bunch of open source
->>>> drivers.  I can tell you though that *every* conversation I've had
->>>> regarding a new driver goes something like this:
->>>>
->>>> ===
->>>> "Devin, we need to support tuner X under Linux."
->>>>
->>>> "Great!  I'll be happy to write a new GPL driver for the
->>>> tuner/demodulator/whatever for that device"
->>>>
->>>> "But to save time/money, we just want to reuse the Windows driver code
->>>> (or reference code from the vendor)."
->>>>
->>>> "Ok.  Well, what is the licensing for that code?  Is it GPL compatible?"
->>>>
->>>> "Not currently.  So can we just make our driver closed source?"
->>>>
->>>> "Well, you can't reuse any of the existing DVB core functionality or
->>>> any of the other GPL drivers (tuners, bridges, demods), so you would
->>>> have rewrite all that from scratch."
->>>>
->>>> "Oh, that would be a ton of work.   Can we maybe write some userland
->>>> stuff that controls the demodulator which we can keep closed source?
->>>> Since it's not in the kernel, the GPL won't apply".
->>>>
->>>> "Well, you can't really do that because there is no way for the DVB
->>>> core to call back out to userland when the application makes the
->>>> tuning request to the DVB core."
->>>>
->>>> "Oh, ok then.  I guess we'll have to talk to the vendor and get them
->>>> to give us the reference driver code under the GPL."
->>>> ===
->>>>
->>>> I can tell you without a doubt that if this driver were present in the
->>>> kernel, that going forward that vendor would have *zero* interest in
->>>> doing any GPL driver work.  Why would they?  Why give away the code
->>>> which could potentially help their competitors if they can keep it
->>>> safe and protected while still being able to reuse everybody else's
->>>> contributions?
->>>>
->>>> Companies don't contribute GPL code out of "good will".  They do it
->>>> because they are compelled to by licenses or because there is no
->>>> economically viable alternative.
->>>>
->>>> Mauro, ultimately it is your decision as the maintainer which drivers
->>>> get accepted in to the kernel.  I can tell you though that this will
->>>> be a very bad thing for the driver ecosystem as a whole - it will
->>>> essentially make it trivial for vendors (some of which who are doing
->>>> GPL work now) to provide solutions that reuse the GPL'd DVB core
->>>> without having to make any of their stuff open source.
->>>>
->>>> Anyway, I said in my last email that would be my last email on the
->>>> topic.  I guess I lied.
+On 06/09/2011 03:04 PM, Mauro Carvalho Chehab wrote:
+> Hi Andreas,
+> 
+> Em 09-06-2011 09:44, Andreas Oberritter escreveu:
+>> On 06/08/2011 10:23 PM, Mauro Carvalho Chehab wrote:
+>>> While this ioctl is defined inside dvb/audio.h, it is not docummented
+>>> at the API specs, nor implemented on any driver inside the Linux Kernel.
+>>> So, it doesn't make sense to keep it here.
 >>>
->>> Yes, and you did lie to your vendor, too, as you did not mention the
->>> possibilities to create
->>> 1.) closed source modules derived from existing vendor drivers while
->>> still being able to use other drivers (c.f. EXPORT_SYMBOL vs.
->>> EXPORT_SYMBOL_GPL).
+>>> As this is not used anywere, removing it is not a regression. So,
+>>> there's no need to use the normal features-to-be-removed process.
+>>>
+>>> Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+>>>
+>>> diff --git a/include/linux/dvb/audio.h b/include/linux/dvb/audio.h
+>>> index d47bccd..c1b3555 100644
+>>> --- a/include/linux/dvb/audio.h
+>>> +++ b/include/linux/dvb/audio.h
+>>> @@ -118,18 +118,6 @@ typedef __u16 audio_attributes_t;
+>>>  #define AUDIO_SET_ATTRIBUTES       _IOW('o', 17, audio_attributes_t)
+>>>  #define AUDIO_SET_KARAOKE          _IOW('o', 18, audio_karaoke_t)
+>>>  
+>>> -/**
+>>> - * AUDIO_GET_PTS
+>>> - *
+>>> - * Read the 33 bit presentation time stamp as defined
+>>> - * in ITU T-REC-H.222.0 / ISO/IEC 13818-1.
+>>> - *
+>>> - * The PTS should belong to the currently played
+>>> - * frame if possible, but may also be a value close to it
+>>> - * like the PTS of the last decoded frame or the last PTS
+>>> - * extracted by the PES parser.
+>>> - */
+>>> -#define AUDIO_GET_PTS              _IOR('o', 19, __u64)
+>>>  #define AUDIO_BILINGUAL_CHANNEL_SELECT _IO('o', 20)
+>>>  
+>>>  #endif /* _DVBAUDIO_H_ */
 >>
->> AFAIK, the legal issues on writing a closed source driver using EXPORT_SYMBOL
->> are not proofed legally in any court. While EXPORT_SYMBOL_GPL explicitly 
->> adds a restriction, not using it doesn't necessarily mean that the symbol
->> can be used by a closed source driver. 
+>> Please don't apply this patch. In general, many ioctls aren't
+>> implemented in mainline drivers, because most if not all supported
+>> devices inside the kernel tree are either PCI or USB add-in devices and
+>> usually quite simple compared to a STB.
 >>
->> If you take a look at Kernel's COPYING file, the only exception to GPL license
->> allowed there is:
->>
->> 	 NOTE! This copyright does *not* cover user programs that use kernel
->> 	 services by normal system calls - this is merely considered normal use
->> 	 of the kernel, and does *not* fall under the heading of "derived work".
->>
->> IANAL, but, as EXPORT_SYMBOL is not a "normal system call", my understanding is that
->> it is also covered by GPL.
+>> This ioctl is used at least by enigma2 in userspace and implemented in
+>> drivers for several generations of the dreambox.
 > 
-> Of course. But as you should know, the GPL only covers derived work.
-> Whether or not a driver is a derived work of the kernel can only be
-> decided individually. It is my understanding that a Windows driver
-> ported to Linux is unlikely to be a derived work of Linux.
-> 
->> I was told that several lawyers defend the idea that all software inside the
->> kernel tree is covered by GPL, even the aggregated ones. That was the rationale 
->> used to split the firmware packages from the kernel itself.
-> 
-> However, I wasn't referring to the kernel tree at all.
-> 
->>> 2.) a simple wrapper that calls userspace, therefore not having to open
->>> up any "secrets" at all.
->>
->> A wrapper for a closed source driver is illegal, as it is trying to circumvent
->> the GPL license.
-> 
-> Is it? First, you are not a lawyer. Second, a wrapper is unlikely to be
-> illegal by its pure existence and a wrapper does usually not try to do
-> anything by itself. Third, you can implement a wrapper using normal
-> system calls (read, write, mmap, ioctl ...). That's what vtuner does,
-> too, to accomplish a totally different goal. Do you think vtuner is
-> illegal? I would be very surprised if it was. It perfectly matches the
-> license exception cited above. And even without the exception, a closed
-> driver in userspace would only very unlikely be a derived work of the
-> kernel.
+> If this is implemented on userspace only, what's the point of having it
+> inside the kernel API?
 
-I think we're diverging from the subject. Most of those discussions are 
-interesting on some lawyers forum, not here.
+... implemented in *kernel* drivers for several generations of the dreambox.
 
-My view about this subject is that vtuner can't give any additional permissions
-to the kernel GPL'd code, as vtuner were not made by the Kernel Copyright owners,
-nor were approved by them. So, the extra permission at the COPYING clause
-from kernel doesn't apply here, while the code is not merged into the Kernel.
+I mentioned enigma2, because a kernel API without a user wouldn't make
+much sense either.
 
-So, while it should be legal to use vtuner with a GPL'd client application,
-using it by a closed source application violates GPL.
-
-My understanding is that an addition of a code that exposes the internal
-DVB core API to userspace like that will require that all dvb developers
-that have copyright rights at the dvb core should explicitly ack with such
-change, otherwise adding such code will violate the original license.
-
-On the other hand, if vtunerc won't act as a proxy to userspace, it should 
-probably be ok.
-
-If people have different understandings, then we'll likely need to ask some
-support from Open source lawyers about this subject.
-
-Cheers,
-Mauro
+Regards,
+Andreas
