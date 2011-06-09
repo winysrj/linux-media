@@ -1,62 +1,65 @@
 Return-path: <mchehab@pedra>
-Received: from mail-fx0-f46.google.com ([209.85.161.46]:59110 "EHLO
-	mail-fx0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752889Ab1FJRQs (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 10 Jun 2011 13:16:48 -0400
-Content-Type: text/plain; charset=utf-8; format=flowed; delsp=yes
-To: "Marek Szyprowski" <m.szyprowski@samsung.com>,
-	"Alan Cox" <alan@lxorguk.ukuu.org.uk>
-Cc: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-	linux-media@vger.kernel.org, linux-mm@kvack.org,
-	linaro-mm-sig@lists.linaro.org,
-	"'Kyungmin Park'" <kyungmin.park@samsung.com>,
-	"'Andrew Morton'" <akpm@linux-foundation.org>,
-	"'KAMEZAWA Hiroyuki'" <kamezawa.hiroyu@jp.fujitsu.com>,
-	"'Ankita Garg'" <ankita@in.ibm.com>,
-	"'Daniel Walker'" <dwalker@codeaurora.org>,
-	"'Johan MOSSBERG'" <johan.xx.mossberg@stericsson.com>,
-	"'Mel Gorman'" <mel@csn.ul.ie>, "'Arnd Bergmann'" <arnd@arndb.de>,
-	"'Jesse Barker'" <jesse.barker@linaro.org>
-Subject: Re: [PATCH 02/10] lib: genalloc: Generic allocator improvements
-References: <1307699698-29369-1-git-send-email-m.szyprowski@samsung.com>
- <1307699698-29369-3-git-send-email-m.szyprowski@samsung.com>
- <20110610122451.15af86d1@lxorguk.ukuu.org.uk>
- <000c01cc2769$02669b70$0733d250$%szyprowski@samsung.com>
- <20110610135217.701a2fd2@lxorguk.ukuu.org.uk>
-Date: Fri, 10 Jun 2011 19:16:45 +0200
+Received: from sj-iport-3.cisco.com ([171.71.176.72]:19805 "EHLO
+	sj-iport-3.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757101Ab1FIIJV (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 9 Jun 2011 04:09:21 -0400
+From: Hans Verkuil <hansverk@cisco.com>
+To: Tomasz Stanislawski <t.stanislaws@samsung.com>
+Subject: Re: [PATCH 2/3] v4l: add g_tvnorms callback to V4L2 subdev
+Date: Thu, 9 Jun 2011 10:08:27 +0200
+Cc: linux-media@vger.kernel.org, m.szyprowski@samsung.com,
+	kyungmin.park@samsung.com, hverkuil@xs4all.nl,
+	laurent.pinchart@ideasonboard.com,
+	sakari.ailus@maxwell.research.nokia.com, mchehab@redhat.com
+References: <1307534611-32283-1-git-send-email-t.stanislaws@samsung.com> <1307534611-32283-3-git-send-email-t.stanislaws@samsung.com>
+In-Reply-To: <1307534611-32283-3-git-send-email-t.stanislaws@samsung.com>
 MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="iso-8859-15"
 Content-Transfer-Encoding: 7bit
-From: "Michal Nazarewicz" <mina86@mina86.com>
-Message-ID: <op.vwvd972b3l0zgt@mnazarewicz-glaptop>
-In-Reply-To: <20110610135217.701a2fd2@lxorguk.ukuu.org.uk>
+Message-Id: <201106091008.27593.hansverk@cisco.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Fri, 10 Jun 2011 14:52:17 +0200, Alan Cox <alan@lxorguk.ukuu.org.uk>  
-wrote:
+On Wednesday, June 08, 2011 14:03:30 Tomasz Stanislawski wrote:
+> Callback is used to acquire TV norms supported by a subdev.
+> It is used to avoid having standards in top-level driver.
+> 
+> Signed-off-by: Tomasz Stanislawski <t.stanislaws@samsung.com>
+> Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+> ---
+>  include/media/v4l2-subdev.h |    1 +
+>  1 files changed, 1 insertions(+), 0 deletions(-)
+> 
+> diff --git a/include/media/v4l2-subdev.h b/include/media/v4l2-subdev.h
+> index 1562c4f..4206e97 100644
+> --- a/include/media/v4l2-subdev.h
+> +++ b/include/media/v4l2-subdev.h
+> @@ -261,6 +261,7 @@ struct v4l2_subdev_video_ops {
+>  	int (*s_crystal_freq)(struct v4l2_subdev *sd, u32 freq, u32 flags);
+>  	int (*s_std_output)(struct v4l2_subdev *sd, v4l2_std_id std);
+>  	int (*querystd)(struct v4l2_subdev *sd, v4l2_std_id *std);
+> +	int (*g_tvnorms)(struct v4l2_subdev *sd, v4l2_std_id *std);
 
->> I plan to replace it with lib/bitmap.c bitmap_* based allocator  
->> (similar like
->> it it is used by dma_declare_coherent_memory() and friends in
->> drivers/base/dma-coherent.c). We need something really simple for CMA  
->> area
->> management.
->>
->> IMHO allocate_resource and friends a bit too heavy here, but good to  
->> know
->> that such allocator also exists.
->
-> Not sure I'd class allocate_resource as heavyweight but providing it's
-> using something that already exists rather than inventing yet another
-> allocator.
+I would rename this to g_tvnorms_output to clarify that this is for video 
+output, not input.
 
-genalloc is already in the kernel and is used in a few places, so we
-either let everyone use it as they see fit or we deprecate the library.
-If we don't deprecate it I see no reason why CMA should not use it.
+It is likely that a g_tvnorms for video input will be added in the future
+since this is actually a good idea.
 
--- 
-Best regards,                                         _     _
-.o. | Liege of Serenely Enlightened Majesty of      o' \,=./ `o
-..o | Computer Science,  Michal "mina86" Nazarewicz    (o o)
-ooo +-----<email/xmpp: mnazarewicz@google.com>-----ooO--(_)--Ooo--
+Regards,
+
+	Hans
+
+>  	int (*g_input_status)(struct v4l2_subdev *sd, u32 *status);
+>  	int (*s_stream)(struct v4l2_subdev *sd, int enable);
+>  	int (*cropcap)(struct v4l2_subdev *sd, struct v4l2_cropcap *cc);
+> -- 
+> 1.7.5.4
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
+> 
