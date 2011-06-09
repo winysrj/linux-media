@@ -1,261 +1,124 @@
 Return-path: <mchehab@pedra>
-Received: from mrqout2a.tiscali.it ([195.130.225.14]:37832 "EHLO
-	mrqout2.tiscali.it" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1751134Ab1FXJJU convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 24 Jun 2011 05:09:20 -0400
-Date: Fri, 24 Jun 2011 11:09:13 +0200
-Message-ID: <4DF7665C00004E03@mta-nl-1.mail.tiscali.sys>
-From: cedric.dewijs@telfort.nl
-Subject: dib0700 hangs when usb receiver is unplugged while watching TV
-To: linux-media@vger.kernel.org
+Received: from rcsinet10.oracle.com ([148.87.113.121]:52311 "EHLO
+	rcsinet10.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756275Ab1FIXhq (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 9 Jun 2011 19:37:46 -0400
+Message-ID: <4DF1593A.6080306@oracle.com>
+Date: Thu, 09 Jun 2011 16:37:30 -0700
+From: Randy Dunlap <randy.dunlap@oracle.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+CC: Stephen Rothwell <sfr@canb.auug.org.au>,
+	linux-media@vger.kernel.org, linux-next@vger.kernel.org,
+	LKML <linux-kernel@vger.kernel.org>
+Subject: Re: linux-next: Tree for June 8 (docbook/media)
+References: <20110608161046.4ad95776.sfr@canb.auug.org.au> <20110608125243.e63a07fc.randy.dunlap@oracle.com> <4DF11E15.5030907@infradead.org> <4DF12263.3070900@redhat.com> <4DF12DD1.7060606@oracle.com> <4DF1581E.8050308@redhat.com>
+In-Reply-To: <4DF1581E.8050308@redhat.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Hi All,
+On 06/09/11 16:32, Mauro Carvalho Chehab wrote:
+> Em 09-06-2011 17:32, Randy Dunlap escreveu:
+>> On 06/09/11 12:43, Mauro Carvalho Chehab wrote:
+>>> Em 09-06-2011 16:25, Mauro Carvalho Chehab escreveu:
+>>>> Em 08-06-2011 16:52, Randy Dunlap escreveu:
+>>>>> The DocBook/media/Makefile seems to be causing too much noise:
+>>>>>
+>>>>> ls: cannot access linux-next-20110608/Documentation/DocBook/media/*/*.gif: No such file or directory
+>>>>> ls: cannot access linux-next-20110608/Documentation/DocBook/media/*/*.png: No such file or directory
+>>>>>
+>>>>> Maybe the cleanmediadocs target could be made silent?
+>>>>
+>>>> I'll take a look on it. 
+>>>>
+>>>> FYI, The next build will probably be noisier, as it is now pointing to some 
+>>>> documentation gaps at the DVB API. Those gaps should take a longer time to fix, 
+>>>> as we need to discuss upstream about what should be done with those API's,
+>>>> that seems to be abandoned upstream (only one legacy DVB driver uses them).
+>>>> However, I was told that some out-of-tree drivers and some drivers under development
+>>>> are using them.
+>>>>
+>>>> So, I intend to wait until the next merge window before either dropping those 
+>>>> legacy API specs (or moving them to a deprecated section) or to merge those
+>>>> out-of-tree drivers, with the proper documentation updates.
+>>>>
+>>>>> also, where is the mediaindexdocs target defined?
+>>>>
+>>>> Thanks for noticing it. We don't need this target anymore. I'll write a patch
+>>>> removing it.
+>>>
+>>> This patch should remove the undesired noise.
+>>
+>>
+>> Doesn't work for me.  Did you test it?
+> 
+> Yes:
+> 
+> $ make htmldocs
+>   GEN     /home/v4l/v4l/patchwork/Documentation/DocBook//v4l2.xml
+>   GEN     /home/v4l/v4l/patchwork/Documentation/DocBook//media-entities.tmpl
+>   GEN     /home/v4l/v4l/patchwork/Documentation/DocBook//media-indices.tmpl
+>   GEN     /home/v4l/v4l/patchwork/Documentation/DocBook//videodev2.h.xml
+>   GEN     /home/v4l/v4l/patchwork/Documentation/DocBook//audio.h.xml
+>   GEN     /home/v4l/v4l/patchwork/Documentation/DocBook//ca.h.xml
+>   GEN     /home/v4l/v4l/patchwork/Documentation/DocBook//dmx.h.xml
+>   GEN     /home/v4l/v4l/patchwork/Documentation/DocBook//frontend.h.xml
+>   GEN     /home/v4l/v4l/patchwork/Documentation/DocBook//net.h.xml
+>   GEN     /home/v4l/v4l/patchwork/Documentation/DocBook//video.h.xml
+>   DOCPROC Documentation/DocBook/media_api.xml
+>   HTML    Documentation/DocBook/media_api.html
+> Error: no ID for constraint linkend: AUDIO_GET_PTS.
+> Error: no ID for constraint linkend: AUDIO_BILINGUAL_CHANNEL_SELECT.
+> Error: no ID for constraint linkend: CA_RESET.
+> Error: no ID for constraint linkend: CA_GET_CAP.
+> Error: no ID for constraint linkend: CA_GET_SLOT_INFO.
+> Error: no ID for constraint linkend: CA_GET_DESCR_INFO.
+> Error: no ID for constraint linkend: CA_GET_MSG.
+> Error: no ID for constraint linkend: CA_SEND_MSG.
+> Error: no ID for constraint linkend: CA_SET_DESCR.
+> Error: no ID for constraint linkend: CA_SET_PID.
+> Error: no ID for constraint linkend: DMX_GET_PES_PIDS.
+> Error: no ID for constraint linkend: DMX_GET_CAPS.
+> Error: no ID for constraint linkend: DMX_SET_SOURCE.
+> Error: no ID for constraint linkend: DMX_ADD_PID.
+> Error: no ID for constraint linkend: DMX_REMOVE_PID.
+> Error: no ID for constraint linkend: NET_ADD_IF.
+> Error: no ID for constraint linkend: NET_REMOVE_IF.
+> Error: no ID for constraint linkend: NET_GET_IF.
+> Error: no ID for constraint linkend: VIDEO_GET_SIZE.
+> Error: no ID for constraint linkend: VIDEO_GET_FRAME_RATE.
+> Error: no ID for constraint linkend: VIDEO_GET_PTS.
+> Error: no ID for constraint linkend: VIDEO_GET_FRAME_COUNT.
+> Error: no ID for constraint linkend: VIDEO_COMMAND.
+> Error: no ID for constraint linkend: VIDEO_TRY_COMMAND.
+> rm -rf Documentation/DocBook/index.html; echo '<h1>Linux Kernel HTML Documentation</h1>' >> Documentation/DocBook/index.html && echo '<h2>Kernel Version: 3.0.0-rc1</h2>' >> Documentation/DocBook/index.html && cat Documentation/DocBook/80211.html Documentation/DocBook/alsa-driver-api.html Documentation/DocBook/debugobjects.html Documentation/DocBook/device-drivers.html Documentation/DocBook/deviceiobook.html Documentation/DocBook/drm.html Documentation/DocBook/filesystems.html Documentation/DocBook/gadget.html Documentation/DocBook/genericirq.html Documentation/DocBook/kernel-api.html Documentation/DocBook/kernel-hacking.html Documentation/DocBook/kernel-locking.html Documentation/DocBook/kgdb.html Documentation/DocBook/libata.html Documentation/DocBook/librs.html Documentation/DocBook/lsm.html Documentation/DocBook/mcabook.html Documentation/DocBook/media_api.html Documentation/DocBook/mtdnand.html Documentation/DocBook/networking.html Documentation/DocBook/rapidio.html Doc
+um
+> entation/DocBook/regulator.html Documentation/DocBook/s390-drivers.html Documentation/DocBook/scsi.html Documentation/DocBook/sh.html Documentation/DocBook/tracepoint.html Documentation/DocBook/uio-howto.html Documentation/DocBook/usb.html Documentation/DocBook/writing-an-alsa-driver.html Documentation/DocBook/writing_usb_driver.html Documentation/DocBook/z8530book.html >> Documentation/DocBook/index.html
+> v4l@pedra ~/v4l/patchwork $ make cleandocs
+> make[1]: [cleanmediadocs] Erro 1 (ignorado)
+> v4l@pedra ~/v4l/patchwork $ make cleanmediadocs
+> make[1]: [cleanmediadocs] Erro 1 (ignorado)
+> 
+> (the above linkend errors are due to the lack of documentation for those ioctls, as I've
+> explained before).
+> 
+>>
+>> Even this does not silence the noise for me:
+>>
+>> cleanmediadocs:
+>> 	-@rm `find $(MEDIA_OBJ_DIR) -type l` $(GENFILES) $(IMGFILES) >/dev/null 2>&1
+> 
+> Weird.
+> The errors should be doing to stderr, so 2>/dev/null should be working.
 
-I have the PCTV nanostick solo. This works perfectly, but when I pull out
-the stick while i'm watching TV, the driver crashes. When I replug the stick,
-there's no reaction in dmesg.
+Big hint:  I see these errors not during "make htmldocs" but during a kernel code build
+when CONFIG_BUILD_DOCSRC=y.
 
-To reproduce:
-1)plugin the stick
-1a)scan channels with scan, see also
-https://wiki.archlinux.org/index.php/Digitenne#Configure_Sasc-ng
-2)use tzap, cat and mplayer to watch TV
-3)unplug the stick
-4)watch the fireworks in /var/log/everything.log (dmesg)
-See below for details.
-
-I run the following kernel:
-Linux cedric 2.6.39-ARCH #1 SMP PREEMPT Mon Jun 6 22:37:55 CEST 2011 x86_64
-Intel(R) Core(TM)2 Duo CPU T5670 @ 1.80GHz GenuineIntel GNU/Linux
-
-Best regards,
-Cedric
-
-
-1)plugin the stick. This yields the following messages in dmesg:
-[75262.399219] usb 2-4: new high speed USB device number 4 using ehci_hcd
-[75263.442900] IR NEC protocol handler initialized
-[75263.585643] dib0700: loaded with support for 20 different device-types
-[75263.586003] dvb-usb: found a 'Pinnacle PCTV 73e SE' in cold state, will
-try to load a firmware
-[75263.600941] IR RC5(x) protocol handler initialized
-[75263.626257] dvb-usb: downloading firmware from file 'dvb-usb-dib0700-1.20.fw'
-[75263.626871] IR RC6 protocol handler initialized
-[75263.825852] IR JVC protocol handler initialized
-[75263.830658] IR Sony protocol handler initialized
-[75263.841488] dib0700: firmware started successfully.
-[75264.121550] lirc_dev: IR Remote Control driver registered, major 250
-[75264.123092] IR LIRC bridge handler initialized
-[75264.342633] dvb-usb: found a 'Pinnacle PCTV 73e SE' in warm state.
-[75264.342716] dvb-usb: will pass the complete MPEG2 transport stream to
-the software demuxer.
-[75264.342896] DVB: registering new adapter (Pinnacle PCTV 73e SE)
-[75264.545372] DVB: registering adapter 0 frontend 0 (DiBcom 7000PC)...
-[75264.746115] DiB0070: successfully identified
-[75264.945842] Registered IR keymap rc-dib0700-rc5
-[75264.946120] input: IR-receiver inside an USB DVB receiver as /devices/pci0000:00/0000:00:1d.7/usb2/2-4/rc/rc0/input16
-[75264.946234] rc0: IR-receiver inside an USB DVB receiver as /devices/pci0000:00/0000:00:1d.7/usb2/2-4/rc/rc0
-[75264.946443] dvb-usb: schedule remote query interval to 50 msecs.
-[75264.946447] dvb-usb: Pinnacle PCTV 73e SE successfully initialized and
-connected.
-[75264.946856] usbcore: registered new interface driver dvb_usb_dib0700
-2) Use tzap, cat and mplayer to watch Nederland 1:
-$ tzap -a 0 -r 'Nederland 1'
-$ cat /dev/dvb/adapter0/dvr0 > test.ts
-$ mplayer test.ts
-3) Pull out the stick. This yields the following messages in dmesg:
-[77043.886483] usb 2-4: USB disconnect, device number 4
-Now the kernel does no longer respond when I replug the stick.
-After 2 minutes, the following messages show up in dmesg:
-[77280.502349] INFO: task khubd:361 blocked for more than 120 seconds.
-[77280.502354] "echo 0 > /proc/sys/kernel/hung_task_timeout_secs" disables
-this message.
-[77280.502359] khubd D 00000001015f4e25 0 361 2 0x00000000
-[77280.502367] ffff880075bffbb0 0000000000000046 00000001015f4e25 000000008ff4ed27
-[77280.502375] ffff880075bffac0 ffff880070bbff00 ffff880075bfffd8 ffff88007af5dbd0
-[77280.502382] ffff880075bfffd8 ffff880075bfffd8 ffff880037f6dbd0 ffff88007af5dbd0
-[77280.502390] Call Trace:
-[77280.502403] [<ffffffff810559e0>] ? try_to_wake_up+0x380/0x380
-[77280.502410] [<ffffffff813e56dd>] ? wait_for_completion+0x1d/0x20
-[77280.502425] [<ffffffffa027cdd5>] dvb_unregister_frontend+0xc5/0x110 [dvb_core]
-[77280.502432] [<ffffffff8107e050>] ? abort_exclusive_wait+0xb0/0xb0
-[77280.502440] [<ffffffffa0188592>] dvb_usb_adapter_frontend_exit+0x22/0x40
-[dvb_usb]
-[77280.502446] [<ffffffffa01874ac>] dvb_usb_exit+0x4c/0xd0 [dvb_usb]
-[77280.502453] [<ffffffffa0187582>] dvb_usb_device_exit+0x52/0x70 [dvb_usb]
-[77280.502474] [<ffffffffa02ead12>] usb_unbind_interface+0x52/0x180 [usbcore]
-[77280.502483] [<ffffffff812e0515>] __device_release_driver+0x75/0xe0
-[77280.502493] [<ffffffff812e05ac>] device_release_driver+0x2c/0x40
-[77280.502497] [<ffffffff812e0058>] bus_remove_device+0x78/0xb0
-[77280.502501] [<ffffffff812dd91a>] device_del+0x13a/0x1d0
-[77280.502508] [<ffffffffa02e8ae4>] usb_disable_device+0x74/0x130 [usbcore]
-[77280.502515] [<ffffffffa02e117c>] usb_disconnect+0x8c/0x120 [usbcore]
-[77280.502522] [<ffffffffa02e2f4c>] hub_thread+0x9fc/0x1220 [usbcore]
-[77280.502526] [<ffffffff8107e050>] ? abort_exclusive_wait+0xb0/0xb0
-[77280.502532] [<ffffffffa02e2550>] ? usb_remote_wakeup+0x40/0x40 [usbcore]
-[77280.502536] [<ffffffff8107d6fc>] kthread+0x8c/0xa0
-[77280.502540] [<ffffffff813eac64>] kernel_thread_helper+0x4/0x10
-[77280.502544] [<ffffffff8107d670>] ? kthread_worker_fn+0x190/0x190
-[77280.502547] [<ffffffff813eac60>] ? gs_change+0x13/0x13
-[77400.502398] INFO: task khubd:361 blocked for more than 120 seconds.
-[77400.502403] "echo 0 > /proc/sys/kernel/hung_task_timeout_secs" disables
-this message.
-[77400.502407] khubd D 00000001015f4e25 0 361 2 0x00000000
-[77400.502416] ffff880075bffbb0 0000000000000046 00000001015f4e25 000000008ff4ed27
-[77400.502424] ffff880075bffac0 ffff880070bbff00 ffff880075bfffd8 ffff88007af5dbd0
-[77400.502431] ffff880075bfffd8 ffff880075bfffd8 ffff880037f6dbd0 ffff88007af5dbd0
-[77400.502438] Call Trace:
-[77400.502450] [<ffffffff810559e0>] ? try_to_wake_up+0x380/0x380
-[77400.502458] [<ffffffff813e56dd>] ? wait_for_completion+0x1d/0x20
-[77400.502473] [<ffffffffa027cdd5>] dvb_unregister_frontend+0xc5/0x110 [dvb_core]
-[77400.502480] [<ffffffff8107e050>] ? abort_exclusive_wait+0xb0/0xb0
-[77400.502488] [<ffffffffa0188592>] dvb_usb_adapter_frontend_exit+0x22/0x40
-[dvb_usb]
-[77400.502494] [<ffffffffa01874ac>] dvb_usb_exit+0x4c/0xd0 [dvb_usb]
-[77400.502501] [<ffffffffa0187582>] dvb_usb_device_exit+0x52/0x70 [dvb_usb]
-[77400.502522] [<ffffffffa02ead12>] usb_unbind_interface+0x52/0x180 [usbcore]
-[77400.502531] [<ffffffff812e0515>] __device_release_driver+0x75/0xe0
-[77400.502537] [<ffffffff812e05ac>] device_release_driver+0x2c/0x40
-[77400.502542] [<ffffffff812e0058>] bus_remove_device+0x78/0xb0
-[77400.502554] [<ffffffff812dd91a>] device_del+0x13a/0x1d0
-[77400.502561] [<ffffffffa02e8ae4>] usb_disable_device+0x74/0x130 [usbcore]
-[77400.502568] [<ffffffffa02e117c>] usb_disconnect+0x8c/0x120 [usbcore]
-[77400.502575] [<ffffffffa02e2f4c>] hub_thread+0x9fc/0x1220 [usbcore]
-[77400.502579] [<ffffffff8107e050>] ? abort_exclusive_wait+0xb0/0xb0
-[77400.502586] [<ffffffffa02e2550>] ? usb_remote_wakeup+0x40/0x40 [usbcore]
-[77400.502589] [<ffffffff8107d6fc>] kthread+0x8c/0xa0
-[77400.502593] [<ffffffff813eac64>] kernel_thread_helper+0x4/0x10
-[77400.502597] [<ffffffff8107d670>] ? kthread_worker_fn+0x190/0x190
-[77400.502601] [<ffffffff813eac60>] ? gs_change+0x13/0x13
-[77520.502380] INFO: task khubd:361 blocked for more than 120 seconds.
-[77520.502385] "echo 0 > /proc/sys/kernel/hung_task_timeout_secs" disables
-this message.
-[77520.502389] khubd D 00000001015f4e25 0 361 2 0x00000000
-[77520.502398] ffff880075bffbb0 0000000000000046 00000001015f4e25 000000008ff4ed27
-[77520.502406] ffff880075bffac0 ffff880070bbff00 ffff880075bfffd8 ffff88007af5dbd0
-[77520.502413] ffff880075bfffd8 ffff880075bfffd8 ffff880037f6dbd0 ffff88007af5dbd0
-[77520.502420] Call Trace:
-[77520.502433] [<ffffffff810559e0>] ? try_to_wake_up+0x380/0x380
-[77520.502440] [<ffffffff813e56dd>] ? wait_for_completion+0x1d/0x20
-[77520.502455] [<ffffffffa027cdd5>] dvb_unregister_frontend+0xc5/0x110 [dvb_core]
-[77520.502462] [<ffffffff8107e050>] ? abort_exclusive_wait+0xb0/0xb0
-[77520.502470] [<ffffffffa0188592>] dvb_usb_adapter_frontend_exit+0x22/0x40
-[dvb_usb]
-[77520.502477] [<ffffffffa01874ac>] dvb_usb_exit+0x4c/0xd0 [dvb_usb]
-[77520.502484] [<ffffffffa0187582>] dvb_usb_device_exit+0x52/0x70 [dvb_usb]
-[77520.502505] [<ffffffffa02ead12>] usb_unbind_interface+0x52/0x180 [usbcore]
-[77520.502514] [<ffffffff812e0515>] __device_release_driver+0x75/0xe0
-[77520.502520] [<ffffffff812e05ac>] device_release_driver+0x2c/0x40
-[77520.502525] [<ffffffff812e0058>] bus_remove_device+0x78/0xb0
-[77520.502531] [<ffffffff812dd91a>] device_del+0x13a/0x1d0
-[77520.502545] [<ffffffffa02e8ae4>] usb_disable_device+0x74/0x130 [usbcore]
-[77520.502552] [<ffffffffa02e117c>] usb_disconnect+0x8c/0x120 [usbcore]
-[77520.502558] [<ffffffffa02e2f4c>] hub_thread+0x9fc/0x1220 [usbcore]
-[77520.502563] [<ffffffff8107e050>] ? abort_exclusive_wait+0xb0/0xb0
-[77520.502569] [<ffffffffa02e2550>] ? usb_remote_wakeup+0x40/0x40 [usbcore]
-[77520.502573] [<ffffffff8107d6fc>] kthread+0x8c/0xa0
-[77520.502577] [<ffffffff813eac64>] kernel_thread_helper+0x4/0x10
-[77520.502581] [<ffffffff8107d670>] ? kthread_worker_fn+0x190/0x190
-[77520.502584] [<ffffffff813eac60>] ? gs_change+0x13/0x13
-[77640.502274] INFO: task khubd:361 blocked for more than 120 seconds.
-[77640.502279] "echo 0 > /proc/sys/kernel/hung_task_timeout_secs" disables
-this message.
-[77640.502284] khubd D 00000001015f4e25 0 361 2 0x00000000
-[77640.502293] ffff880075bffbb0 0000000000000046 00000001015f4e25 000000008ff4ed27
-[77640.502301] ffff880075bffac0 ffff880070bbff00 ffff880075bfffd8 ffff88007af5dbd0
-[77640.502308] ffff880075bfffd8 ffff880075bfffd8 ffff880037f6dbd0 ffff88007af5dbd0
-[77640.502316] Call Trace:
-[77640.502329] [<ffffffff810559e0>] ? try_to_wake_up+0x380/0x380
-[77640.502336] [<ffffffff813e56dd>] ? wait_for_completion+0x1d/0x20
-[77640.502351] [<ffffffffa027cdd5>] dvb_unregister_frontend+0xc5/0x110 [dvb_core]
-[77640.502358] [<ffffffff8107e050>] ? abort_exclusive_wait+0xb0/0xb0
-[77640.502366] [<ffffffffa0188592>] dvb_usb_adapter_frontend_exit+0x22/0x40
-[dvb_usb]
-[77640.502372] [<ffffffffa01874ac>] dvb_usb_exit+0x4c/0xd0 [dvb_usb]
-[77640.502379] [<ffffffffa0187582>] dvb_usb_device_exit+0x52/0x70 [dvb_usb]
-[77640.502401] [<ffffffffa02ead12>] usb_unbind_interface+0x52/0x180 [usbcore]
-[77640.502409] [<ffffffff812e0515>] __device_release_driver+0x75/0xe0
-[77640.502415] [<ffffffff812e05ac>] device_release_driver+0x2c/0x40
-[77640.502421] [<ffffffff812e0058>] bus_remove_device+0x78/0xb0
-[77640.502431] [<ffffffff812dd91a>] device_del+0x13a/0x1d0
-[77640.502437] [<ffffffffa02e8ae4>] usb_disable_device+0x74/0x130 [usbcore]
-[77640.502443] [<ffffffffa02e117c>] usb_disconnect+0x8c/0x120 [usbcore]
-[77640.502450] [<ffffffffa02e2f4c>] hub_thread+0x9fc/0x1220 [usbcore]
-[77640.502454] [<ffffffff8107e050>] ? abort_exclusive_wait+0xb0/0xb0
-[77640.502460] [<ffffffffa02e2550>] ? usb_remote_wakeup+0x40/0x40 [usbcore]
-[77640.502463] [<ffffffff8107d6fc>] kthread+0x8c/0xa0
-[77640.502466] [<ffffffff813eac64>] kernel_thread_helper+0x4/0x10
-[77640.502470] [<ffffffff8107d670>] ? kthread_worker_fn+0x190/0x190
-[77640.502473] [<ffffffff813eac60>] ? gs_change+0x13/0x13
-[77760.502279] INFO: task khubd:361 blocked for more than 120 seconds.
-[77760.502285] "echo 0 > /proc/sys/kernel/hung_task_timeout_secs" disables
-this message.
-[77760.502289] khubd D 00000001015f4e25 0 361 2 0x00000000
-[77760.502297] ffff880075bffbb0 0000000000000046 00000001015f4e25 000000008ff4ed27
-[77760.502306] ffff880075bffac0 ffff880070bbff00 ffff880075bfffd8 ffff88007af5dbd0
-[77760.502313] ffff880075bfffd8 ffff880075bfffd8 ffff880037f6dbd0 ffff88007af5dbd0
-[77760.502320] Call Trace:
-[77760.502333] [<ffffffff810559e0>] ? try_to_wake_up+0x380/0x380
-[77760.502341] [<ffffffff813e56dd>] ? wait_for_completion+0x1d/0x20
-[77760.502355] [<ffffffffa027cdd5>] dvb_unregister_frontend+0xc5/0x110 [dvb_core]
-[77760.502362] [<ffffffff8107e050>] ? abort_exclusive_wait+0xb0/0xb0
-[77760.502370] [<ffffffffa0188592>] dvb_usb_adapter_frontend_exit+0x22/0x40
-[dvb_usb]
-[77760.502377] [<ffffffffa01874ac>] dvb_usb_exit+0x4c/0xd0 [dvb_usb]
-[77760.502384] [<ffffffffa0187582>] dvb_usb_device_exit+0x52/0x70 [dvb_usb]
-[77760.502405] [<ffffffffa02ead12>] usb_unbind_interface+0x52/0x180 [usbcore]
-[77760.502414] [<ffffffff812e0515>] __device_release_driver+0x75/0xe0
-[77760.502419] [<ffffffff812e05ac>] device_release_driver+0x2c/0x40
-[77760.502425] [<ffffffff812e0058>] bus_remove_device+0x78/0xb0
-[77760.502430] [<ffffffff812dd91a>] device_del+0x13a/0x1d0
-[77760.502441] [<ffffffffa02e8ae4>] usb_disable_device+0x74/0x130 [usbcore]
-[77760.502451] [<ffffffffa02e117c>] usb_disconnect+0x8c/0x120 [usbcore]
-[77760.502462] [<ffffffffa02e2f4c>] hub_thread+0x9fc/0x1220 [usbcore]
-[77760.502468] [<ffffffff8107e050>] ? abort_exclusive_wait+0xb0/0xb0
-[77760.502478] [<ffffffffa02e2550>] ? usb_remote_wakeup+0x40/0x40 [usbcore]
-[77760.502483] [<ffffffff8107d6fc>] kthread+0x8c/0xa0
-[77760.502489] [<ffffffff813eac64>] kernel_thread_helper+0x4/0x10
-[77760.502495] [<ffffffff8107d670>] ? kthread_worker_fn+0x190/0x190
-[77760.502500] [<ffffffff813eac60>] ? gs_change+0x13/0x13
-[77880.502265] INFO: task khubd:361 blocked for more than 120 seconds.
-[77880.502270] "echo 0 > /proc/sys/kernel/hung_task_timeout_secs" disables
-this message.
-[77880.502275] khubd D 00000001015f4e25 0 361 2 0x00000000
-[77880.502283] ffff880075bffbb0 0000000000000046 00000001015f4e25 000000008ff4ed27
-[77880.502292] ffff880075bffac0 ffff880070bbff00 ffff880075bfffd8 ffff88007af5dbd0
-[77880.502299] ffff880075bfffd8 ffff880075bfffd8 ffff880037f6dbd0 ffff88007af5dbd0
-[77880.502306] Call Trace:
-[77880.502318] [<ffffffff810559e0>] ? try_to_wake_up+0x380/0x380
-[77880.502326] [<ffffffff813e56dd>] ? wait_for_completion+0x1d/0x20
-[77880.502340] [<ffffffffa027cdd5>] dvb_unregister_frontend+0xc5/0x110 [dvb_core]
-[77880.502348] [<ffffffff8107e050>] ? abort_exclusive_wait+0xb0/0xb0
-[77880.502355] [<ffffffffa0188592>] dvb_usb_adapter_frontend_exit+0x22/0x40
-[dvb_usb]
-[77880.502362] [<ffffffffa01874ac>] dvb_usb_exit+0x4c/0xd0 [dvb_usb]
-[77880.502369] [<ffffffffa0187582>] dvb_usb_device_exit+0x52/0x70 [dvb_usb]
-[77880.502390] [<ffffffffa02ead12>] usb_unbind_interface+0x52/0x180 [usbcore]
-[77880.502399] [<ffffffff812e0515>] __device_release_driver+0x75/0xe0
-[77880.502405] [<ffffffff812e05ac>] device_release_driver+0x2c/0x40
-[77880.502410] [<ffffffff812e0058>] bus_remove_device+0x78/0xb0
-[77880.502416] [<ffffffff812dd91a>] device_del+0x13a/0x1d0
-[77880.502427] [<ffffffffa02e8ae4>] usb_disable_device+0x74/0x130 [usbcore]
-[77880.502437] [<ffffffffa02e117c>] usb_disconnect+0x8c/0x120 [usbcore]
-[77880.502447] [<ffffffffa02e2f4c>] hub_thread+0x9fc/0x1220 [usbcore]
-[77880.502454] [<ffffffff8107e050>] ? abort_exclusive_wait+0xb0/0xb0
-[77880.502464] [<ffffffffa02e2550>] ? usb_remote_wakeup+0x40/0x40 [usbcore]
-[77880.502469] [<ffffffff8107d6fc>] kthread+0x8c/0xa0
-[77880.502475] [<ffffffff813eac64>] kernel_thread_helper+0x4/0x10
-[77880.502481] [<ffffffff8107d670>] ? kthread_worker_fn+0x190/0x190
-[77880.502486] [<ffffffff813eac60>] ? gs_change+0x13/0x13
+Sorry, I should have mentioned this earlier.
 
 
-       
-
-
-
+-- 
+~Randy
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
