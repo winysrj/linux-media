@@ -1,61 +1,80 @@
 Return-path: <mchehab@pedra>
-Received: from mx1.redhat.com ([209.132.183.28]:16817 "EHLO mx1.redhat.com"
+Received: from tex.lwn.net ([70.33.254.29]:41299 "EHLO vena.lwn.net"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750695Ab1FNMsO (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 14 Jun 2011 08:48:14 -0400
-Message-ID: <4DF758AF.3010301@redhat.com>
-Date: Tue, 14 Jun 2011 14:48:47 +0200
-From: Hans de Goede <hdegoede@redhat.com>
-MIME-Version: 1.0
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-CC: Devin Heitmueller <dheitmueller@kernellabs.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: Some fixes for alsa_stream
-References: <4DF6C10C.8070605@redhat.com>
-In-Reply-To: <4DF6C10C.8070605@redhat.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+	id S1752715Ab1FIXVF (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 9 Jun 2011 19:21:05 -0400
+Date: Thu, 9 Jun 2011 17:21:03 -0600
+From: Jonathan Corbet <corbet@lwn.net>
+To: Pawel Osciak <pawel@osciak.com>,
+	Marek Szyprowski <m.szyprowski@samsung.com>,
+	linux-media@vger.kernel.org
+Subject: videobuf2 and VMAs
+Message-ID: <20110609172103.18f242b2@bike.lwn.net>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 8bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
 Hi,
 
-On 06/14/2011 04:01 AM, Mauro Carvalho Chehab wrote:
-> Hi Devin,
->
-> I've made a few fixes for your alsa_stream.c, used on tvtime.
-> They are at:
-> 	http://git.linuxtv.org/xawtv3.git
->
->
-> In particular, those are the more interesting ones:
->
-> commit a1bb5ade5c2b09d6d6d624d18025f9e2c4398495
->      alsa_stream: negotiate the frame rate
->
-> Without this patch, one of my em28xx devices doesn't work. It uses
-> 32 k rate, while the playback minimal rate is 44.1 k.
-> I've changed the entire frame rate logic, to be more reliable, and to
-> avoid needing to do frame rate conversion, if both capture and playback
-> devices support the same rate.
->
-> commit 8adb3d7442b22022b9ca897b0b914962adf41270
->      alsa_stream: Reduce CPU usage by putting the thread into blocking mode
->
-> This is just an optimization. I can't see why are you using a non-block
-> mode, as it works fine blocking.
->
-> commit c67f7aeb86c1caceb7ab30439d169356ea5b1e72
->      alsa_stream.c: use mmap mode instead of the normal mode
->
-> Instead of using the normal way, this patch implements mmap mode, and change
-> it to be the default mode. This should also help to reduce CPU usage.
->
+I'm finally getting around to trying to really understand videobuf2.  In
+the process I've run into something which has thrown me for a bit of a
+loop...  
 
-hmm, does this include automatic fallback to read mode if mmap mode is not
-available, mmap mode does not work with a number of devices (such as pulseaudio's
-alsa plugin).
+/**
+ * vb2_get_vma() - acquire and lock the virtual memory area
+ * @vma:	given virtual memory area
+ *
+ * This function attempts to acquire an area mapped in the userspace for
+ * the duration of a hardware operation. The area is "locked" by performing
+ * the same set of operation that are done when process calls fork() and
+ * memory areas are duplicated.
+ *
+ * Returns a copy of a virtual memory region on success or NULL.
+ */
 
-Regards,
+This function makes a copy of the VMA which is completely outside of the
+knowledge of the mm subsystem.  For the life of me, I cannot figure out
+why that is a wise or necessary thing to do.  You are not locking the real
+VMA in any way.  If you're worried about the underlying pages going away
+somehow, this will not save you.  User space can still munmap() the space
+whenever it feels like it.
 
-Hans
+This kind of operation, it seems, should really be done with
+get_user_pages().  Except that it seems that you're not really expecting
+user pages here - it looks like this is an attempt to support memory
+belonging to a different device which has been mapped into the process's
+address space?  That might be a nice thing to try to document here.
+
+If you're worried about the file being closed, it might be better to save
+a reference directly.  But having fake VMAs floating around worries me.
+
+Moving on:
+
+/**
+ * vb2_get_contig_userptr() - lock physically contiguous userspace mapped memory
+ * @vaddr:	starting virtual address of the area to be verified
+ * @size:	size of the area
+ * @res_paddr:	will return physical address for the given vaddr
+ * @res_vma:	will return locked copy of struct vm_area for the given area
+ *
+ * This function will go through memory area of size @size mapped at @vaddr and
+ * verify that the underlying physical pages are contiguous. If they are
+ * contiguous the virtual memory area is locked and a @res_vma is filled with
+ * the copy and @res_pa set to the physical address of the buffer.
+ [...]
+
+Since we've determined that you're expecting this buffer to be in
+somebody's device memory, the loop through the whole thing seems like a
+bit much.  Testing the VMA flags for VM_IO and !VM_NONLINEAR seems like it
+should suffice?  Or am I missing something?
+
+(FWIW, user space could conceivably create a contiguous buffer in
+anonymous memory by using hugepages.  The current videobuf2 code won't
+support that - follow_pfn() will fail.  Probably not going to be an issue
+anytime in the near future, but one never knows...)
+
+Thanks,
+
+jon
