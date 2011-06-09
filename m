@@ -1,72 +1,114 @@
 Return-path: <mchehab@pedra>
-Received: from mx1.redhat.com ([209.132.183.28]:34592 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S933160Ab1FWR6e (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 23 Jun 2011 13:58:34 -0400
-From: Jarod Wilson <jarod@redhat.com>
+Received: from nm17-vm0.bullet.mail.bf1.yahoo.com ([98.139.213.157]:45244 "HELO
+	nm17-vm0.bullet.mail.bf1.yahoo.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with SMTP id S1755025Ab1FID20 convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 8 Jun 2011 23:28:26 -0400
+Message-ID: <277629.63658.qm@web33207.mail.mud.yahoo.com>
+Date: Wed, 8 Jun 2011 20:21:53 -0700 (PDT)
+From: Moacyr Prado <mwprado@yahoo.com>
+Subject: Re: Brazilian HDTV device
 To: linux-media@vger.kernel.org
-Cc: Jarod Wilson <jarod@redhat.com>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Jeff Brown <jeffbrown@android.com>,
-	Dmitry Torokhov <dtor@mail.ru>
-Subject: [PATCH] [media] rc: call input_sync after scancode reports
-Date: Thu, 23 Jun 2011 13:58:06 -0400
-Message-Id: <1308851886-4607-1-git-send-email-jarod@redhat.com>
+Cc: mchehab@redhat.com
+In-Reply-To: <214556.93070.qm@web33205.mail.mud.yahoo.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: 8BIT
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Due to commit cdda911c34006f1089f3c87b1a1f31ab3a4722f2, evdev only
-becomes readable when the buffer contains an EV_SYN/SYN_REPORT event. If
-we get a repeat or a scancode we don't have a mapping for, we never call
-input_sync, and thus those events don't get reported in a timely
-fashion.
+Hi guys, I got some improvements on em28xx to support my device, follow my log:
 
-For example, take an mceusb transceiver with a default rc6 keymap. Press
-buttons on an rc5 remote while monitoring with ir-keytable, and you'll
-see nothing. Now press a button on the rc6 remote matching the keymap.
-You'll suddenly get the rc5 key scancodes, the rc6 scancode and the rc6
-key spit out all at the same time.
+[ 1053.559124] usb 2-2: new high speed USB device using ehci_hcd and address 7
+[ 1053.674873] usb 2-2: New USB device found, idVendor=1b80, idProduct=e755
+[ 1053.674883] usb 2-2: New USB device strings: Mfr=0, Product=1, SerialNumber=2
+[ 1053.674890] usb 2-2: Product: USB 2885 Device
+[ 1053.674896] usb 2-2: SerialNumber: 1
+[ 1063.858533] em28xx: New device USB 2885 Device @ 480 Mbps (1b80:e755, interface 0, class 0)
+[ 1063.858902] em28xx #0: em28xx chip ID = 68
+[ 1063.980947] em28xx #0: board has no eeprom
+[ 1063.982123] em28xx #0: Identified as C3Tech U-200 FullSeg Hybrid (card=78)
+[ 1063.982130] em28xx #0: 
+[ 1063.982132] 
+[ 1063.982137] em28xx #0: The support for this board weren't valid yet.
+[ 1063.982142] em28xx #0: Please send a report of having this working
+[ 1063.982148] em28xx #0: not to V4L mailing list (and/or to other addresses)
+[ 1063.982151] 
+[ 1064.000652] i2c-core: driver [tuner] using legacy suspend method
+[ 1064.000655] i2c-core: driver [tuner] using legacy resume method
+[ 1064.006098] Chip ID is not zero. It is not a TEA5767
+[ 1064.006193] tuner 16-0060: chip found @ 0xc0 (em28xx #0)
+[ 1064.008180] tda18271 16-0060: creating new instance
+[ 1064.015727] TDA18271HD/C2 detected @ 16-0060
+[ 1064.905095] tda18271: performing RF tracking filter calibration
+[ 1068.512078] tda18271: RF tracking filter calibration complete
+[ 1068.634254] em28xx #0: Config register raw data: 0x9b
+[ 1068.646228] em28xx #0: AC97 vendor ID = 0x70947094
+[ 1068.652224] em28xx #0: AC97 features = 0x7094
+[ 1068.652230] em28xx #0: Unknown AC97 audio processor detected!
+[ 1068.861285] em28xx #0: v4l2 driver version 0.1.2
+[ 1069.415411] em28xx #0: V4L2 video device registered as video1
+[ 1069.421162] usbcore: registered new interface driver em28xx
+[ 1069.421169] em28xx driver loaded
+[ 1069.436428] em28xx-audio.c: probing for em28x1 non standard usbaudio
+[ 1069.436431] em28xx-audio.c: Copyright (C) 2006 Markus Rechberger
+[ 1069.438133] Em28xx: Initialized (Em28xx Audio Extension) extension
+[ 1069.560298] mb86a20s: mb86a20s_attach: 
+[ 1069.566738] Detected a Fujitsu mb86a20s frontend
+[ 1069.566852] tda18271 16-0060: attaching existing instance
+[ 1069.566858] DVB: registering new adapter (em28xx #0)
+[ 1069.566863] DVB: registering adapter 0 frontend 0 (Fujitsu mb86A20s)...
+[ 1069.567506] em28xx #0: Successfully loaded em28xx-dvb
+[ 1069.567515] Em28xx: Initialized (Em28xx dvb Extension) extension
 
-Pressing and holding a button on a remote we do have a keymap for also
-works rather unreliably right now, due to repeat events also happening
-without a call to input_sync (we bail from ir_do_keydown before getting
-to the point where it calls input_sync).
+But is not working yet, DVB scan always fail. It must be gpio settings. I got a sniffer data from win7 driver. Anybody has a tip to discover gpio settigs from data sniffed?  
 
-Easy fix though, just add two strategically placed input_sync calls
-right after our input_event calls for EV_MSC, and all is well again.
-Technically, we probably should have been doing this all along, its just
-that it never caused any function difference until the referenced change
-went into the input layer.
+Thanks 
+Moa.
+--- On Fri, 5/27/11, Moacyr Prado <mwprado@yahoo.com> wrote:
 
-Reported-by: Stephan Raue <sraue@openelec.tv>
-CC: Mauro Carvalho Chehab <mchehab@redhat.com>
-CC: Jeff Brown <jeffbrown@android.com>
-CC: Dmitry Torokhov <dtor@mail.ru>
-Signed-off-by: Jarod Wilson <jarod@redhat.com>
----
- drivers/media/rc/rc-main.c |    2 ++
- 1 files changed, 2 insertions(+), 0 deletions(-)
-
-diff --git a/drivers/media/rc/rc-main.c b/drivers/media/rc/rc-main.c
-index f57cd56..c25c243 100644
---- a/drivers/media/rc/rc-main.c
-+++ b/drivers/media/rc/rc-main.c
-@@ -597,6 +597,7 @@ void rc_repeat(struct rc_dev *dev)
- 	spin_lock_irqsave(&dev->keylock, flags);
- 
- 	input_event(dev->input_dev, EV_MSC, MSC_SCAN, dev->last_scancode);
-+	input_sync(dev->input_dev);
- 
- 	if (!dev->keypressed)
- 		goto out;
-@@ -623,6 +624,7 @@ static void ir_do_keydown(struct rc_dev *dev, int scancode,
- 			  u32 keycode, u8 toggle)
- {
- 	input_event(dev->input_dev, EV_MSC, MSC_SCAN, scancode);
-+	input_sync(dev->input_dev);
- 
- 	/* Repeat event? */
- 	if (dev->keypressed &&
--- 
-1.7.1
-
+> From: Moacyr Prado <mwprado@yahoo.com>
+> Subject: Brazilian HDTV device
+> To: linux-media@vger.kernel.org
+> Date: Friday, May 27, 2011, 9:20 AM
+> Hi, I have a board with empia
+> chipset. The em28xx driver not load, 
+> because the device ID is not listed on source(cards.c, I
+> guess). 
+> 
+> Following bellow 
+> have some infos from board:
+> lsusb:
+> Bus 001 Device 004: ID 1b80:e755 Afatech
+> 
+> Opening the device, shows this ic:
+> 
+> empia em2888 d351c-195 727-00ag (em28xx)
+> nxp saa7136e/1/g SI5296.1 22 ZSD08411
+> NXP TDA 18271??C2 HDC2? (tda18271)
+> F JAPAN mb86a20s 0937 M01 E1 (mb86a20s)
+> 
+> but... dmesg shows:
+> 
+> [18373.454136] usb 6-1: USB disconnect, address 2
+> [18376.744074] usb 2-1: new high speed USB device using
+> ehci_hcd and address 9
+> [18376.860283] usb 2-1: New USB device found,
+> idVendor=1b80, idProduct=e755
+> [18376.860293] usb 2-1: New USB device strings: Mfr=0,
+> Product=1, SerialNumber=2
+> [18376.860300] usb 2-1: Product: USB 2885 Device
+> [18376.860306] usb 2-1: SerialNumber: 1
+> 
+> 
+> Could The em28xx module (writing some code for me)handle
+> this device?
+> 
+> Thanks,
+> Moa
+> --
+> To unsubscribe from this list: send the line "unsubscribe
+> linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
