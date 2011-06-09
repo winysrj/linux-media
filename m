@@ -1,180 +1,75 @@
 Return-path: <mchehab@pedra>
-Received: from smtp-vbr14.xs4all.nl ([194.109.24.34]:1922 "EHLO
-	smtp-vbr14.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754911Ab1FFMy1 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 6 Jun 2011 08:54:27 -0400
-Message-ID: <909d9f71c0ed2e9dc6f81a20e20f9f6a.squirrel@webmail.xs4all.nl>
-In-Reply-To: <Pine.LNX.4.64.1106061358310.11169@axis700.grange>
-References: <Pine.LNX.4.64.1106061358310.11169@axis700.grange>
-Date: Mon, 6 Jun 2011 14:54:26 +0200
-Subject: Re: [PATCH/RFC] V4L: add media bus configuration subdev operations
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: "Guennadi Liakhovetski" <g.liakhovetski@gmx.de>
-Cc: "Linux Media Mailing List" <linux-media@vger.kernel.org>,
-	"Laurent Pinchart" <laurent.pinchart@ideasonboard.com>,
-	sakari.ailus@maxwell.research.nokia.com,
-	"Sylwester Nawrocki" <snjw23@gmail.com>,
-	"Stan" <svarbanov@mm-sol.com>, "Hans Verkuil" <hansverk@cisco.com>,
-	saaguirre@ti.com, "Mauro Carvalho Chehab" <mchehab@infradead.org>
+Received: from sj-iport-1.cisco.com ([171.71.176.70]:36843 "EHLO
+	sj-iport-1.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752633Ab1FIICU (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 9 Jun 2011 04:02:20 -0400
+From: Hans Verkuil <hansverk@cisco.com>
+To: Tomasz Stanislawski <t.stanislaws@samsung.com>
+Subject: Re: [PATCH 1/3] v4l: add macro for 1080p59_54 preset
+Date: Thu, 9 Jun 2011 10:01:25 +0200
+Cc: linux-media@vger.kernel.org, m.szyprowski@samsung.com,
+	kyungmin.park@samsung.com, hverkuil@xs4all.nl,
+	laurent.pinchart@ideasonboard.com,
+	sakari.ailus@maxwell.research.nokia.com, mchehab@redhat.com
+References: <1307534611-32283-1-git-send-email-t.stanislaws@samsung.com> <1307534611-32283-2-git-send-email-t.stanislaws@samsung.com>
+In-Reply-To: <1307534611-32283-2-git-send-email-t.stanislaws@samsung.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+Content-Type: Text/Plain;
+  charset="iso-8859-15"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201106091001.25127.hansverk@cisco.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-> Add media bus configuration types and two subdev operations to get
-> supported mediabus configurations and to set a specific configuration.
-> Subdevs can support several configurations, e.g., they can send video data
-> on 1 or several lanes, can be configured to use a specific CSI-2 channel,
-> in such cases subdevice drivers return bitmasks with all respective bits
-> set. When a set-configuration operation is called, it has to specify a
-> non-ambiguous configuration.
->
-> Signed-off-by: Stanimir Varbanov <svarbanov@mm-sol.com>
-> Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-> ---
->
-> This change would allow a re-use of soc-camera and "standard" subdev
-> drivers. It is a modified and extended version of
->
-> http://article.gmane.org/gmane.linux.drivers.video-input-infrastructure/29408
->
-> therefore the original Sob. After this we only would have to switch to the
-> control framework:) Please, comment.
->
-> diff --git a/include/media/v4l2-mediabus.h b/include/media/v4l2-mediabus.h
-> index 971c7fa..0983b7b 100644
-> --- a/include/media/v4l2-mediabus.h
-> +++ b/include/media/v4l2-mediabus.h
-> @@ -13,6 +13,76 @@
->
->  #include <linux/v4l2-mediabus.h>
->
-> +/* Parallel flags */
-> +/* Can the client run in master or in slave mode */
-> +#define V4L2_MBUS_MASTER			(1 << 0)
-> +#define V4L2_MBUS_SLAVE				(1 << 1)
-> +/* Which signal polarities it supports */
-> +#define V4L2_MBUS_HSYNC_ACTIVE_HIGH		(1 << 2)
-> +#define V4L2_MBUS_HSYNC_ACTIVE_LOW		(1 << 3)
-> +#define V4L2_MBUS_VSYNC_ACTIVE_HIGH		(1 << 4)
-> +#define V4L2_MBUS_VSYNC_ACTIVE_LOW		(1 << 5)
-> +#define V4L2_MBUS_PCLK_SAMPLE_RISING		(1 << 6)
-> +#define V4L2_MBUS_PCLK_SAMPLE_FALLING		(1 << 7)
-> +#define V4L2_MBUS_DATA_ACTIVE_HIGH		(1 << 8)
-> +#define V4L2_MBUS_DATA_ACTIVE_LOW		(1 << 9)
-> +/* Which datawidths are supported */
-> +#define V4L2_MBUS_DATAWIDTH_4			(1 << 10)
-> +#define V4L2_MBUS_DATAWIDTH_8			(1 << 11)
-> +#define V4L2_MBUS_DATAWIDTH_9			(1 << 12)
-> +#define V4L2_MBUS_DATAWIDTH_10			(1 << 13)
-> +#define V4L2_MBUS_DATAWIDTH_15			(1 << 14)
-> +#define V4L2_MBUS_DATAWIDTH_16			(1 << 15)
-> +
-> +#define V4L2_MBUS_DATAWIDTH_MASK	(V4L2_MBUS_DATAWIDTH_4 |
-> V4L2_MBUS_DATAWIDTH_8 | \
-> +					 V4L2_MBUS_DATAWIDTH_9 | V4L2_MBUS_DATAWIDTH_10 | \
-> +					 V4L2_MBUS_DATAWIDTH_15 | V4L2_MBUS_DATAWIDTH_16)
+On Wednesday, June 08, 2011 14:03:29 Tomasz Stanislawski wrote:
+> The 1080p59_94 is supported in latest Samusng SoC.
 
-This is too limited. Video receivers for example can use 8, 10, 12, 20,
-24, 30 and 36 data widths. Perhaps we should have a u64 bitmask instead.
-Bit 0 is a width of 1, bit 63 is a width of 64. It's much easier to
-understand.
-
-> +
-> +/* Serial flags */
-> +/* How many lanes the client can use */
-> +#define V4L2_MBUS_CSI2_1_LANE			(1 << 0)
-> +#define V4L2_MBUS_CSI2_2_LANE			(1 << 1)
-> +#define V4L2_MBUS_CSI2_3_LANE			(1 << 2)
-> +#define V4L2_MBUS_CSI2_4_LANE			(1 << 3)
-> +/* On which channels it can send video data */
-> +#define V4L2_MBUS_CSI2_CHANNEL_0			(1 << 4)
-> +#define V4L2_MBUS_CSI2_CHANNEL_1			(1 << 5)
-> +#define V4L2_MBUS_CSI2_CHANNEL_2			(1 << 6)
-> +#define V4L2_MBUS_CSI2_CHANNEL_3			(1 << 7)
-> +/* Does it support only continuous or also non-contimuous clock mode */
-> +#define V4L2_MBUS_CSI2_CONTINUOUS_CLOCK		(1 << 8)
-> +#define V4L2_MBUS_CSI2_NONCONTINUOUS_CLOCK	(1 << 9)
-> +
-> +#define V4L2_MBUS_CSI2_LANES		(V4L2_MBUS_CSI2_1_LANE |
-> V4L2_MBUS_CSI2_2_LANE | \
-> +					 V4L2_MBUS_CSI2_3_LANE | V4L2_MBUS_CSI2_4_LANE)
-> +#define V4L2_MBUS_CSI2_CHANNELS		(V4L2_MBUS_CSI2_CHANNEL_0 |
-> V4L2_MBUS_CSI2_CHANNEL_1 | \
-> +					 V4L2_MBUS_CSI2_CHANNEL_2 | V4L2_MBUS_CSI2_CHANNEL_3)
-> +
-> +/**
-> + * v4l2_mbus_type - media bus type
-> + * @V4L2_MBUS_PARALLEL:	parallel interface with hsync and vsync
-> + * @V4L2_MBUS_BT656:	parallel interface with embedded synchronisation
-> + * @V4L2_MBUS_CSI2:	MIPI CSI-2 serial interface
-> + */
-> +enum v4l2_mbus_type {
-> +	V4L2_MBUS_PARALLEL,
-> +	V4L2_MBUS_BT656,
-> +	V4L2_MBUS_CSI2,
-> +};
-> +
-> +/**
-> + * v4l2_mbus_config - media bus configuration
-> + * @type:	interface type
-> + * @flags:	configuration flags, depending on @type
-> + * @clk:	output clock, the bridge driver can try to use clk_set_parent()
-> + *		to specify the master clock to the client
-> + */
-> +struct v4l2_mbus_config {
-> +	enum v4l2_mbus_type type;
-> +	unsigned long flags;
-> +	struct clk *clk;
-> +};
-> +
->  static inline void v4l2_fill_pix_format(struct v4l2_pix_format *pix_fmt,
->  				const struct v4l2_mbus_framefmt *mbus_fmt)
->  {
-> diff --git a/include/media/v4l2-subdev.h b/include/media/v4l2-subdev.h
-> index 1562c4f..6ea25f4 100644
-> --- a/include/media/v4l2-subdev.h
-> +++ b/include/media/v4l2-subdev.h
-> @@ -255,6 +255,10 @@ struct v4l2_subdev_audio_ops {
->     try_mbus_fmt: try to set a pixel format on a video data source
->
->     s_mbus_fmt: set a pixel format on a video data source
-> +
-> +   g_mbus_param: get supported mediabus configurations
-> +
-> +   s_mbus_param: set a certain mediabus configuration
->   */
->  struct v4l2_subdev_video_ops {
->  	int (*s_routing)(struct v4l2_subdev *sd, u32 input, u32 output, u32
-> config);
-> @@ -294,6 +298,8 @@ struct v4l2_subdev_video_ops {
->  			    struct v4l2_mbus_framefmt *fmt);
->  	int (*s_mbus_fmt)(struct v4l2_subdev *sd,
->  			  struct v4l2_mbus_framefmt *fmt);
-> +	int (*g_mbus_param)(struct v4l2_subdev *sd, struct v4l2_mbus_config
-> *cfg);
-
-The struct and op should either use the term 'config' or the term 'param',
-but not mix them.
-
-I also strongly recommend that sensor drivers can accept a struct
-v4l2_mbus_config as part of their platform_data to initialize the sensor
-config at load time (and allow for hardcoding in board code).
+Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
 
 Regards,
 
-       Hans
+	Hans
 
-> +	int (*s_mbus_param)(struct v4l2_subdev *sd, struct v4l2_mbus_config
-> *cfg);
->  };
->
+> 
+> Signed-off-by: Tomasz Stanislawski <t.stanislaws@samsung.com>
+> Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+> ---
+>  drivers/media/video/v4l2-common.c |    1 +
+>  include/linux/videodev2.h         |    1 +
+>  2 files changed, 2 insertions(+), 0 deletions(-)
+> 
+> diff --git a/drivers/media/video/v4l2-common.c b/drivers/media/video/v4l2-
+common.c
+> index 06b9f9f..003e648 100644
+> --- a/drivers/media/video/v4l2-common.c
+> +++ b/drivers/media/video/v4l2-common.c
+> @@ -582,6 +582,7 @@ int v4l_fill_dv_preset_info(u32 preset, struct 
+v4l2_dv_enum_preset *info)
+>  		{ 1920, 1080, "1080p@30" },	/* V4L2_DV_1080P30 */
+>  		{ 1920, 1080, "1080p@50" },	/* V4L2_DV_1080P50 */
+>  		{ 1920, 1080, "1080p@60" },	/* V4L2_DV_1080P60 */
+> +		{ 1920, 1080, "1080p@59.94" },	/* V4L2_DV_1080P59_94 */
+>  	};
+>  
+>  	if (info == NULL || preset >= ARRAY_SIZE(dv_presets))
+> diff --git a/include/linux/videodev2.h b/include/linux/videodev2.h
+> index 8a4c309..7c77c4e 100644
+> --- a/include/linux/videodev2.h
+> +++ b/include/linux/videodev2.h
+> @@ -872,6 +872,7 @@ struct v4l2_dv_enum_preset {
+>  #define		V4L2_DV_1080P30		16 /* SMPTE 296M */
+>  #define		V4L2_DV_1080P50		17 /* BT.1120 */
+>  #define		V4L2_DV_1080P60		18 /* BT.1120 */
+> +#define		V4L2_DV_1080P59_94	19
+>  
 >  /*
+>   *	D V 	B T	T I M I N G S
+> -- 
+> 1.7.5.4
+> 
 > --
 > To unsubscribe from this list: send the line "unsubscribe linux-media" in
 > the body of a message to majordomo@vger.kernel.org
 > More majordomo info at  http://vger.kernel.org/majordomo-info.html
->
-
-
+> 
+> 
