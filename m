@@ -1,203 +1,41 @@
 Return-path: <mchehab@pedra>
-Received: from smtp-vbr13.xs4all.nl ([194.109.24.33]:1036 "EHLO
-	smtp-vbr13.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752808Ab1FMMxd (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 13 Jun 2011 08:53:33 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Mike Isely <isely@isely.net>, Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [RFCv5 PATCH 9/9] tuner-core: simplify the standard fixup.
-Date: Mon, 13 Jun 2011 14:53:20 +0200
-Message-Id: <fe7e486c4e8c6a9e251d20e1a63ed04cc5f83a3c.1307969319.git.hans.verkuil@cisco.com>
-In-Reply-To: <1307969600-31536-1-git-send-email-hverkuil@xs4all.nl>
-References: <1307969600-31536-1-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <6f25028df2439cef04708e3fd8d57b05662793a6.1307969319.git.hans.verkuil@cisco.com>
-References: <6f25028df2439cef04708e3fd8d57b05662793a6.1307969319.git.hans.verkuil@cisco.com>
+Received: from tex.lwn.net ([70.33.254.29]:39511 "EHLO vena.lwn.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756653Ab1FIWrd (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 9 Jun 2011 18:47:33 -0400
+Date: Thu, 9 Jun 2011 16:47:31 -0600
+From: Jonathan Corbet <corbet@lwn.net>
+To: Kassey Lee <ygli@marvell.com>
+Cc: g.liakhovetski@gmx.de, linux-media@vger.kernel.org,
+	ytang5@marvell.com, qingx@marvell.com, jwan@marvell.com,
+	leiwen@marvell.com
+Subject: Re: [PATCH] V4L/DVB: v4l: Add driver for Marvell PXA910 CCIC
+Message-ID: <20110609164731.0b91b9f8@bike.lwn.net>
+In-Reply-To: <1307530660-25464-1-git-send-email-ygli@marvell.com>
+References: <1307530660-25464-1-git-send-email-ygli@marvell.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 8bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+Hi, Kassey,
 
-Get rid of a number of unnecessary tuner_dbg messages by simplifying
-the std fixup function.
+I've been looking at the driver some to understand how you're using the
+hardware.  One quick question:
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- drivers/media/video/tuner-core.c |   93 +++++++++++--------------------------
- 1 files changed, 28 insertions(+), 65 deletions(-)
+> The driver is based on soc-camera + videobuf2 frame
+> work, and only USERPTR is supported.
 
-diff --git a/drivers/media/video/tuner-core.c b/drivers/media/video/tuner-core.c
-index cb007d3..89d0e4e 100644
---- a/drivers/media/video/tuner-core.c
-+++ b/drivers/media/video/tuner-core.c
-@@ -841,7 +841,8 @@ static void set_tv_freq(struct i2c_client *c, unsigned int freq)
- /**
-  * tuner_fixup_std - force a given video standard variant
-  *
-- * @t:	tuner internal struct
-+ * @t: tuner internal struct
-+ * @std:	TV standard
-  *
-  * A few devices or drivers have problem to detect some standard variations.
-  * On other operational systems, the drivers generally have a per-country
-@@ -851,57 +852,39 @@ static void set_tv_freq(struct i2c_client *c, unsigned int freq)
-  * to distinguish all video standard variations, a modprobe parameter can
-  * be used to force a video standard match.
-  */
--static int tuner_fixup_std(struct tuner *t)
-+static v4l2_std_id tuner_fixup_std(struct tuner *t, v4l2_std_id std)
- {
--	if ((t->std & V4L2_STD_PAL) == V4L2_STD_PAL) {
-+	if (pal[0] != '-' && (std & V4L2_STD_PAL) == V4L2_STD_PAL) {
- 		switch (pal[0]) {
- 		case '6':
--			tuner_dbg("insmod fixup: PAL => PAL-60\n");
--			t->std = V4L2_STD_PAL_60;
--			break;
-+			return V4L2_STD_PAL_60;
- 		case 'b':
- 		case 'B':
- 		case 'g':
- 		case 'G':
--			tuner_dbg("insmod fixup: PAL => PAL-BG\n");
--			t->std = V4L2_STD_PAL_BG;
--			break;
-+			return V4L2_STD_PAL_BG;
- 		case 'i':
- 		case 'I':
--			tuner_dbg("insmod fixup: PAL => PAL-I\n");
--			t->std = V4L2_STD_PAL_I;
--			break;
-+			return V4L2_STD_PAL_I;
- 		case 'd':
- 		case 'D':
- 		case 'k':
- 		case 'K':
--			tuner_dbg("insmod fixup: PAL => PAL-DK\n");
--			t->std = V4L2_STD_PAL_DK;
--			break;
-+			return V4L2_STD_PAL_DK;
- 		case 'M':
- 		case 'm':
--			tuner_dbg("insmod fixup: PAL => PAL-M\n");
--			t->std = V4L2_STD_PAL_M;
--			break;
-+			return V4L2_STD_PAL_M;
- 		case 'N':
- 		case 'n':
--			if (pal[1] == 'c' || pal[1] == 'C') {
--				tuner_dbg("insmod fixup: PAL => PAL-Nc\n");
--				t->std = V4L2_STD_PAL_Nc;
--			} else {
--				tuner_dbg("insmod fixup: PAL => PAL-N\n");
--				t->std = V4L2_STD_PAL_N;
--			}
--			break;
--		case '-':
--			/* default parameter, do nothing */
--			break;
-+			if (pal[1] == 'c' || pal[1] == 'C')
-+				return V4L2_STD_PAL_Nc;
-+			return V4L2_STD_PAL_N;
- 		default:
- 			tuner_warn("pal= argument not recognised\n");
- 			break;
- 		}
- 	}
--	if ((t->std & V4L2_STD_SECAM) == V4L2_STD_SECAM) {
-+	if (secam[0] != '-' && (std & V4L2_STD_SECAM) == V4L2_STD_SECAM) {
- 		switch (secam[0]) {
- 		case 'b':
- 		case 'B':
-@@ -909,63 +892,42 @@ static int tuner_fixup_std(struct tuner *t)
- 		case 'G':
- 		case 'h':
- 		case 'H':
--			tuner_dbg("insmod fixup: SECAM => SECAM-BGH\n");
--			t->std = V4L2_STD_SECAM_B |
--				 V4L2_STD_SECAM_G |
--				 V4L2_STD_SECAM_H;
--			break;
-+			return V4L2_STD_SECAM_B |
-+			       V4L2_STD_SECAM_G |
-+			       V4L2_STD_SECAM_H;
- 		case 'd':
- 		case 'D':
- 		case 'k':
- 		case 'K':
--			tuner_dbg("insmod fixup: SECAM => SECAM-DK\n");
--			t->std = V4L2_STD_SECAM_DK;
--			break;
-+			return V4L2_STD_SECAM_DK;
- 		case 'l':
- 		case 'L':
--			if ((secam[1] == 'C') || (secam[1] == 'c')) {
--				tuner_dbg("insmod fixup: SECAM => SECAM-L'\n");
--				t->std = V4L2_STD_SECAM_LC;
--			} else {
--				tuner_dbg("insmod fixup: SECAM => SECAM-L\n");
--				t->std = V4L2_STD_SECAM_L;
--			}
--			break;
--		case '-':
--			/* default parameter, do nothing */
--			break;
-+			if ((secam[1] == 'C') || (secam[1] == 'c'))
-+				return V4L2_STD_SECAM_LC;
-+			return V4L2_STD_SECAM_L;
- 		default:
- 			tuner_warn("secam= argument not recognised\n");
- 			break;
- 		}
- 	}
- 
--	if ((t->std & V4L2_STD_NTSC) == V4L2_STD_NTSC) {
-+	if (ntsc[0] != '-' && (std & V4L2_STD_NTSC) == V4L2_STD_NTSC) {
- 		switch (ntsc[0]) {
- 		case 'm':
- 		case 'M':
--			tuner_dbg("insmod fixup: NTSC => NTSC-M\n");
--			t->std = V4L2_STD_NTSC_M;
--			break;
-+			return V4L2_STD_NTSC_M;
- 		case 'j':
- 		case 'J':
--			tuner_dbg("insmod fixup: NTSC => NTSC_M_JP\n");
--			t->std = V4L2_STD_NTSC_M_JP;
--			break;
-+			return V4L2_STD_NTSC_M_JP;
- 		case 'k':
- 		case 'K':
--			tuner_dbg("insmod fixup: NTSC => NTSC_M_KR\n");
--			t->std = V4L2_STD_NTSC_M_KR;
--			break;
--		case '-':
--			/* default parameter, do nothing */
--			break;
-+			return V4L2_STD_NTSC_M_KR;
- 		default:
- 			tuner_info("ntsc= argument not recognised\n");
- 			break;
- 		}
- 	}
--	return 0;
-+	return std;
- }
- 
- /*
-@@ -1120,8 +1082,9 @@ static int tuner_s_std(struct v4l2_subdev *sd, v4l2_std_id std)
- 	if (set_mode(t, V4L2_TUNER_ANALOG_TV))
- 		return 0;
- 
--	t->std = std;
--	tuner_fixup_std(t);
-+	t->std = tuner_fixup_std(t, std);
-+	if (t->std != std)
-+		tuner_dbg("Fixup standard %llx to %llx\n", std, t->std);
- 	set_freq(t, 0);
- 	return 0;
- }
--- 
-1.7.1
+Since you're limited to contiguous DMA (does the PXA910 even support
+scatter/gather mode?), USERPTR is going to be very limiting.  Is the
+application mapping I/O memory elsewhere in the system with the
+expectation of having the video frames go directly there?  Could you tell
+me how that works?  I'd like to understand the use case here.
 
+FWIW, I believe that videobuf2 would support the MMAP mode with no
+additional effort on your part; any reason why you haven't enabled that?
+
+Thanks,
+
+jon
