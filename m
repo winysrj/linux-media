@@ -1,54 +1,48 @@
 Return-path: <mchehab@pedra>
-Received: from casper.infradead.org ([85.118.1.10]:46798 "EHLO
-	casper.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752785Ab1FXVx0 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 24 Jun 2011 17:53:26 -0400
-Message-ID: <4E05073A.3030209@infradead.org>
-Date: Fri, 24 Jun 2011 18:52:58 -0300
-From: Mauro Carvalho Chehab <mchehab@infradead.org>
+Received: from mail-ww0-f44.google.com ([74.125.82.44]:62632 "EHLO
+	mail-ww0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757235Ab1FINGg (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 9 Jun 2011 09:06:36 -0400
+Received: by wwa36 with SMTP id 36so1675864wwa.1
+        for <linux-media@vger.kernel.org>; Thu, 09 Jun 2011 06:06:35 -0700 (PDT)
 MIME-Version: 1.0
-To: Stefan Richter <stefanr@s5r6.in-berlin.de>
-CC: Devin Heitmueller <dheitmueller@kernellabs.com>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	Jesper Juhl <jj@chaosbits.net>,
-	LKML <linux-kernel@vger.kernel.org>, trivial@kernel.org,
-	linux-media@vger.kernel.org, ceph-devel@vger.kernel.org,
-	Sage Weil <sage@newdream.net>
-Subject: Re: [RFC] Don't use linux/version.h anymore to indicate a per-driver
- version - Was: Re: [PATCH 03/37] Remove unneeded version.h includes from
- include/
-References: <alpine.LNX.2.00.1106232344480.17688@swampdragon.chaosbits.net>	<4E04912A.4090305@infradead.org>	<BANLkTim9cBiiK_GsZaspxpPJQDBvAcKCWg@mail.gmail.com>	<201106241554.10751.hverkuil@xs4all.nl>	<4E04A122.2080002@infradead.org>	<20110624203404.7a3f6f6a@stein>	<BANLkTimj-oEDvWxMao6zJ_sudUntEVjO1w@mail.gmail.com> <20110624231028.7f03dcae@stein>
-In-Reply-To: <20110624231028.7f03dcae@stein>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+In-Reply-To: <20110608172311.0d350ab7@pedra>
+References: <20110608172311.0d350ab7@pedra>
+Date: Thu, 9 Jun 2011 18:36:34 +0530
+Message-ID: <BANLkTinhCz0cuu5c52DvFV+Gi0uJc3corg@mail.gmail.com>
+Subject: Re: [PATCH 00/13] Reduce the gap between DVBv5 API and the specs
+From: Manu Abraham <abraham.manu@gmail.com>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=ISO-8859-1
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Em 24-06-2011 18:10, Stefan Richter escreveu:
-> On Jun 24 Devin Heitmueller wrote:
->> Really, this is all about applications being able to jam a hack into
->> their code that translates to "don't call this ioctl() with some
->> particular argument if it's driver W less than version X, because the
->> driver had a bug that is likely to panic the guy's PC".  Sure, it's a
->> crummy solution, but at this point it's the best that we have got.
-> 
-> The second best.  The best that we have got is that the user runs a fixed
-> kernel.
-> 
-> Anyway; if this is the only purpose that this interface version¹ serves,
-> then Mauro's subsystem-centralized solution has the benefit that it
-> eliminates mistakes due to oversight by individual driver authors.
-> Especially because the kind of implementation behavior changes that are
-> tracked by this type of version datum are sometimes just discovered or
-> documented in hindsight.  On the other hand, Mauro's solution is redundant
-> to the uname(2) syscall.
+On 6/9/11, Mauro Carvalho Chehab <mchehab@redhat.com> wrote:
+> There's a huge gap between the DVB specs and the current implementation.
+> This were caused by years of changes that happened at the code but
+> no updates to the specs were done.
+>
+> This patch series tries to reduce this gap.
+>
+> Basically, the headers at include/linux/dvb were included at the API.
+> The Makefile scripting auto-generate references for structs, typedefs
+> and ioctls. With this, it is now easy to identify when something is
+> missing.
+>
+> After adding such logic, I've manually synchronized the specs with the
+> header file and updated the data structures.
+>
+> The work is not complete yet: there are still several ioctl's not
+> documented at the specs:
 
-Yes. That's why my initial proposal were to add some value to it by not associating
-it with the kernel version, but with a number that will be incremented only if
-the V4L2 API changes.
+> While here, I noticed that one audio ioctl is not used anyware
+> (AUDIO_GET_PTS). There is just the ioctl definition and that's it.
+> I just removed this definition, as removing it won't cause any
+> regression, as no in-kernel driver or dvb-core uses it.
 
-> 
-> ¹) Yes, it is still an ABI version, nothing less.  With all its backwards
-> and forwards compatibility ramifications.
 
+Please do not apply this patch; the SAA716x FF DVB driver uses the same ioctl.
+
+Best Regards,
+Manu
