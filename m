@@ -1,99 +1,66 @@
 Return-path: <mchehab@pedra>
-Received: from smtp-vbr2.xs4all.nl ([194.109.24.22]:2127 "EHLO
-	smtp-vbr2.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756042Ab1F1GGK (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 28 Jun 2011 02:06:10 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Linus Torvalds <torvalds@linux-foundation.org>
-Subject: Re: [PATCH] [media] v4l2 core: return -ENOIOCTLCMD if an ioctl doesn't exist
-Date: Tue, 28 Jun 2011 08:04:48 +0200
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Sakari Ailus <sakari.ailus@iki.fi>,
-	Arnd Bergmann <arnd@arndb.de>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
-References: <4E0519B7.3000304@redhat.com> <201106271907.59067.hverkuil@xs4all.nl> <BANLkTin=PTbTwBR2s+owMLy+GmKigeoYvg@mail.gmail.com>
-In-Reply-To: <BANLkTin=PTbTwBR2s+owMLy+GmKigeoYvg@mail.gmail.com>
-MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201106280804.48742.hverkuil@xs4all.nl>
+Received: from mailout4.w1.samsung.com ([210.118.77.14]:56340 "EHLO
+	mailout4.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753886Ab1FIMFM (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 9 Jun 2011 08:05:12 -0400
+MIME-version: 1.0
+Content-transfer-encoding: 7BIT
+Content-type: text/plain; charset=ISO-8859-1
+Received: from eu_spt1 ([210.118.77.14]) by mailout4.w1.samsung.com
+ (Sun Java(tm) System Messaging Server 6.3-8.04 (built Jul 29 2009; 32bit))
+ with ESMTP id <0LMI00JX4UWKEG90@mailout4.w1.samsung.com> for
+ linux-media@vger.kernel.org; Thu, 09 Jun 2011 13:05:11 +0100 (BST)
+Received: from linux.samsung.com ([106.116.38.10])
+ by spt1.w1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14
+ 2004)) with ESMTPA id <0LMI007HZUWJA0@spt1.w1.samsung.com> for
+ linux-media@vger.kernel.org; Thu, 09 Jun 2011 13:05:07 +0100 (BST)
+Date: Thu, 09 Jun 2011 14:05:07 +0200
+From: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Subject: [GIT PULL FOR 3.0] s5p-fimc and m5mols driver fixes
+To: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>
+Message-id: <4DF0B6F3.6010804@samsung.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Monday, June 27, 2011 22:48:48 Linus Torvalds wrote:
-> On Mon, Jun 27, 2011 at 10:07 AM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
-> >
-> > No, what we do is perfectly consistent: i.e. we always return EINVAL when an
-> > ioctl is not supported. That's what 'consistent' means. Whether that is the
-> > *right* error code is something else.
-> 
-> You don't even understand the problem.
-> 
-> The problem is two-fold:
->  (a) it's the _wrong_ error code (this part you seem to get)
-> but also
->  (b) you ALSO return -EINVAL for ioctl's you support!
-> 
-> How har dis (b) to understand? The fact is, -EINVAL does not mean "I
-> don't support that ioctl". It _should_ mean "I _do_ support that
-> ioctl, but you passed me bogus arguments for that ioctl that I cannot
-> handle".
-> 
-> And right now, for the v4l crowd, -EINVAL means "random error code
-> that _could_ be because the ioctl doesn't exist, but it could also be
-> because the ioctl _does_ exist but didn't like it's value".
-> 
-> See the problem?
+Mauro, please pull the following s5p-fimc and m5mols driver updates.
 
-Duh. Of course I see the problem. I've seen the problem ever since I started
-working on V4L back in 2004.
 
-Of course, since vfs_ioctl does the same thing this is clearly isn't some
-isolated V4L thing. Pot. Kettle.
- 
-> The correct error code for "I don't understand this ioctl" is ENOTTY.
-> The naming may be odd, but you should think of that error value as a
-> "unrecognized ioctl number, you're feeding me random numbers that I
-> don't understand and I assume for historical reasons that you tried to
-> do some tty operation on me".
-> 
-> I don't understand why the v4l people have such a hard time getting
-> this. This has been going on for years.
-> 
-> I would suggest that somebody just switch around the EINVAL in
-> __video_do_ioctl() to -ENOTTY (and change the ENOIOCTLCMD translation
-> to also make it ENOTTY instead of EINVAL) and just try to see if
-> anything breaks.
-> 
-> Maybe things actually break, and we'd have to undo it for
-> compatibility reasons (and perhaps add a comment about the program
-> that is so flaky that it needs a EINVAL return from the ioctl), but I
-> really do not understand people like you who seem to argue against
-> doing the right thing without even _trying_ it.
-> 
-> Saying that your API is "consistent" is clearly bullshit. Your API is
-> _wrong_. It's not consistent. Returning EINVAL can mean two different
-> things, there's no way to tell which case it was - that's not
-> "consistent" by any stretch of the imagination.
+The following changes since commit 215c52702775556f4caf5872cc84fa8810e6fc7d:
 
-I call it consistently wrong :-)
+  [media] V4L/videobuf2-memops: use pr_debug for debug messages (2011-06-01
+18:20:34 -0300)
 
-Listen, this error code is wrong. But it unfortunately has been documented
-like that for years. It's part of the V4L userspace API. I have no clue who
-may rely on this. I have no clue what might break if we change it. And the
-only way to know that is by actually releasing a kernel with that change.
+are available in the git repository at:
+  git://git.infradead.org/users/kmpark/linux-2.6-samsung s5p-fimc
 
-It was my understanding that we shouldn't break the userspace API. This breaks
-the userspace API. If everyone else says it's fine to break the userspace API
-this time, then who am I to object?
+HeungJun, Kim (4):
+      m5mols: Fix capture image size register definition
+      m5mols: add m5mols_read_u8/u16/u32() according to I2C byte width
+      m5mols: remove union in the m5mols_get_version(), and VERSION_SIZE
+      m5mols: Use proper email address format
 
-Regards,
+Sylwester Nawrocki (7):
+      s5p-fimc: Fix possible memory leak during capture devnode registration
+      s5p-fimc: Fix V4L2_PIX_FMT_RGB565X description
+      s5p-fimc: Fix data structures documentation and cleanup debug trace
+      s5p-fimc: Fix wrong buffer size in queue_setup
+      s5p-fimc: Remove empty buf_init operation
+      s5p-fimc: Use pix_mp for the color format lookup
+      s5p-fimc: Update copyright notices
 
-	Hans
+ drivers/media/video/m5mols/m5mols.h          |   57 +++++-----
+ drivers/media/video/m5mols/m5mols_capture.c  |   22 ++--
+ drivers/media/video/m5mols/m5mols_controls.c |    6 +-
+ drivers/media/video/m5mols/m5mols_core.c     |  144 ++++++++++++++++----------
+ drivers/media/video/m5mols/m5mols_reg.h      |   21 +++-
+ drivers/media/video/s5p-fimc/fimc-capture.c  |   21 +---
+ drivers/media/video/s5p-fimc/fimc-core.c     |   28 ++----
+ drivers/media/video/s5p-fimc/fimc-core.h     |   29 +++---
+ include/media/m5mols.h                       |    4 +-
+ 9 files changed, 176 insertions(+), 156 deletions(-)
 
-> 
->                             Linus
-> 
+
+Thanks,
+
+Sylwester Nawrocki
