@@ -1,73 +1,187 @@
 Return-path: <mchehab@pedra>
-Received: from mx1.redhat.com ([209.132.183.28]:27624 "EHLO mx1.redhat.com"
+Received: from mx1.redhat.com ([209.132.183.28]:59541 "EHLO mx1.redhat.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751159Ab1FLRIM (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 12 Jun 2011 13:08:12 -0400
-Message-ID: <4DF4F273.7000608@redhat.com>
-Date: Sun, 12 Jun 2011 14:08:03 -0300
+	id S1757445Ab1FIMhf (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 9 Jun 2011 08:37:35 -0400
+Message-ID: <4DF0BE8D.1060505@redhat.com>
+Date: Thu, 09 Jun 2011 09:37:33 -0300
 From: Mauro Carvalho Chehab <mchehab@redhat.com>
 MIME-Version: 1.0
 To: Hans Verkuil <hverkuil@xs4all.nl>
-CC: linux-media@vger.kernel.org, Mike Isely <isely@isely.net>,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: Re: [RFCv4 PATCH 6/8] v4l2-ioctl.c: prefill tuner type for g_frequency
- and g/s_tuner.
-References: <1307876389-30347-1-git-send-email-hverkuil@xs4all.nl> <e2a61ca8e17b7354a69bcb1b5ca35301efb5581e.1307875512.git.hans.verkuil@cisco.com> <4DF4CEDB.9070501@redhat.com> <201106121746.58795.hverkuil@xs4all.nl>
-In-Reply-To: <201106121746.58795.hverkuil@xs4all.nl>
+CC: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: RFC] Media kernelspace-userspace API specs (V4L/DVB/IR) - Was:
+ Re: [PATCH 00/13] Reduce the gap between DVBv5 API and the specs
+References: <20110608172311.0d350ab7@pedra> <4DF01FEB.4050205@redhat.com> <201106090908.41992.hverkuil@xs4all.nl>
+In-Reply-To: <201106090908.41992.hverkuil@xs4all.nl>
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Em 12-06-2011 12:46, Hans Verkuil escreveu:
-> On Sunday, June 12, 2011 16:36:11 Mauro Carvalho Chehab wrote:
->> Em 12-06-2011 07:59, Hans Verkuil escreveu:
->>> From: Hans Verkuil <hans.verkuil@cisco.com>
->>>
->>> The subdevs are supposed to receive a valid tuner type for the g_frequency
->>> and g/s_tuner subdev ops. Some drivers do this, others don't. So prefill
->>> this in v4l2-ioctl.c based on whether the device node from which this is
->>> called is a radio node or not.
->>>
->>> The spec does not require applications to fill in the type, and if they
->>> leave it at 0 then the 'supported_mode' call in tuner-core.c will return
->>> false and the ioctl does nothing.
->>
->> Interesting solution. Yes, this is the proper fix, but only after being sure
->> that no drivers allow switch to radio using the video device, and vice-versa.
+Em 09-06-2011 04:08, Hans Verkuil escreveu:
+> On Thursday, June 09, 2011 03:20:43 Mauro Carvalho Chehab wrote:
+>> d) The API usage inside drivers/media and drivers/staging is given by:
 > 
-> Why would that be a problem? What this patch does is that it fixes those
-> drivers that do *not* set vf/vt->type (i.e. leave it at 0). For those that already
-> set it nothing changes.
+> I'll comment on those ioctls used by ivtv:
+> 
+>> AUDIO_SET_MUTE
+>> drivers/media/dvb/ttpci/av7110_av.c
+>> drivers/media/video/ivtv/ivtv-ioctl.c
+> 
+> Used to mute the audio when playing back an mpeg stream.
+> 
+> We can use the AUDIO_MUTE control for this. This will require some work in
+> ivtv since at the moment all video nodes share the same controls. In this case
+> the video output node should get its own MUTE control.
+> 
+>> AUDIO_CHANNEL_SELECT
+>> drivers/media/dvb/ttpci/av7110_av.c
+>> drivers/media/video/ivtv/ivtv-ioctl.c
+> 
+> How to playback normal MPEG audio: left, right, stereo, swapped.
+> 
+>> AUDIO_BILINGUAL_CHANNEL_SELECT
+>> drivers/media/video/ivtv/ivtv-ioctl.c
+> 
+> How to playback bilingual MPEG audio: left, right, stereo, swapped.
+> 
+> The decoder will automatically detect whether the source is bilingual or not
+> and select either CHANNEL_SELECT or BILINGUAL_CHANNEL_SELECT as needed for the
+> audio output.
+> 
+> I'm not sure what to do with these. There are multiple options:
+> 
+> - Reimplement them as menu controls.
+> - Add them to VIDIOC_DECODER_CMD, either as a separate command or as part of
+>   the PLAY command. I'm not enthusiastic about this since these properties
+>   can be changed while decoding is in progress. It does not really fit my
+>   idea of a 'decoder command'.
+> - Add support for this to VIDIOC_G/S_AUDOUT. Any decoder with audio output
+>   should have this ioctl. There is a currently unused 'mode' field in struct
+>   v4l2_audioout that might be used for this purpose.
+> 
+> I think either controls or using AUDOUT is the way to go. I am leaning towards
+> controls since they will automatically appear in properly written applications
+> and this is really a user-driven setting. And with menu controls it is easy
+> to extend the number of options.
 
-Yeah, I realized it after after answering. Yes, your patch seems to be ok, as
-bridge drivers can override it.
+I think that using AUDOUT would be more coherent. There are two fields there 
+that are reserved: "capability" and "mode". We can add capability
+flags to indicate that the audout supports channel mode changes and use the
+"mode" on a way similar to rxsubchans to select between the channel outputs.
+
+Yet, MPEG AAC supports up to 48 channels and multiple languages. We may
+need to have a way to get the information from the hardware about what
+channels are available, and how they're grouped.
+
+>> VIDEO_STOP
+>> drivers/media/dvb/ttpci/av7110_av.c
+>> drivers/media/video/ivtv/ivtv-ioctl.c
+>> VIDEO_PLAY
+>> drivers/media/dvb/ttpci/av7110_av.c
+>> drivers/media/video/ivtv/ivtv-ioctl.c
+>> VIDEO_FREEZE
+>> drivers/media/dvb/ttpci/av7110.c
+>> drivers/media/dvb/ttpci/av7110_av.c
+>> drivers/media/video/ivtv/ivtv-ioctl.c
+>> VIDEO_CONTINUE
+>> drivers/media/dvb/ttpci/av7110_av.c
+>> drivers/media/video/ivtv/ivtv-ioctl.c
+> 
+> Stop/Play/Pause/Continue MPEG decoding.
+> 
+> There should all be deprecated and replaced with VIDIOC_DECODER_CMD.
+
+Another alternative would be to consider:
+	VIDIOC_STREAMON = VIDEO_PLAY
+	VIDIOC_STREAMOFF = VIDEO_STOP
+And add VIDIOC_FREEZE/VIDIOC_CONTINUE.
+
+Adding a VIDIOC_DECODER_CMD ioctl that also controls play/stop seems
+to be a bad idea, as we'll have some API overlap here.
+
+>> VIDEO_SELECT_SOURCE
+>> drivers/media/dvb/ttpci/av7110_av.c
+>> drivers/media/video/ivtv/ivtv-ioctl.c
+> 
+> Select passthrough mode where the input is directly linked to the output in
+> the hardware. This really changes the topology of the device. The media
+> controller does just that, so ivtv should implement the MC.
+> 
+> There are no applications that use this to my knowledge other than ivtv-ctl
+> in v4l-utils.
+
+We don't need to use MC for that. The VIDIOC_*_AUDIOOUT already provides the
+elements to enumerate and select the audio output.
+
+>> VIDEO_GET_EVENT
+>> drivers/media/dvb/ttpci/av7110_av.c
+>> drivers/media/video/ivtv/ivtv-ioctl.c
+> 
+> Already deprecated: use the V4L event APIs for that (VIDIOC_DQEVENT et al).
+
+OK.
+
+>> AUDIO_SET_EXT_ID
+>> AUDIO_SET_ATTRIBUTES
+>> AUDIO_SET_KARAOKE
+>> VIDEO_SET_SYSTEM
+>> VIDEO_SET_HIGHLIGHT
+>> VIDEO_SET_SPU
+>> VIDEO_SET_SPU_PALETTE
+>> VIDEO_GET_NAVI
+>> VIDEO_SET_ATTRIBUTES
+>> VIDEO_SET_ID
+>> VIDEO_GET_FRAME_RATE
+> 
+> These are only seen in audio.h/video.h and fs/compat_ioctl.c. Remove these
+> ioctls + associated structs?
+
+Yes, that sounds the right way to do it. As nobody is using it, I don't think
+we need to add it at the list of the Kernel features to be removed. as this
+is unused stuff. So, no regressions will happen.
 
 > 
->> Unfortunately, this is not the case, currently.
->>
->> Most drivers allow this, following the previous V4L2 specs. Changing such
->> behavior will probably require to write something at 
->> Documentation/feature-removal-schedule.txt, as we're changing the behavior.
+>> VIDEO_GET_PTS
+>> drivers/media/video/ivtv/ivtv-ioctl.c
 > 
-> I think in the longer term we need to change the spec so that:
-> 
-> 1) Opening a radio node no longer switches to radio mode. Instead, you need to
->    call VIDIOC_S_FREQUENCY for that.
-> 2) When VIDIOC_S_FREQUENCY the type field should match the video/radio node it
->    is called on. So for /dev/radio type should be RADIO, for others it should be
->    ANALOG_TV. Otherwise -EINVAL is called.
-> 
-> So this might be a good feature removal for 3.2 or 3.3.
+> Returns the current PTS of the decoder. Perhaps a read-only MPEG control is
+> more suitable?
 
-I'm OK with that.
+Yes, a MPEG control for it seems to be enough.
 
+>> VIDEO_GET_FRAME_COUNT
+>> drivers/media/video/ivtv/ivtv-ioctl.c
 > 
-> Regards,
-> 
-> 	Hans
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> Returns the number of decoded frames since the decoder started. Make this a
+> read-only MPEG control?
 
+Yes, a MPEG control for it seems to be enough.
+
+>> VIDEO_COMMAND
+>> drivers/media/dvb/ttpci/av7110_hw.h
+>> drivers/media/video/ivtv/ivtv-ioctl.c
+>> VIDEO_TRY_COMMAND
+>> drivers/media/video/ivtv/ivtv-ioctl.c
+> 
+> These to command the decoder (play/stop/pause/continue with various additional
+> flags/attributes to facilitate fast/slow forward/backward). This should become
+> a traditional V4L2 API: VIDIOC_(TRY_)DECODER_CMD.
+
+Ah, now I see why you're proposing a decoder command: due to those additional flags.
+Ok, it may actually make sense, but I would avoid to do overlaps with 
+VIDIOC_STREAMON/STREAMOFF, as it may make the API messy.
+
+> So, to summarize: in order to add the decoder API to V4L2 we would need to do:
+> 
+> - Add two controls to select the audio output channels.
+> - Add two read-only controls for the PTS and frame count.
+> - Copy and paste the old VIDEO_(TRY_)COMMAND to VIDIOC_(TRY_)DECODER_CMD.
+> 
+> And ivtv needs to use the MC and implement AUDIO_MUTE for output video nodes.
+> 
+> Comments? If not, then I'll see if I can work on an RFC for this next week.
+> It's less work than I expected.
+
+Cheers,
+Mauro
