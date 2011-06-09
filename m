@@ -1,125 +1,112 @@
 Return-path: <mchehab@pedra>
-Received: from mailout4.w1.samsung.com ([210.118.77.14]:46407 "EHLO
-	mailout4.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751075Ab1FTFaV convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 20 Jun 2011 01:30:21 -0400
-MIME-version: 1.0
-Content-type: text/plain; charset=iso-8859-2
-Received: from eu_spt1 ([210.118.77.14]) by mailout4.w1.samsung.com
- (Sun Java(tm) System Messaging Server 6.3-8.04 (built Jul 29 2009; 32bit))
- with ESMTP id <0LN200826PYJOG60@mailout4.w1.samsung.com> for
- linux-media@vger.kernel.org; Mon, 20 Jun 2011 06:30:19 +0100 (BST)
-Received: from linux.samsung.com ([106.116.38.10])
- by spt1.w1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14
- 2004)) with ESMTPA id <0LN2006WPPYIHN@spt1.w1.samsung.com> for
- linux-media@vger.kernel.org; Mon, 20 Jun 2011 06:30:18 +0100 (BST)
-Date: Mon, 20 Jun 2011 07:30:11 +0200
-From: Marek Szyprowski <m.szyprowski@samsung.com>
-Subject: RE: vb2: holding buffers until after start_streaming()
-In-reply-to: <BANLkTimPrkXUuTGCfrp8KyqhFNvfjoCzSw@mail.gmail.com>
-To: 'Pawel Osciak' <pawel@osciak.com>,
-	'Jonathan Corbet' <corbet@lwn.net>
-Cc: linux-media@vger.kernel.org
-Message-id: <003101cc2f0b$207f9680$617ec380$%szyprowski@samsung.com>
-Content-language: pl
-Content-transfer-encoding: 8BIT
-References: <20110617125713.293f484d@bike.lwn.net>
- <BANLkTimPrkXUuTGCfrp8KyqhFNvfjoCzSw@mail.gmail.com>
+Received: from d1.icnet.pl ([212.160.220.21]:38415 "EHLO d1.icnet.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753660Ab1FILLb (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 9 Jun 2011 07:11:31 -0400
+From: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: [PATCH 3.0] soc_camera: OMAP1: stop falling back to dma-sg on single -ENOMEM
+Date: Thu, 9 Jun 2011 13:10:13 +0200
+Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201106091310.31674.jkrzyszt@tis.icnet.pl>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Hello,
+Since commit 6d3163ce86dd386b4f7bda80241d7fea2bc0bb1d, "mm: check if any 
+page in a pageblock is reserved before marking it MIGRATE_RESERVE", the 
+OMAP1 camera driver behaviour while in videobuf-dma-contig mode can be 
+observed as much more stable than before. Once all application programs 
+are started up and nothing unexpected happens in the system, consecutive 
+device open()s tend to succeed with almost 100% reliability.
 
-On Monday, June 20, 2011 3:28 AM Pawel Osciak wrote:
+While the result is still not perfect, still prone to occasional -ENOMEM 
+failures, I think there is no longer a need to fall back to more 
+reliable but less effective, more resource hungry videobuf-dma-sg mode 
+if a single open() fails, as long as users are still able to switch 
+DMA modes from user space over the driver provided sysfs interface, 
+should videobuf-dma-contig mode still happen to keep failing for them.
 
-> On Fri, Jun 17, 2011 at 11:57, Jonathan Corbet <corbet@lwn.net> wrote:
-> > Here's another videobuf2 question...I've been trying to track down some
-> > weird behavior, the roots of which were in the fact that
-> start_streaming()
-> > gets called even though no buffers have been queued.  This behavior is
-> > quite explicit in the code:
-> >
-> >        /*
-> >         * Let driver notice that streaming state has been enabled.
-> >         */
-> >        ret = call_qop(q, start_streaming, q);
-> >        if (ret) {
-> >                dprintk(1, "streamon: driver refused to start
-> streaming\n");
-> >                return ret;
-> >        }
-> >
-> >        q->streaming = 1;
-> >
-> >        /*
-> >         * If any buffers were queued before streamon,
-> >         * we can now pass them to driver for processing.
-> >         */
-> >        list_for_each_entry(vb, &q->queued_list, queued_entry)
-> >                __enqueue_in_driver(vb);
-> >
-> > Pretty much every v4l2 capture application I've ever encountered passes
-> all
-> > of its buffers to VIDIOC_QBUF before starting streaming for a reason - it
-> > makes little sense to start if there's nothing to stream to.  It's really
-> > tempting to reorder that code, but...  it seems you must have done things
-> > this way for a reason.  Why did you need to reorder the operations in
-> this
-> > way?
-> >
-> 
-> I don't see a reason why these couldn't be reordered (Marek should be
-> able to confirm, he wrote those lines). But this wouldn't fix
-> everything, as the V4L2 API permits streamon without queuing any
-> buffers first (for capture devices). So even reordered, it's possible
-> for start_streaming to be called without passing any buffers to the
-> driver first.
+Tested on Amstrad Delta.
 
-The problem is the fact that you cannot guarantee the opposite order
-in all cases. Even if you swap __enqueue_in_driver and 
-call_qop(start_streaming), user might call respective ioctl in the
-opposite order and you will end with start_streaming before 
-__enqueue_in_driver. Calling VIDIOC_STREAMON without previous call
-to VIDIOC_QBUF is legal from v4l2 api definition.
+Signed-off-by: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
+---
+Hi,
+While this patch is not a classic fix, not correcting anything that 
+could be considered as a bug or regression, it is a simple consequence 
+of unexpected but very welcome enhancement introduced during this merge 
+window, so I hope it can be accepted in the rc cycle for that reason. 
+Moreover, it provides no new, but simplifies existing code by removing 
+no longer needed bits.
 
-Because of that I decided to call start_streaming first, before the 
-__enqueue_in_driver() to ensure the drivers will get their methods
-called always in the same order, whatever used does. 
+Thanks,
+Janusz
 
-Start_streaming was designed to perform time consuming operations
-like enabling the power, configuring the pipeline, setting up the
-tuner, etc. Some of these can fail and it is really good to report
-the failure asap.
+ drivers/media/video/omap1_camera.c |   37 +------------------------------------
+ 1 file changed, 1 insertion(+), 36 deletions(-)
 
-If you cannot start your hardware (the dma engine) without queued
-buffers then you probably need to move dma starting routine to the
-first buffer_queue call. The problem is much more complex than it
-initially looks. 
-
-Please note that in videobuf2 buffer_queue method is allowed to sleep,
-unlike it was designed in old videobuf.
-
-Usually drivers require at least two buffers and always keep at 
-least one in the dma engine, which overwrites it with incoming frames
-until next buffer have been queued. However there are also devices
-(like camera sensors) that might be used to capture only one single
-frame or a few consecutive frames (for example a series of pictures).
-They need to dequeue the last buffer once it got filled with video
-data, so the design with overwriting the buffer makes no sense.
-Right now it is really driver dependent and no generic solution 
-exist.
-
-We have been discussing it but no consensus has been made yet, so
-right now I've decided to keep the current design. We probably needs
-some additional flag somewhere to configure the driver either to
-continuously overwrite last buffer until next one has been queued
-or stop the dma engine and return the buffer to user. Once
-
-
-Best regards
--- 
-Marek Szyprowski
-Samsung Poland R&D Center
-
-
+--- git/drivers/media/video/omap1_camera.c.orig	2011-06-06 18:07:54.000000000 +0200
++++ git/drivers/media/video/omap1_camera.c	2011-06-09 12:04:09.000000000 +0200
+@@ -172,9 +172,6 @@ struct omap1_cam_dev {
+ 	struct omap1_cam_buf		*ready;
+ 
+ 	enum omap1_cam_vb_mode		vb_mode;
+-	int				(*mmap_mapper)(struct videobuf_queue *q,
+-						struct videobuf_buffer *buf,
+-						struct vm_area_struct *vma);
+ 
+ 	u32				reg_cache[0];
+ };
+@@ -1352,28 +1349,6 @@ static int omap1_cam_try_fmt(struct soc_
+ 
+ static bool sg_mode;
+ 
+-/*
+- * Local mmap_mapper wrapper,
+- * used for detecting videobuf-dma-contig buffer allocation failures
+- * and switching to videobuf-dma-sg automatically for future attempts.
+- */
+-static int omap1_cam_mmap_mapper(struct videobuf_queue *q,
+-				  struct videobuf_buffer *buf,
+-				  struct vm_area_struct *vma)
+-{
+-	struct soc_camera_device *icd = q->priv_data;
+-	struct soc_camera_host *ici = to_soc_camera_host(icd->dev.parent);
+-	struct omap1_cam_dev *pcdev = ici->priv;
+-	int ret;
+-
+-	ret = pcdev->mmap_mapper(q, buf, vma);
+-
+-	if (ret == -ENOMEM)
+-		sg_mode = true;
+-
+-	return ret;
+-}
+-
+ static void omap1_cam_init_videobuf(struct videobuf_queue *q,
+ 				     struct soc_camera_device *icd)
+ {
+@@ -1391,18 +1366,8 @@ static void omap1_cam_init_videobuf(stru
+ 				V4L2_BUF_TYPE_VIDEO_CAPTURE, V4L2_FIELD_NONE,
+ 				sizeof(struct omap1_cam_buf), icd, &icd->video_lock);
+ 
+-	/* use videobuf mode (auto)selected with the module parameter */
++	/* use videobuf mode selected with the module parameter */
+ 	pcdev->vb_mode = sg_mode ? OMAP1_CAM_DMA_SG : OMAP1_CAM_DMA_CONTIG;
+-
+-	/*
+-	 * Ensure we substitute the videobuf-dma-contig version of the
+-	 * mmap_mapper() callback with our own wrapper, used for switching
+-	 * automatically to videobuf-dma-sg on buffer allocation failure.
+-	 */
+-	if (!sg_mode && q->int_ops->mmap_mapper != omap1_cam_mmap_mapper) {
+-		pcdev->mmap_mapper = q->int_ops->mmap_mapper;
+-		q->int_ops->mmap_mapper = omap1_cam_mmap_mapper;
+-	}
+ }
+ 
+ static int omap1_cam_reqbufs(struct soc_camera_device *icd,
