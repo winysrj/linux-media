@@ -1,41 +1,128 @@
 Return-path: <mchehab@pedra>
-Received: from mail-wy0-f174.google.com ([74.125.82.174]:40001 "EHLO
-	mail-wy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752277Ab1F2TIp (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 29 Jun 2011 15:08:45 -0400
-Received: by wyg8 with SMTP id 8so1085299wyg.19
-        for <linux-media@vger.kernel.org>; Wed, 29 Jun 2011 12:08:44 -0700 (PDT)
-From: Bogdan Cristea <cristeab@gmail.com>
-To: Christoph Pfister <christophpfister@gmail.com>
-Subject: Re: Patch proposition for DVB-T configuration file for Paris area
-Date: Wed, 29 Jun 2011 21:05:46 +0200
-References: <201106282147.03423.cristeab@gmail.com> <BANLkTim5eH6sSaK0tL98MrZaRgR2++M67Q@mail.gmail.com>
-In-Reply-To: <BANLkTim5eH6sSaK0tL98MrZaRgR2++M67Q@mail.gmail.com>
-Cc: linux-media@vger.kernel.org
+Received: from mx1.redhat.com ([209.132.183.28]:48337 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752781Ab1FIPvS (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 9 Jun 2011 11:51:18 -0400
+From: Jarod Wilson <jarod@redhat.com>
+To: linux-media@vger.kernel.org
+Cc: Jarod Wilson <jarod@redhat.com>,
+	=?UTF-8?q?Juan=20Jes=C3=BAs=20Garc=C3=ADa=20de=20Soria?=
+	<skandalfo@gmail.com>, stable@kernel.org
+Subject: [PATCH] [media] ite-cir: 8709 needs to use pnp resource 2
+Date: Thu,  9 Jun 2011 11:50:22 -0400
+Message-Id: <1307634622-10687-1-git-send-email-jarod@redhat.com>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201106292105.46819.cristeab@gmail.com>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Wednesday 29 June 2011 10:33:32 you wrote:
-> > I would like to propose the attached patch for de DVB-T configuration
-> > file for Paris area (found in openSUSE 11.4 in this location)
-> > /usr/share/dvb/dvb-t/fr-Paris
-> 
-> http://linuxtv.org/hg/dvb-apps/file/148ede2a6809/util/scan/dvb-t/fr-Paris
-> - last change: november 2008.
-> 
-> Christoph
+Thanks to the intrepid testing and debugging of Matthijs van Drunen, it
+was uncovered that at least some variants of the ITE8709 need to use pnp
+resource 2, rather than 0, for things to function properly. Resource 0
+has a length of only 1, and if you try to bypass the pnp_port_len check
+and use it anyway (with either a length of 1 or 2), the system in
+question's trackpad ceased to function.
 
-Just checked the file you updated 2 days ago. With the following command:
+The circa lirc 0.8.7 lirc_ite8709 driver used resource 2, but the value
+was (amusingly) changed to 0 by way of a patch from ITE themselves, so I
+don't know if there may be variants where 0 actually *is* correct, but
+at least in this case and in the original lirc_ite8709 driver author's
+case, it sure looks like 2 is the right value.
 
-scan fr-Paris.new -o zap
+This fix should probably be applied to all stable kernels with the
+ite-cir driver, lest we nuke more people's trackpads.
 
-In Versailles, where I live, only 5 channels are detected.
+Tested-by: Matthijs van Drunen
+CC: Juan Jesús García de Soria <skandalfo@gmail.com>
+CC: stable@kernel.org
+Signed-off-by: Jarod Wilson <jarod@redhat.com>
+---
+ drivers/media/rc/ite-cir.c |   12 +++++++++---
+ drivers/media/rc/ite-cir.h |    3 +++
+ 2 files changed, 12 insertions(+), 3 deletions(-)
 
+diff --git a/drivers/media/rc/ite-cir.c b/drivers/media/rc/ite-cir.c
+index e716b93..ecd3d02 100644
+--- a/drivers/media/rc/ite-cir.c
++++ b/drivers/media/rc/ite-cir.c
+@@ -1347,6 +1347,7 @@ static const struct ite_dev_params ite_dev_descs[] = {
+ 	{	/* 0: ITE8704 */
+ 	       .model = "ITE8704 CIR transceiver",
+ 	       .io_region_size = IT87_IOREG_LENGTH,
++	       .io_rsrc_no = 0,
+ 	       .hw_tx_capable = true,
+ 	       .sample_period = (u32) (1000000000ULL / 115200),
+ 	       .tx_carrier_freq = 38000,
+@@ -1371,6 +1372,7 @@ static const struct ite_dev_params ite_dev_descs[] = {
+ 	{	/* 1: ITE8713 */
+ 	       .model = "ITE8713 CIR transceiver",
+ 	       .io_region_size = IT87_IOREG_LENGTH,
++	       .io_rsrc_no = 0,
+ 	       .hw_tx_capable = true,
+ 	       .sample_period = (u32) (1000000000ULL / 115200),
+ 	       .tx_carrier_freq = 38000,
+@@ -1395,6 +1397,7 @@ static const struct ite_dev_params ite_dev_descs[] = {
+ 	{	/* 2: ITE8708 */
+ 	       .model = "ITE8708 CIR transceiver",
+ 	       .io_region_size = IT8708_IOREG_LENGTH,
++	       .io_rsrc_no = 0,
+ 	       .hw_tx_capable = true,
+ 	       .sample_period = (u32) (1000000000ULL / 115200),
+ 	       .tx_carrier_freq = 38000,
+@@ -1420,6 +1423,7 @@ static const struct ite_dev_params ite_dev_descs[] = {
+ 	{	/* 3: ITE8709 */
+ 	       .model = "ITE8709 CIR transceiver",
+ 	       .io_region_size = IT8709_IOREG_LENGTH,
++	       .io_rsrc_no = 2,
+ 	       .hw_tx_capable = true,
+ 	       .sample_period = (u32) (1000000000ULL / 115200),
+ 	       .tx_carrier_freq = 38000,
+@@ -1461,6 +1465,7 @@ static int ite_probe(struct pnp_dev *pdev, const struct pnp_device_id
+ 	struct rc_dev *rdev = NULL;
+ 	int ret = -ENOMEM;
+ 	int model_no;
++	int io_rsrc_no;
+ 
+ 	ite_dbg("%s called", __func__);
+ 
+@@ -1490,10 +1495,11 @@ static int ite_probe(struct pnp_dev *pdev, const struct pnp_device_id
+ 
+ 	/* get the description for the device */
+ 	dev_desc = &ite_dev_descs[model_no];
++	io_rsrc_no = dev_desc->io_rsrc_no;
+ 
+ 	/* validate pnp resources */
+-	if (!pnp_port_valid(pdev, 0) ||
+-	    pnp_port_len(pdev, 0) != dev_desc->io_region_size) {
++	if (!pnp_port_valid(pdev, io_rsrc_no) ||
++	    pnp_port_len(pdev, io_rsrc_no) != dev_desc->io_region_size) {
+ 		dev_err(&pdev->dev, "IR PNP Port not valid!\n");
+ 		goto failure;
+ 	}
+@@ -1504,7 +1510,7 @@ static int ite_probe(struct pnp_dev *pdev, const struct pnp_device_id
+ 	}
+ 
+ 	/* store resource values */
+-	itdev->cir_addr = pnp_port_start(pdev, 0);
++	itdev->cir_addr = pnp_port_start(pdev, io_rsrc_no);
+ 	itdev->cir_irq = pnp_irq(pdev, 0);
+ 
+ 	/* initialize spinlocks */
+diff --git a/drivers/media/rc/ite-cir.h b/drivers/media/rc/ite-cir.h
+index 16a19f5..aa899a0 100644
+--- a/drivers/media/rc/ite-cir.h
++++ b/drivers/media/rc/ite-cir.h
+@@ -57,6 +57,9 @@ struct ite_dev_params {
+ 	/* size of the I/O region */
+ 	int io_region_size;
+ 
++	/* IR pnp I/O resource number */
++	int io_rsrc_no;
++
+ 	/* true if the hardware supports transmission */
+ 	bool hw_tx_capable;
+ 
 -- 
-Bogdan
+1.7.1
+
