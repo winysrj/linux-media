@@ -1,48 +1,69 @@
 Return-path: <mchehab@pedra>
-Received: from mail-ww0-f44.google.com ([74.125.82.44]:44189 "EHLO
-	mail-ww0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753805Ab1FSMmy (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 19 Jun 2011 08:42:54 -0400
-Received: by wwe5 with SMTP id 5so1746776wwe.1
-        for <linux-media@vger.kernel.org>; Sun, 19 Jun 2011 05:42:53 -0700 (PDT)
-Subject: Re: dvb_usb symbols from media_build disagree on Linux 2.6.32-32
-From: Malcolm Priestley <tvboxspy@gmail.com>
-To: Jan Hoogenraad <jan-conceptronic@hoogenraad.net>
-Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-In-Reply-To: <4DFCF1C1.6090509@hoogenraad.net>
-References: <4DFCF1C1.6090509@hoogenraad.net>
-Content-Type: text/plain; charset="UTF-8"
-Date: Sun, 19 Jun 2011 13:42:46 +0100
-Message-ID: <1308487366.2095.10.camel@localhost>
-Mime-Version: 1.0
+Received: from mx1.redhat.com ([209.132.183.28]:4568 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754939Ab1FINEj (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 9 Jun 2011 09:04:39 -0400
+Message-ID: <4DF0C4E1.1020406@redhat.com>
+Date: Thu, 09 Jun 2011 10:04:33 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+MIME-Version: 1.0
+To: Andreas Oberritter <obi@linuxtv.org>
+CC: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: [PATCH 05/13] [media] dvb/audio.h: Remove definition for AUDIO_GET_PTS
+References: <cover.1307563765.git.mchehab@redhat.com> <20110608172302.3e2294af@pedra> <4DF0C015.1090807@linuxtv.org>
+In-Reply-To: <4DF0C015.1090807@linuxtv.org>
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Sat, 2011-06-18 at 20:43 +0200, Jan Hoogenraad wrote:
-> Trying to compile and install media_build on an Ubuntu Lucid computer
-> Linux 2.6.32-32-generic-pae #62-Ubuntu SMP Wed Apr 20 22:10:33 UTC 2011 
-> i686 GNU/Linux
+Hi Andreas,
+
+Em 09-06-2011 09:44, Andreas Oberritter escreveu:
+> On 06/08/2011 10:23 PM, Mauro Carvalho Chehab wrote:
+>> While this ioctl is defined inside dvb/audio.h, it is not docummented
+>> at the API specs, nor implemented on any driver inside the Linux Kernel.
+>> So, it doesn't make sense to keep it here.
+>>
+>> As this is not used anywere, removing it is not a regression. So,
+>> there's no need to use the normal features-to-be-removed process.
+>>
+>> Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+>>
+>> diff --git a/include/linux/dvb/audio.h b/include/linux/dvb/audio.h
+>> index d47bccd..c1b3555 100644
+>> --- a/include/linux/dvb/audio.h
+>> +++ b/include/linux/dvb/audio.h
+>> @@ -118,18 +118,6 @@ typedef __u16 audio_attributes_t;
+>>  #define AUDIO_SET_ATTRIBUTES       _IOW('o', 17, audio_attributes_t)
+>>  #define AUDIO_SET_KARAOKE          _IOW('o', 18, audio_karaoke_t)
+>>  
+>> -/**
+>> - * AUDIO_GET_PTS
+>> - *
+>> - * Read the 33 bit presentation time stamp as defined
+>> - * in ITU T-REC-H.222.0 / ISO/IEC 13818-1.
+>> - *
+>> - * The PTS should belong to the currently played
+>> - * frame if possible, but may also be a value close to it
+>> - * like the PTS of the last decoded frame or the last PTS
+>> - * extracted by the PES parser.
+>> - */
+>> -#define AUDIO_GET_PTS              _IOR('o', 19, __u64)
+>>  #define AUDIO_BILINGUAL_CHANNEL_SELECT _IO('o', 20)
+>>  
+>>  #endif /* _DVBAUDIO_H_ */
 > 
-> I can compile, but cannot use dvb-usb. With the snapshot of june 11th, I 
-> was able to do this with no problem.
-> Can somebody help me ?
+> Please don't apply this patch. In general, many ioctls aren't
+> implemented in mainline drivers, because most if not all supported
+> devices inside the kernel tree are either PCI or USB add-in devices and
+> usually quite simple compared to a STB.
 > 
-> sudo modprobe dvb-usb
-> yields
-> FATAL: Error inserting dvb_usb 
-> (/lib/modules/2.6.32-32-generic-pae/kernel/drivers/media/dvb/dvb-usb/dvb-usb.ko): 
-> Unknown symbol in module, or unknown parameter (see dmesg)
-> 
-Yes, I have had a similar problem with Ubuntu Natty 2.6.38-10
+> This ioctl is used at least by enigma2 in userspace and implemented in
+> drivers for several generations of the dreambox.
 
-The solution is to rminstall using the old media_build before installing
-the latest media_build. Otherwise, you will have to reinstall the latest
-Ubuntu kernel.
+If this is implemented on userspace only, what's the point of having it
+inside the kernel API?
 
-For some reason an old dvb-usb(or dependants) module isn't being removed
-with the latest media_build.
-
-tvboxspy
-
+Cheers,
+Mauro
