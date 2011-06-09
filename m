@@ -1,151 +1,80 @@
 Return-path: <mchehab@pedra>
-Received: from mail-vx0-f174.google.com ([209.85.220.174]:34896 "EHLO
-	mail-vx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752511Ab1FBX5D convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 2 Jun 2011 19:57:03 -0400
+Received: from mx1.redhat.com ([209.132.183.28]:47111 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1757292Ab1FILVh (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 9 Jun 2011 07:21:37 -0400
+Message-ID: <4DF0ACDB.9000800@redhat.com>
+Date: Thu, 09 Jun 2011 13:22:03 +0200
+From: Hans de Goede <hdegoede@redhat.com>
 MIME-Version: 1.0
-In-Reply-To: <1307053663-24572-1-git-send-email-ohad@wizery.com>
-References: <1307053663-24572-1-git-send-email-ohad@wizery.com>
-Date: Fri, 3 Jun 2011 08:57:00 +0900
-Message-ID: <BANLkTimQA0Nsh+jgS=hD1VxKkD3zg84y+A@mail.gmail.com>
-Subject: Re: [RFC 0/6] iommu: generic api migration and grouping
-From: Kyungmin Park <kmpark@infradead.org>
-To: Ohad Ben-Cohen <ohad@wizery.com>
-Cc: linux-media@vger.kernel.org, linux-omap@vger.kernel.org,
-	linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-	laurent.pinchart@ideasonboard.com, Hiroshi.DOYU@nokia.com,
-	arnd@arndb.de, davidb@codeaurora.org, Joerg.Roedel@amd.com,
-	Marek Szyprowski <m.szyprowski@samsung.com>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+CC: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Crash on unplug with the uvc driver in linuxtv/staging/for_v3.1
+Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Transfer-Encoding: 8bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
 Hi,
 
-Good approach.
-CC'ed the Samsung IOMMU developer. Marek.
+When I unplug a uvc camera *while streaming* I get:
 
-BTW, Russell wants to use the DMA based IOMMU?
+Jun  9 13:20:02 shalem kernel: [15824.809741] BUG: unable to handle kernel NULL pointer dereference at           (null)
+Jun  9 13:20:02 shalem kernel: [15824.809816] IP: [<ffffffffa0309eae>] media_entity_put+0x12/0x2c [media]
+Jun  9 13:20:02 shalem kernel: [15824.809877] PGD 0
+Jun  9 13:20:02 shalem kernel: [15824.809898] Oops: 0000 [#1] SMP
+Jun  9 13:20:02 shalem kernel: [15824.809933] CPU 1
+Jun  9 13:20:02 shalem kernel: [15824.809952] Modules linked in: uvcvideo videodev media v4l2_compat_ioctl32 nf_conntrack_ipv4 nf_defrag_ipv4 vfat fat tcp_lp tun fuse ebtable_nat ebtables cpufreq_ondemand acpi_cpufreq freq_table mperf bridge stp llc be2iscsi iscsi_boot_sysfs bnx2i cnic uio cxgb3i libcxgbi iw_cxgb3 cxgb3 mdio ib_iser rdma_cm ib_cm iw_cm ib_sa ib_mad ib_core ib_addr iscsi_tcp libiscsi_tcp libiscsi scsi_transport_iscsi ip6t_REJECT nf_conntrack_ipv6 coretemp xt_physdev nf_defrag_ipv6 ip6table_filter xt_state ip6_tables nf_conntrack snd_hda_codec_hdmi snd_hda_codec_conexant 
+snd_hda_intel snd_hda_codec snd_bt87x usb_storage snd_seq snd_usb_audio uas snd_pcm snd_hwdep snd_usbmidi_lib ppdev snd_rawmidi microcode e1000e snd_seq_device serio_raw i2c_i801 snd_timer tpm_infineon snd iTCO_wdt parport_pc parport soundcore mei(C) iTCO_vendor_support snd_page_alloc virtio_net kvm_intel kvm ipv6 i915 drm_kms_helper drm i2c_algo_bit i2c_core video [last unloaded: tuner_types]
+Jun  9 13:20:02 shalem kernel: [15824.810794]
+Jun  9 13:20:02 shalem kernel: [15824.810811] Pid: 4944, comm: camorama Tainted: G         C  3.0.0-rc1+ #5 FUJITSU D3071-S1/D3071-S1
+Jun  9 13:20:02 shalem kernel: [15824.810888] RIP: 0010:[<ffffffffa0309eae>]  [<ffffffffa0309eae>] media_entity_put+0x12/0x2c [media]
+Jun  9 13:20:02 shalem kernel: [15824.810961] RSP: 0018:ffff88011da23d98  EFLAGS: 00010286
+Jun  9 13:20:02 shalem kernel: [15824.811003] RAX: 0000000000000000 RBX: ffff88006a864400 RCX: 0000000000000118
+Jun  9 13:20:02 shalem kernel: [15824.811057] RDX: 0000000000000001 RSI: 0000000000000004 RDI: ffff88006a864400
+Jun  9 13:20:02 shalem kernel: [15824.811112] RBP: ffff88011da23d98 R08: ffffea0002896e28 R09: ffff88011da23d38
+Jun  9 13:20:02 shalem kernel: [15824.811165] R10: ffffffffa0526026 R11: ffffffff81a58210 R12: ffff880027d43840
+Jun  9 13:20:02 shalem kernel: [15824.811219] R13: 0000000000000008 R14: ffff880133310dc0 R15: ffff88012db76300
+Jun  9 13:20:02 shalem kernel: [15824.811274] FS:  00007f7942ff49c0(0000) GS:ffff88013e280000(0000) knlGS:0000000000000000
+Jun  9 13:20:02 shalem kernel: [15824.811336] CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+Jun  9 13:20:02 shalem kernel: [15824.811381] CR2: 0000000000000000 CR3: 0000000001a03000 CR4: 00000000000406e0
+Jun  9 13:20:02 shalem kernel: [15824.811435] DR0: 0000000000000003 DR1: 00000000000000b0 DR2: 0000000000000001
+Jun  9 13:20:02 shalem kernel: [15824.811491] DR3: 0000000000000000 DR6: 00000000ffff0ff0 DR7: 0000000000000400
+Jun  9 13:20:02 shalem kernel: [15824.811546] Process camorama (pid: 4944, threadinfo ffff88011da22000, task ffff880113618000)
+Jun  9 13:20:02 shalem kernel: [15824.811609] Stack:
+Jun  9 13:20:02 shalem kernel: [15824.811629]  ffff88011da23db8 ffffffffa0510203 ffff880027d43840 ffff880133310dc0
+Jun  9 13:20:02 shalem kernel: [15824.811695]  ffff88011da23e08 ffffffff811233fe ffff880027d43850 ffff880134530500
+Jun  9 13:20:02 shalem kernel: [15824.811763]  ffffffff811e3397 ffff880027d43840 ffff8801347a5b80 0000000000000000
+Jun  9 13:20:02 shalem kernel: [15824.811829] Call Trace:
+Jun  9 13:20:02 shalem kernel: [15824.811856]  [<ffffffffa0510203>] v4l2_release+0x7b/0x8e [videodev]
+Jun  9 13:20:02 shalem kernel: [15824.811910]  [<ffffffff811233fe>] fput+0x121/0x1e3
+Jun  9 13:20:02 shalem kernel: [15824.811953]  [<ffffffff811e3397>] ? exit_sem+0x1c7/0x1d8
+Jun  9 13:20:02 shalem kernel: [15824.811998]  [<ffffffff811208a7>] filp_close+0x6e/0x7a
+Jun  9 13:20:02 shalem kernel: [15824.812041]  [<ffffffff81131b33>] ? __d_free+0x53/0x58
+Jun  9 13:20:02 shalem kernel: [15824.812084]  [<ffffffff810567e1>] put_files_struct+0x6e/0xd5
+Jun  9 13:20:02 shalem kernel: [15824.812130]  [<ffffffff810568d5>] exit_files+0x41/0x46
+Jun  9 13:20:02 shalem kernel: [15824.812172]  [<ffffffff81056e55>] do_exit+0x2aa/0x738
+Jun  9 13:20:02 shalem kernel: [15824.812214]  [<ffffffff8104be73>] ? wake_up_state+0x10/0x12
+Jun  9 13:20:02 shalem kernel: [15824.812259]  [<ffffffff81062ba2>] ? signal_wake_up+0x32/0x43
+Jun  9 13:20:02 shalem kernel: [15824.812304]  [<ffffffff810638b4>] ? zap_other_threads+0x59/0x82
+Jun  9 13:20:02 shalem kernel: [15824.812352]  [<ffffffff81057568>] do_group_exit+0x7a/0xa2
+Jun  9 13:20:02 shalem kernel: [15824.812395]  [<ffffffff810575a7>] sys_exit_group+0x17/0x17
+Jun  9 13:20:02 shalem kernel: [15824.812440]  [<ffffffff81487802>] system_call_fastpath+0x16/0x1b
+Jun  9 13:20:02 shalem kernel: [15824.812486] Code: 10 66 41 ff 44 24 40 48 83 c4 18 44 89 f0 5b 41 5c 41 5d 41 5e 41 5f 5d c3 55 48 89 e5 66 66 66 66 90 48 85 ff 74 1c 48 8b 47 10
+Jun  9 13:20:02 shalem kernel: [15824.812783] RIP  [<ffffffffa0309eae>] media_entity_put+0x12/0x2c [media]
+Jun  9 13:20:02 shalem kernel: [15824.812839]  RSP <ffff88011da23d98>
+Jun  9 13:20:02 shalem kernel: [15824.812867] CR2: 0000000000000000
+Jun  9 13:20:02 shalem kernel: [15824.873494] ---[ end trace bfc278787db8cbfb ]---
+Jun  9 13:20:02 shalem kernel: [15824.873496] Fixing recursive fault but reboot is needed!
 
-Please see the RFC patch, ARM: DMA-mapping & IOMMU integration
-http://www.spinics.net/lists/linux-mm/msg19856.html
+I've not tested if this also impacts 3.0!!
 
-Thank you,
-Kyungmin Park
+I also get the following during building linuxtv/staging/for_v3.1:
 
-On Fri, Jun 3, 2011 at 7:27 AM, Ohad Ben-Cohen <ohad@wizery.com> wrote:
-> First stab at iommu consolidation:
->
-> - Migrate OMAP's iommu driver to the generic iommu API. With this in hand,
->  users can now start using the generic iommu layer instead of calling
->  omap-specific iommu API.
->
->  New code that requires functionality missing from the generic iommu api,
->  will add that functionality in the generic framework (e.g. adding framework
->  awareness to multi page sizes, supported by the underlying hardware, will
->  avoid the otherwise-inevitable code duplication when mapping a memory
->  region).
->
->  OMAP-specific api that is still exposed in the omap iommu driver can
->  now be either moved to the generic iommu framework, or just removed (if not
->  used).
->
->  This api (and other omap-specific primitives like struct iommu) needs to
->  be omapified (i.e. renamed to include an 'omap_' prefix). At this early
->  point of this patch set this is too much churn though, so I'll do that
->  in the following iteration, after (and if), the general direction is
->  accepted.
->
-> - Migrate OMAP's iovmm (virtual memory manager) driver to the generic
->  iommu API. With this in hand, iovmm no longer uses omap-specific api
->  for mapping/unmapping operations. Nevertheless, iovmm is still coupled
->  with omap's iommu even with this change: it assumes omap page sizes,
->  and it uses omap's iommu objects to maintain its internal state.
->
->  Further generalizing of iovmm strongly depends on our broader plans for
->  providing a generic virtual memory manager and allocation framework
->  (which, as discussed, should be separated from a specific mapper).
->
->  iovmm has a mainline user: omap3isp, and therefore must be maintained,
->  but new potential users will either have to generalize it, or come up
->  with a different generic framework that will replace it.
->
-> - Migrate OMAP's iommu mainline user, omap3isp, to the generic API as well
->  (so it doesn't break). As with iovmm, omap3isp still depends on
->  omap's iommu, mainly because iovmm depends on it, but also for
->  iommu context saving and restoring.
->
->  It is definitely desirable to completely remove omap3isp's dependency
->  on the omap-specific iommu layer, and that will be possible as the
->  required functionality will be added to generic framework.
->
-> - Create a dedicated iommu drivers folder (and put the base iommu code there)
-> - Move OMAP's and MSM's iommu drivers to that drivers iommu folder
->
->  Putting all iommu drivers together will ease finding similarities
->  between different platforms, with the intention of solving problems once,
->  in a generic framework which everyone can use.
->
->  I've only moved the omap and msm implementations for now, to demonstrate
->  the idea (and support the ARM diet :), but if this is found desirable,
->  we can bring in intel-iommu.c and amd_iommu.c as well.
->
-> Meta:
->
-> - This patch set is not bisectable; it was splitted (and ordered) this way
->  to ease its review. Later iterations of this patch set will fix that
->  (most likely by squashing the first three patches)
-> - Based on and tested with 3.0-rc1
-> - OMAP's iommu code was tested on both OMAP3 and OMAP4
-> - omap3isp code was tested with a sensor-less OMAP3 (memory-to-memory only)
->  (thanks Laurent Pinchart for showing me the magic needed to test omap3isp :)
-> - MSM code was only compile tested
->
-> Ohad Ben-Cohen (6):
->  omap: iommu: generic iommu api migration
->  omap: iovmm: generic iommu api migration
->  media: omap3isp: generic iommu api migration
->  drivers: iommu: move to a dedicated folder
->  omap: iommu/iovmm: move to dedicated iommu folder
->  msm: iommu: move to dedicated iommu drivers folder
->
->  arch/arm/mach-msm/Kconfig                          |   15 -
->  arch/arm/mach-msm/Makefile                         |    2 +-
->  arch/arm/plat-omap/Kconfig                         |   12 -
->  arch/arm/plat-omap/Makefile                        |    2 -
->  arch/arm/plat-omap/include/plat/iommu.h            |    3 +-
->  arch/arm/plat-omap/{ => include/plat}/iopgtable.h  |   18 ++
->  arch/arm/plat-omap/include/plat/iovmm.h            |   27 +-
->  arch/x86/Kconfig                                   |    5 +-
->  drivers/Kconfig                                    |    2 +
->  drivers/Makefile                                   |    1 +
->  drivers/base/Makefile                              |    1 -
->  drivers/iommu/Kconfig                              |   32 +++
->  drivers/iommu/Makefile                             |    5 +
->  drivers/{base => iommu}/iommu.c                    |    0
->  .../mach-msm/iommu.c => drivers/iommu/msm-iommu.c  |    0
->  .../iommu/omap-iommu-debug.c                       |    2 +-
->  .../iommu.c => drivers/iommu/omap-iommu.c          |  290 +++++++++++++++++---
->  .../iovmm.c => drivers/iommu/omap-iovmm.c          |  113 +++++---
->  drivers/media/video/Kconfig                        |    2 +-
->  drivers/media/video/omap3isp/isp.c                 |   41 +++-
->  drivers/media/video/omap3isp/isp.h                 |    3 +
->  drivers/media/video/omap3isp/ispccdc.c             |   16 +-
->  drivers/media/video/omap3isp/ispstat.c             |    6 +-
->  drivers/media/video/omap3isp/ispvideo.c            |    4 +-
->  24 files changed, 451 insertions(+), 151 deletions(-)
->  rename arch/arm/plat-omap/{ => include/plat}/iopgtable.h (84%)
->  create mode 100644 drivers/iommu/Kconfig
->  create mode 100644 drivers/iommu/Makefile
->  rename drivers/{base => iommu}/iommu.c (100%)
->  rename arch/arm/mach-msm/iommu.c => drivers/iommu/msm-iommu.c (100%)
->  rename arch/arm/plat-omap/iommu-debug.c => drivers/iommu/omap-iommu-debug.c (99%)
->  rename arch/arm/plat-omap/iommu.c => drivers/iommu/omap-iommu.c (77%)
->  rename arch/arm/plat-omap/iovmm.c => drivers/iommu/omap-iovmm.c (85%)
->
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->
+   CC [M]  drivers/media/video/uvc/uvc_entity.o
+drivers/media/video/uvc/uvc_entity.c: In function ‘uvc_mc_register_entities’:
+drivers/media/video/uvc/uvc_entity.c:110:6: warning: ‘ret’ may be used uninitialized in this function [-Wuninitialized]
+
+Regards,
+
+Hans
