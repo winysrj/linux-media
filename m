@@ -1,2679 +1,798 @@
 Return-path: <mchehab@pedra>
-Received: from smtp-vbr1.xs4all.nl ([194.109.24.21]:2436 "EHLO
-	smtp-vbr1.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754986Ab1FJIRN (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 10 Jun 2011 04:17:13 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Tomasz Stanislawski <t.stanislaws@samsung.com>
-Subject: Re: [PATCH 3/3] s5p-tv: add drivers for TV on Samsung S5P platform
-Date: Fri, 10 Jun 2011 10:17:00 +0200
-Cc: Hans Verkuil <hansverk@cisco.com>, linux-media@vger.kernel.org
-References: <1307534611-32283-1-git-send-email-t.stanislaws@samsung.com> <201106091102.41562.hansverk@cisco.com> <4DF0F03F.1030203@samsung.com>
-In-Reply-To: <4DF0F03F.1030203@samsung.com>
-MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-15"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201106101017.00473.hverkuil@xs4all.nl>
+Received: from rcsinet10.oracle.com ([148.87.113.121]:40975 "EHLO
+	rcsinet10.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750897Ab1FISPO (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 9 Jun 2011 14:15:14 -0400
+Date: Thu, 9 Jun 2011 11:14:49 -0700
+From: Randy Dunlap <randy.dunlap@oracle.com>
+To: Stephen Rothwell <sfr@canb.auug.org.au>,
+	linux-media@vger.kernel.org
+Cc: linux-next@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>,
+	Ondrej Zary <linux@rainbow-software.org>
+Subject: Re: linux-next: Tree for June 9 (media/radio/radio-sf16fmr2)
+Message-Id: <20110609111449.5ed0affb.randy.dunlap@oracle.com>
+In-Reply-To: <20110609180946.645898e1.sfr@canb.auug.org.au>
+References: <20110609180946.645898e1.sfr@canb.auug.org.au>
+Mime-Version: 1.0
+Content-Type: multipart/mixed;
+ boundary="Multipart=_Thu__9_Jun_2011_11_14_49_-0700_biT4KWO+gJT0AMnn"
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Thursday, June 09, 2011 18:09:35 Tomasz Stanislawski wrote:
+This is a multi-part message in MIME format.
+
+--Multipart=_Thu__9_Jun_2011_11_14_49_-0700_biT4KWO+gJT0AMnn
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
+
+On Thu, 9 Jun 2011 18:09:46 +1000 Stephen Rothwell wrote:
+
+> Hi all,
 > 
-> Hi Hans,
-> Thanks for your review,
-> I'll apply the fixes soon. But first, I would like to discuss some of them.
-> > Hi Tomasz,
-> >
-> > Note that for the next patch series it would be easier if this was split into
-> > one patch per driver.
-> >
-> > On Wednesday, June 08, 2011 14:03:31 Tomasz Stanislawski wrote:
-> >   
-> >> Add drivers for TV outputs on Samsung platforms from S5P family.
-> >> - HDMIPHY - auxiliary I2C driver need by TV driver
-> >> - HDMI    - generation and control of streaming by HDMI output
-> >> - SDO     - streaming analog TV by Composite connector
-> >> - MIXER   - merging images from three layers and passing result to the output
-> >>
-> >> Interface:
-> >> - 3 video nodes with output queues
-> >> - support for multi plane API
-> >> - each nodes has up to 2 outputs (HDMI and SDO)
-> >> - outputs are controlled by S_STD and S_DV_PRESET ioctls
-> >>
-> >> Drivers are using:
-> >> - v4l2 framework
-> >> - videobuf2
-> >> - videobuf2-dma-contig as memory allocator
-> >> - runtime PM
-> >>
-> >> Signed-off-by: Tomasz Stanislawski <t.stanislaws@samsung.com>
-> >> Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
-> >> Reviewed-by: Marek Szyprowski <m.szyprowski@samsung.com>
-> >> Reviewed-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
-> >> ---
-> >>  drivers/media/video/Kconfig                  |   15 +
-> >>  drivers/media/video/Makefile                 |    1 +
-> >>  drivers/media/video/s5p-tv/Kconfig           |   69 ++
-> >>  drivers/media/video/s5p-tv/Makefile          |   17 +
-> >>  drivers/media/video/s5p-tv/hdmi.h            |   73 ++
-> >>  drivers/media/video/s5p-tv/hdmi_drv.c        |  999 ++++++++++++++++++++++++++
-> >>  drivers/media/video/s5p-tv/hdmiphy_drv.c     |  202 ++++++
-> >>  drivers/media/video/s5p-tv/mixer.h           |  368 ++++++++++
-> >>  drivers/media/video/s5p-tv/mixer_drv.c       |  494 +++++++++++++
-> >>  drivers/media/video/s5p-tv/mixer_grp_layer.c |  181 +++++
-> >>  drivers/media/video/s5p-tv/mixer_reg.c       |  540 ++++++++++++++
-> >>  drivers/media/video/s5p-tv/mixer_video.c     |  956 ++++++++++++++++++++++++
-> >>  drivers/media/video/s5p-tv/mixer_vp_layer.c  |  207 ++++++
-> >>  drivers/media/video/s5p-tv/regs-hdmi.h       |  141 ++++
-> >>  drivers/media/video/s5p-tv/regs-mixer.h      |  121 ++++
-> >>  drivers/media/video/s5p-tv/regs-sdo.h        |   63 ++
-> >>  drivers/media/video/s5p-tv/regs-vp.h         |   88 +++
-> >>  drivers/media/video/s5p-tv/sdo_drv.c         |  498 +++++++++++++
-> >>  18 files changed, 5033 insertions(+), 0 deletions(-)
-> >>  create mode 100644 drivers/media/video/s5p-tv/Kconfig
-> >>  create mode 100644 drivers/media/video/s5p-tv/Makefile
-> >>  create mode 100644 drivers/media/video/s5p-tv/hdmi.h
-> >>  create mode 100644 drivers/media/video/s5p-tv/hdmi_drv.c
-> >>  create mode 100644 drivers/media/video/s5p-tv/hdmiphy_drv.c
-> >>  create mode 100644 drivers/media/video/s5p-tv/mixer.h
-> >>  create mode 100644 drivers/media/video/s5p-tv/mixer_drv.c
-> >>  create mode 100644 drivers/media/video/s5p-tv/mixer_grp_layer.c
-> >>  create mode 100644 drivers/media/video/s5p-tv/mixer_reg.c
-> >>  create mode 100644 drivers/media/video/s5p-tv/mixer_video.c
-> >>  create mode 100644 drivers/media/video/s5p-tv/mixer_vp_layer.c
-> >>  create mode 100644 drivers/media/video/s5p-tv/regs-hdmi.h
-> >>  create mode 100644 drivers/media/video/s5p-tv/regs-mixer.h
-> >>  create mode 100644 drivers/media/video/s5p-tv/regs-sdo.h
-> >>  create mode 100644 drivers/media/video/s5p-tv/regs-vp.h
-> >>  create mode 100644 drivers/media/video/s5p-tv/sdo_drv.c
-> >>
-> >> diff --git a/drivers/media/video/Kconfig b/drivers/media/video/Kconfig
-> >> index bb53de7..bca099a 100644
-> >> --- a/drivers/media/video/Kconfig
-> >> +++ b/drivers/media/video/Kconfig
-> >> @@ -1057,3 +1057,18 @@ config VIDEO_MEM2MEM_TESTDEV
-> >>  
-> >>  
-> >>  endif # V4L_MEM2MEM_DRIVERS
-> >> +
-> >> +menuconfig VIDEO_OUTPUT_DRIVERS
-> >> +	bool "Video output devices"
-> >> +	depends on VIDEO_V4L2
-> >> +	default y
-> >> +	---help---
-> >> +	  Say Y here to enable selecting the video output interfaces for
-> >> +	  analog/digital modulators.
-> >> +
-> >> +if VIDEO_OUTPUT_DRIVERS
-> >> +
-> >> +source "drivers/media/video/s5p-tv/Kconfig"
-> >> +
-> >> +endif # VIDEO_OUTPUT_DRIVERS
-> >>     
-> >
-> > I don't really see a need for introducing a top-level V4L config option. There
-> > are other output drivers already and they don't need it either.
-> >   
-> All output drivers lay in 'Video capture adapters'.
-> I don't think that it is a good place for them.
-> The S5P TV driver have no capture functionality, so where should I put it?
-> Mem2Mem devices have separate directory, maybe output driver should have 
-> one too?
-
-Often there is no clear distinction between capture and output drivers (and
-even m2m drivers) since one driver has all of those. For example the omap3
-driver. I would stick it all in Video capture adapters for now. This is really
-a separate job to clean up the media config tree to something that makes more
-sense.
-
-For example, what's one of the first drivers you see in the 'Video capture adapters'
-page? A Quickcam BW parallel port webcam. Whereas the important USB drivers like
-UVC are hidden away at the end of that menu.
-
-> >   
-> >> +
-> >> diff --git a/drivers/media/video/Makefile b/drivers/media/video/Makefile
-> >> index f0fecd6..f90587d 100644
-> >> --- a/drivers/media/video/Makefile
-> >> +++ b/drivers/media/video/Makefile
-> >> @@ -168,6 +168,7 @@ obj-$(CONFIG_VIDEO_SH_MOBILE_CEU)	+= sh_mobile_ceu_camera.o
-> >>  obj-$(CONFIG_VIDEO_OMAP1)		+= omap1_camera.o
-> >>  
-> >>  obj-$(CONFIG_VIDEO_SAMSUNG_S5P_FIMC) 	+= s5p-fimc/
-> >> +obj-$(CONFIG_VIDEO_SAMSUNG_S5P_TV)	+= s5p-tv/
-> >>  
-> >>  obj-$(CONFIG_ARCH_DAVINCI)		+= davinci/
-> >>  
-> >> diff --git a/drivers/media/video/s5p-tv/Kconfig b/drivers/media/video/s5p-tv/Kconfig
-> >> new file mode 100644
-> >> index 0000000..d5ce651
-> >> --- /dev/null
-> >> +++ b/drivers/media/video/s5p-tv/Kconfig
-> >> @@ -0,0 +1,69 @@
-> >> +# drivers/media/video/s5p-tv/Kconfig
-> >> +#
-> >> +# Copyright (c) 2010-2011 Samsung Electronics Co., Ltd.
-> >> +#	http://www.samsung.com/
-> >> +# Tomasz Stanislawski <t.stanislaws@samsung.com>
-> >> +#
-> >> +# Licensed under GPL
-> >> +
-> >> +config VIDEO_SAMSUNG_S5P_TV
-> >> +	bool "Samsung TV driver for S5P platform"
-> >> +	depends on PLAT_S5P
-> >> +	default n
-> >> +	---help---
-> >> +	  Say Y here to enable selecting the TV output devices for
-> >> +	  Samsung S5P platform.
-> >> +
-> >> +if VIDEO_SAMSUNG_S5P_TV
-> >> +
-> >> +config VIDEO_SAMSUNG_S5P_MIXER
-> >> +	tristate "Samsung Mixer and Video Processor Driver"
-> >> +	depends on VIDEO_DEV && VIDEO_V4L2
-> >> +	depends on VIDEO_SAMSUNG_S5P_TV
-> >> +	select VIDEOBUF2_DMA_CONTIG
-> >> +	help
-> >> +	  Say Y here if you want support for the Mixer in Samsung S5P SoCs.
-> >> +	  This device produce image data to one of output interfaces.
-> >> +
-> >> +config VIDEO_SAMSUNG_S5P_MIXER_LOG_LEVEL
-> >> +	int "Log level for Samsung Mixer/Video Processor Driver"
-> >> +	depends on VIDEO_SAMSUNG_S5P_MIXER
-> >> +	range 0 7
-> >> +	default 6
-> >> +	help
-> >> +	  Select driver log level 0(emerg) to 7 (debug).
-> >>     
-> >
-> > I would use a module debug option for this rather than hardcode it in the
-> > config.
-> This value is used at compilation time to remove printks.
-> Maybe I should use more general solution like pr_debug api?
-
-Yes, pr_debug or dev_dbg.
-
+> [The kernel.org mirroring is being slow today]
 > 
-> >   
-> >> +
-> >> +config VIDEO_SAMSUNG_S5P_HDMI
-> >> +	tristate "Samsung HDMI Driver"
-> >> +	depends on VIDEO_V4L2
-> >> +	depends on VIDEO_SAMSUNG_S5P_TV
-> >> +	select VIDEO_SAMSUNG_S5P_HDMIPHY
-> >> +	help
-> >> +	  Say Y here if you want support for the HDMI output
-> >> +	  interface in S5P Samsung SoC. The driver can be compiled
-> >> +	  as module. It is an auxiliary driver, that exposes a V4L2
-> >> +	  subdev for use by other drivers. This driver requires
-> >> +	  hdmiphy driver to work correctly.
-> >> +
-> >> +config VIDEO_SAMSUNG_S5P_HDMIPHY
-> >> +	tristate "Samsung HDMIPHY Driver"
-> >> +	depends on VIDEO_DEV && VIDEO_V4L2 && I2C
-> >> +	depends on VIDEO_SAMSUNG_S5P_TV
-> >> +	help
-> >> +	  Say Y here if you want support for the physical HDMI
-> >> +	  interface in S5P Samsung SoC. The driver can be compiled
-> >> +	  as module. It is an I2C driver, that exposes a V4L2
-> >> +	  subdev for use by other drivers.
-> >> +
-> >> +config VIDEO_SAMSUNG_S5P_SDO
-> >> +	tristate "Samsung Analog TV Driver"
-> >> +	depends on VIDEO_DEV && VIDEO_V4L2
-> >> +	depends on VIDEO_SAMSUNG_S5P_TV
-> >> +	help
-> >> +	  Say Y here if you want support for the analog TV output
-> >> +	  interface in S5P Samsung SoC. The driver can be compiled
-> >> +	  as module. It is an auxiliary driver, that exposes a V4L2
-> >> +	  subdev for use by other drivers. This driver requires
-> >> +	  hdmiphy driver to work correctly.
-> >> +
-> >> +endif # VIDEO_SAMSUNG_S5P_TV
-> >> diff --git a/drivers/media/video/s5p-tv/Makefile b/drivers/media/video/s5p-tv/Makefile
-> >> new file mode 100644
-> >> index 0000000..37e4c17
-> >> --- /dev/null
-> >> +++ b/drivers/media/video/s5p-tv/Makefile
-> >> @@ -0,0 +1,17 @@
-> >> +# drivers/media/video/samsung/tvout/Makefile
-> >> +#
-> >> +# Copyright (c) 2010-2011 Samsung Electronics Co., Ltd.
-> >> +#	http://www.samsung.com/
-> >> +# Tomasz Stanislawski <t.stanislaws@samsung.com>
-> >> +#
-> >> +# Licensed under GPL
-> >> +
-> >> +obj-$(CONFIG_VIDEO_SAMSUNG_S5P_HDMIPHY) += s5p-hdmiphy.o
-> >> +s5p-hdmiphy-y += hdmiphy_drv.o
-> >> +obj-$(CONFIG_VIDEO_SAMSUNG_S5P_HDMI) += s5p-hdmi.o
-> >> +s5p-hdmi-y += hdmi_drv.o
-> >> +obj-$(CONFIG_VIDEO_SAMSUNG_S5P_SDO) += s5p-sdo.o
-> >> +s5p-sdo-y += sdo_drv.o
-> >> +obj-$(CONFIG_VIDEO_SAMSUNG_S5P_MIXER) += s5p-mixer.o
-> >> +s5p-mixer-y += mixer_drv.o mixer_video.o mixer_reg.o mixer_grp_layer.o mixer_vp_layer.o
-> >> +
-> >> diff --git a/drivers/media/video/s5p-tv/hdmi.h b/drivers/media/video/s5p-tv/hdmi.h
-> >> new file mode 100644
-> >> index 0000000..824fb27
-> >> --- /dev/null
-> >> +++ b/drivers/media/video/s5p-tv/hdmi.h
-> >> @@ -0,0 +1,73 @@
-> >> +/*
-> >> + * Samsung HDMI interface driver
-> >> + *
-> >> + * Copyright (c) 2010-2011 Samsung Electronics Co., Ltd.
-> >> + *
-> >> + * Tomasz Stanislawski, <t.stanislaws@samsung.com>
-> >> + *
-> >> + * This program is free software; you can redistribute it and/or modify
-> >> + * it under the terms of the GNU General Public License as published
-> >> + * by the Free Software Foundiation. either version 2 of the License,
-> >> + * or (at your option) any later version
-> >> + */
-> >> +
-> >> +#ifndef SAMSUNG_HDMI_H
-> >> +#define SAMSUNG_HDMI_H __FILE__
-> >> +
-> >> +#include <linux/kernel.h>
-> >> +#include <linux/videodev2.h>
-> >> +#include <media/v4l2-mediabus.h>
-> >> +
-> >> +struct hdmi_tg_regs {
-> >> +	u8 cmd;
-> >> +	u8 h_fsz_l;
-> >> +	u8 h_fsz_h;
-> >> +	u8 hact_st_l;
-> >> +	u8 hact_st_h;
-> >> +	u8 hact_sz_l;
-> >> +	u8 hact_sz_h;
-> >> +	u8 v_fsz_l;
-> >> +	u8 v_fsz_h;
-> >> +	u8 vsync_l;
-> >> +	u8 vsync_h;
-> >> +	u8 vsync2_l;
-> >> +	u8 vsync2_h;
-> >> +	u8 vact_st_l;
-> >> +	u8 vact_st_h;
-> >> +	u8 vact_sz_l;
-> >> +	u8 vact_sz_h;
-> >> +	u8 field_chg_l;
-> >> +	u8 field_chg_h;
-> >> +	u8 vact_st2_l;
-> >> +	u8 vact_st2_h;
-> >> +	u8 vsync_top_hdmi_l;
-> >> +	u8 vsync_top_hdmi_h;
-> >> +	u8 vsync_bot_hdmi_l;
-> >> +	u8 vsync_bot_hdmi_h;
-> >> +	u8 field_top_hdmi_l;
-> >> +	u8 field_top_hdmi_h;
-> >> +	u8 field_bot_hdmi_l;
-> >> +	u8 field_bot_hdmi_h;
-> >> +};
-> >> +
-> >> +struct hdmi_core_regs {
-> >> +	u8 h_blank[2];
-> >> +	u8 v_blank[3];
-> >> +	u8 h_v_line[3];
-> >> +	u8 vsync_pol[1];
-> >> +	u8 int_pro_mode[1];
-> >> +	u8 v_blank_f[3];
-> >> +	u8 h_sync_gen[3];
-> >> +	u8 v_sync_gen1[3];
-> >> +	u8 v_sync_gen2[3];
-> >> +	u8 v_sync_gen3[3];
-> >> +};
-> >> +
-> >> +struct hdmi_preset_conf {
-> >> +	struct hdmi_core_regs core;
-> >> +	struct hdmi_tg_regs tg;
-> >> +	struct v4l2_mbus_framefmt mbus_fmt;
-> >> +};
-> >> +
-> >> +#endif /* SAMSUNG_HDMI_H */
-> >> +
-> >> diff --git a/drivers/media/video/s5p-tv/hdmi_drv.c b/drivers/media/video/s5p-tv/hdmi_drv.c
-> >> new file mode 100644
-> >> index 0000000..6209bb6
-> >> --- /dev/null
-> >> +++ b/drivers/media/video/s5p-tv/hdmi_drv.c
-> >> @@ -0,0 +1,999 @@
-> >> +/*
-> >> + * Samsung HDMI interface driver
-> >> + *
-> >> + * Copyright (c) 2010-2011 Samsung Electronics Co., Ltd.
-> >> + *
-> >> + * Tomasz Stanislawski, <t.stanislaws@samsung.com>
-> >> + *
-> >> + * This program is free software; you can redistribute it and/or modify
-> >> + * it under the terms of the GNU General Public License as published
-> >> + * by the Free Software Foundiation. either version 2 of the License,
-> >> + * or (at your option) any later version
-> >> + */
-> >> +
-> >> +#include "hdmi.h"
-> >> +
-> >> +#include <linux/kernel.h>
-> >> +#include <linux/slab.h>
-> >> +#include <linux/io.h>
-> >> +#include <linux/i2c.h>
-> >> +#include <linux/platform_device.h>
-> >> +#include <media/v4l2-subdev.h>
-> >> +#include <linux/module.h>
-> >> +#include <linux/interrupt.h>
-> >> +#include <linux/irq.h>
-> >> +#include <linux/delay.h>
-> >> +#include <linux/bug.h>
-> >> +#include <linux/pm_runtime.h>
-> >> +#include <linux/clk.h>
-> >> +#include <linux/regulator/consumer.h>
-> >> +
-> >> +#include <media/v4l2-common.h>
-> >> +#include <media/v4l2-dev.h>
-> >> +#include <media/v4l2-device.h>
-> >> +
-> >> +#include "regs-hdmi.h"
-> >> +
-> >> +MODULE_AUTHOR("Tomasz Stanislawski, <t.stanislaws@samsung.com>");
-> >> +MODULE_DESCRIPTION("Samsung HDMI");
-> >> +MODULE_LICENSE("GPL");
-> >> +
-> >> +/* default preset configured on probe */
-> >> +#define HDMI_DEFAULT_PRESET V4L2_DV_1080P60
-> >> +
-> >> +/* D R I V E R   I N I T I A L I Z A T I O N */
-> >> +
-> >> +static struct platform_driver hdmi_driver;
-> >> +
-> >> +static int __init hdmi_init(void)
-> >> +{
-> >> +	int ret;
-> >> +	static const char banner[] __initdata = KERN_INFO \
-> >> +		"Samsung HDMI output driver, "
-> >> +		"(c) 2010-2011 Samsung Electronics Co., Ltd.\n";
-> >> +	printk(banner);
-> >> +
-> >> +	ret = platform_driver_register(&hdmi_driver);
-> >> +	if (ret)
-> >> +		printk(KERN_ERR "HDMI platform driver register failed\n");
-> >> +
-> >> +	return ret;
-> >> +}
-> >> +module_init(hdmi_init);
-> >> +
-> >> +static void __exit hdmi_exit(void)
-> >> +{
-> >> +	platform_driver_unregister(&hdmi_driver);
-> >> +}
-> >> +module_exit(hdmi_exit);
-> >>     
-> >
-> > Hmm, this stuff usually goes at the end of the source. It seems that this
-> > source is 'upside-down' as far as the order is concerned, which means that
-> > you needed to create several forward-declarations. It's better and more
-> > consistent with other drivers to swap the order. In general you start with
-> > the low-level functions and end with the highest-level functions.
-> >
-> > There should be no need to add any forward-declarations except in unusual
-> > circumstances (e.g. A calls B calls A).
-> >
-> >   
-> I prefer order from more general to more low-level features.
-> But if coding style demands opposite order then I will adjust.
+> Changes since 20110608:
 
-If you look at pretty much all kernel drivers you'll see that the order of
-functions is from low-level to high-level. The coding style document doesn't
-explicitly say so, but it is definitely common practice. Actually it's no
-different from the average C program where the main() is at the end as well.
 
-> >> +
-> >> +struct hdmi_resources {
-> >> +	struct clk *hdmi;
-> >> +	struct clk *sclk_hdmi;
-> >> +	struct clk *sclk_pixel;
-> >> +	struct clk *sclk_hdmiphy;
-> >> +	struct clk *hdmiphy;
-> >> +	struct regulator_bulk_data *regul_bulk;
-> >> +	int regul_count;
-> >> +};
-> >> +
-> >> +struct hdmi_device {
-> >> +	/** base address of HDMI registers */
-> >> +	void __iomem *regs;
-> >> +	/** HDMI interrupt */
-> >> +	unsigned int irq;
-> >> +	/** pointer to device parent */
-> >> +	struct device *dev;
-> >> +	/** subdev generated by HDMI device */
-> >> +	struct v4l2_subdev sd;
-> >> +	/** V4L2 device structure */
-> >> +	struct v4l2_device vdev;
-> >>     
-> >
-> > I recommend renaming 'vdev' to 'v4l2_dev'. 'vdev' is usually used as abbreviation
-> > for video_device.
-> >   
-> ok
-> >   
-> >> +	/** subdev of HDMIPHY interface */
-> >> +	struct v4l2_subdev *phy_sd;
-> >> +	/** configuration of current graphic mode */
-> >> +	const struct hdmi_preset_conf *cur_conf;
-> >> +	/** current preset */
-> >> +	u32 cur_preset;
-> >> +	/** other resources */
-> >> +	struct hdmi_resources res;
-> >> +};
-> >> +
-> >> +struct hdmi_driver_data {
-> >> +	int hdmiphy_bus;
-> >> +};
-> >> +
-> >> +/* I2C module and id for HDMIPHY */
-> >> +static struct i2c_board_info hdmiphy_info = {
-> >> +	I2C_BOARD_INFO("hdmiphy", 0x38),
-> >> +};
-> >> +
-> >> +static struct hdmi_driver_data hdmi_driver_data[] = {
-> >> +	{ .hdmiphy_bus = 3 },
-> >> +	{ .hdmiphy_bus = 8 },
-> >> +};
-> >> +
-> >> +static struct platform_device_id hdmi_driver_types[] = {
-> >> +	{
-> >> +		.name		= "s5pv210-hdmi",
-> >> +		.driver_data	= (unsigned long)&hdmi_driver_data[0],
-> >> +	}, {
-> >> +		.name		= "exynos4-hdmi",
-> >> +		.driver_data	= (unsigned long)&hdmi_driver_data[1],
-> >> +	}, {
-> >> +		/* end node */
-> >> +	}
-> >> +};
-> >> +
-> >> +static irqreturn_t hdmi_irq_handler(int irq, void *dev_data);
-> >> +
-> >> +static const struct v4l2_subdev_ops hdmi_sd_ops;
-> >> +
-> >> +static const struct hdmi_preset_conf *hdmi_preset2conf(u32 preset);
-> >> +
-> >> +static struct hdmi_device *sd_to_hdmi_dev(struct v4l2_subdev *sd)
-> >> +{
-> >> +	return container_of(sd, struct hdmi_device, sd);
-> >> +}
-> >> +
-> >> +static int hdmi_resources_init(struct hdmi_device *hdev);
-> >> +static void hdmi_resources_cleanup(struct hdmi_device *hdev);
-> >> +
-> >> +static int __devinit hdmi_probe(struct platform_device *pdev)
-> >> +{
-> >> +	struct device *dev = &pdev->dev;
-> >> +	struct resource *res;
-> >> +	struct i2c_adapter *phy_adapter;
-> >> +	struct v4l2_subdev *sd;
-> >> +	struct hdmi_device *hdmi_dev = NULL;
-> >> +	struct hdmi_driver_data *drv_data;
-> >> +	int ret;
-> >> +
-> >> +	dev_info(dev, "probe start\n");
-> >> +
-> >> +	hdmi_dev = kzalloc(sizeof(*hdmi_dev), GFP_KERNEL);
-> >> +	if (!hdmi_dev) {
-> >> +		dev_err(dev, "out of memory\n");
-> >> +		ret = -ENOMEM;
-> >> +		goto fail;
-> >> +	}
-> >> +
-> >> +	hdmi_dev->dev = dev;
-> >> +
-> >> +	ret = hdmi_resources_init(hdmi_dev);
-> >> +	if (ret)
-> >> +		goto fail_hdev;
-> >> +
-> >> +	/* mapping HDMI registers */
-> >> +	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
-> >> +	if (res == NULL) {
-> >> +		dev_err(dev, "get memory resource failed.\n");
-> >> +		ret = -ENXIO;
-> >> +		goto fail_init;
-> >> +	}
-> >> +
-> >> +	hdmi_dev->regs = ioremap(res->start, resource_size(res));
-> >> +	if (hdmi_dev->regs == NULL) {
-> >> +		dev_err(dev, "register mapping failed.\n");
-> >> +		ret = -ENXIO;
-> >> +		goto fail_hdev;
-> >> +	}
-> >> +
-> >> +	res = platform_get_resource(pdev, IORESOURCE_IRQ, 0);
-> >> +	if (res == NULL) {
-> >> +		dev_err(dev, "get interrupt resource failed.\n");
-> >> +		ret = -ENXIO;
-> >> +		goto fail_regs;
-> >> +	}
-> >> +
-> >> +	ret = request_irq(res->start, hdmi_irq_handler, 0, "hdmi", hdmi_dev);
-> >> +	if (ret) {
-> >> +		dev_err(dev, "request interrupt failed.\n");
-> >> +		goto fail_regs;
-> >> +	}
-> >> +	hdmi_dev->irq = res->start;
-> >> +
-> >> +	ret = v4l2_device_register(dev, &hdmi_dev->vdev);
-> >> +	if (ret) {
-> >> +		dev_err(dev, "could not register v4l2 device.\n");
-> >> +		goto fail_irq;
-> >> +	}
-> >> +
-> >> +	drv_data = (struct hdmi_driver_data *)
-> >> +		platform_get_device_id(pdev)->driver_data;
-> >> +	phy_adapter = i2c_get_adapter(drv_data->hdmiphy_bus);
-> >> +	if (phy_adapter == NULL) {
-> >> +		dev_err(dev, "adapter request failed\n");
-> >> +		ret = -ENXIO;
-> >> +		goto fail_vdev;
-> >> +	}
-> >> +
-> >> +	hdmi_dev->phy_sd = v4l2_i2c_new_subdev_board(&hdmi_dev->vdev,
-> >> +		phy_adapter, &hdmiphy_info, NULL);
-> >> +	/* on failure or not adapter is no longer useful */
-> >> +	i2c_put_adapter(phy_adapter);
-> >> +	if (hdmi_dev->phy_sd == NULL) {
-> >> +		dev_err(dev, "missing subdev for hdmiphy\n");
-> >> +		ret = -ENODEV;
-> >> +		goto fail_vdev;
-> >> +	}
-> >> +
-> >> +	pm_runtime_enable(dev);
-> >> +
-> >> +	sd = &hdmi_dev->sd;
-> >> +	v4l2_subdev_init(sd, &hdmi_sd_ops);
-> >> +	sd->owner = THIS_MODULE;
-> >> +
-> >> +	strlcpy(sd->name, hdmi_driver.driver.name, sizeof sd->name);
-> >> +	hdmi_dev->cur_preset = HDMI_DEFAULT_PRESET;
-> >> +	/* FIXME: missing fail preset is not supported */
-> >> +	hdmi_dev->cur_conf = hdmi_preset2conf(hdmi_dev->cur_preset);
-> >> +
-> >> +	/* storing subdev for call that have only access to struct device */
-> >> +	dev_set_drvdata(dev, sd);
-> >>     
-> >
-> > v4l2_device_register sets the drvdata to &hdmi_dev->vdev already. I recommend
-> > that you keep that. While it is possible in this particular instance to
-> > overwrite drvdata, I do not recommend it.
-> >   
-> I need this field to pass subdev to other driver.
-> There is no subdev pool or media bus to pass such a pointer in less 
-> barbarian way.
+on i386 (X86_32):
 
-The best way to do this here is to pass NULL instead of 'dev' to v4l2_device_register.
-Then you can safely call dev_set_drvdata since if dev == NULL v4l2_device_register
-won't touch dev_set_drvdata.
+ERROR: "snd_tea575x_init" [drivers/media/radio/radio-sf16fmr2.ko] undefined!
+ERROR: "snd_tea575x_exit" [drivers/media/radio/radio-sf16fmr2.ko] undefined!
 
-In all honesty, I'm not terribly pleased with the way v4l2_device_register is using
-the drvdata. I may have to revisit that at some point.
 
-> >   
-> >> +
-> >> +	dev_info(dev, "probe sucessful\n");
-> >> +
-> >> +	return 0;
-> >> +
-> >> +fail_vdev:
-> >> +	v4l2_device_unregister(&hdmi_dev->vdev);
-> >> +
-> >> +fail_irq:
-> >> +	free_irq(hdmi_dev->irq, hdmi_dev);
-> >> +
-> >> +fail_regs:
-> >> +	iounmap(hdmi_dev->regs);
-> >> +
-> >> +fail_init:
-> >> +	hdmi_resources_cleanup(hdmi_dev);
-> >> +
-> >> +fail_hdev:
-> >> +	kfree(hdmi_dev);
-> >> +
-> >> +fail:
-> >> +	dev_info(dev, "probe failed\n");
-> >> +	return ret;
-> >> +}
-> >> +
-> >> +static int __devexit hdmi_remove(struct platform_device *pdev)
-> >> +{
-> >> +	struct device *dev = &pdev->dev;
-> >> +	struct v4l2_subdev *sd = dev_get_drvdata(dev);
-> >> +	struct hdmi_device *hdmi_dev = sd_to_hdmi_dev(sd);
-> >> +
-> >> +	pm_runtime_disable(dev);
-> >> +	v4l2_device_unregister(&hdmi_dev->vdev);
-> >> +	disable_irq(hdmi_dev->irq);
-> >> +	free_irq(hdmi_dev->irq, hdmi_dev);
-> >> +	iounmap(hdmi_dev->regs);
-> >> +	hdmi_resources_cleanup(hdmi_dev);
-> >> +	kfree(hdmi_dev);
-> >> +	dev_info(dev, "remove sucessful\n");
-> >> +
-> >> +	return 0;
-> >> +}
-> >> +
-> >> +static void hdmi_resource_poweron(struct hdmi_resources *res);
-> >> +static void hdmi_resource_poweroff(struct hdmi_resources *res);
-> >> +static int hdmi_conf_apply(struct hdmi_device *hdmi_dev);
-> >> +
-> >> +static int hdmi_runtime_suspend(struct device *dev)
-> >> +{
-> >> +	struct v4l2_subdev *sd = dev_get_drvdata(dev);
-> >> +	struct hdmi_device *hdev = sd_to_hdmi_dev(sd);
-> >> +
-> >> +	dev_info(dev, "%s\n", __func__);
-> >> +	hdmi_resource_poweroff(&hdev->res);
-> >> +	return 0;
-> >> +}
-> >> +
-> >> +static int hdmi_runtime_resume(struct device *dev)
-> >> +{
-> >> +	struct v4l2_subdev *sd = dev_get_drvdata(dev);
-> >> +	struct hdmi_device *hdev = sd_to_hdmi_dev(sd);
-> >> +	int ret = 0;
-> >> +
-> >> +	dev_info(dev, "%s\n", __func__);
-> >> +
-> >> +	hdmi_resource_poweron(&hdev->res);
-> >> +
-> >> +	ret = hdmi_conf_apply(hdev);
-> >> +	if (ret)
-> >> +		goto fail;
-> >> +
-> >> +	dev_info(dev, "poweron succeed\n");
-> >> +
-> >> +	return 0;
-> >> +
-> >> +fail:
-> >> +	hdmi_resource_poweroff(&hdev->res);
-> >> +	dev_info(dev, "poweron failed\n");
-> >> +
-> >> +	return ret;
-> >> +}
-> >> +
-> >> +static const struct dev_pm_ops hdmi_pm_ops = {
-> >> +	.runtime_suspend = hdmi_runtime_suspend,
-> >> +	.runtime_resume	 = hdmi_runtime_resume,
-> >> +};
-> >> +
-> >> +static struct platform_driver hdmi_driver __refdata = {
-> >> +	.probe = hdmi_probe,
-> >> +	.remove = __devexit_p(hdmi_remove),
-> >> +	.id_table = hdmi_driver_types,
-> >> +	.driver = {
-> >> +		.name = "s5p-hdmi",
-> >> +		.owner = THIS_MODULE,
-> >> +		.pm = &hdmi_pm_ops,
-> >> +	}
-> >> +};
-> >> +
-> >> +static int hdmi_resources_init(struct hdmi_device *hdev)
-> >> +{
-> >> +	struct device *dev = hdev->dev;
-> >> +	struct hdmi_resources *res = &hdev->res;
-> >> +	static char *supply[] = {
-> >> +		"hdmi-en",
-> >> +		"vdd",
-> >> +		"vdd_osc",
-> >> +		"vdd_pll",
-> >> +	};
-> >> +	int i, ret;
-> >> +
-> >> +	dev_info(dev, "HDMI resource init\n");
-> >> +
-> >> +	memset(res, 0, sizeof *res);
-> >> +	/* get clocks, power */
-> >> +
-> >> +	res->hdmi = clk_get(dev, "hdmi");
-> >> +	if (IS_ERR_OR_NULL(res->hdmi)) {
-> >> +		dev_err(dev, "failed to get clock 'hdmi'\n");
-> >> +		goto fail;
-> >> +	}
-> >> +	res->sclk_hdmi = clk_get(dev, "sclk_hdmi");
-> >> +	if (IS_ERR_OR_NULL(res->sclk_hdmi)) {
-> >> +		dev_err(dev, "failed to get clock 'sclk_hdmi'\n");
-> >> +		goto fail;
-> >> +	}
-> >> +	res->sclk_pixel = clk_get(dev, "sclk_pixel");
-> >> +	if (IS_ERR_OR_NULL(res->sclk_pixel)) {
-> >> +		dev_err(dev, "failed to get clock 'sclk_pixel'\n");
-> >> +		goto fail;
-> >> +	}
-> >> +	res->sclk_hdmiphy = clk_get(dev, "sclk_hdmiphy");
-> >> +	if (IS_ERR_OR_NULL(res->sclk_hdmiphy)) {
-> >> +		dev_err(dev, "failed to get clock 'sclk_hdmiphy'\n");
-> >> +		goto fail;
-> >> +	}
-> >> +	res->hdmiphy = clk_get(dev, "hdmiphy");
-> >> +	if (IS_ERR_OR_NULL(res->hdmiphy)) {
-> >> +		dev_err(dev, "failed to get clock 'hdmiphy'\n");
-> >> +		goto fail;
-> >> +	}
-> >> +	res->regul_bulk = kzalloc(ARRAY_SIZE(supply) *
-> >> +		sizeof res->regul_bulk[0], GFP_KERNEL);
-> >> +	if (!res->regul_bulk) {
-> >> +		dev_err(dev, "failed to get memory for regulators\n");
-> >> +		goto fail;
-> >> +	}
-> >> +	for (i = 0; i < ARRAY_SIZE(supply); ++i) {
-> >> +		res->regul_bulk[i].supply = supply[i];
-> >> +		res->regul_bulk[i].consumer = NULL;
-> >> +	}
-> >> +
-> >> +	ret = regulator_bulk_get(dev, ARRAY_SIZE(supply), res->regul_bulk);
-> >> +	if (ret) {
-> >> +		dev_err(dev, "failed to get regulators\n");
-> >> +		goto fail;
-> >> +	}
-> >> +	res->regul_count = ARRAY_SIZE(supply);
-> >> +
-> >> +	return 0;
-> >> +fail:
-> >> +	dev_err(dev, "HDMI resource init - failed\n");
-> >> +	hdmi_resources_cleanup(hdev);
-> >> +	return -ENODEV;
-> >> +}
-> >> +
-> >> +static void hdmi_resources_cleanup(struct hdmi_device *hdev)
-> >> +{
-> >> +	struct hdmi_resources *res = &hdev->res;
-> >> +
-> >> +	dev_info(hdev->dev, "HDMI resource cleanup\n");
-> >> +	/* put clocks, power */
-> >> +	if (res->regul_count)
-> >> +		regulator_bulk_free(res->regul_count, res->regul_bulk);
-> >> +	/* kfree is NULL-safe */
-> >> +	kfree(res->regul_bulk);
-> >> +	if (!IS_ERR_OR_NULL(res->hdmiphy))
-> >> +		clk_put(res->hdmiphy);
-> >> +	if (!IS_ERR_OR_NULL(res->sclk_hdmiphy))
-> >> +		clk_put(res->sclk_hdmiphy);
-> >> +	if (!IS_ERR_OR_NULL(res->sclk_pixel))
-> >> +		clk_put(res->sclk_pixel);
-> >> +	if (!IS_ERR_OR_NULL(res->sclk_hdmi))
-> >> +		clk_put(res->sclk_hdmi);
-> >> +	if (!IS_ERR_OR_NULL(res->hdmi))
-> >> +		clk_put(res->hdmi);
-> >> +	memset(res, 0, sizeof *res);
-> >> +}
-> >> +
-> >> +static inline
-> >> +void hdmi_write(struct hdmi_device *hdev, u32 reg_id, u32 value)
-> >> +{
-> >> +	writel(value, hdev->regs + reg_id);
-> >> +}
-> >> +
-> >> +static inline
-> >> +void hdmi_write_mask(struct hdmi_device *hdev, u32 reg_id, u32 value, u32 mask)
-> >> +{
-> >> +	u32 old = readl(hdev->regs + reg_id);
-> >> +	value = (value & mask) | (old & ~mask);
-> >> +	writel(value, hdev->regs + reg_id);
-> >> +}
-> >> +
-> >> +static inline
-> >> +void hdmi_writeb(struct hdmi_device *hdev, u32 reg_id, u8 value)
-> >> +{
-> >> +	writeb(value, hdev->regs + reg_id);
-> >> +}
-> >> +
-> >> +static inline u32 hdmi_read(struct hdmi_device *hdev, u32 reg_id)
-> >> +{
-> >> +	return readl(hdev->regs + reg_id);
-> >> +}
-> >> +
-> >> +static irqreturn_t hdmi_irq_handler(int irq, void *dev_data)
-> >> +{
-> >> +	struct hdmi_device *hdev = dev_data;
-> >> +	u32 intc_flag;
-> >> +
-> >> +	(void)irq;
-> >> +	intc_flag = hdmi_read(hdev, HDMI_INTC_FLAG);
-> >> +	/* clearing flags for HPD plug/unplug */
-> >> +	if (intc_flag & HDMI_INTC_FLAG_HPD_UNPLUG) {
-> >> +		printk(KERN_INFO "unplugged\n");
-> >> +		hdmi_write_mask(hdev, HDMI_INTC_FLAG, ~0,
-> >> +			HDMI_INTC_FLAG_HPD_UNPLUG);
-> >> +	}
-> >> +	if (intc_flag & HDMI_INTC_FLAG_HPD_PLUG) {
-> >> +		printk(KERN_INFO "plugged\n");
-> >> +		hdmi_write_mask(hdev, HDMI_INTC_FLAG, ~0,
-> >> +			HDMI_INTC_FLAG_HPD_PLUG);
-> >> +	}
-> >> +
-> >> +	return IRQ_HANDLED;
-> >> +}
-> >> +
-> >> +static int hdmi_s_dv_preset(struct v4l2_subdev *sd,
-> >> +	struct v4l2_dv_preset *preset);
-> >> +
-> >> +static void hdmi_resource_poweron(struct hdmi_resources *res)
-> >> +{
-> >> +	/* turn HDMI power on */
-> >> +	regulator_bulk_enable(res->regul_count, res->regul_bulk);
-> >> +	/* power-on hdmi physical interface */
-> >> +	clk_enable(res->hdmiphy);
-> >> +	/* use VPP as parent clock; HDMIPHY is not working yet */
-> >> +	clk_set_parent(res->sclk_hdmi, res->sclk_pixel);
-> >> +	/* turn clocks on */
-> >> +	clk_enable(res->hdmi);
-> >> +	clk_enable(res->sclk_hdmi);
-> >> +}
-> >> +
-> >> +static void hdmi_resource_poweroff(struct hdmi_resources *res)
-> >> +{
-> >> +	/* turn clocks off */
-> >> +	clk_disable(res->sclk_hdmi);
-> >> +	clk_disable(res->hdmi);
-> >> +	/* power-off hdmiphy */
-> >> +	clk_disable(res->hdmiphy);
-> >> +	/* turn HDMI power off */
-> >> +	regulator_bulk_disable(res->regul_count, res->regul_bulk);
-> >> +}
-> >> +
-> >> +static int hdmi_s_power(struct v4l2_subdev *sd, int on)
-> >> +{
-> >> +	struct hdmi_device *hdev = sd_to_hdmi_dev(sd);
-> >> +	int ret;
-> >> +
-> >> +	if (on)
-> >> +		ret = pm_runtime_get_sync(hdev->dev);
-> >> +	else
-> >> +		ret = pm_runtime_put_sync(hdev->dev);
-> >> +	/* only values < 0 indicate errors */
-> >> +	return IS_ERR_VALUE(ret) ? ret : 0;
-> >> +}
-> >> +
-> >> +static void hdmi_timing_apply(struct hdmi_device *hdev,
-> >> +	const struct hdmi_preset_conf *conf);
-> >> +static void hdmi_dumpregs(struct hdmi_device *hdev, char *prefix);
-> >> +
-> >> +static void hdmi_reg_init(struct hdmi_device *hdev)
-> >> +{
-> >> +	/* enable HPD interrupts */
-> >> +	hdmi_write_mask(hdev, HDMI_INTC_CON, ~0, HDMI_INTC_EN_GLOBAL |
-> >> +		HDMI_INTC_EN_HPD_PLUG | HDMI_INTC_EN_HPD_UNPLUG);
-> >> +	/* choose HDMI mode */
-> >> +	hdmi_write_mask(hdev, HDMI_MODE_SEL,
-> >> +		HDMI_MODE_HDMI_EN, HDMI_MODE_MASK);
-> >> +	/* disable bluescreen */
-> >> +	hdmi_write_mask(hdev, HDMI_CON_0, 0, HDMI_BLUE_SCR_EN);
-> >> +	/* choose bluescreen (fecal) color */
-> >> +	hdmi_writeb(hdev, HDMI_BLUE_SCREEN_0, 0x12);
-> >> +	hdmi_writeb(hdev, HDMI_BLUE_SCREEN_1, 0x34);
-> >> +	hdmi_writeb(hdev, HDMI_BLUE_SCREEN_2, 0x56);
-> >> +	/* enable AVI packet every vsync, fixes purple line problem */
-> >> +	hdmi_writeb(hdev, HDMI_AVI_CON, 0x02);
-> >> +	/* force YUV444, look to CEA-861-D, table 7 for more detail */
-> >> +	hdmi_writeb(hdev, HDMI_AVI_BYTE(0), 2 << 5);
-> >> +	hdmi_write_mask(hdev, HDMI_CON_1, 2, 3 << 5);
-> >> +}
-> >> +
-> >> +static int hdmi_conf_apply(struct hdmi_device *hdmi_dev)
-> >> +{
-> >> +	struct device *dev = hdmi_dev->dev;
-> >> +	const struct hdmi_preset_conf *conf = hdmi_dev->cur_conf;
-> >> +	struct v4l2_dv_preset preset;
-> >> +	int ret;
-> >> +
-> >> +	dev_info(dev, "%s\n", __func__);
-> >> +
-> >> +	/* reset hdmiphy */
-> >> +	hdmi_write_mask(hdmi_dev, HDMI_PHY_RSTOUT, ~0, HDMI_PHY_SW_RSTOUT);
-> >> +	mdelay(10);
-> >> +	hdmi_write_mask(hdmi_dev, HDMI_PHY_RSTOUT,  0, HDMI_PHY_SW_RSTOUT);
-> >> +	mdelay(10);
-> >> +
-> >> +	/* configure presets */
-> >> +	preset.preset = hdmi_dev->cur_preset;
-> >> +	ret = v4l2_subdev_call(hdmi_dev->phy_sd, video, s_dv_preset, &preset);
-> >> +	if (ret) {
-> >> +		dev_err(dev, "failed to set preset (%u)\n", preset.preset);
-> >> +		return ret;
-> >> +	}
-> >> +
-> >> +	/* resetting HDMI core */
-> >> +	hdmi_write_mask(hdmi_dev, HDMI_CORE_RSTOUT,  0, HDMI_CORE_SW_RSTOUT);
-> >> +	mdelay(10);
-> >> +	hdmi_write_mask(hdmi_dev, HDMI_CORE_RSTOUT, ~0, HDMI_CORE_SW_RSTOUT);
-> >> +	mdelay(10);
-> >> +
-> >> +	hdmi_reg_init(hdmi_dev);
-> >> +
-> >> +	/* setting core registers */
-> >> +	hdmi_timing_apply(hdmi_dev, conf);
-> >> +
-> >> +	return 0;
-> >> +}
-> >> +
-> >> +static int hdmi_s_dv_preset(struct v4l2_subdev *sd,
-> >> +	struct v4l2_dv_preset *preset)
-> >> +{
-> >> +	struct hdmi_device *hdev = sd_to_hdmi_dev(sd);
-> >> +	struct device *dev = hdev->dev;
-> >> +	const struct hdmi_preset_conf *conf;
-> >> +
-> >> +	conf = hdmi_preset2conf(preset->preset);
-> >> +	if (conf == NULL) {
-> >> +		dev_err(dev, "preset (%u) not supported\n", preset->preset);
-> >> +		return -ENXIO;
-> >>     
-> >
-> > ENXIO? Unsupported presets should return EINVAL according to the spec.
-> >   
-> The return value is not passed to userspace but to Mixer internal.
+full randconfig file is attached.
 
-So? The mixer just returns this error to userspace. So this should return -EINVAL.
+---
+~Randy
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
 
-> >   
-> >> +	}
-> >> +	hdev->cur_conf = conf;
-> >> +	hdev->cur_preset = preset->preset;
-> >> +	return 0;
-> >> +}
-> >> +
-> >> +static int hdmi_enum_dv_presets(struct v4l2_subdev *sd,
-> >> +	struct v4l2_dv_enum_preset *preset);
-> >> +
-> >> +static int hdmi_g_mbus_fmt(struct v4l2_subdev *sd,
-> >> +	  struct v4l2_mbus_framefmt *fmt)
-> >> +{
-> >> +	struct hdmi_device *hdev = sd_to_hdmi_dev(sd);
-> >> +	struct device *dev = hdev->dev;
-> >> +
-> >> +	dev_info(dev, "%s\n", __func__);
-> >> +	if (!hdev->cur_conf)
-> >> +		return -ENXIO;
-> >>     
-> >
-> > EINVAL.
-> >
-> >   
-> >> +	*fmt = hdev->cur_conf->mbus_fmt;
-> >> +	return 0;
-> >> +}
-> >> +
-> >> +static int hdmi_streamon(struct hdmi_device *hdev)
-> >> +{
-> >> +	struct device *dev = hdev->dev;
-> >> +	struct hdmi_resources *res = &hdev->res;
-> >> +	int ret, tries;
-> >> +
-> >> +	dev_info(dev, "%s\n", __func__);
-> >> +
-> >> +	ret = v4l2_subdev_call(hdev->phy_sd, video, s_stream, 1);
-> >> +	if (ret)
-> >> +		return ret;
-> >> +
-> >> +	/* waiting for HDMIPHY's PLL to get to steady state */
-> >> +	for (tries = 100; tries; --tries) {
-> >> +		u32 val = hdmi_read(hdev, HDMI_PHY_STATUS);
-> >> +		if (val & HDMI_PHY_STATUS_READY)
-> >> +			break;
-> >> +		mdelay(1);
-> >> +	}
-> >> +	/* steady state not achieved */
-> >> +	if (tries == 0) {
-> >> +		dev_err(dev, "hdmiphy's pll could not reach steady state.\n");
-> >> +		v4l2_subdev_call(hdev->phy_sd, video, s_stream, 0);
-> >> +		hdmi_dumpregs(hdev, "s_stream");
-> >> +		return -EIO;
-> >> +	}
-> >> +
-> >> +	/* hdmiphy clock is used for HDMI in streaming mode */
-> >> +	clk_disable(res->sclk_hdmi);
-> >> +	clk_set_parent(res->sclk_hdmi, res->sclk_hdmiphy);
-> >> +	clk_enable(res->sclk_hdmi);
-> >> +
-> >> +	/* enable HDMI and timing generator */
-> >> +	hdmi_write_mask(hdev, HDMI_CON_0, ~0, HDMI_EN);
-> >> +	hdmi_write_mask(hdev, HDMI_TG_CMD, ~0, HDMI_TG_EN);
-> >> +	hdmi_dumpregs(hdev, "streamon");
-> >> +	return 0;
-> >> +}
-> >> +
-> >> +static int hdmi_streamoff(struct hdmi_device *hdev)
-> >> +{
-> >> +	struct device *dev = hdev->dev;
-> >> +	struct hdmi_resources *res = &hdev->res;
-> >> +
-> >> +	dev_info(dev, "%s\n", __func__);
-> >> +
-> >> +	hdmi_write_mask(hdev, HDMI_CON_0, 0, HDMI_EN);
-> >> +	hdmi_write_mask(hdev, HDMI_TG_CMD, 0, HDMI_TG_EN);
-> >> +
-> >> +	/* pixel(vpll) clock is used for HDMI in config mode */
-> >> +	clk_disable(res->sclk_hdmi);
-> >> +	clk_set_parent(res->sclk_hdmi, res->sclk_pixel);
-> >> +	clk_enable(res->sclk_hdmi);
-> >> +
-> >> +	v4l2_subdev_call(hdev->phy_sd, video, s_stream, 0);
-> >> +
-> >> +	hdmi_dumpregs(hdev, "streamoff");
-> >> +	return 0;
-> >> +}
-> >> +
-> >> +static int hdmi_s_stream(struct v4l2_subdev *sd, int enable)
-> >> +{
-> >> +	struct hdmi_device *hdev = sd_to_hdmi_dev(sd);
-> >> +	struct device *dev = hdev->dev;
-> >> +
-> >> +	dev_info(dev, "%s(%d)\n", __func__, enable);
-> >> +	if (enable)
-> >> +		return hdmi_streamon(hdev);
-> >> +	else
-> >>     
-> >
-> > 'else' not needed.
-> >   
-> ok
-> >   
-> >> +		return hdmi_streamoff(hdev);
-> >> +}
-> >> +
-> >> +static const struct v4l2_subdev_core_ops hdmi_sd_core_ops = {
-> >> +	.s_power = hdmi_s_power,
-> >> +};
-> >> +
-> >> +static const struct v4l2_subdev_video_ops hdmi_sd_video_ops = {
-> >> +	.s_dv_preset = hdmi_s_dv_preset,
-> >> +	.enum_dv_presets = hdmi_enum_dv_presets,
-> >> +	.g_mbus_fmt = hdmi_g_mbus_fmt,
-> >> +	.s_stream = hdmi_s_stream,
-> >> +};
-> >> +
-> >> +static const struct v4l2_subdev_ops hdmi_sd_ops = {
-> >> +	.core = &hdmi_sd_core_ops,
-> >> +	.video = &hdmi_sd_video_ops,
-> >> +};
-> >> +
-> >> +static void hdmi_timing_apply(struct hdmi_device *hdev,
-> >> +	const struct hdmi_preset_conf *conf)
-> >> +{
-> >> +	const struct hdmi_core_regs *core = &conf->core;
-> >> +	const struct hdmi_tg_regs *tg = &conf->tg;
-> >> +
-> >> +	/* setting core registers */
-> >> +	hdmi_writeb(hdev, HDMI_H_BLANK_0, core->h_blank[0]);
-> >> +	hdmi_writeb(hdev, HDMI_H_BLANK_1, core->h_blank[1]);
-> >> +	hdmi_writeb(hdev, HDMI_V_BLANK_0, core->v_blank[0]);
-> >> +	hdmi_writeb(hdev, HDMI_V_BLANK_1, core->v_blank[1]);
-> >> +	hdmi_writeb(hdev, HDMI_V_BLANK_2, core->v_blank[2]);
-> >> +	hdmi_writeb(hdev, HDMI_H_V_LINE_0, core->h_v_line[0]);
-> >> +	hdmi_writeb(hdev, HDMI_H_V_LINE_1, core->h_v_line[1]);
-> >> +	hdmi_writeb(hdev, HDMI_H_V_LINE_2, core->h_v_line[2]);
-> >> +	hdmi_writeb(hdev, HDMI_VSYNC_POL, core->vsync_pol[0]);
-> >> +	hdmi_writeb(hdev, HDMI_INT_PRO_MODE, core->int_pro_mode[0]);
-> >> +	hdmi_writeb(hdev, HDMI_V_BLANK_F_0, core->v_blank_f[0]);
-> >> +	hdmi_writeb(hdev, HDMI_V_BLANK_F_1, core->v_blank_f[1]);
-> >> +	hdmi_writeb(hdev, HDMI_V_BLANK_F_2, core->v_blank_f[2]);
-> >> +	hdmi_writeb(hdev, HDMI_H_SYNC_GEN_0, core->h_sync_gen[0]);
-> >> +	hdmi_writeb(hdev, HDMI_H_SYNC_GEN_1, core->h_sync_gen[1]);
-> >> +	hdmi_writeb(hdev, HDMI_H_SYNC_GEN_2, core->h_sync_gen[2]);
-> >> +	hdmi_writeb(hdev, HDMI_V_SYNC_GEN_1_0, core->v_sync_gen1[0]);
-> >> +	hdmi_writeb(hdev, HDMI_V_SYNC_GEN_1_1, core->v_sync_gen1[1]);
-> >> +	hdmi_writeb(hdev, HDMI_V_SYNC_GEN_1_2, core->v_sync_gen1[2]);
-> >> +	hdmi_writeb(hdev, HDMI_V_SYNC_GEN_2_0, core->v_sync_gen2[0]);
-> >> +	hdmi_writeb(hdev, HDMI_V_SYNC_GEN_2_1, core->v_sync_gen2[1]);
-> >> +	hdmi_writeb(hdev, HDMI_V_SYNC_GEN_2_2, core->v_sync_gen2[2]);
-> >> +	hdmi_writeb(hdev, HDMI_V_SYNC_GEN_3_0, core->v_sync_gen3[0]);
-> >> +	hdmi_writeb(hdev, HDMI_V_SYNC_GEN_3_1, core->v_sync_gen3[1]);
-> >> +	hdmi_writeb(hdev, HDMI_V_SYNC_GEN_3_2, core->v_sync_gen3[2]);
-> >> +	/* Timing generator registers */
-> >> +	hdmi_writeb(hdev, HDMI_TG_H_FSZ_L, tg->h_fsz_l);
-> >> +	hdmi_writeb(hdev, HDMI_TG_H_FSZ_H, tg->h_fsz_h);
-> >> +	hdmi_writeb(hdev, HDMI_TG_HACT_ST_L, tg->hact_st_l);
-> >> +	hdmi_writeb(hdev, HDMI_TG_HACT_ST_H, tg->hact_st_h);
-> >> +	hdmi_writeb(hdev, HDMI_TG_HACT_SZ_L, tg->hact_sz_l);
-> >> +	hdmi_writeb(hdev, HDMI_TG_HACT_SZ_H, tg->hact_sz_h);
-> >> +	hdmi_writeb(hdev, HDMI_TG_V_FSZ_L, tg->v_fsz_l);
-> >> +	hdmi_writeb(hdev, HDMI_TG_V_FSZ_H, tg->v_fsz_h);
-> >> +	hdmi_writeb(hdev, HDMI_TG_VSYNC_L, tg->vsync_l);
-> >> +	hdmi_writeb(hdev, HDMI_TG_VSYNC_H, tg->vsync_h);
-> >> +	hdmi_writeb(hdev, HDMI_TG_VSYNC2_L, tg->vsync2_l);
-> >> +	hdmi_writeb(hdev, HDMI_TG_VSYNC2_H, tg->vsync2_h);
-> >> +	hdmi_writeb(hdev, HDMI_TG_VACT_ST_L, tg->vact_st_l);
-> >> +	hdmi_writeb(hdev, HDMI_TG_VACT_ST_H, tg->vact_st_h);
-> >> +	hdmi_writeb(hdev, HDMI_TG_VACT_SZ_L, tg->vact_sz_l);
-> >> +	hdmi_writeb(hdev, HDMI_TG_VACT_SZ_H, tg->vact_sz_h);
-> >> +	hdmi_writeb(hdev, HDMI_TG_FIELD_CHG_L, tg->field_chg_l);
-> >> +	hdmi_writeb(hdev, HDMI_TG_FIELD_CHG_H, tg->field_chg_h);
-> >> +	hdmi_writeb(hdev, HDMI_TG_VACT_ST2_L, tg->vact_st2_l);
-> >> +	hdmi_writeb(hdev, HDMI_TG_VACT_ST2_H, tg->vact_st2_h);
-> >> +	hdmi_writeb(hdev, HDMI_TG_VSYNC_TOP_HDMI_L, tg->vsync_top_hdmi_l);
-> >> +	hdmi_writeb(hdev, HDMI_TG_VSYNC_TOP_HDMI_H, tg->vsync_top_hdmi_h);
-> >> +	hdmi_writeb(hdev, HDMI_TG_VSYNC_BOT_HDMI_L, tg->vsync_bot_hdmi_l);
-> >> +	hdmi_writeb(hdev, HDMI_TG_VSYNC_BOT_HDMI_H, tg->vsync_bot_hdmi_h);
-> >> +	hdmi_writeb(hdev, HDMI_TG_FIELD_TOP_HDMI_L, tg->field_top_hdmi_l);
-> >> +	hdmi_writeb(hdev, HDMI_TG_FIELD_TOP_HDMI_H, tg->field_top_hdmi_h);
-> >> +	hdmi_writeb(hdev, HDMI_TG_FIELD_BOT_HDMI_L, tg->field_bot_hdmi_l);
-> >> +	hdmi_writeb(hdev, HDMI_TG_FIELD_BOT_HDMI_H, tg->field_bot_hdmi_h);
-> >> +}
-> >> +
-> >> +static const struct hdmi_preset_conf hdmi_conf_480p = {
-> >> +	.core = {
-> >> +		.h_blank = {0x8a, 0x00},
-> >> +		.v_blank = {0x0d, 0x6a, 0x01},
-> >> +		.h_v_line = {0x0d, 0xa2, 0x35},
-> >> +		.vsync_pol = {0x01},
-> >> +		.int_pro_mode = {0x00},
-> >> +		.v_blank_f = {0x00, 0x00, 0x00},
-> >> +		.h_sync_gen = {0x0e, 0x30, 0x11},
-> >> +		.v_sync_gen1 = {0x0f, 0x90, 0x00},
-> >> +		/* other don't care */
-> >> +	},
-> >> +	.tg = {
-> >> +		0x00, /* cmd */
-> >> +		0x5a, 0x03, /* h_fsz */
-> >> +		0x8a, 0x00, 0xd0, 0x02, /* hact */
-> >> +		0x0d, 0x02, /* v_fsz */
-> >> +		0x01, 0x00, 0x33, 0x02, /* vsync */
-> >> +		0x2d, 0x00, 0xe0, 0x01, /* vact */
-> >> +		0x33, 0x02, /* field_chg */
-> >> +		0x49, 0x02, /* vact_st2 */
-> >> +		0x01, 0x00, 0x33, 0x02, /* vsync top/bot */
-> >> +		0x01, 0x00, 0x33, 0x02, /* field top/bot */
-> >> +	},
-> >> +	.mbus_fmt = {
-> >> +		.width = 720,
-> >> +		.height = 480,
-> >> +		.code = V4L2_MBUS_FMT_FIXED, /* means RGB888 */
-> >> +		.field = V4L2_FIELD_NONE,
-> >> +	},
-> >> +};
-> >> +
-> >> +static const struct hdmi_preset_conf hdmi_conf_720p60 = {
-> >> +	.core = {
-> >> +		.h_blank = {0x72, 0x01},
-> >> +		.v_blank = {0xee, 0xf2, 0x00},
-> >> +		.h_v_line = {0xee, 0x22, 0x67},
-> >> +		.vsync_pol = {0x00},
-> >> +		.int_pro_mode = {0x00},
-> >> +		.v_blank_f = {0x00, 0x00, 0x00}, /* don't care */
-> >> +		.h_sync_gen = {0x6c, 0x50, 0x02},
-> >> +		.v_sync_gen1 = {0x0a, 0x50, 0x00},
-> >> +		/* other don't care */
-> >> +	},
-> >> +	.tg = {
-> >> +		0x00, /* cmd */
-> >> +		0x72, 0x06, /* h_fsz */
-> >> +		0x72, 0x01, 0x00, 0x05, /* hact */
-> >> +		0xee, 0x02, /* v_fsz */
-> >> +		0x01, 0x00, 0x33, 0x02, /* vsync */
-> >> +		0x1e, 0x00, 0xd0, 0x02, /* vact */
-> >> +		0x33, 0x02, /* field_chg */
-> >> +		0x49, 0x02, /* vact_st2 */
-> >> +		0x01, 0x00, 0x33, 0x02, /* vsync top/bot */
-> >> +		0x01, 0x00, 0x33, 0x02, /* field top/bot */
-> >> +	},
-> >> +	.mbus_fmt = {
-> >> +		.width = 1280,
-> >> +		.height = 720,
-> >> +		.code = V4L2_MBUS_FMT_FIXED, /* means RGB888 */
-> >> +		.field = V4L2_FIELD_NONE,
-> >> +	},
-> >> +};
-> >> +
-> >> +static const struct hdmi_preset_conf hdmi_conf_1080p50 = {
-> >> +	.core = {
-> >> +		.h_blank = {0xd0, 0x02},
-> >> +		.v_blank = {0x65, 0x6c, 0x01},
-> >> +		.h_v_line = {0x65, 0x04, 0xa5},
-> >> +		.vsync_pol = {0x00},
-> >> +		.int_pro_mode = {0x00},
-> >> +		.v_blank_f = {0x00, 0x00, 0x00}, /* don't care */
-> >> +		.h_sync_gen = {0x0e, 0xea, 0x08},
-> >> +		.v_sync_gen1 = {0x09, 0x40, 0x00},
-> >> +		/* other don't care */
-> >> +	},
-> >> +	.tg = {
-> >> +		0x00, /* cmd */
-> >> +		0x98, 0x08, /* h_fsz */
-> >> +		0x18, 0x01, 0x80, 0x07, /* hact */
-> >> +		0x65, 0x04, /* v_fsz */
-> >> +		0x01, 0x00, 0x33, 0x02, /* vsync */
-> >> +		0x2d, 0x00, 0x38, 0x04, /* vact */
-> >> +		0x33, 0x02, /* field_chg */
-> >> +		0x49, 0x02, /* vact_st2 */
-> >> +		0x01, 0x00, 0x33, 0x02, /* vsync top/bot */
-> >> +		0x01, 0x00, 0x33, 0x02, /* field top/bot */
-> >> +	},
-> >> +	.mbus_fmt = {
-> >> +		.width = 1920,
-> >> +		.height = 1080,
-> >> +		.code = V4L2_MBUS_FMT_FIXED, /* means RGB888 */
-> >> +		.field = V4L2_FIELD_NONE,
-> >> +	},
-> >> +};
-> >> +
-> >> +static const struct hdmi_preset_conf hdmi_conf_1080p60 = {
-> >> +	.core = {
-> >> +		.h_blank = {0x18, 0x01},
-> >> +		.v_blank = {0x65, 0x6c, 0x01},
-> >> +		.h_v_line = {0x65, 0x84, 0x89},
-> >> +		.vsync_pol = {0x00},
-> >> +		.int_pro_mode = {0x00},
-> >> +		.v_blank_f = {0x00, 0x00, 0x00}, /* don't care */
-> >> +		.h_sync_gen = {0x56, 0x08, 0x02},
-> >> +		.v_sync_gen1 = {0x09, 0x40, 0x00},
-> >> +		/* other don't care */
-> >> +	},
-> >> +	.tg = {
-> >> +		0x00, /* cmd */
-> >> +		0x98, 0x08, /* h_fsz */
-> >> +		0x18, 0x01, 0x80, 0x07, /* hact */
-> >> +		0x65, 0x04, /* v_fsz */
-> >> +		0x01, 0x00, 0x33, 0x02, /* vsync */
-> >> +		0x2d, 0x00, 0x38, 0x04, /* vact */
-> >> +		0x33, 0x02, /* field_chg */
-> >> +		0x48, 0x02, /* vact_st2 */
-> >> +		0x01, 0x00, 0x01, 0x00, /* vsync top/bot */
-> >> +		0x01, 0x00, 0x33, 0x02, /* field top/bot */
-> >> +	},
-> >> +	.mbus_fmt = {
-> >> +		.width = 1920,
-> >> +		.height = 1080,
-> >> +		.code = V4L2_MBUS_FMT_FIXED, /* means RGB888 */
-> >> +		.field = V4L2_FIELD_NONE,
-> >> +	},
-> >> +};
-> >> +
-> >> +static const struct {
-> >> +	u32 preset;
-> >> +	const struct hdmi_preset_conf *conf;
-> >> +} hdmi_conf[] = {
-> >> +	{ V4L2_DV_480P59_94, &hdmi_conf_480p },
-> >> +	{ V4L2_DV_720P59_94, &hdmi_conf_720p60 },
-> >> +	{ V4L2_DV_1080P50, &hdmi_conf_1080p50 },
-> >> +	{ V4L2_DV_1080P30, &hdmi_conf_1080p60 },
-> >> +	{ V4L2_DV_1080P60, &hdmi_conf_1080p60 },
-> >> +	{ V4L2_DV_1080P59_94, &hdmi_conf_1080p60 },
-> >> +};
-> >> +
-> >> +static const struct hdmi_preset_conf *hdmi_preset2conf(u32 preset)
-> >> +{
-> >> +	int i;
-> >> +
-> >> +	for (i = 0; i < ARRAY_SIZE(hdmi_conf); ++i)
-> >> +		if (hdmi_conf[i].preset == preset)
-> >> +			return  hdmi_conf[i].conf;
-> >> +	return NULL;
-> >> +}
-> >> +
-> >> +static int hdmi_enum_dv_presets(struct v4l2_subdev *sd,
-> >> +	struct v4l2_dv_enum_preset *preset)
-> >> +{
-> >> +	if (preset->index >= ARRAY_SIZE(hdmi_conf))
-> >> +		return -EINVAL;
-> >> +	return v4l_fill_dv_preset_info(hdmi_conf[preset->index].preset, preset);
-> >> +}
-> >> +
-> >> +static void hdmi_dumpregs(struct hdmi_device *hdev, char *prefix)
-> >> +{
-> >> +#define DUMPREG(reg_id) \
-> >> +	printk(KERN_DEBUG "%s:" #reg_id " = %08x\n", prefix, \
-> >> +	readl(hdev->regs + reg_id))
-> >> +
-> >> +	printk(KERN_ERR "%s: ---- CONTROL REGISTERS ----\n", prefix);
-> >> +	DUMPREG(HDMI_INTC_FLAG);
-> >> +	DUMPREG(HDMI_INTC_CON);
-> >> +	DUMPREG(HDMI_HPD_STATUS);
-> >> +	DUMPREG(HDMI_PHY_RSTOUT);
-> >> +	DUMPREG(HDMI_PHY_VPLL);
-> >> +	DUMPREG(HDMI_PHY_CMU);
-> >> +	DUMPREG(HDMI_CORE_RSTOUT);
-> >> +
-> >> +	printk(KERN_ERR "%s: ---- CORE REGISTERS ----\n", prefix);
-> >> +	DUMPREG(HDMI_CON_0);
-> >> +	DUMPREG(HDMI_CON_1);
-> >> +	DUMPREG(HDMI_CON_2);
-> >> +	DUMPREG(HDMI_SYS_STATUS);
-> >> +	DUMPREG(HDMI_PHY_STATUS);
-> >> +	DUMPREG(HDMI_STATUS_EN);
-> >> +	DUMPREG(HDMI_HPD);
-> >> +	DUMPREG(HDMI_MODE_SEL);
-> >> +	DUMPREG(HDMI_HPD_GEN);
-> >> +	DUMPREG(HDMI_DC_CONTROL);
-> >> +	DUMPREG(HDMI_VIDEO_PATTERN_GEN);
-> >> +
-> >> +	printk(KERN_ERR "%s: ---- CORE SYNC REGISTERS ----\n", prefix);
-> >> +	DUMPREG(HDMI_H_BLANK_0);
-> >> +	DUMPREG(HDMI_H_BLANK_1);
-> >> +	DUMPREG(HDMI_V_BLANK_0);
-> >> +	DUMPREG(HDMI_V_BLANK_1);
-> >> +	DUMPREG(HDMI_V_BLANK_2);
-> >> +	DUMPREG(HDMI_H_V_LINE_0);
-> >> +	DUMPREG(HDMI_H_V_LINE_1);
-> >> +	DUMPREG(HDMI_H_V_LINE_2);
-> >> +	DUMPREG(HDMI_VSYNC_POL);
-> >> +	DUMPREG(HDMI_INT_PRO_MODE);
-> >> +	DUMPREG(HDMI_V_BLANK_F_0);
-> >> +	DUMPREG(HDMI_V_BLANK_F_1);
-> >> +	DUMPREG(HDMI_V_BLANK_F_2);
-> >> +	DUMPREG(HDMI_H_SYNC_GEN_0);
-> >> +	DUMPREG(HDMI_H_SYNC_GEN_1);
-> >> +	DUMPREG(HDMI_H_SYNC_GEN_2);
-> >> +	DUMPREG(HDMI_V_SYNC_GEN_1_0);
-> >> +	DUMPREG(HDMI_V_SYNC_GEN_1_1);
-> >> +	DUMPREG(HDMI_V_SYNC_GEN_1_2);
-> >> +	DUMPREG(HDMI_V_SYNC_GEN_2_0);
-> >> +	DUMPREG(HDMI_V_SYNC_GEN_2_1);
-> >> +	DUMPREG(HDMI_V_SYNC_GEN_2_2);
-> >> +	DUMPREG(HDMI_V_SYNC_GEN_3_0);
-> >> +	DUMPREG(HDMI_V_SYNC_GEN_3_1);
-> >> +	DUMPREG(HDMI_V_SYNC_GEN_3_2);
-> >> +
-> >> +	printk(KERN_ERR "%s: ---- TG REGISTERS ----\n", prefix);
-> >> +	DUMPREG(HDMI_TG_CMD);
-> >> +	DUMPREG(HDMI_TG_H_FSZ_L);
-> >> +	DUMPREG(HDMI_TG_H_FSZ_H);
-> >> +	DUMPREG(HDMI_TG_HACT_ST_L);
-> >> +	DUMPREG(HDMI_TG_HACT_ST_H);
-> >> +	DUMPREG(HDMI_TG_HACT_SZ_L);
-> >> +	DUMPREG(HDMI_TG_HACT_SZ_H);
-> >> +	DUMPREG(HDMI_TG_V_FSZ_L);
-> >> +	DUMPREG(HDMI_TG_V_FSZ_H);
-> >> +	DUMPREG(HDMI_TG_VSYNC_L);
-> >> +	DUMPREG(HDMI_TG_VSYNC_H);
-> >> +	DUMPREG(HDMI_TG_VSYNC2_L);
-> >> +	DUMPREG(HDMI_TG_VSYNC2_H);
-> >> +	DUMPREG(HDMI_TG_VACT_ST_L);
-> >> +	DUMPREG(HDMI_TG_VACT_ST_H);
-> >> +	DUMPREG(HDMI_TG_VACT_SZ_L);
-> >> +	DUMPREG(HDMI_TG_VACT_SZ_H);
-> >> +	DUMPREG(HDMI_TG_FIELD_CHG_L);
-> >> +	DUMPREG(HDMI_TG_FIELD_CHG_H);
-> >> +	DUMPREG(HDMI_TG_VACT_ST2_L);
-> >> +	DUMPREG(HDMI_TG_VACT_ST2_H);
-> >> +	DUMPREG(HDMI_TG_VSYNC_TOP_HDMI_L);
-> >> +	DUMPREG(HDMI_TG_VSYNC_TOP_HDMI_H);
-> >> +	DUMPREG(HDMI_TG_VSYNC_BOT_HDMI_L);
-> >> +	DUMPREG(HDMI_TG_VSYNC_BOT_HDMI_H);
-> >> +	DUMPREG(HDMI_TG_FIELD_TOP_HDMI_L);
-> >> +	DUMPREG(HDMI_TG_FIELD_TOP_HDMI_H);
-> >> +	DUMPREG(HDMI_TG_FIELD_BOT_HDMI_L);
-> >> +	DUMPREG(HDMI_TG_FIELD_BOT_HDMI_H);
-> >> +#undef DUMPREG
-> >> +}
-> >> +
-> >> diff --git a/drivers/media/video/s5p-tv/hdmiphy_drv.c b/drivers/media/video/s5p-tv/hdmiphy_drv.c
-> >> new file mode 100644
-> >> index 0000000..14f9590
-> >> --- /dev/null
-> >> +++ b/drivers/media/video/s5p-tv/hdmiphy_drv.c
-> >> @@ -0,0 +1,202 @@
-> >> +/*
-> >> + * Samsung HDMI Physical interface driver
-> >> + *
-> >> + * Copyright (C) 2010-2011 Samsung Electronics Co.Ltd
-> >> + * Author: Tomasz Stanislawski <t.stanislaws@samsung.com>
-> >> + *
-> >> + * This program is free software; you can redistribute  it and/or modify it
-> >> + * under  the terms of  the GNU General  Public License as published by the
-> >> + * Free Software Foundation;  either version 2 of the  License, or (at your
-> >> + * option) any later version.
-> >> + */
-> >> +
-> >> +#include <linux/module.h>
-> >> +#include <linux/i2c.h>
-> >> +#include <linux/slab.h>
-> >> +#include <linux/clk.h>
-> >> +#include <linux/io.h>
-> >> +#include <linux/interrupt.h>
-> >> +#include <linux/irq.h>
-> >> +#include <linux/err.h>
-> >> +
-> >> +#include <media/v4l2-subdev.h>
-> >> +
-> >> +MODULE_AUTHOR("Tomasz Stanislawski <t.stanislaws@samsung.com>");
-> >> +MODULE_DESCRIPTION("Samsung HDMI Physical interface driver");
-> >> +MODULE_LICENSE("GPL");
-> >> +
-> >> +struct hdmiphy_conf {
-> >> +	u32 preset;
-> >> +	const u8 *data;
-> >> +};
-> >> +
-> >> +static struct i2c_driver hdmiphy_driver;
-> >> +static const struct v4l2_subdev_ops hdmiphy_ops;
-> >> +static const struct hdmiphy_conf hdmiphy_conf[];
-> >> +
-> >> +static int __init hdmiphy_init(void)
-> >> +{
-> >> +	return i2c_add_driver(&hdmiphy_driver);
-> >> +}
-> >> +module_init(hdmiphy_init);
-> >> +
-> >> +static void __exit hdmiphy_exit(void)
-> >> +{
-> >> +	i2c_del_driver(&hdmiphy_driver);
-> >> +}
-> >> +module_exit(hdmiphy_exit);
-> >>     
-> >
-> > Hmm, another upside-down driver :-)
-> > Please reorder, it is surprisingly hard to review this way because I start
-> > with high-level functions calling low-level functions when I don't know
-> > yet what those low-level functions do.
-> >
-> >   
-> >> +static int __devinit hdmiphy_probe(struct i2c_client *client,
-> >> +	const struct i2c_device_id *id)
-> >> +{
-> >> +	static struct v4l2_subdev sd;
-> >> +
-> >> +	v4l2_i2c_subdev_init(&sd, client, &hdmiphy_ops);
-> >> +	dev_info(&client->dev, "probe successful\n");
-> >> +	return 0;
-> >> +}
-> >> +
-> >> +static int __devexit hdmiphy_remove(struct i2c_client *client)
-> >> +{
-> >> +	dev_info(&client->dev, "remove successful\n");
-> >> +	return 0;
-> >> +}
-> >> +
-> >> +static const struct i2c_device_id hdmiphy_id[] = {
-> >> +	{ "hdmiphy", 0 },
-> >> +	{ },
-> >> +};
-> >> +MODULE_DEVICE_TABLE(i2c, hdmiphy_id);
-> >> +
-> >> +static struct i2c_driver hdmiphy_driver = {
-> >> +	.driver = {
-> >> +		.name	= "s5p-hdmiphy",
-> >> +		.owner	= THIS_MODULE,
-> >> +	},
-> >> +	.probe		= hdmiphy_probe,
-> >> +	.remove		= __devexit_p(hdmiphy_remove),
-> >> +	.id_table = hdmiphy_id,
-> >> +};
-> >> +
-> >> +static int hdmiphy_s_power(struct v4l2_subdev *sd, int on)
-> >> +{
-> >> +	/* to be implemented */
-> >> +	return 0;
-> >> +}
-> >> +
-> >> +const u8 *hdmiphy_preset2conf(u32 preset)
-> >> +{
-> >> +	int i;
-> >> +	for (i = 0; hdmiphy_conf[i].preset != V4L2_DV_INVALID; ++i)
-> >> +		if (hdmiphy_conf[i].preset == preset)
-> >> +			return hdmiphy_conf[i].data;
-> >> +	return NULL;
-> >> +}
-> >> +
-> >> +static int hdmiphy_s_dv_preset(struct v4l2_subdev *sd,
-> >> +	struct v4l2_dv_preset *preset)
-> >> +{
-> >> +	const u8 *data;
-> >> +	u8 buffer[32];
-> >> +	int ret;
-> >> +	struct i2c_client *client = v4l2_get_subdevdata(sd);
-> >> +	struct device *dev = &client->dev;
-> >> +
-> >> +	dev_info(dev, "s_dv_preset(preset = %d)\n", preset->preset);
-> >> +	data = hdmiphy_preset2conf(preset->preset);
-> >> +	if (!data) {
-> >> +		dev_err(dev, "format not supported\n");
-> >> +		return -ENXIO;
-> >>     
-> >
-> > EINVAL
-> >
-> >   
-> >> +	}
-> >> +
-> >> +	/* storing configuration to the device */
-> >> +	memcpy(buffer, data, 32);
-> >> +	ret = i2c_master_send(client, buffer, 32);
-> >> +	if (ret != 32) {
-> >> +		dev_err(dev, "failed to configure HDMIPHY via I2C\n");
-> >> +		return -EIO;
-> >> +	}
-> >> +
-> >> +	return 0;
-> >> +}
-> >> +
-> >> +static int hdmiphy_s_stream(struct v4l2_subdev *sd, int enable)
-> >> +{
-> >> +	struct i2c_client *client = v4l2_get_subdevdata(sd);
-> >> +	struct device *dev = &client->dev;
-> >> +	u8 buffer[2];
-> >> +	int ret;
-> >> +
-> >> +	dev_info(dev, "s_stream(%d)\n", enable);
-> >> +	/* going to/from configuration from/to operation mode */
-> >> +	buffer[0] = 0x1f;
-> >> +	buffer[1] = enable ? 0x80 : 0x00;
-> >> +
-> >> +	ret = i2c_master_send(client, buffer, 2);
-> >> +	if (ret != 2) {
-> >> +		dev_err(dev, "stream (%d) failed\n", enable);
-> >> +		return -EIO;
-> >> +	}
-> >> +	return 0;
-> >> +}
-> >> +
-> >> +static const struct v4l2_subdev_core_ops hdmiphy_core_ops = {
-> >> +	.s_power =  hdmiphy_s_power,
-> >> +};
-> >> +
-> >> +static const struct v4l2_subdev_video_ops hdmiphy_video_ops = {
-> >> +	.s_dv_preset = hdmiphy_s_dv_preset,
-> >> +	.s_stream =  hdmiphy_s_stream,
-> >> +};
-> >> +
-> >> +static const struct v4l2_subdev_ops hdmiphy_ops = {
-> >> +	.core = &hdmiphy_core_ops,
-> >> +	.video = &hdmiphy_video_ops,
-> >> +};
-> >> +
-> >> +static const u8 hdmiphy_conf27[32] = {
-> >> +	0x01, 0x05, 0x00, 0xD8, 0x10, 0x1C, 0x30, 0x40,
-> >> +	0x6B, 0x10, 0x02, 0x51, 0xDf, 0xF2, 0x54, 0x87,
-> >> +	0x84, 0x00, 0x30, 0x38, 0x00, 0x08, 0x10, 0xE0,
-> >> +	0x22, 0x40, 0xe3, 0x26, 0x00, 0x00, 0x00, 0x00,
-> >> +};
-> >> +
-> >> +static const u8 hdmiphy_conf74_175[32] = {
-> >> +	0x01, 0x05, 0x00, 0xD8, 0x10, 0x9C, 0xef, 0x5B,
-> >> +	0x6D, 0x10, 0x01, 0x51, 0xef, 0xF3, 0x54, 0xb9,
-> >> +	0x84, 0x00, 0x30, 0x38, 0x00, 0x08, 0x10, 0xE0,
-> >> +	0x22, 0x40, 0xa5, 0x26, 0x01, 0x00, 0x00, 0x00,
-> >> +};
-> >> +
-> >> +static const u8 hdmiphy_conf74_25[32] = {
-> >> +	0x01, 0x05, 0x00, 0xd8, 0x10, 0x9c, 0xf8, 0x40,
-> >> +	0x6a, 0x10, 0x01, 0x51, 0xff, 0xf1, 0x54, 0xba,
-> >> +	0x84, 0x00, 0x30, 0x38, 0x00, 0x08, 0x10, 0xe0,
-> >> +	0x22, 0x40, 0xa4, 0x26, 0x01, 0x00, 0x00, 0x00,
-> >> +};
-> >> +
-> >> +static const u8 hdmiphy_conf148_5[32] = {
-> >> +	0x01, 0x05, 0x00, 0xD8, 0x10, 0x9C, 0xf8, 0x40,
-> >> +	0x6A, 0x18, 0x00, 0x51, 0xff, 0xF1, 0x54, 0xba,
-> >> +	0x84, 0x00, 0x10, 0x38, 0x00, 0x08, 0x10, 0xE0,
-> >> +	0x22, 0x40, 0xa4, 0x26, 0x02, 0x00, 0x00, 0x00,
-> >> +};
-> >> +
-> >> +static const u8 hdmiphy_conf148_35[32] = {
-> >> +	0x01, 0x05, 0x00, 0xD8, 0x10, 0x9C, 0xef, 0x5B,
-> >> +	0x6D, 0x18, 0x00, 0x51, 0xef, 0xF3, 0x54, 0xb9,
-> >> +	0x84, 0x00, 0x30, 0x38, 0x00, 0x08, 0x10, 0xE0,
-> >> +	0x22, 0x40, 0xa5, 0x26, 0x02, 0x00, 0x00, 0x00,
-> >> +};
-> >> +
-> >> +static const struct hdmiphy_conf hdmiphy_conf[] = {
-> >> +	{ V4L2_DV_480P59_94, hdmiphy_conf27 },
-> >> +	{ V4L2_DV_1080P30, hdmiphy_conf74_175 },
-> >> +	{ V4L2_DV_720P59_94, hdmiphy_conf74_175 },
-> >> +	{ V4L2_DV_720P60, hdmiphy_conf74_25 },
-> >> +	{ V4L2_DV_1080P50, hdmiphy_conf148_5 },
-> >> +	{ V4L2_DV_1080P60, hdmiphy_conf148_5 },
-> >> +	{ V4L2_DV_1080P59_94, hdmiphy_conf148_35},
-> >> +	{ V4L2_DV_INVALID, NULL },
-> >> +};
-> >> +
-> >> diff --git a/drivers/media/video/s5p-tv/mixer.h b/drivers/media/video/s5p-tv/mixer.h
-> >> diff --git a/drivers/media/video/s5p-tv/mixer_drv.c b/drivers/media/video/s5p-tv/mixer_drv.c
-> >> diff --git a/drivers/media/video/s5p-tv/mixer_grp_layer.c b/drivers/media/video/s5p-tv/mixer_grp_layer.c
-> >> diff --git a/drivers/media/video/s5p-tv/mixer_reg.c b/drivers/media/video/s5p-tv/mixer_reg.c
-> >> diff --git a/drivers/media/video/s5p-tv/mixer_video.c b/drivers/media/video/s5p-tv/mixer_video.c
-> >> diff --git a/drivers/media/video/s5p-tv/mixer_vp_layer.c b/drivers/media/video/s5p-tv/mixer_vp_layer.c
-> >>     
-> >
-> > I'll review these mixer sources separately.
-> >
-> >   
-> >> diff --git a/drivers/media/video/s5p-tv/regs-hdmi.h b/drivers/media/video/s5p-tv/regs-hdmi.h
-> >> new file mode 100644
-> >> index 0000000..ac93ad6
-> >> --- /dev/null
-> >> +++ b/drivers/media/video/s5p-tv/regs-hdmi.h
-> >> @@ -0,0 +1,141 @@
-> >> +/* linux/arch/arm/mach-exynos4/include/mach/regs-hdmi.h
-> >> + *
-> >> + * Copyright (c) 2010-2011 Samsung Electronics Co., Ltd.
-> >> + * http://www.samsung.com/
-> >> + *
-> >> + * HDMI register header file for Samsung TVOUT driver
-> >> + *
-> >> + * This program is free software; you can redistribute it and/or modify
-> >> + * it under the terms of the GNU General Public License version 2 as
-> >> + * published by the Free Software Foundation.
-> >> +*/
-> >> +
-> >> +#ifndef SAMSUNG_REGS_HDMI_H
-> >> +#define SAMSUNG_REGS_HDMI_H
-> >> +
-> >> +/*
-> >> + * Register part
-> >> +*/
-> >> +
-> >> +#define HDMI_CTRL_BASE(x)		((x) + 0x00000000)
-> >> +#define HDMI_CORE_BASE(x)		((x) + 0x00010000)
-> >> +#define HDMI_TG_BASE(x)			((x) + 0x00050000)
-> >> +
-> >> +/* Control registers */
-> >> +#define HDMI_INTC_CON			HDMI_CTRL_BASE(0x0000)
-> >> +#define HDMI_INTC_FLAG			HDMI_CTRL_BASE(0x0004)
-> >> +#define HDMI_HPD_STATUS			HDMI_CTRL_BASE(0x000C)
-> >> +#define HDMI_PHY_RSTOUT			HDMI_CTRL_BASE(0x0014)
-> >> +#define HDMI_PHY_VPLL			HDMI_CTRL_BASE(0x0018)
-> >> +#define HDMI_PHY_CMU			HDMI_CTRL_BASE(0x001C)
-> >> +#define HDMI_CORE_RSTOUT		HDMI_CTRL_BASE(0x0020)
-> >> +
-> >> +/* Core registers */
-> >> +#define HDMI_CON_0			HDMI_CORE_BASE(0x0000)
-> >> +#define HDMI_CON_1			HDMI_CORE_BASE(0x0004)
-> >> +#define HDMI_CON_2			HDMI_CORE_BASE(0x0008)
-> >> +#define HDMI_SYS_STATUS			HDMI_CORE_BASE(0x0010)
-> >> +#define HDMI_PHY_STATUS			HDMI_CORE_BASE(0x0014)
-> >> +#define HDMI_STATUS_EN			HDMI_CORE_BASE(0x0020)
-> >> +#define HDMI_HPD			HDMI_CORE_BASE(0x0030)
-> >> +#define HDMI_MODE_SEL			HDMI_CORE_BASE(0x0040)
-> >> +#define HDMI_BLUE_SCREEN_0		HDMI_CORE_BASE(0x0050)
-> >> +#define HDMI_BLUE_SCREEN_1		HDMI_CORE_BASE(0x0054)
-> >> +#define HDMI_BLUE_SCREEN_2		HDMI_CORE_BASE(0x0058)
-> >> +#define HDMI_H_BLANK_0			HDMI_CORE_BASE(0x00A0)
-> >> +#define HDMI_H_BLANK_1			HDMI_CORE_BASE(0x00A4)
-> >> +#define HDMI_V_BLANK_0			HDMI_CORE_BASE(0x00B0)
-> >> +#define HDMI_V_BLANK_1			HDMI_CORE_BASE(0x00B4)
-> >> +#define HDMI_V_BLANK_2			HDMI_CORE_BASE(0x00B8)
-> >> +#define HDMI_H_V_LINE_0			HDMI_CORE_BASE(0x00C0)
-> >> +#define HDMI_H_V_LINE_1			HDMI_CORE_BASE(0x00C4)
-> >> +#define HDMI_H_V_LINE_2			HDMI_CORE_BASE(0x00C8)
-> >> +#define HDMI_VSYNC_POL			HDMI_CORE_BASE(0x00E4)
-> >> +#define HDMI_INT_PRO_MODE		HDMI_CORE_BASE(0x00E8)
-> >> +#define HDMI_V_BLANK_F_0		HDMI_CORE_BASE(0x0110)
-> >> +#define HDMI_V_BLANK_F_1		HDMI_CORE_BASE(0x0114)
-> >> +#define HDMI_V_BLANK_F_2		HDMI_CORE_BASE(0x0118)
-> >> +#define HDMI_H_SYNC_GEN_0		HDMI_CORE_BASE(0x0120)
-> >> +#define HDMI_H_SYNC_GEN_1		HDMI_CORE_BASE(0x0124)
-> >> +#define HDMI_H_SYNC_GEN_2		HDMI_CORE_BASE(0x0128)
-> >> +#define HDMI_V_SYNC_GEN_1_0		HDMI_CORE_BASE(0x0130)
-> >> +#define HDMI_V_SYNC_GEN_1_1		HDMI_CORE_BASE(0x0134)
-> >> +#define HDMI_V_SYNC_GEN_1_2		HDMI_CORE_BASE(0x0138)
-> >> +#define HDMI_V_SYNC_GEN_2_0		HDMI_CORE_BASE(0x0140)
-> >> +#define HDMI_V_SYNC_GEN_2_1		HDMI_CORE_BASE(0x0144)
-> >> +#define HDMI_V_SYNC_GEN_2_2		HDMI_CORE_BASE(0x0148)
-> >> +#define HDMI_V_SYNC_GEN_3_0		HDMI_CORE_BASE(0x0150)
-> >> +#define HDMI_V_SYNC_GEN_3_1		HDMI_CORE_BASE(0x0154)
-> >> +#define HDMI_V_SYNC_GEN_3_2		HDMI_CORE_BASE(0x0158)
-> >> +#define HDMI_AVI_CON			HDMI_CORE_BASE(0x0300)
-> >> +#define HDMI_AVI_BYTE(n)		HDMI_CORE_BASE(0x0320 + 4 * (n))
-> >> +#define	HDMI_DC_CONTROL			HDMI_CORE_BASE(0x05C0)
-> >> +#define HDMI_VIDEO_PATTERN_GEN		HDMI_CORE_BASE(0x05C4)
-> >> +#define HDMI_HPD_GEN			HDMI_CORE_BASE(0x05C8)
-> >> +
-> >> +/* Timing generator registers */
-> >> +#define HDMI_TG_CMD			HDMI_TG_BASE(0x0000)
-> >> +#define HDMI_TG_H_FSZ_L			HDMI_TG_BASE(0x0018)
-> >> +#define HDMI_TG_H_FSZ_H			HDMI_TG_BASE(0x001C)
-> >> +#define HDMI_TG_HACT_ST_L		HDMI_TG_BASE(0x0020)
-> >> +#define HDMI_TG_HACT_ST_H		HDMI_TG_BASE(0x0024)
-> >> +#define HDMI_TG_HACT_SZ_L		HDMI_TG_BASE(0x0028)
-> >> +#define HDMI_TG_HACT_SZ_H		HDMI_TG_BASE(0x002C)
-> >> +#define HDMI_TG_V_FSZ_L			HDMI_TG_BASE(0x0030)
-> >> +#define HDMI_TG_V_FSZ_H			HDMI_TG_BASE(0x0034)
-> >> +#define HDMI_TG_VSYNC_L			HDMI_TG_BASE(0x0038)
-> >> +#define HDMI_TG_VSYNC_H			HDMI_TG_BASE(0x003C)
-> >> +#define HDMI_TG_VSYNC2_L		HDMI_TG_BASE(0x0040)
-> >> +#define HDMI_TG_VSYNC2_H		HDMI_TG_BASE(0x0044)
-> >> +#define HDMI_TG_VACT_ST_L		HDMI_TG_BASE(0x0048)
-> >> +#define HDMI_TG_VACT_ST_H		HDMI_TG_BASE(0x004C)
-> >> +#define HDMI_TG_VACT_SZ_L		HDMI_TG_BASE(0x0050)
-> >> +#define HDMI_TG_VACT_SZ_H		HDMI_TG_BASE(0x0054)
-> >> +#define HDMI_TG_FIELD_CHG_L		HDMI_TG_BASE(0x0058)
-> >> +#define HDMI_TG_FIELD_CHG_H		HDMI_TG_BASE(0x005C)
-> >> +#define HDMI_TG_VACT_ST2_L		HDMI_TG_BASE(0x0060)
-> >> +#define HDMI_TG_VACT_ST2_H		HDMI_TG_BASE(0x0064)
-> >> +#define HDMI_TG_VSYNC_TOP_HDMI_L	HDMI_TG_BASE(0x0078)
-> >> +#define HDMI_TG_VSYNC_TOP_HDMI_H	HDMI_TG_BASE(0x007C)
-> >> +#define HDMI_TG_VSYNC_BOT_HDMI_L	HDMI_TG_BASE(0x0080)
-> >> +#define HDMI_TG_VSYNC_BOT_HDMI_H	HDMI_TG_BASE(0x0084)
-> >> +#define HDMI_TG_FIELD_TOP_HDMI_L	HDMI_TG_BASE(0x0088)
-> >> +#define HDMI_TG_FIELD_TOP_HDMI_H	HDMI_TG_BASE(0x008C)
-> >> +#define HDMI_TG_FIELD_BOT_HDMI_L	HDMI_TG_BASE(0x0090)
-> >> +#define HDMI_TG_FIELD_BOT_HDMI_H	HDMI_TG_BASE(0x0094)
-> >> +
-> >> +/*
-> >> + * Bit definition part
-> >> + */
-> >> +
-> >> +/* HDMI_INTC_CON */
-> >> +#define HDMI_INTC_EN_GLOBAL		(1 << 6)
-> >> +#define HDMI_INTC_EN_HPD_PLUG		(1 << 3)
-> >> +#define HDMI_INTC_EN_HPD_UNPLUG		(1 << 2)
-> >> +
-> >> +/* HDMI_INTC_FLAG */
-> >> +#define HDMI_INTC_FLAG_HPD_PLUG		(1 << 3)
-> >> +#define HDMI_INTC_FLAG_HPD_UNPLUG	(1 << 2)
-> >> +
-> >> +/* HDMI_PHY_RSTOUT */
-> >> +#define HDMI_PHY_SW_RSTOUT		(1 << 0)
-> >> +
-> >> +/* HDMI_CORE_RSTOUT */
-> >> +#define HDMI_CORE_SW_RSTOUT		(1 << 0)
-> >> +
-> >> +/* HDMI_CON_0 */
-> >> +#define HDMI_BLUE_SCR_EN		(1 << 5)
-> >> +#define HDMI_EN				(1 << 0)
-> >> +
-> >> +/* HDMI_PHY_STATUS */
-> >> +#define HDMI_PHY_STATUS_READY		(1 << 0)
-> >> +
-> >> +/* HDMI_MODE_SEL */
-> >> +#define HDMI_MODE_HDMI_EN		(1 << 1)
-> >> +#define HDMI_MODE_DVI_EN		(1 << 0)
-> >> +#define HDMI_MODE_MASK			(3 << 0)
-> >> +
-> >> +/* HDMI_TG_CMD */
-> >> +#define HDMI_TG_EN			(1 << 0)
-> >> +
-> >> +#endif /* SAMSUNG_REGS_HDMI_H */
-> >> diff --git a/drivers/media/video/s5p-tv/regs-mixer.h b/drivers/media/video/s5p-tv/regs-mixer.h
-> >> new file mode 100644
-> >> index 0000000..3c84426
-> >> --- /dev/null
-> >> +++ b/drivers/media/video/s5p-tv/regs-mixer.h
-> >> @@ -0,0 +1,121 @@
-> >> +/*
-> >> + * Copyright (c) 2010-2011 Samsung Electronics Co., Ltd.
-> >> + * http://www.samsung.com/
-> >> + *
-> >> + * Mixer register header file for Samsung Mixer driver
-> >> + *
-> >> + * This program is free software; you can redistribute it and/or modify
-> >> + * it under the terms of the GNU General Public License version 2 as
-> >> + * published by the Free Software Foundation.
-> >> +*/
-> >> +#ifndef SAMSUNG_REGS_MIXER_H
-> >> +#define SAMSUNG_REGS_MIXER_H
-> >> +
-> >> +/*
-> >> + * Register part
-> >> + */
-> >> +#define MXR_STATUS			0x0000
-> >> +#define MXR_CFG				0x0004
-> >> +#define MXR_INT_EN			0x0008
-> >> +#define MXR_INT_STATUS			0x000C
-> >> +#define MXR_LAYER_CFG			0x0010
-> >> +#define MXR_VIDEO_CFG			0x0014
-> >> +#define MXR_GRAPHIC0_CFG		0x0020
-> >> +#define MXR_GRAPHIC0_BASE		0x0024
-> >> +#define MXR_GRAPHIC0_SPAN		0x0028
-> >> +#define MXR_GRAPHIC0_SXY		0x002C
-> >> +#define MXR_GRAPHIC0_WH			0x0030
-> >> +#define MXR_GRAPHIC0_DXY		0x0034
-> >> +#define MXR_GRAPHIC0_BLANK		0x0038
-> >> +#define MXR_GRAPHIC1_CFG		0x0040
-> >> +#define MXR_GRAPHIC1_BASE		0x0044
-> >> +#define MXR_GRAPHIC1_SPAN		0x0048
-> >> +#define MXR_GRAPHIC1_SXY		0x004C
-> >> +#define MXR_GRAPHIC1_WH			0x0050
-> >> +#define MXR_GRAPHIC1_DXY		0x0054
-> >> +#define MXR_GRAPHIC1_BLANK		0x0058
-> >> +#define MXR_BG_CFG			0x0060
-> >> +#define MXR_BG_COLOR0			0x0064
-> >> +#define MXR_BG_COLOR1			0x0068
-> >> +#define MXR_BG_COLOR2			0x006C
-> >> +
-> >> +/* for parametrized access to layer registers */
-> >> +#define MXR_GRAPHIC_CFG(i)		(0x0020 + (i) * 0x20)
-> >> +#define MXR_GRAPHIC_BASE(i)		(0x0024 + (i) * 0x20)
-> >> +#define MXR_GRAPHIC_SPAN(i)		(0x0028 + (i) * 0x20)
-> >> +#define MXR_GRAPHIC_SXY(i)		(0x002C + (i) * 0x20)
-> >> +#define MXR_GRAPHIC_WH(i)		(0x0030 + (i) * 0x20)
-> >> +#define MXR_GRAPHIC_DXY(i)		(0x0034 + (i) * 0x20)
-> >> +
-> >> +/*
-> >> + * Bit definition part
-> >> + */
-> >> +
-> >> +/* generates mask for range of bits */
-> >> +#define MXR_MASK(high_bit, low_bit) \
-> >> +	(((2 << ((high_bit) - (low_bit))) - 1) << (low_bit))
-> >> +
-> >> +#define MXR_MASK_VAL(val, high_bit, low_bit) \
-> >> +	(((val) << (low_bit)) & MXR_MASK(high_bit, low_bit))
-> >> +
-> >> +/* bits for MXR_STATUS */
-> >> +#define MXR_STATUS_16_BURST		(1 << 7)
-> >> +#define MXR_STATUS_BURST_MASK		(1 << 7)
-> >> +#define MXR_STATUS_SYNC_ENABLE		(1 << 2)
-> >> +#define MXR_STATUS_REG_RUN		(1 << 0)
-> >> +
-> >> +/* bits for MXR_CFG */
-> >> +#define MXR_CFG_OUT_YUV444		(0 << 8)
-> >> +#define MXR_CFG_OUT_RGB888		(1 << 8)
-> >> +#define MXR_CFG_DST_SDO			(0 << 7)
-> >> +#define MXR_CFG_DST_HDMI		(1 << 7)
-> >> +#define MXR_CFG_DST_MASK		(1 << 7)
-> >> +#define MXR_CFG_SCAN_HD_720		(0 << 6)
-> >> +#define MXR_CFG_SCAN_HD_1080		(1 << 6)
-> >> +#define MXR_CFG_GRP1_ENABLE		(1 << 5)
-> >> +#define MXR_CFG_GRP0_ENABLE		(1 << 4)
-> >> +#define MXR_CFG_VP_ENABLE		(1 << 3)
-> >> +#define MXR_CFG_SCAN_INTERLACE		(0 << 2)
-> >> +#define MXR_CFG_SCAN_PROGRASSIVE	(1 << 2)
-> >> +#define MXR_CFG_SCAN_NTSC		(0 << 1)
-> >> +#define MXR_CFG_SCAN_PAL		(1 << 1)
-> >> +#define MXR_CFG_SCAN_SD			(0 << 0)
-> >> +#define MXR_CFG_SCAN_HD			(1 << 0)
-> >> +#define MXR_CFG_SCAN_MASK		0x47
-> >> +
-> >> +/* bits for MXR_GRAPHICn_CFG */
-> >> +#define MXR_GRP_CFG_COLOR_KEY_DISABLE	(1 << 21)
-> >> +#define MXR_GRP_CFG_BLEND_PRE_MUL	(1 << 20)
-> >> +#define MXR_GRP_CFG_FORMAT_VAL(x)	MXR_MASK_VAL(x, 11, 8)
-> >> +#define MXR_GRP_CFG_FORMAT_MASK		MXR_GRP_CFG_FORMAT_VAL(~0)
-> >> +#define MXR_GRP_CFG_ALPHA_VAL(x)	MXR_MASK_VAL(x, 7, 0)
-> >> +
-> >> +/* bits for MXR_GRAPHICn_WH */
-> >> +#define MXR_GRP_WH_H_SCALE(x)		MXR_MASK_VAL(x, 28, 28)
-> >> +#define MXR_GRP_WH_V_SCALE(x)		MXR_MASK_VAL(x, 12, 12)
-> >> +#define MXR_GRP_WH_WIDTH(x)		MXR_MASK_VAL(x, 26, 16)
-> >> +#define MXR_GRP_WH_HEIGHT(x)		MXR_MASK_VAL(x, 10, 0)
-> >> +
-> >> +/* bits for MXR_GRAPHICn_SXY */
-> >> +#define MXR_GRP_SXY_SX(x)		MXR_MASK_VAL(x, 26, 16)
-> >> +#define MXR_GRP_SXY_SY(x)		MXR_MASK_VAL(x, 10, 0)
-> >> +
-> >> +/* bits for MXR_GRAPHICn_DXY */
-> >> +#define MXR_GRP_DXY_DX(x)		MXR_MASK_VAL(x, 26, 16)
-> >> +#define MXR_GRP_DXY_DY(x)		MXR_MASK_VAL(x, 10, 0)
-> >> +
-> >> +/* bits for MXR_INT_EN */
-> >> +#define MXR_INT_EN_VSYNC		(1 << 11)
-> >> +#define MXR_INT_EN_ALL			(0x0f << 8)
-> >> +
-> >> +/* bit for MXR_INT_STATUS */
-> >> +#define MXR_INT_CLEAR_VSYNC		(1 << 11)
-> >> +#define MXR_INT_STATUS_VSYNC		(1 << 0)
-> >> +
-> >> +/* bit for MXR_LAYER_CFG */
-> >> +#define MXR_LAYER_CFG_GRP1_VAL(x)	MXR_MASK_VAL(x, 11, 8)
-> >> +#define MXR_LAYER_CFG_GRP0_VAL(x)	MXR_MASK_VAL(x, 7, 4)
-> >> +#define MXR_LAYER_CFG_VP_VAL(x)		MXR_MASK_VAL(x, 3, 0)
-> >> +
-> >> +#endif /* SAMSUNG_REGS_MIXER_H */
-> >> +
-> >> diff --git a/drivers/media/video/s5p-tv/regs-sdo.h b/drivers/media/video/s5p-tv/regs-sdo.h
-> >> new file mode 100644
-> >> index 0000000..7f7c2b8
-> >> --- /dev/null
-> >> +++ b/drivers/media/video/s5p-tv/regs-sdo.h
-> >> @@ -0,0 +1,63 @@
-> >> +/* drivers/media/video/s5p-tv/regs-sdo.h
-> >> + *
-> >> + * Copyright (c) 2010-2011 Samsung Electronics Co., Ltd.
-> >> + *		http://www.samsung.com/
-> >> + *
-> >> + * SDO register description file
-> >> + *
-> >> + * This program is free software; you can redistribute it and/or modify
-> >> + * it under the terms of the GNU General Public License version 2 as
-> >> + * published by the Free Software Foundation.
-> >> + */
-> >> +
-> >> +#ifndef SAMSUNG_REGS_SDO_H
-> >> +#define SAMSUNG_REGS_SDO_H
-> >> +
-> >> +/*
-> >> + * Register part
-> >> + */
-> >> +
-> >> +#define SDO_CLKCON			0x0000
-> >> +#define SDO_CONFIG			0x0008
-> >> +#define SDO_VBI				0x0014
-> >> +#define SDO_DAC				0x003C
-> >> +#define SDO_CCCON			0x0180
-> >> +#define SDO_IRQ				0x0280
-> >> +#define SDO_IRQMASK			0x0284
-> >> +#define SDO_VERSION			0x03D8
-> >> +
-> >> +/*
-> >> + * Bit definition part
-> >> + */
-> >> +
-> >> +/* SDO Clock Control Register (SDO_CLKCON) */
-> >> +#define SDO_TVOUT_SW_RESET		(1 << 4)
-> >> +#define SDO_TVOUT_CLOCK_READY		(1 << 1)
-> >> +#define SDO_TVOUT_CLOCK_ON		(1 << 0)
-> >> +
-> >> +/* SDO Video Standard Configuration Register (SDO_CONFIG) */
-> >> +#define SDO_PROGRESSIVE			(1 << 4)
-> >> +#define SDO_NTSC_M			0
-> >> +#define SDO_PAL_M			1
-> >> +#define SDO_PAL_BGHID			2
-> >> +#define SDO_PAL_N			3
-> >> +#define SDO_PAL_NC			4
-> >> +#define SDO_NTSC_443			8
-> >> +#define SDO_PAL_60			9
-> >> +#define SDO_STANDARD_MASK		0xf
-> >> +
-> >> +/* SDO VBI Configuration Register (SDO_VBI) */
-> >> +#define SDO_CVBS_WSS_INS		(1 << 14)
-> >> +#define SDO_CVBS_CLOSED_CAPTION_MASK	(3 << 12)
-> >> +
-> >> +/* SDO DAC Configuration Register (SDO_DAC) */
-> >> +#define SDO_POWER_ON_DAC		(1 << 0)
-> >> +
-> >> +/* SDO Color Compensation On/Off Control (SDO_CCCON) */
-> >> +#define SDO_COMPENSATION_BHS_ADJ_OFF	(1 << 4)
-> >> +#define SDO_COMPENSATION_CVBS_COMP_OFF	(1 << 0)
-> >> +
-> >> +/* SDO Interrupt Request Register (SDO_IRQ) */
-> >> +#define SDO_VSYNC_IRQ_PEND		(1 << 0)
-> >> +
-> >> +#endif /* SAMSUNG_REGS_SDO_H */
-> >> diff --git a/drivers/media/video/s5p-tv/regs-vp.h b/drivers/media/video/s5p-tv/regs-vp.h
-> >> new file mode 100644
-> >> index 0000000..6c63984
-> >> --- /dev/null
-> >> +++ b/drivers/media/video/s5p-tv/regs-vp.h
-> >> @@ -0,0 +1,88 @@
-> >> +/*
-> >> + * Copyright (c) 2010-2011 Samsung Electronics Co., Ltd.
-> >> + *		http://www.samsung.com/
-> >> + *
-> >> + * Video processor register header file for Samsung Mixer driver
-> >> + *
-> >> + * This program is free software; you can redistribute it and/or modify
-> >> + * it under the terms of the GNU General Public License version 2 as
-> >> + * published by the Free Software Foundation.
-> >> + */
-> >> +
-> >> +#ifndef SAMSUNG_REGS_VP_H
-> >> +#define SAMSUNG_REGS_VP_H
-> >> +
-> >> +/*
-> >> + * Register part
-> >> + */
-> >> +
-> >> +#define VP_ENABLE			0x0000
-> >> +#define VP_SRESET			0x0004
-> >> +#define VP_SHADOW_UPDATE		0x0008
-> >> +#define VP_FIELD_ID			0x000C
-> >> +#define VP_MODE				0x0010
-> >> +#define VP_IMG_SIZE_Y			0x0014
-> >> +#define VP_IMG_SIZE_C			0x0018
-> >> +#define VP_PER_RATE_CTRL		0x001C
-> >> +#define VP_TOP_Y_PTR			0x0028
-> >> +#define VP_BOT_Y_PTR			0x002C
-> >> +#define VP_TOP_C_PTR			0x0030
-> >> +#define VP_BOT_C_PTR			0x0034
-> >> +#define VP_ENDIAN_MODE			0x03CC
-> >> +#define VP_SRC_H_POSITION		0x0044
-> >> +#define VP_SRC_V_POSITION		0x0048
-> >> +#define VP_SRC_WIDTH			0x004C
-> >> +#define VP_SRC_HEIGHT			0x0050
-> >> +#define VP_DST_H_POSITION		0x0054
-> >> +#define VP_DST_V_POSITION		0x0058
-> >> +#define VP_DST_WIDTH			0x005C
-> >> +#define VP_DST_HEIGHT			0x0060
-> >> +#define VP_H_RATIO			0x0064
-> >> +#define VP_V_RATIO			0x0068
-> >> +#define VP_POLY8_Y0_LL			0x006C
-> >> +#define VP_POLY4_Y0_LL			0x00EC
-> >> +#define VP_POLY4_C0_LL			0x012C
-> >> +
-> >> +/*
-> >> + * Bit definition part
-> >> + */
-> >> +
-> >> +/* generates mask for range of bits */
-> >> +
-> >> +#define VP_MASK(high_bit, low_bit) \
-> >> +	(((2 << ((high_bit) - (low_bit))) - 1) << (low_bit))
-> >> +
-> >> +#define VP_MASK_VAL(val, high_bit, low_bit) \
-> >> +	(((val) << (low_bit)) & VP_MASK(high_bit, low_bit))
-> >> +
-> >> + /* VP_ENABLE */
-> >> +#define VP_ENABLE_ON			(1 << 0)
-> >> +
-> >> +/* VP_SRESET */
-> >> +#define VP_SRESET_PROCESSING		(1 << 0)
-> >> +
-> >> +/* VP_SHADOW_UPDATE */
-> >> +#define VP_SHADOW_UPDATE_ENABLE		(1 << 0)
-> >> +
-> >> +/* VP_MODE */
-> >> +#define VP_MODE_NV12			(0 << 6)
-> >> +#define VP_MODE_NV21			(1 << 6)
-> >> +#define VP_MODE_LINE_SKIP		(1 << 5)
-> >> +#define VP_MODE_MEM_LINEAR		(0 << 4)
-> >> +#define VP_MODE_MEM_TILED		(1 << 4)
-> >> +#define VP_MODE_FMT_MASK		(5 << 4)
-> >> +#define VP_MODE_FIELD_ID_AUTO_TOGGLING	(1 << 2)
-> >> +#define VP_MODE_2D_IPC			(1 << 1)
-> >> +
-> >> +/* VP_IMG_SIZE_Y */
-> >> +/* VP_IMG_SIZE_C */
-> >> +#define VP_IMG_HSIZE(x)			VP_MASK_VAL(x, 29, 16)
-> >> +#define VP_IMG_VSIZE(x)			VP_MASK_VAL(x, 13, 0)
-> >> +
-> >> +/* VP_SRC_H_POSITION */
-> >> +#define VP_SRC_H_POSITION_VAL(x)	VP_MASK_VAL(x, 14, 4)
-> >> +
-> >> +/* VP_ENDIAN_MODE */
-> >> +#define VP_ENDIAN_MODE_LITTLE		(1 << 0)
-> >> +
-> >> +#endif /* SAMSUNG_REGS_VP_H */
-> >> diff --git a/drivers/media/video/s5p-tv/sdo_drv.c b/drivers/media/video/s5p-tv/sdo_drv.c
-> >> new file mode 100644
-> >> index 0000000..5cb2585
-> >> --- /dev/null
-> >> +++ b/drivers/media/video/s5p-tv/sdo_drv.c
-> >> @@ -0,0 +1,498 @@
-> >> +/*
-> >> + * Samsung Standard Definition Output (SDO) driver
-> >> + *
-> >> + * Copyright (c) 2010-2011 Samsung Electronics Co., Ltd.
-> >> + *
-> >> + * Tomasz Stanislawski, <t.stanislaws@samsung.com>
-> >> + *
-> >> + * This program is free software; you can redistribute it and/or modify
-> >> + * it under the terms of the GNU General Public License as published
-> >> + * by the Free Software Foundiation. either version 2 of the License,
-> >> + * or (at your option) any later version
-> >> + */
-> >> +
-> >> +#include <linux/clk.h>
-> >> +#include <linux/delay.h>
-> >> +#include <linux/kernel.h>
-> >> +#include <linux/module.h>
-> >> +#include <linux/interrupt.h>
-> >> +#include <linux/io.h>
-> >> +#include <linux/irq.h>
-> >> +#include <linux/platform_device.h>
-> >> +#include <linux/pm_runtime.h>
-> >> +#include <linux/regulator/consumer.h>
-> >> +#include <linux/slab.h>
-> >> +
-> >> +#include <media/v4l2-subdev.h>
-> >> +
-> >> +#include "regs-sdo.h"
-> >> +
-> >> +MODULE_AUTHOR("Tomasz Stanislawski, <t.stanislaws@samsung.com>");
-> >> +MODULE_DESCRIPTION("Samsung Standard Definition Output (SDO)");
-> >> +MODULE_LICENSE("GPL");
-> >> +
-> >> +#define SDO_DEFAULT_STD	V4L2_STD_PAL_B
-> >>     
-> >
-> > I would set this to V4L2_STD_PAL. 'PAL-B' is pretty meaningless unless you have
-> > an actual modulator.
-> >   
-> ok
-> >   
-> >> +
-> >> +static struct platform_driver sdo_driver;
-> >> +
-> >> +struct sdo_format {
-> >> +	v4l2_std_id id;
-> >> +	/* all modes are 720 pixels wide */
-> >> +	unsigned int height;
-> >> +	unsigned int cookie;
-> >> +};
-> >> +
-> >> +struct sdo_device {
-> >> +	/** pointer to device parent */
-> >> +	struct device *dev;
-> >> +	/** base address of SDO registers */
-> >> +	void __iomem *regs;
-> >> +	/** SDO interrupt */
-> >> +	unsigned int irq;
-> >> +	/** DAC source clock */
-> >> +	struct clk *sclk_dac;
-> >> +	/** DAC clock */
-> >> +	struct clk *dac;
-> >> +	/** DAC physical interface */
-> >> +	struct clk *dacphy;
-> >> +	/** clock for control of VPLL */
-> >> +	struct clk *fout_vpll;
-> >> +	/** regulator for SDO IP power */
-> >> +	struct regulator *vdac;
-> >> +	/** regulator for SDO plug detection */
-> >> +	struct regulator *vdet;
-> >> +	/** subdev used as device interface */
-> >> +	struct v4l2_subdev sd;
-> >> +	/** current format */
-> >> +	const struct sdo_format *fmt;
-> >> +};
-> >> +
-> >> +static inline struct sdo_device *sd_to_sdev(struct v4l2_subdev *sd)
-> >> +{
-> >> +	return container_of(sd, struct sdo_device, sd);
-> >> +}
-> >> +
-> >> +static inline
-> >> +void sdo_write_mask(struct sdo_device *sdev, u32 reg_id, u32 value, u32 mask)
-> >> +{
-> >> +	u32 old = readl(sdev->regs + reg_id);
-> >> +	value = (value & mask) | (old & ~mask);
-> >> +	writel(value, sdev->regs + reg_id);
-> >> +}
-> >> +
-> >> +static inline
-> >> +void sdo_write(struct sdo_device *sdev, u32 reg_id, u32 value)
-> >> +{
-> >> +	writel(value, sdev->regs + reg_id);
-> >> +}
-> >> +
-> >> +static inline
-> >> +u32 sdo_read(struct sdo_device *sdev, u32 reg_id)
-> >> +{
-> >> +	return readl(sdev->regs + reg_id);
-> >> +}
-> >> +
-> >> +static void sdo_reg_debug(struct sdo_device *sdev);
-> >> +
-> >> +static int __init sdo_init(void)
-> >> +{
-> >> +	int ret;
-> >> +	static const char banner[] __initdata = KERN_INFO \
-> >> +		"Samsung Standard Definition Output (SDO) driver, "
-> >> +		"(c) 2010-2011 Samsung Electronics Co., Ltd.\n";
-> >> +	printk(banner);
-> >> +
-> >> +	ret = platform_driver_register(&sdo_driver);
-> >> +	if (ret)
-> >> +		printk(KERN_ERR "SDO platform driver register failed\n");
-> >> +
-> >> +	return ret;
-> >> +}
-> >> +module_init(sdo_init);
-> >> +
-> >> +static void __exit sdo_exit(void)
-> >> +{
-> >> +	platform_driver_unregister(&sdo_driver);
-> >> +}
-> >> +module_exit(sdo_exit);
-> >>     
-> >
-> > Please reorder :-)
-> >
-> >   
-> >> +
-> >> +static int __devinit sdo_probe(struct platform_device *pdev);
-> >> +static int __devexit sdo_remove(struct platform_device *pdev);
-> >> +static const struct dev_pm_ops sdo_pm_ops;
-> >> +
-> >> +static struct platform_driver sdo_driver __refdata = {
-> >> +	.probe = sdo_probe,
-> >> +	.remove = __devexit_p(sdo_remove),
-> >> +	.driver = {
-> >> +		.name = "s5p-sdo",
-> >> +		.owner = THIS_MODULE,
-> >> +		.pm = &sdo_pm_ops,
-> >> +	}
-> >> +};
-> >> +
-> >> +static irqreturn_t sdo_irq_handler(int irq, void *dev_data);
-> >> +static const struct sdo_format *sdo_find_format(v4l2_std_id id);
-> >> +static const struct v4l2_subdev_ops sdo_sd_ops;
-> >> +
-> >> +static int __devinit sdo_probe(struct platform_device *pdev)
-> >> +{
-> >> +	struct device *dev = &pdev->dev;
-> >> +	struct sdo_device *sdev;
-> >> +	struct resource *res;
-> >> +	int ret = 0;
-> >> +	struct clk *sclk_vpll;
-> >> +
-> >> +	dev_info(dev, "probe start\n");
-> >> +	sdev = kzalloc(sizeof *sdev, GFP_KERNEL);
-> >> +	if (!sdev) {
-> >> +		dev_err(dev, "not enough memory.\n");
-> >> +		ret = -ENOMEM;
-> >> +		goto fail;
-> >> +	}
-> >> +	sdev->dev = dev;
-> >> +
-> >> +	/* mapping registers */
-> >> +	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
-> >> +	if (res == NULL) {
-> >> +		dev_err(dev, "get memory resource failed.\n");
-> >> +		ret = -ENXIO;
-> >> +		goto fail_sdev;
-> >> +	}
-> >> +
-> >> +	sdev->regs = ioremap(res->start, resource_size(res));
-> >> +	if (sdev->regs == NULL) {
-> >> +		dev_err(dev, "register mapping failed.\n");
-> >> +		ret = -ENXIO;
-> >> +		goto fail_sdev;
-> >> +	}
-> >> +
-> >> +	/* acquiring interrupt */
-> >> +	res = platform_get_resource(pdev, IORESOURCE_IRQ, 0);
-> >> +	if (res == NULL) {
-> >> +		dev_err(dev, "get interrupt resource failed.\n");
-> >> +		ret = -ENXIO;
-> >> +		goto fail_regs;
-> >> +	}
-> >> +	ret = request_irq(res->start, sdo_irq_handler, 0, "s5p-sdo", sdev);
-> >> +	if (ret) {
-> >> +		dev_err(dev, "request interrupt failed.\n");
-> >> +		goto fail_regs;
-> >> +	}
-> >> +	sdev->irq = res->start;
-> >> +
-> >> +	/* acquire clocks */
-> >> +	sdev->sclk_dac = clk_get(dev, "sclk_dac");
-> >> +	if (IS_ERR_OR_NULL(sdev->sclk_dac)) {
-> >> +		dev_err(dev, "failed to get clock 'sclk_dac'\n");
-> >> +		ret = -ENXIO;
-> >> +		goto fail_irq;
-> >> +	}
-> >> +	sdev->dac = clk_get(dev, "dac");
-> >> +	if (IS_ERR_OR_NULL(sdev->dac)) {
-> >> +		dev_err(dev, "failed to get clock 'dac'\n");
-> >> +		ret = -ENXIO;
-> >> +		goto fail_sclk_dac;
-> >> +	}
-> >> +	sdev->dacphy = clk_get(dev, "dacphy");
-> >> +	if (IS_ERR_OR_NULL(sdev->dacphy)) {
-> >> +		dev_err(dev, "failed to get clock 'dacphy'\n");
-> >> +		ret = -ENXIO;
-> >> +		goto fail_dac;
-> >> +	}
-> >> +	sclk_vpll = clk_get(dev, "sclk_vpll");
-> >> +	if (IS_ERR_OR_NULL(sclk_vpll)) {
-> >> +		dev_err(dev, "failed to get clock 'sclk_vpll'\n");
-> >> +		ret = -ENXIO;
-> >> +		goto fail_dacphy;
-> >> +	}
-> >> +	clk_set_parent(sdev->sclk_dac, sclk_vpll);
-> >> +	clk_put(sclk_vpll);
-> >> +	sdev->fout_vpll = clk_get(dev, "fout_vpll");
-> >> +	if (IS_ERR_OR_NULL(sdev->fout_vpll)) {
-> >> +		dev_err(dev, "failed to get clock 'fout_vpll'\n");
-> >> +		goto fail_dacphy;
-> >> +	}
-> >> +	dev_info(dev, "fout_vpll.rate = %lu\n", clk_get_rate(sclk_vpll));
-> >> +
-> >> +	/* acquire regulator */
-> >> +	sdev->vdac = regulator_get(dev, "vdd33a_dac");
-> >> +	if (IS_ERR_OR_NULL(sdev->vdac)) {
-> >> +		dev_err(dev, "failed to get regulator 'vdac'\n");
-> >> +		goto fail_fout_vpll;
-> >> +	}
-> >> +	sdev->vdet = regulator_get(dev, "vdet");
-> >> +	if (IS_ERR_OR_NULL(sdev->vdet)) {
-> >> +		dev_err(dev, "failed to get regulator 'vdet'\n");
-> >> +		goto fail_vdac;
-> >> +	}
-> >> +
-> >> +	/* configure power management */
-> >> +	pm_runtime_enable(dev);
-> >> +
-> >> +	/* configuration of interface subdevice */
-> >> +	v4l2_subdev_init(&sdev->sd, &sdo_sd_ops);
-> >> +	sdev->sd.owner = THIS_MODULE;
-> >> +	strlcpy(sdev->sd.name, sdo_driver.driver.name, sizeof sdev->sd.name);
-> >> +
-> >> +	/* set default format */
-> >> +	sdev->fmt = sdo_find_format(SDO_DEFAULT_STD);
-> >> +	BUG_ON(sdev->fmt == NULL);
-> >> +
-> >> +	/* keeping subdev in device's private for use by other drivers */
-> >> +	dev_set_drvdata(dev, &sdev->sd);
-> >> +
-> >> +	dev_info(dev, "probe succeeded\n");
-> >> +	return 0;
-> >> +
-> >> +fail_vdac:
-> >> +	regulator_put(sdev->vdac);
-> >> +fail_fout_vpll:
-> >> +	clk_put(sdev->fout_vpll);
-> >> +fail_dacphy:
-> >> +	clk_put(sdev->dacphy);
-> >> +fail_dac:
-> >> +	clk_put(sdev->dac);
-> >> +fail_sclk_dac:
-> >> +	clk_put(sdev->sclk_dac);
-> >> +fail_irq:
-> >> +	free_irq(sdev->irq, sdev);
-> >> +fail_regs:
-> >> +	iounmap(sdev->regs);
-> >> +fail_sdev:
-> >> +	kfree(sdev);
-> >> +fail:
-> >> +	dev_info(dev, "probe failed\n");
-> >> +	return ret;
-> >> +}
-> >> +
-> >> +static int __devexit sdo_remove(struct platform_device *pdev)
-> >> +{
-> >> +	struct v4l2_subdev *sd = dev_get_drvdata(&pdev->dev);
-> >> +	struct sdo_device *sdev = sd_to_sdev(sd);
-> >> +
-> >> +	pm_runtime_disable(&pdev->dev);
-> >> +	regulator_put(sdev->vdet);
-> >> +	regulator_put(sdev->vdac);
-> >> +	clk_put(sdev->fout_vpll);
-> >> +	clk_put(sdev->dacphy);
-> >> +	clk_put(sdev->dac);
-> >> +	clk_put(sdev->sclk_dac);
-> >> +	free_irq(sdev->irq, sdev);
-> >> +	iounmap(sdev->regs);
-> >> +	kfree(sdev);
-> >> +
-> >> +	dev_info(&pdev->dev, "remove successful\n");
-> >> +	return 0;
-> >> +}
-> >> +
-> >> +static int sdo_runtime_suspend(struct device *dev)
-> >> +{
-> >> +	struct v4l2_subdev *sd = dev_get_drvdata(dev);
-> >> +	struct sdo_device *sdev = sd_to_sdev(sd);
-> >> +
-> >> +	dev_info(dev, "suspend\n");
-> >> +	regulator_disable(sdev->vdet);
-> >> +	regulator_disable(sdev->vdac);
-> >> +	clk_disable(sdev->dac);
-> >> +	clk_disable(sdev->sclk_dac);
-> >> +	return 0;
-> >> +}
-> >> +
-> >> +static int sdo_runtime_resume(struct device *dev)
-> >> +{
-> >> +	struct v4l2_subdev *sd = dev_get_drvdata(dev);
-> >> +	struct sdo_device *sdev = sd_to_sdev(sd);
-> >> +
-> >> +	dev_info(dev, "resume\n");
-> >> +	clk_enable(sdev->sclk_dac);
-> >> +	clk_enable(sdev->dac);
-> >> +	regulator_enable(sdev->vdac);
-> >> +	regulator_enable(sdev->vdet);
-> >> +
-> >> +	/* software reset */
-> >> +	sdo_write_mask(sdev, SDO_CLKCON, ~0, SDO_TVOUT_SW_RESET);
-> >> +	mdelay(10);
-> >> +	sdo_write_mask(sdev, SDO_CLKCON, 0, SDO_TVOUT_SW_RESET);
-> >> +
-> >> +	/* setting TV mode */
-> >> +	sdo_write_mask(sdev, SDO_CONFIG, sdev->fmt->cookie, SDO_STANDARD_MASK);
-> >> +	/* XXX: forcing interlaced mode using undocumented bit */
-> >> +	sdo_write_mask(sdev, SDO_CONFIG, 0, SDO_PROGRESSIVE);
-> >> +	/* turn all VBI off */
-> >> +	sdo_write_mask(sdev, SDO_VBI, 0, SDO_CVBS_WSS_INS |
-> >> +		SDO_CVBS_CLOSED_CAPTION_MASK);
-> >> +	/* turn all post processing off */
-> >> +	sdo_write_mask(sdev, SDO_CCCON, ~0, SDO_COMPENSATION_BHS_ADJ_OFF |
-> >> +		SDO_COMPENSATION_CVBS_COMP_OFF);
-> >> +	sdo_reg_debug(sdev);
-> >> +	return 0;
-> >> +}
-> >> +
-> >> +static const struct dev_pm_ops sdo_pm_ops = {
-> >> +	.runtime_suspend = sdo_runtime_suspend,
-> >> +	.runtime_resume	 = sdo_runtime_resume,
-> >> +};
-> >> +
-> >> +static irqreturn_t sdo_irq_handler(int irq, void *dev_data)
-> >> +{
-> >> +	struct sdo_device *sdev = dev_data;
-> >> +
-> >> +	/* clear interrupt */
-> >> +	sdo_write_mask(sdev, SDO_IRQ, ~0, SDO_VSYNC_IRQ_PEND);
-> >> +	return IRQ_HANDLED;
-> >> +}
-> >> +
-> >> +static int sdo_s_power(struct v4l2_subdev *sd, int on);
-> >> +static int sdo_s_std_output(struct v4l2_subdev *sd, v4l2_std_id std);
-> >> +static int sdo_g_tvnorms(struct v4l2_subdev *sd, v4l2_std_id *std);
-> >> +static int sdo_g_mbus_fmt(struct v4l2_subdev *sd,
-> >> +	struct v4l2_mbus_framefmt *fmt);
-> >> +static int sdo_s_stream(struct v4l2_subdev *sd, int on);
-> >> +
-> >> +static const struct v4l2_subdev_core_ops sdo_sd_core_ops = {
-> >> +	.s_power = sdo_s_power,
-> >> +};
-> >> +
-> >> +static const struct v4l2_subdev_video_ops sdo_sd_video_ops = {
-> >> +	.s_std_output = sdo_s_std_output,
-> >> +	.querystd = NULL,
-> >>     
-> >
-> > Huh? This can be removed.
-> >   
-> 
-> >   
-> >> +	.g_tvnorms = sdo_g_tvnorms,
-> >> +	.g_mbus_fmt = sdo_g_mbus_fmt,
-> >> +	.s_stream = sdo_s_stream,
-> >> +};
-> >> +
-> >> +static const struct v4l2_subdev_ops sdo_sd_ops = {
-> >> +	.core = &sdo_sd_core_ops,
-> >> +	.video = &sdo_sd_video_ops,
-> >> +};
-> >> +
-> >> +static const struct sdo_format sdo_format[] = {
-> >> +	{ V4L2_STD_NTSC_M,	.height = 480, .cookie = SDO_NTSC_M },
-> >> +	{ V4L2_STD_PAL_M,	.height = 480, .cookie = SDO_PAL_M },
-> >> +	{ V4L2_STD_PAL_B,	.height = 576, .cookie = SDO_PAL_BGHID },
-> >> +	{ V4L2_STD_PAL_D,	.height = 576, .cookie = SDO_PAL_BGHID },
-> >> +	{ V4L2_STD_PAL_G,	.height = 576, .cookie = SDO_PAL_BGHID },
-> >> +	{ V4L2_STD_PAL_H,	.height = 576, .cookie = SDO_PAL_BGHID },
-> >> +	{ V4L2_STD_PAL_I,	.height = 576, .cookie = SDO_PAL_BGHID },
-> >>     
-> 5 above could be merged
-> >> +	{ V4L2_STD_PAL_N,	.height = 576, .cookie = SDO_PAL_N },
-> >> +	{ V4L2_STD_PAL_Nc,	.height = 576, .cookie = SDO_PAL_NC },
-> >> +	{ V4L2_STD_NTSC_443,	.height = 480, .cookie = SDO_NTSC_443 },
-> >> +	{ V4L2_STD_PAL_60,	.height = 480, .cookie = SDO_PAL_60 },
-> >> +};
-> >>     
-> >
-> > No SECAM support?
-> >
-> > Anyway, this is too simplistic. The right way to properly determine the standard
-> > based on v4l2_std_id is:
-> >
-> > if (std == PAL_N)
-> > 	// select PAL_N
-> > else if (std == PAL_Nc)
-> > 	// select PAL_Nc
-> > else if (std == PAL_M)
-> > 	// select PAL_M
-> > else if (std == PAL_60)
-> > 	// select PAL_60
-> > else if (std == NTSC_443)
-> > 	// select NTSC_443
-> > else if (std & PAL)
-> > 	// select PAL
-> > else if (std & NTSC)
-> > 	// select NTSC
-> > else
-> > 	// error
-> >
-> > If SECAM is added to this mix as well, then it becomes:
-> >
-> > ...
-> > else if (std & PAL)
-> > 	// select PAL
-> > else if (std & NTSC)
-> > 	// select NTSC
-> > else if (std & SECAM)
-> > 	// select SECAM
-> > else
-> > 	// error
-> >   
-> I only need to detect standards in sdo_format table.
+--Multipart=_Thu__9_Jun_2011_11_14_49_-0700_biT4KWO+gJT0AMnn
+Content-Type: application/octet-stream;
+ name="config-r7963"
+Content-Disposition: attachment;
+ filename="config-r7963"
+Content-Transfer-Encoding: base64
 
-Are you sure that there is no SECAM support? It's odd that unusual formats like
-PAL-Nc are supported, but not the more common SECAM formats.
+IwojIEF1dG9tYXRpY2FsbHkgZ2VuZXJhdGVkIG1ha2UgY29uZmlnOiBkb24ndCBlZGl0CiMgTGlu
+dXgvaTM4NiAzLjAuMC1yYzIgS2VybmVsIENvbmZpZ3VyYXRpb24KIwojIENPTkZJR182NEJJVCBp
+cyBub3Qgc2V0CkNPTkZJR19YODZfMzI9eQojIENPTkZJR19YODZfNjQgaXMgbm90IHNldApDT05G
+SUdfWDg2PXkKQ09ORklHX0lOU1RSVUNUSU9OX0RFQ09ERVI9eQpDT05GSUdfT1VUUFVUX0ZPUk1B
+VD0iZWxmMzItaTM4NiIKQ09ORklHX0FSQ0hfREVGQ09ORklHPSJhcmNoL3g4Ni9jb25maWdzL2kz
+ODZfZGVmY29uZmlnIgpDT05GSUdfR0VORVJJQ19DTU9TX1VQREFURT15CkNPTkZJR19DTE9DS1NP
+VVJDRV9XQVRDSERPRz15CkNPTkZJR19HRU5FUklDX0NMT0NLRVZFTlRTPXkKQ09ORklHX0dFTkVS
+SUNfQ0xPQ0tFVkVOVFNfQlJPQURDQVNUPXkKQ09ORklHX0xPQ0tERVBfU1VQUE9SVD15CkNPTkZJ
+R19TVEFDS1RSQUNFX1NVUFBPUlQ9eQpDT05GSUdfSEFWRV9MQVRFTkNZVE9QX1NVUFBPUlQ9eQpD
+T05GSUdfTU1VPXkKQ09ORklHX1pPTkVfRE1BPXkKQ09ORklHX05FRURfRE1BX01BUF9TVEFURT15
+CkNPTkZJR19ORUVEX1NHX0RNQV9MRU5HVEg9eQpDT05GSUdfR0VORVJJQ19JU0FfRE1BPXkKQ09O
+RklHX0dFTkVSSUNfSU9NQVA9eQpDT05GSUdfR0VORVJJQ19IV0VJR0hUPXkKQ09ORklHX0dFTkVS
+SUNfR1BJTz15CkNPTkZJR19BUkNIX01BWV9IQVZFX1BDX0ZEQz15CiMgQ09ORklHX1JXU0VNX0dF
+TkVSSUNfU1BJTkxPQ0sgaXMgbm90IHNldApDT05GSUdfUldTRU1fWENIR0FERF9BTEdPUklUSE09
+eQpDT05GSUdfQVJDSF9IQVNfQ1BVX0lETEVfV0FJVD15CkNPTkZJR19HRU5FUklDX0NBTElCUkFU
+RV9ERUxBWT15CiMgQ09ORklHX0dFTkVSSUNfVElNRV9WU1lTQ0FMTCBpcyBub3Qgc2V0CkNPTkZJ
+R19BUkNIX0hBU19DUFVfUkVMQVg9eQpDT05GSUdfQVJDSF9IQVNfREVGQVVMVF9JRExFPXkKQ09O
+RklHX0FSQ0hfSEFTX0NBQ0hFX0xJTkVfU0laRT15CkNPTkZJR19IQVZFX1NFVFVQX1BFUl9DUFVf
+QVJFQT15CkNPTkZJR19ORUVEX1BFUl9DUFVfRU1CRURfRklSU1RfQ0hVTks9eQpDT05GSUdfTkVF
+RF9QRVJfQ1BVX1BBR0VfRklSU1RfQ0hVTks9eQojIENPTkZJR19IQVZFX0NQVU1BU0tfT0ZfQ1BV
+X01BUCBpcyBub3Qgc2V0CkNPTkZJR19BUkNIX0hJQkVSTkFUSU9OX1BPU1NJQkxFPXkKQ09ORklH
+X0FSQ0hfU1VTUEVORF9QT1NTSUJMRT15CiMgQ09ORklHX1pPTkVfRE1BMzIgaXMgbm90IHNldApD
+T05GSUdfQVJDSF9QT1BVTEFURVNfTk9ERV9NQVA9eQojIENPTkZJR19BVURJVF9BUkNIIGlzIG5v
+dCBzZXQKQ09ORklHX0FSQ0hfU1VQUE9SVFNfT1BUSU1JWkVEX0lOTElOSU5HPXkKQ09ORklHX0FS
+Q0hfU1VQUE9SVFNfREVCVUdfUEFHRUFMTE9DPXkKQ09ORklHX1g4Nl8zMl9TTVA9eQpDT05GSUdf
+WDg2X0hUPXkKQ09ORklHX1g4Nl8zMl9MQVpZX0dTPXkKQ09ORklHX0FSQ0hfSFdFSUdIVF9DRkxB
+R1M9Ii1mY2FsbC1zYXZlZC1lY3ggLWZjYWxsLXNhdmVkLWVkeCIKQ09ORklHX0tUSU1FX1NDQUxB
+Uj15CkNPTkZJR19BUkNIX0NQVV9QUk9CRV9SRUxFQVNFPXkKQ09ORklHX0RFRkNPTkZJR19MSVNU
+PSIvbGliL21vZHVsZXMvJFVOQU1FX1JFTEVBU0UvLmNvbmZpZyIKQ09ORklHX0NPTlNUUlVDVE9S
+Uz15CkNPTkZJR19IQVZFX0lSUV9XT1JLPXkKQ09ORklHX0lSUV9XT1JLPXkKCiMKIyBHZW5lcmFs
+IHNldHVwCiMKIyBDT05GSUdfRVhQRVJJTUVOVEFMIGlzIG5vdCBzZXQKQ09ORklHX0lOSVRfRU5W
+X0FSR19MSU1JVD0zMgpDT05GSUdfQ1JPU1NfQ09NUElMRT0iIgpDT05GSUdfTE9DQUxWRVJTSU9O
+PSIiCkNPTkZJR19MT0NBTFZFUlNJT05fQVVUTz15CkNPTkZJR19IQVZFX0tFUk5FTF9HWklQPXkK
+Q09ORklHX0hBVkVfS0VSTkVMX0JaSVAyPXkKQ09ORklHX0hBVkVfS0VSTkVMX0xaTUE9eQpDT05G
+SUdfSEFWRV9LRVJORUxfWFo9eQpDT05GSUdfSEFWRV9LRVJORUxfTFpPPXkKIyBDT05GSUdfS0VS
+TkVMX0daSVAgaXMgbm90IHNldApDT05GSUdfS0VSTkVMX0JaSVAyPXkKIyBDT05GSUdfS0VSTkVM
+X0xaTUEgaXMgbm90IHNldAojIENPTkZJR19LRVJORUxfWFogaXMgbm90IHNldAojIENPTkZJR19L
+RVJORUxfTFpPIGlzIG5vdCBzZXQKIyBDT05GSUdfU1lTVklQQyBpcyBub3Qgc2V0CkNPTkZJR19C
+U0RfUFJPQ0VTU19BQ0NUPXkKIyBDT05GSUdfQlNEX1BST0NFU1NfQUNDVF9WMyBpcyBub3Qgc2V0
+CkNPTkZJR19GSEFORExFPXkKQ09ORklHX0hBVkVfR0VORVJJQ19IQVJESVJRUz15CgojCiMgSVJR
+IHN1YnN5c3RlbQojCkNPTkZJR19HRU5FUklDX0hBUkRJUlFTPXkKQ09ORklHX0hBVkVfU1BBUlNF
+X0lSUT15CkNPTkZJR19HRU5FUklDX0lSUV9QUk9CRT15CkNPTkZJR19HRU5FUklDX0lSUV9TSE9X
+PXkKQ09ORklHX0dFTkVSSUNfUEVORElOR19JUlE9eQpDT05GSUdfSVJRX0ZPUkNFRF9USFJFQURJ
+Tkc9eQojIENPTkZJR19TUEFSU0VfSVJRIGlzIG5vdCBzZXQKCiMKIyBSQ1UgU3Vic3lzdGVtCiMK
+Q09ORklHX1RSRUVfUFJFRU1QVF9SQ1U9eQpDT05GSUdfUFJFRU1QVF9SQ1U9eQojIENPTkZJR19S
+Q1VfVFJBQ0UgaXMgbm90IHNldApDT05GSUdfUkNVX0ZBTk9VVD0zMgpDT05GSUdfUkNVX0ZBTk9V
+VF9FWEFDVD15CiMgQ09ORklHX1RSRUVfUkNVX1RSQUNFIGlzIG5vdCBzZXQKIyBDT05GSUdfUkNV
+X0JPT1NUIGlzIG5vdCBzZXQKQ09ORklHX0lLQ09ORklHPW0KIyBDT05GSUdfSUtDT05GSUdfUFJP
+QyBpcyBub3Qgc2V0CkNPTkZJR19MT0dfQlVGX1NISUZUPTE3CkNPTkZJR19IQVZFX1VOU1RBQkxF
+X1NDSEVEX0NMT0NLPXkKQ09ORklHX0NHUk9VUFM9eQojIENPTkZJR19DR1JPVVBfREVCVUcgaXMg
+bm90IHNldApDT05GSUdfQ0dST1VQX0ZSRUVaRVI9eQpDT05GSUdfQ0dST1VQX0RFVklDRT15CkNP
+TkZJR19DUFVTRVRTPXkKIyBDT05GSUdfUFJPQ19QSURfQ1BVU0VUIGlzIG5vdCBzZXQKQ09ORklH
+X0NHUk9VUF9DUFVBQ0NUPXkKQ09ORklHX1JFU09VUkNFX0NPVU5URVJTPXkKIyBDT05GSUdfQ0dS
+T1VQX01FTV9SRVNfQ1RMUiBpcyBub3Qgc2V0CkNPTkZJR19DR1JPVVBfUEVSRj15CkNPTkZJR19D
+R1JPVVBfU0NIRUQ9eQpDT05GSUdfRkFJUl9HUk9VUF9TQ0hFRD15CkNPTkZJR19OQU1FU1BBQ0VT
+PXkKIyBDT05GSUdfVVRTX05TIGlzIG5vdCBzZXQKQ09ORklHX1BJRF9OUz15CkNPTkZJR19TQ0hF
+RF9BVVRPR1JPVVA9eQpDT05GSUdfU1lTRlNfREVQUkVDQVRFRD15CkNPTkZJR19TWVNGU19ERVBS
+RUNBVEVEX1YyPXkKIyBDT05GSUdfUkVMQVkgaXMgbm90IHNldApDT05GSUdfQkxLX0RFVl9JTklU
+UkQ9eQpDT05GSUdfSU5JVFJBTUZTX1NPVVJDRT0iIgpDT05GSUdfUkRfR1pJUD15CkNPTkZJR19S
+RF9CWklQMj15CkNPTkZJR19SRF9MWk1BPXkKQ09ORklHX1JEX1haPXkKQ09ORklHX1JEX0xaTz15
+CkNPTkZJR19DQ19PUFRJTUlaRV9GT1JfU0laRT15CkNPTkZJR19BTk9OX0lOT0RFUz15CkNPTkZJ
+R19FWFBFUlQ9eQojIENPTkZJR19VSUQxNiBpcyBub3Qgc2V0CkNPTkZJR19LQUxMU1lNUz15CkNP
+TkZJR19LQUxMU1lNU19BTEw9eQpDT05GSUdfSE9UUExVRz15CkNPTkZJR19QUklOVEs9eQojIENP
+TkZJR19CVUcgaXMgbm90IHNldAojIENPTkZJR19FTEZfQ09SRSBpcyBub3Qgc2V0CiMgQ09ORklH
+X1BDU1BLUl9QTEFURk9STSBpcyBub3Qgc2V0CiMgQ09ORklHX0JBU0VfRlVMTCBpcyBub3Qgc2V0
+CiMgQ09ORklHX0ZVVEVYIGlzIG5vdCBzZXQKIyBDT05GSUdfRVBPTEwgaXMgbm90IHNldApDT05G
+SUdfU0lHTkFMRkQ9eQpDT05GSUdfVElNRVJGRD15CkNPTkZJR19FVkVOVEZEPXkKIyBDT05GSUdf
+U0hNRU0gaXMgbm90IHNldApDT05GSUdfQUlPPXkKQ09ORklHX0VNQkVEREVEPXkKQ09ORklHX0hB
+VkVfUEVSRl9FVkVOVFM9eQoKIwojIEtlcm5lbCBQZXJmb3JtYW5jZSBFdmVudHMgQW5kIENvdW50
+ZXJzCiMKQ09ORklHX1BFUkZfRVZFTlRTPXkKIyBDT05GSUdfUEVSRl9DT1VOVEVSUyBpcyBub3Qg
+c2V0CiMgQ09ORklHX0RFQlVHX1BFUkZfVVNFX1ZNQUxMT0MgaXMgbm90IHNldAojIENPTkZJR19W
+TV9FVkVOVF9DT1VOVEVSUyBpcyBub3Qgc2V0CiMgQ09ORklHX1BDSV9RVUlSS1MgaXMgbm90IHNl
+dApDT05GSUdfU0xVQl9ERUJVRz15CiMgQ09ORklHX0NPTVBBVF9CUksgaXMgbm90IHNldAojIENP
+TkZJR19TTEFCIGlzIG5vdCBzZXQKQ09ORklHX1NMVUI9eQojIENPTkZJR19TTE9CIGlzIG5vdCBz
+ZXQKQ09ORklHX1BST0ZJTElORz15CkNPTkZJR19PUFJPRklMRT1tCiMgQ09ORklHX09QUk9GSUxF
+X0VWRU5UX01VTFRJUExFWCBpcyBub3Qgc2V0CkNPTkZJR19IQVZFX09QUk9GSUxFPXkKIyBDT05G
+SUdfS1BST0JFUyBpcyBub3Qgc2V0CiMgQ09ORklHX0pVTVBfTEFCRUwgaXMgbm90IHNldApDT05G
+SUdfSEFWRV9FRkZJQ0lFTlRfVU5BTElHTkVEX0FDQ0VTUz15CkNPTkZJR19IQVZFX0lPUkVNQVBf
+UFJPVD15CkNPTkZJR19IQVZFX0tQUk9CRVM9eQpDT05GSUdfSEFWRV9LUkVUUFJPQkVTPXkKQ09O
+RklHX0hBVkVfT1BUUFJPQkVTPXkKQ09ORklHX0hBVkVfQVJDSF9UUkFDRUhPT0s9eQpDT05GSUdf
+SEFWRV9ETUFfQVRUUlM9eQpDT05GSUdfVVNFX0dFTkVSSUNfU01QX0hFTFBFUlM9eQpDT05GSUdf
+SEFWRV9SRUdTX0FORF9TVEFDS19BQ0NFU1NfQVBJPXkKQ09ORklHX0hBVkVfRE1BX0FQSV9ERUJV
+Rz15CkNPTkZJR19IQVZFX0hXX0JSRUFLUE9JTlQ9eQpDT05GSUdfSEFWRV9NSVhFRF9CUkVBS1BP
+SU5UU19SRUdTPXkKQ09ORklHX0hBVkVfVVNFUl9SRVRVUk5fTk9USUZJRVI9eQpDT05GSUdfSEFW
+RV9QRVJGX0VWRU5UU19OTUk9eQpDT05GSUdfSEFWRV9BUkNIX0pVTVBfTEFCRUw9eQoKIwojIEdD
+T1YtYmFzZWQga2VybmVsIHByb2ZpbGluZwojCkNPTkZJR19HQ09WX0tFUk5FTD15CkNPTkZJR19H
+Q09WX1BST0ZJTEVfQUxMPXkKQ09ORklHX0hBVkVfR0VORVJJQ19ETUFfQ09IRVJFTlQ9eQpDT05G
+SUdfU0xBQklORk89eQpDT05GSUdfUlRfTVVURVhFUz15CkNPTkZJR19CQVNFX1NNQUxMPTEKQ09O
+RklHX01PRFVMRVM9eQojIENPTkZJR19NT0RVTEVfRk9SQ0VfTE9BRCBpcyBub3Qgc2V0CkNPTkZJ
+R19NT0RVTEVfVU5MT0FEPXkKIyBDT05GSUdfTU9EVkVSU0lPTlMgaXMgbm90IHNldAojIENPTkZJ
+R19NT0RVTEVfU1JDVkVSU0lPTl9BTEwgaXMgbm90IHNldApDT05GSUdfU1RPUF9NQUNISU5FPXkK
+IyBDT05GSUdfQkxPQ0sgaXMgbm90IHNldAojIENPTkZJR19JTkxJTkVfU1BJTl9UUllMT0NLIGlz
+IG5vdCBzZXQKIyBDT05GSUdfSU5MSU5FX1NQSU5fVFJZTE9DS19CSCBpcyBub3Qgc2V0CiMgQ09O
+RklHX0lOTElORV9TUElOX0xPQ0sgaXMgbm90IHNldAojIENPTkZJR19JTkxJTkVfU1BJTl9MT0NL
+X0JIIGlzIG5vdCBzZXQKIyBDT05GSUdfSU5MSU5FX1NQSU5fTE9DS19JUlEgaXMgbm90IHNldAoj
+IENPTkZJR19JTkxJTkVfU1BJTl9MT0NLX0lSUVNBVkUgaXMgbm90IHNldAojIENPTkZJR19JTkxJ
+TkVfU1BJTl9VTkxPQ0sgaXMgbm90IHNldAojIENPTkZJR19JTkxJTkVfU1BJTl9VTkxPQ0tfQkgg
+aXMgbm90IHNldAojIENPTkZJR19JTkxJTkVfU1BJTl9VTkxPQ0tfSVJRIGlzIG5vdCBzZXQKIyBD
+T05GSUdfSU5MSU5FX1NQSU5fVU5MT0NLX0lSUVJFU1RPUkUgaXMgbm90IHNldAojIENPTkZJR19J
+TkxJTkVfUkVBRF9UUllMT0NLIGlzIG5vdCBzZXQKIyBDT05GSUdfSU5MSU5FX1JFQURfTE9DSyBp
+cyBub3Qgc2V0CiMgQ09ORklHX0lOTElORV9SRUFEX0xPQ0tfQkggaXMgbm90IHNldAojIENPTkZJ
+R19JTkxJTkVfUkVBRF9MT0NLX0lSUSBpcyBub3Qgc2V0CiMgQ09ORklHX0lOTElORV9SRUFEX0xP
+Q0tfSVJRU0FWRSBpcyBub3Qgc2V0CiMgQ09ORklHX0lOTElORV9SRUFEX1VOTE9DSyBpcyBub3Qg
+c2V0CiMgQ09ORklHX0lOTElORV9SRUFEX1VOTE9DS19CSCBpcyBub3Qgc2V0CiMgQ09ORklHX0lO
+TElORV9SRUFEX1VOTE9DS19JUlEgaXMgbm90IHNldAojIENPTkZJR19JTkxJTkVfUkVBRF9VTkxP
+Q0tfSVJRUkVTVE9SRSBpcyBub3Qgc2V0CiMgQ09ORklHX0lOTElORV9XUklURV9UUllMT0NLIGlz
+IG5vdCBzZXQKIyBDT05GSUdfSU5MSU5FX1dSSVRFX0xPQ0sgaXMgbm90IHNldAojIENPTkZJR19J
+TkxJTkVfV1JJVEVfTE9DS19CSCBpcyBub3Qgc2V0CiMgQ09ORklHX0lOTElORV9XUklURV9MT0NL
+X0lSUSBpcyBub3Qgc2V0CiMgQ09ORklHX0lOTElORV9XUklURV9MT0NLX0lSUVNBVkUgaXMgbm90
+IHNldAojIENPTkZJR19JTkxJTkVfV1JJVEVfVU5MT0NLIGlzIG5vdCBzZXQKIyBDT05GSUdfSU5M
+SU5FX1dSSVRFX1VOTE9DS19CSCBpcyBub3Qgc2V0CiMgQ09ORklHX0lOTElORV9XUklURV9VTkxP
+Q0tfSVJRIGlzIG5vdCBzZXQKIyBDT05GSUdfSU5MSU5FX1dSSVRFX1VOTE9DS19JUlFSRVNUT1JF
+IGlzIG5vdCBzZXQKIyBDT05GSUdfTVVURVhfU1BJTl9PTl9PV05FUiBpcyBub3Qgc2V0CkNPTkZJ
+R19GUkVFWkVSPXkKCiMKIyBQcm9jZXNzb3IgdHlwZSBhbmQgZmVhdHVyZXMKIwpDT05GSUdfVElD
+S19PTkVTSE9UPXkKQ09ORklHX05PX0haPXkKQ09ORklHX0hJR0hfUkVTX1RJTUVSUz15CkNPTkZJ
+R19HRU5FUklDX0NMT0NLRVZFTlRTX0JVSUxEPXkKQ09ORklHX1NNUD15CkNPTkZJR19YODZfTVBQ
+QVJTRT15CiMgQ09ORklHX1g4Nl9CSUdTTVAgaXMgbm90IHNldApDT05GSUdfWDg2X0VYVEVOREVE
+X1BMQVRGT1JNPXkKIyBDT05GSUdfWDg2X01SU1QgaXMgbm90IHNldAojIENPTkZJR19YODZfUkRD
+MzIxWCBpcyBub3Qgc2V0CkNPTkZJR19YODZfMzJfTk9OX1NUQU5EQVJEPXkKIyBDT05GSUdfWDg2
+X05VTUFRIGlzIG5vdCBzZXQKQ09ORklHX1g4Nl9TVU1NSVQ9eQojIENPTkZJR19YODZfMzJfSVJJ
+UyBpcyBub3Qgc2V0CiMgQ09ORklHX1NDSEVEX09NSVRfRlJBTUVfUE9JTlRFUiBpcyBub3Qgc2V0
+CiMgQ09ORklHX1BBUkFWSVJUX0dVRVNUIGlzIG5vdCBzZXQKQ09ORklHX05PX0JPT1RNRU09eQoj
+IENPTkZJR19NRU1URVNUIGlzIG5vdCBzZXQKQ09ORklHX1g4Nl9DWUNMT05FX1RJTUVSPXkKIyBD
+T05GSUdfTTM4NiBpcyBub3Qgc2V0CiMgQ09ORklHX000ODYgaXMgbm90IHNldAojIENPTkZJR19N
+NTg2IGlzIG5vdCBzZXQKIyBDT05GSUdfTTU4NlRTQyBpcyBub3Qgc2V0CiMgQ09ORklHX001ODZN
+TVggaXMgbm90IHNldApDT05GSUdfTTY4Nj15CiMgQ09ORklHX01QRU5USVVNSUkgaXMgbm90IHNl
+dAojIENPTkZJR19NUEVOVElVTUlJSSBpcyBub3Qgc2V0CiMgQ09ORklHX01QRU5USVVNTSBpcyBu
+b3Qgc2V0CiMgQ09ORklHX01QRU5USVVNNCBpcyBub3Qgc2V0CiMgQ09ORklHX01LNiBpcyBub3Qg
+c2V0CiMgQ09ORklHX01LNyBpcyBub3Qgc2V0CiMgQ09ORklHX01LOCBpcyBub3Qgc2V0CiMgQ09O
+RklHX01DUlVTT0UgaXMgbm90IHNldAojIENPTkZJR19NRUZGSUNFT04gaXMgbm90IHNldAojIENP
+TkZJR19NV0lOQ0hJUEM2IGlzIG5vdCBzZXQKIyBDT05GSUdfTVdJTkNISVAzRCBpcyBub3Qgc2V0
+CiMgQ09ORklHX01FTEFOIGlzIG5vdCBzZXQKIyBDT05GSUdfTUdFT0RFR1gxIGlzIG5vdCBzZXQK
+IyBDT05GSUdfTUdFT0RFX0xYIGlzIG5vdCBzZXQKIyBDT05GSUdfTUNZUklYSUlJIGlzIG5vdCBz
+ZXQKIyBDT05GSUdfTVZJQUMzXzIgaXMgbm90IHNldAojIENPTkZJR19NVklBQzcgaXMgbm90IHNl
+dAojIENPTkZJR19NQ09SRTIgaXMgbm90IHNldAojIENPTkZJR19NQVRPTSBpcyBub3Qgc2V0CiMg
+Q09ORklHX1g4Nl9HRU5FUklDIGlzIG5vdCBzZXQKQ09ORklHX1g4Nl9JTlRFUk5PREVfQ0FDSEVf
+U0hJRlQ9NQpDT05GSUdfWDg2X0NNUFhDSEc9eQpDT05GSUdfQ01QWENIR19MT0NBTD15CkNPTkZJ
+R19YODZfTDFfQ0FDSEVfU0hJRlQ9NQpDT05GSUdfWDg2X1hBREQ9eQpDT05GSUdfWDg2X1BQUk9f
+RkVOQ0U9eQpDT05GSUdfWDg2X1dQX1dPUktTX09LPXkKQ09ORklHX1g4Nl9JTlZMUEc9eQpDT05G
+SUdfWDg2X0JTV0FQPXkKQ09ORklHX1g4Nl9QT1BBRF9PSz15CkNPTkZJR19YODZfVVNFX1BQUk9f
+Q0hFQ0tTVU09eQpDT05GSUdfWDg2X1RTQz15CkNPTkZJR19YODZfQ01QWENIRzY0PXkKQ09ORklH
+X1g4Nl9DTU9WPXkKQ09ORklHX1g4Nl9NSU5JTVVNX0NQVV9GQU1JTFk9NQpDT05GSUdfWDg2X0RF
+QlVHQ1RMTVNSPXkKQ09ORklHX1BST0NFU1NPUl9TRUxFQ1Q9eQojIENPTkZJR19DUFVfU1VQX0lO
+VEVMIGlzIG5vdCBzZXQKQ09ORklHX0NQVV9TVVBfQ1lSSVhfMzI9eQpDT05GSUdfQ1BVX1NVUF9B
+TUQ9eQpDT05GSUdfQ1BVX1NVUF9DRU5UQVVSPXkKIyBDT05GSUdfQ1BVX1NVUF9UUkFOU01FVEFf
+MzIgaXMgbm90IHNldApDT05GSUdfQ1BVX1NVUF9VTUNfMzI9eQojIENPTkZJR19IUEVUX1RJTUVS
+IGlzIG5vdCBzZXQKIyBDT05GSUdfRE1JIGlzIG5vdCBzZXQKIyBDT05GSUdfSU9NTVVfSEVMUEVS
+IGlzIG5vdCBzZXQKIyBDT05GSUdfSU9NTVVfQVBJIGlzIG5vdCBzZXQKQ09ORklHX05SX0NQVVM9
+OAojIENPTkZJR19TQ0hFRF9TTVQgaXMgbm90IHNldApDT05GSUdfU0NIRURfTUM9eQojIENPTkZJ
+R19JUlFfVElNRV9BQ0NPVU5USU5HIGlzIG5vdCBzZXQKIyBDT05GSUdfUFJFRU1QVF9OT05FIGlz
+IG5vdCBzZXQKIyBDT05GSUdfUFJFRU1QVF9WT0xVTlRBUlkgaXMgbm90IHNldApDT05GSUdfUFJF
+RU1QVD15CkNPTkZJR19YODZfTE9DQUxfQVBJQz15CkNPTkZJR19YODZfSU9fQVBJQz15CkNPTkZJ
+R19YODZfUkVST1VURV9GT1JfQlJPS0VOX0JPT1RfSVJRUz15CiMgQ09ORklHX1g4Nl9NQ0UgaXMg
+bm90IHNldApDT05GSUdfVk04Nj15CiMgQ09ORklHX1RPU0hJQkEgaXMgbm90IHNldApDT05GSUdf
+SThLPW0KIyBDT05GSUdfWDg2X1JFQk9PVEZJWFVQUyBpcyBub3Qgc2V0CiMgQ09ORklHX01JQ1JP
+Q09ERSBpcyBub3Qgc2V0CiMgQ09ORklHX1g4Nl9NU1IgaXMgbm90IHNldApDT05GSUdfWDg2X0NQ
+VUlEPW0KIyBDT05GSUdfTk9ISUdITUVNIGlzIG5vdCBzZXQKQ09ORklHX0hJR0hNRU00Rz15CiMg
+Q09ORklHX0hJR0hNRU02NEcgaXMgbm90IHNldApDT05GSUdfUEFHRV9PRkZTRVQ9MHhDMDAwMDAw
+MApDT05GSUdfSElHSE1FTT15CiMgQ09ORklHX0FSQ0hfUEhZU19BRERSX1RfNjRCSVQgaXMgbm90
+IHNldAojIENPTkZJR19BUkNIX0RNQV9BRERSX1RfNjRCSVQgaXMgbm90IHNldAoKIwojIE5VTUEg
+KFN1bW1pdCkgcmVxdWlyZXMgU01QLCA2NEdCIGhpZ2htZW0gc3VwcG9ydCwgQUNQSQojCkNPTkZJ
+R19ORUVEX05PREVfTUVNTUFQX1NJWkU9eQpDT05GSUdfQVJDSF9GTEFUTUVNX0VOQUJMRT15CkNP
+TkZJR19BUkNIX1NQQVJTRU1FTV9FTkFCTEU9eQpDT05GSUdfQVJDSF9TRUxFQ1RfTUVNT1JZX01P
+REVMPXkKQ09ORklHX0lMTEVHQUxfUE9JTlRFUl9WQUxVRT0wCkNPTkZJR19TRUxFQ1RfTUVNT1JZ
+X01PREVMPXkKIyBDT05GSUdfRkxBVE1FTV9NQU5VQUwgaXMgbm90IHNldApDT05GSUdfU1BBUlNF
+TUVNX01BTlVBTD15CkNPTkZJR19TUEFSU0VNRU09eQpDT05GSUdfSEFWRV9NRU1PUllfUFJFU0VO
+VD15CkNPTkZJR19TUEFSU0VNRU1fU1RBVElDPXkKQ09ORklHX0hBVkVfTUVNQkxPQ0s9eQojIENP
+TkZJR19NRU1PUllfSE9UUExVRyBpcyBub3Qgc2V0CkNPTkZJR19TUExJVF9QVExPQ0tfQ1BVUz05
+OTk5OTkKQ09ORklHX0NPTVBBQ1RJT049eQpDT05GSUdfTUlHUkFUSU9OPXkKIyBDT05GSUdfUEhZ
+U19BRERSX1RfNjRCSVQgaXMgbm90IHNldApDT05GSUdfWk9ORV9ETUFfRkxBRz0xCkNPTkZJR19W
+SVJUX1RPX0JVUz15CkNPTkZJR19LU009eQpDT05GSUdfREVGQVVMVF9NTUFQX01JTl9BRERSPTQw
+OTYKIyBDT05GSUdfVFJBTlNQQVJFTlRfSFVHRVBBR0UgaXMgbm90IHNldApDT05GSUdfQ0xFQU5D
+QUNIRT15CkNPTkZJR19ISUdIUFRFPXkKIyBDT05GSUdfWDg2X0NIRUNLX0JJT1NfQ09SUlVQVElP
+TiBpcyBub3Qgc2V0CkNPTkZJR19YODZfUkVTRVJWRV9MT1c9NjQKIyBDT05GSUdfTUFUSF9FTVVM
+QVRJT04gaXMgbm90IHNldApDT05GSUdfTVRSUj15CkNPTkZJR19NVFJSX1NBTklUSVpFUj15CkNP
+TkZJR19NVFJSX1NBTklUSVpFUl9FTkFCTEVfREVGQVVMVD0wCkNPTkZJR19NVFJSX1NBTklUSVpF
+Ul9TUEFSRV9SRUdfTlJfREVGQVVMVD0xCiMgQ09ORklHX1g4Nl9QQVQgaXMgbm90IHNldApDT05G
+SUdfU0VDQ09NUD15CiMgQ09ORklHX0NDX1NUQUNLUFJPVEVDVE9SIGlzIG5vdCBzZXQKIyBDT05G
+SUdfSFpfMTAwIGlzIG5vdCBzZXQKQ09ORklHX0haXzI1MD15CiMgQ09ORklHX0haXzMwMCBpcyBu
+b3Qgc2V0CiMgQ09ORklHX0haXzEwMDAgaXMgbm90IHNldApDT05GSUdfSFo9MjUwCkNPTkZJR19T
+Q0hFRF9IUlRJQ0s9eQpDT05GSUdfS0VYRUM9eQojIENPTkZJR19DUkFTSF9EVU1QIGlzIG5vdCBz
+ZXQKQ09ORklHX1BIWVNJQ0FMX1NUQVJUPTB4MTAwMDAwMApDT05GSUdfUkVMT0NBVEFCTEU9eQpD
+T05GSUdfWDg2X05FRURfUkVMT0NTPXkKQ09ORklHX1BIWVNJQ0FMX0FMSUdOPTB4MTAwMDAwMApD
+T05GSUdfSE9UUExVR19DUFU9eQpDT05GSUdfQ09NUEFUX1ZEU089eQpDT05GSUdfQ01ETElORV9C
+T09MPXkKQ09ORklHX0NNRExJTkU9IiIKQ09ORklHX0NNRExJTkVfT1ZFUlJJREU9eQpDT05GSUdf
+QVJDSF9FTkFCTEVfTUVNT1JZX0hPVFBMVUc9eQoKIwojIFBvd2VyIG1hbmFnZW1lbnQgYW5kIEFD
+UEkgb3B0aW9ucwojCkNPTkZJR19TVVNQRU5EPXkKQ09ORklHX1NVU1BFTkRfRlJFRVpFUj15CkNP
+TkZJR19QTV9TTEVFUD15CkNPTkZJR19QTV9TTEVFUF9TTVA9eQpDT05GSUdfUE1fUlVOVElNRT15
+CkNPTkZJR19QTT15CiMgQ09ORklHX1BNX0RFQlVHIGlzIG5vdCBzZXQKIyBDT05GSUdfQUNQSSBp
+cyBub3Qgc2V0CiMgQ09ORklHX1NGSSBpcyBub3Qgc2V0CkNPTkZJR19YODZfQVBNX0JPT1Q9eQpD
+T05GSUdfQVBNPW0KQ09ORklHX0FQTV9JR05PUkVfVVNFUl9TVVNQRU5EPXkKIyBDT05GSUdfQVBN
+X0RPX0VOQUJMRSBpcyBub3Qgc2V0CkNPTkZJR19BUE1fQ1BVX0lETEU9eQpDT05GSUdfQVBNX0RJ
+U1BMQVlfQkxBTks9eQojIENPTkZJR19BUE1fQUxMT1dfSU5UUyBpcyBub3Qgc2V0CgojCiMgQ1BV
+IEZyZXF1ZW5jeSBzY2FsaW5nCiMKQ09ORklHX0NQVV9GUkVRPXkKQ09ORklHX0NQVV9GUkVRX1RB
+QkxFPW0KIyBDT05GSUdfQ1BVX0ZSRVFfU1RBVCBpcyBub3Qgc2V0CiMgQ09ORklHX0NQVV9GUkVR
+X0RFRkFVTFRfR09WX1BFUkZPUk1BTkNFIGlzIG5vdCBzZXQKQ09ORklHX0NQVV9GUkVRX0RFRkFV
+TFRfR09WX1BPV0VSU0FWRT15CiMgQ09ORklHX0NQVV9GUkVRX0RFRkFVTFRfR09WX1VTRVJTUEFD
+RSBpcyBub3Qgc2V0CiMgQ09ORklHX0NQVV9GUkVRX0RFRkFVTFRfR09WX09OREVNQU5EIGlzIG5v
+dCBzZXQKIyBDT05GSUdfQ1BVX0ZSRVFfREVGQVVMVF9HT1ZfQ09OU0VSVkFUSVZFIGlzIG5vdCBz
+ZXQKIyBDT05GSUdfQ1BVX0ZSRVFfR09WX1BFUkZPUk1BTkNFIGlzIG5vdCBzZXQKQ09ORklHX0NQ
+VV9GUkVRX0dPVl9QT1dFUlNBVkU9eQojIENPTkZJR19DUFVfRlJFUV9HT1ZfVVNFUlNQQUNFIGlz
+IG5vdCBzZXQKQ09ORklHX0NQVV9GUkVRX0dPVl9PTkRFTUFORD1tCiMgQ09ORklHX0NQVV9GUkVR
+X0dPVl9DT05TRVJWQVRJVkUgaXMgbm90IHNldAoKIwojIHg4NiBDUFUgZnJlcXVlbmN5IHNjYWxp
+bmcgZHJpdmVycwojCkNPTkZJR19YODZfUE9XRVJOT1dfSzY9bQpDT05GSUdfWDg2X1BPV0VSTk9X
+X0s3PW0KQ09ORklHX1g4Nl9HWF9TVVNQTU9EPW0KQ09ORklHX1g4Nl9TUEVFRFNURVBfQ0VOVFJJ
+Tk89bQpDT05GSUdfWDg2X1NQRUVEU1RFUF9DRU5UUklOT19UQUJMRT15CkNPTkZJR19YODZfU1BF
+RURTVEVQX0lDSD1tCkNPTkZJR19YODZfUDRfQ0xPQ0tNT0Q9bQpDT05GSUdfWDg2X0xPTkdSVU49
+bQoKIwojIHNoYXJlZCBvcHRpb25zCiMKQ09ORklHX1g4Nl9TUEVFRFNURVBfTElCPW0KIyBDT05G
+SUdfWDg2X1NQRUVEU1RFUF9SRUxBWEVEX0NBUF9DSEVDSyBpcyBub3Qgc2V0CkNPTkZJR19DUFVf
+SURMRT15CkNPTkZJR19DUFVfSURMRV9HT1ZfTEFEREVSPXkKQ09ORklHX0NQVV9JRExFX0dPVl9N
+RU5VPXkKCiMKIyBCdXMgb3B0aW9ucyAoUENJIGV0Yy4pCiMKQ09ORklHX1BDST15CiMgQ09ORklH
+X1BDSV9HT0JJT1MgaXMgbm90IHNldAojIENPTkZJR19QQ0lfR09NTUNPTkZJRyBpcyBub3Qgc2V0
+CiMgQ09ORklHX1BDSV9HT0RJUkVDVCBpcyBub3Qgc2V0CiMgQ09ORklHX1BDSV9HT09MUEMgaXMg
+bm90IHNldApDT05GSUdfUENJX0dPQU5ZPXkKQ09ORklHX1BDSV9CSU9TPXkKQ09ORklHX1BDSV9E
+SVJFQ1Q9eQpDT05GSUdfUENJX09MUEM9eQpDT05GSUdfUENJX0RPTUFJTlM9eQpDT05GSUdfUENJ
+RVBPUlRCVVM9eQpDT05GSUdfSE9UUExVR19QQ0lfUENJRT1tCkNPTkZJR19QQ0lFQUVSPXkKIyBD
+T05GSUdfUENJRV9FQ1JDIGlzIG5vdCBzZXQKIyBDT05GSUdfUENJRUFFUl9JTkpFQ1QgaXMgbm90
+IHNldAojIENPTkZJR19QQ0lFQVNQTSBpcyBub3Qgc2V0CkNPTkZJR19BUkNIX1NVUFBPUlRTX01T
+ST15CiMgQ09ORklHX1BDSV9NU0kgaXMgbm90IHNldAojIENPTkZJR19QQ0lfREVCVUcgaXMgbm90
+IHNldAojIENPTkZJR19QQ0lfU1RVQiBpcyBub3Qgc2V0CkNPTkZJR19IVF9JUlE9eQpDT05GSUdf
+UENJX0lPVj15CkNPTkZJR19JU0FfRE1BX0FQST15CkNPTkZJR19JU0E9eQpDT05GSUdfRUlTQT15
+CkNPTkZJR19FSVNBX1ZMQl9QUklNSU5HPXkKIyBDT05GSUdfRUlTQV9QQ0lfRUlTQSBpcyBub3Qg
+c2V0CiMgQ09ORklHX0VJU0FfVklSVFVBTF9ST09UIGlzIG5vdCBzZXQKIyBDT05GSUdfRUlTQV9O
+QU1FUyBpcyBub3Qgc2V0CiMgQ09ORklHX01DQSBpcyBub3Qgc2V0CiMgQ09ORklHX1NDeDIwMCBp
+cyBub3Qgc2V0CkNPTkZJR19PTFBDPXkKQ09ORklHX0FNRF9OQj15CkNPTkZJR19QQ0NBUkQ9bQoj
+IENPTkZJR19QQ01DSUEgaXMgbm90IHNldApDT05GSUdfQ0FSREJVUz15CgojCiMgUEMtY2FyZCBi
+cmlkZ2VzCiMKQ09ORklHX1lFTlRBPW0KQ09ORklHX1lFTlRBX08yPXkKQ09ORklHX1lFTlRBX1JJ
+Q09IPXkKIyBDT05GSUdfWUVOVEFfVEkgaXMgbm90IHNldApDT05GSUdfWUVOVEFfVE9TSElCQT15
+CkNPTkZJR19QQ01DSUFfUFJPQkU9eQpDT05GSUdfSE9UUExVR19QQ0k9bQojIENPTkZJR19IT1RQ
+TFVHX1BDSV9GQUtFIGlzIG5vdCBzZXQKQ09ORklHX0hPVFBMVUdfUENJX0NPTVBBUT1tCiMgQ09O
+RklHX0hPVFBMVUdfUENJX0NPTVBBUV9OVlJBTSBpcyBub3Qgc2V0CkNPTkZJR19IT1RQTFVHX1BD
+SV9JQk09bQojIENPTkZJR19IT1RQTFVHX1BDSV9DUENJIGlzIG5vdCBzZXQKIyBDT05GSUdfSE9U
+UExVR19QQ0lfU0hQQyBpcyBub3Qgc2V0CkNPTkZJR19SQVBJRElPPXkKQ09ORklHX1JBUElESU9f
+RElTQ19USU1FT1VUPTMwCiMgQ09ORklHX1JBUElESU9fRU5BQkxFX1JYX1RYX1BPUlRTIGlzIG5v
+dCBzZXQKQ09ORklHX1JBUElESU9fVFNJNTdYPXkKQ09ORklHX1JBUElESU9fQ1BTX1hYPXkKQ09O
+RklHX1JBUElESU9fVFNJNTY4PXkKIyBDT05GSUdfUkFQSURJT19DUFNfR0VOMiBpcyBub3Qgc2V0
+CiMgQ09ORklHX1JBUElESU9fVFNJNTAwIGlzIG5vdCBzZXQKIyBDT05GSUdfUkFQSURJT19ERUJV
+RyBpcyBub3Qgc2V0CgojCiMgRXhlY3V0YWJsZSBmaWxlIGZvcm1hdHMgLyBFbXVsYXRpb25zCiMK
+Q09ORklHX0JJTkZNVF9FTEY9eQpDT05GSUdfSEFWRV9BT1VUPXkKIyBDT05GSUdfQklORk1UX0FP
+VVQgaXMgbm90IHNldApDT05GSUdfQklORk1UX01JU0M9bQpDT05GSUdfSEFWRV9BVE9NSUNfSU9N
+QVA9eQpDT05GSUdfSEFWRV9URVhUX1BPS0VfU01QPXkKIyBDT05GSUdfTkVUIGlzIG5vdCBzZXQK
+CiMKIyBEZXZpY2UgRHJpdmVycwojCgojCiMgR2VuZXJpYyBEcml2ZXIgT3B0aW9ucwojCkNPTkZJ
+R19VRVZFTlRfSEVMUEVSX1BBVEg9IiIKQ09ORklHX0RFVlRNUEZTPXkKIyBDT05GSUdfREVWVE1Q
+RlNfTU9VTlQgaXMgbm90IHNldApDT05GSUdfU1RBTkRBTE9ORT15CkNPTkZJR19QUkVWRU5UX0ZJ
+Uk1XQVJFX0JVSUxEPXkKQ09ORklHX0ZXX0xPQURFUj1tCkNPTkZJR19GSVJNV0FSRV9JTl9LRVJO
+RUw9eQpDT05GSUdfRVhUUkFfRklSTVdBUkU9IiIKIyBDT05GSUdfREVCVUdfRFJJVkVSIGlzIG5v
+dCBzZXQKQ09ORklHX0RFQlVHX0RFVlJFUz15CiMgQ09ORklHX1NZU19IWVBFUlZJU09SIGlzIG5v
+dCBzZXQKQ09ORklHX01URD1tCiMgQ09ORklHX01URF9ERUJVRyBpcyBub3Qgc2V0CiMgQ09ORklH
+X01URF9URVNUUyBpcyBub3Qgc2V0CkNPTkZJR19NVERfUkVEQk9PVF9QQVJUUz1tCkNPTkZJR19N
+VERfUkVEQk9PVF9ESVJFQ1RPUllfQkxPQ0s9LTEKIyBDT05GSUdfTVREX1JFREJPT1RfUEFSVFNf
+VU5BTExPQ0FURUQgaXMgbm90IHNldApDT05GSUdfTVREX1JFREJPT1RfUEFSVFNfUkVBRE9OTFk9
+eQpDT05GSUdfTVREX09GX1BBUlRTPXkKIyBDT05GSUdfTVREX0FSN19QQVJUUyBpcyBub3Qgc2V0
+CgojCiMgVXNlciBNb2R1bGVzIEFuZCBUcmFuc2xhdGlvbiBMYXllcnMKIwpDT05GSUdfTVREX0NI
+QVI9bQojIENPTkZJR19NVERfT09QUyBpcyBub3Qgc2V0CgojCiMgUkFNL1JPTS9GbGFzaCBjaGlw
+IGRyaXZlcnMKIwpDT05GSUdfTVREX0NGST1tCkNPTkZJR19NVERfSkVERUNQUk9CRT1tCkNPTkZJ
+R19NVERfR0VOX1BST0JFPW0KIyBDT05GSUdfTVREX0NGSV9BRFZfT1BUSU9OUyBpcyBub3Qgc2V0
+CkNPTkZJR19NVERfTUFQX0JBTktfV0lEVEhfMT15CkNPTkZJR19NVERfTUFQX0JBTktfV0lEVEhf
+Mj15CkNPTkZJR19NVERfTUFQX0JBTktfV0lEVEhfND15CiMgQ09ORklHX01URF9NQVBfQkFOS19X
+SURUSF84IGlzIG5vdCBzZXQKIyBDT05GSUdfTVREX01BUF9CQU5LX1dJRFRIXzE2IGlzIG5vdCBz
+ZXQKIyBDT05GSUdfTVREX01BUF9CQU5LX1dJRFRIXzMyIGlzIG5vdCBzZXQKQ09ORklHX01URF9D
+RklfSTE9eQpDT05GSUdfTVREX0NGSV9JMj15CiMgQ09ORklHX01URF9DRklfSTQgaXMgbm90IHNl
+dAojIENPTkZJR19NVERfQ0ZJX0k4IGlzIG5vdCBzZXQKIyBDT05GSUdfTVREX0NGSV9JTlRFTEVY
+VCBpcyBub3Qgc2V0CkNPTkZJR19NVERfQ0ZJX0FNRFNURD1tCiMgQ09ORklHX01URF9DRklfU1RB
+QSBpcyBub3Qgc2V0CkNPTkZJR19NVERfQ0ZJX1VUSUw9bQojIENPTkZJR19NVERfUkFNIGlzIG5v
+dCBzZXQKIyBDT05GSUdfTVREX1JPTSBpcyBub3Qgc2V0CkNPTkZJR19NVERfQUJTRU5UPW0KCiMK
+IyBNYXBwaW5nIGRyaXZlcnMgZm9yIGNoaXAgYWNjZXNzCiMKQ09ORklHX01URF9DT01QTEVYX01B
+UFBJTkdTPXkKIyBDT05GSUdfTVREX1BIWVNNQVAgaXMgbm90IHNldApDT05GSUdfTVREX1BIWVNN
+QVBfT0Y9bQpDT05GSUdfTVREX1NDNTIwQ0RQPW0KIyBDT05GSUdfTVREX05FVFNDNTIwIGlzIG5v
+dCBzZXQKQ09ORklHX01URF9UUzU1MDA9bQpDT05GSUdfTVREX0FNRDc2WFJPTT1tCkNPTkZJR19N
+VERfSUNIWFJPTT1tCiMgQ09ORklHX01URF9FU0IyUk9NIGlzIG5vdCBzZXQKQ09ORklHX01URF9D
+SzgwNFhST009bQpDT05GSUdfTVREX1NDQjJfRkxBU0g9bQojIENPTkZJR19NVERfTkVUdGVsIGlz
+IG5vdCBzZXQKIyBDT05GSUdfTVREX0w0NDBHWCBpcyBub3Qgc2V0CkNPTkZJR19NVERfUENJPW0K
+IyBDT05GSUdfTVREX0dQSU9fQUREUiBpcyBub3Qgc2V0CiMgQ09ORklHX01URF9JTlRFTF9WUl9O
+T1IgaXMgbm90IHNldAojIENPTkZJR19NVERfUExBVFJBTSBpcyBub3Qgc2V0CiMgQ09ORklHX01U
+RF9MQVRDSF9BRERSIGlzIG5vdCBzZXQKCiMKIyBTZWxmLWNvbnRhaW5lZCBNVEQgZGV2aWNlIGRy
+aXZlcnMKIwojIENPTkZJR19NVERfUE1DNTUxIGlzIG5vdCBzZXQKIyBDT05GSUdfTVREX1NMUkFN
+IGlzIG5vdCBzZXQKQ09ORklHX01URF9QSFJBTT1tCiMgQ09ORklHX01URF9NVERSQU0gaXMgbm90
+IHNldAoKIwojIERpc2stT24tQ2hpcCBEZXZpY2UgRHJpdmVycwojCkNPTkZJR19NVERfRE9DMjAw
+MD1tCiMgQ09ORklHX01URF9ET0MyMDAxIGlzIG5vdCBzZXQKQ09ORklHX01URF9ET0MyMDAxUExV
+Uz1tCkNPTkZJR19NVERfRE9DUFJPQkU9bQpDT05GSUdfTVREX0RPQ0VDQz1tCiMgQ09ORklHX01U
+RF9ET0NQUk9CRV9BRFZBTkNFRCBpcyBub3Qgc2V0CkNPTkZJR19NVERfRE9DUFJPQkVfQUREUkVT
+Uz0wCkNPTkZJR19NVERfTkFORF9FQ0M9bQpDT05GSUdfTVREX05BTkRfRUNDX1NNQz15CkNPTkZJ
+R19NVERfTkFORD1tCiMgQ09ORklHX01URF9OQU5EX1ZFUklGWV9XUklURSBpcyBub3Qgc2V0CiMg
+Q09ORklHX01URF9OQU5EX0VDQ19CQ0ggaXMgbm90IHNldApDT05GSUdfTVREX1NNX0NPTU1PTj1t
+CiMgQ09ORklHX01URF9OQU5EX01VU0VVTV9JRFMgaXMgbm90IHNldAojIENPTkZJR19NVERfTkFO
+RF9ERU5BTEkgaXMgbm90IHNldApDT05GSUdfTVREX05BTkRfSURTPW0KQ09ORklHX01URF9OQU5E
+X1JJQ09IPW0KQ09ORklHX01URF9OQU5EX0NBRkU9bQojIENPTkZJR19NVERfTkFORF9DUzU1M1gg
+aXMgbm90IHNldAojIENPTkZJR19NVERfTkFORF9OQU5EU0lNIGlzIG5vdCBzZXQKQ09ORklHX01U
+RF9OQU5EX1BMQVRGT1JNPW0KIyBDT05GSUdfTVREX09ORU5BTkQgaXMgbm90IHNldAoKIwojIExQ
+RERSIGZsYXNoIG1lbW9yeSBkcml2ZXJzCiMKIyBDT05GSUdfTVREX0xQRERSIGlzIG5vdCBzZXQK
+Q09ORklHX01URF9VQkk9bQpDT05GSUdfTVREX1VCSV9XTF9USFJFU0hPTEQ9NDA5NgpDT05GSUdf
+TVREX1VCSV9CRUJfUkVTRVJWRT0xCkNPTkZJR19NVERfVUJJX0dMVUVCST1tCiMgQ09ORklHX01U
+RF9VQklfREVCVUcgaXMgbm90IHNldApDT05GSUdfT0Y9eQoKIwojIERldmljZSBUcmVlIGFuZCBP
+cGVuIEZpcm13YXJlIHN1cHBvcnQKIwpDT05GSUdfUFJPQ19ERVZJQ0VUUkVFPXkKQ09ORklHX09G
+X1BST01UUkVFPXkKQ09ORklHX09GX0FERFJFU1M9eQpDT05GSUdfT0ZfSVJRPXkKQ09ORklHX09G
+X0RFVklDRT15CkNPTkZJR19PRl9HUElPPXkKQ09ORklHX09GX0kyQz1tCkNPTkZJR19PRl9QQ0k9
+eQpDT05GSUdfT0ZfUENJX0lSUT15CkNPTkZJR19QQVJQT1JUPW0KIyBDT05GSUdfUEFSUE9SVF9Q
+QyBpcyBub3Qgc2V0CiMgQ09ORklHX1BBUlBPUlRfR1NDIGlzIG5vdCBzZXQKIyBDT05GSUdfUEFS
+UE9SVF9BWDg4Nzk2IGlzIG5vdCBzZXQKQ09ORklHX1BBUlBPUlRfMTI4ND15CkNPTkZJR19QTlA9
+eQpDT05GSUdfUE5QX0RFQlVHX01FU1NBR0VTPXkKCiMKIyBQcm90b2NvbHMKIwojIENPTkZJR19J
+U0FQTlAgaXMgbm90IHNldAojIENPTkZJR19QTlBBQ1BJIGlzIG5vdCBzZXQKIyBDT05GSUdfTUlT
+Q19ERVZJQ0VTIGlzIG5vdCBzZXQKQ09ORklHX0hBVkVfSURFPXkKCiMKIyBTQ1NJIGRldmljZSBz
+dXBwb3J0CiMKQ09ORklHX1NDU0lfTU9EPXkKIyBDT05GSUdfU0NTSV9ETUEgaXMgbm90IHNldAoj
+IENPTkZJR19TQ1NJX05FVExJTksgaXMgbm90IHNldAojIENPTkZJR19GVVNJT04gaXMgbm90IHNl
+dAoKIwojIElFRUUgMTM5NCAoRmlyZVdpcmUpIHN1cHBvcnQKIwojIENPTkZJR19GSVJFV0lSRSBp
+cyBub3Qgc2V0CiMgQ09ORklHX0ZJUkVXSVJFX05PU1kgaXMgbm90IHNldAojIENPTkZJR19JMk8g
+aXMgbm90IHNldAojIENPTkZJR19NQUNJTlRPU0hfRFJJVkVSUyBpcyBub3Qgc2V0CiMgQ09ORklH
+X1BIT05FIGlzIG5vdCBzZXQKCiMKIyBJbnB1dCBkZXZpY2Ugc3VwcG9ydAojCiMgQ09ORklHX0lO
+UFVUIGlzIG5vdCBzZXQKCiMKIyBIYXJkd2FyZSBJL08gcG9ydHMKIwojIENPTkZJR19TRVJJTyBp
+cyBub3Qgc2V0CiMgQ09ORklHX0dBTUVQT1JUIGlzIG5vdCBzZXQKCiMKIyBDaGFyYWN0ZXIgZGV2
+aWNlcwojCiMgQ09ORklHX1ZUIGlzIG5vdCBzZXQKQ09ORklHX1VOSVg5OF9QVFlTPXkKQ09ORklH
+X0RFVlBUU19NVUxUSVBMRV9JTlNUQU5DRVM9eQojIENPTkZJR19MRUdBQ1lfUFRZUyBpcyBub3Qg
+c2V0CkNPTkZJR19TRVJJQUxfTk9OU1RBTkRBUkQ9eQpDT05GSUdfUk9DS0VUUE9SVD1tCiMgQ09O
+RklHX0NZQ0xBREVTIGlzIG5vdCBzZXQKQ09ORklHX01PWEFfSU5URUxMSU89bQpDT05GSUdfTU9Y
+QV9TTUFSVElPPW0KQ09ORklHX1NZTkNMSU5LPW0KQ09ORklHX1NZTkNMSU5LTVA9bQojIENPTkZJ
+R19TWU5DTElOS19HVCBpcyBub3Qgc2V0CiMgQ09ORklHX0lTSSBpcyBub3Qgc2V0CiMgQ09ORklH
+X05fSERMQyBpcyBub3Qgc2V0CiMgQ09ORklHX1RSQUNFX1NJTksgaXMgbm90IHNldApDT05GSUdf
+REVWS01FTT15CkNPTkZJR19TVEFMRFJWPXkKCiMKIyBTZXJpYWwgZHJpdmVycwojCiMgQ09ORklH
+X1NFUklBTF84MjUwIGlzIG5vdCBzZXQKQ09ORklHX0ZJWF9FQVJMWUNPTl9NRU09eQoKIwojIE5v
+bi04MjUwIHNlcmlhbCBwb3J0IHN1cHBvcnQKIwpDT05GSUdfU0VSSUFMX01GRF9IU1U9bQpDT05G
+SUdfU0VSSUFMX0NPUkU9bQojIENPTkZJR19TRVJJQUxfSlNNIGlzIG5vdCBzZXQKQ09ORklHX1NF
+UklBTF9USU1CRVJEQUxFPW0KQ09ORklHX1NFUklBTF9BTFRFUkFfSlRBR1VBUlQ9bQojIENPTkZJ
+R19TRVJJQUxfQUxURVJBX1VBUlQgaXMgbm90IHNldApDT05GSUdfU0VSSUFMX1BDSF9VQVJUPW0K
+IyBDT05GSUdfU0VSSUFMX1hJTElOWF9QU19VQVJUIGlzIG5vdCBzZXQKQ09ORklHX1RUWV9QUklO
+VEs9eQpDT05GSUdfUFJJTlRFUj1tCiMgQ09ORklHX0xQX0NPTlNPTEUgaXMgbm90IHNldApDT05G
+SUdfUFBERVY9bQpDT05GSUdfSVBNSV9IQU5ETEVSPW0KIyBDT05GSUdfSVBNSV9QQU5JQ19FVkVO
+VCBpcyBub3Qgc2V0CiMgQ09ORklHX0lQTUlfREVWSUNFX0lOVEVSRkFDRSBpcyBub3Qgc2V0CkNP
+TkZJR19JUE1JX1NJPW0KQ09ORklHX0lQTUlfV0FUQ0hET0c9bQpDT05GSUdfSVBNSV9QT1dFUk9G
+Rj1tCiMgQ09ORklHX0hXX1JBTkRPTSBpcyBub3Qgc2V0CkNPTkZJR19OVlJBTT1tCkNPTkZJR19E
+VExLPW0KIyBDT05GSUdfUjM5NjQgaXMgbm90IHNldApDT05GSUdfQVBQTElDT009bQojIENPTkZJ
+R19NV0FWRSBpcyBub3Qgc2V0CiMgQ09ORklHX1BDODczNnhfR1BJTyBpcyBub3Qgc2V0CiMgQ09O
+RklHX05TQ19HUElPIGlzIG5vdCBzZXQKIyBDT05GSUdfSEFOR0NIRUNLX1RJTUVSIGlzIG5vdCBz
+ZXQKQ09ORklHX0RFVlBPUlQ9eQojIENPTkZJR19SQU1PT1BTIGlzIG5vdCBzZXQKQ09ORklHX0ky
+Qz1tCkNPTkZJR19JMkNfQk9BUkRJTkZPPXkKQ09ORklHX0kyQ19DT01QQVQ9eQpDT05GSUdfSTJD
+X0NIQVJERVY9bQpDT05GSUdfSTJDX0hFTFBFUl9BVVRPPXkKQ09ORklHX0kyQ19BTEdPUENBPW0K
+CiMKIyBJMkMgSGFyZHdhcmUgQnVzIHN1cHBvcnQKIwoKIwojIFBDIFNNQnVzIGhvc3QgY29udHJv
+bGxlciBkcml2ZXJzCiMKQ09ORklHX0kyQ19BTEkxNTM1PW0KQ09ORklHX0kyQ19BTEkxNVgzPW0K
+IyBDT05GSUdfSTJDX0FNRDc1NiBpcyBub3Qgc2V0CkNPTkZJR19JMkNfQU1EODExMT1tCiMgQ09O
+RklHX0kyQ19JODAxIGlzIG5vdCBzZXQKIyBDT05GSUdfSTJDX0lTQ0ggaXMgbm90IHNldAojIENP
+TkZJR19JMkNfUElJWDQgaXMgbm90IHNldApDT05GSUdfSTJDX05GT1JDRTI9bQpDT05GSUdfSTJD
+X1NJUzU1OTU9bQojIENPTkZJR19JMkNfU0lTNjMwIGlzIG5vdCBzZXQKIyBDT05GSUdfSTJDX1NJ
+Uzk2WCBpcyBub3Qgc2V0CiMgQ09ORklHX0kyQ19WSUFQUk8gaXMgbm90IHNldAoKIwojIEkyQyBz
+eXN0ZW0gYnVzIGRyaXZlcnMgKG1vc3RseSBlbWJlZGRlZCAvIHN5c3RlbS1vbi1jaGlwKQojCiMg
+Q09ORklHX0kyQ19HUElPIGlzIG5vdCBzZXQKIyBDT05GSUdfSTJDX0lOVEVMX01JRCBpcyBub3Qg
+c2V0CiMgQ09ORklHX0kyQ19QQ0FfUExBVEZPUk0gaXMgbm90IHNldApDT05GSUdfSTJDX1BYQT1t
+CkNPTkZJR19JMkNfUFhBX1BDST15CiMgQ09ORklHX0kyQ19TSU1URUMgaXMgbm90IHNldAojIENP
+TkZJR19JMkNfRUcyMFQgaXMgbm90IHNldAoKIwojIEV4dGVybmFsIEkyQy9TTUJ1cyBhZGFwdGVy
+IGRyaXZlcnMKIwojIENPTkZJR19JMkNfUEFSUE9SVCBpcyBub3Qgc2V0CiMgQ09ORklHX0kyQ19Q
+QVJQT1JUX0xJR0hUIGlzIG5vdCBzZXQKCiMKIyBPdGhlciBJMkMvU01CdXMgYnVzIGRyaXZlcnMK
+IwpDT05GSUdfSTJDX1BDQV9JU0E9bQpDT05GSUdfU0N4MjAwX0FDQj1tCiMgQ09ORklHX0kyQ19E
+RUJVR19DT1JFIGlzIG5vdCBzZXQKQ09ORklHX0kyQ19ERUJVR19BTEdPPXkKIyBDT05GSUdfSTJD
+X0RFQlVHX0JVUyBpcyBub3Qgc2V0CiMgQ09ORklHX1NQSSBpcyBub3Qgc2V0CgojCiMgUFBTIHN1
+cHBvcnQKIwoKIwojIFBQUyBnZW5lcmF0b3JzIHN1cHBvcnQKIwoKIwojIFBUUCBjbG9jayBzdXBw
+b3J0CiMKCiMKIyBFbmFibGUgRGV2aWNlIERyaXZlcnMgLT4gUFBTIHRvIHNlZSB0aGUgUFRQIGNs
+b2NrIG9wdGlvbnMuCiMKQ09ORklHX0FSQ0hfV0FOVF9PUFRJT05BTF9HUElPTElCPXkKQ09ORklH
+X0dQSU9MSUI9eQpDT05GSUdfREVCVUdfR1BJTz15CkNPTkZJR19HUElPX0dFTkVSSUM9bQpDT05G
+SUdfR1BJT19NQVg3MzBYPW0KCiMKIyBNZW1vcnkgbWFwcGVkIEdQSU8gZHJpdmVyczoKIwpDT05G
+SUdfR1BJT19HRU5FUklDX1BMQVRGT1JNPW0KIyBDT05GSUdfR1BJT19JVDg3NjFFIGlzIG5vdCBz
+ZXQKIyBDT05GSUdfR1BJT19TQ0ggaXMgbm90IHNldAoKIwojIEkyQyBHUElPIGV4cGFuZGVyczoK
+IwpDT05GSUdfR1BJT19NQVg3MzAwPW0KQ09ORklHX0dQSU9fTUFYNzMyWD1tCkNPTkZJR19HUElP
+X1BDQTk1M1g9bQpDT05GSUdfR1BJT19QQ0Y4NTdYPW0KQ09ORklHX0dQSU9fQURQNTU4OD1tCgoj
+CiMgUENJIEdQSU8gZXhwYW5kZXJzOgojCkNPTkZJR19HUElPX0JUOFhYPW0KQ09ORklHX0dQSU9f
+TEFOR1dFTEw9eQpDT05GSUdfR1BJT19QQ0g9bQpDT05GSUdfR1BJT19NTF9JT0g9bQojIENPTkZJ
+R19HUElPX1JEQzMyMVggaXMgbm90IHNldAoKIwojIFNQSSBHUElPIGV4cGFuZGVyczoKIwoKIwoj
+IEFDOTcgR1BJTyBleHBhbmRlcnM6CiMKCiMKIyBNT0RVTGJ1cyBHUElPIGV4cGFuZGVyczoKIwpD
+T05GSUdfVzE9bQoKIwojIDEtd2lyZSBCdXMgTWFzdGVycwojCiMgQ09ORklHX1cxX01BU1RFUl9N
+QVRST1ggaXMgbm90IHNldApDT05GSUdfVzFfTUFTVEVSX0RTMVdNPW0KQ09ORklHX1cxX01BU1RF
+Ul9HUElPPW0KCiMKIyAxLXdpcmUgU2xhdmVzCiMKQ09ORklHX1cxX1NMQVZFX1RIRVJNPW0KIyBD
+T05GSUdfVzFfU0xBVkVfU01FTSBpcyBub3Qgc2V0CiMgQ09ORklHX1cxX1NMQVZFX0RTMjQwOCBp
+cyBub3Qgc2V0CkNPTkZJR19XMV9TTEFWRV9EUzI0MjM9bQpDT05GSUdfVzFfU0xBVkVfRFMyNDMx
+PW0KIyBDT05GSUdfVzFfU0xBVkVfRFMyNDMzIGlzIG5vdCBzZXQKQ09ORklHX1cxX1NMQVZFX0RT
+Mjc2MD1tCkNPTkZJR19XMV9TTEFWRV9EUzI3ODA9bQojIENPTkZJR19XMV9TTEFWRV9CUTI3MDAw
+IGlzIG5vdCBzZXQKQ09ORklHX1BPV0VSX1NVUFBMWT1tCiMgQ09ORklHX1BPV0VSX1NVUFBMWV9E
+RUJVRyBpcyBub3Qgc2V0CkNPTkZJR19QREFfUE9XRVI9bQojIENPTkZJR19URVNUX1BPV0VSIGlz
+IG5vdCBzZXQKQ09ORklHX0JBVFRFUllfRFMyNzYwPW0KIyBDT05GSUdfQkFUVEVSWV9EUzI3ODAg
+aXMgbm90IHNldApDT05GSUdfQkFUVEVSWV9EUzI3ODI9bQojIENPTkZJR19CQVRURVJZX09MUEMg
+aXMgbm90IHNldAojIENPTkZJR19CQVRURVJZX0JRMjBaNzUgaXMgbm90IHNldApDT05GSUdfQkFU
+VEVSWV9CUTI3eDAwPW0KIyBDT05GSUdfQkFUVEVSWV9CUTI3WDAwX0kyQyBpcyBub3Qgc2V0CiMg
+Q09ORklHX0JBVFRFUllfQlEyN1gwMF9QTEFURk9STSBpcyBub3Qgc2V0CkNPTkZJR19CQVRURVJZ
+X01BWDE3MDQwPW0KQ09ORklHX0JBVFRFUllfTUFYMTcwNDI9bQpDT05GSUdfQ0hBUkdFUl9NQVg4
+OTAzPW0KQ09ORklHX0NIQVJHRVJfR1BJTz1tCkNPTkZJR19IV01PTj1tCkNPTkZJR19IV01PTl9W
+SUQ9bQojIENPTkZJR19IV01PTl9ERUJVR19DSElQIGlzIG5vdCBzZXQKCiMKIyBOYXRpdmUgZHJp
+dmVycwojCiMgQ09ORklHX1NFTlNPUlNfQURNMTAyMSBpcyBub3Qgc2V0CiMgQ09ORklHX1NFTlNP
+UlNfQURNMTAyNSBpcyBub3Qgc2V0CiMgQ09ORklHX1NFTlNPUlNfQURNMTAyNiBpcyBub3Qgc2V0
+CiMgQ09ORklHX1NFTlNPUlNfQURNMTAyOSBpcyBub3Qgc2V0CiMgQ09ORklHX1NFTlNPUlNfQURN
+MTAzMSBpcyBub3Qgc2V0CkNPTkZJR19TRU5TT1JTX0FETTkyNDA9bQojIENPTkZJR19TRU5TT1JT
+X0FEVDc0NzUgaXMgbm90IHNldAojIENPTkZJR19TRU5TT1JTX0FTQzc2MjEgaXMgbm90IHNldApD
+T05GSUdfU0VOU09SU19LMTBURU1QPW0KQ09ORklHX1NFTlNPUlNfRkFNMTVIX1BPV0VSPW0KIyBD
+T05GSUdfU0VOU09SU19EUzYyMCBpcyBub3Qgc2V0CkNPTkZJR19TRU5TT1JTX0RTMTYyMT1tCiMg
+Q09ORklHX1NFTlNPUlNfRjcxODA1RiBpcyBub3Qgc2V0CiMgQ09ORklHX1NFTlNPUlNfRjcxODgy
+RkcgaXMgbm90IHNldAojIENPTkZJR19TRU5TT1JTX0Y3NTM3NVMgaXMgbm90IHNldAojIENPTkZJ
+R19TRU5TT1JTX0ZTQ0hNRCBpcyBub3Qgc2V0CiMgQ09ORklHX1NFTlNPUlNfRzc2MEEgaXMgbm90
+IHNldApDT05GSUdfU0VOU09SU19HTDUxOFNNPW0KIyBDT05GSUdfU0VOU09SU19HTDUyMFNNIGlz
+IG5vdCBzZXQKQ09ORklHX1NFTlNPUlNfR1BJT19GQU49bQojIENPTkZJR19TRU5TT1JTX0lCTUFF
+TSBpcyBub3Qgc2V0CiMgQ09ORklHX1NFTlNPUlNfSUJNUEVYIGlzIG5vdCBzZXQKIyBDT05GSUdf
+U0VOU09SU19JVDg3IGlzIG5vdCBzZXQKIyBDT05GSUdfU0VOU09SU19KQzQyIGlzIG5vdCBzZXQK
+IyBDT05GSUdfU0VOU09SU19MTTYzIGlzIG5vdCBzZXQKQ09ORklHX1NFTlNPUlNfTE03Mz1tCiMg
+Q09ORklHX1NFTlNPUlNfTE03NSBpcyBub3Qgc2V0CiMgQ09ORklHX1NFTlNPUlNfTE03NyBpcyBu
+b3Qgc2V0CiMgQ09ORklHX1NFTlNPUlNfTE03OCBpcyBub3Qgc2V0CkNPTkZJR19TRU5TT1JTX0xN
+ODA9bQojIENPTkZJR19TRU5TT1JTX0xNODMgaXMgbm90IHNldApDT05GSUdfU0VOU09SU19MTTg1
+PW0KQ09ORklHX1NFTlNPUlNfTE04Nz1tCkNPTkZJR19TRU5TT1JTX0xNOTA9bQpDT05GSUdfU0VO
+U09SU19MTTkyPW0KQ09ORklHX1NFTlNPUlNfTE05Mz1tCiMgQ09ORklHX1NFTlNPUlNfTFRDNDE1
+MSBpcyBub3Qgc2V0CkNPTkZJR19TRU5TT1JTX0xNOTUyNDE9bQpDT05GSUdfU0VOU09SU19NQVgx
+NjA2NT1tCiMgQ09ORklHX1NFTlNPUlNfTUFYMTYxOSBpcyBub3Qgc2V0CkNPTkZJR19TRU5TT1JT
+X1BDODczNjA9bQojIENPTkZJR19TRU5TT1JTX1BDODc0MjcgaXMgbm90IHNldApDT05GSUdfU0VO
+U09SU19QQ0Y4NTkxPW0KIyBDT05GSUdfU0VOU09SU19TSFQxNSBpcyBub3Qgc2V0CkNPTkZJR19T
+RU5TT1JTX1NIVDIxPW0KIyBDT05GSUdfU0VOU09SU19TSVM1NTk1IGlzIG5vdCBzZXQKIyBDT05G
+SUdfU0VOU09SU19FTUMxNDAzIGlzIG5vdCBzZXQKQ09ORklHX1NFTlNPUlNfRU1DMjEwMz1tCiMg
+Q09ORklHX1NFTlNPUlNfRU1DNlcyMDEgaXMgbm90IHNldAojIENPTkZJR19TRU5TT1JTX1NNU0M0
+N00xIGlzIG5vdCBzZXQKQ09ORklHX1NFTlNPUlNfU01TQzQ3TTE5Mj1tCkNPTkZJR19TRU5TT1JT
+X1NDSDU2WFhfQ09NTU9OPW0KIyBDT05GSUdfU0VOU09SU19TQ0g1NjI3IGlzIG5vdCBzZXQKQ09O
+RklHX1NFTlNPUlNfU0NINTYzNj1tCkNPTkZJR19TRU5TT1JTX0FEUzEwMTU9bQpDT05GSUdfU0VO
+U09SU19BRFM3ODI4PW0KQ09ORklHX1NFTlNPUlNfVEhNQzUwPW0KIyBDT05GSUdfU0VOU09SU19W
+SUFfQ1BVVEVNUCBpcyBub3Qgc2V0CkNPTkZJR19TRU5TT1JTX1ZJQTY4NkE9bQojIENPTkZJR19T
+RU5TT1JTX1ZUMTIxMSBpcyBub3Qgc2V0CiMgQ09ORklHX1NFTlNPUlNfVlQ4MjMxIGlzIG5vdCBz
+ZXQKIyBDT05GSUdfU0VOU09SU19XODM3ODFEIGlzIG5vdCBzZXQKQ09ORklHX1NFTlNPUlNfVzgz
+NzkxRD1tCkNPTkZJR19TRU5TT1JTX1c4Mzc5MkQ9bQojIENPTkZJR19TRU5TT1JTX1c4MzYyN0hG
+IGlzIG5vdCBzZXQKQ09ORklHX1NFTlNPUlNfVzgzNjI3RUhGPW0KIyBDT05GSUdfVEhFUk1BTCBp
+cyBub3Qgc2V0CiMgQ09ORklHX1dBVENIRE9HIGlzIG5vdCBzZXQKQ09ORklHX1NTQl9QT1NTSUJM
+RT15CgojCiMgU29uaWNzIFNpbGljb24gQmFja3BsYW5lCiMKIyBDT05GSUdfU1NCIGlzIG5vdCBz
+ZXQKQ09ORklHX0JDTUFfUE9TU0lCTEU9eQoKIwojIEJyb2FkY29tIHNwZWNpZmljIEFNQkEKIwoj
+IENPTkZJR19CQ01BIGlzIG5vdCBzZXQKIyBDT05GSUdfTUZEX1NVUFBPUlQgaXMgbm90IHNldApD
+T05GSUdfUkVHVUxBVE9SPXkKQ09ORklHX1JFR1VMQVRPUl9ERUJVRz15CiMgQ09ORklHX1JFR1VM
+QVRPUl9EVU1NWSBpcyBub3Qgc2V0CkNPTkZJR19SRUdVTEFUT1JfRklYRURfVk9MVEFHRT1tCkNP
+TkZJR19SRUdVTEFUT1JfVklSVFVBTF9DT05TVU1FUj1tCkNPTkZJR19SRUdVTEFUT1JfVVNFUlNQ
+QUNFX0NPTlNVTUVSPW0KIyBDT05GSUdfUkVHVUxBVE9SX0JRMjQwMjIgaXMgbm90IHNldApDT05G
+SUdfUkVHVUxBVE9SX01BWDE1ODY9bQojIENPTkZJR19SRUdVTEFUT1JfTUFYODY0OSBpcyBub3Qg
+c2V0CiMgQ09ORklHX1JFR1VMQVRPUl9NQVg4NjYwIGlzIG5vdCBzZXQKIyBDT05GSUdfUkVHVUxB
+VE9SX01BWDg5NTIgaXMgbm90IHNldAojIENPTkZJR19SRUdVTEFUT1JfTFAzOTcxIGlzIG5vdCBz
+ZXQKQ09ORklHX1JFR1VMQVRPUl9MUDM5NzI9bQpDT05GSUdfUkVHVUxBVE9SX1RQUzY1MDIzPW0K
+Q09ORklHX1JFR1VMQVRPUl9UUFM2NTA3WD1tCiMgQ09ORklHX1JFR1VMQVRPUl9JU0w2MjcxQSBp
+cyBub3Qgc2V0CiMgQ09ORklHX1JFR1VMQVRPUl9BRDUzOTggaXMgbm90IHNldApDT05GSUdfTUVE
+SUFfU1VQUE9SVD1tCgojCiMgTXVsdGltZWRpYSBjb3JlIHN1cHBvcnQKIwpDT05GSUdfVklERU9f
+REVWPW0KQ09ORklHX1ZJREVPX1Y0TDJfQ09NTU9OPW0KIyBDT05GSUdfRFZCX0NPUkUgaXMgbm90
+IHNldApDT05GSUdfVklERU9fTUVESUE9bQoKIwojIE11bHRpbWVkaWEgZHJpdmVycwojCkNPTkZJ
+R19WSURFT19TQUE3MTQ2PW0KQ09ORklHX1ZJREVPX1NBQTcxNDZfVlY9bQojIENPTkZJR19NRURJ
+QV9BVFRBQ0ggaXMgbm90IHNldApDT05GSUdfTUVESUFfVFVORVI9bQojIENPTkZJR19NRURJQV9U
+VU5FUl9DVVNUT01JU0UgaXMgbm90IHNldApDT05GSUdfTUVESUFfVFVORVJfU0lNUExFPW0KQ09O
+RklHX01FRElBX1RVTkVSX1REQTgyOTA9bQpDT05GSUdfTUVESUFfVFVORVJfVERBODI3WD1tCkNP
+TkZJR19NRURJQV9UVU5FUl9UREExODI3MT1tCkNPTkZJR19NRURJQV9UVU5FUl9UREE5ODg3PW0K
+Q09ORklHX01FRElBX1RVTkVSX1RFQTU3NjE9bQpDT05GSUdfTUVESUFfVFVORVJfVEVBNTc2Nz1t
+CkNPTkZJR19NRURJQV9UVU5FUl9NVDIwWFg9bQpDT05GSUdfTUVESUFfVFVORVJfWEMyMDI4PW0K
+Q09ORklHX01FRElBX1RVTkVSX1hDNTAwMD1tCkNPTkZJR19NRURJQV9UVU5FUl9NQzQ0UzgwMz1t
+CkNPTkZJR19WSURFT19WNEwyPW0KQ09ORklHX1ZJREVPQlVGX0dFTj1tCkNPTkZJR19WSURFT0JV
+Rl9ETUFfU0c9bQpDT05GSUdfVklERU9CVUZfRE1BX0NPTlRJRz1tCkNPTkZJR19WSURFT19UVkVF
+UFJPTT1tCkNPTkZJR19WSURFT19UVU5FUj1tCkNPTkZJR19WNEwyX01FTTJNRU1fREVWPW0KQ09O
+RklHX1ZJREVPQlVGMl9DT1JFPW0KQ09ORklHX1ZJREVPQlVGMl9NRU1PUFM9bQpDT05GSUdfVklE
+RU9CVUYyX1ZNQUxMT0M9bQpDT05GSUdfVklERU9fQ0FQVFVSRV9EUklWRVJTPXkKQ09ORklHX1ZJ
+REVPX0FEVl9ERUJVRz15CiMgQ09ORklHX1ZJREVPX0ZJWEVEX01JTk9SX1JBTkdFUyBpcyBub3Qg
+c2V0CiMgQ09ORklHX1ZJREVPX0hFTFBFUl9DSElQU19BVVRPIGlzIG5vdCBzZXQKCiMKIyBFbmNv
+ZGVycywgZGVjb2RlcnMsIHNlbnNvcnMgYW5kIG90aGVyIGhlbHBlciBjaGlwcwojCgojCiMgQXVk
+aW8gZGVjb2RlcnMsIHByb2Nlc3NvcnMgYW5kIG1peGVycwojCiMgQ09ORklHX1ZJREVPX1RWQVVE
+SU8gaXMgbm90IHNldApDT05GSUdfVklERU9fVERBNzQzMj1tCkNPTkZJR19WSURFT19UREE5ODQw
+PW0KQ09ORklHX1ZJREVPX1RFQTY0MTVDPW0KQ09ORklHX1ZJREVPX1RFQTY0MjA9bQojIENPTkZJ
+R19WSURFT19NU1AzNDAwIGlzIG5vdCBzZXQKIyBDT05GSUdfVklERU9fQ1M1MzQ1IGlzIG5vdCBz
+ZXQKQ09ORklHX1ZJREVPX0NTNTNMMzJBPW0KQ09ORklHX1ZJREVPX1dNODc3NT1tCkNPTkZJR19W
+SURFT19XTTg3Mzk9bQpDT05GSUdfVklERU9fVlAyN1NNUFg9bQoKIwojIFJEUyBkZWNvZGVycwoj
+CiMgQ09ORklHX1ZJREVPX1NBQTY1ODggaXMgbm90IHNldAoKIwojIFZpZGVvIGRlY29kZXJzCiMK
+Q09ORklHX1ZJREVPX0FEVjcxODA9bQpDT05GSUdfVklERU9fQlQ4MTk9bQojIENPTkZJR19WSURF
+T19CVDg1NiBpcyBub3Qgc2V0CkNPTkZJR19WSURFT19CVDg2Nj1tCiMgQ09ORklHX1ZJREVPX0tT
+MDEyNyBpcyBub3Qgc2V0CkNPTkZJR19WSURFT19TQUE3MTEwPW0KQ09ORklHX1ZJREVPX1NBQTcx
+MVg9bQojIENPTkZJR19WSURFT19TQUE3MTkxIGlzIG5vdCBzZXQKIyBDT05GSUdfVklERU9fVFZQ
+NTE0WCBpcyBub3Qgc2V0CiMgQ09ORklHX1ZJREVPX1RWUDUxNTAgaXMgbm90IHNldApDT05GSUdf
+VklERU9fVFZQNzAwMj1tCkNPTkZJR19WSURFT19WUFgzMjIwPW0KCiMKIyBWaWRlbyBhbmQgYXVk
+aW8gZGVjb2RlcnMKIwojIENPTkZJR19WSURFT19TQUE3MTdYIGlzIG5vdCBzZXQKIyBDT05GSUdf
+VklERU9fQ1gyNTg0MCBpcyBub3Qgc2V0CgojCiMgTVBFRyB2aWRlbyBlbmNvZGVycwojCiMgQ09O
+RklHX1ZJREVPX0NYMjM0MVggaXMgbm90IHNldAoKIwojIFZpZGVvIGVuY29kZXJzCiMKQ09ORklH
+X1ZJREVPX1NBQTcxMjc9bQojIENPTkZJR19WSURFT19TQUE3MTg1IGlzIG5vdCBzZXQKQ09ORklH
+X1ZJREVPX0FEVjcxNzA9bQpDT05GSUdfVklERU9fQURWNzE3NT1tCiMgQ09ORklHX1ZJREVPX0FE
+VjczNDMgaXMgbm90IHNldAojIENPTkZJR19WSURFT19BSzg4MVggaXMgbm90IHNldAoKIwojIENh
+bWVyYSBzZW5zb3IgZGV2aWNlcwojCkNPTkZJR19WSURFT19PVjc2NzA9bQpDT05GSUdfVklERU9f
+TVQ5VjAxMT1tCiMgQ09ORklHX1ZJREVPX1RDTTgyNVggaXMgbm90IHNldAoKIwojIFZpZGVvIGlt
+cHJvdmVtZW50IGNoaXBzCiMKQ09ORklHX1ZJREVPX1VQRDY0MDMxQT1tCkNPTkZJR19WSURFT19V
+UEQ2NDA4Mz1tCgojCiMgTWlzY2VsYW5lb3VzIGhlbHBlciBjaGlwcwojCkNPTkZJR19WSURFT19U
+SFM3MzAzPW0KQ09ORklHX1ZJREVPX001Mjc5MD1tCkNPTkZJR19WSURFT19QTVM9bQpDT05GSUdf
+VklERU9fQldRQ0FNPW0KIyBDT05GSUdfVklERU9fVzk5NjYgaXMgbm90IHNldApDT05GSUdfVklE
+RU9fU0FBNzEzND1tCkNPTkZJR19WSURFT19NWEI9bQojIENPTkZJR19WSURFT19IRVhJVU1fT1JJ
+T04gaXMgbm90IHNldAojIENPTkZJR19WSURFT19IRVhJVU1fR0VNSU5JIGlzIG5vdCBzZXQKIyBD
+T05GSUdfVklERU9fVElNQkVSREFMRSBpcyBub3Qgc2V0CkNPTkZJR19WSURFT19DQUZFX0NDSUM9
+bQpDT05GSUdfVklERU9fU1IwMzBQQzMwPW0KQ09ORklHX1ZJREVPX05PT04wMTBQQzMwPW0KIyBD
+T05GSUdfU09DX0NBTUVSQSBpcyBub3Qgc2V0CkNPTkZJR19WNExfTUVNMk1FTV9EUklWRVJTPXkK
+Q09ORklHX1ZJREVPX01FTTJNRU1fVEVTVERFVj1tCkNPTkZJR19SQURJT19BREFQVEVSUz15CkNP
+TkZJR19SQURJT19DQURFVD1tCiMgQ09ORklHX1JBRElPX1JUUkFDSyBpcyBub3Qgc2V0CkNPTkZJ
+R19SQURJT19SVFJBQ0syPW0KQ09ORklHX1JBRElPX0FaVEVDSD1tCkNPTkZJR19SQURJT19HRU1U
+RUs9bQojIENPTkZJR19SQURJT19NQVhJUkFESU8gaXMgbm90IHNldApDT05GSUdfUkFESU9fU0Yx
+NkZNST1tCkNPTkZJR19SQURJT19TRjE2Rk1SMj1tCkNPTkZJR19SQURJT19URVJSQVRFQz1tCkNP
+TkZJR19SQURJT19UUlVTVD1tCkNPTkZJR19SQURJT19UWVBIT09OPW0KIyBDT05GSUdfUkFESU9f
+Wk9MVFJJWCBpcyBub3Qgc2V0CiMgQ09ORklHX0kyQ19TSTQ3MTMgaXMgbm90IHNldAojIENPTkZJ
+R19SQURJT19TSTQ3MTMgaXMgbm90IHNldAojIENPTkZJR19SQURJT19TSTQ3MFggaXMgbm90IHNl
+dApDT05GSUdfUkFESU9fVEVBNTc2ND1tCkNPTkZJR19SQURJT19TQUE3NzA2SD1tCkNPTkZJR19S
+QURJT19URUY2ODYyPW0KIyBDT05GSUdfUkFESU9fV0wxMjczIGlzIG5vdCBzZXQKCiMKIyBUZXhh
+cyBJbnN0cnVtZW50cyBXTDEyOHggRk0gZHJpdmVyIChTVCBiYXNlZCkKIwoKIwojIEdyYXBoaWNz
+IHN1cHBvcnQKIwpDT05GSUdfQUdQPW0KIyBDT05GSUdfQUdQX0FMSSBpcyBub3Qgc2V0CkNPTkZJ
+R19BR1BfQVRJPW0KQ09ORklHX0FHUF9BTUQ9bQojIENPTkZJR19BR1BfQU1ENjQgaXMgbm90IHNl
+dAojIENPTkZJR19BR1BfSU5URUwgaXMgbm90IHNldApDT05GSUdfQUdQX05WSURJQT1tCiMgQ09O
+RklHX0FHUF9TSVMgaXMgbm90IHNldAojIENPTkZJR19BR1BfU1dPUktTIGlzIG5vdCBzZXQKQ09O
+RklHX0FHUF9WSUE9bQpDT05GSUdfQUdQX0VGRklDRU9OPW0KQ09ORklHX1ZHQV9BUkI9eQpDT05G
+SUdfVkdBX0FSQl9NQVhfR1BVUz0xNgojIENPTkZJR19EUk0gaXMgbm90IHNldApDT05GSUdfVkdB
+U1RBVEU9bQojIENPTkZJR19WSURFT19PVVRQVVRfQ09OVFJPTCBpcyBub3Qgc2V0CkNPTkZJR19G
+Qj1tCiMgQ09ORklHX0ZJUk1XQVJFX0VESUQgaXMgbm90IHNldAojIENPTkZJR19GQl9EREMgaXMg
+bm90IHNldAojIENPTkZJR19GQl9CT09UX1ZFU0FfU1VQUE9SVCBpcyBub3Qgc2V0CkNPTkZJR19G
+Ql9DRkJfRklMTFJFQ1Q9bQpDT05GSUdfRkJfQ0ZCX0NPUFlBUkVBPW0KQ09ORklHX0ZCX0NGQl9J
+TUFHRUJMSVQ9bQojIENPTkZJR19GQl9DRkJfUkVWX1BJWEVMU19JTl9CWVRFIGlzIG5vdCBzZXQK
+Q09ORklHX0ZCX1NZU19GSUxMUkVDVD1tCkNPTkZJR19GQl9TWVNfQ09QWUFSRUE9bQpDT05GSUdf
+RkJfU1lTX0lNQUdFQkxJVD1tCiMgQ09ORklHX0ZCX0ZPUkVJR05fRU5ESUFOIGlzIG5vdCBzZXQK
+Q09ORklHX0ZCX1NZU19GT1BTPW0KIyBDT05GSUdfRkJfV01UX0dFX1JPUFMgaXMgbm90IHNldApD
+T05GSUdfRkJfREVGRVJSRURfSU89eQpDT05GSUdfRkJfSEVDVUJBPW0KQ09ORklHX0ZCX1NWR0FM
+SUI9bQojIENPTkZJR19GQl9NQUNNT0RFUyBpcyBub3Qgc2V0CkNPTkZJR19GQl9CQUNLTElHSFQ9
+eQpDT05GSUdfRkJfTU9ERV9IRUxQRVJTPXkKQ09ORklHX0ZCX1RJTEVCTElUVElORz15CgojCiMg
+RnJhbWUgYnVmZmVyIGhhcmR3YXJlIGRyaXZlcnMKIwojIENPTkZJR19GQl9DSVJSVVMgaXMgbm90
+IHNldApDT05GSUdfRkJfUE0yPW0KIyBDT05GSUdfRkJfUE0yX0ZJRk9fRElTQ09OTkVDVCBpcyBu
+b3Qgc2V0CiMgQ09ORklHX0ZCX0NZQkVSMjAwMCBpcyBub3Qgc2V0CiMgQ09ORklHX0ZCX0FSQyBp
+cyBub3Qgc2V0CiMgQ09ORklHX0ZCX1ZHQTE2IGlzIG5vdCBzZXQKQ09ORklHX0ZCX040MTE9bQoj
+IENPTkZJR19GQl9IR0EgaXMgbm90IHNldApDT05GSUdfRkJfUzFEMTNYWFg9bQojIENPTkZJR19G
+Ql9OVklESUEgaXMgbm90IHNldApDT05GSUdfRkJfUklWQT1tCiMgQ09ORklHX0ZCX1JJVkFfSTJD
+IGlzIG5vdCBzZXQKIyBDT05GSUdfRkJfUklWQV9ERUJVRyBpcyBub3Qgc2V0CkNPTkZJR19GQl9S
+SVZBX0JBQ0tMSUdIVD15CiMgQ09ORklHX0ZCX0xFODA1NzggaXMgbm90IHNldAojIENPTkZJR19G
+Ql9NQVRST1ggaXMgbm90IHNldApDT05GSUdfRkJfUkFERU9OPW0KIyBDT05GSUdfRkJfUkFERU9O
+X0kyQyBpcyBub3Qgc2V0CiMgQ09ORklHX0ZCX1JBREVPTl9CQUNLTElHSFQgaXMgbm90IHNldApD
+T05GSUdfRkJfUkFERU9OX0RFQlVHPXkKQ09ORklHX0ZCX0FUWTEyOD1tCkNPTkZJR19GQl9BVFkx
+MjhfQkFDS0xJR0hUPXkKIyBDT05GSUdfRkJfQVRZIGlzIG5vdCBzZXQKQ09ORklHX0ZCX1MzPW0K
+IyBDT05GSUdfRkJfUzNfRERDIGlzIG5vdCBzZXQKIyBDT05GSUdfRkJfU0lTIGlzIG5vdCBzZXQK
+IyBDT05GSUdfRkJfVklBIGlzIG5vdCBzZXQKQ09ORklHX0ZCX05FT01BR0lDPW0KQ09ORklHX0ZC
+X0tZUk89bQojIENPTkZJR19GQl8zREZYIGlzIG5vdCBzZXQKQ09ORklHX0ZCX1ZPT0RPTzE9bQoj
+IENPTkZJR19GQl9WVDg2MjMgaXMgbm90IHNldAojIENPTkZJR19GQl9UUklERU5UIGlzIG5vdCBz
+ZXQKQ09ORklHX0ZCX0FSSz1tCkNPTkZJR19GQl9DQVJNSU5FPW0KQ09ORklHX0ZCX0NBUk1JTkVf
+RFJBTV9FVkFMPXkKIyBDT05GSUdfQ0FSTUlORV9EUkFNX0NVU1RPTSBpcyBub3Qgc2V0CiMgQ09O
+RklHX0ZCX1ZJUlRVQUwgaXMgbm90IHNldAojIENPTkZJR19GQl9NRVRST05PTUUgaXMgbm90IHNl
+dAojIENPTkZJR19GQl9NQjg2MlhYIGlzIG5vdCBzZXQKQ09ORklHX0ZCX0JST0FEU0hFRVQ9bQpD
+T05GSUdfQkFDS0xJR0hUX0xDRF9TVVBQT1JUPXkKQ09ORklHX0xDRF9DTEFTU19ERVZJQ0U9bQpD
+T05GSUdfTENEX1BMQVRGT1JNPW0KQ09ORklHX0JBQ0tMSUdIVF9DTEFTU19ERVZJQ0U9bQojIENP
+TkZJR19CQUNLTElHSFRfR0VORVJJQyBpcyBub3Qgc2V0CkNPTkZJR19CQUNLTElHSFRfUFJPR0VB
+Uj1tCkNPTkZJR19CQUNLTElHSFRfU0FIQVJBPW0KQ09ORklHX0JBQ0tMSUdIVF9BRFA4ODYwPW0K
+CiMKIyBEaXNwbGF5IGRldmljZSBzdXBwb3J0CiMKIyBDT05GSUdfRElTUExBWV9TVVBQT1JUIGlz
+IG5vdCBzZXQKIyBDT05GSUdfTE9HTyBpcyBub3Qgc2V0CiMgQ09ORklHX1NPVU5EIGlzIG5vdCBz
+ZXQKIyBDT05GSUdfVVNCX1NVUFBPUlQgaXMgbm90IHNldApDT05GSUdfTU1DPW0KIyBDT05GSUdf
+TU1DX0RFQlVHIGlzIG5vdCBzZXQKQ09ORklHX01NQ19VTlNBRkVfUkVTVU1FPXkKCiMKIyBNTUMv
+U0QvU0RJTyBDYXJkIERyaXZlcnMKIwpDT05GSUdfU0RJT19VQVJUPW0KIyBDT05GSUdfTU1DX1RF
+U1QgaXMgbm90IHNldAoKIwojIE1NQy9TRC9TRElPIEhvc3QgQ29udHJvbGxlciBEcml2ZXJzCiMK
+Q09ORklHX01NQ19TREhDST1tCiMgQ09ORklHX01NQ19TREhDSV9QQ0kgaXMgbm90IHNldApDT05G
+SUdfTU1DX1NESENJX1BMVEZNPW0KQ09ORklHX01NQ19XQlNEPW0KIyBDT05GSUdfTU1DX0NCNzEw
+IGlzIG5vdCBzZXQKQ09ORklHX01NQ19WSUFfU0RNTUM9bQpDT05GSUdfTUVNU1RJQ0s9bQpDT05G
+SUdfTUVNU1RJQ0tfREVCVUc9eQoKIwojIE1lbW9yeVN0aWNrIGRyaXZlcnMKIwojIENPTkZJR19N
+RU1TVElDS19VTlNBRkVfUkVTVU1FIGlzIG5vdCBzZXQKCiMKIyBNZW1vcnlTdGljayBIb3N0IENv
+bnRyb2xsZXIgRHJpdmVycwojCkNPTkZJR19ORVdfTEVEUz15CkNPTkZJR19MRURTX0NMQVNTPXkK
+CiMKIyBMRUQgZHJpdmVycwojCkNPTkZJR19MRURTX0xNMzUzMD1tCiMgQ09ORklHX0xFRFNfQUxJ
+WDIgaXMgbm90IHNldAojIENPTkZJR19MRURTX0dQSU8gaXMgbm90IHNldAojIENPTkZJR19MRURT
+X0xQMzk0NCBpcyBub3Qgc2V0CkNPTkZJR19MRURTX0xQNTUyMT1tCkNPTkZJR19MRURTX0xQNTUy
+Mz1tCkNPTkZJR19MRURTX1BDQTk1NVg9bQpDT05GSUdfTEVEU19SRUdVTEFUT1I9bQojIENPTkZJ
+R19MRURTX0JEMjgwMiBpcyBub3Qgc2V0CkNPTkZJR19MRURTX0xUMzU5Mz1tCiMgQ09ORklHX0xF
+RFNfVFJJR0dFUlMgaXMgbm90IHNldAoKIwojIExFRCBUcmlnZ2VycwojCiMgQ09ORklHX05GQ19E
+RVZJQ0VTIGlzIG5vdCBzZXQKIyBDT05GSUdfQUNDRVNTSUJJTElUWSBpcyBub3Qgc2V0CiMgQ09O
+RklHX0VEQUMgaXMgbm90IHNldApDT05GSUdfUlRDX0xJQj15CkNPTkZJR19SVENfQ0xBU1M9eQoj
+IENPTkZJR19SVENfSENUT1NZUyBpcyBub3Qgc2V0CiMgQ09ORklHX1JUQ19ERUJVRyBpcyBub3Qg
+c2V0CgojCiMgUlRDIGludGVyZmFjZXMKIwpDT05GSUdfUlRDX0lOVEZfU1lTRlM9eQpDT05GSUdf
+UlRDX0lOVEZfUFJPQz15CiMgQ09ORklHX1JUQ19JTlRGX0RFViBpcyBub3Qgc2V0CiMgQ09ORklH
+X1JUQ19EUlZfVEVTVCBpcyBub3Qgc2V0CgojCiMgSTJDIFJUQyBkcml2ZXJzCiMKIyBDT05GSUdf
+UlRDX0RSVl9EUzEzMDcgaXMgbm90IHNldAojIENPTkZJR19SVENfRFJWX0RTMTM3NCBpcyBub3Qg
+c2V0CkNPTkZJR19SVENfRFJWX0RTMTY3Mj1tCkNPTkZJR19SVENfRFJWX0RTMzIzMj1tCiMgQ09O
+RklHX1JUQ19EUlZfTUFYNjkwMCBpcyBub3Qgc2V0CkNPTkZJR19SVENfRFJWX1JTNUMzNzI9bQpD
+T05GSUdfUlRDX0RSVl9JU0wxMjA4PW0KIyBDT05GSUdfUlRDX0RSVl9JU0wxMjAyMiBpcyBub3Qg
+c2V0CkNPTkZJR19SVENfRFJWX1gxMjA1PW0KIyBDT05GSUdfUlRDX0RSVl9QQ0Y4NTYzIGlzIG5v
+dCBzZXQKIyBDT05GSUdfUlRDX0RSVl9QQ0Y4NTgzIGlzIG5vdCBzZXQKIyBDT05GSUdfUlRDX0RS
+Vl9NNDFUODAgaXMgbm90IHNldAojIENPTkZJR19SVENfRFJWX0JRMzJLIGlzIG5vdCBzZXQKQ09O
+RklHX1JUQ19EUlZfUzM1MzkwQT1tCkNPTkZJR19SVENfRFJWX0ZNMzEzMD1tCiMgQ09ORklHX1JU
+Q19EUlZfUlg4NTgxIGlzIG5vdCBzZXQKIyBDT05GSUdfUlRDX0RSVl9SWDgwMjUgaXMgbm90IHNl
+dApDT05GSUdfUlRDX0RSVl9FTTMwMjc9bQpDT05GSUdfUlRDX0RSVl9SVjMwMjlDMj1tCgojCiMg
+U1BJIFJUQyBkcml2ZXJzCiMKCiMKIyBQbGF0Zm9ybSBSVEMgZHJpdmVycwojCkNPTkZJR19SVENf
+RFJWX0NNT1M9bQojIENPTkZJR19SVENfRFJWX0RTMTI4NiBpcyBub3Qgc2V0CkNPTkZJR19SVENf
+RFJWX0RTMTUxMT1tCkNPTkZJR19SVENfRFJWX0RTMTU1Mz1tCkNPTkZJR19SVENfRFJWX0RTMTc0
+Mj1tCkNPTkZJR19SVENfRFJWX1NUSzE3VEE4PW0KIyBDT05GSUdfUlRDX0RSVl9NNDhUODYgaXMg
+bm90IHNldAojIENPTkZJR19SVENfRFJWX000OFQzNSBpcyBub3Qgc2V0CiMgQ09ORklHX1JUQ19E
+UlZfTTQ4VDU5IGlzIG5vdCBzZXQKIyBDT05GSUdfUlRDX0RSVl9NU002MjQyIGlzIG5vdCBzZXQK
+Q09ORklHX1JUQ19EUlZfQlE0ODAyPW0KIyBDT05GSUdfUlRDX0RSVl9SUDVDMDEgaXMgbm90IHNl
+dApDT05GSUdfUlRDX0RSVl9WMzAyMD1tCgojCiMgb24tQ1BVIFJUQyBkcml2ZXJzCiMKQ09ORklH
+X0RNQURFVklDRVM9eQojIENPTkZJR19ETUFERVZJQ0VTX0RFQlVHIGlzIG5vdCBzZXQKCiMKIyBE
+TUEgRGV2aWNlcwojCkNPTkZJR19JTlRFTF9NSURfRE1BQz1tCkNPTkZJR19JTlRFTF9JT0FURE1B
+PW0KIyBDT05GSUdfVElNQl9ETUEgaXMgbm90IHNldAojIENPTkZJR19QQ0hfRE1BIGlzIG5vdCBz
+ZXQKQ09ORklHX0RNQV9FTkdJTkU9eQoKIwojIERNQSBDbGllbnRzCiMKQ09ORklHX0FTWU5DX1RY
+X0RNQT15CiMgQ09ORklHX0RNQVRFU1QgaXMgbm90IHNldApDT05GSUdfRENBPW0KIyBDT05GSUdf
+QVVYRElTUExBWSBpcyBub3Qgc2V0CkNPTkZJR19VSU89bQojIENPTkZJR19VSU9fQ0lGIGlzIG5v
+dCBzZXQKQ09ORklHX1VJT19QRFJWPW0KIyBDT05GSUdfVUlPX1BEUlZfR0VOSVJRIGlzIG5vdCBz
+ZXQKQ09ORklHX1VJT19BRUM9bQpDT05GSUdfVUlPX1NFUkNPUzM9bQpDT05GSUdfVUlPX1BDSV9H
+RU5FUklDPW0KQ09ORklHX1VJT19ORVRYPW0KQ09ORklHX1NUQUdJTkc9eQojIENPTkZJR19TVEFM
+TElPTiBpcyBub3Qgc2V0CkNPTkZJR19JU1RBTExJT049bQojIENPTkZJR19ESUdJRVBDQSBpcyBu
+b3Qgc2V0CkNPTkZJR19SSVNDT004PW0KIyBDT05GSUdfU1BFQ0lBTElYIGlzIG5vdCBzZXQKQ09O
+RklHX0NPTVBVVE9ORT1tCiMgQ09ORklHX0VDSE8gaXMgbm90IHNldAojIENPTkZJR19CUkNNVVRJ
+TCBpcyBub3Qgc2V0CiMgQ09ORklHX0NPTUVESSBpcyBub3Qgc2V0CkNPTkZJR19GQl9PTFBDX0RD
+T049bQojIENPTkZJR19QQU5FTCBpcyBub3Qgc2V0CiMgQ09ORklHX1ZNRV9CVVMgaXMgbm90IHNl
+dAojIENPTkZJR19EWF9TRVAgaXMgbm90IHNldAojIENPTkZJR19JSU8gaXMgbm90IHNldAojIENP
+TkZJR19DUzU1MzVfR1BJTyBpcyBub3Qgc2V0CiMgQ09ORklHX1hWTUFMTE9DIGlzIG5vdCBzZXQK
+IyBDT05GSUdfWkNBQ0hFIGlzIG5vdCBzZXQKQ09ORklHX0ZCX1NNN1hYPW0KQ09ORklHX1ZJREVP
+X0RUMzE1NT1tCiMgQ09ORklHX0RUMzE1NV9DQ0lSIGlzIG5vdCBzZXQKQ09ORklHX0NSWVNUQUxI
+RD1tCkNPTkZJR19GQl9YR0k9bQpDT05GSUdfTUFDSF9OT19XRVNUQlJJREdFPXkKQ09ORklHX0ZU
+MTAwMD1tCgojCiMgU3BlYWt1cCBjb25zb2xlIHNwZWVjaAojCgojCiMgQWx0ZXJhIEZQR0EgZmly
+bXdhcmUgZG93bmxvYWQgbW9kdWxlCiMKIyBDT05GSUdfQUxURVJBX1NUQVBMIGlzIG5vdCBzZXQK
+Q09ORklHX1g4Nl9QTEFURk9STV9ERVZJQ0VTPXkKIyBDT05GSUdfSUJNX1JUTCBpcyBub3Qgc2V0
+CkNPTkZJR19DTEtTUkNfSTgyNTM9eQoKIwojIEZpcm13YXJlIERyaXZlcnMKIwpDT05GSUdfRURE
+PW0KQ09ORklHX0VERF9PRkY9eQpDT05GSUdfRklSTVdBUkVfTUVNTUFQPXkKIyBDT05GSUdfREVM
+TF9SQlUgaXMgbm90IHNldAojIENPTkZJR19EQ0RCQVMgaXMgbm90IHNldApDT05GSUdfSVNDU0lf
+SUJGVF9GSU5EPXkKQ09ORklHX1NJR01BPW0KQ09ORklHX0dPT0dMRV9GSVJNV0FSRT15CgojCiMg
+R29vZ2xlIEZpcm13YXJlIERyaXZlcnMKIwoKIwojIEZpbGUgc3lzdGVtcwojCiMgQ09ORklHX0ZT
+X1BPU0lYX0FDTCBpcyBub3Qgc2V0CkNPTkZJR19FWFBPUlRGUz15CkNPTkZJR19GSUxFX0xPQ0tJ
+Tkc9eQpDT05GSUdfRlNOT1RJRlk9eQpDT05GSUdfRE5PVElGWT15CiMgQ09ORklHX0lOT1RJRllf
+VVNFUiBpcyBub3Qgc2V0CkNPTkZJR19GQU5PVElGWT15CiMgQ09ORklHX1FVT1RBIGlzIG5vdCBz
+ZXQKIyBDT05GSUdfUVVPVEFDVEwgaXMgbm90IHNldAojIENPTkZJR19BVVRPRlM0X0ZTIGlzIG5v
+dCBzZXQKIyBDT05GSUdfRlVTRV9GUyBpcyBub3Qgc2V0CgojCiMgQ2FjaGVzCiMKQ09ORklHX0ZT
+Q0FDSEU9bQpDT05GSUdfRlNDQUNIRV9TVEFUUz15CkNPTkZJR19GU0NBQ0hFX0hJU1RPR1JBTT15
+CkNPTkZJR19GU0NBQ0hFX0RFQlVHPXkKQ09ORklHX0ZTQ0FDSEVfT0JKRUNUX0xJU1Q9eQoKIwoj
+IFBzZXVkbyBmaWxlc3lzdGVtcwojCkNPTkZJR19QUk9DX0ZTPXkKQ09ORklHX1BST0NfS0NPUkU9
+eQojIENPTkZJR19QUk9DX1NZU0NUTCBpcyBub3Qgc2V0CiMgQ09ORklHX1BST0NfUEFHRV9NT05J
+VE9SIGlzIG5vdCBzZXQKQ09ORklHX1NZU0ZTPXkKQ09ORklHX0hVR0VUTEJGUz15CkNPTkZJR19I
+VUdFVExCX1BBR0U9eQpDT05GSUdfQ09ORklHRlNfRlM9bQpDT05GSUdfTUlTQ19GSUxFU1lTVEVN
+Uz15CkNPTkZJR19KRkZTMl9GUz1tCkNPTkZJR19KRkZTMl9GU19ERUJVRz0wCiMgQ09ORklHX0pG
+RlMyX0ZTX1dSSVRFQlVGRkVSIGlzIG5vdCBzZXQKQ09ORklHX0pGRlMyX0NPTVBSRVNTSU9OX09Q
+VElPTlM9eQojIENPTkZJR19KRkZTMl9aTElCIGlzIG5vdCBzZXQKQ09ORklHX0pGRlMyX0xaTz15
+CkNPTkZJR19KRkZTMl9SVElNRT15CkNPTkZJR19KRkZTMl9SVUJJTj15CiMgQ09ORklHX0pGRlMy
+X0NNT0RFX05PTkUgaXMgbm90IHNldAojIENPTkZJR19KRkZTMl9DTU9ERV9QUklPUklUWSBpcyBu
+b3Qgc2V0CkNPTkZJR19KRkZTMl9DTU9ERV9TSVpFPXkKIyBDT05GSUdfSkZGUzJfQ01PREVfRkFW
+T1VSTFpPIGlzIG5vdCBzZXQKIyBDT05GSUdfVUJJRlNfRlMgaXMgbm90IHNldAojIENPTkZJR19S
+T01GU19GUyBpcyBub3Qgc2V0CkNPTkZJR19QU1RPUkU9eQojIENPTkZJR19OTFMgaXMgbm90IHNl
+dAoKIwojIEtlcm5lbCBoYWNraW5nCiMKQ09ORklHX1RSQUNFX0lSUUZMQUdTX1NVUFBPUlQ9eQoj
+IENPTkZJR19QUklOVEtfVElNRSBpcyBub3Qgc2V0CkNPTkZJR19ERUZBVUxUX01FU1NBR0VfTE9H
+TEVWRUw9NAojIENPTkZJR19FTkFCTEVfV0FSTl9ERVBSRUNBVEVEIGlzIG5vdCBzZXQKIyBDT05G
+SUdfRU5BQkxFX01VU1RfQ0hFQ0sgaXMgbm90IHNldApDT05GSUdfRlJBTUVfV0FSTj0xMDI0CiMg
+Q09ORklHX01BR0lDX1NZU1JRIGlzIG5vdCBzZXQKQ09ORklHX1NUUklQX0FTTV9TWU1TPXkKQ09O
+RklHX1VOVVNFRF9TWU1CT0xTPXkKQ09ORklHX0RFQlVHX0ZTPXkKQ09ORklHX0hFQURFUlNfQ0hF
+Q0s9eQpDT05GSUdfREVCVUdfU0VDVElPTl9NSVNNQVRDSD15CkNPTkZJR19ERUJVR19LRVJORUw9
+eQpDT05GSUdfREVCVUdfU0hJUlE9eQojIENPTkZJR19MT0NLVVBfREVURUNUT1IgaXMgbm90IHNl
+dAojIENPTkZJR19IQVJETE9DS1VQX0RFVEVDVE9SIGlzIG5vdCBzZXQKIyBDT05GSUdfREVURUNU
+X0hVTkdfVEFTSyBpcyBub3Qgc2V0CkNPTkZJR19TQ0hFRF9ERUJVRz15CkNPTkZJR19TQ0hFRFNU
+QVRTPXkKQ09ORklHX1RJTUVSX1NUQVRTPXkKIyBDT05GSUdfREVCVUdfT0JKRUNUUyBpcyBub3Qg
+c2V0CkNPTkZJR19TTFVCX0RFQlVHX09OPXkKIyBDT05GSUdfU0xVQl9TVEFUUyBpcyBub3Qgc2V0
+CkNPTkZJR19ERUJVR19QUkVFTVBUPXkKIyBDT05GSUdfREVCVUdfUlRfTVVURVhFUyBpcyBub3Qg
+c2V0CkNPTkZJR19SVF9NVVRFWF9URVNURVI9eQpDT05GSUdfREVCVUdfU1BJTkxPQ0s9eQpDT05G
+SUdfREVCVUdfTVVURVhFUz15CkNPTkZJR19ERUJVR19MT0NLX0FMTE9DPXkKQ09ORklHX1BST1ZF
+X0xPQ0tJTkc9eQpDT05GSUdfUFJPVkVfUkNVPXkKIyBDT05GSUdfUFJPVkVfUkNVX1JFUEVBVEVE
+TFkgaXMgbm90IHNldAojIENPTkZJR19TUEFSU0VfUkNVX1BPSU5URVIgaXMgbm90IHNldApDT05G
+SUdfTE9DS0RFUD15CiMgQ09ORklHX0xPQ0tfU1RBVCBpcyBub3Qgc2V0CkNPTkZJR19ERUJVR19M
+T0NLREVQPXkKQ09ORklHX1RSQUNFX0lSUUZMQUdTPXkKQ09ORklHX0RFQlVHX1NQSU5MT0NLX1NM
+RUVQPXkKQ09ORklHX0RFQlVHX0xPQ0tJTkdfQVBJX1NFTEZURVNUUz15CkNPTkZJR19TVEFDS1RS
+QUNFPXkKIyBDT05GSUdfREVCVUdfU1RBQ0tfVVNBR0UgaXMgbm90IHNldAojIENPTkZJR19ERUJV
+R19LT0JKRUNUIGlzIG5vdCBzZXQKIyBDT05GSUdfREVCVUdfSElHSE1FTSBpcyBub3Qgc2V0CiMg
+Q09ORklHX0RFQlVHX0lORk8gaXMgbm90IHNldAojIENPTkZJR19ERUJVR19WTSBpcyBub3Qgc2V0
+CkNPTkZJR19ERUJVR19WSVJUVUFMPXkKQ09ORklHX0RFQlVHX1dSSVRFQ09VTlQ9eQojIENPTkZJ
+R19ERUJVR19NRU1PUllfSU5JVCBpcyBub3Qgc2V0CiMgQ09ORklHX0RFQlVHX0xJU1QgaXMgbm90
+IHNldAojIENPTkZJR19URVNUX0xJU1RfU09SVCBpcyBub3Qgc2V0CkNPTkZJR19ERUJVR19TRz15
+CkNPTkZJR19ERUJVR19OT1RJRklFUlM9eQpDT05GSUdfREVCVUdfQ1JFREVOVElBTFM9eQpDT05G
+SUdfQVJDSF9XQU5UX0ZSQU1FX1BPSU5URVJTPXkKQ09ORklHX0ZSQU1FX1BPSU5URVI9eQojIENP
+TkZJR19CT09UX1BSSU5US19ERUxBWSBpcyBub3Qgc2V0CkNPTkZJR19SQ1VfVE9SVFVSRV9URVNU
+PW0KQ09ORklHX1JDVV9DUFVfU1RBTExfVElNRU9VVD02MAojIENPTkZJR19SQ1VfQ1BVX1NUQUxM
+X1ZFUkJPU0UgaXMgbm90IHNldAojIENPTkZJR19CQUNLVFJBQ0VfU0VMRl9URVNUIGlzIG5vdCBz
+ZXQKIyBDT05GSUdfREVCVUdfRk9SQ0VfV0VBS19QRVJfQ1BVIGlzIG5vdCBzZXQKIyBDT05GSUdf
+REVCVUdfUEVSX0NQVV9NQVBTIGlzIG5vdCBzZXQKQ09ORklHX0NQVV9OT1RJRklFUl9FUlJPUl9J
+TkpFQ1Q9bQpDT05GSUdfRkFVTFRfSU5KRUNUSU9OPXkKIyBDT05GSUdfRkFJTFNMQUIgaXMgbm90
+IHNldApDT05GSUdfRkFJTF9QQUdFX0FMTE9DPXkKQ09ORklHX0ZBVUxUX0lOSkVDVElPTl9ERUJV
+R19GUz15CiMgQ09ORklHX0ZBVUxUX0lOSkVDVElPTl9TVEFDS1RSQUNFX0ZJTFRFUiBpcyBub3Qg
+c2V0CkNPTkZJR19MQVRFTkNZVE9QPXkKQ09ORklHX0RFQlVHX1BBR0VBTExPQz15CkNPTkZJR19V
+U0VSX1NUQUNLVFJBQ0VfU1VQUE9SVD15CkNPTkZJR19IQVZFX0ZVTkNUSU9OX1RSQUNFUj15CkNP
+TkZJR19IQVZFX0ZVTkNUSU9OX0dSQVBIX1RSQUNFUj15CkNPTkZJR19IQVZFX0ZVTkNUSU9OX0dS
+QVBIX0ZQX1RFU1Q9eQpDT05GSUdfSEFWRV9GVU5DVElPTl9UUkFDRV9NQ09VTlRfVEVTVD15CkNP
+TkZJR19IQVZFX0RZTkFNSUNfRlRSQUNFPXkKQ09ORklHX0hBVkVfRlRSQUNFX01DT1VOVF9SRUNP
+UkQ9eQpDT05GSUdfSEFWRV9TWVNDQUxMX1RSQUNFUE9JTlRTPXkKQ09ORklHX0hBVkVfQ19SRUNP
+UkRNQ09VTlQ9eQpDT05GSUdfUklOR19CVUZGRVI9eQpDT05GSUdfUklOR19CVUZGRVJfQUxMT1df
+U1dBUD15CkNPTkZJR19UUkFDSU5HX1NVUFBPUlQ9eQojIENPTkZJR19GVFJBQ0UgaXMgbm90IHNl
+dApDT05GSUdfUFJPVklERV9PSENJMTM5NF9ETUFfSU5JVD15CiMgQ09ORklHX0JVSUxEX0RPQ1NS
+QyBpcyBub3Qgc2V0CkNPTkZJR19EWU5BTUlDX0RFQlVHPXkKQ09ORklHX0RNQV9BUElfREVCVUc9
+eQojIENPTkZJR19BVE9NSUM2NF9TRUxGVEVTVCBpcyBub3Qgc2V0CiMgQ09ORklHX1NBTVBMRVMg
+aXMgbm90IHNldApDT05GSUdfSEFWRV9BUkNIX0tHREI9eQpDT05GSUdfSEFWRV9BUkNIX0tNRU1D
+SEVDSz15CiMgQ09ORklHX1RFU1RfS1NUUlRPWCBpcyBub3Qgc2V0CkNPTkZJR19TVFJJQ1RfREVW
+TUVNPXkKQ09ORklHX1g4Nl9WRVJCT1NFX0JPT1RVUD15CiMgQ09ORklHX0VBUkxZX1BSSU5USyBp
+cyBub3Qgc2V0CiMgQ09ORklHX0RFQlVHX1NUQUNLT1ZFUkZMT1cgaXMgbm90IHNldAojIENPTkZJ
+R19YODZfUFREVU1QIGlzIG5vdCBzZXQKIyBDT05GSUdfREVCVUdfUk9EQVRBIGlzIG5vdCBzZXQK
+IyBDT05GSUdfREVCVUdfU0VUX01PRFVMRV9ST05YIGlzIG5vdCBzZXQKIyBDT05GSUdfREVCVUdf
+TlhfVEVTVCBpcyBub3Qgc2V0CkNPTkZJR19ET1VCTEVGQVVMVD15CkNPTkZJR19JT01NVV9TVFJF
+U1M9eQpDT05GSUdfSEFWRV9NTUlPVFJBQ0VfU1VQUE9SVD15CkNPTkZJR19JT19ERUxBWV9UWVBF
+XzBYODA9MApDT05GSUdfSU9fREVMQVlfVFlQRV8wWEVEPTEKQ09ORklHX0lPX0RFTEFZX1RZUEVf
+VURFTEFZPTIKQ09ORklHX0lPX0RFTEFZX1RZUEVfTk9ORT0zCkNPTkZJR19JT19ERUxBWV8wWDgw
+PXkKIyBDT05GSUdfSU9fREVMQVlfMFhFRCBpcyBub3Qgc2V0CiMgQ09ORklHX0lPX0RFTEFZX1VE
+RUxBWSBpcyBub3Qgc2V0CiMgQ09ORklHX0lPX0RFTEFZX05PTkUgaXMgbm90IHNldApDT05GSUdf
+REVGQVVMVF9JT19ERUxBWV9UWVBFPTAKQ09ORklHX0RFQlVHX0JPT1RfUEFSQU1TPXkKIyBDT05G
+SUdfQ1BBX0RFQlVHIGlzIG5vdCBzZXQKIyBDT05GSUdfT1BUSU1JWkVfSU5MSU5JTkcgaXMgbm90
+IHNldAojIENPTkZJR19ERUJVR19TVFJJQ1RfVVNFUl9DT1BZX0NIRUNLUyBpcyBub3Qgc2V0Cgoj
+CiMgU2VjdXJpdHkgb3B0aW9ucwojCiMgQ09ORklHX0tFWVMgaXMgbm90IHNldAojIENPTkZJR19T
+RUNVUklUWV9ETUVTR19SRVNUUklDVCBpcyBub3Qgc2V0CiMgQ09ORklHX1NFQ1VSSVRZIGlzIG5v
+dCBzZXQKQ09ORklHX1NFQ1VSSVRZRlM9eQpDT05GSUdfREVGQVVMVF9TRUNVUklUWV9EQUM9eQpD
+T05GSUdfREVGQVVMVF9TRUNVUklUWT0iIgpDT05GSUdfQVNZTkNfVFhfRElTQUJMRV9QUV9WQUxf
+RE1BPXkKQ09ORklHX0FTWU5DX1RYX0RJU0FCTEVfWE9SX1ZBTF9ETUE9eQpDT05GSUdfQ1JZUFRP
+PW0KCiMKIyBDcnlwdG8gY29yZSBvciBoZWxwZXIKIwojIENPTkZJR19DUllQVE9fRklQUyBpcyBu
+b3Qgc2V0CkNPTkZJR19DUllQVE9fQUxHQVBJPW0KQ09ORklHX0NSWVBUT19BTEdBUEkyPW0KQ09O
+RklHX0NSWVBUT19BRUFEPW0KQ09ORklHX0NSWVBUT19BRUFEMj1tCkNPTkZJR19DUllQVE9fQkxL
+Q0lQSEVSPW0KQ09ORklHX0NSWVBUT19CTEtDSVBIRVIyPW0KQ09ORklHX0NSWVBUT19IQVNIPW0K
+Q09ORklHX0NSWVBUT19IQVNIMj1tCkNPTkZJR19DUllQVE9fUk5HPW0KQ09ORklHX0NSWVBUT19S
+TkcyPW0KQ09ORklHX0NSWVBUT19QQ09NUDI9bQpDT05GSUdfQ1JZUFRPX01BTkFHRVI9bQpDT05G
+SUdfQ1JZUFRPX01BTkFHRVIyPW0KIyBDT05GSUdfQ1JZUFRPX01BTkFHRVJfRElTQUJMRV9URVNU
+UyBpcyBub3Qgc2V0CkNPTkZJR19DUllQVE9fR0YxMjhNVUw9bQojIENPTkZJR19DUllQVE9fTlVM
+TCBpcyBub3Qgc2V0CkNPTkZJR19DUllQVE9fV09SS1FVRVVFPW0KQ09ORklHX0NSWVBUT19DUllQ
+VEQ9bQojIENPTkZJR19DUllQVE9fQVVUSEVOQyBpcyBub3Qgc2V0CiMgQ09ORklHX0NSWVBUT19U
+RVNUIGlzIG5vdCBzZXQKCiMKIyBBdXRoZW50aWNhdGVkIEVuY3J5cHRpb24gd2l0aCBBc3NvY2lh
+dGVkIERhdGEKIwojIENPTkZJR19DUllQVE9fQ0NNIGlzIG5vdCBzZXQKQ09ORklHX0NSWVBUT19H
+Q009bQpDT05GSUdfQ1JZUFRPX1NFUUlWPW0KCiMKIyBCbG9jayBtb2RlcwojCkNPTkZJR19DUllQ
+VE9fQ0JDPW0KQ09ORklHX0NSWVBUT19DVFI9bQpDT05GSUdfQ1JZUFRPX0NUUz1tCiMgQ09ORklH
+X0NSWVBUT19FQ0IgaXMgbm90IHNldApDT05GSUdfQ1JZUFRPX1BDQkM9bQoKIwojIEhhc2ggbW9k
+ZXMKIwojIENPTkZJR19DUllQVE9fSE1BQyBpcyBub3Qgc2V0CgojCiMgRGlnZXN0CiMKIyBDT05G
+SUdfQ1JZUFRPX0NSQzMyQyBpcyBub3Qgc2V0CkNPTkZJR19DUllQVE9fQ1JDMzJDX0lOVEVMPW0K
+Q09ORklHX0NSWVBUT19HSEFTSD1tCkNPTkZJR19DUllQVE9fTUQ0PW0KIyBDT05GSUdfQ1JZUFRP
+X01ENSBpcyBub3Qgc2V0CkNPTkZJR19DUllQVE9fTUlDSEFFTF9NSUM9bQpDT05GSUdfQ1JZUFRP
+X1JNRDEyOD1tCiMgQ09ORklHX0NSWVBUT19STUQxNjAgaXMgbm90IHNldApDT05GSUdfQ1JZUFRP
+X1JNRDI1Nj1tCiMgQ09ORklHX0NSWVBUT19STUQzMjAgaXMgbm90IHNldAojIENPTkZJR19DUllQ
+VE9fU0hBMSBpcyBub3Qgc2V0CkNPTkZJR19DUllQVE9fU0hBMjU2PW0KQ09ORklHX0NSWVBUT19T
+SEE1MTI9bQpDT05GSUdfQ1JZUFRPX1RHUjE5Mj1tCkNPTkZJR19DUllQVE9fV1A1MTI9bQoKIwoj
+IENpcGhlcnMKIwpDT05GSUdfQ1JZUFRPX0FFUz1tCkNPTkZJR19DUllQVE9fQUVTXzU4Nj1tCkNP
+TkZJR19DUllQVE9fQUVTX05JX0lOVEVMPW0KQ09ORklHX0NSWVBUT19BTlVCSVM9bQojIENPTkZJ
+R19DUllQVE9fQVJDNCBpcyBub3Qgc2V0CkNPTkZJR19DUllQVE9fQkxPV0ZJU0g9bQpDT05GSUdf
+Q1JZUFRPX0NBTUVMTElBPW0KIyBDT05GSUdfQ1JZUFRPX0NBU1Q1IGlzIG5vdCBzZXQKQ09ORklH
+X0NSWVBUT19DQVNUNj1tCkNPTkZJR19DUllQVE9fREVTPW0KQ09ORklHX0NSWVBUT19GQ1JZUFQ9
+bQojIENPTkZJR19DUllQVE9fS0hBWkFEIGlzIG5vdCBzZXQKQ09ORklHX0NSWVBUT19TRUVEPW0K
+Q09ORklHX0NSWVBUT19TRVJQRU5UPW0KIyBDT05GSUdfQ1JZUFRPX1RFQSBpcyBub3Qgc2V0CiMg
+Q09ORklHX0NSWVBUT19UV09GSVNIIGlzIG5vdCBzZXQKQ09ORklHX0NSWVBUT19UV09GSVNIX0NP
+TU1PTj1tCkNPTkZJR19DUllQVE9fVFdPRklTSF81ODY9bQoKIwojIENvbXByZXNzaW9uCiMKIyBD
+T05GSUdfQ1JZUFRPX0RFRkxBVEUgaXMgbm90IHNldAojIENPTkZJR19DUllQVE9fWkxJQiBpcyBu
+b3Qgc2V0CiMgQ09ORklHX0NSWVBUT19MWk8gaXMgbm90IHNldAoKIwojIFJhbmRvbSBOdW1iZXIg
+R2VuZXJhdGlvbgojCkNPTkZJR19DUllQVE9fQU5TSV9DUFJORz1tCkNPTkZJR19DUllQVE9fSFc9
+eQojIENPTkZJR19DUllQVE9fREVWX1BBRExPQ0sgaXMgbm90IHNldApDT05GSUdfQ1JZUFRPX0RF
+Vl9HRU9ERT1tCiMgQ09ORklHX0NSWVBUT19ERVZfSElGTl83OTVYIGlzIG5vdCBzZXQKQ09ORklH
+X0hBVkVfS1ZNPXkKIyBDT05GSUdfVklSVFVBTElaQVRJT04gaXMgbm90IHNldAojIENPTkZJR19C
+SU5BUllfUFJJTlRGIGlzIG5vdCBzZXQKCiMKIyBMaWJyYXJ5IHJvdXRpbmVzCiMKQ09ORklHX0JJ
+VFJFVkVSU0U9eQpDT05GSUdfR0VORVJJQ19GSU5EX0ZJUlNUX0JJVD15CiMgQ09ORklHX0NSQ19D
+Q0lUVCBpcyBub3Qgc2V0CkNPTkZJR19DUkMxNj1tCkNPTkZJR19DUkNfVDEwRElGPW0KQ09ORklH
+X0NSQ19JVFVfVD1tCkNPTkZJR19DUkMzMj15CiMgQ09ORklHX0NSQzcgaXMgbm90IHNldAojIENP
+TkZJR19MSUJDUkMzMkMgaXMgbm90IHNldApDT05GSUdfQ1JDOD1tCkNPTkZJR19aTElCX0lORkxB
+VEU9eQpDT05GSUdfTFpPX0NPTVBSRVNTPW0KQ09ORklHX0xaT19ERUNPTVBSRVNTPXkKQ09ORklH
+X1haX0RFQz15CkNPTkZJR19YWl9ERUNfWDg2PXkKIyBDT05GSUdfWFpfREVDX1BPV0VSUEMgaXMg
+bm90IHNldApDT05GSUdfWFpfREVDX0lBNjQ9eQojIENPTkZJR19YWl9ERUNfQVJNIGlzIG5vdCBz
+ZXQKQ09ORklHX1haX0RFQ19BUk1USFVNQj15CkNPTkZJR19YWl9ERUNfU1BBUkM9eQpDT05GSUdf
+WFpfREVDX0JDSj15CkNPTkZJR19YWl9ERUNfVEVTVD1tCkNPTkZJR19ERUNPTVBSRVNTX0daSVA9
+eQpDT05GSUdfREVDT01QUkVTU19CWklQMj15CkNPTkZJR19ERUNPTVBSRVNTX0xaTUE9eQpDT05G
+SUdfREVDT01QUkVTU19YWj15CkNPTkZJR19ERUNPTVBSRVNTX0xaTz15CkNPTkZJR19SRUVEX1NP
+TE9NT049bQpDT05GSUdfUkVFRF9TT0xPTU9OX0RFQzE2PXkKQ09ORklHX0hBU19JT01FTT15CkNP
+TkZJR19IQVNfSU9QT1JUPXkKQ09ORklHX0hBU19ETUE9eQojIENPTkZJR19BVkVSQUdFIGlzIG5v
+dCBzZXQKIyBDT05GSUdfQ09SRElDIGlzIG5vdCBzZXQK
 
-> >   
-> >> +
-> >> +static int sdo_g_tvnorms(struct v4l2_subdev *sd, v4l2_std_id *std)
-> >> +{
-> >> +	*std = V4L2_STD_NTSC_M | V4L2_STD_PAL_M | V4L2_STD_PAL_B |
-> >> +		V4L2_STD_PAL_D | V4L2_STD_PAL_G | V4L2_STD_PAL_H |
-> >> +		V4L2_STD_PAL_I | V4L2_STD_PAL_N | V4L2_STD_PAL_Nc |
-> >> +		V4L2_STD_NTSC_443 | V4L2_STD_PAL_60;
-> >>     
-> >
-> > Use STD_PAL instead of PAL_B|D|G|H|I.
-> >
-> >   
-> >> +	return 0;
-> >> +}
-> >> +
-> >> +static int sdo_s_std_output(struct v4l2_subdev *sd, v4l2_std_id std)
-> >> +{
-> >> +	struct sdo_device *sdev = sd_to_sdev(sd);
-> >> +	const struct sdo_format *fmt;
-> >> +	fmt = sdo_find_format(std);
-> >> +	if (fmt == NULL)
-> >> +		return -EINVAL;
-> >> +	sdev->fmt = fmt;
-> >> +	return 0;
-> >> +}
-> >> +
-> >> +static int sdo_g_mbus_fmt(struct v4l2_subdev *sd,
-> >> +	struct v4l2_mbus_framefmt *fmt)
-> >> +{
-> >> +	struct sdo_device *sdev = sd_to_sdev(sd);
-> >> +
-> >> +	if (!sdev->fmt)
-> >> +		return -ENXIO;
-> >> +	/* all modes are 720 pixels wide */
-> >> +	fmt->width = 720;
-> >> +	fmt->height = sdev->fmt->height;
-> >> +	fmt->code = V4L2_MBUS_FMT_FIXED;
-> >> +	fmt->field = V4L2_FIELD_INTERLACED;
-> >> +	return 0;
-> >> +}
-> >> +
-> >> +static int sdo_s_power(struct v4l2_subdev *sd, int on)
-> >> +{
-> >> +	struct sdo_device *sdev = sd_to_sdev(sd);
-> >> +	struct device *dev = sdev->dev;
-> >> +	int ret;
-> >> +
-> >> +	dev_info(dev, "sdo_s_power(%d)\n", on);
-> >> +
-> >> +	if (on)
-> >> +		ret = pm_runtime_get_sync(dev);
-> >> +	else
-> >> +		ret = pm_runtime_put_sync(dev);
-> >> +
-> >> +	/* only values < 0 indicate errors */
-> >> +	return IS_ERR_VALUE(ret) ? ret : 0;
-> >> +}
-> >> +
-> >> +static int sdo_streamon(struct sdo_device *sdev)
-> >> +{
-> >> +	/* set proper clock for Timing Generator */
-> >> +	clk_set_rate(sdev->fout_vpll, 54000000);
-> >> +	dev_info(sdev->dev, "fout_vpll.rate = %lu\n",
-> >> +		clk_get_rate(sdev->fout_vpll));
-> >> +	/* enable clock in SDO */
-> >> +	sdo_write_mask(sdev, SDO_CLKCON, ~0, SDO_TVOUT_CLOCK_ON);
-> >> +	clk_enable(sdev->dacphy);
-> >> +	/* enable DAC */
-> >> +	sdo_write_mask(sdev, SDO_DAC, ~0, SDO_POWER_ON_DAC);
-> >> +	sdo_reg_debug(sdev);
-> >> +	return 0;
-> >> +}
-> >> +
-> >> +static int sdo_streamoff(struct sdo_device *sdev)
-> >> +{
-> >> +	int tries;
-> >> +
-> >> +	sdo_write_mask(sdev, SDO_DAC, 0, SDO_POWER_ON_DAC);
-> >> +	clk_disable(sdev->dacphy);
-> >> +	sdo_write_mask(sdev, SDO_CLKCON, 0, SDO_TVOUT_CLOCK_ON);
-> >> +	for (tries = 100; tries; --tries) {
-> >> +		if (sdo_read(sdev, SDO_CLKCON) & SDO_TVOUT_CLOCK_READY)
-> >> +			break;
-> >> +		mdelay(1);
-> >> +	}
-> >> +	if (tries == 0)
-> >> +		dev_err(sdev->dev, "failed to stop streaming\n");
-> >> +	return tries ? 0 : -EIO;
-> >> +}
-> >> +
-> >> +static int sdo_s_stream(struct v4l2_subdev *sd, int on)
-> >> +{
-> >> +	struct sdo_device *sdev = sd_to_sdev(sd);
-> >> +	if (on)
-> >> +		return sdo_streamon(sdev);
-> >> +	else
-> >>     
-> >
-> > 'else' not needed. Actually, I would write this using ? :
-> >
-> >   
-> >> +		return sdo_streamoff(sdev);
-> >> +}
-> >> +
-> >> +static const struct sdo_format *sdo_find_format(v4l2_std_id id)
-> >> +{
-> >> +	int i;
-> >> +	for (i = 0; i < ARRAY_SIZE(sdo_format); ++i)
-> >> +		if (sdo_format[i].id & id)
-> >> +			return &sdo_format[i];
-> >> +	return NULL;
-> >> +}
-> >> +
-> >> +static void sdo_reg_debug(struct sdo_device *sdev)
-> >> +{
-> >> +#define DBGREG(reg_id) \
-> >> +	dev_info(sdev->dev, #reg_id " = %08x\n", \
-> >> +		sdo_read(sdev, reg_id))
-> >> +
-> >> +	DBGREG(SDO_CLKCON);
-> >> +	DBGREG(SDO_CONFIG);
-> >> +	DBGREG(SDO_VBI);
-> >> +	DBGREG(SDO_DAC);
-> >> +	DBGREG(SDO_IRQ);
-> >> +	DBGREG(SDO_IRQMASK);
-> >> +	DBGREG(SDO_VERSION);
-> >> +}
-> >>
-> >> --
-> >> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> >> the body of a message to majordomo@vger.kernel.org
-> >> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> >>
-> >>
-> >>     
-> >
-> > Regards,
-> >
-> > 	Hans
-> >
-> >   
-> Regards,
-> Tomasz Stanislawski
-> 
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
-> 
-
-Regards,
-
-	Hans
+--Multipart=_Thu__9_Jun_2011_11_14_49_-0700_biT4KWO+gJT0AMnn--
