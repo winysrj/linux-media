@@ -1,60 +1,60 @@
 Return-path: <mchehab@pedra>
-Received: from casper.infradead.org ([85.118.1.10]:34970 "EHLO
-	casper.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755263Ab1FITZX (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 9 Jun 2011 15:25:23 -0400
-Message-ID: <4DF11E15.5030907@infradead.org>
-Date: Thu, 09 Jun 2011 16:25:09 -0300
-From: Mauro Carvalho Chehab <mchehab@infradead.org>
+Received: from smtp6-g21.free.fr ([212.27.42.6]:44813 "EHLO smtp6-g21.free.fr"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754696Ab1FITcb (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 9 Jun 2011 15:32:31 -0400
+Message-ID: <4DF11FC5.6090401@free.fr>
+Date: Thu, 09 Jun 2011 21:32:21 +0200
+From: Robert Jarzmik <robert.jarzmik@free.fr>
+Reply-To: robert.jarzmik@free.fr
 MIME-Version: 1.0
-To: Randy Dunlap <randy.dunlap@oracle.com>
-CC: Stephen Rothwell <sfr@canb.auug.org.au>,
-	linux-media@vger.kernel.org, linux-next@vger.kernel.org,
-	LKML <linux-kernel@vger.kernel.org>
-Subject: Re: linux-next: Tree for June 8 (docbook/media)
-References: <20110608161046.4ad95776.sfr@canb.auug.org.au> <20110608125243.e63a07fc.randy.dunlap@oracle.com>
-In-Reply-To: <20110608125243.e63a07fc.randy.dunlap@oracle.com>
-Content-Type: text/plain; charset=ISO-8859-1
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+CC: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	=?ISO-8859-1?Q?Teresa_G=E1mez?= <t.gamez@phytec.de>
+Subject: Re: [PATCH 1/2] V4L: mt9m111: propagate higher level abstraction
+ down in functions
+References: <Pine.LNX.4.64.1106061918010.11169@axis700.grange> <4DED36A8.5000300@free.fr> <Pine.LNX.4.64.1106071159030.31635@axis700.grange>
+In-Reply-To: <Pine.LNX.4.64.1106071159030.31635@axis700.grange>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Hi Randy,
-
-Em 08-06-2011 16:52, Randy Dunlap escreveu:
-> On Wed, 8 Jun 2011 16:10:46 +1000 Stephen Rothwell wrote:
-> 
->> Hi all,
->>
->> Changes since 20110607:
-> 
-> 
-> Hi Mauro,
-> 
-> The DocBook/media/Makefile seems to be causing too much noise:
-> 
-> ls: cannot access linux-next-20110608/Documentation/DocBook/media/*/*.gif: No such file or directory
-> ls: cannot access linux-next-20110608/Documentation/DocBook/media/*/*.png: No such file or directory
+On 06/07/2011 12:02 PM, Guennadi Liakhovetski wrote:
+> On Mon, 6 Jun 2011, Robert Jarzmik wrote:
 >
-> Maybe the cleanmediadocs target could be made silent?
+>> On 06/06/2011 07:20 PM, Guennadi Liakhovetski wrote:
+>>> It is more convenient to propagate the higher level abstraction - the
+>>> struct mt9m111 object into functions and then retrieve a pointer to
+>>> the i2c client, if needed, than to do the reverse.
+>> Agreed.
+>>
+>> One minor point, you ofter replace :
+>>> -	struct mt9m111 *mt9m111 = to_mt9m111(client);
+>>> +	struct mt9m111 *mt9m111 = container_of(sd, struct mt9m111, subdev);
+>>
+>> Why haven't you replaced the signature of to_mt9m111() into :
+>> static struct mt9m111 *to_mt9m111(const struct v4l2_subdev *sd)
+>> {
+>> 	return container_of(sd, struct mt9m111, subdev);
+>> }
+>>
+>> This way, each to_mt9m111(client) will become to_mt9m111(sd), and the purpose
+>> of to_mt9m111() will be kept. Wouldn't that be better ?
+>
+> Because "container_of(sd, struct mt9m111, subdev)" is still easy enough to
+> write (copy-paste, of course:)) and understand, whereas
+> "container_of(i2c_get_clientdata(client), struct mt9m111, subdev)" is
+> already too awkward to look at, even though it is now only used at 4
+> locations.
+And copy paste "client" into "sd" is even quicker, isn't it ?
 
-I'll take a look on it. 
+>
+> A general question to you: from your comments I haven't understood: have
+> you also tested the patches or only reviewed them?
+Only reviewed so far. Test will come Monday.
 
-FYI, The next build will probably be noisier, as it is now pointing to some 
-documentation gaps at the DVB API. Those gaps should take a longer time to fix, 
-as we need to discuss upstream about what should be done with those API's,
-that seems to be abandoned upstream (only one legacy DVB driver uses them).
-However, I was told that some out-of-tree drivers and some drivers under development
-are using them.
+Cheers.
 
-So, I intend to wait until the next merge window before either dropping those 
-legacy API specs (or moving them to a deprecated section) or to merge those
-out-of-tree drivers, with the proper documentation updates.
-
-> also, where is the mediaindexdocs target defined?
-
-Thanks for noticing it. We don't need this target anymore. I'll write a patch
-removing it.
-
-Cheers,
-Mauro.
+--
+Robert
