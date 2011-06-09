@@ -1,59 +1,61 @@
 Return-path: <mchehab@pedra>
-Received: from mx1.redhat.com ([209.132.183.28]:38734 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751664Ab1FJQHf (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 10 Jun 2011 12:07:35 -0400
-Message-ID: <4DF2413F.6050307@redhat.com>
-Date: Fri, 10 Jun 2011 13:07:27 -0300
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Received: from mail-wy0-f174.google.com ([74.125.82.174]:41911 "EHLO
+	mail-wy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757613Ab1FINV6 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 9 Jun 2011 09:21:58 -0400
+Received: by wya21 with SMTP id 21so1111351wya.19
+        for <linux-media@vger.kernel.org>; Thu, 09 Jun 2011 06:21:56 -0700 (PDT)
 MIME-Version: 1.0
-To: Jan Hoogenraad <jan-verisign@hoogenraad.net>
-CC: Devin Heitmueller <dheitmueller@kernellabs.com>,
-	Andy Walls <awalls@md.metrocast.net>,
-	linux-media@vger.kernel.org
-Subject: Re: Media_build does not compile due to errors in cx18-driver.h,
- cx18-driver.c and dvbdev.c /rc-main.c
-References: <4DF1FF06.4050502@hoogenraad.net>	<3e84c07f-83ff-4f83-9f8f-f52631259f05@email.android.com> <BANLkTinE1vRVJ+j+7JiPHZqXHJ8WTFX+cg@mail.gmail.com> <4DF21AA7.1010505@hoogenraad.net> <4DF226B7.1060602@hoogenraad.net> <4DF2399B.8010806@redhat.com>
-In-Reply-To: <4DF2399B.8010806@redhat.com>
+In-Reply-To: <4DF0C860.1020908@redhat.com>
+References: <20110608172311.0d350ab7@pedra>
+	<BANLkTinhCz0cuu5c52DvFV+Gi0uJc3corg@mail.gmail.com>
+	<4DF0C860.1020908@redhat.com>
+Date: Thu, 9 Jun 2011 18:51:56 +0530
+Message-ID: <BANLkTimBNUC42g3KU6OMUwQbECa3SiY95g@mail.gmail.com>
+Subject: Re: [PATCH 00/13] Reduce the gap between DVBv5 API and the specs
+From: Manu Abraham <abraham.manu@gmail.com>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Andreas Oberritter <obi@linuxtv.org>
 Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Em 10-06-2011 12:34, Mauro Carvalho Chehab escreveu:
-> Em 10-06-2011 11:14, Jan Hoogenraad escreveu:
->> Sorry; too fast a reaction; I did not realize that the build script creates a version per kernel, and that my messages thus become hard to trace.
+On 6/9/11, Mauro Carvalho Chehab <mchehab@redhat.com> wrote:
+> Em 09-06-2011 10:06, Manu Abraham escreveu:
+>> On 6/9/11, Mauro Carvalho Chehab <mchehab@redhat.com> wrote:
+>>> There's a huge gap between the DVB specs and the current implementation.
+>>> This were caused by years of changes that happened at the code but
+>>> no updates to the specs were done.
+>>>
+>>> This patch series tries to reduce this gap.
+>>>
+>>> Basically, the headers at include/linux/dvb were included at the API.
+>>> The Makefile scripting auto-generate references for structs, typedefs
+>>> and ioctls. With this, it is now easy to identify when something is
+>>> missing.
+>>>
+>>> After adding such logic, I've manually synchronized the specs with the
+>>> header file and updated the data structures.
+>>>
+>>> The work is not complete yet: there are still several ioctl's not
+>>> documented at the specs:
 >>
->> The cx18 doubles were clear. The one in the code file may be caused by
->> v2.6.37_dont_use_alloc_ordered_workqueue.patch
->> but I don't see the problem in the header file in that patch.
+>>> While here, I noticed that one audio ioctl is not used anyware
+>>> (AUDIO_GET_PTS). There is just the ioctl definition and that's it.
+>>> I just removed this definition, as removing it won't cause any
+>>> regression, as no in-kernel driver or dvb-core uses it.
 >>
 >>
->>
->> Below the 3 non cx18 offending lines:
->>
->> line in v4l2-dev.c:
->>
->>     printk(KERN_ERR "WARNING: You are using an experimental version of the media stack.\n\tAs the driver is backported to an older kernel, it doesn't offer\n\tenough quality for its usage in production.\n\tUse it with care.\nLatest git patches (needed if you report a bug to linux-media@vger.kernel.org):\n\t75125b9d44456e0cf2d1fbb72ae33c13415299d1 [media] DocBook: Don't be noisy at make cleanmediadocs\n\t0fba2f7ff0c4d9f48a5c334826a22db32f816a76 Revert \\"[media] dvb/audio.h: Remove definition for AUDIO_GET_PTS\\"\n\t4f75ad768da3c5952d1e7080045a5b5ce7b0d85d [media] DocBook/video.xml: Document the remaining data structures\n");
->>
->>
->> line in rc-main.c:
->>
->>     printk(KERN_ERR "WARNING: You are using an experimental version of the media stack.\n\tAs the driver is backported to an older kernel, it doesn't offer\n\tenough quality for its usage in production.\n\tUse it with care.\nLatest git patches (needed if you report a bug to linux-media@vger.kernel.org):\n\t75125b9d44456e0cf2d1fbb72ae33c13415299d1 [media] DocBook: Don't be noisy at make cleanmediadocs\n\t0fba2f7ff0c4d9f48a5c334826a22db32f816a76 Revert \\"[media] dvb/audio.h: Remove definition for AUDIO_GET_PTS\\"\n\t4f75ad768da3c5952d1e7080045a5b5ce7b0d85d [media] DocBook/video.xml: Document the remaining data structures\n");
->>
->>
->>
->> line in dvbdeb.c:
->>
->>
->>     printk(KERN_ERR "WARNING: You are using an experimental version of the media stack.\n\tAs the driver is backported to an older kernel, it doesn't offer\n\tenough quality for its usage in production.\n\tUse it with care.\nLatest git patches (needed if you report a bug to linux-media@vger.kernel.org):\n\t75125b9d44456e0cf2d1fbb72ae33c13415299d1 [media] DocBook: Don't be noisy at make cleanmediadocs\n\t0fba2f7ff0c4d9f48a5c334826a22db32f816a76 Revert \\"[media] dvb/audio.h: Remove definition for AUDIO_GET_PTS\\"\n\t4f75ad768da3c5952d1e7080045a5b5ce7b0d85d [media] DocBook/video.xml: Document the remaining data structures\n");
-> 
-> It seems to be caused by a bad escape sequence for the latest patch.
-> I'll fix the Makefile script.
-> 
-> Thanks for reporting it.
+>> Please do not apply this patch; the SAA716x FF DVB driver uses the same
+>> ioctl.
+>
+> I'll revert this patch for now, in order to wait for driver submissions
+> that use this ioctl (and the other ioctl's that are not used anywhere
+> inside the Kernel).
 
-Fixed. It is building fine right now, against RHEL 6.1 kernel (2.6.32-131).
 
-Thanks,
-Mauro.
+Thanks!
+
+Best Regards,
+Manu
