@@ -1,97 +1,78 @@
 Return-path: <mchehab@pedra>
-Received: from tuur.schedom-europe.net ([193.109.184.94]:49614 "EHLO
-	tuur.schedom-europe.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757055Ab1FAPZ1 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 1 Jun 2011 11:25:27 -0400
-Date: Wed, 1 Jun 2011 17:25:16 +0200
-From: Guy Martin <gmsoft@tuxicoman.be>
-To: <linux-media@vger.kernel.org>, Manu Abraham <manu@linuxtv.org>
-Subject: [PATCH] stv090x: set status bits when there is no lock
-Message-ID: <20110601172516.28a153c8@borg.bxl.tuxicoman.be>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Received: from mx1.redhat.com ([209.132.183.28]:21485 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754388Ab1FITnk (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 9 Jun 2011 15:43:40 -0400
+Message-ID: <4DF12263.3070900@redhat.com>
+Date: Thu, 09 Jun 2011 16:43:31 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+MIME-Version: 1.0
+To: Randy Dunlap <randy.dunlap@oracle.com>
+CC: Stephen Rothwell <sfr@canb.auug.org.au>,
+	linux-media@vger.kernel.org, linux-next@vger.kernel.org,
+	LKML <linux-kernel@vger.kernel.org>
+Subject: Re: linux-next: Tree for June 8 (docbook/media)
+References: <20110608161046.4ad95776.sfr@canb.auug.org.au> <20110608125243.e63a07fc.randy.dunlap@oracle.com> <4DF11E15.5030907@infradead.org>
+In-Reply-To: <4DF11E15.5030907@infradead.org>
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
+Em 09-06-2011 16:25, Mauro Carvalho Chehab escreveu:
+> Em 08-06-2011 16:52, Randy Dunlap escreveu:
+>> The DocBook/media/Makefile seems to be causing too much noise:
+>>
+>> ls: cannot access linux-next-20110608/Documentation/DocBook/media/*/*.gif: No such file or directory
+>> ls: cannot access linux-next-20110608/Documentation/DocBook/media/*/*.png: No such file or directory
+>>
+>> Maybe the cleanmediadocs target could be made silent?
+> 
+> I'll take a look on it. 
+> 
+> FYI, The next build will probably be noisier, as it is now pointing to some 
+> documentation gaps at the DVB API. Those gaps should take a longer time to fix, 
+> as we need to discuss upstream about what should be done with those API's,
+> that seems to be abandoned upstream (only one legacy DVB driver uses them).
+> However, I was told that some out-of-tree drivers and some drivers under development
+> are using them.
+> 
+> So, I intend to wait until the next merge window before either dropping those 
+> legacy API specs (or moving them to a deprecated section) or to merge those
+> out-of-tree drivers, with the proper documentation updates.
+> 
+>> also, where is the mediaindexdocs target defined?
+> 
+> Thanks for noticing it. We don't need this target anymore. I'll write a patch
+> removing it.
 
-Currently, the stv090x driver only set the status bits to SCVYL when
-there is a lock. This patch set the right bits even if there is no lock.
+This patch should remove the undesired noise.
 
-Signed-off-by: Guy Martin <gmsoft@tuxicoman.be>
+commit 75125b9d44456e0cf2d1fbb72ae33c13415299d1
+Author: Mauro Carvalho Chehab <mchehab@redhat.com>
+Date:   Thu Jun 9 16:34:29 2011 -0300
 
---
- drivers/media/dvb/frontends/stv090x.c |   35 ++++++++++++++------------------
- 1 files changed, 15 insertions(+), 20 deletions(-)
+    [media] DocBook: Don't be noisy at make cleanmediadocs
+    
+    While here, remove the mediaindexdocs from PHONY.
+    
+    Reported-by: Randy Dunlap <randy.dunlap@oracle.com>
+    Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
 
-diff --git a/drivers/media/dvb/frontends/stv090x.c b/drivers/media/dvb/frontends/stv090x.c
-index 52d8712..ebda419 100644
---- a/drivers/media/dvb/frontends/stv090x.c
-+++ b/drivers/media/dvb/frontends/stv090x.c
-@@ -3463,9 +3463,15 @@ static enum dvbfe_search stv090x_search(struct dvb_frontend *fe, struct dvb_fron
- static int stv090x_read_status(struct dvb_frontend *fe, enum fe_status *status)
- {
- 	struct stv090x_state *state = fe->demodulator_priv;
--	u32 reg;
-+	u32 reg, dstatus;
- 	u8 search_state;
+diff --git a/Documentation/DocBook/media/Makefile b/Documentation/DocBook/media/Makefile
+index 1e909c2..b7627e1 100644
+--- a/Documentation/DocBook/media/Makefile
++++ b/Documentation/DocBook/media/Makefile
+@@ -21,10 +21,10 @@ MEDIA_TEMP =  media-entities.tmpl \
+ IMGFILES := $(addprefix $(MEDIA_OBJ_DIR)/media/, $(notdir $(shell ls $(MEDIA_SRC_DIR)/*/*.gif $(MEDIA_SRC_DIR)/*/*.png)))
+ GENFILES := $(addprefix $(MEDIA_OBJ_DIR)/, $(MEDIA_TEMP))
  
-+	*status = 0;
-+
-+	dstatus = STV090x_READ_DEMOD(state, DSTATUS);
-+	if (STV090x_GETFIELD_Px(dstatus, CAR_LOCK_FIELD))
-+		*status |= FE_HAS_SIGNAL | FE_HAS_CARRIER;
-+
- 	reg = STV090x_READ_DEMOD(state, DMDSTATE);
- 	search_state = STV090x_GETFIELD_Px(reg, HEADER_MODE_FIELD);
+-PHONY += cleanmediadocs mediaindexdocs
++PHONY += cleanmediadocs
  
-@@ -3474,41 +3480,30 @@ static int stv090x_read_status(struct dvb_frontend *fe, enum fe_status *status)
- 	case 1: /* first PLH detected */
- 	default:
- 		dprintk(FE_DEBUG, 1, "Status: Unlocked (Searching ..)");
--		*status = 0;
- 		break;
+ cleanmediadocs:
+-	-@rm `find $(MEDIA_OBJ_DIR) -type l` $(GENFILES) $(IMGFILES)
++	-@rm `find $(MEDIA_OBJ_DIR) -type l` $(GENFILES) $(IMGFILES) 2>/dev/null
  
- 	case 2: /* DVB-S2 mode */
- 		dprintk(FE_DEBUG, 1, "Delivery system: DVB-S2");
--		reg = STV090x_READ_DEMOD(state, DSTATUS);
--		if (STV090x_GETFIELD_Px(reg, LOCK_DEFINITIF_FIELD)) {
-+		if (STV090x_GETFIELD_Px(dstatus, LOCK_DEFINITIF_FIELD)) {
- 			reg = STV090x_READ_DEMOD(state, PDELSTATUS1);
- 			if (STV090x_GETFIELD_Px(reg, PKTDELIN_LOCK_FIELD)) {
-+				*status |= FE_HAS_VITERBI;
- 				reg = STV090x_READ_DEMOD(state, TSSTATUS);
--				if (STV090x_GETFIELD_Px(reg, TSFIFO_LINEOK_FIELD)) {
--					*status = FE_HAS_SIGNAL |
--						  FE_HAS_CARRIER |
--						  FE_HAS_VITERBI |
--						  FE_HAS_SYNC |
--						  FE_HAS_LOCK;
--				}
-+				if (STV090x_GETFIELD_Px(reg, TSFIFO_LINEOK_FIELD))
-+					*status |= FE_HAS_SYNC | FE_HAS_LOCK;
- 			}
- 		}
- 		break;
+ $(obj)/media_api.xml: $(GENFILES) FORCE
  
- 	case 3: /* DVB-S1/legacy mode */
- 		dprintk(FE_DEBUG, 1, "Delivery system: DVB-S");
--		reg = STV090x_READ_DEMOD(state, DSTATUS);
--		if (STV090x_GETFIELD_Px(reg, LOCK_DEFINITIF_FIELD)) {
-+		if (STV090x_GETFIELD_Px(dstatus, LOCK_DEFINITIF_FIELD)) {
- 			reg = STV090x_READ_DEMOD(state, VSTATUSVIT);
- 			if (STV090x_GETFIELD_Px(reg, LOCKEDVIT_FIELD)) {
-+				*status |= FE_HAS_VITERBI;
- 				reg = STV090x_READ_DEMOD(state, TSSTATUS);
--				if (STV090x_GETFIELD_Px(reg, TSFIFO_LINEOK_FIELD)) {
--					*status = FE_HAS_SIGNAL |
--						  FE_HAS_CARRIER |
--						  FE_HAS_VITERBI |
--						  FE_HAS_SYNC |
--						  FE_HAS_LOCK;
--				}
-+				if (STV090x_GETFIELD_Px(reg, TSFIFO_LINEOK_FIELD))
-+					*status |= FE_HAS_SYNC | FE_HAS_LOCK;
- 			}
- 		}
- 		break;
