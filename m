@@ -1,248 +1,280 @@
 Return-path: <mchehab@pedra>
-Received: from mailout1.w1.samsung.com ([210.118.77.11]:41974 "EHLO
-	mailout1.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757746Ab1FJShL (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 10 Jun 2011 14:37:11 -0400
-Date: Fri, 10 Jun 2011 20:37:00 +0200
-From: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Subject: [PATCH/RFC 19/19] s5p-fimc: Add runtime PM support in the camera
- capture driver
-In-reply-to: <1307731020-7100-1-git-send-email-s.nawrocki@samsung.com>
-To: linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org
-Cc: hans.verkuil@cisco.com, laurent.pinchart@ideasonboard.com,
-	m.szyprowski@samsung.com, kyungmin.park@samsung.com,
-	s.nawrocki@samsung.com, sw0312.kim@samsung.com,
-	riverful.kim@samsung.com
-Message-id: <1307731020-7100-20-git-send-email-s.nawrocki@samsung.com>
-MIME-version: 1.0
-Content-type: TEXT/PLAIN
-Content-transfer-encoding: 7BIT
-References: <1307731020-7100-1-git-send-email-s.nawrocki@samsung.com>
+Received: from mail-vw0-f46.google.com ([209.85.212.46]:48728 "EHLO
+	mail-vw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755625Ab1FID1a convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 8 Jun 2011 23:27:30 -0400
+Received: by vws1 with SMTP id 1so875983vws.19
+        for <linux-media@vger.kernel.org>; Wed, 08 Jun 2011 20:27:29 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <BANLkTimRuMqtuJmCt_Z8wGp3KKozmBdSQQ@mail.gmail.com>
+References: <BANLkTikSacfHp6ndaf8FPJi-PDu-PFSTsg@mail.gmail.com>
+	<3527e900-1d63-46cc-ba72-af763111a16a@email.android.com>
+	<BANLkTi=OgqhmkYLd9_YnyW8JSvZgiQWTfw@mail.gmail.com>
+	<1307579065.2461.8.camel@localhost>
+	<BANLkTikU0dkQwmo_akC5TUg9JP8Oa=Te1w@mail.gmail.com>
+	<8236986e-5cf5-4a10-ada2-96d8e37882c3@email.android.com>
+	<BANLkTi=TkEK=o7pEBgWjQ+P+GDFYQ989EQ@mail.gmail.com>
+	<BANLkTimRuMqtuJmCt_Z8wGp3KKozmBdSQQ@mail.gmail.com>
+Date: Wed, 8 Jun 2011 21:27:29 -0600
+Message-ID: <BANLkTikLR6o6gsxeufneFdAXdAd8Ze0jNg@mail.gmail.com>
+Subject: Re: [PATCH] cx23885: Add IR Rx support for HVR-1270 boards
+From: Dark Shadow <shadowofdarkness@gmail.com>
+To: Andy Walls <awalls@md.metrocast.net>
+Cc: linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Add support for whole pipeline suspend/resume. Sensors must support
-suspend/resume through s_power subdev operation.
+On Wed, Jun 8, 2011 at 9:17 PM, Dark Shadow <shadowofdarkness@gmail.com> wrote:
+> On Wed, Jun 8, 2011 at 8:31 PM, Dark Shadow <shadowofdarkness@gmail.com> wrote:
+>> On Wed, Jun 8, 2011 at 7:34 PM, Andy Walls <awalls@md.metrocast.net> wrote:
+>>> Dark Shadow <shadowofdarkness@gmail.com> wrote:
+>>>
+>>>>On Wed, Jun 8, 2011 at 6:24 PM, Andy Walls <awalls@md.metrocast.net>
+>>>>wrote:
+>>>>> On Wed, 2011-06-08 at 13:18 -0600, Dark Shadow wrote:
+>>>>>> On Wed, Jun 8, 2011 at 4:19 AM, Andy Walls <awalls@md.metrocast.net>
+>>>>wrote:
+>>>>>> > Dark Shadow <shadowofdarkness@gmail.com> wrote:
+>>>>>> >
+>>>>>> >>I have a capture card that was sold as a Hauppauge HVR-1250
+>>>>(according
+>>>>>> >>to the box) that I am trying to use but I am having trouble
+>>>>getting
+>>>>>> >>all it's features at once. When I leave it auto detected by the
+>>>>module
+>>>>>> >>I have working TV in MythTV even though it thinks it is a 1270 but
+>>>>IR
+>>>>>> >>isn't setup.
+>>>>>> >>
+>>>>>> >>dmesg outputs
+>>>>>> >>#modprobe cx23885 enable_885_ir=1
+>>>>>> >>[    7.592714] cx23885 driver version 0.0.2 loaded
+>>>>>> >>[    7.592748] cx23885 0000:07:00.0: PCI INT A -> GSI 17 (level,
+>>>>low)
+>>>>>> >>-> IRQ 17
+>>>>>> >>[    7.592926] CORE cx23885[0]: subsystem: 0070:2211, board:
+>>>>Hauppauge
+>>>>>> >>WinTV-HVR1270 [card=18,autodetected]
+>>>>>> >>[    7.728163] IR JVC protocol handler initialized
+>>>>>> >>[    7.738971] tveeprom 0-0050: Hauppauge model 22111, rev C2F5,
+>>>>>> >>serial# 6429897
+>>>>>> >>[    7.738974] tveeprom 0-0050: MAC address is 00:0d:fe:62:1c:c9
+>>>>>> >>[    7.738975] tveeprom 0-0050: tuner model is NXP 18271C2 (idx
+>>>>155,
+>>>>>> >>type 54)
+>>>>>> >>[    7.738977] tveeprom 0-0050: TV standards NTSC(M) ATSC/DVB
+>>>>Digital
+>>>>>> >>(eeprom 0x88)
+>>>>>> >>[    7.738979] tveeprom 0-0050: audio processor is CX23888 (idx
+>>>>40)
+>>>>>> >>[    7.738980] tveeprom 0-0050: decoder processor is CX23888 (idx
+>>>>34)
+>>>>>> >>[    7.738982] tveeprom 0-0050: has no radio, has IR receiver, has
+>>>>no
+>>>>>> >>IR transmitter
+>>>>>> >>[    7.738983] cx23885[0]: hauppauge eeprom: model=22111
+>>>>>> >>[    7.738985] cx23885_dvb_register() allocating 1 frontend(s)
+>>>>>> >>[    7.738991] cx23885[0]: cx23885 based dvb card
+>>>>>> >>[    7.961122] IR Sony protocol handler initialized
+>>>>>> >>[    7.977301] tda18271 1-0060: creating new instance
+>>>>>> >>[    7.979325] TDA18271HD/C2 detected @ 1-0060
+>>>>>> >>[    8.209663] DVB: registering new adapter (cx23885[0])
+>>>>>> >>[    8.209668] DVB: registering adapter 0 frontend 0 (LG
+>>>>Electronics
+>>>>>> >>LGDT3305 VSB/QAM Frontend)...
+>>>>>> >>[    8.210095] cx23885_dev_checkrevision() Hardware revision =
+>>>>0xd0
+>>>>>> >>[    8.210101] cx23885[0]/0: found at 0000:07:00.0, rev: 4, irq:
+>>>>17,
+>>>>>> >>latency: 0, mmio: 0xf7c00000
+>>>>>> >>[    8.210109] cx23885 0000:07:00.0: setting latency timer to 64
+>>>>>> >>[    8.210186] cx23885 0000:07:00.0: irq 49 for MSI/MSI-X
+>>>>>
+>>>>>> >>#ir-keytable -a /etc/rc_maps.cfg
+>>>>>> >>Old keytable cleared
+>>>>>> >>Wrote 136 keycode(s) to driver
+>>>>>> >>Protocols changed to RC-5
+>>>>>
+>>>>>> >>I have heard this should show up as a normal keyboard to the
+>>>>system
+>>>>>> >>but no button presses cause anything to happen to the system and
+>>>>>> >>trying lirc with devinput (with devinput lircd.conf) and then
+>>>>opening
+>>>>>> >>irw doesn't show any button presses either
+>>>>>
+>>>>>
+>>>>>> > Don't force your card to a 1250, if the driver detects it is a
+>>>>1270
+>>>>>> with a CX23888 chip.  No need to use the enable_885_ir parameter
+>>>>with
+>>>>>> a CX23888 chip, either.  It only applies for two board models with
+>>>>>> actual CX23885 chips.
+>>>>>> >
+>>>>>> > Use of IR with the CX23888 chip should be realtively trouble free,
+>>>>>> *if* the 1270's IR has been enabled in the driver code.  It likely
+>>>>has
+>>>>>> not been.  I don't have the source code in front of me at the moment
+>>>>>> to check.
+>>>>>> >
+>>>>>> > It shouldn't be hard for anyone to patch a few files in the
+>>>>cx23885
+>>>>>> driver to add it.  Patches are welcome...
+>>>>>> >
+>>>>>
+>>>>>> Under auto detect without the enable_885_ir there is no difference
+>>>>so
+>>>>>> I can only hope someone will add support for it.
+>>>>>
+>>>>> I wasn't kidding when I said the patch is sholdn't be hard for
+>>>>anyone.
+>>>>> It is really, really simple cut-and-paste job.  In fact here is an
+>>>>> *untested* patch.
+>>>>>
+>>>>> Regards,
+>>>>> Andy
+>>>>>
+>>>>> cx23885: Add IR Rx support for HVR-1270 boards
+>>>>>
+>>>>> Signed-off-by: Andy Walls <awalls@md.metrocast.net>
+>>>>>
+>>>>>
+>>>>> diff --git a/drivers/media/video/cx23885/cx23885-cards.c
+>>>>b/drivers/media/video/cx23885/cx23885-cards.c
+>>>>> index ea88722..5635588 100644
+>>>>> --- a/drivers/media/video/cx23885/cx23885-cards.c
+>>>>> +++ b/drivers/media/video/cx23885/cx23885-cards.c
+>>>>> @@ -1097,12 +1097,19 @@ int cx23885_ir_init(struct cx23885_dev *dev)
+>>>>>        case CX23885_BOARD_HAUPPAUGE_HVR1800:
+>>>>>        case CX23885_BOARD_HAUPPAUGE_HVR1200:
+>>>>>        case CX23885_BOARD_HAUPPAUGE_HVR1400:
+>>>>> -       case CX23885_BOARD_HAUPPAUGE_HVR1270:
+>>>>>        case CX23885_BOARD_HAUPPAUGE_HVR1275:
+>>>>>        case CX23885_BOARD_HAUPPAUGE_HVR1255:
+>>>>>        case CX23885_BOARD_HAUPPAUGE_HVR1210:
+>>>>>                /* FIXME: Implement me */
+>>>>>                break;
+>>>>> +       case CX23885_BOARD_HAUPPAUGE_HVR1270:
+>>>>> +               ret = cx23888_ir_probe(dev);
+>>>>> +               if (ret)
+>>>>> +                       break;
+>>>>> +               dev->sd_ir = cx23885_find_hw(dev, CX23885_HW_888_IR);
+>>>>> +               v4l2_subdev_call(dev->sd_cx25840, core,
+>>>>s_io_pin_config,
+>>>>> +                                ir_rx_pin_cfg_count, ir_rx_pin_cfg);
+>>>>> +               break;
+>>>>>        case CX23885_BOARD_HAUPPAUGE_HVR1850:
+>>>>>        case CX23885_BOARD_HAUPPAUGE_HVR1290:
+>>>>>                ret = cx23888_ir_probe(dev);
+>>>>> @@ -1156,6 +1163,7 @@ int cx23885_ir_init(struct cx23885_dev *dev)
+>>>>>  void cx23885_ir_fini(struct cx23885_dev *dev)
+>>>>>  {
+>>>>>        switch (dev->board) {
+>>>>> +       case CX23885_BOARD_HAUPPAUGE_HVR1270:
+>>>>>        case CX23885_BOARD_HAUPPAUGE_HVR1850:
+>>>>>        case CX23885_BOARD_HAUPPAUGE_HVR1290:
+>>>>>                cx23885_irq_remove(dev, PCI_MSK_IR);
+>>>>> @@ -1199,6 +1207,7 @@ int netup_jtag_io(void *device, int tms, int
+>>>>tdi, int read_tdo)
+>>>>>  void cx23885_ir_pci_int_enable(struct cx23885_dev *dev)
+>>>>>  {
+>>>>>        switch (dev->board) {
+>>>>> +       case CX23885_BOARD_HAUPPAUGE_HVR1270:
+>>>>>        case CX23885_BOARD_HAUPPAUGE_HVR1850:
+>>>>>        case CX23885_BOARD_HAUPPAUGE_HVR1290:
+>>>>>                if (dev->sd_ir)
+>>>>> @@ -1357,6 +1366,7 @@ void cx23885_card_setup(struct cx23885_dev
+>>>>*dev)
+>>>>>        case CX23885_BOARD_NETUP_DUAL_DVBS2_CI:
+>>>>>        case CX23885_BOARD_NETUP_DUAL_DVB_T_C_CI_RF:
+>>>>>        case CX23885_BOARD_COMPRO_VIDEOMATE_E800:
+>>>>> +       case CX23885_BOARD_HAUPPAUGE_HVR1270:
+>>>>>        case CX23885_BOARD_HAUPPAUGE_HVR1850:
+>>>>>        case CX23885_BOARD_MYGICA_X8506:
+>>>>>        case CX23885_BOARD_MAGICPRO_PROHDTVE2:
+>>>>> diff --git a/drivers/media/video/cx23885/cx23885-input.c
+>>>>b/drivers/media/video/cx23885/cx23885-input.c
+>>>>> index e97cafd..bc28d2c 100644
+>>>>> --- a/drivers/media/video/cx23885/cx23885-input.c
+>>>>> +++ b/drivers/media/video/cx23885/cx23885-input.c
+>>>>> @@ -82,6 +82,7 @@ void cx23885_input_rx_work_handler(struct
+>>>>cx23885_dev *dev, u32 events)
+>>>>>                return;
+>>>>>
+>>>>>        switch (dev->board) {
+>>>>> +       case CX23885_BOARD_HAUPPAUGE_HVR1270:
+>>>>>        case CX23885_BOARD_HAUPPAUGE_HVR1850:
+>>>>>        case CX23885_BOARD_HAUPPAUGE_HVR1290:
+>>>>>        case CX23885_BOARD_TEVII_S470:
+>>>>> @@ -133,6 +134,7 @@ static int cx23885_input_ir_start(struct
+>>>>cx23885_dev *dev)
+>>>>>
+>>>>>        v4l2_subdev_call(dev->sd_ir, ir, rx_g_parameters, &params);
+>>>>>        switch (dev->board) {
+>>>>> +       case CX23885_BOARD_HAUPPAUGE_HVR1270:
+>>>>>        case CX23885_BOARD_HAUPPAUGE_HVR1850:
+>>>>>        case CX23885_BOARD_HAUPPAUGE_HVR1290:
+>>>>>        case CX23885_BOARD_HAUPPAUGE_HVR1250:
+>>>>> @@ -257,6 +259,7 @@ int cx23885_input_init(struct cx23885_dev *dev)
+>>>>>                return -ENODEV;
+>>>>>
+>>>>>        switch (dev->board) {
+>>>>> +       case CX23885_BOARD_HAUPPAUGE_HVR1270:
+>>>>>        case CX23885_BOARD_HAUPPAUGE_HVR1850:
+>>>>>        case CX23885_BOARD_HAUPPAUGE_HVR1290:
+>>>>>        case CX23885_BOARD_HAUPPAUGE_HVR1250:
+>>>>>
+>>>>>
+>>>>>
+>>>>>
+>>>>>
+>>>>
+>>>>Thank you I just tested those changes and they work (in getting the IR
+>>>>to work to the same level as forcing the card model and not cause
+>>>>problems for the video)
+>>>>
+>>>>I still can't use the remote any more then forcing the card model but
+>>>>I have a guess on that. According to everything I have read the
+>>>>ir-kbd-i2c module is needed but it never auto loads on my system so I
+>>>>am thinking it is just not updated to know about this card and may
+>>>>only need the same type of changes as the cx23885 module. (I am
+>>>>guessing since I can't even program a Hello World) Is there any chance
+>>>>you would be able to see if any easy changes could be done to it.
+>>>
+>>> You don't need ir-kbd-i2c for this ir unit.  If you don't have the right keymap loaded, the remote won't work though.
+>>>
+>>> The cx23885 module has a parameter called ir_888_debug (or something similar).  Set it to a value of around 7 or so.  The cx23885 module will log pulse and space measurments to dmesg or var/log/messages.  That way you can at least verify pulses are being processed.
+>>>
+>>> If pulses are not being processed, check that the cable is firmly plugged into the card and that you have fresh batteries in the remote.
+>>>
+>>> I don't have a 1270 of my own, so I can't help too much.
+>>>
+>>> Andy
+>>>
+>>
+>>
+>>
+>> I have been unable to get any debug output but on two occasions I got
+>> the down arrow to work on the XBMC menu but both times were followed
+>> by the system locking up and I can't reproduce it anymore.
+>>
+>> Do I need the parameter to enable ir or not? I have tried it both ways.
+>>
+>
+> After a couple more 1 button freezes the computer. I had one occasion
+> that for about 20 seconds the remote was working perfect (play/pause,
+> arrows, volume) then it just stopped working for no reason (but
+> luckily didn't crash the computer) This was with no module parameters.
+>
+> So it can work but is extremely flaky.
+>
 
-Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
----
- drivers/media/video/s5p-fimc/fimc-capture.c |   87 +++++++++++++++++++--------
- drivers/media/video/s5p-fimc/fimc-core.c    |   10 ++--
- drivers/media/video/s5p-fimc/fimc-core.h    |    1 +
- 3 files changed, 67 insertions(+), 31 deletions(-)
+I noticed something I missed from the debug parameter, when I press
+the first button after loading the module this error gets printed to
+the syslog
 
-diff --git a/drivers/media/video/s5p-fimc/fimc-capture.c b/drivers/media/video/s5p-fimc/fimc-capture.c
-index 4f57fbb..0d64d17 100644
---- a/drivers/media/video/s5p-fimc/fimc-capture.c
-+++ b/drivers/media/video/s5p-fimc/fimc-capture.c
-@@ -74,7 +74,7 @@ static int fimc_start_capture(struct fimc_dev *fimc)
- 	return ret;
- }
- 
--static int fimc_stop_capture(struct fimc_dev *fimc)
-+static int fimc_stop_capture(struct fimc_dev *fimc, bool suspend)
- {
- 	struct fimc_vid_cap *cap = &fimc->vid_cap;
- 	struct fimc_vid_buffer *buf;
-@@ -90,26 +90,28 @@ static int fimc_stop_capture(struct fimc_dev *fimc)
- 
- 	wait_event_timeout(fimc->irq_queue,
- 			   !test_bit(ST_CAPT_SHUT, &fimc->state),
--			   FIMC_SHUTDOWN_TIMEOUT);
-+			   (2*HZ/10)); /* 200 ms */
- 
- 	spin_lock_irqsave(&fimc->slock, flags);
--	fimc->state &= ~(1 << ST_CAPT_RUN | 1 << ST_CAPT_PEND |
--			 1 << ST_CAPT_SHUT | 1 << ST_CAPT_STREAM |
--			 1 << ST_CAPT_ISP_STREAM);
-+	fimc->state &= ~(1 << ST_CAPT_RUN | 1 << ST_CAPT_SHUT |
-+			 1 << ST_CAPT_STREAM | 1 << ST_CAPT_ISP_STREAM);
-+	if (!suspend)
-+		fimc->state &= ~(1 << ST_CAPT_PEND | 1 << ST_CAPT_SUSPENDED);
- 
--	fimc->vid_cap.active_buf_cnt = 0;
--
--	/* Release buffers that were enqueued in the driver by videobuf2. */
--	while (!list_empty(&cap->pending_buf_q)) {
-+	/* Release unused buffers */
-+	while (!suspend && !list_empty(&cap->pending_buf_q)) {
- 		buf = fimc_pending_queue_pop(cap);
- 		vb2_buffer_done(&buf->vb, VB2_BUF_STATE_ERROR);
- 	}
--
-+	/* If suspending put unused buffers onto pending queue */
- 	while (!list_empty(&cap->active_buf_q)) {
- 		buf = fimc_active_queue_pop(cap);
--		vb2_buffer_done(&buf->vb, VB2_BUF_STATE_ERROR);
-+		if (suspend)
-+			fimc_pending_queue_add(cap, buf);
-+		else
-+			vb2_buffer_done(&buf->vb, VB2_BUF_STATE_ERROR);
- 	}
--
-+	set_bit(ST_CAPT_SUSPENDED, &fimc->state);
- 	spin_unlock_irqrestore(&fimc->slock, flags);
- 	dbg("state: 0x%lx", fimc->state);
- 
-@@ -118,13 +120,39 @@ static int fimc_stop_capture(struct fimc_dev *fimc)
- 
- int fimc_capture_suspend(struct fimc_dev *fimc)
- {
--	/* TODO: */
--	return -EBUSY;
-+	bool suspend = fimc_capture_in_use(fimc);
-+
-+	int ret = fimc_stop_capture(fimc, suspend);
-+	if (ret)
-+		return ret;
-+	return fimc_pipeline_shutdown(fimc);
- }
- 
-+static void buffer_queue(struct vb2_buffer *vb);
-+
- int fimc_capture_resume(struct fimc_dev *fimc)
- {
--	/* TODO: */
-+	struct fimc_vid_cap *vid_cap = &fimc->vid_cap;
-+	struct fimc_vid_buffer *buf;
-+	int i;
-+
-+	if (!test_and_clear_bit(ST_CAPT_SUSPENDED, &fimc->state))
-+		return 0;
-+
-+	INIT_LIST_HEAD(&fimc->vid_cap.active_buf_q);
-+	vid_cap->buf_index = 0;
-+	fimc_pipeline_initialize(fimc, &fimc->vid_cap.vfd->entity,
-+				 false);
-+	fimc_start_capture(fimc);
-+
-+	clear_bit(ST_CAPT_SUSPENDED, &fimc->state);
-+
-+	for (i = 0; i < vid_cap->reqbufs_count; i++) {
-+		if (list_empty(&vid_cap->pending_buf_q))
-+			break;
-+		buf = fimc_pending_queue_pop(vid_cap);
-+		buffer_queue(&buf->vb);
-+	}
- 	return 0;
- }
- 
-@@ -164,11 +192,9 @@ static int start_streaming(struct vb2_queue *q)
- 
- 	fimc_hw_reset(fimc);
- 
--	INIT_LIST_HEAD(&fimc->vid_cap.pending_buf_q);
--	INIT_LIST_HEAD(&fimc->vid_cap.active_buf_q);
--	fimc->vid_cap.active_buf_cnt = 0;
--	fimc->vid_cap.frame_count = 0;
--	fimc->vid_cap.buf_index = 0;
-+	vid_cap->active_buf_cnt = 0;
-+	vid_cap->frame_count = 0;
-+	vid_cap->buf_index = 0;
- 
- 	ret = fimc_start_capture(fimc);
- 	if (ret)
-@@ -186,7 +212,7 @@ static int stop_streaming(struct vb2_queue *q)
- 	if (!fimc_capture_active(fimc))
- 		return -EINVAL;
- 
--	return fimc_stop_capture(fimc);
-+	return fimc_stop_capture(fimc, false);
- }
- 
- static unsigned int get_plane_size(struct fimc_frame *fr, unsigned int plane)
-@@ -255,8 +281,9 @@ static void buffer_queue(struct vb2_buffer *vb)
- 	spin_lock_irqsave(&fimc->slock, flags);
- 	fimc_prepare_addr(ctx, &buf->vb, &ctx->d_frame, &buf->paddr);
- 
--	if (!test_bit(ST_CAPT_STREAM, &fimc->state)
--	     && vid_cap->active_buf_cnt < FIMC_MAX_OUT_BUFS) {
-+	if (!test_bit(ST_CAPT_SUSPENDED, &fimc->state) &&
-+	    !test_bit(ST_CAPT_STREAM, &fimc->state) &&
-+	    vid_cap->active_buf_cnt < FIMC_MAX_OUT_BUFS) {
- 		/* Setup the buffer directly for processing. */
- 		int buf_id = (vid_cap->reqbufs_count == 1) ? -1 :
- 				vid_cap->buf_index;
-@@ -344,6 +371,7 @@ static int fimc_capture_open(struct file *file)
- 	if (fimc_m2m_active(fimc))
- 		return -EBUSY;
- 
-+	set_bit(ST_CAPT_INUSE, &fimc->state);
- 	pm_runtime_get_sync(&fimc->pdev->dev);
- 
- 	if (++fimc->vid_cap.refcnt == 1) {
-@@ -353,6 +381,7 @@ static int fimc_capture_open(struct file *file)
- 			pm_runtime_put_sync(&fimc->pdev->dev);
- 			fimc->vid_cap.refcnt--;
- 			v4l2_fh_release(file);
-+			clear_bit(ST_CAPT_INUSE, &fimc->state);
- 			return ret;
- 		}
- 		ret = fimc_capture_ctrls_create(fimc);
-@@ -367,12 +396,18 @@ static int fimc_capture_close(struct file *file)
- 	dbg("pid: %d, state: 0x%lx", task_pid_nr(current), fimc->state);
- 
- 	if (--fimc->vid_cap.refcnt == 0) {
--		fimc_stop_capture(fimc);
-+		clear_bit(ST_CAPT_INUSE, &fimc->state);
-+		fimc_stop_capture(fimc, false);
- 		fimc_pipeline_shutdown(fimc);
--		fimc_ctrls_delete(fimc->vid_cap.ctx);
--		vb2_queue_release(&fimc->vid_cap.vbq);
-+		clear_bit(ST_CAPT_SUSPENDED, &fimc->state);
- 	}
-+
- 	pm_runtime_put_sync(&fimc->pdev->dev);
-+
-+	if (fimc->vid_cap.refcnt == 0) {
-+		vb2_queue_release(&fimc->vid_cap.vbq);
-+		fimc_ctrls_delete(fimc->vid_cap.ctx);
-+	}
- 	return v4l2_fh_release(file);
- }
- 
-diff --git a/drivers/media/video/s5p-fimc/fimc-core.c b/drivers/media/video/s5p-fimc/fimc-core.c
-index d573657..aa9beb8 100644
---- a/drivers/media/video/s5p-fimc/fimc-core.c
-+++ b/drivers/media/video/s5p-fimc/fimc-core.c
-@@ -324,6 +324,11 @@ void fimc_capture_irq_handler(struct fimc_dev *fimc, bool rel_buf)
- 	struct timeval *tv;
- 	struct timespec ts;
- 
-+	if (test_and_clear_bit(ST_CAPT_SHUT, &fimc->state)) {
-+		wake_up(&fimc->irq_queue);
-+		return;
-+	}
-+
- 	if (!list_empty(&cap->active_buf_q) &&
- 	    test_bit(ST_CAPT_RUN, &fimc->state) && rel_buf) {
- 		ktime_get_real_ts(&ts);
-@@ -338,11 +343,6 @@ void fimc_capture_irq_handler(struct fimc_dev *fimc, bool rel_buf)
- 		vb2_buffer_done(&v_buf->vb, VB2_BUF_STATE_DONE);
- 	}
- 
--	if (test_and_clear_bit(ST_CAPT_SHUT, &fimc->state)) {
--		wake_up(&fimc->irq_queue);
--		return;
--	}
--
- 	if (!list_empty(&cap->pending_buf_q)) {
- 
- 		v_buf = fimc_pending_queue_pop(cap);
-diff --git a/drivers/media/video/s5p-fimc/fimc-core.h b/drivers/media/video/s5p-fimc/fimc-core.h
-index 015d216..f3dc761 100644
---- a/drivers/media/video/s5p-fimc/fimc-core.h
-+++ b/drivers/media/video/s5p-fimc/fimc-core.h
-@@ -63,6 +63,7 @@ enum fimc_dev_flags {
- 	ST_CAPT_RUN,
- 	ST_CAPT_STREAM,
- 	ST_CAPT_ISP_STREAM,
-+	ST_CAPT_SUSPENDED,
- 	ST_CAPT_SHUT,
- 	ST_CAPT_INUSE,
- 	ST_CAPT_APPLY_CFG,
--- 
-1.7.5.4
+do_IRQ: 3.185 No irq handler for vector (irq -1)
 
+I have reproduced it a few times to match up to the first button press
+but not after.
