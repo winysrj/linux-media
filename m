@@ -1,48 +1,62 @@
 Return-path: <mchehab@pedra>
-Received: from mail-wy0-f174.google.com ([74.125.82.174]:42470 "EHLO
-	mail-wy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753898Ab1FEONQ convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sun, 5 Jun 2011 10:13:16 -0400
-Received: by wya21 with SMTP id 21so2264881wya.19
-        for <linux-media@vger.kernel.org>; Sun, 05 Jun 2011 07:13:15 -0700 (PDT)
-From: Carlos Corbacho <carlos@strangeworlds.co.uk>
-To: linux-media@vger.kernel.org, davoremard@gmail.com
-Subject: Compro VideoMate Vista T750F support
-Date: Sun, 5 Jun 2011 15:13:12 +0100
+Received: from 5571f1ba.dsl.concepts.nl ([85.113.241.186]:33955 "EHLO
+	his10.thuis.hoogenraad.info" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1755368Ab1FJNWt (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 10 Jun 2011 09:22:49 -0400
+Message-ID: <4DF21AA7.1010505@hoogenraad.net>
+Date: Fri, 10 Jun 2011 15:22:47 +0200
+From: Jan Hoogenraad <jan-conceptronic@hoogenraad.net>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Message-Id: <201106051513.12237.carlos@strangeworlds.co.uk>
+To: Devin Heitmueller <dheitmueller@kernellabs.com>,
+	Andy Walls <awalls@md.metrocast.net>
+CC: linux-media@vger.kernel.org
+Subject: Re: Media_build does not compile due to errors in cx18-driver.h,
+ cx18-driver.c and dvbdev.c /rc-main.c
+References: <4DF1FF06.4050502@hoogenraad.net>	<3e84c07f-83ff-4f83-9f8f-f52631259f05@email.android.com> <BANLkTinE1vRVJ+j+7JiPHZqXHJ8WTFX+cg@mail.gmail.com>
+In-Reply-To: <BANLkTinE1vRVJ+j+7JiPHZqXHJ8WTFX+cg@mail.gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Hi,
+Andy:
 
->From looking over the linux-media mailing list, it seems that a patch was 
-submitted in October last year to add support for this card and the remote:
+Something along the line of id already defined.
+I just corrected the code by removing the duplicate lines that are in 
+the sources of the tar.
 
-http://www.mail-archive.com/linux-media@vger.kernel.org/msg22911.html
+The other 3 files have a bad escape sequence in a line saying that this 
+is the backports. One backslash not removed in a script, I guess.
 
-There was then a follow up to that, asking for some minor fixes (mostly style) 
-and a signed-off-by:
+Devin:
 
-http://www.mail-archive.com/linux-media@vger.kernel.org/msg23347.html
+The version does not matter for the cx18 problem: any compiler complains 
+on duplicate lines.
 
-After that, it seems to have fallen down the back of the proverbial sofa, as I 
-don't see this applied to Linus' tree.
+Anyway: 2.6.32-32-generic-pae #62-Ubuntu SMP Wed Apr 20 22:10:33 UTC 
+2011 i686 GNU/Linux
 
-Since I'm looking at buying one of these cards, I'm obviously quite interested 
-in getting this patch upstream.
+Devin Heitmueller wrote:
+> On Fri, Jun 10, 2011 at 8:34 AM, Andy Walls<awalls@md.metrocast.net>  wrote:
+>> What are the error messages?
+>>
+>> Tejun Heo made quite a number of workqueue changes, and the cx18 driver got dragged forward with them.  So did ivtv for that matter.
+>>
+>> Just disable the cx18 driver if you don't need it for an older kernel.
+>>
+>> Regards,
+>> Andy
+>
+> Another highly relevant piece of information to know is what kernel
+> Jan is running on.  It is probably from before the workqueue changes.
+>
+> Devin
+>
 
-The remote bits would need to be rebased as the files have moved, but 
-everything else looks like it should apply as-is.
 
-Davor -> I'm happy to help with cleaning up this patch and resubmitting it 
-again on your behalf, if you don't have the time to do this, but I would still 
-need your Signed-off-by, as you are the originator of the original patch 
-above.
-
--Carlos
-
-(Please keep me CC'd on any replies, as I'm not subscribed to the list).
+-- 
+Jan Hoogenraad
+Hoogenraad Interface Services
+Postbus 2717
+3500 GS Utrecht
