@@ -1,91 +1,54 @@
 Return-path: <mchehab@pedra>
-Received: from smtp-vbr5.xs4all.nl ([194.109.24.25]:2651 "EHLO
-	smtp-vbr5.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758586Ab1FKPFm (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 11 Jun 2011 11:05:42 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [RFCv2 PATCH 1/5] tuner-core: rename check_mode to supported_mode
-Date: Sat, 11 Jun 2011 17:05:27 +0200
-Message-Id: <980897e53f7cc2ec9bbbf58d9d451ee56a249309.1307804332.git.hans.verkuil@cisco.com>
-In-Reply-To: <1307804731-16430-1-git-send-email-hverkuil@xs4all.nl>
-References: <1307804731-16430-1-git-send-email-hverkuil@xs4all.nl>
+Received: from smtp.nokia.com ([147.243.128.26]:40559 "EHLO mgw-da02.nokia.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754992Ab1FJIUX (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 10 Jun 2011 04:20:23 -0400
+Message-ID: <4DF1D3BC.8080303@maxwell.research.nokia.com>
+Date: Fri, 10 Jun 2011 11:20:12 +0300
+From: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
+MIME-Version: 1.0
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+CC: linux-media@vger.kernel.org, nkanchev@mm-sol.com,
+	g.liakhovetski@gmx.de, hverkuil@xs4all.nl, dacohen@gmail.com,
+	riverful@gmail.com, andrew.b.adams@gmail.com, shpark7@stanford.edu
+Subject: Re: [PATCH 3/3] adp1653: Add driver for LED flash controller
+References: <4DD11FEC.8050308@maxwell.research.nokia.com> <1305550839-16724-3-git-send-email-sakari.ailus@maxwell.research.nokia.com> <201106091710.18273.laurent.pinchart@ideasonboard.com>
+In-Reply-To: <201106091710.18273.laurent.pinchart@ideasonboard.com>
+Content-Type: text/plain; charset=ISO-8859-15
+Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+Laurent Pinchart wrote:
+> Hi Sakari,
+> 
+> On Monday 16 May 2011 15:00:39 Sakari Ailus wrote:
+>> This patch adds the driver for the adp1653 LED flash controller. This
+>> controller supports a high power led in flash and torch modes and an
+>> indicator light, sometimes also called privacy light.
+>>
+>> The adp1653 is used on the Nokia N900.
+>>
+>> Signed-off-by: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
+>> Signed-off-by: Tuukka Toivonen <tuukkat76@gmail.com>
+>> Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+>> Signed-off-by: David Cohen <dacohen@gmail.com>
+> 
+> [snip]
+> 
+>> +	v4l2_ctrl_new_std(&flash->ctrls, &adp1653_ctrl_ops,
+>> +			  V4L2_CID_FLASH_FAULT, 0, V4L2_FLASH_FAULT_OVER_VOLTAGE
+>> +			  | V4L2_FLASH_FAULT_OVER_TEMPERATURE
+>> +			  | V4L2_FLASH_FAULT_SHORT_CIRCUIT, 0, 0);
+> 
+> You need to mark the fault control as volatile.
 
-The check_mode function checks whether a mode is supported. So calling it
-supported_mode is more appropriate. In addition it returned either 0 or
--EINVAL which suggests that the -EINVAL error should be passed on. However,
-that's not the case so change the return type to bool.
+Thanks for catching this!
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- drivers/media/video/tuner-core.c |   19 ++++++++-----------
- 1 files changed, 8 insertions(+), 11 deletions(-)
+I'll fix it for the pull req.
 
-diff --git a/drivers/media/video/tuner-core.c b/drivers/media/video/tuner-core.c
-index 5748d04..083b9f1 100644
---- a/drivers/media/video/tuner-core.c
-+++ b/drivers/media/video/tuner-core.c
-@@ -723,22 +723,19 @@ static int tuner_remove(struct i2c_client *client)
-  */
- 
- /**
-- * check_mode - Verify if tuner supports the requested mode
-+ * supported_mode - Verify if tuner supports the requested mode
-  * @t: a pointer to the module's internal struct_tuner
-  *
-  * This function checks if the tuner is capable of tuning analog TV,
-  * digital TV or radio, depending on what the caller wants. If the
-- * tuner can't support that mode, it returns -EINVAL. Otherwise, it
-- * returns 0.
-+ * tuner can't support that mode, it returns false. Otherwise, it
-+ * returns true.
-  * This function is needed for boards that have a separate tuner for
-  * radio (like devices with tea5767).
-  */
--static inline int check_mode(struct tuner *t, enum v4l2_tuner_type mode)
-+static bool supported_mode(struct tuner *t, enum v4l2_tuner_type mode)
- {
--	if ((1 << mode & t->mode_mask) == 0)
--		return -EINVAL;
--
--	return 0;
-+	return 1 << mode & t->mode_mask;
- }
- 
- /**
-@@ -759,7 +756,7 @@ static int set_mode_freq(struct i2c_client *client, struct tuner *t,
- 	struct analog_demod_ops *analog_ops = &t->fe.ops.analog_ops;
- 
- 	if (mode != t->mode) {
--		if (check_mode(t, mode) == -EINVAL) {
-+		if (!supported_mode(t, mode)) {
- 			tuner_dbg("Tuner doesn't support mode %d. "
- 				  "Putting tuner to sleep\n", mode);
- 			t->standby = true;
-@@ -1138,7 +1135,7 @@ static int tuner_g_frequency(struct v4l2_subdev *sd, struct v4l2_frequency *f)
- 	struct tuner *t = to_tuner(sd);
- 	struct dvb_tuner_ops *fe_tuner_ops = &t->fe.ops.tuner_ops;
- 
--	if (check_mode(t, f->type) == -EINVAL)
-+	if (!supported_mode(t, f->type))
- 		return 0;
- 	f->type = t->mode;
- 	if (fe_tuner_ops->get_frequency && !t->standby) {
-@@ -1161,7 +1158,7 @@ static int tuner_g_tuner(struct v4l2_subdev *sd, struct v4l2_tuner *vt)
- 	struct analog_demod_ops *analog_ops = &t->fe.ops.analog_ops;
- 	struct dvb_tuner_ops *fe_tuner_ops = &t->fe.ops.tuner_ops;
- 
--	if (check_mode(t, vt->type) == -EINVAL)
-+	if (!supported_mode(t, vt->type))
- 		return 0;
- 	vt->type = t->mode;
- 	if (analog_ops->get_afc)
+Cheers,
+
 -- 
-1.7.1
-
+Sakari Ailus
+sakari.ailus@maxwell.research.nokia.com
