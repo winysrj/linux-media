@@ -1,460 +1,430 @@
 Return-path: <mchehab@pedra>
-Received: from oproxy7-pub.bluehost.com ([67.222.55.9]:55143 "HELO
-	oproxy7-pub.bluehost.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1751731Ab1FTU0Y (ORCPT
+Received: from mailout2.w1.samsung.com ([210.118.77.12]:15443 "EHLO
+	mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754176Ab1FJJzF (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 20 Jun 2011 16:26:24 -0400
-Received: from c-67-161-37-189.hsd1.ca.comcast.net ([67.161.37.189] helo=jbarnes-desktop)
-	by box514.bluehost.com with esmtpsa (TLSv1:AES128-SHA:128)
-	(Exim 4.69)
-	(envelope-from <jbarnes@virtuousgeek.org>)
-	id 1QYl39-0004TT-2F
-	for linux-media@vger.kernel.org; Mon, 20 Jun 2011 14:26:23 -0600
-From: Jesse Barnes <jbarnes@virtuousgeek.org> (by way of Jesse Barnes
-	<jbarnes@virtuousgeek.org>)
-To: dri-devel@lists.freedesktop.org
-Cc: intel-gfx@lists.freedesktop.org,
-	Marcus Lorentzon <marcus.xm.lorentzon@stericsson.com>,
-	Alan Cox <alan@lxorguk.ukuu.org.uk>,
-	Jesse Barnes <jbarnes@virtuousgeek.org>
-Date: Mon, 20 Jun 2011 13:11:39 -0700
-Message-Id: <1308600701-7442-3-git-send-email-jbarnes@virtuousgeek.org>
-In-Reply-To: <1308600701-7442-1-git-send-email-jbarnes@virtuousgeek.org>
-References: <1308600701-7442-1-git-send-email-jbarnes@virtuousgeek.org>
-Subject: [PATCH 2/4] drm: add an fb creation ioctl that takes a pixel format
+	Fri, 10 Jun 2011 05:55:05 -0400
+Date: Fri, 10 Jun 2011 11:54:50 +0200
+From: Marek Szyprowski <m.szyprowski@samsung.com>
+Subject: [PATCH 02/10] lib: genalloc: Generic allocator improvements
+In-reply-to: <1307699698-29369-1-git-send-email-m.szyprowski@samsung.com>
+To: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+	linux-media@vger.kernel.org, linux-mm@kvack.org,
+	linaro-mm-sig@lists.linaro.org
+Cc: Michal Nazarewicz <mina86@mina86.com>,
+	Marek Szyprowski <m.szyprowski@samsung.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	Andrew Morton <akpm@linux-foundation.org>,
+	KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>,
+	Ankita Garg <ankita@in.ibm.com>,
+	Daniel Walker <dwalker@codeaurora.org>,
+	Johan MOSSBERG <johan.xx.mossberg@stericsson.com>,
+	Mel Gorman <mel@csn.ul.ie>, Arnd Bergmann <arnd@arndb.de>,
+	Jesse Barker <jesse.barker@linaro.org>
+Message-id: <1307699698-29369-3-git-send-email-m.szyprowski@samsung.com>
+MIME-version: 1.0
+Content-type: TEXT/PLAIN
+Content-transfer-encoding: 7BIT
+References: <1307699698-29369-1-git-send-email-m.szyprowski@samsung.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-To properly support the various plane formats supported by different
-hardware, the kernel must know the pixel format of a framebuffer object.
-So add a new ioctl taking a format argument corresponding to a fourcc
-name from videodev2.h.
+From: Michal Nazarewicz <m.nazarewicz@samsung.com>
 
-Signed-off-by: Jesse Barnes <jbarnes@virtuousgeek.org>
+This commit adds a gen_pool_alloc_aligned() function to the
+generic allocator API.  It allows specifying alignment for the
+allocated block.  This feature uses
+the bitmap_find_next_zero_area_off() function.
+
+It also fixes possible issue with bitmap's last element being
+not fully allocated (ie. space allocated for chunk->bits is
+not a multiple of sizeof(long)).
+
+It also makes some other smaller changes:
+- moves structure definitions out of the header file,
+- adds __must_check to functions returning value,
+- makes gen_pool_add() return -ENOMEM rater than -1 on error,
+- changes list_for_each to list_for_each_entry, and
+- makes use of bitmap_clear().
+
+Signed-off-by: Michal Nazarewicz <m.nazarewicz@samsung.com>
+Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+[m.szyprowski: rebased and updated to Linux v3.0-rc1]
+Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
+CC: Michal Nazarewicz <mina86@mina86.com>
 ---
- drivers/gpu/drm/drm_crtc.c                |   71 ++++++++++++++++++++++++++++-
- drivers/gpu/drm/drm_crtc_helper.c         |    3 +-
- drivers/gpu/drm/drm_drv.c                 |    1 +
- drivers/gpu/drm/i915/intel_display.c      |    9 ++--
- drivers/gpu/drm/i915/intel_drv.h          |    2 +-
- drivers/gpu/drm/i915/intel_fb.c           |    3 +-
- drivers/gpu/drm/nouveau/nouveau_display.c |    4 +-
- drivers/gpu/drm/radeon/radeon_display.c   |    4 +-
- drivers/gpu/drm/radeon/radeon_fb.c        |    5 +-
- drivers/gpu/drm/radeon/radeon_mode.h      |    2 +-
- drivers/gpu/drm/vmwgfx/vmwgfx_kms.c       |    2 +-
- drivers/staging/gma500/psb_fb.c           |    2 +-
- include/drm/drm.h                         |    1 +
- include/drm/drm_crtc.h                    |    6 ++-
- include/drm/drm_crtc_helper.h             |    2 +-
- include/drm/drm_mode.h                    |   14 ++++++
- 16 files changed, 112 insertions(+), 19 deletions(-)
+ include/linux/genalloc.h |   50 ++++++------
+ lib/genalloc.c           |  190 +++++++++++++++++++++++++++-------------------
+ 2 files changed, 138 insertions(+), 102 deletions(-)
 
-diff --git a/drivers/gpu/drm/drm_crtc.c b/drivers/gpu/drm/drm_crtc.c
-index 9be36a5..f963cf5 100644
---- a/drivers/gpu/drm/drm_crtc.c
-+++ b/drivers/gpu/drm/drm_crtc.c
-@@ -1909,7 +1909,76 @@ out:
- int drm_mode_addfb(struct drm_device *dev,
- 		   void *data, struct drm_file *file_priv)
+diff --git a/include/linux/genalloc.h b/include/linux/genalloc.h
+index 5bbebda..af44e88 100644
+--- a/include/linux/genalloc.h
++++ b/include/linux/genalloc.h
+@@ -11,28 +11,11 @@
+ 
+ #ifndef __GENALLOC_H__
+ #define __GENALLOC_H__
+-/*
+- *  General purpose special memory pool descriptor.
+- */
+-struct gen_pool {
+-	rwlock_t lock;
+-	struct list_head chunks;	/* list of chunks in this pool */
+-	int min_alloc_order;		/* minimum allocation order */
+-};
+ 
+-/*
+- *  General purpose special memory pool chunk descriptor.
+- */
+-struct gen_pool_chunk {
+-	spinlock_t lock;
+-	struct list_head next_chunk;	/* next chunk in pool */
+-	phys_addr_t phys_addr;		/* physical starting address of memory chunk */
+-	unsigned long start_addr;	/* starting address of memory chunk */
+-	unsigned long end_addr;		/* ending address of memory chunk */
+-	unsigned long bits[0];		/* bitmap for allocating memory chunk */
+-};
+-
+-extern struct gen_pool *gen_pool_create(int, int);
++struct gen_pool;
++
++struct gen_pool *__must_check gen_pool_create(unsigned order, int nid);
++
+ extern phys_addr_t gen_pool_virt_to_phys(struct gen_pool *pool, unsigned long);
+ extern int gen_pool_add_virt(struct gen_pool *, unsigned long, phys_addr_t,
+ 			     size_t, int);
+@@ -53,7 +36,26 @@ static inline int gen_pool_add(struct gen_pool *pool, unsigned long addr,
  {
--	struct drm_mode_fb_cmd *r = data;
-+	struct drm_mode_fb_cmd *or = data;
-+	struct drm_mode_fb_cmd2 r;
-+	struct drm_mode_config *config = &dev->mode_config;
-+	struct drm_framebuffer *fb;
-+	int ret = 0;
+ 	return gen_pool_add_virt(pool, addr, -1, size, nid);
+ }
+-extern void gen_pool_destroy(struct gen_pool *);
+-extern unsigned long gen_pool_alloc(struct gen_pool *, size_t);
+-extern void gen_pool_free(struct gen_pool *, unsigned long, size_t);
 +
-+	/* Use new struct with format internally */
-+	r.fb_id = or->fb_id;
-+	r.width = or->width;
-+	r.height = or->height;
-+	r.pitch = or->pitch;
-+	r.bpp = or->bpp;
-+	r.depth = or->depth;
-+	r.pixel_format = 0;
-+	r.handle = or->handle;
++void gen_pool_destroy(struct gen_pool *pool);
 +
-+	if (!drm_core_check_feature(dev, DRIVER_MODESET))
-+		return -EINVAL;
-+
-+	if ((config->min_width > r.width) || (r.width > config->max_width)) {
-+		DRM_ERROR("mode new framebuffer width not within limits\n");
-+		return -EINVAL;
-+	}
-+	if ((config->min_height > r.height) || (r.height > config->max_height)) {
-+		DRM_ERROR("mode new framebuffer height not within limits\n");
-+		return -EINVAL;
-+	}
-+
-+	mutex_lock(&dev->mode_config.mutex);
-+
-+	/* TODO check buffer is sufficiently large */
-+	/* TODO setup destructor callback */
-+
-+	fb = dev->mode_config.funcs->fb_create(dev, file_priv, &r);
-+	if (IS_ERR(fb)) {
-+		DRM_ERROR("could not create framebuffer\n");
-+		ret = PTR_ERR(fb);
-+		goto out;
-+	}
-+
-+	or->fb_id = fb->base.id;
-+	list_add(&fb->filp_head, &file_priv->fbs);
-+	DRM_DEBUG_KMS("[FB:%d]\n", fb->base.id);
-+
-+out:
-+	mutex_unlock(&dev->mode_config.mutex);
-+	return ret;
-+}
++unsigned long __must_check
++gen_pool_alloc_aligned(struct gen_pool *pool, size_t size,
++		       unsigned alignment_order);
 +
 +/**
-+ * drm_mode_addfb2 - add an FB to the graphics configuration
-+ * @inode: inode from the ioctl
-+ * @filp: file * from the ioctl
-+ * @cmd: cmd from ioctl
-+ * @arg: arg from ioctl
++ * gen_pool_alloc() - allocate special memory from the pool
++ * @pool:	Pool to allocate from.
++ * @size:	Number of bytes to allocate from the pool.
 + *
-+ * LOCKING:
-+ * Takes mode config lock.
-+ *
-+ * Add a new FB to the specified CRTC, given a user request with format.
-+ *
-+ * Called by the user via ioctl.
-+ *
-+ * RETURNS:
-+ * Zero on success, errno on failure.
++ * Allocate the requested number of bytes from the specified pool.
++ * Uses a first-fit algorithm.
 + */
-+int drm_mode_addfb2(struct drm_device *dev,
-+		    void *data, struct drm_file *file_priv)
++static inline unsigned long __must_check
++gen_pool_alloc(struct gen_pool *pool, size_t size)
 +{
-+	struct drm_mode_fb_cmd2 *r = data;
- 	struct drm_mode_config *config = &dev->mode_config;
- 	struct drm_framebuffer *fb;
- 	int ret = 0;
-diff --git a/drivers/gpu/drm/drm_crtc_helper.c b/drivers/gpu/drm/drm_crtc_helper.c
-index 9236965..5adab04 100644
---- a/drivers/gpu/drm/drm_crtc_helper.c
-+++ b/drivers/gpu/drm/drm_crtc_helper.c
-@@ -801,13 +801,14 @@ void drm_helper_connector_dpms(struct drm_connector *connector, int mode)
- EXPORT_SYMBOL(drm_helper_connector_dpms);
- 
- int drm_helper_mode_fill_fb_struct(struct drm_framebuffer *fb,
--				   struct drm_mode_fb_cmd *mode_cmd)
-+				   struct drm_mode_fb_cmd2 *mode_cmd)
- {
- 	fb->width = mode_cmd->width;
- 	fb->height = mode_cmd->height;
- 	fb->pitch = mode_cmd->pitch;
- 	fb->bits_per_pixel = mode_cmd->bpp;
- 	fb->depth = mode_cmd->depth;
-+	fb->pixel_format = mode_cmd->pixel_format;
- 
- 	return 0;
- }
-diff --git a/drivers/gpu/drm/drm_drv.c b/drivers/gpu/drm/drm_drv.c
-index 15da618..f24b9b6 100644
---- a/drivers/gpu/drm/drm_drv.c
-+++ b/drivers/gpu/drm/drm_drv.c
-@@ -152,6 +152,7 @@ static struct drm_ioctl_desc drm_ioctls[] = {
- 	DRM_IOCTL_DEF(DRM_IOCTL_MODE_GETPROPBLOB, drm_mode_getblob_ioctl, DRM_MASTER|DRM_CONTROL_ALLOW|DRM_UNLOCKED),
- 	DRM_IOCTL_DEF(DRM_IOCTL_MODE_GETFB, drm_mode_getfb, DRM_MASTER|DRM_CONTROL_ALLOW|DRM_UNLOCKED),
- 	DRM_IOCTL_DEF(DRM_IOCTL_MODE_ADDFB, drm_mode_addfb, DRM_MASTER|DRM_CONTROL_ALLOW|DRM_UNLOCKED),
-+	DRM_IOCTL_DEF(DRM_IOCTL_MODE_ADDFB2, drm_mode_addfb2, DRM_MASTER|DRM_CONTROL_ALLOW|DRM_UNLOCKED),
- 	DRM_IOCTL_DEF(DRM_IOCTL_MODE_RMFB, drm_mode_rmfb, DRM_MASTER|DRM_CONTROL_ALLOW|DRM_UNLOCKED),
- 	DRM_IOCTL_DEF(DRM_IOCTL_MODE_PAGE_FLIP, drm_mode_page_flip_ioctl, DRM_MASTER|DRM_CONTROL_ALLOW|DRM_UNLOCKED),
- 	DRM_IOCTL_DEF(DRM_IOCTL_MODE_DIRTYFB, drm_mode_dirtyfb_ioctl, DRM_MASTER|DRM_CONTROL_ALLOW|DRM_UNLOCKED),
-diff --git a/drivers/gpu/drm/i915/intel_display.c b/drivers/gpu/drm/i915/intel_display.c
-index 0b6fd36..8a6e3ab 100644
---- a/drivers/gpu/drm/i915/intel_display.c
-+++ b/drivers/gpu/drm/i915/intel_display.c
-@@ -5803,7 +5803,7 @@ static struct drm_display_mode load_detect_mode = {
- 
- static struct drm_framebuffer *
- intel_framebuffer_create(struct drm_device *dev,
--			 struct drm_mode_fb_cmd *mode_cmd,
-+			 struct drm_mode_fb_cmd2 *mode_cmd,
- 			 struct drm_i915_gem_object *obj)
- {
- 	struct intel_framebuffer *intel_fb;
-@@ -5845,7 +5845,7 @@ intel_framebuffer_create_for_mode(struct drm_device *dev,
- 				  int depth, int bpp)
- {
- 	struct drm_i915_gem_object *obj;
--	struct drm_mode_fb_cmd mode_cmd;
-+	struct drm_mode_fb_cmd2 mode_cmd;
- 
- 	obj = i915_gem_alloc_object(dev,
- 				    intel_framebuffer_size_for_mode(mode, bpp));
-@@ -5857,6 +5857,7 @@ intel_framebuffer_create_for_mode(struct drm_device *dev,
- 	mode_cmd.depth = depth;
- 	mode_cmd.bpp = bpp;
- 	mode_cmd.pitch = intel_framebuffer_pitch_for_width(mode_cmd.width, bpp);
-+	mode_cmd.pixel_format = 0;
- 
- 	return intel_framebuffer_create(dev, &mode_cmd, obj);
- }
-@@ -6978,7 +6979,7 @@ static const struct drm_framebuffer_funcs intel_fb_funcs = {
- 
- int intel_framebuffer_init(struct drm_device *dev,
- 			   struct intel_framebuffer *intel_fb,
--			   struct drm_mode_fb_cmd *mode_cmd,
-+			   struct drm_mode_fb_cmd2 *mode_cmd,
- 			   struct drm_i915_gem_object *obj)
- {
- 	int ret;
-@@ -7013,7 +7014,7 @@ int intel_framebuffer_init(struct drm_device *dev,
- static struct drm_framebuffer *
- intel_user_framebuffer_create(struct drm_device *dev,
- 			      struct drm_file *filp,
--			      struct drm_mode_fb_cmd *mode_cmd)
-+			      struct drm_mode_fb_cmd2 *mode_cmd)
- {
- 	struct drm_i915_gem_object *obj;
- 
-diff --git a/drivers/gpu/drm/i915/intel_drv.h b/drivers/gpu/drm/i915/intel_drv.h
-index 0dc9018..3cfc391 100644
---- a/drivers/gpu/drm/i915/intel_drv.h
-+++ b/drivers/gpu/drm/i915/intel_drv.h
-@@ -326,7 +326,7 @@ extern int intel_pin_and_fence_fb_obj(struct drm_device *dev,
- 
- extern int intel_framebuffer_init(struct drm_device *dev,
- 				  struct intel_framebuffer *ifb,
--				  struct drm_mode_fb_cmd *mode_cmd,
-+				  struct drm_mode_fb_cmd2 *mode_cmd,
- 				  struct drm_i915_gem_object *obj);
- extern int intel_fbdev_init(struct drm_device *dev);
- extern void intel_fbdev_fini(struct drm_device *dev);
-diff --git a/drivers/gpu/drm/i915/intel_fb.c b/drivers/gpu/drm/i915/intel_fb.c
-index ec49bae..11baa99 100644
---- a/drivers/gpu/drm/i915/intel_fb.c
-+++ b/drivers/gpu/drm/i915/intel_fb.c
-@@ -65,7 +65,7 @@ static int intelfb_create(struct intel_fbdev *ifbdev,
- 	struct drm_i915_private *dev_priv = dev->dev_private;
- 	struct fb_info *info;
- 	struct drm_framebuffer *fb;
--	struct drm_mode_fb_cmd mode_cmd;
-+	struct drm_mode_fb_cmd2 mode_cmd;
- 	struct drm_i915_gem_object *obj;
- 	struct device *device = &dev->pdev->dev;
- 	int size, ret;
-@@ -80,6 +80,7 @@ static int intelfb_create(struct intel_fbdev *ifbdev,
- 	mode_cmd.bpp = sizes->surface_bpp;
- 	mode_cmd.pitch = ALIGN(mode_cmd.width * ((mode_cmd.bpp + 7) / 8), 64);
- 	mode_cmd.depth = sizes->surface_depth;
-+	mode_cmd.pixel_format = 0;
- 
- 	size = mode_cmd.pitch * mode_cmd.height;
- 	size = ALIGN(size, PAGE_SIZE);
-diff --git a/drivers/gpu/drm/nouveau/nouveau_display.c b/drivers/gpu/drm/nouveau/nouveau_display.c
-index eb514ea..b03df00 100644
---- a/drivers/gpu/drm/nouveau/nouveau_display.c
-+++ b/drivers/gpu/drm/nouveau/nouveau_display.c
-@@ -64,7 +64,7 @@ static const struct drm_framebuffer_funcs nouveau_framebuffer_funcs = {
- int
- nouveau_framebuffer_init(struct drm_device *dev,
- 			 struct nouveau_framebuffer *nv_fb,
--			 struct drm_mode_fb_cmd *mode_cmd,
-+			 struct drm_mode_fb_cmd2 *mode_cmd,
- 			 struct nouveau_bo *nvbo)
- {
- 	struct drm_nouveau_private *dev_priv = dev->dev_private;
-@@ -121,7 +121,7 @@ nouveau_framebuffer_init(struct drm_device *dev,
- static struct drm_framebuffer *
- nouveau_user_framebuffer_create(struct drm_device *dev,
- 				struct drm_file *file_priv,
--				struct drm_mode_fb_cmd *mode_cmd)
-+				struct drm_mode_fb_cmd2 *mode_cmd)
- {
- 	struct nouveau_framebuffer *nouveau_fb;
- 	struct drm_gem_object *gem;
-diff --git a/drivers/gpu/drm/radeon/radeon_display.c b/drivers/gpu/drm/radeon/radeon_display.c
-index ae247ee..74ffab6 100644
---- a/drivers/gpu/drm/radeon/radeon_display.c
-+++ b/drivers/gpu/drm/radeon/radeon_display.c
-@@ -1122,7 +1122,7 @@ static const struct drm_framebuffer_funcs radeon_fb_funcs = {
- void
- radeon_framebuffer_init(struct drm_device *dev,
- 			struct radeon_framebuffer *rfb,
--			struct drm_mode_fb_cmd *mode_cmd,
-+			struct drm_mode_fb_cmd2 *mode_cmd,
- 			struct drm_gem_object *obj)
- {
- 	rfb->obj = obj;
-@@ -1133,7 +1133,7 @@ radeon_framebuffer_init(struct drm_device *dev,
- static struct drm_framebuffer *
- radeon_user_framebuffer_create(struct drm_device *dev,
- 			       struct drm_file *file_priv,
--			       struct drm_mode_fb_cmd *mode_cmd)
-+			       struct drm_mode_fb_cmd2 *mode_cmd)
- {
- 	struct drm_gem_object *obj;
- 	struct radeon_framebuffer *radeon_fb;
-diff --git a/drivers/gpu/drm/radeon/radeon_fb.c b/drivers/gpu/drm/radeon/radeon_fb.c
-index 0b7b486..06215ac 100644
---- a/drivers/gpu/drm/radeon/radeon_fb.c
-+++ b/drivers/gpu/drm/radeon/radeon_fb.c
-@@ -103,7 +103,7 @@ static void radeonfb_destroy_pinned_object(struct drm_gem_object *gobj)
- }
- 
- static int radeonfb_create_pinned_object(struct radeon_fbdev *rfbdev,
--					 struct drm_mode_fb_cmd *mode_cmd,
-+					 struct drm_mode_fb_cmd2 *mode_cmd,
- 					 struct drm_gem_object **gobj_p)
- {
- 	struct radeon_device *rdev = rfbdev->rdev;
-@@ -187,7 +187,7 @@ static int radeonfb_create(struct radeon_fbdev *rfbdev,
- 	struct radeon_device *rdev = rfbdev->rdev;
- 	struct fb_info *info;
- 	struct drm_framebuffer *fb = NULL;
--	struct drm_mode_fb_cmd mode_cmd;
-+	struct drm_mode_fb_cmd2 mode_cmd;
- 	struct drm_gem_object *gobj = NULL;
- 	struct radeon_bo *rbo = NULL;
- 	struct device *device = &rdev->pdev->dev;
-@@ -203,6 +203,7 @@ static int radeonfb_create(struct radeon_fbdev *rfbdev,
- 
- 	mode_cmd.bpp = sizes->surface_bpp;
- 	mode_cmd.depth = sizes->surface_depth;
-+	mode_cmd.pixel_format = 0;
- 
- 	ret = radeonfb_create_pinned_object(rfbdev, &mode_cmd, &gobj);
- 	rbo = gem_to_radeon_bo(gobj);
-diff --git a/drivers/gpu/drm/radeon/radeon_mode.h b/drivers/gpu/drm/radeon/radeon_mode.h
-index 977a341..121eb56 100644
---- a/drivers/gpu/drm/radeon/radeon_mode.h
-+++ b/drivers/gpu/drm/radeon/radeon_mode.h
-@@ -637,7 +637,7 @@ extern void radeon_crtc_fb_gamma_get(struct drm_crtc *crtc, u16 *red, u16 *green
- 				     u16 *blue, int regno);
- void radeon_framebuffer_init(struct drm_device *dev,
- 			     struct radeon_framebuffer *rfb,
--			     struct drm_mode_fb_cmd *mode_cmd,
-+			     struct drm_mode_fb_cmd2 *mode_cmd,
- 			     struct drm_gem_object *obj);
- 
- int radeonfb_remove(struct drm_device *dev, struct drm_framebuffer *fb);
-diff --git a/drivers/gpu/drm/vmwgfx/vmwgfx_kms.c b/drivers/gpu/drm/vmwgfx/vmwgfx_kms.c
-index dfe32e6..f6566a8 100644
---- a/drivers/gpu/drm/vmwgfx/vmwgfx_kms.c
-+++ b/drivers/gpu/drm/vmwgfx/vmwgfx_kms.c
-@@ -836,7 +836,7 @@ out_err1:
- 
- static struct drm_framebuffer *vmw_kms_fb_create(struct drm_device *dev,
- 						 struct drm_file *file_priv,
--						 struct drm_mode_fb_cmd *mode_cmd)
-+						 struct drm_mode_fb_cmd2 *mode_cmd)
- {
- 	struct vmw_private *dev_priv = vmw_priv(dev);
- 	struct ttm_object_file *tfile = vmw_fpriv(file_priv)->tfile;
-diff --git a/drivers/staging/gma500/psb_fb.c b/drivers/staging/gma500/psb_fb.c
-index 99c03a2..3cfa632 100644
---- a/drivers/staging/gma500/psb_fb.c
-+++ b/drivers/staging/gma500/psb_fb.c
-@@ -481,7 +481,7 @@ out_err1:
-  */
- static struct drm_framebuffer *psb_user_framebuffer_create
- 			(struct drm_device *dev, struct drm_file *filp,
--			 struct drm_mode_fb_cmd *cmd)
-+			 struct drm_mode_fb_cmd2 *cmd)
- {
-         struct gtt_range *r;
-         struct drm_gem_object *obj;
-diff --git a/include/drm/drm.h b/include/drm/drm.h
-index 2897967..49d94ed 100644
---- a/include/drm/drm.h
-+++ b/include/drm/drm.h
-@@ -717,6 +717,7 @@ struct drm_get_cap {
- #define DRM_IOCTL_MODE_GETPLANERESOURCES DRM_IOWR(0xB5, struct drm_mode_get_plane_res)
- #define DRM_IOCTL_MODE_GETPLANE	DRM_IOWR(0xB6, struct drm_mode_get_plane)
- #define DRM_IOCTL_MODE_SETPLANE	DRM_IOWR(0xB7, struct drm_mode_set_plane)
-+#define DRM_IOCTL_MODE_ADDFB2		DRM_IOWR(0xB8, struct drm_mode_fb_cmd2)
- 
- /**
-  * Device specific ioctls should only be in their respective headers
-diff --git a/include/drm/drm_crtc.h b/include/drm/drm_crtc.h
-index caa72ae..6ac4d74 100644
---- a/include/drm/drm_crtc.h
-+++ b/include/drm/drm_crtc.h
-@@ -29,6 +29,7 @@
- #include <linux/spinlock.h>
- #include <linux/types.h>
- #include <linux/idr.h>
-+#include <linux/videodev2.h> /* for plane formats */
- 
- #include <linux/fb.h>
- 
-@@ -244,6 +245,7 @@ struct drm_framebuffer {
- 	unsigned int depth;
- 	int bits_per_pixel;
- 	int flags;
-+	uint32_t pixel_format; /* fourcc format */
- 	struct list_head filp_head;
- 	/* if you are using the helper */
- 	void *helper_private;
-@@ -604,7 +606,7 @@ struct drm_mode_set {
-  * struct drm_mode_config_funcs - configure CRTCs for a given screen layout
-  */
- struct drm_mode_config_funcs {
--	struct drm_framebuffer *(*fb_create)(struct drm_device *dev, struct drm_file *file_priv, struct drm_mode_fb_cmd *mode_cmd);
-+	struct drm_framebuffer *(*fb_create)(struct drm_device *dev, struct drm_file *file_priv, struct drm_mode_fb_cmd2 *mode_cmd);
- 	void (*output_poll_changed)(struct drm_device *dev);
- };
- 
-@@ -822,6 +824,8 @@ extern int drm_mode_cursor_ioctl(struct drm_device *dev,
- 				void *data, struct drm_file *file_priv);
- extern int drm_mode_addfb(struct drm_device *dev,
- 			  void *data, struct drm_file *file_priv);
-+extern int drm_mode_addfb2(struct drm_device *dev,
-+			   void *data, struct drm_file *file_priv);
- extern int drm_mode_rmfb(struct drm_device *dev,
- 			 void *data, struct drm_file *file_priv);
- extern int drm_mode_getfb(struct drm_device *dev,
-diff --git a/include/drm/drm_crtc_helper.h b/include/drm/drm_crtc_helper.h
-index 73b0712..e88b7d7 100644
---- a/include/drm/drm_crtc_helper.h
-+++ b/include/drm/drm_crtc_helper.h
-@@ -117,7 +117,7 @@ extern bool drm_helper_encoder_in_use(struct drm_encoder *encoder);
- extern void drm_helper_connector_dpms(struct drm_connector *connector, int mode);
- 
- extern int drm_helper_mode_fill_fb_struct(struct drm_framebuffer *fb,
--					  struct drm_mode_fb_cmd *mode_cmd);
-+					  struct drm_mode_fb_cmd2 *mode_cmd);
- 
- static inline void drm_crtc_helper_add(struct drm_crtc *crtc,
- 				       const struct drm_crtc_helper_funcs *funcs)
-diff --git a/include/drm/drm_mode.h b/include/drm/drm_mode.h
-index fa6d348..82cd587 100644
---- a/include/drm/drm_mode.h
-+++ b/include/drm/drm_mode.h
-@@ -27,6 +27,8 @@
- #ifndef _DRM_MODE_H
- #define _DRM_MODE_H
- 
-+#include <linux/videodev2.h>
++	return gen_pool_alloc_aligned(pool, size, 0);
++}
 +
- #define DRM_DISPLAY_INFO_LEN	32
- #define DRM_CONNECTOR_NAME_LEN	32
- #define DRM_DISPLAY_MODE_LEN	32
-@@ -264,6 +266,18 @@ struct drm_mode_fb_cmd {
- 	__u32 handle;
- };
++void gen_pool_free(struct gen_pool *pool, unsigned long addr, size_t size);
+ #endif /* __GENALLOC_H__ */
+diff --git a/lib/genalloc.c b/lib/genalloc.c
+index 577ddf8..b41dd90 100644
+--- a/lib/genalloc.c
++++ b/lib/genalloc.c
+@@ -16,23 +16,46 @@
+ #include <linux/genalloc.h>
  
-+/* For addfb2 ioctl, contains format info */
-+struct drm_mode_fb_cmd2 {
-+	__u32 fb_id;
-+	__u32 width, height;
-+	__u32 pitch;
-+	__u32 bpp;
-+	__u32 depth;
-+	__u32 pixel_format; /* fourcc code from videodev2.h */
-+	/* driver specific handle */
-+	__u32 handle;
+ 
++/* General purpose special memory pool descriptor. */
++struct gen_pool {
++	rwlock_t lock;			/* protects chunks list */
++	struct list_head chunks;	/* list of chunks in this pool */
++	unsigned order;			/* minimum allocation order */
 +};
 +
- #define DRM_MODE_FB_DIRTY_ANNOTATE_COPY 0x01
- #define DRM_MODE_FB_DIRTY_ANNOTATE_FILL 0x02
- #define DRM_MODE_FB_DIRTY_FLAGS         0x03
++/* General purpose special memory pool chunk descriptor. */
++struct gen_pool_chunk {
++	spinlock_t lock;		/* protects bits */
++	struct list_head next_chunk;	/* next chunk in pool */
++	phys_addr_t phys_addr;		/* physical starting address of memory chunk */
++	unsigned long start;		/* start of memory chunk */
++	unsigned long size;		/* number of bits */
++	unsigned long bits[0];		/* bitmap for allocating memory chunk */
++};
++
++
+ /**
+- * gen_pool_create - create a new special memory pool
+- * @min_alloc_order: log base 2 of number of bytes each bitmap bit represents
+- * @nid: node id of the node the pool structure should be allocated on, or -1
++ * gen_pool_create() - create a new special memory pool
++ * @order:	Log base 2 of number of bytes each bitmap bit
++ *		represents.
++ * @nid:	Node id of the node the pool structure should be allocated
++ *		on, or -1.  This will be also used for other allocations.
+  *
+  * Create a new special memory pool that can be used to manage special purpose
+  * memory not managed by the regular kmalloc/kfree interface.
+  */
+-struct gen_pool *gen_pool_create(int min_alloc_order, int nid)
++struct gen_pool *__must_check gen_pool_create(unsigned order, int nid)
+ {
+ 	struct gen_pool *pool;
+ 
+-	pool = kmalloc_node(sizeof(struct gen_pool), GFP_KERNEL, nid);
+-	if (pool != NULL) {
++	if (WARN_ON(order >= BITS_PER_LONG))
++		return NULL;
++
++	pool = kmalloc_node(sizeof *pool, GFP_KERNEL, nid);
++	if (pool) {
+ 		rwlock_init(&pool->lock);
+ 		INIT_LIST_HEAD(&pool->chunks);
+-		pool->min_alloc_order = min_alloc_order;
++		pool->order = order;
+ 	}
+ 	return pool;
+ }
+@@ -40,33 +63,41 @@ EXPORT_SYMBOL(gen_pool_create);
+ 
+ /**
+  * gen_pool_add_virt - add a new chunk of special memory to the pool
+- * @pool: pool to add new memory chunk to
+- * @virt: virtual starting address of memory chunk to add to pool
+- * @phys: physical starting address of memory chunk to add to pool
+- * @size: size in bytes of the memory chunk to add to pool
+- * @nid: node id of the node the chunk structure and bitmap should be
+- *       allocated on, or -1
++ * @pool:	Pool to add new memory chunk to
++ * @virt:	Virtual starting address of memory chunk to add to pool
++ * @phys:	Physical starting address of memory chunk to add to pool
++ * @size:	Size in bytes of the memory chunk to add to pool
++ * @nid:	Node id of the node the chunk structure and bitmap should be
++ *       	allocated on, or -1
+  *
+  * Add a new chunk of special memory to the specified pool.
+  *
+  * Returns 0 on success or a -ve errno on failure.
+  */
+-int gen_pool_add_virt(struct gen_pool *pool, unsigned long virt, phys_addr_t phys,
+-		 size_t size, int nid)
++int __must_check
++gen_pool_add_virt(struct gen_pool *pool, unsigned long virt, phys_addr_t phys,
++		  size_t size, int nid)
+ {
+ 	struct gen_pool_chunk *chunk;
+-	int nbits = size >> pool->min_alloc_order;
+-	int nbytes = sizeof(struct gen_pool_chunk) +
+-				(nbits + BITS_PER_BYTE - 1) / BITS_PER_BYTE;
++	size_t nbytes;
+ 
+-	chunk = kmalloc_node(nbytes, GFP_KERNEL | __GFP_ZERO, nid);
+-	if (unlikely(chunk == NULL))
++	if (WARN_ON(!virt || virt + size < virt ||
++		    (virt & ((1 << pool->order) - 1))))
++		return -EINVAL;
++
++	size = size >> pool->order;
++	if (WARN_ON(!size))
++		return -EINVAL;
++
++	nbytes = sizeof *chunk + BITS_TO_LONGS(size) * sizeof *chunk->bits;
++	chunk = kzalloc_node(nbytes, GFP_KERNEL, nid);
++	if (!chunk)
+ 		return -ENOMEM;
+ 
+ 	spin_lock_init(&chunk->lock);
++	chunk->start = virt >> pool->order;
++	chunk->size  = size;
+ 	chunk->phys_addr = phys;
+-	chunk->start_addr = virt;
+-	chunk->end_addr = virt + size;
+ 
+ 	write_lock(&pool->lock);
+ 	list_add(&chunk->next_chunk, &pool->chunks);
+@@ -90,10 +121,12 @@ phys_addr_t gen_pool_virt_to_phys(struct gen_pool *pool, unsigned long addr)
+ 
+ 	read_lock(&pool->lock);
+ 	list_for_each(_chunk, &pool->chunks) {
++		unsigned long start_addr;
+ 		chunk = list_entry(_chunk, struct gen_pool_chunk, next_chunk);
+ 
+-		if (addr >= chunk->start_addr && addr < chunk->end_addr)
+-			return chunk->phys_addr + addr - chunk->start_addr;
++		start_addr = chunk->start << pool->order;
++		if (addr >= start_addr && addr < start_addr + chunk->size)
++			return chunk->phys_addr + addr - start_addr;
+ 	}
+ 	read_unlock(&pool->lock);
+ 
+@@ -102,115 +135,116 @@ phys_addr_t gen_pool_virt_to_phys(struct gen_pool *pool, unsigned long addr)
+ EXPORT_SYMBOL(gen_pool_virt_to_phys);
+ 
+ /**
+- * gen_pool_destroy - destroy a special memory pool
+- * @pool: pool to destroy
++ * gen_pool_destroy() - destroy a special memory pool
++ * @pool:	Pool to destroy.
+  *
+  * Destroy the specified special memory pool. Verifies that there are no
+  * outstanding allocations.
+  */
+ void gen_pool_destroy(struct gen_pool *pool)
+ {
+-	struct list_head *_chunk, *_next_chunk;
+ 	struct gen_pool_chunk *chunk;
+-	int order = pool->min_alloc_order;
+-	int bit, end_bit;
+-
++	int bit;
+ 
+-	list_for_each_safe(_chunk, _next_chunk, &pool->chunks) {
+-		chunk = list_entry(_chunk, struct gen_pool_chunk, next_chunk);
++	while (!list_empty(&pool->chunks)) {
++		chunk = list_entry(pool->chunks.next, struct gen_pool_chunk,
++				   next_chunk);
+ 		list_del(&chunk->next_chunk);
+ 
+-		end_bit = (chunk->end_addr - chunk->start_addr) >> order;
+-		bit = find_next_bit(chunk->bits, end_bit, 0);
+-		BUG_ON(bit < end_bit);
++		bit = find_next_bit(chunk->bits, chunk->size, 0);
++		BUG_ON(bit < chunk->size);
+ 
+ 		kfree(chunk);
+ 	}
+ 	kfree(pool);
+-	return;
+ }
+ EXPORT_SYMBOL(gen_pool_destroy);
+ 
+ /**
+- * gen_pool_alloc - allocate special memory from the pool
+- * @pool: pool to allocate from
+- * @size: number of bytes to allocate from the pool
++ * gen_pool_alloc_aligned() - allocate special memory from the pool
++ * @pool:	Pool to allocate from.
++ * @size:	Number of bytes to allocate from the pool.
++ * @alignment_order:	Order the allocated space should be
++ *			aligned to (eg. 20 means allocated space
++ *			must be aligned to 1MiB).
+  *
+  * Allocate the requested number of bytes from the specified pool.
+  * Uses a first-fit algorithm.
+  */
+-unsigned long gen_pool_alloc(struct gen_pool *pool, size_t size)
++unsigned long __must_check
++gen_pool_alloc_aligned(struct gen_pool *pool, size_t size,
++		       unsigned alignment_order)
+ {
+-	struct list_head *_chunk;
++	unsigned long addr, align_mask = 0, flags, start;
+ 	struct gen_pool_chunk *chunk;
+-	unsigned long addr, flags;
+-	int order = pool->min_alloc_order;
+-	int nbits, start_bit, end_bit;
+ 
+ 	if (size == 0)
+ 		return 0;
+ 
+-	nbits = (size + (1UL << order) - 1) >> order;
++	if (alignment_order > pool->order)
++		align_mask = (1 << (alignment_order - pool->order)) - 1;
+ 
+-	read_lock(&pool->lock);
+-	list_for_each(_chunk, &pool->chunks) {
+-		chunk = list_entry(_chunk, struct gen_pool_chunk, next_chunk);
++	size = (size + (1UL << pool->order) - 1) >> pool->order;
+ 
+-		end_bit = (chunk->end_addr - chunk->start_addr) >> order;
++	read_lock(&pool->lock);
++	list_for_each_entry(chunk, &pool->chunks, next_chunk) {
++		if (chunk->size < size)
++			continue;
+ 
+ 		spin_lock_irqsave(&chunk->lock, flags);
+-		start_bit = bitmap_find_next_zero_area(chunk->bits, end_bit, 0,
+-						nbits, 0);
+-		if (start_bit >= end_bit) {
++		start = bitmap_find_next_zero_area_off(chunk->bits, chunk->size,
++						       0, size, align_mask,
++						       chunk->start);
++		if (start >= chunk->size) {
+ 			spin_unlock_irqrestore(&chunk->lock, flags);
+ 			continue;
+ 		}
+ 
+-		addr = chunk->start_addr + ((unsigned long)start_bit << order);
+-
+-		bitmap_set(chunk->bits, start_bit, nbits);
++		bitmap_set(chunk->bits, start, size);
+ 		spin_unlock_irqrestore(&chunk->lock, flags);
+-		read_unlock(&pool->lock);
+-		return addr;
++		addr = (chunk->start + start) << pool->order;
++		goto done;
+ 	}
++
++	addr = 0;
++done:
+ 	read_unlock(&pool->lock);
+-	return 0;
++	return addr;
+ }
+-EXPORT_SYMBOL(gen_pool_alloc);
++EXPORT_SYMBOL(gen_pool_alloc_aligned);
+ 
+ /**
+- * gen_pool_free - free allocated special memory back to the pool
+- * @pool: pool to free to
+- * @addr: starting address of memory to free back to pool
+- * @size: size in bytes of memory to free
++ * gen_pool_free() - free allocated special memory back to the pool
++ * @pool:	Pool to free to.
++ * @addr:	Starting address of memory to free back to pool.
++ * @size:	Size in bytes of memory to free.
+  *
+  * Free previously allocated special memory back to the specified pool.
+  */
+ void gen_pool_free(struct gen_pool *pool, unsigned long addr, size_t size)
+ {
+-	struct list_head *_chunk;
+ 	struct gen_pool_chunk *chunk;
+ 	unsigned long flags;
+-	int order = pool->min_alloc_order;
+-	int bit, nbits;
+ 
+-	nbits = (size + (1UL << order) - 1) >> order;
++	if (!size)
++		return;
+ 
+-	read_lock(&pool->lock);
+-	list_for_each(_chunk, &pool->chunks) {
+-		chunk = list_entry(_chunk, struct gen_pool_chunk, next_chunk);
++	addr = addr >> pool->order;
++	size = (size + (1UL << pool->order) - 1) >> pool->order;
+ 
+-		if (addr >= chunk->start_addr && addr < chunk->end_addr) {
+-			BUG_ON(addr + size > chunk->end_addr);
++	BUG_ON(addr + size < addr);
++
++	read_lock(&pool->lock);
++	list_for_each_entry(chunk, &pool->chunks, next_chunk)
++		if (addr >= chunk->start &&
++		    addr + size <= chunk->start + chunk->size) {
+ 			spin_lock_irqsave(&chunk->lock, flags);
+-			bit = (addr - chunk->start_addr) >> order;
+-			while (nbits--)
+-				__clear_bit(bit++, chunk->bits);
++			bitmap_clear(chunk->bits, addr - chunk->start, size);
+ 			spin_unlock_irqrestore(&chunk->lock, flags);
+-			break;
++			goto done;
+ 		}
+-	}
+-	BUG_ON(nbits > 0);
++	BUG_ON(1);
++done:
+ 	read_unlock(&pool->lock);
+ }
+ EXPORT_SYMBOL(gen_pool_free);
 -- 
-1.7.4.1
-
+1.7.1.569.g6f426
 
