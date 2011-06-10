@@ -1,80 +1,112 @@
 Return-path: <mchehab@pedra>
-Received: from mail-ww0-f44.google.com ([74.125.82.44]:33274 "EHLO
-	mail-ww0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756767Ab1FUOek (ORCPT
+Received: from smtp-vbr7.xs4all.nl ([194.109.24.27]:3383 "EHLO
+	smtp-vbr7.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752895Ab1FJJTk (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 21 Jun 2011 10:34:40 -0400
-Received: by wwe5 with SMTP id 5so3732082wwe.1
-        for <linux-media@vger.kernel.org>; Tue, 21 Jun 2011 07:34:39 -0700 (PDT)
+	Fri, 10 Jun 2011 05:19:40 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: "linux-media" <linux-media@vger.kernel.org>
+Subject: [GIT PATCHES FOR 3.1] Add autofoo/foo and control event support
+Date: Fri, 10 Jun 2011 11:19:33 +0200
+Cc: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 MIME-Version: 1.0
-In-Reply-To: <4E00A78B.2020008@linuxtv.org>
-References: <BANLkTimtnbAzLTdFY2OiSddHTjmD_99CfA@mail.gmail.com>
-	<201106202037.19535.remi@remlab.net>
-	<BANLkTinn0uN3VwGfqCbYbxFoVf6aNo1VSA@mail.gmail.com>
-	<BANLkTin14LnwP+_K1m-RsEXza4M4CjqnEw@mail.gmail.com>
-	<BANLkTimR-zWnnLBcD2w8d8NpeFJi=eT9nQ@mail.gmail.com>
-	<005a01cc2f7d$a799be30$f6cd3a90$@coexsi.fr>
-	<BANLkTinbQ8oBJt7fScuT5vHGFktbaQNY5A@mail.gmail.com>
-	<BANLkTimTdMa_X1ygF8=B5gLdLXq1o-ER0g@mail.gmail.com>
-	<BANLkTimkZN9AtLanwvct+1p2DZOHSgF6Aw@mail.gmail.com>
-	<BANLkTimg0X5H5T8CsSR5Tr0CZbCZKiDEEA@mail.gmail.com>
-	<4DFFB1DA.5000602@redhat.com>
-	<BANLkTikZ++5dZssDRuxJzNUEG_TDkZPGRg@mail.gmail.com>
-	<4DFFF56D.5070602@redhat.com>
-	<4E007AA7.7070400@linuxtv.org>
-	<BANLkTik3ACfDwkyKVU2eZtxBeLH_mGh7pg@mail.gmail.com>
-	<4E00A78B.2020008@linuxtv.org>
-Date: Tue, 21 Jun 2011 10:34:39 -0400
-Message-ID: <BANLkTimovfuvRVy5DLLX2jrHgohnPagyNg@mail.gmail.com>
-Subject: Re: [RFC] vtunerc - virtual DVB device driver
-From: Devin Heitmueller <dheitmueller@kernellabs.com>
-To: Andreas Oberritter <obi@linuxtv.org>
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	HoP <jpetrous@gmail.com>,
-	=?ISO-8859-1?Q?S=E9bastien_RAILLARD_=28COEXSI=29?= <sr@coexsi.fr>,
-	=?ISO-8859-1?Q?R=E9mi_Denis=2DCourmont?= <remi@remlab.net>,
-	linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: Text/Plain;
+  charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201106101119.33512.hverkuil@xs4all.nl>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-2011/6/21 Andreas Oberritter <obi@linuxtv.org>:
-> Yes, and you did lie to your vendor, too, as you did not mention the
-> possibilities to create
+Hi Mauro,
 
-I don't know if this is a language barrier issue, but calling someone
-a liar (let alone in an open forum) is a pretty offensive thing to do.
+This patch series adds support for handling autofoo/foo type controls (e.g.
+autogain/gain, autoexposure/exposure, etc) and adds a new event for control
+changes, either a value or a status change.
 
-In fact, such discussions did come up.  However I simply didn't
-mention them here in the previous email in an attempt consolidate one
-hour conversations into nine sentences in an attempt at brevity.
+The changes against the RFCv3 patch series are minor: one small bug was fixed
+in the autofoo/foo support (a cluster_walk started one element too far) and
+I removed the v4l2_ctrl_handler_cnt that I added earlier. I'm working on a
+much better solution for this. See this thread:
 
-> 1.) closed source modules derived from existing vendor drivers while
-> still being able to use other drivers (c.f. EXPORT_SYMBOL vs.
-> EXPORT_SYMBOL_GPL).
+http://www.mail-archive.com/linux-media@vger.kernel.org/msg32552.html
 
-This definitely enters a grey area from a legal standpoint.  Depending
-on who you talk to, using such symbols may or may not violate the GPL,
-depending on what lawyer you talk to.  This all falls back to the
-notion of whether non-GPL loadable modules violate the GPL, for which
-even today there is considerable debate within the kernel community.
+So I decided not to add something that I'm going to remove soon anyway.
 
-Smart companies are generally risk-averse, and recognize that it's
-usually not worth the risk of being sued by doing something that may
-or may not violate a license.
+Test code is available in qv4l2 from here:
 
-> 2.) a simple wrapper that calls userspace, therefore not having to open
-> up any "secrets" at all.
+http://git.linuxtv.org/hverkuil/v4l-utils.git?a=shortlog;h=refs/heads/core
 
-Like the above, this raises all sorts of issues involving the
-definition of "derivative work".
+It's been tested with vivi and ivtv. We (Cisco) have also been using an older
+version of this patch series at work for the past 2-3 months.
 
-Again, we're going around in circles here.  This issue has been beaten
-to death both in the linux dvb mailing lists as well as in the lkml in
-general.
+I have added some additional notes to the various patches below.
 
-Devin
+Regards,
 
--- 
-Devin J. Heitmueller - Kernel Labs
-http://www.kernellabs.com
+	Hans
+
+The following changes since commit 75125b9d44456e0cf2d1fbb72ae33c13415299d1:
+
+  [media] DocBook: Don't be noisy at make cleanmediadocs (2011-06-09 16:40:58 -0300)
+
+are available in the git repository at:
+  ssh://linuxtv.org/git/hverkuil/media_tree.git core8
+
+Hans Verkuil (18):
+      v4l2-ctrls: introduce call_op define
+      v4l2-ctrls: simplify error_idx handling.
+      v4l2-ctrls: drivers should be able to ignore the READ_ONLY flag
+      v4l2-ioctl: add ctrl_handler to v4l2_fh
+      v4l2-subdev: implement per-filehandle control handlers.
+      v4l2-ctrls: fix and improve volatile control handling.
+      v4l2-controls.txt: update to latest v4l2-ctrl.c changes.
+      v4l2-ctrls: add v4l2_ctrl_auto_cluster to simplify autogain/gain scenarios
+      DocBook: Improve cluster documentation and document the new autoclusters.
+      vivi: add autogain/gain support to test the autocluster functionality.
+
+These patches above all deal with autocluster support. I'm hoping that this
+set of patches can at least be merged since once this is in I can work on
+converting soc-camera to the control framework. That work depends on the
+autocluster support.
+
+      v4l2-ctrls: add v4l2_fh pointer to the set control functions.
+      vb2_poll: don't start DMA, leave that to the first read().
+      v4l2-ctrls: add control events.
+      v4l2-ctrls: simplify event subscription.
+      V4L2 spec: document control events.
+      vivi: support control events.
+      ivtv: add control event support.
+
+This set adds support for the new control events.
+
+      v4l2-compat-ioctl32: add VIDIOC_DQEVENT support.
+
+This adds a missing compat32 conversion. It didn't matter much in the past
+that this was missing, but control events are something that are much more
+likely to be used in a 32-bit app running in a 64-bit OS, so it is now more
+important to do this right.
+
+ Documentation/DocBook/media/v4l/vidioc-dqevent.xml |   17 +-
+ .../DocBook/media/v4l/vidioc-subscribe-event.xml   |  142 +++++++++-
+ Documentation/video4linux/v4l2-controls.txt        |   69 ++++-
+ drivers/media/radio/radio-wl1273.c                 |    2 +-
+ drivers/media/radio/wl128x/fmdrv_v4l2.c            |    2 +-
+ drivers/media/video/ivtv/ivtv-fileops.c            |   34 +--
+ drivers/media/video/ivtv/ivtv-ioctl.c              |    2 +
+ drivers/media/video/saa7115.c                      |    4 +-
+ drivers/media/video/v4l2-compat-ioctl32.c          |   37 +++
+ drivers/media/video/v4l2-ctrls.c                   |  332 ++++++++++++++++----
+ drivers/media/video/v4l2-device.c                  |    1 +
+ drivers/media/video/v4l2-event.c                   |  130 ++++++--
+ drivers/media/video/v4l2-fh.c                      |    6 +-
+ drivers/media/video/v4l2-ioctl.c                   |   40 ++-
+ drivers/media/video/v4l2-subdev.c                  |   14 +-
+ drivers/media/video/videobuf2-core.c               |   17 +-
+ drivers/media/video/vivi.c                         |   53 +++-
+ include/linux/videodev2.h                          |   29 ++-
+ include/media/v4l2-ctrls.h                         |   92 +++++-
+ include/media/v4l2-event.h                         |    2 +
+ include/media/v4l2-fh.h                            |    2 +
+ kernel/compat.c                                    |    1 +
+ 22 files changed, 851 insertions(+), 177 deletions(-)
