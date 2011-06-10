@@ -1,78 +1,232 @@
 Return-path: <mchehab@pedra>
-Received: from mailout1.w1.samsung.com ([210.118.77.11]:43599 "EHLO
-	mailout1.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752837Ab1FVJnU (ORCPT
+Received: from mailout2.w1.samsung.com ([210.118.77.12]:49667 "EHLO
+	mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758019Ab1FJShK (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 22 Jun 2011 05:43:20 -0400
-Received: from eu_spt1 (mailout1.w1.samsung.com [210.118.77.11])
- by mailout1.w1.samsung.com
- (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14 2004))
- with ESMTP id <0LN600G1FR071P@mailout1.w1.samsung.com> for
- linux-media@vger.kernel.org; Wed, 22 Jun 2011 10:43:19 +0100 (BST)
-Received: from linux.samsung.com ([106.116.38.10])
- by spt1.w1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14
- 2004)) with ESMTPA id <0LN600D4VR06ZP@spt1.w1.samsung.com> for
- linux-media@vger.kernel.org; Wed, 22 Jun 2011 10:43:18 +0100 (BST)
-Date: Wed, 22 Jun 2011 11:43:14 +0200
-From: Marek Szyprowski <m.szyprowski@samsung.com>
-Subject: RE: vb2: holding buffers until after start_streaming()
-In-reply-to: <20110621111420.4ef5472e@bike.lwn.net>
-To: 'Jonathan Corbet' <corbet@lwn.net>
-Cc: 'Pawel Osciak' <pawel@osciak.com>, linux-media@vger.kernel.org,
-	Marek Szyprowski <m.szyprowski@samsung.com>
-Message-id: <002801cc30c0$ceb89880$6c29c980$%szyprowski@samsung.com>
+	Fri, 10 Jun 2011 14:37:10 -0400
+Date: Fri, 10 Jun 2011 20:36:47 +0200
+From: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Subject: [PATCH/RFC 06/19] s5p-fimc: Remove sensor management code from FIMC
+ capture driver
+In-reply-to: <1307731020-7100-1-git-send-email-s.nawrocki@samsung.com>
+To: linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org
+Cc: hans.verkuil@cisco.com, laurent.pinchart@ideasonboard.com,
+	m.szyprowski@samsung.com, kyungmin.park@samsung.com,
+	s.nawrocki@samsung.com, sw0312.kim@samsung.com,
+	riverful.kim@samsung.com
+Message-id: <1307731020-7100-7-git-send-email-s.nawrocki@samsung.com>
 MIME-version: 1.0
-Content-type: text/plain; charset=us-ascii
-Content-language: pl
+Content-type: TEXT/PLAIN
 Content-transfer-encoding: 7BIT
-References: <20110617125713.293f484d@bike.lwn.net>
- <BANLkTimPrkXUuTGCfrp8KyqhFNvfjoCzSw@mail.gmail.com>
- <003101cc2f0b$207f9680$617ec380$%szyprowski@samsung.com>
- <20110620094838.56daf754@bike.lwn.net>
- <005601cc302d$427c0f70$c7742e50$%szyprowski@samsung.com>
- <20110621111420.4ef5472e@bike.lwn.net>
+References: <1307731020-7100-1-git-send-email-s.nawrocki@samsung.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Hello,
+The sensor subdevs need to be shared between all available FIMC instances.
+Remove their registration from FIMC capture driver so they can then be
+registered to the media device driver.
 
-On Tuesday, June 21, 2011 7:14 PM Jonathan Corbet wrote:
+Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+---
+ drivers/media/video/s5p-fimc/fimc-capture.c |  139 +--------------------------
+ drivers/media/video/s5p-fimc/fimc-core.h    |    2 +-
+ 2 files changed, 2 insertions(+), 139 deletions(-)
 
-> On Tue, 21 Jun 2011 18:07:03 +0200
-> Marek Szyprowski <m.szyprowski@samsung.com> wrote:
-> 
-> > I have an idea to introduce a new flags to let device driver tell vb2
-> > weather it supports 'streaming without buffers' or not. This way the
-> > order of operations in vb2_streamon() function can be switched and vb2
-> > can also return an error if one will try to enable streaming on device
-> > that cannot do it without buffers pre-queued.
-> 
-> Do you really need a flag?  If a driver absolutely cannot stream without
-> buffers queued (and can't be fixed to start streaming for real when the
-> buffers show up) it should just return -EINVAL from start_streaming() or
-> some such.  The driver must be aware of its limitations regardless, but
-> there's no need to push that awareness into vb2 as well.
-
-The main idea behind vb2 was to move all common error handling code to
-the framework and provide simple functions that can be used by the driver
-directly without the need for additional checks.
-
-> (FWIW, I wouldn't switch the order of operations in vb2_streamon(); I
-> would just take out the "if (q->streaming)" test at the end of vb2_qbuf()
-> and pass the buffers through directly.  But maybe that's just me.)
-
-I want to keep the current version of vb2_qbuf() and change the order of
-operations in streamon().
-
-The only problem that still need to be resolved is what should happen with
-the buffers if start_streaming() fails. The ownership for these buffers have
-been already given to the driver, but they might have been in dirty state.
-Probably vb2 should assume that the buffers are lost and reinitialize them.
-
-Best regards
+diff --git a/drivers/media/video/s5p-fimc/fimc-capture.c b/drivers/media/video/s5p-fimc/fimc-capture.c
+index 19f27d4..0ddeacc 100644
+--- a/drivers/media/video/s5p-fimc/fimc-capture.c
++++ b/drivers/media/video/s5p-fimc/fimc-capture.c
+@@ -17,12 +17,9 @@
+ #include <linux/bug.h>
+ #include <linux/interrupt.h>
+ #include <linux/device.h>
+-#include <linux/platform_device.h>
+ #include <linux/pm_runtime.h>
+ #include <linux/list.h>
+ #include <linux/slab.h>
+-#include <linux/clk.h>
+-#include <linux/i2c.h>
+ 
+ #include <linux/videodev2.h>
+ #include <media/v4l2-device.h>
+@@ -33,126 +30,6 @@
+ 
+ #include "fimc-core.h"
+ 
+-static struct v4l2_subdev *fimc_subdev_register(struct fimc_dev *fimc,
+-					    struct s5p_fimc_isp_info *isp_info)
+-{
+-	struct i2c_adapter *i2c_adap;
+-	struct fimc_vid_cap *vid_cap = &fimc->vid_cap;
+-	struct v4l2_subdev *sd = NULL;
+-
+-	i2c_adap = i2c_get_adapter(isp_info->i2c_bus_num);
+-	if (!i2c_adap)
+-		return ERR_PTR(-ENOMEM);
+-
+-	sd = v4l2_i2c_new_subdev_board(&vid_cap->v4l2_dev, i2c_adap,
+-				       isp_info->board_info, NULL);
+-	if (!sd) {
+-		v4l2_err(&vid_cap->v4l2_dev, "failed to acquire subdev\n");
+-		return NULL;
+-	}
+-
+-	v4l2_info(&vid_cap->v4l2_dev, "subdevice %s registered successfuly\n",
+-		isp_info->board_info->type);
+-
+-	return sd;
+-}
+-
+-static void fimc_subdev_unregister(struct fimc_dev *fimc)
+-{
+-	struct fimc_vid_cap *vid_cap = &fimc->vid_cap;
+-	struct i2c_client *client;
+-
+-	if (vid_cap->input_index < 0)
+-		return;	/* Subdevice already released or not registered. */
+-
+-	if (vid_cap->sd) {
+-		v4l2_device_unregister_subdev(vid_cap->sd);
+-		client = v4l2_get_subdevdata(vid_cap->sd);
+-		i2c_unregister_device(client);
+-		i2c_put_adapter(client->adapter);
+-		vid_cap->sd = NULL;
+-	}
+-
+-	vid_cap->input_index = -1;
+-}
+-
+-/**
+- * fimc_subdev_attach - attach v4l2_subdev to camera host interface
+- *
+- * @fimc: FIMC device information
+- * @index: index to the array of available subdevices,
+- *	   -1 for full array search or non negative value
+- *	   to select specific subdevice
+- */
+-static int fimc_subdev_attach(struct fimc_dev *fimc, int index)
+-{
+-	struct fimc_vid_cap *vid_cap = &fimc->vid_cap;
+-	struct s5p_platform_fimc *pdata = fimc->pdata;
+-	struct s5p_fimc_isp_info *isp_info;
+-	struct v4l2_subdev *sd;
+-	int i;
+-
+-	for (i = 0; i < pdata->num_clients; ++i) {
+-		isp_info = &pdata->isp_info[i];
+-
+-		if (index >= 0 && i != index)
+-			continue;
+-
+-		sd = fimc_subdev_register(fimc, isp_info);
+-		if (!IS_ERR_OR_NULL(sd)) {
+-			vid_cap->sd = sd;
+-			vid_cap->input_index = i;
+-
+-			return 0;
+-		}
+-	}
+-
+-	vid_cap->input_index = -1;
+-	vid_cap->sd = NULL;
+-	v4l2_err(&vid_cap->v4l2_dev, "fimc%d: sensor attach failed\n",
+-		 fimc->id);
+-	return -ENODEV;
+-}
+-
+-static int fimc_isp_subdev_init(struct fimc_dev *fimc, unsigned int index)
+-{
+-	struct s5p_fimc_isp_info *isp_info;
+-	struct s5p_platform_fimc *pdata = fimc->pdata;
+-	int ret;
+-
+-	if (index >= pdata->num_clients)
+-		return -EINVAL;
+-
+-	isp_info = &pdata->isp_info[index];
+-
+-	if (isp_info->clk_frequency)
+-		clk_set_rate(fimc->clock[CLK_CAM], isp_info->clk_frequency);
+-
+-	ret = clk_enable(fimc->clock[CLK_CAM]);
+-	if (ret)
+-		return ret;
+-
+-	ret = fimc_subdev_attach(fimc, index);
+-	if (ret)
+-		return ret;
+-
+-	ret = fimc_hw_set_camera_polarity(fimc, isp_info);
+-	if (ret)
+-		return ret;
+-
+-	ret = v4l2_subdev_call(fimc->vid_cap.sd, core, s_power, 1);
+-	if (!ret)
+-		return ret;
+-
+-	/* enabling power failed so unregister subdev */
+-	fimc_subdev_unregister(fimc);
+-
+-	v4l2_err(&fimc->vid_cap.v4l2_dev, "ISP initialization failed: %d\n",
+-		 ret);
+-
+-	return ret;
+-}
+-
+ static int fimc_stop_capture(struct fimc_dev *fimc)
+ {
+ 	unsigned long flags;
+@@ -399,15 +276,7 @@ static int fimc_capture_open(struct file *file)
+ 	if (ret)
+ 		return ret;
+ 
+-	if (++fimc->vid_cap.refcnt == 1) {
+-		ret = fimc_isp_subdev_init(fimc, 0);
+-		if (ret) {
+-			pm_runtime_put_sync(&fimc->pdev->dev);
+-			fimc->vid_cap.refcnt--;
+-			return -EIO;
+-		}
+-	}
+-
++	++fimc->vid_cap.refcnt;
+ 	file->private_data = fimc->vid_cap.ctx;
+ 
+ 	return 0;
+@@ -422,12 +291,6 @@ static int fimc_capture_close(struct file *file)
+ 	if (--fimc->vid_cap.refcnt == 0) {
+ 		fimc_stop_capture(fimc);
+ 		vb2_queue_release(&fimc->vid_cap.vbq);
+-
+-		v4l2_err(&fimc->vid_cap.v4l2_dev, "releasing ISP\n");
+-
+-		v4l2_subdev_call(fimc->vid_cap.sd, core, s_power, 0);
+-		clk_disable(fimc->clock[CLK_CAM]);
+-		fimc_subdev_unregister(fimc);
+ 	}
+ 
+ 	pm_runtime_put_sync(&fimc->pdev->dev);
+diff --git a/drivers/media/video/s5p-fimc/fimc-core.h b/drivers/media/video/s5p-fimc/fimc-core.h
+index f059216..210301e 100644
+--- a/drivers/media/video/s5p-fimc/fimc-core.h
++++ b/drivers/media/video/s5p-fimc/fimc-core.h
+@@ -11,6 +11,7 @@
+ 
+ /*#define DEBUG*/
+ 
++#include <linux/platform_device.h>
+ #include <linux/sched.h>
+ #include <linux/spinlock.h>
+ #include <linux/types.h>
+@@ -649,7 +650,6 @@ int fimc_register_m2m_device(struct fimc_dev *fimc);
+ /* fimc-capture.c					*/
+ int fimc_register_capture_device(struct fimc_dev *fimc);
+ void fimc_unregister_capture_device(struct fimc_dev *fimc);
+-int fimc_sensor_sd_init(struct fimc_dev *fimc, int index);
+ int fimc_vid_cap_buf_queue(struct fimc_dev *fimc,
+ 			     struct fimc_vid_buffer *fimc_vb);
+ int fimc_capture_suspend(struct fimc_dev *fimc);
 -- 
-Marek Szyprowski
-Samsung Poland R&D Center
-
-
+1.7.5.4
 
