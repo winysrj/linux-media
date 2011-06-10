@@ -1,148 +1,179 @@
 Return-path: <mchehab@pedra>
-Received: from mail.juropnet.hu ([212.24.188.131]:35256 "EHLO mail.juropnet.hu"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751425Ab1FGQRF (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 7 Jun 2011 12:17:05 -0400
-Received: from [94.248.227.150] (helo=linux-mrjj.localnet)
-	by mail.juropnet.hu with esmtps (TLS1.0:DHE_RSA_AES_256_CBC_SHA1:32)
-	(Exim 4.69)
-	(envelope-from <istvan_v@mailbox.hu>)
-	id 1QTyxd-0006Ur-BJ
-	for linux-media@vger.kernel.org; Tue, 07 Jun 2011 18:17:03 +0200
-From: Istvan Varga <istvan_v@mailbox.hu>
-To: linux-media@vger.kernel.org
-Subject: [PATCH 3/4] cx88: added support for Leadtek WinFast DTV1800 H with XC4000 tuner
-MIME-Version: 1.0
-Date: Tue, 7 Jun 2011 18:16:56 +0200
-Content-Type: Text/Plain;
-  charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201106071816.56902.istvan_v@mailbox.hu>
+Received: from mailout1.w1.samsung.com ([210.118.77.11]:41974 "EHLO
+	mailout1.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757724Ab1FJShJ (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 10 Jun 2011 14:37:09 -0400
+Date: Fri, 10 Jun 2011 20:36:53 +0200
+From: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Subject: [PATCH/RFC 12/19] s5p-fimc: Add PM helper function for streaming
+ control
+In-reply-to: <1307731020-7100-1-git-send-email-s.nawrocki@samsung.com>
+To: linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org
+Cc: hans.verkuil@cisco.com, laurent.pinchart@ideasonboard.com,
+	m.szyprowski@samsung.com, kyungmin.park@samsung.com,
+	s.nawrocki@samsung.com, sw0312.kim@samsung.com,
+	riverful.kim@samsung.com
+Message-id: <1307731020-7100-13-git-send-email-s.nawrocki@samsung.com>
+MIME-version: 1.0
+Content-type: TEXT/PLAIN
+Content-transfer-encoding: 7BIT
+References: <1307731020-7100-1-git-send-email-s.nawrocki@samsung.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-This patch implements support for the Leadtek WinFast DTV1800 H card with
-XC4000 tuner (107d:6f38).
+Create a helper function for (re)starting streaming PM resume calls.
 
-Signed-off-by: Istvan Varga <istvan_v@mailbox.hu>
+Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+---
+ drivers/media/video/s5p-fimc/fimc-capture.c |   78 ++++++++++++++++-----------
+ drivers/media/video/s5p-fimc/fimc-core.c    |    4 +-
+ drivers/media/video/s5p-fimc/fimc-core.h    |    3 +
+ 3 files changed, 52 insertions(+), 33 deletions(-)
 
-diff -uNr xc4000_orig/drivers/media/video/cx88/cx88-cards.c xc4000/drivers/media/video/cx88/cx88-cards.c
---- xc4000_orig/drivers/media/video/cx88/cx88-cards.c	2011-06-07 17:42:58.000000000 +0200
-+++ xc4000/drivers/media/video/cx88/cx88-cards.c	2011-06-07 18:01:53.000000000 +0200
-@@ -2120,6 +2120,47 @@
- 		},
- 		.mpeg           = CX88_MPEG_DVB,
- 	},
-+	[CX88_BOARD_WINFAST_DTV1800H_XC4000] = {
-+		.name		= "Leadtek WinFast DTV1800 H (XC4000)",
-+		.tuner_type	= TUNER_XC4000,
-+		.radio_type	= TUNER_XC4000,
-+		.tuner_addr	= 0x61,
-+		.radio_addr	= 0x61,
-+		/*
-+		 * GPIO setting
-+		 *
-+		 *  2: mute (0=off,1=on)
-+		 * 12: tuner reset pin
-+		 * 13: audio source (0=tuner audio,1=line in)
-+		 * 14: FM (0=on,1=off ???)
-+		 */
-+		.input		= {{
-+			.type	= CX88_VMUX_TELEVISION,
-+			.vmux	= 0,
-+			.gpio0	= 0x0400,	/* pin 2 = 0 */
-+			.gpio1	= 0x6040,	/* pin 13 = 0, pin 14 = 1 */
-+			.gpio2	= 0x0000,
-+		}, {
-+			.type	= CX88_VMUX_COMPOSITE1,
-+			.vmux	= 1,
-+			.gpio0	= 0x0400,	/* pin 2 = 0 */
-+			.gpio1	= 0x6060,	/* pin 13 = 1, pin 14 = 1 */
-+			.gpio2	= 0x0000,
-+		}, {
-+			.type	= CX88_VMUX_SVIDEO,
-+			.vmux	= 2,
-+			.gpio0	= 0x0400,	/* pin 2 = 0 */
-+			.gpio1	= 0x6060,	/* pin 13 = 1, pin 14 = 1 */
-+			.gpio2	= 0x0000,
-+		}},
-+		.radio = {
-+			.type	= CX88_RADIO,
-+			.gpio0	= 0x0400,	/* pin 2 = 0 */
-+			.gpio1	= 0x6000,	/* pin 13 = 0, pin 14 = 0 */
-+			.gpio2	= 0x0000,
-+		},
-+		.mpeg		= CX88_MPEG_DVB,
-+	},
- 	[CX88_BOARD_WINFAST_DTV2000H_PLUS] = {
- 		.name		= "Leadtek WinFast DTV2000 H PLUS",
- 		.tuner_type	= TUNER_XC4000,
-@@ -2634,6 +2675,11 @@
- 		.subdevice = 0x6654,
- 		.card      = CX88_BOARD_WINFAST_DTV1800H,
- 	}, {
-+		/* WinFast DTV1800 H with XC4000 tuner */
-+		.subvendor = 0x107d,
-+		.subdevice = 0x6f38,
-+		.card      = CX88_BOARD_WINFAST_DTV1800H_XC4000,
-+	}, {
- 		.subvendor = 0x107d,
- 		.subdevice = 0x6f42,
- 		.card      = CX88_BOARD_WINFAST_DTV2000H_PLUS,
-@@ -3027,6 +3073,7 @@
+diff --git a/drivers/media/video/s5p-fimc/fimc-capture.c b/drivers/media/video/s5p-fimc/fimc-capture.c
+index cfc2c98..615ca4b 100644
+--- a/drivers/media/video/s5p-fimc/fimc-capture.c
++++ b/drivers/media/video/s5p-fimc/fimc-capture.c
+@@ -31,6 +31,48 @@
+ #include "fimc-mdevice.h"
+ #include "fimc-core.h"
+ 
++/**
++ * fimc_start_capture - initialize the H/W for camera capture operation
++ *
++ * Initialize the camera capture datapath so when this function successfuly
++ * completes all what is needed to start the capture pipeline is asserting
++ * the global capture bit ImgCptEn.
++ */
++static int fimc_start_capture(struct fimc_dev *fimc)
++{
++	struct fimc_ctx *ctx = fimc->vid_cap.ctx;
++	struct fimc_sensor_info *sensor;
++	unsigned long flags;
++	int ret = 0;
++
++	if (fimc->pipeline.sensor == NULL || ctx == NULL)
++		return -EIO;
++	sensor = v4l2_get_subdev_hostdata(fimc->pipeline.sensor);
++
++	spin_lock_irqsave(&fimc->slock, flags);
++	fimc_prepare_dma_offset(ctx, &ctx->d_frame);
++	fimc_set_yuv_order(ctx);
++
++	fimc_hw_set_camera_polarity(fimc, sensor->pdata);
++	fimc_hw_set_camera_type(fimc, sensor->pdata);
++	fimc_hw_set_camera_source(fimc, sensor->pdata);
++	fimc_hw_set_camera_offset(fimc, &ctx->s_frame);
++
++	ret = fimc_set_scaler_info(ctx);
++	if (!ret) {
++		fimc_hw_set_input_path(ctx);
++		fimc_hw_set_prescaler(ctx);
++		fimc_hw_set_mainscaler(ctx);
++		fimc_hw_set_target_format(ctx);
++		fimc_hw_set_rotation(ctx);
++		fimc_hw_set_effect(ctx);
++		fimc_hw_set_output_path(ctx);
++		fimc_hw_set_out_dma(ctx);
++	}
++	spin_unlock_irqrestore(&fimc->slock, flags);
++	return ret;
++}
++
+ static int fimc_stop_capture(struct fimc_dev *fimc)
  {
- 	/* Board-specific callbacks */
- 	switch (core->boardnr) {
-+	case CX88_BOARD_WINFAST_DTV1800H_XC4000:
- 	case CX88_BOARD_WINFAST_DTV2000H_PLUS:
- 		return cx88_xc4000_winfast2000h_plus_callback(core,
- 							      command, arg);
-@@ -3207,6 +3254,7 @@
- 		mdelay(50);
- 		break;
+ 	unsigned long flags;
+@@ -92,47 +134,21 @@ static int start_streaming(struct vb2_queue *q)
+ {
+ 	struct fimc_ctx *ctx = q->drv_priv;
+ 	struct fimc_dev *fimc = ctx->fimc_dev;
+-	struct s5p_fimc_isp_info *isp_info;
++	struct fimc_vid_cap *vid_cap = &fimc->vid_cap;
+ 	int ret;
  
-+	case CX88_BOARD_WINFAST_DTV1800H_XC4000:
- 	case CX88_BOARD_WINFAST_DTV2000H_PLUS:
- 		cx88_xc4000_winfast2000h_plus_callback(core,
- 						       XC4000_TUNER_RESET, 0);
-diff -uNr xc4000_orig/drivers/media/video/cx88/cx88-dvb.c xc4000/drivers/media/video/cx88/cx88-dvb.c
---- xc4000_orig/drivers/media/video/cx88/cx88-dvb.c	2011-06-07 17:42:58.000000000 +0200
-+++ xc4000/drivers/media/video/cx88/cx88-dvb.c	2011-06-07 17:56:07.000000000 +0200
-@@ -1328,6 +1328,7 @@
- 				goto frontend_detach;
- 		}
- 		break;
-+	case CX88_BOARD_WINFAST_DTV1800H_XC4000:
- 	case CX88_BOARD_WINFAST_DTV2000H_PLUS:
- 		fe0->dvb.frontend = dvb_attach(zl10353_attach,
- 					       &cx88_pinnacle_hybrid_pctv,
-diff -uNr xc4000_orig/drivers/media/video/cx88/cx88.h xc4000/drivers/media/video/cx88/cx88.h
---- xc4000_orig/drivers/media/video/cx88/cx88.h	2011-06-07 17:42:58.000000000 +0200
-+++ xc4000/drivers/media/video/cx88/cx88.h	2011-06-07 17:56:39.000000000 +0200
-@@ -243,6 +243,7 @@
- #define CX88_BOARD_TWINHAN_VP1027_DVBS     85
- #define CX88_BOARD_TEVII_S464              86
- #define CX88_BOARD_WINFAST_DTV2000H_PLUS   87
-+#define CX88_BOARD_WINFAST_DTV1800H_XC4000 88
+ 	fimc_hw_reset(fimc);
  
- enum cx88_itype {
- 	CX88_VMUX_COMPOSITE1 = 1,
-diff -uNr xc4000_orig/drivers/media/video/cx88/cx88-input.c xc4000/drivers/media/video/cx88/cx88-input.c
---- xc4000_orig/drivers/media/video/cx88/cx88-input.c	2011-06-07 17:42:58.000000000 +0200
-+++ xc4000/drivers/media/video/cx88/cx88-input.c	2011-06-07 17:57:30.000000000 +0200
-@@ -100,6 +100,7 @@
- 		break;
- 	case CX88_BOARD_WINFAST_DTV1000:
- 	case CX88_BOARD_WINFAST_DTV1800H:
-+	case CX88_BOARD_WINFAST_DTV1800H_XC4000:
- 	case CX88_BOARD_WINFAST_DTV2000H_PLUS:
- 	case CX88_BOARD_WINFAST_TV2000_XP_GLOBAL:
- 		gpio = (gpio & 0x6ff) | ((cx_read(MO_GP1_IO) << 8) & 0x900);
-@@ -290,6 +291,7 @@
- 	case CX88_BOARD_WINFAST_DTV2000H:
- 	case CX88_BOARD_WINFAST_DTV2000H_J:
- 	case CX88_BOARD_WINFAST_DTV1800H:
-+	case CX88_BOARD_WINFAST_DTV1800H_XC4000:
- 	case CX88_BOARD_WINFAST_DTV2000H_PLUS:
- 		ir_codes = RC_MAP_WINFAST;
- 		ir->gpio_addr = MO_GP0_IO;
+-	ret = v4l2_subdev_call(fimc->vid_cap.sd, video, s_stream, 1);
+-	if (ret && ret != -ENOIOCTLCMD)
+-		return ret;
+-
+-	ret = fimc_prepare_config(ctx, ctx->state);
+-	if (ret)
+-		return ret;
+-
+-	isp_info = &fimc->pdata->isp_info[fimc->vid_cap.input_index];
+-	fimc_hw_set_camera_type(fimc, isp_info);
+-	fimc_hw_set_camera_source(fimc, isp_info);
+-	fimc_hw_set_camera_offset(fimc, &ctx->s_frame);
+-
+-	if (ctx->state & FIMC_PARAMS) {
+-		ret = fimc_set_scaler_info(ctx);
+-		if (ret) {
+-			err("Scaler setup error");
+-			return ret;
+-		}
+-		fimc_hw_set_input_path(ctx);
+-		fimc_hw_set_prescaler(ctx);
+-		fimc_hw_set_mainscaler(ctx);
+-		fimc_hw_set_target_format(ctx);
+-		fimc_hw_set_rotation(ctx);
+-		fimc_hw_set_effect(ctx);
+-	}
+-
+-	fimc_hw_set_output_path(ctx);
+-	fimc_hw_set_out_dma(ctx);
+-
+ 	INIT_LIST_HEAD(&fimc->vid_cap.pending_buf_q);
+ 	INIT_LIST_HEAD(&fimc->vid_cap.active_buf_q);
+ 	fimc->vid_cap.active_buf_cnt = 0;
+ 	fimc->vid_cap.frame_count = 0;
+ 	fimc->vid_cap.buf_index = 0;
+ 
++	ret = fimc_start_capture(fimc);
++	if (ret)
++		return ret;
++
+ 	set_bit(ST_CAPT_PEND, &fimc->state);
+ 	return 0;
+ }
+diff --git a/drivers/media/video/s5p-fimc/fimc-core.c b/drivers/media/video/s5p-fimc/fimc-core.c
+index a0703e8..da52d4f 100644
+--- a/drivers/media/video/s5p-fimc/fimc-core.c
++++ b/drivers/media/video/s5p-fimc/fimc-core.c
+@@ -468,7 +468,7 @@ int fimc_prepare_addr(struct fimc_ctx *ctx, struct vb2_buffer *vb,
+ }
+ 
+ /* Set order for 1 and 2 plane YCBCR 4:2:2 formats. */
+-static void fimc_set_yuv_order(struct fimc_ctx *ctx)
++void fimc_set_yuv_order(struct fimc_ctx *ctx)
+ {
+ 	/* The one only mode supported in SoC. */
+ 	ctx->in_order_2p = S5P_FIMC_LSB_CRCB;
+@@ -510,7 +510,7 @@ static void fimc_set_yuv_order(struct fimc_ctx *ctx)
+ 	dbg("ctx->out_order_1p= %d", ctx->out_order_1p);
+ }
+ 
+-static void fimc_prepare_dma_offset(struct fimc_ctx *ctx, struct fimc_frame *f)
++void fimc_prepare_dma_offset(struct fimc_ctx *ctx, struct fimc_frame *f)
+ {
+ 	struct samsung_fimc_variant *variant = ctx->fimc_dev->variant;
+ 	u32 i, depth = 0;
+diff --git a/drivers/media/video/s5p-fimc/fimc-core.h b/drivers/media/video/s5p-fimc/fimc-core.h
+index 793575b..abf762f 100644
+--- a/drivers/media/video/s5p-fimc/fimc-core.h
++++ b/drivers/media/video/s5p-fimc/fimc-core.h
+@@ -659,6 +659,9 @@ int fimc_set_scaler_info(struct fimc_ctx *ctx);
+ int fimc_prepare_config(struct fimc_ctx *ctx, u32 flags);
+ int fimc_prepare_addr(struct fimc_ctx *ctx, struct vb2_buffer *vb,
+ 		      struct fimc_frame *frame, struct fimc_addr *paddr);
++void fimc_prepare_dma_offset(struct fimc_ctx *ctx, struct fimc_frame *f);
++void fimc_set_yuv_order(struct fimc_ctx *ctx);
++
+ int fimc_register_m2m_device(struct fimc_dev *fimc,
+ 			     struct v4l2_device *v4l2_dev);
+ void fimc_unregister_m2m_device(struct fimc_dev *fimc);
+-- 
+1.7.5.4
+
