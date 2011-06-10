@@ -1,51 +1,62 @@
 Return-path: <mchehab@pedra>
-Received: from mx1.redhat.com ([209.132.183.28]:1026 "EHLO mx1.redhat.com"
+Received: from smtp.nokia.com ([147.243.1.47]:59716 "EHLO mgw-sa01.nokia.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752290Ab1FAS4s (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 1 Jun 2011 14:56:48 -0400
-Message-ID: <4DE68B65.1000400@redhat.com>
-Date: Wed, 01 Jun 2011 15:56:37 -0300
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-MIME-Version: 1.0
-To: Manu Abraham <abraham.manu@gmail.com>
-CC: Florent AUDEBERT <florent.audebert@anevia.com>,
-	linux-media@vger.kernel.org,
-	Florent Audebert <faudebert@anevia.com>
-Subject: Re: [PATCH] stb0899: Removed an extra byte sent at init on DiSEqC
- bus
-References: <4C125DD5.6060604@anevia.com>	<4CBD9543.2050107@anevia.com>	<4CBDC1CC.6030704@gmail.com>	<4DE64531.2050301@redhat.com> <BANLkTi=DED6Op1Viq7chGUZFcsMTYYdo6g@mail.gmail.com>
-In-Reply-To: <BANLkTi=DED6Op1Viq7chGUZFcsMTYYdo6g@mail.gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1
+	id S1756109Ab1FJMWf (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 10 Jun 2011 08:22:35 -0400
+Subject: Re: [GIT PATCHES FOR 2.6.40] Fixes
+From: "Matti J. Aaltonen" <matti.j.aaltonen@nokia.com>
+Reply-To: matti.j.aaltonen@nokia.com
+To: ext Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-media <linux-media@vger.kernel.org>,
+	Manjunatha Halli <manjunatha_halli@ti.com>
+In-Reply-To: <201105231306.56050.hverkuil@xs4all.nl>
+References: <201105231306.56050.hverkuil@xs4all.nl>
+Content-Type: text/plain; charset="UTF-8"
+Date: Fri, 10 Jun 2011 15:22:22 +0300
+Message-ID: <1307708542.7423.5.camel@masi.mnp.nokia.com>
+Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Em 01-06-2011 13:24, Manu Abraham escreveu:
-> On 6/1/11, Mauro Carvalho Chehab <mchehab@redhat.com> wrote:
+Hello.
 
-> Mauro,
+On Mon, 2011-05-23 at 13:06 +0200, ext Hans Verkuil wrote:
+> Hi Mauro,
 > 
-> I have been away from home and not yet back due to a nasty back
-> sprain, but expect to return mid next week.
+> Here are a few fixes: the first fixes a bug in the wl12xx drivers (I hope Matti's
+> email is still correct). The second fixes a few DocBook validation errors, and
 
-Sorry to hear about it. I hope you to recover soon from the sprain.
+I'm still here... And it's a nice surprise that the wl1273 radio driver
+hasn't been deprecated or has it... I actually could add some features
+to it.
 
-> Please hold off on the
-> patches that you need inputs from my side. I will get back on these,
-> the following weekend.
-> Sorry about any inconvenience caused.
+Cheers,
+Matti
 
-
-Ok.
-
-Thanks!
-Mauro
-
+> the last fixes READ_ONLY and GRABBED handling in the control framework.
 > 
-> Thanks,
-> Manu
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> Regards,
+> 
+> 	Hans
+> 
+> The following changes since commit 87cf028f3aa1ed51fe29c36df548aa714dc7438f:
+> 
+>   [media] dm1105: GPIO handling added, I2C on GPIO added, LNB control through GPIO reworked (2011-05-21 11:10:28 -0300)
+> 
+> are available in the git repository at:
+>   ssh://linuxtv.org/git/hverkuil/media_tree.git fixes
+> 
+> Hans Verkuil (3):
+>       wl12xx: g_volatile_ctrl fix: wrong field set.
+>       Media DocBook: fix validation errors.
+>       v4l2-ctrls: drivers should be able to ignore READ_ONLY and GRABBED flags
+> 
+>  Documentation/DocBook/dvb/dvbproperty.xml    |    5 ++-
+>  Documentation/DocBook/v4l/subdev-formats.xml |   10 ++--
+>  drivers/media/radio/radio-wl1273.c           |    2 +-
+>  drivers/media/radio/wl128x/fmdrv_v4l2.c      |    2 +-
+>  drivers/media/video/v4l2-ctrls.c             |   59 +++++++++++++++++---------
+>  5 files changed, 50 insertions(+), 28 deletions(-)
+
 
