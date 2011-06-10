@@ -1,74 +1,72 @@
 Return-path: <mchehab@pedra>
-Received: from mail-gx0-f174.google.com ([209.85.161.174]:47852 "EHLO
-	mail-gx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755245Ab1FTVRD convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 20 Jun 2011 17:17:03 -0400
-Received: by gxk21 with SMTP id 21so481258gxk.19
-        for <linux-media@vger.kernel.org>; Mon, 20 Jun 2011 14:17:03 -0700 (PDT)
+Received: from mx1.redhat.com ([209.132.183.28]:6568 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756011Ab1FJMr0 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 10 Jun 2011 08:47:26 -0400
+Message-ID: <4DF21254.6090106@redhat.com>
+Date: Fri, 10 Jun 2011 09:47:16 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
 MIME-Version: 1.0
-In-Reply-To: <4DFFB75A.8050808@iki.fi>
-References: <BANLkTimkYw70GAu1keW-N6ND=AyiRn2+CA@mail.gmail.com>
-	<4DF49E2A.9030804@iki.fi>
-	<BANLkTi=dGyN8SEwwAStD0Ob99k+FKkQPFg@mail.gmail.com>
-	<BANLkTik=37qHUx273bSRN91HeyYrtUv6og@mail.gmail.com>
-	<BANLkTi=gdVhVKjF4tqUwy+DxFv9imUipHw@mail.gmail.com>
-	<BANLkTikDCbQUwW_mAdMHAxQGE0AGp+1ebQ@mail.gmail.com>
-	<4DFFB75A.8050808@iki.fi>
-Date: Mon, 20 Jun 2011 23:17:02 +0200
-Message-ID: <BANLkTi=Z6_aaB0ETQEETm=bbPmy2gZ+d8Q@mail.gmail.com>
-Subject: Re: PCTV nanoStick T2 290e (Sony CXD2820R DVB-T/T2/C) - DVB-C channel
- scan in mythtv - missing
-From: Markus Rechberger <mrechberger@gmail.com>
-To: Antti Palosaari <crope@iki.fi>
-Cc: Rune Evjen <rune.evjen@gmail.com>, linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+To: Randy Dunlap <randy.dunlap@oracle.com>
+CC: Stephen Rothwell <sfr@canb.auug.org.au>,
+	linux-media@vger.kernel.org, linux-next@vger.kernel.org,
+	LKML <linux-kernel@vger.kernel.org>
+Subject: Re: linux-next: Tree for June 8 (docbook/media)
+References: <20110608161046.4ad95776.sfr@canb.auug.org.au> <20110608125243.e63a07fc.randy.dunlap@oracle.com> <4DF11E15.5030907@infradead.org> <4DF12263.3070900@redhat.com> <4DF12DD1.7060606@oracle.com> <4DF1581E.8050308@redhat.com> <4DF1593A.6080306@oracle.com>
+In-Reply-To: <4DF1593A.6080306@oracle.com>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 8bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Mon, Jun 20, 2011 at 11:10 PM, Antti Palosaari <crope@iki.fi> wrote:
-> On 06/21/2011 12:04 AM, Markus Rechberger wrote:
->>
->> On Mon, Jun 20, 2011 at 10:55 PM, Rune Evjen<rune.evjen@gmail.com>  wrote:
->>>
->>> 2011/6/20 Markus Rechberger<mrechberger@gmail.com>:
->>>>
->>>> to tell the difference the amplifier is for DVB-T2, DVB-C is disabled
->>>> in windows because it's not reliable.
->>>> Technically the chip supports it but the LNA decreases the quality.
->>>> There are already some other PCI boards
->>>> out there with that chip which do not use that LNA which should have a
->>>> better performance with that Sony chip.
->>>
->>> Is it possible to work around this by disabling the lna or is the
->>> quality decreased permanently as part of the hardware design,
->>> independently of whether the lna is enabled or not ?
->>>
->>> I searched the linux-media list and it seems that an lna option was
->>> discussed as a module parameter, but modinfo for the module I use [1]
->>> (using the media_build git repository) doesn't show a lna parameter.
->>> Can the lna be disabled in another way ?
->>>
->>
->> no, otherwise it would be sold as full hybrid device. DVB-T2 is weak
->> that's why it was added.
->> Failing DVB-C would increase the device return rate, that's why it is
->> sold as DVB-T2 only.
->
-> How the others have resolved that problem? Is that signal strength only
-> issue when TDA18271 tuner is used?
->
+Hi Randy,
 
-USB is expected to be mobile, so sensitivity is a more important
-issue. The T2 tuner
-in question is designed to be a little bit mobile (you can use it with
-your notebook without moving at least).
-If you use a PC card you can play around with the antenna and won't
-move it all the time.
-The sensitivity optimization is quite clear why it's there for T2. C
-is clearly not the focus of that design.
-We already switched away from the tda18271 for our current (and
-especially upcoming) designs as well.
+Em 09-06-2011 20:37, Randy Dunlap escreveu:
+> 
+> Big hint:  I see these errors not during "make htmldocs" but during a kernel code build
+> when CONFIG_BUILD_DOCSRC=y.
+> 
+> Sorry, I should have mentioned this earlier.
 
-Markus
+I couldn't reach any troubles there. Documentation build is stopping earlier.
+I'm using the -next tree for 20110610:
+
+$ make defconfig
+$ make CONFIG_BUILD_DOCSRC=y -j 16 Documentation/
+
+Documentation/networking/timestamping/timestamping.c:45:30: error: linux/net_tstamp.h: No such file or directory
+Documentation/networking/timestamping/timestamping.c: In function ‘main’:
+Documentation/networking/timestamping/timestamping.c:331: error: storage size of ‘hwconfig’ isn’t known
+Documentation/networking/timestamping/timestamping.c:331: error: storage size of ‘hwconfig_requested’ isn’t known
+Documentation/networking/timestamping/timestamping.c:355: error: ‘SOF_TIMESTAMPING_TX_HARDWARE’ undeclared (first use in this function)
+Documentation/networking/timestamping/timestamping.c:355: error: (Each undeclared identifier is reported only once
+Documentation/networking/timestamping/timestamping.c:355: error: for each function it appears in.)
+Documentation/networking/timestamping/timestamping.c:357: error: ‘SOF_TIMESTAMPING_TX_SOFTWARE’ undeclared (first use in this function)
+Documentation/networking/timestamping/timestamping.c:359: error: ‘SOF_TIMESTAMPING_RX_HARDWARE’ undeclared (first use in this function)
+Documentation/networking/timestamping/timestamping.c:361: error: ‘SOF_TIMESTAMPING_RX_SOFTWARE’ undeclared (first use in this function)
+Documentation/networking/timestamping/timestamping.c:363: error: ‘SOF_TIMESTAMPING_SOFTWARE’ undeclared (first use in this function)
+Documentation/accounting/getdelays.c: In function ‘main’:
+Documentation/networking/timestamping/timestamping.c:365: error: ‘SOF_TIMESTAMPING_SYS_HARDWARE’ undeclared (first use in this function)Documentation/accounting/getdelays.c:525: error: ‘TASKSTATS_TYPE_NULL’ undeclared (first use in this function)
+
+Documentation/accounting/getdelays.c:525: error: (Each undeclared identifier is reported only once
+Documentation/accounting/getdelays.c:525: error: for each function it appears in.)
+Documentation/networking/timestamping/timestamping.c:367: error: ‘SOF_TIMESTAMPING_RAW_HARDWARE’ undeclared (first use in this function)
+Documentation/networking/timestamping/timestamping.c:387: error: ‘HWTSTAMP_TX_ON’ undeclared (first use in this function)
+Documentation/networking/timestamping/timestamping.c:387: error: ‘HWTSTAMP_TX_OFF’ undeclared (first use in this function)
+Documentation/networking/timestamping/timestamping.c:390: error: ‘HWTSTAMP_FILTER_PTP_V1_L4_SYNC’ undeclared (first use in this function)
+Documentation/networking/timestamping/timestamping.c:390: error: ‘HWTSTAMP_FILTER_NONE’ undeclared (first use in this function)
+Documentation/networking/timestamping/timestamping.c:331: warning: unused variable ‘hwconfig_requested’
+Documentation/networking/timestamping/timestamping.c:331: warning: unused variable ‘hwconfig’
+make[2]: *** [Documentation/accounting/getdelays] Error 1
+make[3]: *** [Documentation/networking/timestamping/timestamping] Error 1
+make[1]: *** [Documentation/accounting] Error 2
+make[1]: *** Waiting for unfinished jobs....
+make[2]: *** [Documentation/networking/timestamping] Error 2
+make[2]: *** Waiting for unfinished jobs....
+make[1]: *** [Documentation/networking] Error 2
+make: *** [Documentation/] Error 2
+
+Could you please send me your .config?
+
+Thanks,
+Mauro
