@@ -1,86 +1,74 @@
 Return-path: <mchehab@pedra>
-Received: from mail1-out1.atlantis.sk ([80.94.52.55]:56864 "EHLO
-	mail.atlantis.sk" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1756360Ab1FKN3O (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 11 Jun 2011 09:29:14 -0400
-From: Ondrej Zary <linux@rainbow-software.org>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Subject: [PATCH] tea575x: allow multiple opens
-Date: Sat, 11 Jun 2011 15:28:59 +0200
-Cc: linux-media@vger.kernel.org, alsa-devel@alsa-project.org,
-	Kernel development list <linux-kernel@vger.kernel.org>
+Received: from mga14.intel.com ([143.182.124.37]:60901 "EHLO mga14.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755686Ab1FJTsb (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 10 Jun 2011 15:48:31 -0400
+Date: Fri, 10 Jun 2011 12:48:15 -0700
+From: Sarah Sharp <sarah.a.sharp@linux.intel.com>
+To: Greg KH <greg@kroah.com>
+Cc: linux-usb@vger.kernel.org, linux-media@vger.kernel.org,
+	linux-kernel@vger.kernel.org, libusb-devel@lists.sourceforge.net,
+	Alexander Graf <agraf@suse.de>,
+	Gerd Hoffmann <kraxel@redhat.com>, hector@marcansoft.com,
+	Jan Kiszka <jan.kiszka@siemens.com>,
+	Stefan Hajnoczi <stefanha@linux.vnet.ibm.com>,
+	pbonzini@redhat.com, Anthony Liguori <aliguori@us.ibm.com>,
+	Jes Sorensen <Jes.Sorensen@redhat.com>,
+	Alan Stern <stern@rowland.harvard.edu>,
+	Oliver Neukum <oliver@neukum.org>, Felipe Balbi <balbi@ti.com>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Clemens Ladisch <clemens@ladisch.de>,
+	Jaroslav Kysela <perex@perex.cz>, Takashi Iwai <tiwai@suse.de>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Hans de Goede <hdegoede@redhat.com>
+Subject: Re: USB mini-summit at LinuxCon Vancouver
+Message-ID: <20110610194815.GA6646@xanatos>
+References: <20110610002103.GA7169@xanatos>
+ <20110610031805.GA15774@kroah.com>
 MIME-Version: 1.0
-Content-Type: text/plain;
-  charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-Message-Id: <201106111529.04319.linux@rainbow-software.org>
+In-Reply-To: <20110610031805.GA15774@kroah.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Change locking to allow tea575x-radio device to be opened multiple times.
+On Thu, Jun 09, 2011 at 08:18:05PM -0700, Greg KH wrote:
+> On Thu, Jun 09, 2011 at 05:21:03PM -0700, Sarah Sharp wrote:
+> > Topic 1
+> > -------
+> > 
+> > The KVM folks suggested that it would be good to get USB and
+> > virtualization developers together to talk about how to virtualize the
+> > xHCI host controller.  The xHCI spec architect worked closely with
+> > VMWare to get some extra goodies in the spec to help virtualization, and
+> > I'd like to see the other virtualization developers take advantage of
+> > that.  I'd also like us to hash out any issues they have been finding in
+> > the USB core or xHCI driver during the virtualization effort.
+> 
+> Do people really want to virtualize the whole xHCI controller, or just
+> specific ports or devices to the guest operating system?
 
-Signed-off-by: Ondrej Zary <linux@rainbow-software.org>
+A host OS could chose to virtualize the whole xHCI controller if it
+wanted to.  That's part of the reason why xHCI does all the bandwidth
+checking in hardware, not in software.
 
---- linux-2.6.39-rc2-/include/sound/tea575x-tuner.h	2011-06-11 15:21:50.000000000 +0200
-+++ linux-2.6.39-rc2/include/sound/tea575x-tuner.h	2011-06-11 14:50:55.000000000 +0200
-@@ -49,7 +49,7 @@ struct snd_tea575x {
- 	bool tuned;			/* tuned to a station */
- 	unsigned int val;		/* hw value */
- 	unsigned long freq;		/* frequency */
--	unsigned long in_use;		/* set if the device is in use */
-+	struct mutex mutex;
- 	struct snd_tea575x_ops *ops;
- 	void *private_data;
- 	u8 card[32];
---- linux-2.6.39-rc2-/sound/i2c/other/tea575x-tuner.c	2011-06-11 15:21:50.000000000 +0200
-+++ linux-2.6.39-rc2/sound/i2c/other/tea575x-tuner.c	2011-06-11 14:57:28.000000000 +0200
-@@ -282,26 +282,9 @@ static int vidioc_s_input(struct file *f
- 	return 0;
- }
- 
--static int snd_tea575x_exclusive_open(struct file *file)
--{
--	struct snd_tea575x *tea = video_drvdata(file);
--
--	return test_and_set_bit(0, &tea->in_use) ? -EBUSY : 0;
--}
--
--static int snd_tea575x_exclusive_release(struct file *file)
--{
--	struct snd_tea575x *tea = video_drvdata(file);
--
--	clear_bit(0, &tea->in_use);
--	return 0;
--}
--
- static const struct v4l2_file_operations tea575x_fops = {
- 	.owner		= THIS_MODULE,
--	.open           = snd_tea575x_exclusive_open,
--	.release        = snd_tea575x_exclusive_release,
--	.ioctl		= video_ioctl2,
-+	.unlocked_ioctl	= video_ioctl2,
- };
- 
- static const struct v4l2_ioctl_ops tea575x_ioctl_ops = {
-@@ -340,13 +323,14 @@ int snd_tea575x_init(struct snd_tea575x
- 	if (snd_tea575x_read(tea) != 0x55AA)
- 		return -ENODEV;
- 
--	tea->in_use = 0;
- 	tea->val = TEA575X_BIT_BAND_FM | TEA575X_BIT_SEARCH_10_40;
- 	tea->freq = 90500 * 16;		/* 90.5Mhz default */
- 	snd_tea575x_set_freq(tea);
- 
- 	tea->vd = tea575x_radio;
- 	video_set_drvdata(&tea->vd, tea);
-+	mutex_init(&tea->mutex);
-+	tea->vd.lock = &tea->mutex;
- 
- 	v4l2_ctrl_handler_init(&tea->ctrl_handler, 1);
- 	tea->vd.ctrl_handler = &tea->ctrl_handler;
+> If just specific ports, would something like usbip be better for virtual
+> machines, with the USB traffic going over the network connection between
+> the guest/host?
 
+It could be done that way too.  But that doesn't help if you're trying
+to run Windows under Linux, right?  Only if all the guest OSes use the
+same USB IP protocol then it would work.
 
--- 
-Ondrej Zary
+> > Hope to see you there!
+> 
+> Thanks for putting this together.
+> 
+> Do we need to sign up somewhere to give the organizers a sense of how
+> many people will be attending?
+
+I private ack by email would be great.  Or you can ack by facebook:
+https://www.facebook.com/event.php?eid=229532200405657  I could add the
+event in upcoming.yahoo.com if anyone uses that.
+
+Sarah Sharp
