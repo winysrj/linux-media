@@ -1,117 +1,207 @@
 Return-path: <mchehab@pedra>
-Received: from smtp-vbr1.xs4all.nl ([194.109.24.21]:2212 "EHLO
-	smtp-vbr1.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754825Ab1FGPFb (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 7 Jun 2011 11:05:31 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [RFCv3 PATCH 02/18] v4l2-ctrls: simplify error_idx handling.
-Date: Tue,  7 Jun 2011 17:05:07 +0200
-Message-Id: <5389151f22127fac05adbf276eb41395d215850e.1307458245.git.hans.verkuil@cisco.com>
-In-Reply-To: <1307459123-17810-1-git-send-email-hverkuil@xs4all.nl>
-References: <1307459123-17810-1-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <a1daecb26b464ddd980297783d04941f1f34666b.1307458245.git.hans.verkuil@cisco.com>
-References: <a1daecb26b464ddd980297783d04941f1f34666b.1307458245.git.hans.verkuil@cisco.com>
+Received: from mailout2.w1.samsung.com ([210.118.77.12]:49667 "EHLO
+	mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758012Ab1FJShH (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 10 Jun 2011 14:37:07 -0400
+Date: Fri, 10 Jun 2011 20:36:43 +0200
+From: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Subject: [PATCH/RFC 02/19] s5p-fimc: Add media entity initialization
+In-reply-to: <1307731020-7100-1-git-send-email-s.nawrocki@samsung.com>
+To: linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org
+Cc: hans.verkuil@cisco.com, laurent.pinchart@ideasonboard.com,
+	m.szyprowski@samsung.com, kyungmin.park@samsung.com,
+	s.nawrocki@samsung.com, sw0312.kim@samsung.com,
+	riverful.kim@samsung.com
+Message-id: <1307731020-7100-3-git-send-email-s.nawrocki@samsung.com>
+MIME-version: 1.0
+Content-type: TEXT/PLAIN
+Content-transfer-encoding: 7BIT
+References: <1307731020-7100-1-git-send-email-s.nawrocki@samsung.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+Add intialization of the media entities for video capture
+and mem-to-mem video nodes.
 
-The lower-level prepare functions just set error_idx for each control that
-might have an error. The high-level functions will override this with
-cs->count in the get and set cases. Only try will keep the error_idx.
-
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
 ---
- drivers/media/video/v4l2-ctrls.c |   24 +++++++++---------------
- 1 files changed, 9 insertions(+), 15 deletions(-)
+ drivers/media/video/s5p-fimc/fimc-capture.c |   28 ++++++++++++++++----------
+ drivers/media/video/s5p-fimc/fimc-core.c    |   27 +++++++++++++++----------
+ drivers/media/video/s5p-fimc/fimc-core.h    |    4 +++
+ 3 files changed, 37 insertions(+), 22 deletions(-)
 
-diff --git a/drivers/media/video/v4l2-ctrls.c b/drivers/media/video/v4l2-ctrls.c
-index 3f2a0c5..d9e0439 100644
---- a/drivers/media/video/v4l2-ctrls.c
-+++ b/drivers/media/video/v4l2-ctrls.c
-@@ -1450,8 +1450,7 @@ EXPORT_SYMBOL(v4l2_subdev_querymenu);
-    Find the controls in the control array and do some basic checks. */
- static int prepare_ext_ctrls(struct v4l2_ctrl_handler *hdl,
- 			     struct v4l2_ext_controls *cs,
--			     struct ctrl_helper *helpers,
--			     bool try)
-+			     struct ctrl_helper *helpers)
- {
- 	u32 i;
+diff --git a/drivers/media/video/s5p-fimc/fimc-capture.c b/drivers/media/video/s5p-fimc/fimc-capture.c
+index 9432ea8..2748cca 100644
+--- a/drivers/media/video/s5p-fimc/fimc-capture.c
++++ b/drivers/media/video/s5p-fimc/fimc-capture.c
+@@ -842,9 +842,8 @@ int fimc_register_capture_device(struct fimc_dev *fimc)
+ 	fr->width = fr->f_width = fr->o_width = 640;
+ 	fr->height = fr->f_height = fr->o_height = 480;
  
-@@ -1460,8 +1459,7 @@ static int prepare_ext_ctrls(struct v4l2_ctrl_handler *hdl,
- 		struct v4l2_ctrl *ctrl;
- 		u32 id = c->id & V4L2_CTRL_ID_MASK;
+-	if (!v4l2_dev->name[0])
+-		snprintf(v4l2_dev->name, sizeof(v4l2_dev->name),
+-			 "%s.capture", dev_name(&fimc->pdev->dev));
++	snprintf(v4l2_dev->name, sizeof(v4l2_dev->name),
++		 "%s.capture", dev_name(&fimc->pdev->dev));
  
--		if (try)
--			cs->error_idx = i;
-+		cs->error_idx = i;
- 
- 		if (cs->ctrl_class && V4L2_CTRL_ID2CLASS(id) != cs->ctrl_class)
- 			return -EINVAL;
-@@ -1554,7 +1552,8 @@ int v4l2_g_ext_ctrls(struct v4l2_ctrl_handler *hdl, struct v4l2_ext_controls *cs
- 			return -ENOMEM;
+ 	ret = v4l2_device_register(NULL, v4l2_dev);
+ 	if (ret)
+@@ -856,11 +855,11 @@ int fimc_register_capture_device(struct fimc_dev *fimc)
+ 		goto err_v4l2_reg;
  	}
  
--	ret = prepare_ext_ctrls(hdl, cs, helpers, false);
-+	ret = prepare_ext_ctrls(hdl, cs, helpers);
-+	cs->error_idx = cs->count;
+-	snprintf(vfd->name, sizeof(vfd->name), "%s:cap",
+-		 dev_name(&fimc->pdev->dev));
++	strlcpy(vfd->name, v4l2_dev->name, sizeof(vfd->name));
  
- 	for (i = 0; !ret && i < cs->count; i++)
- 		if (helpers[i].ctrl->flags & V4L2_CTRL_FLAG_WRITE_ONLY)
-@@ -1701,12 +1700,10 @@ static int try_or_set_ext_ctrls(struct v4l2_ctrl_handler *hdl,
- 	unsigned i, j;
- 	int ret = 0;
+ 	vfd->fops	= &fimc_capture_fops;
+ 	vfd->ioctl_ops	= &fimc_capture_ioctl_ops;
++	vfd->v4l2_dev	= v4l2_dev;
+ 	vfd->minor	= -1;
+ 	vfd->release	= video_device_release;
+ 	vfd->lock	= &fimc->lock;
+@@ -890,6 +889,11 @@ int fimc_register_capture_device(struct fimc_dev *fimc)
  
--	cs->error_idx = cs->count;
- 	for (i = 0; i < cs->count; i++) {
- 		struct v4l2_ctrl *ctrl = helpers[i].ctrl;
+ 	vb2_queue_init(q);
  
--		if (!set)
--			cs->error_idx = i;
-+		cs->error_idx = i;
- 
- 		if (ctrl->flags & V4L2_CTRL_FLAG_READ_ONLY)
- 			return -EACCES;
-@@ -1724,11 +1721,10 @@ static int try_or_set_ext_ctrls(struct v4l2_ctrl_handler *hdl,
- 		struct v4l2_ctrl *ctrl = helpers[i].ctrl;
- 		struct v4l2_ctrl *master = ctrl->cluster[0];
- 
--		cs->error_idx = i;
++	fimc->vid_cap.vd_pad.flags = MEDIA_PAD_FL_SINK;
++	ret = media_entity_init(&vfd->entity, 1, &fimc->vid_cap.vd_pad, 0);
++	if (ret)
++		goto err_ent;
++
+ 	ret = video_register_device(vfd, VFL_TYPE_GRABBER, -1);
+ 	if (ret) {
+ 		v4l2_err(v4l2_dev, "Failed to register video device\n");
+@@ -899,10 +903,11 @@ int fimc_register_capture_device(struct fimc_dev *fimc)
+ 	v4l2_info(v4l2_dev,
+ 		  "FIMC capture driver registered as /dev/video%d\n",
+ 		  vfd->num);
 -
- 		if (helpers[i].handled)
- 			continue;
+ 	return 0;
  
-+		cs->error_idx = i;
- 		v4l2_ctrl_lock(ctrl);
+ err_vd_reg:
++	media_entity_cleanup(&vfd->entity);
++err_ent:
+ 	video_device_release(vfd);
+ err_v4l2_reg:
+ 	v4l2_device_unregister(v4l2_dev);
+@@ -914,10 +919,11 @@ err_info:
  
- 		/* Reset the 'is_new' flags of the cluster */
-@@ -1777,12 +1773,11 @@ static int try_set_ext_ctrls(struct v4l2_ctrl_handler *hdl,
- 		if (!helpers)
- 			return -ENOMEM;
+ void fimc_unregister_capture_device(struct fimc_dev *fimc)
+ {
+-	struct fimc_vid_cap *capture = &fimc->vid_cap;
++	struct video_device *vfd = fimc->vid_cap.vfd;
+ 
+-	if (capture->vfd)
+-		video_unregister_device(capture->vfd);
+-
+-	kfree(capture->ctx);
++	if (vfd) {
++		media_entity_cleanup(&vfd->entity);
++		video_unregister_device(vfd);
++	}
++	kfree(fimc->vid_cap.ctx);
+ }
+diff --git a/drivers/media/video/s5p-fimc/fimc-core.c b/drivers/media/video/s5p-fimc/fimc-core.c
+index 4540280..ad15d46 100644
+--- a/drivers/media/video/s5p-fimc/fimc-core.c
++++ b/drivers/media/video/s5p-fimc/fimc-core.c
+@@ -1504,10 +1504,8 @@ static int fimc_register_m2m_device(struct fimc_dev *fimc)
+ 	pdev = fimc->pdev;
+ 	v4l2_dev = &fimc->m2m.v4l2_dev;
+ 
+-	/* set name if it is empty */
+-	if (!v4l2_dev->name[0])
+-		snprintf(v4l2_dev->name, sizeof(v4l2_dev->name),
+-			 "%s.m2m", dev_name(&pdev->dev));
++	snprintf(v4l2_dev->name, sizeof(v4l2_dev->name),
++		 "%s.m2m", dev_name(&pdev->dev));
+ 
+ 	ret = v4l2_device_register(&pdev->dev, v4l2_dev);
+ 	if (ret)
+@@ -1521,6 +1519,7 @@ static int fimc_register_m2m_device(struct fimc_dev *fimc)
+ 
+ 	vfd->fops	= &fimc_m2m_fops;
+ 	vfd->ioctl_ops	= &fimc_m2m_ioctl_ops;
++	vfd->v4l2_dev	= v4l2_dev;
+ 	vfd->minor	= -1;
+ 	vfd->release	= video_device_release;
+ 	vfd->lock	= &fimc->lock;
+@@ -1538,17 +1537,22 @@ static int fimc_register_m2m_device(struct fimc_dev *fimc)
+ 		goto err_m2m_r2;
  	}
--	ret = prepare_ext_ctrls(hdl, cs, helpers, !set);
--	if (ret)
--		goto free;
-+	ret = prepare_ext_ctrls(hdl, cs, helpers);
  
- 	/* First 'try' all controls and abort on error */
--	ret = try_or_set_ext_ctrls(hdl, cs, helpers, false);
-+	if (!ret)
-+		ret = try_or_set_ext_ctrls(hdl, cs, helpers, false);
- 	/* If this is a 'set' operation and the initial 'try' failed,
- 	   then set error_idx to count to tell the application that no
- 	   controls changed value yet. */
-@@ -1795,7 +1790,6 @@ static int try_set_ext_ctrls(struct v4l2_ctrl_handler *hdl,
- 		ret = try_or_set_ext_ctrls(hdl, cs, helpers, true);
++	ret = media_entity_init(&vfd->entity, 0, NULL, 0);
++	if (ret)
++		goto err_m2m_r3;
++
+ 	ret = video_register_device(vfd, VFL_TYPE_GRABBER, -1);
+ 	if (ret) {
+ 		v4l2_err(v4l2_dev,
+ 			 "%s(): failed to register video device\n", __func__);
+-		goto err_m2m_r3;
++		goto err_m2m_r4;
  	}
+ 	v4l2_info(v4l2_dev,
+ 		  "FIMC m2m driver registered as /dev/video%d\n", vfd->num);
  
--free:
- 	if (cs->count > ARRAY_SIZE(helper))
- 		kfree(helpers);
- 	return ret;
+ 	return 0;
+-
++err_m2m_r4:
++	media_entity_cleanup(&vfd->entity);
+ err_m2m_r3:
+ 	v4l2_m2m_release(fimc->m2m.m2m_dev);
+ err_m2m_r2:
+@@ -1561,12 +1565,13 @@ err_m2m_r1:
+ 
+ void fimc_unregister_m2m_device(struct fimc_dev *fimc)
+ {
+-	if (fimc) {
+-		v4l2_m2m_release(fimc->m2m.m2m_dev);
+-		video_unregister_device(fimc->m2m.vfd);
++	if (fimc == NULL)
++		return;
+ 
+-		v4l2_device_unregister(&fimc->m2m.v4l2_dev);
+-	}
++	v4l2_m2m_release(fimc->m2m.m2m_dev);
++	v4l2_device_unregister(&fimc->m2m.v4l2_dev);
++	media_entity_cleanup(&fimc->m2m.vfd->entity);
++	video_unregister_device(fimc->m2m.vfd);
+ }
+ 
+ static void fimc_clk_put(struct fimc_dev *fimc)
+diff --git a/drivers/media/video/s5p-fimc/fimc-core.h b/drivers/media/video/s5p-fimc/fimc-core.h
+index 21dfcac..55c1410 100644
+--- a/drivers/media/video/s5p-fimc/fimc-core.h
++++ b/drivers/media/video/s5p-fimc/fimc-core.h
+@@ -16,6 +16,8 @@
+ #include <linux/types.h>
+ #include <linux/videodev2.h>
+ #include <linux/io.h>
++
++#include <media/media-entity.h>
+ #include <media/videobuf2-core.h>
+ #include <media/v4l2-device.h>
+ #include <media/v4l2-mem2mem.h>
+@@ -298,6 +300,7 @@ struct fimc_m2m_device {
+  * @vfd: video device node for camera capture mode
+  * @v4l2_dev: v4l2_device struct to manage subdevs
+  * @sd: pointer to camera sensor subdevice currently in use
++ * @vd_pad: fimc video capture node pad
+  * @fmt: Media Bus format configured at selected image sensor
+  * @pending_buf_q: the pending buffer queue head
+  * @active_buf_q: the queue head of buffers scheduled in hardware
+@@ -315,6 +318,7 @@ struct fimc_vid_cap {
+ 	struct video_device		*vfd;
+ 	struct v4l2_device		v4l2_dev;
+ 	struct v4l2_subdev		*sd;;
++	struct media_pad		vd_pad;
+ 	struct v4l2_mbus_framefmt	fmt;
+ 	struct list_head		pending_buf_q;
+ 	struct list_head		active_buf_q;
 -- 
-1.7.1
+1.7.5.4
 
