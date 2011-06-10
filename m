@@ -1,85 +1,62 @@
 Return-path: <mchehab@pedra>
-Received: from smtp1-g21.free.fr ([212.27.42.1]:55316 "EHLO smtp1-g21.free.fr"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757432Ab1F0Koh convert rfc822-to-8bit (ORCPT
+Received: from mailout1.w1.samsung.com ([210.118.77.11]:19400 "EHLO
+	mailout1.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755770Ab1FJMWK (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 27 Jun 2011 06:44:37 -0400
-Date: Mon, 27 Jun 2011 12:45:58 +0200
-From: Jean-Francois Moine <moinejf@free.fr>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: [PATCH 00/14] Remove linux/version.h from most drivers/media
-Message-ID: <20110627124558.08cd8684@tele>
-In-Reply-To: <4E07808C.9060105@redhat.com>
-References: <20110626130620.4b5ed679@pedra>
-	<20110626201420.018490cd@tele>
-	<4E07808C.9060105@redhat.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8BIT
+	Fri, 10 Jun 2011 08:22:10 -0400
+Date: Fri, 10 Jun 2011 14:22:05 +0200
+From: Marek Szyprowski <m.szyprowski@samsung.com>
+Subject: RE: [PATCH 02/10] lib: genalloc: Generic allocator improvements
+In-reply-to: <20110610122451.15af86d1@lxorguk.ukuu.org.uk>
+To: 'Alan Cox' <alan@lxorguk.ukuu.org.uk>
+Cc: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+	linux-media@vger.kernel.org, linux-mm@kvack.org,
+	linaro-mm-sig@lists.linaro.org,
+	'Michal Nazarewicz' <mina86@mina86.com>,
+	'Kyungmin Park' <kyungmin.park@samsung.com>,
+	'Andrew Morton' <akpm@linux-foundation.org>,
+	'KAMEZAWA Hiroyuki' <kamezawa.hiroyu@jp.fujitsu.com>,
+	'Ankita Garg' <ankita@in.ibm.com>,
+	'Daniel Walker' <dwalker@codeaurora.org>,
+	'Johan MOSSBERG' <johan.xx.mossberg@stericsson.com>,
+	'Mel Gorman' <mel@csn.ul.ie>, 'Arnd Bergmann' <arnd@arndb.de>,
+	'Jesse Barker' <jesse.barker@linaro.org>
+Message-id: <000c01cc2769$02669b70$0733d250$%szyprowski@samsung.com>
+MIME-version: 1.0
+Content-type: text/plain; charset=us-ascii
+Content-language: pl
+Content-transfer-encoding: 7BIT
+References: <1307699698-29369-1-git-send-email-m.szyprowski@samsung.com>
+ <1307699698-29369-3-git-send-email-m.szyprowski@samsung.com>
+ <20110610122451.15af86d1@lxorguk.ukuu.org.uk>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Sun, 26 Jun 2011 15:55:08 -0300
-Mauro Carvalho Chehab <mchehab@redhat.com> wrote:
+Hello,
 
-> I'll move it to the right changeset at the version 2 of this series.
+On Friday, June 10, 2011 1:25 PM Alan Cox wrote:
 
-Hi Mauro,
+> I am curious about one thing
+> 
+> Why do we need this allocator. Why not use allocate_resource and friends.
+> The kernel generic resource handler already handles object alignment and
+> subranges. It just seems to be a surplus allocator that could perhaps be
+> mostly removed by using the kernel resource allocator we already have ?
 
-I have some changes to the gspca.c patch
-- the version must stay 2.12.0
-- the 'info' may be simplified:
+genalloc was used mainly for historical reasons (in the earlier version we
+were looking for direct replacement for first fit allocator).
 
-diff --git a/drivers/media/video/gspca/gspca.c b/drivers/media/video/gspca/gspca.c
-index e526aa3..1aa6ae2 100644
---- a/drivers/media/video/gspca/gspca.c
-+++ b/drivers/media/video/gspca/gspca.c
-@@ -24,7 +24,6 @@
- #define MODULE_NAME "gspca"
- 
- #include <linux/init.h>
--#include <linux/version.h>
- #include <linux/fs.h>
- #include <linux/vmalloc.h>
- #include <linux/sched.h>
-@@ -51,11 +50,12 @@
- #error "DEF_NURBS too big"
- #endif
- 
-+#define DRIVER_VERSION_NUMBER	"2.12.0"
-+
- MODULE_AUTHOR("Jean-François Moine <http://moinejf.free.fr>");
- MODULE_DESCRIPTION("GSPCA USB Camera Driver");
- MODULE_LICENSE("GPL");
--
--#define DRIVER_VERSION_NUMBER	KERNEL_VERSION(2, 12, 0)
-+MODULE_VERSION(DRIVER_VERSION_NUMBER);
- 
- #ifdef GSPCA_DEBUG
- int gspca_debug = D_ERR | D_PROBE;
-@@ -1291,7 +1291,6 @@ static int vidioc_querycap(struct file *file, void  *priv,
- 	}
- 	usb_make_path(gspca_dev->dev, (char *) cap->bus_info,
- 			sizeof(cap->bus_info));
--	cap->version = DRIVER_VERSION_NUMBER;
- 	cap->capabilities = V4L2_CAP_VIDEO_CAPTURE
- 			  | V4L2_CAP_STREAMING
- 			  | V4L2_CAP_READWRITE;
-@@ -2478,10 +2477,7 @@ EXPORT_SYMBOL(gspca_auto_gain_n_exposure);
- /* -- module insert / remove -- */
- static int __init gspca_init(void)
- {
--	info("v%d.%d.%d registered",
--		(DRIVER_VERSION_NUMBER >> 16) & 0xff,
--		(DRIVER_VERSION_NUMBER >> 8) & 0xff,
--		DRIVER_VERSION_NUMBER & 0xff);
-+	info("v" DRIVER_VERSION_NUMBER " registered");
- 	return 0;
- }
- static void __exit gspca_exit(void)
+I plan to replace it with lib/bitmap.c bitmap_* based allocator (similar like
+it it is used by dma_declare_coherent_memory() and friends in
+drivers/base/dma-coherent.c). We need something really simple for CMA area
+management. 
 
+IMHO allocate_resource and friends a bit too heavy here, but good to know 
+that such allocator also exists.
 
+Best regards
 -- 
-Ken ar c'hentañ	|	      ** Breizh ha Linux atav! **
-Jef		|		http://moinejf.free.fr/
+Marek Szyprowski
+Samsung Poland R&D Center
+
+
