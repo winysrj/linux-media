@@ -1,154 +1,114 @@
 Return-path: <mchehab@pedra>
-Received: from mail.mnsspb.ru ([84.204.75.2]:59760 "EHLO mail.mnsspb.ru"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753547Ab1FWOGb (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 23 Jun 2011 10:06:31 -0400
-Date: Thu, 23 Jun 2011 18:05:39 +0400
-From: Kirill Smelkov <kirr@mns.spb.ru>
-To: Alan Stern <stern@rowland.harvard.edu>
-Cc: linux-usb@vger.kernel.org, Greg Kroah-Hartman <gregkh@suse.de>,
-	linux-uvc-devel@lists.berlios.de, linux-media@vger.kernel.org,
-	linux-kernel@vger.kernel.org
-Subject: Re: [RFC, PATCH] USB: EHCI: Allow users to override 80% max
-	periodic bandwidth
-Message-ID: <20110623140539.GA4403@tugrik.mns.mnsspb.ru>
-References: <1308758567-8205-1-git-send-email-kirr@mns.spb.ru> <Pine.LNX.4.44L0.1106221514350.1977-100000@iolanthe.rowland.org>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <Pine.LNX.4.44L0.1106221514350.1977-100000@iolanthe.rowland.org>
+Received: from mailout2.w1.samsung.com ([210.118.77.12]:15443 "EHLO
+	mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755211Ab1FJJzS (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 10 Jun 2011 05:55:18 -0400
+Date: Fri, 10 Jun 2011 11:54:58 +0200
+From: Marek Szyprowski <m.szyprowski@samsung.com>
+Subject: [PATCH 10/10] ARM: S5PV210: add CMA support for FIMC devices on Aquila
+ board
+In-reply-to: <1307699698-29369-1-git-send-email-m.szyprowski@samsung.com>
+To: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+	linux-media@vger.kernel.org, linux-mm@kvack.org,
+	linaro-mm-sig@lists.linaro.org
+Cc: Michal Nazarewicz <mina86@mina86.com>,
+	Marek Szyprowski <m.szyprowski@samsung.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	Andrew Morton <akpm@linux-foundation.org>,
+	KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>,
+	Ankita Garg <ankita@in.ibm.com>,
+	Daniel Walker <dwalker@codeaurora.org>,
+	Johan MOSSBERG <johan.xx.mossberg@stericsson.com>,
+	Mel Gorman <mel@csn.ul.ie>, Arnd Bergmann <arnd@arndb.de>,
+	Jesse Barker <jesse.barker@linaro.org>
+Message-id: <1307699698-29369-11-git-send-email-m.szyprowski@samsung.com>
+MIME-version: 1.0
+Content-type: TEXT/PLAIN
+Content-transfer-encoding: 7BIT
+References: <1307699698-29369-1-git-send-email-m.szyprowski@samsung.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Wed, Jun 22, 2011 at 03:22:28PM -0400, Alan Stern wrote:
-> On Wed, 22 Jun 2011, Kirill Smelkov wrote:
-> 
-> > There are cases, when 80% max isochronous bandwidth is too limiting.
-> > 
-> > For example I have two USB video capture cards which stream uncompressed
-> > video, and to stream full NTSC + PAL videos we'd need
-> > 
-> >     NTSC 640x480 YUV422 @30fps      ~17.6 MB/s
-> >     PAL  720x576 YUV422 @25fps      ~19.7 MB/s
-> > 
-> > isoc bandwidth.
-> > 
-> > Now, due to limited alt settings in capture devices NTSC one ends up
-> > streaming with max_pkt_size=2688  and  PAL with max_pkt_size=2892, both
-> > with interval=1. In terms of microframe time allocation this gives
-> > 
-> >     NTSC    ~53us
-> >     PAL     ~57us
-> > 
-> > and together
-> > 
-> >     ~110us  >  100us == 80% of 125us uframe time.
-> > 
-> > So those two devices can't work together simultaneously because the'd
-> > over allocate isochronous bandwidth.
-> > 
-> > 80% seemed a bit arbitrary to me, and I've tried to raise it to 90% and
-> > both devices started to work together, so I though sometimes it would be
-> > a good idea for users to override hardcoded default of max 80% isoc
-> > bandwidth.
-> > 
-> > After all, isn't it a user who should decide how to load the bus? If I
-> > can live with 10% or even 5% bulk bandwidth that should be ok. I'm a USB
-> > newcomer, but that 80% seems to be chosen pretty arbitrary to me, just
-> > to serve as a reasonable default.
-> 
-> This seems like the sort of feature somebody might reasonably want to 
-> use -- if they know exactly what they're doing.
+This patch is an example how CMA can be activated for particular devices
+in the system. It creates one CMA region and assigns it to all s5p-fimc
+devices on Samsung Aquila S5PC110 board.
 
-Yes, thanks, exactly my case. Now I know the idea won't be rejected it
-can be polished.
+Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
+Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+---
+ arch/arm/mach-s5pv210/Kconfig       |    1 +
+ arch/arm/mach-s5pv210/mach-aquila.c |   26 ++++++++++++++++++++++++++
+ 2 files changed, 27 insertions(+), 0 deletions(-)
 
+diff --git a/arch/arm/mach-s5pv210/Kconfig b/arch/arm/mach-s5pv210/Kconfig
+index 37b5a97..c09a92c 100644
+--- a/arch/arm/mach-s5pv210/Kconfig
++++ b/arch/arm/mach-s5pv210/Kconfig
+@@ -64,6 +64,7 @@ menu "S5PC110 Machines"
+ config MACH_AQUILA
+ 	bool "Aquila"
+ 	select CPU_S5PV210
++	select CMA
+ 	select S3C_DEV_FB
+ 	select S5P_DEV_FIMC0
+ 	select S5P_DEV_FIMC1
+diff --git a/arch/arm/mach-s5pv210/mach-aquila.c b/arch/arm/mach-s5pv210/mach-aquila.c
+index 4e1d8ff..8c404e5 100644
+--- a/arch/arm/mach-s5pv210/mach-aquila.c
++++ b/arch/arm/mach-s5pv210/mach-aquila.c
+@@ -21,6 +21,8 @@
+ #include <linux/gpio_keys.h>
+ #include <linux/input.h>
+ #include <linux/gpio.h>
++#include <linux/cma.h>
++#include <linux/dma-mapping.h>
+ 
+ #include <asm/mach/arch.h>
+ #include <asm/mach/map.h>
+@@ -650,6 +652,19 @@ static void __init aquila_map_io(void)
+ 	s5p_set_timer_source(S5P_PWM3, S5P_PWM4);
+ }
+ 
++unsigned long cma_area_start;
++unsigned long cma_area_size = 32 << 20;
++
++static void __init aquila_reserve(void)
++{
++	unsigned long ret = cma_reserve(cma_area_start, cma_area_size);
++	
++	if (!IS_ERR_VALUE(ret)) {
++		cma_area_start = ret;
++		printk(KERN_INFO "cma: reserved %ld bytes at %lx\n", cma_area_size, cma_area_start);
++	}
++}
++
+ static void __init aquila_machine_init(void)
+ {
+ 	/* PMIC */
+@@ -672,6 +687,16 @@ static void __init aquila_machine_init(void)
+ 	s3c_fb_set_platdata(&aquila_lcd_pdata);
+ 
+ 	platform_add_devices(aquila_devices, ARRAY_SIZE(aquila_devices));
++
++	if (cma_area_start) {
++		struct cma *cma;
++		cma = cma_create(cma_area_start, cma_area_size);
++		if (cma) {
++			set_dev_cma_area(&s5p_device_fimc0.dev, cma);
++			set_dev_cma_area(&s5p_device_fimc1.dev, cma);
++			set_dev_cma_area(&s5p_device_fimc2.dev, cma);
++		}
++	}
+ }
+ 
+ MACHINE_START(AQUILA, "Aquila")
+@@ -683,4 +708,5 @@ MACHINE_START(AQUILA, "Aquila")
+ 	.map_io		= aquila_map_io,
+ 	.init_machine	= aquila_machine_init,
+ 	.timer		= &s5p_timer,
++	.reserve	= aquila_reserve,
+ MACHINE_END
+-- 
+1.7.1.569.g6f426
 
-> > NOTE: for two streams with max_pkt_size=3072 (worst case) both time
-> > allocation would be 60us+60us=120us which is 96% periodic bandwidth
-> > leaving 4% for bulk and control. I think this should work too.
-> 
-> At 480 Mb/s, each microframe holds 7500 bytes (less if you count 
-> bit-stuffing).  4% of that is 300 bytes, which is not enough for a 
-> 512-byte bulk packet.  I think you'd run into trouble trying to do any 
-> serious bulk transfers on such a tight schedule.
-
-Yes, you seem to be right.
-
-I still think 4% is maybe enough for control traffic.
-
-
-> > Signed-off-by: Kirill Smelkov <kirr@mns.spb.ru>
-> > Cc: Alan Stern <stern@rowland.harvard.edu>
-> > ---
-> >  drivers/usb/host/ehci-hcd.c   |   16 ++++++++++++++++
-> >  drivers/usb/host/ehci-sched.c |   17 +++++++----------
-> >  2 files changed, 23 insertions(+), 10 deletions(-)
-> > 
-> > diff --git a/drivers/usb/host/ehci-hcd.c b/drivers/usb/host/ehci-hcd.c
-> > index c606b02..1d36e72 100644
-> > --- a/drivers/usb/host/ehci-hcd.c
-> > +++ b/drivers/usb/host/ehci-hcd.c
-> > @@ -112,6 +112,14 @@ static unsigned int hird;
-> >  module_param(hird, int, S_IRUGO);
-> >  MODULE_PARM_DESC(hird, "host initiated resume duration, +1 for each 75us\n");
-> >  
-> > +/*
-> > + * max periodic time per microframe
-> > + * (be careful, USB 2.0 requires it to be 100us = 80% of 125us)
-> > + */
-> > +static unsigned int uframe_periodic_max = 100;
-> > +module_param(uframe_periodic_max, uint, S_IRUGO);
-> > +MODULE_PARM_DESC(uframe_periodic_max, "maximum allowed periodic part of a microframe, us");
-> > +
-> 
-> This probably should be a sysfs attribute rather than a module 
-> parameter, so that it can be applied to individual buses separately.
-
-Agree
-
-
-> >  #define	INTR_MASK (STS_IAA | STS_FATAL | STS_PCD | STS_ERR | STS_INT)
-> >  
-> >  /*-------------------------------------------------------------------------*/
-> > @@ -571,6 +579,14 @@ static int ehci_init(struct usb_hcd *hcd)
-> >  	hcc_params = ehci_readl(ehci, &ehci->caps->hcc_params);
-> >  
-> >  	/*
-> > +	 * tell user, if using non-standard (80% == 100 usec/uframe) bandwidth
-> > +	 */
-> > +	if (uframe_periodic_max != 100)
-> > +		ehci_info(ehci, "using non-standard max periodic bandwith "
-> > +				"(%u%% == %u usec/uframe)",
-> > +				100*uframe_periodic_max/125, uframe_periodic_max);
-> > +
-> > +	/*
-> 
-> Check for invalid values.  This should never be less than 100 or 
-> greater than 125.
-
-Ok. By the way, why should we limit it to be not less than 100?
-Likewise, a user who knows exactly what he/she is doing could limit
-periodic bandwidth to be less than 80% required by USB specification.
-
-
-> >  	 * hw default: 1K periodic list heads, one per frame.
-> >  	 * periodic_size can shrink by USBCMD update if hcc_params allows.
-> >  	 */
-> > diff --git a/drivers/usb/host/ehci-sched.c b/drivers/usb/host/ehci-sched.c
-> > index d12426f..fb374f2 100644
-> > --- a/drivers/usb/host/ehci-sched.c
-> > +++ b/drivers/usb/host/ehci-sched.c
-> > @@ -172,7 +172,7 @@ periodic_usecs (struct ehci_hcd *ehci, unsigned frame, unsigned uframe)
-> >  		}
-> >  	}
-> >  #ifdef	DEBUG
-> > -	if (usecs > 100)
-> > +	if (usecs > uframe_periodic_max)
-> 
-> These changes all seem right.
-
-Thanks. I'll try to prepare updated patch.
-
-
-Kirill
