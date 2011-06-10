@@ -1,56 +1,39 @@
 Return-path: <mchehab@pedra>
-Received: from mx1.redhat.com ([209.132.183.28]:34270 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754154Ab1FZQHi (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 26 Jun 2011 12:07:38 -0400
-Date: Sun, 26 Jun 2011 13:06:14 -0300
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	LKML <linux-kernel@vger.kernel.org>
-Subject: [PATCH 09/14] [media] pvrusb2: Use LINUX_VERSION_CODE for
- VIDIOC_QUERYCAP
-Message-ID: <20110626130614.209dd335@pedra>
-In-Reply-To: <cover.1309103285.git.mchehab@redhat.com>
-References: <cover.1309103285.git.mchehab@redhat.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
-To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
+Received: from mail-ww0-f44.google.com ([74.125.82.44]:49658 "EHLO
+	mail-ww0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753467Ab1FJWDX (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 10 Jun 2011 18:03:23 -0400
+Received: by wwa36 with SMTP id 36so3194779wwa.1
+        for <linux-media@vger.kernel.org>; Fri, 10 Jun 2011 15:03:22 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <BANLkTi=jxNS6mrqwQC3w2UUtZ+pO9AodBw@mail.gmail.com>
+References: <BANLkTi=jxNS6mrqwQC3w2UUtZ+pO9AodBw@mail.gmail.com>
+Date: Fri, 10 Jun 2011 15:03:22 -0700
+Message-ID: <BANLkTikPsfwuESYz-h=Nmxze8Qk3Nzcjyg@mail.gmail.com>
+Subject: Re: ov519 unknown sensor
+From: Paul Thomas <pthomas8589@gmail.com>
+To: linux-media@vger.kernel.org
+Cc: =?ISO-8859-1?Q?Jean=2DFran=E7ois_Moine?= <moinejf@free.fr>,
+	Hans de Goede <hdegoede@redhat.com>
+Content-Type: text/plain; charset=ISO-8859-1
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-pvrusb2 doesn't use vidioc_ioctl2. As the API is changing to use
-a common version for all drivers, we need to expliticly fix this
-driver.
+It's not an unknown sensor, please ignore that subject line. That was
+before I tested it with the latest v4l tree.
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
-
-diff --git a/drivers/media/video/pvrusb2/pvrusb2-main.c b/drivers/media/video/pvrusb2/pvrusb2-main.c
-index 2254194..c1d9bb6 100644
---- a/drivers/media/video/pvrusb2/pvrusb2-main.c
-+++ b/drivers/media/video/pvrusb2/pvrusb2-main.c
-@@ -168,6 +168,7 @@ module_exit(pvr_exit);
- MODULE_AUTHOR(DRIVER_AUTHOR);
- MODULE_DESCRIPTION(DRIVER_DESC);
- MODULE_LICENSE("GPL");
-+MODULE_VERSION("0.9.1");
- 
- 
- /*
-diff --git a/drivers/media/video/pvrusb2/pvrusb2-v4l2.c b/drivers/media/video/pvrusb2/pvrusb2-v4l2.c
-index 1c299a8..96effbc 100644
---- a/drivers/media/video/pvrusb2/pvrusb2-v4l2.c
-+++ b/drivers/media/video/pvrusb2/pvrusb2-v4l2.c
-@@ -91,7 +91,7 @@ static struct v4l2_capability pvr_capability ={
- 	.driver         = "pvrusb2",
- 	.card           = "Hauppauge WinTV pvr-usb2",
- 	.bus_info       = "usb",
--	.version        = KERNEL_VERSION(0, 9, 0),
-+	.version        = LINUX_VERSION_CODE,
- 	.capabilities   = (V4L2_CAP_VIDEO_CAPTURE |
- 			   V4L2_CAP_TUNER | V4L2_CAP_AUDIO | V4L2_CAP_RADIO |
- 			   V4L2_CAP_READWRITE),
--- 
-1.7.1
-
-
+2011/6/10 Paul Thomas <pthomas8589@gmail.com>:
+> Hello,
+>
+> I just wanted to let you know the Orion StarShoot Solar System Color
+> Imaging Camera works with the latest v4l git tree
+> (http://git.kernel.org/pub/scm/linux/kernel/git/mchehab/linux-next.git).
+> It needs the "case 0xb1:" for the OV9600 that's not in Linus's tree
+> yet. I didn't know what sensor was in the camera or weather it would
+> work when I got it, so maybe this will help someone else who is
+> googling that camera.
+>
+> thanks,
+> Paul
+>
