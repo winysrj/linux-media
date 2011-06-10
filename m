@@ -1,43 +1,69 @@
 Return-path: <mchehab@pedra>
-Received: from mail-iw0-f174.google.com ([209.85.214.174]:59354 "EHLO
-	mail-iw0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750875Ab1FFI5E (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 6 Jun 2011 04:57:04 -0400
-Received: by iwn34 with SMTP id 34so2950588iwn.19
-        for <linux-media@vger.kernel.org>; Mon, 06 Jun 2011 01:57:04 -0700 (PDT)
+Received: from moutng.kundenserver.de ([212.227.126.186]:62135 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752887Ab1FJJQc (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 10 Jun 2011 05:16:32 -0400
+Date: Fri, 10 Jun 2011 11:16:30 +0200 (CEST)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Kassey Lee <kassey1216@gmail.com>
+cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Jonathan Corbet <corbet@lwn.net>,
+	laurent.pinchart@ideasonboard.com, leiwen@marvell.com,
+	qingx@marvell.com
+Subject: Re: soc_camera_set_fmt in soc_camera_open
+In-Reply-To: <BANLkTinQ0bDt-9f53fkfiUo1u26ahPsO-w@mail.gmail.com>
+Message-ID: <Pine.LNX.4.64.1106101114120.12671@axis700.grange>
+References: <BANLkTikg_MqmbL_7d2SY7zVALbm447b4Mw@mail.gmail.com>
+ <BANLkTinQ0bDt-9f53fkfiUo1u26ahPsO-w@mail.gmail.com>
 MIME-Version: 1.0
-Date: Mon, 6 Jun 2011 10:57:04 +0200
-Message-ID: <BANLkTik8JCCB2zri7nAmTX+gvUwOunbYcg@mail.gmail.com>
-Subject: EM28188 and TDA18271HDC2
-From: Kristoffer Edwardsson <krisse02@gmail.com>
-To: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-HI
+On Fri, 10 Jun 2011, Kassey Lee wrote:
 
-I Noticed the em28xx driver in kernel but the EM28188 is not supported.
+> hi, Guennadi:
+> 
+>           in drivers/media/video/soc_camera.c
+> static int soc_camera_open(struct file *file)
+> 
+> it will call soc_camera_set_fmt to configure the sensor and host controller.
+> for sensor, this means it will trigger download setting, this may take quite
+> time through i2c or SPI.
+> I complain about this, because after we open,  request, s_param, S_FMT,
+> DQBUF,
+> in S_FMT, we will download the setting again.
+> 
+> how do you think ?
 
-I dont know if it can be supported but here is some info about the device.
-Its a DVB-CT hybrid device without analog from Sundtek.
+If it's a concern for you, you might consider moving most of your sensor 
+set up from .s_(mbus_)fmt() to .s_stream(). Would that solve your problem?
 
+Thanks
+Guennadi
 
-Device Descriptor:
-  bLength                18
-  bDescriptorType         1
-  bcdUSB               2.00
-  bDeviceClass            0 (Defined at Interface level)
-  bDeviceSubClass         0
-  bDeviceProtocol         0
-  bMaxPacketSize0        64
-  idVendor           0xeb1a eMPIA Technology, Inc.
-  idProduct          0x51b2
-  bcdDevice            1.00
-  iManufacturer           0
-  iProduct                1 USB 28185 Device
-  iSerial                 2 ODVBTB
-  bNumConfigurations      1
-  Configuration Descriptor:
+> 
+> 
+>                /*
+>                 * Try to configure with default parameters. Notice: this is
+> the
+>                 * very first open, so, we cannot race against other calls,
+>                 * apart from someone else calling open() simultaneously, but
+>                 * .video_lock is protecting us against it.
+>                 */
+>                ret = soc_camera_set_fmt(icd, &f);
+>                if (ret < 0)
+>                        goto esfmt;
+> 
+> -- 
+> Best regards
+> Kassey
+> Application Processor Systems Engineering, Marvell Technology Group Ltd.
+> Shanghai, China.
+> 
 
-//Kristoffer
+---
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
+http://www.open-technology.de/
