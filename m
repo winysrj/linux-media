@@ -1,167 +1,121 @@
 Return-path: <mchehab@pedra>
-Received: from smtp-vbr15.xs4all.nl ([194.109.24.35]:1927 "EHLO
-	smtp-vbr15.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1759598Ab1F0MRf (ORCPT
+Received: from mailout3.w1.samsung.com ([210.118.77.13]:58899 "EHLO
+	mailout3.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757724Ab1FJShG (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 27 Jun 2011 08:17:35 -0400
-Message-ID: <86e5c1f0a0222d3b2cf371f3c9d3b067.squirrel@webmail.xs4all.nl>
-In-Reply-To: <20110627120233.GD12671@valkosipuli.localdomain>
-References: <4E0519B7.3000304@redhat.com> <201106262020.20432.arnd@arndb.de>
-    <4E077FB9.7030600@redhat.com> <201106270738.27417.hverkuil@xs4all.nl>
-    <20110627120233.GD12671@valkosipuli.localdomain>
-Date: Mon, 27 Jun 2011 14:17:25 +0200
-Subject: Re: [PATCH] [media] v4l2 core: return -ENOIOCTLCMD if an ioctl
- doesn't exist
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: "Sakari Ailus" <sakari.ailus@iki.fi>
-Cc: "Mauro Carvalho Chehab" <mchehab@redhat.com>,
-	"Arnd Bergmann" <arnd@arndb.de>,
-	"Linux Media Mailing List" <linux-media@vger.kernel.org>,
-	"Linux Kernel Mailing List" <linux-kernel@vger.kernel.org>,
-	"Linus Torvalds" <torvalds@linux-foundation.org>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+	Fri, 10 Jun 2011 14:37:06 -0400
+MIME-version: 1.0
+Content-transfer-encoding: 7BIT
+Content-type: TEXT/PLAIN
+Date: Fri, 10 Jun 2011 20:36:41 +0200
+From: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Subject: [PATCH 0/19] S5P FIMC driver conversion to control framework and Media
+ Controller API
+To: linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org
+Cc: hans.verkuil@cisco.com, laurent.pinchart@ideasonboard.com,
+	m.szyprowski@samsung.com, kyungmin.park@samsung.com,
+	s.nawrocki@samsung.com, sw0312.kim@samsung.com,
+	riverful.kim@samsung.com
+Message-id: <1307731020-7100-1-git-send-email-s.nawrocki@samsung.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-> Hi Hans,
->
-> On Mon, Jun 27, 2011 at 07:38:27AM +0200, Hans Verkuil wrote:
->> On Sunday, June 26, 2011 20:51:37 Mauro Carvalho Chehab wrote:
->> > Em 26-06-2011 15:20, Arnd Bergmann escreveu:
->> > > On Sunday 26 June 2011 19:30:46 Mauro Carvalho Chehab wrote:
->> > >>> There was a lot of debate whether undefined ioctls on non-ttys
->> should
->> > >>> return -EINVAL or -ENOTTY, including mass-conversions from -ENOTTY
->> to
->> > >>> -EINVAL at some point in the pre-git era, IIRC.
->> > >>>
->> > >>> Inside of v4l2, I believe this is handled by video_usercopy(),
->> which
->> > >>> turns the driver's -ENOIOCTLCMD into -ENOTTY. What cases do you
->> observe
->> > >>> where this is not done correctly and we do return ENOIOCTLCMD to
->> > >>> vfs_ioctl?
->> > >>
->> > >> Well, currently, it is returning -EINVAL maybe due to the
->> mass-conversions
->> > >> you've mentioned.
->> > >
->> > > I mean what do you return *to* vfs_ioctl from v4l? The conversions
->> must
->> > > have been long before we introduced compat_ioctl and ENOIOCTLCMD.
->> > >
->> > > As far as I can tell, video_ioctl2 has always converted ENOIOCTLCMD
->> into
->> > > EINVAL, so changing the vfs functions would not have any effect.
->> >
->> > Yes.  This discussion was originated by a RFC patch proposing to
->> change
->> > video_ioctl2 to return -ENOIOCTLCMD instead of -EINVAL.
->> >
->> > >> The point is that -EINVAL has too many meanings at V4L. It
->> currently can be
->> > >> either that an ioctl is not supported, or that one of the
->> parameters had
->> > >> an invalid parameter. If the userspace can't distinguish between an
->> unimplemented
->> > >> ioctl and an invalid parameter, it can't decide if it needs to fall
->> back to
->> > >> some different methods of handling a V4L device.
->> > >>
->> > >> Maybe the answer would be to return -ENOTTY when an ioctl is not
->> implemented.
->> > >
->> > > That is what a lot of subsystems do these days. But wouldn't that
->> change
->> > > your ABI?
->> >
->> > Yes. The patch in question is also changing the DocBook spec for the
->> ABI. We'll
->> > likely need to drop some notes about that at the
->> features-to-be-removed.txt.
->> >
->> > I don't think that applications are relying at -EINVAL in order to
->> detect if
->> > an ioctl is not supported, but before merging such patch, we need to
->> double-check.
->>
->> I really don't think we can change this behavior. It's been part of the
->> spec since
->> forever and it is not just open source apps that can rely on this, but
->> also closed
->> source. Making an ABI change like this can really mess up applications.
->>
->> We should instead review the spec and ensure that applications can
->> discover what
->> is and what isn't supported through e.g. capabilities.
->
-> As far as I understand, V4L2 wouldn't be the only kernel API to use ENOTTY
-> to tell that an ioctl doesn't exist; there are others. And many switched
-> from EINVAL they used in the past. From that point it would be good to do
-> it
-> on V4L2 as well. Although I have to reckon that the V4L2 API does serve
-> use
-> cases of quite different natures than these --- I can't think of an
-> equivalent e.g. to that astronomy application using V4L1 in the scope of
-> these:
->
-> Examples:
-> - Networking
-> - KVM
-> - SCSI/libata-scsi
->
-> Currently EINVAL is used to signal from a phletora of conditions in V4L2,
-> usually bad, in a way or another, parameters to an ioctl. The more low
-> level
-> APIs we add (for cameras, for example), the less guessing of parameters
-> can
-> be done in general. I think it would be important to distinguish the two
-> cases and we don't have enumeration capability (do we?) to tell which
-> IOCTLs
-> the application should be expect to be able to use.
+Hello,
 
-While we don't have an enum capability, in many cases you can deduce
-whether a particular ioctl should be supported or not. Usually based on
-capabilities, sometimes because certain ioctls allow 'NOP' operations that
-allow you to test for their presence.
+The following change set is a S5P/EXYNOS4 FIMC (camera host interface
+and video post-processor) driver conversion to the control framework
+and Media Controller API. The first and last patch add Runtime PM support
+in the mem-to-mem and capture driver respectively.
 
-Of course, drivers are not always consistent here, but that's a separate
-problem.
+The s5p-fimc driver supports S5PC110, S5PV210 and EXYNOS4210 (S5PV310) SoCs. 
+As far as camera support is concerned the most recent Exynos4210 SoC has
+2 parallel and 2 MIPI-CSI2 inputs, 2 MIPI-CSI2 receivers and 4 FIMC subsystems.
+FIMC instances can be attached to any parallel input or the MIPI-CSI receiver
+output. The MIPI-CSI receivers have fixed connections to the MIPI CSI physical
+interfaces (MIPI-CSIS PHY). Using media controller API allows to easily
+discover the H/W structure and choose optimal configuration in particular
+use case.
 
-> Interestingly enough, V4L2 core (v4l2_ioctl() in v4l2-dev.c) does return
-> ENOTTY *right now* when the IOCTL handler is not defined. Have we heard
-> about this up to now? :-)
+The media device introduced with patch: "s5p-fimc: Add the media device
+driver" acts as a top level entity to which sensor, the mipi-csi receiver
+and FIMC subdevs are registered. It also assures proper use of 2 SoC output
+clocks for external sensors, which are shared among all FIMC entities.
 
-No, but that's because all drivers have an ioctl handler :-) So you never
-see ENOTTY.
+Patch "s5p-fimc: Add a subdev for the FIMC processing block" adds a v4l2
+sub-device for each FIMC camera capture processing unit. 
 
-> As you mention, switching to ENOTTY in general would change the ABI which
-> would potentially break applications. Can this be handled in a way or
-> another? My understanding is that not many applications would rely on
-> EINVAL
-> telling an IOCTL isn't implemented. GStreamer v4l2src might be one in its
-> attempt to figure out what kind of image sizes the device supports. Fixing
-> this would be a very small change.
->
-> In short, I think it would be beneficial to switch to ENOTTY in the long
-> run even if it causes some momentary pain.
+Video pipeline configuration procedure for subdevs has not yet been fully
+discussed and settled. Nevertheless I have adopted following configuration
+flow for the FIMC.{n} (capture) subdevs:
 
-I would like that as well, but the V4L2 Specification explicitly mentions
-EINVAL as the error code if an ioctl is not supported. It has done so
-since it was created. You cannot just change that. And closed source
-programs may  very well rely on this.
+1) set format at sink pad (this will reset sink crop rectangle)
+2) set crop rectangle at sink pad (optional)
+3) set rotate control
+4) set crop (composition) at source pad (optional). Here scaling constraints
+   are checked according to whether sink pad crop has been set or not and
+   whether 90/270 deg rotation is set.
 
-I don't think changing such an important return value is acceptable.
+Rotation can also be changed while streaming, in this case when 90/270 deg
+rotation is attempted to be set and scaling bounds are exceeded 
+(max. 64x downscaling) s_ctrl returns EINVAL.
 
-A better approach would be to allow applications to deduce whether ioctls
-are (should be) present or not based on capabilities, etc. And document
-that in the spec and ensure that drivers do this right.
+The following pipeline configurations are possible:
 
-The v4l2-compliance tool is already checking that where possible.
+1) sensor subdev -> FIMC.? subdev -> video node (/dev/video*)
+2) sensor subdev -> s5p-mipi-csis.? subdev -> FIMC.? subdev -> 
+    video node (/dev/video*)
+3) sensor1 subdev -> s5p-mipi-csis.? -+-> FIMC.{n} subdev ...
+                                      |
+                                      +-> FIMC.{n+1} subdev ..
+4) LCD capture subdev -> FIMC.? -> video node (dev/video)
+			
+4) is not yet implemented.
+								
+I have tested this driver with media-ctl tool (thanks go to Laurent Pinchart
+for sharing it) which can be found at: http://git.ideasonboard.org/?p=media-ctl.git
 
-Regards,
+This patch set depends on my previous s5p-fimc bugfixes, available at: 
+http://git.infradead.org/users/kmpark/linux-2.6-samsung/shortlog/refs/heads/s5p-fimc
 
-      Hans
+as well as the control framework updates from Hans Verkuil:
+http://www.spinics.net/lists/linux-media/msg33552.html
+(patch 1...6, 8, 11).
+
+The corresponding platform support patches illustrating the media device
+and mipi-csis platform data setup are being prepared and will follow shortly.
+
+There are a few open issues that are not really fully resolved yet:
+
+- V4L2 device node only and media controller API coexistence;
+ For now the driver is checking if image sensor subdev exposes a device
+ node to user space, if it doesn't then formats are configured by the 
+ V4L2 node driver in VIDIOC_S_FMT ioctl. If sensor exposes a video node
+ then only the output DMA is configured in S_FMT.
+ It seems more reasonable to permanently enable sensor and mipi-csi subdevs
+ and choose proper actions in the host driver at runtime on some different
+ precondition basis.
+- Accessing controls' value in interrupt context; it would be useful to use 
+ struct v4l2_ctrl::val directly in the driver rather than caching it
+ additonally.
+
+Any comments and suggestions on this initial version are appreciated.
+
+
+ drivers/media/video/Kconfig                 |    2 +-
+ drivers/media/video/s5p-fimc/Makefile       |    2 +-
+ drivers/media/video/s5p-fimc/fimc-capture.c | 1280 +++++++++++++++++++--------
+ drivers/media/video/s5p-fimc/fimc-core.c    |  917 ++++++++++----------
+ drivers/media/video/s5p-fimc/fimc-core.h    |  192 +++--
+ drivers/media/video/s5p-fimc/fimc-mdevice.c |  738 +++++++++++++++
+ drivers/media/video/s5p-fimc/fimc-mdevice.h |  126 +++
+ drivers/media/video/s5p-fimc/fimc-reg.c     |   76 +-
+ drivers/media/video/s5p-fimc/regs-fimc.h    |    8 +-
+ include/media/s5p_fimc.h                    |   11 +
+ 10 files changed, 2416 insertions(+), 936 deletions(-)
+
+--
+Thanks,
+
+Sylwester Nawrocki
+Samsung Poland R&D Center
 
