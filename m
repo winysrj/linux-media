@@ -1,619 +1,791 @@
 Return-path: <mchehab@pedra>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:60164 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757831Ab1F0KtN (ORCPT
+Received: from mailout1.w1.samsung.com ([210.118.77.11]:41974 "EHLO
+	mailout1.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758041Ab1FJShO (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 27 Jun 2011 06:49:13 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Bastian Hecht <hechtb@googlemail.com>
-Subject: Re: [PATCH] media: initial driver for ov5642 CMOS sensor
-Date: Mon, 27 Jun 2011 12:49:19 +0200
-Cc: linux-media@vger.kernel.org,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-References: <alpine.DEB.2.02.1106241052240.26253@ipanema>
-In-Reply-To: <alpine.DEB.2.02.1106241052240.26253@ipanema>
-MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201106271249.20073.laurent.pinchart@ideasonboard.com>
+	Fri, 10 Jun 2011 14:37:14 -0400
+Date: Fri, 10 Jun 2011 20:36:56 +0200
+From: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Subject: [PATCH/RFC 15/19] s5p-fimc: Add a subdev for the FIMC processing block
+In-reply-to: <1307731020-7100-1-git-send-email-s.nawrocki@samsung.com>
+To: linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org
+Cc: hans.verkuil@cisco.com, laurent.pinchart@ideasonboard.com,
+	m.szyprowski@samsung.com, kyungmin.park@samsung.com,
+	s.nawrocki@samsung.com, sw0312.kim@samsung.com,
+	riverful.kim@samsung.com
+Message-id: <1307731020-7100-16-git-send-email-s.nawrocki@samsung.com>
+MIME-version: 1.0
+Content-type: TEXT/PLAIN
+Content-transfer-encoding: 7BIT
+References: <1307731020-7100-1-git-send-email-s.nawrocki@samsung.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Hi Bastian,
+This subdev interface exposes the internal scaler and color converter
+functionality to user space. Resolution and media bus format can now
+be configured explicitly by applications. Camera frame composition
+onto the output buffer can be confgured through set/get_crop at FIMC.{n}
+source pad. Additionally crop, controls and composition may be
+reconfigured while streaming.
 
-Thanks for the patch.
+Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+---
+ drivers/media/video/s5p-fimc/fimc-capture.c |  463 ++++++++++++++++++++++++++-
+ drivers/media/video/s5p-fimc/fimc-core.c    |    4 +
+ drivers/media/video/s5p-fimc/fimc-core.h    |   33 ++-
+ drivers/media/video/s5p-fimc/fimc-mdevice.c |   32 ++-
+ 4 files changed, 512 insertions(+), 20 deletions(-)
 
-On Friday 24 June 2011 12:57:36 Bastian Hecht wrote:
-> This is an initial driver release for the Omnivision 5642 CMOS sensor.
-> 
-> Signed-off-by: Bastian Hecht <hechtb@gmail.com>
-> ---
-> 
-> diff --git a/drivers/media/video/ov5642.c b/drivers/media/video/ov5642.c
-> new file mode 100644
-> index 0000000..3cdae97
-> --- /dev/null
-> +++ b/drivers/media/video/ov5642.c
-> @@ -0,0 +1,1011 @@
-> +/*
-> + * Driver for OV5642 CMOS Image Sensor from Omnivision
-> + *
-> + * Copyright (C) 2011, Bastian Hecht <hechtb@gmail.com>
-> + *
-> + * Based on Sony IMX074 Camera Driver
-> + * Copyright (C) 2010, Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-> + *
-> + * Based on Omnivision OV7670 Camera Driver
-> + * Copyright (C) 2006-7 Jonathan Corbet <corbet@lwn.net>
-> + *
-> + * This program is free software; you can redistribute it and/or modify
-> + * it under the terms of the GNU General Public License version 2 as
-> + * published by the Free Software Foundation.
-> + */
-> +
-> +#include <linux/delay.h>
-> +#include <linux/i2c.h>
-> +#include <linux/slab.h>
-> +#include <linux/videodev2.h>
-> +
-> +#include <media/soc_camera.h>
-> +#include <media/soc_mediabus.h>
-> +#include <media/v4l2-chip-ident.h>
-> +#include <media/v4l2-subdev.h>
-> +
-> +/* OV5642 registers */
-> +#define REG_CHIP_ID_HIGH		0x300a
-> +#define REG_CHIP_ID_LOW			0x300b
-> +
-> +#define REG_WINDOW_START_X_HIGH		0x3800
-> +#define REG_WINDOW_START_X_LOW		0x3801
-> +#define REG_WINDOW_START_Y_HIGH		0x3802
-> +#define REG_WINDOW_START_Y_LOW		0x3803
-> +#define REG_WINDOW_WIDTH_HIGH		0x3804
-> +#define REG_WINDOW_WIDTH_LOW		0x3805
-> +#define REG_WINDOW_HEIGHT_HIGH 		0x3806
-> +#define REG_WINDOW_HEIGHT_LOW		0x3807
-> +#define REG_OUT_WIDTH_HIGH		0x3808
-> +#define REG_OUT_WIDTH_LOW		0x3809
-> +#define REG_OUT_HEIGHT_HIGH		0x380a
-> +#define REG_OUT_HEIGHT_LOW		0x380b
-> +#define REG_OUT_TOTAL_WIDTH_HIGH	0x380c
-> +#define REG_OUT_TOTAL_WIDTH_LOW		0x380d
-> +#define REG_OUT_TOTAL_HEIGHT_HIGH	0x380e
-> +#define REG_OUT_TOTAL_HEIGHT_LOW	0x380f
-> +
-> +/*
-> + * define standard resolution.
-> + * Works currently only for up to 720 lines
-> + * eg. 320x240, 640x480, 800x600, 1280x720, 2048x720
-> + */
-> +
-> +#define OV5642_WIDTH		1280
-> +#define OV5642_HEIGHT		720
-> +#define OV5642_TOTAL_WIDTH	3200
-> +#define OV5642_TOTAL_HEIGHT	2000
-> +#define OV5642_SENSOR_SIZE_X	2592
-> +#define OV5642_SENSOR_SIZE_Y	1944
-> +
-> +struct regval_list {
-> +	u16 reg_num;
-> +	u8 value;
-> +};
-> +
-> +static struct regval_list ov5642_default_regs_init[] = {
-> +	{ 0x3103, 0x93 },
-> +	{ 0x3008, 0x82 },
-> +	{ 0x3017, 0x7f },
-> +	{ 0x3018, 0xfc },
-> +	{ 0x3810, 0xc2 },
-> +	{ 0x3615, 0xf0 },
-> +	{ 0x3000, 0x0  },
-> +	{ 0x3001, 0x0  },
-> +	{ 0x3002, 0x0  },
-> +	{ 0x3003, 0x0  },
-> +	{ 0x3004, 0xff },
-> +	{ 0x3030, 0x2b },
-> +	{ 0x3011, 0x8  },
-> +	{ 0x3010, 0x10 },
-> +	{ 0x3604, 0x60 },
-> +	{ 0x3622, 0x60 },
-> +	{ 0x3621, 0x9  },
-> +	{ 0x3709, 0x0  },
-> +	{ 0x4000, 0x21 },
-> +	{ 0x401d, 0x22 },
-> +	{ 0x3600, 0x54 },
-> +	{ 0x3605, 0x4  },
-> +	{ 0x3606, 0x3f },
-> +	{ 0x3c01, 0x80 },
-> +	{ 0x300d, 0x22 },
-> +	{ 0x3623, 0x22 },
-> +	{ 0x5000, 0x4f },
-> +	{ 0x5020, 0x4  },
-> +	{ 0x5181, 0x79 },
-> +	{ 0x5182, 0x0  },
-> +	{ 0x5185, 0x22 },
-> +	{ 0x5197, 0x1  },
-> +	{ 0x5500, 0xa  },
-> +	{ 0x5504, 0x0  },
-> +	{ 0x5505, 0x7f },
-> +	{ 0x5080, 0x8  },
-> +	{ 0x300e, 0x18 },
-> +	{ 0x4610, 0x0  },
-> +	{ 0x471d, 0x5  },
-> +	{ 0x4708, 0x6  },
-> +	{ 0x370c, 0xa0 },
-> +	{ 0x5687, 0x94 },
-> +	{ 0x501f, 0x0  },
-> +	{ 0x5000, 0x4f },
-> +	{ 0x5001, 0xcf },
-> +	{ 0x4300, 0x30 },
-> +	{ 0x4300, 0x30 },
-> +	{ 0x460b, 0x35 },
-> +	{ 0x471d, 0x0  },
-> +	{ 0x3002, 0xc  },
-> +	{ 0x3002, 0x0  },
-> +	{ 0x4713, 0x3  },
-> +	{ 0x471c, 0x50 },
-> +	{ 0x4721, 0x2  },
-> +	{ 0x4402, 0x90 },
-> +	{ 0x460c, 0x22 },
-> +	{ 0x3815, 0x44 },
-> +	{ 0x3503, 0x7  },
-> +	{ 0x3501, 0x73 },
-> +	{ 0x3502, 0x80 },
-> +	{ 0x350b, 0x0  },
-> +	{ 0x3818, 0xc8 },
-> +	{ 0x3824, 0x11 },
-> +	{ 0x3a00, 0x78 },
-> +	{ 0x3a1a, 0x4  },
-> +	{ 0x3a13, 0x30 },
-> +	{ 0x3a18, 0x0  },
-> +	{ 0x3a19, 0x7c },
-> +	{ 0x3a08, 0x12 },
-> +	{ 0x3a09, 0xc0 },
-> +	{ 0x3a0a, 0xf  },
-> +	{ 0x3a0b, 0xa0 },
-> +	{ 0x350c, 0x7  },
-> +	{ 0x350d, 0xd0 },
-> +	{ 0x3a0d, 0x8  },
-> +	{ 0x3a0e, 0x6  },
-> +	{ 0x3500, 0x0  },
-> +	{ 0x3501, 0x0  },
-> +	{ 0x3502, 0x0  },
-> +	{ 0x350a, 0x0  },
-> +	{ 0x350b, 0x0  },
-> +	{ 0x3503, 0x0  },
-> +	{ 0x3a0f, 0x3c },
-> +	{ 0x3a10, 0x32 },
-> +	{ 0x3a1b, 0x3c },
-> +	{ 0x3a1e, 0x32 },
-> +	{ 0x3a11, 0x80 },
-> +	{ 0x3a1f, 0x20 },
-> +	{ 0x3030, 0x2b },
-> +	{ 0x3a02, 0x0  },
-> +	{ 0x3a03, 0x7d },
-> +	{ 0x3a04, 0x0  },
-> +	{ 0x3a14, 0x0  },
-> +	{ 0x3a15, 0x7d },
-> +	{ 0x3a16, 0x0  },
-> +	{ 0x3a00, 0x78 },
-> +	{ 0x3a08, 0x9  },
-> +	{ 0x3a09, 0x60 },
-> +	{ 0x3a0a, 0x7  },
-> +	{ 0x3a0b, 0xd0 },
-> +	{ 0x3a0d, 0x10 },
-> +	{ 0x3a0e, 0xd  },
-> +	{ 0x4407, 0x4  },
-> +	{ 0x5193, 0x70 },
-> +	{ 0x589b, 0x0  },
-> +	{ 0x589a, 0xc0 },
-> +	{ 0x401e, 0x20 },
-> +	{ 0x4001, 0x42 },
-> +	{ 0x401c, 0x6  },
-> +	{ 0x3825, 0xac },
-> +	{ 0x3827, 0xc  },
-> +	{ 0x528a, 0x1  },
-> +	{ 0x528b, 0x4  },
-> +	{ 0x528c, 0x8  },
-> +	{ 0x528d, 0x10 },
-> +	{ 0x528e, 0x20 },
-> +	{ 0x528f, 0x28 },
-> +	{ 0x5290, 0x30 },
-> +	{ 0x5292, 0x0  },
-> +	{ 0x5293, 0x1  },
-> +	{ 0x5294, 0x0  },
-> +	{ 0x5295, 0x4  },
-> +	{ 0x5296, 0x0  },
-> +	{ 0x5297, 0x8  },
-> +	{ 0x5298, 0x0  },
-> +	{ 0x5299, 0x10 },
-> +	{ 0x529a, 0x0  },
-> +	{ 0x529b, 0x20 },
-> +	{ 0x529c, 0x0  },
-> +	{ 0x529d, 0x28 },
-> +	{ 0x529e, 0x0  },
-> +	{ 0x529f, 0x30 },
-> +	{ 0x5282, 0x0  },
-> +	{ 0x5300, 0x0  },
-> +	{ 0x5301, 0x20 },
-> +	{ 0x5302, 0x0  },
-> +	{ 0x5303, 0x7c },
-> +	{ 0x530c, 0x0  },
-> +	{ 0x530d, 0xc  },
-> +	{ 0x530e, 0x20 },
-> +	{ 0x530f, 0x80 },
-> +	{ 0x5310, 0x20 },
-> +	{ 0x5311, 0x80 },
-> +	{ 0x5308, 0x20 },
-> +	{ 0x5309, 0x40 },
-> +	{ 0x5304, 0x0  },
-> +	{ 0x5305, 0x30 },
-> +	{ 0x5306, 0x0  },
-> +	{ 0x5307, 0x80 },
-> +	{ 0x5314, 0x8  },
-> +	{ 0x5315, 0x20 },
-> +	{ 0x5319, 0x30 },
-> +	{ 0x5316, 0x10 },
-> +	{ 0x5317, 0x0  },
-> +	{ 0x5318, 0x2  },
-> +	{ 0x5380, 0x1  },
-> +	{ 0x5381, 0x0  },
-> +	{ 0x5382, 0x0  },
-> +	{ 0x5383, 0x4e },
-> +	{ 0x5384, 0x0  },
-> +	{ 0x5385, 0xf  },
-> +	{ 0x5386, 0x0  },
-> +	{ 0x5387, 0x0  },
-> +	{ 0x5388, 0x1  },
-> +	{ 0x5389, 0x15 },
-> +	{ 0x538a, 0x0  },
-> +	{ 0x538b, 0x31 },
-> +	{ 0x538c, 0x0  },
-> +	{ 0x538d, 0x0  },
-> +	{ 0x538e, 0x0  },
-> +	{ 0x538f, 0xf  },
-> +	{ 0x5390, 0x0  },
-> +	{ 0x5391, 0xab },
-> +	{ 0x5392, 0x0  },
-> +	{ 0x5393, 0xa2 },
-> +	{ 0x5394, 0x8  },
-> +	{ 0x5480, 0x14 },
-> +	{ 0x5481, 0x21 },
-> +	{ 0x5482, 0x36 },
-> +	{ 0x5483, 0x57 },
-> +	{ 0x5484, 0x65 },
-> +	{ 0x5485, 0x71 },
-> +	{ 0x5486, 0x7d },
-> +	{ 0x5487, 0x87 },
-> +	{ 0x5488, 0x91 },
-> +	{ 0x5489, 0x9a },
-> +	{ 0x548a, 0xaa },
-> +	{ 0x548b, 0xb8 },
-> +	{ 0x548c, 0xcd },
-> +	{ 0x548d, 0xdd },
-> +	{ 0x548e, 0xea },
-> +	{ 0x548f, 0x1d },
-> +	{ 0x5490, 0x5  },
-> +	{ 0x5491, 0x0  },
-> +	{ 0x5492, 0x4  },
-> +	{ 0x5493, 0x20 },
-> +	{ 0x5494, 0x3  },
-> +	{ 0x5495, 0x60 },
-> +	{ 0x5496, 0x2  },
-> +	{ 0x5497, 0xb8 },
-> +	{ 0x5498, 0x2  },
-> +	{ 0x5499, 0x86 },
-> +	{ 0x549a, 0x2  },
-> +	{ 0x549b, 0x5b },
-> +	{ 0x549c, 0x2  },
-> +	{ 0x549d, 0x3b },
-> +	{ 0x549e, 0x2  },
-> +	{ 0x549f, 0x1c },
-> +	{ 0x54a0, 0x2  },
-> +	{ 0x54a1, 0x4  },
-> +	{ 0x54a2, 0x1  },
-> +	{ 0x54a3, 0xed },
-> +	{ 0x54a4, 0x1  },
-> +	{ 0x54a5, 0xc5 },
-> +	{ 0x54a6, 0x1  },
-> +	{ 0x54a7, 0xa5 },
-> +	{ 0x54a8, 0x1  },
-> +	{ 0x54a9, 0x6c },
-> +	{ 0x54aa, 0x1  },
-> +	{ 0x54ab, 0x41 },
-> +	{ 0x54ac, 0x1  },
-> +	{ 0x54ad, 0x20 },
-> +	{ 0x54ae, 0x0  },
-> +	{ 0x54af, 0x16 },
-> +	{ 0x54b0, 0x1  },
-> +	{ 0x54b1, 0x20 },
-> +	{ 0x54b2, 0x0  },
-> +	{ 0x54b3, 0x10 },
-> +	{ 0x54b4, 0x0  },
-> +	{ 0x54b5, 0xf0 },
-> +	{ 0x54b6, 0x0  },
-> +	{ 0x54b7, 0xdf },
-> +	{ 0x5402, 0x3f },
-> +	{ 0x5403, 0x0  },
-> +	{ 0x3406, 0x0  },
-> +	{ 0x5180, 0xff },
-> +	{ 0x5181, 0x52 },
-> +	{ 0x5182, 0x11 },
-> +	{ 0x5183, 0x14 },
-> +	{ 0x5184, 0x25 },
-> +	{ 0x5185, 0x24 },
-> +	{ 0x5186, 0x6  },
-> +	{ 0x5187, 0x8  },
-> +	{ 0x5188, 0x8  },
-> +	{ 0x5189, 0x7c },
-> +	{ 0x518a, 0x60 },
-> +	{ 0x518b, 0xb2 },
-> +	{ 0x518c, 0xb2 },
-> +	{ 0x518d, 0x44 },
-> +	{ 0x518e, 0x3d },
-> +	{ 0x518f, 0x58 },
-> +	{ 0x5190, 0x46 },
-> +	{ 0x5191, 0xf8 },
-> +	{ 0x5192, 0x4  },
-> +	{ 0x5193, 0x70 },
-> +	{ 0x5194, 0xf0 },
-> +	{ 0x5195, 0xf0 },
-> +	{ 0x5196, 0x3  },
-> +	{ 0x5197, 0x1  },
-> +	{ 0x5198, 0x4  },
-> +	{ 0x5199, 0x12 },
-> +	{ 0x519a, 0x4  },
-> +	{ 0x519b, 0x0  },
-> +	{ 0x519c, 0x6  },
-> +	{ 0x519d, 0x82 },
-> +	{ 0x519e, 0x0  },
-> +	{ 0x5025, 0x80 },
-> +	{ 0x3a0f, 0x38 },
-> +	{ 0x3a10, 0x30 },
-> +	{ 0x3a1b, 0x3a },
-> +	{ 0x3a1e, 0x2e },
-> +	{ 0x3a11, 0x60 },
-> +	{ 0x3a1f, 0x10 },
-> +	{ 0x5688, 0xa6 },
-> +	{ 0x5689, 0x6a },
-> +	{ 0x568a, 0xea },
-> +	{ 0x568b, 0xae },
-> +	{ 0x568c, 0xa6 },
-> +	{ 0x568d, 0x6a },
-> +	{ 0x568e, 0x62 },
-> +	{ 0x568f, 0x26 },
-> +	{ 0x5583, 0x40 },
-> +	{ 0x5584, 0x40 },
-> +	{ 0x5580, 0x2  },
-> +	{ 0x5000, 0xcf },
-> +	{ 0x5800, 0x27 },
-> +	{ 0x5801, 0x19 },
-> +	{ 0x5802, 0x12 },
-> +	{ 0x5803, 0xf  },
-> +	{ 0x5804, 0x10 },
-> +	{ 0x5805, 0x15 },
-> +	{ 0x5806, 0x1e },
-> +	{ 0x5807, 0x2f },
-> +	{ 0x5808, 0x15 },
-> +	{ 0x5809, 0xd  },
-> +	{ 0x580a, 0xa  },
-> +	{ 0x580b, 0x9  },
-> +	{ 0x580c, 0xa  },
-> +	{ 0x580d, 0xc  },
-> +	{ 0x580e, 0x12 },
-> +	{ 0x580f, 0x19 },
-> +	{ 0x5810, 0xb  },
-> +	{ 0x5811, 0x7  },
-> +	{ 0x5812, 0x4  },
-> +	{ 0x5813, 0x3  },
-> +	{ 0x5814, 0x3  },
-> +	{ 0x5815, 0x6  },
-> +	{ 0x5816, 0xa  },
-> +	{ 0x5817, 0xf  },
-> +	{ 0x5818, 0xa  },
-> +	{ 0x5819, 0x5  },
-> +	{ 0x581a, 0x1  },
-> +	{ 0x581b, 0x0  },
-> +	{ 0x581c, 0x0  },
-> +	{ 0x581d, 0x3  },
-> +	{ 0x581e, 0x8  },
-> +	{ 0x581f, 0xc  },
-> +	{ 0x5820, 0xa  },
-> +	{ 0x5821, 0x5  },
-> +	{ 0x5822, 0x1  },
-> +	{ 0x5823, 0x0  },
-> +	{ 0x5824, 0x0  },
-> +	{ 0x5825, 0x3  },
-> +	{ 0x5826, 0x8  },
-> +	{ 0x5827, 0xc  },
-> +	{ 0x5828, 0xe  },
-> +	{ 0x5829, 0x8  },
-> +	{ 0x582a, 0x6  },
-> +	{ 0x582b, 0x4  },
-> +	{ 0x582c, 0x5  },
-> +	{ 0x582d, 0x7  },
-> +	{ 0x582e, 0xb  },
-> +	{ 0x582f, 0x12 },
-> +	{ 0x5830, 0x18 },
-> +	{ 0x5831, 0x10 },
-> +	{ 0x5832, 0xc  },
-> +	{ 0x5833, 0xa  },
-> +	{ 0x5834, 0xb  },
-> +	{ 0x5835, 0xe  },
-> +	{ 0x5836, 0x15 },
-> +	{ 0x5837, 0x19 },
-> +	{ 0x5838, 0x32 },
-> +	{ 0x5839, 0x1f },
-> +	{ 0x583a, 0x18 },
-> +	{ 0x583b, 0x16 },
-> +	{ 0x583c, 0x17 },
-> +	{ 0x583d, 0x1e },
-> +	{ 0x583e, 0x26 },
-> +	{ 0x583f, 0x53 },
-> +	{ 0x5840, 0x10 },
-> +	{ 0x5841, 0xf  },
-> +	{ 0x5842, 0xd  },
-> +	{ 0x5843, 0xc  },
-> +	{ 0x5844, 0xe  },
-> +	{ 0x5845, 0x9  },
-> +	{ 0x5846, 0x11 },
-> +	{ 0x5847, 0x10 },
-> +	{ 0x5848, 0x10 },
-> +	{ 0x5849, 0x10 },
-> +	{ 0x584a, 0x10 },
-> +	{ 0x584b, 0xe  },
-> +	{ 0x584c, 0x10 },
-> +	{ 0x584d, 0x10 },
-> +	{ 0x584e, 0x11 },
-> +	{ 0x584f, 0x10 },
-> +	{ 0x5850, 0xf  },
-> +	{ 0x5851, 0xc  },
-> +	{ 0x5852, 0xf  },
-> +	{ 0x5853, 0x10 },
-> +	{ 0x5854, 0x10 },
-> +	{ 0x5855, 0xf  },
-> +	{ 0x5856, 0xe  },
-> +	{ 0x5857, 0xb  },
-> +	{ 0x5858, 0x10 },
-> +	{ 0x5859, 0xd  },
-> +	{ 0x585a, 0xd  },
-> +	{ 0x585b, 0xc  },
-> +	{ 0x585c, 0xc  },
-> +	{ 0x585d, 0xc  },
-> +	{ 0x585e, 0xb  },
-> +	{ 0x585f, 0xc  },
-> +	{ 0x5860, 0xc  },
-> +	{ 0x5861, 0xc  },
-> +	{ 0x5862, 0xd  },
-> +	{ 0x5863, 0x8  },
-> +	{ 0x5864, 0x11 },
-> +	{ 0x5865, 0x18 },
-> +	{ 0x5866, 0x18 },
-> +	{ 0x5867, 0x19 },
-> +	{ 0x5868, 0x17 },
-> +	{ 0x5869, 0x19 },
-> +	{ 0x586a, 0x16 },
-> +	{ 0x586b, 0x13 },
-> +	{ 0x586c, 0x13 },
-> +	{ 0x586d, 0x12 },
-> +	{ 0x586e, 0x13 },
-> +	{ 0x586f, 0x16 },
-> +	{ 0x5870, 0x14 },
-> +	{ 0x5871, 0x12 },
-> +	{ 0x5872, 0x10 },
-> +	{ 0x5873, 0x11 },
-> +	{ 0x5874, 0x11 },
-> +	{ 0x5875, 0x16 },
-> +	{ 0x5876, 0x14 },
-> +	{ 0x5877, 0x11 },
-> +	{ 0x5878, 0x10 },
-> +	{ 0x5879, 0xf  },
-> +	{ 0x587a, 0x10 },
-> +	{ 0x587b, 0x14 },
-> +	{ 0x587c, 0x13 },
-> +	{ 0x587d, 0x12 },
-> +	{ 0x587e, 0x11 },
-> +	{ 0x587f, 0x11 },
-> +	{ 0x5880, 0x12 },
-> +	{ 0x5881, 0x15 },
-> +	{ 0x5882, 0x14 },
-> +	{ 0x5883, 0x15 },
-> +	{ 0x5884, 0x15 },
-> +	{ 0x5885, 0x15 },
-> +	{ 0x5886, 0x13 },
-> +	{ 0x5887, 0x17 },
-> +	{ 0x3710, 0x10 },
-> +	{ 0x3632, 0x51 },
-> +	{ 0x3702, 0x10 },
-> +	{ 0x3703, 0xb2 },
-> +	{ 0x3704, 0x18 },
-> +	{ 0x370b, 0x40 },
-> +	{ 0x370d, 0x3  },
-> +	{ 0x3631, 0x1  },
-> +	{ 0x3632, 0x52 },
-> +	{ 0x3606, 0x24 },
-> +	{ 0x3620, 0x96 },
-> +	{ 0x5785, 0x7  },
-> +	{ 0x3a13, 0x30 },
-> +	{ 0x3600, 0x52 },
-> +	{ 0x3604, 0x48 },
-> +	{ 0x3606, 0x1b },
-> +	{ 0x370d, 0xb  },
-> +	{ 0x370f, 0xc0 },
-> +	{ 0x3709, 0x1  },
-> +	{ 0x3823, 0x0  },
-> +	{ 0x5007, 0x0  },
-> +	{ 0x5009, 0x0  },
-> +	{ 0x5011, 0x0  },
-> +	{ 0x5013, 0x0  },
-> +	{ 0x519e, 0x0  },
-> +	{ 0x5086, 0x0  },
-> +	{ 0x5087, 0x0  },
-> +	{ 0x5088, 0x0  },
-> +	{ 0x5089, 0x0  },
-> +	{ 0x302b, 0x0  },
-> +	{ 0x3503, 0x7  },
-> +	{ 0x3011, 0x8  },
-> +	{ 0x350c, 0x2  },
-> +	{ 0x350d, 0xe4 },
-> +	{ 0x3621, 0xc9 },
-> +	{ 0x370a, 0x81 },
-> +	{ 0xffff, 0xff },
-> +};
-> +
-> +static struct regval_list ov5642_default_regs_finalise[] = {
-> +	{ 0x3810, 0xc2 },
-> +	{ 0x3818, 0xc9 },
-> +	{ 0x381c, 0x10 },
-> +	{ 0x381d, 0xa0 },
-> +	{ 0x381e, 0x5  },
-> +	{ 0x381f, 0xb0 },
-> +	{ 0x3820, 0x0  },
-> +	{ 0x3821, 0x0  },
-> +	{ 0x3824, 0x11 },
-> +	{ 0x3a08, 0x1b },
-> +	{ 0x3a09, 0xc0 },
-> +	{ 0x3a0a, 0x17 },
-> +	{ 0x3a0b, 0x20 },
-> +	{ 0x3a0d, 0x2  },
-> +	{ 0x3a0e, 0x1  },
-> +	{ 0x401c, 0x4  },
-> +	{ 0x5682, 0x5  },
-> +	{ 0x5683, 0x0  },
-> +	{ 0x5686, 0x2  },
-> +	{ 0x5687, 0xcc },
-> +	{ 0x5001, 0x4f },
-> +	{ 0x589b, 0x6  },
-> +	{ 0x589a, 0xc5 },
-> +	{ 0x3503, 0x0  },
-> +	{ 0x460c, 0x20 },
-> +	{ 0x460b, 0x37 },
-> +	{ 0x471c, 0xd0 },
-> +	{ 0x471d, 0x5  },
-> +	{ 0x3815, 0x1  },
-> +	{ 0x3818, 0xc1 },
-> +	{ 0x501f, 0x0  },
-> +	{ 0x5002, 0xe0 },
-> +	{ 0x4300, 0x32 }, /* UYVY */
-> +	{ 0x3002, 0x1c },
-> +	{ 0x4800, 0x14 },
-> +	{ 0x4801, 0xf  },
-> +	{ 0x3007, 0x3b },
-> +	{ 0x300e, 0x4  },
-> +	{ 0x4803, 0x50 },
-> +	{ 0x3815, 0x1  },
-> +	{ 0x4713, 0x2  },
-> +	{ 0x4842, 0x1  },
-> +	{ 0x300f, 0xe  },
-> +	{ 0x3003, 0x3  },
-> +	{ 0x3003, 0x1  },
-> +	{ 0xffff, 0xff },
-
-Any chance to replace hardcoded values by #define's ?
-
-
+diff --git a/drivers/media/video/s5p-fimc/fimc-capture.c b/drivers/media/video/s5p-fimc/fimc-capture.c
+index e1b1d12..f3efdbf 100644
+--- a/drivers/media/video/s5p-fimc/fimc-capture.c
++++ b/drivers/media/video/s5p-fimc/fimc-capture.c
+@@ -68,6 +68,7 @@ static int fimc_start_capture(struct fimc_dev *fimc)
+ 		fimc_hw_set_effect(ctx);
+ 		fimc_hw_set_output_path(ctx);
+ 		fimc_hw_set_out_dma(ctx);
++		clear_bit(ST_CAPT_APPLY_CFG, &fimc->state);
+ 	}
+ 	spin_unlock_irqrestore(&fimc->slock, flags);
+ 	return ret;
+@@ -127,6 +128,33 @@ int fimc_capture_resume(struct fimc_dev *fimc)
+ 	return 0;
+ }
+ 
++/**
++ * fimc_capture_config_update - apply the camera interface configuration
++ *
++ * To be called from within the interrupt handler with fimc.slock
++ * spinlock held. Camera pixel crop, rotation and image flip state will
++ * be updated in the H/W.
++ */
++int fimc_capture_config_update(struct fimc_ctx *ctx)
++{
++	struct fimc_dev *fimc = ctx->fimc_dev;
++	int ret;
++
++	spin_lock(&ctx->slock);
++	fimc_hw_set_camera_offset(fimc, &ctx->s_frame);
++	ret = fimc_set_scaler_info(ctx);
++	if (ret == 0) {
++		fimc_hw_set_prescaler(ctx);
++		fimc_hw_set_mainscaler(ctx);
++		fimc_hw_set_target_format(ctx);
++		fimc_hw_set_rotation(ctx);
++		fimc_prepare_dma_offset(ctx, &ctx->d_frame);
++		fimc_hw_set_out_dma(ctx);
++	}
++	spin_unlock(&ctx->slock);
++	return ret;
++}
++
+ static int start_streaming(struct vb2_queue *q)
+ {
+ 	struct fimc_ctx *ctx = q->drv_priv;
+@@ -443,7 +471,7 @@ static int fimc_pipeline_try_or_set_fmt(struct fimc_ctx *ctx,
+ 	while (ff->fmt->mbus_code != mf->code) {
+ 		if (mf->code != -1) {
+ 			ffmt = fimc_find_format(NULL, NULL, FMT_FLAGS_CAM, i++);
+-			if(!ffmt)
++			if (!ffmt)
+ 				return -EINVAL;
+ 		} else {
+ 			ffmt = ff->fmt;
+@@ -532,7 +560,7 @@ static int fimc_cap_s_fmt_mplane(struct file *file, void *priv,
+ 	ret = fimc_pipeline_try_or_set_fmt(ctx, frame, mf);
+ 	fimc_md_graph_unlock(fimc);
+ 	if (!ret) {
+-		frame 		= &ctx->s_frame;
++		frame		= &ctx->s_frame;
+ 		frame->f_width	= mf->width;
+ 		frame->f_height	= mf->height;
+ 		frame->o_width	= mf->width;
+@@ -571,12 +599,69 @@ static int fimc_cap_g_input(struct file *file, void *priv, unsigned int *i)
+ 	return 0;
+ }
+ 
++/**
++ * fimc_pipeline_validate - check for formats inconsistencies on all links ends
++ *
++ * Return 0 if all formats match or -EPIPE otherwise.
++ */
++static int fimc_pipeline_validate(struct fimc_dev *fimc)
++{
++	struct v4l2_subdev_format sink_fmt, src_fmt;
++	struct fimc_vid_cap *vid_cap = &fimc->vid_cap;
++	struct v4l2_subdev *sd;
++	struct media_pad *pad;
++	int ret;
++
++	/* Start with the video capture node pad */
++	pad = media_entity_remote_source(&vid_cap->vd_pad);
++	if (pad == NULL)
++		return -EPIPE;
++	/* FIMC.{N} subdevice */
++	sd = media_entity_to_v4l2_subdev(pad->entity);
++
++	while (1) {
++		/* Retrieve format at the sink pad */
++		pad = &sd->entity.pads[0];
++		if (!(pad->flags & MEDIA_PAD_FL_SINK))
++			break;
++		/* Don't call FIMC subdev operation to avoid a deadlock */
++		if (sd == fimc->vid_cap.subdev) {
++			sink_fmt.format.width = vid_cap->ctx->s_frame.f_width;
++			sink_fmt.format.height = vid_cap->ctx->s_frame.f_height;
++		} else {
++			sink_fmt.pad = pad->index;
++			sink_fmt.which = V4L2_SUBDEV_FORMAT_ACTIVE;
++			ret = v4l2_subdev_call(sd, pad, get_fmt, NULL, &sink_fmt);
++			if (ret < 0 && ret != -ENOIOCTLCMD)
++				return -EPIPE;
++		}
++		/* Retrieve format at the source pad */
++		pad = media_entity_remote_source(pad);
++		if (pad == NULL ||
++		    media_entity_type(pad->entity) != MEDIA_ENT_T_V4L2_SUBDEV)
++			break;
++
++		sd = media_entity_to_v4l2_subdev(pad->entity);
++		src_fmt.pad = pad->index;
++		src_fmt.which = V4L2_SUBDEV_FORMAT_ACTIVE;
++		ret = v4l2_subdev_call(sd, pad, get_fmt, NULL, &src_fmt);
++		if (ret < 0 && ret != -ENOIOCTLCMD)
++			return -EPIPE;
++
++		if (src_fmt.format.width != sink_fmt.format.width ||
++		    src_fmt.format.height != sink_fmt.format.height)
++			return -EPIPE;
++	}
++	return 0;
++}
++
+ static int fimc_cap_streamon(struct file *file, void *priv,
+ 			     enum v4l2_buf_type type)
+ {
+ 	struct fimc_dev *fimc = video_drvdata(file);
+ 	struct fimc_ctx *ctx = fimc->vid_cap.ctx;
+ 	struct fimc_pipeline *p = &fimc->pipeline;
++	int ret;
+ 
+ 	if (fimc_capture_active(fimc))
+ 		return -EBUSY;
+@@ -587,6 +672,11 @@ static int fimc_cap_streamon(struct file *file, void *priv,
+ 	}
+ 	media_entity_pipeline_start(&p->sensor->entity, p->pipe);
+ 
++	if (subdev_has_devnode(p->sensor)) {
++		ret = fimc_pipeline_validate(fimc);
++		if (ret)
++			return ret;
++	}
+ 	return vb2_streamon(&fimc->vid_cap.vbq, type);
+ }
+ 
+@@ -674,6 +764,7 @@ static int fimc_cap_s_crop(struct file *file, void *fh, struct v4l2_crop *cr)
+ 	struct fimc_dev *fimc = video_drvdata(file);
+ 	struct fimc_ctx *ctx = fimc->vid_cap.ctx;
+ 	struct fimc_frame *f;
++	unsigned long flags;
+ 	int ret = -EINVAL;
+ 
+ 	if (fimc_capture_active(fimc))
+@@ -697,12 +788,15 @@ static int fimc_cap_s_crop(struct file *file, void *fh, struct v4l2_crop *cr)
+ 		v4l2_err(fimc->vid_cap.vfd, "Out of the scaler range\n");
+ 		return ret;
+ 	}
++	spin_lock_irqsave(&fimc->slock, flags);
+ 
+ 	f->offs_h = cr->c.left;
+ 	f->offs_v = cr->c.top;
+ 	f->width  = cr->c.width;
+ 	f->height = cr->c.height;
+ 
++	set_bit(ST_CAPT_APPLY_CFG, &fimc->state);
++	spin_unlock_irqrestore(&fimc->slock, flags);
+ 	return 0;
+ }
+ 
+@@ -763,6 +857,358 @@ static const struct media_entity_operations fimc_media_ops = {
+ 	.link_setup = fimc_link_setup,
+ };
+ 
++static int fimc_subdev_enum_mbus_code(struct v4l2_subdev *sd,
++				      struct v4l2_subdev_fh *fh,
++				      struct v4l2_subdev_mbus_code_enum *code)
++{
++	struct fimc_fmt *fmt;
++
++	fmt = fimc_find_format(NULL, NULL, FMT_FLAGS_CAM, code->index);
++	if (!fmt)
++		return -EINVAL;
++	code->code = fmt->mbus_code;
++	return 0;
++}
++
++static int fimc_subdev_get_fmt(struct v4l2_subdev *sd,
++			       struct v4l2_subdev_fh *fh,
++			       struct v4l2_subdev_format *fmt)
++{
++	struct fimc_dev *fimc = v4l2_get_subdevdata(sd);
++	struct fimc_ctx *ctx = fimc->vid_cap.ctx;
++	struct v4l2_mbus_framefmt *mf;
++	struct fimc_frame *ff;
++
++	if (fmt->which == V4L2_SUBDEV_FORMAT_TRY) {
++		mf = v4l2_subdev_get_try_format(fh, fmt->pad);
++		fmt->format = *mf;
++		return 0;
++	}
++	mf = &fmt->format;
++	mf->colorspace = V4L2_COLORSPACE_JPEG;
++	ff = fmt->pad == FIMC_SD_PAD_SINK ? &ctx->s_frame : &ctx->d_frame;
++
++	mutex_lock(&fimc->lock);
++	/* The pixel code is same on both input and output pad */
++	if (!WARN_ON(ctx->d_frame.fmt == NULL))
++		mf->code = ctx->d_frame.fmt->mbus_code;
++	mf->width  = ff->f_width;
++	mf->height = ff->f_height;
++	mutex_unlock(&fimc->lock);
++
++	return 0;
++}
++
++static struct fimc_fmt *fimc_capture_try_format(struct fimc_ctx *ctx,
++						struct v4l2_mbus_framefmt *mf,
++						int pad)
++{
++	bool rotation = ctx->rotation == 90 || ctx->rotation == 270;
++	struct fimc_dev *fimc = ctx->fimc_dev;
++	struct samsung_fimc_variant *var = fimc->variant;
++	struct fimc_pix_limit *pl = var->pix_limit;
++	struct fimc_frame *dst = &ctx->d_frame;
++	struct fimc_fmt *ffmt;
++	u32 depth, min_w, max_w, min_h;
++
++	/* Color conversion from/to JPEG is not supported */
++	if (pad == FIMC_SD_PAD_SOURCE &&
++	    fimc_fmt_is_jpeg(ctx->s_frame.fmt->color))
++		mf->code = V4L2_MBUS_FMT_JPEG_1X8;
++
++	ffmt = fimc_find_format(NULL, mf, FMT_FLAGS_CAM, 0);
++	if (WARN_ON(!ffmt))
++		return NULL;
++	mf->code = ffmt->mbus_code;
++	if (pad == FIMC_SD_PAD_SINK) {
++		max_w = fimc_fmt_is_jpeg(ffmt->color) ?
++			pl->scaler_dis_w : pl->scaler_en_w;
++		/* Apply the camera input interface pixel constraints */
++		v4l_bound_align_image(&mf->width, 32, max_w, 4,
++				      &mf->height, 32, FIMC_CAMIF_MAX_HEIGHT, 1,
++				      0);
++		return ffmt;
++	}
++	/* Can't scale or crop in transparent (JPEG) transfer mode */
++	if (fimc_fmt_is_jpeg(ffmt->color)) {
++		mf->width  = ctx->s_frame.f_width;
++		mf->height = ctx->s_frame.f_height;
++		return 0;
++	}
++	/* Apply the scaler and the output DMA constraints */
++	max_w = rotation ? pl->out_rot_en_w : pl->out_rot_dis_w;
++	min_w = ctx->state & FIMC_DST_CROP ? dst->width : var->min_out_pixsize;
++	min_h = ctx->state & FIMC_DST_CROP ? dst->height : var->min_out_pixsize;
++
++	depth = fimc_get_format_depth(ffmt);
++	v4l_bound_align_image(&mf->width, min_w, max_w,
++			      ffs(var->min_out_pixsize) - 1,
++			      &mf->height, min_h, FIMC_CAMIF_MAX_HEIGHT,
++			      ffs(var->min_out_pixsize) - 1,
++			      64/(ALIGN(depth, 8)));
++	mf->colorspace = V4L2_COLORSPACE_JPEG;
++
++	dbg("pad%d: code: 0x%x, %dx%d. dst fmt: %dx%d",
++	    pad, mf->code, mf->width, mf->height,
++	    dst->f_width, dst->f_height);
++
++	return ffmt;
++}
++
++static int fimc_subdev_set_fmt(struct v4l2_subdev *sd,
++			       struct v4l2_subdev_fh *fh,
++			       struct v4l2_subdev_format *fmt)
++{
++	struct fimc_dev *fimc = v4l2_get_subdevdata(sd);
++	struct v4l2_mbus_framefmt *mf = &fmt->format;
++	struct fimc_ctx *ctx = fimc->vid_cap.ctx;
++	struct fimc_frame *ff;
++	struct fimc_fmt *ffmt;
++
++	dbg("pad%d: code: 0x%x, %dx%d",
++	    fmt->pad, mf->code, mf->width, mf->height);
++
++	if (fmt->pad == FIMC_SD_PAD_SOURCE &&
++	    vb2_is_busy(&fimc->vid_cap.vbq))
++		return -EBUSY;
++
++	mutex_lock(&fimc->lock);
++	ffmt = fimc_capture_try_format(ctx, mf, fmt->pad);
++	mutex_unlock(&fimc->lock);
++
++	if (fmt->which == V4L2_SUBDEV_FORMAT_TRY) {
++		mf = v4l2_subdev_get_try_format(fh, fmt->pad);
++		*mf = fmt->format;
++		return 0;
++	}
++	ff = fmt->pad == FIMC_SD_PAD_SINK ?
++		&ctx->s_frame : &ctx->d_frame;
++
++	mutex_lock(&fimc->lock);
++	ff->f_width	= mf->width;
++	ff->f_height	= mf->height;
++	ff->fmt		= ffmt;
++	/* Reset the crop rectangle if required. */
++	if (!(fmt->pad == FIMC_SD_PAD_SOURCE &&
++	      (ctx->state & FIMC_DST_CROP))) {
++		ff->width    = mf->width;
++		ff->height   = mf->height;
++		ff->o_width  = mf->width;
++		ff->o_height = mf->height;
++		ff->offs_h   = ff->offs_v = 0;
++	}
++	if (fmt->pad == FIMC_SD_PAD_SINK)
++		ctx->state &= ~FIMC_DST_CROP;
++	mutex_unlock(&fimc->lock);
++	return 0;
++}
++
++static int fimc_subdev_get_crop(struct v4l2_subdev *sd,
++				struct v4l2_subdev_fh *fh,
++				struct v4l2_subdev_crop *crop)
++{
++	struct fimc_dev *fimc = v4l2_get_subdevdata(sd);
++	struct fimc_ctx *ctx = fimc->vid_cap.ctx;
++	struct v4l2_rect *r = &crop->rect;
++	struct fimc_frame *ff;
++
++	if (crop->which == V4L2_SUBDEV_FORMAT_TRY) {
++		crop->rect = *v4l2_subdev_get_try_crop(fh, crop->pad);
++		return 0;
++	}
++	ff = crop->pad == FIMC_SD_PAD_SINK ?
++		&ctx->s_frame : &ctx->d_frame;
++
++	mutex_lock(&fimc->lock);
++	r->left	  = ff->offs_h;
++	r->top	  = ff->offs_v;
++	r->width  = ff->width;
++	r->height = ff->height;
++	mutex_unlock(&fimc->lock);
++
++	dbg("ff:%p, pad%d: l:%d, t:%d, %dx%d, f_w: %d, f_h: %d",
++	    ff, crop->pad, r->left, r->top, r->width, r->height,
++	    ff->f_width, ff->f_height);
++
++	return 0;
++}
++
++static int fimc_capture_try_crop(struct fimc_ctx *ctx, struct v4l2_rect *r,
++				 int pad)
++{
++	bool rotate = ctx->rotation == 90 || ctx->rotation == 270;
++	struct fimc_dev *fimc = ctx->fimc_dev;
++	struct samsung_fimc_variant *var = fimc->variant;
++	struct fimc_pix_limit *pl = var->pix_limit;
++	struct fimc_frame *sink = &ctx->s_frame;
++	u32 align_sz = 0, align_h = 4;
++	u32 max_w, max_h, min_w, min_h;
++	u32 min_sz;
++
++	/* In JPEG transparent transfer mode cropping is not supported */
++	if (fimc_fmt_is_jpeg(sink->fmt->color)) {
++		r->width  = sink->f_width;
++		r->height = sink->f_height;
++		r->left   = r->top = 0;
++		return 0;
++	}
++	if (pad == FIMC_SD_PAD_SOURCE) {
++		if (ctx->rotation != 90 && ctx->rotation != 270)
++			align_h = 1;
++		min_sz = var->min_out_pixsize;
++	} else {
++		u32 depth = fimc_get_format_depth(sink->fmt);
++		align_sz = 64/ALIGN(depth, 8);
++		min_sz = var->min_inp_pixsize;
++	}
++	/*
++	 * For the crop rectangle at source pad the following constraints
++	 * must be met:
++	 * - it must fit in the sink pad format rectangle (f_width/f_height);
++	 * - maximum downscaling ratio is 64;
++	 * - maximum crop size depends if the rotator is used or not;
++	 * - the sink pad format width/height must be 4 multiple of the
++	 *   prescaler ratios determined by sink pad size and source pad crop,
++	 *   the prescaler ratio is returned by fimc_get_scaler_factor().
++	 */
++	max_w = min_t(u32,
++		      rotate ? pl->out_rot_en_w : pl->out_rot_dis_w,
++		      rotate ? sink->f_height : sink->f_width);
++	max_h = min_t(u32, FIMC_CAMIF_MAX_HEIGHT, sink->f_height);
++	min_w = min_t(u32, max_w, sink->f_width / SCALER_MAX_HRATIO);
++	min_h = min_t(u32, max_h, sink->f_height / SCALER_MAX_VRATIO);
++	if (rotate && pad == FIMC_SD_PAD_SOURCE)
++		swap(min_w, min_h);
++
++	v4l_bound_align_image(&r->width, min_w, max_w, ffs(min_sz) - 1,
++			      &r->height, min_h, max_h, align_h,
++			      align_sz);
++	/* Adjust left/top if cropping rectangle is out of bounds */
++	r->left = clamp_t(u32, r->left, 0, sink->f_width - r->width);
++	r->top  = clamp_t(u32, r->top, 0, sink->f_height - r->height);
++	r->left = round_down(r->left, var->hor_offs_align);
++
++	dbg("pad%d: (%d,%d)/%dx%d, sink fmt: %dx%d",
++	    pad, r->left, r->top, r->width, r->height,
++	    sink->f_width, sink->f_height);
++
++	return 0;
++}
++
++static int fimc_subdev_set_crop(struct v4l2_subdev *sd,
++				struct v4l2_subdev_fh *fh,
++				struct v4l2_subdev_crop *crop)
++{
++	struct fimc_dev *fimc = v4l2_get_subdevdata(sd);
++	struct fimc_ctx *ctx = fimc->vid_cap.ctx;
++	struct v4l2_rect *r = &crop->rect;
++	struct fimc_frame *ff;
++	unsigned long flags;
++
++	dbg("(%d,%d)/%dx%d", r->left, r->top, r->width, r->height);
++
++	ff = crop->pad == FIMC_SD_PAD_SOURCE ?
++		&ctx->d_frame : &ctx->s_frame;
++
++	mutex_lock(&fimc->lock);
++	fimc_capture_try_crop(ctx, r, crop->pad);
++
++	if (crop->which == V4L2_SUBDEV_FORMAT_TRY) {
++		mutex_lock(&fimc->lock);
++		*v4l2_subdev_get_try_crop(fh, crop->pad) = *r;
++		return 0;
++	}
++	spin_lock_irqsave(&fimc->slock, flags);
++	ff->offs_h = r->left;
++	ff->offs_v = r->top;
++	ff->width  = r->width;
++	ff->height = r->height;
++
++	if (crop->pad == FIMC_SD_PAD_SOURCE)
++		ctx->state |= FIMC_DST_CROP;
++
++	set_bit(ST_CAPT_APPLY_CFG, &fimc->state);
++	spin_unlock_irqrestore(&fimc->slock, flags);
++
++	dbg("pad%d: (%d,%d)/%dx%d", crop->pad, r->left, r->top,
++	    r->width, r->height);
++
++	mutex_unlock(&fimc->lock);
++	return 0;
++}
++
++static struct v4l2_subdev_pad_ops fimc_subdev_pad_ops = {
++	.enum_mbus_code = fimc_subdev_enum_mbus_code,
++	.get_fmt = fimc_subdev_get_fmt,
++	.set_fmt = fimc_subdev_set_fmt,
++	.get_crop = fimc_subdev_get_crop,
++	.set_crop = fimc_subdev_set_crop,
++};
++
++static struct v4l2_subdev_ops fimc_subdev_ops = {
++	.pad = &fimc_subdev_pad_ops,
++};
++
++static int fimc_create_capture_subdev(struct fimc_dev *fimc,
++				      struct v4l2_device *v4l2_dev)
++{
++	struct v4l2_subdev *sd;
++	int ret;
++
++	sd = kzalloc(sizeof(*sd), GFP_KERNEL);
++	if (!sd)
++		return -ENOMEM;
++
++	v4l2_subdev_init(sd, &fimc_subdev_ops);
++	sd->owner = THIS_MODULE;
++	sd->flags = V4L2_SUBDEV_FL_HAS_DEVNODE;
++	snprintf(sd->name, sizeof(sd->name), "FIMC.%d", fimc->pdev->id);
++
++	fimc->vid_cap.sd_pads[FIMC_SD_PAD_SINK].flags = MEDIA_PAD_FL_SINK;
++	fimc->vid_cap.sd_pads[FIMC_SD_PAD_SOURCE].flags = MEDIA_PAD_FL_SOURCE;
++	ret = media_entity_init(&sd->entity, FIMC_SD_PADS_NUM,
++				fimc->vid_cap.sd_pads, 0);
++	if (ret)
++		goto error;
++	ret = v4l2_device_register_subdev(v4l2_dev, sd);
++	if (!ret) {
++		fimc->vid_cap.subdev = sd;
++		v4l2_set_subdevdata(sd, fimc);
++		return 0;
++	}
++	media_entity_cleanup(&sd->entity);
++error:
++	kfree(sd);
++	return ret;
++}
++
++static void fimc_destroy_capture_subdev(struct fimc_dev *fimc)
++{
++	struct v4l2_subdev *sd = fimc->vid_cap.subdev;
++
++	if (!sd)
++		return;
++	media_entity_cleanup(&sd->entity);
++	v4l2_device_unregister_subdev(sd);
++	kfree(sd);
++}
++
++/* Set default format at the camera input, scaler and the output DMA */
++static void fimc_cap_set_default_fmt(struct fimc_ctx *ctx)
++{
++	struct fimc_fmt *fmt = fimc_find_format(NULL, NULL, FMT_FLAGS_CAM, 0);
++	struct fimc_frame *fr = &ctx->s_frame;
++
++	fr->fmt = fmt;
++	fr->o_width = fr->f_width = fr->width = 640;
++	fr->o_height = fr->f_height = fr->width = 480;
++
++	fr = &ctx->d_frame;
++	fr->fmt = fmt;
++	fr->o_width = fr->f_width = fr->width = 640;
++	fr->o_height = fr->f_height = fr->width = 480;
++}
++
+ /* fimc->lock must be already initialized */
+ int fimc_register_capture_device(struct fimc_dev *fimc,
+ 				 struct v4l2_device *v4l2_dev)
+@@ -770,7 +1216,6 @@ int fimc_register_capture_device(struct fimc_dev *fimc,
+ 	struct video_device *vfd;
+ 	struct fimc_vid_cap *vid_cap;
+ 	struct fimc_ctx *ctx;
+-	struct fimc_frame *fr;
+ 	struct vb2_queue *q;
+ 	int ret = -ENOMEM;
+ 
+@@ -783,11 +1228,7 @@ int fimc_register_capture_device(struct fimc_dev *fimc,
+ 	ctx->out_path	 = FIMC_DMA;
+ 	ctx->state	 = FIMC_CTX_CAP;
+ 
+-	/* Default format of the output frames */
+-	fr = &ctx->d_frame;
+-	fr->fmt = fimc_find_format(NULL, NULL, FMT_FLAGS_CAM, 0);
+-	fr->width = fr->f_width = fr->o_width = 640;
+-	fr->height = fr->f_height = fr->o_height = 480;
++	fimc_cap_set_default_fmt(ctx);
+ 
+ 	vfd = video_device_alloc();
+ 	if (!vfd) {
+@@ -832,6 +1273,9 @@ int fimc_register_capture_device(struct fimc_dev *fimc,
+ 	ret = media_entity_init(&vfd->entity, 1, &fimc->vid_cap.vd_pad, 0);
+ 	if (ret)
+ 		goto err_ent;
++	ret = fimc_create_capture_subdev(fimc, v4l2_dev);
++	if (ret)
++		goto err_sd_reg;
+ 
+ 	vfd->entity.ops = &fimc_media_ops;
+ 	vfd->ctrl_handler = &ctx->ctrl_handler;
+@@ -846,6 +1290,8 @@ int fimc_register_capture_device(struct fimc_dev *fimc,
+ 	return 0;
+ 
+ err_vd_reg:
++	fimc_destroy_capture_subdev(fimc);
++err_sd_reg:
+ 	media_entity_cleanup(&vfd->entity);
+ err_ent:
+ 	video_device_release(vfd);
+@@ -862,5 +1308,6 @@ void fimc_unregister_capture_device(struct fimc_dev *fimc)
+ 		media_entity_cleanup(&vfd->entity);
+ 		video_unregister_device(vfd);
+ 	}
++	fimc_destroy_capture_subdev(fimc);
+ 	kfree(fimc->vid_cap.ctx);
+ }
+diff --git a/drivers/media/video/s5p-fimc/fimc-core.c b/drivers/media/video/s5p-fimc/fimc-core.c
+index e944fc4..6d5d3e1 100644
+--- a/drivers/media/video/s5p-fimc/fimc-core.c
++++ b/drivers/media/video/s5p-fimc/fimc-core.c
+@@ -361,6 +361,10 @@ void fimc_capture_irq_handler(struct fimc_dev *fimc)
+ 	} else {
+ 		set_bit(ST_CAPT_RUN, &fimc->state);
+ 	}
++	if (test_bit(ST_CAPT_APPLY_CFG, &fimc->state)) {
++		if (fimc_capture_config_update(cap->ctx) == 0)
++			clear_bit(ST_CAPT_APPLY_CFG, &fimc->state);
++	}
+ 
+ 	dbg("frame: %d, active_buf_cnt: %d",
+ 	    fimc_hw_get_frame_index(fimc), cap->active_buf_cnt);
+diff --git a/drivers/media/video/s5p-fimc/fimc-core.h b/drivers/media/video/s5p-fimc/fimc-core.h
+index 57d347f..3a388b0 100644
+--- a/drivers/media/video/s5p-fimc/fimc-core.h
++++ b/drivers/media/video/s5p-fimc/fimc-core.h
+@@ -93,9 +93,11 @@ enum fimc_color_fmt {
+ 	S5P_FIMC_CBYCRY422,
+ 	S5P_FIMC_CRYCBY422,
+ 	S5P_FIMC_YCBCR444_LOCAL,
++	S5P_FIMC_JPEG = 0x40,
+ };
+ 
+-#define fimc_fmt_is_rgb(x) ((x) & 0x10)
++#define fimc_fmt_is_rgb(x) (!!((x) & 0x10))
++#define fimc_fmt_is_jpeg(x) (!!((x) & 0x40))
+ 
+ /* Cb/Cr chrominance components order for 2 plane Y/CbCr 4:2:2 formats. */
+ #define	S5P_FIMC_LSB_CRCB	S5P_CIOCTRL_ORDER422_2P_LSB_CRCB
+@@ -114,9 +116,11 @@ enum fimc_color_fmt {
+ #define	FIMC_DST_ADDR		(1 << 2)
+ #define	FIMC_SRC_FMT		(1 << 3)
+ #define	FIMC_DST_FMT		(1 << 4)
+-#define	FIMC_CTX_M2M		(1 << 5)
+-#define	FIMC_CTX_CAP		(1 << 6)
+-#define	FIMC_CTX_SHUT		(1 << 7)
++#define	FIMC_DST_CROP		(1 << 5)
++#define	FIMC_CTX_M2M		(1 << 16)
++#define	FIMC_CTX_CAP		(1 << 17)
++#define	FIMC_CTX_SHUT		(1 << 18)
++
+ 
+ /* Image conversion flags */
+ #define	FIMC_IN_DMA_ACCESS_TILED	(1 << 0)
+@@ -291,12 +295,18 @@ struct fimc_m2m_device {
+ 	int			refcnt;
+ };
+ 
++#define FIMC_SD_PAD_SINK	0
++#define FIMC_SD_PAD_SOURCE	1
++#define FIMC_SD_PADS_NUM	2
++
+ /**
+  * struct fimc_vid_cap - camera capture device information
+  * @ctx: hardware context data
+  * @vfd: video device node for camera capture mode
++ * @subdev: subdev exposing the FIMC processing block
+  * @vd_pad: fimc video capture node pad
+- * @fmt: Media Bus format configured at selected image sensor
++ * @sd_pads: fimc video processing block pads
++ * @mf: media bus format at the FIMC camera input (and the DMA output) pad
+  * @pending_buf_q: the pending buffer queue head
+  * @active_buf_q: the queue head of buffers scheduled in hardware
+  * @vbq: the capture am video buffer queue
+@@ -312,8 +322,10 @@ struct fimc_vid_cap {
+ 	struct fimc_ctx			*ctx;
+ 	struct vb2_alloc_ctx		*alloc_ctx;
+ 	struct video_device		*vfd;
++	struct v4l2_subdev		*subdev;
+ 	struct media_pad		vd_pad;
+ 	struct v4l2_mbus_framefmt	mf;
++	struct media_pad		sd_pads[FIMC_SD_PADS_NUM];
+ 	struct list_head		pending_buf_q;
+ 	struct list_head		active_buf_q;
+ 	struct vb2_queue		vbq;
+@@ -492,6 +504,16 @@ struct fimc_ctx {
+ 
+ #define fh_to_ctx(__fh) container_of(__fh, struct fimc_ctx, fh)
+ 
++static inline u32 fimc_get_format_depth(struct fimc_fmt *ff)
++{
++	u32 i, depth = 0;
++
++	if (ff != NULL)
++		for (i = 0; i < ff->colplanes; i++)
++			depth += ff->depth[i];
++	return depth;
++}
++
+ static inline bool fimc_capture_active(struct fimc_dev *fimc)
+ {
+ 	unsigned long flags;
+@@ -677,6 +699,7 @@ int fimc_vid_cap_buf_queue(struct fimc_dev *fimc,
+ 			     struct fimc_vid_buffer *fimc_vb);
+ int fimc_capture_suspend(struct fimc_dev *fimc);
+ int fimc_capture_resume(struct fimc_dev *fimc);
++int fimc_capture_config_update(struct fimc_ctx *ctx);
+ 
+ /* Locking: the caller holds fimc->slock */
+ static inline void fimc_activate_capture(struct fimc_ctx *ctx)
+diff --git a/drivers/media/video/s5p-fimc/fimc-mdevice.c b/drivers/media/video/s5p-fimc/fimc-mdevice.c
+index 0b46fe7..38ed74c 100644
+--- a/drivers/media/video/s5p-fimc/fimc-mdevice.c
++++ b/drivers/media/video/s5p-fimc/fimc-mdevice.c
+@@ -383,9 +383,11 @@ static int __fimc_md_create_fimc_links(struct fimc_md *fmd,
+ 	for (i = 0; i < FIMC_MAX_DEVS; i++) {
+ 		if (fmd->fimc[i] == NULL)
+ 			break;
++
+ 		flags = (i == fimc_id) ? MEDIA_LNK_FL_ENABLED : 0;
+-		sink = &fmd->fimc[i]->vid_cap.vfd->entity;
+-		rc = media_entity_create_link(source, 0, sink, 0, flags);
++		sink = &fmd->fimc[i]->vid_cap.subdev->entity;
++		rc = media_entity_create_link(source, pad, sink,
++					      FIMC_SD_PAD_SINK, flags);
+ 		if (rc)
+ 			return rc;
+ 
+@@ -422,7 +424,7 @@ static int fimc_md_create_links(struct fimc_md *fmd)
+ 	struct v4l2_subdev *sensor, *csis;
+ 	struct s5p_fimc_isp_info *pdata;
+ 	struct fimc_sensor_info *s_info;
+-	struct media_entity *source;
++	struct media_entity *source, *sink;
+ 	int fimc_id = 0;
+ 	int i, pad;
+ 	int rc = 0;
+@@ -481,6 +483,22 @@ static int fimc_md_create_links(struct fimc_md *fmd)
+ 		rc = __fimc_md_create_fimc_links(fmd, source, sensor, pad,
+ 						 fimc_id++);
+ 	}
++
++	for (i = 0; i < FIMC_MAX_DEVS; i++) {
++		u32 flags = MEDIA_LNK_FL_IMMUTABLE | MEDIA_LNK_FL_ENABLED;
++		source = &fmd->fimc[i]->vid_cap.subdev->entity;
++		sink = &fmd->fimc[i]->vid_cap.vfd->entity;
++		rc = media_entity_create_link(source, FIMC_SD_PAD_SOURCE,
++					      sink, 0, flags);
++		if (rc)
++			break;
++		/* Notify fimc.capture entity */
++		rc = media_entity_call(sink, link_setup, &sink->pads[0],
++				&source->pads[FIMC_SD_PAD_SOURCE], flags);
++		if (rc)
++			break;
++	}
++
+ 	return rc;
+ }
+ 
+@@ -588,15 +606,15 @@ int fimc_md_configure_cam_clock(struct v4l2_subdev *sd, bool on)
+ static int fimc_md_link_notify(struct media_pad *source,
+ 			       struct media_pad *sink, u32 flags)
+ {
+-	struct video_device *vid_dev;
++	struct v4l2_subdev *sd;
+ 	struct fimc_dev *fimc;
+ 	int ret = 0;
+ 
+-	if (WARN_ON(media_entity_type(sink->entity) != MEDIA_ENT_T_DEVNODE))
++	if (media_entity_type(sink->entity) != MEDIA_ENT_T_V4L2_SUBDEV)
+ 		return 0;
+ 
+-	vid_dev = media_entity_to_video_device(sink->entity);
+-	fimc = video_get_drvdata(vid_dev);
++	sd = media_entity_to_v4l2_subdev(sink->entity);
++	fimc = v4l2_get_subdevdata(sd);
+ 
+ 	if (!(flags & MEDIA_LNK_FL_ENABLED)) {
+ 		ret = __fimc_pipeline_shutdown(fimc);
 -- 
-Regards,
+1.7.5.4
 
-Laurent Pinchart
