@@ -1,50 +1,146 @@
 Return-path: <mchehab@pedra>
-Received: from moutng.kundenserver.de ([212.227.17.9]:52100 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757823Ab1FQMrK (ORCPT
+Received: from 5571f1ba.dsl.concepts.nl ([85.113.241.186]:52913 "EHLO
+	his10.thuis.hoogenraad.info" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1755519Ab1FJOXP (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 17 Jun 2011 08:47:10 -0400
-From: Arnd Bergmann <arnd@arndb.de>
-To: Larry Bassel <lbassel@codeaurora.org>
-Subject: Re: [Linaro-mm-sig] [PATCH 08/10] mm: cma: Contiguous Memory Allocator added
-Date: Fri, 17 Jun 2011 14:45:09 +0200
-Cc: Marek Szyprowski <m.szyprowski@samsung.com>,
-	"'Zach Pfeffer'" <zach.pfeffer@linaro.org>,
-	"'Daniel Walker'" <dwalker@codeaurora.org>,
-	"'Daniel Stone'" <daniels@collabora.com>,
-	"'Jesse Barker'" <jesse.barker@linaro.org>,
-	"'Mel Gorman'" <mel@csn.ul.ie>,
-	"'KAMEZAWA Hiroyuki'" <kamezawa.hiroyu@jp.fujitsu.com>,
-	linux-kernel@vger.kernel.org,
-	"'Michal Nazarewicz'" <mina86@mina86.com>,
-	linaro-mm-sig@lists.linaro.org, linux-mm@kvack.org,
-	"'Kyungmin Park'" <kyungmin.park@samsung.com>,
-	"'Ankita Garg'" <ankita@in.ibm.com>,
-	"'Andrew Morton'" <akpm@linux-foundation.org>,
-	linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org
-References: <1307699698-29369-1-git-send-email-m.szyprowski@samsung.com> <201106160006.07742.arnd@arndb.de> <20110616170133.GC28032@labbmf-linux.qualcomm.com>
-In-Reply-To: <20110616170133.GC28032@labbmf-linux.qualcomm.com>
+	Fri, 10 Jun 2011 10:23:15 -0400
+Message-ID: <4DF226B7.1060602@hoogenraad.net>
+Date: Fri, 10 Jun 2011 16:14:15 +0200
+From: Jan Hoogenraad <jan-verisign@hoogenraad.net>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201106171445.09567.arnd@arndb.de>
+To: Devin Heitmueller <dheitmueller@kernellabs.com>,
+	Andy Walls <awalls@md.metrocast.net>
+CC: linux-media@vger.kernel.org
+Subject: Re: Media_build does not compile due to errors in cx18-driver.h,
+ cx18-driver.c and dvbdev.c /rc-main.c
+References: <4DF1FF06.4050502@hoogenraad.net>	<3e84c07f-83ff-4f83-9f8f-f52631259f05@email.android.com> <BANLkTinE1vRVJ+j+7JiPHZqXHJ8WTFX+cg@mail.gmail.com> <4DF21AA7.1010505@hoogenraad.net>
+In-Reply-To: <4DF21AA7.1010505@hoogenraad.net>
+Content-Type: multipart/mixed;
+ boundary="------------070200010504080103040202"
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Thursday 16 June 2011 19:01:33 Larry Bassel wrote:
-> > Can you describe how the memory areas differ specifically?
-> > Is there one that is always faster but very small, or are there
-> > just specific circumstances under which some memory is faster than
-> > another?
-> 
-> One is always faster, but very small (generally 2-10% the size
-> of "normal" memory).
-> 
+This is a multi-part message in MIME format.
+--------------070200010504080103040202
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 
-Ok, that sounds like the "SRAM" regions that we are handling on some
-ARM platforms using the various interfaces. It should probably
-remain outside of the regular allocator, but we can try to generalize
-the SRAM support further. There are many possible uses for it.
+Sorry; too fast a reaction; I did not realize that the build script 
+creates a version per kernel, and that my messages thus become hard to 
+trace.
 
-	Arnd
+The cx18 doubles were clear. The one in the code file may be caused by
+v2.6.37_dont_use_alloc_ordered_workqueue.patch
+but I don't see the problem in the header file in that patch.
+
+
+
+Below the 3 non cx18 offending lines:
+
+line in v4l2-dev.c:
+
+	printk(KERN_ERR "WARNING: You are using an experimental version of the 
+media stack.\n\tAs the driver is backported to an older kernel, it 
+doesn't offer\n\tenough quality for its usage in production.\n\tUse it 
+with care.\nLatest git patches (needed if you report a bug to 
+linux-media@vger.kernel.org):\n\t75125b9d44456e0cf2d1fbb72ae33c13415299d1 [media] 
+DocBook: Don't be noisy at make 
+cleanmediadocs\n\t0fba2f7ff0c4d9f48a5c334826a22db32f816a76 Revert 
+\\"[media] dvb/audio.h: Remove definition for 
+AUDIO_GET_PTS\\"\n\t4f75ad768da3c5952d1e7080045a5b5ce7b0d85d [media] 
+DocBook/video.xml: Document the remaining data structures\n");
+
+
+line in rc-main.c:
+
+	printk(KERN_ERR "WARNING: You are using an experimental version of the 
+media stack.\n\tAs the driver is backported to an older kernel, it 
+doesn't offer\n\tenough quality for its usage in production.\n\tUse it 
+with care.\nLatest git patches (needed if you report a bug to 
+linux-media@vger.kernel.org):\n\t75125b9d44456e0cf2d1fbb72ae33c13415299d1 [media] 
+DocBook: Don't be noisy at make 
+cleanmediadocs\n\t0fba2f7ff0c4d9f48a5c334826a22db32f816a76 Revert 
+\\"[media] dvb/audio.h: Remove definition for 
+AUDIO_GET_PTS\\"\n\t4f75ad768da3c5952d1e7080045a5b5ce7b0d85d [media] 
+DocBook/video.xml: Document the remaining data structures\n");
+
+
+
+line in dvbdeb.c:
+
+
+	printk(KERN_ERR "WARNING: You are using an experimental version of the 
+media stack.\n\tAs the driver is backported to an older kernel, it 
+doesn't offer\n\tenough quality for its usage in production.\n\tUse it 
+with care.\nLatest git patches (needed if you report a bug to 
+linux-media@vger.kernel.org):\n\t75125b9d44456e0cf2d1fbb72ae33c13415299d1 [media] 
+DocBook: Don't be noisy at make 
+cleanmediadocs\n\t0fba2f7ff0c4d9f48a5c334826a22db32f816a76 Revert 
+\\"[media] dvb/audio.h: Remove definition for 
+AUDIO_GET_PTS\\"\n\t4f75ad768da3c5952d1e7080045a5b5ce7b0d85d [media] 
+DocBook/video.xml: Document the remaining data structures\n");
+
+Jan Hoogenraad wrote:
+> Andy:
+>
+> Something along the line of id already defined.
+> I just corrected the code by removing the duplicate lines that are in
+> the sources of the tar.
+>
+> The other 3 files have a bad escape sequence in a line saying that this
+> is the backports. One backslash not removed in a script, I guess.
+>
+> Devin:
+>
+> The version does not matter for the cx18 problem: any compiler complains
+> on duplicate lines.
+>
+> Anyway: 2.6.32-32-generic-pae #62-Ubuntu SMP Wed Apr 20 22:10:33 UTC
+> 2011 i686 GNU/Linux
+>
+> Devin Heitmueller wrote:
+>> On Fri, Jun 10, 2011 at 8:34 AM, Andy Walls<awalls@md.metrocast.net>
+>> wrote:
+>>> What are the error messages?
+>>>
+>>> Tejun Heo made quite a number of workqueue changes, and the cx18
+>>> driver got dragged forward with them. So did ivtv for that matter.
+>>>
+>>> Just disable the cx18 driver if you don't need it for an older kernel.
+>>>
+>>> Regards,
+>>> Andy
+>>
+>> Another highly relevant piece of information to know is what kernel
+>> Jan is running on. It is probably from before the workqueue changes.
+>>
+>> Devin
+>>
+>
+>
+
+
+--------------070200010504080103040202
+Content-Type: text/x-vcard; charset=utf-8;
+ name="jan-verisign.vcf"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: attachment;
+ filename="jan-verisign.vcf"
+
+begin:vcard
+fn:Jan Hoogenraad
+n:Hoogenraad;Jan
+org:Hoogenraad Interface Services
+adr;quoted-printable;dom:;;Postbus 2717;Utrecht;;-- =
+	=0D=0A=
+	Jan Hoogenraad=0D=0A=
+	Hoogenraad Interface Services=0D=0A=
+	Postbus 2717=0D=0A=
+	3500 GS
+email;internet:jan-verisign@hoogenraad.net
+x-mozilla-html:FALSE
+version:2.1
+end:vcard
+
+
+--------------070200010504080103040202--
