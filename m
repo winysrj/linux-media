@@ -1,49 +1,101 @@
 Return-path: <mchehab@pedra>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:50497 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753122Ab1FIPKW (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 9 Jun 2011 11:10:22 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
-Subject: Re: [PATCH 3/3] adp1653: Add driver for LED flash controller
-Date: Thu, 9 Jun 2011 17:10:16 +0200
-Cc: linux-media@vger.kernel.org, nkanchev@mm-sol.com,
-	g.liakhovetski@gmx.de, hverkuil@xs4all.nl, dacohen@gmail.com,
-	riverful@gmail.com, andrew.b.adams@gmail.com, shpark7@stanford.edu
-References: <4DD11FEC.8050308@maxwell.research.nokia.com> <1305550839-16724-3-git-send-email-sakari.ailus@maxwell.research.nokia.com>
-In-Reply-To: <1305550839-16724-3-git-send-email-sakari.ailus@maxwell.research.nokia.com>
+Received: from mx1.redhat.com ([209.132.183.28]:28608 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1757538Ab1FJPTU (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 10 Jun 2011 11:19:20 -0400
+Message-ID: <4DF235F0.9080209@redhat.com>
+Date: Fri, 10 Jun 2011 12:19:12 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-15"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201106091710.18273.laurent.pinchart@ideasonboard.com>
+To: Randy Dunlap <randy.dunlap@oracle.com>
+CC: Stephen Rothwell <sfr@canb.auug.org.au>,
+	linux-media@vger.kernel.org, linux-next@vger.kernel.org,
+	LKML <linux-kernel@vger.kernel.org>
+Subject: Re: linux-next: Tree for June 8 (docbook/media)
+References: <20110608161046.4ad95776.sfr@canb.auug.org.au> <20110608125243.e63a07fc.randy.dunlap@oracle.com> <4DF11E15.5030907@infradead.org> <4DF12263.3070900@redhat.com> <4DF12DD1.7060606@oracle.com> <4DF1581E.8050308@redhat.com> <4DF1593A.6080306@oracle.com> <4DF21254.6090106@redhat.com> <4DF23271.7070407@oracle.com>
+In-Reply-To: <4DF23271.7070407@oracle.com>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Hi Sakari,
-
-On Monday 16 May 2011 15:00:39 Sakari Ailus wrote:
-> This patch adds the driver for the adp1653 LED flash controller. This
-> controller supports a high power led in flash and torch modes and an
-> indicator light, sometimes also called privacy light.
+Em 10-06-2011 12:04, Randy Dunlap escreveu:
+> On 06/10/11 05:47, Mauro Carvalho Chehab wrote:
+>> Hi Randy,
+>>
+>> Em 09-06-2011 20:37, Randy Dunlap escreveu:
+>>>
+>>> Big hint:  I see these errors not during "make htmldocs" but during a kernel code build
+>>> when CONFIG_BUILD_DOCSRC=y.
+>>>
+>>> Sorry, I should have mentioned this earlier.
+>>
+>> I couldn't reach any troubles there. Documentation build is stopping earlier.
+>> I'm using the -next tree for 20110610:
+>>
+>> $ make defconfig
+>> $ make CONFIG_BUILD_DOCSRC=y -j 16 Documentation/
 > 
-> The adp1653 is used on the Nokia N900.
 > 
-> Signed-off-by: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
-> Signed-off-by: Tuukka Toivonen <tuukkat76@gmail.com>
-> Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-> Signed-off-by: David Cohen <dacohen@gmail.com>
+> Maybe that incantation does not set CONFIG_HEADERS_CHECK, which
+> CONFIG_BUILD_DOCSRC depends on.
+> 
+> [build errors snipped]
+> 
+>>
+>> Could you please send me your .config?
+> 
+> yes, attached.
+> 
 
-[snip]
+Hmm... didn't work either. With your config:
 
-> +	v4l2_ctrl_new_std(&flash->ctrls, &adp1653_ctrl_ops,
-> +			  V4L2_CID_FLASH_FAULT, 0, V4L2_FLASH_FAULT_OVER_VOLTAGE
-> +			  | V4L2_FLASH_FAULT_OVER_TEMPERATURE
-> +			  | V4L2_FLASH_FAULT_SHORT_CIRCUIT, 0, 0);
+[mchehab@buidmachine linux-next]$ make -j 16 Documentation/
+  CHK     include/linux/version.h
+  CHK     include/generated/utsrelease.h
+  CALL    scripts/checksyscalls.sh
+  HOSTCC  Documentation/networking/timestamping/timestamping
+Documentation/networking/timestamping/timestamping.c:45:30: error: linux/net_tstamp.h: No such file or directory
+Documentation/networking/timestamping/timestamping.c: In function ‘main’:
+Documentation/networking/timestamping/timestamping.c:331: error: storage size of ‘hwconfig’ isn’t known
+Documentation/networking/timestamping/timestamping.c:331: error: storage size of ‘hwconfig_requested’ isn’t known
+Documentation/networking/timestamping/timestamping.c:355: error: ‘SOF_TIMESTAMPING_TX_HARDWARE’ undeclared (first use in this function)
+Documentation/networking/timestamping/timestamping.c:355: error: (Each undeclared identifier is reported only once
+Documentation/networking/timestamping/timestamping.c:355: error: for each function it appears in.)
+Documentation/networking/timestamping/timestamping.c:357: error: ‘SOF_TIMESTAMPING_TX_SOFTWARE’ undeclared (first use in this function)
+Documentation/networking/timestamping/timestamping.c:359: error: ‘SOF_TIMESTAMPING_RX_HARDWARE’ undeclared (first use in this function)
+Documentation/networking/timestamping/timestamping.c:361: error: ‘SOF_TIMESTAMPING_RX_SOFTWARE’ undeclared (first use in this function)
+Documentation/networking/timestamping/timestamping.c:363: error: ‘SOF_TIMESTAMPING_SOFTWARE’ undeclared (first use in this function)
+Documentation/networking/timestamping/timestamping.c:365: error: ‘SOF_TIMESTAMPING_SYS_HARDWARE’ undeclared (first use in this function)
+Documentation/networking/timestamping/timestamping.c:367: error: ‘SOF_TIMESTAMPING_RAW_HARDWARE’ undeclared (first use in this function)
+Documentation/networking/timestamping/timestamping.c:387: error: ‘HWTSTAMP_TX_ON’ undeclared (first use in this function)
+Documentation/networking/timestamping/timestamping.c:387: error: ‘HWTSTAMP_TX_OFF’ undeclared (first use in this function)
+Documentation/networking/timestamping/timestamping.c:390: error: ‘HWTSTAMP_FILTER_PTP_V1_L4_SYNC’ undeclared (first use in this function)
+Documentation/networking/timestamping/timestamping.c:390: error: ‘HWTSTAMP_FILTER_NONE’ undeclared (first use in this function)
+Documentation/networking/timestamping/timestamping.c:331: warning: unused variable ‘hwconfig_requested’
+Documentation/networking/timestamping/timestamping.c:331: warning: unused variable ‘hwconfig’
+make[3]: *** [Documentation/networking/timestamping/timestamping] Error 1
+make[2]: *** [Documentation/networking/timestamping] Error 2
+make[1]: *** [Documentation/networking] Error 2
+make: *** [Documentation/] Error 2
 
-You need to mark the fault control as volatile.
+PS.: A full build against next is broken:
+$ make -j 27
+  CHK     include/linux/version.h
+  CHK     include/generated/utsrelease.h
+  CALL    scripts/checksyscalls.sh
+  CHK     include/generated/compile.h
+  CC      arch/x86/lib/memmove_64.o
+gcc: arch/x86/lib/memmove_64.c: No such file or directory
+gcc: no input files
+make[1]: *** [arch/x86/lib/memmove_64.o] Error 1
+make: *** [arch/x86/lib] Error 2
+make: *** Waiting for unfinished jobs....
 
--- 
-Regards,
+My tree is on this commit:
 
-Laurent Pinchart
+commit c4c5f633751496147f2d846844aa084a1dbca0f4
+Author: Stephen Rothwell <sfr@canb.auug.org.au>
+Date:   Fri Jun 10 16:17:26 2011 +1000
+
+    Add linux-next specific files for 20110610
