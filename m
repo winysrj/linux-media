@@ -1,90 +1,122 @@
 Return-path: <mchehab@pedra>
-Received: from mx1.redhat.com ([209.132.183.28]:2215 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751660Ab1FHUZT (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 8 Jun 2011 16:25:19 -0400
-Received: from int-mx02.intmail.prod.int.phx2.redhat.com (int-mx02.intmail.prod.int.phx2.redhat.com [10.5.11.12])
-	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id p58KPJbd012496
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
-	for <linux-media@vger.kernel.org>; Wed, 8 Jun 2011 16:25:19 -0400
-Received: from pedra (vpn-10-126.rdu.redhat.com [10.11.10.126])
-	by int-mx02.intmail.prod.int.phx2.redhat.com (8.13.8/8.13.8) with ESMTP id p58KP4Ul024316
-	for <linux-media@vger.kernel.org>; Wed, 8 Jun 2011 16:25:18 -0400
-Date: Wed, 8 Jun 2011 17:23:06 -0300
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: [PATCH 09/13] [media] DocBook/demux.xml: Add the remaining data
- structures to the API spec
-Message-ID: <20110608172306.0a903f02@pedra>
-In-Reply-To: <cover.1307563765.git.mchehab@redhat.com>
-References: <cover.1307563765.git.mchehab@redhat.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
-To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
+Received: from rcsinet10.oracle.com ([148.87.113.121]:42339 "EHLO
+	rcsinet10.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750876Ab1FJQEt (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 10 Jun 2011 12:04:49 -0400
+Message-ID: <4DF2408F.1010902@oracle.com>
+Date: Fri, 10 Jun 2011 09:04:31 -0700
+From: Randy Dunlap <randy.dunlap@oracle.com>
+MIME-Version: 1.0
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+CC: Stephen Rothwell <sfr@canb.auug.org.au>,
+	linux-media@vger.kernel.org, linux-next@vger.kernel.org,
+	LKML <linux-kernel@vger.kernel.org>
+Subject: Re: linux-next: Tree for June 8 (docbook/media)
+References: <20110608161046.4ad95776.sfr@canb.auug.org.au> <20110608125243.e63a07fc.randy.dunlap@oracle.com> <4DF11E15.5030907@infradead.org> <4DF12263.3070900@redhat.com> <4DF12DD1.7060606@oracle.com> <4DF1581E.8050308@redhat.com> <4DF1593A.6080306@oracle.com> <4DF21254.6090106@redhat.com> <4DF23271.7070407@oracle.com> <4DF235F0.9080209@redhat.com>
+In-Reply-To: <4DF235F0.9080209@redhat.com>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 8bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Still, there are a few ioctl's not documented:
+On 06/10/11 08:19, Mauro Carvalho Chehab wrote:
+> Em 10-06-2011 12:04, Randy Dunlap escreveu:
+>> On 06/10/11 05:47, Mauro Carvalho Chehab wrote:
+>>> Hi Randy,
+>>>
+>>> Em 09-06-2011 20:37, Randy Dunlap escreveu:
+>>>>
+>>>> Big hint:  I see these errors not during "make htmldocs" but during a kernel code build
+>>>> when CONFIG_BUILD_DOCSRC=y.
+>>>>
+>>>> Sorry, I should have mentioned this earlier.
+>>>
+>>> I couldn't reach any troubles there. Documentation build is stopping earlier.
+>>> I'm using the -next tree for 20110610:
+>>>
+>>> $ make defconfig
+>>> $ make CONFIG_BUILD_DOCSRC=y -j 16 Documentation/
+>>
+>>
+>> Maybe that incantation does not set CONFIG_HEADERS_CHECK, which
+>> CONFIG_BUILD_DOCSRC depends on.
+>>
+>> [build errors snipped]
+>>
+>>>
+>>> Could you please send me your .config?
+>>
+>> yes, attached.
+>>
+> 
+> Hmm... didn't work either. With your config:
+> 
+> [mchehab@buidmachine linux-next]$ make -j 16 Documentation/
+>   CHK     include/linux/version.h
+>   CHK     include/generated/utsrelease.h
+>   CALL    scripts/checksyscalls.sh
+>   HOSTCC  Documentation/networking/timestamping/timestamping
+> Documentation/networking/timestamping/timestamping.c:45:30: error: linux/net_tstamp.h: No such file or directory
+> Documentation/networking/timestamping/timestamping.c: In function ‘main’:
+> Documentation/networking/timestamping/timestamping.c:331: error: storage size of ‘hwconfig’ isn’t known
+> Documentation/networking/timestamping/timestamping.c:331: error: storage size of ‘hwconfig_requested’ isn’t known
+> Documentation/networking/timestamping/timestamping.c:355: error: ‘SOF_TIMESTAMPING_TX_HARDWARE’ undeclared (first use in this function)
+> Documentation/networking/timestamping/timestamping.c:355: error: (Each undeclared identifier is reported only once
+> Documentation/networking/timestamping/timestamping.c:355: error: for each function it appears in.)
+> Documentation/networking/timestamping/timestamping.c:357: error: ‘SOF_TIMESTAMPING_TX_SOFTWARE’ undeclared (first use in this function)
+> Documentation/networking/timestamping/timestamping.c:359: error: ‘SOF_TIMESTAMPING_RX_HARDWARE’ undeclared (first use in this function)
+> Documentation/networking/timestamping/timestamping.c:361: error: ‘SOF_TIMESTAMPING_RX_SOFTWARE’ undeclared (first use in this function)
+> Documentation/networking/timestamping/timestamping.c:363: error: ‘SOF_TIMESTAMPING_SOFTWARE’ undeclared (first use in this function)
+> Documentation/networking/timestamping/timestamping.c:365: error: ‘SOF_TIMESTAMPING_SYS_HARDWARE’ undeclared (first use in this function)
+> Documentation/networking/timestamping/timestamping.c:367: error: ‘SOF_TIMESTAMPING_RAW_HARDWARE’ undeclared (first use in this function)
+> Documentation/networking/timestamping/timestamping.c:387: error: ‘HWTSTAMP_TX_ON’ undeclared (first use in this function)
+> Documentation/networking/timestamping/timestamping.c:387: error: ‘HWTSTAMP_TX_OFF’ undeclared (first use in this function)
+> Documentation/networking/timestamping/timestamping.c:390: error: ‘HWTSTAMP_FILTER_PTP_V1_L4_SYNC’ undeclared (first use in this function)
+> Documentation/networking/timestamping/timestamping.c:390: error: ‘HWTSTAMP_FILTER_NONE’ undeclared (first use in this function)
+> Documentation/networking/timestamping/timestamping.c:331: warning: unused variable ‘hwconfig_requested’
+> Documentation/networking/timestamping/timestamping.c:331: warning: unused variable ‘hwconfig’
+> make[3]: *** [Documentation/networking/timestamping/timestamping] Error 1
+> make[2]: *** [Documentation/networking/timestamping] Error 2
+> make[1]: *** [Documentation/networking] Error 2
+> make: *** [Documentation/] Error 2
+> 
+> PS.: A full build against next is broken:
+> $ make -j 27
+>   CHK     include/linux/version.h
+>   CHK     include/generated/utsrelease.h
+>   CALL    scripts/checksyscalls.sh
+>   CHK     include/generated/compile.h
+>   CC      arch/x86/lib/memmove_64.o
+> gcc: arch/x86/lib/memmove_64.c: No such file or directory
+> gcc: no input files
+> make[1]: *** [arch/x86/lib/memmove_64.o] Error 1
+> make: *** [arch/x86/lib] Error 2
+> make: *** Waiting for unfinished jobs....
+> 
+> My tree is on this commit:
+> 
+> commit c4c5f633751496147f2d846844aa084a1dbca0f4
+> Author: Stephen Rothwell <sfr@canb.auug.org.au>
+> Date:   Fri Jun 10 16:17:26 2011 +1000
+> 
+>     Add linux-next specific files for 20110610
 
-Error: no ID for constraint linkend: DMX_GET_PES_PIDS.
-Error: no ID for constraint linkend: DMX_GET_CAPS.
-Error: no ID for constraint linkend: DMX_SET_SOURCE.
-Error: no ID for constraint linkend: DMX_ADD_PID.
-Error: no ID for constraint linkend: DMX_REMOVE_PID.
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+Still fails on linux-next-20110610 for me.
 
-diff --git a/Documentation/DocBook/media/dvb/demux.xml b/Documentation/DocBook/media/dvb/demux.xml
-index a297f0a..6758739 100644
---- a/Documentation/DocBook/media/dvb/demux.xml
-+++ b/Documentation/DocBook/media/dvb/demux.xml
-@@ -135,17 +135,42 @@ struct dmx_pes_filter_params
- 
- <section id="dmx-stc">
- <title>struct dmx_stc</title>
-- <programlisting>
-+<programlisting>
- struct dmx_stc {
- 	unsigned int num;	/&#x22C6; input : which STC? 0..N &#x22C6;/
- 	unsigned int base;	/&#x22C6; output: divisor for stc to get 90 kHz clock &#x22C6;/
- 	__u64 stc;		/&#x22C6; output: stc in 'base'&#x22C6;90 kHz units &#x22C6;/
- };
- </programlisting>
-- </section>
-+</section>
-+
-+<section id="dmx-caps">
-+<title>struct dmx_caps</title>
-+<programlisting>
-+ typedef struct dmx_caps {
-+	__u32 caps;
-+	int num_decoders;
-+} dmx_caps_t;
-+</programlisting>
-+</section>
- 
-+<section id="dmx-source-t">
-+<title>enum dmx_source_t</title>
-+<programlisting>
-+typedef enum {
-+	DMX_SOURCE_FRONT0 = 0,
-+	DMX_SOURCE_FRONT1,
-+	DMX_SOURCE_FRONT2,
-+	DMX_SOURCE_FRONT3,
-+	DMX_SOURCE_DVR0   = 16,
-+	DMX_SOURCE_DVR1,
-+	DMX_SOURCE_DVR2,
-+	DMX_SOURCE_DVR3
-+} dmx_source_t;
-+</programlisting>
- </section>
- 
-+</section>
- <section id="dmx_fcalls">
- <title>Demux Function Calls</title>
- 
+Please try a full, clean build, not using only
+$ make -j 16 Documentation/
+
+$ mkdir doc64
+$ cp -a config-r7970 doc64/.config
+$ make O=doc64 oldconfig
+$ make O=doc64 -j9 all
+...
+ls: cannot access /lnx/src/NEXT/linux-next-20110610/Documentation/DocBook/media/*/*.gif: No such file or directory
+ls: cannot access /lnx/src/NEXT/linux-next-20110610/Documentation/DocBook/media/*/*.png: No such file or directory
+
+
 -- 
-1.7.1
-
-
+~Randy
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
