@@ -1,156 +1,91 @@
 Return-path: <mchehab@pedra>
-Received: from mail.mnsspb.ru ([84.204.75.2]:40584 "EHLO mail.mnsspb.ru"
+Received: from mx1.redhat.com ([209.132.183.28]:47712 "EHLO mx1.redhat.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932471Ab1FVQDs (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 22 Jun 2011 12:03:48 -0400
-From: Kirill Smelkov <kirr@mns.spb.ru>
-To: linux-usb@vger.kernel.org
-Cc: Greg Kroah-Hartman <gregkh@suse.de>,
-	linux-uvc-devel@lists.berlios.de, linux-media@vger.kernel.org,
-	linux-kernel@vger.kernel.org, Kirill Smelkov <kirr@mns.spb.ru>,
-	Alan Stern <stern@rowland.harvard.edu>
-Subject: [RFC, PATCH] USB: EHCI: Allow users to override 80% max periodic bandwidth
-Date: Wed, 22 Jun 2011 20:02:47 +0400
-Message-Id: <1308758567-8205-1-git-send-email-kirr@mns.spb.ru>
+	id S1755660Ab1FKNiU (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 11 Jun 2011 09:38:20 -0400
+Received: from int-mx09.intmail.prod.int.phx2.redhat.com (int-mx09.intmail.prod.int.phx2.redhat.com [10.5.11.22])
+	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id p5BDcJvf021101
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
+	for <linux-media@vger.kernel.org>; Sat, 11 Jun 2011 09:38:19 -0400
+Message-ID: <4DF36FC9.6020803@redhat.com>
+Date: Sat, 11 Jun 2011 10:38:17 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+MIME-Version: 1.0
+To: Jarod Wilson <jarod@redhat.com>
+CC: linux-media@vger.kernel.org
+Subject: Re: [PATCH] [media] rc-core support for Microsoft IR keyboard/mouse
+References: <1307136508-19455-1-git-send-email-jarod@redhat.com>
+In-Reply-To: <1307136508-19455-1-git-send-email-jarod@redhat.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-There are cases, when 80% max isochronous bandwidth is too limiting.
+Em 03-06-2011 18:28, Jarod Wilson escreveu:
+> This is a custom IR protocol decoder, for the RC-6-ish protocol used by
+> the Microsoft Remote Keyboard.
+> 
+> http://www.amazon.com/Microsoft-Remote-Keyboard-Windows-ZV1-00004/dp/B000AOAAN8
+> 
+> Its a standard keyboard with embedded thumb stick mouse pointer and
+> mouse buttons, along with a number of media keys. The media keys are
+> standard RC-6, identical to the signals from the stock MCE remotes, and
+> will be handled as such. The keyboard and mouse signals will be decoded
+> and delivered to the system by an input device registered specifically
+> by this driver.
+> 
+> Successfully tested with an mceusb-driven receiver, but this should
+> actually work with any raw IR rc-core receiver.
+> 
+> This work is inspired by lirc_mod_mce:
+> 
+> http://mod-mce.sourceforge.net/
+> 
+> The documentation there and code aided in understanding and decoding the
+> protocol, but the bulk of the code is actually borrowed more from the
+> existing in-kernel decoders than anything. I did recycle the keyboard
+> keycode table and a few defines from lirc_mod_mce though.
+> 
+> Signed-off-by: Jarod Wilson <jarod@redhat.com>
+> ---
 
-For example I have two USB video capture cards which stream uncompressed
-video, and to stream full NTSC + PAL videos we'd need
+I did only a quick review, and everything looks fine for me. Just two comments:
 
-    NTSC 640x480 YUV422 @30fps      ~17.6 MB/s
-    PAL  720x576 YUV422 @25fps      ~19.7 MB/s
+> +#if 0
+> +	/* Adding this reference means two input devices are associated with
+> +	 * this rc-core device, which ir-keytable doesn't cope with yet */
+> +	idev->dev.parent = &dev->dev;
+> +#endif
 
-isoc bandwidth.
+Well, it was never tested with such config ;) Feel free to fix rc-core.
 
-Now, due to limited alt settings in capture devices NTSC one ends up
-streaming with max_pkt_size=2688  and  PAL with max_pkt_size=2892, both
-with interval=1. In terms of microframe time allocation this gives
+> +static unsigned char kbd_keycodes[256] = {
+> +          0,   0,   0,   0,  30,  48,  46,  32,  18,  33,  34,  35,  23,  36,  37,  38,
+> +         50,  49,  24,  25,  16,  19,  31,  20,  22,  47,  17,  45,  21,  44,   2,   3,
+> +          4,   5,   6,   7,   8,   9,  10,  11,  28,   1,  14,  15,  57,  12,  13,  26,
+> +         27,  43,  43,  39,  40,  41,  51,  52,  53,  58,  59,  60,  61,  62,  63,  64,
+> +         65,  66,  67,  68,  87,  88,  99,  70, 119, 110, 102, 104, 111, 107, 109, 106,
+> +        105, 108, 103,  69,  98,  55,  74,  78,  96,  79,  80,  81,  75,  76,  77,  71,
+> +         72,  73,  82,  83,  86, 127, 116, 117, 183, 184, 185, 186, 187, 188, 189, 190,
+> +        191, 192, 193, 194, 134, 138, 130, 132, 128, 129, 131, 137, 133, 135, 136, 113,
+> +        115, 114,   0,   0,   0, 121,   0,  89,  93, 124,  92,  94,  95,   0,   0,   0,
+> +        122, 123,  90,  91,  85,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,
+> +          0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,
+> +          0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,
+> +          0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,
+> +          0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,
+> +         29,  42,  56, 125,  97,  54, 100, 126, 164, 166, 165, 163, 161, 115, 114, 113,
+> +        150, 158, 159, 128, 136, 177, 178, 176, 142, 152, 173, 140
+> +};
 
-    NTSC    ~53us
-    PAL     ~57us
+This table looks weird to me: too much magic numbers there. Shouldn't
+the above be replaced by KEY_* definitions?
 
-and together
+Cheers,
+Mauro
 
-    ~110us  >  100us == 80% of 125us uframe time.
+-
 
-So those two devices can't work together simultaneously because the'd
-over allocate isochronous bandwidth.
-
-80% seemed a bit arbitrary to me, and I've tried to raise it to 90% and
-both devices started to work together, so I though sometimes it would be
-a good idea for users to override hardcoded default of max 80% isoc
-bandwidth.
-
-After all, isn't it a user who should decide how to load the bus? If I
-can live with 10% or even 5% bulk bandwidth that should be ok. I'm a USB
-newcomer, but that 80% seems to be chosen pretty arbitrary to me, just
-to serve as a reasonable default.
-
-NOTE: for two streams with max_pkt_size=3072 (worst case) both time
-allocation would be 60us+60us=120us which is 96% periodic bandwidth
-leaving 4% for bulk and control. I think this should work too.
-
-Signed-off-by: Kirill Smelkov <kirr@mns.spb.ru>
-Cc: Alan Stern <stern@rowland.harvard.edu>
----
- drivers/usb/host/ehci-hcd.c   |   16 ++++++++++++++++
- drivers/usb/host/ehci-sched.c |   17 +++++++----------
- 2 files changed, 23 insertions(+), 10 deletions(-)
-
-diff --git a/drivers/usb/host/ehci-hcd.c b/drivers/usb/host/ehci-hcd.c
-index c606b02..1d36e72 100644
---- a/drivers/usb/host/ehci-hcd.c
-+++ b/drivers/usb/host/ehci-hcd.c
-@@ -112,6 +112,14 @@ static unsigned int hird;
- module_param(hird, int, S_IRUGO);
- MODULE_PARM_DESC(hird, "host initiated resume duration, +1 for each 75us\n");
- 
-+/*
-+ * max periodic time per microframe
-+ * (be careful, USB 2.0 requires it to be 100us = 80% of 125us)
-+ */
-+static unsigned int uframe_periodic_max = 100;
-+module_param(uframe_periodic_max, uint, S_IRUGO);
-+MODULE_PARM_DESC(uframe_periodic_max, "maximum allowed periodic part of a microframe, us");
-+
- #define	INTR_MASK (STS_IAA | STS_FATAL | STS_PCD | STS_ERR | STS_INT)
- 
- /*-------------------------------------------------------------------------*/
-@@ -571,6 +579,14 @@ static int ehci_init(struct usb_hcd *hcd)
- 	hcc_params = ehci_readl(ehci, &ehci->caps->hcc_params);
- 
- 	/*
-+	 * tell user, if using non-standard (80% == 100 usec/uframe) bandwidth
-+	 */
-+	if (uframe_periodic_max != 100)
-+		ehci_info(ehci, "using non-standard max periodic bandwith "
-+				"(%u%% == %u usec/uframe)",
-+				100*uframe_periodic_max/125, uframe_periodic_max);
-+
-+	/*
- 	 * hw default: 1K periodic list heads, one per frame.
- 	 * periodic_size can shrink by USBCMD update if hcc_params allows.
- 	 */
-diff --git a/drivers/usb/host/ehci-sched.c b/drivers/usb/host/ehci-sched.c
-index d12426f..fb374f2 100644
---- a/drivers/usb/host/ehci-sched.c
-+++ b/drivers/usb/host/ehci-sched.c
-@@ -172,7 +172,7 @@ periodic_usecs (struct ehci_hcd *ehci, unsigned frame, unsigned uframe)
- 		}
- 	}
- #ifdef	DEBUG
--	if (usecs > 100)
-+	if (usecs > uframe_periodic_max)
- 		ehci_err (ehci, "uframe %d sched overrun: %d usecs\n",
- 			frame * 8 + uframe, usecs);
- #endif
-@@ -709,11 +709,8 @@ static int check_period (
- 	if (uframe >= 8)
- 		return 0;
- 
--	/*
--	 * 80% periodic == 100 usec/uframe available
--	 * convert "usecs we need" to "max already claimed"
--	 */
--	usecs = 100 - usecs;
-+	/* convert "usecs we need" to "max already claimed" */
-+	usecs = uframe_periodic_max - usecs;
- 
- 	/* we "know" 2 and 4 uframe intervals were rejected; so
- 	 * for period 0, check _every_ microframe in the schedule.
-@@ -1286,9 +1283,9 @@ itd_slot_ok (
- {
- 	uframe %= period;
- 	do {
--		/* can't commit more than 80% periodic == 100 usec */
-+		/* can't commit more than uframe_periodic_max usec */
- 		if (periodic_usecs (ehci, uframe >> 3, uframe & 0x7)
--				> (100 - usecs))
-+				> (uframe_periodic_max - usecs))
- 			return 0;
- 
- 		/* we know urb->interval is 2^N uframes */
-@@ -1345,7 +1342,7 @@ sitd_slot_ok (
- #endif
- 
- 		/* check starts (OUT uses more than one) */
--		max_used = 100 - stream->usecs;
-+		max_used = uframe_periodic_max - stream->usecs;
- 		for (tmp = stream->raw_mask & 0xff; tmp; tmp >>= 1, uf++) {
- 			if (periodic_usecs (ehci, frame, uf) > max_used)
- 				return 0;
-@@ -1354,7 +1351,7 @@ sitd_slot_ok (
- 		/* for IN, check CSPLIT */
- 		if (stream->c_usecs) {
- 			uf = uframe & 7;
--			max_used = 100 - stream->c_usecs;
-+			max_used = uframe_periodic_max - stream->c_usecs;
- 			do {
- 				tmp = 1 << uf;
- 				tmp <<= 8;
--- 
-1.7.6.rc1
-
+PS.: I would like to have one of those keyboards, in order to test some things here,
+in special, for the xorg input/event proposal on my TODO list ;) Is it a cheap device?
+I may try to buy one the next time I would travel to US.
