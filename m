@@ -1,110 +1,83 @@
 Return-path: <mchehab@pedra>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:33045 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754460Ab1F2JuY (ORCPT
+Received: from netrider.rowland.org ([192.131.102.5]:58564 "HELO
+	netrider.rowland.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1751850Ab1FKQ5y (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 29 Jun 2011 05:50:24 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: achew@nvidia.com
-Subject: Re: [PATCH 3/6 v3] [media] ov9740: Fixed some settings
-Date: Wed, 29 Jun 2011 11:50:38 +0200
-Cc: linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
-	g.liakhovetski@gmx.de, mchehab@redhat.com, olof@lixom.net
-References: <1308871184-6307-1-git-send-email-achew@nvidia.com> <1308871184-6307-3-git-send-email-achew@nvidia.com>
-In-Reply-To: <1308871184-6307-3-git-send-email-achew@nvidia.com>
+	Sat, 11 Jun 2011 12:57:54 -0400
+Date: Sat, 11 Jun 2011 12:57:54 -0400 (EDT)
+From: Alan Stern <stern@rowland.harvard.edu>
+To: Hans de Goede <hdegoede@redhat.com>
+cc: linux-usb@vger.kernel.org,
+	Sarah Sharp <sarah.a.sharp@linux.intel.com>,
+	<linux-media@vger.kernel.org>,
+	<libusb-devel@lists.sourceforge.net>,
+	Alexander Graf <agraf@suse.de>,
+	Gerd Hoffmann <kraxel@redhat.com>, <hector@marcansoft.com>,
+	Jan Kiszka <jan.kiszka@siemens.com>,
+	Stefan Hajnoczi <stefanha@linux.vnet.ibm.com>,
+	<pbonzini@redhat.com>, Anthony Liguori <aliguori@us.ibm.com>,
+	Jes Sorensen <Jes.Sorensen@redhat.com>,
+	Oliver Neukum <oliver@neukum.org>, Greg KH <greg@kroah.com>,
+	Felipe Balbi <balbi@ti.com>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Clemens Ladisch <clemens@ladisch.de>,
+	Jaroslav Kysela <perex@perex.cz>, Takashi Iwai <tiwai@suse.de>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Subject: Re: Improving kernel -> userspace (usbfs)  usb device hand off
+In-Reply-To: <4DF3324E.3050506@redhat.com>
+Message-ID: <Pine.LNX.4.44L0.1106111250390.3439-100000@netrider.rowland.org>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-15"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201106291150.39091.laurent.pinchart@ideasonboard.com>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Hi Andrew,
+On Sat, 11 Jun 2011, Hans de Goede wrote:
 
-On Friday 24 June 2011 01:19:41 achew@nvidia.com wrote:
-> From: Andrew Chew <achew@nvidia.com>
+> >> So what do we need to make this situation better:
+> >> 1) A usb_driver callback alternative to the disconnect callback,
+> >>      I propose to call this soft_disconnect. This serves 2 purposes
+> >>      a) It will allow the driver to tell the caller that that is not
+> >>         a good idea by returning an error code (think usb mass storage
+> >>         driver and mounted filesystem
+> >
+> > Not feasible.  usb-storage has no idea whether or not a device it
+> > controls has a mounted filesystem.  (All it does is send SCSI commands
+> > to a device and get back the results.)  Since that's the main use
+> > case you're interested in, this part of the proposal seems destined to
+> > fail.
+> >
 > 
-> Based on vendor feedback, should issue a software reset at start of day.
+> This is not completely true, I cannot rmmod usb-storage as long as
+> disks using it are mounted. I know this is done through the global
+> module usage count, so this is not per usb-storage device. But extending
+> the ref counting to be per usb-storage device should not be hard.
 > 
-> Also, OV9740_ANALOG_CTRL15 needs to be changed so the sensor does not begin
-> streaming until it is ready (otherwise, results in a nonsense frame for the
-> initial frame).
-> 
-> Added a comment on using discontinuous clock.
-> 
-> Finally, OV9740_ISP_CTRL19 needs to be changed to really use YUYV ordering
-> (the previous value was for VYUY).
+> All the accounting is already done for this.
 
-I've never liked those magic values. Fixing the whole driver to document 
-everything in one go might be too much work, but what about documenting new 
-registers, and especially their contents, as you add support for them ?
+It would be harder than you think.  All the accounting is _not_ already
+being done.  What you're talking about would amount to a significant
+change in the driver model core and the SCSI core.  It isn't just a USB
+thing.
 
-> Signed-off-by: Andrew Chew <achew@nvidia.com>
-> ---
->  drivers/media/video/ov9740.c |   10 +++++++++-
->  1 files changed, 9 insertions(+), 1 deletions(-)
+> > But userspace _does_ know where the mounted filesystems are.
+> > Therefore userspace should be responsible for avoiding programs that
+> > want to take control of devices holding these filesystems.  That's the
+> > reason why usbfs device nodes are owned by root and have 0644 mode;
+> > there're can be written to only by programs with superuser privileges
+> > -- and such programs are supposed to be careful about what they do.
+> >
 > 
-> diff --git a/drivers/media/video/ov9740.c b/drivers/media/video/ov9740.c
-> index d5c9061..72c6ac1d 100644
-> --- a/drivers/media/video/ov9740.c
-> +++ b/drivers/media/video/ov9740.c
-> @@ -68,6 +68,7 @@
->  #define OV9740_ANALOG_CTRL04		0x3604
->  #define OV9740_ANALOG_CTRL10		0x3610
->  #define OV9740_ANALOG_CTRL12		0x3612
-> +#define OV9740_ANALOG_CTRL15		0x3615
->  #define OV9740_ANALOG_CTRL20		0x3620
->  #define OV9740_ANALOG_CTRL21		0x3621
->  #define OV9740_ANALOG_CTRL22		0x3622
-> @@ -222,6 +223,9 @@ struct ov9740_priv {
->  };
-> 
->  static const struct ov9740_reg ov9740_defaults[] = {
-> +	/* Software Reset */
-> +	{ OV9740_SOFTWARE_RESET,	0x01 },
-> +
->  	/* Banding Filter */
->  	{ OV9740_AEC_B50_STEP_HI,	0x00 },
->  	{ OV9740_AEC_B50_STEP_LO,	0xe8 },
-> @@ -333,6 +337,7 @@ static const struct ov9740_reg ov9740_defaults[] = {
->  	{ OV9740_ANALOG_CTRL10,		0xa1 },
->  	{ OV9740_ANALOG_CTRL12,		0x24 },
->  	{ OV9740_ANALOG_CTRL22,		0x9f },
-> +	{ OV9740_ANALOG_CTRL15,		0xf0 },
-> 
->  	/* Sensor Control */
->  	{ OV9740_SENSOR_CTRL03,		0x42 },
-> @@ -385,7 +390,7 @@ static const struct ov9740_reg ov9740_defaults[] = {
->  	{ OV9740_LN_LENGTH_PCK_LO,	0x62 },
-> 
->  	/* MIPI Control */
-> -	{ OV9740_MIPI_CTRL00,		0x44 },
-> +	{ OV9740_MIPI_CTRL00,		0x44 }, /* 0x64 for discontinuous clk */
+> Yes, and what I'm asking for is for an easy way for these programs to
+> be careful. A way for them to ask the kernel, which in general is
+> responsible for things like this and traditionally does resource
+> management and things which come with that like refcounting: "unbind
+> the driver from this device unless the device is currently in use".
 
-You should instead add
+Sure.  At the moment the kernel does not keep track of whether a device 
+is currently in use -- at least, not in the way you mean.
 
-#define OV9740_MIPI_CTRL00_DISC_CLK		0x20
+I'm not saying this can't be done.  But it would be a bigger job than 
+you think, and this isn't the appropriate thread to discuss it.
 
-just below the OV9740_MIPI_CTRL00 definition, with a comment to explain what 
-it's for (and rename CTRL00 to something more meaningful if possible). Same 
-for the other registers you modify.
+Alan Stern
 
->  	{ OV9740_MIPI_3837,		0x01 },
->  	{ OV9740_MIPI_CTRL01,		0x0f },
->  	{ OV9740_MIPI_CTRL03,		0x05 },
-> @@ -393,6 +398,9 @@ static const struct ov9740_reg ov9740_defaults[] = {
->  	{ OV9740_VFIFO_RD_CTRL,		0x16 },
->  	{ OV9740_MIPI_CTRL_3012,	0x70 },
->  	{ OV9740_SC_CMMM_MIPI_CTR,	0x01 },
-> +
-> +	/* YUYV order */
-> +	{ OV9740_ISP_CTRL19,		0x02 },
->  };
-> 
->  static const struct ov9740_reg ov9740_regs_vga[] = {
-
--- 
-Regards,
-
-Laurent Pinchart
