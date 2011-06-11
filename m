@@ -1,38 +1,44 @@
 Return-path: <mchehab@pedra>
-Received: from iolanthe.rowland.org ([192.131.102.54]:43150 "HELO
-	iolanthe.rowland.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S932790Ab1FPUUX (ORCPT
+Received: from mail-ey0-f174.google.com ([209.85.215.174]:57329 "EHLO
+	mail-ey0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750835Ab1FKQ5S convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 16 Jun 2011 16:20:23 -0400
-Date: Thu, 16 Jun 2011 16:20:22 -0400 (EDT)
-From: Alan Stern <stern@rowland.harvard.edu>
-To: Sarah Sharp <sarah.a.sharp@linux.intel.com>
-cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	<linux-media@vger.kernel.org>,
-	USB list <linux-usb@vger.kernel.org>,
-	Andiry Xu <andiry.xu@amd.com>, Alex He <alex.he@amd.com>
-Subject: Re: uvcvideo failure under xHCI
-In-Reply-To: <20110616195843.GB7290@xanatos>
-Message-ID: <Pine.LNX.4.44L0.1106161619140.1697-100000@iolanthe.rowland.org>
+	Sat, 11 Jun 2011 12:57:18 -0400
+Received: by eyx24 with SMTP id 24so1211587eyx.19
+        for <linux-media@vger.kernel.org>; Sat, 11 Jun 2011 09:57:17 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+In-Reply-To: <4a3fc9cd-d7e1-4692-92cb-af4d652c0224@email.android.com>
+References: <1307804731-16430-1-git-send-email-hverkuil@xs4all.nl>
+	<BANLkTikWiEb+aGGbSNSZ+YtdeVRB6QaJtg@mail.gmail.com>
+	<201106111753.21581.hverkuil@xs4all.nl>
+	<4a3fc9cd-d7e1-4692-92cb-af4d652c0224@email.android.com>
+Date: Sat, 11 Jun 2011 12:57:16 -0400
+Message-ID: <BANLkTikJbhC--Qp4KUBjFdrCMuvvoMuxaA@mail.gmail.com>
+Subject: Re: [RFCv2 PATCH 0/5] tuner-core: fix s_std and s_tuner
+From: Devin Heitmueller <dheitmueller@kernellabs.com>
+To: Andy Walls <awalls@md.metrocast.net>
+Cc: Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Thu, 16 Jun 2011, Sarah Sharp wrote:
+On Sat, Jun 11, 2011 at 12:06 PM, Andy Walls <awalls@md.metrocast.net> wrote:
+> Devin,
+>
+> I think I have a Gotview or compro card with an xc2028.  Is that tuner capable of standby?  Would the cx18 or ivtv driver need to actively support using stand by?
 
-> On Thu, Jun 16, 2011 at 03:39:11PM -0400, Alan Stern wrote:
-> > That's appropriate.  But nobody should ever set an isochronous URB's
-> > status field to -EPROTO, no matter whether the device is connected or
-> > not and no matter whether the host controller is alive or not.
-> 
-> But the individual frame status be set to -EPROTO, correct?  That's what
-> Alex was told to do when an isochronous TD had a completion code of
-> "Incompatible Device Error".
+An xc2028/xc3028 should be fine, as that does support standby.  The
+problems we saw with VLC were related to calls like G_TUNER returning
+prematurely if the device was in standby, leaving the returned
+structure populated with garbage.
 
-Right.  -EPROTO is a perfectly reasonable code for a frame's status.  
-But not for an isochronous URB's status.  There's no reason for 
-uvcvideo to test for it.
+FWIW, I don't dispute your assertion that Hans found legitimate bugs -
+just that we need to be careful to not cause regressions in the cases
+that the last round of bug fixes addressed.
 
-Alan Stern
+Devin
 
+-- 
+Devin J. Heitmueller - Kernel Labs
+http://www.kernellabs.com
