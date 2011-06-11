@@ -1,87 +1,111 @@
 Return-path: <mchehab@pedra>
-Received: from tex.lwn.net ([70.33.254.29]:54697 "EHLO vena.lwn.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752582Ab1FKRrH (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 11 Jun 2011 13:47:07 -0400
-From: Jonathan Corbet <corbet@lwn.net>
+Received: from smtp-vbr5.xs4all.nl ([194.109.24.25]:1955 "EHLO
+	smtp-vbr5.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758589Ab1FKPFn (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sat, 11 Jun 2011 11:05:43 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
 To: linux-media@vger.kernel.org
-Cc: g.liakhovetski@gmx.de, Kassey Lee <ygli@marvell.com>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Jonathan Corbet <corbet@lwn.net>
-Subject: [PATCH 7/8] marvell-cam: Allocate the i2c adapter in the platform driver
-Date: Sat, 11 Jun 2011 11:46:48 -0600
-Message-Id: <1307814409-46282-8-git-send-email-corbet@lwn.net>
-In-Reply-To: <1307814409-46282-1-git-send-email-corbet@lwn.net>
-References: <1307814409-46282-1-git-send-email-corbet@lwn.net>
+Cc: Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [RFCv2 PATCH 2/5] tuner-core: change return type of set_mode_freq to bool
+Date: Sat, 11 Jun 2011 17:05:28 +0200
+Message-Id: <d275c4b51d88c3c53c5244496e0f474211b26408.1307804332.git.hans.verkuil@cisco.com>
+In-Reply-To: <1307804731-16430-1-git-send-email-hverkuil@xs4all.nl>
+References: <1307804731-16430-1-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <980897e53f7cc2ec9bbbf58d9d451ee56a249309.1307804332.git.hans.verkuil@cisco.com>
+References: <980897e53f7cc2ec9bbbf58d9d451ee56a249309.1307804332.git.hans.verkuil@cisco.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-The upcoming mmp-camera driver will need an i2c_adapter structure allocated
-externally, so change the core adapter to a pointer and require the
-platform code to fill it in.
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-Signed-off-by: Jonathan Corbet <corbet@lwn.net>
+set_mode_freq currently returns 0 or -EINVAL. But -EINVAL does not
+indicate a error that should be passed on, it just indicates that the
+tuner does not support the requested mode. So change the return type to
+bool.
+
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
 ---
- drivers/media/video/marvell-ccic/cafe-driver.c |    9 +++++++--
- drivers/media/video/marvell-ccic/mcam-core.c   |    2 +-
- drivers/media/video/marvell-ccic/mcam-core.h   |    2 +-
- 3 files changed, 9 insertions(+), 4 deletions(-)
+ drivers/media/video/tuner-core.c |   23 ++++++++++-------------
+ 1 files changed, 10 insertions(+), 13 deletions(-)
 
-diff --git a/drivers/media/video/marvell-ccic/cafe-driver.c b/drivers/media/video/marvell-ccic/cafe-driver.c
-index 3dbc7e5..6a29cc1 100644
---- a/drivers/media/video/marvell-ccic/cafe-driver.c
-+++ b/drivers/media/video/marvell-ccic/cafe-driver.c
-@@ -334,9 +334,13 @@ static struct i2c_algorithm cafe_smbus_algo = {
- 
- static int cafe_smbus_setup(struct cafe_camera *cam)
+diff --git a/drivers/media/video/tuner-core.c b/drivers/media/video/tuner-core.c
+index 083b9f1..ee43e0a 100644
+--- a/drivers/media/video/tuner-core.c
++++ b/drivers/media/video/tuner-core.c
+@@ -746,11 +746,11 @@ static bool supported_mode(struct tuner *t, enum v4l2_tuner_type mode)
+  * @freq:	frequency to set (0 means to use the previous one)
+  *
+  * If tuner doesn't support the needed mode (radio or TV), prints a
+- * debug message and returns -EINVAL, changing its state to standby.
+- * Otherwise, changes the state and sets frequency to the last value, if
+- * the tuner can sleep or if it supports both Radio and TV.
++ * debug message and returns false, changing its state to standby.
++ * Otherwise, changes the state and sets frequency to the last value
++ * and returns true.
+  */
+-static int set_mode_freq(struct i2c_client *client, struct tuner *t,
++static bool set_mode_freq(struct i2c_client *client, struct tuner *t,
+ 			 enum v4l2_tuner_type mode, unsigned int freq)
  {
--	struct i2c_adapter *adap = &cam->mcam.i2c_adapter;
-+	struct i2c_adapter *adap;
- 	int ret;
+ 	struct analog_demod_ops *analog_ops = &t->fe.ops.analog_ops;
+@@ -762,7 +762,7 @@ static int set_mode_freq(struct i2c_client *client, struct tuner *t,
+ 			t->standby = true;
+ 			if (analog_ops->standby)
+ 				analog_ops->standby(&t->fe);
+-			return -EINVAL;
++			return false;
+ 		}
+ 		t->mode = mode;
+ 		tuner_dbg("Changing to mode %d\n", mode);
+@@ -777,7 +777,7 @@ static int set_mode_freq(struct i2c_client *client, struct tuner *t,
+ 		set_tv_freq(client, t->tv_freq);
+ 	}
  
-+	adap = kzalloc(sizeof(*adap), GFP_KERNEL);
-+	if (adap == NULL)
-+		return -ENOMEM;
-+	cam->mcam.i2c_adapter = adap;
- 	cafe_smbus_enable_irq(cam);
- 	adap->owner = THIS_MODULE;
- 	adap->algo = &cafe_smbus_algo;
-@@ -351,7 +355,8 @@ static int cafe_smbus_setup(struct cafe_camera *cam)
- 
- static void cafe_smbus_shutdown(struct cafe_camera *cam)
- {
--	i2c_del_adapter(&cam->mcam.i2c_adapter);
-+	i2c_del_adapter(cam->mcam.i2c_adapter);
-+	kfree(cam->mcam.i2c_adapter);
+-	return 0;
++	return true;
  }
  
+ /*
+@@ -1075,8 +1075,7 @@ static int tuner_s_radio(struct v4l2_subdev *sd)
+ 	struct tuner *t = to_tuner(sd);
+ 	struct i2c_client *client = v4l2_get_subdevdata(sd);
  
-diff --git a/drivers/media/video/marvell-ccic/mcam-core.c b/drivers/media/video/marvell-ccic/mcam-core.c
-index d5f18a3..014b70b 100644
---- a/drivers/media/video/marvell-ccic/mcam-core.c
-+++ b/drivers/media/video/marvell-ccic/mcam-core.c
-@@ -1581,7 +1581,7 @@ int mccic_register(struct mcam_camera *cam)
- 	sensor_cfg.use_smbus = cam->use_smbus;
- 	cam->sensor_addr = ov7670_info.addr;
- 	cam->sensor = v4l2_i2c_new_subdev_board(&cam->v4l2_dev,
--			&cam->i2c_adapter, &ov7670_info, NULL);
-+			cam->i2c_adapter, &ov7670_info, NULL);
- 	if (cam->sensor == NULL) {
- 		ret = -ENODEV;
- 		goto out_unregister;
-diff --git a/drivers/media/video/marvell-ccic/mcam-core.h b/drivers/media/video/marvell-ccic/mcam-core.h
-index e8a7de0..5effa82 100644
---- a/drivers/media/video/marvell-ccic/mcam-core.h
-+++ b/drivers/media/video/marvell-ccic/mcam-core.h
-@@ -37,7 +37,7 @@ struct mcam_camera {
- 	 * These fields should be set by the platform code prior to
- 	 * calling mcam_register().
- 	 */
--	struct i2c_adapter i2c_adapter;
-+	struct i2c_adapter *i2c_adapter;
- 	unsigned char __iomem *regs;
- 	spinlock_t dev_lock;
- 	struct device *dev; /* For messages, dma alloc */
+-	if (set_mode_freq(client, t, V4L2_TUNER_RADIO, 0) == -EINVAL)
+-		return 0;
++	set_mode_freq(client, t, V4L2_TUNER_RADIO, 0);
+ 	return 0;
+ }
+ 
+@@ -1110,7 +1109,7 @@ static int tuner_s_std(struct v4l2_subdev *sd, v4l2_std_id std)
+ 	struct tuner *t = to_tuner(sd);
+ 	struct i2c_client *client = v4l2_get_subdevdata(sd);
+ 
+-	if (set_mode_freq(client, t, V4L2_TUNER_ANALOG_TV, 0) == -EINVAL)
++	if (!set_mode_freq(client, t, V4L2_TUNER_ANALOG_TV, 0))
+ 		return 0;
+ 
+ 	t->std = std;
+@@ -1124,9 +1123,7 @@ static int tuner_s_frequency(struct v4l2_subdev *sd, struct v4l2_frequency *f)
+ 	struct tuner *t = to_tuner(sd);
+ 	struct i2c_client *client = v4l2_get_subdevdata(sd);
+ 
+-	if (set_mode_freq(client, t, f->type, f->frequency) == -EINVAL)
+-		return 0;
+-
++	set_mode_freq(client, t, f->type, f->frequency);
+ 	return 0;
+ }
+ 
+@@ -1197,7 +1194,7 @@ static int tuner_s_tuner(struct v4l2_subdev *sd, struct v4l2_tuner *vt)
+ 	struct tuner *t = to_tuner(sd);
+ 	struct i2c_client *client = v4l2_get_subdevdata(sd);
+ 
+-	if (set_mode_freq(client, t, vt->type, 0) == -EINVAL)
++	if (!set_mode_freq(client, t, vt->type, 0))
+ 		return 0;
+ 
+ 	if (t->mode == V4L2_TUNER_RADIO)
 -- 
-1.7.5.4
+1.7.1
 
