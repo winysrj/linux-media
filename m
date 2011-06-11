@@ -1,25 +1,21 @@
 Return-path: <mchehab@pedra>
 Received: from mail.tu-berlin.de ([130.149.7.33])
 	by www.linuxtv.org with esmtp (Exim 4.69)
-	(envelope-from <eddie@lania.nl>) id 1Qalvj-0005X6-JM
-	for linux-dvb@linuxtv.org; Sun, 26 Jun 2011 11:47:03 +0200
-Received: from edla.lania.nl ([84.245.4.170])
-	by mail.tu-berlin.de (exim-4.75/mailfrontend-1) with esmtps
-	[TLSv1:AES256-SHA:256] for <linux-dvb@linuxtv.org>
-	id 1Qalvj-000728-JR; Sun, 26 Jun 2011 11:47:03 +0200
-Received: from apollo.lania-intra.net (apollo.lania-intra.net [192.168.169.2])
-	by edla.lania.nl (8.14.4/8.14.4) with ESMTP id p5Q9kvAx002076
-	for <linux-dvb@linuxtv.org>; Sun, 26 Jun 2011 11:46:58 +0200
-From: Eddie Lania <eddie@lania.nl>
-To: "E.John Brown" <eddie500@bigpond.com>
-Date: Sun, 26 Jun 2011 11:46:57 +0200
-In-Reply-To: <4E06F037.1050509@bigpond.com>
-References: <4E06F037.1050509@bigpond.com>
-Message-ID: <1309081617.1912.11.camel@e2800fedora.lania-intra.net>
-Mime-Version: 1.0
-Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] Elgato eyetb usb tv tuner
-Reply-To: linux-media@vger.kernel.org
+	(envelope-from <reality_es@yahoo.es>) id 1QVJpa-0000rs-83
+	for linux-dvb@linuxtv.org; Sat, 11 Jun 2011 10:46:35 +0200
+Received: from nm8.bullet.mail.ird.yahoo.com ([77.238.189.23])
+	by mail.tu-berlin.de (exim-4.75/mailfrontend-1) with smtp
+	for <linux-dvb@linuxtv.org>
+	id 1QVJpZ-0001eb-Lu; Sat, 11 Jun 2011 10:46:10 +0200
+Message-ID: <344579.53969.qm@web24105.mail.ird.yahoo.com>
+References: <mailman.0.1307781263.2460.linux-dvb@linuxtv.org>
+Date: Sat, 11 Jun 2011 09:46:08 +0100 (BST)
+From: Lopez Lopez <reality_es@yahoo.es>
+To: "linux-dvb@linuxtv.org" <linux-dvb@linuxtv.org>
+In-Reply-To: <mailman.0.1307781263.2460.linux-dvb@linuxtv.org>
+MIME-Version: 1.0
+Subject: [linux-dvb] sveon stv22 af9015 support
+Reply-To: linux-media@vger.kernel.org, Lopez Lopez <reality_es@yahoo.es>
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/options/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -27,73 +23,71 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Errors-To: linux-dvb-bounces+mchehab=linuxtv.org@linuxtv.org
+Content-Type: multipart/mixed; boundary="===============0411734230=="
+Errors-To: linux-dvb-bounces+mchehab=redhat.com@linuxtv.org
 Sender: <mchehab@pedra>
 List-ID: <linux-dvb@linuxtv.org>
 
-Hi John,
+--===============0411734230==
+Content-Type: multipart/alternative; boundary="0-434008300-1307781968=:53969"
 
-dmesg does not show anything useful. That's because the device is not
-supported yet.
+--0-434008300-1307781968=:53969
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: quoted-printable
 
-lsusb only shows there is a device with ID 0df9:0018
->From what i found on the internet, the device's specs are:
-Model: EU 2008
-USB Controller: Empia EM2884
-Stereo A/V Decoder: Micronas AVF 49x08
-Hybrid Channel Decoder: Micronas DRX-K DRX3926K:A1 0.9.0
+Hello to EveryBody:=0A=0AI have patched af9015.c and dvb-usb-ids to support=
+ sveon stv22 ( KWorld USB Dual DVB-T TV Stick (DVB-T 399U)=A0 clone ) dual =
+with=0A-----=0A#define USB_PID_SVEON_STV22=A0=A0=A0 =A0=A0=A0 =A0=A0=A0 =A0=
+=A0=A0 0xe401=0A------=0A=A0in dvb-usb-ids.h file =0A=0Aand =0A-----=0A/* 3=
+0 */{USB_DEVICE(USB_VID_KWORLD_2,=A0 USB_PID_KWORLD_UB383_T)},=0A=A0=A0=A0 =
+{USB_DEVICE(USB_VID_KWORLD_2,=A0 USB_PID_KWORLD_395U_4)},=0A=A0=A0=A0 {USB_=
+DEVICE(USB_VID_KWORLD_2,=A0 USB_PID_SVEON_STV22)},=0A=A0=A0=A0 {0},=0A};=0A=
+=0A------=0A{=0A=A0=A0=A0 =A0=A0=A0 =A0=A0=A0 =A0=A0=A0 .name =3D "Sveon ST=
+V22 Dual USB DVB-T Tuner HDTV ",=0A=A0=A0=A0 =A0=A0=A0 =A0=A0=A0 =A0=A0=A0 =
+.cold_ids =3D {&af9015_usb_table[32], NULL},=0A=A0=A0=A0 =A0=A0=A0 =A0=A0=
+=A0 =A0=A0=A0 .warm_ids =3D {NULL},=0A=A0=A0=A0 =A0=A0=A0 =A0=A0=A0 },=0A=
+=0A-----=0A=0Ain af9015.c=0A=0Ai expect to help you to extends linux dvb us=
+b support.=0A=0Athanks for your time=0A=0ADavid
+--0-434008300-1307781968=:53969
+Content-Type: text/html; charset=iso-8859-1
+Content-Transfer-Encoding: quoted-printable
 
-I spoke to a few people on the IRC linuxtv channel @freenode and it
-appears to be a 2884/drxk/avfb combo.
-Micronas has allowed a GPL driver to be released.  But nobody has been
-willing to do the work to get it upstream.
-It still needs a couple dozen hours worth of work to get up and running,
-and deal with all the codingstyle issues, etc.
+<html><body><div style=3D"color:#000; background-color:#fff; font-family:ti=
+mes new roman, new york, times, serif;font-size:12pt"><div style=3D"font-fa=
+mily: times new roman, new york, times, serif; font-size: 12pt;">Hello to E=
+veryBody:<br><br>I have patched af9015.c and dvb-usb-ids to support sveon s=
+tv22 ( <a href=3D"http://www.linuxtv.org/wiki/index.php/KWorld" title=3D"KW=
+orld">KWorld</a> <a href=3D"http://www.linuxtv.org/wiki/index.php/KWorld_US=
+B_Dual_DVB-T_TV_Stick_%28DVB-T_399U%29" title=3D"KWorld USB Dual DVB-T TV S=
+tick (DVB-T 399U)">USB Dual DVB-T TV Stick (DVB-T 399U)</a>&nbsp; clone ) d=
+ual with<br>-----<br>#define USB_PID_SVEON_STV22&nbsp;&nbsp;&nbsp; &nbsp;&n=
+bsp;&nbsp; &nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; 0xe401<span style=3D"font-=
+weight: bold;"><br>------<br>&nbsp;in dvb-usb-ids.h file <br><br>and <br>--=
+---<br>/* 30 */{USB_DEVICE(USB_VID_KWORLD_2,&nbsp; USB_PID_KWORLD_UB383_T)}=
+,<br>&nbsp;&nbsp;&nbsp; {USB_DEVICE(USB_VID_KWORLD_2,&nbsp;
+ USB_PID_KWORLD_395U_4)},<br>&nbsp;&nbsp;&nbsp; {USB_DEVICE(USB_VID_KWORLD_=
+2,&nbsp; USB_PID_SVEON_STV22)},<br>&nbsp;&nbsp;&nbsp; {0},<br>};<br><br>---=
+---<br>{<br>&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; &nbsp;=
+&nbsp;&nbsp; .name =3D "Sveon STV22 Dual USB DVB-T Tuner HDTV ",<br>&nbsp;&=
+nbsp;&nbsp; &nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; .cold_=
+ids =3D {&amp;af9015_usb_table[32], NULL},<br>&nbsp;&nbsp;&nbsp; &nbsp;&nbs=
+p;&nbsp; &nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; .warm_ids =3D {NULL},<br>&nb=
+sp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; },<br><br>-----<br><b=
+r>in af9015.c<br><br>i expect to help you to extends linux dvb usb support.=
+<br><br>thanks for your time<br><br>David<br><br><br></span></div></div></b=
+ody></html>
+--0-434008300-1307781968=:53969--
 
-I hope that someone is willing to do this somewhere in the nearby
-future.
 
-It's a great device; it can do dvb-c and dvb-t but also has an analogue
-tuner for tv and radio, and it can capture video/audio from
-composite/s-video connected devices as well.
-
-I'd love to see this device working in Linux in the future.
-
-Regards,
-
-Eddie.
-
-
-On Sun, 2011-06-26 at 16:39 +0800, E.John Brown wrote:
-> Dear Eddie,
->                    Have you tried running dmesg in a terminal it will 
-> give you a list of what hardware is running in the kernel and if it has 
-> a driver and or firmware.
->                    See my output sample.
->      7.646537] ivtv: Start initialization, version 1.4.2
-> [    7.646634] ivtv0: Initializing card 0
-> [    7.646636] ivtv0: Autodetected Hauppauge card (cx23416 based)
-> [    7.646693] ivtv 0000:01:05.0: PCI INT A -> GSI 20 (level, low) -> IRQ 20
-> [    7.647485] ivtv i2c driver #0: Test OK
-> [    7.702997] tveeprom 0-0050: Hauppauge model 25019, rev C589, serial# 
-> 10495999
-> [    7.702999] tveeprom 0-0050: tuner model is TCL MFPE05 2 (idx 89, 
-> type 38)
-> [    7.703014] tveeprom 0-0050: TV standards PAL(B/G) PAL(I) SECAM(L/L') 
-> PAL(D/D1/K) (eeprom
-> This is a Hauppauge card
-> Notice that the output tells you the driver details (ivtv i2c driver #0 
-> Test OK)
-> 
-> Another command is lsusb will show usb devices connected
-> Check if your tuner needs firmware and that its in the right place ie 
-> /libs/firmware
-
+--===============0411734230==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
 _______________________________________________
 linux-dvb users mailing list
 For V4L/DVB development, please use instead linux-media@vger.kernel.org
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+--===============0411734230==--
