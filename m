@@ -1,49 +1,86 @@
 Return-path: <mchehab@pedra>
-Received: from moutng.kundenserver.de ([212.227.17.10]:63618 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756837Ab1F2QIx (ORCPT
+Received: from mail1-out1.atlantis.sk ([80.94.52.55]:56864 "EHLO
+	mail.atlantis.sk" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1756360Ab1FKN3O (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 29 Jun 2011 12:08:53 -0400
-Date: Wed, 29 Jun 2011 18:08:49 +0200 (CEST)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Sakari Ailus <sakari.ailus@iki.fi>
-cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	sakari.ailus@maxwell.research.nokia.com,
-	Sylwester Nawrocki <snjw23@gmail.com>,
-	Stan <svarbanov@mm-sol.com>, Hans Verkuil <hansverk@cisco.com>,
-	saaguirre@ti.com, Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: Re: [PATCH v2] V4L: add media bus configuration subdev operations
-In-Reply-To: <Pine.LNX.4.64.1106271029240.9394@axis700.grange>
-Message-ID: <Pine.LNX.4.64.1106291806260.12577@axis700.grange>
-References: <Pine.LNX.4.64.1106222314570.3535@axis700.grange>
- <20110623220129.GA10918@valkosipuli.localdomain> <Pine.LNX.4.64.1106240021540.5348@axis700.grange>
- <20110627081912.GC12671@valkosipuli.localdomain> <Pine.LNX.4.64.1106271029240.9394@axis700.grange>
+	Sat, 11 Jun 2011 09:29:14 -0400
+From: Ondrej Zary <linux@rainbow-software.org>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Subject: [PATCH] tea575x: allow multiple opens
+Date: Sat, 11 Jun 2011 15:28:59 +0200
+Cc: linux-media@vger.kernel.org, alsa-devel@alsa-project.org,
+	Kernel development list <linux-kernel@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain;
+  charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+Message-Id: <201106111529.04319.linux@rainbow-software.org>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Mon, 27 Jun 2011, Guennadi Liakhovetski wrote:
+Change locking to allow tea575x-radio device to be opened multiple times.
 
-[snip]
+Signed-off-by: Ondrej Zary <linux@rainbow-software.org>
 
-> > If the structures are expected to be generic I somehow feel that a field of
-> > flags isn't the best way to describe the configuration of CSI-2 or other
-> > busses. Why not to just use a structure with bus type and an union for
-> > bus-specific configuration parameters? It'd be easier to access and also to
-> > change as needed than flags in an unsigned long field.
-> 
-> Well, yes, a union can be a good idea, thanks.
+--- linux-2.6.39-rc2-/include/sound/tea575x-tuner.h	2011-06-11 15:21:50.000000000 +0200
++++ linux-2.6.39-rc2/include/sound/tea575x-tuner.h	2011-06-11 14:50:55.000000000 +0200
+@@ -49,7 +49,7 @@ struct snd_tea575x {
+ 	bool tuned;			/* tuned to a station */
+ 	unsigned int val;		/* hw value */
+ 	unsigned long freq;		/* frequency */
+-	unsigned long in_use;		/* set if the device is in use */
++	struct mutex mutex;
+ 	struct snd_tea575x_ops *ops;
+ 	void *private_data;
+ 	u8 card[32];
+--- linux-2.6.39-rc2-/sound/i2c/other/tea575x-tuner.c	2011-06-11 15:21:50.000000000 +0200
++++ linux-2.6.39-rc2/sound/i2c/other/tea575x-tuner.c	2011-06-11 14:57:28.000000000 +0200
+@@ -282,26 +282,9 @@ static int vidioc_s_input(struct file *f
+ 	return 0;
+ }
+ 
+-static int snd_tea575x_exclusive_open(struct file *file)
+-{
+-	struct snd_tea575x *tea = video_drvdata(file);
+-
+-	return test_and_set_bit(0, &tea->in_use) ? -EBUSY : 0;
+-}
+-
+-static int snd_tea575x_exclusive_release(struct file *file)
+-{
+-	struct snd_tea575x *tea = video_drvdata(file);
+-
+-	clear_bit(0, &tea->in_use);
+-	return 0;
+-}
+-
+ static const struct v4l2_file_operations tea575x_fops = {
+ 	.owner		= THIS_MODULE,
+-	.open           = snd_tea575x_exclusive_open,
+-	.release        = snd_tea575x_exclusive_release,
+-	.ioctl		= video_ioctl2,
++	.unlocked_ioctl	= video_ioctl2,
+ };
+ 
+ static const struct v4l2_ioctl_ops tea575x_ioctl_ops = {
+@@ -340,13 +323,14 @@ int snd_tea575x_init(struct snd_tea575x
+ 	if (snd_tea575x_read(tea) != 0x55AA)
+ 		return -ENODEV;
+ 
+-	tea->in_use = 0;
+ 	tea->val = TEA575X_BIT_BAND_FM | TEA575X_BIT_SEARCH_10_40;
+ 	tea->freq = 90500 * 16;		/* 90.5Mhz default */
+ 	snd_tea575x_set_freq(tea);
+ 
+ 	tea->vd = tea575x_radio;
+ 	video_set_drvdata(&tea->vd, tea);
++	mutex_init(&tea->mutex);
++	tea->vd.lock = &tea->mutex;
+ 
+ 	v4l2_ctrl_handler_init(&tea->ctrl_handler, 1);
+ 	tea->vd.ctrl_handler = &tea->ctrl_handler;
 
-...on a second thought, we currently only have one field: flags, and it is 
-common for all 3 bus types: parallel, reduced parallel (bt.656, etc.), and 
-CSI-2. In the future, when we need more parameters for any of these busses 
-we'll just add such a union, shouldn't be a problem.
 
-Thanks
-Guennadi
----
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
-http://www.open-technology.de/
+-- 
+Ondrej Zary
