@@ -1,136 +1,148 @@
 Return-path: <mchehab@pedra>
-Received: from ffm.saftware.de ([83.141.3.46]:41809 "EHLO ffm.saftware.de"
+Received: from mx1.redhat.com ([209.132.183.28]:18325 "EHLO mx1.redhat.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751707Ab1FUMee (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 21 Jun 2011 08:34:34 -0400
-Message-ID: <4E008FD1.1070605@linuxtv.org>
-Date: Tue, 21 Jun 2011 14:34:25 +0200
-From: Andreas Oberritter <obi@linuxtv.org>
+	id S1752122Ab1FKJPo (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 11 Jun 2011 05:15:44 -0400
+Message-ID: <4DF3324E.3050506@redhat.com>
+Date: Sat, 11 Jun 2011 11:15:58 +0200
+From: Hans de Goede <hdegoede@redhat.com>
 MIME-Version: 1.0
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-CC: HoP <jpetrous@gmail.com>,
-	Devin Heitmueller <dheitmueller@kernellabs.com>,
-	=?ISO-8859-1?Q?=22S=E9bastien_RAILLARD_=28COEXSI=29=22?=
-	<sr@coexsi.fr>,
-	=?ISO-8859-1?Q?R=E9mi_Denis-Courmont?= <remi@remlab.net>,
-	linux-media@vger.kernel.org
-Subject: Re: [RFC] vtunerc - virtual DVB device driver
-References: <BANLkTimtnbAzLTdFY2OiSddHTjmD_99CfA@mail.gmail.com>	<201106202037.19535.remi@remlab.net>	<BANLkTinn0uN3VwGfqCbYbxFoVf6aNo1VSA@mail.gmail.com>	<BANLkTin14LnwP+_K1m-RsEXza4M4CjqnEw@mail.gmail.com>	<BANLkTimR-zWnnLBcD2w8d8NpeFJi=eT9nQ@mail.gmail.com>	<005a01cc2f7d$a799be30$f6cd3a90$@coexsi.fr>	<BANLkTinbQ8oBJt7fScuT5vHGFktbaQNY5A@mail.gmail.com>	<BANLkTimTdMa_X1ygF8=B5gLdLXq1o-ER0g@mail.gmail.com>	<BANLkTimkZN9AtLanwvct+1p2DZOHSgF6Aw@mail.gmail.com>	<BANLkTimg0X5H5T8CsSR5Tr0CZbCZKiDEEA@mail.gmail.com>	<4DFFB1DA.5000602@redhat.com> <BANLkTikZ++5dZssDRuxJzNUEG_TDkZPGRg@mail.gmail.com> <4DFFF56D.5070602@redhat.com> <4E007AA7.7070400@linuxtv.org> <4E008909.1060909@redhat.com>
-In-Reply-To: <4E008909.1060909@redhat.com>
-Content-Type: text/plain; charset=ISO-8859-1
+To: Alan Stern <stern@rowland.harvard.edu>
+CC: linux-usb@vger.kernel.org,
+	Sarah Sharp <sarah.a.sharp@linux.intel.com>,
+	linux-media@vger.kernel.org, libusb-devel@lists.sourceforge.net,
+	Alexander Graf <agraf@suse.de>,
+	Gerd Hoffmann <kraxel@redhat.com>, hector@marcansoft.com,
+	Jan Kiszka <jan.kiszka@siemens.com>,
+	Stefan Hajnoczi <stefanha@linux.vnet.ibm.com>,
+	pbonzini@redhat.com, Anthony Liguori <aliguori@us.ibm.com>,
+	Jes Sorensen <Jes.Sorensen@redhat.com>,
+	Oliver Neukum <oliver@neukum.org>, Greg KH <greg@kroah.com>,
+	Felipe Balbi <balbi@ti.com>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Clemens Ladisch <clemens@ladisch.de>,
+	Jaroslav Kysela <perex@perex.cz>, Takashi Iwai <tiwai@suse.de>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Subject: Re: Improving kernel -> userspace (usbfs)  usb device hand off
+References: <Pine.LNX.4.44L0.1106101023330.1921-100000@iolanthe.rowland.org>
+In-Reply-To: <Pine.LNX.4.44L0.1106101023330.1921-100000@iolanthe.rowland.org>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On 06/21/2011 02:05 PM, Mauro Carvalho Chehab wrote:
-> Em 21-06-2011 08:04, Andreas Oberritter escreveu:
->> On 06/21/2011 03:35 AM, Mauro Carvalho Chehab wrote:
->>> Em 20-06-2011 18:31, HoP escreveu:
->>>> 2011/6/20 Mauro Carvalho Chehab <mchehab@redhat.com>:
->>>>> Em 20-06-2011 17:24, HoP escreveu:
->>>>>> 2011/6/20 Devin Heitmueller <dheitmueller@kernellabs.com>:
->>>>>>> On Mon, Jun 20, 2011 at 3:56 PM, HoP <jpetrous@gmail.com> wrote:
->>>>>>>> Do you think it is really serious enough reason to prevent of having
->>>>>>>> such virtualization driver in the kernel?
->>>>>>>>
->>>>>>>> Let check my situation and tell me how I should continue (TBH, I already
->>>>>>>> thought that driver can be accepted, but my dumb brain thought because
->>>>>>>> of non quality code/design or so. It was really big "surprise" which
->>>>>>>> reason was used aginst it):
->>>>>>>
->>>>>>> Yes, this is entirely a political issue and not a technical one.
->>>>>>
->>>>>> Political? So we can declare that politics win (again) technicians. Sad.
->>>>>
->>>>> This is not a political issue. It is a licensing issue. If you want to use
->>>>> someone's else code, you need to accept the licensing terms that the developers
->>>>> are giving you, by either paying the price for the code usage (on closed source
->>>>> licensing models), or by accepting the license when using an open-sourced code.
->>>>>
->>>>> Preserving the open-source eco-system is something that everyone
->>>>> developing open source expect: basically, you're free to do whatever
->>>>> you want, but if you're using a code written by an open-source developer,
->>>>> the expected behaviour that GPL asks (and that the developer wants, when he
->>>>> opted for GPL) is that you should return back to the community with any
->>>>> changes you did, including derivative work. This is an essential rule of working
->>>>> with GPL.
->>>>>
->>>>> If you're not happy with that, that's fine. You can implement another stack
->>>>> that is not GPL-licensed.
->>>>
->>>> Mauro, you totally misunderstood me. If you see on my first post in that thread
->>>> I was sending full GPL-ed driver to the mailinglist.
->>>
->>> You misunderstood me. Something that exposes the kernel interface to for an
->>> userspace client driver to implement DVB is not a driver, it is a wrapper.
->>>
->>> The real driver will be in userspace, using the DVB stack, and can even be
->>> closed source. Some developers already tried to do things like that and sell
->>> the userspace code. Such code submission were nacked. There is even one case
->>> where the kernelspace code were dropped due to that (and later, replaced by an
->>> opensource driver).
->>>
->>> We don't want to go on this way again.
+Hi,
+
+Given the many comments in this thread, I'm just
+going reply to this one, and try to also answer any
+other ones in this mail.
+
+As far as the dual mode camera is involved, I agree
+that that should be fixed in the existing v4l2
+drivers + libgphoto. I think that Felipe's solution
+to also handle the stillcam part in kernel space for
+dual mode cameras (and add a libgphoto cam driver which
+knows how to talk the new kernel API for this), is
+the best solution. Unfortunately this will involve
+quite a bit of work, but so be it.
+
+
+On 06/10/2011 04:48 PM, Alan Stern wrote:
+> On Fri, 10 Jun 2011, Hans de Goede wrote:
+>
+>> Hi all,
 >>
->> Mauro and Devin, I think you're missing the point. This is not about
->> creating drivers in userspace. This is not about open or closed source.
->> The "vtuner" interface, as implemented for the Dreambox, is used to
->> access remote tuners: Put x tuners into y boxes and access them from
->> another box as if they were local. It's used in conjunction with further
->> software to receive the transport stream over a network connection.
->> Honza's code does the same thing.
+>> The current API for managing kernel ->  userspace is a bit
+>> rough around the edges, so I would like to discuss extending
+>> the API.
 >>
->> You don't need it in order to create closed source drivers. You can
->> already create closed kernel drivers now. Also, you can create tuner
->> drivers in userspace using the i2c-dev interface. If you like to connect
->> a userspace driver to a DVB API device node, you can distribute a small
->> (open or closed) wrapper with it. So what are you arguing about?
->> Everything you're feared of can already be done since virtually forever.
-> 
-> Yes, but we don't need to review/maintain a kernel driver meant to be
-> used by closed source applications
+>> First of all an example use case scenarios where the current API
+>> falls short.
+>>
+>> 1) Redirection of USB devices to a virtual machine, qemu, vbox, etc.
+>> all have the ability to redirect a USB device to the virtual machine,
+>> and they all use usbfs for this. The first thing which will happen
+>> here when the user selects a device to redirect is a
+>> IOCTL_USBFS_DISCONNECT. This causes the kernel driver to see a
+>> device unplug, with no chances for the kernel driver to do anything
+>> against this.
+>>
+>> Now lets say the user does the following:
+>> -write a file to a usb flash disk
+>> -redirect the flash disk to a vm
+>>
+>> Currently this will cause the usb mass storage driver to see a
+>> disconnect, and any possible still pending writes are lost ...
+>>
+>> This is IMHO unacceptable, but currently there is nothing we can
+>> do to avoid this.
+>
+> You haven't given a proper description of the problem.  See below.
 
-*Not that it would apply to this case*, but disallowing closed source
-applications in userspace is ridiculous. And why should you reject a
-possibly nice interface just because no open source application using it
-has already been written?
+I think I've given an excellent description of the problem, drivers
+can be unbound from devices, and there is no way for drivers to block
+this. All I'm asking for is for a new usbfs try_disconnect ioctl which
+the currently bound driver has a chance blocking nothing more nothing
+less.
 
-> and, if they're using a GPL'd code
-> inside a closed source application, they can be sued.
-> 
-> I didn't review the patchset, but, from the description, I understood that
-> it were developed to use some Dreambox-specific closed source applications.
-> With such requirement, for me it is just a wrapper to some closed source
-> application.
+<snip dual mode camera stuff>
 
-I see. That's where you're wrong. Neither does it depend on any closed
-application (Honza even included the link to the source code of the
-application: https://code.google.com/p/dreamtuner/), nor is this
-application specific to the Dreambox. The Dreambox is just the origin of
-the vtuner API.
+>> So what do we need to make this situation better:
+>> 1) A usb_driver callback alternative to the disconnect callback,
+>>      I propose to call this soft_disconnect. This serves 2 purposes
+>>      a) It will allow the driver to tell the caller that that is not
+>>         a good idea by returning an error code (think usb mass storage
+>>         driver and mounted filesystem
+>
+> Not feasible.  usb-storage has no idea whether or not a device it
+> controls has a mounted filesystem.  (All it does is send SCSI commands
+> to a device and get back the results.)  Since that's the main use
+> case you're interested in, this part of the proposal seems destined to
+> fail.
+>
 
-Btw.: Honza repeatedly stated that he's using his code with VDR, which
-in other words means that he's not using a Dreambox.
+This is not completely true, I cannot rmmod usb-storage as long as
+disks using it are mounted. I know this is done through the global
+module usage count, so this is not per usb-storage device. But extending
+the ref counting to be per usb-storage device should not be hard.
 
-> That's said, I'm not against a driver that allows using a DVB kernel
-> driver by a DVB open source application either inside a virtual machine
-> or on a remote machine. This seems useful for me. So, if the code could
-> be turned into it, I'll review and consider for its inclusion upstream.
+All the accounting is already done for this.
 
-You mean, if the code could be turned into what it already is?
+> But userspace _does_ know where the mounted filesystems are.
+> Therefore userspace should be responsible for avoiding programs that
+> want to take control of devices holding these filesystems.  That's the
+> reason why usbfs device nodes are owned by root and have 0644 mode;
+> there're can be written to only by programs with superuser privileges
+> -- and such programs are supposed to be careful about what they do.
+>
 
-> For that to happen, it should not try to use any Dreambox specific application
-> or protocol, but to just use the standard DVBv5 API, as you've pointed.
+Yes, and what I'm asking for is for an easy way for these programs to
+be careful. A way for them to ask the kernel, which in general is
+responsible for things like this and traditionally does resource
+management and things which come with that like refcounting: "unbind
+the driver from this device unless the device is currently in use".
 
-The DVB API v5 (as of now) is a set of character devices with associated
-commands. Vtuner is a way to create such (virtual, frontend) character
-devices and intercept and relay their commands. You cannot use DVB API
-v5 commands to create a character device, unless of course you integrate
-vtuner (or something similar) into the DVB API v5 first.
+Why can't this be done in userspace, simply put:
+1) Process a checks if the usb-storage device is not used
+2) Process b mounts it after the check
+3) Process a unbinds the driver
 
-What I pointed out was that the number of commands of the current vtuner
-API can and should be reduced (by using or adding S2API properties,
-which in turn get relayed through the vtuner API).
+Yes this can be avoided if all binding/unbinding and all mounting
+happens under control of a single instance. However this requires
+completely re-inventing userspace...
+
+Also note that the notion of this can be extended to other devices,
+want to ubs-redirect a usb printer to a vm better not do it halfway
+through a printjob being spooled. Want to usb-redirect a usb webcam
+to a vm, better not do it while something is streaming video from
+the webcam, etc. etc.
+
+And please don't come with the inevitable "if it hurts do not do
+that" argument. We want to provide this kind of functionality to
+non tech savy computer users, and things should just work, including
+telling the user that the device is currently in use rather then
+wrecking his printjob or filesystem.
 
 Regards,
-Andreas
+
+Hans
