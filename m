@@ -1,69 +1,172 @@
 Return-path: <mchehab@pedra>
-Received: from tex.lwn.net ([70.33.254.29]:48343 "EHLO vena.lwn.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755474Ab1FPPRW (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 16 Jun 2011 11:17:22 -0400
-Date: Thu, 16 Jun 2011 09:17:20 -0600
-From: Jonathan Corbet <corbet@lwn.net>
-To: Kassey Lee <kassey1216@gmail.com>
-Cc: linux-media@vger.kernel.org, g.liakhovetski@gmx.de,
-	Kassey Lee <ygli@marvell.com>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	qingx@marvell.com, ytang5@marvell.com
-Subject: Re: [PATCH 8/8] marvell-cam: Basic working MMP camera driver
-Message-ID: <20110616091720.22962c5c@bike.lwn.net>
-In-Reply-To: <BANLkTi=rZzEQp0iNBdrTBCeWM=h+nq49sw@mail.gmail.com>
-References: <1307814409-46282-1-git-send-email-corbet@lwn.net>
-	<1307814409-46282-9-git-send-email-corbet@lwn.net>
-	<BANLkTi=rZzEQp0iNBdrTBCeWM=h+nq49sw@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8bit
+Received: from smtp-vbr18.xs4all.nl ([194.109.24.38]:1139 "EHLO
+	smtp-vbr18.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757649Ab1FKNe4 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sat, 11 Jun 2011 09:34:56 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [RFCv1 PATCH 5/7] tuner-core: fix s_std and s_tuner.
+Date: Sat, 11 Jun 2011 15:34:41 +0200
+Message-Id: <c392463ff9270b7f96399ed463b7a7d92bc64988.1307798213.git.hans.verkuil@cisco.com>
+In-Reply-To: <1307799283-15518-1-git-send-email-hverkuil@xs4all.nl>
+References: <1307799283-15518-1-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <9e1e782993aa0d0edf06fd5697743beca7717a53.1307798213.git.hans.verkuil@cisco.com>
+References: <9e1e782993aa0d0edf06fd5697743beca7717a53.1307798213.git.hans.verkuil@cisco.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Thu, 16 Jun 2011 10:37:37 +0800
-Kassey Lee <kassey1216@gmail.com> wrote:
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-> > +static void mmpcam_power_down(struct mcam_camera *mcam)
-> > +{
-> > +       struct mmp_camera *cam = mcam_to_cam(mcam);
-> > +       struct mmp_camera_platform_data *pdata;
-> > +/*
-> > + * Turn off clocks and set reset lines
-> > + */
-> > +       iowrite32(0, cam->power_regs + REG_CCIC_DCGCR);
-> > +       iowrite32(0, cam->power_regs + REG_CCIC_CRCR);
-> > +/*
-> > + * Shut down the sensor.
-> > + */
-> > +       pdata = cam->pdev->dev.platform_data;
-> > +       gpio_set_value(pdata->sensor_power_gpio, 0);
-> > +       gpio_set_value(pdata->sensor_reset_gpio, 0);  
+Both s_std and s_tuner are broken because set_mode_freq is called before the
+new std (for s_std) and audmode (for s_tuner) are set.
 
-> it is better to have a callback function to controller sensor power on/off.
-> and place the callback function in board.c
+This patch splits set_mode_freq in a set_mode and a set_freq and in s_std
+first calls set_mode, and if that returns true (i.e. the mode is supported)
+then they set t->std/t->audmode and call set_freq.
 
-This is an interesting question, actually.  The problem is that board
-files are on their way out; it's going to be very hard to get any more
-board files into the mainline going forward.
+This fixes a bug where changing std or audmode would actually change it to
+the previous value.
 
-The mmp-camera driver does depend on a board file, but I've been careful
-to restrict things to basic platform data which can just as easily be put
-into a device tree.  Power management callbacks don't really qualify.
+Discovered while testing analog TV standards for cx18 with a tda18271 tuner.
 
-So it seems that we need to figure out a way to push this kind of
-pin/power management down into the sensor-specific code.  Looking at the
-subdev stuff, it looks like a bit of thought has been put into that
-direction; there's the s_io_pin_config() callback to describe pins to the
-sensor.  But it's almost entirely unused.
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ drivers/media/video/tuner-core.c |   57 ++++++++++++++++++++-----------------
+ 1 files changed, 31 insertions(+), 26 deletions(-)
 
-There is no "power up/down" callback, currently.  We could ponder on
-whether one should be added, or whether this should be handled through the
-existing power management code somehow.  I honestly don't know what the
-best answer is on this one - will have to do some digging.  Suggestions
-welcome.
+diff --git a/drivers/media/video/tuner-core.c b/drivers/media/video/tuner-core.c
+index d0630f9..8ef7790 100644
+--- a/drivers/media/video/tuner-core.c
++++ b/drivers/media/video/tuner-core.c
+@@ -739,19 +739,15 @@ static bool supported_mode(struct tuner *t, enum v4l2_tuner_type mode)
+ }
+ 
+ /**
+- * set_mode_freq - Switch tuner to other mode.
+- * @client:	struct i2c_client pointer
++ * set_mode - Switch tuner to other mode.
+  * @t:		a pointer to the module's internal struct_tuner
+  * @mode:	enum v4l2_type (radio or TV)
+- * @freq:	frequency to set (0 means to use the previous one)
+  *
+  * If tuner doesn't support the needed mode (radio or TV), prints a
+  * debug message and returns false, changing its state to standby.
+- * Otherwise, changes the state and sets frequency to the last value
+- * and returns true.
++ * Otherwise, changes the state and returns true.
+  */
+-static bool set_mode_freq(struct i2c_client *client, struct tuner *t,
+-			 enum v4l2_tuner_type mode, unsigned int freq)
++static bool set_mode(struct tuner *t, enum v4l2_tuner_type mode)
+ {
+ 	struct analog_demod_ops *analog_ops = &t->fe.ops.analog_ops;
+ 
+@@ -767,17 +763,27 @@ static bool set_mode_freq(struct i2c_client *client, struct tuner *t,
+ 		t->mode = mode;
+ 		tuner_dbg("Changing to mode %d\n", mode);
+ 	}
++	return true;
++}
++
++/**
++ * set_freq - Set the tuner to the desired frequency.
++ * @t:		a pointer to the module's internal struct_tuner
++ * @freq:	frequency to set (0 means to use the current frequency)
++ */
++static void set_freq(struct tuner *t, unsigned int freq)
++{
++	struct i2c_client *client = v4l2_get_subdevdata(&t->sd);
++
+ 	if (t->mode == V4L2_TUNER_RADIO) {
+-		if (freq)
+-			t->radio_freq = freq;
+-		set_radio_freq(client, t->radio_freq);
++		if (!freq)
++			freq = t->radio_freq;
++		set_radio_freq(client, freq);
+ 	} else {
+-		if (freq)
+-			t->tv_freq = freq;
+-		set_tv_freq(client, t->tv_freq);
++		if (!freq)
++			freq = t->tv_freq;
++		set_tv_freq(client, freq);
+ 	}
+-
+-	return true;
+ }
+ 
+ /*
+@@ -1034,9 +1040,9 @@ static void tuner_status(struct dvb_frontend *fe)
+ static int tuner_s_radio(struct v4l2_subdev *sd)
+ {
+ 	struct tuner *t = to_tuner(sd);
+-	struct i2c_client *client = v4l2_get_subdevdata(sd);
+ 
+-	set_mode_freq(client, t, V4L2_TUNER_RADIO, 0);
++	set_mode(t, V4L2_TUNER_RADIO);
++	set_freq(t, 0);
+ 	return 0;
+ }
+ 
+@@ -1068,24 +1074,23 @@ static int tuner_s_power(struct v4l2_subdev *sd, int on)
+ static int tuner_s_std(struct v4l2_subdev *sd, v4l2_std_id std)
+ {
+ 	struct tuner *t = to_tuner(sd);
+-	struct i2c_client *client = v4l2_get_subdevdata(sd);
+ 
+-	if (!set_mode_freq(client, t, V4L2_TUNER_ANALOG_TV, 0))
++	if (!set_mode(t, V4L2_TUNER_ANALOG_TV))
+ 		return 0;
+ 
+ 	t->std = tuner_fixup_std(t, std);
+ 	if (t->std != std)
+ 		tuner_dbg("Fixup standard %llx to %llx\n", std, t->std);
+-
++	set_freq(t, 0);
+ 	return 0;
+ }
+ 
+ static int tuner_s_frequency(struct v4l2_subdev *sd, struct v4l2_frequency *f)
+ {
+ 	struct tuner *t = to_tuner(sd);
+-	struct i2c_client *client = v4l2_get_subdevdata(sd);
+ 
+-	set_mode_freq(client, t, f->type, f->frequency);
++	if (set_mode(t, f->type))
++		set_freq(t, f->frequency);
+ 	return 0;
+ }
+ 
+@@ -1152,13 +1157,13 @@ static int tuner_g_tuner(struct v4l2_subdev *sd, struct v4l2_tuner *vt)
+ static int tuner_s_tuner(struct v4l2_subdev *sd, struct v4l2_tuner *vt)
+ {
+ 	struct tuner *t = to_tuner(sd);
+-	struct i2c_client *client = v4l2_get_subdevdata(sd);
+ 
+-	if (!set_mode_freq(client, t, vt->type, 0))
++	if (!set_mode(t, vt->type))
+ 		return 0;
+ 
+ 	if (t->mode == V4L2_TUNER_RADIO)
+ 		t->audmode = vt->audmode;
++	set_freq(t, 0);
+ 
+ 	return 0;
+ }
+@@ -1193,8 +1198,8 @@ static int tuner_resume(struct i2c_client *c)
+ 	tuner_dbg("resume\n");
+ 
+ 	if (!t->standby)
+-		set_mode_freq(c, t, t->type, 0);
+-
++		if (set_mode(t, t->type))
++			set_freq(t, 0);
+ 	return 0;
+ }
+ 
+-- 
+1.7.1
 
-Thanks,
-
-jon
