@@ -1,246 +1,76 @@
 Return-path: <mchehab@pedra>
-Received: from bear.ext.ti.com ([192.94.94.41]:34761 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753696Ab1FBRWM convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 2 Jun 2011 13:22:12 -0400
-From: "Nori, Sekhar" <nsekhar@ti.com>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-CC: LAK <linux-arm-kernel@lists.infradead.org>,
-	LMML <linux-media@vger.kernel.org>,
-	"Hadli, Manjunath" <manjunath.hadli@ti.com>,
-	dlos <davinci-linux-open-source@linux.davincidsp.com>
-Date: Thu, 2 Jun 2011 22:51:58 +0530
-Subject: RE: [PATCH 1/1] davinci: dm646x: move vpif related code to driver
- core	header from platform
-Message-ID: <B85A65D85D7EB246BE421B3FB0FBB593024D2D28E3@dbde02.ent.ti.com>
-References: <1305899929-2509-1-git-send-email-manjunath.hadli@ti.com>
-In-Reply-To: <1305899929-2509-1-git-send-email-manjunath.hadli@ti.com>
-Content-Language: en-US
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Received: from proofpoint-cluster.metrocast.net ([65.175.128.136]:43107 "EHLO
+	proofpoint-cluster.metrocast.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1757888Ab1FKQGj (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sat, 11 Jun 2011 12:06:39 -0400
+References: <1307804731-16430-1-git-send-email-hverkuil@xs4all.nl> <BANLkTikWiEb+aGGbSNSZ+YtdeVRB6QaJtg@mail.gmail.com> <201106111753.21581.hverkuil@xs4all.nl>
+In-Reply-To: <201106111753.21581.hverkuil@xs4all.nl>
 MIME-Version: 1.0
+Content-Type: text/plain;
+ charset=UTF-8
+Content-Transfer-Encoding: 8bit
+Subject: Re: [RFCv2 PATCH 0/5] tuner-core: fix s_std and s_tuner
+From: Andy Walls <awalls@md.metrocast.net>
+Date: Sat, 11 Jun 2011 12:06:50 -0400
+To: Hans Verkuil <hverkuil@xs4all.nl>,
+	Devin Heitmueller <dheitmueller@kernellabs.com>
+CC: linux-media@vger.kernel.org
+Message-ID: <4a3fc9cd-d7e1-4692-92cb-af4d652c0224@email.android.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Hi Mauro,
+Hans Verkuil <hverkuil@xs4all.nl> wrote:
 
-On Fri, May 20, 2011 at 19:28:49, Hadli, Manjunath wrote:
-> move vpif related code for capture and display drivers
-> from dm646x platform header file to vpif.h as these definitions
-> are related to driver code more than the platform or board.
-> 
-> Signed-off-by: Manjunath Hadli <manjunath.hadli@ti.com>
+>On Saturday, June 11, 2011 17:32:10 Devin Heitmueller wrote:
+>> On Sat, Jun 11, 2011 at 11:05 AM, Hans Verkuil <hverkuil@xs4all.nl>
+>wrote:
+>> > Second version of this patch series.
+>> >
+>> > It's the same as RFCv1, except that I dropped the g_frequency and
+>> > g_tuner/s_tuner patches (patch 3, 6 and 7 in the original patch
+>series)
+>> > because I need to think more on those, and I added a new fix for
+>tuner_resume
+>> > which was broken as well.
+>> 
+>> Hi Hans,
+>> 
+>> I appreciate your taking the time to refactor this code (no doubt it
+>> really needed it).  All that I ask is that you please actually *try*
+>> the resulting patches with VLC and a tuner that supports standby in
+>> order to ensure that it didn't cause any regressions.
+>
+>That's easier said than done. I don't think I have tuners of that type.
+>
+>Do you happen to know not-too-expensive cards that you can buy that
+>have
+>this sort of tuners? It may be useful to be able to test this myself.
+>
+>> This stuff was
+>> brittle to begin with, and there are lots of opportunities for
+>> obscure/unexpected effects resulting from what appear to be sane
+>> changes.
+>> 
+>> The last series of patches that went in were in response to this
+>stuff
+>> being very broken, and I would hate to see a regression in existing
+>> applications after we finally got it working.
+>
+>Yeah, it seems that whenever you touch this tuner code something breaks
+>for at least one card. There is so much legacy here...
+>
+>Regards,
+>
+>	Hans
+>--
+>To unsubscribe from this list: send the line "unsubscribe linux-media"
+>in
+>the body of a message to majordomo@vger.kernel.org
+>More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
-Will you be taking this patch through your tree?
+Devin,
 
-If not, with your ack, I can queue it for inclusion
-through the ARM tree.
+I think I have a Gotview or compro card with an xc2028.  Is that tuner capable of standby?  Would the cx18 or ivtv driver need to actively support using stand by?
 
-Thanks,
-Sekhar
-
-> ---
->  arch/arm/mach-davinci/include/mach/dm646x.h |   53 +-------------------
->  drivers/media/video/davinci/vpif.h          |    1 +
->  drivers/media/video/davinci/vpif_capture.h  |    2 +-
->  drivers/media/video/davinci/vpif_display.h  |    1 +
->  include/media/davinci/vpif.h                |   73 +++++++++++++++++++++++++++
->  5 files changed, 77 insertions(+), 53 deletions(-)
->  create mode 100644 include/media/davinci/vpif.h
-> 
-> diff --git a/arch/arm/mach-davinci/include/mach/dm646x.h b/arch/arm/mach-davinci/include/mach/dm646x.h
-> index 7a27f3f..245a1c0 100644
-> --- a/arch/arm/mach-davinci/include/mach/dm646x.h
-> +++ b/arch/arm/mach-davinci/include/mach/dm646x.h
-> @@ -17,6 +17,7 @@
->  #include <linux/videodev2.h>
->  #include <linux/clk.h>
->  #include <linux/davinci_emac.h>
-> +#include <media/davinci/vpif.h>
->  
->  #define DM646X_EMAC_BASE		(0x01C80000)
->  #define DM646X_EMAC_MDIO_BASE		(DM646X_EMAC_BASE + 0x4000)
-> @@ -36,58 +37,6 @@ int __init dm646x_init_edma(struct edma_rsv_info *rsv);
->  
->  void dm646x_video_init(void);
->  
-> -enum vpif_if_type {
-> -	VPIF_IF_BT656,
-> -	VPIF_IF_BT1120,
-> -	VPIF_IF_RAW_BAYER
-> -};
-> -
-> -struct vpif_interface {
-> -	enum vpif_if_type if_type;
-> -	unsigned hd_pol:1;
-> -	unsigned vd_pol:1;
-> -	unsigned fid_pol:1;
-> -};
-> -
-> -struct vpif_subdev_info {
-> -	const char *name;
-> -	struct i2c_board_info board_info;
-> -	u32 input;
-> -	u32 output;
-> -	unsigned can_route:1;
-> -	struct vpif_interface vpif_if;
-> -};
-> -
-> -struct vpif_display_config {
-> -	int (*set_clock)(int, int);
-> -	struct vpif_subdev_info *subdevinfo;
-> -	int subdev_count;
-> -	const char **output;
-> -	int output_count;
-> -	const char *card_name;
-> -};
-> -
-> -struct vpif_input {
-> -	struct v4l2_input input;
-> -	const char *subdev_name;
-> -};
-> -
-> -#define VPIF_CAPTURE_MAX_CHANNELS	2
-> -
-> -struct vpif_capture_chan_config {
-> -	const struct vpif_input *inputs;
-> -	int input_count;
-> -};
-> -
-> -struct vpif_capture_config {
-> -	int (*setup_input_channel_mode)(int);
-> -	int (*setup_input_path)(int, const char *);
-> -	struct vpif_capture_chan_config chan_config[VPIF_CAPTURE_MAX_CHANNELS];
-> -	struct vpif_subdev_info *subdev_info;
-> -	int subdev_count;
-> -	const char *card_name;
-> -};
-> -
->  void dm646x_setup_vpif(struct vpif_display_config *,
->  		       struct vpif_capture_config *);
->  
-> diff --git a/drivers/media/video/davinci/vpif.h b/drivers/media/video/davinci/vpif.h
-> index 10550bd..e76dded 100644
-> --- a/drivers/media/video/davinci/vpif.h
-> +++ b/drivers/media/video/davinci/vpif.h
-> @@ -20,6 +20,7 @@
->  #include <linux/videodev2.h>
->  #include <mach/hardware.h>
->  #include <mach/dm646x.h>
-> +#include <media/davinci/vpif.h>
->  
->  /* Maximum channel allowed */
->  #define VPIF_NUM_CHANNELS		(4)
-> diff --git a/drivers/media/video/davinci/vpif_capture.h b/drivers/media/video/davinci/vpif_capture.h
-> index 7a4196d..fa50b6b 100644
-> --- a/drivers/media/video/davinci/vpif_capture.h
-> +++ b/drivers/media/video/davinci/vpif_capture.h
-> @@ -28,7 +28,7 @@
->  #include <media/v4l2-device.h>
->  #include <media/videobuf-core.h>
->  #include <media/videobuf-dma-contig.h>
-> -#include <mach/dm646x.h>
-> +#include <media/davinci/vpif.h>
->  
->  #include "vpif.h"
->  
-> diff --git a/drivers/media/video/davinci/vpif_display.h b/drivers/media/video/davinci/vpif_display.h
-> index b53aaa8..b531a01 100644
-> --- a/drivers/media/video/davinci/vpif_display.h
-> +++ b/drivers/media/video/davinci/vpif_display.h
-> @@ -23,6 +23,7 @@
->  #include <media/v4l2-device.h>
->  #include <media/videobuf-core.h>
->  #include <media/videobuf-dma-contig.h>
-> +#include <media/davinci/vpif.h>
->  
->  #include "vpif.h"
->  
-> diff --git a/include/media/davinci/vpif.h b/include/media/davinci/vpif.h
-> new file mode 100644
-> index 0000000..e4a4dc1
-> --- /dev/null
-> +++ b/include/media/davinci/vpif.h
-> @@ -0,0 +1,73 @@
-> +/*
-> + * Copyright (C) 2011 Texas Instruments Inc
-> + *
-> + * This program is free software; you can redistribute it and/or modify
-> + * it under the terms of the GNU General Public License as published by
-> + * the Free Software Foundation version 2.
-> + *
-> + * This program is distributed in the hope that it will be useful,
-> + * but WITHOUT ANY WARRANTY; without even the implied warranty of
-> + * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-> + * GNU General Public License for more details.
-> + *
-> + * You should have received a copy of the GNU General Public License
-> + * along with this program; if not, write to the Free Software
-> + * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
-> + */
-> +#ifndef _VPIF_INC_H
-> +#define _VPIF_INC_H
-> +
-> +#include <linux/i2c.h>
-> +
-> +#define VPIF_CAPTURE_MAX_CHANNELS	2
-> +
-> +enum vpif_if_type {
-> +	VPIF_IF_BT656,
-> +	VPIF_IF_BT1120,
-> +	VPIF_IF_RAW_BAYER
-> +};
-> +
-> +struct vpif_interface {
-> +	enum vpif_if_type if_type;
-> +	unsigned hd_pol:1;
-> +	unsigned vd_pol:1;
-> +	unsigned fid_pol:1;
-> +};
-> +
-> +struct vpif_subdev_info {
-> +	const char *name;
-> +	struct i2c_board_info board_info;
-> +	u32 input;
-> +	u32 output;
-> +	unsigned can_route:1;
-> +	struct vpif_interface vpif_if;
-> +};
-> +
-> +struct vpif_display_config {
-> +	int (*set_clock)(int, int);
-> +	struct vpif_subdev_info *subdevinfo;
-> +	int subdev_count;
-> +	const char **output;
-> +	int output_count;
-> +	const char *card_name;
-> +};
-> +
-> +struct vpif_input {
-> +	struct v4l2_input input;
-> +	const char *subdev_name;
-> +};
-> +
-> +struct vpif_capture_chan_config {
-> +	const struct vpif_input *inputs;
-> +	int input_count;
-> +};
-> +
-> +struct vpif_capture_config {
-> +	int (*setup_input_channel_mode)(int);
-> +	int (*setup_input_path)(int, const char *);
-> +	struct vpif_capture_chan_config chan_config[VPIF_CAPTURE_MAX_CHANNELS];
-> +	struct vpif_subdev_info *subdev_info;
-> +	int subdev_count;
-> +	const char *card_name;
-> +};
-> +#endif /* _VPIF_INC_H */
-> -- 
-> 1.6.2.4
-> 
-> _______________________________________________
-> Davinci-linux-open-source mailing list
-> Davinci-linux-open-source@linux.davincidsp.com
-> http://linux.davincidsp.com/mailman/listinfo/davinci-linux-open-source
-> 
-
+-Andy
