@@ -1,42 +1,36 @@
 Return-path: <mchehab@pedra>
-Received: from tex.lwn.net ([70.33.254.29]:54688 "EHLO vena.lwn.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751254Ab1FKRrG (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 11 Jun 2011 13:47:06 -0400
-From: Jonathan Corbet <corbet@lwn.net>
-To: linux-media@vger.kernel.org
-Cc: g.liakhovetski@gmx.de, Kassey Lee <ygli@marvell.com>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Jonathan Corbet <corbet@lwn.net>
-Subject: [PATCH 4/8] marvell-cam: Remove the "untested" comment
-Date: Sat, 11 Jun 2011 11:46:45 -0600
-Message-Id: <1307814409-46282-5-git-send-email-corbet@lwn.net>
-In-Reply-To: <1307814409-46282-1-git-send-email-corbet@lwn.net>
-References: <1307814409-46282-1-git-send-email-corbet@lwn.net>
+Received: from mail-ew0-f46.google.com ([209.85.215.46]:53666 "EHLO
+	mail-ew0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751638Ab1FKRAB (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sat, 11 Jun 2011 13:00:01 -0400
+Received: by ewy4 with SMTP id 4so1215060ewy.19
+        for <linux-media@vger.kernel.org>; Sat, 11 Jun 2011 10:00:00 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <201106111753.21581.hverkuil@xs4all.nl>
+References: <1307804731-16430-1-git-send-email-hverkuil@xs4all.nl>
+	<BANLkTikWiEb+aGGbSNSZ+YtdeVRB6QaJtg@mail.gmail.com>
+	<201106111753.21581.hverkuil@xs4all.nl>
+Date: Sat, 11 Jun 2011 13:00:00 -0400
+Message-ID: <BANLkTi=gSXAgTfhU=cjJLaqD6EnDApL=kA@mail.gmail.com>
+Subject: Re: [RFCv2 PATCH 0/5] tuner-core: fix s_std and s_tuner
+From: Devin Heitmueller <dheitmueller@kernellabs.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-This code is, indeed, tested :)
+On Sat, Jun 11, 2011 at 11:53 AM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
+> Do you happen to know not-too-expensive cards that you can buy that have
+> this sort of tuners? It may be useful to be able to test this myself.
 
-Signed-off-by: Jonathan Corbet <corbet@lwn.net>
----
- drivers/media/video/marvell-ccic/cafe-driver.c |    3 ---
- 1 files changed, 0 insertions(+), 3 deletions(-)
+Anything with an xc3028 or xc5000 would have this issue.  I don't
+really keep close track of current shipping DVB products, but the 3028
+was definitely very chip in products from a couple of years ago.
 
-diff --git a/drivers/media/video/marvell-ccic/cafe-driver.c b/drivers/media/video/marvell-ccic/cafe-driver.c
-index 08edf95..91ba74b 100644
---- a/drivers/media/video/marvell-ccic/cafe-driver.c
-+++ b/drivers/media/video/marvell-ccic/cafe-driver.c
-@@ -14,9 +14,6 @@
-  * v4l2_device/v4l2_subdev conversion by:
-  * Copyright (C) 2009 Hans Verkuil <hverkuil@xs4all.nl>
-  *
-- * Note: this conversion is untested! Please contact the linux-media
-- * mailinglist if you can test this, together with the test results.
-- *
-  * This file may be distributed under the terms of the GNU General
-  * Public License, version 2.
-  */
+Devin
+
 -- 
-1.7.5.4
-
+Devin J. Heitmueller - Kernel Labs
+http://www.kernellabs.com
