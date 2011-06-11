@@ -1,60 +1,49 @@
 Return-path: <mchehab@pedra>
-Received: from mail.juropnet.hu ([212.24.188.131]:55484 "EHLO mail.juropnet.hu"
+Received: from mx1.redhat.com ([209.132.183.28]:25004 "EHLO mx1.redhat.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751988Ab1FCP1d (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 3 Jun 2011 11:27:33 -0400
-Received: from [94.248.227.103]
-	by mail.juropnet.hu with esmtps (TLS1.0:DHE_RSA_AES_256_CBC_SHA1:32)
-	(Exim 4.69)
-	(envelope-from <istvan_v@mailbox.hu>)
-	id 1QSWHa-0003KO-Q6
-	for linux-media@vger.kernel.org; Fri, 03 Jun 2011 17:27:32 +0200
-Message-ID: <4DE8FD62.406@mailbox.hu>
-Date: Fri, 03 Jun 2011 17:27:30 +0200
-From: "istvan_v@mailbox.hu" <istvan_v@mailbox.hu>
+	id S1757665Ab1FKNsI (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 11 Jun 2011 09:48:08 -0400
+Message-ID: <4DF37214.4040103@redhat.com>
+Date: Sat, 11 Jun 2011 10:48:04 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
 MIME-Version: 1.0
-To: linux-media@vger.kernel.org
-Subject: XC4000: fixed frequency error
-References: <4D764337.6050109@email.cz>	<20110531124843.377a2a80@glory.local>	<BANLkTi=Lq+FF++yGhRmOa4NCigSt6ZurHg@mail.gmail.com>	<20110531174323.0f0c45c0@glory.local> <BANLkTimEEGsMP6PDXf5W5p9wW7wdWEEOiA@mail.gmail.com>
-In-Reply-To: <BANLkTimEEGsMP6PDXf5W5p9wW7wdWEEOiA@mail.gmail.com>
-Content-Type: multipart/mixed;
- boundary="------------080703060100050808070204"
+To: Hans Verkuil <hverkuil@xs4all.nl>
+CC: linux-media@vger.kernel.org, Hans Verkuil <hans.verkuil@cisco.com>
+Subject: Re: [RFCv1 PATCH 6/7] tuner-core: fix g_tuner
+References: <1307799283-15518-1-git-send-email-hverkuil@xs4all.nl> <54ea5935863e922ac5b9e5faf61d9b69e4f31492.1307798213.git.hans.verkuil@cisco.com>
+In-Reply-To: <54ea5935863e922ac5b9e5faf61d9b69e4f31492.1307798213.git.hans.verkuil@cisco.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-This is a multi-part message in MIME format.
---------------080703060100050808070204
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Em 11-06-2011 10:34, Hans Verkuil escreveu:
+> From: Hans Verkuil <hans.verkuil@cisco.com>
+> 
+> g_tuner just returns the tuner data for the current tuner mode and the
+> application does not have to set the tuner type. So don't test for a
+> valid tuner type.
 
-The xc_get_frequency_error() function reported the frequency error
-incorrectly. The data read from the hardware is a signed integer, in
-15625 Hz units. The attached patch fixes the bug.
+This also breaks support for a separate radio tuner, as both TV and radio
+tuners will touch at the g_tuner struct.
 
-Signed-off-by: Istvan Varga <istvan_v@mailbox.hu>
+> 
+> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+> ---
+>  drivers/media/video/tuner-core.c |    2 --
+>  1 files changed, 0 insertions(+), 2 deletions(-)
+> 
+> diff --git a/drivers/media/video/tuner-core.c b/drivers/media/video/tuner-core.c
+> index 8ef7790..7280998 100644
+> --- a/drivers/media/video/tuner-core.c
+> +++ b/drivers/media/video/tuner-core.c
+> @@ -1120,8 +1120,6 @@ static int tuner_g_tuner(struct v4l2_subdev *sd, struct v4l2_tuner *vt)
+>  	struct analog_demod_ops *analog_ops = &t->fe.ops.analog_ops;
+>  	struct dvb_tuner_ops *fe_tuner_ops = &t->fe.ops.tuner_ops;
+>  
+> -	if (!supported_mode(t, vt->type))
+> -		return 0;
+>  	vt->type = t->mode;
+>  	if (analog_ops->get_afc)
+>  		vt->afc = analog_ops->get_afc(&t->fe);
 
-
---------------080703060100050808070204
-Content-Type: text/x-patch;
- name="xc4000_freqerr.patch"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: attachment;
- filename="xc4000_freqerr.patch"
-
-diff -uNr xc4000_orig/drivers/media/common/tuners/xc4000.c xc4000/drivers/media/common/tuners/xc4000.c
---- xc4000_orig/drivers/media/common/tuners/xc4000.c	2011-06-03 17:09:54.000000000 +0200
-+++ xc4000/drivers/media/common/tuners/xc4000.c	2011-06-03 17:14:12.000000000 +0200
-@@ -418,8 +418,9 @@
- 	if (result != XC_RESULT_SUCCESS)
- 		return result;
- 
--	tmp = (u32)regData;
--	(*freq_error_hz) = (tmp * 15625) / 1000;
-+	tmp = (u32)regData & 0xFFFFU;
-+	tmp = (tmp < 0x8000U ? tmp : 0x10000U - tmp);
-+	(*freq_error_hz) = tmp * 15625;
- 	return result;
- }
- 
-
---------------080703060100050808070204--
