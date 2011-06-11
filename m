@@ -1,90 +1,46 @@
 Return-path: <mchehab@pedra>
-Received: from moutng.kundenserver.de ([212.227.126.186]:54319 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753281Ab1FOWHy (ORCPT
+Received: from smtp-vbr18.xs4all.nl ([194.109.24.38]:4404 "EHLO
+	smtp-vbr18.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757665Ab1FKNe5 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 15 Jun 2011 18:07:54 -0400
-From: Arnd Bergmann <arnd@arndb.de>
-To: Larry Bassel <lbassel@codeaurora.org>
-Subject: Re: [Linaro-mm-sig] [PATCH 08/10] mm: cma: Contiguous Memory Allocator added
-Date: Thu, 16 Jun 2011 00:06:07 +0200
-Cc: Marek Szyprowski <m.szyprowski@samsung.com>,
-	"'Zach Pfeffer'" <zach.pfeffer@linaro.org>,
-	"'Daniel Walker'" <dwalker@codeaurora.org>,
-	"'Daniel Stone'" <daniels@collabora.com>,
-	"'Jesse Barker'" <jesse.barker@linaro.org>,
-	"'Mel Gorman'" <mel@csn.ul.ie>,
-	"'KAMEZAWA Hiroyuki'" <kamezawa.hiroyu@jp.fujitsu.com>,
-	linux-kernel@vger.kernel.org,
-	"'Michal Nazarewicz'" <mina86@mina86.com>,
-	linaro-mm-sig@lists.linaro.org, linux-mm@kvack.org,
-	"'Kyungmin Park'" <kyungmin.park@samsung.com>,
-	"'Ankita Garg'" <ankita@in.ibm.com>,
-	"'Andrew Morton'" <akpm@linux-foundation.org>,
-	linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org
-References: <1307699698-29369-1-git-send-email-m.szyprowski@samsung.com> <000901cc2b37$4c21f030$e465d090$%szyprowski@samsung.com> <20110615213958.GB28032@labbmf-linux.qualcomm.com>
-In-Reply-To: <20110615213958.GB28032@labbmf-linux.qualcomm.com>
-MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201106160006.07742.arnd@arndb.de>
+	Sat, 11 Jun 2011 09:34:57 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [RFCv1 PATCH 6/7] tuner-core: fix g_tuner
+Date: Sat, 11 Jun 2011 15:34:42 +0200
+Message-Id: <54ea5935863e922ac5b9e5faf61d9b69e4f31492.1307798213.git.hans.verkuil@cisco.com>
+In-Reply-To: <1307799283-15518-1-git-send-email-hverkuil@xs4all.nl>
+References: <1307799283-15518-1-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <9e1e782993aa0d0edf06fd5697743beca7717a53.1307798213.git.hans.verkuil@cisco.com>
+References: <9e1e782993aa0d0edf06fd5697743beca7717a53.1307798213.git.hans.verkuil@cisco.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Wednesday 15 June 2011 23:39:58 Larry Bassel wrote:
-> On 15 Jun 11 10:36, Marek Szyprowski wrote:
-> > On Tuesday, June 14, 2011 10:42 PM Arnd Bergmann wrote:
-> > 
-> > > On Tuesday 14 June 2011 20:58:25 Zach Pfeffer wrote:
-> > > > I've seen this split bank allocation in Qualcomm and TI SoCs, with
-> > > > Samsung, that makes 3 major SoC vendors (I would be surprised if
-> > > > Nvidia didn't also need to do this) - so I think some configurable
-> > > > method to control allocations is necessarily. The chips can't do
-> > > > decode without it (and by can't do I mean 1080P and higher decode is
-> > > > not functionally useful). Far from special, this would appear to be
-> > > > the default.
-> 
-> We at Qualcomm have some platforms that have memory of different
-> performance characteristics, some drivers will need a way of
-> specifying that they need fast memory for an allocation (and would prefer
-> an error if it is not available rather than a fallback to slower
-> memory). It would also be bad if allocators who don't need fast
-> memory got it "accidentally", depriving those who really need it.
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-Can you describe how the memory areas differ specifically?
-Is there one that is always faster but very small, or are there
-just specific circumstances under which some memory is faster than
-another?
+g_tuner just returns the tuner data for the current tuner mode and the
+application does not have to set the tuner type. So don't test for a
+valid tuner type.
 
-> > > The possible conflict that I still see with per-bank CMA regions are:
-> > > 
-> > > * It completely destroys memory power management in cases where that
-> > >   is based on powering down entire memory banks.
-> > 
-> > I don't think that per-bank CMA regions destroys memory power management
-> > more than the global CMA pool. Please note that the contiguous buffers
-> > (or in general dma-buffers) right now are unmovable so they don't fit
-> > well into memory power management.
-> 
-> We also have platforms where a well-defined part of the memory
-> can be powered off, and other parts can't (or won't). We need a way
-> to steer the place allocations come from to the memory that won't be
-> turned off (so that CMA allocations are not an obstacle to memory
-> hotremove).
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ drivers/media/video/tuner-core.c |    2 --
+ 1 files changed, 0 insertions(+), 2 deletions(-)
 
-We already established that we have to know something about the banks,
-and your additional input makes it even clearer that we need to consider
-the bigger picture here: We need to describe parts of memory separately
-regarding general performance, device specific allocations and hotplug
-characteristics.
+diff --git a/drivers/media/video/tuner-core.c b/drivers/media/video/tuner-core.c
+index 8ef7790..7280998 100644
+--- a/drivers/media/video/tuner-core.c
++++ b/drivers/media/video/tuner-core.c
+@@ -1120,8 +1120,6 @@ static int tuner_g_tuner(struct v4l2_subdev *sd, struct v4l2_tuner *vt)
+ 	struct analog_demod_ops *analog_ops = &t->fe.ops.analog_ops;
+ 	struct dvb_tuner_ops *fe_tuner_ops = &t->fe.ops.tuner_ops;
+ 
+-	if (!supported_mode(t, vt->type))
+-		return 0;
+ 	vt->type = t->mode;
+ 	if (analog_ops->get_afc)
+ 		vt->afc = analog_ops->get_afc(&t->fe);
+-- 
+1.7.1
 
-It still sounds to me that this can be done using the NUMA properties
-that Linux already understands, and teaching more subsystems about it,
-but maybe the memory hotplug developers have already come up with
-another scheme. The way that memory hotplug and CMA choose their
-memory regions certainly needs to take both into account. As far as
-I can see there are both conflicting and synergistic effects when
-you combine the two.
-
-	Arnd
