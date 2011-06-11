@@ -1,47 +1,55 @@
 Return-path: <mchehab@pedra>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:54941 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754128Ab1F2P6s (ORCPT
+Received: from smtp-vbr18.xs4all.nl ([194.109.24.38]:2300 "EHLO
+	smtp-vbr18.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757689Ab1FKNe5 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 29 Jun 2011 11:58:48 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Michael Jones <michael.jones@matrix-vision.de>
-Subject: Re: auto-loading omap3-isp
-Date: Wed, 29 Jun 2011 17:59:04 +0200
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
-References: <4E0B3718.1030202@matrix-vision.de>
-In-Reply-To: <4E0B3718.1030202@matrix-vision.de>
-MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201106291759.04498.laurent.pinchart@ideasonboard.com>
+	Sat, 11 Jun 2011 09:34:57 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [RFCv1 PATCH 7/7] tuner-core: s_tuner should not change tuner mode.
+Date: Sat, 11 Jun 2011 15:34:43 +0200
+Message-Id: <2a85334a8d3f0861fc10f2d6adbf46946d12bb0e.1307798213.git.hans.verkuil@cisco.com>
+In-Reply-To: <1307799283-15518-1-git-send-email-hverkuil@xs4all.nl>
+References: <1307799283-15518-1-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <9e1e782993aa0d0edf06fd5697743beca7717a53.1307798213.git.hans.verkuil@cisco.com>
+References: <9e1e782993aa0d0edf06fd5697743beca7717a53.1307798213.git.hans.verkuil@cisco.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Hi Michael,
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-On Wednesday 29 June 2011 16:30:48 Michael Jones wrote:
-> I am trying to get omap3-isp.ko to be loaded upon bootup.  The problem
-> is that iommu2.ko needs to be loaded first, which can't just be compiled
-> into the kernel.  Udev will see '/sys/devices/platform/omap3isp' and
-> load omap3-isp.ko, which fails because iommu2.ko hasn't been loaded yet.
->  iommu2 doesn't have a counterpart in /sys/devices/, so I don't know how
-> to get udev to load it first.
-> 
-> I can think of a few ways to accomplish this, but they all amount to
-> hacking the init sequence (e.g. the udev init script).  I'm looking for
-> a better way.
-> 
-> How are others doing this?
+According to the spec the tuner type field is not used when calling
+S_TUNER: index, audmode and reserved are the only writable fields.
 
-I replace the tristate option by a bool option for the IOMMU config.
+So remove the type check. Instead, just set the audmode if the current
+tuner mode is set to radio.
 
-OMAP3 IOMMU support will move to the generic IOMMU API soon, so I'm not sure 
-if it's worth fixing the problem it now.
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ drivers/media/video/tuner-core.c |    8 +++-----
+ 1 files changed, 3 insertions(+), 5 deletions(-)
 
+diff --git a/drivers/media/video/tuner-core.c b/drivers/media/video/tuner-core.c
+index 7280998..0ffcf54 100644
+--- a/drivers/media/video/tuner-core.c
++++ b/drivers/media/video/tuner-core.c
+@@ -1156,12 +1156,10 @@ static int tuner_s_tuner(struct v4l2_subdev *sd, struct v4l2_tuner *vt)
+ {
+ 	struct tuner *t = to_tuner(sd);
+ 
+-	if (!set_mode(t, vt->type))
+-		return 0;
+-
+-	if (t->mode == V4L2_TUNER_RADIO)
++	if (t->mode == V4L2_TUNER_RADIO) {
+ 		t->audmode = vt->audmode;
+-	set_freq(t, 0);
++		set_freq(t, 0);
++	}
+ 
+ 	return 0;
+ }
 -- 
-Regards,
+1.7.1
 
-Laurent Pinchart
