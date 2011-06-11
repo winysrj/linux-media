@@ -1,62 +1,180 @@
 Return-path: <mchehab@pedra>
-Received: from 5571f1ba.dsl.concepts.nl ([85.113.241.186]:42101 "EHLO
-	his10.thuis.hoogenraad.info" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S932111Ab1FUKBB (ORCPT
+Received: from smtp-vbr9.xs4all.nl ([194.109.24.29]:2876 "EHLO
+	smtp-vbr9.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751994Ab1FKRXP (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 21 Jun 2011 06:01:01 -0400
-Message-ID: <4E006BDB.8060000@hoogenraad.net>
-Date: Tue, 21 Jun 2011 12:00:59 +0200
-From: Jan Hoogenraad <jan-conceptronic@hoogenraad.net>
+	Sat, 11 Jun 2011 13:23:15 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: Re: [RFCv2 PATCH 4/5] tuner-core: fix s_std and s_tuner.
+Date: Sat, 11 Jun 2011 19:23:12 +0200
+Cc: Hans Verkuil <hans.verkuil@cisco.com>
+References: <1307804731-16430-1-git-send-email-hverkuil@xs4all.nl> <47b1f3efad3f5f8a92ff44f857c3bafa35a8ef02.1307804332.git.hans.verkuil@cisco.com>
+In-Reply-To: <47b1f3efad3f5f8a92ff44f857c3bafa35a8ef02.1307804332.git.hans.verkuil@cisco.com>
 MIME-Version: 1.0
-To: Maxim Levitsky <maximlevitsky@gmail.com>
-CC: Antti Palosaari <crope@iki.fi>,
-	=?UTF-8?B?U2FzY2hhIFfDvHN0ZW1hbm4=?= <sascha@killerhippy.de>,
-	linux-media@vger.kernel.org,
-	Thomas Holzeisen <thomas@holzeisen.de>, stybla@turnovfree.net
-Subject: Re: RTL2831U driver updates
-References: <4DF9BCAA.3030301@holzeisen.de>	 <4DF9EA62.2040008@killerhippy.de> <4DFA7748.6000704@hoogenraad.net>	 <4DFFC82B.10402@iki.fi> <1308649292.3635.2.camel@maxim-laptop>
-In-Reply-To: <1308649292.3635.2.camel@maxim-laptop>
-Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Type: Text/Plain;
+  charset="iso-8859-15"
 Content-Transfer-Encoding: 7bit
+Message-Id: <201106111923.12238.hverkuil@xs4all.nl>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Can I put this somewhere in the git archive at the linuxtv site, so that 
-we can share and have version control ?
+On Saturday, June 11, 2011 17:05:30 Hans Verkuil wrote:
+> From: Hans Verkuil <hans.verkuil@cisco.com>
+> 
+> Both s_std and s_tuner are broken because set_mode_freq is called before the
+> new std (for s_std) and audmode (for s_tuner) are set.
+> 
+> This patch splits set_mode_freq in a set_mode and a set_freq and in s_std
+> first calls set_mode, and if that returns true (i.e. the mode is supported)
+> then they set t->std/t->audmode and call set_freq.
+> 
+> This fixes a bug where changing std or audmode would actually change it to
+> the previous value.
+> 
+> Discovered while testing analog TV standards for cx18 with a tda18271 tuner.
+> 
+> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+> ---
+>  drivers/media/video/tuner-core.c |   57 ++++++++++++++++++++-----------------
+>  1 files changed, 31 insertions(+), 26 deletions(-)
+> 
+> diff --git a/drivers/media/video/tuner-core.c b/drivers/media/video/tuner-core.c
+> index 462a8f4..e5ec145 100644
+> --- a/drivers/media/video/tuner-core.c
+> +++ b/drivers/media/video/tuner-core.c
+> @@ -739,19 +739,15 @@ static bool supported_mode(struct tuner *t, enum v4l2_tuner_type mode)
+>  }
+>  
+>  /**
+> - * set_mode_freq - Switch tuner to other mode.
+> - * @client:	struct i2c_client pointer
+> + * set_mode - Switch tuner to other mode.
+>   * @t:		a pointer to the module's internal struct_tuner
+>   * @mode:	enum v4l2_type (radio or TV)
+> - * @freq:	frequency to set (0 means to use the previous one)
+>   *
+>   * If tuner doesn't support the needed mode (radio or TV), prints a
+>   * debug message and returns false, changing its state to standby.
+> - * Otherwise, changes the state and sets frequency to the last value
+> - * and returns true.
+> + * Otherwise, changes the state and returns true.
+>   */
+> -static bool set_mode_freq(struct i2c_client *client, struct tuner *t,
+> -			 enum v4l2_tuner_type mode, unsigned int freq)
+> +static bool set_mode(struct tuner *t, enum v4l2_tuner_type mode)
+>  {
+>  	struct analog_demod_ops *analog_ops = &t->fe.ops.analog_ops;
+>  
+> @@ -767,17 +763,27 @@ static bool set_mode_freq(struct i2c_client *client, struct tuner *t,
+>  		t->mode = mode;
+>  		tuner_dbg("Changing to mode %d\n", mode);
+>  	}
+> +	return true;
+> +}
+> +
+> +/**
+> + * set_freq - Set the tuner to the desired frequency.
+> + * @t:		a pointer to the module's internal struct_tuner
+> + * @freq:	frequency to set (0 means to use the current frequency)
+> + */
+> +static void set_freq(struct tuner *t, unsigned int freq)
+> +{
+> +	struct i2c_client *client = v4l2_get_subdevdata(&t->sd);
+> +
+>  	if (t->mode == V4L2_TUNER_RADIO) {
+> -		if (freq)
+> -			t->radio_freq = freq;
+> -		set_radio_freq(client, t->radio_freq);
+> +		if (!freq)
+> +			freq = t->radio_freq;
+> +		set_radio_freq(client, freq);
+>  	} else {
+> -		if (freq)
+> -			t->tv_freq = freq;
+> -		set_tv_freq(client, t->tv_freq);
+> +		if (!freq)
+> +			freq = t->tv_freq;
+> +		set_tv_freq(client, freq);
+>  	}
+> -
+> -	return true;
+>  }
+>  
+>  /*
+> @@ -1034,9 +1040,9 @@ static void tuner_status(struct dvb_frontend *fe)
+>  static int tuner_s_radio(struct v4l2_subdev *sd)
+>  {
+>  	struct tuner *t = to_tuner(sd);
+> -	struct i2c_client *client = v4l2_get_subdevdata(sd);
+>  
+> -	set_mode_freq(client, t, V4L2_TUNER_RADIO, 0);
+> +	set_mode(t, V4L2_TUNER_RADIO);
+> +	set_freq(t, 0);
+>  	return 0;
+>  }
+>  
+> @@ -1068,24 +1074,23 @@ static int tuner_s_power(struct v4l2_subdev *sd, int on)
+>  static int tuner_s_std(struct v4l2_subdev *sd, v4l2_std_id std)
+>  {
+>  	struct tuner *t = to_tuner(sd);
+> -	struct i2c_client *client = v4l2_get_subdevdata(sd);
+>  
+> -	if (!set_mode_freq(client, t, V4L2_TUNER_ANALOG_TV, 0))
+> +	if (!set_mode(t, V4L2_TUNER_ANALOG_TV))
+>  		return 0;
+>  
+>  	t->std = tuner_fixup_std(t, std);
+>  	if (t->std != std)
+>  		tuner_dbg("Fixup standard %llx to %llx\n", std, t->std);
+> -
+> +	set_freq(t, 0);
+>  	return 0;
+>  }
+>  
+>  static int tuner_s_frequency(struct v4l2_subdev *sd, struct v4l2_frequency *f)
+>  {
+>  	struct tuner *t = to_tuner(sd);
+> -	struct i2c_client *client = v4l2_get_subdevdata(sd);
+>  
+> -	set_mode_freq(client, t, f->type, f->frequency);
+> +	if (set_mode(t, f->type))
+> +		set_freq(t, f->frequency);
+>  	return 0;
+>  }
+>  
+> @@ -1154,13 +1159,13 @@ static int tuner_g_tuner(struct v4l2_subdev *sd, struct v4l2_tuner *vt)
+>  static int tuner_s_tuner(struct v4l2_subdev *sd, struct v4l2_tuner *vt)
+>  {
+>  	struct tuner *t = to_tuner(sd);
+> -	struct i2c_client *client = v4l2_get_subdevdata(sd);
+>  
+> -	if (!set_mode_freq(client, t, vt->type, 0))
+> +	if (!set_mode(t, vt->type))
+>  		return 0;
+>  
+>  	if (t->mode == V4L2_TUNER_RADIO)
+>  		t->audmode = vt->audmode;
+> +	set_freq(t, 0);
 
-Maxim Levitsky wrote:
-> On Tue, 2011-06-21 at 01:22 +0300, Antti Palosaari wrote:
->> It is Maxim who have been hacking with RTL2832/RTL2832U lately. But I
->> think he have given up since no noise anymore.
->>
->> I have taken now it again up to my desk and have been hacking two days
->> now. Currently I am working with RTL2830 demod driver, I started it from
->> scratch. Take sniffs, make scripts to generate code from USB traffic,
->> copy pasted that to driver skeleton and now I have picture. Just
->> implement all one-by-one until ready :-) I think I will implement it as
->> minimum possible, no any signal statistic counters - lets add those
->> later if someone wants to do that.
->>
->> USB-bridge part is rather OK as I did earlier and it is working with
->> RTL2831U and RTL2832U at least. No remote support yet.
->>
->> I hope someone else would make missing driver for RTL2832U demod still...
->>
->
-> Fine!
->
-> In about month, after exams, I hope I will work on this to finish at
-> least RTL2832/FC0012.
->
-> For reference, this is the code I did so far.
->
->
-> Best regards,
-> Maxim Levitsky
+This 'if' is missing {}. I'll fix that.
 
+Regards,
 
--- 
-Jan Hoogenraad
-Hoogenraad Interface Services
-Postbus 2717
-3500 GS Utrecht
+	Hans
+
+>  
+>  	return 0;
+>  }
+> @@ -1195,8 +1200,8 @@ static int tuner_resume(struct i2c_client *c)
+>  	tuner_dbg("resume\n");
+>  
+>  	if (!t->standby)
+> -		set_mode_freq(c, t, t->type, 0);
+> -
+> +		if (set_mode(t, t->type))
+> +			set_freq(t, 0);
+>  	return 0;
+>  }
+>  
+> 
