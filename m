@@ -1,56 +1,53 @@
 Return-path: <mchehab@pedra>
-Received: from mx1.redhat.com ([209.132.183.28]:15886 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752495Ab1FUO7k (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 21 Jun 2011 10:59:40 -0400
-Message-ID: <4E00B1D0.5080101@redhat.com>
-Date: Tue, 21 Jun 2011 11:59:28 -0300
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Received: from banach.math.auburn.edu ([131.204.45.3]:33277 "EHLO
+	banach.math.auburn.edu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751057Ab1FKEO4 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sat, 11 Jun 2011 00:14:56 -0400
+Date: Fri, 10 Jun 2011 23:17:21 -0500 (CDT)
+From: Theodore Kilgore <kilgota@banach.math.auburn.edu>
+To: Xiaofan Chen <xiaofanc@gmail.com>
+cc: linux-usb@vger.kernel.org, linux-media@vger.kernel.org,
+	libusb-devel@lists.sourceforge.net
+Subject: Re: Improving kernel -> userspace (usbfs) usb device hand off
+In-Reply-To: <BANLkTinAfB_jiS+6f8Dqt4ZEK19ndv_nDA@mail.gmail.com>
+Message-ID: <alpine.LNX.2.00.1106102314000.11975@banach.math.auburn.edu>
+References: <20110610002103.GA7169@xanatos> <4DF1CDE1.4080303@redhat.com> <alpine.LNX.2.00.1106101206350.11487@banach.math.auburn.edu> <20110610183452.GV31396@legolas.emea.dhcp.ti.com> <alpine.LNX.2.00.1106101652050.11718@banach.math.auburn.edu>
+ <BANLkTinAfB_jiS+6f8Dqt4ZEK19ndv_nDA@mail.gmail.com>
 MIME-Version: 1.0
-To: Devin Heitmueller <dheitmueller@kernellabs.com>
-CC: Andreas Oberritter <obi@linuxtv.org>, HoP <jpetrous@gmail.com>,
-	=?ISO-8859-1?Q?=22S=E9bastien_RAILLARD_=28COEXSI=29=22?=
-	<sr@coexsi.fr>,
-	=?ISO-8859-1?Q?R=E9mi_Denis-Courmont?= <remi@remlab.net>,
-	linux-media@vger.kernel.org
-Subject: Re: [RFC] vtunerc - virtual DVB device driver
-References: <BANLkTimtnbAzLTdFY2OiSddHTjmD_99CfA@mail.gmail.com>	<201106202037.19535.remi@remlab.net>	<BANLkTinn0uN3VwGfqCbYbxFoVf6aNo1VSA@mail.gmail.com>	<BANLkTin14LnwP+_K1m-RsEXza4M4CjqnEw@mail.gmail.com>	<BANLkTimR-zWnnLBcD2w8d8NpeFJi=eT9nQ@mail.gmail.com>	<005a01cc2f7d$a799be30$f6cd3a90$@coexsi.fr>	<BANLkTinbQ8oBJt7fScuT5vHGFktbaQNY5A@mail.gmail.com>	<BANLkTimTdMa_X1ygF8=B5gLdLXq1o-ER0g@mail.gmail.com>	<BANLkTimkZN9AtLanwvct+1p2DZOHSgF6Aw@mail.gmail.com>	<BANLkTimg0X5H5T8CsSR5Tr0CZbCZKiDEEA@mail.gmail.com>	<4DFFB1DA.5000602@redhat.com>	<BANLkTikZ++5dZssDRuxJzNUEG_TDkZPGRg@mail.gmail.com>	<4DFFF56D.5070602@redhat.com>	<4E007AA7.7070400@linuxtv.org> <BANLkTik3ACfDwkyKVU2eZtxBeLH_mGh7pg@mail.gmail.com>
-In-Reply-To: <BANLkTik3ACfDwkyKVU2eZtxBeLH_mGh7pg@mail.gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Em 21-06-2011 10:44, Devin Heitmueller escreveu:
 
-> Mauro, ultimately it is your decision as the maintainer which drivers
-> get accepted in to the kernel.  I can tell you though that this will
-> be a very bad thing for the driver ecosystem as a whole - it will
-> essentially make it trivial for vendors (some of which who are doing
-> GPL work now) to provide solutions that reuse the GPL'd DVB core
-> without having to make any of their stuff open source.
 
-I was a little faster to answer to my previous emails. I'm not feeling
-well today due to a strong pain on my backbone.
+On Sat, 11 Jun 2011, Xiaofan Chen wrote:
 
-So, let me explain what would be ok, from my POV:
+> On Sat, Jun 11, 2011 at 6:43 AM, Theodore Kilgore
+> <kilgota@banach.math.auburn.edu> wrote:
+> > I do not believe that we have found the optimal solution, yet. The ideal
+> > thing would be some kind of hack which allows the kernel to be used when
+> > it is needed, and when it is not needed it does not interfere.
+> 
+> Just wondering if you can use libusb-1.0 for the user space still image
+> functionality.
+> 
+> libusb-1.0 offers the following functions to do that for you under Linux.
+> 
+> int 	libusb_kernel_driver_active (libusb_device_handle *dev, int interface)
+>  	Determine if a kernel driver is active on an interface.
+> int 	libusb_detach_kernel_driver (libusb_device_handle *dev, int interface)
+>  	Detach a kernel driver from an interface.
+> int 	libusb_attach_kernel_driver (libusb_device_handle *dev, int interface)
+>  	Re-attach an interface's kernel driver, which was previously
+> detached using libusb_detach_kernel_driver().
+> 
+> So you can detach the kernel v4l2 driver at the beginning and later
+> re-attach it when you finish.
 
-A kernelspace driver that will follow DVBv5 API and talk with wit another
-device via the Kernel network stack, in order to access a remote Kernel board,
-or a kernel board at the physical machine, for virtual machines. That means that
-the dvb stack won't be proxied to an userspace application.
+Well, then, this solves the problem, doesn't it? Of course, those who deal 
+with creating those "simple" and "user-friendly" GUI environments would 
+probably still do well if they would open a dialog box for dual-mode 
+hardware.
 
-Something like:
-
-Userspace app (like kaffeine, dvr, etc) -> DVB net_tunnel driver -> Kernel Network stack
-
-Kernel Network stack -> DVB net_tunnel driver -> DVB hardware
-
-In other words, the "DVB net_tunnel" driver will take care of using the
-network stack, implement Kernel namespaces, etc, in order to allow virtualizing
-a remote hardware, without needing any userspace driver for doing that
-(well, except, of course, for the standard network userspace applications for
-DNS solving, configuring IP routes, etc).
-
-Cheers,
-Mauro
+Theodore Kilgore
