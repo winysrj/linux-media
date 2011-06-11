@@ -1,40 +1,45 @@
 Return-path: <mchehab@pedra>
-Received: from moutng.kundenserver.de ([212.227.17.9]:55762 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754641Ab1FZTxb (ORCPT
+Received: from smtp-vbr5.xs4all.nl ([194.109.24.25]:4332 "EHLO
+	smtp-vbr5.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758624Ab1FKPFo (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 26 Jun 2011 15:53:31 -0400
-From: Arnd Bergmann <arnd@arndb.de>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-Subject: Re: [PATCH] [media] v4l2 core: return -ENOIOCTLCMD if an ioctl doesn't exist
-Date: Sun, 26 Jun 2011 21:52:52 +0200
-Cc: Sakari Ailus <sakari.ailus@iki.fi>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
-	Linus Torvalds <torvalds@linux-foundation.org>
-References: <4E0519B7.3000304@redhat.com> <201106262020.20432.arnd@arndb.de> <4E077FB9.7030600@redhat.com>
-In-Reply-To: <4E077FB9.7030600@redhat.com>
-MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201106262152.53096.arnd@arndb.de>
+	Sat, 11 Jun 2011 11:05:44 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [RFCv2 PATCH 5/5] tuner-core: fix tuner_resume: use t->mode instead of t->type.
+Date: Sat, 11 Jun 2011 17:05:31 +0200
+Message-Id: <29a5049408c65dbdc690d682c357361ade7b59cc.1307804332.git.hans.verkuil@cisco.com>
+In-Reply-To: <1307804731-16430-1-git-send-email-hverkuil@xs4all.nl>
+References: <1307804731-16430-1-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <980897e53f7cc2ec9bbbf58d9d451ee56a249309.1307804332.git.hans.verkuil@cisco.com>
+References: <980897e53f7cc2ec9bbbf58d9d451ee56a249309.1307804332.git.hans.verkuil@cisco.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Sunday 26 June 2011 20:51:37 Mauro Carvalho Chehab wrote:
-> > 
-> > I mean what do you return to vfs_ioctl from v4l? The conversions must
-> > have been long before we introduced compat_ioctl and ENOIOCTLCMD.
-> > 
-> > As far as I can tell, video_ioctl2 has always converted ENOIOCTLCMD into
-> > EINVAL, so changing the vfs functions would not have any effect.
-> 
-> Yes.  This discussion was originated by a RFC patch proposing to change 
-> video_ioctl2 to return -ENOIOCTLCMD instead of -EINVAL.
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-Ok, I see. So returning -ENOIOCTLCMD is not an option IMHO, but if you
-are confident that it doesn't break anything, returning -ENOTTY would
-be possible and doesn't require any core changes.
+set_mode is called with t->type, which is the tuner type. Instead, use
+t->mode which is the actual tuner mode (i.e. radio vs tv).
 
-	Arnd
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ drivers/media/video/tuner-core.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
+
+diff --git a/drivers/media/video/tuner-core.c b/drivers/media/video/tuner-core.c
+index e5ec145..17f6c00 100644
+--- a/drivers/media/video/tuner-core.c
++++ b/drivers/media/video/tuner-core.c
+@@ -1200,7 +1200,7 @@ static int tuner_resume(struct i2c_client *c)
+ 	tuner_dbg("resume\n");
+ 
+ 	if (!t->standby)
+-		if (set_mode(t, t->type))
++		if (set_mode(t, t->mode))
+ 			set_freq(t, 0);
+ 	return 0;
+ }
+-- 
+1.7.1
+
