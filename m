@@ -1,57 +1,72 @@
 Return-path: <mchehab@pedra>
-Received: from smtp-vbr5.xs4all.nl ([194.109.24.25]:2508 "EHLO
-	smtp-vbr5.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758690Ab1FKPxX (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 11 Jun 2011 11:53:23 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Devin Heitmueller <dheitmueller@kernellabs.com>
-Subject: Re: [RFCv2 PATCH 0/5] tuner-core: fix s_std and s_tuner
-Date: Sat, 11 Jun 2011 17:53:21 +0200
-Cc: linux-media@vger.kernel.org
-References: <1307804731-16430-1-git-send-email-hverkuil@xs4all.nl> <BANLkTikWiEb+aGGbSNSZ+YtdeVRB6QaJtg@mail.gmail.com>
-In-Reply-To: <BANLkTikWiEb+aGGbSNSZ+YtdeVRB6QaJtg@mail.gmail.com>
+Received: from mx1.redhat.com ([209.132.183.28]:58109 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1757600Ab1FKNzD (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 11 Jun 2011 09:55:03 -0400
+Message-ID: <4DF373B3.4000601@redhat.com>
+Date: Sat, 11 Jun 2011 10:54:59 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
+To: Hans Verkuil <hverkuil@xs4all.nl>
+CC: linux-media@vger.kernel.org, Hans Verkuil <hans.verkuil@cisco.com>
+Subject: Re: [RFCv1 PATCH 7/7] tuner-core: s_tuner should not change tuner
+ mode.
+References: <1307799283-15518-1-git-send-email-hverkuil@xs4all.nl> <2a85334a8d3f0861fc10f2d6adbf46946d12bb0e.1307798213.git.hans.verkuil@cisco.com>
+In-Reply-To: <2a85334a8d3f0861fc10f2d6adbf46946d12bb0e.1307798213.git.hans.verkuil@cisco.com>
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Message-Id: <201106111753.21581.hverkuil@xs4all.nl>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Saturday, June 11, 2011 17:32:10 Devin Heitmueller wrote:
-> On Sat, Jun 11, 2011 at 11:05 AM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
-> > Second version of this patch series.
-> >
-> > It's the same as RFCv1, except that I dropped the g_frequency and
-> > g_tuner/s_tuner patches (patch 3, 6 and 7 in the original patch series)
-> > because I need to think more on those, and I added a new fix for tuner_resume
-> > which was broken as well.
+Em 11-06-2011 10:34, Hans Verkuil escreveu:
+> From: Hans Verkuil <hans.verkuil@cisco.com>
 > 
-> Hi Hans,
+> According to the spec the tuner type field is not used when calling
+> S_TUNER: index, audmode and reserved are the only writable fields.
 > 
-> I appreciate your taking the time to refactor this code (no doubt it
-> really needed it).  All that I ask is that you please actually *try*
-> the resulting patches with VLC and a tuner that supports standby in
-> order to ensure that it didn't cause any regressions.
+> So remove the type check. Instead, just set the audmode if the current
+> tuner mode is set to radio.
 
-That's easier said than done. I don't think I have tuners of that type.
+I suspect that this patch also breaks support for a separate radio tuner.
+if tuner-type is not properly filled, then the easiest fix would be to
+revert some changes done at the tuner cleanup/fixup patches applied on .39.
+Yet, the previous logic were trying to hint the device mode, with is bad
+(that's why it was changed).
 
-Do you happen to know not-too-expensive cards that you can buy that have
-this sort of tuners? It may be useful to be able to test this myself.
+The proper change seems to add a parameter to this callback, set by the
+bridge driver, informing if the device is using radio or video mode.
+We need also to patch the V4L API specs, as it allows using a video node
+for radio, and vice versa. This is not well supported, and it seems silly
+to keep it at the specs and needing to add hints at the drivers due to
+that.
 
-> This stuff was
-> brittle to begin with, and there are lots of opportunities for
-> obscure/unexpected effects resulting from what appear to be sane
-> changes.
+Cheers,
+Mauro
+
 > 
-> The last series of patches that went in were in response to this stuff
-> being very broken, and I would hate to see a regression in existing
-> applications after we finally got it working.
+> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+> ---
+>  drivers/media/video/tuner-core.c |    8 +++-----
+>  1 files changed, 3 insertions(+), 5 deletions(-)
+> 
+> diff --git a/drivers/media/video/tuner-core.c b/drivers/media/video/tuner-core.c
+> index 7280998..0ffcf54 100644
+> --- a/drivers/media/video/tuner-core.c
+> +++ b/drivers/media/video/tuner-core.c
+> @@ -1156,12 +1156,10 @@ static int tuner_s_tuner(struct v4l2_subdev *sd, struct v4l2_tuner *vt)
+>  {
+>  	struct tuner *t = to_tuner(sd);
+>  
+> -	if (!set_mode(t, vt->type))
+> -		return 0;
+> -
+> -	if (t->mode == V4L2_TUNER_RADIO)
+> +	if (t->mode == V4L2_TUNER_RADIO) {
+>  		t->audmode = vt->audmode;
+> -	set_freq(t, 0);
+> +		set_freq(t, 0);
+> +	}
+>  
+>  	return 0;
+>  }
 
-Yeah, it seems that whenever you touch this tuner code something breaks
-for at least one card. There is so much legacy here...
-
-Regards,
-
-	Hans
