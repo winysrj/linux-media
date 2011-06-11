@@ -1,43 +1,63 @@
 Return-path: <mchehab@pedra>
-Received: from slow3-v.mail.gandi.net ([217.70.178.89]:46876 "EHLO
-	slow3-v.mail.gandi.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751383Ab1FTUEO (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 20 Jun 2011 16:04:14 -0400
-Received: from relay4-d.mail.gandi.net (relay4-d.mail.gandi.net [217.70.183.196])
-	by slow3-v.mail.gandi.net (Postfix) with ESMTP id AC82F86994
-	for <linux-media@vger.kernel.org>; Mon, 20 Jun 2011 22:04:12 +0200 (CEST)
-Received: from mfilter4-d.gandi.net (mfilter4-d.gandi.net [217.70.178.134])
-	by relay4-d.mail.gandi.net (Postfix) with ESMTP id 09F991720A3
-	for <linux-media@vger.kernel.org>; Mon, 20 Jun 2011 22:04:09 +0200 (CEST)
-Received: from relay4-d.mail.gandi.net ([217.70.183.196])
-	by mfilter4-d.gandi.net (mfilter4-d.gandi.net [10.0.15.180]) (amavisd-new, port 10024)
-	with ESMTP id SZsE77sgI+ic for <linux-media@vger.kernel.org>;
-	Mon, 20 Jun 2011 22:04:07 +0200 (CEST)
-Received: from [192.168.10.60] (tri69-3-82-235-23-7.fbx.proxad.net [82.235.23.7])
-	(Authenticated sender: bmaras@flaht.eu)
-	by relay4-d.mail.gandi.net (Postfix) with ESMTPSA id 9B3711720A1
-	for <linux-media@vger.kernel.org>; Mon, 20 Jun 2011 22:04:07 +0200 (CEST)
-Message-ID: <4DFFA7B6.9070906@free.fr>
-Date: Mon, 20 Jun 2011 22:04:06 +0200
-From: mossroy <mossroy@free.fr>
-MIME-Version: 1.0
+Received: from tex.lwn.net ([70.33.254.29]:54692 "EHLO vena.lwn.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752237Ab1FKRrG (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 11 Jun 2011 13:47:06 -0400
+From: Jonathan Corbet <corbet@lwn.net>
 To: linux-media@vger.kernel.org
-Subject: Updates to French scan files
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Cc: g.liakhovetski@gmx.de, Kassey Lee <ygli@marvell.com>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Jonathan Corbet <corbet@lwn.net>
+Subject: [PATCH 6/8] marvell-cam: Right-shift i2c slave ID's in the cafe driver
+Date: Sat, 11 Jun 2011 11:46:47 -0600
+Message-Id: <1307814409-46282-7-git-send-email-corbet@lwn.net>
+In-Reply-To: <1307814409-46282-1-git-send-email-corbet@lwn.net>
+References: <1307814409-46282-1-git-send-email-corbet@lwn.net>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-In France, the DVB-T channels are currently moving (because the analog 
-TV is being removed at the same time)
-The frequencies are modified region by region, with a calendar that 
-started in late 2009, and will end on november 29th 2011 (see 
-http://www.tousaunumerique.fr/ou-et-quand/ )
+This makes the cafe i2c implement consistent with the rest of Linux so that
+the core can use the same slave ID everywhere.
 
-All the new channels are listed here : 
-http://www.tousaunumerique.fr/professionnels/en-savoir-plus/documentation/categorie-doc/plans-de-frequences/ 
-. The PDF files also lists channels that are planned to be used in the 
-future (but are unused at the moment)
+Signed-off-by: Jonathan Corbet <corbet@lwn.net>
+---
+ drivers/media/video/marvell-ccic/cafe-driver.c |    9 ++++++++-
+ drivers/media/video/marvell-ccic/mcam-core.c   |    2 +-
+ 2 files changed, 9 insertions(+), 2 deletions(-)
 
-Is there already a plan to update the scan files to reflect these changes?
+diff --git a/drivers/media/video/marvell-ccic/cafe-driver.c b/drivers/media/video/marvell-ccic/cafe-driver.c
+index 1027265..3dbc7e5 100644
+--- a/drivers/media/video/marvell-ccic/cafe-driver.c
++++ b/drivers/media/video/marvell-ccic/cafe-driver.c
+@@ -84,7 +84,14 @@ struct cafe_camera {
+ #define	  TWSIC0_EN	  0x00000001	/* TWSI enable */
+ #define	  TWSIC0_MODE	  0x00000002	/* 1 = 16-bit, 0 = 8-bit */
+ #define	  TWSIC0_SID	  0x000003fc	/* Slave ID */
+-#define	  TWSIC0_SID_SHIFT 2
++/*
++ * Subtle trickery: the slave ID field starts with bit 2.  But the
++ * Linux i2c stack wants to treat the bottommost bit as a separate
++ * read/write bit, which is why slave ID's are usually presented
++ * >>1.  For consistency with that behavior, we shift over three
++ * bits instead of two.
++ */
++#define	  TWSIC0_SID_SHIFT 3
+ #define	  TWSIC0_CLKDIV	  0x0007fc00	/* Clock divider */
+ #define	  TWSIC0_MASKACK  0x00400000	/* Mask ack from sensor */
+ #define	  TWSIC0_OVMAGIC  0x00800000	/* Make it work on OV sensors */
+diff --git a/drivers/media/video/marvell-ccic/mcam-core.c b/drivers/media/video/marvell-ccic/mcam-core.c
+index 0d60234..d5f18a3 100644
+--- a/drivers/media/video/marvell-ccic/mcam-core.c
++++ b/drivers/media/video/marvell-ccic/mcam-core.c
+@@ -1549,7 +1549,7 @@ int mccic_register(struct mcam_camera *cam)
+ {
+ 	struct i2c_board_info ov7670_info = {
+ 		.type = "ov7670",
+-		.addr = 0x42,
++		.addr = 0x42 >> 1,
+ 		.platform_data = &sensor_cfg,
+ 	};
+ 	int ret;
+-- 
+1.7.5.4
+
