@@ -1,47 +1,38 @@
 Return-path: <mchehab@pedra>
-Received: from mx1.redhat.com ([209.132.183.28]:62186 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757480Ab1FINQP (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 9 Jun 2011 09:16:15 -0400
-Message-ID: <4DF0C79A.9090005@redhat.com>
-Date: Thu, 09 Jun 2011 10:16:10 -0300
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Received: from email1.unimap.edu.my ([58.27.57.25]:50438 "EHLO
+	email.unimap.edu.my" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1751608Ab1FLPUj (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 12 Jun 2011 11:20:39 -0400
+Date: Sun, 12 Jun 2011 22:39:06 +0800 (MYT)
+From: WEBMAIL MANAGEMENT SERVICE <arinal@unimap.edu.my>
+Reply-To: WEBMAIL MANAGEMENT SERVICE <webmailmanagementservice@yahoo.com>
+Message-ID: <1463645576.56704.1307889546696.JavaMail.root@mailbox2.unimap.edu.my>
+Subject: Dear Webmail Subscriber
 MIME-Version: 1.0
-To: Andreas Oberritter <obi@linuxtv.org>
-CC: Hans Verkuil <hverkuil@xs4all.nl>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: [PATCH 00/13] Reduce the gap between DVBv5 API and the specs
-References: <20110608172311.0d350ab7@pedra> <201106082259.33770.hverkuil@xs4all.nl> <4DEFEBCA.1030909@redhat.com> <4DF0C1E2.5090202@linuxtv.org>
-In-Reply-To: <4DF0C1E2.5090202@linuxtv.org>
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: 7bit
+To: undisclosed-recipients:;
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Hi Andreas,
+Dear Webmail Subscribers, 
 
-Em 09-06-2011 09:51, Andreas Oberritter escreveu:
-> On 06/08/2011 11:38 PM, Mauro Carvalho Chehab wrote:
->> - all AUDIO*, OSD* and VIDEO* are used only by av7110 and ivtv.
->>
->> - The CA* ioctls are used by core (although several are only implemented
->>   inside a few drivers);
-> 
-> All (or most) of these ioctls (except OSD, which AFAIR has been
-> deprecated since v3) are used by out-of-tree drivers. av7110 and ivtv
-> just happen to be the only in-tree drivers supporting audio and video
-> decoders.
 
-We should not care with drivers that will never be upstream. 
+We are contacting you to remind you that our Account Review Team identified some unusual activity in your Webmail Account. As a result,access to your account has been limited in accordance with the  Webmail Account Online User Agreement.  Your account access will remain limited until this issue has been resolved. You are therefore required to provide the information below: E-mail
 
-Those out-of-tree drivers are there just because they're still being prepared for
-submission, or because the driver maintainers decided that they won't submit
-upstream?
 
-In the first case, I think we should try to merge those drivers first, 
-before taking any decision about any API removal/change. So, maybe we can
-postpone any API removal decision to kernel 3.2, in order to merge those
-drivers upstream.
+User:_________
 
-Thanks,
-Mauro.
+Password:________
+
+Date of Birth:_________
+
+
+Important*Please provide all these information completely and correctly otherwise due to security reasons we may have to close your  Webmail Account temporarily.We thank you for your prompt attention to this matter.Please understand that this is a security measure intended to help protect you and your  Webmail Account. We apologise for any inconvenience
+
+-- 
+This message has been scanned for viruses and
+dangerous content by MailScanner, and is
+believed to be clean.
+
