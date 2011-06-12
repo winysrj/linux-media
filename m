@@ -1,366 +1,123 @@
 Return-path: <mchehab@pedra>
-Received: from mailout2.w1.samsung.com ([210.118.77.12]:15443 "EHLO
-	mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754993Ab1FJJzL (ORCPT
+Received: from mail-qw0-f46.google.com ([209.85.216.46]:41491 "EHLO
+	mail-qw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751792Ab1FLIX3 convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 10 Jun 2011 05:55:11 -0400
-Date: Fri, 10 Jun 2011 11:54:54 +0200
-From: Marek Szyprowski <m.szyprowski@samsung.com>
-Subject: [PATCH 06/10] mm: MIGRATE_CMA migration type added
-In-reply-to: <1307699698-29369-1-git-send-email-m.szyprowski@samsung.com>
-To: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-	linux-media@vger.kernel.org, linux-mm@kvack.org,
-	linaro-mm-sig@lists.linaro.org
-Cc: Michal Nazarewicz <mina86@mina86.com>,
-	Marek Szyprowski <m.szyprowski@samsung.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	Andrew Morton <akpm@linux-foundation.org>,
-	KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>,
-	Ankita Garg <ankita@in.ibm.com>,
-	Daniel Walker <dwalker@codeaurora.org>,
-	Johan MOSSBERG <johan.xx.mossberg@stericsson.com>,
-	Mel Gorman <mel@csn.ul.ie>, Arnd Bergmann <arnd@arndb.de>,
-	Jesse Barker <jesse.barker@linaro.org>
-Message-id: <1307699698-29369-7-git-send-email-m.szyprowski@samsung.com>
-MIME-version: 1.0
-Content-type: TEXT/PLAIN
-Content-transfer-encoding: 7BIT
-References: <1307699698-29369-1-git-send-email-m.szyprowski@samsung.com>
+	Sun, 12 Jun 2011 04:23:29 -0400
+Received: by qwk3 with SMTP id 3so1823589qwk.19
+        for <linux-media@vger.kernel.org>; Sun, 12 Jun 2011 01:23:29 -0700 (PDT)
+MIME-Version: 1.0
+Date: Sun, 12 Jun 2011 10:23:28 +0200
+Message-ID: <BANLkTimkYw70GAu1keW-N6ND=AyiRn2+CA@mail.gmail.com>
+Subject: PCTV nanoStick T2 290e (Sony CXD2820R DVB-T/T2/C) - DVB-C channel
+ scan in mythtv - missing
+From: Rune Evjen <rune.evjen@gmail.com>
+To: linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-From: Michal Nazarewicz <m.nazarewicz@samsung.com>
+Hi,
 
-The MIGRATE_CMA migration type has two main characteristics:
-(i) only movable pages can be allocated from MIGRATE_CMA
-pageblocks and (ii) page allocator will never change migration
-type of MIGRATE_CMA pageblocks.
+I just tested a PCTV 290e device using the latest media_build drivers
+in MythTV as a DVB-C device, and ran into some problems.
 
-This guarantees that page in a MIGRATE_CMA page block can
-always be migrated somewhere else (unless there's no memory left
-in the system).
+The adapter is recognized by the em28xx-dvb driver [1] and dmesg
+output seems to be correct [2]. I can successfully scan for channels
+using the scan utility in dvb-apps but when I try to scan for channels
+in mythtv I get the following errors logged by mythtv-setup:
 
-It is designed to be used with Contiguous Memory Allocator
-(CMA) for allocating big chunks (eg. 10MiB) of physically
-contiguous memory.  Once driver requests contiguous memory,
-CMA will migrate pages from MIGRATE_CMA pageblocks.
+2011-06-12 00:57:20.971556  PIDInfo(/dev/dvb/adapter0/
+frontend1): Failed to open demux device /dev/dvb/adapter0/demux1 for
+filter on pid 0x0
 
-To minimise number of migrations, MIGRATE_CMA migration type
-is the last type tried when page allocator falls back to other
-migration types then requested.
+The demux1 does not exist, I only have the following nodes under
+/dev/dvb/adapter0:
 
-Signed-off-by: Michal Nazarewicz <m.nazarewicz@samsung.com>
-Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
-[m.szyprowski: cleaned up Kconfig]
-Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
-CC: Michal Nazarewicz <mina86@mina86.com>
----
- include/linux/mmzone.h |   43 ++++++++++++++++++----
- mm/Kconfig             |    8 ++++-
- mm/compaction.c        |   10 +++++
- mm/internal.h          |    3 ++
- mm/page_alloc.c        |   93 ++++++++++++++++++++++++++++++++++++++----------
- 5 files changed, 130 insertions(+), 27 deletions(-)
+demux0  dvr0  frontend0  frontend1  net0
 
-diff --git a/include/linux/mmzone.h b/include/linux/mmzone.h
-index c928dac..a2eeacf 100644
---- a/include/linux/mmzone.h
-+++ b/include/linux/mmzone.h
-@@ -35,13 +35,37 @@
-  */
- #define PAGE_ALLOC_COSTLY_ORDER 3
- 
--#define MIGRATE_UNMOVABLE     0
--#define MIGRATE_RECLAIMABLE   1
--#define MIGRATE_MOVABLE       2
--#define MIGRATE_PCPTYPES      3 /* the number of types on the pcp lists */
--#define MIGRATE_RESERVE       3
--#define MIGRATE_ISOLATE       4 /* can't allocate from here */
--#define MIGRATE_TYPES         5
-+enum {
-+	MIGRATE_UNMOVABLE,
-+	MIGRATE_RECLAIMABLE,
-+	MIGRATE_MOVABLE,
-+	MIGRATE_PCPTYPES,	/* the number of types on the pcp lists */
-+	MIGRATE_RESERVE = MIGRATE_PCPTYPES,
-+#ifdef CONFIG_CMA_MIGRATE_TYPE
-+	/*
-+	 * MIGRATE_CMA migration type is designed to mimic the way
-+	 * ZONE_MOVABLE works.  Only movable pages can be allocated
-+	 * from MIGRATE_CMA pageblocks and page allocator never
-+	 * implicitly change migration type of MIGRATE_CMA pageblock.
-+	 *
-+	 * The way to use it is to change migratetype of a range of
-+	 * pageblocks to MIGRATE_CMA which can be done by
-+	 * __free_pageblock_cma() function.  What is important though
-+	 * is that a range of pageblocks must be aligned to
-+	 * MAX_ORDER_NR_PAGES should biggest page be bigger then
-+	 * a single pageblock.
-+	 */
-+	MIGRATE_CMA,
-+#endif
-+	MIGRATE_ISOLATE,	/* can't allocate from here */
-+	MIGRATE_TYPES
-+};
-+
-+#ifdef CONFIG_CMA_MIGRATE_TYPE
-+#  define is_migrate_cma(migratetype) unlikely((migratetype) == MIGRATE_CMA)
-+#else
-+#  define is_migrate_cma(migratetype) false
-+#endif
- 
- #define for_each_migratetype_order(order, type) \
- 	for (order = 0; order < MAX_ORDER; order++) \
-@@ -54,6 +78,11 @@ static inline int get_pageblock_migratetype(struct page *page)
- 	return get_pageblock_flags_group(page, PB_migrate, PB_migrate_end);
- }
- 
-+static inline bool is_pageblock_cma(struct page *page)
-+{
-+	return is_migrate_cma(get_pageblock_migratetype(page));
-+}
-+
- struct free_area {
- 	struct list_head	free_list[MIGRATE_TYPES];
- 	unsigned long		nr_free;
-diff --git a/mm/Kconfig b/mm/Kconfig
-index 8ca47a5..6ffedd8 100644
---- a/mm/Kconfig
-+++ b/mm/Kconfig
-@@ -189,7 +189,7 @@ config COMPACTION
- config MIGRATION
- 	bool "Page migration"
- 	def_bool y
--	depends on NUMA || ARCH_ENABLE_MEMORY_HOTREMOVE || COMPACTION
-+	depends on NUMA || ARCH_ENABLE_MEMORY_HOTREMOVE || COMPACTION || CMA_MIGRATE_TYPE
- 	help
- 	  Allows the migration of the physical location of pages of processes
- 	  while the virtual addresses are not changed. This is useful in
-@@ -198,6 +198,12 @@ config MIGRATION
- 	  pages as migration can relocate pages to satisfy a huge page
- 	  allocation instead of reclaiming.
- 
-+config CMA_MIGRATE_TYPE
-+	bool
-+	help
-+	  This enables the use the MIGRATE_CMA migrate type, which lets lets CMA
-+	  work on almost arbitrary memory range and not only inside ZONE_MOVABLE.
-+
- config PHYS_ADDR_T_64BIT
- 	def_bool 64BIT || ARCH_PHYS_ADDR_T_64BIT
- 
-diff --git a/mm/compaction.c b/mm/compaction.c
-index 021a296..6d013c3 100644
---- a/mm/compaction.c
-+++ b/mm/compaction.c
-@@ -119,6 +119,16 @@ static bool suitable_migration_target(struct page *page)
- 	if (migratetype == MIGRATE_ISOLATE || migratetype == MIGRATE_RESERVE)
- 		return false;
- 
-+	/* Keep MIGRATE_CMA alone as well. */
-+	/*
-+	 * XXX Revisit.  We currently cannot let compaction touch CMA
-+	 * pages since compaction insists on changing their migration
-+	 * type to MIGRATE_MOVABLE (see split_free_page() called from
-+	 * isolate_freepages_block() above).
-+	 */
-+	if (is_migrate_cma(migratetype))
-+		return false;
-+
- 	/* If the page is a large free page, then allow migration */
- 	if (PageBuddy(page) && page_order(page) >= pageblock_order)
- 		return true;
-diff --git a/mm/internal.h b/mm/internal.h
-index d071d380..b44566c 100644
---- a/mm/internal.h
-+++ b/mm/internal.h
-@@ -49,6 +49,9 @@ extern void putback_lru_page(struct page *page);
-  * in mm/page_alloc.c
-  */
- extern void __free_pages_bootmem(struct page *page, unsigned int order);
-+#ifdef CONFIG_CMA_MIGRATE_TYPE
-+extern void __free_pageblock_cma(struct page *page);
-+#endif
- extern void prep_compound_page(struct page *page, unsigned long order);
- #ifdef CONFIG_MEMORY_FAILURE
- extern bool is_free_buddy_page(struct page *page);
-diff --git a/mm/page_alloc.c b/mm/page_alloc.c
-index 2cea044..c13c0dc 100644
---- a/mm/page_alloc.c
-+++ b/mm/page_alloc.c
-@@ -719,6 +719,30 @@ void __meminit __free_pages_bootmem(struct page *page, unsigned int order)
- 	}
- }
- 
-+#ifdef CONFIG_CMA_MIGRATE_TYPE
-+
-+/*
-+ * Free whole pageblock and set it's migration type to MIGRATE_CMA.
-+ */
-+void __init __free_pageblock_cma(struct page *page)
-+{
-+	struct page *p = page;
-+	unsigned i = pageblock_nr_pages;
-+
-+	prefetchw(p);
-+	do {
-+		if (--i)
-+			prefetchw(p + 1);
-+		__ClearPageReserved(p);
-+		set_page_count(p, 0);
-+	} while (++p, i);
-+
-+	set_page_refcounted(page);
-+	set_pageblock_migratetype(page, MIGRATE_CMA);
-+	__free_pages(page, pageblock_order);
-+}
-+
-+#endif
- 
- /*
-  * The order of subdivision here is critical for the IO subsystem.
-@@ -827,11 +851,15 @@ struct page *__rmqueue_smallest(struct zone *zone, unsigned int order,
-  * This array describes the order lists are fallen back to when
-  * the free lists for the desirable migrate type are depleted
-  */
--static int fallbacks[MIGRATE_TYPES][MIGRATE_TYPES-1] = {
-+static int fallbacks[MIGRATE_TYPES][4] = {
- 	[MIGRATE_UNMOVABLE]   = { MIGRATE_RECLAIMABLE, MIGRATE_MOVABLE,   MIGRATE_RESERVE },
- 	[MIGRATE_RECLAIMABLE] = { MIGRATE_UNMOVABLE,   MIGRATE_MOVABLE,   MIGRATE_RESERVE },
-+#ifdef CONFIG_CMA_MIGRATE_TYPE
-+	[MIGRATE_MOVABLE]     = { MIGRATE_RECLAIMABLE, MIGRATE_UNMOVABLE, MIGRATE_CMA    , MIGRATE_RESERVE },
-+#else
- 	[MIGRATE_MOVABLE]     = { MIGRATE_RECLAIMABLE, MIGRATE_UNMOVABLE, MIGRATE_RESERVE },
--	[MIGRATE_RESERVE]     = { MIGRATE_RESERVE,     MIGRATE_RESERVE,   MIGRATE_RESERVE }, /* Never used */
-+#endif
-+	[MIGRATE_RESERVE]     = { MIGRATE_RESERVE }, /* Never used */
- };
- 
- /*
-@@ -926,12 +954,12 @@ __rmqueue_fallback(struct zone *zone, int order, int start_migratetype)
- 	/* Find the largest possible block of pages in the other list */
- 	for (current_order = MAX_ORDER-1; current_order >= order;
- 						--current_order) {
--		for (i = 0; i < MIGRATE_TYPES - 1; i++) {
-+		for (i = 0; i < ARRAY_SIZE(fallbacks[0]); i++) {
- 			migratetype = fallbacks[start_migratetype][i];
- 
- 			/* MIGRATE_RESERVE handled later if necessary */
- 			if (migratetype == MIGRATE_RESERVE)
--				continue;
-+				break;
- 
- 			area = &(zone->free_area[current_order]);
- 			if (list_empty(&area->free_list[migratetype]))
-@@ -946,19 +974,29 @@ __rmqueue_fallback(struct zone *zone, int order, int start_migratetype)
- 			 * pages to the preferred allocation list. If falling
- 			 * back for a reclaimable kernel allocation, be more
- 			 * aggressive about taking ownership of free pages
-+			 *
-+			 * On the other hand, never change migration
-+			 * type of MIGRATE_CMA pageblocks nor move CMA
-+			 * pages on different free lists. We don't
-+			 * want unmovable pages to be allocated from
-+			 * MIGRATE_CMA areas.
- 			 */
--			if (unlikely(current_order >= (pageblock_order >> 1)) ||
--					start_migratetype == MIGRATE_RECLAIMABLE ||
--					page_group_by_mobility_disabled) {
--				unsigned long pages;
-+			if (!is_pageblock_cma(page) &&
-+			    (unlikely(current_order >= pageblock_order / 2) ||
-+			     start_migratetype == MIGRATE_RECLAIMABLE ||
-+			     page_group_by_mobility_disabled)) {
-+				int pages;
- 				pages = move_freepages_block(zone, page,
--								start_migratetype);
-+							     start_migratetype);
- 
--				/* Claim the whole block if over half of it is free */
-+				/*
-+				 * Claim the whole block if over half
-+				 * of it is free
-+				 */
- 				if (pages >= (1 << (pageblock_order-1)) ||
--						page_group_by_mobility_disabled)
-+				    page_group_by_mobility_disabled)
- 					set_pageblock_migratetype(page,
--								start_migratetype);
-+							start_migratetype);
- 
- 				migratetype = start_migratetype;
- 			}
-@@ -968,11 +1006,14 @@ __rmqueue_fallback(struct zone *zone, int order, int start_migratetype)
- 			rmv_page_order(page);
- 
- 			/* Take ownership for orders >= pageblock_order */
--			if (current_order >= pageblock_order)
-+			if (current_order >= pageblock_order &&
-+			    !is_pageblock_cma(page))
- 				change_pageblock_range(page, current_order,
- 							start_migratetype);
- 
--			expand(zone, page, order, current_order, area, migratetype);
-+			expand(zone, page, order, current_order, area,
-+			       is_migrate_cma(start_migratetype)
-+			     ? start_migratetype : migratetype);
- 
- 			trace_mm_page_alloc_extfrag(page, order, current_order,
- 				start_migratetype, migratetype);
-@@ -1044,7 +1085,12 @@ static int rmqueue_bulk(struct zone *zone, unsigned int order,
- 			list_add(&page->lru, list);
- 		else
- 			list_add_tail(&page->lru, list);
--		set_page_private(page, migratetype);
-+#ifdef CONFIG_CMA_MIGRATE_TYPE
-+		if (is_pageblock_cma(page))
-+			set_page_private(page, MIGRATE_CMA);
-+		else
-+#endif
-+			set_page_private(page, migratetype);
- 		list = &page->lru;
- 	}
- 	__mod_zone_page_state(zone, NR_FREE_PAGES, -(i << order));
-@@ -1185,9 +1231,16 @@ void free_hot_cold_page(struct page *page, int cold)
- 	 * offlined but treat RESERVE as movable pages so we can get those
- 	 * areas back if necessary. Otherwise, we may have to free
- 	 * excessively into the page allocator
-+	 *
-+	 * Still, do not change migration type of MIGRATE_CMA pages (if
-+	 * they'd be recorded as MIGRATE_MOVABLE an unmovable page could
-+	 * be allocated from MIGRATE_CMA block and we don't want to allow
-+	 * that).  In this respect, treat MIGRATE_CMA like
-+	 * MIGRATE_ISOLATE.
- 	 */
- 	if (migratetype >= MIGRATE_PCPTYPES) {
--		if (unlikely(migratetype == MIGRATE_ISOLATE)) {
-+		if (unlikely(migratetype == MIGRATE_ISOLATE
-+			  || is_migrate_cma(migratetype))) {
- 			free_one_page(zone, page, 0, migratetype);
- 			goto out;
- 		}
-@@ -1276,7 +1329,9 @@ int split_free_page(struct page *page)
- 	if (order >= pageblock_order - 1) {
- 		struct page *endpage = page + (1 << order) - 1;
- 		for (; page < endpage; page += pageblock_nr_pages)
--			set_pageblock_migratetype(page, MIGRATE_MOVABLE);
-+			if (!is_pageblock_cma(page))
-+				set_pageblock_migratetype(page,
-+							  MIGRATE_MOVABLE);
- 	}
- 
- 	return 1 << order;
-@@ -5486,8 +5541,8 @@ __count_immobile_pages(struct zone *zone, struct page *page, int count)
- 	 */
- 	if (zone_idx(zone) == ZONE_MOVABLE)
- 		return true;
--
--	if (get_pageblock_migratetype(page) == MIGRATE_MOVABLE)
-+	if (get_pageblock_migratetype(page) == MIGRATE_MOVABLE ||
-+	    is_pageblock_cma(page))
- 		return true;
- 
- 	pfn = page_to_pfn(page);
--- 
-1.7.1.569.g6f426
+When searching the linx-media I came across this thread:
+http://www.mail-archive.com/linux-media@vger.kernel.org/msg31839.html
 
+Is there any way to circumvent with the current driver that there is
+no corresponding demux1 for frontend1?
+Or can the DVB-T/T2 part be disabled somehow so that there is only one
+DVB-C frontend registered which corresponds to the demux0?
+
+Best regards,
+
+Rune
+
+[1] modinfo:
+modinfo em28xx-dvb
+filename:
+/lib/modules/2.6.38-8-generic/kernel/drivers/media/video/em28xx/em28xx-dvb.ko
+license:        GPL
+author:         Mauro Carvalho Chehab <mchehab@infradead.org>
+description:    driver for em28xx based DVB cards
+srcversion:     663F353AB97767017FDEC27
+depends:        em28xx,dvb-core,cxd2820r
+vermagic:       2.6.38-8-generic SMP mod_unload modversions 686
+parm:           debug:enable debug messages [dvb] (int)
+parm:           adapter_nr:DVB adapter numbers (array of short)
+
+[2] dmesg:
+[   54.724067] usb 1-3: new high speed USB device using ehci_hcd and address 4
+[   54.941327] WARNING: You are using an experimental version of the
+media stack.
+[   54.941332]     As the driver is backported to an older kernel, it
+doesn't offer
+[   54.941335]     enough quality for its usage in production.
+[   54.941338]     Use it with care.
+[   54.941339] Latest git patches (needed if you report a bug to
+linux-media@vger.kernel.org):
+[   54.941343]     75125b9d44456e0cf2d1fbb72ae33c
+13415299d1 [media] DocBook: Don't be noisy at make cleanmediadocs
+[   54.941346]     0fba2f7ff0c4d9f48a5c334826a22db32f816a76 Revert
+[media] dvb/audio.h: Remove definition for AUDIO_GET_PTS
+[   54.941350]     4f75ad768da3c5952d1e7080045a5b5ce7b0d85d [media]
+DocBook/video.xml: Document the remaining data structures
+[   54.961881] IR NEC protocol handler initialized
+[   54.987012] IR RC5(x) protocol handler initialized
+[   55.008281] IR RC6 protocol handler initialized
+[   55.032239] IR JVC protocol handler initialized
+[   55.052312] IR Sony protocol handler initialized
+[   55.092892] em28xx: New device PCTV Systems PCTV 290e @ 480 Mbps
+(2013:024f, interface 0, class 0)
+[   55.093169] lirc_dev: IR Remote Control driver registered, major 250
+[   55.100171] em28xx #0: chip ID is em28174
+[   55.110254] IR LIRC bridge handler initialized
+[   55.419763] em28xx #0: Identified as PCTV nanoStick T2 290e (card=78)
+[   55.464076] Registered IR keymap rc-pinnacle-pctv-hd
+[   55.472069] input: em28xx IR (em28xx #0) as
+/devices/pci0000:00/0000:00:1d.7/usb1/1-3/rc/rc0/input11
+[   55.472505] rc0: em28xx IR (em28xx #0) as
+/devices/pci0000:00/0000:00:1d.7/usb1/1-3/rc/rc0
+[   55.483777] em28xx #0: v4l2 driver version 0.1.2
+[   55.493073] em28xx #0: V4L2 video device registered as video1
+[   55.494836] usbcore: registered new interface driver em28xx
+[   55.494844] em28xx driver loaded
+[   55.552425] WARNING: You are using an experimental version of the
+media stack.
+[   55.552430]     As the driver is backported to an older kernel, it
+doesn't offer
+[   55.552434]     enough quality for its usage in production.
+[   55.552436]     Use it with care.
+[   55.552438] Latest git patches (needed if you report a bug to
+linux-media@vger.kernel.org):
+[   55.552441]     75125b9d44456e0cf2d1fbb72ae33c13415299d1 [media]
+DocBook: Don't be noisy at make cleanmediadocs
+[   55.552445]     0fba2f7ff0c4d9f48a5c334826a22db32f816a76 Revert
+[media] dvb/audio.h: Remove definition for AUDIO_GET_PTS
+[   55.552449]     4f75ad768da3c5952d1e7080045a5b5ce7b0d85d [media]
+DocBook/video.xml: Document the remaining data structures
+[   55.610886] tda18271 15-0060: creating new instance
+[   55.613267] TDA18271HD/C2 detected @ 15-0060
+[   55.845831] tda18271 15-0060: attaching existing instance
+[   55.845842] DVB: registering new adapter (em28xx #0)
+[   55.845850] DVB: registering adapter 0 frontend 0 (Sony CXD2820R
+(DVB-T/T2))...
+[   55.846111] DVB: registering adapter 0 frontend 1 (Sony CXD2820R (DVB-C))...
+[   55.846891] em28xx #0: Successfully loaded em28xx-dvb
+[   55.846899] Em28xx: Initialized (Em28xx dvb Extension) extension
