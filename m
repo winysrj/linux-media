@@ -1,51 +1,60 @@
 Return-path: <mchehab@pedra>
-Received: from mx1.redhat.com ([209.132.183.28]:56994 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932968Ab1FWTru (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 23 Jun 2011 15:47:50 -0400
-Message-ID: <4E03985D.108@redhat.com>
-Date: Thu, 23 Jun 2011 15:47:41 -0400
-From: Jarod Wilson <jarod@redhat.com>
+Received: from gelbbaer.kn-bremen.de ([78.46.108.116]:32940 "EHLO
+	smtp.kn-bremen.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754511Ab1FLXNV (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 12 Jun 2011 19:13:21 -0400
+From: Juergen Lock <nox@jelal.kn-bremen.de>
+Date: Mon, 13 Jun 2011 01:01:00 +0200
+To: Antti Palosaari <crope@iki.fi>
+Cc: Juergen Lock <nox@jelal.kn-bremen.de>, linux-media@vger.kernel.org,
+	hselasky@c2i.net
+Subject: Re: [PATCH] [media] af9015: setup rc keytable for LC-Power
+ LC-USB-DVBT
+Message-ID: <20110612230100.GA71756@triton8.kn-bremen.de>
+References: <20110612202512.GA63911@triton8.kn-bremen.de>
+ <201106122215.p5CMF0Xr069931@triton8.kn-bremen.de>
+ <4DF53CB6.109@iki.fi>
+ <20110612223437.GB71121@triton8.kn-bremen.de>
+ <4DF542CE.4040903@iki.fi>
 MIME-Version: 1.0
-To: Dmitry Torokhov <dmitry.torokhov@gmail.com>
-CC: linux-media@vger.kernel.org,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Jeff Brown <jeffbrown@android.com>
-Subject: Re: [PATCH] [media] rc: call input_sync after scancode reports
-References: <1308851886-4607-1-git-send-email-jarod@redhat.com> <20110623183957.GC14950@core.coreip.homeip.net>
-In-Reply-To: <20110623183957.GC14950@core.coreip.homeip.net>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <4DF542CE.4040903@iki.fi>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Dmitry Torokhov wrote:
-> Hi Jarod,
->
-> On Thu, Jun 23, 2011 at 01:58:06PM -0400, Jarod Wilson wrote:
->> @@ -623,6 +624,7 @@ static void ir_do_keydown(struct rc_dev *dev, int scancode,
->>   			  u32 keycode, u8 toggle)
->>   {
->>   	input_event(dev->input_dev, EV_MSC, MSC_SCAN, scancode);
->> +	input_sync(dev->input_dev);
->>
->>   	/* Repeat event? */
->>   	if (dev->keypressed&&
->
-> It looks like we would be issuing up to 3 input_sync() for a single
-> keypress... Order of events is wrong too (we first issue MSC_SCAN for
-> new key and then release old key). How about we change it a bit like in
-> the patch below?
+On Mon, Jun 13, 2011 at 01:50:54AM +0300, Antti Palosaari wrote:
+> On 06/13/2011 01:34 AM, Juergen Lock wrote:
+> > On Mon, Jun 13, 2011 at 01:24:54AM +0300, Antti Palosaari wrote:
+> >> On 06/13/2011 01:15 AM, Juergen Lock wrote:
+> >>>> About the repeating bug you mention, are you using latest driver
+> >>>> version? I am not aware such bug. There have been this kind of incorrect
+> >>>> behaviour old driver versions which are using HID. It was coming from
+> >>>> wrong HID interval.
+> >>>>
+> >>>> Also you can dump remote codes out when setting debug=2 to
+> >>>> dvb_usb_af9015 module.
+> >>>
+> >>>    That doesn't seem to work here so maybe my version is really too old
+> >>> to have that fix.  (But the keytable patch should still apply I guess?)
+> >>
+> >> Could you send af9015.c file you have I can check?
+> >>
+> >> Your patch is OK, but I want to know why it repeats.
+> >
+> > Sent off-list.
+> 
+> It was latest version. Still mystery why it repeats... Have you 
+> unplugged that device after booting from Windows? I wonder if there is 
+> HID remote codes uploaded to device by Windows driver and then you have 
+> "warm" booted to Linux...
+> 
+Well at least I can't rule something like that out, will send details
+off-list.  (Btw where is debug=2 to print remote events handled in that
+file?  Or is that done somewhere else?)
 
-Yeah, your patch does result in a nicer overall flow of things (esp. the 
-ordering of the release, which I hadn't noticed), and eliminates the 
-extra unnecessary syncs. I've got one tiny tweak, where I just pass a 
-true/false to ir_do_keyup to say whether or not it should do a sync to 
-further reduce some code duplication. Building and testing here locally 
-to make sure it does behave as expected, will then send it along.
+> Anyhow, I will take your patch and add it to the af9015 driver.
 
--- 
-Jarod Wilson
-jarod@redhat.com
-
-
+ Thanx! :)
+	Juergen
