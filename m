@@ -1,240 +1,163 @@
 Return-path: <mchehab@pedra>
-Received: from smtp-68.nebula.fi ([83.145.220.68]:46803 "EHLO
-	smtp-68.nebula.fi" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752753Ab1FWWBf (ORCPT
+Received: from banach.math.auburn.edu ([131.204.45.3]:35173 "EHLO
+	banach.math.auburn.edu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753826Ab1FLVSQ (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 23 Jun 2011 18:01:35 -0400
-Date: Fri, 24 Jun 2011 01:01:29 +0300
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	sakari.ailus@maxwell.research.nokia.com,
-	Sylwester Nawrocki <snjw23@gmail.com>,
-	Stan <svarbanov@mm-sol.com>, Hans Verkuil <hansverk@cisco.com>,
-	saaguirre@ti.com, Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: Re: [PATCH v2] V4L: add media bus configuration subdev operations
-Message-ID: <20110623220129.GA10918@valkosipuli.localdomain>
-References: <Pine.LNX.4.64.1106222314570.3535@axis700.grange>
+	Sun, 12 Jun 2011 17:18:16 -0400
+Date: Sun, 12 Jun 2011 16:20:01 -0500 (CDT)
+From: Theodore Kilgore <kilgota@banach.math.auburn.edu>
+To: Hans de Goede <hdegoede@redhat.com>
+cc: Alan Stern <stern@rowland.harvard.edu>, linux-usb@vger.kernel.org,
+	Sarah Sharp <sarah.a.sharp@linux.intel.com>,
+	linux-media@vger.kernel.org, Alexander Graf <agraf@suse.de>,
+	Gerd Hoffmann <kraxel@redhat.com>, hector@marcansoft.com,
+	Jan Kiszka <jan.kiszka@siemens.com>,
+	Stefan Hajnoczi <stefanha@linux.vnet.ibm.com>,
+	pbonzini@redhat.com, Anthony Liguori <aliguori@us.ibm.com>,
+	Jes Sorensen <Jes.Sorensen@redhat.com>,
+	Oliver Neukum <oliver@neukum.org>, Greg KH <greg@kroah.com>,
+	Felipe Balbi <balbi@ti.com>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Clemens Ladisch <clemens@ladisch.de>,
+	Jaroslav Kysela <perex@perex.cz>, Takashi Iwai <tiwai@suse.de>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Subject: Re: Improving kernel -> userspace (usbfs)  usb device hand off
+In-Reply-To: <4DF4A662.5090705@redhat.com>
+Message-ID: <alpine.LNX.2.00.1106121554090.13986@banach.math.auburn.edu>
+References: <Pine.LNX.4.44L0.1106101023330.1921-100000@iolanthe.rowland.org> <4DF3324E.3050506@redhat.com> <alpine.LNX.2.00.1106111058170.12801@banach.math.auburn.edu> <4DF4A662.5090705@redhat.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <Pine.LNX.4.64.1106222314570.3535@axis700.grange>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Hi Guennadi,
 
-Thanks for the patch. I have a few comments below.
 
-On Wed, Jun 22, 2011 at 11:26:29PM +0200, Guennadi Liakhovetski wrote:
-> Add media bus configuration types and two subdev operations to get
-> supported mediabus configurations and to set a specific configuration.
-> Subdevs can support several configurations, e.g., they can send video data
-> on 1 or several lanes, can be configured to use a specific CSI-2 channel,
-> in such cases subdevice drivers return bitmasks with all respective bits
-> set. When a set-configuration operation is called, it has to specify a
-> non-ambiguous configuration.
+On Sun, 12 Jun 2011, Hans de Goede wrote:
+
+> Hi,
 > 
-> Signed-off-by: Stanimir Varbanov <svarbanov@mm-sol.com>
-> Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-> ---
+> On 06/11/2011 06:19 PM, Theodore Kilgore wrote:
+> > 
+> > 
+> > On Sat, 11 Jun 2011, Hans de Goede wrote:
+> > 
+> > > Hi,
+> > > 
+> > > Given the many comments in this thread, I'm just
+> > > going reply to this one, and try to also answer any
+> > > other ones in this mail.
+> > > 
+> > > As far as the dual mode camera is involved, I agree
+> > > that that should be fixed in the existing v4l2
+> > > drivers + libgphoto. I think that Felipe's solution
+> > > to also handle the stillcam part in kernel space for
+> > > dual mode cameras (and add a libgphoto cam driver which
+> > > knows how to talk the new kernel API for this), is
+> > > the best solution. Unfortunately this will involve
+> > > quite a bit of work, but so be it.
+> > 
+> > Hans,
+> > 
+> > It appears to me that the solution ought to be at hand, actually.
+> > 
+> > I was not aware of the recent changes in libusb, which I understand are
+> > supposed to allow a kernel driver to be hooked up again.
+> > 
+> > To review the situation:
+> > 
+> > 1. As of approximately 2 years ago, libusb already was so configured as to
+> > suspend the kernel module for a dual-mode device if a userspace-based
+> > program tried to claim the device.
+> > 
+> > 2. At this point with the more recent versions of libusb (see the last
+> > message from yesterday, from Xiaofan Chen), we are supposed to be able to
+> > re-activate the kernel module for the device when it is relinquished by
+> > userspace.
+> > 
+> > This ought to take care of the problems completely, provided that the new
+> > capabilities of libusb are actually used and called upon in libgphoto2.
+> > 
+> > I have checked on what is happening, just now, on my own machine. I have
+> > libusb version 1.08 which ought to be recent enough. The advertised
+> > abilities did not work, however. Presumably, what is missing is on the
+> > other end of the problem, most likely in the functions in libgphoto2 which
+> > hook up a camera. That code would presumably need to call upon the new
+> > functionality of libusb. My currently installed version of libgphoto2
+> > (from svn, but several months old) clearly does not contain the needed
+> > functionality. But it might have been put in recently and I did not
+> > notice. I guess that the first thing to do is to update my gphoto tree and
+> > then to see what happens. If things still don't work, then something needs
+> > to be updated and then things ought to work.
+> > 
+> > I will try to see that something gets done about this. Thank you for
+> > raising the old issue of dual-mode devices yet again, and thanks to
+> > Xiaofan Chen for pointing out that the needed missing half of the
+> > functionality is supposed to exist now in libusb. That had escaped my
+> > attention.
 > 
-> v2:
+> Actually libusb and libgphoto have been using the rebind orginal driver
+> functionality of the code for quite a while now, 
+
+Oh? I can see that libusb is doing that, and I can also see that there is 
+a "public" function for _unbinding_ a kernel driver, namely 
+
+int usb_detach_kernel_driver_np()
+
+found in usb.h
+
+and it is used in libgphoto, as well.
+
+I am not sure that there is any corresponding rebind function which is 
+public. Is it perhaps
+
+int usb_get_driver_np()
+
+???
+
+By context (looking at libgphoto2-port/usb/libusb.c) I would think that 
+this function is not the rebind function, but is only checking whether or 
+not there is any potential conflict with a kernel driver. If I am right, 
+then where is the publicly exported rebind function, and where does it 
+currently get used in libgphoto2? 
+
+So frankly after my eagerness yesterday I do not see how it can easily be 
+made to work, after all.
+
+unfortunately this
+> does not solve the problem, unless we somehow move to 1 central
+> coordinator for the device the user experience will stay subpar.
 > 
-> 1. Removed parallel bus width flags. As Laurent correctly pointed out, bus 
-> width can be configured based on the mediabus format.
+> Example, user downloads pictures from the camera using shotwell,
+> gthumb, fspot or whatever, keeps the app in question open and the app
+> in question keeps the gphoto2 device handle open.
 > 
-> 2. Removed the clock parameter for now. Passing timing information between 
-> the subdevices and the host / bridge driver is indeed necessary, but it is 
-> not yet quite clear, what is the best way to do this. This requires more 
-> thinking and can be added as an extra field to struct v4l2_mbus_config 
-> later. The argument, that "struct clk" is still platform specific is 
-> correct, but I am too tempted by the possibilities, the clkdev offers us 
-> to give up this idea immediatrely. Maybe drivers, that need such a clock, 
-> could use a platform callback to create a clock instance for them, or get 
-> a clock object from the platform with platform data. However, there are 
-> also opinions, that the clkdev API is completely unsuitable for this 
-> purpose. I'd commit this without any timing first, and consider 
-> possibilities as a second step.
+> User wants to do some skyping with video chat, skype complains it
+> cannot find the device, since the kernel driver currently is unbound.
 > 
->  include/media/v4l2-mediabus.h |   89 +++++++++++++++++++++++++++++++++++++++++
->  include/media/v4l2-subdev.h   |    6 +++
->  2 files changed, 95 insertions(+), 0 deletions(-)
+> -> Poor user experience.
+
+Poor user experience, or merely poor user? The user ought to know better. 
+Of course, I do agree that there are lots of such people, and it is a good 
+idea to try to put up warning signs. 
+
+
 > 
-> diff --git a/include/media/v4l2-mediabus.h b/include/media/v4l2-mediabus.h
-> index 971c7fa..e0ffba0 100644
-> --- a/include/media/v4l2-mediabus.h
-> +++ b/include/media/v4l2-mediabus.h
-> @@ -13,6 +13,95 @@
->  
->  #include <linux/v4l2-mediabus.h>
->  
-> +/* Parallel flags */
-> +/* Can the client run in master or in slave mode */
-> +#define V4L2_MBUS_MASTER			(1 << 0)
-> +#define V4L2_MBUS_SLAVE				(1 << 1)
-
-What are master and slave in this case? Something other than transmitter and
-receiver?
-
-> +/* Which signal polarities it supports */
-> +#define V4L2_MBUS_HSYNC_ACTIVE_HIGH		(1 << 2)
-> +#define V4L2_MBUS_HSYNC_ACTIVE_LOW		(1 << 3)
-> +#define V4L2_MBUS_VSYNC_ACTIVE_HIGH		(1 << 4)
-> +#define V4L2_MBUS_VSYNC_ACTIVE_LOW		(1 << 5)
-> +#define V4L2_MBUS_PCLK_SAMPLE_RISING		(1 << 6)
-> +#define V4L2_MBUS_PCLK_SAMPLE_FALLING		(1 << 7)
-> +#define V4L2_MBUS_DATA_ACTIVE_HIGH		(1 << 8)
-> +#define V4L2_MBUS_DATA_ACTIVE_LOW		(1 << 9)
-> +
-> +/* Serial flags */
-> +/* How many lanes the client can use */
-> +#define V4L2_MBUS_CSI2_1_LANE			(1 << 0)
-> +#define V4L2_MBUS_CSI2_2_LANE			(1 << 1)
-> +#define V4L2_MBUS_CSI2_3_LANE			(1 << 2)
-> +#define V4L2_MBUS_CSI2_4_LANE			(1 << 3)
-> +/* On which channels it can send video data */
-> +#define V4L2_MBUS_CSI2_CHANNEL_0		(1 << 4)
-> +#define V4L2_MBUS_CSI2_CHANNEL_1		(1 << 5)
-> +#define V4L2_MBUS_CSI2_CHANNEL_2		(1 << 6)
-> +#define V4L2_MBUS_CSI2_CHANNEL_3		(1 << 7)
-
-It might not be just video data but e.g. metadata.
-
-Is four the maximum number of channels in CSI2?
-
-> +/* Does it support only continuous or also non-continuous clock mode */
-> +#define V4L2_MBUS_CSI2_CONTINUOUS_CLOCK		(1 << 8)
-> +#define V4L2_MBUS_CSI2_NONCONTINUOUS_CLOCK	(1 << 9)
-
-What's noncontinuous clock for CSI2? Does it mean in some situations the
-clock may be stopped based on certain criteria?
-
-> +#define V4L2_MBUS_CSI2_LANES		(V4L2_MBUS_CSI2_1_LANE | V4L2_MBUS_CSI2_2_LANE | \
-> +					 V4L2_MBUS_CSI2_3_LANE | V4L2_MBUS_CSI2_4_LANE)
-> +#define V4L2_MBUS_CSI2_CHANNELS		(V4L2_MBUS_CSI2_CHANNEL_0 | V4L2_MBUS_CSI2_CHANNEL_1 | \
-> +					 V4L2_MBUS_CSI2_CHANNEL_2 | V4L2_MBUS_CSI2_CHANNEL_3)
-> +
-> +/**
-> + * v4l2_mbus_type - media bus type
-> + * @V4L2_MBUS_PARALLEL:	parallel interface with hsync and vsync
-> + * @V4L2_MBUS_BT656:	parallel interface with embedded synchronisation
-> + * @V4L2_MBUS_CSI2:	MIPI CSI-2 serial interface
-> + */
-> +enum v4l2_mbus_type {
-> +	V4L2_MBUS_PARALLEL,
-> +	V4L2_MBUS_BT656,
-> +	V4L2_MBUS_CSI2,
-> +};
-> +
-> +/**
-> + * v4l2_mbus_config - media bus configuration
-> + * @type:	in: interface type
-> + * @flags:	in / out: configuration flags, depending on @type
-> + */
-> +struct v4l2_mbus_config {
-> +	enum v4l2_mbus_type type;
-> +	unsigned long flags;
-> +};
-> +
-> +static inline unsigned long v4l2_mbus_config_compatible(struct v4l2_mbus_config *cfg,
-> +							unsigned long flags)
-> +{
-> +	unsigned long common_flags, hsync, vsync, pclk, data, mode;
-> +	unsigned long mipi_lanes, mipi_clock;
-> +
-> +	common_flags = cfg->flags & flags;
-> +
-> +	switch (cfg->type) {
-> +	case V4L2_MBUS_PARALLEL:
-> +		hsync = common_flags & (V4L2_MBUS_HSYNC_ACTIVE_HIGH |
-> +					V4L2_MBUS_HSYNC_ACTIVE_LOW);
-> +		vsync = common_flags & (V4L2_MBUS_VSYNC_ACTIVE_HIGH |
-> +					V4L2_MBUS_VSYNC_ACTIVE_LOW);
-> +		pclk = common_flags & (V4L2_MBUS_PCLK_SAMPLE_RISING |
-> +				       V4L2_MBUS_PCLK_SAMPLE_FALLING);
-> +		data = common_flags & (V4L2_MBUS_DATA_ACTIVE_HIGH |
-> +				       V4L2_MBUS_DATA_ACTIVE_LOW);
-> +		mode = common_flags & (V4L2_MBUS_MASTER | V4L2_MBUS_SLAVE);
-> +		return (!hsync || !vsync || !pclk || !data || !mode) ?
-> +			0 : common_flags;
-> +	case V4L2_MBUS_CSI2:
-> +		mipi_lanes = common_flags & V4L2_MBUS_CSI2_LANES;
-> +		mipi_clock = common_flags & (V4L2_MBUS_CSI2_NONCONTINUOUS_CLOCK |
-> +					     V4L2_MBUS_CSI2_CONTINUOUS_CLOCK);
-> +		return (!mipi_lanes || !mipi_clock) ? 0 : common_flags;
-> +	case V4L2_MBUS_BT656:
-> +		/* TODO: implement me */
-> +		return 0;
-> +	}
-> +	return 0;
-> +}
-> +
->  static inline void v4l2_fill_pix_format(struct v4l2_pix_format *pix_fmt,
->  				const struct v4l2_mbus_framefmt *mbus_fmt)
->  {
-> diff --git a/include/media/v4l2-subdev.h b/include/media/v4l2-subdev.h
-> index 1562c4f..75919ef 100644
-> --- a/include/media/v4l2-subdev.h
-> +++ b/include/media/v4l2-subdev.h
-> @@ -255,6 +255,10 @@ struct v4l2_subdev_audio_ops {
->     try_mbus_fmt: try to set a pixel format on a video data source
->  
->     s_mbus_fmt: set a pixel format on a video data source
-> +
-> +   g_mbus_config: get supported mediabus configurations
-> +
-> +   s_mbus_config: set a certain mediabus configuration
->   */
->  struct v4l2_subdev_video_ops {
->  	int (*s_routing)(struct v4l2_subdev *sd, u32 input, u32 output, u32 config);
-> @@ -294,6 +298,8 @@ struct v4l2_subdev_video_ops {
->  			    struct v4l2_mbus_framefmt *fmt);
->  	int (*s_mbus_fmt)(struct v4l2_subdev *sd,
->  			  struct v4l2_mbus_framefmt *fmt);
-> +	int (*g_mbus_config)(struct v4l2_subdev *sd, struct v4l2_mbus_config *cfg);
-> +	int (*s_mbus_config)(struct v4l2_subdev *sd, struct v4l2_mbus_config *cfg);
-
-How would the ops be used and by whom?
-
-How complete configuration for CSI2 bus is the above intend to be? Complete,
-I suppose, and so I think we'll also need to specify how e.g. the CSI2 clock
-and data lanes have been connected between transmitter and receiver. This is
-less trivial to guess than clock polarity and requires further information
-from the board and lane mapping configuration capabilities of both.
-Shouldn't this information be also added to CSI2 configuration?
-
-Do you think a single bitmask would suffice for this in the long run?
-
-I can see some use for the information in the set operation in lane
-configuration, for example, as you mentioned. My guess would be that the
-number of lanes _might_ be something that the user space would want to know
-or possibly even configure --- but we'll first need to discuss low-level
-sensor control interface.
-
-But otherwise the configuration should likely be rather static and board
-specific. Wouldn't the subdevs get this as part of the platform data, or
-how?
-
-I would just keep the bus configuration static board dependent information
-until we have that part working and used by drivers and extend it later on.
-
-Just my 0,05 euros.
-
->  };
->  
->  /*
-> -- 
-> 1.7.2.5
+> With having both functions in the kernel, the kernel could actually
+> allow skype to use the dual mode cameras as video source, and if
+> the user then were to switch to f-spot and try to import more photo's
+> then he will get an -ebusy in f-spot. If he finishes skyping and
+> then returns to f-spot everything will just continue working.
 > 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> This is the kind of "seamless" user experience I'm aiming for here.
+> 
+> Regards,
+> 
+> Hans
 
-Regards,
+Yes, I can see where you are coming from. But if the camera really will 
+not let you run skype and fspot at the same time, which I do not believe 
+it would allow on _any_ operating system, then each app should give an 
+error message which says it cannot be run unless and until the other app 
+has been closed. If that has to happen at the kernel level, then OK.
 
--- 
-Sakari Ailus
-sakari.ailus@iki.fi
+Theodore Kilgore
