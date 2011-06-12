@@ -1,79 +1,64 @@
 Return-path: <mchehab@pedra>
-Received: from mail-yx0-f174.google.com ([209.85.213.174]:52756 "EHLO
-	mail-yx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757142Ab1FUUtP convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 21 Jun 2011 16:49:15 -0400
+Received: from mail.kapsi.fi ([217.30.184.167]:40702 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751208Ab1FLU5P (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 12 Jun 2011 16:57:15 -0400
+Message-ID: <4DF52828.2070701@iki.fi>
+Date: Sun, 12 Jun 2011 23:57:12 +0300
+From: Antti Palosaari <crope@iki.fi>
 MIME-Version: 1.0
-In-Reply-To: <1308670579-15138-1-git-send-email-laurent.pinchart@ideasonboard.com>
-References: <4DDAE63A.3070203@gmx.de>
-	<1308670579-15138-1-git-send-email-laurent.pinchart@ideasonboard.com>
-Date: Tue, 21 Jun 2011 22:49:14 +0200
-Message-ID: <BANLkTim6wUaeZCya=9dMvU7iHj4W4E57Fg@mail.gmail.com>
-Subject: Re: [PATCH/RFC] fbdev: Add FOURCC-based format configuration API
-From: Geert Uytterhoeven <geert@linux-m68k.org>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: linux-fbdev@vger.kernel.org, linux-media@vger.kernel.org,
-	dri-devel@lists.freedesktop.org, FlorianSchandinat@gmx.de
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8BIT
+To: Juergen Lock <nox@jelal.kn-bremen.de>
+CC: linux-media@vger.kernel.org, hselasky@c2i.net
+Subject: Re: [PATCH] [media] af9015: setup rc keytable for LC-Power LC-USB-DVBT
+References: <20110612202512.GA63911@triton8.kn-bremen.de>
+In-Reply-To: <20110612202512.GA63911@triton8.kn-bremen.de>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Hi Laurent,
+I assume device uses vendor reference design USB ID (15a4:9016 or 
+15a4:9015)?
 
-On Tue, Jun 21, 2011 at 17:36, Laurent Pinchart
-<laurent.pinchart@ideasonboard.com> wrote:
-> +The following types and visuals are supported.
-> +
-> +- FB_TYPE_PACKED_PIXELS
-> +
-> +- FB_TYPE_PLANES
+About the repeating bug you mention, are you using latest driver 
+version? I am not aware such bug. There have been this kind of incorrect 
+behaviour old driver versions which are using HID. It was coming from 
+wrong HID interval.
 
-You forgot FB_TYPE_INTERLEAVED_PLANES, FB_TYPE_TEXT, and
-FB_TYPE_VGA_PLANES. Ah, that's the "feel free to extend the API doc"  :-)
+Also you can dump remote codes out when setting debug=2 to 
+dvb_usb_af9015 module.
 
-> +The FOURCC-based API replaces format descriptions by four character codes
-> +(FOURCC). FOURCCs are abstract identifiers that uniquely define a format
-> +without explicitly describing it. This is the only API that supports YUV
-> +formats. Drivers are also encouraged to implement the FOURCC-based API for RGB
-> +and grayscale formats.
-> +
-> +Drivers that support the FOURCC-based API report this capability by setting
-> +the FB_CAP_FOURCC bit in the fb_fix_screeninfo capabilities field.
-> +
-> +FOURCC definitions are located in the linux/videodev2.h header. However, and
-> +despite starting with the V4L2_PIX_FMT_prefix, they are not restricted to V4L2
-> +and don't require usage of the V4L2 subsystem. FOURCC documentation is
-> +available in Documentation/DocBook/v4l/pixfmt.xml.
-> +
-> +To select a format, applications set the FB_VMODE_FOURCC bit in the
-> +fb_var_screeninfo vmode field, and set the fourcc field to the desired FOURCC.
-> +The bits_per_pixel, red, green, blue, transp and nonstd fields must be set to
-> +0 by applications and ignored by drivers. Note that the grayscale and fourcc
-> +fields share the same memory location. Application must thus not set the
-> +grayscale field to 0.
+regards
+Antti
 
-These are the only parts I don't like: (ab)using the vmode field (this
-isn't really a
-vmode flag), and the union of grayscale and fourcc (avoid unions where
-possible).
 
-What about storing the FOURCC value in nonstd instead?
-As FOURCC values are always 4 ASCII characters (hence all 4 bytes must
-be non-zero),
-I don't think there are any conflicts with existing values of nonstd.
-To make it even safer and easier to parse, you could set bit 31 of
-nonstd as a FOURCC
-indicator.
+On 06/12/2011 11:25 PM, Juergen Lock wrote:
+> That's this tuner:
+>
+> 	http://www.lc-power.de/index.php?id=146&L=1
+>
+> The credit card sized remote more or less works if I set remote=4,
+> so I added the hash to get it autodetected.  (`more or less' there
+> meaning sometimes buttons are `stuck on repeat', i.e. ir-keytable -t
+> keeps repeating the same scancode until i press another button.)
+>
+> Signed-off-by: Juergen Lock<nox@jelal.kn-bremen.de>
+>
+> --- a/drivers/media/dvb/dvb-usb/af9015.c
+> +++ b/drivers/media/dvb/dvb-usb/af9015.c
+> @@ -735,6 +735,7 @@ static const struct af9015_rc_setup af90
+>   	{ 0xb8feb708, RC_MAP_MSI_DIGIVOX_II },
+>   	{ 0xa3703d00, RC_MAP_ALINK_DTU_M },
+>   	{ 0x9b7dc64e, RC_MAP_TOTAL_MEDIA_IN_HAND }, /* MYGICTV U718 */
+> +	{ 0x5d49e3db, RC_MAP_DIGITTRADE }, /* LC-Power LC-USB-DVBT */
+>   	{ }
+>   };
+>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
-Gr{oetje,eeting}s,
 
-                        Geert
-
---
-Geert Uytterhoeven -- There's lots of Linux beyond ia32 -- geert@linux-m68k.org
-
-In personal conversations with technical people, I call myself a hacker. But
-when I'm talking to journalists I just say "programmer" or something like that.
-                                -- Linus Torvalds
+-- 
+http://palosaari.fi/
