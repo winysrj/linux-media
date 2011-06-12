@@ -1,77 +1,45 @@
 Return-path: <mchehab@pedra>
-Received: from mail-wy0-f174.google.com ([74.125.82.174]:44384 "EHLO
-	mail-wy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754536Ab1FGTfA (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 7 Jun 2011 15:35:00 -0400
-Received: by wya21 with SMTP id 21so3819855wya.19
-        for <linux-media@vger.kernel.org>; Tue, 07 Jun 2011 12:34:59 -0700 (PDT)
-Subject: Re: DM04 USB DVB-S TUNER
-From: Malcolm Priestley <tvboxspy@gmail.com>
-To: Mehmet Altan Pire <baybesteci@gmail.com>
-Cc: linux-media@vger.kernel.org
-In-Reply-To: <1307424701.2117.13.camel@localhost>
-References: <4DEACF3F.9090305@gmail.com>
-	 <1307283393.22968.12.camel@localhost> <4DEBB00D.4040202@gmail.com>
-	 <1307306576.2064.13.camel@localhost> <1307310455.2547.9.camel@localhost>
-	 <4DED628E.9070502@gmail.com>  <1307424701.2117.13.camel@localhost>
-Content-Type: text/plain; charset="UTF-8"
-Date: Tue, 07 Jun 2011 20:34:50 +0100
-Message-ID: <1307475290.3453.14.camel@localhost>
-Mime-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Received: from gelbbaer.kn-bremen.de ([78.46.108.116]:35392 "EHLO
+	smtp.kn-bremen.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754223Ab1FLWgI (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 12 Jun 2011 18:36:08 -0400
+From: Juergen Lock <nox@jelal.kn-bremen.de>
+Date: Mon, 13 Jun 2011 00:34:37 +0200
+To: Antti Palosaari <crope@iki.fi>
+Cc: Juergen Lock <nox@jelal.kn-bremen.de>, linux-media@vger.kernel.org,
+	hselasky@c2i.net
+Subject: Re: [PATCH] [media] af9015: setup rc keytable for LC-Power
+ LC-USB-DVBT
+Message-ID: <20110612223437.GB71121@triton8.kn-bremen.de>
+References: <20110612202512.GA63911@triton8.kn-bremen.de>
+ <201106122215.p5CMF0Xr069931@triton8.kn-bremen.de>
+ <4DF53CB6.109@iki.fi>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <4DF53CB6.109@iki.fi>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Tue, 2011-06-07 at 06:31 +0100, Malcolm Priestley wrote:
-> On Tue, 2011-06-07 at 02:28 +0300, Mehmet Altan Pire wrote:
-> > 06-06-2011 00:47, Malcolm Priestley yazmış:
-> > > On Sun, 2011-06-05 at 21:42 +0100, Malcolm Priestley wrote:
-> > >> On Sun, 2011-06-05 at 19:34 +0300, Mehmet Altan Pire wrote:
-> > >>> 05-06-2011 17:16, Malcolm Priestley yazmış:
-> > >>>> On Sun, 2011-06-05 at 03:35 +0300, Mehmet Altan Pire wrote:
-> > >>>>> Hi,
-> > >>>>> I have "DM04 USB DVBS TUNER", using ubuntu with v4l media-build
-> > >>>>> drivers/modules but device  doesn't working (unknown device).
-> > >>>>>
-> > >>>>> lsusb message:
-> > >>>>> ID 3344:22f0
-> > >>>>>
-> > >>>>> under of the box:
-> > >>>>> DM04P2011050176
-> > >>> Yes, i have windows xp driver, name is "US2B0D.sys" I sending it,
-> > >>> attached in this mail. Thanks. 
-> > >> Here is a modified lmedm04.c and lme2510b_fw.sh using the US2B0D.sys
-> > >>
-> > to modify the interrupt return.
-> > >
+On Mon, Jun 13, 2011 at 01:24:54AM +0300, Antti Palosaari wrote:
+> On 06/13/2011 01:15 AM, Juergen Lock wrote:
+> >> About the repeating bug you mention, are you using latest driver
+> >> version? I am not aware such bug. There have been this kind of incorrect
+> >> behaviour old driver versions which are using HID. It was coming from
+> >> wrong HID interval.
+> >>
+> >> Also you can dump remote codes out when setting debug=2 to
+> >> dvb_usb_af9015 module.
+> >
+> >   That doesn't seem to work here so maybe my version is really too old
+> > to have that fix.  (But the keytable patch should still apply I guess?)
 > 
-> > >
-> > Ok, i tested it. Device recognized on WinXP with original driver, but tv
-> > application says "no lock".
-> > I'm not sure it worked on WinXP but driver cd is original and
-> > succesfully loaded and recognized.
-> > Again tested on ubuntu with new lmedm04.c and lme2510b_fw.sh than make,
-> > make install, and restart.
-> > 
-> > lsusb says:
-> > Bus 001 Device 008: ID 3344:1120  (changes 22f0 to 1120)
-> > dmesg says:
-> Yes this should happen. The firmware will reboot with the correct id.
-
+> Could you send af9015.c file you have I can check?
 > 
-> > My device different or chip is damaged? Label, box and driver cd title
-> > writes "DM04P". DM04 and DM04P different devices?
-> 
-> I think the id of the chip is faulty or default.
-> 
-> I will test the firmware with LG tuner later.
+> Your patch is OK, but I want to know why it repeats.
 
-It is not the LG, s7395 or S0194 tuner.
+Sent off-list.
 
-So the id is intentional. 
-
-How does it identify itself in windows?
-
-
-tvboxspy
-
+ Thanx, :)
+	Juergen
