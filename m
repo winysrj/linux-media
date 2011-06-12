@@ -1,90 +1,116 @@
 Return-path: <mchehab@pedra>
-Received: from mail-pw0-f46.google.com ([209.85.160.46]:57513 "EHLO
-	mail-pw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751518Ab1FPH5G convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 16 Jun 2011 03:57:06 -0400
-Received: by pwj7 with SMTP id 7so138541pwj.19
-        for <linux-media@vger.kernel.org>; Thu, 16 Jun 2011 00:57:05 -0700 (PDT)
+Received: from mx1.redhat.com ([209.132.183.28]:45825 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753134Ab1FLOjT (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 12 Jun 2011 10:39:19 -0400
+Message-ID: <4DF4CF8F.8050507@redhat.com>
+Date: Sun, 12 Jun 2011 11:39:11 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
 MIME-Version: 1.0
-In-Reply-To: <BANLkTikhqTRHmz=webBbW=pLK2o0hTcwng@mail.gmail.com>
-References: <BANLkTikKA_0QEyaeJth4FYzm61tYT+_Gow@mail.gmail.com>
-	<000701cc2be8$3bfb1720$b3f14560$%szyprowski@samsung.com>
-	<BANLkTimHFomy+ioM0xgx7iMaqfRjHjvSbA@mail.gmail.com>
-	<BANLkTikhqTRHmz=webBbW=pLK2o0hTcwng@mail.gmail.com>
-Date: Thu, 16 Jun 2011 15:57:05 +0800
-Message-ID: <BANLkTiksUboG7zvja0rykeg7hpKby3xSvA@mail.gmail.com>
-Subject: Re: no mmu on videobuf2
-From: Scott Jiang <scott.jiang.linux@gmail.com>
-To: Kassey Lee <kassey1216@gmail.com>
-Cc: Marek Szyprowski <m.szyprowski@samsung.com>,
-	hans.verkuil@cisco.com, laurent.pinchart@ideasonboard.com,
-	linux-media@vger.kernel.org,
-	uclinux-dist-devel@blackfin.uclinux.org
+To: Hans Verkuil <hverkuil@xs4all.nl>
+CC: linux-media@vger.kernel.org, Mike Isely <isely@isely.net>,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: Re: [RFCv4 PATCH 2/8] tuner-core: change return type of set_mode_freq
+ to bool
+References: <1307876389-30347-1-git-send-email-hverkuil@xs4all.nl> <d59fe38f04b4dbce9e79b10133db2f0953ced6e6.1307875512.git.hans.verkuil@cisco.com>
+In-Reply-To: <d59fe38f04b4dbce9e79b10133db2f0953ced6e6.1307875512.git.hans.verkuil@cisco.com>
 Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Hi Kassey,
+Em 12-06-2011 07:59, Hans Verkuil escreveu:
+> From: Hans Verkuil <hans.verkuil@cisco.com>
+> 
+> set_mode_freq currently returns 0 or -EINVAL. But -EINVAL does not
+> indicate a error that should be passed on, it just indicates that the
+> tuner does not supportthe requested mode. So change the return type to
+> bool.
 
-2011/6/16 Kassey Lee <kassey1216@gmail.com>:
-> 2011/6/16 Scott Jiang <scott.jiang.linux@gmail.com>:
->> 2011/6/16 Marek Szyprowski <m.szyprowski@samsung.com>:
->>> Hello Scott,
->>>
->>>> Hi Marek and Laurent,
->>>>
->>>> I am working on v4l2 drivers for blackfin which is a no mmu soc.
->>>> I found videobuf allocate memory in mmap not reqbuf, so I turn to videobuf2.
->>>> But __setup_offsets() use plane offset to fill m.offset, which is
->>>> always 0 for single-planar buffer.
->>>> So pgoff in get_unmapped_area callback equals 0.
->>>> I only found uvc handled get_unmapped_area for no mmu system, but it
->>>> manages buffers itself.
->>>> I really want videobuf2 to manage buffers. Please give me some advice.
->>>
->>> I'm not really sure if I know the differences between mmu and no-mmu
->>> systems (from the device driver perspective). I assume that you are using
->>> videobuf2-vmalloc allocator. Note that memory allocators/managers are well
->>> separated from the videobuf2 logic. If it the current one doesn't serve you
->>> well you can make your own no-mmu allocator. Later once we identify all
->>> differences it might be merged with the standard one or left alone if the
->>> merge is not really possible or easy.
->>>
->>> Best regards
->>> --
->>> Marek Szyprowski
->>> Samsung Poland R&D Center
->>>
->>>
->>>
->>
->> Hi Marek,
->>
->> I used dma-contig allocator. I mean if offset is 0, I must get actual
->> addr from this offset.
-> hi, Scott
->
-> if it is single plane, surely the offset is 0 for plane 0
-yes, it is absolutely right.
+NACK. Tuner core doesn't return the error code just because the subdev
+functions don't allow, currently, at the multiple tuners case.
 
-> what do you mean the actual addr ?
-I should return virtual address of the buffer in get_unmapped_area callback.
+> 
+> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+> ---
+>  drivers/media/video/tuner-core.c |   23 ++++++++++-------------
+>  1 files changed, 10 insertions(+), 13 deletions(-)
+> 
+> diff --git a/drivers/media/video/tuner-core.c b/drivers/media/video/tuner-core.c
+> index 083b9f1..ee43e0a 100644
+> --- a/drivers/media/video/tuner-core.c
+> +++ b/drivers/media/video/tuner-core.c
+> @@ -746,11 +746,11 @@ static bool supported_mode(struct tuner *t, enum v4l2_tuner_type mode)
+>   * @freq:	frequency to set (0 means to use the previous one)
+>   *
+>   * If tuner doesn't support the needed mode (radio or TV), prints a
+> - * debug message and returns -EINVAL, changing its state to standby.
+> - * Otherwise, changes the state and sets frequency to the last value, if
+> - * the tuner can sleep or if it supports both Radio and TV.
+> + * debug message and returns false, changing its state to standby.
+> + * Otherwise, changes the state and sets frequency to the last value
+> + * and returns true.
+>   */
+> -static int set_mode_freq(struct i2c_client *client, struct tuner *t,
+> +static bool set_mode_freq(struct i2c_client *client, struct tuner *t,
+>  			 enum v4l2_tuner_type mode, unsigned int freq)
+>  {
+>  	struct analog_demod_ops *analog_ops = &t->fe.ops.analog_ops;
+> @@ -762,7 +762,7 @@ static int set_mode_freq(struct i2c_client *client, struct tuner *t,
+>  			t->standby = true;
+>  			if (analog_ops->standby)
+>  				analog_ops->standby(&t->fe);
+> -			return -EINVAL;
+> +			return false;
+>  		}
+>  		t->mode = mode;
+>  		tuner_dbg("Changing to mode %d\n", mode);
+> @@ -777,7 +777,7 @@ static int set_mode_freq(struct i2c_client *client, struct tuner *t,
+>  		set_tv_freq(client, t->tv_freq);
+>  	}
+>  
+> -	return 0;
+> +	return true;
+>  }
+>  
+>  /*
+> @@ -1075,8 +1075,7 @@ static int tuner_s_radio(struct v4l2_subdev *sd)
+>  	struct tuner *t = to_tuner(sd);
+>  	struct i2c_client *client = v4l2_get_subdevdata(sd);
+>  
+> -	if (set_mode_freq(client, t, V4L2_TUNER_RADIO, 0) == -EINVAL)
+> -		return 0;
+> +	set_mode_freq(client, t, V4L2_TUNER_RADIO, 0);
+>  	return 0;
+>  }
+>  
+> @@ -1110,7 +1109,7 @@ static int tuner_s_std(struct v4l2_subdev *sd, v4l2_std_id std)
+>  	struct tuner *t = to_tuner(sd);
+>  	struct i2c_client *client = v4l2_get_subdevdata(sd);
+>  
+> -	if (set_mode_freq(client, t, V4L2_TUNER_ANALOG_TV, 0) == -EINVAL)
+> +	if (!set_mode_freq(client, t, V4L2_TUNER_ANALOG_TV, 0))
+>  		return 0;
+>  
+>  	t->std = std;
+> @@ -1124,9 +1123,7 @@ static int tuner_s_frequency(struct v4l2_subdev *sd, struct v4l2_frequency *f)
+>  	struct tuner *t = to_tuner(sd);
+>  	struct i2c_client *client = v4l2_get_subdevdata(sd);
+>  
+> -	if (set_mode_freq(client, t, f->type, f->frequency) == -EINVAL)
+> -		return 0;
+> -
+> +	set_mode_freq(client, t, f->type, f->frequency);
+>  	return 0;
+>  }
+>  
+> @@ -1197,7 +1194,7 @@ static int tuner_s_tuner(struct v4l2_subdev *sd, struct v4l2_tuner *vt)
+>  	struct tuner *t = to_tuner(sd);
+>  	struct i2c_client *client = v4l2_get_subdevdata(sd);
+>  
+> -	if (set_mode_freq(client, t, vt->type, 0) == -EINVAL)
+> +	if (!set_mode_freq(client, t, vt->type, 0))
+>  		return 0;
+>  
+>  	if (t->mode == V4L2_TUNER_RADIO)
 
->
->
->> __find_plane_by_offset can do this. But it is an internal function.
->> I think there should be a function called vb2_get_unmapped_area to do
->> this in framework side.
-> are you using soc_camera ?
-> you can add your get_unmapped_area  in soc_camera.
-> if not, you can add it in your v4l2_file_operations ops, while still
-> using videbuf2 to management your buffer.
-yes, I have added this method, just copy __find_plane_by_offset code.
-But it is ugly, it should have a vb2_get_unmapped_area like vb2_mmap.
-These two operations are called by one system call, so they should
-have a uniform looks.
-
-Regards,
-Scott
