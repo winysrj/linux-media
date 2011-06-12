@@ -1,161 +1,133 @@
 Return-path: <mchehab@pedra>
-Received: from mailout4.w1.samsung.com ([210.118.77.14]:22315 "EHLO
-	mailout4.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932299Ab1FVSBq (ORCPT
+Received: from smtp-vbr6.xs4all.nl ([194.109.24.26]:3078 "EHLO
+	smtp-vbr6.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751313Ab1FLQHm (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 22 Jun 2011 14:01:46 -0400
-MIME-version: 1.0
-Content-transfer-encoding: 7BIT
-Content-type: TEXT/PLAIN
-Date: Wed, 22 Jun 2011 20:01:23 +0200
-From: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Subject: [PATCH v2 17/18] s5p-fimc: Use consistent names for the buffer list
- functions
-In-reply-to: <1308765684-10677-1-git-send-email-s.nawrocki@samsung.com>
-To: linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org
-Cc: m.szyprowski@samsung.com, kyungmin.park@samsung.com,
-	s.nawrocki@samsung.com, sw0312.kim@samsung.com,
-	riverful.kim@samsung.com
-Message-id: <1308765684-10677-18-git-send-email-s.nawrocki@samsung.com>
-References: <1308765684-10677-1-git-send-email-s.nawrocki@samsung.com>
+	Sun, 12 Jun 2011 12:07:42 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+Subject: Re: [RFCv4 PATCH 1/8] tuner-core: rename check_mode to supported_mode
+Date: Sun, 12 Jun 2011 18:07:32 +0200
+Cc: linux-media@vger.kernel.org, Mike Isely <isely@isely.net>,
+	Hans Verkuil <hans.verkuil@cisco.com>
+References: <1307876389-30347-1-git-send-email-hverkuil@xs4all.nl> <980897e53f7cc2ec9bbbf58d9d451ee56a249309.1307875512.git.hans.verkuil@cisco.com> <4DF4CF43.9050907@redhat.com>
+In-Reply-To: <4DF4CF43.9050907@redhat.com>
+MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201106121807.32764.hverkuil@xs4all.nl>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Also correct and improve *_queue_add/pop functions description.
+On Sunday, June 12, 2011 16:37:55 Mauro Carvalho Chehab wrote:
+> Em 12-06-2011 07:59, Hans Verkuil escreveu:
+> > From: Hans Verkuil <hans.verkuil@cisco.com>
+> > 
+> > The check_mode function checks whether a mode is supported. So calling it
+> > supported_mode is more appropriate. In addition it returned either 0 or
+> > -EINVAL which suggests that the -EINVAL error should be passed on. However,
+> > that's not the case so change the return type to bool.
+> 
+> I prefer to keep returning -EINVAL. This is the proper thing to do, and
+> to return the result to the caller. A fixme should be added though, so,
+> after someone add a subdev call that would properly handle the -EINVAL
+> code for multiple tuners, the functions should return the error code
+> instead of 0.
 
-Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
----
- drivers/media/video/s5p-fimc/fimc-capture.c |    6 ++--
- drivers/media/video/s5p-fimc/fimc-core.c    |    6 ++--
- drivers/media/video/s5p-fimc/fimc-core.h    |   38 +++++++++++++++++---------
- 3 files changed, 31 insertions(+), 19 deletions(-)
+No, you can't return -EINVAL here. It is the responsibility of the bridge
+driver to determine whether there is e.g. a radio tuner. So if one of these
+tuner subdevs is called with mode radio while it is a tv tuner, then that
+is not an error, but instead it is a request that can safely be ignored
+as not relevant for that tuner. It is up to the bridge driver to ensure
+that a tuner is loaded that is actually valid for the radio mode.
 
-diff --git a/drivers/media/video/s5p-fimc/fimc-capture.c b/drivers/media/video/s5p-fimc/fimc-capture.c
-index 06c85ae..981e0a0 100644
---- a/drivers/media/video/s5p-fimc/fimc-capture.c
-+++ b/drivers/media/video/s5p-fimc/fimc-capture.c
-@@ -101,12 +101,12 @@ static int fimc_stop_capture(struct fimc_dev *fimc)
- 
- 	/* Release buffers that were enqueued in the driver by videobuf2. */
- 	while (!list_empty(&cap->pending_buf_q)) {
--		buf = pending_queue_pop(cap);
-+		buf = fimc_pending_queue_pop(cap);
- 		vb2_buffer_done(&buf->vb, VB2_BUF_STATE_ERROR);
- 	}
- 
- 	while (!list_empty(&cap->active_buf_q)) {
--		buf = active_queue_pop(cap);
-+		buf = fimc_active_queue_pop(cap);
- 		vb2_buffer_done(&buf->vb, VB2_BUF_STATE_ERROR);
- 	}
- 
-@@ -259,7 +259,7 @@ static void buffer_queue(struct vb2_buffer *vb)
- 
- 		fimc_hw_set_output_addr(fimc, &buf->paddr, buf_id);
- 		buf->index = vid_cap->buf_index;
--		active_queue_add(vid_cap, buf);
-+		fimc_active_queue_add(vid_cap, buf);
- 
- 		if (++vid_cap->buf_index >= FIMC_MAX_OUT_BUFS)
- 			vid_cap->buf_index = 0;
-diff --git a/drivers/media/video/s5p-fimc/fimc-core.c b/drivers/media/video/s5p-fimc/fimc-core.c
-index 4d6aca5..078793d 100644
---- a/drivers/media/video/s5p-fimc/fimc-core.c
-+++ b/drivers/media/video/s5p-fimc/fimc-core.c
-@@ -328,7 +328,7 @@ void fimc_capture_irq_handler(struct fimc_dev *fimc, bool rel_buf)
- 	    test_bit(ST_CAPT_RUN, &fimc->state) && rel_buf) {
- 		ktime_get_real_ts(&ts);
- 
--		v_buf = active_queue_pop(cap);
-+		v_buf = fimc_active_queue_pop(cap);
- 
- 		tv = &v_buf->vb.v4l2_buf.timestamp;
- 		tv->tv_sec = ts.tv_sec;
-@@ -345,12 +345,12 @@ void fimc_capture_irq_handler(struct fimc_dev *fimc, bool rel_buf)
- 
- 	if (!list_empty(&cap->pending_buf_q)) {
- 
--		v_buf = pending_queue_pop(cap);
-+		v_buf = fimc_pending_queue_pop(cap);
- 		fimc_hw_set_output_addr(fimc, &v_buf->paddr, cap->buf_index);
- 		v_buf->index = cap->buf_index;
- 
- 		/* Move the buffer to the capture active queue */
--		active_queue_add(cap, v_buf);
-+		fimc_active_queue_add(cap, v_buf);
- 
- 		dbg("next frame: %d, done frame: %d",
- 		    fimc_hw_get_frame_index(fimc), v_buf->index);
-diff --git a/drivers/media/video/s5p-fimc/fimc-core.h b/drivers/media/video/s5p-fimc/fimc-core.h
-index 781fb10..ee91d88 100644
---- a/drivers/media/video/s5p-fimc/fimc-core.h
-+++ b/drivers/media/video/s5p-fimc/fimc-core.h
-@@ -744,22 +744,27 @@ static inline void fimc_deactivate_capture(struct fimc_dev *fimc)
- }
- 
- /*
-- * Add buf to the capture active buffers queue.
-- * Locking: Need to be called with fimc_dev::slock held.
-+ * Buffer list manipulation functions. Must be called with fimc.slock held.
-  */
--static inline void active_queue_add(struct fimc_vid_cap *vid_cap,
--				    struct fimc_vid_buffer *buf)
-+
-+/**
-+ * fimc_active_queue_add - add buffer to the capture active buffers queue
-+ * @buf: buffer to add to the active buffers list
-+ */
-+static inline void fimc_active_queue_add(struct fimc_vid_cap *vid_cap,
-+					 struct fimc_vid_buffer *buf)
- {
- 	list_add_tail(&buf->list, &vid_cap->active_buf_q);
- 	vid_cap->active_buf_cnt++;
- }
- 
--/*
-- * Pop a video buffer from the capture active buffers queue
-- * Locking: Need to be called with fimc_dev::slock held.
-+/**
-+ * fimc_active_queue_pop - pop buffer from the capture active buffers queue
-+ *
-+ * The caller must assure the active_buf_q list is not empty.
-  */
--static inline struct fimc_vid_buffer *
--active_queue_pop(struct fimc_vid_cap *vid_cap)
-+static inline struct fimc_vid_buffer *fimc_active_queue_pop(
-+				    struct fimc_vid_cap *vid_cap)
- {
- 	struct fimc_vid_buffer *buf;
- 	buf = list_entry(vid_cap->active_buf_q.next,
-@@ -769,16 +774,23 @@ active_queue_pop(struct fimc_vid_cap *vid_cap)
- 	return buf;
- }
- 
--/* Add video buffer to the capture pending buffers queue */
-+/**
-+ * fimc_pending_queue_add - add buffer to the capture pending buffers queue
-+ * @buf: buffer to add to the pending buffers list
-+ */
- static inline void fimc_pending_queue_add(struct fimc_vid_cap *vid_cap,
- 					  struct fimc_vid_buffer *buf)
- {
- 	list_add_tail(&buf->list, &vid_cap->pending_buf_q);
- }
- 
--/* Add video buffer to the capture pending buffers queue */
--static inline struct fimc_vid_buffer *
--pending_queue_pop(struct fimc_vid_cap *vid_cap)
-+/**
-+ * fimc_pending_queue_pop - pop buffer from the capture pending buffers queue
-+ *
-+ * The caller must assure the pending_buf_q list is not empty.
-+ */
-+static inline struct fimc_vid_buffer *fimc_pending_queue_pop(
-+				     struct fimc_vid_cap *vid_cap)
- {
- 	struct fimc_vid_buffer *buf;
- 	buf = list_entry(vid_cap->pending_buf_q.next,
--- 
-1.7.5.4
+Subdev ops should only return errors when there is a real problem (e.g. i2c
+errors) and should just return 0 if a request is not for them.
 
+That's why I posted these first two patches: these functions suggest that you
+can return an error if the mode doesn't match when you really cannot.
+
+If I call v4l2_device_call_until_err() for e.g. s_frequency, then the error
+that is returned should match a real error (e.g. an i2c error), not that one
+of the tv tuners refused the radio mode. I know there is a radio tuner somewhere,
+otherwise there wouldn't be a /dev/radio node.
+
+I firmly believe that the RFCv4 series is correct and just needs an additional
+patch adding some documentation.
+
+That said, it would make sense to move the first three patches to the end
+instead if you prefer. Since these are cleanups, not bug fixes like the others.
+
+Regards,
+
+	Hans
+
+> 
+> > 
+> > Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+> > ---
+> >  drivers/media/video/tuner-core.c |   19 ++++++++-----------
+> >  1 files changed, 8 insertions(+), 11 deletions(-)
+> > 
+> > diff --git a/drivers/media/video/tuner-core.c b/drivers/media/video/tuner-core.c
+> > index 5748d04..083b9f1 100644
+> > --- a/drivers/media/video/tuner-core.c
+> > +++ b/drivers/media/video/tuner-core.c
+> > @@ -723,22 +723,19 @@ static int tuner_remove(struct i2c_client *client)
+> >   */
+> >  
+> >  /**
+> > - * check_mode - Verify if tuner supports the requested mode
+> > + * supported_mode - Verify if tuner supports the requested mode
+> >   * @t: a pointer to the module's internal struct_tuner
+> >   *
+> >   * This function checks if the tuner is capable of tuning analog TV,
+> >   * digital TV or radio, depending on what the caller wants. If the
+> > - * tuner can't support that mode, it returns -EINVAL. Otherwise, it
+> > - * returns 0.
+> > + * tuner can't support that mode, it returns false. Otherwise, it
+> > + * returns true.
+> >   * This function is needed for boards that have a separate tuner for
+> >   * radio (like devices with tea5767).
+> >   */
+> > -static inline int check_mode(struct tuner *t, enum v4l2_tuner_type mode)
+> > +static bool supported_mode(struct tuner *t, enum v4l2_tuner_type mode)
+> >  {
+> > -	if ((1 << mode & t->mode_mask) == 0)
+> > -		return -EINVAL;
+> > -
+> > -	return 0;
+> > +	return 1 << mode & t->mode_mask;
+> >  }
+> >  
+> >  /**
+> > @@ -759,7 +756,7 @@ static int set_mode_freq(struct i2c_client *client, struct tuner *t,
+> >  	struct analog_demod_ops *analog_ops = &t->fe.ops.analog_ops;
+> >  
+> >  	if (mode != t->mode) {
+> > -		if (check_mode(t, mode) == -EINVAL) {
+> > +		if (!supported_mode(t, mode)) {
+> >  			tuner_dbg("Tuner doesn't support mode %d. "
+> >  				  "Putting tuner to sleep\n", mode);
+> >  			t->standby = true;
+> > @@ -1138,7 +1135,7 @@ static int tuner_g_frequency(struct v4l2_subdev *sd, struct v4l2_frequency *f)
+> >  	struct tuner *t = to_tuner(sd);
+> >  	struct dvb_tuner_ops *fe_tuner_ops = &t->fe.ops.tuner_ops;
+> >  
+> > -	if (check_mode(t, f->type) == -EINVAL)
+> > +	if (!supported_mode(t, f->type))
+> >  		return 0;
+> >  	f->type = t->mode;
+> >  	if (fe_tuner_ops->get_frequency && !t->standby) {
+> > @@ -1161,7 +1158,7 @@ static int tuner_g_tuner(struct v4l2_subdev *sd, struct v4l2_tuner *vt)
+> >  	struct analog_demod_ops *analog_ops = &t->fe.ops.analog_ops;
+> >  	struct dvb_tuner_ops *fe_tuner_ops = &t->fe.ops.tuner_ops;
+> >  
+> > -	if (check_mode(t, vt->type) == -EINVAL)
+> > +	if (!supported_mode(t, vt->type))
+> >  		return 0;
+> >  	vt->type = t->mode;
+> >  	if (analog_ops->get_afc)
+> 
+> 
