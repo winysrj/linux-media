@@ -1,99 +1,69 @@
 Return-path: <mchehab@pedra>
-Received: from mailout2.samsung.com ([203.254.224.25]:57958 "EHLO
-	mailout2.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753411Ab1FVOo6 (ORCPT
+Received: from smtp-vbr1.xs4all.nl ([194.109.24.21]:3079 "EHLO
+	smtp-vbr1.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753313Ab1FLLAF (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 22 Jun 2011 10:44:58 -0400
-Received: from epcpsbgm1.samsung.com (mailout2.samsung.com [203.254.224.25])
- by mailout2.samsung.com
- (Oracle Communications Messaging Exchange Server 7u4-19.01 64bit (built Sep  7
- 2010)) with ESMTP id <0LN70044L4YJ9Y70@mailout2.samsung.com> for
- linux-media@vger.kernel.org; Wed, 22 Jun 2011 23:44:57 +0900 (KST)
-Received: from AMDN157 ([106.116.48.215])
- by mmp1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14 2004))
- with ESMTPA id <0LN700G2G4YLDY@mmp1.samsung.com> for
- linux-media@vger.kernel.org; Wed, 22 Jun 2011 23:44:49 +0900 (KST)
-Date: Wed, 22 Jun 2011 16:44:44 +0200
-From: Kamil Debski <k.debski@samsung.com>
-Subject: RE: [PATCH 2/4 v9] v4l: add control definitions for codec devices.
-In-reply-to: <201106221025.53838.hverkuil@xs4all.nl>
-To: 'Hans Verkuil' <hverkuil@xs4all.nl>
-Cc: linux-media@vger.kernel.org,
-	Marek Szyprowski <m.szyprowski@samsung.com>,
-	kyungmin.park@samsung.com, jaeryul.oh@samsung.com,
-	laurent.pinchart@ideasonboard.com, jtp.park@samsung.com
-Message-id: <00b001cc30ea$f08302a0$d18907e0$%debski@samsung.com>
-MIME-version: 1.0
-Content-type: text/plain; charset=US-ASCII
-Content-language: en-gb
-Content-transfer-encoding: 7BIT
-References: <1308069416-24723-1-git-send-email-k.debski@samsung.com>
- <1308069416-24723-3-git-send-email-k.debski@samsung.com>
- <201106221025.53838.hverkuil@xs4all.nl>
+	Sun, 12 Jun 2011 07:00:05 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Mike Isely <isely@isely.net>, Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [RFCv4 PATCH 6/8] v4l2-ioctl.c: prefill tuner type for g_frequency and g/s_tuner.
+Date: Sun, 12 Jun 2011 12:59:47 +0200
+Message-Id: <e2a61ca8e17b7354a69bcb1b5ca35301efb5581e.1307875512.git.hans.verkuil@cisco.com>
+In-Reply-To: <1307876389-30347-1-git-send-email-hverkuil@xs4all.nl>
+References: <1307876389-30347-1-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <980897e53f7cc2ec9bbbf58d9d451ee56a249309.1307875512.git.hans.verkuil@cisco.com>
+References: <980897e53f7cc2ec9bbbf58d9d451ee56a249309.1307875512.git.hans.verkuil@cisco.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Hi,
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-Just a quick comment below.
+The subdevs are supposed to receive a valid tuner type for the g_frequency
+and g/s_tuner subdev ops. Some drivers do this, others don't. So prefill
+this in v4l2-ioctl.c based on whether the device node from which this is
+called is a radio node or not.
 
-> -----Original Message-----
-> From: Hans Verkuil [mailto:hverkuil@xs4all.nl]
-> Sent: 22 June 2011 10:26
-> 
-> On Tuesday, June 14, 2011 18:36:54 Kamil Debski wrote:
-> > Add control definitions and documentation for controls
-> > specific to codec devices.
-> >
-> > Signed-off-by: Kamil Debski <k.debski@samsung.com>
-> > Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
-> > ---
-> >  Documentation/DocBook/media/v4l/controls.xml |  958
-> ++++++++++++++++++++++++++
-> >  include/linux/videodev2.h                    |  171 +++++
-> >  2 files changed, 1129 insertions(+), 0 deletions(-)
-> >
-> > diff --git a/Documentation/DocBook/media/v4l/controls.xml
-> b/Documentation/DocBook/media/v4l/controls.xml
-> > index 6880798..6b0d06a 100644
-> > --- a/Documentation/DocBook/media/v4l/controls.xml
-> > +++ b/Documentation/DocBook/media/v4l/controls.xml
-> > @@ -325,6 +325,22 @@ minimum value disables backlight
+The spec does not require applications to fill in the type, and if they
+leave it at 0 then the 'supported_mode' call in tuner-core.c will return
+false and the ioctl does nothing.
 
-...
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ drivers/media/video/v4l2-ioctl.c |    6 ++++++
+ 1 files changed, 6 insertions(+), 0 deletions(-)
 
-> > +	      <row><entry></entry></row>
-> > +	      <row>
-> > +		<entry
-> spanname="id"><constant>V4L2_CID_MPEG_VIDEO_MB_RC_ENABLE</constant>&nbsp;</e
-> ntry>
-> > +		<entry>boolean</entry>
-> > +	      </row>
-> > +	      <row><entry spanname="descr">Macroblock level rate control
-> enable.
-> > +Applicable to the MPEG4 and H264 encoders.</entry>
-> 
-> If I understand this right enabling this will 'activate' the
-> V4L2_CID_MPEG_MFC51_VIDEO_H264_ADAPTIVE_RC_* controls.
-> 
-> So this makes me wonder whether this control shouldn't perhaps be MFC51
-> specific
-> as well. Alternatively, we can say something like: 'How macroblock rate
-> control is
-> implemented will differ per device, so devices that implement this will have
-> their
-> own set of controls.'
-> 
-
-The V4L2_CID_MPEG_MFC51_VIDEO_H264_ADAPTIVE_RC_* controls are an added tweak by
-MFC. So I think it should stay as a generic control, especially that macroblock
-rate control is defined in the MPEG4 standard.
-
-...
-
-Best regards,
---
-Kamil Debski
-Linux Platform Group
-Samsung Poland R&D Center
+diff --git a/drivers/media/video/v4l2-ioctl.c b/drivers/media/video/v4l2-ioctl.c
+index 213ba7d..26bf3bf 100644
+--- a/drivers/media/video/v4l2-ioctl.c
++++ b/drivers/media/video/v4l2-ioctl.c
+@@ -1822,6 +1822,8 @@ static long __video_do_ioctl(struct file *file,
+ 		if (!ops->vidioc_g_tuner)
+ 			break;
+ 
++		p->type = (vfd->vfl_type == VFL_TYPE_RADIO) ?
++			V4L2_TUNER_RADIO : V4L2_TUNER_ANALOG_TV;
+ 		ret = ops->vidioc_g_tuner(file, fh, p);
+ 		if (!ret)
+ 			dbgarg(cmd, "index=%d, name=%s, type=%d, "
+@@ -1840,6 +1842,8 @@ static long __video_do_ioctl(struct file *file,
+ 
+ 		if (!ops->vidioc_s_tuner)
+ 			break;
++		p->type = (vfd->vfl_type == VFL_TYPE_RADIO) ?
++			V4L2_TUNER_RADIO : V4L2_TUNER_ANALOG_TV;
+ 		dbgarg(cmd, "index=%d, name=%s, type=%d, "
+ 				"capability=0x%x, rangelow=%d, "
+ 				"rangehigh=%d, signal=%d, afc=%d, "
+@@ -1858,6 +1862,8 @@ static long __video_do_ioctl(struct file *file,
+ 		if (!ops->vidioc_g_frequency)
+ 			break;
+ 
++		p->type = (vfd->vfl_type == VFL_TYPE_RADIO) ?
++			V4L2_TUNER_RADIO : V4L2_TUNER_ANALOG_TV;
+ 		ret = ops->vidioc_g_frequency(file, fh, p);
+ 		if (!ret)
+ 			dbgarg(cmd, "tuner=%d, type=%d, frequency=%d\n",
+-- 
+1.7.1
 
