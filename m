@@ -1,69 +1,87 @@
 Return-path: <mchehab@pedra>
-Received: from mx1.redhat.com ([209.132.183.28]:4568 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754939Ab1FINEj (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 9 Jun 2011 09:04:39 -0400
-Message-ID: <4DF0C4E1.1020406@redhat.com>
-Date: Thu, 09 Jun 2011 10:04:33 -0300
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Received: from smtp-vbr4.xs4all.nl ([194.109.24.24]:1644 "EHLO
+	smtp-vbr4.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753497Ab1FLNXW (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 12 Jun 2011 09:23:22 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Andy Walls <awalls@md.metrocast.net>
+Subject: Re: [RFCv1 PATCH 7/7] tuner-core: s_tuner should not change tuner mode.
+Date: Sun, 12 Jun 2011 15:23:15 +0200
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+References: <1307799283-15518-1-git-send-email-hverkuil@xs4all.nl> <201106121430.03114.hverkuil@xs4all.nl> <1307883186.2592.10.camel@localhost>
+In-Reply-To: <1307883186.2592.10.camel@localhost>
 MIME-Version: 1.0
-To: Andreas Oberritter <obi@linuxtv.org>
-CC: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: [PATCH 05/13] [media] dvb/audio.h: Remove definition for AUDIO_GET_PTS
-References: <cover.1307563765.git.mchehab@redhat.com> <20110608172302.3e2294af@pedra> <4DF0C015.1090807@linuxtv.org>
-In-Reply-To: <4DF0C015.1090807@linuxtv.org>
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: Text/Plain;
+  charset="utf-8"
 Content-Transfer-Encoding: 7bit
+Message-Id: <201106121523.15127.hverkuil@xs4all.nl>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Hi Andreas,
-
-Em 09-06-2011 09:44, Andreas Oberritter escreveu:
-> On 06/08/2011 10:23 PM, Mauro Carvalho Chehab wrote:
->> While this ioctl is defined inside dvb/audio.h, it is not docummented
->> at the API specs, nor implemented on any driver inside the Linux Kernel.
->> So, it doesn't make sense to keep it here.
->>
->> As this is not used anywere, removing it is not a regression. So,
->> there's no need to use the normal features-to-be-removed process.
->>
->> Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
->>
->> diff --git a/include/linux/dvb/audio.h b/include/linux/dvb/audio.h
->> index d47bccd..c1b3555 100644
->> --- a/include/linux/dvb/audio.h
->> +++ b/include/linux/dvb/audio.h
->> @@ -118,18 +118,6 @@ typedef __u16 audio_attributes_t;
->>  #define AUDIO_SET_ATTRIBUTES       _IOW('o', 17, audio_attributes_t)
->>  #define AUDIO_SET_KARAOKE          _IOW('o', 18, audio_karaoke_t)
->>  
->> -/**
->> - * AUDIO_GET_PTS
->> - *
->> - * Read the 33 bit presentation time stamp as defined
->> - * in ITU T-REC-H.222.0 / ISO/IEC 13818-1.
->> - *
->> - * The PTS should belong to the currently played
->> - * frame if possible, but may also be a value close to it
->> - * like the PTS of the last decoded frame or the last PTS
->> - * extracted by the PES parser.
->> - */
->> -#define AUDIO_GET_PTS              _IOR('o', 19, __u64)
->>  #define AUDIO_BILINGUAL_CHANNEL_SELECT _IO('o', 20)
->>  
->>  #endif /* _DVBAUDIO_H_ */
+On Sunday, June 12, 2011 14:53:06 Andy Walls wrote:
+> On Sun, 2011-06-12 at 14:30 +0200, Hans Verkuil wrote:
+> > On Sunday, June 12, 2011 14:13:30 Mauro Carvalho Chehab wrote:
+> > > Em 12-06-2011 08:59, Mauro Carvalho Chehab escreveu:
+> > > > Em 12-06-2011 08:36, Hans Verkuil escreveu:
+> > > >>>> What about this:
+> > > >>>>
+> > > >>>> Opening /dev/radio effectively starts the radio mode. So if there is TV
+> > > >>>> capture in progress, then the open should return -EBUSY. Otherwise it
+> > > >>>> switches the tuner to radio mode. And it stays in radio mode until the
+> > > >>>> last filehandle of /dev/radio is closed. At that point it will automatically
+> > > >>>> switch back to TV mode (if there is one, of course).
+> > > >>>
+> > > >>> No. This would break existing applications. The mode switch should be done
+> > > >>> at S_FREQUENCY (e. g. when the radio application is tuning into a channel).
+> > > >>
+> > > >> This is not what happens today as the switch to radio occurs as soon as you open
+> > > >> the radio node. It's the reason for the s_radio op.
+> > > > 
+> > > > The s_radio op is something that I wanted to remove. It was there in the past to feed
+> > > > the TV/radio hint logic. I wrote a patch for it, but I ended by discarding from my
+> > > > final queue (I can't remember why).
+> > > > 
+> > > > I think that the hint logic were completely removed, but we may need to take a look
+> > > > on the callers for s_radio. I'll check it right now.
+> > > > 
+> > > 
+> > > The s_radio callback requires some care, as it is used on several places. It is probably
+> > > safe to remove it from tuner, but a few sub-drivers like msp3400 needs it. The actual
+> > > troubles seem to happen at the bridge drivers that call it during open(). It should be
+> > > called only at s_frequency. I opted to keep the callback just to avoid having a bridge
+> > > driver switching its registers to radio mode, and not having the tuner following it.
+> > > 
+> > > If we move the radio mode switch at the bridge drivers to s_frequency only, we can just
+> > > remove this callback from tuner, letting it to be implemented only at the audio decoders.
+> > 
+> > Why would the audio decoders need it? If we do the mode switch when s_freq is
+> > called, then the audio decoders can do the same and s_radio can disappear completely.
+> > 
+> > I would like that, but I'm a bit afraid of application breakage since we're changing
+> > the behavior of /dev/radio. It seems that pretty much every video driver with radio
+> > capability is calling s_radio during open(): bttv, ivtv, saa7134, usbvision, em28xx,
+> > cx18, cx88, cx231xx and tm6000.
 > 
-> Please don't apply this patch. In general, many ioctls aren't
-> implemented in mainline drivers, because most if not all supported
-> devices inside the kernel tree are either PCI or USB add-in devices and
-> usually quite simple compared to a STB.
+> I think ivtvhopper relies on it:
 > 
-> This ioctl is used at least by enigma2 in userspace and implemented in
-> drivers for several generations of the dreambox.
+> http://www.gateways-home.org/wb/pages/mycoding/--ivtvhopper-java.php
+> 
+> Also, per my recommendation, ivtvhopper changes radio freq by
+> using /dev/video24, since V4L2 priorities got in the way:
+> 
+> http://ivtvdriver.org/pipermail/ivtv-users/2010-December/010097.html
 
-If this is implemented on userspace only, what's the point of having it
-inside the kernel API?
+Well, radio support for ivtv is weird and we really need a ivtv-alsa (easier
+said than done). Because it is so non-standard, I am not terribly concerned
+about it.
 
-Cheers,
-Mauro
+BTW, one problem with /dev/radio and ivtv (and I think cx18 might have the same
+problem) is that /dev/radio can be opened only once. A second attempt to open
+it will result in -EBUSY. That's a driver bug. I wonder if that's really the
+problem described in the link above instead of priority handling.
+
+Regards,
+
+	Hans
