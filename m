@@ -1,66 +1,49 @@
 Return-path: <mchehab@pedra>
-Received: from smtp-68.nebula.fi ([83.145.220.68]:59265 "EHLO
-	smtp-68.nebula.fi" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752887Ab1FJJ1I (ORCPT
+Received: from mail-ew0-f46.google.com ([209.85.215.46]:48990 "EHLO
+	mail-ew0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753860Ab1FLN5F convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 10 Jun 2011 05:27:08 -0400
-Date: Fri, 10 Jun 2011 12:27:04 +0300
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: mchehab@redhat.com
-Cc: linux-media@vger.kernel.org, laurent.pinchart@ideasonboard.com,
-	hverkuil@xs4all.nl
-Subject: [GIT PULL FOR 3.1] Bitmask controls, flash API and adp1653 driver
-Message-ID: <20110610092703.GH7830@valkosipuli.localdomain>
+	Sun, 12 Jun 2011 09:57:05 -0400
+Received: by ewy4 with SMTP id 4so1359754ewy.19
+        for <linux-media@vger.kernel.org>; Sun, 12 Jun 2011 06:57:04 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+In-Reply-To: <1307886285.2592.31.camel@localhost>
+References: <1307799283-15518-1-git-send-email-hverkuil@xs4all.nl>
+	<201106121430.03114.hverkuil@xs4all.nl>
+	<1307883186.2592.10.camel@localhost>
+	<201106121523.15127.hverkuil@xs4all.nl>
+	<1307886285.2592.31.camel@localhost>
+Date: Sun, 12 Jun 2011 09:57:03 -0400
+Message-ID: <BANLkTiktMGy_7e0VDs=VDy0rb1rZwk9rXw@mail.gmail.com>
+Subject: Re: [RFCv1 PATCH 7/7] tuner-core: s_tuner should not change tuner mode.
+From: Devin Heitmueller <dheitmueller@kernellabs.com>
+To: Andy Walls <awalls@md.metrocast.net>
+Cc: Hans Verkuil <hverkuil@xs4all.nl>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Hi Mauro,
+On Sun, Jun 12, 2011 at 9:44 AM, Andy Walls <awalls@md.metrocast.net> wrote:
+> BTW, the cx18-alsa module annoys me as a developer.  PulseAudio holds
+> the device nodes open, pinning the cx18-alsa and cx18 modules in kernel.
+> When killed, PulseAudio respawns rapidly and reopens the nodes.
+> Unloading cx18 for development purposes is a real pain when the
+> cx18-alsa module exists.
 
-This pull request adds the bitmask controls, flash API and the adp1653
-driver. What has changed since the patches is:
+We've talked about this before, but something just feels wrong about
+this.  I don't have this problem with other drivers that provide an
+"-alsa" module.  For example, my ngene tree has four ALSA PCM devices
+and 16 mixer controls, yet PulseAudio doesn't keep the module in use.
 
-- Adp1653 flash faults control is volatile. Fix this.
-- Flash interface marked as experimental.
-- Moved the DocBook documentation to a new location.
-- The target version is 3.1, not 2.6.41.
+The more I think about this, the more I suspect this is just some sort
+of subtle bug in the cx18 ALSA driver where some resource is not being
+freed.
 
-The following changes since commit 75125b9d44456e0cf2d1fbb72ae33c13415299d1:
-
-  [media] DocBook: Don't be noisy at make cleanmediadocs (2011-06-09 16:40:58 -0300)
-
-are available in the git repository at:
-  ssh://linuxtv.org/git/sailus/media_tree.git media-for-3.1
-
-Hans Verkuil (3):
-      v4l2-ctrls: add new bitmask control type.
-      vivi: add bitmask test control.
-      DocBook: document V4L2_CTRL_TYPE_BITMASK.
-
-Sakari Ailus (3):
-      v4l: Add a class and a set of controls for flash devices.
-      v4l: Add flash control documentation
-      adp1653: Add driver for LED flash controller
-
- Documentation/DocBook/media/v4l/compat.xml         |   11 +
- Documentation/DocBook/media/v4l/controls.xml       |  283 ++++++++++++
- Documentation/DocBook/media/v4l/v4l2.xml           |    9 +-
- .../DocBook/media/v4l/vidioc-g-ext-ctrls.xml       |    7 +
- .../DocBook/media/v4l/vidioc-queryctrl.xml         |   12 +-
- drivers/media/video/Kconfig                        |    9 +
- drivers/media/video/Makefile                       |    1 +
- drivers/media/video/adp1653.c                      |  485 ++++++++++++++++++++
- drivers/media/video/v4l2-common.c                  |    3 +
- drivers/media/video/v4l2-ctrls.c                   |   62 +++-
- drivers/media/video/vivi.c                         |   18 +-
- include/linux/videodev2.h                          |   37 ++
- include/media/adp1653.h                            |  126 +++++
- 13 files changed, 1058 insertions(+), 5 deletions(-)
- create mode 100644 drivers/media/video/adp1653.c
- create mode 100644 include/media/adp1653.h
+Devin
 
 -- 
-Sakari Ailus
-sakari.ailus@iki.fi
+Devin J. Heitmueller - Kernel Labs
+http://www.kernellabs.com
