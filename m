@@ -1,115 +1,71 @@
 Return-path: <mchehab@pedra>
-Received: from mx1.redhat.com ([209.132.183.28]:35971 "EHLO mx1.redhat.com"
+Received: from mail.kapsi.fi ([217.30.184.167]:47270 "EHLO mail.kapsi.fi"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757189Ab1F1Qb4 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 28 Jun 2011 12:31:56 -0400
-Date: Mon, 27 Jun 2011 23:17:26 -0300
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	LKML <linux-kernel@vger.kernel.org>
-Subject: [PATCHv2 05/13] [media] ivtv,cx18: Use default version control for
- VIDIOC_QUERYCAP
-Message-ID: <20110627231726.325fe71b@pedra>
-In-Reply-To: <cover.1309226359.git.mchehab@redhat.com>
-References: <cover.1309226359.git.mchehab@redhat.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+	id S1751692Ab1FLL1Q (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 12 Jun 2011 07:27:16 -0400
+Message-ID: <4DF4A292.3070409@iki.fi>
+Date: Sun, 12 Jun 2011 14:27:14 +0300
+From: Antti Palosaari <crope@iki.fi>
+MIME-Version: 1.0
+To: Lopez Lopez <reality_es@yahoo.es>
+CC: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Subject: Re: dual sveon stv22 Afatech af9015 support (kworld clone)
+References: <S1753342Ab1FKJ3p/20110611092945Z+46855@vger.kernel.org> <672951.10004.qm@web24108.mail.ird.yahoo.com>
+In-Reply-To: <672951.10004.qm@web24108.mail.ird.yahoo.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
-To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-After discussing with Andy Walls on irc, we've agreeded that this
-is the best thing to do. No regressions will be introduced, as 3.x.y
-is greater then the current versions for cx18 and ivtv.
+Could you send lsusb -vvd <usb:id> output from that device?
 
-Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
-Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+Also remote controller keytable is needed. You can enable remote debug 
+by modprobe dvb_usb_af9015 debug=2. After that it should output remote 
+codes to the message.log.
 
-diff --git a/drivers/media/video/cx18/cx18-driver.h b/drivers/media/video/cx18/cx18-driver.h
-index 0864272..1834207 100644
---- a/drivers/media/video/cx18/cx18-driver.h
-+++ b/drivers/media/video/cx18/cx18-driver.h
-@@ -25,7 +25,6 @@
- #ifndef CX18_DRIVER_H
- #define CX18_DRIVER_H
- 
--#include <linux/version.h>
- #include <linux/module.h>
- #include <linux/moduleparam.h>
- #include <linux/init.h>
-diff --git a/drivers/media/video/cx18/cx18-ioctl.c b/drivers/media/video/cx18/cx18-ioctl.c
-index 1933d4d..6ec61c9 100644
---- a/drivers/media/video/cx18/cx18-ioctl.c
-+++ b/drivers/media/video/cx18/cx18-ioctl.c
-@@ -469,7 +469,6 @@ static int cx18_querycap(struct file *file, void *fh,
- 	strlcpy(vcap->card, cx->card_name, sizeof(vcap->card));
- 	snprintf(vcap->bus_info, sizeof(vcap->bus_info),
- 		 "PCI:%s", pci_name(cx->pci_dev));
--	vcap->version = CX18_DRIVER_VERSION; 	    /* version */
- 	vcap->capabilities = cx->v4l2_cap; 	    /* capabilities */
- 	return 0;
- }
-diff --git a/drivers/media/video/cx18/cx18-version.h b/drivers/media/video/cx18/cx18-version.h
-index cd189b6..fed48b6 100644
---- a/drivers/media/video/cx18/cx18-version.h
-+++ b/drivers/media/video/cx18/cx18-version.h
-@@ -23,12 +23,6 @@
- #define CX18_VERSION_H
- 
- #define CX18_DRIVER_NAME "cx18"
--#define CX18_DRIVER_VERSION_MAJOR 1
--#define CX18_DRIVER_VERSION_MINOR 5
--#define CX18_DRIVER_VERSION_PATCHLEVEL 0
--
--#define CX18_VERSION __stringify(CX18_DRIVER_VERSION_MAJOR) "." __stringify(CX18_DRIVER_VERSION_MINOR) "." __stringify(CX18_DRIVER_VERSION_PATCHLEVEL)
--#define CX18_DRIVER_VERSION KERNEL_VERSION(CX18_DRIVER_VERSION_MAJOR, \
--	CX18_DRIVER_VERSION_MINOR, CX18_DRIVER_VERSION_PATCHLEVEL)
-+#define CX18_VERSION "1.5.1"
- 
- #endif
-diff --git a/drivers/media/video/ivtv/ivtv-driver.h b/drivers/media/video/ivtv/ivtv-driver.h
-index 84bdf0f..8f9cc17 100644
---- a/drivers/media/video/ivtv/ivtv-driver.h
-+++ b/drivers/media/video/ivtv/ivtv-driver.h
-@@ -36,7 +36,6 @@
-  *                using information provided by Jiun-Kuei Jung @ AVerMedia.
-  */
- 
--#include <linux/version.h>
- #include <linux/module.h>
- #include <linux/init.h>
- #include <linux/delay.h>
-diff --git a/drivers/media/video/ivtv/ivtv-ioctl.c b/drivers/media/video/ivtv/ivtv-ioctl.c
-index f9e347d..ac210ac 100644
---- a/drivers/media/video/ivtv/ivtv-ioctl.c
-+++ b/drivers/media/video/ivtv/ivtv-ioctl.c
-@@ -757,7 +757,6 @@ static int ivtv_querycap(struct file *file, void *fh, struct v4l2_capability *vc
- 	strlcpy(vcap->driver, IVTV_DRIVER_NAME, sizeof(vcap->driver));
- 	strlcpy(vcap->card, itv->card_name, sizeof(vcap->card));
- 	snprintf(vcap->bus_info, sizeof(vcap->bus_info), "PCI:%s", pci_name(itv->pdev));
--	vcap->version = IVTV_DRIVER_VERSION; 	    /* version */
- 	vcap->capabilities = itv->v4l2_cap; 	    /* capabilities */
- 	return 0;
- }
-diff --git a/drivers/media/video/ivtv/ivtv-version.h b/drivers/media/video/ivtv/ivtv-version.h
-index b67a404..a20f346 100644
---- a/drivers/media/video/ivtv/ivtv-version.h
-+++ b/drivers/media/video/ivtv/ivtv-version.h
-@@ -21,11 +21,6 @@
- #define IVTV_VERSION_H
- 
- #define IVTV_DRIVER_NAME "ivtv"
--#define IVTV_DRIVER_VERSION_MAJOR 1
--#define IVTV_DRIVER_VERSION_MINOR 4
--#define IVTV_DRIVER_VERSION_PATCHLEVEL 2
--
--#define IVTV_VERSION __stringify(IVTV_DRIVER_VERSION_MAJOR) "." __stringify(IVTV_DRIVER_VERSION_MINOR) "." __stringify(IVTV_DRIVER_VERSION_PATCHLEVEL)
--#define IVTV_DRIVER_VERSION KERNEL_VERSION(IVTV_DRIVER_VERSION_MAJOR,IVTV_DRIVER_VERSION_MINOR,IVTV_DRIVER_VERSION_PATCHLEVEL)
-+#define IVTV_VERSION "1.4.3"
- 
- #endif
+regards,
+Antti
+
+
+On 06/11/2011 12:38 PM, Lopez Lopez wrote:
+> Hello:
+>
+> I have patched af9015.c and dvb-usb-ids to support sveon stv22 ( KWorld USB Dual DVB-T TV Stick (DVB-T 399U)  clone ) dual with
+> -----
+> #define USB_PID_SVEON_STV22                0xe401
+> ------
+>   in dvb-usb-ids.h file
+>
+> and
+> -----
+> /* 30 */{USB_DEVICE(USB_VID_KWORLD_2,  USB_PID_KWORLD_UB383_T)},
+>      {USB_DEVICE(USB_VID_KWORLD_2,
+>   USB_PID_KWORLD_395U_4)},
+>      {USB_DEVICE(USB_VID_KWORLD_2,  USB_PID_SVEON_STV22)},
+>      {0},
+> };
+>
+> ------
+> {
+>                  .name = "Sveon STV22 Dual USB DVB-T Tuner HDTV ",
+>                  .cold_ids = {&af9015_usb_table[32], NULL},
+>                  .warm_ids = {NULL},
+>              },
+>
+> -----
+>
+> in af9015.c
+>
+> i expect to help you to extends linux dvb usb support.
+>
+> thanks for your time
+>
+> Emilio David Diaus Lopez
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
+
 -- 
-1.7.1
-
-
+http://palosaari.fi/
