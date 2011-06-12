@@ -1,116 +1,134 @@
 Return-path: <mchehab@pedra>
-Received: from casper.infradead.org ([85.118.1.10]:57801 "EHLO
-	casper.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758274Ab1FXOhd (ORCPT
+Received: from proofpoint-cluster.metrocast.net ([65.175.128.136]:47185 "EHLO
+	proofpoint-cluster.metrocast.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751608Ab1FLP3m (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 24 Jun 2011 10:37:33 -0400
-Message-ID: <4E04A122.2080002@infradead.org>
-Date: Fri, 24 Jun 2011 11:37:22 -0300
-From: Mauro Carvalho Chehab <mchehab@infradead.org>
+	Sun, 12 Jun 2011 11:29:42 -0400
+References: <1307799283-15518-1-git-send-email-hverkuil@xs4all.nl> <201106121423.17503.hverkuil@xs4all.nl> <4DF4C912.7050805@redhat.com> <201106121633.45020.hverkuil@xs4all.nl>
+In-Reply-To: <201106121633.45020.hverkuil@xs4all.nl>
 MIME-Version: 1.0
-To: Hans Verkuil <hverkuil@xs4all.nl>
-CC: Devin Heitmueller <dheitmueller@kernellabs.com>,
-	Jesper Juhl <jj@chaosbits.net>,
-	LKML <linux-kernel@vger.kernel.org>, trivial@kernel.org,
-	linux-media@vger.kernel.org, ceph-devel@vger.kernel.org,
-	Sage Weil <sage@newdream.net>
-Subject: Re: [RFC] Don't use linux/version.h anymore to indicate a per-driver
- version - Was: Re: [PATCH 03/37] Remove unneeded version.h includes from
- include/
-References: <alpine.LNX.2.00.1106232344480.17688@swampdragon.chaosbits.net> <4E04912A.4090305@infradead.org> <BANLkTim9cBiiK_GsZaspxpPJQDBvAcKCWg@mail.gmail.com> <201106241554.10751.hverkuil@xs4all.nl>
-In-Reply-To: <201106241554.10751.hverkuil@xs4all.nl>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain;
+ charset=UTF-8
+Content-Transfer-Encoding: 8bit
+Subject: Re: [RFCv1 PATCH 7/7] tuner-core: s_tuner should not change tuner mode.
+From: Andy Walls <awalls@md.metrocast.net>
+Date: Sun, 12 Jun 2011 11:29:48 -0400
+To: Hans Verkuil <hverkuil@xs4all.nl>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>
+CC: Linux Media Mailing List <linux-media@vger.kernel.org>
+Message-ID: <551d8a80-376f-45db-b62b-14b7b44ca403@email.android.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Em 24-06-2011 10:54, Hans Verkuil escreveu:
-> On Friday, June 24, 2011 15:45:59 Devin Heitmueller wrote:
->> On Fri, Jun 24, 2011 at 9:29 AM, Mauro Carvalho Chehab
->> <mchehab@infradead.org> wrote:
->>>> MythTV has a bunch of these too (mainly so the code can adapt to
->>>> driver bugs that are fixed in later revisions).  Putting Mauro's patch
->>>> upstream will definitely cause breakage.
->>>
->>> It shouldn't, as ivtv driver version is lower than 3.0.0. All the old bug fixes
->>> aren't needed if version is >= 3.0.0.
->>>
->>> Besides that, trusting on a driver revision number to detect that a bug is
->>> there is not the right thing to do, as version numbers are never increased at
->>> the stable kernels (nor distro modified kernels take care of increasing revision
->>> number as patches are backported there).
->>
->> The versions are increased at the discretion of the driver maintainer,
->> usually when there is some userland visible change in driver behavior.
->>  I assure you the application developers don't *want* to rely on such
->> a mechanism, but there have definitely been cases in the past where
->> there was no easy way to detect the behavior of the driver from
->> userland.
->>
->> It lets application developers work around things like violations of
->> the V4L2 standard which get fixed in newer revisions of the driver.
->> It provides them the ability to put a hack in their code that says "if
->> (version < X) then this driver feature is broken and I shouldn't use
->> it."
-> 
-> Indeed. Ideally we shouldn't need it. But reality is different.
+Hans Verkuil <hverkuil@xs4all.nl> wrote:
+
+>On Sunday, June 12, 2011 16:11:30 Mauro Carvalho Chehab wrote:
+>> Em 12-06-2011 09:23, Hans Verkuil escreveu:
+>> > That's not unreasonably to do at some point in time, but it doesn't
+>actually
+>> > answer my question, which is: should the core refuse
+>VIDIOC_S_FREQUENCY calls
+>> > where the type doesn't match the device node (i.e. radio vs tv)? I
+>think it
+>> > makes no sense to call VIDIOC_S_FREQUENCY on a radio node with type
+>ANALOG_TV.
+>> 
+>> No. The core shouldn't do it, otherwise tuner will break. The code
+>doesn't know if
+>> the opened device is radio or video.
 >
-> What we have right now works and I see no compelling reason to change the
-> behavior.
+>I don't follow this. In v4l2-ioctl.c it is easy to tell if the opened
+>device
+>is radio or not by looking at vfd->vfl_type.
+>
+>> >> diff --git a/drivers/media/video/cx18/cx18-ioctl.c
+>b/drivers/media/video/cx18/cx18-ioctl.c
+>> >> index 1933d4d..5463548 100644
+>> >> --- a/drivers/media/video/cx18/cx18-ioctl.c
+>> >> +++ b/drivers/media/video/cx18/cx18-ioctl.c
+>> >> @@ -611,6 +611,11 @@ static int cx18_g_frequency(struct file
+>*file, void *fh,
+>> >>  	if (vf->tuner != 0)
+>> >>  		return -EINVAL;
+>> >>  
+>> >> +	if (test_bit(CX18_F_I_RADIO_USER, &cx->i_flags))
+>> >> +		vf->type = V4L2_TUNER_RADIO;
+>> >> +	else
+>> >> +		vf->type = V4L2_TUNER_ANALOG_TV;
+>> >> +
+>> > 
+>> > NACK.
+>> > 
+>> > This sets the type to the current mode. But what we want is to set
+>the type to
+>> > the current device node. That's what my RFCv4 does (and that patch
+>requires no
+>> > driver change).
+>> 
+>> I didn't get your RFCv4 patches here yet, but the fix should be at
+>the driver: it
+>> needs to set the type before calling g_frequency. G_FREQUENCY
+>shouldn't change the
+>> device mode, but, instead, to return the frequency and mode currently
+>in usage..
+>
+>Why bother changing drivers (and probably missing a few) if you can do
+>it
+>in v4l2-ioctl.c and let drivers just pass it on?
+>
+>This is the patch in question, BTW:
+>
+>diff --git a/drivers/media/video/v4l2-ioctl.c
+>b/drivers/media/video/v4l2-ioctl.c
+>index 213ba7d..26bf3bf 100644
+>--- a/drivers/media/video/v4l2-ioctl.c
+>+++ b/drivers/media/video/v4l2-ioctl.c
+>@@ -1822,6 +1822,8 @@ static long __video_do_ioctl(struct file *file,
+>                if (!ops->vidioc_g_tuner)
+>                        break;
+> 
+>+               p->type = (vfd->vfl_type == VFL_TYPE_RADIO) ?
+>+                       V4L2_TUNER_RADIO : V4L2_TUNER_ANALOG_TV;
+>                ret = ops->vidioc_g_tuner(file, fh, p);
+>                if (!ret)
+>                        dbgarg(cmd, "index=%d, name=%s, type=%d, "
+>@@ -1840,6 +1842,8 @@ static long __video_do_ioctl(struct file *file,
+> 
+>                if (!ops->vidioc_s_tuner)
+>                        break;
+>+               p->type = (vfd->vfl_type == VFL_TYPE_RADIO) ?
+>+                       V4L2_TUNER_RADIO : V4L2_TUNER_ANALOG_TV;
+>                dbgarg(cmd, "index=%d, name=%s, type=%d, "
+>                                "capability=0x%x, rangelow=%d, "
+>                                "rangehigh=%d, signal=%d, afc=%d, "
+>@@ -1858,6 +1862,8 @@ static long __video_do_ioctl(struct file *file,
+>                if (!ops->vidioc_g_frequency)
+>                        break;
+> 
+>+               p->type = (vfd->vfl_type == VFL_TYPE_RADIO) ?
+>+                       V4L2_TUNER_RADIO : V4L2_TUNER_ANALOG_TV;
+>                ret = ops->vidioc_g_frequency(file, fh, p);
+>                if (!ret)
+>                       dbgarg(cmd, "tuner=%d, type=%d, frequency=%d\n",
+>
+>Neither of these three ioctls will change the tuner mode, BTW. With
+>this
+>code in place drivers that use video_ioctl2 can now rely on the type
+>field
+>being a sensible value.
+> 
+>Regards,
+>
+>	Hans
+>--
+>To unsubscribe from this list: send the line "unsubscribe linux-media"
+>in
+>the body of a message to majordomo@vger.kernel.org
+>More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
-A per-driver version only works if the user is running a vanilla kernel without 
-any stable patches applied. 
+Right.  In fact for s_tuner (and g_tuner) the spec implies that app writers should not fill in the field. 
 
-I doubt that this covers the large amount of the users: they'll either use an 
-stable patched kernel or a distribution-specific one. On both cases, the driver
-version is not associated with a bug fix, as the driver maintainers just take
-care of increasing the driver version once per each new kernel version (when
-they care enough).
+BTW, S_tuner only really changes analog audio decoding right?
 
-Also, a git blame for the V4L2 drivers shows that only a few drivers have their
-version increased as changes are applied there. So, relying on cap->version 
-has a minimal chance of working only with a few drivers, with vanilla *.0 kernels.
-
-Anyway, I think that we should at least apply the enclosed patch, and remove
-KERNEL_VERSION and linux/version.h includes for the drivers that didn't change
-its version in the past 2 kernel releases.
-
-I'll work later on the linux/version.h cleanup patches.
-
-Cheers,
-Mauro
-
--
-
-[media] v4l2-ioctl: Add a default value for kernel version
-
-Most drivers don't increase kernel versions as newer features are added or
-bug fixes are solved. So, vidioc_querycap returned value for cap->version is
-meaningless. Instead of keeping this situation forever, let's add a default
-value matching the current Linux version.
-
-Drivers that want to keep their own version control can still do it, as they
-can override the default value for cap->version.
-
-Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
-
-diff --git a/drivers/media/video/v4l2-ioctl.c b/drivers/media/video/v4l2-ioctl.c
-index 213ba7d..61ac6bf 100644
---- a/drivers/media/video/v4l2-ioctl.c
-+++ b/drivers/media/video/v4l2-ioctl.c
-@@ -16,6 +16,7 @@
- #include <linux/slab.h>
- #include <linux/types.h>
- #include <linux/kernel.h>
-+#include <linux/version.h>
- 
- #include <linux/videodev2.h>
- 
-@@ -605,6 +606,7 @@ static long __video_do_ioctl(struct file *file,
- 		if (!ops->vidioc_querycap)
- 			break;
- 
-+		cap->version = LINUX_VERSION_CODE;
- 		ret = ops->vidioc_querycap(file, fh, cap);
- 		if (!ret)
- 			dbgarg(cmd, "driver=%s, card=%s, bus=%s, "
+Regards,
+Andy
