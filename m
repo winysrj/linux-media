@@ -1,207 +1,118 @@
 Return-path: <mchehab@pedra>
-Received: from mailout2.w1.samsung.com ([210.118.77.12]:49667 "EHLO
-	mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758012Ab1FJShH (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 10 Jun 2011 14:37:07 -0400
-Date: Fri, 10 Jun 2011 20:36:43 +0200
-From: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Subject: [PATCH/RFC 02/19] s5p-fimc: Add media entity initialization
-In-reply-to: <1307731020-7100-1-git-send-email-s.nawrocki@samsung.com>
-To: linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org
-Cc: hans.verkuil@cisco.com, laurent.pinchart@ideasonboard.com,
-	m.szyprowski@samsung.com, kyungmin.park@samsung.com,
-	s.nawrocki@samsung.com, sw0312.kim@samsung.com,
-	riverful.kim@samsung.com
-Message-id: <1307731020-7100-3-git-send-email-s.nawrocki@samsung.com>
-MIME-version: 1.0
-Content-type: TEXT/PLAIN
-Content-transfer-encoding: 7BIT
-References: <1307731020-7100-1-git-send-email-s.nawrocki@samsung.com>
+Received: from mx1.redhat.com ([209.132.183.28]:45995 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751692Ab1FLLn7 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 12 Jun 2011 07:43:59 -0400
+Message-ID: <4DF4A662.5090705@redhat.com>
+Date: Sun, 12 Jun 2011 13:43:30 +0200
+From: Hans de Goede <hdegoede@redhat.com>
+MIME-Version: 1.0
+To: Theodore Kilgore <kilgota@banach.math.auburn.edu>
+CC: Alan Stern <stern@rowland.harvard.edu>, linux-usb@vger.kernel.org,
+	Sarah Sharp <sarah.a.sharp@linux.intel.com>,
+	linux-media@vger.kernel.org, Alexander Graf <agraf@suse.de>,
+	Gerd Hoffmann <kraxel@redhat.com>, hector@marcansoft.com,
+	Jan Kiszka <jan.kiszka@siemens.com>,
+	Stefan Hajnoczi <stefanha@linux.vnet.ibm.com>,
+	pbonzini@redhat.com, Anthony Liguori <aliguori@us.ibm.com>,
+	Jes Sorensen <Jes.Sorensen@redhat.com>,
+	Oliver Neukum <oliver@neukum.org>, Greg KH <greg@kroah.com>,
+	Felipe Balbi <balbi@ti.com>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Clemens Ladisch <clemens@ladisch.de>,
+	Jaroslav Kysela <perex@perex.cz>, Takashi Iwai <tiwai@suse.de>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Subject: Re: Improving kernel -> userspace (usbfs)  usb device hand off
+References: <Pine.LNX.4.44L0.1106101023330.1921-100000@iolanthe.rowland.org> <4DF3324E.3050506@redhat.com> <alpine.LNX.2.00.1106111058170.12801@banach.math.auburn.edu>
+In-Reply-To: <alpine.LNX.2.00.1106111058170.12801@banach.math.auburn.edu>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Add intialization of the media entities for video capture
-and mem-to-mem video nodes.
+Hi,
 
-Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
----
- drivers/media/video/s5p-fimc/fimc-capture.c |   28 ++++++++++++++++----------
- drivers/media/video/s5p-fimc/fimc-core.c    |   27 +++++++++++++++----------
- drivers/media/video/s5p-fimc/fimc-core.h    |    4 +++
- 3 files changed, 37 insertions(+), 22 deletions(-)
+On 06/11/2011 06:19 PM, Theodore Kilgore wrote:
+>
+>
+> On Sat, 11 Jun 2011, Hans de Goede wrote:
+>
+>> Hi,
+>>
+>> Given the many comments in this thread, I'm just
+>> going reply to this one, and try to also answer any
+>> other ones in this mail.
+>>
+>> As far as the dual mode camera is involved, I agree
+>> that that should be fixed in the existing v4l2
+>> drivers + libgphoto. I think that Felipe's solution
+>> to also handle the stillcam part in kernel space for
+>> dual mode cameras (and add a libgphoto cam driver which
+>> knows how to talk the new kernel API for this), is
+>> the best solution. Unfortunately this will involve
+>> quite a bit of work, but so be it.
+>
+> Hans,
+>
+> It appears to me that the solution ought to be at hand, actually.
+>
+> I was not aware of the recent changes in libusb, which I understand are
+> supposed to allow a kernel driver to be hooked up again.
+>
+> To review the situation:
+>
+> 1. As of approximately 2 years ago, libusb already was so configured as to
+> suspend the kernel module for a dual-mode device if a userspace-based
+> program tried to claim the device.
+>
+> 2. At this point with the more recent versions of libusb (see the last
+> message from yesterday, from Xiaofan Chen), we are supposed to be able to
+> re-activate the kernel module for the device when it is relinquished by
+> userspace.
+>
+> This ought to take care of the problems completely, provided that the new
+> capabilities of libusb are actually used and called upon in libgphoto2.
+>
+> I have checked on what is happening, just now, on my own machine. I have
+> libusb version 1.08 which ought to be recent enough. The advertised
+> abilities did not work, however. Presumably, what is missing is on the
+> other end of the problem, most likely in the functions in libgphoto2 which
+> hook up a camera. That code would presumably need to call upon the new
+> functionality of libusb. My currently installed version of libgphoto2
+> (from svn, but several months old) clearly does not contain the needed
+> functionality. But it might have been put in recently and I did not
+> notice. I guess that the first thing to do is to update my gphoto tree and
+> then to see what happens. If things still don't work, then something needs
+> to be updated and then things ought to work.
+>
+> I will try to see that something gets done about this. Thank you for
+> raising the old issue of dual-mode devices yet again, and thanks to
+> Xiaofan Chen for pointing out that the needed missing half of the
+> functionality is supposed to exist now in libusb. That had escaped my
+> attention.
 
-diff --git a/drivers/media/video/s5p-fimc/fimc-capture.c b/drivers/media/video/s5p-fimc/fimc-capture.c
-index 9432ea8..2748cca 100644
---- a/drivers/media/video/s5p-fimc/fimc-capture.c
-+++ b/drivers/media/video/s5p-fimc/fimc-capture.c
-@@ -842,9 +842,8 @@ int fimc_register_capture_device(struct fimc_dev *fimc)
- 	fr->width = fr->f_width = fr->o_width = 640;
- 	fr->height = fr->f_height = fr->o_height = 480;
- 
--	if (!v4l2_dev->name[0])
--		snprintf(v4l2_dev->name, sizeof(v4l2_dev->name),
--			 "%s.capture", dev_name(&fimc->pdev->dev));
-+	snprintf(v4l2_dev->name, sizeof(v4l2_dev->name),
-+		 "%s.capture", dev_name(&fimc->pdev->dev));
- 
- 	ret = v4l2_device_register(NULL, v4l2_dev);
- 	if (ret)
-@@ -856,11 +855,11 @@ int fimc_register_capture_device(struct fimc_dev *fimc)
- 		goto err_v4l2_reg;
- 	}
- 
--	snprintf(vfd->name, sizeof(vfd->name), "%s:cap",
--		 dev_name(&fimc->pdev->dev));
-+	strlcpy(vfd->name, v4l2_dev->name, sizeof(vfd->name));
- 
- 	vfd->fops	= &fimc_capture_fops;
- 	vfd->ioctl_ops	= &fimc_capture_ioctl_ops;
-+	vfd->v4l2_dev	= v4l2_dev;
- 	vfd->minor	= -1;
- 	vfd->release	= video_device_release;
- 	vfd->lock	= &fimc->lock;
-@@ -890,6 +889,11 @@ int fimc_register_capture_device(struct fimc_dev *fimc)
- 
- 	vb2_queue_init(q);
- 
-+	fimc->vid_cap.vd_pad.flags = MEDIA_PAD_FL_SINK;
-+	ret = media_entity_init(&vfd->entity, 1, &fimc->vid_cap.vd_pad, 0);
-+	if (ret)
-+		goto err_ent;
-+
- 	ret = video_register_device(vfd, VFL_TYPE_GRABBER, -1);
- 	if (ret) {
- 		v4l2_err(v4l2_dev, "Failed to register video device\n");
-@@ -899,10 +903,11 @@ int fimc_register_capture_device(struct fimc_dev *fimc)
- 	v4l2_info(v4l2_dev,
- 		  "FIMC capture driver registered as /dev/video%d\n",
- 		  vfd->num);
--
- 	return 0;
- 
- err_vd_reg:
-+	media_entity_cleanup(&vfd->entity);
-+err_ent:
- 	video_device_release(vfd);
- err_v4l2_reg:
- 	v4l2_device_unregister(v4l2_dev);
-@@ -914,10 +919,11 @@ err_info:
- 
- void fimc_unregister_capture_device(struct fimc_dev *fimc)
- {
--	struct fimc_vid_cap *capture = &fimc->vid_cap;
-+	struct video_device *vfd = fimc->vid_cap.vfd;
- 
--	if (capture->vfd)
--		video_unregister_device(capture->vfd);
--
--	kfree(capture->ctx);
-+	if (vfd) {
-+		media_entity_cleanup(&vfd->entity);
-+		video_unregister_device(vfd);
-+	}
-+	kfree(fimc->vid_cap.ctx);
- }
-diff --git a/drivers/media/video/s5p-fimc/fimc-core.c b/drivers/media/video/s5p-fimc/fimc-core.c
-index 4540280..ad15d46 100644
---- a/drivers/media/video/s5p-fimc/fimc-core.c
-+++ b/drivers/media/video/s5p-fimc/fimc-core.c
-@@ -1504,10 +1504,8 @@ static int fimc_register_m2m_device(struct fimc_dev *fimc)
- 	pdev = fimc->pdev;
- 	v4l2_dev = &fimc->m2m.v4l2_dev;
- 
--	/* set name if it is empty */
--	if (!v4l2_dev->name[0])
--		snprintf(v4l2_dev->name, sizeof(v4l2_dev->name),
--			 "%s.m2m", dev_name(&pdev->dev));
-+	snprintf(v4l2_dev->name, sizeof(v4l2_dev->name),
-+		 "%s.m2m", dev_name(&pdev->dev));
- 
- 	ret = v4l2_device_register(&pdev->dev, v4l2_dev);
- 	if (ret)
-@@ -1521,6 +1519,7 @@ static int fimc_register_m2m_device(struct fimc_dev *fimc)
- 
- 	vfd->fops	= &fimc_m2m_fops;
- 	vfd->ioctl_ops	= &fimc_m2m_ioctl_ops;
-+	vfd->v4l2_dev	= v4l2_dev;
- 	vfd->minor	= -1;
- 	vfd->release	= video_device_release;
- 	vfd->lock	= &fimc->lock;
-@@ -1538,17 +1537,22 @@ static int fimc_register_m2m_device(struct fimc_dev *fimc)
- 		goto err_m2m_r2;
- 	}
- 
-+	ret = media_entity_init(&vfd->entity, 0, NULL, 0);
-+	if (ret)
-+		goto err_m2m_r3;
-+
- 	ret = video_register_device(vfd, VFL_TYPE_GRABBER, -1);
- 	if (ret) {
- 		v4l2_err(v4l2_dev,
- 			 "%s(): failed to register video device\n", __func__);
--		goto err_m2m_r3;
-+		goto err_m2m_r4;
- 	}
- 	v4l2_info(v4l2_dev,
- 		  "FIMC m2m driver registered as /dev/video%d\n", vfd->num);
- 
- 	return 0;
--
-+err_m2m_r4:
-+	media_entity_cleanup(&vfd->entity);
- err_m2m_r3:
- 	v4l2_m2m_release(fimc->m2m.m2m_dev);
- err_m2m_r2:
-@@ -1561,12 +1565,13 @@ err_m2m_r1:
- 
- void fimc_unregister_m2m_device(struct fimc_dev *fimc)
- {
--	if (fimc) {
--		v4l2_m2m_release(fimc->m2m.m2m_dev);
--		video_unregister_device(fimc->m2m.vfd);
-+	if (fimc == NULL)
-+		return;
- 
--		v4l2_device_unregister(&fimc->m2m.v4l2_dev);
--	}
-+	v4l2_m2m_release(fimc->m2m.m2m_dev);
-+	v4l2_device_unregister(&fimc->m2m.v4l2_dev);
-+	media_entity_cleanup(&fimc->m2m.vfd->entity);
-+	video_unregister_device(fimc->m2m.vfd);
- }
- 
- static void fimc_clk_put(struct fimc_dev *fimc)
-diff --git a/drivers/media/video/s5p-fimc/fimc-core.h b/drivers/media/video/s5p-fimc/fimc-core.h
-index 21dfcac..55c1410 100644
---- a/drivers/media/video/s5p-fimc/fimc-core.h
-+++ b/drivers/media/video/s5p-fimc/fimc-core.h
-@@ -16,6 +16,8 @@
- #include <linux/types.h>
- #include <linux/videodev2.h>
- #include <linux/io.h>
-+
-+#include <media/media-entity.h>
- #include <media/videobuf2-core.h>
- #include <media/v4l2-device.h>
- #include <media/v4l2-mem2mem.h>
-@@ -298,6 +300,7 @@ struct fimc_m2m_device {
-  * @vfd: video device node for camera capture mode
-  * @v4l2_dev: v4l2_device struct to manage subdevs
-  * @sd: pointer to camera sensor subdevice currently in use
-+ * @vd_pad: fimc video capture node pad
-  * @fmt: Media Bus format configured at selected image sensor
-  * @pending_buf_q: the pending buffer queue head
-  * @active_buf_q: the queue head of buffers scheduled in hardware
-@@ -315,6 +318,7 @@ struct fimc_vid_cap {
- 	struct video_device		*vfd;
- 	struct v4l2_device		v4l2_dev;
- 	struct v4l2_subdev		*sd;;
-+	struct media_pad		vd_pad;
- 	struct v4l2_mbus_framefmt	fmt;
- 	struct list_head		pending_buf_q;
- 	struct list_head		active_buf_q;
--- 
-1.7.5.4
+Actually libusb and libgphoto have been using the rebind orginal driver
+functionality of the code for quite a while now, unfortunately this
+does not solve the problem, unless we somehow move to 1 central
+coordinator for the device the user experience will stay subpar.
 
+Example, user downloads pictures from the camera using shotwell,
+gthumb, fspot or whatever, keeps the app in question open and the app
+in question keeps the gphoto2 device handle open.
+
+User wants to do some skyping with video chat, skype complains it
+cannot find the device, since the kernel driver currently is unbound.
+
+-> Poor user experience.
+
+With having both functions in the kernel, the kernel could actually
+allow skype to use the dual mode cameras as video source, and if
+the user then were to switch to f-spot and try to import more photo's
+then he will get an -ebusy in f-spot. If he finishes skyping and
+then returns to f-spot everything will just continue working.
+
+This is the kind of "seamless" user experience I'm aiming for here.
+
+Regards,
+
+Hans
