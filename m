@@ -1,86 +1,85 @@
 Return-path: <mchehab@pedra>
-Received: from mail-vw0-f46.google.com ([209.85.212.46]:61878 "EHLO
-	mail-vw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752595Ab1F2W6p convert rfc822-to-8bit (ORCPT
+Received: from proofpoint-cluster.metrocast.net ([65.175.128.136]:39762 "EHLO
+	proofpoint-cluster.metrocast.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753416Ab1FLMmC (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 29 Jun 2011 18:58:45 -0400
-Received: by vws1 with SMTP id 1so1242968vws.19
-        for <linux-media@vger.kernel.org>; Wed, 29 Jun 2011 15:58:44 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <1309384173-12933-1-git-send-email-jarod@redhat.com>
-References: <1309384173-12933-1-git-send-email-jarod@redhat.com>
-From: Dark Shadow <shadowofdarkness@gmail.com>
-Date: Wed, 29 Jun 2011 16:58:24 -0600
-Message-ID: <BANLkTinL33p=bShbB70y7fJLCxyhgcWy=w@mail.gmail.com>
-Subject: Re: [PATCH] Revert "V4L/DVB: cx23885: Enable Message Signaled Interrupts(MSI)"
-To: Jarod Wilson <jarod@redhat.com>
-Cc: linux-media@vger.kernel.org, Andy Walls <awalls@md.metrocast.net>,
-	Kusanagi Kouichi <slash@ac.auone-net.jp>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+	Sun, 12 Jun 2011 08:42:02 -0400
+Subject: Re: [RFCv4 PATCH 6/8] v4l2-ioctl.c: prefill tuner type for
+ g_frequency and g/s_tuner.
+From: Andy Walls <awalls@md.metrocast.net>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-media@vger.kernel.org, Mike Isely <isely@isely.net>,
+	Hans Verkuil <hans.verkuil@cisco.com>
+In-Reply-To: <e2a61ca8e17b7354a69bcb1b5ca35301efb5581e.1307875512.git.hans.verkuil@cisco.com>
+References: <1307876389-30347-1-git-send-email-hverkuil@xs4all.nl>
+	 <e2a61ca8e17b7354a69bcb1b5ca35301efb5581e.1307875512.git.hans.verkuil@cisco.com>
+Content-Type: text/plain; charset="UTF-8"
+Date: Sun, 12 Jun 2011 08:41:46 -0400
+Message-ID: <1307882506.2592.3.camel@localhost>
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Wed, Jun 29, 2011 at 3:49 PM, Jarod Wilson <jarod@redhat.com> wrote:
-> This reverts commit e38030f3ff02684eb9e25e983a03ad318a10a2ea.
->
-> MSI flat-out doesn't work right on cx2388x devices yet. There are now
-> multiple reports of cards that hard-lock systems when MSI is enabled,
-> including my own HVR-1250 when trying to use its built-in IR receiver.
-> Disable MSI and it works just fine. Similar for another user's HVR-1270.
-> Issues have also been reported with the HVR-1850 when MSI is enabled,
-> and the 1850 behavior sounds similar to an as-yet-undiagnosed issue I've
-> seen with an 1800.
->
-> References:
->
-> http://www.spinics.net/lists/linux-media/msg25956.html
-> http://www.spinics.net/lists/linux-media/msg33676.html
-> http://www.spinics.net/lists/linux-media/msg34734.html
->
-> CC: Andy Walls <awalls@md.metrocast.net>
-> CC: Kusanagi Kouichi <slash@ac.auone-net.jp>
-> Signed-off-by: Jarod Wilson <jarod@redhat.com>
+On Sun, 2011-06-12 at 12:59 +0200, Hans Verkuil wrote:
+> From: Hans Verkuil <hans.verkuil@cisco.com>
+> 
+> The subdevs are supposed to receive a valid tuner type for the g_frequency
+> and g/s_tuner subdev ops. Some drivers do this, others don't. So prefill
+> this in v4l2-ioctl.c based on whether the device node from which this is
+> called is a radio node or not.
+> 
+> The spec does not require applications to fill in the type, and if they
+> leave it at 0 then the 'supported_mode' call in tuner-core.c will return
+> false and the ioctl does nothing.
+> 
+> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
 > ---
->  drivers/media/video/cx23885/cx23885-core.c |    9 ++-------
->  1 files changed, 2 insertions(+), 7 deletions(-)
->
-> diff --git a/drivers/media/video/cx23885/cx23885-core.c b/drivers/media/video/cx23885/cx23885-core.c
-> index 64d9b21..419777a 100644
-> --- a/drivers/media/video/cx23885/cx23885-core.c
-> +++ b/drivers/media/video/cx23885/cx23885-core.c
-> @@ -2060,12 +2060,8 @@ static int __devinit cx23885_initdev(struct pci_dev *pci_dev,
->                goto fail_irq;
->        }
->
-> -       if (!pci_enable_msi(pci_dev))
-> -               err = request_irq(pci_dev->irq, cx23885_irq,
-> -                                 IRQF_DISABLED, dev->name, dev);
-> -       else
-> -               err = request_irq(pci_dev->irq, cx23885_irq,
-> -                                 IRQF_SHARED | IRQF_DISABLED, dev->name, dev);
-> +       err = request_irq(pci_dev->irq, cx23885_irq,
-> +                         IRQF_SHARED | IRQF_DISABLED, dev->name, dev);
->        if (err < 0) {
->                printk(KERN_ERR "%s: can't get IRQ %d\n",
->                       dev->name, pci_dev->irq);
-> @@ -2114,7 +2110,6 @@ static void __devexit cx23885_finidev(struct pci_dev *pci_dev)
->
->        /* unregister stuff */
->        free_irq(pci_dev->irq, dev);
-> -       pci_disable_msi(pci_dev);
->
->        cx23885_dev_unregister(dev);
->        v4l2_device_unregister(v4l2_dev);
-> --
-> 1.7.1
->
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->
+>  drivers/media/video/v4l2-ioctl.c |    6 ++++++
+>  1 files changed, 6 insertions(+), 0 deletions(-)
+> 
+> diff --git a/drivers/media/video/v4l2-ioctl.c b/drivers/media/video/v4l2-ioctl.c
+> index 213ba7d..26bf3bf 100644
+> --- a/drivers/media/video/v4l2-ioctl.c
+> +++ b/drivers/media/video/v4l2-ioctl.c
+> @@ -1822,6 +1822,8 @@ static long __video_do_ioctl(struct file *file,
+>  		if (!ops->vidioc_g_tuner)
+>  			break;
+>  
+> +		p->type = (vfd->vfl_type == VFL_TYPE_RADIO) ?
+> +			V4L2_TUNER_RADIO : V4L2_TUNER_ANALOG_TV;
+>  		ret = ops->vidioc_g_tuner(file, fh, p);
+>  		if (!ret)
+>  			dbgarg(cmd, "index=%d, name=%s, type=%d, "
+> @@ -1840,6 +1842,8 @@ static long __video_do_ioctl(struct file *file,
+>  
+>  		if (!ops->vidioc_s_tuner)
+>  			break;
+> +		p->type = (vfd->vfl_type == VFL_TYPE_RADIO) ?
+> +			V4L2_TUNER_RADIO : V4L2_TUNER_ANALOG_TV;
+>  		dbgarg(cmd, "index=%d, name=%s, type=%d, "
+>  				"capability=0x%x, rangelow=%d, "
+>  				"rangehigh=%d, signal=%d, afc=%d, "
+> @@ -1858,6 +1862,8 @@ static long __video_do_ioctl(struct file *file,
+>  		if (!ops->vidioc_g_frequency)
+>  			break;
+>  
+> +		p->type = (vfd->vfl_type == VFL_TYPE_RADIO) ?
+> +			V4L2_TUNER_RADIO : V4L2_TUNER_ANALOG_TV;
+>  		ret = ops->vidioc_g_frequency(file, fh, p);
+>  		if (!ret)
+>  			dbgarg(cmd, "tuner=%d, type=%d, frequency=%d\n",
 
 
-Tested and it fixed my HVR-1270 IR. I also tested a couple minutes of
-live TV and it still works.
+Wow, that was easy.  And from what I can tell, it is spec compliant
+too. :)
+
+Reviewed-by: Andy Walls <awalls@md.metrocast.net>
+
+-Andy
+
+
+
+
+
+
