@@ -1,70 +1,74 @@
 Return-path: <mchehab@pedra>
-Received: from mx1.redhat.com ([209.132.183.28]:3345 "EHLO mx1.redhat.com"
+Received: from mx1.redhat.com ([209.132.183.28]:32300 "EHLO mx1.redhat.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754916Ab1FANVD (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 1 Jun 2011 09:21:03 -0400
-Message-ID: <4DE63CCD.8050308@redhat.com>
-Date: Wed, 01 Jun 2011 15:21:17 +0200
-From: Hans de Goede <hdegoede@redhat.com>
+	id S1752409Ab1FLO2h (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 12 Jun 2011 10:28:37 -0400
+Message-ID: <4DF4CD0F.3030909@redhat.com>
+Date: Sun, 12 Jun 2011 11:28:31 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
 MIME-Version: 1.0
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Announcing v4l-utils-0.8.4
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+To: Devin Heitmueller <dheitmueller@kernellabs.com>
+CC: Andy Walls <awalls@md.metrocast.net>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: [RFCv1 PATCH 7/7] tuner-core: s_tuner should not change tuner
+ mode.
+References: <1307799283-15518-1-git-send-email-hverkuil@xs4all.nl>	<201106121430.03114.hverkuil@xs4all.nl>	<1307883186.2592.10.camel@localhost>	<201106121523.15127.hverkuil@xs4all.nl>	<1307886285.2592.31.camel@localhost> <BANLkTiktMGy_7e0VDs=VDy0rb1rZwk9rXw@mail.gmail.com>
+In-Reply-To: <BANLkTiktMGy_7e0VDs=VDy0rb1rZwk9rXw@mail.gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Hi,
+Em 12-06-2011 10:57, Devin Heitmueller escreveu:
+> On Sun, Jun 12, 2011 at 9:44 AM, Andy Walls <awalls@md.metrocast.net> wrote:
+>> BTW, the cx18-alsa module annoys me as a developer.  PulseAudio holds
+>> the device nodes open, pinning the cx18-alsa and cx18 modules in kernel.
+>> When killed, PulseAudio respawns rapidly and reopens the nodes.
+>> Unloading cx18 for development purposes is a real pain when the
+>> cx18-alsa module exists.
+> 
+> We've talked about this before, but something just feels wrong about
+> this.  I don't have this problem with other drivers that provide an
+> "-alsa" module.  For example, my ngene tree has four ALSA PCM devices
+> and 16 mixer controls, yet PulseAudio doesn't keep the module in use.
+> 
+> The more I think about this, the more I suspect this is just some sort
+> of subtle bug in the cx18 ALSA driver where some resource is not being
+> freed.
 
-I'm happy to announce the release of v4l-utils-0.8.4. After some
-somewhat boring releases, this release contains some interesting
-improvements:
-* Various enhancements to libv4l which should result in
-   significantly less cpu usage with uvc HD cameras in several
-   scenarios
-* A library for associating video, audio, vbi and other devices with each
-   other. This will allow apps to automatically do things like figure out
-   which alsa input devices has the sound for the analog tv show you are
-   watching. Note atm this lib does not have a stable API yet, and thus
-   does not get installed by make install.
+It is not just cx18 that have this trouble. All drivers under media/video
+with *-alsa have this issue. Also, all sound drivers suffer from the same 
+issue:
 
-Full changelog:
+# lsmod|grep snd_hda
+snd_hda_codec_analog    84955  1 
+snd_hda_intel          25261  2 
 
-v4l-utils-0.8.4
----------------
-* Utils changes
-   * Various small fixes (hverkuil, mchehab)
-   * qv4l2: Add support for configuring the framerate for devices which support
-     this like uvc cams (hdegoede)
-   * parse_tcpdump_log.pl: new parser for tcpdump / wireshark made usbmon
-     dumps (mchehab)
-   * New lib_media_dev lib, to pair audio devices with video devices
-     (and other combinations) for now this lives in utils and does not get
-     installed systemwide, as the API is not stable (mchehab)
-* libv4l changes
-   * Add many more laptop models to the upside down devices table (hdegoede)
-   * Some small bugfixes (hdegoede)
-   * Add vicam cameras to list of cameras need sw auto gain + whitebalance
-     (hdegoede)
-   * Add support for M420 pixelformat (hdegoede)
-   * Add support for Y10B pixelformat (Antonio Ospite)
-   * Add support for JPGL pixelformat (jfmoine)
-   * Modified (rewrote) jpeg decompression code to use libjpeg[-turbo], for
-     much lower cpu load when doing jpeg decompression (hdegoede)
-   * Detect usb connection speed of devices (hdegoede)
-   * Rewrite src format selection algorithm, taking bandwidth into account and
-     choosing the format which will give us the lowest CPU load while still
-     allowing 30 fps (hdegoede)
-   * Intercept S_PARM and redo src format selection based on new fps setting,
-     potentially switching from JPG to YUYV / M420 when the app lowers the
-     fps, resulting in a significant lower cpu load (hdegoede)
+See: pulseaudio keep the device opened, so dev refcount were incremented.
 
-Go get it here:
-http://linuxtv.org/downloads/v4l-utils/v4l-utils-0.8.4.tar.bz2
+# rmmod snd_hda_codec_analog snd_hda_intel 
+ERROR: Module snd_hda_codec_analog is in use
+ERROR: Module snd_hda_intel is in use
 
-You can always find the latest developments here:
-http://git.linuxtv.org/v4l-utils.git
+The same happens, for example, with em28xx with snd-usb-audio:
 
-Regards,
+# lsmod |grep snd
+snd_usb_audio          91303  1 
 
-Hans
+# rmmod snd-usb-audio
+ERROR: Module snd_usb_audio is in use
+
+What happens is that open() increments the device refcount.
+
+Maybe the ngene has some trick for allowing it, or PulseAudio has some logic to 
+detect ngene (or otherwise it fails to open ngene audio nodes).
+
+It may have some dirty ways to trick PulseAudio, for example returning -ENODEV if
+the process name is pulseaudio, but I can't think on a proper kernel solution
+for it.
+
+The proper solution is to fix PulseAudio.
+
+Cheers,
+Mauro
