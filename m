@@ -1,64 +1,177 @@
 Return-path: <mchehab@pedra>
-Received: from mail-ew0-f46.google.com ([209.85.215.46]:63010 "EHLO
-	mail-ew0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750947Ab1FNNwM (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 14 Jun 2011 09:52:12 -0400
-Received: by ewy4 with SMTP id 4so2024860ewy.19
-        for <linux-media@vger.kernel.org>; Tue, 14 Jun 2011 06:52:11 -0700 (PDT)
+Received: from mx1.redhat.com ([209.132.183.28]:30436 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753134Ab1FLOlh (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 12 Jun 2011 10:41:37 -0400
+Message-ID: <4DF4D01C.6040800@redhat.com>
+Date: Sun, 12 Jun 2011 11:41:32 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
 MIME-Version: 1.0
-In-Reply-To: <4DF7667C.9030502@redhat.com>
-References: <4DF6C10C.8070605@redhat.com>
-	<4DF758AF.3010301@redhat.com>
-	<4DF75C84.9000200@redhat.com>
-	<4DF7667C.9030502@redhat.com>
-Date: Tue, 14 Jun 2011 09:52:10 -0400
-Message-ID: <BANLkTi=9L+oxjpUaFo3ge0iqcZ2NCjJWWA@mail.gmail.com>
-Subject: Re: Some fixes for alsa_stream
-From: Devin Heitmueller <dheitmueller@kernellabs.com>
-To: Hans de Goede <hdegoede@redhat.com>
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+CC: linux-media@vger.kernel.org, Mike Isely <isely@isely.net>,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: Re: [RFCv4 PATCH 4/8] tuner-core: fix s_std and s_tuner.
+References: <1307876389-30347-1-git-send-email-hverkuil@xs4all.nl> <58e65d1d111ba7fa1d0610af92e77d7aefb75d11.1307875512.git.hans.verkuil@cisco.com>
+In-Reply-To: <58e65d1d111ba7fa1d0610af92e77d7aefb75d11.1307875512.git.hans.verkuil@cisco.com>
 Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Tue, Jun 14, 2011 at 9:47 AM, Hans de Goede <hdegoede@redhat.com> wrote:
-> Hmm, we really don't need more cmdline options IMHO, it is quite easy to
-> detect
-> if an alsa device supports mmap mode, and if not fall back to r/w mode, I
-> know
-> several programs which do that (some if which I've written the patches to do
-> this for myself).
+Em 12-06-2011 07:59, Hans Verkuil escreveu:
+> From: Hans Verkuil <hans.verkuil@cisco.com>
+> 
+> Both s_std and s_tuner are broken because set_mode_freq is called before the
+> new std (for s_std) and audmode (for s_tuner) are set.
+> 
+> This patch splits set_mode_freq in a set_mode and a set_freq and in s_std
+> first calls set_mode, and if that returns true (i.e. the mode is supported)
+> then they set t->std/t->audmode and call set_freq.
+> 
+> This fixes a bug where changing std or audmode would actually change it to
+> the previous value.
+> 
+> Discovered while testing analog TV standards for cx18 with a tda18271 tuner.
 
-Agreed.
+I need to better analyse and test this patch.
 
->> It should be noticed that the driver tries first to access the alsa driver
->> directly,
->> by using hw:0,0 output device. If it fails, it falls back to plughw:0,0.
->> I'm not sure
->> what's the name of the pulseaudio output, but I suspect that both are just
->> bypassing
->> pulseaudio, with is good ;)
->
-> Right this means you're just bypassing pulse audio, which for a tvcard +
-> tv-viewing
+> 
+> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+> ---
+>  drivers/media/video/tuner-core.c |   60 +++++++++++++++++++++-----------------
+>  1 files changed, 33 insertions(+), 27 deletions(-)
+> 
+> diff --git a/drivers/media/video/tuner-core.c b/drivers/media/video/tuner-core.c
+> index 462a8f4..bf7fc33 100644
+> --- a/drivers/media/video/tuner-core.c
+> +++ b/drivers/media/video/tuner-core.c
+> @@ -739,19 +739,15 @@ static bool supported_mode(struct tuner *t, enum v4l2_tuner_type mode)
+>  }
+>  
+>  /**
+> - * set_mode_freq - Switch tuner to other mode.
+> - * @client:	struct i2c_client pointer
+> + * set_mode - Switch tuner to other mode.
+>   * @t:		a pointer to the module's internal struct_tuner
+>   * @mode:	enum v4l2_type (radio or TV)
+> - * @freq:	frequency to set (0 means to use the previous one)
+>   *
+>   * If tuner doesn't support the needed mode (radio or TV), prints a
+>   * debug message and returns false, changing its state to standby.
+> - * Otherwise, changes the state and sets frequency to the last value
+> - * and returns true.
+> + * Otherwise, changes the state and returns true.
+>   */
+> -static bool set_mode_freq(struct i2c_client *client, struct tuner *t,
+> -			 enum v4l2_tuner_type mode, unsigned int freq)
+> +static bool set_mode(struct tuner *t, enum v4l2_tuner_type mode)
+>  {
+>  	struct analog_demod_ops *analog_ops = &t->fe.ops.analog_ops;
+>  
+> @@ -767,17 +763,27 @@ static bool set_mode_freq(struct i2c_client *client, struct tuner *t,
+>  		t->mode = mode;
+>  		tuner_dbg("Changing to mode %d\n", mode);
+>  	}
+> +	return true;
+> +}
+> +
+> +/**
+> + * set_freq - Set the tuner to the desired frequency.
+> + * @t:		a pointer to the module's internal struct_tuner
+> + * @freq:	frequency to set (0 means to use the current frequency)
+> + */
+> +static void set_freq(struct tuner *t, unsigned int freq)
+> +{
+> +	struct i2c_client *client = v4l2_get_subdevdata(&t->sd);
+> +
+>  	if (t->mode == V4L2_TUNER_RADIO) {
+> -		if (freq)
+> -			t->radio_freq = freq;
+> -		set_radio_freq(client, t->radio_freq);
+> +		if (!freq)
+> +			freq = t->radio_freq;
+> +		set_radio_freq(client, freq);
+>  	} else {
+> -		if (freq)
+> -			t->tv_freq = freq;
+> -		set_tv_freq(client, t->tv_freq);
+> +		if (!freq)
+> +			freq = t->tv_freq;
+> +		set_tv_freq(client, freq);
+>  	}
+> -
+> -	return true;
+>  }
+>  
+>  /*
+> @@ -1034,9 +1040,9 @@ static void tuner_status(struct dvb_frontend *fe)
+>  static int tuner_s_radio(struct v4l2_subdev *sd)
+>  {
+>  	struct tuner *t = to_tuner(sd);
+> -	struct i2c_client *client = v4l2_get_subdevdata(sd);
+>  
+> -	set_mode_freq(client, t, V4L2_TUNER_RADIO, 0);
+> +	if (set_mode(t, V4L2_TUNER_RADIO))
+> +		set_freq(t, 0);
+>  	return 0;
+>  }
+>  
+> @@ -1068,24 +1074,23 @@ static int tuner_s_power(struct v4l2_subdev *sd, int on)
+>  static int tuner_s_std(struct v4l2_subdev *sd, v4l2_std_id std)
+>  {
+>  	struct tuner *t = to_tuner(sd);
+> -	struct i2c_client *client = v4l2_get_subdevdata(sd);
+>  
+> -	if (!set_mode_freq(client, t, V4L2_TUNER_ANALOG_TV, 0))
+> +	if (!set_mode(t, V4L2_TUNER_ANALOG_TV))
+>  		return 0;
+>  
+>  	t->std = tuner_fixup_std(t, std);
+>  	if (t->std != std)
+>  		tuner_dbg("Fixup standard %llx to %llx\n", std, t->std);
+> -
+> +	set_freq(t, 0);
+>  	return 0;
+>  }
+>  
+>  static int tuner_s_frequency(struct v4l2_subdev *sd, struct v4l2_frequency *f)
+>  {
+>  	struct tuner *t = to_tuner(sd);
+> -	struct i2c_client *client = v4l2_get_subdevdata(sd);
+>  
+> -	set_mode_freq(client, t, f->type, f->frequency);
+> +	if (set_mode(t, f->type))
+> +		set_freq(t, f->frequency);
+>  	return 0;
+>  }
+>  
+> @@ -1154,13 +1159,14 @@ static int tuner_g_tuner(struct v4l2_subdev *sd, struct v4l2_tuner *vt)
+>  static int tuner_s_tuner(struct v4l2_subdev *sd, struct v4l2_tuner *vt)
+>  {
+>  	struct tuner *t = to_tuner(sd);
+> -	struct i2c_client *client = v4l2_get_subdevdata(sd);
+>  
+> -	if (!set_mode_freq(client, t, vt->type, 0))
+> +	if (!set_mode(t, vt->type))
+>  		return 0;
+>  
+> -	if (t->mode == V4L2_TUNER_RADIO)
+> +	if (t->mode == V4L2_TUNER_RADIO) {
+>  		t->audmode = vt->audmode;
+> +		set_freq(t, 0);
+> +	}
+>  
+>  	return 0;
+>  }
+> @@ -1195,8 +1201,8 @@ static int tuner_resume(struct i2c_client *c)
+>  	tuner_dbg("resume\n");
+>  
+>  	if (!t->standby)
+> -		set_mode_freq(c, t, t->type, 0);
+> -
+> +		if (set_mode(t, t->type))
+> +			set_freq(t, 0);
+>  	return 0;
+>  }
+>  
 
-Actually, the ALSA client libraries route through PulseAudio (as long
-as Pulse is running).  Basically PulseAudio is providing emulation for
-the ALSA interface even if you specify "hw:1,0" as the device.
-
-> app is a reasonable thing to do. Defaulting to hw:0,0 makes no sense to me
-> though, we
-> should default to either the audio devices belonging to the video device (as
-> determined
-> through sysfs), or to alsa's default input (which will likely be
-> pulseaudio).
-
-Mauro was talking about the output device, not the input device.
-
-Devin
-
--- 
-Devin J. Heitmueller - Kernel Labs
-http://www.kernellabs.com
