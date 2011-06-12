@@ -1,69 +1,46 @@
 Return-path: <mchehab@pedra>
-Received: from moutng.kundenserver.de ([212.227.17.9]:59785 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751342Ab1FNQDI (ORCPT
+Received: from smtp-vbr1.xs4all.nl ([194.109.24.21]:2062 "EHLO
+	smtp-vbr1.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753325Ab1FLLAF (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 14 Jun 2011 12:03:08 -0400
-From: Arnd Bergmann <arnd@arndb.de>
-To: "Michal Nazarewicz" <mina86@mina86.com>
-Subject: Re: [PATCH 08/10] mm: cma: Contiguous Memory Allocator added
-Date: Tue, 14 Jun 2011 18:03:00 +0200
-Cc: "Marek Szyprowski" <m.szyprowski@samsung.com>,
-	linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-	linux-media@vger.kernel.org, linux-mm@kvack.org,
-	linaro-mm-sig@lists.linaro.org,
-	"'Kyungmin Park'" <kyungmin.park@samsung.com>,
-	"'Andrew Morton'" <akpm@linux-foundation.org>,
-	"'KAMEZAWA Hiroyuki'" <kamezawa.hiroyu@jp.fujitsu.com>,
-	"'Ankita Garg'" <ankita@in.ibm.com>,
-	"'Daniel Walker'" <dwalker@codeaurora.org>,
-	"'Mel Gorman'" <mel@csn.ul.ie>,
-	"'Jesse Barker'" <jesse.barker@linaro.org>
-References: <1307699698-29369-1-git-send-email-m.szyprowski@samsung.com> <201106141549.29315.arnd@arndb.de> <op.vw2jmhir3l0zgt@mnazarewicz-glaptop>
-In-Reply-To: <op.vw2jmhir3l0zgt@mnazarewicz-glaptop>
-MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201106141803.00876.arnd@arndb.de>
+	Sun, 12 Jun 2011 07:00:05 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Mike Isely <isely@isely.net>, Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [RFCv4 PATCH 8/8] bttv: fix s_tuner for radio.
+Date: Sun, 12 Jun 2011 12:59:49 +0200
+Message-Id: <cd5f6808084d0b1c2aba3e690c35cf3e7abfa445.1307875512.git.hans.verkuil@cisco.com>
+In-Reply-To: <1307876389-30347-1-git-send-email-hverkuil@xs4all.nl>
+References: <1307876389-30347-1-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <980897e53f7cc2ec9bbbf58d9d451ee56a249309.1307875512.git.hans.verkuil@cisco.com>
+References: <980897e53f7cc2ec9bbbf58d9d451ee56a249309.1307875512.git.hans.verkuil@cisco.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Tuesday 14 June 2011, Michal Nazarewicz wrote:
-> On Tue, 14 Jun 2011 15:49:29 +0200, Arnd Bergmann <arnd@arndb.de> wrote:
-> > Please explain the exact requirements that lead you to defining multiple
-> > contexts.
-> 
-> Some devices may have access only to some banks of memory.  Some devices
-> may use different banks of memory for different purposes.
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-For all I know, that is something that is only true for a few very special
-Samsung devices, and is completely unrelated of the need for contiguous
-allocations, so this approach becomes pointless as soon as the next
-generation of that chip grows an IOMMU, where we don't handle the special
-bank attributes. Also, the way I understood the situation for the Samsung
-SoC during the Budapest discussion, it's only a performance hack, not a
-functional requirement, unless you count '1080p playback' as a functional
-requirement.
+Fix typo: g_tuner should have been s_tuner.
 
-Supporting contiguous allocation is a very useful goal and many people want
-this, but supporting a crazy one-off hardware design with lots of generic
-infrastructure is going a bit too far. If you can't be more specific than
-'some devices may need this', I would suggest going forward without having
-multiple regions:
+Tested with a bttv card.
 
-* Remove the registration of specific addresses from the initial patch
-  set (but keep the patch).
-* Add a heuristic plus command-line override to automatically come up
-  with a reasonable location+size for *one* CMA area in the system.
-* Ship the patch to add support for multiple CMA areas with the BSP
-  for the boards that need it (if any).
-* Wait for someone on a non-Samsung SoC to run into the same problem,
-  then have /them/ get the final patch in.
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ drivers/media/video/bt8xx/bttv-driver.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
 
-Even if you think you can convince enough people that having support
-for distinct predefined regions is a good idea, I would recommend
-splitting that out of the initial merge so we can have that discussion
-separately from the other issues.
+diff --git a/drivers/media/video/bt8xx/bttv-driver.c b/drivers/media/video/bt8xx/bttv-driver.c
+index a97cf27..834a483 100644
+--- a/drivers/media/video/bt8xx/bttv-driver.c
++++ b/drivers/media/video/bt8xx/bttv-driver.c
+@@ -3474,7 +3474,7 @@ static int radio_s_tuner(struct file *file, void *priv,
+ 	if (0 != t->index)
+ 		return -EINVAL;
+ 
+-	bttv_call_all(btv, tuner, g_tuner, t);
++	bttv_call_all(btv, tuner, s_tuner, t);
+ 	return 0;
+ }
+ 
+-- 
+1.7.1
 
-	Arnd
