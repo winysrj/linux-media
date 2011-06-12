@@ -1,81 +1,39 @@
 Return-path: <mchehab@pedra>
-Received: from mga11.intel.com ([192.55.52.93]:14348 "EHLO mga11.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752041Ab1FPTGf (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 16 Jun 2011 15:06:35 -0400
-Date: Thu, 16 Jun 2011 12:06:34 -0700
-From: Sarah Sharp <sarah.a.sharp@linux.intel.com>
-To: Alan Stern <stern@rowland.harvard.edu>
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	linux-media@vger.kernel.org, USB list <linux-usb@vger.kernel.org>,
-	Andiry Xu <andiry.xu@amd.com>
-Subject: Re: uvcvideo failure under xHCI
-Message-ID: <20110616190634.GA7290@xanatos>
-References: <20110616171711.GB6188@xanatos>
- <Pine.LNX.4.44L0.1106161329250.3807-100000@iolanthe.rowland.org>
+Received: from gelbbaer.kn-bremen.de ([78.46.108.116]:45135 "EHLO
+	smtp.kn-bremen.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751186Ab1FLU0Z (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 12 Jun 2011 16:26:25 -0400
+From: Juergen Lock <nox@jelal.kn-bremen.de>
+Date: Sun, 12 Jun 2011 22:25:12 +0200
+To: linux-media@vger.kernel.org
+Cc: hselasky@c2i.net
+Subject: [PATCH] [media] af9015: setup rc keytable for LC-Power LC-USB-DVBT
+Message-ID: <20110612202512.GA63911@triton8.kn-bremen.de>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <Pine.LNX.4.44L0.1106161329250.3807-100000@iolanthe.rowland.org>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Thu, Jun 16, 2011 at 01:39:43PM -0400, Alan Stern wrote:
-> On Thu, 16 Jun 2011, Sarah Sharp wrote:
-> 
-> > > > > Alan, does that seem correct?
-> > > 
-> > > The description of the behavior of ehci-hcd and uhci-hcd is correct.  
-> > > ohci-hcd behaves the same way too.  And they all agree with the 
-> > > behavior described in the kerneldoc for struct urb in 
-> > > include/linux/usb.h.
-> > 
-> > Ah, you mean this bit?
-> > 
-> >  * @status: This is read in non-iso completion functions to get the
-> >  *      status of the particular request.  ISO requests only use it
-> >  *      to tell whether the URB was unlinked; detailed status for
-> >  *      each frame is in the fields of the iso_frame-desc.
-> 
-> Right.  There's also some more near the end:
-> 
->  * Completion Callbacks:
->  *
->  * The completion callback is made in_interrupt(), and one of the first
->  * things that a completion handler should do is check the status field.
->  * The status field is provided for all URBs.  It is used to report
->  * unlinked URBs, and status for all non-ISO transfers.  It should not
->  * be examined before the URB is returned to the completion handler.
-> 
-> > > Under the circumstances, the documentation file should be changed.  
-> > > Sarah, can you do that along with the change to xhci-hcd?
-> > 
-> > Sure.  It feels like there should be a note about which values
-> > isochronous URBs might have in the urb->status field.  The USB core is
-> > the only one that would be setting those, so which values would it set?
-> > uvcvideo tests for these error codes:
-> > 
-> >         case -ENOENT:           /* usb_kill_urb() called. */
-> >         case -ECONNRESET:       /* usb_unlink_urb() called. */
-> >         case -ESHUTDOWN:        /* The endpoint is being disabled. */
-> >         case -EPROTO:           /* Device is disconnected (reported by some
-> >                                  * host controller). */
-> > 
-> > Are there any others.
-> 
-> -EREMOTEIO, in the unlikely event that URB_SHORT_NOT_OK is set, but no
-> others.
+That's this tuner:
 
-Are you saying that the USB core will only set -EREMOTEIO for
-isochronous URBs?  Or do you mean that in addition to the status values
-that uvcvideo checks, the USB core can also set -EREMOTEIO?
+	http://www.lc-power.de/index.php?id=146&L=1
 
-> And I wasn't aware of that last one...  Host controller drivers should
-> report -ESHUTDOWN to mean the device has been disconnected, not
-> -EPROTO.  But usually HCD don't take these events into account when
-> determining URB status codes.
+The credit card sized remote more or less works if I set remote=4,
+so I added the hash to get it autodetected.  (`more or less' there
+meaning sometimes buttons are `stuck on repeat', i.e. ir-keytable -t
+keeps repeating the same scancode until i press another button.)
 
-The xHCI driver will return -ESHUTDOWN as a status for URBs when the
-host controller is dying.
+Signed-off-by: Juergen Lock <nox@jelal.kn-bremen.de>
 
-Sarah Sharp
+--- a/drivers/media/dvb/dvb-usb/af9015.c
++++ b/drivers/media/dvb/dvb-usb/af9015.c
+@@ -735,6 +735,7 @@ static const struct af9015_rc_setup af90
+ 	{ 0xb8feb708, RC_MAP_MSI_DIGIVOX_II },
+ 	{ 0xa3703d00, RC_MAP_ALINK_DTU_M },
+ 	{ 0x9b7dc64e, RC_MAP_TOTAL_MEDIA_IN_HAND }, /* MYGICTV U718 */
++	{ 0x5d49e3db, RC_MAP_DIGITTRADE }, /* LC-Power LC-USB-DVBT */
+ 	{ }
+ };
+ 
