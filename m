@@ -1,192 +1,102 @@
 Return-path: <mchehab@pedra>
-Received: from moutng.kundenserver.de ([212.227.126.187]:59140 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753235Ab1FFOhW convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 6 Jun 2011 10:37:22 -0400
-Date: Mon, 6 Jun 2011 16:37:06 +0200 (CEST)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: "Aguirre, Sergio" <saaguirre@ti.com>
-cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	sakari.ailus@maxwell.research.nokia.com,
-	Sylwester Nawrocki <snjw23@gmail.com>,
-	Stan <svarbanov@mm-sol.com>, Hans Verkuil <hansverk@cisco.com>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: Re: [PATCH/RFC] V4L: add media bus configuration subdev operations
-In-Reply-To: <BANLkTi=fMRyKqRTb_Twt9wSt_H9_eg_rrQ@mail.gmail.com>
-Message-ID: <Pine.LNX.4.64.1106061629450.11169@axis700.grange>
-References: <Pine.LNX.4.64.1106061358310.11169@axis700.grange>
- <BANLkTi=fMRyKqRTb_Twt9wSt_H9_eg_rrQ@mail.gmail.com>
+Received: from smtp-vbr11.xs4all.nl ([194.109.24.31]:1418 "EHLO
+	smtp-vbr11.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751208Ab1FMLLC (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 13 Jun 2011 07:11:02 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Subject: Re: Crash on unplug with the uvc driver in linuxtv/staging/for_v3.1
+Date: Mon, 13 Jun 2011 13:10:57 +0200
+Cc: Hans de Goede <hdegoede@redhat.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+References: <4DF0ACDB.9000800@redhat.com> <201106111116.10615.laurent.pinchart@ideasonboard.com> <201106131141.43153.laurent.pinchart@ideasonboard.com>
+In-Reply-To: <201106131141.43153.laurent.pinchart@ideasonboard.com>
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+Content-Type: Text/Plain;
+  charset="windows-1252"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201106131310.57096.hverkuil@xs4all.nl>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Hi Sergio
-
-On Mon, 6 Jun 2011, Aguirre, Sergio wrote:
-
-> Hi Guennadi,
+On Monday, June 13, 2011 11:41:42 Laurent Pinchart wrote:
+> Hi Hans (and Hans),
 > 
-> Thanks for the patch.
+> On Saturday 11 June 2011 11:16:10 Laurent Pinchart wrote:
+> > On Thursday 09 June 2011 13:22:03 Hans de Goede wrote:
+> > > Hi,
+> > > 
+> > > When I unplug a uvc camera *while streaming* I get:
+> > > 
+> > > [15824.809741] BUG: unable to handle kernel NULL pointer dereference at
+> > > (null)
+> > 
+> > [snip]
+> > 
+> > > I've not tested if this also impacts 3.0!!
+> > 
+> > It probably does. Thanks for the report. I'll fix it.
 > 
-> On Mon, Jun 6, 2011 at 7:31 AM, Guennadi Liakhovetski
-> <g.liakhovetski@gmx.de> wrote:
-> > Add media bus configuration types and two subdev operations to get
-> > supported mediabus configurations and to set a specific configuration.
-> > Subdevs can support several configurations, e.g., they can send video data
-> > on 1 or several lanes, can be configured to use a specific CSI-2 channel,
-> > in such cases subdevice drivers return bitmasks with all respective bits
-> > set. When a set-configuration operation is called, it has to specify a
-> > non-ambiguous configuration.
-> >
-> > Signed-off-by: Stanimir Varbanov <svarbanov@mm-sol.com>
-> > Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-> > ---
-> >
-> > This change would allow a re-use of soc-camera and "standard" subdev
-> > drivers. It is a modified and extended version of
-> >
-> > http://article.gmane.org/gmane.linux.drivers.video-input-infrastructure/29408
-> >
-> > therefore the original Sob. After this we only would have to switch to the
-> > control framework:) Please, comment.
-> >
-> > diff --git a/include/media/v4l2-mediabus.h b/include/media/v4l2-mediabus.h
-> > index 971c7fa..0983b7b 100644
-> > --- a/include/media/v4l2-mediabus.h
-> > +++ b/include/media/v4l2-mediabus.h
-> > @@ -13,6 +13,76 @@
-> >
-> >  #include <linux/v4l2-mediabus.h>
-> >
-> > +/* Parallel flags */
-> > +/* Can the client run in master or in slave mode */
-> > +#define V4L2_MBUS_MASTER                       (1 << 0)
-> > +#define V4L2_MBUS_SLAVE                                (1 << 1)
-> > +/* Which signal polarities it supports */
-> > +#define V4L2_MBUS_HSYNC_ACTIVE_HIGH            (1 << 2)
-> > +#define V4L2_MBUS_HSYNC_ACTIVE_LOW             (1 << 3)
-> > +#define V4L2_MBUS_VSYNC_ACTIVE_HIGH            (1 << 4)
-> > +#define V4L2_MBUS_VSYNC_ACTIVE_LOW             (1 << 5)
-> > +#define V4L2_MBUS_PCLK_SAMPLE_RISING           (1 << 6)
-> > +#define V4L2_MBUS_PCLK_SAMPLE_FALLING          (1 << 7)
-> > +#define V4L2_MBUS_DATA_ACTIVE_HIGH             (1 << 8)
-> > +#define V4L2_MBUS_DATA_ACTIVE_LOW              (1 << 9)
-> > +/* Which datawidths are supported */
-> > +#define V4L2_MBUS_DATAWIDTH_4                  (1 << 10)
-> > +#define V4L2_MBUS_DATAWIDTH_8                  (1 << 11)
-> > +#define V4L2_MBUS_DATAWIDTH_9                  (1 << 12)
-> > +#define V4L2_MBUS_DATAWIDTH_10                 (1 << 13)
-> > +#define V4L2_MBUS_DATAWIDTH_15                 (1 << 14)
-> > +#define V4L2_MBUS_DATAWIDTH_16                 (1 << 15)
-> > +
-> > +#define V4L2_MBUS_DATAWIDTH_MASK       (V4L2_MBUS_DATAWIDTH_4 | V4L2_MBUS_DATAWIDTH_8 | \
-> > +                                        V4L2_MBUS_DATAWIDTH_9 | V4L2_MBUS_DATAWIDTH_10 | \
-> > +                                        V4L2_MBUS_DATAWIDTH_15 | V4L2_MBUS_DATAWIDTH_16)
-> > +
-> > +/* Serial flags */
-> > +/* How many lanes the client can use */
-> > +#define V4L2_MBUS_CSI2_1_LANE                  (1 << 0)
-> > +#define V4L2_MBUS_CSI2_2_LANE                  (1 << 1)
-> > +#define V4L2_MBUS_CSI2_3_LANE                  (1 << 2)
-> > +#define V4L2_MBUS_CSI2_4_LANE                  (1 << 3)
-> > +/* On which channels it can send video data */
-> > +#define V4L2_MBUS_CSI2_CHANNEL_0                       (1 << 4)
-> > +#define V4L2_MBUS_CSI2_CHANNEL_1                       (1 << 5)
-> > +#define V4L2_MBUS_CSI2_CHANNEL_2                       (1 << 6)
-> > +#define V4L2_MBUS_CSI2_CHANNEL_3                       (1 << 7)
-> > +/* Does it support only continuous or also non-contimuous clock mode */
+> It does. Fixing the problem turns to be more complex than expected.
 > 
-> Typo: non-continuous
+> The crash is caused by media entities life time management issues.
+> 
+> Entities associated with video device nodes are unregistered in 
+> video_unregister_device(). This removes the entity from its parent's entities 
+> list, and sets the entity's parent to NULL.
+> 
+> Entities also get/put references to their parent's module through 
+> media_entity_get() and media_entity_put(). Those functions are called in the 
+> open and release handlers of video device nodes and subdev device nodes. The 
+> reason behind this is to avoid a parent module from being removed while a 
+> subdev is opened, as closing a subdev can call to the parent's module through 
+> board code.
+> 
+> When a UVC device is unplugged while streaming, the uvcvideo driver will call 
+> video_unregister_device() in the disconnect handler. This will in turn call 
+> media_device_unregister_entity() which sets the entity's parent to NULL. When 
+> the user then closes open video device nodes, v4l2_release() calls 
+> media_entity_put() which tries to dereference entity->parent, and oopses.
+> 
+> I've tried to move the media_device_unregister_entity() call from 
+> video_unregister_device() to v4l2_device_release() (called when the last 
+> reference to the video device is released). media_entity_put() is then called 
+> before the entity is unregistered, but that results in a different oops: as 
+> this happens after the USB disconnect callback is called, entity->parent->dev-
+> >driver is now NULL, and trying to access entity->parent->dev->driver->owner 
+> to decrement the module use count oopses.
+> 
+> One possible workaround is to remove media_entity_get()/media_entity_put() 
+> calls from v4l2-dev.c. As the original purpose of those functions was to avoid 
+> a parent module from being removed while still accessible through board code, 
+> and all existing MC-enabled drivers register video device nodes with the owner 
+> equal to the entity's parent's module, we can safely do it.
+> 
+> I'd rather implement a proper solution though, but that's not straightforward. 
+> We short-circuit the kernel reference management by going through board code. 
+> There's something fundamentally wrong in the way we manage subdevs and 
+> device/module reference counts. I'm not sure where the proper fix should go to 
+> though.
 
-Right, thanks:)
+Hmm. Tricky.
 
-> > +#define V4L2_MBUS_CSI2_CONTINUOUS_CLOCK                (1 << 8)
-> 
-> Doesn't having above bit disabled, imply a non-continuous clock already?
+media_device_unregister_entity() is definitely called in the wrong place. It
+should move to v4l2_device_release(). I wonder why media_entity_get/put are
+called in v4l2_open and v4l2_release. That should be in __video_register_device
+and v4l2_device_release as far as I can see.
 
-Well, actually, yes, we coult drop one of these, because continuous clock 
-mode is obligatory, so, we can just always assume, that all clients 
-support it and only check whether they _also_ support non-continuous. 
-Similarly when setting - if the non-continuous flag is not set, obviously, 
-the subdev has to configure the continuous mode. But if we ever encounter 
-a device, that only supports the non-continuous mode, we get a problem:) 
-Also, maybe the driver for some reason decides not to accept the 
-continuous mode, so, I think, it's better to keep both.
+Just closing a device node shouldn't be cause for changing the module's refcount,
+that device node registration and the release after unregistration.
 
-Thanks
-Guennadi
+I also wonder whether instead of refcounting the module in media_entity_get/put
+you should refcount the device (entity->parent->dev).
 
-> 
-> > +#define V4L2_MBUS_CSI2_NONCONTINUOUS_CLOCK     (1 << 9)
-> 
-> Regards,
-> Sergio
-> 
-> > +
-> > +#define V4L2_MBUS_CSI2_LANES           (V4L2_MBUS_CSI2_1_LANE | V4L2_MBUS_CSI2_2_LANE | \
-> > +                                        V4L2_MBUS_CSI2_3_LANE | V4L2_MBUS_CSI2_4_LANE)
-> > +#define V4L2_MBUS_CSI2_CHANNELS                (V4L2_MBUS_CSI2_CHANNEL_0 | V4L2_MBUS_CSI2_CHANNEL_1 | \
-> > +                                        V4L2_MBUS_CSI2_CHANNEL_2 | V4L2_MBUS_CSI2_CHANNEL_3)
-> > +
-> > +/**
-> > + * v4l2_mbus_type - media bus type
-> > + * @V4L2_MBUS_PARALLEL:        parallel interface with hsync and vsync
-> > + * @V4L2_MBUS_BT656:   parallel interface with embedded synchronisation
-> > + * @V4L2_MBUS_CSI2:    MIPI CSI-2 serial interface
-> > + */
-> > +enum v4l2_mbus_type {
-> > +       V4L2_MBUS_PARALLEL,
-> > +       V4L2_MBUS_BT656,
-> > +       V4L2_MBUS_CSI2,
-> > +};
-> > +
-> > +/**
-> > + * v4l2_mbus_config - media bus configuration
-> > + * @type:      interface type
-> > + * @flags:     configuration flags, depending on @type
-> > + * @clk:       output clock, the bridge driver can try to use clk_set_parent()
-> > + *             to specify the master clock to the client
-> > + */
-> > +struct v4l2_mbus_config {
-> > +       enum v4l2_mbus_type type;
-> > +       unsigned long flags;
-> > +       struct clk *clk;
-> > +};
-> > +
-> >  static inline void v4l2_fill_pix_format(struct v4l2_pix_format *pix_fmt,
-> >                                const struct v4l2_mbus_framefmt *mbus_fmt)
-> >  {
-> > diff --git a/include/media/v4l2-subdev.h b/include/media/v4l2-subdev.h
-> > index 1562c4f..6ea25f4 100644
-> > --- a/include/media/v4l2-subdev.h
-> > +++ b/include/media/v4l2-subdev.h
-> > @@ -255,6 +255,10 @@ struct v4l2_subdev_audio_ops {
-> >    try_mbus_fmt: try to set a pixel format on a video data source
-> >
-> >    s_mbus_fmt: set a pixel format on a video data source
-> > +
-> > +   g_mbus_param: get supported mediabus configurations
-> > +
-> > +   s_mbus_param: set a certain mediabus configuration
-> >  */
-> >  struct v4l2_subdev_video_ops {
-> >        int (*s_routing)(struct v4l2_subdev *sd, u32 input, u32 output, u32 config);
-> > @@ -294,6 +298,8 @@ struct v4l2_subdev_video_ops {
-> >                            struct v4l2_mbus_framefmt *fmt);
-> >        int (*s_mbus_fmt)(struct v4l2_subdev *sd,
-> >                          struct v4l2_mbus_framefmt *fmt);
-> > +       int (*g_mbus_param)(struct v4l2_subdev *sd, struct v4l2_mbus_config *cfg);
-> > +       int (*s_mbus_param)(struct v4l2_subdev *sd, struct v4l2_mbus_config *cfg);
-> >  };
-> >
-> >  /*
-> >
-> 
+I have to admit that I don't quite understand why the USB disconnect zeroes
+entity->parent->dev->driver.
 
----
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
-http://www.open-technology.de/
+I hope this gives some ideas...
+
+Regards,
+
+	Hans
