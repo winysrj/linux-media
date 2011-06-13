@@ -1,35 +1,35 @@
 Return-path: <mchehab@pedra>
-Received: from mail-fx0-f46.google.com ([209.85.161.46]:59855 "EHLO
-	mail-fx0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755366Ab1FOPoV convert rfc822-to-8bit (ORCPT
+Received: from mail-pz0-f46.google.com ([209.85.210.46]:33481 "EHLO
+	mail-pz0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752665Ab1FMU6P (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 15 Jun 2011 11:44:21 -0400
-Received: by fxm17 with SMTP id 17so498429fxm.19
-        for <linux-media@vger.kernel.org>; Wed, 15 Jun 2011 08:44:20 -0700 (PDT)
-From: "Igor M. Liplianin" <liplianin@me.by>
-To: linux-media@vger.kernel.org
-Subject: Re: [PATCH] Add support for PCTV452E.
-Date: Wed, 15 Jun 2011 18:44:35 +0300
-Cc: Doychin Dokov <root@net1.cc>,
-	Konstantin Dimitrov <kosio.dimitrov@gmail.com>,
-	Hans Petter Selasky <hselasky@c2i.net>,
-	Dominik Kuhlen <dkuhlen@gmx.net>,
-	"Michael H. Schimek" <mschimek@gmx.at>,
-	Mauro Chehab <mchehab@infradead.org>
-References: <201105242151.22826.hselasky@c2i.net> <4DF52148.4060704@net1.cc> <4DF531BE.8090005@net1.cc>
-In-Reply-To: <4DF531BE.8090005@net1.cc>
+	Mon, 13 Jun 2011 16:58:15 -0400
+Received: by pzk9 with SMTP id 9so2306432pzk.19
+        for <linux-media@vger.kernel.org>; Mon, 13 Jun 2011 13:58:15 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: Text/Plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
-Message-Id: <201106151844.35343.liplianin@me.by>
+Date: Mon, 13 Jun 2011 21:58:15 +0100
+Message-ID: <BANLkTiksjC8SyYGdfLbF4eSYhR2c9qEzsw@mail.gmail.com>
+Subject: Latest media-tree results in system hang, an no IR.
+From: JD <jdg8tb@gmail.com>
+To: linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
->From my point of view we can count the beginning was here:
+With the latest media-tree, any access to my TV card (using tvtime and
+mplayer to watch through composite) results in my Arch Linux (2.6.39)
+system freezing. Here is the relavent part of my dmesg upon the
+freeze:
 
-http://www.spinics.net/lists/linux-dvb/msg26431.html
+http://codepad.org/q5MxDqAI
 
-The later history is difficult to restore, but possible.
+I compiled the latest media-tree in order to, finally, get my infrared
+receiver working, however it still does not.
+An entry is made in /proc/bus/input/devices which points to
+/dev/input/event5; however. the /dev/lirc device node is not present,
+and using "irw" does not seem to recognise any input.
 
-BR
-Igor
+Is anyone else experiencing such issues, and has anyone managed to get
+IR actually working on the HVR-1120.
+
+Thanks.
