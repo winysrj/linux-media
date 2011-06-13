@@ -1,103 +1,31 @@
 Return-path: <mchehab@pedra>
-Received: from moutng.kundenserver.de ([212.227.17.9]:63777 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751011Ab1FCPxh (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 3 Jun 2011 11:53:37 -0400
-From: Arnd Bergmann <arnd@arndb.de>
-To: "Ohad Ben-Cohen" <ohad@wizery.com>
-Subject: Re: [RFC 0/6] iommu: generic api migration and grouping
-Date: Fri, 3 Jun 2011 17:53:15 +0200
-Cc: linux-media@vger.kernel.org, linux-omap@vger.kernel.org,
-	linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-	laurent.pinchart@ideasonboard.com, Hiroshi.DOYU@nokia.com,
-	davidb@codeaurora.org, Joerg.Roedel@amd.com,
-	Marek Szyprowski <m.szyprowski@samsung.com>
-References: <1307053663-24572-1-git-send-email-ohad@wizery.com>
-In-Reply-To: <1307053663-24572-1-git-send-email-ohad@wizery.com>
-MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-15"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201106031753.16095.arnd@arndb.de>
+Received: from smtp-vbr13.xs4all.nl ([194.109.24.33]:3136 "EHLO
+	smtp-vbr13.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752580Ab1FMMx1 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 13 Jun 2011 08:53:27 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Mike Isely <isely@isely.net>
+Subject: [RFCv5 PATCH 0/9] tuner-core: fix g_freq/s_std and g/s_tuner
+Date: Mon, 13 Jun 2011 14:53:11 +0200
+Message-Id: <1307969600-31536-1-git-send-email-hverkuil@xs4all.nl>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Friday 03 June 2011, Ohad Ben-Cohen wrote:
-> First stab at iommu consolidation:
+Changes from RFCv4:
 
-Hi Ohad,
+- Removed the controversial first two patches that changed/renamed
+  check_mode and set_mode_freq.
+- Added documentation to tuner-core.c and v4l2-subdev.h
+- Added feature-removal-schedule entries.
+- Added a small patch to remove the now unused tuner s_mode op in v4l2-subdev.h.
 
-Great to see your progress here!
- 
-> - Migrate OMAP's iommu driver to the generic iommu API. With this in hand,
->   users can now start using the generic iommu layer instead of calling
->   omap-specific iommu API.
-> 
->   New code that requires functionality missing from the generic iommu api,
->   will add that functionality in the generic framework (e.g. adding framework
->   awareness to multi page sizes, supported by the underlying hardware, will
->   avoid the otherwise-inevitable code duplication when mapping a memory
->   region).
->
->   OMAP-specific api that is still exposed in the omap iommu driver can
->   now be either moved to the generic iommu framework, or just removed (if not
->   used).
-> 
->   This api (and other omap-specific primitives like struct iommu) needs to
->   be omapified (i.e. renamed to include an 'omap_' prefix). At this early
->   point of this patch set this is too much churn though, so I'll do that
->   in the following iteration, after (and if), the general direction is
->   accepted.
+The first five patches are the actual bug fixes and should also go into
+v3.0. The feature-removal-schedule patch should also go into v3.0 to give
+people an early heads-up (not that anyone ever reads that stuff...)
 
-Sounds all good.
+Regards,
 
-> - Migrate OMAP's iovmm (virtual memory manager) driver to the generic
->   iommu API. With this in hand, iovmm no longer uses omap-specific api
->   for mapping/unmapping operations. Nevertheless, iovmm is still coupled
->   with omap's iommu even with this change: it assumes omap page sizes,
->   and it uses omap's iommu objects to maintain its internal state.
-> 
->   Further generalizing of iovmm strongly depends on our broader plans for
->   providing a generic virtual memory manager and allocation framework
->   (which, as discussed, should be separated from a specific mapper).
-> 
->   iovmm has a mainline user: omap3isp, and therefore must be maintained,
->   but new potential users will either have to generalize it, or come up
->   with a different generic framework that will replace it.
+	Hans
 
-I think the future of iovmm is looking not so good. Marek Szyprowski
-is working on a generic version of the dma-mapping API (dma_map_ops)
-based on the iommu API. As far as I can tell, once we have that in
-place, we you can migrate omap3isp from iovmm to dma-mapping and
-remove iovmm.
-
-Of course if there are things missing from the dma-mapping API
-that are present in iovmm, we should know about them so that we can
-extend the dma-mapping API accordingly.
-
-> - Migrate OMAP's iommu mainline user, omap3isp, to the generic API as well
->   (so it doesn't break). As with iovmm, omap3isp still depends on
->   omap's iommu, mainly because iovmm depends on it, but also for
->   iommu context saving and restoring.
-> 
->   It is definitely desirable to completely remove omap3isp's dependency
->   on the omap-specific iommu layer, and that will be possible as the
->   required functionality will be added to generic framework.
-
-ok.
-
-> - Create a dedicated iommu drivers folder (and put the base iommu code there)
->
-> - Move OMAP's and MSM's iommu drivers to that drivers iommu folder
-> 
->   Putting all iommu drivers together will ease finding similarities
->   between different platforms, with the intention of solving problems once,
->   in a generic framework which everyone can use.
-> 
->   I've only moved the omap and msm implementations for now, to demonstrate
->   the idea (and support the ARM diet :), but if this is found desirable,
->   we can bring in intel-iommu.c and amd_iommu.c as well.
-
-Yes, very good idea.
-
-	Arnd
