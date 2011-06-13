@@ -1,279 +1,225 @@
 Return-path: <mchehab@pedra>
-Received: from mail.mnsspb.ru ([84.204.75.2]:38229 "EHLO mail.mnsspb.ru"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751632Ab1FXQtN (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 24 Jun 2011 12:49:13 -0400
-From: Kirill Smelkov <kirr@mns.spb.ru>
-To: Alan Stern <stern@rowland.harvard.edu>
-Cc: matt mooney <mfm@muteddisk.com>,
-	Greg Kroah-Hartman <gregkh@suse.de>, linux-usb@vger.kernel.org,
-	linux-uvc-devel@lists.berlios.de, linux-media@vger.kernel.org,
-	linux-kernel@vger.kernel.org, Kirill Smelkov <kirr@mns.spb.ru>
-Subject: [PATCH v2 2/2] USB: EHCI: Allow users to override 80% max periodic bandwidth
-Date: Fri, 24 Jun 2011 20:48:08 +0400
-Message-Id: <9bddf2a6062b2fc27db87de58a335e7c6b920e53.1308933456.git.kirr@mns.spb.ru>
-In-Reply-To: <cover.1308933456.git.kirr@mns.spb.ru>
-References: <cover.1308933456.git.kirr@mns.spb.ru>
-In-Reply-To: <cover.1308933456.git.kirr@mns.spb.ru>
-References: <cover.1308933456.git.kirr@mns.spb.ru>
+Received: from smtp-vbr16.xs4all.nl ([194.109.24.36]:1981 "EHLO
+	smtp-vbr16.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752035Ab1FMMIJ (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 13 Jun 2011 08:08:09 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+Subject: Re: [RFCv4 PATCH 1/8] tuner-core: rename check_mode to supported_mode
+Date: Mon, 13 Jun 2011 14:07:59 +0200
+Cc: linux-media@vger.kernel.org, Mike Isely <isely@isely.net>,
+	Hans Verkuil <hans.verkuil@cisco.com>
+References: <1307876389-30347-1-git-send-email-hverkuil@xs4all.nl> <201106131223.48550.hverkuil@xs4all.nl> <4DF5F84A.7070508@redhat.com>
+In-Reply-To: <4DF5F84A.7070508@redhat.com>
+MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201106131407.59911.hverkuil@xs4all.nl>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-There are cases, when 80% max isochronous bandwidth is too limiting.
+On Monday, June 13, 2011 13:45:14 Mauro Carvalho Chehab wrote:
+> Em 13-06-2011 07:23, Hans Verkuil escreveu:
+> > On Monday, June 13, 2011 00:06:19 Mauro Carvalho Chehab wrote:
+> >> Em 12-06-2011 15:09, Hans Verkuil escreveu:
+> >>> On Sunday, June 12, 2011 19:27:21 Mauro Carvalho Chehab wrote:
+> >>>> Em 12-06-2011 13:07, Hans Verkuil escreveu:
+> >>>>> On Sunday, June 12, 2011 16:37:55 Mauro Carvalho Chehab wrote:
+> >>>>>> Em 12-06-2011 07:59, Hans Verkuil escreveu:
+> >>>>>>> From: Hans Verkuil <hans.verkuil@cisco.com>
+> >>>>>>>
+> >>>>>>> The check_mode function checks whether a mode is supported. So calling it
+> >>>>>>> supported_mode is more appropriate. In addition it returned either 0 or
+> >>>>>>> -EINVAL which suggests that the -EINVAL error should be passed on. However,
+> >>>>>>> that's not the case so change the return type to bool.
+> >>>>>>
+> >>>>>> I prefer to keep returning -EINVAL. This is the proper thing to do, and
+> >>>>>> to return the result to the caller. A fixme should be added though, so,
+> >>>>>> after someone add a subdev call that would properly handle the -EINVAL
+> >>>>>> code for multiple tuners, the functions should return the error code
+> >>>>>> instead of 0.
+> >>>>>
+> >>>>> No, you can't return -EINVAL here. It is the responsibility of the bridge
+> >>>>> driver to determine whether there is e.g. a radio tuner. So if one of these
+> >>>>> tuner subdevs is called with mode radio while it is a tv tuner, then that
+> >>>>> is not an error, but instead it is a request that can safely be ignored
+> >>>>> as not relevant for that tuner. It is up to the bridge driver to ensure
+> >>>>> that a tuner is loaded that is actually valid for the radio mode.
+> >>>>>
+> >>>>> Subdev ops should only return errors when there is a real problem (e.g. i2c
+> >>>>> errors) and should just return 0 if a request is not for them.
+> >>>>>
+> >>>>> That's why I posted these first two patches: these functions suggest that you
+> >>>>> can return an error if the mode doesn't match when you really cannot.
+> >>>>>
+> >>>>> If I call v4l2_device_call_until_err() for e.g. s_frequency, then the error
+> >>>>> that is returned should match a real error (e.g. an i2c error), not that one
+> >>>>> of the tv tuners refused the radio mode. I know there is a radio tuner somewhere,
+> >>>>> otherwise there wouldn't be a /dev/radio node.
+> >>>>>
+> >>>>> I firmly believe that the RFCv4 series is correct and just needs an additional
+> >>>>> patch adding some documentation.
+> >>>>>
+> >>>>> That said, it would make sense to move the first three patches to the end
+> >>>>> instead if you prefer. Since these are cleanups, not bug fixes like the others.
+> >>>>
+> >>>>
+> >>>> The errors at tuner should be propagated. If there's just one tuner, the error
+> >>>> code should just be returned by the ioctl. But, if there are two tuners, if the bridge 
+> >>>> driver calls G_TUNER (or any other tuner subdev call) and both tuners return -EINVAL, 
+> >>>> then it needs to return -EINVAL to userspace. If just one returns -EINVAL, and the 
+> >>>> other tuner returns 0, then it should return 0. So, it is about the opposite behaviour 
+> >>>> implemented at v4l2_device_call_until_err().
+> >>>
+> >>> Sorry, but no, that's not true. You are trying to use the error codes from tuner
+> >>> subdevs to determine whether none of the tuner subdevs support a certain tuner mode.
+> >>
+> >> Not only that. There are some cases where the tuner driver may not bind for some reason.
+> >> So, even if the bridge driver does support a certain mode, a call to G_TUNER may fail
+> >> (for example, if tea5767 probe failed). Only with a proper return code, the bridge driver
+> >> can detect if the driver found some issue.
+> > 
+> > Surely, that's an error reported by tuner_probe, isn't it? That's supposed to ensure
+> > that the tuner driver was loaded and initialized correctly. I'm not sure if it does,
+> > but that's definitely where any errors of that kind should be reported.
+> > 
+> > Looking at it some more, it seems to me that s_type_addr should also return an
+> > error if there are problems. Ditto for tuner_s_config.
+> > 
+> > An alternative solution is to keep a 'initialized' boolean that is set to true
+> > once the tuner is fully configured. If g_tuner et al are called when the tuner
+> > is not fully configured, then you can return -ENODEV or -EIO or something like that.
+> 
+> NACK. This would be just an ugly workaround. 
 
-For example I have two USB video capture cards which stream uncompressed
-video, and to stream full NTSC + PAL videos we'd need
+Agreed :-)
 
-    NTSC 640x480 YUV422 @30fps      ~17.6 MB/s
-    PAL  720x576 YUV422 @25fps      ~19.7 MB/s
+> 
+> > But that's a separate status check and has nothing to do with mode checking.
+> > 
+> >>> E.g., you want to change something for a radio tuner and there are no radio tuner
+> >>> subdevs. But that's the job of the bridge driver to check. That has the overview,
+> >>> the lowly subdevs do not. The subdevs just filter the ops and check the mode to see
+> >>> if they should handle it and ignore it otherwise.
+> >>>
+> >>> Only if they have to handle it will they return a possible error. The big problem
+> >>> with trying to use subdev errors codes for this is that you don't see the difference
+> >>> between a real error of a subdev (e.g. -EIO when an i2c access fails) and a subdev
+> >>> that returns -EINVAL just because it didn't understand the tuner mode.
+> >>>
+> >>> So the bridge may return -EINVAL to the application instead of the real error, which
+> >>> is -EIO.
+> >>
+> >> An -EIO would also be discarded, as errors at v4l2_device_call_all() calls don't return
+> >> anything. So, currently, the bridge has to assume that no errors happened and return 0.
+> > 
+> > Obviously, v4l2_device_call_all calls should be replaced with v4l2_device_call_until_err.
+> > I've no problem with that.
+> 
+> See bellow.
+> 
+> >>
+> >>> That's the whole principle behind the sub-device model: sub-devices do not know
+> >>> about 'the world outside'. So if you pass RADIO mode to S_FREQUENCY and there is no
+> >>> radio tuner, then the bridge driver is the one that should detect that and return
+> >>> -EINVAL.
+> >>>
+> >>> Actually, as mentioned before, it can also be done in video_ioctl2.c by checking
+> >>> the tuner mode against the device node it's called on. But that requires tightening
+> >>> of the V4L2 spec first.
+> >>
+> >> Yes, video_ioctl2 (or, currently, the bridge driver) shouldn't allow an invalid operation.
+> >> But if the call returns an error, this error should be propagated. 
+> >>
+> >> Also, as I've explained before, even adding the invalid mode check inside video_ioctl,
+> >> you may still have errors if the registered tuners don't support the mode, because one 
+> >> of the tuners didn't registered properly.
+> > 
+> > And that's something that tuner_probe/s_type_addr/s_config should have detected.
+> 
+> I'm almost sure that they don't do it, currently: s_type_addr/s_config also calls
+> v4l2_device_call_all(). No errors are returned back. The tuner_probe call also can't
+> do much, as it doesn't know in advance if the device has one or two tuners.
 
-isoc bandwidth.
+I know they don't. But that's what should happen.
 
-Now, due to limited alt settings in capture devices NTSC one ends up
-streaming with max_pkt_size=2688  and  PAL with max_pkt_size=2892, both
-with interval=1. In terms of microframe time allocation this gives
+> > Or, should that be impossible (I would have to spend more time to analyze that)
+> > we might have to add a 'validate_tuner' op that can be called to verify all tuners
+> > are configured correctly.
+> 
+> You're wanting to create a very complex patchset just to justify that replacing
+> from -EINVAL to a bool is the right thing to do. It isn't. The point is that:
+> if, for any reason, an ioctl fails, it should return an _error_, and _not_ a boolean.
 
-    NTSC    ~53us
-    PAL     ~57us
+True for an ioctl, not necessarily true for a subdev op. I think one thing that
+confuses the issue here is that we have no clear error code for subdev ops that
+return a 'not handled' code. To some extent ENOIOCTLCMD is used for that, but
+it's not consistently used. Only if all subdevs called from a v4l2_device_call_all
+type macro return 'not handled' should it actually return some error.
 
-and together
+> After fixing v4l2_device_call_all() to allow it to return errors, the next step
+> is to review all calls to it, and add a proper handler for the errors. s_type_addr,
+> s_config, g_tuner, s_tuner, etc should be handling errors.
+> 
+> In other words, the original v4l2_device_call_all() that were just replicating the
+> previous I2C behaviour is a mistake, as it doesn't provide any feedback about errors.
+> This needs to be replaced by something that it is aware of the errors. If you take
+> a look at v4l2-subdev, there's just one operation that doesn't return an error
+> (v4l2_subdev_internal_ops.unregistered, never called from drivers). All the others 
+> returns an error. However, the default usage is to simply discard errors. This is wrong.
+> Errors should be propagated.
 
-    ~110us  >  100us == 80% of 125us uframe time.
+It's not a mistake, it's just that nobody had the time to sort out the mess.
+The current behavior is basically bug-compatible with the pre-subdev days.
+It's only since all bridge drivers were converted to use subdevs that we can
+even think about cleaning up error handling.
 
-So those two devices can't work together simultaneously because the'd
-over allocate isochronous bandwidth.
+> 
+> AFAIK, there are only a two types error propagation that are currently needed:
+> 
+> 1) Call all subdevices. If one returns 0, assumes that the operation succeeded. This is
+>    used when there are multiple subdevs, but they're mutually exclusive: only one of them 
+>    will handle such call. It is needed by tuners and by controls, on devices that have 
+>    several subdevs providing different sets of controls.
+> 
+> 2) Call all subdevices until an error. Used when the same operation needs to be set
+>    on multiple subdevices. The subdevices that don't implement such operation should 
+>    return -ENOIOCTLCMD.
+> 
+> Btw, v4l2_device_call_subdevs_until_err() has currently a bug: if all sub-devices return
+> -ENOIOCTLCMD, it returns 0. It should, instead, return -ENOIOCTLCMD, in order to allow
+> the bridge drivers to return an error code to the userspace, to indicate that the
+> IOCTL was not handled.
+> 
+> Eventually, we may just use (2) for everything, if we patch all subdev drivers to return
+> -ENOIOCTLCMD if they are discarding a subdev call, but, in this case, the bridge drivers 
+> will need to replace the -ENOIOCTLCMD to an error code defined at the V4L2 spec (or we
+> can have a macro for that).
 
-80% seemed a bit arbitrary to me, and I've tried to raise it to 90% and
-both devices started to work together, so I though sometimes it would be
-a good idea for users to override hardcoded default of max 80% isoc
-bandwidth.
+Option 2 is the correct approach. If all subdev drivers return -ENOIOCTLCMD,
+then return an error. If one driver returns a non-0 and non-ENOIOCTLCMD error,
+then return that, otherwise return 0.
 
-After all, isn't it a user who should decide how to load the bus? If I
-can live with 10% or even 5% bulk bandwidth that should be ok. I'm a USB
-newcomer, but that 80% set in stone by USB 2.0 specification seems to be
-chosen pretty arbitrary to me, just to serve as a reasonable default.
+> A side note: the only error codes defined at the media API DocBook are: -EACCES, -EAGAIN,
+> -EBADF, -EBUSY, -EFAULT, -EIO, -EINTR, -EINVAL, -ENFILE, -ENOMEM, -ENOSPC, -ENOTTY, -ENXIO,
+> -EMFILE, -EPERM, -ERANGE and EPIPE. On most places, the error codes are defined per ioctl.
+> We need to review the DocBook and the drivers to be sure that they match the API specs, 
+> in terms of returned codes. It probably makes sense to create a section with the valid error
+> codes, remove most of error codes comments from each ioctl, and add a link to the global
+> error code section.
+> 
+> Ah, -ENODEV is not currently defined, but -ENXIO is defined on a few places. -ENXIO means 
+> "No such device or address". So, it may make sense to replace all -ENODEV to -ENXIO at 
+> the drivers.
 
-NOTE: for two streams with max_pkt_size=3072 (worst case) both time
-allocation would be 60us+60us=120us which is 96% periodic bandwidth
-leaving 4% for bulk and control.  Alan Stern suggested that bulk then
-would be problematic (less than 300*8 bittimes left per microframe), but
-I think that is still enough for control traffic.
+Right, all very lovely, but I just want to fix the broken tuner code. We all know
+error handling is a big mess and could keep a small army of janitors busy for a year.
 
-Signed-off-by: Kirill Smelkov <kirr@mns.spb.ru>
----
- drivers/usb/host/ehci-hcd.c   |    6 +++
- drivers/usb/host/ehci-sched.c |   17 +++----
- drivers/usb/host/ehci-sysfs.c |   98 +++++++++++++++++++++++++++++++++++++++--
- drivers/usb/host/ehci.h       |    2 +
- 4 files changed, 109 insertions(+), 14 deletions(-)
+For now I'll remove those two offending patches and redo the patch series without
+them.
 
-diff --git a/drivers/usb/host/ehci-hcd.c b/drivers/usb/host/ehci-hcd.c
-index 8306155..4ee62be 100644
---- a/drivers/usb/host/ehci-hcd.c
-+++ b/drivers/usb/host/ehci-hcd.c
-@@ -572,6 +572,12 @@ static int ehci_init(struct usb_hcd *hcd)
- 	hcc_params = ehci_readl(ehci, &ehci->caps->hcc_params);
- 
- 	/*
-+	 * by default set standard 80% (== 100 usec/uframe) max periodic
-+	 * bandwidth as required by USB 2.0
-+	 */
-+	ehci->uframe_periodic_max = 100;
-+
-+	/*
- 	 * hw default: 1K periodic list heads, one per frame.
- 	 * periodic_size can shrink by USBCMD update if hcc_params allows.
- 	 */
-diff --git a/drivers/usb/host/ehci-sched.c b/drivers/usb/host/ehci-sched.c
-index 6c9fbe3..2abf854 100644
---- a/drivers/usb/host/ehci-sched.c
-+++ b/drivers/usb/host/ehci-sched.c
-@@ -172,7 +172,7 @@ periodic_usecs (struct ehci_hcd *ehci, unsigned frame, unsigned uframe)
- 		}
- 	}
- #ifdef	DEBUG
--	if (usecs > 100)
-+	if (usecs > ehci->uframe_periodic_max)
- 		ehci_err (ehci, "uframe %d sched overrun: %d usecs\n",
- 			frame * 8 + uframe, usecs);
- #endif
-@@ -709,11 +709,8 @@ static int check_period (
- 	if (uframe >= 8)
- 		return 0;
- 
--	/*
--	 * 80% periodic == 100 usec/uframe available
--	 * convert "usecs we need" to "max already claimed"
--	 */
--	usecs = 100 - usecs;
-+	/* convert "usecs we need" to "max already claimed" */
-+	usecs = ehci->uframe_periodic_max - usecs;
- 
- 	/* we "know" 2 and 4 uframe intervals were rejected; so
- 	 * for period 0, check _every_ microframe in the schedule.
-@@ -1286,9 +1283,9 @@ itd_slot_ok (
- {
- 	uframe %= period;
- 	do {
--		/* can't commit more than 80% periodic == 100 usec */
-+		/* can't commit more than uframe_periodic_max usec */
- 		if (periodic_usecs (ehci, uframe >> 3, uframe & 0x7)
--				> (100 - usecs))
-+				> (ehci->uframe_periodic_max - usecs))
- 			return 0;
- 
- 		/* we know urb->interval is 2^N uframes */
-@@ -1345,7 +1342,7 @@ sitd_slot_ok (
- #endif
- 
- 		/* check starts (OUT uses more than one) */
--		max_used = 100 - stream->usecs;
-+		max_used = ehci->uframe_periodic_max - stream->usecs;
- 		for (tmp = stream->raw_mask & 0xff; tmp; tmp >>= 1, uf++) {
- 			if (periodic_usecs (ehci, frame, uf) > max_used)
- 				return 0;
-@@ -1354,7 +1351,7 @@ sitd_slot_ok (
- 		/* for IN, check CSPLIT */
- 		if (stream->c_usecs) {
- 			uf = uframe & 7;
--			max_used = 100 - stream->c_usecs;
-+			max_used = ehci->uframe_periodic_max - stream->c_usecs;
- 			do {
- 				tmp = 1 << uf;
- 				tmp <<= 8;
-diff --git a/drivers/usb/host/ehci-sysfs.c b/drivers/usb/host/ehci-sysfs.c
-index 347c8cb..fe212ef 100644
---- a/drivers/usb/host/ehci-sysfs.c
-+++ b/drivers/usb/host/ehci-sysfs.c
-@@ -74,21 +74,111 @@ static ssize_t store_companion(struct device *dev,
- }
- static DEVICE_ATTR(companion, 0644, show_companion, store_companion);
- 
-+
-+/*
-+ * Display / Set uframe_periodic_max
-+ */
-+static ssize_t show_uframe_periodic_max(struct device *dev,
-+					struct device_attribute *attr,
-+					char *buf)
-+{
-+	struct ehci_hcd		*ehci;
-+	int			n;
-+
-+	ehci = hcd_to_ehci(bus_to_hcd(dev_get_drvdata(dev)));
-+	n = scnprintf(buf, PAGE_SIZE, "%d\n", ehci->uframe_periodic_max);
-+	return n;
-+}
-+
-+
-+static ssize_t store_uframe_periodic_max(struct device *dev,
-+					struct device_attribute *attr,
-+					const char *buf, size_t count)
-+{
-+	struct ehci_hcd		*ehci;
-+	unsigned		uframe_periodic_max;
-+	unsigned		frame, uframe, allocated;
-+	unsigned long		flags;
-+	ssize_t			ret;
-+
-+	ehci = hcd_to_ehci(bus_to_hcd(dev_get_drvdata(dev)));
-+	if (sscanf(buf, "%u", &uframe_periodic_max) != 1)
-+		return -EINVAL;
-+
-+	if (uframe_periodic_max < 100 || uframe_periodic_max >= 125) {
-+		ehci_info(ehci, "rejecting invalid request for "
-+				"uframe_periodic_max=%u\n", uframe_periodic_max);
-+		return -EINVAL;
-+	}
-+
-+	ret = -EINVAL;
-+
-+	/*
-+	 * lock, so that our checking does not race with possible periodic
-+	 * bandwidth allocation through submitting new urbs.
-+	 */
-+	spin_lock_irqsave (&ehci->lock, flags);
-+
-+	/*
-+         * for request to decrease max periodic bandwidth, we have to check
-+         * every microframe in the schedule to see whether the decrease is
-+         * possible.
-+	 */
-+	if (uframe_periodic_max < ehci->uframe_periodic_max)
-+		for (frame = 0; frame < ehci->periodic_size; ++frame)
-+			for (uframe = 0; uframe < 7; ++uframe) {
-+				allocated = periodic_usecs (ehci, frame, uframe);
-+				if (allocated > uframe_periodic_max) {
-+					ehci_info(ehci,
-+		"cannot decrease uframe_periodic_max becase periodic bandwidth "
-+		"is already allocated (%u > %u)\n",
-+						  allocated, uframe_periodic_max);
-+					goto out_unlock;
-+				}
-+			}
-+
-+	/* increasing is always ok */
-+
-+	ehci_info(ehci, "setting max periodic bandwidth to %u%% "
-+			"(== %u usec/uframe)\n",
-+			100*uframe_periodic_max/125, uframe_periodic_max);
-+
-+	if (uframe_periodic_max != 100)
-+		ehci_warn(ehci, "max periodic bandwidth set is non-standard\n");
-+
-+	ehci->uframe_periodic_max = uframe_periodic_max;
-+	ret = count;
-+
-+out_unlock:
-+	spin_unlock_irqrestore (&ehci->lock, flags);
-+	return ret;
-+}
-+static DEVICE_ATTR(uframe_periodic_max, 0644, show_uframe_periodic_max, store_uframe_periodic_max);
-+
-+
- static inline int create_sysfs_files(struct ehci_hcd *ehci)
- {
-+	struct device	*controller = ehci_to_hcd(ehci)->self.controller;
- 	int	i = 0;
- 
- 	/* with integrated TT there is no companion! */
- 	if (!ehci_is_TDI(ehci))
--		i = device_create_file(ehci_to_hcd(ehci)->self.controller,
--				       &dev_attr_companion);
-+		i = device_create_file(controller, &dev_attr_companion);
-+	if (i)
-+		goto out;
-+
-+	i = device_create_file(controller, &dev_attr_uframe_periodic_max);
-+out:
- 	return i;
- }
- 
- static inline void remove_sysfs_files(struct ehci_hcd *ehci)
- {
-+	struct device	*controller = ehci_to_hcd(ehci)->self.controller;
-+
- 	/* with integrated TT there is no companion! */
- 	if (!ehci_is_TDI(ehci))
--		device_remove_file(ehci_to_hcd(ehci)->self.controller,
--				   &dev_attr_companion);
-+		device_remove_file(controller, &dev_attr_companion);
-+
-+	device_remove_file(controller, &dev_attr_uframe_periodic_max);
- }
-diff --git a/drivers/usb/host/ehci.h b/drivers/usb/host/ehci.h
-index bd6ff48..fa3129f 100644
---- a/drivers/usb/host/ehci.h
-+++ b/drivers/usb/host/ehci.h
-@@ -87,6 +87,8 @@ struct ehci_hcd {			/* one per controller */
- 	union ehci_shadow	*pshadow;	/* mirror hw periodic table */
- 	int			next_uframe;	/* scan periodic, start here */
- 	unsigned		periodic_sched;	/* periodic activity count */
-+	unsigned		uframe_periodic_max; /* max periodic time per uframe */
-+
- 
- 	/* list of itds & sitds completed while clock_frame was still active */
- 	struct list_head	cached_itd_list;
--- 
-1.7.6.rc3
+Regards,
 
+	Hans
