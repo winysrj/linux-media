@@ -1,71 +1,64 @@
 Return-path: <mchehab@pedra>
-Received: from smtp-vbr4.xs4all.nl ([194.109.24.24]:1548 "EHLO
-	smtp-vbr4.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752636Ab1FLTlX (ORCPT
+Received: from jacques.telenet-ops.be ([195.130.132.50]:53876 "EHLO
+	jacques.telenet-ops.be" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754220Ab1FMRNh (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 12 Jun 2011 15:41:23 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-Subject: Re: [RFCv4 PATCH 6/8] v4l2-ioctl.c: prefill tuner type for g_frequency and g/s_tuner.
-Date: Sun, 12 Jun 2011 21:41:12 +0200
-Cc: linux-media@vger.kernel.org, Mike Isely <isely@isely.net>,
-	Hans Verkuil <hans.verkuil@cisco.com>
-References: <1307876389-30347-1-git-send-email-hverkuil@xs4all.nl> <201106121746.58795.hverkuil@xs4all.nl> <4DF4F273.7000608@redhat.com>
-In-Reply-To: <4DF4F273.7000608@redhat.com>
+	Mon, 13 Jun 2011 13:13:37 -0400
+Message-ID: <4DF6453E.6010601@telenet.be>
+Date: Mon, 13 Jun 2011 19:13:34 +0200
+From: Bart Coninckx <bart.coninckx@telenet.be>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
+To: linux-media@vger.kernel.org
+Subject: Re: "dvb_ca adaptor 0: PC card did not respond :(" with Technotrend
+ S2-3200
+References: <4DF53E1F.7010903@telenet.be>
+In-Reply-To: <4DF53E1F.7010903@telenet.be>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
-Message-Id: <201106122141.12435.hverkuil@xs4all.nl>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Sunday, June 12, 2011 19:08:03 Mauro Carvalho Chehab wrote:
-> > I think in the longer term we need to change the spec so that:
-> > 
-> > 1) Opening a radio node no longer switches to radio mode. Instead, you need to
-> >    call VIDIOC_S_FREQUENCY for that.
-> > 2) When VIDIOC_S_FREQUENCY the type field should match the video/radio node it
-> >    is called on. So for /dev/radio type should be RADIO, for others it should be
-> >    ANALOG_TV. Otherwise -EINVAL is called.
-> > 
-> > So this might be a good feature removal for 3.2 or 3.3.
-> 
-> I'm OK with that.
+On 06/13/11 00:30, Bart Coninckx wrote:
+> Hi all,
+>
+>
+> hope you can help me this one, because there's not a whole of info about
+> similar problems to be found.
+>
+> I have a Technotrend S2-3200 with CI and on three different distros I
+> get this
+>
+> "dvb_ca adaptor 0: PC card did not respond :(
+>
+>
+> in /var/log/messages.
+>
+> I guess this is the reason why I cannot see encrypted channels on Linux.
+> Unencrypted works fine. In Windows XP the cord works fine too.
+>
+> I tried Opensuse 11.4, the latest Mythbuntu and the latest Mythdora.
+>
+> Can anyone give any hints on how to go about this?
+>
+>
+> thx!!!
+>
+> Bart
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at http://vger.kernel.org/majordomo-info.html
 
-How about this:
 
-diff --git a/Documentation/feature-removal-schedule.txt b/Documentation/feature-removal-schedule.txt
-index 1a9446b..9df0e09 100644
---- a/Documentation/feature-removal-schedule.txt
-+++ b/Documentation/feature-removal-schedule.txt
-@@ -600,3 +600,25 @@ Why:	Superseded by the UVCIOC_CTRL_QUERY ioctl.
- Who:	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
- 
- ----------------------------
-+
-+What:	For VIDIOC_S_FREQUENCY the type field must match the device node's type.
-+	If not, return -EINVAL.
-+When:	3.2
-+Why:	It makes no sense to switch the tuner to radio mode by calling
-+	VIDIOC_S_FREQUENCY on a video node, or to switch the tuner to tv mode by
-+	calling VIDIOC_S_FREQUENCY on a radio node. This is the first step of a
-+	move to more consistent handling of tv and radio tuners.
-+Who:	Hans Verkuil <hans.verkuil@cisco.com>
-+
-+----------------------------
-+
-+What:	Opening a radio device node will no longer automatically switch the
-+	tuner mode from tv to radio.
-+When:	3.3
-+Why:	Just opening a V4L device should not change the state of the hardware
-+	like that. It's very unexpected and against the V4L spec. Instead, you
-+	switch to radio mode by calling VIDIOC_S_FREQUENCY. This is the second
-+	and last step of the move to consistent handling of tv and radio tuners.
-+Who:	Hans Verkuil <hans.verkuil@cisco.com>
-+
-+----------------------------
+All,
 
-Regards,
+(risking to just talk to myself, but hey, that would not be the first time).
 
-	Hans
+
+I manually reinstalled the latest linuxtv media drivers, but this this 
+does not seem to bring any relieve.
+
+Any ideas much appreciated!
+
+
+B.
