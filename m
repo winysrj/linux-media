@@ -1,57 +1,40 @@
 Return-path: <mchehab@pedra>
-Received: from moutng.kundenserver.de ([212.227.126.186]:52433 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752690Ab1FGKCU (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 7 Jun 2011 06:02:20 -0400
-Date: Tue, 7 Jun 2011 12:02:18 +0200 (CEST)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Robert Jarzmik <robert.jarzmik@free.fr>
-cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	=?ISO-8859-1?Q?Teresa_G=E1mez?= <t.gamez@phytec.de>
-Subject: Re: [PATCH 1/2] V4L: mt9m111: propagate higher level abstraction
- down in functions
-In-Reply-To: <4DED36A8.5000300@free.fr>
-Message-ID: <Pine.LNX.4.64.1106071159030.31635@axis700.grange>
-References: <Pine.LNX.4.64.1106061918010.11169@axis700.grange>
- <4DED36A8.5000300@free.fr>
+Received: from sonicwall.viewcast.com ([207.235.112.4]:40765 "EHLO
+	sonicwall.viewcast.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753619Ab1FMQdb convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 13 Jun 2011 12:33:31 -0400
+Received: from sonicwall.viewcast.com (127.0.0.1) id huotl20171s6 for <linux-media@vger.kernel.org>; Mon, 13 Jun 2011 11:09:54 -0500 (envelope-from <ATucker@viewcast.com>)
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+Content-class: urn:content-classes:message
+Subject: Request for driver for new video capture card
+Date: Mon, 13 Jun 2011 11:12:08 -0500
+Message-ID: <251EB7D932DFCF4E90ABBA1658960CF802EDEEB3@vcst-exch01.ViewCast.Local>
+From: "Alex Tucker" <ATucker@viewcast.com>
+To: <linux-media@vger.kernel.org>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Mon, 6 Jun 2011, Robert Jarzmik wrote:
+Hello,
 
-> On 06/06/2011 07:20 PM, Guennadi Liakhovetski wrote:
-> > It is more convenient to propagate the higher level abstraction - the
-> > struct mt9m111 object into functions and then retrieve a pointer to
-> > the i2c client, if needed, than to do the reverse.
-> Agreed.
-> 
-> One minor point, you ofter replace :
-> > -	struct mt9m111 *mt9m111 = to_mt9m111(client);
-> > +	struct mt9m111 *mt9m111 = container_of(sd, struct mt9m111, subdev);
-> 
-> Why haven't you replaced the signature of to_mt9m111() into :
-> static struct mt9m111 *to_mt9m111(const struct v4l2_subdev *sd)
-> {
-> 	return container_of(sd, struct mt9m111, subdev);
-> }
-> 
-> This way, each to_mt9m111(client) will become to_mt9m111(sd), and the purpose
-> of to_mt9m111() will be kept. Wouldn't that be better ?
+My name is Alex Tucker and I am the engineering manager here at
+ViewCast.  We have released two new Osprey cards based on the Conexant
+CX23888 chipset - which is similar to the CX25878/BT878A chipset that
+has some support in the Open Source community.  We are interested in
+having Linux driver support for the new cards. 
 
-Because "container_of(sd, struct mt9m111, subdev)" is still easy enough to 
-write (copy-paste, of course:)) and understand, whereas 
-"container_of(i2c_get_clientdata(client), struct mt9m111, subdev)" is 
-already too awkward to look at, even though it is now only used at 4 
-locations.
+I found the  www.linuxdriverproject.org website where the process for
+having Linux  drivers created (at
+http://www.linuxdriverproject.org/foswiki/bin/view/Main/CompanyProcess )
+can be found.   
 
-A general question to you: from your comments I haven't understood: have 
-you also tested the patches or only reviewed them?
+We can provide some specifications, the card hardware itself, and some
+support for this endeavor.    Please contact me directly if interested.
 
-Thanks
-Guennadi
----
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
-http://www.open-technology.de/
+Thanks very much!
+Alex Tucker
+
+Engineering Manager
+atucker@viewcast.com
