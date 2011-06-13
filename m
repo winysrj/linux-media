@@ -1,52 +1,107 @@
 Return-path: <mchehab@pedra>
-Received: from mx1.redhat.com ([209.132.183.28]:35345 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752193Ab1FNCBx (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 13 Jun 2011 22:01:53 -0400
-Message-ID: <4DF6C10C.8070605@redhat.com>
-Date: Mon, 13 Jun 2011 23:01:48 -0300
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-MIME-Version: 1.0
-To: Devin Heitmueller <dheitmueller@kernellabs.com>
-CC: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Some fixes for alsa_stream
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Received: from smtp-vbr13.xs4all.nl ([194.109.24.33]:4042 "EHLO
+	smtp-vbr13.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752783Ab1FMMxc (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 13 Jun 2011 08:53:32 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Mike Isely <isely@isely.net>, Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [RFCv5 PATCH 7/9] tuner-core/v4l2-subdev: document that the type field has to be filled in.
+Date: Mon, 13 Jun 2011 14:53:18 +0200
+Message-Id: <626b719da313cde86fe7fa1248c112f0feb2e269.1307969319.git.hans.verkuil@cisco.com>
+In-Reply-To: <1307969600-31536-1-git-send-email-hverkuil@xs4all.nl>
+References: <1307969600-31536-1-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <6f25028df2439cef04708e3fd8d57b05662793a6.1307969319.git.hans.verkuil@cisco.com>
+References: <6f25028df2439cef04708e3fd8d57b05662793a6.1307969319.git.hans.verkuil@cisco.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Hi Devin,
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-I've made a few fixes for your alsa_stream.c, used on tvtime.
-They are at:
-	http://git.linuxtv.org/xawtv3.git
+The tuner ops g_frequency, g_tuner and s_tuner require that the tuner type
+field is filled in. Document this.
 
+The tuner-core doc is based on a patch from Mauro Carvalho Chehab <mchehab@redhat.com>.
 
-In particular, those are the more interesting ones:
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ drivers/media/video/tuner-core.c |   29 +++++++++++++++++++++++++++++
+ include/media/v4l2-subdev.h      |    7 +++++++
+ 2 files changed, 36 insertions(+), 0 deletions(-)
 
-commit a1bb5ade5c2b09d6d6d624d18025f9e2c4398495
-    alsa_stream: negotiate the frame rate
+diff --git a/drivers/media/video/tuner-core.c b/drivers/media/video/tuner-core.c
+index 3b30d80..cb007d3 100644
+--- a/drivers/media/video/tuner-core.c
++++ b/drivers/media/video/tuner-core.c
+@@ -1135,6 +1135,16 @@ static int tuner_s_frequency(struct v4l2_subdev *sd, struct v4l2_frequency *f)
+ 	return 0;
+ }
+ 
++/**
++ * tuner_g_frequency - Get the tuned frequency for the tuner
++ * @sd: pointer to struct v4l2_subdev
++ * @f: pointer to struct v4l2_frequency
++ *
++ * At return, the structure f will be filled with tuner frequency
++ * if the tuner matches the f->type.
++ * Note: f->type should be initialized before calling it.
++ * This is done by either video_ioctl2 or by the bridge driver.
++ */
+ static int tuner_g_frequency(struct v4l2_subdev *sd, struct v4l2_frequency *f)
+ {
+ 	struct tuner *t = to_tuner(sd);
+@@ -1157,6 +1167,16 @@ static int tuner_g_frequency(struct v4l2_subdev *sd, struct v4l2_frequency *f)
+ 	return 0;
+ }
+ 
++/**
++ * tuner_g_tuner - Fill in tuner information
++ * @sd: pointer to struct v4l2_subdev
++ * @vt: pointer to struct v4l2_tuner
++ *
++ * At return, the structure vt will be filled with tuner information
++ * if the tuner matches vt->type.
++ * Note: vt->type should be initialized before calling it.
++ * This is done by either video_ioctl2 or by the bridge driver.
++ */
+ static int tuner_g_tuner(struct v4l2_subdev *sd, struct v4l2_tuner *vt)
+ {
+ 	struct tuner *t = to_tuner(sd);
+@@ -1197,6 +1217,15 @@ static int tuner_g_tuner(struct v4l2_subdev *sd, struct v4l2_tuner *vt)
+ 	return 0;
+ }
+ 
++/**
++ * tuner_s_tuner - Set the tuner's audio mode
++ * @sd: pointer to struct v4l2_subdev
++ * @vt: pointer to struct v4l2_tuner
++ *
++ * Sets the audio mode if the tuner matches vt->type.
++ * Note: vt->type should be initialized before calling it.
++ * This is done by either video_ioctl2 or by the bridge driver.
++ */
+ static int tuner_s_tuner(struct v4l2_subdev *sd, struct v4l2_tuner *vt)
+ {
+ 	struct tuner *t = to_tuner(sd);
+diff --git a/include/media/v4l2-subdev.h b/include/media/v4l2-subdev.h
+index 2245020..2884e3e 100644
+--- a/include/media/v4l2-subdev.h
++++ b/include/media/v4l2-subdev.h
+@@ -175,6 +175,13 @@ struct v4l2_subdev_core_ops {
+ 
+ /* s_radio: v4l device was opened in radio mode.
+ 
++   g_frequency: freq->type must be filled in. Normally done by video_ioctl2
++	or the bridge driver.
++
++   g_tuner:
++   s_tuner: vt->type must be filled in. Normally done by video_ioctl2 or the
++	bridge driver.
++
+    s_type_addr: sets tuner type and its I2C addr.
+ 
+    s_config: sets tda9887 specific stuff, like port1, port2 and qss
+-- 
+1.7.1
 
-Without this patch, one of my em28xx devices doesn't work. It uses
-32 k rate, while the playback minimal rate is 44.1 k.
-I've changed the entire frame rate logic, to be more reliable, and to
-avoid needing to do frame rate conversion, if both capture and playback
-devices support the same rate.
-
-commit 8adb3d7442b22022b9ca897b0b914962adf41270
-    alsa_stream: Reduce CPU usage by putting the thread into blocking mode
-
-This is just an optimization. I can't see why are you using a non-block
-mode, as it works fine blocking.
-
-commit c67f7aeb86c1caceb7ab30439d169356ea5b1e72
-    alsa_stream.c: use mmap mode instead of the normal mode
-
-Instead of using the normal way, this patch implements mmap mode, and change
-it to be the default mode. This should also help to reduce CPU usage.
-
-Feel free to rebase those patches and apply into your tvtime tree, if you
-want.
-
-Cheers,
-Mauro.
