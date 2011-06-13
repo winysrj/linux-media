@@ -1,55 +1,38 @@
 Return-path: <mchehab@pedra>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:47033 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755490Ab1FAH2y convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 1 Jun 2011 03:28:54 -0400
-From: "JAIN, AMBER" <amber@ti.com>
-To: Sakari Ailus <sakari.ailus@iki.fi>
-CC: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	"Hiremath, Vaibhav" <hvaibhav@ti.com>
-Date: Wed, 1 Jun 2011 12:57:11 +0530
-Subject: RE: [PATCH] OMAP: V4L2: Remove GFP_DMA allocation as ZONE_DMA is
- not configured on OMAP
-Message-ID: <5A47E75E594F054BAF48C5E4FC4B92AB037A28AD31@dbde02.ent.ti.com>
-References: <1306835503-24631-1-git-send-email-amber@ti.com>
- <5A47E75E594F054BAF48C5E4FC4B92AB037B65850E@dbde02.ent.ti.com>,<20110601070733.GC4991@valkosipuli.localdomain>
-In-Reply-To: <20110601070733.GC4991@valkosipuli.localdomain>
-Content-Language: en-US
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Received: from mail-ey0-f174.google.com ([209.85.215.174]:50811 "EHLO
+	mail-ey0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753009Ab1FMWGM (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 13 Jun 2011 18:06:12 -0400
+Received: by eyx24 with SMTP id 24so1761073eyx.19
+        for <linux-media@vger.kernel.org>; Mon, 13 Jun 2011 15:06:11 -0700 (PDT)
 MIME-Version: 1.0
+From: Markus Partheymueller <mail@klee-parthy.de>
+Date: Tue, 14 Jun 2011 00:05:51 +0200
+Message-ID: <BANLkTinH57qGYmw2_DNM5NXX_PoMwK8v7w@mail.gmail.com>
+Subject: Status on DRX-K based tuner cards
+To: linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-As per Vaibhav's review comments, I have split the patch into 2 different (independent) patches:
-- one for omap_vout
-- and another for omap24xxcam.c (name changed to [PATCH] OMAP2: V4L2: Remove GFP_DMA allocation as ZONE_DMA is not configured on OMAP )
-If you have difficulty in finding it I can send it again.
+Hello there,
 
-Thanks,
-Amber
+I just wanted to ask whether there is a change in the situation of
+tuners used in e.g. Terratec H5 / WinTV HVR-930c / MSI Digivox Trio
+etc. As far as I can understand all the information available in
+various mailing lists and boards, the real problem was (or is) the
+DRX-K chip. Now there's a driver for Terratec H7 which includes some
+drxk-* source code. Is this a different chip or is this the desired
+source code for providing linux support for those devices?
 
-________________________________________
-From: Sakari Ailus [sakari.ailus@iki.fi]
-Sent: Wednesday, June 01, 2011 12:37 PM
-To: JAIN, AMBER
-Cc: linux-media@vger.kernel.org; Hiremath, Vaibhav
-Subject: Re: [PATCH] OMAP: V4L2: Remove GFP_DMA allocation as ZONE_DMA is not configured on OMAP
+I would really appreciate linux support for this kind of tuners - of
+course I've got one myself, but in general I hate the idea that there
+are products not available to the linux domain. Especially when it
+comes to TV - there are all kinds of custom VDR solutions featuring
+Linux, as well as many lightweight laptops like the eeePC, which can't
+access the huge variety of dvb tuner cards.
 
-On Tue, May 31, 2011 at 03:58:46PM +0530, JAIN, AMBER wrote:
-> I have tested it on OMAP4430 blaze and OMAP3430 SDP platforms.
->
-> I do not have the hardware to test omap24xxcam change. Can someone please
-> help me on this?
+Best Regards
 
-I have the hardware, but this driver is not testable right now as it is in
-the mainline since the board code for the camera is missing from N8[01]0
-(besides cbus driver AFAIR). However the change seems practically mandatory
-to me --- I can ack it if you send a patch against omap24xxcam.c, as your
-new patch no longer contains the change for omap24xxcam.c.
-
-Thanks.
-
---
-Sakari Ailus
-sakari dot ailus at iki dot fi
+Markus P.
