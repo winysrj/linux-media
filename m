@@ -1,108 +1,45 @@
 Return-path: <mchehab@pedra>
-Received: from wolverine02.qualcomm.com ([199.106.114.251]:64321 "EHLO
-	wolverine02.qualcomm.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751578Ab1FOVkC (ORCPT
+Received: from smtp-vbr13.xs4all.nl ([194.109.24.33]:4020 "EHLO
+	smtp-vbr13.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752713Ab1FMMxa (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 15 Jun 2011 17:40:02 -0400
-Date: Wed, 15 Jun 2011 14:39:58 -0700
-From: Larry Bassel <lbassel@codeaurora.org>
-To: Marek Szyprowski <m.szyprowski@samsung.com>
-Cc: 'Arnd Bergmann' <arnd@arndb.de>,
-	'Zach Pfeffer' <zach.pfeffer@linaro.org>,
-	'Daniel Walker' <dwalker@codeaurora.org>,
-	'Daniel Stone' <daniels@collabora.com>,
-	'Jesse Barker' <jesse.barker@linaro.org>,
-	'Mel Gorman' <mel@csn.ul.ie>,
-	'KAMEZAWA Hiroyuki' <kamezawa.hiroyu@jp.fujitsu.com>,
-	linux-kernel@vger.kernel.org,
-	'Michal Nazarewicz' <mina86@mina86.com>,
-	linaro-mm-sig@lists.linaro.org, linux-mm@kvack.org,
-	'Kyungmin Park' <kyungmin.park@samsung.com>,
-	'Ankita Garg' <ankita@in.ibm.com>,
-	'Andrew Morton' <akpm@linux-foundation.org>,
-	linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org
-Subject: Re: [Linaro-mm-sig] [PATCH 08/10] mm: cma: Contiguous Memory
- Allocator added
-Message-ID: <20110615213958.GB28032@labbmf-linux.qualcomm.com>
-References: <1307699698-29369-1-git-send-email-m.szyprowski@samsung.com>
- <20110614170158.GU2419@fooishbar.org>
- <BANLkTi=cJisuP8=_YSg4h-nsjGj3zsM7sg@mail.gmail.com>
- <201106142242.25157.arnd@arndb.de>
- <000901cc2b37$4c21f030$e465d090$%szyprowski@samsung.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <000901cc2b37$4c21f030$e465d090$%szyprowski@samsung.com>
+	Mon, 13 Jun 2011 08:53:30 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Mike Isely <isely@isely.net>, Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [RFCv5 PATCH 2/9] tuner-core: fix tuner_resume: use t->mode instead of t->type.
+Date: Mon, 13 Jun 2011 14:53:13 +0200
+Message-Id: <13d4fd3be0d093618389607db994d7c48fd5d070.1307969319.git.hans.verkuil@cisco.com>
+In-Reply-To: <1307969600-31536-1-git-send-email-hverkuil@xs4all.nl>
+References: <1307969600-31536-1-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <6f25028df2439cef04708e3fd8d57b05662793a6.1307969319.git.hans.verkuil@cisco.com>
+References: <6f25028df2439cef04708e3fd8d57b05662793a6.1307969319.git.hans.verkuil@cisco.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On 15 Jun 11 10:36, Marek Szyprowski wrote:
-> Hello,
-> 
-> On Tuesday, June 14, 2011 10:42 PM Arnd Bergmann wrote:
-> 
-> > On Tuesday 14 June 2011 20:58:25 Zach Pfeffer wrote:
-> > > I've seen this split bank allocation in Qualcomm and TI SoCs, with
-> > > Samsung, that makes 3 major SoC vendors (I would be surprised if
-> > > Nvidia didn't also need to do this) - so I think some configurable
-> > > method to control allocations is necessarily. The chips can't do
-> > > decode without it (and by can't do I mean 1080P and higher decode is
-> > > not functionally useful). Far from special, this would appear to be
-> > > the default.
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-We at Qualcomm have some platforms that have memory of different
-performance characteristics, some drivers will need a way of
-specifying that they need fast memory for an allocation (and would prefer
-an error if it is not available rather than a fallback to slower
-memory). It would also be bad if allocators who don't need fast
-memory got it "accidentally", depriving those who really need it.
+set_mode is called with t->type, which is the tuner type. Instead, use
+t->mode which is the actual tuner mode (i.e. radio vs tv).
 
-> > 
-> > Thanks for the insight, that's a much better argument than 'something
-> > may need it'. Are those all chips without an IOMMU or do we also
-> > need to solve the IOMMU case with split bank allocation?
-> > 
-> > I think I'd still prefer to see the support for multiple regions split
-> > out into one of the later patches, especially since that would defer
-> > the question of how to do the initialization for this case and make
-> > sure we first get a generic way.
-> > 
-> > You've convinced me that we need to solve the problem of allocating
-> > memory from a specific bank eventually, but separating it from the
-> > one at hand (contiguous allocation) should help getting the important
-> > groundwork in at first.
-> >
-> > The possible conflict that I still see with per-bank CMA regions are:
-> > 
-> > * It completely destroys memory power management in cases where that
-> >   is based on powering down entire memory banks.
-> 
-> I don't think that per-bank CMA regions destroys memory power management
-> more than the global CMA pool. Please note that the contiguous buffers
-> (or in general dma-buffers) right now are unmovable so they don't fit
-> well into memory power management.
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ drivers/media/video/tuner-core.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
 
-We also have platforms where a well-defined part of the memory
-can be powered off, and other parts can't (or won't). We need a way
-to steer the place allocations come from to the memory that won't be
-turned off (so that CMA allocations are not an obstacle to memory
-hotremove).
-
-> 
-> Best regards
-> -- 
-> Marek Szyprowski
-> Samsung Poland R&D Center
-> 
-> 
-> 
-> _______________________________________________
-> Linaro-mm-sig mailing list
-> Linaro-mm-sig@lists.linaro.org
-> http://lists.linaro.org/mailman/listinfo/linaro-mm-sig
-
-Larry Bassel
-
+diff --git a/drivers/media/video/tuner-core.c b/drivers/media/video/tuner-core.c
+index b634bab..3b30d80 100644
+--- a/drivers/media/video/tuner-core.c
++++ b/drivers/media/video/tuner-core.c
+@@ -1242,7 +1242,7 @@ static int tuner_resume(struct i2c_client *c)
+ 	tuner_dbg("resume\n");
+ 
+ 	if (!t->standby)
+-		if (set_mode(t, t->type) == 0)
++		if (set_mode(t, t->mode) == 0)
+ 			set_freq(t, 0);
+ 
+ 	return 0;
 -- 
-Sent by an employee of the Qualcomm Innovation Center, Inc.
-The Qualcomm Innovation Center, Inc. is a member of the Code Aurora Forum.
+1.7.1
+
