@@ -1,56 +1,64 @@
 Return-path: <mchehab@pedra>
-Received: from smtp-68.nebula.fi ([83.145.220.68]:44380 "EHLO
-	smtp-68.nebula.fi" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751561Ab1FAWHI (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 1 Jun 2011 18:07:08 -0400
-Date: Thu, 2 Jun 2011 01:07:03 +0300
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Bastian Hecht <hechtb@googlemail.com>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	"Felix v. Hundelshausen" <felix.v.hundelshausen@live.de>
-Subject: Re: Capabilities of the Omap3 ISP driver
-Message-ID: <20110601220703.GA6073@valkosipuli.localdomain>
-References: <BANLkTineUffG1yd3Ey30wr0xzAj3_Zd1KQ@mail.gmail.com>
+Received: from bear.ext.ti.com ([192.94.94.41]:43321 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751876Ab1FMGoW (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 13 Jun 2011 02:44:22 -0400
+Received: from dbdp20.itg.ti.com ([172.24.170.38])
+	by bear.ext.ti.com (8.13.7/8.13.7) with ESMTP id p5D6iJK3012592
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-media@vger.kernel.org>; Mon, 13 Jun 2011 01:44:21 -0500
+Received: from dbde70.ent.ti.com (localhost [127.0.0.1])
+	by dbdp20.itg.ti.com (8.13.8/8.13.8) with ESMTP id p5D6iIIr011295
+	for <linux-media@vger.kernel.org>; Mon, 13 Jun 2011 12:14:19 +0530 (IST)
+Message-ID: <4DF5B370.6050500@ti.com>
+Date: Mon, 13 Jun 2011 12:21:28 +0530
+From: Archit Taneja <archit@ti.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <BANLkTineUffG1yd3Ey30wr0xzAj3_Zd1KQ@mail.gmail.com>
+To: "Hiremath, Vaibhav" <hvaibhav@ti.com>
+CC: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Subject: Re: [PATCH 2/2] OMAP_VOUT: Create separate file for VRFB related
+ API's
+References: <1306479677-23540-1-git-send-email-archit@ti.com> <1306479677-23540-3-git-send-email-archit@ti.com> <4DF59642.8020703@ti.com> <19F8576C6E063C45BE387C64729E739404E2EEFCAA@dbde02.ent.ti.com>
+In-Reply-To: <19F8576C6E063C45BE387C64729E739404E2EEFCAA@dbde02.ent.ti.com>
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Sun, May 29, 2011 at 03:27:23PM +0200, Bastian Hecht wrote:
-> Hello Laurent,
-> 
-> I'm on to a project that needs two synced separate small cameras for
-> stereovision. It's for harvesting tomatoes in fact :)
-> 
-> I was thinking about realizing this on an DM3730 with 2 aptina csi2
-> cameras that are used in snapshot mode. The questions that arise are:
-> 
-> - is the ISP driver capable of running 2 concurrent cameras?
-> - is it possible to simulate a kind of video stream that is externally
-> triggered (I would use a gpio line that simply triggers 10 times a
-> sec) or would there arise problems with the csi2 protocoll (timeouts
-> or similar)?
+On Monday 13 June 2011 10:13 AM, Hiremath, Vaibhav wrote:
+>
+>> -----Original Message-----
+>> From: Taneja, Archit
+>> Sent: Monday, June 13, 2011 10:17 AM
+>> To: Hiremath, Vaibhav
+>> Cc: linux-media@vger.kernel.org
+>> Subject: Re: [PATCH 2/2] OMAP_VOUT: Create separate file for VRFB related
+>> API's
+>>
+>> Hi Vaibhav,
+>>
+>> On Friday 27 May 2011 12:31 PM, Taneja, Archit wrote:
+>>> Introduce omap_vout_vrfb.c and omap_vout_vrfb.h, for all VRFB related
+>> API's,
+>>> making OMAP_VOUT driver independent from VRFB. This is required for
+>> OMAP4 DSS,
+>>> since OMAP4 doesn't have VRFB block.
+>>>
+>>> Added new enum vout_rotation_type and "rotation_type" member to
+>> omapvideo_info,
+>>> this is initialized based on the arch type in omap_vout_probe. The
+>> rotation_type
+>>> var is now used to choose between vrfb and non-vrfb calls.
+>>
+>> Any comments on this patch?
+>>
+> Archit,
+>
+> Last week I had to park this due to some high priority issue, today I am going to validate these patches and will respond you.
+> Code implementation point of view, this patch looks ok. And I believe you will incorporate my comments on first patch.
 
-Hi Bastian,
+Oh okay, great.
 
-As Laurent poonted out, the DM3730 doesn't support CSI2. This is really
-unfortunate as many sensors tend to use that interface nowadays. I wonder if
-there would be alternative sensors available that would use parallel
-interface instead. On the other hand, then you can't receive two streams
-simultaneously using a single OMAP without special arrangements.
+Thanks,
+Archit
 
-If interleaved exposure start is out of question you'll need more than one
-OMAP. :I Or somehow get OMAP 36x0s. They do have dual CSI2 receivers.
-
-To the latter question: I don't think the CSI2 protocol has any issues with
-this kind of use.
-
-Kind regards,
-
--- 
-Sakari Ailus
-sakari dot ailus at iki dot fi
