@@ -1,88 +1,42 @@
 Return-path: <mchehab@pedra>
-Received: from mx1.redhat.com ([209.132.183.28]:46704 "EHLO mx1.redhat.com"
+Received: from smtp6-g21.free.fr ([212.27.42.6]:42030 "EHLO smtp6-g21.free.fr"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751343Ab1FHQ6h (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 8 Jun 2011 12:58:37 -0400
-Message-ID: <4DEFAA2F.1010100@redhat.com>
-Date: Wed, 08 Jun 2011 13:58:23 -0300
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
+	id S1751831Ab1FMS2B (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 13 Jun 2011 14:28:01 -0400
+Message-ID: <4DF656A7.5020709@free.fr>
+Date: Mon, 13 Jun 2011 20:27:51 +0200
+From: Robert Jarzmik <robert.jarzmik@free.fr>
+Reply-To: robert.jarzmik@free.fr
 MIME-Version: 1.0
-To: Greg KH <greg@kroah.com>
-CC: Stephen Rothwell <sfr@canb.auug.org.au>,
-	linux-next@vger.kernel.org, linux-kernel@vger.kernel.org,
-	"Igor M. Liplianin" <liplianin@netup.ru>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: linux-next: build failure after merge of the staging.current
- tree
-References: <20110608114130.444a7f99.sfr@canb.auug.org.au> <20110608161127.GD21645@kroah.com>
-In-Reply-To: <20110608161127.GD21645@kroah.com>
-Content-Type: text/plain; charset=ISO-8859-1
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+CC: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	=?ISO-8859-1?Q?Teresa_G=E1mez?= <t.gamez@phytec.de>
+Subject: Re: [PATCH 1/2] V4L: mt9m111: propagate higher level abstraction
+ down in functions
+References: <Pine.LNX.4.64.1106061918010.11169@axis700.grange> <4DED36A8.5000300@free.fr> <Pine.LNX.4.64.1106071159030.31635@axis700.grange>
+In-Reply-To: <Pine.LNX.4.64.1106071159030.31635@axis700.grange>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Hi Greg,
+On 06/07/2011 12:02 PM, Guennadi Liakhovetski wrote:
+>
+> A general question to you: from your comments I haven't understood: have
+> you also tested the patches or only reviewed them?
 
-Em 08-06-2011 13:11, Greg KH escreveu:
-> On Wed, Jun 08, 2011 at 11:41:30AM +1000, Stephen Rothwell wrote:
->> Hi Greg,
->>
->> After merging the staging.current tree, today's linux-next build (x86_64
->> allmodconfig) failed like this:
->>
->> drivers/media/video/cx23885/cx23885-cards.c:28:28: fatal error: staging/altera.h: No such file or directory
->>
->> Caused by commit 85ab9ee946da ("Staging: altera: move .h file to proper
->> place").
->>
->> I have used the staging.current tree from next-20110607 for today.
-> 
-> Ok, sorry about that.
-> 
-> Mauro, Igor, why would another driver need to reference a .h file of a
-> staging driver?  I'll patch it right now to point to the proper place
-> (down in the staging tree), but it would be good to resolve this
-> "properly" somehow.
-> 
-> Next time, please never include a staging driver that isn't
-> self-contained, and don't create include/staging/ that's not acceptable.
+I had reviewed them so far.
 
-The altera driver were discussed for about two kernel cycles. When it was
-about to be merged upstrem, two people complained about having a FPGA firmware 
-driver inside the Linux Kernel. However, this driver is essential in order to load
-the firmware for a DVB device. So, to avoid postponing the merge for yet another
-kernel cycle, I've moved the offending part to staging, and asked for those
-two people to provide us a new solution up to the next merge window, otherwise, it
-would be moved it to the proper place.
+Now, please have my :
+Acked-by: Robert Jarzmik <robert.jarzmik@free.fr>
 
-Basically, this driver is used to load the FPGA firmware for the CI module that 
-de-scrambles DVB-C/DVB-T/DVB-S streams, used by some cx23885 devices.
+The ack includes a test done on my platform, with a suspend in the 
+middle of an image capture. The system wakes up and sends back the 
+captured image without a problem.
+The test is for your 2 patch series : "mt9m111: propagate higher level 
+abstraction down in functions" and v2 of "pxa-camera: minor updates".
 
-Basically, cx23885 gets the firmware file via request_firmware() and uses the
-altera module to load it. After loaded, the altera-ci driver implements the logic
-to talk with the CI hardware.
+Cheers.
 
-There's no Coding Style or any other troubles on this driver that I'm aware,
-except that the altera driver also allows loading FPGA firmwares via LPT port.
-
-The main argue is that there are some userspace tools available to program a
-FPGA hardware, but the problem is that the cx23885 needs to command the firmware
-load, as it needs to occur when the device is booted (or resumed).
-
-There were some discussions about that at LKML:
-	https://lkml.org/lkml/2011/3/7/270
-
->From my side, I think that the driver is doing the right approach. Using a different
-logic will make harder to sync userspace with kernelspace and will require an
-specialized userspace application for just a few device types (just two of the
-30 boards supported by cx23885 currently needs it).
-
-Igor,
-
-Could you please prepare a patch against linux-next moving it to the proper place?
-It is probably better to apply such patch at Greg's tree, as he has two patches
-touching at the altera include files. Also, please get rid of the parallel port
-support, as you don't need it for cx23885.
-
-Thanks,
-Mauro.
+--
+Robert
