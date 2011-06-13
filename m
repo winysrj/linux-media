@@ -1,189 +1,57 @@
 Return-path: <mchehab@pedra>
-Received: from mx1.redhat.com ([209.132.183.28]:50850 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751576Ab1FHUZO (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 8 Jun 2011 16:25:14 -0400
-Received: from int-mx02.intmail.prod.int.phx2.redhat.com (int-mx02.intmail.prod.int.phx2.redhat.com [10.5.11.12])
-	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id p58KPE1J016036
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
-	for <linux-media@vger.kernel.org>; Wed, 8 Jun 2011 16:25:14 -0400
-Received: from pedra (vpn-10-126.rdu.redhat.com [10.11.10.126])
-	by int-mx02.intmail.prod.int.phx2.redhat.com (8.13.8/8.13.8) with ESMTP id p58KP4Ui024316
-	for <linux-media@vger.kernel.org>; Wed, 8 Jun 2011 16:25:13 -0400
-Date: Wed, 8 Jun 2011 17:23:03 -0300
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: [PATCH 06/13] [media] Docbook/ca.xml: match section ID's with the
- reference links
-Message-ID: <20110608172303.69e87fbb@pedra>
-In-Reply-To: <cover.1307563765.git.mchehab@redhat.com>
-References: <cover.1307563765.git.mchehab@redhat.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
-To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
+Received: from mail-ey0-f174.google.com ([209.85.215.174]:53929 "EHLO
+	mail-ey0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754991Ab1FMWMv (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 13 Jun 2011 18:12:51 -0400
+Received: by eyx24 with SMTP id 24so1762486eyx.19
+        for <linux-media@vger.kernel.org>; Mon, 13 Jun 2011 15:12:50 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <BANLkTinH57qGYmw2_DNM5NXX_PoMwK8v7w@mail.gmail.com>
+References: <BANLkTinH57qGYmw2_DNM5NXX_PoMwK8v7w@mail.gmail.com>
+Date: Mon, 13 Jun 2011 18:12:49 -0400
+Message-ID: <BANLkTi=mURYJ78ETA1KKZjve=PNEP49ZOg@mail.gmail.com>
+Subject: Re: Status on DRX-K based tuner cards
+From: Devin Heitmueller <dheitmueller@kernellabs.com>
+To: Markus Partheymueller <mail@klee-parthy.de>
+Cc: linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Make sure that both ca.h.xml and ca.xml will match the same names for
-the sections/links.
+On Mon, Jun 13, 2011 at 6:05 PM, Markus Partheymueller
+<mail@klee-parthy.de> wrote:
+> Hello there,
+>
+> I just wanted to ask whether there is a change in the situation of
+> tuners used in e.g. Terratec H5 / WinTV HVR-930c / MSI Digivox Trio
+> etc. As far as I can understand all the information available in
+> various mailing lists and boards, the real problem was (or is) the
+> DRX-K chip. Now there's a driver for Terratec H7 which includes some
+> drxk-* source code. Is this a different chip or is this the desired
+> source code for providing linux support for those devices?
+>
+> I would really appreciate linux support for this kind of tuners - of
+> course I've got one myself, but in general I hate the idea that there
+> are products not available to the linux domain. Especially when it
+> comes to TV - there are all kinds of custom VDR solutions featuring
+> Linux, as well as many lightweight laptops like the eeePC, which can't
+> access the huge variety of dvb tuner cards.
 
-This way, it is now possible to identify API spec gaps:
+In the case of the drx-k, the problem is no longer with the chipset
+vendor - they have provided source code under a license that will
+permit merging into an upstream kernel.
 
-Error: no ID for constraint linkend: ca-pid.
-Error: no ID for constraint linkend: ca-pid.
-Error: no ID for constraint linkend: CA_RESET.
-Error: no ID for constraint linkend: CA_GET_CAP.
-Error: no ID for constraint linkend: CA_GET_SLOT_INFO.
-Error: no ID for constraint linkend: CA_GET_DESCR_INFO.
-Error: no ID for constraint linkend: CA_GET_MSG.
-Error: no ID for constraint linkend: CA_SEND_MSG.
-Error: no ID for constraint linkend: CA_SET_DESCR.
-Error: no ID for constraint linkend: CA_SET_PID.
+The problem at this point is simply a lack of developers who are both
+qualified and willing to do the work.  A secondary problem is that
+even if somebody gets a board working, a huge refactoring of the code
+is required in order for it to be accepted upstream.  This for example
+is why the drx-j (the ATSC/QAM equivalent to the drxk-) isn't in the
+mainline kernel despite there having been an out-of-tree GPL driver
+available for almost a year.
 
-Basically, in this case, no CA ioctl is described at the specs, and one
-file structure (ca-pid) is missing.
+Devin
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
-
-diff --git a/Documentation/DocBook/media/Makefile b/Documentation/DocBook/media/Makefile
-index 18604dd..249edd3 100644
---- a/Documentation/DocBook/media/Makefile
-+++ b/Documentation/DocBook/media/Makefile
-@@ -150,7 +150,7 @@ DVB_DOCUMENTED = \
- 	-e "s,\(define\s\+\)\(DTV_[A-Z0-9_]\+\)\(\s\+[0-9]\+\),\1\<link linkend=\"\2\">\2\<\/link\>\3,g" \
- 	-e "s,<link linkend=\".*\">\(DTV_IOCTL_MAX_MSGS\|dtv_cmds_h\)<\/link>,\1,g" \
- 	-e ":a;s/\(linkend=\".*\)_\(.*\">\)/\1-\2/;ta" \
--	-e "s,\(audio-mixer\|audio-karaoke\|audio-status\)-t,\1,g" \
-+	-e "s,\(audio-mixer\|audio-karaoke\|audio-status\|ca-slot-info\|ca-descr-info\|ca-caps\|ca-msg\|ca-descr\|ca-pid\)-t,\1,g" \
- 	-e "s,DTV-ISDBT-LAYER[A-C],DTV-ISDBT-LAYER,g" \
- 	-e "s,\(define\s\+\)\([A-Z0-9_]\+\)\(\s\+_IO\),\1\<link linkend=\"\2\">\2\<\/link\>\3,g" \
- 
-diff --git a/Documentation/DocBook/media/dvb/ca.xml b/Documentation/DocBook/media/dvb/ca.xml
-index b1f1d2f..143ec5b 100644
---- a/Documentation/DocBook/media/dvb/ca.xml
-+++ b/Documentation/DocBook/media/dvb/ca.xml
-@@ -8,73 +8,72 @@ including <emphasis role="tt">linux/dvb/ca.h</emphasis> in your application.
- <title>CA Data Types</title>
- 
- 
--<section id="ca_slot_info_t">
-+<section id="ca-slot-info">
- <title>ca_slot_info_t</title>
-  <programlisting>
-- /&#x22C6; slot interface types and info &#x22C6;/
-+typedef struct ca_slot_info {
-+	int num;               /&#x22C6; slot number &#x22C6;/
- 
-- typedef struct ca_slot_info_s {
--	 int num;               /&#x22C6; slot number &#x22C6;/
-+	int type;              /&#x22C6; CA interface this slot supports &#x22C6;/
-+#define CA_CI            1     /&#x22C6; CI high level interface &#x22C6;/
-+#define CA_CI_LINK       2     /&#x22C6; CI link layer level interface &#x22C6;/
-+#define CA_CI_PHYS       4     /&#x22C6; CI physical layer level interface &#x22C6;/
-+#define CA_DESCR         8     /&#x22C6; built-in descrambler &#x22C6;/
-+#define CA_SC          128     /&#x22C6; simple smart card interface &#x22C6;/
- 
--	 int type;           /&#x22C6; CA interface this slot supports &#x22C6;/
-- #define CA_CI            1  /&#x22C6; CI high level interface &#x22C6;/
-- #define CA_CI_LINK       2  /&#x22C6; CI link layer level interface &#x22C6;/
-- #define CA_CI_PHYS       4  /&#x22C6; CI physical layer level interface &#x22C6;/
-- #define CA_SC          128  /&#x22C6; simple smart card interface &#x22C6;/
--
--	 unsigned int flags;
-- #define CA_CI_MODULE_PRESENT 1 /&#x22C6; module (or card) inserted &#x22C6;/
-- #define CA_CI_MODULE_READY   2
-- } ca_slot_info_t;
-+	unsigned int flags;
-+#define CA_CI_MODULE_PRESENT 1 /&#x22C6; module (or card) inserted &#x22C6;/
-+#define CA_CI_MODULE_READY   2
-+} ca_slot_info_t;
- </programlisting>
- 
- </section>
--<section id="ca_descr_info_t">
-+<section id="ca-descr-info">
- <title>ca_descr_info_t</title>
-- <programlisting>
-- typedef struct ca_descr_info_s {
--	 unsigned int num;  /&#x22C6; number of available descramblers (keys) &#x22C6;/
--	 unsigned int type; /&#x22C6; type of supported scrambling system &#x22C6;/
-- #define CA_ECD           1
-- #define CA_NDS           2
-- #define CA_DSS           4
-- } ca_descr_info_t;
-+<programlisting>
-+typedef struct ca_descr_info {
-+	unsigned int num;  /&#x22C6; number of available descramblers (keys) &#x22C6;/
-+	unsigned int type; /&#x22C6; type of supported scrambling system &#x22C6;/
-+#define CA_ECD           1
-+#define CA_NDS           2
-+#define CA_DSS           4
-+} ca_descr_info_t;
- </programlisting>
- 
- </section>
--<section id="ca_cap_t">
--<title>ca_cap_t</title>
-- <programlisting>
-- typedef struct ca_cap_s {
--	 unsigned int slot_num;  /&#x22C6; total number of CA card and module slots &#x22C6;/
--	 unsigned int slot_type; /&#x22C6; OR of all supported types &#x22C6;/
--	 unsigned int descr_num; /&#x22C6; total number of descrambler slots (keys) &#x22C6;/
--	 unsigned int descr_type;/&#x22C6; OR of all supported types &#x22C6;/
-+<section id="ca-caps">
-+<title>ca_caps_t</title>
-+<programlisting>
-+typedef struct ca_cap_s {
-+	unsigned int slot_num;  /&#x22C6; total number of CA card and module slots &#x22C6;/
-+	unsigned int slot_type; /&#x22C6; OR of all supported types &#x22C6;/
-+	unsigned int descr_num; /&#x22C6; total number of descrambler slots (keys) &#x22C6;/
-+	unsigned int descr_type;/&#x22C6; OR of all supported types &#x22C6;/
-  } ca_cap_t;
- </programlisting>
- 
- </section>
--<section id="ca_msg_t">
-+<section id="ca-msg">
- <title>ca_msg_t</title>
-- <programlisting>
-- /&#x22C6; a message to/from a CI-CAM &#x22C6;/
-- typedef struct ca_msg_s {
--	 unsigned int index;
--	 unsigned int type;
--	 unsigned int length;
--	 unsigned char msg[256];
-- } ca_msg_t;
-+<programlisting>
-+/&#x22C6; a message to/from a CI-CAM &#x22C6;/
-+typedef struct ca_msg {
-+	unsigned int index;
-+	unsigned int type;
-+	unsigned int length;
-+	unsigned char msg[256];
-+} ca_msg_t;
- </programlisting>
- 
- </section>
--<section id="ca_descr_t">
-+<section id="ca-descr">
- <title>ca_descr_t</title>
-- <programlisting>
-- typedef struct ca_descr_s {
--	 unsigned int index;
--	 unsigned int parity;
--	 unsigned char cw[8];
-- } ca_descr_t;
-+<programlisting>
-+typedef struct ca_descr {
-+	unsigned int index;
-+	unsigned int parity;
-+	unsigned char cw[8];
-+} ca_descr_t;
- </programlisting>
-  </section></section>
- <section id="ca_function_calls">
 -- 
-1.7.1
-
-
+Devin J. Heitmueller - Kernel Labs
+http://www.kernellabs.com
