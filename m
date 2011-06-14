@@ -1,99 +1,121 @@
 Return-path: <mchehab@pedra>
-Received: from casper.infradead.org ([85.118.1.10]:39415 "EHLO
-	casper.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754812Ab1FBBel (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 1 Jun 2011 21:34:41 -0400
-Message-ID: <4DE6E8A7.2080305@infradead.org>
-Date: Wed, 01 Jun 2011 22:34:31 -0300
-From: Mauro Carvalho Chehab <mchehab@infradead.org>
+Received: from moutng.kundenserver.de ([212.227.17.9]:55001 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751569Ab1FNNuD (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 14 Jun 2011 09:50:03 -0400
+From: Arnd Bergmann <arnd@arndb.de>
+To: Marek Szyprowski <m.szyprowski@samsung.com>
+Subject: Re: [PATCH 08/10] mm: cma: Contiguous Memory Allocator added
+Date: Tue, 14 Jun 2011 15:49:29 +0200
+Cc: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+	linux-media@vger.kernel.org, linux-mm@kvack.org,
+	linaro-mm-sig@lists.linaro.org,
+	"'Michal Nazarewicz'" <mina86@mina86.com>,
+	"'Kyungmin Park'" <kyungmin.park@samsung.com>,
+	"'Andrew Morton'" <akpm@linux-foundation.org>,
+	"'KAMEZAWA Hiroyuki'" <kamezawa.hiroyu@jp.fujitsu.com>,
+	"'Ankita Garg'" <ankita@in.ibm.com>,
+	"'Daniel Walker'" <dwalker@codeaurora.org>,
+	"'Mel Gorman'" <mel@csn.ul.ie>,
+	"'Jesse Barker'" <jesse.barker@linaro.org>
+References: <1307699698-29369-1-git-send-email-m.szyprowski@samsung.com> <201106101821.50437.arnd@arndb.de> <006a01cc29a9$1394c330$3abe4990$%szyprowski@samsung.com>
+In-Reply-To: <006a01cc29a9$1394c330$3abe4990$%szyprowski@samsung.com>
 MIME-Version: 1.0
-To: Kyungmin Park <kmpark@infradead.org>
-CC: =?ISO-8859-1?Q?Uwe_Kleine-K=F6nig?=
-	<u.kleine-koenig@pengutronix.de>, linux-media@vger.kernel.org,
-	kernel@pengutronix.de, Pawel Osciak <pawel@osciak.com>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	Marek Szyprowski <m.szyprowski@samsung.com>
-Subject: Re: [PATCH] [media] V4L/videobuf2-memops: use pr_debug for debug
- messages
-References: <1306959563-7108-1-git-send-email-u.kleine-koenig@pengutronix.de> <BANLkTimG=xP7qvpN7G8+Mmmy-JozEpyPNw@mail.gmail.com>
-In-Reply-To: <BANLkTimG=xP7qvpN7G8+Mmmy-JozEpyPNw@mail.gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8bit
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201106141549.29315.arnd@arndb.de>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Hi Kyungmin,
-
-Em 01-06-2011 21:50, Kyungmin Park escreveu:
-> Acked-by: Kyungmin Park <kyunginn.,park@samsung.com>
-
-As this patch is really trivial and makes sense, I've just applied it earlier
-today.
-
-> ---
+On Monday 13 June 2011, Marek Szyprowski wrote:
+> cm_alloc/free are definitely not meant to be called from device drivers.
+> They should be only considered as a backend for dma-mapping.
+>
+> 'Raw' contiguous memory block doesn't really make sense for the device
+> drivers. What the drivers require is a contiguous memory block that is
+> somehow mapped into respective bus address space, so dma-mapping 
+> framework is the right interface.
 > 
-> I think it's better to add the videobuf2 maintainer entry for proper
-> person to know the changes.
-> In this case, Marek is missing.
+> alloc_pages(..., GFP_CMA) looks nice but in fact it is really impractical.
+> The driver will need to map such buffer to dma context anyway, so imho
+> dma_alloc_attributed() will give the drivers much more flexibility. In
+> terms of dma-mapping the context argument isn't anything odd. 
+
+Ok.
+
+> If possible I would like to make cma something similar to 
+> declare_dma_coherent()&friends, so the board/platform/bus startup code
+> will just call declare_dma_contiguous() to enable support for cma for
+> particular devices.
+
+Sounds good, I like that.
+
+> > This interface looks flawed to me for multiple reasons:
+> > 
+> > * It requires you to call three distinct functions in order to do one
+> >   thing, and they all take the same arguments (more or less). Why not
+> >   have one function call at the latest possible point where you can
+> >   still change the memory attributes, and have everything else
+> >   happen automatically?
 > 
-> If any objection, I will make a patch.
+> Initialization part will be definitely simplified, I must confess that I
+> was in hurry to post the patches before the weekend and just forgot to
+> cleanup this part...
 
-No objections from my side. Having the proper driver maintainers written at MAINTAINERS
-help people when submitting patches to send the patch to the proper driver maintainer.
+Fair enough. In cases like this, it's often good to add a TODO section
+to the patch description, or a FIXME comment in the patch itself.
 
-Thanks,
-Mauro.
-
+> > * It requires you to pass the exact location of the area. I can see why
+> >   you want that on certain machines that require DMA areas to be spread
+> >   across multiple memory buses, but IMHO it's not appropriate for a
+> >   generic API.
 > 
-> Thank you,
-> Kyungmin Park
-> 
-> 2011/6/2 Uwe Kleine-König <u.kleine-koenig@pengutronix.de>:
->> Otherwise they clutter the dmesg buffer even on a production kernel.
->>
->> Signed-off-by: Uwe Kleine-König <u.kleine-koenig@pengutronix.de>
->> ---
->>  drivers/media/video/videobuf2-memops.c |    6 +++---
->>  1 files changed, 3 insertions(+), 3 deletions(-)
->>
->> diff --git a/drivers/media/video/videobuf2-memops.c b/drivers/media/video/videobuf2-memops.c
->> index 5370a3a..1987e1b1 100644
->> --- a/drivers/media/video/videobuf2-memops.c
->> +++ b/drivers/media/video/videobuf2-memops.c
->> @@ -177,7 +177,7 @@ int vb2_mmap_pfn_range(struct vm_area_struct *vma, unsigned long paddr,
->>
->>        vma->vm_ops->open(vma);
->>
->> -       printk(KERN_DEBUG "%s: mapped paddr 0x%08lx at 0x%08lx, size %ld\n",
->> +       pr_debug("%s: mapped paddr 0x%08lx at 0x%08lx, size %ld\n",
->>                        __func__, paddr, vma->vm_start, size);
->>
->>        return 0;
->> @@ -195,7 +195,7 @@ static void vb2_common_vm_open(struct vm_area_struct *vma)
->>  {
->>        struct vb2_vmarea_handler *h = vma->vm_private_data;
->>
->> -       printk(KERN_DEBUG "%s: %p, refcount: %d, vma: %08lx-%08lx\n",
->> +       pr_debug("%s: %p, refcount: %d, vma: %08lx-%08lx\n",
->>               __func__, h, atomic_read(h->refcount), vma->vm_start,
->>               vma->vm_end);
->>
->> @@ -213,7 +213,7 @@ static void vb2_common_vm_close(struct vm_area_struct *vma)
->>  {
->>        struct vb2_vmarea_handler *h = vma->vm_private_data;
->>
->> -       printk(KERN_DEBUG "%s: %p, refcount: %d, vma: %08lx-%08lx\n",
->> +       pr_debug("%s: %p, refcount: %d, vma: %08lx-%08lx\n",
->>               __func__, h, atomic_read(h->refcount), vma->vm_start,
->>               vma->vm_end);
->>
->> --
->> 1.7.5.3
->>
->> --
->> To unsubscribe from this list: send the line "unsubscribe linux-media" in
->> the body of a message to majordomo@vger.kernel.org
->> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->>
+> IMHO we can also use some NULL context to indicate some global, system 
+> wide CMA area and again -> in terms of dma-mapping api having a context 
+> isn't anything uncommon.
 
+Please explain the exact requirements that lead you to defining multiple
+contexts. My feeling is that in most cases we don't need them and can
+simply live with a single area. Depending on how obscure the cases are
+where we do need something beyond that, we can then come up with
+special-case solutions for them.
+
+> > * It requires you to hardcode the size in a machine specific source file.
+> >   This probably seems to be a natural thing to do when you have worked a
+> >   lot on the ARM architecture, but it's really not. We really want to
+> >   get rid of board files and replace them with generic probing based on
+> >   the device tree, and the size of the area is more policy than a property
+> >   of the hardware that can be accurately described in the device tree or
+> >   a board file.
+> 
+> The problem is the fact that right now, we still have board files and we
+> have to live with them for a while (with all advantages and disadvantages).
+> I hope that you won't require me to rewrite the whole support for all ARM 
+> platforms to get rid of board files to get CMA merged ;)
+
+Of course not. But we need to know what we want a platform with device
+tree support to look like when it's using CMA, so we don't make it
+harder to change the platforms over than it already is.
+
+> I see no problem defining CMA areas in device tree, as this is something
+> really specific to particular board configuration. 
+
+The problem with defining CMA areas in the device tree is that it's not
+a property of the hardware, but really policy. The device tree file
+should not contain anything related to a specific operating system
+because you might want to boot something on the board that doesn't
+know about CMA, and even when you only care about using Linux, the
+implementation might change to the point where hardcoded CMA areas
+no longer make sense.
+
+IMHO we should first aim for a solution that works almost everywhere
+without the kernel knowing what board it's running on, and then we
+can add quirks for devices that have special requirements. I think
+the situation is similar to the vmalloc virtual address space, which
+normally has a hardcoded size that works almost everywhere, but there
+are certain drivers etc that require much more, or there are situations
+where you want to make it smaller in order to avoid highmem. 
+
+	Arnd
