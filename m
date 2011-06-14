@@ -1,117 +1,171 @@
 Return-path: <mchehab@pedra>
-Received: from mx1.redhat.com ([209.132.183.28]:28286 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751901Ab1FPTbx (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 16 Jun 2011 15:31:53 -0400
-From: Jarod Wilson <jarod@redhat.com>
+Received: from smtp-vbr6.xs4all.nl ([194.109.24.26]:4272 "EHLO
+	smtp-vbr6.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753866Ab1FNHOx (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 14 Jun 2011 03:14:53 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
 To: linux-media@vger.kernel.org
-Cc: Jarod Wilson <jarod@redhat.com>, devel@driverdev.osuosl.org
-Subject: [PATCH] [staging] lirc_serial: allocate irq at init time
-Date: Thu, 16 Jun 2011 15:31:46 -0400
-Message-Id: <1308252706-13879-1-git-send-email-jarod@redhat.com>
+Cc: Mike Isely <isely@isely.net>, Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [RFCv6 PATCH 01/10] tuner-core: fix s_std and s_tuner.
+Date: Tue, 14 Jun 2011 09:14:33 +0200
+Message-Id: <eff4df001ab17e78b7413b9ed51661777523dbac.1308035134.git.hans.verkuil@cisco.com>
+In-Reply-To: <1308035682-20447-1-git-send-email-hverkuil@xs4all.nl>
+References: <1308035682-20447-1-git-send-email-hverkuil@xs4all.nl>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-There's really no good reason not to just grab the desired IRQ at driver
-init time, instead of every time the lirc device node is accessed. This
-also improves the speed and reliability with which a serial transmitter
-can operate, as back-to-back transmission attempts (i.e., channel change
-to a multi-digit channel) don't have to spend time acquiring and then
-releasing the IRQ for every digit, sometimes multiple times, if lircd
-has been told to use the min_repeat parameter.
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-CC: devel@driverdev.osuosl.org
-Signed-off-by: Jarod Wilson <jarod@redhat.com>
+Both s_std and s_tuner are broken because set_mode_freq is called before the
+new std (for s_std) and audmode (for s_tuner) are set.
+
+This patch splits set_mode_freq in a set_mode and a set_freq and in s_std/s_tuner
+first calls set_mode, and if that returns 0 (i.e. the mode is supported)
+then they set t->std/t->audmode and call set_freq.
+
+This fixes a bug where changing std or audmode would actually change it to
+the previous value.
+
+Discovered while testing analog TV standards for cx18 with a tda18271 tuner.
+
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
 ---
- drivers/staging/lirc/lirc_serial.c |   44 +++++++++++++++++------------------
- 1 files changed, 21 insertions(+), 23 deletions(-)
+ drivers/media/video/tuner-core.c |   59 ++++++++++++++++++++------------------
+ 1 files changed, 31 insertions(+), 28 deletions(-)
 
-diff --git a/drivers/staging/lirc/lirc_serial.c b/drivers/staging/lirc/lirc_serial.c
-index 1c3099b..805df91 100644
---- a/drivers/staging/lirc/lirc_serial.c
-+++ b/drivers/staging/lirc/lirc_serial.c
-@@ -838,7 +838,23 @@ static int hardware_init_port(void)
+diff --git a/drivers/media/video/tuner-core.c b/drivers/media/video/tuner-core.c
+index 5748d04..accd9d4 100644
+--- a/drivers/media/video/tuner-core.c
++++ b/drivers/media/video/tuner-core.c
+@@ -742,19 +742,15 @@ static inline int check_mode(struct tuner *t, enum v4l2_tuner_type mode)
+ }
  
- static int init_port(void)
+ /**
+- * set_mode_freq - Switch tuner to other mode.
+- * @client:	struct i2c_client pointer
++ * set_mode - Switch tuner to other mode.
+  * @t:		a pointer to the module's internal struct_tuner
+  * @mode:	enum v4l2_type (radio or TV)
+- * @freq:	frequency to set (0 means to use the previous one)
+  *
+  * If tuner doesn't support the needed mode (radio or TV), prints a
+  * debug message and returns -EINVAL, changing its state to standby.
+- * Otherwise, changes the state and sets frequency to the last value, if
+- * the tuner can sleep or if it supports both Radio and TV.
++ * Otherwise, changes the mode and returns 0.
+  */
+-static int set_mode_freq(struct i2c_client *client, struct tuner *t,
+-			 enum v4l2_tuner_type mode, unsigned int freq)
++static int set_mode(struct tuner *t, enum v4l2_tuner_type mode)
  {
--	int i, nlow, nhigh;
-+	int i, nlow, nhigh, result;
-+
-+	result = request_irq(irq, irq_handler,
-+			     IRQF_DISABLED | (share_irq ? IRQF_SHARED : 0),
-+			     LIRC_DRIVER_NAME, (void *)&hardware);
-+
-+	switch (result) {
-+	case -EBUSY:
-+		printk(KERN_ERR LIRC_DRIVER_NAME ": IRQ %d busy\n", irq);
-+		return -EBUSY;
-+	case -EINVAL:
-+		printk(KERN_ERR LIRC_DRIVER_NAME
-+		       ": Bad irq number or handler\n");
-+		return -EINVAL;
-+	default:
-+		break;
-+	};
+ 	struct analog_demod_ops *analog_ops = &t->fe.ops.analog_ops;
  
- 	/* Reserve io region. */
- 	/*
-@@ -893,34 +909,17 @@ static int init_port(void)
- 		printk(KERN_INFO LIRC_DRIVER_NAME  ": Manually using active "
- 		       "%s receiver\n", sense ? "low" : "high");
+@@ -770,17 +766,27 @@ static int set_mode_freq(struct i2c_client *client, struct tuner *t,
+ 		t->mode = mode;
+ 		tuner_dbg("Changing to mode %d\n", mode);
+ 	}
++	return 0;
++}
++
++/**
++ * set_freq - Set the tuner to the desired frequency.
++ * @t:		a pointer to the module's internal struct_tuner
++ * @freq:	frequency to set (0 means to use the current frequency)
++ */
++static void set_freq(struct tuner *t, unsigned int freq)
++{
++	struct i2c_client *client = v4l2_get_subdevdata(&t->sd);
++
+ 	if (t->mode == V4L2_TUNER_RADIO) {
+-		if (freq)
+-			t->radio_freq = freq;
+-		set_radio_freq(client, t->radio_freq);
++		if (!freq)
++			freq = t->radio_freq;
++		set_radio_freq(client, freq);
+ 	} else {
+-		if (freq)
+-			t->tv_freq = freq;
+-		set_tv_freq(client, t->tv_freq);
++		if (!freq)
++			freq = t->tv_freq;
++		set_tv_freq(client, freq);
+ 	}
+-
+-	return 0;
+ }
  
-+	dprintk("Interrupt %d, port %04x obtained\n", irq, io);
+ /*
+@@ -1076,10 +1082,9 @@ static void tuner_status(struct dvb_frontend *fe)
+ static int tuner_s_radio(struct v4l2_subdev *sd)
+ {
+ 	struct tuner *t = to_tuner(sd);
+-	struct i2c_client *client = v4l2_get_subdevdata(sd);
+ 
+-	if (set_mode_freq(client, t, V4L2_TUNER_RADIO, 0) == -EINVAL)
+-		return 0;
++	if (set_mode(t, V4L2_TUNER_RADIO) == 0)
++		set_freq(t, 0);
  	return 0;
  }
  
- static int set_use_inc(void *data)
+@@ -1111,25 +1116,22 @@ static int tuner_s_power(struct v4l2_subdev *sd, int on)
+ static int tuner_s_std(struct v4l2_subdev *sd, v4l2_std_id std)
  {
--	int result;
- 	unsigned long flags;
+ 	struct tuner *t = to_tuner(sd);
+-	struct i2c_client *client = v4l2_get_subdevdata(sd);
  
- 	/* initialize timestamp */
- 	do_gettimeofday(&lasttv);
+-	if (set_mode_freq(client, t, V4L2_TUNER_ANALOG_TV, 0) == -EINVAL)
++	if (set_mode(t, V4L2_TUNER_ANALOG_TV))
+ 		return 0;
  
--	result = request_irq(irq, irq_handler,
--			     IRQF_DISABLED | (share_irq ? IRQF_SHARED : 0),
--			     LIRC_DRIVER_NAME, (void *)&hardware);
+ 	t->std = std;
+ 	tuner_fixup_std(t);
 -
--	switch (result) {
--	case -EBUSY:
--		printk(KERN_ERR LIRC_DRIVER_NAME ": IRQ %d busy\n", irq);
--		return -EBUSY;
--	case -EINVAL:
--		printk(KERN_ERR LIRC_DRIVER_NAME
--		       ": Bad irq number or handler\n");
--		return -EINVAL;
--	default:
--		dprintk("Interrupt %d, port %04x obtained\n", irq, io);
--		break;
--	};
--
- 	spin_lock_irqsave(&hardware[type].lock, flags);
- 
- 	/* Set DLAB 0. */
-@@ -945,10 +944,6 @@ static void set_use_dec(void *data)
- 	soutp(UART_IER, sinp(UART_IER) &
- 	      (~(UART_IER_MSI|UART_IER_RLSI|UART_IER_THRI|UART_IER_RDI)));
- 	spin_unlock_irqrestore(&hardware[type].lock, flags);
--
--	free_irq(irq, (void *)&hardware);
--
--	dprintk("freed IRQ %d\n", irq);
++	set_freq(t, 0);
+ 	return 0;
  }
  
- static ssize_t lirc_write(struct file *file, const char *buf,
-@@ -1256,6 +1251,9 @@ exit_serial_exit:
- static void __exit lirc_serial_exit_module(void)
+ static int tuner_s_frequency(struct v4l2_subdev *sd, struct v4l2_frequency *f)
  {
- 	lirc_serial_exit();
-+
-+	free_irq(irq, (void *)&hardware);
-+
- 	if (iommap != 0)
- 		release_mem_region(iommap, 8 << ioshift);
- 	else
+ 	struct tuner *t = to_tuner(sd);
+-	struct i2c_client *client = v4l2_get_subdevdata(sd);
+-
+-	if (set_mode_freq(client, t, f->type, f->frequency) == -EINVAL)
+-		return 0;
+ 
++	if (set_mode(t, f->type) == 0)
++		set_freq(t, f->frequency);
+ 	return 0;
+ }
+ 
+@@ -1198,13 +1200,13 @@ static int tuner_g_tuner(struct v4l2_subdev *sd, struct v4l2_tuner *vt)
+ static int tuner_s_tuner(struct v4l2_subdev *sd, struct v4l2_tuner *vt)
+ {
+ 	struct tuner *t = to_tuner(sd);
+-	struct i2c_client *client = v4l2_get_subdevdata(sd);
+ 
+-	if (set_mode_freq(client, t, vt->type, 0) == -EINVAL)
++	if (set_mode(t, vt->type))
+ 		return 0;
+ 
+ 	if (t->mode == V4L2_TUNER_RADIO)
+ 		t->audmode = vt->audmode;
++	set_freq(t, 0);
+ 
+ 	return 0;
+ }
+@@ -1239,7 +1241,8 @@ static int tuner_resume(struct i2c_client *c)
+ 	tuner_dbg("resume\n");
+ 
+ 	if (!t->standby)
+-		set_mode_freq(c, t, t->type, 0);
++		if (set_mode(t, t->type) == 0)
++			set_freq(t, 0);
+ 
+ 	return 0;
+ }
 -- 
 1.7.1
 
