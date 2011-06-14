@@ -1,53 +1,64 @@
 Return-path: <mchehab@pedra>
-Received: from banach.math.auburn.edu ([131.204.45.3]:33277 "EHLO
-	banach.math.auburn.edu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751057Ab1FKEO4 (ORCPT
+Received: from mail-ew0-f46.google.com ([209.85.215.46]:63010 "EHLO
+	mail-ew0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750947Ab1FNNwM (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 11 Jun 2011 00:14:56 -0400
-Date: Fri, 10 Jun 2011 23:17:21 -0500 (CDT)
-From: Theodore Kilgore <kilgota@banach.math.auburn.edu>
-To: Xiaofan Chen <xiaofanc@gmail.com>
-cc: linux-usb@vger.kernel.org, linux-media@vger.kernel.org,
-	libusb-devel@lists.sourceforge.net
-Subject: Re: Improving kernel -> userspace (usbfs) usb device hand off
-In-Reply-To: <BANLkTinAfB_jiS+6f8Dqt4ZEK19ndv_nDA@mail.gmail.com>
-Message-ID: <alpine.LNX.2.00.1106102314000.11975@banach.math.auburn.edu>
-References: <20110610002103.GA7169@xanatos> <4DF1CDE1.4080303@redhat.com> <alpine.LNX.2.00.1106101206350.11487@banach.math.auburn.edu> <20110610183452.GV31396@legolas.emea.dhcp.ti.com> <alpine.LNX.2.00.1106101652050.11718@banach.math.auburn.edu>
- <BANLkTinAfB_jiS+6f8Dqt4ZEK19ndv_nDA@mail.gmail.com>
+	Tue, 14 Jun 2011 09:52:12 -0400
+Received: by ewy4 with SMTP id 4so2024860ewy.19
+        for <linux-media@vger.kernel.org>; Tue, 14 Jun 2011 06:52:11 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+In-Reply-To: <4DF7667C.9030502@redhat.com>
+References: <4DF6C10C.8070605@redhat.com>
+	<4DF758AF.3010301@redhat.com>
+	<4DF75C84.9000200@redhat.com>
+	<4DF7667C.9030502@redhat.com>
+Date: Tue, 14 Jun 2011 09:52:10 -0400
+Message-ID: <BANLkTi=9L+oxjpUaFo3ge0iqcZ2NCjJWWA@mail.gmail.com>
+Subject: Re: Some fixes for alsa_stream
+From: Devin Heitmueller <dheitmueller@kernellabs.com>
+To: Hans de Goede <hdegoede@redhat.com>
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=ISO-8859-1
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
+On Tue, Jun 14, 2011 at 9:47 AM, Hans de Goede <hdegoede@redhat.com> wrote:
+> Hmm, we really don't need more cmdline options IMHO, it is quite easy to
+> detect
+> if an alsa device supports mmap mode, and if not fall back to r/w mode, I
+> know
+> several programs which do that (some if which I've written the patches to do
+> this for myself).
 
+Agreed.
 
-On Sat, 11 Jun 2011, Xiaofan Chen wrote:
+>> It should be noticed that the driver tries first to access the alsa driver
+>> directly,
+>> by using hw:0,0 output device. If it fails, it falls back to plughw:0,0.
+>> I'm not sure
+>> what's the name of the pulseaudio output, but I suspect that both are just
+>> bypassing
+>> pulseaudio, with is good ;)
+>
+> Right this means you're just bypassing pulse audio, which for a tvcard +
+> tv-viewing
 
-> On Sat, Jun 11, 2011 at 6:43 AM, Theodore Kilgore
-> <kilgota@banach.math.auburn.edu> wrote:
-> > I do not believe that we have found the optimal solution, yet. The ideal
-> > thing would be some kind of hack which allows the kernel to be used when
-> > it is needed, and when it is not needed it does not interfere.
-> 
-> Just wondering if you can use libusb-1.0 for the user space still image
-> functionality.
-> 
-> libusb-1.0 offers the following functions to do that for you under Linux.
-> 
-> int 	libusb_kernel_driver_active (libusb_device_handle *dev, int interface)
->  	Determine if a kernel driver is active on an interface.
-> int 	libusb_detach_kernel_driver (libusb_device_handle *dev, int interface)
->  	Detach a kernel driver from an interface.
-> int 	libusb_attach_kernel_driver (libusb_device_handle *dev, int interface)
->  	Re-attach an interface's kernel driver, which was previously
-> detached using libusb_detach_kernel_driver().
-> 
-> So you can detach the kernel v4l2 driver at the beginning and later
-> re-attach it when you finish.
+Actually, the ALSA client libraries route through PulseAudio (as long
+as Pulse is running).  Basically PulseAudio is providing emulation for
+the ALSA interface even if you specify "hw:1,0" as the device.
 
-Well, then, this solves the problem, doesn't it? Of course, those who deal 
-with creating those "simple" and "user-friendly" GUI environments would 
-probably still do well if they would open a dialog box for dual-mode 
-hardware.
+> app is a reasonable thing to do. Defaulting to hw:0,0 makes no sense to me
+> though, we
+> should default to either the audio devices belonging to the video device (as
+> determined
+> through sysfs), or to alsa's default input (which will likely be
+> pulseaudio).
 
-Theodore Kilgore
+Mauro was talking about the output device, not the input device.
+
+Devin
+
+-- 
+Devin J. Heitmueller - Kernel Labs
+http://www.kernellabs.com
