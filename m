@@ -1,61 +1,78 @@
 Return-path: <mchehab@pedra>
-Received: from asmtpout021.mac.com ([17.148.16.96]:59757 "EHLO
-	asmtpout021.mac.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751965Ab1FFKU4 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 6 Jun 2011 06:20:56 -0400
-MIME-version: 1.0
-Content-type: text/plain; charset=euc-kr
-Received: from [192.168.129.14] ([125.178.234.180])
- by asmtp021.mac.com (Oracle Communications Messaging Exchange Server 7u4-20.01
- 64bit (built Nov 21 2010)) with ESMTPSA id <0LMD008VC3A2OB60@asmtp021.mac.com>
- for linux-media@vger.kernel.org; Mon, 06 Jun 2011 02:20:36 -0700 (PDT)
-Subject: Re: [PATCH v2 3/4] m5mols: remove union in the m5mols_get_version(),
- and VERSION_SIZE
-From: Kim HeungJun <riverful.kim@me.com>
-In-reply-to: <20110605121129.GE6073@valkosipuli.localdomain>
-Date: Mon, 06 Jun 2011 18:20:25 +0900
-Cc: Kim HeungJun <riverful.kim@me.com>,
-	"HeungJun, Kim" <riverful.kim@samsung.com>,
-	linux-media@vger.kernel.org, mchehab@infradead.org,
-	s.nawrocki@samsung.com, Kyungmin Park <kyungmin.park@samsung.com>
-Content-transfer-encoding: 8BIT
-Message-id: <5B70BEF2-0968-4591-8B39-CA95620CA329@me.com>
-References: <1306501095-28267-1-git-send-email-riverful.kim@samsung.com>
- <1306827362-4064-4-git-send-email-riverful.kim@samsung.com>
- <20110605120347.GD6073@valkosipuli.localdomain>
- <20110605121129.GE6073@valkosipuli.localdomain>
-To: Sakari Ailus <sakari.ailus@iki.fi>
+Received: from gerard.telenet-ops.be ([195.130.132.48]:41909 "EHLO
+	gerard.telenet-ops.be" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756013Ab1FNKsy (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 14 Jun 2011 06:48:54 -0400
+Message-ID: <4DF73C94.7010003@telenet.be>
+Date: Tue, 14 Jun 2011 12:48:52 +0200
+From: Bart Coninckx <bart.coninckx@telenet.be>
+MIME-Version: 1.0
+To: Issa Gorissen <flop.m@usa.net>
+CC: linux-media@vger.kernel.org
+Subject: Re: "dvb_ca adaptor 0: PC card did not respond :(" with Technotrend
+ S2-3200
+References: <4DF53E1F.7010903@telenet.be> <4DF73B45.7000900@usa.net>
+In-Reply-To: <4DF73B45.7000900@usa.net>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-
-2011. 6. 5., 오후 9:11, Sakari Ailus 작성:
-
-> On Sun, Jun 05, 2011 at 03:03:47PM +0300, Sakari Ailus wrote:
-> [clip]
->>> -	/* store version information swapped for being readable */
->>> -	info->ver	= version.ver;
->>> 	info->ver.fw	= be16_to_cpu(info->ver.fw);
->>> 	info->ver.hw	= be16_to_cpu(info->ver.hw);
->>> 	info->ver.param	= be16_to_cpu(info->ver.param);
->> 
->> As you have a local variable ver pointing to info->ver, you should also use
->> it here.
-> 
-> With this change,
-Ok, I missed that. I'll fix this and resend another version.
-
-Thanks!
-
-
-> 
-> Acked-by: Sakari Ailus <sakari.ailus@iki.fi>
-> 
-> -- 
-> Sakari Ailus
-> sakari dot ailus at iki dot fi
+On 06/14/11 12:43, Issa Gorissen wrote:
+> On 13/06/2011 00:30, Bart Coninckx wrote:
+>> Hi all,
+>>
+>>
+>> hope you can help me this one, because there's not a whole of info
+>> about similar problems to be found.
+>>
+>> I have a Technotrend S2-3200 with CI and on three different distros I
+>> get this
+>>
+>> "dvb_ca adaptor 0: PC card did not respond :(
+>>
+>>
+>> in /var/log/messages.
+>
+> Hi Bart,
+>
+> I've got the same card running under OpenSuse 11.4 and Mythtv 0.24.1
+>
+> I also have the same warning message, but somehow, when Mythtv grabs the
+> device, the CAM will be reset successfully (at least, in my case).
+>
+> In the past, I solved this annoyance by adding a sleep in the CAM init
+> code [1] relevant to the S2-3200 until I found out Mythtv does something
+> about it.
+>
+> [1] drivers/media/dvb/dvb-core/dvb_ca_en50221.c in function
+> dvb_ca_en50221_thread(void) add a sleep of 5 or 10 secs between the 1st
+> dprintk and the main loop.
+>
+> Hope this helps,
 > --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> Issa
+
+Issa,
+
+thx a mille for this. I actually haven't really tried in Mythtv itself, 
+I was just experimenting with szap and mplayer. But I figured that if 
+they aren't working there, they would not elsewhere.
+
+I do notice that while taking the card out and putting it back it, the 
+CAM show as initialized successfully in dmesg.
+
+I will try your suggestion though. Off topic, but would you advice 11.4 
+in favor of 11.3? As a secondary route, I was thinking about using 
+sasc-ng (softcamming, legal in this case) and the code seems not to want 
+to compile on 11.4. Also 11.4 broke after updating the kernel.
+
+
+thx again!
+
+
+B.
+
+
 
