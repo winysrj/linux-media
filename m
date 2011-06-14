@@ -1,118 +1,213 @@
 Return-path: <mchehab@pedra>
-Received: from mx1.redhat.com ([209.132.183.28]:45995 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751692Ab1FLLn7 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 12 Jun 2011 07:43:59 -0400
-Message-ID: <4DF4A662.5090705@redhat.com>
-Date: Sun, 12 Jun 2011 13:43:30 +0200
-From: Hans de Goede <hdegoede@redhat.com>
-MIME-Version: 1.0
-To: Theodore Kilgore <kilgota@banach.math.auburn.edu>
-CC: Alan Stern <stern@rowland.harvard.edu>, linux-usb@vger.kernel.org,
-	Sarah Sharp <sarah.a.sharp@linux.intel.com>,
-	linux-media@vger.kernel.org, Alexander Graf <agraf@suse.de>,
-	Gerd Hoffmann <kraxel@redhat.com>, hector@marcansoft.com,
-	Jan Kiszka <jan.kiszka@siemens.com>,
-	Stefan Hajnoczi <stefanha@linux.vnet.ibm.com>,
-	pbonzini@redhat.com, Anthony Liguori <aliguori@us.ibm.com>,
-	Jes Sorensen <Jes.Sorensen@redhat.com>,
-	Oliver Neukum <oliver@neukum.org>, Greg KH <greg@kroah.com>,
-	Felipe Balbi <balbi@ti.com>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Clemens Ladisch <clemens@ladisch.de>,
-	Jaroslav Kysela <perex@perex.cz>, Takashi Iwai <tiwai@suse.de>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Subject: Re: Improving kernel -> userspace (usbfs)  usb device hand off
-References: <Pine.LNX.4.44L0.1106101023330.1921-100000@iolanthe.rowland.org> <4DF3324E.3050506@redhat.com> <alpine.LNX.2.00.1106111058170.12801@banach.math.auburn.edu>
-In-Reply-To: <alpine.LNX.2.00.1106111058170.12801@banach.math.auburn.edu>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Received: from mailout1.w1.samsung.com ([210.118.77.11]:36591 "EHLO
+	mailout1.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751181Ab1FNQhN (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 14 Jun 2011 12:37:13 -0400
+Received: from eu_spt1 (mailout1.w1.samsung.com [210.118.77.11])
+ by mailout1.w1.samsung.com
+ (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14 2004))
+ with ESMTP id <0LMS00KA6GTY6C@mailout1.w1.samsung.com> for
+ linux-media@vger.kernel.org; Tue, 14 Jun 2011 17:37:11 +0100 (BST)
+Received: from linux.samsung.com ([106.116.38.10])
+ by spt1.w1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14
+ 2004)) with ESMTPA id <0LMS00F74GTXC8@spt1.w1.samsung.com> for
+ linux-media@vger.kernel.org; Tue, 14 Jun 2011 17:37:10 +0100 (BST)
+Date: Tue, 14 Jun 2011 18:36:53 +0200
+From: Kamil Debski <k.debski@samsung.com>
+Subject: [PATCH 1/4 v9] v4l: add fourcc definitions for compressed formats.
+In-reply-to: <1308069416-24723-1-git-send-email-k.debski@samsung.com>
+To: linux-media@vger.kernel.org
+Cc: m.szyprowski@samsung.com, kyungmin.park@samsung.com,
+	k.debski@samsung.com, jaeryul.oh@samsung.com, hverkuil@xs4all.nl,
+	laurent.pinchart@ideasonboard.com, jtp.park@samsung.com
+Message-id: <1308069416-24723-2-git-send-email-k.debski@samsung.com>
+MIME-version: 1.0
+Content-type: TEXT/PLAIN
+Content-transfer-encoding: 7BIT
+References: <1308069416-24723-1-git-send-email-k.debski@samsung.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Hi,
+Add fourcc definitions and documentation for the following
+compressed formats: H264, H264 without start codes,
+MPEG1/2/4 ES, DIVX versions 3.11, 4, 5.0-5.0.2, 5.03 and up,
+XVID, VC1 Annex G and Annex L compliant.
 
-On 06/11/2011 06:19 PM, Theodore Kilgore wrote:
->
->
-> On Sat, 11 Jun 2011, Hans de Goede wrote:
->
->> Hi,
->>
->> Given the many comments in this thread, I'm just
->> going reply to this one, and try to also answer any
->> other ones in this mail.
->>
->> As far as the dual mode camera is involved, I agree
->> that that should be fixed in the existing v4l2
->> drivers + libgphoto. I think that Felipe's solution
->> to also handle the stillcam part in kernel space for
->> dual mode cameras (and add a libgphoto cam driver which
->> knows how to talk the new kernel API for this), is
->> the best solution. Unfortunately this will involve
->> quite a bit of work, but so be it.
->
-> Hans,
->
-> It appears to me that the solution ought to be at hand, actually.
->
-> I was not aware of the recent changes in libusb, which I understand are
-> supposed to allow a kernel driver to be hooked up again.
->
-> To review the situation:
->
-> 1. As of approximately 2 years ago, libusb already was so configured as to
-> suspend the kernel module for a dual-mode device if a userspace-based
-> program tried to claim the device.
->
-> 2. At this point with the more recent versions of libusb (see the last
-> message from yesterday, from Xiaofan Chen), we are supposed to be able to
-> re-activate the kernel module for the device when it is relinquished by
-> userspace.
->
-> This ought to take care of the problems completely, provided that the new
-> capabilities of libusb are actually used and called upon in libgphoto2.
->
-> I have checked on what is happening, just now, on my own machine. I have
-> libusb version 1.08 which ought to be recent enough. The advertised
-> abilities did not work, however. Presumably, what is missing is on the
-> other end of the problem, most likely in the functions in libgphoto2 which
-> hook up a camera. That code would presumably need to call upon the new
-> functionality of libusb. My currently installed version of libgphoto2
-> (from svn, but several months old) clearly does not contain the needed
-> functionality. But it might have been put in recently and I did not
-> notice. I guess that the first thing to do is to update my gphoto tree and
-> then to see what happens. If things still don't work, then something needs
-> to be updated and then things ought to work.
->
-> I will try to see that something gets done about this. Thank you for
-> raising the old issue of dual-mode devices yet again, and thanks to
-> Xiaofan Chen for pointing out that the needed missing half of the
-> functionality is supposed to exist now in libusb. That had escaped my
-> attention.
+Signed-off-by: Kamil Debski <k.debski@samsung.com>
+Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+---
+ Documentation/DocBook/media/v4l/controls.xml |    7 ++-
+ Documentation/DocBook/media/v4l/pixfmt.xml   |   67 +++++++++++++++++++++++++-
+ include/linux/videodev2.h                    |   21 +++++++--
+ 3 files changed, 88 insertions(+), 7 deletions(-)
 
-Actually libusb and libgphoto have been using the rebind orginal driver
-functionality of the code for quite a while now, unfortunately this
-does not solve the problem, unless we somehow move to 1 central
-coordinator for the device the user experience will stay subpar.
+diff --git a/Documentation/DocBook/media/v4l/controls.xml b/Documentation/DocBook/media/v4l/controls.xml
+index a920ee8..6880798 100644
+--- a/Documentation/DocBook/media/v4l/controls.xml
++++ b/Documentation/DocBook/media/v4l/controls.xml
+@@ -670,7 +670,8 @@ caption of a Tab page in a GUI, for example.</entry>
+ 	      </row><row><entry spanname="descr">The MPEG-1, -2 or -4
+ output stream type. One cannot assume anything here. Each hardware
+ MPEG encoder tends to support different subsets of the available MPEG
+-stream types. The currently defined stream types are:</entry>
++stream types. This control is specific to multiplexed MPEG streams.
++The currently defined stream types are:</entry>
+ 	      </row>
+ 	      <row>
+ 		<entrytbl spanname="descr" cols="2">
+@@ -800,6 +801,7 @@ frequency. Possible values are:</entry>
+ 		<entry spanname="id"><constant>V4L2_CID_MPEG_AUDIO_ENCODING</constant>&nbsp;</entry>
+ 		<entry>enum&nbsp;v4l2_mpeg_audio_encoding</entry>
+ 	      </row><row><entry spanname="descr">MPEG Audio encoding.
++This control is specific to multiplexed MPEG streams.
+ Possible values are:</entry>
+ 	      </row>
+ 	      <row>
+@@ -1250,7 +1252,8 @@ and reproducible audio bitstream. 0 = unmuted, 1 = muted.</entry>
+ 		<entry spanname="id"><constant>V4L2_CID_MPEG_VIDEO_ENCODING</constant>&nbsp;</entry>
+ 		<entry>enum&nbsp;v4l2_mpeg_video_encoding</entry>
+ 	      </row><row><entry spanname="descr">MPEG Video encoding
+-method. Possible values are:</entry>
++method. This control is specific to multiplexed MPEG streams.
++Possible values are:</entry>
+ 	      </row>
+ 	      <row>
+ 		<entrytbl spanname="descr" cols="2">
+diff --git a/Documentation/DocBook/media/v4l/pixfmt.xml b/Documentation/DocBook/media/v4l/pixfmt.xml
+index 88e5c21..7f0f447 100644
+--- a/Documentation/DocBook/media/v4l/pixfmt.xml
++++ b/Documentation/DocBook/media/v4l/pixfmt.xml
+@@ -741,10 +741,75 @@ information.</para>
+ 	  <row id="V4L2-PIX-FMT-MPEG">
+ 	    <entry><constant>V4L2_PIX_FMT_MPEG</constant></entry>
+ 	    <entry>'MPEG'</entry>
+-	    <entry>MPEG stream. The actual format is determined by
++	    <entry>MPEG multiplexed stream. The actual format is determined by
+ extended control <constant>V4L2_CID_MPEG_STREAM_TYPE</constant>, see
+ <xref linkend="mpeg-control-id" />.</entry>
+ 	  </row>
++	  <row id="V4L2-PIX-FMT-H264">
++		<entry><constant>V4L2_PIX_FMT_H264</constant></entry>
++		<entry>'H264'</entry>
++		<entry>H264 video elementary stream with start codes.</entry>
++	  </row>
++	  <row id="V4L2-PIX-FMT-H264-NO-SC">
++		<entry><constant>V4L2_PIX_FMT_H264_NO_SC</constant></entry>
++		<entry>'AVC1'</entry>
++		<entry>H264 video elementary stream without start codes.</entry>
++	  </row>
++	  <row id="V4L2-PIX-FMT-H263">
++		<entry><constant>V4L2_PIX_FMT_H263</constant></entry>
++		<entry>'H263'</entry>
++		<entry>H263 video elementary stream.</entry>
++	  </row>
++	  <row id="V4L2-PIX-FMT-MPEG1">
++		<entry><constant>V4L2_PIX_FMT_MPEG1</constant></entry>
++		<entry>'MPG1'</entry>
++		<entry>MPEG1 video elementary stream.</entry>
++	  </row>
++	  <row id="V4L2-PIX-FMT-MPEG2">
++		<entry><constant>V4L2_PIX_FMT_MPEG2</constant></entry>
++		<entry>'MPG2'</entry>
++		<entry>MPEG2 video elementary stream.</entry>
++	  </row>
++	  <row id="V4L2-PIX-FMT-MPEG4">
++		<entry><constant>V4L2_PIX_FMT_MPEG4</constant></entry>
++		<entry>'MPG4'</entry>
++		<entry>MPEG4 video elementary stream.</entry>
++	  </row>
++	  <row id="V4L2-PIX-FMT-DIVX3">
++		<entry><constant>V4L2_PIX_FMT_DIVX3</constant></entry>
++		<entry>'DIV3'</entry>
++		<entry>Divx 3.11 video elementary stream.</entry>
++	  </row>
++	  <row id="V4L2-PIX-FMT-DIVX4">
++		<entry><constant>V4L2_PIX_FMT_DIVX4</constant></entry>
++		<entry>'DIV4'</entry>
++		<entry>Divx 4 video elementary stream.</entry>
++	  </row>
++	  <row id="V4L2-PIX-FMT-DIVX500">
++		<entry><constant>V4L2_PIX_FMT_DIVX500</constant></entry>
++		<entry>'DX50'</entry>
++		<entry>Divx 5.0-5.0.2 video elementary stream.</entry>
++	  </row>
++	  <row id="V4L2-PIX-FMT-DIVX5">
++		<entry><constant>V4L2_PIX_FMT_DIVX5</constant></entry>
++		<entry>'DIV5'</entry>
++		<entry>Divx 5.0.3+ video elementary stream.</entry>
++	  </row>
++	  <row id="V4L2-PIX-FMT-XVID">
++		<entry><constant>V4L2_PIX_FMT_XVID</constant></entry>
++		<entry>'XVID'</entry>
++		<entry>Xvid video elementary stream.</entry>
++	  </row>
++	  <row id="V4L2-PIX-FMT-VC1-ANNEX-G">
++		<entry><constant>V4L2_PIX_FMT_VC1_ANNEX_G</constant></entry>
++		<entry>'VC1G'</entry>
++		<entry>VC1, SMPTE 421M Annex G compliant stream.</entry>
++	  </row>
++	  <row id="V4L2-PIX-FMT-VC1-ANNEX-L">
++		<entry><constant>V4L2_PIX_FMT_VC1_ANNEX_L</constant></entry>
++		<entry>'VC1L'</entry>
++		<entry>VC1, SMPTE 421M Annex L compliant stream.</entry>
++	  </row>
+ 	</tbody>
+       </tgroup>
+     </table>
+diff --git a/include/linux/videodev2.h b/include/linux/videodev2.h
+index 8a4c309..65bcb61 100644
+--- a/include/linux/videodev2.h
++++ b/include/linux/videodev2.h
+@@ -376,7 +376,20 @@ struct v4l2_pix_format {
+ #define V4L2_PIX_FMT_MJPEG    v4l2_fourcc('M', 'J', 'P', 'G') /* Motion-JPEG   */
+ #define V4L2_PIX_FMT_JPEG     v4l2_fourcc('J', 'P', 'E', 'G') /* JFIF JPEG     */
+ #define V4L2_PIX_FMT_DV       v4l2_fourcc('d', 'v', 's', 'd') /* 1394          */
+-#define V4L2_PIX_FMT_MPEG     v4l2_fourcc('M', 'P', 'E', 'G') /* MPEG-1/2/4    */
++#define V4L2_PIX_FMT_MPEG     v4l2_fourcc('M', 'P', 'E', 'G') /* MPEG-1/2/4 Multiplexed */
++#define V4L2_PIX_FMT_H264     v4l2_fourcc('H', '2', '6', '4') /* H264 with start codes */
++#define V4L2_PIX_FMT_H264_NO_SC v4l2_fourcc('A', 'V', 'C', '1') /* H264 without start codes */
++#define V4L2_PIX_FMT_H263     v4l2_fourcc('H', '2', '6', '3') /* H263          */
++#define V4L2_PIX_FMT_MPEG1    v4l2_fourcc('M', 'P', 'G', '1') /* MPEG-1 ES     */
++#define V4L2_PIX_FMT_MPEG2    v4l2_fourcc('M', 'P', 'G', '2') /* MPEG-2 ES     */
++#define V4L2_PIX_FMT_MPEG4    v4l2_fourcc('M', 'P', 'G', '4') /* MPEG-4 ES     */
++#define V4L2_PIX_FMT_DIVX3    v4l2_fourcc('D', 'I', 'V', '3') /* DivX 3.11     */
++#define V4L2_PIX_FMT_DIVX4    v4l2_fourcc('D', 'I', 'V', '4') /* DivX 4.12     */
++#define V4L2_PIX_FMT_DIVX500  v4l2_fourcc('D', 'X', '5', '0') /* DivX 5.00 - 5.02  */
++#define V4L2_PIX_FMT_DIVX5    v4l2_fourcc('D', 'I', 'V', '5') /* DivX 5.03 - x  */
++#define V4L2_PIX_FMT_XVID     v4l2_fourcc('X', 'V', 'I', 'D') /* Xvid           */
++#define V4L2_PIX_FMT_VC1_ANNEX_G v4l2_fourcc('V', 'C', '1', 'G') /* SMPTE 421M Annex G compliant stream */
++#define V4L2_PIX_FMT_VC1_ANNEX_L v4l2_fourcc('V', 'C', '1', 'L') /* SMPTE 421M Annex L compliant stream */
+ 
+ /*  Vendor-specific formats   */
+ #define V4L2_PIX_FMT_CPIA1    v4l2_fourcc('C', 'P', 'I', 'A') /* cpia1 YUV */
+@@ -1151,7 +1164,7 @@ enum v4l2_colorfx {
+ #define V4L2_CID_MPEG_BASE 			(V4L2_CTRL_CLASS_MPEG | 0x900)
+ #define V4L2_CID_MPEG_CLASS 			(V4L2_CTRL_CLASS_MPEG | 1)
+ 
+-/*  MPEG streams */
++/*  MPEG streams, specific to multiplexed streams */
+ #define V4L2_CID_MPEG_STREAM_TYPE 		(V4L2_CID_MPEG_BASE+0)
+ enum v4l2_mpeg_stream_type {
+ 	V4L2_MPEG_STREAM_TYPE_MPEG2_PS   = 0, /* MPEG-2 program stream */
+@@ -1173,7 +1186,7 @@ enum v4l2_mpeg_stream_vbi_fmt {
+ 	V4L2_MPEG_STREAM_VBI_FMT_IVTV = 1,  /* VBI in private packets, IVTV format */
+ };
+ 
+-/*  MPEG audio */
++/*  MPEG audio controls specific to multiplexed streams  */
+ #define V4L2_CID_MPEG_AUDIO_SAMPLING_FREQ 	(V4L2_CID_MPEG_BASE+100)
+ enum v4l2_mpeg_audio_sampling_freq {
+ 	V4L2_MPEG_AUDIO_SAMPLING_FREQ_44100 = 0,
+@@ -1289,7 +1302,7 @@ enum v4l2_mpeg_audio_ac3_bitrate {
+ 	V4L2_MPEG_AUDIO_AC3_BITRATE_640K = 18,
+ };
+ 
+-/*  MPEG video */
++/*  MPEG video controls specific to multiplexed streams */
+ #define V4L2_CID_MPEG_VIDEO_ENCODING 		(V4L2_CID_MPEG_BASE+200)
+ enum v4l2_mpeg_video_encoding {
+ 	V4L2_MPEG_VIDEO_ENCODING_MPEG_1     = 0,
+-- 
+1.6.3.3
 
-Example, user downloads pictures from the camera using shotwell,
-gthumb, fspot or whatever, keeps the app in question open and the app
-in question keeps the gphoto2 device handle open.
-
-User wants to do some skyping with video chat, skype complains it
-cannot find the device, since the kernel driver currently is unbound.
-
--> Poor user experience.
-
-With having both functions in the kernel, the kernel could actually
-allow skype to use the dual mode cameras as video source, and if
-the user then were to switch to f-spot and try to import more photo's
-then he will get an -ebusy in f-spot. If he finishes skyping and
-then returns to f-spot everything will just continue working.
-
-This is the kind of "seamless" user experience I'm aiming for here.
-
-Regards,
-
-Hans
