@@ -1,78 +1,66 @@
 Return-path: <mchehab@pedra>
-Received: from lo.gmane.org ([80.91.229.12]:40002 "EHLO lo.gmane.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754666Ab1FCN3s (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 3 Jun 2011 09:29:48 -0400
-Received: from list by lo.gmane.org with local (Exim 4.69)
-	(envelope-from <gldv-linux-media@m.gmane.org>)
-	id 1QSURe-0000Gb-FI
-	for linux-media@vger.kernel.org; Fri, 03 Jun 2011 15:29:46 +0200
-Received: from 193.160.199.2 ([193.160.199.2])
-        by main.gmane.org with esmtp (Gmexim 0.1 (Debian))
-        id 1AlnuQ-0007hv-00
-        for <linux-media@vger.kernel.org>; Fri, 03 Jun 2011 15:29:46 +0200
-Received: from bjorn by 193.160.199.2 with local (Gmexim 0.1 (Debian))
-        id 1AlnuQ-0007hv-00
-        for <linux-media@vger.kernel.org>; Fri, 03 Jun 2011 15:29:46 +0200
+Received: from smtp-vbr6.xs4all.nl ([194.109.24.26]:2036 "EHLO
+	smtp-vbr6.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754376Ab1FNHOy (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 14 Jun 2011 03:14:54 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
 To: linux-media@vger.kernel.org
-From: =?utf-8?Q?Bj=C3=B8rn_Mork?= <bjorn@mork.no>
-Subject: Re: [GIT PULL FOR 2.6.40] PCTV nanoStick T2 290e (Sony CXD2820R DVB-T/T2/C)
-Date: Fri, 03 Jun 2011 15:29:31 +0200
-Message-ID: <8762onxcuc.fsf@nemi.mork.no>
-References: <4DDD69AE.3070606@iki.fi> <4DE63E43.1090208@redhat.com>
-	<4DE8D4CD.7070708@iki.fi>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 8bit
+Cc: Mike Isely <isely@isely.net>, Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [RFCv6 PATCH 06/10] feature-removal-schedule: change in how radio device nodes are handled.
+Date: Tue, 14 Jun 2011 09:14:38 +0200
+Message-Id: <80ede17446fe736640549d37f8888e9de8a4405a.1308035134.git.hans.verkuil@cisco.com>
+In-Reply-To: <1308035682-20447-1-git-send-email-hverkuil@xs4all.nl>
+References: <1308035682-20447-1-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <eff4df001ab17e78b7413b9ed51661777523dbac.1308035134.git.hans.verkuil@cisco.com>
+References: <eff4df001ab17e78b7413b9ed51661777523dbac.1308035134.git.hans.verkuil@cisco.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Antti Palosaari <crope@iki.fi> writes:
-> On 06/01/2011 04:27 PM, Mauro Carvalho Chehab wrote:
->> Em 25-05-2011 17:42, Antti Palosaari escreveu:
->>> Antti Palosaari (7):
->>>        em28xx-dvb: add module param "options" and use it for LNA
->>
->> That patch is ugly, for several reasons:
->>
->> 1) we don't want a generic "options" parameter, whose meaning changes from
->>     device to devices;
->
-> I agree it is not proper solution, but in my mind it is better to
-> offer some solution than no solution at all.
->
->> 2) what happens if someone has two em28xx devices plugged?
->
-> It depends depends devices, currently only nanoStick T2 only looks
-> that param, other just ignore. If there is two nanoStics then both
-> have same LNA settings.
->
-> That's just like same behaviour as for example remote controller
-> polling. Or for example DiBcom driver LNA, since it does have similar
-> module param already. Will you you commit it if I rename it similarly
-> as DiBcom?
->
->> 3) the better would be to detect if LNA is needed, or to add a DVBS2API
->>     call to enable/disable LNA.
->
-> True, but it needs some research. There is many hardware which gets
-> signal input from demod or tuner and makes some fine tune according to
-> that. We need to define some new callbacks for demod and tuner in
-> order to do this kind of actions.
-> Or just add new LNA param to API use it manually.
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
+Radio devices have weird side-effects when used with combined TV/radio
+tuners and the V4L2 spec is ambiguous on how it should work. This results
+in inconsistent driver behavior which makes life hard for everyone.
 
-Or option 
-4) just enable the LNA unconditionally.  
+Be more strict in when and how the switch between radio and tv mode
+takes place and make sure all drivers behave the same.
 
-I did some testing in my environment, and I was unable to tune anything
-on either DVB-T or DVB-C without the LNA enabled.  I'm of course aware
-that this depends on your signal, but have you actually seen a real life
-signal where tuning fails with the LNA enabled and works without it?
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ Documentation/feature-removal-schedule.txt |   22 ++++++++++++++++++++++
+ 1 files changed, 22 insertions(+), 0 deletions(-)
 
-I do believe that my DVB-C signal at least is pretty strong.
-
-
-
-Bjørn
+diff --git a/Documentation/feature-removal-schedule.txt b/Documentation/feature-removal-schedule.txt
+index 1a9446b..9df0e09 100644
+--- a/Documentation/feature-removal-schedule.txt
++++ b/Documentation/feature-removal-schedule.txt
+@@ -600,3 +600,25 @@ Why:	Superseded by the UVCIOC_CTRL_QUERY ioctl.
+ Who:	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+ 
+ ----------------------------
++
++What:	For VIDIOC_S_FREQUENCY the type field must match the device node's type.
++	If not, return -EINVAL.
++When:	3.2
++Why:	It makes no sense to switch the tuner to radio mode by calling
++	VIDIOC_S_FREQUENCY on a video node, or to switch the tuner to tv mode by
++	calling VIDIOC_S_FREQUENCY on a radio node. This is the first step of a
++	move to more consistent handling of tv and radio tuners.
++Who:	Hans Verkuil <hans.verkuil@cisco.com>
++
++----------------------------
++
++What:	Opening a radio device node will no longer automatically switch the
++	tuner mode from tv to radio.
++When:	3.3
++Why:	Just opening a V4L device should not change the state of the hardware
++	like that. It's very unexpected and against the V4L spec. Instead, you
++	switch to radio mode by calling VIDIOC_S_FREQUENCY. This is the second
++	and last step of the move to consistent handling of tv and radio tuners.
++Who:	Hans Verkuil <hans.verkuil@cisco.com>
++
++----------------------------
+-- 
+1.7.1
 
