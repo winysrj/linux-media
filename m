@@ -1,83 +1,82 @@
 Return-path: <mchehab@pedra>
-Received: from netrider.rowland.org ([192.131.102.5]:58564 "HELO
-	netrider.rowland.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1751850Ab1FKQ5y (ORCPT
+Received: from mail-fx0-f46.google.com ([209.85.161.46]:62552 "EHLO
+	mail-fx0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752159Ab1FNS61 convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 11 Jun 2011 12:57:54 -0400
-Date: Sat, 11 Jun 2011 12:57:54 -0400 (EDT)
-From: Alan Stern <stern@rowland.harvard.edu>
-To: Hans de Goede <hdegoede@redhat.com>
-cc: linux-usb@vger.kernel.org,
-	Sarah Sharp <sarah.a.sharp@linux.intel.com>,
-	<linux-media@vger.kernel.org>,
-	<libusb-devel@lists.sourceforge.net>,
-	Alexander Graf <agraf@suse.de>,
-	Gerd Hoffmann <kraxel@redhat.com>, <hector@marcansoft.com>,
-	Jan Kiszka <jan.kiszka@siemens.com>,
-	Stefan Hajnoczi <stefanha@linux.vnet.ibm.com>,
-	<pbonzini@redhat.com>, Anthony Liguori <aliguori@us.ibm.com>,
-	Jes Sorensen <Jes.Sorensen@redhat.com>,
-	Oliver Neukum <oliver@neukum.org>, Greg KH <greg@kroah.com>,
-	Felipe Balbi <balbi@ti.com>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Clemens Ladisch <clemens@ladisch.de>,
-	Jaroslav Kysela <perex@perex.cz>, Takashi Iwai <tiwai@suse.de>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Subject: Re: Improving kernel -> userspace (usbfs)  usb device hand off
-In-Reply-To: <4DF3324E.3050506@redhat.com>
-Message-ID: <Pine.LNX.4.44L0.1106111250390.3439-100000@netrider.rowland.org>
+	Tue, 14 Jun 2011 14:58:27 -0400
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+In-Reply-To: <20110614170158.GU2419@fooishbar.org>
+References: <1307699698-29369-1-git-send-email-m.szyprowski@samsung.com>
+	<201106141549.29315.arnd@arndb.de>
+	<op.vw2jmhir3l0zgt@mnazarewicz-glaptop>
+	<201106141803.00876.arnd@arndb.de>
+	<20110614170158.GU2419@fooishbar.org>
+Date: Tue, 14 Jun 2011 13:58:25 -0500
+Message-ID: <BANLkTi=cJisuP8=_YSg4h-nsjGj3zsM7sg@mail.gmail.com>
+Subject: Re: [Linaro-mm-sig] [PATCH 08/10] mm: cma: Contiguous Memory
+ Allocator added
+From: Zach Pfeffer <zach.pfeffer@linaro.org>
+To: Daniel Stone <daniels@collabora.com>,
+	Arnd Bergmann <arnd@arndb.de>,
+	Michal Nazarewicz <mina86@mina86.com>,
+	Ankita Garg <ankita@in.ibm.com>,
+	Daniel Walker <dwalker@codeaurora.org>,
+	Jesse Barker <jesse.barker@linaro.org>,
+	Mel Gorman <mel@csn.ul.ie>, linux-kernel@vger.kernel.org,
+	linaro-mm-sig@lists.linaro.org, linux-mm@kvack.org,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>,
+	Andrew Morton <akpm@linux-foundation.org>,
+	linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Sat, 11 Jun 2011, Hans de Goede wrote:
+On 14 June 2011 12:01, Daniel Stone <daniels@collabora.com> wrote:
+> Hi,
+>
+> On Tue, Jun 14, 2011 at 06:03:00PM +0200, Arnd Bergmann wrote:
+>> On Tuesday 14 June 2011, Michal Nazarewicz wrote:
+>> > On Tue, 14 Jun 2011 15:49:29 +0200, Arnd Bergmann <arnd@arndb.de> wrote:
+>> > > Please explain the exact requirements that lead you to defining multiple
+>> > > contexts.
+>> >
+>> > Some devices may have access only to some banks of memory.  Some devices
+>> > may use different banks of memory for different purposes.
+>>
+>> For all I know, that is something that is only true for a few very special
+>> Samsung devices, and is completely unrelated of the need for contiguous
+>> allocations, so this approach becomes pointless as soon as the next
+>> generation of that chip grows an IOMMU, where we don't handle the special
+>> bank attributes. Also, the way I understood the situation for the Samsung
+>> SoC during the Budapest discussion, it's only a performance hack, not a
+>> functional requirement, unless you count '1080p playback' as a functional
+>> requirement.
 
-> >> So what do we need to make this situation better:
-> >> 1) A usb_driver callback alternative to the disconnect callback,
-> >>      I propose to call this soft_disconnect. This serves 2 purposes
-> >>      a) It will allow the driver to tell the caller that that is not
-> >>         a good idea by returning an error code (think usb mass storage
-> >>         driver and mounted filesystem
-> >
-> > Not feasible.  usb-storage has no idea whether or not a device it
-> > controls has a mounted filesystem.  (All it does is send SCSI commands
-> > to a device and get back the results.)  Since that's the main use
-> > case you're interested in, this part of the proposal seems destined to
-> > fail.
-> >
-> 
-> This is not completely true, I cannot rmmod usb-storage as long as
-> disks using it are mounted. I know this is done through the global
-> module usage count, so this is not per usb-storage device. But extending
-> the ref counting to be per usb-storage device should not be hard.
-> 
-> All the accounting is already done for this.
+Coming in mid topic...
 
-It would be harder than you think.  All the accounting is _not_ already
-being done.  What you're talking about would amount to a significant
-change in the driver model core and the SCSI core.  It isn't just a USB
-thing.
+I've seen this split bank allocation in Qualcomm and TI SoCs, with
+Samsung, that makes 3 major SoC vendors (I would be surprised if
+Nvidia didn't also need to do this) - so I think some configurable
+method to control allocations is necessarily. The chips can't do
+decode without it (and by can't do I mean 1080P and higher decode is
+not functionally useful). Far from special, this would appear to be
+the default.
 
-> > But userspace _does_ know where the mounted filesystems are.
-> > Therefore userspace should be responsible for avoiding programs that
-> > want to take control of devices holding these filesystems.  That's the
-> > reason why usbfs device nodes are owned by root and have 0644 mode;
-> > there're can be written to only by programs with superuser privileges
-> > -- and such programs are supposed to be careful about what they do.
-> >
-> 
-> Yes, and what I'm asking for is for an easy way for these programs to
-> be careful. A way for them to ask the kernel, which in general is
-> responsible for things like this and traditionally does resource
-> management and things which come with that like refcounting: "unbind
-> the driver from this device unless the device is currently in use".
-
-Sure.  At the moment the kernel does not keep track of whether a device 
-is currently in use -- at least, not in the way you mean.
-
-I'm not saying this can't be done.  But it would be a bigger job than 
-you think, and this isn't the appropriate thread to discuss it.
-
-Alan Stern
-
+> Hm, I think that was something similar but not quite the same: talking
+> about having allocations split to lie between two banks of RAM to
+> maximise the read/write speed for performance reasons.  That's something
+> that can be handled in the allocator, rather than an API constraint, as
+> this is.
+>
+> Not that I know of any hardware which is limited as such, but eh.
+>
+> Cheers,
+> Daniel
+>
+> _______________________________________________
+> Linaro-mm-sig mailing list
+> Linaro-mm-sig@lists.linaro.org
+> http://lists.linaro.org/mailman/listinfo/linaro-mm-sig
+>
