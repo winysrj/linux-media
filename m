@@ -1,102 +1,119 @@
 Return-path: <mchehab@pedra>
-Received: from mx1.redhat.com ([209.132.183.28]:34078 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751156Ab1FBOmH (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 2 Jun 2011 10:42:07 -0400
-Message-ID: <4DE7A131.7010208@redhat.com>
-Date: Thu, 02 Jun 2011 11:41:53 -0300
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-MIME-Version: 1.0
-To: Devin Heitmueller <dheitmueller@kernellabs.com>
-CC: Dmitri Belimov <d.belimov@gmail.com>, linux-media@vger.kernel.org,
-	thunder.m@email.cz, "istvan_v@mailbox.hu" <istvan_v@mailbox.hu>,
-	bahathir@gmail.com
-Subject: Re: [linux-dvb] XC4000 patches for kernel 2.6.37.2
-References: <4D764337.6050109@email.cz>	<20110531124843.377a2a80@glory.local>	<BANLkTi=Lq+FF++yGhRmOa4NCigSt6ZurHg@mail.gmail.com>	<20110531174323.0f0c45c0@glory.local> <BANLkTimEEGsMP6PDXf5W5p9wW7wdWEEOiA@mail.gmail.com>
-In-Reply-To: <BANLkTimEEGsMP6PDXf5W5p9wW7wdWEEOiA@mail.gmail.com>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 8bit
+Received: from smtp-vbr6.xs4all.nl ([194.109.24.26]:4149 "EHLO
+	smtp-vbr6.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753123Ab1FNPWz (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 14 Jun 2011 11:22:55 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: laurent.pinchart@ideasonboard.com, sakari.ailus@iki.fi,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [RFCv1 PATCH 4/8] v4l2-event: add optional 'merge' callback to merge two events
+Date: Tue, 14 Jun 2011 17:22:29 +0200
+Message-Id: <e3b0b697f29a86fa0299b51bfdb808e4df847175.1308063857.git.hans.verkuil@cisco.com>
+In-Reply-To: <1308064953-11156-1-git-send-email-hverkuil@xs4all.nl>
+References: <1308064953-11156-1-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <3d92b242dcf5e7766d128d6c1f05c0bd837a2633.1308063857.git.hans.verkuil@cisco.com>
+References: <3d92b242dcf5e7766d128d6c1f05c0bd837a2633.1308063857.git.hans.verkuil@cisco.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Em 02-06-2011 07:52, Devin Heitmueller escreveu:
-> 2011/5/31 Dmitri Belimov <d.belimov@gmail.com>:
->> Is it possible make some patches and add support xc4000 into kernel?
->>
->> With my best regards, Dmitry.
-> 
-> What needs to happen here is somebody needs to prepare a patch series
-> which contains all the relevant patches, including the SOBs.  This is
-> entirely an janitorial task which can be done by anyone and frankly I
-> don't have time for this sort of crap anymore.
-> 
-> Any volunteers?
-> 
-> All my patches have my SOB attached.  I explicitly got Davide's
-> permission to add his SOB to his original patch, but it's not in the
-> HG tree since I got the permission after I committed his change to my
-> repo.  I can forward the email with his SOB so the person constructing
-> the tree can add it on (as well as my SOB to preserve the chain of
-> custody).
-> 
-> Secondly, we need to build a firmware image which is based off of the
-> *actual* xceive firmware sources, so that we can be confident that all
-> the blobs are from the same firmware revision and so that we can
-> maintain them going forward.  I can provide them off-list to someone
-> willing to do this work and testing.  Istann_v's firmware image is
-> based off of i2c dumps and extracted by hand from disassembled
-> firmware, which is less than ideal from an ongoing maintenance
-> perspective.
-> 
-> And of course it's worth mentioning that the driver itself still needs
-> a ton of cleanup, doesn't meet the coding standards, and wouldn't be
-> accepted upstream in its current state.  Somebody will need to do the
-> work to clean up the driver, as well as testing to make sure he/she
-> didn't cause any regressions.
-> 
-> In summary, here are the four things that need to happen:
-> 
-> 1.  Assemble tree with current patches
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-It is probably easier for me to do this step, as I have my hg import
-scripts. However, as I don't have the PCTV devices added at dib0700,
-I can't test.
+When the event queue for a subscribed event is full, then the oldest
+event is dropped. It would be nice if the contents of that oldest
+event could be merged with the next-oldest. That way no information is
+lost, only intermediate steps are lost.
 
-OK, I did this work, as it just took me a few minutes to rebase patches
-1 and 2. I didn't apply the patches that started with "djh" since they
-seemed to be a few hacks during the development time.
+This patch adds an optional merge function that will be called to do
+this job and implements it for the control event.
 
-The tree is at:
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ drivers/media/video/v4l2-event.c |   27 ++++++++++++++++++++++++++-
+ include/media/v4l2-event.h       |    5 +++++
+ 2 files changed, 31 insertions(+), 1 deletions(-)
 
-git://linuxtv.org/mchehab/experimental.git branch xc4000
-
-There are two warnings there that needs to be fixed:
-
-drivers/media/common/tuners/xc4000.c:1293: warning: ‘xc4000_is_firmware_loaded’ defined but not used
-drivers/media/common/tuners/xc4000.c: In function ‘check_firmware.clone.0’:
-drivers/media/common/tuners/xc4000.c:1107: warning: ‘version’ may be used uninitialized in this function
-
-Both seems to be trivial.
-
-A disclaimer notice here: I didn't make any cleanup at the code,
-(except by running a whitespace cleanup script) nor I've reviewed it. 
-
-IMO, the next step is to test the rebases against a real hardware, 
-and adding a few patches fixing it, if the rebases broke.
-
-The next step would be fix the CodingStyle, and run checkpatch.pl.
-There aren't many CodingStyle warnings/errors (13 errors, 28 warnings).
-Most of the errors are due to the excess usage of printk's for debug,
-and due to some obsolete code commented with //.
-
-> 2.  Construct valid firmware image off of current sources
-> 3.  Cleanup/coding style
-> 4.  Testing
-> 
-> Now that we've got a bunch of people who are interested in seeing this
-> upstream, who is going to volunteer to do which items in the above
-> list?
-> 
-> Devin
-> 
+diff --git a/drivers/media/video/v4l2-event.c b/drivers/media/video/v4l2-event.c
+index 9e325dd..aeec2d5 100644
+--- a/drivers/media/video/v4l2-event.c
++++ b/drivers/media/video/v4l2-event.c
+@@ -113,6 +113,7 @@ static void __v4l2_event_queue_fh(struct v4l2_fh *fh, const struct v4l2_event *e
+ {
+ 	struct v4l2_subscribed_event *sev;
+ 	struct v4l2_kevent *kev;
++	bool copy_payload = true;
+ 
+ 	/* Are we subscribed? */
+ 	sev = v4l2_event_subscribed(fh, ev->type, ev->id);
+@@ -130,12 +131,23 @@ static void __v4l2_event_queue_fh(struct v4l2_fh *fh, const struct v4l2_event *e
+ 		sev->in_use--;
+ 		sev->first = sev_pos(sev, 1);
+ 		fh->navailable--;
++		if (sev->merge) {
++			if (sev->elems == 1) {
++				sev->merge(&kev->event, ev, &kev->event);
++				copy_payload = false;
++			} else {
++				struct v4l2_kevent *second_oldest =
++					sev->events + sev_pos(sev, 0);
++				sev->merge(&second_oldest->event, &second_oldest->event, &kev->event);
++			}
++		}
+ 	}
+ 
+ 	/* Take one and fill it. */
+ 	kev = sev->events + sev_pos(sev, sev->in_use);
+ 	kev->event.type = ev->type;
+-	kev->event.u = ev->u;
++	if (copy_payload)
++		kev->event.u = ev->u;
+ 	kev->event.id = ev->id;
+ 	kev->event.timestamp = *ts;
+ 	kev->event.sequence = fh->sequence;
+@@ -184,6 +196,17 @@ int v4l2_event_pending(struct v4l2_fh *fh)
+ }
+ EXPORT_SYMBOL_GPL(v4l2_event_pending);
+ 
++static void ctrls_merge(struct v4l2_event *dst,
++			const struct v4l2_event *new,
++			const struct v4l2_event *old)
++{
++	u32 changes = new->u.ctrl.changes | old->u.ctrl.changes;
++
++	if (dst == old)
++		dst->u.ctrl = new->u.ctrl;
++	dst->u.ctrl.changes = changes;
++}
++
+ int v4l2_event_subscribe(struct v4l2_fh *fh,
+ 			 struct v4l2_event_subscription *sub, unsigned elems)
+ {
+@@ -210,6 +233,8 @@ int v4l2_event_subscribe(struct v4l2_fh *fh,
+ 	sev->flags = sub->flags;
+ 	sev->fh = fh;
+ 	sev->elems = elems;
++	if (ctrl)
++		sev->merge = ctrls_merge;
+ 
+ 	spin_lock_irqsave(&fh->vdev->fh_lock, flags);
+ 	found_ev = v4l2_event_subscribed(fh, sub->type, sub->id);
+diff --git a/include/media/v4l2-event.h b/include/media/v4l2-event.h
+index 8d681e5..111b2bc 100644
+--- a/include/media/v4l2-event.h
++++ b/include/media/v4l2-event.h
+@@ -55,6 +55,11 @@ struct v4l2_subscribed_event {
+ 	struct v4l2_fh		*fh;
+ 	/* list node that hooks into the object's event list (if there is one) */
+ 	struct list_head	node;
++	/* Optional callback that can merge two events.
++	   Note that 'dst' can be the same as either 'new' or 'old'. */
++	void			(*merge)(struct v4l2_event *dst,
++					 const struct v4l2_event *new,
++					 const struct v4l2_event *old);
+ 	/* the number of elements in the events array */
+ 	unsigned		elems;
+ 	/* the index of the events containing the oldest available event */
+-- 
+1.7.1
 
