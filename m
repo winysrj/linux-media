@@ -1,45 +1,84 @@
 Return-path: <mchehab@pedra>
-Received: from mailout3.w1.samsung.com ([210.118.77.13]:9512 "EHLO
-	mailout3.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933329Ab1FBKN0 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 2 Jun 2011 06:13:26 -0400
-MIME-version: 1.0
-Content-transfer-encoding: 7BIT
-Content-type: TEXT/PLAIN
-Date: Thu, 02 Jun 2011 12:11:59 +0200
-From: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Subject: [PATCH 2/7] s5p-fimc: Fix V4L2_PIX_FMT_RGB565X description
-In-reply-to: <1307009524-1208-1-git-send-email-s.nawrocki@samsung.com>
-To: linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org
-Cc: m.szyprowski@samsung.com, kyungmin.park@samsung.com,
-	s.nawrocki@samsung.com, sw0312.kim@samsung.com,
-	riverful.kim@samsung.com
-Message-id: <1307009524-1208-3-git-send-email-s.nawrocki@samsung.com>
-References: <1307009524-1208-1-git-send-email-s.nawrocki@samsung.com>
+Received: from mx1.redhat.com ([209.132.183.28]:24050 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751044Ab1FNORr (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 14 Jun 2011 10:17:47 -0400
+Message-ID: <4DF76D88.5000506@redhat.com>
+Date: Tue, 14 Jun 2011 11:17:44 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+MIME-Version: 1.0
+To: Devin Heitmueller <dheitmueller@kernellabs.com>
+CC: Hans de Goede <hdegoede@redhat.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: Some fixes for alsa_stream
+References: <4DF6C10C.8070605@redhat.com>	<4DF758AF.3010301@redhat.com>	<4DF75C84.9000200@redhat.com>	<4DF7667C.9030502@redhat.com> <BANLkTi=9L+oxjpUaFo3ge0iqcZ2NCjJWWA@mail.gmail.com>
+In-Reply-To: <BANLkTi=9L+oxjpUaFo3ge0iqcZ2NCjJWWA@mail.gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Remove V4L2_MBUS_FMT_RGB565_2X8_BE media code entry as
-camera interface supports only packed YUYV formats.
+Em 14-06-2011 10:52, Devin Heitmueller escreveu:
+> On Tue, Jun 14, 2011 at 9:47 AM, Hans de Goede <hdegoede@redhat.com> wrote:
+>> Hmm, we really don't need more cmdline options IMHO, it is quite easy to
+>> detect
+>> if an alsa device supports mmap mode, and if not fall back to r/w mode, I
+>> know
+>> several programs which do that (some if which I've written the patches to do
+>> this for myself).
+> 
+> Agreed.
+> 
+>>> It should be noticed that the driver tries first to access the alsa driver
+>>> directly,
+>>> by using hw:0,0 output device. If it fails, it falls back to plughw:0,0.
+>>> I'm not sure
+>>> what's the name of the pulseaudio output, but I suspect that both are just
+>>> bypassing
+>>> pulseaudio, with is good ;)
+>>
+>> Right this means you're just bypassing pulse audio, which for a tvcard +
+>> tv-viewing
+> 
+> Actually, the ALSA client libraries route through PulseAudio (as long
+> as Pulse is running).  Basically PulseAudio is providing emulation for
+> the ALSA interface even if you specify "hw:1,0" as the device.
 
-Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
----
- drivers/media/video/s5p-fimc/fimc-core.c |    1 -
- 1 files changed, 0 insertions(+), 1 deletions(-)
+I'm not so sure about that. This probably depends on how the alsa library
+is configured, and this is distribution-specific. I'm almost sure that
+pulseaudio won't touch on hw: on Fedora.
 
-diff --git a/drivers/media/video/s5p-fimc/fimc-core.c b/drivers/media/video/s5p-fimc/fimc-core.c
-index dc91a85..f1c7119 100644
---- a/drivers/media/video/s5p-fimc/fimc-core.c
-+++ b/drivers/media/video/s5p-fimc/fimc-core.c
-@@ -42,7 +42,6 @@ static struct fimc_fmt fimc_formats[] = {
- 		.color		= S5P_FIMC_RGB565,
- 		.memplanes	= 1,
- 		.colplanes	= 1,
--		.mbus_code	= V4L2_MBUS_FMT_RGB565_2X8_BE,
- 		.flags		= FMT_FLAGS_M2M,
- 	}, {
- 		.name		= "BGR666",
--- 
-1.7.5.2
+>> app is a reasonable thing to do. Defaulting to hw:0,0 makes no sense to me
+>> though, we
+>> should default to either the audio devices belonging to the video device (as
+>> determined
+>> through sysfs), or to alsa's default input (which will likely be
+>> pulseaudio).
+> 
+> Mauro was talking about the output device, not the input device.
 
+Yes.
+
+The default for capture is the one detected via sysfs.
+
+The default for playback is not really hw:0,0. It defaults to the first hw: that it is not 
+associated with a video device. 
+
+I don't like the idea of defaulting to pulseaudio: on my own experiences, the addition
+of pulseaudio didn't bring me any benefit, but it causes several troubles that I needed to
+workaround, like disabling the access to the master volume control on a Sony Vaio notebook
+while setting it to 0 (I had to manually add some scripting at rc.local to fix), 
+limiting the max volume to half of the maximum (very bad effect on some notebooks), 
+preventing rmmod of V4L devices, and not working when the development user is different
+than the console owner, even when it is at the audio group. I can't think on even a single 
+benefit of using it on my usecase.
+
+Besides that, video playback generates too much IO, and, on slower machines, it demands
+a lot of CPU time. Not having an extra software layer is a good thing to do for the
+default.
+
+If someone wants to use pulseaudio, all they need to do is to pass an extra parameter.
+That's said, I was not able yet to discover what are the alsa names for pulseaudio
+devices. Any ideas on how to get it?
+
+Mauro
