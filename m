@@ -1,153 +1,52 @@
 Return-path: <mchehab@pedra>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:42173 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752378Ab1FQKXT convert rfc822-to-8bit (ORCPT
+Received: from wolverine02.qualcomm.com ([199.106.114.251]:49630 "EHLO
+	wolverine02.qualcomm.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753517Ab1FNVBa (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 17 Jun 2011 06:23:19 -0400
-From: "Hiremath, Vaibhav" <hvaibhav@ti.com>
-To: "Taneja, Archit" <archit@ti.com>
-CC: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	"mchehab@redhat.com" <mchehab@redhat.com>,
-	"hverkuil@xs4all.nl" <hverkuil@xs4all.nl>
-Date: Fri, 17 Jun 2011 15:53:13 +0530
-Subject: RE: [PATCH] omap_vout: Added check in reqbuf & mmap for buf_size
- allocation
-Message-ID: <19F8576C6E063C45BE387C64729E739404E30727F2@dbde02.ent.ti.com>
-References: <hvaibhav@ti.com>
- <1308255249-18762-1-git-send-email-hvaibhav@ti.com>
- <4DFB1445.3000102@ti.com>
- <19F8576C6E063C45BE387C64729E739404E30727E0@dbde02.ent.ti.com>
- <4DFB2C0E.4040100@ti.com>
-In-Reply-To: <4DFB2C0E.4040100@ti.com>
-Content-Language: en-US
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+	Tue, 14 Jun 2011 17:01:30 -0400
+Message-ID: <4DF7CC22.6050602@codeaurora.org>
+Date: Tue, 14 Jun 2011 15:01:22 -0600
+From: Jordan Crouse <jcrouse@codeaurora.org>
 MIME-Version: 1.0
+To: Arnd Bergmann <arnd@arndb.de>
+CC: Zach Pfeffer <zach.pfeffer@linaro.org>,
+	linux-arm-kernel@lists.infradead.org,
+	Daniel Walker <dwalker@codeaurora.org>,
+	Daniel Stone <daniels@collabora.com>, linux-mm@kvack.org,
+	Mel Gorman <mel@csn.ul.ie>, linux-kernel@vger.kernel.org,
+	Michal Nazarewicz <mina86@mina86.com>,
+	linaro-mm-sig@lists.linaro.org,
+	Jesse Barker <jesse.barker@linaro.org>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	Ankita Garg <ankita@in.ibm.com>,
+	Andrew Morton <akpm@linux-foundation.org>,
+	KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>,
+	linux-media@vger.kernel.org
+Subject: Re: [Linaro-mm-sig] [PATCH 08/10] mm: cma: Contiguous Memory	Allocator
+ added
+References: <1307699698-29369-1-git-send-email-m.szyprowski@samsung.com>	<20110614170158.GU2419@fooishbar.org>	<BANLkTi=cJisuP8=_YSg4h-nsjGj3zsM7sg@mail.gmail.com> <201106142242.25157.arnd@arndb.de>
+In-Reply-To: <201106142242.25157.arnd@arndb.de>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-> -----Original Message-----
-> From: Taneja, Archit
-> Sent: Friday, June 17, 2011 3:57 PM
-> To: Hiremath, Vaibhav
-> Cc: linux-media@vger.kernel.org; mchehab@redhat.com; hverkuil@xs4all.nl
-> Subject: Re: [PATCH] omap_vout: Added check in reqbuf & mmap for buf_size
-> allocation
-> 
-> Hi,
-> 
-> On Friday 17 June 2011 03:33 PM, Hiremath, Vaibhav wrote:
-> >
-> >> -----Original Message-----
-> >> From: Taneja, Archit
-> >> Sent: Friday, June 17, 2011 2:16 PM
-> >> To: Hiremath, Vaibhav
-> >> Cc: linux-media@vger.kernel.org; mchehab@redhat.com; hverkuil@xs4all.nl
-> >> Subject: Re: [PATCH] omap_vout: Added check in reqbuf&  mmap for
-> buf_size
-> >> allocation
-> >>
-> >> Hi,
-> >>
-> >> On Friday 17 June 2011 01:44 AM, Hiremath, Vaibhav wrote:
-> >>> From: Vaibhav Hiremath<hvaibhav@ti.com>
-> >>>
-> >>> The usecase where, user allocates small size of buffer
-> >>> through bootargs (video1_bufsize/video2_bufsize) and later from
-> >> application
-> >>> tries to set the format which requires larger buffer size, driver
-> >> doesn't
-> >>> check for insufficient buffer size and allows application to map extra
-> >> buffer.
-> >>> This leads to kernel crash, when user application tries to access
-> memory
-> >>> beyond the allocation size.
-> >>
-> >> Query: Why do we pass the bufsize as bootargs in the first place? Is it
-> >> needed at probe time?
-> >>
-> > [Hiremath, Vaibhav] Yes, look out for variable
-> (video1_bufsize/video2_bufsize) in code.
-> 
-> Yes, but why do we need to allocate some fixed size buffers at boot
-> time? Is it done because it makes our allocation happens faster during
-> reqbufs? Or is it required for VRFB?
-> 
-> Could you explain the reason/startegy behind allocating buffers of a
-> particular size at boot time?
-> 
-[Hiremath, Vaibhav] This is required to get rid of Linux memory fragmentation, user can reserve the memory based on usecase during boot time itself.
+On 06/14/2011 02:42 PM, Arnd Bergmann wrote:
+> On Tuesday 14 June 2011 20:58:25 Zach Pfeffer wrote:
+>> I've seen this split bank allocation in Qualcomm and TI SoCs, with
+>> Samsung, that makes 3 major SoC vendors (I would be surprised if
+>> Nvidia didn't also need to do this) - so I think some configurable
+>> method to control allocations is necessarily. The chips can't do
+>> decode without it (and by can't do I mean 1080P and higher decode is
+>> not functionally useful). Far from special, this would appear to be
+>> the default.
+>
+> Thanks for the insight, that's a much better argument than 'something
+> may need it'. Are those all chips without an IOMMU or do we also
+> need to solve the IOMMU case with split bank allocation?
 
-Thanks,
-Vaibhav
+Yes. The IOMMU case with split bank allocation is key, especially for shared
+buffers. Consider the case where video is using a certain bank for performance
+purposes and that frame is shared with the GPU.
 
-> Thanks,
-> Archit
-> 
-> >
-> > Thanks,
-> > Vaibhav
-> >
-> >> Thanks,
-> >> Archit
-> >>
-> >>>
-> >>> Added check in both mmap and reqbuf call back function,
-> >>> and return error if the size of the buffer allocated by user through
-> >>> bootargs is less than the S_FMT size.
-> >>>
-> >>> Signed-off-by: Vaibhav Hiremath<hvaibhav@ti.com>
-> >>> ---
-> >>>    drivers/media/video/omap/omap_vout.c |   16 ++++++++++++++++
-> >>>    1 files changed, 16 insertions(+), 0 deletions(-)
-> >>>
-> >>> diff --git a/drivers/media/video/omap/omap_vout.c
-> >> b/drivers/media/video/omap/omap_vout.c
-> >>> index 3bc909a..343b50c 100644
-> >>> --- a/drivers/media/video/omap/omap_vout.c
-> >>> +++ b/drivers/media/video/omap/omap_vout.c
-> >>> @@ -678,6 +678,14 @@ static int omap_vout_buffer_setup(struct
-> >> videobuf_queue *q, unsigned int *count,
-> >>>    	startindex = (vout->vid == OMAP_VIDEO1) ?
-> >>>    		video1_numbuffers : video2_numbuffers;
-> >>>
-> >>> +	/* Check the size of the buffer */
-> >>> +	if (*size>   vout->buffer_size) {
-> >>> +		v4l2_err(&vout->vid_dev->v4l2_dev,
-> >>> +				"buffer allocation mismatch [%u] [%u]\n",
-> >>> +				*size, vout->buffer_size);
-> >>> +		return -ENOMEM;
-> >>> +	}
-> >>> +
-> >>>    	for (i = startindex; i<   *count; i++) {
-> >>>    		vout->buffer_size = *size;
-> >>>
-> >>> @@ -856,6 +864,14 @@ static int omap_vout_mmap(struct file *file,
-> struct
-> >> vm_area_struct *vma)
-> >>>    				(vma->vm_pgoff<<   PAGE_SHIFT));
-> >>>    		return -EINVAL;
-> >>>    	}
-> >>> +	/* Check the size of the buffer */
-> >>> +	if (size>   vout->buffer_size) {
-> >>> +		v4l2_err(&vout->vid_dev->v4l2_dev,
-> >>> +				"insufficient memory [%lu] [%u]\n",
-> >>> +				size, vout->buffer_size);
-> >>> +		return -ENOMEM;
-> >>> +	}
-> >>> +
-> >>>    	q->bufs[i]->baddr = vma->vm_start;
-> >>>
-> >>>    	vma->vm_flags |= VM_RESERVED;
-> >>> --
-> >>> 1.6.2.4
-> >>>
-> >>> --
-> >>> To unsubscribe from this list: send the line "unsubscribe linux-media"
-> >> in
-> >>> the body of a message to majordomo@vger.kernel.org
-> >>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> >>>
-> >
-> >
-
+Jordan
