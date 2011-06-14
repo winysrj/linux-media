@@ -1,63 +1,60 @@
 Return-path: <mchehab@pedra>
-Received: from mailout1.w1.samsung.com ([210.118.77.11]:62400 "EHLO
-	mailout1.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753284Ab1F2JhL (ORCPT
+Received: from smtp-vbr6.xs4all.nl ([194.109.24.26]:2885 "EHLO
+	smtp-vbr6.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754518Ab1FNHO4 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 29 Jun 2011 05:37:11 -0400
-Received: from spt2.w1.samsung.com (mailout1.w1.samsung.com [210.118.77.11])
- by mailout1.w1.samsung.com
- (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14 2004))
- with ESMTP id <0LNJ006QCPDXBO@mailout1.w1.samsung.com> for
- linux-media@vger.kernel.org; Wed, 29 Jun 2011 10:37:09 +0100 (BST)
-Received: from linux.samsung.com ([106.116.38.10])
- by spt2.w1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14
- 2004)) with ESMTPA id <0LNJ005XIPDW3X@spt2.w1.samsung.com> for
- linux-media@vger.kernel.org; Wed, 29 Jun 2011 10:37:08 +0100 (BST)
-Date: Wed, 29 Jun 2011 11:37:00 +0200
-From: Marek Szyprowski <m.szyprowski@samsung.com>
-Subject: [PATCH] media: vb2: fix allocation failure check
+	Tue, 14 Jun 2011 03:14:56 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
 To: linux-media@vger.kernel.org
-Cc: Marek Szyprowski <m.szyprowski@samsung.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	Pawel Osciak <pawel@osciak.com>,
-	Jonathan Corbet <corbet@lwn.net>
-Message-id: <1309340220-3139-1-git-send-email-m.szyprowski@samsung.com>
-MIME-version: 1.0
-Content-type: TEXT/PLAIN
-Content-transfer-encoding: 7BIT
+Cc: Mike Isely <isely@isely.net>, Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [RFCv6 PATCH 10/10] v4l2-ioctl.c: check for valid tuner type in S_HW_FREQ_SEEK.
+Date: Tue, 14 Jun 2011 09:14:42 +0200
+Message-Id: <aec4ab9a3c1dacba4f9a6633b2603fdf0c29f3a8.1308035134.git.hans.verkuil@cisco.com>
+In-Reply-To: <1308035682-20447-1-git-send-email-hverkuil@xs4all.nl>
+References: <1308035682-20447-1-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <eff4df001ab17e78b7413b9ed51661777523dbac.1308035134.git.hans.verkuil@cisco.com>
+References: <eff4df001ab17e78b7413b9ed51661777523dbac.1308035134.git.hans.verkuil@cisco.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-__vb2_queue_alloc function returns the number of successfully allocated
-buffers. There is no point in checking if the returned value is negative.
-If this function returns 0, videobuf2 should just return -ENOMEM to
-userspace, because no driver can work without memory buffers.
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-Reported-by: Jonathan Corbet <corbet@lwn.net>
-Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
-Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
-CC: Pawel Osciak <pawel@osciak.com>
+Prohibit attempts to change the tuner to a type that is different
+from the device node the ioctl is called from. I.e. the type must
+be RADIO for a radio node and ANALOG_TV for a video/vbi node.
+
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
 ---
- drivers/media/video/videobuf2-core.c |    6 +++---
- 1 files changed, 3 insertions(+), 3 deletions(-)
+ drivers/media/video/v4l2-ioctl.c |   12 +++++++++---
+ 1 files changed, 9 insertions(+), 3 deletions(-)
 
-diff --git a/drivers/media/video/videobuf2-core.c b/drivers/media/video/videobuf2-core.c
-index 6ba1461..5517913 100644
---- a/drivers/media/video/videobuf2-core.c
-+++ b/drivers/media/video/videobuf2-core.c
-@@ -539,9 +539,9 @@ int vb2_reqbufs(struct vb2_queue *q, struct v4l2_requestbuffers *req)
- 	/* Finally, allocate buffers and video memory */
- 	ret = __vb2_queue_alloc(q, req->memory, num_buffers, num_planes,
- 				plane_sizes);
--	if (ret < 0) {
--		dprintk(1, "Memory allocation failed with error: %d\n", ret);
--		return ret;
-+	if (ret == 0) {
-+		dprintk(1, "Memory allocation failed\n");
-+		return -ENOMEM;
- 	}
+diff --git a/drivers/media/video/v4l2-ioctl.c b/drivers/media/video/v4l2-ioctl.c
+index 26bf3bf..55df143 100644
+--- a/drivers/media/video/v4l2-ioctl.c
++++ b/drivers/media/video/v4l2-ioctl.c
+@@ -1946,13 +1946,19 @@ static long __video_do_ioctl(struct file *file,
+ 	case VIDIOC_S_HW_FREQ_SEEK:
+ 	{
+ 		struct v4l2_hw_freq_seek *p = arg;
++		enum v4l2_tuner_type type;
  
- 	/*
+ 		if (!ops->vidioc_s_hw_freq_seek)
+ 			break;
++		type = (vfd->vfl_type == VFL_TYPE_RADIO) ?
++			V4L2_TUNER_RADIO : V4L2_TUNER_ANALOG_TV;
+ 		dbgarg(cmd,
+-			"tuner=%d, type=%d, seek_upward=%d, wrap_around=%d\n",
+-			p->tuner, p->type, p->seek_upward, p->wrap_around);
+-		ret = ops->vidioc_s_hw_freq_seek(file, fh, p);
++			"tuner=%u, type=%u, seek_upward=%u, wrap_around=%u, spacing=%u\n",
++			p->tuner, p->type, p->seek_upward, p->wrap_around, p->spacing);
++		if (p->type != type)
++			ret = -EINVAL;
++		else
++			ret = ops->vidioc_s_hw_freq_seek(file, fh, p);
+ 		break;
+ 	}
+ 	case VIDIOC_ENUM_FRAMESIZES:
 -- 
-1.7.1.569.g6f426
+1.7.1
 
