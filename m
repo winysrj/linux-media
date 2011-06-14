@@ -1,136 +1,51 @@
 Return-path: <mchehab@pedra>
-Received: from mail-fx0-f46.google.com ([209.85.161.46]:38956 "EHLO
-	mail-fx0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757801Ab1FPSY3 (ORCPT
+Received: from smtp-vbr6.xs4all.nl ([194.109.24.26]:2175 "EHLO
+	smtp-vbr6.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753013Ab1FNPWv (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 16 Jun 2011 14:24:29 -0400
-Received: by fxm17 with SMTP id 17so1290626fxm.19
-        for <linux-media@vger.kernel.org>; Thu, 16 Jun 2011 11:24:28 -0700 (PDT)
-Subject: New channels list sk-Presov
-From: Viktor Kristian <vkristian@gmail.com>
+	Tue, 14 Jun 2011 11:22:51 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
 To: linux-media@vger.kernel.org
-Content-Type: multipart/signed; micalg="sha1"; protocol="application/x-pkcs7-signature"; boundary="=-OH5fB98NINuFXdpb9V8m"
-Date: Thu, 16 Jun 2011 20:24:25 +0200
-Message-ID: <1308248665.5573.7.camel@charon>
-Mime-Version: 1.0
+Cc: laurent.pinchart@ideasonboard.com, sakari.ailus@iki.fi
+Subject: [RFCv1 PATCH 0/8] Allocate events per-event-type, v4l2-ctrls cleanup
+Date: Tue, 14 Jun 2011 17:22:25 +0200
+Message-Id: <1308064953-11156-1-git-send-email-hverkuil@xs4all.nl>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
+This patch series consists of two parts: the first four patches change the
+way events are allocated and what to do when the event queue is full.
 
---=-OH5fB98NINuFXdpb9V8m
-Content-Type: multipart/mixed; boundary="=-Y9/UwYnWSZ4PFUoi9jjJ"
+These first four patches are the most important ones to review. The big
+change is that event allocation now happens when subscribing an event.
+So you not only specify which event you want to subscribe to for a particular
+filehandle, but also how many events should be reserved for that event type.
+Currently the driver specifies the number of events to allocate, but later
+this can be something that the application might want to set manually.
 
+This ensures that for each event type you will never entirely miss all events
+of a particular type. Currently this is a real possibility.
 
---=-Y9/UwYnWSZ4PFUoi9jjJ
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+The other change is that instead of dropping the new event if there is no more
+space available, the oldest event is dropped. This ensures that you get at
+least the latest state. And optionally a merge function can be provided that
+merges information of two events into one. This allows the control event to
+require just one event: if a new event is raised, then the new and old one
+can be merged and all state is preserved. Only the intermediate steps are
+no longer available. This makes for very good behavior of events and is IMHO
+a requirement for using the control event in a real production environment.
 
-Hello.
+The second four patches reorganize the way extended controls are processed
+in the control framework. This is the first step towards allowing control
+changes from within interrupt handlers. The main purpose is to move as much
+code as possible out of the critical sections. This reduces the size of
+those sections, making it easier to eventually switch to spinlocks for
+certain kinds of controls.
 
-I would like to commit channel list sk-Presov as suggested in README of
-utility "scan" from dvb-apps.
+It's lots of internal churn, so it's probably not easy to review. There are
+no real functional changes, however.
 
-Please let me know if anything is missing in this list.
+Regards,
 
-Thank You
-
-
---=20
-S podzravom / Kind regards,
-Viktor Kristian
-
---=-Y9/UwYnWSZ4PFUoi9jjJ
-Content-Disposition: attachment; filename="sk-Presov"
-Content-Type: text/plain; name="sk-Presov"; charset="UTF-8"
-Content-Transfer-Encoding: base64
-
-IyBEVkItVCBQcmXFoW92IChQcmXFoW92LCBTbG92YWsgUmVwdWJsaWMpDQojIENyZWF0ZWQgZnJv
-bSBodHRwOi8vd3d3LmR2YnQudG93ZXJjb20uc2svb2Rib3JuaWNpLnBocA0KIyBUIGZyZXEgYncg
-ZmVjX2hpIGZlY19sbyBtb2QgdHJhbnNtaXNzaW9uLW1vZGUgZ3VhcmQtaW50ZXJ2YWwgaGllcmFy
-Y2h5DQoNCiMgTVVYMSAtIFBpbG90IC0gb24gY2hhbm5lbCA2NA0KVCA4MTgwMDAwMDAgOE1IeiAy
-LzMgTk9ORSBRQU02NCA4ayAxLzQgTk9ORQ0KDQojIE1VWDIgLSBDb21tZXJjaWFsIC0gb24gY2hh
-bm5lbCA1OQ0KVCA3NzgwMDAwMDAgOE1IeiAyLzMgTk9ORSBRQU02NCA4ayAxLzQgTk9ORQ0KDQoj
-IE1VWDMgLSBQdWJsaWMgLSBvbiBjaGFubmVsIDI1DQpUIDUwNjAwMDAwMCA4TUh6IDIvMyBOT05F
-IFFBTTY0IDhrIDEvNCBOT05FDQoNCg==
-
-
---=-Y9/UwYnWSZ4PFUoi9jjJ--
-
---=-OH5fB98NINuFXdpb9V8m
-Content-Type: application/x-pkcs7-signature; name="smime.p7s"
-Content-Disposition: attachment; filename="smime.p7s"
-Content-Transfer-Encoding: base64
-
-MIAGCSqGSIb3DQEHAqCAMIACAQExCzAJBgUrDgMCGgUAMIAGCSqGSIb3DQEHAQAAoIIM1jCCBjQw
-ggQcoAMCAQICAR4wDQYJKoZIhvcNAQEFBQAwfTELMAkGA1UEBhMCSUwxFjAUBgNVBAoTDVN0YXJ0
-Q29tIEx0ZC4xKzApBgNVBAsTIlNlY3VyZSBEaWdpdGFsIENlcnRpZmljYXRlIFNpZ25pbmcxKTAn
-BgNVBAMTIFN0YXJ0Q29tIENlcnRpZmljYXRpb24gQXV0aG9yaXR5MB4XDTA3MTAyNDIxMDE1NVoX
-DTE3MTAyNDIxMDE1NVowgYwxCzAJBgNVBAYTAklMMRYwFAYDVQQKEw1TdGFydENvbSBMdGQuMSsw
-KQYDVQQLEyJTZWN1cmUgRGlnaXRhbCBDZXJ0aWZpY2F0ZSBTaWduaW5nMTgwNgYDVQQDEy9TdGFy
-dENvbSBDbGFzcyAxIFByaW1hcnkgSW50ZXJtZWRpYXRlIENsaWVudCBDQTCCASIwDQYJKoZIhvcN
-AQEBBQADggEPADCCAQoCggEBAMcJg8zOLdgasSmkLhOrlr6KMoOMpohBllVHrdRvEg/q6r8jR+EK
-75xCGhR8ToREoqe7zM9/UnC6TS2y9UKTpT1v7RSMzR0t6ndl0TWBuUr/UXBhPk+Kmy7bI4yW4urC
-+y7P3/1/X7U8ocb8VpH/Clt+4iq7nirMcNh6qJR+xjOhV+VHzQMALuGYn5KZmc1NbJQYclsGkDxD
-z2UbFqE2+6vIZoL+jb9x4Pa5gNf1TwSDkOkikZB1xtB4ZqtXThaABSONdfmv/Z1pua3FYxnCFmdr
-/+N2JLKutIxMYqQOJebr/f/h5t95m4JgrM3Y/w7YX9d7YAL9jvN4SydHsU6n65cCAwEAAaOCAa0w
-ggGpMA8GA1UdEwEB/wQFMAMBAf8wDgYDVR0PAQH/BAQDAgEGMB0GA1UdDgQWBBRTcu2SnODaywFc
-fH6WNU7y1LhRgjAfBgNVHSMEGDAWgBROC+8apEBbpRdphzDKNGhD0EGu8jBmBggrBgEFBQcBAQRa
-MFgwJwYIKwYBBQUHMAGGG2h0dHA6Ly9vY3NwLnN0YXJ0c3NsLmNvbS9jYTAtBggrBgEFBQcwAoYh
-aHR0cDovL3d3dy5zdGFydHNzbC5jb20vc2ZzY2EuY3J0MFsGA1UdHwRUMFIwJ6AloCOGIWh0dHA6
-Ly93d3cuc3RhcnRzc2wuY29tL3Nmc2NhLmNybDAnoCWgI4YhaHR0cDovL2NybC5zdGFydHNzbC5j
-b20vc2ZzY2EuY3JsMIGABgNVHSAEeTB3MHUGCysGAQQBgbU3AQIBMGYwLgYIKwYBBQUHAgEWImh0
-dHA6Ly93d3cuc3RhcnRzc2wuY29tL3BvbGljeS5wZGYwNAYIKwYBBQUHAgEWKGh0dHA6Ly93d3cu
-c3RhcnRzc2wuY29tL2ludGVybWVkaWF0ZS5wZGYwDQYJKoZIhvcNAQEFBQADggIBAAqDCH14qywG
-XLhjjF6uHLkjd02hcdh9hrw+VUsv+q1eeQWB21jWj3kJ96AUlPCoEGZ/ynJNScWy6QMVQjbbMXlt
-UfO4n4bGGdKo3awPWp61tjAFgraLJgDk+DsSvUD6EowjMTNx25GQgyYJ5RPIzKKR9tQW8gGK+2+R
-HxkUCTbYFnL6kl8Ch507rUdPPipJ9CgJFws3kDS3gOS5WFMxcjO5DwKfKSETEPrHh7p5shuuNktv
-sv6hxHTLhiMKX893gxdT3XLS9OKmCv87vkINQcNEcIIoFWbP9HORz9v3vQwR4e3ksLc2JZOAFK+s
-sS5XMEoznzpihEP0PLc4dCBYjbvSD7kxgDwZ+Aj8Q9PkbvE9sIPP7ON0fz095HdThKjiVJe6vofq
-+n6b1NBc8XdrQvBmunwxD5nvtTW4vtN6VY7mUCmxsCieuoBJ9OlqmsVWQvifIYf40dJPZkk9YgGT
-zWLpXDSfLSplbY2LL9C9U0ptvjcDjefLTvqSFc7tw1sEhF0n/qpA2r0GpvkLRDmcSwVyPvmjFBGq
-Up/pNy8ZuPGQmHwFi2/14+xeSUDG2bwnsYJQG2EdJCB6luQ57GEnTA/yKZSTKI8dDQa8Sd3zfXb1
-9mOgSF0bBdXbuKhEpuP9wirslFe6fQ1t5j5R0xi72MZ8ikMu1RQZKCyDbMwazlHiMIIGmjCCBYKg
-AwIBAgIDAXr/MA0GCSqGSIb3DQEBBQUAMIGMMQswCQYDVQQGEwJJTDEWMBQGA1UEChMNU3RhcnRD
-b20gTHRkLjErMCkGA1UECxMiU2VjdXJlIERpZ2l0YWwgQ2VydGlmaWNhdGUgU2lnbmluZzE4MDYG
-A1UEAxMvU3RhcnRDb20gQ2xhc3MgMSBQcmltYXJ5IEludGVybWVkaWF0ZSBDbGllbnQgQ0EwHhcN
-MTAwNzI3MjIxMjU4WhcNMTEwNzI5MjAwMDQ5WjCBkTEgMB4GA1UEDRMXMjMyODQ2LTYwRldYTmk1
-SXQ4MmowN1cxHjAcBgNVBAoTFVBlcnNvbmEgTm90IFZhbGlkYXRlZDEpMCcGA1UEAxMgU3RhcnRD
-b20gRnJlZSBDZXJ0aWZpY2F0ZSBNZW1iZXIxIjAgBgkqhkiG9w0BCQEWE3ZrcmlzdGlhbkBnbWFp
-bC5jb20wggEiMA0GCSqGSIb3DQEBAQUAA4IBDwAwggEKAoIBAQC7ttxlGBi1d2254dCP1yS6MxbD
-kf4VyEfAwsdQNvk4/kB613sl0n7m0CepO0oaVbEVdwGEacxXfM3IEdI9XQBmmxV/1h+mpUWgY8bh
-odrhKYrQctyykjRoJim61kCTFnRiVXroKpdk4foXV5E7tNBVf0AQjf5AzsIJ23b7zYM+boNewEpU
-HD0+HurrLmmqhXhYocWGs2k+zAvbPMeKyB3hJxLqplZFbjZv/0Ww6s+XP5BHuJRlejaA5NK6Lf1v
-i1d0eKqqQ8Ytg+j6Ne6v3iZrhijiZwZ8ctRJ2CmkgfsRGpRC7tEvfLJljOffwJhf+bgdwgcB8sdC
-/BxFfL1lKa0rAgMBAAGjggL8MIIC+DAJBgNVHRMEAjAAMAsGA1UdDwQEAwIEsDAdBgNVHSUEFjAU
-BggrBgEFBQcDAgYIKwYBBQUHAwQwHQYDVR0OBBYEFN3YJeVuqxGc1v0SIMQ/H7tqlye9MB8GA1Ud
-IwQYMBaAFFNy7ZKc4NrLAVx8fpY1TvLUuFGCMB4GA1UdEQQXMBWBE3ZrcmlzdGlhbkBnbWFpbC5j
-b20wggFCBgNVHSAEggE5MIIBNTCCATEGCysGAQQBgbU3AQICMIIBIDAuBggrBgEFBQcCARYiaHR0
-cDovL3d3dy5zdGFydHNzbC5jb20vcG9saWN5LnBkZjA0BggrBgEFBQcCARYoaHR0cDovL3d3dy5z
-dGFydHNzbC5jb20vaW50ZXJtZWRpYXRlLnBkZjCBtwYIKwYBBQUHAgIwgaowFBYNU3RhcnRDb20g
-THRkLjADAgEBGoGRTGltaXRlZCBMaWFiaWxpdHksIHNlZSBzZWN0aW9uICpMZWdhbCBMaW1pdGF0
-aW9ucyogb2YgdGhlIFN0YXJ0Q29tIENlcnRpZmljYXRpb24gQXV0aG9yaXR5IFBvbGljeSBhdmFp
-bGFibGUgYXQgaHR0cDovL3d3dy5zdGFydHNzbC5jb20vcG9saWN5LnBkZjBjBgNVHR8EXDBaMCug
-KaAnhiVodHRwOi8vd3d3LnN0YXJ0c3NsLmNvbS9jcnR1MS1jcmwuY3JsMCugKaAnhiVodHRwOi8v
-Y3JsLnN0YXJ0c3NsLmNvbS9jcnR1MS1jcmwuY3JsMIGOBggrBgEFBQcBAQSBgTB/MDkGCCsGAQUF
-BzABhi1odHRwOi8vb2NzcC5zdGFydHNzbC5jb20vc3ViL2NsYXNzMS9jbGllbnQvY2EwQgYIKwYB
-BQUHMAKGNmh0dHA6Ly93d3cuc3RhcnRzc2wuY29tL2NlcnRzL3N1Yi5jbGFzczEuY2xpZW50LmNh
-LmNydDAjBgNVHRIEHDAahhhodHRwOi8vd3d3LnN0YXJ0c3NsLmNvbS8wDQYJKoZIhvcNAQEFBQAD
-ggEBAH90IUTrUS69T/BmdvPWvKSHQvGEMJn2f30mB3ZcNTlxhvJ/RBDNXMfPOd7f/Eq8j9GGex0N
-ABw5ANzy8Op6SXQmEXTFIlVUKFYtksX0OGKrEDAL83hMsuHJu3LdBlh5r/Xxgdqi9i5Qc7gdrT6u
-oVics/arRMfjNSuR/WZBZXdkcdEYAx9j5YC9teElPIIo7v8lZIR1lSES+AqFzsId7ejxA0BqLo2Q
-dFEvmbgwl3jb9Fm4kV4e0RGeyAJz3V9eaytDzFbrP3OYpfvCeOaxMvR301or/U7AXy4zIIk8pRg5
-CtdSHTpXNCiWvpZ0aKWUEBWC/2osjIw0eEx9mDD2TTExggIbMIICFwIBATCBlDCBjDELMAkGA1UE
-BhMCSUwxFjAUBgNVBAoTDVN0YXJ0Q29tIEx0ZC4xKzApBgNVBAsTIlNlY3VyZSBEaWdpdGFsIENl
-cnRpZmljYXRlIFNpZ25pbmcxODA2BgNVBAMTL1N0YXJ0Q29tIENsYXNzIDEgUHJpbWFyeSBJbnRl
-cm1lZGlhdGUgQ2xpZW50IENBAgMBev8wCQYFKw4DAhoFAKBdMBgGCSqGSIb3DQEJAzELBgkqhkiG
-9w0BBwEwHAYJKoZIhvcNAQkFMQ8XDTExMDYxNjE4MjQxOVowIwYJKoZIhvcNAQkEMRYEFJfPreOd
-k1RhXSBryeiqVlZff19HMA0GCSqGSIb3DQEBAQUABIIBAE7dPcaZEcQb7V8tT0MNuth3UJqTuzY6
-X+VsTGMNr4WVoZ8jEEC3bs+cAx9vewMJ3a+sMYIhpArQakkzp9It1/HPccFWF/be2teFhucjLWr6
-3sieFvZ+cRCnMFxuIBMzJfSS9Xq2PsTrtgxtwuBEM9Gf95uHVBnoj3zobtH0P8xcpkyLFGBHOdJo
-ZXdIwqaWmmZpP/7FvIDkwU6xdBgL5kHOs8ZU5bsDpwYAbur8DiAiAM5wh2mzXy84dhILmjyU017g
-K9D+iaXwn8AziDmiWfkdIiC5Dcv1EUMqOZVzcZrPJJtfykk3sZLqLKwPqMhzes1wSvsL8LJtybho
-ex0kII8AAAAAAAA=
-
-
---=-OH5fB98NINuFXdpb9V8m--
+	Hans
 
