@@ -1,42 +1,68 @@
 Return-path: <mchehab@pedra>
-Received: from juliette.telenet-ops.be ([195.130.137.74]:54391 "EHLO
-	juliette.telenet-ops.be" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753379Ab1FLWa4 (ORCPT
+Received: from mail-fx0-f46.google.com ([209.85.161.46]:34998 "EHLO
+	mail-fx0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750947Ab1FNQ6j (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 12 Jun 2011 18:30:56 -0400
-Message-ID: <4DF53E1F.7010903@telenet.be>
-Date: Mon, 13 Jun 2011 00:30:55 +0200
-From: Bart Coninckx <bart.coninckx@telenet.be>
+	Tue, 14 Jun 2011 12:58:39 -0400
+Content-Type: text/plain; charset=utf-8; format=flowed; delsp=yes
+To: "Arnd Bergmann" <arnd@arndb.de>
+Cc: "Marek Szyprowski" <m.szyprowski@samsung.com>,
+	linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+	linux-media@vger.kernel.org, linux-mm@kvack.org,
+	linaro-mm-sig@lists.linaro.org,
+	"'Kyungmin Park'" <kyungmin.park@samsung.com>,
+	"'Andrew Morton'" <akpm@linux-foundation.org>,
+	"'KAMEZAWA Hiroyuki'" <kamezawa.hiroyu@jp.fujitsu.com>,
+	"'Ankita Garg'" <ankita@in.ibm.com>,
+	"'Daniel Walker'" <dwalker@codeaurora.org>,
+	"'Mel Gorman'" <mel@csn.ul.ie>,
+	"'Jesse Barker'" <jesse.barker@linaro.org>
+Subject: Re: [PATCH 08/10] mm: cma: Contiguous Memory Allocator added
+References: <1307699698-29369-1-git-send-email-m.szyprowski@samsung.com>
+ <201106141549.29315.arnd@arndb.de> <op.vw2jmhir3l0zgt@mnazarewicz-glaptop>
+ <201106141803.00876.arnd@arndb.de>
+Date: Tue, 14 Jun 2011 18:58:35 +0200
 MIME-Version: 1.0
-To: linux-media@vger.kernel.org
-Subject: "dvb_ca adaptor 0: PC card did not respond :(" with Technotrend S2-3200
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
+From: "Michal Nazarewicz" <mina86@mina86.com>
+Message-ID: <op.vw2r3xrj3l0zgt@mnazarewicz-glaptop>
+In-Reply-To: <201106141803.00876.arnd@arndb.de>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Hi all,
+>> On Tue, 14 Jun 2011 15:49:29 +0200, Arnd Bergmann <arnd@arndb.de> wrote:
+>>> Please explain the exact requirements that lead you to defining  
+>>> multiple contexts.
 
+> On Tuesday 14 June 2011, Michal Nazarewicz wrote:
+>> Some devices may have access only to some banks of memory.  Some devices
+>> may use different banks of memory for different purposes.
 
-hope you can help me this one, because there's not a whole of info about 
-similar problems to be found.
+On Tue, 14 Jun 2011 18:03:00 +0200, Arnd Bergmann wrote:
+> For all I know, that is something that is only true for a few very  
+> special Samsung devices,
 
-I have a Technotrend S2-3200 with CI and on three different distros I 
-get this
+Maybe.  I'm just answering your question. :)
 
-"dvb_ca adaptor 0: PC card did not respond :(
+Ah yes, I forgot that separate regions for different purposes could
+decrease fragmentation.
 
+> I would suggest going forward without having multiple regions:
 
-in /var/log/messages.
+Is having support for multiple regions a bad thing?  Frankly,
+removing this support will change code from reading context passed
+as argument to code reading context from global variable.  Nothing
+is gained; functionality is lost.
 
-I guess this is the reason why I cannot see encrypted channels on Linux. 
-Unencrypted works fine. In Windows XP the cord works fine too.
+> * Remove the registration of specific addresses from the initial patch
+>   set (but keep the patch).
+> * Add a heuristic plus command-line override to automatically come up
+>   with a reasonable location+size for *one* CMA area in the system.
 
-I tried Opensuse 11.4, the latest Mythbuntu and the latest Mythdora.
+I'm not arguing those.
 
-Can anyone give any hints on how to go about this?
-
-
-thx!!!
-
-Bart
+-- 
+Best regards,                                         _     _
+.o. | Liege of Serenely Enlightened Majesty of      o' \,=./ `o
+..o | Computer Science,  Michal "mina86" Nazarewicz    (o o)
+ooo +-----<email/xmpp: mnazarewicz@google.com>-----ooO--(_)--Ooo--
