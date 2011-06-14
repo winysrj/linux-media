@@ -1,70 +1,53 @@
 Return-path: <mchehab@pedra>
-Received: from mx1.redhat.com ([209.132.183.28]:14141 "EHLO mx1.redhat.com"
+Received: from tex.lwn.net ([70.33.254.29]:58196 "EHLO vena.lwn.net"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755710Ab1FEMFh (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 5 Jun 2011 08:05:37 -0400
-Message-ID: <4DEB710B.4090704@redhat.com>
-Date: Sun, 05 Jun 2011 09:05:31 -0300
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-MIME-Version: 1.0
-To: "istvan_v@mailbox.hu" <istvan_v@mailbox.hu>
-CC: linux-media@vger.kernel.org,
-	"Igor M. Liplianin" <liplianin@tut.by>,
-	Devin Heitmueller <dheitmueller@kernellabs.com>
-Subject: Re: XC4000: setting registers
-References: <4D764337.6050109@email.cz>	<20110531124843.377a2a80@glory.local>	<BANLkTi=Lq+FF++yGhRmOa4NCigSt6ZurHg@mail.gmail.com>	<20110531174323.0f0c45c0@glory.local> <BANLkTimEEGsMP6PDXf5W5p9wW7wdWEEOiA@mail.gmail.com> <4DEA4B6A.70602@mailbox.hu>
-In-Reply-To: <4DEA4B6A.70602@mailbox.hu>
-Content-Type: text/plain; charset=windows-1252
+	id S1750864Ab1FNOXf (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 14 Jun 2011 10:23:35 -0400
+Date: Tue, 14 Jun 2011 08:23:33 -0600
+From: Jonathan Corbet <corbet@lwn.net>
+To: Kassey Lee <kassey1216@gmail.com>
+Cc: linux-media@vger.kernel.org, g.liakhovetski@gmx.de,
+	Kassey Lee <ygli@marvell.com>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Daniel Drake <dsd@laptop.org>, ytang5@marvell.com,
+	qingx@marvell.com, leiwen@marvell.com
+Subject: Re: [PATCH 1/8] marvell-cam: Move cafe-ccic into its own directory
+Message-ID: <20110614082333.43098c95@bike.lwn.net>
+In-Reply-To: <BANLkTikXATbgOZQbzaj4sQEmELsdpNobfQ@mail.gmail.com>
+References: <1307814409-46282-1-git-send-email-corbet@lwn.net>
+	<1307814409-46282-2-git-send-email-corbet@lwn.net>
+	<BANLkTikXATbgOZQbzaj4sQEmELsdpNobfQ@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 8bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Hi Istvan,
+On Tue, 14 Jun 2011 10:23:58 +0800
+Kassey Lee <kassey1216@gmail.com> wrote:
 
-Em 04-06-2011 12:12, istvan_v@mailbox.hu escreveu:
-> This patch implements setting the registers in xc4000_set_params()
-> and xc4000_set_analog_params(). A new register is defined which enables
-> filtering of the composite video output (this is needed to avoid bad
-> picture quality with some boards).
-> 
-> Signed-off-by: Istvan Varga <istvan_v@mailbox.hu>
-> 
+> Jon, Here is my comments.
 
-This one breaks compilation:
+Thanks for having a look.
 
-drivers/media/common/tuners/xc4000.c: In function ‘xc4000_set_analog_params’:
-drivers/media/common/tuners/xc4000.c:1340: error: ‘type’ undeclared (first use in this function)
-drivers/media/common/tuners/xc4000.c:1340: error: (Each undeclared identifier is reported only once
-drivers/media/common/tuners/xc4000.c:1340: error: for each function it appears in.)
-make[3]: ** [drivers/media/common/tuners/xc4000.o] Erro 1
-make[2]: ** [drivers/media/common/tuners] Erro 2
-make[1]: ** [drivers/media/common] Erro 2
-make: ** [drivers/media/] Erro 2
+> > +config VIDEO_CAFE_CCIC
+> > +       tristate "Marvell 88ALP01 (Cafe) CMOS Camera Controller support"
+> > +       depends on PCI && I2C && VIDEO_V4L2
+> > +       select VIDEO_OV7670
+> >
+>  why need binds with sensor ? suppose CCIC driver and sensor driver are
+> independent, even if your hardware only support OV7670
 
-We should not allow that a patch in the middle of a series to break the compilation,
-as this breaks git bisect command. I fixed it with a hack.
+We all agree that needs to change.  This particular patch, though, is
+concerned with moving a working driver into a new directory; making that
+sort of functional change would not be appropriate here.
 
-All patches you've sent were added at my experimental tree, including the one that
-added a card type inside the struct.
+> > +#include <media/ov7670.h>
+> >
+>      ccic would not be aware of the sensor name.
 
-I had to rebase the tree with:
+Ditto.
 
-git filter-branch -f --env-filter '{ GIT_AUTHOR_NAME="Istvan Varga"; GIT_AUTHOR_EMAIL="istvan_v@mailbox.hu"; export GIT_AUTHOR_NAME;}' ^3be84e2e789af734a35ad0559c2d7c4931d0fe91^ HEAD 
+Thanks,
 
-As your emails are being sent without your name on it (from is: istvan_v@mailbox.hu <istvan_v@mailbox.hu>).
-
-I didn't made any review of them. Please let me know when you finish submitting
-the patches for me to do a review at the resulting code.
-
-Ah, I'd appreciate if you could fix your emails. It takes me some time to
-reformat the patches, as you're sending the patches as attachments, but my
-email scripts aren't ready for patches with multiple mime types. Patchwork
-might help, but it also got only 4 patches from you (not sure if this is due
-to patchwork bugs or due to the attachments). It also helps if you could add
-[PATCH] at the email subject. I'm setting a backup process due to the constant
-patchwork failures, but my alternative logic relies on having [PATCH] at the
-subject logic, to move the patches into a separate mail directory.
-
-thanks,
-Mauro.
-
+jon
