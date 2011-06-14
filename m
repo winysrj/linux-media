@@ -1,80 +1,569 @@
 Return-path: <mchehab@pedra>
-Received: from mx1.redhat.com ([209.132.183.28]:47111 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757292Ab1FILVh (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 9 Jun 2011 07:21:37 -0400
-Message-ID: <4DF0ACDB.9000800@redhat.com>
-Date: Thu, 09 Jun 2011 13:22:03 +0200
-From: Hans de Goede <hdegoede@redhat.com>
-MIME-Version: 1.0
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-CC: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Crash on unplug with the uvc driver in linuxtv/staging/for_v3.1
-Content-Type: text/plain; charset=windows-1252; format=flowed
-Content-Transfer-Encoding: 8bit
+Received: from smtp-vbr6.xs4all.nl ([194.109.24.26]:3534 "EHLO
+	smtp-vbr6.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753098Ab1FNPWz (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 14 Jun 2011 11:22:55 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: laurent.pinchart@ideasonboard.com, sakari.ailus@iki.fi,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [RFCv1 PATCH 3/8] v4l2-event/ctrls/fh: allocate events per fh and per type instead of just per-fh
+Date: Tue, 14 Jun 2011 17:22:28 +0200
+Message-Id: <ec0f8d68039a80667b7cc5177a9d28f6da7a2e4a.1308063857.git.hans.verkuil@cisco.com>
+In-Reply-To: <1308064953-11156-1-git-send-email-hverkuil@xs4all.nl>
+References: <1308064953-11156-1-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <3d92b242dcf5e7766d128d6c1f05c0bd837a2633.1308063857.git.hans.verkuil@cisco.com>
+References: <3d92b242dcf5e7766d128d6c1f05c0bd837a2633.1308063857.git.hans.verkuil@cisco.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Hi,
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-When I unplug a uvc camera *while streaming* I get:
+The driver had to decide how many events to allocate when the v4l2_fh struct
+was created. It was possible to add more events afterwards, but there was no
+way to ensure that you wouldn't miss important events if the event queue
+would fill up for that filehandle.
 
-Jun  9 13:20:02 shalem kernel: [15824.809741] BUG: unable to handle kernel NULL pointer dereference at           (null)
-Jun  9 13:20:02 shalem kernel: [15824.809816] IP: [<ffffffffa0309eae>] media_entity_put+0x12/0x2c [media]
-Jun  9 13:20:02 shalem kernel: [15824.809877] PGD 0
-Jun  9 13:20:02 shalem kernel: [15824.809898] Oops: 0000 [#1] SMP
-Jun  9 13:20:02 shalem kernel: [15824.809933] CPU 1
-Jun  9 13:20:02 shalem kernel: [15824.809952] Modules linked in: uvcvideo videodev media v4l2_compat_ioctl32 nf_conntrack_ipv4 nf_defrag_ipv4 vfat fat tcp_lp tun fuse ebtable_nat ebtables cpufreq_ondemand acpi_cpufreq freq_table mperf bridge stp llc be2iscsi iscsi_boot_sysfs bnx2i cnic uio cxgb3i libcxgbi iw_cxgb3 cxgb3 mdio ib_iser rdma_cm ib_cm iw_cm ib_sa ib_mad ib_core ib_addr iscsi_tcp libiscsi_tcp libiscsi scsi_transport_iscsi ip6t_REJECT nf_conntrack_ipv6 coretemp xt_physdev nf_defrag_ipv6 ip6table_filter xt_state ip6_tables nf_conntrack snd_hda_codec_hdmi snd_hda_codec_conexant 
-snd_hda_intel snd_hda_codec snd_bt87x usb_storage snd_seq snd_usb_audio uas snd_pcm snd_hwdep snd_usbmidi_lib ppdev snd_rawmidi microcode e1000e snd_seq_device serio_raw i2c_i801 snd_timer tpm_infineon snd iTCO_wdt parport_pc parport soundcore mei(C) iTCO_vendor_support snd_page_alloc virtio_net kvm_intel kvm ipv6 i915 drm_kms_helper drm i2c_algo_bit i2c_core video [last unloaded: tuner_types]
-Jun  9 13:20:02 shalem kernel: [15824.810794]
-Jun  9 13:20:02 shalem kernel: [15824.810811] Pid: 4944, comm: camorama Tainted: G         C  3.0.0-rc1+ #5 FUJITSU D3071-S1/D3071-S1
-Jun  9 13:20:02 shalem kernel: [15824.810888] RIP: 0010:[<ffffffffa0309eae>]  [<ffffffffa0309eae>] media_entity_put+0x12/0x2c [media]
-Jun  9 13:20:02 shalem kernel: [15824.810961] RSP: 0018:ffff88011da23d98  EFLAGS: 00010286
-Jun  9 13:20:02 shalem kernel: [15824.811003] RAX: 0000000000000000 RBX: ffff88006a864400 RCX: 0000000000000118
-Jun  9 13:20:02 shalem kernel: [15824.811057] RDX: 0000000000000001 RSI: 0000000000000004 RDI: ffff88006a864400
-Jun  9 13:20:02 shalem kernel: [15824.811112] RBP: ffff88011da23d98 R08: ffffea0002896e28 R09: ffff88011da23d38
-Jun  9 13:20:02 shalem kernel: [15824.811165] R10: ffffffffa0526026 R11: ffffffff81a58210 R12: ffff880027d43840
-Jun  9 13:20:02 shalem kernel: [15824.811219] R13: 0000000000000008 R14: ffff880133310dc0 R15: ffff88012db76300
-Jun  9 13:20:02 shalem kernel: [15824.811274] FS:  00007f7942ff49c0(0000) GS:ffff88013e280000(0000) knlGS:0000000000000000
-Jun  9 13:20:02 shalem kernel: [15824.811336] CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
-Jun  9 13:20:02 shalem kernel: [15824.811381] CR2: 0000000000000000 CR3: 0000000001a03000 CR4: 00000000000406e0
-Jun  9 13:20:02 shalem kernel: [15824.811435] DR0: 0000000000000003 DR1: 00000000000000b0 DR2: 0000000000000001
-Jun  9 13:20:02 shalem kernel: [15824.811491] DR3: 0000000000000000 DR6: 00000000ffff0ff0 DR7: 0000000000000400
-Jun  9 13:20:02 shalem kernel: [15824.811546] Process camorama (pid: 4944, threadinfo ffff88011da22000, task ffff880113618000)
-Jun  9 13:20:02 shalem kernel: [15824.811609] Stack:
-Jun  9 13:20:02 shalem kernel: [15824.811629]  ffff88011da23db8 ffffffffa0510203 ffff880027d43840 ffff880133310dc0
-Jun  9 13:20:02 shalem kernel: [15824.811695]  ffff88011da23e08 ffffffff811233fe ffff880027d43850 ffff880134530500
-Jun  9 13:20:02 shalem kernel: [15824.811763]  ffffffff811e3397 ffff880027d43840 ffff8801347a5b80 0000000000000000
-Jun  9 13:20:02 shalem kernel: [15824.811829] Call Trace:
-Jun  9 13:20:02 shalem kernel: [15824.811856]  [<ffffffffa0510203>] v4l2_release+0x7b/0x8e [videodev]
-Jun  9 13:20:02 shalem kernel: [15824.811910]  [<ffffffff811233fe>] fput+0x121/0x1e3
-Jun  9 13:20:02 shalem kernel: [15824.811953]  [<ffffffff811e3397>] ? exit_sem+0x1c7/0x1d8
-Jun  9 13:20:02 shalem kernel: [15824.811998]  [<ffffffff811208a7>] filp_close+0x6e/0x7a
-Jun  9 13:20:02 shalem kernel: [15824.812041]  [<ffffffff81131b33>] ? __d_free+0x53/0x58
-Jun  9 13:20:02 shalem kernel: [15824.812084]  [<ffffffff810567e1>] put_files_struct+0x6e/0xd5
-Jun  9 13:20:02 shalem kernel: [15824.812130]  [<ffffffff810568d5>] exit_files+0x41/0x46
-Jun  9 13:20:02 shalem kernel: [15824.812172]  [<ffffffff81056e55>] do_exit+0x2aa/0x738
-Jun  9 13:20:02 shalem kernel: [15824.812214]  [<ffffffff8104be73>] ? wake_up_state+0x10/0x12
-Jun  9 13:20:02 shalem kernel: [15824.812259]  [<ffffffff81062ba2>] ? signal_wake_up+0x32/0x43
-Jun  9 13:20:02 shalem kernel: [15824.812304]  [<ffffffff810638b4>] ? zap_other_threads+0x59/0x82
-Jun  9 13:20:02 shalem kernel: [15824.812352]  [<ffffffff81057568>] do_group_exit+0x7a/0xa2
-Jun  9 13:20:02 shalem kernel: [15824.812395]  [<ffffffff810575a7>] sys_exit_group+0x17/0x17
-Jun  9 13:20:02 shalem kernel: [15824.812440]  [<ffffffff81487802>] system_call_fastpath+0x16/0x1b
-Jun  9 13:20:02 shalem kernel: [15824.812486] Code: 10 66 41 ff 44 24 40 48 83 c4 18 44 89 f0 5b 41 5c 41 5d 41 5e 41 5f 5d c3 55 48 89 e5 66 66 66 66 90 48 85 ff 74 1c 48 8b 47 10
-Jun  9 13:20:02 shalem kernel: [15824.812783] RIP  [<ffffffffa0309eae>] media_entity_put+0x12/0x2c [media]
-Jun  9 13:20:02 shalem kernel: [15824.812839]  RSP <ffff88011da23d98>
-Jun  9 13:20:02 shalem kernel: [15824.812867] CR2: 0000000000000000
-Jun  9 13:20:02 shalem kernel: [15824.873494] ---[ end trace bfc278787db8cbfb ]---
-Jun  9 13:20:02 shalem kernel: [15824.873496] Fixing recursive fault but reboot is needed!
+In addition, once there were no more free events, any new events were simply
+dropped on the floor.
 
-I've not tested if this also impacts 3.0!!
+For the control event in particular this made life very difficult since
+control status/value changes could just be missed if the number of allocated
+events and the speed at which the application read events was too low to keep
+up with the number of generated events. The application would have no idea
+what the latest state was for a control since it could have missed the latest
+control change.
 
-I also get the following during building linuxtv/staging/for_v3.1:
+So this patch makes some major changes in how events are allocated. Instead
+of allocating events per-filehandle they are now allocated when subscribing an
+event. So for that particular event type N events (determined by the driver)
+are allocated. Those events are reserved for that particular event type.
+This ensures that you will not miss events for a particular type altogether.
 
-   CC [M]  drivers/media/video/uvc/uvc_entity.o
-drivers/media/video/uvc/uvc_entity.c: In function ‘uvc_mc_register_entities’:
-drivers/media/video/uvc/uvc_entity.c:110:6: warning: ‘ret’ may be used uninitialized in this function [-Wuninitialized]
+In addition, if there are N events in use and a new event is raised, then
+the oldest event is dropped and the new one is added. So the latest event
+is always available.
 
-Regards,
+This can be further improved by adding the ability to merge the state of
+two events together, ensuring that no data is lost at all. This will be
+added in the next patch.
 
-Hans
+This also makes it possible to allow the user to determine the number of
+events that will be allocated. This is not implemented at the moment, but
+would be trivial.
+
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ drivers/media/video/ivtv/ivtv-fileops.c |    4 --
+ drivers/media/video/ivtv/ivtv-ioctl.c   |    4 +-
+ drivers/media/video/omap3isp/ispccdc.c  |    3 +-
+ drivers/media/video/omap3isp/ispstat.c  |    3 +-
+ drivers/media/video/v4l2-ctrls.c        |   18 ------
+ drivers/media/video/v4l2-event.c        |   88 ++++++++++++-------------------
+ drivers/media/video/v4l2-fh.c           |    4 +-
+ drivers/media/video/v4l2-subdev.c       |    7 ---
+ drivers/media/video/vivi.c              |    2 +-
+ drivers/usb/gadget/uvc_v4l2.c           |   12 +----
+ include/media/v4l2-ctrls.h              |   19 -------
+ include/media/v4l2-event.h              |   18 +++++-
+ include/media/v4l2-fh.h                 |    2 -
+ include/media/v4l2-subdev.h             |    2 -
+ 14 files changed, 54 insertions(+), 132 deletions(-)
+
+diff --git a/drivers/media/video/ivtv/ivtv-fileops.c b/drivers/media/video/ivtv/ivtv-fileops.c
+index e507766..5796262 100644
+--- a/drivers/media/video/ivtv/ivtv-fileops.c
++++ b/drivers/media/video/ivtv/ivtv-fileops.c
+@@ -957,10 +957,6 @@ static int ivtv_serialized_open(struct ivtv_stream *s, struct file *filp)
+ 		return -ENOMEM;
+ 	}
+ 	v4l2_fh_init(&item->fh, s->vdev);
+-	if (s->type == IVTV_DEC_STREAM_TYPE_YUV ||
+-	    s->type == IVTV_DEC_STREAM_TYPE_MPG) {
+-		res = v4l2_event_alloc(&item->fh, 60);
+-	}
+ 	if (res < 0) {
+ 		v4l2_fh_exit(&item->fh);
+ 		kfree(item);
+diff --git a/drivers/media/video/ivtv/ivtv-ioctl.c b/drivers/media/video/ivtv/ivtv-ioctl.c
+index a81b4be..99b2bdc 100644
+--- a/drivers/media/video/ivtv/ivtv-ioctl.c
++++ b/drivers/media/video/ivtv/ivtv-ioctl.c
+@@ -1444,13 +1444,11 @@ static int ivtv_subscribe_event(struct v4l2_fh *fh, struct v4l2_event_subscripti
+ 	switch (sub->type) {
+ 	case V4L2_EVENT_VSYNC:
+ 	case V4L2_EVENT_EOS:
+-		break;
+ 	case V4L2_EVENT_CTRL:
+-		return v4l2_ctrl_subscribe_fh(fh, sub, 0);
++		return v4l2_event_subscribe(fh, sub, 0);
+ 	default:
+ 		return -EINVAL;
+ 	}
+-	return v4l2_event_subscribe(fh, sub);
+ }
+ 
+ static int ivtv_log_status(struct file *file, void *fh)
+diff --git a/drivers/media/video/omap3isp/ispccdc.c b/drivers/media/video/omap3isp/ispccdc.c
+index 39d501b..6766247 100644
+--- a/drivers/media/video/omap3isp/ispccdc.c
++++ b/drivers/media/video/omap3isp/ispccdc.c
+@@ -1691,7 +1691,7 @@ static int ccdc_subscribe_event(struct v4l2_subdev *sd, struct v4l2_fh *fh,
+ 	if (sub->type != V4L2_EVENT_OMAP3ISP_HS_VS)
+ 		return -EINVAL;
+ 
+-	return v4l2_event_subscribe(fh, sub);
++	return v4l2_event_subscribe(fh, sub, OMAP3ISP_CCDC_NEVENTS);
+ }
+ 
+ static int ccdc_unsubscribe_event(struct v4l2_subdev *sd, struct v4l2_fh *fh,
+@@ -2162,7 +2162,6 @@ static int ccdc_init_entities(struct isp_ccdc_device *ccdc)
+ 	sd->grp_id = 1 << 16;	/* group ID for isp subdevs */
+ 	v4l2_set_subdevdata(sd, ccdc);
+ 	sd->flags |= V4L2_SUBDEV_FL_HAS_EVENTS | V4L2_SUBDEV_FL_HAS_DEVNODE;
+-	sd->nevents = OMAP3ISP_CCDC_NEVENTS;
+ 
+ 	pads[CCDC_PAD_SINK].flags = MEDIA_PAD_FL_SINK;
+ 	pads[CCDC_PAD_SOURCE_VP].flags = MEDIA_PAD_FL_SOURCE;
+diff --git a/drivers/media/video/omap3isp/ispstat.c b/drivers/media/video/omap3isp/ispstat.c
+index b44cb68..8080659 100644
+--- a/drivers/media/video/omap3isp/ispstat.c
++++ b/drivers/media/video/omap3isp/ispstat.c
+@@ -1032,7 +1032,6 @@ static int isp_stat_init_entities(struct ispstat *stat, const char *name,
+ 	snprintf(subdev->name, V4L2_SUBDEV_NAME_SIZE, "OMAP3 ISP %s", name);
+ 	subdev->grp_id = 1 << 16;	/* group ID for isp subdevs */
+ 	subdev->flags |= V4L2_SUBDEV_FL_HAS_EVENTS | V4L2_SUBDEV_FL_HAS_DEVNODE;
+-	subdev->nevents = STAT_NEVENTS;
+ 	v4l2_set_subdevdata(subdev, stat);
+ 
+ 	stat->pad.flags = MEDIA_PAD_FL_SINK;
+@@ -1050,7 +1049,7 @@ int omap3isp_stat_subscribe_event(struct v4l2_subdev *subdev,
+ 	if (sub->type != stat->event_type)
+ 		return -EINVAL;
+ 
+-	return v4l2_event_subscribe(fh, sub);
++	return v4l2_event_subscribe(fh, sub, STAT_NEVENTS);
+ }
+ 
+ int omap3isp_stat_unsubscribe_event(struct v4l2_subdev *subdev,
+diff --git a/drivers/media/video/v4l2-ctrls.c b/drivers/media/video/v4l2-ctrls.c
+index 079f952..63a44fd 100644
+--- a/drivers/media/video/v4l2-ctrls.c
++++ b/drivers/media/video/v4l2-ctrls.c
+@@ -1011,7 +1011,6 @@ static int handler_new_ref(struct v4l2_ctrl_handler *hdl,
+ 	   insertion is an O(1) operation. */
+ 	if (list_empty(&hdl->ctrl_refs) || id > node2id(hdl->ctrl_refs.prev)) {
+ 		list_add_tail(&new_ref->node, &hdl->ctrl_refs);
+-		hdl->nr_of_refs++;
+ 		goto insert_in_hash;
+ 	}
+ 
+@@ -2050,20 +2049,3 @@ void v4l2_ctrl_del_event(struct v4l2_ctrl *ctrl,
+ 	v4l2_ctrl_unlock(ctrl);
+ }
+ EXPORT_SYMBOL(v4l2_ctrl_del_event);
+-
+-int v4l2_ctrl_subscribe_fh(struct v4l2_fh *fh,
+-			struct v4l2_event_subscription *sub, unsigned n)
+-{
+-	struct v4l2_ctrl_handler *hdl = fh->ctrl_handler;
+-	int ret = 0;
+-
+-	if (!ret) {
+-		if (hdl->nr_of_refs * 2 > n)
+-			n = hdl->nr_of_refs * 2;
+-		ret = v4l2_event_alloc(fh, n);
+-	}
+-	if (!ret)
+-		ret = v4l2_event_subscribe(fh, sub);
+-	return ret;
+-}
+-EXPORT_SYMBOL(v4l2_ctrl_subscribe_fh);
+diff --git a/drivers/media/video/v4l2-event.c b/drivers/media/video/v4l2-event.c
+index dc68f60..9e325dd 100644
+--- a/drivers/media/video/v4l2-event.c
++++ b/drivers/media/video/v4l2-event.c
+@@ -30,44 +30,11 @@
+ #include <linux/sched.h>
+ #include <linux/slab.h>
+ 
+-static void v4l2_event_unsubscribe_all(struct v4l2_fh *fh);
+-
+-int v4l2_event_alloc(struct v4l2_fh *fh, unsigned int n)
+-{
+-	unsigned long flags;
+-
+-	while (fh->nallocated < n) {
+-		struct v4l2_kevent *kev;
+-
+-		kev = kzalloc(sizeof(*kev), GFP_KERNEL);
+-		if (kev == NULL)
+-			return -ENOMEM;
+-
+-		spin_lock_irqsave(&fh->vdev->fh_lock, flags);
+-		list_add_tail(&kev->list, &fh->free);
+-		fh->nallocated++;
+-		spin_unlock_irqrestore(&fh->vdev->fh_lock, flags);
+-	}
+-
+-	return 0;
+-}
+-EXPORT_SYMBOL_GPL(v4l2_event_alloc);
+-
+-#define list_kfree(list, type, member)				\
+-	while (!list_empty(list)) {				\
+-		type *hi;					\
+-		hi = list_first_entry(list, type, member);	\
+-		list_del(&hi->member);				\
+-		kfree(hi);					\
+-	}
+-
+-void v4l2_event_free(struct v4l2_fh *fh)
++static unsigned sev_pos(const struct v4l2_subscribed_event *sev, unsigned idx)
+ {
+-	list_kfree(&fh->free, struct v4l2_kevent, list);
+-	list_kfree(&fh->available, struct v4l2_kevent, list);
+-	v4l2_event_unsubscribe_all(fh);
++	idx += sev->first;
++	return idx >= sev->elems ? idx - sev->elems : idx;
+ }
+-EXPORT_SYMBOL_GPL(v4l2_event_free);
+ 
+ static int __v4l2_event_dequeue(struct v4l2_fh *fh, struct v4l2_event *event)
+ {
+@@ -84,11 +51,13 @@ static int __v4l2_event_dequeue(struct v4l2_fh *fh, struct v4l2_event *event)
+ 	WARN_ON(fh->navailable == 0);
+ 
+ 	kev = list_first_entry(&fh->available, struct v4l2_kevent, list);
+-	list_move(&kev->list, &fh->free);
++	list_del(&kev->list);
+ 	fh->navailable--;
+ 
+ 	kev->event.pending = fh->navailable;
+ 	*event = kev->event;
++	kev->sev->first = sev_pos(kev->sev, 1);
++	kev->sev->in_use--;
+ 
+ 	spin_unlock_irqrestore(&fh->vdev->fh_lock, flags);
+ 
+@@ -154,17 +123,24 @@ static void __v4l2_event_queue_fh(struct v4l2_fh *fh, const struct v4l2_event *e
+ 	fh->sequence++;
+ 
+ 	/* Do we have any free events? */
+-	if (list_empty(&fh->free))
+-		return;
++	if (sev->in_use == sev->elems) {
++		/* no, remove the oldest one */
++		kev = sev->events + sev_pos(sev, 0);
++		list_del(&kev->list);
++		sev->in_use--;
++		sev->first = sev_pos(sev, 1);
++		fh->navailable--;
++	}
+ 
+ 	/* Take one and fill it. */
+-	kev = list_first_entry(&fh->free, struct v4l2_kevent, list);
++	kev = sev->events + sev_pos(sev, sev->in_use);
+ 	kev->event.type = ev->type;
+ 	kev->event.u = ev->u;
+ 	kev->event.id = ev->id;
+ 	kev->event.timestamp = *ts;
+ 	kev->event.sequence = fh->sequence;
+-	list_move_tail(&kev->list, &fh->available);
++	sev->in_use++;
++	list_add_tail(&kev->list, &fh->available);
+ 
+ 	fh->navailable++;
+ 
+@@ -209,38 +185,39 @@ int v4l2_event_pending(struct v4l2_fh *fh)
+ EXPORT_SYMBOL_GPL(v4l2_event_pending);
+ 
+ int v4l2_event_subscribe(struct v4l2_fh *fh,
+-			 struct v4l2_event_subscription *sub)
++			 struct v4l2_event_subscription *sub, unsigned elems)
+ {
+ 	struct v4l2_subscribed_event *sev, *found_ev;
+ 	struct v4l2_ctrl *ctrl = NULL;
+ 	unsigned long flags;
++	unsigned i;
+ 
++	if (elems < 1)
++		elems = 1;
+ 	if (sub->type == V4L2_EVENT_CTRL) {
+ 		ctrl = v4l2_ctrl_find(fh->ctrl_handler, sub->id);
+ 		if (ctrl == NULL)
+ 			return -EINVAL;
+ 	}
+ 
+-	sev = kzalloc(sizeof(*sev), GFP_KERNEL);
++	sev = kzalloc(sizeof(*sev) + sizeof(struct v4l2_kevent) * elems, GFP_KERNEL);
+ 	if (!sev)
+ 		return -ENOMEM;
++	for (i = 0; i < elems; i++)
++		sev->events[i].sev = sev;
++	sev->type = sub->type;
++	sev->id = sub->id;
++	sev->flags = sub->flags;
++	sev->fh = fh;
++	sev->elems = elems;
+ 
+ 	spin_lock_irqsave(&fh->vdev->fh_lock, flags);
+-
+ 	found_ev = v4l2_event_subscribed(fh, sub->type, sub->id);
+-	if (!found_ev) {
+-		INIT_LIST_HEAD(&sev->list);
+-		sev->type = sub->type;
+-		sev->id = sub->id;
+-		sev->fh = fh;
+-		sev->flags = sub->flags;
+-
++	if (!found_ev)
+ 		list_add(&sev->list, &fh->subscribed);
+-	}
+-
+ 	spin_unlock_irqrestore(&fh->vdev->fh_lock, flags);
+ 
+-	/* v4l2_ctrl_add_fh uses a mutex, so do this outside the spin lock */
++	/* v4l2_ctrl_add_event uses a mutex, so do this outside the spin lock */
+ 	if (found_ev)
+ 		kfree(sev);
+ 	else if (ctrl)
+@@ -250,7 +227,7 @@ int v4l2_event_subscribe(struct v4l2_fh *fh,
+ }
+ EXPORT_SYMBOL_GPL(v4l2_event_subscribe);
+ 
+-static void v4l2_event_unsubscribe_all(struct v4l2_fh *fh)
++void v4l2_event_unsubscribe_all(struct v4l2_fh *fh)
+ {
+ 	struct v4l2_event_subscription sub;
+ 	struct v4l2_subscribed_event *sev;
+@@ -271,6 +248,7 @@ static void v4l2_event_unsubscribe_all(struct v4l2_fh *fh)
+ 			v4l2_event_unsubscribe(fh, &sub);
+ 	} while (sev);
+ }
++EXPORT_SYMBOL_GPL(v4l2_event_unsubscribe_all);
+ 
+ int v4l2_event_unsubscribe(struct v4l2_fh *fh,
+ 			   struct v4l2_event_subscription *sub)
+diff --git a/drivers/media/video/v4l2-fh.c b/drivers/media/video/v4l2-fh.c
+index 333b8c8..122822d 100644
+--- a/drivers/media/video/v4l2-fh.c
++++ b/drivers/media/video/v4l2-fh.c
+@@ -37,9 +37,7 @@ void v4l2_fh_init(struct v4l2_fh *fh, struct video_device *vdev)
+ 	INIT_LIST_HEAD(&fh->list);
+ 	set_bit(V4L2_FL_USES_V4L2_FH, &fh->vdev->flags);
+ 	fh->prio = V4L2_PRIORITY_UNSET;
+-
+ 	init_waitqueue_head(&fh->wait);
+-	INIT_LIST_HEAD(&fh->free);
+ 	INIT_LIST_HEAD(&fh->available);
+ 	INIT_LIST_HEAD(&fh->subscribed);
+ 	fh->sequence = -1;
+@@ -88,7 +86,7 @@ void v4l2_fh_exit(struct v4l2_fh *fh)
+ {
+ 	if (fh->vdev == NULL)
+ 		return;
+-	v4l2_event_free(fh);
++	v4l2_event_unsubscribe_all(fh);
+ 	fh->vdev = NULL;
+ }
+ EXPORT_SYMBOL_GPL(v4l2_fh_exit);
+diff --git a/drivers/media/video/v4l2-subdev.c b/drivers/media/video/v4l2-subdev.c
+index 3b67a85..b7967c9 100644
+--- a/drivers/media/video/v4l2-subdev.c
++++ b/drivers/media/video/v4l2-subdev.c
+@@ -76,13 +76,6 @@ static int subdev_open(struct file *file)
+ 	}
+ 
+ 	v4l2_fh_init(&subdev_fh->vfh, vdev);
+-
+-	if (sd->flags & V4L2_SUBDEV_FL_HAS_EVENTS) {
+-		ret = v4l2_event_alloc(&subdev_fh->vfh, sd->nevents);
+-		if (ret)
+-			goto err;
+-	}
+-
+ 	v4l2_fh_add(&subdev_fh->vfh);
+ 	file->private_data = &subdev_fh->vfh;
+ #if defined(CONFIG_MEDIA_CONTROLLER)
+diff --git a/drivers/media/video/vivi.c b/drivers/media/video/vivi.c
+index 99dbaea..e52063f 100644
+--- a/drivers/media/video/vivi.c
++++ b/drivers/media/video/vivi.c
+@@ -998,7 +998,7 @@ static int vidioc_subscribe_event(struct v4l2_fh *fh,
+ {
+ 	switch (sub->type) {
+ 	case V4L2_EVENT_CTRL:
+-		return v4l2_ctrl_subscribe_fh(fh, sub, 0);
++		return v4l2_event_subscribe(fh, sub, 0);
+ 	default:
+ 		return -EINVAL;
+ 	}
+diff --git a/drivers/usb/gadget/uvc_v4l2.c b/drivers/usb/gadget/uvc_v4l2.c
+index 5582870..52f8f9e 100644
+--- a/drivers/usb/gadget/uvc_v4l2.c
++++ b/drivers/usb/gadget/uvc_v4l2.c
+@@ -124,18 +124,12 @@ uvc_v4l2_open(struct file *file)
+ 	struct video_device *vdev = video_devdata(file);
+ 	struct uvc_device *uvc = video_get_drvdata(vdev);
+ 	struct uvc_file_handle *handle;
+-	int ret;
+ 
+ 	handle = kzalloc(sizeof(*handle), GFP_KERNEL);
+ 	if (handle == NULL)
+ 		return -ENOMEM;
+ 
+ 	v4l2_fh_init(&handle->vfh, vdev);
+-
+-	ret = v4l2_event_alloc(&handle->vfh, 8);
+-	if (ret < 0)
+-		goto error;
+-
+ 	v4l2_fh_add(&handle->vfh);
+ 
+ 	handle->device = &uvc->video;
+@@ -143,10 +137,6 @@ uvc_v4l2_open(struct file *file)
+ 
+ 	uvc_function_connect(uvc);
+ 	return 0;
+-
+-error:
+-	v4l2_fh_exit(&handle->vfh);
+-	return ret;
+ }
+ 
+ static int
+@@ -308,7 +298,7 @@ uvc_v4l2_do_ioctl(struct file *file, unsigned int cmd, void *arg)
+ 		if (sub->type < UVC_EVENT_FIRST || sub->type > UVC_EVENT_LAST)
+ 			return -EINVAL;
+ 
+-		return v4l2_event_subscribe(&handle->vfh, arg);
++		return v4l2_event_subscribe(&handle->vfh, arg, 2);
+ 	}
+ 
+ 	case VIDIOC_UNSUBSCRIBE_EVENT:
+diff --git a/include/media/v4l2-ctrls.h b/include/media/v4l2-ctrls.h
+index 635adc2..d8123d9 100644
+--- a/include/media/v4l2-ctrls.h
++++ b/include/media/v4l2-ctrls.h
+@@ -171,7 +171,6 @@ struct v4l2_ctrl_ref {
+   *		control is needed multiple times, so this is a simple
+   *		optimization.
+   * @buckets:	Buckets for the hashing. Allows for quick control lookup.
+-  * @nr_of_refs: Total number of control references in the list.
+   * @nr_of_buckets: Total number of buckets in the array.
+   * @error:	The error code of the first failed control addition.
+   */
+@@ -181,7 +180,6 @@ struct v4l2_ctrl_handler {
+ 	struct list_head ctrl_refs;
+ 	struct v4l2_ctrl_ref *cached;
+ 	struct v4l2_ctrl_ref **buckets;
+-	u16 nr_of_refs;
+ 	u16 nr_of_buckets;
+ 	int error;
+ };
+@@ -499,23 +497,6 @@ void v4l2_ctrl_add_event(struct v4l2_ctrl *ctrl,
+ void v4l2_ctrl_del_event(struct v4l2_ctrl *ctrl,
+ 		struct v4l2_subscribed_event *sev);
+ 
+-/** v4l2_ctrl_subscribe_fh() - Helper function that subscribes a control event.
+-  * @fh:	The file handler that subscribed the control event.
+-  * @sub:	The event to subscribe (type must be V4L2_EVENT_CTRL).
+-  * @n:		How many events should be allocated? (Passed to v4l2_event_alloc).
+-  *		Recommended to set to twice the number of controls plus whatever
+-  *		is needed for other events. This function will set n to
+-  *		max(n, 2 * fh->ctrl_handler->nr_of_refs).
+-  *
+-  * A helper function that initializes the fh for events, allocates the
+-  * list of events and subscribes the control event.
+-  *
+-  * Typically called in the handler of VIDIOC_SUBSCRIBE_EVENT in the
+-  * V4L2_EVENT_CTRL case.
+-  */
+-int v4l2_ctrl_subscribe_fh(struct v4l2_fh *fh,
+-			struct v4l2_event_subscription *sub, unsigned n);
+-
+ /* Helpers for ioctl_ops. If hdl == NULL then they will all return -EINVAL. */
+ int v4l2_queryctrl(struct v4l2_ctrl_handler *hdl, struct v4l2_queryctrl *qc);
+ int v4l2_querymenu(struct v4l2_ctrl_handler *hdl, struct v4l2_querymenu *qm);
+diff --git a/include/media/v4l2-event.h b/include/media/v4l2-event.h
+index eda17f8..8d681e5 100644
+--- a/include/media/v4l2-event.h
++++ b/include/media/v4l2-event.h
+@@ -30,10 +30,15 @@
+ #include <linux/wait.h>
+ 
+ struct v4l2_fh;
++struct v4l2_subscribed_event;
+ struct video_device;
+ 
+ struct v4l2_kevent {
++	/* list node for the v4l2_fh->available list */
+ 	struct list_head	list;
++	/* pointer to parent v4l2_subscribed_event */
++	struct v4l2_subscribed_event *sev;
++	/* event itself */
+ 	struct v4l2_event	event;
+ };
+ 
+@@ -50,18 +55,25 @@ struct v4l2_subscribed_event {
+ 	struct v4l2_fh		*fh;
+ 	/* list node that hooks into the object's event list (if there is one) */
+ 	struct list_head	node;
++	/* the number of elements in the events array */
++	unsigned		elems;
++	/* the index of the events containing the oldest available event */
++	unsigned		first;
++	/* the number of queued events */
++	unsigned		in_use;
++	/* an array of elems events */
++	struct v4l2_kevent	events[];
+ };
+ 
+-int v4l2_event_alloc(struct v4l2_fh *fh, unsigned int n);
+-void v4l2_event_free(struct v4l2_fh *fh);
+ int v4l2_event_dequeue(struct v4l2_fh *fh, struct v4l2_event *event,
+ 		       int nonblocking);
+ void v4l2_event_queue(struct video_device *vdev, const struct v4l2_event *ev);
+ void v4l2_event_queue_fh(struct v4l2_fh *fh, const struct v4l2_event *ev);
+ int v4l2_event_pending(struct v4l2_fh *fh);
+ int v4l2_event_subscribe(struct v4l2_fh *fh,
+-			 struct v4l2_event_subscription *sub);
++			 struct v4l2_event_subscription *sub, unsigned elems);
+ int v4l2_event_unsubscribe(struct v4l2_fh *fh,
+ 			   struct v4l2_event_subscription *sub);
++void v4l2_event_unsubscribe_all(struct v4l2_fh *fh);
+ 
+ #endif /* V4L2_EVENT_H */
+diff --git a/include/media/v4l2-fh.h b/include/media/v4l2-fh.h
+index bfc0457..52513c2 100644
+--- a/include/media/v4l2-fh.h
++++ b/include/media/v4l2-fh.h
+@@ -40,10 +40,8 @@ struct v4l2_fh {
+ 	/* Events */
+ 	wait_queue_head_t	wait;
+ 	struct list_head	subscribed; /* Subscribed events */
+-	struct list_head	free; /* Events ready for use */
+ 	struct list_head	available; /* Dequeueable event */
+ 	unsigned int		navailable;
+-	unsigned int		nallocated; /* Number of allocated events */
+ 	u32			sequence;
+ };
+ 
+diff --git a/include/media/v4l2-subdev.h b/include/media/v4l2-subdev.h
+index 1562c4f..e249f78 100644
+--- a/include/media/v4l2-subdev.h
++++ b/include/media/v4l2-subdev.h
+@@ -509,8 +509,6 @@ struct v4l2_subdev {
+ 	void *host_priv;
+ 	/* subdev device node */
+ 	struct video_device devnode;
+-	/* number of events to be allocated on open */
+-	unsigned int nevents;
+ };
+ 
+ #define media_entity_to_v4l2_subdev(ent) \
+-- 
+1.7.1
+
