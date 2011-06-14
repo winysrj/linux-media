@@ -1,56 +1,94 @@
 Return-path: <mchehab@pedra>
-Received: from mx1.redhat.com ([209.132.183.28]:60385 "EHLO mx1.redhat.com"
+Received: from mx1.redhat.com ([209.132.183.28]:2621 "EHLO mx1.redhat.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1758536Ab1FVSdi (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 22 Jun 2011 14:33:38 -0400
-Received: from int-mx10.intmail.prod.int.phx2.redhat.com (int-mx10.intmail.prod.int.phx2.redhat.com [10.5.11.23])
-	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id p5MIXcNr014226
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
-	for <linux-media@vger.kernel.org>; Wed, 22 Jun 2011 14:33:38 -0400
-Received: from [10.36.5.107] (vpn1-5-107.ams2.redhat.com [10.36.5.107])
-	by int-mx10.intmail.prod.int.phx2.redhat.com (8.14.4/8.14.4) with ESMTP id p5MIXZxW024685
-	for <linux-media@vger.kernel.org>; Wed, 22 Jun 2011 14:33:37 -0400
-Message-ID: <4E02357E.4060400@redhat.com>
-Date: Wed, 22 Jun 2011 15:33:34 -0300
+	id S1751215Ab1FNNjV (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 14 Jun 2011 09:39:21 -0400
+Message-ID: <4DF76486.1090809@redhat.com>
+Date: Tue, 14 Jun 2011 10:39:18 -0300
 From: Mauro Carvalho Chehab <mchehab@redhat.com>
 MIME-Version: 1.0
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: [ANNOUNCE] Media subsystem workshop 2011 - Prague - Oct 24-26
+To: Hans de Goede <hdegoede@redhat.com>
+CC: Devin Heitmueller <dheitmueller@kernellabs.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: Some fixes for alsa_stream
+References: <4DF6C10C.8070605@redhat.com> <4DF758AF.3010301@redhat.com> <4DF75C84.9000200@redhat.com>
+In-Reply-To: <4DF75C84.9000200@redhat.com>
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Media subsystem workshop 2011 - Prague - Oct 24-26
+Em 14-06-2011 10:05, Mauro Carvalho Chehab escreveu:
+> Em 14-06-2011 09:48, Hans de Goede escreveu:
+>> Hi,
+>>
+>> On 06/14/2011 04:01 AM, Mauro Carvalho Chehab wrote:
+>>> Hi Devin,
+>>>
+>>> I've made a few fixes for your alsa_stream.c, used on tvtime.
+>>> They are at:
+>>>     http://git.linuxtv.org/xawtv3.git
+>>>
+>>>
+>>> In particular, those are the more interesting ones:
+>>>
+>>> commit a1bb5ade5c2b09d6d6d624d18025f9e2c4398495
+>>>      alsa_stream: negotiate the frame rate
+>>>
+>>> Without this patch, one of my em28xx devices doesn't work. It uses
+>>> 32 k rate, while the playback minimal rate is 44.1 k.
+>>> I've changed the entire frame rate logic, to be more reliable, and to
+>>> avoid needing to do frame rate conversion, if both capture and playback
+>>> devices support the same rate.
+>>>
+>>> commit 8adb3d7442b22022b9ca897b0b914962adf41270
+>>>      alsa_stream: Reduce CPU usage by putting the thread into blocking mode
+>>>
+>>> This is just an optimization. I can't see why are you using a non-block
+>>> mode, as it works fine blocking.
+>>>
+>>> commit c67f7aeb86c1caceb7ab30439d169356ea5b1e72
+>>>      alsa_stream.c: use mmap mode instead of the normal mode
+>>>
+>>> Instead of using the normal way, this patch implements mmap mode, and change
+>>> it to be the default mode. This should also help to reduce CPU usage.
+>>>
+>>
+>> hmm, does this include automatic fallback to read mode if mmap mode is not
+>> available, mmap mode does not work with a number of devices (such as pulseaudio's
+>> alsa plugin).
+> 
+> No, it doesn't. I'm about to add an option at xawtv3 to allow users to manually
+> select between mmap/normal, and to change the input/output devices.
 
-Since 2007, we're doing annual mini-summits for the media subsystem,
-in order to plan the new features that will be introduced there.
+The options are there:
+	http://git.linuxtv.org/xawtv3.git?a=commit;h=81fc25c5c551ab54fbd90fa6aacd563f03ff73d3
 
-Last year, during the Kernel Summit 2010, it was decided that the Kernel 
-Summit 2011 format will be modified, in order to strength the interaction 
-between the several sub-system mini-summits and the main Kernel Summit. 
-If this idea works well, the next Kernel Summits will also follow the
-same format.
+this adds support for -v option inside the alsa_stream, and adds 3 options to allow
+manually enabling/disabling mmap and changing the detected alsa devices.
 
-So, some mini-summits were proposed to happen together with the Kernel
-Summit 2011. Among a few others, the Media subsystem was accepted to be
-held with this year's Kernel Summit.
+> 
+> Well, pulseaudio is a bad behavioured boy that has several broken things, like
+> preventing the removal of a V4L2 device for nothing. I won't be surprised if we
+> notice even more problems with pulseaudio and V4L devices. At least on my test
+> with fedora 15, audio is playing, even if pulseaudio is loaded.
+> 
+> It should be noticed that the driver tries first to access the alsa driver directly,
+> by using hw:0,0 output device. If it fails, it falls back to plughw:0,0. I'm not sure
+> what's the name of the pulseaudio output, but I suspect that both are just bypassing
+> pulseaudio, with is good ;)
+> 
+>>
+>> Regards,
+>>
+>> Hans
+>> -- 
+>> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+>> the body of a message to majordomo@vger.kernel.org
+>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
-So, we'd like to announce that the Media subsystem workshop 2011 will
-happen together with the Kernel Summit 2011.
-
-The Media subsystem workshop is on early planning stages, but the idea
-is that we'll have an entire day to do the media discussions. We'll 
-also planning to have workshop presentations inside the Kernel Summit
-2011 with the workshop and Kernel Summit attendants present, where 
-workshop results will be presented.
-
-So, I'd like to invite V4L, DVB and RC developers to submit proposals
-for the themes to be discussed. Please email me if you're interested
-on being invited for the event.
-
-Hoping to see you soon there!
-Mauro
-
-PS.: I'll be maintaining the information about the event updated at:
-http://linuxtv.org/events.php
