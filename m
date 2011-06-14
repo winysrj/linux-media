@@ -1,90 +1,76 @@
 Return-path: <mchehab@pedra>
-Received: from smtp-vbr1.xs4all.nl ([194.109.24.21]:3664 "EHLO
-	smtp-vbr1.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754673Ab1FGPFb (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 7 Jun 2011 11:05:31 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
+Received: from lo.gmane.org ([80.91.229.12]:33724 "EHLO lo.gmane.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756167Ab1FNLKm (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 14 Jun 2011 07:10:42 -0400
+Received: from list by lo.gmane.org with local (Exim 4.69)
+	(envelope-from <gldv-linux-media@m.gmane.org>)
+	id 1QWRW3-0005H0-EE
+	for linux-media@vger.kernel.org; Tue, 14 Jun 2011 13:10:39 +0200
+Received: from 5ad6ad1a.bb.sky.com ([90.214.173.26])
+        by main.gmane.org with esmtp (Gmexim 0.1 (Debian))
+        id 1AlnuQ-0007hv-00
+        for <linux-media@vger.kernel.org>; Tue, 14 Jun 2011 13:10:39 +0200
+Received: from jdg8tb by 5ad6ad1a.bb.sky.com with local (Gmexim 0.1 (Debian))
+        id 1AlnuQ-0007hv-00
+        for <linux-media@vger.kernel.org>; Tue, 14 Jun 2011 13:10:39 +0200
 To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [RFCv3 PATCH 01/18] v4l2-ctrls: introduce call_op define
-Date: Tue,  7 Jun 2011 17:05:06 +0200
-Message-Id: <a1daecb26b464ddd980297783d04941f1f34666b.1307458245.git.hans.verkuil@cisco.com>
-In-Reply-To: <1307459123-17810-1-git-send-email-hverkuil@xs4all.nl>
-References: <1307459123-17810-1-git-send-email-hverkuil@xs4all.nl>
+From: JD <jdg8tb@gmail.com>
+Subject: Re: Latest media-tree results in system hang, an no IR.
+Date: Tue, 14 Jun 2011 11:10:26 +0000 (UTC)
+Message-ID: <loom.20110614T130028-939@post.gmane.org>
+References: <BANLkTiksjC8SyYGdfLbF4eSYhR2c9qEzsw@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+JD <jdg8tb <at> gmail.com> writes:
 
-Add the call_op define to safely call the control ops. This also allows
-for controls without any ops such as the 'control class' controls.
+> 
+> With the latest media-tree, any access to my TV card (using tvtime and
+> mplayer to watch through composite) results in my Arch Linux (2.6.39)
+> system freezing. Here is the relavent part of my dmesg upon the
+> freeze:
+> 
+> http://codepad.org/q5MxDqAI
+> 
+> I compiled the latest media-tree in order to, finally, get my infrared
+> receiver working, however it still does not.
+> An entry is made in /proc/bus/input/devices which points to
+> /dev/input/event5; however. the /dev/lirc device node is not present,
+> and using "irw" does not seem to recognise any input.
+> 
+> Is anyone else experiencing such issues, and has anyone managed to get
+> IR actually working on the HVR-1120.
+> 
+> Thanks.
+> 
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- drivers/media/video/v4l2-ctrls.c |   19 +++++++++++--------
- 1 files changed, 11 insertions(+), 8 deletions(-)
 
-diff --git a/drivers/media/video/v4l2-ctrls.c b/drivers/media/video/v4l2-ctrls.c
-index 2412f08..3f2a0c5 100644
---- a/drivers/media/video/v4l2-ctrls.c
-+++ b/drivers/media/video/v4l2-ctrls.c
-@@ -25,6 +25,9 @@
- #include <media/v4l2-ctrls.h>
- #include <media/v4l2-dev.h>
- 
-+#define call_op(master, op) \
-+	((master->ops && master->ops->op) ? master->ops->op(master) : 0)
-+
- /* Internal temporary helper struct, one for each v4l2_ext_control */
- struct ctrl_helper {
- 	/* The control corresponding to the v4l2_ext_control ID field. */
-@@ -1291,7 +1294,7 @@ int v4l2_ctrl_handler_setup(struct v4l2_ctrl_handler *hdl)
- 		if (ctrl->type == V4L2_CTRL_TYPE_BUTTON ||
- 		    (ctrl->flags & V4L2_CTRL_FLAG_READ_ONLY))
- 			continue;
--		ret = master->ops->s_ctrl(master);
-+		ret = call_op(master, s_ctrl);
- 		if (ret)
- 			break;
- 		for (i = 0; i < master->ncontrols; i++)
-@@ -1568,8 +1571,8 @@ int v4l2_g_ext_ctrls(struct v4l2_ctrl_handler *hdl, struct v4l2_ext_controls *cs
- 
- 		v4l2_ctrl_lock(master);
- 		/* g_volatile_ctrl will update the current control values */
--		if (ctrl->is_volatile && master->ops->g_volatile_ctrl)
--			ret = master->ops->g_volatile_ctrl(master);
-+		if (ctrl->is_volatile)
-+			ret = call_op(master, g_volatile_ctrl);
- 		/* If OK, then copy the current control values to the caller */
- 		if (!ret)
- 			ret = cluster_walk(i, cs, helpers, cur_to_user);
-@@ -1600,8 +1603,8 @@ static int get_ctrl(struct v4l2_ctrl *ctrl, s32 *val)
- 
- 	v4l2_ctrl_lock(master);
- 	/* g_volatile_ctrl will update the current control values */
--	if (ctrl->is_volatile && master->ops->g_volatile_ctrl)
--		ret = master->ops->g_volatile_ctrl(master);
-+	if (ctrl->is_volatile)
-+		ret = call_op(master, g_volatile_ctrl);
- 	*val = ctrl->cur.val;
- 	v4l2_ctrl_unlock(master);
- 	return ret;
-@@ -1675,12 +1678,12 @@ static int try_or_set_control_cluster(struct v4l2_ctrl *master, bool set)
- 	/* For larger clusters you have to call try_ctrl again to
- 	   verify that the controls are still valid after the
- 	   'cur_to_new' above. */
--	if (!ret && master->ops->try_ctrl && try)
--		ret = master->ops->try_ctrl(master);
-+	if (!ret && try)
-+		ret = call_op(master, try_ctrl);
- 
- 	/* Don't set if there is no change */
- 	if (!ret && set && cluster_changed(master)) {
--		ret = master->ops->s_ctrl(master);
-+		ret = call_op(master, s_ctrl);
- 		/* If OK, then make the new values permanent. */
- 		if (!ret)
- 			for (i = 0; i < master->ncontrols; i++)
--- 
-1.7.1
+I've have just tried this again on a fresh install of Arch Linux (Linux media
+2.6.39-ARCH #1); however it is still a no-go.
+
+My steps are as follows:
+
+1. git clone git://linuxtv.org/media_build.git
+2. ./build.sh (reports it built fine with no errors)
+3. reboot system (errors are now reported during boot-up, see dmesg)
+
+4. try to access tv card using any program (mplayer or tvtime to watch
+composite), my X server crashes, I am thrown out to a TTY and the system appears
+unresponsive.
+
+
+dmesg (line 720 is where things start to appear interesting):
+http://codepad.org/OaeWUfAp
+
+lsmod:
+http://codepad.org/GMHFddGU
+
+lspci:
+http://codepad.org/paZ5hoCU
+
+Thanks.
 
