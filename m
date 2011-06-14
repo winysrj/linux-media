@@ -1,178 +1,46 @@
 Return-path: <mchehab@pedra>
-Received: from mx1.redhat.com ([209.132.183.28]:10183 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753137Ab1FLMNf (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 12 Jun 2011 08:13:35 -0400
-Message-ID: <4DF4AD6A.3080003@redhat.com>
-Date: Sun, 12 Jun 2011 09:13:30 -0300
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Received: from cmsout02.mbox.net ([165.212.64.32]:52436 "EHLO
+	cmsout02.mbox.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754362Ab1FNLQC (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 14 Jun 2011 07:16:02 -0400
+Message-ID: <4DF742D7.5020606@usa.net>
+Date: Tue, 14 Jun 2011 13:15:35 +0200
+From: Issa Gorissen <flop.m@usa.net>
 MIME-Version: 1.0
-To: Hans Verkuil <hverkuil@xs4all.nl>
-CC: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Andy Walls <awalls@md.metrocast.net>
-Subject: Re: [RFCv1 PATCH 7/7] tuner-core: s_tuner should not change tuner
- mode.
-References: <1307799283-15518-1-git-send-email-hverkuil@xs4all.nl> <201106111927.15981.hverkuil@xs4all.nl> <4DF3BC59.3000404@redhat.com> <201106121336.18395.hverkuil@xs4all.nl> <4DF4AA3F.5040005@redhat.com>
-In-Reply-To: <4DF4AA3F.5040005@redhat.com>
+To: Bart Coninckx <bart.coninckx@telenet.be>
+CC: linux-media@vger.kernel.org
+Subject: Re: "dvb_ca adaptor 0: PC card did not respond :(" with Technotrend
+ S2-3200
+References: <4DF53E1F.7010903@telenet.be> <4DF73B45.7000900@usa.net> <4DF73C94.7010003@telenet.be>
+In-Reply-To: <4DF73C94.7010003@telenet.be>
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Em 12-06-2011 08:59, Mauro Carvalho Chehab escreveu:
-> Em 12-06-2011 08:36, Hans Verkuil escreveu:
->> On Saturday, June 11, 2011 21:04:57 Mauro Carvalho Chehab wrote:
->>> Em 11-06-2011 14:27, Hans Verkuil escreveu:
->>>> On Saturday, June 11, 2011 15:54:59 Mauro Carvalho Chehab wrote:
->>>>> Em 11-06-2011 10:34, Hans Verkuil escreveu:
->>>>>> From: Hans Verkuil <hans.verkuil@cisco.com>
->>>>>>
->>>>>> According to the spec the tuner type field is not used when calling
->>>>>> S_TUNER: index, audmode and reserved are the only writable fields.
->>>>>>
->>>>>> So remove the type check. Instead, just set the audmode if the current
->>>>>> tuner mode is set to radio.
->>>>>
->>>>> I suspect that this patch also breaks support for a separate radio tuner.
->>>>> if tuner-type is not properly filled, then the easiest fix would be to
->>>>> revert some changes done at the tuner cleanup/fixup patches applied on .39.
->>>>> Yet, the previous logic were trying to hint the device mode, with is bad
->>>>> (that's why it was changed).
->>>>>
->>>>> The proper change seems to add a parameter to this callback, set by the
->>>>> bridge driver, informing if the device is using radio or video mode.
->>>>> We need also to patch the V4L API specs, as it allows using a video node
->>>>> for radio, and vice versa. This is not well supported, and it seems silly
->>>>> to keep it at the specs and needing to add hints at the drivers due to
->>>>> that.
->>>>
->>>> So, just to make sure I understand correctly what you want. The bridge or
->>>> platform drivers will fill in the vf->type (for g/s_frequency) or vt->type
->>>> (for g/s_tuner) based on the device node: RADIO if /dev/radio is used,
->>>> TV for anything else.
->>>
->>> Yes. I remember I've reviewed the bridge drivers when I rewrote the tuner code.
->>> Of course, I might have left something else. Btw, the older code were also
->>> requiring it.
->>>
->>> The cx18 implementation were merged after the changes, so maybe it is not doing 
->>> the right thing.
->>
->> Actually, G_TUNER was wrong for bttv, ivtv, cx18 and pvrusb2. So it wasn't
->> just some random driver that failed to set vf/vt->type.
-> 
-> G_FREQUENCY were broken just on cx18. As I said before, filling the type were
-> always required. Anyway, I've added a proper documentation for it. See the
-> patch bellow.
-> 
-> The same patch should be done also for G_TUNER.
-> 
->>>> What about VIDIOC_S_FREQUENCY? The spec says that the app needs to fill this
->>>> in. Will we just overwrite vf->type or will we check and return -EINVAL if
->>>> the app tries to set e.g. a TV frequency on /dev/radio?
->>>
->>> That's a very good question. What happens is that the V4L2 API used to allow
->>> opening a /dev/radio device for TV (or even for VBI). IMHO, this were a trouble
->>> at the API specs. I think that this were changed on newer versions of the spec.
->>
->> If you want, then I can add an extra patch to my v4 patch series that returns
->> -EINVAL in video_ioctl2 if S_FREQUENCY is called with an inconsistent tuner type.
->> (inconsistent with the device node's type, that is).
-> 
-> The reason why check_mode returns -EINVAL is that this error code may need to be
-> returned to the caller. You should note, however, that the bridge code may need
-> to be fixed if you return the check_mode error code, as otherwise the error will
-> simply be discarded or it it will break devices with two tuners.
-> 
-> For example, currently, bttv driver uses v4l2_device_call_all() for it.
-> So, any errors returned by it will be simply discarded.
-> 
-> If some bridge driver is using v4l2_device_call_until_err(), it will stop on the first
-> tuner that gets an error.
-> 
-> The solution is to implement a v4l2_device_call_until_not_err() and use it for the
-> tuner commands.
-> 
->>>> Is VIDIOC_S_FREQUENCY allowed to change the tuner mode? E.g. if /dev/radio was
->>>> opened, and now I open /dev/video and call S_FREQUENCY with the TV tuner type,
->>>> should that change the tuner to tv mode?
->>>
->>> Yes. I think that some applications like kradio just keeps the device node opened.
->>> If we return -EBUSY, those applications will break. The reverse is more tricky:
->>> e. g. if /dev/video is streaming, I think that the bridge driver should return
->>> -EBUSY if the device can't do both TV and radio at the same time, but this is
->>> something that it is device-specific, so such logic, if needed, should be implemented
->>> at the bridge driver.
->>
->> Agreed.
->>  
->>>> I think the type passed to S_FREQUENCY should 1) match the device node's type
->>>> (if not, then return -EINVAL) and 2) should match the current mode (if not,
->>>> then return -EBUSY). So attempts to change the TV frequency when in radio
->>>> mode should fail. This second rule should also be valid for S_TUNER.
->>>
->>> See above.
->>>
->>>> What should G_TUNER return on a video node when in radio mode or vice versa?
->>>> For G_FREQUENCY you can still return the last used frequency, but that's
->>>> much more ambiguous for G_TUNER. One option is to set rxsubchans, signal and
->>>> afc all to 0 if you query G_TUNER when 'in the wrong mode'.
->>>
->>> The current logic should handle this case well. I tested it carefully. Basically,
->>> if the device is on Radio mode, and has a separate tuner for TV, the TV tuner
->>> should not touch the structure. The Radio tuner should properly fill the values.
->>
->> I analyzed it again and you are correct.
->>
->>> Calls to G_TUNER/G_FREQUENCY shouldn't switch the device mode, or they may break
->>> applications like kradio, that may be always there during the entire KDE section.
->>
->> Obviously.
->>
->>>> The VIDIOC_G/S_MODULATOR ioctls do not have a type and they are RADIO only,
->>>> so that's OK.
->>>>
->>>> And how do we switch between radio and TV? Right now opening the radio node
->>>> will set the tuner in radio mode, and calling S_STD will change the mode to
->>>> TV again. As mentioned above, what S_FREQUENCY is supposed to do is undefined
->>>> at the moment.
->>>
->>> If S_FREQUENCY is called from /dev/video (or /dev/vbi), it should set it to TV. If
->>> it is called from /dev/radio, it should put the device on radio mode.
->>>
->>> The current logic already does that. I tested it on several devices, with both
->>> tea5767 and without it.
->>>
->>>> What about this:
->>>>
->>>> Opening /dev/radio effectively starts the radio mode. So if there is TV
->>>> capture in progress, then the open should return -EBUSY. Otherwise it
->>>> switches the tuner to radio mode. And it stays in radio mode until the
->>>> last filehandle of /dev/radio is closed. At that point it will automatically
->>>> switch back to TV mode (if there is one, of course).
->>>
->>> No. This would break existing applications. The mode switch should be done
->>> at S_FREQUENCY (e. g. when the radio application is tuning into a channel).
->>
->> This is not what happens today as the switch to radio occurs as soon as you open
->> the radio node. It's the reason for the s_radio op.
-> 
-> The s_radio op is something that I wanted to remove. It was there in the past to feed
-> the TV/radio hint logic. I wrote a patch for it, but I ended by discarding from my
-> final queue (I can't remember why).
-> 
-> I think that the hint logic were completely removed, but we may need to take a look
-> on the callers for s_radio. I'll check it right now.
-> 
+On 14/06/2011 12:48, Bart Coninckx wrote:
+>
+> I will try your suggestion though. Off topic, but would you advice
+> 11.4 in favor of 11.3? As a secondary route, I was thinking about
+> using sasc-ng (softcamming, legal in this case) and the code seems not
+> to want to compile on 11.4. Also 11.4 broke after updating the kernel.
 
-The s_radio callback requires some care, as it is used on several places. It is probably
-safe to remove it from tuner, but a few sub-drivers like msp3400 needs it. The actual
-troubles seem to happen at the bridge drivers that call it during open(). It should be
-called only at s_frequency. I opted to keep the callback just to avoid having a bridge
-driver switching its registers to radio mode, and not having the tuner following it.
+Except from the different kernel version, you can go for 11.3, as far as
+you're concerned only by TV related stuff.
 
-If we move the radio mode switch at the bridge drivers to s_frequency only, we can just
-remove this callback from tuner, letting it to be implemented only at the audio decoders.
+You might want to recompile the kernel with a newer version to get all
+the patches related to the S2 3200.
 
-Cheers,
-Mauro.
+Also, do not hesitate to try out different versions of the kernel if you
+stumble upon problem with the S2 3200; I had some trouble with it and
+some recent patches do not suit my setup (dish, cable length, diseqc
+switch, etc ...)
+
+For the sasc-ng matter, I did play with it last year but figured it is a
+time black hole when it does not work. I guess you have a legal
+subscription card. Then unless you like to play around, just drop
+softcams. And CAMs are not that expensive.
+
+--
+Issa
