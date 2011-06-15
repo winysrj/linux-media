@@ -1,60 +1,108 @@
 Return-path: <mchehab@pedra>
-Received: from iolanthe.rowland.org ([192.131.102.54]:46404 "HELO
-	iolanthe.rowland.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1757062Ab1FPTjM (ORCPT
+Received: from wolverine02.qualcomm.com ([199.106.114.251]:64321 "EHLO
+	wolverine02.qualcomm.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751578Ab1FOVkC (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 16 Jun 2011 15:39:12 -0400
-Date: Thu, 16 Jun 2011 15:39:11 -0400 (EDT)
-From: Alan Stern <stern@rowland.harvard.edu>
-To: Sarah Sharp <sarah.a.sharp@linux.intel.com>
-cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	<linux-media@vger.kernel.org>,
-	USB list <linux-usb@vger.kernel.org>,
-	Andiry Xu <andiry.xu@amd.com>
-Subject: Re: uvcvideo failure under xHCI
-In-Reply-To: <20110616190634.GA7290@xanatos>
-Message-ID: <Pine.LNX.4.44L0.1106161536110.1697-100000@iolanthe.rowland.org>
+	Wed, 15 Jun 2011 17:40:02 -0400
+Date: Wed, 15 Jun 2011 14:39:58 -0700
+From: Larry Bassel <lbassel@codeaurora.org>
+To: Marek Szyprowski <m.szyprowski@samsung.com>
+Cc: 'Arnd Bergmann' <arnd@arndb.de>,
+	'Zach Pfeffer' <zach.pfeffer@linaro.org>,
+	'Daniel Walker' <dwalker@codeaurora.org>,
+	'Daniel Stone' <daniels@collabora.com>,
+	'Jesse Barker' <jesse.barker@linaro.org>,
+	'Mel Gorman' <mel@csn.ul.ie>,
+	'KAMEZAWA Hiroyuki' <kamezawa.hiroyu@jp.fujitsu.com>,
+	linux-kernel@vger.kernel.org,
+	'Michal Nazarewicz' <mina86@mina86.com>,
+	linaro-mm-sig@lists.linaro.org, linux-mm@kvack.org,
+	'Kyungmin Park' <kyungmin.park@samsung.com>,
+	'Ankita Garg' <ankita@in.ibm.com>,
+	'Andrew Morton' <akpm@linux-foundation.org>,
+	linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org
+Subject: Re: [Linaro-mm-sig] [PATCH 08/10] mm: cma: Contiguous Memory
+ Allocator added
+Message-ID: <20110615213958.GB28032@labbmf-linux.qualcomm.com>
+References: <1307699698-29369-1-git-send-email-m.szyprowski@samsung.com>
+ <20110614170158.GU2419@fooishbar.org>
+ <BANLkTi=cJisuP8=_YSg4h-nsjGj3zsM7sg@mail.gmail.com>
+ <201106142242.25157.arnd@arndb.de>
+ <000901cc2b37$4c21f030$e465d090$%szyprowski@samsung.com>
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <000901cc2b37$4c21f030$e465d090$%szyprowski@samsung.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Thu, 16 Jun 2011, Sarah Sharp wrote:
+On 15 Jun 11 10:36, Marek Szyprowski wrote:
+> Hello,
+> 
+> On Tuesday, June 14, 2011 10:42 PM Arnd Bergmann wrote:
+> 
+> > On Tuesday 14 June 2011 20:58:25 Zach Pfeffer wrote:
+> > > I've seen this split bank allocation in Qualcomm and TI SoCs, with
+> > > Samsung, that makes 3 major SoC vendors (I would be surprised if
+> > > Nvidia didn't also need to do this) - so I think some configurable
+> > > method to control allocations is necessarily. The chips can't do
+> > > decode without it (and by can't do I mean 1080P and higher decode is
+> > > not functionally useful). Far from special, this would appear to be
+> > > the default.
 
-> > > Sure.  It feels like there should be a note about which values
-> > > isochronous URBs might have in the urb->status field.  The USB core is
-> > > the only one that would be setting those, so which values would it set?
-> > > uvcvideo tests for these error codes:
-> > > 
-> > >         case -ENOENT:           /* usb_kill_urb() called. */
-> > >         case -ECONNRESET:       /* usb_unlink_urb() called. */
-> > >         case -ESHUTDOWN:        /* The endpoint is being disabled. */
-> > >         case -EPROTO:           /* Device is disconnected (reported by some
-> > >                                  * host controller). */
-> > > 
-> > > Are there any others.
+We at Qualcomm have some platforms that have memory of different
+performance characteristics, some drivers will need a way of
+specifying that they need fast memory for an allocation (and would prefer
+an error if it is not available rather than a fallback to slower
+memory). It would also be bad if allocators who don't need fast
+memory got it "accidentally", depriving those who really need it.
+
 > > 
-> > -EREMOTEIO, in the unlikely event that URB_SHORT_NOT_OK is set, but no
-> > others.
+> > Thanks for the insight, that's a much better argument than 'something
+> > may need it'. Are those all chips without an IOMMU or do we also
+> > need to solve the IOMMU case with split bank allocation?
+> > 
+> > I think I'd still prefer to see the support for multiple regions split
+> > out into one of the later patches, especially since that would defer
+> > the question of how to do the initialization for this case and make
+> > sure we first get a generic way.
+> > 
+> > You've convinced me that we need to solve the problem of allocating
+> > memory from a specific bank eventually, but separating it from the
+> > one at hand (contiguous allocation) should help getting the important
+> > groundwork in at first.
+> >
+> > The possible conflict that I still see with per-bank CMA regions are:
+> > 
+> > * It completely destroys memory power management in cases where that
+> >   is based on powering down entire memory banks.
 > 
-> Are you saying that the USB core will only set -EREMOTEIO for
-> isochronous URBs?  Or do you mean that in addition to the status values
-> that uvcvideo checks, the USB core can also set -EREMOTEIO?
+> I don't think that per-bank CMA regions destroys memory power management
+> more than the global CMA pool. Please note that the contiguous buffers
+> (or in general dma-buffers) right now are unmovable so they don't fit
+> well into memory power management.
 
-The latter.  However, if uvcvideo never sets the URB_SHORT_NOT_OK flag 
-then usbcore will never set urb->status to -EREMOTEIO.
+We also have platforms where a well-defined part of the memory
+can be powered off, and other parts can't (or won't). We need a way
+to steer the place allocations come from to the memory that won't be
+turned off (so that CMA allocations are not an obstacle to memory
+hotremove).
 
-> > And I wasn't aware of that last one...  Host controller drivers should
-> > report -ESHUTDOWN to mean the device has been disconnected, not
-> > -EPROTO.  But usually HCD don't take these events into account when
-> > determining URB status codes.
 > 
-> The xHCI driver will return -ESHUTDOWN as a status for URBs when the
-> host controller is dying.
+> Best regards
+> -- 
+> Marek Szyprowski
+> Samsung Poland R&D Center
+> 
+> 
+> 
+> _______________________________________________
+> Linaro-mm-sig mailing list
+> Linaro-mm-sig@lists.linaro.org
+> http://lists.linaro.org/mailman/listinfo/linaro-mm-sig
 
-That's appropriate.  But nobody should ever set an isochronous URB's
-status field to -EPROTO, no matter whether the device is connected or
-not and no matter whether the host controller is alive or not.
+Larry Bassel
 
-Alan Stern
-
+-- 
+Sent by an employee of the Qualcomm Innovation Center, Inc.
+The Qualcomm Innovation Center, Inc. is a member of the Code Aurora Forum.
