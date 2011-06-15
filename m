@@ -1,141 +1,218 @@
 Return-path: <mchehab@pedra>
-Received: from mx1.redhat.com ([209.132.183.28]:13994 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755412Ab1F2MBO (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 29 Jun 2011 08:01:14 -0400
-Received: from int-mx10.intmail.prod.int.phx2.redhat.com (int-mx10.intmail.prod.int.phx2.redhat.com [10.5.11.23])
-	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id p5TC1EP4015552
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
-	for <linux-media@vger.kernel.org>; Wed, 29 Jun 2011 08:01:14 -0400
-Message-ID: <4E0B1407.8000907@redhat.com>
-Date: Wed, 29 Jun 2011 09:01:11 -0300
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Received: from smtp-vbr15.xs4all.nl ([194.109.24.35]:3400 "EHLO
+	smtp-vbr15.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752487Ab1FOGkJ (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 15 Jun 2011 02:40:09 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Kamil Debski <k.debski@samsung.com>
+Subject: Re: [PATCH 1/4 v9] v4l: add fourcc definitions for compressed formats.
+Date: Wed, 15 Jun 2011 08:39:59 +0200
+Cc: linux-media@vger.kernel.org, m.szyprowski@samsung.com,
+	kyungmin.park@samsung.com, jaeryul.oh@samsung.com,
+	laurent.pinchart@ideasonboard.com, jtp.park@samsung.com
+References: <1308069416-24723-1-git-send-email-k.debski@samsung.com> <1308069416-24723-2-git-send-email-k.debski@samsung.com>
+In-Reply-To: <1308069416-24723-2-git-send-email-k.debski@samsung.com>
 MIME-Version: 1.0
-To: Hans de Goede <hdegoede@redhat.com>
-CC: linux-media@vger.kernel.org
-Subject: Re: [git:xawtv3/master] xawtv: reenable its usage with webcam's
-References: <E1Qbdw6-0007wL-E8@www.linuxtv.org> <4E0B05F5.1000704@redhat.com>
-In-Reply-To: <4E0B05F5.1000704@redhat.com>
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: Text/Plain;
+  charset="iso-8859-15"
 Content-Transfer-Encoding: 7bit
+Message-Id: <201106150839.59635.hverkuil@xs4all.nl>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Em 29-06-2011 08:01, Hans de Goede escreveu:
-> Hi,
+On Tuesday, June 14, 2011 18:36:53 Kamil Debski wrote:
+> Add fourcc definitions and documentation for the following
+> compressed formats: H264, H264 without start codes,
+> MPEG1/2/4 ES, DIVX versions 3.11, 4, 5.0-5.0.2, 5.03 and up,
+> XVID, VC1 Annex G and Annex L compliant.
 > 
-> On 06/28/2011 07:32 PM, Mauro Carvalho Chehab wrote:
->> This is an automatic generated email to let you know that the following patch were queued at the
->> http://git.linuxtv.org/xawtv3.git tree:
->>
->> Subject: xawtv: reenable its usage with webcam's
->> Author:  Mauro Carvalho Chehab<mchehab@redhat.com>
->> Date:    Tue Jun 28 14:22:55 2011 -0300
->>
->> git changeset c28978f3693bc0f40607d0b3e589774b9452608d was requiring that
->> tuner would be available, in order to allow it to run. Relax the restriction,
->> in order to allow using xawtv to test webcams, restoring the previous
->> behavior.
->>
->> Signed-off-by: Mauro Carvalho Chehab<mchehab@redhat.com>
->>
->>   libng/grab-ng.c |    4 ++--
->>   1 files changed, 2 insertions(+), 2 deletions(-)
->>
->> ---
->>
->> http://git.linuxtv.org/xawtv3.git?a=commitdiff;h=2238f79d9fb2801a3acd114242b437686fa2f0c8
->>
->> diff --git a/libng/grab-ng.c b/libng/grab-ng.c
->> index f5203cc..94f31e8 100644
->> --- a/libng/grab-ng.c
->> +++ b/libng/grab-ng.c
->> @@ -563,9 +563,9 @@ static void *ng_vid_open_auto(struct ng_vid_driver *drv, char *devpath)
->>           continue;
->>       }
->>
->> -    /* Check caps return this device if it can capture and has a tuner */
->> +    /* Check caps return this device if it can capture */
->>       caps = drv->capabilities(handle);
->> -    if ((caps&  CAN_CAPTURE)&&  (caps&  CAN_TUNE))
->> +    if (caps&  CAN_CAPTURE)
->>           break;
->>
->>       drv->close(handle);
->>
+> Signed-off-by: Kamil Debski <k.debski@samsung.com>
+> Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+> ---
+>  Documentation/DocBook/media/v4l/controls.xml |    7 ++-
+>  Documentation/DocBook/media/v4l/pixfmt.xml   |   67 +++++++++++++++++++++++++-
+>  include/linux/videodev2.h                    |   21 +++++++--
+>  3 files changed, 88 insertions(+), 7 deletions(-)
 > 
-> Hmm, this changes the behavior from what I intended, the idea was to select the
-> first *tv-card*, without checking for a tuner, there is little value in the auto
-> device feature. Granted it will still skip v4l2 output only devices but those are
-> very rare.
+> diff --git a/Documentation/DocBook/media/v4l/controls.xml b/Documentation/DocBook/media/v4l/controls.xml
+> index a920ee8..6880798 100644
+> --- a/Documentation/DocBook/media/v4l/controls.xml
+> +++ b/Documentation/DocBook/media/v4l/controls.xml
+> @@ -670,7 +670,8 @@ caption of a Tab page in a GUI, for example.</entry>
+>  	      </row><row><entry spanname="descr">The MPEG-1, -2 or -4
+>  output stream type. One cannot assume anything here. Each hardware
+>  MPEG encoder tends to support different subsets of the available MPEG
+> -stream types. The currently defined stream types are:</entry>
+> +stream types. This control is specific to multiplexed MPEG streams.
+> +The currently defined stream types are:</entry>
+>  	      </row>
+>  	      <row>
+>  		<entrytbl spanname="descr" cols="2">
+> @@ -800,6 +801,7 @@ frequency. Possible values are:</entry>
+>  		<entry spanname="id"><constant>V4L2_CID_MPEG_AUDIO_ENCODING</constant>&nbsp;</entry>
+>  		<entry>enum&nbsp;v4l2_mpeg_audio_encoding</entry>
+>  	      </row><row><entry spanname="descr">MPEG Audio encoding.
+> +This control is specific to multiplexed MPEG streams.
+>  Possible values are:</entry>
+>  	      </row>
+>  	      <row>
+> @@ -1250,7 +1252,8 @@ and reproducible audio bitstream. 0 = unmuted, 1 = muted.</entry>
+>  		<entry spanname="id"><constant>V4L2_CID_MPEG_VIDEO_ENCODING</constant>&nbsp;</entry>
+>  		<entry>enum&nbsp;v4l2_mpeg_video_encoding</entry>
+>  	      </row><row><entry spanname="descr">MPEG Video encoding
+> -method. Possible values are:</entry>
+> +method. This control is specific to multiplexed MPEG streams.
+> +Possible values are:</entry>
+>  	      </row>
+>  	      <row>
+>  		<entrytbl spanname="descr" cols="2">
+> diff --git a/Documentation/DocBook/media/v4l/pixfmt.xml b/Documentation/DocBook/media/v4l/pixfmt.xml
+> index 88e5c21..7f0f447 100644
+> --- a/Documentation/DocBook/media/v4l/pixfmt.xml
+> +++ b/Documentation/DocBook/media/v4l/pixfmt.xml
+> @@ -741,10 +741,75 @@ information.</para>
+>  	  <row id="V4L2-PIX-FMT-MPEG">
+>  	    <entry><constant>V4L2_PIX_FMT_MPEG</constant></entry>
+>  	    <entry>'MPEG'</entry>
+> -	    <entry>MPEG stream. The actual format is determined by
+> +	    <entry>MPEG multiplexed stream. The actual format is determined by
+>  extended control <constant>V4L2_CID_MPEG_STREAM_TYPE</constant>, see
+>  <xref linkend="mpeg-control-id" />.</entry>
+>  	  </row>
+> +	  <row id="V4L2-PIX-FMT-H264">
+> +		<entry><constant>V4L2_PIX_FMT_H264</constant></entry>
+> +		<entry>'H264'</entry>
+> +		<entry>H264 video elementary stream with start codes.</entry>
+> +	  </row>
+> +	  <row id="V4L2-PIX-FMT-H264-NO-SC">
+> +		<entry><constant>V4L2_PIX_FMT_H264_NO_SC</constant></entry>
+> +		<entry>'AVC1'</entry>
+> +		<entry>H264 video elementary stream without start codes.</entry>
+> +	  </row>
+> +	  <row id="V4L2-PIX-FMT-H263">
+> +		<entry><constant>V4L2_PIX_FMT_H263</constant></entry>
+> +		<entry>'H263'</entry>
+> +		<entry>H263 video elementary stream.</entry>
+> +	  </row>
+> +	  <row id="V4L2-PIX-FMT-MPEG1">
+> +		<entry><constant>V4L2_PIX_FMT_MPEG1</constant></entry>
+> +		<entry>'MPG1'</entry>
+> +		<entry>MPEG1 video elementary stream.</entry>
+> +	  </row>
+> +	  <row id="V4L2-PIX-FMT-MPEG2">
+> +		<entry><constant>V4L2_PIX_FMT_MPEG2</constant></entry>
+> +		<entry>'MPG2'</entry>
+> +		<entry>MPEG2 video elementary stream.</entry>
+> +	  </row>
+> +	  <row id="V4L2-PIX-FMT-MPEG4">
+> +		<entry><constant>V4L2_PIX_FMT_MPEG4</constant></entry>
+> +		<entry>'MPG4'</entry>
+> +		<entry>MPEG4 video elementary stream.</entry>
+> +	  </row>
+> +	  <row id="V4L2-PIX-FMT-DIVX3">
+> +		<entry><constant>V4L2_PIX_FMT_DIVX3</constant></entry>
+> +		<entry>'DIV3'</entry>
+> +		<entry>Divx 3.11 video elementary stream.</entry>
+> +	  </row>
+> +	  <row id="V4L2-PIX-FMT-DIVX4">
+> +		<entry><constant>V4L2_PIX_FMT_DIVX4</constant></entry>
+> +		<entry>'DIV4'</entry>
+> +		<entry>Divx 4 video elementary stream.</entry>
+> +	  </row>
+> +	  <row id="V4L2-PIX-FMT-DIVX500">
+> +		<entry><constant>V4L2_PIX_FMT_DIVX500</constant></entry>
+> +		<entry>'DX50'</entry>
+> +		<entry>Divx 5.0-5.0.2 video elementary stream.</entry>
+> +	  </row>
+> +	  <row id="V4L2-PIX-FMT-DIVX5">
+> +		<entry><constant>V4L2_PIX_FMT_DIVX5</constant></entry>
+> +		<entry>'DIV5'</entry>
+> +		<entry>Divx 5.0.3+ video elementary stream.</entry>
+> +	  </row>
+> +	  <row id="V4L2-PIX-FMT-XVID">
+> +		<entry><constant>V4L2_PIX_FMT_XVID</constant></entry>
+> +		<entry>'XVID'</entry>
+> +		<entry>Xvid video elementary stream.</entry>
+> +	  </row>
+> +	  <row id="V4L2-PIX-FMT-VC1-ANNEX-G">
+> +		<entry><constant>V4L2_PIX_FMT_VC1_ANNEX_G</constant></entry>
+> +		<entry>'VC1G'</entry>
+> +		<entry>VC1, SMPTE 421M Annex G compliant stream.</entry>
+> +	  </row>
+> +	  <row id="V4L2-PIX-FMT-VC1-ANNEX-L">
+> +		<entry><constant>V4L2_PIX_FMT_VC1_ANNEX_L</constant></entry>
+> +		<entry>'VC1L'</entry>
+> +		<entry>VC1, SMPTE 421M Annex L compliant stream.</entry>
+> +	  </row>
+>  	</tbody>
+>        </tgroup>
+>      </table>
+> diff --git a/include/linux/videodev2.h b/include/linux/videodev2.h
+> index 8a4c309..65bcb61 100644
+> --- a/include/linux/videodev2.h
+> +++ b/include/linux/videodev2.h
+> @@ -376,7 +376,20 @@ struct v4l2_pix_format {
+>  #define V4L2_PIX_FMT_MJPEG    v4l2_fourcc('M', 'J', 'P', 'G') /* Motion-JPEG   */
+>  #define V4L2_PIX_FMT_JPEG     v4l2_fourcc('J', 'P', 'E', 'G') /* JFIF JPEG     */
+>  #define V4L2_PIX_FMT_DV       v4l2_fourcc('d', 'v', 's', 'd') /* 1394          */
+> -#define V4L2_PIX_FMT_MPEG     v4l2_fourcc('M', 'P', 'E', 'G') /* MPEG-1/2/4    */
+> +#define V4L2_PIX_FMT_MPEG     v4l2_fourcc('M', 'P', 'E', 'G') /* MPEG-1/2/4 Multiplexed */
+> +#define V4L2_PIX_FMT_H264     v4l2_fourcc('H', '2', '6', '4') /* H264 with start codes */
+> +#define V4L2_PIX_FMT_H264_NO_SC v4l2_fourcc('A', 'V', 'C', '1') /* H264 without start codes */
+> +#define V4L2_PIX_FMT_H263     v4l2_fourcc('H', '2', '6', '3') /* H263          */
+> +#define V4L2_PIX_FMT_MPEG1    v4l2_fourcc('M', 'P', 'G', '1') /* MPEG-1 ES     */
+> +#define V4L2_PIX_FMT_MPEG2    v4l2_fourcc('M', 'P', 'G', '2') /* MPEG-2 ES     */
+> +#define V4L2_PIX_FMT_MPEG4    v4l2_fourcc('M', 'P', 'G', '4') /* MPEG-4 ES     */
+> +#define V4L2_PIX_FMT_DIVX3    v4l2_fourcc('D', 'I', 'V', '3') /* DivX 3.11     */
+> +#define V4L2_PIX_FMT_DIVX4    v4l2_fourcc('D', 'I', 'V', '4') /* DivX 4.12     */
+> +#define V4L2_PIX_FMT_DIVX500  v4l2_fourcc('D', 'X', '5', '0') /* DivX 5.00 - 5.02  */
+> +#define V4L2_PIX_FMT_DIVX5    v4l2_fourcc('D', 'I', 'V', '5') /* DivX 5.03 - x  */
 
-Your patch broke support for vivi and for video grabber devices. Those devices don't
-have a tuner.
+Wasn't DIVX removed due to licensing issues?
 
-> Note that only the xawtv binary is using a device value of "auto" by default,
-> the webcam tool still defaults to /dev/video0
+> +#define V4L2_PIX_FMT_XVID     v4l2_fourcc('X', 'V', 'I', 'D') /* Xvid           */
+> +#define V4L2_PIX_FMT_VC1_ANNEX_G v4l2_fourcc('V', 'C', '1', 'G') /* SMPTE 421M Annex G compliant stream */
+> +#define V4L2_PIX_FMT_VC1_ANNEX_L v4l2_fourcc('V', 'C', '1', 'L') /* SMPTE 421M Annex L compliant stream */
 
-It is not "by default", as there's was way to override the CAN_TUNE check logic.
-calling xawtv without my changes with vivi or a webcam would simply return as if
-there's no supported V4L device.
+Just to verify: are all these formats actually used in the driver?
 
-> Given that xawtv is specifically meant for tv-cards (unlike the webcam tool)
-> failing if it cannot find a tv-card and no device is explicitly specified seems
-> reasonable.
+>  
+>  /*  Vendor-specific formats   */
+>  #define V4L2_PIX_FMT_CPIA1    v4l2_fourcc('C', 'P', 'I', 'A') /* cpia1 YUV */
+> @@ -1151,7 +1164,7 @@ enum v4l2_colorfx {
+>  #define V4L2_CID_MPEG_BASE 			(V4L2_CTRL_CLASS_MPEG | 0x900)
+>  #define V4L2_CID_MPEG_CLASS 			(V4L2_CTRL_CLASS_MPEG | 1)
+>  
+> -/*  MPEG streams */
+> +/*  MPEG streams, specific to multiplexed streams */
+>  #define V4L2_CID_MPEG_STREAM_TYPE 		(V4L2_CID_MPEG_BASE+0)
+>  enum v4l2_mpeg_stream_type {
+>  	V4L2_MPEG_STREAM_TYPE_MPEG2_PS   = 0, /* MPEG-2 program stream */
+> @@ -1173,7 +1186,7 @@ enum v4l2_mpeg_stream_vbi_fmt {
+>  	V4L2_MPEG_STREAM_VBI_FMT_IVTV = 1,  /* VBI in private packets, IVTV format */
+>  };
+>  
+> -/*  MPEG audio */
+> +/*  MPEG audio controls specific to multiplexed streams  */
+>  #define V4L2_CID_MPEG_AUDIO_SAMPLING_FREQ 	(V4L2_CID_MPEG_BASE+100)
+>  enum v4l2_mpeg_audio_sampling_freq {
+>  	V4L2_MPEG_AUDIO_SAMPLING_FREQ_44100 = 0,
+> @@ -1289,7 +1302,7 @@ enum v4l2_mpeg_audio_ac3_bitrate {
+>  	V4L2_MPEG_AUDIO_AC3_BITRATE_640K = 18,
+>  };
+>  
+> -/*  MPEG video */
+> +/*  MPEG video controls specific to multiplexed streams */
 
-Well, xawtv ever worked also with webcams, and with the libv4l, it is now
-working even better. I don't see any reason why removing such support for it.
+The 'multiplexed' part of this comment is only true for VIDEO_ENCODING. The
+other controls are valid for elementary streams as well.
 
-Btw, with the changes I've made, the TV-specific controls are now removed if
-the device is a grabber or a webcam. There's currently just one detail to be
-fixed: the window title will be changed to "???" on those devices. This is an
-old bug, as changing from Television to S-Video or Composite, on a device that
-has both tuner and grabber capabilities, it will still keep the channel name
-there. It probably makes sense to print there the input name instead, if the
-input is not Television.
+>  #define V4L2_CID_MPEG_VIDEO_ENCODING 		(V4L2_CID_MPEG_BASE+200)
+>  enum v4l2_mpeg_video_encoding {
+>  	V4L2_MPEG_VIDEO_ENCODING_MPEG_1     = 0,
+> 
 
-> Alternatively we could make the desired caps a param too ng_vid_open_auto
-> and first try with (CAN_CAPTURE | CAN_TUNE) and then retry with only
-> CAN_CAPTURE.
+Regards,
 
-A logic like that would be better, although, IMO, we should print a message
-saying that we're not using video0. Also, if we're willing to do such logic,
-it makes sense to implement the auto mode also for "scantv".
-
-> The above patch definitely is not what I had in mind. My system has a
-> bt878 tv card, and a varying number of webcams connected, thus constantly
-> changing the /dev/video# for the tv-card. The intent of my "auto" device
-> patches was to make xawtv automatically pick the tvcard.
-
-Well, a varying device for /dev/video is something that we need to fix at udev.
-There are some ways to create persistent rules for that.
-
-In a matter of fact, IMO, we should change the V4L2 device nodes reported via
-udev, to be more intuitive, e. g. instead of creating /dev/video for everything,
-create /dev/webcam? /dev/grabber? /dev/analog_tv? device nodes, while creating
-a symlink to /dev/video, in order to not break existing applications that have
-it hardcoded.
-
-Cheers,
-Mauro
-
-> I intented to mail you about my get_media_devices fixes as well as my
-> auto device patches, and suggest that we do a new release soon. 
-
-Yes, I think we should make a release for it soon. There are enough features
-added on xawtv that justifies doing a new release.
-
-> But first
-> we need to sort out the auto device thingie. If you could fix it to
-> first look for cards with a tuner and if none is available fall back
-> to just looking for capture capable cards that would be great, I'm a
-> bit busy atm I'm afraid.
-
-I'll seek for some time. I'm also busy atm, trying to check what applications
-would break if we change the error value for unimplemented calls to ENOTTY
-(that was basically the reason for me to fix xawtv, as grabber devices and webcams
-have less ioctl's implemented).
-
-Cheers,
-Mauro.
-
+	Hans
