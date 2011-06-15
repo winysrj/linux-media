@@ -1,39 +1,54 @@
 Return-path: <mchehab@pedra>
-Received: from mailout2.w1.samsung.com ([210.118.77.12]:35173 "EHLO
-	mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933033Ab1FBKMO (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 2 Jun 2011 06:12:14 -0400
-Date: Thu, 02 Jun 2011 12:11:57 +0200
-From: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Subject: [PATCH 0/7] s5p-fimc driver fixes for 3.0
-To: linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org
-Cc: m.szyprowski@samsung.com, kyungmin.park@samsung.com,
-	s.nawrocki@samsung.com, sw0312.kim@samsung.com,
-	riverful.kim@samsung.com
-Message-id: <1307009524-1208-1-git-send-email-s.nawrocki@samsung.com>
-MIME-version: 1.0
-Content-type: TEXT/PLAIN
-Content-transfer-encoding: 7BIT
+Received: from mail-fx0-f46.google.com ([209.85.161.46]:32827 "EHLO
+	mail-fx0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754221Ab1FONcK (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 15 Jun 2011 09:32:10 -0400
+Date: Wed, 15 Jun 2011 15:32:06 +0200
+From: Tejun Heo <tj@kernel.org>
+To: Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Patrick Boettcher <pboettcher@kernellabs.com>
+Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: [PATCH] dvb-usb/technisat-usb2: don't use flush_scheduled_work()
+Message-ID: <20110615133206.GW8141@htj.dyndns.org>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Hello,
+flush_scheduled_work() is deprecated and scheduled to be removed.
+technisat-usb2 already sync-cancels the only work item it uses and
+there's no reason for it to call flush_scheduled_work().  Don't use
+it.
 
-the following are a few bugfix patches for s5p-fimc driver.
-Except the kernel-doc comments corrections, debug trace cleanup
-and the copyright update they fix the buffer allocation issue and 
-possible memory leak on error path.
+Signed-off-by: Tejun Heo <tj@kernel.org>
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
+Cc: Patrick Boettcher <pboettcher@kernellabs.com>
+---
+I was re-scanning source tree to prepare for deprecation of
+flush_scheduled_work() and found out new driver added usage
+unnecessarily.  Can you please include this patch so that it gets
+propagated to linux-next soonish?
 
- drivers/media/video/s5p-fimc/fimc-capture.c |   21 ++----------------
- drivers/media/video/s5p-fimc/fimc-core.c    |   28 +++++++------------------
- drivers/media/video/s5p-fimc/fimc-core.h    |   29 ++++++++++++--------------
- 3 files changed, 24 insertions(+), 54 deletions(-)
+Thank you.
 
-Regards,
---
-Sylwester Nawrocki
-Samsung Poland R&D Center
+ drivers/media/dvb/dvb-usb/technisat-usb2.c |    4 +---
+ 1 file changed, 1 insertion(+), 3 deletions(-)
 
-
-
-
+Index: work/drivers/media/dvb/dvb-usb/technisat-usb2.c
+===================================================================
+--- work.orig/drivers/media/dvb/dvb-usb/technisat-usb2.c
++++ work/drivers/media/dvb/dvb-usb/technisat-usb2.c
+@@ -765,10 +765,8 @@ static void technisat_usb2_disconnect(st
+ 	/* work and stuff was only created when the device is is hot-state */
+ 	if (dev != NULL) {
+ 		struct technisat_usb2_state *state = dev->priv;
+-		if (state != NULL) {
++		if (state != NULL)
+ 			cancel_delayed_work_sync(&state->green_led_work);
+-			flush_scheduled_work();
+-		}
+ 	}
+ 
+ 	dvb_usb_device_exit(intf);
