@@ -1,69 +1,76 @@
 Return-path: <mchehab@pedra>
-Received: from mx1.redhat.com ([209.132.183.28]:1997 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752685Ab1FJHBN (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 10 Jun 2011 03:01:13 -0400
-Message-ID: <4DF1C0DA.2090108@redhat.com>
-Date: Fri, 10 Jun 2011 08:59:38 +0200
-From: Gerd Hoffmann <kraxel@redhat.com>
+Received: from smtp-vbr4.xs4all.nl ([194.109.24.24]:2761 "EHLO
+	smtp-vbr4.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751313Ab1FOUhR (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 15 Jun 2011 16:37:17 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Devin Heitmueller <dheitmueller@kernellabs.com>
+Subject: Re: [RFCv2 PATCH 0/5] tuner-core: fix s_std and s_tuner
+Date: Wed, 15 Jun 2011 22:37:02 +0200
+Cc: Andy Walls <awalls@md.metrocast.net>, linux-media@vger.kernel.org,
+	Mauro Carvalho Chehab <mchehab@redhat.com>
+References: <1307804731-16430-1-git-send-email-hverkuil@xs4all.nl> <201106152155.57978.hverkuil@xs4all.nl> <BANLkTinx9Pa_Oe3qOfNgKZS3e82US6r8wg@mail.gmail.com>
+In-Reply-To: <BANLkTinx9Pa_Oe3qOfNgKZS3e82US6r8wg@mail.gmail.com>
 MIME-Version: 1.0
-To: Greg KH <greg@kroah.com>
-CC: Sarah Sharp <sarah.a.sharp@linux.intel.com>,
-	linux-usb@vger.kernel.org, linux-media@vger.kernel.org,
-	linux-kernel@vger.kernel.org, libusb-devel@lists.sourceforge.net,
-	Alexander Graf <agraf@suse.de>, hector@marcansoft.com,
-	Jan Kiszka <jan.kiszka@siemens.com>,
-	Stefan Hajnoczi <stefanha@linux.vnet.ibm.com>,
-	pbonzini@redhat.com, Anthony Liguori <aliguori@us.ibm.com>,
-	Jes Sorensen <Jes.Sorensen@redhat.com>,
-	Alan Stern <stern@rowland.harvard.edu>,
-	Oliver Neukum <oliver@neukum.org>, Felipe Balbi <balbi@ti.com>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Clemens Ladisch <clemens@ladisch.de>,
-	Jaroslav Kysela <perex@perex.cz>, Takashi Iwai <tiwai@suse.de>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Hans de Goede <hdegoede@redhat.com>
-Subject: Re: USB mini-summit at LinuxCon Vancouver
-References: <20110610002103.GA7169@xanatos> <20110610031805.GA15774@kroah.com>
-In-Reply-To: <20110610031805.GA15774@kroah.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
+Message-Id: <201106152237.02427.hverkuil@xs4all.nl>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-   Hi,
+On Wednesday, June 15, 2011 22:09:45 Devin Heitmueller wrote:
+> On Wed, Jun 15, 2011 at 3:55 PM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
+> > Why would that violate the spec? If the last filehandle is closed, then
+> > you can safely poweroff the tuner. The only exception is when you have a radio
+> > tuner whose audio output is hooked up to some line-in: there you can't power off
+> > the tuner.
+> 
+> The use case that some expect to work is:
+> 
+> v4l2-ctl <set standard>
+> v4l2-ctl <set frequency>
+> cat /dev/video0 > out.mpg
+> 
+> By powering off the tuner after v4l2-ctl closes the device node, the
+> cat won't work as expected because the tuner will be powered down.
+> 
+> >> We've been forced to choose between the purist perspective, which is
+> >> properly preserving state, never powering down the tuner and sucking
+> >> up 500ma on the USB port when not using the tuner, versus powering
+> >> down the tuner when the last party closes the filehandle, which
+> >> preserves power but breaks v4l2 conformance and in some cases is
+> >> highly noticeable with tuners that require firmware to be reloaded
+> >> when being powered back up.
+> >
+> > Seems fine to me. What isn't fine is that a driver like e.g. em28xx powers off
+> > the tuner but doesn't power it on again on the next open. It won't do that
+> > until the first S_FREQUENCY/S_TUNER/S_STD call.
+> 
+> You don't want to power up the tuner unless you know the user intends
+> to use it.  For example, you don't want to power up the tuner if the
+> user intends to capture on composite/s-video input (as this consumes
+> considerably more power).
 
->> The KVM folks suggested that it would be good to get USB and
->> virtualization developers together to talk about how to virtualize the
->> xHCI host controller.  The xHCI spec architect worked closely with
->> VMWare to get some extra goodies in the spec to help virtualization, and
->> I'd like to see the other virtualization developers take advantage of
->> that.  I'd also like us to hash out any issues they have been finding in
->> the USB core or xHCI driver during the virtualization effort.
->
-> Do people really want to virtualize the whole xHCI controller, or just
-> specific ports or devices to the guest operating system?
+But the driver has that information, so it should act accordingly.
 
-SR/IOV support is an optional xHCI feature.  As I understand it you can 
-create a VF which looks like a real xHCI controller.  This is partly 
-done in hardware and partly by software.  Then you can assign it some 
-ressources (specific ports) and pass it to the guest.
+So on first open you can check whether the current input has a tuner and
+power on the tuner in that case. On S_INPUT you can also poweron/off accordingly
+(bit iffy against the spec, though). So in that case the first use case would
+actually work. It does require that tuner-core.c supports s_power(1), of course.
 
-> If just specific ports, would something like usbip be better for virtual
-> machines, with the USB traffic going over the network connection between
-> the guest/host?
+BTW, I noticed in tuner-core.c that the g_tuner op doesn't wake-up the tuner
+when called. I think it should be added, even though most (all?) tuners will
+need time before they can return anything sensible.
 
-There are several ways depending on the use case.  Usually the guest 
-sees a (fully software emulated) host adapter with usb devices 
-connected, where the usb devices can be (a) emulated too or (b) real usb 
-devices passed through to the guest.  The later is done by passing the 
-guests requests to the real device via usbfs.
+BTW2: it's not a good idea to just broadcast s_power to all subdevs. That should
+be done to the tuner(s) only since other subdevs might also implement s_power.
+For now it's pretty much just tuners and some sensors, though.
 
-One problem with emulating usb fully in software is the polling design 
-of the hardware which makes the emulation quite cpu intensive.  Using a 
-xHCI VF should help here alot, but works for the pass through use case 
-only of course.
+You know, this really needs to be a standardized module option and/or sysfs
+entry: 'always on', 'wake up on first open', 'wake up on first use'.
 
-cheers,
-   Gerd
+Regards,
 
+	Hans
