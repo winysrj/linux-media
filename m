@@ -1,67 +1,26 @@
 Return-path: <mchehab@pedra>
-Received: from mail-qw0-f46.google.com ([209.85.216.46]:55133 "EHLO
-	mail-qw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750991Ab1FTB2s convert rfc822-to-8bit (ORCPT
+Received: from euromail.hu ([77.111.88.194]:54756 "EHLO
+	hkvirtual00.humankraft.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1750842Ab1FOETW (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 19 Jun 2011 21:28:48 -0400
-Received: by qwk3 with SMTP id 3so596271qwk.19
-        for <linux-media@vger.kernel.org>; Sun, 19 Jun 2011 18:28:47 -0700 (PDT)
+	Wed, 15 Jun 2011 00:19:22 -0400
+To: ritampka1@yahoo.com
+Subject: =?UTF-8?Q?Hello?=
+Date: Wed, 15 Jun 2011 06:18:59 +0200
+From: ritampka1@yahoo.com
+Message-ID: <1758188256.06@euromail>
 MIME-Version: 1.0
-In-Reply-To: <20110617125713.293f484d@bike.lwn.net>
-References: <20110617125713.293f484d@bike.lwn.net>
-From: Pawel Osciak <pawel@osciak.com>
-Date: Sun, 19 Jun 2011 18:28:27 -0700
-Message-ID: <BANLkTimPrkXUuTGCfrp8KyqhFNvfjoCzSw@mail.gmail.com>
-Subject: Re: vb2: holding buffers until after start_streaming()
-To: Jonathan Corbet <corbet@lwn.net>
-Cc: Marek Szyprowski <m.szyprowski@samsung.com>,
-	linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+Content-Type: TEXT/plain; CHARSET=UTF-8
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Hi Jon,
+ritampka1@yahoo.com
+Hello
+My name is Miss Rita.a 23 yrs old girl .I am average in height and fair in complexion ,am a loving and caring angel.I fine your mail contact today at truly is quiet interesting to me then , i decide to contact you.i really want to have a good relationship with you. Beside i have a special something i want to discuses with you,so you can reach me through this my(ritampka1@yahoo.com)Hope to hear from you soon.i will send my beautiful pictures to you and also tell you more about my self. I know age will not be a barer to our relationship, what i need is just your love and caring. I will give you my best,
+bye for now. care from
+Miss Rita
 
-On Fri, Jun 17, 2011 at 11:57, Jonathan Corbet <corbet@lwn.net> wrote:
-> Here's another videobuf2 question...I've been trying to track down some
-> weird behavior, the roots of which were in the fact that start_streaming()
-> gets called even though no buffers have been queued.  This behavior is
-> quite explicit in the code:
->
->        /*
->         * Let driver notice that streaming state has been enabled.
->         */
->        ret = call_qop(q, start_streaming, q);
->        if (ret) {
->                dprintk(1, "streamon: driver refused to start streaming\n");
->                return ret;
->        }
->
->        q->streaming = 1;
->
->        /*
->         * If any buffers were queued before streamon,
->         * we can now pass them to driver for processing.
->         */
->        list_for_each_entry(vb, &q->queued_list, queued_entry)
->                __enqueue_in_driver(vb);
->
-> Pretty much every v4l2 capture application I've ever encountered passes all
-> of its buffers to VIDIOC_QBUF before starting streaming for a reason - it
-> makes little sense to start if there's nothing to stream to.  It's really
-> tempting to reorder that code, but...  it seems you must have done things
-> this way for a reason.  Why did you need to reorder the operations in this
-> way?
->
 
-I don't see a reason why these couldn't be reordered (Marek should be
-able to confirm, he wrote those lines). But this wouldn't fix
-everything, as the V4L2 API permits streamon without queuing any
-buffers first (for capture devices). So even reordered, it's possible
-for start_streaming to be called without passing any buffers to the
-driver first.
 
--- 
-Best regards,
-Pawel Osciak
+
+
