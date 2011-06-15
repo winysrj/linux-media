@@ -1,179 +1,48 @@
 Return-path: <mchehab@pedra>
-Received: from mailout1.w1.samsung.com ([210.118.77.11]:41974 "EHLO
-	mailout1.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757724Ab1FJShJ (ORCPT
+Received: from moutng.kundenserver.de ([212.227.126.186]:55018 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753098Ab1FOLUz (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 10 Jun 2011 14:37:09 -0400
-Date: Fri, 10 Jun 2011 20:36:53 +0200
-From: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Subject: [PATCH/RFC 12/19] s5p-fimc: Add PM helper function for streaming
- control
-In-reply-to: <1307731020-7100-1-git-send-email-s.nawrocki@samsung.com>
-To: linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org
-Cc: hans.verkuil@cisco.com, laurent.pinchart@ideasonboard.com,
-	m.szyprowski@samsung.com, kyungmin.park@samsung.com,
-	s.nawrocki@samsung.com, sw0312.kim@samsung.com,
-	riverful.kim@samsung.com
-Message-id: <1307731020-7100-13-git-send-email-s.nawrocki@samsung.com>
-MIME-version: 1.0
-Content-type: TEXT/PLAIN
-Content-transfer-encoding: 7BIT
-References: <1307731020-7100-1-git-send-email-s.nawrocki@samsung.com>
+	Wed, 15 Jun 2011 07:20:55 -0400
+From: Arnd Bergmann <arnd@arndb.de>
+To: "Michal Nazarewicz" <mina86@mina86.com>
+Subject: Re: [Linaro-mm-sig] [PATCH 08/10] mm: cma: Contiguous Memory Allocator added
+Date: Wed, 15 Jun 2011 13:20:42 +0200
+Cc: "Zach Pfeffer" <zach.pfeffer@linaro.org>,
+	"Daniel Stone" <daniels@collabora.com>,
+	"Ankita Garg" <ankita@in.ibm.com>,
+	"Daniel Walker" <dwalker@codeaurora.org>,
+	"Jesse Barker" <jesse.barker@linaro.org>,
+	"Mel Gorman" <mel@csn.ul.ie>, linux-kernel@vger.kernel.org,
+	linaro-mm-sig@lists.linaro.org, linux-mm@kvack.org,
+	"Kyungmin Park" <kyungmin.park@samsung.com>,
+	"KAMEZAWA Hiroyuki" <kamezawa.hiroyu@jp.fujitsu.com>,
+	"Andrew Morton" <akpm@linux-foundation.org>,
+	linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org
+References: <1307699698-29369-1-git-send-email-m.szyprowski@samsung.com> <201106142242.25157.arnd@arndb.de> <op.vw31uxxl3l0zgt@mnazarewicz-glaptop>
+In-Reply-To: <op.vw31uxxl3l0zgt@mnazarewicz-glaptop>
+MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="utf-8"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201106151320.42182.arnd@arndb.de>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Create a helper function for (re)starting streaming PM resume calls.
+On Wednesday 15 June 2011, Michal Nazarewicz wrote:
+> On Tue, 14 Jun 2011 22:42:24 +0200, Arnd Bergmann <arnd@arndb.de> wrote:
+> > * We still need to solve the same problem in case of IOMMU mappings
+> >   at some point, even if today's hardware doesn't have this combination.
+> >   It would be good to use the same solution for both.
+> 
+> I don't think I follow.  What does IOMMU has to do with CMA?
 
-Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
----
- drivers/media/video/s5p-fimc/fimc-capture.c |   78 ++++++++++++++++-----------
- drivers/media/video/s5p-fimc/fimc-core.c    |    4 +-
- drivers/media/video/s5p-fimc/fimc-core.h    |    3 +
- 3 files changed, 52 insertions(+), 33 deletions(-)
+The point is that on the higher level device drivers, we want to
+hide the presence of CMA and/or IOMMU behind the dma mapping API,
+but the device drivers do need to know about the bank properties.
 
-diff --git a/drivers/media/video/s5p-fimc/fimc-capture.c b/drivers/media/video/s5p-fimc/fimc-capture.c
-index cfc2c98..615ca4b 100644
---- a/drivers/media/video/s5p-fimc/fimc-capture.c
-+++ b/drivers/media/video/s5p-fimc/fimc-capture.c
-@@ -31,6 +31,48 @@
- #include "fimc-mdevice.h"
- #include "fimc-core.h"
- 
-+/**
-+ * fimc_start_capture - initialize the H/W for camera capture operation
-+ *
-+ * Initialize the camera capture datapath so when this function successfuly
-+ * completes all what is needed to start the capture pipeline is asserting
-+ * the global capture bit ImgCptEn.
-+ */
-+static int fimc_start_capture(struct fimc_dev *fimc)
-+{
-+	struct fimc_ctx *ctx = fimc->vid_cap.ctx;
-+	struct fimc_sensor_info *sensor;
-+	unsigned long flags;
-+	int ret = 0;
-+
-+	if (fimc->pipeline.sensor == NULL || ctx == NULL)
-+		return -EIO;
-+	sensor = v4l2_get_subdev_hostdata(fimc->pipeline.sensor);
-+
-+	spin_lock_irqsave(&fimc->slock, flags);
-+	fimc_prepare_dma_offset(ctx, &ctx->d_frame);
-+	fimc_set_yuv_order(ctx);
-+
-+	fimc_hw_set_camera_polarity(fimc, sensor->pdata);
-+	fimc_hw_set_camera_type(fimc, sensor->pdata);
-+	fimc_hw_set_camera_source(fimc, sensor->pdata);
-+	fimc_hw_set_camera_offset(fimc, &ctx->s_frame);
-+
-+	ret = fimc_set_scaler_info(ctx);
-+	if (!ret) {
-+		fimc_hw_set_input_path(ctx);
-+		fimc_hw_set_prescaler(ctx);
-+		fimc_hw_set_mainscaler(ctx);
-+		fimc_hw_set_target_format(ctx);
-+		fimc_hw_set_rotation(ctx);
-+		fimc_hw_set_effect(ctx);
-+		fimc_hw_set_output_path(ctx);
-+		fimc_hw_set_out_dma(ctx);
-+	}
-+	spin_unlock_irqrestore(&fimc->slock, flags);
-+	return ret;
-+}
-+
- static int fimc_stop_capture(struct fimc_dev *fimc)
- {
- 	unsigned long flags;
-@@ -92,47 +134,21 @@ static int start_streaming(struct vb2_queue *q)
- {
- 	struct fimc_ctx *ctx = q->drv_priv;
- 	struct fimc_dev *fimc = ctx->fimc_dev;
--	struct s5p_fimc_isp_info *isp_info;
-+	struct fimc_vid_cap *vid_cap = &fimc->vid_cap;
- 	int ret;
- 
- 	fimc_hw_reset(fimc);
- 
--	ret = v4l2_subdev_call(fimc->vid_cap.sd, video, s_stream, 1);
--	if (ret && ret != -ENOIOCTLCMD)
--		return ret;
--
--	ret = fimc_prepare_config(ctx, ctx->state);
--	if (ret)
--		return ret;
--
--	isp_info = &fimc->pdata->isp_info[fimc->vid_cap.input_index];
--	fimc_hw_set_camera_type(fimc, isp_info);
--	fimc_hw_set_camera_source(fimc, isp_info);
--	fimc_hw_set_camera_offset(fimc, &ctx->s_frame);
--
--	if (ctx->state & FIMC_PARAMS) {
--		ret = fimc_set_scaler_info(ctx);
--		if (ret) {
--			err("Scaler setup error");
--			return ret;
--		}
--		fimc_hw_set_input_path(ctx);
--		fimc_hw_set_prescaler(ctx);
--		fimc_hw_set_mainscaler(ctx);
--		fimc_hw_set_target_format(ctx);
--		fimc_hw_set_rotation(ctx);
--		fimc_hw_set_effect(ctx);
--	}
--
--	fimc_hw_set_output_path(ctx);
--	fimc_hw_set_out_dma(ctx);
--
- 	INIT_LIST_HEAD(&fimc->vid_cap.pending_buf_q);
- 	INIT_LIST_HEAD(&fimc->vid_cap.active_buf_q);
- 	fimc->vid_cap.active_buf_cnt = 0;
- 	fimc->vid_cap.frame_count = 0;
- 	fimc->vid_cap.buf_index = 0;
- 
-+	ret = fimc_start_capture(fimc);
-+	if (ret)
-+		return ret;
-+
- 	set_bit(ST_CAPT_PEND, &fimc->state);
- 	return 0;
- }
-diff --git a/drivers/media/video/s5p-fimc/fimc-core.c b/drivers/media/video/s5p-fimc/fimc-core.c
-index a0703e8..da52d4f 100644
---- a/drivers/media/video/s5p-fimc/fimc-core.c
-+++ b/drivers/media/video/s5p-fimc/fimc-core.c
-@@ -468,7 +468,7 @@ int fimc_prepare_addr(struct fimc_ctx *ctx, struct vb2_buffer *vb,
- }
- 
- /* Set order for 1 and 2 plane YCBCR 4:2:2 formats. */
--static void fimc_set_yuv_order(struct fimc_ctx *ctx)
-+void fimc_set_yuv_order(struct fimc_ctx *ctx)
- {
- 	/* The one only mode supported in SoC. */
- 	ctx->in_order_2p = S5P_FIMC_LSB_CRCB;
-@@ -510,7 +510,7 @@ static void fimc_set_yuv_order(struct fimc_ctx *ctx)
- 	dbg("ctx->out_order_1p= %d", ctx->out_order_1p);
- }
- 
--static void fimc_prepare_dma_offset(struct fimc_ctx *ctx, struct fimc_frame *f)
-+void fimc_prepare_dma_offset(struct fimc_ctx *ctx, struct fimc_frame *f)
- {
- 	struct samsung_fimc_variant *variant = ctx->fimc_dev->variant;
- 	u32 i, depth = 0;
-diff --git a/drivers/media/video/s5p-fimc/fimc-core.h b/drivers/media/video/s5p-fimc/fimc-core.h
-index 793575b..abf762f 100644
---- a/drivers/media/video/s5p-fimc/fimc-core.h
-+++ b/drivers/media/video/s5p-fimc/fimc-core.h
-@@ -659,6 +659,9 @@ int fimc_set_scaler_info(struct fimc_ctx *ctx);
- int fimc_prepare_config(struct fimc_ctx *ctx, u32 flags);
- int fimc_prepare_addr(struct fimc_ctx *ctx, struct vb2_buffer *vb,
- 		      struct fimc_frame *frame, struct fimc_addr *paddr);
-+void fimc_prepare_dma_offset(struct fimc_ctx *ctx, struct fimc_frame *f);
-+void fimc_set_yuv_order(struct fimc_ctx *ctx);
-+
- int fimc_register_m2m_device(struct fimc_dev *fimc,
- 			     struct v4l2_device *v4l2_dev);
- void fimc_unregister_m2m_device(struct fimc_dev *fimc);
--- 
-1.7.5.4
+If we want to solve the problem of allocating per-bank memory inside
+of CMA, we also need to solve it inside of the IOMMU code, using
+the same device driver interface.
 
+	Arnd
