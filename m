@@ -1,43 +1,88 @@
 Return-path: <mchehab@pedra>
-Received: from mail-ew0-f46.google.com ([209.85.215.46]:61006 "EHLO
-	mail-ew0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754866Ab1FGQRu (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 7 Jun 2011 12:17:50 -0400
-Received: by ewy4 with SMTP id 4so1790609ewy.19
-        for <linux-media@vger.kernel.org>; Tue, 07 Jun 2011 09:17:49 -0700 (PDT)
+Received: from smtp-68.nebula.fi ([83.145.220.68]:39508 "EHLO
+	smtp-68.nebula.fi" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754030Ab1FOJaO (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 15 Jun 2011 05:30:14 -0400
+Date: Wed, 15 Jun 2011 12:30:07 +0300
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-media@vger.kernel.org, laurent.pinchart@ideasonboard.com,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: Re: [RFCv1 PATCH 1/8] v4l2-events/fh: merge v4l2_events into
+ v4l2_fh
+Message-ID: <20110615093007.GD9432@valkosipuli.localdomain>
+References: <1308064953-11156-1-git-send-email-hverkuil@xs4all.nl>
+ <3d92b242dcf5e7766d128d6c1f05c0bd837a2633.1308063857.git.hans.verkuil@cisco.com>
 MIME-Version: 1.0
-In-Reply-To: <BANLkTi=B5NmqnFqt5f90VdTEZUCZ_Tvuew@mail.gmail.com>
-References: <BANLkTimFT+D3_vZVj5KMiB7jMvq=088Y7A@mail.gmail.com>
-	<BANLkTim9d3yi3OQn4AxfwV6pfv+KY-KseA@mail.gmail.com>
-	<BANLkTi=3eyHgiXCsH2uibPsV0L7Eq79fnw@mail.gmail.com>
-	<BANLkTi=B5NmqnFqt5f90VdTEZUCZ_Tvuew@mail.gmail.com>
-Date: Tue, 7 Jun 2011 12:17:49 -0400
-Message-ID: <BANLkTi=0grHNHHzn2a0V2ApnabCaB2=5pg@mail.gmail.com>
-Subject: Re: [PATCH] cx231xx: Add support for Hauppauge WinTV USB2-FM
-From: Devin Heitmueller <dheitmueller@kernellabs.com>
-To: Peter Moon <pomoon@gmail.com>
-Cc: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <3d92b242dcf5e7766d128d6c1f05c0bd837a2633.1308063857.git.hans.verkuil@cisco.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Tue, Jun 7, 2011 at 12:12 PM, Peter Moon <pomoon@gmail.com> wrote:
-> According to the Windows driver inf file that I have, the USB ID of
-> the NTSC version is 2040:b111.
+Hi Hans,
 
-Correct.  The PAL defaulted device is b110.  The NTSC defaulted device is B111.
+Many thanks for the patch. I'm very happy to see this!
 
-> I can add the USB device definition for the NTSC targeted device as well.
+I have just one comment below.
 
-You can do this either one of two ways:  you can add just the USB ID
-and point them both to the same card profile.  Or you can create two
-card profiles that are identical in every way except for the default
-standard.  The second approach is probably a better end-user
-experience (since the default standard would match the user's
-expectations), but the first approach is less code.
+> diff --git a/include/media/v4l2-event.h b/include/media/v4l2-event.h
+> index 45e9c1e..042b893 100644
+> --- a/include/media/v4l2-event.h
+> +++ b/include/media/v4l2-event.h
+> @@ -43,17 +43,6 @@ struct v4l2_subscribed_event {
+>  	u32			id;
+>  };
+>  
+> -struct v4l2_events {
+> -	wait_queue_head_t	wait;
+> -	struct list_head	subscribed; /* Subscribed events */
+> -	struct list_head	free; /* Events ready for use */
+> -	struct list_head	available; /* Dequeueable event */
+> -	unsigned int		navailable;
+> -	unsigned int		nallocated; /* Number of allocated events */
+> -	u32			sequence;
+> -};
+> -
+> -int v4l2_event_init(struct v4l2_fh *fh);
+>  int v4l2_event_alloc(struct v4l2_fh *fh, unsigned int n);
+>  void v4l2_event_free(struct v4l2_fh *fh);
+>  int v4l2_event_dequeue(struct v4l2_fh *fh, struct v4l2_event *event,
+> diff --git a/include/media/v4l2-fh.h b/include/media/v4l2-fh.h
+> index d247111..bfc0457 100644
+> --- a/include/media/v4l2-fh.h
+> +++ b/include/media/v4l2-fh.h
+> @@ -29,15 +29,22 @@
+>  #include <linux/list.h>
+>  
+>  struct video_device;
+> -struct v4l2_events;
+>  struct v4l2_ctrl_handler;
+>  
+>  struct v4l2_fh {
+>  	struct list_head	list;
+>  	struct video_device	*vdev;
+> -	struct v4l2_events      *events; /* events, pending and subscribed */
+>  	struct v4l2_ctrl_handler *ctrl_handler;
+>  	enum v4l2_priority	prio;
+> +
+> +	/* Events */
+> +	wait_queue_head_t	wait;
+> +	struct list_head	subscribed; /* Subscribed events */
+> +	struct list_head	free; /* Events ready for use */
+> +	struct list_head	available; /* Dequeueable event */
+> +	unsigned int		navailable;
+> +	unsigned int		nallocated; /* Number of allocated events */
+> +	u32			sequence;
 
-Devin
+A question: why to move the fields from v4l2_events to v4l2_fh? Events may
+be more important part of V4L2 than before but they're still not file
+handles. :-) The event related field names have no hing they'd be related to
+events --- "free", for example.
+
+Regards,
 
 -- 
-Devin J. Heitmueller - Kernel Labs
-http://www.kernellabs.com
+Sakari Ailus
+sakari.ailus@iki.fi
