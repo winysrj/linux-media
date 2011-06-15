@@ -1,116 +1,117 @@
 Return-path: <mchehab@pedra>
-Received: from mx1.redhat.com ([209.132.183.28]:45825 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753134Ab1FLOjT (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 12 Jun 2011 10:39:19 -0400
-Message-ID: <4DF4CF8F.8050507@redhat.com>
-Date: Sun, 12 Jun 2011 11:39:11 -0300
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-MIME-Version: 1.0
-To: Hans Verkuil <hverkuil@xs4all.nl>
-CC: linux-media@vger.kernel.org, Mike Isely <isely@isely.net>,
+Received: from smtp-vbr18.xs4all.nl ([194.109.24.38]:4004 "EHLO
+	smtp-vbr18.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751963Ab1FORLF (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 15 Jun 2011 13:11:05 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Sakari Ailus <sakari.ailus@iki.fi>
+Subject: Re: [RFCv1 PATCH 1/8] v4l2-events/fh: merge v4l2_events into v4l2_fh
+Date: Wed, 15 Jun 2011 19:10:52 +0200
+Cc: linux-media@vger.kernel.org, laurent.pinchart@ideasonboard.com,
 	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: Re: [RFCv4 PATCH 2/8] tuner-core: change return type of set_mode_freq
- to bool
-References: <1307876389-30347-1-git-send-email-hverkuil@xs4all.nl> <d59fe38f04b4dbce9e79b10133db2f0953ced6e6.1307875512.git.hans.verkuil@cisco.com>
-In-Reply-To: <d59fe38f04b4dbce9e79b10133db2f0953ced6e6.1307875512.git.hans.verkuil@cisco.com>
-Content-Type: text/plain; charset=ISO-8859-1
+References: <1308064953-11156-1-git-send-email-hverkuil@xs4all.nl> <201106151839.35935.hverkuil@xs4all.nl> <4DF8E4D9.1050604@iki.fi>
+In-Reply-To: <4DF8E4D9.1050604@iki.fi>
+MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
+Message-Id: <201106151910.52163.hverkuil@xs4all.nl>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Em 12-06-2011 07:59, Hans Verkuil escreveu:
-> From: Hans Verkuil <hans.verkuil@cisco.com>
+On Wednesday, June 15, 2011 18:59:05 Sakari Ailus wrote:
+> Hans Verkuil wrote:
+> > On Wednesday, June 15, 2011 11:30:07 Sakari Ailus wrote:
+> >> Hi Hans,
+> >>
+> >> Many thanks for the patch. I'm very happy to see this!
+> >>
+> >> I have just one comment below.
+> >>
+> >>> diff --git a/include/media/v4l2-event.h b/include/media/v4l2-event.h
+> >>> index 45e9c1e..042b893 100644
+> >>> --- a/include/media/v4l2-event.h
+> >>> +++ b/include/media/v4l2-event.h
+> >>> @@ -43,17 +43,6 @@ struct v4l2_subscribed_event {
+> >>>   	u32			id;
+> >>>   };
+> >>>
+> >>> -struct v4l2_events {
+> >>> -	wait_queue_head_t	wait;
+> >>> -	struct list_head	subscribed; /* Subscribed events */
+> >>> -	struct list_head	free; /* Events ready for use */
+> >>> -	struct list_head	available; /* Dequeueable event */
+> >>> -	unsigned int		navailable;
+> >>> -	unsigned int		nallocated; /* Number of allocated events */
+> >>> -	u32			sequence;
+> >>> -};
+> >>> -
+> >>> -int v4l2_event_init(struct v4l2_fh *fh);
+> >>>   int v4l2_event_alloc(struct v4l2_fh *fh, unsigned int n);
+> >>>   void v4l2_event_free(struct v4l2_fh *fh);
+> >>>   int v4l2_event_dequeue(struct v4l2_fh *fh, struct v4l2_event *event,
+> >>> diff --git a/include/media/v4l2-fh.h b/include/media/v4l2-fh.h
+> >>> index d247111..bfc0457 100644
+> >>> --- a/include/media/v4l2-fh.h
+> >>> +++ b/include/media/v4l2-fh.h
+> >>> @@ -29,15 +29,22 @@
+> >>>   #include<linux/list.h>
+> >>>
+> >>>   struct video_device;
+> >>> -struct v4l2_events;
+> >>>   struct v4l2_ctrl_handler;
+> >>>
+> >>>   struct v4l2_fh {
+> >>>   	struct list_head	list;
+> >>>   	struct video_device	*vdev;
+> >>> -	struct v4l2_events      *events; /* events, pending and subscribed */
+> >>>   	struct v4l2_ctrl_handler *ctrl_handler;
+> >>>   	enum v4l2_priority	prio;
+> >>> +
+> >>> +	/* Events */
+> >>> +	wait_queue_head_t	wait;
+> >>> +	struct list_head	subscribed; /* Subscribed events */
+> >>> +	struct list_head	free; /* Events ready for use */
+> >>> +	struct list_head	available; /* Dequeueable event */
+> >>> +	unsigned int		navailable;
+> >>> +	unsigned int		nallocated; /* Number of allocated events */
+> >>> +	u32			sequence;
+> >>
+> >> A question: why to move the fields from v4l2_events to v4l2_fh? Events may
+> >> be more important part of V4L2 than before but they're still not file
+> >> handles. :-) The event related field names have no hing they'd be related to
+> >> events --- "free", for example.
+> >
+> > The only reason that the v4l2_events struct existed was that there were so few
+> > drivers that needed events. So why allocate memory that you don't need? That
+> > all changes with the control event: almost all drivers will need that since
+> > almost all drivers have events.
+> >
+> > Merging it makes the code easier and v4l2_fh_init can become a void function
+> > (so no more error checking needed). And since these fields are always there, I
+> > no longer need to check whether fh->events is NULL or not.
+> >
+> > I can add a patch renaming some of the event fields if you prefer, but I don't
+> > think they are that bad. Note that 'free' and 'nallocated' are removed
+> > completely in a later patch.
 > 
-> set_mode_freq currently returns 0 or -EINVAL. But -EINVAL does not
-> indicate a error that should be passed on, it just indicates that the
-> tuner does not supportthe requested mode. So change the return type to
-> bool.
+> Thanks for the explanation. What I had in mind that what other fields 
+> possibly would be added to v4l2_fh in the future? If there will be many, 
+> in that case keeping event related fields in a separate structure might 
+> make sense. I have none in mind right now, though, so perhaps this could 
+> be given a second thought if we're adding more things to the v4l2_fh 
+> structure?
 
-NACK. Tuner core doesn't return the error code just because the subdev
-functions don't allow, currently, at the multiple tuners case.
+I guess any future extensions will need to be considered on their own merits.
+If it is a rarely used extension, then it can be allocated on demand, if it
+is a commonly used extension, then it's easier to add it to this struct.
 
-> 
-> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-> ---
->  drivers/media/video/tuner-core.c |   23 ++++++++++-------------
->  1 files changed, 10 insertions(+), 13 deletions(-)
-> 
-> diff --git a/drivers/media/video/tuner-core.c b/drivers/media/video/tuner-core.c
-> index 083b9f1..ee43e0a 100644
-> --- a/drivers/media/video/tuner-core.c
-> +++ b/drivers/media/video/tuner-core.c
-> @@ -746,11 +746,11 @@ static bool supported_mode(struct tuner *t, enum v4l2_tuner_type mode)
->   * @freq:	frequency to set (0 means to use the previous one)
->   *
->   * If tuner doesn't support the needed mode (radio or TV), prints a
-> - * debug message and returns -EINVAL, changing its state to standby.
-> - * Otherwise, changes the state and sets frequency to the last value, if
-> - * the tuner can sleep or if it supports both Radio and TV.
-> + * debug message and returns false, changing its state to standby.
-> + * Otherwise, changes the state and sets frequency to the last value
-> + * and returns true.
->   */
-> -static int set_mode_freq(struct i2c_client *client, struct tuner *t,
-> +static bool set_mode_freq(struct i2c_client *client, struct tuner *t,
->  			 enum v4l2_tuner_type mode, unsigned int freq)
->  {
->  	struct analog_demod_ops *analog_ops = &t->fe.ops.analog_ops;
-> @@ -762,7 +762,7 @@ static int set_mode_freq(struct i2c_client *client, struct tuner *t,
->  			t->standby = true;
->  			if (analog_ops->standby)
->  				analog_ops->standby(&t->fe);
-> -			return -EINVAL;
-> +			return false;
->  		}
->  		t->mode = mode;
->  		tuner_dbg("Changing to mode %d\n", mode);
-> @@ -777,7 +777,7 @@ static int set_mode_freq(struct i2c_client *client, struct tuner *t,
->  		set_tv_freq(client, t->tv_freq);
->  	}
->  
-> -	return 0;
-> +	return true;
->  }
->  
->  /*
-> @@ -1075,8 +1075,7 @@ static int tuner_s_radio(struct v4l2_subdev *sd)
->  	struct tuner *t = to_tuner(sd);
->  	struct i2c_client *client = v4l2_get_subdevdata(sd);
->  
-> -	if (set_mode_freq(client, t, V4L2_TUNER_RADIO, 0) == -EINVAL)
-> -		return 0;
-> +	set_mode_freq(client, t, V4L2_TUNER_RADIO, 0);
->  	return 0;
->  }
->  
-> @@ -1110,7 +1109,7 @@ static int tuner_s_std(struct v4l2_subdev *sd, v4l2_std_id std)
->  	struct tuner *t = to_tuner(sd);
->  	struct i2c_client *client = v4l2_get_subdevdata(sd);
->  
-> -	if (set_mode_freq(client, t, V4L2_TUNER_ANALOG_TV, 0) == -EINVAL)
-> +	if (!set_mode_freq(client, t, V4L2_TUNER_ANALOG_TV, 0))
->  		return 0;
->  
->  	t->std = std;
-> @@ -1124,9 +1123,7 @@ static int tuner_s_frequency(struct v4l2_subdev *sd, struct v4l2_frequency *f)
->  	struct tuner *t = to_tuner(sd);
->  	struct i2c_client *client = v4l2_get_subdevdata(sd);
->  
-> -	if (set_mode_freq(client, t, f->type, f->frequency) == -EINVAL)
-> -		return 0;
-> -
-> +	set_mode_freq(client, t, f->type, f->frequency);
->  	return 0;
->  }
->  
-> @@ -1197,7 +1194,7 @@ static int tuner_s_tuner(struct v4l2_subdev *sd, struct v4l2_tuner *vt)
->  	struct tuner *t = to_tuner(sd);
->  	struct i2c_client *client = v4l2_get_subdevdata(sd);
->  
-> -	if (set_mode_freq(client, t, vt->type, 0) == -EINVAL)
-> +	if (!set_mode_freq(client, t, vt->type, 0))
->  		return 0;
->  
->  	if (t->mode == V4L2_TUNER_RADIO)
+> I think this patchset is a significant improvement to the old behaviour.
 
+Thank you, I have to say I'm very pleased with it. It gives the user certain
+guarantees with respect to arrival of events that are hard to realize otherwise.
+
+Regards,
+
+	Hans
