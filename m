@@ -1,44 +1,132 @@
 Return-path: <mchehab@pedra>
-Received: from mail-ey0-f174.google.com ([209.85.215.174]:36013 "EHLO
-	mail-ey0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752900Ab1F0Rzu (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 27 Jun 2011 13:55:50 -0400
-Received: by eyx24 with SMTP id 24so1650364eyx.19
-        for <linux-media@vger.kernel.org>; Mon, 27 Jun 2011 10:55:49 -0700 (PDT)
+Received: from mx1.redhat.com ([209.132.183.28]:36983 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754009Ab1FONnP (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 15 Jun 2011 09:43:15 -0400
+Message-ID: <4DF8B716.1020406@redhat.com>
+Date: Wed, 15 Jun 2011 15:43:50 +0200
+From: Hans de Goede <hdegoede@redhat.com>
 MIME-Version: 1.0
-In-Reply-To: <4E08A463.2050101@gmail.com>
-References: <4E08A463.2050101@gmail.com>
-Date: Mon, 27 Jun 2011 13:55:49 -0400
-Message-ID: <BANLkTinn+KZGG2eOog328nGnpp4QO3cCfQ@mail.gmail.com>
-Subject: Re: EM28xx based device support
-From: Devin Heitmueller <dheitmueller@kernellabs.com>
-To: Andrea De Marsi <andrea.demarsi@gmail.com>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset=ISO-8859-1
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+CC: Devin Heitmueller <dheitmueller@kernellabs.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: Some fixes for alsa_stream
+References: <4DF6C10C.8070605@redhat.com>	<4DF758AF.3010301@redhat.com>	<4DF75C84.9000200@redhat.com>	<4DF7667C.9030502@redhat.com> <BANLkTi=9L+oxjpUaFo3ge0iqcZ2NCjJWWA@mail.gmail.com> <4DF76D88.5000506@redhat.com> <4DF77229.2020607@redhat.com> <4DF77405.2070104@redhat.com>
+In-Reply-To: <4DF77405.2070104@redhat.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Mon, Jun 27, 2011 at 11:40 AM, Andrea De Marsi
-<andrea.demarsi@gmail.com> wrote:
-> I now need to upgrade the linux kernel to a newer version (2.6.32 or newer);
-> I followed the same path that was working with 2.6.24 (which is basically
-> have the device recognized as an empia device) and in fact some images are
-> visible but they are not stable; it seems as the new driver version was not
-> capble of managing the NTSC format (in fact I noticed there is no more .norm
-> field in the initialization structure).
-> Do you have any advice?
+Hi,
 
-A screenshot of what you are seeing would be useful (as well as the
-dmesg output showing driver load as well as after your attempt to
-capture)
+On 06/14/2011 04:45 PM, Mauro Carvalho Chehab wrote:
+> Em 14-06-2011 11:37, Hans de Goede escreveu:
+>> Hi,
+>>
+>> On 06/14/2011 04:17 PM, Mauro Carvalho Chehab wrote:
+>>> Em 14-06-2011 10:52, Devin Heitmueller escreveu:
+>>
+>> <snip>
+>>
+>>> Yes.
+>>>
+>>> The default for capture is the one detected via sysfs.
+>>>
+>>> The default for playback is not really hw:0,0. It defaults to the first hw: that it is not
+>>> associated with a video device.
+>>>
+>>
+>> I have a really weird idea, why not make the default output device be "default", so that
+>> xawtv will use whatever the distro (or user if overriden by the user) has configured as
+>> default alsa output device?
+>>
+>> This will do the right thing for pulseaudio and not pulseaudio users alike.
+>
+> Pulseaudio sucks.
 
-Also, given your device I would assume that ".has_tuner" would
-probably be zero and the tda9887_conf should not be populated at all.
-And does the device really have two inputs?
+<sigh> Can we stop the pulseaudio bashing please, it is not really constructive. Pulseaudio
+is happily used by many people and is the default on all major distros. So we will need
+to support whether you like it or not.
 
-Devin
+Also usually when people complain about pulseaudio, they are actually being bitten by
+bugs elsewhere, but blame pulseaudio, because that seems to be the popular thing
+to do. And in this case as usual the problem is with the alsa code in xawtv, not in
+pulseaudio. The alsa code in xawtv is buggy in several places, and makes assumptions
+it should not (like capture and playback device having a shared period size).
 
--- 
-Devin J. Heitmueller - Kernel Labs
-http://www.kernellabs.com
+See what happens when I pass "-alsa-pb default" argument to pulseaudio:
+>
+> 1) ssh section. User is the same as the console owner:
+>
+> ALSA lib pulse.c:229:(pulse_connect) PulseAudio: Unable to connect: Connection refused
+> Cannot open ALSA Playback device default: Connection refused
+>
+
+Right, because ConsoleKit ensures that devices like floppydrives, cdroms, audio cards,
+webcams, etc. are only available to users sitting behind the console, usually this works
+by setting acls on the /dev/foo nodes, so if you're logged in to the console, you can
+also access those same devices over ssh, as an unintended side effect. The pulseaudio
+daemon actually asks ConsoleKit if the pid on the other end of the unix domain socket
+belongs to a session marked as being behind the locale console. Which an ssh session is
+not. So this is fully expected.
+
+> 2) console, with mmap enabled:
+>
+> Alsa devices: cap: hw:1,0 (/dev/video0), out: default
+> Access type not available for playback: Invalid argument
+> Unable to set parameters for playback stream: Invalid argument
+> Alsa stream started, capturing from hw:1,0, playing back on default at 1 Hz with mmap enabled
+> write error: File descriptor in bad state
+> ...
+> write error: File descriptor in bad state
+
+As already said pulseaudio does not support mmap mode, the reason we are getting
+weird errors here is due to a bug in xawtv's alsa params setting code error handling,
+which leads to the I don't do mmap mode error not getting caught.
+
+>
+> 3) console, with mmap disabled:
+>
+> Alsa devices: cap: hw:1,0 (/dev/video0), out: default
+> Alsa stream started, capturing from hw:1,0, playing back on default at 1 Hz
+> write error: Input/output error
+> ...
+> write error: Input/output error
+>
+
+This is a combination of the assumption there is a shared period size between
+the input device and the output device + the broken error handling.
+Actually you're lucky, in my case the non proper error handling leads to a
+segfault.
+
+I've just pushed an initial set of fixes to the xawtv repo. I'm working on
+another set. First thing of that set will be removing the mmap support you
+added since it is worthless, quoting from the alsa API documentation:
+
+"If you like to use the compatibility functions in mmap mode, there are
+read / write routines equaling to standard read / write transfers. Using
+these functions discards the benefits of direct access to memory region.
+See the snd_pcm_mmap_readi(), snd_pcm_writei(), snd_pcm_readn() and
+snd_pcm_writen() functions."
+
+Note the "Using these functions discards the benefits of direct access to
+memory" bit. Properly implementing mmap support is quite hard actually,
+and given that we're talking audio here, and thus not large amounts of
+we can live with the small memcpy overhead just fine.
+
+On the subject of the current mmap code, it is not only not useful it
+is also buggy, asking for:
+
+         snd_pcm_access_mask_set(mask, SND_PCM_ACCESS_MMAP_INTERLEAVED);
+         snd_pcm_access_mask_set(mask, SND_PCM_ACCESS_MMAP_NONINTERLEAVED);
+         snd_pcm_access_mask_set(mask, SND_PCM_ACCESS_MMAP_COMPLEX);
+         err = snd_pcm_hw_params_set_access_mask(handle, params, mask);
+
+Is wrong when using snd_pcm_mmap_readi(), snd_pcm_writei(), when using those
+the access mode must be SND_PCM_ACCESS_MMAP_INTERLEAVED, and not one of
+the other 2.
+
+Regards,
+
+Hans
