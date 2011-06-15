@@ -1,105 +1,254 @@
 Return-path: <mchehab@pedra>
-Received: from mx1.redhat.com ([209.132.183.28]:30804 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753100Ab1FTOF6 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 20 Jun 2011 10:05:58 -0400
-Message-ID: <4DFF53B3.3040608@redhat.com>
-Date: Mon, 20 Jun 2011 11:05:39 -0300
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Received: from smtp-vbr15.xs4all.nl ([194.109.24.35]:4109 "EHLO
+	smtp-vbr15.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751319Ab1FOGrk (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 15 Jun 2011 02:47:40 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Kamil Debski <k.debski@samsung.com>
+Subject: Re: [PATCH 2/4 v9] v4l: add control definitions for codec devices.
+Date: Wed, 15 Jun 2011 08:47:32 +0200
+Cc: linux-media@vger.kernel.org, m.szyprowski@samsung.com,
+	kyungmin.park@samsung.com, jaeryul.oh@samsung.com,
+	laurent.pinchart@ideasonboard.com, jtp.park@samsung.com
+References: <1308069416-24723-1-git-send-email-k.debski@samsung.com> <1308069416-24723-3-git-send-email-k.debski@samsung.com>
+In-Reply-To: <1308069416-24723-3-git-send-email-k.debski@samsung.com>
 MIME-Version: 1.0
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-CC: Helmut Auer <helmut@helmutauer.de>, linux-media@vger.kernel.org,
-	Oliver Endriss <o.endriss@gmx.de>
-Subject: Re: Bug: media_build always compiles with '-DDEBUG'
-References: <201106182246.03051@orion.escape-edv.de> <201106201435.11432.laurent.pinchart@ideasonboard.com> <4DFF4214.2030205@redhat.com> <201106201538.15214.laurent.pinchart@ideasonboard.com>
-In-Reply-To: <201106201538.15214.laurent.pinchart@ideasonboard.com>
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: Text/Plain;
+  charset="iso-8859-15"
 Content-Transfer-Encoding: 7bit
+Message-Id: <201106150847.32103.hverkuil@xs4all.nl>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Em 20-06-2011 10:38, Laurent Pinchart escreveu:
-> Hi Mauro,
+On Tuesday, June 14, 2011 18:36:54 Kamil Debski wrote:
+> Add control definitions and documentation for controls
+> specific to codec devices.
 > 
-> On Monday 20 June 2011 14:50:28 Mauro Carvalho Chehab wrote:
->> Em 20-06-2011 09:35, Laurent Pinchart escreveu:
->>> On Sunday 19 June 2011 13:47:16 Mauro Carvalho Chehab wrote:
->>>> Em 19-06-2011 02:00, Helmut Auer escreveu:
->>>>> Am 18.06.2011 23:38, schrieb Oliver Endriss:
->>>>>> On Saturday 18 June 2011 23:11:21 Helmut Auer wrote:
->>>>>>> Hi
->>>>>>>
->>>>>>>> Replacing
->>>>>>>>
->>>>>>>>       ifdef CONFIG_VIDEO_OMAP3_DEBUG
->>>>>>>>
->>>>>>>> by
->>>>>>>>
->>>>>>>>       ifeq ($(CONFIG_VIDEO_OMAP3_DEBUG),y)
->>>>>>>>
->>>>>>>> would do the trick.
->>>>>>>
->>>>>>> I guess that would not ive the intended result.
->>>>>>> Setting CONFIG_VIDEO_OMAP3_DEBUG to yes should not lead to debug
->>>>>>> messages in all media modules,
->>>>>>
->>>>>> True, but it will happen only if you manually enable
->>>>>> CONFIG_VIDEO_OMAP3_DEBUG in Kconfig.
->>>>>>
->>>>>> You cannot avoid this without major changes of the
->>>>>> media_build system - imho not worth the effort.
->>>>>
->>>>> Then imho it would be better to drop the  CONFIG_VIDEO_OMAP3_DEBUG
->>>>> variable completely, you can set CONFIG_DEBUG which would give the same
->>>>> results.
->>>>
->>>> Good catch!
->>>>
->>>> Yes, I agree that the better is to just drop CONFIG_VIDEO_OMAP3_DEBUG
->>>> variable completely. If someone wants to build with -DDEBUG, he can just
->>>> use CONFIG_DEBUG.
->>>>
->>>> Laurent,
->>>>
->>>> Any comments?
->>>
->>> CONFIG_VIDEO_OMAP3_DEBUG is used to build the OMAP3 ISP driver in debug
->>> mode, without having to compile the whole kernel with debugging enabled.
->>> I'd like to keep that feature if possible.
->>
->> If you want that, build it using media_build. I don't care of having such
->> hacks there, but having it upstream is not the right thing to do.
+> Signed-off-by: Kamil Debski <k.debski@samsung.com>
+> Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+> ---
+>  Documentation/DocBook/media/v4l/controls.xml |  958 ++++++++++++++++++++++++++
+>  include/linux/videodev2.h                    |  171 +++++
+>  2 files changed, 1129 insertions(+), 0 deletions(-)
 > 
-> It's not a hack. Lots of drivers have debugging Kconfig options.
-> 
-> $ find linux-2.6 -type f -name Kconfig* -exec grep '^config.*DEBUG' {} \; | wc
->     243     486    5826
 
-Your query is wrong. The proper query is:
-$ find . -type f -name Makefile -exec grep -rH 'EXTRA_CFLAGS.*\-DDEBUG$' {} \; 
-./arch/x86/pci/Makefile:EXTRA_CFLAGS += -DDEBUG
-./drivers/pps/generators/Makefile:EXTRA_CFLAGS += -DDEBUG
-./drivers/media/video/omap3isp/Makefile:EXTRA_CFLAGS += -DDEBUG
-
-There's nothing wrong with a debug Kconfig option
-for omap3. What's wrong is:
-
-1) It is badly implemented: it is just enabling -DDEBUG for the entire
-subsystem, as the test is wrong;
-
-2) Even if you fix, you'll be enabling debug to the entire subsystem, if you
-keep adding things to EXTRA_CFLAGS. 
-
-It should be noticed that several places use a different syntax for enabling
-per-driver/per-subsystem -D flag:
-
-find . -type f -name Makefile -exec grep -rH '\-DDEBUG$' {} \; 
 ...
-./drivers/mmc/Makefile:subdir-ccflags-$(CONFIG_MMC_DEBUG) := -DDEBUG
-...
-./drivers/infiniband/hw/cxgb3/Makefile:ccflags-$(CONFIG_INFINIBAND_CXGB3_DEBUG) += -DDEBUG
 
-I _suspect_ that using ccflags-$(foo_DEBUG) may work.
+> diff --git a/include/linux/videodev2.h b/include/linux/videodev2.h
+> index 17d6e27..e338bc4 100644
+> --- a/include/linux/videodev2.h
+> +++ b/include/linux/videodev2.h
+> @@ -1160,6 +1160,10 @@ enum v4l2_colorfx {
+>  /* last CID + 1 */
+>  #define V4L2_CID_LASTP1                         (V4L2_CID_BASE+39)
+>  
+> +/* Minimum number of buffer neede by the device */
+> +#define V4L2_CID_MIN_BUFFERS_FOR_CAPTURE	(V4L2_CID_BASE+40)
+> +#define V4L2_CID_MIN_BUFFERS_FOR_OUTPUT		(V4L2_CID_BASE+41)
+> +
 
-Thanks,
-Mauro
+These two lines should go *before* CID_LASTP1 and LASTP1 should be
+adjusted accordingly.
+
+>  /*  MPEG-class control IDs defined by V4L2 */
+>  #define V4L2_CID_MPEG_BASE 			(V4L2_CTRL_CLASS_MPEG | 0x900)
+>  #define V4L2_CID_MPEG_CLASS 			(V4L2_CTRL_CLASS_MPEG | 1)
+> @@ -1331,6 +1335,146 @@ enum v4l2_mpeg_video_bitrate_mode {
+>  #define V4L2_CID_MPEG_VIDEO_MUTE 		(V4L2_CID_MPEG_BASE+210)
+>  #define V4L2_CID_MPEG_VIDEO_MUTE_YUV 		(V4L2_CID_MPEG_BASE+211)
+>  
+> +#define V4L2_CID_MPEG_VIDEO_DECODER_SLICE_INTERFACE	(V4L2_CID_MPEG_BASE+212)
+> +#define V4L2_CID_MPEG_VIDEO_H264_VUI_SAR_ENABLE		(V4L2_CID_MPEG_BASE+213)
+> +#define V4L2_CID_MPEG_VIDEO_H264_VUI_SAR_IDC		(V4L2_CID_MPEG_BASE+214)
+
+Can you sort these controls as well into general video controls, H263 controls,
+H264 controls and MPEG4 controls? In fact, for the codec-specific controls
+I think we should start at MPEG_BASE + 300 and reserving blocks of 50 controls
+per codec. It makes it easier to add controls later.
+
+> +enum v4l2_mpeg_video_h264_vui_sar_idc {
+> +	V4L2_MPEG_VIDEO_H264_VUI_SAR_IDC_UNSPECIFIED	= 0,
+> +	V4L2_MPEG_VIDEO_H264_VUI_SAR_IDC_1x1		= 1,
+> +	V4L2_MPEG_VIDEO_H264_VUI_SAR_IDC_12x11		= 2,
+> +	V4L2_MPEG_VIDEO_H264_VUI_SAR_IDC_10x11		= 3,
+> +	V4L2_MPEG_VIDEO_H264_VUI_SAR_IDC_16x11		= 4,
+> +	V4L2_MPEG_VIDEO_H264_VUI_SAR_IDC_40x33		= 5,
+> +	V4L2_MPEG_VIDEO_H264_VUI_SAR_IDC_24x11		= 6,
+> +	V4L2_MPEG_VIDEO_H264_VUI_SAR_IDC_20x11		= 7,
+> +	V4L2_MPEG_VIDEO_H264_VUI_SAR_IDC_32x11		= 8,
+> +	V4L2_MPEG_VIDEO_H264_VUI_SAR_IDC_80x33		= 9,
+> +	V4L2_MPEG_VIDEO_H264_VUI_SAR_IDC_18x11		= 10,
+> +	V4L2_MPEG_VIDEO_H264_VUI_SAR_IDC_15x11		= 11,
+> +	V4L2_MPEG_VIDEO_H264_VUI_SAR_IDC_64x33		= 12,
+> +	V4L2_MPEG_VIDEO_H264_VUI_SAR_IDC_160x99		= 13,
+> +	V4L2_MPEG_VIDEO_H264_VUI_SAR_IDC_4x3		= 14,
+> +	V4L2_MPEG_VIDEO_H264_VUI_SAR_IDC_3x2		= 15,
+> +	V4L2_MPEG_VIDEO_H264_VUI_SAR_IDC_2x1		= 16,
+> +	V4L2_MPEG_VIDEO_H264_VUI_SAR_IDC_EXTENDED	= 17,
+> +};
+> +
+> +#define V4L2_CID_MPEG_VIDEO_H264_VUI_EXT_SAR_WIDTH	(V4L2_CID_MPEG_BASE+215)
+> +#define V4L2_CID_MPEG_VIDEO_H264_VUI_EXT_SAR_HEIGHT	(V4L2_CID_MPEG_BASE+216)
+> +#define V4L2_CID_MPEG_VIDEO_H264_LEVEL			(V4L2_CID_MPEG_BASE+217)
+> +enum v4l2_mpeg_video_h264_level {
+> +	V4L2_MPEG_VIDEO_H264_LEVEL_1_0	= 0,
+> +	V4L2_MPEG_VIDEO_H264_LEVEL_1B	= 1,
+> +	V4L2_MPEG_VIDEO_H264_LEVEL_1_1	= 2,
+> +	V4L2_MPEG_VIDEO_H264_LEVEL_1_2	= 3,
+> +	V4L2_MPEG_VIDEO_H264_LEVEL_1_3	= 4,
+> +	V4L2_MPEG_VIDEO_H264_LEVEL_2_0	= 5,
+> +	V4L2_MPEG_VIDEO_H264_LEVEL_2_1	= 6,
+> +	V4L2_MPEG_VIDEO_H264_LEVEL_2_2	= 7,
+> +	V4L2_MPEG_VIDEO_H264_LEVEL_3_0	= 8,
+> +	V4L2_MPEG_VIDEO_H264_LEVEL_3_1	= 9,
+> +	V4L2_MPEG_VIDEO_H264_LEVEL_3_2	= 10,
+> +	V4L2_MPEG_VIDEO_H264_LEVEL_4_0	= 11,
+> +	V4L2_MPEG_VIDEO_H264_LEVEL_4_1	= 12,
+> +	V4L2_MPEG_VIDEO_H264_LEVEL_4_2	= 13,
+> +	V4L2_MPEG_VIDEO_H264_LEVEL_5_0	= 14,
+> +	V4L2_MPEG_VIDEO_H264_LEVEL_5_1	= 15,
+> +};
+> +#define V4L2_CID_MPEG_VIDEO_MPEG4_LEVEL		(V4L2_CID_MPEG_BASE+218)
+> +enum v4l2_mpeg_video_mpeg4_level {
+> +	V4L2_MPEG_VIDEO_MPEG4_LEVEL_0	= 0,
+> +	V4L2_MPEG_VIDEO_MPEG4_LEVEL_0B	= 1,
+> +	V4L2_MPEG_VIDEO_MPEG4_LEVEL_1	= 2,
+> +	V4L2_MPEG_VIDEO_MPEG4_LEVEL_2	= 3,
+> +	V4L2_MPEG_VIDEO_MPEG4_LEVEL_3	= 4,
+> +	V4L2_MPEG_VIDEO_MPEG4_LEVEL_3B	= 5,
+> +	V4L2_MPEG_VIDEO_MPEG4_LEVEL_4	= 6,
+> +	V4L2_MPEG_VIDEO_MPEG4_LEVEL_5	= 7,
+> +};
+> +#define V4L2_CID_MPEG_VIDEO_H264_PROFILE	(V4L2_CID_MPEG_BASE+219)
+> +enum v4l2_mpeg_video_h264_profile {
+> +	V4L2_MPEG_VIDEO_H264_PROFILE_BASELINE			= 0,
+> +	V4L2_MPEG_VIDEO_H264_PROFILE_CONSTRAINED_BASELINE	= 1,
+> +	V4L2_MPEG_VIDEO_H264_PROFILE_MAIN			= 2,
+> +	V4L2_MPEG_VIDEO_H264_PROFILE_EXTENDED			= 3,
+> +	V4L2_MPEG_VIDEO_H264_PROFILE_HIGH			= 4,
+> +	V4L2_MPEG_VIDEO_H264_PROFILE_HIGH_10			= 5,
+> +	V4L2_MPEG_VIDEO_H264_PROFILE_HIGH_422			= 6,
+> +	V4L2_MPEG_VIDEO_H264_PROFILE_HIGH_444_PREDICTIVE	= 7,
+> +	V4L2_MPEG_VIDEO_H264_PROFILE_HIGH_10_INTRA		= 8,
+> +	V4L2_MPEG_VIDEO_H264_PROFILE_HIGH_422_INTRA		= 9,
+> +	V4L2_MPEG_VIDEO_H264_PROFILE_HIGH_444_INTRA		= 10,
+> +	V4L2_MPEG_VIDEO_H264_PROFILE_CAVLC_444_INTRA		= 11,
+> +	V4L2_MPEG_VIDEO_H264_PROFILE_SCALABLE_BASELINE		= 12,
+> +	V4L2_MPEG_VIDEO_H264_PROFILE_SCALABLE_HIGH		= 13,
+> +	V4L2_MPEG_VIDEO_H264_PROFILE_SCALABLE_HIGH_INTRA	= 14,
+> +	V4L2_MPEG_VIDEO_H264_PROFILE_STEREO_HIGH		= 15,
+> +	V4L2_MPEG_VIDEO_H264_PROFILE_MULTIVIEW_HIGH		= 16,
+> +};
+> +#define V4L2_CID_MPEG_VIDEO_MPEG4_PROFILE	(V4L2_CID_MPEG_BASE+220)
+> +enum v4l2_mpeg_video_mpeg4_profile {
+> +	V4L2_MPEG_VIDEO_MPEG4_PROFILE_SIMPLE				= 0,
+> +	V4L2_MPEG_VIDEO_MPEG4_PROFILE_ADVANCED_SIMPLE			= 1,
+> +	V4L2_MPEG_VIDEO_MPEG4_PROFILE_CORE				= 2,
+> +	V4L2_MPEG_VIDEO_MPEG4_PROFILE_SIMPLE_SCALABLE			= 3,
+> +	V4L2_MPEG_VIDEO_MPEG4_PROFILE_ADVANCED_CODING_EFFICIENCY	= 4,
+> +};
+> +#define V4L2_CID_MPEG_VIDEO_MAX_REF_PIC		(V4L2_CID_MPEG_BASE+221)
+> +#define V4L2_CID_MPEG_VIDEO_MULTI_SLICE_MODE	(V4L2_CID_MPEG_BASE+222)
+> +enum v4l2_mpeg_video_multi_slice_mode {
+> +	V4L2_MPEG_VIDEO_MULTI_SLICE_MODE_SINGLE		= 0,
+> +	V4L2_MPEG_VIDEO_MULTI_SICE_MODE_MAX_MB		= 1,
+> +	V4L2_MPEG_VIDEO_MULTI_SICE_MODE_MAX_BYTES	= 2,
+> +};
+> +#define V4L2_CID_MPEG_VIDEO_MULTI_SLICE_MAX_MB		(V4L2_CID_MPEG_BASE+223)
+> +#define V4L2_CID_MPEG_VIDEO_MULTI_SLICE_MAX_BYTES	(V4L2_CID_MPEG_BASE+224)
+> +#define V4L2_CID_MPEG_VIDEO_H264_LOOP_FILTER_MODE	(V4L2_CID_MPEG_BASE+225)
+> +enum v4l2_mpeg_video_h264_loop_filter_mode {
+> +	V4L2_MPEG_VIDEO_H264_LOOP_FILTER_MODE_ENABLED				= 0,
+> +	V4L2_MPEG_VIDEO_H264_LOOP_FILTER_MODE_DISABLED				= 1,
+> +	V4L2_MPEG_VIDEO_H264_LOOP_FILTER_MODE_DISABLED_AT_SLICE_BOUNDARY	= 2,
+> +};
+> +#define V4L2_CID_MPEG_VIDEO_H264_LOOP_FILTER_ALPHA	(V4L2_CID_MPEG_BASE+226)
+> +#define V4L2_CID_MPEG_VIDEO_H264_LOOP_FILTER_BETA	(V4L2_CID_MPEG_BASE+227)
+> +#define V4L2_CID_MPEG_VIDEO_H264_ENTROPY_MODE		(V4L2_CID_MPEG_BASE+228)
+> +enum v4l2_mpeg_video_h264_symbol_mode {
+> +	V4L2_MPEG_VIDEO_H264_ENTROPY_MODE_CAVLC	= 0,
+> +	V4L2_MPEG_VIDEO_H264_ENTROPY_MODE_CABAC	= 1,
+> +};
+> +
+> +#define V4L2_CID_MPEG_VIDEO_H264_8X8_TRANSFORM		(V4L2_CID_MPEG_BASE+229)
+> +#define V4L2_CID_MPEG_VIDEO_CYCLIC_INTRA_REFRESH_MB	(V4L2_CID_MPEG_BASE+230)
+> +#define V4L2_CID_MPEG_VIDEO_FRAME_RC_ENABLE		(V4L2_CID_MPEG_BASE+231)
+> +#define V4L2_CID_MPEG_VIDEO_MB_RC_ENABLE		(V4L2_CID_MPEG_BASE+232)
+> +#define V4L2_CID_MPEG_VIDEO_MPEG4_QPEL			(V4L2_CID_MPEG_BASE+233)
+> +#define V4L2_CID_MPEG_VIDEO_H263_I_FRAME_QP		(V4L2_CID_MPEG_BASE+234)
+> +#define V4L2_CID_MPEG_VIDEO_H263_MIN_QP			(V4L2_CID_MPEG_BASE+235)
+> +#define V4L2_CID_MPEG_VIDEO_H263_MAX_QP			(V4L2_CID_MPEG_BASE+236)
+> +#define V4L2_CID_MPEG_VIDEO_H263_P_FRAME_QP		(V4L2_CID_MPEG_BASE+237)
+> +#define V4L2_CID_MPEG_VIDEO_H263_B_FRAME_QP		(V4L2_CID_MPEG_BASE+238)
+> +#define V4L2_CID_MPEG_VIDEO_H264_I_FRAME_QP		(V4L2_CID_MPEG_BASE+239)
+> +#define V4L2_CID_MPEG_VIDEO_H264_MIN_QP			(V4L2_CID_MPEG_BASE+240)
+> +#define V4L2_CID_MPEG_VIDEO_H264_MAX_QP			(V4L2_CID_MPEG_BASE+241)
+> +#define V4L2_CID_MPEG_VIDEO_H264_P_FRAME_QP		(V4L2_CID_MPEG_BASE+242)
+> +#define V4L2_CID_MPEG_VIDEO_H264_B_FRAME_QP		(V4L2_CID_MPEG_BASE+243)
+> +#define V4L2_CID_MPEG_VIDEO_MPEG4_I_FRAME_QP		(V4L2_CID_MPEG_BASE+244)
+> +#define V4L2_CID_MPEG_VIDEO_MPEG4_MIN_QP		(V4L2_CID_MPEG_BASE+245)
+> +#define V4L2_CID_MPEG_VIDEO_MPEG4_MAX_QP		(V4L2_CID_MPEG_BASE+246)
+> +#define V4L2_CID_MPEG_VIDEO_MPEG4_P_FRAME_QP		(V4L2_CID_MPEG_BASE+247)
+> +#define V4L2_CID_MPEG_VIDEO_MPEG4_B_FRAME_QP		(V4L2_CID_MPEG_BASE+248)
+> +#define V4L2_CID_MPEG_VIDEO_VBV_SIZE			(V4L2_CID_MPEG_BASE+249)
+> +#define V4L2_CID_MPEG_VIDEO_H264_CPB_SIZE		(V4L2_CID_MPEG_BASE+250)
+> +#define V4L2_CID_MPEG_VIDEO_H264_I_PERIOD		(V4L2_CID_MPEG_BASE+251)
+> +#define V4L2_CID_MPEG_VIDEO_HEADER_MODE			(V4L2_CID_MPEG_BASE+252)
+> +enum v4l2_mpeg_video_header_mode {
+> +	V4L2_MPEG_VIDEO_HEADER_MODE_SEPARATE			= 0,
+> +	V4L2_MPEG_VIDEO_HEADER_MODE_JOINED_WITH_1ST_FRAME	= 1,
+> +
+> +};
+> +#define V4L2_CID_MPEG_VIDEO_DECODER_MPEG4_DEBLOCK_FILTER	(V4L2_CID_MPEG_BASE+253)
+> +#define V4L2_CID_MPEG_VIDEO_MPEG4_VOP_TIME_RES			(V4L2_CID_MPEG_BASE+254)
+> +#define V4L2_CID_MPEG_VIDEO_MPEG4_VOP_TIME_INC			(V4L2_CID_MPEG_BASE+255)
+> +
+>  /*  MPEG-class control IDs specific to the CX2341x driver as defined by V4L2 */
+>  #define V4L2_CID_MPEG_CX2341X_BASE 				(V4L2_CTRL_CLASS_MPEG | 0x1000)
+>  #define V4L2_CID_MPEG_CX2341X_VIDEO_SPATIAL_FILTER_MODE 	(V4L2_CID_MPEG_CX2341X_BASE+0)
+> @@ -1372,6 +1516,33 @@ enum v4l2_mpeg_cx2341x_video_median_filter_type {
+>  #define V4L2_CID_MPEG_CX2341X_VIDEO_CHROMA_MEDIAN_FILTER_TOP 	(V4L2_CID_MPEG_CX2341X_BASE+10)
+>  #define V4L2_CID_MPEG_CX2341X_STREAM_INSERT_NAV_PACKETS 	(V4L2_CID_MPEG_CX2341X_BASE+11)
+>  
+> +/*  MPEG-class control IDs specific to the Samsung MFC 5.1 driver as defined by V4L2 */
+> +#define V4L2_CID_MPEG_MFC51_BASE				(V4L2_CTRL_CLASS_MPEG | 0x1000)
+
+Control IDs must be unique, so change the base to CLASS_MPEG | 0x1100.
+
+> +
+> +#define V4L2_CID_MPEG_MFC51_VIDEO_DECODER_H264_DISPLAY_DELAY		(V4L2_CID_MPEG_MFC51_BASE+0)
+> +#define V4L2_CID_MPEG_MFC51_VIDEO_DECODER_H264_DISPLAY_DELAY_ENABLE	(V4L2_CID_MPEG_MFC51_BASE+1)
+> +#define V4L2_CID_MPEG_MFC51_VIDEO_H264_NUM_REF_PIC_FOR_P		(V4L2_CID_MPEG_MFC51_BASE+2)
+> +#define V4L2_CID_MPEG_MFC51_VIDEO_PADDING				(V4L2_CID_MPEG_MFC51_BASE+3)
+> +#define V4L2_CID_MPEG_MFC51_VIDEO_PADDING_YUV				(V4L2_CID_MPEG_MFC51_BASE+4)
+> +#define V4L2_CID_MPEG_MFC51_VIDEO_RC_REACTION_COEFF			(V4L2_CID_MPEG_MFC51_BASE+5)
+> +#define V4L2_CID_MPEG_MFC51_VIDEO_H264_ADAPTIVE_RC_DARK			(V4L2_CID_MPEG_MFC51_BASE+6)
+> +#define V4L2_CID_MPEG_MFC51_VIDEO_H264_ADAPTIVE_RC_SMOOTH		(V4L2_CID_MPEG_MFC51_BASE+7)
+> +#define V4L2_CID_MPEG_MFC51_VIDEO_H264_ADAPTIVE_RC_STATIC		(V4L2_CID_MPEG_MFC51_BASE+8)
+> +#define V4L2_CID_MPEG_MFC51_VIDEO_H264_ADAPTIVE_RC_ACTIVITY		(V4L2_CID_MPEG_MFC51_BASE+9)
+> +#define V4L2_CID_MPEG_MFC51_VIDEO_FRAME_SKIP_MODE			(V4L2_CID_MPEG_MFC51_BASE+10)
+> +enum v4l2_mpeg_mfc51_video_frame_skip_mode {
+> +	V4L2_MPEG_MFC51_VIDEO_FRAME_SKIP_MODE_DISABLED		= 0,
+> +	V4L2_MPEG_MFC51_VIDEO_FRAME_SKIP_MODE_LEVEL_LIMIT	= 1,
+> +	V4L2_MPEG_MFC51_VIDEO_FRAME_SKIP_MODE_VBV_LIMIT		= 2,
+> +};
+> +#define V4L2_CID_MPEG_MFC51_VIDEO_RC_FIXED_TARGET_BIT	(V4L2_CID_MPEG_MFC51_BASE+11)
+> +#define V4L2_CID_MPEG_MFC51_VIDEO_FORCE_FRAME_TYPE	(V4L2_CID_MPEG_MFC51_BASE+12)
+> +enum v4l2_mpeg_mfc51_video_force_frame_type {
+> +	V4L2_MPEG_MFC51_VIDEO_FORCE_FRAME_TYPE_DISABLED		= 0,
+> +	V4L2_MPEG_MFC51_VIDEO_FORCE_FRAME_TYPE_I_FRAME		= 1,
+> +	V4L2_MPEG_MFC51_VIDEO_FORCE_FRAME_TYPE_NOT_CODED	= 2,
+> +};
+
+Here too it would help if the controls are sorted by codec/functionality.
+
+> +
+>  /*  Camera class control IDs */
+>  #define V4L2_CID_CAMERA_CLASS_BASE 	(V4L2_CTRL_CLASS_CAMERA | 0x900)
+>  #define V4L2_CID_CAMERA_CLASS 		(V4L2_CTRL_CLASS_CAMERA | 1)
+> 
+
+Regards,
+
+	Hans
