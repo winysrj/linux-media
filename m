@@ -1,87 +1,96 @@
 Return-path: <mchehab@pedra>
-Received: from mail-vx0-f174.google.com ([209.85.220.174]:46684 "EHLO
-	mail-vx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758812Ab1FBAuK convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 1 Jun 2011 20:50:10 -0400
-Received: by vxi39 with SMTP id 39so296708vxi.19
-        for <linux-media@vger.kernel.org>; Wed, 01 Jun 2011 17:50:10 -0700 (PDT)
+Received: from mail-pv0-f174.google.com ([74.125.83.174]:44270 "EHLO
+	mail-pv0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751468Ab1FOGBT (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 15 Jun 2011 02:01:19 -0400
+Message-ID: <4DF84AA6.80808@gmail.com>
+Date: Wed, 15 Jun 2011 11:31:10 +0530
+From: Subash Patel <subashrp@gmail.com>
 MIME-Version: 1.0
-In-Reply-To: <1306959563-7108-1-git-send-email-u.kleine-koenig@pengutronix.de>
-References: <1306959563-7108-1-git-send-email-u.kleine-koenig@pengutronix.de>
-Date: Thu, 2 Jun 2011 09:50:09 +0900
-Message-ID: <BANLkTimG=xP7qvpN7G8+Mmmy-JozEpyPNw@mail.gmail.com>
-Subject: Re: [PATCH] [media] V4L/videobuf2-memops: use pr_debug for debug messages
-From: Kyungmin Park <kmpark@infradead.org>
-To: =?ISO-8859-1?Q?Uwe_Kleine=2DK=F6nig?=
-	<u.kleine-koenig@pengutronix.de>
-Cc: linux-media@vger.kernel.org, kernel@pengutronix.de,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Pawel Osciak <pawel@osciak.com>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	Marek Szyprowski <m.szyprowski@samsung.com>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+To: Arnd Bergmann <arnd@arndb.de>
+CC: Michal Nazarewicz <mina86@mina86.com>,
+	Marek Szyprowski <m.szyprowski@samsung.com>,
+	linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+	linux-media@vger.kernel.org, linux-mm@kvack.org,
+	linaro-mm-sig@lists.linaro.org,
+	'Kyungmin Park' <kyungmin.park@samsung.com>,
+	'Andrew Morton' <akpm@linux-foundation.org>,
+	'KAMEZAWA Hiroyuki' <kamezawa.hiroyu@jp.fujitsu.com>,
+	'Ankita Garg' <ankita@in.ibm.com>,
+	'Daniel Walker' <dwalker@codeaurora.org>,
+	'Mel Gorman' <mel@csn.ul.ie>,
+	'Jesse Barker' <jesse.barker@linaro.org>
+Subject: Re: [PATCH 08/10] mm: cma: Contiguous Memory Allocator added
+References: <1307699698-29369-1-git-send-email-m.szyprowski@samsung.com> <201106141549.29315.arnd@arndb.de> <op.vw2jmhir3l0zgt@mnazarewicz-glaptop> <201106141803.00876.arnd@arndb.de>
+In-Reply-To: <201106141803.00876.arnd@arndb.de>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Acked-by: Kyungmin Park <kyunginn.,park@samsung.com>
+Hi Arnd,
 
----
+On 06/14/2011 09:33 PM, Arnd Bergmann wrote:
+> On Tuesday 14 June 2011, Michal Nazarewicz wrote:
+>> On Tue, 14 Jun 2011 15:49:29 +0200, Arnd Bergmann<arnd@arndb.de>  wrote:
+>>> Please explain the exact requirements that lead you to defining multiple
+>>> contexts.
+>>
+>> Some devices may have access only to some banks of memory.  Some devices
+>> may use different banks of memory for different purposes.
+>
+> For all I know, that is something that is only true for a few very special
+> Samsung devices, and is completely unrelated of the need for contiguous
+> allocations, so this approach becomes pointless as soon as the next
+> generation of that chip grows an IOMMU, where we don't handle the special
+> bank attributes. Also, the way I understood the situation for the Samsung
+> SoC during the Budapest discussion, it's only a performance hack, not a
+> functional requirement, unless you count '1080p playback' as a functional
+> requirement.
+>
+1080p@30fps is indeed a functional requirement, as the IP has the 
+capability to achieve it. This IP itself can act as more than one AXI 
+master, and control more than one memory port(bank). So this is not a 
+*performance hack*
 
-I think it's better to add the videobuf2 maintainer entry for proper
-person to know the changes.
-In this case, Marek is missing.
+Also, if I recall, during the Budapest discussion (I was on irc), I 
+recall that this requirement can become the information available to the 
+actual allocator. Below is the summary point I could collect from summit 
+notes:
 
-If any objection, I will make a patch.
+     * May also need to specify more attributes (specific physical 
+memory region)
 
-Thank you,
-Kyungmin Park
+As per this point, the requirement (as above) must be attribute to the 
+allocator, which is CMA in this case.
 
-2011/6/2 Uwe Kleine-König <u.kleine-koenig@pengutronix.de>:
-> Otherwise they clutter the dmesg buffer even on a production kernel.
+> Supporting contiguous allocation is a very useful goal and many people want
+> this, but supporting a crazy one-off hardware design with lots of generic
+> infrastructure is going a bit too far. If you can't be more specific than
+> 'some devices may need this', I would suggest going forward without having
+> multiple regions:
 >
-> Signed-off-by: Uwe Kleine-König <u.kleine-koenig@pengutronix.de>
-> ---
->  drivers/media/video/videobuf2-memops.c |    6 +++---
->  1 files changed, 3 insertions(+), 3 deletions(-)
+> * Remove the registration of specific addresses from the initial patch
+>    set (but keep the patch).
+> * Add a heuristic plus command-line override to automatically come up
+>    with a reasonable location+size for *one* CMA area in the system.
+> * Ship the patch to add support for multiple CMA areas with the BSP
+>    for the boards that need it (if any).
+> * Wait for someone on a non-Samsung SoC to run into the same problem,
+>    then have /them/ get the final patch in.
 >
-> diff --git a/drivers/media/video/videobuf2-memops.c b/drivers/media/video/videobuf2-memops.c
-> index 5370a3a..1987e1b1 100644
-> --- a/drivers/media/video/videobuf2-memops.c
-> +++ b/drivers/media/video/videobuf2-memops.c
-> @@ -177,7 +177,7 @@ int vb2_mmap_pfn_range(struct vm_area_struct *vma, unsigned long paddr,
+> Even if you think you can convince enough people that having support
+> for distinct predefined regions is a good idea, I would recommend
+> splitting that out of the initial merge so we can have that discussion
+> separately from the other issues.
 >
->        vma->vm_ops->open(vma);
->
-> -       printk(KERN_DEBUG "%s: mapped paddr 0x%08lx at 0x%08lx, size %ld\n",
-> +       pr_debug("%s: mapped paddr 0x%08lx at 0x%08lx, size %ld\n",
->                        __func__, paddr, vma->vm_start, size);
->
->        return 0;
-> @@ -195,7 +195,7 @@ static void vb2_common_vm_open(struct vm_area_struct *vma)
->  {
->        struct vb2_vmarea_handler *h = vma->vm_private_data;
->
-> -       printk(KERN_DEBUG "%s: %p, refcount: %d, vma: %08lx-%08lx\n",
-> +       pr_debug("%s: %p, refcount: %d, vma: %08lx-%08lx\n",
->               __func__, h, atomic_read(h->refcount), vma->vm_start,
->               vma->vm_end);
->
-> @@ -213,7 +213,7 @@ static void vb2_common_vm_close(struct vm_area_struct *vma)
->  {
->        struct vb2_vmarea_handler *h = vma->vm_private_data;
->
-> -       printk(KERN_DEBUG "%s: %p, refcount: %d, vma: %08lx-%08lx\n",
-> +       pr_debug("%s: %p, refcount: %d, vma: %08lx-%08lx\n",
->               __func__, h, atomic_read(h->refcount), vma->vm_start,
->               vma->vm_end);
->
-> --
-> 1.7.5.3
->
+> 	Arnd
 > --
 > To unsubscribe from this list: send the line "unsubscribe linux-media" in
 > the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
+Regards,
+Subash
+SISO-SLG
