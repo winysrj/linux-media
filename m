@@ -1,105 +1,78 @@
 Return-path: <mchehab@pedra>
-Received: from mailout1.w1.samsung.com ([210.118.77.11]:24183 "EHLO
-	mailout1.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758536Ab1FVSBk (ORCPT
+Received: from casper.infradead.org ([85.118.1.10]:41895 "EHLO
+	casper.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753553Ab1FOLhk (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 22 Jun 2011 14:01:40 -0400
-Date: Wed, 22 Jun 2011 20:01:16 +0200
-From: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Subject: [PATCH v2 10/18] s5p-fimc: Add media operations in the capture entity
- driver
-In-reply-to: <1308765684-10677-1-git-send-email-s.nawrocki@samsung.com>
-To: linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org
-Cc: m.szyprowski@samsung.com, kyungmin.park@samsung.com,
-	s.nawrocki@samsung.com, sw0312.kim@samsung.com,
-	riverful.kim@samsung.com
-Message-id: <1308765684-10677-11-git-send-email-s.nawrocki@samsung.com>
-MIME-version: 1.0
-Content-type: TEXT/PLAIN
-Content-transfer-encoding: 7BIT
-References: <1308765684-10677-1-git-send-email-s.nawrocki@samsung.com>
+	Wed, 15 Jun 2011 07:37:40 -0400
+Message-ID: <4DF8997A.8090007@infradead.org>
+Date: Wed, 15 Jun 2011 08:37:30 -0300
+From: Mauro Carvalho Chehab <mchehab@infradead.org>
+MIME-Version: 1.0
+To: Kassey Lee <kassey1216@gmail.com>
+CC: Jonathan Corbet <corbet@lwn.net>, linux-media@vger.kernel.org,
+	g.liakhovetski@gmx.de, Kassey Lee <ygli@marvell.com>,
+	Daniel Drake <dsd@laptop.org>, ytang5@marvell.com,
+	qingx@marvell.com, leiwen@marvell.com
+Subject: Re: [PATCH 1/8] marvell-cam: Move cafe-ccic into its own directory
+References: <1307814409-46282-1-git-send-email-corbet@lwn.net>	<1307814409-46282-2-git-send-email-corbet@lwn.net>	<BANLkTikXATbgOZQbzaj4sQEmELsdpNobfQ@mail.gmail.com>	<20110614082333.43098c95@bike.lwn.net> <BANLkTikmvsgBTLgu46xXYiUHmOVvGoZAag@mail.gmail.com>
+In-Reply-To: <BANLkTikmvsgBTLgu46xXYiUHmOVvGoZAag@mail.gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Add the link_setup handler for the camera capture video node.
+Em 14-06-2011 23:01, Kassey Lee escreveu:
+> Jon,
+>      if you agree to change it in another patch, and now just to keep
+> it with the driver that works for years.
+>      that is OK. thanks.
+>      I am looking forward your patch based on VB2, because based on
+> current cafe_ccic.c, it is hard to share with my driver.
+> 
+> 2011/6/14 Jonathan Corbet <corbet@lwn.net>:
+>> On Tue, 14 Jun 2011 10:23:58 +0800
+>> Kassey Lee <kassey1216@gmail.com> wrote:
+>>
+>>> Jon, Here is my comments.
+>>
+>> Thanks for having a look.
+>>
+>>>> +config VIDEO_CAFE_CCIC
+>>>> +       tristate "Marvell 88ALP01 (Cafe) CMOS Camera Controller support"
+>>>> +       depends on PCI && I2C && VIDEO_V4L2
+>>>> +       select VIDEO_OV7670
+>>>>
+>>>  why need binds with sensor ? suppose CCIC driver and sensor driver are
+>>> independent, even if your hardware only support OV7670
+>>
+>> We all agree that needs to change.  This particular patch, though, is
+>> concerned with moving a working driver into a new directory; making that
+>> sort of functional change would not be appropriate here.
 
-Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
----
- drivers/media/video/s5p-fimc/fimc-capture.c |   32 +++++++++++++++++++++++++++
- drivers/media/video/s5p-fimc/fimc-core.h    |    2 +
- 2 files changed, 34 insertions(+), 0 deletions(-)
+While cafe-ccic only supports ov7670, the above select is OK, as otherwise,
+the driver won't be operational. After adding new sensors, however, the above
+should be changed to:
 
-diff --git a/drivers/media/video/s5p-fimc/fimc-capture.c b/drivers/media/video/s5p-fimc/fimc-capture.c
-index 887a3fc..f9beee8 100644
---- a/drivers/media/video/s5p-fimc/fimc-capture.c
-+++ b/drivers/media/video/s5p-fimc/fimc-capture.c
-@@ -654,6 +654,37 @@ static const struct v4l2_ioctl_ops fimc_capture_ioctl_ops = {
- 	.vidioc_g_input			= fimc_cap_g_input,
- };
- 
-+/* Media operations */
-+static int fimc_link_setup(struct media_entity *entity,
-+			   const struct media_pad *local,
-+			   const struct media_pad *remote, u32 flags)
-+{
-+	struct video_device *vd = media_entity_to_video_device(entity);
-+	struct v4l2_subdev *sd = media_entity_to_v4l2_subdev(remote->entity);
-+	struct fimc_dev *fimc = video_get_drvdata(vd);
-+
-+	if (WARN_ON(fimc == NULL))
-+		return 0;
-+
-+	dbg("%s --> %s, flags: 0x%x. input: 0x%x",
-+	    local->entity->name, remote->entity->name, flags,
-+	    fimc->vid_cap.input);
-+
-+	if (flags & MEDIA_LNK_FL_ENABLED) {
-+		if (fimc->vid_cap.input != 0)
-+			return -EBUSY;
-+		fimc->vid_cap.input = sd->grp_id;
-+		return 0;
-+	}
-+
-+	fimc->vid_cap.input = 0;
-+	return 0;
-+}
-+
-+static const struct media_entity_operations fimc_media_ops = {
-+	.link_setup = fimc_link_setup,
-+};
-+
- /* fimc->lock must be already initialized */
- int fimc_register_capture_device(struct fimc_dev *fimc,
- 				 struct v4l2_device *v4l2_dev)
-@@ -728,6 +759,7 @@ int fimc_register_capture_device(struct fimc_dev *fimc,
- 	if (ret)
- 		goto err_ent;
- 
-+	vfd->entity.ops = &fimc_media_ops;
- 	vfd->ctrl_handler = &ctx->ctrl_handler;
- 	ret = video_register_device(vfd, VFL_TYPE_GRABBER, -1);
- 	if (ret) {
-diff --git a/drivers/media/video/s5p-fimc/fimc-core.h b/drivers/media/video/s5p-fimc/fimc-core.h
-index 6ccd446..d264f3f 100644
---- a/drivers/media/video/s5p-fimc/fimc-core.h
-+++ b/drivers/media/video/s5p-fimc/fimc-core.h
-@@ -305,6 +305,7 @@ struct fimc_m2m_device {
-  * @reqbufs_count: the number of buffers requested in REQBUFS ioctl
-  * @input_index: input (camera sensor) index
-  * @refcnt: driver's private reference counter
-+ * @input: capture input type, grp_id of attached subdev
-  */
- struct fimc_vid_cap {
- 	struct fimc_ctx			*ctx;
-@@ -322,6 +323,7 @@ struct fimc_vid_cap {
- 	unsigned int			reqbufs_count;
- 	int				input_index;
- 	int				refcnt;
-+	u32				input;
- };
- 
- /**
--- 
-1.7.5.4
+select VIDEO_OV7670 if VIDEO_HELPER_CHIPS_AUTO
+select VIDEO_FOO if VIDEO_HELPER_CHIPS_AUTO
+select VIDEO_BAR if VIDEO_HELPER_CHIPS_AUTO
+...
+
+This way, if VIDEO_HELPER_CHIPS_AUTO is enabled, all the possible sensors
+used with cafe-ccic will be selected.
+
+>>
+>>>> +#include <media/ov7670.h>
+>>>>
+>>>      ccic would not be aware of the sensor name.
+>>
+>> Ditto.
+>>
+>> Thanks,
+>>
+>> jon
+>>
+> 
+> 
+> 
 
