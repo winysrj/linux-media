@@ -1,53 +1,56 @@
 Return-path: <mchehab@pedra>
-Received: from mx1.redhat.com ([209.132.183.28]:59467 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752507Ab1FJPfA (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 10 Jun 2011 11:35:00 -0400
-Message-ID: <4DF2399B.8010806@redhat.com>
-Date: Fri, 10 Jun 2011 12:34:51 -0300
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Received: from mail-vw0-f46.google.com ([209.85.212.46]:58263 "EHLO
+	mail-vw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750904Ab1FOLxY (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 15 Jun 2011 07:53:24 -0400
 MIME-Version: 1.0
-To: Jan Hoogenraad <jan-verisign@hoogenraad.net>
-CC: Devin Heitmueller <dheitmueller@kernellabs.com>,
-	Andy Walls <awalls@md.metrocast.net>,
-	linux-media@vger.kernel.org
-Subject: Re: Media_build does not compile due to errors in cx18-driver.h,
- cx18-driver.c and dvbdev.c /rc-main.c
-References: <4DF1FF06.4050502@hoogenraad.net>	<3e84c07f-83ff-4f83-9f8f-f52631259f05@email.android.com> <BANLkTinE1vRVJ+j+7JiPHZqXHJ8WTFX+cg@mail.gmail.com> <4DF21AA7.1010505@hoogenraad.net> <4DF226B7.1060602@hoogenraad.net>
-In-Reply-To: <4DF226B7.1060602@hoogenraad.net>
+In-Reply-To: <201106142030.07549.arnd@arndb.de>
+References: <1307699698-29369-1-git-send-email-m.szyprowski@samsung.com>
+	<201106141803.00876.arnd@arndb.de>
+	<op.vw2r3xrj3l0zgt@mnazarewicz-glaptop>
+	<201106142030.07549.arnd@arndb.de>
+Date: Wed, 15 Jun 2011 13:53:22 +0200
+Message-ID: <BANLkTi=XTJuF4np7+rYHzJqWK20OxMrBsw@mail.gmail.com>
+Subject: Re: [Linaro-mm-sig] [PATCH 08/10] mm: cma: Contiguous Memory
+ Allocator added
+From: Daniel Vetter <daniel.vetter@ffwll.ch>
+To: Arnd Bergmann <arnd@arndb.de>
+Cc: Michal Nazarewicz <mina86@mina86.com>,
+	Ankita Garg <ankita@in.ibm.com>,
+	Daniel Walker <dwalker@codeaurora.org>,
+	Jesse Barker <jesse.barker@linaro.org>,
+	Mel Gorman <mel@csn.ul.ie>, linux-kernel@vger.kernel.org,
+	linaro-mm-sig@lists.linaro.org, linux-mm@kvack.org,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>,
+	Andrew Morton <akpm@linux-foundation.org>,
+	linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org
 Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Em 10-06-2011 11:14, Jan Hoogenraad escreveu:
-> Sorry; too fast a reaction; I did not realize that the build script creates a version per kernel, and that my messages thus become hard to trace.
-> 
-> The cx18 doubles were clear. The one in the code file may be caused by
-> v2.6.37_dont_use_alloc_ordered_workqueue.patch
-> but I don't see the problem in the header file in that patch.
-> 
-> 
-> 
-> Below the 3 non cx18 offending lines:
-> 
-> line in v4l2-dev.c:
-> 
->     printk(KERN_ERR "WARNING: You are using an experimental version of the media stack.\n\tAs the driver is backported to an older kernel, it doesn't offer\n\tenough quality for its usage in production.\n\tUse it with care.\nLatest git patches (needed if you report a bug to linux-media@vger.kernel.org):\n\t75125b9d44456e0cf2d1fbb72ae33c13415299d1 [media] DocBook: Don't be noisy at make cleanmediadocs\n\t0fba2f7ff0c4d9f48a5c334826a22db32f816a76 Revert \\"[media] dvb/audio.h: Remove definition for AUDIO_GET_PTS\\"\n\t4f75ad768da3c5952d1e7080045a5b5ce7b0d85d [media] DocBook/video.xml: Document the remaining data structures\n");
-> 
-> 
-> line in rc-main.c:
-> 
->     printk(KERN_ERR "WARNING: You are using an experimental version of the media stack.\n\tAs the driver is backported to an older kernel, it doesn't offer\n\tenough quality for its usage in production.\n\tUse it with care.\nLatest git patches (needed if you report a bug to linux-media@vger.kernel.org):\n\t75125b9d44456e0cf2d1fbb72ae33c13415299d1 [media] DocBook: Don't be noisy at make cleanmediadocs\n\t0fba2f7ff0c4d9f48a5c334826a22db32f816a76 Revert \\"[media] dvb/audio.h: Remove definition for AUDIO_GET_PTS\\"\n\t4f75ad768da3c5952d1e7080045a5b5ce7b0d85d [media] DocBook/video.xml: Document the remaining data structures\n");
-> 
-> 
-> 
-> line in dvbdeb.c:
-> 
-> 
->     printk(KERN_ERR "WARNING: You are using an experimental version of the media stack.\n\tAs the driver is backported to an older kernel, it doesn't offer\n\tenough quality for its usage in production.\n\tUse it with care.\nLatest git patches (needed if you report a bug to linux-media@vger.kernel.org):\n\t75125b9d44456e0cf2d1fbb72ae33c13415299d1 [media] DocBook: Don't be noisy at make cleanmediadocs\n\t0fba2f7ff0c4d9f48a5c334826a22db32f816a76 Revert \\"[media] dvb/audio.h: Remove definition for AUDIO_GET_PTS\\"\n\t4f75ad768da3c5952d1e7080045a5b5ce7b0d85d [media] DocBook/video.xml: Document the remaining data structures\n");
+On Tue, Jun 14, 2011 at 20:30, Arnd Bergmann <arnd@arndb.de> wrote:
+> On Tuesday 14 June 2011 18:58:35 Michal Nazarewicz wrote:
+>> Ah yes, I forgot that separate regions for different purposes could
+>> decrease fragmentation.
+>
+> That is indeed a good point, but having a good allocator algorithm
+> could also solve this. I don't know too much about these allocation
+> algorithms, but there are probably multiple working approaches to this.
 
-It seems to be caused by a bad escape sequence for the latest patch.
-I'll fix the Makefile script.
+imo no allocator algorithm is gonna help if you have comparably large,
+variable-sized contiguous allocations out of a restricted address range.
+It might work well enough if there are only a few sizes and/or there's
+decent headroom. But for really generic workloads this would require
+sync objects and eviction callbacks (i.e. what Thomas Hellstrom pushed
+with ttm).
 
-Thanks for reporting it.
+So if this is only a requirement on very few platforms and can be
+cheaply fixed with multiple cma allocation areas (heck, we have
+slabs for the same reasons in the kernel), it might be a sensible
+compromise.
+-Daniel
+-- 
+Daniel Vetter
+daniel.vetter@ffwll.ch - +41 (0) 79 365 57 48 - http://blog.ffwll.ch
