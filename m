@@ -1,56 +1,90 @@
 Return-path: <mchehab@pedra>
-Received: from mailout2.w1.samsung.com ([210.118.77.12]:30330 "EHLO
-	mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755873Ab1F2MwA (ORCPT
+Received: from moutng.kundenserver.de ([212.227.126.186]:54319 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753281Ab1FOWHy (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 29 Jun 2011 08:52:00 -0400
-Received: from eu_spt1 (mailout2.w1.samsung.com [210.118.77.12])
- by mailout2.w1.samsung.com
- (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14 2004))
- with ESMTP id <0LNJ009BTYEGZV@mailout2.w1.samsung.com> for
- linux-media@vger.kernel.org; Wed, 29 Jun 2011 13:51:53 +0100 (BST)
-Received: from linux.samsung.com ([106.116.38.10])
- by spt1.w1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14
- 2004)) with ESMTPA id <0LNJ0017SYEF0G@spt1.w1.samsung.com> for
- linux-media@vger.kernel.org; Wed, 29 Jun 2011 13:51:51 +0100 (BST)
-Date: Wed, 29 Jun 2011 14:51:14 +0200
-From: Tomasz Stanislawski <t.stanislaws@samsung.com>
-Subject: [PATCH 5/8] v4l: fix v4l_fill_dv_preset_info function
-In-reply-to: <1309351877-32444-1-git-send-email-t.stanislaws@samsung.com>
-To: linux-media@vger.kernel.org
-Cc: m.szyprowski@samsung.com, t.stanislaws@samsung.com,
-	kyungmin.park@samsung.com, hverkuil@xs4all.nl,
-	laurent.pinchart@ideasonboard.com
-Message-id: <1309351877-32444-6-git-send-email-t.stanislaws@samsung.com>
-MIME-version: 1.0
-Content-type: TEXT/PLAIN
-Content-transfer-encoding: 7BIT
-References: <1309351877-32444-1-git-send-email-t.stanislaws@samsung.com>
+	Wed, 15 Jun 2011 18:07:54 -0400
+From: Arnd Bergmann <arnd@arndb.de>
+To: Larry Bassel <lbassel@codeaurora.org>
+Subject: Re: [Linaro-mm-sig] [PATCH 08/10] mm: cma: Contiguous Memory Allocator added
+Date: Thu, 16 Jun 2011 00:06:07 +0200
+Cc: Marek Szyprowski <m.szyprowski@samsung.com>,
+	"'Zach Pfeffer'" <zach.pfeffer@linaro.org>,
+	"'Daniel Walker'" <dwalker@codeaurora.org>,
+	"'Daniel Stone'" <daniels@collabora.com>,
+	"'Jesse Barker'" <jesse.barker@linaro.org>,
+	"'Mel Gorman'" <mel@csn.ul.ie>,
+	"'KAMEZAWA Hiroyuki'" <kamezawa.hiroyu@jp.fujitsu.com>,
+	linux-kernel@vger.kernel.org,
+	"'Michal Nazarewicz'" <mina86@mina86.com>,
+	linaro-mm-sig@lists.linaro.org, linux-mm@kvack.org,
+	"'Kyungmin Park'" <kyungmin.park@samsung.com>,
+	"'Ankita Garg'" <ankita@in.ibm.com>,
+	"'Andrew Morton'" <akpm@linux-foundation.org>,
+	linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org
+References: <1307699698-29369-1-git-send-email-m.szyprowski@samsung.com> <000901cc2b37$4c21f030$e465d090$%szyprowski@samsung.com> <20110615213958.GB28032@labbmf-linux.qualcomm.com>
+In-Reply-To: <20110615213958.GB28032@labbmf-linux.qualcomm.com>
+MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201106160006.07742.arnd@arndb.de>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-The function fills struct v4l2_dv_enum_preset with appropriate
-preset parameters but it forgets to zero field named reserved.
-This patch fixes this bug.
+On Wednesday 15 June 2011 23:39:58 Larry Bassel wrote:
+> On 15 Jun 11 10:36, Marek Szyprowski wrote:
+> > On Tuesday, June 14, 2011 10:42 PM Arnd Bergmann wrote:
+> > 
+> > > On Tuesday 14 June 2011 20:58:25 Zach Pfeffer wrote:
+> > > > I've seen this split bank allocation in Qualcomm and TI SoCs, with
+> > > > Samsung, that makes 3 major SoC vendors (I would be surprised if
+> > > > Nvidia didn't also need to do this) - so I think some configurable
+> > > > method to control allocations is necessarily. The chips can't do
+> > > > decode without it (and by can't do I mean 1080P and higher decode is
+> > > > not functionally useful). Far from special, this would appear to be
+> > > > the default.
+> 
+> We at Qualcomm have some platforms that have memory of different
+> performance characteristics, some drivers will need a way of
+> specifying that they need fast memory for an allocation (and would prefer
+> an error if it is not available rather than a fallback to slower
+> memory). It would also be bad if allocators who don't need fast
+> memory got it "accidentally", depriving those who really need it.
 
-Signed-off-by: Tomasz Stanislawski <t.stanislaws@samsung.com>
----
- drivers/media/video/v4l2-common.c |    2 ++
- 1 files changed, 2 insertions(+), 0 deletions(-)
+Can you describe how the memory areas differ specifically?
+Is there one that is always faster but very small, or are there
+just specific circumstances under which some memory is faster than
+another?
 
-diff --git a/drivers/media/video/v4l2-common.c b/drivers/media/video/v4l2-common.c
-index 003e648..e7c02e9 100644
---- a/drivers/media/video/v4l2-common.c
-+++ b/drivers/media/video/v4l2-common.c
-@@ -592,6 +592,8 @@ int v4l_fill_dv_preset_info(u32 preset, struct v4l2_dv_enum_preset *info)
- 	info->width = dv_presets[preset].width;
- 	info->height = dv_presets[preset].height;
- 	strlcpy(info->name, dv_presets[preset].name, sizeof(info->name));
-+	/* assure that reserved fields are zeroed */
-+	memset(info->reserved, 0, sizeof(info->reserved));
- 	return 0;
- }
- EXPORT_SYMBOL_GPL(v4l_fill_dv_preset_info);
--- 
-1.7.5.4
+> > > The possible conflict that I still see with per-bank CMA regions are:
+> > > 
+> > > * It completely destroys memory power management in cases where that
+> > >   is based on powering down entire memory banks.
+> > 
+> > I don't think that per-bank CMA regions destroys memory power management
+> > more than the global CMA pool. Please note that the contiguous buffers
+> > (or in general dma-buffers) right now are unmovable so they don't fit
+> > well into memory power management.
+> 
+> We also have platforms where a well-defined part of the memory
+> can be powered off, and other parts can't (or won't). We need a way
+> to steer the place allocations come from to the memory that won't be
+> turned off (so that CMA allocations are not an obstacle to memory
+> hotremove).
 
+We already established that we have to know something about the banks,
+and your additional input makes it even clearer that we need to consider
+the bigger picture here: We need to describe parts of memory separately
+regarding general performance, device specific allocations and hotplug
+characteristics.
+
+It still sounds to me that this can be done using the NUMA properties
+that Linux already understands, and teaching more subsystems about it,
+but maybe the memory hotplug developers have already come up with
+another scheme. The way that memory hotplug and CMA choose their
+memory regions certainly needs to take both into account. As far as
+I can see there are both conflicting and synergistic effects when
+you combine the two.
+
+	Arnd
