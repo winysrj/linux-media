@@ -1,40 +1,50 @@
 Return-path: <mchehab@pedra>
-Received: from mail-ww0-f44.google.com ([74.125.82.44]:43015 "EHLO
-	mail-ww0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753034Ab1FGM2Q (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 7 Jun 2011 08:28:16 -0400
+Received: from perceval.ideasonboard.com ([95.142.166.194]:42400 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753059Ab1FOIJG (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 15 Jun 2011 04:09:06 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Kamil Debski <k.debski@samsung.com>
+Subject: Re: [PATCH 1/4 v9] v4l: add fourcc definitions for compressed formats.
+Date: Wed, 15 Jun 2011 10:09:16 +0200
+Cc: "'Hans Verkuil'" <hverkuil@xs4all.nl>, linux-media@vger.kernel.org,
+	Marek Szyprowski <m.szyprowski@samsung.com>,
+	kyungmin.park@samsung.com, jaeryul.oh@samsung.com,
+	jtp.park@samsung.com
+References: <1308069416-24723-1-git-send-email-k.debski@samsung.com> <201106150839.59635.hverkuil@xs4all.nl> <005501cc2b33$099b4940$1cd1dbc0$%debski@samsung.com>
+In-Reply-To: <005501cc2b33$099b4940$1cd1dbc0$%debski@samsung.com>
 MIME-Version: 1.0
-In-Reply-To: <201106071340.15199.laurent.pinchart@ideasonboard.com>
-References: <1307053663-24572-1-git-send-email-ohad@wizery.com>
- <201106071122.47804.laurent.pinchart@ideasonboard.com> <BANLkTineGVvmph=Om2FGR_+mkiMW6k7UAw@mail.gmail.com>
- <201106071340.15199.laurent.pinchart@ideasonboard.com>
-From: Ohad Ben-Cohen <ohad@wizery.com>
-Date: Tue, 7 Jun 2011 15:27:55 +0300
-Message-ID: <BANLkTikGvCDhOev02=n3H1pQvF69fn1uuw@mail.gmail.com>
-Subject: Re: [RFC 1/6] omap: iommu: generic iommu api migration
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: linux-media@vger.kernel.org, linux-omap@vger.kernel.org,
-	linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-	Hiroshi.DOYU@nokia.com, arnd@arndb.de, davidb@codeaurora.org,
-	Joerg.Roedel@amd.com
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201106151009.16791.laurent.pinchart@ideasonboard.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Tue, Jun 7, 2011 at 2:40 PM, Laurent Pinchart
-<laurent.pinchart@ideasonboard.com> wrote:
-> My point is that if the allocator guarantees the alignment (not as a side
-> effect of the implementation, but per its API) there's no need to check it
-> again. As the alignement is required, we need an allocator that guarantees it
-> anyway.
+Hi Kamil,
 
-I understand, but I'd still prefer to have an explicit check that the
-hardware alignment requirement is met.
+On Wednesday 15 June 2011 10:05:42 Kamil Debski wrote:
+> On 15 June 2011 08:40 Hans Verkuil wrote:
+> > On Tuesday, June 14, 2011 18:36:53 Kamil Debski wrote:
+> > > Add fourcc definitions and documentation for the following
+> > > compressed formats: H264, H264 without start codes,
+> > > MPEG1/2/4 ES, DIVX versions 3.11, 4, 5.0-5.0.2, 5.03 and up,
+> > > XVID, VC1 Annex G and Annex L compliant.
+> > > 
+> > > Signed-off-by: Kamil Debski <k.debski@samsung.com>
+> > > Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
 
-There's no cost in doing that (it's a cold path), and even if it would
-only fail once and with an extremely broken kernel - it's worth it.
-Will save huge amount of debugging pain (think of the poor guy that
-will have to debug this...).
+[snip]
 
-Thanks,
-Ohad.
+> > Just to verify: are all these formats actually used in the driver?
+> 
+> All but the DIVX and V4L2_PIX_FMT_H264_NO_SC pixel format.
+> V4L2_PIX_FMT_H264_NO_SC pixel format was requested by Laurent.
+
+I'm fine with adding it later when a driver will use it.
+
+-- 
+Regards,
+
+Laurent Pinchart
