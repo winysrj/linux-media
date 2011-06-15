@@ -1,106 +1,61 @@
 Return-path: <mchehab@pedra>
-Received: from mx01.sz.bfs.de ([194.94.69.103]:2803 "EHLO mx01.sz.bfs.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754192Ab1FDRZL (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 4 Jun 2011 13:25:11 -0400
-Message-ID: <4DEA62D5.7030902@bfs.de>
-Date: Sat, 04 Jun 2011 18:52:37 +0200
-From: walter harms <wharms@bfs.de>
-Reply-To: wharms@bfs.de
+Received: from smtp-68.nebula.fi ([83.145.220.68]:59818 "EHLO
+	smtp-68.nebula.fi" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752146Ab1FORYq (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 15 Jun 2011 13:24:46 -0400
+Message-ID: <4DF8EADC.5060209@iki.fi>
+Date: Wed, 15 Jun 2011 20:24:44 +0300
+From: Sakari Ailus <sakari.ailus@iki.fi>
 MIME-Version: 1.0
-To: Mauro Carvalho Chehab <mchehab@infradead.org>
-CC: Andreas Oberritter <obi@linuxtv.org>,
-	Dan Carpenter <error27@gmail.com>,
-	Arnd Bergmann <arnd@arndb.de>,
-	Steven Toth <stoth@kernellabs.com>,
-	Lucas De Marchi <lucas.demarchi@profusion.mobi>,
-	linux-media@vger.kernel.org, kernel-janitors@vger.kernel.org
-Subject: Re: [patch] [media] DVB: dvb_frontend: off by one in dtv_property_dump()
-References: <20110526084452.GB14591@shale.localdomain> <4DDE36AB.2070202@linuxtv.org> <4DEA34F1.1020401@infradead.org>
-In-Reply-To: <4DEA34F1.1020401@infradead.org>
-Content-Type: text/plain; charset=ISO-8859-1
+To: Hans Verkuil <hverkuil@xs4all.nl>
+CC: linux-media@vger.kernel.org, laurent.pinchart@ideasonboard.com
+Subject: Re: [RFCv1 PATCH 0/8] Allocate events per-event-type, v4l2-ctrls
+ cleanup
+References: <1308064953-11156-1-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1308064953-11156-1-git-send-email-hverkuil@xs4all.nl>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-
-
-Am 04.06.2011 15:36, schrieb Mauro Carvalho Chehab:
-> Em 26-05-2011 08:16, Andreas Oberritter escreveu:
->> Hi Dan,
->>
->> On 05/26/2011 10:44 AM, Dan Carpenter wrote:
->>> If the tvp->cmd == DTV_MAX_COMMAND then we read past the end of the
->>> array.
->>>
->>> Signed-off-by: Dan Carpenter <error27@gmail.com>
->>>
->>> diff --git a/drivers/media/dvb/dvb-core/dvb_frontend.c b/drivers/media/dvb/dvb-core/dvb_frontend.c
->>> index 9827804..607e293 100644
->>> --- a/drivers/media/dvb/dvb-core/dvb_frontend.c
->>> +++ b/drivers/media/dvb/dvb-core/dvb_frontend.c
->>> @@ -981,7 +981,7 @@ static void dtv_property_dump(struct dtv_property *tvp)
->>>  {
->>>  	int i;
->>>  
->>> -	if (tvp->cmd <= 0 || tvp->cmd > DTV_MAX_COMMAND) {
->>> +	if (tvp->cmd <= 0 || tvp->cmd >= DTV_MAX_COMMAND) {
->>>  		printk(KERN_WARNING "%s: tvp.cmd = 0x%08x undefined\n",
->>>  			__func__, tvp->cmd);
->>>  		return;
->>
->> thanks for spotting this, but this fixes the wrong end. This does not need to
->> be applied to kernels older than 2.6.40.
->>
->> From 6d8588a4546fd4df717ca61450f99fb9c1b13a5f Mon Sep 17 00:00:00 2001
->> From: Andreas Oberritter <obi@linuxtv.org>
->> Date: Thu, 26 May 2011 10:54:14 +0000
->> Subject: [PATCH] DVB: dvb_frontend: fix dtv_property_dump for DTV_DVBT2_PLP_ID
->>
->> - Add missing entry to array "dtv_cmds".
->> - Set array size to DTV_MAX_COMMAND + 1 to avoid future off-by-ones.
-> 
-> Patchwork.kernel.org is not reliable at all. It missed this entire thread.
-> 
-> Andreas patch is the right thing to do.
-> 
-> Thank you both for reporting and fixing this issue. I'm applying the
-> patch right now.
-> 
->>
->> Signed-off-by: Andreas Oberritter <obi@linuxtv.org>
->> ---
->>  drivers/media/dvb/dvb-core/dvb_frontend.c |    3 ++-
->>  1 files changed, 2 insertions(+), 1 deletions(-)
->>
->> diff --git a/drivers/media/dvb/dvb-core/dvb_frontend.c b/drivers/media/dvb/dvb-core/dvb_frontend.c
->> index 9827804..bed7bfe 100644
->> --- a/drivers/media/dvb/dvb-core/dvb_frontend.c
->> +++ b/drivers/media/dvb/dvb-core/dvb_frontend.c
->> @@ -904,7 +904,7 @@ static int dvb_frontend_clear_cache(struct dvb_frontend *fe)
->>  	.buffer = b \
->>  }
->>  
->> -static struct dtv_cmds_h dtv_cmds[] = {
->> +static struct dtv_cmds_h dtv_cmds[DTV_MAX_COMMAND + 1] = {
->>  	_DTV_CMD(DTV_TUNE, 1, 0),
->>  	_DTV_CMD(DTV_CLEAR, 1, 0),
->>  
->> @@ -966,6 +966,7 @@ static struct dtv_cmds_h dtv_cmds[] = {
->>  	_DTV_CMD(DTV_ISDBT_LAYERC_TIME_INTERLEAVING, 0, 0),
->>  
->>  	_DTV_CMD(DTV_ISDBS_TS_ID, 1, 0),
->> +	_DTV_CMD(DTV_DVBT2_PLP_ID, 1, 0),
->>  
->>  	/* Get */
->>  	_DTV_CMD(DTV_DISEQC_SLAVE_REPLY, 0, 1),
-> 
+Hans Verkuil wrote:
+> This patch series consists of two parts: the first four patches change the
+> way events are allocated and what to do when the event queue is full.
 >
-Do you really want a fixed size array ?
-perhaps it is better to leave it struct dtv_cmds_h dtv_cmds[]
-and use ARRAY_SIZE(dtv_cmds) instead of DTV_MAX_COMMAND ?
+> These first four patches are the most important ones to review. The big
+> change is that event allocation now happens when subscribing an event.
+> So you not only specify which event you want to subscribe to for a particular
+> filehandle, but also how many events should be reserved for that event type.
+> Currently the driver specifies the number of events to allocate, but later
+> this can be something that the application might want to set manually.
+>
+> This ensures that for each event type you will never entirely miss all events
+> of a particular type. Currently this is a real possibility.
+>
+> The other change is that instead of dropping the new event if there is no more
+> space available, the oldest event is dropped. This ensures that you get at
+> least the latest state. And optionally a merge function can be provided that
+> merges information of two events into one. This allows the control event to
+> require just one event: if a new event is raised, then the new and old one
+> can be merged and all state is preserved. Only the intermediate steps are
+> no longer available. This makes for very good behavior of events and is IMHO
+> a requirement for using the control event in a real production environment.
+>
+> The second four patches reorganize the way extended controls are processed
+> in the control framework. This is the first step towards allowing control
+> changes from within interrupt handlers. The main purpose is to move as much
+> code as possible out of the critical sections. This reduces the size of
+> those sections, making it easier to eventually switch to spinlocks for
+> certain kinds of controls.
+>
+> It's lots of internal churn, so it's probably not easy to review. There are
+> no real functional changes, however.
 
-i do not see any use beyond dtv_property_dump().
+I have no further comments. Thus,
 
-re,
- wh
+Acked-by: Sakari Ailus <sakari.ailus@iki.fi>
+
+-- 
+Sakari Ailus
+sakari.ailus@iki.fi
