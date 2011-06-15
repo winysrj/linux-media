@@ -1,95 +1,87 @@
 Return-path: <mchehab@pedra>
-Received: from smtp-68.nebula.fi ([83.145.220.68]:52184 "EHLO
-	smtp-68.nebula.fi" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753035Ab1FFLAc (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 6 Jun 2011 07:00:32 -0400
-Date: Mon, 6 Jun 2011 14:00:28 +0300
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Martin Strubel <hackfin@section5.ch>
-Cc: Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org
-Subject: Re: v4l2 device property framework in userspace
-Message-ID: <20110606110027.GA7498@valkosipuli.localdomain>
-References: <4DE244F4.90203@section5.ch>
- <201105311001.40826.hverkuil@xs4all.nl>
- <4DE4A67A.9070007@section5.ch>
- <201105311255.02481.hverkuil@xs4all.nl>
- <4DE4D20C.1090206@section5.ch>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <4DE4D20C.1090206@section5.ch>
+Received: from mailout3.w1.samsung.com ([210.118.77.13]:57093 "EHLO
+	mailout3.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751851Ab1FOHMO (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 15 Jun 2011 03:12:14 -0400
+MIME-version: 1.0
+Content-transfer-encoding: 7BIT
+Content-type: text/plain; charset=utf-8
+Date: Wed, 15 Jun 2011 09:11:39 +0200
+From: Marek Szyprowski <m.szyprowski@samsung.com>
+Subject: RE: [PATCH 08/10] mm: cma: Contiguous Memory Allocator added
+In-reply-to: <201106142030.07549.arnd@arndb.de>
+To: 'Arnd Bergmann' <arnd@arndb.de>,
+	'Michal Nazarewicz' <mina86@mina86.com>,
+	Marek Szyprowski <m.szyprowski@samsung.com>
+Cc: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+	linux-media@vger.kernel.org, linux-mm@kvack.org,
+	linaro-mm-sig@lists.linaro.org,
+	'Kyungmin Park' <kyungmin.park@samsung.com>,
+	'Andrew Morton' <akpm@linux-foundation.org>,
+	'KAMEZAWA Hiroyuki' <kamezawa.hiroyu@jp.fujitsu.com>,
+	'Ankita Garg' <ankita@in.ibm.com>,
+	'Daniel Walker' <dwalker@codeaurora.org>,
+	'Mel Gorman' <mel@csn.ul.ie>,
+	'Jesse Barker' <jesse.barker@linaro.org>
+Message-id: <000501cc2b2b$789a54b0$69cefe10$%szyprowski@samsung.com>
+Content-language: pl
+References: <1307699698-29369-1-git-send-email-m.szyprowski@samsung.com>
+ <201106141803.00876.arnd@arndb.de> <op.vw2r3xrj3l0zgt@mnazarewicz-glaptop>
+ <201106142030.07549.arnd@arndb.de>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Tue, May 31, 2011 at 01:33:32PM +0200, Martin Strubel wrote:
-> Hi,
+Hello,
 
-Hi Martin,
+On Tuesday, June 14, 2011 8:30 PM Arnd Bergmann wrote:
 
-> > 
-> > Not religion, it's experience. I understand what you want to do and it is
-> > just a bad idea in the long term. Mind you, it's great for prototyping and
-> > experimentation. But if you want to get stable sensor support in the kernel,
-> > then it has to conform to the rules. Having some sensor drivers in the kernel
-> > and some in userspace will be a maintenance disaster.
+> On Tuesday 14 June 2011 18:58:35 Michal Nazarewicz wrote:
+> > On Tue, 14 Jun 2011 18:03:00 +0200, Arnd Bergmann wrote:
+> > > For all I know, that is something that is only true for a few very
+> > > special Samsung devices,
+> >
+> > Maybe.  I'm just answering your question. :)
+> >
+> > Ah yes, I forgot that separate regions for different purposes could
+> > decrease fragmentation.
 > 
-> Sorry, from our perspective the current v4l2 system *has* already been a
-> maintenance disaster. No offense, but that is exactly the reason why we
-> had to internally circumvent it.
-> You're free to use the system for early prototyping stage as well as for
-> a stable release (the framework is in fact running since 2006 in medical
-> imaging devices). It certainly cost us less maintenance so far than
-> syncing up to the changing v4l2 APIs.
-
-The V4L2 framework supports imaging devices far better nowadays than
-earlier. If you use the V4L2, you may benefit from the work that
-others have been doing as well. The V4L2 does much for you that you had to
-do in a driver specific way earlier.
-
-What comes to your original question, I've had a roughly similar problem in
-the past. A sensor that is controlled with sets of register lists. See
-camera-firmware here:
-
-<URL:http://gitorious.org/omap3camera/pages/Home>
-
-The solution for this in the future is to make V4L2 understand these
-parameters, such as low level sensor control, including cropping, blanking,
-scaling, skipping, binning etc. in a generic way. Some of these parameters
-will be configured through format parameters, some through separate ioctls
-and many of them will be V4L2 controls. The V4L2 framework needs to be
-extended a little to support some of the new functionality.
-
-This way, you can even change your sensor to another from a different vendor
-using a different driver with minimal effort on user space software as long
-as both of the sensor drivers are implemented as V4L2 subdev drivers as Hans
-explained. This allows the user space to stay more generic.
-
-[clip]
-
-> > You (or your company/organization) designed a system without as far as I am aware
-> > consulating the people responsible for the relevant kernel subsystem (V4L in this
-> > case). And now you want to get your code in with a minimum of change. Sorry, that's
-> > not the way it works.
-> > 
+> That is indeed a good point, but having a good allocator algorithm
+> could also solve this. I don't know too much about these allocation
+> algorithms, but there are probably multiple working approaches to this.
 > 
-> Just that you understand: I'm not wanting to get our code into
-> somewhere. I'd rather avoid it, one reason being lengthy discussions :-)
-> Bottomline again: I'm trying to find a solution to avoid bloated and
-> potentially unstable kernel drivers. Why do you think we (and our
-> customers) spent the money to develop alternative solutions?
+> > > I would suggest going forward without having multiple regions:
+> >
+> > Is having support for multiple regions a bad thing?  Frankly,
+> > removing this support will change code from reading context passed
+> > as argument to code reading context from global variable.  Nothing
+> > is gained; functionality is lost.
+> 
+> What is bad IMHO is making them the default, which forces the board
+> code to care about memory management details. I would much prefer
+> to have contiguous allocation parameters tuned automatically to just
+> work on most boards before we add ways to do board-specific hacks.
 
-Please keep in mind that others do have requirements which may differ from
-yours. The V4L2 is intended to serve very different ones, not just yours.
-The current V4L2 framework does follow more generic principles which are
-known to be good in general. This allows it to be something that you can
-actually build on, not something just you need to adapt to.
+I see your concerns, but I really wonder how to determine the properties
+of the global/default cma pool. You definitely don't want to give all
+available memory o CMA, because it will have negative impact on kernel
+operation (kernel really needs to allocate unmovable pages from time to
+time). 
 
-Please follow up the development of V4L2 and participate to it. This way you
-may have your views and requirements taken into account. But do remember
-others do have theirs as well.
+The only solution I see now is to provide Kconfig entry to determine
+the size of the global CMA pool, but this still have some issues,
+especially for multi-board kernels (each board probably will have
+different amount of RAM and different memory-consuming devices
+available). It looks that each board startup code still might need to
+tweak the size of CMA pool. I can add a kernel command line option for
+it, but such solution also will not solve all the cases (afair there
+was a discussion about kernel command line parameters for memory 
+configuration and the conclusion was that it should be avoided).
 
-Kind regards,
-
+Best regards
 -- 
-Sakari Ailus
-sakari.ailus@iki.fi
+Marek Szyprowski
+Samsung Poland R&D Center
+
+
+
