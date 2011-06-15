@@ -1,108 +1,69 @@
 Return-path: <mchehab@pedra>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:33206 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752552Ab1FVIur (ORCPT
+Received: from moutng.kundenserver.de ([212.227.17.10]:52922 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751334Ab1FOL2K (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 22 Jun 2011 04:50:47 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Florian Tobias Schandinat <FlorianSchandinat@gmx.de>
-Subject: Re: [PATCH/RFC] fbdev: Add FOURCC-based format configuration API
-Date: Wed, 22 Jun 2011 10:50:47 +0200
-Cc: Geert Uytterhoeven <geert@linux-m68k.org>,
-	linux-fbdev@vger.kernel.org, linux-media@vger.kernel.org,
-	dri-devel@lists.freedesktop.org
-References: <4DDAE63A.3070203@gmx.de> <201106220031.57972.laurent.pinchart@ideasonboard.com> <4E018189.3020305@gmx.de>
-In-Reply-To: <4E018189.3020305@gmx.de>
+	Wed, 15 Jun 2011 07:28:10 -0400
+From: Arnd Bergmann <arnd@arndb.de>
+To: Jordan Crouse <jcrouse@codeaurora.org>
+Subject: Re: [Linaro-mm-sig] [PATCH 08/10] mm: cma: Contiguous
+ =?iso-8859-1?q?Memory=09Allocator?= added
+Date: Wed, 15 Jun 2011 13:27:32 +0200
+Cc: Zach Pfeffer <zach.pfeffer@linaro.org>,
+	linux-arm-kernel@lists.infradead.org,
+	Daniel Walker <dwalker@codeaurora.org>,
+	Daniel Stone <daniels@collabora.com>, linux-mm@kvack.org,
+	Mel Gorman <mel@csn.ul.ie>, linux-kernel@vger.kernel.org,
+	Michal Nazarewicz <mina86@mina86.com>,
+	linaro-mm-sig@lists.linaro.org,
+	Jesse Barker <jesse.barker@linaro.org>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	Ankita Garg <ankita@in.ibm.com>,
+	Andrew Morton <akpm@linux-foundation.org>,
+	KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>,
+	linux-media@vger.kernel.org
+References: <1307699698-29369-1-git-send-email-m.szyprowski@samsung.com> <201106142242.25157.arnd@arndb.de> <4DF7CC22.6050602@codeaurora.org>
+In-Reply-To: <4DF7CC22.6050602@codeaurora.org>
 MIME-Version: 1.0
 Content-Type: Text/Plain;
-  charset="utf-8"
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
-Message-Id: <201106221050.48057.laurent.pinchart@ideasonboard.com>
+Message-Id: <201106151327.32226.arnd@arndb.de>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Hi Florian,
-
-On Wednesday 22 June 2011 07:45:45 Florian Tobias Schandinat wrote:
-> On 06/21/2011 10:31 PM, Laurent Pinchart wrote:
-> > On Tuesday 21 June 2011 22:49:14 Geert Uytterhoeven wrote:
-> >> On Tue, Jun 21, 2011 at 17:36, Laurent Pinchart wrote:
-> >>> +The FOURCC-based API replaces format descriptions by four character
-> >>> codes +(FOURCC). FOURCCs are abstract identifiers that uniquely define
-> >>> a format +without explicitly describing it. This is the only API that
-> >>> supports YUV +formats. Drivers are also encouraged to implement the
-> >>> FOURCC-based API for RGB +and grayscale formats.
-> >>> +
-> >>> +Drivers that support the FOURCC-based API report this capability by
-> >>> setting +the FB_CAP_FOURCC bit in the fb_fix_screeninfo capabilities
-> >>> field. +
-> >>> +FOURCC definitions are located in the linux/videodev2.h header.
-> >>> However, and +despite starting with the V4L2_PIX_FMT_prefix, they are
-> >>> not restricted to V4L2 +and don't require usage of the V4L2 subsystem.
-> >>> FOURCC documentation is +available in
-> >>> Documentation/DocBook/v4l/pixfmt.xml.
-> >>> +
-> >>> +To select a format, applications set the FB_VMODE_FOURCC bit in the
-> >>> +fb_var_screeninfo vmode field, and set the fourcc field to the desired
-> >>> FOURCC. +The bits_per_pixel, red, green, blue, transp and nonstd fields
-> >>> must be set to +0 by applications and ignored by drivers. Note that the
-> >>> grayscale and fourcc +fields share the same memory location.
-> >>> Application must thus not set the +grayscale field to 0.
-> >> 
-> >> These are the only parts I don't like: (ab)using the vmode field (this
-> >> isn't really a vmode flag), and the union of grayscale and fourcc (avoid
-> >> unions where possible).
-> > 
-> > I've proposed adding a FB_NONSTD_FORMAT bit to the nonstd field as a
-> > FOURCC mode indicator in my initial RFC. Florian Tobias Schandinat
-> > wasn't very happy with that, and proposed using the vmode field instead.
-> > 
-> > Given that there's virtually no fbdev documentation, whether the vmode
-> > field and/or nonstd field are good fit for a FOURCC mode indicator is
-> > subject to interpretation.
+On Tuesday 14 June 2011, Jordan Crouse wrote:
 > 
-> The reason for my suggestion is that the vmode field is accepted to contain
-> only flags and at least to me there is no hard line what is part of the
-> video mode and what is not.
-
-Lacks of documentation indeed makes that line fuzzy. I really hope that 
-api.txt will be extended to cover the full fbdev API :-)
-
-> In contrast the nonstd field is already used in a lot of different
-> (incompatible) ways. I think if we only use the nonstd field for handling
-> FOURCC it is likely that some problems will appear.
+> On 06/14/2011 02:42 PM, Arnd Bergmann wrote:
+> > On Tuesday 14 June 2011 20:58:25 Zach Pfeffer wrote:
+> >> I've seen this split bank allocation in Qualcomm and TI SoCs, with
+> >> Samsung, that makes 3 major SoC vendors (I would be surprised if
+> >> Nvidia didn't also need to do this) - so I think some configurable
+> >> method to control allocations is necessarily. The chips can't do
+> >> decode without it (and by can't do I mean 1080P and higher decode is
+> >> not functionally useful). Far from special, this would appear to be
+> >> the default.
+> >
+> > Thanks for the insight, that's a much better argument than 'something
+> > may need it'. Are those all chips without an IOMMU or do we also
+> > need to solve the IOMMU case with split bank allocation?
 > 
-> >> What about storing the FOURCC value in nonstd instead?
-> > 
-> > Wouldn't that be a union of nonstd and fourcc ? :-) FOURCC-based format
-> > setting will be a standard fbdev API, I'm not very keen on storing it in
-> > the nonstd field without a union.
-> > 
-> >> As FOURCC values are always 4 ASCII characters (hence all 4 bytes must
-> >> be non-zero), I don't think there are any conflicts with existing values
-> >> of nonstd. To make it even safer and easier to parse, you could set bit
-> >> 31 of nonstd as a FOURCC indicator.
-> > 
-> > I would then create a union between nonstd and fourcc, and document
-> > nonstd as being used for the legacy API only. Most existing drivers use
-> > a couple of nonstd bits only. The driver that (ab)uses nonstd the most
-> > is pxafb and uses bits 22:0. Bits 31:24 are never used as far as I can
-> > tell, so nonstd& 0xff000000 != 0 could be used as a FOURCC mode test.
-> > 
-> > This assumes that FOURCCs will never have their last character set to
-> > '\0'. Is that a safe assumption for the future ?
-> 
-> Yes, I think. The information I found indicates that space should be used
-> for padding, so a \0 shouldn't exist.
-> I think using only the nonstd field and requiring applications to check the
-> capabilities would be possible, although not fool proof ;)
-> 
-> Great work, Laurent, do you have plans to modify fbset to allow using this
-> format API from the command line?
+> Yes. The IOMMU case with split bank allocation is key, especially for shared
+> buffers. Consider the case where video is using a certain bank for performance
+> purposes and that frame is shared with the GPU.
 
-Once we agree on an API, I will implement it in a driver and update fbset.
+Could we use the non-uniform memory access (NUMA) code for this? That code
+does more than what we've been talking about, and we're currently thinking
+only of a degenerate case (one CPU node with multiple memory nodes), but my
+feeling is that we can still build on top of it.
 
--- 
-Regards,
+The NUMA code can describe relations between different areas of memory
+and how they interact with devices and processes, so you can attach a
+device to a specific node and have all allocations done from there.
+You can also set policy in user space, e.g. to have a video decoder
+process running on the bank that is not used by the GPU.
 
-Laurent Pinchart
+In the DMA mapping API, that would mean we add another dma_attr to
+dma_alloc_* that lets you pass a node identifier.
+
+	Arnd
