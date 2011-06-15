@@ -1,52 +1,76 @@
 Return-path: <mchehab@pedra>
-Received: from earthlight.etchedpixels.co.uk ([81.2.110.250]:43735 "EHLO
-	www.etchedpixels.co.uk" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1759678Ab1F1QkN (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 28 Jun 2011 12:40:13 -0400
-Date: Tue, 28 Jun 2011 17:42:23 +0100
-From: Alan Cox <alan@lxorguk.ukuu.org.uk>
-To: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: Hans Verkuil <hverkuil@xs4all.nl>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Sakari Ailus <sakari.ailus@iki.fi>,
-	Arnd Bergmann <arnd@arndb.de>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
-Subject: Re: [PATCH] [media] v4l2 core: return -ENOIOCTLCMD if an ioctl
- doesn't exist
-Message-ID: <20110628174223.3d78ca4c@lxorguk.ukuu.org.uk>
-In-Reply-To: <BANLkTi=6W0quy1M71UapwKDe97E67b4EiA@mail.gmail.com>
-References: <4E0519B7.3000304@redhat.com>
-	<201106271907.59067.hverkuil@xs4all.nl>
-	<BANLkTin=PTbTwBR2s+owMLy+GmKigeoYvg@mail.gmail.com>
-	<201106280804.48742.hverkuil@xs4all.nl>
-	<BANLkTi=6W0quy1M71UapwKDe97E67b4EiA@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Received: from mx1.redhat.com ([209.132.183.28]:27611 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754618Ab1FOOer (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 15 Jun 2011 10:34:47 -0400
+Message-ID: <4DF8C32A.7090004@redhat.com>
+Date: Wed, 15 Jun 2011 16:35:22 +0200
+From: Hans de Goede <hdegoede@redhat.com>
+MIME-Version: 1.0
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+CC: Devin Heitmueller <dheitmueller@kernellabs.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: Some fixes for alsa_stream
+References: <4DF6C10C.8070605@redhat.com>	<4DF758AF.3010301@redhat.com>	<4DF75C84.9000200@redhat.com>	<4DF7667C.9030502@redhat.com> <BANLkTi=9L+oxjpUaFo3ge0iqcZ2NCjJWWA@mail.gmail.com> <4DF76D88.5000506@redhat.com> <4DF77229.2020607@redhat.com> <4DF77405.2070104@redhat.com> <4DF8B716.1020406@redhat.com> <4DF8C0D2.5070900@redhat.com>
+In-Reply-To: <4DF8C0D2.5070900@redhat.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-> (In fact, the _correct_ thing to do would probably be to just do
-> 
->    #define ENOIOCTLCMD ENOTTY
-> 
-> and get rid of any translation - just giving ENOTTY a more appropriate
-> name and less chance for confusion)
+Hi,
 
-Some code uses the two to separate 'the driver specific helper code
-doesn't handle this' and 'does handle this'. In that situation you take
-away the ability of a driver to override a midlayer ioctl with -ENOTTY to
-say "I don't support this even if most people do"
+On 06/15/2011 04:25 PM, Mauro Carvalho Chehab wrote:
+> Em 15-06-2011 10:43, Hans de Goede escreveu:
 
-> There may be applications out there that really break when they get
-> ENOTTY instead of EINVAL. But most cases that check for errors from
-> ioctl's tend to just say "did this succeed or not" rather than "did
-> this return EINVAL". That's *doubly* true since the error code has
-> been ambiguous, so checking for the exact error code has always been
-> pretty pointless.
+<snip>
 
-Chances are if anything is busted its busted the other way on Linux and
-expects -ENOTTY. Certainly the large number I've been fixing over time
-haven't shown up any problems.
+ >> Right, because ConsoleKit ensures that devices like floppydrives, cdroms, audio cards,
+ >> webcams, etc. are only available to users sitting behind the console,
+ >
+ > This is a wrong assumption. There's no good reason why other users can't access those
+ > devices.
+
+This is not an assumption, this is a policy decision. The policy is that devices like
+audiocards and webcams should be only available to local console users / processes. To
+avoid for example someone from spying upon someone else sitting behind the computer.
+
+<snip>
+
+>>> 3) console, with mmap disabled:
+>>>
+>>> Alsa devices: cap: hw:1,0 (/dev/video0), out: default
+>>> Alsa stream started, capturing from hw:1,0, playing back on default at 1 Hz
+>>> write error: Input/output error
+>>> ...
+>>> write error: Input/output error
+>>>
+>>
+>> This is a combination of the assumption there is a shared period size between
+>> the input device and the output device + the broken error handling.
+>
+> The code is doing a negotiation, in order to find a period that are acceptable
+> by both. Ok, there are other ways of doing it, but sharing the same period
+> probably means less overhead.
+>
+
+This is what we call a premature optimization, there is not all that much
+overhead here, and demanding that both sizes will support a share period size
+may not always fly, and may likely lead to unnecessary large period sizes
+and thus too much latency in some cases.
+
+<snip>
+
+> If you do some tests with mplayer and a few audio devices, you'll find that
+> the audio performance may degrade the video streaming up to some point where
+> you can't see the video stream. It is wise to offer a few options to the
+> user, in order to allow workaround on that.
+
+Since we're doing the audio from a separate thread here, and do no syncing
+that cannot happen here. Also the right thing to do is to fix the code
+to work under all circumstances not offer a gazillion cmdline options
+and let the user figure out which ones happen to work for him.
+
+Regards,
+
+Hans
