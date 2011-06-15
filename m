@@ -1,76 +1,46 @@
 Return-path: <mchehab@pedra>
-Received: from moutng.kundenserver.de ([212.227.17.9]:56545 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751118Ab1F2NPj (ORCPT
+Received: from mail-fx0-f46.google.com ([209.85.161.46]:42898 "EHLO
+	mail-fx0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754009Ab1FOJ0w (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 29 Jun 2011 09:15:39 -0400
-Date: Wed, 29 Jun 2011 15:15:37 +0200 (CEST)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-cc: Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: [PULL] first soc-camera pull for 3.1
-Message-ID: <Pine.LNX.4.64.1106291511280.12577@axis700.grange>
+	Wed, 15 Jun 2011 05:26:52 -0400
+Content-Type: text/plain; charset=utf-8; format=flowed; delsp=yes
+To: "Zach Pfeffer" <zach.pfeffer@linaro.org>,
+	"Arnd Bergmann" <arnd@arndb.de>
+Cc: "Daniel Stone" <daniels@collabora.com>,
+	"Ankita Garg" <ankita@in.ibm.com>,
+	"Daniel Walker" <dwalker@codeaurora.org>,
+	"Jesse Barker" <jesse.barker@linaro.org>,
+	"Mel Gorman" <mel@csn.ul.ie>, linux-kernel@vger.kernel.org,
+	linaro-mm-sig@lists.linaro.org, linux-mm@kvack.org,
+	"Kyungmin Park" <kyungmin.park@samsung.com>,
+	"KAMEZAWA Hiroyuki" <kamezawa.hiroyu@jp.fujitsu.com>,
+	"Andrew Morton" <akpm@linux-foundation.org>,
+	linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org
+Subject: Re: [Linaro-mm-sig] [PATCH 08/10] mm: cma: Contiguous Memory
+ Allocator added
+References: <1307699698-29369-1-git-send-email-m.szyprowski@samsung.com>
+ <20110614170158.GU2419@fooishbar.org>
+ <BANLkTi=cJisuP8=_YSg4h-nsjGj3zsM7sg@mail.gmail.com>
+ <201106142242.25157.arnd@arndb.de>
+Date: Wed, 15 Jun 2011 11:26:47 +0200
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
+From: "Michal Nazarewicz" <mina86@mina86.com>
+Message-ID: <op.vw31uxxl3l0zgt@mnazarewicz-glaptop>
+In-Reply-To: <201106142242.25157.arnd@arndb.de>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Hi Mauro
+On Tue, 14 Jun 2011 22:42:24 +0200, Arnd Bergmann <arnd@arndb.de> wrote:
+> * We still need to solve the same problem in case of IOMMU mappings
+>   at some point, even if today's hardware doesn't have this combination.
+>   It would be good to use the same solution for both.
 
-I expect at least one more soc-camera pull request for 3.1, so far a bunch 
-of patches, that have been lying around since a while already.
+I don't think I follow.  What does IOMMU has to do with CMA?
 
-The following changes since commit 7023c7dbc3944f42aa1d6910a6098c5f9e23d3f1:
-
-  [media] DVB: dvb-net, make the kconfig text helpful (2011-06-21 15:55:15 -0300)
-
-are available in the git repository at:
-  git://linuxtv.org/gliakhovetski/v4l-dvb.git for-3.1
-
-Andrew Chew (6):
-      V4L: ov9740: Cleanup hex casing inconsistencies
-      V4L: ov9740: Correct print in ov9740_reg_rmw()
-      V4L: ov9740: Fixed some settings
-      V4L: ov9740: Remove hardcoded resolution regs
-      V4L: ov9740: Reorder video and core ops
-      V4L: ov9740: Add suspend/resume
-
-Guennadi Liakhovetski (11):
-      V4L: mx3_camera: remove redundant calculations
-      V4L: pxa_camera: remove redundant calculations
-      V4L: pxa-camera: try to force progressive video format
-      V4L: pxa-camera: switch to using subdev .s_power() core operation
-      V4L: mx2_camera: .try_fmt shouldn't fail
-      V4L: sh_mobile_ceu_camera: remove redundant calculations
-      V4L: tw9910: remove bogus ENUMINPUT implementation
-      V4L: soc-camera: MIPI flags are not sensor flags
-      V4L: mt9m111: propagate higher level abstraction down in functions
-      V4L: mt9m111: switch to v4l2-subdev .s_power() method
-      V4L: soc-camera: remove several now unused soc-camera client operations
-
-Josh Wu (1):
-      V4L: at91: add Atmel Image Sensor Interface (ISI) support
-
- drivers/media/video/Kconfig                |    8 +
- drivers/media/video/Makefile               |    1 +
- drivers/media/video/atmel-isi.c            | 1048 ++++++++++++++++++++++++++++
- drivers/media/video/mt9m111.c              |  218 ++++---
- drivers/media/video/mx2_camera.c           |   15 +-
- drivers/media/video/mx3_camera.c           |   12 -
- drivers/media/video/ov9740.c               |  543 ++++++++-------
- drivers/media/video/pxa_camera.c           |   25 +-
- drivers/media/video/sh_mobile_ceu_camera.c |    5 -
- drivers/media/video/soc_camera.c           |   17 +-
- drivers/media/video/tw9910.c               |   11 -
- include/media/atmel-isi.h                  |  119 ++++
- include/media/soc_camera.h                 |   15 +-
- 13 files changed, 1631 insertions(+), 406 deletions(-)
- create mode 100644 drivers/media/video/atmel-isi.c
- create mode 100644 include/media/atmel-isi.h
-
-Thanks
-Guennadi
----
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
-http://www.open-technology.de/
+-- 
+Best regards,                                         _     _
+.o. | Liege of Serenely Enlightened Majesty of      o' \,=./ `o
+..o | Computer Science,  Michal "mina86" Nazarewicz    (o o)
+ooo +-----<email/xmpp: mnazarewicz@google.com>-----ooO--(_)--Ooo--
