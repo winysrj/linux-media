@@ -1,134 +1,378 @@
 Return-path: <mchehab@pedra>
-Received: from mailout2.w1.samsung.com ([210.118.77.12]:57216 "EHLO
-	mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751803Ab1FJGys (ORCPT
+Received: from smtp-vbr1.xs4all.nl ([194.109.24.21]:1623 "EHLO
+	smtp-vbr1.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751232Ab1FOGfH (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 10 Jun 2011 02:54:48 -0400
-Received: from eu_spt1 (mailout2.w1.samsung.com [210.118.77.12])
- by mailout2.w1.samsung.com
- (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14 2004))
- with ESMTP id <0LMK00519B7AJT@mailout2.w1.samsung.com> for
- linux-media@vger.kernel.org; Fri, 10 Jun 2011 07:54:46 +0100 (BST)
-Received: from linux.samsung.com ([106.116.38.10])
- by spt1.w1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14
- 2004)) with ESMTPA id <0LMK00025B79SU@spt1.w1.samsung.com> for
- linux-media@vger.kernel.org; Fri, 10 Jun 2011 07:54:45 +0100 (BST)
-Date: Fri, 10 Jun 2011 08:54:24 +0200
-From: Marek Szyprowski <m.szyprowski@samsung.com>
-Subject: RE: videobuf2 and VMAs
-In-reply-to: <20110609172103.18f242b2@bike.lwn.net>
-To: 'Jonathan Corbet' <corbet@lwn.net>,
-	'Pawel Osciak' <pawel@osciak.com>, linux-media@vger.kernel.org
-Message-id: <002001cc273b$3bbf7aa0$b33e6fe0$%szyprowski@samsung.com>
-MIME-version: 1.0
-Content-type: text/plain; charset=us-ascii
-Content-language: pl
-Content-transfer-encoding: 7BIT
-References: <20110609172103.18f242b2@bike.lwn.net>
+	Wed, 15 Jun 2011 02:35:07 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Kamil Debski <k.debski@samsung.com>
+Subject: Re: [PATCH 3/4 v9] v4l2-ctrl: add codec controls support to the control framework
+Date: Wed, 15 Jun 2011 08:34:53 +0200
+Cc: linux-media@vger.kernel.org, m.szyprowski@samsung.com,
+	kyungmin.park@samsung.com, jaeryul.oh@samsung.com,
+	laurent.pinchart@ideasonboard.com, jtp.park@samsung.com
+References: <1308069416-24723-1-git-send-email-k.debski@samsung.com> <1308069416-24723-4-git-send-email-k.debski@samsung.com>
+In-Reply-To: <1308069416-24723-4-git-send-email-k.debski@samsung.com>
+MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="iso-8859-15"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201106150834.53412.hverkuil@xs4all.nl>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Hello,
-
-On Friday, June 10, 2011 1:21 AM Jonathan Corbet wrote:
-
-> I'm finally getting around to trying to really understand videobuf2.  In
-> the process I've run into something which has thrown me for a bit of a
-> loop...
+On Tuesday, June 14, 2011 18:36:55 Kamil Debski wrote:
+> Add support for the codec controls to the v4l2 control framework.
 > 
-> /**
->  * vb2_get_vma() - acquire and lock the virtual memory area
->  * @vma:	given virtual memory area
->  *
->  * This function attempts to acquire an area mapped in the userspace for
->  * the duration of a hardware operation. The area is "locked" by performing
->  * the same set of operation that are done when process calls fork() and
->  * memory areas are duplicated.
->  *
->  * Returns a copy of a virtual memory region on success or NULL.
->  */
+> Signed-off-by: Kamil Debski <k.debski@samsung.com>
+> Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+> ---
+>  drivers/media/video/v4l2-ctrls.c |  281 ++++++++++++++++++++++++++++++++++++++
+>  1 files changed, 281 insertions(+), 0 deletions(-)
 > 
-> This function makes a copy of the VMA which is completely outside of the
-> knowledge of the mm subsystem.  For the life of me, I cannot figure out
-> why that is a wise or necessary thing to do.  You are not locking the real
-> VMA in any way.  If you're worried about the underlying pages going away
-> somehow, this will not save you.  User space can still munmap() the space
-> whenever it feels like it.
+> diff --git a/drivers/media/video/v4l2-ctrls.c b/drivers/media/video/v4l2-ctrls.c
+> index 2412f08..acc76f5 100644
+> --- a/drivers/media/video/v4l2-ctrls.c
+> +++ b/drivers/media/video/v4l2-ctrls.c
+> @@ -216,6 +216,118 @@ const char * const *v4l2_ctrl_get_menu(u32 id)
+>  		"75 useconds",
+>  		NULL,
+>  	};
+> +	static const char * const multi_slice[] = {
+> +		"Single",
+> +		"Max macroblocks",
+> +		"Max bits",
+> +		NULL,
 
-This vb2_get_vma() function mimics the fork() situation, where the vma
-structures are cloned and transferred to the new process. All these operations
-are performed to ensure that the memory that is behind this vma will not go
-away. This means that the following operations are performed: if there exists
-a backing file behind the vma, its ref count is increased (simulates open()
-call), the vma is copied (in case of fork the vma structures are also copied)
-and vm_open() method is called.
+The naming convention is to capitalize words (like in English titles).
+So this should be 'Max Macroblocks', 'Max Bits'. Ditto elsewhere.
 
-This way even if the user will munmap() the original area and close the fd in
-his process, the vma (the copied fake vma structure) will still exist and can
-be used by vb2 for calling vm_close() method once the client of that memory
-finished his access. This ensures that the memory (underlying pages or pfns)
-that have been grabbed by vb2_get_vma() are still available until the 
-vb2_put_vma() call. 
+I noticed a few existing menu and control name items that didn't do this
+correctly either. I would be great if you could add a patch that fixes
+them as well.
 
-This of course requires the driver to operate correctly - use vm_area ref 
-counting and/or free resources on release method, but we cannot do anything 
-more in vb2.
+> +	};
+> +	static const char * const force_frame[] = {
+> +		"Disabled",
+> +		"I frame",
+> +		"Not coded",
+> +		NULL,
+> +	};
+> +	static const char * const header_mode[] = {
+> +		"Separate buffer",
+> +		"Joined with 1st frame",
+> +		NULL,
+> +	};
+> +	static const char * const frame_skip[] = {
+> +		"Disabled",
+> +		"Level limit",
+> +		"VBV/CPB limit",
+> +		NULL,
+> +	};
+> +	static const char * const h264_profile[] = {
+> +		"Baseline",
+> +		"Constrained Baseline",
+> +		"Main",
+> +		"Extended",
+> +		"High",
+> +		"High 10",
+> +		"High 422",
+> +		"High 444 Predictive",
+> +		"High 10 Intra",
+> +		"High 422 Intra",
+> +		"High 444 Intra",
+> +		"CAVLC 444 Intra",
+> +		"Scalable Baseline",
+> +		"Scalable High",
+> +		"Scalable High Intra",
+> +		"Multiview High",
+> +		NULL,
+> +	};
+> +	static const char * const mpeg4_profile[] = {
+> +		"Simple",
+> +		"Adcanved simple",
+> +		"Core",
+> +		"Simple scalable",
+> +		"Advanced Coding Efficency",
+> +		NULL,
+> +	};
+> +	static const char * const mpeg_h264_level[] = {
+> +		"1",
+> +		"1b",
+> +		"1.1",
+> +		"1.2",
+> +		"1.3",
+> +		"2",
+> +		"2.1",
+> +		"2.2",
+> +		"3",
+> +		"3.1",
+> +		"3.2",
+> +		"4",
+> +		"4.1",
+> +		"4.2",
+> +		"5",
+> +		"5.1",
+> +		NULL,
+> +	};
+> +	static const char * const mpeg_mpeg4_level[] = {
+> +		"0",
+> +		"0b",
+> +		"1",
+> +		"2",
+> +		"3",
+> +		"3b",
+> +		"4",
+> +		"5",
+> +		NULL,
+> +	};
+> +	static const char * const h264_loop_filter[] = {
+> +		"Enabled",
+> +		"Disabled",
+> +		"Disabled at slice boundary",
+> +		NULL,
+> +	};
+> +	static const char * const symbol_mode[] = {
+> +		"CAVLC",
+> +		"CABAC",
+> +		NULL,
+> +	};
+> +	static const char * vui_sar_idc[] = {
+> +		"Unspecified",
+> +		"1:1",
+> +		"12:11",
+> +		"10:11",
+> +		"16:11",
+> +		"40:33",
+> +		"24:11",
+> +		"20:11",
+> +		"32:11",
+> +		"80:33",
+> +		"18:11",
+> +		"15:11",
+> +		"64:33",
+> +		"160:99",
+> +		"4:3",
+> +		"3:2",
+> +		"2:1",
+> +		"Extended SAR",
+> +		NULL,
+> +	};
+>  
+>  	switch (id) {
+>  	case V4L2_CID_MPEG_AUDIO_SAMPLING_FREQ:
+> @@ -256,6 +368,28 @@ const char * const *v4l2_ctrl_get_menu(u32 id)
+>  		return colorfx;
+>  	case V4L2_CID_TUNE_PREEMPHASIS:
+>  		return tune_preemphasis;
+> +	case V4L2_CID_MPEG_VIDEO_MULTI_SLICE_MODE:
+> +		return multi_slice;
+> +	case V4L2_CID_MPEG_MFC51_VIDEO_FORCE_FRAME_TYPE:
+> +		return force_frame;
+> +	case V4L2_CID_MPEG_VIDEO_HEADER_MODE:
+> +		return header_mode;
+> +	case V4L2_CID_MPEG_MFC51_VIDEO_FRAME_SKIP_MODE:
+> +		return frame_skip;
+> +	case V4L2_CID_MPEG_VIDEO_H264_PROFILE:
+> +		return h264_profile;
+> +	case V4L2_CID_MPEG_VIDEO_H264_LEVEL:
+> +		return mpeg_h264_level;
+> +	case V4L2_CID_MPEG_VIDEO_MPEG4_LEVEL:
+> +		return mpeg_mpeg4_level;
+> +	case V4L2_CID_MPEG_VIDEO_H264_LOOP_FILTER_MODE:
+> +		return h264_loop_filter;
+> +	case V4L2_CID_MPEG_VIDEO_H264_ENTROPY_MODE:
+> +		return symbol_mode;
+> +	case V4L2_CID_MPEG_VIDEO_MPEG4_PROFILE:
+> +		return mpeg4_profile;
+> +	case V4L2_CID_MPEG_VIDEO_H264_VUI_SAR_IDC:
+> +		return vui_sar_idc;
+>  	default:
+>  		return NULL;
+>  	}
+> @@ -389,6 +523,72 @@ const char *v4l2_ctrl_get_name(u32 id)
+>  	case V4L2_CID_TUNE_POWER_LEVEL:		return "Tune Power Level";
+>  	case V4L2_CID_TUNE_ANTENNA_CAPACITOR:	return "Tune Antenna Capacitor";
+>  
+> +	case V4L2_CID_MPEG_VIDEO_DECODER_SLICE_INTERFACE:	return "Decoder Slice Interface";
 
-> This kind of operation, it seems, should really be done with
-> get_user_pages().  Except that it seems that you're not really expecting
-> user pages here - it looks like this is an attempt to support memory
-> belonging to a different device which has been mapped into the process's
-> address space?  That might be a nice thing to try to document here.
+Please add the MPEG controls to the MPEG control section in the switch instead
+of at the end.
 
-Right, get_user_page() is just one special case and it doesn't work with 
-memory coming from mmaped device. You are definitely right that we should
-better document it.
+> +	case V4L2_CID_MIN_BUFFERS_FOR_CAPTURE:			return "Minimum number of cap bufs"; 
 
-> If you're worried about the file being closed, it might be better to save
-> a reference directly.  But having fake VMAs floating around worries me.
+I'd phrase this as: "Minimum Capture Buffers".
 
-I see, without additional comment this might be confusing, we will try to
-document it better.
+> +	case V4L2_CID_MIN_BUFFERS_FOR_OUTPUT:			return "Minimum number of out bufs"; 
+> +
+> +	case V4L2_CID_MPEG_MFC51_VIDEO_DECODER_H264_DISPLAY_DELAY:		return "Decoder H264 Display Delay";
+> +	case V4L2_CID_MPEG_MFC51_VIDEO_DECODER_H264_DISPLAY_DELAY_ENABLE:	return "H264 Display Delay Enable";
+> +	case V4L2_CID_MPEG_VIDEO_DECODER_MPEG4_DEBLOCK_FILTER:			return "Mpeg4 Loop Filter Enable";
+> +
+> +	case V4L2_CID_MPEG_VIDEO_MULTI_SLICE_MODE:		return "The slice partitioning method";
+> +	case V4L2_CID_MPEG_VIDEO_MULTI_SLICE_MAX_MB:		return "The number of MB in a slice";
+> +	case V4L2_CID_MPEG_VIDEO_MULTI_SLICE_MAX_BYTES:		return "The maximum bits per slices";
+> +	case V4L2_CID_MPEG_VIDEO_CYCLIC_INTRA_REFRESH_MB:	return "The number of intra refresh MBs";
+> +	case V4L2_CID_MPEG_MFC51_VIDEO_PADDING:			return "Padding control enable";
+> +	case V4L2_CID_MPEG_MFC51_VIDEO_PADDING_YUV:		return "Padding color YUV value";
+> +	case V4L2_CID_MPEG_VIDEO_FRAME_RC_ENABLE:		return "Frame level rate control enable";
+> +	case V4L2_CID_MPEG_MFC51_VIDEO_RC_REACTION_COEFF:	return "Rate control reaction coeff.";
+> +	case V4L2_CID_MPEG_MFC51_VIDEO_FORCE_FRAME_TYPE:	return "Force frame type";
+> +	case V4L2_CID_MPEG_VIDEO_VBV_SIZE:			return "VBV buffer size";
+> +	case V4L2_CID_MPEG_VIDEO_H264_CPB_SIZE:			return "H264 CPB buffer size";
+> +	case V4L2_CID_MPEG_VIDEO_HEADER_MODE:			return "Sequence header mode";
+> +	case V4L2_CID_MPEG_MFC51_VIDEO_FRAME_SKIP_MODE:		return "Frame skip enable";
+> +	case V4L2_CID_MPEG_MFC51_VIDEO_RC_FIXED_TARGET_BIT:	return "Fixed target bit enable";
+> +	case V4L2_CID_MPEG_VIDEO_H264_PROFILE:			return "H264 profile";
+> +	case V4L2_CID_MPEG_VIDEO_H264_LEVEL:			return "H264 level";
+> +	case V4L2_CID_MPEG_VIDEO_MPEG4_LEVEL:			return "MPEG4 level";
+> +	case V4L2_CID_MPEG_VIDEO_H264_LOOP_FILTER_MODE:		return "H264 loop filter mode";
+> +	case V4L2_CID_MPEG_VIDEO_H264_LOOP_FILTER_ALPHA:	return "H264 loop filter alpha offset";
+> +	case V4L2_CID_MPEG_VIDEO_H264_LOOP_FILTER_BETA:		return "H264 loop filter beta offset";
+> +	case V4L2_CID_MPEG_VIDEO_H264_ENTROPY_MODE:		return "H264 entorpy mode";
+> +	case V4L2_CID_MPEG_VIDEO_MAX_REF_PIC:			return "The max number of ref. picture";
+> +	case V4L2_CID_MPEG_MFC51_VIDEO_H264_NUM_REF_PIC_FOR_P:	return "The number of ref. picture of P";
+> +	case V4L2_CID_MPEG_VIDEO_H264_8X8_TRANSFORM:		return "H264 8x8 transform enable";
+> +	case V4L2_CID_MPEG_VIDEO_MB_RC_ENABLE:			return "H264 MB level rate control";
+> +
+> +	case V4L2_CID_MPEG_VIDEO_H263_I_FRAME_QP:		return "H263 I-Frame QP value";
+> +	case V4L2_CID_MPEG_VIDEO_H263_MIN_QP:			return "H263 Minimum QP value";
+> +	case V4L2_CID_MPEG_VIDEO_H263_MAX_QP:			return "H263 Maximum QP value";
+> +	case V4L2_CID_MPEG_VIDEO_H263_P_FRAME_QP:		return "H263 P frame QP value";
+> +	case V4L2_CID_MPEG_VIDEO_H263_B_FRAME_QP:		return "H263 B frame QP value";
+> +
+> +	case V4L2_CID_MPEG_VIDEO_H264_I_FRAME_QP:		return "H264 I-Frame QP value";
+> +	case V4L2_CID_MPEG_VIDEO_H264_MIN_QP:			return "H264 Minimum QP value";
+> +	case V4L2_CID_MPEG_VIDEO_H264_MAX_QP:			return "H264 Maximum QP value";
+> +	case V4L2_CID_MPEG_VIDEO_H264_P_FRAME_QP:		return "H264 P frame QP value";
+> +	case V4L2_CID_MPEG_VIDEO_H264_B_FRAME_QP:		return "H264 B frame QP value";
+> +
+> +	case V4L2_CID_MPEG_VIDEO_MPEG4_I_FRAME_QP:		return "MPEG4 I-Frame QP value";
+> +	case V4L2_CID_MPEG_VIDEO_MPEG4_MIN_QP:			return "MPEG4 Minimum QP value";
+> +	case V4L2_CID_MPEG_VIDEO_MPEG4_MAX_QP:			return "MPEG4 Maximum QP value";
+> +	case V4L2_CID_MPEG_VIDEO_MPEG4_P_FRAME_QP:		return "MPEG4 P frame QP value";
+> +	case V4L2_CID_MPEG_VIDEO_MPEG4_B_FRAME_QP:		return "MPEG4 B frame QP value";
+> +
+> +	case V4L2_CID_MPEG_MFC51_VIDEO_H264_ADAPTIVE_RC_DARK: 	return "H264 dark region adaptive";
+> +	case V4L2_CID_MPEG_MFC51_VIDEO_H264_ADAPTIVE_RC_SMOOTH: return "H264 smooth region adaptive";
+> +	case V4L2_CID_MPEG_MFC51_VIDEO_H264_ADAPTIVE_RC_STATIC: return "H264 static region adaptive";
+> +	case V4L2_CID_MPEG_MFC51_VIDEO_H264_ADAPTIVE_RC_ACTIVITY: return "H264 MB activity adaptive";
+> +	case V4L2_CID_MPEG_VIDEO_H264_VUI_SAR_ENABLE:		return "Aspect ratio VUI enable";
+> +	case V4L2_CID_MPEG_VIDEO_H264_VUI_SAR_IDC:		return "VUI aspect ratio IDC";
+> +	case V4L2_CID_MPEG_VIDEO_H264_VUI_EXT_SAR_WIDTH:	return "Horizontal size of SAR";
+> +	case V4L2_CID_MPEG_VIDEO_H264_VUI_EXT_SAR_HEIGHT:	return "Vertical size of SAR";
+> +	case V4L2_CID_MPEG_VIDEO_H264_I_PERIOD:			return "H264 I period";
+> +	case V4L2_CID_MPEG_VIDEO_MPEG4_PROFILE:			return "MPEG4 profile";
+> +	case V4L2_CID_MPEG_VIDEO_MPEG4_QPEL:			return "Quarter pixel search enable";
+> +	case V4L2_CID_MPEG_VIDEO_MPEG4_VOP_TIME_RES:		return "MPEG4 vop time resolution";
+> +	case V4L2_CID_MPEG_VIDEO_MPEG4_VOP_TIME_INC:		return "MPEG4 frame delta";
 
-> Moving on:
+Can you sort this list into general MPEG controls, MPEG4 controls, H263/4 controls
+and MFC51 controls? It's all mixed up now. It's the same elsewhere where you have a
+series of case statements.
+
+> +
+>  	default:
+>  		return NULL;
+>  	}
+> @@ -520,6 +720,87 @@ void v4l2_ctrl_fill(u32 id, const char **name, enum v4l2_ctrl_type *type,
+>  		*flags |= V4L2_CTRL_FLAG_WRITE_ONLY;
+>  		break;
+>  	}
+> +	switch(id) {
+> +	case V4L2_CID_MPEG_VIDEO_DECODER_SLICE_INTERFACE:
+> +		*type = V4L2_CTRL_TYPE_BOOLEAN;
+
+Don't add a new switch, just add this to the already existing case statements
+for booleans, menus, etc.
+
+> +		break;
+> +	case V4L2_CID_MIN_BUFFERS_FOR_CAPTURE:
+> +	case V4L2_CID_MIN_BUFFERS_FOR_OUTPUT:
+> +		*type = V4L2_CTRL_TYPE_INTEGER;
+
+No need to specify integer controls explicitly, that's already the default
+case.
+
+> +		break;
+> +	case V4L2_CID_MPEG_MFC51_VIDEO_DECODER_H264_DISPLAY_DELAY:
+> +		*type = V4L2_CTRL_TYPE_INTEGER;
+> +		break;
+> +	case V4L2_CID_MPEG_MFC51_VIDEO_DECODER_H264_DISPLAY_DELAY_ENABLE:
+> +	case V4L2_CID_MPEG_VIDEO_DECODER_MPEG4_DEBLOCK_FILTER:
+> +		*type = V4L2_CTRL_TYPE_BOOLEAN;
+> +		break;
+> +
+> +
+> +	case V4L2_CID_MPEG_VIDEO_MULTI_SLICE_MODE:
+> +	case V4L2_CID_MPEG_MFC51_VIDEO_FORCE_FRAME_TYPE:
+> +	case V4L2_CID_MPEG_VIDEO_HEADER_MODE:
+> +	case V4L2_CID_MPEG_MFC51_VIDEO_FRAME_SKIP_MODE:
+> +	case V4L2_CID_MPEG_VIDEO_H264_PROFILE:
+> +	case V4L2_CID_MPEG_VIDEO_H264_LEVEL:
+> +	case V4L2_CID_MPEG_VIDEO_MPEG4_LEVEL:
+> +	case V4L2_CID_MPEG_VIDEO_H264_LOOP_FILTER_MODE:
+> +	case V4L2_CID_MPEG_VIDEO_H264_ENTROPY_MODE:
+> +	case V4L2_CID_MPEG_VIDEO_MPEG4_PROFILE:
+> +	case V4L2_CID_MPEG_VIDEO_H264_VUI_SAR_IDC:
+> +		*type = V4L2_CTRL_TYPE_MENU;
+> +		break;
+> +
+> +	case V4L2_CID_MPEG_MFC51_VIDEO_PADDING:
+> +	case V4L2_CID_MPEG_VIDEO_FRAME_RC_ENABLE:
+> +	case V4L2_CID_MPEG_MFC51_VIDEO_RC_FIXED_TARGET_BIT:
+> +	case V4L2_CID_MPEG_VIDEO_H264_8X8_TRANSFORM:
+> +	case V4L2_CID_MPEG_VIDEO_MB_RC_ENABLE:
+> +	case V4L2_CID_MPEG_MFC51_VIDEO_H264_ADAPTIVE_RC_DARK:
+> +	case V4L2_CID_MPEG_MFC51_VIDEO_H264_ADAPTIVE_RC_SMOOTH:
+> +	case V4L2_CID_MPEG_MFC51_VIDEO_H264_ADAPTIVE_RC_STATIC:
+> +	case V4L2_CID_MPEG_MFC51_VIDEO_H264_ADAPTIVE_RC_ACTIVITY:
+> +	case V4L2_CID_MPEG_VIDEO_H264_VUI_SAR_ENABLE:
+> +	case V4L2_CID_MPEG_VIDEO_MPEG4_QPEL:
+> +		*type = V4L2_CTRL_TYPE_BOOLEAN;
+> +		break;
+> +
+> +	case V4L2_CID_MPEG_VIDEO_GOP_SIZE:
+> +	case V4L2_CID_MPEG_VIDEO_MULTI_SLICE_MAX_MB:
+> +	case V4L2_CID_MPEG_VIDEO_MULTI_SLICE_MAX_BYTES:
+> +	case V4L2_CID_MPEG_VIDEO_CYCLIC_INTRA_REFRESH_MB:
+> +	case V4L2_CID_MPEG_MFC51_VIDEO_PADDING_YUV:
+> +	case V4L2_CID_MPEG_MFC51_VIDEO_RC_REACTION_COEFF:
+> +	case V4L2_CID_MPEG_VIDEO_VBV_SIZE:
+> +	case V4L2_CID_MPEG_VIDEO_H264_CPB_SIZE:
+> +	case V4L2_CID_MPEG_VIDEO_B_FRAMES:
+> +	case V4L2_CID_MPEG_VIDEO_H264_LOOP_FILTER_ALPHA:
+> +	case V4L2_CID_MPEG_VIDEO_H264_LOOP_FILTER_BETA:
+> +	case V4L2_CID_MPEG_VIDEO_MAX_REF_PIC:
+> +	case V4L2_CID_MPEG_MFC51_VIDEO_H264_NUM_REF_PIC_FOR_P:
+> +	case V4L2_CID_MPEG_VIDEO_H263_I_FRAME_QP:
+> +	case V4L2_CID_MPEG_VIDEO_H263_MIN_QP:
+> +	case V4L2_CID_MPEG_VIDEO_H263_MAX_QP:
+> +	case V4L2_CID_MPEG_VIDEO_H263_P_FRAME_QP:
+> +	case V4L2_CID_MPEG_VIDEO_H263_B_FRAME_QP:
+> +	case V4L2_CID_MPEG_VIDEO_H264_I_FRAME_QP:
+> +	case V4L2_CID_MPEG_VIDEO_H264_MIN_QP:
+> +	case V4L2_CID_MPEG_VIDEO_H264_MAX_QP:
+> +	case V4L2_CID_MPEG_VIDEO_H264_P_FRAME_QP:
+> +	case V4L2_CID_MPEG_VIDEO_H264_B_FRAME_QP:
+> +	case V4L2_CID_MPEG_VIDEO_MPEG4_I_FRAME_QP:
+> +	case V4L2_CID_MPEG_VIDEO_MPEG4_MIN_QP:
+> +	case V4L2_CID_MPEG_VIDEO_MPEG4_MAX_QP:
+> +	case V4L2_CID_MPEG_VIDEO_MPEG4_P_FRAME_QP:
+> +	case V4L2_CID_MPEG_VIDEO_MPEG4_B_FRAME_QP:
+> +	case V4L2_CID_MPEG_VIDEO_H264_VUI_EXT_SAR_WIDTH:
+> +	case V4L2_CID_MPEG_VIDEO_H264_VUI_EXT_SAR_HEIGHT:
+> +	case V4L2_CID_MPEG_VIDEO_H264_I_PERIOD:
+> +	case V4L2_CID_MPEG_VIDEO_MPEG4_VOP_TIME_RES:
+> +	case V4L2_CID_MPEG_VIDEO_MPEG4_VOP_TIME_INC:
+> +		*type = V4L2_CTRL_TYPE_INTEGER;
+> +		break;
+> +	}
+>  }
+>  EXPORT_SYMBOL(v4l2_ctrl_fill);
+>  
 > 
-> /**
->  * vb2_get_contig_userptr() - lock physically contiguous userspace mapped
-> memory
->  * @vaddr:	starting virtual address of the area to be verified
->  * @size:	size of the area
->  * @res_paddr:	will return physical address for the given vaddr
->  * @res_vma:	will return locked copy of struct vm_area for the given
-> area
->  *
->  * This function will go through memory area of size @size mapped at @vaddr
-> and
->  * verify that the underlying physical pages are contiguous. If they are
->  * contiguous the virtual memory area is locked and a @res_vma is filled
-> with
->  * the copy and @res_pa set to the physical address of the buffer.
->  [...]
-> 
-> Since we've determined that you're expecting this buffer to be in
-> somebody's device memory, the loop through the whole thing seems like a
-> bit much.  Testing the VMA flags for VM_IO and !VM_NONLINEAR seems like it
-> should suffice?  Or am I missing something?
 
-This is the first time I see VM_NONLINEAR, I will need to check how it is
-used. The loop was to ensure that memory is really contiguous, because
-nothing prevents other (unknown!) drivers to mmap the io memory in 
-non-linear way.
+Regards,
 
-> (FWIW, user space could conceivably create a contiguous buffer in
-> anonymous memory by using hugepages.  The current videobuf2 code won't
-> support that - follow_pfn() will fail.  Probably not going to be an issue
-> anytime in the near future, but one never knows...)
-
-Right, this should be put into TODO list.
-
-Best regards
--- 
-Marek Szyprowski
-Samsung Poland R&D Center
-
-
+	Hans
