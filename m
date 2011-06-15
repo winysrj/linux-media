@@ -1,51 +1,35 @@
 Return-path: <mchehab@pedra>
-Received: from ch1ehsobe001.messaging.microsoft.com ([216.32.181.181]:34803
-	"EHLO CH1EHSOBE001.bigfish.com" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1752287Ab1FFPfl (ORCPT
+Received: from mail-fx0-f46.google.com ([209.85.161.46]:59855 "EHLO
+	mail-fx0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755366Ab1FOPoV convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 6 Jun 2011 11:35:41 -0400
-Date: Mon, 6 Jun 2011 17:35:57 +0200
-From: "Roedel, Joerg" <Joerg.Roedel@amd.com>
-To: Ohad Ben-Cohen <ohad@wizery.com>
-CC: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	"linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>,
-	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
-	"linux-arm-kernel@lists.infradead.org"
-	<linux-arm-kernel@lists.infradead.org>,
-	"laurent.pinchart@ideasonboard.com"
-	<laurent.pinchart@ideasonboard.com>,
-	"Hiroshi.DOYU@nokia.com" <Hiroshi.DOYU@nokia.com>,
-	"arnd@arndb.de" <arnd@arndb.de>,
-	"davidb@codeaurora.org" <davidb@codeaurora.org>,
-	Omar Ramirez Luna <omar.ramirez@ti.com>
-Subject: Re: [RFC 0/6] iommu: generic api migration and grouping
-Message-ID: <20110606153557.GE1953@amd.com>
-References: <1307053663-24572-1-git-send-email-ohad@wizery.com>
- <20110606100950.GC30762@amd.com>
- <BANLkTi=i2s-Ujiy4qn_XQv+9dMjUC9R66A@mail.gmail.com>
+	Wed, 15 Jun 2011 11:44:21 -0400
+Received: by fxm17 with SMTP id 17so498429fxm.19
+        for <linux-media@vger.kernel.org>; Wed, 15 Jun 2011 08:44:20 -0700 (PDT)
+From: "Igor M. Liplianin" <liplianin@me.by>
+To: linux-media@vger.kernel.org
+Subject: Re: [PATCH] Add support for PCTV452E.
+Date: Wed, 15 Jun 2011 18:44:35 +0300
+Cc: Doychin Dokov <root@net1.cc>,
+	Konstantin Dimitrov <kosio.dimitrov@gmail.com>,
+	Hans Petter Selasky <hselasky@c2i.net>,
+	Dominik Kuhlen <dkuhlen@gmx.net>,
+	"Michael H. Schimek" <mschimek@gmx.at>,
+	Mauro Chehab <mchehab@infradead.org>
+References: <201105242151.22826.hselasky@c2i.net> <4DF52148.4060704@net1.cc> <4DF531BE.8090005@net1.cc>
+In-Reply-To: <4DF531BE.8090005@net1.cc>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Disposition: inline
-In-Reply-To: <BANLkTi=i2s-Ujiy4qn_XQv+9dMjUC9R66A@mail.gmail.com>
+Content-Type: Text/Plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
+Message-Id: <201106151844.35343.liplianin@me.by>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Mon, Jun 06, 2011 at 11:15:30AM -0400, Ohad Ben-Cohen wrote:
+>From my point of view we can count the beginning was here:
 
-> This is insufficient; users need somehow to tell what page sizes are
-> supported by the underlying hardware (we can't assume host page-sizes,
-> and we want to use bigger pages whenever possible, to relax the TLB
-> pressure).
-/
-What does the IOMMU-API user need this info for? On the x86 IOMMUs these
-details are handled transparently by the IOMMU driver.
+http://www.spinics.net/lists/linux-dvb/msg26431.html
 
-	Joerg
+The later history is difficult to restore, but possible.
 
--- 
-AMD Operating System Research Center
-
-Advanced Micro Devices GmbH Einsteinring 24 85609 Dornach
-General Managers: Alberto Bozzo, Andrew Bowd
-Registration: Dornach, Landkr. Muenchen; Registerger. Muenchen, HRB Nr. 43632
-
+BR
+Igor
