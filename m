@@ -1,58 +1,81 @@
 Return-path: <mchehab@pedra>
-Received: from mail-ew0-f46.google.com ([209.85.215.46]:39321 "EHLO
-	mail-ew0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753887Ab1FXVWx convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 24 Jun 2011 17:22:53 -0400
+Received: from mga11.intel.com ([192.55.52.93]:14348 "EHLO mga11.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752041Ab1FPTGf (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 16 Jun 2011 15:06:35 -0400
+Date: Thu, 16 Jun 2011 12:06:34 -0700
+From: Sarah Sharp <sarah.a.sharp@linux.intel.com>
+To: Alan Stern <stern@rowland.harvard.edu>
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	linux-media@vger.kernel.org, USB list <linux-usb@vger.kernel.org>,
+	Andiry Xu <andiry.xu@amd.com>
+Subject: Re: uvcvideo failure under xHCI
+Message-ID: <20110616190634.GA7290@xanatos>
+References: <20110616171711.GB6188@xanatos>
+ <Pine.LNX.4.44L0.1106161329250.3807-100000@iolanthe.rowland.org>
 MIME-Version: 1.0
-In-Reply-To: <20110624232048.66f1f98c@stein>
-References: <alpine.LNX.2.00.1106232344480.17688@swampdragon.chaosbits.net>
-	<4E04912A.4090305@infradead.org>
-	<BANLkTim9cBiiK_GsZaspxpPJQDBvAcKCWg@mail.gmail.com>
-	<201106241554.10751.hverkuil@xs4all.nl>
-	<4E04A122.2080002@infradead.org>
-	<20110624203404.7a3f6f6a@stein>
-	<BANLkTimj-oEDvWxMao6zJ_sudUntEVjO1w@mail.gmail.com>
-	<1308949448.2093.20.camel@morgan.silverblock.net>
-	<20110624232048.66f1f98c@stein>
-Date: Fri, 24 Jun 2011 17:22:50 -0400
-Message-ID: <BANLkTinZoax2fcSxvyQgfsT-bmsF+BofyQ@mail.gmail.com>
-Subject: Re: [RFC] Don't use linux/version.h anymore to indicate a per-driver
- version - Was: Re: [PATCH 03/37] Remove unneeded version.h includes from include/
-From: Devin Heitmueller <dheitmueller@kernellabs.com>
-To: Stefan Richter <stefanr@s5r6.in-berlin.de>
-Cc: Andy Walls <awalls@md.metrocast.net>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	Jesper Juhl <jj@chaosbits.net>,
-	LKML <linux-kernel@vger.kernel.org>, trivial@kernel.org,
-	linux-media@vger.kernel.org, ceph-devel@vger.kernel.org,
-	Sage Weil <sage@newdream.net>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <Pine.LNX.4.44L0.1106161329250.3807-100000@iolanthe.rowland.org>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Fri, Jun 24, 2011 at 5:20 PM, Stefan Richter
-<stefanr@s5r6.in-berlin.de> wrote:
-> Easier:
->  "I run Ubuntu 10.4".
->  "I run kernel 2.6.32."
-> One of these is usually already included in the first post or IRC message
-> from the user.
->
-> Separate driver versions are only needed on platforms where drivers are
-> not distributed by the operating system distributor, or driver source code
-> is not released within kernel source code.
+On Thu, Jun 16, 2011 at 01:39:43PM -0400, Alan Stern wrote:
+> On Thu, 16 Jun 2011, Sarah Sharp wrote:
+> 
+> > > > > Alan, does that seem correct?
+> > > 
+> > > The description of the behavior of ehci-hcd and uhci-hcd is correct.  
+> > > ohci-hcd behaves the same way too.  And they all agree with the 
+> > > behavior described in the kerneldoc for struct urb in 
+> > > include/linux/usb.h.
+> > 
+> > Ah, you mean this bit?
+> > 
+> >  * @status: This is read in non-iso completion functions to get the
+> >  *      status of the particular request.  ISO requests only use it
+> >  *      to tell whether the URB was unlinked; detailed status for
+> >  *      each frame is in the fields of the iso_frame-desc.
+> 
+> Right.  There's also some more near the end:
+> 
+>  * Completion Callbacks:
+>  *
+>  * The completion callback is made in_interrupt(), and one of the first
+>  * things that a completion handler should do is check the status field.
+>  * The status field is provided for all URBs.  It is used to report
+>  * unlinked URBs, and status for all non-ISO transfers.  It should not
+>  * be examined before the URB is returned to the completion handler.
+> 
+> > > Under the circumstances, the documentation file should be changed.  
+> > > Sarah, can you do that along with the change to xhci-hcd?
+> > 
+> > Sure.  It feels like there should be a note about which values
+> > isochronous URBs might have in the urb->status field.  The USB core is
+> > the only one that would be setting those, so which values would it set?
+> > uvcvideo tests for these error codes:
+> > 
+> >         case -ENOENT:           /* usb_kill_urb() called. */
+> >         case -ECONNRESET:       /* usb_unlink_urb() called. */
+> >         case -ESHUTDOWN:        /* The endpoint is being disabled. */
+> >         case -EPROTO:           /* Device is disconnected (reported by some
+> >                                  * host controller). */
+> > 
+> > Are there any others.
+> 
+> -EREMOTEIO, in the unlikely event that URB_SHORT_NOT_OK is set, but no
+> others.
 
-Unfortunately, this doesn't work as all too often the user has "Ubuntu
-10.1 but I installed the latest media_build tree a few months ago".
-Hence they are not necessarily on a particular binary release from a
-distro but rather have a mix of a distro's binary release and a
-v4l-dvb tree compiled from source.
+Are you saying that the USB core will only set -EREMOTEIO for
+isochronous URBs?  Or do you mean that in addition to the status values
+that uvcvideo checks, the USB core can also set -EREMOTEIO?
 
-Devin
+> And I wasn't aware of that last one...  Host controller drivers should
+> report -ESHUTDOWN to mean the device has been disconnected, not
+> -EPROTO.  But usually HCD don't take these events into account when
+> determining URB status codes.
 
--- 
-Devin J. Heitmueller - Kernel Labs
-http://www.kernellabs.com
+The xHCI driver will return -ESHUTDOWN as a status for URBs when the
+host controller is dying.
+
+Sarah Sharp
