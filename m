@@ -1,61 +1,69 @@
 Return-path: <mchehab@pedra>
-Received: from smtp-vbr16.xs4all.nl ([194.109.24.36]:1057 "EHLO
-	smtp-vbr16.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756443Ab1F1GXN (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 28 Jun 2011 02:23:13 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-Subject: Re: [RFCv3 PATCH 11/18] v4l2-ctrls: add v4l2_fh pointer to the set control functions.
-Date: Tue, 28 Jun 2011 08:22:57 +0200
-Cc: linux-media@vger.kernel.org, Hans Verkuil <hans.verkuil@cisco.com>
-References: <1307459123-17810-1-git-send-email-hverkuil@xs4all.nl> <5efc95cbe00dda4ee88523f173a3998257120bdd.1307458245.git.hans.verkuil@cisco.com> <4E08F407.1090809@redhat.com>
-In-Reply-To: <4E08F407.1090809@redhat.com>
-MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201106280822.57297.hverkuil@xs4all.nl>
+Received: from tex.lwn.net ([70.33.254.29]:48343 "EHLO vena.lwn.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755474Ab1FPPRW (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 16 Jun 2011 11:17:22 -0400
+Date: Thu, 16 Jun 2011 09:17:20 -0600
+From: Jonathan Corbet <corbet@lwn.net>
+To: Kassey Lee <kassey1216@gmail.com>
+Cc: linux-media@vger.kernel.org, g.liakhovetski@gmx.de,
+	Kassey Lee <ygli@marvell.com>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	qingx@marvell.com, ytang5@marvell.com
+Subject: Re: [PATCH 8/8] marvell-cam: Basic working MMP camera driver
+Message-ID: <20110616091720.22962c5c@bike.lwn.net>
+In-Reply-To: <BANLkTi=rZzEQp0iNBdrTBCeWM=h+nq49sw@mail.gmail.com>
+References: <1307814409-46282-1-git-send-email-corbet@lwn.net>
+	<1307814409-46282-9-git-send-email-corbet@lwn.net>
+	<BANLkTi=rZzEQp0iNBdrTBCeWM=h+nq49sw@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Monday, June 27, 2011 23:20:07 Mauro Carvalho Chehab wrote:
-> Em 07-06-2011 12:05, Hans Verkuil escreveu:
-> > From: Hans Verkuil <hans.verkuil@cisco.com>
-> > 
-> > When an application changes a control you want to generate an event.
-> > However, you want to avoid sending such an event back to the application
-> > (file handle) that caused the change.
-> 
-> Why? 
-> 
-> I can see two usecases for an event-triggered control change:
-> 	1) when two applications are used, and one changed a value that could
-> affect the other;
-> 	2) as a way to implement async changes.
-> 
-> However, it seems, from your comments, that you're covering only case (1).
-> 
-> There are several reasons why we need to support case (2):
-> 
-> Some controls may be associated to a servo mechanism (like zoom, optical
-> focus, etc), or may require some time to happen (like charging a flash device).
-> So, it makes sense to have events back to the application that caused the change.
-> 
-> Kernel should not assume that the application that requested a change on a control
-> doesn't want to receive the notification back when the event actually happened.
-> This way, both cases will be covered.
-> 
-> Yet, I failed to see where, in the code, such restriction were imposed.
+On Thu, 16 Jun 2011 10:37:37 +0800
+Kassey Lee <kassey1216@gmail.com> wrote:
 
-Async changes are triggered by the driver, not an application. Any changes
-made by the driver will be sent to all applications.
+> > +static void mmpcam_power_down(struct mcam_camera *mcam)
+> > +{
+> > +       struct mmp_camera *cam = mcam_to_cam(mcam);
+> > +       struct mmp_camera_platform_data *pdata;
+> > +/*
+> > + * Turn off clocks and set reset lines
+> > + */
+> > +       iowrite32(0, cam->power_regs + REG_CCIC_DCGCR);
+> > +       iowrite32(0, cam->power_regs + REG_CCIC_CRCR);
+> > +/*
+> > + * Shut down the sensor.
+> > + */
+> > +       pdata = cam->pdev->dev.platform_data;
+> > +       gpio_set_value(pdata->sensor_power_gpio, 0);
+> > +       gpio_set_value(pdata->sensor_reset_gpio, 0);  
 
-That said, I think I should add a flag like V4L2_EVENT_SUB_FL_NO_FEEDBACK
-to explicitly let applications decide.
+> it is better to have a callback function to controller sensor power on/off.
+> and place the callback function in board.c
 
-That's easy enough.
+This is an interesting question, actually.  The problem is that board
+files are on their way out; it's going to be very hard to get any more
+board files into the mainline going forward.
 
-Regards,
+The mmp-camera driver does depend on a board file, but I've been careful
+to restrict things to basic platform data which can just as easily be put
+into a device tree.  Power management callbacks don't really qualify.
 
-	Hans
+So it seems that we need to figure out a way to push this kind of
+pin/power management down into the sensor-specific code.  Looking at the
+subdev stuff, it looks like a bit of thought has been put into that
+direction; there's the s_io_pin_config() callback to describe pins to the
+sensor.  But it's almost entirely unused.
+
+There is no "power up/down" callback, currently.  We could ponder on
+whether one should be added, or whether this should be handled through the
+existing power management code somehow.  I honestly don't know what the
+best answer is on this one - will have to do some digging.  Suggestions
+welcome.
+
+Thanks,
+
+jon
