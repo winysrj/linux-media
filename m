@@ -1,74 +1,60 @@
 Return-path: <mchehab@pedra>
-Received: from mail-yx0-f174.google.com ([209.85.213.174]:33278 "EHLO
-	mail-yx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752666Ab1FOCBe convert rfc822-to-8bit (ORCPT
+Received: from iolanthe.rowland.org ([192.131.102.54]:46404 "HELO
+	iolanthe.rowland.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1757062Ab1FPTjM (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 14 Jun 2011 22:01:34 -0400
-Received: by yxi11 with SMTP id 11so1755588yxi.19
-        for <linux-media@vger.kernel.org>; Tue, 14 Jun 2011 19:01:33 -0700 (PDT)
+	Thu, 16 Jun 2011 15:39:12 -0400
+Date: Thu, 16 Jun 2011 15:39:11 -0400 (EDT)
+From: Alan Stern <stern@rowland.harvard.edu>
+To: Sarah Sharp <sarah.a.sharp@linux.intel.com>
+cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	<linux-media@vger.kernel.org>,
+	USB list <linux-usb@vger.kernel.org>,
+	Andiry Xu <andiry.xu@amd.com>
+Subject: Re: uvcvideo failure under xHCI
+In-Reply-To: <20110616190634.GA7290@xanatos>
+Message-ID: <Pine.LNX.4.44L0.1106161536110.1697-100000@iolanthe.rowland.org>
 MIME-Version: 1.0
-In-Reply-To: <20110614082333.43098c95@bike.lwn.net>
-References: <1307814409-46282-1-git-send-email-corbet@lwn.net>
-	<1307814409-46282-2-git-send-email-corbet@lwn.net>
-	<BANLkTikXATbgOZQbzaj4sQEmELsdpNobfQ@mail.gmail.com>
-	<20110614082333.43098c95@bike.lwn.net>
-Date: Wed, 15 Jun 2011 10:01:33 +0800
-Message-ID: <BANLkTikmvsgBTLgu46xXYiUHmOVvGoZAag@mail.gmail.com>
-Subject: Re: [PATCH 1/8] marvell-cam: Move cafe-ccic into its own directory
-From: Kassey Lee <kassey1216@gmail.com>
-To: Jonathan Corbet <corbet@lwn.net>
-Cc: linux-media@vger.kernel.org, g.liakhovetski@gmx.de,
-	Kassey Lee <ygli@marvell.com>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Daniel Drake <dsd@laptop.org>, ytang5@marvell.com,
-	qingx@marvell.com, leiwen@marvell.com
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Jon,
-     if you agree to change it in another patch, and now just to keep
-it with the driver that works for years.
-     that is OK. thanks.
-     I am looking forward your patch based on VB2, because based on
-current cafe_ccic.c, it is hard to share with my driver.
+On Thu, 16 Jun 2011, Sarah Sharp wrote:
 
-2011/6/14 Jonathan Corbet <corbet@lwn.net>:
-> On Tue, 14 Jun 2011 10:23:58 +0800
-> Kassey Lee <kassey1216@gmail.com> wrote:
->
->> Jon, Here is my comments.
->
-> Thanks for having a look.
->
->> > +config VIDEO_CAFE_CCIC
->> > +       tristate "Marvell 88ALP01 (Cafe) CMOS Camera Controller support"
->> > +       depends on PCI && I2C && VIDEO_V4L2
->> > +       select VIDEO_OV7670
->> >
->>  why need binds with sensor ? suppose CCIC driver and sensor driver are
->> independent, even if your hardware only support OV7670
->
-> We all agree that needs to change.  This particular patch, though, is
-> concerned with moving a working driver into a new directory; making that
-> sort of functional change would not be appropriate here.
->
->> > +#include <media/ov7670.h>
->> >
->>      ccic would not be aware of the sensor name.
->
-> Ditto.
->
-> Thanks,
->
-> jon
->
+> > > Sure.  It feels like there should be a note about which values
+> > > isochronous URBs might have in the urb->status field.  The USB core is
+> > > the only one that would be setting those, so which values would it set?
+> > > uvcvideo tests for these error codes:
+> > > 
+> > >         case -ENOENT:           /* usb_kill_urb() called. */
+> > >         case -ECONNRESET:       /* usb_unlink_urb() called. */
+> > >         case -ESHUTDOWN:        /* The endpoint is being disabled. */
+> > >         case -EPROTO:           /* Device is disconnected (reported by some
+> > >                                  * host controller). */
+> > > 
+> > > Are there any others.
+> > 
+> > -EREMOTEIO, in the unlikely event that URB_SHORT_NOT_OK is set, but no
+> > others.
+> 
+> Are you saying that the USB core will only set -EREMOTEIO for
+> isochronous URBs?  Or do you mean that in addition to the status values
+> that uvcvideo checks, the USB core can also set -EREMOTEIO?
 
+The latter.  However, if uvcvideo never sets the URB_SHORT_NOT_OK flag 
+then usbcore will never set urb->status to -EREMOTEIO.
 
+> > And I wasn't aware of that last one...  Host controller drivers should
+> > report -ESHUTDOWN to mean the device has been disconnected, not
+> > -EPROTO.  But usually HCD don't take these events into account when
+> > determining URB status codes.
+> 
+> The xHCI driver will return -ESHUTDOWN as a status for URBs when the
+> host controller is dying.
 
--- 
-Best regards
-Kassey
-Application Processor Systems Engineering, Marvell Technology Group Ltd.
-Shanghai, China.
+That's appropriate.  But nobody should ever set an isochronous URB's
+status field to -EPROTO, no matter whether the device is connected or
+not and no matter whether the host controller is alive or not.
+
+Alan Stern
+
