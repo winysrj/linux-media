@@ -1,69 +1,78 @@
 Return-path: <mchehab@pedra>
-Received: from einhorn.in-berlin.de ([192.109.42.8]:38997 "EHLO
-	einhorn.in-berlin.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753130Ab1FXWjq convert rfc822-to-8bit (ORCPT
+Received: from rcsinet10.oracle.com ([148.87.113.121]:35271 "EHLO
+	rcsinet10.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756431Ab1FPTO1 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 24 Jun 2011 18:39:46 -0400
-Date: Sat, 25 Jun 2011 00:39:11 +0200
-From: Stefan Richter <stefanr@s5r6.in-berlin.de>
-To: Devin Heitmueller <dheitmueller@kernellabs.com>
-Cc: Andy Walls <awalls@md.metrocast.net>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	Jesper Juhl <jj@chaosbits.net>,
-	LKML <linux-kernel@vger.kernel.org>, trivial@kernel.org,
-	linux-media@vger.kernel.org, ceph-devel@vger.kernel.org,
-	Sage Weil <sage@newdream.net>
-Subject: Re: [RFC] Don't use linux/version.h anymore to indicate a
- per-driver version - Was: Re: [PATCH 03/37] Remove unneeded version.h
- includes from include/
-Message-ID: <20110625003911.5c14a95e@stein>
-In-Reply-To: <BANLkTinZoax2fcSxvyQgfsT-bmsF+BofyQ@mail.gmail.com>
-References: <alpine.LNX.2.00.1106232344480.17688@swampdragon.chaosbits.net>
-	<4E04912A.4090305@infradead.org>
-	<BANLkTim9cBiiK_GsZaspxpPJQDBvAcKCWg@mail.gmail.com>
-	<201106241554.10751.hverkuil@xs4all.nl>
-	<4E04A122.2080002@infradead.org>
-	<20110624203404.7a3f6f6a@stein>
-	<BANLkTimj-oEDvWxMao6zJ_sudUntEVjO1w@mail.gmail.com>
-	<1308949448.2093.20.camel@morgan.silverblock.net>
-	<20110624232048.66f1f98c@stein>
-	<BANLkTinZoax2fcSxvyQgfsT-bmsF+BofyQ@mail.gmail.com>
+	Thu, 16 Jun 2011 15:14:27 -0400
+Date: Thu, 16 Jun 2011 12:14:02 -0700
+From: Randy Dunlap <randy.dunlap@oracle.com>
+To: Jiri Slaby <jslaby@suse.cz>
+Cc: mchehab@redhat.com, linux-media@vger.kernel.org,
+	linux-kernel@vger.kernel.org, jirislaby@gmail.com,
+	Hans Petter Selasky <hselasky@c2i.net>
+Subject: Re: [PATCH] DVB: dvb-net, make the kconfig text helpful
+Message-Id: <20110616121402.2e7441af.randy.dunlap@oracle.com>
+In-Reply-To: <1308251216-8194-1-git-send-email-jslaby@suse.cz>
+References: <4DF9DD25.1000103@redhat.com>
+	<1308251216-8194-1-git-send-email-jslaby@suse.cz>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Jun 24 Devin Heitmueller wrote:
-> On Fri, Jun 24, 2011 at 5:20 PM, Stefan Richter
-> <stefanr@s5r6.in-berlin.de> wrote:
-> > Easier:
-> >  "I run Ubuntu 10.4".
-> >  "I run kernel 2.6.32."
-> > One of these is usually already included in the first post or IRC message
-> > from the user.
-> >
-> > Separate driver versions are only needed on platforms where drivers are
-> > not distributed by the operating system distributor, or driver source code
-> > is not released within kernel source code.
+On Thu, 16 Jun 2011 21:06:56 +0200 Jiri Slaby wrote:
+
+> Telling the user they can disable an option if they want is not the
+> much useful. Describe what it is good for instead.
 > 
-> Unfortunately, this doesn't work as all too often the user has "Ubuntu
-> 10.1 but I installed the latest media_build tree a few months ago".
-> Hence they are not necessarily on a particular binary release from a
-> distro but rather have a mix of a distro's binary release and a
-> v4l-dvb tree compiled from source.
+> The text was derived from Mauro's email.
+> 
+> Signed-off-by: Jiri Slaby <jslaby@suse.cz>
+> Cc: Mauro Carvalho Chehab <mchehab@redhat.com>
+> Cc: Hans Petter Selasky <hselasky@c2i.net>
 
-If you release out-of-kernel-source driver sources for compilation against
-binary kernels, and you have got users who go through this procedure, then
-the user can for sure tell you the SCM version of the driver.
+Yes, much better.  Thanks.
 
-Besides, isn't this outdated practice in times where Joe Enduser can get
-the very latest -rc kernel prepackaged on many distributions, including
-ones like Ubuntu?
+Acked-by: Randy Dunlap <randy.dunlap@oracle.com>
 
-[Sorry, I'm getting perhaps a bit off-topic.]
--- 
-Stefan Richter
--=====-==-== -==- ==--=
-http://arcgraph.de/sr/
+> ---
+>  drivers/media/Kconfig |   10 ++++++----
+>  1 files changed, 6 insertions(+), 4 deletions(-)
+> 
+> diff --git a/drivers/media/Kconfig b/drivers/media/Kconfig
+> index dc61895..279e2b9 100644
+> --- a/drivers/media/Kconfig
+> +++ b/drivers/media/Kconfig
+> @@ -89,11 +89,13 @@ config DVB_NET
+>  	default (NET && INET)
+>  	depends on NET && INET
+>  	help
+> -	  The DVB network support in the DVB core can
+> -	  optionally be disabled if this
+> -	  option is set to N.
+> +	  This option enables DVB Network Support which is a part of the DVB
+> +	  standard. It is used, for example, by automatic firmware updates used
+> +	  on Set-Top-Boxes. It can also be used to access the Internet via the
+> +	  DVB card, if the network provider supports it.
+>  
+> -	  If unsure say Y.
+> +	  You may want to disable the network support on embedded devices. If
+> +	  unsure say Y.
+>  
+>  config VIDEO_MEDIA
+>  	tristate
+> -- 
+> 1.7.5.4
+> 
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-kernel" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> Please read the FAQ at  http://www.tux.org/lkml/
+
+
+---
+~Randy
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
