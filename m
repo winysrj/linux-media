@@ -1,88 +1,38 @@
 Return-path: <mchehab@pedra>
-Received: from mx1.redhat.com ([209.132.183.28]:1551 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756941Ab1FURxJ (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 21 Jun 2011 13:53:09 -0400
-Message-ID: <4E00DA73.1090903@redhat.com>
-Date: Tue, 21 Jun 2011 14:52:51 -0300
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Received: from iolanthe.rowland.org ([192.131.102.54]:43150 "HELO
+	iolanthe.rowland.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S932790Ab1FPUUX (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 16 Jun 2011 16:20:23 -0400
+Date: Thu, 16 Jun 2011 16:20:22 -0400 (EDT)
+From: Alan Stern <stern@rowland.harvard.edu>
+To: Sarah Sharp <sarah.a.sharp@linux.intel.com>
+cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	<linux-media@vger.kernel.org>,
+	USB list <linux-usb@vger.kernel.org>,
+	Andiry Xu <andiry.xu@amd.com>, Alex He <alex.he@amd.com>
+Subject: Re: uvcvideo failure under xHCI
+In-Reply-To: <20110616195843.GB7290@xanatos>
+Message-ID: <Pine.LNX.4.44L0.1106161619140.1697-100000@iolanthe.rowland.org>
 MIME-Version: 1.0
-To: =?UTF-8?B?UmljaGFyZCBSw7ZqZm9ycw==?=
-	<richard.rojfors@pelagicore.com>
-CC: linux-media@vger.kernel.org, Hans Verkuil <hverkuil@xs4all.nl>
-Subject: Re: [PATCH 2/2] radio-timb: Add open function which finds tuner and
- DSP via I2C
-References: <1307717332.2420.30.camel@debian>
-In-Reply-To: <1307717332.2420.30.camel@debian>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Em 10-06-2011 11:48, Richard Röjfors escreveu:
-> This patch uses the platform data and finds a tuner and DSP. This is
-> done when the user calls open. Not during probe, to allow shorter bootup
-> time of the system.
-> This piece of code was actually missing earlier, many of the functions
-> were not useful without DSP and tuner.
-> 
-> Signed-off-by: Richard Röjfors <richard.rojfors@pelagicore.com>
-> ---
-> diff --git a/drivers/media/radio/radio-timb.c b/drivers/media/radio/radio-timb.c
-> index a185610..64a5e19 100644
-> --- a/drivers/media/radio/radio-timb.c
-> +++ b/drivers/media/radio/radio-timb.c
-> @@ -141,9 +141,42 @@ static const struct v4l2_ioctl_ops timbradio_ioctl_ops = {
->  	.vidioc_s_ctrl		= timbradio_vidioc_s_ctrl
->  };
->  
-> +static int timbradio_fops_open(struct file *file)
-> +{
-> +	struct timbradio *tr = video_drvdata(file);
-> +	struct i2c_adapter *adapt;
-> +
-> +	/* find the I2C bus */
-> +	adapt = i2c_get_adapter(tr->pdata.i2c_adapter);
-> +	if (!adapt) {
-> +		printk(KERN_ERR DRIVER_NAME": No I2C bus\n");
-> +		return -ENODEV;
-> +	}
-> +
-> +	/* now find the tuner and dsp */
-> +	if (!tr->sd_dsp)
-> +		tr->sd_dsp = v4l2_i2c_new_subdev_board(&tr->v4l2_dev, adapt,
-> +			tr->pdata.dsp, NULL);
-> +
-> +	if (!tr->sd_tuner)
-> +		tr->sd_tuner = v4l2_i2c_new_subdev_board(&tr->v4l2_dev, adapt,
-> +			tr->pdata.tuner, NULL);
-> +
-> +	i2c_put_adapter(adapt);
+On Thu, 16 Jun 2011, Sarah Sharp wrote:
 
-Hmm... it doesn't look right to me to do that for every device
-open. You should probably do it at device probe, and move i2c_put_adapter
-to device removal.
-
-> +
-> +	if (!tr->sd_tuner || !tr->sd_dsp) {
-> +		printk(KERN_ERR DRIVER_NAME
-> +			": Failed to get tuner or DSP\n");
-> +		return -ENODEV;
-> +	}
-> +
-> +	return 0;
-> +}
-> +
->  static const struct v4l2_file_operations timbradio_fops = {
->  	.owner		= THIS_MODULE,
->  	.unlocked_ioctl	= video_ioctl2,
-> +	.open		= timbradio_fops_open,
->  };
->  
->  static int __devinit timbradio_probe(struct platform_device *pdev)
+> On Thu, Jun 16, 2011 at 03:39:11PM -0400, Alan Stern wrote:
+> > That's appropriate.  But nobody should ever set an isochronous URB's
+> > status field to -EPROTO, no matter whether the device is connected or
+> > not and no matter whether the host controller is alive or not.
 > 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> But the individual frame status be set to -EPROTO, correct?  That's what
+> Alex was told to do when an isochronous TD had a completion code of
+> "Incompatible Device Error".
+
+Right.  -EPROTO is a perfectly reasonable code for a frame's status.  
+But not for an isochronous URB's status.  There's no reason for 
+uvcvideo to test for it.
+
+Alan Stern
 
