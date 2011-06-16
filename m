@@ -1,61 +1,77 @@
 Return-path: <mchehab@pedra>
-Received: from smtp-vbr18.xs4all.nl ([194.109.24.38]:3775 "EHLO
-	smtp-vbr18.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753758Ab1FLPrH (ORCPT
+Received: from perceval.ideasonboard.com ([95.142.166.194]:59797 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752348Ab1FPIHs (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 12 Jun 2011 11:47:07 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-Subject: Re: [RFCv4 PATCH 6/8] v4l2-ioctl.c: prefill tuner type for g_frequency and g/s_tuner.
-Date: Sun, 12 Jun 2011 17:46:58 +0200
-Cc: linux-media@vger.kernel.org, Mike Isely <isely@isely.net>,
-	Hans Verkuil <hans.verkuil@cisco.com>
-References: <1307876389-30347-1-git-send-email-hverkuil@xs4all.nl> <e2a61ca8e17b7354a69bcb1b5ca35301efb5581e.1307875512.git.hans.verkuil@cisco.com> <4DF4CEDB.9070501@redhat.com>
-In-Reply-To: <4DF4CEDB.9070501@redhat.com>
+	Thu, 16 Jun 2011 04:07:48 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Sarah Sharp <sarah.a.sharp@linux.intel.com>
+Subject: Re: uvcvideo failure under xHCI
+Date: Thu, 16 Jun 2011 10:07:49 +0200
+Cc: linux-media@vger.kernel.org, linux-usb@vger.kernel.org,
+	Andiry Xu <andiry.xu@amd.com>,
+	Alan Stern <stern@rowland.harvard.edu>
+References: <20110616013957.GA9809@xanatos> <20110616025957.GA10184@xanatos>
+In-Reply-To: <20110616025957.GA10184@xanatos>
 MIME-Version: 1.0
+Message-Id: <201106161007.50594.laurent.pinchart@ideasonboard.com>
 Content-Type: Text/Plain;
   charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
-Message-Id: <201106121746.58795.hverkuil@xs4all.nl>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Sunday, June 12, 2011 16:36:11 Mauro Carvalho Chehab wrote:
-> Em 12-06-2011 07:59, Hans Verkuil escreveu:
-> > From: Hans Verkuil <hans.verkuil@cisco.com>
+Hi Sarah,
+
+On Thursday 16 June 2011 04:59:57 Sarah Sharp wrote:
+> On Wed, Jun 15, 2011 at 06:39:57PM -0700, Sarah Sharp wrote:
+> > When I plug in a webcam under an xHCI host controller in 3.0-rc3+
+> > (basically top of Greg's usb-linus branch) with xHCI debugging turned
+> > on, the host controller occasionally cannot keep up with the isochronous
+> > transfers, and it tells the xHCI driver that it had to "skip" several
+> > microframes of transfers.  These "Missed Service Intervals" aren't
+> > supposed to be fatal errors, just an indication that something was
+> > hogging the PCI memory bandwidth.
 > > 
-> > The subdevs are supposed to receive a valid tuner type for the g_frequency
-> > and g/s_tuner subdev ops. Some drivers do this, others don't. So prefill
-> > this in v4l2-ioctl.c based on whether the device node from which this is
-> > called is a radio node or not.
+> > The xHCI driver then sets the URB's status to -EXDEV, to indicate that
+> > some of the iso_frame_desc transferred, and sets at least one frame's
+> 
+> > status to -EXDEV:
+> ...
+> 
+> > The urb->status causes uvcvideo code in
+> > uvc_status.c:uvc_status_complete() to fail with the message:
 > > 
-> > The spec does not require applications to fill in the type, and if they
-> > leave it at 0 then the 'supported_mode' call in tuner-core.c will return
-> > false and the ioctl does nothing.
+> > Jun 15 17:37:11 talon kernel: [  117.987769] uvcvideo: Non-zero status
+> > (-18) in video completion handler.
 > 
-> Interesting solution. Yes, this is the proper fix, but only after being sure
-> that no drivers allow switch to radio using the video device, and vice-versa.
-
-Why would that be a problem? What this patch does is that it fixes those
-drivers that do *not* set vf/vt->type (i.e. leave it at 0). For those that already
-set it nothing changes.
-
-> Unfortunately, this is not the case, currently.
+> ...
 > 
-> Most drivers allow this, following the previous V4L2 specs. Changing such
-> behavior will probably require to write something at 
-> Documentation/feature-removal-schedule.txt, as we're changing the behavior.
+> > I've grepped through drivers/media/video, and it seems like none of the
+> > drivers handle the -EXDEV status.  What should the xHCI driver be
+> > setting the URB's status and frame status to when the xHCI host
+> > controller skips over transfers?  -EREMOTEIO?
+> > 
+> > Or does it need to set the URB's status to zero, but only set the
+> > individual frame status to -EXDEV?
+> 
+> Ok, looking at both EHCI and UHCI, they seem to set the urb->status to
+> zero, regardless of what they set the frame descriptor field to.
+> 
+> Alan, does that seem correct?
 
-I think in the longer term we need to change the spec so that:
+According to Documentation/usb/error-codes.txt, host controller drivers should 
+set the status to -EXDEV. However, no device drivers seem to handle that, 
+probably because the EHCI/UHCI drivers don't use that error code.
 
-1) Opening a radio node no longer switches to radio mode. Instead, you need to
-   call VIDIOC_S_FREQUENCY for that.
-2) When VIDIOC_S_FREQUENCY the type field should match the video/radio node it
-   is called on. So for /dev/radio type should be RADIO, for others it should be
-   ANALOG_TV. Otherwise -EINVAL is called.
+Drivers are clearly out of sync with the documentation, so we should fix one 
+of them.
 
-So this might be a good feature removal for 3.2 or 3.3.
+> I've created a patch to do the same thing in the xHCI driver, and I seem
+> to be getting consistent video with xHCI debugging turned on, despite
+> lots of Missed Service Interval events.
 
+-- 
 Regards,
 
-	Hans
+Laurent Pinchart
