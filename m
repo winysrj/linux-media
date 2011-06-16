@@ -1,53 +1,78 @@
 Return-path: <mchehab@pedra>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:50516 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755975Ab1F0A7c (ORCPT
+Received: from iolanthe.rowland.org ([192.131.102.54]:39096 "HELO
+	iolanthe.rowland.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S932103Ab1FPOfu (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 26 Jun 2011 20:59:32 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-Subject: Re: [PATCH] [media] Stop using linux/version.h on most drivers
-Date: Mon, 27 Jun 2011 02:59:38 +0200
-Cc: Hans Verkuil <hverkuil@xs4all.nl>,
-	LKML <linux-kernel@vger.kernel.org>,
-	Devin Heitmueller <dheitmueller@kernellabs.com>,
-	Jesper Juhl <jj@chaosbits.net>, trivial@kernel.org,
-	linux-media@vger.kernel.org, ceph-devel@vger.kernel.org,
-	Sage Weil <sage@newdream.net>, Mike Isely <isely@isely.net>,
-	Hans De Goede <hdegoede@redhat.com>,
-	"Jean-Francois Moine" <moinejf@free.fr>
-References: <alpine.LNX.2.00.1106232344480.17688@swampdragon.chaosbits.net> <201106251209.21228.hverkuil@xs4all.nl> <4E05D13A.6030209@redhat.com>
-In-Reply-To: <4E05D13A.6030209@redhat.com>
+	Thu, 16 Jun 2011 10:35:50 -0400
+Date: Thu, 16 Jun 2011 10:35:49 -0400 (EDT)
+From: Alan Stern <stern@rowland.harvard.edu>
+To: Sarah Sharp <sarah.a.sharp@linux.intel.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+cc: linux-media@vger.kernel.org, USB list <linux-usb@vger.kernel.org>,
+	Andiry Xu <andiry.xu@amd.com>
+Subject: Re: uvcvideo failure under xHCI
+In-Reply-To: <201106161007.50594.laurent.pinchart@ideasonboard.com>
+Message-ID: <Pine.LNX.4.44L0.1106161029490.2204-100000@iolanthe.rowland.org>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201106270259.38405.laurent.pinchart@ideasonboard.com>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Hi Mauro,
+On Thu, 16 Jun 2011, Laurent Pinchart wrote:
 
-On Saturday 25 June 2011 14:14:50 Mauro Carvalho Chehab wrote:
-> Em 25-06-2011 07:09, Hans Verkuil escreveu:
-> > On Friday, June 24, 2011 20:25:26 Mauro Carvalho Chehab wrote:
+> Hi Sarah,
+> 
+> On Thursday 16 June 2011 04:59:57 Sarah Sharp wrote:
+> > On Wed, Jun 15, 2011 at 06:39:57PM -0700, Sarah Sharp wrote:
+> > > When I plug in a webcam under an xHCI host controller in 3.0-rc3+
+> > > (basically top of Greg's usb-linus branch) with xHCI debugging turned
+> > > on, the host controller occasionally cannot keep up with the isochronous
+> > > transfers, and it tells the xHCI driver that it had to "skip" several
+> > > microframes of transfers.  These "Missed Service Intervals" aren't
+> > > supposed to be fatal errors, just an indication that something was
+> > > hogging the PCI memory bandwidth.
+> > > 
+> > > The xHCI driver then sets the URB's status to -EXDEV, to indicate that
+> > > some of the iso_frame_desc transferred, and sets at least one frame's
+> > 
+> > > status to -EXDEV:
+> > ...
+> > 
+> > > The urb->status causes uvcvideo code in
+> > > uvc_status.c:uvc_status_complete() to fail with the message:
+> > > 
+> > > Jun 15 17:37:11 talon kernel: [  117.987769] uvcvideo: Non-zero status
+> > > (-18) in video completion handler.
+> > 
+> > ...
+> > 
+> > > I've grepped through drivers/media/video, and it seems like none of the
+> > > drivers handle the -EXDEV status.  What should the xHCI driver be
+> > > setting the URB's status and frame status to when the xHCI host
+> > > controller skips over transfers?  -EREMOTEIO?
+> > > 
+> > > Or does it need to set the URB's status to zero, but only set the
+> > > individual frame status to -EXDEV?
+> > 
+> > Ok, looking at both EHCI and UHCI, they seem to set the urb->status to
+> > zero, regardless of what they set the frame descriptor field to.
+> > 
+> > Alan, does that seem correct?
 
-[snip]
+The description of the behavior of ehci-hcd and uhci-hcd is correct.  
+ohci-hcd behaves the same way too.  And they all agree with the 
+behavior described in the kerneldoc for struct urb in 
+include/linux/usb.h.
 
-> 	- uvcvideo: not sure about its current status about its migration to
-> video_ioctl2. If Laurent is not doing a migration to video_ioctl2 any time
-> soon, a simple patch for it could make it act consistently. In any case, I
-> don't think we should create a include/media/version.h just due to
-> uvcvideo.
+> According to Documentation/usb/error-codes.txt, host controller drivers should 
+> set the status to -EXDEV. However, no device drivers seem to handle that, 
+> probably because the EHCI/UHCI drivers don't use that error code.
+> 
+> Drivers are clearly out of sync with the documentation, so we should fix one 
+> of them.
 
-That's not on my todo-list for now, -EBUSY :-)
+Under the circumstances, the documentation file should be changed.  
+Sarah, can you do that along with the change to xhci-hcd?
 
-I bump the uvcvideo driver version whenever the userspace API changes. Using 
-the kernel version number applications could find out whether the API they 
-need is implemented, but detecting API changes would become more difficult. 
-That might not be a real issue though, as applications usually don't care.
+Alan Stern
 
--- 
-Regards,
-
-Laurent Pinchart
