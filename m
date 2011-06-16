@@ -1,45 +1,37 @@
 Return-path: <mchehab@pedra>
-Received: from smtp-vbr13.xs4all.nl ([194.109.24.33]:4020 "EHLO
-	smtp-vbr13.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752713Ab1FMMxa (ORCPT
+Received: from 173-166-109-252-newengland.hfc.comcastbusiness.net ([173.166.109.252]:35984
+	"EHLO bombadil.infradead.org" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1758220Ab1FPOZt (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 13 Jun 2011 08:53:30 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Mike Isely <isely@isely.net>, Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [RFCv5 PATCH 2/9] tuner-core: fix tuner_resume: use t->mode instead of t->type.
-Date: Mon, 13 Jun 2011 14:53:13 +0200
-Message-Id: <13d4fd3be0d093618389607db994d7c48fd5d070.1307969319.git.hans.verkuil@cisco.com>
-In-Reply-To: <1307969600-31536-1-git-send-email-hverkuil@xs4all.nl>
-References: <1307969600-31536-1-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <6f25028df2439cef04708e3fd8d57b05662793a6.1307969319.git.hans.verkuil@cisco.com>
-References: <6f25028df2439cef04708e3fd8d57b05662793a6.1307969319.git.hans.verkuil@cisco.com>
+	Thu, 16 Jun 2011 10:25:49 -0400
+Date: Thu, 16 Jun 2011 10:25:45 -0400
+From: Christoph Hellwig <hch@infradead.org>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Randy Dunlap <randy.dunlap@oracle.com>,
+	Andrew Morton <akpm@linux-foundation.org>,
+	Michal Marek <mmarek@suse.cz>,
+	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+Subject: Re: [PATCH] [media] DocBook: Use base64 for gif/png files
+Message-ID: <20110616142545.GA5785@infradead.org>
+References: <4DFA0FF7.1030400@redhat.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <4DFA0FF7.1030400@redhat.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+On Thu, Jun 16, 2011 at 11:15:19AM -0300, Mauro Carvalho Chehab wrote:
+> The patch utility doesn't work with non-binary files. This causes some
+> tools to break, like generating tarball targets and the scripts that
+> generate diff patches at http://www.kernel.org/pub/linux/kernel/v2.6/.
+> 
+> So, let's convert all binaries to ascii using base64, and add a
+> logic at Makefile to convert them back into binaries at runtime.
 
-set_mode is called with t->type, which is the tuner type. Instead, use
-t->mode which is the actual tuner mode (i.e. radio vs tv).
-
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- drivers/media/video/tuner-core.c |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
-
-diff --git a/drivers/media/video/tuner-core.c b/drivers/media/video/tuner-core.c
-index b634bab..3b30d80 100644
---- a/drivers/media/video/tuner-core.c
-+++ b/drivers/media/video/tuner-core.c
-@@ -1242,7 +1242,7 @@ static int tuner_resume(struct i2c_client *c)
- 	tuner_dbg("resume\n");
- 
- 	if (!t->standby)
--		if (set_mode(t, t->type) == 0)
-+		if (set_mode(t, t->mode) == 0)
- 			set_freq(t, 0);
- 
- 	return 0;
--- 
-1.7.1
+Given that all the gifs are not just relatively trivial, but also things
+that looks like they originated or at least should as vector graphics
+I'd recommend to replace them by SVG files.  These also have the benefit
+of actually beeing practically patchable.
 
