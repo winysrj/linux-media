@@ -1,56 +1,58 @@
 Return-path: <mchehab@pedra>
-Received: from smtp-68.nebula.fi ([83.145.220.68]:52840 "EHLO
-	smtp-68.nebula.fi" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752801Ab1FFKFi (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 6 Jun 2011 06:05:38 -0400
-Date: Mon, 6 Jun 2011 13:05:34 +0300
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	linux-media@vger.kernel.org, Hans Verkuil <hans.verkuil@cisco.com>
-Subject: Re: [RFCv2 PATCH 08/11] v4l2-ctrls: simplify event subscription.
-Message-ID: <20110606100534.GI6073@valkosipuli.localdomain>
-References: <1306330435-11799-1-git-send-email-hverkuil@xs4all.nl>
- <2993c04b0ba330b3f634e281a6b50ee8cd7e6f7c.1306329390.git.hans.verkuil@cisco.com>
- <201106032155.10808.laurent.pinchart@ideasonboard.com>
- <201106041228.04249.hverkuil@xs4all.nl>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <201106041228.04249.hverkuil@xs4all.nl>
+Received: from mailout1.w1.samsung.com ([210.118.77.11]:28100 "EHLO
+	mailout1.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751865Ab1FPFn1 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 16 Jun 2011 01:43:27 -0400
+Received: from eu_spt1 (mailout1.w1.samsung.com [210.118.77.11])
+ by mailout1.w1.samsung.com
+ (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14 2004))
+ with ESMTP id <0LMV00L5PBWDKL@mailout1.w1.samsung.com> for
+ linux-media@vger.kernel.org; Thu, 16 Jun 2011 06:43:25 +0100 (BST)
+Received: from linux.samsung.com ([106.116.38.10])
+ by spt1.w1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14
+ 2004)) with ESMTPA id <0LMV009MIBWCLR@spt1.w1.samsung.com> for
+ linux-media@vger.kernel.org; Thu, 16 Jun 2011 06:43:24 +0100 (BST)
+Date: Thu, 16 Jun 2011 07:42:52 +0200
+From: Marek Szyprowski <m.szyprowski@samsung.com>
+Subject: RE: no mmu on videobuf2
+In-reply-to: <BANLkTikKA_0QEyaeJth4FYzm61tYT+_Gow@mail.gmail.com>
+To: 'Scott Jiang' <scott.jiang.linux@gmail.com>,
+	hans.verkuil@cisco.com, laurent.pinchart@ideasonboard.com
+Cc: linux-media@vger.kernel.org
+Message-id: <000701cc2be8$3bfb1720$b3f14560$%szyprowski@samsung.com>
+MIME-version: 1.0
+Content-type: text/plain; charset=us-ascii
+Content-language: pl
+Content-transfer-encoding: 7BIT
+References: <BANLkTikKA_0QEyaeJth4FYzm61tYT+_Gow@mail.gmail.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Sat, Jun 04, 2011 at 12:28:04PM +0200, Hans Verkuil wrote:
-> On Friday, June 03, 2011 21:55:10 Laurent Pinchart wrote:
-[clip]
-> > > +{
-> > > +	int ret = 0;
-> > > +
-> > > +	if (!fh->events)
-> > > +		ret = v4l2_event_init(fh);
-> > > +	if (!ret)
-> > > +		ret = v4l2_event_alloc(fh, n);
-> > > +	if (!ret)
-> > > +		ret = v4l2_event_subscribe(fh, sub);
-> > 
-> > I tend to return errors when they occur instead of continuing to the end of 
-> > the function. Handling errors on the spot makes code easier to read in my 
-> > opinion, as I expect the main code flow to be the error-free path.
+Hello Scott,
+
+> Hi Marek and Laurent,
 > 
-> Hmmm, I rather like the way the code looks in this particular case. But it;s
-> no big deal and I can change it.
+> I am working on v4l2 drivers for blackfin which is a no mmu soc.
+> I found videobuf allocate memory in mmap not reqbuf, so I turn to videobuf2.
+> But __setup_offsets() use plane offset to fill m.offset, which is
+> always 0 for single-planar buffer.
+> So pgoff in get_unmapped_area callback equals 0.
+> I only found uvc handled get_unmapped_area for no mmu system, but it
+> manages buffers itself.
+> I really want videobuf2 to manage buffers. Please give me some advice.
 
-The M5MOLS driver uses this pattern extensively in I2C access error
-handling. I agree with Laurent in principle, but on the other hand I think
-using this pattern makes sense. The error handling takes much less code and
-the test for continuing always is "if (!ret)" it is relatively readable as
-well.
+I'm not really sure if I know the differences between mmu and no-mmu
+systems (from the device driver perspective). I assume that you are using
+videobuf2-vmalloc allocator. Note that memory allocators/managers are well
+separated from the videobuf2 logic. If it the current one doesn't serve you
+well you can make your own no-mmu allocator. Later once we identify all
+differences it might be merged with the standard one or left alone if the
+merge is not really possible or easy.
 
-I'm fine with either resolution.
-
-Regards,
-
+Best regards
 -- 
-Sakari Ailus
-sakari.ailus@iki.fi
+Marek Szyprowski
+Samsung Poland R&D Center
+
+
