@@ -1,61 +1,48 @@
 Return-path: <mchehab@pedra>
-Received: from acoma.acyna.com ([72.9.254.68]:52854 "EHLO acoma.acyna.com"
+Received: from bear.ext.ti.com ([192.94.94.41]:33961 "EHLO bear.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1760012Ab1FAVtJ (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 1 Jun 2011 17:49:09 -0400
-Message-ID: <4DE6B3C6.5020706@hubstar.net>
-Date: Wed, 01 Jun 2011 22:48:54 +0100
-From: linuxtv <linuxtv@hubstar.net>
+	id S1753139Ab1FPTG4 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 16 Jun 2011 15:06:56 -0400
+From: <hvaibhav@ti.com>
+To: <linux-media@vger.kernel.org>
+CC: <mchehab@redhat.com>, <hverkuil@xs4all.nl>,
+	Vaibhav Hiremath <hvaibhav@ti.com>
+Subject: [PATCH] OMAP_VOUT: Change hardcoded device node number to -1
+Date: Fri, 17 Jun 2011 00:36:44 +0530
+Message-ID: <1308251204-15633-1-git-send-email-hvaibhav@ti.com>
+In-Reply-To: <hvaibhav@ti.com>
+References: <hvaibhav@ti.com>
 MIME-Version: 1.0
-To: Devin Heitmueller <dheitmueller@kernellabs.com>
-CC: Florent Audebert <florent.audebert@anevia.com>,
-	linux-media@vger.kernel.org
-Subject: Re: HVR-1300 analog inputs
-References: <4DE65C6D.2060806@anevia.com> <BANLkTi=zUfg9hAN8X9nrPEOMgtUzsKrbOw@mail.gmail.com>
-In-Reply-To: <BANLkTi=zUfg9hAN8X9nrPEOMgtUzsKrbOw@mail.gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Only FYI,
+From: Vaibhav Hiremath <hvaibhav@ti.com>
 
-I am using the HVR-1300 with the build-media.git repo (sorry I forget
-the correct name). UK PAL-I capturing fine at full res. Using mtythv and
-tested using smplayer on /dev/video0 (or video1). (Full UK PAL res).
+With addition of media-controller framework, now we have various
+device nodes (/dev/videoX) getting created, so hardcoding
+minor number in video_register_device() is not recommended.
 
-I know that won't directly help, but at least you know that is can/does
-work at full res.
+So let V4L2 framework choose free minor number for the device.
 
-On 01/06/11 16:49, Devin Heitmueller wrote:
-> On Wed, Jun 1, 2011 at 11:36 AM, Florent Audebert
-> <florent.audebert@anevia.com> wrote:
->   
->> Hi,
->>
->> I'm experimenting around with an Hauppauge HVR-1300 (cx88_blackbird) analog
->> inputs (PAL-I signal).
->>
->> Using qv4l2 (trunk) and 2.6.36.4, I successfully get a clean image on both
->> composite and s-video inputs with resolutions of 640x480 or less.
->>
->> With any higher resolutions, I have thin horizontal lines at moving
->> positions (seems to cycle)[1].
->>
->> I've tried various settings using qv4l2 on /dev/video0 and /dev/video1 with
->> no success.
->>
->> Is there a way to get higher encoding resolution from this board ?
->>     
-> You probably won't be able to go any higher than a width of 720.  That
-> said, it looks like either the driver is not responding properly or
-> the application doesn't realize that the driver returned it's maximum
-> field width (the V4L2 API specifies that in the S_FMT call that if the
-> calling application specifies an invalid width, the driver can return
-> a valid width and the application should recognize and use that
-> value).
->
-> Devin
->
->   
+Signed-off-by: Vaibhav Hiremath <hvaibhav@ti.com>
+---
+ drivers/media/video/omap/omap_vout.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
+
+diff --git a/drivers/media/video/omap/omap_vout.c b/drivers/media/video/omap/omap_vout.c
+index 0bc776c..3bc909a 100644
+--- a/drivers/media/video/omap/omap_vout.c
++++ b/drivers/media/video/omap/omap_vout.c
+@@ -1993,7 +1993,7 @@ static int __init omap_vout_create_video_devices(struct platform_device *pdev)
+ 		/* Register the Video device with V4L2
+ 		 */
+ 		vfd = vout->vfd;
+-		if (video_register_device(vfd, VFL_TYPE_GRABBER, k + 1) < 0) {
++		if (video_register_device(vfd, VFL_TYPE_GRABBER, -1) < 0) {
+ 			dev_err(&pdev->dev, ": Could not register "
+ 					"Video for Linux device\n");
+ 			vfd->minor = -1;
+-- 
+1.6.2.4
 
