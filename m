@@ -1,43 +1,43 @@
 Return-path: <mchehab@pedra>
-Received: from d1.icnet.pl ([212.160.220.21]:58938 "EHLO d1.icnet.pl"
+Received: from mx1.redhat.com ([209.132.183.28]:54022 "EHLO mx1.redhat.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753523Ab1FHWqs (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 8 Jun 2011 18:46:48 -0400
-From: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
-To: "Russell King - ARM Linux" <linux@arm.linux.org.uk>
-Subject: Re: [RESEND] [PATCH 1/2] OMAP1: allow reserving memory for camera
-Date: Thu, 9 Jun 2011 00:44:57 +0200
-Cc: Tony Lindgren <tony@atomide.com>,
-	"linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	linux-arm-kernel@lists.infradead.org,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-References: <201012051929.07220.jkrzyszt@tis.icnet.pl> <201106082354.10985.jkrzyszt@tis.icnet.pl> <20110608221330.GA13246@n2100.arm.linux.org.uk>
-In-Reply-To: <20110608221330.GA13246@n2100.arm.linux.org.uk>
+	id S1758257Ab1FPO2x (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 16 Jun 2011 10:28:53 -0400
+Message-ID: <4DFA1325.70002@redhat.com>
+Date: Thu, 16 Jun 2011 16:28:53 +0200
+From: Hans de Goede <hdegoede@redhat.com>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="utf-8"
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+CC: Ondrej Zary <linux@rainbow-software.org>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	Joerg Heckenbach <joerg@heckenbach-aw.de>,
+	Dwaine Garden <dwainegarden@rogers.com>,
+	linux-media@vger.kernel.org,
+	Kernel development list <linux-kernel@vger.kernel.org>
+Subject: Re: [PATCH] usbvision: remove (broken) image format conversion
+References: <201104252323.20420.linux@rainbow-software.org> <201104262240.40497.linux@rainbow-software.org> <4DBFD919.3090409@redhat.com> <201105031837.13881.linux@rainbow-software.org> <4DF35BF4.4050002@redhat.com>
+In-Reply-To: <4DF35BF4.4050002@redhat.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
-Message-Id: <201106090045.21251.jkrzyszt@tis.icnet.pl>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Thu 09 Jun 2011 at 00:13:30 Russell King - ARM Linux wrote:
-> 
-> I stand by my answer to your patches quoted above from a technical
-> point of view; we should not be mapping SDRAM using device mappings.
-> 
-> That ioremap() inside dma_declare_coherent_memory() needs to die,
+Hi,
 
-Then how about your alternative, ARM specific solution, "Avoid aliasing 
-mappings in DMA coherent allocator"? There was a series of initially 
-two, then three patches, of which the two others (459c1517f987 "ARM: 
-DMA: Replace page_to_dma()/dma_to_page() with pfn_to_dma()/dma_to_pfn()" 
-and 9eedd96301ca "ARM: DMA: top-down allocation in DMA coherent region") 
-are already in the mainline tree. I'm still porting a copy of that third 
-one from kernel version to version to have my device working 100% 
-reliably, in hope you finally push it into the mainline. No plans 
-against it? Or is there something about it I could help with?
+On 06/11/2011 02:13 PM, Mauro Carvalho Chehab wrote:
+> Hi Hans de G.,
+>
+> Em 26-04-2011 08:54, Hans de Goede escreveu:
+>> If you could give it a shot that would be great. I've some hardware to
+>> test this with (although I've never actually tested that hardware), so
+>> I can hopefully pick things up if you cannot finish things before you
+>> need to return the hardware.
+>
+> As Ondrej couldn't work on that while he was with the hardware, could you
+> please try to address this issue?
 
-Thanks,
-Janusz
+I've put it on my to do list, not sure when I'll get around to it though.
+
+Regards,
+
+Hans
