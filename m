@@ -1,107 +1,87 @@
 Return-path: <mchehab@pedra>
-Received: from mail-yw0-f46.google.com ([209.85.213.46]:39617 "EHLO
-	mail-yw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755328Ab1FQDLe convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 16 Jun 2011 23:11:34 -0400
-Received: by ywe9 with SMTP id 9so1086246ywe.19
-        for <linux-media@vger.kernel.org>; Thu, 16 Jun 2011 20:11:33 -0700 (PDT)
+Received: from mga02.intel.com ([134.134.136.20]:51914 "EHLO mga02.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752590Ab1FPBj7 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 15 Jun 2011 21:39:59 -0400
+Date: Wed, 15 Jun 2011 18:39:57 -0700
+From: Sarah Sharp <sarah.a.sharp@linux.intel.com>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: linux-media@vger.kernel.org, linux-usb@vger.kernel.org,
+	Andiry Xu <andiry.xu@amd.com>
+Subject: uvcvideo failure under xHCI
+Message-ID: <20110616013957.GA9809@xanatos>
 MIME-Version: 1.0
-In-Reply-To: <20110616092726.024701c9@bike.lwn.net>
-References: <1307814409-46282-1-git-send-email-corbet@lwn.net>
-	<1307814409-46282-3-git-send-email-corbet@lwn.net>
-	<BANLkTikVeHLL6+T74tpmwmsL4_3h5f3PmA@mail.gmail.com>
-	<20110614084948.2d158323@bike.lwn.net>
-	<BANLkTikztbcm_+PR5oFVB+v0Jn4q8GCVTQ@mail.gmail.com>
-	<BANLkTi=gLkmuheH0aCwx=7-DuxDH3q769w@mail.gmail.com>
-	<20110616092726.024701c9@bike.lwn.net>
-Date: Fri, 17 Jun 2011 11:11:33 +0800
-Message-ID: <BANLkTikO-oRJXgqkL557d9RZ6PMBFTzVCg@mail.gmail.com>
-Subject: Re: [PATCH 2/8] marvell-cam: Separate out the Marvell camera core
-From: Kassey Lee <kassey1216@gmail.com>
-To: Jonathan Corbet <corbet@lwn.net>
-Cc: linux-media@vger.kernel.org, g.liakhovetski@gmx.de,
-	Kassey Lee <ygli@marvell.com>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Daniel Drake <dsd@laptop.org>, ytang5@marvell.com,
-	leiwen@marvell.com, qingx@marvell.com
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-2011/6/16 Jonathan Corbet <corbet@lwn.net>:
-> On Thu, 16 Jun 2011 11:12:03 +0800
-> Kassey Lee <kassey1216@gmail.com> wrote:
->
->>       2) for mcam_ctlr_stop_dma implementation, I guess you know
->> something about the silicon limitation,  but we found it can not pass
->> our stress test(1000 times capture test, which will switch format
->> between JPEG and YUV again and again).
->>        our solution is :
->>        stop the ccic controller and wait for about one frame transfer
->> time, and the stop the sensor.
->>        this passed our stress test. for your info.
->
-> Actually, I know very little that's not in the datasheet.  Are you telling
-> me that there are hardware limitations that aren't documented, and that
-> the datasheet is not a 100% accurate description of what's going on?  I'm
-> *shocked* I tell you!
->
-> (For the record, with both Cafe and Armada 610, I've found the hardware to
-> be more reasonable and in accord with the documentation than with many
-> others.)
->
-> In any case, I don't know about the limitation you're talking about here,
-> could you elaborate a bit?  For stress testing I've run video capture for
-> weeks at a time, so obviously you're talking about something else.  Sounds
-> like something I need to know?
-hi, Jon:
-     the problem is:
-     when we stop CCIC, and then switch to another format.
-     at this stage, actually, CCIC DMA is not stopped until the
-transferring frame is done. this will cause system hang if we start
-CCIC again with another format.
- we've ask silicon design to add CCIC DMA stop/start controller bit.
+Hi Laurent,
 
-     from your logic, when stop DMA, you are test the EOF/SOF, so I
-wonder why you want to do this ?
-     and is your test will stop CCIC and start CCIC frequently  ?
-     thanks
->
->>        3) for videoubuf2, will you use videoubuf2 only or combined
->> with soc-camera ? when can your driver for videoubuf2 ready ?
->
-> Videobuf2 only.  To be honest, I've never quite understood what soc-camera
-> buys.  If there's a reason to do a switch, it could be contemplated - but
-> remember that Cafe is not an SoC device.
->
-> The vb2 driver is working now in vmalloc mode, which is probably what Cafe
-> will need forever.  I do plan to add dma-contig, and, probably, dma-sg
-> support in the very near future.  If you want, I can post the vmalloc
-> version later today; I just want to make one more pass over it first.
->
-could you please share the vmalloc way to me ?
-and if the dma-contig is OK, I'm glad to verify on our platform.
-as to test USERPTR, we are using a PMEM to get phy-contig memory in
-user space, and then QBUF to driver.
+I think this issue has been happening for a while now, but my recent
+patches to remove most of the xHCI debugging have finally allowed me to
+use a webcam under xHCI with debugging on.  Unfortunately, it doesn't
+work very well.
 
->>        4) the point is: ccic and sensor driver should be independent,
->> and support two CCIC controller.
->
-> No disagreement there.  I believe that two controllers should work now -
-> though there's probably a gotcha somewhere since it's not actually been
-> tried.
->
-> Thanks,
->
-> jon
->
+When I plug in a webcam under an xHCI host controller in 3.0-rc3+
+(basically top of Greg's usb-linus branch) with xHCI debugging turned
+on, the host controller occasionally cannot keep up with the isochronous
+transfers, and it tells the xHCI driver that it had to "skip" several
+microframes of transfers.  These "Missed Service Intervals" aren't
+supposed to be fatal errors, just an indication that something was
+hogging the PCI memory bandwidth.
 
+The xHCI driver then sets the URB's status to -EXDEV, to indicate that
+some of the iso_frame_desc transferred, and sets at least one frame's
+status to -EXDEV:
 
+static int skip_isoc_td(struct xhci_hcd *xhci, struct xhci_td *td,
+                        struct xhci_transfer_event *event,
+                        struct xhci_virt_ep *ep, int *status)
+{
+        struct xhci_ring *ep_ring;
+        struct urb_priv *urb_priv;
+        struct usb_iso_packet_descriptor *frame;
+        int idx;
 
--- 
-Best regards
-Kassey
-Application Processor Systems Engineering, Marvell Technology Group Ltd.
-Shanghai, China.
+        ep_ring = xhci_dma_to_transfer_ring(ep, le64_to_cpu(event->buffer));
+        urb_priv = td->urb->hcpriv;
+        idx = urb_priv->td_cnt; 
+        frame = &td->urb->iso_frame_desc[idx];
+        
+        /* The transfer is partly done */
+        *status = -EXDEV;
+        frame->status = -EXDEV;
+        
+        /* calc actual length */
+        frame->actual_length = 0;
+        
+        /* Update ring dequeue pointer */
+        while (ep_ring->dequeue != td->last_trb)
+                inc_deq(xhci, ep_ring, false);
+        inc_deq(xhci, ep_ring, false);
+        
+        return finish_td(xhci, td, NULL, event, ep, status, true);
+}
+
+The urb->status causes uvcvideo code in uvc_status.c:uvc_status_complete() to
+fail with the message:
+
+Jun 15 17:37:11 talon kernel: [  117.987769] uvcvideo: Non-zero status (-18) in video completion handler.
+
+It doesn't resubmit the isochronous URB in that case, and the userspace
+video freezes.  If I restart the application, the video comes back until
+the next Missed Service Interval event from the xHCI driver.  Ideally,
+the video driver would just resubmit the URB, and the xHCI host
+controller would complete transfers as best it can.  I think the frames
+with -EXDEV status should be treated like short transfers.
+
+I've grepped through drivers/media/video, and it seems like none of the
+drivers handle the -EXDEV status.  What should the xHCI driver be
+setting the URB's status and frame status to when the xHCI host
+controller skips over transfers?  -EREMOTEIO?
+
+Or does it need to set the URB's status to zero, but only set the
+individual frame status to -EXDEV?
+
+Sarah Sharp
