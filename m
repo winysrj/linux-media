@@ -1,90 +1,73 @@
 Return-path: <mchehab@pedra>
-Received: from mx1.redhat.com ([209.132.183.28]:11126 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751424Ab1FNNrH (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 14 Jun 2011 09:47:07 -0400
-Message-ID: <4DF7667C.9030502@redhat.com>
-Date: Tue, 14 Jun 2011 15:47:40 +0200
-From: Hans de Goede <hdegoede@redhat.com>
+Received: from iolanthe.rowland.org ([192.131.102.54]:52955 "HELO
+	iolanthe.rowland.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1758436Ab1FPRjo (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 16 Jun 2011 13:39:44 -0400
+Date: Thu, 16 Jun 2011 13:39:43 -0400 (EDT)
+From: Alan Stern <stern@rowland.harvard.edu>
+To: Sarah Sharp <sarah.a.sharp@linux.intel.com>
+cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	<linux-media@vger.kernel.org>,
+	USB list <linux-usb@vger.kernel.org>,
+	Andiry Xu <andiry.xu@amd.com>
+Subject: Re: uvcvideo failure under xHCI
+In-Reply-To: <20110616171711.GB6188@xanatos>
+Message-ID: <Pine.LNX.4.44L0.1106161329250.3807-100000@iolanthe.rowland.org>
 MIME-Version: 1.0
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-CC: Devin Heitmueller <dheitmueller@kernellabs.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: Some fixes for alsa_stream
-References: <4DF6C10C.8070605@redhat.com> <4DF758AF.3010301@redhat.com> <4DF75C84.9000200@redhat.com>
-In-Reply-To: <4DF75C84.9000200@redhat.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Hi,
+On Thu, 16 Jun 2011, Sarah Sharp wrote:
 
-On 06/14/2011 03:05 PM, Mauro Carvalho Chehab wrote:
-> Em 14-06-2011 09:48, Hans de Goede escreveu:
->> Hi,
->>
->> On 06/14/2011 04:01 AM, Mauro Carvalho Chehab wrote:
->>> Hi Devin,
->>>
->>> I've made a few fixes for your alsa_stream.c, used on tvtime.
->>> They are at:
->>>      http://git.linuxtv.org/xawtv3.git
->>>
->>>
->>> In particular, those are the more interesting ones:
->>>
->>> commit a1bb5ade5c2b09d6d6d624d18025f9e2c4398495
->>>       alsa_stream: negotiate the frame rate
->>>
->>> Without this patch, one of my em28xx devices doesn't work. It uses
->>> 32 k rate, while the playback minimal rate is 44.1 k.
->>> I've changed the entire frame rate logic, to be more reliable, and to
->>> avoid needing to do frame rate conversion, if both capture and playback
->>> devices support the same rate.
->>>
->>> commit 8adb3d7442b22022b9ca897b0b914962adf41270
->>>       alsa_stream: Reduce CPU usage by putting the thread into blocking mode
->>>
->>> This is just an optimization. I can't see why are you using a non-block
->>> mode, as it works fine blocking.
->>>
->>> commit c67f7aeb86c1caceb7ab30439d169356ea5b1e72
->>>       alsa_stream.c: use mmap mode instead of the normal mode
->>>
->>> Instead of using the normal way, this patch implements mmap mode, and change
->>> it to be the default mode. This should also help to reduce CPU usage.
->>>
->>
->> hmm, does this include automatic fallback to read mode if mmap mode is not
->> available, mmap mode does not work with a number of devices (such as pulseaudio's
->> alsa plugin).
->
-> No, it doesn't. I'm about to add an option at xawtv3 to allow users to manually
-> select between mmap/normal, and to change the input/output devices.
->
+> > > > Alan, does that seem correct?
+> > 
+> > The description of the behavior of ehci-hcd and uhci-hcd is correct.  
+> > ohci-hcd behaves the same way too.  And they all agree with the 
+> > behavior described in the kerneldoc for struct urb in 
+> > include/linux/usb.h.
+> 
+> Ah, you mean this bit?
+> 
+>  * @status: This is read in non-iso completion functions to get the
+>  *      status of the particular request.  ISO requests only use it
+>  *      to tell whether the URB was unlinked; detailed status for
+>  *      each frame is in the fields of the iso_frame-desc.
 
+Right.  There's also some more near the end:
 
-Hmm, we really don't need more cmdline options IMHO, it is quite easy to detect
-if an alsa device supports mmap mode, and if not fall back to r/w mode, I know
-several programs which do that (some if which I've written the patches to do
-this for myself).
+ * Completion Callbacks:
+ *
+ * The completion callback is made in_interrupt(), and one of the first
+ * things that a completion handler should do is check the status field.
+ * The status field is provided for all URBs.  It is used to report
+ * unlinked URBs, and status for all non-ISO transfers.  It should not
+ * be examined before the URB is returned to the completion handler.
 
-> Well, pulseaudio is a bad behavioured boy that has several broken things, like
-> preventing the removal of a V4L2 device for nothing. I won't be surprised if we
-> notice even more problems with pulseaudio and V4L devices. At least on my test
-> with fedora 15, audio is playing, even if pulseaudio is loaded.
->
-> It should be noticed that the driver tries first to access the alsa driver directly,
-> by using hw:0,0 output device. If it fails, it falls back to plughw:0,0. I'm not sure
-> what's the name of the pulseaudio output, but I suspect that both are just bypassing
-> pulseaudio, with is good ;)
+> > Under the circumstances, the documentation file should be changed.  
+> > Sarah, can you do that along with the change to xhci-hcd?
+> 
+> Sure.  It feels like there should be a note about which values
+> isochronous URBs might have in the urb->status field.  The USB core is
+> the only one that would be setting those, so which values would it set?
+> uvcvideo tests for these error codes:
+> 
+>         case -ENOENT:           /* usb_kill_urb() called. */
+>         case -ECONNRESET:       /* usb_unlink_urb() called. */
+>         case -ESHUTDOWN:        /* The endpoint is being disabled. */
+>         case -EPROTO:           /* Device is disconnected (reported by some
+>                                  * host controller). */
+> 
+> Are there any others.
 
-Right this means you're just bypassing pulse audio, which for a tvcard + tv-viewing
-app is a reasonable thing to do. Defaulting to hw:0,0 makes no sense to me though, we
-should default to either the audio devices belonging to the video device (as determined
-through sysfs), or to alsa's default input (which will likely be pulseaudio).
+-EREMOTEIO, in the unlikely event that URB_SHORT_NOT_OK is set, but no
+others.
 
-Regards,
+And I wasn't aware of that last one...  Host controller drivers should
+report -ESHUTDOWN to mean the device has been disconnected, not
+-EPROTO.  But usually HCD don't take these events into account when
+determining URB status codes.
 
-Hans
+Alan Stern
+
