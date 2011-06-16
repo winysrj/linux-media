@@ -1,113 +1,106 @@
 Return-path: <mchehab@pedra>
-Received: from proofpoint-cluster.metrocast.net ([65.175.128.136]:54424 "EHLO
-	proofpoint-cluster.metrocast.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754822Ab1FXW53 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 24 Jun 2011 18:57:29 -0400
-Subject: Re: [RFC] Don't use linux/version.h anymore to indicate a
- per-driver version - Was: Re: [PATCH 03/37] Remove unneeded version.h
- includes from include/
-From: Andy Walls <awalls@md.metrocast.net>
-To: Mauro Carvalho Chehab <mchehab@infradead.org>
-Cc: Devin Heitmueller <dheitmueller@kernellabs.com>,
-	Stefan Richter <stefanr@s5r6.in-berlin.de>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	Jesper Juhl <jj@chaosbits.net>,
-	LKML <linux-kernel@vger.kernel.org>, trivial@kernel.org,
-	linux-media@vger.kernel.org, ceph-devel@vger.kernel.org,
-	Sage Weil <sage@newdream.net>
-In-Reply-To: <4E050CBE.2030103@infradead.org>
-References: <alpine.LNX.2.00.1106232344480.17688@swampdragon.chaosbits.net>
-	 <4E04912A.4090305@infradead.org>
-	 <BANLkTim9cBiiK_GsZaspxpPJQDBvAcKCWg@mail.gmail.com>
-	 <201106241554.10751.hverkuil@xs4all.nl> <4E04A122.2080002@infradead.org>
-	 <20110624203404.7a3f6f6a@stein>
-	 <BANLkTimj-oEDvWxMao6zJ_sudUntEVjO1w@mail.gmail.com>
-	 <1308949448.2093.20.camel@morgan.silverblock.net>
-	 <4E050CBE.2030103@infradead.org>
-Content-Type: text/plain; charset="UTF-8"
-Date: Fri, 24 Jun 2011 18:57:57 -0400
-Message-ID: <1308956277.2093.54.camel@morgan.silverblock.net>
-Mime-Version: 1.0
+Received: from mx1.redhat.com ([209.132.183.28]:33276 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S932067Ab1FPOi3 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 16 Jun 2011 10:38:29 -0400
+Message-ID: <4DFA1561.1030905@redhat.com>
+Date: Thu, 16 Jun 2011 11:38:25 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+MIME-Version: 1.0
+To: Hans de Goede <hdegoede@redhat.com>
+CC: Devin Heitmueller <dheitmueller@kernellabs.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: Some fixes for alsa_stream
+References: <4DF6C10C.8070605@redhat.com>	<4DF758AF.3010301@redhat.com>	<4DF75C84.9000200@redhat.com>	<4DF7667C.9030502@redhat.com> <BANLkTi=9L+oxjpUaFo3ge0iqcZ2NCjJWWA@mail.gmail.com> <4DF76D88.5000506@redhat.com> <4DF77229.2020607@redhat.com> <4DF77405.2070104@redhat.com> <4DF8B716.1020406@redhat.com> <4DF8C0D2.5070900@redhat.com> <4DF8C32A.7090004@redhat.com> <4DF8D37C.7010307@redhat.com> <4DF9F734.1090508@redhat.com>
+In-Reply-To: <4DF9F734.1090508@redhat.com>
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Fri, 2011-06-24 at 19:16 -0300, Mauro Carvalho Chehab wrote:
-> Em 24-06-2011 18:04, Andy Walls escreveu:
-> > On Fri, 2011-06-24 at 14:48 -0400, Devin Heitmueller wrote:
-> >> On Fri, Jun 24, 2011 at 2:34 PM, Stefan Richter
-> >> <stefanr@s5r6.in-berlin.de> wrote:
-> >>> If the "driver version" is in fact an ABI version, then the driver author
-> >>> should really increase it only when ABI behavior is changed (and only if
-> >>> the behavior change can only be communicated by version number --- e.g.
-> >>> addition of an ioctl is not among such reasons).  And the author should
-> >>> commit behavior changing implementation and version number change in a
-> >>> single changeset.
-> >>>
-> >>> And anybody who backmerges such an ABI behavior change into another kernel
-> >>> branch (stable, longterm, distro...) must backmerge the associated version
-> >>> number change too.
-> >>>
-> >>> Of course sometimes people realize this only after the fact.  Or driver
-> >>> authors don't have a clear understanding of ABI versioning to begin with.
-> >>> I am saying so because I had to learn it too; I certainly wasn't born
-> >>> with an instinct knowledge how to do it properly.
-> >>>
-> >>> (Disclaimer:  I have no stake in drivers/media/ ABIs.  But I am involved
-> >>> in maintaining a userspace ABI elsewhere in drivers/firewire/, and one of
-> >>> the userspace libraries that use this ABI.)
-> >>
-> >> Hi Stefan,
-> >>
-> >> To be clear, I don't think anyone is actually proposing that the
-> >> driver version number really be used as any form of formal "ABI
-> >> versioning" scheme.  In almost all cases, it's so the application can
-> >> know to *not* do something is the driver is older than X.
-> > 
-> > MythTV, for example, used to use the driver version to work around old
-> > VBI bugs and MPEG encoder quirks that the older version of the driver
-> > may not have known how to handle:
-> > 
-> > https://github.com/MythTV/mythtv/blob/b98d3a98e3187000ae652df5ffebe2beb5221ba7/mythtv/libs/libmythtv/mpegrecorder.cpp#L335
-> > 
-> > But for newer versions, MythTV could avoid using its own odd hacks.
-> > The bleeding edge MythTV now has most of these removed.
+Em 16-06-2011 09:29, Hans de Goede escreveu:
+> Hi,
 > 
-> Removing it is a good thing.
+> On 06/15/2011 05:45 PM, Mauro Carvalho Chehab wrote:
 > 
-> >> Really, this is all about applications being able to jam a hack into
-> >> their code that translates to "don't call this ioctl() with some
-> >> particular argument if it's driver W less than version X, because the
-> >> driver had a bug that is likely to panic the guy's PC".
-> > 
-> > Well, not even panics per se, but some thing like the VBI is broken, or
-> > the volume control doesn't work, IR blaster is works for this version,
-> > or something else stupid that is very visible to the end user.
-> > 
-> > I also use the driver version for troubleshooting problem with users.  I
-> > roughly know what wasn't working in what version of the cx18 and ivtv
-> > drivers.  If the end user can tell me the driver version (using v4l2-ctl
-> > --log-status) along with his symptoms, it makes my life easier.  Being
-> > able to efficiently help the end user is a win for both me and the end
-> > user.
+> <snip>
 > 
-> If you add it to MODULE_VERSION, you can get the version with:
+>> 1) try to find a common buffer size that are acceptable by both drivers,
+>>     as using the same buffer size helps to avoid memcpy's, especially if
+>>     mmap mode is enabled;
+>>
 > 
-> $ modinfo -F version vivi
-> 0.8.1
+> This is not needed, using the same buffer size does nothing to avoid memcpy's
+> there are 2 possible scenarios:
+> 1) Use read() + write() like we do now, this means 2 memcpy's in the form
+>    of copy_to_user to our buffer followed by a copy_from_user, and we don't
+>    need to care about buffer sizes, we just write the amount of samples we
+>    managed to read.
+> 
+> 2) Properly implemented mmap, in this case we need to do a regular
+>    memcpy in userspace from the mmap-ed capture buffers to the mmapped
+>    playback buffers. In this case having indentical buffersizes would
+>    simplify the code, as it avoids the need to split the memcpy into
+>    multiple memcpy's when crossing a buffer boundary. But we
+>    need to handle this case anyways in case we cannot find a shared
+>    period size. More over mmap mode is a pain and just not worth it IMHO.
+> 
+>> 2) If the buffer size means that the latency will be more than a reasonable
+>>     time interval [1], then fall back to use different periods;
+> 
+> It is better to just aim for the optimal period size right away, this
+> greatly simplifies the code, as said before trying to get identical buffer
+> sizes is premature optimization IMHO. xawtv barely registers in top on
+> my machine and this includes copying over the actual video data from
+> /dev/video# to shared memory xv pixmaps. If that part does not even
+> register imagine how little CPU the audio part is using. There is no
+> need to make the code more complicated for some theoretical performance
+> gain here, instead we should KISS.
 
-Well, since you mention it....
+xawtv has an option to use zerocopy, if the X11 v4l driver is loaded and
+if the display adapter supports the old overlay mode. It works fine with
+a bttv or saa7134 board with an older Nvidia hardware, like FX-5200. This
+works also with older ATI hardware.
 
-http://git.linuxtv.org/media_tree.git?a=blob;f=drivers/media/video/cx18/cx18-driver.c;h=9e2f870f4258665ae6093c762f752d45147a8c98;hb=staging/for_v3.1#l252
-http://git.linuxtv.org/media_tree.git?a=blob;f=drivers/media/video/ivtv/ivtv-driver.c;h=0fb75524484d909af4925c3c33c9f12cf6d6519e;hb=staging/for_v3.1#l280
+I intend to make v4l Xorg driver to work with newer display adapters using
+texture, but I  didn't have time for it yet. It would be good if we could
+do the same for the mmap mode for audio as well, but I don't think this has
+a top priority.
 
-However, since I often must ask for the output of v4l2-ctl --log-status,
-which already has the version number, I never need to ask the user to
-run /sbin/modinfo for the version.
+> Note that I've just pushed a patch set which includes rewritten period
+> / buf size negotiation and a bunch of cleanups in general. This removes
+> over 150 lines of code, while at the same time making the code more
+> flexible. 
 
-Regards,
-Andy
+You removed mmap support, but you didn't removed the alsa-mmap option at xawtv.
 
+> It should now work with pretty much any combination of
+> input / output device (tested with a bt878 input and intel hda,
+> usb-audio or pulseaudio output).
 
+I'll run some tests later with the boards I have here.
 
+> I've also changed the default -alsa-pb value to "default" as we should
+> not be picking something else then the user / distro configured defaults
+> for output IMHO. The user can set a generic default in alsarc, and override
+> that on the cmdline if he/she wants, but unless overridden on the cmdline
+> we should respect the users generic default as specified in his
+> alsarc.
+
+While pulseaudio refuses to work via ssh, this is actually a very bad idea.
+Xawtv is used by developers to test their stuff, and they generally do it
+on a remote machine, with the console captured via tty port, in order to
+be able to catch panic messages.
+
+For now, please revert this patch. After having pulseaudio fixed to properly
+handle the audio group, I'm ok to re-add it.
+
+> We could consider making the desired latency configurable, currently
+> I've hardcoded it to 30 ms (was 38 with the old code on my system) note
+> that I've chosen to specify the latency in ms rather then in a number
+> of samples, since it should be samplerate independent IMO.
+
+Yeah, having latency configurable sounds a good idea to me.
+
+Thanks,
+Mauro
