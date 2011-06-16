@@ -1,76 +1,83 @@
 Return-path: <mchehab@pedra>
-Received: from mga14.intel.com ([143.182.124.37]:17467 "EHLO mga14.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755901Ab1FPRRW (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 16 Jun 2011 13:17:22 -0400
-Date: Thu, 16 Jun 2011 10:17:11 -0700
-From: Sarah Sharp <sarah.a.sharp@linux.intel.com>
-To: Alan Stern <stern@rowland.harvard.edu>
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	linux-media@vger.kernel.org, USB list <linux-usb@vger.kernel.org>,
-	Andiry Xu <andiry.xu@amd.com>
-Subject: Re: uvcvideo failure under xHCI
-Message-ID: <20110616171711.GB6188@xanatos>
-References: <201106161007.50594.laurent.pinchart@ideasonboard.com>
- <Pine.LNX.4.44L0.1106161029490.2204-100000@iolanthe.rowland.org>
+Received: from perceval.ideasonboard.com ([95.142.166.194]:37580 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757354Ab1FPIui (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 16 Jun 2011 04:50:38 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Scott Jiang <scott.jiang.linux@gmail.com>
+Subject: Re: no mmu on videobuf2
+Date: Thu, 16 Jun 2011 10:50:36 +0200
+Cc: Kassey Lee <kassey1216@gmail.com>,
+	Marek Szyprowski <m.szyprowski@samsung.com>,
+	hans.verkuil@cisco.com, linux-media@vger.kernel.org,
+	uclinux-dist-devel@blackfin.uclinux.org
+References: <BANLkTikKA_0QEyaeJth4FYzm61tYT+_Gow@mail.gmail.com> <BANLkTikhqTRHmz=webBbW=pLK2o0hTcwng@mail.gmail.com> <BANLkTiksUboG7zvja0rykeg7hpKby3xSvA@mail.gmail.com>
+In-Reply-To: <BANLkTiksUboG7zvja0rykeg7hpKby3xSvA@mail.gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <Pine.LNX.4.44L0.1106161029490.2204-100000@iolanthe.rowland.org>
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201106161050.37826.laurent.pinchart@ideasonboard.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Thu, Jun 16, 2011 at 10:35:49AM -0400, Alan Stern wrote:
-> On Thu, 16 Jun 2011, Laurent Pinchart wrote:
-> > On Thursday 16 June 2011 04:59:57 Sarah Sharp wrote:
-> > > On Wed, Jun 15, 2011 at 06:39:57PM -0700, Sarah Sharp wrote:
-> > > > I've grepped through drivers/media/video, and it seems like none of the
-> > > > drivers handle the -EXDEV status.  What should the xHCI driver be
-> > > > setting the URB's status and frame status to when the xHCI host
-> > > > controller skips over transfers?  -EREMOTEIO?
-> > > > 
-> > > > Or does it need to set the URB's status to zero, but only set the
-> > > > individual frame status to -EXDEV?
-> > > 
-> > > Ok, looking at both EHCI and UHCI, they seem to set the urb->status to
-> > > zero, regardless of what they set the frame descriptor field to.
-> > > 
-> > > Alan, does that seem correct?
-> 
-> The description of the behavior of ehci-hcd and uhci-hcd is correct.  
-> ohci-hcd behaves the same way too.  And they all agree with the 
-> behavior described in the kerneldoc for struct urb in 
-> include/linux/usb.h.
+Hi Scott,
 
-Ah, you mean this bit?
-
- * @status: This is read in non-iso completion functions to get the
- *      status of the particular request.  ISO requests only use it
- *      to tell whether the URB was unlinked; detailed status for
- *      each frame is in the fields of the iso_frame-desc.
-
-
-> > According to Documentation/usb/error-codes.txt, host controller drivers should 
-> > set the status to -EXDEV. However, no device drivers seem to handle that, 
-> > probably because the EHCI/UHCI drivers don't use that error code.
+On Thursday 16 June 2011 09:57:05 Scott Jiang wrote:
+> 2011/6/16 Kassey Lee <kassey1216@gmail.com>:
+> > 2011/6/16 Scott Jiang <scott.jiang.linux@gmail.com>:
+> >> 2011/6/16 Marek Szyprowski <m.szyprowski@samsung.com>:
+> >>>> Hi Marek and Laurent,
+> >>>> 
+> >>>> I am working on v4l2 drivers for blackfin which is a no mmu soc.
+> >>>> I found videobuf allocate memory in mmap not reqbuf, so I turn to
+> >>>> videobuf2. But __setup_offsets() use plane offset to fill m.offset,
+> >>>> which is always 0 for single-planar buffer.
+> >>>> So pgoff in get_unmapped_area callback equals 0.
+> >>>> I only found uvc handled get_unmapped_area for no mmu system, but it
+> >>>> manages buffers itself.
+> >>>> I really want videobuf2 to manage buffers. Please give me some advice.
+> >>> 
+> >>> I'm not really sure if I know the differences between mmu and no-mmu
+> >>> systems (from the device driver perspective). I assume that you are
+> >>> using videobuf2-vmalloc allocator. Note that memory
+> >>> allocators/managers are well separated from the videobuf2 logic. If it
+> >>> the current one doesn't serve you well you can make your own no-mmu
+> >>> allocator. Later once we identify all differences it might be merged
+> >>> with the standard one or left alone if the merge is not really
+> >>> possible or easy.
+> >> 
+> >> I used dma-contig allocator. I mean if offset is 0, I must get actual
+> >> addr from this offset.
 > > 
-> > Drivers are clearly out of sync with the documentation, so we should fix one 
-> > of them.
+> > if it is single plane, surely the offset is 0 for plane 0
 > 
-> Under the circumstances, the documentation file should be changed.  
-> Sarah, can you do that along with the change to xhci-hcd?
+> yes, it is absolutely right.
+> 
+> > what do you mean the actual addr ?
+> 
+> I should return virtual address of the buffer in get_unmapped_area
+> callback.
+> 
+> >> __find_plane_by_offset can do this. But it is an internal function.
+> >> I think there should be a function called vb2_get_unmapped_area to do
+> >> this in framework side.
+> > 
+> > are you using soc_camera ?
+> > you can add your get_unmapped_area  in soc_camera.
+> > if not, you can add it in your v4l2_file_operations ops, while still
+> > using videbuf2 to management your buffer.
+> 
+> yes, I have added this method, just copy __find_plane_by_offset code.
+> But it is ugly, it should have a vb2_get_unmapped_area like vb2_mmap.
+> These two operations are called by one system call, so they should
+> have a uniform looks.
 
-Sure.  It feels like there should be a note about which values
-isochronous URBs might have in the urb->status field.  The USB core is
-the only one that would be setting those, so which values would it set?
-uvcvideo tests for these error codes:
+I agree with that. get_unmapped_area is a file operation and should be 
+implemented using a videobuf2 helper, like vb2_mmap.
 
-        case -ENOENT:           /* usb_kill_urb() called. */
-        case -ECONNRESET:       /* usb_unlink_urb() called. */
-        case -ESHUTDOWN:        /* The endpoint is being disabled. */
-        case -EPROTO:           /* Device is disconnected (reported by some
-                                 * host controller). */
+-- 
+Regards,
 
-Are there any others.
-
-Sarah Sharp
+Laurent Pinchart
