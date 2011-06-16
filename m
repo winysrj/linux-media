@@ -1,36 +1,45 @@
 Return-path: <mchehab@pedra>
-Received: from nm3-vm0.bullet.mail.ukl.yahoo.com ([217.146.183.228]:42467 "HELO
-	nm3-vm0.bullet.mail.ukl.yahoo.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with SMTP id S1754176Ab1FVRpG convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 22 Jun 2011 13:45:06 -0400
-Received: by iyb12 with SMTP id 12so859530iyb.19
-        for <linux-media@vger.kernel.org>; Wed, 22 Jun 2011 10:45:03 -0700 (PDT)
+Received: from wp209.webpack.hosteurope.de ([80.237.132.216]:40212 "EHLO
+	wp209.webpack.hosteurope.de" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1755972Ab1FPL6x (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 16 Jun 2011 07:58:53 -0400
+Message-ID: <4DF9EA62.2040008@killerhippy.de>
+Date: Thu, 16 Jun 2011 13:34:58 +0200
+From: =?UTF-8?B?U2FzY2hhIFfDvHN0ZW1hbm4=?= <sascha@killerhippy.de>
 MIME-Version: 1.0
-In-Reply-To: <4E01CAFE.9070801@iki.fi>
-References: <BANLkTimY_RKO4TxSu5GQo84_7VCMjLEFDg@mail.gmail.com>
-	<4E01CAFE.9070801@iki.fi>
-Date: Wed, 22 Jun 2011 19:45:03 +0200
-Message-ID: <BANLkTikYVt4i7EyFq5cN2ef8QaSUoNUhBw@mail.gmail.com>
-Subject: Re: Sveon stv22 patches
-From: David <reality_es@yahoo.es>
-To: Antti Palosaari <crope@iki.fi>
-Cc: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+To: linux-media@vger.kernel.org
+Subject: Re: RTL2831U wont compile against 2.6.38
+References: <4DF9BCAA.3030301@holzeisen.de>
+In-Reply-To: <4DF9BCAA.3030301@holzeisen.de>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Helo again:
+Thomas Holzeisen wrote:
+> Hi there,
+> 
+> I tried to get an RTL2831U dvb-t usb-stick running with a more recent kernel (2.6.38) and failed.
+> 
+> The hg respository ~jhoogenraad/rtl2831-r2 aborts on countless drivers, the rc coding seem have to
+> changed a lot since it got touched the last time.
+> 
+> The hg respository ~anttip/rtl2831u wont compile as well, since its even older.
+> 
+> The recent git respositories for media_tree and anttip dont contain drivers for the rtl2831u.
+> 
+> Has this device been abandoned, or is anyone working on it?
+> 
+> greetings,
+> Thomas
 
-Sorry for my mistakes and errors, is my first patch, thanks for the
-doc, yes i have diffed in the wrong direction. i don't know how use
-git to patch but i'm gonna make a new patches, i expect the patches
-will be ok this time.
+There are still people working on it and there is new sources, e.g. look at
+http://www.spinics.net/lists/linux-media/msg24890.html
+at the very bottom. Worked like a charm at my system with kernel 2.6.39.
 
-Ok. The rc.map.h patch is not needed because we are using DIGIBOX
-rc.map, one less patch needed then.
+I think, there will be announcements later at
+http://wiki.zeratul.org/doku.php?id=linux:v4l:realtek:start
 
-Thanks for your time
-
-Emilio David Diaus López
+Greetings from Braunschweig, Germany.
+Sascha
