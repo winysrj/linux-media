@@ -1,114 +1,84 @@
 Return-path: <mchehab@pedra>
-Received: from mx1.redhat.com ([209.132.183.28]:24359 "EHLO mx1.redhat.com"
+Received: from mx1.redhat.com ([209.132.183.28]:53043 "EHLO mx1.redhat.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754154Ab1FZQHc (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 26 Jun 2011 12:07:32 -0400
-Date: Sun, 26 Jun 2011 13:06:11 -0300
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	LKML <linux-kernel@vger.kernel.org>
-Subject: [PATCH 07/14] [media] ivtv,cx18: Use default version control for
- VIDIOC_QUERYCAP
-Message-ID: <20110626130611.219bb01d@pedra>
-In-Reply-To: <cover.1309103285.git.mchehab@redhat.com>
-References: <cover.1309103285.git.mchehab@redhat.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+	id S1756391Ab1FPPKX (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 16 Jun 2011 11:10:23 -0400
+Message-ID: <4DFA1D05.6020004@redhat.com>
+Date: Thu, 16 Jun 2011 17:11:01 +0200
+From: Hans de Goede <hdegoede@redhat.com>
+MIME-Version: 1.0
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+CC: Devin Heitmueller <dheitmueller@kernellabs.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: Some fixes for alsa_stream
+References: <4DF6C10C.8070605@redhat.com>	<4DF758AF.3010301@redhat.com>	<4DF75C84.9000200@redhat.com>	<4DF7667C.9030502@redhat.com> <BANLkTi=9L+oxjpUaFo3ge0iqcZ2NCjJWWA@mail.gmail.com> <4DF76D88.5000506@redhat.com> <4DF77229.2020607@redhat.com> <4DF77405.2070104@redhat.com> <4DF8B716.1020406@redhat.com> <4DF8C0D2.5070900@redhat.com> <4DF8C32A.7090004@redhat.com> <4DF8D37C.7010307@redhat.com> <4DF9F734.1090508@redhat.com> <4DFA1561.1030905@redhat.com>
+In-Reply-To: <4DFA1561.1030905@redhat.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
-To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-After discussing with Andy Walls on irc, we've agreeded that this
-is the best thing to do. No regressions will be introduced, as 3.x.y
-is greater then the current versions for cx18 and ivtv.
+Hi,
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+On 06/16/2011 04:38 PM, Mauro Carvalho Chehab wrote:
+> Em 16-06-2011 09:29, Hans de Goede escreveu:
 
-diff --git a/drivers/media/video/cx18/cx18-driver.h b/drivers/media/video/cx18/cx18-driver.h
-index 0864272..1834207 100644
---- a/drivers/media/video/cx18/cx18-driver.h
-+++ b/drivers/media/video/cx18/cx18-driver.h
-@@ -25,7 +25,6 @@
- #ifndef CX18_DRIVER_H
- #define CX18_DRIVER_H
- 
--#include <linux/version.h>
- #include <linux/module.h>
- #include <linux/moduleparam.h>
- #include <linux/init.h>
-diff --git a/drivers/media/video/cx18/cx18-ioctl.c b/drivers/media/video/cx18/cx18-ioctl.c
-index 1933d4d..6ec61c9 100644
---- a/drivers/media/video/cx18/cx18-ioctl.c
-+++ b/drivers/media/video/cx18/cx18-ioctl.c
-@@ -469,7 +469,6 @@ static int cx18_querycap(struct file *file, void *fh,
- 	strlcpy(vcap->card, cx->card_name, sizeof(vcap->card));
- 	snprintf(vcap->bus_info, sizeof(vcap->bus_info),
- 		 "PCI:%s", pci_name(cx->pci_dev));
--	vcap->version = CX18_DRIVER_VERSION; 	    /* version */
- 	vcap->capabilities = cx->v4l2_cap; 	    /* capabilities */
- 	return 0;
- }
-diff --git a/drivers/media/video/cx18/cx18-version.h b/drivers/media/video/cx18/cx18-version.h
-index cd189b6..fed48b6 100644
---- a/drivers/media/video/cx18/cx18-version.h
-+++ b/drivers/media/video/cx18/cx18-version.h
-@@ -23,12 +23,6 @@
- #define CX18_VERSION_H
- 
- #define CX18_DRIVER_NAME "cx18"
--#define CX18_DRIVER_VERSION_MAJOR 1
--#define CX18_DRIVER_VERSION_MINOR 5
--#define CX18_DRIVER_VERSION_PATCHLEVEL 0
--
--#define CX18_VERSION __stringify(CX18_DRIVER_VERSION_MAJOR) "." __stringify(CX18_DRIVER_VERSION_MINOR) "." __stringify(CX18_DRIVER_VERSION_PATCHLEVEL)
--#define CX18_DRIVER_VERSION KERNEL_VERSION(CX18_DRIVER_VERSION_MAJOR, \
--	CX18_DRIVER_VERSION_MINOR, CX18_DRIVER_VERSION_PATCHLEVEL)
-+#define CX18_VERSION "1.5.1"
- 
- #endif
-diff --git a/drivers/media/video/ivtv/ivtv-driver.h b/drivers/media/video/ivtv/ivtv-driver.h
-index 84bdf0f..8f9cc17 100644
---- a/drivers/media/video/ivtv/ivtv-driver.h
-+++ b/drivers/media/video/ivtv/ivtv-driver.h
-@@ -36,7 +36,6 @@
-  *                using information provided by Jiun-Kuei Jung @ AVerMedia.
-  */
- 
--#include <linux/version.h>
- #include <linux/module.h>
- #include <linux/init.h>
- #include <linux/delay.h>
-diff --git a/drivers/media/video/ivtv/ivtv-ioctl.c b/drivers/media/video/ivtv/ivtv-ioctl.c
-index f9e347d..ac210ac 100644
---- a/drivers/media/video/ivtv/ivtv-ioctl.c
-+++ b/drivers/media/video/ivtv/ivtv-ioctl.c
-@@ -757,7 +757,6 @@ static int ivtv_querycap(struct file *file, void *fh, struct v4l2_capability *vc
- 	strlcpy(vcap->driver, IVTV_DRIVER_NAME, sizeof(vcap->driver));
- 	strlcpy(vcap->card, itv->card_name, sizeof(vcap->card));
- 	snprintf(vcap->bus_info, sizeof(vcap->bus_info), "PCI:%s", pci_name(itv->pdev));
--	vcap->version = IVTV_DRIVER_VERSION; 	    /* version */
- 	vcap->capabilities = itv->v4l2_cap; 	    /* capabilities */
- 	return 0;
- }
-diff --git a/drivers/media/video/ivtv/ivtv-version.h b/drivers/media/video/ivtv/ivtv-version.h
-index b67a404..a20f346 100644
---- a/drivers/media/video/ivtv/ivtv-version.h
-+++ b/drivers/media/video/ivtv/ivtv-version.h
-@@ -21,11 +21,6 @@
- #define IVTV_VERSION_H
- 
- #define IVTV_DRIVER_NAME "ivtv"
--#define IVTV_DRIVER_VERSION_MAJOR 1
--#define IVTV_DRIVER_VERSION_MINOR 4
--#define IVTV_DRIVER_VERSION_PATCHLEVEL 2
--
--#define IVTV_VERSION __stringify(IVTV_DRIVER_VERSION_MAJOR) "." __stringify(IVTV_DRIVER_VERSION_MINOR) "." __stringify(IVTV_DRIVER_VERSION_PATCHLEVEL)
--#define IVTV_DRIVER_VERSION KERNEL_VERSION(IVTV_DRIVER_VERSION_MAJOR,IVTV_DRIVER_VERSION_MINOR,IVTV_DRIVER_VERSION_PATCHLEVEL)
-+#define IVTV_VERSION "1.4.3"
- 
- #endif
--- 
-1.7.1
+<snip>
 
+>> Note that I've just pushed a patch set which includes rewritten period
+>> / buf size negotiation and a bunch of cleanups in general. This removes
+>> over 150 lines of code, while at the same time making the code more
+>> flexible.
+>
+> You removed mmap support, but you didn't removed the alsa-mmap option at xawtv.
+>
 
+Ah, fixed.
+
+>> It should now work with pretty much any combination of
+>> input / output device (tested with a bt878 input and intel hda,
+>> usb-audio or pulseaudio output).
+>
+> I'll run some tests later with the boards I have here.
+>
+
+Thanks.
+
+>> I've also changed the default -alsa-pb value to "default" as we should
+>> not be picking something else then the user / distro configured defaults
+>> for output IMHO. The user can set a generic default in alsarc, and override
+>> that on the cmdline if he/she wants, but unless overridden on the cmdline
+>> we should respect the users generic default as specified in his
+>> alsarc.
+>
+> While pulseaudio refuses to work via ssh, this is actually a very bad idea.
+> Xawtv is used by developers to test their stuff, and they generally do it
+> on a remote machine, with the console captured via tty port, in order to
+> be able to catch panic messages.
+>
+
+I'm sure developers are quite capable of creating either an .alsarc, pass
+the cmdline option, or change pulseaudio's config to accept non local console
+connections.
+
+We should try to have sane user oriented defaults, not developer oriented
+defaults.
+
+Also not all developers work the same way you do, so having a certain default
+just so it matches your work flow also is a bad idea IMHO.
+
+> For now, please revert this patch. After having pulseaudio fixed to properly
+> handle the audio group, I'm ok to re-add it.
+>
+>> We could consider making the desired latency configurable, currently
+>> I've hardcoded it to 30 ms (was 38 with the old code on my system) note
+>> that I've chosen to specify the latency in ms rather then in a number
+>> of samples, since it should be samplerate independent IMO.
+>
+> Yeah, having latency configurable sounds a good idea to me.
+
+Done.
+
+Regards,
+
+Hans
