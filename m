@@ -1,159 +1,83 @@
 Return-path: <mchehab@pedra>
-Received: from mx1.redhat.com ([209.132.183.28]:56113 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1758009Ab1FAPAx (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 1 Jun 2011 11:00:53 -0400
-Message-ID: <4DE65418.1050508@redhat.com>
-Date: Wed, 01 Jun 2011 12:00:40 -0300
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Received: from mail-iw0-f174.google.com ([209.85.214.174]:65530 "EHLO
+	mail-iw0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751987Ab1FPLGV (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 16 Jun 2011 07:06:21 -0400
+Received: by iwn34 with SMTP id 34so1035617iwn.19
+        for <linux-media@vger.kernel.org>; Thu, 16 Jun 2011 04:06:21 -0700 (PDT)
 MIME-Version: 1.0
-To: Lutz Sammer <johns98@gmx.net>
-CC: linux-media@vger.kernel.org, Manu Abraham <abraham.manu@gmail.com>
-Subject: Re: [PATCH] stb0899: Fix not locking DVB-S transponder
-References: <4DC135E5.40805@gmx.net>
-In-Reply-To: <4DC135E5.40805@gmx.net>
+In-Reply-To: <4DF4A292.3070409@iki.fi>
+References: <S1753342Ab1FKJ3p/20110611092945Z+46855@vger.kernel.org>
+	<672951.10004.qm@web24108.mail.ird.yahoo.com>
+	<4DF4A292.3070409@iki.fi>
+Date: Thu, 16 Jun 2011 13:06:21 +0200
+Message-ID: <BANLkTi=a2jqCL8HgpgvtZRfcrBkiHE6EzQ@mail.gmail.com>
+Subject: Re: dual sveon stv22 Afatech af9015 support (kworld clone)
+From: =?ISO-8859-1?Q?Emilio_David_Diaus_L=F3pez?=
+	<edavid.diaus@gmail.com>
+To: Antti Palosaari <crope@iki.fi>
+Cc: linux-media@vger.kernel.org
 Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: base64
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Manu,
-
-Please review.
-
-Lutz,
-
-scripts/checkpatch.pl complains about a few bad style used on your patches:
-
-ERROR: space prohibited after that open parenthesis '('
-#42: FILE: drivers/media/dvb/frontends/stb0899_algo.c:343:
-+	if ( !lock ) {
-
-ERROR: space prohibited before that close parenthesis ')'
-#42: FILE: drivers/media/dvb/frontends/stb0899_algo.c:343:
-+	if ( !lock ) {
-
-WARNING: msleep < 20ms can sleep for up to 20ms; see Documentation/timers/timers-howto.txt
-+		msleep(1);
-WARNING: line over 80 characters
-#90: FILE: drivers/media/dvb/frontends/stb0899_algo.c:365:
-+		stb0899_write_reg(state, STB0899_DSTATUS2, 0x00); /* force search loop	*/
-
-WARNING: line over 80 characters
-#92: FILE: drivers/media/dvb/frontends/stb0899_algo.c:367:
-+			/* WARNING! VIT LOCKED has to be tested before VIT_END_LOOOP	*/
-
-ERROR: trailing whitespace
-#96: FILE: drivers/media/dvb/frontends/stb0899_algo.c:371:
-+^I$
-
-WARNING: msleep < 20ms can sleep for up to 20ms; see Documentation/timers/timers-howto.txt
-+			msleep(1);
-total: 3 errors, 4 warnings, 69 lines checked
-
-NOTE: whitespace errors detected, you may wish to use scripts/cleanpatch or
-      scripts/cleanfile
-
-The warnings are trivial. I can fix it when applying it, after having Manu's
-ack on that patch, but the better is for you to always check your patches with
-checkpatch.pl.
-
-
-Em 04-05-2011 08:17, Lutz Sammer escreveu:
-> stb0899: Fix not locking DVB-S transponder
-> 
-> When stb0899_check_data is entered, it could happen, that the data is
-> already locked and the data search looped.  stb0899_check_data fails to
-> lock on a good frequency.  stb0899_search_data uses an extrem big search
-> step and fails to lock.
-> 
-> The new code checks for lock before starting a new search.
-> The first read ignores the loop bit, for the case that the loop bit is
-> set during the search setup.  I also added the msleep to reduce the
-> traffic on the i2c bus.
-> 
-> Resend, last version seems to be broken by email-client.
-> 
-> Johns
-> 
-> Signed-off-by: Lutz Sammer <johns98@gmx.net>
-> 
-> 
-> stb0899_not_locking_fix.diff
-> 
-> 
-> diff --git a/drivers/media/dvb/frontends/stb0899_algo.c b/drivers/media/dvb/frontends/stb0899_algo.c
-> index 2da55ec..55f0c4e 100644
-> --- a/drivers/media/dvb/frontends/stb0899_algo.c
-> +++ b/drivers/media/dvb/frontends/stb0899_algo.c
-> @@ -338,36 +338,42 @@ static enum stb0899_status stb0899_check_data(struct stb0899_state *state)
->  	int lock = 0, index = 0, dataTime = 500, loop;
->  	u8 reg;
->  
-> -	internal->status = NODATA;
-> +	reg = stb0899_read_reg(state, STB0899_VSTATUS);
-> +	lock = STB0899_GETFIELD(VSTATUS_LOCKEDVIT, reg);
-> +	if ( !lock ) {
->  
-> -	/* RESET FEC	*/
-> -	reg = stb0899_read_reg(state, STB0899_TSTRES);
-> -	STB0899_SETFIELD_VAL(FRESACS, reg, 1);
-> -	stb0899_write_reg(state, STB0899_TSTRES, reg);
-> -	msleep(1);
-> -	reg = stb0899_read_reg(state, STB0899_TSTRES);
-> -	STB0899_SETFIELD_VAL(FRESACS, reg, 0);
-> -	stb0899_write_reg(state, STB0899_TSTRES, reg);
-> +		internal->status = NODATA;
->  
-> -	if (params->srate <= 2000000)
-> -		dataTime = 2000;
-> -	else if (params->srate <= 5000000)
-> -		dataTime = 1500;
-> -	else if (params->srate <= 15000000)
-> -		dataTime = 1000;
-> -	else
-> -		dataTime = 500;
-> -
-> -	stb0899_write_reg(state, STB0899_DSTATUS2, 0x00); /* force search loop	*/
-> -	while (1) {
-> -		/* WARNING! VIT LOCKED has to be tested before VIT_END_LOOOP	*/
-> -		reg = stb0899_read_reg(state, STB0899_VSTATUS);
-> -		lock = STB0899_GETFIELD(VSTATUS_LOCKEDVIT, reg);
-> -		loop = STB0899_GETFIELD(VSTATUS_END_LOOPVIT, reg);
-> +		/* RESET FEC	*/
-> +		reg = stb0899_read_reg(state, STB0899_TSTRES);
-> +		STB0899_SETFIELD_VAL(FRESACS, reg, 1);
-> +		stb0899_write_reg(state, STB0899_TSTRES, reg);
-> +		msleep(1);
-> +		reg = stb0899_read_reg(state, STB0899_TSTRES);
-> +		STB0899_SETFIELD_VAL(FRESACS, reg, 0);
-> +		stb0899_write_reg(state, STB0899_TSTRES, reg);
->  
-> -		if (lock || loop || (index > dataTime))
-> -			break;
-> -		index++;
-> +		if (params->srate <= 2000000)
-> +			dataTime = 2000;
-> +		else if (params->srate <= 5000000)
-> +			dataTime = 1500;
-> +		else if (params->srate <= 15000000)
-> +			dataTime = 1000;
-> +		else
-> +			dataTime = 500;
-> +
-> +		stb0899_write_reg(state, STB0899_DSTATUS2, 0x00); /* force search loop	*/
-> +		while (1) {
-> +			/* WARNING! VIT LOCKED has to be tested before VIT_END_LOOOP	*/
-> +			reg = stb0899_read_reg(state, STB0899_VSTATUS);
-> +			lock = STB0899_GETFIELD(VSTATUS_LOCKEDVIT, reg);
-> +			loop = STB0899_GETFIELD(VSTATUS_END_LOOPVIT, reg);
-> +	
-> +			if (lock || (loop && index) || (index > dataTime))
-> +				break;
-> +			index++;
-> +			msleep(1);
-> +		}
->  	}
->  
->  	if (lock) {	/* DATA LOCK indicator	*/
-
+SGVsbG8gYWdhaW46CgpUaGUgb3V0cHV0IGZvciBsc3VzYiAtdnZkIDFiODA6ZTQwMSBpczoKLS0t
+LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tCkJ1cyAwMDEgRGV2aWNlIDAxNjogSUQg
+MWI4MDplNDAxIEFmYXRlY2gKRGV2aWNlIERlc2NyaXB0b3I6CqAgYkxlbmd0aKCgoKCgoKCgoKCg
+oKCgoCAxOAqgIGJEZXNjcmlwdG9yVHlwZaCgoKCgoKCgIDEKoCBiY2RVU0KgoKCgoKCgoKCgoKCg
+oCAyLjAwCqAgYkRldmljZUNsYXNzoKCgoKCgoKCgoKAgMCAoRGVmaW5lZCBhdCBJbnRlcmZhY2Ug
+bGV2ZWwpCqAgYkRldmljZVN1YkNsYXNzoKCgoKCgoKAgMAqgIGJEZXZpY2VQcm90b2NvbKCgoKCg
+oKCgIDAKoCBiTWF4UGFja2V0U2l6ZTCgoKCgoKCgIDY0CqAgaWRWZW5kb3KgoKCgoKCgoKCgIDB4
+MWI4MCBBZmF0ZWNoCqAgaWRQcm9kdWN0oKCgoKCgoKCgIDB4ZTQwMQqgIGJjZERldmljZaCgoKCg
+oKCgoKCgIDIuMDAKoCBpTWFudWZhY3R1cmVyoKCgoKCgoKCgoCAxIEFHIFNpc3RlbWFzIEluZm9y
+bWF0aWNvcwqgIGlQcm9kdWN0oKCgoKCgoKCgoKCgoKCgIDIgU1ZFT04gU1RWMjIKoCBpU2VyaWFs
+oKCgoKCgoKCgoKCgoKCgoCAwCqAgYk51bUNvbmZpZ3VyYXRpb25zoKCgoKAgMQqgIENvbmZpZ3Vy
+YXRpb24gRGVzY3JpcHRvcjoKoKCgIGJMZW5ndGigoKCgoKCgoKCgoKCgoKCgIDkKoKCgIGJEZXNj
+cmlwdG9yVHlwZaCgoKCgoKCgIDIKoKCgIHdUb3RhbExlbmd0aKCgoKCgoKCgoKAgNDYKoKCgIGJO
+dW1JbnRlcmZhY2VzoKCgoKCgoKCgIDEKoKCgIGJDb25maWd1cmF0aW9uVmFsdWWgoKCgIDEKoKCg
+IGlDb25maWd1cmF0aW9uoKCgoKCgoKCgIDAKoKCgIGJtQXR0cmlidXRlc6CgoKCgoKCgIDB4ODAK
+oKCgoKAgKEJ1cyBQb3dlcmVkKQqgoKAgTWF4UG93ZXKgoKCgoKCgoKCgoKCgIDUwMG1BCqCgoCBJ
+bnRlcmZhY2UgRGVzY3JpcHRvcjoKoKCgoKAgYkxlbmd0aKCgoKCgoKCgoKCgoKCgoKAgOQqgoKCg
+oCBiRGVzY3JpcHRvclR5cGWgoKCgoKCgoCA0CqCgoKCgIGJJbnRlcmZhY2VOdW1iZXKgoKCgoKCg
+IDAKoKCgoKAgYkFsdGVybmF0ZVNldHRpbmegoKCgoKAgMAqgoKCgoCBiTnVtRW5kcG9pbnRzoKCg
+oKCgoKCgoCA0CqCgoKCgIGJJbnRlcmZhY2VDbGFzc6CgoKCgoCAyNTUgVmVuZG9yIFNwZWNpZmlj
+IENsYXNzCqCgoKCgIGJJbnRlcmZhY2VTdWJDbGFzc6CgoKCgIDAKoKCgoKAgYkludGVyZmFjZVBy
+b3RvY29soKCgoKAgMAqgoKCgoCBpSW50ZXJmYWNloKCgoKCgoKCgoKCgoCAwCqCgoKCgIEVuZHBv
+aW50IERlc2NyaXB0b3I6CqCgoKCgoKAgYkxlbmd0aKCgoKCgoKCgoKCgoKCgoKAgNwqgoKCgoKCg
+IGJEZXNjcmlwdG9yVHlwZaCgoKCgoKCgIDUKoKCgoKCgoCBiRW5kcG9pbnRBZGRyZXNzoKCgoCAw
+eDgxoCBFUCAxIElOCqCgoKCgoKAgYm1BdHRyaWJ1dGVzoKCgoKCgoKCgoKAgMgqgoKCgoKCgoKAg
+VHJhbnNmZXIgVHlwZaCgoKCgoKCgoKCgIEJ1bGsKoKCgoKCgoKCgIFN5bmNoIFR5cGWgoKCgoKCg
+oKCgoKCgoCBOb25lCqCgoKCgoKCgoCBVc2FnZSBUeXBloKCgoKCgoKCgoKCgoKAgRGF0YQqgoKCg
+oKCgIHdNYXhQYWNrZXRTaXploKCgoCAweDAyMDCgIDF4IDUxMiBieXRlcwqgoKCgoKCgIGJJbnRl
+cnZhbKCgoKCgoKCgoKCgoKCgIDAKoKCgoKAgRW5kcG9pbnQgRGVzY3JpcHRvcjoKoKCgoKCgoCBi
+TGVuZ3RooKCgoKCgoKCgoKCgoKCgoCA3CqCgoKCgoKAgYkRlc2NyaXB0b3JUeXBloKCgoKCgoKAg
+NQqgoKCgoKCgIGJFbmRwb2ludEFkZHJlc3OgoKCgIDB4MDKgIEVQIDIgT1VUCqCgoKCgoKAgYm1B
+dHRyaWJ1dGVzoKCgoKCgoKCgoKAgMgqgoKCgoKCgoKAgVHJhbnNmZXIgVHlwZaCgoKCgoKCgoKCg
+IEJ1bGsKoKCgoKCgoKCgIFN5bmNoIFR5cGWgoKCgoKCgoKCgoKCgoCBOb25lCqCgoKCgoKCgoCBV
+c2FnZSBUeXBloKCgoKCgoKCgoKCgoKAgRGF0YQqgoKCgoKCgIHdNYXhQYWNrZXRTaXploKCgoCAw
+eDAyMDCgIDF4IDUxMiBieXRlcwqgoKCgoKCgIGJJbnRlcnZhbKCgoKCgoKCgoKCgoKCgIDAKoKCg
+oKAgRW5kcG9pbnQgRGVzY3JpcHRvcjoKoKCgoKCgoCBiTGVuZ3RooKCgoKCgoKCgoKCgoKCgoCA3
+CqCgoKCgoKAgYkRlc2NyaXB0b3JUeXBloKCgoKCgoKAgNQqgoKCgoKCgIGJFbmRwb2ludEFkZHJl
+c3OgoKCgIDB4ODSgIEVQIDQgSU4KoKCgoKCgoCBibUF0dHJpYnV0ZXOgoKCgoKCgoKCgoCAyCqCg
+oKCgoKCgoCBUcmFuc2ZlciBUeXBloKCgoKCgoKCgoKAgQnVsawqgoKCgoKCgoKAgU3luY2ggVHlw
+ZaCgoKCgoKCgoKCgoKCgIE5vbmUKoKCgoKCgoKCgIFVzYWdlIFR5cGWgoKCgoKCgoKCgoKCgoCBE
+YXRhCqCgoKCgoKAgd01heFBhY2tldFNpemWgoKCgIDB4MDIwMKAgMXggNTEyIGJ5dGVzCqCgoKCg
+oKAgYkludGVydmFsoKCgoKCgoKCgoKCgoKAgMAqgoKCgoCBFbmRwb2ludCBEZXNjcmlwdG9yOgqg
+oKCgoKCgIGJMZW5ndGigoKCgoKCgoKCgoKCgoKCgIDcKoKCgoKCgoCBiRGVzY3JpcHRvclR5cGWg
+oKCgoKCgoCA1CqCgoKCgoKAgYkVuZHBvaW50QWRkcmVzc6CgoKAgMHg4NaAgRVAgNSBJTgqgoKCg
+oKCgIGJtQXR0cmlidXRlc6CgoKCgoKCgoKCgIDIKoKCgoKCgoKCgIFRyYW5zZmVyIFR5cGWgoKCg
+oKCgoKCgoCBCdWxrCqCgoKCgoKCgoCBTeW5jaCBUeXBloKCgoKCgoKCgoKCgoKAgTm9uZQqgoKCg
+oKCgoKAgVXNhZ2UgVHlwZaCgoKCgoKCgoKCgoKCgIERhdGEKoKCgoKCgoCB3TWF4UGFja2V0U2l6
+ZaCgoKAgMHgwMjAwoCAxeCA1MTIgYnl0ZXMKoKCgoKCgoCBiSW50ZXJ2YWygoKCgoKCgoKCgoKCg
+oCAwCkRldmljZSBRdWFsaWZpZXIgKGZvciBvdGhlciBkZXZpY2Ugc3BlZWQpOgqgIGJMZW5ndGig
+oKCgoKCgoKCgoKCgoKAgMTAKoCBiRGVzY3JpcHRvclR5cGWgoKCgoKCgoCA2CqAgYmNkVVNCoKCg
+oKCgoKCgoKCgoKAgMi4wMAqgIGJEZXZpY2VDbGFzc6CgoKCgoKCgoKCgIDAgKERlZmluZWQgYXQg
+SW50ZXJmYWNlIGxldmVsKQqgIGJEZXZpY2VTdWJDbGFzc6CgoKCgoKCgIDAKoCBiRGV2aWNlUHJv
+dG9jb2ygoKCgoKCgoCAwCqAgYk1heFBhY2tldFNpemUwoKCgoKCgoCA2NAqgIGJOdW1Db25maWd1
+cmF0aW9uc6CgoKCgIDEKRGV2aWNlIFN0YXR1czqgoKCgIDB4MDAwMAqgIChCdXMgUG93ZXJlZCkK
+LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLQoKbm93IGknbSB3b3Jr
+aW5nIGluIHRoZSByZW1vdGUgY29udHJvbGxlciBrZXl0YWJsZSwgaSdtIGxvb2tpbmcgZm9yIHRo
+ZQpyZW1vdGUgYmVjYXVzZSBpIGZvcmdvdCB3aGVyZSBpIHB1dCBpdCBidXQgaSBleHBlY3QgdG8g
+ZmluZCBpdCBzb29uLgoKdGhhbmtzIGZvciBhbGwKCkVtaWxpbyBEYXZpZCBEaWF1cyBM83Blego=
