@@ -1,80 +1,57 @@
 Return-path: <mchehab@pedra>
-Received: from 5571f1ba.dsl.concepts.nl ([85.113.241.186]:42323 "EHLO
-	his10.thuis.hoogenraad.info" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1754285Ab1F0U1b (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 27 Jun 2011 16:27:31 -0400
-Message-ID: <4E08E7B0.5030906@hoogenraad.net>
-Date: Mon, 27 Jun 2011 22:27:28 +0200
-From: Jan Hoogenraad <jan-verisign@hoogenraad.net>
+Received: from mga09.intel.com ([134.134.136.24]:39487 "EHLO mga09.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751709Ab1FPDAA (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 15 Jun 2011 23:00:00 -0400
+Date: Wed, 15 Jun 2011 19:59:57 -0700
+From: Sarah Sharp <sarah.a.sharp@linux.intel.com>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: linux-media@vger.kernel.org, linux-usb@vger.kernel.org,
+	Andiry Xu <andiry.xu@amd.com>,
+	Alan Stern <stern@rowland.harvard.edu>
+Subject: Re: uvcvideo failure under xHCI
+Message-ID: <20110616025957.GA10184@xanatos>
+References: <20110616013957.GA9809@xanatos>
 MIME-Version: 1.0
-To: =?UTF-8?B?SXZvIFbDoWxlaw==?= <ivo.valek@centrum.cz>
-CC: linux-media@vger.kernel.org
-Subject: Re: Ubuntu 10.04 and trying to install drivers fot TV card Asus My
- Cinema U3000 hybrid
-References: <20110625135319.52BD470F@centrum.cz> <4E08BDDA.9090306@hoogenraad.net>
-In-Reply-To: <4E08BDDA.9090306@hoogenraad.net>
-Content-Type: multipart/mixed;
- boundary="------------070402090704050902050506"
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20110616013957.GA9809@xanatos>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-This is a multi-part message in MIME format.
---------------070402090704050902050506
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 8bit
+On Wed, Jun 15, 2011 at 06:39:57PM -0700, Sarah Sharp wrote:
+> When I plug in a webcam under an xHCI host controller in 3.0-rc3+
+> (basically top of Greg's usb-linus branch) with xHCI debugging turned
+> on, the host controller occasionally cannot keep up with the isochronous
+> transfers, and it tells the xHCI driver that it had to "skip" several
+> microframes of transfers.  These "Missed Service Intervals" aren't
+> supposed to be fatal errors, just an indication that something was
+> hogging the PCI memory bandwidth.
+> 
+> The xHCI driver then sets the URB's status to -EXDEV, to indicate that
+> some of the iso_frame_desc transferred, and sets at least one frame's
+> status to -EXDEV:
+...
+> The urb->status causes uvcvideo code in uvc_status.c:uvc_status_complete() to
+> fail with the message:
+> 
+> Jun 15 17:37:11 talon kernel: [  117.987769] uvcvideo: Non-zero status (-18) in video completion handler.
+...
+> I've grepped through drivers/media/video, and it seems like none of the
+> drivers handle the -EXDEV status.  What should the xHCI driver be
+> setting the URB's status and frame status to when the xHCI host
+> controller skips over transfers?  -EREMOTEIO?
+> 
+> Or does it need to set the URB's status to zero, but only set the
+> individual frame status to -EXDEV?
 
-Could you re-try with the current media_build ?
+Ok, looking at both EHCI and UHCI, they seem to set the urb->status to
+zero, regardless of what they set the frame descriptor field to.
 
-Jan Hoogenraad wrote:
-> Ivo:
->
-> type
-> sudo apt-get install libproc-processtable-perl
->
-> The message is confusing to say the least.
-> I promised Mauro to update the code to yield better messages, but did
-> not get around to do that.
-> see thread "change in build .sh due to Pulseaudio device removal /"
->
-> Yours,
->
-> Ivo Válek wrote:
->> Hello,
->>
->>
->> acc. to instructions on this internet page
->>
->> http://www.linuxtv.org/wiki/index.php/How_to_install_DVB_device_drivers
->>
->>
->> I tried to install some driver for TV card, but I got an order to
->> contact You. enclosed please see printscreen of my Terminal...
->>
->> Could You help me please? I'm not experienced PC user, especially
->> Linux...
->>
->>
->>
->> thanks!
->>
->> Ivo
->
->
+Alan, does that seem correct?
 
+I've created a patch to do the same thing in the xHCI driver, and I seem
+to be getting consistent video with xHCI debugging turned on, despite
+lots of Missed Service Interval events.
 
---------------070402090704050902050506
-Content-Type: text/x-vcard; charset=utf-8;
- name="jan-verisign.vcf"
-Content-Transfer-Encoding: base64
-Content-Disposition: attachment;
- filename="jan-verisign.vcf"
-
-YmVnaW46dmNhcmQNCmZuOkphbiBIb29nZW5yYWFkDQpuOkhvb2dlbnJhYWQ7SmFuDQpvcmc6
-SG9vZ2VucmFhZCBJbnRlcmZhY2UgU2VydmljZXMNCmFkcjtxdW90ZWQtcHJpbnRhYmxlO2Rv
-bTo7O1Bvc3RidXMgMjcxNztVdHJlY2h0OzstLSA9DQoJPTBEPTBBPQ0KCUphbiBIb29nZW5y
-YWFkPTBEPTBBPQ0KCUhvb2dlbnJhYWQgSW50ZXJmYWNlIFNlcnZpY2VzPTBEPTBBPQ0KCVBv
-c3RidXMgMjcxNz0wRD0wQT0NCgkzNTAwIEdTDQplbWFpbDtpbnRlcm5ldDpqYW4tdmVyaXNp
-Z25AaG9vZ2VucmFhZC5uZXQNCngtbW96aWxsYS1odG1sOkZBTFNFDQp2ZXJzaW9uOjIuMQ0K
-ZW5kOnZjYXJkDQoNCg==
---------------070402090704050902050506--
+Sarah Sharp
