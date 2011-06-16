@@ -1,81 +1,34 @@
 Return-path: <mchehab@pedra>
-Received: from mailout2.w1.samsung.com ([210.118.77.12]:25354 "EHLO
-	mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754002Ab1FOIgx (ORCPT
+Received: from mail-pw0-f46.google.com ([209.85.160.46]:56305 "EHLO
+	mail-pw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751163Ab1FPFbm (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 15 Jun 2011 04:36:53 -0400
-Date: Wed, 15 Jun 2011 10:36:18 +0200
-From: Marek Szyprowski <m.szyprowski@samsung.com>
-Subject: RE: [Linaro-mm-sig] [PATCH 08/10] mm: cma: Contiguous Memory Allocator
- added
-In-reply-to: <201106142242.25157.arnd@arndb.de>
-To: 'Arnd Bergmann' <arnd@arndb.de>,
-	'Zach Pfeffer' <zach.pfeffer@linaro.org>
-Cc: linux-arm-kernel@lists.infradead.org,
-	'Daniel Walker' <dwalker@codeaurora.org>,
-	'Daniel Stone' <daniels@collabora.com>, linux-mm@kvack.org,
-	'Mel Gorman' <mel@csn.ul.ie>, linux-kernel@vger.kernel.org,
-	'Michal Nazarewicz' <mina86@mina86.com>,
-	linaro-mm-sig@lists.linaro.org,
-	'Jesse Barker' <jesse.barker@linaro.org>,
-	'Kyungmin Park' <kyungmin.park@samsung.com>,
-	'Ankita Garg' <ankita@in.ibm.com>,
-	'Andrew Morton' <akpm@linux-foundation.org>,
-	'KAMEZAWA Hiroyuki' <kamezawa.hiroyu@jp.fujitsu.com>,
-	linux-media@vger.kernel.org,
-	Marek Szyprowski <m.szyprowski@samsung.com>
-Message-id: <000901cc2b37$4c21f030$e465d090$%szyprowski@samsung.com>
-MIME-version: 1.0
-Content-type: text/plain; charset=us-ascii
-Content-language: pl
-Content-transfer-encoding: 7BIT
-References: <1307699698-29369-1-git-send-email-m.szyprowski@samsung.com>
- <20110614170158.GU2419@fooishbar.org>
- <BANLkTi=cJisuP8=_YSg4h-nsjGj3zsM7sg@mail.gmail.com>
- <201106142242.25157.arnd@arndb.de>
+	Thu, 16 Jun 2011 01:31:42 -0400
+Received: by pwj7 with SMTP id 7so82523pwj.19
+        for <linux-media@vger.kernel.org>; Wed, 15 Jun 2011 22:31:41 -0700 (PDT)
+MIME-Version: 1.0
+Date: Thu, 16 Jun 2011 13:31:41 +0800
+Message-ID: <BANLkTikKA_0QEyaeJth4FYzm61tYT+_Gow@mail.gmail.com>
+Subject: no mmu on videobuf2
+From: Scott Jiang <scott.jiang.linux@gmail.com>
+To: m.szyprowski@samsung.com, hans.verkuil@cisco.com,
+	laurent.pinchart@ideasonboard.com
+Cc: linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Hello,
+Hi Marek and Laurent,
 
-On Tuesday, June 14, 2011 10:42 PM Arnd Bergmann wrote:
+I am working on v4l2 drivers for blackfin which is a no mmu soc.
+I found videobuf allocate memory in mmap not reqbuf, so I turn to videobuf2.
+But __setup_offsets() use plane offset to fill m.offset, which is
+always 0 for single-planar buffer.
+So pgoff in get_unmapped_area callback equals 0.
+I only found uvc handled get_unmapped_area for no mmu system, but it
+manages buffers itself.
+I really want videobuf2 to manage buffers. Please give me some advice.
 
-> On Tuesday 14 June 2011 20:58:25 Zach Pfeffer wrote:
-> > I've seen this split bank allocation in Qualcomm and TI SoCs, with
-> > Samsung, that makes 3 major SoC vendors (I would be surprised if
-> > Nvidia didn't also need to do this) - so I think some configurable
-> > method to control allocations is necessarily. The chips can't do
-> > decode without it (and by can't do I mean 1080P and higher decode is
-> > not functionally useful). Far from special, this would appear to be
-> > the default.
-> 
-> Thanks for the insight, that's a much better argument than 'something
-> may need it'. Are those all chips without an IOMMU or do we also
-> need to solve the IOMMU case with split bank allocation?
-> 
-> I think I'd still prefer to see the support for multiple regions split
-> out into one of the later patches, especially since that would defer
-> the question of how to do the initialization for this case and make
-> sure we first get a generic way.
-> 
-> You've convinced me that we need to solve the problem of allocating
-> memory from a specific bank eventually, but separating it from the
-> one at hand (contiguous allocation) should help getting the important
-> groundwork in at first.
->
-> The possible conflict that I still see with per-bank CMA regions are:
-> 
-> * It completely destroys memory power management in cases where that
->   is based on powering down entire memory banks.
-
-I don't think that per-bank CMA regions destroys memory power management
-more than the global CMA pool. Please note that the contiguous buffers
-(or in general dma-buffers) right now are unmovable so they don't fit
-well into memory power management.
-
-Best regards
--- 
-Marek Szyprowski
-Samsung Poland R&D Center
-
-
+Thanks.
+Regards,
+Scott
