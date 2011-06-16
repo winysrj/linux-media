@@ -1,145 +1,136 @@
 Return-path: <mchehab@pedra>
-Received: from mx1.redhat.com ([209.132.183.28]:61121 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751664Ab1FGHey (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 7 Jun 2011 03:34:54 -0400
-Message-ID: <4DEDD4B5.9020801@redhat.com>
-Date: Tue, 07 Jun 2011 09:35:17 +0200
-From: Hans de Goede <hdegoede@redhat.com>
-MIME-Version: 1.0
-To: John McMaster <johndmcmaster@gmail.com>
-CC: linux-media@vger.kernel.org
-Subject: Re: Anchor Chips V4L2 driver
-References: <4DE873B4.4050306@gmail.com> <4DE8D065.7020502@redhat.com> <4DE8E018.7070007@redhat.com> <4DEC6862.8000006@gmail.com> <4DEC851B.7030000@redhat.com> <4DEDB623.2010200@gmail.com>
-In-Reply-To: <4DEDB623.2010200@gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Received: from mail-fx0-f46.google.com ([209.85.161.46]:38956 "EHLO
+	mail-fx0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757801Ab1FPSY3 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 16 Jun 2011 14:24:29 -0400
+Received: by fxm17 with SMTP id 17so1290626fxm.19
+        for <linux-media@vger.kernel.org>; Thu, 16 Jun 2011 11:24:28 -0700 (PDT)
+Subject: New channels list sk-Presov
+From: Viktor Kristian <vkristian@gmail.com>
+To: linux-media@vger.kernel.org
+Content-Type: multipart/signed; micalg="sha1"; protocol="application/x-pkcs7-signature"; boundary="=-OH5fB98NINuFXdpb9V8m"
+Date: Thu, 16 Jun 2011 20:24:25 +0200
+Message-ID: <1308248665.5573.7.camel@charon>
+Mime-Version: 1.0
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Hi,
 
-On 06/07/2011 07:24 AM, John McMaster wrote:
-> On 06/06/2011 12:43 AM, Hans de Goede wrote:
->> Hi,
->>
->> On 06/06/2011 07:40 AM, John McMaster wrote:
->>> On 06/03/2011 06:22 AM, Hans de Goede wrote:
->>>> Hi,
->>>>
->>>> On 06/03/2011 02:15 PM, Mauro Carvalho Chehab wrote:
->>>>> Em 03-06-2011 02:40, John McMaster escreveu:
->>>>>> I'd like to write a driver for an Anchor Chips (seems to be bought by
->>>>>> Cypress) USB camera Linux driver sold as an AmScope MD1800.  It seems
->>>>>> like this implies I need to write a V4L2 driver.  The camera does not
->>>>>> seem its currently supported (checked on Fedora 13 / 2.6.34.8) and I
->>>>>> did
->>>>>> not find any information on it in mailing list archives.  Does anyone
->>>>>> know or can help me identify if a similar camera might already be
->>>>>> supported?
->>>>>
->>>>> I've no idea. Better to wait for a couple days for developers to
->>>>> manifest
->>>>> about that, if they're already working on it.
->>>>>
->>>>>> lsusb gives the following output:
->>>>>>
->>>>>> Bus 001 Device 111: ID 0547:4d88 Anchor Chips, Inc.
->>>>>>
->>>>>> I've started reading the "Video for Linux Two API Specification"
->>>>>> which
->>>>>> seems like a good starting point and will move onto using source
->>>>>> code as
->>>>>> appropriate.  Any help would be appreciated.  Thanks!
->>>>>
->>>>> You'll find other useful information at linuxtv.org wiki page. The
->>>>> better
->>>>> is to write it as a sub-driver for gspca. The gspca core have already
->>>>> all
->>>>> that it is needed for cameras. So, you'll need to focus only at the
->>>>> device-specific
->>>>> stuff.
->>>>
->>>> I can second that you should definitely use gspca for usb webcam(ish)
->>>> device
->>>> drivers. As for how to go about this, first of all grep through the
->>>> windows drivers
->>>> for strings which may hint on the actual bridge chip used, chances are
->>>> good
->>>> there is an already supported bridge inside the camera.
->>>>
->>>> If not then make usb dumps, and start reverse engineering ...
->>>>
->>>> Usually it is enough to replay the windows init sequence to get the
->>>> device
->>>> to stream over either an bulk or iso endpoint, and then it is time to
->>>> figure out what that stream contains (jpeg, raw bayer, some custom
->>>> format ???)
->>>>
->>>> Regards,
->>>>
->>>> Hans
->>> Thanks for the response.  I replayed some packets (using libusb) and am
->>> able to get something resembling the desired image through its bulk
->>> endpoint.  So now I just need to figure out how to decode it better,
->>> options, etc.  I'll post back to the list once I get something
->>> moderately stable running and have taken a swing at the kernel driver.
->>>
->>
->> Hmm, bulk you say and cypress and 8mp usb2.0 have you tried looking
->> at the gspca-ovfx2 driver? Likely you've an ovfx2 cam with an as of
->> yet unknown usb-id. Chances are just adding the id is enough, although
->> your sensor may be unknown.
->>
->> Regards,
->>
->> Hans
-> If it helps, I should have also mentioned that with a small amount of
-> digging I found that the camera unit is put together by ScopeTek.  My
-> reference WIP implementation is at
-> https://github.com/JohnDMcMaster/uvscopetek which I'm comparing to
-> 2.6.39.1 drivers.
->
-> Anyway, looking at reg_w() I see that it likes to make 0x00, 0x02, or
-> 0x0A requests where as mine makes 0x01, 0x0A, and mostly 0x0B requests.
-> I do see that it tends to want a byte back though like mine (0x0A except
-> at end).  My code has a few 3 byte returns (byte 0 varies, byte 1 fixed
-> at 0x00, byte 2 fixed at 0x08 like others), so I'm not sure if its a
-> good match for reg read.  Following that I tried to grep around some
-> more for a number of the more interesting numbers (eg: 90D8 as opposed
-> to 0001) in the $SRC/drivers/media/video dir and could only find
-> scattered matches.  I do realize that a lot of the more esoteric numbers
-> could be specific settings and not registers, commands, etc.  Or maybe
-> tofx2 is related and I'm not understanding the bridge concept?
-
-I think you may have been looking at the wrong driver, if your trace shows
-mostly 0x0a, 0x0b and 0x02 requests then chances are high it is indeed
-an ovfx2, the ovfx2 driver is part of drivers/media/video/gspca/ov519.c
-because it shares a bunch of functions (mostly sensor detect stuff) with
-the ov511/ov518/ov519 driver.
-
-And it makes 0x0a request for ovfx2 (bridge) register writes, 0x0b
-requests for ovfx2 (bridge) register reads and 0x02 requests for i2c
-writes.
-
-If things indeed seem a better match with the ovfx2 support in ov519.c,
-one quick way to find out if it is an ovfx2 is to just add the usb-id of
-your camera to ov519.c as an ovfx2 camera, and load the driver, first
-thing the driver does is try to detect the sensor type through the i2c
-bus between the bridge and the sensor, if that works (even if it
-detects an unknown sensor, but the sensor id found seems sensible) it
-it likely is an ovfx2.
-
-You could also try grapping for strings like fx2 and cypress in the windows
-driver. Also try looking at the .inf file from the windows driver, if that
-contains different (maybe commented out) usb-ids of potentially compatible
-cams.
-
-Regards,
-
-Hans
+--=-OH5fB98NINuFXdpb9V8m
+Content-Type: multipart/mixed; boundary="=-Y9/UwYnWSZ4PFUoi9jjJ"
 
 
->
-> John
->
+--=-Y9/UwYnWSZ4PFUoi9jjJ
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
+
+Hello.
+
+I would like to commit channel list sk-Presov as suggested in README of
+utility "scan" from dvb-apps.
+
+Please let me know if anything is missing in this list.
+
+Thank You
+
+
+--=20
+S podzravom / Kind regards,
+Viktor Kristian
+
+--=-Y9/UwYnWSZ4PFUoi9jjJ
+Content-Disposition: attachment; filename="sk-Presov"
+Content-Type: text/plain; name="sk-Presov"; charset="UTF-8"
+Content-Transfer-Encoding: base64
+
+IyBEVkItVCBQcmXFoW92IChQcmXFoW92LCBTbG92YWsgUmVwdWJsaWMpDQojIENyZWF0ZWQgZnJv
+bSBodHRwOi8vd3d3LmR2YnQudG93ZXJjb20uc2svb2Rib3JuaWNpLnBocA0KIyBUIGZyZXEgYncg
+ZmVjX2hpIGZlY19sbyBtb2QgdHJhbnNtaXNzaW9uLW1vZGUgZ3VhcmQtaW50ZXJ2YWwgaGllcmFy
+Y2h5DQoNCiMgTVVYMSAtIFBpbG90IC0gb24gY2hhbm5lbCA2NA0KVCA4MTgwMDAwMDAgOE1IeiAy
+LzMgTk9ORSBRQU02NCA4ayAxLzQgTk9ORQ0KDQojIE1VWDIgLSBDb21tZXJjaWFsIC0gb24gY2hh
+bm5lbCA1OQ0KVCA3NzgwMDAwMDAgOE1IeiAyLzMgTk9ORSBRQU02NCA4ayAxLzQgTk9ORQ0KDQoj
+IE1VWDMgLSBQdWJsaWMgLSBvbiBjaGFubmVsIDI1DQpUIDUwNjAwMDAwMCA4TUh6IDIvMyBOT05F
+IFFBTTY0IDhrIDEvNCBOT05FDQoNCg==
+
+
+--=-Y9/UwYnWSZ4PFUoi9jjJ--
+
+--=-OH5fB98NINuFXdpb9V8m
+Content-Type: application/x-pkcs7-signature; name="smime.p7s"
+Content-Disposition: attachment; filename="smime.p7s"
+Content-Transfer-Encoding: base64
+
+MIAGCSqGSIb3DQEHAqCAMIACAQExCzAJBgUrDgMCGgUAMIAGCSqGSIb3DQEHAQAAoIIM1jCCBjQw
+ggQcoAMCAQICAR4wDQYJKoZIhvcNAQEFBQAwfTELMAkGA1UEBhMCSUwxFjAUBgNVBAoTDVN0YXJ0
+Q29tIEx0ZC4xKzApBgNVBAsTIlNlY3VyZSBEaWdpdGFsIENlcnRpZmljYXRlIFNpZ25pbmcxKTAn
+BgNVBAMTIFN0YXJ0Q29tIENlcnRpZmljYXRpb24gQXV0aG9yaXR5MB4XDTA3MTAyNDIxMDE1NVoX
+DTE3MTAyNDIxMDE1NVowgYwxCzAJBgNVBAYTAklMMRYwFAYDVQQKEw1TdGFydENvbSBMdGQuMSsw
+KQYDVQQLEyJTZWN1cmUgRGlnaXRhbCBDZXJ0aWZpY2F0ZSBTaWduaW5nMTgwNgYDVQQDEy9TdGFy
+dENvbSBDbGFzcyAxIFByaW1hcnkgSW50ZXJtZWRpYXRlIENsaWVudCBDQTCCASIwDQYJKoZIhvcN
+AQEBBQADggEPADCCAQoCggEBAMcJg8zOLdgasSmkLhOrlr6KMoOMpohBllVHrdRvEg/q6r8jR+EK
+75xCGhR8ToREoqe7zM9/UnC6TS2y9UKTpT1v7RSMzR0t6ndl0TWBuUr/UXBhPk+Kmy7bI4yW4urC
++y7P3/1/X7U8ocb8VpH/Clt+4iq7nirMcNh6qJR+xjOhV+VHzQMALuGYn5KZmc1NbJQYclsGkDxD
+z2UbFqE2+6vIZoL+jb9x4Pa5gNf1TwSDkOkikZB1xtB4ZqtXThaABSONdfmv/Z1pua3FYxnCFmdr
+/+N2JLKutIxMYqQOJebr/f/h5t95m4JgrM3Y/w7YX9d7YAL9jvN4SydHsU6n65cCAwEAAaOCAa0w
+ggGpMA8GA1UdEwEB/wQFMAMBAf8wDgYDVR0PAQH/BAQDAgEGMB0GA1UdDgQWBBRTcu2SnODaywFc
+fH6WNU7y1LhRgjAfBgNVHSMEGDAWgBROC+8apEBbpRdphzDKNGhD0EGu8jBmBggrBgEFBQcBAQRa
+MFgwJwYIKwYBBQUHMAGGG2h0dHA6Ly9vY3NwLnN0YXJ0c3NsLmNvbS9jYTAtBggrBgEFBQcwAoYh
+aHR0cDovL3d3dy5zdGFydHNzbC5jb20vc2ZzY2EuY3J0MFsGA1UdHwRUMFIwJ6AloCOGIWh0dHA6
+Ly93d3cuc3RhcnRzc2wuY29tL3Nmc2NhLmNybDAnoCWgI4YhaHR0cDovL2NybC5zdGFydHNzbC5j
+b20vc2ZzY2EuY3JsMIGABgNVHSAEeTB3MHUGCysGAQQBgbU3AQIBMGYwLgYIKwYBBQUHAgEWImh0
+dHA6Ly93d3cuc3RhcnRzc2wuY29tL3BvbGljeS5wZGYwNAYIKwYBBQUHAgEWKGh0dHA6Ly93d3cu
+c3RhcnRzc2wuY29tL2ludGVybWVkaWF0ZS5wZGYwDQYJKoZIhvcNAQEFBQADggIBAAqDCH14qywG
+XLhjjF6uHLkjd02hcdh9hrw+VUsv+q1eeQWB21jWj3kJ96AUlPCoEGZ/ynJNScWy6QMVQjbbMXlt
+UfO4n4bGGdKo3awPWp61tjAFgraLJgDk+DsSvUD6EowjMTNx25GQgyYJ5RPIzKKR9tQW8gGK+2+R
+HxkUCTbYFnL6kl8Ch507rUdPPipJ9CgJFws3kDS3gOS5WFMxcjO5DwKfKSETEPrHh7p5shuuNktv
+sv6hxHTLhiMKX893gxdT3XLS9OKmCv87vkINQcNEcIIoFWbP9HORz9v3vQwR4e3ksLc2JZOAFK+s
+sS5XMEoznzpihEP0PLc4dCBYjbvSD7kxgDwZ+Aj8Q9PkbvE9sIPP7ON0fz095HdThKjiVJe6vofq
++n6b1NBc8XdrQvBmunwxD5nvtTW4vtN6VY7mUCmxsCieuoBJ9OlqmsVWQvifIYf40dJPZkk9YgGT
+zWLpXDSfLSplbY2LL9C9U0ptvjcDjefLTvqSFc7tw1sEhF0n/qpA2r0GpvkLRDmcSwVyPvmjFBGq
+Up/pNy8ZuPGQmHwFi2/14+xeSUDG2bwnsYJQG2EdJCB6luQ57GEnTA/yKZSTKI8dDQa8Sd3zfXb1
+9mOgSF0bBdXbuKhEpuP9wirslFe6fQ1t5j5R0xi72MZ8ikMu1RQZKCyDbMwazlHiMIIGmjCCBYKg
+AwIBAgIDAXr/MA0GCSqGSIb3DQEBBQUAMIGMMQswCQYDVQQGEwJJTDEWMBQGA1UEChMNU3RhcnRD
+b20gTHRkLjErMCkGA1UECxMiU2VjdXJlIERpZ2l0YWwgQ2VydGlmaWNhdGUgU2lnbmluZzE4MDYG
+A1UEAxMvU3RhcnRDb20gQ2xhc3MgMSBQcmltYXJ5IEludGVybWVkaWF0ZSBDbGllbnQgQ0EwHhcN
+MTAwNzI3MjIxMjU4WhcNMTEwNzI5MjAwMDQ5WjCBkTEgMB4GA1UEDRMXMjMyODQ2LTYwRldYTmk1
+SXQ4MmowN1cxHjAcBgNVBAoTFVBlcnNvbmEgTm90IFZhbGlkYXRlZDEpMCcGA1UEAxMgU3RhcnRD
+b20gRnJlZSBDZXJ0aWZpY2F0ZSBNZW1iZXIxIjAgBgkqhkiG9w0BCQEWE3ZrcmlzdGlhbkBnbWFp
+bC5jb20wggEiMA0GCSqGSIb3DQEBAQUAA4IBDwAwggEKAoIBAQC7ttxlGBi1d2254dCP1yS6MxbD
+kf4VyEfAwsdQNvk4/kB613sl0n7m0CepO0oaVbEVdwGEacxXfM3IEdI9XQBmmxV/1h+mpUWgY8bh
+odrhKYrQctyykjRoJim61kCTFnRiVXroKpdk4foXV5E7tNBVf0AQjf5AzsIJ23b7zYM+boNewEpU
+HD0+HurrLmmqhXhYocWGs2k+zAvbPMeKyB3hJxLqplZFbjZv/0Ww6s+XP5BHuJRlejaA5NK6Lf1v
+i1d0eKqqQ8Ytg+j6Ne6v3iZrhijiZwZ8ctRJ2CmkgfsRGpRC7tEvfLJljOffwJhf+bgdwgcB8sdC
+/BxFfL1lKa0rAgMBAAGjggL8MIIC+DAJBgNVHRMEAjAAMAsGA1UdDwQEAwIEsDAdBgNVHSUEFjAU
+BggrBgEFBQcDAgYIKwYBBQUHAwQwHQYDVR0OBBYEFN3YJeVuqxGc1v0SIMQ/H7tqlye9MB8GA1Ud
+IwQYMBaAFFNy7ZKc4NrLAVx8fpY1TvLUuFGCMB4GA1UdEQQXMBWBE3ZrcmlzdGlhbkBnbWFpbC5j
+b20wggFCBgNVHSAEggE5MIIBNTCCATEGCysGAQQBgbU3AQICMIIBIDAuBggrBgEFBQcCARYiaHR0
+cDovL3d3dy5zdGFydHNzbC5jb20vcG9saWN5LnBkZjA0BggrBgEFBQcCARYoaHR0cDovL3d3dy5z
+dGFydHNzbC5jb20vaW50ZXJtZWRpYXRlLnBkZjCBtwYIKwYBBQUHAgIwgaowFBYNU3RhcnRDb20g
+THRkLjADAgEBGoGRTGltaXRlZCBMaWFiaWxpdHksIHNlZSBzZWN0aW9uICpMZWdhbCBMaW1pdGF0
+aW9ucyogb2YgdGhlIFN0YXJ0Q29tIENlcnRpZmljYXRpb24gQXV0aG9yaXR5IFBvbGljeSBhdmFp
+bGFibGUgYXQgaHR0cDovL3d3dy5zdGFydHNzbC5jb20vcG9saWN5LnBkZjBjBgNVHR8EXDBaMCug
+KaAnhiVodHRwOi8vd3d3LnN0YXJ0c3NsLmNvbS9jcnR1MS1jcmwuY3JsMCugKaAnhiVodHRwOi8v
+Y3JsLnN0YXJ0c3NsLmNvbS9jcnR1MS1jcmwuY3JsMIGOBggrBgEFBQcBAQSBgTB/MDkGCCsGAQUF
+BzABhi1odHRwOi8vb2NzcC5zdGFydHNzbC5jb20vc3ViL2NsYXNzMS9jbGllbnQvY2EwQgYIKwYB
+BQUHMAKGNmh0dHA6Ly93d3cuc3RhcnRzc2wuY29tL2NlcnRzL3N1Yi5jbGFzczEuY2xpZW50LmNh
+LmNydDAjBgNVHRIEHDAahhhodHRwOi8vd3d3LnN0YXJ0c3NsLmNvbS8wDQYJKoZIhvcNAQEFBQAD
+ggEBAH90IUTrUS69T/BmdvPWvKSHQvGEMJn2f30mB3ZcNTlxhvJ/RBDNXMfPOd7f/Eq8j9GGex0N
+ABw5ANzy8Op6SXQmEXTFIlVUKFYtksX0OGKrEDAL83hMsuHJu3LdBlh5r/Xxgdqi9i5Qc7gdrT6u
+oVics/arRMfjNSuR/WZBZXdkcdEYAx9j5YC9teElPIIo7v8lZIR1lSES+AqFzsId7ejxA0BqLo2Q
+dFEvmbgwl3jb9Fm4kV4e0RGeyAJz3V9eaytDzFbrP3OYpfvCeOaxMvR301or/U7AXy4zIIk8pRg5
+CtdSHTpXNCiWvpZ0aKWUEBWC/2osjIw0eEx9mDD2TTExggIbMIICFwIBATCBlDCBjDELMAkGA1UE
+BhMCSUwxFjAUBgNVBAoTDVN0YXJ0Q29tIEx0ZC4xKzApBgNVBAsTIlNlY3VyZSBEaWdpdGFsIENl
+cnRpZmljYXRlIFNpZ25pbmcxODA2BgNVBAMTL1N0YXJ0Q29tIENsYXNzIDEgUHJpbWFyeSBJbnRl
+cm1lZGlhdGUgQ2xpZW50IENBAgMBev8wCQYFKw4DAhoFAKBdMBgGCSqGSIb3DQEJAzELBgkqhkiG
+9w0BBwEwHAYJKoZIhvcNAQkFMQ8XDTExMDYxNjE4MjQxOVowIwYJKoZIhvcNAQkEMRYEFJfPreOd
+k1RhXSBryeiqVlZff19HMA0GCSqGSIb3DQEBAQUABIIBAE7dPcaZEcQb7V8tT0MNuth3UJqTuzY6
+X+VsTGMNr4WVoZ8jEEC3bs+cAx9vewMJ3a+sMYIhpArQakkzp9It1/HPccFWF/be2teFhucjLWr6
+3sieFvZ+cRCnMFxuIBMzJfSS9Xq2PsTrtgxtwuBEM9Gf95uHVBnoj3zobtH0P8xcpkyLFGBHOdJo
+ZXdIwqaWmmZpP/7FvIDkwU6xdBgL5kHOs8ZU5bsDpwYAbur8DiAiAM5wh2mzXy84dhILmjyU017g
+K9D+iaXwn8AziDmiWfkdIiC5Dcv1EUMqOZVzcZrPJJtfykk3sZLqLKwPqMhzes1wSvsL8LJtybho
+ex0kII8AAAAAAAA=
+
+
+--=-OH5fB98NINuFXdpb9V8m--
+
