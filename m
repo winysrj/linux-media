@@ -1,48 +1,50 @@
 Return-path: <mchehab@pedra>
-Received: from mail-iy0-f174.google.com ([209.85.210.174]:37836 "EHLO
-	mail-iy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752330Ab1FRTL7 (ORCPT
+Received: from moutng.kundenserver.de ([212.227.17.9]:52100 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757823Ab1FQMrK (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 18 Jun 2011 15:11:59 -0400
-Received: by iyb12 with SMTP id 12so1008472iyb.19
-        for <linux-media@vger.kernel.org>; Sat, 18 Jun 2011 12:11:58 -0700 (PDT)
+	Fri, 17 Jun 2011 08:47:10 -0400
+From: Arnd Bergmann <arnd@arndb.de>
+To: Larry Bassel <lbassel@codeaurora.org>
+Subject: Re: [Linaro-mm-sig] [PATCH 08/10] mm: cma: Contiguous Memory Allocator added
+Date: Fri, 17 Jun 2011 14:45:09 +0200
+Cc: Marek Szyprowski <m.szyprowski@samsung.com>,
+	"'Zach Pfeffer'" <zach.pfeffer@linaro.org>,
+	"'Daniel Walker'" <dwalker@codeaurora.org>,
+	"'Daniel Stone'" <daniels@collabora.com>,
+	"'Jesse Barker'" <jesse.barker@linaro.org>,
+	"'Mel Gorman'" <mel@csn.ul.ie>,
+	"'KAMEZAWA Hiroyuki'" <kamezawa.hiroyu@jp.fujitsu.com>,
+	linux-kernel@vger.kernel.org,
+	"'Michal Nazarewicz'" <mina86@mina86.com>,
+	linaro-mm-sig@lists.linaro.org, linux-mm@kvack.org,
+	"'Kyungmin Park'" <kyungmin.park@samsung.com>,
+	"'Ankita Garg'" <ankita@in.ibm.com>,
+	"'Andrew Morton'" <akpm@linux-foundation.org>,
+	linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org
+References: <1307699698-29369-1-git-send-email-m.szyprowski@samsung.com> <201106160006.07742.arnd@arndb.de> <20110616170133.GC28032@labbmf-linux.qualcomm.com>
+In-Reply-To: <20110616170133.GC28032@labbmf-linux.qualcomm.com>
 MIME-Version: 1.0
-From: Christian Gmeiner <christian.gmeiner@gmail.com>
-Date: Sat, 18 Jun 2011 19:11:37 +0000
-Message-ID: <BANLkTikb1Row7_+-e30udc9e5KBjuwcaJg@mail.gmail.com>
-Subject: V4L2_PIX_FMT_MPEG and S_FMT
-To: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=UTF-8
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201106171445.09567.arnd@arndb.de>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Hi all,
+On Thursday 16 June 2011 19:01:33 Larry Bassel wrote:
+> > Can you describe how the memory areas differ specifically?
+> > Is there one that is always faster but very small, or are there
+> > just specific circumstances under which some memory is faster than
+> > another?
+> 
+> One is always faster, but very small (generally 2-10% the size
+> of "normal" memory).
+> 
 
-I am still in the process of porting a driver to v4l2 framework. This
-device is capable of decoding MPEG-1 and MPEG-2 streams.
-See http://dxr3.sourceforge.net/about.html for more details.
-So I have programmed this:
+Ok, that sounds like the "SRAM" regions that we are handling on some
+ARM platforms using the various interfaces. It should probably
+remain outside of the regular allocator, but we can try to generalize
+the SRAM support further. There are many possible uses for it.
 
-static int vidioc_enum_fmt_vid_out(struct file *file, void *fh,
-				struct v4l2_fmtdesc *fmt)
-{
-	if (fmt->index > 0)
-		return -EINVAL;
-
-	fmt->flags = V4L2_FMT_FLAG_COMPRESSED;
-	fmt->pixelformat = V4L2_PIX_FMT_MPEG;
-	strlcpy(fmt->description, "MPEG 1/2", sizeof(fmt->description));
-
-	return 0;
-}
-
-There is nothing in struct v4l2_format which indicates MPEG1, MPEG2 or
-MPEG4. As a result
-of this, it is not possible to return -EINVAL if somebody wants to
-decode/playback MPEG4 content.
-
-Any ideas how to achieve it?
-
-Thanks
---
-Christian Gmeiner, MSc
+	Arnd
