@@ -1,336 +1,107 @@
 Return-path: <mchehab@pedra>
-Received: from gelbbaer.kn-bremen.de ([78.46.108.116]:59374 "EHLO
-	smtp.kn-bremen.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751197Ab1FTRKH (ORCPT
+Received: from mail-yw0-f46.google.com ([209.85.213.46]:39617 "EHLO
+	mail-yw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755328Ab1FQDLe convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 20 Jun 2011 13:10:07 -0400
-From: Juergen Lock <nox@jelal.kn-bremen.de>
-Date: Mon, 20 Jun 2011 19:03:51 +0200
-To: Antti Palosaari <crope@iki.fi>
-Cc: Juergen Lock <nox@jelal.kn-bremen.de>, linux-media@vger.kernel.org,
-	hselasky@c2i.net
-Subject: Re: [PATCH] [media] af9015: setup rc keytable for LC-Power
- LC-USB-DVBT
-Message-ID: <20110620170351.GA10510@triton8.kn-bremen.de>
-References: <20110612202512.GA63911@triton8.kn-bremen.de>
- <201106122215.p5CMF0Xr069931@triton8.kn-bremen.de>
- <4DF53CB6.109@iki.fi>
- <20110612223437.GB71121@triton8.kn-bremen.de>
- <4DF542CE.4040903@iki.fi>
- <20110612230100.GA71756@triton8.kn-bremen.de>
- <4DF54FC2.2020104@iki.fi>
- <20110613003845.GA75278@triton8.kn-bremen.de>
- <4DF93CE2.8050201@iki.fi>
+	Thu, 16 Jun 2011 23:11:34 -0400
+Received: by ywe9 with SMTP id 9so1086246ywe.19
+        for <linux-media@vger.kernel.org>; Thu, 16 Jun 2011 20:11:33 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <4DF93CE2.8050201@iki.fi>
+In-Reply-To: <20110616092726.024701c9@bike.lwn.net>
+References: <1307814409-46282-1-git-send-email-corbet@lwn.net>
+	<1307814409-46282-3-git-send-email-corbet@lwn.net>
+	<BANLkTikVeHLL6+T74tpmwmsL4_3h5f3PmA@mail.gmail.com>
+	<20110614084948.2d158323@bike.lwn.net>
+	<BANLkTikztbcm_+PR5oFVB+v0Jn4q8GCVTQ@mail.gmail.com>
+	<BANLkTi=gLkmuheH0aCwx=7-DuxDH3q769w@mail.gmail.com>
+	<20110616092726.024701c9@bike.lwn.net>
+Date: Fri, 17 Jun 2011 11:11:33 +0800
+Message-ID: <BANLkTikO-oRJXgqkL557d9RZ6PMBFTzVCg@mail.gmail.com>
+Subject: Re: [PATCH 2/8] marvell-cam: Separate out the Marvell camera core
+From: Kassey Lee <kassey1216@gmail.com>
+To: Jonathan Corbet <corbet@lwn.net>
+Cc: linux-media@vger.kernel.org, g.liakhovetski@gmx.de,
+	Kassey Lee <ygli@marvell.com>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Daniel Drake <dsd@laptop.org>, ytang5@marvell.com,
+	leiwen@marvell.com, qingx@marvell.com
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Thu, Jun 16, 2011 at 02:14:42AM +0300, Antti Palosaari wrote:
-> Moikka Juergen,
-Hi!
-> 
-> On 06/13/2011 03:38 AM, Juergen Lock wrote:
-> > af9015_rc_query: key repeated
-> 
-> >   Does that help?
-> 
-> Repeat check logick in function af9015_rc_query() is failing for some 
-> reason. You could try to look that function and checks if you wish as I 
-> cannot reproduce it.
-> 
-> Add debug dump immediately after registers are read and look from log 
-> what happens.
-> 
-> debug_dump(buf, 17, deb_rc);
+2011/6/16 Jonathan Corbet <corbet@lwn.net>:
+> On Thu, 16 Jun 2011 11:12:03 +0800
+> Kassey Lee <kassey1216@gmail.com> wrote:
+>
+>>       2) for mcam_ctlr_stop_dma implementation, I guess you know
+>> something about the silicon limitation,  but we found it can not pass
+>> our stress test(1000 times capture test, which will switch format
+>> between JPEG and YUV again and again).
+>>        our solution is :
+>>        stop the ccic controller and wait for about one frame transfer
+>> time, and the stop the sensor.
+>>        this passed our stress test. for your info.
+>
+> Actually, I know very little that's not in the datasheet.  Are you telling
+> me that there are hardware limitations that aren't documented, and that
+> the datasheet is not a 100% accurate description of what's going on?  I'm
+> *shocked* I tell you!
+>
+> (For the record, with both Cafe and Armada 610, I've found the hardware to
+> be more reasonable and in accord with the documentation than with many
+> others.)
+>
+> In any case, I don't know about the limitation you're talking about here,
+> could you elaborate a bit?  For stress testing I've run video capture for
+> weeks at a time, so obviously you're talking about something else.  Sounds
+> like something I need to know?
+hi, Jon:
+     the problem is:
+     when we stop CCIC, and then switch to another format.
+     at this stage, actually, CCIC DMA is not stopped until the
+transferring frame is done. this will cause system hang if we start
+CCIC again with another format.
+ we've ask silicon design to add CCIC DMA stop/start controller bit.
 
-I finally got back to this (sorry it took so long :( ), added that line
-and this is what I got:
+     from your logic, when stop DMA, you are test the EOF/SOF, so I
+wonder why you want to do this ?
+     and is your test will stop CCIC and start CCIC frequently  ?
+     thanks
+>
+>>        3) for videoubuf2, will you use videoubuf2 only or combined
+>> with soc-camera ? when can your driver for videoubuf2 ready ?
+>
+> Videobuf2 only.  To be honest, I've never quite understood what soc-camera
+> buys.  If there's a reason to do a switch, it could be contemplated - but
+> remember that Cafe is not an SoC device.
+>
+> The vb2 driver is working now in vmalloc mode, which is probably what Cafe
+> will need forever.  I do plan to add dma-contig, and, probably, dma-sg
+> support in the very near future.  If you want, I can post the vmalloc
+> version later today; I just want to make one more pass over it first.
+>
+could you please share the vmalloc way to me ?
+and if the dma-contig is OK, I'm glad to verify on our platform.
+as to test USERPTR, we are using a PMEM to get phy-contig memory in
+user space, and then QBUF to driver.
 
- First ir-keytable:
+>>        4) the point is: ccic and sensor driver should be independent,
+>> and support two CCIC controller.
+>
+> No disagreement there.  I believe that two controllers should work now -
+> though there's probably a gotcha somewhere since it's not actually been
+> tried.
+>
+> Thanks,
+>
+> jon
+>
 
-Testing events. Please, press CTRL-C to abort.
-1308574953.777114: event MSC: scancode = 1b
-1308574953.777123: event key down: KEY_1 (0x0002)
-1308574953.777125: event sync
-1308574954.293830: event MSC: scancode = 1b
-1308574954.813919: event MSC: scancode = 1b
-1308574955.332231: event MSC: scancode = 1b
-1308574955.848046: event MSC: scancode = 1b
-1308574956.362626: event MSC: scancode = 1b
-1308574956.875069: event MSC: scancode = 1b
-1308574957.391143: event MSC: scancode = 1b
-1308574957.908859: event MSC: scancode = 1b
-1308574958.426553: event MSC: scancode = 1b
-1308574958.944992: event MSC: scancode = 1b
-1308574959.462682: event MSC: scancode = 1b
-1308574959.981519: event MSC: scancode = 1b
-1308574960.500599: event MSC: scancode = 1b
-1308574961.020155: event MSC: scancode = 1b
-1308574961.540230: event MSC: scancode = 1b
-1308574962.057815: event MSC: scancode = 1b
-1308574962.576256: event MSC: scancode = 1b
-1308574963.092961: event MSC: scancode = 1b
-1308574963.611549: event MSC: scancode = 1b
-1308574964.130601: event MSC: scancode = 1b
-1308574964.645437: event MSC: scancode = 1b
-1308574965.164752: event MSC: scancode = 1b
-1308574965.684325: event MSC: scancode = 1b
-1308574966.202289: event MSC: scancode = 1b
-1308574966.718374: event MSC: scancode = 1b
-1308574967.236913: event MSC: scancode = 1b
-1308574967.756988: event MSC: scancode = 1b
-1308574968.276573: event MSC: scancode = 1b
-1308574968.794147: event MSC: scancode = 1b
-1308574969.307834: event MSC: scancode = 1b
-1308574969.823410: event MSC: scancode = 1b
-1308574970.342993: event MSC: scancode = 1b
-1308574970.862952: event MSC: scancode = 1b
-1308574971.382144: event MSC: scancode = 1b
-1308574971.897716: event MSC: scancode = 1b
-1308574972.412159: event MSC: scancode = 1b
-1308574972.927879: event MSC: scancode = 1b
-1308574973.440304: event MSC: scancode = 1b
-1308574973.961383: event MSC: scancode = 1b
-1308574974.479087: event MSC: scancode = 1b
-1308574974.994777: event MSC: scancode = 1b
-1308574976.027044: event MSC: scancode = 05
-1308574976.027054: event key up: KEY_1 (0x0002)
-1308574976.027056: event sync
-1308574976.027060: event key down: KEY_MUTE (0x0071)
-1308574976.027062: event sync
-1308574976.545246: event MSC: scancode = 05
-1308574977.065213: event MSC: scancode = 05
-1308574977.583911: event MSC: scancode = 05
-1308574978.102972: event MSC: scancode = 05
-1308574978.621050: event MSC: scancode = 05
-1308574979.138112: event MSC: scancode = 05
-1308574979.655187: event MSC: scancode = 05
-1308574980.171269: event MSC: scancode = 05
-1308574980.690343: event MSC: scancode = 05
-1308574981.208045: event MSC: scancode = 05
-1308574981.724746: event MSC: scancode = 05
-1308574982.762866: event MSC: scancode = 4d
-1308574982.762874: event key up: KEY_MUTE (0x0071)
-1308574982.762876: event sync
-1308574982.762880: event key down: KEY_PLAYPAUSE (0x00a4)
-1308574982.762882: event sync
-1308574983.278592: event MSC: scancode = 4d
-^C
 
- Then the debug output:
 
-[..]
-dvb-usb: found a 'Afatech AF9015 DVB-T USB2.0 stick' in warm state.
-dvb-usb: will pass the complete MPEG2 transport stream to the software demuxer.
-dvb-usb: pid filter enabled by module option.
-DVB: registering new adapter (Afatech AF9015 DVB-T USB2.0 stick)
-af9013: firmware version:4.95.0.0
-DVB: registering adapter 0 frontend 0 (Afatech AF9013 DVB-T)...
-MT2060: successfully identified (IF1 = 1220)
-Registered IR keymap rc-digittrade
-rc0: IR-receiver inside an USB DVB receiver as webcamd
-dvb-usb: schedule remote query interval to 500 msecs.
-dvb-usb: Afatech AF9015 DVB-T USB2.0 stick successfully initialized and connected.
-
-00 00 00 00 00 00 01 00 00 00 00 00 00 ff 01 fe ff 
-af9015_rc_query: no key press
-00 00 00 00 00 00 01 00 00 00 00 00 00 ff 01 fe ff 
-af9015_rc_query: no key press
-00 00 00 00 00 00 01 00 00 00 00 00 00 ff 01 fe ff 
-af9015_rc_query: no key press
-00 00 00 00 00 00 01 00 00 00 00 00 00 ff 01 fe ff 
-af9015_rc_query: no key press
-00 00 00 00 00 00 01 00 00 00 00 00 00 ff 01 fe ff 
-af9015_rc_query: no key press
-00 00 00 00 00 00 01 00 00 00 00 00 00 ff 01 fe ff 
-af9015_rc_query: no key press
-00 00 00 00 00 00 01 00 00 00 00 00 00 ff 01 fe ff 
-af9015_rc_query: no key press
-00 00 00 00 00 00 01 00 00 00 00 00 00 ff 01 fe ff 
-af9015_rc_query: no key press
-00 00 00 00 00 00 01 00 00 00 00 00 00 ff 01 fe ff 
-af9015_rc_query: no key press
-02 00 00 00 00 00 01 00 00 00 00 00 00 ff 1b e4 00 
-af9015_rc_query: key pressed 00 ff 1b e4
-02 00 00 00 00 00 00 00 00 00 00 00 00 ff 1b e4 ff 
-af9015_rc_query: key repeated
-02 00 00 00 00 00 00 00 00 00 00 00 00 ff 1b e4 ff 
-af9015_rc_query: key repeated
-00 00 00 00 00 00 02 00 00 00 00 00 00 ff 1b e4 ff 
-af9015_rc_query: key repeated
-02 00 00 00 00 00 03 00 00 00 00 00 00 ff 1b e4 ff 
-af9015_rc_query: key repeated
-02 00 00 00 00 00 03 00 00 00 00 00 00 ff 1b e4 ff 
-af9015_rc_query: key repeated
-02 00 00 00 00 00 03 00 00 00 00 00 00 ff 1b e4 ff 
-af9015_rc_query: key repeated
-02 00 00 00 00 00 03 00 00 00 00 00 00 ff 1b e4 ff 
-af9015_rc_query: key repeated
-02 00 00 00 00 00 03 00 00 00 00 00 00 ff 1b e4 ff 
-af9015_rc_query: key repeated
-02 00 00 00 00 00 03 00 00 00 00 00 00 ff 1b e4 ff 
-af9015_rc_query: key repeated
-02 00 00 00 00 00 03 00 00 00 00 00 00 ff 1b e4 ff 
-af9015_rc_query: key repeated
-02 00 00 00 00 00 03 00 00 00 00 00 00 ff 1b e4 ff 
-af9015_rc_query: key repeated
-02 00 00 00 00 00 03 00 00 00 00 00 00 ff 1b e4 ff 
-af9015_rc_query: key repeated
-02 00 00 00 00 00 03 00 00 00 00 00 00 ff 1b e4 ff 
-af9015_rc_query: key repeated
-02 00 00 00 00 00 03 00 00 00 00 00 00 ff 1b e4 ff 
-af9015_rc_query: key repeated
-02 00 00 00 00 00 03 00 00 00 00 00 00 ff 1b e4 ff 
-af9015_rc_query: key repeated
-02 00 00 00 00 00 03 00 00 00 00 00 00 ff 1b e4 ff 
-af9015_rc_query: key repeated
-02 00 00 00 00 00 03 00 00 00 00 00 00 ff 1b e4 ff 
-af9015_rc_query: key repeated
-02 00 00 00 00 00 03 00 00 00 00 00 00 ff 1b e4 ff 
-af9015_rc_query: key repeated
-02 00 00 00 00 00 03 00 00 00 00 00 00 ff 1b e4 ff 
-af9015_rc_query: key repeated
-02 00 00 00 00 00 03 00 00 00 00 00 00 ff 1b e4 ff 
-af9015_rc_query: key repeated
-02 00 00 00 00 00 03 00 00 00 00 00 00 ff 1b e4 ff 
-af9015_rc_query: key repeated
-02 00 00 00 00 00 03 00 00 00 00 00 00 ff 1b e4 ff 
-af9015_rc_query: key repeated
-02 00 00 00 00 00 03 00 00 00 00 00 00 ff 1b e4 ff 
-af9015_rc_query: key repeated
-02 00 00 00 00 00 03 00 00 00 00 00 00 ff 1b e4 ff 
-af9015_rc_query: key repeated
-02 00 00 00 00 00 03 00 00 00 00 00 00 ff 1b e4 ff 
-af9015_rc_query: key repeated
-02 00 00 00 00 00 03 00 00 00 00 00 00 ff 1b e4 ff 
-af9015_rc_query: key repeated
-02 00 00 00 00 00 03 00 00 00 00 00 00 ff 1b e4 ff 
-af9015_rc_query: key repeated
-02 00 00 00 00 00 03 00 00 00 00 00 00 ff 1b e4 ff 
-af9015_rc_query: key repeated
-02 00 00 00 00 00 03 00 00 00 00 00 00 ff 1b e4 ff 
-af9015_rc_query: key repeated
-02 00 00 00 00 00 03 00 00 00 00 00 00 ff 1b e4 ff 
-af9015_rc_query: key repeated
-02 00 00 00 00 00 03 00 00 00 00 00 00 ff 1b e4 ff 
-af9015_rc_query: key repeated
-02 00 00 00 00 00 03 00 00 00 00 00 00 ff 1b e4 ff 
-af9015_rc_query: key repeated
-02 00 00 00 00 00 03 00 00 00 00 00 00 ff 1b e4 ff 
-af9015_rc_query: key repeated
-02 00 00 00 00 00 03 00 00 00 00 00 00 ff 1b e4 ff 
-af9015_rc_query: key repeated
-02 00 00 00 00 00 03 00 00 00 00 00 00 ff 1b e4 ff 
-af9015_rc_query: key repeated
-02 00 00 00 00 00 03 00 00 00 00 00 00 ff 1b e4 ff 
-af9015_rc_query: key repeated
-02 00 00 00 00 00 03 00 00 00 00 00 00 ff 1b e4 ff 
-af9015_rc_query: key repeated
-02 00 00 00 00 00 03 00 00 00 00 00 00 ff 1b e4 ff 
-af9015_rc_query: key repeated
-02 00 00 00 00 00 03 00 00 00 00 00 00 ff 1b e4 ff 
-af9015_rc_query: key repeated
-02 00 00 00 00 00 03 00 00 00 00 00 00 ff 1b e4 ff 
-af9015_rc_query: key repeated
-00 00 00 00 00 00 00 00 00 00 00 00 00 ff 1b e4 ff 
-af9015_rc_query: key repeated
-01 01 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 
-02 00 00 00 00 00 03 00 00 00 00 00 00 ff 05 fa 00 
-af9015_rc_query: key pressed 00 ff 05 fa
-02 00 00 00 00 00 03 00 00 00 00 00 00 ff 05 fa ff 
-af9015_rc_query: key repeated
-02 00 00 00 00 00 03 00 00 00 00 00 00 ff 05 fa ff 
-af9015_rc_query: key repeated
-02 00 00 00 00 00 03 00 00 00 00 00 00 ff 05 fa ff 
-af9015_rc_query: key repeated
-02 00 00 00 00 00 03 00 00 00 00 00 00 ff 05 fa ff 
-af9015_rc_query: key repeated
-02 00 00 00 00 00 03 00 00 00 00 00 00 ff 05 fa ff 
-af9015_rc_query: key repeated
-02 00 00 00 00 00 03 00 00 00 00 00 00 ff 05 fa ff 
-af9015_rc_query: key repeated
-02 00 00 00 00 00 03 00 00 00 00 00 00 ff 05 fa ff 
-af9015_rc_query: key repeated
-02 00 00 00 00 00 03 00 00 00 00 00 00 ff 05 fa ff 
-af9015_rc_query: key repeated
-02 00 00 00 00 00 03 00 00 00 00 00 00 ff 05 fa ff 
-af9015_rc_query: key repeated
-02 00 00 00 00 00 02 00 00 00 00 00 00 ff 05 fa ff 
-af9015_rc_query: key repeated
-00 00 00 00 00 00 01 00 00 00 00 00 00 ff 05 fa ff 
-af9015_rc_query: key repeated
-00 00 00 00 00 00 01 00 00 00 00 00 00 ff 05 fa ff 
-af9015_rc_query: no key press
-02 00 00 00 00 00 01 00 00 00 00 00 00 ff 4d b2 00 
-af9015_rc_query: key pressed 00 ff 4d b2
-00 00 00 00 00 00 03 00 00 00 00 00 00 ff 4d b2 ff 
-af9015_rc_query: key repeated
-00 00 00 00 00 00 03 00 00 00 00 00 00 ff 4d b2 ff 
-af9015_rc_query: no key press
-00 00 00 00 00 00 03 00 00 00 00 00 00 ff 4d b2 ff 
-af9015_rc_query: no key press
-00 00 00 00 00 00 03 00 00 00 00 00 00 ff 4d b2 ff 
-af9015_rc_query: no key press
-00 00 00 00 00 00 03 00 00 00 00 00 00 ff 4d b2 ff 
-af9015_rc_query: no key press
-00 00 00 00 00 00 03 00 00 00 00 00 00 ff 4d b2 ff 
-af9015_rc_query: no key press
-00 00 00 00 00 00 03 00 00 00 00 00 00 ff 4d b2 ff 
-af9015_rc_query: no key press
-00 00 00 00 00 00 03 00 00 00 00 00 00 ff 4d b2 ff 
-af9015_rc_query: no key press
-00 00 00 00 00 00 03 00 00 00 00 00 00 ff 4d b2 ff 
-af9015_rc_query: no key press
-00 00 00 00 00 00 03 00 00 00 00 00 00 ff 4d b2 ff 
-af9015_rc_query: no key press
-00 00 00 00 00 00 03 00 00 00 00 00 00 ff 4d b2 ff 
-af9015_rc_query: no key press
-00 00 00 00 00 00 03 00 00 00 00 00 00 ff 4d b2 ff 
-af9015_rc_query: no key press
-00 00 00 00 00 00 03 00 00 00 00 00 00 ff 4d b2 ff 
-af9015_rc_query: no key press
-00 00 00 00 00 00 03 00 00 00 00 00 00 ff 4d b2 ff 
-af9015_rc_query: no key press
-00 00 00 00 00 00 03 00 00 00 00 00 00 ff 4d b2 ff 
-af9015_rc_query: no key press
-00 00 00 00 00 00 03 00 00 00 00 00 00 ff 4d b2 ff 
-af9015_rc_query: no key press
-00 00 00 00 00 00 03 00 00 00 00 00 00 ff 4d b2 ff 
-af9015_rc_query: no key press
-00 00 00 00 00 00 03 00 00 00 00 00 00 ff 4d b2 ff 
-af9015_rc_query: no key press
-00 00 00 00 00 00 03 00 00 00 00 00 00 ff 4d b2 ff 
-af9015_rc_query: no key press
-00 00 00 00 00 00 03 00 00 00 00 00 00 ff 4d b2 ff 
-af9015_rc_query: no key press
-00 00 00 00 00 00 03 00 00 00 00 00 00 ff 4d b2 ff 
-af9015_rc_query: no key press
-00 00 00 00 00 00 03 00 00 00 00 00 00 ff 4d b2 ff 
-af9015_rc_query: no key press
-00 00 00 00 00 00 03 00 00 00 00 00 00 ff 4d b2 ff 
-af9015_rc_query: no key press
-00 00 00 00 00 00 03 00 00 00 00 00 00 ff 4d b2 ff 
-af9015_rc_query: no key press
-00 00 00 00 00 00 03 00 00 00 00 00 00 ff 4d b2 ff 
-af9015_rc_query: no key press
-00 00 00 00 00 00 03 00 00 00 00 00 00 ff 4d b2 ff 
-af9015_rc_query: no key press
-00 00 00 00 00 00 03 00 00 00 00 00 00 ff 4d b2 ff 
-af9015_rc_query: no key press
-00 00 00 00 00 00 03 00 00 00 00 00 00 ff 4d b2 ff 
-af9015_rc_query: no key press
-00 00 00 00 00 00 03 00 00 00 00 00 00 ff 4d b2 ff 
-af9015_rc_query: no key press
-00 00 00 00 00 00 03 00 00 00 00 00 00 ff 4d b2 ff 
-af9015_rc_query: no key press
-00 00 00 00 00 00 03 00 00 00 00 00 00 ff 4d b2 ff 
-af9015_rc_query: no key press
-00 00 00 00 00 00 03 00 00 00 00 00 00 ff 4d b2 ff 
-af9015_rc_query: no key press
-00 00 00 00 00 00 03 00 00 00 00 00 00 ff 4d b2 ff 
-af9015_rc_query: no key press
-00 00 00 00 00 00 03 00 00 00 00 00 00 ff 4d b2 ff 
-af9015_rc_query: no key press
+-- 
+Best regards
+Kassey
+Application Processor Systems Engineering, Marvell Technology Group Ltd.
+Shanghai, China.
