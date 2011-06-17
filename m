@@ -1,85 +1,136 @@
 Return-path: <mchehab@pedra>
-Received: from mx1.redhat.com ([209.132.183.28]:33297 "EHLO mx1.redhat.com"
+Received: from comal.ext.ti.com ([198.47.26.152]:33725 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753201Ab1FAVPp (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 1 Jun 2011 17:15:45 -0400
-Message-ID: <4DE6ABF5.6020008@redhat.com>
-Date: Wed, 01 Jun 2011 18:15:33 -0300
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
+	id S1756191Ab1FQHBr (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 17 Jun 2011 03:01:47 -0400
+Received: from dbdp20.itg.ti.com ([172.24.170.38])
+	by comal.ext.ti.com (8.13.7/8.13.7) with ESMTP id p5H71iE3018353
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-media@vger.kernel.org>; Fri, 17 Jun 2011 02:01:47 -0500
+From: Manjunath Hadli <manjunath.hadli@ti.com>
+To: LMML <linux-media@vger.kernel.org>
+CC: dlos <davinci-linux-open-source@linux.davincidsp.com>,
+	Manjunath Hadli <manjunath.hadli@ti.com>
+Subject: [RESEND PATCH v19 6/6] davinci vpbe: Readme text for Dm6446 vpbe
+Date: Fri, 17 Jun 2011 12:31:36 +0530
+Message-ID: <1308294096-25743-7-git-send-email-manjunath.hadli@ti.com>
+In-Reply-To: <1308294096-25743-1-git-send-email-manjunath.hadli@ti.com>
+References: <1308294096-25743-1-git-send-email-manjunath.hadli@ti.com>
 MIME-Version: 1.0
-To: Andreas Oberritter <obi@linuxtv.org>
-CC: Hans Petter Selasky <hselasky@c2i.net>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	linux-kernel@vger.kernel.org
-Subject: Re: [PATCH] FE_GET_PROPERTY should be _IOW, because the associated
- structure is transferred from userspace to kernelspace. Keep the old ioctl
- around for compatibility so that existing code is not broken.
-References: <201105231558.13084.hselasky@c2i.net> <4DDA711E.3030301@linuxtv.org> <201105231651.55945.hselasky@c2i.net> <4DDA7E07.7070907@linuxtv.org>
-In-Reply-To: <4DDA7E07.7070907@linuxtv.org>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Em 23-05-2011 12:32, Andreas Oberritter escreveu:
-> On 05/23/2011 04:51 PM, Hans Petter Selasky wrote:
->> On Monday 23 May 2011 16:37:18 Andreas Oberritter wrote:
->>> On 05/23/2011 03:58 PM, Hans Petter Selasky wrote:
->>>> From be7d0f72ebf4d945cfb2a5c9cc871707f72e1e3c Mon Sep 17 00:00:00 2001
->>>> From: Hans Petter Selasky <hselasky@c2i.net>
->>>> Date: Mon, 23 May 2011 15:56:31 +0200
->>>> Subject: [PATCH] FE_GET_PROPERTY should be _IOW, because the associated
->>>> structure is transferred from userspace to kernelspace. Keep the old
->>>> ioctl around for compatibility so that existing code is not broken.
->>>
->>
->> Hi,
->>
->>> Good catch, but I think _IOWR would be right, because the result gets
->>> copied from kernelspace to userspace.
->>
->> Those flags are only for the IOCTL associated structure itself. The V4L DVB 
->> kernel only reads the dtv_properties structure in either case and does not 
->> write any data back to it. That's why only _IOW is required.
-> 
-> I see.
-> 
->> I checked somewhat and the R/W bits in the IOCTL command does not appear do be 
->> matched to the R/W permissions you have on the file handle? Or am I mistaken?
-> 
-> You're right. There's no direct relationship between them, at least not
-> within dvb-core.
-> 
->> In other words the IOCTL R/W (_IOC_READ, _IOC_WRITE) bits should not reflect 
->> what the IOCTL actually does, like modifying indirect data?
-> 
-> I'm not sure. Your patch is certainly doing the right thing for the
-> current implementation of dvb_usercopy, which however wasn't designed
-> with variable length arrays in mind.
+Please refer to this file for detailed documentation of
+davinci vpbe v4l2 driver.
 
-The dvb_usercopy will do the right thing, if we use _IOR or _IORW.
+Signed-off-by: Manjunath Hadli <manjunath.hadli@ti.com>
+Acked-by: Muralidharan Karicheri <m-karicheri2@ti.com>
+Acked-by: Hans Verkuil <hverkuil@xs4all.nl>
+---
+ Documentation/video4linux/README.davinci-vpbe |   93 +++++++++++++++++++++++++
+ 1 files changed, 93 insertions(+), 0 deletions(-)
+ create mode 100644 Documentation/video4linux/README.davinci-vpbe
 
-> Taking dvb_usercopy aside, my interpretation of the ioctl bits was:
-> - _IOC_READ is required if copy_to_user/put_user needs to be used during
-> the ioctl.
-> - _IOC_WRITE is required if copy_from_user/get_user needs to be used
-> during the ioctl.
+diff --git a/Documentation/video4linux/README.davinci-vpbe b/Documentation/video4linux/README.davinci-vpbe
+new file mode 100644
+index 0000000..7a460b0
+--- /dev/null
++++ b/Documentation/video4linux/README.davinci-vpbe
+@@ -0,0 +1,93 @@
++
++                VPBE V4L2 driver design
++ ======================================================================
++
++ File partitioning
++ -----------------
++ V4L2 display device driver
++         drivers/media/video/davinci/vpbe_display.c
++         drivers/media/video/davinci/vpbe_display.h
++
++ VPBE display controller
++         drivers/media/video/davinci/vpbe.c
++         drivers/media/video/davinci/vpbe.h
++
++ VPBE venc sub device driver
++         drivers/media/video/davinci/vpbe_venc.c
++         drivers/media/video/davinci/vpbe_venc.h
++         drivers/media/video/davinci/vpbe_venc_regs.h
++
++ VPBE osd driver
++         drivers/media/video/davinci/vpbe_osd.c
++         drivers/media/video/davinci/vpbe_osd.h
++         drivers/media/video/davinci/vpbe_osd_regs.h
++
++ Functional partitioning
++ -----------------------
++
++ Consists of the following (in the same order as the list under file
++ partitioning):-
++
++ 1. V4L2 display driver
++    Implements creation of video2 and video3 device nodes and
++    provides v4l2 device interface to manage VID0 and VID1 layers.
++
++ 2. Display controller
++    Loads up VENC, OSD and external encoders such as ths8200. It provides
++    a set of API calls to V4L2 drivers to set the output/standards
++    in the VENC or external sub devices. It also provides
++    a device object to access the services from OSD subdevice
++    using sub device ops. The connection of external encoders to VENC LCD
++    controller port is done at init time based on default output and standard
++    selection or at run time when application change the output through
++    V4L2 IOCTLs.
++
++    When connected to an external encoder, vpbe controller is also responsible
++    for setting up the interface between VENC and external encoders based on
++    board specific settings (specified in board-xxx-evm.c). This allows
++    interfacing external encoders such as ths8200. The setup_if_config()
++    is implemented for this as well as configure_venc() (part of the next patch)
++    API to set timings in VENC for a specific display resolution. As of this
++    patch series, the interconnection and enabling and setting of the external
++    encoders is not present, and would be a part of the next patch series.
++
++ 3. VENC subdevice module
++    Responsible for setting outputs provided through internal DACs and also
++    setting timings at LCD controller port when external encoders are connected
++    at the port or LCD panel timings required. When external encoder/LCD panel
++    is connected, the timings for a specific standard/preset is retrieved from
++    the board specific table and the values are used to set the timings in
++    venc using non-standard timing mode.
++
++    Support LCD Panel displays using the VENC. For example to support a Logic
++    PD display, it requires setting up the LCD controller port with a set of
++    timings for the resolution supported and setting the dot clock. So we could
++    add the available outputs as a board specific entry (i.e add the "LogicPD"
++    output name to board-xxx-evm.c). A table of timings for various LCDs
++    supported can be maintained in the board specific setup file to support
++    various LCD displays.As of this patch a basic driver is present, and this
++    support for external encoders and displays forms a part of the next
++    patch series.
++
++ 4. OSD module
++    OSD module implements all OSD layer management and hardware specific
++    features. The VPBE module interacts with the OSD for enabling and
++    disabling appropriate features of the OSD.
++
++ Current status:-
++
++ A fully functional working version of the V4L2 driver is available. This
++ driver has been tested with NTSC and PAL standards and buffer streaming.
++
++ Following are TBDs.
++
++ vpbe display controller
++    - Add support for external encoders.
++    - add support for selecting external encoder as default at probe time.
++
++ vpbe venc sub device
++    - add timings for supporting ths8200
++    - add support for LogicPD LCD.
++
++ FB drivers
++    - Add support for fbdev drivers.- Ready and part of subsequent patches.
+-- 
+1.6.2.4
 
-That is my understanding too. I agree that _IOWR seems to be the more appropriate
-definition for it.
-
-That's said, this is just a naming convention. Kernel core won't enforce
-any special behavior, as there are some violations about this convention
-on a few places.
-
-> 
-> Whether that's limited to the structure directly encoded in the ioctl or
-> not is unclear to me. Maybe someone at LKML can shed some light on that.
-
-I prefer to not apply this patch, as it won't fix anything. Adding an _OLD means
-that we'll need later to remove it, causing a regression. Ok, we may do like we did
-with V4L _OLD ioctl's that were marked as _OLD at 2.6.5 and were removed on a late
-2.6.3x.
-
-Cheers,
-Mauro
