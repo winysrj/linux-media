@@ -1,108 +1,130 @@
 Return-path: <mchehab@pedra>
-Received: from mx1.redhat.com ([209.132.183.28]:28302 "EHLO mx1.redhat.com"
+Received: from bear.ext.ti.com ([192.94.94.41]:60849 "EHLO bear.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754217Ab1FHBp7 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 7 Jun 2011 21:45:59 -0400
-Received: from int-mx02.intmail.prod.int.phx2.redhat.com (int-mx02.intmail.prod.int.phx2.redhat.com [10.5.11.12])
-	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id p581jwKH006725
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
-	for <linux-media@vger.kernel.org>; Tue, 7 Jun 2011 21:45:58 -0400
-Received: from pedra (vpn-236-210.phx2.redhat.com [10.3.236.210])
-	by int-mx02.intmail.prod.int.phx2.redhat.com (8.13.8/8.13.8) with ESMTP id p581jnc7007506
-	for <linux-media@vger.kernel.org>; Tue, 7 Jun 2011 21:45:58 -0400
-Date: Tue, 7 Jun 2011 22:45:33 -0300
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: [PATCH 06/15] [media] DocBook/frontend.xml: Better describe the
- frontend parameters
-Message-ID: <20110607224533.0faaa965@pedra>
-In-Reply-To: <cover.1307496835.git.mchehab@redhat.com>
-References: <cover.1307496835.git.mchehab@redhat.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+	id S1753510Ab1FQKUX (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 17 Jun 2011 06:20:23 -0400
+Message-ID: <4DFB2C0E.4040100@ti.com>
+Date: Fri, 17 Jun 2011 15:57:26 +0530
+From: Archit Taneja <archit@ti.com>
+MIME-Version: 1.0
+To: "Hiremath, Vaibhav" <hvaibhav@ti.com>
+CC: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	"mchehab@redhat.com" <mchehab@redhat.com>,
+	"hverkuil@xs4all.nl" <hverkuil@xs4all.nl>
+Subject: Re: [PATCH] omap_vout: Added check in reqbuf & mmap for buf_size
+ allocation
+References: <hvaibhav@ti.com> <1308255249-18762-1-git-send-email-hvaibhav@ti.com> <4DFB1445.3000102@ti.com> <19F8576C6E063C45BE387C64729E739404E30727E0@dbde02.ent.ti.com>
+In-Reply-To: <19F8576C6E063C45BE387C64729E739404E30727E0@dbde02.ent.ti.com>
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
 Content-Transfer-Encoding: 7bit
-To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Update the DVB parameter structs to reflect VSB modulation and
-improve a few descriptions.
+Hi,
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+On Friday 17 June 2011 03:33 PM, Hiremath, Vaibhav wrote:
+>
+>> -----Original Message-----
+>> From: Taneja, Archit
+>> Sent: Friday, June 17, 2011 2:16 PM
+>> To: Hiremath, Vaibhav
+>> Cc: linux-media@vger.kernel.org; mchehab@redhat.com; hverkuil@xs4all.nl
+>> Subject: Re: [PATCH] omap_vout: Added check in reqbuf&  mmap for buf_size
+>> allocation
+>>
+>> Hi,
+>>
+>> On Friday 17 June 2011 01:44 AM, Hiremath, Vaibhav wrote:
+>>> From: Vaibhav Hiremath<hvaibhav@ti.com>
+>>>
+>>> The usecase where, user allocates small size of buffer
+>>> through bootargs (video1_bufsize/video2_bufsize) and later from
+>> application
+>>> tries to set the format which requires larger buffer size, driver
+>> doesn't
+>>> check for insufficient buffer size and allows application to map extra
+>> buffer.
+>>> This leads to kernel crash, when user application tries to access memory
+>>> beyond the allocation size.
+>>
+>> Query: Why do we pass the bufsize as bootargs in the first place? Is it
+>> needed at probe time?
+>>
+> [Hiremath, Vaibhav] Yes, look out for variable (video1_bufsize/video2_bufsize) in code.
 
-diff --git a/Documentation/DocBook/media/dvb/frontend.xml b/Documentation/DocBook/media/dvb/frontend.xml
-index a925b45..b1f0123 100644
---- a/Documentation/DocBook/media/dvb/frontend.xml
-+++ b/Documentation/DocBook/media/dvb/frontend.xml
-@@ -262,6 +262,15 @@ OFDM frontends the <constant>frequency</constant> specifies the absolute frequen
-  };
- </programlisting>
- </section>
-+<section id="dvb-vsb-parameters">
-+<title>VSB parameters</title>
-+<para>DVB-T frontends are supported by the <constant>dvb_vsb_parameters</constant> structure:</para>
-+<programlisting>
-+struct dvb_vsb_parameters {
-+	fe_modulation_t modulation;	/&#x22C6; modulation type (see above) &#x22C6;/
-+};
-+</programlisting>
-+</section>
- <section id="dvb-ofdm-parameters">
- <title>OFDM parameters</title>
- <para>DVB-T frontends are supported by the <constant>dvb_ofdm_parameters</constant> structure:</para>
-@@ -277,15 +286,6 @@ OFDM frontends the <constant>frequency</constant> specifies the absolute frequen
-  };
- </programlisting>
- </section>
--<section id="dvb-vsb-parameters">
--<title>VSB parameters</title>
--<para>DVB-T frontends are supported by the <constant>dvb_vsb_parameters</constant> structure:</para>
--<programlisting>
--struct dvb_vsb_parameters {
--	fe_modulation_t modulation;	/&#x22C6; modulation type (see above) &#x22C6;/
--};
--</programlisting>
--</section>
- <section id="fe-spectral-inversion-t">
- <title>frontend spectral inversion</title>
- <para>The Inversion field can take one of these values:
-@@ -304,7 +304,9 @@ itself.
- </section>
- <section id="fe-code-rate-t">
- <title>frontend code rate</title>
--<para>The possible values for the <constant>FEC_inner</constant> field are
-+<para>The possible values for the <constant>fec_inner</constant> field used on
-+<link refend="dvb-qpsk-parameters"><constant>struct dvb_qpsk_parameters</constant></link> and
-+<link refend="dvb-qam-parameters"><constant>struct dvb_qam_parameters</constant></link> are:
- </para>
- <programlisting>
- typedef enum fe_code_rate {
-@@ -327,9 +329,12 @@ detection.
- </para>
- </section>
- <section id="fe-modulation-t">
--<title>frontend modulation type for QAM and OFDM</title>
--<para>For cable and terrestrial frontends (QAM and OFDM) one also has to specify the quadrature
--modulation mode which can be one of the following:
-+<title>frontend modulation type for QAM, OFDM and VSB</title>
-+<para>For cable and terrestrial frontends, e. g. for
-+<link refend="dvb-qam-parameters"><constant>struct dvb_qpsk_parameters</constant></link>,
-+<link refend="dvb-ofdm-parameters"><constant>struct dvb_qam_parameters</constant></link> and
-+<link refend="dvb-vsb-parameters"><constant>struct dvb_qam_parameters</constant></link>,
-+it needs to specify the quadrature modulation mode which can be one of the following:
- </para>
- <programlisting>
-  typedef enum fe_modulation {
-@@ -352,7 +357,7 @@ modulation mode which can be one of the following:
- <para>Finally, there are several more parameters for OFDM:
- </para>
- <section id="fe-transmit-mode-t">
--<title>Number of carriers per channel, on OFTM modulation</title>
-+<title>Number of carriers per channel</title>
- <programlisting>
- typedef enum fe_transmit_mode {
- 	TRANSMISSION_MODE_2K,
--- 
-1.7.1
+Yes, but why do we need to allocate some fixed size buffers at boot 
+time? Is it done because it makes our allocation happens faster during 
+reqbufs? Or is it required for VRFB?
 
+Could you explain the reason/startegy behind allocating buffers of a 
+particular size at boot time?
+
+Thanks,
+Archit
+
+>
+> Thanks,
+> Vaibhav
+>
+>> Thanks,
+>> Archit
+>>
+>>>
+>>> Added check in both mmap and reqbuf call back function,
+>>> and return error if the size of the buffer allocated by user through
+>>> bootargs is less than the S_FMT size.
+>>>
+>>> Signed-off-by: Vaibhav Hiremath<hvaibhav@ti.com>
+>>> ---
+>>>    drivers/media/video/omap/omap_vout.c |   16 ++++++++++++++++
+>>>    1 files changed, 16 insertions(+), 0 deletions(-)
+>>>
+>>> diff --git a/drivers/media/video/omap/omap_vout.c
+>> b/drivers/media/video/omap/omap_vout.c
+>>> index 3bc909a..343b50c 100644
+>>> --- a/drivers/media/video/omap/omap_vout.c
+>>> +++ b/drivers/media/video/omap/omap_vout.c
+>>> @@ -678,6 +678,14 @@ static int omap_vout_buffer_setup(struct
+>> videobuf_queue *q, unsigned int *count,
+>>>    	startindex = (vout->vid == OMAP_VIDEO1) ?
+>>>    		video1_numbuffers : video2_numbuffers;
+>>>
+>>> +	/* Check the size of the buffer */
+>>> +	if (*size>   vout->buffer_size) {
+>>> +		v4l2_err(&vout->vid_dev->v4l2_dev,
+>>> +				"buffer allocation mismatch [%u] [%u]\n",
+>>> +				*size, vout->buffer_size);
+>>> +		return -ENOMEM;
+>>> +	}
+>>> +
+>>>    	for (i = startindex; i<   *count; i++) {
+>>>    		vout->buffer_size = *size;
+>>>
+>>> @@ -856,6 +864,14 @@ static int omap_vout_mmap(struct file *file, struct
+>> vm_area_struct *vma)
+>>>    				(vma->vm_pgoff<<   PAGE_SHIFT));
+>>>    		return -EINVAL;
+>>>    	}
+>>> +	/* Check the size of the buffer */
+>>> +	if (size>   vout->buffer_size) {
+>>> +		v4l2_err(&vout->vid_dev->v4l2_dev,
+>>> +				"insufficient memory [%lu] [%u]\n",
+>>> +				size, vout->buffer_size);
+>>> +		return -ENOMEM;
+>>> +	}
+>>> +
+>>>    	q->bufs[i]->baddr = vma->vm_start;
+>>>
+>>>    	vma->vm_flags |= VM_RESERVED;
+>>> --
+>>> 1.6.2.4
+>>>
+>>> --
+>>> To unsubscribe from this list: send the line "unsubscribe linux-media"
+>> in
+>>> the body of a message to majordomo@vger.kernel.org
+>>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>>>
+>
+>
 
