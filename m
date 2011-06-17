@@ -1,64 +1,43 @@
 Return-path: <mchehab@pedra>
-Received: from mail-iw0-f174.google.com ([209.85.214.174]:55163 "EHLO
-	mail-iw0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751127Ab1FGGmn convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 7 Jun 2011 02:42:43 -0400
-Received: by iwn34 with SMTP id 34so3758837iwn.19
-        for <linux-media@vger.kernel.org>; Mon, 06 Jun 2011 23:42:42 -0700 (PDT)
+Received: from perceval.ideasonboard.com ([95.142.166.194]:50109 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1759337Ab1FQPac (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 17 Jun 2011 11:30:32 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: javier Martin <javier.martin@vista-silicon.com>
+Subject: Re: [beagleboard] Re: [PATCH v7 1/2] Add driver for Aptina (Micron) mt9p031 sensor.
+Date: Fri, 17 Jun 2011 17:30:46 +0200
+Cc: Koen Kooi <koen@beagleboard.org>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	beagleboard@googlegroups.com, linux-media@vger.kernel.org,
+	carlighting@yahoo.co.nz, mch_kot@yahoo.com.cn
+References: <1307014603-22944-1-git-send-email-javier.martin@vista-silicon.com> <BANLkTinqZ5xbTG=h+64rxVui=kXjjtehig@mail.gmail.com> <BANLkTimS=7a2arnrSXtsvoS46nFwaEH1Vg@mail.gmail.com>
+In-Reply-To: <BANLkTimS=7a2arnrSXtsvoS46nFwaEH1Vg@mail.gmail.com>
 MIME-Version: 1.0
-In-Reply-To: <BANLkTi=fj+DSDNnJ+C43GenpBheOkoL23Q@mail.gmail.com>
-References: <BANLkTik8JCCB2zri7nAmTX+gvUwOunbYcg@mail.gmail.com>
-	<BANLkTi=fj+DSDNnJ+C43GenpBheOkoL23Q@mail.gmail.com>
-Date: Tue, 7 Jun 2011 08:42:42 +0200
-Message-ID: <BANLkTinwGfJ08j58z8sS19ZBmCYOxX=-Eg@mail.gmail.com>
-Subject: Re: EM28188 and TDA18271HDC2
-From: Kristoffer Edwardsson <krisse02@gmail.com>
-To: Magnus Alm <magnus.alm@gmail.com>
-Cc: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201106171730.46536.laurent.pinchart@ideasonboard.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Yes they do but closed drivers. as there is a em28xx project in kernel
-with support for other empia drivers I just wanted to contribute with
-device information.
+Hi Javier,
 
-On Mon, Jun 6, 2011 at 3:58 PM, Magnus Alm <magnus.alm@gmail.com> wrote:
-> Hi!
->
-> Doesn't Sundtek make their own closed drivers?
->
-> 2011/6/6 Kristoffer Edwardsson <krisse02@gmail.com>:
->> HI
->>
->> I Noticed the em28xx driver in kernel but the EM28188 is not supported.
->>
->> I dont know if it can be supported but here is some info about the device.
->> Its a DVB-CT hybrid device without analog from Sundtek.
->>
->>
->> Device Descriptor:
->>  bLength                18
->>  bDescriptorType         1
->>  bcdUSB               2.00
->>  bDeviceClass            0 (Defined at Interface level)
->>  bDeviceSubClass         0
->>  bDeviceProtocol         0
->>  bMaxPacketSize0        64
->>  idVendor           0xeb1a eMPIA Technology, Inc.
->>  idProduct          0x51b2
->>  bcdDevice            1.00
->>  iManufacturer           0
->>  iProduct                1 USB 28185 Device
->>  iSerial                 2 ODVBTB
->>  bNumConfigurations      1
->>  Configuration Descriptor:
->>
->> //Kristoffer
->> --
->> To unsubscribe from this list: send the line "unsubscribe linux-media" in
->> the body of a message to majordomo@vger.kernel.org
->> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->>
->
+On Friday 17 June 2011 17:26:26 javier Martin wrote:
+> Laurent,
+> have you been able to successfully test the driver?
+> 
+> I've found some issues and I don't know whether I should send a new version
+> or just wait for you to mainline the last one and send a patch later.
+
+Sorry for the late reply. I've briefly tested the driver but haven't been able 
+to work on it. Please send a new version if you have one (with a description 
+of the changes since the previous version). I'll then test that and push it to 
+mainline through my tree (with a couple of changes if needed, I'll ask for 
+your ack before pushing the driver).
+
+-- 
+Regards,
+
+Laurent Pinchart
