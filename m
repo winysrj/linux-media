@@ -1,78 +1,67 @@
 Return-path: <mchehab@pedra>
-Received: from mx1.redhat.com ([209.132.183.28]:32000 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751452Ab1FYORU (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 25 Jun 2011 10:17:20 -0400
-Message-ID: <4E05EDEE.1000201@redhat.com>
-Date: Sat, 25 Jun 2011 11:17:18 -0300
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Received: from r02s01.colo.vollmar.net ([83.151.24.194]:36391 "EHLO
+	holzeisen.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756410Ab1FQORF (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 17 Jun 2011 10:17:05 -0400
+Message-ID: <4DFB61DE.2090007@holzeisen.de>
+Date: Fri, 17 Jun 2011 16:17:02 +0200
+From: Thomas Holzeisen <thomas@holzeisen.de>
 MIME-Version: 1.0
-To: Hans Verkuil <hverkuil@xs4all.nl>
-CC: linux-media <linux-media@vger.kernel.org>
-Subject: Re: RFC tuner-core: how to set vt->type in g_tuner?
-References: <201106251602.45572.hverkuil@xs4all.nl>
-In-Reply-To: <201106251602.45572.hverkuil@xs4all.nl>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+To: =?UTF-8?B?U2FzY2hhIFfDvHN0ZW1hbm4=?= <sascha@killerhippy.de>
+CC: linux-media@vger.kernel.org,
+	Jan Hoogenraad <jan-conceptronic@hoogenraad.net>
+Subject: Re: RTL2831U driver updates
+References: <4DF9BCAA.3030301@holzeisen.de> <4DF9EA62.2040008@killerhippy.de> <4DFA7748.6000704@hoogenraad.net> <4DFB10BC.6000407@killerhippy.de>
+In-Reply-To: <4DFB10BC.6000407@killerhippy.de>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Em 25-06-2011 11:02, Hans Verkuil escreveu:
-> Hi all,
-> 
-> The tuner-core.c implementation does this at the start of g_tuner:
-> 
->         if (check_mode(t, vt->type) == -EINVAL)
->                 return 0;
->         vt->type = t->mode;
-> 
-> The idea is that the vt->type is set depending on whether the VIDIOC_G_TUNER
-> ioctl is called from a radio device node or a video device node. If we have a
-> tuner that can do both radio and TV, then the type is set to whatever the
-> current tuner mode is.
-> 
-> This seems reasonable, but it will actually run into problems when g_tuner
-> is called for audio demodulators like msp3400 or cx25840. These need to know
-> the correct vt->type in order to fill in the right fields.
-> 
-> The problem here is that the tuner subdevices are not necessarily called first.
-> In fact, the msp3400/cx25840 are actually called first by ivtv.
-> 
-> So the msp3400 will get called with type TV, and later the tuner may change that
-> to type RADIO. This causes inconsistencies. This has actually been observed when
-> testing with ivtv and a PVR-500.
-> 
-> There are two solutions:
-> 
-> 1) Audit the drivers and ensure that the tuner subdevices are registered first.
-> 
-> 2) Do not allow the tuner to switch the type.
+Hi again,
 
-(2) is the right thing to do. A VIDIOC_GET_foo should not change anything. They are
-supposed to be read only access.
+i managed to merge the driver with a media_build snapshot by hand, and managed to get it loaded
+without errors. But now where I looked more closely to the files, I noticed something.
 
+The driver refered mentions RTL2832u and some following versions, but it _dont_ mention RTL2831u
+at all. Also the card I got contains the tuners mxl5005, mt2060 and qt1010, while this driver
+contains files for mxl5007 and mt2063.
+
+Teach me wrong, but it looks like the RTL2381u had been forgotten when this driver got made ;-)
+
+Greeting,
+Thomas
+
+
+
+Sascha Wüstemann wrote:
+> Jan Hoogenraad wrote:
+>> Sascha: Thanks for the links
+>>
+>> Would you know how to contact poma ?
+>> http://www.spinics.net/lists/linux-media/msg24890.html
+>>
+>> I will be getting more info from Realtek soon.
+>> I did not realize that they were putting out updated drivers.
+>>
+>> Once the status becomes more clear, I'll update
+>> http://www.linuxtv.org/wiki/index.php/Realtek_RTL2831U
+>>
 > 
-> The problem with 1 is that this will be hard to enforce in the long term. Another
-> problem with 1 is that I do think it is a bit unexpected from an application PoV
-> that the type is suddenly inconsistent with the node the ioctl is called from.
 > 
-> The problem with 2 is that some sensible defaults need to be filled in if the
-> a radio/TV tuner is called with vt->type set to a different mode than the current
-> mode.
+> The mailinglist archive where poma had written is new to me, no sorry.
+> Zdenek Stybla hosts the website he advised to me.
 > 
-> I do not think that is very hard though: afc/signal can be 0, ditto for rxsubchans.
-> The audmode field should just report the value last set with s_tuner.
+> When I contacted Zdenek he made contact to a guy from realtek which in
+> return sent us their (?) new drivers  -  you should contact Zdenek.
 > 
-> g_frequency has the same problem as g_tuner. I believe g_frequency shouldn't change
-> the type either. Since it already has the last set frequency for tv or radio it can
-> just report it.
+> I don't work on the rtl2831 sources I'd like to use them :-)
 > 
-> I think the second solution is the easiest to implement and the most intuitive as
-> well.
+> I am looking forward to have current sources at v4l or at least updated
+> information at the info page at linuxtv.org.
 > 
-> Comments?
-> 
-> 	Hans
+> Greetings from Braunschweig, Germany.
+> Sascha
 > --
 > To unsubscribe from this list: send the line "unsubscribe linux-media" in
 > the body of a message to majordomo@vger.kernel.org
