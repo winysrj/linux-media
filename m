@@ -1,65 +1,54 @@
 Return-path: <mchehab@pedra>
-Received: from smtp-68.nebula.fi ([83.145.220.68]:33069 "EHLO
-	smtp-68.nebula.fi" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751390Ab1FHGkH (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 8 Jun 2011 02:40:07 -0400
-Date: Wed, 8 Jun 2011 09:40:02 +0300
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	sakari.ailus@maxwell.research.nokia.com,
-	Sylwester Nawrocki <snjw23@gmail.com>,
-	Stan <svarbanov@mm-sol.com>, Hans Verkuil <hansverk@cisco.com>,
-	saaguirre@ti.com, Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: Re: [PATCH/RFC] V4L: add media bus configuration subdev operations
-Message-ID: <20110608064001.GC7830@valkosipuli.localdomain>
-References: <Pine.LNX.4.64.1106061358310.11169@axis700.grange>
- <201106071725.32948.laurent.pinchart@ideasonboard.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <201106071725.32948.laurent.pinchart@ideasonboard.com>
+Received: from tex.lwn.net ([70.33.254.29]:42036 "EHLO vena.lwn.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1757115Ab1FQS5P (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 17 Jun 2011 14:57:15 -0400
+Date: Fri, 17 Jun 2011 12:57:13 -0600
+From: Jonathan Corbet <corbet@lwn.net>
+To: Pawel Osciak <pawel@osciak.com>,
+	Marek Szyprowski <m.szyprowski@samsung.com>
+Cc: linux-media@vger.kernel.org
+Subject: vb2: holding buffers until after start_streaming()
+Message-ID: <20110617125713.293f484d@bike.lwn.net>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 8bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Tue, Jun 07, 2011 at 05:25:32PM +0200, Laurent Pinchart wrote:
-> Hi Guennadi,
-> 
-> Thanks for the patch.
-> 
-> On Monday 06 June 2011 14:31:57 Guennadi Liakhovetski wrote:
-> > Add media bus configuration types and two subdev operations to get
-> > supported mediabus configurations and to set a specific configuration.
-> > Subdevs can support several configurations, e.g., they can send video data
-> > on 1 or several lanes, can be configured to use a specific CSI-2 channel,
-> > in such cases subdevice drivers return bitmasks with all respective bits
-> > set. When a set-configuration operation is called, it has to specify a
-> > non-ambiguous configuration.
-> > 
-> > Signed-off-by: Stanimir Varbanov <svarbanov@mm-sol.com>
-> > Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-> > ---
-> > 
-> > This change would allow a re-use of soc-camera and "standard" subdev
-> > drivers. It is a modified and extended version of
-> > 
-> > http://article.gmane.org/gmane.linux.drivers.video-input-infrastructure/294
-> > 08
-> > 
-> > therefore the original Sob. After this we only would have to switch to the
-> > control framework:) Please, comment.
-> 
-> I still believe we shouldn't use any set operation :-) The host/bridge driver 
-> should just use the get operation before starting the stream to configure it's 
-> sensor interface. 
+Here's another videobuf2 question...I've been trying to track down some
+weird behavior, the roots of which were in the fact that start_streaming()
+gets called even though no buffers have been queued.  This behavior is
+quite explicit in the code:
 
-I agree with Laurent.
+	/*
+	 * Let driver notice that streaming state has been enabled.
+	 */
+	ret = call_qop(q, start_streaming, q);
+	if (ret) {
+		dprintk(1, "streamon: driver refused to start streaming\n");
+		return ret;
+	}
 
-What about implementing just get first?
+	q->streaming = 1;
 
-Regards,
+	/*
+	 * If any buffers were queued before streamon,
+	 * we can now pass them to driver for processing.
+	 */
+	list_for_each_entry(vb, &q->queued_list, queued_entry)
+		__enqueue_in_driver(vb);
 
--- 
-Sakari Ailus
-sakari.ailus@iki.fi
+Pretty much every v4l2 capture application I've ever encountered passes all
+of its buffers to VIDIOC_QBUF before starting streaming for a reason - it
+makes little sense to start if there's nothing to stream to.  It's really
+tempting to reorder that code, but...  it seems you must have done things
+this way for a reason.  Why did you need to reorder the operations in this
+way?
+
+(Yes, my driver's current tendency to go oops when start_streaming() gets
+called with no buffers is a bug, I'll fix it regardless).
+
+Thanks,
+
+jon
