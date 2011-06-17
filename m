@@ -1,251 +1,182 @@
 Return-path: <mchehab@pedra>
-Received: from hqemgate03.nvidia.com ([216.228.121.140]:17212 "EHLO
-	hqemgate03.nvidia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933456Ab1FWXUG (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 23 Jun 2011 19:20:06 -0400
-From: <achew@nvidia.com>
-To: <linux-kernel@vger.kernel.org>, <linux-media@vger.kernel.org>
-CC: <g.liakhovetski@gmx.de>, <mchehab@redhat.com>, <olof@lixom.net>,
-	Andrew Chew <achew@nvidia.com>
-Subject: [PATCH 5/6 v3] [media] ov9740: Reorder video and core ops
-Date: Thu, 23 Jun 2011 16:19:43 -0700
-Message-ID: <1308871184-6307-5-git-send-email-achew@nvidia.com>
-In-Reply-To: <1308871184-6307-1-git-send-email-achew@nvidia.com>
-References: <1308871184-6307-1-git-send-email-achew@nvidia.com>
+Received: from mx1.redhat.com ([209.132.183.28]:42898 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S933019Ab1FQUIU (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 17 Jun 2011 16:08:20 -0400
+Received: from int-mx01.intmail.prod.int.phx2.redhat.com (int-mx01.intmail.prod.int.phx2.redhat.com [10.5.11.11])
+	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id p5HK8KT3007112
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
+	for <linux-media@vger.kernel.org>; Fri, 17 Jun 2011 16:08:20 -0400
+Received: from [10.11.11.22] (vpn-11-22.rdu.redhat.com [10.11.11.22])
+	by int-mx01.intmail.prod.int.phx2.redhat.com (8.13.8/8.13.8) with ESMTP id p5HK8IBc010433
+	for <linux-media@vger.kernel.org>; Fri, 17 Jun 2011 16:08:19 -0400
+Message-ID: <4DFBB431.60101@redhat.com>
+Date: Fri, 17 Jun 2011 17:08:17 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
 MIME-Version: 1.0
-Content-Type: text/plain
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Pulseaudio device removal
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-From: Andrew Chew <achew@nvidia.com>
+During a long time, the removal of an alsa drivers were a problem
+for me, and other developers reported to have the same problem.
 
-This is to avoid needing a forward declaration when ov9740_s_power() (in the
-subsequent patch) calls ov9740_s_fmt().
+With Hans de Goede help, I've got the pulseaudio syntax that allows
+releasing an alsa device. With that, I've added a patch to the media
+build that will automatically handle it, when "make rmmod" is
+called.
 
-Signed-off-by: Andrew Chew <achew@nvidia.com>
----
- drivers/media/video/ov9740.c |  186 +++++++++++++++++++++---------------------
- 1 files changed, 93 insertions(+), 93 deletions(-)
+Feel free to test and give some feedback. I suspect that the logic
+will need more hacks, as pulseaudio-libs is not capable of detecting
+the name of some USB alsa drivers.
 
-diff --git a/drivers/media/video/ov9740.c b/drivers/media/video/ov9740.c
-index decd706..cd63eaa 100644
---- a/drivers/media/video/ov9740.c
-+++ b/drivers/media/video/ov9740.c
-@@ -573,90 +573,6 @@ static unsigned long ov9740_query_bus_param(struct soc_camera_device *icd)
- 	return soc_camera_apply_sensor_flags(icl, flags);
+The logic there is not optimized: It is basically running pacmd list-sources
+and pacmd list-sinks several times, as I didn't have time yet to optimize.
+I'll probably do it soon, after finishing some other things.
+
+Enjoy!
+Mauro.
+
+
+>From 16cf0606fd59484236356e400a89c083e76da64b Mon Sep 17 00:00:00 2001
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Date: Fri, 17 Jun 2011 16:48:04 -0300
+Subject: [PATCH] rmmod.pl: Add a logic to allow removing audio modules with pulseaudio
+
+Pulseaudio keeps audio devices opened forever. In order to be able to
+remove a device, pulseaudio needs to de-allocate the device.
+
+Unfortunately, pulseaudio recognizes alsa drivers as "module"
+(an integer number, not related to the device nodename), and only
+allows module removal if running with user matches the console owner.
+
+The logic inside rmmod.pl will now take the above into account. So,
+it will detect if pulseaudio is running. If it is, it will:
+
+1) list the pulseaudio modules with "pacmd list-sinks"
+   and "pacmd list-sources"
+
+2) detect if any of the modules there is provided by a v4l device;
+
+3) If they're provided by a video device, it removes the module with:
+	pactl unload-module 26
+
+Even the above logic is not perfect as, due to a pulseaudio libs bug,
+pulseaudio can't detect the name of em28xx-alsa driver, as it uses the
+same interface as the video node. Similar hacks will may be needed
+for other USB devices, like tm6000 and cx231xx.
+
+Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+
+diff --git a/build.sh b/build.sh
+index 60d0c26..3cc21f8 100755
+--- a/build.sh
++++ b/build.sh
+@@ -12,6 +12,8 @@ echo "Checking if the needed tools are present"
+ run ./check_needs.pl
+ echo "Checking for Digest::SHA1 (package perl-Digest-SHA1)"
+ run perl -MDigest::SHA1 -e 1
++echo "Checking for Proc::ProcessTable (package perl-Proc-ProcessTable)"
++run perl -MProc::ProcessTable -e 1
+ echo
+ echo "************************************************************"
+ echo "* This script will download the latest tarball and build it*"
+diff --git a/v4l/scripts/rmmod.pl b/v4l/scripts/rmmod.pl
+index ed79cbe..53ea451 100755
+--- a/v4l/scripts/rmmod.pl
++++ b/v4l/scripts/rmmod.pl
+@@ -1,6 +1,8 @@
+ #!/usr/bin/perl
+ use strict;
+ use File::Find;
++use Proc::ProcessTable;
++
+ 
+ my %depend = ();
+ my %depend2 = ();
+@@ -166,6 +168,69 @@ sub insmod ($)
+ 	}
  }
  
--/* Get status of additional camera capabilities */
--static int ov9740_g_ctrl(struct v4l2_subdev *sd, struct v4l2_control *ctrl)
--{
--	struct ov9740_priv *priv = to_ov9740(sd);
--
--	switch (ctrl->id) {
--	case V4L2_CID_VFLIP:
--		ctrl->value = priv->flag_vflip;
--		break;
--	case V4L2_CID_HFLIP:
--		ctrl->value = priv->flag_hflip;
--		break;
--	default:
--		return -EINVAL;
--	}
--
--	return 0;
--}
--
--/* Set status of additional camera capabilities */
--static int ov9740_s_ctrl(struct v4l2_subdev *sd, struct v4l2_control *ctrl)
--{
--	struct ov9740_priv *priv = to_ov9740(sd);
--
--	switch (ctrl->id) {
--	case V4L2_CID_VFLIP:
--		priv->flag_vflip = ctrl->value;
--		break;
--	case V4L2_CID_HFLIP:
--		priv->flag_hflip = ctrl->value;
--		break;
--	default:
--		return -EINVAL;
--	}
--
--	return 0;
--}
--
--/* Get chip identification */
--static int ov9740_g_chip_ident(struct v4l2_subdev *sd,
--			       struct v4l2_dbg_chip_ident *id)
--{
--	struct ov9740_priv *priv = to_ov9740(sd);
--
--	id->ident = priv->ident;
--	id->revision = priv->revision;
--
--	return 0;
--}
--
--#ifdef CONFIG_VIDEO_ADV_DEBUG
--static int ov9740_get_register(struct v4l2_subdev *sd,
--			       struct v4l2_dbg_register *reg)
--{
--	struct i2c_client *client = v4l2_get_subdevdata(sd);
--	int ret;
--	u8 val;
--
--	if (reg->reg & ~0xffff)
--		return -EINVAL;
--
--	reg->size = 2;
--
--	ret = ov9740_reg_read(client, reg->reg, &val);
--	if (ret)
--		return ret;
--
--	reg->val = (__u64)val;
--
--	return ret;
--}
--
--static int ov9740_set_register(struct v4l2_subdev *sd,
--			       struct v4l2_dbg_register *reg)
--{
--	struct i2c_client *client = v4l2_get_subdevdata(sd);
--
--	if (reg->reg & ~0xffff || reg->val & ~0xff)
--		return -EINVAL;
--
--	return ov9740_reg_write(client, reg->reg, reg->val);
--}
--#endif
--
- /* select nearest higher resolution for capture */
- static void ov9740_res_roundup(u32 *width, u32 *height)
- {
-@@ -863,6 +779,90 @@ static int ov9740_g_crop(struct v4l2_subdev *sd, struct v4l2_crop *a)
- 	return 0;
- }
- 
-+/* Get status of additional camera capabilities */
-+static int ov9740_g_ctrl(struct v4l2_subdev *sd, struct v4l2_control *ctrl)
-+{
-+	struct ov9740_priv *priv = to_ov9740(sd);
++my @pulse;
++my $try_pulseaudio = 1;
 +
-+	switch (ctrl->id) {
-+	case V4L2_CID_VFLIP:
-+		ctrl->value = priv->flag_vflip;
-+		break;
-+	case V4L2_CID_HFLIP:
-+		ctrl->value = priv->flag_hflip;
-+		break;
-+	default:
-+		return -EINVAL;
++sub check_pulseaudio()
++{
++	my $t = new Proc::ProcessTable;
++	foreach my $p ( @{$t->table} ) {
++		push @pulse, $p->uid if ($p->cmndline =~m,/pulseaudio ,);
 +	}
++	$try_pulseaudio = 0 if (!@pulse);
 +
-+	return 0;
++	print "Pulseaudio is running with UUID(s): @pulse\n";
 +}
 +
-+/* Set status of additional camera capabilities */
-+static int ov9740_s_ctrl(struct v4l2_subdev *sd, struct v4l2_control *ctrl)
++sub unload_pulseaudio($)
 +{
-+	struct ov9740_priv *priv = to_ov9740(sd);
++	my $driver_name = shift;
++	my $cur_module;
 +
-+	switch (ctrl->id) {
-+	case V4L2_CID_VFLIP:
-+		priv->flag_vflip = ctrl->value;
-+		break;
-+	case V4L2_CID_HFLIP:
-+		priv->flag_hflip = ctrl->value;
-+		break;
-+	default:
-+		return -EINVAL;
++	return if (!$try_pulseaudio);
++
++	check_pulseaudio() if (!@pulse);
++	return if (!$try_pulseaudio);
++
++	for my $pid (@pulse) {
++#		printf "LANG=C sudo -u \\\#$pid pacmd list-sources |\n";
++		open IN, "LANG=C sudo -u \\\#$pid pacmd list-sources |";
++		while (<IN>) {
++			$cur_module = $1 if (/^\s*module:\s*(\d+)/);
++
++			if (/^\s*alsa.driver_name\s*=\s*"(.*)"/) {
++				if ($1 eq $driver_name) {
++					print "LANG=C sudo -u \\#$pid pactl unload-module $cur_module\n";
++					system ("LANG=C sudo -u \\#$pid pactl unload-module $cur_module");
++				}
++				next;
++			}
++
++			# Special case: em28xx sometimes use a Vendor Class at
++			# the same interface as the video node. Pulseaudio can't
++			# get the driver name in this case
++			if (/^\s*alsa.card_name\s*=\s*"Em28xx/) {
++				print "LANG=C sudo -u \\#$pid pactl unload-module $cur_module\n";
++				system ("LANG=C sudo -u \\#$pid pactl unload-module $cur_module");
++			}
++		}
++		close IN;
++
++#		printf "LANG=C sudo -u \\\#$pid pacmd list-sinks |\n";
++		open IN, "LANG=C sudo -u \\#$pid pacmd list-sinks |" or return;
++		while (<IN>) {
++			$cur_module = $1 if (/^\s*module:\s*(\d+)/);
++			if (/^\s*alsa.driver_name\s*=\s*"(.*)"/) {
++				if ($1 eq $driver_name) {
++					print "LANG=C sudo -u \\#$pid pactl unload-module $1\n";
++					system ("LANG=C sudo -u \\#$pid pactl unload-module $1");
++				}
++			}
++		}
 +	}
-+
-+	return 0;
++	close IN;
 +}
 +
-+/* Get chip identification */
-+static int ov9740_g_chip_ident(struct v4l2_subdev *sd,
-+			       struct v4l2_dbg_chip_ident *id)
-+{
-+	struct ov9740_priv *priv = to_ov9740(sd);
-+
-+	id->ident = priv->ident;
-+	id->revision = priv->revision;
-+
-+	return 0;
-+}
-+
-+#ifdef CONFIG_VIDEO_ADV_DEBUG
-+static int ov9740_get_register(struct v4l2_subdev *sd,
-+			       struct v4l2_dbg_register *reg)
-+{
-+	struct i2c_client *client = v4l2_get_subdevdata(sd);
-+	int ret;
-+	u8 val;
-+
-+	if (reg->reg & ~0xffff)
-+		return -EINVAL;
-+
-+	reg->size = 2;
-+
-+	ret = ov9740_reg_read(client, reg->reg, &val);
-+	if (ret)
-+		return ret;
-+
-+	reg->val = (__u64)val;
-+
-+	return ret;
-+}
-+
-+static int ov9740_set_register(struct v4l2_subdev *sd,
-+			       struct v4l2_dbg_register *reg)
-+{
-+	struct i2c_client *client = v4l2_get_subdevdata(sd);
-+
-+	if (reg->reg & ~0xffff || reg->val & ~0xff)
-+		return -EINVAL;
-+
-+	return ov9740_reg_write(client, reg->reg, reg->val);
-+}
-+#endif
-+
- static int ov9740_video_probe(struct soc_camera_device *icd,
- 			      struct i2c_client *client)
+ sub rmmod(@)
  {
-@@ -929,6 +929,15 @@ static struct soc_camera_ops ov9740_ops = {
- 	.num_controls		= ARRAY_SIZE(ov9740_controls),
- };
- 
-+static struct v4l2_subdev_video_ops ov9740_video_ops = {
-+	.s_stream		= ov9740_s_stream,
-+	.s_mbus_fmt		= ov9740_s_fmt,
-+	.try_mbus_fmt		= ov9740_try_fmt,
-+	.enum_mbus_fmt		= ov9740_enum_fmt,
-+	.cropcap		= ov9740_cropcap,
-+	.g_crop			= ov9740_g_crop,
-+};
-+
- static struct v4l2_subdev_core_ops ov9740_core_ops = {
- 	.g_ctrl			= ov9740_g_ctrl,
- 	.s_ctrl			= ov9740_s_ctrl,
-@@ -939,15 +948,6 @@ static struct v4l2_subdev_core_ops ov9740_core_ops = {
- #endif
- };
- 
--static struct v4l2_subdev_video_ops ov9740_video_ops = {
--	.s_stream		= ov9740_s_stream,
--	.s_mbus_fmt		= ov9740_s_fmt,
--	.try_mbus_fmt		= ov9740_try_fmt,
--	.enum_mbus_fmt		= ov9740_enum_fmt,
--	.cropcap		= ov9740_cropcap,
--	.g_crop			= ov9740_g_crop,
--};
--
- static struct v4l2_subdev_ops ov9740_subdev_ops = {
- 	.core			= &ov9740_core_ops,
- 	.video			= &ov9740_video_ops,
--- 
-1.7.5.4
-
+ 	my $rmmod = findprog('rmmod');
+@@ -173,8 +238,10 @@ sub rmmod(@)
+ 	foreach (reverse @_) {
+ 		s/-/_/g;
+ 		if (exists ($loaded{$_})) {
+-			print "$rmmod $_\n";
+-			unshift @not, $_ if (system "$rmmod $_");
++			my $module = $_;
++			print "$rmmod $module\n";
++			unload_pulseaudio($module);
++			unshift @not, $module if (system "$rmmod $module");
+ 		}
+ 	}
+ 	return @not;
