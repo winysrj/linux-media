@@ -1,46 +1,30 @@
 Return-path: <mchehab@pedra>
-Received: from mx1.redhat.com ([209.132.183.28]:7353 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753404Ab1FSRnm (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 19 Jun 2011 13:43:42 -0400
-Received: from int-mx01.intmail.prod.int.phx2.redhat.com (int-mx01.intmail.prod.int.phx2.redhat.com [10.5.11.11])
-	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id p5JHhgcv028217
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
-	for <linux-media@vger.kernel.org>; Sun, 19 Jun 2011 13:43:42 -0400
-Received: from pedra (vpn-238-25.phx2.redhat.com [10.3.238.25])
-	by int-mx01.intmail.prod.int.phx2.redhat.com (8.13.8/8.13.8) with ESMTP id p5JHhWq4018286
-	for <linux-media@vger.kernel.org>; Sun, 19 Jun 2011 13:43:41 -0400
-Date: Sun, 19 Jun 2011 14:42:34 -0300
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: [PATCH 11/11] [media] em28xx: Mark Kworld 305 as validated
-Message-ID: <20110619144234.7553fa8d@pedra>
-In-Reply-To: <cover.1308503857.git.mchehab@redhat.com>
-References: <cover.1308503857.git.mchehab@redhat.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
-To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
+Received: from [202.190.99.188] ([202.190.99.188]:38505 "EHLO
+	cidbmy1.cidb.gov.my" rhost-flags-FAIL-FAIL-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1752029Ab1FRIUu convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sat, 18 Jun 2011 04:20:50 -0400
+Date: Fri, 17 Jun 2011 13:57:42 -0000 (UTC)
+From: Systems Admin <maznah@cidb.gov.my>
+Reply-To: Systems Admin <system-admin@gala.net>
+Subject: Final Systems Notification.
+Message-ID: <17fed46d-842e-4b22-b26a-28cdb970aa49@mail-ha1>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 8BIT
+MIME-Version: 1.0
+To: undisclosed-recipients:;
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-This board were used for testing the em28xx-alsa using a separate interface.
-So, it is obviously validated ;)
+Dear account user,
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+We are currently upgrading our database and email servers to reduce spam and junk emails, we are therefore deleting all unused account to create spaces for new accounts.
 
-diff --git a/drivers/media/video/em28xx/em28xx-cards.c b/drivers/media/video/em28xx/em28xx-cards.c
-index c445bea..c892a1e 100644
---- a/drivers/media/video/em28xx/em28xx-cards.c
-+++ b/drivers/media/video/em28xx/em28xx-cards.c
-@@ -1319,7 +1319,6 @@ struct em28xx_board em28xx_boards[] = {
- 	},
- 	[EM2880_BOARD_KWORLD_DVB_305U] = {
- 		.name	      = "KWorld DVB-T 305U",
--		.valid        = EM28XX_BOARD_NOT_VALIDATED,
- 		.tuner_type   = TUNER_XC2028,
- 		.tuner_gpio   = default_tuner_gpio,
- 		.decoder      = EM28XX_TVP5150,
--- 
-1.7.1
+To prevent account closure, you are required to VERIFY your email account kindly click the link below.
 
+https://spreadsheets.google.com/spreadsheet/viewform?formkey=dFVFTDRKeUNrTnVjUUdzYm96b2hxNEE6MQ
+
+Warning!!! All Webmail. Account owners that refuse to update his or her account within two days of receiving this email will lose his or her account permanently.
+
+Thank you for using Webmail.
+AGB © upc Malaysia GmbH 2011
