@@ -1,57 +1,45 @@
 Return-path: <mchehab@pedra>
-Received: from mail.kapsi.fi ([217.30.184.167]:53542 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751091Ab1FLLJJ (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 12 Jun 2011 07:09:09 -0400
-Message-ID: <4DF49E2A.9030804@iki.fi>
-Date: Sun, 12 Jun 2011 14:08:26 +0300
-From: Antti Palosaari <crope@iki.fi>
+Received: from perceval.ideasonboard.com ([95.142.166.194]:45359 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757813Ab1FQIS0 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 17 Jun 2011 04:18:26 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Alan Stern <stern@rowland.harvard.edu>
+Subject: Re: uvcvideo failure under xHCI
+Date: Fri, 17 Jun 2011 10:18:39 +0200
+Cc: Sarah Sharp <sarah.a.sharp@linux.intel.com>,
+	linux-media@vger.kernel.org, USB list <linux-usb@vger.kernel.org>,
+	Andiry Xu <andiry.xu@amd.com>, Alex He <alex.he@amd.com>
+References: <Pine.LNX.4.44L0.1106161619140.1697-100000@iolanthe.rowland.org>
+In-Reply-To: <Pine.LNX.4.44L0.1106161619140.1697-100000@iolanthe.rowland.org>
 MIME-Version: 1.0
-To: Rune Evjen <rune.evjen@gmail.com>
-CC: linux-media@vger.kernel.org
-Subject: Re: PCTV nanoStick T2 290e (Sony CXD2820R DVB-T/T2/C) - DVB-C channel
- scan in mythtv - missing
-References: <BANLkTimkYw70GAu1keW-N6ND=AyiRn2+CA@mail.gmail.com>
-In-Reply-To: <BANLkTimkYw70GAu1keW-N6ND=AyiRn2+CA@mail.gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
+Message-Id: <201106171018.40285.laurent.pinchart@ideasonboard.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On 06/12/2011 11:23 AM, Rune Evjen wrote:
-> I just tested a PCTV 290e device using the latest media_build drivers
-> in MythTV as a DVB-C device, and ran into some problems.
->
-> The adapter is recognized by the em28xx-dvb driver [1] and dmesg
-> output seems to be correct [2]. I can successfully scan for channels
-> using the scan utility in dvb-apps but when I try to scan for channels
-> in mythtv I get the following errors logged by mythtv-setup:
->
-> 2011-06-12 00:57:20.971556  PIDInfo(/dev/dvb/adapter0/
-> frontend1): Failed to open demux device /dev/dvb/adapter0/demux1 for
-> filter on pid 0x0
->
-> The demux1 does not exist, I only have the following nodes under
-> /dev/dvb/adapter0:
->
-> demux0  dvr0  frontend0  frontend1  net0
->
-> When searching the linx-media I came across this thread:
-> http://www.mail-archive.com/linux-media@vger.kernel.org/msg31839.html
->
-> Is there any way to circumvent with the current driver that there is
-> no corresponding demux1 for frontend1?
-> Or can the DVB-T/T2 part be disabled somehow so that there is only one
-> DVB-C frontend registered which corresponds to the demux0?
+On Thursday 16 June 2011 22:20:22 Alan Stern wrote:
+> On Thu, 16 Jun 2011, Sarah Sharp wrote:
+> > On Thu, Jun 16, 2011 at 03:39:11PM -0400, Alan Stern wrote:
+> > > That's appropriate.  But nobody should ever set an isochronous URB's
+> > > status field to -EPROTO, no matter whether the device is connected or
+> > > not and no matter whether the host controller is alive or not.
+> > 
+> > But the individual frame status be set to -EPROTO, correct?  That's what
+> > Alex was told to do when an isochronous TD had a completion code of
+> > "Incompatible Device Error".
+> 
+> Right.  -EPROTO is a perfectly reasonable code for a frame's status.
+> But not for an isochronous URB's status.  There's no reason for
+> uvcvideo to test for it.
 
-There is no way to say driver to create demux1 for frontend1.
-
-After all it is not 100% clear even for me if that's correct or not, but 
-most likely it is correct as far as I understood.
-
-
-regards,
-Antti
+The uvcvideo driver tests for -EPROTO for interrupt URBs only. For isochronous 
+URBs it tests for -ENOENT, -ECONNRESET and -ESHUTDOWN.
 
 -- 
-http://palosaari.fi/
+Regards,
+
+Laurent Pinchart
