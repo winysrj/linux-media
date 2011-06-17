@@ -1,58 +1,45 @@
 Return-path: <mchehab@pedra>
-Received: from mailout1.w1.samsung.com ([210.118.77.11]:28100 "EHLO
-	mailout1.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751865Ab1FPFn1 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 16 Jun 2011 01:43:27 -0400
-Received: from eu_spt1 (mailout1.w1.samsung.com [210.118.77.11])
- by mailout1.w1.samsung.com
- (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14 2004))
- with ESMTP id <0LMV00L5PBWDKL@mailout1.w1.samsung.com> for
- linux-media@vger.kernel.org; Thu, 16 Jun 2011 06:43:25 +0100 (BST)
-Received: from linux.samsung.com ([106.116.38.10])
- by spt1.w1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14
- 2004)) with ESMTPA id <0LMV009MIBWCLR@spt1.w1.samsung.com> for
- linux-media@vger.kernel.org; Thu, 16 Jun 2011 06:43:24 +0100 (BST)
-Date: Thu, 16 Jun 2011 07:42:52 +0200
-From: Marek Szyprowski <m.szyprowski@samsung.com>
-Subject: RE: no mmu on videobuf2
-In-reply-to: <BANLkTikKA_0QEyaeJth4FYzm61tYT+_Gow@mail.gmail.com>
-To: 'Scott Jiang' <scott.jiang.linux@gmail.com>,
-	hans.verkuil@cisco.com, laurent.pinchart@ideasonboard.com
-Cc: linux-media@vger.kernel.org
-Message-id: <000701cc2be8$3bfb1720$b3f14560$%szyprowski@samsung.com>
-MIME-version: 1.0
-Content-type: text/plain; charset=us-ascii
-Content-language: pl
-Content-transfer-encoding: 7BIT
-References: <BANLkTikKA_0QEyaeJth4FYzm61tYT+_Gow@mail.gmail.com>
+Received: from mga01.intel.com ([192.55.52.88]:65369 "EHLO mga01.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755105Ab1FQQqc (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 17 Jun 2011 12:46:32 -0400
+Date: Fri, 17 Jun 2011 09:46:20 -0700
+From: Sarah Sharp <sarah.a.sharp@linux.intel.com>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: Alan Stern <stern@rowland.harvard.edu>,
+	linux-media@vger.kernel.org, USB list <linux-usb@vger.kernel.org>,
+	Andiry Xu <andiry.xu@amd.com>, Alex He <alex.he@amd.com>
+Subject: Re: uvcvideo failure under xHCI
+Message-ID: <20110617164620.GD5416@xanatos>
+References: <Pine.LNX.4.44L0.1106161619140.1697-100000@iolanthe.rowland.org>
+ <201106171018.40285.laurent.pinchart@ideasonboard.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <201106171018.40285.laurent.pinchart@ideasonboard.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Hello Scott,
-
-> Hi Marek and Laurent,
+On Fri, Jun 17, 2011 at 10:18:39AM +0200, Laurent Pinchart wrote:
+> On Thursday 16 June 2011 22:20:22 Alan Stern wrote:
+> > On Thu, 16 Jun 2011, Sarah Sharp wrote:
+> > > On Thu, Jun 16, 2011 at 03:39:11PM -0400, Alan Stern wrote:
+> > > > That's appropriate.  But nobody should ever set an isochronous URB's
+> > > > status field to -EPROTO, no matter whether the device is connected or
+> > > > not and no matter whether the host controller is alive or not.
+> > > 
+> > > But the individual frame status be set to -EPROTO, correct?  That's what
+> > > Alex was told to do when an isochronous TD had a completion code of
+> > > "Incompatible Device Error".
+> > 
+> > Right.  -EPROTO is a perfectly reasonable code for a frame's status.
+> > But not for an isochronous URB's status.  There's no reason for
+> > uvcvideo to test for it.
 > 
-> I am working on v4l2 drivers for blackfin which is a no mmu soc.
-> I found videobuf allocate memory in mmap not reqbuf, so I turn to videobuf2.
-> But __setup_offsets() use plane offset to fill m.offset, which is
-> always 0 for single-planar buffer.
-> So pgoff in get_unmapped_area callback equals 0.
-> I only found uvc handled get_unmapped_area for no mmu system, but it
-> manages buffers itself.
-> I really want videobuf2 to manage buffers. Please give me some advice.
+> The uvcvideo driver tests for -EPROTO for interrupt URBs only. For isochronous 
+> URBs it tests for -ENOENT, -ECONNRESET and -ESHUTDOWN.
 
-I'm not really sure if I know the differences between mmu and no-mmu
-systems (from the device driver perspective). I assume that you are using
-videobuf2-vmalloc allocator. Note that memory allocators/managers are well
-separated from the videobuf2 logic. If it the current one doesn't serve you
-well you can make your own no-mmu allocator. Later once we identify all
-differences it might be merged with the standard one or left alone if the
-merge is not really possible or easy.
+So is uvc_status_complete() shared between interrupt and isochronous
+URBs then?
 
-Best regards
--- 
-Marek Szyprowski
-Samsung Poland R&D Center
-
-
+Sarah Sharp
