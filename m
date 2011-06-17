@@ -1,173 +1,94 @@
 Return-path: <mchehab@pedra>
-Received: from smtp-vbr13.xs4all.nl ([194.109.24.33]:1887 "EHLO
-	smtp-vbr13.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752580Ab1FMMx3 (ORCPT
+Received: from devils.ext.ti.com ([198.47.26.153]:44430 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755887Ab1FQIiy (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 13 Jun 2011 08:53:29 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Mike Isely <isely@isely.net>, Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [RFCv5 PATCH 1/9] tuner-core: fix s_std and s_tuner.
-Date: Mon, 13 Jun 2011 14:53:12 +0200
-Message-Id: <6f25028df2439cef04708e3fd8d57b05662793a6.1307969319.git.hans.verkuil@cisco.com>
-In-Reply-To: <1307969600-31536-1-git-send-email-hverkuil@xs4all.nl>
-References: <1307969600-31536-1-git-send-email-hverkuil@xs4all.nl>
+	Fri, 17 Jun 2011 04:38:54 -0400
+Message-ID: <4DFB1445.3000102@ti.com>
+Date: Fri, 17 Jun 2011 14:15:57 +0530
+From: Archit Taneja <archit@ti.com>
+MIME-Version: 1.0
+To: "Hiremath, Vaibhav" <hvaibhav@ti.com>
+CC: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	"mchehab@redhat.com" <mchehab@redhat.com>,
+	"hverkuil@xs4all.nl" <hverkuil@xs4all.nl>
+Subject: Re: [PATCH] omap_vout: Added check in reqbuf & mmap for buf_size
+ allocation
+References: <hvaibhav@ti.com> <1308255249-18762-1-git-send-email-hvaibhav@ti.com>
+In-Reply-To: <1308255249-18762-1-git-send-email-hvaibhav@ti.com>
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+Hi,
 
-Both s_std and s_tuner are broken because set_mode_freq is called before the
-new std (for s_std) and audmode (for s_tuner) are set.
+On Friday 17 June 2011 01:44 AM, Hiremath, Vaibhav wrote:
+> From: Vaibhav Hiremath<hvaibhav@ti.com>
+>
+> The usecase where, user allocates small size of buffer
+> through bootargs (video1_bufsize/video2_bufsize) and later from application
+> tries to set the format which requires larger buffer size, driver doesn't
+> check for insufficient buffer size and allows application to map extra buffer.
+> This leads to kernel crash, when user application tries to access memory
+> beyond the allocation size.
 
-This patch splits set_mode_freq in a set_mode and a set_freq and in s_std/s_tuner
-first calls set_mode, and if that returns 0 (i.e. the mode is supported)
-then they set t->std/t->audmode and call set_freq.
+Query: Why do we pass the bufsize as bootargs in the first place? Is it 
+needed at probe time?
 
-This fixes a bug where changing std or audmode would actually change it to
-the previous value.
+Thanks,
+Archit
 
-Discovered while testing analog TV standards for cx18 with a tda18271 tuner.
-
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- drivers/media/video/tuner-core.c |   62 ++++++++++++++++++++-----------------
- 1 files changed, 33 insertions(+), 29 deletions(-)
-
-diff --git a/drivers/media/video/tuner-core.c b/drivers/media/video/tuner-core.c
-index 5748d04..b634bab 100644
---- a/drivers/media/video/tuner-core.c
-+++ b/drivers/media/video/tuner-core.c
-@@ -742,19 +742,15 @@ static inline int check_mode(struct tuner *t, enum v4l2_tuner_type mode)
- }
- 
- /**
-- * set_mode_freq - Switch tuner to other mode.
-- * @client:	struct i2c_client pointer
-+ * set_mode - Switch tuner to other mode.
-  * @t:		a pointer to the module's internal struct_tuner
-  * @mode:	enum v4l2_type (radio or TV)
-- * @freq:	frequency to set (0 means to use the previous one)
-  *
-  * If tuner doesn't support the needed mode (radio or TV), prints a
-  * debug message and returns -EINVAL, changing its state to standby.
-- * Otherwise, changes the state and sets frequency to the last value, if
-- * the tuner can sleep or if it supports both Radio and TV.
-+ * Otherwise, changes the mode and returns 0.
-  */
--static int set_mode_freq(struct i2c_client *client, struct tuner *t,
--			 enum v4l2_tuner_type mode, unsigned int freq)
-+static int set_mode(struct tuner *t, enum v4l2_tuner_type mode)
- {
- 	struct analog_demod_ops *analog_ops = &t->fe.ops.analog_ops;
- 
-@@ -770,17 +766,27 @@ static int set_mode_freq(struct i2c_client *client, struct tuner *t,
- 		t->mode = mode;
- 		tuner_dbg("Changing to mode %d\n", mode);
- 	}
-+	return 0;
-+}
-+
-+/**
-+ * set_freq - Set the tuner to the desired frequency.
-+ * @t:		a pointer to the module's internal struct_tuner
-+ * @freq:	frequency to set (0 means to use the current frequency)
-+ */
-+static void set_freq(struct tuner *t, unsigned int freq)
-+{
-+	struct i2c_client *client = v4l2_get_subdevdata(&t->sd);
-+
- 	if (t->mode == V4L2_TUNER_RADIO) {
--		if (freq)
--			t->radio_freq = freq;
--		set_radio_freq(client, t->radio_freq);
-+		if (!freq)
-+			freq = t->radio_freq;
-+		set_radio_freq(client, freq);
- 	} else {
--		if (freq)
--			t->tv_freq = freq;
--		set_tv_freq(client, t->tv_freq);
-+		if (!freq)
-+			freq = t->tv_freq;
-+		set_tv_freq(client, freq);
- 	}
--
--	return 0;
- }
- 
- /*
-@@ -1076,10 +1082,9 @@ static void tuner_status(struct dvb_frontend *fe)
- static int tuner_s_radio(struct v4l2_subdev *sd)
- {
- 	struct tuner *t = to_tuner(sd);
--	struct i2c_client *client = v4l2_get_subdevdata(sd);
- 
--	if (set_mode_freq(client, t, V4L2_TUNER_RADIO, 0) == -EINVAL)
--		return 0;
-+	if (set_mode(t, V4L2_TUNER_RADIO) == 0)
-+		set_freq(t, 0);
- 	return 0;
- }
- 
-@@ -1111,25 +1116,22 @@ static int tuner_s_power(struct v4l2_subdev *sd, int on)
- static int tuner_s_std(struct v4l2_subdev *sd, v4l2_std_id std)
- {
- 	struct tuner *t = to_tuner(sd);
--	struct i2c_client *client = v4l2_get_subdevdata(sd);
- 
--	if (set_mode_freq(client, t, V4L2_TUNER_ANALOG_TV, 0) == -EINVAL)
-+	if (set_mode(t, V4L2_TUNER_ANALOG_TV))
- 		return 0;
- 
- 	t->std = std;
- 	tuner_fixup_std(t);
--
-+	set_freq(t, 0);
- 	return 0;
- }
- 
- static int tuner_s_frequency(struct v4l2_subdev *sd, struct v4l2_frequency *f)
- {
- 	struct tuner *t = to_tuner(sd);
--	struct i2c_client *client = v4l2_get_subdevdata(sd);
--
--	if (set_mode_freq(client, t, f->type, f->frequency) == -EINVAL)
--		return 0;
- 
-+	if (set_mode(t, f->type) == 0)
-+		set_freq(t, f->frequency);
- 	return 0;
- }
- 
-@@ -1198,13 +1200,14 @@ static int tuner_g_tuner(struct v4l2_subdev *sd, struct v4l2_tuner *vt)
- static int tuner_s_tuner(struct v4l2_subdev *sd, struct v4l2_tuner *vt)
- {
- 	struct tuner *t = to_tuner(sd);
--	struct i2c_client *client = v4l2_get_subdevdata(sd);
- 
--	if (set_mode_freq(client, t, vt->type, 0) == -EINVAL)
-+	if (set_mode(t, vt->type))
- 		return 0;
- 
--	if (t->mode == V4L2_TUNER_RADIO)
-+	if (t->mode == V4L2_TUNER_RADIO) {
- 		t->audmode = vt->audmode;
-+		set_freq(t, 0);
-+	}
- 
- 	return 0;
- }
-@@ -1239,7 +1242,8 @@ static int tuner_resume(struct i2c_client *c)
- 	tuner_dbg("resume\n");
- 
- 	if (!t->standby)
--		set_mode_freq(c, t, t->type, 0);
-+		if (set_mode(t, t->type) == 0)
-+			set_freq(t, 0);
- 
- 	return 0;
- }
--- 
-1.7.1
+>
+> Added check in both mmap and reqbuf call back function,
+> and return error if the size of the buffer allocated by user through
+> bootargs is less than the S_FMT size.
+>
+> Signed-off-by: Vaibhav Hiremath<hvaibhav@ti.com>
+> ---
+>   drivers/media/video/omap/omap_vout.c |   16 ++++++++++++++++
+>   1 files changed, 16 insertions(+), 0 deletions(-)
+>
+> diff --git a/drivers/media/video/omap/omap_vout.c b/drivers/media/video/omap/omap_vout.c
+> index 3bc909a..343b50c 100644
+> --- a/drivers/media/video/omap/omap_vout.c
+> +++ b/drivers/media/video/omap/omap_vout.c
+> @@ -678,6 +678,14 @@ static int omap_vout_buffer_setup(struct videobuf_queue *q, unsigned int *count,
+>   	startindex = (vout->vid == OMAP_VIDEO1) ?
+>   		video1_numbuffers : video2_numbuffers;
+>
+> +	/* Check the size of the buffer */
+> +	if (*size>  vout->buffer_size) {
+> +		v4l2_err(&vout->vid_dev->v4l2_dev,
+> +				"buffer allocation mismatch [%u] [%u]\n",
+> +				*size, vout->buffer_size);
+> +		return -ENOMEM;
+> +	}
+> +
+>   	for (i = startindex; i<  *count; i++) {
+>   		vout->buffer_size = *size;
+>
+> @@ -856,6 +864,14 @@ static int omap_vout_mmap(struct file *file, struct vm_area_struct *vma)
+>   				(vma->vm_pgoff<<  PAGE_SHIFT));
+>   		return -EINVAL;
+>   	}
+> +	/* Check the size of the buffer */
+> +	if (size>  vout->buffer_size) {
+> +		v4l2_err(&vout->vid_dev->v4l2_dev,
+> +				"insufficient memory [%lu] [%u]\n",
+> +				size, vout->buffer_size);
+> +		return -ENOMEM;
+> +	}
+> +
+>   	q->bufs[i]->baddr = vma->vm_start;
+>
+>   	vma->vm_flags |= VM_RESERVED;
+> --
+> 1.6.2.4
+>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>
 
