@@ -1,51 +1,51 @@
 Return-path: <mchehab@pedra>
-Received: from smtpfb1-g21.free.fr ([212.27.42.9]:56579 "EHLO
-	smtpfb1-g21.free.fr" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757088Ab1FDPqn (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sat, 4 Jun 2011 11:46:43 -0400
-Received: from smtp2-g21.free.fr (smtp2-g21.free.fr [212.27.42.2])
-	by smtpfb1-g21.free.fr (Postfix) with ESMTP id 86DFF2D9A6
-	for <linux-media@vger.kernel.org>; Sat,  4 Jun 2011 17:38:21 +0200 (CEST)
-Message-ID: <1307201853.4dea513d52e5d@imp.free.fr>
-Date: Sat, 04 Jun 2011 17:37:33 +0200
-From: wallak@free.fr
-To: Daniel Gimpelevich <daniel@gimpelevich.san-francisco.ca.us>
-Cc: linux-media@vger.kernel.org
-Subject: Re: AverMedia A306 (cx23385, xc3028, af9013) (A577 too ?)
-References: <S932606Ab1ESVJJ/20110519210909Z+86@vger.kernel.org>  <1305839612.4dd587fc20a03@imp.free.fr> <1307119353.15402.5.camel@chimera>
-In-Reply-To: <1307119353.15402.5.camel@chimera>
+Received: from mailout-de.gmx.net ([213.165.64.23]:37291 "HELO
+	mailout-de.gmx.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1752791Ab1FRVio (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sat, 18 Jun 2011 17:38:44 -0400
+From: Oliver Endriss <o.endriss@gmx.de>
+Reply-To: linux-media@vger.kernel.org
+To: Helmut Auer <helmut@helmutauer.de>
+Subject: Re: Bug: media_build always compiles with '-DDEBUG'
+Date: Sat, 18 Jun 2011 23:38:25 +0200
+Cc: linux-media@vger.kernel.org,
+	Mauro Carvalho Chehab <mchehab@redhat.com>
+References: <201106182246.03051@orion.escape-edv.de> <4DFD1479.1060501@helmutauer.de>
+In-Reply-To: <4DFD1479.1060501@helmutauer.de>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+Content-Type: text/plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+Message-Id: <201106182338.25983@orion.escape-edv.de>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-A307 may be close to the A306 board. I've found the following chips: cx23385,
-xc[34]?, lg3303). The demodulator is not the same, and follows the ATSC standard
-(The A306 is DVB-T compatible).
-Coordinating our works may be helpful, for example for the initialization and
-the proper reset of the I2C chips. By email that will be OK.
+On Saturday 18 June 2011 23:11:21 Helmut Auer wrote:
+> Hi
+> >
+> > Replacing
+> >      ifdef CONFIG_VIDEO_OMAP3_DEBUG
+> > by
+> >      ifeq ($(CONFIG_VIDEO_OMAP3_DEBUG),y)
+> > would do the trick.
+> >
+> I guess that would not ive the intended result.
+> Setting CONFIG_VIDEO_OMAP3_DEBUG to yes should not lead to debug messages in all media modules,
 
-Wallak.
+True, but it will happen only if you manually enable
+CONFIG_VIDEO_OMAP3_DEBUG in Kconfig.
 
+You cannot avoid this without major changes of the
+media_build system - imho not worth the effort.
 
+CU
+Oliver
 
-Quoting Daniel Gimpelevich <daniel@gimpelevich.san-francisco.ca.us>:
-
-> On Thu, 2011-05-19 at 23:13 +0200, wallak@free.fr wrote:
-> > I've tried to use my A306 board on my system. All the main chips are
-> > fully
-> > supported by linux.
->
-> I have the A307 (product ID 0xc939) and I'd like to coordinate with you
-> regarding adapting your A306 support for it. If you use IRC at all, just
-> tell me when to be in #linuxtv, and if not, we'll keep this on-list.
->
->
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->
-
-
+-- 
+----------------------------------------------------------------
+VDR Remote Plugin 0.4.0: http://www.escape-edv.de/endriss/vdr/
+4 MByte Mod: http://www.escape-edv.de/endriss/dvb-mem-mod/
+Full-TS Mod: http://www.escape-edv.de/endriss/dvb-full-ts-mod/
+----------------------------------------------------------------
