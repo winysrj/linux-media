@@ -1,69 +1,45 @@
 Return-path: <mchehab@pedra>
-Received: from smtp-vbr6.xs4all.nl ([194.109.24.26]:3950 "EHLO
-	smtp-vbr6.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754241Ab1FNHOx (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 14 Jun 2011 03:14:53 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Mike Isely <isely@isely.net>, Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [RFCv6 PATCH 03/10] v4l2-ioctl.c: prefill tuner type for g_frequency and g/s_tuner.
-Date: Tue, 14 Jun 2011 09:14:35 +0200
-Message-Id: <c15382a416f0f95a9569647da5bae590bee2cefa.1308035134.git.hans.verkuil@cisco.com>
-In-Reply-To: <1308035682-20447-1-git-send-email-hverkuil@xs4all.nl>
-References: <1308035682-20447-1-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <eff4df001ab17e78b7413b9ed51661777523dbac.1308035134.git.hans.verkuil@cisco.com>
-References: <eff4df001ab17e78b7413b9ed51661777523dbac.1308035134.git.hans.verkuil@cisco.com>
+Received: from mail.kapsi.fi ([217.30.184.167]:56057 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751648Ab1FRM4f (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 18 Jun 2011 08:56:35 -0400
+Message-ID: <4DFCA07D.5030404@iki.fi>
+Date: Sat, 18 Jun 2011 15:56:29 +0300
+From: Antti Palosaari <crope@iki.fi>
+MIME-Version: 1.0
+To: Thomas Holzeisen <thomas@holzeisen.de>
+CC: =?UTF-8?B?U2FzY2hhIFfDvHN0ZW1hbm4=?= <sascha@killerhippy.de>,
+	linux-media@vger.kernel.org,
+	Jan Hoogenraad <jan-conceptronic@hoogenraad.net>
+Subject: Re: RTL2831U wont compile against 2.6.38
+References: <4DF9BCAA.3030301@holzeisen.de> <4DF9EA62.2040008@killerhippy.de> <4DFB2EE4.2030400@holzeisen.de> <4DFBAAE7.9070204@killerhippy.de> <4DFC9DB5.104@holzeisen.de>
+In-Reply-To: <4DFC9DB5.104@holzeisen.de>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+On 06/18/2011 03:44 PM, Thomas Holzeisen wrote:
+> I already resolved the symbol thing. Your lsusb explains a lot, you have a RTl2832, while I have
+> the RTL2831 which seem to be Revision 4 of the RTL2830.
+>
+> However, there seem to be big similarities between all those chips. It might be not that hard for
+> the contributors of this driver to add support for the early chips as well. Maybe Jan can shade
+> some light on it, since he wrote the initial RTL2831 driver. In any case I may help with testing it.
 
-The subdevs are supposed to receive a valid tuner type for the g_frequency
-and g/s_tuner subdev ops. Some drivers do this, others don't. So prefill
-this in v4l2-ioctl.c based on whether the device node from which this is
-called is a radio node or not.
+I think there is no such revision 4 RTL2830 which is RTL2831. I think 
+you misunderstand. There is DVB-T demods RTL2830 and RTL2832. Then there 
+is USB-bridge let's call it RTL28xxU. When you put USB-bridge and demod 
+together you get chips called RTL2831U (USB-bridge + RTL2830 demod) and 
+RTL2832U (USB-bridge + RTL2832 demod).
 
-The spec does not require applications to fill in the type, and if they
-leave it at 0 then the 'check_mode' call in tuner-core.c will return
-an error and the ioctl does nothing.
+Also many other Realtek demods exits which uses same USB-bridge.
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- drivers/media/video/v4l2-ioctl.c |    6 ++++++
- 1 files changed, 6 insertions(+), 0 deletions(-)
 
-diff --git a/drivers/media/video/v4l2-ioctl.c b/drivers/media/video/v4l2-ioctl.c
-index 213ba7d..26bf3bf 100644
---- a/drivers/media/video/v4l2-ioctl.c
-+++ b/drivers/media/video/v4l2-ioctl.c
-@@ -1822,6 +1822,8 @@ static long __video_do_ioctl(struct file *file,
- 		if (!ops->vidioc_g_tuner)
- 			break;
- 
-+		p->type = (vfd->vfl_type == VFL_TYPE_RADIO) ?
-+			V4L2_TUNER_RADIO : V4L2_TUNER_ANALOG_TV;
- 		ret = ops->vidioc_g_tuner(file, fh, p);
- 		if (!ret)
- 			dbgarg(cmd, "index=%d, name=%s, type=%d, "
-@@ -1840,6 +1842,8 @@ static long __video_do_ioctl(struct file *file,
- 
- 		if (!ops->vidioc_s_tuner)
- 			break;
-+		p->type = (vfd->vfl_type == VFL_TYPE_RADIO) ?
-+			V4L2_TUNER_RADIO : V4L2_TUNER_ANALOG_TV;
- 		dbgarg(cmd, "index=%d, name=%s, type=%d, "
- 				"capability=0x%x, rangelow=%d, "
- 				"rangehigh=%d, signal=%d, afc=%d, "
-@@ -1858,6 +1862,8 @@ static long __video_do_ioctl(struct file *file,
- 		if (!ops->vidioc_g_frequency)
- 			break;
- 
-+		p->type = (vfd->vfl_type == VFL_TYPE_RADIO) ?
-+			V4L2_TUNER_RADIO : V4L2_TUNER_ANALOG_TV;
- 		ret = ops->vidioc_g_frequency(file, fh, p);
- 		if (!ret)
- 			dbgarg(cmd, "tuner=%d, type=%d, frequency=%d\n",
+regards
+Antti
+
+
+
 -- 
-1.7.1
-
+http://palosaari.fi/
