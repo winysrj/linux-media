@@ -1,143 +1,75 @@
 Return-path: <mchehab@pedra>
-Received: from ams-iport-1.cisco.com ([144.254.224.140]:55759 "EHLO
-	ams-iport-1.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753781Ab1F2MAs (ORCPT
+Received: from perceval.ideasonboard.com ([95.142.166.194]:56872 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752059Ab1FRLVC (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 29 Jun 2011 08:00:48 -0400
-From: Hans Verkuil <hansverk@cisco.com>
-To: linux-media@vger.kernel.org
-Subject: [RFCv2 PATCH] Add support for V4L2_EVENT_SUB_FL_ALLOW_FEEDBACK
-Date: Wed, 29 Jun 2011 14:00:37 +0200
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+	Sat, 18 Jun 2011 07:21:02 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Sarah Sharp <sarah.a.sharp@linux.intel.com>
+Subject: Re: uvcvideo failure under xHCI
+Date: Sat, 18 Jun 2011 13:21:17 +0200
+Cc: Alan Stern <stern@rowland.harvard.edu>,
+	linux-media@vger.kernel.org, USB list <linux-usb@vger.kernel.org>,
+	Andiry Xu <andiry.xu@amd.com>, Alex He <alex.he@amd.com>
+References: <Pine.LNX.4.44L0.1106161619140.1697-100000@iolanthe.rowland.org> <201106171901.11139.laurent.pinchart@ideasonboard.com> <20110617181901.GF5416@xanatos>
+In-Reply-To: <20110617181901.GF5416@xanatos>
 MIME-Version: 1.0
 Content-Type: Text/Plain;
-  charset="us-ascii"
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
-Message-Id: <201106291400.37234.hansverk@cisco.com>
+Message-Id: <201106181321.18267.laurent.pinchart@ideasonboard.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Hi all,
+Hi Sarah,
 
-Second attempt: inverted the meaning of the flag as per Laurent's suggestion.
+On Friday 17 June 2011 20:19:01 Sarah Sharp wrote:
+> On Fri, Jun 17, 2011 at 07:01:10PM +0200, Laurent Pinchart wrote:
+> > On Friday 17 June 2011 18:46:20 Sarah Sharp wrote:
+> > > On Fri, Jun 17, 2011 at 10:18:39AM +0200, Laurent Pinchart wrote:
+> > > > On Thursday 16 June 2011 22:20:22 Alan Stern wrote:
+> > > > > On Thu, 16 Jun 2011, Sarah Sharp wrote:
+> > > > > > On Thu, Jun 16, 2011 at 03:39:11PM -0400, Alan Stern wrote:
+> > > > > > > That's appropriate.  But nobody should ever set an isochronous
+> > > > > > > URB's status field to -EPROTO, no matter whether the device is
+> > > > > > > connected or not and no matter whether the host controller is
+> > > > > > > alive or not.
+> > > > > > 
+> > > > > > But the individual frame status be set to -EPROTO, correct? 
+> > > > > > That's what Alex was told to do when an isochronous TD had a
+> > > > > > completion code of "Incompatible Device Error".
+> > > > > 
+> > > > > Right.  -EPROTO is a perfectly reasonable code for a frame's
+> > > > > status. But not for an isochronous URB's status.  There's no
+> > > > > reason for uvcvideo to test for it.
+> > > > 
+> > > > The uvcvideo driver tests for -EPROTO for interrupt URBs only. For
+> > > > isochronous URBs it tests for -ENOENT, -ECONNRESET and -ESHUTDOWN.
+> > > 
+> > > So is uvc_status_complete() shared between interrupt and isochronous
+> > > URBs then?
+> > 
+> > No, uvc_status_complete() handles status URBs (interrupt only), and
+> > uvc_video_complete() handles video URBs (isochronous or bulk, depending
+> > on the device).
+> 
+> Huh, that's very odd then.  I could have sworn I was getting missed
+> service interval events (which are only for isochronous transfers) and
+> then seeing the "Non-zero" message.  And the userspace video definitely
+> froze before my patch and did not freeze after the patch was applied.
+> I'll have to look more closely at the logs.
 
+The log excerpt message you posted was
+
+Jun 15 17:37:11 talon kernel: [  117.987769] uvcvideo: Non-zero status (-18) 
+in video completion handler.
+
+That's printed by uvc_video_complete(). uvc_status_complete() would have 
+printed "Non-zero status (-18) in status completion handler". There's nothing 
+wrong with your analysis of the problem, you just picked the wrong uvcvideo 
+function.
+
+-- 
 Regards,
 
-	Hans
-
-
-
-Normally no control events will go to the filehandle that called the
-VIDIOC_S_CTRL/VIDIOC_S_EXT_CTRLS ioctls. This is to prevent a feedback
-loop.
-
-This can now be overridden by setting the new V4L2_EVENT_SUB_FL_ALLOW_FEEDBACK
-flag.
-
-Based on suggestions from Mauro Carvalho Chehab <mchehab@redhat.com> and
-Laurent Pinchart <laurent.pinchart@ideasonboard.com>.
-
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- .../DocBook/media/v4l/vidioc-subscribe-event.xml   |   36 ++++++++++++++++----
- drivers/media/video/v4l2-ctrls.c                   |    3 +-
- include/linux/videodev2.h                          |    3 +-
- 3 files changed, 33 insertions(+), 9 deletions(-)
-
-diff --git a/Documentation/DocBook/media/v4l/vidioc-subscribe-event.xml b/Documentation/DocBook/media/v4l/vidioc-subscribe-event.xml
-index 039a969..25471e8 100644
---- a/Documentation/DocBook/media/v4l/vidioc-subscribe-event.xml
-+++ b/Documentation/DocBook/media/v4l/vidioc-subscribe-event.xml
-@@ -114,25 +114,28 @@
- 	  <row>
- 	    <entry><constant>V4L2_EVENT_CTRL</constant></entry>
- 	    <entry>3</entry>
--	    <entry>This event requires that the <structfield>id</structfield>
-+	    <entry><para>This event requires that the <structfield>id</structfield>
- 		matches the control ID from which you want to receive events.
- 		This event is triggered if the control's value changes, if a
- 		button control is pressed or if the control's flags change.
- 	    	This event has a &v4l2-event-ctrl; associated with it. This struct
- 		contains much of the same information as &v4l2-queryctrl; and
--		&v4l2-control;.
-+		&v4l2-control;.</para>
- 
--		If the event is generated due to a call to &VIDIOC-S-CTRL; or
--		&VIDIOC-S-EXT-CTRLS;, then the event will not be sent to
-+		<para>If the event is generated due to a call to &VIDIOC-S-CTRL; or
-+		&VIDIOC-S-EXT-CTRLS;, then the event will <emphasis>not</emphasis> be sent to
- 		the file handle that called the ioctl function. This prevents
--		nasty feedback loops.
-+		nasty feedback loops. If you <emphasis>do</emphasis> want to get the
-+		event, then set the <constant>V4L2_EVENT_SUB_FL_ALLOW_FEEDBACK</constant>
-+		flag.
-+		</para>
- 
--		This event type will ensure that no information is lost when
-+		<para>This event type will ensure that no information is lost when
- 		more events are raised than there is room internally. In that
- 		case the &v4l2-event-ctrl; of the second-oldest event is kept,
- 		but the <structfield>changes</structfield> field of the
- 		second-oldest event is ORed with the <structfield>changes</structfield>
--		field of the oldest event.
-+		field of the oldest event.</para>
- 	    </entry>
- 	  </row>
- 	  <row>
-@@ -157,6 +160,25 @@
- 		that are triggered by a status change such as <constant>V4L2_EVENT_CTRL</constant>.
- 		Other events will ignore this flag.</entry>
- 	  </row>
-+	  <row>
-+	    <entry><constant>V4L2_EVENT_SUB_FL_ALLOW_FEEDBACK</constant></entry>
-+	    <entry>0x0002</entry>
-+	    <entry><para>If set, then events directly caused by an ioctl will also be sent to
-+		the filehandle that called that ioctl. For example, changing a control using
-+		&VIDIOC-S-CTRL; will cause a V4L2_EVENT_CTRL to be sent back to that same
-+		filehandle. Normally such events are suppressed to prevent feedback loops
-+		where an application changes a control to a one value and then another, and
-+		then receives an event telling it that that control has changed to the first
-+		value.</para>
-+
-+		<para>Since it can't tell whether that event was caused by another application
-+		or by the &VIDIOC-S-CTRL; call it is hard to decide whether to set the
-+		control to the value in the event, or ignore it.</para>
-+
-+		<para>Think carefully when you set this flag so you won't get into situations
-+		like that.</para>
-+	    </entry>
-+	  </row>
- 	</tbody>
-       </tgroup>
-     </table>
-diff --git a/drivers/media/video/v4l2-ctrls.c b/drivers/media/video/v4l2-ctrls.c
-index bc08f86..bd2456d 100644
---- a/drivers/media/video/v4l2-ctrls.c
-+++ b/drivers/media/video/v4l2-ctrls.c
-@@ -590,7 +590,8 @@ static void send_event(struct v4l2_fh *fh, struct v4l2_ctrl *ctrl, u32 changes)
- 	fill_event(&ev, ctrl, changes);
- 
- 	list_for_each_entry(sev, &ctrl->ev_subs, node)
--		if (sev->fh && sev->fh != fh)
-+		if (sev->fh && (sev->fh != fh ||
-+				(sev->flags & V4L2_EVENT_SUB_FL_ALLOW_FEEDBACK)))
- 			v4l2_event_queue_fh(sev->fh, &ev);
- }
- 
-diff --git a/include/linux/videodev2.h b/include/linux/videodev2.h
-index baafe2f..2c4e837 100644
---- a/include/linux/videodev2.h
-+++ b/include/linux/videodev2.h
-@@ -1832,7 +1832,8 @@ struct v4l2_event {
- 	__u32				reserved[8];
- };
- 
--#define V4L2_EVENT_SUB_FL_SEND_INITIAL (1 << 0)
-+#define V4L2_EVENT_SUB_FL_SEND_INITIAL		(1 << 0)
-+#define V4L2_EVENT_SUB_FL_ALLOW_FEEDBACK	(1 << 1)
- 
- struct v4l2_event_subscription {
- 	__u32				type;
--- 
-1.7.1
-
+Laurent Pinchart
