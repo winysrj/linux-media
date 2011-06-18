@@ -1,179 +1,183 @@
 Return-path: <mchehab@pedra>
-Received: from mailout2.w1.samsung.com ([210.118.77.12]:33818 "EHLO
-	mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755923Ab1FUK4F (ORCPT
+Received: from smtp-vbr2.xs4all.nl ([194.109.24.22]:3347 "EHLO
+	smtp-vbr2.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751345Ab1FRUAQ (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 21 Jun 2011 06:56:05 -0400
-Received: from spt2.w1.samsung.com (mailout2.w1.samsung.com [210.118.77.12])
- by mailout2.w1.samsung.com
- (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14 2004))
- with ESMTP id <0LN400BL0ZPFLR@mailout2.w1.samsung.com> for
- linux-media@vger.kernel.org; Tue, 21 Jun 2011 11:56:03 +0100 (BST)
-Received: from [106.116.48.223] by spt2.w1.samsung.com
- (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14 2004))
- with ESMTPA id <0LN400LWKZPENA@spt2.w1.samsung.com> for
- linux-media@vger.kernel.org; Tue, 21 Jun 2011 11:56:02 +0100 (BST)
-Date: Tue, 21 Jun 2011 12:55:57 +0200
-From: Tomasz Stanislawski <t.stanislaws@samsung.com>
-Subject: Re: [PATCH 3/3] s5p-tv: add drivers for TV on Samsung S5P platform
-In-reply-to: <201106101039.52431.hverkuil@xs4all.nl>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Message-id: <4E0078BD.8040902@samsung.com>
-MIME-version: 1.0
-Content-type: text/plain; charset=iso-8859-15; format=flowed
-Content-transfer-encoding: 7BIT
-References: <1307534611-32283-1-git-send-email-t.stanislaws@samsung.com>
- <201106091219.26272.hansverk@cisco.com> <4DF0F267.4010001@samsung.com>
- <201106101039.52431.hverkuil@xs4all.nl>
+	Sat, 18 Jun 2011 16:00:16 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Christian Gmeiner <christian.gmeiner@gmail.com>
+Subject: Re: RFC: Add V4L2 decoder commands/controls to replace dvb/video.h
+Date: Sat, 18 Jun 2011 22:00:06 +0200
+Cc: Hans Verkuil <hansverk@cisco.com>, linux-media@vger.kernel.org
+References: <201106091445.53598.hansverk@cisco.com> <BANLkTik6+Ez8TOgGP-r0mmcamQVCkhwC2Q@mail.gmail.com>
+In-Reply-To: <BANLkTik6+Ez8TOgGP-r0mmcamQVCkhwC2Q@mail.gmail.com>
+MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="utf-8"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201106182200.06795.hverkuil@xs4all.nl>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Hi Hans,
-> On Thursday, June 09, 2011 18:18:47 Tomasz Stanislawski wrote:
->   
->> Hans Verkuil wrote:
->>     
->>> On Wednesday, June 08, 2011 14:03:31 Tomasz Stanislawski wrote:
->>>
->>> And now the mixer review...
->>>   
->>>       
->> I'll separate patches. What is the proposed order of drivers?
->>     
->
-> HDMI+HDMIPHY, SDO, MIXER. That's easiest to review.
->
->   
->>>   
->>>       
->>>> Add drivers for TV outputs on Samsung platforms from S5P family.
->>>> - HDMIPHY - auxiliary I2C driver need by TV driver
->>>> - HDMI    - generation and control of streaming by HDMI output
->>>> - SDO     - streaming analog TV by Composite connector
->>>> - MIXER   - merging images from three layers and passing result to the output
->>>>
->>>> Interface:
->>>> - 3 video nodes with output queues
->>>> - support for multi plane API
->>>> - each nodes has up to 2 outputs (HDMI and SDO)
->>>> - outputs are controlled by S_STD and S_DV_PRESET ioctls
->>>>
->>>> Drivers are using:
->>>> - v4l2 framework
->>>> - videobuf2
->>>> - videobuf2-dma-contig as memory allocator
->>>> - runtime PM
->>>>
->>>> Signed-off-by: Tomasz Stanislawski <t.stanislaws@samsung.com>
->>>> Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
->>>> Reviewed-by: Marek Szyprowski <m.szyprowski@samsung.com>
->>>> Reviewed-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
->>>>         
-[snip]
+On Saturday, June 18, 2011 21:13:26 Christian Gmeiner wrote:
+> HI Hans,
+> 
+> looks good... is there any progress?
 
->>>> +static int mxr_g_fmt(struct file *file, void *priv,
->>>> +			     struct v4l2_format *f)
->>>> +{
->>>> +	struct mxr_layer *layer = video_drvdata(file);
->>>> +
->>>> +	mxr_dbg(layer->mdev, "%s:%d\n", __func__, __LINE__);
->>>> +
->>>> +	f->fmt.pix.width	= layer->geo.src.full_width;
->>>> +	f->fmt.pix.height	= layer->geo.src.full_height;
->>>> +	f->fmt.pix.field	= V4L2_FIELD_NONE;
->>>> +	f->fmt.pix.pixelformat	= layer->fmt->fourcc;
->>>>     
->>>>         
->>> Colorspace is not set. The subdev drivers should set the colorspace and that
->>> should be passed in here.
->>>
->>>   
->>>       
->> Which one should be used for formats in vp_layer and grp_layer?
->>     
-Should I use V4L2_COLORSPACE_SRGB for RGB formats,
-and V4L2_COLORSPACE_JPEG for NV12(T) formats?
-The Mixer possesses no knowledge how pixel values are mapped to output 
-color.
-This is controlled by output driver (HDMI or SDO).
+None. But the DECODER_CMD part would be easy enough.
 
->>>> +
->>>> +	return 0;
->>>> +}
->>>> +
->>>> +static inline struct mxr_crop *choose_crop_by_type(struct mxr_geometry *geo,
->>>> +	enum v4l2_buf_type type)
->>>> +{
->>>> +	switch (type) {
->>>> +	case V4L2_BUF_TYPE_VIDEO_OUTPUT:
->>>> +	case V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE:
->>>> +		return &geo->dst;
->>>> +	case V4L2_BUF_TYPE_VIDEO_OVERLAY:
->>>> +		return &geo->src;
->>>>     
->>>>         
->>> Hmm, this is the only place where I see overlay. It's not set in QUERYCAP either.
->>> And I suspect this is supposed to be OUTPUT_OVERLAY anyway since OVERLAY is for
->>> capture.
->>>
->>>   
->>>       
->> Usage of OVERLAY is workaround for a lack of S_COMPOSE. This is 
->> described in RFC.
->>     
->
-> Ah, now I understand.
->
-> I don't like this hack to be honest. Can't this be done differently? I understand
-> from the RFC that the reason is that widths have to be a multiple of 64. So why
-> not use the bytesperline field in v4l2_pix_format(_mplane)? So you can set the
-> width to e.g. 1440 and bytesperline to 1472. That does very simple cropping, but
-> it seems that this is sufficient for your immediate needs.
->   
-I do not like idea of using bytesperline for NV12T format.
-The data ordering in NV12T is very different from both single and 
-mutiplanar formats.
-There is no good definition of bytesperline for this format.
-One could try to use analogy of this field based on NV12 format, that 
-bytesperline is equal
-to length in bytes of a single luminance line.
-However there is no control over offsets controlled by {left/top} in 
-cropping API.
-In my opinion, using bytesperline for a cropping purpose is also a hack.
-Cropping on an unused overlay buffer provides at least good and explicit 
-control over cropping.
-I think it is a good temporary solution until S_SELECTION emerge.
->   
->>>> +	default:
->>>> +		return NULL;
->>>> +	}
->>>> +}
->>>> +
->>>>         
-[snip]
->>>> +
->>>> +static int mxr_g_dv_preset(struct file *file, void *fh,
->>>> +	struct v4l2_dv_preset *preset)
->>>> +{
->>>> +	struct mxr_layer *layer = video_drvdata(file);
->>>> +	struct mxr_device *mdev = layer->mdev;
->>>> +	int ret;
->>>> +
->>>> +	/* lock protects from changing sd_out */
->>>>     
->>>>         
->>> Needs a check against n_output as well.
->>>   
->>>       
->> Probably I use query_dv_preset wrong.
->>     
->
-> You mean g_dv_preset, right?
->   
-Exactly, but v4l2_subdev misses g_dv_preset  callback.
-Should I add it like in g_tvnorms case?
+Before I start doing any work on this, can you match this proposed functionality
+to your hardware and 1) see if it fits, and 2) see if anything is missing that
+you need.
 
-Best regards,
-Tomasz Stanislawski
+If I know that, then I can make the necessary adjustments and try and implement
+this (or really, document it as that's the hardest part) perhaps by the end of
+this month.
 
+Regards,
+
+	Hans
+
+> 
+> --
+> Christian Gmeiner, MSc
+> 
+> 
+> 
+> 2011/6/9 Hans Verkuil <hansverk@cisco.com>:
+> > RFC: Proposal for a V4L2 decoder API
+> > ------------------------------------
+> >
+> > This RFC is based on this discussion:
+> >
+> > http://www.mail-archive.com/linux-media@vger.kernel.org/msg32703.html
+> >
+> > The purpose is to remove the dependency of ivtv to the ioctls in dvb/audio.h
+> > and dvb/video.h.
+> >
+> > The summary of the posting referred to above is:
+> >
+> > - Add two controls to select the audio output channels.
+> > - Add two read-only controls for the PTS and frame count.
+> > - Copy and paste the old VIDEO_(TRY_)COMMAND to VIDIOC_(TRY_)DECODER_CMD.
+> >
+> > So, here is the RFC that does that. I'm going through the items from the
+> > summary in reverse order.
+> >
+> >
+> > 1) Add new VIDIOC_TRY_DECODER_CMD and VIDIOC_DECODER_CMD ioctls.
+> >
+> > These are the decoder counterparts of the VIDIOC_(TRY_)ENCODER_CMD ioctls
+> > that are already in V4L2.
+> >
+> > /* Decoder commands */
+> > #define V4L2_DEC_CMD_PLAY        (0)
+> > #define V4L2_DEC_CMD_STOP        (1)
+> > #define V4L2_DEC_CMD_FREEZE      (2)
+> > #define V4L2_DEC_CMD_CONTINUE    (3)
+> >
+> > /* Flags for V4L2_DEC_CMD_FREEZE */
+> > #define V4L2_DEC_CMD_FREEZE_TO_BLACK            (1 << 0)
+> >
+> > /* Flags for V4L2_DEC_CMD_STOP */
+> > #define V4L2_DEC_CMD_STOP_TO_BLACK              (1 << 0)
+> > #define V4L2_DEC_CMD_STOP_IMMEDIATELY           (1 << 1)
+> >
+> > /* Play format requirements (returned by the driver): */
+> > /* The decoder has no special format requirements */
+> > #define V4L2_DEC_PLAY_FMT_NONE         (0)
+> > /* The decoder requires full GOPs */
+> > #define V4L2_DEC_PLAY_FMT_GOP          (1)
+> >
+> > /* The structure must be zeroed before use by the application
+> >   This ensures it can be extended safely in the future. */
+> > struct v4l2_decoder_cmd {
+> >        __u32 cmd;
+> >        __u32 flags;
+> >        union {
+> >                struct {
+> >                        /* Stop when this PTS is reached */
+> >                        __u64 pts;
+> >                } stop;
+> >
+> >                struct {
+> >                        /* 0 or 1000 specifies normal speed,
+> >                           1 specifies forward single stepping,
+> >                           -1 specifies backward single stepping,
+> >                           >1: playback at speed/1000 of the normal speed,
+> >                           <-1: reverse playback at (-speed/1000) of the normal speed.
+> > */
+> >                        __s32 speed;
+> >                        __u32 format;
+> >                } play;
+> >
+> >                struct {
+> >                        __u32 data[16];
+> >                } raw;
+> >        };
+> > };
+> >
+> > Other than renaming the #defines and struct there are no changes compared to
+> > the current video.h API. I see no reason to change this either.
+> >
+> >
+> > 2) Add read-only controls for the PTS and framecount.
+> >
+> > V4L2_CID_MPEG_STREAM_DEC_PTS - integer64
+> >
+> > Return the PTS (Presentation Time Stamp) of the currently presented frame.
+> >
+> > V4L2_CID_MPEG_VIDEO_DEC_FRAME - integer
+> >
+> > Return the frame number of the currently presented frame. When the decoder
+> > starts the frame counter is reset to 0.
+> >
+> >
+> > 3) Add two new audio selection controls.
+> >
+> > V4L2_CID_MPEG_AUDIO_DEC_CHANNEL - menu
+> >
+> > Select how to playback stereo audio from a normal audio stream:
+> >
+> > 0 - Auto (playback native format)
+> > 1 - Left (left channel only)
+> > 2 - Right (right channel only)
+> > 3 - Stereo
+> > 4 - Swapped Stereo (I'm not sure whether this should be added. Is this ever
+> > useful?)
+> >
+> > This control relates to its encoder counterpart V4L2_CID_MPEG_AUDIO_MODE for
+> > the non-DUAL modes.
+> >
+> > V4L2_CID_MPEG_AUDIO_DEC_MULTILINGUAL_CHANNEL - menu
+> >
+> > Select how to playback audio from a multilingual audio stream:
+> >
+> > 0 - Auto (either always Left or can be based on some preferred language)
+> > 1 - Left (left channel only)
+> > 2 - Right (right channel only)
+> > 3 - Stereo
+> > 4 - Swapped Stereo (I'm not sure whether this should be added. Is this ever
+> > useful?)
+> >
+> > This control relates to its encoder counterpart V4L2_CID_MPEG_AUDIO_MODE for
+> > the DUAL mode.
+> >
+> > Note that these two controls are specific to the audio layer I/II/III audio
+> > mode setting. They do not support any e.g. AAC decoding. More research will
+> > need to be done to know whether that makes sense or not.
+> >
+> > Regards,
+> >
+> >        Hans
+> > --
+> > To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> > the body of a message to majordomo@vger.kernel.org
+> > More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> >
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
+> 
