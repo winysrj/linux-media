@@ -1,84 +1,145 @@
 Return-path: <mchehab@pedra>
-Received: from mx1.redhat.com ([209.132.183.28]:24050 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751044Ab1FNORr (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 14 Jun 2011 10:17:47 -0400
-Message-ID: <4DF76D88.5000506@redhat.com>
-Date: Tue, 14 Jun 2011 11:17:44 -0300
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Received: from r02s01.colo.vollmar.net ([83.151.24.194]:32924 "EHLO
+	holzeisen.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751648Ab1FRMok (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 18 Jun 2011 08:44:40 -0400
+Message-ID: <4DFC9DB5.104@holzeisen.de>
+Date: Sat, 18 Jun 2011 14:44:37 +0200
+From: Thomas Holzeisen <thomas@holzeisen.de>
 MIME-Version: 1.0
-To: Devin Heitmueller <dheitmueller@kernellabs.com>
-CC: Hans de Goede <hdegoede@redhat.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: Some fixes for alsa_stream
-References: <4DF6C10C.8070605@redhat.com>	<4DF758AF.3010301@redhat.com>	<4DF75C84.9000200@redhat.com>	<4DF7667C.9030502@redhat.com> <BANLkTi=9L+oxjpUaFo3ge0iqcZ2NCjJWWA@mail.gmail.com>
-In-Reply-To: <BANLkTi=9L+oxjpUaFo3ge0iqcZ2NCjJWWA@mail.gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+To: =?UTF-8?B?U2FzY2hhIFfDvHN0ZW1hbm4=?= <sascha@killerhippy.de>
+CC: linux-media@vger.kernel.org,
+	Jan Hoogenraad <jan-conceptronic@hoogenraad.net>
+Subject: Re: RTL2831U wont compile against 2.6.38
+References: <4DF9BCAA.3030301@holzeisen.de> <4DF9EA62.2040008@killerhippy.de> <4DFB2EE4.2030400@holzeisen.de> <4DFBAAE7.9070204@killerhippy.de>
+In-Reply-To: <4DFBAAE7.9070204@killerhippy.de>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Em 14-06-2011 10:52, Devin Heitmueller escreveu:
-> On Tue, Jun 14, 2011 at 9:47 AM, Hans de Goede <hdegoede@redhat.com> wrote:
->> Hmm, we really don't need more cmdline options IMHO, it is quite easy to
->> detect
->> if an alsa device supports mmap mode, and if not fall back to r/w mode, I
->> know
->> several programs which do that (some if which I've written the patches to do
->> this for myself).
+I already resolved the symbol thing. Your lsusb explains a lot, you have a RTl2832, while I have
+the RTL2831 which seem to be Revision 4 of the RTL2830.
+
+However, there seem to be big similarities between all those chips. It might be not that hard for
+the contributors of this driver to add support for the early chips as well. Maybe Jan can shade
+some light on it, since he wrote the initial RTL2831 driver. In any case I may help with testing it.
+
+
+Sascha Wüstemann wrote:
+> Thomas Holzeisen wrote:
+>> Unknown symbol 
+> means, there is unresolved dependencies at your kernel or false
+> dependencies in the module.
 > 
-> Agreed.
+> My stick works with those google hosted new driver sources and I have no
+> use for lirc, so nothing about it at the following lines, they are
+> stripped, too:
 > 
->>> It should be noticed that the driver tries first to access the alsa driver
->>> directly,
->>> by using hw:0,0 output device. If it fails, it falls back to plughw:0,0.
->>> I'm not sure
->>> what's the name of the pulseaudio output, but I suspect that both are just
->>> bypassing
->>> pulseaudio, with is good ;)
->>
->> Right this means you're just bypassing pulse audio, which for a tvcard +
->> tv-viewing
+> ~ # lsusb -v
+> Bus 001 Device 021: ID 1d19:1101 Dexatek Technology Ltd. DK DVB-T Dongle
+> Device Descriptor:
+>   bLength                18
+>   bDescriptorType         1
+>   bcdUSB               2.00
+>   bDeviceClass            0 (Defined at Interface level)
+>   bDeviceSubClass         0
+>   bDeviceProtocol         0
+>   bMaxPacketSize0        64
+>   idVendor           0x1d19 Dexatek Technology Ltd.
+>   idProduct          0x1101 DK DVB-T Dongle
+>   bcdDevice            1.00
+>   iManufacturer           1 Realtek
+>   iProduct                2 Rtl2832UDVB
+>   iSerial                 3 0
+>   bNumConfigurations      1
+>   Configuration Descriptor:
+>     bLength                 9
+>     bDescriptorType         2
+>     wTotalLength           34
+>     bNumInterfaces          2
+>     bConfigurationValue     1
+>     iConfiguration          4 USB2.0-Bulk&Iso
+>     bmAttributes         0xa0
+>       (Bus Powered)
+>       Remote Wakeup
+>     MaxPower              500mA
+>     Interface Descriptor:
+>       bLength                 9
+>       bDescriptorType         4
+>       bInterfaceNumber        0
+>       bAlternateSetting       0
+>       bNumEndpoints           1
+>       bInterfaceClass       255 Vendor Specific Class
+>       bInterfaceSubClass    255 Vendor Specific Subclass
+>       bInterfaceProtocol    255 Vendor Specific Protocol
+>       iInterface              5 Bulk-In, Interface
+>       Endpoint Descriptor:
+>         bLength                 7
+>         bDescriptorType         5
+>         bEndpointAddress     0x81  EP 1 IN
+>         bmAttributes            2
+>           Transfer Type            Bulk
+>           Synch Type               None
+>           Usage Type               Data
+>         wMaxPacketSize     0x0200  1x 512 bytes
+>         bInterval               0
+>     Interface Descriptor:
+>       bLength                 9
+>       bDescriptorType         4
+>       bInterfaceNumber        1
+>       bAlternateSetting       0
+>       bNumEndpoints           0
+>       bInterfaceClass       255 Vendor Specific Class
+>       bInterfaceSubClass    255 Vendor Specific Subclass
+>       bInterfaceProtocol    255 Vendor Specific Protocol
+>       iInterface              5 Bulk-In, Interface
+> Device Qualifier (for other device speed):
+>   bLength                10
+>   bDescriptorType         6
+>   bcdUSB               2.00
+>   bDeviceClass            0 (Defined at Interface level)
+>   bDeviceSubClass         0
+>   bDeviceProtocol         0
+>   bMaxPacketSize0        64
+>   bNumConfigurations      2
+> Device Status:     0x0000
+>   (Bus Powered)
 > 
-> Actually, the ALSA client libraries route through PulseAudio (as long
-> as Pulse is running).  Basically PulseAudio is providing emulation for
-> the ALSA interface even if you specify "hw:1,0" as the device.
-
-I'm not so sure about that. This probably depends on how the alsa library
-is configured, and this is distribution-specific. I'm almost sure that
-pulseaudio won't touch on hw: on Fedora.
-
->> app is a reasonable thing to do. Defaulting to hw:0,0 makes no sense to me
->> though, we
->> should default to either the audio devices belonging to the video device (as
->> determined
->> through sysfs), or to alsa's default input (which will likely be
->> pulseaudio).
+> ~ # lsmod | grep dvb
+> dvb_usb_rtl2832u      190302  0
+> dvb_usb                17272  1 dvb_usb_rtl2832u
+> dvb_core               69295  1 dvb_usb
+> rc_core                15790  2 dvb_usb
 > 
-> Mauro was talking about the output device, not the input device.
+> ~ # dmesg
+> usb 1-6: new high speed USB device number 20 using ehci_hcd
+> hub 1-6:1.0: USB hub found
+> hub 1-6:1.0: 4 ports detected
+> usb 1-6.3: new high speed USB device number 21 using ehci_hcd
+> dvb-usb: found a 'DK DVBT DONGLE' in warm state.
+> dvb-usb: will pass the complete MPEG2 transport stream to the software
+> demuxer.
+> DVB: registering new adapter (DK DVBT DONGLE)
+> DVB: registering adapter 0 frontend 0 (Realtek DVB-T RTL2832)...
+> dvb-usb: DK DVBT DONGLE successfully initialized and connected.
+> dvb-usb: found a 'DK DVBT DONGLE' in warm state.
+> dvb-usb: will pass the complete MPEG2 transport stream to the software
+> demuxer.
+> DVB: registering new adapter (DK DVBT DONGLE)
+> DVB: registering adapter 1 frontend 0 (Realtek DVB-T RTL2832)...
+> dvb-usb: DK DVBT DONGLE successfully initialized and connected.
+> 
+> Yes, works at no powered four port USB-2.0 mini hub without problems.
+> 
+> ~ # uname -a
+> Linux killerghost 2.6.39-gentoo-r1 #1 SMP Fri Jun 10 12:16:38 CEST 2011
+> x86_64 Intel(R) Atom(TM) CPU 330 @ 1.60GHz GenuineIntel GNU/Linux
+> 
+> Greetings from Braunschweig, Germany.
+> Sascha
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
-Yes.
-
-The default for capture is the one detected via sysfs.
-
-The default for playback is not really hw:0,0. It defaults to the first hw: that it is not 
-associated with a video device. 
-
-I don't like the idea of defaulting to pulseaudio: on my own experiences, the addition
-of pulseaudio didn't bring me any benefit, but it causes several troubles that I needed to
-workaround, like disabling the access to the master volume control on a Sony Vaio notebook
-while setting it to 0 (I had to manually add some scripting at rc.local to fix), 
-limiting the max volume to half of the maximum (very bad effect on some notebooks), 
-preventing rmmod of V4L devices, and not working when the development user is different
-than the console owner, even when it is at the audio group. I can't think on even a single 
-benefit of using it on my usecase.
-
-Besides that, video playback generates too much IO, and, on slower machines, it demands
-a lot of CPU time. Not having an extra software layer is a good thing to do for the
-default.
-
-If someone wants to use pulseaudio, all they need to do is to pass an extra parameter.
-That's said, I was not able yet to discover what are the alsa names for pulseaudio
-devices. Any ideas on how to get it?
-
-Mauro
