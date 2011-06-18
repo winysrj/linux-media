@@ -1,94 +1,80 @@
 Return-path: <mchehab@pedra>
-Received: from mail-yw0-f46.google.com ([209.85.213.46]:45661 "EHLO
-	mail-yw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757031Ab1FIIqt convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 9 Jun 2011 04:46:49 -0400
-Received: by ywe9 with SMTP id 9so633407ywe.19
-        for <linux-media@vger.kernel.org>; Thu, 09 Jun 2011 01:46:49 -0700 (PDT)
+Received: from smtp-vbr4.xs4all.nl ([194.109.24.24]:4733 "EHLO
+	smtp-vbr4.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750798Ab1FRTx6 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sat, 18 Jun 2011 15:53:58 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Christian Gmeiner <christian.gmeiner@gmail.com>
+Subject: Re: V4L2_PIX_FMT_MPEG and S_FMT
+Date: Sat, 18 Jun 2011 21:53:55 +0200
+Cc: linux-media@vger.kernel.org
+References: <BANLkTikb1Row7_+-e30udc9e5KBjuwcaJg@mail.gmail.com>
+In-Reply-To: <BANLkTikb1Row7_+-e30udc9e5KBjuwcaJg@mail.gmail.com>
 MIME-Version: 1.0
-In-Reply-To: <Pine.LNX.4.64.1106091042100.17738@axis700.grange>
-References: <1307530660-25464-1-git-send-email-ygli@marvell.com>
-	<Pine.LNX.4.64.1106081322590.24274@axis700.grange>
-	<BANLkTikS1nhSnrvQv=s4Xe2_Juf1i-xwfg@mail.gmail.com>
-	<Pine.LNX.4.64.1106091042100.17738@axis700.grange>
-Date: Thu, 9 Jun 2011 16:46:47 +0800
-Message-ID: <BANLkTikbN87Yja-MxA4eu1z=1HJ6wU=-kA@mail.gmail.com>
-Subject: Re: [PATCH] V4L/DVB: v4l: Add driver for Marvell PXA910 CCIC
-From: Kassey Lee <kassey1216@gmail.com>
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Cc: Kassey Lee <ygli@marvell.com>, linux-media@vger.kernel.org,
-	ytang5@marvell.com, corbet@lwn.net, qingx@marvell.com,
-	jwan@marvell.com, leiwen@marvell.com
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+Content-Type: Text/Plain;
+  charset="utf-8"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201106182153.55096.hverkuil@xs4all.nl>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Thu, Jun 9, 2011 at 4:42 PM, Guennadi Liakhovetski
-<g.liakhovetski@gmx.de> wrote:
-> On Thu, 9 Jun 2011, Kassey Lee wrote:
->
->> Guennadi, Jon:
->>        thanks!
->>        we hope to work out a common ccic core, and then re base the code.
->
-> ok, so, we agree, that I don't review your last version, ok?
->
-Guennadi, Jon
-        your comments are always welcome and valuable for us.
-        As Jon will convert cafe_ccic.c to videobuf2 too, I wish He
-can review this driver too, if it is useful for him.
-        and find the common ccic core. Just Mark it.
+On Saturday, June 18, 2011 21:11:37 Christian Gmeiner wrote:
+> Hi all,
+> 
+> I am still in the process of porting a driver to v4l2 framework. This
+> device is capable of decoding MPEG-1 and MPEG-2 streams.
 
-Thanks
+Are we talking about decoding multiplexed streams or elementary streams?
+E.g., audio+video or just the elementary video stream?
 
+For decoding elementary streams pixelformats are being defined in an
+RFC by Kamil Debski:
+
+http://comments.gmane.org/gmane.linux.drivers.video-input-infrastructure/34229
+
+For multiplexed streams ivtv just uses V4L2_PIX_FMT_MPEG which can be used
+for any MPEG program or transport stream. There is currently no method of
+communicating to userspace which audio/video formats inside that PS/TS stream
+are supported.
+
+The problem is that that information is hidden inside the stream. If your
+hardware does multiplexed stream decoding, then what happens when you give
+it an mpeg stream with unsupported codecs? Does the hardware give an error?
+
+Regards,
+
+	Hans
+
+> See http://dxr3.sourceforge.net/about.html for more details.
+> So I have programmed this:
+> 
+> static int vidioc_enum_fmt_vid_out(struct file *file, void *fh,
+> 				struct v4l2_fmtdesc *fmt)
+> {
+> 	if (fmt->index > 0)
+> 		return -EINVAL;
+> 
+> 	fmt->flags = V4L2_FMT_FLAG_COMPRESSED;
+> 	fmt->pixelformat = V4L2_PIX_FMT_MPEG;
+> 	strlcpy(fmt->description, "MPEG 1/2", sizeof(fmt->description));
+> 
+> 	return 0;
+> }
+> 
+> There is nothing in struct v4l2_format which indicates MPEG1, MPEG2 or
+> MPEG4. As a result
+> of this, it is not possible to return -EINVAL if somebody wants to
+> decode/playback MPEG4 content.
+> 
+> Any ideas how to achieve it?
+> 
 > Thanks
-> Guennadi
->
->> :
->> On Wed, Jun 8, 2011 at 7:30 PM, Guennadi Liakhovetski
->> <g.liakhovetski@gmx.de> wrote:
->> > Hi Kassey
->> >
->> > Thanks for the new version, but, IIUC, you agreed to reimplement your
->> > driver on top of a common ccic core, which means, a lot of code will
->> > change. So, it doesn't really make much sense now to make and review new
->> > stand-alone versions of your driver, right? So, shall we wait until Jon's
->> > CCIC code stabilises a bit and you rebase your driver on top of it? Of
->> > course, you can also work together with Jon on the drivers to get them
->> > faster in shape and in a way, suitable fou you both.
->> >
->> > Thanks
->> > Guennadi
->> > ---
->> > Guennadi Liakhovetski, Ph.D.
->> > Freelance Open-Source Software Developer
->> > http://www.open-technology.de/
->> > --
->> > To unsubscribe from this list: send the line "unsubscribe linux-media" in
->> > the body of a message to majordomo@vger.kernel.org
->> > More majordomo info at  http://vger.kernel.org/majordomo-info.html
->> >
->>
->>
->>
->> --
->> Best regards
->> Kassey
->> Application Processor Systems Engineering, Marvell Technology Group Ltd.
->> Shanghai, China.
->>
->
-> ---
-> Guennadi Liakhovetski, Ph.D.
-> Freelance Open-Source Software Developer
-> http://www.open-technology.de/
->
-
-
-
--- 
-Best regards
-Kassey
-Application Processor Systems Engineering, Marvell Technology Group Ltd.
-Shanghai, China.
+> --
+> Christian Gmeiner, MSc
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
+> 
