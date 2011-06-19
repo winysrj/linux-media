@@ -1,55 +1,69 @@
 Return-path: <mchehab@pedra>
-Received: from blu0-omc2-s33.blu0.hotmail.com ([65.55.111.108]:15520 "EHLO
-	blu0-omc2-s33.blu0.hotmail.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752507Ab1FKI4T (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 11 Jun 2011 04:56:19 -0400
-Message-ID: <BLU0-SMTP64FB9E0850D1B2C42CF36DD8670@phx.gbl>
-From: Manoel Pinheiro <pinusdtv@hotmail.com>
-To: linux-media@vger.kernel.org
-Subject: [PATCH 4/5] [media] Add support for TBS-Tech ISDB-T Full Seg DTB08
-Date: Sat, 11 Jun 2011 05:56:03 -0300
+Received: from mx1.redhat.com ([209.132.183.28]:20158 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753746Ab1FSMPJ (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 19 Jun 2011 08:15:09 -0400
+Message-ID: <4DFDE849.8030404@redhat.com>
+Date: Sun, 19 Jun 2011 09:15:05 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
 MIME-Version: 1.0
-Content-Type: text/plain
+To: Jan Hoogenraad <jan-verisign@hoogenraad.net>
+CC: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: change in build .sh due to Pulseaudio device removal /
+References: <4DFBB431.60101@redhat.com> <4DFCDE6D.8090008@hoogenraad.net>
+In-Reply-To: <4DFCDE6D.8090008@hoogenraad.net>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Signed-off-by: Manoel Pinheiro <pinusdtv@hotmail.com>
----
- drivers/media/dvb/dvb-usb/Kconfig  |    8 ++++++++
- drivers/media/dvb/dvb-usb/Makefile |    3 +++
- 2 files changed, 11 insertions(+), 0 deletions(-)
+Em 18-06-2011 14:20, Jan Hoogenraad escreveu:
+> Mauro:
+> 
+> The change in build.sh
+> http://git.linuxtv.org/media_build.git?a=commitdiff;h=16cf0606fd59484236356e400a89c083e76da64b
+> 
+> now requires installation of a Perl package Proc::ProcessTable  that is not present in standard Ubuntu systems.
+> 
+> I needed to run
+>  sudo aptitude install libproc-processtable-perl
+> before I could continue after the change.
+> 
+> Is there a way around this ?
 
-diff --git a/drivers/media/dvb/dvb-usb/Kconfig b/drivers/media/dvb/dvb-usb/Kconfig
-index e85304c..dd922c9 100644
---- a/drivers/media/dvb/dvb-usb/Kconfig
-+++ b/drivers/media/dvb/dvb-usb/Kconfig
-@@ -373,3 +373,11 @@ config DVB_USB_TECHNISAT_USB2
- 	select DVB_STV6110x if !DVB_FE_CUSTOMISE
- 	help
- 	  Say Y here to support the Technisat USB2 DVB-S/S2 device
-+
-+config DVB_USB_TBSDTB08
-+        tristate "TBS-Tech ISDB-T Full Seg DTB08 USB2.0 support"
-+        depends on DVB_USB
-+        select DVB_MB86A20S
-+        select MEDIA_TUNER_TDA18271 if !MEDIA_TUNER_CUSTOMISE
-+        help
-+          Say Y here to support the TBS-Tech Full Seg DTB08 ISDB-T USB2.0 receivers
-diff --git a/drivers/media/dvb/dvb-usb/Makefile b/drivers/media/dvb/dvb-usb/Makefile
-index 4bac13d..bd449fa 100644
---- a/drivers/media/dvb/dvb-usb/Makefile
-+++ b/drivers/media/dvb/dvb-usb/Makefile
-@@ -94,6 +94,9 @@ obj-$(CONFIG_DVB_USB_LME2510) += dvb-usb-lmedm04.o
- dvb-usb-technisat-usb2-objs = technisat-usb2.o
- obj-$(CONFIG_DVB_USB_TECHNISAT_USB2) += dvb-usb-technisat-usb2.o
- 
-+dvb-usb-tbsdtb08-objs = tbs-dtb08.o
-+obj-$(CONFIG_DVB_USB_TBSDTB08) += dvb-usb-tbsdtb08.o
-+
- EXTRA_CFLAGS += -Idrivers/media/dvb/dvb-core/ -Idrivers/media/dvb/frontends/
- # due to tuner-xc3028
- EXTRA_CFLAGS += -Idrivers/media/common/tuners
--- 
-1.7.3.4
+The media_build requires several packages that may not be present on some
+installation. The build.sh script has a logic to detect the missing parts
+and to output what's the missing requirements:
 
+echo "Checking if the needed tools are present"
+run ./check_needs.pl
+
+(I moved right now the perl-specific checks into check_needs.pl script)
+
+Unfortunately, package names are distro-specific. So, as I use only Fedora/RHEL
+here, the only hints it have are for them. From my experiences, between the
+rpm-based distros, the package names are either equal or very close, so such
+hints probably are probably good enough for Suse and Mandriva users.
+
+>From what I understand, the standard Ubuntu repositories already provide a package
+for Proc::ProcessTable. So, the only thing that it is not ok is the package name hint.
+
+Could you please provide us a patch adding the Ubuntu (and likely Debian) package
+name?
+
+IMHO, the better would be to modify the check logic, in order to check what's the
+system, and provide a hint based on it. If the OS type is not found, then fall back
+to some default.
+
+I think that the LSB default to get the distribution is by reading /etc/system-release.
+Those are provided on RHEL6 and Fedora (plus, the old way: /etc/redhat-release).
+
+So, IMHO, all we need to do is to write a logic for the error report part of the check,
+that opens /etc/system-release, identify what's the distro, and provide the package
+name and some instructions on how to install the missing parts to the userspace.
+
+The right way for adding such logic would be to install the OS's on some VM with the
+minimum install, run the script and add the missing parts on it.
+
+Cheers,
+Mauro.
