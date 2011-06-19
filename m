@@ -1,71 +1,66 @@
 Return-path: <mchehab@pedra>
-Received: from smtp-vbr12.xs4all.nl ([194.109.24.32]:1033 "EHLO
-	smtp-vbr12.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755388Ab1FDKfm (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sat, 4 Jun 2011 06:35:42 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Subject: Re: [RFCv2 PATCH 04/11] v4l2-ctrls: Replace v4l2_ctrl_activate/grab with v4l2_ctrl_flags.
-Date: Sat, 4 Jun 2011 12:35:38 +0200
-Cc: linux-media@vger.kernel.org, Hans Verkuil <hans.verkuil@cisco.com>
-References: <1306330435-11799-1-git-send-email-hverkuil@xs4all.nl> <6170b5a8f168957ed3675d9976e434d227867d27.1306329390.git.hans.verkuil@cisco.com> <201106032155.59717.laurent.pinchart@ideasonboard.com>
-In-Reply-To: <201106032155.59717.laurent.pinchart@ideasonboard.com>
-MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-15"
+Received: from mx1.redhat.com ([209.132.183.28]:60291 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753404Ab1FSRno (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 19 Jun 2011 13:43:44 -0400
+Received: from int-mx01.intmail.prod.int.phx2.redhat.com (int-mx01.intmail.prod.int.phx2.redhat.com [10.5.11.11])
+	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id p5JHhiVq023040
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
+	for <linux-media@vger.kernel.org>; Sun, 19 Jun 2011 13:43:44 -0400
+Received: from pedra (vpn-238-25.phx2.redhat.com [10.3.238.25])
+	by int-mx01.intmail.prod.int.phx2.redhat.com (8.13.8/8.13.8) with ESMTP id p5JHhWq5018286
+	for <linux-media@vger.kernel.org>; Sun, 19 Jun 2011 13:43:43 -0400
+Date: Sun, 19 Jun 2011 14:42:36 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: [PATCH 02/11] [media] em28xx: Fix a wrong enum at the ac97 control
+ tables
+Message-ID: <20110619144236.6c5fc07f@pedra>
+In-Reply-To: <cover.1308503857.git.mchehab@redhat.com>
+References: <cover.1308503857.git.mchehab@redhat.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
-Message-Id: <201106041235.38699.hverkuil@xs4all.nl>
+To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Friday, June 03, 2011 21:55:59 Laurent Pinchart wrote:
-> Hi Hans,
-> 
-> Thanks for the patch.
-> 
-> On Wednesday 25 May 2011 15:33:48 Hans Verkuil wrote:
-> > From: Hans Verkuil <hans.verkuil@cisco.com>
-> > 
-> > This more generic function makes it possible to have a single function
-> > that takes care of flags handling, in particular with regards to sending
-> > a control event when the flags change.
-> > 
-> > Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-> > ---
-> 
-> [snip]
-> 
-> > +/** v4l2_ctrl_flags_lock() - Clear and set flags for a control.
-> > +  * @ctrl:	The control whose flags should be changed.
-> > +  * @clear_flags:	Mask out these flags.
-> > +  * @set_flags:	Set these flags.
-> >    *
-> > -  * This sets or clears the V4L2_CTRL_FLAG_GRABBED flag atomically.
-> > -  * Does nothing if @ctrl == NULL.
-> > -  * This will usually be called when starting or stopping streaming in the
-> > -  * driver.
-> > +  * This clears and sets flags. Does nothing if @ctrl == NULL.
-> >    *
-> > -  * This function can be called regardless of whether the control handler
-> > -  * is locked or not.
-> > +  * This function expects that the control handler is unlocked and will
-> > lock +  * it before changing flags.
-> >    */
-> > -void v4l2_ctrl_grab(struct v4l2_ctrl *ctrl, bool grabbed);
-> > +void v4l2_ctrl_flags_lock(struct v4l2_ctrl *ctrl, u32 clear_flags, u32
-> > set_flags);
-> 
-> The v4l2_ctrl_flags_lock() function doesn't seem to be used. Do we need it ?
-> 
-> 
+Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
 
-It is likely that I will (partially?) revert this patch. The idea for
-v4l2_ctrl_flags(_lock) was to simplify changing the READ_ONLY flag on
-the fly for autofoo/foo type controls. But I've changed my opinion on that.
-See also the mail I sent earlier:
+diff --git a/drivers/media/video/em28xx/em28xx-core.c b/drivers/media/video/em28xx/em28xx-core.c
+index 55d0d9d..7bf3a86 100644
+--- a/drivers/media/video/em28xx/em28xx-core.c
++++ b/drivers/media/video/em28xx/em28xx-core.c
+@@ -314,12 +314,12 @@ int em28xx_write_ac97(struct em28xx *dev, u8 reg, u16 val)
+ 	return 0;
+ }
+ 
+-struct em28xx_vol_table {
++struct em28xx_vol_itable {
+ 	enum em28xx_amux mux;
+ 	u8		 reg;
+ };
+ 
+-static struct em28xx_vol_table inputs[] = {
++static struct em28xx_vol_itable inputs[] = {
+ 	{ EM28XX_AMUX_VIDEO, 	AC97_VIDEO_VOL   },
+ 	{ EM28XX_AMUX_LINE_IN,	AC97_LINEIN_VOL  },
+ 	{ EM28XX_AMUX_PHONE,	AC97_PHONE_VOL   },
+@@ -403,7 +403,12 @@ static int em28xx_set_audio_source(struct em28xx *dev)
+ 	return ret;
+ }
+ 
+-static const struct em28xx_vol_table outputs[] = {
++struct em28xx_vol_otable {
++	enum em28xx_aout mux;
++	u8		 reg;
++};
++
++static const struct em28xx_vol_otable outputs[] = {
+ 	{ EM28XX_AOUT_MASTER, AC97_MASTER_VOL      },
+ 	{ EM28XX_AOUT_LINE,   AC97_LINE_LEVEL_VOL  },
+ 	{ EM28XX_AOUT_MONO,   AC97_MASTER_MONO_VOL },
+-- 
+1.7.1
 
-http://www.mail-archive.com/linux-media@vger.kernel.org/msg32332.html
 
-Regards,
-
-	Hans
