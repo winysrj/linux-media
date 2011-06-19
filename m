@@ -1,64 +1,53 @@
 Return-path: <mchehab@pedra>
-Received: from metis.ext.pengutronix.de ([92.198.50.35]:41899 "EHLO
-	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932454Ab1FAUTe (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 1 Jun 2011 16:19:34 -0400
-From: =?UTF-8?q?Uwe=20Kleine-K=C3=B6nig?=
-	<u.kleine-koenig@pengutronix.de>
-To: linux-media@vger.kernel.org
-Cc: kernel@pengutronix.de,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Pawel Osciak <pawel@osciak.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Hans Verkuil <hverkuil@xs4all.nl>
-Date: Wed,  1 Jun 2011 22:19:22 +0200
-Message-Id: <1306959563-7108-1-git-send-email-u.kleine-koenig@pengutronix.de>
+Received: from mx1.redhat.com ([209.132.183.28]:23309 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753757Ab1FSLrZ (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 19 Jun 2011 07:47:25 -0400
+Message-ID: <4DFDE1C4.7000006@redhat.com>
+Date: Sun, 19 Jun 2011 08:47:16 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
-Subject: [PATCH] [media] V4L/videobuf2-memops: use pr_debug for debug messages
+To: Helmut Auer <helmut@helmutauer.de>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+CC: linux-media@vger.kernel.org, Oliver Endriss <o.endriss@gmx.de>
+Subject: Re: Bug: media_build always compiles with '-DDEBUG'
+References: <201106182246.03051@orion.escape-edv.de> <4DFD1479.1060501@helmutauer.de> <201106182338.25983@orion.escape-edv.de> <4DFD827E.3000605@helmutauer.de>
+In-Reply-To: <4DFD827E.3000605@helmutauer.de>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Otherwise they clutter the dmesg buffer even on a production kernel.
+Em 19-06-2011 02:00, Helmut Auer escreveu:
+> Am 18.06.2011 23:38, schrieb Oliver Endriss:
+>> On Saturday 18 June 2011 23:11:21 Helmut Auer wrote:
+>>> Hi
+>>>>
+>>>> Replacing
+>>>>       ifdef CONFIG_VIDEO_OMAP3_DEBUG
+>>>> by
+>>>>       ifeq ($(CONFIG_VIDEO_OMAP3_DEBUG),y)
+>>>> would do the trick.
+>>>>
+>>> I guess that would not ive the intended result.
+>>> Setting CONFIG_VIDEO_OMAP3_DEBUG to yes should not lead to debug messages in all media modules,
+>>
+>> True, but it will happen only if you manually enable
+>> CONFIG_VIDEO_OMAP3_DEBUG in Kconfig.
+>>
+>> You cannot avoid this without major changes of the
+>> media_build system - imho not worth the effort.
+>>
+> Then imho it would be better to drop the  CONFIG_VIDEO_OMAP3_DEBUG variable completely, you can set CONFIG_DEBUG which would give the same results.
 
-Signed-off-by: Uwe Kleine-König <u.kleine-koenig@pengutronix.de>
----
- drivers/media/video/videobuf2-memops.c |    6 +++---
- 1 files changed, 3 insertions(+), 3 deletions(-)
+Good catch!
 
-diff --git a/drivers/media/video/videobuf2-memops.c b/drivers/media/video/videobuf2-memops.c
-index 5370a3a..1987e1b1 100644
---- a/drivers/media/video/videobuf2-memops.c
-+++ b/drivers/media/video/videobuf2-memops.c
-@@ -177,7 +177,7 @@ int vb2_mmap_pfn_range(struct vm_area_struct *vma, unsigned long paddr,
- 
- 	vma->vm_ops->open(vma);
- 
--	printk(KERN_DEBUG "%s: mapped paddr 0x%08lx at 0x%08lx, size %ld\n",
-+	pr_debug("%s: mapped paddr 0x%08lx at 0x%08lx, size %ld\n",
- 			__func__, paddr, vma->vm_start, size);
- 
- 	return 0;
-@@ -195,7 +195,7 @@ static void vb2_common_vm_open(struct vm_area_struct *vma)
- {
- 	struct vb2_vmarea_handler *h = vma->vm_private_data;
- 
--	printk(KERN_DEBUG "%s: %p, refcount: %d, vma: %08lx-%08lx\n",
-+	pr_debug("%s: %p, refcount: %d, vma: %08lx-%08lx\n",
- 	       __func__, h, atomic_read(h->refcount), vma->vm_start,
- 	       vma->vm_end);
- 
-@@ -213,7 +213,7 @@ static void vb2_common_vm_close(struct vm_area_struct *vma)
- {
- 	struct vb2_vmarea_handler *h = vma->vm_private_data;
- 
--	printk(KERN_DEBUG "%s: %p, refcount: %d, vma: %08lx-%08lx\n",
-+	pr_debug("%s: %p, refcount: %d, vma: %08lx-%08lx\n",
- 	       __func__, h, atomic_read(h->refcount), vma->vm_start,
- 	       vma->vm_end);
- 
--- 
-1.7.5.3
+Yes, I agree that the better is to just drop CONFIG_VIDEO_OMAP3_DEBUG variable completely.
+If someone wants to build with -DDEBUG, he can just use CONFIG_DEBUG.
 
+Laurent,
+
+Any comments?
+
+Thanks,
+Mauro
