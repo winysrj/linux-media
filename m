@@ -1,55 +1,61 @@
 Return-path: <mchehab@pedra>
-Received: from smtp-68.nebula.fi ([83.145.220.68]:41975 "EHLO
-	smtp-68.nebula.fi" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755803Ab1FENKe (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sun, 5 Jun 2011 09:10:34 -0400
-Date: Sun, 5 Jun 2011 16:10:31 +0300
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media@vger.kernel.org, Hans Verkuil <hans.verkuil@cisco.com>
-Subject: Re: [RFCv2 PATCH 07/11] v4l2-ctrls: add control events.
-Message-ID: <20110605131031.GG6073@valkosipuli.localdomain>
-References: <6cea502820c1684f34b9e862a64be2972afb718f.1306329390.git.hans.verkuil@cisco.com>
- <2c6e1531f7f9ab33b60e8c7f972f58a0dd6fbbd1.1306329390.git.hans.verkuil@cisco.com>
- <20110528103421.GA4991@valkosipuli.localdomain>
- <201105281658.20086.hverkuil@xs4all.nl>
+Received: from mx1.redhat.com ([209.132.183.28]:50432 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753792Ab1FSMut (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 19 Jun 2011 08:50:49 -0400
+Message-ID: <4DFDF0A5.9030207@redhat.com>
+Date: Sun, 19 Jun 2011 09:50:45 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <201105281658.20086.hverkuil@xs4all.nl>
+To: Jan Hoogenraad <jan-conceptronic@hoogenraad.net>
+CC: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: change in build .sh due to Pulseaudio device removal /
+References: <4DFBB431.60101@redhat.com> <4DFCDE6D.8090008@hoogenraad.net> <4DFDE849.8030404@redhat.com> <4DFDEE23.1070106@hoogenraad.net>
+In-Reply-To: <4DFDEE23.1070106@hoogenraad.net>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Hi Hans,
-
-On Sat, May 28, 2011 at 04:58:20PM +0200, Hans Verkuil wrote:
-> On Saturday, May 28, 2011 12:34:21 Sakari Ailus wrote:
-> > Hi Hans,
-> > 
-> > On Wed, May 25, 2011 at 03:33:51PM +0200, Hans Verkuil wrote:
-> > > From: Hans Verkuil <hans.verkuil@cisco.com>
-> > > 
-> > > Whenever a control changes value or state an event is sent to anyone
-> > > that subscribed to it.
-> > > 
-> > > This functionality is useful for control panels but also for applications
-> > > that need to wait for (usually status) controls to change value.
-> > 
-> > Thanks for the patch!
-> > 
-> > I agree that it's good to pass more information of the control (min, max
-> > etc.) to the user space with the event. However, to support events arriving
-> > from interrupt context which we've discussed in the past, such information
-> > must be also accessible in those situations.
-> > 
-> > What do you think about more fine-grained locking of controls, say, spinlock
-> > for each control (cluster) as an idea?
+Em 19-06-2011 09:40, Jan Hoogenraad escreveu:
+> Mauro:
 > 
-> It's on my TODO list, but I need to think carefully on how to do it.
-> One thing at a time :-)
+> You are completely right. Getting the packages automatically is very user-friendly. Furthermore, this will make media_build a great place to start of users stuck with older kernels.
 
-I agree. I just wanted to hear your thoughts about this. :)
+Automatic install is good, but I think that providing a command line to the user
+is better, as he may want to install things on a different way. For example, on
+Mandriva, there are 2 or 3 different options to install package. I think that 
+Debian/Ubuntu also provides at least 3 different ways (apt-get, aptitude, yum).
 
--- 
-Sakari Ailus
-sakari dot ailus at iki dot fi
+> 
+> 
+> On Ubuntu, the package name is  libproc-processtable-perl
+> the command to install it is (on Ubuntu, usually no root user is used, but rather per command invokation).
+> 
+> The command for installation will be:
+> 
+>  sudo apt-get install libproc-processtable-perl
+> 
+> There is no
+> /etc/system-release
+> on my system
+> 
+> However, there is a file /etc/lsb-release
+> cat /etc/lsb-release
+> DISTRIB_ID=Ubuntu
+> DISTRIB_RELEASE=10.04
+> DISTRIB_CODENAME=lucid
+> DISTRIB_DESCRIPTION="Ubuntu 10.04.2 LTS"
+> 
+> I will make an updated script in the next week.
+
+OK. I just added a logic that works with RHEL/Fedora. There's no
+/etc/lsb-release on RHEL 6.1 or Fedora 15, but it shouldn't be hard
+to do support the Ubuntu way with:
+
+ my $system_release = qx(cat /etc/system-release);
+ $system_release = qx(cat /etc/redhat-release) if !$system_release;
++$system_release = qx(grep DISTRIB_ID /etc/lsb-release) if !$system_release;
+
+Cheers,
+Mauro
