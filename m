@@ -1,40 +1,26 @@
 Return-path: <mchehab@pedra>
-Received: from moutng.kundenserver.de ([212.227.17.10]:63560 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752933Ab1FJKn2 (ORCPT
+Received: from mail-gx0-f174.google.com ([209.85.161.174]:63251 "EHLO
+	mail-gx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754142Ab1FSPHp (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 10 Jun 2011 06:43:28 -0400
-Received: from localhost (localhost [127.0.0.1])
-	by axis700.grange (Postfix) with ESMTP id BEC42106757
-	for <linux-media@vger.kernel.org>; Fri, 10 Jun 2011 12:43:26 +0200 (CEST)
-Date: Fri, 10 Jun 2011 12:43:26 +0200 (CEST)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: [PATCH] media: DVB_NET must depend on DVB_CORE
-Message-ID: <Pine.LNX.4.64.1106101243050.12671@axis700.grange>
+	Sun, 19 Jun 2011 11:07:45 -0400
+Received: by gxk21 with SMTP id 21so50453gxk.19
+        for <linux-media@vger.kernel.org>; Sun, 19 Jun 2011 08:07:45 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+From: Roman Gaufman <hackeron@gmail.com>
+Date: Sun, 19 Jun 2011 16:07:25 +0100
+Message-ID: <BANLkTike80t1hzSnW9PMCb7zosEmjCNG6A@mail.gmail.com>
+Subject: TW68 Driver
+To: linux-media@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
----
- drivers/media/Kconfig |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
+There is a really great driver for the thousands of capture cards
+floating around ebay called TW68. It is available here:
+http://gitorious.org/tw68
 
-diff --git a/drivers/media/Kconfig b/drivers/media/Kconfig
-index dc61895..c2ee0aa 100644
---- a/drivers/media/Kconfig
-+++ b/drivers/media/Kconfig
-@@ -87,7 +87,7 @@ config DVB_CORE
- config DVB_NET
- 	bool "DVB Network Support"
- 	default (NET && INET)
--	depends on NET && INET
-+	depends on NET && INET && DVB_CORE
- 	help
- 	  The DVB network support in the DVB core can
- 	  optionally be disabled if this
--- 
-1.7.2.5
+I'm not a developer but I have been using it for a number of years and
+it's a shame it's still not included in the kernel.
 
+Is anyone interested in making this happen?
