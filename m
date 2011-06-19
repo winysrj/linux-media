@@ -1,60 +1,78 @@
 Return-path: <mchehab@pedra>
-Received: from moutng.kundenserver.de ([212.227.17.10]:64652 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753924Ab1FVMnO (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 22 Jun 2011 08:43:14 -0400
-From: Arnd Bergmann <arnd@arndb.de>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Subject: Re: [Linaro-mm-sig] [PATCH 08/10] mm: cma: Contiguous Memory Allocator added
-Date: Wed, 22 Jun 2011 14:42:20 +0200
-Cc: linaro-mm-sig@lists.linaro.org,
-	linux-arm-kernel@lists.infradead.org,
-	"'Daniel Walker'" <dwalker@codeaurora.org>, linux-mm@kvack.org,
-	"'Mel Gorman'" <mel@csn.ul.ie>, linux-kernel@vger.kernel.org,
-	"'Michal Nazarewicz'" <mina86@mina86.com>,
-	"'Jesse Barker'" <jesse.barker@linaro.org>,
-	"'Kyungmin Park'" <kyungmin.park@samsung.com>,
-	"'Ankita Garg'" <ankita@in.ibm.com>,
-	"'Andrew Morton'" <akpm@linux-foundation.org>,
-	linux-media@vger.kernel.org,
-	"'KAMEZAWA Hiroyuki'" <kamezawa.hiroyu@jp.fujitsu.com>
-References: <1307699698-29369-1-git-send-email-m.szyprowski@samsung.com> <201106150937.18524.arnd@arndb.de> <201106220903.31065.hverkuil@xs4all.nl>
-In-Reply-To: <201106220903.31065.hverkuil@xs4all.nl>
-MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
+Received: from mx1.redhat.com ([209.132.183.28]:1026 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754349Ab1FSRn5 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 19 Jun 2011 13:43:57 -0400
+Date: Sun, 19 Jun 2011 14:42:44 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	alsa-devel@alsa-project.org
+Subject: [PATCH 06/11] [media] em28xx-audio: volumes are inverted
+Message-ID: <20110619144244.36da0948@pedra>
+In-Reply-To: <cover.1308503857.git.mchehab@redhat.com>
+References: <cover.1308503857.git.mchehab@redhat.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
-Message-Id: <201106221442.20848.arnd@arndb.de>
+To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Wednesday 22 June 2011, Hans Verkuil wrote:
-> > How about a Kconfig option that defines the percentage of memory
-> > to set aside for contiguous allocations?
-> 
-> I would actually like to see a cma_size kernel option of some sort. This would
-> be for the global CMA pool only as I don't think we should try to do anything
-> more complicated here.
+While here, fix volume mask to 5 bits
 
-A command line is probably good to override the compile-time default, yes.
+Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
 
-We could also go further and add a runtime sysctl mechanism like the one
-for hugepages, where you can grow the pool at run time as long as there is
-enough free contiguous memory (e.g. from init scripts), or shrink it later
-if you want to allow larger nonmovable allocations.
+diff --git a/drivers/media/video/em28xx/em28xx-audio.c b/drivers/media/video/em28xx/em28xx-audio.c
+index c7b96b4..302553a 100644
+--- a/drivers/media/video/em28xx/em28xx-audio.c
++++ b/drivers/media/video/em28xx/em28xx-audio.c
+@@ -452,8 +452,8 @@ static int em28xx_vol_put(struct snd_kcontrol *kcontrol,
+ 			       struct snd_ctl_elem_value *value)
+ {
+ 	struct em28xx *dev = snd_kcontrol_chip(kcontrol);
+-	u16 val = (value->value.integer.value[0] & 0x1f) |
+-		  (value->value.integer.value[1] & 0x1f) << 8;
++	u16 val = (0x1f - (value->value.integer.value[0] & 0x1f)) |
++		  (0x1f - (value->value.integer.value[1] & 0x1f)) << 8;
+ 	int rc;
+ 
+ 	mutex_lock(&dev->lock);
+@@ -482,8 +482,8 @@ static int em28xx_vol_get(struct snd_kcontrol *kcontrol,
+ 	if (val < 0)
+ 		return val;
+ 
+-	value->value.integer.value[0] = val & 0x1f;
+-	value->value.integer.value[1] = (val << 8) & 0x1f;
++	value->value.integer.value[0] = 0x1f - (val & 0x1f);
++	value->value.integer.value[1] = 0x1f - ((val << 8) & 0x1f);
+ 
+ 	return 0;
+ }
+@@ -501,9 +501,9 @@ static int em28xx_vol_put_mute(struct snd_kcontrol *kcontrol,
+ 		goto err;
+ 
+ 	if (val)
++		rc &= 0x1f1f;
++	else
+ 		rc |= 0x8000;
+-	else
+-		rc &= 0x7f7f;
+ 
+ 	rc = em28xx_write_ac97(dev, kcontrol->private_value, rc);
+ 
+@@ -525,9 +525,9 @@ static int em28xx_vol_get_mute(struct snd_kcontrol *kcontrol,
+ 		return val;
+ 
+ 	if (val & 0x8000)
+-		value->value.integer.value[0] = 1;
+-	else
+ 		value->value.integer.value[0] = 0;
++	else
++		value->value.integer.value[0] = 1;
+ 
+ 	return 0;
+ }
+-- 
+1.7.1
 
-My feeling is that we need to find a way to integrate the global settings
-for four kinds of allocations:
-
-* nonmovable kernel pages
-* hugetlb pages
-* CMA
-* memory hotplug
-
-These essentially fight over the same memory (though things are slightly
-different with dynamic hugepages), and they all face the same basic problem
-of getting as much for themselves without starving the other three.
-
-	Arnd
 
