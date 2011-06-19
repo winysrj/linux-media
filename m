@@ -1,177 +1,183 @@
 Return-path: <mchehab@pedra>
-Received: from mx1.redhat.com ([209.132.183.28]:30436 "EHLO mx1.redhat.com"
+Received: from mx1.redhat.com ([209.132.183.28]:64152 "EHLO mx1.redhat.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753134Ab1FLOlh (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 12 Jun 2011 10:41:37 -0400
-Message-ID: <4DF4D01C.6040800@redhat.com>
-Date: Sun, 12 Jun 2011 11:41:32 -0300
+	id S1754394Ab1FSRnw (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 19 Jun 2011 13:43:52 -0400
+Date: Sun, 19 Jun 2011 14:42:41 -0300
 From: Mauro Carvalho Chehab <mchehab@redhat.com>
-MIME-Version: 1.0
-To: Hans Verkuil <hverkuil@xs4all.nl>
-CC: linux-media@vger.kernel.org, Mike Isely <isely@isely.net>,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: Re: [RFCv4 PATCH 4/8] tuner-core: fix s_std and s_tuner.
-References: <1307876389-30347-1-git-send-email-hverkuil@xs4all.nl> <58e65d1d111ba7fa1d0610af92e77d7aefb75d11.1307875512.git.hans.verkuil@cisco.com>
-In-Reply-To: <58e65d1d111ba7fa1d0610af92e77d7aefb75d11.1307875512.git.hans.verkuil@cisco.com>
-Content-Type: text/plain; charset=ISO-8859-1
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	alsa-devel@alsa-project.org
+Subject: [PATCH 04/11] [media] em28xx-alsa: add mixer support for AC97
+ volume controls
+Message-ID: <20110619144241.23d8078d@pedra>
+In-Reply-To: <cover.1308503857.git.mchehab@redhat.com>
+References: <cover.1308503857.git.mchehab@redhat.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
+To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Em 12-06-2011 07:59, Hans Verkuil escreveu:
-> From: Hans Verkuil <hans.verkuil@cisco.com>
-> 
-> Both s_std and s_tuner are broken because set_mode_freq is called before the
-> new std (for s_std) and audmode (for s_tuner) are set.
-> 
-> This patch splits set_mode_freq in a set_mode and a set_freq and in s_std
-> first calls set_mode, and if that returns true (i.e. the mode is supported)
-> then they set t->std/t->audmode and call set_freq.
-> 
-> This fixes a bug where changing std or audmode would actually change it to
-> the previous value.
-> 
-> Discovered while testing analog TV standards for cx18 with a tda18271 tuner.
+Export ac97 volume controls via mixer.
 
-I need to better analyse and test this patch.
+Pulseaudio will probably handle it very badly, as it has
+no idea about how volumes are wired, and how are they
+associated with each TV input. Those wirings are
+card model dependent, and we don't have the wiring mappings
+for each supported device.
 
-> 
-> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-> ---
->  drivers/media/video/tuner-core.c |   60 +++++++++++++++++++++-----------------
->  1 files changed, 33 insertions(+), 27 deletions(-)
-> 
-> diff --git a/drivers/media/video/tuner-core.c b/drivers/media/video/tuner-core.c
-> index 462a8f4..bf7fc33 100644
-> --- a/drivers/media/video/tuner-core.c
-> +++ b/drivers/media/video/tuner-core.c
-> @@ -739,19 +739,15 @@ static bool supported_mode(struct tuner *t, enum v4l2_tuner_type mode)
->  }
->  
->  /**
-> - * set_mode_freq - Switch tuner to other mode.
-> - * @client:	struct i2c_client pointer
-> + * set_mode - Switch tuner to other mode.
->   * @t:		a pointer to the module's internal struct_tuner
->   * @mode:	enum v4l2_type (radio or TV)
-> - * @freq:	frequency to set (0 means to use the previous one)
->   *
->   * If tuner doesn't support the needed mode (radio or TV), prints a
->   * debug message and returns false, changing its state to standby.
-> - * Otherwise, changes the state and sets frequency to the last value
-> - * and returns true.
-> + * Otherwise, changes the state and returns true.
->   */
-> -static bool set_mode_freq(struct i2c_client *client, struct tuner *t,
-> -			 enum v4l2_tuner_type mode, unsigned int freq)
-> +static bool set_mode(struct tuner *t, enum v4l2_tuner_type mode)
->  {
->  	struct analog_demod_ops *analog_ops = &t->fe.ops.analog_ops;
->  
-> @@ -767,17 +763,27 @@ static bool set_mode_freq(struct i2c_client *client, struct tuner *t,
->  		t->mode = mode;
->  		tuner_dbg("Changing to mode %d\n", mode);
->  	}
-> +	return true;
-> +}
-> +
-> +/**
-> + * set_freq - Set the tuner to the desired frequency.
-> + * @t:		a pointer to the module's internal struct_tuner
-> + * @freq:	frequency to set (0 means to use the current frequency)
-> + */
-> +static void set_freq(struct tuner *t, unsigned int freq)
-> +{
-> +	struct i2c_client *client = v4l2_get_subdevdata(&t->sd);
-> +
->  	if (t->mode == V4L2_TUNER_RADIO) {
-> -		if (freq)
-> -			t->radio_freq = freq;
-> -		set_radio_freq(client, t->radio_freq);
-> +		if (!freq)
-> +			freq = t->radio_freq;
-> +		set_radio_freq(client, freq);
->  	} else {
-> -		if (freq)
-> -			t->tv_freq = freq;
-> -		set_tv_freq(client, t->tv_freq);
-> +		if (!freq)
-> +			freq = t->tv_freq;
-> +		set_tv_freq(client, freq);
->  	}
-> -
-> -	return true;
->  }
->  
->  /*
-> @@ -1034,9 +1040,9 @@ static void tuner_status(struct dvb_frontend *fe)
->  static int tuner_s_radio(struct v4l2_subdev *sd)
->  {
->  	struct tuner *t = to_tuner(sd);
-> -	struct i2c_client *client = v4l2_get_subdevdata(sd);
->  
-> -	set_mode_freq(client, t, V4L2_TUNER_RADIO, 0);
-> +	if (set_mode(t, V4L2_TUNER_RADIO))
-> +		set_freq(t, 0);
->  	return 0;
->  }
->  
-> @@ -1068,24 +1074,23 @@ static int tuner_s_power(struct v4l2_subdev *sd, int on)
->  static int tuner_s_std(struct v4l2_subdev *sd, v4l2_std_id std)
->  {
->  	struct tuner *t = to_tuner(sd);
-> -	struct i2c_client *client = v4l2_get_subdevdata(sd);
->  
-> -	if (!set_mode_freq(client, t, V4L2_TUNER_ANALOG_TV, 0))
-> +	if (!set_mode(t, V4L2_TUNER_ANALOG_TV))
->  		return 0;
->  
->  	t->std = tuner_fixup_std(t, std);
->  	if (t->std != std)
->  		tuner_dbg("Fixup standard %llx to %llx\n", std, t->std);
-> -
-> +	set_freq(t, 0);
->  	return 0;
->  }
->  
->  static int tuner_s_frequency(struct v4l2_subdev *sd, struct v4l2_frequency *f)
->  {
->  	struct tuner *t = to_tuner(sd);
-> -	struct i2c_client *client = v4l2_get_subdevdata(sd);
->  
-> -	set_mode_freq(client, t, f->type, f->frequency);
-> +	if (set_mode(t, f->type))
-> +		set_freq(t, f->frequency);
->  	return 0;
->  }
->  
-> @@ -1154,13 +1159,14 @@ static int tuner_g_tuner(struct v4l2_subdev *sd, struct v4l2_tuner *vt)
->  static int tuner_s_tuner(struct v4l2_subdev *sd, struct v4l2_tuner *vt)
->  {
->  	struct tuner *t = to_tuner(sd);
-> -	struct i2c_client *client = v4l2_get_subdevdata(sd);
->  
-> -	if (!set_mode_freq(client, t, vt->type, 0))
-> +	if (!set_mode(t, vt->type))
->  		return 0;
->  
-> -	if (t->mode == V4L2_TUNER_RADIO)
-> +	if (t->mode == V4L2_TUNER_RADIO) {
->  		t->audmode = vt->audmode;
-> +		set_freq(t, 0);
-> +	}
->  
->  	return 0;
->  }
-> @@ -1195,8 +1201,8 @@ static int tuner_resume(struct i2c_client *c)
->  	tuner_dbg("resume\n");
->  
->  	if (!t->standby)
-> -		set_mode_freq(c, t, t->type, 0);
-> -
-> +		if (set_mode(t, t->type))
-> +			set_freq(t, 0);
->  	return 0;
->  }
->  
+Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+
+diff --git a/drivers/media/video/em28xx/em28xx-audio.c b/drivers/media/video/em28xx/em28xx-audio.c
+index a24e177..a75c779 100644
+--- a/drivers/media/video/em28xx/em28xx-audio.c
++++ b/drivers/media/video/em28xx/em28xx-audio.c
+@@ -41,6 +41,7 @@
+ #include <sound/info.h>
+ #include <sound/initval.h>
+ #include <sound/control.h>
++#include <sound/tlv.h>
+ #include <media/v4l2-common.h>
+ #include "em28xx.h"
+ 
+@@ -433,6 +434,92 @@ static struct page *snd_pcm_get_vmalloc_page(struct snd_pcm_substream *subs,
+ 	return vmalloc_to_page(pageptr);
+ }
+ 
++/*
++ * AC97 volume control support
++ */
++static int em28xx_vol_info(struct snd_kcontrol *kcontrol,
++				struct snd_ctl_elem_info *info)
++{
++	info->type = SNDRV_CTL_ELEM_TYPE_INTEGER;
++	info->count = 2;
++	info->value.integer.min = 0;
++	info->value.integer.max = 0x1f;
++
++	return 0;
++}
++
++/* FIXME: should also add mute controls for each */
++
++static int em28xx_vol_put(struct snd_kcontrol *kcontrol,
++			       struct snd_ctl_elem_value *value)
++{
++	struct em28xx *dev = snd_kcontrol_chip(kcontrol);
++	u16 val = (value->value.integer.value[0] & 0x1f) |
++		  (value->value.integer.value[1] & 0x1f) << 8;
++	int rc;
++
++	mutex_lock(&dev->lock);
++	rc = em28xx_read_ac97(dev, kcontrol->private_value);
++	if (rc < 0)
++		goto err;
++
++	val |= rc & 0x8080;	/* Preserve the mute flags */
++
++	rc = em28xx_write_ac97(dev, kcontrol->private_value, val);
++
++err:
++	mutex_unlock(&dev->lock);
++	return rc;
++}
++
++static int em28xx_vol_get(struct snd_kcontrol *kcontrol,
++			       struct snd_ctl_elem_value *value)
++{
++	struct em28xx *dev = snd_kcontrol_chip(kcontrol);
++	int val;
++
++	mutex_lock(&dev->lock);
++	val = em28xx_read_ac97(dev, kcontrol->private_value);
++	mutex_unlock(&dev->lock);
++	if (val < 0)
++		return val;
++
++	value->value.integer.value[0] = val & 0x1f;
++	value->value.integer.value[1] = (val << 8) & 0x1f;
++
++	return 0;
++}
++
++static const DECLARE_TLV_DB_SCALE(em28xx_db_scale, -3450, 150, 0);
++
++static int em28xx_cvol_new(struct snd_card *card, struct em28xx *dev,
++			   char *name, int id)
++{
++	int err;
++	struct snd_kcontrol *kctl;
++	struct snd_kcontrol_new tmp = {
++		.iface = SNDRV_CTL_ELEM_IFACE_MIXER,
++		.name  = name,
++		.info  = em28xx_vol_info,
++		.get   = em28xx_vol_get,
++		.put   = em28xx_vol_put,
++		.private_value = id,
++		.tlv.p = em28xx_db_scale,
++	};
++
++	kctl = snd_ctl_new1(&tmp, dev);
++
++	err = snd_ctl_add(card, kctl);
++	if (err < 0)
++		return err;
++
++	return 0;
++}
++
++
++/*
++ * register/unregister code and data
++ */
+ static struct snd_pcm_ops snd_em28xx_pcm_capture = {
+ 	.open      = snd_em28xx_capture_open,
+ 	.close     = snd_em28xx_pcm_close,
+@@ -489,6 +576,22 @@ static int em28xx_audio_init(struct em28xx *dev)
+ 
+ 	INIT_WORK(&dev->wq_trigger, audio_trigger);
+ 
++	if (dev->audio_mode.ac97 != EM28XX_NO_AC97) {
++		em28xx_cvol_new(card, dev, "Video", AC97_VIDEO_VOL);
++		em28xx_cvol_new(card, dev, "Line In", AC97_LINEIN_VOL);
++		em28xx_cvol_new(card, dev, "Phone", AC97_PHONE_VOL);
++		em28xx_cvol_new(card, dev, "Microphone", AC97_PHONE_VOL);
++		em28xx_cvol_new(card, dev, "CD", AC97_CD_VOL);
++		em28xx_cvol_new(card, dev, "AUX", AC97_AUX_VOL);
++		em28xx_cvol_new(card, dev, "PCM", AC97_PCM_OUT_VOL);
++
++		em28xx_cvol_new(card, dev, "Master", AC97_MASTER_VOL);
++		em28xx_cvol_new(card, dev, "Line", AC97_LINE_LEVEL_VOL);
++		em28xx_cvol_new(card, dev, "Mono", AC97_MASTER_MONO_VOL);
++		em28xx_cvol_new(card, dev, "LFE", AC97_LFE_MASTER_VOL);
++		em28xx_cvol_new(card, dev, "Surround", AC97_SURR_MASTER_VOL);
++	}
++
+ 	err = snd_card_register(card);
+ 	if (err < 0) {
+ 		snd_card_free(card);
+diff --git a/drivers/media/video/em28xx/em28xx-core.c b/drivers/media/video/em28xx/em28xx-core.c
+index 7bf3a86..752d4ed 100644
+--- a/drivers/media/video/em28xx/em28xx-core.c
++++ b/drivers/media/video/em28xx/em28xx-core.c
+@@ -286,6 +286,7 @@ int em28xx_read_ac97(struct em28xx *dev, u8 reg)
+ 		return ret;
+ 	return le16_to_cpu(val);
+ }
++EXPORT_SYMBOL_GPL(em28xx_read_ac97);
+ 
+ /*
+  * em28xx_write_ac97()
+@@ -313,6 +314,7 @@ int em28xx_write_ac97(struct em28xx *dev, u8 reg, u16 val)
+ 
+ 	return 0;
+ }
++EXPORT_SYMBOL_GPL(em28xx_write_ac97);
+ 
+ struct em28xx_vol_itable {
+ 	enum em28xx_amux mux;
+-- 
+1.7.1
+
 
