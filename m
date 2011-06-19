@@ -1,46 +1,48 @@
 Return-path: <mchehab@pedra>
-Received: from mailout2.w1.samsung.com ([210.118.77.12]:50172 "EHLO
-	mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752401Ab1FBNuF (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 2 Jun 2011 09:50:05 -0400
-Date: Thu, 02 Jun 2011 15:49:50 +0200
-From: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Subject: [PATCH 1/7] s5p-fimc: Fix possible memory leak during capture devnode
- registration
-In-reply-to: <1307009524-1208-1-git-send-email-s.nawrocki@samsung.com>
-To: linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org
-Cc: m.szyprowski@samsung.com, kyungmin.park@samsung.com,
-	s.nawrocki@samsung.com, sw0312.kim@samsung.com,
-	riverful.kim@samsung.comi
-Message-id: <1307022590-982-1-git-send-email-s.nawrocki@samsung.com>
-MIME-version: 1.0
-Content-type: TEXT/PLAIN
-Content-transfer-encoding: 7BIT
-References: <1307009524-1208-1-git-send-email-s.nawrocki@samsung.com>
+Received: from mail-ww0-f44.google.com ([74.125.82.44]:44189 "EHLO
+	mail-ww0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753805Ab1FSMmy (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 19 Jun 2011 08:42:54 -0400
+Received: by wwe5 with SMTP id 5so1746776wwe.1
+        for <linux-media@vger.kernel.org>; Sun, 19 Jun 2011 05:42:53 -0700 (PDT)
+Subject: Re: dvb_usb symbols from media_build disagree on Linux 2.6.32-32
+From: Malcolm Priestley <tvboxspy@gmail.com>
+To: Jan Hoogenraad <jan-conceptronic@hoogenraad.net>
+Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+In-Reply-To: <4DFCF1C1.6090509@hoogenraad.net>
+References: <4DFCF1C1.6090509@hoogenraad.net>
+Content-Type: text/plain; charset="UTF-8"
+Date: Sun, 19 Jun 2011 13:42:46 +0100
+Message-ID: <1308487366.2095.10.camel@localhost>
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Add missing kfree on the error path.
+On Sat, 2011-06-18 at 20:43 +0200, Jan Hoogenraad wrote:
+> Trying to compile and install media_build on an Ubuntu Lucid computer
+> Linux 2.6.32-32-generic-pae #62-Ubuntu SMP Wed Apr 20 22:10:33 UTC 2011 
+> i686 GNU/Linux
+> 
+> I can compile, but cannot use dvb-usb. With the snapshot of june 11th, I 
+> was able to do this with no problem.
+> Can somebody help me ?
+> 
+> sudo modprobe dvb-usb
+> yields
+> FATAL: Error inserting dvb_usb 
+> (/lib/modules/2.6.32-32-generic-pae/kernel/drivers/media/dvb/dvb-usb/dvb-usb.ko): 
+> Unknown symbol in module, or unknown parameter (see dmesg)
+> 
+Yes, I have had a similar problem with Ubuntu Natty 2.6.38-10
 
-Reported-by: Tomasz Stanislawski <t.stanislaws@samsung.com>
-Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
----
- drivers/media/video/s5p-fimc/fimc-capture.c |    1 +
- 1 files changed, 1 insertions(+), 0 deletions(-)
+The solution is to rminstall using the old media_build before installing
+the latest media_build. Otherwise, you will have to reinstall the latest
+Ubuntu kernel.
 
-diff --git a/drivers/media/video/s5p-fimc/fimc-capture.c b/drivers/media/video/s5p-fimc/fimc-capture.c
-index d142b40..7e66455 100644
---- a/drivers/media/video/s5p-fimc/fimc-capture.c
-+++ b/drivers/media/video/s5p-fimc/fimc-capture.c
-@@ -903,6 +903,7 @@ err_vd_reg:
- err_v4l2_reg:
- 	v4l2_device_unregister(v4l2_dev);
- err_info:
-+	kfree(ctx);
- 	dev_err(&fimc->pdev->dev, "failed to install\n");
- 	return ret;
- }
--- 
-1.7.5.2
+For some reason an old dvb-usb(or dependants) module isn't being removed
+with the latest media_build.
+
+tvboxspy
 
