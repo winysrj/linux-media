@@ -1,48 +1,46 @@
 Return-path: <mchehab@pedra>
-Received: from mail.kapsi.fi ([217.30.184.167]:39006 "EHLO mail.kapsi.fi"
+Received: from mx1.redhat.com ([209.132.183.28]:7353 "EHLO mx1.redhat.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751768Ab1FTLPJ (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 20 Jun 2011 07:15:09 -0400
-Message-ID: <4DFF2BBA.70905@iki.fi>
-Date: Mon, 20 Jun 2011 14:15:06 +0300
-From: Antti Palosaari <crope@iki.fi>
-MIME-Version: 1.0
-To: David <reality_es@yahoo.es>
-CC: linux-media@vger.kernel.org
-Subject: Re: dual sveon stv22 Afatech af9015 support (kworld clone)
-References: <S1753342Ab1FKJ3p/20110611092945Z+46855@vger.kernel.org>	<672951.10004.qm@web24108.mail.ird.yahoo.com>	<4DF4A292.3070409@iki.fi> <BANLkTikT9Tp6N9=Bf_cm7aYfiFdJEM-sbA@mail.gmail.com>
-In-Reply-To: <BANLkTikT9Tp6N9=Bf_cm7aYfiFdJEM-sbA@mail.gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+	id S1753404Ab1FSRnm (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 19 Jun 2011 13:43:42 -0400
+Received: from int-mx01.intmail.prod.int.phx2.redhat.com (int-mx01.intmail.prod.int.phx2.redhat.com [10.5.11.11])
+	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id p5JHhgcv028217
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
+	for <linux-media@vger.kernel.org>; Sun, 19 Jun 2011 13:43:42 -0400
+Received: from pedra (vpn-238-25.phx2.redhat.com [10.3.238.25])
+	by int-mx01.intmail.prod.int.phx2.redhat.com (8.13.8/8.13.8) with ESMTP id p5JHhWq4018286
+	for <linux-media@vger.kernel.org>; Sun, 19 Jun 2011 13:43:41 -0400
+Date: Sun, 19 Jun 2011 14:42:34 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: [PATCH 11/11] [media] em28xx: Mark Kworld 305 as validated
+Message-ID: <20110619144234.7553fa8d@pedra>
+In-Reply-To: <cover.1308503857.git.mchehab@redhat.com>
+References: <cover.1308503857.git.mchehab@redhat.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
+To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On 06/20/2011 11:51 AM, David wrote:
-> Hello again:
-> I ' m working with remote in sveon stv22:
->
-> remote es a grid of buttons 4 buttons horizontally and 8 vertically
+This board were used for testing the em28xx-alsa using a separate interface.
+So, it is obviously validated ;)
 
-That's RC_MAP_MSI_DIGIVOX_III remote. It is already used by that AF9015. 
-You should add USB-ID mapping for that remote to auto detect.
+Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
 
-
-[...]
-
-> If you want anything more tell my it
-> .
->
-> thanks for your time
-
-You should make patch or two and send for me in order to get changes 
-upstream.
-
-1. add support for your device (USB ID + name)
-2. map remote to your device.
-
-
-regards
-Antti
-
+diff --git a/drivers/media/video/em28xx/em28xx-cards.c b/drivers/media/video/em28xx/em28xx-cards.c
+index c445bea..c892a1e 100644
+--- a/drivers/media/video/em28xx/em28xx-cards.c
++++ b/drivers/media/video/em28xx/em28xx-cards.c
+@@ -1319,7 +1319,6 @@ struct em28xx_board em28xx_boards[] = {
+ 	},
+ 	[EM2880_BOARD_KWORLD_DVB_305U] = {
+ 		.name	      = "KWorld DVB-T 305U",
+-		.valid        = EM28XX_BOARD_NOT_VALIDATED,
+ 		.tuner_type   = TUNER_XC2028,
+ 		.tuner_gpio   = default_tuner_gpio,
+ 		.decoder      = EM28XX_TVP5150,
 -- 
-http://palosaari.fi/
+1.7.1
+
