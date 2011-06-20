@@ -1,47 +1,61 @@
 Return-path: <mchehab@pedra>
-Received: from alia.ip-minds.de ([84.201.38.2]:46850 "EHLO alia.ip-minds.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753339Ab1FSKSk (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 19 Jun 2011 06:18:40 -0400
-Received: from localhost (localhost.localdomain [127.0.0.1])
-	by alia.ip-minds.de (Postfix) with ESMTP id 6A59666AFEE
-	for <linux-media@vger.kernel.org>; Sun, 19 Jun 2011 12:16:11 +0200 (CEST)
-Received: from alia.ip-minds.de ([127.0.0.1])
-	by localhost (alia.ip-minds.de [127.0.0.1]) (amavisd-new, port 10024)
-	with ESMTP id cM6RtPJ1RiUL for <linux-media@vger.kernel.org>;
-	Sun, 19 Jun 2011 12:16:11 +0200 (CEST)
-Received: from lyra (p5B10F7F1.dip.t-dialin.net [91.16.247.241])
-	by alia.ip-minds.de (Postfix) with ESMTPA id 06C6D66AFD0
-	for <linux-media@vger.kernel.org>; Sun, 19 Jun 2011 12:16:10 +0200 (CEST)
-Date: Sun, 19 Jun 2011 12:13:07 +0200
-From: Jean-Michel Bruenn <jean.bruenn@ip-minds.de>
-To: linux-media@vger.kernel.org
-Subject: Re: WinTV 1400 broken with recent versions?
-Message-Id: <20110619121307.74eb2f77.jean.bruenn@ip-minds.de>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Received: from mail1-out1.atlantis.sk ([80.94.52.55]:35729 "EHLO
+	mail.atlantis.sk" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1755577Ab1FTTKF (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 20 Jun 2011 15:10:05 -0400
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Subject: [PATCH] [resend] tea575x: remove useless input ioctls
+Cc: linux-media@vger.kernel.org, alsa-devel@alsa-project.org,
+	Kernel development list <linux-kernel@vger.kernel.org>
+Content-Disposition: inline
+From: Ondrej Zary <linux@rainbow-software.org>
+Date: Mon, 20 Jun 2011 21:09:55 +0200
+MIME-Version: 1.0
+Content-Type: text/plain;
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
+Message-Id: <201106202109.58370.linux@rainbow-software.org>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Hey,
+Remove empty and useless g_input and s_input ioctls.
+This fixes one fail of v4l2-compliance test.
 
-this one still seems to be broken, with all recent kernels. I wasn't
-able to see which patches turned the card into a non-working state. I
-know that pretty old kernels (i can't use them otherwise i would have
-downgraded) work fine with that card.
+Signed-off-by: Ondrej Zary <linux@rainbow-software.org>
 
-For those who are interested in the original issue:
-http://www.mail-archive.com/linux-media@vger.kernel.org/msg29147.html
+--- linux-2.6.39-rc2-/sound/i2c/other/tea575x-tuner.c	2011-06-11 15:29:18.000000000 +0200
++++ linux-2.6.39-rc2/sound/i2c/other/tea575x-tuner.c	2011-06-11 15:29:51.000000000 +0200
+@@ -269,19 +269,6 @@ static int tea575x_s_ctrl(struct v4l2_ct
+ 	return -EINVAL;
+ }
+ 
+-static int vidioc_g_input(struct file *filp, void *priv, unsigned int *i)
+-{
+-	*i = 0;
+-	return 0;
+-}
+-
+-static int vidioc_s_input(struct file *filp, void *priv, unsigned int i)
+-{
+-	if (i != 0)
+-		return -EINVAL;
+-	return 0;
+-}
+-
+ static const struct v4l2_file_operations tea575x_fops = {
+ 	.owner		= THIS_MODULE,
+ 	.unlocked_ioctl	= video_ioctl2,
+@@ -293,8 +280,6 @@ static const struct v4l2_ioctl_ops tea57
+ 	.vidioc_s_tuner     = vidioc_s_tuner,
+ 	.vidioc_g_audio     = vidioc_g_audio,
+ 	.vidioc_s_audio     = vidioc_s_audio,
+-	.vidioc_g_input     = vidioc_g_input,
+-	.vidioc_s_input     = vidioc_s_input,
+ 	.vidioc_g_frequency = vidioc_g_frequency,
+ 	.vidioc_s_frequency = vidioc_s_frequency,
+ };
 
-Around 2008-2009 the card made it into linux and was working a few
-weeks after these mails:
-http://www.linuxtv.org/pipermail/linux-dvb/2008-April/025224.html
 
-I'm curious, anyone else using this card (expresscard) successful? if
-yes, with which kernel? Any chance that this is going to be fixed or
-should i better buy a new expresscard? Is there some suggestion for a
-dvb-t expresscard which will still work in 2-3 years in linux?
-
-Thanks in advance,
-Jean
+-- 
+Ondrej Zary
