@@ -1,695 +1,620 @@
 Return-path: <mchehab@pedra>
-Received: from mailout2.w1.samsung.com ([210.118.77.12]:49667 "EHLO
-	mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758035Ab1FJShM (ORCPT
+Received: from oproxy3-pub.bluehost.com ([69.89.21.8]:54744 "HELO
+	oproxy3-pub.bluehost.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1750789Ab1FTU0O (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 10 Jun 2011 14:37:12 -0400
-Date: Fri, 10 Jun 2011 20:36:51 +0200
-From: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Subject: [PATCH/RFC 10/19] s5p-fimc: Conversion to the control framework
-In-reply-to: <1307731020-7100-1-git-send-email-s.nawrocki@samsung.com>
-To: linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org
-Cc: hans.verkuil@cisco.com, laurent.pinchart@ideasonboard.com,
-	m.szyprowski@samsung.com, kyungmin.park@samsung.com,
-	s.nawrocki@samsung.com, sw0312.kim@samsung.com,
-	riverful.kim@samsung.com
-Message-id: <1307731020-7100-11-git-send-email-s.nawrocki@samsung.com>
-MIME-version: 1.0
-Content-type: TEXT/PLAIN
-Content-transfer-encoding: 7BIT
-References: <1307731020-7100-1-git-send-email-s.nawrocki@samsung.com>
+	Mon, 20 Jun 2011 16:26:14 -0400
+Received: from c-67-161-37-189.hsd1.ca.comcast.net ([67.161.37.189] helo=jbarnes-desktop)
+	by box514.bluehost.com with esmtpsa (TLSv1:AES128-SHA:128)
+	(Exim 4.69)
+	(envelope-from <jbarnes@virtuousgeek.org>)
+	id 1QYl2z-0004Iy-5o
+	for linux-media@vger.kernel.org; Mon, 20 Jun 2011 14:26:13 -0600
+From: Jesse Barnes <jbarnes@virtuousgeek.org> (by way of Jesse Barnes
+	<jbarnes@virtuousgeek.org>)
+To: dri-devel@lists.freedesktop.org
+Cc: intel-gfx@lists.freedesktop.org,
+	Marcus Lorentzon <marcus.xm.lorentzon@stericsson.com>,
+	Alan Cox <alan@lxorguk.ukuu.org.uk>,
+	Jesse Barnes <jbarnes@virtuousgeek.org>
+Date: Mon, 20 Jun 2011 13:11:40 -0700
+Message-Id: <1308600701-7442-4-git-send-email-jbarnes@virtuousgeek.org>
+In-Reply-To: <1308600701-7442-1-git-send-email-jbarnes@virtuousgeek.org>
+References: <1308600701-7442-1-git-send-email-jbarnes@virtuousgeek.org>
+Subject: [PATCH 3/4] drm/i915: rename existing overlay support to "legacy"
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-The FIMC entity supports rotation, horizontal and vertical flip
-in camera capture and memory-to-memory operation mode.
-Due to atomic contexts used in mem-to-mem driver the control
-values need to be cached in drivers internal data structure.
+The old overlay block has all sorts of quirks and is very different than
+ILK+ video sprites.  So rename it to legacy to make that clear and clash
+less with core overlay support.
 
-Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+Signed-off-by: Jesse Barnes <jbarnes@virtuousgeek.org>
 ---
- drivers/media/video/s5p-fimc/fimc-capture.c |   60 +++---
- drivers/media/video/s5p-fimc/fimc-core.c    |  288 +++++++++++----------------
- drivers/media/video/s5p-fimc/fimc-core.h    |   34 ++--
- drivers/media/video/s5p-fimc/fimc-mdevice.c |   11 +-
- drivers/media/video/s5p-fimc/fimc-reg.c     |   32 +---
- 5 files changed, 183 insertions(+), 242 deletions(-)
+ drivers/gpu/drm/i915/i915_debugfs.c  |    2 +-
+ drivers/gpu/drm/i915/i915_drv.h      |   12 ++--
+ drivers/gpu/drm/i915/i915_irq.c      |    2 +-
+ drivers/gpu/drm/i915/intel_display.c |    2 +-
+ drivers/gpu/drm/i915/intel_drv.h     |    4 +-
+ drivers/gpu/drm/i915/intel_overlay.c |  126 +++++++++++++++++-----------------
+ 6 files changed, 74 insertions(+), 74 deletions(-)
 
-diff --git a/drivers/media/video/s5p-fimc/fimc-capture.c b/drivers/media/video/s5p-fimc/fimc-capture.c
-index 05e95da..a14f857 100644
---- a/drivers/media/video/s5p-fimc/fimc-capture.c
-+++ b/drivers/media/video/s5p-fimc/fimc-capture.c
-@@ -28,6 +28,7 @@
- #include <media/videobuf2-core.h>
- #include <media/videobuf2-dma-contig.h>
- 
-+#include "fimc-mdevice.h"
- #include "fimc-core.h"
- 
- static int fimc_stop_capture(struct fimc_dev *fimc)
-@@ -260,6 +261,29 @@ static struct vb2_ops fimc_capture_qops = {
- 	.stop_streaming		= stop_streaming,
- };
- 
-+/**
-+ * fimc_capture_ctrls_create - initialize the control handler
-+ *
-+ * Initialize the capture video node control handler and populate it
-+ * with FIMC specific controls. If the linked sensor subdevice does
-+ * not expose a video node add its controls to the FIMC control
-+ * handler. This function must be called with the graph mutex held.
-+ */
-+int fimc_capture_ctrls_create(struct fimc_dev *fimc)
-+{
-+	int ret;
-+
-+	if (WARN_ON(fimc->vid_cap.ctx == NULL))
-+		return -ENXIO;
-+	if (fimc->vid_cap.ctx->ctrls_rdy)
-+		return 0;
-+	ret = fimc_ctrls_create(fimc->vid_cap.ctx);
-+	if (ret || subdev_has_devnode(fimc->pipeline.sensor))
-+		return ret;
-+	return v4l2_ctrl_add_handler(&fimc->vid_cap.ctx->ctrl_handler,
-+				    fimc->pipeline.sensor->ctrl_handler);
-+}
-+
- static int fimc_capture_open(struct file *file)
- {
- 	struct fimc_dev *fimc = video_drvdata(file);
-@@ -280,9 +304,10 @@ static int fimc_capture_open(struct file *file)
- 		return ret;
+diff --git a/drivers/gpu/drm/i915/i915_debugfs.c b/drivers/gpu/drm/i915/i915_debugfs.c
+index 51c2257..c83ed15 100644
+--- a/drivers/gpu/drm/i915/i915_debugfs.c
++++ b/drivers/gpu/drm/i915/i915_debugfs.c
+@@ -825,7 +825,7 @@ static int i915_error_state(struct seq_file *m, void *unused)
  	}
  
--	++fimc->vid_cap.refcnt;
-+	if (++fimc->vid_cap.refcnt == 1)
-+		ret = fimc_capture_ctrls_create(fimc);
+ 	if (error->overlay)
+-		intel_overlay_print_error_state(m, error->overlay);
++		intel_legacy_overlay_print_error_state(m, error->overlay);
  
--	return 0;
-+	return ret;
- }
+ 	if (error->display)
+ 		intel_display_print_error_state(m, dev, error->display);
+diff --git a/drivers/gpu/drm/i915/i915_drv.h b/drivers/gpu/drm/i915/i915_drv.h
+index 31e199f..062e80e 100644
+--- a/drivers/gpu/drm/i915/i915_drv.h
++++ b/drivers/gpu/drm/i915/i915_drv.h
+@@ -117,8 +117,8 @@ struct intel_opregion {
+ };
+ #define OPREGION_SIZE            (8*1024)
  
- static int fimc_capture_close(struct file *file)
-@@ -293,11 +318,11 @@ static int fimc_capture_close(struct file *file)
+-struct intel_overlay;
+-struct intel_overlay_error_state;
++struct intel_legacy_overlay;
++struct intel_legacy_overlay_error_state;
  
- 	if (--fimc->vid_cap.refcnt == 0) {
- 		fimc_stop_capture(fimc);
-+		fimc_ctrls_delete(fimc->vid_cap.ctx);
- 		vb2_queue_release(&fimc->vid_cap.vbq);
- 	}
- 
- 	pm_runtime_put_sync(&fimc->pdev->dev);
--
- 	return v4l2_fh_release(file);
- }
- 
-@@ -534,30 +559,6 @@ static int fimc_cap_dqbuf(struct file *file, void *priv,
- 	return vb2_dqbuf(&fimc->vid_cap.vbq, buf, file->f_flags & O_NONBLOCK);
- }
- 
--static int fimc_cap_s_ctrl(struct file *file, void *priv,
--			   struct v4l2_control *ctrl)
--{
--	struct fimc_dev *fimc = video_drvdata(file);
--	struct fimc_ctx *ctx = fimc->vid_cap.ctx;
--	int ret = -EINVAL;
--
--	/* Allow any controls but 90/270 rotation while streaming */
--	if (!fimc_capture_active(ctx->fimc_dev) ||
--	    ctrl->id != V4L2_CID_ROTATE ||
--	    (ctrl->value != 90 && ctrl->value != 270)) {
--		ret = check_ctrl_val(ctx, ctrl);
--		if (!ret) {
--			ret = fimc_s_ctrl(ctx, ctrl);
--			if (!ret)
--				ctx->state |= FIMC_PARAMS;
--		}
--	}
--	if (ret == -EINVAL)
--		ret = v4l2_subdev_call(ctx->fimc_dev->vid_cap.sd,
--				       core, s_ctrl, ctrl);
--	return ret;
--}
--
- static int fimc_cap_cropcap(struct file *file, void *fh,
- 			    struct v4l2_cropcap *cr)
- {
-@@ -644,10 +645,6 @@ static const struct v4l2_ioctl_ops fimc_capture_ioctl_ops = {
- 	.vidioc_streamon		= fimc_cap_streamon,
- 	.vidioc_streamoff		= fimc_cap_streamoff,
- 
--	.vidioc_queryctrl		= fimc_vidioc_queryctrl,
--	.vidioc_g_ctrl			= fimc_vidioc_g_ctrl,
--	.vidioc_s_ctrl			= fimc_cap_s_ctrl,
--
- 	.vidioc_g_crop			= fimc_cap_g_crop,
- 	.vidioc_s_crop			= fimc_cap_s_crop,
- 	.vidioc_cropcap			= fimc_cap_cropcap,
-@@ -731,6 +728,7 @@ int fimc_register_capture_device(struct fimc_dev *fimc,
- 	if (ret)
- 		goto err_ent;
- 
-+	vfd->ctrl_handler = &ctx->ctrl_handler;
- 	ret = video_register_device(vfd, VFL_TYPE_GRABBER, -1);
- 	if (ret) {
- 		v4l2_err(v4l2_dev, "Failed to register video device\n");
-diff --git a/drivers/media/video/s5p-fimc/fimc-core.c b/drivers/media/video/s5p-fimc/fimc-core.c
-index 4238466..a0703e8 100644
---- a/drivers/media/video/s5p-fimc/fimc-core.c
-+++ b/drivers/media/video/s5p-fimc/fimc-core.c
-@@ -163,43 +163,6 @@ static struct fimc_fmt fimc_formats[] = {
- 	},
+ struct drm_i915_master_private {
+ 	drm_local_map_t *sarea;
+@@ -191,7 +191,7 @@ struct drm_i915_error_state {
+ 		u32 cache_level:2;
+ 	} *active_bo, *pinned_bo;
+ 	u32 active_bo_count, pinned_bo_count;
+-	struct intel_overlay_error_state *overlay;
++	struct intel_legacy_overlay_error_state *overlay;
+ 	struct intel_display_error_state *display;
  };
  
--static struct v4l2_queryctrl fimc_ctrls[] = {
--	{
--		.id		= V4L2_CID_HFLIP,
--		.type		= V4L2_CTRL_TYPE_BOOLEAN,
--		.name		= "Horizontal flip",
--		.minimum	= 0,
--		.maximum	= 1,
--		.default_value	= 0,
--	}, {
--		.id		= V4L2_CID_VFLIP,
--		.type		= V4L2_CTRL_TYPE_BOOLEAN,
--		.name		= "Vertical flip",
--		.minimum	= 0,
--		.maximum	= 1,
--		.default_value	= 0,
--	}, {
--		.id		= V4L2_CID_ROTATE,
--		.type		= V4L2_CTRL_TYPE_INTEGER,
--		.name		= "Rotation (CCW)",
--		.minimum	= 0,
--		.maximum	= 270,
--		.step		= 90,
--		.default_value	= 0,
--	},
--};
--
--
--static struct v4l2_queryctrl *get_ctrl(int id)
--{
--	int i;
--
--	for (i = 0; i < ARRAY_SIZE(fimc_ctrls); ++i)
--		if (id == fimc_ctrls[i].id)
--			return &fimc_ctrls[i];
--	return NULL;
--}
--
- int fimc_check_scaler_ratio(int sw, int sh, int dw, int dh, int rot)
- {
- 	int tx, ty;
-@@ -773,6 +736,113 @@ static struct vb2_ops fimc_qops = {
- 	.stop_streaming	 = stop_streaming,
+@@ -336,7 +336,7 @@ typedef struct drm_i915_private {
+ 	struct intel_opregion opregion;
+ 
+ 	/* overlay */
+-	struct intel_overlay *overlay;
++	struct intel_legacy_overlay *overlay;
+ 
+ 	/* LVDS info */
+ 	int backlight_level;  /* restore backlight to this value */
+@@ -1329,8 +1329,8 @@ extern int intel_trans_dp_port_sel (struct drm_crtc *crtc);
+ 
+ /* overlay */
+ #ifdef CONFIG_DEBUG_FS
+-extern struct intel_overlay_error_state *intel_overlay_capture_error_state(struct drm_device *dev);
+-extern void intel_overlay_print_error_state(struct seq_file *m, struct intel_overlay_error_state *error);
++extern struct intel_legacy_overlay_error_state *intel_legacy_overlay_capture_error_state(struct drm_device *dev);
++extern void intel_legacy_overlay_print_error_state(struct seq_file *m, struct intel_legacy_overlay_error_state *error);
+ 
+ extern struct intel_display_error_state *intel_display_capture_error_state(struct drm_device *dev);
+ extern void intel_display_print_error_state(struct seq_file *m,
+diff --git a/drivers/gpu/drm/i915/i915_irq.c b/drivers/gpu/drm/i915/i915_irq.c
+index b79619a..7a34167 100644
+--- a/drivers/gpu/drm/i915/i915_irq.c
++++ b/drivers/gpu/drm/i915/i915_irq.c
+@@ -991,7 +991,7 @@ static void i915_capture_error_state(struct drm_device *dev)
+ 
+ 	do_gettimeofday(&error->time);
+ 
+-	error->overlay = intel_overlay_capture_error_state(dev);
++	error->overlay = intel_legacy_overlay_capture_error_state(dev);
+ 	error->display = intel_display_capture_error_state(dev);
+ 
+ 	spin_lock_irqsave(&dev_priv->error_lock, flags);
+diff --git a/drivers/gpu/drm/i915/intel_display.c b/drivers/gpu/drm/i915/intel_display.c
+index 8a6e3ab..7901f16 100644
+--- a/drivers/gpu/drm/i915/intel_display.c
++++ b/drivers/gpu/drm/i915/intel_display.c
+@@ -2936,7 +2936,7 @@ static void intel_crtc_dpms_overlay(struct intel_crtc *intel_crtc, bool enable)
+ 
+ 		mutex_lock(&dev->struct_mutex);
+ 		dev_priv->mm.interruptible = false;
+-		(void) intel_overlay_switch_off(intel_crtc->overlay);
++		(void) intel_legacy_overlay_switch_off(intel_crtc->overlay);
+ 		dev_priv->mm.interruptible = true;
+ 		mutex_unlock(&dev->struct_mutex);
+ 	}
+diff --git a/drivers/gpu/drm/i915/intel_drv.h b/drivers/gpu/drm/i915/intel_drv.h
+index 3cfc391..d73e622 100644
+--- a/drivers/gpu/drm/i915/intel_drv.h
++++ b/drivers/gpu/drm/i915/intel_drv.h
+@@ -161,7 +161,7 @@ struct intel_crtc {
+ 	bool busy; /* is scanout buffer being updated frequently? */
+ 	struct timer_list idle_timer;
+ 	bool lowfreq_avail;
+-	struct intel_overlay *overlay;
++	struct intel_legacy_overlay *overlay;
+ 	struct intel_unpin_work *unpin_work;
+ 	int fdi_lanes;
+ 
+@@ -337,7 +337,7 @@ extern void intel_finish_page_flip_plane(struct drm_device *dev, int plane);
+ 
+ extern void intel_setup_overlay(struct drm_device *dev);
+ extern void intel_cleanup_overlay(struct drm_device *dev);
+-extern int intel_overlay_switch_off(struct intel_overlay *overlay);
++extern int intel_legacy_overlay_switch_off(struct intel_legacy_overlay *overlay);
+ extern int intel_overlay_put_image(struct drm_device *dev, void *data,
+ 				   struct drm_file *file_priv);
+ extern int intel_overlay_attrs(struct drm_device *dev, void *data,
+diff --git a/drivers/gpu/drm/i915/intel_overlay.c b/drivers/gpu/drm/i915/intel_overlay.c
+index a670c00..42e6561 100644
+--- a/drivers/gpu/drm/i915/intel_overlay.c
++++ b/drivers/gpu/drm/i915/intel_overlay.c
+@@ -170,7 +170,7 @@ struct overlay_registers {
+     u16 RESERVEDG[0x100 / 2 - N_HORIZ_UV_TAPS * N_PHASES];
  };
  
-+/*
-+ * V4L2 controls handling
-+ */
-+#define ctrl_to_ctx(__ctrl) \
-+	container_of((__ctrl)->handler, struct fimc_ctx, ctrl_handler)
-+
-+static int fimc_s_ctrl(struct v4l2_ctrl *ctrl)
-+{
-+	struct fimc_ctx *ctx = ctrl_to_ctx(ctrl);
-+	struct fimc_dev *fimc = ctx->fimc_dev;
-+	struct samsung_fimc_variant *variant = fimc->variant;
-+	unsigned long flags;
-+	int ret = 0;
-+
-+	switch (ctrl->id) {
-+	case V4L2_CID_HFLIP:
-+		spin_lock_irqsave(&ctx->slock, flags);
-+		ctx->hflip = ctrl->val;
-+		break;
-+
-+	case V4L2_CID_VFLIP:
-+		spin_lock_irqsave(&ctx->slock, flags);
-+		ctx->vflip = ctrl->val;
-+		break;
-+
-+	case V4L2_CID_ROTATE:
-+		if (fimc_capture_pending(fimc) ||
-+		    fimc_ctx_state_is_set(FIMC_DST_FMT | FIMC_SRC_FMT, ctx)) {
-+			ret = fimc_check_scaler_ratio(ctx->s_frame.width,
-+					ctx->s_frame.height, ctx->d_frame.width,
-+					ctx->d_frame.height, ctrl->val);
-+		}
-+		if (ret) {
-+			v4l2_err(fimc->m2m.vfd, "Out of scaler range\n");
-+			return -EINVAL;
-+		}
-+		if ((ctrl->val == 90 || ctrl->val == 270) &&
-+		    !variant->has_out_rot)
-+			return -EINVAL;
-+		spin_lock_irqsave(&ctx->slock, flags);
-+		ctx->rotation = ctrl->val;
-+		break;
-+
-+	default:
-+		v4l2_err(fimc->v4l2_dev, "Invalid control: 0x%X\n", ctrl->id);
-+		return -EINVAL;
-+	}
-+	ctx->state |= FIMC_PARAMS;
-+	set_bit(ST_CAPT_APPLY_CFG, &fimc->state);
-+	spin_unlock_irqrestore(&ctx->slock, flags);
-+	return 0;
-+}
-+
-+static const struct v4l2_ctrl_ops fimc_ctrl_ops = {
-+	.s_ctrl = fimc_s_ctrl,
-+};
-+
-+int fimc_ctrls_create(struct fimc_ctx *ctx)
-+{
-+	if (ctx->ctrls_rdy)
-+		return 0;
-+	v4l2_ctrl_handler_init(&ctx->ctrl_handler, 3);
-+
-+	ctx->ctrl_rotate = v4l2_ctrl_new_std(&ctx->ctrl_handler, &fimc_ctrl_ops,
-+				     V4L2_CID_HFLIP, 0, 1, 1, 0);
-+	ctx->ctrl_hflip = v4l2_ctrl_new_std(&ctx->ctrl_handler, &fimc_ctrl_ops,
-+				    V4L2_CID_VFLIP, 0, 1, 1, 0);
-+	ctx->ctrl_vflip = v4l2_ctrl_new_std(&ctx->ctrl_handler, &fimc_ctrl_ops,
-+				    V4L2_CID_ROTATE, 0, 270, 90, 0);
-+	ctx->ctrls_rdy = ctx->ctrl_handler.error == 0;
-+
-+	return ctx->ctrl_handler.error;
-+}
-+
-+void fimc_ctrls_delete(struct fimc_ctx *ctx)
-+{
-+	if (ctx->ctrls_rdy) {
-+		v4l2_ctrl_handler_free(&ctx->ctrl_handler);
-+		ctx->ctrls_rdy = false;
-+	}
-+}
-+
-+void fimc_ctrls_activate(struct fimc_ctx *ctx, bool active)
-+{
-+	if (!ctx->ctrls_rdy)
-+		return;
-+
-+	mutex_lock(&ctx->ctrl_handler.lock);
-+	v4l2_ctrl_activate(ctx->ctrl_rotate, active);
-+	v4l2_ctrl_activate(ctx->ctrl_hflip, active);
-+	v4l2_ctrl_activate(ctx->ctrl_vflip, active);
-+
-+	if (active) {
-+		ctx->rotation = ctx->ctrl_rotate->val;
-+		ctx->hflip    = ctx->ctrl_hflip->val;
-+		ctx->vflip    = ctx->ctrl_vflip->val;
-+	} else {
-+		ctx->rotation = 0;
-+		ctx->hflip    = 0;
-+		ctx->vflip    = 0;
-+	}
-+	mutex_unlock(&ctx->ctrl_handler.lock);
-+}
-+
-+/*
-+ * V4L2 ioctl handlers
-+ */
- static int fimc_m2m_querycap(struct file *file, void *fh,
- 			     struct v4l2_capability *cap)
+-struct intel_overlay {
++struct intel_legacy_overlay {
+ 	struct drm_device *dev;
+ 	struct intel_crtc *crtc;
+ 	struct drm_i915_gem_object *vid_bo;
+@@ -186,11 +186,11 @@ struct intel_overlay {
+ 	struct drm_i915_gem_object *reg_bo;
+ 	/* flip handling */
+ 	uint32_t last_flip_req;
+-	void (*flip_tail)(struct intel_overlay *);
++	void (*flip_tail)(struct intel_legacy_overlay *);
+ };
+ 
+ static struct overlay_registers *
+-intel_overlay_map_regs(struct intel_overlay *overlay)
++intel_legacy_overlay_map_regs(struct intel_legacy_overlay *overlay)
  {
-@@ -1070,136 +1140,6 @@ static int fimc_m2m_streamoff(struct file *file, void *fh,
- 	return v4l2_m2m_streamoff(file, ctx->m2m_ctx, type);
+         drm_i915_private_t *dev_priv = overlay->dev->dev_private;
+ 	struct overlay_registers *regs;
+@@ -204,16 +204,16 @@ intel_overlay_map_regs(struct intel_overlay *overlay)
+ 	return regs;
  }
  
--int fimc_vidioc_queryctrl(struct file *file, void *fh,
--			  struct v4l2_queryctrl *qc)
--{
--	struct fimc_ctx *ctx = fh_to_ctx(fh);
--	struct fimc_dev *fimc = ctx->fimc_dev;
--	struct v4l2_queryctrl *c;
--	int ret = -EINVAL;
--
--	c = get_ctrl(qc->id);
--	if (c) {
--		*qc = *c;
--		return 0;
--	}
--
--	if (fimc_ctx_state_is_set(FIMC_CTX_CAP, ctx)) {
--		return v4l2_subdev_call(ctx->fimc_dev->vid_cap.sd,
--					core, queryctrl, qc);
--	}
--	return ret;
--}
--
--int fimc_vidioc_g_ctrl(struct file *file, void *fh, struct v4l2_control *ctrl)
--{
--	struct fimc_ctx *ctx = fh_to_ctx(fh);
--	struct fimc_dev *fimc = ctx->fimc_dev;
--
--	switch (ctrl->id) {
--	case V4L2_CID_HFLIP:
--		ctrl->value = (FLIP_X_AXIS & ctx->flip) ? 1 : 0;
--		break;
--	case V4L2_CID_VFLIP:
--		ctrl->value = (FLIP_Y_AXIS & ctx->flip) ? 1 : 0;
--		break;
--	case V4L2_CID_ROTATE:
--		ctrl->value = ctx->rotation;
--		break;
--	default:
--		if (fimc_ctx_state_is_set(FIMC_CTX_CAP, ctx)) {
--			return v4l2_subdev_call(fimc->vid_cap.sd, core,
--						g_ctrl, ctrl);
--		} else {
--			v4l2_err(fimc->m2m.vfd, "Invalid control\n");
--			return -EINVAL;
--		}
--	}
--	dbg("ctrl->value= %d", ctrl->value);
--
--	return 0;
--}
--
--int check_ctrl_val(struct fimc_ctx *ctx,  struct v4l2_control *ctrl)
--{
--	struct v4l2_queryctrl *c;
--	c = get_ctrl(ctrl->id);
--	if (!c)
--		return -EINVAL;
--
--	if (ctrl->value < c->minimum || ctrl->value > c->maximum
--		|| (c->step != 0 && ctrl->value % c->step != 0)) {
--		v4l2_err(ctx->fimc_dev->m2m.vfd, "Invalid control value\n");
--		return -ERANGE;
--	}
--
--	return 0;
--}
--
--int fimc_s_ctrl(struct fimc_ctx *ctx, struct v4l2_control *ctrl)
--{
--	struct samsung_fimc_variant *variant = ctx->fimc_dev->variant;
--	struct fimc_dev *fimc = ctx->fimc_dev;
--	int ret = 0;
--
--	switch (ctrl->id) {
--	case V4L2_CID_HFLIP:
--		if (ctrl->value)
--			ctx->flip |= FLIP_X_AXIS;
--		else
--			ctx->flip &= ~FLIP_X_AXIS;
--		break;
--
--	case V4L2_CID_VFLIP:
--		if (ctrl->value)
--			ctx->flip |= FLIP_Y_AXIS;
--		else
--			ctx->flip &= ~FLIP_Y_AXIS;
--		break;
--
--	case V4L2_CID_ROTATE:
--		if (fimc_ctx_state_is_set(FIMC_DST_FMT | FIMC_SRC_FMT, ctx)) {
--			ret = fimc_check_scaler_ratio(ctx->s_frame.width,
--					ctx->s_frame.height, ctx->d_frame.width,
--					ctx->d_frame.height, ctrl->value);
--		}
--
--		if (ret) {
--			v4l2_err(fimc->m2m.vfd, "Out of scaler range\n");
--			return -EINVAL;
--		}
--
--		/* Check for the output rotator availability */
--		if ((ctrl->value == 90 || ctrl->value == 270) &&
--		    (ctx->in_path == FIMC_DMA && !variant->has_out_rot))
--			return -EINVAL;
--		ctx->rotation = ctrl->value;
--		break;
--
--	default:
--		v4l2_err(fimc->v4l2_dev, "Invalid control\n");
--		return -EINVAL;
--	}
--
--	fimc_ctx_state_lock_set(FIMC_PARAMS, ctx);
--
--	return 0;
--}
--
--static int fimc_m2m_s_ctrl(struct file *file, void *fh,
--			   struct v4l2_control *ctrl)
--{
--	struct fimc_ctx *ctx = fh_to_ctx(fh);
--	int ret = 0;
--
--	ret = check_ctrl_val(ctx, ctrl);
--	if (ret)
--		return ret;
--
--	ret = fimc_s_ctrl(ctx, ctrl);
--	return 0;
--}
--
- static int fimc_m2m_cropcap(struct file *file, void *fh,
- 			    struct v4l2_cropcap *cr)
+-static void intel_overlay_unmap_regs(struct intel_overlay *overlay,
++static void intel_legacy_overlay_unmap_regs(struct intel_legacy_overlay *overlay,
+ 				     struct overlay_registers *regs)
  {
-@@ -1365,10 +1305,6 @@ static const struct v4l2_ioctl_ops fimc_m2m_ioctl_ops = {
- 	.vidioc_streamon		= fimc_m2m_streamon,
- 	.vidioc_streamoff		= fimc_m2m_streamoff,
+ 	if (!OVERLAY_NEEDS_PHYSICAL(overlay->dev))
+ 		io_mapping_unmap(regs);
+ }
  
--	.vidioc_queryctrl		= fimc_vidioc_queryctrl,
--	.vidioc_g_ctrl			= fimc_vidioc_g_ctrl,
--	.vidioc_s_ctrl			= fimc_m2m_s_ctrl,
--
- 	.vidioc_g_crop			= fimc_m2m_g_crop,
- 	.vidioc_s_crop			= fimc_m2m_s_crop,
- 	.vidioc_cropcap			= fimc_m2m_cropcap
-@@ -1426,7 +1362,12 @@ static int fimc_m2m_open(struct file *file)
- 	ret = v4l2_fh_init(&ctx->fh, fimc->m2m.vfd);
- 	if (ret)
- 		goto error;
-+	ret = fimc_ctrls_create(ctx);
-+	if (ret)
-+		goto error_fh;
+-static int intel_overlay_do_wait_request(struct intel_overlay *overlay,
++static int intel_legacy_overlay_do_wait_request(struct intel_legacy_overlay *overlay,
+ 					 struct drm_i915_gem_request *request,
+-					 void (*tail)(struct intel_overlay *))
++					 void (*tail)(struct intel_legacy_overlay *))
+ {
+ 	struct drm_device *dev = overlay->dev;
+ 	drm_i915_private_t *dev_priv = dev->dev_private;
+@@ -284,7 +284,7 @@ i830_deactivate_pipe_a(struct drm_device *dev)
+ }
  
-+	/* Use separate control handler per file handle */
-+	ctx->fh.ctrl_handler = &ctx->ctrl_handler;
- 	file->private_data = &ctx->fh;
- 	v4l2_fh_add(&ctx->fh);
+ /* overlay needs to be disable in OCMD reg */
+-static int intel_overlay_on(struct intel_overlay *overlay)
++static int intel_legacy_overlay_on(struct intel_legacy_overlay *overlay)
+ {
+ 	struct drm_device *dev = overlay->dev;
+ 	struct drm_i915_private *dev_priv = dev->dev_private;
+@@ -319,7 +319,7 @@ static int intel_overlay_on(struct intel_overlay *overlay)
+ 	OUT_RING(MI_NOOP);
+ 	ADVANCE_LP_RING();
  
-@@ -1444,13 +1385,15 @@ static int fimc_m2m_open(struct file *file)
- 	ctx->m2m_ctx = v4l2_m2m_ctx_init(fimc->m2m.m2m_dev, ctx, queue_init);
- 	if (IS_ERR(ctx->m2m_ctx)) {
- 		ret = PTR_ERR(ctx->m2m_ctx);
--		goto error_fh;
-+		goto error_c;
- 	}
+-	ret = intel_overlay_do_wait_request(overlay, request, NULL);
++	ret = intel_legacy_overlay_do_wait_request(overlay, request, NULL);
+ out:
+ 	if (pipe_a_quirk)
+ 		i830_deactivate_pipe_a(dev);
+@@ -328,7 +328,7 @@ out:
+ }
  
- 	if (fimc->m2m.refcnt++ == 0)
- 		set_bit(ST_M2M_RUN, &fimc->state);
+ /* overlay needs to be enabled in OCMD reg */
+-static int intel_overlay_continue(struct intel_overlay *overlay,
++static int intel_legacy_overlay_continue(struct intel_legacy_overlay *overlay,
+ 				  bool load_polyphase_filter)
+ {
+ 	struct drm_device *dev = overlay->dev;
+@@ -371,7 +371,7 @@ static int intel_overlay_continue(struct intel_overlay *overlay,
  	return 0;
+ }
  
-+error_c:
-+	fimc_ctrls_delete(ctx);
- error_fh:
- 	v4l2_fh_del(&ctx->fh);
- 	v4l2_fh_exit(&ctx->fh);
-@@ -1468,6 +1411,7 @@ static int fimc_m2m_release(struct file *file)
- 		task_pid_nr(current), fimc->state, fimc->m2m.refcnt);
+-static void intel_overlay_release_old_vid_tail(struct intel_overlay *overlay)
++static void intel_legacy_overlay_release_old_vid_tail(struct intel_legacy_overlay *overlay)
+ {
+ 	struct drm_i915_gem_object *obj = overlay->old_vid_bo;
  
- 	v4l2_m2m_ctx_release(ctx->m2m_ctx);
-+	fimc_ctrls_delete(ctx);
- 	v4l2_fh_del(&ctx->fh);
- 	v4l2_fh_exit(&ctx->fh);
+@@ -381,7 +381,7 @@ static void intel_overlay_release_old_vid_tail(struct intel_overlay *overlay)
+ 	overlay->old_vid_bo = NULL;
+ }
  
-diff --git a/drivers/media/video/s5p-fimc/fimc-core.h b/drivers/media/video/s5p-fimc/fimc-core.h
-index 4b37939..eb5fa47 100644
---- a/drivers/media/video/s5p-fimc/fimc-core.h
-+++ b/drivers/media/video/s5p-fimc/fimc-core.h
-@@ -20,6 +20,7 @@
+-static void intel_overlay_off_tail(struct intel_overlay *overlay)
++static void intel_legacy_overlay_off_tail(struct intel_legacy_overlay *overlay)
+ {
+ 	struct drm_i915_gem_object *obj = overlay->vid_bo;
  
- #include <media/media-entity.h>
- #include <media/videobuf2-core.h>
-+#include <media/v4l2-ctrls.h>
- #include <media/v4l2-device.h>
- #include <media/v4l2-mem2mem.h>
- #include <media/v4l2-mediabus.h>
-@@ -62,6 +63,7 @@ enum fimc_dev_flags {
- 	ST_CAPT_STREAM,
- 	ST_CAPT_SHUT,
- 	ST_CAPT_INUSE,
-+	ST_CAPT_APPLY_CFG,
- };
+@@ -398,7 +398,7 @@ static void intel_overlay_off_tail(struct intel_overlay *overlay)
+ }
  
- #define fimc_m2m_active(dev) test_bit(ST_M2M_RUN, &(dev)->state)
-@@ -128,11 +130,6 @@ enum fimc_color_fmt {
- /* Y (16 ~ 235), Cb/Cr (16 ~ 240) */
- #define	FIMC_COLOR_RANGE_NARROW		(1 << 3)
+ /* overlay needs to be disabled in OCMD reg */
+-static int intel_overlay_off(struct intel_overlay *overlay)
++static int intel_legacy_overlay_off(struct intel_legacy_overlay *overlay)
+ {
+ 	struct drm_device *dev = overlay->dev;
+ 	struct drm_i915_private *dev_priv = dev->dev_private;
+@@ -433,13 +433,13 @@ static int intel_overlay_off(struct intel_overlay *overlay)
+ 	OUT_RING(MI_WAIT_FOR_EVENT | MI_WAIT_FOR_OVERLAY_FLIP);
+ 	ADVANCE_LP_RING();
  
--#define	FLIP_NONE			0
--#define	FLIP_X_AXIS			1
--#define	FLIP_Y_AXIS			2
--#define	FLIP_XY_AXIS			(FLIP_X_AXIS | FLIP_Y_AXIS)
--
- /**
-  * struct fimc_fmt - the driver's internal color format data
-  * @mbus_code: Media Bus pixel code, -1 if not applicable
-@@ -451,12 +448,18 @@ struct fimc_dev {
-  * @scaler:		image scaler properties
-  * @effect:		image effect
-  * @rotation:		image clockwise rotation in degrees
-- * @flip:		image flip mode
-+ * @hflip:		indicates image horizontal flip if set
-+ * @vflip:		indicates image vertical flip if set
-  * @flags:		additional flags for image conversion
-  * @state:		flags to keep track of user configuration
-  * @fimc_dev:		the FIMC device this context applies to
-  * @m2m_ctx:		memory-to-memory device context
-  * @fh:			v4l2 file handle
-+ * @ctrl_handler:	v4l2 controls handler
-+ * @ctrl_rotate		image rotation control
-+ * @ctrl_hflip		horizontal flip control
-+ * @ctrl_vflip		vartical flip control
-+ * @ctrls_rdy:		true if the control handler is initialized
+-	return intel_overlay_do_wait_request(overlay, request,
+-					     intel_overlay_off_tail);
++	return intel_legacy_overlay_do_wait_request(overlay, request,
++					     intel_legacy_overlay_off_tail);
+ }
+ 
+ /* recover from an interruption due to a signal
+  * We have to be careful not to repeat work forever an make forward progess. */
+-static int intel_overlay_recover_from_interrupt(struct intel_overlay *overlay)
++static int intel_legacy_overlay_recover_from_interrupt(struct intel_legacy_overlay *overlay)
+ {
+ 	struct drm_device *dev = overlay->dev;
+ 	drm_i915_private_t *dev_priv = dev->dev_private;
+@@ -461,9 +461,9 @@ static int intel_overlay_recover_from_interrupt(struct intel_overlay *overlay)
+ 
+ /* Wait for pending overlay flip and release old frame.
+  * Needs to be called before the overlay register are changed
+- * via intel_overlay_(un)map_regs
++ * via intel_legacy_overlay_(un)map_regs
   */
- struct fimc_ctx {
- 	spinlock_t		slock;
-@@ -471,12 +474,18 @@ struct fimc_ctx {
- 	struct fimc_scaler	scaler;
- 	struct fimc_effect	effect;
- 	int			rotation;
--	u32			flip;
-+	unsigned int		hflip:1;
-+	unsigned int		vflip:1;
- 	u32			flags;
- 	u32			state;
- 	struct fimc_dev		*fimc_dev;
- 	struct v4l2_m2m_ctx	*m2m_ctx;
- 	struct v4l2_fh		fh;
-+	struct v4l2_ctrl_handler ctrl_handler;
-+	struct v4l2_ctrl	*ctrl_rotate;
-+	struct v4l2_ctrl	*ctrl_hflip;
-+	struct v4l2_ctrl	*ctrl_vflip;
-+	bool			ctrls_rdy;
+-static int intel_overlay_release_old_vid(struct intel_overlay *overlay)
++static int intel_legacy_overlay_release_old_vid(struct intel_legacy_overlay *overlay)
+ {
+ 	struct drm_device *dev = overlay->dev;
+ 	drm_i915_private_t *dev_priv = dev->dev_private;
+@@ -493,13 +493,13 @@ static int intel_overlay_release_old_vid(struct intel_overlay *overlay)
+ 		OUT_RING(MI_NOOP);
+ 		ADVANCE_LP_RING();
+ 
+-		ret = intel_overlay_do_wait_request(overlay, request,
+-						    intel_overlay_release_old_vid_tail);
++		ret = intel_legacy_overlay_do_wait_request(overlay, request,
++						    intel_legacy_overlay_release_old_vid_tail);
+ 		if (ret)
+ 			return ret;
+ 	}
+ 
+-	intel_overlay_release_old_vid_tail(overlay);
++	intel_legacy_overlay_release_old_vid_tail(overlay);
+ 	return 0;
+ }
+ 
+@@ -625,7 +625,7 @@ static void update_polyphase_filter(struct overlay_registers *regs)
+ 	memcpy(regs->UV_HCOEFS, uv_static_hcoeffs, sizeof(uv_static_hcoeffs));
+ }
+ 
+-static bool update_scaling_factors(struct intel_overlay *overlay,
++static bool update_scaling_factors(struct intel_legacy_overlay *overlay,
+ 				   struct overlay_registers *regs,
+ 				   struct put_image_params *params)
+ {
+@@ -682,7 +682,7 @@ static bool update_scaling_factors(struct intel_overlay *overlay,
+ 	return scale_changed;
+ }
+ 
+-static void update_colorkey(struct intel_overlay *overlay,
++static void update_colorkey(struct intel_legacy_overlay *overlay,
+ 			    struct overlay_registers *regs)
+ {
+ 	u32 key = overlay->color_key;
+@@ -756,7 +756,7 @@ static u32 overlay_cmd_reg(struct put_image_params *params)
+ 	return cmd;
+ }
+ 
+-static int intel_overlay_do_put_image(struct intel_overlay *overlay,
++static int intel_legacy_overlay_do_put_image(struct intel_legacy_overlay *overlay,
+ 				      struct drm_i915_gem_object *new_bo,
+ 				      struct put_image_params *params)
+ {
+@@ -769,7 +769,7 @@ static int intel_overlay_do_put_image(struct intel_overlay *overlay,
+ 	BUG_ON(!mutex_is_locked(&dev->mode_config.mutex));
+ 	BUG_ON(!overlay);
+ 
+-	ret = intel_overlay_release_old_vid(overlay);
++	ret = intel_legacy_overlay_release_old_vid(overlay);
+ 	if (ret != 0)
+ 		return ret;
+ 
+@@ -786,7 +786,7 @@ static int intel_overlay_do_put_image(struct intel_overlay *overlay,
+ 		goto out_unpin;
+ 
+ 	if (!overlay->active) {
+-		regs = intel_overlay_map_regs(overlay);
++		regs = intel_legacy_overlay_map_regs(overlay);
+ 		if (!regs) {
+ 			ret = -ENOMEM;
+ 			goto out_unpin;
+@@ -796,14 +796,14 @@ static int intel_overlay_do_put_image(struct intel_overlay *overlay,
+ 			regs->OCONFIG |= OCONF_CSC_MODE_BT709;
+ 		regs->OCONFIG |= overlay->crtc->pipe == 0 ?
+ 			OCONF_PIPE_A : OCONF_PIPE_B;
+-		intel_overlay_unmap_regs(overlay, regs);
++		intel_legacy_overlay_unmap_regs(overlay, regs);
+ 
+-		ret = intel_overlay_on(overlay);
++		ret = intel_legacy_overlay_on(overlay);
+ 		if (ret != 0)
+ 			goto out_unpin;
+ 	}
+ 
+-	regs = intel_overlay_map_regs(overlay);
++	regs = intel_legacy_overlay_map_regs(overlay);
+ 	if (!regs) {
+ 		ret = -ENOMEM;
+ 		goto out_unpin;
+@@ -846,9 +846,9 @@ static int intel_overlay_do_put_image(struct intel_overlay *overlay,
+ 
+ 	regs->OCMD = overlay_cmd_reg(params);
+ 
+-	intel_overlay_unmap_regs(overlay, regs);
++	intel_legacy_overlay_unmap_regs(overlay, regs);
+ 
+-	ret = intel_overlay_continue(overlay, scale_changed);
++	ret = intel_legacy_overlay_continue(overlay, scale_changed);
+ 	if (ret)
+ 		goto out_unpin;
+ 
+@@ -862,7 +862,7 @@ out_unpin:
+ 	return ret;
+ }
+ 
+-int intel_overlay_switch_off(struct intel_overlay *overlay)
++int intel_legacy_overlay_switch_off(struct intel_legacy_overlay *overlay)
+ {
+ 	struct overlay_registers *regs;
+ 	struct drm_device *dev = overlay->dev;
+@@ -871,30 +871,30 @@ int intel_overlay_switch_off(struct intel_overlay *overlay)
+ 	BUG_ON(!mutex_is_locked(&dev->struct_mutex));
+ 	BUG_ON(!mutex_is_locked(&dev->mode_config.mutex));
+ 
+-	ret = intel_overlay_recover_from_interrupt(overlay);
++	ret = intel_legacy_overlay_recover_from_interrupt(overlay);
+ 	if (ret != 0)
+ 		return ret;
+ 
+ 	if (!overlay->active)
+ 		return 0;
+ 
+-	ret = intel_overlay_release_old_vid(overlay);
++	ret = intel_legacy_overlay_release_old_vid(overlay);
+ 	if (ret != 0)
+ 		return ret;
+ 
+-	regs = intel_overlay_map_regs(overlay);
++	regs = intel_legacy_overlay_map_regs(overlay);
+ 	regs->OCMD = 0;
+-	intel_overlay_unmap_regs(overlay, regs);
++	intel_legacy_overlay_unmap_regs(overlay, regs);
+ 
+-	ret = intel_overlay_off(overlay);
++	ret = intel_legacy_overlay_off(overlay);
+ 	if (ret != 0)
+ 		return ret;
+ 
+-	intel_overlay_off_tail(overlay);
++	intel_legacy_overlay_off_tail(overlay);
+ 	return 0;
+ }
+ 
+-static int check_overlay_possible_on_crtc(struct intel_overlay *overlay,
++static int check_overlay_possible_on_crtc(struct intel_legacy_overlay *overlay,
+ 					  struct intel_crtc *crtc)
+ {
+ 	drm_i915_private_t *dev_priv = overlay->dev->dev_private;
+@@ -910,7 +910,7 @@ static int check_overlay_possible_on_crtc(struct intel_overlay *overlay,
+ 	return 0;
+ }
+ 
+-static void update_pfit_vscale_ratio(struct intel_overlay *overlay)
++static void update_pfit_vscale_ratio(struct intel_legacy_overlay *overlay)
+ {
+ 	struct drm_device *dev = overlay->dev;
+ 	drm_i915_private_t *dev_priv = dev->dev_private;
+@@ -934,7 +934,7 @@ static void update_pfit_vscale_ratio(struct intel_overlay *overlay)
+ 	overlay->pfit_vscale_ratio = ratio;
+ }
+ 
+-static int check_overlay_dst(struct intel_overlay *overlay,
++static int check_overlay_dst(struct intel_legacy_overlay *overlay,
+ 			     struct drm_intel_overlay_put_image *rec)
+ {
+ 	struct drm_display_mode *mode = &overlay->crtc->base.mode;
+@@ -1106,7 +1106,7 @@ int intel_overlay_put_image(struct drm_device *dev, void *data,
+ {
+ 	struct drm_intel_overlay_put_image *put_image_rec = data;
+ 	drm_i915_private_t *dev_priv = dev->dev_private;
+-	struct intel_overlay *overlay;
++	struct intel_legacy_overlay *overlay;
+ 	struct drm_mode_object *drmmode_obj;
+ 	struct intel_crtc *crtc;
+ 	struct drm_i915_gem_object *new_bo;
+@@ -1128,7 +1128,7 @@ int intel_overlay_put_image(struct drm_device *dev, void *data,
+ 		mutex_lock(&dev->mode_config.mutex);
+ 		mutex_lock(&dev->struct_mutex);
+ 
+-		ret = intel_overlay_switch_off(overlay);
++		ret = intel_legacy_overlay_switch_off(overlay);
+ 
+ 		mutex_unlock(&dev->struct_mutex);
+ 		mutex_unlock(&dev->mode_config.mutex);
+@@ -1164,13 +1164,13 @@ int intel_overlay_put_image(struct drm_device *dev, void *data,
+ 		goto out_unlock;
+ 	}
+ 
+-	ret = intel_overlay_recover_from_interrupt(overlay);
++	ret = intel_legacy_overlay_recover_from_interrupt(overlay);
+ 	if (ret != 0)
+ 		goto out_unlock;
+ 
+ 	if (overlay->crtc != crtc) {
+ 		struct drm_display_mode *mode = &crtc->base.mode;
+-		ret = intel_overlay_switch_off(overlay);
++		ret = intel_legacy_overlay_switch_off(overlay);
+ 		if (ret != 0)
+ 			goto out_unlock;
+ 
+@@ -1232,7 +1232,7 @@ int intel_overlay_put_image(struct drm_device *dev, void *data,
+ 	if (ret != 0)
+ 		goto out_unlock;
+ 
+-	ret = intel_overlay_do_put_image(overlay, new_bo, params);
++	ret = intel_legacy_overlay_do_put_image(overlay, new_bo, params);
+ 	if (ret != 0)
+ 		goto out_unlock;
+ 
+@@ -1253,7 +1253,7 @@ out_free:
+ 	return ret;
+ }
+ 
+-static void update_reg_attrs(struct intel_overlay *overlay,
++static void update_reg_attrs(struct intel_legacy_overlay *overlay,
+ 			     struct overlay_registers *regs)
+ {
+ 	regs->OCLRC0 = (overlay->contrast << 18) | (overlay->brightness & 0xff);
+@@ -1309,7 +1309,7 @@ int intel_overlay_attrs(struct drm_device *dev, void *data,
+ {
+ 	struct drm_intel_overlay_attrs *attrs = data;
+         drm_i915_private_t *dev_priv = dev->dev_private;
+-	struct intel_overlay *overlay;
++	struct intel_legacy_overlay *overlay;
+ 	struct overlay_registers *regs;
+ 	int ret;
+ 
+@@ -1355,7 +1355,7 @@ int intel_overlay_attrs(struct drm_device *dev, void *data,
+ 		overlay->contrast   = attrs->contrast;
+ 		overlay->saturation = attrs->saturation;
+ 
+-		regs = intel_overlay_map_regs(overlay);
++		regs = intel_legacy_overlay_map_regs(overlay);
+ 		if (!regs) {
+ 			ret = -ENOMEM;
+ 			goto out_unlock;
+@@ -1363,7 +1363,7 @@ int intel_overlay_attrs(struct drm_device *dev, void *data,
+ 
+ 		update_reg_attrs(overlay, regs);
+ 
+-		intel_overlay_unmap_regs(overlay, regs);
++		intel_legacy_overlay_unmap_regs(overlay, regs);
+ 
+ 		if (attrs->flags & I915_OVERLAY_UPDATE_GAMMA) {
+ 			if (IS_GEN2(dev))
+@@ -1398,7 +1398,7 @@ out_unlock:
+ void intel_setup_overlay(struct drm_device *dev)
+ {
+         drm_i915_private_t *dev_priv = dev->dev_private;
+-	struct intel_overlay *overlay;
++	struct intel_legacy_overlay *overlay;
+ 	struct drm_i915_gem_object *reg_bo;
+ 	struct overlay_registers *regs;
+ 	int ret;
+@@ -1406,7 +1406,7 @@ void intel_setup_overlay(struct drm_device *dev)
+ 	if (!HAS_OVERLAY(dev))
+ 		return;
+ 
+-	overlay = kzalloc(sizeof(struct intel_overlay), GFP_KERNEL);
++	overlay = kzalloc(sizeof(struct intel_legacy_overlay), GFP_KERNEL);
+ 	if (!overlay)
+ 		return;
+ 	overlay->dev = dev;
+@@ -1446,7 +1446,7 @@ void intel_setup_overlay(struct drm_device *dev)
+ 	overlay->contrast = 75;
+ 	overlay->saturation = 146;
+ 
+-	regs = intel_overlay_map_regs(overlay);
++	regs = intel_legacy_overlay_map_regs(overlay);
+ 	if (!regs)
+ 		goto out_free_bo;
+ 
+@@ -1454,7 +1454,7 @@ void intel_setup_overlay(struct drm_device *dev)
+ 	update_polyphase_filter(regs);
+ 	update_reg_attrs(overlay, regs);
+ 
+-	intel_overlay_unmap_regs(overlay, regs);
++	intel_legacy_overlay_unmap_regs(overlay, regs);
+ 
+ 	dev_priv->overlay = overlay;
+ 	DRM_INFO("initialized overlay support\n");
+@@ -1488,7 +1488,7 @@ void intel_cleanup_overlay(struct drm_device *dev)
+ #ifdef CONFIG_DEBUG_FS
+ #include <linux/seq_file.h>
+ 
+-struct intel_overlay_error_state {
++struct intel_legacy_overlay_error_state {
+ 	struct overlay_registers regs;
+ 	unsigned long base;
+ 	u32 dovsta;
+@@ -1496,7 +1496,7 @@ struct intel_overlay_error_state {
  };
  
- #define fh_to_ctx(__fh) container_of(__fh, struct fimc_ctx, fh)
-@@ -632,15 +641,11 @@ int fimc_hw_set_camera_type(struct fimc_dev *fimc,
- /* fimc-core.c */
- int fimc_vidioc_enum_fmt_mplane(struct file *file, void *priv,
- 				struct v4l2_fmtdesc *f);
--int fimc_vidioc_queryctrl(struct file *file, void *priv,
--			  struct v4l2_queryctrl *qc);
--int fimc_vidioc_g_ctrl(struct file *file, void *priv,
--		       struct v4l2_control *ctrl);
--
- int fimc_try_fmt_mplane(struct fimc_ctx *ctx, struct v4l2_format *f);
- int fimc_try_crop(struct fimc_ctx *ctx, struct v4l2_crop *cr);
--int check_ctrl_val(struct fimc_ctx *ctx,  struct v4l2_control *ctrl);
--int fimc_s_ctrl(struct fimc_ctx *ctx, struct v4l2_control *ctrl);
-+int fimc_ctrls_create(struct fimc_ctx *ctx);
-+void fimc_ctrls_delete(struct fimc_ctx *ctx);
-+void fimc_ctrls_activate(struct fimc_ctx *ctx, bool active);
- int fimc_fill_format(struct fimc_frame *frame, struct v4l2_format *f);
- 
- struct fimc_fmt *find_format(struct v4l2_format *f, unsigned int mask);
-@@ -661,6 +666,7 @@ void fimc_unregister_m2m_device(struct fimc_dev *fimc);
- int fimc_register_capture_device(struct fimc_dev *fimc,
- 				 struct v4l2_device *v4l2_dev);
- void fimc_unregister_capture_device(struct fimc_dev *fimc);
-+int fimc_capture_ctrls_create(struct fimc_dev *fimc);
- int fimc_vid_cap_buf_queue(struct fimc_dev *fimc,
- 			     struct fimc_vid_buffer *fimc_vb);
- int fimc_capture_suspend(struct fimc_dev *fimc);
-diff --git a/drivers/media/video/s5p-fimc/fimc-mdevice.c b/drivers/media/video/s5p-fimc/fimc-mdevice.c
-index ae70a42..bff370c 100644
---- a/drivers/media/video/s5p-fimc/fimc-mdevice.c
-+++ b/drivers/media/video/s5p-fimc/fimc-mdevice.c
-@@ -21,6 +21,7 @@
- #include <linux/types.h>
- #include <linux/slab.h>
- #include <linux/version.h>
-+#include <media/v4l2-ctrls.h>
- #include <media/media-device.h>
- 
- #include "fimc-core.h"
-@@ -601,15 +602,23 @@ static int fimc_md_link_notify(struct media_pad *source,
- 		ret = __fimc_pipeline_shutdown(fimc);
- 		fimc->pipeline.sensor = NULL;
- 		fimc->pipeline.csis = NULL;
-+
-+		mutex_lock(&fimc->lock);
-+		fimc_ctrls_delete(fimc->vid_cap.ctx);
-+		mutex_unlock(&fimc->lock);
- 		return ret;
- 	}
- 	/*
- 	 * Link activation. Enable power of pipeline elements only if the
- 	 * pipeline is already in use, i.e. its video node is opened.
-+	 * Recreate the controls destroyed during the link deactivation.
- 	 */
- 	mutex_lock(&fimc->lock);
--	if (fimc->vid_cap.refcnt > 0)
-+	if (fimc->vid_cap.refcnt > 0) {
- 		ret = __fimc_pipeline_initialize(fimc, source->entity, true);
-+		if (!ret)
-+			ret = fimc_capture_ctrls_create(fimc);
-+	}
- 	mutex_unlock(&fimc->lock);
- 
- 	return ret ? -EPIPE : ret;
-diff --git a/drivers/media/video/s5p-fimc/fimc-reg.c b/drivers/media/video/s5p-fimc/fimc-reg.c
-index c688263..50937b4 100644
---- a/drivers/media/video/s5p-fimc/fimc-reg.c
-+++ b/drivers/media/video/s5p-fimc/fimc-reg.c
-@@ -41,19 +41,11 @@ static u32 fimc_hw_get_in_flip(struct fimc_ctx *ctx)
+ static struct overlay_registers *
+-intel_overlay_map_regs_atomic(struct intel_overlay *overlay)
++intel_legacy_overlay_map_regs_atomic(struct intel_legacy_overlay *overlay)
  {
- 	u32 flip = S5P_MSCTRL_FLIP_NORMAL;
+ 	drm_i915_private_t *dev_priv = overlay->dev->dev_private;
+ 	struct overlay_registers *regs;
+@@ -1510,7 +1510,7 @@ intel_overlay_map_regs_atomic(struct intel_overlay *overlay)
+ 	return regs;
+ }
  
--	switch (ctx->flip) {
--	case FLIP_X_AXIS:
-+	if (ctx->hflip)
- 		flip = S5P_MSCTRL_FLIP_X_MIRROR;
--		break;
--	case FLIP_Y_AXIS:
-+	if (ctx->vflip)
- 		flip = S5P_MSCTRL_FLIP_Y_MIRROR;
--		break;
--	case FLIP_XY_AXIS:
--		flip = S5P_MSCTRL_FLIP_180;
--		break;
--	default:
--		break;
--	}
-+
- 	if (ctx->rotation <= 90)
- 		return flip;
- 
-@@ -64,19 +56,11 @@ static u32 fimc_hw_get_target_flip(struct fimc_ctx *ctx)
+-static void intel_overlay_unmap_regs_atomic(struct intel_overlay *overlay,
++static void intel_legacy_overlay_unmap_regs_atomic(struct intel_legacy_overlay *overlay,
+ 					    struct overlay_registers *regs)
  {
- 	u32 flip = S5P_CITRGFMT_FLIP_NORMAL;
+ 	if (!OVERLAY_NEEDS_PHYSICAL(overlay->dev))
+@@ -1518,12 +1518,12 @@ static void intel_overlay_unmap_regs_atomic(struct intel_overlay *overlay,
+ }
  
--	switch (ctx->flip) {
--	case FLIP_X_AXIS:
--		flip = S5P_CITRGFMT_FLIP_X_MIRROR;
--		break;
--	case FLIP_Y_AXIS:
--		flip = S5P_CITRGFMT_FLIP_Y_MIRROR;
--		break;
--	case FLIP_XY_AXIS:
--		flip = S5P_CITRGFMT_FLIP_180;
--		break;
--	default:
--		break;
--	}
-+	if (ctx->hflip)
-+		flip |= S5P_CITRGFMT_FLIP_X_MIRROR;
-+	if (ctx->vflip)
-+		flip |= S5P_CITRGFMT_FLIP_Y_MIRROR;
-+
- 	if (ctx->rotation <= 90)
- 		return flip;
  
+-struct intel_overlay_error_state *
+-intel_overlay_capture_error_state(struct drm_device *dev)
++struct intel_legacy_overlay_error_state *
++intel_legacy_overlay_capture_error_state(struct drm_device *dev)
+ {
+         drm_i915_private_t *dev_priv = dev->dev_private;
+-	struct intel_overlay *overlay = dev_priv->overlay;
+-	struct intel_overlay_error_state *error;
++	struct intel_legacy_overlay *overlay = dev_priv->overlay;
++	struct intel_legacy_overlay_error_state *error;
+ 	struct overlay_registers __iomem *regs;
+ 
+ 	if (!overlay || !overlay->active)
+@@ -1540,12 +1540,12 @@ intel_overlay_capture_error_state(struct drm_device *dev)
+ 	else
+ 		error->base = (long) overlay->reg_bo->gtt_offset;
+ 
+-	regs = intel_overlay_map_regs_atomic(overlay);
++	regs = intel_legacy_overlay_map_regs_atomic(overlay);
+ 	if (!regs)
+ 		goto err;
+ 
+ 	memcpy_fromio(&error->regs, regs, sizeof(struct overlay_registers));
+-	intel_overlay_unmap_regs_atomic(overlay, regs);
++	intel_legacy_overlay_unmap_regs_atomic(overlay, regs);
+ 
+ 	return error;
+ 
+@@ -1555,7 +1555,7 @@ err:
+ }
+ 
+ void
+-intel_overlay_print_error_state(struct seq_file *m, struct intel_overlay_error_state *error)
++intel_legacy_overlay_print_error_state(struct seq_file *m, struct intel_legacy_overlay_error_state *error)
+ {
+ 	seq_printf(m, "Overlay, status: 0x%08x, interrupt: 0x%08x\n",
+ 		   error->dovsta, error->isr);
 -- 
-1.7.5.4
+1.7.4.1
+
 
