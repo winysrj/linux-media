@@ -1,111 +1,61 @@
 Return-path: <mchehab@pedra>
-Received: from lo.gmane.org ([80.91.229.12]:60590 "EHLO lo.gmane.org"
+Received: from tex.lwn.net ([70.33.254.29]:57309 "EHLO vena.lwn.net"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752160Ab1FBPxa (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 2 Jun 2011 11:53:30 -0400
-Received: from list by lo.gmane.org with local (Exim 4.69)
-	(envelope-from <gldv-linux-media@m.gmane.org>)
-	id 1QSADA-0006Mz-PX
-	for linux-media@vger.kernel.org; Thu, 02 Jun 2011 17:53:28 +0200
-Received: from 118.100.23.139 ([118.100.23.139])
-        by main.gmane.org with esmtp (Gmexim 0.1 (Debian))
-        id 1AlnuQ-0007hv-00
-        for <linux-media@vger.kernel.org>; Thu, 02 Jun 2011 17:53:28 +0200
-Received: from bahathir by 118.100.23.139 with local (Gmexim 0.1 (Debian))
-        id 1AlnuQ-0007hv-00
-        for <linux-media@vger.kernel.org>; Thu, 02 Jun 2011 17:53:28 +0200
+	id S1754383Ab1FTTPF (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 20 Jun 2011 15:15:05 -0400
+From: Jonathan Corbet <corbet@lwn.net>
 To: linux-media@vger.kernel.org
-From: Mohammad Bahathir Hashim <bahathir@gmail.com>
-Subject: Re: [linux-dvb] XC4000 patches for kernel 2.6.37.2
-Date: Thu, 2 Jun 2011 15:53:15 +0000 (UTC)
-Message-ID: <is8blb$fan$1@dough.gmane.org>
-References: <4D764337.6050109@email.cz>
- <20110531124843.377a2a80@glory.local>
- <BANLkTi=Lq+FF++yGhRmOa4NCigSt6ZurHg@mail.gmail.com>
- <20110531174323.0f0c45c0@glory.local>
- <BANLkTimEEGsMP6PDXf5W5p9wW7wdWEEOiA@mail.gmail.com>
-Reply-To: Mohammad Bahathir Hashim <bahathir@gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
+Cc: g.liakhovetski@gmx.de, Kassey Lee <ygli@marvell.com>,
+	Jonathan Corbet <corbet@lwn.net>
+Subject: [PATCH 2/5] marvell-cam: include file cleanup
+Date: Mon, 20 Jun 2011 13:14:37 -0600
+Message-Id: <1308597280-138673-3-git-send-email-corbet@lwn.net>
+In-Reply-To: <1308597280-138673-1-git-send-email-corbet@lwn.net>
+References: <1308597280-138673-1-git-send-email-corbet@lwn.net>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Now I understood how thing works here, and it clear to me, why the
-xc4000 driver is not being included in mainline V4L2. 
+Put the includes into a slightly more readable ordering and get rid of a
+few unneeded ones.
 
-It will be lots of commitments and hard work to be the maintainer, and
-I respect Mr. Devin's choice and decisions. There are several peoples
-that are interested in this driver, such as Mr. Istvan. I realized
-this driver does not have huge users/audiences, but still there are
-peoples who really need it. But, yeah, not everybody can 'port' the
-driver each time Linux kernel or V4L2 version being updated. 
+Signed-off-by: Jonathan Corbet <corbet@lwn.net>
+---
+ drivers/media/video/marvell-ccic/mcam-core.c |   14 ++++++--------
+ 1 files changed, 6 insertions(+), 8 deletions(-)
 
-In this case, IF no one is able to maintains the driver, how others
-can benefit the 'updated' driver or patches for the new V4L2 or Linux
-releases? 
-
-At the moment I still be able to port and test it for my private use.
-Sometime I sent the patches to Mr.  Istvan to be included in his
-xc4000 driver's website, for  other users to use it. 
-
-BTW, I am not a programmer. I am just a system administrator, who only
-like to use shell scripts, awk, sed and grep. I only know how 'read' C,
-and can do SIMPLE 'porting' and testing tasks :). Still I really hope
-other developers able to include the analog TV/FM tuning and S-Video input
-feature to PCTV-340e. 
-
-Anyway, if this driver is not elligible to be included in V4L2
-mainline, I know where to 'push' my patches. :)
-
-Thank you.
-
-On 2011-06-02, Devin Heitmueller <dheitmueller@kernellabs.com> wrote:
-> 2011/5/31 Dmitri Belimov <d.belimov@gmail.com>:
->> Is it possible make some patches and add support xc4000 into kernel?
->>
->> With my best regards, Dmitry.
->
-> What needs to happen here is somebody needs to prepare a patch series
-> which contains all the relevant patches, including the SOBs.  This is
-> entirely an janitorial task which can be done by anyone and frankly I
-> don't have time for this sort of crap anymore.
->
-> Any volunteers?
->
-> All my patches have my SOB attached.  I explicitly got Davide's
-> permission to add his SOB to his original patch, but it's not in the
-> HG tree since I got the permission after I committed his change to my
-> repo.  I can forward the email with his SOB so the person constructing
-> the tree can add it on (as well as my SOB to preserve the chain of
-> custody).
->
-> Secondly, we need to build a firmware image which is based off of the
-> *actual* xceive firmware sources, so that we can be confident that all
-> the blobs are from the same firmware revision and so that we can
-> maintain them going forward.  I can provide them off-list to someone
-> willing to do this work and testing.  Istann_v's firmware image is
-> based off of i2c dumps and extracted by hand from disassembled
-> firmware, which is less than ideal from an ongoing maintenance
-> perspective.
->
-> And of course it's worth mentioning that the driver itself still needs
-> a ton of cleanup, doesn't meet the coding standards, and wouldn't be
-> accepted upstream in its current state.  Somebody will need to do the
-> work to clean up the driver, as well as testing to make sure he/she
-> didn't cause any regressions.
->
-> In summary, here are the four things that need to happen:
->
-> 1.  Assemble tree with current patches
-> 2.  Construct valid firmware image off of current sources
-> 3.  Cleanup/coding style
-> 4.  Testing
->
-> Now that we've got a bunch of people who are interested in seeing this
-> upstream, who is going to volunteer to do which items in the above
-> list?
->
-> Devin
->
+diff --git a/drivers/media/video/marvell-ccic/mcam-core.c b/drivers/media/video/marvell-ccic/mcam-core.c
+index 055d843..65d9c0f 100644
+--- a/drivers/media/video/marvell-ccic/mcam-core.c
++++ b/drivers/media/video/marvell-ccic/mcam-core.c
+@@ -11,22 +11,20 @@
+ #include <linux/i2c.h>
+ #include <linux/interrupt.h>
+ #include <linux/spinlock.h>
+-#include <linux/videodev2.h>
+ #include <linux/slab.h>
+-#include <media/v4l2-device.h>
+-#include <media/v4l2-ioctl.h>
+-#include <media/v4l2-chip-ident.h>
+-#include <media/ov7670.h>
+-#include <media/videobuf2-vmalloc.h>
+ #include <linux/device.h>
+ #include <linux/wait.h>
+ #include <linux/list.h>
+ #include <linux/dma-mapping.h>
+ #include <linux/delay.h>
+-#include <linux/jiffies.h>
+ #include <linux/vmalloc.h>
+-#include <linux/uaccess.h>
+ #include <linux/io.h>
++#include <linux/videodev2.h>
++#include <media/v4l2-device.h>
++#include <media/v4l2-ioctl.h>
++#include <media/v4l2-chip-ident.h>
++#include <media/ov7670.h>
++#include <media/videobuf2-vmalloc.h>
+ 
+ #include "mcam-core.h"
+ 
+-- 
+1.7.5.4
 
