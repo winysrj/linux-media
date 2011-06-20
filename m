@@ -1,69 +1,131 @@
 Return-path: <mchehab@pedra>
-Received: from moutng.kundenserver.de ([212.227.17.10]:52922 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751334Ab1FOL2K (ORCPT
+Received: from perceval.ideasonboard.com ([95.142.166.194]:33322 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754216Ab1FTOYx (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 15 Jun 2011 07:28:10 -0400
-From: Arnd Bergmann <arnd@arndb.de>
-To: Jordan Crouse <jcrouse@codeaurora.org>
-Subject: Re: [Linaro-mm-sig] [PATCH 08/10] mm: cma: Contiguous
- =?iso-8859-1?q?Memory=09Allocator?= added
-Date: Wed, 15 Jun 2011 13:27:32 +0200
-Cc: Zach Pfeffer <zach.pfeffer@linaro.org>,
-	linux-arm-kernel@lists.infradead.org,
-	Daniel Walker <dwalker@codeaurora.org>,
-	Daniel Stone <daniels@collabora.com>, linux-mm@kvack.org,
-	Mel Gorman <mel@csn.ul.ie>, linux-kernel@vger.kernel.org,
-	Michal Nazarewicz <mina86@mina86.com>,
-	linaro-mm-sig@lists.linaro.org,
-	Jesse Barker <jesse.barker@linaro.org>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	Ankita Garg <ankita@in.ibm.com>,
-	Andrew Morton <akpm@linux-foundation.org>,
-	KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>,
-	linux-media@vger.kernel.org
-References: <1307699698-29369-1-git-send-email-m.szyprowski@samsung.com> <201106142242.25157.arnd@arndb.de> <4DF7CC22.6050602@codeaurora.org>
-In-Reply-To: <4DF7CC22.6050602@codeaurora.org>
+	Mon, 20 Jun 2011 10:24:53 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+Subject: Re: Bug: media_build always compiles with '-DDEBUG'
+Date: Mon, 20 Jun 2011 16:25:15 +0200
+Cc: Helmut Auer <helmut@helmutauer.de>, linux-media@vger.kernel.org,
+	Oliver Endriss <o.endriss@gmx.de>
+References: <201106182246.03051@orion.escape-edv.de> <201106201538.15214.laurent.pinchart@ideasonboard.com> <4DFF53B3.3040608@redhat.com>
+In-Reply-To: <4DFF53B3.3040608@redhat.com>
 MIME-Version: 1.0
 Content-Type: Text/Plain;
   charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
-Message-Id: <201106151327.32226.arnd@arndb.de>
+Message-Id: <201106201625.15894.laurent.pinchart@ideasonboard.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Tuesday 14 June 2011, Jordan Crouse wrote:
+Hi Mauro,
+
+On Monday 20 June 2011 16:05:39 Mauro Carvalho Chehab wrote:
+> Em 20-06-2011 10:38, Laurent Pinchart escreveu:
+> > On Monday 20 June 2011 14:50:28 Mauro Carvalho Chehab wrote:
+> >> Em 20-06-2011 09:35, Laurent Pinchart escreveu:
+> >>> On Sunday 19 June 2011 13:47:16 Mauro Carvalho Chehab wrote:
+> >>>> Em 19-06-2011 02:00, Helmut Auer escreveu:
+> >>>>> Am 18.06.2011 23:38, schrieb Oliver Endriss:
+> >>>>>> On Saturday 18 June 2011 23:11:21 Helmut Auer wrote:
+> >>>>>>> Hi
+> >>>>>>> 
+> >>>>>>>> Replacing
+> >>>>>>>> 
+> >>>>>>>>       ifdef CONFIG_VIDEO_OMAP3_DEBUG
+> >>>>>>>> 
+> >>>>>>>> by
+> >>>>>>>> 
+> >>>>>>>>       ifeq ($(CONFIG_VIDEO_OMAP3_DEBUG),y)
+> >>>>>>>> 
+> >>>>>>>> would do the trick.
+> >>>>>>> 
+> >>>>>>> I guess that would not ive the intended result.
+> >>>>>>> Setting CONFIG_VIDEO_OMAP3_DEBUG to yes should not lead to debug
+> >>>>>>> messages in all media modules,
+> >>>>>> 
+> >>>>>> True, but it will happen only if you manually enable
+> >>>>>> CONFIG_VIDEO_OMAP3_DEBUG in Kconfig.
+> >>>>>> 
+> >>>>>> You cannot avoid this without major changes of the
+> >>>>>> media_build system - imho not worth the effort.
+> >>>>> 
+> >>>>> Then imho it would be better to drop the  CONFIG_VIDEO_OMAP3_DEBUG
+> >>>>> variable completely, you can set CONFIG_DEBUG which would give the
+> >>>>> same results.
+> >>>> 
+> >>>> Good catch!
+> >>>> 
+> >>>> Yes, I agree that the better is to just drop CONFIG_VIDEO_OMAP3_DEBUG
+> >>>> variable completely. If someone wants to build with -DDEBUG, he can
+> >>>> just use CONFIG_DEBUG.
+> >>>> 
+> >>>> Laurent,
+> >>>> 
+> >>>> Any comments?
+> >>> 
+> >>> CONFIG_VIDEO_OMAP3_DEBUG is used to build the OMAP3 ISP driver in debug
+> >>> mode, without having to compile the whole kernel with debugging
+> >>> enabled. I'd like to keep that feature if possible.
+> >> 
+> >> If you want that, build it using media_build. I don't care of having
+> >> such hacks there, but having it upstream is not the right thing to do.
+> > 
+> > It's not a hack. Lots of drivers have debugging Kconfig options.
+> > 
+> > $ find linux-2.6 -type f -name Kconfig* -exec grep '^config.*DEBUG' {} \;
+> > | wc
+> > 
+> >     243     486    5826
 > 
-> On 06/14/2011 02:42 PM, Arnd Bergmann wrote:
-> > On Tuesday 14 June 2011 20:58:25 Zach Pfeffer wrote:
-> >> I've seen this split bank allocation in Qualcomm and TI SoCs, with
-> >> Samsung, that makes 3 major SoC vendors (I would be surprised if
-> >> Nvidia didn't also need to do this) - so I think some configurable
-> >> method to control allocations is necessarily. The chips can't do
-> >> decode without it (and by can't do I mean 1080P and higher decode is
-> >> not functionally useful). Far from special, this would appear to be
-> >> the default.
-> >
-> > Thanks for the insight, that's a much better argument than 'something
-> > may need it'. Are those all chips without an IOMMU or do we also
-> > need to solve the IOMMU case with split bank allocation?
+> Your query is wrong. The proper query is:
+> $ find . -type f -name Makefile -exec grep -rH 'EXTRA_CFLAGS.*\-DDEBUG$' {}
+> \; ./arch/x86/pci/Makefile:EXTRA_CFLAGS += -DDEBUG
+> ./drivers/pps/generators/Makefile:EXTRA_CFLAGS += -DDEBUG
+> ./drivers/media/video/omap3isp/Makefile:EXTRA_CFLAGS += -DDEBUG
 > 
-> Yes. The IOMMU case with split bank allocation is key, especially for shared
-> buffers. Consider the case where video is using a certain bank for performance
-> purposes and that frame is shared with the GPU.
+> There's nothing wrong with a debug Kconfig option
+> for omap3. What's wrong is:
+> 
+> 1) It is badly implemented: it is just enabling -DDEBUG for the entire
+> subsystem, as the test is wrong;
 
-Could we use the non-uniform memory access (NUMA) code for this? That code
-does more than what we've been talking about, and we're currently thinking
-only of a degenerate case (one CPU node with multiple memory nodes), but my
-feeling is that we can still build on top of it.
+I'm fine with replacing 'ifdef CONFIG_VIDEO_OMAP3_DEBUG' with 'ifeq 
+($(CONFIG_VIDEO_OMAP3_DEBUG),y)'.
 
-The NUMA code can describe relations between different areas of memory
-and how they interact with devices and processes, so you can attach a
-device to a specific node and have all allocations done from there.
-You can also set policy in user space, e.g. to have a video decoder
-process running on the bank that is not used by the GPU.
+> 2) Even if you fix, you'll be enabling debug to the entire subsystem, if
+> you keep adding things to EXTRA_CFLAGS.
 
-In the DMA mapping API, that would mean we add another dma_attr to
-dma_alloc_* that lets you pass a node identifier.
+That's the main issue. The Makefile has been designed for the kernel, where it 
+doesn't get merged in a single Makefile like media_build does. That's does a 
+media_build issue.
 
-	Arnd
+> It should be noticed that several places use a different syntax for
+> enabling per-driver/per-subsystem -D flag:
+> 
+> find . -type f -name Makefile -exec grep -rH '\-DDEBUG$' {} \;
+> ...
+> ./drivers/mmc/Makefile:subdir-ccflags-$(CONFIG_MMC_DEBUG) := -DDEBUG
+> ...
+> ./drivers/infiniband/hw/cxgb3/Makefile:ccflags-$(CONFIG_INFINIBAND_CXGB3_DE
+> BUG) += -DDEBUG
+> 
+> I _suspect_ that using ccflags-$(foo_DEBUG) may work.
+
+I've seen that, but it doubt it will work better. v4l/Makefile.media will end 
+up containing
+
+ccflags-$(CONFIG_VIDEO_OMAP3_DEBUG) += -DDEBUG
+
+which will get expanded to
+
+ccflags-y += -DDEBUG
+
+All media_build drivers will thus be compiled with debugging enabled.
+
+-- 
+Regards,
+
+Laurent Pinchart
