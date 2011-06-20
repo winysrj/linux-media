@@ -1,110 +1,48 @@
 Return-path: <mchehab@pedra>
-Received: from mail.juropnet.hu ([212.24.188.131]:44870 "EHLO mail.juropnet.hu"
+Received: from mail.kapsi.fi ([217.30.184.167]:39112 "EHLO mail.kapsi.fi"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756490Ab1FDPDI (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 4 Jun 2011 11:03:08 -0400
-Received: from [94.248.226.52]
-	by mail.juropnet.hu with esmtps (TLS1.0:DHE_RSA_AES_256_CBC_SHA1:32)
-	(Exim 4.69)
-	(envelope-from <istvan_v@mailbox.hu>)
-	id 1QSsNT-0002mK-Ur
-	for linux-media@vger.kernel.org; Sat, 04 Jun 2011 17:03:06 +0200
-Message-ID: <4DEA4927.2060007@mailbox.hu>
-Date: Sat, 04 Jun 2011 17:03:03 +0200
-From: "istvan_v@mailbox.hu" <istvan_v@mailbox.hu>
+	id S1751106Ab1FTVZT (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 20 Jun 2011 17:25:19 -0400
+Message-ID: <4DFFBABD.3040302@iki.fi>
+Date: Tue, 21 Jun 2011 00:25:17 +0300
+From: Antti Palosaari <crope@iki.fi>
 MIME-Version: 1.0
-To: linux-media@vger.kernel.org
-Subject: XC4000: implemented power management
-References: <4D764337.6050109@email.cz>	<20110531124843.377a2a80@glory.local>	<BANLkTi=Lq+FF++yGhRmOa4NCigSt6ZurHg@mail.gmail.com>	<20110531174323.0f0c45c0@glory.local> <BANLkTimEEGsMP6PDXf5W5p9wW7wdWEEOiA@mail.gmail.com>
-In-Reply-To: <BANLkTimEEGsMP6PDXf5W5p9wW7wdWEEOiA@mail.gmail.com>
-Content-Type: multipart/mixed;
- boundary="------------020508080603050407010702"
+To: Rune Evjen <rune.evjen@gmail.com>
+CC: linux-media@vger.kernel.org
+Subject: Re: PCTV nanoStick T2 290e (Sony CXD2820R DVB-T/T2/C) - DVB-C channel
+ scan in mythtv - missing
+References: <BANLkTimkYw70GAu1keW-N6ND=AyiRn2+CA@mail.gmail.com>	<4DF49E2A.9030804@iki.fi>	<BANLkTi=dGyN8SEwwAStD0Ob99k+FKkQPFg@mail.gmail.com>	<BANLkTik=37qHUx273bSRN91HeyYrtUv6og@mail.gmail.com>	<BANLkTi=gdVhVKjF4tqUwy+DxFv9imUipHw@mail.gmail.com>	<4DFFB56B.3000802@iki.fi> <BANLkTikYWVU814UWNAZFTTC9dX43Ydy4sA@mail.gmail.com>
+In-Reply-To: <BANLkTikYWVU814UWNAZFTTC9dX43Ydy4sA@mail.gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-This is a multi-part message in MIME format.
---------------020508080603050407010702
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+On 06/21/2011 12:20 AM, Rune Evjen wrote:
+> 2011/6/20 Antti Palosaari<crope@iki.fi>:
+>> LNA is controlled by demod GPIO line. I don't remember if it is on or off
+>> for DVB-C currently. Look em28xx-dvb.c file, you can disable or enable it
+>> from there (needs re-compiling driver).
+>>
+>> I also saw BER counter running some muxes during development, but I think
+>> all channels I have are still working. And I didn't even have time to
+>> optimal parameters for tuner / demod. I will try to examine those later...
+>>
+> Thank you Antti,
+>
+> I will test with lna disabled in the em28xx-dvb module
+>
+> In line 349 of the code, I see this:
+>          /* enable LNA for DVB-T2 and DVB-C */
+> 	.gpio_dvbt2[0] = CXD2820R_GPIO_E | CXD2820R_GPIO_O | CXD2820R_GPIO_L,
+> 	.gpio_dvbc[0] = CXD2820R_GPIO_E | CXD2820R_GPIO_O | CXD2820R_GPIO_L,
+>
+> I suspect I should modify line 351, what should it be changed to ?
 
-The following patch implements the xc4000_sleep() function.
-The 'no_powerdown' module parameter is now interpreted differently:
-  - 0 uses a device-specific default
-  - 1 disables power management like before
-  - 2 enables power management
+Remove corresponding line (.gpio_dvbc[0]).
 
-Signed-off-by: Istvan Varga <istvan_v@mailbox.hu>
+regards
+Antti
 
-
---------------020508080603050407010702
-Content-Type: text/x-patch;
- name="xc4000_powerdown.patch"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: attachment;
- filename="xc4000_powerdown.patch"
-
-diff -uNr xc4000_orig/drivers/media/common/tuners/xc4000.c xc4000/drivers/media/common/tuners/xc4000.c
---- xc4000_orig/drivers/media/common/tuners/xc4000.c	2011-06-04 13:35:59.000000000 +0200
-+++ xc4000/drivers/media/common/tuners/xc4000.c	2011-06-04 13:57:11.000000000 +0200
-@@ -43,9 +43,11 @@
- 
- static int no_poweroff;
- module_param(no_poweroff, int, 0644);
--MODULE_PARM_DESC(no_poweroff, "0 (default) powers device off when not used.\n"
--	"\t\t1 keep device energized and with tuner ready all the times.\n"
--	"\t\tFaster, but consumes more power and keeps the device hotter");
-+MODULE_PARM_DESC(no_poweroff, "\n\t\t1: keep device energized and with tuner "
-+	"ready all the times.\n"
-+	"\t\tFaster, but consumes more power and keeps the device hotter.\n"
-+	"\t\t2: powers device off when not used.\n"
-+	"\t\t0 (default): use device-specific default mode.");
- 
- #define XC4000_DEFAULT_FIRMWARE "xc4000.fw"
- 
-@@ -102,6 +104,7 @@
- /* Misc Defines */
- #define MAX_TV_STANDARD			24
- #define XC_MAX_I2C_WRITE_LENGTH		64
-+#define XC_POWERED_DOWN			0x80000000U
- 
- /* Signal Types */
- #define XC_RF_MODE_AIR			0
-@@ -1365,8 +1368,34 @@
- 
- static int xc4000_sleep(struct dvb_frontend *fe)
- {
--	/* FIXME: djh disable this for now... */
--	return XC_RESULT_SUCCESS;
-+	struct xc4000_priv *priv = fe->tuner_priv;
-+	int	ret = XC_RESULT_SUCCESS;
-+
-+	dprintk(1, "%s()\n", __func__);
-+
-+	mutex_lock(&priv->lock);
-+
-+	/* Avoid firmware reload on slow devices */
-+	if ((no_poweroff == 2 ||
-+	     (no_poweroff == 0 &&
-+	      priv->card_type != XC4000_CARD_WINFAST_CX88)) &&
-+	    (priv->cur_fw.type & BASE) != 0) {
-+		/* force reset and firmware reload */
-+		priv->cur_fw.type = XC_POWERED_DOWN;
-+
-+		if (xc_write_reg(priv, XREG_POWER_DOWN, 0)
-+		    != XC_RESULT_SUCCESS) {
-+			printk(KERN_ERR
-+			       "xc4000: %s() unable to shutdown tuner\n",
-+			       __func__);
-+			ret = -EREMOTEIO;
-+		}
-+		xc_wait(20);
-+	}
-+
-+	mutex_unlock(&priv->lock);
-+
-+	return ret;
- }
- 
- static int xc4000_init(struct dvb_frontend *fe)
-
---------------020508080603050407010702--
+-- 
+http://palosaari.fi/
