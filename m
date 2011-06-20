@@ -1,31 +1,43 @@
 Return-path: <mchehab@pedra>
-Received: from mailfe01.c2i.net ([212.247.154.2]:39095 "EHLO swip.net"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1751731Ab1FQGGa (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 17 Jun 2011 02:06:30 -0400
-From: Hans Petter Selasky <hselasky@c2i.net>
-To: Jiri Slaby <jslaby@suse.cz>, jirislaby@gmail.com
-Subject: Re: [PATCH] DVB: dvb-net, make the kconfig text helpful
-Date: Fri, 17 Jun 2011 08:04:59 +0200
-Cc: mchehab@redhat.com, linux-media@vger.kernel.org
-References: <4DF9DD25.1000103@redhat.com> <1308251216-8194-1-git-send-email-jslaby@suse.cz>
-In-Reply-To: <1308251216-8194-1-git-send-email-jslaby@suse.cz>
+Received: from slow3-v.mail.gandi.net ([217.70.178.89]:46876 "EHLO
+	slow3-v.mail.gandi.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751383Ab1FTUEO (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 20 Jun 2011 16:04:14 -0400
+Received: from relay4-d.mail.gandi.net (relay4-d.mail.gandi.net [217.70.183.196])
+	by slow3-v.mail.gandi.net (Postfix) with ESMTP id AC82F86994
+	for <linux-media@vger.kernel.org>; Mon, 20 Jun 2011 22:04:12 +0200 (CEST)
+Received: from mfilter4-d.gandi.net (mfilter4-d.gandi.net [217.70.178.134])
+	by relay4-d.mail.gandi.net (Postfix) with ESMTP id 09F991720A3
+	for <linux-media@vger.kernel.org>; Mon, 20 Jun 2011 22:04:09 +0200 (CEST)
+Received: from relay4-d.mail.gandi.net ([217.70.183.196])
+	by mfilter4-d.gandi.net (mfilter4-d.gandi.net [10.0.15.180]) (amavisd-new, port 10024)
+	with ESMTP id SZsE77sgI+ic for <linux-media@vger.kernel.org>;
+	Mon, 20 Jun 2011 22:04:07 +0200 (CEST)
+Received: from [192.168.10.60] (tri69-3-82-235-23-7.fbx.proxad.net [82.235.23.7])
+	(Authenticated sender: bmaras@flaht.eu)
+	by relay4-d.mail.gandi.net (Postfix) with ESMTPSA id 9B3711720A1
+	for <linux-media@vger.kernel.org>; Mon, 20 Jun 2011 22:04:07 +0200 (CEST)
+Message-ID: <4DFFA7B6.9070906@free.fr>
+Date: Mon, 20 Jun 2011 22:04:06 +0200
+From: mossroy <mossroy@free.fr>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-15"
+To: linux-media@vger.kernel.org
+Subject: Updates to French scan files
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
-Message-Id: <201106170804.59829.hselasky@c2i.net>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Thursday 16 June 2011 21:06:56 Jiri Slaby wrote:
-> Telling the user they can disable an option if they want is not the
-> much useful. Describe what it is good for instead.
-> 
-> The text was derived from Mauro's email.
+In France, the DVB-T channels are currently moving (because the analog 
+TV is being removed at the same time)
+The frequencies are modified region by region, with a calendar that 
+started in late 2009, and will end on november 29th 2011 (see 
+http://www.tousaunumerique.fr/ou-et-quand/ )
 
-Acked-by: Hans Petter Selasky <hselasky@c2i.net>
+All the new channels are listed here : 
+http://www.tousaunumerique.fr/professionnels/en-savoir-plus/documentation/categorie-doc/plans-de-frequences/ 
+. The PDF files also lists channels that are planned to be used in the 
+future (but are unused at the moment)
 
-PS: Don't forget the other patch to add a dependency to DVB_CORE.
-
---HPS
+Is there already a plan to update the scan files to reflect these changes?
