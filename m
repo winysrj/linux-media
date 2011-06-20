@@ -1,58 +1,74 @@
 Return-path: <mchehab@pedra>
-Received: from casper.infradead.org ([85.118.1.10]:54523 "EHLO
-	casper.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753237Ab1FXN3W (ORCPT
+Received: from mail-gx0-f174.google.com ([209.85.161.174]:47852 "EHLO
+	mail-gx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755245Ab1FTVRD convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 24 Jun 2011 09:29:22 -0400
-Message-ID: <4E04912A.4090305@infradead.org>
-Date: Fri, 24 Jun 2011 10:29:14 -0300
-From: Mauro Carvalho Chehab <mchehab@infradead.org>
+	Mon, 20 Jun 2011 17:17:03 -0400
+Received: by gxk21 with SMTP id 21so481258gxk.19
+        for <linux-media@vger.kernel.org>; Mon, 20 Jun 2011 14:17:03 -0700 (PDT)
 MIME-Version: 1.0
-To: Devin Heitmueller <dheitmueller@kernellabs.com>
-CC: Hans Verkuil <hverkuil@xs4all.nl>, Jesper Juhl <jj@chaosbits.net>,
-	LKML <linux-kernel@vger.kernel.org>, trivial@kernel.org,
-	linux-media@vger.kernel.org, ceph-devel@vger.kernel.org,
-	Sage Weil <sage@newdream.net>
-Subject: Re: [RFC] Don't use linux/version.h anymore to indicate a per-driver
- version - Was: Re: [PATCH 03/37] Remove unneeded version.h includes from
- include/
-References: <alpine.LNX.2.00.1106232344480.17688@swampdragon.chaosbits.net>	<alpine.LNX.2.00.1106232356530.17688@swampdragon.chaosbits.net>	<4E04732A.3060305@infradead.org>	<201106241326.27593.hverkuil@xs4all.nl> <BANLkTinXymR_2A2Mr+UbhK63s2xjtK=B=g@mail.gmail.com>
-In-Reply-To: <BANLkTinXymR_2A2Mr+UbhK63s2xjtK=B=g@mail.gmail.com>
+In-Reply-To: <4DFFB75A.8050808@iki.fi>
+References: <BANLkTimkYw70GAu1keW-N6ND=AyiRn2+CA@mail.gmail.com>
+	<4DF49E2A.9030804@iki.fi>
+	<BANLkTi=dGyN8SEwwAStD0Ob99k+FKkQPFg@mail.gmail.com>
+	<BANLkTik=37qHUx273bSRN91HeyYrtUv6og@mail.gmail.com>
+	<BANLkTi=gdVhVKjF4tqUwy+DxFv9imUipHw@mail.gmail.com>
+	<BANLkTikDCbQUwW_mAdMHAxQGE0AGp+1ebQ@mail.gmail.com>
+	<4DFFB75A.8050808@iki.fi>
+Date: Mon, 20 Jun 2011 23:17:02 +0200
+Message-ID: <BANLkTi=Z6_aaB0ETQEETm=bbPmy2gZ+d8Q@mail.gmail.com>
+Subject: Re: PCTV nanoStick T2 290e (Sony CXD2820R DVB-T/T2/C) - DVB-C channel
+ scan in mythtv - missing
+From: Markus Rechberger <mrechberger@gmail.com>
+To: Antti Palosaari <crope@iki.fi>
+Cc: Rune Evjen <rune.evjen@gmail.com>, linux-media@vger.kernel.org
 Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 8BIT
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Em 24-06-2011 09:20, Devin Heitmueller escreveu:
->> Applications are certainly using it. I know this for a fact for the ivtv driver where
->> feature improvements are marked that way.
+On Mon, Jun 20, 2011 at 11:10 PM, Antti Palosaari <crope@iki.fi> wrote:
+> On 06/21/2011 12:04 AM, Markus Rechberger wrote:
 >>
->> Without more research on how this is used I am not comfortable with this.
+>> On Mon, Jun 20, 2011 at 10:55 PM, Rune Evjen<rune.evjen@gmail.com>  wrote:
+>>>
+>>> 2011/6/20 Markus Rechberger<mrechberger@gmail.com>:
+>>>>
+>>>> to tell the difference the amplifier is for DVB-T2, DVB-C is disabled
+>>>> in windows because it's not reliable.
+>>>> Technically the chip supports it but the LNA decreases the quality.
+>>>> There are already some other PCI boards
+>>>> out there with that chip which do not use that LNA which should have a
+>>>> better performance with that Sony chip.
+>>>
+>>> Is it possible to work around this by disabling the lna or is the
+>>> quality decreased permanently as part of the hardware design,
+>>> independently of whether the lna is enabled or not ?
+>>>
+>>> I searched the linux-media list and it seems that an lna option was
+>>> discussed as a module parameter, but modinfo for the module I use [1]
+>>> (using the media_build git repository) doesn't show a lna parameter.
+>>> Can the lna be disabled in another way ?
+>>>
 >>
->> Regards,
->>
->>        Hans
-> 
-> MythTV has a bunch of these too (mainly so the code can adapt to
-> driver bugs that are fixed in later revisions).  Putting Mauro's patch
-> upstream will definitely cause breakage.
+>> no, otherwise it would be sold as full hybrid device. DVB-T2 is weak
+>> that's why it was added.
+>> Failing DVB-C would increase the device return rate, that's why it is
+>> sold as DVB-T2 only.
+>
+> How the others have resolved that problem? Is that signal strength only
+> issue when TDA18271 tuner is used?
+>
 
-It shouldn't, as ivtv driver version is lower than 3.0.0. All the old bug fixes
-aren't needed if version is >= 3.0.0.
+USB is expected to be mobile, so sensitivity is a more important
+issue. The T2 tuner
+in question is designed to be a little bit mobile (you can use it with
+your notebook without moving at least).
+If you use a PC card you can play around with the antenna and won't
+move it all the time.
+The sensitivity optimization is quite clear why it's there for T2. C
+is clearly not the focus of that design.
+We already switched away from the tda18271 for our current (and
+especially upcoming) designs as well.
 
-Besides that, trusting on a driver revision number to detect that a bug is
-there is not the right thing to do, as version numbers are never increased at
-the stable kernels (nor distro modified kernels take care of increasing revision
-number as patches are backported there).
-
-In other words, relying on it doesn't work fine.
-
-> Also, it screws up the ability for users to get fixes through the
-> media_build tree (unless you are increasing the revision constantly
-> with every merge you do).
-
-Why? Developers don't increase version numbers on every applied patch
-(with is great, as it avoids merge conflicts).
-
-Mauro
-
+Markus
