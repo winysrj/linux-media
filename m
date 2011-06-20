@@ -1,36 +1,45 @@
 Return-path: <mchehab@pedra>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:36657 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754310Ab1FCWC2 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 3 Jun 2011 18:02:28 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Subject: Re: [RFCv2 PATCH 00/11] Control Event
-Date: Fri, 3 Jun 2011 21:54:47 +0200
-Cc: linux-media@vger.kernel.org
-References: <1306330435-11799-1-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1306330435-11799-1-git-send-email-hverkuil@xs4all.nl>
+Received: from mailout-de.gmx.net ([213.165.64.22]:39306 "HELO
+	mailout-de.gmx.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1751155Ab1FTJUW (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 20 Jun 2011 05:20:22 -0400
+Message-ID: <4DFF10D1.6000801@gmx.de>
+Date: Mon, 20 Jun 2011 11:20:17 +0200
+From: Jonas Diemer <diemer@gmx.de>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-15"
+To: linux-media@vger.kernel.org
+Subject: Reception Troubles with Hauppauge Nova-TD Stick
+Content-Type: text/plain; charset=ISO-8859-15; format=flowed
 Content-Transfer-Encoding: 7bit
-Message-Id: <201106032154.48016.laurent.pinchart@ideasonboard.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Hi Hans,
+Hello,
 
-Thanks for the patch set.
+I am running the  Hauppauge Nova-TD Stick using the latest git drivers 
+(I followed http://wiki.ubuntuusers.de/v4l-dvb) under Ubuntu 11.04.
 
-On Wednesday 25 May 2011 15:33:44 Hans Verkuil wrote:
-> This is the second version of the patch series introducing a new event that
-> is triggered when a control's value or state changes.
+The stick seems to work fine, it is detected and usable by the software 
+(w_scan, VDR, mythtv).
 
-One general comment. The API lets applications subscribe to events for 
-individual controls. Should we also have an API to subscribe to events for all 
-controls ?
+However, the reception is very bad. Only one out of the 5 (or so) 
+available MUXes is detected. The reception on this one mux is very bad 
+(no stable video). Signal strength (as reported by vdr-femon) is at 
+40-50%, STR is less than 10%.
 
--- 
-Regards,
+I have tried the force_lna_activation=1 option, but that didn't make any 
+difference. I am using the supplied antenna adapter to connect a small 
+stick antenna. I noticed that unplugging the Antenna didn't really make 
+the reception worse. Unplugging the adapter reduced the signal strength 
+significantly.
 
-Laurent Pinchart
+The stick works just fine under Windows (all MUXes are detected with 
+good image quality). I noticed that the LED on the stick has a different 
+color under windows (blue) than under Linux (green) - if that makes any 
+difference.
+
+So, is there anyone that can help? Any ideas how I can get this to work?
+
+Kind Regards,
+Jonas
