@@ -1,67 +1,86 @@
 Return-path: <mchehab@pedra>
-Received: from smtp-vbr10.xs4all.nl ([194.109.24.30]:1833 "EHLO
-	smtp-vbr10.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755052Ab1F1L0N (ORCPT
+Received: from mail1-out1.atlantis.sk ([80.94.52.55]:33514 "EHLO
+	mail.atlantis.sk" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1755776Ab1FTTJn (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 28 Jun 2011 07:26:13 -0400
-Received: from tschai (64-103-25-233.cisco.com [64.103.25.233])
-	(authenticated bits=0)
-	by smtp-vbr10.xs4all.nl (8.13.8/8.13.8) with ESMTP id p5SBQ9jw032542
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-media@vger.kernel.org>; Tue, 28 Jun 2011 13:26:10 +0200 (CEST)
-	(envelope-from hverkuil@xs4all.nl)
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: [RFCv2 PATCH 0/13] Allocate events per-event-type, v4l2-ctrls cleanup
-Date: Tue, 28 Jun 2011 13:25:52 +0200
-Message-Id: <1309260365-4831-1-git-send-email-hverkuil@xs4all.nl>
+	Mon, 20 Jun 2011 15:09:43 -0400
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Subject: [PATCH] [resend] tea575x: allow multiple opens
+Cc: linux-media@vger.kernel.org, alsa-devel@alsa-project.org,
+	Kernel development list <linux-kernel@vger.kernel.org>
+Content-Disposition: inline
+From: Ondrej Zary <linux@rainbow-software.org>
+Date: Mon, 20 Jun 2011 21:09:25 +0200
+MIME-Version: 1.0
+Content-Type: text/plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201106202109.29164.linux@rainbow-software.org>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-This is the second version of this patch series.
+Change locking to allow tea575x-radio device to be opened multiple times.
 
-The only real change is in patch 4/13: the original merge callback has been
-replaced with separate replace and merge callbacks. The original version
-was hard to understand and had const issues as well.
+Signed-off-by: Ondrej Zary <linux@rainbow-software.org>
 
-The other changes are all documentation updates and small code cleanup
-changes in the last five patches.
+--- linux-2.6.39-rc2-/include/sound/tea575x-tuner.h	2011-06-11 15:21:50.000000000 +0200
++++ linux-2.6.39-rc2/include/sound/tea575x-tuner.h	2011-06-11 14:50:55.000000000 +0200
+@@ -49,7 +49,7 @@ struct snd_tea575x {
+ 	bool tuned;			/* tuned to a station */
+ 	unsigned int val;		/* hw value */
+ 	unsigned long freq;		/* frequency */
+-	unsigned long in_use;		/* set if the device is in use */
++	struct mutex mutex;
+ 	struct snd_tea575x_ops *ops;
+ 	void *private_data;
+ 	u8 card[32];
+--- linux-2.6.39-rc2-/sound/i2c/other/tea575x-tuner.c	2011-06-11 15:21:50.000000000 +0200
++++ linux-2.6.39-rc2/sound/i2c/other/tea575x-tuner.c	2011-06-11 14:57:28.000000000 +0200
+@@ -282,26 +282,9 @@ static int vidioc_s_input(struct file *f
+ 	return 0;
+ }
+ 
+-static int snd_tea575x_exclusive_open(struct file *file)
+-{
+-	struct snd_tea575x *tea = video_drvdata(file);
+-
+-	return test_and_set_bit(0, &tea->in_use) ? -EBUSY : 0;
+-}
+-
+-static int snd_tea575x_exclusive_release(struct file *file)
+-{
+-	struct snd_tea575x *tea = video_drvdata(file);
+-
+-	clear_bit(0, &tea->in_use);
+-	return 0;
+-}
+-
+ static const struct v4l2_file_operations tea575x_fops = {
+ 	.owner		= THIS_MODULE,
+-	.open           = snd_tea575x_exclusive_open,
+-	.release        = snd_tea575x_exclusive_release,
+-	.ioctl		= video_ioctl2,
++	.unlocked_ioctl	= video_ioctl2,
+ };
+ 
+ static const struct v4l2_ioctl_ops tea575x_ioctl_ops = {
+@@ -340,13 +323,14 @@ int snd_tea575x_init(struct snd_tea575x
+ 	if (snd_tea575x_read(tea) != 0x55AA)
+ 		return -ENODEV;
+ 
+-	tea->in_use = 0;
+ 	tea->val = TEA575X_BIT_BAND_FM | TEA575X_BIT_SEARCH_10_40;
+ 	tea->freq = 90500 * 16;		/* 90.5Mhz default */
+ 	snd_tea575x_set_freq(tea);
+ 
+ 	tea->vd = tea575x_radio;
+ 	video_set_drvdata(&tea->vd, tea);
++	mutex_init(&tea->mutex);
++	tea->vd.lock = &tea->mutex;
+ 
+ 	v4l2_ctrl_handler_init(&tea->ctrl_handler, 1);
+ 	tea->vd.ctrl_handler = &tea->ctrl_handler;
 
-The original text from RFCv1 follows:
 
-This patch series consists of two parts: the first four patches change the
-way events are allocated and what to do when the event queue is full.
-
-These first four patches are the most important ones to review. The big
-change is that event allocation now happens when subscribing an event.
-So you not only specify which event you want to subscribe to for a particular
-filehandle, but also how many events should be reserved for that event type.
-Currently the driver specifies the number of events to allocate, but later
-this can be something that the application might want to set manually.
-
-This ensures that for each event type you will never entirely miss all events
-of a particular type. Currently this is a real possibility.
-
-The other change is that instead of dropping the new event if there is no more
-space available, the oldest event is dropped. This ensures that you get at
-least the latest state. And optionally a merge function can be provided that
-merges information of two events into one. This allows the control event to
-require just one event: if a new event is raised, then the new and old one
-can be merged and all state is preserved. Only the intermediate steps are
-no longer available. This makes for very good behavior of events and is IMHO
-a requirement for using the control event in a real production environment.
-
-The second four patches reorganize the way extended controls are processed
-in the control framework. This is the first step towards allowing control
-changes from within interrupt handlers. The main purpose is to move as much
-code as possible out of the critical sections. This reduces the size of
-those sections, making it easier to eventually switch to spinlocks for
-certain kinds of controls.
-
-It's lots of internal churn, so it's probably not easy to review. There are
-no real functional changes, however.
-
-Regards,
-
-        Hans
-
+-- 
+Ondrej Zary
