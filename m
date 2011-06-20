@@ -1,71 +1,59 @@
 Return-path: <mchehab@pedra>
-Received: from mx1.redhat.com ([209.132.183.28]:25097 "EHLO mx1.redhat.com"
+Received: from lo.gmane.org ([80.91.229.12]:33155 "EHLO lo.gmane.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932079Ab1FUBf4 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 20 Jun 2011 21:35:56 -0400
-Message-ID: <4DFFF56D.5070602@redhat.com>
-Date: Mon, 20 Jun 2011 22:35:41 -0300
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-MIME-Version: 1.0
-To: HoP <jpetrous@gmail.com>
-CC: Devin Heitmueller <dheitmueller@kernellabs.com>,
-	=?ISO-8859-1?Q?=22S=E9?=
-	 =?ISO-8859-1?Q?bastien_RAILLARD_=28COEXSI=29=22?= <sr@coexsi.fr>,
-	=?ISO-8859-1?Q?R=E9mi_Denis-Courmont?= <remi@remlab.net>,
-	linux-media@vger.kernel.org
+	id S1755099Ab1FTWLo (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 20 Jun 2011 18:11:44 -0400
+Received: from list by lo.gmane.org with local (Exim 4.69)
+	(envelope-from <gldv-linux-media@m.gmane.org>)
+	id 1QYmh5-0002CD-8k
+	for linux-media@vger.kernel.org; Tue, 21 Jun 2011 00:11:43 +0200
+Received: from nemi.mork.no ([148.122.252.4])
+        by main.gmane.org with esmtp (Gmexim 0.1 (Debian))
+        id 1AlnuQ-0007hv-00
+        for <linux-media@vger.kernel.org>; Tue, 21 Jun 2011 00:11:42 +0200
+Received: from bjorn by nemi.mork.no with local (Gmexim 0.1 (Debian))
+        id 1AlnuQ-0007hv-00
+        for <linux-media@vger.kernel.org>; Tue, 21 Jun 2011 00:11:42 +0200
+To: linux-media@vger.kernel.org
+From: =?utf-8?Q?Bj=C3=B8rn_Mork?= <bjorn@mork.no>
 Subject: Re: [RFC] vtunerc - virtual DVB device driver
-References: <BANLkTimtnbAzLTdFY2OiSddHTjmD_99CfA@mail.gmail.com>	<201106202037.19535.remi@remlab.net>	<BANLkTinn0uN3VwGfqCbYbxFoVf6aNo1VSA@mail.gmail.com>	<BANLkTin14LnwP+_K1m-RsEXza4M4CjqnEw@mail.gmail.com>	<BANLkTimR-zWnnLBcD2w8d8NpeFJi=eT9nQ@mail.gmail.com>	<005a01cc2f7d$a799be30$f6cd3a90$@coexsi.fr>	<BANLkTinbQ8oBJt7fScuT5vHGFktbaQNY5A@mail.gmail.com>	<BANLkTimTdMa_X1ygF8=B5gLdLXq1o-ER0g@mail.gmail.com>	<BANLkTimkZN9AtLanwvct+1p2DZOHSgF6Aw@mail.gmail.com>	<BANLkTimg0X5H5T8CsSR5Tr0CZbCZKiDEEA@mail.gmail.com>	<4DFFB1DA.5000602@redhat.com> <BANLkTikZ++5dZssDRuxJzNUEG_TDkZPGRg@mail.gmail.com>
-In-Reply-To: <BANLkTikZ++5dZssDRuxJzNUEG_TDkZPGRg@mail.gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Date: Tue, 21 Jun 2011 00:11:31 +0200
+Message-ID: <87wrggb1bg.fsf@nemi.mork.no>
+References: <BANLkTimtnbAzLTdFY2OiSddHTjmD_99CfA@mail.gmail.com>
+	<201106202037.19535.remi@remlab.net>
+	<BANLkTinn0uN3VwGfqCbYbxFoVf6aNo1VSA@mail.gmail.com>
+	<BANLkTin14LnwP+_K1m-RsEXza4M4CjqnEw@mail.gmail.com>
+	<BANLkTimR-zWnnLBcD2w8d8NpeFJi=eT9nQ@mail.gmail.com>
+	<005a01cc2f7d$a799be30$f6cd3a90$@coexsi.fr>
+	<BANLkTinbQ8oBJt7fScuT5vHGFktbaQNY5A@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 8bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Em 20-06-2011 18:31, HoP escreveu:
-> 2011/6/20 Mauro Carvalho Chehab <mchehab@redhat.com>:
->> Em 20-06-2011 17:24, HoP escreveu:
->>> 2011/6/20 Devin Heitmueller <dheitmueller@kernellabs.com>:
->>>> On Mon, Jun 20, 2011 at 3:56 PM, HoP <jpetrous@gmail.com> wrote:
->>>>> Do you think it is really serious enough reason to prevent of having
->>>>> such virtualization driver in the kernel?
->>>>>
->>>>> Let check my situation and tell me how I should continue (TBH, I already
->>>>> thought that driver can be accepted, but my dumb brain thought because
->>>>> of non quality code/design or so. It was really big "surprise" which
->>>>> reason was used aginst it):
->>>>
->>>> Yes, this is entirely a political issue and not a technical one.
->>>
->>> Political? So we can declare that politics win (again) technicians. Sad.
->>
->> This is not a political issue. It is a licensing issue. If you want to use
->> someone's else code, you need to accept the licensing terms that the developers
->> are giving you, by either paying the price for the code usage (on closed source
->> licensing models), or by accepting the license when using an open-sourced code.
->>
->> Preserving the open-source eco-system is something that everyone
->> developing open source expect: basically, you're free to do whatever
->> you want, but if you're using a code written by an open-source developer,
->> the expected behaviour that GPL asks (and that the developer wants, when he
->> opted for GPL) is that you should return back to the community with any
->> changes you did, including derivative work. This is an essential rule of working
->> with GPL.
->>
->> If you're not happy with that, that's fine. You can implement another stack
->> that is not GPL-licensed.
-> 
-> Mauro, you totally misunderstood me. If you see on my first post in that thread
-> I was sending full GPL-ed driver to the mailinglist.
+Devin Heitmueller <dheitmueller@kernellabs.com> writes:
 
-You misunderstood me. Something that exposes the kernel interface to for an
-userspace client driver to implement DVB is not a driver, it is a wrapper.
+> Nothing prevents a third-party from writing closed source drivers.
+> What we do *not* think is fair though is that those third parties
+> should be able to take advantage of all the GPL code that makes up the
+> DVB core, and the man-years spent developing that code.
 
-The real driver will be in userspace, using the DVB stack, and can even be
-closed source. Some developers already tried to do things like that and sell
-the userspace code. Such code submission were nacked. There is even one case
-where the kernelspace code were dropped due to that (and later, replaced by an
-opensource driver).
+You could use the same argument against adding a loadable module
+interface to the Linux kernel (and I'm pretty sure it was used).
+Thankfully, usability won back then.  Or we most likely wouldn't have
+had a single Linux DVB driver.  Or Linux at all, except as a historical
+footnote.
 
-We don't want to go on this way again.
+Honza posted a GPL licensed driver and gave a pretty good usage
+scenario.  Please don't reject it based on fear of abuse.  If you think
+about it, almost any usability improvement will also make abuse easier.
+And if you reject all of them based on such fear, then your system will
+die.
 
-Mauro.
+
+Thanks.
+
+
+Bjørn
+
