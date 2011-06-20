@@ -1,165 +1,90 @@
 Return-path: <mchehab@pedra>
-Received: from smtp-vbr1.xs4all.nl ([194.109.24.21]:1815 "EHLO
-	smtp-vbr1.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754807Ab1FGPFb (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 7 Jun 2011 11:05:31 -0400
-Received: from tschai.lan (215.80-203-102.nextgentel.com [80.203.102.215])
-	(authenticated bits=0)
-	by smtp-vbr1.xs4all.nl (8.13.8/8.13.8) with ESMTP id p57F5QqO037616
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-media@vger.kernel.org>; Tue, 7 Jun 2011 17:05:29 +0200 (CEST)
-	(envelope-from hverkuil@xs4all.nl)
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: [RFCv3 PATCH 04/18] v4l2-ioctl: add ctrl_handler to v4l2_fh
-Date: Tue,  7 Jun 2011 17:05:09 +0200
-Message-Id: <e2568e2e9cbcb97973adcda4a8571b07e5fba4a6.1307458245.git.hans.verkuil@cisco.com>
-In-Reply-To: <1307459123-17810-1-git-send-email-hverkuil@xs4all.nl>
-References: <1307459123-17810-1-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <a1daecb26b464ddd980297783d04941f1f34666b.1307458245.git.hans.verkuil@cisco.com>
-References: <a1daecb26b464ddd980297783d04941f1f34666b.1307458245.git.hans.verkuil@cisco.com>
+Received: from relay3-d.mail.gandi.net ([217.70.183.195]:41608 "EHLO
+	relay3-d.mail.gandi.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755477Ab1FTTKD convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 20 Jun 2011 15:10:03 -0400
+From: =?iso-8859-1?Q?S=E9bastien_RAILLARD_=28COEXSI=29?= <sr@coexsi.fr>
+To: "'Devin Heitmueller'" <dheitmueller@kernellabs.com>,
+	"'HoP'" <jpetrous@gmail.com>
+Cc: =?iso-8859-1?Q?'R=E9mi_Denis-Courmont'?= <remi@remlab.net>,
+	<linux-media@vger.kernel.org>
+References: <BANLkTimtnbAzLTdFY2OiSddHTjmD_99CfA@mail.gmail.com>	<201106202037.19535.remi@remlab.net>	<BANLkTinn0uN3VwGfqCbYbxFoVf6aNo1VSA@mail.gmail.com>	<BANLkTin14LnwP+_K1m-RsEXza4M4CjqnEw@mail.gmail.com> <BANLkTimR-zWnnLBcD2w8d8NpeFJi=eT9nQ@mail.gmail.com>
+In-Reply-To: <BANLkTimR-zWnnLBcD2w8d8NpeFJi=eT9nQ@mail.gmail.com>
+Subject: RE: [RFC] vtunerc - virtual DVB device driver
+Date: Mon, 20 Jun 2011 21:10:00 +0200
+Message-ID: <005a01cc2f7d$a799be30$f6cd3a90$@coexsi.fr>
+MIME-Version: 1.0
+Content-Type: text/plain;
+	charset="iso-8859-1"
+Content-Transfer-Encoding: 8BIT
+Content-Language: fr
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-This is required to implement control events and is also needed to allow
-for per-filehandle control handlers.
 
-Signed-off-by: Hans Verkuil <hverkuil@xs4all.nl>
----
- drivers/media/video/v4l2-fh.c    |    2 ++
- drivers/media/video/v4l2-ioctl.c |   36 +++++++++++++++++++++++++++---------
- include/media/v4l2-fh.h          |    2 ++
- 3 files changed, 31 insertions(+), 9 deletions(-)
 
-diff --git a/drivers/media/video/v4l2-fh.c b/drivers/media/video/v4l2-fh.c
-index 717f71e..8635011 100644
---- a/drivers/media/video/v4l2-fh.c
-+++ b/drivers/media/video/v4l2-fh.c
-@@ -32,6 +32,8 @@
- int v4l2_fh_init(struct v4l2_fh *fh, struct video_device *vdev)
- {
- 	fh->vdev = vdev;
-+	/* Inherit from video_device. May be overridden by the driver. */
-+	fh->ctrl_handler = vdev->ctrl_handler;
- 	INIT_LIST_HEAD(&fh->list);
- 	set_bit(V4L2_FL_USES_V4L2_FH, &fh->vdev->flags);
- 	fh->prio = V4L2_PRIORITY_UNSET;
-diff --git a/drivers/media/video/v4l2-ioctl.c b/drivers/media/video/v4l2-ioctl.c
-index 213ba7d..9811b1e 100644
---- a/drivers/media/video/v4l2-ioctl.c
-+++ b/drivers/media/video/v4l2-ioctl.c
-@@ -1418,7 +1418,9 @@ static long __video_do_ioctl(struct file *file,
- 	{
- 		struct v4l2_queryctrl *p = arg;
+> -----Original Message-----
+> From: linux-media-owner@vger.kernel.org [mailto:linux-media-
+> owner@vger.kernel.org] On Behalf Of Devin Heitmueller
+> Sent: lundi 20 juin 2011 20:25
+> To: HoP
+> Cc: Rémi Denis-Courmont; linux-media@vger.kernel.org
+> Subject: Re: [RFC] vtunerc - virtual DVB device driver
+> 
+> On Mon, Jun 20, 2011 at 2:17 PM, HoP <jpetrous@gmail.com> wrote:
+> > Can you tell me when such disscussion was done? I did a big attempt to
+> > check if my work is not reinventing wheels, but I found only some very
+> > generic frontend template by Emard <emard@softhome.net>.
+> 
+> See the "userspace tuner" thread here for the background:
+> 
+> http://www.linuxtv.org/pipermail/linux-dvb/2007-August/thread.html#19840
+> 
+> >> easier for evil tuner manufacturers to leverage all the hard work
+> >> done by the LinuxTV developers while providing a closed-source
+> solution.
+> >
+> > May be I missunderstood something, but I can't see how frontend
+> > virtualization/sharing can help to leverage others work.
+> 
+> It helps in that it allows third parties to write drivers in userspace
+> that leverage the in-kernel implementation of DVB core.  It means that a
+> product developer who didn't want to abide by the GPL could write a
+> closed-source driver in userland which takes advantage of the thousands
+> of lines of code that make up the DVB core.
+> 
+> >> It was an explicit goal to *not* allow third parties to reuse the
+> >> Linux DVB core unless they were providing in-kernel drivers which
+> >> conform to the GPL.
+> >
+> > I'm again not sure if you try to argument against vtunerc code or
+> > nope.
+> 
+> I am against things like this being in the upstream kernel which make it
+> easier for third parties to leverage GPL code without making their code
+> available under the GPL.
+> 
+
+If I may put my two cents in this discussion regarding the closed source
+code problem: maybe it could be great to have some closed source drivers
+making some DVB hardware working better or even allowing more DVB hardware
+working under Linux. For example, there is a good support of PCI DVB
+devices, but not yet so much support for PCIe DVB devices (and even less if
+you're searching for DVB-S2 tuner with CAM support at reasonable price).
+Also, most the DVB drivers code released under GPL is nearly impossible to
+understand as there is no documentation (because of NDA agreements with
+developers - as I understood) and no inline comments. So does-it make so
+much difference with closed source code? I really don't want to aggress
+anybody here, but it's really a question I have.
  
--		if (vfd->ctrl_handler)
-+		if (vfh && vfh->ctrl_handler)
-+			ret = v4l2_queryctrl(vfh->ctrl_handler, p);
-+		else if (vfd->ctrl_handler)
- 			ret = v4l2_queryctrl(vfd->ctrl_handler, p);
- 		else if (ops->vidioc_queryctrl)
- 			ret = ops->vidioc_queryctrl(file, fh, p);
-@@ -1438,7 +1440,9 @@ static long __video_do_ioctl(struct file *file,
- 	{
- 		struct v4l2_control *p = arg;
- 
--		if (vfd->ctrl_handler)
-+		if (vfh && vfh->ctrl_handler)
-+			ret = v4l2_g_ctrl(vfh->ctrl_handler, p);
-+		else if (vfd->ctrl_handler)
- 			ret = v4l2_g_ctrl(vfd->ctrl_handler, p);
- 		else if (ops->vidioc_g_ctrl)
- 			ret = ops->vidioc_g_ctrl(file, fh, p);
-@@ -1470,12 +1474,16 @@ static long __video_do_ioctl(struct file *file,
- 		struct v4l2_ext_controls ctrls;
- 		struct v4l2_ext_control ctrl;
- 
--		if (!vfd->ctrl_handler &&
-+		if (!(vfh && vfh->ctrl_handler) && !vfd->ctrl_handler &&
- 			!ops->vidioc_s_ctrl && !ops->vidioc_s_ext_ctrls)
- 			break;
- 
- 		dbgarg(cmd, "id=0x%x, value=%d\n", p->id, p->value);
- 
-+		if (vfh && vfh->ctrl_handler) {
-+			ret = v4l2_s_ctrl(vfh->ctrl_handler, p);
-+			break;
-+		}
- 		if (vfd->ctrl_handler) {
- 			ret = v4l2_s_ctrl(vfd->ctrl_handler, p);
- 			break;
-@@ -1501,7 +1509,9 @@ static long __video_do_ioctl(struct file *file,
- 		struct v4l2_ext_controls *p = arg;
- 
- 		p->error_idx = p->count;
--		if (vfd->ctrl_handler)
-+		if (vfh && vfh->ctrl_handler)
-+			ret = v4l2_g_ext_ctrls(vfh->ctrl_handler, p);
-+		else if (vfd->ctrl_handler)
- 			ret = v4l2_g_ext_ctrls(vfd->ctrl_handler, p);
- 		else if (ops->vidioc_g_ext_ctrls && check_ext_ctrls(p, 0))
- 			ret = ops->vidioc_g_ext_ctrls(file, fh, p);
-@@ -1515,10 +1525,13 @@ static long __video_do_ioctl(struct file *file,
- 		struct v4l2_ext_controls *p = arg;
- 
- 		p->error_idx = p->count;
--		if (!vfd->ctrl_handler && !ops->vidioc_s_ext_ctrls)
-+		if (!(vfh && vfh->ctrl_handler) && !vfd->ctrl_handler &&
-+				!ops->vidioc_s_ext_ctrls)
- 			break;
- 		v4l_print_ext_ctrls(cmd, vfd, p, 1);
--		if (vfd->ctrl_handler)
-+		if (vfh && vfh->ctrl_handler)
-+			ret = v4l2_s_ext_ctrls(vfh->ctrl_handler, p);
-+		else if (vfd->ctrl_handler)
- 			ret = v4l2_s_ext_ctrls(vfd->ctrl_handler, p);
- 		else if (check_ext_ctrls(p, 0))
- 			ret = ops->vidioc_s_ext_ctrls(file, fh, p);
-@@ -1529,10 +1542,13 @@ static long __video_do_ioctl(struct file *file,
- 		struct v4l2_ext_controls *p = arg;
- 
- 		p->error_idx = p->count;
--		if (!vfd->ctrl_handler && !ops->vidioc_try_ext_ctrls)
-+		if (!(vfh && vfh->ctrl_handler) && !vfd->ctrl_handler &&
-+				!ops->vidioc_try_ext_ctrls)
- 			break;
- 		v4l_print_ext_ctrls(cmd, vfd, p, 1);
--		if (vfd->ctrl_handler)
-+		if (vfh && vfh->ctrl_handler)
-+			ret = v4l2_try_ext_ctrls(vfh->ctrl_handler, p);
-+		else if (vfd->ctrl_handler)
- 			ret = v4l2_try_ext_ctrls(vfd->ctrl_handler, p);
- 		else if (check_ext_ctrls(p, 0))
- 			ret = ops->vidioc_try_ext_ctrls(file, fh, p);
-@@ -1542,7 +1558,9 @@ static long __video_do_ioctl(struct file *file,
- 	{
- 		struct v4l2_querymenu *p = arg;
- 
--		if (vfd->ctrl_handler)
-+		if (vfh && vfh->ctrl_handler)
-+			ret = v4l2_querymenu(vfh->ctrl_handler, p);
-+		else if (vfd->ctrl_handler)
- 			ret = v4l2_querymenu(vfd->ctrl_handler, p);
- 		else if (ops->vidioc_querymenu)
- 			ret = ops->vidioc_querymenu(file, fh, p);
-diff --git a/include/media/v4l2-fh.h b/include/media/v4l2-fh.h
-index 0206aa5..d247111 100644
---- a/include/media/v4l2-fh.h
-+++ b/include/media/v4l2-fh.h
-@@ -30,11 +30,13 @@
- 
- struct video_device;
- struct v4l2_events;
-+struct v4l2_ctrl_handler;
- 
- struct v4l2_fh {
- 	struct list_head	list;
- 	struct video_device	*vdev;
- 	struct v4l2_events      *events; /* events, pending and subscribed */
-+	struct v4l2_ctrl_handler *ctrl_handler;
- 	enum v4l2_priority	prio;
- };
- 
--- 
-1.7.1
+> Devin
+> 
+> --
+> Devin J. Heitmueller - Kernel Labs
+> http://www.kernellabs.com
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media"
+> in the body of a message to majordomo@vger.kernel.org More majordomo
+> info at  http://vger.kernel.org/majordomo-info.html
 
