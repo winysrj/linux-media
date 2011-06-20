@@ -1,63 +1,71 @@
 Return-path: <mchehab@pedra>
-Received: from moutng.kundenserver.de ([212.227.126.187]:56994 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932138Ab1FBJ6X (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 2 Jun 2011 05:58:23 -0400
-Date: Thu, 2 Jun 2011 11:58:21 +0200 (CEST)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Jonathan Corbet <corbet@lwn.net>
-cc: Kassey Lee <ygli@marvell.com>, linux-media@vger.kernel.org,
-	hverkuil@xs4all.nl, qingx@marvell.com, ytang5@marvell.com,
-	leiwen@marvell.com, jwan@marvell.com, hzhuang1@marvell.com,
-	njun@marvell.com
-Subject: Re: [PATCH V2] V4L/DVB: v4l: Add driver for Marvell PXA910 CCIC
-In-Reply-To: <20110602032437.3b911574@tpl.lwn.net>
-Message-ID: <Pine.LNX.4.64.1106021132460.4067@axis700.grange>
-References: <1306934205-15154-1-git-send-email-ygli@marvell.com>
- <20110602032437.3b911574@tpl.lwn.net>
+Received: from mx1.redhat.com ([209.132.183.28]:22212 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753835Ab1FTMuo (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 20 Jun 2011 08:50:44 -0400
+Message-ID: <4DFF4214.2030205@redhat.com>
+Date: Mon, 20 Jun 2011 09:50:28 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+CC: Helmut Auer <helmut@helmutauer.de>, linux-media@vger.kernel.org,
+	Oliver Endriss <o.endriss@gmx.de>
+Subject: Re: Bug: media_build always compiles with '-DDEBUG'
+References: <201106182246.03051@orion.escape-edv.de> <4DFD827E.3000605@helmutauer.de> <4DFDE1C4.7000006@redhat.com> <201106201435.11432.laurent.pinchart@ideasonboard.com>
+In-Reply-To: <201106201435.11432.laurent.pinchart@ideasonboard.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Thu, 2 Jun 2011, Jonathan Corbet wrote:
-
-> On Wed,  1 Jun 2011 21:16:45 +0800
-> Kassey Lee <ygli@marvell.com> wrote:
+Em 20-06-2011 09:35, Laurent Pinchart escreveu:
+> Hi Mauro,
 > 
-> > This driver exports a video device node per each CCIC
-> > (CMOS Camera Interface Controller)
-> > device contained in Marvell Mobile PXA910 SoC
-> > The driver is based on soc-camera + videobuf2 frame
-> > work, and only USERPTR is supported.
+> On Sunday 19 June 2011 13:47:16 Mauro Carvalho Chehab wrote:
+>> Em 19-06-2011 02:00, Helmut Auer escreveu:
+>>> Am 18.06.2011 23:38, schrieb Oliver Endriss:
+>>>> On Saturday 18 June 2011 23:11:21 Helmut Auer wrote:
+>>>>> Hi
+>>>>>
+>>>>>> Replacing
+>>>>>>
+>>>>>>       ifdef CONFIG_VIDEO_OMAP3_DEBUG
+>>>>>>
+>>>>>> by
+>>>>>>
+>>>>>>       ifeq ($(CONFIG_VIDEO_OMAP3_DEBUG),y)
+>>>>>>
+>>>>>> would do the trick.
+>>>>>
+>>>>> I guess that would not ive the intended result.
+>>>>> Setting CONFIG_VIDEO_OMAP3_DEBUG to yes should not lead to debug
+>>>>> messages in all media modules,
+>>>>
+>>>> True, but it will happen only if you manually enable
+>>>> CONFIG_VIDEO_OMAP3_DEBUG in Kconfig.
+>>>>
+>>>> You cannot avoid this without major changes of the
+>>>> media_build system - imho not worth the effort.
+>>>
+>>> Then imho it would be better to drop the  CONFIG_VIDEO_OMAP3_DEBUG
+>>> variable completely, you can set CONFIG_DEBUG which would give the same
+>>> results.
+>>
+>> Good catch!
+>>
+>> Yes, I agree that the better is to just drop CONFIG_VIDEO_OMAP3_DEBUG
+>> variable completely. If someone wants to build with -DDEBUG, he can just
+>> use CONFIG_DEBUG.
+>>
+>> Laurent,
+>>
+>> Any comments?
 > 
-> This device looks awfully similar to the Cafe controller; you must
-> certainly have known that, since some of the code in your driver is
-> clearly copied (without attribution) from cafe_ccic.c.
+> CONFIG_VIDEO_OMAP3_DEBUG is used to build the OMAP3 ISP driver in debug mode, 
+> without having to compile the whole kernel with debugging enabled. I'd like to 
+> keep that feature if possible.
 
-Yes, I noticed this, as I saw the cafe_ccic header being included in this 
-driver.
+If you want that, build it using media_build. I don't care of having such hacks
+there, but having it upstream is not the right thing to do.
 
-> As it happens, I've just written a driver for the Armada 610 SoC found
-> in the OLPC 1.75 system; I was planning to post it as early as next
-> week.  I took a different approach, though: rather than duplicating the
-> Cafe code, I split that driver into core and platform parts, then added
-> a new platform piece for the Armada 610.  I do believe that is a better
-> way of doing things.
-> 
-> That said, your driver has useful stuff that mine doesn't - MIPI
-> support, for example.
-> 
-> I'm traveling, but will be back next week.  I'll send out my work after
-> that; then I would really like to find a way to make all these pieces
-> work together with a common core for cafe-derived controllers.  Make
-> sense?
-
-This is definitely the right direction! Thanks for your heads-up!
-
-Thanks
-Guennadi
----
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
-http://www.open-technology.de/
+Mauro
