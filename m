@@ -1,98 +1,62 @@
 Return-path: <mchehab@pedra>
-Received: from proofpoint-cluster.metrocast.net ([65.175.128.136]:48196 "EHLO
-	proofpoint-cluster.metrocast.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755770Ab1FJMee (ORCPT
+Received: from mail-ew0-f46.google.com ([209.85.215.46]:37320 "EHLO
+	mail-ew0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752611Ab1FTSYk (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 10 Jun 2011 08:34:34 -0400
-References: <4DF1FF06.4050502@hoogenraad.net>
-In-Reply-To: <4DF1FF06.4050502@hoogenraad.net>
+	Mon, 20 Jun 2011 14:24:40 -0400
+Received: by ewy4 with SMTP id 4so1322479ewy.19
+        for <linux-media@vger.kernel.org>; Mon, 20 Jun 2011 11:24:39 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: text/plain;
- charset=UTF-8
-Content-Transfer-Encoding: 8bit
-Subject: Re: Media_build does not compile due to errors in cx18-driver.h, cx18-driver.c and dvbdev.c /rc-main.c
-From: Andy Walls <awalls@md.metrocast.net>
-Date: Fri, 10 Jun 2011 08:34:41 -0400
-To: Jan Hoogenraad <jan-conceptronic@hoogenraad.net>,
+In-Reply-To: <BANLkTin14LnwP+_K1m-RsEXza4M4CjqnEw@mail.gmail.com>
+References: <BANLkTimtnbAzLTdFY2OiSddHTjmD_99CfA@mail.gmail.com>
+	<201106202037.19535.remi@remlab.net>
+	<BANLkTinn0uN3VwGfqCbYbxFoVf6aNo1VSA@mail.gmail.com>
+	<BANLkTin14LnwP+_K1m-RsEXza4M4CjqnEw@mail.gmail.com>
+Date: Mon, 20 Jun 2011 14:24:36 -0400
+Message-ID: <BANLkTimR-zWnnLBcD2w8d8NpeFJi=eT9nQ@mail.gmail.com>
+Subject: Re: [RFC] vtunerc - virtual DVB device driver
+From: Devin Heitmueller <dheitmueller@kernellabs.com>
+To: HoP <jpetrous@gmail.com>
+Cc: =?ISO-8859-1?Q?R=E9mi_Denis=2DCourmont?= <remi@remlab.net>,
 	linux-media@vger.kernel.org
-Message-ID: <3e84c07f-83ff-4f83-9f8f-f52631259f05@email.android.com>
+Content-Type: text/plain; charset=ISO-8859-1
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Jan Hoogenraad <jan-conceptronic@hoogenraad.net> wrote:
+On Mon, Jun 20, 2011 at 2:17 PM, HoP <jpetrous@gmail.com> wrote:
+> Can you tell me when such disscussion was done? I did a big attempt
+> to check if my work is not reinventing wheels, but I found only some
+> very generic frontend template by Emard <emard@softhome.net>.
 
->Hans, Mauro:
->
->I have tried to compile the sources at
->git://linuxtv.org/media_build.git,
->using build.sh
->
->At
->cx18-driver.h:659:
->     struct workqueue_struct *out_work_queue;
->     char out_workq_name[12]; /* "cx18-NN-out" */
->
->     struct workqueue_struct *out_work_queue;
->     char out_workq_name[12]; /* "cx18-NN-out" */
->
->
->cx18-driver.c:718
->a similar problem occurs: the following code block is repeated:
->
->static int __devinit cx18_create_out_workq(struct cx18 *cx)
->{
->     snprintf(cx->out_workq_name, sizeof(cx->out_workq_name), "%s-out",
->          cx->v4l2_dev.name);
->     cx->out_work_queue = create_workqueue(cx->out_workq_name);
->     if (cx->out_work_queue == NULL) {
->       CX18_ERR("Unable to create outgoing mailbox handler threads\n");
->         return -ENOMEM;
->     }
->     return 0;
->}
->
->static int __devinit cx18_create_out_workq(struct cx18 *cx)
->{
->     snprintf(cx->out_workq_name, sizeof(cx->out_workq_name), "%s-out",
->          cx->v4l2_dev.name);
->     cx->out_work_queue = create_workqueue(cx->out_workq_name);
->     if (cx->out_work_queue == NULL) {
->       CX18_ERR("Unable to create outgoing mailbox handler threads\n");
->         return -ENOMEM;
->     }
->     return 0;
->}
->
->Furthermore, there is an error that is present in three sources:
->At
->./v4l/dvbdev.c:466: twice:
->the escape sequence \\" sould be replaced with \"
->
->./rc-main.c:1131: twice:
->the escape sequence \\" sould be replaced with \"
->
->./v4l/v4l2-dev.c:782: twice:
->the escape sequence \\" sould be replaced with \"
->
->
->-- 
->Jan Hoogenraad
->Hoogenraad Interface Services
->Postbus 2717
->3500 GS Utrecht
->
->
->--
->To unsubscribe from this list: send the line "unsubscribe linux-media"
->in
->the body of a message to majordomo@vger.kernel.org
->More majordomo info at  http://vger.kernel.org/majordomo-info.html
+See the "userspace tuner" thread here for the background:
 
-What are the error messages?
+http://www.linuxtv.org/pipermail/linux-dvb/2007-August/thread.html#19840
 
-Tejun Heo made quite a number of workqueue changes, and the cx18 driver got dragged forward with them.  So did ivtv for that matter.
+>> easier for evil tuner manufacturers to leverage all the hard work done
+>> by the LinuxTV developers while providing a closed-source solution.
+>
+> May be I missunderstood something, but I can't see how frontend
+> virtualization/sharing can help to leverage others work.
 
-Just disable the cx18 driver if you don't need it for an older kernel.
+It helps in that it allows third parties to write drivers in userspace
+that leverage the in-kernel implementation of DVB core.  It means that
+a product developer who didn't want to abide by the GPL could write a
+closed-source driver in userland which takes advantage of the
+thousands of lines of code that make up the DVB core.
 
-Regards,
-Andy
+>> It was an explicit goal to *not* allow third parties to reuse the
+>> Linux DVB core unless they were providing in-kernel drivers which
+>> conform to the GPL.
+>
+> I'm again not sure if you try to argument against vtunerc code
+> or nope.
+
+I am against things like this being in the upstream kernel which make
+it easier for third parties to leverage GPL code without making their
+code available under the GPL.
+
+Devin
+
+-- 
+Devin J. Heitmueller - Kernel Labs
+http://www.kernellabs.com
