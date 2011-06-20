@@ -1,146 +1,130 @@
 Return-path: <mchehab@pedra>
-Received: from mail-pz0-f46.google.com ([209.85.210.46]:38104 "EHLO
-	mail-pz0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1759825Ab1FWSkS (ORCPT
+Received: from perceval.ideasonboard.com ([95.142.166.194]:33446 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751540Ab1FTNdN (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 23 Jun 2011 14:40:18 -0400
-Received: by pzk9 with SMTP id 9so1340804pzk.19
-        for <linux-media@vger.kernel.org>; Thu, 23 Jun 2011 11:40:17 -0700 (PDT)
-Date: Thu, 23 Jun 2011 11:40:01 -0700
-From: Dmitry Torokhov <dmitry.torokhov@gmail.com>
-To: Jarod Wilson <jarod@redhat.com>
-Cc: linux-media@vger.kernel.org,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Jeff Brown <jeffbrown@android.com>
-Subject: Re: [PATCH] [media] rc: call input_sync after scancode reports
-Message-ID: <20110623183957.GC14950@core.coreip.homeip.net>
-References: <1308851886-4607-1-git-send-email-jarod@redhat.com>
+	Mon, 20 Jun 2011 09:33:13 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Subject: Re: [RFCv3 PATCH 13/18] v4l2-ctrls: add control events.
+Date: Mon, 20 Jun 2011 15:33:36 +0200
+Cc: linux-media@vger.kernel.org, Hans Verkuil <hans.verkuil@cisco.com>
+References: <1307459123-17810-1-git-send-email-hverkuil@xs4all.nl> <fe0a2747088972ad92088ce06c701a8f722c0831.1307458245.git.hans.verkuil@cisco.com>
+In-Reply-To: <fe0a2747088972ad92088ce06c701a8f722c0831.1307458245.git.hans.verkuil@cisco.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1308851886-4607-1-git-send-email-jarod@redhat.com>
+Content-Type: Text/Plain;
+  charset="iso-8859-15"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201106201533.36310.laurent.pinchart@ideasonboard.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Hi Jarod,
+Hi Hans,
 
-On Thu, Jun 23, 2011 at 01:58:06PM -0400, Jarod Wilson wrote:
-> @@ -623,6 +624,7 @@ static void ir_do_keydown(struct rc_dev *dev, int scancode,
->  			  u32 keycode, u8 toggle)
+Thanks for the patch, and sorry for the late review.
+
+On Tuesday 07 June 2011 17:05:18 Hans Verkuil wrote:
+> From: Hans Verkuil <hans.verkuil@cisco.com>
+> 
+> Whenever a control changes value or state an event is sent to anyone
+> that subscribed to it.
+> 
+> This functionality is useful for control panels but also for applications
+> that need to wait for (usually status) controls to change value.
+
+[snip]
+
+> +static void send_event(struct v4l2_fh *fh, struct v4l2_ctrl *ctrl, u32
+> changes) +{
+> +	struct v4l2_event ev;
+> +	struct v4l2_ctrl_fh *pos;
+> +
+> +	if (list_empty(&ctrl->fhs))
+> +			return;
+
+There's one extra tab here.
+
+> +	fill_event(&ev, ctrl, changes);
+> +
+> +	list_for_each_entry(pos, &ctrl->fhs, node)
+> +		if (pos->fh != fh)
+> +			v4l2_event_queue_fh(pos->fh, &ev);
+> +}
+
+[snip]
+
+> @@ -1222,15 +1279,21 @@ EXPORT_SYMBOL(v4l2_ctrl_auto_cluster);
+>  /* Activate/deactivate a control. */
+>  void v4l2_ctrl_activate(struct v4l2_ctrl *ctrl, bool active)
 >  {
->  	input_event(dev->input_dev, EV_MSC, MSC_SCAN, scancode);
-> +	input_sync(dev->input_dev);
->  
->  	/* Repeat event? */
->  	if (dev->keypressed &&
+> +	/* invert since the actual flag is called 'inactive' */
+> +	bool inactive = !active;
+> +	bool old;
+> +
+>  	if (ctrl == NULL)
+>  		return;
+> 
+> -	if (!active)
+> +	if (inactive)
+>  		/* set V4L2_CTRL_FLAG_INACTIVE */
+> -		set_bit(4, &ctrl->flags);
+> +		old = test_and_set_bit(4, &ctrl->flags);
 
-It looks like we would be issuing up to 3 input_sync() for a single
-keypress... Order of events is wrong too (we first issue MSC_SCAN for
-new key and then release old key). How about we change it a bit like in
-the patch below?
+I've never been found of hardcoded constants. What about 
+ffs(V4L2_CTRL_FLAG_INACTIVE) - 1 instead ? gcc will optimize that to a 
+constant.
+
+>  	else
+>  		/* clear V4L2_CTRL_FLAG_INACTIVE */
+> -		clear_bit(4, &ctrl->flags);
+> +		old = test_and_clear_bit(4, &ctrl->flags);
+> +	if (old != inactive)
+> +		send_event(NULL, ctrl, V4L2_EVENT_CTRL_CH_FLAGS);
+>  }
+>  EXPORT_SYMBOL(v4l2_ctrl_activate);
+
+[snip]
+
+> @@ -182,37 +218,26 @@ void v4l2_event_queue(struct video_device *vdev,
+> const struct v4l2_event *ev) spin_lock_irqsave(&vdev->fh_lock, flags);
+> 
+>  	list_for_each_entry(fh, &vdev->fh_list, list) {
+> -		struct v4l2_events *events = fh->events;
+> -		struct v4l2_kevent *kev;
+> -
+> -		/* Are we subscribed? */
+> -		if (!v4l2_event_subscribed(fh, ev->type))
+> -			continue;
+> -
+> -		/* Increase event sequence number on fh. */
+> -		events->sequence++;
+> -
+> -		/* Do we have any free events? */
+> -		if (list_empty(&events->free))
+> -			continue;
+> -
+> -		/* Take one and fill it. */
+> -		kev = list_first_entry(&events->free, struct v4l2_kevent, list);
+> -		kev->event.type = ev->type;
+> -		kev->event.u = ev->u;
+> -		kev->event.timestamp = timestamp;
+> -		kev->event.sequence = events->sequence;
+> -		list_move_tail(&kev->list, &events->available);
+> -
+> -		events->navailable++;
+> -
+> -		wake_up_all(&events->wait);
+> +		__v4l2_event_queue_fh(fh, ev, &timestamp);
+>  	}
+
+You can remove the braces.
+
+> 
+>  	spin_unlock_irqrestore(&vdev->fh_lock, flags);
+>  }
+>  EXPORT_SYMBOL_GPL(v4l2_event_queue);
 
 -- 
-Dmitry
+Regards,
 
-
-Input: rc - call input_sync after scancode reports
-
-From: Jarod Wilson <jarod@redhat.com>
-
-Due to commit cdda911c34006f1089f3c87b1a1f31ab3a4722f2, evdev only
-becomes readable when the buffer contains an EV_SYN/SYN_REPORT event. If
-we get a repeat or a scancode we don't have a mapping for, we never call
-input_sync, and thus those events don't get reported in a timely
-fashion.
-
-For example, take an mceusb transceiver with a default rc6 keymap. Press
-buttons on an rc5 remote while monitoring with ir-keytable, and you'll
-see nothing. Now press a button on the rc6 remote matching the keymap.
-You'll suddenly get the rc5 key scancodes, the rc6 scancode and the rc6
-key spit out all at the same time.
-
-Pressing and holding a button on a remote we do have a keymap for also
-works rather unreliably right now, due to repeat events also happening
-without a call to input_sync (we bail from ir_do_keydown before getting
-to the point where it calls input_sync).
-
-Easy fix though, just add two strategically placed input_sync calls
-right after our input_event calls for EV_MSC, and all is well again.
-Technically, we probably should have been doing this all along, its just
-that it never caused any function difference until the referenced change
-went into the input layer.
-
-Reported-by: Stephan Raue <sraue@openelec.tv>
-CC: Mauro Carvalho Chehab <mchehab@redhat.com>
-CC: Jeff Brown <jeffbrown@android.com>
-Signed-off-by: Jarod Wilson <jarod@redhat.com>
-Signed-off-by: Dmitry Torokhov <dtor@mail.ru>
----
-
- drivers/media/rc/rc-main.c |   41 ++++++++++++++++++++++-------------------
- 1 files changed, 22 insertions(+), 19 deletions(-)
-
-
-diff --git a/drivers/media/rc/rc-main.c b/drivers/media/rc/rc-main.c
-index f57cd56..237cf84 100644
---- a/drivers/media/rc/rc-main.c
-+++ b/drivers/media/rc/rc-main.c
-@@ -597,6 +597,7 @@ void rc_repeat(struct rc_dev *dev)
- 	spin_lock_irqsave(&dev->keylock, flags);
- 
- 	input_event(dev->input_dev, EV_MSC, MSC_SCAN, dev->last_scancode);
-+	input_sync(dev->input_dev);
- 
- 	if (!dev->keypressed)
- 		goto out;
-@@ -622,29 +623,31 @@ EXPORT_SYMBOL_GPL(rc_repeat);
- static void ir_do_keydown(struct rc_dev *dev, int scancode,
- 			  u32 keycode, u8 toggle)
- {
--	input_event(dev->input_dev, EV_MSC, MSC_SCAN, scancode);
--
--	/* Repeat event? */
--	if (dev->keypressed &&
--	    dev->last_scancode == scancode &&
--	    dev->last_toggle == toggle)
--		return;
-+	bool new_event = !dev->keypressed ||
-+			 dev->last_scancode != scancode ||
-+			 dev->last_toggle != toggle;
-+
-+	if (new_event && dev->keypressed) {
-+		/* Release old keypress */
-+		IR_dprintk(1, "keyup previous key 0x%04x\n", dev->last_keycode);
-+		input_report_key(dev->input_dev, dev->last_keycode, 0);
-+		dev->keypressed = false;
-+	}
- 
--	/* Release old keypress */
--	ir_do_keyup(dev);
-+	input_event(dev->input_dev, EV_MSC, MSC_SCAN, scancode);
- 
--	dev->last_scancode = scancode;
--	dev->last_toggle = toggle;
--	dev->last_keycode = keycode;
-+	if (new_event && keycode != KEY_RESERVED) {
-+		/* Register a keypress */
-+		dev->keypressed = true;
-+		IR_dprintk(1, "%s: key down event, key 0x%04x, scancode 0x%04x\n",
-+			   dev->input_name, keycode, scancode);
-+		input_report_key(dev->input_dev, dev->last_keycode, 1);
- 
--	if (keycode == KEY_RESERVED)
--		return;
-+		dev->last_scancode = scancode;
-+		dev->last_toggle = toggle;
-+		dev->last_keycode = keycode;
-+	}
- 
--	/* Register a keypress */
--	dev->keypressed = true;
--	IR_dprintk(1, "%s: key down event, key 0x%04x, scancode 0x%04x\n",
--		   dev->input_name, keycode, scancode);
--	input_report_key(dev->input_dev, dev->last_keycode, 1);
- 	input_sync(dev->input_dev);
- }
- 
+Laurent Pinchart
