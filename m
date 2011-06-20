@@ -1,80 +1,48 @@
 Return-path: <mchehab@pedra>
-Received: from mx1.redhat.com ([209.132.183.28]:14736 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1758764Ab1F1QcI (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 28 Jun 2011 12:32:08 -0400
-Date: Mon, 27 Jun 2011 23:17:32 -0300
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	LKML <linux-kernel@vger.kernel.org>
-Subject: [PATCHv2 09/13] [media] uvcvideo: Use LINUX_VERSION_CODE for
- VIDIOC_QUERYCAP
-Message-ID: <20110627231732.14593452@pedra>
-In-Reply-To: <cover.1309226359.git.mchehab@redhat.com>
-References: <cover.1309226359.git.mchehab@redhat.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
-To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
+Received: from mail-ew0-f46.google.com ([209.85.215.46]:34549 "EHLO
+	mail-ew0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755414Ab1FTRlr convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 20 Jun 2011 13:41:47 -0400
+Received: by ewy4 with SMTP id 4so1307921ewy.19
+        for <linux-media@vger.kernel.org>; Mon, 20 Jun 2011 10:41:46 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <201106202037.19535.remi@remlab.net>
+References: <BANLkTimtnbAzLTdFY2OiSddHTjmD_99CfA@mail.gmail.com>
+	<201106202037.19535.remi@remlab.net>
+Date: Mon, 20 Jun 2011 13:41:44 -0400
+Message-ID: <BANLkTinn0uN3VwGfqCbYbxFoVf6aNo1VSA@mail.gmail.com>
+Subject: Re: [RFC] vtunerc - virtual DVB device driver
+From: Devin Heitmueller <dheitmueller@kernellabs.com>
+To: =?ISO-8859-1?Q?R=E9mi_Denis=2DCourmont?= <remi@remlab.net>
+Cc: linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-uvcvideo doesn't use vidioc_ioctl2. As the API is changing to use
-a common version for all drivers, we need to expliticly fix this
-driver.
+2011/6/20 Rémi Denis-Courmont <remi@remlab.net>:
+>        Hello,
+>
+> Le dimanche 19 juin 2011 03:10:15 HoP, vous avez écrit :
+>> get inspired by (unfortunately close-source) solution on stb
+>> Dreambox 800 I have made my own implementation
+>> of virtual DVB device, based on the same device API.
+>
+> Some might argue that CUSE can already do this. Then again, CUSE would not be
+> able to reuse the kernel DVB core infrastructure: everything would need to be
+> reinvented in userspace.
 
-Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
-Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+Generally speaking, this is the key reason that "virtual dvb" drivers
+have been rejected in the past for upstream inclusion - it makes it
+easier for evil tuner manufacturers to leverage all the hard work done
+by the LinuxTV developers while providing a closed-source solution.
+It was an explicit goal to *not* allow third parties to reuse the
+Linux DVB core unless they were providing in-kernel drivers which
+conform to the GPL.
 
-diff --git a/drivers/media/video/uvc/uvc_driver.c b/drivers/media/video/uvc/uvc_driver.c
-index b6eae48..749c722 100644
---- a/drivers/media/video/uvc/uvc_driver.c
-+++ b/drivers/media/video/uvc/uvc_driver.c
-@@ -31,6 +31,7 @@
- #include <linux/videodev2.h>
- #include <linux/vmalloc.h>
- #include <linux/wait.h>
-+#include <linux/version.h>
- #include <asm/atomic.h>
- #include <asm/unaligned.h>
- 
-@@ -1857,7 +1858,7 @@ static int uvc_probe(struct usb_interface *intf,
- 			sizeof(dev->mdev.serial));
- 	strcpy(dev->mdev.bus_info, udev->devpath);
- 	dev->mdev.hw_revision = le16_to_cpu(udev->descriptor.bcdDevice);
--	dev->mdev.driver_version = DRIVER_VERSION_NUMBER;
-+	dev->mdev.driver_version = LINUX_VERSION_CODE;
- 	if (media_device_register(&dev->mdev) < 0)
- 		goto error;
- 
-diff --git a/drivers/media/video/uvc/uvc_v4l2.c b/drivers/media/video/uvc/uvc_v4l2.c
-index 543a803..cdd967b 100644
---- a/drivers/media/video/uvc/uvc_v4l2.c
-+++ b/drivers/media/video/uvc/uvc_v4l2.c
-@@ -571,7 +571,7 @@ static long uvc_v4l2_do_ioctl(struct file *file, unsigned int cmd, void *arg)
- 		strlcpy(cap->card, vdev->name, sizeof cap->card);
- 		usb_make_path(stream->dev->udev,
- 			      cap->bus_info, sizeof(cap->bus_info));
--		cap->version = DRIVER_VERSION_NUMBER;
-+		cap->version = LINUX_VERSION_CODE;
- 		if (stream->type == V4L2_BUF_TYPE_VIDEO_CAPTURE)
- 			cap->capabilities = V4L2_CAP_VIDEO_CAPTURE
- 					  | V4L2_CAP_STREAMING;
-diff --git a/drivers/media/video/uvc/uvcvideo.h b/drivers/media/video/uvc/uvcvideo.h
-index 20107fd..df32a43 100644
---- a/drivers/media/video/uvc/uvcvideo.h
-+++ b/drivers/media/video/uvc/uvcvideo.h
-@@ -183,8 +183,7 @@ struct uvc_xu_control {
-  * Driver specific constants.
-  */
- 
--#define DRIVER_VERSION_NUMBER	KERNEL_VERSION(1, 1, 0)
--#define DRIVER_VERSION		"v1.1.0"
-+#define DRIVER_VERSION		"1.1.1"
- 
- /* Number of isochronous URBs. */
- #define UVC_URBS		5
+Devin
+
 -- 
-1.7.1
-
-
+Devin J. Heitmueller - Kernel Labs
+http://www.kernellabs.com
