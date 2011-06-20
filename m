@@ -1,92 +1,132 @@
 Return-path: <mchehab@pedra>
-Received: from metis.ext.pengutronix.de ([92.198.50.35]:40297 "EHLO
-	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754763Ab1FCTuc (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 3 Jun 2011 15:50:32 -0400
-Date: Fri, 3 Jun 2011 21:50:22 +0200
-From: Uwe =?iso-8859-1?Q?Kleine-K=F6nig?=
-	<u.kleine-koenig@pengutronix.de>
-To: Mauro Carvalho Chehab <mchehab@infradead.org>
-Cc: Kyungmin Park <kmpark@infradead.org>, linux-media@vger.kernel.org,
-	kernel@pengutronix.de, Pawel Osciak <pawel@osciak.com>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	Marek Szyprowski <m.szyprowski@samsung.com>,
-	Jeremy Kerr <jk@ozlabs.org>
-Subject: Re: [PATCH] [media] V4L/videobuf2-memops: use pr_debug for debug
- messages
-Message-ID: <20110603195022.GF9907@pengutronix.de>
-References: <1306959563-7108-1-git-send-email-u.kleine-koenig@pengutronix.de>
- <BANLkTimG=xP7qvpN7G8+Mmmy-JozEpyPNw@mail.gmail.com>
- <4DE6E8A7.2080305@infradead.org>
- <20110603073908.GC9907@pengutronix.de>
- <4DE90048.2060407@infradead.org>
+Received: from smtp-vbr10.xs4all.nl ([194.109.24.30]:3710 "EHLO
+	smtp-vbr10.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754216Ab1FTOMD (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 20 Jun 2011 10:12:03 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Subject: Re: [RFCv1 PATCH 4/8] v4l2-event: add optional 'merge' callback to merge two events
+Date: Mon, 20 Jun 2011 16:11:55 +0200
+Cc: linux-media@vger.kernel.org, sakari.ailus@iki.fi,
+	Hans Verkuil <hans.verkuil@cisco.com>
+References: <1308064953-11156-1-git-send-email-hverkuil@xs4all.nl> <e3b0b697f29a86fa0299b51bfdb808e4df847175.1308063857.git.hans.verkuil@cisco.com> <201106201609.32954.laurent.pinchart@ideasonboard.com>
+In-Reply-To: <201106201609.32954.laurent.pinchart@ideasonboard.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <4DE90048.2060407@infradead.org>
+Content-Type: Text/Plain;
+  charset="iso-8859-15"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201106201611.55673.hverkuil@xs4all.nl>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Hello Mauro,
+On Monday, June 20, 2011 16:09:32 Laurent Pinchart wrote:
+> Hi Hans,
+> 
+> Thanks for the patch.
+> 
+> On Tuesday 14 June 2011 17:22:29 Hans Verkuil wrote:
+> > From: Hans Verkuil <hans.verkuil@cisco.com>
+> > 
+> > When the event queue for a subscribed event is full, then the oldest
+> > event is dropped. It would be nice if the contents of that oldest
+> > event could be merged with the next-oldest. That way no information is
+> > lost, only intermediate steps are lost.
+> > 
+> > This patch adds an optional merge function that will be called to do
+> > this job and implements it for the control event.
+> > 
+> > Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+> > ---
+> >  drivers/media/video/v4l2-event.c |   27 ++++++++++++++++++++++++++-
+> >  include/media/v4l2-event.h       |    5 +++++
+> >  2 files changed, 31 insertions(+), 1 deletions(-)
+> > 
+> > diff --git a/drivers/media/video/v4l2-event.c
+> > b/drivers/media/video/v4l2-event.c index 9e325dd..aeec2d5 100644
+> > --- a/drivers/media/video/v4l2-event.c
+> > +++ b/drivers/media/video/v4l2-event.c
+> > @@ -113,6 +113,7 @@ static void __v4l2_event_queue_fh(struct v4l2_fh *fh,
+> > const struct v4l2_event *e {
+> >  	struct v4l2_subscribed_event *sev;
+> >  	struct v4l2_kevent *kev;
+> > +	bool copy_payload = true;
+> > 
+> >  	/* Are we subscribed? */
+> >  	sev = v4l2_event_subscribed(fh, ev->type, ev->id);
+> > @@ -130,12 +131,23 @@ static void __v4l2_event_queue_fh(struct v4l2_fh *fh,
+> > const struct v4l2_event *e sev->in_use--;
+> >  		sev->first = sev_pos(sev, 1);
+> >  		fh->navailable--;
+> > +		if (sev->merge) {
+> > +			if (sev->elems == 1) {
+> > +				sev->merge(&kev->event, ev, &kev->event);
+> > +				copy_payload = false;
+> > +			} else {
+> > +				struct v4l2_kevent *second_oldest =
+> > +					sev->events + sev_pos(sev, 0);
+> > +				sev->merge(&second_oldest->event, &second_oldest->event, &kev-
+> >event);
+> > +			}
+> > +		}
+> >  	}
+> > 
+> >  	/* Take one and fill it. */
+> >  	kev = sev->events + sev_pos(sev, sev->in_use);
+> >  	kev->event.type = ev->type;
+> > -	kev->event.u = ev->u;
+> > +	if (copy_payload)
+> > +		kev->event.u = ev->u;
+> >  	kev->event.id = ev->id;
+> >  	kev->event.timestamp = *ts;
+> >  	kev->event.sequence = fh->sequence;
+> > @@ -184,6 +196,17 @@ int v4l2_event_pending(struct v4l2_fh *fh)
+> >  }
+> >  EXPORT_SYMBOL_GPL(v4l2_event_pending);
+> > 
+> > +static void ctrls_merge(struct v4l2_event *dst,
+> > +			const struct v4l2_event *new,
+> > +			const struct v4l2_event *old)
+> > +{
+> > +	u32 changes = new->u.ctrl.changes | old->u.ctrl.changes;
+> > +
+> > +	if (dst == old)
+> > +		dst->u.ctrl = new->u.ctrl;
+> > +	dst->u.ctrl.changes = changes;
+> > +}
+> > +
+> >  int v4l2_event_subscribe(struct v4l2_fh *fh,
+> >  			 struct v4l2_event_subscription *sub, unsigned elems)
+> >  {
+> > @@ -210,6 +233,8 @@ int v4l2_event_subscribe(struct v4l2_fh *fh,
+> >  	sev->flags = sub->flags;
+> >  	sev->fh = fh;
+> >  	sev->elems = elems;
+> > +	if (ctrl)
+> > +		sev->merge = ctrls_merge;
+> > 
+> >  	spin_lock_irqsave(&fh->vdev->fh_lock, flags);
+> >  	found_ev = v4l2_event_subscribed(fh, sub->type, sub->id);
+> > diff --git a/include/media/v4l2-event.h b/include/media/v4l2-event.h
+> > index 8d681e5..111b2bc 100644
+> > --- a/include/media/v4l2-event.h
+> > +++ b/include/media/v4l2-event.h
+> > @@ -55,6 +55,11 @@ struct v4l2_subscribed_event {
+> >  	struct v4l2_fh		*fh;
+> >  	/* list node that hooks into the object's event list (if there is one) */
+> >  	struct list_head	node;
+> > +	/* Optional callback that can merge two events.
+> > +	   Note that 'dst' can be the same as either 'new' or 'old'. */
+> 
+> This can lead to various problems in drivers, if the code forgets that 
+> changing dst will change new or old. Would it be possible to make it a two 
+> arguments (dst, src) function ?
 
-On Fri, Jun 03, 2011 at 12:39:52PM -0300, Mauro Carvalho Chehab wrote:
-> Em 03-06-2011 04:39, Uwe Kleine-König escreveu:
-> > Hello Mauro,
-> > 
-> > On Wed, Jun 01, 2011 at 10:34:31PM -0300, Mauro Carvalho Chehab wrote:
-> >> Hi Kyungmin,
-> >>
-> >> Em 01-06-2011 21:50, Kyungmin Park escreveu:
-> >>> Acked-by: Kyungmin Park <kyunginn.,park@samsung.com>
-> >>
-> >> As this patch is really trivial and makes sense, I've just applied it earlier
-> >> today.
-> > You somehow screwed up my name in the Author field more than I'm used
-> > to:
-> > 
-> >  $ git cat-file commit 215c52702775556f4caf5872cc84fa8810e6fc7d | grep Uwe
-> >  author Uwe Kleine-KÃƒÆ’Ã‚Â¶nig <u.kleine-koenig@pengutronix.de> 1306959562 -0300
-> >  Signed-off-by: Uwe Kleine-König <u.kleine-koenig@pengutronix.de>
-> > 
-> > Strange enough my name in the commitlog looks fine.
-> 
-> You should thank Python for that. We use patchwork to retrieve patches. It is written
-> in Python. Python seems to have serious troubles handling anything that it is not pure
-> ASCII. In the past, a non-north-american name in Patchwork would be simply discarded,
-> as python used to abort patchwork. Lots of locale-fix patches later trying to address
-> this issue and now, it sometimes do the right thing.
-I added Jeremy Kerr to Cc:, maybe he is interested to look into that.
+This has been split into a replace and a merge function in the final patch in
+my pull request. It's the only change I made (besides documentation) compared
+to the RFCv1. This merge function was a bit too obscure and splitting it up
+into two callbacks worked much better.
 
-> > If you care to fix it, you can easily do so using git filter-branch.
-> > E.g.:
-> > 
-> > 	$ git filter-branch --env-filter 'test "x$GIT_COMMIT" != "x215c52702775556f4caf5872cc84fa8810e6fc7d" || { GIT_AUTHOR_NAME="Uwe Kleine-König"; export GIT_AUTHOR_NAME; }' ^215c5270277^ HEAD
-> > 
-> > (Assuming an UTF-8 locale.)
-> > 
-> > This converts 215c527 to a commit c6cbbfc that has my name fixed and
-> > rebases all following commits on top of this. In your master branch this
-> > only affects "00c4526 (Merge /home/v4l/v4l/for_upstream)"
-> 
-> This breaks merge. 
-> 
-> $ git push
-> To /home/v4l/bare_trees/v4l-dvb.git/
->  ! [rejected]        staging/for_v3.0 -> staging/for_v3.0 (non-fast-forward)
-> 
-> 
-> Fortunately, as the patches on this branch are meant to go to v3.1,
-> I just renamed the branch to staging/for_v3.1, keeping the wrong patch
-> at the old branch. This way, the need of rebasing was avoided.
-I don't get what you mean here. Which merge is broken? Just in case you
-didn't know, git push -f should be able to overwrite the remote branch,
-with all the downside that brings that with it.
+Regards,
 
-Best regards and thanks
-Uwe
-
--- 
-Pengutronix e.K.                           | Uwe Kleine-König            |
-Industrial Linux Solutions                 | http://www.pengutronix.de/  |
+	Hans
