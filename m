@@ -1,39 +1,82 @@
 Return-path: <mchehab@pedra>
-Received: from casper.infradead.org ([85.118.1.10]:40850 "EHLO
-	casper.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752763Ab1FCT4W (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 3 Jun 2011 15:56:22 -0400
-Message-ID: <4DE93C5C.5050301@infradead.org>
-Date: Fri, 03 Jun 2011 16:56:12 -0300
-From: Mauro Carvalho Chehab <mchehab@infradead.org>
+Received: from perceval.ideasonboard.com ([95.142.166.194]:33473 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753490Ab1FTNhy (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 20 Jun 2011 09:37:54 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+Subject: Re: Bug: media_build always compiles with '-DDEBUG'
+Date: Mon, 20 Jun 2011 15:38:14 +0200
+Cc: Helmut Auer <helmut@helmutauer.de>, linux-media@vger.kernel.org,
+	Oliver Endriss <o.endriss@gmx.de>
+References: <201106182246.03051@orion.escape-edv.de> <201106201435.11432.laurent.pinchart@ideasonboard.com> <4DFF4214.2030205@redhat.com>
+In-Reply-To: <4DFF4214.2030205@redhat.com>
 MIME-Version: 1.0
-To: =?UTF-8?B?VXdlIEtsZWluZS1Lw7ZuaWc=?=
-	<u.kleine-koenig@pengutronix.de>
-CC: Kyungmin Park <kmpark@infradead.org>, linux-media@vger.kernel.org,
-	kernel@pengutronix.de, Pawel Osciak <pawel@osciak.com>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	Marek Szyprowski <m.szyprowski@samsung.com>,
-	Jeremy Kerr <jk@ozlabs.org>
-Subject: Re: [PATCH] [media] V4L/videobuf2-memops: use pr_debug for debug
- messages
-References: <1306959563-7108-1-git-send-email-u.kleine-koenig@pengutronix.de> <BANLkTimG=xP7qvpN7G8+Mmmy-JozEpyPNw@mail.gmail.com> <4DE6E8A7.2080305@infradead.org> <20110603073908.GC9907@pengutronix.de> <4DE90048.2060407@infradead.org> <20110603195022.GF9907@pengutronix.de>
-In-Reply-To: <20110603195022.GF9907@pengutronix.de>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201106201538.15214.laurent.pinchart@ideasonboard.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Em 03-06-2011 16:50, Uwe Kleine-König escreveu:
->
->> Fortunately, as the patches on this branch are meant to go to v3.1,
->> I just renamed the branch to staging/for_v3.1, keeping the wrong patch
->> at the old branch. This way, the need of rebasing was avoided.
-> I don't get what you mean here. Which merge is broken? Just in case you
-> didn't know, git push -f should be able to overwrite the remote branch,
-> with all the downside that brings that with it.
+Hi Mauro,
 
-A git push -f will cause troubles on all clones of the media tree.
+On Monday 20 June 2011 14:50:28 Mauro Carvalho Chehab wrote:
+> Em 20-06-2011 09:35, Laurent Pinchart escreveu:
+> > On Sunday 19 June 2011 13:47:16 Mauro Carvalho Chehab wrote:
+> >> Em 19-06-2011 02:00, Helmut Auer escreveu:
+> >>> Am 18.06.2011 23:38, schrieb Oliver Endriss:
+> >>>> On Saturday 18 June 2011 23:11:21 Helmut Auer wrote:
+> >>>>> Hi
+> >>>>> 
+> >>>>>> Replacing
+> >>>>>> 
+> >>>>>>       ifdef CONFIG_VIDEO_OMAP3_DEBUG
+> >>>>>> 
+> >>>>>> by
+> >>>>>> 
+> >>>>>>       ifeq ($(CONFIG_VIDEO_OMAP3_DEBUG),y)
+> >>>>>> 
+> >>>>>> would do the trick.
+> >>>>> 
+> >>>>> I guess that would not ive the intended result.
+> >>>>> Setting CONFIG_VIDEO_OMAP3_DEBUG to yes should not lead to debug
+> >>>>> messages in all media modules,
+> >>>> 
+> >>>> True, but it will happen only if you manually enable
+> >>>> CONFIG_VIDEO_OMAP3_DEBUG in Kconfig.
+> >>>> 
+> >>>> You cannot avoid this without major changes of the
+> >>>> media_build system - imho not worth the effort.
+> >>> 
+> >>> Then imho it would be better to drop the  CONFIG_VIDEO_OMAP3_DEBUG
+> >>> variable completely, you can set CONFIG_DEBUG which would give the same
+> >>> results.
+> >> 
+> >> Good catch!
+> >> 
+> >> Yes, I agree that the better is to just drop CONFIG_VIDEO_OMAP3_DEBUG
+> >> variable completely. If someone wants to build with -DDEBUG, he can just
+> >> use CONFIG_DEBUG.
+> >> 
+> >> Laurent,
+> >> 
+> >> Any comments?
+> > 
+> > CONFIG_VIDEO_OMAP3_DEBUG is used to build the OMAP3 ISP driver in debug
+> > mode, without having to compile the whole kernel with debugging enabled.
+> > I'd like to keep that feature if possible.
+> 
+> If you want that, build it using media_build. I don't care of having such
+> hacks there, but having it upstream is not the right thing to do.
 
-Cheers,
-Mauro
+It's not a hack. Lots of drivers have debugging Kconfig options.
+
+$ find linux-2.6 -type f -name Kconfig* -exec grep '^config.*DEBUG' {} \; | wc
+    243     486    5826
+
+-- 
+Regards,
+
+Laurent Pinchart
