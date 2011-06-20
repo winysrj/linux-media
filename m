@@ -1,78 +1,70 @@
 Return-path: <mchehab@pedra>
-Received: from iolanthe.rowland.org ([192.131.102.54]:39096 "HELO
-	iolanthe.rowland.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S932103Ab1FPOfu (ORCPT
+Received: from mail-qy0-f174.google.com ([209.85.216.174]:50896 "EHLO
+	mail-qy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753330Ab1FTVUf (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 16 Jun 2011 10:35:50 -0400
-Date: Thu, 16 Jun 2011 10:35:49 -0400 (EDT)
-From: Alan Stern <stern@rowland.harvard.edu>
-To: Sarah Sharp <sarah.a.sharp@linux.intel.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-cc: linux-media@vger.kernel.org, USB list <linux-usb@vger.kernel.org>,
-	Andiry Xu <andiry.xu@amd.com>
-Subject: Re: uvcvideo failure under xHCI
-In-Reply-To: <201106161007.50594.laurent.pinchart@ideasonboard.com>
-Message-ID: <Pine.LNX.4.44L0.1106161029490.2204-100000@iolanthe.rowland.org>
+	Mon, 20 Jun 2011 17:20:35 -0400
+Received: by qyk29 with SMTP id 29so1736678qyk.19
+        for <linux-media@vger.kernel.org>; Mon, 20 Jun 2011 14:20:35 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+In-Reply-To: <4DFFB56B.3000802@iki.fi>
+References: <BANLkTimkYw70GAu1keW-N6ND=AyiRn2+CA@mail.gmail.com>
+	<4DF49E2A.9030804@iki.fi>
+	<BANLkTi=dGyN8SEwwAStD0Ob99k+FKkQPFg@mail.gmail.com>
+	<BANLkTik=37qHUx273bSRN91HeyYrtUv6og@mail.gmail.com>
+	<BANLkTi=gdVhVKjF4tqUwy+DxFv9imUipHw@mail.gmail.com>
+	<4DFFB56B.3000802@iki.fi>
+Date: Mon, 20 Jun 2011 23:20:34 +0200
+Message-ID: <BANLkTikYWVU814UWNAZFTTC9dX43Ydy4sA@mail.gmail.com>
+Subject: Re: PCTV nanoStick T2 290e (Sony CXD2820R DVB-T/T2/C) - DVB-C channel
+ scan in mythtv - missing
+From: Rune Evjen <rune.evjen@gmail.com>
+To: Antti Palosaari <crope@iki.fi>
+Cc: linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Thu, 16 Jun 2011, Laurent Pinchart wrote:
+2011/6/20 Antti Palosaari <crope@iki.fi>:
+> On 06/20/2011 11:55 PM, Rune Evjen wrote:
+>>
+>> 2011/6/20 Markus Rechberger<mrechberger@gmail.com>:
+>>>
+>>> to tell the difference the amplifier is for DVB-T2, DVB-C is disabled
+>>> in windows because it's not reliable.
+>>> Technically the chip supports it but the LNA decreases the quality.
+>>> There are already some other PCI boards
+>>> out there with that chip which do not use that LNA which should have a
+>>> better performance with that Sony chip.
+>>
+>> Is it possible to work around this by disabling the lna or is the
+>> quality decreased permanently as part of the hardware design,
+>> independently of whether the lna is enabled or not ?
+>>
+>> I searched the linux-media list and it seems that an lna option was
+>> discussed as a module parameter, but modinfo for the module I use [1]
+>> (using the media_build git repository) doesn't show a lna parameter.
+>> Can the lna be disabled in another way ?
+>
+> LNA is controlled by demod GPIO line. I don't remember if it is on or off
+> for DVB-C currently. Look em28xx-dvb.c file, you can disable or enable it
+> from there (needs re-compiling driver).
+>
+> I also saw BER counter running some muxes during development, but I think
+> all channels I have are still working. And I didn't even have time to
+> optimal parameters for tuner / demod. I will try to examine those later...
+>
+Thank you Antti,
 
-> Hi Sarah,
-> 
-> On Thursday 16 June 2011 04:59:57 Sarah Sharp wrote:
-> > On Wed, Jun 15, 2011 at 06:39:57PM -0700, Sarah Sharp wrote:
-> > > When I plug in a webcam under an xHCI host controller in 3.0-rc3+
-> > > (basically top of Greg's usb-linus branch) with xHCI debugging turned
-> > > on, the host controller occasionally cannot keep up with the isochronous
-> > > transfers, and it tells the xHCI driver that it had to "skip" several
-> > > microframes of transfers.  These "Missed Service Intervals" aren't
-> > > supposed to be fatal errors, just an indication that something was
-> > > hogging the PCI memory bandwidth.
-> > > 
-> > > The xHCI driver then sets the URB's status to -EXDEV, to indicate that
-> > > some of the iso_frame_desc transferred, and sets at least one frame's
-> > 
-> > > status to -EXDEV:
-> > ...
-> > 
-> > > The urb->status causes uvcvideo code in
-> > > uvc_status.c:uvc_status_complete() to fail with the message:
-> > > 
-> > > Jun 15 17:37:11 talon kernel: [  117.987769] uvcvideo: Non-zero status
-> > > (-18) in video completion handler.
-> > 
-> > ...
-> > 
-> > > I've grepped through drivers/media/video, and it seems like none of the
-> > > drivers handle the -EXDEV status.  What should the xHCI driver be
-> > > setting the URB's status and frame status to when the xHCI host
-> > > controller skips over transfers?  -EREMOTEIO?
-> > > 
-> > > Or does it need to set the URB's status to zero, but only set the
-> > > individual frame status to -EXDEV?
-> > 
-> > Ok, looking at both EHCI and UHCI, they seem to set the urb->status to
-> > zero, regardless of what they set the frame descriptor field to.
-> > 
-> > Alan, does that seem correct?
+I will test with lna disabled in the em28xx-dvb module
 
-The description of the behavior of ehci-hcd and uhci-hcd is correct.  
-ohci-hcd behaves the same way too.  And they all agree with the 
-behavior described in the kerneldoc for struct urb in 
-include/linux/usb.h.
+In line 349 of the code, I see this:
+        /* enable LNA for DVB-T2 and DVB-C */
+	.gpio_dvbt2[0] = CXD2820R_GPIO_E | CXD2820R_GPIO_O | CXD2820R_GPIO_L,
+	.gpio_dvbc[0] = CXD2820R_GPIO_E | CXD2820R_GPIO_O | CXD2820R_GPIO_L,
 
-> According to Documentation/usb/error-codes.txt, host controller drivers should 
-> set the status to -EXDEV. However, no device drivers seem to handle that, 
-> probably because the EHCI/UHCI drivers don't use that error code.
-> 
-> Drivers are clearly out of sync with the documentation, so we should fix one 
-> of them.
+I suspect I should modify line 351, what should it be changed to ?
 
-Under the circumstances, the documentation file should be changed.  
-Sarah, can you do that along with the change to xhci-hcd?
+Best regards,
 
-Alan Stern
-
+Rune
