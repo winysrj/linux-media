@@ -1,96 +1,44 @@
 Return-path: <mchehab@pedra>
-Received: from mail-pv0-f174.google.com ([74.125.83.174]:44270 "EHLO
-	mail-pv0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751468Ab1FOGBT (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 15 Jun 2011 02:01:19 -0400
-Message-ID: <4DF84AA6.80808@gmail.com>
-Date: Wed, 15 Jun 2011 11:31:10 +0530
-From: Subash Patel <subashrp@gmail.com>
+Received: from mail.kapsi.fi ([217.30.184.167]:41951 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752901Ab1FTWWi (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 20 Jun 2011 18:22:38 -0400
+Message-ID: <4DFFC82B.10402@iki.fi>
+Date: Tue, 21 Jun 2011 01:22:35 +0300
+From: Antti Palosaari <crope@iki.fi>
 MIME-Version: 1.0
-To: Arnd Bergmann <arnd@arndb.de>
-CC: Michal Nazarewicz <mina86@mina86.com>,
-	Marek Szyprowski <m.szyprowski@samsung.com>,
-	linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-	linux-media@vger.kernel.org, linux-mm@kvack.org,
-	linaro-mm-sig@lists.linaro.org,
-	'Kyungmin Park' <kyungmin.park@samsung.com>,
-	'Andrew Morton' <akpm@linux-foundation.org>,
-	'KAMEZAWA Hiroyuki' <kamezawa.hiroyu@jp.fujitsu.com>,
-	'Ankita Garg' <ankita@in.ibm.com>,
-	'Daniel Walker' <dwalker@codeaurora.org>,
-	'Mel Gorman' <mel@csn.ul.ie>,
-	'Jesse Barker' <jesse.barker@linaro.org>
-Subject: Re: [PATCH 08/10] mm: cma: Contiguous Memory Allocator added
-References: <1307699698-29369-1-git-send-email-m.szyprowski@samsung.com> <201106141549.29315.arnd@arndb.de> <op.vw2jmhir3l0zgt@mnazarewicz-glaptop> <201106141803.00876.arnd@arndb.de>
-In-Reply-To: <201106141803.00876.arnd@arndb.de>
+To: Jan Hoogenraad <jan-conceptronic@hoogenraad.net>
+CC: =?UTF-8?B?U2FzY2hhIFfDvHN0ZW1hbm4=?= <sascha@killerhippy.de>,
+	linux-media@vger.kernel.org,
+	Thomas Holzeisen <thomas@holzeisen.de>, stybla@turnovfree.net,
+	Maxim Levitsky <maximlevitsky@gmail.com>
+Subject: Re: RTL2831U driver updates
+References: <4DF9BCAA.3030301@holzeisen.de> <4DF9EA62.2040008@killerhippy.de> <4DFA7748.6000704@hoogenraad.net>
+In-Reply-To: <4DFA7748.6000704@hoogenraad.net>
 Content-Type: text/plain; charset=UTF-8; format=flowed
 Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Hi Arnd,
+It is Maxim who have been hacking with RTL2832/RTL2832U lately. But I 
+think he have given up since no noise anymore.
 
-On 06/14/2011 09:33 PM, Arnd Bergmann wrote:
-> On Tuesday 14 June 2011, Michal Nazarewicz wrote:
->> On Tue, 14 Jun 2011 15:49:29 +0200, Arnd Bergmann<arnd@arndb.de>  wrote:
->>> Please explain the exact requirements that lead you to defining multiple
->>> contexts.
->>
->> Some devices may have access only to some banks of memory.  Some devices
->> may use different banks of memory for different purposes.
->
-> For all I know, that is something that is only true for a few very special
-> Samsung devices, and is completely unrelated of the need for contiguous
-> allocations, so this approach becomes pointless as soon as the next
-> generation of that chip grows an IOMMU, where we don't handle the special
-> bank attributes. Also, the way I understood the situation for the Samsung
-> SoC during the Budapest discussion, it's only a performance hack, not a
-> functional requirement, unless you count '1080p playback' as a functional
-> requirement.
->
-1080p@30fps is indeed a functional requirement, as the IP has the 
-capability to achieve it. This IP itself can act as more than one AXI 
-master, and control more than one memory port(bank). So this is not a 
-*performance hack*
+I have taken now it again up to my desk and have been hacking two days 
+now. Currently I am working with RTL2830 demod driver, I started it from 
+scratch. Take sniffs, make scripts to generate code from USB traffic, 
+copy pasted that to driver skeleton and now I have picture. Just 
+implement all one-by-one until ready :-) I think I will implement it as 
+minimum possible, no any signal statistic counters - lets add those 
+later if someone wants to do that.
 
-Also, if I recall, during the Budapest discussion (I was on irc), I 
-recall that this requirement can become the information available to the 
-actual allocator. Below is the summary point I could collect from summit 
-notes:
+USB-bridge part is rather OK as I did earlier and it is working with 
+RTL2831U and RTL2832U at least. No remote support yet.
 
-     * May also need to specify more attributes (specific physical 
-memory region)
+I hope someone else would make missing driver for RTL2832U demod still...
 
-As per this point, the requirement (as above) must be attribute to the 
-allocator, which is CMA in this case.
 
-> Supporting contiguous allocation is a very useful goal and many people want
-> this, but supporting a crazy one-off hardware design with lots of generic
-> infrastructure is going a bit too far. If you can't be more specific than
-> 'some devices may need this', I would suggest going forward without having
-> multiple regions:
->
-> * Remove the registration of specific addresses from the initial patch
->    set (but keep the patch).
-> * Add a heuristic plus command-line override to automatically come up
->    with a reasonable location+size for *one* CMA area in the system.
-> * Ship the patch to add support for multiple CMA areas with the BSP
->    for the boards that need it (if any).
-> * Wait for someone on a non-Samsung SoC to run into the same problem,
->    then have /them/ get the final patch in.
->
-> Even if you think you can convince enough people that having support
-> for distinct predefined regions is a good idea, I would recommend
-> splitting that out of the initial merge so we can have that discussion
-> separately from the other issues.
->
-> 	Arnd
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Antti
 
-Regards,
-Subash
-SISO-SLG
+
+-- 
+http://palosaari.fi/
