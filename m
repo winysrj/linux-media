@@ -1,145 +1,134 @@
 Return-path: <mchehab@pedra>
-Received: from sj-iport-6.cisco.com ([171.71.176.117]:59153 "EHLO
-	sj-iport-6.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754722Ab1F2NoC (ORCPT
+Received: from perceval.ideasonboard.com ([95.142.166.194]:58152 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753927Ab1FTOJM (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 29 Jun 2011 09:44:02 -0400
-From: Hans Verkuil <hansverk@cisco.com>
-To: Hans de Goede <hdegoede@redhat.com>
-Subject: Re: RFC: poll behavior
-Date: Wed, 29 Jun 2011 15:43:51 +0200
-Cc: linux-media@vger.kernel.org
-References: <201106291326.47527.hansverk@cisco.com> <201106291442.30210.hansverk@cisco.com> <4E0B2382.4090409@redhat.com>
-In-Reply-To: <4E0B2382.4090409@redhat.com>
+	Mon, 20 Jun 2011 10:09:12 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Subject: Re: [RFCv1 PATCH 4/8] v4l2-event: add optional 'merge' callback to merge two events
+Date: Mon, 20 Jun 2011 16:09:32 +0200
+Cc: linux-media@vger.kernel.org, sakari.ailus@iki.fi,
+	Hans Verkuil <hans.verkuil@cisco.com>
+References: <1308064953-11156-1-git-send-email-hverkuil@xs4all.nl> <e3b0b697f29a86fa0299b51bfdb808e4df847175.1308063857.git.hans.verkuil@cisco.com>
+In-Reply-To: <e3b0b697f29a86fa0299b51bfdb808e4df847175.1308063857.git.hans.verkuil@cisco.com>
 MIME-Version: 1.0
 Content-Type: Text/Plain;
-  charset="iso-8859-1"
+  charset="iso-8859-15"
 Content-Transfer-Encoding: 7bit
-Message-Id: <201106291543.51271.hansverk@cisco.com>
+Message-Id: <201106201609.32954.laurent.pinchart@ideasonboard.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Wednesday, June 29, 2011 15:07:14 Hans de Goede wrote:
-> Hi,
-> 
-> On 06/29/2011 02:42 PM, Hans Verkuil wrote:
-> > On Wednesday, June 29, 2011 14:10:44 Hans de Goede wrote:
-> >> Hi,
-> >>
-> >> On 06/29/2011 01:26 PM, Hans Verkuil wrote:
-> 
-> <Snip>
-> 
-> >>> 4) Proposal to change the poll behavior
-> >>>
-> >>> For the short term I propose that condition c is handled as follows:
-> >>>
-> >>> If for the filehandle passed to poll() no events have been subscribed, then
-> >>> keep the old behavior (i.e. start streaming). If events have been subscribed,
-> >>> however, then implement the new behavior (return POLLERR).
-> >>>
-> >>
-> >> If events have been subscribed and no events are pending then the right
-> >> behavior would be to return 0, not POLLERR, otherwise a waiting app
-> >> will return from the poll immediately, or am I missing something?
-> >
-> > Yes and no. For select() POLLERR is ignored if you are only waiting for POLLPRI.
-> >
-> > But I see that that does not happen for the poll(2) API (see do_pollfd() in
-> > fs/select.c). This means that POLLERR is indeed not a suitable event it
-> > return. It will have to be POLLIN or POLLOUT instead.
-> >
-> > This is actually a real problem with poll(2): if there is no streaming in progress
-> > and the driver does not support r/w, and you want to poll for just POLLPRI, then
-> > POLLERR will be set, and poll(2) will always return. But select(2) will work fine.
-> >
-> > In other words, poll(2) and select(2) handle POLLPRI differently with respect to
-> > POLLERR. What a mess. You can't really return POLLERR and support POLLPRI at the
-> > same time.
-> >
-> 
-> Ok, yet more reason to go with my proposal, but then simplified to:
-> 
-> When streaming has not started return POLLIN or POLLOUT (or-ed with
-> POLLPRI if events are pending).
+Hi Hans,
 
-So would this be what you are looking for:
+Thanks for the patch.
 
-diff --git a/drivers/media/video/videobuf2-core.c b/drivers/media/video/videobuf2-core.c
-index 6ba1461..a3ce5a3 100644
---- a/drivers/media/video/videobuf2-core.c
-+++ b/drivers/media/video/videobuf2-core.c
-@@ -1371,35 +1371,37 @@ static int __vb2_cleanup_fileio(struct vb2_queue *q);
-  */
- unsigned int vb2_poll(struct vb2_queue *q, struct file *file, poll_table *wait)
- {
-+	struct video_device *vfd = video_devdata(file);
- 	unsigned long flags;
- 	unsigned int ret;
- 	struct vb2_buffer *vb = NULL;
-+	bool have_events = false;
-+	unsigned int res = 0;
-+
-+	if (test_bit(V4L2_FL_USES_V4L2_FH, &vfd->flags)) {
-+		struct v4l2_fh *fh = file->private_data;
-+
-+		/* Is this file handle subscribed to any events? */
-+		have_events = fh->events != NULL;
-+		if (have_events && v4l2_event_pending(fh))
-+			res = POLLPRI;
-+	} 
- 
- 	/*
- 	 * Start file I/O emulator only if streaming API has not been used yet.
- 	 */
- 	if (q->num_buffers == 0 && q->fileio == NULL) {
--		if (!V4L2_TYPE_IS_OUTPUT(q->type) && (q->io_modes & VB2_READ)) {
--			ret = __vb2_init_fileio(q, 1);
--			if (ret)
--				return POLLERR;
--		}
--		if (V4L2_TYPE_IS_OUTPUT(q->type) && (q->io_modes & VB2_WRITE)) {
--			ret = __vb2_init_fileio(q, 0);
--			if (ret)
--				return POLLERR;
--			/*
--			 * Write to OUTPUT queue can be done immediately.
--			 */
--			return POLLOUT | POLLWRNORM;
--		}
-+		if (!V4L2_TYPE_IS_OUTPUT(q->type) && (q->io_modes & VB2_READ))
-+			return res | POLLIN | POLLRDNORM;
-+		if (V4L2_TYPE_IS_OUTPUT(q->type) && (q->io_modes & VB2_WRITE))
-+			return res | POLLOUT | POLLWRNORM;
- 	}
- 
- 	/*
- 	 * There is nothing to wait for if no buffers have already been queued.
- 	 */
- 	if (list_empty(&q->queued_list))
--		return POLLERR;
-+		return have_events ? res : POLLERR;
- 
- 	poll_wait(file, &q->done_wq, wait);
- 
-@@ -1414,10 +1416,10 @@ unsigned int vb2_poll(struct vb2_queue *q, struct file *file, poll_table *wait)
- 
- 	if (vb && (vb->state == VB2_BUF_STATE_DONE
- 			|| vb->state == VB2_BUF_STATE_ERROR)) {
--		return (V4L2_TYPE_IS_OUTPUT(q->type)) ? POLLOUT | POLLWRNORM :
-+		return res | (V4L2_TYPE_IS_OUTPUT(q->type)) ? POLLOUT | POLLWRNORM :
- 			POLLIN | POLLRDNORM;
- 	}
--	return 0;
-+	return res;
- }
- EXPORT_SYMBOL_GPL(vb2_poll);
- 
+On Tuesday 14 June 2011 17:22:29 Hans Verkuil wrote:
+> From: Hans Verkuil <hans.verkuil@cisco.com>
+> 
+> When the event queue for a subscribed event is full, then the oldest
+> event is dropped. It would be nice if the contents of that oldest
+> event could be merged with the next-oldest. That way no information is
+> lost, only intermediate steps are lost.
+> 
+> This patch adds an optional merge function that will be called to do
+> this job and implements it for the control event.
+> 
+> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+> ---
+>  drivers/media/video/v4l2-event.c |   27 ++++++++++++++++++++++++++-
+>  include/media/v4l2-event.h       |    5 +++++
+>  2 files changed, 31 insertions(+), 1 deletions(-)
+> 
+> diff --git a/drivers/media/video/v4l2-event.c
+> b/drivers/media/video/v4l2-event.c index 9e325dd..aeec2d5 100644
+> --- a/drivers/media/video/v4l2-event.c
+> +++ b/drivers/media/video/v4l2-event.c
+> @@ -113,6 +113,7 @@ static void __v4l2_event_queue_fh(struct v4l2_fh *fh,
+> const struct v4l2_event *e {
+>  	struct v4l2_subscribed_event *sev;
+>  	struct v4l2_kevent *kev;
+> +	bool copy_payload = true;
+> 
+>  	/* Are we subscribed? */
+>  	sev = v4l2_event_subscribed(fh, ev->type, ev->id);
+> @@ -130,12 +131,23 @@ static void __v4l2_event_queue_fh(struct v4l2_fh *fh,
+> const struct v4l2_event *e sev->in_use--;
+>  		sev->first = sev_pos(sev, 1);
+>  		fh->navailable--;
+> +		if (sev->merge) {
+> +			if (sev->elems == 1) {
+> +				sev->merge(&kev->event, ev, &kev->event);
+> +				copy_payload = false;
+> +			} else {
+> +				struct v4l2_kevent *second_oldest =
+> +					sev->events + sev_pos(sev, 0);
+> +				sev->merge(&second_oldest->event, &second_oldest->event, &kev-
+>event);
+> +			}
+> +		}
+>  	}
+> 
+>  	/* Take one and fill it. */
+>  	kev = sev->events + sev_pos(sev, sev->in_use);
+>  	kev->event.type = ev->type;
+> -	kev->event.u = ev->u;
+> +	if (copy_payload)
+> +		kev->event.u = ev->u;
+>  	kev->event.id = ev->id;
+>  	kev->event.timestamp = *ts;
+>  	kev->event.sequence = fh->sequence;
+> @@ -184,6 +196,17 @@ int v4l2_event_pending(struct v4l2_fh *fh)
+>  }
+>  EXPORT_SYMBOL_GPL(v4l2_event_pending);
+> 
+> +static void ctrls_merge(struct v4l2_event *dst,
+> +			const struct v4l2_event *new,
+> +			const struct v4l2_event *old)
+> +{
+> +	u32 changes = new->u.ctrl.changes | old->u.ctrl.changes;
+> +
+> +	if (dst == old)
+> +		dst->u.ctrl = new->u.ctrl;
+> +	dst->u.ctrl.changes = changes;
+> +}
+> +
+>  int v4l2_event_subscribe(struct v4l2_fh *fh,
+>  			 struct v4l2_event_subscription *sub, unsigned elems)
+>  {
+> @@ -210,6 +233,8 @@ int v4l2_event_subscribe(struct v4l2_fh *fh,
+>  	sev->flags = sub->flags;
+>  	sev->fh = fh;
+>  	sev->elems = elems;
+> +	if (ctrl)
+> +		sev->merge = ctrls_merge;
+> 
+>  	spin_lock_irqsave(&fh->vdev->fh_lock, flags);
+>  	found_ev = v4l2_event_subscribed(fh, sub->type, sub->id);
+> diff --git a/include/media/v4l2-event.h b/include/media/v4l2-event.h
+> index 8d681e5..111b2bc 100644
+> --- a/include/media/v4l2-event.h
+> +++ b/include/media/v4l2-event.h
+> @@ -55,6 +55,11 @@ struct v4l2_subscribed_event {
+>  	struct v4l2_fh		*fh;
+>  	/* list node that hooks into the object's event list (if there is one) */
+>  	struct list_head	node;
+> +	/* Optional callback that can merge two events.
+> +	   Note that 'dst' can be the same as either 'new' or 'old'. */
 
-One note: the only time POLLERR is now returned is if no buffers have been queued
-and no events have been subscribed to. I think that qualifies as an error condition.
-I am not 100% certain, though.
+This can lead to various problems in drivers, if the code forgets that 
+changing dst will change new or old. Would it be possible to make it a two 
+arguments (dst, src) function ?
 
-Comments?
+> +	void			(*merge)(struct v4l2_event *dst,
+> +					 const struct v4l2_event *new,
+> +					 const struct v4l2_event *old);
+>  	/* the number of elements in the events array */
+>  	unsigned		elems;
+>  	/* the index of the events containing the oldest available event */
 
-	Hans
+-- 
+Regards,
+
+Laurent Pinchart
