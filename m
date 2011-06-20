@@ -1,126 +1,105 @@
 Return-path: <mchehab@pedra>
-Received: from smtp-vbr10.xs4all.nl ([194.109.24.30]:1361 "EHLO
-	smtp-vbr10.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755037Ab1F1L0Q (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 28 Jun 2011 07:26:16 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [RFCv2 PATCH 04/13] v4l2-event: add optional merge and replace callbacks
-Date: Tue, 28 Jun 2011 13:25:56 +0200
-Message-Id: <1cca2ef5cd03f12f6833bba9055572616927569a.1309260043.git.hans.verkuil@cisco.com>
-In-Reply-To: <1309260365-4831-1-git-send-email-hverkuil@xs4all.nl>
-References: <1309260365-4831-1-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <3d92b242dcf5e7766d128d6c1f05c0bd837a2633.1309260043.git.hans.verkuil@cisco.com>
-References: <3d92b242dcf5e7766d128d6c1f05c0bd837a2633.1309260043.git.hans.verkuil@cisco.com>
+Received: from mx1.redhat.com ([209.132.183.28]:30804 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753100Ab1FTOF6 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 20 Jun 2011 10:05:58 -0400
+Message-ID: <4DFF53B3.3040608@redhat.com>
+Date: Mon, 20 Jun 2011 11:05:39 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+MIME-Version: 1.0
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+CC: Helmut Auer <helmut@helmutauer.de>, linux-media@vger.kernel.org,
+	Oliver Endriss <o.endriss@gmx.de>
+Subject: Re: Bug: media_build always compiles with '-DDEBUG'
+References: <201106182246.03051@orion.escape-edv.de> <201106201435.11432.laurent.pinchart@ideasonboard.com> <4DFF4214.2030205@redhat.com> <201106201538.15214.laurent.pinchart@ideasonboard.com>
+In-Reply-To: <201106201538.15214.laurent.pinchart@ideasonboard.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+Em 20-06-2011 10:38, Laurent Pinchart escreveu:
+> Hi Mauro,
+> 
+> On Monday 20 June 2011 14:50:28 Mauro Carvalho Chehab wrote:
+>> Em 20-06-2011 09:35, Laurent Pinchart escreveu:
+>>> On Sunday 19 June 2011 13:47:16 Mauro Carvalho Chehab wrote:
+>>>> Em 19-06-2011 02:00, Helmut Auer escreveu:
+>>>>> Am 18.06.2011 23:38, schrieb Oliver Endriss:
+>>>>>> On Saturday 18 June 2011 23:11:21 Helmut Auer wrote:
+>>>>>>> Hi
+>>>>>>>
+>>>>>>>> Replacing
+>>>>>>>>
+>>>>>>>>       ifdef CONFIG_VIDEO_OMAP3_DEBUG
+>>>>>>>>
+>>>>>>>> by
+>>>>>>>>
+>>>>>>>>       ifeq ($(CONFIG_VIDEO_OMAP3_DEBUG),y)
+>>>>>>>>
+>>>>>>>> would do the trick.
+>>>>>>>
+>>>>>>> I guess that would not ive the intended result.
+>>>>>>> Setting CONFIG_VIDEO_OMAP3_DEBUG to yes should not lead to debug
+>>>>>>> messages in all media modules,
+>>>>>>
+>>>>>> True, but it will happen only if you manually enable
+>>>>>> CONFIG_VIDEO_OMAP3_DEBUG in Kconfig.
+>>>>>>
+>>>>>> You cannot avoid this without major changes of the
+>>>>>> media_build system - imho not worth the effort.
+>>>>>
+>>>>> Then imho it would be better to drop the  CONFIG_VIDEO_OMAP3_DEBUG
+>>>>> variable completely, you can set CONFIG_DEBUG which would give the same
+>>>>> results.
+>>>>
+>>>> Good catch!
+>>>>
+>>>> Yes, I agree that the better is to just drop CONFIG_VIDEO_OMAP3_DEBUG
+>>>> variable completely. If someone wants to build with -DDEBUG, he can just
+>>>> use CONFIG_DEBUG.
+>>>>
+>>>> Laurent,
+>>>>
+>>>> Any comments?
+>>>
+>>> CONFIG_VIDEO_OMAP3_DEBUG is used to build the OMAP3 ISP driver in debug
+>>> mode, without having to compile the whole kernel with debugging enabled.
+>>> I'd like to keep that feature if possible.
+>>
+>> If you want that, build it using media_build. I don't care of having such
+>> hacks there, but having it upstream is not the right thing to do.
+> 
+> It's not a hack. Lots of drivers have debugging Kconfig options.
+> 
+> $ find linux-2.6 -type f -name Kconfig* -exec grep '^config.*DEBUG' {} \; | wc
+>     243     486    5826
 
-When the event queue for a subscribed event is full, then the oldest
-event is dropped. It would be nice if the contents of that oldest
-event could be merged with the next-oldest. That way no information is
-lost, only intermediate steps are lost.
+Your query is wrong. The proper query is:
+$ find . -type f -name Makefile -exec grep -rH 'EXTRA_CFLAGS.*\-DDEBUG$' {} \; 
+./arch/x86/pci/Makefile:EXTRA_CFLAGS += -DDEBUG
+./drivers/pps/generators/Makefile:EXTRA_CFLAGS += -DDEBUG
+./drivers/media/video/omap3isp/Makefile:EXTRA_CFLAGS += -DDEBUG
 
-This patch adds optional replace() (called when only one kevent was allocated)
-and merge() (called when more than one kevent was allocated) callbacks that
-will be called to do this job.
+There's nothing wrong with a debug Kconfig option
+for omap3. What's wrong is:
 
-These two callbacks are implemented for the V4L2_EVENT_CTRL event.
+1) It is badly implemented: it is just enabling -DDEBUG for the entire
+subsystem, as the test is wrong;
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- drivers/media/video/v4l2-event.c |   31 ++++++++++++++++++++++++++++++-
- include/media/v4l2-event.h       |    6 ++++++
- 2 files changed, 36 insertions(+), 1 deletions(-)
+2) Even if you fix, you'll be enabling debug to the entire subsystem, if you
+keep adding things to EXTRA_CFLAGS. 
 
-diff --git a/drivers/media/video/v4l2-event.c b/drivers/media/video/v4l2-event.c
-index 9e325dd..b1c19fc 100644
---- a/drivers/media/video/v4l2-event.c
-+++ b/drivers/media/video/v4l2-event.c
-@@ -113,6 +113,7 @@ static void __v4l2_event_queue_fh(struct v4l2_fh *fh, const struct v4l2_event *e
- {
- 	struct v4l2_subscribed_event *sev;
- 	struct v4l2_kevent *kev;
-+	bool copy_payload = true;
- 
- 	/* Are we subscribed? */
- 	sev = v4l2_event_subscribed(fh, ev->type, ev->id);
-@@ -130,12 +131,23 @@ static void __v4l2_event_queue_fh(struct v4l2_fh *fh, const struct v4l2_event *e
- 		sev->in_use--;
- 		sev->first = sev_pos(sev, 1);
- 		fh->navailable--;
-+		if (sev->elems == 1) {
-+			if (sev->replace) {
-+				sev->replace(&kev->event, ev);
-+				copy_payload = false;
-+			}
-+		} else if (sev->merge) {
-+			struct v4l2_kevent *second_oldest =
-+				sev->events + sev_pos(sev, 0);
-+			sev->merge(&kev->event, &second_oldest->event);
-+		}
- 	}
- 
- 	/* Take one and fill it. */
- 	kev = sev->events + sev_pos(sev, sev->in_use);
- 	kev->event.type = ev->type;
--	kev->event.u = ev->u;
-+	if (copy_payload)
-+		kev->event.u = ev->u;
- 	kev->event.id = ev->id;
- 	kev->event.timestamp = *ts;
- 	kev->event.sequence = fh->sequence;
-@@ -184,6 +196,19 @@ int v4l2_event_pending(struct v4l2_fh *fh)
- }
- EXPORT_SYMBOL_GPL(v4l2_event_pending);
- 
-+static void ctrls_replace(struct v4l2_event *old, const struct v4l2_event *new)
-+{
-+	u32 old_changes = old->u.ctrl.changes;
-+
-+	old->u.ctrl = new->u.ctrl;
-+	old->u.ctrl.changes |= old_changes;
-+}
-+
-+static void ctrls_merge(const struct v4l2_event *old, struct v4l2_event *new)
-+{
-+	new->u.ctrl.changes |= old->u.ctrl.changes;
-+}
-+
- int v4l2_event_subscribe(struct v4l2_fh *fh,
- 			 struct v4l2_event_subscription *sub, unsigned elems)
- {
-@@ -210,6 +235,10 @@ int v4l2_event_subscribe(struct v4l2_fh *fh,
- 	sev->flags = sub->flags;
- 	sev->fh = fh;
- 	sev->elems = elems;
-+	if (ctrl) {
-+		sev->replace = ctrls_replace;
-+		sev->merge = ctrls_merge;
-+	}
- 
- 	spin_lock_irqsave(&fh->vdev->fh_lock, flags);
- 	found_ev = v4l2_event_subscribed(fh, sub->type, sub->id);
-diff --git a/include/media/v4l2-event.h b/include/media/v4l2-event.h
-index 8d681e5..6da793f 100644
---- a/include/media/v4l2-event.h
-+++ b/include/media/v4l2-event.h
-@@ -55,6 +55,12 @@ struct v4l2_subscribed_event {
- 	struct v4l2_fh		*fh;
- 	/* list node that hooks into the object's event list (if there is one) */
- 	struct list_head	node;
-+	/* Optional callback that can replace event 'old' with event 'new'. */
-+	void			(*replace)(struct v4l2_event *old,
-+					   const struct v4l2_event *new);
-+	/* Optional callback that can merge event 'old' into event 'new'. */
-+	void			(*merge)(const struct v4l2_event *old,
-+					 struct v4l2_event *new);
- 	/* the number of elements in the events array */
- 	unsigned		elems;
- 	/* the index of the events containing the oldest available event */
--- 
-1.7.1
+It should be noticed that several places use a different syntax for enabling
+per-driver/per-subsystem -D flag:
 
+find . -type f -name Makefile -exec grep -rH '\-DDEBUG$' {} \; 
+...
+./drivers/mmc/Makefile:subdir-ccflags-$(CONFIG_MMC_DEBUG) := -DDEBUG
+...
+./drivers/infiniband/hw/cxgb3/Makefile:ccflags-$(CONFIG_INFINIBAND_CXGB3_DEBUG) += -DDEBUG
+
+I _suspect_ that using ccflags-$(foo_DEBUG) may work.
+
+Thanks,
+Mauro
