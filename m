@@ -1,114 +1,52 @@
 Return-path: <mchehab@pedra>
-Received: from nm17-vm0.bullet.mail.bf1.yahoo.com ([98.139.213.157]:45244 "HELO
-	nm17-vm0.bullet.mail.bf1.yahoo.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with SMTP id S1755025Ab1FID20 convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 8 Jun 2011 23:28:26 -0400
-Message-ID: <277629.63658.qm@web33207.mail.mud.yahoo.com>
-Date: Wed, 8 Jun 2011 20:21:53 -0700 (PDT)
-From: Moacyr Prado <mwprado@yahoo.com>
-Subject: Re: Brazilian HDTV device
+Received: from yop.chewa.net ([91.121.105.214]:36196 "EHLO yop.chewa.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755441Ab1FTRhY convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 20 Jun 2011 13:37:24 -0400
+Received: from basile.remlab.net (cs27062010.pp.htv.fi [89.27.62.10])
+	(using TLSv1 with cipher DHE-RSA-AES256-SHA (256/256 bits))
+	(No client certificate requested)
+	(Authenticated sender: remi)
+	by yop.chewa.net (Postfix) with ESMTPSA id 1EC91140
+	for <linux-media@vger.kernel.org>; Mon, 20 Jun 2011 19:37:23 +0200 (CEST)
+From: "=?iso-8859-1?q?R=E9mi?= Denis-Courmont" <remi@remlab.net>
 To: linux-media@vger.kernel.org
-Cc: mchehab@redhat.com
-In-Reply-To: <214556.93070.qm@web33205.mail.mud.yahoo.com>
+Subject: Re: [RFC] vtunerc - virtual DVB device driver
+Date: Mon, 20 Jun 2011 20:37:18 +0300
+References: <BANLkTimtnbAzLTdFY2OiSddHTjmD_99CfA@mail.gmail.com>
+In-Reply-To: <BANLkTimtnbAzLTdFY2OiSddHTjmD_99CfA@mail.gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 8BIT
+Message-Id: <201106202037.19535.remi@remlab.net>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Hi guys, I got some improvements on em28xx to support my device, follow my log:
+	Hello,
 
-[ 1053.559124] usb 2-2: new high speed USB device using ehci_hcd and address 7
-[ 1053.674873] usb 2-2: New USB device found, idVendor=1b80, idProduct=e755
-[ 1053.674883] usb 2-2: New USB device strings: Mfr=0, Product=1, SerialNumber=2
-[ 1053.674890] usb 2-2: Product: USB 2885 Device
-[ 1053.674896] usb 2-2: SerialNumber: 1
-[ 1063.858533] em28xx: New device USB 2885 Device @ 480 Mbps (1b80:e755, interface 0, class 0)
-[ 1063.858902] em28xx #0: em28xx chip ID = 68
-[ 1063.980947] em28xx #0: board has no eeprom
-[ 1063.982123] em28xx #0: Identified as C3Tech U-200 FullSeg Hybrid (card=78)
-[ 1063.982130] em28xx #0: 
-[ 1063.982132] 
-[ 1063.982137] em28xx #0: The support for this board weren't valid yet.
-[ 1063.982142] em28xx #0: Please send a report of having this working
-[ 1063.982148] em28xx #0: not to V4L mailing list (and/or to other addresses)
-[ 1063.982151] 
-[ 1064.000652] i2c-core: driver [tuner] using legacy suspend method
-[ 1064.000655] i2c-core: driver [tuner] using legacy resume method
-[ 1064.006098] Chip ID is not zero. It is not a TEA5767
-[ 1064.006193] tuner 16-0060: chip found @ 0xc0 (em28xx #0)
-[ 1064.008180] tda18271 16-0060: creating new instance
-[ 1064.015727] TDA18271HD/C2 detected @ 16-0060
-[ 1064.905095] tda18271: performing RF tracking filter calibration
-[ 1068.512078] tda18271: RF tracking filter calibration complete
-[ 1068.634254] em28xx #0: Config register raw data: 0x9b
-[ 1068.646228] em28xx #0: AC97 vendor ID = 0x70947094
-[ 1068.652224] em28xx #0: AC97 features = 0x7094
-[ 1068.652230] em28xx #0: Unknown AC97 audio processor detected!
-[ 1068.861285] em28xx #0: v4l2 driver version 0.1.2
-[ 1069.415411] em28xx #0: V4L2 video device registered as video1
-[ 1069.421162] usbcore: registered new interface driver em28xx
-[ 1069.421169] em28xx driver loaded
-[ 1069.436428] em28xx-audio.c: probing for em28x1 non standard usbaudio
-[ 1069.436431] em28xx-audio.c: Copyright (C) 2006 Markus Rechberger
-[ 1069.438133] Em28xx: Initialized (Em28xx Audio Extension) extension
-[ 1069.560298] mb86a20s: mb86a20s_attach: 
-[ 1069.566738] Detected a Fujitsu mb86a20s frontend
-[ 1069.566852] tda18271 16-0060: attaching existing instance
-[ 1069.566858] DVB: registering new adapter (em28xx #0)
-[ 1069.566863] DVB: registering adapter 0 frontend 0 (Fujitsu mb86A20s)...
-[ 1069.567506] em28xx #0: Successfully loaded em28xx-dvb
-[ 1069.567515] Em28xx: Initialized (Em28xx dvb Extension) extension
+Le dimanche 19 juin 2011 03:10:15 HoP, vous avez écrit :
+> get inspired by (unfortunately close-source) solution on stb
+> Dreambox 800 I have made my own implementation
+> of virtual DVB device, based on the same device API.
 
-But is not working yet, DVB scan always fail. It must be gpio settings. I got a sniffer data from win7 driver. Anybody has a tip to discover gpio settigs from data sniffed?  
+Some might argue that CUSE can already do this. Then again, CUSE would not be 
+able to reuse the kernel DVB core infrastructure: everything would need to be 
+reinvented in userspace.
 
-Thanks 
-Moa.
---- On Fri, 5/27/11, Moacyr Prado <mwprado@yahoo.com> wrote:
+> In conjunction with "Dreamtuner" userland project
+> [http://code.google.com/p/dreamtuner/] by Ronald Mieslinger
+> user can create virtual DVB device on client side and connect it
+> to the server. When connected, user is able to use any Linux DVB API
+> compatible application on client side (like VDR, MeTV, MythTV, etc)
+> without any need of code modification. As server can be used any
+> Linux DVB API compatible device.
 
-> From: Moacyr Prado <mwprado@yahoo.com>
-> Subject: Brazilian HDTV device
-> To: linux-media@vger.kernel.org
-> Date: Friday, May 27, 2011, 9:20 AM
-> Hi, I have a board with empia
-> chipset. The em28xx driver not load, 
-> because the device ID is not listed on source(cards.c, I
-> guess). 
-> 
-> Following bellow 
-> have some infos from board:
-> lsusb:
-> Bus 001 Device 004: ID 1b80:e755 Afatech
-> 
-> Opening the device, shows this ic:
-> 
-> empia em2888 d351c-195 727-00ag (em28xx)
-> nxp saa7136e/1/g SI5296.1 22 ZSD08411
-> NXP TDA 18271??C2 HDC2? (tda18271)
-> F JAPAN mb86a20s 0937 M01 E1 (mb86a20s)
-> 
-> but... dmesg shows:
-> 
-> [18373.454136] usb 6-1: USB disconnect, address 2
-> [18376.744074] usb 2-1: new high speed USB device using
-> ehci_hcd and address 9
-> [18376.860283] usb 2-1: New USB device found,
-> idVendor=1b80, idProduct=e755
-> [18376.860293] usb 2-1: New USB device strings: Mfr=0,
-> Product=1, SerialNumber=2
-> [18376.860300] usb 2-1: Product: USB 2885 Device
-> [18376.860306] usb 2-1: SerialNumber: 1
-> 
-> 
-> Could The em28xx module (writing some code for me)handle
-> this device?
-> 
-> Thanks,
-> Moa
-> --
-> To unsubscribe from this list: send the line "unsubscribe
-> linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
+IMHO, this needs a Documentation file for the userspace API (kinda like 
+tuntap.txt).
+
+-- 
+Rémi Denis-Courmont
+http://www.remlab.net/
+http://fi.linkedin.com/in/remidenis
