@@ -1,122 +1,150 @@
 Return-path: <mchehab@pedra>
-Received: from rcsinet10.oracle.com ([148.87.113.121]:42339 "EHLO
-	rcsinet10.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750876Ab1FJQEt (ORCPT
+Received: from mail-iy0-f174.google.com ([209.85.210.174]:65025 "EHLO
+	mail-iy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752269Ab1FUMel (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 10 Jun 2011 12:04:49 -0400
-Message-ID: <4DF2408F.1010902@oracle.com>
-Date: Fri, 10 Jun 2011 09:04:31 -0700
-From: Randy Dunlap <randy.dunlap@oracle.com>
+	Tue, 21 Jun 2011 08:34:41 -0400
+Received: by iyb12 with SMTP id 12so2799519iyb.19
+        for <linux-media@vger.kernel.org>; Tue, 21 Jun 2011 05:34:40 -0700 (PDT)
 MIME-Version: 1.0
+In-Reply-To: <4E008909.1060909@redhat.com>
+References: <BANLkTimtnbAzLTdFY2OiSddHTjmD_99CfA@mail.gmail.com>
+	<201106202037.19535.remi@remlab.net>
+	<BANLkTinn0uN3VwGfqCbYbxFoVf6aNo1VSA@mail.gmail.com>
+	<BANLkTin14LnwP+_K1m-RsEXza4M4CjqnEw@mail.gmail.com>
+	<BANLkTimR-zWnnLBcD2w8d8NpeFJi=eT9nQ@mail.gmail.com>
+	<005a01cc2f7d$a799be30$f6cd3a90$@coexsi.fr>
+	<BANLkTinbQ8oBJt7fScuT5vHGFktbaQNY5A@mail.gmail.com>
+	<BANLkTimTdMa_X1ygF8=B5gLdLXq1o-ER0g@mail.gmail.com>
+	<BANLkTimkZN9AtLanwvct+1p2DZOHSgF6Aw@mail.gmail.com>
+	<BANLkTimg0X5H5T8CsSR5Tr0CZbCZKiDEEA@mail.gmail.com>
+	<4DFFB1DA.5000602@redhat.com>
+	<BANLkTikZ++5dZssDRuxJzNUEG_TDkZPGRg@mail.gmail.com>
+	<4DFFF56D.5070602@redhat.com>
+	<4E007AA7.7070400@linuxtv.org>
+	<4E008909.1060909@redhat.com>
+Date: Tue, 21 Jun 2011 14:34:40 +0200
+Message-ID: <BANLkTi=gLfspK1b8WnoLVj6KfwRnm2qcBg@mail.gmail.com>
+Subject: Re: [RFC] vtunerc - virtual DVB device driver
+From: HoP <jpetrous@gmail.com>
 To: Mauro Carvalho Chehab <mchehab@redhat.com>
-CC: Stephen Rothwell <sfr@canb.auug.org.au>,
-	linux-media@vger.kernel.org, linux-next@vger.kernel.org,
-	LKML <linux-kernel@vger.kernel.org>
-Subject: Re: linux-next: Tree for June 8 (docbook/media)
-References: <20110608161046.4ad95776.sfr@canb.auug.org.au> <20110608125243.e63a07fc.randy.dunlap@oracle.com> <4DF11E15.5030907@infradead.org> <4DF12263.3070900@redhat.com> <4DF12DD1.7060606@oracle.com> <4DF1581E.8050308@redhat.com> <4DF1593A.6080306@oracle.com> <4DF21254.6090106@redhat.com> <4DF23271.7070407@oracle.com> <4DF235F0.9080209@redhat.com>
-In-Reply-To: <4DF235F0.9080209@redhat.com>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 8bit
+Cc: Andreas Oberritter <obi@linuxtv.org>,
+	Devin Heitmueller <dheitmueller@kernellabs.com>,
+	=?ISO-8859-1?Q?S=E9bastien_RAILLARD_=28COEXSI=29?= <sr@coexsi.fr>,
+	=?ISO-8859-1?Q?R=E9mi_Denis=2DCourmont?= <remi@remlab.net>,
+	linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On 06/10/11 08:19, Mauro Carvalho Chehab wrote:
-> Em 10-06-2011 12:04, Randy Dunlap escreveu:
->> On 06/10/11 05:47, Mauro Carvalho Chehab wrote:
->>> Hi Randy,
->>>
->>> Em 09-06-2011 20:37, Randy Dunlap escreveu:
+2011/6/21 Mauro Carvalho Chehab <mchehab@redhat.com>:
+> Em 21-06-2011 08:04, Andreas Oberritter escreveu:
+>> On 06/21/2011 03:35 AM, Mauro Carvalho Chehab wrote:
+>>> Em 20-06-2011 18:31, HoP escreveu:
+>>>> 2011/6/20 Mauro Carvalho Chehab <mchehab@redhat.com>:
+>>>>> Em 20-06-2011 17:24, HoP escreveu:
+>>>>>> 2011/6/20 Devin Heitmueller <dheitmueller@kernellabs.com>:
+>>>>>>> On Mon, Jun 20, 2011 at 3:56 PM, HoP <jpetrous@gmail.com> wrote:
+>>>>>>>> Do you think it is really serious enough reason to prevent of having
+>>>>>>>> such virtualization driver in the kernel?
+>>>>>>>>
+>>>>>>>> Let check my situation and tell me how I should continue (TBH, I already
+>>>>>>>> thought that driver can be accepted, but my dumb brain thought because
+>>>>>>>> of non quality code/design or so. It was really big "surprise" which
+>>>>>>>> reason was used aginst it):
+>>>>>>>
+>>>>>>> Yes, this is entirely a political issue and not a technical one.
+>>>>>>
+>>>>>> Political? So we can declare that politics win (again) technicians. Sad.
+>>>>>
+>>>>> This is not a political issue. It is a licensing issue. If you want to use
+>>>>> someone's else code, you need to accept the licensing terms that the developers
+>>>>> are giving you, by either paying the price for the code usage (on closed source
+>>>>> licensing models), or by accepting the license when using an open-sourced code.
+>>>>>
+>>>>> Preserving the open-source eco-system is something that everyone
+>>>>> developing open source expect: basically, you're free to do whatever
+>>>>> you want, but if you're using a code written by an open-source developer,
+>>>>> the expected behaviour that GPL asks (and that the developer wants, when he
+>>>>> opted for GPL) is that you should return back to the community with any
+>>>>> changes you did, including derivative work. This is an essential rule of working
+>>>>> with GPL.
+>>>>>
+>>>>> If you're not happy with that, that's fine. You can implement another stack
+>>>>> that is not GPL-licensed.
 >>>>
->>>> Big hint:  I see these errors not during "make htmldocs" but during a kernel code build
->>>> when CONFIG_BUILD_DOCSRC=y.
->>>>
->>>> Sorry, I should have mentioned this earlier.
+>>>> Mauro, you totally misunderstood me. If you see on my first post in that thread
+>>>> I was sending full GPL-ed driver to the mailinglist.
 >>>
->>> I couldn't reach any troubles there. Documentation build is stopping earlier.
->>> I'm using the -next tree for 20110610:
+>>> You misunderstood me. Something that exposes the kernel interface to for an
+>>> userspace client driver to implement DVB is not a driver, it is a wrapper.
 >>>
->>> $ make defconfig
->>> $ make CONFIG_BUILD_DOCSRC=y -j 16 Documentation/
->>
->>
->> Maybe that incantation does not set CONFIG_HEADERS_CHECK, which
->> CONFIG_BUILD_DOCSRC depends on.
->>
->> [build errors snipped]
->>
+>>> The real driver will be in userspace, using the DVB stack, and can even be
+>>> closed source. Some developers already tried to do things like that and sell
+>>> the userspace code. Such code submission were nacked. There is even one case
+>>> where the kernelspace code were dropped due to that (and later, replaced by an
+>>> opensource driver).
 >>>
->>> Could you please send me your .config?
+>>> We don't want to go on this way again.
 >>
->> yes, attached.
+>> Mauro and Devin, I think you're missing the point. This is not about
+>> creating drivers in userspace. This is not about open or closed source.
+>> The "vtuner" interface, as implemented for the Dreambox, is used to
+>> access remote tuners: Put x tuners into y boxes and access them from
+>> another box as if they were local. It's used in conjunction with further
+>> software to receive the transport stream over a network connection.
+>> Honza's code does the same thing.
 >>
-> 
-> Hmm... didn't work either. With your config:
-> 
-> [mchehab@buidmachine linux-next]$ make -j 16 Documentation/
->   CHK     include/linux/version.h
->   CHK     include/generated/utsrelease.h
->   CALL    scripts/checksyscalls.sh
->   HOSTCC  Documentation/networking/timestamping/timestamping
-> Documentation/networking/timestamping/timestamping.c:45:30: error: linux/net_tstamp.h: No such file or directory
-> Documentation/networking/timestamping/timestamping.c: In function ‘main’:
-> Documentation/networking/timestamping/timestamping.c:331: error: storage size of ‘hwconfig’ isn’t known
-> Documentation/networking/timestamping/timestamping.c:331: error: storage size of ‘hwconfig_requested’ isn’t known
-> Documentation/networking/timestamping/timestamping.c:355: error: ‘SOF_TIMESTAMPING_TX_HARDWARE’ undeclared (first use in this function)
-> Documentation/networking/timestamping/timestamping.c:355: error: (Each undeclared identifier is reported only once
-> Documentation/networking/timestamping/timestamping.c:355: error: for each function it appears in.)
-> Documentation/networking/timestamping/timestamping.c:357: error: ‘SOF_TIMESTAMPING_TX_SOFTWARE’ undeclared (first use in this function)
-> Documentation/networking/timestamping/timestamping.c:359: error: ‘SOF_TIMESTAMPING_RX_HARDWARE’ undeclared (first use in this function)
-> Documentation/networking/timestamping/timestamping.c:361: error: ‘SOF_TIMESTAMPING_RX_SOFTWARE’ undeclared (first use in this function)
-> Documentation/networking/timestamping/timestamping.c:363: error: ‘SOF_TIMESTAMPING_SOFTWARE’ undeclared (first use in this function)
-> Documentation/networking/timestamping/timestamping.c:365: error: ‘SOF_TIMESTAMPING_SYS_HARDWARE’ undeclared (first use in this function)
-> Documentation/networking/timestamping/timestamping.c:367: error: ‘SOF_TIMESTAMPING_RAW_HARDWARE’ undeclared (first use in this function)
-> Documentation/networking/timestamping/timestamping.c:387: error: ‘HWTSTAMP_TX_ON’ undeclared (first use in this function)
-> Documentation/networking/timestamping/timestamping.c:387: error: ‘HWTSTAMP_TX_OFF’ undeclared (first use in this function)
-> Documentation/networking/timestamping/timestamping.c:390: error: ‘HWTSTAMP_FILTER_PTP_V1_L4_SYNC’ undeclared (first use in this function)
-> Documentation/networking/timestamping/timestamping.c:390: error: ‘HWTSTAMP_FILTER_NONE’ undeclared (first use in this function)
-> Documentation/networking/timestamping/timestamping.c:331: warning: unused variable ‘hwconfig_requested’
-> Documentation/networking/timestamping/timestamping.c:331: warning: unused variable ‘hwconfig’
-> make[3]: *** [Documentation/networking/timestamping/timestamping] Error 1
-> make[2]: *** [Documentation/networking/timestamping] Error 2
-> make[1]: *** [Documentation/networking] Error 2
-> make: *** [Documentation/] Error 2
-> 
-> PS.: A full build against next is broken:
-> $ make -j 27
->   CHK     include/linux/version.h
->   CHK     include/generated/utsrelease.h
->   CALL    scripts/checksyscalls.sh
->   CHK     include/generated/compile.h
->   CC      arch/x86/lib/memmove_64.o
-> gcc: arch/x86/lib/memmove_64.c: No such file or directory
-> gcc: no input files
-> make[1]: *** [arch/x86/lib/memmove_64.o] Error 1
-> make: *** [arch/x86/lib] Error 2
-> make: *** Waiting for unfinished jobs....
-> 
-> My tree is on this commit:
-> 
-> commit c4c5f633751496147f2d846844aa084a1dbca0f4
-> Author: Stephen Rothwell <sfr@canb.auug.org.au>
-> Date:   Fri Jun 10 16:17:26 2011 +1000
-> 
->     Add linux-next specific files for 20110610
+>> You don't need it in order to create closed source drivers. You can
+>> already create closed kernel drivers now. Also, you can create tuner
+>> drivers in userspace using the i2c-dev interface. If you like to connect
+>> a userspace driver to a DVB API device node, you can distribute a small
+>> (open or closed) wrapper with it. So what are you arguing about?
+>> Everything you're feared of can already be done since virtually forever.
+>
+> Yes, but we don't need to review/maintain a kernel driver meant to be
+> used by closed source applications, and, if they're using a GPL'd code
+> inside a closed source application, they can be sued.
 
+Well, seems you are trying to argue using wrong arguments.
+One more again: If you follow my picture - all on the path,
+INCLUDING userland application, is GPL code. If you think
+about Enigma, it is GPLed also, at least version 1. But my driver
+is not for dreamboxes! They have similar implementation already
+included there. My intention was different: to allow same thing
+like is possible with dreamboxes, on "normal" linux PC desktop.
+Using any other userland DVB application, like VDR or MythTV or vlc.
+Got my point? I have nothing to do with any closed source or even
+binary blobs! I want DVB adapter distribution across network,
+nothing more. Everything is clear, from GPL point of view.
 
-Still fails on linux-next-20110610 for me.
+>
+> I didn't review the patchset, but, from the description, I understood that
+> it were developed to use some Dreambox-specific closed source applications.
+> With such requirement, for me it is just a wrapper to some closed source
+> application.
 
-Please try a full, clean build, not using only
-$ make -j 16 Documentation/
+I understand that my English can be not crystal clear, so you missed
+inside my description. But I must say it again - my code has zero
+connection with dreamboxes. Of course other then borrowing theirs
+sharing possibility and reusing same network daemons (again fully GPLed!)
+for it.
 
-$ mkdir doc64
-$ cp -a config-r7970 doc64/.config
-$ make O=doc64 oldconfig
-$ make O=doc64 -j9 all
-...
-ls: cannot access /lnx/src/NEXT/linux-next-20110610/Documentation/DocBook/media/*/*.gif: No such file or directory
-ls: cannot access /lnx/src/NEXT/linux-next-20110610/Documentation/DocBook/media/*/*.png: No such file or directory
+>
+> That's said, I'm not against a driver that allows using a DVB kernel
+> driver by a DVB open source application either inside a virtual machine
+> or on a remote machine. This seems useful for me. So, if the code could
+> be turned into it, I'll review and consider for its inclusion upstream.
 
+Then we should stop fighting and find some way for usual dialog.
+My driver was born exactly wat that purpose - to virtualize remote
+DVB adapter.
 
--- 
-~Randy
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
+>
+> For that to happen, it should not try to use any Dreambox specific application
+> or protocol, but to just use the standard DVBv5 API, as you've pointed.
+
+OK, If there is some change to not totally refuse such driver, then I will
+be happy to refactor code this way.
+
+/Honza
