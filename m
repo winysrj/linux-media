@@ -1,70 +1,69 @@
 Return-path: <mchehab@pedra>
-Received: from mx1.redhat.com ([209.132.183.28]:39851 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753338Ab1FBRFJ (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 2 Jun 2011 13:05:09 -0400
-Message-ID: <4DE7C2C0.9030900@redhat.com>
-Date: Thu, 02 Jun 2011 14:05:04 -0300
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Received: from casper.infradead.org ([85.118.1.10]:46588 "EHLO
+	casper.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751493Ab1FUP2B (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 21 Jun 2011 11:28:01 -0400
+Message-ID: <4E00B87A.20205@infradead.org>
+Date: Tue, 21 Jun 2011 12:27:54 -0300
+From: Mauro Carvalho Chehab <mchehab@infradead.org>
 MIME-Version: 1.0
-To: Mohammad Bahathir Hashim <bahathir@gmail.com>
-CC: linux-media@vger.kernel.org
-Subject: Re: [linux-dvb] XC4000 patches for kernel 2.6.37.2
-References: <4D764337.6050109@email.cz> <20110531124843.377a2a80@glory.local> <BANLkTi=Lq+FF++yGhRmOa4NCigSt6ZurHg@mail.gmail.com> <20110531174323.0f0c45c0@glory.local> <BANLkTimEEGsMP6PDXf5W5p9wW7wdWEEOiA@mail.gmail.com> <is8blb$fan$1@dough.gmane.org>
-In-Reply-To: <is8blb$fan$1@dough.gmane.org>
-Content-Type: text/plain; charset=ISO-8859-1
+To: Chain von den Keiya <Chain@rpgfiction.net>
+CC: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	cavedon@sssup.it
+Subject: Re: [em28xx] Support for TerraTec G3?
+References: <201106090038.18115.Chain@rpgfiction.net>
+In-Reply-To: <201106090038.18115.Chain@rpgfiction.net>
+Content-Type: text/plain; charset=ISO-8859-15
 Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Em 02-06-2011 12:53, Mohammad Bahathir Hashim escreveu:
-> Now I understood how thing works here, and it clear to me, why the
-> xc4000 driver is not being included in mainline V4L2. 
+Em 08-06-2011 19:38, Chain von den Keiya escreveu:
+> Hello,
 > 
-> It will be lots of commitments and hard work to be the maintainer, and
-> I respect Mr. Devin's choice and decisions. There are several peoples
-> that are interested in this driver, such as Mr. Istvan. I realized
-> this driver does not have huge users/audiences, but still there are
-> peoples who really need it. But, yeah, not everybody can 'port' the
-> driver each time Linux kernel or V4L2 version being updated. 
+> I hope this is the correct way to ask, so if it isn't, I am truly sorry.
+
+c/c the linux-media mailing list, as other people may also have the same issue.
+
 > 
-> In this case, IF no one is able to maintains the driver, how others
-> can benefit the 'updated' driver or patches for the new V4L2 or Linux
-> releases? 
+> I have aquired a TerraTec G3 Video Grabber, USB-ID 0ccd:10a7. Now, I was 
+> hoping that it would get detected by the em28xx driver - it contains an em2860 
+> chip - but it wasn't (as of 2.6.38). However, I could see that there are quite 
+> some models which look similar, so I tried out the whole card=xx range. Didn't 
+> help. So now the question is, can this be done? Or is it impossible and I have 
+> to scrap this nice little device? I would be willing to help - testing 
+> drivers, opening the device up and identify chips, et cetera. Because I think 
+> if it's not that hard, it won't hurt if Linux supports a few more devices. 
+> (Actually, the G1 looks similar to this one again...)
 > 
+> The only thing I could find was:
+> http://linux.terratec.de/video_en.html - but no driver? I don't really 
+> understand this. So, now I am at a loss, but not giving up yet. So please help 
+> me, either by pointing me into the right direction - or by enhancing the 
+> driver to work with this card.
 
-Out of tree drivers tend to become obsolete on a few kernel releases, as the
-internal kernel API's were not designed to be stable, as we want innovation
-inside the kernel. So, people are free to change the internal APIs when
-needed.
+I pushed yesterday some patches for em2861 audio that may help to make your
+device work. If the model is similar to Terratec Grabby, then perhaps all that it is
+needed is to add your device USB ID into the kernel driver.
 
-That's why the best way is to submit patches upstream as they're ready
-for it.
+Please test the enclosed patch.
 
-> At the moment I still be able to port and test it for my private use.
-> Sometime I sent the patches to Mr.  Istvan to be included in his
-> xc4000 driver's website, for  other users to use it. 
-> 
-> BTW, I am not a programmer. I am just a system administrator, who only
-> like to use shell scripts, awk, sed and grep. I only know how 'read' C,
-> and can do SIMPLE 'porting' and testing tasks :). Still I really hope
-> other developers able to include the analog TV/FM tuning and S-Video input
-> feature to PCTV-340e. 
-> 
-> Anyway, if this driver is not elligible to be included in V4L2
-> mainline, I know where to 'push' my patches. :)
+em28xx: add support for TerraTec G3
 
-Almost all drivers are eligible to be included, but the author needs to 
-submit them, or someone on their behalf. If the driver doesn't have enough
-quality or needs some fixes, the submitter may need to fix it or, eventually,
-move it to staging.
+Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
 
-With respect to xc4000, we need someone to test if the driver works after
-the backports. Please test it and answer to us with a "Tested-by" tag.
 
-After the tests, it would be great to apply any pending patches for xc4000
-before cleaning it, as if we do the reverse, existing patches won't apply.
-
-Cheers,
-Mauro
-
+diff --git a/drivers/media/video/em28xx/em28xx-cards.c b/drivers/media/video/em28xx/em28xx-cards.c
+index c892a1e..d6af828 100644
+--- a/drivers/media/video/em28xx/em28xx-cards.c
++++ b/drivers/media/video/em28xx/em28xx-cards.c
+@@ -1861,6 +1861,8 @@ struct usb_device_id em28xx_id_table[] = {
+ 			.driver_info = EM2860_BOARD_TERRATEC_AV350 },
+ 	{ USB_DEVICE(0x0ccd, 0x0096),
+ 			.driver_info = EM2860_BOARD_TERRATEC_GRABBY },
++	{ USB_DEVICE(0x0ccd, 0x10a7),
++			.driver_info = EM2860_BOARD_TERRATEC_GRABBY },
+ 	{ USB_DEVICE(0x0fd9, 0x0033),
+ 			.driver_info = EM2860_BOARD_ELGATO_VIDEO_CAPTURE},
+ 	{ USB_DEVICE(0x185b, 0x2870),
