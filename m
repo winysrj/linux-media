@@ -1,46 +1,77 @@
 Return-path: <mchehab@pedra>
-Received: from mail-iy0-f174.google.com ([209.85.210.174]:56210 "EHLO
-	mail-iy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752184Ab1F2Idd (ORCPT
+Received: from perceval.ideasonboard.com ([95.142.166.194]:52661 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754940Ab1FUXBa (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 29 Jun 2011 04:33:33 -0400
-Received: by iyb12 with SMTP id 12so836509iyb.19
-        for <linux-media@vger.kernel.org>; Wed, 29 Jun 2011 01:33:33 -0700 (PDT)
+	Tue, 21 Jun 2011 19:01:30 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: linux-uvc-devel@lists.berlios.de
+Subject: Re: [Linux-uvc-devel] [PATCH] [media] uvcvideo: Fix control mapping for devices with multiple chains
+Date: Wed, 22 Jun 2011 01:01:56 +0200
+Cc: Stephan Lachowsky <stephan.lachowsky@maxim-ic.com>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+References: <1306880661.2916.39.camel@svmlwks101> <201106220055.37215.laurent.pinchart@ideasonboard.com>
+In-Reply-To: <201106220055.37215.laurent.pinchart@ideasonboard.com>
 MIME-Version: 1.0
-In-Reply-To: <201106282147.03423.cristeab@gmail.com>
-References: <201106282147.03423.cristeab@gmail.com>
-Date: Wed, 29 Jun 2011 10:33:32 +0200
-Message-ID: <BANLkTim5eH6sSaK0tL98MrZaRgR2++M67Q@mail.gmail.com>
-Subject: Re: Patch proposition for DVB-T configuration file for Paris area
-From: Christoph Pfister <christophpfister@gmail.com>
-To: Bogdan Cristea <cristeab@gmail.com>
-Cc: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=UTF-8
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201106220101.56630.laurent.pinchart@ideasonboard.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-2011/6/28 Bogdan Cristea <cristeab@gmail.com>:
-> Hi
->
-> I would like to propose the attached patch for de DVB-T configuration file for
-> Paris area (found in openSUSE 11.4 in this location)
-> /usr/share/dvb/dvb-t/fr-Paris
+Hi Stephan,
 
-http://linuxtv.org/hg/dvb-apps/file/148ede2a6809/util/scan/dvb-t/fr-Paris
-- last change: november 2008.
+On Wednesday 22 June 2011 00:55:36 Laurent Pinchart wrote:
+> On Wednesday 01 June 2011 00:24:21 Stephan Lachowsky wrote:
+> > The search for matching extension units fails to take account of the
+> > current chain.  In the case where you have two distinct video chains,
+> > both containing an XU with the same GUID but different unit ids, you
+> > will be unable to perform a mapping on the second chain because entity
+> > on the first chain will always be found first
+> > 
+> > Fix this by only searching the current chain when performing a control
+> > mapping.  This is analogous to the search used by uvc_find_control(),
+> > and is the correct behaviour.
+> 
+> Thanks for the patch. I agree with your analysis, but I'm concerned about
+> devices that might have extension units not connected to any chain. They
+> would become unaccessible.
+> 
+> Devices for which extension unit control mappings have been published have
+> all their XUs connected to a chain, so I'm OK with the patch. I will add a
+> TODO comment to remind me of the issue, and I'll solve the problem later
+> if it ever occurs.
 
-Christoph
+Sorry, I spoke too fast. uvc_find_control() has the same issue, so there's no 
+need to add a comment specific to uvc_ctrl_add_mapping(). I'll apply your 
+patch as-is.
 
+> > Signed-off-by: Stephan Lachowsky <stephan.lachowsky@maxim-ic.com>
+> > ---
+> > 
+> >  drivers/media/video/uvc/uvc_ctrl.c |    4 ++--
+> >  1 files changed, 2 insertions(+), 2 deletions(-)
+> > 
+> > diff --git a/drivers/media/video/uvc/uvc_ctrl.c
+> > b/drivers/media/video/uvc/uvc_ctrl.c index 59f8a9a..a77648f 100644
+> > --- a/drivers/media/video/uvc/uvc_ctrl.c
+> > +++ b/drivers/media/video/uvc/uvc_ctrl.c
+> > @@ -1565,8 +1565,8 @@ int uvc_ctrl_add_mapping(struct uvc_video_chain
+> > *chain, return -EINVAL;
+> > 
+> >  	}
+> > 
+> > -	/* Search for the matching (GUID/CS) control in the given device */
+> > -	list_for_each_entry(entity, &dev->entities, list) {
+> > +	/* Search for the matching (GUID/CS) control on the current chain */
+> > +	list_for_each_entry(entity, &chain->entities, chain) {
+> > 
+> >  		unsigned int i;
+> >  		
+> >  		if (UVC_ENTITY_TYPE(entity) != UVC_VC_EXTENSION_UNIT ||
 
-> With the current configuration file only 5 channels are found, while in
-> reality there are almost 35 channels.
->
-> regards
-> --
-> Bogdan Cristea
-> Embedded Software Engineer
-> Philog
-> 46 rue d'Amsterdam
-> 75009 Paris, France
-> tel: +33 (0)6 21 64 15 81
-> web: http://sites.google.com/site/cristeab/
+-- 
+Regards,
+
+Laurent Pinchart
