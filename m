@@ -1,203 +1,149 @@
 Return-path: <mchehab@pedra>
-Received: from smtp-68.nebula.fi ([83.145.220.68]:39419 "EHLO
-	smtp-68.nebula.fi" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757505Ab1F0MnW (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 27 Jun 2011 08:43:22 -0400
-Date: Mon, 27 Jun 2011 15:43:16 +0300
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	sakari.ailus@maxwell.research.nokia.com,
-	Sylwester Nawrocki <snjw23@gmail.com>,
-	Stan <svarbanov@mm-sol.com>, Hans Verkuil <hansverk@cisco.com>,
-	saaguirre@ti.com, Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: Re: [PATCH v2] V4L: add media bus configuration subdev operations
-Message-ID: <20110627124316.GE12671@valkosipuli.localdomain>
-References: <Pine.LNX.4.64.1106222314570.3535@axis700.grange>
- <20110623220129.GA10918@valkosipuli.localdomain>
- <Pine.LNX.4.64.1106240021540.5348@axis700.grange>
- <20110627081912.GC12671@valkosipuli.localdomain>
- <Pine.LNX.4.64.1106271029240.9394@axis700.grange>
+Received: from mx1.redhat.com ([209.132.183.28]:44875 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756754Ab1FUOfg (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 21 Jun 2011 10:35:36 -0400
+Message-ID: <4E00AC2A.8060500@redhat.com>
+Date: Tue, 21 Jun 2011 11:35:22 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <Pine.LNX.4.64.1106271029240.9394@axis700.grange>
+To: Andreas Oberritter <obi@linuxtv.org>
+CC: Devin Heitmueller <dheitmueller@kernellabs.com>,
+	HoP <jpetrous@gmail.com>,
+	=?ISO-8859-1?Q?=22S=E9bastien_RAILLARD_=28COEXSI=29=22?=
+	<sr@coexsi.fr>,
+	=?ISO-8859-1?Q?R=E9mi_Denis-Courmont?= <remi@remlab.net>,
+	linux-media@vger.kernel.org
+Subject: Re: [RFC] vtunerc - virtual DVB device driver
+References: <BANLkTimtnbAzLTdFY2OiSddHTjmD_99CfA@mail.gmail.com>	<201106202037.19535.remi@remlab.net>	<BANLkTinn0uN3VwGfqCbYbxFoVf6aNo1VSA@mail.gmail.com>	<BANLkTin14LnwP+_K1m-RsEXza4M4CjqnEw@mail.gmail.com>	<BANLkTimR-zWnnLBcD2w8d8NpeFJi=eT9nQ@mail.gmail.com>	<005a01cc2f7d$a799be30$f6cd3a90$@coexsi.fr>	<BANLkTinbQ8oBJt7fScuT5vHGFktbaQNY5A@mail.gmail.com>	<BANLkTimTdMa_X1ygF8=B5gLdLXq1o-ER0g@mail.gmail.com>	<BANLkTimkZN9AtLanwvct+1p2DZOHSgF6Aw@mail.gmail.com>	<BANLkTimg0X5H5T8CsSR5Tr0CZbCZKiDEEA@mail.gmail.com>	<4DFFB1DA.5000602@redhat.com>	<BANLkTikZ++5dZssDRuxJzNUEG_TDkZPGRg@mail.gmail.com>	<4DFFF56D.5070602@redhat.com>	<4E007AA7.7070400@linuxtv.org> <BANLkTik3ACfDwkyKVU2eZtxBeLH_mGh7pg@mail.gmail.com> <4E00A78B.2020008@linuxtv.org>
+In-Reply-To: <4E00A78B.2020008@linuxtv.org>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Hi Guennadi,
+Em 21-06-2011 11:15, Andreas Oberritter escreveu:
+> On 06/21/2011 03:44 PM, Devin Heitmueller wrote:
+>> On Tue, Jun 21, 2011 at 7:04 AM, Andreas Oberritter <obi@linuxtv.org> wrote:
+>>> Mauro and Devin, I think you're missing the point. This is not about
+>>> creating drivers in userspace. This is not about open or closed source.
+>>> The "vtuner" interface, as implemented for the Dreambox, is used to
+>>> access remote tuners: Put x tuners into y boxes and access them from
+>>> another box as if they were local. It's used in conjunction with further
+>>> software to receive the transport stream over a network connection.
+>>> Honza's code does the same thing.
+>>
+>> I'm not missing the point at all.  I realize exactly what Honza is
+>> trying to accomplish (and from a purely technical standpoint, it's not
+>> a bad approach) - but I'm talking about the effects of such a driver
+>> being introduced which changes the kernel/userland licensing boundary
+>> and has very real implications with how the in-kernel code is
+>> accessed.
+>>
+>>> You don't need it in order to create closed source drivers. You can
+>>> already create closed kernel drivers now. Also, you can create tuner
+>>> drivers in userspace using the i2c-dev interface. If you like to connect
+>>> a userspace driver to a DVB API device node, you can distribute a small
+>>> (open or closed) wrapper with it. So what are you arguing about?
+>>> Everything you're feared of can already be done since virtually forever.
+>>
+>> I disagree.  There is currently no API which allows applications to
+>> issue tuning requests into the DVB core, and have those requests
+>> proxied back out to userland where an application can then use i2c-dev
+>> to tune the actual device.  Meaning if somebody wants to write a
+>> closed source userland application which controls the tuner, he/she
+>> can do that (while not conforming to the DVB API).  But if if he wants
+>> to reuse the GPL licensed DVB core, he has to replace the entire DVB
+>> core.
+>>
+>> The introduction of this patch makes it trivial for a third party to
+>> provide closed-source userland support for tuners while reusing all
+>> the existing GPL driver code that makes up the framework.
+>>
+>> I used to work for a vendor that makes tuners, and they do a bunch of
+>> Linux work.  And that work has resulted in a bunch of open source
+>> drivers.  I can tell you though that *every* conversation I've had
+>> regarding a new driver goes something like this:
+>>
+>> ===
+>> "Devin, we need to support tuner X under Linux."
+>>
+>> "Great!  I'll be happy to write a new GPL driver for the
+>> tuner/demodulator/whatever for that device"
+>>
+>> "But to save time/money, we just want to reuse the Windows driver code
+>> (or reference code from the vendor)."
+>>
+>> "Ok.  Well, what is the licensing for that code?  Is it GPL compatible?"
+>>
+>> "Not currently.  So can we just make our driver closed source?"
+>>
+>> "Well, you can't reuse any of the existing DVB core functionality or
+>> any of the other GPL drivers (tuners, bridges, demods), so you would
+>> have rewrite all that from scratch."
+>>
+>> "Oh, that would be a ton of work.   Can we maybe write some userland
+>> stuff that controls the demodulator which we can keep closed source?
+>> Since it's not in the kernel, the GPL won't apply".
+>>
+>> "Well, you can't really do that because there is no way for the DVB
+>> core to call back out to userland when the application makes the
+>> tuning request to the DVB core."
+>>
+>> "Oh, ok then.  I guess we'll have to talk to the vendor and get them
+>> to give us the reference driver code under the GPL."
+>> ===
+>>
+>> I can tell you without a doubt that if this driver were present in the
+>> kernel, that going forward that vendor would have *zero* interest in
+>> doing any GPL driver work.  Why would they?  Why give away the code
+>> which could potentially help their competitors if they can keep it
+>> safe and protected while still being able to reuse everybody else's
+>> contributions?
+>>
+>> Companies don't contribute GPL code out of "good will".  They do it
+>> because they are compelled to by licenses or because there is no
+>> economically viable alternative.
+>>
+>> Mauro, ultimately it is your decision as the maintainer which drivers
+>> get accepted in to the kernel.  I can tell you though that this will
+>> be a very bad thing for the driver ecosystem as a whole - it will
+>> essentially make it trivial for vendors (some of which who are doing
+>> GPL work now) to provide solutions that reuse the GPL'd DVB core
+>> without having to make any of their stuff open source.
+>>
+>> Anyway, I said in my last email that would be my last email on the
+>> topic.  I guess I lied.
+> 
+> Yes, and you did lie to your vendor, too, as you did not mention the
+> possibilities to create
+> 1.) closed source modules derived from existing vendor drivers while
+> still being able to use other drivers (c.f. EXPORT_SYMBOL vs.
+> EXPORT_SYMBOL_GPL).
 
-On Mon, Jun 27, 2011 at 10:54:11AM +0200, Guennadi Liakhovetski wrote:
-> Hi Sakari
-> 
-> On Mon, 27 Jun 2011, Sakari Ailus wrote:
-> 
-> > On Fri, Jun 24, 2011 at 12:35:03AM +0200, Guennadi Liakhovetski wrote:
-> > > Hi Sakari
-> > 
-> > Hi Guennadi,
-> > 
-> > > On Fri, 24 Jun 2011, Sakari Ailus wrote:
-> > > 
-> > > > Hi Guennadi,
-> > > > 
-> > > > Thanks for the patch. I have a few comments below.
-> > > > 
-> > > > On Wed, Jun 22, 2011 at 11:26:29PM +0200, Guennadi Liakhovetski wrote:
-> > 
-> > [clip]
-> > 
-> > > > > diff --git a/include/media/v4l2-subdev.h b/include/media/v4l2-subdev.h
-> > > > > index 1562c4f..75919ef 100644
-> > > > > --- a/include/media/v4l2-subdev.h
-> > > > > +++ b/include/media/v4l2-subdev.h
-> > > > > @@ -255,6 +255,10 @@ struct v4l2_subdev_audio_ops {
-> > > > >     try_mbus_fmt: try to set a pixel format on a video data source
-> > > > >  
-> > > > >     s_mbus_fmt: set a pixel format on a video data source
-> > > > > +
-> > > > > +   g_mbus_config: get supported mediabus configurations
-> > > > > +
-> > > > > +   s_mbus_config: set a certain mediabus configuration
-> > > > >   */
-> > > > >  struct v4l2_subdev_video_ops {
-> > > > >  	int (*s_routing)(struct v4l2_subdev *sd, u32 input, u32 output, u32 config);
-> > > > > @@ -294,6 +298,8 @@ struct v4l2_subdev_video_ops {
-> > > > >  			    struct v4l2_mbus_framefmt *fmt);
-> > > > >  	int (*s_mbus_fmt)(struct v4l2_subdev *sd,
-> > > > >  			  struct v4l2_mbus_framefmt *fmt);
-> > > > > +	int (*g_mbus_config)(struct v4l2_subdev *sd, struct v4l2_mbus_config *cfg);
-> > > > > +	int (*s_mbus_config)(struct v4l2_subdev *sd, struct v4l2_mbus_config *cfg);
-> > > > 
-> > > > How would the ops be used and by whom?
-> > > 
-> > > In the first line I want to use them to make re-use of soc-camera and 
-> > > other subdev drivers possible. Soc-camera drivers would switch to these 
-> > > from their specific bus-configuration methods, other drivers are free to 
-> > > use or not to use them.
-> > > 
-> > > > How complete configuration for CSI2 bus is the above intend to be? Complete,
-> > > > I suppose, and so I think we'll also need to specify how e.g. the CSI2 clock
-> > > > and data lanes have been connected between transmitter and receiver. This is
-> > > > less trivial to guess than clock polarity and requires further information
-> > > > from the board and lane mapping configuration capabilities of both.
-> > > > Shouldn't this information be also added to CSI2 configuration?
-> > > > 
-> > > > Do you think a single bitmask would suffice for this in the long run?
-> > > 
-> > > If you have certain additions to this API I would be happy to consider 
-> > > them. Otherwise, if you just suppose, that we might need more 
-> > > configuration options, we can always add them in the future, when we know 
-> > > more about them and have specific use-cases, with which we can test them. 
-> > > E.g., I am not sure what data- and clock-lane connection possibilities you 
-> > > refer to above. Don't you _have_ to connect lane 1 to 1 etc?
-> > 
-> > You don't need to. It actually depends on the hardware: the OMAP 3 CSI-2
-> > receiver, for example, may freely configure the order of the data and clock
-> > lanes. And you'll actually have to do that configuration since this is
-> > purely board dependent.
-> 
-> Nice
-> 
-> > I'm not sure whether the CSI-2 specification requires this, however. I
-> > wouldn't be surprised if there were sensors which could also do this.
-> 
-> Ok, to be flexible and consistent, we could do the same as with other 
-> parameters. We could design a query like "to which pin can you route data 
-> lane 1?" with possible replies "I can only route lane 1 to pin 1," or "I 
-> can route lane 1 to pins 1, 2, 3, 4, or 5" (for 4 data-lanes and one clock 
-> lane. Then the configuration request could do "please, route your data 
-> lane 1 to pin 1." Or we can hard-code this routing in the platform data 
-> for now.
-> 
-> I, probably, already mentioned this before, but this is also how the 
-> present soc-camera API evolved in the past: in the beginning it also was 
-> completely static, then I noticed, that instead of hard coding the 
-> configuration, I can let drivers negotiate parameters automatically. Then 
-> gradually the number of auto-negotiated parameters grew, as more flexible 
-> hardware had to be handled.
-> 
-> We could do the same here: first hard-code this, then see, if it is 
-> becoming a burden, having to hard-code these. Notice, that 
-> auto-configuring these should not be a problem. This is not like 
-> configuring a signal polarity, of which one can work better, than the 
-> other.
+AFAIK, the legal issues on writing a closed source driver using EXPORT_SYMBOL
+are not proofed legally in any court. While EXPORT_SYMBOL_GPL explicitly 
+adds a restriction, not using it doesn't necessarily mean that the symbol
+can be used by a closed source driver. 
 
-I'm definitely for hard coding this kind of information. The driver may
-define a default order for the lanes, and then the mapping to the actual
-lanes may be stored in the platform data. The same for the receiver. So the
-configuration would actually be different on transmitter and receiver: it's
-not a parameter which is shared among both of them.
+If you take a look at Kernel's COPYING file, the only exception to GPL license
+allowed there is:
 
-> > For OMAP 3 ISP driver this configuration is in struct isp_csiphy_lanes_cfg
-> > in drivers/media/video/omap3isp/ispcsiphy.h at the moment.
-> > 
-> > The OMAP 3 ISP driver currently uses all the lanes it has, as far as I
-> > understand, so you can't disable them right now.
-> > 
-> > > > I can see some use for the information in the set operation in lane
-> > > > configuration, for example, as you mentioned. My guess would be that the
-> > > > number of lanes _might_ be something that the user space would want to know
-> > > > or possibly even configure --- but we'll first need to discuss low-level
-> > > > sensor control interface.
-> > > > 
-> > > > But otherwise the configuration should likely be rather static and board
-> > > > specific. Wouldn't the subdevs get this as part of the platform data, or
-> > > > how?
-> > > > 
-> > > > I would just keep the bus configuration static board dependent information
-> > > > until we have that part working and used by drivers and extend it later on.
-> > > 
-> > > As I said, drivers are free to not use these methods and implement a 
-> > > platform-provided configuration method. In which case, as, I think, Hans 
-> > > pointed out earlier, they can also choose to use this struct in their 
-> > > platform data.
-> > 
-> > If the structures are expected to be generic I somehow feel that a field of
-> > flags isn't the best way to describe the configuration of CSI-2 or other
-> > busses. Why not to just use a structure with bus type and an union for
-> > bus-specific configuration parameters? It'd be easier to access and also to
-> > change as needed than flags in an unsigned long field.
-> 
-> Well, yes, a union can be a good idea, thanks.
-> 
-> > Also, this structure is primarily about capabilities and not configuration.
-> > Having settings e.g. for active low vsync and the opposite isn't making this
-> > easier for drivers. There should be just one --- more so if the matching
-> > will be specific to SoC camera only.
-> > 
-> > What would you think of having separate structures for configuration and
-> > capabilities of the busses? I think this way the mechanism would be more
-> > useful outside the scope of SoC camera. The CSI-2 and parallel busses are
-> > still quite generic.
-> 
-> Disagree, O'm quite happy with the current flag system, used for both 
-> capabilities and configuration.
+	 NOTE! This copyright does *not* cover user programs that use kernel
+	 services by normal system calls - this is merely considered normal use
+	 of the kernel, and does *not* fall under the heading of "derived work".
 
-What do you think about use outside SoC camera where we don't have
-negotiation? The bus configuration should be generic and not dependent on
-SoC camera. There isn't any generic CSI-2 configuration outside SoC camera
-right now but I think it would make sense to have that some day.
+IANAL, but, as EXPORT_SYMBOL is not a "normal system call", my understanding is that
+it is also covered by GPL.
 
-> > That said, at this point I'm not exactly sure what configuration should be
-> > board specific and what should be dynamically configurable. The lane setup I
-> > mentioned earlier, for example, is something that would be good to be
-> > dynamically configurable in the future. Even if there are e.g. two lanes the
-> > user still might want to use just one. In this case you need to be able to
-> > tell the hardware has that two lanes but you only use one of them.
-> 
-> Yes, but what exactly do you want to make configurable? The _number_ of 
-> lanes, or their routing?
+I was told that several lawyers defend the idea that all software inside the
+kernel tree is covered by GPL, even the aggregated ones. That was the rationale 
+used to split the firmware packages from the kernel itself.
 
-Number of the lanes. When e.g. the sensor does binning and skipping and the
-output data rate is much lower than at the native output size, one could use
-less lanes than at the native size. For the user it doesn't matter which
-of the lanes are being used.
+> 2.) a simple wrapper that calls userspace, therefore not having to open
+> up any "secrets" at all.
 
-Kind regards,
+A wrapper for a closed source driver is illegal, as it is trying to circumvent
+the GPL license.
 
--- 
-Sakari Ailus
-sakari.ailus@iki.fi
+Mauro.
