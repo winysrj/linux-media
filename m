@@ -1,84 +1,62 @@
 Return-path: <mchehab@pedra>
-Received: from mail-gy0-f174.google.com ([209.85.160.174]:37978 "EHLO
-	mail-gy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752813Ab1FQCv1 convert rfc822-to-8bit (ORCPT
+Received: from 5571f1ba.dsl.concepts.nl ([85.113.241.186]:42101 "EHLO
+	his10.thuis.hoogenraad.info" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S932111Ab1FUKBB (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 16 Jun 2011 22:51:27 -0400
-Received: by gyh3 with SMTP id 3so394194gyh.19
-        for <linux-media@vger.kernel.org>; Thu, 16 Jun 2011 19:51:26 -0700 (PDT)
+	Tue, 21 Jun 2011 06:01:01 -0400
+Message-ID: <4E006BDB.8060000@hoogenraad.net>
+Date: Tue, 21 Jun 2011 12:00:59 +0200
+From: Jan Hoogenraad <jan-conceptronic@hoogenraad.net>
 MIME-Version: 1.0
-In-Reply-To: <4DFAA296.903@infradead.org>
-References: <1307814409-46282-1-git-send-email-corbet@lwn.net>
-	<1307814409-46282-3-git-send-email-corbet@lwn.net>
-	<BANLkTikVeHLL6+T74tpmwmsL4_3h5f3PmA@mail.gmail.com>
-	<20110614084948.2d158323@bike.lwn.net>
-	<BANLkTikztbcm_+PR5oFVB+v0Jn4q8GCVTQ@mail.gmail.com>
-	<4DFAA296.903@infradead.org>
-Date: Fri, 17 Jun 2011 10:51:26 +0800
-Message-ID: <BANLkTimn2o0W-f3NWvZOrhnGvZv2-mo4Pw@mail.gmail.com>
-Subject: Re: [PATCH 2/8] marvell-cam: Separate out the Marvell camera core
-From: Kassey Lee <kassey1216@gmail.com>
-To: Mauro Carvalho Chehab <mchehab@infradead.org>
-Cc: Jonathan Corbet <corbet@lwn.net>, linux-media@vger.kernel.org,
-	g.liakhovetski@gmx.de, Kassey Lee <ygli@marvell.com>,
-	Daniel Drake <dsd@laptop.org>, ytang5@marvell.com,
-	leiwen@marvell.com, qingx@marvell.com
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+To: Maxim Levitsky <maximlevitsky@gmail.com>
+CC: Antti Palosaari <crope@iki.fi>,
+	=?UTF-8?B?U2FzY2hhIFfDvHN0ZW1hbm4=?= <sascha@killerhippy.de>,
+	linux-media@vger.kernel.org,
+	Thomas Holzeisen <thomas@holzeisen.de>, stybla@turnovfree.net
+Subject: Re: RTL2831U driver updates
+References: <4DF9BCAA.3030301@holzeisen.de>	 <4DF9EA62.2040008@killerhippy.de> <4DFA7748.6000704@hoogenraad.net>	 <4DFFC82B.10402@iki.fi> <1308649292.3635.2.camel@maxim-laptop>
+In-Reply-To: <1308649292.3635.2.camel@maxim-laptop>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-2011/6/17 Mauro Carvalho Chehab <mchehab@infradead.org>:
-> Em 15-06-2011 23:30, Kassey Lee escreveu:
->> 2011/6/14 Jonathan Corbet <corbet@lwn.net>:
->>> On Tue, 14 Jun 2011 10:58:47 +0800
->>> Kassey Lee <kassey1216@gmail.com> wrote:
->>>>> +       /*
->>>>> +        * Try to find the sensor.
->>>>> +        */
->>>>> +       cam->sensor_addr = ov7670_info.addr;
->>>>> +       cam->sensor = v4l2_i2c_new_subdev_board(&cam->v4l2_dev,
->>>>> +                       &cam->i2c_adapter, &ov7670_info, NULL);
->>>> I do not thinks so.
->>>
->>> I don't understand what this comment is meant to mean...?
->> this should be move out to arch/arm/mach-xxx/board.c
->
-> Please drop the parts that you're not commenting. It is very hard to find a one-line
-> comment in the middle of a long patch, especially since you don't even add blank
-> lines before/after it.
->
-sorry for the confusion.
-this is the same idea that we want to separate the ccic driver and sensor info.
-here is how we do this:
-on arch/arm/mach-mmp/ttc_dkb.c
+Can I put this somewhere in the git archive at the linuxtv site, so that 
+we can share and have version control ?
 
-static struct i2c_board_info dkb_i2c_camera[] = {
-        {
-                I2C_BOARD_INFO("ov5642", 0x3c),
-        },
-};
-
-i2c_register_board_info(0, &dkb_i2c_camera, 1);
-
-
-> With respect to your comment, it doesn't makes much sense,as cafe_ccic
-> runs on OLPC 1 hardware (at least the version I have here) is x86-based.
+Maxim Levitsky wrote:
+> On Tue, 2011-06-21 at 01:22 +0300, Antti Palosaari wrote:
+>> It is Maxim who have been hacking with RTL2832/RTL2832U lately. But I
+>> think he have given up since no noise anymore.
+>>
+>> I have taken now it again up to my desk and have been hacking two days
+>> now. Currently I am working with RTL2830 demod driver, I started it from
+>> scratch. Take sniffs, make scripts to generate code from USB traffic,
+>> copy pasted that to driver skeleton and now I have picture. Just
+>> implement all one-by-one until ready :-) I think I will implement it as
+>> minimum possible, no any signal statistic counters - lets add those
+>> later if someone wants to do that.
+>>
+>> USB-bridge part is rather OK as I did earlier and it is working with
+>> RTL2831U and RTL2832U at least. No remote support yet.
+>>
+>> I hope someone else would make missing driver for RTL2832U demod still...
+>>
 >
- that is fine, sorry, i always thought it was ARM platform.
-
-> So, I'm not seeing any reason why not apply patch 2/8.
+> Fine!
 >
-> Applying on my tree.
+> In about month, after exams, I hope I will work on this to finish at
+> least RTL2832/FC0012.
 >
-> Mauro.
+> For reference, this is the code I did so far.
 >
 >
-
+> Best regards,
+> Maxim Levitsky
 
 
 -- 
-Best regards
-Kassey
-Application Processor Systems Engineering, Marvell Technology Group Ltd.
-Shanghai, China.
+Jan Hoogenraad
+Hoogenraad Interface Services
+Postbus 2717
+3500 GS Utrecht
