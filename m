@@ -1,62 +1,79 @@
 Return-path: <mchehab@pedra>
-Received: from 5571f1ba.dsl.concepts.nl ([85.113.241.186]:33955 "EHLO
-	his10.thuis.hoogenraad.info" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1755368Ab1FJNWt (ORCPT
+Received: from mail-yx0-f174.google.com ([209.85.213.174]:52756 "EHLO
+	mail-yx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757142Ab1FUUtP convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 10 Jun 2011 09:22:49 -0400
-Message-ID: <4DF21AA7.1010505@hoogenraad.net>
-Date: Fri, 10 Jun 2011 15:22:47 +0200
-From: Jan Hoogenraad <jan-conceptronic@hoogenraad.net>
+	Tue, 21 Jun 2011 16:49:15 -0400
 MIME-Version: 1.0
-To: Devin Heitmueller <dheitmueller@kernellabs.com>,
-	Andy Walls <awalls@md.metrocast.net>
-CC: linux-media@vger.kernel.org
-Subject: Re: Media_build does not compile due to errors in cx18-driver.h,
- cx18-driver.c and dvbdev.c /rc-main.c
-References: <4DF1FF06.4050502@hoogenraad.net>	<3e84c07f-83ff-4f83-9f8f-f52631259f05@email.android.com> <BANLkTinE1vRVJ+j+7JiPHZqXHJ8WTFX+cg@mail.gmail.com>
-In-Reply-To: <BANLkTinE1vRVJ+j+7JiPHZqXHJ8WTFX+cg@mail.gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+In-Reply-To: <1308670579-15138-1-git-send-email-laurent.pinchart@ideasonboard.com>
+References: <4DDAE63A.3070203@gmx.de>
+	<1308670579-15138-1-git-send-email-laurent.pinchart@ideasonboard.com>
+Date: Tue, 21 Jun 2011 22:49:14 +0200
+Message-ID: <BANLkTim6wUaeZCya=9dMvU7iHj4W4E57Fg@mail.gmail.com>
+Subject: Re: [PATCH/RFC] fbdev: Add FOURCC-based format configuration API
+From: Geert Uytterhoeven <geert@linux-m68k.org>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: linux-fbdev@vger.kernel.org, linux-media@vger.kernel.org,
+	dri-devel@lists.freedesktop.org, FlorianSchandinat@gmx.de
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8BIT
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Andy:
+Hi Laurent,
 
-Something along the line of id already defined.
-I just corrected the code by removing the duplicate lines that are in 
-the sources of the tar.
+On Tue, Jun 21, 2011 at 17:36, Laurent Pinchart
+<laurent.pinchart@ideasonboard.com> wrote:
+> +The following types and visuals are supported.
+> +
+> +- FB_TYPE_PACKED_PIXELS
+> +
+> +- FB_TYPE_PLANES
 
-The other 3 files have a bad escape sequence in a line saying that this 
-is the backports. One backslash not removed in a script, I guess.
+You forgot FB_TYPE_INTERLEAVED_PLANES, FB_TYPE_TEXT, and
+FB_TYPE_VGA_PLANES. Ah, that's the "feel free to extend the API doc"  :-)
 
-Devin:
+> +The FOURCC-based API replaces format descriptions by four character codes
+> +(FOURCC). FOURCCs are abstract identifiers that uniquely define a format
+> +without explicitly describing it. This is the only API that supports YUV
+> +formats. Drivers are also encouraged to implement the FOURCC-based API for RGB
+> +and grayscale formats.
+> +
+> +Drivers that support the FOURCC-based API report this capability by setting
+> +the FB_CAP_FOURCC bit in the fb_fix_screeninfo capabilities field.
+> +
+> +FOURCC definitions are located in the linux/videodev2.h header. However, and
+> +despite starting with the V4L2_PIX_FMT_prefix, they are not restricted to V4L2
+> +and don't require usage of the V4L2 subsystem. FOURCC documentation is
+> +available in Documentation/DocBook/v4l/pixfmt.xml.
+> +
+> +To select a format, applications set the FB_VMODE_FOURCC bit in the
+> +fb_var_screeninfo vmode field, and set the fourcc field to the desired FOURCC.
+> +The bits_per_pixel, red, green, blue, transp and nonstd fields must be set to
+> +0 by applications and ignored by drivers. Note that the grayscale and fourcc
+> +fields share the same memory location. Application must thus not set the
+> +grayscale field to 0.
 
-The version does not matter for the cx18 problem: any compiler complains 
-on duplicate lines.
+These are the only parts I don't like: (ab)using the vmode field (this
+isn't really a
+vmode flag), and the union of grayscale and fourcc (avoid unions where
+possible).
 
-Anyway: 2.6.32-32-generic-pae #62-Ubuntu SMP Wed Apr 20 22:10:33 UTC 
-2011 i686 GNU/Linux
+What about storing the FOURCC value in nonstd instead?
+As FOURCC values are always 4 ASCII characters (hence all 4 bytes must
+be non-zero),
+I don't think there are any conflicts with existing values of nonstd.
+To make it even safer and easier to parse, you could set bit 31 of
+nonstd as a FOURCC
+indicator.
 
-Devin Heitmueller wrote:
-> On Fri, Jun 10, 2011 at 8:34 AM, Andy Walls<awalls@md.metrocast.net>  wrote:
->> What are the error messages?
->>
->> Tejun Heo made quite a number of workqueue changes, and the cx18 driver got dragged forward with them.  So did ivtv for that matter.
->>
->> Just disable the cx18 driver if you don't need it for an older kernel.
->>
->> Regards,
->> Andy
->
-> Another highly relevant piece of information to know is what kernel
-> Jan is running on.  It is probably from before the workqueue changes.
->
-> Devin
->
+Gr{oetje,eeting}s,
 
+                        Geert
 
--- 
-Jan Hoogenraad
-Hoogenraad Interface Services
-Postbus 2717
-3500 GS Utrecht
+--
+Geert Uytterhoeven -- There's lots of Linux beyond ia32 -- geert@linux-m68k.org
+
+In personal conversations with technical people, I call myself a hacker. But
+when I'm talking to journalists I just say "programmer" or something like that.
+                                -- Linus Torvalds
