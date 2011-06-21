@@ -1,75 +1,56 @@
 Return-path: <mchehab@pedra>
-Received: from sj-iport-1.cisco.com ([171.71.176.70]:36843 "EHLO
-	sj-iport-1.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752633Ab1FIICU (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 9 Jun 2011 04:02:20 -0400
-From: Hans Verkuil <hansverk@cisco.com>
-To: Tomasz Stanislawski <t.stanislaws@samsung.com>
-Subject: Re: [PATCH 1/3] v4l: add macro for 1080p59_54 preset
-Date: Thu, 9 Jun 2011 10:01:25 +0200
-Cc: linux-media@vger.kernel.org, m.szyprowski@samsung.com,
-	kyungmin.park@samsung.com, hverkuil@xs4all.nl,
-	laurent.pinchart@ideasonboard.com,
-	sakari.ailus@maxwell.research.nokia.com, mchehab@redhat.com
-References: <1307534611-32283-1-git-send-email-t.stanislaws@samsung.com> <1307534611-32283-2-git-send-email-t.stanislaws@samsung.com>
-In-Reply-To: <1307534611-32283-2-git-send-email-t.stanislaws@samsung.com>
+Received: from mx1.redhat.com ([209.132.183.28]:15886 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752495Ab1FUO7k (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 21 Jun 2011 10:59:40 -0400
+Message-ID: <4E00B1D0.5080101@redhat.com>
+Date: Tue, 21 Jun 2011 11:59:28 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-15"
+To: Devin Heitmueller <dheitmueller@kernellabs.com>
+CC: Andreas Oberritter <obi@linuxtv.org>, HoP <jpetrous@gmail.com>,
+	=?ISO-8859-1?Q?=22S=E9bastien_RAILLARD_=28COEXSI=29=22?=
+	<sr@coexsi.fr>,
+	=?ISO-8859-1?Q?R=E9mi_Denis-Courmont?= <remi@remlab.net>,
+	linux-media@vger.kernel.org
+Subject: Re: [RFC] vtunerc - virtual DVB device driver
+References: <BANLkTimtnbAzLTdFY2OiSddHTjmD_99CfA@mail.gmail.com>	<201106202037.19535.remi@remlab.net>	<BANLkTinn0uN3VwGfqCbYbxFoVf6aNo1VSA@mail.gmail.com>	<BANLkTin14LnwP+_K1m-RsEXza4M4CjqnEw@mail.gmail.com>	<BANLkTimR-zWnnLBcD2w8d8NpeFJi=eT9nQ@mail.gmail.com>	<005a01cc2f7d$a799be30$f6cd3a90$@coexsi.fr>	<BANLkTinbQ8oBJt7fScuT5vHGFktbaQNY5A@mail.gmail.com>	<BANLkTimTdMa_X1ygF8=B5gLdLXq1o-ER0g@mail.gmail.com>	<BANLkTimkZN9AtLanwvct+1p2DZOHSgF6Aw@mail.gmail.com>	<BANLkTimg0X5H5T8CsSR5Tr0CZbCZKiDEEA@mail.gmail.com>	<4DFFB1DA.5000602@redhat.com>	<BANLkTikZ++5dZssDRuxJzNUEG_TDkZPGRg@mail.gmail.com>	<4DFFF56D.5070602@redhat.com>	<4E007AA7.7070400@linuxtv.org> <BANLkTik3ACfDwkyKVU2eZtxBeLH_mGh7pg@mail.gmail.com>
+In-Reply-To: <BANLkTik3ACfDwkyKVU2eZtxBeLH_mGh7pg@mail.gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Message-Id: <201106091001.25127.hansverk@cisco.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Wednesday, June 08, 2011 14:03:29 Tomasz Stanislawski wrote:
-> The 1080p59_94 is supported in latest Samusng SoC.
+Em 21-06-2011 10:44, Devin Heitmueller escreveu:
 
-Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+> Mauro, ultimately it is your decision as the maintainer which drivers
+> get accepted in to the kernel.  I can tell you though that this will
+> be a very bad thing for the driver ecosystem as a whole - it will
+> essentially make it trivial for vendors (some of which who are doing
+> GPL work now) to provide solutions that reuse the GPL'd DVB core
+> without having to make any of their stuff open source.
 
-Regards,
+I was a little faster to answer to my previous emails. I'm not feeling
+well today due to a strong pain on my backbone.
 
-	Hans
+So, let me explain what would be ok, from my POV:
 
-> 
-> Signed-off-by: Tomasz Stanislawski <t.stanislaws@samsung.com>
-> Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
-> ---
->  drivers/media/video/v4l2-common.c |    1 +
->  include/linux/videodev2.h         |    1 +
->  2 files changed, 2 insertions(+), 0 deletions(-)
-> 
-> diff --git a/drivers/media/video/v4l2-common.c b/drivers/media/video/v4l2-
-common.c
-> index 06b9f9f..003e648 100644
-> --- a/drivers/media/video/v4l2-common.c
-> +++ b/drivers/media/video/v4l2-common.c
-> @@ -582,6 +582,7 @@ int v4l_fill_dv_preset_info(u32 preset, struct 
-v4l2_dv_enum_preset *info)
->  		{ 1920, 1080, "1080p@30" },	/* V4L2_DV_1080P30 */
->  		{ 1920, 1080, "1080p@50" },	/* V4L2_DV_1080P50 */
->  		{ 1920, 1080, "1080p@60" },	/* V4L2_DV_1080P60 */
-> +		{ 1920, 1080, "1080p@59.94" },	/* V4L2_DV_1080P59_94 */
->  	};
->  
->  	if (info == NULL || preset >= ARRAY_SIZE(dv_presets))
-> diff --git a/include/linux/videodev2.h b/include/linux/videodev2.h
-> index 8a4c309..7c77c4e 100644
-> --- a/include/linux/videodev2.h
-> +++ b/include/linux/videodev2.h
-> @@ -872,6 +872,7 @@ struct v4l2_dv_enum_preset {
->  #define		V4L2_DV_1080P30		16 /* SMPTE 296M */
->  #define		V4L2_DV_1080P50		17 /* BT.1120 */
->  #define		V4L2_DV_1080P60		18 /* BT.1120 */
-> +#define		V4L2_DV_1080P59_94	19
->  
->  /*
->   *	D V 	B T	T I M I N G S
-> -- 
-> 1.7.5.4
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
-> 
+A kernelspace driver that will follow DVBv5 API and talk with wit another
+device via the Kernel network stack, in order to access a remote Kernel board,
+or a kernel board at the physical machine, for virtual machines. That means that
+the dvb stack won't be proxied to an userspace application.
+
+Something like:
+
+Userspace app (like kaffeine, dvr, etc) -> DVB net_tunnel driver -> Kernel Network stack
+
+Kernel Network stack -> DVB net_tunnel driver -> DVB hardware
+
+In other words, the "DVB net_tunnel" driver will take care of using the
+network stack, implement Kernel namespaces, etc, in order to allow virtualizing
+a remote hardware, without needing any userspace driver for doing that
+(well, except, of course, for the standard network userspace applications for
+DNS solving, configuring IP routes, etc).
+
+Cheers,
+Mauro
