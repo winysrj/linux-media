@@ -1,396 +1,385 @@
 Return-path: <mchehab@pedra>
-Received: from mailout2.w1.samsung.com ([210.118.77.12]:43724 "EHLO
-	mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750864Ab1FNQhJ (ORCPT
+Received: from perceval.ideasonboard.com ([95.142.166.194]:50600 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752792Ab1FUPf5 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 14 Jun 2011 12:37:09 -0400
-Received: from eu_spt1 (mailout2.w1.samsung.com [210.118.77.12])
- by mailout2.w1.samsung.com
- (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14 2004))
- with ESMTP id <0LMS003WIGTVID@mailout2.w1.samsung.com> for
- linux-media@vger.kernel.org; Tue, 14 Jun 2011 17:37:07 +0100 (BST)
-Received: from linux.samsung.com ([106.116.38.10])
- by spt1.w1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14
- 2004)) with ESMTPA id <0LMS00F53GTTC9@spt1.w1.samsung.com> for
- linux-media@vger.kernel.org; Tue, 14 Jun 2011 17:37:06 +0100 (BST)
-Date: Tue, 14 Jun 2011 18:36:52 +0200
-From: Kamil Debski <k.debski@samsung.com>
-Subject: [PATCH 0/4 v9] Multi Format Codec 5.1 driver for s5pv210 and exynos4
- SoC
-To: linux-media@vger.kernel.org
-Cc: m.szyprowski@samsung.com, kyungmin.park@samsung.com,
-	k.debski@samsung.com, jaeryul.oh@samsung.com, hverkuil@xs4all.nl,
-	laurent.pinchart@ideasonboard.com, jtp.park@samsung.com
-Message-id: <1308069416-24723-1-git-send-email-k.debski@samsung.com>
-MIME-version: 1.0
-Content-type: TEXT/PLAIN
-Content-transfer-encoding: 7BIT
+	Tue, 21 Jun 2011 11:35:57 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: linux-fbdev@vger.kernel.org
+Cc: linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org,
+	FlorianSchandinat@gmx.de
+Subject: [PATCH/RFC] fbdev: Add FOURCC-based format configuration API
+Date: Tue, 21 Jun 2011 17:36:19 +0200
+Message-Id: <1308670579-15138-1-git-send-email-laurent.pinchart@ideasonboard.com>
+In-Reply-To: <4DDAE63A.3070203@gmx.de>
+References: <4DDAE63A.3070203@gmx.de>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Hi,
+This API will be used to support YUV frame buffer formats in a standard
+way.
 
-This is the ninth version of the MFC 5.1 driver. Both encoding and decoding is
-supported. The encoding part was done Jeongtae Park with some of my modifications.
+Last but not least, create a much needed fbdev API documentation and
+document the format setting APIs.
 
-Changes in videodev2.h have been split to two patches:
-1) v4l: add fourcc definitons for compressed formats.
-(http://permalink.gmane.org/gmane.linux.drivers.video-input-infrastructure/30740)
-This one has been already discussed on the mailing list (sent on the 23/03/2011).
-However there is one change in the names of VC1 fourccs:
-- V4L2_PIX_FMT_VC1_AP changed to V4L2_PIX_FMT_VC1_ANNEX_G
-- V4L2_PIX_FMT_VC1 changed to V4L2_PIX_FMT_VC1_ANNEX_L
+Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+---
+ Documentation/fb/api.txt |  284 ++++++++++++++++++++++++++++++++++++++++++++++
+ include/linux/fb.h       |   12 ++-
+ 2 files changed, 294 insertions(+), 2 deletions(-)
+ create mode 100644 Documentation/fb/api.txt
 
-2) v4l: add control definitions for codec devices.
-I am posting the newest version of this patch in this patch set.
-The changes from v3 that was posted on the list:
-(http://permalink.gmane.org/gmane.linux.drivers.video-input-infrastructure/33438)
-- use already existing controls instead of creating new
-(during the discussion it turned out that some controls mean the same as already
-existing ones)
-- V4L2_CID_MPEG_LEVEL control hase been split into two separate for MPEG4 and H264
-- use V4L2_MPEG_VIDEO_MULTI_SLICE_MODE_MAX_BYTES instead of *_MAX_BITS
-- use V4L2_CID_MPEG_VIDEO_H264_ENTROPY_MODE instead of *_SYMBOL_MODE
-- added CYCLIC to V4L2_CID_MPEG_VIDEO_CYCLIC_INTRA_REFRESH_MB
-- V4L2_CID_MFC51_VIDEO_DECODER_MPEG4_DEBLOCK_FILTER is no longer MFC specific
-- new names for vop_time_increment and vop_time_increment_resolution controls
-- extended the documentation and corrected mistakes in the doc
+A bit late, but here's a patch that implements an fbdev format configuration
+API to support YUV formats. My next step is to implement a prototype in an
+fbdev driver to make sure the API works well.
 
-Another major change is use of the dma_contig memory allocator. This removes the
-dependence on other subsystems, which could delay merging of MFC.
+Thanks to Florian Tobias Schandinat for providing feedback on the initial RFC.
+Comments are as usual more than welcome. If you feel like writing a couple of
+lines of documentation, feel free to extend the API doc. That's much needed.
 
-I have also removed the per buffer controls implemented by Jeongtae from this version.
-Handling of such controls was complicated and is not necessary for the driver to work.
-We will get back to this feature after the first version of MFC get merged.
+diff --git a/Documentation/fb/api.txt b/Documentation/fb/api.txt
+new file mode 100644
+index 0000000..d4cd6ec
+--- /dev/null
++++ b/Documentation/fb/api.txt
+@@ -0,0 +1,284 @@
++			The Frame Buffer Device API
++			---------------------------
++
++Last revised: June 21, 2011
++
++
++0. Introduction
++---------------
++
++This document describes the frame buffer API used by applications to interact
++with frame buffer devices. In-kernel APIs between device drivers and the frame
++buffer core are not described.
++
++Due to a lack of documentation in the original frame buffer API, drivers
++behaviours differ in subtle (and not so subtle) ways. This document describes
++the recommended API implementation, but applications should be prepared to
++deal with different behaviours.
++
++
++1. Capabilities
++---------------
++
++Device and driver capabilities are reported in the fixed screen information
++capabilities field.
++
++struct fb_fix_screeninfo {
++	...
++	__u16 capabilities;		/* see FB_CAP_*			*/
++	...
++};
++
++Application should use those capabilities to find out what features they can
++expect from the device and driver.
++
++- FB_CAP_FOURCC
++
++The driver supports the four character code (FOURCC) based format setting API.
++When supported, formats are configured using a FOURCC instead of manually
++specifying color components layout.
++
++
++2. Types and visuals
++--------------------
++
++Pixels are stored in memory in hardware-dependent formats. Applications need
++to be aware of the pixel storage format in order to write image data to the
++frame buffer memory in the format expected by the hardware.
++
++Formats are described by frame buffer types and visuals. Some visuals require
++additional information, which are stored in the variable screen information
++bits_per_pixel, grayscale, fourcc, red, green, blue and transp fields.
++
++The following types and visuals are supported.
++
++- FB_TYPE_PACKED_PIXELS
++
++Color components (usually RGB or YUV) are packed together into macropixels
++that are stored in a single plane. The exact color components layout is
++described in a visual-dependent way.
++
++Frame buffer visuals that don't use multiple color components per pixel
++(such as monochrome and pseudo-color visuals) are reported as packed frame
++buffer types, even though they don't stricly speaking pack color components
++into macropixels.
++
++- FB_TYPE_PLANES
++
++Color components are stored in separate planes. Planes are located
++contiguously in memory.
++
++- FB_VISUAL_MONO01
++
++Pixels are black or white and stored on one bit. A bit set to 1 represents a
++black pixel and a bit set to 0 a white pixel. Pixels are packed together in
++bytes with 8 pixels per byte.
++
++FB_VISUAL_MONO01 is used with FB_TYPE_PACKED_PIXELS only.
++
++- FB_VISUAL_MONO10
++
++Pixels are black or white and stored on one bit. A bit set to 1 represents a
++white pixel and a bit set to 0 a black pixel. Pixels are packed together in
++bytes with 8 pixels per byte.
++
++FB_VISUAL_MONO01 is used with FB_TYPE_PACKED_PIXELS only.
++
++- FB_VISUAL_TRUECOLOR
++
++Pixels are broken into red, green and blue components, and each component
++indexes a read-only lookup table for the corresponding value. Lookup tables
++are device-dependent, and provide linear or non-linear ramps.
++
++Each component is stored in memory according to the variable screen
++information red, green, blue and transp fields.
++
++- FB_VISUAL_PSEUDOCOLOR and FB_VISUAL_STATIC_PSEUDOCOLOR
++
++Pixel values are encoded as indices into a colormap that stores red, green and
++blue components. The colormap is read-only for FB_VISUAL_STATIC_PSEUDOCOLOR
++and read-write for FB_VISUAL_PSEUDOCOLOR.
++
++Each pixel value is stored in the number of bits reported by the variable
++screen information bits_per_pixel field. Pixels are contiguous in memory.
++
++FB_VISUAL_PSEUDOCOLOR and FB_VISUAL_STATIC_PSEUDOCOLOR are used with
++FB_TYPE_PACKED_PIXELS only.
++
++- FB_VISUAL_DIRECTCOLOR
++
++Pixels are broken into red, green and blue components, and each component
++indexes a programmable lookup table for the corresponding value.
++
++Each component is stored in memory according to the variable screen
++information red, green, blue and transp fields.
++
++- FB_VISUAL_FOURCC
++
++Pixels are stored in memory as described by the format FOURCC identifier
++stored in the variable screen information fourcc field.
++
++
++3. Screen information
++---------------------
++
++Screen information are queried by applications using the FBIOGET_FSCREENINFO
++and FBIOGET_VSCREENINFO ioctls. Those ioctls take a pointer to a
++fb_fix_screeninfo and fb_var_screeninfo structure respectively.
++
++struct fb_fix_screeninfo stores device independent unchangeable information
++about the frame buffer device and the current format. Those information can't
++be directly modified by applications, but can be changed by the driver when an
++application modifies the format.
++
++struct fb_fix_screeninfo {
++	char id[16];			/* identification string eg "TT Builtin" */
++	unsigned long smem_start;	/* Start of frame buffer mem */
++					/* (physical address) */
++	__u32 smem_len;			/* Length of frame buffer mem */
++	__u32 type;			/* see FB_TYPE_*		*/
++	__u32 type_aux;			/* Interleave for interleaved Planes */
++	__u32 visual;			/* see FB_VISUAL_*		*/
++	__u16 xpanstep;			/* zero if no hardware panning  */
++	__u16 ypanstep;			/* zero if no hardware panning  */
++	__u16 ywrapstep;		/* zero if no hardware ywrap    */
++	__u32 line_length;		/* length of a line in bytes    */
++	unsigned long mmio_start;	/* Start of Memory Mapped I/O   */
++					/* (physical address) */
++	__u32 mmio_len;			/* Length of Memory Mapped I/O  */
++	__u32 accel;			/* Indicate to driver which	*/
++					/*  specific chip/card we have	*/
++	__u16 capabilities;		/* see FB_CAP_*			*/
++	__u16 reserved[2];		/* Reserved for future compatibility */
++};
++
++struct fb_var_screeninfo stores device independent changeable information
++about a frame buffer device, its current format and video mode, as well as
++other miscellaneous parameters.
++
++struct fb_var_screeninfo {
++	__u32 xres;			/* visible resolution		*/
++	__u32 yres;
++	__u32 xres_virtual;		/* virtual resolution		*/
++	__u32 yres_virtual;
++	__u32 xoffset;			/* offset from virtual to visible */
++	__u32 yoffset;			/* resolution			*/
++
++	__u32 bits_per_pixel;		/* guess what			*/
++	union {
++		__u32 grayscale;	/* != 0 Graylevels instead of colors */
++		__u32 fourcc;		/* video mode */
++	};
++
++	struct fb_bitfield red;		/* bitfield in fb mem if true color, */
++	struct fb_bitfield green;	/* else only length is significant */
++	struct fb_bitfield blue;
++	struct fb_bitfield transp;	/* transparency			*/
++
++	__u32 nonstd;			/* != 0 Non standard pixel format */
++
++	__u32 activate;			/* see FB_ACTIVATE_*		*/
++
++	__u32 height;			/* height of picture in mm    */
++	__u32 width;			/* width of picture in mm     */
++
++	__u32 accel_flags;		/* (OBSOLETE) see fb_info.flags */
++
++	/* Timing: All values in pixclocks, except pixclock (of course) */
++	__u32 pixclock;			/* pixel clock in ps (pico seconds) */
++	__u32 left_margin;		/* time from sync to picture	*/
++	__u32 right_margin;		/* time from picture to sync	*/
++	__u32 upper_margin;		/* time from sync to picture	*/
++	__u32 lower_margin;
++	__u32 hsync_len;		/* length of horizontal sync	*/
++	__u32 vsync_len;		/* length of vertical sync	*/
++	__u32 sync;			/* see FB_SYNC_*		*/
++	__u32 vmode;			/* see FB_VMODE_*		*/
++	__u32 rotate;			/* angle we rotate counter clockwise */
++	__u32 reserved[5];		/* Reserved for future compatibility */
++};
++
++To modify variable information, applications call the FBIOPUT_VSCREENINFO
++ioctl with a pointer to a fb_var_screeninfo structure. If the call is
++successful, the driver will update the fixed screen information accordingly.
++
++Instead of filling the complete fb_var_screeninfo structure manually,
++applications should call the FBIOGET_VSCREENINFO ioctl and modify only the
++fields they care about.
++
++
++4. Format configuration
++-----------------------
++
++Frame buffer devices offer two ways to configure the frame buffer format: the
++legacy API and the FOURCC-based API.
++
++
++The legacy API has been the only frame buffer format configuration API for a
++long time and is thus widely used by application. It is the recommended API
++for applications when using RGB and grayscale formats, as well as legacy
++non-standard formats.
++
++To select a format, applications set the fb_var_screeninfo bits_per_pixel field
++to the desired frame buffer depth. Values up to 8 will usually map to
++monochrome, grayscale or pseudocolor visuals, although this is not required.
++
++- For grayscale formats, applications set the grayscale field to a non-zero
++  value. The red, blue, green and transp fields must be set to 0 by
++  applications and ignored by drivers. Drivers must fill the red, blue and
++  green offsets to 0 and lengths to the bits_per_pixel value.
++
++- For pseudocolor formats, applications set the grayscale field to a zero
++  value. The red, blue, green and transp fields must be set to 0 by
++  applications and ignored by drivers. Drivers must fill the red, blue and
++  green offsets to 0 and lengths to the bits_per_pixel value.
++
++- For truecolor and directcolor formats, applications set the grayscale field
++  to a zero value, and the red, blue, green and transp fields to describe the
++  layout of color components in memory.
++
++struct fb_bitfield {
++	__u32 offset;			/* beginning of bitfield	*/
++	__u32 length;			/* length of bitfield		*/
++	__u32 msb_right;		/* != 0 : Most significant bit is */
++					/* right */
++};
++
++  Pixel values are bits_per_pixel wide and are split in non-overlapping red,
++  green, blue and alpha (transparency) components. Location and size of each
++  component in the pixel value are described by the fb_bitfield offset and
++  length fields. Offset are computed from the right.
++
++  Pixels are always stored in an integer number of bytes. If the number of
++  bits per pixel is not a multiple of 8, pixel values are padded to the next
++  multiple of 8 bits.
++
++Upon successful format configuration, drivers update the fb_fix_screeninfo
++type, visual and line_length fields depending on the selected format.
++
++
++The FOURCC-based API replaces format descriptions by four character codes
++(FOURCC). FOURCCs are abstract identifiers that uniquely define a format
++without explicitly describing it. This is the only API that supports YUV
++formats. Drivers are also encouraged to implement the FOURCC-based API for RGB
++and grayscale formats.
++
++Drivers that support the FOURCC-based API report this capability by setting
++the FB_CAP_FOURCC bit in the fb_fix_screeninfo capabilities field.
++
++FOURCC definitions are located in the linux/videodev2.h header. However, and
++despite starting with the V4L2_PIX_FMT_prefix, they are not restricted to V4L2
++and don't require usage of the V4L2 subsystem. FOURCC documentation is
++available in Documentation/DocBook/v4l/pixfmt.xml.
++
++To select a format, applications set the FB_VMODE_FOURCC bit in the
++fb_var_screeninfo vmode field, and set the fourcc field to the desired FOURCC.
++The bits_per_pixel, red, green, blue, transp and nonstd fields must be set to
++0 by applications and ignored by drivers. Note that the grayscale and fourcc
++fields share the same memory location. Application must thus not set the
++grayscale field to 0.
++
++Upon successful format configuration, drivers update the fb_fix_screeninfo
++type, visual and line_length fields depending on the selected format. The
++visual field is set to FB_VISUAL_FOURCC.
++
+diff --git a/include/linux/fb.h b/include/linux/fb.h
+index 6a82748..359e98e 100644
+--- a/include/linux/fb.h
++++ b/include/linux/fb.h
+@@ -69,6 +69,7 @@
+ #define FB_VISUAL_PSEUDOCOLOR		3	/* Pseudo color (like atari) */
+ #define FB_VISUAL_DIRECTCOLOR		4	/* Direct color */
+ #define FB_VISUAL_STATIC_PSEUDOCOLOR	5	/* Pseudo color readonly */
++#define FB_VISUAL_FOURCC		6	/* Visual identified by a V4L2 FOURCC */
+ 
+ #define FB_ACCEL_NONE		0	/* no hardware accelerator	*/
+ #define FB_ACCEL_ATARIBLITT	1	/* Atari Blitter		*/
+@@ -154,6 +155,8 @@
+ 
+ #define FB_ACCEL_PUV3_UNIGFX	0xa0	/* PKUnity-v3 Unigfx		*/
+ 
++#define FB_CAP_FOURCC		1	/* Device supports FOURCC-based formats */
++
+ struct fb_fix_screeninfo {
+ 	char id[16];			/* identification string eg "TT Builtin" */
+ 	unsigned long smem_start;	/* Start of frame buffer mem */
+@@ -171,7 +174,8 @@ struct fb_fix_screeninfo {
+ 	__u32 mmio_len;			/* Length of Memory Mapped I/O  */
+ 	__u32 accel;			/* Indicate to driver which	*/
+ 					/*  specific chip/card we have	*/
+-	__u16 reserved[3];		/* Reserved for future compatibility */
++	__u16 capabilities;		/* see FB_CAP_*			*/
++	__u16 reserved[2];		/* Reserved for future compatibility */
+ };
+ 
+ /* Interpretation of offset for color fields: All offsets are from the right,
+@@ -220,6 +224,7 @@ struct fb_bitfield {
+ #define FB_VMODE_INTERLACED	1	/* interlaced	*/
+ #define FB_VMODE_DOUBLE		2	/* double scan */
+ #define FB_VMODE_ODD_FLD_FIRST	4	/* interlaced: top line first */
++#define FB_VMODE_FOURCC		8	/* video mode expressed as a FOURCC */
+ #define FB_VMODE_MASK		255
+ 
+ #define FB_VMODE_YWRAP		256	/* ywrap instead of panning     */
+@@ -246,7 +251,10 @@ struct fb_var_screeninfo {
+ 	__u32 yoffset;			/* resolution			*/
+ 
+ 	__u32 bits_per_pixel;		/* guess what			*/
+-	__u32 grayscale;		/* != 0 Graylevels instead of colors */
++	union {
++		__u32 grayscale;	/* != 0 Graylevels instead of colors */
++		__u32 fourcc;		/* FOURCC format */
++	};
+ 
+ 	struct fb_bitfield red;		/* bitfield in fb mem if true color, */
+ 	struct fb_bitfield green;	/* else only length is significant */
+-- 
+Regards,
 
-The branch with all necessary patches applied can be found here (in couple of hours):
-http://git.infradead.org/users/kmpark/linux-2.6-samsung/shortlog/refs/heads/mfc-for-mauro
-
-This driver requires platform modification that can be found here (it will also sync
-in a couple of hours):
-http://git.infradead.org/users/kmpark/linux-2.6-samsung/shortlog/refs/heads/mfc-for-kgene
-The platform modification have been sent today to the linux-samsung-soc list.
-
-Best regards,
-Kamil Debski
-
-* Changelog:
-
-==================
- Changes since v8
-==================
-1) Change code to use only dma_contig memory allocator, this removes any dependencies
-on other subsystems that could delay the merging of MFC to the mainline.
-2) Support for per buffer controls have been removed, it will be added at later time after
-the initial version gets merged in mainline. This is because the support for per buffer
-controls was overly complicated and offered little added functionality.
-3) Due to licensing issues support for DIVX has been removed from the driver.
-4) Update the code to work with latest version of codec controls patch.
-
-==================
- Changes since v7
-==================
-1) New fourcc definitions for codecs
-  - Fourcc definitions based on the new RFC
-2) New controls defined in videodev2.h
-  - Controls definitions based on the new RFC
-3) Support for multiple memory allocators - DMA Pool, CMA and IOMMU
-  - Now one can choose memory allocator in the kernel config.
-4) Improved method of handling shared memory - by using memory barriers
-  - Problems with using the shared memory registers have been previously
-    addressed with cleaning and invalidating cache. Now it is handles
-    by memory barriers and proper mapping.
-5) Fixed packed PB sequence numbering
-  - Numbering of sequence numbers was corrected for streams with packed PB.
-6) Proper poll mechanism has been included
-  - Previously poll would not distinguish between queues.
-
-==================
- Changes since v6
-==================
-
-1) Stream seeking handling
-   - done by running stream off and then stream on from another point of the
-     stream
-2) Support for streams during which the resolution is changed
-   - done by calling stream off, reallocating the buffers and stream on again to
-     resume
-3) Power domain handling
-4) Clock gating hw related operations
-   - This has introduced a large reduction in power use
-5) Support for IOMMU allocator
-   - Using IOMMU as the memory allocator removes the cache problem
-     and the need for reserving continuous memory at system boot
-6) Flags of v4l2_buffer are set accordingly to the returned buffer frame type
-   V4L2_BUF_FLAG_(KEY|P|B)FRAME
-7) Fixed display delay handling of H264. Now dealy of 0 frames is possible,
-   although it may cause that the frames are returned out of order.
-8) Minor changes
-   - global s5p_mfc_dev variable has been removed
-   - improved Packed PB handling
-   - fixed error handling - separate for decoding and display frames
-   - some cosmetic changes to simplify the code and make it more readable
-
-==================
- Changes since v5
-==================
-
-1) Changes suggested by Hans Verkuil:
-- small change in videodev2.h - corrected control offsets
-- made the code more readable by simplifying if statements and using temporary
-  pointers
-- mfc_mutex is now included in s5p_mfc_dev structure
-- after discussion with Peter Oh modification of fourcc defintions
- (replaced DX52 and DX53 with DX50)
-
-2) Changes suggested by JongHun Han:
-- comsmetic changed of defines in regs-mfc5.h
-- in buffers that have no width adn height, such as the buffer for compressed
-  stream, those values are set to 0 instead of 1
-- remove redundant pointer to MFC registers
-- change name of the union in s5p_mfc_buf from paddr to cookie
-- removed global variable (struct s5p_mfc_dev *dev) and moved to use video_drvdata
-
-3) Other changes:
-- added check for values returned after parsing header - in rare circumstances MFC
-  hw returned 0x0 as image size and this could cause problems
-
-==================
- Changes since v4
-==================
-
-1) Changes suggested by Kukjin Kim from:
-- removed comment arch/arm/mach-s5pv210/include/mach/map.h
-- changed device name to s5p-mfc (removed "5", MFC version number)
-  also removed the version number from the name of MFC device file
-- added GPL license to arch/arm/plat-s5p/dev-mfc.c
-- removed unused include file from dev-mfc.c and unnecessary comments
-
-2) Cache handling improvement:
-- changed cache handling to use dma_map_single and dma_unmap_single
-
-==================
- Changes since v3
-==================
-
-1) Update to the v6 videobuf2 API (here thanks go to Marek Szyprowski)
-- s5p_mfc_buf_negotiate and s5p_mfc_buf_setup_plane functions
-have been merged
-- queue initialization has been adapted to the new API
-- use of the allocator memops has been changed, now there are single
-memops for all the allocator contexts
-
-2) Split of the s5p_mfc_try_run and s5p_mfc_handle_frame_int functions
-- parts of the s5p_mfc_try_run function have been moved to separate
-functions (s5p_mfc_get_new_ctx, s5p_mfc_run_dec_last_frames,
-s5p_mfc_run_dec_frame, s5p_mfc_run_get_inst_no, s5p_mfc_run_return_inst
-s5p_mfc_run_init_dec,s5p_mfc_run_init_dec_buffers)
-- s5p_mfc_handle_frame_int has been split to the following functions:
-s5p_mfc_handle_frame_all_extracted, s5p_mfc_handle_frame_new
-and s5p_mfc_handle_frame to handle different cases
-
-3) Remove remaining magic numbers and tidy up comments
-
-==================
- Changes since v2
-==================
-
-1) Update to newest videobuf2 API
-This is the major change from v2. The videobuf2 API will hopefully have no more
-major API changes. Buffer initialization has been moved from buf_prepare
-callback to buf_init to simplify the process. Locking mechanism has been
-modified to the requirements of new videobuf2 version.
-2) Code cleanup
-Removed more magic contants and replaced them with appropriate defines. Changed
-code to use unlocked_ioctl instead of ioctl in v4l2 file ops.
-3) Allocators
-All internal buffer allocations are done using the selected vb2 allocator,
-instead of using CMA functions directly.
-
-==================
- Changes since v1
-==================
-
-1) Cleanup accoridng to Peter Oh suggestions on the mailing list (Thanks).
-
-* Original cover letter:
-
-==============
- Introduction
-==============
-
-The purpose of this RFC is to discuss the driver for a hw video codec
-embedded in the new Samusng's SoCs. Multi Format Codec 5.0 is able to
-handle video decoding of in a range of formats.
-
-So far no hardware codec was supported in V4L2 and this would be the
-first one. I guess there are more similar device that would benefit from
-a V4L2 unified interface. I suggest a separate control class for codec
-devices - V4L2_CTRL_CLASS_CODEC.
-
-Internally the driver uses videobuf2 framework and CMA memory allocator.
-I am aware that those have not yet been merged, but I wanted to start
-discussion about the driver earlier so it could be merged sooner. The
-driver posted here is the initial version, so I suppose it will require
-more work.
-
-==================
- Device interface
-==================
-
-The driver principle is based on the idea of memory-to-memory devices:
-it provides a single video node and each opened file handle gets its own
-private context with separate buffer queues. Each context consist of 2
-buffer queues: OUTPUT (for source buffers, i.e. encoded video frames)
-and CAPTURE (for destination buffers, i.e. decoded raw video frames).
-The process of decoding video data from stream is a bit more complicated
-than typical memory-to-memory processing, that's why the m2m framework
-is not directly used (it is too limited for this case). The main reason
-for this is the fact that the CAPTURE buffers can be dequeued in a
-different order than they queued. The hw block decides which buffer has
-been completely processed. This is due to the structure of most
-compressed video streams - use of B frames causes that decoding and
-display order may be different.
-
-==============================
- Decoding initialization path
-==============================
-
-First the OUTPUT queue is initialized. With S_FMT the application
-chooses which video format to decode and what size should be the input
-buffer. Fourcc values have been defined for different codecs e.g.
-V4L2_PIX_FMT_H264 for h264. Then the OUTPUT buffers are requested and
-mmaped. The stream header frame is loaded into the first buffer, queued
-and streaming is enabled. At this point the hardware is able to start
-processing the stream header and afterwards it will have information
-about the video dimensions and the size of the buffers with raw video
-data.
-
-The next step is setting up the CAPTURE queue and buffers. The width,
-height, buffer size and minimum number of buffers can be read with G_FMT
-call. The application can request more output buffer if necessary. After
-requesting and mmaping buffers the device is ready to decode video
-stream.
-
-The stream frames (ES frames) are written to the OUTPUT buffers, and
-decoded video frames can be read from the CAPTURE buffers. When no more
-source frames are present a single buffer with bytesused set to 0 should
-be queued. This will inform the driver that processing should be
-finished and it can dequeue all video frames that are still left. The
-number of such frames is dependent on the stream and its internal
-structure (how many frames had to be kept as reference frames for
-decoding, etc).
-
-===============
- Usage summary
-===============
-
-This is a step by step summary of the video decoding (from user
-application point of view, with 2 treads and blocking api):
-
-01. S_FMT(OUTPUT, V4L2_PIX_FMT_H264, ...)
-02. REQ_BUFS(OUTPUT, n)
-03. for i=1..n MMAP(OUTPUT, i)
-04. put stream header to buffer #1
-05. QBUF(OUTPUT, #1)
-06. STREAM_ON(OUTPUT)
-07. G_FMT(CAPTURE)
-08. REQ_BUFS(CAPTURE, m)
-09. for j=1..m MMAP(CAPTURE, j)
-10. for j=1..m QBUF(CAPTURE, #j)
-11. STREAM_ON(CAPTURE)
-
-display thread:
-12. DQBUF(CAPTURE) -> got decoded video data in buffer #j
-13. display buffer #j
-14. QBUF(CAPTURE, #j)
-15. goto 12
-
-parser thread:
-16. put next ES frame to buffer #i
-17. QBUF(OUTPUT, #i)
-18. DQBUF(OUTPUT) -> get next empty buffer #i 19. goto 16
-
-...
-
-Similar usage sequence can be achieved with single threaded application
-and non-blocking api with poll() call.
-
-Branch with MFC, CMA and videobuf2 will be soon available at
-http://git.infradead.org/users/kmpark/linux-2.6-samsung/shortlog/refs/heads/vb2-mfc-fimc
-This tree is based on 2.6.37 rc4.
-
-Please have a look at the code and the idea of how to introduce codec
-devices to V4L2. Comments will be very much appreciated.
-
-Patch summary:
-
-
-*** BLURB HERE ***
-
-Kamil Debski (4):
-  v4l: add fourcc definitions for compressed formats.
-  v4l: add control definitions for codec devices.
-  v4l2-ctrl: add codec controls support to the control framework
-  MFC: Add MFC 5.1 V4L2 driver
-
- Documentation/DocBook/media/v4l/controls.xml |  965 ++++++++++++-
- Documentation/DocBook/media/v4l/pixfmt.xml   |   67 +-
- drivers/media/video/Kconfig                  |    8 +
- drivers/media/video/Makefile                 |    1 +
- drivers/media/video/s5p-mfc/Makefile         |    5 +
- drivers/media/video/s5p-mfc/regs-mfc.h       |  385 +++++
- drivers/media/video/s5p-mfc/s5p_mfc.c        | 1359 +++++++++++++++++
- drivers/media/video/s5p-mfc/s5p_mfc_cmd.c    |  143 ++
- drivers/media/video/s5p-mfc/s5p_mfc_cmd.h    |   28 +
- drivers/media/video/s5p-mfc/s5p_mfc_common.h |  472 ++++++
- drivers/media/video/s5p-mfc/s5p_mfc_ctrl.c   |  393 +++++
- drivers/media/video/s5p-mfc/s5p_mfc_ctrl.h   |   27 +
- drivers/media/video/s5p-mfc/s5p_mfc_debug.h  |   48 +
- drivers/media/video/s5p-mfc/s5p_mfc_dec.c    | 1106 ++++++++++++++
- drivers/media/video/s5p-mfc/s5p_mfc_dec.h    |   23 +
- drivers/media/video/s5p-mfc/s5p_mfc_enc.c    | 2021 ++++++++++++++++++++++++++
- drivers/media/video/s5p-mfc/s5p_mfc_enc.h    |   23 +
- drivers/media/video/s5p-mfc/s5p_mfc_inst.c   |   52 +
- drivers/media/video/s5p-mfc/s5p_mfc_inst.h   |   19 +
- drivers/media/video/s5p-mfc/s5p_mfc_intr.c   |   94 ++
- drivers/media/video/s5p-mfc/s5p_mfc_intr.h   |   26 +
- drivers/media/video/s5p-mfc/s5p_mfc_mem.h    |   55 +
- drivers/media/video/s5p-mfc/s5p_mfc_opr.c    | 1588 ++++++++++++++++++++
- drivers/media/video/s5p-mfc/s5p_mfc_opr.h    |   88 ++
- drivers/media/video/s5p-mfc/s5p_mfc_pm.c     |  131 ++
- drivers/media/video/s5p-mfc/s5p_mfc_pm.h     |   24 +
- drivers/media/video/s5p-mfc/s5p_mfc_reg.c    |   30 +
- drivers/media/video/s5p-mfc/s5p_mfc_reg.h    |  126 ++
- drivers/media/video/s5p-mfc/s5p_mfc_shm.c    |   55 +
- drivers/media/video/s5p-mfc/s5p_mfc_shm.h    |   86 ++
- drivers/media/video/v4l2-ctrls.c             |  281 ++++
- include/linux/videodev2.h                    |  192 +++-
- 32 files changed, 9914 insertions(+), 7 deletions(-)
- create mode 100644 drivers/media/video/s5p-mfc/Makefile
- create mode 100644 drivers/media/video/s5p-mfc/regs-mfc.h
- create mode 100644 drivers/media/video/s5p-mfc/s5p_mfc.c
- create mode 100644 drivers/media/video/s5p-mfc/s5p_mfc_cmd.c
- create mode 100644 drivers/media/video/s5p-mfc/s5p_mfc_cmd.h
- create mode 100644 drivers/media/video/s5p-mfc/s5p_mfc_common.h
- create mode 100644 drivers/media/video/s5p-mfc/s5p_mfc_ctrl.c
- create mode 100644 drivers/media/video/s5p-mfc/s5p_mfc_ctrl.h
- create mode 100644 drivers/media/video/s5p-mfc/s5p_mfc_debug.h
- create mode 100644 drivers/media/video/s5p-mfc/s5p_mfc_dec.c
- create mode 100644 drivers/media/video/s5p-mfc/s5p_mfc_dec.h
- create mode 100644 drivers/media/video/s5p-mfc/s5p_mfc_enc.c
- create mode 100644 drivers/media/video/s5p-mfc/s5p_mfc_enc.h
- create mode 100644 drivers/media/video/s5p-mfc/s5p_mfc_inst.c
- create mode 100644 drivers/media/video/s5p-mfc/s5p_mfc_inst.h
- create mode 100644 drivers/media/video/s5p-mfc/s5p_mfc_intr.c
- create mode 100644 drivers/media/video/s5p-mfc/s5p_mfc_intr.h
- create mode 100644 drivers/media/video/s5p-mfc/s5p_mfc_mem.h
- create mode 100644 drivers/media/video/s5p-mfc/s5p_mfc_opr.c
- create mode 100644 drivers/media/video/s5p-mfc/s5p_mfc_opr.h
- create mode 100644 drivers/media/video/s5p-mfc/s5p_mfc_pm.c
- create mode 100644 drivers/media/video/s5p-mfc/s5p_mfc_pm.h
- create mode 100644 drivers/media/video/s5p-mfc/s5p_mfc_reg.c
- create mode 100644 drivers/media/video/s5p-mfc/s5p_mfc_reg.h
- create mode 100644 drivers/media/video/s5p-mfc/s5p_mfc_shm.c
- create mode 100644 drivers/media/video/s5p-mfc/s5p_mfc_shm.h
+Laurent Pinchart
 
