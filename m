@@ -1,56 +1,96 @@
 Return-path: <mchehab@pedra>
-Received: from moutng.kundenserver.de ([212.227.126.171]:64628 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753601Ab1FFRQv (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 6 Jun 2011 13:16:51 -0400
-Date: Mon, 6 Jun 2011 19:16:49 +0200 (CEST)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-cc: Kuninori Morimoto <morimoto.kuninori@renesas.com>
-Subject: [PATCH] V4L: tw9910: remove bogus ENUMINPUT implementation
-Message-ID: <Pine.LNX.4.64.1106061915210.11169@axis700.grange>
+Received: from perceval.ideasonboard.com ([95.142.166.194]:60922 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752468Ab1FUWbc (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 21 Jun 2011 18:31:32 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Geert Uytterhoeven <geert@linux-m68k.org>
+Subject: Re: [PATCH/RFC] fbdev: Add FOURCC-based format configuration API
+Date: Wed, 22 Jun 2011 00:31:57 +0200
+Cc: linux-fbdev@vger.kernel.org, linux-media@vger.kernel.org,
+	dri-devel@lists.freedesktop.org, FlorianSchandinat@gmx.de
+References: <4DDAE63A.3070203@gmx.de> <1308670579-15138-1-git-send-email-laurent.pinchart@ideasonboard.com> <BANLkTim6wUaeZCya=9dMvU7iHj4W4E57Fg@mail.gmail.com>
+In-Reply-To: <BANLkTim6wUaeZCya=9dMvU7iHj4W4E57Fg@mail.gmail.com>
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: Text/Plain;
+  charset="utf-8"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201106220031.57972.laurent.pinchart@ideasonboard.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-tw9910 is a TV decoder, it doesn't have a tuner. Besides, the
-.enum_input soc-camera operation is optional and normally not needed.
+Hi Geert,
 
-Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
----
- drivers/media/video/tw9910.c |   11 -----------
- 1 files changed, 0 insertions(+), 11 deletions(-)
+On Tuesday 21 June 2011 22:49:14 Geert Uytterhoeven wrote:
+> On Tue, Jun 21, 2011 at 17:36, Laurent Pinchart wrote:
+> > +The following types and visuals are supported.
+> > +
+> > +- FB_TYPE_PACKED_PIXELS
+> > +
+> > +- FB_TYPE_PLANES
+> 
+> You forgot FB_TYPE_INTERLEAVED_PLANES, FB_TYPE_TEXT, and
+> FB_TYPE_VGA_PLANES. Ah, that's the "feel free to extend the API doc"  :-)
 
-diff --git a/drivers/media/video/tw9910.c b/drivers/media/video/tw9910.c
-index 0347bbe..a722f66 100644
---- a/drivers/media/video/tw9910.c
-+++ b/drivers/media/video/tw9910.c
-@@ -552,16 +552,6 @@ static int tw9910_s_std(struct v4l2_subdev *sd, v4l2_std_id norm)
- 	return ret;
- }
- 
--static int tw9910_enum_input(struct soc_camera_device *icd,
--			     struct v4l2_input *inp)
--{
--	inp->type = V4L2_INPUT_TYPE_TUNER;
--	inp->std  = V4L2_STD_UNKNOWN;
--	strcpy(inp->name, "Video");
--
--	return 0;
--}
--
- static int tw9910_g_chip_ident(struct v4l2_subdev *sd,
- 			       struct v4l2_dbg_chip_ident *id)
- {
-@@ -891,7 +881,6 @@ static int tw9910_video_probe(struct soc_camera_device *icd,
- static struct soc_camera_ops tw9910_ops = {
- 	.set_bus_param		= tw9910_set_bus_param,
- 	.query_bus_param	= tw9910_query_bus_param,
--	.enum_input		= tw9910_enum_input,
- };
- 
- static struct v4l2_subdev_core_ops tw9910_subdev_core_ops = {
+To be honest, I don't know how they work. That's why I haven't documented 
+them.
+
+> > +The FOURCC-based API replaces format descriptions by four character
+> > codes +(FOURCC). FOURCCs are abstract identifiers that uniquely define a
+> > format +without explicitly describing it. This is the only API that
+> > supports YUV +formats. Drivers are also encouraged to implement the
+> > FOURCC-based API for RGB +and grayscale formats.
+> > +
+> > +Drivers that support the FOURCC-based API report this capability by
+> > setting +the FB_CAP_FOURCC bit in the fb_fix_screeninfo capabilities
+> > field. +
+> > +FOURCC definitions are located in the linux/videodev2.h header. However,
+> > and +despite starting with the V4L2_PIX_FMT_prefix, they are not
+> > restricted to V4L2 +and don't require usage of the V4L2 subsystem.
+> > FOURCC documentation is +available in
+> > Documentation/DocBook/v4l/pixfmt.xml.
+> > +
+> > +To select a format, applications set the FB_VMODE_FOURCC bit in the
+> > +fb_var_screeninfo vmode field, and set the fourcc field to the desired
+> > FOURCC. +The bits_per_pixel, red, green, blue, transp and nonstd fields
+> > must be set to +0 by applications and ignored by drivers. Note that the
+> > grayscale and fourcc +fields share the same memory location. Application
+> > must thus not set the +grayscale field to 0.
+> 
+> These are the only parts I don't like: (ab)using the vmode field (this
+> isn't really a vmode flag), and the union of grayscale and fourcc (avoid
+> unions where possible).
+
+I've proposed adding a FB_NONSTD_FORMAT bit to the nonstd field as a FOURCC 
+mode indicator in my initial RFC. Florian Tobias Schandinat wasn't very happy 
+with that, and proposed using the vmode field instead.
+
+Given that there's virtually no fbdev documentation, whether the vmode field 
+and/or nonstd field are good fit for a FOURCC mode indicator is subject to 
+interpretation.
+
+> What about storing the FOURCC value in nonstd instead?
+
+Wouldn't that be a union of nonstd and fourcc ? :-) FOURCC-based format 
+setting will be a standard fbdev API, I'm not very keen on storing it in the 
+nonstd field without a union.
+
+> As FOURCC values are always 4 ASCII characters (hence all 4 bytes must
+> be non-zero), I don't think there are any conflicts with existing values of
+> nonstd. To make it even safer and easier to parse, you could set bit 31 of
+> nonstd as a FOURCC indicator.
+
+I would then create a union between nonstd and fourcc, and document nonstd as 
+being used for the legacy API only. Most existing drivers use a couple of 
+nonstd bits only. The driver that (ab)uses nonstd the most is pxafb and uses 
+bits 22:0. Bits 31:24 are never used as far as I can tell, so nonstd & 
+0xff000000 != 0 could be used as a FOURCC mode test.
+
+This assumes that FOURCCs will never have their last character set to '\0'. Is 
+that a safe assumption for the future ?
+
 -- 
-1.7.2.5
+Regards,
 
+Laurent Pinchart
