@@ -1,102 +1,88 @@
 Return-path: <mchehab@pedra>
-Received: from mail-fx0-f46.google.com ([209.85.161.46]:38826 "EHLO
-	mail-fx0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751374Ab1FBPhh (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 2 Jun 2011 11:37:37 -0400
-From: Johannes Obermaier <johannes.obermaier@gmail.com>
-To: mchehab@infradead.org
-Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-	Johannes Obermaier <johannes.obermaier@gmail.com>
-Subject: [PATCH 2/2] V4L/DVB: mt9v011: Added exposure for mt9v011
-Date: Thu,  2 Jun 2011 17:43:14 +0200
-Message-Id: <1307029394-30525-1-git-send-email-johannes.obermaier@gmail.com>
+Received: from mx1.redhat.com ([209.132.183.28]:1551 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756941Ab1FURxJ (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 21 Jun 2011 13:53:09 -0400
+Message-ID: <4E00DA73.1090903@redhat.com>
+Date: Tue, 21 Jun 2011 14:52:51 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+MIME-Version: 1.0
+To: =?UTF-8?B?UmljaGFyZCBSw7ZqZm9ycw==?=
+	<richard.rojfors@pelagicore.com>
+CC: linux-media@vger.kernel.org, Hans Verkuil <hverkuil@xs4all.nl>
+Subject: Re: [PATCH 2/2] radio-timb: Add open function which finds tuner and
+ DSP via I2C
+References: <1307717332.2420.30.camel@debian>
+In-Reply-To: <1307717332.2420.30.camel@debian>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-There are problems when you use this camera/sensor in a very bright room or outside. The image is completely white, because it is overexposed. The driver uses a default value which is not suitable for all environments.
-This patch makes it possible to adjust the exposure time by youself. I found out by logging the i2c-data, that the windows driver for this sensor is doing this, too.
-I tested the camera on a sunny day and after adjusting the exposure time, I was able to see a very good image.
+Em 10-06-2011 11:48, Richard Röjfors escreveu:
+> This patch uses the platform data and finds a tuner and DSP. This is
+> done when the user calls open. Not during probe, to allow shorter bootup
+> time of the system.
+> This piece of code was actually missing earlier, many of the functions
+> were not useful without DSP and tuner.
+> 
+> Signed-off-by: Richard Röjfors <richard.rojfors@pelagicore.com>
+> ---
+> diff --git a/drivers/media/radio/radio-timb.c b/drivers/media/radio/radio-timb.c
+> index a185610..64a5e19 100644
+> --- a/drivers/media/radio/radio-timb.c
+> +++ b/drivers/media/radio/radio-timb.c
+> @@ -141,9 +141,42 @@ static const struct v4l2_ioctl_ops timbradio_ioctl_ops = {
+>  	.vidioc_s_ctrl		= timbradio_vidioc_s_ctrl
+>  };
+>  
+> +static int timbradio_fops_open(struct file *file)
+> +{
+> +	struct timbradio *tr = video_drvdata(file);
+> +	struct i2c_adapter *adapt;
+> +
+> +	/* find the I2C bus */
+> +	adapt = i2c_get_adapter(tr->pdata.i2c_adapter);
+> +	if (!adapt) {
+> +		printk(KERN_ERR DRIVER_NAME": No I2C bus\n");
+> +		return -ENODEV;
+> +	}
+> +
+> +	/* now find the tuner and dsp */
+> +	if (!tr->sd_dsp)
+> +		tr->sd_dsp = v4l2_i2c_new_subdev_board(&tr->v4l2_dev, adapt,
+> +			tr->pdata.dsp, NULL);
+> +
+> +	if (!tr->sd_tuner)
+> +		tr->sd_tuner = v4l2_i2c_new_subdev_board(&tr->v4l2_dev, adapt,
+> +			tr->pdata.tuner, NULL);
+> +
+> +	i2c_put_adapter(adapt);
 
-Signed-off-by: Johannes Obermaier <johannes.obermaier@gmail.com>
----
- drivers/media/video/mt9v011.c |   22 +++++++++++++++++++++-
- 1 files changed, 21 insertions(+), 1 deletions(-)
+Hmm... it doesn't look right to me to do that for every device
+open. You should probably do it at device probe, and move i2c_put_adapter
+to device removal.
 
-diff --git a/drivers/media/video/mt9v011.c b/drivers/media/video/mt9v011.c
-index a6cf05a..fbbd018 100644
---- a/drivers/media/video/mt9v011.c
-+++ b/drivers/media/video/mt9v011.c
-@@ -59,6 +59,15 @@ static struct v4l2_queryctrl mt9v011_qctrl[] = {
- 		.default_value = 0x0020,
- 		.flags = 0,
- 	}, {
-+		.id = V4L2_CID_EXPOSURE,
-+		.type = V4L2_CTRL_TYPE_INTEGER,
-+		.name = "Exposure",
-+		.minimum = 0,
-+		.maximum = 2047,
-+		.step = 1,
-+		.default_value = 0x01fc,
-+		.flags = 0,
-+	}, {
- 		.id = V4L2_CID_RED_BALANCE,
- 		.type = V4L2_CTRL_TYPE_INTEGER,
- 		.name = "Red Balance",
-@@ -105,7 +114,7 @@ struct mt9v011 {
- 	unsigned hflip:1;
- 	unsigned vflip:1;
- 
--	u16 global_gain, red_bal, blue_bal;
-+	u16 global_gain, exposure, red_bal, blue_bal;
- };
- 
- static inline struct mt9v011 *to_mt9v011(struct v4l2_subdev *sd)
-@@ -184,6 +193,9 @@ static void set_balance(struct v4l2_subdev *sd)
- {
- 	struct mt9v011 *core = to_mt9v011(sd);
- 	u16 green1_gain, green2_gain, blue_gain, red_gain;
-+	u16 exposure;
-+
-+	exposure = core->exposure;
- 
- 	green1_gain = core->global_gain;
- 	green2_gain = core->global_gain;
-@@ -198,6 +210,7 @@ static void set_balance(struct v4l2_subdev *sd)
- 	mt9v011_write(sd, R2E_MT9V011_GREEN_2_GAIN,  green1_gain);
- 	mt9v011_write(sd, R2C_MT9V011_BLUE_GAIN, blue_gain);
- 	mt9v011_write(sd, R2D_MT9V011_RED_GAIN, red_gain);
-+	mt9v011_write(sd, R09_MT9V011_SHUTTER_WIDTH, exposure);
- }
- 
- static void calc_fps(struct v4l2_subdev *sd, u32 *numerator, u32 *denominator)
-@@ -338,6 +351,9 @@ static int mt9v011_g_ctrl(struct v4l2_subdev *sd, struct v4l2_control *ctrl)
- 	case V4L2_CID_GAIN:
- 		ctrl->value = core->global_gain;
- 		return 0;
-+	case V4L2_CID_EXPOSURE:
-+		ctrl->value = core->exposure;
-+		return 0;
- 	case V4L2_CID_RED_BALANCE:
- 		ctrl->value = core->red_bal;
- 		return 0;
-@@ -392,6 +408,9 @@ static int mt9v011_s_ctrl(struct v4l2_subdev *sd, struct v4l2_control *ctrl)
- 	case V4L2_CID_GAIN:
- 		core->global_gain = ctrl->value;
- 		break;
-+	case V4L2_CID_EXPOSURE:
-+		core->exposure = ctrl->value;
-+		break;
- 	case V4L2_CID_RED_BALANCE:
- 		core->red_bal = ctrl->value;
- 		break;
-@@ -598,6 +617,7 @@ static int mt9v011_probe(struct i2c_client *c,
- 	}
- 
- 	core->global_gain = 0x0024;
-+	core->exposure = 0x01fc;
- 	core->width  = 640;
- 	core->height = 480;
- 	core->xtal = 27000000;	/* Hz */
--- 
-1.6.4.2
+> +
+> +	if (!tr->sd_tuner || !tr->sd_dsp) {
+> +		printk(KERN_ERR DRIVER_NAME
+> +			": Failed to get tuner or DSP\n");
+> +		return -ENODEV;
+> +	}
+> +
+> +	return 0;
+> +}
+> +
+>  static const struct v4l2_file_operations timbradio_fops = {
+>  	.owner		= THIS_MODULE,
+>  	.unlocked_ioctl	= video_ioctl2,
+> +	.open		= timbradio_fops_open,
+>  };
+>  
+>  static int __devinit timbradio_probe(struct platform_device *pdev)
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
