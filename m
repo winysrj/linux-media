@@ -1,60 +1,60 @@
 Return-path: <mchehab@pedra>
-Received: from smtp6-g21.free.fr ([212.27.42.6]:44813 "EHLO smtp6-g21.free.fr"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754696Ab1FITcb (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 9 Jun 2011 15:32:31 -0400
-Message-ID: <4DF11FC5.6090401@free.fr>
-Date: Thu, 09 Jun 2011 21:32:21 +0200
-From: Robert Jarzmik <robert.jarzmik@free.fr>
-Reply-To: robert.jarzmik@free.fr
-MIME-Version: 1.0
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-CC: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	=?ISO-8859-1?Q?Teresa_G=E1mez?= <t.gamez@phytec.de>
-Subject: Re: [PATCH 1/2] V4L: mt9m111: propagate higher level abstraction
- down in functions
-References: <Pine.LNX.4.64.1106061918010.11169@axis700.grange> <4DED36A8.5000300@free.fr> <Pine.LNX.4.64.1106071159030.31635@axis700.grange>
-In-Reply-To: <Pine.LNX.4.64.1106071159030.31635@axis700.grange>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Received: from mail.tu-berlin.de ([130.149.7.33])
+	by www.linuxtv.org with esmtp (Exim 4.69)
+	(envelope-from <eddie@lania.nl>) id 1QZ2p9-0006CH-4E
+	for linux-dvb@linuxtv.org; Tue, 21 Jun 2011 17:25:30 +0200
+Received: from edla.lania.nl ([84.245.4.170])
+	by mail.tu-berlin.de (exim-4.75/mailfrontend-4) with esmtps
+	[TLSv1:AES256-SHA:256] for <linux-dvb@linuxtv.org>
+	id 1QZ2p8-00069m-CR; Tue, 21 Jun 2011 17:25:07 +0200
+Received: from apollo.lania-intra.net (apollo.lania-intra.net [192.168.169.2])
+	by edla.lania.nl (8.14.4/8.14.4) with ESMTP id p5LFP3id026358
+	for <linux-dvb@linuxtv.org>; Tue, 21 Jun 2011 17:25:04 +0200
+From: Eddie Lania <eddie@lania.nl>
+To: linux-dvb@linuxtv.org
+Date: Tue, 21 Jun 2011 17:25:02 +0200
+Message-ID: <1308669902.6370.5.camel@e2800fedora.lania-intra.net>
+Mime-Version: 1.0
+Subject: [linux-dvb] Elgato eyetv hybrid (0df9:0018)
+Reply-To: linux-media@vger.kernel.org
+List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/options/linux-dvb>,
+	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
+List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
+List-Post: <mailto:linux-dvb@linuxtv.org>
+List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
+List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
+	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-List-ID: <linux-media.vger.kernel.org>
+Errors-To: linux-dvb-bounces+mchehab=redhat.com@linuxtv.org
 Sender: <mchehab@pedra>
+List-ID: <linux-dvb@linuxtv.org>
 
-On 06/07/2011 12:02 PM, Guennadi Liakhovetski wrote:
-> On Mon, 6 Jun 2011, Robert Jarzmik wrote:
->
->> On 06/06/2011 07:20 PM, Guennadi Liakhovetski wrote:
->>> It is more convenient to propagate the higher level abstraction - the
->>> struct mt9m111 object into functions and then retrieve a pointer to
->>> the i2c client, if needed, than to do the reverse.
->> Agreed.
->>
->> One minor point, you ofter replace :
->>> -	struct mt9m111 *mt9m111 = to_mt9m111(client);
->>> +	struct mt9m111 *mt9m111 = container_of(sd, struct mt9m111, subdev);
->>
->> Why haven't you replaced the signature of to_mt9m111() into :
->> static struct mt9m111 *to_mt9m111(const struct v4l2_subdev *sd)
->> {
->> 	return container_of(sd, struct mt9m111, subdev);
->> }
->>
->> This way, each to_mt9m111(client) will become to_mt9m111(sd), and the purpose
->> of to_mt9m111() will be kept. Wouldn't that be better ?
->
-> Because "container_of(sd, struct mt9m111, subdev)" is still easy enough to
-> write (copy-paste, of course:)) and understand, whereas
-> "container_of(i2c_get_clientdata(client), struct mt9m111, subdev)" is
-> already too awkward to look at, even though it is now only used at 4
-> locations.
-And copy paste "client" into "sd" is even quicker, isn't it ?
+Hello,
 
->
-> A general question to you: from your comments I haven't understood: have
-> you also tested the patches or only reviewed them?
-Only reviewed so far. Test will come Monday.
+Since a while i am the proud owner of an Elgato Eyetb Hybrid usb tv
+tuner stick.
 
-Cheers.
+I tried to get my device, an Elgato eyetev hybrid, to work using the
+latest drivers from git but it doesn't work (yet).
 
---
-Robert
+Can somebody tell if this device (usb device 0df9:0018) is/will be
+supported?
+
+>From what i found on the internet, the device's specs are:
+
+Model: EU 2008
+USB Contoller: Empia EM2884
+Stereo A/V Decoder: Micronas AVF 49x08
+Hybrid Channel Decoder: Micronas DRX-K DRX3926K:A1 0.9.0
+
+Regards,
+
+Eddie.
+
+
+_______________________________________________
+linux-dvb users mailing list
+For V4L/DVB development, please use instead linux-media@vger.kernel.org
+linux-dvb@linuxtv.org
+http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
