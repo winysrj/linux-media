@@ -1,68 +1,92 @@
 Return-path: <mchehab@pedra>
-Received: from smtp-vbr10.xs4all.nl ([194.109.24.30]:3112 "EHLO
-	smtp-vbr10.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751550Ab1FPGVW (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 16 Jun 2011 02:21:22 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Devin Heitmueller <dheitmueller@kernellabs.com>
-Subject: Re: [RFCv2 PATCH 0/5] tuner-core: fix s_std and s_tuner
-Date: Thu, 16 Jun 2011 08:21:15 +0200
-Cc: Andy Walls <awalls@md.metrocast.net>, linux-media@vger.kernel.org,
-	Mauro Carvalho Chehab <mchehab@redhat.com>
-References: <1307804731-16430-1-git-send-email-hverkuil@xs4all.nl> <201106152237.02427.hverkuil@xs4all.nl> <BANLkTimVQDoHo+5-2ZkU0sE0LWiUjHeBXg@mail.gmail.com>
-In-Reply-To: <BANLkTimVQDoHo+5-2ZkU0sE0LWiUjHeBXg@mail.gmail.com>
-MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201106160821.15352.hverkuil@xs4all.nl>
+Received: from mail.mnsspb.ru ([84.204.75.2]:33601 "EHLO mail.mnsspb.ru"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756419Ab1FUScx (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 21 Jun 2011 14:32:53 -0400
+From: Kirill Smelkov <kirr@mns.spb.ru>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: linux-uvc-devel@lists.berlios.de, linux-media@vger.kernel.org,
+	linux-kernel@vger.kernel.org, Kirill Smelkov <kirr@mns.spb.ru>
+Subject: [PATCH] uvcvideo: Add FIX_BANDWIDTH quirk to HP Webcam found on HP Mini 5103 netbook
+Date: Tue, 21 Jun 2011 22:07:43 +0400
+Message-Id: <1308679663-11431-1-git-send-email-kirr@mns.spb.ru>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Wednesday, June 15, 2011 22:49:39 Devin Heitmueller wrote:
-> On Wed, Jun 15, 2011 at 4:37 PM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
-> > But the driver has that information, so it should act accordingly.
-> >
-> > So on first open you can check whether the current input has a tuner and
-> > power on the tuner in that case. On S_INPUT you can also poweron/off accordingly
-> > (bit iffy against the spec, though). So in that case the first use case would
-> > actually work. It does require that tuner-core.c supports s_power(1), of course.
-> 
-> This will get messy, and is almost certain to get screwed up and cause
-> regressions at least on some devices.
+The camera there identifeis itself as being manufactured by Cheng Uei
+Precision Industry Co., Ltd (Foxlink), and product is titled as "HP
+Webcam [2 MP Fixed]".
 
-I don't see why this should be messy. Anyway, this is all theoretical as long
-as tuner-core doesn't support s_power(1). Let's get that in first.
+I was trying to get 2 USB video capture devices to work simultaneously,
+and noticed that the above mentioned webcam always requires packet size
+= 3072 bytes per micro frame (~= 23.4 MB/s isoc bandwidth), which is far
+more than enough to get standard NTSC 640x480x2x30 = ~17.6 MB/s isoc
+bandwidth.
 
-> > BTW, I noticed in tuner-core.c that the g_tuner op doesn't wake-up the tuner
-> > when called. I think it should be added, even though most (all?) tuners will
-> > need time before they can return anything sensible.
-> 
-> Bear in mind that some tuners can take several seconds to load
-> firmware when powered up.  You don't want a situation where the tuner
-> is reloading firmware continuously, the net result being that calls to
-> v4l2-ctl that used to take milliseconds now take multiple seconds.
+As there are alt interfaces with smaller MxPS
 
-Yes, but calling VIDIOC_G_TUNER is a good time to wake up the tuner :-)
+    T:  Bus=01 Lev=01 Prnt=01 Port=03 Cnt=01 Dev#=  2 Spd=480  MxCh= 0
+    D:  Ver= 2.00 Cls=ef(misc ) Sub=02 Prot=01 MxPS=64 #Cfgs=  1
+    P:  Vendor=05c8 ProdID=0403 Rev= 1.06
+    S:  Manufacturer=Foxlink
+    S:  Product=HP Webcam [2 MP Fixed]
+    S:  SerialNumber=200909240102
+    C:* #Ifs= 2 Cfg#= 1 Atr=80 MxPwr=500mA
+    A:  FirstIf#= 0 IfCount= 2 Cls=0e(video) Sub=03 Prot=00
+    I:* If#= 0 Alt= 0 #EPs= 1 Cls=0e(video) Sub=01 Prot=00 Driver=uvcvideo
+    E:  Ad=83(I) Atr=03(Int.) MxPS=  16 Ivl=4ms
+    I:* If#= 1 Alt= 0 #EPs= 0 Cls=0e(video) Sub=02 Prot=00 Driver=uvcvideo
+    I:  If#= 1 Alt= 1 #EPs= 1 Cls=0e(video) Sub=02 Prot=00 Driver=uvcvideo
+    E:  Ad=81(I) Atr=05(Isoc) MxPS= 128 Ivl=125us
+    I:  If#= 1 Alt= 2 #EPs= 1 Cls=0e(video) Sub=02 Prot=00 Driver=uvcvideo
+    E:  Ad=81(I) Atr=05(Isoc) MxPS= 512 Ivl=125us
+    I:  If#= 1 Alt= 3 #EPs= 1 Cls=0e(video) Sub=02 Prot=00 Driver=uvcvideo
+    E:  Ad=81(I) Atr=05(Isoc) MxPS=1024 Ivl=125us
+    I:  If#= 1 Alt= 4 #EPs= 1 Cls=0e(video) Sub=02 Prot=00 Driver=uvcvideo
+    E:  Ad=81(I) Atr=05(Isoc) MxPS=1536 Ivl=125us
+    I:  If#= 1 Alt= 5 #EPs= 1 Cls=0e(video) Sub=02 Prot=00 Driver=uvcvideo
+    E:  Ad=81(I) Atr=05(Isoc) MxPS=2048 Ivl=125us
+    I:  If#= 1 Alt= 6 #EPs= 1 Cls=0e(video) Sub=02 Prot=00 Driver=uvcvideo
+    E:  Ad=81(I) Atr=05(Isoc) MxPS=2688 Ivl=125us
+    I:  If#= 1 Alt= 7 #EPs= 1 Cls=0e(video) Sub=02 Prot=00 Driver=uvcvideo
+    E:  Ad=81(I) Atr=05(Isoc) MxPS=3072 Ivl=125us
 
-> > BTW2: it's not a good idea to just broadcast s_power to all subdevs. That should
-> > be done to the tuner(s) only since other subdevs might also implement s_power.
-> > For now it's pretty much just tuners and some sensors, though.
-> >
-> > You know, this really needs to be a standardized module option and/or sysfs
-> > entry: 'always on', 'wake up on first open', 'wake up on first use'.
-> 
-> That would definitely be useful, but it shouldn't be a module option
-> since you can have multiple devices using the same module.
+UVC_QUIRK_FIX_BANDWIDTH helps here and NTSC video can be served with
+MxPS=2688 i.e. 20.5 MB/s isoc bandwidth.
 
-Of course, I forgot about that.
+In terms of microframe time allocation, before the quirk NTSC video
+required 60 usecs / microframe and 53 usecs / microframe after.
 
-> It really
-> should be an addition to the V4L API.
 
-This would actually for once be a good use of sysfs.
+P.S. Now with tweaked ehci-hcd to allow up to 90% isoc bandwith (instead of
+allowed for high speed 80%) I can capture two video sources -- PAL 720x576
+YUV422 @25fps + NTSC 640x480 YUV422 @30fps simultaneously. Hooray!
 
-Regards,
+Signed-off-by: Kirill Smelkov <kirr@mns.spb.ru>
+---
+ drivers/media/video/uvc/uvc_driver.c |    9 +++++++++
+ 1 files changed, 9 insertions(+), 0 deletions(-)
 
-	Hans
+diff --git a/drivers/media/video/uvc/uvc_driver.c b/drivers/media/video/uvc/uvc_driver.c
+index b6eae48..f633700 100644
+--- a/drivers/media/video/uvc/uvc_driver.c
++++ b/drivers/media/video/uvc/uvc_driver.c
+@@ -2130,6 +2130,15 @@ static struct usb_device_id uvc_ids[] = {
+ 	  .bInterfaceProtocol	= 0,
+ 	  .driver_info 		= UVC_QUIRK_PROBE_MINMAX
+ 				| UVC_QUIRK_BUILTIN_ISIGHT },
++	/* Foxlink ("HP Webcam" on HP Mini 5103) */
++	{ .match_flags		= USB_DEVICE_ID_MATCH_DEVICE
++				| USB_DEVICE_ID_MATCH_INT_INFO,
++	  .idVendor		= 0x05c8,
++	  .idProduct		= 0x0403,
++	  .bInterfaceClass	= USB_CLASS_VIDEO,
++	  .bInterfaceSubClass	= 1,
++	  .bInterfaceProtocol	= 0,
++	  .driver_info		= UVC_QUIRK_FIX_BANDWIDTH },
+ 	/* Genesys Logic USB 2.0 PC Camera */
+ 	{ .match_flags		= USB_DEVICE_ID_MATCH_DEVICE
+ 				| USB_DEVICE_ID_MATCH_INT_INFO,
+-- 
+1.7.6.rc1
+
