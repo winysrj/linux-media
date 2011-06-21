@@ -1,39 +1,69 @@
 Return-path: <mchehab@pedra>
-Received: from smtp-68.nebula.fi ([83.145.220.68]:40329 "EHLO
-	smtp-68.nebula.fi" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753235Ab1FAHHi (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 1 Jun 2011 03:07:38 -0400
-Date: Wed, 1 Jun 2011 10:07:34 +0300
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: "JAIN, AMBER" <amber@ti.com>
+Received: from perceval.ideasonboard.com ([95.142.166.194]:56550 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757381Ab1FUWzP (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 21 Jun 2011 18:55:15 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Stephan Lachowsky <stephan.lachowsky@maxim-ic.com>
+Subject: Re: [PATCH] [media] uvcvideo: Fix control mapping for devices with multiple chains
+Date: Wed, 22 Jun 2011 00:55:36 +0200
 Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	"Hiremath, Vaibhav" <hvaibhav@ti.com>
-Subject: Re: [PATCH] OMAP: V4L2: Remove GFP_DMA allocation as ZONE_DMA is
- not configured on OMAP
-Message-ID: <20110601070733.GC4991@valkosipuli.localdomain>
-References: <1306835503-24631-1-git-send-email-amber@ti.com>
- <5A47E75E594F054BAF48C5E4FC4B92AB037B65850E@dbde02.ent.ti.com>
+	"linux-uvc-devel@lists.berlios.de" <linux-uvc-devel@lists.berlios.de>
+References: <1306880661.2916.39.camel@svmlwks101>
+In-Reply-To: <1306880661.2916.39.camel@svmlwks101>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <5A47E75E594F054BAF48C5E4FC4B92AB037B65850E@dbde02.ent.ti.com>
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201106220055.37215.laurent.pinchart@ideasonboard.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Tue, May 31, 2011 at 03:58:46PM +0530, JAIN, AMBER wrote:
-> I have tested it on OMAP4430 blaze and OMAP3430 SDP platforms.
+Hi Stephan,
+
+On Wednesday 01 June 2011 00:24:21 Stephan Lachowsky wrote:
+> The search for matching extension units fails to take account of the
+> current chain.  In the case where you have two distinct video chains,
+> both containing an XU with the same GUID but different unit ids, you
+> will be unable to perform a mapping on the second chain because entity
+> on the first chain will always be found first
 > 
-> I do not have the hardware to test omap24xxcam change. Can someone please
-> help me on this?
+> Fix this by only searching the current chain when performing a control
+> mapping.  This is analogous to the search used by uvc_find_control(),
+> and is the correct behaviour.
 
-I have the hardware, but this driver is not testable right now as it is in
-the mainline since the board code for the camera is missing from N8[01]0
-(besides cbus driver AFAIR). However the change seems practically mandatory
-to me --- I can ack it if you send a patch against omap24xxcam.c, as your
-new patch no longer contains the change for omap24xxcam.c.
+Thanks for the patch. I agree with your analysis, but I'm concerned about 
+devices that might have extension units not connected to any chain. They would 
+become unaccessible.
 
-Thanks.
+Devices for which extension unit control mappings have been published have all 
+their XUs connected to a chain, so I'm OK with the patch. I will add a TODO 
+comment to remind me of the issue, and I'll solve the problem later if it ever 
+occurs.
+
+> Signed-off-by: Stephan Lachowsky <stephan.lachowsky@maxim-ic.com>
+> ---
+>  drivers/media/video/uvc/uvc_ctrl.c |    4 ++--
+>  1 files changed, 2 insertions(+), 2 deletions(-)
+> 
+> diff --git a/drivers/media/video/uvc/uvc_ctrl.c
+> b/drivers/media/video/uvc/uvc_ctrl.c index 59f8a9a..a77648f 100644
+> --- a/drivers/media/video/uvc/uvc_ctrl.c
+> +++ b/drivers/media/video/uvc/uvc_ctrl.c
+> @@ -1565,8 +1565,8 @@ int uvc_ctrl_add_mapping(struct uvc_video_chain
+> *chain, return -EINVAL;
+>  	}
+> 
+> -	/* Search for the matching (GUID/CS) control in the given device */
+> -	list_for_each_entry(entity, &dev->entities, list) {
+> +	/* Search for the matching (GUID/CS) control on the current chain */
+> +	list_for_each_entry(entity, &chain->entities, chain) {
+>  		unsigned int i;
+> 
+>  		if (UVC_ENTITY_TYPE(entity) != UVC_VC_EXTENSION_UNIT ||
 
 -- 
-Sakari Ailus
-sakari dot ailus at iki dot fi
+Regards,
+
+Laurent Pinchart
