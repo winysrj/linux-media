@@ -1,183 +1,114 @@
 Return-path: <mchehab@pedra>
-Received: from mx1.redhat.com ([209.132.183.28]:64152 "EHLO mx1.redhat.com"
+Received: from ffm.saftware.de ([83.141.3.46]:32889 "EHLO ffm.saftware.de"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754394Ab1FSRnw (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 19 Jun 2011 13:43:52 -0400
-Date: Sun, 19 Jun 2011 14:42:41 -0300
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	alsa-devel@alsa-project.org
-Subject: [PATCH 04/11] [media] em28xx-alsa: add mixer support for AC97
- volume controls
-Message-ID: <20110619144241.23d8078d@pedra>
-In-Reply-To: <cover.1308503857.git.mchehab@redhat.com>
-References: <cover.1308503857.git.mchehab@redhat.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+	id S1755101Ab1FULEX (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 21 Jun 2011 07:04:23 -0400
+Message-ID: <4E007AA7.7070400@linuxtv.org>
+Date: Tue, 21 Jun 2011 13:04:07 +0200
+From: Andreas Oberritter <obi@linuxtv.org>
+MIME-Version: 1.0
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+CC: HoP <jpetrous@gmail.com>,
+	Devin Heitmueller <dheitmueller@kernellabs.com>,
+	=?ISO-8859-1?Q?=22S=E9bastien_RAILLARD_=28COEXSI=29=22?=
+	<sr@coexsi.fr>,
+	=?ISO-8859-1?Q?R=E9mi_Denis-Courmont?= <remi@remlab.net>,
+	linux-media@vger.kernel.org
+Subject: Re: [RFC] vtunerc - virtual DVB device driver
+References: <BANLkTimtnbAzLTdFY2OiSddHTjmD_99CfA@mail.gmail.com>	<201106202037.19535.remi@remlab.net>	<BANLkTinn0uN3VwGfqCbYbxFoVf6aNo1VSA@mail.gmail.com>	<BANLkTin14LnwP+_K1m-RsEXza4M4CjqnEw@mail.gmail.com>	<BANLkTimR-zWnnLBcD2w8d8NpeFJi=eT9nQ@mail.gmail.com>	<005a01cc2f7d$a799be30$f6cd3a90$@coexsi.fr>	<BANLkTinbQ8oBJt7fScuT5vHGFktbaQNY5A@mail.gmail.com>	<BANLkTimTdMa_X1ygF8=B5gLdLXq1o-ER0g@mail.gmail.com>	<BANLkTimkZN9AtLanwvct+1p2DZOHSgF6Aw@mail.gmail.com>	<BANLkTimg0X5H5T8CsSR5Tr0CZbCZKiDEEA@mail.gmail.com>	<4DFFB1DA.5000602@redhat.com> <BANLkTikZ++5dZssDRuxJzNUEG_TDkZPGRg@mail.gmail.com> <4DFFF56D.5070602@redhat.com>
+In-Reply-To: <4DFFF56D.5070602@redhat.com>
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Export ac97 volume controls via mixer.
+On 06/21/2011 03:35 AM, Mauro Carvalho Chehab wrote:
+> Em 20-06-2011 18:31, HoP escreveu:
+>> 2011/6/20 Mauro Carvalho Chehab <mchehab@redhat.com>:
+>>> Em 20-06-2011 17:24, HoP escreveu:
+>>>> 2011/6/20 Devin Heitmueller <dheitmueller@kernellabs.com>:
+>>>>> On Mon, Jun 20, 2011 at 3:56 PM, HoP <jpetrous@gmail.com> wrote:
+>>>>>> Do you think it is really serious enough reason to prevent of having
+>>>>>> such virtualization driver in the kernel?
+>>>>>>
+>>>>>> Let check my situation and tell me how I should continue (TBH, I already
+>>>>>> thought that driver can be accepted, but my dumb brain thought because
+>>>>>> of non quality code/design or so. It was really big "surprise" which
+>>>>>> reason was used aginst it):
+>>>>>
+>>>>> Yes, this is entirely a political issue and not a technical one.
+>>>>
+>>>> Political? So we can declare that politics win (again) technicians. Sad.
+>>>
+>>> This is not a political issue. It is a licensing issue. If you want to use
+>>> someone's else code, you need to accept the licensing terms that the developers
+>>> are giving you, by either paying the price for the code usage (on closed source
+>>> licensing models), or by accepting the license when using an open-sourced code.
+>>>
+>>> Preserving the open-source eco-system is something that everyone
+>>> developing open source expect: basically, you're free to do whatever
+>>> you want, but if you're using a code written by an open-source developer,
+>>> the expected behaviour that GPL asks (and that the developer wants, when he
+>>> opted for GPL) is that you should return back to the community with any
+>>> changes you did, including derivative work. This is an essential rule of working
+>>> with GPL.
+>>>
+>>> If you're not happy with that, that's fine. You can implement another stack
+>>> that is not GPL-licensed.
+>>
+>> Mauro, you totally misunderstood me. If you see on my first post in that thread
+>> I was sending full GPL-ed driver to the mailinglist.
+> 
+> You misunderstood me. Something that exposes the kernel interface to for an
+> userspace client driver to implement DVB is not a driver, it is a wrapper.
+> 
+> The real driver will be in userspace, using the DVB stack, and can even be
+> closed source. Some developers already tried to do things like that and sell
+> the userspace code. Such code submission were nacked. There is even one case
+> where the kernelspace code were dropped due to that (and later, replaced by an
+> opensource driver).
+> 
+> We don't want to go on this way again.
 
-Pulseaudio will probably handle it very badly, as it has
-no idea about how volumes are wired, and how are they
-associated with each TV input. Those wirings are
-card model dependent, and we don't have the wiring mappings
-for each supported device.
+Mauro and Devin, I think you're missing the point. This is not about
+creating drivers in userspace. This is not about open or closed source.
+The "vtuner" interface, as implemented for the Dreambox, is used to
+access remote tuners: Put x tuners into y boxes and access them from
+another box as if they were local. It's used in conjunction with further
+software to receive the transport stream over a network connection.
+Honza's code does the same thing.
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+You don't need it in order to create closed source drivers. You can
+already create closed kernel drivers now. Also, you can create tuner
+drivers in userspace using the i2c-dev interface. If you like to connect
+a userspace driver to a DVB API device node, you can distribute a small
+(open or closed) wrapper with it. So what are you arguing about?
+Everything you're feared of can already be done since virtually forever.
 
-diff --git a/drivers/media/video/em28xx/em28xx-audio.c b/drivers/media/video/em28xx/em28xx-audio.c
-index a24e177..a75c779 100644
---- a/drivers/media/video/em28xx/em28xx-audio.c
-+++ b/drivers/media/video/em28xx/em28xx-audio.c
-@@ -41,6 +41,7 @@
- #include <sound/info.h>
- #include <sound/initval.h>
- #include <sound/control.h>
-+#include <sound/tlv.h>
- #include <media/v4l2-common.h>
- #include "em28xx.h"
- 
-@@ -433,6 +434,92 @@ static struct page *snd_pcm_get_vmalloc_page(struct snd_pcm_substream *subs,
- 	return vmalloc_to_page(pageptr);
- }
- 
-+/*
-+ * AC97 volume control support
-+ */
-+static int em28xx_vol_info(struct snd_kcontrol *kcontrol,
-+				struct snd_ctl_elem_info *info)
-+{
-+	info->type = SNDRV_CTL_ELEM_TYPE_INTEGER;
-+	info->count = 2;
-+	info->value.integer.min = 0;
-+	info->value.integer.max = 0x1f;
-+
-+	return 0;
-+}
-+
-+/* FIXME: should also add mute controls for each */
-+
-+static int em28xx_vol_put(struct snd_kcontrol *kcontrol,
-+			       struct snd_ctl_elem_value *value)
-+{
-+	struct em28xx *dev = snd_kcontrol_chip(kcontrol);
-+	u16 val = (value->value.integer.value[0] & 0x1f) |
-+		  (value->value.integer.value[1] & 0x1f) << 8;
-+	int rc;
-+
-+	mutex_lock(&dev->lock);
-+	rc = em28xx_read_ac97(dev, kcontrol->private_value);
-+	if (rc < 0)
-+		goto err;
-+
-+	val |= rc & 0x8080;	/* Preserve the mute flags */
-+
-+	rc = em28xx_write_ac97(dev, kcontrol->private_value, val);
-+
-+err:
-+	mutex_unlock(&dev->lock);
-+	return rc;
-+}
-+
-+static int em28xx_vol_get(struct snd_kcontrol *kcontrol,
-+			       struct snd_ctl_elem_value *value)
-+{
-+	struct em28xx *dev = snd_kcontrol_chip(kcontrol);
-+	int val;
-+
-+	mutex_lock(&dev->lock);
-+	val = em28xx_read_ac97(dev, kcontrol->private_value);
-+	mutex_unlock(&dev->lock);
-+	if (val < 0)
-+		return val;
-+
-+	value->value.integer.value[0] = val & 0x1f;
-+	value->value.integer.value[1] = (val << 8) & 0x1f;
-+
-+	return 0;
-+}
-+
-+static const DECLARE_TLV_DB_SCALE(em28xx_db_scale, -3450, 150, 0);
-+
-+static int em28xx_cvol_new(struct snd_card *card, struct em28xx *dev,
-+			   char *name, int id)
-+{
-+	int err;
-+	struct snd_kcontrol *kctl;
-+	struct snd_kcontrol_new tmp = {
-+		.iface = SNDRV_CTL_ELEM_IFACE_MIXER,
-+		.name  = name,
-+		.info  = em28xx_vol_info,
-+		.get   = em28xx_vol_get,
-+		.put   = em28xx_vol_put,
-+		.private_value = id,
-+		.tlv.p = em28xx_db_scale,
-+	};
-+
-+	kctl = snd_ctl_new1(&tmp, dev);
-+
-+	err = snd_ctl_add(card, kctl);
-+	if (err < 0)
-+		return err;
-+
-+	return 0;
-+}
-+
-+
-+/*
-+ * register/unregister code and data
-+ */
- static struct snd_pcm_ops snd_em28xx_pcm_capture = {
- 	.open      = snd_em28xx_capture_open,
- 	.close     = snd_em28xx_pcm_close,
-@@ -489,6 +576,22 @@ static int em28xx_audio_init(struct em28xx *dev)
- 
- 	INIT_WORK(&dev->wq_trigger, audio_trigger);
- 
-+	if (dev->audio_mode.ac97 != EM28XX_NO_AC97) {
-+		em28xx_cvol_new(card, dev, "Video", AC97_VIDEO_VOL);
-+		em28xx_cvol_new(card, dev, "Line In", AC97_LINEIN_VOL);
-+		em28xx_cvol_new(card, dev, "Phone", AC97_PHONE_VOL);
-+		em28xx_cvol_new(card, dev, "Microphone", AC97_PHONE_VOL);
-+		em28xx_cvol_new(card, dev, "CD", AC97_CD_VOL);
-+		em28xx_cvol_new(card, dev, "AUX", AC97_AUX_VOL);
-+		em28xx_cvol_new(card, dev, "PCM", AC97_PCM_OUT_VOL);
-+
-+		em28xx_cvol_new(card, dev, "Master", AC97_MASTER_VOL);
-+		em28xx_cvol_new(card, dev, "Line", AC97_LINE_LEVEL_VOL);
-+		em28xx_cvol_new(card, dev, "Mono", AC97_MASTER_MONO_VOL);
-+		em28xx_cvol_new(card, dev, "LFE", AC97_LFE_MASTER_VOL);
-+		em28xx_cvol_new(card, dev, "Surround", AC97_SURR_MASTER_VOL);
-+	}
-+
- 	err = snd_card_register(card);
- 	if (err < 0) {
- 		snd_card_free(card);
-diff --git a/drivers/media/video/em28xx/em28xx-core.c b/drivers/media/video/em28xx/em28xx-core.c
-index 7bf3a86..752d4ed 100644
---- a/drivers/media/video/em28xx/em28xx-core.c
-+++ b/drivers/media/video/em28xx/em28xx-core.c
-@@ -286,6 +286,7 @@ int em28xx_read_ac97(struct em28xx *dev, u8 reg)
- 		return ret;
- 	return le16_to_cpu(val);
- }
-+EXPORT_SYMBOL_GPL(em28xx_read_ac97);
- 
- /*
-  * em28xx_write_ac97()
-@@ -313,6 +314,7 @@ int em28xx_write_ac97(struct em28xx *dev, u8 reg, u16 val)
- 
- 	return 0;
- }
-+EXPORT_SYMBOL_GPL(em28xx_write_ac97);
- 
- struct em28xx_vol_itable {
- 	enum em28xx_amux mux;
--- 
-1.7.1
+If you're feared of exposing kernel interfaces to userspace, then I
+think your only option is to remove the whole userspace. You might want
+to remove i2c-dev and the loadable module interface first.
 
+Regarding the code, Honza, I think the interface is neither clean nor
+generic enough to be included in the kernel. It doesn't make much sense
+to stay compatible to the interface used by the Dreambox. This interface
+evolved from very old versions of the DVB API and therefore carries way
+too much cruft and hacks for a shiny new interface. As a side note: Your
+ioctl constants already differ from the original vtuner code.
 
+IMO, at least these steps need to be taken:
+- Remove unused code. You already mentioned it, but it really should be
+removed before submitting code, because it makes review much harder.
+- Remove redefined structs and constants.
+- Drop support for anything older than S2API.
+- Define a way to use an existing demux instead of registering a new
+software demux. On hardware that supports it, an input channel should be
+allocated for each vtuner, in order to use the hardware's filtering and
+decoding capabilities.
+- Drop VTUNER_SET_NAME, VTUNER_SET_HAS_OUTPUTS, VTUNER_SET_MODES,
+VTUNER_SET_TYPE and VTUNER_SET_NUM_MODES. They are all either specific
+to the Dreambox or already obsoleted by S2API commands or should be
+implemented as new S2API commands.
+
+Regards,
+Andreas
