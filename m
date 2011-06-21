@@ -1,45 +1,37 @@
 Return-path: <mchehab@pedra>
-Received: from mail2.matrix-vision.com ([85.214.244.251]:56399 "EHLO
-	mail2.matrix-vision.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751747Ab1FUHj0 (ORCPT
+Received: from mail-vw0-f46.google.com ([209.85.212.46]:55690 "EHLO
+	mail-vw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751800Ab1FUID1 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 21 Jun 2011 03:39:26 -0400
-From: Michael Jones <michael.jones@matrix-vision.de>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: linux-media@vger.kernel.org
-Subject: [PATCH 1/2] add Y10, Y12 formats
-Date: Tue, 21 Jun 2011 09:39:16 +0200
-Message-Id: <1308641957-7805-2-git-send-email-michael.jones@matrix-vision.de>
-In-Reply-To: <1308641957-7805-1-git-send-email-michael.jones@matrix-vision.de>
-References: <1308641957-7805-1-git-send-email-michael.jones@matrix-vision.de>
+	Tue, 21 Jun 2011 04:03:27 -0400
+Received: by vws1 with SMTP id 1so1519199vws.19
+        for <linux-media@vger.kernel.org>; Tue, 21 Jun 2011 01:03:26 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <4E002EBD.6050800@hoogenraad.net>
+References: <4DF9BCAA.3030301@holzeisen.de>
+	<4DF9EA62.2040008@killerhippy.de>
+	<4DFA7748.6000704@hoogenraad.net>
+	<4DFFC82B.10402@iki.fi>
+	<4E002EBD.6050800@hoogenraad.net>
+Date: Tue, 21 Jun 2011 10:03:26 +0200
+Message-ID: <BANLkTim76FRL+ZNapHyjgFyOvuMXxGVzJQ@mail.gmail.com>
+Subject: Re: RTL2831U driver updates
+From: Steffen Barszus <steffenbpunkt@googlemail.com>
+To: Antti Palosaari <crope@iki.fi>, stybla@turnovfree.net,
+	=?ISO-8859-1?Q?Sascha_W=FCstemann?= <sascha@killerhippy.de>,
+	linux-media@vger.kernel.org,
+	Thomas Holzeisen <thomas@holzeisen.de>,
+	Maxim Levitsky <maximlevitsky@gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Signed-off-by: Michael Jones <michael.jones@matrix-vision.de>
----
-
-I added these when playing around with the shifter.
-
- src/main.c |    2 ++
- 1 files changed, 2 insertions(+), 0 deletions(-)
-
-diff --git a/src/main.c b/src/main.c
-index 35c34a2..b9b9150 100644
---- a/src/main.c
-+++ b/src/main.c
-@@ -50,6 +50,8 @@ static struct {
- 	enum v4l2_mbus_pixelcode code;
- } mbus_formats[] = {
- 	{ "Y8", V4L2_MBUS_FMT_Y8_1X8},
-+	{ "Y10", V4L2_MBUS_FMT_Y10_1X10 },
-+	{ "Y12", V4L2_MBUS_FMT_Y12_1X12 },
- 	{ "YUYV", V4L2_MBUS_FMT_YUYV8_1X16 },
- 	{ "UYVY", V4L2_MBUS_FMT_UYVY8_1X16 },
- 	{ "SBGGR8", V4L2_MBUS_FMT_SBGGR8_1X8 },
--- 
-1.7.5.4
+2011/6/21 Jan Hoogenraad <jan-conceptronic@hoogenraad.net>:
+> and add the IR remote interface, based
+> on the LIRC framework.
+> It actually should yield little code, and mainly requires a) understanding
+> of LIRC and b) comparing code tables to that the in-kernel code tables can
+> be re-used.
 
 
-MATRIX VISION GmbH, Talstrasse 16, DE-71570 Oppenweiler
-Registergericht: Amtsgericht Stuttgart, HRB 271090
-Geschaeftsfuehrer: Gerhard Thullner, Werner Armingeon, Uwe Furtner
+sorry for the noise , but i guess you mean rc-core not Lirc
