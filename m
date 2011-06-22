@@ -1,85 +1,48 @@
 Return-path: <mchehab@pedra>
-Received: from proofpoint-cluster.metrocast.net ([65.175.128.136]:39762 "EHLO
-	proofpoint-cluster.metrocast.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753416Ab1FLMmC (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 12 Jun 2011 08:42:02 -0400
-Subject: Re: [RFCv4 PATCH 6/8] v4l2-ioctl.c: prefill tuner type for
- g_frequency and g/s_tuner.
-From: Andy Walls <awalls@md.metrocast.net>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media@vger.kernel.org, Mike Isely <isely@isely.net>,
-	Hans Verkuil <hans.verkuil@cisco.com>
-In-Reply-To: <e2a61ca8e17b7354a69bcb1b5ca35301efb5581e.1307875512.git.hans.verkuil@cisco.com>
-References: <1307876389-30347-1-git-send-email-hverkuil@xs4all.nl>
-	 <e2a61ca8e17b7354a69bcb1b5ca35301efb5581e.1307875512.git.hans.verkuil@cisco.com>
-Content-Type: text/plain; charset="UTF-8"
-Date: Sun, 12 Jun 2011 08:41:46 -0400
-Message-ID: <1307882506.2592.3.camel@localhost>
-Mime-Version: 1.0
+Received: from mail.kapsi.fi ([217.30.184.167]:51542 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752552Ab1FVK7N (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 22 Jun 2011 06:59:13 -0400
+Message-ID: <4E01CAFE.9070801@iki.fi>
+Date: Wed, 22 Jun 2011 13:59:10 +0300
+From: Antti Palosaari <crope@iki.fi>
+MIME-Version: 1.0
+To: David <reality_es@yahoo.es>
+CC: linux-media@vger.kernel.org
+Subject: Re: Sveon stv22 patches
+References: <BANLkTimY_RKO4TxSu5GQo84_7VCMjLEFDg@mail.gmail.com>
+In-Reply-To: <BANLkTimY_RKO4TxSu5GQo84_7VCMjLEFDg@mail.gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Sun, 2011-06-12 at 12:59 +0200, Hans Verkuil wrote:
-> From: Hans Verkuil <hans.verkuil@cisco.com>
-> 
-> The subdevs are supposed to receive a valid tuner type for the g_frequency
-> and g/s_tuner subdev ops. Some drivers do this, others don't. So prefill
-> this in v4l2-ioctl.c based on whether the device node from which this is
-> called is a radio node or not.
-> 
-> The spec does not require applications to fill in the type, and if they
-> leave it at 0 then the 'supported_mode' call in tuner-core.c will return
-> false and the ioctl does nothing.
-> 
-> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-> ---
->  drivers/media/video/v4l2-ioctl.c |    6 ++++++
->  1 files changed, 6 insertions(+), 0 deletions(-)
-> 
-> diff --git a/drivers/media/video/v4l2-ioctl.c b/drivers/media/video/v4l2-ioctl.c
-> index 213ba7d..26bf3bf 100644
-> --- a/drivers/media/video/v4l2-ioctl.c
-> +++ b/drivers/media/video/v4l2-ioctl.c
-> @@ -1822,6 +1822,8 @@ static long __video_do_ioctl(struct file *file,
->  		if (!ops->vidioc_g_tuner)
->  			break;
->  
-> +		p->type = (vfd->vfl_type == VFL_TYPE_RADIO) ?
-> +			V4L2_TUNER_RADIO : V4L2_TUNER_ANALOG_TV;
->  		ret = ops->vidioc_g_tuner(file, fh, p);
->  		if (!ret)
->  			dbgarg(cmd, "index=%d, name=%s, type=%d, "
-> @@ -1840,6 +1842,8 @@ static long __video_do_ioctl(struct file *file,
->  
->  		if (!ops->vidioc_s_tuner)
->  			break;
-> +		p->type = (vfd->vfl_type == VFL_TYPE_RADIO) ?
-> +			V4L2_TUNER_RADIO : V4L2_TUNER_ANALOG_TV;
->  		dbgarg(cmd, "index=%d, name=%s, type=%d, "
->  				"capability=0x%x, rangelow=%d, "
->  				"rangehigh=%d, signal=%d, afc=%d, "
-> @@ -1858,6 +1862,8 @@ static long __video_do_ioctl(struct file *file,
->  		if (!ops->vidioc_g_frequency)
->  			break;
->  
-> +		p->type = (vfd->vfl_type == VFL_TYPE_RADIO) ?
-> +			V4L2_TUNER_RADIO : V4L2_TUNER_ANALOG_TV;
->  		ret = ops->vidioc_g_frequency(file, fh, p);
->  		if (!ret)
->  			dbgarg(cmd, "tuner=%d, type=%d, frequency=%d\n",
+Hello
+Comments below.
 
+Could you use Git since you have latest Kernel? If that's too hard don't 
+try it, I can leave without, but it will easy my work a little.
 
-Wow, that was easy.  And from what I can tell, it is spec compliant
-too. :)
+You have diffed wrong direction, those patches are removing lines rather 
+than adding (- vs. +). Also you your signed off by is needed.
+See:
+http://linuxtv.org/wiki/index.php/Development:_Submitting_Patches
 
-Reviewed-by: Andy Walls <awalls@md.metrocast.net>
+> --- ./rc-map.h	2011-06-21 11:16:55.000000000 +0200
+> +++ ./include/media/rc-map.h	2011-06-21 12:41:34.114509214 +0200
+> @@ -130,7 +130,6 @@
+>   #define RC_MAP_RC6_MCE                   "rc-rc6-mce"
+>   #define RC_MAP_REAL_AUDIO_220_32_KEYS    "rc-real-audio-220-32-keys"
+>   #define RC_MAP_STREAMZAP                 "rc-streamzap"
+> -#define RC_MAP_SVEON_STV22		 "rc-msi-digivox-iii"
+>   #define RC_MAP_TBS_NEC                   "rc-tbs-nec"
+>   #define RC_MAP_TECHNISAT_USB2            "rc-technisat-usb2"
+>   #define RC_MAP_TERRATEC_CINERGY_XS       "rc-terratec-cinergy-xs"
 
--Andy
+That's wrong, it is not needed at all. All the other seems to be rather OK.
 
+regards
+Antti
 
-
-
-
-
+-- 
+http://palosaari.fi/
