@@ -1,107 +1,68 @@
 Return-path: <mchehab@pedra>
-Received: from mx1.redhat.com ([209.132.183.28]:29578 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754164Ab1FSRnq (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 19 Jun 2011 13:43:46 -0400
-Received: from int-mx01.intmail.prod.int.phx2.redhat.com (int-mx01.intmail.prod.int.phx2.redhat.com [10.5.11.11])
-	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id p5JHhkU6031727
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
-	for <linux-media@vger.kernel.org>; Sun, 19 Jun 2011 13:43:46 -0400
-Received: from pedra (vpn-238-25.phx2.redhat.com [10.3.238.25])
-	by int-mx01.intmail.prod.int.phx2.redhat.com (8.13.8/8.13.8) with ESMTP id p5JHhWq6018286
-	for <linux-media@vger.kernel.org>; Sun, 19 Jun 2011 13:43:45 -0400
-Date: Sun, 19 Jun 2011 14:42:37 -0300
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: [PATCH 03/11] [media] em28xx: Allow to compile it without RC/input
- support
-Message-ID: <20110619144237.17b5c534@pedra>
-In-Reply-To: <cover.1308503857.git.mchehab@redhat.com>
-References: <cover.1308503857.git.mchehab@redhat.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
-To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
+Received: from relay3-d.mail.gandi.net ([217.70.183.195]:45065 "EHLO
+	relay3-d.mail.gandi.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751742Ab1FVF2d convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 22 Jun 2011 01:28:33 -0400
+Received: from mfilter4-d.gandi.net (mfilter4-d.gandi.net [217.70.178.134])
+	by relay3-d.mail.gandi.net (Postfix) with ESMTP id 7A386A8075
+	for <linux-media@vger.kernel.org>; Wed, 22 Jun 2011 07:28:32 +0200 (CEST)
+Received: from relay3-d.mail.gandi.net ([217.70.183.195])
+	by mfilter4-d.gandi.net (mfilter4-d.gandi.net [10.0.15.180]) (amavisd-new, port 10024)
+	with ESMTP id nRagY6Bu0dSi for <linux-media@vger.kernel.org>;
+	Wed, 22 Jun 2011 07:28:31 +0200 (CEST)
+Received: from [192.168.10.60] (tri69-3-82-235-23-7.fbx.proxad.net [82.235.23.7])
+	(Authenticated sender: bmaras@flaht.eu)
+	by relay3-d.mail.gandi.net (Postfix) with ESMTPSA id 93693A8068
+	for <linux-media@vger.kernel.org>; Wed, 22 Jun 2011 07:28:29 +0200 (CEST)
+Message-ID: <4E017D7D.4050307@free.fr>
+Date: Wed, 22 Jun 2011 07:28:29 +0200
+From: mossroy <mossroy@free.fr>
+MIME-Version: 1.0
+To: linux-media@vger.kernel.org
+Subject: Re: Updates to French scan files
+References: <4DFFA7B6.9070906@free.fr> <4DFFA917.5060509@iki.fi>
+In-Reply-To: <4DFFA917.5060509@iki.fi>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 8BIT
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+Le 20/06/2011 22:09, Antti Palosaari a écrit :
+> On 06/20/2011 11:04 PM, mossroy wrote:
+>> In France, the DVB-T channels are currently moving (because the analog
+>> TV is being removed at the same time)
+>> The frequencies are modified region by region, with a calendar that
+>> started in late 2009, and will end on november 29th 2011 (see
+>> http://www.tousaunumerique.fr/ou-et-quand/ )
+>>
+>> All the new channels are listed here :
+>> http://www.tousaunumerique.fr/professionnels/en-savoir-plus/documentation/categorie-doc/plans-de-frequences/ 
+>>
+>> . The PDF files also lists channels that are planned to be used in the
+>> future (but are unused at the moment)
+>>
+>> Is there already a plan to update the scan files to reflect these 
+>> changes?
+>
+> Feel free to do that.
+>
+> regards
+> Antti
+>
+It looks like there is a limited number of frequencies used over the 
+country :
+http://www.cgvforum.fr/phpBB3/html/faq_tnt.html#recept7
 
-diff --git a/drivers/media/video/em28xx/Kconfig b/drivers/media/video/em28xx/Kconfig
-index 3cb78f2..49878fd 100644
---- a/drivers/media/video/em28xx/Kconfig
-+++ b/drivers/media/video/em28xx/Kconfig
-@@ -3,7 +3,6 @@ config VIDEO_EM28XX
- 	depends on VIDEO_DEV && I2C
- 	select VIDEO_TUNER
- 	select VIDEO_TVEEPROM
--	depends on RC_CORE
- 	select VIDEOBUF_VMALLOC
- 	select VIDEO_SAA711X if VIDEO_HELPER_CHIPS_AUTO
- 	select VIDEO_TVP5150 if VIDEO_HELPER_CHIPS_AUTO
-@@ -44,3 +43,12 @@ config VIDEO_EM28XX_DVB
- 	---help---
- 	  This adds support for DVB cards based on the
- 	  Empiatech em28xx chips.
-+
-+config VIDEO_EM28XX_RC
-+        bool "EM28XX Remote Controller support"
-+        depends on RC_CORE
-+        depends on VIDEO_EM28XX
-+        depends on !(RC_CORE=m && VIDEO_EM28XX=y)
-+        default y
-+        ---help---
-+          Enables Remote Controller support on em28xx driver.
-diff --git a/drivers/media/video/em28xx/Makefile b/drivers/media/video/em28xx/Makefile
-index d0f093d..38aaa00 100644
---- a/drivers/media/video/em28xx/Makefile
-+++ b/drivers/media/video/em28xx/Makefile
-@@ -1,5 +1,7 @@
--em28xx-objs     := em28xx-video.o em28xx-i2c.o em28xx-cards.o em28xx-core.o \
--		   em28xx-input.o em28xx-vbi.o
-+em28xx-y :=	em28xx-video.o em28xx-i2c.o em28xx-cards.o
-+em28xx-y +=	em28xx-core.o  em28xx-vbi.o
-+
-+em28xx-$(CONFIG_VIDEO_EM28XX_RC) += em28xx-input.o
- 
- em28xx-alsa-objs := em28xx-audio.o
- 
-diff --git a/drivers/media/video/em28xx/em28xx.h b/drivers/media/video/em28xx/em28xx.h
-index 28b9954..f9b77b4 100644
---- a/drivers/media/video/em28xx/em28xx.h
-+++ b/drivers/media/video/em28xx/em28xx.h
-@@ -697,6 +697,9 @@ int em28xx_tuner_callback(void *ptr, int component, int command, int arg);
- void em28xx_release_resources(struct em28xx *dev);
- 
- /* Provided by em28xx-input.c */
-+
-+#ifdef CONFIG_VIDEO_EM28XX_RC
-+
- int em28xx_get_key_terratec(struct IR_i2c *ir, u32 *ir_key, u32 *ir_raw);
- int em28xx_get_key_em_haup(struct IR_i2c *ir, u32 *ir_key, u32 *ir_raw);
- int em28xx_get_key_pinnacle_usb_grey(struct IR_i2c *ir, u32 *ir_key,
-@@ -709,6 +712,20 @@ void em28xx_deregister_snapshot_button(struct em28xx *dev);
- int em28xx_ir_init(struct em28xx *dev);
- int em28xx_ir_fini(struct em28xx *dev);
- 
-+#else
-+
-+#define em28xx_get_key_terratec			NULL
-+#define em28xx_get_key_em_haup			NULL
-+#define em28xx_get_key_pinnacle_usb_grey	NULL
-+#define em28xx_get_key_winfast_usbii_deluxe	NULL
-+
-+static inline void em28xx_register_snapshot_button(struct em28xx *dev) {}
-+static inline void em28xx_deregister_snapshot_button(struct em28xx *dev) {}
-+static inline int em28xx_ir_init(struct em28xx *dev) { return 0; }
-+static inline int em28xx_ir_fini(struct em28xx *dev) { return 0; }
-+
-+#endif
-+
- /* Provided by em28xx-vbi.c */
- extern struct videobuf_queue_ops em28xx_vbi_qops;
- 
--- 
-1.7.1
+I am lazy so I was wondering why there was one file of frequencies for 
+each town in /usr/share/dvb/dvb-t/.
+Would it be harmful to have only one list with all those frequencies 
+(there are 57) for all the country?
+I suppose the DVB-T softwares will take longer to find the channels in 
+all these frequencies, instead of scanning only the ~10 relevant ones. 
+But isn't it what every television does? All the hardware TNT receiver I 
+know scan all the frequencies without knowing in which town you are.
+Plus it would enable future usage of the currently unused frequencies, 
+without the need to modify the files again
 
-
+I suppose I missed something because that would be too easy ;-)
