@@ -1,81 +1,78 @@
 Return-path: <mchehab@pedra>
-Received: from vsmtpvtin1.tin.it ([212.216.176.105]:39588 "EHLO
-	vsmtpvtin1.tin.it" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752232Ab1F0QDq (ORCPT
+Received: from mailout1.w1.samsung.com ([210.118.77.11]:43599 "EHLO
+	mailout1.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752837Ab1FVJnU (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 27 Jun 2011 12:03:46 -0400
-Received: from [192.168.13.198] (80.169.201.166) by vsmtpvtin1.tin.it (8.5.132) (authenticated as demarsi@tin.it)
-        id 4D95884601656849 for linux-media@vger.kernel.org; Mon, 27 Jun 2011 17:40:15 +0200
-Message-ID: <4E08A463.2050101@gmail.com>
-Date: Mon, 27 Jun 2011 17:40:19 +0200
-From: Andrea De Marsi <andrea.demarsi@gmail.com>
-MIME-Version: 1.0
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: EM28xx based device support
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+	Wed, 22 Jun 2011 05:43:20 -0400
+Received: from eu_spt1 (mailout1.w1.samsung.com [210.118.77.11])
+ by mailout1.w1.samsung.com
+ (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14 2004))
+ with ESMTP id <0LN600G1FR071P@mailout1.w1.samsung.com> for
+ linux-media@vger.kernel.org; Wed, 22 Jun 2011 10:43:19 +0100 (BST)
+Received: from linux.samsung.com ([106.116.38.10])
+ by spt1.w1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14
+ 2004)) with ESMTPA id <0LN600D4VR06ZP@spt1.w1.samsung.com> for
+ linux-media@vger.kernel.org; Wed, 22 Jun 2011 10:43:18 +0100 (BST)
+Date: Wed, 22 Jun 2011 11:43:14 +0200
+From: Marek Szyprowski <m.szyprowski@samsung.com>
+Subject: RE: vb2: holding buffers until after start_streaming()
+In-reply-to: <20110621111420.4ef5472e@bike.lwn.net>
+To: 'Jonathan Corbet' <corbet@lwn.net>
+Cc: 'Pawel Osciak' <pawel@osciak.com>, linux-media@vger.kernel.org,
+	Marek Szyprowski <m.szyprowski@samsung.com>
+Message-id: <002801cc30c0$ceb89880$6c29c980$%szyprowski@samsung.com>
+MIME-version: 1.0
+Content-type: text/plain; charset=us-ascii
+Content-language: pl
+Content-transfer-encoding: 7BIT
+References: <20110617125713.293f484d@bike.lwn.net>
+ <BANLkTimPrkXUuTGCfrp8KyqhFNvfjoCzSw@mail.gmail.com>
+ <003101cc2f0b$207f9680$617ec380$%szyprowski@samsung.com>
+ <20110620094838.56daf754@bike.lwn.net>
+ <005601cc302d$427c0f70$c7742e50$%szyprowski@samsung.com>
+ <20110621111420.4ef5472e@bike.lwn.net>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Dear all,
+Hello,
 
-I recently tried to have a wireless microscope working with the em28xx 
-driver; the device is the following:
+On Tuesday, June 21, 2011 7:14 PM Jonathan Corbet wrote:
 
-http://www.cosview.com/cp/html/?3.html
+> On Tue, 21 Jun 2011 18:07:03 +0200
+> Marek Szyprowski <m.szyprowski@samsung.com> wrote:
+> 
+> > I have an idea to introduce a new flags to let device driver tell vb2
+> > weather it supports 'streaming without buffers' or not. This way the
+> > order of operations in vb2_streamon() function can be switched and vb2
+> > can also return an error if one will try to enable streaming on device
+> > that cannot do it without buffers pre-queued.
+> 
+> Do you really need a flag?  If a driver absolutely cannot stream without
+> buffers queued (and can't be fixed to start streaming for real when the
+> buffers show up) it should just return -EINVAL from start_streaming() or
+> some such.  The driver must be aware of its limitations regardless, but
+> there's no need to push that awareness into vb2 as well.
 
-it is listed in the usb bus with vendor id 14c3 and product id 2301.
-Looking the .inf of the MS windows driver I noticed that it seems to be 
-based on a Empia em2860 chipset, therefore I modified the em28xx driver 
-of the 2.6.24 linux kernel (specifically 2.6.24-28-generic linux kernel 
-in a Ubuntu Hardy distribution) so that this particular vendor id and 
-product id are associated to that driver (pls find patch below).
+The main idea behind vb2 was to move all common error handling code to
+the framework and provide simple functions that can be used by the driver
+directly without the need for additional checks.
 
-In fact this trick has worked, at least as far as the images are 
-concerned (there is also a button to take picture which I will be 
-working on later), and I've been able to see the images with the 
-following parameters of mplayer:
+> (FWIW, I wouldn't switch the order of operations in vb2_streamon(); I
+> would just take out the "if (q->streaming)" test at the end of vb2_qbuf()
+> and pass the buffers through directly.  But maybe that's just me.)
 
-mplayer -tv driver=v4l2:device=/dev/video0:norm=NTSC -vo x11 tv://
+I want to keep the current version of vb2_qbuf() and change the order of
+operations in streamon().
 
-I now need to upgrade the linux kernel to a newer version (2.6.32 or 
-newer); I followed the same path that was working with 2.6.24 (which is 
-basically have the device recognized as an empia device) and in fact 
-some images are visible but they are not stable; it seems as the new 
-driver version was not capble of managing the NTSC format (in fact I 
-noticed there is no more .norm field in the initialization structure).
-Do you have any advice?
+The only problem that still need to be resolved is what should happen with
+the buffers if start_streaming() fails. The ownership for these buffers have
+been already given to the driver, but they might have been in dirty state.
+Probably vb2 should assume that the buffers are lost and reinitialize them.
 
-Thanks in advance,
-
-Andrea
+Best regards
+-- 
+Marek Szyprowski
+Samsung Poland R&D Center
 
 
-diff em28xx-modified/em28xx-cards.c em28xx-orig/em28xx-cards.c
-266,283d265
-<     [EM2861_BOARD_COSVIEW] = {
-<         .name         = "Cosview Driver",
-<         .is_em2800    = 0,
-<         .vchannels    = 2,
-<         .norm         = VIDEO_MODE_NTSC,
-<         .tda9887_conf = TDA9887_PRESENT,
-<         .has_tuner    = 1,
-<         .decoder      = EM28XX_SAA7113,
-<         .input           = {{
-<             .type     = EM28XX_VMUX_COMPOSITE1,
-<             .vmux     = SAA7115_COMPOSITE0,
-<             .amux     = 1,
-<         },{
-<             .type     = EM28XX_VMUX_SVIDEO,
-<             .vmux     = SAA7115_SVIDEO3,
-<             .amux     = 1,
-<         }},
-<     },
-295,296d276
-<     { USB_DEVICE(0x2040, 0x6502), .driver_info = 
-EM2880_BOARD_HAUPPAUGE_WINTV_HVR_900 },
-<     { USB_DEVICE(0x14c3, 0x2301), .driver_info = EM2861_BOARD_COSVIEW },
-diff em28xx-modified/em28xx.h em28xx-orig/em28xx.h
-49d48
-< #define EM2861_BOARD_COSVIEW            14
 
