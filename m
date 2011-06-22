@@ -1,69 +1,53 @@
 Return-path: <mchehab@pedra>
-Received: from tex.lwn.net ([70.33.254.29]:55589 "EHLO vena.lwn.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754165Ab1FGNpy (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 7 Jun 2011 09:45:54 -0400
-Date: Tue, 7 Jun 2011 07:45:52 -0600
-From: Jonathan Corbet <corbet@lwn.net>
-To: Kassey Lee <kassey1216@gmail.com>
-Cc: linux-media@vger.kernel.org, g.liakhovetski@gmx.de,
-	Kassey Lee <ygli@marvell.com>
-Subject: Re: [RFC] Refactor the cafe_ccic driver and add Armada 610 support
-Message-ID: <20110607074552.499550e7@bike.lwn.net>
-In-Reply-To: <BANLkTim3ZCCti79FKn9-3toc56jZ9=w3-A@mail.gmail.com>
-References: <1307400003-94758-1-git-send-email-corbet@lwn.net>
-	<BANLkTim3ZCCti79FKn9-3toc56jZ9=w3-A@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 8bit
+Received: from mail-yx0-f174.google.com ([209.85.213.174]:35699 "EHLO
+	mail-yx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750945Ab1FVHcU (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 22 Jun 2011 03:32:20 -0400
+Content-Type: text/plain; charset=utf-8; format=flowed; delsp=yes
+To: linaro-mm-sig@lists.linaro.org, "Hans Verkuil" <hverkuil@xs4all.nl>
+Cc: "Arnd Bergmann" <arnd@arndb.de>,
+	linux-arm-kernel@lists.infradead.org,
+	"'Daniel Walker'" <dwalker@codeaurora.org>, linux-mm@kvack.org,
+	"'Mel Gorman'" <mel@csn.ul.ie>, linux-kernel@vger.kernel.org,
+	"'Jesse Barker'" <jesse.barker@linaro.org>,
+	"'Kyungmin Park'" <kyungmin.park@samsung.com>,
+	"'Ankita Garg'" <ankita@in.ibm.com>,
+	"'Andrew Morton'" <akpm@linux-foundation.org>,
+	linux-media@vger.kernel.org,
+	"'KAMEZAWA Hiroyuki'" <kamezawa.hiroyu@jp.fujitsu.com>
+Subject: Re: [Linaro-mm-sig] [PATCH 08/10] mm: cma: Contiguous Memory
+ Allocator added
+References: <1307699698-29369-1-git-send-email-m.szyprowski@samsung.com>
+ <000501cc2b2b$789a54b0$69cefe10$%szyprowski@samsung.com>
+ <201106150937.18524.arnd@arndb.de> <201106220903.31065.hverkuil@xs4all.nl>
+Date: Wed, 22 Jun 2011 09:32:13 +0200
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+From: "Michal Nazarewicz" <mina86@mina86.com>
+Message-ID: <op.vxgu7zgo3l0zgt@mnazarewicz-glaptop>
+In-Reply-To: <201106220903.31065.hverkuil@xs4all.nl>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Tue, 7 Jun 2011 13:30:11 +0800
-Kassey Lee <kassey1216@gmail.com> wrote:
+On Wed, 22 Jun 2011 09:03:30 +0200, Hans Verkuil <hverkuil@xs4all.nl>  
+wrote:
+> What I was wondering about is how this patch series changes the  
+> allocation in case it can't allocate from the CMA pool. Will it
+> attempt to fall back to a 'normal' allocation?
 
->       1)  this driver is still based on cafe_ccic.c, as you said, we
-> can abstract the low level register function, and use soc_camera and
-> videofbu2 to manage the buff and state machine,  how do you think ?
+Unless Marek changed something since I wrote the code, which I doubt,
+if CMA cannot obtain memory from CMA region, it will fail.
 
-As I said, videobuf2 is on my list of things to do.  Note that the driver
-works just fine without - that code has been in the kernel and working for
-years.  But it's a cleanup that needs to be done at this point, and I will
-do it.
+Part of the reason is that CMA lacks the knowledge where to allocate
+memory from.  For instance, with the case of several memory banks,
+it does not know which memory bank to allocate from.
 
->       2) i2c_adapter, how about move this code to driver/i2c, then
-> ccic driver will become clean?
+It is, in my opinion, a task for a higher level functions (read:
+DMA layer) to try another mechanism if CMA fails.
 
-The problem there is that you can't easily disentangle the two devices -
-they use the same registers, the same IRQ line, etc.  One *could* turn the
-whole thing into an MFD driver and split them apart, but I honestly don't
-see a reason to do that.  I'd be surprised if a Cafe chip ever shows up in
-anything new these days, so it's only used in the OLPC XO 1, and that i2c
-will never be used for anything but the sensor.
-
-The i2c *has* been abstracted out of the camera core, so the Cafe i2c
-implementation will not get in the way of any new drivers.
-
->       3) in mmp_driver.c, it has the sensor name, OV7670,  we wish
-> that ccic driver do not need to aware of the sensor, also we need to
-> support front and back camera sensor cases.
-
-The only reason the ov7670 dependency is there is because that's the only
-sensor the driver has ever been used with.  Adding other sensors has been
-complicated a bit by Hans's changes which pushed awareness of the
-available video formats into the controller driver (I complained at the
-time), but that can be worked around.
-
-For front and back: I didn't wire up the second controller in the mmp
-driver because I don't have a device that uses both.  I very much wrote
-the driver with the idea that both controllers could be used, though;
-finishing that job will be easy.
-
-One thing I haven't done is to look at your driver closely enough to think
-about whether mmp_camera can drive your hardware or not.  You'll have a
-better idea of that than me, I suspect; is the hardware pretty much the
-same?
-
-Thanks,
-
-jon
+-- 
+Best regards,                                         _     _
+.o. | Liege of Serenely Enlightened Majesty of      o' \,=./ `o
+..o | Computer Science,  Michal "mina86" Nazarewicz    (o o)
+ooo +-----<email/xmpp: mnazarewicz@google.com>-----ooO--(_)--Ooo--
