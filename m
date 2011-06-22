@@ -1,169 +1,70 @@
 Return-path: <mchehab@pedra>
-Received: from casper.infradead.org ([85.118.1.10]:46480 "EHLO
-	casper.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751195Ab1FYKkH (ORCPT
+Received: from mail-iw0-f174.google.com ([209.85.214.174]:58609 "EHLO
+	mail-iw0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751056Ab1FVQU5 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 25 Jun 2011 06:40:07 -0400
-Message-ID: <4E05BAFE.5000501@infradead.org>
-Date: Sat, 25 Jun 2011 07:39:58 -0300
-From: Mauro Carvalho Chehab <mchehab@infradead.org>
+	Wed, 22 Jun 2011 12:20:57 -0400
+Received: by iwn6 with SMTP id 6so821093iwn.19
+        for <linux-media@vger.kernel.org>; Wed, 22 Jun 2011 09:20:56 -0700 (PDT)
 MIME-Version: 1.0
-To: Takashi Iwai <tiwai@suse.de>
-CC: Ralf Baechle <ralf@linux-mips.org>, linux-mips@linux-mips.org,
-	alsa-devel@alsa-project.org, linux-media@vger.kernel.org,
-	linux-kernel@vger.kernel.org
-Subject: Re: [alsa-devel] [PATCH] MEDIA: Fix non-ISA_DMA_API link failure
- of	sound code
-References: <20110624133009.GA30076@linux-mips.org> <s5hmxh6v0k0.wl%tiwai@suse.de>
-In-Reply-To: <s5hmxh6v0k0.wl%tiwai@suse.de>
-Content-Type: text/plain; charset=ISO-2022-JP
-Content-Transfer-Encoding: 7bit
+In-Reply-To: <BANLkTikZ++5dZssDRuxJzNUEG_TDkZPGRg@mail.gmail.com>
+References: <BANLkTimtnbAzLTdFY2OiSddHTjmD_99CfA@mail.gmail.com>
+	<201106202037.19535.remi@remlab.net>
+	<BANLkTinn0uN3VwGfqCbYbxFoVf6aNo1VSA@mail.gmail.com>
+	<BANLkTin14LnwP+_K1m-RsEXza4M4CjqnEw@mail.gmail.com>
+	<BANLkTimR-zWnnLBcD2w8d8NpeFJi=eT9nQ@mail.gmail.com>
+	<005a01cc2f7d$a799be30$f6cd3a90$@coexsi.fr>
+	<BANLkTinbQ8oBJt7fScuT5vHGFktbaQNY5A@mail.gmail.com>
+	<BANLkTimTdMa_X1ygF8=B5gLdLXq1o-ER0g@mail.gmail.com>
+	<BANLkTimkZN9AtLanwvct+1p2DZOHSgF6Aw@mail.gmail.com>
+	<BANLkTimg0X5H5T8CsSR5Tr0CZbCZKiDEEA@mail.gmail.com>
+	<4DFFB1DA.5000602@redhat.com>
+	<BANLkTikZ++5dZssDRuxJzNUEG_TDkZPGRg@mail.gmail.com>
+Date: Wed, 22 Jun 2011 12:20:56 -0400
+Message-ID: <BANLkTikiZosMHMSEZzKKGD-A2aR4UV3_Mg@mail.gmail.com>
+Subject: Re: [RFC] vtunerc - virtual DVB device driver
+From: Steven Toth <stoth@kernellabs.com>
+To: HoP <jpetrous@gmail.com>
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Devin Heitmueller <dheitmueller@kernellabs.com>,
+	=?ISO-8859-1?Q?S=E9bastien_RAILLARD_=28COEXSI=29?= <sr@coexsi.fr>,
+	=?ISO-8859-1?Q?R=E9mi_Denis=2DCourmont?= <remi@remlab.net>,
+	linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Em 25-06-2011 04:21, Takashi Iwai escreveu:
-> At Fri, 24 Jun 2011 14:30:09 +0100,
-> Ralf Baechle wrote:
->>
->> A build with ISA && ISA_DMA && !ISA_DMA_API results in:
->>
->>   CC      sound/isa/es18xx.o
->> sound/isa/es18xx.c: In function ‘snd_es18xx_playback1_prepare’:
->> sound/isa/es18xx.c:501:9: error: implicit declaration of function ‘snd_dma_program’ [-Werror=implicit-function-declaration]
->> sound/isa/es18xx.c: In function ‘snd_es18xx_playback_pointer’:
->> sound/isa/es18xx.c:818:3: error: implicit declaration of function ‘snd_dma_pointer’ [-Werror=implicit-function-declaration]
->> cc1: some warnings being treated as errors
->>
->> make[2]: *** [sound/isa/es18xx.o] Error 1
->>   CC      sound/isa/sscape.o
->> sound/isa/sscape.c: In function ‘upload_dma_data’:
->> sound/isa/sscape.c:481:3: error: implicit declaration of function ‘snd_dma_program’ [-Werror=implicit-function-declaration]
->> cc1: some warnings being treated as errors
->>
->> make[2]: *** [sound/isa/sscape.o] Error 1
->>   CC      sound/isa/ad1816a/ad1816a_lib.o
->> sound/isa/ad1816a/ad1816a_lib.c: In function ‘snd_ad1816a_playback_prepare’:
->> sound/isa/ad1816a/ad1816a_lib.c:244:2: error: implicit declaration of function ‘snd_dma_program’ [-Werror=implicit-function-declaration]
->> sound/isa/ad1816a/ad1816a_lib.c: In function ‘snd_ad1816a_playback_pointer’:
->> sound/isa/ad1816a/ad1816a_lib.c:302:2: error: implicit declaration of function ‘snd_dma_pointer’ [-Werror=implicit-function-declaration]
->> sound/isa/ad1816a/ad1816a_lib.c: In function ‘snd_ad1816a_free’:
->> sound/isa/ad1816a/ad1816a_lib.c:544:3: error: implicit declaration of function ‘snd_dma_disable’ [-Werror=implicit-function-declaration]
->> cc1: some warnings being treated as errors
->>
->> make[3]: *** [sound/isa/ad1816a/ad1816a_lib.o] Error 1
->> make[3]: Target `__build' not remade because of errors.
->> make[2]: *** [sound/isa/ad1816a] Error 2
->>   CC      sound/isa/es1688/es1688_lib.o
->> sound/isa/es1688/es1688_lib.c: In function ‘snd_es1688_playback_prepare’:
->> sound/isa/es1688/es1688_lib.c:417:2: error: implicit declaration of function ‘snd_dma_program’ [-Werror=implicit-function-declaration]
->> sound/isa/es1688/es1688_lib.c: In function ‘snd_es1688_playback_pointer’:
->> sound/isa/es1688/es1688_lib.c:509:2: error: implicit declaration of function ‘snd_dma_pointer’ [-Werror=implicit-function-declaration]
->> cc1: some warnings being treated as errors
->>
->> make[3]: *** [sound/isa/es1688/es1688_lib.o] Error 1
->> make[3]: Target `__build' not remade because of errors.
->> make[2]: *** [sound/isa/es1688] Error 2
->>   CC      sound/isa/gus/gus_dma.o
->> sound/isa/gus/gus_dma.c: In function ‘snd_gf1_dma_program’:
->> sound/isa/gus/gus_dma.c:79:2: error: implicit declaration of function ‘snd_dma_program’ [-Werror=implicit-function-declaration]
->> sound/isa/gus/gus_dma.c: In function ‘snd_gf1_dma_done’:
->> sound/isa/gus/gus_dma.c:177:3: error: implicit declaration of function ‘snd_dma_disable’ [-Werror=implicit-function-declaration]
->> cc1: some warnings being treated as errors
->>
->> make[3]: *** [sound/isa/gus/gus_dma.o] Error 1
->>   CC      sound/isa/gus/gus_pcm.o
->> sound/isa/gus/gus_pcm.c: In function ‘snd_gf1_pcm_capture_prepare’:
->> sound/isa/gus/gus_pcm.c:591:2: error: implicit declaration of function ‘snd_dma_program’ [-Werror=implicit-function-declaration]
->> sound/isa/gus/gus_pcm.c: In function ‘snd_gf1_pcm_capture_pointer’:
->> sound/isa/gus/gus_pcm.c:619:2: error: implicit declaration of function ‘snd_dma_pointer’ [-Werror=implicit-function-declaration]
->> cc1: some warnings being treated as errors
->>
->> make[3]: *** [sound/isa/gus/gus_pcm.o] Error 1
->> make[3]: Target `__build' not remade because of errors.
->> make[2]: *** [sound/isa/gus] Error 2
->>   CC      sound/isa/sb/sb16_csp.o
->> sound/isa/sb/sb16_csp.c: In function ‘snd_sb_csp_ioctl’:
->> sound/isa/sb/sb16_csp.c:228:227: error: case label does not reduce to an integer constant
->> make[3]: *** [sound/isa/sb/sb16_csp.o] Error 1
->>   CC      sound/isa/sb/sb16_main.o
->> sound/isa/sb/sb16_main.c: In function ‘snd_sb16_playback_prepare’:
->> sound/isa/sb/sb16_main.c:276:2: error: implicit declaration of function ‘snd_dma_program’ [-Werror=implicit-function-declaration]
->> sound/isa/sb/sb16_main.c: In function ‘snd_sb16_playback_pointer’:
->> sound/isa/sb/sb16_main.c:456:2: error: implicit declaration of function ‘snd_dma_pointer’ [-Werror=implicit-function-declaration]
->> cc1: some warnings being treated as errors
->>
->> make[3]: *** [sound/isa/sb/sb16_main.o] Error 1
->>   CC      sound/isa/sb/sb8_main.o
->> sound/isa/sb/sb8_main.c: In function ‘snd_sb8_playback_prepare’:
->> sound/isa/sb/sb8_main.c:172:3: error: implicit declaration of function ‘snd_dma_program’ [-Werror=implicit-function-declaration]
->> sound/isa/sb/sb8_main.c: In function ‘snd_sb8_playback_pointer’:
->> sound/isa/sb/sb8_main.c:425:2: error: implicit declaration of function ‘snd_dma_pointer’ [-Werror=implicit-function-declaration]
->> cc1: some warnings being treated as errors
->>
->> make[3]: *** [sound/isa/sb/sb8_main.o] Error 1
->> make[3]: Target `__build' not remade because of errors.
->> make[2]: *** [sound/isa/sb] Error 2
->>   CC      sound/isa/wss/wss_lib.o
->> sound/isa/wss/wss_lib.c: In function ‘snd_wss_playback_prepare’:
->> sound/isa/wss/wss_lib.c:1025:2: error: implicit declaration of function ‘snd_dma_program’ [-Werror=implicit-function-declaration]
->> sound/isa/wss/wss_lib.c: In function ‘snd_wss_playback_pointer’:
->> sound/isa/wss/wss_lib.c:1160:2: error: implicit declaration of function ‘snd_dma_pointer’ [-Werror=implicit-function-declaration]
->> sound/isa/wss/wss_lib.c: In function ‘snd_wss_free’:
->> sound/isa/wss/wss_lib.c:1695:3: error: implicit declaration of function ‘snd_dma_disable’ [-Werror=implicit-function-declaration]
->> cc1: some warnings being treated as errors
->>
->> make[3]: *** [sound/isa/wss/wss_lib.o] Error 1
->>
->> The root cause for this is hidden in this Kconfig warning:
->>
->> warning: (RADIO_MIROPCM20) selects SND_ISA which has unmet direct dependencies (SOUND && !M68K && SND && ISA && ISA_DMA_API)
->>
->> Adding a dependency on ISA_DMA_API to RADIO_MIROPCM20 fixes these issues.
->>
->> Signed-off-by: Ralf Baechle <ralf@linux-mips.org>
-> 
-> Acked-by: Takashi Iwai <tiwai@suse.de>
+>> This is not a political issue. It is a licensing issue. If you want to use
+>> someone's else code, you need to accept the licensing terms that the developers
+>> are giving you, by either paying the price for the code usage (on closed source
+>> licensing models), or by accepting the license when using an open-sourced code.
 
-Ralf,
+Mauro,
 
-Do you want do send this patch directly? If so:
-Acked-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+My comments for your review:
 
-Otherwise, I can just add it into my tree with my SOB.
+I've spoken on this topic many times, it's bad news for the LinuxTV
+eco-system and it will eventually lead to binary only drivers that
+ultimately diminishes all of the good work that me any my fellow
+developers have poured into Linux over the last 5-10 years.
 
-Both ways work fine for me.
+I repeat my message from 2 years ago when the subject was raised: and
+this is (paraphrase) "I can say with great certainty that if we allow
+API's that permit closed source drivers then silicon vendors and board
+manufacturers will take advantage of that, they will only delivery (at
+best) closed source drivers".
 
-Thanks,
-Mauro
-> 
-> 
-> thanks,
-> 
-> Takashi
-> 
->>
->>  drivers/media/radio/Kconfig |    2 +-
->>  1 files changed, 1 insertions(+), 1 deletions(-)
->>
->> diff --git a/drivers/media/radio/Kconfig b/drivers/media/radio/Kconfig
->> index e4c97fd..0aeed28 100644
->> --- a/drivers/media/radio/Kconfig
->> +++ b/drivers/media/radio/Kconfig
->> @@ -168,7 +168,7 @@ config RADIO_MAXIRADIO
->>  
->>  config RADIO_MIROPCM20
->>  	tristate "miroSOUND PCM20 radio"
->> -	depends on ISA && VIDEO_V4L2 && SND
->> +	depends on ISA && ISA_DMA_API && VIDEO_V4L2 && SND
->>  	select SND_ISA
->>  	select SND_MIRO
->>  	---help---
->> _______________________________________________
->> Alsa-devel mailing list
->> Alsa-devel@alsa-project.org
->> http://mailman.alsa-project.org/mailman/listinfo/alsa-devel
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+If closed source drivers is what the community wants then this is a
+way to achieve this.
 
+I don't want to see user-space drivers happen through LinuxDVB or V4L2 API's.
+
+I politely and respectfully nack this idea.
+
+Best,
+
+- Steve
+
+-- 
+Steven Toth - Kernel Labs
+http://www.kernellabs.com
