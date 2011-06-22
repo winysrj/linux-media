@@ -1,51 +1,49 @@
 Return-path: <mchehab@pedra>
-Received: from mailout-de.gmx.net ([213.165.64.23]:60294 "HELO
-	mailout-de.gmx.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1751930Ab1FYAiU convert rfc822-to-8bit (ORCPT
+Received: from mailout2.w1.samsung.com ([210.118.77.12]:24545 "EHLO
+	mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932376Ab1FVPoh (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 24 Jun 2011 20:38:20 -0400
-From: Oliver Endriss <o.endriss@gmx.de>
-Reply-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-To: Simon Liddicott <simon@liddicott.com>
-Subject: Re: [DVB] Octopus driver status
-Date: Sat, 25 Jun 2011 02:37:58 +0200
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	=?iso-8859-15?q?S=E9bastien_RAILLARD?= (COEXSI) <sr@coexsi.fr>
-References: <017201cc31ec$de287ce0$9a7976a0$@coexsi.fr> <4E047B9C.1010308@redhat.com> <BANLkTinzBGMxwd7AmxPhG3Q1pCx0EsUxvA@mail.gmail.com>
-In-Reply-To: <BANLkTinzBGMxwd7AmxPhG3Q1pCx0EsUxvA@mail.gmail.com>
-MIME-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-15"
-Content-Transfer-Encoding: 8BIT
-Content-Disposition: inline
-Message-Id: <201106250237.59401@orion.escape-edv.de>
+	Wed, 22 Jun 2011 11:44:37 -0400
+Received: from spt2.w1.samsung.com (mailout2.w1.samsung.com [210.118.77.12])
+ by mailout2.w1.samsung.com
+ (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14 2004))
+ with ESMTP id <0LN700H2V7QCPZ@mailout2.w1.samsung.com> for
+ linux-media@vger.kernel.org; Wed, 22 Jun 2011 16:44:36 +0100 (BST)
+Received: from linux.samsung.com ([106.116.38.10])
+ by spt2.w1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14
+ 2004)) with ESMTPA id <0LN700H7X7QBNB@spt2.w1.samsung.com> for
+ linux-media@vger.kernel.org; Wed, 22 Jun 2011 16:44:35 +0100 (BST)
+Date: Wed, 22 Jun 2011 17:44:27 +0200
+From: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Subject: [PATCH 0/3] noon010pc30 driver conversion to the pad level operations
+To: linux-media@vger.kernel.org
+Cc: m.szyprowski@samsung.com, kyungmin.park@samsung.com,
+	laurent.pinchart@ideasonboard.com, s.nawrocki@samsung.com,
+	sw0312.kim@samsung.com, riverful.kim@samsung.com
+Message-id: <1308757470-24421-1-git-send-email-s.nawrocki@samsung.com>
+MIME-version: 1.0
+Content-type: TEXT/PLAIN
+Content-transfer-encoding: 7BIT
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Friday 24 June 2011 14:44:50 Simon Liddicott wrote:
-> Do you have a Terratec Cinergy 2400i? It belongs to the ngene family but has
-> PLL tuners. http://linuxtv.org/wiki/index.php/TerraTec_Cinergy_2400i_DVB-T
-> 
-> There are some drivers floating on the net that I have got to work in Ubuntu
-> 8.04 but the current ngene drivers has moved on a long way and left it
-> behind.
+The following patch set converts noon010pc30 camera sensor driver to the 
+subdev pad level operations. Additionally it cleans up some leftover after
+conversion to the regulator framework and marks driver as experimental
+as it now uses V4L2 sub-device API.
 
-Sorry, I do not have this device, and I have no plans to work on it.
-Terratec did not contribute in any way to the ngene driver. [1]
 
-As always, patches are welcome.
+Sylwester Nawrocki (3):
+  noon010pc30: Do not ignore errors in initial controls setup
+  noon010pc30: Convert to the pad level ops
+  noon010pc30: Clean up the s_power callback
 
-CU
-Oliver
+ drivers/media/video/Kconfig       |    2 +-
+ drivers/media/video/noon010pc30.c |  151 ++++++++++++++++++++++++-------------
+ 2 files changed, 98 insertions(+), 55 deletions(-)
 
-[1] Some time ago I had a look at that driver, and found that it could
-    not be added to the kernel, due to an GPL-incompatible proprietary
-    license for some files.
 
--- 
-----------------------------------------------------------------
-VDR Remote Plugin 0.4.0: http://www.escape-edv.de/endriss/vdr/
-4 MByte Mod: http://www.escape-edv.de/endriss/dvb-mem-mod/
-Full-TS Mod: http://www.escape-edv.de/endriss/dvb-full-ts-mod/
-----------------------------------------------------------------
+--
+Regards,
+Sylwester
+
