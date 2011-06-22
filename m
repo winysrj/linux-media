@@ -1,90 +1,88 @@
 Return-path: <mchehab@pedra>
-Received: from mail-bw0-f46.google.com ([209.85.214.46]:65177 "EHLO
-	mail-bw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752131Ab1F3TJq convert rfc822-to-8bit (ORCPT
+Received: from moutng.kundenserver.de ([212.227.17.8]:60503 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758326Ab1FVWSG (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 30 Jun 2011 15:09:46 -0400
-Received: by bwd5 with SMTP id 5so2069394bwd.19
-        for <linux-media@vger.kernel.org>; Thu, 30 Jun 2011 12:09:45 -0700 (PDT)
-From: "Igor M. Liplianin" <liplianin@me.by>
-To: Jarod Wilson <jarod@redhat.com>
-Subject: Re: [PATCH] Revert "V4L/DVB: cx23885: Enable Message Signaled Interrupts(MSI)"
-Date: Thu, 30 Jun 2011 22:10:22 +0300
-Cc: linux-media@vger.kernel.org, Andy Walls <awalls@md.metrocast.net>,
-	Kusanagi Kouichi <slash@ac.auone-net.jp>,
-	Steven Toth <stoth@linuxtv.org>
-References: <1309384173-12933-1-git-send-email-jarod@redhat.com>
-In-Reply-To: <1309384173-12933-1-git-send-email-jarod@redhat.com>
+	Wed, 22 Jun 2011 18:18:06 -0400
+Date: Thu, 23 Jun 2011 00:17:59 +0200 (CEST)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	sakari.ailus@maxwell.research.nokia.com,
+	Sylwester Nawrocki <snjw23@gmail.com>,
+	Stan <svarbanov@mm-sol.com>, Hans Verkuil <hansverk@cisco.com>,
+	saaguirre@ti.com, Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: Re: [PATCH v2] V4L: add media bus configuration subdev operations
+In-Reply-To: <201106222353.39567.hverkuil@xs4all.nl>
+Message-ID: <Pine.LNX.4.64.1106230009200.3535@axis700.grange>
+References: <Pine.LNX.4.64.1106222314570.3535@axis700.grange>
+ <201106222353.39567.hverkuil@xs4all.nl>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="utf-8"
-Content-Transfer-Encoding: 8BIT
-Message-Id: <201106302210.22361.liplianin@me.by>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-В сообщении от 30 июня 2011 00:49:33 автор Jarod Wilson написал:
-> This reverts commit e38030f3ff02684eb9e25e983a03ad318a10a2ea.
-> 
-> MSI flat-out doesn't work right on cx2388x devices yet. There are now
-> multiple reports of cards that hard-lock systems when MSI is enabled,
-> including my own HVR-1250 when trying to use its built-in IR receiver.
-> Disable MSI and it works just fine. Similar for another user's HVR-1270.
-> Issues have also been reported with the HVR-1850 when MSI is enabled,
-> and the 1850 behavior sounds similar to an as-yet-undiagnosed issue I've
-> seen with an 1800.
-> 
-> References:
-> 
-> http://www.spinics.net/lists/linux-media/msg25956.html
-> http://www.spinics.net/lists/linux-media/msg33676.html
-> http://www.spinics.net/lists/linux-media/msg34734.html
-It's chronic problem now ...
-http://www.spinics.net/lists/linux-media/msg22494.html
+Hi Hans
 
-And how I cure it for particular card.
-http://www.spinics.net/lists/linux-media/msg28334.html
+Thanks for the review, agree to all, except one:
 
-Now I see, to revert commit e38030f3ff02684eb9e25e983a03ad318a10a2ea is a 
-necessity.
+On Wed, 22 Jun 2011, Hans Verkuil wrote:
 
-> 
-> CC: Andy Walls <awalls@md.metrocast.net>
-> CC: Kusanagi Kouichi <slash@ac.auone-net.jp>
-> Signed-off-by: Jarod Wilson <jarod@redhat.com>
-> ---
->  drivers/media/video/cx23885/cx23885-core.c |    9 ++-------
->  1 files changed, 2 insertions(+), 7 deletions(-)
-> 
-> diff --git a/drivers/media/video/cx23885/cx23885-core.c
-> b/drivers/media/video/cx23885/cx23885-core.c index 64d9b21..419777a 100644
-> --- a/drivers/media/video/cx23885/cx23885-core.c
-> +++ b/drivers/media/video/cx23885/cx23885-core.c
-> @@ -2060,12 +2060,8 @@ static int __devinit cx23885_initdev(struct pci_dev
-> *pci_dev, goto fail_irq;
->  	}
-> 
-> -	if (!pci_enable_msi(pci_dev))
-> -		err = request_irq(pci_dev->irq, cx23885_irq,
-> -				  IRQF_DISABLED, dev->name, dev);
-> -	else
-> -		err = request_irq(pci_dev->irq, cx23885_irq,
-> -				  IRQF_SHARED | IRQF_DISABLED, dev->name, dev);
-> +	err = request_irq(pci_dev->irq, cx23885_irq,
-> +			  IRQF_SHARED | IRQF_DISABLED, dev->name, dev);
->  	if (err < 0) {
->  		printk(KERN_ERR "%s: can't get IRQ %d\n",
->  		       dev->name, pci_dev->irq);
-> @@ -2114,7 +2110,6 @@ static void __devexit cx23885_finidev(struct pci_dev
-> *pci_dev)
-> 
->  	/* unregister stuff */
->  	free_irq(pci_dev->irq, dev);
-> -	pci_disable_msi(pci_dev);
-> 
->  	cx23885_dev_unregister(dev);
->  	v4l2_device_unregister(v4l2_dev);
+> On Wednesday, June 22, 2011 23:26:29 Guennadi Liakhovetski wrote:
 
--- 
-Igor M. Liplianin
-Microsoft Windows Free Zone - Linux used for all Computing Tasks
+[snip]
+
+> > +static inline unsigned long v4l2_mbus_config_compatible(struct v4l2_mbus_config *cfg,
+> > +							unsigned long flags)
+> 
+> This function is too big to be a static inline. I would also go for a bool return type.
+> And cfg should be a const pointer.
+
+return is not just a bool, it's a mask of common flags.
+
+> > +	switch (cfg->type) {
+> > +	case V4L2_MBUS_PARALLEL:
+> > +		hsync = common_flags & (V4L2_MBUS_HSYNC_ACTIVE_HIGH |
+> > +					V4L2_MBUS_HSYNC_ACTIVE_LOW);
+> > +		vsync = common_flags & (V4L2_MBUS_VSYNC_ACTIVE_HIGH |
+> > +					V4L2_MBUS_VSYNC_ACTIVE_LOW);
+> > +		pclk = common_flags & (V4L2_MBUS_PCLK_SAMPLE_RISING |
+> > +				       V4L2_MBUS_PCLK_SAMPLE_FALLING);
+> > +		data = common_flags & (V4L2_MBUS_DATA_ACTIVE_HIGH |
+> > +				       V4L2_MBUS_DATA_ACTIVE_LOW);
+> > +		mode = common_flags & (V4L2_MBUS_MASTER | V4L2_MBUS_SLAVE);
+> > +		return (!hsync || !vsync || !pclk || !data || !mode) ?
+> > +			0 : common_flags;
+> > +	case V4L2_MBUS_CSI2:
+> > +		mipi_lanes = common_flags & V4L2_MBUS_CSI2_LANES;
+> > +		mipi_clock = common_flags & (V4L2_MBUS_CSI2_NONCONTINUOUS_CLOCK |
+> > +					     V4L2_MBUS_CSI2_CONTINUOUS_CLOCK);
+> > +		return (!mipi_lanes || !mipi_clock) ? 0 : common_flags;
+> > +	case V4L2_MBUS_BT656:
+> > +		/* TODO: implement me */
+> 
+> Isn't this identical to MBUS_PARALLEL, except that it can ignore the hsync/vsync
+> signals? So this case can go in between the 'vsync =' and 'pclk =' lines above.
+> (hsync and vsync should be initialized to true of course).
+
+Well, maybe. We could do that or leave it unimplemented until someone 
+really uses it.
+
+> > @@ -294,6 +298,8 @@ struct v4l2_subdev_video_ops {
+> >  			    struct v4l2_mbus_framefmt *fmt);
+> >  	int (*s_mbus_fmt)(struct v4l2_subdev *sd,
+> >  			  struct v4l2_mbus_framefmt *fmt);
+> > +	int (*g_mbus_config)(struct v4l2_subdev *sd, struct v4l2_mbus_config *cfg);
+> > +	int (*s_mbus_config)(struct v4l2_subdev *sd, struct v4l2_mbus_config *cfg);
+> 
+> cfg can be a const pointer.
+
+In s_... you mean, not in g_...
+
+Thanks
+Guennadi
+---
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
+http://www.open-technology.de/
