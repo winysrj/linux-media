@@ -1,146 +1,205 @@
 Return-path: <mchehab@pedra>
-Received: from 5571f1ba.dsl.concepts.nl ([85.113.241.186]:52913 "EHLO
-	his10.thuis.hoogenraad.info" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1755519Ab1FJOXP (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 10 Jun 2011 10:23:15 -0400
-Message-ID: <4DF226B7.1060602@hoogenraad.net>
-Date: Fri, 10 Jun 2011 16:14:15 +0200
-From: Jan Hoogenraad <jan-verisign@hoogenraad.net>
+Received: from ffm.saftware.de ([83.141.3.46]:36024 "EHLO ffm.saftware.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S932225Ab1FVPpl (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 22 Jun 2011 11:45:41 -0400
+Message-ID: <4E020E20.1010105@linuxtv.org>
+Date: Wed, 22 Jun 2011 17:45:36 +0200
+From: Andreas Oberritter <obi@linuxtv.org>
 MIME-Version: 1.0
-To: Devin Heitmueller <dheitmueller@kernellabs.com>,
-	Andy Walls <awalls@md.metrocast.net>
-CC: linux-media@vger.kernel.org
-Subject: Re: Media_build does not compile due to errors in cx18-driver.h,
- cx18-driver.c and dvbdev.c /rc-main.c
-References: <4DF1FF06.4050502@hoogenraad.net>	<3e84c07f-83ff-4f83-9f8f-f52631259f05@email.android.com> <BANLkTinE1vRVJ+j+7JiPHZqXHJ8WTFX+cg@mail.gmail.com> <4DF21AA7.1010505@hoogenraad.net>
-In-Reply-To: <4DF21AA7.1010505@hoogenraad.net>
-Content-Type: multipart/mixed;
- boundary="------------070200010504080103040202"
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+CC: HoP <jpetrous@gmail.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: [RFC] vtunerc - virtual DVB device driver
+References: <BANLkTimtnbAzLTdFY2OiSddHTjmD_99CfA@mail.gmail.com>	<BANLkTimR-zWnnLBcD2w8d8NpeFJi=eT9nQ@mail.gmail.com>	<005a01cc2f7d$a799be30$f6cd3a90$@coexsi.fr>	<BANLkTinbQ8oBJt7fScuT5vHGFktbaQNY5A@mail.gmail.com>	<BANLkTimTdMa_X1ygF8=B5gLdLXq1o-ER0g@mail.gmail.com>	<BANLkTimkZN9AtLanwvct+1p2DZOHSgF6Aw@mail.gmail.com>	<BANLkTimg0X5H5T8CsSR5Tr0CZbCZKiDEEA@mail.gmail.com>	<4DFFB1DA.5000602@redhat.com>	<BANLkTikZ++5dZssDRuxJzNUEG_TDkZPGRg@mail.gmail.com>	<4DFFF56D.5070602@redhat.com>	<4E007AA7.7070400@linuxtv.org>	<BANLkTik3ACfDwkyKVU2eZtxBeLH_mGh7pg@mail.gmail.com>	<4E00A78B.2020008@linuxtv.org>	<4E00AC2A.8060500@redhat.com>	<4E00B41B.50303@linuxtv.org>	<4E00D07B.5030202@redhat.com>	<BANLkTikmbVj1t7w3XmHXW58Kpvv0M_jbnQ@mail.gmail.com>	<4E01DD57.3080508@redhat.com> <BANLkTimpVu+Hz0j+WUmSAsyON4u=W3cr+g@mail.gmail.com> <4E01E81A.5030709@redhat.com> <4E01EA6E.1080002@linuxtv.! org> <4E01F1DE.2040609@redhat.com> <4E01FB01.8010708@linuxtv.org> <4E020800.40304@redhat.com>
+In-Reply-To: <4E020800.40304@redhat.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-This is a multi-part message in MIME format.
---------------070200010504080103040202
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-
-Sorry; too fast a reaction; I did not realize that the build script 
-creates a version per kernel, and that my messages thus become hard to 
-trace.
-
-The cx18 doubles were clear. The one in the code file may be caused by
-v2.6.37_dont_use_alloc_ordered_workqueue.patch
-but I don't see the problem in the header file in that patch.
-
-
-
-Below the 3 non cx18 offending lines:
-
-line in v4l2-dev.c:
-
-	printk(KERN_ERR "WARNING: You are using an experimental version of the 
-media stack.\n\tAs the driver is backported to an older kernel, it 
-doesn't offer\n\tenough quality for its usage in production.\n\tUse it 
-with care.\nLatest git patches (needed if you report a bug to 
-linux-media@vger.kernel.org):\n\t75125b9d44456e0cf2d1fbb72ae33c13415299d1 [media] 
-DocBook: Don't be noisy at make 
-cleanmediadocs\n\t0fba2f7ff0c4d9f48a5c334826a22db32f816a76 Revert 
-\\"[media] dvb/audio.h: Remove definition for 
-AUDIO_GET_PTS\\"\n\t4f75ad768da3c5952d1e7080045a5b5ce7b0d85d [media] 
-DocBook/video.xml: Document the remaining data structures\n");
-
-
-line in rc-main.c:
-
-	printk(KERN_ERR "WARNING: You are using an experimental version of the 
-media stack.\n\tAs the driver is backported to an older kernel, it 
-doesn't offer\n\tenough quality for its usage in production.\n\tUse it 
-with care.\nLatest git patches (needed if you report a bug to 
-linux-media@vger.kernel.org):\n\t75125b9d44456e0cf2d1fbb72ae33c13415299d1 [media] 
-DocBook: Don't be noisy at make 
-cleanmediadocs\n\t0fba2f7ff0c4d9f48a5c334826a22db32f816a76 Revert 
-\\"[media] dvb/audio.h: Remove definition for 
-AUDIO_GET_PTS\\"\n\t4f75ad768da3c5952d1e7080045a5b5ce7b0d85d [media] 
-DocBook/video.xml: Document the remaining data structures\n");
-
-
-
-line in dvbdeb.c:
-
-
-	printk(KERN_ERR "WARNING: You are using an experimental version of the 
-media stack.\n\tAs the driver is backported to an older kernel, it 
-doesn't offer\n\tenough quality for its usage in production.\n\tUse it 
-with care.\nLatest git patches (needed if you report a bug to 
-linux-media@vger.kernel.org):\n\t75125b9d44456e0cf2d1fbb72ae33c13415299d1 [media] 
-DocBook: Don't be noisy at make 
-cleanmediadocs\n\t0fba2f7ff0c4d9f48a5c334826a22db32f816a76 Revert 
-\\"[media] dvb/audio.h: Remove definition for 
-AUDIO_GET_PTS\\"\n\t4f75ad768da3c5952d1e7080045a5b5ce7b0d85d [media] 
-DocBook/video.xml: Document the remaining data structures\n");
-
-Jan Hoogenraad wrote:
-> Andy:
->
-> Something along the line of id already defined.
-> I just corrected the code by removing the duplicate lines that are in
-> the sources of the tar.
->
-> The other 3 files have a bad escape sequence in a line saying that this
-> is the backports. One backslash not removed in a script, I guess.
->
-> Devin:
->
-> The version does not matter for the cx18 problem: any compiler complains
-> on duplicate lines.
->
-> Anyway: 2.6.32-32-generic-pae #62-Ubuntu SMP Wed Apr 20 22:10:33 UTC
-> 2011 i686 GNU/Linux
->
-> Devin Heitmueller wrote:
->> On Fri, Jun 10, 2011 at 8:34 AM, Andy Walls<awalls@md.metrocast.net>
->> wrote:
->>> What are the error messages?
+On 06/22/2011 05:19 PM, Mauro Carvalho Chehab wrote:
+> Em 22-06-2011 11:24, Andreas Oberritter escreveu:
+>> On 06/22/2011 03:45 PM, Mauro Carvalho Chehab wrote:
+>>> Em 22-06-2011 10:13, Andreas Oberritter escreveu:
+>>>> On 06/22/2011 03:03 PM, Mauro Carvalho Chehab wrote:
+>>>>> Em 22-06-2011 09:37, HoP escreveu:
+>>>>>> 2011/6/22 Mauro Carvalho Chehab <mchehab@redhat.com>:
+>>>>>>> Em 21-06-2011 14:38, HoP escreveu:
+>>>>>>>> 2011/6/21 Mauro Carvalho Chehab <mchehab@redhat.com>:
+>> [...]
+>>>>>>>>> If people have different understandings, then we'll likely need to ask some
+>>>>>>>>> support from Open source lawyers about this subject.
+>>>>>>>>
+>>>>>>>> My very little opinion is that waving GPL is way to the hell. Nobody told me
+>>>>>>>> why similar technologies, in different kernel parts are acceptable,
+>>>>>>>> but not here.
+>>>>>>>
+>>>>>>> If you want to do the networking code at userspace, why do you need a kernel
+>>>>>>> driver after all? The proper solution is to write an userspace library for that,
+>>>>>>> and either enclose such library inside the applications, or use LD_PRELOAD to
+>>>>>>> bind the library to handle the open/close/ioctl glibc calls. libv4l does that.
+>>>>>>> As it proofed to be a good library, now almost all V4L applications are using
+>>>>>>> it.
+>>>>>>
+>>>>>> LD_PELOAD is out of bussiness for normal work. It is technique for development
+>>>>>> and/or debugging.
+>>>>>
+>>>>> Well, libv4l successfully uses LD_PRELOAD in order to support all applications 
+>>>>> that weren't ported to it yet. It offers two ways:
+>>>>> 	1) you can use it as a normal library;
+>>>>> 	2) you can use it with LD_PRELOAD.
+>>>>>
+>>>>>
+>>>>>> Library would be possible, but then you kill main advantage
+>>>>>> - totally independece of changes inside userland DVB applications.
+>>>>>
+>>>>> Why? if you write a "dvb_open", "dvb_ioctl", ... methods with the same syntax of
+>>>>> glibc open, ioctl, ..., the efforts to migrate an userspace application to use it
+>>>>> is to just run:
+>>>>> 	sed s,open,dvb_open,g
+>>>>> 	sed s,ioctl,dvb_ioctl,g
+>>>>>
+>>>>>
+>>>>> The library and the application will be completely independent.
+>>>>
+>>>> How do you transparently set up the network parameters? By using
+>>>> environment variables? How do you pass existing sockets to the library?
+>>>> How do you intercept an open() that won't ever happen, because no
+>>>> virtual device to be opened exists?
 >>>
->>> Tejun Heo made quite a number of workqueue changes, and the cx18
->>> driver got dragged forward with them. So did ivtv for that matter.
+>>> Sorry, but I failed to see at the vtunerc driver anything network-related.
+>>
+>> Of course it doesn't. You're the one who proposed to put networking into
+>> the driver. I however fail to see how you imagined to add remote tuner
+>> support to any existing application by using LD_PRELOAD.
+> 
+> If you take a look at libv4l, it hooks calls to open/close/ioctl/read/write glibc
+> calls. So, when an userspace application calls "open", it will run the library
+> code, and not glibc open function. So, it is completely transparent to the
+> userspace application.
+
+Again, please answer this question, how do you plan to intercept an
+open() call for a character device that *doesn't exist*, because it's on
+a remote system? That open() will never happen. LD_PRELOAD may have
+worked well for whatever was needed for libv4l, but that's obviously a
+different thing.
+
+>>> Also, the picture shows that it is just acting as a proxy to an userspace code
+>>> that it is actually handling the network conversion. The complete solution
+>>> seems to have a kernel driver and an userspace client/daemon.
+>>
+>> Right.
+>>
+>>> Technically, doing such proxy in kernel is not a good idea, due to several
+>>> reasons:
 >>>
->>> Just disable the cx18 driver if you don't need it for an older kernel.
+>>> 1) The proxy code and the userspace network client will need to be tightly coupled:
+>>> if you add a new feature at the proxy, the same feature will need to be supported by
+>>> the userspace daemon;
+>>
+>> Just like anything else DVB related inside the kernel.
+> 
+> Yes.
+> 
+>> Adding a new feature to the proxy would mean that a new feature got
+>> added to the frontend API, so a new kernel would be required anyway.
+>>
+>>> 2) Data will need to be using copy_from_user/copy_to_user for every data access;
+>>
+>> Also, just like anything else DVB related inside the kernel.
+> 
+> Yes, but if you do it on userspace, you don't need to do double buffering.
+> With a proxy, the same data will need to be passed 3 times from/to kernelspace:
+> 2 times at vtunerc, and 1 time to the network driver. If implemented on userspace,
+> all it needed is to pass the data to the network driver, reducing latency.
+> 
+> Also, newer functions can be added on userspace in order to optimize applications
+> that will use it as a library, like providing functions that combine DVB and
+> network commands altogether.
+> 
+>> No one would notice some frontend ioctl parameters being copied twice.
+>> We're talking about a few bytes.
+> 
+> If the intention is to limit it to just frontend ioctl's, you're right: the
+> only difference is that latency will be a little higher, probably unnoticed
+> (yet, introduced for not a good reason). But, if the intention is to also
+> provide remote streaming, then the volume of data copied tree times will
+> be noticeable, especially if the stream is in HD and/or if support for full-featured
+> DVB cards is added later.
+
+Didn't you read the following paragraph? Yes, it's basically just
+frontend ioctls. Transparency is a good reason in my opinion.
+
+>> Passing the remote TS to the kernel is completely *optional*, and only
+>> required if you want to use the kernel's demux or the underlying
+>> hardware's filtering and decoding features. However, the TS even gets
+>> filtered before being transferred over the network. So again, even if
+>> used though being optional, this is not a big data rate.
+
+If you want to decode a stream with a full featured card, you have to
+copy it to kernel space *once*, not twice. This is optional.
+
+If you want to use the kernel demux, you have to copy it to kernel space
+once and partially copy back again, but filtered. Again, this is optional.
+
+If you don't want to use the kernel demux and you don't want to use a
+full featured card's decoder, there's no reason to copy anything to
+kernel space at all.
+
+You cannot avoid any of those copies by your library approach.
+
+>>> 3) There's no good reason to write such code inside kernelspace.
 >>>
->>> Regards,
->>> Andy
+>>> On a library based approach, what you'll have, instead is a library. The same
+>>> userspace client/daemon will be needed. However, as both can be shipped together
+>>> (the library proxy code and the userspace client/daemon), there are several
+>>> advantages, like:
+>>>
+>>> 1) The library and the userspace client will be in sync: there's no need to check
+>>> for version differences at the api, or providing any sort of backport support;
 >>
->> Another highly relevant piece of information to know is what kernel
->> Jan is running on. It is probably from before the workqueue changes.
+>> Breaking the ABI of libraries isn't much better than breaking the ABI of
+>> kernel interfaces. A library may have many users, more than "the
+>> userspace client" you're talking about.
+> 
+> That's partially true. If the library and the userspace client are bound together,
+> if new features are added at the library, the userspace client can assume that those
+> new features will be there. So, you only need to take care with backward compatibility
+> at the library side. With that functionality in Kernel, backward compatibility should 
+> be warranted on both ways.
+> 
+>>> 2) There's no need to recompile the kernel when someone wants to use the proxy;
 >>
->> Devin
+>> You could of course build it as a module, without the need to recompile
+>> the kernel.
+> 
+> Yes. 
+> 
+>>> 3) The userspace won't be bound to the Kernel release schedule: When the code is
+>>> stable enough, both libraries and userspace can be released at the same time.
 >>
->
->
+>> For the same reason one could argue that putting device drivers into
+>> userspace would have the same benefits.
+>>
+>> Well, the original proposal was to add a driver with supporting programs
+>> which enables every existing DVB application to *transparently* work
+>> with remote tuners.
+>>
+>> What you're proposing now is to write a library, which works with remote
+>> tuners, too, but which requires manual integration into each and every
+>> application.
+> 
+> With LD_PRELOAD, it will be transparent.
 
+... but won't work.
 
---------------070200010504080103040202
-Content-Type: text/x-vcard; charset=utf-8;
- name="jan-verisign.vcf"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: attachment;
- filename="jan-verisign.vcf"
+>> By the way, if we had such a library, supported by every major
+>> application, then it would be very easy to implement closed source
+>> frontend drivers on top of it. ;-)
+> 
+> True.
+> 
+> Cheers,
+> Mauro
 
-begin:vcard
-fn:Jan Hoogenraad
-n:Hoogenraad;Jan
-org:Hoogenraad Interface Services
-adr;quoted-printable;dom:;;Postbus 2717;Utrecht;;-- =
-	=0D=0A=
-	Jan Hoogenraad=0D=0A=
-	Hoogenraad Interface Services=0D=0A=
-	Postbus 2717=0D=0A=
-	3500 GS
-email;internet:jan-verisign@hoogenraad.net
-x-mozilla-html:FALSE
-version:2.1
-end:vcard
-
-
---------------070200010504080103040202--
