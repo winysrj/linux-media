@@ -1,113 +1,103 @@
 Return-path: <mchehab@pedra>
-Received: from mx1.redhat.com ([209.132.183.28]:31872 "EHLO mx1.redhat.com"
+Received: from mx1.redhat.com ([209.132.183.28]:11603 "EHLO mx1.redhat.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754285Ab1FZQHq (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 26 Jun 2011 12:07:46 -0400
-Date: Sun, 26 Jun 2011 13:06:19 -0300
+	id S1757377Ab1FVS0o (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 22 Jun 2011 14:26:44 -0400
+Message-ID: <4E0233DE.6030802@redhat.com>
+Date: Wed, 22 Jun 2011 15:26:38 -0300
 From: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	LKML <linux-kernel@vger.kernel.org>
-Subject: [PATCH 02/14] [media] return -ENOIOCTLCMD for unsupported ioctl's
- at legacy drivers
-Message-ID: <20110626130619.2338a6a8@pedra>
-In-Reply-To: <cover.1309103285.git.mchehab@redhat.com>
-References: <cover.1309103285.git.mchehab@redhat.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
-To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
+MIME-Version: 1.0
+To: nogueira13 <nogueira13@gmail.com>
+CC: linux-media@vger.kernel.org
+Subject: Re: KAIOMY ISDB-T Hybrid USB Dongle Receiver
+References: <BANLkTimRt5m_+LBGqF25YY9jU=OLUtXFeg@mail.gmail.com>
+In-Reply-To: <BANLkTimRt5m_+LBGqF25YY9jU=OLUtXFeg@mail.gmail.com>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Those drivers are not relying at the V4L2 core to handle the ioctl's.
-So, we need to manually patch them every time a change goes to the
-core.
+Hi Antônio,
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+Em 22-06-2011 15:13, nogueira13 escreveu:
+> I bought a KAIOMY ISDB-T Hybrid USB Dongle Receiver to use with my
+> Dell Inspiron 15 Laptop under Ubuntu 11.04 Linux. But I connect it in
+> the USB port and it doesn't recognises it. The kernel version I am
+> using is the 2.6.38-8-generic. I opened the menuconfig of the kernel
+> and I could saw that all modules in the especific section "Device
+> Drivers --> Multimedia support --> DVB/ATSC Adapters" are all set to
+> <M>. I was thinking that the driver v2l already was buit in this
+> modules. But when I connected the device in the USB port I got the
+> following autputs to the lsusb and dmesg commands in the console:
+> 
+> Without the device connected
+> 
+> nogueira@nogueira-Inspiron-1545:~$ lsusb
+> Bus 008 Device 001: ID 1d6b:0001 Linux Foundation 1.1 root hub
+> Bus 007 Device 001: ID 1d6b:0001 Linux Foundation 1.1 root hub
+> Bus 006 Device 001: ID 1d6b:0001 Linux Foundation 1.1 root hub
+> Bus 005 Device 001: ID 1d6b:0001 Linux Foundation 1.1 root hub
+> Bus 004 Device 001: ID 1d6b:0001 Linux Foundation 1.1 root hub
+> Bus 003 Device 005: ID 413c:8160 Dell Computer Corp.
+> Bus 003 Device 004: ID 413c:8162 Dell Computer Corp.
+> Bus 003 Device 003: ID 413c:8161 Dell Computer Corp.
+> Bus 003 Device 002: ID 0a5c:4500 Broadcom Corp. BCM2046B1 USB 2.0 Hub
+> (part of BCM2046 Bluetooth)
+> Bus 003 Device 001: ID 1d6b:0001 Linux Foundation 1.1 root hub
+> Bus 002 Device 002: ID 04e8:1f05 Samsung Electronics Co., Ltd
+> Bus 002 Device 001: ID 1d6b:0002 Linux Foundation 2.0 root hub
+> Bus 001 Device 004: ID 0c45:63ee Microdia
+> Bus 001 Device 003: ID 0bda:0158 Realtek Semiconductor Corp. USB 2.0
+> multicard reader
+> Bus 001 Device 001: ID 1d6b:0002 Linux Foundation 2.0 root hub
+> nogueira@nogueira-Inspiron-1545:~$
+> 
+> 
+> With the device connected
+> 
+> nogueira@nogueira-Inspiron-1545:~$ lsusb
+> Bus 008 Device 001: ID 1d6b:0001 Linux Foundation 1.1 root hub
+> Bus 007 Device 001: ID 1d6b:0001 Linux Foundation 1.1 root hub
+> Bus 006 Device 001: ID 1d6b:0001 Linux Foundation 1.1 root hub
+> Bus 005 Device 001: ID 1d6b:0001 Linux Foundation 1.1 root hub
+> Bus 004 Device 001: ID 1d6b:0001 Linux Foundation 1.1 root hub
+> Bus 003 Device 005: ID 413c:8160 Dell Computer Corp.
+> Bus 003 Device 004: ID 413c:8162 Dell Computer Corp.
+> Bus 003 Device 003: ID 413c:8161 Dell Computer Corp.
+> Bus 003 Device 002: ID 0a5c:4500 Broadcom Corp. BCM2046B1 USB 2.0 Hub
+> (part of BCM2046 Bluetooth)
+> Bus 003 Device 001: ID 1d6b:0001 Linux Foundation 1.1 root hub
+> Bus 002 Device 014: ID 1554:5019 Prolink Microsystems Corp.
+> Bus 002 Device 002: ID 04e8:1f05 Samsung Electronics Co., Ltd
+> Bus 002 Device 001: ID 1d6b:0002 Linux Foundation 2.0 root hub
+> Bus 001 Device 004: ID 0c45:63ee Microdia
+> Bus 001 Device 003: ID 0bda:0158 Realtek Semiconductor Corp. USB 2.0
+> multicard reader
+> Bus 001 Device 001: ID 1d6b:0002 Linux Foundation 2.0 root hub
+> nogueira@nogueira-Inspiron-1545:~$
+> 
+> I guess that the device pointed is Device 014, Prolink Microsystems Corp.
 
-diff --git a/drivers/media/video/et61x251/et61x251_core.c b/drivers/media/video/et61x251/et61x251_core.c
-index a982750..4bf43b1 100644
---- a/drivers/media/video/et61x251/et61x251_core.c
-+++ b/drivers/media/video/et61x251/et61x251_core.c
-@@ -2480,16 +2480,8 @@ static long et61x251_ioctl_v4l2(struct file *filp,
- 	case VIDIOC_S_PARM:
- 		return et61x251_vidioc_s_parm(cam, arg);
- 
--	case VIDIOC_G_STD:
--	case VIDIOC_S_STD:
--	case VIDIOC_QUERYSTD:
--	case VIDIOC_ENUMSTD:
--	case VIDIOC_QUERYMENU:
--	case VIDIOC_ENUM_FRAMEINTERVALS:
--		return -EINVAL;
--
- 	default:
--		return -EINVAL;
-+		return -ENOIOCTLCMD;
- 
- 	}
- }
-diff --git a/drivers/media/video/pvrusb2/pvrusb2-v4l2.c b/drivers/media/video/pvrusb2/pvrusb2-v4l2.c
-index 3876114..1c299a8 100644
---- a/drivers/media/video/pvrusb2/pvrusb2-v4l2.c
-+++ b/drivers/media/video/pvrusb2/pvrusb2-v4l2.c
-@@ -369,11 +369,6 @@ static long pvr2_v4l2_do_ioctl(struct file *file, unsigned int cmd, void *arg)
- 		break;
- 	}
- 
--	case VIDIOC_S_AUDIO:
--	{
--		ret = -EINVAL;
--		break;
--	}
- 	case VIDIOC_G_TUNER:
- 	{
- 		struct v4l2_tuner *vt = (struct v4l2_tuner *)arg;
-@@ -850,7 +845,7 @@ static long pvr2_v4l2_do_ioctl(struct file *file, unsigned int cmd, void *arg)
- #endif
- 
- 	default :
--		ret = -EINVAL;
-+		ret = -ENOIOCTLCMD;
- 		break;
- 	}
- 
-diff --git a/drivers/media/video/sn9c102/sn9c102_core.c b/drivers/media/video/sn9c102/sn9c102_core.c
-index 0e07c49..44bf6c3 100644
---- a/drivers/media/video/sn9c102/sn9c102_core.c
-+++ b/drivers/media/video/sn9c102/sn9c102_core.c
-@@ -3187,16 +3187,8 @@ static long sn9c102_ioctl_v4l2(struct file *filp,
- 	case VIDIOC_S_AUDIO:
- 		return sn9c102_vidioc_s_audio(cam, arg);
- 
--	case VIDIOC_G_STD:
--	case VIDIOC_S_STD:
--	case VIDIOC_QUERYSTD:
--	case VIDIOC_ENUMSTD:
--	case VIDIOC_QUERYMENU:
--	case VIDIOC_ENUM_FRAMEINTERVALS:
--		return -EINVAL;
--
- 	default:
--		return -EINVAL;
-+		return -ENOIOCTLCMD;
- 
- 	}
- }
-diff --git a/drivers/media/video/uvc/uvc_v4l2.c b/drivers/media/video/uvc/uvc_v4l2.c
-index 543a803..1fe2c8f 100644
---- a/drivers/media/video/uvc/uvc_v4l2.c
-+++ b/drivers/media/video/uvc/uvc_v4l2.c
-@@ -83,7 +83,7 @@ static int uvc_ioctl_ctrl_map(struct uvc_video_chain *chain,
- 	default:
- 		uvc_trace(UVC_TRACE_CONTROL, "Unsupported V4L2 control type "
- 			  "%u.\n", xmap->v4l2_type);
--		ret = -EINVAL;
-+		ret = -ENOIOCTLCMD;
- 		goto done;
- 	}
- 
--- 
-1.7.1
+Hmm... This device seems to be, in reality, a Prolink device. It is probably
+close to the current Prolink/Pixelview ISDB-T devices already supported.
+
+The first devices from this manufacturer were using dib0700/dib8000. Newer
+devices were using cx231xx chipsets.
+
+I have a few Prolink devices here, but I don't think that any of them have
+this USB ID (1554:5019). I'll need to double-check though. I'm seeking for some
+spare time to add support for a mew more devices.
+
+Anyway, I'm not sure what's the chipset used inside your device. If the device 
+is hybrid, it probably has a cx231xx chipset. If so, probably, all that it is 
+needed is to add the USB ID at cx231xx driver in order to make it work, of 
+course assuming that they didn't make any other hange like using a different 
+tuner on it.
+
+Abraços,
+Mauro
+
+
+
 
 
