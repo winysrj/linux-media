@@ -1,136 +1,103 @@
 Return-path: <mchehab@pedra>
-Received: from comal.ext.ti.com ([198.47.26.152]:33725 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756191Ab1FQHBr (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 17 Jun 2011 03:01:47 -0400
-Received: from dbdp20.itg.ti.com ([172.24.170.38])
-	by comal.ext.ti.com (8.13.7/8.13.7) with ESMTP id p5H71iE3018353
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-media@vger.kernel.org>; Fri, 17 Jun 2011 02:01:47 -0500
-From: Manjunath Hadli <manjunath.hadli@ti.com>
-To: LMML <linux-media@vger.kernel.org>
-CC: dlos <davinci-linux-open-source@linux.davincidsp.com>,
-	Manjunath Hadli <manjunath.hadli@ti.com>
-Subject: [RESEND PATCH v19 6/6] davinci vpbe: Readme text for Dm6446 vpbe
-Date: Fri, 17 Jun 2011 12:31:36 +0530
-Message-ID: <1308294096-25743-7-git-send-email-manjunath.hadli@ti.com>
-In-Reply-To: <1308294096-25743-1-git-send-email-manjunath.hadli@ti.com>
-References: <1308294096-25743-1-git-send-email-manjunath.hadli@ti.com>
-MIME-Version: 1.0
-Content-Type: text/plain
+Received: from mailout3.w1.samsung.com ([210.118.77.13]:21081 "EHLO
+	mailout3.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758531Ab1FVSBk (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 22 Jun 2011 14:01:40 -0400
+MIME-version: 1.0
+Content-transfer-encoding: 7BIT
+Content-type: TEXT/PLAIN
+Date: Wed, 22 Jun 2011 20:01:10 +0200
+From: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Subject: [PATCH v2 04/18] s5p-fimc: Limit number of available inputs to one
+In-reply-to: <1308765684-10677-1-git-send-email-s.nawrocki@samsung.com>
+To: linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org
+Cc: m.szyprowski@samsung.com, kyungmin.park@samsung.com,
+	s.nawrocki@samsung.com, sw0312.kim@samsung.com,
+	riverful.kim@samsung.com
+Message-id: <1308765684-10677-5-git-send-email-s.nawrocki@samsung.com>
+References: <1308765684-10677-1-git-send-email-s.nawrocki@samsung.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Please refer to this file for detailed documentation of
-davinci vpbe v4l2 driver.
+Camera sensors at FIMC input are no longer selected with S_INPUT ioctl.
+They will be attached to required FIMC entity through pipeline
+re-configuration at the media device level.
 
-Signed-off-by: Manjunath Hadli <manjunath.hadli@ti.com>
-Acked-by: Muralidharan Karicheri <m-karicheri2@ti.com>
-Acked-by: Hans Verkuil <hverkuil@xs4all.nl>
+Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
 ---
- Documentation/video4linux/README.davinci-vpbe |   93 +++++++++++++++++++++++++
- 1 files changed, 93 insertions(+), 0 deletions(-)
- create mode 100644 Documentation/video4linux/README.davinci-vpbe
+ drivers/media/video/s5p-fimc/fimc-capture.c |   43 ++++-----------------------
+ 1 files changed, 6 insertions(+), 37 deletions(-)
 
-diff --git a/Documentation/video4linux/README.davinci-vpbe b/Documentation/video4linux/README.davinci-vpbe
-new file mode 100644
-index 0000000..7a460b0
---- /dev/null
-+++ b/Documentation/video4linux/README.davinci-vpbe
-@@ -0,0 +1,93 @@
-+
-+                VPBE V4L2 driver design
-+ ======================================================================
-+
-+ File partitioning
-+ -----------------
-+ V4L2 display device driver
-+         drivers/media/video/davinci/vpbe_display.c
-+         drivers/media/video/davinci/vpbe_display.h
-+
-+ VPBE display controller
-+         drivers/media/video/davinci/vpbe.c
-+         drivers/media/video/davinci/vpbe.h
-+
-+ VPBE venc sub device driver
-+         drivers/media/video/davinci/vpbe_venc.c
-+         drivers/media/video/davinci/vpbe_venc.h
-+         drivers/media/video/davinci/vpbe_venc_regs.h
-+
-+ VPBE osd driver
-+         drivers/media/video/davinci/vpbe_osd.c
-+         drivers/media/video/davinci/vpbe_osd.h
-+         drivers/media/video/davinci/vpbe_osd_regs.h
-+
-+ Functional partitioning
-+ -----------------------
-+
-+ Consists of the following (in the same order as the list under file
-+ partitioning):-
-+
-+ 1. V4L2 display driver
-+    Implements creation of video2 and video3 device nodes and
-+    provides v4l2 device interface to manage VID0 and VID1 layers.
-+
-+ 2. Display controller
-+    Loads up VENC, OSD and external encoders such as ths8200. It provides
-+    a set of API calls to V4L2 drivers to set the output/standards
-+    in the VENC or external sub devices. It also provides
-+    a device object to access the services from OSD subdevice
-+    using sub device ops. The connection of external encoders to VENC LCD
-+    controller port is done at init time based on default output and standard
-+    selection or at run time when application change the output through
-+    V4L2 IOCTLs.
-+
-+    When connected to an external encoder, vpbe controller is also responsible
-+    for setting up the interface between VENC and external encoders based on
-+    board specific settings (specified in board-xxx-evm.c). This allows
-+    interfacing external encoders such as ths8200. The setup_if_config()
-+    is implemented for this as well as configure_venc() (part of the next patch)
-+    API to set timings in VENC for a specific display resolution. As of this
-+    patch series, the interconnection and enabling and setting of the external
-+    encoders is not present, and would be a part of the next patch series.
-+
-+ 3. VENC subdevice module
-+    Responsible for setting outputs provided through internal DACs and also
-+    setting timings at LCD controller port when external encoders are connected
-+    at the port or LCD panel timings required. When external encoder/LCD panel
-+    is connected, the timings for a specific standard/preset is retrieved from
-+    the board specific table and the values are used to set the timings in
-+    venc using non-standard timing mode.
-+
-+    Support LCD Panel displays using the VENC. For example to support a Logic
-+    PD display, it requires setting up the LCD controller port with a set of
-+    timings for the resolution supported and setting the dot clock. So we could
-+    add the available outputs as a board specific entry (i.e add the "LogicPD"
-+    output name to board-xxx-evm.c). A table of timings for various LCDs
-+    supported can be maintained in the board specific setup file to support
-+    various LCD displays.As of this patch a basic driver is present, and this
-+    support for external encoders and displays forms a part of the next
-+    patch series.
-+
-+ 4. OSD module
-+    OSD module implements all OSD layer management and hardware specific
-+    features. The VPBE module interacts with the OSD for enabling and
-+    disabling appropriate features of the OSD.
-+
-+ Current status:-
-+
-+ A fully functional working version of the V4L2 driver is available. This
-+ driver has been tested with NTSC and PAL standards and buffer streaming.
-+
-+ Following are TBDs.
-+
-+ vpbe display controller
-+    - Add support for external encoders.
-+    - add support for selecting external encoder as default at probe time.
-+
-+ vpbe venc sub device
-+    - add timings for supporting ths8200
-+    - add support for LogicPD LCD.
-+
-+ FB drivers
-+    - Add support for fbdev drivers.- Ready and part of subsequent patches.
+diff --git a/drivers/media/video/s5p-fimc/fimc-capture.c b/drivers/media/video/s5p-fimc/fimc-capture.c
+index c7bb6f6..f42cda3 100644
+--- a/drivers/media/video/s5p-fimc/fimc-capture.c
++++ b/drivers/media/video/s5p-fimc/fimc-capture.c
+@@ -566,57 +566,26 @@ static int fimc_cap_s_fmt_mplane(struct file *file, void *priv,
+ }
+ 
+ static int fimc_cap_enum_input(struct file *file, void *priv,
+-				     struct v4l2_input *i)
++			       struct v4l2_input *i)
+ {
+ 	struct fimc_ctx *ctx = priv;
+-	struct s5p_platform_fimc *pldata = ctx->fimc_dev->pdata;
+-	struct s5p_fimc_isp_info *isp_info;
+ 
+-	if (i->index >= pldata->num_clients)
++	if (i->index != 0)
+ 		return -EINVAL;
+ 
+-	isp_info = &pldata->isp_info[i->index];
+ 
+ 	i->type = V4L2_INPUT_TYPE_CAMERA;
+-	strncpy(i->name, isp_info->board_info->type, 32);
+ 	return 0;
+ }
+ 
+-static int fimc_cap_s_input(struct file *file, void *priv,
+-				  unsigned int i)
++static int fimc_cap_s_input(struct file *file, void *priv, unsigned int i)
+ {
+-	struct fimc_ctx *ctx = priv;
+-	struct fimc_dev *fimc = ctx->fimc_dev;
+-	struct s5p_platform_fimc *pdata = fimc->pdata;
+-
+-	if (fimc_capture_active(ctx->fimc_dev))
+-		return -EBUSY;
+-
+-	if (i >= pdata->num_clients)
+-		return -EINVAL;
+-
+-
+-	if (fimc->vid_cap.sd) {
+-		int ret = v4l2_subdev_call(fimc->vid_cap.sd, core, s_power, 0);
+-		if (ret)
+-			err("s_power failed: %d", ret);
+-
+-		clk_disable(fimc->clock[CLK_CAM]);
+-	}
+-
+-	/* Release the attached sensor subdevice. */
+-	fimc_subdev_unregister(fimc);
+-
+-	return fimc_isp_subdev_init(fimc, i);
++	return i == 0 ? i : -EINVAL;
+ }
+ 
+-static int fimc_cap_g_input(struct file *file, void *priv,
+-				       unsigned int *i)
++static int fimc_cap_g_input(struct file *file, void *priv, unsigned int *i)
+ {
+-	struct fimc_ctx *ctx = priv;
+-	struct fimc_vid_cap *cap = &ctx->fimc_dev->vid_cap;
+-
+-	*i = cap->input_index;
++	*i = 0;
+ 	return 0;
+ }
+ 
 -- 
-1.6.2.4
+1.7.5.4
 
