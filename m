@@ -1,43 +1,76 @@
 Return-path: <mchehab@pedra>
-Received: from mail-ew0-f46.google.com ([209.85.215.46]:48488 "EHLO
-	mail-ew0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756504Ab1FFRWY convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 6 Jun 2011 13:22:24 -0400
-Received: by ewy4 with SMTP id 4so1436789ewy.19
-        for <linux-media@vger.kernel.org>; Mon, 06 Jun 2011 10:22:23 -0700 (PDT)
+Received: from smtp-vbr15.xs4all.nl ([194.109.24.35]:4988 "EHLO
+	smtp-vbr15.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756318Ab1FVKko (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 22 Jun 2011 06:40:44 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Kamil Debski <k.debski@samsung.com>
+Subject: Re: [PATCH 2/4 v9] v4l: add control definitions for codec devices.
+Date: Wed, 22 Jun 2011 12:40:35 +0200
+Cc: linux-media@vger.kernel.org,
+	Marek Szyprowski <m.szyprowski@samsung.com>,
+	kyungmin.park@samsung.com, jaeryul.oh@samsung.com,
+	laurent.pinchart@ideasonboard.com, jtp.park@samsung.com
+References: <1308069416-24723-1-git-send-email-k.debski@samsung.com> <201106221025.53838.hverkuil@xs4all.nl> <00ac01cc30c7$754b5c40$5fe214c0$%debski@samsung.com>
+In-Reply-To: <00ac01cc30c7$754b5c40$5fe214c0$%debski@samsung.com>
 MIME-Version: 1.0
-In-Reply-To: <4DED0BAC.6090400@anevia.com>
-References: <4DE65C6D.2060806@anevia.com>
-	<BANLkTi=zUfg9hAN8X9nrPEOMgtUzsKrbOw@mail.gmail.com>
-	<4DED0412.4030708@anevia.com>
-	<BANLkTint7wHxBxc7ZQB4UohJD-7UE09mAQ@mail.gmail.com>
-	<4DED0BAC.6090400@anevia.com>
-Date: Mon, 6 Jun 2011 13:22:23 -0400
-Message-ID: <BANLkTi=UB1nQ_ooEhNd25gv5tD7AbW5prg@mail.gmail.com>
-Subject: Re: HVR-1300 analog inputs
-From: Devin Heitmueller <dheitmueller@kernellabs.com>
-To: Florent Audebert <florent.audebert@anevia.com>
-Cc: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201106221240.35784.hverkuil@xs4all.nl>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Mon, Jun 6, 2011 at 1:17 PM, Florent Audebert
-<florent.audebert@anevia.com> wrote:
-> That's right. RAW output seems clean so far in all cases.
->
->  - When selecting composite input, MPEG encoder output is clean
->  - When selecting s-video input, MPEG encoder output have lines
+On Wednesday, June 22, 2011 12:30:45 Kamil Debski wrote:
+> > > +	      <row>
+> > > +		<entry
+> > spanname="id"><constant>V4L2_CID_MPEG_VIDEO_MPEG4_VOP_TIME_RES</constant>&nb
+> > sp;</entry>
+> > > +		<entry>integer</entry>
+> > > +	      </row><row><entry spanname="descr">vop_time_increment_resolution
+> > value for MPEG4. Applicable to the MPEG4 encoder.</entry>
+> > > +	      </row>
+> > > +	      <row><entry></entry></row>
+> > > +	      <row>
+> > > +		<entry
+> > spanname="id"><constant>V4L2_CID_MPEG_VIDEO_MPEG4_VOP_TIME_INC</constant>&nb
+> > sp;</entry>
+> > > +		<entry>integer</entry>
+> > > +	      </row><row><entry spanname="descr">vop_time_increment value for
+> > MPEG4. Applicable to the MPEG4 encoder.</entry>
+> > 
+> > How should these two controls be used? Are you supposed to set them? Or do
+> > they
+> > have suitable default values?
+> 
+> They are used only in MPEG4 and are used instead of S_PARM to set fps.
+> You are supposed to set them, but I think the driver could set a default value
+> (such as vop_time_res = 30000 and vop_time_res_increment = 1000).
 
-Oh, that is interesting.  If I had to bet, I would think perhaps
-enabling the MPEG encoder is causing a reset of the decoder's register
-state, and the defaults are probably appropriate for CVBS input (in
-terms of things like the clamp control, comb filter configuration,
-etc).
+Hmm. Perhaps S_PARM should be used for this? I am not too keen on adding this
+when it looks like it is exactly the same as the S_PARM functionality.
 
-Devin
+How do other codecs do this?
 
--- 
-Devin J. Heitmueller - Kernel Labs
-http://www.kernellabs.com
+> > > +
+> > <entry><constant>V4L2_MPEG_MFC51_FRAME_SKIP_MODE_DISABLED</constant>&nbsp;</
+> > entry>
+> > > +		      <entry>Frame skip mode is disabled.</entry>
+> > > +		    </row>
+> > > +		    <row>
+> > > +
+> > <entry><constant>V4L2_MPEG_MFC51_FRAME_SKIP_MODE_LEVEL_LIMIT</constant>&nbsp
+> > ;</entry>
+> > > +		      <entry>Frame skip mode enabled and buffer limit is set by
+> > the chosen level.</entry>
+> > 
+> > With which control do I set that level?
+> 
+> *_MPEG4_LEVEL and *_H264_LEVEL, I will add some clarification.
+
+Ah! That level :-)
+
+Regards,
+
+	Hans
