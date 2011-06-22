@@ -1,102 +1,100 @@
 Return-path: <mchehab@pedra>
-Received: from mail-iy0-f174.google.com ([209.85.210.174]:55909 "EHLO
-	mail-iy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751056Ab1FVGI0 convert rfc822-to-8bit (ORCPT
+Received: from mailout4.w1.samsung.com ([210.118.77.14]:22315 "EHLO
+	mailout4.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932181Ab1FVSBl (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 22 Jun 2011 02:08:26 -0400
-Received: by iyb12 with SMTP id 12so417701iyb.19
-        for <linux-media@vger.kernel.org>; Tue, 21 Jun 2011 23:08:26 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <BANLkTi=RG3g1qob6jY7Rk=qMJCjGk2e6Wg@mail.gmail.com>
-References: <BANLkTimtnbAzLTdFY2OiSddHTjmD_99CfA@mail.gmail.com>
-	<201106202037.19535.remi@remlab.net>
-	<BANLkTinn0uN3VwGfqCbYbxFoVf6aNo1VSA@mail.gmail.com>
-	<BANLkTin14LnwP+_K1m-RsEXza4M4CjqnEw@mail.gmail.com>
-	<BANLkTimR-zWnnLBcD2w8d8NpeFJi=eT9nQ@mail.gmail.com>
-	<005a01cc2f7d$a799be30$f6cd3a90$@coexsi.fr>
-	<BANLkTinbQ8oBJt7fScuT5vHGFktbaQNY5A@mail.gmail.com>
-	<BANLkTimTdMa_X1ygF8=B5gLdLXq1o-ER0g@mail.gmail.com>
-	<BANLkTimkZN9AtLanwvct+1p2DZOHSgF6Aw@mail.gmail.com>
-	<BANLkTimg0X5H5T8CsSR5Tr0CZbCZKiDEEA@mail.gmail.com>
-	<4DFFB1DA.5000602@redhat.com>
-	<BANLkTikZ++5dZssDRuxJzNUEG_TDkZPGRg@mail.gmail.com>
-	<4DFFF56D.5070602@redhat.com>
-	<4E007AA7.7070400@linuxtv.org>
-	<BANLkTik3ACfDwkyKVU2eZtxBeLH_mGh7pg@mail.gmail.com>
-	<4E00A78B.2020008@linuxtv.org>
-	<4E00AC2A.8060500@redhat.com>
-	<4E00B41B.50303@linuxtv.org>
-	<4E00D07B.5030202@redhat.com>
-	<BANLkTikmbVj1t7w3XmHXW58Kpvv0M_jbnQ@mail.gmail.com>
-	<BANLkTi=RG3g1qob6jY7Rk=qMJCjGk2e6Wg@mail.gmail.com>
-Date: Wed, 22 Jun 2011 08:08:26 +0200
-Message-ID: <BANLkTi=xvKFEe6BVE8ic_zCc2AfEHkHC2w@mail.gmail.com>
-Subject: Re: [RFC] vtunerc - virtual DVB device driver
-From: HoP <jpetrous@gmail.com>
-To: Markus Rechberger <mrechberger@gmail.com>
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Andreas Oberritter <obi@linuxtv.org>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+	Wed, 22 Jun 2011 14:01:41 -0400
+MIME-version: 1.0
+Content-transfer-encoding: 7BIT
+Content-type: TEXT/PLAIN
+Date: Wed, 22 Jun 2011 20:01:09 +0200
+From: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Subject: [PATCH v2 03/18] s5p-fimc: Remove sclk_cam clock handling
+In-reply-to: <1308765684-10677-1-git-send-email-s.nawrocki@samsung.com>
+To: linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org
+Cc: m.szyprowski@samsung.com, kyungmin.park@samsung.com,
+	s.nawrocki@samsung.com, sw0312.kim@samsung.com,
+	riverful.kim@samsung.com
+Message-id: <1308765684-10677-4-git-send-email-s.nawrocki@samsung.com>
+References: <1308765684-10677-1-git-send-email-s.nawrocki@samsung.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-2011/6/22 Markus Rechberger <mrechberger@gmail.com>:
->>
->> My very little opinion is that waving GPL is way to the hell. Nobody told me
->> why similar technologies, in different kernel parts are acceptable,
->> but not here.
->>
->
-> since a customer was trying to use this module the only feedback I can give
-> right now is that there are still some fundamental bugs in that work.
-> Just running it with some intuitive parameters (without having a dvb
-> device connected) caused
-> it to hang.
->
-> ./vtunerc.i686  -c 1
-> vtunerc: [5210 ../../vtunerc.c:349] debug: added frontend mode DVB-C
-> as mode 0, searching for tuner types 2
-> vtunerc: [5210 ../../vtunerc.c:346] error: unknown tuner mode
-> specified: 1 allow values are: -s -S -s2 -S2 -c -t
-> it just never returned.
->
+The external sclk_cam clocks will be handled at the media device
+driver level.
 
-Never returned? How it is possible if just next line is exit(1) call?
+Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+---
+ drivers/media/video/s5p-fimc/fimc-core.c |   12 ++----------
+ drivers/media/video/s5p-fimc/fimc-core.h |    3 +--
+ 2 files changed, 3 insertions(+), 12 deletions(-)
 
-> DMESG:
-> vtunerc: [5207 ../../vtunerc.c:593] info: fake server answer
-> vtunerc: [5207 ../../vtunerc.c:606] info: msg: 4096 completed
-> vtunerc: [5207 ../../vtunerc.c:506] info: vtuner message!
-> vtunerc: [5207 ../../vtunerc.c:593] info: fake server answer
->
-> ps fax | grep vtunerc:
->  5194 pts/4    S      0:00  |       \_ bash
->  5210 pts/4    S+     0:00  |           \_ [vtunerc.i686]
->
-> that way it's not good enough for inclusion yet anyway.
+diff --git a/drivers/media/video/s5p-fimc/fimc-core.c b/drivers/media/video/s5p-fimc/fimc-core.c
+index 22e848a..960c5f0 100644
+--- a/drivers/media/video/s5p-fimc/fimc-core.c
++++ b/drivers/media/video/s5p-fimc/fimc-core.c
+@@ -31,7 +31,7 @@
+ #include "fimc-core.h"
+ 
+ static char *fimc_clocks[MAX_FIMC_CLOCKS] = {
+-	"sclk_fimc", "fimc", "sclk_cam"
++	"sclk_fimc", "fimc"
+ };
+ 
+ static struct fimc_fmt fimc_formats[] = {
+@@ -1608,7 +1608,6 @@ static int fimc_probe(struct platform_device *pdev)
+ 	struct samsung_fimc_driverdata *drv_data;
+ 	struct s5p_platform_fimc *pdata;
+ 	int ret = 0;
+-	int cap_input_index = -1;
+ 
+ 	dev_dbg(&pdev->dev, "%s():\n", __func__);
+ 
+@@ -1661,14 +1660,6 @@ static int fimc_probe(struct platform_device *pdev)
+ 		goto err_req_region;
+ 	}
+ 
+-	fimc->num_clocks = MAX_FIMC_CLOCKS - 1;
+-
+-	/* Check if a video capture node needs to be registered. */
+-	if (pdata && pdata->num_clients > 0) {
+-		cap_input_index = 0;
+-		fimc->num_clocks++;
+-	}
+-
+ 	res = platform_get_resource(pdev, IORESOURCE_IRQ, 0);
+ 	if (!res) {
+ 		dev_err(&pdev->dev, "failed to get IRQ resource\n");
+@@ -1677,6 +1668,7 @@ static int fimc_probe(struct platform_device *pdev)
+ 	}
+ 	fimc->irq = res->start;
+ 
++	fimc->num_clocks = MAX_FIMC_CLOCKS;
+ 	ret = fimc_clk_get(fimc);
+ 	if (ret)
+ 		goto err_regs_unmap;
+diff --git a/drivers/media/video/s5p-fimc/fimc-core.h b/drivers/media/video/s5p-fimc/fimc-core.h
+index c088dac..f059216 100644
+--- a/drivers/media/video/s5p-fimc/fimc-core.h
++++ b/drivers/media/video/s5p-fimc/fimc-core.h
+@@ -34,7 +34,7 @@
+ 
+ /* Time to wait for next frame VSYNC interrupt while stopping operation. */
+ #define FIMC_SHUTDOWN_TIMEOUT	((100*HZ)/1000)
+-#define MAX_FIMC_CLOCKS		3
++#define MAX_FIMC_CLOCKS		2
+ #define MODULE_NAME		"s5p-fimc"
+ #define FIMC_MAX_DEVS		4
+ #define FIMC_MAX_OUT_BUFS	4
+@@ -46,7 +46,6 @@
+ enum {
+ 	CLK_BUS,
+ 	CLK_GATE,
+-	CLK_CAM,
+ };
+ 
+ enum fimc_dev_flags {
+-- 
+1.7.5.4
 
-I never wanted to get it include immediatelly. I never stated that.
-That is why subject of this mail starts with [RFC]. I wanted
-to know if such driver is even interesting by others and if
-so to get help from community having the code better.
-I was already noted that it is my first kernel driver and I understand
-that reviewing code by kernel hackers can help making
-code better.
-
-On the other hand I never thought that the code can be
-totally refused because of its nature. Even I all time
-was writing that all subsystem (kernel + userland daemons)
-are GPL.
-
-Marcus, tell the customer I'm just starting some howto
-document to guide all willing to test how it works through
-compilation and installation process.
-
-In parallel I'm going to address all hints gave me by Andreas,
-the only guy who even had a look at source.
-
-Anyway, I'm happy for any feedback, so thanks.
-
-/Honza
