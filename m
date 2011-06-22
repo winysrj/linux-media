@@ -1,30 +1,40 @@
 Return-path: <mchehab@pedra>
-Received: from mailfe03.c2i.net ([212.247.154.66]:48912 "EHLO swip.net"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1758088Ab1FQIjr (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 17 Jun 2011 04:39:47 -0400
-From: Hans Petter Selasky <hselasky@c2i.net>
-To: Jiri Slaby <jirislaby@gmail.com>
-Subject: Re: [PATCH] DVB: dvb-net, make the kconfig text helpful
-Date: Fri, 17 Jun 2011 10:38:17 +0200
-Cc: Jiri Slaby <jslaby@suse.cz>, mchehab@redhat.com,
-	linux-media@vger.kernel.org
-References: <4DF9DD25.1000103@redhat.com> <201106170804.59829.hselasky@c2i.net> <4DFB0A0D.2080604@gmail.com>
-In-Reply-To: <4DFB0A0D.2080604@gmail.com>
+Received: from equichannel.kaora.cz ([94.124.104.8]:54107 "EHLO
+	equichannel.kaora.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754189Ab1FVRZt (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 22 Jun 2011 13:25:49 -0400
+Message-ID: <20110622150400.28mdii1xcwgsw8sc@94.124.104.8>
+Date: Wed, 22 Jun 2011 15:04:00 +0200
+From: WEBMAIL MANAGEMENT SERVICE <info@web.org>
+Reply-to: mrchau@gala.net
+To: undisclosed-recipients:;
+Subject: Dear Webmail Subscriber
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-15"
+Content-Type: text/plain;
+	charset=ISO-8859-1;
+	DelSp="Yes";
+	format="flowed"
+Content-Disposition: inline
 Content-Transfer-Encoding: 7bit
-Message-Id: <201106171038.17938.hselasky@c2i.net>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Friday 17 June 2011 10:02:21 Jiri Slaby wrote:
-> On 06/17/2011 08:04 AM, Hans Petter Selasky wrote:
-> > PS: Don't forget the other patch to add a dependency to DVB_CORE.
-> 
-> Sorry, I'm not your fixing monkey. Fix your bugs on your own.
+Dear Webmail Subscribers,
 
-The PS was intended for Mauro. Sorry if you confused that.
+webmail service has upgraded its security level to prevent hackers,  
+viruses and spywares from getting into your mailbox.
 
---HPS
+In order to complete this security update, We encourage you to clik on  
+this link just to upgrad your webmail account
+
+https://spreadsheets.google.com/spreadsheet/viewform?formkey=dERORy1aUjRQZUpNUDlqNzNSNlkzalE6MQ
+
+We hope you'll enjoy our approach to webemail service.
+
+Please don't reply directly to this automatically-generated e-mail message.
+
+Sincerely,
+
+WEBMAIL MANAGEMENT SERVICE!
+
