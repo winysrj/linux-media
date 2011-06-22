@@ -1,116 +1,108 @@
 Return-path: <mchehab@pedra>
-Received: from bear.ext.ti.com ([192.94.94.41]:40365 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750899Ab1FGJsd (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 7 Jun 2011 05:48:33 -0400
-Received: from dbdp20.itg.ti.com ([172.24.170.38])
-	by bear.ext.ti.com (8.13.7/8.13.7) with ESMTP id p579mUMI010308
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-media@vger.kernel.org>; Tue, 7 Jun 2011 04:48:32 -0500
-Received: from dbde70.ent.ti.com (localhost [127.0.0.1])
-	by dbdp20.itg.ti.com (8.13.8/8.13.8) with ESMTP id p579mTQx012851
-	for <linux-media@vger.kernel.org>; Tue, 7 Jun 2011 15:18:29 +0530 (IST)
-Message-ID: <4DEDF5A3.1090708@ti.com>
-Date: Tue, 7 Jun 2011 15:25:47 +0530
-From: Archit Taneja <archit@ti.com>
+Received: from perceval.ideasonboard.com ([95.142.166.194]:33206 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752552Ab1FVIur (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 22 Jun 2011 04:50:47 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Florian Tobias Schandinat <FlorianSchandinat@gmx.de>
+Subject: Re: [PATCH/RFC] fbdev: Add FOURCC-based format configuration API
+Date: Wed, 22 Jun 2011 10:50:47 +0200
+Cc: Geert Uytterhoeven <geert@linux-m68k.org>,
+	linux-fbdev@vger.kernel.org, linux-media@vger.kernel.org,
+	dri-devel@lists.freedesktop.org
+References: <4DDAE63A.3070203@gmx.de> <201106220031.57972.laurent.pinchart@ideasonboard.com> <4E018189.3020305@gmx.de>
+In-Reply-To: <4E018189.3020305@gmx.de>
 MIME-Version: 1.0
-To: "Hiremath, Vaibhav" <hvaibhav@ti.com>
-CC: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Subject: Re: [PATCH 1/2] OMAP_VOUT: CLEANUP: Move some functions and macros
- from omap_vout
-References: <1306479677-23540-1-git-send-email-archit@ti.com> <1306479677-23540-2-git-send-email-archit@ti.com> <19F8576C6E063C45BE387C64729E739404E2EEF11C@dbde02.ent.ti.com>
-In-Reply-To: <19F8576C6E063C45BE387C64729E739404E2EEF11C@dbde02.ent.ti.com>
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Type: Text/Plain;
+  charset="utf-8"
 Content-Transfer-Encoding: 7bit
+Message-Id: <201106221050.48057.laurent.pinchart@ideasonboard.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Hi,
+Hi Florian,
 
-On Tuesday 07 June 2011 02:35 PM, Hiremath, Vaibhav wrote:
->> -----Original Message-----
->> From: Taneja, Archit
->> Sent: Friday, May 27, 2011 12:31 PM
->> To: linux-media@vger.kernel.org
->> Cc: Hiremath, Vaibhav; Taneja, Archit
->> Subject: [PATCH 1/2] OMAP_VOUT: CLEANUP: Move some functions and macros
->> from omap_vout
->>
-> [Hiremath, Vaibhav] You may want to give patch revision here.
+On Wednesday 22 June 2011 07:45:45 Florian Tobias Schandinat wrote:
+> On 06/21/2011 10:31 PM, Laurent Pinchart wrote:
+> > On Tuesday 21 June 2011 22:49:14 Geert Uytterhoeven wrote:
+> >> On Tue, Jun 21, 2011 at 17:36, Laurent Pinchart wrote:
+> >>> +The FOURCC-based API replaces format descriptions by four character
+> >>> codes +(FOURCC). FOURCCs are abstract identifiers that uniquely define
+> >>> a format +without explicitly describing it. This is the only API that
+> >>> supports YUV +formats. Drivers are also encouraged to implement the
+> >>> FOURCC-based API for RGB +and grayscale formats.
+> >>> +
+> >>> +Drivers that support the FOURCC-based API report this capability by
+> >>> setting +the FB_CAP_FOURCC bit in the fb_fix_screeninfo capabilities
+> >>> field. +
+> >>> +FOURCC definitions are located in the linux/videodev2.h header.
+> >>> However, and +despite starting with the V4L2_PIX_FMT_prefix, they are
+> >>> not restricted to V4L2 +and don't require usage of the V4L2 subsystem.
+> >>> FOURCC documentation is +available in
+> >>> Documentation/DocBook/v4l/pixfmt.xml.
+> >>> +
+> >>> +To select a format, applications set the FB_VMODE_FOURCC bit in the
+> >>> +fb_var_screeninfo vmode field, and set the fourcc field to the desired
+> >>> FOURCC. +The bits_per_pixel, red, green, blue, transp and nonstd fields
+> >>> must be set to +0 by applications and ignored by drivers. Note that the
+> >>> grayscale and fourcc +fields share the same memory location.
+> >>> Application must thus not set the +grayscale field to 0.
+> >> 
+> >> These are the only parts I don't like: (ab)using the vmode field (this
+> >> isn't really a vmode flag), and the union of grayscale and fourcc (avoid
+> >> unions where possible).
+> > 
+> > I've proposed adding a FB_NONSTD_FORMAT bit to the nonstd field as a
+> > FOURCC mode indicator in my initial RFC. Florian Tobias Schandinat
+> > wasn't very happy with that, and proposed using the vmode field instead.
+> > 
+> > Given that there's virtually no fbdev documentation, whether the vmode
+> > field and/or nonstd field are good fit for a FOURCC mode indicator is
+> > subject to interpretation.
+> 
+> The reason for my suggestion is that the vmode field is accepted to contain
+> only flags and at least to me there is no hard line what is part of the
+> video mode and what is not.
 
-I don't think it makes sense to give the old revisions anymore, this 
-patch set had been dormant since last year. I'll add revisions for the 
-later versions of this set.
+Lacks of documentation indeed makes that line fuzzy. I really hope that 
+api.txt will be extended to cover the full fbdev API :-)
 
-> Cosmetic comment -
->
-> Consider changing the subject line to something -
->
-> OMAP_VOUT: CLEANUP: Move generic functions and macros to common files
->
->
->> Move some inline functions from omap_vout.c to omap_voutdef.h and
->> independent
->> functions like omap_vout_alloc_buffer/omap_vout_free_buffer to
->> omap_voutlib.c.
->>
-> [Hiremath, Vaibhav] Ditto here, word "some" doesn't convey anything.
+> In contrast the nonstd field is already used in a lot of different
+> (incompatible) ways. I think if we only use the nonstd field for handling
+> FOURCC it is likely that some problems will appear.
+> 
+> >> What about storing the FOURCC value in nonstd instead?
+> > 
+> > Wouldn't that be a union of nonstd and fourcc ? :-) FOURCC-based format
+> > setting will be a standard fbdev API, I'm not very keen on storing it in
+> > the nonstd field without a union.
+> > 
+> >> As FOURCC values are always 4 ASCII characters (hence all 4 bytes must
+> >> be non-zero), I don't think there are any conflicts with existing values
+> >> of nonstd. To make it even safer and easier to parse, you could set bit
+> >> 31 of nonstd as a FOURCC indicator.
+> > 
+> > I would then create a union between nonstd and fourcc, and document
+> > nonstd as being used for the legacy API only. Most existing drivers use
+> > a couple of nonstd bits only. The driver that (ab)uses nonstd the most
+> > is pxafb and uses bits 22:0. Bits 31:24 are never used as far as I can
+> > tell, so nonstd& 0xff000000 != 0 could be used as a FOURCC mode test.
+> > 
+> > This assumes that FOURCCs will never have their last character set to
+> > '\0'. Is that a safe assumption for the future ?
+> 
+> Yes, I think. The information I found indicates that space should be used
+> for padding, so a \0 shouldn't exist.
+> I think using only the nonstd field and requiring applications to check the
+> capabilities would be possible, although not fool proof ;)
+> 
+> Great work, Laurent, do you have plans to modify fbset to allow using this
+> format API from the command line?
 
-Okay.
+Once we agree on an API, I will implement it in a driver and update fbset.
 
->
+-- 
+Regards,
 
-<snip>
-
->>
->>   /*
->> - * Return true if rotation is 90 or 270
->> - */
->> -static inline int rotate_90_or_270(const struct omap_vout_device *vout)
->> -{
->> -	return (vout->rotation == dss_rotation_90_degree ||
->> -			vout->rotation == dss_rotation_270_degree);
->> -}
->> -
->> -/*
->> - * Return true if rotation is enabled
->> - */
->> -static inline int rotation_enabled(const struct omap_vout_device *vout)
->> -{
->> -	return vout->rotation || vout->mirror;
->> -}
->> -
-> [Hiremath, Vaibhav] As part of this cleanup I would suggest to rename these API's to self descriptive, something like -
->
-> rotation_enabled =>  is_rotation_enabled
-> rotate_90_or_270 =>  is_rotation_90_or_270
-
-This patch just moves these functions. Moving it to another file and 
-then changing the names in the same patch will make things messy. I'll 
-do this in a separate patch in the same patch set.
-
->
->
->> -/*
-
-<snip>
-
->> diff --git a/drivers/media/video/omap/omap_voutlib.h
->> b/drivers/media/video/omap/omap_voutlib.h
->> index a60b16e..1d722be 100644
->> --- a/drivers/media/video/omap/omap_voutlib.h
->> +++ b/drivers/media/video/omap/omap_voutlib.h
->> @@ -30,5 +30,7 @@ extern int omap_vout_new_window(struct v4l2_rect *crop,
->>   extern void omap_vout_new_format(struct v4l2_pix_format *pix,
->>   		struct v4l2_framebuffer *fbuf, struct v4l2_rect *crop,
->>   		struct v4l2_window *win);
->> +extern unsigned long omap_vout_alloc_buffer(u32 buf_size, u32
->> *phys_addr);
->> +extern void omap_vout_free_buffer(unsigned long virtaddr, u32 buf_size);
->>   #endif	/* #ifndef OMAP_VOUTLIB_H */
->>
-> [Hiremath, Vaibhav] We do not need to use externs here; this should be another cleanup candidate which can be done with this patch series.
-
-Will fix this.
-
-Archit
+Laurent Pinchart
