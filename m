@@ -1,99 +1,133 @@
 Return-path: <mchehab@pedra>
-Received: from mail-qw0-f46.google.com ([209.85.216.46]:55545 "EHLO
-	mail-qw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750973Ab1FZGRv convert rfc822-to-8bit (ORCPT
+Received: from iolanthe.rowland.org ([192.131.102.54]:55150 "HELO
+	iolanthe.rowland.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S932437Ab1FVTW1 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 26 Jun 2011 02:17:51 -0400
-Received: by qwk3 with SMTP id 3so1813881qwk.19
-        for <linux-media@vger.kernel.org>; Sat, 25 Jun 2011 23:17:50 -0700 (PDT)
-Subject: Re: cx18 init lockdep spew
-Mime-Version: 1.0 (Apple Message framework v1084)
-Content-Type: text/plain; charset=us-ascii
-From: Jarod Wilson <jarod@wilsonet.com>
-In-Reply-To: <1308951258.2093.48.camel@morgan.silverblock.net>
-Date: Sun, 26 Jun 2011 02:17:47 -0400
-Cc: "linux-media@vger.kernel.org Mailing List"
-	<linux-media@vger.kernel.org>, hverkuil@xs4all.nl
-Content-Transfer-Encoding: 8BIT
-Message-Id: <D3774627-4C5B-4C42-997E-3B12F8B01004@wilsonet.com>
-References: <ECEB9AD1-D1E4-4204-BE4C-30E3EFFA7722@wilsonet.com> <1308951258.2093.48.camel@morgan.silverblock.net>
-To: Andy Walls <awalls@md.metrocast.net>
+	Wed, 22 Jun 2011 15:22:27 -0400
+Date: Wed, 22 Jun 2011 15:22:28 -0400 (EDT)
+From: Alan Stern <stern@rowland.harvard.edu>
+To: Kirill Smelkov <kirr@mns.spb.ru>
+cc: linux-usb@vger.kernel.org, Greg Kroah-Hartman <gregkh@suse.de>,
+	<linux-uvc-devel@lists.berlios.de>, <linux-media@vger.kernel.org>,
+	<linux-kernel@vger.kernel.org>
+Subject: Re: [RFC, PATCH] USB: EHCI: Allow users to override 80% max periodic
+ bandwidth
+In-Reply-To: <1308758567-8205-1-git-send-email-kirr@mns.spb.ru>
+Message-ID: <Pine.LNX.4.44L0.1106221514350.1977-100000@iolanthe.rowland.org>
+MIME-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Jun 24, 2011, at 5:34 PM, Andy Walls wrote:
+On Wed, 22 Jun 2011, Kirill Smelkov wrote:
 
-> On Fri, 2011-06-24 at 13:39 -0400, Jarod Wilson wrote:
->> I only just recently acquired a Hauppauge HVR-1600 cards, and at least both
->> 2.6.39 and 3.0-rc4 kernels with copious debug spew enabled spit out the
->> lockdep spew included below. Haven't looked into it at all yet, but I
->> thought I'd ask before I do if it is already a known issue.
+> There are cases, when 80% max isochronous bandwidth is too limiting.
 > 
-> Why, yes, it is.  See comments 11-13 of this bug assigned to Jarod
-> Wilson in Dec 2010:
+> For example I have two USB video capture cards which stream uncompressed
+> video, and to stream full NTSC + PAL videos we'd need
 > 
-> https://bugzilla.redhat.com/show_bug.cgi?id=662384
+>     NTSC 640x480 YUV422 @30fps      ~17.6 MB/s
+>     PAL  720x576 YUV422 @25fps      ~19.7 MB/s
 > 
-> Also please ask jarod@redhat.com to send you some off-list emails he
-> received from me on 21-22 Dec 2010.
+> isoc bandwidth.
 > 
-> ;)
+> Now, due to limited alt settings in capture devices NTSC one ends up
+> streaming with max_pkt_size=2688  and  PAL with max_pkt_size=2892, both
+> with interval=1. In terms of microframe time allocation this gives
 > 
+>     NTSC    ~53us
+>     PAL     ~57us
 > 
-> Oh, look, some nice fellow submitted a patch to get rid of the false
-> alarms:
+> and together
 > 
-> http://www.mail-archive.com/linux-media@vger.kernel.org/msg26097.html
-> https://patchwork.kernel.org/patch/431311/
+>     ~110us  >  100us == 80% of 125us uframe time.
 > 
-> ;)
+> So those two devices can't work together simultaneously because the'd
+> over allocate isochronous bandwidth.
+> 
+> 80% seemed a bit arbitrary to me, and I've tried to raise it to 90% and
+> both devices started to work together, so I though sometimes it would be
+> a good idea for users to override hardcoded default of max 80% isoc
+> bandwidth.
+> 
+> After all, isn't it a user who should decide how to load the bus? If I
+> can live with 10% or even 5% bulk bandwidth that should be ok. I'm a USB
+> newcomer, but that 80% seems to be chosen pretty arbitrary to me, just
+> to serve as a reasonable default.
 
-Hahahaha, *facepalm*. I forgot all about that, but its suddenly coming
-rushing back to me. :)
+This seems like the sort of feature somebody might reasonably want to 
+use -- if they know exactly what they're doing.
 
+> NOTE: for two streams with max_pkt_size=3072 (worst case) both time
+> allocation would be 60us+60us=120us which is 96% periodic bandwidth
+> leaving 4% for bulk and control. I think this should work too.
 
-> I'm not sure if it still applies cleanly, but it's not that hard to
-> grok.  The lockdep happiness comes from the lock being initialized in a
-> macro.  That is what's critical to spread all lock instances from one
-> "class" into many individual classes for lockdep.
-> 
-> 
-> The issue is the control handling framework creates instances where the
-> bridge driver acquires its own control handler lock and subsequently a
-> subdev driver lock (or maybe the other way around).  Since the framework
-> instantiated all the handler locks in the same common function, lockdep
-> considers them one "class" and can't/won't think of them as different.
-> 
-> 
-> 
-> If you don't like my patch above, you can try some magic lockdep calls
-> in v4l2_ctrl_add_handler() to make lockdep ignore that particular
-> recursion for the "&hdl->lock" lock class (for a depth of 1?), knowing
-> that it is allowed.
-> 
-> For reference:
-> 
-> http://lkml.org/lkml/2009/9/2/83
-> 
-> I'm pretty sure "mutex_lock_nested(&...->lock, 1)" is what we needed  in
-> v4l2_ctrl_add_handler().
-> 
-> 
-> Here is a DVB and I2C related use of mutex_lock_nested() that was added
-> some years ago:
-> 
-> http://www.jikos.cz/~jikos/dev/lockdep_fix_recursive_i2c_transfer.patch
-> 
-> It is different from our current use case, in that the lock ordering
-> relationship was well defined.  I think that I2C lock class recursion in
-> DVB could have been solved better with lock class annotations vs.
-> nesting.
+At 480 Mb/s, each microframe holds 7500 bytes (less if you count 
+bit-stuffing).  4% of that is 300 bytes, which is not enough for a 
+512-byte bulk packet.  I think you'd run into trouble trying to do any 
+serious bulk transfers on such a tight schedule.
 
-Cool, thanks, I'll try to give it a closer look this week...
+> Signed-off-by: Kirill Smelkov <kirr@mns.spb.ru>
+> Cc: Alan Stern <stern@rowland.harvard.edu>
+> ---
+>  drivers/usb/host/ehci-hcd.c   |   16 ++++++++++++++++
+>  drivers/usb/host/ehci-sched.c |   17 +++++++----------
+>  2 files changed, 23 insertions(+), 10 deletions(-)
+> 
+> diff --git a/drivers/usb/host/ehci-hcd.c b/drivers/usb/host/ehci-hcd.c
+> index c606b02..1d36e72 100644
+> --- a/drivers/usb/host/ehci-hcd.c
+> +++ b/drivers/usb/host/ehci-hcd.c
+> @@ -112,6 +112,14 @@ static unsigned int hird;
+>  module_param(hird, int, S_IRUGO);
+>  MODULE_PARM_DESC(hird, "host initiated resume duration, +1 for each 75us\n");
+>  
+> +/*
+> + * max periodic time per microframe
+> + * (be careful, USB 2.0 requires it to be 100us = 80% of 125us)
+> + */
+> +static unsigned int uframe_periodic_max = 100;
+> +module_param(uframe_periodic_max, uint, S_IRUGO);
+> +MODULE_PARM_DESC(uframe_periodic_max, "maximum allowed periodic part of a microframe, us");
+> +
 
--- 
-Jarod Wilson
-jarod@wilsonet.com
+This probably should be a sysfs attribute rather than a module 
+parameter, so that it can be applied to individual buses separately.
 
+>  #define	INTR_MASK (STS_IAA | STS_FATAL | STS_PCD | STS_ERR | STS_INT)
+>  
+>  /*-------------------------------------------------------------------------*/
+> @@ -571,6 +579,14 @@ static int ehci_init(struct usb_hcd *hcd)
+>  	hcc_params = ehci_readl(ehci, &ehci->caps->hcc_params);
+>  
+>  	/*
+> +	 * tell user, if using non-standard (80% == 100 usec/uframe) bandwidth
+> +	 */
+> +	if (uframe_periodic_max != 100)
+> +		ehci_info(ehci, "using non-standard max periodic bandwith "
+> +				"(%u%% == %u usec/uframe)",
+> +				100*uframe_periodic_max/125, uframe_periodic_max);
+> +
+> +	/*
 
+Check for invalid values.  This should never be less than 100 or 
+greater than 125.
+
+>  	 * hw default: 1K periodic list heads, one per frame.
+>  	 * periodic_size can shrink by USBCMD update if hcc_params allows.
+>  	 */
+> diff --git a/drivers/usb/host/ehci-sched.c b/drivers/usb/host/ehci-sched.c
+> index d12426f..fb374f2 100644
+> --- a/drivers/usb/host/ehci-sched.c
+> +++ b/drivers/usb/host/ehci-sched.c
+> @@ -172,7 +172,7 @@ periodic_usecs (struct ehci_hcd *ehci, unsigned frame, unsigned uframe)
+>  		}
+>  	}
+>  #ifdef	DEBUG
+> -	if (usecs > 100)
+> +	if (usecs > uframe_periodic_max)
+
+These changes all seem right.
+
+Alan Stern
 
