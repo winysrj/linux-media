@@ -1,68 +1,121 @@
 Return-path: <mchehab@pedra>
-Received: from mailout1.w1.samsung.com ([210.118.77.11]:22100 "EHLO
-	mailout1.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755733Ab1F2Mvx (ORCPT
+Received: from nm10-vm0.bullet.mail.ukl.yahoo.com ([217.146.183.242]:23152
+	"HELO nm10-vm0.bullet.mail.ukl.yahoo.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with SMTP id S1752707Ab1FVKgf (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 29 Jun 2011 08:51:53 -0400
-Received: from spt2.w1.samsung.com (mailout1.w1.samsung.com [210.118.77.11])
- by mailout1.w1.samsung.com
- (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14 2004))
- with ESMTP id <0LNJ006FNYEGBO@mailout1.w1.samsung.com> for
- linux-media@vger.kernel.org; Wed, 29 Jun 2011 13:51:52 +0100 (BST)
-Received: from linux.samsung.com ([106.116.38.10])
- by spt2.w1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14
- 2004)) with ESMTPA id <0LNJ00AG3YEFMM@spt2.w1.samsung.com> for
- linux-media@vger.kernel.org; Wed, 29 Jun 2011 13:51:51 +0100 (BST)
-Date: Wed, 29 Jun 2011 14:51:10 +0200
-From: Tomasz Stanislawski <t.stanislaws@samsung.com>
-Subject: [PATCH 1/8] v4l: add macro for 1080p59_54 preset
-In-reply-to: <1309351877-32444-1-git-send-email-t.stanislaws@samsung.com>
-To: linux-media@vger.kernel.org
-Cc: m.szyprowski@samsung.com, t.stanislaws@samsung.com,
-	kyungmin.park@samsung.com, hverkuil@xs4all.nl,
-	laurent.pinchart@ideasonboard.com
-Message-id: <1309351877-32444-2-git-send-email-t.stanislaws@samsung.com>
-MIME-version: 1.0
-Content-type: TEXT/PLAIN
-Content-transfer-encoding: 7BIT
-References: <1309351877-32444-1-git-send-email-t.stanislaws@samsung.com>
+	Wed, 22 Jun 2011 06:36:35 -0400
+Received: by iyb12 with SMTP id 12so552158iyb.19
+        for <linux-media@vger.kernel.org>; Wed, 22 Jun 2011 03:36:31 -0700 (PDT)
+MIME-Version: 1.0
+Date: Wed, 22 Jun 2011 12:36:31 +0200
+Message-ID: <BANLkTimY_RKO4TxSu5GQo84_7VCMjLEFDg@mail.gmail.com>
+Subject: Sveon stv22 patches
+From: David <reality_es@yahoo.es>
+To: Antti Palosaari <crope@iki.fi>
+Cc: linux-media@vger.kernel.org
+Content-Type: multipart/mixed; boundary=90e6ba6e9026b7f55204a64a8a63
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-The 1080p59_94 is supported by latest Samsung SoC.
+--90e6ba6e9026b7f55204a64a8a63
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: quoted-printable
 
-Signed-off-by: Tomasz Stanislawski <t.stanislaws@samsung.com>
-Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
-Reviewed-by: Hans Verkuil <hverkuil@xs4all.nl>
----
- drivers/media/video/v4l2-common.c |    1 +
- include/linux/videodev2.h         |    1 +
- 2 files changed, 2 insertions(+), 0 deletions(-)
+Hello Again:
 
-diff --git a/drivers/media/video/v4l2-common.c b/drivers/media/video/v4l2-common.c
-index 06b9f9f..003e648 100644
---- a/drivers/media/video/v4l2-common.c
-+++ b/drivers/media/video/v4l2-common.c
-@@ -582,6 +582,7 @@ int v4l_fill_dv_preset_info(u32 preset, struct v4l2_dv_enum_preset *info)
- 		{ 1920, 1080, "1080p@30" },	/* V4L2_DV_1080P30 */
- 		{ 1920, 1080, "1080p@50" },	/* V4L2_DV_1080P50 */
- 		{ 1920, 1080, "1080p@60" },	/* V4L2_DV_1080P60 */
-+		{ 1920, 1080, "1080p@59.94" },	/* V4L2_DV_1080P59_94 */
- 	};
- 
- 	if (info == NULL || preset >= ARRAY_SIZE(dv_presets))
-diff --git a/include/linux/videodev2.h b/include/linux/videodev2.h
-index 8a4c309..7c77c4e 100644
---- a/include/linux/videodev2.h
-+++ b/include/linux/videodev2.h
-@@ -872,6 +872,7 @@ struct v4l2_dv_enum_preset {
- #define		V4L2_DV_1080P30		16 /* SMPTE 296M */
- #define		V4L2_DV_1080P50		17 /* BT.1120 */
- #define		V4L2_DV_1080P60		18 /* BT.1120 */
-+#define		V4L2_DV_1080P59_94	19
- 
- /*
-  *	D V 	B T	T I M I N G S
--- 
-1.7.5.4
+The patches for sveon stv22 are done, the first test seems to be ok ,
+tdt tv working , remote working, tests with ubuntu and custom kernel
+3.0.0.rc4 , software tvheadend and xbmc tvlive frontend.
 
+The console output is:
+
+usb 5-1.4: new high speed USB device number 13 using ehci_hcd
+dvb-usb: found a 'Sveon STV22 Dual USB DVB-T Tuner HDTV ' in cold
+state, will try to load a firmware
+dvb-usb: downloading firmware from file 'dvb-usb-af9015.fw'
+dvb-usb: found a 'Sveon STV22 Dual USB DVB-T Tuner HDTV ' in warm state.
+dvb-usb: will pass the complete MPEG2 transport stream to the software demu=
+xer.
+DVB: registering new adapter (Sveon STV22 Dual USB DVB-T Tuner HDTV )
+af9013: firmware version:5.1.0.0
+DVB: registering adapter 0 frontend 0 (Afatech AF9013 DVB-T)...
+MXL5005S: Attached at address 0xc6
+dvb-usb: will pass the complete MPEG2 transport stream to the software demu=
+xer.
+DVB: registering new adapter (Sveon STV22 Dual USB DVB-T Tuner HDTV )
+af9013: found a 'Afatech AF9013 DVB-T' in warm state.
+af9013: firmware version:5.1.0.0
+DVB: registering adapter 1 frontend 0 (Afatech AF9013 DVB-T)...
+MXL5005S: Attached at address 0xc6
+Registered IR keymap rc-msi-digivox-iii
+input: IR-receiver inside an USB DVB receiver as
+/devices/pci0000:00/0000:00:1d.7/usb5/5-1/5-1.4/rc/rc2/input11
+rc2: IR-receiver inside an USB DVB receiver as
+/devices/pci0000:00/0000:00:1d.7/usb5/5-1/5-1.4/rc/rc2
+dvb-usb: schedule remote query interval to 500 msecs.
+dvb-usb: Sveon STV22 Dual USB DVB-T Tuner HDTV  successfully
+initialized and connected.
+usbcore: registered new interface driver dvb_usb_af9015
+
+
+Thanks for your time
+
+Emilio David Diaus L=F3pez
+
+--90e6ba6e9026b7f55204a64a8a63
+Content-Type: text/x-patch; charset=US-ASCII; name="af9015.c.diff"
+Content-Disposition: attachment; filename="af9015.c.diff"
+Content-Transfer-Encoding: base64
+X-Attachment-Id: f_gp856ts90
+
+LS0tIC4vYWY5MDE1LmMJMjAxMS0wNi0yMiAxMjowNToyOC4wMDAwMDAwMDAgKzAyMDAKKysrIC4v
+ZHJpdmVycy9tZWRpYS9kdmIvZHZiLXVzYi9hZjkwMTUuYwkyMDExLTA2LTIxIDEyOjM5OjQ0Ljk0
+NDg3NDAyMSArMDIwMApAQCAtNzQ5LDggKzc0OSw2IEBACiAJCVJDX01BUF9BWlVSRVdBVkVfQURf
+VFU3MDAgfSwKIAl7IChVU0JfVklEX01TSV8yIDw8IDE2KSArIFVTQl9QSURfTVNJX0RJR0lfVk9Y
+X01JTklfSUlJLAogCQlSQ19NQVBfTVNJX0RJR0lWT1hfSUlJIH0sCi0JeyAoVVNCX1ZJRF9LV09S
+TERfMiA8PCAxNikgKyBVU0JfUElEX1NWRU9OX1NUVjIyLAotCQlSQ19NQVBfTVNJX0RJR0lWT1hf
+SUlJIH0sCiAJeyAoVVNCX1ZJRF9MRUFEVEVLIDw8IDE2KSArIFVTQl9QSURfV0lORkFTVF9EVFZf
+RE9OR0xFX0dPTEQsCiAJCVJDX01BUF9MRUFEVEVLX1kwNEcwMDUxIH0sCiAJeyAoVVNCX1ZJRF9B
+VkVSTUVESUEgPDwgMTYpICsgVVNCX1BJRF9BVkVSTUVESUFfVk9MQVJfWCwKQEAgLTEzMTEsNyAr
+MTMwOSw2IEBACiAJCVVTQl9QSURfVEVSUkFURUNfQ0lORVJHWV9UX1NUSUNLX0RVQUxfUkMpfSwK
+IC8qIDM1ICove1VTQl9ERVZJQ0UoVVNCX1ZJRF9BVkVSTUVESUEsIFVTQl9QSURfQVZFUk1FRElB
+X0E4NTBUKX0sCiAJe1VTQl9ERVZJQ0UoVVNCX1ZJRF9HVEVLLCAgICAgIFVTQl9QSURfVElOWVRX
+SU5fMyl9LAotCXtVU0JfREVWSUNFKFVTQl9WSURfS1dPUkxEXzIsICBVU0JfUElEX1NWRU9OX1NU
+VjIyKX0sCiAJezB9LAogfTsKIE1PRFVMRV9ERVZJQ0VfVEFCTEUodXNiLCBhZjkwMTVfdXNiX3Rh
+YmxlKTsKQEAgLTE2NTIsMTEgKzE2NDksNiBAQAogCQkJCS53YXJtX2lkcyA9IHtOVUxMfSwKIAkJ
+CX0sCiAJCQl7Ci0JCQkJLm5hbWUgPSAiU3Zlb24gU1RWMjIgRHVhbCBVU0IgRFZCLVQgVHVuZXIg
+SERUViAiLAotCQkJCS5jb2xkX2lkcyA9IHsmYWY5MDE1X3VzYl90YWJsZVszN10sIE5VTEx9LAot
+CQkJCS53YXJtX2lkcyA9IHtOVUxMfSwKLQkJCX0sCi0JCQl7CiAJCQkJLm5hbWUgPSAiTGVhZHRl
+ayBXaW5GYXN0IERUVjIwMDBEUyIsCiAJCQkJLmNvbGRfaWRzID0geyZhZjkwMTVfdXNiX3RhYmxl
+WzI5XSwgTlVMTH0sCiAJCQkJLndhcm1faWRzID0ge05VTEx9LAo=
+--90e6ba6e9026b7f55204a64a8a63
+Content-Type: text/x-patch; charset=US-ASCII; name="dvb-usb-ids.h.diff"
+Content-Disposition: attachment; filename="dvb-usb-ids.h.diff"
+Content-Transfer-Encoding: base64
+X-Attachment-Id: f_gp85b2101
+
+LS0tIC4vZHZiLXVzYi1pZHMuaAkyMDExLTA2LTE4IDExOjQ4OjIyLjAwMDAwMDAwMCArMDIwMAor
+KysgLi9kcml2ZXJzL21lZGlhL2R2Yi9kdmItdXNiL2R2Yi11c2ItaWRzLmgJMjAxMS0wNi0yMSAx
+MjozOTo0NS4wMTc4NzMxMDggKzAyMDAKQEAgLTEyOCw3ICsxMjgsNiBAQAogI2RlZmluZSBVU0Jf
+UElEX0lOVEVMX0NFOTUwMAkJCQkweDk1MDAKICNkZWZpbmUgVVNCX1BJRF9LV09STERfMzk5VQkJ
+CQkweGUzOTkKICNkZWZpbmUgVVNCX1BJRF9LV09STERfMzk5VV8yCQkJCTB4ZTQwMAotI2RlZmlu
+ZSBVU0JfUElEX1NWRU9OX1NUVjIyCQkJCTB4ZTQwMQogI2RlZmluZSBVU0JfUElEX0tXT1JMRF8z
+OTVVCQkJCTB4ZTM5NgogI2RlZmluZSBVU0JfUElEX0tXT1JMRF8zOTVVXzIJCQkJMHhlMzliCiAj
+ZGVmaW5lIFVTQl9QSURfS1dPUkxEXzM5NVVfMwkJCQkweGUzOTUK
+--90e6ba6e9026b7f55204a64a8a63
+Content-Type: text/x-patch; charset=US-ASCII; name="rc-map.h.diff"
+Content-Disposition: attachment; filename="rc-map.h.diff"
+Content-Transfer-Encoding: base64
+X-Attachment-Id: f_gp85b6v32
+
+LS0tIC4vcmMtbWFwLmgJMjAxMS0wNi0yMSAxMToxNjo1NS4wMDAwMDAwMDAgKzAyMDAKKysrIC4v
+aW5jbHVkZS9tZWRpYS9yYy1tYXAuaAkyMDExLTA2LTIxIDEyOjQxOjM0LjExNDUwOTIxNCArMDIw
+MApAQCAtMTMwLDcgKzEzMCw2IEBACiAjZGVmaW5lIFJDX01BUF9SQzZfTUNFICAgICAgICAgICAg
+ICAgICAgICJyYy1yYzYtbWNlIgogI2RlZmluZSBSQ19NQVBfUkVBTF9BVURJT18yMjBfMzJfS0VZ
+UyAgICAicmMtcmVhbC1hdWRpby0yMjAtMzIta2V5cyIKICNkZWZpbmUgUkNfTUFQX1NUUkVBTVpB
+UCAgICAgICAgICAgICAgICAgInJjLXN0cmVhbXphcCIKLSNkZWZpbmUgUkNfTUFQX1NWRU9OX1NU
+VjIyCQkgInJjLW1zaS1kaWdpdm94LWlpaSIKICNkZWZpbmUgUkNfTUFQX1RCU19ORUMgICAgICAg
+ICAgICAgICAgICAgInJjLXRicy1uZWMiCiAjZGVmaW5lIFJDX01BUF9URUNITklTQVRfVVNCMiAg
+ICAgICAgICAgICJyYy10ZWNobmlzYXQtdXNiMiIKICNkZWZpbmUgUkNfTUFQX1RFUlJBVEVDX0NJ
+TkVSR1lfWFMgICAgICAgInJjLXRlcnJhdGVjLWNpbmVyZ3kteHMiCg==
+--90e6ba6e9026b7f55204a64a8a63--
