@@ -1,60 +1,74 @@
 Return-path: <mchehab@pedra>
-Received: from moutng.kundenserver.de ([212.227.17.8]:60545 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754804Ab1FFJq7 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 6 Jun 2011 05:46:59 -0400
-Date: Mon, 6 Jun 2011 11:46:56 +0200 (CEST)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Geert Uytterhoeven <geert@linux-m68k.org>
-cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: Re: [PATCH] media: soc_camera_video_start - type should be const
-In-Reply-To: <1307306757-7068-1-git-send-email-geert@linux-m68k.org>
-Message-ID: <Pine.LNX.4.64.1106061146070.11169@axis700.grange>
-References: <1307306757-7068-1-git-send-email-geert@linux-m68k.org>
+Received: from mail.kapsi.fi ([217.30.184.167]:54428 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756985Ab1FVLMF (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 22 Jun 2011 07:12:05 -0400
+Message-ID: <4E01CDFF.8050502@iki.fi>
+Date: Wed, 22 Jun 2011 14:11:59 +0300
+From: Antti Palosaari <crope@iki.fi>
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=UTF-8
-Content-Transfer-Encoding: 8BIT
+To: Steffen Barszus <steffenbpunkt@googlemail.com>
+CC: Jan Hoogenraad <jan-conceptronic@hoogenraad.net>,
+	Jarod Wilson <jarod@wilsonet.com>, stybla@turnovfree.net,
+	=?ISO-8859-1?Q?Sascha_W=FCstemann?= <sascha@killerhippy.de>,
+	linux-media@vger.kernel.org,
+	Thomas Holzeisen <thomas@holzeisen.de>,
+	Maxim Levitsky <maximlevitsky@gmail.com>
+Subject: Re: RTL2831U driver updates
+References: <4DF9BCAA.3030301@holzeisen.de>	<4DF9EA62.2040008@killerhippy.de>	<4DFA7748.6000704@hoogenraad.net>	<4DFFC82B.10402@iki.fi>	<4E002EBD.6050800@hoogenraad.net>	<BANLkTim76FRL+ZNapHyjgFyOvuMXxGVzJQ@mail.gmail.com>	<4E017EE7.9040902@hoogenraad.net> <20110622081359.6d55979a@grobi>
+In-Reply-To: <20110622081359.6d55979a@grobi>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Hi Geert
+On 06/22/2011 09:13 AM, Steffen Barszus wrote:
+> On Wed, 22 Jun 2011 07:34:31 +0200
+> Jan Hoogenraad<jan-conceptronic@hoogenraad.net>  wrote:
+>
+>> Thanks. Do you know more about this subject ?
+>>
+>> We do have specs about the chipset, but
+>>
+>> http://linuxtv.org/downloads/v4l-dvb-apis/remote_controllers.html#Remote_controllers_Intro
+>>
+>> only mentions lirc, not rc-core.
+>> This is about where my knowledge stops, however.
+>>
+>> rc-core is only mentioned shortly in:
+>> http://linuxtv.org/wiki/index.php/Remote_Controllers
+>
+> I think/hope Jarod can comment on this - i just know that new remotes
+> should use rc-core, as this is the "new thing" for this. I'm no
+> developer whatsoever :)
 
-On Sun, 5 Jun 2011, Geert Uytterhoeven wrote:
+No problem there, I already know rather well how rc-core is working :) 
+Will do that.
 
-> drivers/media/video/soc_camera.c: In function ‘soc_camera_video_start’:
-> drivers/media/video/soc_camera.c:1515: warning: initialization discards qualifiers from pointer target type
-> 
-> Signed-off-by: Geert Uytterhoeven <geert@linux-m68k.org>
-> ---
->  drivers/media/video/soc_camera.c |    2 +-
->  1 files changed, 1 insertions(+), 1 deletions(-)
-> 
-> diff --git a/drivers/media/video/soc_camera.c b/drivers/media/video/soc_camera.c
-> index 3988643..4e4d412 100644
-> --- a/drivers/media/video/soc_camera.c
-> +++ b/drivers/media/video/soc_camera.c
-> @@ -1512,7 +1512,7 @@ static int video_dev_create(struct soc_camera_device *icd)
->   */
->  static int soc_camera_video_start(struct soc_camera_device *icd)
->  {
-> -	struct device_type *type = icd->vdev->dev.type;
-> +	const struct device_type *type = icd->vdev->dev.type;
->  	int ret;
->  
->  	if (!icd->dev.parent)
-> -- 
-> 1.7.0.4
+RTL2830 demod driver seems to be now rather OK, missing all statistics 
+as I planned, but otherwise rather ready. Seems to have some more work 
+for getting statistic since looks like it polls huge amount of regs when 
+updating those.
 
-Thanks for the patchm unfortunately, you're not the first:
+I am now finalizing that USB-bridge part. Do you have idea if that 
+should be called;
 
-http://www.mail-archive.com/linux-media@vger.kernel.org/msg32245.html
+as used chipset names:
+dvb_usb_rtl2831u
+dvb_usb_rtl2832u
+dvb_usb_rtl2836u
+dvb_usb_rtl2840u
 
-and not even the second;)
+or just name it as generic:
+dvb_usb_rtl28xxu
+dvb_usb_rtl2800u
 
-Thanks
-Guennadi
----
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
-http://www.open-technology.de/
+or some other.
+
+rtl28xxu or rtl2800u sounds best for me.
+
+regards
+Antti
+
+-- 
+http://palosaari.fi/
