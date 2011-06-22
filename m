@@ -1,78 +1,113 @@
 Return-path: <mchehab@pedra>
-Received: from mx1.redhat.com ([209.132.183.28]:21485 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754388Ab1FITnk (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 9 Jun 2011 15:43:40 -0400
-Message-ID: <4DF12263.3070900@redhat.com>
-Date: Thu, 09 Jun 2011 16:43:31 -0300
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Received: from mail-iw0-f174.google.com ([209.85.214.174]:46125 "EHLO
+	mail-iw0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932348Ab1FVSOI (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 22 Jun 2011 14:14:08 -0400
+Received: by iwn6 with SMTP id 6so904563iwn.19
+        for <linux-media@vger.kernel.org>; Wed, 22 Jun 2011 11:14:08 -0700 (PDT)
 MIME-Version: 1.0
-To: Randy Dunlap <randy.dunlap@oracle.com>
-CC: Stephen Rothwell <sfr@canb.auug.org.au>,
-	linux-media@vger.kernel.org, linux-next@vger.kernel.org,
-	LKML <linux-kernel@vger.kernel.org>
-Subject: Re: linux-next: Tree for June 8 (docbook/media)
-References: <20110608161046.4ad95776.sfr@canb.auug.org.au> <20110608125243.e63a07fc.randy.dunlap@oracle.com> <4DF11E15.5030907@infradead.org>
-In-Reply-To: <4DF11E15.5030907@infradead.org>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+From: nogueira13 <nogueira13@gmail.com>
+Date: Wed, 22 Jun 2011 15:13:47 -0300
+Message-ID: <BANLkTimRt5m_+LBGqF25YY9jU=OLUtXFeg@mail.gmail.com>
+Subject: KAIOMY ISDB-T Hybrid USB Dongle Receiver
+To: mchehab@redhat.com
+Cc: linux-media@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Em 09-06-2011 16:25, Mauro Carvalho Chehab escreveu:
-> Em 08-06-2011 16:52, Randy Dunlap escreveu:
->> The DocBook/media/Makefile seems to be causing too much noise:
->>
->> ls: cannot access linux-next-20110608/Documentation/DocBook/media/*/*.gif: No such file or directory
->> ls: cannot access linux-next-20110608/Documentation/DocBook/media/*/*.png: No such file or directory
->>
->> Maybe the cleanmediadocs target could be made silent?
-> 
-> I'll take a look on it. 
-> 
-> FYI, The next build will probably be noisier, as it is now pointing to some 
-> documentation gaps at the DVB API. Those gaps should take a longer time to fix, 
-> as we need to discuss upstream about what should be done with those API's,
-> that seems to be abandoned upstream (only one legacy DVB driver uses them).
-> However, I was told that some out-of-tree drivers and some drivers under development
-> are using them.
-> 
-> So, I intend to wait until the next merge window before either dropping those 
-> legacy API specs (or moving them to a deprecated section) or to merge those
-> out-of-tree drivers, with the proper documentation updates.
-> 
->> also, where is the mediaindexdocs target defined?
-> 
-> Thanks for noticing it. We don't need this target anymore. I'll write a patch
-> removing it.
+I bought a KAIOMY ISDB-T Hybrid USB Dongle Receiver to use with my
+Dell Inspiron 15 Laptop under Ubuntu 11.04 Linux. But I connect it in
+the USB port and it doesn't recognises it. The kernel version I am
+using is the 2.6.38-8-generic. I opened the menuconfig of the kernel
+and I could saw that all modules in the especific section "Device
+Drivers --> Multimedia support --> DVB/ATSC Adapters" are all set to
+<M>. I was thinking that the driver v2l already was buit in this
+modules. But when I connected the device in the USB port I got the
+following autputs to the lsusb and dmesg commands in the console:
 
-This patch should remove the undesired noise.
+Without the device connected
 
-commit 75125b9d44456e0cf2d1fbb72ae33c13415299d1
-Author: Mauro Carvalho Chehab <mchehab@redhat.com>
-Date:   Thu Jun 9 16:34:29 2011 -0300
+nogueira@nogueira-Inspiron-1545:~$ lsusb
+Bus 008 Device 001: ID 1d6b:0001 Linux Foundation 1.1 root hub
+Bus 007 Device 001: ID 1d6b:0001 Linux Foundation 1.1 root hub
+Bus 006 Device 001: ID 1d6b:0001 Linux Foundation 1.1 root hub
+Bus 005 Device 001: ID 1d6b:0001 Linux Foundation 1.1 root hub
+Bus 004 Device 001: ID 1d6b:0001 Linux Foundation 1.1 root hub
+Bus 003 Device 005: ID 413c:8160 Dell Computer Corp.
+Bus 003 Device 004: ID 413c:8162 Dell Computer Corp.
+Bus 003 Device 003: ID 413c:8161 Dell Computer Corp.
+Bus 003 Device 002: ID 0a5c:4500 Broadcom Corp. BCM2046B1 USB 2.0 Hub
+(part of BCM2046 Bluetooth)
+Bus 003 Device 001: ID 1d6b:0001 Linux Foundation 1.1 root hub
+Bus 002 Device 002: ID 04e8:1f05 Samsung Electronics Co., Ltd
+Bus 002 Device 001: ID 1d6b:0002 Linux Foundation 2.0 root hub
+Bus 001 Device 004: ID 0c45:63ee Microdia
+Bus 001 Device 003: ID 0bda:0158 Realtek Semiconductor Corp. USB 2.0
+multicard reader
+Bus 001 Device 001: ID 1d6b:0002 Linux Foundation 2.0 root hub
+nogueira@nogueira-Inspiron-1545:~$
 
-    [media] DocBook: Don't be noisy at make cleanmediadocs
-    
-    While here, remove the mediaindexdocs from PHONY.
-    
-    Reported-by: Randy Dunlap <randy.dunlap@oracle.com>
-    Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
 
-diff --git a/Documentation/DocBook/media/Makefile b/Documentation/DocBook/media/Makefile
-index 1e909c2..b7627e1 100644
---- a/Documentation/DocBook/media/Makefile
-+++ b/Documentation/DocBook/media/Makefile
-@@ -21,10 +21,10 @@ MEDIA_TEMP =  media-entities.tmpl \
- IMGFILES := $(addprefix $(MEDIA_OBJ_DIR)/media/, $(notdir $(shell ls $(MEDIA_SRC_DIR)/*/*.gif $(MEDIA_SRC_DIR)/*/*.png)))
- GENFILES := $(addprefix $(MEDIA_OBJ_DIR)/, $(MEDIA_TEMP))
- 
--PHONY += cleanmediadocs mediaindexdocs
-+PHONY += cleanmediadocs
- 
- cleanmediadocs:
--	-@rm `find $(MEDIA_OBJ_DIR) -type l` $(GENFILES) $(IMGFILES)
-+	-@rm `find $(MEDIA_OBJ_DIR) -type l` $(GENFILES) $(IMGFILES) 2>/dev/null
- 
- $(obj)/media_api.xml: $(GENFILES) FORCE
- 
+With the device connected
+
+nogueira@nogueira-Inspiron-1545:~$ lsusb
+Bus 008 Device 001: ID 1d6b:0001 Linux Foundation 1.1 root hub
+Bus 007 Device 001: ID 1d6b:0001 Linux Foundation 1.1 root hub
+Bus 006 Device 001: ID 1d6b:0001 Linux Foundation 1.1 root hub
+Bus 005 Device 001: ID 1d6b:0001 Linux Foundation 1.1 root hub
+Bus 004 Device 001: ID 1d6b:0001 Linux Foundation 1.1 root hub
+Bus 003 Device 005: ID 413c:8160 Dell Computer Corp.
+Bus 003 Device 004: ID 413c:8162 Dell Computer Corp.
+Bus 003 Device 003: ID 413c:8161 Dell Computer Corp.
+Bus 003 Device 002: ID 0a5c:4500 Broadcom Corp. BCM2046B1 USB 2.0 Hub
+(part of BCM2046 Bluetooth)
+Bus 003 Device 001: ID 1d6b:0001 Linux Foundation 1.1 root hub
+Bus 002 Device 014: ID 1554:5019 Prolink Microsystems Corp.
+Bus 002 Device 002: ID 04e8:1f05 Samsung Electronics Co., Ltd
+Bus 002 Device 001: ID 1d6b:0002 Linux Foundation 2.0 root hub
+Bus 001 Device 004: ID 0c45:63ee Microdia
+Bus 001 Device 003: ID 0bda:0158 Realtek Semiconductor Corp. USB 2.0
+multicard reader
+Bus 001 Device 001: ID 1d6b:0002 Linux Foundation 2.0 root hub
+nogueira@nogueira-Inspiron-1545:~$
+
+I guess that the device pointed is Device 014, Prolink Microsystems Corp.
+
+Here the output of the last lines of "dmesg":
+
+[21677.320057] usb0: no IPv6 routers present
+[24094.384020] input: Navigator 905BT Mouse as
+/devices/pci0000:00/0000:00:1a.0/usb3/3-1/3-1.3/3-1.3:1.0/bluetooth/hci0/hci0:12/input15
+[24094.384377] generic-bluetooth 0005:0458:00A7.0005: input,hidraw1:
+BLUETOOTH HID v1.00 Mouse [Navigator 905BT Mouse] on 00:26:5E:E0:61:18
+[24622.528358] usb 2-3: USB disconnect, address 11
+[24622.528559] rndis_host 2-3:1.0: usb0: unregister 'rndis_host'
+usb-0000:00:1d.7-3, RNDIS device
+[24622.970104] usb 2-3: new high speed USB device using ehci_hcd and address 12
+[24623.125469] scsi14 : usb-storage 2-3:1.0
+[24624.121792] scsi 14:0:0:0: Direct-Access     SAMSUNG  GT-I5500 Card
+  0000 PQ: 0 ANSI: 2
+[24624.123433] sd 14:0:0:0: Attached scsi generic sg4 type 0
+[24624.128097] sd 14:0:0:0: [sdd] Attached SCSI removable disk
+[24633.138586] usb 2-3: USB disconnect, address 12
+[24649.596828] wlan0: authenticate with 00:1a:3f:4b:50:8b (try 1)
+[24649.599160] wlan0: authenticated
+[24649.599226] wlan0: associate with 00:1a:3f:4b:50:8b (try 1)
+[24649.602074] wlan0: RX AssocResp from 00:1a:3f:4b:50:8b (capab=0x451
+status=0 aid=4)
+[24649.602082] wlan0: associated
+[29210.660319] usb 2-3: new high speed USB device using ehci_hcd and address 13
+
+I am not an expert in linux but I can't see anything that could
+indicate that it recognised it in dmesg. I would like if you may help
+me in order I could use this device in Linux (in windows 7 it is
+working properly...).
+I would like you send me the routine that I must to follow (step by
+step, please because I am not an expert as I already said).
+Hopping you help me I would like to tanks in advantage.
+
+Sincerely
+
+Antonio Carlos Ribeiro Nogueira
