@@ -1,62 +1,161 @@
 Return-path: <mchehab@pedra>
-Received: from mail-ew0-f46.google.com ([209.85.215.46]:43545 "EHLO
-	mail-ew0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755460Ab1FTWgJ convert rfc822-to-8bit (ORCPT
+Received: from mailout4.w1.samsung.com ([210.118.77.14]:22315 "EHLO
+	mailout4.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932299Ab1FVSBq (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 20 Jun 2011 18:36:09 -0400
-Received: by ewy4 with SMTP id 4so1389723ewy.19
-        for <linux-media@vger.kernel.org>; Mon, 20 Jun 2011 15:36:07 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <87wrggb1bg.fsf@nemi.mork.no>
-References: <BANLkTimtnbAzLTdFY2OiSddHTjmD_99CfA@mail.gmail.com>
-	<201106202037.19535.remi@remlab.net>
-	<BANLkTinn0uN3VwGfqCbYbxFoVf6aNo1VSA@mail.gmail.com>
-	<BANLkTin14LnwP+_K1m-RsEXza4M4CjqnEw@mail.gmail.com>
-	<BANLkTimR-zWnnLBcD2w8d8NpeFJi=eT9nQ@mail.gmail.com>
-	<005a01cc2f7d$a799be30$f6cd3a90$@coexsi.fr>
-	<BANLkTinbQ8oBJt7fScuT5vHGFktbaQNY5A@mail.gmail.com>
-	<87wrggb1bg.fsf@nemi.mork.no>
-Date: Tue, 21 Jun 2011 00:36:07 +0200
-Message-ID: <BANLkTi=P9OV5J0Dz=_uyiKqR-NrvBvAs5g@mail.gmail.com>
-Subject: Re: [RFC] vtunerc - virtual DVB device driver
-From: HoP <jpetrous@gmail.com>
-To: =?ISO-8859-1?Q?Bj=F8rn_Mork?= <bjorn@mork.no>
-Cc: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+	Wed, 22 Jun 2011 14:01:46 -0400
+MIME-version: 1.0
+Content-transfer-encoding: 7BIT
+Content-type: TEXT/PLAIN
+Date: Wed, 22 Jun 2011 20:01:23 +0200
+From: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Subject: [PATCH v2 17/18] s5p-fimc: Use consistent names for the buffer list
+ functions
+In-reply-to: <1308765684-10677-1-git-send-email-s.nawrocki@samsung.com>
+To: linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org
+Cc: m.szyprowski@samsung.com, kyungmin.park@samsung.com,
+	s.nawrocki@samsung.com, sw0312.kim@samsung.com,
+	riverful.kim@samsung.com
+Message-id: <1308765684-10677-18-git-send-email-s.nawrocki@samsung.com>
+References: <1308765684-10677-1-git-send-email-s.nawrocki@samsung.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Hi Bjørn.
+Also correct and improve *_queue_add/pop functions description.
 
-2011/6/21 Bjørn Mork <bjorn@mork.no>:
-> Devin Heitmueller <dheitmueller@kernellabs.com> writes:
->
->> Nothing prevents a third-party from writing closed source drivers.
->> What we do *not* think is fair though is that those third parties
->> should be able to take advantage of all the GPL code that makes up the
->> DVB core, and the man-years spent developing that code.
->
-> You could use the same argument against adding a loadable module
-> interface to the Linux kernel (and I'm pretty sure it was used).
-> Thankfully, usability won back then.  Or we most likely wouldn't have
-> had a single Linux DVB driver.  Or Linux at all, except as a historical
-> footnote.
->
-> Honza posted a GPL licensed driver and gave a pretty good usage
-> scenario.  Please don't reject it based on fear of abuse.  If you think
-> about it, almost any usability improvement will also make abuse easier.
-> And if you reject all of them based on such fear, then your system will
-> die.
+Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+---
+ drivers/media/video/s5p-fimc/fimc-capture.c |    6 ++--
+ drivers/media/video/s5p-fimc/fimc-core.c    |    6 ++--
+ drivers/media/video/s5p-fimc/fimc-core.h    |   38 +++++++++++++++++---------
+ 3 files changed, 31 insertions(+), 19 deletions(-)
 
-Thank you for you support. Until now I thought that my non-understanding
-of that "abuse-fearing-rule" was only my own brain defect :-)
+diff --git a/drivers/media/video/s5p-fimc/fimc-capture.c b/drivers/media/video/s5p-fimc/fimc-capture.c
+index 06c85ae..981e0a0 100644
+--- a/drivers/media/video/s5p-fimc/fimc-capture.c
++++ b/drivers/media/video/s5p-fimc/fimc-capture.c
+@@ -101,12 +101,12 @@ static int fimc_stop_capture(struct fimc_dev *fimc)
+ 
+ 	/* Release buffers that were enqueued in the driver by videobuf2. */
+ 	while (!list_empty(&cap->pending_buf_q)) {
+-		buf = pending_queue_pop(cap);
++		buf = fimc_pending_queue_pop(cap);
+ 		vb2_buffer_done(&buf->vb, VB2_BUF_STATE_ERROR);
+ 	}
+ 
+ 	while (!list_empty(&cap->active_buf_q)) {
+-		buf = active_queue_pop(cap);
++		buf = fimc_active_queue_pop(cap);
+ 		vb2_buffer_done(&buf->vb, VB2_BUF_STATE_ERROR);
+ 	}
+ 
+@@ -259,7 +259,7 @@ static void buffer_queue(struct vb2_buffer *vb)
+ 
+ 		fimc_hw_set_output_addr(fimc, &buf->paddr, buf_id);
+ 		buf->index = vid_cap->buf_index;
+-		active_queue_add(vid_cap, buf);
++		fimc_active_queue_add(vid_cap, buf);
+ 
+ 		if (++vid_cap->buf_index >= FIMC_MAX_OUT_BUFS)
+ 			vid_cap->buf_index = 0;
+diff --git a/drivers/media/video/s5p-fimc/fimc-core.c b/drivers/media/video/s5p-fimc/fimc-core.c
+index 4d6aca5..078793d 100644
+--- a/drivers/media/video/s5p-fimc/fimc-core.c
++++ b/drivers/media/video/s5p-fimc/fimc-core.c
+@@ -328,7 +328,7 @@ void fimc_capture_irq_handler(struct fimc_dev *fimc, bool rel_buf)
+ 	    test_bit(ST_CAPT_RUN, &fimc->state) && rel_buf) {
+ 		ktime_get_real_ts(&ts);
+ 
+-		v_buf = active_queue_pop(cap);
++		v_buf = fimc_active_queue_pop(cap);
+ 
+ 		tv = &v_buf->vb.v4l2_buf.timestamp;
+ 		tv->tv_sec = ts.tv_sec;
+@@ -345,12 +345,12 @@ void fimc_capture_irq_handler(struct fimc_dev *fimc, bool rel_buf)
+ 
+ 	if (!list_empty(&cap->pending_buf_q)) {
+ 
+-		v_buf = pending_queue_pop(cap);
++		v_buf = fimc_pending_queue_pop(cap);
+ 		fimc_hw_set_output_addr(fimc, &v_buf->paddr, cap->buf_index);
+ 		v_buf->index = cap->buf_index;
+ 
+ 		/* Move the buffer to the capture active queue */
+-		active_queue_add(cap, v_buf);
++		fimc_active_queue_add(cap, v_buf);
+ 
+ 		dbg("next frame: %d, done frame: %d",
+ 		    fimc_hw_get_frame_index(fimc), v_buf->index);
+diff --git a/drivers/media/video/s5p-fimc/fimc-core.h b/drivers/media/video/s5p-fimc/fimc-core.h
+index 781fb10..ee91d88 100644
+--- a/drivers/media/video/s5p-fimc/fimc-core.h
++++ b/drivers/media/video/s5p-fimc/fimc-core.h
+@@ -744,22 +744,27 @@ static inline void fimc_deactivate_capture(struct fimc_dev *fimc)
+ }
+ 
+ /*
+- * Add buf to the capture active buffers queue.
+- * Locking: Need to be called with fimc_dev::slock held.
++ * Buffer list manipulation functions. Must be called with fimc.slock held.
+  */
+-static inline void active_queue_add(struct fimc_vid_cap *vid_cap,
+-				    struct fimc_vid_buffer *buf)
++
++/**
++ * fimc_active_queue_add - add buffer to the capture active buffers queue
++ * @buf: buffer to add to the active buffers list
++ */
++static inline void fimc_active_queue_add(struct fimc_vid_cap *vid_cap,
++					 struct fimc_vid_buffer *buf)
+ {
+ 	list_add_tail(&buf->list, &vid_cap->active_buf_q);
+ 	vid_cap->active_buf_cnt++;
+ }
+ 
+-/*
+- * Pop a video buffer from the capture active buffers queue
+- * Locking: Need to be called with fimc_dev::slock held.
++/**
++ * fimc_active_queue_pop - pop buffer from the capture active buffers queue
++ *
++ * The caller must assure the active_buf_q list is not empty.
+  */
+-static inline struct fimc_vid_buffer *
+-active_queue_pop(struct fimc_vid_cap *vid_cap)
++static inline struct fimc_vid_buffer *fimc_active_queue_pop(
++				    struct fimc_vid_cap *vid_cap)
+ {
+ 	struct fimc_vid_buffer *buf;
+ 	buf = list_entry(vid_cap->active_buf_q.next,
+@@ -769,16 +774,23 @@ active_queue_pop(struct fimc_vid_cap *vid_cap)
+ 	return buf;
+ }
+ 
+-/* Add video buffer to the capture pending buffers queue */
++/**
++ * fimc_pending_queue_add - add buffer to the capture pending buffers queue
++ * @buf: buffer to add to the pending buffers list
++ */
+ static inline void fimc_pending_queue_add(struct fimc_vid_cap *vid_cap,
+ 					  struct fimc_vid_buffer *buf)
+ {
+ 	list_add_tail(&buf->list, &vid_cap->pending_buf_q);
+ }
+ 
+-/* Add video buffer to the capture pending buffers queue */
+-static inline struct fimc_vid_buffer *
+-pending_queue_pop(struct fimc_vid_cap *vid_cap)
++/**
++ * fimc_pending_queue_pop - pop buffer from the capture pending buffers queue
++ *
++ * The caller must assure the pending_buf_q list is not empty.
++ */
++static inline struct fimc_vid_buffer *fimc_pending_queue_pop(
++				     struct fimc_vid_cap *vid_cap)
+ {
+ 	struct fimc_vid_buffer *buf;
+ 	buf = list_entry(vid_cap->pending_buf_q.next,
+-- 
+1.7.5.4
 
-So, linux-media guys, don't worry. Because vtunerc is my very first kernel
-code I can assure you that you find most likely some design defects
-or something like that what prevent of code upstreaming. It can take loooong
-time until the code will grow up for upstreaming :-)
-
-/Honza
-
-PS: The driver is in use for more then 6 months with VDR.
