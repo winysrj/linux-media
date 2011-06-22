@@ -1,109 +1,86 @@
 Return-path: <mchehab@pedra>
-Received: from mx1.redhat.com ([209.132.183.28]:50996 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753464Ab1FHUZX (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 8 Jun 2011 16:25:23 -0400
-Received: from int-mx02.intmail.prod.int.phx2.redhat.com (int-mx02.intmail.prod.int.phx2.redhat.com [10.5.11.12])
-	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id p58KPNHI012535
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
-	for <linux-media@vger.kernel.org>; Wed, 8 Jun 2011 16:25:23 -0400
-Received: from pedra (vpn-10-126.rdu.redhat.com [10.11.10.126])
-	by int-mx02.intmail.prod.int.phx2.redhat.com (8.13.8/8.13.8) with ESMTP id p58KP4Un024316
-	for <linux-media@vger.kernel.org>; Wed, 8 Jun 2011 16:25:22 -0400
-Date: Wed, 8 Jun 2011 17:23:08 -0300
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: [PATCH 11/13] [media] DocBook/Makefile: Remove osd.h header
-Message-ID: <20110608172308.7000fa3c@pedra>
-In-Reply-To: <cover.1307563765.git.mchehab@redhat.com>
-References: <cover.1307563765.git.mchehab@redhat.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Received: from smtp-vbr11.xs4all.nl ([194.109.24.31]:2963 "EHLO
+	smtp-vbr11.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751154Ab1FVHDz (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 22 Jun 2011 03:03:55 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linaro-mm-sig@lists.linaro.org
+Subject: Re: [Linaro-mm-sig] [PATCH 08/10] mm: cma: Contiguous Memory Allocator added
+Date: Wed, 22 Jun 2011 09:03:30 +0200
+Cc: Arnd Bergmann <arnd@arndb.de>,
+	linux-arm-kernel@lists.infradead.org,
+	"'Daniel Walker'" <dwalker@codeaurora.org>, linux-mm@kvack.org,
+	"'Mel Gorman'" <mel@csn.ul.ie>, linux-kernel@vger.kernel.org,
+	"'Michal Nazarewicz'" <mina86@mina86.com>,
+	"'Jesse Barker'" <jesse.barker@linaro.org>,
+	"'Kyungmin Park'" <kyungmin.park@samsung.com>,
+	"'Ankita Garg'" <ankita@in.ibm.com>,
+	"'Andrew Morton'" <akpm@linux-foundation.org>,
+	linux-media@vger.kernel.org,
+	"'KAMEZAWA Hiroyuki'" <kamezawa.hiroyu@jp.fujitsu.com>
+References: <1307699698-29369-1-git-send-email-m.szyprowski@samsung.com> <000501cc2b2b$789a54b0$69cefe10$%szyprowski@samsung.com> <201106150937.18524.arnd@arndb.de>
+In-Reply-To: <201106150937.18524.arnd@arndb.de>
+MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
-To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
+Message-Id: <201106220903.31065.hverkuil@xs4all.nl>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-The av7110 uses an OSD API. Such API is not documented at all. Also,
-the osd.h API uses camelCase and some other weird stuff. Also, dvb-core
-doesn't recognize it.
+On Wednesday, June 15, 2011 09:37:18 Arnd Bergmann wrote:
+> On Wednesday 15 June 2011 09:11:39 Marek Szyprowski wrote:
+> > I see your concerns, but I really wonder how to determine the properties
+> > of the global/default cma pool. You definitely don't want to give all
+> > available memory o CMA, because it will have negative impact on kernel
+> > operation (kernel really needs to allocate unmovable pages from time to
+> > time). 
+> 
+> Exactly. This is a hard problem, so I would prefer to see a solution for
+> coming up with reasonable defaults.
+> 
+> > The only solution I see now is to provide Kconfig entry to determine
+> > the size of the global CMA pool, but this still have some issues,
+> > especially for multi-board kernels (each board probably will have
+> > different amount of RAM and different memory-consuming devices
+> > available). It looks that each board startup code still might need to
+> > tweak the size of CMA pool. I can add a kernel command line option for
+> > it, but such solution also will not solve all the cases (afair there
+> > was a discussion about kernel command line parameters for memory 
+> > configuration and the conclusion was that it should be avoided).
+> 
+> The command line option can be a last resort if the heuristics fail,
+> but it's not much better than a fixed Kconfig setting.
+> 
+> How about a Kconfig option that defines the percentage of memory
+> to set aside for contiguous allocations?
 
-I don't see any good reason why we should document it. It seems better
-to just let it as-is. If ever needed, it is probably better to write
-a different API for dvb-core.
+I would actually like to see a cma_size kernel option of some sort. This would
+be for the global CMA pool only as I don't think we should try to do anything
+more complicated here.
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+While it is relatively easy for embedded systems to do a recompile every time
+you need to change the pool size, this isn't an option on 'normal' desktop
+systems.
 
-diff --git a/Documentation/DocBook/media/Makefile b/Documentation/DocBook/media/Makefile
-index ab31254..a914eb0 100644
---- a/Documentation/DocBook/media/Makefile
-+++ b/Documentation/DocBook/media/Makefile
-@@ -16,7 +16,6 @@ MEDIA_TEMP =  media-entities.tmpl \
- 	      dmx.h.xml \
- 	      frontend.h.xml \
- 	      net.h.xml \
--	      osd.h.xml \
- 	      video.h.xml \
- 
- IMGFILES := $(addprefix $(MEDIA_OBJ_DIR)/media/, $(notdir $(shell ls $(MEDIA_SRC_DIR)/*/*.gif $(MEDIA_SRC_DIR)/*/*.png)))
-@@ -62,7 +61,6 @@ IOCTLS = \
- 	$(shell perl -ne 'print "$$1 " if /\#define\s+([^\s]+)\s+_IO/' $(srctree)/include/linux/dvb/dmx.h) \
- 	$(shell perl -ne 'print "$$1 " if /\#define\s+([^\s]+)\s+_IO/' $(srctree)/include/linux/dvb/frontend.h) \
- 	$(shell perl -ne 'print "$$1 " if /\#define\s+([A-Z][^\s]+)\s+_IO/' $(srctree)/include/linux/dvb/net.h) \
--	$(shell perl -ne 'print "$$1 " if /\#define\s+([^\s]+)\s+_IO/' $(srctree)/include/linux/dvb/osd.h) \
- 	$(shell perl -ne 'print "$$1 " if /\#define\s+([^\s]+)\s+_IO/' $(srctree)/include/linux/dvb/video.h) \
- 	$(shell perl -ne 'print "$$1 " if /\#define\s+([^\s]+)\s+_IO/' $(srctree)/include/linux/media.h) \
- 	$(shell perl -ne 'print "$$1 " if /\#define\s+([^\s]+)\s+_IO/' $(srctree)/include/linux/v4l2-subdev.h) \
-@@ -83,7 +81,6 @@ ENUMS = \
- 	$(shell perl -ne 'print "$$1 " if /^enum\s+([^\s]+)\s+/' $(srctree)/include/linux/dvb/dmx.h) \
- 	$(shell perl -ne 'print "$$1 " if /^enum\s+([^\s]+)\s+/' $(srctree)/include/linux/dvb/frontend.h) \
- 	$(shell perl -ne 'print "$$1 " if /^enum\s+([^\s]+)\s+/' $(srctree)/include/linux/dvb/net.h) \
--	$(shell perl -ne 'print "$$1 " if /^enum\s+([^\s]+)\s+/' $(srctree)/include/linux/dvb/osd.h) \
- 	$(shell perl -ne 'print "$$1 " if /^enum\s+([^\s]+)\s+/' $(srctree)/include/linux/dvb/video.h) \
- 	$(shell perl -ne 'print "$$1 " if /^enum\s+([^\s]+)\s+/' $(srctree)/include/linux/media.h) \
- 	$(shell perl -ne 'print "$$1 " if /^enum\s+([^\s]+)\s+/' $(srctree)/include/linux/v4l2-mediabus.h) \
-@@ -96,7 +93,6 @@ STRUCTS = \
- 	$(shell perl -ne 'print "$$1 " if (/^struct\s+([^\s]+)\s+/)' $(srctree)/include/linux/dvb/dmx.h) \
- 	$(shell perl -ne 'print "$$1 " if (!/dtv\_cmds\_h/ && /^struct\s+([^\s]+)\s+/)' $(srctree)/include/linux/dvb/frontend.h) \
- 	$(shell perl -ne 'print "$$1 " if (/^struct\s+([A-Z][^\s]+)\s+/)' $(srctree)/include/linux/dvb/net.h) \
--	$(shell perl -ne 'print "$$1 " if (/^struct\s+([^\s]+)\s+/)' $(srctree)/include/linux/dvb/osd.h) \
- 	$(shell perl -ne 'print "$$1 " if (/^struct\s+([^\s]+)\s+/)' $(srctree)/include/linux/dvb/video.h) \
- 	$(shell perl -ne 'print "$$1 " if /^struct\s+([^\s]+)\s+/' $(srctree)/include/linux/media.h) \
- 	$(shell perl -ne 'print "$$1 " if /^struct\s+([^\s]+)\s+/' $(srctree)/include/linux/v4l2-subdev.h) \
-@@ -232,17 +228,6 @@ $(MEDIA_OBJ_DIR)/net.h.xml: $(srctree)/include/linux/dvb/net.h $(MEDIA_OBJ_DIR)/
- 	@(					\
- 	echo "</programlisting>") >> $@
- 
--$(MEDIA_OBJ_DIR)/osd.h.xml: $(srctree)/include/linux/dvb/osd.h $(MEDIA_OBJ_DIR)/v4l2.xml
--	@$($(quiet)gen_xml)
--	@(					\
--	echo "<programlisting>") > $@
--	@(					\
--	expand --tabs=8 < $< |			\
--	  sed $(ESCAPE) $(DVB_DOCUMENTED) |	\
--	  sed 's/i\.e\./&ie;/') >> $@
--	@(					\
--	echo "</programlisting>") >> $@
--
- $(MEDIA_OBJ_DIR)/video.h.xml: $(srctree)/include/linux/dvb/video.h $(MEDIA_OBJ_DIR)/v4l2.xml
- 	@$($(quiet)gen_xml)
- 	@(					\
-diff --git a/Documentation/DocBook/media/dvb/dvbapi.xml b/Documentation/DocBook/media/dvb/dvbapi.xml
-index 5291430..2ab6ddc 100644
---- a/Documentation/DocBook/media/dvb/dvbapi.xml
-+++ b/Documentation/DocBook/media/dvb/dvbapi.xml
-@@ -134,10 +134,6 @@ Added ISDB-T test originally written by Patrick Boettcher
-     <title>DVB Network Header File</title>
-     &sub-net-h;
-   </appendix>
--  <appendix id="osd_h">
--    <title>DVB OSD Header File</title>
--    &sub-osd-h;
--  </appendix>
-   <appendix id="video_h">
-     <title>DVB Video Header File</title>
-     &sub-video-h;
--- 
-1.7.1
+While usually you have more than enough memory on such systems and don't need
+CMA, there are a number of cases where you do want to reserve sufficient
+memory. Usually these involve lots of video capture cards in one system.
 
+What I was wondering about is how this patch series changes the allocation
+in case it can't allocate from the CMA pool. Will it attempt to fall back
+to a 'normal' allocation?
 
+The reason I ask is that for desktop systems you could just start with a CMA
+pool of size 0. And only in specific situations would you need to add a
+cma_size kernel parameter depending on your needs. But this scheme would
+require a fallback scenario in case of a global CMA pool of size 0.
+
+Hmm, perhaps this fallback scenario is more driver specific. For SoC platform
+video devices you may not want a fallback, whereas for PCI(e)/USB devices you
+do. I don't know what's best, frankly.
+
+Regards,
+
+	Hans
