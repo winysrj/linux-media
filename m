@@ -1,117 +1,137 @@
 Return-path: <mchehab@pedra>
-Received: from smtp-vbr18.xs4all.nl ([194.109.24.38]:4004 "EHLO
-	smtp-vbr18.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751963Ab1FORLF (ORCPT
+Received: from mailout3.w1.samsung.com ([210.118.77.13]:21081 "EHLO
+	mailout3.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758525Ab1FVSBj (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 15 Jun 2011 13:11:05 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Sakari Ailus <sakari.ailus@iki.fi>
-Subject: Re: [RFCv1 PATCH 1/8] v4l2-events/fh: merge v4l2_events into v4l2_fh
-Date: Wed, 15 Jun 2011 19:10:52 +0200
-Cc: linux-media@vger.kernel.org, laurent.pinchart@ideasonboard.com,
-	Hans Verkuil <hans.verkuil@cisco.com>
-References: <1308064953-11156-1-git-send-email-hverkuil@xs4all.nl> <201106151839.35935.hverkuil@xs4all.nl> <4DF8E4D9.1050604@iki.fi>
-In-Reply-To: <4DF8E4D9.1050604@iki.fi>
-MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201106151910.52163.hverkuil@xs4all.nl>
+	Wed, 22 Jun 2011 14:01:39 -0400
+MIME-version: 1.0
+Content-transfer-encoding: 7BIT
+Content-type: TEXT/PLAIN
+Date: Wed, 22 Jun 2011 20:01:08 +0200
+From: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Subject: [PATCH v2 02/18] s5p-fimc: Remove registration of video nodes from
+ probe()
+In-reply-to: <1308765684-10677-1-git-send-email-s.nawrocki@samsung.com>
+To: linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org
+Cc: m.szyprowski@samsung.com, kyungmin.park@samsung.com,
+	s.nawrocki@samsung.com, sw0312.kim@samsung.com,
+	riverful.kim@samsung.com
+Message-id: <1308765684-10677-3-git-send-email-s.nawrocki@samsung.com>
+References: <1308765684-10677-1-git-send-email-s.nawrocki@samsung.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Wednesday, June 15, 2011 18:59:05 Sakari Ailus wrote:
-> Hans Verkuil wrote:
-> > On Wednesday, June 15, 2011 11:30:07 Sakari Ailus wrote:
-> >> Hi Hans,
-> >>
-> >> Many thanks for the patch. I'm very happy to see this!
-> >>
-> >> I have just one comment below.
-> >>
-> >>> diff --git a/include/media/v4l2-event.h b/include/media/v4l2-event.h
-> >>> index 45e9c1e..042b893 100644
-> >>> --- a/include/media/v4l2-event.h
-> >>> +++ b/include/media/v4l2-event.h
-> >>> @@ -43,17 +43,6 @@ struct v4l2_subscribed_event {
-> >>>   	u32			id;
-> >>>   };
-> >>>
-> >>> -struct v4l2_events {
-> >>> -	wait_queue_head_t	wait;
-> >>> -	struct list_head	subscribed; /* Subscribed events */
-> >>> -	struct list_head	free; /* Events ready for use */
-> >>> -	struct list_head	available; /* Dequeueable event */
-> >>> -	unsigned int		navailable;
-> >>> -	unsigned int		nallocated; /* Number of allocated events */
-> >>> -	u32			sequence;
-> >>> -};
-> >>> -
-> >>> -int v4l2_event_init(struct v4l2_fh *fh);
-> >>>   int v4l2_event_alloc(struct v4l2_fh *fh, unsigned int n);
-> >>>   void v4l2_event_free(struct v4l2_fh *fh);
-> >>>   int v4l2_event_dequeue(struct v4l2_fh *fh, struct v4l2_event *event,
-> >>> diff --git a/include/media/v4l2-fh.h b/include/media/v4l2-fh.h
-> >>> index d247111..bfc0457 100644
-> >>> --- a/include/media/v4l2-fh.h
-> >>> +++ b/include/media/v4l2-fh.h
-> >>> @@ -29,15 +29,22 @@
-> >>>   #include<linux/list.h>
-> >>>
-> >>>   struct video_device;
-> >>> -struct v4l2_events;
-> >>>   struct v4l2_ctrl_handler;
-> >>>
-> >>>   struct v4l2_fh {
-> >>>   	struct list_head	list;
-> >>>   	struct video_device	*vdev;
-> >>> -	struct v4l2_events      *events; /* events, pending and subscribed */
-> >>>   	struct v4l2_ctrl_handler *ctrl_handler;
-> >>>   	enum v4l2_priority	prio;
-> >>> +
-> >>> +	/* Events */
-> >>> +	wait_queue_head_t	wait;
-> >>> +	struct list_head	subscribed; /* Subscribed events */
-> >>> +	struct list_head	free; /* Events ready for use */
-> >>> +	struct list_head	available; /* Dequeueable event */
-> >>> +	unsigned int		navailable;
-> >>> +	unsigned int		nallocated; /* Number of allocated events */
-> >>> +	u32			sequence;
-> >>
-> >> A question: why to move the fields from v4l2_events to v4l2_fh? Events may
-> >> be more important part of V4L2 than before but they're still not file
-> >> handles. :-) The event related field names have no hing they'd be related to
-> >> events --- "free", for example.
-> >
-> > The only reason that the v4l2_events struct existed was that there were so few
-> > drivers that needed events. So why allocate memory that you don't need? That
-> > all changes with the control event: almost all drivers will need that since
-> > almost all drivers have events.
-> >
-> > Merging it makes the code easier and v4l2_fh_init can become a void function
-> > (so no more error checking needed). And since these fields are always there, I
-> > no longer need to check whether fh->events is NULL or not.
-> >
-> > I can add a patch renaming some of the event fields if you prefer, but I don't
-> > think they are that bad. Note that 'free' and 'nallocated' are removed
-> > completely in a later patch.
-> 
-> Thanks for the explanation. What I had in mind that what other fields 
-> possibly would be added to v4l2_fh in the future? If there will be many, 
-> in that case keeping event related fields in a separate structure might 
-> make sense. I have none in mind right now, though, so perhaps this could 
-> be given a second thought if we're adding more things to the v4l2_fh 
-> structure?
+Do not register video nodes during FIMC device probe. Also make
+fimc_register_m2m_device() public for use by the media device driver.
 
-I guess any future extensions will need to be considered on their own merits.
-If it is a rarely used extension, then it can be allocated on demand, if it
-is a commonly used extension, then it's easier to add it to this struct.
+Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+---
+ drivers/media/video/s5p-fimc/fimc-capture.c |    1 +
+ drivers/media/video/s5p-fimc/fimc-core.c    |   30 +++++++-------------------
+ drivers/media/video/s5p-fimc/fimc-core.h    |    1 +
+ 3 files changed, 10 insertions(+), 22 deletions(-)
 
-> I think this patchset is a significant improvement to the old behaviour.
+diff --git a/drivers/media/video/s5p-fimc/fimc-capture.c b/drivers/media/video/s5p-fimc/fimc-capture.c
+index 2748cca..c7bb6f6 100644
+--- a/drivers/media/video/s5p-fimc/fimc-capture.c
++++ b/drivers/media/video/s5p-fimc/fimc-capture.c
+@@ -926,4 +926,5 @@ void fimc_unregister_capture_device(struct fimc_dev *fimc)
+ 		video_unregister_device(vfd);
+ 	}
+ 	kfree(fimc->vid_cap.ctx);
++	fimc->vid_cap.ctx = NULL;
+ }
+diff --git a/drivers/media/video/s5p-fimc/fimc-core.c b/drivers/media/video/s5p-fimc/fimc-core.c
+index af0d966..22e848a 100644
+--- a/drivers/media/video/s5p-fimc/fimc-core.c
++++ b/drivers/media/video/s5p-fimc/fimc-core.c
+@@ -1491,7 +1491,7 @@ static struct v4l2_m2m_ops m2m_ops = {
+ 	.job_abort	= fimc_job_abort,
+ };
+ 
+-static int fimc_register_m2m_device(struct fimc_dev *fimc)
++int fimc_register_m2m_device(struct fimc_dev *fimc)
+ {
+ 	struct video_device *vfd;
+ 	struct platform_device *pdev;
+@@ -1565,13 +1565,16 @@ err_m2m_r1:
+ 
+ void fimc_unregister_m2m_device(struct fimc_dev *fimc)
+ {
+-	if (fimc == NULL)
++	if (!fimc)
+ 		return;
+ 
+-	v4l2_m2m_release(fimc->m2m.m2m_dev);
++	if (fimc->m2m.m2m_dev)
++		v4l2_m2m_release(fimc->m2m.m2m_dev);
+ 	v4l2_device_unregister(&fimc->m2m.v4l2_dev);
+-	media_entity_cleanup(&fimc->m2m.vfd->entity);
+-	video_unregister_device(fimc->m2m.vfd);
++	if (fimc->m2m.vfd) {
++		media_entity_cleanup(&fimc->m2m.vfd->entity);
++		video_unregister_device(fimc->m2m.vfd);
++	}
+ }
+ 
+ static void fimc_clk_put(struct fimc_dev *fimc)
+@@ -1700,25 +1703,12 @@ static int fimc_probe(struct platform_device *pdev)
+ 		goto err_irq;
+ 	}
+ 
+-	ret = fimc_register_m2m_device(fimc);
+-	if (ret)
+-		goto err_irq;
+-
+-	/* At least one camera sensor is required to register capture node */
+-	if (cap_input_index >= 0) {
+-		ret = fimc_register_capture_device(fimc);
+-		if (ret)
+-			goto err_m2m;
+-	}
+-
+ 	dev_dbg(&pdev->dev, "%s(): fimc-%d registered successfully\n",
+ 		__func__, fimc->id);
+ 
+ 	pm_runtime_put_sync(&fimc->pdev->dev);
+ 	return 0;
+ 
+-err_m2m:
+-	fimc_unregister_m2m_device(fimc);
+ err_irq:
+ 	free_irq(fimc->irq, fimc);
+ err_clk:
+@@ -1730,7 +1720,6 @@ err_req_region:
+ 	kfree(fimc->regs_res);
+ err_info:
+ 	kfree(fimc);
+-
+ 	return ret;
+ }
+ 
+@@ -1805,9 +1794,6 @@ static int __devexit fimc_remove(struct platform_device *pdev)
+ 	fimc_suspend(&pdev->dev);
+ 	pm_runtime_set_suspended(&pdev->dev);
+ 
+-	fimc_unregister_m2m_device(fimc);
+-	fimc_unregister_capture_device(fimc);
+-
+ 	vb2_dma_contig_cleanup_ctx(fimc->alloc_ctx);
+ 
+ 	clk_disable(fimc->clock[CLK_BUS]);
+diff --git a/drivers/media/video/s5p-fimc/fimc-core.h b/drivers/media/video/s5p-fimc/fimc-core.h
+index 55c1410..c088dac 100644
+--- a/drivers/media/video/s5p-fimc/fimc-core.h
++++ b/drivers/media/video/s5p-fimc/fimc-core.h
+@@ -644,6 +644,7 @@ int fimc_set_scaler_info(struct fimc_ctx *ctx);
+ int fimc_prepare_config(struct fimc_ctx *ctx, u32 flags);
+ int fimc_prepare_addr(struct fimc_ctx *ctx, struct vb2_buffer *vb,
+ 		      struct fimc_frame *frame, struct fimc_addr *paddr);
++int fimc_register_m2m_device(struct fimc_dev *fimc);
+ 
+ /* -----------------------------------------------------*/
+ /* fimc-capture.c					*/
+-- 
+1.7.5.4
 
-Thank you, I have to say I'm very pleased with it. It gives the user certain
-guarantees with respect to arrival of events that are hard to realize otherwise.
-
-Regards,
-
-	Hans
