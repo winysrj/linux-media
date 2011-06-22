@@ -1,83 +1,68 @@
 Return-path: <mchehab@pedra>
-Received: from mail-iw0-f174.google.com ([209.85.214.174]:65530 "EHLO
-	mail-iw0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751987Ab1FPLGV (ORCPT
+Received: from mrqout2a.tiscali.it ([195.130.225.14]:40536 "EHLO
+	mrqout2.tiscali.it" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1750724Ab1FVFjT convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 16 Jun 2011 07:06:21 -0400
-Received: by iwn34 with SMTP id 34so1035617iwn.19
-        for <linux-media@vger.kernel.org>; Thu, 16 Jun 2011 04:06:21 -0700 (PDT)
+	Wed, 22 Jun 2011 01:39:19 -0400
+Date: Wed, 22 Jun 2011 07:14:52 +0200
+Message-ID: <4DF766D8000031F2@mta-nl-8.mail.tiscali.sys>
+In-Reply-To: <1308669902.6370.5.camel@e2800fedora.lania-intra.net>
+From: cedric.dewijs@telfort.nl
+Subject: Betr: [linux-dvb] Elgato eyetv hybrid (0df9:0018)
+To: linux-media@vger.kernel.org
 MIME-Version: 1.0
-In-Reply-To: <4DF4A292.3070409@iki.fi>
-References: <S1753342Ab1FKJ3p/20110611092945Z+46855@vger.kernel.org>
-	<672951.10004.qm@web24108.mail.ird.yahoo.com>
-	<4DF4A292.3070409@iki.fi>
-Date: Thu, 16 Jun 2011 13:06:21 +0200
-Message-ID: <BANLkTi=a2jqCL8HgpgvtZRfcrBkiHE6EzQ@mail.gmail.com>
-Subject: Re: dual sveon stv22 Afatech af9015 support (kworld clone)
-From: =?ISO-8859-1?Q?Emilio_David_Diaus_L=F3pez?=
-	<edavid.diaus@gmail.com>
-To: Antti Palosaari <crope@iki.fi>
-Cc: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-SGVsbG8gYWdhaW46CgpUaGUgb3V0cHV0IGZvciBsc3VzYiAtdnZkIDFiODA6ZTQwMSBpczoKLS0t
-LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tCkJ1cyAwMDEgRGV2aWNlIDAxNjogSUQg
-MWI4MDplNDAxIEFmYXRlY2gKRGV2aWNlIERlc2NyaXB0b3I6CqAgYkxlbmd0aKCgoKCgoKCgoKCg
-oKCgoCAxOAqgIGJEZXNjcmlwdG9yVHlwZaCgoKCgoKCgIDEKoCBiY2RVU0KgoKCgoKCgoKCgoKCg
-oCAyLjAwCqAgYkRldmljZUNsYXNzoKCgoKCgoKCgoKAgMCAoRGVmaW5lZCBhdCBJbnRlcmZhY2Ug
-bGV2ZWwpCqAgYkRldmljZVN1YkNsYXNzoKCgoKCgoKAgMAqgIGJEZXZpY2VQcm90b2NvbKCgoKCg
-oKCgIDAKoCBiTWF4UGFja2V0U2l6ZTCgoKCgoKCgIDY0CqAgaWRWZW5kb3KgoKCgoKCgoKCgIDB4
-MWI4MCBBZmF0ZWNoCqAgaWRQcm9kdWN0oKCgoKCgoKCgIDB4ZTQwMQqgIGJjZERldmljZaCgoKCg
-oKCgoKCgIDIuMDAKoCBpTWFudWZhY3R1cmVyoKCgoKCgoKCgoCAxIEFHIFNpc3RlbWFzIEluZm9y
-bWF0aWNvcwqgIGlQcm9kdWN0oKCgoKCgoKCgoKCgoKCgIDIgU1ZFT04gU1RWMjIKoCBpU2VyaWFs
-oKCgoKCgoKCgoKCgoKCgoCAwCqAgYk51bUNvbmZpZ3VyYXRpb25zoKCgoKAgMQqgIENvbmZpZ3Vy
-YXRpb24gRGVzY3JpcHRvcjoKoKCgIGJMZW5ndGigoKCgoKCgoKCgoKCgoKCgIDkKoKCgIGJEZXNj
-cmlwdG9yVHlwZaCgoKCgoKCgIDIKoKCgIHdUb3RhbExlbmd0aKCgoKCgoKCgoKAgNDYKoKCgIGJO
-dW1JbnRlcmZhY2VzoKCgoKCgoKCgIDEKoKCgIGJDb25maWd1cmF0aW9uVmFsdWWgoKCgIDEKoKCg
-IGlDb25maWd1cmF0aW9uoKCgoKCgoKCgIDAKoKCgIGJtQXR0cmlidXRlc6CgoKCgoKCgIDB4ODAK
-oKCgoKAgKEJ1cyBQb3dlcmVkKQqgoKAgTWF4UG93ZXKgoKCgoKCgoKCgoKCgIDUwMG1BCqCgoCBJ
-bnRlcmZhY2UgRGVzY3JpcHRvcjoKoKCgoKAgYkxlbmd0aKCgoKCgoKCgoKCgoKCgoKAgOQqgoKCg
-oCBiRGVzY3JpcHRvclR5cGWgoKCgoKCgoCA0CqCgoKCgIGJJbnRlcmZhY2VOdW1iZXKgoKCgoKCg
-IDAKoKCgoKAgYkFsdGVybmF0ZVNldHRpbmegoKCgoKAgMAqgoKCgoCBiTnVtRW5kcG9pbnRzoKCg
-oKCgoKCgoCA0CqCgoKCgIGJJbnRlcmZhY2VDbGFzc6CgoKCgoCAyNTUgVmVuZG9yIFNwZWNpZmlj
-IENsYXNzCqCgoKCgIGJJbnRlcmZhY2VTdWJDbGFzc6CgoKCgIDAKoKCgoKAgYkludGVyZmFjZVBy
-b3RvY29soKCgoKAgMAqgoKCgoCBpSW50ZXJmYWNloKCgoKCgoKCgoKCgoCAwCqCgoKCgIEVuZHBv
-aW50IERlc2NyaXB0b3I6CqCgoKCgoKAgYkxlbmd0aKCgoKCgoKCgoKCgoKCgoKAgNwqgoKCgoKCg
-IGJEZXNjcmlwdG9yVHlwZaCgoKCgoKCgIDUKoKCgoKCgoCBiRW5kcG9pbnRBZGRyZXNzoKCgoCAw
-eDgxoCBFUCAxIElOCqCgoKCgoKAgYm1BdHRyaWJ1dGVzoKCgoKCgoKCgoKAgMgqgoKCgoKCgoKAg
-VHJhbnNmZXIgVHlwZaCgoKCgoKCgoKCgIEJ1bGsKoKCgoKCgoKCgIFN5bmNoIFR5cGWgoKCgoKCg
-oKCgoKCgoCBOb25lCqCgoKCgoKCgoCBVc2FnZSBUeXBloKCgoKCgoKCgoKCgoKAgRGF0YQqgoKCg
-oKCgIHdNYXhQYWNrZXRTaXploKCgoCAweDAyMDCgIDF4IDUxMiBieXRlcwqgoKCgoKCgIGJJbnRl
-cnZhbKCgoKCgoKCgoKCgoKCgIDAKoKCgoKAgRW5kcG9pbnQgRGVzY3JpcHRvcjoKoKCgoKCgoCBi
-TGVuZ3RooKCgoKCgoKCgoKCgoKCgoCA3CqCgoKCgoKAgYkRlc2NyaXB0b3JUeXBloKCgoKCgoKAg
-NQqgoKCgoKCgIGJFbmRwb2ludEFkZHJlc3OgoKCgIDB4MDKgIEVQIDIgT1VUCqCgoKCgoKAgYm1B
-dHRyaWJ1dGVzoKCgoKCgoKCgoKAgMgqgoKCgoKCgoKAgVHJhbnNmZXIgVHlwZaCgoKCgoKCgoKCg
-IEJ1bGsKoKCgoKCgoKCgIFN5bmNoIFR5cGWgoKCgoKCgoKCgoKCgoCBOb25lCqCgoKCgoKCgoCBV
-c2FnZSBUeXBloKCgoKCgoKCgoKCgoKAgRGF0YQqgoKCgoKCgIHdNYXhQYWNrZXRTaXploKCgoCAw
-eDAyMDCgIDF4IDUxMiBieXRlcwqgoKCgoKCgIGJJbnRlcnZhbKCgoKCgoKCgoKCgoKCgIDAKoKCg
-oKAgRW5kcG9pbnQgRGVzY3JpcHRvcjoKoKCgoKCgoCBiTGVuZ3RooKCgoKCgoKCgoKCgoKCgoCA3
-CqCgoKCgoKAgYkRlc2NyaXB0b3JUeXBloKCgoKCgoKAgNQqgoKCgoKCgIGJFbmRwb2ludEFkZHJl
-c3OgoKCgIDB4ODSgIEVQIDQgSU4KoKCgoKCgoCBibUF0dHJpYnV0ZXOgoKCgoKCgoKCgoCAyCqCg
-oKCgoKCgoCBUcmFuc2ZlciBUeXBloKCgoKCgoKCgoKAgQnVsawqgoKCgoKCgoKAgU3luY2ggVHlw
-ZaCgoKCgoKCgoKCgoKCgIE5vbmUKoKCgoKCgoKCgIFVzYWdlIFR5cGWgoKCgoKCgoKCgoKCgoCBE
-YXRhCqCgoKCgoKAgd01heFBhY2tldFNpemWgoKCgIDB4MDIwMKAgMXggNTEyIGJ5dGVzCqCgoKCg
-oKAgYkludGVydmFsoKCgoKCgoKCgoKCgoKAgMAqgoKCgoCBFbmRwb2ludCBEZXNjcmlwdG9yOgqg
-oKCgoKCgIGJMZW5ndGigoKCgoKCgoKCgoKCgoKCgIDcKoKCgoKCgoCBiRGVzY3JpcHRvclR5cGWg
-oKCgoKCgoCA1CqCgoKCgoKAgYkVuZHBvaW50QWRkcmVzc6CgoKAgMHg4NaAgRVAgNSBJTgqgoKCg
-oKCgIGJtQXR0cmlidXRlc6CgoKCgoKCgoKCgIDIKoKCgoKCgoKCgIFRyYW5zZmVyIFR5cGWgoKCg
-oKCgoKCgoCBCdWxrCqCgoKCgoKCgoCBTeW5jaCBUeXBloKCgoKCgoKCgoKCgoKAgTm9uZQqgoKCg
-oKCgoKAgVXNhZ2UgVHlwZaCgoKCgoKCgoKCgoKCgIERhdGEKoKCgoKCgoCB3TWF4UGFja2V0U2l6
-ZaCgoKAgMHgwMjAwoCAxeCA1MTIgYnl0ZXMKoKCgoKCgoCBiSW50ZXJ2YWygoKCgoKCgoKCgoKCg
-oCAwCkRldmljZSBRdWFsaWZpZXIgKGZvciBvdGhlciBkZXZpY2Ugc3BlZWQpOgqgIGJMZW5ndGig
-oKCgoKCgoKCgoKCgoKAgMTAKoCBiRGVzY3JpcHRvclR5cGWgoKCgoKCgoCA2CqAgYmNkVVNCoKCg
-oKCgoKCgoKCgoKAgMi4wMAqgIGJEZXZpY2VDbGFzc6CgoKCgoKCgoKCgIDAgKERlZmluZWQgYXQg
-SW50ZXJmYWNlIGxldmVsKQqgIGJEZXZpY2VTdWJDbGFzc6CgoKCgoKCgIDAKoCBiRGV2aWNlUHJv
-dG9jb2ygoKCgoKCgoCAwCqAgYk1heFBhY2tldFNpemUwoKCgoKCgoCA2NAqgIGJOdW1Db25maWd1
-cmF0aW9uc6CgoKCgIDEKRGV2aWNlIFN0YXR1czqgoKCgIDB4MDAwMAqgIChCdXMgUG93ZXJlZCkK
-LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLQoKbm93IGknbSB3b3Jr
-aW5nIGluIHRoZSByZW1vdGUgY29udHJvbGxlciBrZXl0YWJsZSwgaSdtIGxvb2tpbmcgZm9yIHRo
-ZQpyZW1vdGUgYmVjYXVzZSBpIGZvcmdvdCB3aGVyZSBpIHB1dCBpdCBidXQgaSBleHBlY3QgdG8g
-ZmluZCBpdCBzb29uLgoKdGhhbmtzIGZvciBhbGwKCkVtaWxpbyBEYXZpZCBEaWF1cyBM83Blego=
+
+>-- Oorspronkelijk bericht --
+>From: Eddie Lania <eddie@lania.nl>
+>To: linux-dvb@linuxtv.org
+>Date: Tue, 21 Jun 2011 17:25:02 +0200
+>Subject: [linux-dvb] Elgato eyetv hybrid (0df9:0018)
+>Reply-To: linux-media@vger.kernel.org
+>
+>
+>Hello,
+>
+>Since a while i am the proud owner of an Elgato Eyetb Hybrid usb tv
+>tuner stick.
+>
+>I tried to get my device, an Elgato eyetev hybrid, to work using the
+>latest drivers from git but it doesn't work (yet).
+>
+>Can somebody tell if this device (usb device 0df9:0018) is/will be
+>supported?
+>
+>From what i found on the internet, the device's specs are:
+>
+>Model: EU 2008
+>USB Contoller: Empia EM2884
+>Stereo A/V Decoder: Micronas AVF 49x08
+>Hybrid Channel Decoder: Micronas DRX-K DRX3926K:A1 0.9.0
+>
+>Regards,
+>
+>Eddie.
+>
+>
+>_______________________________________________
+>linux-dvb users mailing list
+>For V4L/DVB development, please use instead linux-media@vger.kernel.org
+>linux-dvb@linuxtv.org
+>http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+
+I can't find the USB id on the linuxtv list, so I guess your device is not
+supported yet:
+http://linuxtv.org/wiki/index.php/DVB-T_USB_Devices
+
+Best regards,
+Cedric
+
+
+       
+
+
+
