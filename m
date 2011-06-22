@@ -1,90 +1,120 @@
 Return-path: <mchehab@pedra>
-Received: from relay3-d.mail.gandi.net ([217.70.183.195]:41608 "EHLO
-	relay3-d.mail.gandi.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755477Ab1FTTKD convert rfc822-to-8bit (ORCPT
+Received: from mailout4.w1.samsung.com ([210.118.77.14]:22315 "EHLO
+	mailout4.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758528Ab1FVSBj (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 20 Jun 2011 15:10:03 -0400
-From: =?iso-8859-1?Q?S=E9bastien_RAILLARD_=28COEXSI=29?= <sr@coexsi.fr>
-To: "'Devin Heitmueller'" <dheitmueller@kernellabs.com>,
-	"'HoP'" <jpetrous@gmail.com>
-Cc: =?iso-8859-1?Q?'R=E9mi_Denis-Courmont'?= <remi@remlab.net>,
-	<linux-media@vger.kernel.org>
-References: <BANLkTimtnbAzLTdFY2OiSddHTjmD_99CfA@mail.gmail.com>	<201106202037.19535.remi@remlab.net>	<BANLkTinn0uN3VwGfqCbYbxFoVf6aNo1VSA@mail.gmail.com>	<BANLkTin14LnwP+_K1m-RsEXza4M4CjqnEw@mail.gmail.com> <BANLkTimR-zWnnLBcD2w8d8NpeFJi=eT9nQ@mail.gmail.com>
-In-Reply-To: <BANLkTimR-zWnnLBcD2w8d8NpeFJi=eT9nQ@mail.gmail.com>
-Subject: RE: [RFC] vtunerc - virtual DVB device driver
-Date: Mon, 20 Jun 2011 21:10:00 +0200
-Message-ID: <005a01cc2f7d$a799be30$f6cd3a90$@coexsi.fr>
-MIME-Version: 1.0
-Content-Type: text/plain;
-	charset="iso-8859-1"
-Content-Transfer-Encoding: 8BIT
-Content-Language: fr
+	Wed, 22 Jun 2011 14:01:39 -0400
+MIME-version: 1.0
+Content-transfer-encoding: 7BIT
+Content-type: TEXT/PLAIN
+Date: Wed, 22 Jun 2011 20:01:06 +0200
+From: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Subject: [PATCH 0/19] s5p-fimc driver conversion to media controller and
+ control framework
+To: linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org
+Cc: m.szyprowski@samsung.com, kyungmin.park@samsung.com,
+	s.nawrocki@samsung.com, sw0312.kim@samsung.com,
+	riverful.kim@samsung.com
+Message-id: <1308765684-10677-1-git-send-email-s.nawrocki@samsung.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
+Hello,
 
+following is an updated patchset for s5p-fimc driver conversion to the media
+controller API and control framework.
 
-> -----Original Message-----
-> From: linux-media-owner@vger.kernel.org [mailto:linux-media-
-> owner@vger.kernel.org] On Behalf Of Devin Heitmueller
-> Sent: lundi 20 juin 2011 20:25
-> To: HoP
-> Cc: Rémi Denis-Courmont; linux-media@vger.kernel.org
-> Subject: Re: [RFC] vtunerc - virtual DVB device driver
-> 
-> On Mon, Jun 20, 2011 at 2:17 PM, HoP <jpetrous@gmail.com> wrote:
-> > Can you tell me when such disscussion was done? I did a big attempt to
-> > check if my work is not reinventing wheels, but I found only some very
-> > generic frontend template by Emard <emard@softhome.net>.
-> 
-> See the "userspace tuner" thread here for the background:
-> 
-> http://www.linuxtv.org/pipermail/linux-dvb/2007-August/thread.html#19840
-> 
-> >> easier for evil tuner manufacturers to leverage all the hard work
-> >> done by the LinuxTV developers while providing a closed-source
-> solution.
-> >
-> > May be I missunderstood something, but I can't see how frontend
-> > virtualization/sharing can help to leverage others work.
-> 
-> It helps in that it allows third parties to write drivers in userspace
-> that leverage the in-kernel implementation of DVB core.  It means that a
-> product developer who didn't want to abide by the GPL could write a
-> closed-source driver in userland which takes advantage of the thousands
-> of lines of code that make up the DVB core.
-> 
-> >> It was an explicit goal to *not* allow third parties to reuse the
-> >> Linux DVB core unless they were providing in-kernel drivers which
-> >> conform to the GPL.
-> >
-> > I'm again not sure if you try to argument against vtunerc code or
-> > nope.
-> 
-> I am against things like this being in the upstream kernel which make it
-> easier for third parties to leverage GPL code without making their code
-> available under the GPL.
-> 
+In this version the ioctl handlers for format setting at the video node and
+the FIMC subdev has been reworked so they use common functions for capture
+data format adjustment to the hardware capabilities. This prevent trouble
+from any differences in handling ioctls at the subdev and the video node
+when those are used simultaneously.
 
-If I may put my two cents in this discussion regarding the closed source
-code problem: maybe it could be great to have some closed source drivers
-making some DVB hardware working better or even allowing more DVB hardware
-working under Linux. For example, there is a good support of PCI DVB
-devices, but not yet so much support for PCIe DVB devices (and even less if
-you're searching for DVB-S2 tuner with CAM support at reasonable price).
-Also, most the DVB drivers code released under GPL is nearly impossible to
-understand as there is no documentation (because of NDA agreements with
-developers - as I understood) and no inline comments. So does-it make so
-much difference with closed source code? I really don't want to aggress
-anybody here, but it's really a question I have.
- 
-> Devin
-> 
-> --
-> Devin J. Heitmueller - Kernel Labs
-> http://www.kernellabs.com
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media"
-> in the body of a message to majordomo@vger.kernel.org More majordomo
-> info at  http://vger.kernel.org/majordomo-info.html
+Except that I have killed a few bugs that jumped out when the driver was tried
+to be used as a kernel module. 
 
+Additionally to allow the driver to be used in V4L2 video node compatibility
+mode (when sensor subdev is configured by the host driver rather that directly
+by the applications through /dev/v4l-subdev*) a sysfs entry is added.
+All that needs to be done to disable sensors configuration from /dev/video*
+node level, in order to use sub-device user space API, is to write correct
+string to s5p-fimc-md platform device "subdev_conf_mode" sysfs entry, e.g.
+
+echo sub-dev > /sys/devices/platform/s5p-fimc-md/subdev_conf_mode
+or to revert:
+echo vid-dev > /sys/devices/platform/s5p-fimc-md/subdev_conf_mode
+
+The following procedure is adopted for format and crop/composition
+configuration at the FIMC.{n} (capture) subdevs:
+
+1) set format at sink pad (this will reset sink crop rectangle)
+2) set crop rectangle at sink pad (optional)
+3) set rotate control
+4) set crop (composition) at source pad (optional). Here scaling constraints
+   are checked according to whether sink pad crop has been set or not and
+   whether 90/270 deg rotation is set.
+5) set format at source pad
+6) set format at corresponding video node
+
+Rotation can also be changed while streaming, in this case when 90/270 deg
+rotation is attempted to be set and scaling bounds are exceeded 
+(max. 64x downscaling) s_ctrl returns EINVAL.
+
+I have tried this driver with v4l-compliance and it returned only 1 fail
+on S/G_PRIORITY.
+								
+This patch set depends on my previous s5p-fimc bugfixes, available at: 
+http://git.infradead.org/users/kmpark/linux-2.6-samsung/shortlog/refs/heads/s5p-fimc
+
+as well as the control framework updates from Hans Verkuil:
+http://www.spinics.net/lists/linux-media/msg33552.html
+(patch 1...6, 8, 11).
+
+Full source tree can be found at:
+ http://git.infradead.org/users/kmpark/linux-2.6-samsung
+ branch: s5p-fimc-next
+
+I have skipped patch one patch in this series comparing to first version:
+s5p-fimc: Add support for runtime PM in the mem-to-mem driver
+This patch is available in the above git repository. 
+I need to work a bit more on that one.
+
+As usual, all comments and suggestions are welcome!
+
+Sylwester Nawrocki (18):
+  s5p-fimc: Add media entity initialization
+  s5p-fimc: Remove registration of video nodes from probe()
+  s5p-fimc: Remove sclk_cam clock handling
+  s5p-fimc: Limit number of available inputs to one
+  s5p-fimc: Remove sensor management code from FIMC capture driver
+  s5p-fimc: Remove v4l2_device from video capture and m2m driver
+  s5p-fimc: Add the media device driver
+  s5p-fimc: Conversion to use struct v4l2_fh
+  s5p-fimc: Conversion to the control framework
+  s5p-fimc: Add media operations in the capture entity driver
+  s5p-fimc: Add PM helper function for streaming control
+  s5p-fimc: Correct color format enumeration
+  s5p-fimc: Convert to use media pipeline operations
+  s5p-fimc: Add subdev for the FIMC processing block
+  s5p-fimc: Add support for camera capture in JPEG format
+  s5p-fimc: Add v4l2_device notification support for single frame capture
+  s5p-fimc: Use consistent names for the buffer list functions
+  s5p-fimc: Add runtime PM support in the camera capture driver
+
+ drivers/media/video/Kconfig                 |    2 +-
+ drivers/media/video/s5p-fimc/Makefile       |    2 +-
+ drivers/media/video/s5p-fimc/fimc-capture.c | 1387 ++++++++++++++++++---------
+ drivers/media/video/s5p-fimc/fimc-core.c    |  864 ++++++++---------
+ drivers/media/video/s5p-fimc/fimc-core.h    |  204 +++--
+ drivers/media/video/s5p-fimc/fimc-mdevice.c |  822 ++++++++++++++++
+ drivers/media/video/s5p-fimc/fimc-mdevice.h |  118 +++
+ drivers/media/video/s5p-fimc/fimc-reg.c     |   74 +-
+ drivers/media/video/s5p-fimc/regs-fimc.h    |    8 +-
+ include/media/s5p_fimc.h                    |   11 +
+ 10 files changed, 2490 insertions(+), 1002 deletions(-)
+ create mode 100644 drivers/media/video/s5p-fimc/fimc-mdevice.c
+ create mode 100644 drivers/media/video/s5p-fimc/fimc-mdevice.h
+
+--
+Thanks,
+Sylwester
