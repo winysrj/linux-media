@@ -1,114 +1,182 @@
 Return-path: <mchehab@pedra>
-Received: from mailout-de.gmx.net ([213.165.64.22]:38580 "HELO
-	mailout-de.gmx.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1750799Ab1FYAOb convert rfc822-to-8bit (ORCPT
+Received: from moutng.kundenserver.de ([212.227.17.9]:59481 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758487Ab1FVV10 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 24 Jun 2011 20:14:31 -0400
-From: Oliver Endriss <o.endriss@gmx.de>
-Reply-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-Subject: Re: [DVB] Octopus driver status
-Date: Sat, 25 Jun 2011 02:02:39 +0200
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	"=?iso-8859-1?q?S=E9bastien_RAILLARD?= (COEXSI)" <sr@coexsi.fr>
-References: <017201cc31ec$de287ce0$9a7976a0$@coexsi.fr> <201106241151.34019@orion.escape-edv.de> <4E047B9C.1010308@redhat.com>
-In-Reply-To: <4E047B9C.1010308@redhat.com>
+	Wed, 22 Jun 2011 17:27:26 -0400
+Date: Wed, 22 Jun 2011 23:26:29 +0200 (CEST)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	sakari.ailus@maxwell.research.nokia.com,
+	Sylwester Nawrocki <snjw23@gmail.com>,
+	Stan <svarbanov@mm-sol.com>, Hans Verkuil <hansverk@cisco.com>,
+	saaguirre@ti.com, Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: [PATCH v2] V4L: add media bus configuration subdev operations
+Message-ID: <Pine.LNX.4.64.1106222314570.3535@axis700.grange>
 MIME-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 8BIT
-Content-Disposition: inline
-Message-Id: <201106250202.40633@orion.escape-edv.de>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Hi Mauro,
+Add media bus configuration types and two subdev operations to get
+supported mediabus configurations and to set a specific configuration.
+Subdevs can support several configurations, e.g., they can send video data
+on 1 or several lanes, can be configured to use a specific CSI-2 channel,
+in such cases subdevice drivers return bitmasks with all respective bits
+set. When a set-configuration operation is called, it has to specify a
+non-ambiguous configuration.
 
-On Friday 24 June 2011 13:57:16 Mauro Carvalho Chehab wrote:
-> Em 24-06-2011 06:51, Oliver Endriss escreveu:
-> > Hi,
-> > 
-> > On Thursday 23 June 2011 23:31:08 Sébastien RAILLARD wrote:
-> >> Dear all,
-> >>
-> >> I'm looking at the Octopus DVB cards system from Digital Devices for a while
-> >> as their system seems to be very interesting 
-> >>
-> >> Here is link with their products:
-> >> http://shop.digital-devices.de/epages/62357162.sf/en_GB/?ObjectPath=/Shops/6
-> >> 2357162/Categories
-> >>
-> >> The good points I have found:
-> >>
-> >> * They support most of the common DVB standards: DVB-C, DVB-T, DVB-S and
-> >> DVB-S2
-> >> * They are moderately priced
-> >> * There is a CAM support with a CI adapter for unscrambling channels
-> >> * They are using the now de-facto standard PCI-Express bus
-> >> * The new Octopus system is using a LATTICE PCI-Express bridge that seems to
-> >> be more future proof than the previous bridge Micronas APB7202A
-> >> * They seem to be well engineered ("Designed and manufactured in Germany" as
-> >> they say!)
-> >>
-> >> And now the doubts :
-> >>
-> >> * The DVB-C/T frontend driver is specific to this system and is very new, so
-> >> as Devin said one week ago, it's maybe not yet production ready
-> >> * The way the CAM is supported break all the existing userland DVB
-> >> applications (gnutv, mumudvb, vlc, etc.)
-> >> * There isn't so much information about the Digital Devices company and
-> >> their products roadmap (at least in English)
-> >>
-> >> So, my two very simple questions to the developers who worked on the drivers
-> >> (I think Oliver and Ralph did) and know the product:
-> >> * How you feel the future about the Octopus driver?
-> > 
-> > The drivers work fine. I am not aware of any problems.
-> > 
-> > All Digital Devices cards and tuner variants are supported by the driver
-> > http://linuxtv.org/hg/~endriss/media_build_experimental
-> > 
-> > ddbridge (Lattice bridge):
-> > - Octopus (all variants)
-> > - cineS2 v6
-> > - DuoFlex S2 (stv0900 + stv6110 + lnbp21)
-> > - DuoFlex C/T (Micronas DRXK + NXP TDA18271C2)
-> > 
-> > ngene bridge:
-> > - cineS2 (v4,v5), Satix S2 Dual
-> > - PCIe bridge, mini PCIe bridge
-> > - DuoFlex S2 (stv0900 + stv6110 + lnbp21)
-> > - DuoFlex C/T (Micronas DRXK + NXP TDA18271C2)
-> > 
-> > For a German description, see
-> > http://www.vdr-portal.de/board16-video-disk-recorder/board85-hdtv-dvb-s2/105803-aktuelle-treiber-für-octopus-ddbridge-cines2-ngene-ddbridge-duoflex-s2-duoflex-ct-sowie-tt-s2-6400
-> > 
-> > From an operational point of view, the driver is ready for the kernel.
-> > Unfortunately I did not have the time yet to clean up the coding-style.
-> > There are thousands of coding-style issues waiting to be fixed...
-> 
-> Hi Oliver,
-> 
-> If it is ok for you, I have here a few devices with DRXK that I'm seeking for
-> some time to work with. I'll probably have some time this weekend for them,
-> so I can do the CodingStyle cleanups, if it is ok for you.
+Signed-off-by: Stanimir Varbanov <svarbanov@mm-sol.com>
+Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+---
 
-Just for the record: Ralph did most of the work.
-I just contributed some glue stuff.
+v2:
 
-I'll check with Ralph, whether he has any updates pending.
-These should be applied before fixing the coding-style.
+1. Removed parallel bus width flags. As Laurent correctly pointed out, bus 
+width can be configured based on the mediabus format.
 
-If you could wait until next weekend, I could prepare a patch series,
-which you could start with. The current repository has some files at
-the wrong places, etc.
+2. Removed the clock parameter for now. Passing timing information between 
+the subdevices and the host / bridge driver is indeed necessary, but it is 
+not yet quite clear, what is the best way to do this. This requires more 
+thinking and can be added as an extra field to struct v4l2_mbus_config 
+later. The argument, that "struct clk" is still platform specific is 
+correct, but I am too tempted by the possibilities, the clkdev offers us 
+to give up this idea immediatrely. Maybe drivers, that need such a clock, 
+could use a platform callback to create a clock instance for them, or get 
+a clock object from the platform with platform data. However, there are 
+also opinions, that the clkdev API is completely unsuitable for this 
+purpose. I'd commit this without any timing first, and consider 
+possibilities as a second step.
 
-CU
-Oliver
+ include/media/v4l2-mediabus.h |   89 +++++++++++++++++++++++++++++++++++++++++
+ include/media/v4l2-subdev.h   |    6 +++
+ 2 files changed, 95 insertions(+), 0 deletions(-)
 
+diff --git a/include/media/v4l2-mediabus.h b/include/media/v4l2-mediabus.h
+index 971c7fa..e0ffba0 100644
+--- a/include/media/v4l2-mediabus.h
++++ b/include/media/v4l2-mediabus.h
+@@ -13,6 +13,95 @@
+ 
+ #include <linux/v4l2-mediabus.h>
+ 
++/* Parallel flags */
++/* Can the client run in master or in slave mode */
++#define V4L2_MBUS_MASTER			(1 << 0)
++#define V4L2_MBUS_SLAVE				(1 << 1)
++/* Which signal polarities it supports */
++#define V4L2_MBUS_HSYNC_ACTIVE_HIGH		(1 << 2)
++#define V4L2_MBUS_HSYNC_ACTIVE_LOW		(1 << 3)
++#define V4L2_MBUS_VSYNC_ACTIVE_HIGH		(1 << 4)
++#define V4L2_MBUS_VSYNC_ACTIVE_LOW		(1 << 5)
++#define V4L2_MBUS_PCLK_SAMPLE_RISING		(1 << 6)
++#define V4L2_MBUS_PCLK_SAMPLE_FALLING		(1 << 7)
++#define V4L2_MBUS_DATA_ACTIVE_HIGH		(1 << 8)
++#define V4L2_MBUS_DATA_ACTIVE_LOW		(1 << 9)
++
++/* Serial flags */
++/* How many lanes the client can use */
++#define V4L2_MBUS_CSI2_1_LANE			(1 << 0)
++#define V4L2_MBUS_CSI2_2_LANE			(1 << 1)
++#define V4L2_MBUS_CSI2_3_LANE			(1 << 2)
++#define V4L2_MBUS_CSI2_4_LANE			(1 << 3)
++/* On which channels it can send video data */
++#define V4L2_MBUS_CSI2_CHANNEL_0		(1 << 4)
++#define V4L2_MBUS_CSI2_CHANNEL_1		(1 << 5)
++#define V4L2_MBUS_CSI2_CHANNEL_2		(1 << 6)
++#define V4L2_MBUS_CSI2_CHANNEL_3		(1 << 7)
++/* Does it support only continuous or also non-continuous clock mode */
++#define V4L2_MBUS_CSI2_CONTINUOUS_CLOCK		(1 << 8)
++#define V4L2_MBUS_CSI2_NONCONTINUOUS_CLOCK	(1 << 9)
++
++#define V4L2_MBUS_CSI2_LANES		(V4L2_MBUS_CSI2_1_LANE | V4L2_MBUS_CSI2_2_LANE | \
++					 V4L2_MBUS_CSI2_3_LANE | V4L2_MBUS_CSI2_4_LANE)
++#define V4L2_MBUS_CSI2_CHANNELS		(V4L2_MBUS_CSI2_CHANNEL_0 | V4L2_MBUS_CSI2_CHANNEL_1 | \
++					 V4L2_MBUS_CSI2_CHANNEL_2 | V4L2_MBUS_CSI2_CHANNEL_3)
++
++/**
++ * v4l2_mbus_type - media bus type
++ * @V4L2_MBUS_PARALLEL:	parallel interface with hsync and vsync
++ * @V4L2_MBUS_BT656:	parallel interface with embedded synchronisation
++ * @V4L2_MBUS_CSI2:	MIPI CSI-2 serial interface
++ */
++enum v4l2_mbus_type {
++	V4L2_MBUS_PARALLEL,
++	V4L2_MBUS_BT656,
++	V4L2_MBUS_CSI2,
++};
++
++/**
++ * v4l2_mbus_config - media bus configuration
++ * @type:	in: interface type
++ * @flags:	in / out: configuration flags, depending on @type
++ */
++struct v4l2_mbus_config {
++	enum v4l2_mbus_type type;
++	unsigned long flags;
++};
++
++static inline unsigned long v4l2_mbus_config_compatible(struct v4l2_mbus_config *cfg,
++							unsigned long flags)
++{
++	unsigned long common_flags, hsync, vsync, pclk, data, mode;
++	unsigned long mipi_lanes, mipi_clock;
++
++	common_flags = cfg->flags & flags;
++
++	switch (cfg->type) {
++	case V4L2_MBUS_PARALLEL:
++		hsync = common_flags & (V4L2_MBUS_HSYNC_ACTIVE_HIGH |
++					V4L2_MBUS_HSYNC_ACTIVE_LOW);
++		vsync = common_flags & (V4L2_MBUS_VSYNC_ACTIVE_HIGH |
++					V4L2_MBUS_VSYNC_ACTIVE_LOW);
++		pclk = common_flags & (V4L2_MBUS_PCLK_SAMPLE_RISING |
++				       V4L2_MBUS_PCLK_SAMPLE_FALLING);
++		data = common_flags & (V4L2_MBUS_DATA_ACTIVE_HIGH |
++				       V4L2_MBUS_DATA_ACTIVE_LOW);
++		mode = common_flags & (V4L2_MBUS_MASTER | V4L2_MBUS_SLAVE);
++		return (!hsync || !vsync || !pclk || !data || !mode) ?
++			0 : common_flags;
++	case V4L2_MBUS_CSI2:
++		mipi_lanes = common_flags & V4L2_MBUS_CSI2_LANES;
++		mipi_clock = common_flags & (V4L2_MBUS_CSI2_NONCONTINUOUS_CLOCK |
++					     V4L2_MBUS_CSI2_CONTINUOUS_CLOCK);
++		return (!mipi_lanes || !mipi_clock) ? 0 : common_flags;
++	case V4L2_MBUS_BT656:
++		/* TODO: implement me */
++		return 0;
++	}
++	return 0;
++}
++
+ static inline void v4l2_fill_pix_format(struct v4l2_pix_format *pix_fmt,
+ 				const struct v4l2_mbus_framefmt *mbus_fmt)
+ {
+diff --git a/include/media/v4l2-subdev.h b/include/media/v4l2-subdev.h
+index 1562c4f..75919ef 100644
+--- a/include/media/v4l2-subdev.h
++++ b/include/media/v4l2-subdev.h
+@@ -255,6 +255,10 @@ struct v4l2_subdev_audio_ops {
+    try_mbus_fmt: try to set a pixel format on a video data source
+ 
+    s_mbus_fmt: set a pixel format on a video data source
++
++   g_mbus_config: get supported mediabus configurations
++
++   s_mbus_config: set a certain mediabus configuration
+  */
+ struct v4l2_subdev_video_ops {
+ 	int (*s_routing)(struct v4l2_subdev *sd, u32 input, u32 output, u32 config);
+@@ -294,6 +298,8 @@ struct v4l2_subdev_video_ops {
+ 			    struct v4l2_mbus_framefmt *fmt);
+ 	int (*s_mbus_fmt)(struct v4l2_subdev *sd,
+ 			  struct v4l2_mbus_framefmt *fmt);
++	int (*g_mbus_config)(struct v4l2_subdev *sd, struct v4l2_mbus_config *cfg);
++	int (*s_mbus_config)(struct v4l2_subdev *sd, struct v4l2_mbus_config *cfg);
+ };
+ 
+ /*
 -- 
-----------------------------------------------------------------
-VDR Remote Plugin 0.4.0: http://www.escape-edv.de/endriss/vdr/
-4 MByte Mod: http://www.escape-edv.de/endriss/dvb-mem-mod/
-Full-TS Mod: http://www.escape-edv.de/endriss/dvb-full-ts-mod/
-----------------------------------------------------------------
+1.7.2.5
+
