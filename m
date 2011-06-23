@@ -1,66 +1,107 @@
 Return-path: <mchehab@pedra>
-Received: from mx1.redhat.com ([209.132.183.28]:8176 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757741Ab1F1Mnb (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 28 Jun 2011 08:43:31 -0400
-Message-ID: <4E09CC6A.8080900@redhat.com>
-Date: Tue, 28 Jun 2011 09:43:22 -0300
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Received: from hqemgate04.nvidia.com ([216.228.121.35]:16518 "EHLO
+	hqemgate04.nvidia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S934556Ab1FWXUH (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 23 Jun 2011 19:20:07 -0400
+From: <achew@nvidia.com>
+To: <linux-kernel@vger.kernel.org>, <linux-media@vger.kernel.org>
+CC: <g.liakhovetski@gmx.de>, <mchehab@redhat.com>, <olof@lixom.net>,
+	Andrew Chew <achew@nvidia.com>
+Subject: [PATCH 6/6 v3] [media] ov9740: Add suspend/resume
+Date: Thu, 23 Jun 2011 16:19:44 -0700
+Message-ID: <1308871184-6307-6-git-send-email-achew@nvidia.com>
+In-Reply-To: <1308871184-6307-1-git-send-email-achew@nvidia.com>
+References: <1308871184-6307-1-git-send-email-achew@nvidia.com>
 MIME-Version: 1.0
-To: Andy Walls <awalls@md.metrocast.net>
-CC: Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	Pawel Osciak <pawel@osciak.com>,
-	Marek Szyprowski <m.szyprowski@samsung.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>
-Subject: Re: [RFCv3 PATCH 12/18] vb2_poll: don't start DMA, leave that to
- the first read().
-References: <1307459123-17810-1-git-send-email-hverkuil@xs4all.nl> <f1a14e0985ddaa053e45522fe7bbdfae56057ec2.1307458245.git.hans.verkuil@cisco.com> <4E08FBA5.5080006@redhat.com> <201106280933.57364.hverkuil@xs4all.nl> <4E09B919.9040100@redhat.com> <cd2c9732-aee5-492b-ade2-bee084f79739@email.android.com>
-In-Reply-To: <cd2c9732-aee5-492b-ade2-bee084f79739@email.android.com>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Em 28-06-2011 09:21, Andy Walls escreveu:
-> Mauro Carvalho Chehab <mchehab@redhat.com> wrote:
+From: Andrew Chew <achew@nvidia.com>
 
->> I'm not very comfortable with vb2 returning unexpected errors there.
->> Also,
->> for me it is clear that, if read will fail, POLLERR should be rised.
->>
->> Mauro. 
->> --
->> To unsubscribe from this list: send the line "unsubscribe linux-media"
->> in
->> the body of a message to majordomo@vger.kernel.org
->> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
-> It is also the case that a driver's poll method should never sleep.
+On suspend, remember whether we are streaming or not, and at what frame format,
+so that on resume, we can start streaming again.
 
-True.
+Signed-off-by: Andrew Chew <achew@nvidia.com>
+---
+ drivers/media/video/ov9740.c |   28 ++++++++++++++++++++++++++++
+ 1 files changed, 28 insertions(+), 0 deletions(-)
 
-> I will try to find the conversation I had with laurent on interpreting the POSIX spec on error returns from select() and poll().  I will also try to find links to previos discussion with Hans on this.
-> 
-> One issue is how to start streaming with apps that:
-> - Open /dev/video/ in a nonblocking mode, and
-> - Use the read() method
-> 
-> while doing it in a way that is POSIX compliant and doesn't break existing apps.  
+diff --git a/drivers/media/video/ov9740.c b/drivers/media/video/ov9740.c
+index cd63eaa..ede48f2 100644
+--- a/drivers/media/video/ov9740.c
++++ b/drivers/media/video/ov9740.c
+@@ -201,6 +201,10 @@ struct ov9740_priv {
+ 
+ 	bool				flag_vflip;
+ 	bool				flag_hflip;
++
++	/* For suspend/resume. */
++	struct v4l2_mbus_framefmt	current_mf;
++	bool				current_enable;
+ };
+ 
+ static const struct ov9740_reg ov9740_defaults[] = {
+@@ -551,6 +555,8 @@ static int ov9740_s_stream(struct v4l2_subdev *sd, int enable)
+ 					       0x00);
+ 	}
+ 
++	priv->current_enable = enable;
++
+ 	return ret;
+ }
+ 
+@@ -702,6 +708,7 @@ static int ov9740_s_fmt(struct v4l2_subdev *sd,
+ 			struct v4l2_mbus_framefmt *mf)
+ {
+ 	struct i2c_client *client = v4l2_get_subdevdata(sd);
++	struct ov9740_priv *priv = to_ov9740(sd);
+ 	enum v4l2_colorspace cspace;
+ 	enum v4l2_mbus_pixelcode code = mf->code;
+ 	int ret;
+@@ -728,6 +735,8 @@ static int ov9740_s_fmt(struct v4l2_subdev *sd,
+ 	mf->code	= code;
+ 	mf->colorspace	= cspace;
+ 
++	memcpy(&priv->current_mf, mf, sizeof(struct v4l2_mbus_framefmt));
++
+ 	return ret;
+ }
+ 
+@@ -829,6 +838,24 @@ static int ov9740_g_chip_ident(struct v4l2_subdev *sd,
+ 	return 0;
+ }
+ 
++static int ov9740_s_power(struct v4l2_subdev *sd, int on)
++{
++	struct ov9740_priv *priv = to_ov9740(sd);
++
++	if (!priv->current_enable)
++		return 0;
++
++	if (on) {
++		ov9740_s_fmt(sd, &priv->current_mf);
++		ov9740_s_stream(sd, priv->current_enable);
++	} else {
++		ov9740_s_stream(sd, 0);
++		priv->current_enable = true;
++	}
++
++	return 0;
++}
++
+ #ifdef CONFIG_VIDEO_ADV_DEBUG
+ static int ov9740_get_register(struct v4l2_subdev *sd,
+ 			       struct v4l2_dbg_register *reg)
+@@ -942,6 +969,7 @@ static struct v4l2_subdev_core_ops ov9740_core_ops = {
+ 	.g_ctrl			= ov9740_g_ctrl,
+ 	.s_ctrl			= ov9740_s_ctrl,
+ 	.g_chip_ident		= ov9740_g_chip_ident,
++	.s_power		= ov9740_s_power,
+ #ifdef CONFIG_VIDEO_ADV_DEBUG
+ 	.g_register		= ov9740_get_register,
+ 	.s_register		= ov9740_set_register,
+-- 
+1.7.5.4
 
-Well, a first call for poll() may rise a thread that will prepare the buffers, and
-return with 0 while there's no data available.
-
-> The other constraint is to ensure when only poll()-ing for exception conditions, not having significant IO side effects.
-> 
-> I'm pretty sure sleeping in a driver's poll() method, or having significant side effects, is not ine the spirit of the POSIX select() and poll(), even if the letter of POSIX says nothing about it.
-> 
-> The method I suggested to Hans is completely POSIX compliant for apps using read() and select() and was checked against MythTV as having no bad side effects.  (And by thought experiment doesn't break any sensible app using nonblocking IO with select() and read().)
-> 
-> I did not do analysis for apps that use mmap(), which I guess is the current concern.
-
-The concern is that it is pointing that there are available data, even when there is an error.
-This looks like a POSIX violation for me.
-
-Cheers,
-Mauro.
