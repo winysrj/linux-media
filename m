@@ -1,43 +1,40 @@
 Return-path: <mchehab@pedra>
-Received: from mail-ew0-f46.google.com ([209.85.215.46]:44666 "EHLO
-	mail-ew0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757292Ab1FJNMZ convert rfc822-to-8bit (ORCPT
+Received: from moutng.kundenserver.de ([212.227.17.10]:61888 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754867Ab1FWJNL (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 10 Jun 2011 09:12:25 -0400
-Received: by ewy4 with SMTP id 4so896037ewy.19
-        for <linux-media@vger.kernel.org>; Fri, 10 Jun 2011 06:12:24 -0700 (PDT)
+	Thu, 23 Jun 2011 05:13:11 -0400
+Date: Thu, 23 Jun 2011 11:13:06 +0200 (CEST)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+cc: Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: [PULL] a 3.0 fix
+Message-ID: <Pine.LNX.4.64.1106231111220.2863@axis700.grange>
 MIME-Version: 1.0
-In-Reply-To: <3e84c07f-83ff-4f83-9f8f-f52631259f05@email.android.com>
-References: <4DF1FF06.4050502@hoogenraad.net>
-	<3e84c07f-83ff-4f83-9f8f-f52631259f05@email.android.com>
-Date: Fri, 10 Jun 2011 09:12:23 -0400
-Message-ID: <BANLkTinE1vRVJ+j+7JiPHZqXHJ8WTFX+cg@mail.gmail.com>
-Subject: Re: Media_build does not compile due to errors in cx18-driver.h,
- cx18-driver.c and dvbdev.c /rc-main.c
-From: Devin Heitmueller <dheitmueller@kernellabs.com>
-To: Andy Walls <awalls@md.metrocast.net>
-Cc: Jan Hoogenraad <jan-conceptronic@hoogenraad.net>,
-	linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Fri, Jun 10, 2011 at 8:34 AM, Andy Walls <awalls@md.metrocast.net> wrote:
-> What are the error messages?
->
-> Tejun Heo made quite a number of workqueue changes, and the cx18 driver got dragged forward with them.  So did ivtv for that matter.
->
-> Just disable the cx18 driver if you don't need it for an older kernel.
->
-> Regards,
-> Andy
+Hi Mauro
 
-Another highly relevant piece of information to know is what kernel
-Jan is running on.  It is probably from before the workqueue changes.
+Please, pull one bug-fix for your next 3.0 update round:
 
-Devin
+The following changes since commit 215c52702775556f4caf5872cc84fa8810e6fc7d:
 
--- 
-Devin J. Heitmueller - Kernel Labs
-http://www.kernellabs.com
+  [media] V4L/videobuf2-memops: use pr_debug for debug messages (2011-06-01 18:20:34 -0300)
+
+are available in the git repository at:
+  git://linuxtv.org/gliakhovetski/v4l-dvb.git 3.0-rc4-fixes
+
+Andre Bartke (1):
+      V4L: mx1-camera: fix uninitialized variable
+
+ drivers/media/video/mx1_camera.c |   10 +++-------
+ 1 files changed, 3 insertions(+), 7 deletions(-)
+
+Thanks
+Guennadi
+---
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
+http://www.open-technology.de/
