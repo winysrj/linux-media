@@ -1,182 +1,114 @@
 Return-path: <mchehab@pedra>
-Received: from moutng.kundenserver.de ([212.227.126.171]:61111 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757273Ab1F0Iya (ORCPT
+Received: from mail-qy0-f181.google.com ([209.85.216.181]:37781 "EHLO
+	mail-qy0-f181.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933360Ab1FWSOk convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 27 Jun 2011 04:54:30 -0400
-Date: Mon, 27 Jun 2011 10:54:11 +0200 (CEST)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Sakari Ailus <sakari.ailus@iki.fi>
-cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	sakari.ailus@maxwell.research.nokia.com,
-	Sylwester Nawrocki <snjw23@gmail.com>,
-	Stan <svarbanov@mm-sol.com>, Hans Verkuil <hansverk@cisco.com>,
-	saaguirre@ti.com, Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: Re: [PATCH v2] V4L: add media bus configuration subdev operations
-In-Reply-To: <20110627081912.GC12671@valkosipuli.localdomain>
-Message-ID: <Pine.LNX.4.64.1106271029240.9394@axis700.grange>
-References: <Pine.LNX.4.64.1106222314570.3535@axis700.grange>
- <20110623220129.GA10918@valkosipuli.localdomain> <Pine.LNX.4.64.1106240021540.5348@axis700.grange>
- <20110627081912.GC12671@valkosipuli.localdomain>
-MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+	Thu, 23 Jun 2011 14:14:40 -0400
+Received: by qyk9 with SMTP id 9so1210149qyk.19
+        for <linux-media@vger.kernel.org>; Thu, 23 Jun 2011 11:14:39 -0700 (PDT)
+References: <22615.4194.11299-2628-1588834168-1307429140@seznam.cz> <201DD109-A022-4E54-B595-D9C08E8C1D87@wilsonet.com>
+In-Reply-To: <201DD109-A022-4E54-B595-D9C08E8C1D87@wilsonet.com>
+Mime-Version: 1.0 (Apple Message framework v1084)
+Content-Type: text/plain; charset=iso-8859-1
+Message-Id: <EEA29F5D-467E-49BD-ACF8-210B1A18C268@wilsonet.com>
+Content-Transfer-Encoding: 8BIT
+Cc: "linux-media@vger.kernel.org Mailing List"
+	<linux-media@vger.kernel.org>
+From: Jarod Wilson <jarod@wilsonet.com>
+Subject: Re: Last key repeated after every keypress on remote control (saa7134 lirc devinput driver)
+Date: Thu, 23 Jun 2011 14:14:32 -0400
+To: Radim <radim100@seznam.cz>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Hi Sakari
+On Jun 7, 2011, at 12:04 PM, Jarod Wilson wrote:
 
-On Mon, 27 Jun 2011, Sakari Ailus wrote:
-
-> On Fri, Jun 24, 2011 at 12:35:03AM +0200, Guennadi Liakhovetski wrote:
-> > Hi Sakari
+> On Jun 7, 2011, at 2:45 AM, Radim wrote:
 > 
-> Hi Guennadi,
+>> 
+>>> ------------ Pôvodná správa ------------
+>>> Od: Jarod Wilson <jarod@redhat.com>
+>>> Predmet: Re: Last key repeated after every keypress on remote control (saa7134
+>>> lirc devinput driver)
+>>> Dátum: 06.6.2011 20:39:50
+>>> ----------------------------------------
+>>> Devin Heitmueller wrote:
+>>>> On Mon, Jun 6, 2011 at 2:13 PM, Radim<radim100@seznam.cz>  wrote:
+>>>>> Hello to everybody,
+>>>>> I was redirected here from lirc mailinglist (reason is at the end).
+>>>>> 
+>>>>> I'm asking for any help because I wasn't able to solve
+>>>>> this problem by my self (and google of course).
+>>>>> 
+>>>>> When I'm testing lirc configuration using irw, last pressed key is repeated
+>>>>> just befor the new one:
+>>>>> 
+>>>>> after pressing key 1:
+>>>>> 0000000080010002 00 KEY_1 devinput
+>>>>> 
+>>>>> after pressing key 2:
+>>>>> 0000000080010002 00 KEY_1 devinput
+>>>>> 0000000080010003 00 KEY_2 devinput
+>>>>> 
+>>>>> after pressing key 3:
+>>>>> 0000000080010003 00 KEY_2 devinput
+>>>>> 0000000080010004 00 KEY_3 devinput
+>>>>> 
+>>>>> after pressing key 4:
+>>>>> 0000000080010004 00 KEY_3 devinput
+>>>>> 0000000080010005 00 KEY_4 devinput
+>>>>> 
+>>>>> after pressing key 5:
+>>>>> 0000000080010005 00 KEY_4 devinput
+>>>>> 0000000080010006 00 KEY_5 devinput
+>>>>> 
+>>>>> 
+>>>>> My configuration:
+>>>>> Archlinux (allways up-to-date)
+>>>>> Asus MyCinema P7131 with remote control PC-39
+>>>>> lircd 0.9.0, driver devinput, default config file lirc.conf.devinput
+>>>>> kernel 2.6.38
+>>>>> 
+>>>>> # ir-keytable
+>>>>> Found /sys/class/rc/rc0/ (/dev/input/event5) with:
+>>>>>       Driver saa7134, table rc-asus-pc39
+>>>>>       Supported protocols: NEC RC-5 RC-6 JVC SONY LIRC
+>>>>>       Enabled protocols: RC-5
+>>>>>       Repeat delay = 500 ms, repeat period = 33 ms
+>>>>> 
+>>>>> Answare from lirc-mainlinglist (Jarod Wilson):
+>>>>> Looks like a bug in saa7134-input.c, which doesn't originate in lirc land,
+>>>>> its from the kernel itself. The more apropos location to tackle this issue
+>>>>> is linux-media@vger.kernel.org.
+>>>>> 
+>>>>> I can provide any other listings, just ask for them.
+>>>>> 
+>>>>> Thank you for any help,
+>>>>> Radim
+>>>> 
+>>>> I actually sent Jarod a board specifically to investigate this issue
+>>>> (the same issue occurs on the saa7134 based HVR-1150).  I believe it's
+>>>> on his TODO list.
+>>> Yep, he chopped out the part of my reply where I said as much. :)
+>>> Just waiting on the IR receiver cable to arrive, could well be here in today's mail...
+>> 
+>> Oh, I misunderstood Jarod answer - he pointed me to this list as a right place for posting this possible bug in saa7134 driver, so I sent it also here. I was thinking that this is not a job for member of lirc developers, so I was trying luck here..
 > 
-> > On Fri, 24 Jun 2011, Sakari Ailus wrote:
-> > 
-> > > Hi Guennadi,
-> > > 
-> > > Thanks for the patch. I have a few comments below.
-> > > 
-> > > On Wed, Jun 22, 2011 at 11:26:29PM +0200, Guennadi Liakhovetski wrote:
+> I work on both lirc and media tree drivers. In this case, lircd is doing
+> exactly the right thing with the data its being fed, the bug is in the
+> kernel driver, which is from the media tree. Best to discuss the bug on
+> the list for the layer at which it exists. :)
 > 
-> [clip]
-> 
-> > > > diff --git a/include/media/v4l2-subdev.h b/include/media/v4l2-subdev.h
-> > > > index 1562c4f..75919ef 100644
-> > > > --- a/include/media/v4l2-subdev.h
-> > > > +++ b/include/media/v4l2-subdev.h
-> > > > @@ -255,6 +255,10 @@ struct v4l2_subdev_audio_ops {
-> > > >     try_mbus_fmt: try to set a pixel format on a video data source
-> > > >  
-> > > >     s_mbus_fmt: set a pixel format on a video data source
-> > > > +
-> > > > +   g_mbus_config: get supported mediabus configurations
-> > > > +
-> > > > +   s_mbus_config: set a certain mediabus configuration
-> > > >   */
-> > > >  struct v4l2_subdev_video_ops {
-> > > >  	int (*s_routing)(struct v4l2_subdev *sd, u32 input, u32 output, u32 config);
-> > > > @@ -294,6 +298,8 @@ struct v4l2_subdev_video_ops {
-> > > >  			    struct v4l2_mbus_framefmt *fmt);
-> > > >  	int (*s_mbus_fmt)(struct v4l2_subdev *sd,
-> > > >  			  struct v4l2_mbus_framefmt *fmt);
-> > > > +	int (*g_mbus_config)(struct v4l2_subdev *sd, struct v4l2_mbus_config *cfg);
-> > > > +	int (*s_mbus_config)(struct v4l2_subdev *sd, struct v4l2_mbus_config *cfg);
-> > > 
-> > > How would the ops be used and by whom?
-> > 
-> > In the first line I want to use them to make re-use of soc-camera and 
-> > other subdev drivers possible. Soc-camera drivers would switch to these 
-> > from their specific bus-configuration methods, other drivers are free to 
-> > use or not to use them.
-> > 
-> > > How complete configuration for CSI2 bus is the above intend to be? Complete,
-> > > I suppose, and so I think we'll also need to specify how e.g. the CSI2 clock
-> > > and data lanes have been connected between transmitter and receiver. This is
-> > > less trivial to guess than clock polarity and requires further information
-> > > from the board and lane mapping configuration capabilities of both.
-> > > Shouldn't this information be also added to CSI2 configuration?
-> > > 
-> > > Do you think a single bitmask would suffice for this in the long run?
-> > 
-> > If you have certain additions to this API I would be happy to consider 
-> > them. Otherwise, if you just suppose, that we might need more 
-> > configuration options, we can always add them in the future, when we know 
-> > more about them and have specific use-cases, with which we can test them. 
-> > E.g., I am not sure what data- and clock-lane connection possibilities you 
-> > refer to above. Don't you _have_ to connect lane 1 to 1 etc?
-> 
-> You don't need to. It actually depends on the hardware: the OMAP 3 CSI-2
-> receiver, for example, may freely configure the order of the data and clock
-> lanes. And you'll actually have to do that configuration since this is
-> purely board dependent.
+> (No cable yet, still awaiting its arrival).
 
-Nice
+Forgot to reply in this thread. Patch was posted last week that fixes
+the repeat problem on the HVR-1150 Devin sent me. Best as I can tell
+from looking at the saa7134 code and the particulars for your hardware,
+that fix should solve your repeat issue as well.
 
-> I'm not sure whether the CSI-2 specification requires this, however. I
-> wouldn't be surprised if there were sensors which could also do this.
+-- 
+Jarod Wilson
+jarod@wilsonet.com
 
-Ok, to be flexible and consistent, we could do the same as with other 
-parameters. We could design a query like "to which pin can you route data 
-lane 1?" with possible replies "I can only route lane 1 to pin 1," or "I 
-can route lane 1 to pins 1, 2, 3, 4, or 5" (for 4 data-lanes and one clock 
-lane. Then the configuration request could do "please, route your data 
-lane 1 to pin 1." Or we can hard-code this routing in the platform data 
-for now.
 
-I, probably, already mentioned this before, but this is also how the 
-present soc-camera API evolved in the past: in the beginning it also was 
-completely static, then I noticed, that instead of hard coding the 
-configuration, I can let drivers negotiate parameters automatically. Then 
-gradually the number of auto-negotiated parameters grew, as more flexible 
-hardware had to be handled.
 
-We could do the same here: first hard-code this, then see, if it is 
-becoming a burden, having to hard-code these. Notice, that 
-auto-configuring these should not be a problem. This is not like 
-configuring a signal polarity, of which one can work better, than the 
-other.
-
-> For OMAP 3 ISP driver this configuration is in struct isp_csiphy_lanes_cfg
-> in drivers/media/video/omap3isp/ispcsiphy.h at the moment.
-> 
-> The OMAP 3 ISP driver currently uses all the lanes it has, as far as I
-> understand, so you can't disable them right now.
-> 
-> > > I can see some use for the information in the set operation in lane
-> > > configuration, for example, as you mentioned. My guess would be that the
-> > > number of lanes _might_ be something that the user space would want to know
-> > > or possibly even configure --- but we'll first need to discuss low-level
-> > > sensor control interface.
-> > > 
-> > > But otherwise the configuration should likely be rather static and board
-> > > specific. Wouldn't the subdevs get this as part of the platform data, or
-> > > how?
-> > > 
-> > > I would just keep the bus configuration static board dependent information
-> > > until we have that part working and used by drivers and extend it later on.
-> > 
-> > As I said, drivers are free to not use these methods and implement a 
-> > platform-provided configuration method. In which case, as, I think, Hans 
-> > pointed out earlier, they can also choose to use this struct in their 
-> > platform data.
-> 
-> If the structures are expected to be generic I somehow feel that a field of
-> flags isn't the best way to describe the configuration of CSI-2 or other
-> busses. Why not to just use a structure with bus type and an union for
-> bus-specific configuration parameters? It'd be easier to access and also to
-> change as needed than flags in an unsigned long field.
-
-Well, yes, a union can be a good idea, thanks.
-
-> Also, this structure is primarily about capabilities and not configuration.
-> Having settings e.g. for active low vsync and the opposite isn't making this
-> easier for drivers. There should be just one --- more so if the matching
-> will be specific to SoC camera only.
-> 
-> What would you think of having separate structures for configuration and
-> capabilities of the busses? I think this way the mechanism would be more
-> useful outside the scope of SoC camera. The CSI-2 and parallel busses are
-> still quite generic.
-
-Disagree, O'm quite happy with the current flag system, used for both 
-capabilities and configuration.
-
-> That said, at this point I'm not exactly sure what configuration should be
-> board specific and what should be dynamically configurable. The lane setup I
-> mentioned earlier, for example, is something that would be good to be
-> dynamically configurable in the future. Even if there are e.g. two lanes the
-> user still might want to use just one. In this case you need to be able to
-> tell the hardware has that two lanes but you only use one of them.
-
-Yes, but what exactly do you want to make configurable? The _number_ of 
-lanes, or their routing?
-
-Thanks
-Guennadi
----
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
-http://www.open-technology.de/
