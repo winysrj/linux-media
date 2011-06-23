@@ -1,70 +1,72 @@
 Return-path: <mchehab@pedra>
-Received: from iolanthe.rowland.org ([192.131.102.54]:45314 "HELO
-	iolanthe.rowland.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1757627Ab1FJVSl (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 10 Jun 2011 17:18:41 -0400
-Date: Fri, 10 Jun 2011 17:18:39 -0400 (EDT)
-From: Alan Stern <stern@rowland.harvard.edu>
-To: Felipe Balbi <balbi@ti.com>
-cc: Theodore Kilgore <kilgota@banach.math.auburn.edu>,
-	Hans de Goede <hdegoede@redhat.com>,
-	<linux-usb@vger.kernel.org>,
-	Sarah Sharp <sarah.a.sharp@linux.intel.com>,
-	<linux-media@vger.kernel.org>,
-	<libusb-devel@lists.sourceforge.net>,
-	Alexander Graf <agraf@suse.de>,
-	Gerd Hoffmann <kraxel@redhat.com>, <hector@marcansoft.com>,
-	Jan Kiszka <jan.kiszka@siemens.com>,
-	Stefan Hajnoczi <stefanha@linux.vnet.ibm.com>,
-	<pbonzini@redhat.com>, Anthony Liguori <aliguori@us.ibm.com>,
-	Jes Sorensen <Jes.Sorensen@redhat.com>,
-	Oliver Neukum <oliver@neukum.org>, Greg KH <greg@kroah.com>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Clemens Ladisch <clemens@ladisch.de>,
-	Jaroslav Kysela <perex@perex.cz>, Takashi Iwai <tiwai@suse.de>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Subject: Re: Improving kernel -> userspace (usbfs)  usb device hand off
-In-Reply-To: <20110610183452.GV31396@legolas.emea.dhcp.ti.com>
-Message-ID: <Pine.LNX.4.44L0.1106101714130.1812-100000@iolanthe.rowland.org>
-MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Received: from mx1.redhat.com ([209.132.183.28]:34592 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S933160Ab1FWR6e (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 23 Jun 2011 13:58:34 -0400
+From: Jarod Wilson <jarod@redhat.com>
+To: linux-media@vger.kernel.org
+Cc: Jarod Wilson <jarod@redhat.com>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Jeff Brown <jeffbrown@android.com>,
+	Dmitry Torokhov <dtor@mail.ru>
+Subject: [PATCH] [media] rc: call input_sync after scancode reports
+Date: Thu, 23 Jun 2011 13:58:06 -0400
+Message-Id: <1308851886-4607-1-git-send-email-jarod@redhat.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Fri, 10 Jun 2011, Felipe Balbi wrote:
+Due to commit cdda911c34006f1089f3c87b1a1f31ab3a4722f2, evdev only
+becomes readable when the buffer contains an EV_SYN/SYN_REPORT event. If
+we get a repeat or a scancode we don't have a mapping for, we never call
+input_sync, and thus those events don't get reported in a timely
+fashion.
 
-> I don't see any problems in this situation. If, for that particular
-> product, webcam and still image functionality are mutually exclusive,
-> then that's how the product (and their drivers) have to work.
-> 
-> If the linux community decided to put webcam functionality in kernel and
-> still image functionality on a completely separate driver, that's
-> entirely our problem.
+For example, take an mceusb transceiver with a default rc6 keymap. Press
+buttons on an rc5 remote while monitoring with ir-keytable, and you'll
+see nothing. Now press a button on the rc6 remote matching the keymap.
+You'll suddenly get the rc5 key scancodes, the rc6 scancode and the rc6
+key spit out all at the same time.
 
-And the problem is how to coordinate the two of them.
+Pressing and holding a button on a remote we do have a keymap for also
+works rather unreliably right now, due to repeat events also happening
+without a call to input_sync (we bail from ir_do_keydown before getting
+to the point where it calls input_sync).
 
-> > 2. Until recently in the history of Linux, there was an irreconcilable 
-> > conflict. If a kernel driver for the video streaming mode was present and 
-> > installed, it was not possible to use the camera in stillcam mode at all. 
-> > Thus the only solution to the problem was to blacklist the kernel module 
-> > so that it would not get loaded automatically and only to install said 
-> > module by hand if the camera were to be used in video streaming mode, then 
-> > to rmmod it immediately afterwards. Very cumbersome, obviously. 
-> 
-> true... but why couldn't we combine both in kernel or in userspace
-> altogether ? Why do we have this split ? (words from a newbie in V4L2,
-> go easy :-p)
+Easy fix though, just add two strategically placed input_sync calls
+right after our input_event calls for EV_MSC, and all is well again.
+Technically, we probably should have been doing this all along, its just
+that it never caused any function difference until the referenced change
+went into the input layer.
 
-I think the problem may be that the PTP protocol used in the still-cam
-mode isn't suitable for a kernel driver.  Or if it is suitable, it
-would have to be something like a shared-filesystem driver -- nothing
-like a video driver.  You certainly wouldn't want to put it in V4L2.
+Reported-by: Stephan Raue <sraue@openelec.tv>
+CC: Mauro Carvalho Chehab <mchehab@redhat.com>
+CC: Jeff Brown <jeffbrown@android.com>
+CC: Dmitry Torokhov <dtor@mail.ru>
+Signed-off-by: Jarod Wilson <jarod@redhat.com>
+---
+ drivers/media/rc/rc-main.c |    2 ++
+ 1 files changed, 2 insertions(+), 0 deletions(-)
 
-> Or, to move the libgphoto2 driver to kernel, combine it in the same
-> driver that handles streaming. No ?
-
-No.  Something else is needed.
-
-Alan Stern
+diff --git a/drivers/media/rc/rc-main.c b/drivers/media/rc/rc-main.c
+index f57cd56..c25c243 100644
+--- a/drivers/media/rc/rc-main.c
++++ b/drivers/media/rc/rc-main.c
+@@ -597,6 +597,7 @@ void rc_repeat(struct rc_dev *dev)
+ 	spin_lock_irqsave(&dev->keylock, flags);
+ 
+ 	input_event(dev->input_dev, EV_MSC, MSC_SCAN, dev->last_scancode);
++	input_sync(dev->input_dev);
+ 
+ 	if (!dev->keypressed)
+ 		goto out;
+@@ -623,6 +624,7 @@ static void ir_do_keydown(struct rc_dev *dev, int scancode,
+ 			  u32 keycode, u8 toggle)
+ {
+ 	input_event(dev->input_dev, EV_MSC, MSC_SCAN, scancode);
++	input_sync(dev->input_dev);
+ 
+ 	/* Repeat event? */
+ 	if (dev->keypressed &&
+-- 
+1.7.1
 
