@@ -1,79 +1,70 @@
 Return-path: <mchehab@pedra>
-Received: from mail-ew0-f46.google.com ([209.85.215.46]:34493 "EHLO
-	mail-ew0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753729Ab1FXSsD convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 24 Jun 2011 14:48:03 -0400
+Received: from mail.mnsspb.ru ([84.204.75.2]:48003 "EHLO mail.mnsspb.ru"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1758132Ab1FWOM1 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 23 Jun 2011 10:12:27 -0400
+Date: Thu, 23 Jun 2011 18:11:37 +0400
+From: Kirill Smelkov <kirr@mns.spb.ru>
+To: matt mooney <mfm@muteddisk.com>
+Cc: linux-usb@vger.kernel.org, Greg Kroah-Hartman <gregkh@suse.de>,
+	linux-uvc-devel@lists.berlios.de, linux-media@vger.kernel.org,
+	linux-kernel@vger.kernel.org,
+	Alan Stern <stern@rowland.harvard.edu>
+Subject: Re: [RFC, PATCH] USB: EHCI: Allow users to override 80% max
+	periodic bandwidth
+Message-ID: <20110623141137.GB4403@tugrik.mns.mnsspb.ru>
+References: <1308758567-8205-1-git-send-email-kirr@mns.spb.ru> <20110622173045.GC56479@haskell.muteddisk.com> <20110622173544.GD56479@haskell.muteddisk.com>
 MIME-Version: 1.0
-In-Reply-To: <20110624203404.7a3f6f6a@stein>
-References: <alpine.LNX.2.00.1106232344480.17688@swampdragon.chaosbits.net>
-	<4E04912A.4090305@infradead.org>
-	<BANLkTim9cBiiK_GsZaspxpPJQDBvAcKCWg@mail.gmail.com>
-	<201106241554.10751.hverkuil@xs4all.nl>
-	<4E04A122.2080002@infradead.org>
-	<20110624203404.7a3f6f6a@stein>
-Date: Fri, 24 Jun 2011 14:48:00 -0400
-Message-ID: <BANLkTimj-oEDvWxMao6zJ_sudUntEVjO1w@mail.gmail.com>
-Subject: Re: [RFC] Don't use linux/version.h anymore to indicate a per-driver
- version - Was: Re: [PATCH 03/37] Remove unneeded version.h includes from include/
-From: Devin Heitmueller <dheitmueller@kernellabs.com>
-To: Stefan Richter <stefanr@s5r6.in-berlin.de>
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	Jesper Juhl <jj@chaosbits.net>,
-	LKML <linux-kernel@vger.kernel.org>, trivial@kernel.org,
-	linux-media@vger.kernel.org, ceph-devel@vger.kernel.org,
-	Sage Weil <sage@newdream.net>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20110622173544.GD56479@haskell.muteddisk.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Fri, Jun 24, 2011 at 2:34 PM, Stefan Richter
-<stefanr@s5r6.in-berlin.de> wrote:
-> If the "driver version" is in fact an ABI version, then the driver author
-> should really increase it only when ABI behavior is changed (and only if
-> the behavior change can only be communicated by version number --- e.g.
-> addition of an ioctl is not among such reasons).  And the author should
-> commit behavior changing implementation and version number change in a
-> single changeset.
->
-> And anybody who backmerges such an ABI behavior change into another kernel
-> branch (stable, longterm, distro...) must backmerge the associated version
-> number change too.
->
-> Of course sometimes people realize this only after the fact.  Or driver
-> authors don't have a clear understanding of ABI versioning to begin with.
-> I am saying so because I had to learn it too; I certainly wasn't born
-> with an instinct knowledge how to do it properly.
->
-> (Disclaimer:  I have no stake in drivers/media/ ABIs.  But I am involved
-> in maintaining a userspace ABI elsewhere in drivers/firewire/, and one of
-> the userspace libraries that use this ABI.)
+On Wed, Jun 22, 2011 at 10:35:44AM -0700, matt mooney wrote:
+> On 10:30 Wed 22 Jun     , matt mooney wrote:
+> > On 20:02 Wed 22 Jun     , Kirill Smelkov wrote:
+> > > There are cases, when 80% max isochronous bandwidth is too limiting.
+> > > 
+> > > For example I have two USB video capture cards which stream uncompressed
+> > > video, and to stream full NTSC + PAL videos we'd need
+> > > 
+> > >     NTSC 640x480 YUV422 @30fps      ~17.6 MB/s
+> > >     PAL  720x576 YUV422 @25fps      ~19.7 MB/s
+> > > 
+> > > isoc bandwidth.
+> > > 
+> > > Now, due to limited alt settings in capture devices NTSC one ends up
+> > > streaming with max_pkt_size=2688  and  PAL with max_pkt_size=2892, both
+> > > with interval=1. In terms of microframe time allocation this gives
+> > > 
+> > >     NTSC    ~53us
+> > >     PAL     ~57us
+> > > 
+> > > and together
+> > > 
+> > >     ~110us  >  100us == 80% of 125us uframe time.
+> > > 
+> > > So those two devices can't work together simultaneously because the'd
+> > > over allocate isochronous bandwidth.
+> > > 
+> > > 80% seemed a bit arbitrary to me, and I've tried to raise it to 90% and
+> > > both devices started to work together, so I though sometimes it would be
+> > > a good idea for users to override hardcoded default of max 80% isoc
+> > > bandwidth.
+> > 
+> > There is nothing arbitrary about 80%. The USB 2.0 Specification constrains
+> > periodic transfers for high-speed endpoints to 80% of the microframe. See
+> > section 5.6.4.
+> > 
+> 
+> Looking at the patch, I see that you probably already knew that.
+> 
+> So I digress and defer to the USB experts ;)
 
-Hi Stefan,
+Yes, it was meant as 80% being arbitrary chosen by USB 2.0
+specification. Notes taken - I'll clarify patch description.
 
-To be clear, I don't think anyone is actually proposing that the
-driver version number really be used as any form of formal "ABI
-versioning" scheme.  In almost all cases, it's so the application can
-know to *not* do something is the driver is older than X.
 
-Given all the cases I've seen, it doesn't really hurt anything if the
-driver contains a fix from newer than X, aside from the fact that the
-application won't take advantage of whatever feature/functionality the
-fix made work.  In other words, I think from a backport standpoint, it
-usually doesn't *hurt* anything if a fix is backported without the
-version being incremented, aside from applications not knowing that
-the feature/fix is present.
-
-Really, this is all about applications being able to jam a hack into
-their code that translates to "don't call this ioctl() with some
-particular argument if it's driver W less than version X, because the
-driver had a bug that is likely to panic the guy's PC".  Sure, it's a
-crummy solution, but at this point it's the best that we have got.
-
-Devin
-
--- 
-Devin J. Heitmueller - Kernel Labs
-http://www.kernellabs.com
+Thanks for commenting,
+Kirill
