@@ -1,100 +1,163 @@
 Return-path: <mchehab@pedra>
-Received: from mx1.redhat.com ([209.132.183.28]:45486 "EHLO mx1.redhat.com"
+Received: from mx1.redhat.com ([209.132.183.28]:46192 "EHLO mx1.redhat.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753368Ab1FBQfl (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 2 Jun 2011 12:35:41 -0400
-Message-ID: <4DE7BBCF.4080507@redhat.com>
-Date: Thu, 02 Jun 2011 13:35:27 -0300
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-MIME-Version: 1.0
-To: Devin Heitmueller <dheitmueller@kernellabs.com>
-CC: Dmitri Belimov <d.belimov@gmail.com>, linux-media@vger.kernel.org,
-	thunder.m@email.cz, "istvan_v@mailbox.hu" <istvan_v@mailbox.hu>,
-	bahathir@gmail.com
-Subject: Re: [linux-dvb] XC4000 patches for kernel 2.6.37.2
-References: <4D764337.6050109@email.cz>	<20110531124843.377a2a80@glory.local>	<BANLkTi=Lq+FF++yGhRmOa4NCigSt6ZurHg@mail.gmail.com>	<20110531174323.0f0c45c0@glory.local>	<BANLkTimEEGsMP6PDXf5W5p9wW7wdWEEOiA@mail.gmail.com>	<4DE7A131.7010208@redhat.com> <BANLkTinKOoSJUOBFKy=PK3jJgaonzWrPxQ@mail.gmail.com>
-In-Reply-To: <BANLkTinKOoSJUOBFKy=PK3jJgaonzWrPxQ@mail.gmail.com>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 8bit
+	id S1759954Ab1FWVNk (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 23 Jun 2011 17:13:40 -0400
+From: Jarod Wilson <jarod@redhat.com>
+To: linux-media@vger.kernel.org
+Cc: Jarod Wilson <jarod@redhat.com>, Stephan Raue <sraue@openelec.tv>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Jeff Brown <jeffbrown@android.com>,
+	Dmitry Torokhov <dtor@mail.ru>
+Subject: [PATCH v2] [media] rc: call input_sync after scancode reports
+Date: Thu, 23 Jun 2011 17:13:24 -0400
+Message-Id: <1308863604-23798-1-git-send-email-jarod@redhat.com>
+In-Reply-To: <20110623183957.GC14950@core.coreip.homeip.net>
+References: <20110623183957.GC14950@core.coreip.homeip.net>
+In-Reply-To: <20110623183957.GC14950@core.coreip.homeip.net>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Em 02-06-2011 12:17, Devin Heitmueller escreveu:
-> On Thu, Jun 2, 2011 at 10:41 AM, Mauro Carvalho Chehab
-> <mchehab@redhat.com> wrote:
->>> 1.  Assemble tree with current patches
->>
->> It is probably easier for me to do this step, as I have my hg import
->> scripts. However, as I don't have the PCTV devices added at dib0700,
->> I can't test.
->>
->> OK, I did this work, as it just took me a few minutes to rebase patches
->> 1 and 2. I didn't apply the patches that started with "djh" since they
->> seemed to be a few hacks during the development time.
->>
->> The tree is at:
->>
->> git://linuxtv.org/mchehab/experimental.git branch xc4000
->>
->> There are two warnings there that needs to be fixed:
->>
->> drivers/media/common/tuners/xc4000.c:1293: warning: ‘xc4000_is_firmware_loaded’ defined but not used
->> drivers/media/common/tuners/xc4000.c: In function ‘check_firmware.clone.0’:
->> drivers/media/common/tuners/xc4000.c:1107: warning: ‘version’ may be used uninitialized in this function
->>
->> Both seems to be trivial.
->>
->> A disclaimer notice here: I didn't make any cleanup at the code,
->> (except by running a whitespace cleanup script) nor I've reviewed it.
->>
->> IMO, the next step is to test the rebases against a real hardware,
->> and adding a few patches fixing it, if the rebases broke.
->>
->> The next step would be fix the CodingStyle, and run checkpatch.pl.
->> There aren't many CodingStyle warnings/errors (13 errors, 28 warnings).
->> Most of the errors are due to the excess usage of printk's for debug,
->> and due to some obsolete code commented with //.
-> 
-> Hi Mauro,
-> 
-> Thanks for taking this on.  The tree you posted looks like a pretty
-> reasonable start.  I agree that the "djh - " commits probably aren't
-> required as they are most just from rebasing the tree.  We'll find out
-> from testing though whether this is true.  There's one patch with
-> subject "djh - more debugging" might actually be needed, but we'll see
-> when users try the tree.
+Due to commit cdda911c34006f1089f3c87b1a1f31ab3a4722f2, evdev only
+becomes readable when the buffer contains an EV_SYN/SYN_REPORT event. If
+we get a repeat or a scancode we don't have a mapping for, we never call
+input_sync, and thus those events don't get reported in a timely
+fashion.
 
-I was in doubt and I almost backported that one too, but it seemed better
-to not add it to just remove it at the end.
+For example, take an mceusb transceiver with a default rc6 keymap. Press
+buttons on an rc5 remote while monitoring with ir-keytable, and you'll
+see nothing. Now press a button on the rc6 remote matching the keymap.
+You'll suddenly get the rc5 key scancodes, the rc6 scancode and the rc6
+key spit out all at the same time.
 
-Btw, it seems that a latter patch on your tree removed it. The only difference 
-between the git tree and your tree at xc4000.c/xc4000.h is:
+Pressing and holding a button on a remote we do have a keymap for also
+works rather unreliably right now, due to repeat events also happening
+without a call to input_sync (we bail from ir_do_keydown before getting
+to the point where it calls input_sync).
 
-$ diff -uprBw drivers/media/common/tuners/xc4000.c /home/v4l/tmp/linux/drivers/media/common/tuners/xc4000.c
---- drivers/media/common/tuners/xc4000.c	2011-06-02 11:36:19.000000000 -0300
-+++ /home/v4l/tmp/linux/drivers/media/common/tuners/xc4000.c	2011-06-02 10:48:34.000000000 -0300
-@@ -1272,7 +1272,8 @@ static int xc4000_set_params(struct dvb_
- 		XC4000_Standard[priv->video_standard].AudioMode);
- 	if (ret != XC_RESULT_SUCCESS) {
- 		printk(KERN_ERR "xc4000: xc_SetTVStandard failed\n");
--		return -EREMOTEIO;
-+		/* DJH - do not return when it fails... */
-+		//return -EREMOTEIO;
- 	}
- #ifdef DJH_DEBUG
- 	ret = xc_set_IF_frequency(priv, priv->if_khz);
+Easy fix though, just add two strategically placed input_sync calls
+right after our input_event calls for EV_MSC, and all is well again.
+Technically, we probably should have been doing this all along, its just
+that it never caused any functional difference until the referenced
+change went into the input layer.
 
-So, maybe the above patch also needs to be added there.
+v2: rework code a bit, per Dmitry's example, so that we only call
+input_sync once per IR signal. There was another hidden bug in the code
+where we were calling input_report_key using last_keycode instead of our
+just discovered keycode, which manifested with the reordering of calling
+input_report_key and setting last_keycode.
 
-> This provides a pretty good base for istan_v to work off of, since he
-> did a rather large amount of refactoring to get analog to work - which
-> I was unable to even try given the two devices I had can't do analog
-> support due to limitations in the dvb-usb framework.
-> 
-> Mohammad, it would be great if you could try out Mauro's tree, since
-> it should work as-is for the 340e.
+Reported-by: Stephan Raue <sraue@openelec.tv>
+CC: Stephan Raue <sraue@openelec.tv>
+CC: Mauro Carvalho Chehab <mchehab@redhat.com>
+CC: Jeff Brown <jeffbrown@android.com>
+CC: Dmitry Torokhov <dtor@mail.ru>
+Signed-off-by: Jarod Wilson <jarod@redhat.com>
+---
+ drivers/media/rc/rc-main.c |   48 ++++++++++++++++++++++---------------------
+ 1 files changed, 25 insertions(+), 23 deletions(-)
 
-If it doesn't, please try to apply the above patch.
+diff --git a/drivers/media/rc/rc-main.c b/drivers/media/rc/rc-main.c
+index f57cd56..3186ac7 100644
+--- a/drivers/media/rc/rc-main.c
++++ b/drivers/media/rc/rc-main.c
+@@ -522,18 +522,20 @@ EXPORT_SYMBOL_GPL(rc_g_keycode_from_table);
+ /**
+  * ir_do_keyup() - internal function to signal the release of a keypress
+  * @dev:	the struct rc_dev descriptor of the device
++ * @sync:	whether or not to call input_sync
+  *
+  * This function is used internally to release a keypress, it must be
+  * called with keylock held.
+  */
+-static void ir_do_keyup(struct rc_dev *dev)
++static void ir_do_keyup(struct rc_dev *dev, bool sync)
+ {
+ 	if (!dev->keypressed)
+ 		return;
+ 
+ 	IR_dprintk(1, "keyup key 0x%04x\n", dev->last_keycode);
+ 	input_report_key(dev->input_dev, dev->last_keycode, 0);
+-	input_sync(dev->input_dev);
++	if (sync)
++		input_sync(dev->input_dev);
+ 	dev->keypressed = false;
+ }
+ 
+@@ -549,7 +551,7 @@ void rc_keyup(struct rc_dev *dev)
+ 	unsigned long flags;
+ 
+ 	spin_lock_irqsave(&dev->keylock, flags);
+-	ir_do_keyup(dev);
++	ir_do_keyup(dev, true);
+ 	spin_unlock_irqrestore(&dev->keylock, flags);
+ }
+ EXPORT_SYMBOL_GPL(rc_keyup);
+@@ -578,7 +580,7 @@ static void ir_timer_keyup(unsigned long cookie)
+ 	 */
+ 	spin_lock_irqsave(&dev->keylock, flags);
+ 	if (time_is_before_eq_jiffies(dev->keyup_jiffies))
+-		ir_do_keyup(dev);
++		ir_do_keyup(dev, true);
+ 	spin_unlock_irqrestore(&dev->keylock, flags);
+ }
+ 
+@@ -597,6 +599,7 @@ void rc_repeat(struct rc_dev *dev)
+ 	spin_lock_irqsave(&dev->keylock, flags);
+ 
+ 	input_event(dev->input_dev, EV_MSC, MSC_SCAN, dev->last_scancode);
++	input_sync(dev->input_dev);
+ 
+ 	if (!dev->keypressed)
+ 		goto out;
+@@ -622,29 +625,28 @@ EXPORT_SYMBOL_GPL(rc_repeat);
+ static void ir_do_keydown(struct rc_dev *dev, int scancode,
+ 			  u32 keycode, u8 toggle)
+ {
+-	input_event(dev->input_dev, EV_MSC, MSC_SCAN, scancode);
+-
+-	/* Repeat event? */
+-	if (dev->keypressed &&
+-	    dev->last_scancode == scancode &&
+-	    dev->last_toggle == toggle)
+-		return;
++	bool new_event = !dev->keypressed ||
++			 dev->last_scancode != scancode ||
++			 dev->last_toggle != toggle;
+ 
+-	/* Release old keypress */
+-	ir_do_keyup(dev);
++	if (new_event && dev->keypressed)
++		ir_do_keyup(dev, false);
+ 
+-	dev->last_scancode = scancode;
+-	dev->last_toggle = toggle;
+-	dev->last_keycode = keycode;
++	input_event(dev->input_dev, EV_MSC, MSC_SCAN, scancode);
+ 
+-	if (keycode == KEY_RESERVED)
+-		return;
++	if (new_event && keycode != KEY_RESERVED) {
++		/* Register a keypress */
++		dev->keypressed = true;
++		dev->last_scancode = scancode;
++		dev->last_toggle = toggle;
++		dev->last_keycode = keycode;
++
++		IR_dprintk(1, "%s: key down event, "
++			   "key 0x%04x, scancode 0x%04x\n",
++			   dev->input_name, keycode, scancode);
++		input_report_key(dev->input_dev, keycode, 1);
++	}
+ 
+-	/* Register a keypress */
+-	dev->keypressed = true;
+-	IR_dprintk(1, "%s: key down event, key 0x%04x, scancode 0x%04x\n",
+-		   dev->input_name, keycode, scancode);
+-	input_report_key(dev->input_dev, dev->last_keycode, 1);
+ 	input_sync(dev->input_dev);
+ }
+ 
+-- 
+1.7.5.4
 
-Thanks,
-Mauro
