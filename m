@@ -1,1026 +1,260 @@
 Return-path: <mchehab@pedra>
-Received: from mailout2.w1.samsung.com ([210.118.77.12]:54358 "EHLO
-	mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751480Ab1FBOsy (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 2 Jun 2011 10:48:54 -0400
-Received: from spt2.w1.samsung.com (mailout2.w1.samsung.com [210.118.77.12])
- by mailout2.w1.samsung.com
- (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14 2004))
- with ESMTP id <0LM600H233TH7E@mailout2.w1.samsung.com> for
- linux-media@vger.kernel.org; Thu, 02 Jun 2011 15:48:53 +0100 (BST)
-Received: from linux.samsung.com ([106.116.38.10])
- by spt2.w1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14
- 2004)) with ESMTPA id <0LM6003KW3TD5D@spt2.w1.samsung.com> for
- linux-media@vger.kernel.org; Thu, 02 Jun 2011 15:48:50 +0100 (BST)
-Date: Thu, 02 Jun 2011 16:48:41 +0200
-From: Kamil Debski <k.debski@samsung.com>
-Subject: [RFC/PATCH v3] v4l: add control definitions for codec devices.
+Received: from mrqout2a.tiscali.it ([195.130.225.14]:33385 "EHLO
+	mrqout2.tiscali.it" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1751563Ab1FXJPG convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 24 Jun 2011 05:15:06 -0400
+Date: Fri, 24 Jun 2011 11:15:02 +0200
+Message-ID: <4DF7665C00004E17@mta-nl-1.mail.tiscali.sys>
+From: cedric.dewijs@telfort.nl
+Subject: dib0700 hangs when usb receiver is unplugged while watching TV
 To: linux-media@vger.kernel.org
-Cc: m.szyprowski@samsung.com, kyungmin.park@samsung.com,
-	k.debski@samsung.com, jaeryul.oh@samsung.com, hverkuil@xs4all.nl,
-	laurent.pinchart@ideasonboard.com, jtp.park@samsung.com
-Message-id: <1307026121-11016-1-git-send-email-k.debski@samsung.com>
-MIME-version: 1.0
-Content-type: TEXT/PLAIN
-Content-transfer-encoding: 7BIT
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Hi,
+Hi All,
 
-This is a third version of the patch that adds controls for the codec family of
-devices. I have implemented the suggestions to v1 I got from Hans Verkuil on the #v4l
-channel. Also I have addressed comments to v2 by Jeongtae Park.
+I have the PCTV nanostick solo. This works perfectly, but when I pull out
+the stick while i'm watching TV, the driver crashes. When I replug the stick,
+there's no reaction in dmesg.
 
-Changes from v2 to v3:
-- added MVC anc SVC profiles to H264
-- some fixes in in the documentation
-- remove V4L2_CID_MPEG_VIDEO_INTERLACE in favour of interlace v4l2_field in v4l2_pix_format
+To reproduce:
+1)plugin the stick
+1a)scan channels with scan, see also
+https://wiki.archlinux.org/index.php/Digitenne#Configure_Sasc-ng
+2)use tzap, cat and mplayer to watch TV
+3)unplug the stick
+4)watch the fireworks in /var/log/everything.log (dmesg)
+See below for details.
 
-Changes from v1 to v2:
-- rename V4L2_CID_MIN_REQ_BUFS_(CAP/OUT) to V4L2_CID_MIN_BUFFERS_FOR_(CAPTURE/OUTPUT)
-- use existing controls for GOP size, number of frames and GOP closure
-- remove frame rate controls (in favour of the S_PARM call)
-- split level into separate controls for MPEG4 and H264
-
-I would welcome further comments.
+I run the following kernel:
+Linux cedric 2.6.39-ARCH #1 SMP PREEMPT Mon Jun 6 22:37:55 CEST 2011 x86_64
+Intel(R) Core(TM)2 Duo CPU T5670 @ 1.80GHz GenuineIntel GNU/Linux
 
 Best regards,
-Kamil Debski
+Cedric
 
-Signed-off-by: Kamil Debski <k.debski@samsung.com>
-Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
----
- Documentation/DocBook/v4l/controls.xml |  774 ++++++++++++++++++++++++++++++++
- include/linux/videodev2.h              |  149 ++++++
- 2 files changed, 923 insertions(+), 0 deletions(-)
 
-diff --git a/Documentation/DocBook/v4l/controls.xml b/Documentation/DocBook/v4l/controls.xml
-index 6880798..3c3c709 100644
---- a/Documentation/DocBook/v4l/controls.xml
-+++ b/Documentation/DocBook/v4l/controls.xml
-@@ -325,6 +325,22 @@ minimum value disables backlight compensation.</entry>
- <constant>V4L2_CID_ILLUMINATORS_2</constant> + 1).</entry>
- 	  </row>
- 	  <row>
-+	    <entry><constant>V4L2_CID_MIN_BUFFERS_FOR_CAPTURE</constant></entry>
-+	    <entry>integer</entry>
-+	    <entry>This is a read only control that can be read by the application
-+and used as a hint to determine the number of CAPTURE buffer to pass to REQBUFS.
-+The value is the minimum number of CAPTURE buffer that it necessary for hardware
-+to work.</entry>
-+	  </row>
-+	  <row>
-+	    <entry><constant>V4L2_CID_MIN_BUFFERSS_FOR_OUTPUT</constant></entry>
-+	    <entry>integer</entry>
-+	    <entry>This is a read only control that can br read by the application
-+and used as a hint to determine the number of OUTPUT buffer to pass to REQBUFS.
-+The value is the minimum number of OUTPUT buffer that it necessary for hardware
-+to work.</entry>
-+	  </row>
-+	  <row>
- 	    <entry><constant>V4L2_CID_PRIVATE_BASE</constant></entry>
- 	    <entry></entry>
- 	    <entry>ID of the first custom (driver specific) control.
-@@ -1409,6 +1425,764 @@ of the video. The supplied 32-bit integer is interpreted as follows (bit
- 		  </tbody>
- 		</entrytbl>
- 	      </row>
-+
-+
-+	      <row><entry></entry></row>
-+	      <row>
-+		<entry spanname="id"><constant>V4L2_CID_MPEG_VIDEO_DECODER_SLICE_INTERFACE</constant>&nbsp;</entry>
-+		<entry>boolean</entry>
-+	      </row>
-+	      <row><entry spanname="descr">If enabled the decoder expects a single slice in one buffer, otherwise
-+the decoder expects a single frame in one input buffer.</entry>
-+	      </row>
-+
-+	      <row><entry></entry></row>
-+	      <row>
-+		<entry spanname="id"><constant>V4L2_CID_MPEG_VIDEO_H264_VUI_AR_ENABLE</constant>&nbsp;</entry>
-+		<entry>boolean</entry>
-+	      </row>
-+	      <row><entry spanname="descr">Enable writing aspect ratio in the Video Usability Information.</entry>
-+	      </row>
-+
-+	      <row><entry></entry></row>
-+	      <row>
-+		<entry spanname="id"><constant>V4L2_CID_MPEG_VIDEO_H264_VUI_AR_IDC</constant>&nbsp;</entry>
-+		<entry>integer</entry>
-+	      </row>
-+	      <row><entry spanname="descr">VUI aspect ratio IDC for H.264 encoding. The value is defined in VUI Table
-+E-1 in the standard.
-+	      </entry>
-+	      </row>
-+
-+	      <row><entry></entry></row>
-+	      <row>
-+		<entry spanname="id"><constant>V4L2_CID_MPEG_VIDEO_H264_EXT_SAR_WIDTH</constant>&nbsp;</entry>
-+		<entry>integer</entry>
-+	      </row>
-+	      <row><entry spanname="descr">Extended sample aspect ratio width for H.264 VUI encoding.</entry>
-+	      </row>
-+
-+	      <row><entry></entry></row>
-+	      <row>
-+		<entry spanname="id"><constant>V4L2_CID_MPEG_VIDEO_H264_EXT_SAR_HEIGHT</constant>&nbsp;</entry>
-+		<entry>integer</entry>
-+	      </row>
-+	      <row><entry spanname="descr">Extended sample aspect ratio height for H.264 VUI encoding.</entry>
-+	      </row>
-+
-+	      <row><entry></entry></row>
-+	      <row>
-+		<entry spanname="id"><constant>V4L2_CID_MPEG_VIDEO_LEVEL</constant>&nbsp;</entry>
-+		<entry>enum&nbsp;v4l2_mpeg_level</entry>
-+	      </row>
-+	      <row><entry spanname="descr">The level information for stream.
-+Possible values are:</entry>
-+	      </row>
-+	      <row>
-+		<entrytbl spanname="descr" cols="2">
-+		  <tbody valign="top">
-+		    <row>
-+		      <entry><constant>V4L2_MPEG_VIDEO_LEVEL_0</constant>&nbsp;</entry>
-+		      <entry>Level 0</entry>
-+		    </row>
-+		    <row>
-+		      <entry><constant>V4L2_MPEG_VIDEO_LEVEL_0B</constant>&nbsp;</entry>
-+		      <entry>Level 0b</entry>
-+		    </row>
-+		    <row>
-+		      <entry><constant>V4L2_MPEG_VIDEO_LEVEL_1</constant>&nbsp;</entry>
-+		      <entry>Level 1.0</entry>
-+		    </row>
-+		    <row>
-+		      <entry><constant>V4L2_MPEG_VIDEO_LEVEL_1_1</constant>&nbsp;</entry>
-+		      <entry>Level 1.1</entry>
-+		    </row>
-+		    <row>
-+		      <entry><constant>V4L2_MPEG_VIDEO_LEVEL_1_2</constant>&nbsp;</entry>
-+		      <entry>Level 1.2</entry>
-+		    </row>
-+		    <row>
-+		      <entry><constant>V4L2_MPEG_VIDEO_LEVEL_1_3</constant>&nbsp;</entry>
-+		      <entry>Level 1.3</entry>
-+		    </row>
-+		    <row>
-+		      <entry><constant>V4L2_MPEG_VIDEO_LEVEL_2</constant>&nbsp;</entry>
-+		      <entry>Level 2.0</entry>
-+		    </row>
-+		    <row>
-+		      <entry><constant>V4L2_MPEG_VIDEO_LEVEL_2_1</constant>&nbsp;</entry>
-+		      <entry>Level 2.1</entry>
-+		    </row>
-+		    <row>
-+		      <entry><constant>V4L2_MPEG_VIDEO_LEVEL_2_2</constant>&nbsp;</entry>
-+		      <entry>Level 2.2</entry>
-+		    </row>
-+		    <row>
-+		      <entry><constant>V4L2_MPEG_VIDEO_LEVEL_3</constant>&nbsp;</entry>
-+		      <entry>Level 3.0</entry>
-+		    </row>
-+		    <row>
-+		      <entry><constant>V4L2_MPEG_VIDEO_LEVEL_3B</constant>&nbsp;</entry>
-+		      <entry>Level 3b</entry>
-+		    </row>
-+		    <row>
-+		      <entry><constant>V4L2_MPEG_VIDEO_LEVEL_3_1</constant>&nbsp;</entry>
-+		      <entry>Level 3.1</entry>
-+		    </row>
-+		    <row>
-+		      <entry><constant>V4L2_MPEG_VIDEO_LEVEL_3_2</constant>&nbsp;</entry>
-+		      <entry>Level 3.2</entry>
-+		    </row>
-+		    <row>
-+		      <entry><constant>V4L2_MPEG_VIDEO_LEVEL_4</constant>&nbsp;</entry>
-+		      <entry>Level 4.0</entry>
-+		    </row>
-+		    <row>
-+		      <entry><constant>V4L2_MPEG_VIDEO_LEVEL_4_1</constant>&nbsp;</entry>
-+		      <entry>Level 4.1</entry>
-+		    </row>
-+		    <row>
-+		      <entry><constant>V4L2_MPEG_VIDEO_LEVEL_4_2</constant>&nbsp;</entry>
-+		      <entry>Level 4.2</entry>
-+		    </row>
-+		    <row>
-+		      <entry><constant>V4L2_MPEG_VIDEO_LEVEL_5</constant>&nbsp;</entry>
-+		      <entry>Level 5.0</entry>
-+		    </row>
-+		    <row>
-+		      <entry><constant>V4L2_MPEG_VIDEO_LEVEL_5_1</constant>&nbsp;</entry>
-+		      <entry>Level 5.1</entry>
-+		    </row>
-+		  </tbody>
-+		</entrytbl>
-+	      </row>
-+
-+	      <row><entry></entry></row>
-+	      <row>
-+		<entry spanname="id"><constant>V4L2_CID_MPEG_VIDEO_H264_PROFILE</constant>&nbsp;</entry>
-+		<entry>enum&nbsp;v4l2_mpeg_h264_profile</entry>
-+	      </row>
-+	      <row><entry spanname="descr">The profile information for H264.
-+Possible values are:</entry>
-+	      </row>
-+	      <row>
-+		<entrytbl spanname="descr" cols="2">
-+		  <tbody valign="top">
-+		    <row>
-+		      <entry><constant>V4L2_MPEG_VIDEO_H264_PROFILE_BASELINE</constant>&nbsp;</entry>
-+		      <entry>Baseline profile</entry>
-+		    </row>
-+		    <row>
-+		      <entry><constant>V4L2_MPEG_VIDEO_H264_PROFILE_CONSTRAINED_BASELINE</constant>&nbsp;</entry>
-+		      <entry>Constrained Baseline profile</entry>
-+		    </row>
-+		    <row>
-+		      <entry><constant>V4L2_MPEG_VIDEO_H264_PROFILE_MAIN</constant>&nbsp;</entry>
-+		      <entry>Main profile</entry>
-+		    </row>
-+		    <row>
-+		      <entry><constant>V4L2_MPEG_VIDEO_H264_PROFILE_HIGH_10</constant>&nbsp;</entry>
-+		      <entry>High 10 profile</entry>
-+		    </row>
-+		    <row>
-+		      <entry><constant>V4L2_MPEG_VIDEO_H264_PROFILE_HIGH_422</constant>&nbsp;</entry>
-+		      <entry>High 422 profile</entry>
-+		    </row>
-+		    <row>
-+		      <entry><constant>V4L2_MPEG_VIDEO_H264_PROFILE_HIGH_444_PREDICTIVE</constant>&nbsp;</entry>
-+		      <entry>High 444 Predictive profile</entry>
-+		    </row>
-+		    <row>
-+		      <entry><constant>V4L2_MPEG_VIDEO_H264_PROFILE_HIGH_10_INTRA</constant>&nbsp;</entry>
-+		      <entry>High 10 Intra profile</entry>
-+		    </row>
-+		    <row>
-+		      <entry><constant>V4L2_MPEG_VIDEO_H264_PROFILE_HIGH_422_INTRA</constant>&nbsp;</entry>
-+		      <entry>High 422 Intra profile</entry>
-+		    </row>
-+		    <row>
-+		      <entry><constant>V4L2_MPEG_VIDEO_H264_PROFILE_HIGH_444_INTRA</constant>&nbsp;</entry>
-+		      <entry>High 444 Intra profile</entry>
-+		    </row>
-+		    <row>
-+		      <entry><constant>V4L2_MPEG_VIDEO_H264_PROFILE_CAVLC_444_INTRA</constant>&nbsp;</entry>
-+		      <entry>CAVLC 444 Intra profile</entry>
-+		    </row>
-+		    <row>
-+		      <entry><constant>V4L2_MPEG_VIDEO_H264_PROFILE_SCALABLE_BASELINE</constant>&nbsp;</entry>
-+		      <entry>Scalable Baseline profile</entry>
-+		    </row>
-+		    <row>
-+		      <entry><constant>V4L2_MPEG_VIDEO_H264_PROFILE_SCALABLE_HIGH</constant>&nbsp;</entry>
-+		      <entry>Scalable High profile</entry>
-+		    </row>
-+		    <row>
-+		      <entry><constant>V4L2_MPEG_VIDEO_H264_PROFILE_SCALABLE_HIGH_INTRA</constant>&nbsp;</entry>
-+		      <entry>Scalable High Intra profile</entry>
-+		    </row>
-+		    <row>
-+		      <entry><constant>V4L2_MPEG_VIDEO_H264_PROFILE_MULTIVIEW_HIGH</constant>&nbsp;</entry>
-+		      <entry>Multiview High profile</entry>
-+		    </row>
-+
-+		  </tbody>
-+		</entrytbl>
-+	      </row>
-+
-+	      <row><entry></entry></row>
-+	      <row>
-+		<entry spanname="id"><constant>V4L2_CID_MPEG_VIDEO_MPEG4_PROFILE</constant>&nbsp;</entry>
-+		<entry>enum&nbsp;v4l2_mpeg_mpeg4_profile</entry>
-+	      </row>
-+	      <row><entry spanname="descr">The profile information for MPEG4.
-+Possible values are:</entry>
-+	      </row>
-+	      <row>
-+		<entrytbl spanname="descr" cols="2">
-+		  <tbody valign="top">
-+		    <row>
-+		      <entry><constant>V4L2_MPEG_VIDEO_PROFILE_SIMPLE</constant>&nbsp;</entry>
-+		      <entry>Simple profile</entry>
-+		    </row>
-+		    <row>
-+		      <entry><constant>V4L2_MPEG_VIDEO_PROFILE_ADVANCED_SIMPLE</constant>&nbsp;</entry>
-+		      <entry>Advanced Simple profile</entry>
-+		    </row>
-+		    <row>
-+		      <entry><constant>V4L2_MPEG_VIDEO_PROFILE_CORE</constant>&nbsp;</entry>
-+		      <entry>Core profile</entry>
-+		    </row>
-+		    <row>
-+		      <entry><constant>V4L2_MPEG_VIDEO_PROFILE_SIMPLE_SCALABLE</constant>&nbsp;</entry>
-+		      <entry>Simple Scalable profile</entry>
-+		    </row>
-+		    <row>
-+		      <entry><constant>V4L2_MPEG_VIDEO_PROFILE_ADVANCED_CODING_EFFICIENCY</constant>&nbsp;</entry>
-+		      <entry></entry>
-+		    </row>
-+		  </tbody>
-+		</entrytbl>
-+	      </row>
-+
-+	      <row><entry></entry></row>
-+	      <row>
-+		<entry spanname="id"><constant>V4L2_CID_MPEG_VIDEO_MAX_REF_PIC</constant>&nbsp;</entry>
-+		<entry>integer</entry>
-+	      </row>
-+	      <row><entry spanname="descr">The maximum number of reference pictures used for encoding.</entry>
-+	      </row>
-+
-+	      <row><entry></entry></row>
-+	      <row>
-+		<entry spanname="id"><constant>V4L2_CID_MPEG_VIDEO_MULTI_SLICE_MODE</constant>&nbsp;</entry>
-+		<entry>enum&nbsp;v4l2_mpeg_multi_slice_mode</entry>
-+	      </row>
-+	      <row><entry spanname="descr">Determines how multiple slices are handled.
-+Possible values are:</entry>
-+	      </row>
-+	      <row>
-+		<entrytbl spanname="descr" cols="2">
-+		  <tbody valign="top">
-+		    <row>
-+		      <entry><constant>V4L2_MPEG_VIDEO_MULTI_SLICE_MODE_SINGLE</constant>&nbsp;</entry>
-+		      <entry>Single slice per frame.</entry>
-+		    </row>
-+		    <row>
-+		      <entry><constant>V4L2_MPEG_VIDEO_MULTI_SLICE_MODE_MAX_MB</constant>&nbsp;</entry>
-+		      <entry>Multiple slices with set maximum number of macroblocks per slice.</entry>
-+		    </row>
-+		    <row>
-+		      <entry><constant>V4L2_MPEG_VIDEO_MULTI_SLICE_MODE_MAX_BITS</constant>&nbsp;</entry>
-+		      <entry>Multiple slice with set maximum size in bits per slice.</entry>
-+		    </row>
-+		  </tbody>
-+		</entrytbl>
-+	      </row>
-+
-+	      <row><entry></entry></row>
-+	      <row>
-+		<entry spanname="id"><constant>V4L2_CID_MPEG_VIDEO_MULTI_SLICE_MAX_MB</constant>&nbsp;</entry>
-+		<entry>integer</entry>
-+	      </row>
-+	      <row><entry spanname="descr">The upper limit of macroblocks of a slice.</entry>
-+	      </row>
-+
-+	      <row><entry></entry></row>
-+	      <row>
-+		<entry spanname="id"><constant>V4L2_CID_MPEG_VIDEO_MULTI_SLICE_MAX_BITS</constant>&nbsp;</entry>
-+		<entry>integer</entry>
-+	      </row>
-+	      <row><entry spanname="descr">The upper limit of size in bits of a slice.</entry>
-+	      </row>
-+
-+	      <row><entry></entry></row>
-+	      <row>
-+		<entry spanname="id"><constant>V4L2_CID_MPEG_VIDEO_H264_LOOP_FILTER_MODE</constant>&nbsp;</entry>
-+		<entry>enum&nbsp;v4l2_mpeg_h264_loop_filter_mode</entry>
-+	      </row>
-+	      <row><entry spanname="descr">Loop filter mode for H264.
-+Possible values are:</entry>
-+	      </row>
-+	      <row>
-+		<entrytbl spanname="descr" cols="2">
-+		  <tbody valign="top">
-+		    <row>
-+		      <entry><constant>V4L2_MPEG_VIDEO_H264_LOOP_FILTER_MODE_ENABLED</constant>&nbsp;</entry>
-+		      <entry>Loop filter is enabled.</entry>
-+		    </row>
-+		    <row>
-+		      <entry><constant>V4L2_MPEG_VIDEO_H264_LOOP_FILTER_MODE_DISABLED</constant>&nbsp;</entry>
-+		      <entry>Loop filter is disabled.</entry>
-+		    </row>
-+		    <row>
-+		      <entry><constant>V4L2_MPEG_VIDEO_H264_LOOP_FILTER_MODE_DISABLED_AT_SLICE_BOUNDARY</constant>&nbsp;</entry>
-+		      <entry>Loop filter is disabled at the slice boundary.</entry>
-+		    </row>
-+		  </tbody>
-+		</entrytbl>
-+	      </row>
-+
-+	      <row><entry></entry></row>
-+	      <row>
-+		<entry spanname="id"><constant>V4L2_CID_MPEG_VIDEO_H264_LOOP_FILTER_ALPHA</constant>&nbsp;</entry>
-+		<entry>integer</entry>
-+	      </row>
-+	      <row><entry spanname="descr">Loop filter alpha coefficient, defined in the standard.</entry>
-+	      </row>
-+
-+	      <row><entry></entry></row>
-+	      <row>
-+		<entry spanname="id"><constant>V4L2_CID_MPEG_VIDEO_H264_LOOP_FILTER_BETA</constant>&nbsp;</entry>
-+		<entry>integer</entry>
-+	      </row>
-+	      <row><entry spanname="descr">Loop filter beta coefficient, defined in the standard.</entry>
-+	      </row>
-+
-+	      <row><entry></entry></row>
-+	      <row>
-+		<entry spanname="id"><constant>V4L2_CID_MPEG_VIDEO_H264_SYMBOL_MODE</constant>&nbsp;</entry>
-+		<entry>enum&nbsp;v4l2_mpeg_h264_symbol_mode</entry>
-+	      </row>
-+	      <row><entry spanname="descr">Symbol mode for H264 - CABAC/CAVALC.
-+Possible values are:</entry>
-+	      </row>
-+	      <row>
-+		<entrytbl spanname="descr" cols="2">
-+		  <tbody valign="top">
-+		    <row>
-+		      <entry><constant>V4L2_MPEG_VIDEO_H264_SYMBOL_MODE_CAVLC</constant>&nbsp;</entry>
-+		      <entry>Use CAVLC entropy coding.</entry>
-+		    </row>
-+		    <row>
-+		      <entry><constant>V4L2_MPEG_VIDEO_H264_SYMBOL_MODE_CABAC</constant>&nbsp;</entry>
-+		      <entry>Use CABAC entropy coding.</entry>
-+		    </row>
-+		  </tbody>
-+		</entrytbl>
-+	      </row>
-+
-+	      <row><entry></entry></row>
-+	      <row>
-+		<entry spanname="id"><constant>V4L2_CID_MPEG_VIDEO_H264_8X8_TRANSFORM</constant>&nbsp;</entry>
-+		<entry>boolean</entry>
-+	      </row>
-+	      <row><entry spanname="descr">Enable 8X8 transform for H264.</entry>
-+	      </row>
-+
-+	      <row><entry></entry></row>
-+	      <row>
-+		<entry spanname="id"><constant>V4L2_CID_MPEG_VIDEO_INTRA_REFRESH_MB</constant>&nbsp;</entry>
-+		<entry>integer</entry>
-+	      </row>
-+	      <row><entry spanname="descr">Period of random intra macroblock refresh.</entry>
-+	      </row>
-+
-+	      <row><entry></entry></row>
-+	      <row>
-+		<entry spanname="id"><constant>V4L2_CID_MPEG_VIDEO_FRAME_RC_ENABLE</constant>&nbsp;</entry>
-+		<entry>boolean</entry>
-+	      </row>
-+	      <row><entry spanname="descr">Frame level rate control enable.</entry>
-+	      </row>
-+
-+	      <row><entry></entry></row>
-+	      <row>
-+		<entry spanname="id"><constant>V4L2_CID_MPEG_VIDEO_H264_MB_RC_ENABLE</constant>&nbsp;</entry>
-+		<entry>boolean</entry>
-+	      </row>
-+	      <row><entry spanname="descr">Macroblock level rate control enable for H264.</entry>
-+	      </row>
-+
-+	      <row><entry></entry></row>
-+	      <row>
-+		<entry spanname="id"><constant>V4L2_CID_MPEG_VIDEO_MPEG4_QPEL</constant>&nbsp;</entry>
-+		<entry>boolean</entry>
-+	      </row>
-+	      <row><entry spanname="descr">Quarter pixel motion estimation for MPEG4.</entry>
-+	      </row>
-+
-+	      <row><entry></entry></row>
-+	      <row>
-+		<entry spanname="id"><constant>V4L2_CID_MPEG_VIDEO_H263_I_FRAME_QP</constant>&nbsp;</entry>
-+		<entry>integer</entry>
-+	      </row>
-+	      <row><entry spanname="descr">Quantization parameter for an I frame for H263.</entry>
-+	      </row>
-+
-+	      <row><entry></entry></row>
-+	      <row>
-+		<entry spanname="id"><constant>V4L2_CID_MPEG_VIDEO_H263_MIN_QP</constant>&nbsp;</entry>
-+		<entry>integer</entry>
-+	      </row>
-+	      <row><entry spanname="descr">Minimum quantization parameter for H263.</entry>
-+	      </row>
-+
-+	      <row><entry></entry></row>
-+	      <row>
-+		<entry spanname="id"><constant>V4L2_CID_MPEG_VIDEO_H263_MAX_QP</constant>&nbsp;</entry>
-+		<entry>integer</entry>
-+	      </row>
-+	      <row><entry spanname="descr">Maximum quantization parameter for H263.</entry>
-+	      </row>
-+
-+	      <row><entry></entry></row>
-+	      <row>
-+		<entry spanname="id"><constant>V4L2_CID_MPEG_VIDEO_H263_P_FRAME_QP</constant>&nbsp;</entry>
-+		<entry>integer</entry>
-+	      </row>
-+	      <row><entry spanname="descr">Quantization parameter for an P frame for H263.</entry>
-+	      </row>
-+
-+	      <row><entry></entry></row>
-+	      <row>
-+		<entry spanname="id"><constant>V4L2_CID_MPEG_VIDEO_H263_B_FRAME_QP</constant>&nbsp;</entry>
-+		<entry>integer</entry>
-+	      </row>
-+	      <row><entry spanname="descr">Quantization parameter for an B frame for H263.</entry>
-+	      </row>
-+
-+	      <row><entry></entry></row>
-+	      <row>
-+		<entry spanname="id"><constant>V4L2_CID_MPEG_VIDEO_H264_I_FRAME_QP</constant>&nbsp;</entry>
-+		<entry>integer</entry>
-+	      </row>
-+	      <row><entry spanname="descr">Quantization parameter for an I frame for H264.</entry>
-+	      </row>
-+
-+	      <row><entry></entry></row>
-+	      <row>
-+		<entry spanname="id"><constant>V4L2_CID_MPEG_VIDEO_H264_MIN_QP</constant>&nbsp;</entry>
-+		<entry>integer</entry>
-+	      </row>
-+	      <row><entry spanname="descr">Minimum quantization parameter for H264.</entry>
-+	      </row>
-+
-+	      <row><entry></entry></row>
-+	      <row>
-+		<entry spanname="id"><constant>V4L2_CID_MPEG_VIDEO_H264_MAX_QP</constant>&nbsp;</entry>
-+		<entry>integer</entry>
-+	      </row>
-+	      <row><entry spanname="descr">Maximum quantization parameter for H264.</entry>
-+	      </row>
-+
-+	      <row><entry></entry></row>
-+	      <row>
-+		<entry spanname="id"><constant>V4L2_CID_MPEG_VIDEO_H264_P_FRAME_QP</constant>&nbsp;</entry>
-+		<entry>integer</entry>
-+	      </row>
-+	      <row><entry spanname="descr">Quantization parameter for an P frame for H264.</entry>
-+	      </row>
-+
-+	      <row><entry></entry></row>
-+	      <row>
-+		<entry spanname="id"><constant>V4L2_CID_MPEG_VIDEO_H264_B_FRAME_QP</constant>&nbsp;</entry>
-+		<entry>integer</entry>
-+	      </row>
-+	      <row><entry spanname="descr">Quantization parameter for an B frame for H264.</entry>
-+	      </row>
-+
-+	      <row><entry></entry></row>
-+	      <row>
-+		<entry spanname="id"><constant>V4L2_CID_MPEG_VIDEO_MPEG4_I_FRAME_QP</constant>&nbsp;</entry>
-+		<entry>integer</entry>
-+	      </row>
-+	      <row><entry spanname="descr">Quantization parameter for an I frame for MPEG4.</entry>
-+	      </row>
-+
-+	      <row><entry></entry></row>
-+	      <row>
-+		<entry spanname="id"><constant>V4L2_CID_MPEG_VIDEO_MPEG4_MIN_QP</constant>&nbsp;</entry>
-+		<entry>integer</entry>
-+	      </row>
-+	      <row><entry spanname="descr">Minimum quantization parameter for MPEG4.</entry>
-+	      </row>
-+
-+	      <row><entry></entry></row>
-+	      <row>
-+		<entry spanname="id"><constant>V4L2_CID_MPEG_VIDEO_MPEG4_MAX_QP</constant>&nbsp;</entry>
-+		<entry>integer</entry>
-+	      </row>
-+	      <row><entry spanname="descr">Maximum quantization parameter for MPEG4.</entry>
-+	      </row>
-+
-+	      <row><entry></entry></row>
-+	      <row>
-+		<entry spanname="id"><constant>V4L2_CID_MPEG_VIDEO_MPEG4_P_FRAME_QP</constant>&nbsp;</entry>
-+		<entry>integer</entry>
-+	      </row>
-+	      <row><entry spanname="descr">Quantization parameter for an P frame for MPEG4.</entry>
-+	      </row>
-+
-+	      <row><entry></entry></row>
-+	      <row>
-+		<entry spanname="id"><constant>V4L2_CID_MPEG_VIDEO_MPEG4_B_FRAME_QP</constant>&nbsp;</entry>
-+		<entry>integer</entry>
-+	      </row>
-+	      <row><entry spanname="descr">Quantization parameter for an B frame for MPEG4.</entry>
-+	      </row>
-+
-+	      <row><entry></entry></row>
-+	      <row>
-+		<entry spanname="id"><constant>V4L2_CID_MPEG_VIDEO_VBV_BUF_SIZE</constant>&nbsp;</entry>
-+		<entry>integer</entry>
-+	      </row>
-+	      <row><entry spanname="descr">The VBV buffer size in kilobytes, it used as a limitation of frame skip.</entry>
-+	      </row>
-+
-+	      <row><entry></entry></row>
-+	      <row>
-+		<entry spanname="id"><constant>V4L2_CID_MPEG_VIDEO_H264_I_PERIOD</constant>&nbsp;</entry>
-+		<entry>integer</entry>
-+	      </row>
-+	      <row><entry spanname="descr">Period between I frames in open GOP for H264.</entry>
-+	      </row>
-+
-+	      <row><entry></entry></row>
-+	      <row>
-+		<entry spanname="id"><constant>V4L2_CID_MPEG_VIDEO_HEADER_MODE</constant>&nbsp;</entry>
-+		<entry>enum&nbsp;v4l2_mpeg_header_mode</entry>
-+	      </row>
-+	      <row><entry spanname="descr">Determines whether the header is returned as the first buffer or is
-+it returned together with the first frame.
-+Possible values are:</entry>
-+	      </row>
-+	      <row>
-+		<entrytbl spanname="descr" cols="2">
-+		  <tbody valign="top">
-+		    <row>
-+		      <entry><constant>V4L2_MPEG_VIDEO_HEADER_MODE_SEPARATE</constant>&nbsp;</entry>
-+		      <entry>The stream header is returned separately in the first buffer.</entry>
-+		    </row>
-+		    <row>
-+		      <entry><constant>V4L2_MPEG_VIDEO_HEADER_MODE_JOINED_WITH_1ST_FRAME</constant>&nbsp;</entry>
-+		      <entry>The stream header is returned together with the first encoded frame.</entry>
-+		    </row>
-+		  </tbody>
-+		</entrytbl>
-+	      </row>
-+
-+	    </tbody>
-+	  </tgroup>
-+	</table>
-+      </section>
-+
-+      <section>
-+	<title>MFC 5.1 MPEG Controls</title>
-+
-+	<para>The following MPEG class controls deal with MPEG
-+decoding and encoding settings that are specific to the MFC 5.1 device present
-+in the S5P family of SoCs by Samsung.
-+</para>
-+
-+	<table pgwide="1" frame="none" id="mfc51-control-id">
-+	  <title>MFC 5.1 Control IDs</title>
-+	  <tgroup cols="4">
-+	    <colspec colname="c1" colwidth="1*" />
-+	    <colspec colname="c2" colwidth="6*" />
-+	    <colspec colname="c3" colwidth="2*" />
-+	    <colspec colname="c4" colwidth="6*" />
-+	    <spanspec namest="c1" nameend="c2" spanname="id" />
-+	    <spanspec namest="c2" nameend="c4" spanname="descr" />
-+	    <thead>
-+	      <row>
-+		<entry spanname="id" align="left">ID</entry>
-+		<entry align="left">Type</entry>
-+	      </row><row><entry spanname="descr" align="left">Description</entry>
-+	      </row>
-+	    </thead>
-+	    <tbody valign="top">
-+	      <row><entry></entry></row>
-+	      <row>
-+		<entry spanname="id"><constant>V4L2_CID_MPEG_MFC51_VIDEO_DECODER_MPEG4_DEBLOCK_FILTER</constant>&nbsp;</entry>
-+		<entry>boolean</entry>
-+	      </row><row><entry spanname="descr">Enabled the deblocking post processing filter for MPEG4 decoder.</entry>
-+	      </row>
-+	      <row><entry></entry></row>
-+	      <row>
-+		<entry spanname="id"><constant>V4L2_CID_MPEG_MFC51_VIDEO_DECODER_H264_DISPLAY_DELAY_ENABLE</constant>&nbsp;</entry>
-+		<entry>integer</entry>
-+	      </row><row><entry spanname="descr">If the display delay is enabled then the decoder has to return an
-+CAPTURE buffer after processing a certain number of OUTPUT buffers. If this number is low, then it may result in
-+buffers not being dequeued in display order. In addition hardware may still use those buffers as reference, thus
-+application should not write to those buffers. This feature can be used for example for generating thumbnails of videos.
-+	      </entry>
-+	      </row>
-+	      <row><entry></entry></row>
-+	      <row>
-+		<entry spanname="id"><constant>V4L2_CID_MPEG_MFC51_VIDEO_DECODER_H264_DISPLAY_DELAY</constant>&nbsp;</entry>
-+		<entry>integer</entry>
-+	      </row><row><entry spanname="descr">Display delay value for H264 decoder.</entry>
-+	      </row>
-+	      <row><entry></entry></row>
-+	      <row>
-+		<entry spanname="id"><constant>V4L2_CID_MPEG_MFC51_VIDEO_H264_NUM_REF_PIC_FOR_P</constant>&nbsp;</entry>
-+		<entry>integer</entry>
-+	      </row><row><entry spanname="descr">The number of reference pictures used for encoding a P picture.</entry>
-+	      </row>
-+	      <row><entry></entry></row>
-+	      <row>
-+		<entry spanname="id"><constant>V4L2_CID_MPEG_MFC51_VIDEO_PADDING</constant>&nbsp;</entry>
-+		<entry>boolean</entry>
-+	      </row><row><entry spanname="descr">Padding enable - use a color instead of repeating border pixels.</entry>
-+	      </row>
-+	      <row><entry></entry></row>
-+	      <row>
-+		<entry spanname="id"><constant>V4L2_CID_MPEG_MFC51_VIDEO_PADDING_YUV</constant>&nbsp;</entry>
-+		<entry>integer</entry>
-+	      </row><row><entry spanname="descr">Padding color. The supplied 32-bit integer is interpreted as follows (bit
-+0 = least significant bit):</entry>
-+	      </row>
-+	      <row>
-+		<entrytbl spanname="descr" cols="2">
-+		  <tbody valign="top">
-+		    <row>
-+		      <entry>Bit 0:7</entry>
-+		      <entry>V chrominance information</entry>
-+		    </row>
-+		    <row>
-+		      <entry>Bit 8:15</entry>
-+		      <entry>U chrominance information</entry>
-+		    </row>
-+		    <row>
-+		      <entry>Bit 16:23</entry>
-+		      <entry>Y luminance information</entry>
-+		    </row>
-+		    <row>
-+		      <entry>Bit 24:31</entry>
-+		      <entry>Must be zero.</entry>
-+		    </row>
-+		  </tbody>
-+		</entrytbl>
-+	      </row>
-+	      <row><entry></entry></row>
-+	      <row>
-+		<entry spanname="id"><constant>V4L2_CID_MPEG_MFC51_VIDEO_RC_REACTION_COEFF</constant>&nbsp;</entry>
-+		<entry>integer</entry>
-+	      </row><row><entry spanname="descr">Reaction coefficient for MFC rate control.</entry>
-+	      </row>
-+	      <row><entry></entry></row>
-+	      <row>
-+		<entry spanname="id"><constant>V4L2_CID_MPEG_MFC51_VIDEO_H264_ADAPTIVE_RC_DARK</constant>&nbsp;</entry>
-+		<entry>integer</entry>
-+	      </row><row><entry spanname="descr">Adaptive rate control for dark region.</entry>
-+	      </row>
-+	      <row><entry></entry></row>
-+	      <row>
-+		<entry spanname="id"><constant>V4L2_CID_MPEG_MFC51_VIDEO_H264_ADAPTIVE_RC_SMOOTH</constant>&nbsp;</entry>
-+		<entry>integer</entry>
-+	      </row><row><entry spanname="descr">Adaptive rate control for smooth region.</entry>
-+	      </row>
-+	      <row><entry></entry></row>
-+	      <row>
-+		<entry spanname="id"><constant>V4L2_CID_MPEG_MFC51_VIDEO_H264_ADAPTIVE_RC_STATIC</constant>&nbsp;</entry>
-+		<entry>integer</entry>
-+	      </row><row><entry spanname="descr">Adaptive rate control for static region.</entry>
-+	      </row>
-+	      <row><entry></entry></row>
-+	      <row>
-+		<entry spanname="id"><constant>V4L2_CID_MPEG_MFC51_VIDEO_H264_ADAPTIVE_RC_ACTIVITY</constant>&nbsp;</entry>
-+		<entry>integer</entry>
-+	      </row><row><entry spanname="descr">Adaptive rate control for activity region.</entry>
-+	      </row>
-+	      <row><entry></entry></row>
-+	      <row>
-+		<entry spanname="id"><constant>V4L2_CID_MPEG_MFC51_VIDEO_FRAME_SKIP_MODE</constant>&nbsp;</entry>
-+		<entry>enum&nbsp;v4l2_mpeg_mfc51_frame_skip_mode</entry>
-+	      </row>
-+	      <row><entry spanname="descr">
-+Possible values are:</entry>
-+	      </row>
-+	      <row>
-+		<entrytbl spanname="descr" cols="2">
-+		  <tbody valign="top">
-+		    <row>
-+		      <entry><constant>V4L2_MPEG_MFC51_FRAME_SKIP_MODE_DISABLED</constant>&nbsp;</entry>
-+		      <entry>Frame skip mode is disabled.</entry>
-+		    </row>
-+		    <row>
-+		      <entry><constant>V4L2_MPEG_MFC51_FRAME_SKIP_MODE_LEVEL_LIMIT</constant>&nbsp;</entry>
-+		      <entry>Frame skip mode enabled and buffer limit is set by the chosen level.</entry>
-+		    </row>
-+		    <row>
-+		      <entry><constant>V4L2_MPEG_MFC51_FRAME_SKIP_MODE_VBV_LIMIT</constant>&nbsp;</entry>
-+		      <entry>Frame skip mode enabled and buffer limit is set by the VBV buffer size control.</entry>
-+		    </row>
-+		  </tbody>
-+		</entrytbl>
-+	      </row>
-+	      <row><entry></entry></row>
-+	      <row>
-+		<entry spanname="id"><constant>V4L2_CID_MPEG_MFC51_VIDEO_RC_FIXED_TARGET_BIT</constant>&nbsp;</entry>
-+		<entry>integer</entry>
-+	      </row><row><entry spanname="descr">Enable rate-control with fixed target bit. If enabled encoder targets bitrate in GOP, else try to meet average bitrate.</entry>
-+	      </row>
-+	      <row><entry></entry></row>
-+	      <row>
-+		<entry spanname="id"><constant>V4L2_CID_MPEG_MFC51_VIDEO_MPEG4_VOP_TIME_RES</constant>&nbsp;</entry>
-+		<entry>integer</entry>
-+	      </row><row><entry spanname="descr">Used to compute vop_time_increment and modulo_time_base in MPEG4.</entry>
-+	      </row>
-+	      <row><entry></entry></row>
-+	      <row>
-+		<entry spanname="id"><constant>V4L2_CID_MPEG_MFC51_VIDEO_MPEG4_VOP_FRAME_DELTA</constant>&nbsp;</entry>
-+		<entry>integer</entry>
-+	      </row><row><entry spanname="descr">Used to compute vop_time_increment and modulo_time_base in MPEG4.</entry>
-+	      </row>
-+	      <row><entry></entry></row>
-+	      <row>
-+		<entry spanname="id"><constant>V4L2_CID_MPEG_MFC51_VIDEO_FORCE_FRAME_TYPE</constant>&nbsp;</entry>
-+		<entry>enum&nbsp;v4l2_mpeg_mfc51_force_frame_type</entry>
-+	      </row>
-+	      <row><entry spanname="descr">Force a frame type for the next queued buffer.
-+Possible values are:</entry>
-+	      </row>
-+	      <row>
-+		<entrytbl spanname="descr" cols="2">
-+		  <tbody valign="top">
-+		    <row>
-+		      <entry><constant>V4L2_MPEG_MFC51_FORCE_FRAME_TYPE_DISABLED</constant>&nbsp;</entry>
-+		      <entry>Forcing a specific frame type disabled.</entry>
-+		    </row>
-+		    <row>
-+		      <entry><constant>V4L2_MPEG_MFC51_FORCE_FRAME_TYPE_I_FRAME</constant>&nbsp;</entry>
-+		      <entry>Force an I-frame.</entry>
-+		    </row>
-+		    <row>
-+		      <entry><constant>V4L2_MPEG_MFC51_FORCE_FRAME_TYPE_NOT_CODED</constant>&nbsp;</entry>
-+		      <entry>Force a non-coded frame.</entry>
-+		    </row>
-+		  </tbody>
-+		</entrytbl>
-+	      </row>
-+	      <row><entry></entry></row>
-+	      <row>
-+		<entry spanname="id"><constant>V4L2_CID_MPEG_MFC51_VIDEO_FRAME_TAG</constant>&nbsp;</entry>
-+		<entry>integer</entry>
-+	      </row><row><entry spanname="descr">Frame tag is assigned to an input buffer passed to hardware, and
-+the same frame tag is then assigned to the buffer that contains the
-+result of processing that frame.
-+	      </entry>
-+	      </row>
- 	    </tbody>
- 	  </tgroup>
- 	</table>
-diff --git a/include/linux/videodev2.h b/include/linux/videodev2.h
-index 6168da0..879a5d5 100644
---- a/include/linux/videodev2.h
-+++ b/include/linux/videodev2.h
-@@ -1157,6 +1157,10 @@ enum v4l2_colorfx {
- /* last CID + 1 */
- #define V4L2_CID_LASTP1                         (V4L2_CID_BASE+39)
- 
-+/* Minimum number of buffer neede by the device */
-+#define V4L2_CID_MIN_BUFFERS_FOR_CAPTURE	(V4L2_CID_BASE+40)
-+#define V4L2_CID_MIN_BUFFERS_FOR_OUTPUT		(V4L2_CID_BASE+41)
-+
- /*  MPEG-class control IDs defined by V4L2 */
- #define V4L2_CID_MPEG_BASE 			(V4L2_CTRL_CLASS_MPEG | 0x900)
- #define V4L2_CID_MPEG_CLASS 			(V4L2_CTRL_CLASS_MPEG | 1)
-@@ -1328,6 +1332,120 @@ enum v4l2_mpeg_video_bitrate_mode {
- #define V4L2_CID_MPEG_VIDEO_MUTE 		(V4L2_CID_MPEG_BASE+210)
- #define V4L2_CID_MPEG_VIDEO_MUTE_YUV 		(V4L2_CID_MPEG_BASE+211)
- 
-+#define V4L2_CID_MPEG_VIDEO_DECODER_SLICE_INTERFACE	(V4L2_CID_MPEG_BASE+212)
-+#define V4L2_CID_MPEG_VIDEO_H264_VUI_AR_ENABLE		(V4L2_CID_MPEG_BASE+213)
-+#define V4L2_CID_MPEG_VIDEO_H264_VUI_AR_IDC		(V4L2_CID_MPEG_BASE+214)
-+#define V4L2_CID_MPEG_VIDEO_H264_EXT_SAR_WIDTH		(V4L2_CID_MPEG_BASE+215)
-+#define V4L2_CID_MPEG_VIDEO_H264_EXT_SAR_HEIGHT		(V4L2_CID_MPEG_BASE+216)
-+#define V4L2_CID_MPEG_VIDEO_H264_LEVEL			(V4L2_CID_MPEG_BASE+217)
-+enum v4l2_mpeg_video_h264_level {
-+	V4L2_MPEG_VIDEO_H264_LEVEL_1_0	= 0,
-+	V4L2_MPEG_VIDEO_H264_LEVEL_1B	= 1,
-+	V4L2_MPEG_VIDEO_H264_LEVEL_1_1	= 2,
-+	V4L2_MPEG_VIDEO_H264_LEVEL_1_2	= 3,
-+	V4L2_MPEG_VIDEO_H264_LEVEL_1_3	= 4,
-+	V4L2_MPEG_VIDEO_H264_LEVEL_2_0	= 5,
-+	V4L2_MPEG_VIDEO_H264_LEVEL_2_1	= 6,
-+	V4L2_MPEG_VIDEO_H264_LEVEL_2_2	= 7,
-+	V4L2_MPEG_VIDEO_H264_LEVEL_3_0	= 8,
-+	V4L2_MPEG_VIDEO_H264_LEVEL_3_1	= 9,
-+	V4L2_MPEG_VIDEO_H264_LEVEL_3_2	= 10,
-+	V4L2_MPEG_VIDEO_H264_LEVEL_4_0	= 11,
-+	V4L2_MPEG_VIDEO_H264_LEVEL_4_1	= 12,
-+	V4L2_MPEG_VIDEO_H264_LEVEL_4_2	= 13,
-+	V4L2_MPEG_VIDEO_H264_LEVEL_5_0	= 14,
-+	V4L2_MPEG_VIDEO_H264_LEVEL_5_1	= 15,
-+};
-+#define V4L2_CID_MPEG_VIDEO_MPEG4_LEVEL		(V4L2_CID_MPEG_BASE+218)
-+enum v4l2_mpeg_video_mpeg4_level {
-+	V4L2_MPEG_VIDEO_MPEG4_LEVEL_0	= 0,
-+	V4L2_MPEG_VIDEO_MPEG4_LEVEL_0B	= 1,
-+	V4L2_MPEG_VIDEO_MPEG4_LEVEL_1	= 2,
-+	V4L2_MPEG_VIDEO_MPEG4_LEVEL_2	= 3,
-+	V4L2_MPEG_VIDEO_MPEG4_LEVEL_3	= 4,
-+	V4L2_MPEG_VIDEO_MPEG4_LEVEL_3B	= 5,
-+	V4L2_MPEG_VIDEO_MPEG4_LEVEL_4	= 6,
-+	V4L2_MPEG_VIDEO_MPEG4_LEVEL_5	= 7,
-+};
-+#define V4L2_CID_MPEG_VIDEO_H264_PROFILE	(V4L2_CID_MPEG_BASE+219)
-+enum v4l2_mpeg_video_h264_profile {
-+	V4L2_MPEG_VIDEO_H264_PROFILE_BASELINE			= 0,
-+	V4L2_MPEG_VIDEO_H264_PROFILE_CONSTRAINED_BASELINE	= 1,
-+	V4L2_MPEG_VIDEO_H264_PROFILE_MAIN			= 2,
-+	V4L2_MPEG_VIDEO_H264_PROFILE_EXTENDED			= 3,
-+	V4L2_MPEG_VIDEO_H264_PROFILE_HIGH			= 4,
-+	V4L2_MPEG_VIDEO_H264_PROFILE_HIGH_10			= 5,
-+	V4L2_MPEG_VIDEO_H264_PROFILE_HIGH_422			= 6,
-+	V4L2_MPEG_VIDEO_H264_PROFILE_HIGH_444_PREDICTIVE	= 7,
-+	V4L2_MPEG_VIDEO_H264_PROFILE_HIGH_10_INTRA		= 8,
-+	V4L2_MPEG_VIDEO_H264_PROFILE_HIGH_422_INTRA		= 9,
-+	V4L2_MPEG_VIDEO_H264_PROFILE_HIGH_444_INTRA		= 10,
-+	V4L2_MPEG_VIDEO_H264_PROFILE_CAVLC_444_INTRA		= 11,
-+	V4L2_MPEG_VIDEO_H264_PROFILE_SCALABLE_BASELINE		= 12,
-+	V4L2_MPEG_VIDEO_H264_PROFILE_SCALABLE_HIGH		= 13,
-+	V4L2_MPEG_VIDEO_H264_PROFILE_SCALABLE_HIGH_INTRA	= 14,
-+	V4L2_MPEG_VIDEO_H264_PROFILE_MULTIVIEW_HIGH		= 15,
-+};
-+#define V4L2_CID_MPEG_VIDEO_MPEG4_PROFILE	(V4L2_CID_MPEG_BASE+220)
-+enum v4l2_mpeg_video_mpeg4_profile {
-+	V4L2_MPEG_VIDEO_MPEG4_PROFILE_SIMPLE				= 0,
-+	V4L2_MPEG_VIDEO_MPEG4_PROFILE_ADVANCED_SIMPLE			= 1,
-+	V4L2_MPEG_VIDEO_MPEG4_PROFILE_CORE				= 2,
-+	V4L2_MPEG_VIDEO_MPEG4_PROFILE_SIMPLE_SCALABLE			= 3,
-+	V4L2_MPEG_VIDEO_MPEG4_PROFILE_ADVANCED_CODING_EFFICIENCY	= 4,
-+};
-+#define V4L2_CID_MPEG_VIDEO_MAX_REF_PIC		(V4L2_CID_MPEG_BASE+221)
-+#define V4L2_CID_MPEG_VIDEO_MULTI_SLICE_MODE	(V4L2_CID_MPEG_BASE+222)
-+enum v4l2_mpeg_video_multi_slice_mode {
-+	V4L2_MPEG_VIDEO_MULTI_SLICE_MODE_SINGLE		= 0,
-+	V4L2_MPEG_VIDEO_MULTI_SICE_MODE_MAX_MB		= 1,
-+	V4L2_MPEG_VIDEO_MULTI_SICE_MODE_MAX_BITS	= 2,
-+};
-+#define V4L2_CID_MPEG_VIDEO_MULTI_SLICE_MAX_MB		(V4L2_CID_MPEG_BASE+223)
-+#define V4L2_CID_MPEG_VIDEO_MULTI_SLICE_MAX_BITS	(V4L2_CID_MPEG_BASE+224)
-+#define V4L2_CID_MPEG_VIDEO_H264_LOOP_FILTER_MODE	(V4L2_CID_MPEG_BASE+225)
-+enum v4l2_mpeg_video_h264_loop_filter_mode {
-+	V4L2_MPEG_VIDEO_H264_LOOP_FILTER_MODE_ENABLED				= 0,
-+	V4L2_MPEG_VIDEO_H264_LOOP_FILTER_MODE_DISABLED				= 1,
-+	V4L2_MPEG_VIDEO_H264_LOOP_FILTER_MODE_DISABLED_AT_SLICE_BOUNDARY	= 2,
-+};
-+#define V4L2_CID_MPEG_VIDEO_H264_LOOP_FILTER_ALPHA	(V4L2_CID_MPEG_BASE+226)
-+#define V4L2_CID_MPEG_VIDEO_H264_LOOP_FILTER_BETA	(V4L2_CID_MPEG_BASE+227)
-+#define V4L2_CID_MPEG_VIDEO_H264_SYMBOL_MODE		(V4L2_CID_MPEG_BASE+228)
-+enum v4l2_mpeg_video_h264_symbol_mode {
-+	V4L2_MPEG_VIDEO_H264_SYMBOL_MODE_CAVLC	= 0,
-+	V4L2_MPEG_VIDEO_H264_SYMBOL_MODE_CABAC	= 1,
-+};
-+
-+#define V4L2_CID_MPEG_VIDEO_H264_8X8_TRANSFORM	(V4L2_CID_MPEG_BASE+229)
-+#define V4L2_CID_MPEG_VIDEO_INTRA_REFRESH_MB	(V4L2_CID_MPEG_BASE+230)
-+#define V4L2_CID_MPEG_VIDEO_FRAME_RC_ENABLE	(V4L2_CID_MPEG_BASE+231)
-+#define V4L2_CID_MPEG_VIDEO_H264_MB_RC_ENABLE	(V4L2_CID_MPEG_BASE+232)
-+#define V4L2_CID_MPEG_VIDEO_MPEG4_QPEL		(V4L2_CID_MPEG_BASE+233)
-+#define V4L2_CID_MPEG_VIDEO_H263_I_FRAME_QP	(V4L2_CID_MPEG_BASE+234)
-+#define V4L2_CID_MPEG_VIDEO_H263_MIN_QP		(V4L2_CID_MPEG_BASE+235)
-+#define V4L2_CID_MPEG_VIDEO_H263_MAX_QP		(V4L2_CID_MPEG_BASE+236)
-+#define V4L2_CID_MPEG_VIDEO_H263_P_FRAME_QP	(V4L2_CID_MPEG_BASE+237)
-+#define V4L2_CID_MPEG_VIDEO_H263_B_FRAME_QP	(V4L2_CID_MPEG_BASE+238)
-+#define V4L2_CID_MPEG_VIDEO_H264_I_FRAME_QP	(V4L2_CID_MPEG_BASE+239)
-+#define V4L2_CID_MPEG_VIDEO_H264_MIN_QP		(V4L2_CID_MPEG_BASE+240)
-+#define V4L2_CID_MPEG_VIDEO_H264_MAX_QP		(V4L2_CID_MPEG_BASE+241)
-+#define V4L2_CID_MPEG_VIDEO_H264_P_FRAME_QP	(V4L2_CID_MPEG_BASE+242)
-+#define V4L2_CID_MPEG_VIDEO_H264_B_FRAME_QP	(V4L2_CID_MPEG_BASE+243)
-+#define V4L2_CID_MPEG_VIDEO_MPEG4_I_FRAME_QP	(V4L2_CID_MPEG_BASE+244)
-+#define V4L2_CID_MPEG_VIDEO_MPEG4_MIN_QP	(V4L2_CID_MPEG_BASE+245)
-+#define V4L2_CID_MPEG_VIDEO_MPEG4_MAX_QP	(V4L2_CID_MPEG_BASE+246)
-+#define V4L2_CID_MPEG_VIDEO_MPEG4_P_FRAME_QP	(V4L2_CID_MPEG_BASE+247)
-+#define V4L2_CID_MPEG_VIDEO_MPEG4_B_FRAME_QP	(V4L2_CID_MPEG_BASE+248)
-+#define V4L2_CID_MPEG_VIDEO_VBV_BUF_SIZE	(V4L2_CID_MPEG_BASE+249)
-+#define V4L2_CID_MPEG_VIDEO_H264_I_PERIOD	(V4L2_CID_MPEG_BASE+250)
-+#define V4L2_CID_MPEG_VIDEO_HEADER_MODE		(V4L2_CID_MPEG_BASE+251)
-+enum v4l2_mpeg_video_header_mode {
-+	V4L2_MPEG_VIDEO_HEADER_MODE_SEPARATE			= 0,
-+	V4L2_MPEG_VIDEO_HEADER_MODE_JOINED_WITH_1ST_FRAME	= 1,
-+
-+};
-+
- /*  MPEG-class control IDs specific to the CX2341x driver as defined by V4L2 */
- #define V4L2_CID_MPEG_CX2341X_BASE 				(V4L2_CTRL_CLASS_MPEG | 0x1000)
- #define V4L2_CID_MPEG_CX2341X_VIDEO_SPATIAL_FILTER_MODE 	(V4L2_CID_MPEG_CX2341X_BASE+0)
-@@ -1369,6 +1487,37 @@ enum v4l2_mpeg_cx2341x_video_median_filter_type {
- #define V4L2_CID_MPEG_CX2341X_VIDEO_CHROMA_MEDIAN_FILTER_TOP 	(V4L2_CID_MPEG_CX2341X_BASE+10)
- #define V4L2_CID_MPEG_CX2341X_STREAM_INSERT_NAV_PACKETS 	(V4L2_CID_MPEG_CX2341X_BASE+11)
- 
-+/*  MPEG-class control IDs specific to the Samsung MFC 5.1 driver as defined by V4L2 */
-+#define V4L2_CID_MPEG_MFC51_BASE				(V4L2_CTRL_CLASS_MPEG | 0x1000)
-+
-+#define V4L2_CID_MPEG_MFC51_VIDEO_DECODER_MPEG4_DEBLOCK_FILTER		(V4L2_CID_MPEG_MFC51_BASE+0)
-+#define V4L2_CID_MPEG_MFC51_VIDEO_DECODER_H264_DISPLAY_DELAY		(V4L2_CID_MPEG_MFC51_BASE+1)
-+#define V4L2_CID_MPEG_MFC51_VIDEO_DECODER_H264_DISPLAY_DELAY_ENABLE	(V4L2_CID_MPEG_MFC51_BASE+2)
-+#define V4L2_CID_MPEG_MFC51_VIDEO_H264_NUM_REF_PIC_FOR_P		(V4L2_CID_MPEG_MFC51_BASE+3)
-+#define V4L2_CID_MPEG_MFC51_VIDEO_PADDING				(V4L2_CID_MPEG_MFC51_BASE+4)
-+#define V4L2_CID_MPEG_MFC51_VIDEO_PADDING_YUV				(V4L2_CID_MPEG_MFC51_BASE+5)
-+#define V4L2_CID_MPEG_MFC51_VIDEO_RC_REACTION_COEFF			(V4L2_CID_MPEG_MFC51_BASE+6)
-+#define V4L2_CID_MPEG_MFC51_VIDEO_H264_ADAPTIVE_RC_DARK			(V4L2_CID_MPEG_MFC51_BASE+7)
-+#define V4L2_CID_MPEG_MFC51_VIDEO_H264_ADAPTIVE_RC_SMOOTH		(V4L2_CID_MPEG_MFC51_BASE+8)
-+#define V4L2_CID_MPEG_MFC51_VIDEO_H264_ADAPTIVE_RC_STATIC		(V4L2_CID_MPEG_MFC51_BASE+9)
-+#define V4L2_CID_MPEG_MFC51_VIDEO_H264_ADAPTIVE_RC_ACTIVITY		(V4L2_CID_MPEG_MFC51_BASE+10)
-+#define V4L2_CID_MPEG_MFC51_VIDEO_FRAME_SKIP_MODE			(V4L2_CID_MPEG_MFC51_BASE+11)
-+enum v4l2_mpeg_mfc51_video_frame_skip_mode {
-+	V4L2_MPEG_MFC51_VIDEO_FRAME_SKIP_MODE_DISABLED		= 0,
-+	V4L2_MPEG_MFC51_VIDEO_FRAME_SKIP_MODE_LEVEL_LIMIT	= 1,
-+	V4L2_MPEG_MFC51_VIDEO_FRAME_SKIP_MODE_VBV_LIMIT		= 2,
-+};
-+#define V4L2_CID_MPEG_MFC51_VIDEO_RC_FIXED_TARGET_BIT	(V4L2_CID_MPEG_MFC51_BASE+12)
-+#define V4L2_CID_MPEG_MFC51_VIDEO_MPEG4_VOP_TIME_RES	(V4L2_CID_MPEG_MFC51_BASE+13)
-+#define V4L2_CID_MPEG_MFC51_VIDEO_MPEG4_VOP_FRAME_DELTA	(V4L2_CID_MPEG_MFC51_BASE+14)
-+#define V4L2_CID_MPEG_MFC51_VIDEO_FORCE_FRAME_TYPE	(V4L2_CID_MPEG_MFC51_BASE+15)
-+enum v4l2_mpeg_mfc51_video_force_frame_type {
-+	V4L2_MPEG_MFC51_VIDEO_FORCE_FRAME_TYPE_DISABLED		= 0,
-+	V4L2_MPEG_MFC51_VIDEO_FORCE_FRAME_TYPE_I_FRAME		= 1,
-+	V4L2_MPEG_MFC51_VIDEO_FORCE_FRAME_TYPE_NOT_CODED	= 2,
-+};
-+#define V4L2_CID_MPEG_MFC51_VIDEO_FRAME_TAG	(V4L2_CID_MPEG_MFC51_BASE+16)
-+
- /*  Camera class control IDs */
- #define V4L2_CID_CAMERA_CLASS_BASE 	(V4L2_CTRL_CLASS_CAMERA | 0x900)
- #define V4L2_CID_CAMERA_CLASS 		(V4L2_CTRL_CLASS_CAMERA | 1)
--- 
-1.6.3.3
+1)plugin the stick. This yields the following messages in dmesg:
+[75262.399219] usb 2-4: new high speed USB device number 4 using ehci_hcd
+[75263.442900] IR NEC protocol handler initialized
+[75263.585643] dib0700: loaded with support for 20 different device-types
+[75263.586003] dvb-usb: found a 'Pinnacle PCTV 73e SE' in cold state, will
+try to load a firmware
+[75263.600941] IR RC5(x) protocol handler initialized
+[75263.626257] dvb-usb: downloading firmware from file 'dvb-usb-dib0700-1.20.fw'
+[75263.626871] IR RC6 protocol handler initialized
+[75263.825852] IR JVC protocol handler initialized
+[75263.830658] IR Sony protocol handler initialized
+[75263.841488] dib0700: firmware started successfully.
+[75264.121550] lirc_dev: IR Remote Control driver registered, major 250
+[75264.123092] IR LIRC bridge handler initialized
+[75264.342633] dvb-usb: found a 'Pinnacle PCTV 73e SE' in warm state.
+[75264.342716] dvb-usb: will pass the complete MPEG2 transport stream to
+the software demuxer.
+[75264.342896] DVB: registering new adapter (Pinnacle PCTV 73e SE)
+[75264.545372] DVB: registering adapter 0 frontend 0 (DiBcom 7000PC)...
+[75264.746115] DiB0070: successfully identified
+[75264.945842] Registered IR keymap rc-dib0700-rc5
+[75264.946120] input: IR-receiver inside an USB DVB receiver as /devices/pci0000:00/0000:00:1d.7/usb2/2-4/rc/rc0/input16
+[75264.946234] rc0: IR-receiver inside an USB DVB receiver as /devices/pci0000:00/0000:00:1d.7/usb2/2-4/rc/rc0
+[75264.946443] dvb-usb: schedule remote query interval to 50 msecs.
+[75264.946447] dvb-usb: Pinnacle PCTV 73e SE successfully initialized and
+connected.
+[75264.946856] usbcore: registered new interface driver dvb_usb_dib0700
+2) Use tzap, cat and mplayer to watch Nederland 1:
+$ tzap -a 0 -r 'Nederland 1'
+$ cat /dev/dvb/adapter0/dvr0 > test.ts
+$ mplayer test.ts
+3) Pull out the stick. This yields the following messages in dmesg:
+[77043.886483] usb 2-4: USB disconnect, device number 4
+Now the kernel does no longer respond when I replug the stick.
+After 2 minutes, the following messages show up in dmesg:
+[77280.502349] INFO: task khubd:361 blocked for more than 120 seconds.
+[77280.502354] "echo 0 > /proc/sys/kernel/hung_task_timeout_secs" disables
+this message.
+[77280.502359] khubd D 00000001015f4e25 0 361 2 0x00000000
+[77280.502367] ffff880075bffbb0 0000000000000046 00000001015f4e25 000000008ff4ed27
+[77280.502375] ffff880075bffac0 ffff880070bbff00 ffff880075bfffd8 ffff88007af5dbd0
+[77280.502382] ffff880075bfffd8 ffff880075bfffd8 ffff880037f6dbd0 ffff88007af5dbd0
+[77280.502390] Call Trace:
+[77280.502403] [<ffffffff810559e0>] ? try_to_wake_up+0x380/0x380
+[77280.502410] [<ffffffff813e56dd>] ? wait_for_completion+0x1d/0x20
+[77280.502425] [<ffffffffa027cdd5>] dvb_unregister_frontend+0xc5/0x110 [dvb_core]
+[77280.502432] [<ffffffff8107e050>] ? abort_exclusive_wait+0xb0/0xb0
+[77280.502440] [<ffffffffa0188592>] dvb_usb_adapter_frontend_exit+0x22/0x40
+[dvb_usb]
+[77280.502446] [<ffffffffa01874ac>] dvb_usb_exit+0x4c/0xd0 [dvb_usb]
+[77280.502453] [<ffffffffa0187582>] dvb_usb_device_exit+0x52/0x70 [dvb_usb]
+[77280.502474] [<ffffffffa02ead12>] usb_unbind_interface+0x52/0x180 [usbcore]
+[77280.502483] [<ffffffff812e0515>] __device_release_driver+0x75/0xe0
+[77280.502493] [<ffffffff812e05ac>] device_release_driver+0x2c/0x40
+[77280.502497] [<ffffffff812e0058>] bus_remove_device+0x78/0xb0
+[77280.502501] [<ffffffff812dd91a>] device_del+0x13a/0x1d0
+[77280.502508] [<ffffffffa02e8ae4>] usb_disable_device+0x74/0x130 [usbcore]
+[77280.502515] [<ffffffffa02e117c>] usb_disconnect+0x8c/0x120 [usbcore]
+[77280.502522] [<ffffffffa02e2f4c>] hub_thread+0x9fc/0x1220 [usbcore]
+[77280.502526] [<ffffffff8107e050>] ? abort_exclusive_wait+0xb0/0xb0
+[77280.502532] [<ffffffffa02e2550>] ? usb_remote_wakeup+0x40/0x40 [usbcore]
+[77280.502536] [<ffffffff8107d6fc>] kthread+0x8c/0xa0
+[77280.502540] [<ffffffff813eac64>] kernel_thread_helper+0x4/0x10
+[77280.502544] [<ffffffff8107d670>] ? kthread_worker_fn+0x190/0x190
+[77280.502547] [<ffffffff813eac60>] ? gs_change+0x13/0x13
+[77400.502398] INFO: task khubd:361 blocked for more than 120 seconds.
+[77400.502403] "echo 0 > /proc/sys/kernel/hung_task_timeout_secs" disables
+this message.
+[77400.502407] khubd D 00000001015f4e25 0 361 2 0x00000000
+[77400.502416] ffff880075bffbb0 0000000000000046 00000001015f4e25 000000008ff4ed27
+[77400.502424] ffff880075bffac0 ffff880070bbff00 ffff880075bfffd8 ffff88007af5dbd0
+[77400.502431] ffff880075bfffd8 ffff880075bfffd8 ffff880037f6dbd0 ffff88007af5dbd0
+[77400.502438] Call Trace:
+[77400.502450] [<ffffffff810559e0>] ? try_to_wake_up+0x380/0x380
+[77400.502458] [<ffffffff813e56dd>] ? wait_for_completion+0x1d/0x20
+[77400.502473] [<ffffffffa027cdd5>] dvb_unregister_frontend+0xc5/0x110 [dvb_core]
+[77400.502480] [<ffffffff8107e050>] ? abort_exclusive_wait+0xb0/0xb0
+[77400.502488] [<ffffffffa0188592>] dvb_usb_adapter_frontend_exit+0x22/0x40
+[dvb_usb]
+[77400.502494] [<ffffffffa01874ac>] dvb_usb_exit+0x4c/0xd0 [dvb_usb]
+[77400.502501] [<ffffffffa0187582>] dvb_usb_device_exit+0x52/0x70 [dvb_usb]
+[77400.502522] [<ffffffffa02ead12>] usb_unbind_interface+0x52/0x180 [usbcore]
+[77400.502531] [<ffffffff812e0515>] __device_release_driver+0x75/0xe0
+[77400.502537] [<ffffffff812e05ac>] device_release_driver+0x2c/0x40
+[77400.502542] [<ffffffff812e0058>] bus_remove_device+0x78/0xb0
+[77400.502554] [<ffffffff812dd91a>] device_del+0x13a/0x1d0
+[77400.502561] [<ffffffffa02e8ae4>] usb_disable_device+0x74/0x130 [usbcore]
+[77400.502568] [<ffffffffa02e117c>] usb_disconnect+0x8c/0x120 [usbcore]
+[77400.502575] [<ffffffffa02e2f4c>] hub_thread+0x9fc/0x1220 [usbcore]
+[77400.502579] [<ffffffff8107e050>] ? abort_exclusive_wait+0xb0/0xb0
+[77400.502586] [<ffffffffa02e2550>] ? usb_remote_wakeup+0x40/0x40 [usbcore]
+[77400.502589] [<ffffffff8107d6fc>] kthread+0x8c/0xa0
+[77400.502593] [<ffffffff813eac64>] kernel_thread_helper+0x4/0x10
+[77400.502597] [<ffffffff8107d670>] ? kthread_worker_fn+0x190/0x190
+[77400.502601] [<ffffffff813eac60>] ? gs_change+0x13/0x13
+[77520.502380] INFO: task khubd:361 blocked for more than 120 seconds.
+[77520.502385] "echo 0 > /proc/sys/kernel/hung_task_timeout_secs" disables
+this message.
+[77520.502389] khubd D 00000001015f4e25 0 361 2 0x00000000
+[77520.502398] ffff880075bffbb0 0000000000000046 00000001015f4e25 000000008ff4ed27
+[77520.502406] ffff880075bffac0 ffff880070bbff00 ffff880075bfffd8 ffff88007af5dbd0
+[77520.502413] ffff880075bfffd8 ffff880075bfffd8 ffff880037f6dbd0 ffff88007af5dbd0
+[77520.502420] Call Trace:
+[77520.502433] [<ffffffff810559e0>] ? try_to_wake_up+0x380/0x380
+[77520.502440] [<ffffffff813e56dd>] ? wait_for_completion+0x1d/0x20
+[77520.502455] [<ffffffffa027cdd5>] dvb_unregister_frontend+0xc5/0x110 [dvb_core]
+[77520.502462] [<ffffffff8107e050>] ? abort_exclusive_wait+0xb0/0xb0
+[77520.502470] [<ffffffffa0188592>] dvb_usb_adapter_frontend_exit+0x22/0x40
+[dvb_usb]
+[77520.502477] [<ffffffffa01874ac>] dvb_usb_exit+0x4c/0xd0 [dvb_usb]
+[77520.502484] [<ffffffffa0187582>] dvb_usb_device_exit+0x52/0x70 [dvb_usb]
+[77520.502505] [<ffffffffa02ead12>] usb_unbind_interface+0x52/0x180 [usbcore]
+[77520.502514] [<ffffffff812e0515>] __device_release_driver+0x75/0xe0
+[77520.502520] [<ffffffff812e05ac>] device_release_driver+0x2c/0x40
+[77520.502525] [<ffffffff812e0058>] bus_remove_device+0x78/0xb0
+[77520.502531] [<ffffffff812dd91a>] device_del+0x13a/0x1d0
+[77520.502545] [<ffffffffa02e8ae4>] usb_disable_device+0x74/0x130 [usbcore]
+[77520.502552] [<ffffffffa02e117c>] usb_disconnect+0x8c/0x120 [usbcore]
+[77520.502558] [<ffffffffa02e2f4c>] hub_thread+0x9fc/0x1220 [usbcore]
+[77520.502563] [<ffffffff8107e050>] ? abort_exclusive_wait+0xb0/0xb0
+[77520.502569] [<ffffffffa02e2550>] ? usb_remote_wakeup+0x40/0x40 [usbcore]
+[77520.502573] [<ffffffff8107d6fc>] kthread+0x8c/0xa0
+[77520.502577] [<ffffffff813eac64>] kernel_thread_helper+0x4/0x10
+[77520.502581] [<ffffffff8107d670>] ? kthread_worker_fn+0x190/0x190
+[77520.502584] [<ffffffff813eac60>] ? gs_change+0x13/0x13
+[77640.502274] INFO: task khubd:361 blocked for more than 120 seconds.
+[77640.502279] "echo 0 > /proc/sys/kernel/hung_task_timeout_secs" disables
+this message.
+[77640.502284] khubd D 00000001015f4e25 0 361 2 0x00000000
+[77640.502293] ffff880075bffbb0 0000000000000046 00000001015f4e25 000000008ff4ed27
+[77640.502301] ffff880075bffac0 ffff880070bbff00 ffff880075bfffd8 ffff88007af5dbd0
+[77640.502308] ffff880075bfffd8 ffff880075bfffd8 ffff880037f6dbd0 ffff88007af5dbd0
+[77640.502316] Call Trace:
+[77640.502329] [<ffffffff810559e0>] ? try_to_wake_up+0x380/0x380
+[77640.502336] [<ffffffff813e56dd>] ? wait_for_completion+0x1d/0x20
+[77640.502351] [<ffffffffa027cdd5>] dvb_unregister_frontend+0xc5/0x110 [dvb_core]
+[77640.502358] [<ffffffff8107e050>] ? abort_exclusive_wait+0xb0/0xb0
+[77640.502366] [<ffffffffa0188592>] dvb_usb_adapter_frontend_exit+0x22/0x40
+[dvb_usb]
+[77640.502372] [<ffffffffa01874ac>] dvb_usb_exit+0x4c/0xd0 [dvb_usb]
+[77640.502379] [<ffffffffa0187582>] dvb_usb_device_exit+0x52/0x70 [dvb_usb]
+[77640.502401] [<ffffffffa02ead12>] usb_unbind_interface+0x52/0x180 [usbcore]
+[77640.502409] [<ffffffff812e0515>] __device_release_driver+0x75/0xe0
+[77640.502415] [<ffffffff812e05ac>] device_release_driver+0x2c/0x40
+[77640.502421] [<ffffffff812e0058>] bus_remove_device+0x78/0xb0
+[77640.502431] [<ffffffff812dd91a>] device_del+0x13a/0x1d0
+[77640.502437] [<ffffffffa02e8ae4>] usb_disable_device+0x74/0x130 [usbcore]
+[77640.502443] [<ffffffffa02e117c>] usb_disconnect+0x8c/0x120 [usbcore]
+[77640.502450] [<ffffffffa02e2f4c>] hub_thread+0x9fc/0x1220 [usbcore]
+[77640.502454] [<ffffffff8107e050>] ? abort_exclusive_wait+0xb0/0xb0
+[77640.502460] [<ffffffffa02e2550>] ? usb_remote_wakeup+0x40/0x40 [usbcore]
+[77640.502463] [<ffffffff8107d6fc>] kthread+0x8c/0xa0
+[77640.502466] [<ffffffff813eac64>] kernel_thread_helper+0x4/0x10
+[77640.502470] [<ffffffff8107d670>] ? kthread_worker_fn+0x190/0x190
+[77640.502473] [<ffffffff813eac60>] ? gs_change+0x13/0x13
+[77760.502279] INFO: task khubd:361 blocked for more than 120 seconds.
+[77760.502285] "echo 0 > /proc/sys/kernel/hung_task_timeout_secs" disables
+this message.
+[77760.502289] khubd D 00000001015f4e25 0 361 2 0x00000000
+[77760.502297] ffff880075bffbb0 0000000000000046 00000001015f4e25 000000008ff4ed27
+[77760.502306] ffff880075bffac0 ffff880070bbff00 ffff880075bfffd8 ffff88007af5dbd0
+[77760.502313] ffff880075bfffd8 ffff880075bfffd8 ffff880037f6dbd0 ffff88007af5dbd0
+[77760.502320] Call Trace:
+[77760.502333] [<ffffffff810559e0>] ? try_to_wake_up+0x380/0x380
+[77760.502341] [<ffffffff813e56dd>] ? wait_for_completion+0x1d/0x20
+[77760.502355] [<ffffffffa027cdd5>] dvb_unregister_frontend+0xc5/0x110 [dvb_core]
+[77760.502362] [<ffffffff8107e050>] ? abort_exclusive_wait+0xb0/0xb0
+[77760.502370] [<ffffffffa0188592>] dvb_usb_adapter_frontend_exit+0x22/0x40
+[dvb_usb]
+[77760.502377] [<ffffffffa01874ac>] dvb_usb_exit+0x4c/0xd0 [dvb_usb]
+[77760.502384] [<ffffffffa0187582>] dvb_usb_device_exit+0x52/0x70 [dvb_usb]
+[77760.502405] [<ffffffffa02ead12>] usb_unbind_interface+0x52/0x180 [usbcore]
+[77760.502414] [<ffffffff812e0515>] __device_release_driver+0x75/0xe0
+[77760.502419] [<ffffffff812e05ac>] device_release_driver+0x2c/0x40
+[77760.502425] [<ffffffff812e0058>] bus_remove_device+0x78/0xb0
+[77760.502430] [<ffffffff812dd91a>] device_del+0x13a/0x1d0
+[77760.502441] [<ffffffffa02e8ae4>] usb_disable_device+0x74/0x130 [usbcore]
+[77760.502451] [<ffffffffa02e117c>] usb_disconnect+0x8c/0x120 [usbcore]
+[77760.502462] [<ffffffffa02e2f4c>] hub_thread+0x9fc/0x1220 [usbcore]
+[77760.502468] [<ffffffff8107e050>] ? abort_exclusive_wait+0xb0/0xb0
+[77760.502478] [<ffffffffa02e2550>] ? usb_remote_wakeup+0x40/0x40 [usbcore]
+[77760.502483] [<ffffffff8107d6fc>] kthread+0x8c/0xa0
+[77760.502489] [<ffffffff813eac64>] kernel_thread_helper+0x4/0x10
+[77760.502495] [<ffffffff8107d670>] ? kthread_worker_fn+0x190/0x190
+[77760.502500] [<ffffffff813eac60>] ? gs_change+0x13/0x13
+[77880.502265] INFO: task khubd:361 blocked for more than 120 seconds.
+[77880.502270] "echo 0 > /proc/sys/kernel/hung_task_timeout_secs" disables
+this message.
+[77880.502275] khubd D 00000001015f4e25 0 361 2 0x00000000
+[77880.502283] ffff880075bffbb0 0000000000000046 00000001015f4e25 000000008ff4ed27
+[77880.502292] ffff880075bffac0 ffff880070bbff00 ffff880075bfffd8 ffff88007af5dbd0
+[77880.502299] ffff880075bfffd8 ffff880075bfffd8 ffff880037f6dbd0 ffff88007af5dbd0
+[77880.502306] Call Trace:
+[77880.502318] [<ffffffff810559e0>] ? try_to_wake_up+0x380/0x380
+[77880.502326] [<ffffffff813e56dd>] ? wait_for_completion+0x1d/0x20
+[77880.502340] [<ffffffffa027cdd5>] dvb_unregister_frontend+0xc5/0x110 [dvb_core]
+[77880.502348] [<ffffffff8107e050>] ? abort_exclusive_wait+0xb0/0xb0
+[77880.502355] [<ffffffffa0188592>] dvb_usb_adapter_frontend_exit+0x22/0x40
+[dvb_usb]
+[77880.502362] [<ffffffffa01874ac>] dvb_usb_exit+0x4c/0xd0 [dvb_usb]
+[77880.502369] [<ffffffffa0187582>] dvb_usb_device_exit+0x52/0x70 [dvb_usb]
+[77880.502390] [<ffffffffa02ead12>] usb_unbind_interface+0x52/0x180 [usbcore]
+[77880.502399] [<ffffffff812e0515>] __device_release_driver+0x75/0xe0
+[77880.502405] [<ffffffff812e05ac>] device_release_driver+0x2c/0x40
+[77880.502410] [<ffffffff812e0058>] bus_remove_device+0x78/0xb0
+[77880.502416] [<ffffffff812dd91a>] device_del+0x13a/0x1d0
+[77880.502427] [<ffffffffa02e8ae4>] usb_disable_device+0x74/0x130 [usbcore]
+[77880.502437] [<ffffffffa02e117c>] usb_disconnect+0x8c/0x120 [usbcore]
+[77880.502447] [<ffffffffa02e2f4c>] hub_thread+0x9fc/0x1220 [usbcore]
+[77880.502454] [<ffffffff8107e050>] ? abort_exclusive_wait+0xb0/0xb0
+[77880.502464] [<ffffffffa02e2550>] ? usb_remote_wakeup+0x40/0x40 [usbcore]
+[77880.502469] [<ffffffff8107d6fc>] kthread+0x8c/0xa0
+[77880.502475] [<ffffffff813eac64>] kernel_thread_helper+0x4/0x10
+[77880.502481] [<ffffffff8107d670>] ? kthread_worker_fn+0x190/0x190
+[77880.502486] [<ffffffff813eac60>] ? gs_change+0x13/0x13
+
+       
+
+
 
