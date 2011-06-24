@@ -1,69 +1,43 @@
 Return-path: <mchehab@pedra>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:59478 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751334Ab1FQHDw convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 17 Jun 2011 03:03:52 -0400
-Received: from dbdp20.itg.ti.com ([172.24.170.38])
-	by arroyo.ext.ti.com (8.13.7/8.13.7) with ESMTP id p5H73crd001358
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-media@vger.kernel.org>; Fri, 17 Jun 2011 02:03:48 -0500
-From: "Hadli, Manjunath" <manjunath.hadli@ti.com>
-To: "Hadli, Manjunath" <manjunath.hadli@ti.com>,
-	LMML <linux-media@vger.kernel.org>
-CC: dlos <davinci-linux-open-source@linux.davincidsp.com>
-Date: Fri, 17 Jun 2011 12:33:34 +0530
-Subject: RE: [RESEND PATCH v19 0/6] davinci vpbe: dm6446 v4l2 driver
-Message-ID: <B85A65D85D7EB246BE421B3FB0FBB593024BCEF736@dbde02.ent.ti.com>
-In-Reply-To: <1308294096-25743-1-git-send-email-manjunath.hadli@ti.com>
-Content-Language: en-US
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Received: from h5.dl5rb.org.uk ([81.2.74.5]:40944 "EHLO duck.linux-mips.net"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1755404Ab1FXMJZ (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 24 Jun 2011 08:09:25 -0400
+Date: Fri, 24 Jun 2011 13:09:06 +0100
+From: Ralf Baechle <ralf@linux-mips.org>
+To: Mauro Carvalho Chehab <mchehab@infradead.org>
+Cc: Takashi Iwai <tiwai@suse.de>, Jaroslav Kysela <perex@perex.cz>,
+	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+	alsa-devel@alsa-project.org, linux-mips@linux-mips.org
+Subject: Re: [PATCH] SOUND: Fix non-ISA_DMA_API build failure
+Message-ID: <20110624120906.GB6327@linux-mips.org>
+References: <20110623144750.GA10180@linux-mips.org>
+ <s5hzkl7zlcq.wl%tiwai@suse.de>
+ <20110624111608.GA6327@linux-mips.org>
+ <4E04767A.5020201@infradead.org>
 MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <4E04767A.5020201@infradead.org>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Mauro,
+On Fri, Jun 24, 2011 at 08:35:22AM -0300, Mauro Carvalho Chehab wrote:
 
-Can you consider this patch series for a pull?
+> Em 24-06-2011 08:16, Ralf Baechle escreveu:
+> >         tristate "miroSOUND PCM20 radio"
+> >         depends on ISA && VIDEO_V4L2 && SND
+> >         select SND_ISA
+> >         select SND_MIRO
+> > 
+> > So SND_ISA gets forced on even though the dependency on ISA_DMA_API is not
+> > fulfilled.  That's solved by adding the dependency on ISA_DMA_API to
+> > RADIO_MIROPCM20.
+> 
+> Another option would be to convert the two above selects into depends on.
 
--Manju
+Depends has the disadvantage that users may have to enable unobvious
+options first before they are offered the one they are looking for and
+that's what a "depends SND_ISA" would cause in this case.
 
-On Fri, Jun 17, 2011 at 12:31:30, Hadli, Manjunath wrote:
-> fixed a wrong file inclusion in one of the patches
-> 
-> Manjunath Hadli (6):
->   davinci vpbe: V4L2 display driver for DM644X SoC
->   davinci vpbe: VPBE display driver
->   davinci vpbe: OSD(On Screen Display) block
->   davinci vpbe: VENC( Video Encoder) implementation
->   davinci vpbe: Build infrastructure for VPBE driver
->   davinci vpbe: Readme text for Dm6446 vpbe
-> 
->  Documentation/video4linux/README.davinci-vpbe |   93 ++
->  drivers/media/video/davinci/Kconfig           |   23 +
->  drivers/media/video/davinci/Makefile          |    2 +
->  drivers/media/video/davinci/vpbe.c            |  864 ++++++++++++
->  drivers/media/video/davinci/vpbe_display.c    | 1860 +++++++++++++++++++++++++
->  drivers/media/video/davinci/vpbe_osd.c        | 1231 ++++++++++++++++
->  drivers/media/video/davinci/vpbe_osd_regs.h   |  364 +++++
->  drivers/media/video/davinci/vpbe_venc.c       |  566 ++++++++
->  drivers/media/video/davinci/vpbe_venc_regs.h  |  177 +++
->  include/media/davinci/vpbe.h                  |  184 +++
->  include/media/davinci/vpbe_display.h          |  147 ++
->  include/media/davinci/vpbe_osd.h              |  394 ++++++
->  include/media/davinci/vpbe_types.h            |   91 ++
->  include/media/davinci/vpbe_venc.h             |   45 +
->  14 files changed, 6041 insertions(+), 0 deletions(-)  create mode 100644 Documentation/video4linux/README.davinci-vpbe
->  create mode 100644 drivers/media/video/davinci/vpbe.c
->  create mode 100644 drivers/media/video/davinci/vpbe_display.c
->  create mode 100644 drivers/media/video/davinci/vpbe_osd.c
->  create mode 100644 drivers/media/video/davinci/vpbe_osd_regs.h
->  create mode 100644 drivers/media/video/davinci/vpbe_venc.c
->  create mode 100644 drivers/media/video/davinci/vpbe_venc_regs.h
->  create mode 100644 include/media/davinci/vpbe.h  create mode 100644 include/media/davinci/vpbe_display.h
->  create mode 100644 include/media/davinci/vpbe_osd.h  create mode 100644 include/media/davinci/vpbe_types.h
->  create mode 100644 include/media/davinci/vpbe_venc.h
-> 
-> 
-
+  Ralf
