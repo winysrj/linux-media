@@ -1,137 +1,79 @@
 Return-path: <mchehab@pedra>
-Received: from mailout3.w1.samsung.com ([210.118.77.13]:21081 "EHLO
-	mailout3.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758525Ab1FVSBj (ORCPT
+Received: from mail-ew0-f46.google.com ([209.85.215.46]:34493 "EHLO
+	mail-ew0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753729Ab1FXSsD convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 22 Jun 2011 14:01:39 -0400
-MIME-version: 1.0
-Content-transfer-encoding: 7BIT
-Content-type: TEXT/PLAIN
-Date: Wed, 22 Jun 2011 20:01:08 +0200
-From: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Subject: [PATCH v2 02/18] s5p-fimc: Remove registration of video nodes from
- probe()
-In-reply-to: <1308765684-10677-1-git-send-email-s.nawrocki@samsung.com>
-To: linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org
-Cc: m.szyprowski@samsung.com, kyungmin.park@samsung.com,
-	s.nawrocki@samsung.com, sw0312.kim@samsung.com,
-	riverful.kim@samsung.com
-Message-id: <1308765684-10677-3-git-send-email-s.nawrocki@samsung.com>
-References: <1308765684-10677-1-git-send-email-s.nawrocki@samsung.com>
+	Fri, 24 Jun 2011 14:48:03 -0400
+MIME-Version: 1.0
+In-Reply-To: <20110624203404.7a3f6f6a@stein>
+References: <alpine.LNX.2.00.1106232344480.17688@swampdragon.chaosbits.net>
+	<4E04912A.4090305@infradead.org>
+	<BANLkTim9cBiiK_GsZaspxpPJQDBvAcKCWg@mail.gmail.com>
+	<201106241554.10751.hverkuil@xs4all.nl>
+	<4E04A122.2080002@infradead.org>
+	<20110624203404.7a3f6f6a@stein>
+Date: Fri, 24 Jun 2011 14:48:00 -0400
+Message-ID: <BANLkTimj-oEDvWxMao6zJ_sudUntEVjO1w@mail.gmail.com>
+Subject: Re: [RFC] Don't use linux/version.h anymore to indicate a per-driver
+ version - Was: Re: [PATCH 03/37] Remove unneeded version.h includes from include/
+From: Devin Heitmueller <dheitmueller@kernellabs.com>
+To: Stefan Richter <stefanr@s5r6.in-berlin.de>
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	Jesper Juhl <jj@chaosbits.net>,
+	LKML <linux-kernel@vger.kernel.org>, trivial@kernel.org,
+	linux-media@vger.kernel.org, ceph-devel@vger.kernel.org,
+	Sage Weil <sage@newdream.net>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Do not register video nodes during FIMC device probe. Also make
-fimc_register_m2m_device() public for use by the media device driver.
+On Fri, Jun 24, 2011 at 2:34 PM, Stefan Richter
+<stefanr@s5r6.in-berlin.de> wrote:
+> If the "driver version" is in fact an ABI version, then the driver author
+> should really increase it only when ABI behavior is changed (and only if
+> the behavior change can only be communicated by version number --- e.g.
+> addition of an ioctl is not among such reasons).  And the author should
+> commit behavior changing implementation and version number change in a
+> single changeset.
+>
+> And anybody who backmerges such an ABI behavior change into another kernel
+> branch (stable, longterm, distro...) must backmerge the associated version
+> number change too.
+>
+> Of course sometimes people realize this only after the fact.  Or driver
+> authors don't have a clear understanding of ABI versioning to begin with.
+> I am saying so because I had to learn it too; I certainly wasn't born
+> with an instinct knowledge how to do it properly.
+>
+> (Disclaimer:  I have no stake in drivers/media/ ABIs.  But I am involved
+> in maintaining a userspace ABI elsewhere in drivers/firewire/, and one of
+> the userspace libraries that use this ABI.)
 
-Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
----
- drivers/media/video/s5p-fimc/fimc-capture.c |    1 +
- drivers/media/video/s5p-fimc/fimc-core.c    |   30 +++++++-------------------
- drivers/media/video/s5p-fimc/fimc-core.h    |    1 +
- 3 files changed, 10 insertions(+), 22 deletions(-)
+Hi Stefan,
 
-diff --git a/drivers/media/video/s5p-fimc/fimc-capture.c b/drivers/media/video/s5p-fimc/fimc-capture.c
-index 2748cca..c7bb6f6 100644
---- a/drivers/media/video/s5p-fimc/fimc-capture.c
-+++ b/drivers/media/video/s5p-fimc/fimc-capture.c
-@@ -926,4 +926,5 @@ void fimc_unregister_capture_device(struct fimc_dev *fimc)
- 		video_unregister_device(vfd);
- 	}
- 	kfree(fimc->vid_cap.ctx);
-+	fimc->vid_cap.ctx = NULL;
- }
-diff --git a/drivers/media/video/s5p-fimc/fimc-core.c b/drivers/media/video/s5p-fimc/fimc-core.c
-index af0d966..22e848a 100644
---- a/drivers/media/video/s5p-fimc/fimc-core.c
-+++ b/drivers/media/video/s5p-fimc/fimc-core.c
-@@ -1491,7 +1491,7 @@ static struct v4l2_m2m_ops m2m_ops = {
- 	.job_abort	= fimc_job_abort,
- };
- 
--static int fimc_register_m2m_device(struct fimc_dev *fimc)
-+int fimc_register_m2m_device(struct fimc_dev *fimc)
- {
- 	struct video_device *vfd;
- 	struct platform_device *pdev;
-@@ -1565,13 +1565,16 @@ err_m2m_r1:
- 
- void fimc_unregister_m2m_device(struct fimc_dev *fimc)
- {
--	if (fimc == NULL)
-+	if (!fimc)
- 		return;
- 
--	v4l2_m2m_release(fimc->m2m.m2m_dev);
-+	if (fimc->m2m.m2m_dev)
-+		v4l2_m2m_release(fimc->m2m.m2m_dev);
- 	v4l2_device_unregister(&fimc->m2m.v4l2_dev);
--	media_entity_cleanup(&fimc->m2m.vfd->entity);
--	video_unregister_device(fimc->m2m.vfd);
-+	if (fimc->m2m.vfd) {
-+		media_entity_cleanup(&fimc->m2m.vfd->entity);
-+		video_unregister_device(fimc->m2m.vfd);
-+	}
- }
- 
- static void fimc_clk_put(struct fimc_dev *fimc)
-@@ -1700,25 +1703,12 @@ static int fimc_probe(struct platform_device *pdev)
- 		goto err_irq;
- 	}
- 
--	ret = fimc_register_m2m_device(fimc);
--	if (ret)
--		goto err_irq;
--
--	/* At least one camera sensor is required to register capture node */
--	if (cap_input_index >= 0) {
--		ret = fimc_register_capture_device(fimc);
--		if (ret)
--			goto err_m2m;
--	}
--
- 	dev_dbg(&pdev->dev, "%s(): fimc-%d registered successfully\n",
- 		__func__, fimc->id);
- 
- 	pm_runtime_put_sync(&fimc->pdev->dev);
- 	return 0;
- 
--err_m2m:
--	fimc_unregister_m2m_device(fimc);
- err_irq:
- 	free_irq(fimc->irq, fimc);
- err_clk:
-@@ -1730,7 +1720,6 @@ err_req_region:
- 	kfree(fimc->regs_res);
- err_info:
- 	kfree(fimc);
--
- 	return ret;
- }
- 
-@@ -1805,9 +1794,6 @@ static int __devexit fimc_remove(struct platform_device *pdev)
- 	fimc_suspend(&pdev->dev);
- 	pm_runtime_set_suspended(&pdev->dev);
- 
--	fimc_unregister_m2m_device(fimc);
--	fimc_unregister_capture_device(fimc);
--
- 	vb2_dma_contig_cleanup_ctx(fimc->alloc_ctx);
- 
- 	clk_disable(fimc->clock[CLK_BUS]);
-diff --git a/drivers/media/video/s5p-fimc/fimc-core.h b/drivers/media/video/s5p-fimc/fimc-core.h
-index 55c1410..c088dac 100644
---- a/drivers/media/video/s5p-fimc/fimc-core.h
-+++ b/drivers/media/video/s5p-fimc/fimc-core.h
-@@ -644,6 +644,7 @@ int fimc_set_scaler_info(struct fimc_ctx *ctx);
- int fimc_prepare_config(struct fimc_ctx *ctx, u32 flags);
- int fimc_prepare_addr(struct fimc_ctx *ctx, struct vb2_buffer *vb,
- 		      struct fimc_frame *frame, struct fimc_addr *paddr);
-+int fimc_register_m2m_device(struct fimc_dev *fimc);
- 
- /* -----------------------------------------------------*/
- /* fimc-capture.c					*/
+To be clear, I don't think anyone is actually proposing that the
+driver version number really be used as any form of formal "ABI
+versioning" scheme.  In almost all cases, it's so the application can
+know to *not* do something is the driver is older than X.
+
+Given all the cases I've seen, it doesn't really hurt anything if the
+driver contains a fix from newer than X, aside from the fact that the
+application won't take advantage of whatever feature/functionality the
+fix made work.  In other words, I think from a backport standpoint, it
+usually doesn't *hurt* anything if a fix is backported without the
+version being incremented, aside from applications not knowing that
+the feature/fix is present.
+
+Really, this is all about applications being able to jam a hack into
+their code that translates to "don't call this ioctl() with some
+particular argument if it's driver W less than version X, because the
+driver had a bug that is likely to panic the guy's PC".  Sure, it's a
+crummy solution, but at this point it's the best that we have got.
+
+Devin
+
 -- 
-1.7.5.4
-
+Devin J. Heitmueller - Kernel Labs
+http://www.kernellabs.com
