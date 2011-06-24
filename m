@@ -1,76 +1,116 @@
 Return-path: <mchehab@pedra>
-Received: from tex.lwn.net ([70.33.254.29]:45290 "EHLO vena.lwn.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754343Ab1FPP12 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 16 Jun 2011 11:27:28 -0400
-Date: Thu, 16 Jun 2011 09:27:26 -0600
-From: Jonathan Corbet <corbet@lwn.net>
-To: Kassey Lee <kassey1216@gmail.com>
-Cc: linux-media@vger.kernel.org, g.liakhovetski@gmx.de,
-	Kassey Lee <ygli@marvell.com>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Daniel Drake <dsd@laptop.org>, ytang5@marvell.com,
-	leiwen@marvell.com, qingx@marvell.com
-Subject: Re: [PATCH 2/8] marvell-cam: Separate out the Marvell camera core
-Message-ID: <20110616092726.024701c9@bike.lwn.net>
-In-Reply-To: <BANLkTi=gLkmuheH0aCwx=7-DuxDH3q769w@mail.gmail.com>
-References: <1307814409-46282-1-git-send-email-corbet@lwn.net>
-	<1307814409-46282-3-git-send-email-corbet@lwn.net>
-	<BANLkTikVeHLL6+T74tpmwmsL4_3h5f3PmA@mail.gmail.com>
-	<20110614084948.2d158323@bike.lwn.net>
-	<BANLkTikztbcm_+PR5oFVB+v0Jn4q8GCVTQ@mail.gmail.com>
-	<BANLkTi=gLkmuheH0aCwx=7-DuxDH3q769w@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 8bit
+Received: from casper.infradead.org ([85.118.1.10]:57801 "EHLO
+	casper.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758274Ab1FXOhd (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 24 Jun 2011 10:37:33 -0400
+Message-ID: <4E04A122.2080002@infradead.org>
+Date: Fri, 24 Jun 2011 11:37:22 -0300
+From: Mauro Carvalho Chehab <mchehab@infradead.org>
+MIME-Version: 1.0
+To: Hans Verkuil <hverkuil@xs4all.nl>
+CC: Devin Heitmueller <dheitmueller@kernellabs.com>,
+	Jesper Juhl <jj@chaosbits.net>,
+	LKML <linux-kernel@vger.kernel.org>, trivial@kernel.org,
+	linux-media@vger.kernel.org, ceph-devel@vger.kernel.org,
+	Sage Weil <sage@newdream.net>
+Subject: Re: [RFC] Don't use linux/version.h anymore to indicate a per-driver
+ version - Was: Re: [PATCH 03/37] Remove unneeded version.h includes from
+ include/
+References: <alpine.LNX.2.00.1106232344480.17688@swampdragon.chaosbits.net> <4E04912A.4090305@infradead.org> <BANLkTim9cBiiK_GsZaspxpPJQDBvAcKCWg@mail.gmail.com> <201106241554.10751.hverkuil@xs4all.nl>
+In-Reply-To: <201106241554.10751.hverkuil@xs4all.nl>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Thu, 16 Jun 2011 11:12:03 +0800
-Kassey Lee <kassey1216@gmail.com> wrote:
+Em 24-06-2011 10:54, Hans Verkuil escreveu:
+> On Friday, June 24, 2011 15:45:59 Devin Heitmueller wrote:
+>> On Fri, Jun 24, 2011 at 9:29 AM, Mauro Carvalho Chehab
+>> <mchehab@infradead.org> wrote:
+>>>> MythTV has a bunch of these too (mainly so the code can adapt to
+>>>> driver bugs that are fixed in later revisions).  Putting Mauro's patch
+>>>> upstream will definitely cause breakage.
+>>>
+>>> It shouldn't, as ivtv driver version is lower than 3.0.0. All the old bug fixes
+>>> aren't needed if version is >= 3.0.0.
+>>>
+>>> Besides that, trusting on a driver revision number to detect that a bug is
+>>> there is not the right thing to do, as version numbers are never increased at
+>>> the stable kernels (nor distro modified kernels take care of increasing revision
+>>> number as patches are backported there).
+>>
+>> The versions are increased at the discretion of the driver maintainer,
+>> usually when there is some userland visible change in driver behavior.
+>>  I assure you the application developers don't *want* to rely on such
+>> a mechanism, but there have definitely been cases in the past where
+>> there was no easy way to detect the behavior of the driver from
+>> userland.
+>>
+>> It lets application developers work around things like violations of
+>> the V4L2 standard which get fixed in newer revisions of the driver.
+>> It provides them the ability to put a hack in their code that says "if
+>> (version < X) then this driver feature is broken and I shouldn't use
+>> it."
+> 
+> Indeed. Ideally we shouldn't need it. But reality is different.
+>
+> What we have right now works and I see no compelling reason to change the
+> behavior.
 
->       2) for mcam_ctlr_stop_dma implementation, I guess you know
-> something about the silicon limitation,  but we found it can not pass
-> our stress test(1000 times capture test, which will switch format
-> between JPEG and YUV again and again).
->        our solution is :
->        stop the ccic controller and wait for about one frame transfer
-> time, and the stop the sensor.
->        this passed our stress test. for your info.
+A per-driver version only works if the user is running a vanilla kernel without 
+any stable patches applied. 
 
-Actually, I know very little that's not in the datasheet.  Are you telling
-me that there are hardware limitations that aren't documented, and that
-the datasheet is not a 100% accurate description of what's going on?  I'm
-*shocked* I tell you!
+I doubt that this covers the large amount of the users: they'll either use an 
+stable patched kernel or a distribution-specific one. On both cases, the driver
+version is not associated with a bug fix, as the driver maintainers just take
+care of increasing the driver version once per each new kernel version (when
+they care enough).
 
-(For the record, with both Cafe and Armada 610, I've found the hardware to
-be more reasonable and in accord with the documentation than with many
-others.)
+Also, a git blame for the V4L2 drivers shows that only a few drivers have their
+version increased as changes are applied there. So, relying on cap->version 
+has a minimal chance of working only with a few drivers, with vanilla *.0 kernels.
 
-In any case, I don't know about the limitation you're talking about here,
-could you elaborate a bit?  For stress testing I've run video capture for
-weeks at a time, so obviously you're talking about something else.  Sounds
-like something I need to know?
+Anyway, I think that we should at least apply the enclosed patch, and remove
+KERNEL_VERSION and linux/version.h includes for the drivers that didn't change
+its version in the past 2 kernel releases.
 
->        3) for videoubuf2, will you use videoubuf2 only or combined
-> with soc-camera ? when can your driver for videoubuf2 ready ?
+I'll work later on the linux/version.h cleanup patches.
 
-Videobuf2 only.  To be honest, I've never quite understood what soc-camera
-buys.  If there's a reason to do a switch, it could be contemplated - but
-remember that Cafe is not an SoC device.
+Cheers,
+Mauro
 
-The vb2 driver is working now in vmalloc mode, which is probably what Cafe
-will need forever.  I do plan to add dma-contig, and, probably, dma-sg
-support in the very near future.  If you want, I can post the vmalloc
-version later today; I just want to make one more pass over it first.
+-
 
->        4) the point is: ccic and sensor driver should be independent,
-> and support two CCIC controller.
+[media] v4l2-ioctl: Add a default value for kernel version
 
-No disagreement there.  I believe that two controllers should work now -
-though there's probably a gotcha somewhere since it's not actually been
-tried.  
+Most drivers don't increase kernel versions as newer features are added or
+bug fixes are solved. So, vidioc_querycap returned value for cap->version is
+meaningless. Instead of keeping this situation forever, let's add a default
+value matching the current Linux version.
 
-Thanks,
+Drivers that want to keep their own version control can still do it, as they
+can override the default value for cap->version.
 
-jon
+Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+
+diff --git a/drivers/media/video/v4l2-ioctl.c b/drivers/media/video/v4l2-ioctl.c
+index 213ba7d..61ac6bf 100644
+--- a/drivers/media/video/v4l2-ioctl.c
++++ b/drivers/media/video/v4l2-ioctl.c
+@@ -16,6 +16,7 @@
+ #include <linux/slab.h>
+ #include <linux/types.h>
+ #include <linux/kernel.h>
++#include <linux/version.h>
+ 
+ #include <linux/videodev2.h>
+ 
+@@ -605,6 +606,7 @@ static long __video_do_ioctl(struct file *file,
+ 		if (!ops->vidioc_querycap)
+ 			break;
+ 
++		cap->version = LINUX_VERSION_CODE;
+ 		ret = ops->vidioc_querycap(file, fh, cap);
+ 		if (!ret)
+ 			dbgarg(cmd, "driver=%s, card=%s, bus=%s, "
