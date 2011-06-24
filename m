@@ -1,64 +1,56 @@
 Return-path: <mchehab@pedra>
-Received: from mail-qy0-f174.google.com ([209.85.216.174]:50144 "EHLO
-	mail-qy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752574Ab1F3Dye (ORCPT
+Received: from moutng.kundenserver.de ([212.227.126.171]:59285 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753237Ab1FXNUK (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 29 Jun 2011 23:54:34 -0400
-Received: by qyk29 with SMTP id 29so2877533qyk.19
-        for <linux-media@vger.kernel.org>; Wed, 29 Jun 2011 20:54:33 -0700 (PDT)
-Subject: Re: [PATCH] Revert "V4L/DVB: cx23885: Enable Message Signaled Interrupts(MSI)"
-Mime-Version: 1.0 (Apple Message framework v1084)
-Content-Type: text/plain; charset=us-ascii
-From: Jarod Wilson <jarod@wilsonet.com>
-In-Reply-To: <1309390504.3110.40.camel@morgan.silverblock.net>
-Date: Wed, 29 Jun 2011 23:54:30 -0400
-Cc: Jarod Wilson <jarod@redhat.com>, stoth@kernellabs.com,
-	linux-media@vger.kernel.org,
-	Kusanagi Kouichi <slash@ac.auone-net.jp>
+	Fri, 24 Jun 2011 09:20:10 -0400
+From: Arnd Bergmann <arnd@arndb.de>
+To: Ralf Baechle <ralf@linux-mips.org>
+Subject: Re: [PATCH] SOUND: Fix non-ISA_DMA_API build failure
+Date: Fri, 24 Jun 2011 15:19:44 +0200
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Jaroslav Kysela <perex@perex.cz>, Takashi Iwai <tiwai@suse.de>,
+	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+	alsa-devel@alsa-project.org, linux-mips@linux-mips.org
+References: <20110623144750.GA10180@linux-mips.org>
+In-Reply-To: <20110623144750.GA10180@linux-mips.org>
+MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Message-Id: <15F0A40B-3787-4D65-A503-4F324B8D12FB@wilsonet.com>
-References: <1309384173-12933-1-git-send-email-jarod@redhat.com> <1309390504.3110.40.camel@morgan.silverblock.net>
-To: Andy Walls <awalls@md.metrocast.net>
+Message-Id: <201106241519.44425.arnd@arndb.de>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Jun 29, 2011, at 7:35 PM, Andy Walls wrote:
-
-> On Wed, 2011-06-29 at 17:49 -0400, Jarod Wilson wrote:
->> This reverts commit e38030f3ff02684eb9e25e983a03ad318a10a2ea.
->> 
->> MSI flat-out doesn't work right on cx2388x devices yet. There are now
->> multiple reports of cards that hard-lock systems when MSI is enabled,
->> including my own HVR-1250 when trying to use its built-in IR receiver.
->> Disable MSI and it works just fine. Similar for another user's HVR-1270.
->> Issues have also been reported with the HVR-1850 when MSI is enabled,
->> and the 1850 behavior sounds similar to an as-yet-undiagnosed issue I've
->> seen with an 1800.
->> 
->> References:
->> 
->> http://www.spinics.net/lists/linux-media/msg25956.html
->> http://www.spinics.net/lists/linux-media/msg33676.html
->> http://www.spinics.net/lists/linux-media/msg34734.html
->> 
->> CC: Andy Walls <awalls@md.metrocast.net>
+On Thursday 23 June 2011 16:47:50 Ralf Baechle wrote:
+> Fixed by adding an explicit dependency on ISA_DMA_API for all of the
+> config statment that either result in the direction inclusion of code that
+> calls the ISA DMA API or selects something which in turn would use the ISA
+> DMA API.
 > 
-> Fine by me.
-> 
-> Acked-by: Andy Walls <awalls@md.metrocast.net>
-> 
-> but you should really
-> 
-> Cc: Steven Toth <stoth@kernellabs.com>
+> The sole ISA sound driver that does not use the ISA DMA API is the Adlib
+> driver so replaced the dependency of SND_ISA on ISA_DMA_API and add it to
+> each of the drivers individually.
 
-Crud, yeah, Steven was listed in the commit being reverted. Apologies,
-rushed to get it out the door, heading out on vacation for a week
-starting tomorrow. (Of course, I'm bringing a laptop and a few usb
-devices with me...). :)
+Do we really care all that much about the Adlib driver on platforms without
+ISA_DMA_API? Right now all of sound/isa/ is hidden behind ISA_DMA_API and
+I think that's acceptable
 
--- 
-Jarod Wilson
-jarod@wilsonet.com
+> diff --git a/drivers/media/radio/Kconfig b/drivers/media/radio/Kconfig
+> index e4c97fd..0aeed28 100644
+> --- a/drivers/media/radio/Kconfig
+> +++ b/drivers/media/radio/Kconfig
+> @@ -168,7 +168,7 @@ config RADIO_MAXIRADIO
+>  
+>  config RADIO_MIROPCM20
+>         tristate "miroSOUND PCM20 radio"
+> -       depends on ISA && VIDEO_V4L2 && SND
+> +       depends on ISA && ISA_DMA_API && VIDEO_V4L2 && SND
+>         select SND_ISA
+>         select SND_MIRO
+>         ---help---
 
+Then this hunk by itself would be enough to solve the compile
+errors, AFAICT.
 
-
+	Arnd
