@@ -1,114 +1,76 @@
 Return-path: <mchehab@pedra>
-Received: from ffm.saftware.de ([83.141.3.46]:32889 "EHLO ffm.saftware.de"
+Received: from mail.mnsspb.ru ([84.204.75.2]:34834 "EHLO mail.mnsspb.ru"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755101Ab1FULEX (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 21 Jun 2011 07:04:23 -0400
-Message-ID: <4E007AA7.7070400@linuxtv.org>
-Date: Tue, 21 Jun 2011 13:04:07 +0200
-From: Andreas Oberritter <obi@linuxtv.org>
+	id S1751308Ab1FXQzX (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 24 Jun 2011 12:55:23 -0400
+Date: Fri, 24 Jun 2011 20:54:32 +0400
+From: Kirill Smelkov <kirr@mns.spb.ru>
+To: Alan Stern <stern@rowland.harvard.edu>
+Cc: linux-usb@vger.kernel.org, Greg Kroah-Hartman <gregkh@suse.de>,
+	linux-uvc-devel@lists.berlios.de, linux-media@vger.kernel.org,
+	linux-kernel@vger.kernel.org
+Subject: Re: [RFC, PATCH] USB: EHCI: Allow users to override 80% max
+	periodic bandwidth
+Message-ID: <20110624165432.GA6415@tugrik.mns.mnsspb.ru>
+References: <20110623140539.GA4403@tugrik.mns.mnsspb.ru> <Pine.LNX.4.44L0.1106231312270.2033-100000@iolanthe.rowland.org>
 MIME-Version: 1.0
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-CC: HoP <jpetrous@gmail.com>,
-	Devin Heitmueller <dheitmueller@kernellabs.com>,
-	=?ISO-8859-1?Q?=22S=E9bastien_RAILLARD_=28COEXSI=29=22?=
-	<sr@coexsi.fr>,
-	=?ISO-8859-1?Q?R=E9mi_Denis-Courmont?= <remi@remlab.net>,
-	linux-media@vger.kernel.org
-Subject: Re: [RFC] vtunerc - virtual DVB device driver
-References: <BANLkTimtnbAzLTdFY2OiSddHTjmD_99CfA@mail.gmail.com>	<201106202037.19535.remi@remlab.net>	<BANLkTinn0uN3VwGfqCbYbxFoVf6aNo1VSA@mail.gmail.com>	<BANLkTin14LnwP+_K1m-RsEXza4M4CjqnEw@mail.gmail.com>	<BANLkTimR-zWnnLBcD2w8d8NpeFJi=eT9nQ@mail.gmail.com>	<005a01cc2f7d$a799be30$f6cd3a90$@coexsi.fr>	<BANLkTinbQ8oBJt7fScuT5vHGFktbaQNY5A@mail.gmail.com>	<BANLkTimTdMa_X1ygF8=B5gLdLXq1o-ER0g@mail.gmail.com>	<BANLkTimkZN9AtLanwvct+1p2DZOHSgF6Aw@mail.gmail.com>	<BANLkTimg0X5H5T8CsSR5Tr0CZbCZKiDEEA@mail.gmail.com>	<4DFFB1DA.5000602@redhat.com> <BANLkTikZ++5dZssDRuxJzNUEG_TDkZPGRg@mail.gmail.com> <4DFFF56D.5070602@redhat.com>
-In-Reply-To: <4DFFF56D.5070602@redhat.com>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <Pine.LNX.4.44L0.1106231312270.2033-100000@iolanthe.rowland.org>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On 06/21/2011 03:35 AM, Mauro Carvalho Chehab wrote:
-> Em 20-06-2011 18:31, HoP escreveu:
->> 2011/6/20 Mauro Carvalho Chehab <mchehab@redhat.com>:
->>> Em 20-06-2011 17:24, HoP escreveu:
->>>> 2011/6/20 Devin Heitmueller <dheitmueller@kernellabs.com>:
->>>>> On Mon, Jun 20, 2011 at 3:56 PM, HoP <jpetrous@gmail.com> wrote:
->>>>>> Do you think it is really serious enough reason to prevent of having
->>>>>> such virtualization driver in the kernel?
->>>>>>
->>>>>> Let check my situation and tell me how I should continue (TBH, I already
->>>>>> thought that driver can be accepted, but my dumb brain thought because
->>>>>> of non quality code/design or so. It was really big "surprise" which
->>>>>> reason was used aginst it):
->>>>>
->>>>> Yes, this is entirely a political issue and not a technical one.
->>>>
->>>> Political? So we can declare that politics win (again) technicians. Sad.
->>>
->>> This is not a political issue. It is a licensing issue. If you want to use
->>> someone's else code, you need to accept the licensing terms that the developers
->>> are giving you, by either paying the price for the code usage (on closed source
->>> licensing models), or by accepting the license when using an open-sourced code.
->>>
->>> Preserving the open-source eco-system is something that everyone
->>> developing open source expect: basically, you're free to do whatever
->>> you want, but if you're using a code written by an open-source developer,
->>> the expected behaviour that GPL asks (and that the developer wants, when he
->>> opted for GPL) is that you should return back to the community with any
->>> changes you did, including derivative work. This is an essential rule of working
->>> with GPL.
->>>
->>> If you're not happy with that, that's fine. You can implement another stack
->>> that is not GPL-licensed.
->>
->> Mauro, you totally misunderstood me. If you see on my first post in that thread
->> I was sending full GPL-ed driver to the mailinglist.
+On Thu, Jun 23, 2011 at 01:14:04PM -0400, Alan Stern wrote:
+> On Thu, 23 Jun 2011, Kirill Smelkov wrote:
 > 
-> You misunderstood me. Something that exposes the kernel interface to for an
-> userspace client driver to implement DVB is not a driver, it is a wrapper.
+> > > At 480 Mb/s, each microframe holds 7500 bytes (less if you count 
+> > > bit-stuffing).  4% of that is 300 bytes, which is not enough for a 
+> > > 512-byte bulk packet.  I think you'd run into trouble trying to do any 
+> > > serious bulk transfers on such a tight schedule.
+> > 
+> > Yes, you seem to be right.
+> > 
+> > I still think 4% is maybe enough for control traffic.
 > 
-> The real driver will be in userspace, using the DVB stack, and can even be
-> closed source. Some developers already tried to do things like that and sell
-> the userspace code. Such code submission were nacked. There is even one case
-> where the kernelspace code were dropped due to that (and later, replaced by an
-> opensource driver).
+> It should be.
+
+Ok then.
+
+At least devices could be start/stopped, and frankly if someone loads
+the bus with two high-bandwidth isoc streams, there is no reason to
+expect any bulk transfer to happen at all.
+
+> > > > @@ -571,6 +579,14 @@ static int ehci_init(struct usb_hcd *hcd)
+> > > >  	hcc_params = ehci_readl(ehci, &ehci->caps->hcc_params);
+> > > >  
+> > > >  	/*
+> > > > +	 * tell user, if using non-standard (80% == 100 usec/uframe) bandwidth
+> > > > +	 */
+> > > > +	if (uframe_periodic_max != 100)
+> > > > +		ehci_info(ehci, "using non-standard max periodic bandwith "
+> > > > +				"(%u%% == %u usec/uframe)",
+> > > > +				100*uframe_periodic_max/125, uframe_periodic_max);
+> > > > +
+> > > > +	/*
+> > > 
+> > > Check for invalid values.  This should never be less than 100 or 
+> > > greater than 125.
+> > 
+> > Ok. By the way, why should we limit it to be not less than 100?
+> > Likewise, a user who knows exactly what he/she is doing could limit
+> > periodic bandwidth to be less than 80% required by USB specification.
 > 
-> We don't want to go on this way again.
+> What's the point?  If you want to use less than 80% of your bandwidth 
+> for periodic transfers, go ahead and do so.  You don't need to change 
+> the limit.
 
-Mauro and Devin, I think you're missing the point. This is not about
-creating drivers in userspace. This is not about open or closed source.
-The "vtuner" interface, as implemented for the Dreambox, is used to
-access remote tuners: Put x tuners into y boxes and access them from
-another box as if they were local. It's used in conjunction with further
-software to receive the transport stream over a network connection.
-Honza's code does the same thing.
+I though it would be good for generality -- i.e. if someone wants to
+limit maximum isoc bandwidth to say 50% so that would never be
+overallocated by that limit that would be handy.
 
-You don't need it in order to create closed source drivers. You can
-already create closed kernel drivers now. Also, you can create tuner
-drivers in userspace using the i2c-dev interface. If you like to connect
-a userspace driver to a DVB API device node, you can distribute a small
-(open or closed) wrapper with it. So what are you arguing about?
-Everything you're feared of can already be done since virtually forever.
+But I agree - it's a bit artificial, so in updated patch I've left what
+you originally suggested to be 100 <= uframe_periodic_max < 125 (ommitting =125).
 
-If you're feared of exposing kernel interfaces to userspace, then I
-think your only option is to remove the whole userspace. You might want
-to remove i2c-dev and the loadable module interface first.
 
-Regarding the code, Honza, I think the interface is neither clean nor
-generic enough to be included in the kernel. It doesn't make much sense
-to stay compatible to the interface used by the Dreambox. This interface
-evolved from very old versions of the DVB API and therefore carries way
-too much cruft and hacks for a shiny new interface. As a side note: Your
-ioctl constants already differ from the original vtuner code.
-
-IMO, at least these steps need to be taken:
-- Remove unused code. You already mentioned it, but it really should be
-removed before submitting code, because it makes review much harder.
-- Remove redefined structs and constants.
-- Drop support for anything older than S2API.
-- Define a way to use an existing demux instead of registering a new
-software demux. On hardware that supports it, an input channel should be
-allocated for each vtuner, in order to use the hardware's filtering and
-decoding capabilities.
-- Drop VTUNER_SET_NAME, VTUNER_SET_HAS_OUTPUTS, VTUNER_SET_MODES,
-VTUNER_SET_TYPE and VTUNER_SET_NUM_MODES. They are all either specific
-to the Dreambox or already obsoleted by S2API commands or should be
-implemented as new S2API commands.
-
-Regards,
-Andreas
+Thanks,
+Kirill
