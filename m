@@ -1,95 +1,88 @@
 Return-path: <mchehab@pedra>
-Received: from mail-vw0-f46.google.com ([209.85.212.46]:38367 "EHLO
-	mail-vw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753691Ab1FBA51 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 1 Jun 2011 20:57:27 -0400
-Received: by vws1 with SMTP id 1so293980vws.19
-        for <linux-media@vger.kernel.org>; Wed, 01 Jun 2011 17:57:26 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <4DE4C0D7.4070209@samsung.com>
-References: <599405.4311306668807678.JavaMail.weblogic@epml25>
-	<4DE4C0D7.4070209@samsung.com>
-Date: Thu, 2 Jun 2011 09:57:25 +0900
-Message-ID: <BANLkTin7nEeP+o734X7rV4AkK2zTCL81dA@mail.gmail.com>
-Subject: Re: [PATCH v4 0/3] TV driver for Samsung S5P platform (media part)
-From: Kyungmin Park <kmpark@infradead.org>
-To: Tomasz Stanislawski <t.stanislaws@samsung.com>
-Cc: jiun.yu@samsung.com,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	Marek Szyprowski <m.szyprowski@samsung.com>,
-	"hverkuil@xs4all.nl" <hverkuil@xs4all.nl>,
-	=?UTF-8?B?7ISg6rK97J28?= <ki.sun@samsung.com>,
-	=?UTF-8?B?6rmA7JiB6529?= <younglak1004.kim@samsung.com>,
-	=?UTF-8?B?7J207J287Zi4?= <ilho215.lee@samsung.com>,
-	=?UTF-8?B?6rmA6rK97ZmY?= <kh.k.kim@samsung.com>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8BIT
+Received: from einhorn.in-berlin.de ([192.109.42.8]:37782 "EHLO
+	einhorn.in-berlin.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751845Ab1FXSfn (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 24 Jun 2011 14:35:43 -0400
+Date: Fri, 24 Jun 2011 20:34:04 +0200
+From: Stefan Richter <stefanr@s5r6.in-berlin.de>
+To: Mauro Carvalho Chehab <mchehab@infradead.org>
+Cc: Hans Verkuil <hverkuil@xs4all.nl>,
+	Devin Heitmueller <dheitmueller@kernellabs.com>,
+	Jesper Juhl <jj@chaosbits.net>,
+	LKML <linux-kernel@vger.kernel.org>, trivial@kernel.org,
+	linux-media@vger.kernel.org, ceph-devel@vger.kernel.org,
+	Sage Weil <sage@newdream.net>
+Subject: Re: [RFC] Don't use linux/version.h anymore to indicate a
+ per-driver version - Was: Re: [PATCH 03/37] Remove unneeded version.h
+ includes from include/
+Message-ID: <20110624203404.7a3f6f6a@stein>
+In-Reply-To: <4E04A122.2080002@infradead.org>
+References: <alpine.LNX.2.00.1106232344480.17688@swampdragon.chaosbits.net>
+	<4E04912A.4090305@infradead.org>
+	<BANLkTim9cBiiK_GsZaspxpPJQDBvAcKCWg@mail.gmail.com>
+	<201106241554.10751.hverkuil@xs4all.nl>
+	<4E04A122.2080002@infradead.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Hi,
+On Jun 24 Mauro Carvalho Chehab wrote:
+> Em 24-06-2011 10:54, Hans Verkuil escreveu:
+> > On Friday, June 24, 2011 15:45:59 Devin Heitmueller wrote:
+> >> The versions are increased at the discretion of the driver maintainer,
+> >> usually when there is some userland visible change in driver behavior.
+> >>  I assure you the application developers don't *want* to rely on such
+> >> a mechanism, but there have definitely been cases in the past where
+> >> there was no easy way to detect the behavior of the driver from
+> >> userland.
+> >>
+> >> It lets application developers work around things like violations of
+> >> the V4L2 standard which get fixed in newer revisions of the driver.
+> >> It provides them the ability to put a hack in their code that says "if
+> >> (version < X) then this driver feature is broken and I shouldn't use
+> >> it."
+> > 
+> > Indeed. Ideally we shouldn't need it. But reality is different.
+> >
+> > What we have right now works and I see no compelling reason to change the
+> > behavior.
+> 
+> A per-driver version only works if the user is running a vanilla kernel without 
+> any stable patches applied. 
+> 
+> I doubt that this covers the large amount of the users: they'll either use an 
+> stable patched kernel or a distribution-specific one. On both cases, the driver
+> version is not associated with a bug fix, as the driver maintainers just take
+> care of increasing the driver version once per each new kernel version (when
+> they care enough).
+> 
+> Also, a git blame for the V4L2 drivers shows that only a few drivers have their
+> version increased as changes are applied there. So, relying on cap->version 
+> has a minimal chance of working only with a few drivers, with vanilla *.0 kernels.
 
-It's good to know the future chip design changes. but as it doesn't be
-known to others except the internal chip design team.
-So with restricted information. there's no way to implement it with
-current known chip.
-If you want to change the design. open and show the changed IPs.
+If the "driver version" is in fact an ABI version, then the driver author
+should really increase it only when ABI behavior is changed (and only if
+the behavior change can only be communicated by version number --- e.g.
+addition of an ioctl is not among such reasons).  And the author should
+commit behavior changing implementation and version number change in a
+single changeset.
 
-another thing is that current codes are pending for long time. so in
-our case, merge it first and expand it for next chips.
+And anybody who backmerges such an ABI behavior change into another kernel
+branch (stable, longterm, distro...) must backmerge the associated version
+number change too.
 
-Thank you,
-Kyungmin Park
+Of course sometimes people realize this only after the fact.  Or driver
+authors don't have a clear understanding of ABI versioning to begin with.
+I am saying so because I had to learn it too; I certainly wasn't born
+with an instinct knowledge how to do it properly.
 
-On Tue, May 31, 2011 at 7:20 PM, Tomasz Stanislawski
-<t.stanislaws@samsung.com> wrote:
-> JiUn Yu wrote:
->>
->>
->>>
->>> 5. Mixer & Video Processor driver. It is called 's5p-mixer' because of
->>> historical reasons. It was decided combine VP and MXR drivers into one
->>> because
->>> of shared interrupt and very similar interface via V4L2 nodes. The driver
->>> is a
->>> realization of many-to-many relation between multiple input layers and
->>> multiple
->>> outputs. All shared resources are kept in struct mxr_device. It provides
->>> utilities for management and synchronization of access to resources and
->>> reference counting. The outputs are obtained from HDMI/SDO private data.
->>>  One
->>> layer is a single video node. Simple inheritance is applied because there
->>> only
->>> little difference between layer's types. Every layer type implements set
->>> of
->>> ops.  There are different ops for Mixer layers and other for VP layer.
->>>
->>
->> I agreed with subdev of hdmi, hdmiphy, sdo and videoDAC. It is very
->> flexible in case of adding new interface or removing current interface.
->> But 's5p-mixer' driver is not flexible. So, If new scaler is added instead
->> of VP or mixer is someting changed,
->> I think current architecture of tvout driver can't support.
->> How about separating vp and mixer driver?
->>
->
-> Hi Yu,
-> The designed architecture TV driver was not prepared for removal of VP, or
-> MIxer input nodes.
-> I decided only to allow flexible outputs because I knew 2 boards with
-> different output configuration (Goni - only SDO, Universal - HDMI and SDO).
-> I need more information about VP substitute before changing design of the
-> whole driver. Some of extensions could be applied by adding extra layer type
-> to existing layer_vp and layer_grp ones.
->
-> Best regards
-> Tomasz Stanislawski
->>
->> N떑꿩�r툤y鉉싕b쾊Ф푤v�^�)頻{.n�+돴쪐{콡�bj)�鍊w* jgП� 텎쉸듶줷/곴�z받뻿�2듷솳鈺�&�)傘첺뛴�� 췍쳺�h�
->> �j:+v돣둾�明
->
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->
+(Disclaimer:  I have no stake in drivers/media/ ABIs.  But I am involved
+in maintaining a userspace ABI elsewhere in drivers/firewire/, and one of
+the userspace libraries that use this ABI.)
+-- 
+Stefan Richter
+-=====-==-== -==- ==---
+http://arcgraph.de/sr/
