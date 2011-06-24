@@ -1,147 +1,113 @@
 Return-path: <mchehab@pedra>
-Received: from smtp-vbr14.xs4all.nl ([194.109.24.34]:2321 "EHLO
-	smtp-vbr14.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753585Ab1FTRSw (ORCPT
+Received: from proofpoint-cluster.metrocast.net ([65.175.128.136]:54424 "EHLO
+	proofpoint-cluster.metrocast.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1754822Ab1FXW53 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 20 Jun 2011 13:18:52 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Marek Szyprowski <m.szyprowski@samsung.com>
-Subject: Re: vb2: holding buffers until after start_streaming()
-Date: Mon, 20 Jun 2011 19:18:33 +0200
-Cc: "'Pawel Osciak'" <pawel@osciak.com>,
-	"'Jonathan Corbet'" <corbet@lwn.net>, linux-media@vger.kernel.org
-References: <20110617125713.293f484d@bike.lwn.net> <BANLkTimPrkXUuTGCfrp8KyqhFNvfjoCzSw@mail.gmail.com> <003101cc2f0b$207f9680$617ec380$%szyprowski@samsung.com>
-In-Reply-To: <003101cc2f0b$207f9680$617ec380$%szyprowski@samsung.com>
-MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-2"
+	Fri, 24 Jun 2011 18:57:29 -0400
+Subject: Re: [RFC] Don't use linux/version.h anymore to indicate a
+ per-driver version - Was: Re: [PATCH 03/37] Remove unneeded version.h
+ includes from include/
+From: Andy Walls <awalls@md.metrocast.net>
+To: Mauro Carvalho Chehab <mchehab@infradead.org>
+Cc: Devin Heitmueller <dheitmueller@kernellabs.com>,
+	Stefan Richter <stefanr@s5r6.in-berlin.de>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	Jesper Juhl <jj@chaosbits.net>,
+	LKML <linux-kernel@vger.kernel.org>, trivial@kernel.org,
+	linux-media@vger.kernel.org, ceph-devel@vger.kernel.org,
+	Sage Weil <sage@newdream.net>
+In-Reply-To: <4E050CBE.2030103@infradead.org>
+References: <alpine.LNX.2.00.1106232344480.17688@swampdragon.chaosbits.net>
+	 <4E04912A.4090305@infradead.org>
+	 <BANLkTim9cBiiK_GsZaspxpPJQDBvAcKCWg@mail.gmail.com>
+	 <201106241554.10751.hverkuil@xs4all.nl> <4E04A122.2080002@infradead.org>
+	 <20110624203404.7a3f6f6a@stein>
+	 <BANLkTimj-oEDvWxMao6zJ_sudUntEVjO1w@mail.gmail.com>
+	 <1308949448.2093.20.camel@morgan.silverblock.net>
+	 <4E050CBE.2030103@infradead.org>
+Content-Type: text/plain; charset="UTF-8"
+Date: Fri, 24 Jun 2011 18:57:57 -0400
+Message-ID: <1308956277.2093.54.camel@morgan.silverblock.net>
+Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
-Message-Id: <201106201918.33817.hverkuil@xs4all.nl>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Monday, June 20, 2011 07:30:11 Marek Szyprowski wrote:
-> Hello,
-> 
-> On Monday, June 20, 2011 3:28 AM Pawel Osciak wrote:
-> 
-> > On Fri, Jun 17, 2011 at 11:57, Jonathan Corbet <corbet@lwn.net> wrote:
-> > > Here's another videobuf2 question...I've been trying to track down some
-> > > weird behavior, the roots of which were in the fact that
-> > start_streaming()
-> > > gets called even though no buffers have been queued.  This behavior is
-> > > quite explicit in the code:
-> > >
-> > >        /*
-> > >         * Let driver notice that streaming state has been enabled.
-> > >         */
-> > >        ret = call_qop(q, start_streaming, q);
-> > >        if (ret) {
-> > >                dprintk(1, "streamon: driver refused to start
-> > streaming\n");
-> > >                return ret;
-> > >        }
-> > >
-> > >        q->streaming = 1;
-> > >
-> > >        /*
-> > >         * If any buffers were queued before streamon,
-> > >         * we can now pass them to driver for processing.
-> > >         */
-> > >        list_for_each_entry(vb, &q->queued_list, queued_entry)
-> > >                __enqueue_in_driver(vb);
-> > >
-> > > Pretty much every v4l2 capture application I've ever encountered passes
-> > all
-> > > of its buffers to VIDIOC_QBUF before starting streaming for a reason - it
-> > > makes little sense to start if there's nothing to stream to.  It's really
-> > > tempting to reorder that code, but...  it seems you must have done things
-> > > this way for a reason.  Why did you need to reorder the operations in
-> > this
-> > > way?
-> > >
+On Fri, 2011-06-24 at 19:16 -0300, Mauro Carvalho Chehab wrote:
+> Em 24-06-2011 18:04, Andy Walls escreveu:
+> > On Fri, 2011-06-24 at 14:48 -0400, Devin Heitmueller wrote:
+> >> On Fri, Jun 24, 2011 at 2:34 PM, Stefan Richter
+> >> <stefanr@s5r6.in-berlin.de> wrote:
+> >>> If the "driver version" is in fact an ABI version, then the driver author
+> >>> should really increase it only when ABI behavior is changed (and only if
+> >>> the behavior change can only be communicated by version number --- e.g.
+> >>> addition of an ioctl is not among such reasons).  And the author should
+> >>> commit behavior changing implementation and version number change in a
+> >>> single changeset.
+> >>>
+> >>> And anybody who backmerges such an ABI behavior change into another kernel
+> >>> branch (stable, longterm, distro...) must backmerge the associated version
+> >>> number change too.
+> >>>
+> >>> Of course sometimes people realize this only after the fact.  Or driver
+> >>> authors don't have a clear understanding of ABI versioning to begin with.
+> >>> I am saying so because I had to learn it too; I certainly wasn't born
+> >>> with an instinct knowledge how to do it properly.
+> >>>
+> >>> (Disclaimer:  I have no stake in drivers/media/ ABIs.  But I am involved
+> >>> in maintaining a userspace ABI elsewhere in drivers/firewire/, and one of
+> >>> the userspace libraries that use this ABI.)
+> >>
+> >> Hi Stefan,
+> >>
+> >> To be clear, I don't think anyone is actually proposing that the
+> >> driver version number really be used as any form of formal "ABI
+> >> versioning" scheme.  In almost all cases, it's so the application can
+> >> know to *not* do something is the driver is older than X.
 > > 
-> > I don't see a reason why these couldn't be reordered (Marek should be
-> > able to confirm, he wrote those lines). But this wouldn't fix
-> > everything, as the V4L2 API permits streamon without queuing any
-> > buffers first (for capture devices). So even reordered, it's possible
-> > for start_streaming to be called without passing any buffers to the
-> > driver first.
+> > MythTV, for example, used to use the driver version to work around old
+> > VBI bugs and MPEG encoder quirks that the older version of the driver
+> > may not have known how to handle:
+> > 
+> > https://github.com/MythTV/mythtv/blob/b98d3a98e3187000ae652df5ffebe2beb5221ba7/mythtv/libs/libmythtv/mpegrecorder.cpp#L335
+> > 
+> > But for newer versions, MythTV could avoid using its own odd hacks.
+> > The bleeding edge MythTV now has most of these removed.
 > 
-> The problem is the fact that you cannot guarantee the opposite order
-> in all cases. Even if you swap __enqueue_in_driver and 
-> call_qop(start_streaming), user might call respective ioctl in the
-> opposite order and you will end with start_streaming before 
-> __enqueue_in_driver. Calling VIDIOC_STREAMON without previous call
-> to VIDIOC_QBUF is legal from v4l2 api definition.
+> Removing it is a good thing.
+> 
+> >> Really, this is all about applications being able to jam a hack into
+> >> their code that translates to "don't call this ioctl() with some
+> >> particular argument if it's driver W less than version X, because the
+> >> driver had a bug that is likely to panic the guy's PC".
+> > 
+> > Well, not even panics per se, but some thing like the VBI is broken, or
+> > the volume control doesn't work, IR blaster is works for this version,
+> > or something else stupid that is very visible to the end user.
+> > 
+> > I also use the driver version for troubleshooting problem with users.  I
+> > roughly know what wasn't working in what version of the cx18 and ivtv
+> > drivers.  If the end user can tell me the driver version (using v4l2-ctl
+> > --log-status) along with his symptoms, it makes my life easier.  Being
+> > able to efficiently help the end user is a win for both me and the end
+> > user.
+> 
+> If you add it to MODULE_VERSION, you can get the version with:
+> 
+> $ modinfo -F version vivi
+> 0.8.1
 
-But not all drivers support this. So the api does allow for it, but I
-don't believe it is mandatory (or if it is, then many, many drivers are
-not compliant).
+Well, since you mention it....
 
-> Because of that I decided to call start_streaming first, before the 
-> __enqueue_in_driver() to ensure the drivers will get their methods
-> called always in the same order, whatever used does. 
+http://git.linuxtv.org/media_tree.git?a=blob;f=drivers/media/video/cx18/cx18-driver.c;h=9e2f870f4258665ae6093c762f752d45147a8c98;hb=staging/for_v3.1#l252
+http://git.linuxtv.org/media_tree.git?a=blob;f=drivers/media/video/ivtv/ivtv-driver.c;h=0fb75524484d909af4925c3c33c9f12cf6d6519e;hb=staging/for_v3.1#l280
 
-The problem with doing this is that in order to start streaming several
-drivers need to have the queued buffers available. For example, the davinci
-capture drivers (vpif_capture.c) can start the DMA if there is only one
-buffer queued, but that will overwrite that buffer until another one is
-queued. If it has two buffers or more, then it can start the DMA in a more
-optimal fashion. (As an aside, looking at that driver I think it actually
-always starts the DMA as if there is only one buffer available, thus
-introducing an unnecessarily extra frame delay.)
-
-Anyway, what I'm trying to say is that some hardware needs to have the
-queued buffers in order to start DMA in the best possible way.
-
-> Start_streaming was designed to perform time consuming operations
-> like enabling the power, configuring the pipeline, setting up the
-> tuner, etc. Some of these can fail and it is really good to report
-> the failure asap.
-
-Reordering doesn't affect that.
- 
-> If you cannot start your hardware (the dma engine) without queued
-> buffers then you probably need to move dma starting routine to the
-> first buffer_queue call. The problem is much more complex than it
-> initially looks. 
-
-I don't believe that this is mandatory. And if the spec says so, then I think
-that spec should be changed since it doesn't reflect reality.
-
-> Please note that in videobuf2 buffer_queue method is allowed to sleep,
-> unlike it was designed in old videobuf.
-
-Hmmm, I hope the driver will remember to release and reacquire and locks
-when it goes to sleep. Something to document.
-
-> Usually drivers require at least two buffers and always keep at 
-> least one in the dma engine, which overwrites it with incoming frames
-> until next buffer have been queued. However there are also devices
-> (like camera sensors) that might be used to capture only one single
-> frame or a few consecutive frames (for example a series of pictures).
-> They need to dequeue the last buffer once it got filled with video
-> data, so the design with overwriting the buffer makes no sense.
-> Right now it is really driver dependent and no generic solution 
-> exist.
-
-What's wrong with keeping this driver specific?
-
-> We have been discussing it but no consensus has been made yet, so
-> right now I've decided to keep the current design. We probably needs
-> some additional flag somewhere to configure the driver either to
-> continuously overwrite last buffer until next one has been queued
-> or stop the dma engine and return the buffer to user. Once
-
-Something is missing here :-)
-
-Anyway, I believe that it should be up to the driver to decide whether it will
-allow STREAMON with no buffers queued. But the start_streaming implementation
-*does* need to be called after the ownership of any pre-queued buffers has been
-passed from vb2 to the driver, so that the driver can use them to start DMA in
-an optimal manner (this is true for both capture and display, BTW).
+However, since I often must ask for the output of v4l2-ctl --log-status,
+which already has the version number, I never need to ask the user to
+run /sbin/modinfo for the version.
 
 Regards,
+Andy
 
-	Hans
+
+
