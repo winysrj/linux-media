@@ -1,166 +1,260 @@
 Return-path: <mchehab@pedra>
-Received: from mx1.redhat.com ([209.132.183.28]:55650 "EHLO mx1.redhat.com"
+Received: from mail.mnsspb.ru ([84.204.75.2]:38227 "EHLO mail.mnsspb.ru"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750948Ab1F0PeO (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 27 Jun 2011 11:34:14 -0400
-Message-ID: <4E08A2E6.6020902@redhat.com>
-Date: Mon, 27 Jun 2011 12:33:58 -0300
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-MIME-Version: 1.0
-To: Hans Verkuil <hverkuil@xs4all.nl>
-CC: Sakari Ailus <sakari.ailus@iki.fi>, Arnd Bergmann <arnd@arndb.de>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
-	Linus Torvalds <torvalds@linux-foundation.org>
-Subject: Re: [PATCH] [media] v4l2 core: return -ENOIOCTLCMD if an ioctl  doesn't
- exist
-References: <4E0519B7.3000304@redhat.com> <86e5c1f0a0222d3b2cf371f3c9d3b067.squirrel@webmail.xs4all.nl> <4E088B83.2050001@redhat.com> <201106271656.04612.hverkuil@xs4all.nl>
-In-Reply-To: <201106271656.04612.hverkuil@xs4all.nl>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+	id S1750773Ab1FXQtL (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 24 Jun 2011 12:49:11 -0400
+From: Kirill Smelkov <kirr@mns.spb.ru>
+To: Alan Stern <stern@rowland.harvard.edu>
+Cc: matt mooney <mfm@muteddisk.com>,
+	Greg Kroah-Hartman <gregkh@suse.de>, linux-usb@vger.kernel.org,
+	linux-uvc-devel@lists.berlios.de, linux-media@vger.kernel.org,
+	linux-kernel@vger.kernel.org, Kirill Smelkov <kirr@mns.spb.ru>
+Subject: [PATCH 1/2] USB: EHCI: Move sysfs related bits into ehci-sysfs.c
+Date: Fri, 24 Jun 2011 20:48:07 +0400
+Message-Id: <2a537d4dffef27cc7839eb19889eaa035edd44f9.1308933456.git.kirr@mns.spb.ru>
+In-Reply-To: <cover.1308933456.git.kirr@mns.spb.ru>
+References: <cover.1308933456.git.kirr@mns.spb.ru>
+In-Reply-To: <cover.1308933456.git.kirr@mns.spb.ru>
+References: <cover.1308933456.git.kirr@mns.spb.ru>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Em 27-06-2011 11:56, Hans Verkuil escreveu:
-> On Monday, June 27, 2011 15:54:11 Mauro Carvalho Chehab wrote:
->> Em 27-06-2011 09:17, Hans Verkuil escreveu:
->>> While we don't have an enum capability, in many cases you can deduce
->>> whether a particular ioctl should be supported or not. Usually based on
->>> capabilities, sometimes because certain ioctls allow 'NOP' operations that
->>> allow you to test for their presence.
->>>
->>> Of course, drivers are not always consistent here, but that's a separate
->>> problem.
->>
->> Any "hint" code that would try to do some NOP operations may fail. One of the
->> reasons is that such hint is not documented. Yet, I don't officially support
->> such "hint" methods at the API.
-> 
-> The point is that the spec can easily be improved to make such 'NOP' operations
-> explicit, or to require that if a capability is present, then the corresponding
-> ioctl(s) must also be present. Things like that are easy to verify as well with
-> v4l2-compliance.
+The only sysfs attr implemented so far is "companion" from ehci-hub.c,
+but in the next patch we are going to add another sysfs file, so prior
+to that let's structure things and move already-in-there sysfs code to
+separate file.
 
-We currently have more than 64 ioctl's. Adding a capability bit for each doesn't
-seem the right thing to do. Ok, some could be grouped, but, even so, there are
-drivers that implement the VIDIOC_G, but doesn't implement the corresponding VIDIO_S.
-So, I think we don't have enough available bits for doing that.
+Signed-off-by: Kirill Smelkov <kirr@mns.spb.ru>
+---
+ drivers/usb/host/ehci-hcd.c   |    5 +-
+ drivers/usb/host/ehci-hub.c   |   75 --------------------------------
+ drivers/usb/host/ehci-sysfs.c |   94 +++++++++++++++++++++++++++++++++++++++++
+ 3 files changed, 97 insertions(+), 77 deletions(-)
+ create mode 100644 drivers/usb/host/ehci-sysfs.c
 
->> Btw, there are two drivers returning -ENOTTY, when the device got disconnected
->> (or firmware were not uploaded).
->>
->> The truth is that the current API specs for return code is bogus.
-> 
-> Bogus in what way? It's been documented very clearly for years. We may not like
-> that design decision (I certainly don't like it), but someone clearly thought
-> about it at the time.
+diff --git a/drivers/usb/host/ehci-hcd.c b/drivers/usb/host/ehci-hcd.c
+index e18862c..8306155 100644
+--- a/drivers/usb/host/ehci-hcd.c
++++ b/drivers/usb/host/ehci-hcd.c
+@@ -336,6 +336,7 @@ static void ehci_work(struct ehci_hcd *ehci);
+ #include "ehci-mem.c"
+ #include "ehci-q.c"
+ #include "ehci-sched.c"
++#include "ehci-sysfs.c"
+ 
+ /*-------------------------------------------------------------------------*/
+ 
+@@ -520,7 +521,7 @@ static void ehci_stop (struct usb_hcd *hcd)
+ 	ehci_reset (ehci);
+ 	spin_unlock_irq(&ehci->lock);
+ 
+-	remove_companion_file(ehci);
++	remove_sysfs_files(ehci);
+ 	remove_debug_files (ehci);
+ 
+ 	/* root hub is shut down separately (first, when possible) */
+@@ -754,7 +755,7 @@ static int ehci_run (struct usb_hcd *hcd)
+ 	 * since the class device isn't created that early.
+ 	 */
+ 	create_debug_files(ehci);
+-	create_companion_file(ehci);
++	create_sysfs_files(ehci);
+ 
+ 	return 0;
+ }
+diff --git a/drivers/usb/host/ehci-hub.c b/drivers/usb/host/ehci-hub.c
+index ea6184b..d9e8d71 100644
+--- a/drivers/usb/host/ehci-hub.c
++++ b/drivers/usb/host/ehci-hub.c
+@@ -471,29 +471,6 @@ static int ehci_bus_resume (struct usb_hcd *hcd)
+ 
+ /*-------------------------------------------------------------------------*/
+ 
+-/* Display the ports dedicated to the companion controller */
+-static ssize_t show_companion(struct device *dev,
+-			      struct device_attribute *attr,
+-			      char *buf)
+-{
+-	struct ehci_hcd		*ehci;
+-	int			nports, index, n;
+-	int			count = PAGE_SIZE;
+-	char			*ptr = buf;
+-
+-	ehci = hcd_to_ehci(bus_to_hcd(dev_get_drvdata(dev)));
+-	nports = HCS_N_PORTS(ehci->hcs_params);
+-
+-	for (index = 0; index < nports; ++index) {
+-		if (test_bit(index, &ehci->companion_ports)) {
+-			n = scnprintf(ptr, count, "%d\n", index + 1);
+-			ptr += n;
+-			count -= n;
+-		}
+-	}
+-	return ptr - buf;
+-}
+-
+ /*
+  * Sets the owner of a port
+  */
+@@ -528,58 +505,6 @@ static void set_owner(struct ehci_hcd *ehci, int portnum, int new_owner)
+ 	}
+ }
+ 
+-/*
+- * Dedicate or undedicate a port to the companion controller.
+- * Syntax is "[-]portnum", where a leading '-' sign means
+- * return control of the port to the EHCI controller.
+- */
+-static ssize_t store_companion(struct device *dev,
+-			       struct device_attribute *attr,
+-			       const char *buf, size_t count)
+-{
+-	struct ehci_hcd		*ehci;
+-	int			portnum, new_owner;
+-
+-	ehci = hcd_to_ehci(bus_to_hcd(dev_get_drvdata(dev)));
+-	new_owner = PORT_OWNER;		/* Owned by companion */
+-	if (sscanf(buf, "%d", &portnum) != 1)
+-		return -EINVAL;
+-	if (portnum < 0) {
+-		portnum = - portnum;
+-		new_owner = 0;		/* Owned by EHCI */
+-	}
+-	if (portnum <= 0 || portnum > HCS_N_PORTS(ehci->hcs_params))
+-		return -ENOENT;
+-	portnum--;
+-	if (new_owner)
+-		set_bit(portnum, &ehci->companion_ports);
+-	else
+-		clear_bit(portnum, &ehci->companion_ports);
+-	set_owner(ehci, portnum, new_owner);
+-	return count;
+-}
+-static DEVICE_ATTR(companion, 0644, show_companion, store_companion);
+-
+-static inline int create_companion_file(struct ehci_hcd *ehci)
+-{
+-	int	i = 0;
+-
+-	/* with integrated TT there is no companion! */
+-	if (!ehci_is_TDI(ehci))
+-		i = device_create_file(ehci_to_hcd(ehci)->self.controller,
+-				       &dev_attr_companion);
+-	return i;
+-}
+-
+-static inline void remove_companion_file(struct ehci_hcd *ehci)
+-{
+-	/* with integrated TT there is no companion! */
+-	if (!ehci_is_TDI(ehci))
+-		device_remove_file(ehci_to_hcd(ehci)->self.controller,
+-				   &dev_attr_companion);
+-}
+-
+-
+ /*-------------------------------------------------------------------------*/
+ 
+ static int check_reset_complete (
+diff --git a/drivers/usb/host/ehci-sysfs.c b/drivers/usb/host/ehci-sysfs.c
+new file mode 100644
+index 0000000..347c8cb
+--- /dev/null
++++ b/drivers/usb/host/ehci-sysfs.c
+@@ -0,0 +1,94 @@
++/*
++ * Copyright (C) 2001-2004 by David Brownell
++ *
++ * This program is free software; you can redistribute it and/or modify it
++ * under the terms of the GNU General Public License as published by the
++ * Free Software Foundation; either version 2 of the License, or (at your
++ * option) any later version.
++ *
++ * This program is distributed in the hope that it will be useful, but
++ * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
++ * or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
++ * for more details.
++ *
++ * You should have received a copy of the GNU General Public License
++ * along with this program; if not, write to the Free Software Foundation,
++ * Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
++ */
++
++/* this file is part of ehci-hcd.c */
++
++
++/* Display the ports dedicated to the companion controller */
++static ssize_t show_companion(struct device *dev,
++			      struct device_attribute *attr,
++			      char *buf)
++{
++	struct ehci_hcd		*ehci;
++	int			nports, index, n;
++	int			count = PAGE_SIZE;
++	char			*ptr = buf;
++
++	ehci = hcd_to_ehci(bus_to_hcd(dev_get_drvdata(dev)));
++	nports = HCS_N_PORTS(ehci->hcs_params);
++
++	for (index = 0; index < nports; ++index) {
++		if (test_bit(index, &ehci->companion_ports)) {
++			n = scnprintf(ptr, count, "%d\n", index + 1);
++			ptr += n;
++			count -= n;
++		}
++	}
++	return ptr - buf;
++}
++
++/*
++ * Dedicate or undedicate a port to the companion controller.
++ * Syntax is "[-]portnum", where a leading '-' sign means
++ * return control of the port to the EHCI controller.
++ */
++static ssize_t store_companion(struct device *dev,
++			       struct device_attribute *attr,
++			       const char *buf, size_t count)
++{
++	struct ehci_hcd		*ehci;
++	int			portnum, new_owner;
++
++	ehci = hcd_to_ehci(bus_to_hcd(dev_get_drvdata(dev)));
++	new_owner = PORT_OWNER;		/* Owned by companion */
++	if (sscanf(buf, "%d", &portnum) != 1)
++		return -EINVAL;
++	if (portnum < 0) {
++		portnum = - portnum;
++		new_owner = 0;		/* Owned by EHCI */
++	}
++	if (portnum <= 0 || portnum > HCS_N_PORTS(ehci->hcs_params))
++		return -ENOENT;
++	portnum--;
++	if (new_owner)
++		set_bit(portnum, &ehci->companion_ports);
++	else
++		clear_bit(portnum, &ehci->companion_ports);
++	set_owner(ehci, portnum, new_owner);
++	return count;
++}
++static DEVICE_ATTR(companion, 0644, show_companion, store_companion);
++
++static inline int create_sysfs_files(struct ehci_hcd *ehci)
++{
++	int	i = 0;
++
++	/* with integrated TT there is no companion! */
++	if (!ehci_is_TDI(ehci))
++		i = device_create_file(ehci_to_hcd(ehci)->self.controller,
++				       &dev_attr_companion);
++	return i;
++}
++
++static inline void remove_sysfs_files(struct ehci_hcd *ehci)
++{
++	/* with integrated TT there is no companion! */
++	if (!ehci_is_TDI(ehci))
++		device_remove_file(ehci_to_hcd(ehci)->self.controller,
++				   &dev_attr_companion);
++}
+-- 
+1.7.6.rc3
 
-Bogus in the sense that drivers don't follow them, as they're returning undocumented
-values. Any application strictly following it will have troubles.
-
->> The right thing to do is to create a separate chapter for error codes, based on errno(3)
->> man page, where we document all error codes that should be used by the drivers. Then,
->> at the ioctl pages, link to the common chapter and, only when needed, document special
->> cases where an error code for that specific ioctl has some special meaning.
-> 
-> Great, I've no problem with that. But this particular error code you want to change
-> is actually implemented *consistently* in all drivers. There is no confusion, no
-> ambiguity, and it is according to the spec.
-
-As I said, from userspace perspective, it is not consistent to assume that EINVAL means
-not implemented. For sure at VIDIOC_S_foo, this is not consistent. Even on some GET types
-of ioctl, like for example [1][2], there are other reasons for an EINVAL return.
-
-[1] http://linuxtv.org/downloads/v4l-dvb-apis/vidioc-cropcap.html
-[2] http://linuxtv.org/downloads/v4l-dvb-apis/vidioc-g-audio.html
-
-The only way to make it consistent is to use different return codes for "invalid parameters" 
-and for "unsupported ioctl".
-
->> I ran a script here to check how many different error codes are used inside drivers/media:
->>
->> $ find drivers/media -type f -name '*.[ch]'  >files
->> $ grep define `find . -name errno*.h`|perl -ne 'print "$1\n" if (/\#define\s+(E[^\s]+)/)'|sort|uniq >errors
->> $ for i in `cat errors`; do COUNT=$(git grep -c $i `cat files`|wc -l); if [ "$COUNT" != "0" ]; then echo $i $COUNT; fi; done
->>
->> The result is that we're using 53 different types of errors, but the API specs documents
->> only 17 of them. Those are the currently used errors at drivers/media:
->>
->> ERROR CODE     |NUMBER OF *.c/*.h FILES USING IT
->> ---------------|--------------------------------
->> E2BIG           1
->> EACCES          8
->> EAGAIN          66
->> EBADF           1
->> EBADFD          1
->> EBADR           2
->> EBADRQC         2
->> EBUSY           149
->> ECHILD          1
->> ECONNRESET      25
->> EDEADLK         1
->> EDOM            1
->> EEXIST          3
->> EFAULT          230
->> EFBIG           1
->> EILSEQ          8
->> EINIT           2
->> EINPROGRESS     6
->> EINTR           21
->> EINVAL          501
->> EIO             305
->> EMFILE          1
->> ENFILE          7
->> ENOBUFS         7
->> ENODATA         4
->> ENODEV          270
->> ENOENT          46
->> ENOIOCTLCMD     31
->> ENOMEM          359
->> ENOSPC          13
->> ENOSR           7
->> ENOSYS          15
->> ENOTSUP         3
->> ENOTSUPP        3
->> ENOTTY          5
->> ENXIO           26
->> EOPNOTSUPP      19
->> EOVERFLOW       14
->> EPERM           47
->> EPIPE           12
->> EPROTO          11
->> ERANGE          25
->> EREMOTE         80
->> EREMOTEIO       80
->> ERESTART        32
->> ERESTARTSYS     32
->> ESHUTDOWN       27
->> ESPIPE          3
->> ETIME           53
->> ETIMEDOUT       37
->> EUSERS          2
->> EWOULDBLOCK     14
->> EXDEV           1
->>
->> I suspect that we'll need to both fix some drivers, and the API, as I bet that
->> the same error conditions are reported differently on different drivers.
->>
->>> I don't think changing such an important return value is acceptable.
->>
->> As I said, the current API is bogus with respect to error codes. Of course,
->> we need to do take care to avoid userspace applications breakage, but we can't
->> use the excuse that it is there for a long time as a reason for not fixing it.
-> 
-> The fact that many drivers use error codes creatively doesn't give us an excuse
-> to just change the one error code that is actually used everywhere according to
-> the spec! That's faulty logic.
-
-The fix that it is needed is to provide a consistent way for an userspace application
-to know for sure when an ioctl is not supported. It can be done on a simple way of
-just returning a different error code for it, or with complex mechanisms like adding
-a per-ioctl flag and some hint logics based on NOP.
-
-The V4L2 is complex enough for us to add more complexity with hints and cap flags.
-
-Thanks,
-Mauro
