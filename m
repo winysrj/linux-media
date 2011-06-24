@@ -1,107 +1,133 @@
 Return-path: <mchehab@pedra>
-Received: from smtp-vbr18.xs4all.nl ([194.109.24.38]:1330 "EHLO
-	smtp-vbr18.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754443Ab1FDK2N (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sat, 4 Jun 2011 06:28:13 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Subject: Re: [RFCv2 PATCH 08/11] v4l2-ctrls: simplify event subscription.
-Date: Sat, 4 Jun 2011 12:28:04 +0200
-Cc: linux-media@vger.kernel.org, Hans Verkuil <hans.verkuil@cisco.com>
-References: <1306330435-11799-1-git-send-email-hverkuil@xs4all.nl> <2993c04b0ba330b3f634e281a6b50ee8cd7e6f7c.1306329390.git.hans.verkuil@cisco.com> <201106032155.10808.laurent.pinchart@ideasonboard.com>
-In-Reply-To: <201106032155.10808.laurent.pinchart@ideasonboard.com>
+Received: from h5.dl5rb.org.uk ([81.2.74.5]:45741 "EHLO duck.linux-mips.net"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1752895Ab1FXNaW (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 24 Jun 2011 09:30:22 -0400
+Date: Fri, 24 Jun 2011 14:30:09 +0100
+From: Ralf Baechle <ralf@linux-mips.org>
+To: Mauro Carvalho Chehab <mchehab@infradead.org>
+Cc: Jaroslav Kysela <perex@perex.cz>, linux-media@vger.kernel.org,
+	linux-kernel@vger.kernel.org, alsa-devel@alsa-project.org,
+	linux-mips@linux-mips.org
+Subject: [PATCH] MEDIA: Fix non-ISA_DMA_API link failure of sound code
+Message-ID: <20110624133009.GA30076@linux-mips.org>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-15"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201106041228.04249.hverkuil@xs4all.nl>
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Friday, June 03, 2011 21:55:10 Laurent Pinchart wrote:
-> Hi Hans,
-> 
-> Thanks for the patch.
-> 
-> On Wednesday 25 May 2011 15:33:52 Hans Verkuil wrote:
-> > From: Hans Verkuil <hans.verkuil@cisco.com>
-> > 
-> > Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-> > ---
-> >  drivers/media/video/v4l2-ctrls.c |   31 +++++++++++++++++++++++++++++++
-> >  include/media/v4l2-ctrls.h       |   25 +++++++++++++++++++++++++
-> >  2 files changed, 56 insertions(+), 0 deletions(-)
-> > 
-> > diff --git a/drivers/media/video/v4l2-ctrls.c
-> > b/drivers/media/video/v4l2-ctrls.c index e2a7ac7..9807a20 100644
-> > --- a/drivers/media/video/v4l2-ctrls.c
-> > +++ b/drivers/media/video/v4l2-ctrls.c
-> > @@ -831,6 +831,22 @@ int v4l2_ctrl_handler_init(struct v4l2_ctrl_handler
-> > *hdl, }
-> >  EXPORT_SYMBOL(v4l2_ctrl_handler_init);
-> > 
-> > +/* Count the number of controls */
-> > +unsigned v4l2_ctrl_handler_cnt(struct v4l2_ctrl_handler *hdl)
-> > +{
-> > +	struct v4l2_ctrl_ref *ref;
-> > +	unsigned cnt = 0;
-> > +
-> > +	if (hdl == NULL)
-> > +		return 0;
-> > +	mutex_lock(&hdl->lock);
-> > +	list_for_each_entry(ref, &hdl->ctrl_refs, node)
-> > +		cnt++;
-> 
-> As you don't use the entry, you can replace list_for_each_entry with 
-> list_for_each.
+A build with ISA && ISA_DMA && !ISA_DMA_API results in:
 
-True.
+  CC      sound/isa/es18xx.o
+sound/isa/es18xx.c: In function ‘snd_es18xx_playback1_prepare’:
+sound/isa/es18xx.c:501:9: error: implicit declaration of function ‘snd_dma_program’ [-Werror=implicit-function-declaration]
+sound/isa/es18xx.c: In function ‘snd_es18xx_playback_pointer’:
+sound/isa/es18xx.c:818:3: error: implicit declaration of function ‘snd_dma_pointer’ [-Werror=implicit-function-declaration]
+cc1: some warnings being treated as errors
 
-> Should the handler keep a controls count ? In that case you wouldn't need this 
-> function.
+make[2]: *** [sound/isa/es18xx.o] Error 1
+  CC      sound/isa/sscape.o
+sound/isa/sscape.c: In function ‘upload_dma_data’:
+sound/isa/sscape.c:481:3: error: implicit declaration of function ‘snd_dma_program’ [-Werror=implicit-function-declaration]
+cc1: some warnings being treated as errors
 
-I'll look into this.
+make[2]: *** [sound/isa/sscape.o] Error 1
+  CC      sound/isa/ad1816a/ad1816a_lib.o
+sound/isa/ad1816a/ad1816a_lib.c: In function ‘snd_ad1816a_playback_prepare’:
+sound/isa/ad1816a/ad1816a_lib.c:244:2: error: implicit declaration of function ‘snd_dma_program’ [-Werror=implicit-function-declaration]
+sound/isa/ad1816a/ad1816a_lib.c: In function ‘snd_ad1816a_playback_pointer’:
+sound/isa/ad1816a/ad1816a_lib.c:302:2: error: implicit declaration of function ‘snd_dma_pointer’ [-Werror=implicit-function-declaration]
+sound/isa/ad1816a/ad1816a_lib.c: In function ‘snd_ad1816a_free’:
+sound/isa/ad1816a/ad1816a_lib.c:544:3: error: implicit declaration of function ‘snd_dma_disable’ [-Werror=implicit-function-declaration]
+cc1: some warnings being treated as errors
 
-> 
-> > +	mutex_unlock(&hdl->lock);
-> > +	return cnt;
-> > +}
-> > +EXPORT_SYMBOL(v4l2_ctrl_handler_cnt);
-> > +
-> >  /* Free all controls and control refs */
-> >  void v4l2_ctrl_handler_free(struct v4l2_ctrl_handler *hdl)
-> >  {
-> > @@ -1999,3 +2015,18 @@ void v4l2_ctrl_del_fh(struct v4l2_ctrl *ctrl, struct
-> > v4l2_fh *fh) v4l2_ctrl_unlock(ctrl);
-> >  }
-> >  EXPORT_SYMBOL(v4l2_ctrl_del_fh);
-> > +
-> > +int v4l2_ctrl_sub_fh(struct v4l2_fh *fh, struct v4l2_event_subscription
-> > *sub, +		     unsigned n)
-> 
-> I would rename this to v4l2_ctrl_subscribe_fh(). I had trouble understanding 
-> what v4l2_ctrl_sub_fh() before reading the documentation. sub makes me think 
-> about sub-devices and subtract, not subscription.
+make[3]: *** [sound/isa/ad1816a/ad1816a_lib.o] Error 1
+make[3]: Target `__build' not remade because of errors.
+make[2]: *** [sound/isa/ad1816a] Error 2
+  CC      sound/isa/es1688/es1688_lib.o
+sound/isa/es1688/es1688_lib.c: In function ‘snd_es1688_playback_prepare’:
+sound/isa/es1688/es1688_lib.c:417:2: error: implicit declaration of function ‘snd_dma_program’ [-Werror=implicit-function-declaration]
+sound/isa/es1688/es1688_lib.c: In function ‘snd_es1688_playback_pointer’:
+sound/isa/es1688/es1688_lib.c:509:2: error: implicit declaration of function ‘snd_dma_pointer’ [-Werror=implicit-function-declaration]
+cc1: some warnings being treated as errors
 
-Good point.
+make[3]: *** [sound/isa/es1688/es1688_lib.o] Error 1
+make[3]: Target `__build' not remade because of errors.
+make[2]: *** [sound/isa/es1688] Error 2
+  CC      sound/isa/gus/gus_dma.o
+sound/isa/gus/gus_dma.c: In function ‘snd_gf1_dma_program’:
+sound/isa/gus/gus_dma.c:79:2: error: implicit declaration of function ‘snd_dma_program’ [-Werror=implicit-function-declaration]
+sound/isa/gus/gus_dma.c: In function ‘snd_gf1_dma_done’:
+sound/isa/gus/gus_dma.c:177:3: error: implicit declaration of function ‘snd_dma_disable’ [-Werror=implicit-function-declaration]
+cc1: some warnings being treated as errors
 
-> > +{
-> > +	int ret = 0;
-> > +
-> > +	if (!fh->events)
-> > +		ret = v4l2_event_init(fh);
-> > +	if (!ret)
-> > +		ret = v4l2_event_alloc(fh, n);
-> > +	if (!ret)
-> > +		ret = v4l2_event_subscribe(fh, sub);
-> 
-> I tend to return errors when they occur instead of continuing to the end of 
-> the function. Handling errors on the spot makes code easier to read in my 
-> opinion, as I expect the main code flow to be the error-free path.
+make[3]: *** [sound/isa/gus/gus_dma.o] Error 1
+  CC      sound/isa/gus/gus_pcm.o
+sound/isa/gus/gus_pcm.c: In function ‘snd_gf1_pcm_capture_prepare’:
+sound/isa/gus/gus_pcm.c:591:2: error: implicit declaration of function ‘snd_dma_program’ [-Werror=implicit-function-declaration]
+sound/isa/gus/gus_pcm.c: In function ‘snd_gf1_pcm_capture_pointer’:
+sound/isa/gus/gus_pcm.c:619:2: error: implicit declaration of function ‘snd_dma_pointer’ [-Werror=implicit-function-declaration]
+cc1: some warnings being treated as errors
 
-Hmmm, I rather like the way the code looks in this particular case. But it;s
-no big deal and I can change it.
+make[3]: *** [sound/isa/gus/gus_pcm.o] Error 1
+make[3]: Target `__build' not remade because of errors.
+make[2]: *** [sound/isa/gus] Error 2
+  CC      sound/isa/sb/sb16_csp.o
+sound/isa/sb/sb16_csp.c: In function ‘snd_sb_csp_ioctl’:
+sound/isa/sb/sb16_csp.c:228:227: error: case label does not reduce to an integer constant
+make[3]: *** [sound/isa/sb/sb16_csp.o] Error 1
+  CC      sound/isa/sb/sb16_main.o
+sound/isa/sb/sb16_main.c: In function ‘snd_sb16_playback_prepare’:
+sound/isa/sb/sb16_main.c:276:2: error: implicit declaration of function ‘snd_dma_program’ [-Werror=implicit-function-declaration]
+sound/isa/sb/sb16_main.c: In function ‘snd_sb16_playback_pointer’:
+sound/isa/sb/sb16_main.c:456:2: error: implicit declaration of function ‘snd_dma_pointer’ [-Werror=implicit-function-declaration]
+cc1: some warnings being treated as errors
 
-Regards,
+make[3]: *** [sound/isa/sb/sb16_main.o] Error 1
+  CC      sound/isa/sb/sb8_main.o
+sound/isa/sb/sb8_main.c: In function ‘snd_sb8_playback_prepare’:
+sound/isa/sb/sb8_main.c:172:3: error: implicit declaration of function ‘snd_dma_program’ [-Werror=implicit-function-declaration]
+sound/isa/sb/sb8_main.c: In function ‘snd_sb8_playback_pointer’:
+sound/isa/sb/sb8_main.c:425:2: error: implicit declaration of function ‘snd_dma_pointer’ [-Werror=implicit-function-declaration]
+cc1: some warnings being treated as errors
 
-	Hans
+make[3]: *** [sound/isa/sb/sb8_main.o] Error 1
+make[3]: Target `__build' not remade because of errors.
+make[2]: *** [sound/isa/sb] Error 2
+  CC      sound/isa/wss/wss_lib.o
+sound/isa/wss/wss_lib.c: In function ‘snd_wss_playback_prepare’:
+sound/isa/wss/wss_lib.c:1025:2: error: implicit declaration of function ‘snd_dma_program’ [-Werror=implicit-function-declaration]
+sound/isa/wss/wss_lib.c: In function ‘snd_wss_playback_pointer’:
+sound/isa/wss/wss_lib.c:1160:2: error: implicit declaration of function ‘snd_dma_pointer’ [-Werror=implicit-function-declaration]
+sound/isa/wss/wss_lib.c: In function ‘snd_wss_free’:
+sound/isa/wss/wss_lib.c:1695:3: error: implicit declaration of function ‘snd_dma_disable’ [-Werror=implicit-function-declaration]
+cc1: some warnings being treated as errors
+
+make[3]: *** [sound/isa/wss/wss_lib.o] Error 1
+
+The root cause for this is hidden in this Kconfig warning:
+
+warning: (RADIO_MIROPCM20) selects SND_ISA which has unmet direct dependencies (SOUND && !M68K && SND && ISA && ISA_DMA_API)
+
+Adding a dependency on ISA_DMA_API to RADIO_MIROPCM20 fixes these issues.
+
+Signed-off-by: Ralf Baechle <ralf@linux-mips.org>
+
+ drivers/media/radio/Kconfig |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
+
+diff --git a/drivers/media/radio/Kconfig b/drivers/media/radio/Kconfig
+index e4c97fd..0aeed28 100644
+--- a/drivers/media/radio/Kconfig
++++ b/drivers/media/radio/Kconfig
+@@ -168,7 +168,7 @@ config RADIO_MAXIRADIO
+ 
+ config RADIO_MIROPCM20
+ 	tristate "miroSOUND PCM20 radio"
+-	depends on ISA && VIDEO_V4L2 && SND
++	depends on ISA && ISA_DMA_API && VIDEO_V4L2 && SND
+ 	select SND_ISA
+ 	select SND_MIRO
+ 	---help---
