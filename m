@@ -1,108 +1,59 @@
 Return-path: <mchehab@pedra>
-Received: from smtp-vbr6.xs4all.nl ([194.109.24.26]:2430 "EHLO
-	smtp-vbr6.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757351Ab1F1Ndl (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 28 Jun 2011 09:33:41 -0400
-Received: from tschai.localnet (64-103-25-233.cisco.com [64.103.25.233])
-	(authenticated bits=0)
-	by smtp-vbr6.xs4all.nl (8.13.8/8.13.8) with ESMTP id p5SDXcP2055123
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-media@vger.kernel.org>; Tue, 28 Jun 2011 15:33:39 +0200 (CEST)
-	(envelope-from hverkuil@xs4all.nl)
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: "linux-media" <linux-media@vger.kernel.org>
-Subject: Re: [GIT PATCHES FOR 3.1] Add Control Event and autofoo/foo support
-Date: Tue, 28 Jun 2011 15:33:38 +0200
-References: <201106281453.22685.hverkuil@xs4all.nl>
-In-Reply-To: <201106281453.22685.hverkuil@xs4all.nl>
+Received: from h5.dl5rb.org.uk ([81.2.74.5]:48613 "EHLO duck.linux-mips.net"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1756241Ab1FXNgb (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 24 Jun 2011 09:36:31 -0400
+Date: Fri, 24 Jun 2011 14:36:23 +0100
+From: Ralf Baechle <ralf@linux-mips.org>
+To: Arnd Bergmann <arnd@arndb.de>
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Jaroslav Kysela <perex@perex.cz>, Takashi Iwai <tiwai@suse.de>,
+	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+	alsa-devel@alsa-project.org, linux-mips@linux-mips.org
+Subject: Re: [PATCH] SOUND: Fix non-ISA_DMA_API build failure
+Message-ID: <20110624133623.GA32018@linux-mips.org>
+References: <20110623144750.GA10180@linux-mips.org>
+ <201106241519.44425.arnd@arndb.de>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201106281533.38219.hverkuil@xs4all.nl>
+Content-Type: text/plain; charset=iso-8859-1
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <201106241519.44425.arnd@arndb.de>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Tuesday, June 28, 2011 14:53:22 Hans Verkuil wrote:
-> Hi Mauro,
-> 
-> This is the same as the first pull request, except for:
-> 
-> - the poll patch has been removed (to be discussed further)
-> - a new patch has been added that fixes your manual_mode_value comments.
+On Fri, Jun 24, 2011 at 03:19:44PM +0200, Arnd Bergmann wrote:
 
-I've removed this branch: without the poll change I also need to revert part
-of the vivi and ivtv changes.
+> > The sole ISA sound driver that does not use the ISA DMA API is the Adlib
+> > driver so replaced the dependency of SND_ISA on ISA_DMA_API and add it to
+> > each of the drivers individually.
+> 
+> Do we really care all that much about the Adlib driver on platforms without
+> ISA_DMA_API? Right now all of sound/isa/ is hidden behind ISA_DMA_API and
+> I think that's acceptable
 
-I'll repost soon.
+When looking into this build error I started untangling the mess from the
+isa from the sounds end and found the media bits as the root cause after I
+finished the sound bits.  I honestly don't care about the Adlib - until I
+plug an Adlib into one of my SGI Indigo² and that's unlikely to happen :)
 
-Regards,
+> > diff --git a/drivers/media/radio/Kconfig b/drivers/media/radio/Kconfig
+> > index e4c97fd..0aeed28 100644
+> > --- a/drivers/media/radio/Kconfig
+> > +++ b/drivers/media/radio/Kconfig
+> > @@ -168,7 +168,7 @@ config RADIO_MAXIRADIO
+> >  
+> >  config RADIO_MIROPCM20
+> >         tristate "miroSOUND PCM20 radio"
+> > -       depends on ISA && VIDEO_V4L2 && SND
+> > +       depends on ISA && ISA_DMA_API && VIDEO_V4L2 && SND
+> >         select SND_ISA
+> >         select SND_MIRO
+> >         ---help---
+> 
+> Then this hunk by itself would be enough to solve the compile
+> errors, AFAICT.
 
-	Hans
+It is, I've tested that.
 
-> 
-> Note that I have left out the 'event feedback' fix in this patch series.
-> I'm going to make a patch for the second patch series instead: it's much
-> easier to implement there (that may have been a reason why I didn't
-> implement such a flag in the first place). I'll post that fix later for
-> review.
-> 
-> Regards,
-> 
-> 	Hans
-> 
-> The following changes since commit 7023c7dbc3944f42aa1d6910a6098c5f9e23d3f1:
-> 
->   [media] DVB: dvb-net, make the kconfig text helpful (2011-06-21 15:55:15 -0300)
-> 
-> are available in the git repository at:
->   ssh://linuxtv.org/git/hverkuil/media_tree.git core8b
-> 
-> Hans Verkuil (18):
->       v4l2-ctrls: introduce call_op define
->       v4l2-ctrls: simplify error_idx handling.
->       v4l2-ctrls: drivers should be able to ignore the READ_ONLY flag
->       v4l2-ioctl: add ctrl_handler to v4l2_fh
->       v4l2-subdev: implement per-filehandle control handlers.
->       v4l2-ctrls: fix and improve volatile control handling.
->       v4l2-controls.txt: update to latest v4l2-ctrl.c changes.
->       v4l2-ctrls: add v4l2_ctrl_auto_cluster to simplify autogain/gain scenarios
->       DocBook: Improve cluster documentation and document the new autoclusters.
->       vivi: add autogain/gain support to test the autocluster functionality.
->       v4l2-ctrls: add v4l2_fh pointer to the set control functions.
->       v4l2-ctrls: add control events.
->       v4l2-ctrls: simplify event subscription.
->       V4L2 spec: document control events.
->       vivi: support control events.
->       ivtv: add control event support.
->       v4l2-compat-ioctl32: add VIDIOC_DQEVENT support.
->       v4l2-ctrls: make manual_mode_value 8 bits and check against control range.
-> 
->  Documentation/DocBook/media/v4l/vidioc-dqevent.xml |   17 +-
->  .../DocBook/media/v4l/vidioc-subscribe-event.xml   |  142 +++++++++-
->  Documentation/video4linux/v4l2-controls.txt        |   69 ++++-
->  drivers/media/radio/radio-wl1273.c                 |    2 +-
->  drivers/media/radio/wl128x/fmdrv_v4l2.c            |    2 +-
->  drivers/media/video/ivtv/ivtv-fileops.c            |   34 +--
->  drivers/media/video/ivtv/ivtv-ioctl.c              |    2 +
->  drivers/media/video/saa7115.c                      |    4 +-
->  drivers/media/video/v4l2-compat-ioctl32.c          |   37 +++
->  drivers/media/video/v4l2-ctrls.c                   |  333 ++++++++++++++++----
->  drivers/media/video/v4l2-device.c                  |    1 +
->  drivers/media/video/v4l2-event.c                   |  130 ++++++--
->  drivers/media/video/v4l2-fh.c                      |    6 +-
->  drivers/media/video/v4l2-ioctl.c                   |   40 ++-
->  drivers/media/video/v4l2-subdev.c                  |   14 +-
->  drivers/media/video/vivi.c                         |   53 +++-
->  include/linux/videodev2.h                          |   29 ++-
->  include/media/v4l2-ctrls.h                         |   92 +++++-
->  include/media/v4l2-event.h                         |    2 +
->  include/media/v4l2-fh.h                            |    2 +
->  kernel/compat.c                                    |    1 +
->  21 files changed, 849 insertions(+), 163 deletions(-)
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
+  Ralf
