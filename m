@@ -1,46 +1,58 @@
 Return-path: <mchehab@pedra>
-Received: from mail-fx0-f46.google.com ([209.85.161.46]:42898 "EHLO
-	mail-fx0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754009Ab1FOJ0w (ORCPT
+Received: from mail-ew0-f46.google.com ([209.85.215.46]:39321 "EHLO
+	mail-ew0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753887Ab1FXVWx convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 15 Jun 2011 05:26:52 -0400
-Content-Type: text/plain; charset=utf-8; format=flowed; delsp=yes
-To: "Zach Pfeffer" <zach.pfeffer@linaro.org>,
-	"Arnd Bergmann" <arnd@arndb.de>
-Cc: "Daniel Stone" <daniels@collabora.com>,
-	"Ankita Garg" <ankita@in.ibm.com>,
-	"Daniel Walker" <dwalker@codeaurora.org>,
-	"Jesse Barker" <jesse.barker@linaro.org>,
-	"Mel Gorman" <mel@csn.ul.ie>, linux-kernel@vger.kernel.org,
-	linaro-mm-sig@lists.linaro.org, linux-mm@kvack.org,
-	"Kyungmin Park" <kyungmin.park@samsung.com>,
-	"KAMEZAWA Hiroyuki" <kamezawa.hiroyu@jp.fujitsu.com>,
-	"Andrew Morton" <akpm@linux-foundation.org>,
-	linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org
-Subject: Re: [Linaro-mm-sig] [PATCH 08/10] mm: cma: Contiguous Memory
- Allocator added
-References: <1307699698-29369-1-git-send-email-m.szyprowski@samsung.com>
- <20110614170158.GU2419@fooishbar.org>
- <BANLkTi=cJisuP8=_YSg4h-nsjGj3zsM7sg@mail.gmail.com>
- <201106142242.25157.arnd@arndb.de>
-Date: Wed, 15 Jun 2011 11:26:47 +0200
+	Fri, 24 Jun 2011 17:22:53 -0400
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-From: "Michal Nazarewicz" <mina86@mina86.com>
-Message-ID: <op.vw31uxxl3l0zgt@mnazarewicz-glaptop>
-In-Reply-To: <201106142242.25157.arnd@arndb.de>
+In-Reply-To: <20110624232048.66f1f98c@stein>
+References: <alpine.LNX.2.00.1106232344480.17688@swampdragon.chaosbits.net>
+	<4E04912A.4090305@infradead.org>
+	<BANLkTim9cBiiK_GsZaspxpPJQDBvAcKCWg@mail.gmail.com>
+	<201106241554.10751.hverkuil@xs4all.nl>
+	<4E04A122.2080002@infradead.org>
+	<20110624203404.7a3f6f6a@stein>
+	<BANLkTimj-oEDvWxMao6zJ_sudUntEVjO1w@mail.gmail.com>
+	<1308949448.2093.20.camel@morgan.silverblock.net>
+	<20110624232048.66f1f98c@stein>
+Date: Fri, 24 Jun 2011 17:22:50 -0400
+Message-ID: <BANLkTinZoax2fcSxvyQgfsT-bmsF+BofyQ@mail.gmail.com>
+Subject: Re: [RFC] Don't use linux/version.h anymore to indicate a per-driver
+ version - Was: Re: [PATCH 03/37] Remove unneeded version.h includes from include/
+From: Devin Heitmueller <dheitmueller@kernellabs.com>
+To: Stefan Richter <stefanr@s5r6.in-berlin.de>
+Cc: Andy Walls <awalls@md.metrocast.net>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	Jesper Juhl <jj@chaosbits.net>,
+	LKML <linux-kernel@vger.kernel.org>, trivial@kernel.org,
+	linux-media@vger.kernel.org, ceph-devel@vger.kernel.org,
+	Sage Weil <sage@newdream.net>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Tue, 14 Jun 2011 22:42:24 +0200, Arnd Bergmann <arnd@arndb.de> wrote:
-> * We still need to solve the same problem in case of IOMMU mappings
->   at some point, even if today's hardware doesn't have this combination.
->   It would be good to use the same solution for both.
+On Fri, Jun 24, 2011 at 5:20 PM, Stefan Richter
+<stefanr@s5r6.in-berlin.de> wrote:
+> Easier:
+>  "I run Ubuntu 10.4".
+>  "I run kernel 2.6.32."
+> One of these is usually already included in the first post or IRC message
+> from the user.
+>
+> Separate driver versions are only needed on platforms where drivers are
+> not distributed by the operating system distributor, or driver source code
+> is not released within kernel source code.
 
-I don't think I follow.  What does IOMMU has to do with CMA?
+Unfortunately, this doesn't work as all too often the user has "Ubuntu
+10.1 but I installed the latest media_build tree a few months ago".
+Hence they are not necessarily on a particular binary release from a
+distro but rather have a mix of a distro's binary release and a
+v4l-dvb tree compiled from source.
+
+Devin
 
 -- 
-Best regards,                                         _     _
-.o. | Liege of Serenely Enlightened Majesty of      o' \,=./ `o
-..o | Computer Science,  Michal "mina86" Nazarewicz    (o o)
-ooo +-----<email/xmpp: mnazarewicz@google.com>-----ooO--(_)--Ooo--
+Devin J. Heitmueller - Kernel Labs
+http://www.kernellabs.com
