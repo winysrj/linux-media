@@ -1,86 +1,90 @@
 Return-path: <mchehab@pedra>
-Received: from mail.kapsi.fi ([217.30.184.167]:48113 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755582Ab1FVLhn (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 22 Jun 2011 07:37:43 -0400
-Message-ID: <4E01D405.6090200@iki.fi>
-Date: Wed, 22 Jun 2011 14:37:41 +0300
-From: Antti Palosaari <crope@iki.fi>
-MIME-Version: 1.0
-To: mutoid <mutoid@gmail.com>
-CC: linux-media@vger.kernel.org
-Subject: Re: impossible to tune card, but I can watch TV :?
-References: <BANLkTi=73UGtcMTE5dUWSQEeyke8T-HB8Q@mail.gmail.com>
-In-Reply-To: <BANLkTi=73UGtcMTE5dUWSQEeyke8T-HB8Q@mail.gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Received: from proofpoint-cluster.metrocast.net ([65.175.128.136]:40603 "EHLO
+	proofpoint-cluster.metrocast.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751436Ab1FXVdc (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 24 Jun 2011 17:33:32 -0400
+Subject: Re: cx18 init lockdep spew
+From: Andy Walls <awalls@md.metrocast.net>
+To: Jarod Wilson <jarod@wilsonet.com>
+Cc: "linux-media@vger.kernel.org Mailing List"
+	<linux-media@vger.kernel.org>, hverkuil@xs4all.nl
+In-Reply-To: <ECEB9AD1-D1E4-4204-BE4C-30E3EFFA7722@wilsonet.com>
+References: <ECEB9AD1-D1E4-4204-BE4C-30E3EFFA7722@wilsonet.com>
+Content-Type: text/plain; charset="UTF-8"
+Date: Fri, 24 Jun 2011 17:34:18 -0400
+Message-ID: <1308951258.2093.48.camel@morgan.silverblock.net>
+Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-No exactly knowledge, but I cannot see where you define used bandwidth. 
-Frequency and bandwidth are generally needed by every DVB-T tuner as 
-param. Maybe those just are defaulted to different defaults or no 
-default at all.
+On Fri, 2011-06-24 at 13:39 -0400, Jarod Wilson wrote:
+> I only just recently acquired a Hauppauge HVR-1600 cards, and at least both
+> 2.6.39 and 3.0-rc4 kernels with copious debug spew enabled spit out the
+> lockdep spew included below. Haven't looked into it at all yet, but I
+> thought I'd ask before I do if it is already a known issue.
 
-Antti
+Why, yes, it is.  See comments 11-13 of this bug assigned to Jarod
+Wilson in Dec 2010:
 
-On 06/22/2011 01:05 PM, mutoid wrote:
-> Hello,
->
-> I have an Avermedia Super 007, installed in a headless Linux machine to
-> multicast some TV channels.
->
-> I use "mumudvb" and works fine, without problem. I can stream 4 TV channels
-> and 4 radios at once
->
-> But now I need to extract EPG data, using dbvtune and tv_grab_dvb
->
-> I tried 2 configurations:
->
-> * Kworld USB DVB-T + dvbtune + tv_grab_dvb = works fine
->
-> ~# dvbtune -c 1 -f 770000
-> Using DVB card "Afatech AF9013 DVB-T"
-> tuning DVB-T (in United Kingdom) to 770000000 Hz
-> polling....
-> Getting frontend event
-> FE_STATUS:
-> polling....
-> Getting frontend event
-> FE_STATUS: FE_HAS_SIGNAL FE_HAS_LOCK FE_HAS_CARRIER FE_HAS_VITERBI
-> FE_HAS_SYNC
-> Event:  Frequency: 780600000
->          SymbolRate: 0
->          FEC_inner:  2
->
-> Bit error rate: 0
-> Signal strength: 51993
-> SNR: 120
-> FE_STATUS: FE_HAS_SIGNAL FE_HAS_LOCK FE_HAS_CARRIER FE_HAS_VITERBI
-> FE_HAS_SYNC
->
->
-> * Avermedia Super 007 + dvbtune = no working
->
-> ~# dvbtune -c 0 -f 770000
-> Using DVB card "Philips TDA10046H DVB-T"
-> tuning DVB-T (in United Kingdom) to 770000000 Hz
-> polling....
-> Getting frontend event
-> FE_STATUS:
-> polling....
-> polling....
-> polling....
-> polling....
->
-> Why can I use dvbtune with one USB card but not with a PCI card?
->
-> Thanks.
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+https://bugzilla.redhat.com/show_bug.cgi?id=662384
+
+Also please ask jarod@redhat.com to send you some off-list emails he
+received from me on 21-22 Dec 2010.
+
+;)
 
 
--- 
-http://palosaari.fi/
+Oh, look, some nice fellow submitted a patch to get rid of the false
+alarms:
+
+http://www.mail-archive.com/linux-media@vger.kernel.org/msg26097.html
+https://patchwork.kernel.org/patch/431311/
+
+;)
+
+
+I'm not sure if it still applies cleanly, but it's not that hard to
+grok.  The lockdep happiness comes from the lock being initialized in a
+macro.  That is what's critical to spread all lock instances from one
+"class" into many individual classes for lockdep.
+
+
+The issue is the control handling framework creates instances where the
+bridge driver acquires its own control handler lock and subsequently a
+subdev driver lock (or maybe the other way around).  Since the framework
+instantiated all the handler locks in the same common function, lockdep
+considers them one "class" and can't/won't think of them as different.
+
+
+
+If you don't like my patch above, you can try some magic lockdep calls
+in v4l2_ctrl_add_handler() to make lockdep ignore that particular
+recursion for the "&hdl->lock" lock class (for a depth of 1?), knowing
+that it is allowed.
+
+For reference:
+
+http://lkml.org/lkml/2009/9/2/83
+
+I'm pretty sure "mutex_lock_nested(&...->lock, 1)" is what we needed  in
+v4l2_ctrl_add_handler().
+
+
+Here is a DVB and I2C related use of mutex_lock_nested() that was added
+some years ago:
+
+http://www.jikos.cz/~jikos/dev/lockdep_fix_recursive_i2c_transfer.patch
+
+It is different from our current use case, in that the lock ordering
+relationship was well defined.  I think that I2C lock class recursion in
+DVB could have been solved better with lock class annotations vs.
+nesting.
+
+
+Regards,
+Andy
+
+
+
