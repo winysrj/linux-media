@@ -1,90 +1,92 @@
 Return-path: <mchehab@pedra>
-Received: from mail-fx0-f46.google.com ([209.85.161.46]:51106 "EHLO
-	mail-fx0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756536Ab1FHPU3 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 8 Jun 2011 11:20:29 -0400
-Received: by fxm17 with SMTP id 17so396420fxm.19
-        for <linux-media@vger.kernel.org>; Wed, 08 Jun 2011 08:20:28 -0700 (PDT)
-Subject: Re: DM04 USB DVB-S TUNER
-From: Malcolm Priestley <tvboxspy@gmail.com>
-To: Mehmet Altan Pire <baybesteci@gmail.com>
-Cc: linux-media@vger.kernel.org
-In-Reply-To: <4DEF5A9F.8000200@gmail.com>
-References: <4DEACF3F.9090305@gmail.com>
-	 <1307283393.22968.12.camel@localhost> <4DEBB00D.4040202@gmail.com>
-	 <1307306576.2064.13.camel@localhost> <1307310455.2547.9.camel@localhost>
-	 <4DED628E.9070502@gmail.com>  <1307424701.2117.13.camel@localhost>
-	 <1307475290.3453.14.camel@localhost>  <4DEF5A9F.8000200@gmail.com>
-Content-Type: text/plain; charset="UTF-8"
-Date: Wed, 08 Jun 2011 16:20:21 +0100
-Message-ID: <1307546421.2038.7.camel@localhost>
-Mime-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Received: from smtp-vbr13.xs4all.nl ([194.109.24.33]:1816 "EHLO
+	smtp-vbr13.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753724Ab1FXN6P (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 24 Jun 2011 09:58:15 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Devin Heitmueller <dheitmueller@kernellabs.com>
+Subject: Re: [RFC] Don't use linux/version.h anymore to indicate a per-driver version - Was: Re: [PATCH 03/37] Remove unneeded version.h includes from include/
+Date: Fri, 24 Jun 2011 15:54:10 +0200
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Jesper Juhl <jj@chaosbits.net>,
+	LKML <linux-kernel@vger.kernel.org>, trivial@kernel.org,
+	linux-media@vger.kernel.org, ceph-devel@vger.kernel.org,
+	Sage Weil <sage@newdream.net>
+References: <alpine.LNX.2.00.1106232344480.17688@swampdragon.chaosbits.net> <4E04912A.4090305@infradead.org> <BANLkTim9cBiiK_GsZaspxpPJQDBvAcKCWg@mail.gmail.com>
+In-Reply-To: <BANLkTim9cBiiK_GsZaspxpPJQDBvAcKCWg@mail.gmail.com>
+MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201106241554.10751.hverkuil@xs4all.nl>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Wed, 2011-06-08 at 14:18 +0300, Mehmet Altan Pire wrote:
-> 07-06-2011 22:34, Malcolm Priestley yazmış: 
-> > On Tue, 2011-06-07 at 06:31 +0100, Malcolm Priestley wrote:
-> > > On Tue, 2011-06-07 at 02:28 +0300, Mehmet Altan Pire wrote:
-> > > > 06-06-2011 00:47, Malcolm Priestley yazmış:
-> > > > > On Sun, 2011-06-05 at 21:42 +0100, Malcolm Priestley wrote:
-> > > > > > On Sun, 2011-06-05 at 19:34 +0300, Mehmet Altan Pire wrote:
-> > > > > > > 05-06-2011 17:16, Malcolm Priestley yazmış:
-> > > > > > > > On Sun, 2011-06-05 at 03:35 +0300, Mehmet Altan Pire wrote:
-> > > > > > > > > Hi,
-> > > > > > > > > I have "DM04 USB DVBS TUNER", using ubuntu with v4l media-build
-> > > > > > > > > drivers/modules but device  doesn't working (unknown device).
-> > > > > > > > > 
-> > > > > > > > > lsusb message:
-> > > > > > > > > ID 3344:22f0
-> > > > > > > > > 
-> > > > > > > > > under of the box:
-> > > > > > > > > DM04P2011050176
-> > > > > > > Yes, i have windows xp driver, name is "US2B0D.sys" I sending it,
-> > > > > > > attached in this mail. Thanks. 
-> > > > > > Here is a modified lmedm04.c and lme2510b_fw.sh using the US2B0D.sys
-> > > > > > 
-> > > > to modify the interrupt return.
-> > > > Ok, i tested it. Device recognized on WinXP with original driver, but tv
-> > > > application says "no lock".
-> > > > I'm not sure it worked on WinXP but driver cd is original and
-> > > > succesfully loaded and recognized.
-> > > > Again tested on ubuntu with new lmedm04.c and lme2510b_fw.sh than make,
-> > > > make install, and restart.
-> > > > 
-> > > > lsusb says:
-> > > > Bus 001 Device 008: ID 3344:1120  (changes 22f0 to 1120)
-> > > > dmesg says:
-> > > Yes this should happen. The firmware will reboot with the correct id.
-> > > > My device different or chip is damaged? Label, box and driver cd title
-> > > > writes "DM04P". DM04 and DM04P different devices?
-> > > I think the id of the chip is faulty or default.
-> > > 
-> > > I will test the firmware with LG tuner later.
-> > It is not the LG, s7395 or S0194 tuner.
-> > 
-> > So the id is intentional. 
-> > 
-> > How does it identify itself in windows?
-> > 
-> > 
-> > tvboxspy
-> > 
-> 3. Tests
+On Friday, June 24, 2011 15:45:59 Devin Heitmueller wrote:
+> On Fri, Jun 24, 2011 at 9:29 AM, Mauro Carvalho Chehab
+> <mchehab@infradead.org> wrote:
+> >> MythTV has a bunch of these too (mainly so the code can adapt to
+> >> driver bugs that are fixed in later revisions).  Putting Mauro's patch
+> >> upstream will definitely cause breakage.
+> >
+> > It shouldn't, as ivtv driver version is lower than 3.0.0. All the old bug fixes
+> > aren't needed if version is >= 3.0.0.
+> >
+> > Besides that, trusting on a driver revision number to detect that a bug is
+> > there is not the right thing to do, as version numbers are never increased at
+> > the stable kernels (nor distro modified kernels take care of increasing revision
+> > number as patches are backported there).
 > 
-> :WinXP Test: 
+> The versions are increased at the discretion of the driver maintainer,
+> usually when there is some userland visible change in driver behavior.
+>  I assure you the application developers don't *want* to rely on such
+> a mechanism, but there have definitely been cases in the past where
+> there was no easy way to detect the behavior of the driver from
+> userland.
 > 
-> I'm sure it worked on WinXP now. Tested with ProgDVB application. 
-> Signal, channel search and watching tv as succesfully. 
-> My Device working without problems on WinXP and it's not damaged. 
-> When device running on stream, green led is active, if not running,
-> green led is passive (red led is power led and it's always active).
-> Driver Info: LME_PCTV_DVBS_RS2000 "VID3344 PID22F0" 22f0 this number
-> correct...
+> It lets application developers work around things like violations of
+> the V4L2 standard which get fixed in newer revisions of the driver.
+> It provides them the ability to put a hack in their code that says "if
+> (version < X) then this driver feature is broken and I shouldn't use
+> it."
 
-I need to find out what exactly the RS2000 tuner is. So currently the
-linux driver is not supported with your device. 
+Indeed. Ideally we shouldn't need it. But reality is different.
 
-tvboxspy
+What we have right now works and I see no compelling reason to change the
+behavior.
 
+Regards,
+
+	Hans
+
+> > In other words, relying on it doesn't work fine.
+> 
+> It's the best (and really only solution) we have today.
+> 
+> >> Also, it screws up the ability for users to get fixes through the
+> >> media_build tree (unless you are increasing the revision constantly
+> >> with every merge you do).
+> >
+> > Why? Developers don't increase version numbers on every applied patch
+> > (with is great, as it avoids merge conflicts).
+> 
+> The driver maintainer doesn't *have* to increase the version - he does
+> it when he thinks it's appropriate.  The point is you are taking that
+> discretion out of *their* hands, and you yourself are unaware of when
+> it is actually needed.
+> 
+> You need to stop looking at this from a purist standpoint and think of
+> how application developers actually use the API.  They need tools like
+> this to allow them to work around driver bugs while having a source
+> codebase which operates against different kernels (including kernels
+> that may still have those bugs).
+> 
+> Sure, in a perfect world where drivers don't have bugs and
+> applications don't have to run against older kernels, what you are
+> saying is not illogical.  But then again, we don't live in a perfect
+> world.
+> 
+> Devin
+> 
+> 
