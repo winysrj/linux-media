@@ -1,109 +1,103 @@
 Return-path: <mchehab@pedra>
-Received: from mx1.redhat.com ([209.132.183.28]:1029 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754305Ab1FZQHy (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 26 Jun 2011 12:07:54 -0400
-Date: Sun, 26 Jun 2011 13:06:07 -0300
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	LKML <linux-kernel@vger.kernel.org>
-Subject: [PATCH 01/14] [media] v4l2 core: return -ENOIOCTLCMD if an ioctl
- doesn't exist
-Message-ID: <20110626130607.5931a2f8@pedra>
-In-Reply-To: <cover.1309103285.git.mchehab@redhat.com>
-References: <cover.1309103285.git.mchehab@redhat.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
-To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
+Received: from mailout-de.gmx.net ([213.165.64.23]:50577 "HELO
+	mailout-de.gmx.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1752650Ab1FXJyj convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 24 Jun 2011 05:54:39 -0400
+From: Oliver Endriss <o.endriss@gmx.de>
+Reply-To: "Linux Media Mailing List" <linux-media@vger.kernel.org>
+To: =?iso-8859-1?q?S=E9bastien_RAILLARD?= (COEXSI) <sr@coexsi.fr>
+Subject: Re: [DVB] Octopus driver status
+Date: Fri, 24 Jun 2011 11:51:33 +0200
+Cc: "Linux Media Mailing List" <linux-media@vger.kernel.org>
+References: <017201cc31ec$de287ce0$9a7976a0$@coexsi.fr>
+In-Reply-To: <017201cc31ec$de287ce0$9a7976a0$@coexsi.fr>
+MIME-Version: 1.0
+Content-Type: text/plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 8BIT
+Content-Disposition: inline
+Message-Id: <201106241151.34019@orion.escape-edv.de>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Currently, -EINVAL is used to return either when an IOCTL is not
-implemented, or if the ioctl was not implemented.
+Hi,
 
-Note: Drivers that don't use video_ioctl2, will need extra patches.
+On Thursday 23 June 2011 23:31:08 Sébastien RAILLARD wrote:
+> Dear all,
+> 
+> I'm looking at the Octopus DVB cards system from Digital Devices for a while
+> as their system seems to be very interesting 
+> 
+> Here is link with their products:
+> http://shop.digital-devices.de/epages/62357162.sf/en_GB/?ObjectPath=/Shops/6
+> 2357162/Categories
+> 
+> The good points I have found:
+> 
+> * They support most of the common DVB standards: DVB-C, DVB-T, DVB-S and
+> DVB-S2
+> * They are moderately priced
+> * There is a CAM support with a CI adapter for unscrambling channels
+> * They are using the now de-facto standard PCI-Express bus
+> * The new Octopus system is using a LATTICE PCI-Express bridge that seems to
+> be more future proof than the previous bridge Micronas APB7202A
+> * They seem to be well engineered ("Designed and manufactured in Germany" as
+> they say!)
+> 
+> And now the doubts :
+> 
+> * The DVB-C/T frontend driver is specific to this system and is very new, so
+> as Devin said one week ago, it's maybe not yet production ready
+> * The way the CAM is supported break all the existing userland DVB
+> applications (gnutv, mumudvb, vlc, etc.)
+> * There isn't so much information about the Digital Devices company and
+> their products roadmap (at least in English)
+> 
+> So, my two very simple questions to the developers who worked on the drivers
+> (I think Oliver and Ralph did) and know the product:
+> * How you feel the future about the Octopus driver?
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+The drivers work fine. I am not aware of any problems.
 
-diff --git a/Documentation/DocBook/media/Makefile b/Documentation/DocBook/media/Makefile
-index 8cb27f3..93722da 100644
---- a/Documentation/DocBook/media/Makefile
-+++ b/Documentation/DocBook/media/Makefile
-@@ -117,6 +117,7 @@ ERRORS = \
- 	EPERM \
- 	ERANGE \
- 	EPIPE \
-+	ENOIOCTLCMD \
- 
- ESCAPE = \
- 	-e "s/&/\\&amp;/g" \
-diff --git a/Documentation/DocBook/media/v4l/func-ioctl.xml b/Documentation/DocBook/media/v4l/func-ioctl.xml
-index b60fd37..0c97ba9 100644
---- a/Documentation/DocBook/media/v4l/func-ioctl.xml
-+++ b/Documentation/DocBook/media/v4l/func-ioctl.xml
-@@ -132,14 +132,15 @@ complete the request.</para>
- &VIDIOC-S-CTRL; ioctl to a value which is out of bounds.</para>
- 	</listitem>
-       </varlistentry>
-+      <varlistentry>
-+	<term><errorcode>ENOIOCTLCMD</errorcode></term>
-+	<listitem>
-+	  <para>The application attempted to use a non-existent ioctl. This is returned by the V4L2 core only.
-+		Applications should be able to handle this error code, in order to detect if a new ioctl is
-+		not implemented at the current Kernel version. Kernel versions lower than 3.0 returns EINVAL to
-+		non-existing ioctl's.</para>
-+	</listitem>
-+      </varlistentry>
-     </variablelist>
-   </refsect1>
- </refentry>
--
--<!--
--Local Variables:
--mode: sgml
--sgml-parent-document: "v4l2.sgml"
--indent-tabs-mode: nil
--End:
---->
-diff --git a/Documentation/DocBook/media/v4l/v4l2.xml b/Documentation/DocBook/media/v4l/v4l2.xml
-index a7fd76d..7bac5f9 100644
---- a/Documentation/DocBook/media/v4l/v4l2.xml
-+++ b/Documentation/DocBook/media/v4l/v4l2.xml
-@@ -128,6 +128,13 @@ structs, ioctls) must be noted in more detail in the history chapter
- applications. -->
- 
-       <revision>
-+	<revnumber>3.0.0</revnumber>
-+	<date>2011-06-24</date>
-+	<authorinitials>mcc</authorinitials>
-+	<revremark>Standardize an error code for invalid ioctl.</revremark>
-+      </revision>
-+
-+      <revision>
- 	<revnumber>2.6.39</revnumber>
- 	<date>2011-03-01</date>
- 	<authorinitials>mcc, po</authorinitials>
-diff --git a/drivers/media/video/v4l2-ioctl.c b/drivers/media/video/v4l2-ioctl.c
-index 213ba7d..ebdf762 100644
---- a/drivers/media/video/v4l2-ioctl.c
-+++ b/drivers/media/video/v4l2-ioctl.c
-@@ -542,12 +542,12 @@ static long __video_do_ioctl(struct file *file,
- 	struct v4l2_fh *vfh = NULL;
- 	struct v4l2_format f_copy;
- 	int use_fh_prio = 0;
--	long ret = -EINVAL;
-+	long ret = -ENOIOCTLCMD;
- 
- 	if (ops == NULL) {
- 		printk(KERN_WARNING "videodev: \"%s\" has no ioctl_ops.\n",
- 				vfd->name);
--		return -EINVAL;
-+		return ret;
- 	}
- 
- 	if ((vfd->debug & V4L2_DEBUG_IOCTL) &&
+All Digital Devices cards and tuner variants are supported by the driver
+http://linuxtv.org/hg/~endriss/media_build_experimental
+
+ddbridge (Lattice bridge):
+- Octopus (all variants)
+- cineS2 v6
+- DuoFlex S2 (stv0900 + stv6110 + lnbp21)
+- DuoFlex C/T (Micronas DRXK + NXP TDA18271C2)
+
+ngene bridge:
+- cineS2 (v4,v5), Satix S2 Dual
+- PCIe bridge, mini PCIe bridge
+- DuoFlex S2 (stv0900 + stv6110 + lnbp21)
+- DuoFlex C/T (Micronas DRXK + NXP TDA18271C2)
+
+For a German description, see
+http://www.vdr-portal.de/board16-video-disk-recorder/board85-hdtv-dvb-s2/105803-aktuelle-treiber-für-octopus-ddbridge-cines2-ngene-ddbridge-duoflex-s2-duoflex-ct-sowie-tt-s2-6400
+
+>From an operational point of view, the driver is ready for the kernel.
+Unfortunately I did not have the time yet to clean up the coding-style.
+There are thousands of coding-style issues waiting to be fixed...
+
+> * Do you think a compatibility mode (like module parameter) can be added to
+> simulate the way the CAM is handled in the other drivers?
+
+Yes, this could be done:
+++ The CI could be used with any application.
+-- The CI will be attached to one tuner exclusively.
+
+It is not very hard to implement this.
+Patches are welcome. ;-)
+
+CU
+Oliver
+
 -- 
-1.7.1
-
-
+----------------------------------------------------------------
+VDR Remote Plugin 0.4.0: http://www.escape-edv.de/endriss/vdr/
+4 MByte Mod: http://www.escape-edv.de/endriss/dvb-mem-mod/
+Full-TS Mod: http://www.escape-edv.de/endriss/dvb-full-ts-mod/
+----------------------------------------------------------------
