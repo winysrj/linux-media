@@ -1,58 +1,66 @@
 Return-path: <mchehab@pedra>
-Received: from mailout1.w1.samsung.com ([210.118.77.11]:26141 "EHLO
-	mailout1.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933189Ab1FBKN2 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 2 Jun 2011 06:13:28 -0400
-Date: Thu, 02 Jun 2011 12:12:02 +0200
-From: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Subject: [PATCH 5/7] s5p-fimc: Remove empty buf_init operation
-In-reply-to: <1307009524-1208-1-git-send-email-s.nawrocki@samsung.com>
-To: linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org
-Cc: m.szyprowski@samsung.com, kyungmin.park@samsung.com,
-	s.nawrocki@samsung.com, sw0312.kim@samsung.com,
-	riverful.kim@samsung.com
-Message-id: <1307009524-1208-6-git-send-email-s.nawrocki@samsung.com>
-MIME-version: 1.0
-Content-type: TEXT/PLAIN
-Content-transfer-encoding: 7BIT
-References: <1307009524-1208-1-git-send-email-s.nawrocki@samsung.com>
+Received: from casper.infradead.org ([85.118.1.10]:42257 "EHLO
+	casper.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758145Ab1FXXDN (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 24 Jun 2011 19:03:13 -0400
+Message-ID: <4E051791.9010800@infradead.org>
+Date: Fri, 24 Jun 2011 20:02:41 -0300
+From: Mauro Carvalho Chehab <mchehab@infradead.org>
+MIME-Version: 1.0
+To: Stefan Richter <stefanr@s5r6.in-berlin.de>
+CC: Devin Heitmueller <dheitmueller@kernellabs.com>,
+	Andy Walls <awalls@md.metrocast.net>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	Jesper Juhl <jj@chaosbits.net>,
+	LKML <linux-kernel@vger.kernel.org>, trivial@kernel.org,
+	linux-media@vger.kernel.org, ceph-devel@vger.kernel.org,
+	Sage Weil <sage@newdream.net>
+Subject: Re: [RFC] Don't use linux/version.h anymore to indicate a per-driver
+ version - Was: Re: [PATCH 03/37] Remove unneeded version.h includes from
+ include/
+References: <alpine.LNX.2.00.1106232344480.17688@swampdragon.chaosbits.net>	<4E04912A.4090305@infradead.org>	<BANLkTim9cBiiK_GsZaspxpPJQDBvAcKCWg@mail.gmail.com>	<201106241554.10751.hverkuil@xs4all.nl>	<4E04A122.2080002@infradead.org>	<20110624203404.7a3f6f6a@stein>	<BANLkTimj-oEDvWxMao6zJ_sudUntEVjO1w@mail.gmail.com>	<1308949448.2093.20.camel@morgan.silverblock.net>	<20110624232048.66f1f98c@stein>	<BANLkTinZoax2fcSxvyQgfsT-bmsF+BofyQ@mail.gmail.com> <20110625003911.5c14a95e@stein>
+In-Reply-To: <20110625003911.5c14a95e@stein>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-The buf_init buffer queue operation is optional and
-buffer_init() does nothing, remove it.
+Em 24-06-2011 19:39, Stefan Richter escreveu:
+> On Jun 24 Devin Heitmueller wrote:
+>> On Fri, Jun 24, 2011 at 5:20 PM, Stefan Richter
+>> <stefanr@s5r6.in-berlin.de> wrote:
+>>> Easier:
+>>>  "I run Ubuntu 10.4".
+>>>  "I run kernel 2.6.32."
+>>> One of these is usually already included in the first post or IRC message
+>>> from the user.
+>>>
+>>> Separate driver versions are only needed on platforms where drivers are
+>>> not distributed by the operating system distributor, or driver source code
+>>> is not released within kernel source code.
+>>
+>> Unfortunately, this doesn't work as all too often the user has "Ubuntu
+>> 10.1 but I installed the latest media_build tree a few months ago".
+>> Hence they are not necessarily on a particular binary release from a
+>> distro but rather have a mix of a distro's binary release and a
+>> v4l-dvb tree compiled from source.
+> 
+> If you release out-of-kernel-source driver sources for compilation against
+> binary kernels, and you have got users who go through this procedure, then
+> the user can for sure tell you the SCM version of the driver.
 
-Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
----
- drivers/media/video/s5p-fimc/fimc-capture.c |    7 -------
- 1 files changed, 0 insertions(+), 7 deletions(-)
+Yes, and this is currently provided. The dmesg will show the last 3 git commits.
+A developer can just use git diff or git log to discover what changed since those
+commits.
 
-diff --git a/drivers/media/video/s5p-fimc/fimc-capture.c b/drivers/media/video/s5p-fimc/fimc-capture.c
-index 44fc26f..6901643 100644
---- a/drivers/media/video/s5p-fimc/fimc-capture.c
-+++ b/drivers/media/video/s5p-fimc/fimc-capture.c
-@@ -286,12 +286,6 @@ static int queue_setup(struct vb2_queue *vq, unsigned int *num_buffers,
- 	return 0;
- }
- 
--static int buffer_init(struct vb2_buffer *vb)
--{
--	/* TODO: */
--	return 0;
--}
--
- static int buffer_prepare(struct vb2_buffer *vb)
- {
- 	struct vb2_queue *vq = vb->vb2_queue;
-@@ -371,7 +365,6 @@ static struct vb2_ops fimc_capture_qops = {
- 	.queue_setup		= queue_setup,
- 	.buf_prepare		= buffer_prepare,
- 	.buf_queue		= buffer_queue,
--	.buf_init		= buffer_init,
- 	.wait_prepare		= fimc_unlock,
- 	.wait_finish		= fimc_lock,
- 	.start_streaming	= start_streaming,
--- 
-1.7.5.2
+> Besides, isn't this outdated practice in times where Joe Enduser can get
+> the very latest -rc kernel prepackaged on many distributions, including
+> ones like Ubuntu?
 
+Perhaps, but the cost to maintain the out-of-tree driver git tree is cheap. We provide
+just a small building system, with a script that downloads a daily tarball
+with just drivers/media and the corresponding includes (and a few drivers/staging).
+The building system has a couple patches to allow backport compilation since 2.6.32.
+
+Mauro.
