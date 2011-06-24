@@ -1,21 +1,20 @@
 Return-path: <mchehab@pedra>
 Received: from mail.tu-berlin.de ([130.149.7.33])
 	by www.linuxtv.org with esmtp (Exim 4.69)
-	(envelope-from <reality_es@yahoo.es>) id 1QVJtH-00010s-18
-	for linux-dvb@linuxtv.org; Sat, 11 Jun 2011 10:49:59 +0200
-Received: from nm9.bullet.mail.ird.yahoo.com ([77.238.189.35])
-	by mail.tu-berlin.de (exim-4.75/mailfrontend-2) with smtp
+	(envelope-from <cedric.dewijs@telfort.nl>) id 1Qa2Gk-0004O9-DM
+	for linux-dvb@linuxtv.org; Fri, 24 Jun 2011 11:01:42 +0200
+Received: from mrqout3.tiscali.it ([195.130.225.13])
+	by mail.tu-berlin.de (exim-4.75/mailfrontend-3) with esmtp
 	for <linux-dvb@linuxtv.org>
-	id 1QVJtG-0002oa-Hs; Sat, 11 Jun 2011 10:49:58 +0200
-Message-ID: <354345.80583.qm@web24108.mail.ird.yahoo.com>
-References: <mailman.0.1307781263.2460.linux-dvb@linuxtv.org> 
-Date: Sat, 11 Jun 2011 09:49:57 +0100 (BST)
-From: Lopez Lopez <reality_es@yahoo.es>
-To: "linux-dvb@linuxtv.org" <linux-dvb@linuxtv.org>
+	id 1Qa2Gj-0005nJ-Fw; Fri, 24 Jun 2011 11:01:42 +0200
+Date: Fri, 24 Jun 2011 11:01:37 +0200
+Message-ID: <4DF7665C00004DEC@mta-nl-1.mail.tiscali.sys>
+From: cedric.dewijs@telfort.nl
+To: linux-dvb@linuxtv.org
 MIME-Version: 1.0
-Content-Type: multipart/mixed; boundary="0-1510961206-1307782197=:80583"
-Subject: Re: [linux-dvb] sveon stv22 af9015 support
-Reply-To: linux-media@vger.kernel.org, Lopez Lopez <reality_es@yahoo.es>
+Subject: [linux-dvb] dib0700 hangs when usb receiver is unplugged while
+	watching TV
+Reply-To: linux-media@vger.kernel.org
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/options/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -23,102 +22,261 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Errors-To: linux-dvb-bounces+mchehab=redhat.com@linuxtv.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Errors-To: linux-dvb-bounces+mchehab=linuxtv.org@linuxtv.org
 Sender: <mchehab@pedra>
 List-ID: <linux-dvb@linuxtv.org>
 
---0-1510961206-1307782197=:80583
-Content-Type: multipart/alternative; boundary="0-2037000963-1307782197=:80583"
+Hi All,
 
---0-2037000963-1307782197=:80583
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: quoted-printable
+I have the PCTV nanostick solo. This works perfectly, but when I pull out
+the stick while i'm watching TV, the driver crashes. When I replug the stick,
+there's no reaction in dmesg.
 
-=0A=0A=0A=0A________________________________=0ADe: Lopez Lopez <reality_es@=
-yahoo.es>=0APara: "linux-dvb@linuxtv.org" <linux-dvb@linuxtv.org>=0AEnviado=
-: s=E1bado 11 de junio de 2011 10:46=0AAsunto: sveon stv22 af9015 support=
-=0A=0A=0AHello to EveryBody:=0A=0AI have patched af9015.c and dvb-usb-ids t=
-o support sveon stv22 ( KWorld USB Dual DVB-T TV Stick (DVB-T 399U)=A0 clon=
-e ) dual with=0A-----=0A#define USB_PID_SVEON_STV22=A0=A0=A0 =A0=A0=A0 =A0=
-=A0=A0 =A0=A0=A0 0xe401=0A------=0A=A0in dvb-usb-ids.h file =0A=0Aand =0A--=
----=0A/* 30 */{USB_DEVICE(USB_VID_KWORLD_2,=A0 USB_PID_KWORLD_UB383_T)},=0A=
-=A0=A0=A0 {USB_DEVICE(USB_VID_KWORLD_2,=A0=0A USB_PID_KWORLD_395U_4)},=0A=
-=A0=A0=A0 {USB_DEVICE(USB_VID_KWORLD_2,=A0 USB_PID_SVEON_STV22)},=0A=A0=A0=
-=A0 {0},=0A};=0A=0A------=0A{=0A=A0=A0=A0 =A0=A0=A0 =A0=A0=A0 =A0=A0=A0 .na=
-me =3D "Sveon STV22 Dual USB DVB-T Tuner HDTV ",=0A=A0=A0=A0 =A0=A0=A0 =A0=
-=A0=A0 =A0=A0=A0 .cold_ids =3D {&af9015_usb_table[32], NULL},=0A=A0=A0=A0 =
-=A0=A0=A0 =A0=A0=A0 =A0=A0=A0 .warm_ids =3D {NULL},=0A=A0=A0=A0 =A0=A0=A0 =
-=A0=A0=A0 },=0A=0A-----=0A=0Ain af9015.c file=0A=0Ai expect to help you ext=
-ends linux dvb usb support.=0A=0Athanks for your time=0A=0ADavid
---0-2037000963-1307782197=:80583
-Content-Type: text/html; charset=iso-8859-1
-Content-Transfer-Encoding: quoted-printable
+To reproduce:
+1)plugin the stick
+1a)scan channels with scan, see also 
+https://wiki.archlinux.org/index.php/Digitenne#Configure_Sasc-ng
+2)use tzap, cat and mplayer to watch TV
+3)unplug the stick
+4)watch the fireworks in /var/log/everything.log (dmesg)
+See below for details.
 
-<html><body><div style=3D"color:#000; background-color:#fff; font-family:ti=
-mes new roman, new york, times, serif;font-size:12pt"><div><span></span></d=
-iv><div><br></div><div style=3D"font-family: times new roman, new york, tim=
-es, serif; font-size: 12pt;"><div style=3D"font-family: times new roman, ne=
-w york, times, serif; font-size: 12pt;"><font size=3D"2" face=3D"Arial"><hr=
- size=3D"1"><b><span style=3D"font-weight:bold;">De:</span></b> Lopez Lopez=
- &lt;reality_es@yahoo.es&gt;<br><b><span style=3D"font-weight: bold;">Para:=
-</span></b> "linux-dvb@linuxtv.org" &lt;linux-dvb@linuxtv.org&gt;<br><b><sp=
-an style=3D"font-weight: bold;">Enviado:</span></b> s=E1bado 11 de junio de=
- 2011 10:46<br><b><span style=3D"font-weight: bold;">Asunto:</span></b> sve=
-on stv22 af9015 support<br></font><br><div id=3D"yiv1382135425"><div style=
-=3D"color:#000;background-color:#fff;font-family:times new roman, new york,=
- times, serif;font-size:12pt;"><div style=3D"font-family:times new roman, n=
-ew york, times,
- serif;font-size:12pt;">Hello to EveryBody:<br><br>I have patched af9015.c =
-and dvb-usb-ids to support sveon stv22 ( <a rel=3D"nofollow" target=3D"_bla=
-nk" href=3D"http://www.linuxtv.org/wiki/index.php/KWorld" title=3D"KWorld">=
-KWorld</a> <a rel=3D"nofollow" target=3D"_blank" href=3D"http://www.linuxtv=
-.org/wiki/index.php/KWorld_USB_Dual_DVB-T_TV_Stick_%28DVB-T_399U%29" title=
-=3D"KWorld USB Dual DVB-T TV Stick (DVB-T 399U)">USB Dual DVB-T TV Stick (D=
-VB-T 399U)</a>&nbsp; clone ) dual with<br>-----<br>#define USB_PID_SVEON_ST=
-V22&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nb=
-sp; 0xe401<span style=3D"font-weight:bold;"><br>------<br>&nbsp;in dvb-usb-=
-ids.h file <br><br>and <br>-----<br>/* 30 */{USB_DEVICE(USB_VID_KWORLD_2,&n=
-bsp; USB_PID_KWORLD_UB383_T)},<br>&nbsp;&nbsp;&nbsp; {USB_DEVICE(USB_VID_KW=
-ORLD_2,&nbsp;=0A USB_PID_KWORLD_395U_4)},<br>&nbsp;&nbsp;&nbsp; {USB_DEVICE=
-(USB_VID_KWORLD_2,&nbsp; USB_PID_SVEON_STV22)},<br>&nbsp;&nbsp;&nbsp; {0},<=
-br>};<br><br>------<br>{<br>&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; &nbsp;&nb=
-sp;&nbsp; &nbsp;&nbsp;&nbsp; .name =3D "Sveon STV22 Dual USB DVB-T Tuner HD=
-TV ",<br>&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; &nbsp;&nb=
-sp;&nbsp; .cold_ids =3D {&amp;af9015_usb_table[32], NULL},<br>&nbsp;&nbsp;&=
-nbsp; &nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; .warm_ids =
-=3D {NULL},<br>&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; },<=
-br><br>-----<br><br>in af9015.c file<br><br>i expect to help you extends li=
-nux dvb usb support.<br><br>thanks for your time<br><br>David<br><br><br></=
-span></div></div></div><br><br></div></div></div></body></html>
---0-2037000963-1307782197=:80583--
+I run the following kernel:
+Linux cedric 2.6.39-ARCH #1 SMP PREEMPT Mon Jun 6 22:37:55 CEST 2011 x86_64
+Intel(R) Core(TM)2 Duo CPU T5670 @ 1.80GHz GenuineIntel GNU/Linux
 
---0-1510961206-1307782197=:80583
-Content-Type: text/plain; name="af9015.c"
-Content-Transfer-Encoding: base64
-Content-Disposition: attachment; filename="af9015.c"
+Best regards,
+Cedric
 
-SW50eExOSwEuAC4ALwBsAGkAbgB1AHgALwBkAHIAaQB2AGUAcgBzAC8AbQBl
-AGQAaQBhAC8AZAB2AGIALwBkAHYAYgAtAHUAcwBiAC8AYQBmADkAMAAxADUA
-LgBjAA==
 
---0-1510961206-1307782197=:80583
-Content-Type: text/plain; name="dvb-usb-ids.h"
-Content-Transfer-Encoding: base64
-Content-Disposition: attachment; filename="dvb-usb-ids.h"
+1)plugin the stick. This yields the following messages in dmesg:
+[75262.399219] usb 2-4: new high speed USB device number 4 using ehci_hcd
+[75263.442900] IR NEC protocol handler initialized
+[75263.585643] dib0700: loaded with support for 20 different device-types
+[75263.586003] dvb-usb: found a 'Pinnacle PCTV 73e SE' in cold state, will
+try to load a firmware
+[75263.600941] IR RC5(x) protocol handler initialized
+[75263.626257] dvb-usb: downloading firmware from file 'dvb-usb-dib0700-1.20.fw'
+[75263.626871] IR RC6 protocol handler initialized
+[75263.825852] IR JVC protocol handler initialized
+[75263.830658] IR Sony protocol handler initialized
+[75263.841488] dib0700: firmware started successfully.
+[75264.121550] lirc_dev: IR Remote Control driver registered, major 250 
+[75264.123092] IR LIRC bridge handler initialized
+[75264.342633] dvb-usb: found a 'Pinnacle PCTV 73e SE' in warm state.
+[75264.342716] dvb-usb: will pass the complete MPEG2 transport stream to
+the software demuxer.
+[75264.342896] DVB: registering new adapter (Pinnacle PCTV 73e SE)
+[75264.545372] DVB: registering adapter 0 frontend 0 (DiBcom 7000PC)...
+[75264.746115] DiB0070: successfully identified
+[75264.945842] Registered IR keymap rc-dib0700-rc5
+[75264.946120] input: IR-receiver inside an USB DVB receiver as /devices/pci0000:00/0000:00:1d.7/usb2/2-4/rc/rc0/input16
+[75264.946234] rc0: IR-receiver inside an USB DVB receiver as /devices/pci0000:00/0000:00:1d.7/usb2/2-4/rc/rc0
+[75264.946443] dvb-usb: schedule remote query interval to 50 msecs.
+[75264.946447] dvb-usb: Pinnacle PCTV 73e SE successfully initialized and
+connected.
+[75264.946856] usbcore: registered new interface driver dvb_usb_dib0700
+2) Use tzap, cat and mplayer to watch Nederland 1:
+$ tzap -a 0 -r 'Nederland 1'
+$ cat /dev/dvb/adapter0/dvr0 > test.ts
+$ mplayer test.ts
+3) Pull out the stick. This yields the following messages in dmesg:
+[77043.886483] usb 2-4: USB disconnect, device number 4
+Now the kernel does no longer respond when I replug the stick.
+After 2 minutes, the following messages show up in dmesg:
+[77280.502349] INFO: task khubd:361 blocked for more than 120 seconds.
+[77280.502354] "echo 0 > /proc/sys/kernel/hung_task_timeout_secs" disables
+this message.
+[77280.502359] khubd           D 00000001015f4e25     0   361      2 0x00000000
+[77280.502367]  ffff880075bffbb0 0000000000000046 00000001015f4e25 000000008ff4ed27
+[77280.502375]  ffff880075bffac0 ffff880070bbff00 ffff880075bfffd8 ffff88007af5dbd0
+[77280.502382]  ffff880075bfffd8 ffff880075bfffd8 ffff880037f6dbd0 ffff88007af5dbd0
+[77280.502390] Call Trace:
+[77280.502403]  [<ffffffff810559e0>] ? try_to_wake_up+0x380/0x380
+[77280.502410]  [<ffffffff813e56dd>] ? wait_for_completion+0x1d/0x20
+[77280.502425]  [<ffffffffa027cdd5>] dvb_unregister_frontend+0xc5/0x110 [dvb_core]
+[77280.502432]  [<ffffffff8107e050>] ? abort_exclusive_wait+0xb0/0xb0
+[77280.502440]  [<ffffffffa0188592>] dvb_usb_adapter_frontend_exit+0x22/0x40
+[dvb_usb]
+[77280.502446]  [<ffffffffa01874ac>] dvb_usb_exit+0x4c/0xd0 [dvb_usb]
+[77280.502453]  [<ffffffffa0187582>] dvb_usb_device_exit+0x52/0x70 [dvb_usb]
+[77280.502474]  [<ffffffffa02ead12>] usb_unbind_interface+0x52/0x180 [usbcore]
+[77280.502483]  [<ffffffff812e0515>] __device_release_driver+0x75/0xe0
+[77280.502493]  [<ffffffff812e05ac>] device_release_driver+0x2c/0x40
+[77280.502497]  [<ffffffff812e0058>] bus_remove_device+0x78/0xb0
+[77280.502501]  [<ffffffff812dd91a>] device_del+0x13a/0x1d0
+[77280.502508]  [<ffffffffa02e8ae4>] usb_disable_device+0x74/0x130 [usbcore]
+[77280.502515]  [<ffffffffa02e117c>] usb_disconnect+0x8c/0x120 [usbcore]
+[77280.502522]  [<ffffffffa02e2f4c>] hub_thread+0x9fc/0x1220 [usbcore]
+[77280.502526]  [<ffffffff8107e050>] ? abort_exclusive_wait+0xb0/0xb0
+[77280.502532]  [<ffffffffa02e2550>] ? usb_remote_wakeup+0x40/0x40 [usbcore]
+[77280.502536]  [<ffffffff8107d6fc>] kthread+0x8c/0xa0
+[77280.502540]  [<ffffffff813eac64>] kernel_thread_helper+0x4/0x10
+[77280.502544]  [<ffffffff8107d670>] ? kthread_worker_fn+0x190/0x190
+[77280.502547]  [<ffffffff813eac60>] ? gs_change+0x13/0x13
+[77400.502398] INFO: task khubd:361 blocked for more than 120 seconds.
+[77400.502403] "echo 0 > /proc/sys/kernel/hung_task_timeout_secs" disables
+this message.
+[77400.502407] khubd           D 00000001015f4e25     0   361      2 0x00000000
+[77400.502416]  ffff880075bffbb0 0000000000000046 00000001015f4e25 000000008ff4ed27
+[77400.502424]  ffff880075bffac0 ffff880070bbff00 ffff880075bfffd8 ffff88007af5dbd0
+[77400.502431]  ffff880075bfffd8 ffff880075bfffd8 ffff880037f6dbd0 ffff88007af5dbd0
+[77400.502438] Call Trace:
+[77400.502450]  [<ffffffff810559e0>] ? try_to_wake_up+0x380/0x380
+[77400.502458]  [<ffffffff813e56dd>] ? wait_for_completion+0x1d/0x20
+[77400.502473]  [<ffffffffa027cdd5>] dvb_unregister_frontend+0xc5/0x110 [dvb_core]
+[77400.502480]  [<ffffffff8107e050>] ? abort_exclusive_wait+0xb0/0xb0
+[77400.502488]  [<ffffffffa0188592>] dvb_usb_adapter_frontend_exit+0x22/0x40
+[dvb_usb]
+[77400.502494]  [<ffffffffa01874ac>] dvb_usb_exit+0x4c/0xd0 [dvb_usb]
+[77400.502501]  [<ffffffffa0187582>] dvb_usb_device_exit+0x52/0x70 [dvb_usb]
+[77400.502522]  [<ffffffffa02ead12>] usb_unbind_interface+0x52/0x180 [usbcore]
+[77400.502531]  [<ffffffff812e0515>] __device_release_driver+0x75/0xe0
+[77400.502537]  [<ffffffff812e05ac>] device_release_driver+0x2c/0x40
+[77400.502542]  [<ffffffff812e0058>] bus_remove_device+0x78/0xb0
+[77400.502554]  [<ffffffff812dd91a>] device_del+0x13a/0x1d0
+[77400.502561]  [<ffffffffa02e8ae4>] usb_disable_device+0x74/0x130 [usbcore]
+[77400.502568]  [<ffffffffa02e117c>] usb_disconnect+0x8c/0x120 [usbcore]
+[77400.502575]  [<ffffffffa02e2f4c>] hub_thread+0x9fc/0x1220 [usbcore]
+[77400.502579]  [<ffffffff8107e050>] ? abort_exclusive_wait+0xb0/0xb0
+[77400.502586]  [<ffffffffa02e2550>] ? usb_remote_wakeup+0x40/0x40 [usbcore]
+[77400.502589]  [<ffffffff8107d6fc>] kthread+0x8c/0xa0
+[77400.502593]  [<ffffffff813eac64>] kernel_thread_helper+0x4/0x10
+[77400.502597]  [<ffffffff8107d670>] ? kthread_worker_fn+0x190/0x190
+[77400.502601]  [<ffffffff813eac60>] ? gs_change+0x13/0x13
+[77520.502380] INFO: task khubd:361 blocked for more than 120 seconds.
+[77520.502385] "echo 0 > /proc/sys/kernel/hung_task_timeout_secs" disables
+this message.
+[77520.502389] khubd           D 00000001015f4e25     0   361      2 0x00000000
+[77520.502398]  ffff880075bffbb0 0000000000000046 00000001015f4e25 000000008ff4ed27
+[77520.502406]  ffff880075bffac0 ffff880070bbff00 ffff880075bfffd8 ffff88007af5dbd0
+[77520.502413]  ffff880075bfffd8 ffff880075bfffd8 ffff880037f6dbd0 ffff88007af5dbd0
+[77520.502420] Call Trace:
+[77520.502433]  [<ffffffff810559e0>] ? try_to_wake_up+0x380/0x380
+[77520.502440]  [<ffffffff813e56dd>] ? wait_for_completion+0x1d/0x20
+[77520.502455]  [<ffffffffa027cdd5>] dvb_unregister_frontend+0xc5/0x110 [dvb_core]
+[77520.502462]  [<ffffffff8107e050>] ? abort_exclusive_wait+0xb0/0xb0
+[77520.502470]  [<ffffffffa0188592>] dvb_usb_adapter_frontend_exit+0x22/0x40
+[dvb_usb]
+[77520.502477]  [<ffffffffa01874ac>] dvb_usb_exit+0x4c/0xd0 [dvb_usb]
+[77520.502484]  [<ffffffffa0187582>] dvb_usb_device_exit+0x52/0x70 [dvb_usb]
+[77520.502505]  [<ffffffffa02ead12>] usb_unbind_interface+0x52/0x180 [usbcore]
+[77520.502514]  [<ffffffff812e0515>] __device_release_driver+0x75/0xe0
+[77520.502520]  [<ffffffff812e05ac>] device_release_driver+0x2c/0x40
+[77520.502525]  [<ffffffff812e0058>] bus_remove_device+0x78/0xb0
+[77520.502531]  [<ffffffff812dd91a>] device_del+0x13a/0x1d0
+[77520.502545]  [<ffffffffa02e8ae4>] usb_disable_device+0x74/0x130 [usbcore]
+[77520.502552]  [<ffffffffa02e117c>] usb_disconnect+0x8c/0x120 [usbcore]
+[77520.502558]  [<ffffffffa02e2f4c>] hub_thread+0x9fc/0x1220 [usbcore]
+[77520.502563]  [<ffffffff8107e050>] ? abort_exclusive_wait+0xb0/0xb0
+[77520.502569]  [<ffffffffa02e2550>] ? usb_remote_wakeup+0x40/0x40 [usbcore]
+[77520.502573]  [<ffffffff8107d6fc>] kthread+0x8c/0xa0
+[77520.502577]  [<ffffffff813eac64>] kernel_thread_helper+0x4/0x10
+[77520.502581]  [<ffffffff8107d670>] ? kthread_worker_fn+0x190/0x190
+[77520.502584]  [<ffffffff813eac60>] ? gs_change+0x13/0x13
+[77640.502274] INFO: task khubd:361 blocked for more than 120 seconds.
+[77640.502279] "echo 0 > /proc/sys/kernel/hung_task_timeout_secs" disables
+this message.
+[77640.502284] khubd           D 00000001015f4e25     0   361      2 0x00000000
+[77640.502293]  ffff880075bffbb0 0000000000000046 00000001015f4e25 000000008ff4ed27
+[77640.502301]  ffff880075bffac0 ffff880070bbff00 ffff880075bfffd8 ffff88007af5dbd0
+[77640.502308]  ffff880075bfffd8 ffff880075bfffd8 ffff880037f6dbd0 ffff88007af5dbd0
+[77640.502316] Call Trace:
+[77640.502329]  [<ffffffff810559e0>] ? try_to_wake_up+0x380/0x380
+[77640.502336]  [<ffffffff813e56dd>] ? wait_for_completion+0x1d/0x20
+[77640.502351]  [<ffffffffa027cdd5>] dvb_unregister_frontend+0xc5/0x110 [dvb_core]
+[77640.502358]  [<ffffffff8107e050>] ? abort_exclusive_wait+0xb0/0xb0
+[77640.502366]  [<ffffffffa0188592>] dvb_usb_adapter_frontend_exit+0x22/0x40
+[dvb_usb]
+[77640.502372]  [<ffffffffa01874ac>] dvb_usb_exit+0x4c/0xd0 [dvb_usb]
+[77640.502379]  [<ffffffffa0187582>] dvb_usb_device_exit+0x52/0x70 [dvb_usb]
+[77640.502401]  [<ffffffffa02ead12>] usb_unbind_interface+0x52/0x180 [usbcore]
+[77640.502409]  [<ffffffff812e0515>] __device_release_driver+0x75/0xe0
+[77640.502415]  [<ffffffff812e05ac>] device_release_driver+0x2c/0x40
+[77640.502421]  [<ffffffff812e0058>] bus_remove_device+0x78/0xb0
+[77640.502431]  [<ffffffff812dd91a>] device_del+0x13a/0x1d0
+[77640.502437]  [<ffffffffa02e8ae4>] usb_disable_device+0x74/0x130 [usbcore]
+[77640.502443]  [<ffffffffa02e117c>] usb_disconnect+0x8c/0x120 [usbcore]
+[77640.502450]  [<ffffffffa02e2f4c>] hub_thread+0x9fc/0x1220 [usbcore]
+[77640.502454]  [<ffffffff8107e050>] ? abort_exclusive_wait+0xb0/0xb0
+[77640.502460]  [<ffffffffa02e2550>] ? usb_remote_wakeup+0x40/0x40 [usbcore]
+[77640.502463]  [<ffffffff8107d6fc>] kthread+0x8c/0xa0
+[77640.502466]  [<ffffffff813eac64>] kernel_thread_helper+0x4/0x10
+[77640.502470]  [<ffffffff8107d670>] ? kthread_worker_fn+0x190/0x190
+[77640.502473]  [<ffffffff813eac60>] ? gs_change+0x13/0x13
+[77760.502279] INFO: task khubd:361 blocked for more than 120 seconds.
+[77760.502285] "echo 0 > /proc/sys/kernel/hung_task_timeout_secs" disables
+this message.
+[77760.502289] khubd           D 00000001015f4e25     0   361      2 0x00000000
+[77760.502297]  ffff880075bffbb0 0000000000000046 00000001015f4e25 000000008ff4ed27
+[77760.502306]  ffff880075bffac0 ffff880070bbff00 ffff880075bfffd8 ffff88007af5dbd0
+[77760.502313]  ffff880075bfffd8 ffff880075bfffd8 ffff880037f6dbd0 ffff88007af5dbd0
+[77760.502320] Call Trace:
+[77760.502333]  [<ffffffff810559e0>] ? try_to_wake_up+0x380/0x380
+[77760.502341]  [<ffffffff813e56dd>] ? wait_for_completion+0x1d/0x20
+[77760.502355]  [<ffffffffa027cdd5>] dvb_unregister_frontend+0xc5/0x110 [dvb_core]
+[77760.502362]  [<ffffffff8107e050>] ? abort_exclusive_wait+0xb0/0xb0
+[77760.502370]  [<ffffffffa0188592>] dvb_usb_adapter_frontend_exit+0x22/0x40
+[dvb_usb]
+[77760.502377]  [<ffffffffa01874ac>] dvb_usb_exit+0x4c/0xd0 [dvb_usb]
+[77760.502384]  [<ffffffffa0187582>] dvb_usb_device_exit+0x52/0x70 [dvb_usb]
+[77760.502405]  [<ffffffffa02ead12>] usb_unbind_interface+0x52/0x180 [usbcore]
+[77760.502414]  [<ffffffff812e0515>] __device_release_driver+0x75/0xe0
+[77760.502419]  [<ffffffff812e05ac>] device_release_driver+0x2c/0x40
+[77760.502425]  [<ffffffff812e0058>] bus_remove_device+0x78/0xb0
+[77760.502430]  [<ffffffff812dd91a>] device_del+0x13a/0x1d0
+[77760.502441]  [<ffffffffa02e8ae4>] usb_disable_device+0x74/0x130 [usbcore]
+[77760.502451]  [<ffffffffa02e117c>] usb_disconnect+0x8c/0x120 [usbcore]
+[77760.502462]  [<ffffffffa02e2f4c>] hub_thread+0x9fc/0x1220 [usbcore]
+[77760.502468]  [<ffffffff8107e050>] ? abort_exclusive_wait+0xb0/0xb0
+[77760.502478]  [<ffffffffa02e2550>] ? usb_remote_wakeup+0x40/0x40 [usbcore]
+[77760.502483]  [<ffffffff8107d6fc>] kthread+0x8c/0xa0
+[77760.502489]  [<ffffffff813eac64>] kernel_thread_helper+0x4/0x10
+[77760.502495]  [<ffffffff8107d670>] ? kthread_worker_fn+0x190/0x190
+[77760.502500]  [<ffffffff813eac60>] ? gs_change+0x13/0x13
+[77880.502265] INFO: task khubd:361 blocked for more than 120 seconds.
+[77880.502270] "echo 0 > /proc/sys/kernel/hung_task_timeout_secs" disables
+this message.
+[77880.502275] khubd           D 00000001015f4e25     0   361      2 0x00000000
+[77880.502283]  ffff880075bffbb0 0000000000000046 00000001015f4e25 000000008ff4ed27
+[77880.502292]  ffff880075bffac0 ffff880070bbff00 ffff880075bfffd8 ffff88007af5dbd0
+[77880.502299]  ffff880075bfffd8 ffff880075bfffd8 ffff880037f6dbd0 ffff88007af5dbd0
+[77880.502306] Call Trace:
+[77880.502318]  [<ffffffff810559e0>] ? try_to_wake_up+0x380/0x380
+[77880.502326]  [<ffffffff813e56dd>] ? wait_for_completion+0x1d/0x20
+[77880.502340]  [<ffffffffa027cdd5>] dvb_unregister_frontend+0xc5/0x110 [dvb_core]
+[77880.502348]  [<ffffffff8107e050>] ? abort_exclusive_wait+0xb0/0xb0
+[77880.502355]  [<ffffffffa0188592>] dvb_usb_adapter_frontend_exit+0x22/0x40
+[dvb_usb]
+[77880.502362]  [<ffffffffa01874ac>] dvb_usb_exit+0x4c/0xd0 [dvb_usb]
+[77880.502369]  [<ffffffffa0187582>] dvb_usb_device_exit+0x52/0x70 [dvb_usb]
+[77880.502390]  [<ffffffffa02ead12>] usb_unbind_interface+0x52/0x180 [usbcore]
+[77880.502399]  [<ffffffff812e0515>] __device_release_driver+0x75/0xe0
+[77880.502405]  [<ffffffff812e05ac>] device_release_driver+0x2c/0x40
+[77880.502410]  [<ffffffff812e0058>] bus_remove_device+0x78/0xb0
+[77880.502416]  [<ffffffff812dd91a>] device_del+0x13a/0x1d0
+[77880.502427]  [<ffffffffa02e8ae4>] usb_disable_device+0x74/0x130 [usbcore]
+[77880.502437]  [<ffffffffa02e117c>] usb_disconnect+0x8c/0x120 [usbcore]
+[77880.502447]  [<ffffffffa02e2f4c>] hub_thread+0x9fc/0x1220 [usbcore]
+[77880.502454]  [<ffffffff8107e050>] ? abort_exclusive_wait+0xb0/0xb0
+[77880.502464]  [<ffffffffa02e2550>] ? usb_remote_wakeup+0x40/0x40 [usbcore]
+[77880.502469]  [<ffffffff8107d6fc>] kthread+0x8c/0xa0
+[77880.502475]  [<ffffffff813eac64>] kernel_thread_helper+0x4/0x10
+[77880.502481]  [<ffffffff8107d670>] ? kthread_worker_fn+0x190/0x190
+[77880.502486]  [<ffffffff813eac60>] ? gs_change+0x13/0x13
 
-SW50eExOSwEuAC4ALwBsAGkAbgB1AHgALwBkAHIAaQB2AGUAcgBzAC8AbQBl
-AGQAaQBhAC8AZAB2AGIALwBkAHYAYgAtAHUAcwBiAC8AZAB2AGIALQB1AHMA
-YgAtAGkAZABzAC4AaAA=
 
---0-1510961206-1307782197=:80583
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+
+
+       
+
+
+
 
 _______________________________________________
 linux-dvb users mailing list
 For V4L/DVB development, please use instead linux-media@vger.kernel.org
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
---0-1510961206-1307782197=:80583--
