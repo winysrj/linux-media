@@ -1,74 +1,54 @@
 Return-path: <mchehab@pedra>
-Received: from chilli.pcug.org.au ([203.10.76.44]:35046 "EHLO smtps.tip.net.au"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751057Ab1FKEm4 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 11 Jun 2011 00:42:56 -0400
-Date: Sat, 11 Jun 2011 14:42:45 +1000
-From: Stephen Rothwell <sfr@canb.auug.org.au>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Randy Dunlap <randy.dunlap@oracle.com>,
-	linux-media@vger.kernel.org, linux-next@vger.kernel.org,
-	LKML <linux-kernel@vger.kernel.org>
-Subject: Re: linux-next: Tree for June 8 (docbook/media)
-Message-Id: <20110611144245.8b893302.sfr@canb.auug.org.au>
-In-Reply-To: <4DF235F0.9080209@redhat.com>
-References: <20110608161046.4ad95776.sfr@canb.auug.org.au>
-	<20110608125243.e63a07fc.randy.dunlap@oracle.com>
-	<4DF11E15.5030907@infradead.org>
-	<4DF12263.3070900@redhat.com>
-	<4DF12DD1.7060606@oracle.com>
-	<4DF1581E.8050308@redhat.com>
-	<4DF1593A.6080306@oracle.com>
-	<4DF21254.6090106@redhat.com>
-	<4DF23271.7070407@oracle.com>
-	<4DF235F0.9080209@redhat.com>
-Mime-Version: 1.0
-Content-Type: multipart/signed; protocol="application/pgp-signature";
- micalg="PGP-SHA1";
- boundary="Signature=_Sat__11_Jun_2011_14_42_45_+1000_fvr6BalpxVt.SzBn"
+Received: from casper.infradead.org ([85.118.1.10]:46798 "EHLO
+	casper.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752785Ab1FXVx0 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 24 Jun 2011 17:53:26 -0400
+Message-ID: <4E05073A.3030209@infradead.org>
+Date: Fri, 24 Jun 2011 18:52:58 -0300
+From: Mauro Carvalho Chehab <mchehab@infradead.org>
+MIME-Version: 1.0
+To: Stefan Richter <stefanr@s5r6.in-berlin.de>
+CC: Devin Heitmueller <dheitmueller@kernellabs.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	Jesper Juhl <jj@chaosbits.net>,
+	LKML <linux-kernel@vger.kernel.org>, trivial@kernel.org,
+	linux-media@vger.kernel.org, ceph-devel@vger.kernel.org,
+	Sage Weil <sage@newdream.net>
+Subject: Re: [RFC] Don't use linux/version.h anymore to indicate a per-driver
+ version - Was: Re: [PATCH 03/37] Remove unneeded version.h includes from
+ include/
+References: <alpine.LNX.2.00.1106232344480.17688@swampdragon.chaosbits.net>	<4E04912A.4090305@infradead.org>	<BANLkTim9cBiiK_GsZaspxpPJQDBvAcKCWg@mail.gmail.com>	<201106241554.10751.hverkuil@xs4all.nl>	<4E04A122.2080002@infradead.org>	<20110624203404.7a3f6f6a@stein>	<BANLkTimj-oEDvWxMao6zJ_sudUntEVjO1w@mail.gmail.com> <20110624231028.7f03dcae@stein>
+In-Reply-To: <20110624231028.7f03dcae@stein>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
---Signature=_Sat__11_Jun_2011_14_42_45_+1000_fvr6BalpxVt.SzBn
-Content-Type: text/plain; charset=US-ASCII
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Em 24-06-2011 18:10, Stefan Richter escreveu:
+> On Jun 24 Devin Heitmueller wrote:
+>> Really, this is all about applications being able to jam a hack into
+>> their code that translates to "don't call this ioctl() with some
+>> particular argument if it's driver W less than version X, because the
+>> driver had a bug that is likely to panic the guy's PC".  Sure, it's a
+>> crummy solution, but at this point it's the best that we have got.
+> 
+> The second best.  The best that we have got is that the user runs a fixed
+> kernel.
+> 
+> Anyway; if this is the only purpose that this interface version¹ serves,
+> then Mauro's subsystem-centralized solution has the benefit that it
+> eliminates mistakes due to oversight by individual driver authors.
+> Especially because the kind of implementation behavior changes that are
+> tracked by this type of version datum are sometimes just discovered or
+> documented in hindsight.  On the other hand, Mauro's solution is redundant
+> to the uname(2) syscall.
 
-Hi Mauro,
+Yes. That's why my initial proposal were to add some value to it by not associating
+it with the kernel version, but with a number that will be incremented only if
+the V4L2 API changes.
 
-On Fri, 10 Jun 2011 12:19:12 -0300 Mauro Carvalho Chehab <mchehab@redhat.co=
-m> wrote:
->
-> PS.: A full build against next is broken:
-> $ make -j 27
->   CHK     include/linux/version.h
->   CHK     include/generated/utsrelease.h
->   CALL    scripts/checksyscalls.sh
->   CHK     include/generated/compile.h
->   CC      arch/x86/lib/memmove_64.o
-> gcc: arch/x86/lib/memmove_64.c: No such file or directory
-> gcc: no input files
+> 
+> ¹) Yes, it is still an ABI version, nothing less.  With all its backwards
+> and forwards compatibility ramifications.
 
-Was that a build starting from a clean (object) tree?
-
---=20
-Cheers,
-Stephen Rothwell                    sfr@canb.auug.org.au
-http://www.canb.auug.org.au/~sfr/
-
---Signature=_Sat__11_Jun_2011_14_42_45_+1000_fvr6BalpxVt.SzBn
-Content-Type: application/pgp-signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.11 (GNU/Linux)
-
-iQEcBAEBAgAGBQJN8vJFAAoJEDMEi1NhKgbsPyYH/jHFMMRsP68jJfGuNQA99zCN
-10B/tRGHKw6Rua+cOpIhhvPeNQXFTWgmlcnxE00NrAr5Iao8itj/jKxhxW3rhxvN
-0HvytGBn+tB+eRFxYqQlfSAVpfSiY1kO0GhmukneSHtpzwpY/3zriNN2ravJlpVo
-RD7O3GGDHMQ9UrN2DR6n0Da8wgt6kVPvvGLr0qeVO0zaAnyq10s7oLb9th9GSqYW
-SRS+67TlDu6O9Kh1te3N2MIQ2EYQEnFzVJ+BTUINVHrCfFp16hXo5VkduTYb3pLb
-zfSqR3JyWHXNh7fWYOS/pqFXakQkF9rcrUFZyFG1hl8SgKhjsVpnzhhsRXmkjDI=
-=9PtD
------END PGP SIGNATURE-----
-
---Signature=_Sat__11_Jun_2011_14_42_45_+1000_fvr6BalpxVt.SzBn--
