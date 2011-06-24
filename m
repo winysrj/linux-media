@@ -1,163 +1,92 @@
 Return-path: <mchehab@pedra>
-Received: from rcsinet10.oracle.com ([148.87.113.121]:49175 "EHLO
-	rcsinet10.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751931Ab1FMC1n (ORCPT
+Received: from casper.infradead.org ([85.118.1.10]:34863 "EHLO
+	casper.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753881Ab1FXWQo (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 12 Jun 2011 22:27:43 -0400
-Cc: Theodore Kilgore <kilgota@banach.math.auburn.edu>,
-	linux-usb@vger.kernel.org, linux-media@vger.kernel.org
-Message-Id: <55B02A41-1978-4D98-8E01-C55503C01A46@oracle.com>
-From: Michael Bender <Michael.Bender@oracle.com>
-To: Libusb Mailing List <libusb-devel@lists.sourceforge.net>
-In-Reply-To: <BANLkTimDGMyvq_8r77a_aRGTKdQ6U6nPeg@mail.gmail.com>
-Content-Type: text/plain; charset=US-ASCII; format=flowed; delsp=yes
+	Fri, 24 Jun 2011 18:16:44 -0400
+Message-ID: <4E050CBE.2030103@infradead.org>
+Date: Fri, 24 Jun 2011 19:16:30 -0300
+From: Mauro Carvalho Chehab <mchehab@infradead.org>
+MIME-Version: 1.0
+To: Andy Walls <awalls@md.metrocast.net>
+CC: Devin Heitmueller <dheitmueller@kernellabs.com>,
+	Stefan Richter <stefanr@s5r6.in-berlin.de>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	Jesper Juhl <jj@chaosbits.net>,
+	LKML <linux-kernel@vger.kernel.org>, trivial@kernel.org,
+	linux-media@vger.kernel.org, ceph-devel@vger.kernel.org,
+	Sage Weil <sage@newdream.net>
+Subject: Re: [RFC] Don't use linux/version.h anymore to indicate a per-driver
+ version - Was: Re: [PATCH 03/37] Remove unneeded version.h includes from
+ include/
+References: <alpine.LNX.2.00.1106232344480.17688@swampdragon.chaosbits.net>	 <4E04912A.4090305@infradead.org>	 <BANLkTim9cBiiK_GsZaspxpPJQDBvAcKCWg@mail.gmail.com>	 <201106241554.10751.hverkuil@xs4all.nl> <4E04A122.2080002@infradead.org>	 <20110624203404.7a3f6f6a@stein>	 <BANLkTimj-oEDvWxMao6zJ_sudUntEVjO1w@mail.gmail.com> <1308949448.2093.20.camel@morgan.silverblock.net>
+In-Reply-To: <1308949448.2093.20.camel@morgan.silverblock.net>
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 7bit
-Mime-Version: 1.0 (Apple Message framework v936)
-Subject: Re: [Libusb-devel] Improving kernel -> userspace (usbfs) usb device hand off
-Date: Sun, 12 Jun 2011 19:27:19 -0700
-References: <Pine.LNX.4.44L0.1106101023330.1921-100000@iolanthe.rowland.org> <4DF3324E.3050506@redhat.com> <alpine.LNX.2.00.1106111058170.12801@banach.math.auburn.edu> <4DF4A662.5090705@redhat.com> <alpine.LNX.2.00.1106121554090.13986@banach.math.auburn.edu> <BANLkTimDGMyvq_8r77a_aRGTKdQ6U6nPeg@mail.gmail.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-
-On Jun 12, 2011, at 7:03 PM, Xiaofan Chen wrote:
-
-> On Mon, Jun 13, 2011 at 5:20 AM, Theodore Kilgore
-> <kilgota@banach.math.auburn.edu> wrote:
->> On Sun, 12 Jun 2011, Hans de Goede wrote:
->>> Actually libusb and libgphoto have been using the rebind orginal  
->>> driver
->>> functionality of the code for quite a while now,
->>
->> Oh? I can see that libusb is doing that, and I can also see that  
->> there is
->> a "public" function for _unbinding_ a kernel driver, namely
->>
->> int usb_detach_kernel_driver_np()
->>
->> found in usb.h
->>
->> and it is used in libgphoto, as well.
->>
->> I am not sure that there is any corresponding rebind function which  
->> is
->> public. Is it perhaps
->>
->> int usb_get_driver_np()
->>
->> ???
->>
->> By context (looking at libgphoto2-port/usb/libusb.c) I would think  
->> that
->> this function is not the rebind function, but is only checking  
->> whether or
->> not there is any potential conflict with a kernel driver. If I am  
->> right,
->> then where is the publicly exported rebind function, and where does  
->> it
->> currently get used in libgphoto2?
->
-> http://gphoto.svn.sourceforge.net/viewvc/gphoto/trunk/libgphoto2/libgphoto2_port/usb/libusb.c?revision=13652&view=markup
->
-> The rebind happened under the function "static int gp_port_usb_close
-> (GPPort *port)".
-> Since libgphoto2 is still using libusb-0.1, the unbind is using  
-> usbfs IOCTL
-> directly (USBDEVFS_CONNECT).
->
->> So frankly after my eagerness yesterday I do not see how it can  
->> easily be
->> made to work, after all.
->>
->>> unfortunately this
->>> does not solve the problem, unless we somehow move to 1 central
->>> coordinator for the device the user experience will stay subpar.
->
-> Now I understand what Hans is saying. It will be a lot of work trying
-> to sort out this issue in userspace. What can be the single central
-> coordinator? A device manager applet listing the program or service
-> which hold the device?
-
-Something like that. Have a user-space device allocation mechanism so
-that apps are not constrained by a particular interface semantic (i.e.  
-not
-required to open /dev/video and have a kernel driver deliver pixels to  
-the
-apps).
-
-Or hid that behind a library API and let instances of the library  
-coordinate
-with each other; as long as an app uses the documented public library  
-API
-to access a webcam, then everyone will play fair with each other.
-
-Look at the mess that this userspace/kernel driver issue has for code in
-an application like gphoto - that's insane that a photo manipulation app
-needs to know anything about userspace/kernel switching!
-
->>> Example, user downloads pictures from the camera using shotwell,
->>> gthumb, fspot or whatever, keeps the app in question open and the  
->>> app
->>> in question keeps the gphoto2 device handle open.
+Em 24-06-2011 18:04, Andy Walls escreveu:
+> On Fri, 2011-06-24 at 14:48 -0400, Devin Heitmueller wrote:
+>> On Fri, Jun 24, 2011 at 2:34 PM, Stefan Richter
+>> <stefanr@s5r6.in-berlin.de> wrote:
+>>> If the "driver version" is in fact an ABI version, then the driver author
+>>> should really increase it only when ABI behavior is changed (and only if
+>>> the behavior change can only be communicated by version number --- e.g.
+>>> addition of an ioctl is not among such reasons).  And the author should
+>>> commit behavior changing implementation and version number change in a
+>>> single changeset.
 >>>
->>> User wants to do some skyping with video chat, skype complains it
->>> cannot find the device, since the kernel driver currently is  
->>> unbound.
+>>> And anybody who backmerges such an ABI behavior change into another kernel
+>>> branch (stable, longterm, distro...) must backmerge the associated version
+>>> number change too.
 >>>
->>> -> Poor user experience.
+>>> Of course sometimes people realize this only after the fact.  Or driver
+>>> authors don't have a clear understanding of ABI versioning to begin with.
+>>> I am saying so because I had to learn it too; I certainly wasn't born
+>>> with an instinct knowledge how to do it properly.
+>>>
+>>> (Disclaimer:  I have no stake in drivers/media/ ABIs.  But I am involved
+>>> in maintaining a userspace ABI elsewhere in drivers/firewire/, and one of
+>>> the userspace libraries that use this ABI.)
 >>
->> Poor user experience, or merely poor user? The user ought to know  
->> better.
->> Of course, I do agree that there are lots of such people, and it is  
->> a good
->> idea to try to put up warning signs.
->
-> It is difficult to call the users "poor users" in this case. Since  
-> they may
-> not know that the other open program is holding the device. Some
-> warning message may help, not "I can not find the device" though. It
-> would be better to pinpoint which program is holding the device
-> and then ask the user to close that program. I understand this is
-> easily said than done...
->
-> Similar experiences for Windows about the serial port, sometimes
-> it is difficult for the user to know that some program or service
-> are holding the serial port so that the other program or will fail or
-> Windows complain that it is still open when you want to undock
-> the computer.
->
->>>
->>> With having both functions in the kernel, the kernel could actually
->>> allow skype to use the dual mode cameras as video source, and if
->>> the user then were to switch to f-spot and try to import more  
->>> photo's
->>> then he will get an -ebusy in f-spot. If he finishes skyping and
->>> then returns to f-spot everything will just continue working.
->>>
->>> This is the kind of "seamless" user experience I'm aiming for here.
->>>
->> Yes, I can see where you are coming from. But if the camera really  
->> will
->> not let you run skype and fspot at the same time, which I do not  
->> believe
->> it would allow on _any_ operating system, then each app should give  
->> an
->> error message which says it cannot be run unless and until the  
->> other app
->> has been closed. If that has to happen at the kernel level, then OK.
+>> Hi Stefan,
 >>
->
-> Yes. From what I read, to solve it in kernel or to solve it in user  
-> space
-> are both a lot of work.
+>> To be clear, I don't think anyone is actually proposing that the
+>> driver version number really be used as any form of formal "ABI
+>> versioning" scheme.  In almost all cases, it's so the application can
+>> know to *not* do something is the driver is older than X.
+> 
+> MythTV, for example, used to use the driver version to work around old
+> VBI bugs and MPEG encoder quirks that the older version of the driver
+> may not have known how to handle:
+> 
+> https://github.com/MythTV/mythtv/blob/b98d3a98e3187000ae652df5ffebe2beb5221ba7/mythtv/libs/libmythtv/mpegrecorder.cpp#L335
+> 
+> But for newer versions, MythTV could avoid using its own odd hacks.
+> The bleeding edge MythTV now has most of these removed.
 
-Yes and a kernel-based solution locks you into a kernel-based webcam
-driver paradigm, or an even uglier loopback driver.
+Removing it is a good thing.
 
-> Personally I tend to think to solve it in user space is more feasible.
+>> Really, this is all about applications being able to jam a hack into
+>> their code that translates to "don't call this ioctl() with some
+>> particular argument if it's driver W less than version X, because the
+>> driver had a bug that is likely to panic the guy's PC".
+> 
+> Well, not even panics per se, but some thing like the VBI is broken, or
+> the volume control doesn't work, IR blaster is works for this version,
+> or something else stupid that is very visible to the end user.
+> 
+> I also use the driver version for troubleshooting problem with users.  I
+> roughly know what wasn't working in what version of the cx18 and ivtv
+> drivers.  If the end user can tell me the driver version (using v4l2-ctl
+> --log-status) along with his symptoms, it makes my life easier.  Being
+> able to efficiently help the end user is a win for both me and the end
+> user.
 
-I agree.
+If you add it to MODULE_VERSION, you can get the version with:
 
-mike
+$ modinfo -F version vivi
+0.8.1
 
-
+Mauro.
