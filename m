@@ -1,39 +1,94 @@
 Return-path: <mchehab@pedra>
-Received: from mail-wy0-f174.google.com ([74.125.82.174]:58381 "EHLO
-	mail-wy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750874Ab1FGKbU (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 7 Jun 2011 06:31:20 -0400
+Received: from mx1.redhat.com ([209.132.183.28]:32880 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755065Ab1FXXLy (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 24 Jun 2011 19:11:54 -0400
+Received: from int-mx10.intmail.prod.int.phx2.redhat.com (int-mx10.intmail.prod.int.phx2.redhat.com [10.5.11.23])
+	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id p5ONBs1a031149
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
+	for <linux-media@vger.kernel.org>; Fri, 24 Jun 2011 19:11:54 -0400
+Received: from [10.36.5.45] (vpn1-5-45.ams2.redhat.com [10.36.5.45])
+	by int-mx10.intmail.prod.int.phx2.redhat.com (8.14.4/8.14.4) with ESMTP id p5ONBqS6022505
+	for <linux-media@vger.kernel.org>; Fri, 24 Jun 2011 19:11:53 -0400
+Message-ID: <4E0519B7.3000304@redhat.com>
+Date: Fri, 24 Jun 2011 20:11:51 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
 MIME-Version: 1.0
-In-Reply-To: <20110607095829.GD4407@amd.com>
-References: <1307053663-24572-1-git-send-email-ohad@wizery.com>
- <20110606100950.GC30762@amd.com> <BANLkTi=i2s-Ujiy4qn_XQv+9dMjUC9R66A@mail.gmail.com>
- <20110606153557.GE1953@amd.com> <BANLkTinwwVO4TmsxuTfSBf6jqYrEVV3b_A@mail.gmail.com>
- <20110606192030.GA4356@amd.com> <BANLkTinx21-E3DRe9D7LRB8e1aeOwv=-9A@mail.gmail.com>
- <20110607075221.GB4407@amd.com> <BANLkTimR3KofKA3LSKXdX8k1FGR0XUxu=Q@mail.gmail.com>
- <20110607095829.GD4407@amd.com>
-From: Ohad Ben-Cohen <ohad@wizery.com>
-Date: Tue, 7 Jun 2011 13:30:59 +0300
-Message-ID: <BANLkTinX8FG=EmgqQ37k8J0G+hjo4TCq+Q@mail.gmail.com>
-Subject: Re: [RFC 0/6] iommu: generic api migration and grouping
-To: "Roedel, Joerg" <Joerg.Roedel@amd.com>
-Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	"linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>,
-	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
-	"linux-arm-kernel@lists.infradead.org"
-	<linux-arm-kernel@lists.infradead.org>,
-	"laurent.pinchart@ideasonboard.com"
-	<laurent.pinchart@ideasonboard.com>,
-	"Hiroshi.DOYU@nokia.com" <Hiroshi.DOYU@nokia.com>,
-	"arnd@arndb.de" <arnd@arndb.de>,
-	"davidb@codeaurora.org" <davidb@codeaurora.org>,
-	Omar Ramirez Luna <omar.ramirez@ti.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: [PATCH] [media] v4l2 core: return -ENOIOCTLCMD if an ioctl doesn't
+ exist
 Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Tue, Jun 7, 2011 at 12:58 PM, Roedel, Joerg <Joerg.Roedel@amd.com> wrote:
-> Btw, mind to split out your changes which move the iommu-api into
-> drivers/iommu? I can merge them meanwhile into my iommu tree and start
-> working on a proposal for the generic large page-size support.
+Currently, -EINVAL is used to return either when an IOCTL is not
+implemented, or if the ioctl was not implemented.
 
-Sure, that will be great. Thanks!
+Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+---
+ Documentation/DocBook/media/Makefile           |    1 +
+ Documentation/DocBook/media/v4l/func-ioctl.xml |   17 +++++++++--------
+ drivers/media/video/v4l2-ioctl.c               |    4 ++--
+ 3 files changed, 12 insertions(+), 10 deletions(-)
+
+diff --git a/Documentation/DocBook/media/Makefile b/Documentation/DocBook/media/Makefile
+index 8cb27f3..93722da 100644
+--- a/Documentation/DocBook/media/Makefile
++++ b/Documentation/DocBook/media/Makefile
+@@ -117,6 +117,7 @@ ERRORS = \
+ 	EPERM \
+ 	ERANGE \
+ 	EPIPE \
++	ENOIOCTLCMD \
+ 
+ ESCAPE = \
+ 	-e "s/&/\\&amp;/g" \
+diff --git a/Documentation/DocBook/media/v4l/func-ioctl.xml b/Documentation/DocBook/media/v4l/func-ioctl.xml
+index b60fd37..0c97ba9 100644
+--- a/Documentation/DocBook/media/v4l/func-ioctl.xml
++++ b/Documentation/DocBook/media/v4l/func-ioctl.xml
+@@ -132,14 +132,15 @@ complete the request.</para>
+ &VIDIOC-S-CTRL; ioctl to a value which is out of bounds.</para>
+ 	</listitem>
+       </varlistentry>
++      <varlistentry>
++	<term><errorcode>ENOIOCTLCMD</errorcode></term>
++	<listitem>
++	  <para>The application attempted to use a non-existent ioctl. This is returned by the V4L2 core only.
++		Applications should be able to handle this error code, in order to detect if a new ioctl is
++		not implemented at the current Kernel version. Kernel versions lower than 3.0 returns EINVAL to
++		non-existing ioctl's.</para>
++	</listitem>
++      </varlistentry>
+     </variablelist>
+   </refsect1>
+ </refentry>
+-
+-<!--
+-Local Variables:
+-mode: sgml
+-sgml-parent-document: "v4l2.sgml"
+-indent-tabs-mode: nil
+-End:
+--->
+diff --git a/drivers/media/video/v4l2-ioctl.c b/drivers/media/video/v4l2-ioctl.c
+index 61ac6bf..a0a2466 100644
+--- a/drivers/media/video/v4l2-ioctl.c
++++ b/drivers/media/video/v4l2-ioctl.c
+@@ -543,12 +543,12 @@ static long __video_do_ioctl(struct file *file,
+ 	struct v4l2_fh *vfh = NULL;
+ 	struct v4l2_format f_copy;
+ 	int use_fh_prio = 0;
+-	long ret = -EINVAL;
++	long ret = -ENOIOCTLCMD;
+ 
+ 	if (ops == NULL) {
+ 		printk(KERN_WARNING "videodev: \"%s\" has no ioctl_ops.\n",
+ 				vfd->name);
+-		return -EINVAL;
++		return ret;
+ 	}
+ 
+ 	if ((vfd->debug & V4L2_DEBUG_IOCTL) &&
+
