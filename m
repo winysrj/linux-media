@@ -1,52 +1,48 @@
 Return-path: <mchehab@pedra>
-Received: from mail.kapsi.fi ([217.30.184.167]:60587 "EHLO mail.kapsi.fi"
+Received: from smtp.inpi.gov.br ([189.3.205.135]:54792 "EHLO smtp.inpi.gov.br"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754369Ab1FLWu5 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 12 Jun 2011 18:50:57 -0400
-Message-ID: <4DF542CE.4040903@iki.fi>
-Date: Mon, 13 Jun 2011 01:50:54 +0300
-From: Antti Palosaari <crope@iki.fi>
+	id S1751767Ab1FYTvT (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 25 Jun 2011 15:51:19 -0400
 MIME-Version: 1.0
-To: Juergen Lock <nox@jelal.kn-bremen.de>
-CC: linux-media@vger.kernel.org, hselasky@c2i.net
-Subject: Re: [PATCH] [media] af9015: setup rc keytable for LC-Power LC-USB-DVBT
-References: <20110612202512.GA63911@triton8.kn-bremen.de> <201106122215.p5CMF0Xr069931@triton8.kn-bremen.de> <4DF53CB6.109@iki.fi> <20110612223437.GB71121@triton8.kn-bremen.de>
-In-Reply-To: <20110612223437.GB71121@triton8.kn-bremen.de>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Date: Sat, 25 Jun 2011 12:37:44 -0300
+From: WESTERN UNION MONEY TRANSFER <info@wumt.com>
+To: info@wumt.com
+Subject: WESTERN UNION 5000.00USD URGENT PICK UP
+Reply-To: w.westernmoneytransfer@yahoo.com.hk
+Message-ID: <26f8f17f69ca36e10086badb89b90a56@172.16.87.11>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 8bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On 06/13/2011 01:34 AM, Juergen Lock wrote:
-> On Mon, Jun 13, 2011 at 01:24:54AM +0300, Antti Palosaari wrote:
->> On 06/13/2011 01:15 AM, Juergen Lock wrote:
->>>> About the repeating bug you mention, are you using latest driver
->>>> version? I am not aware such bug. There have been this kind of incorrect
->>>> behaviour old driver versions which are using HID. It was coming from
->>>> wrong HID interval.
->>>>
->>>> Also you can dump remote codes out when setting debug=2 to
->>>> dvb_usb_af9015 module.
->>>
->>>    That doesn't seem to work here so maybe my version is really too old
->>> to have that fix.  (But the keytable patch should still apply I guess?)
->>
->> Could you send af9015.c file you have I can check?
->>
->> Your patch is OK, but I want to know why it repeats.
->
-> Sent off-list.
-
-It was latest version. Still mystery why it repeats... Have you 
-unplugged that device after booting from Windows? I wonder if there is 
-HID remote codes uploaded to device by Windows driver and then you have 
-"warm" booted to Linux...
-
-Anyhow, I will take your patch and add it to the af9015 driver.
-
-regards
-Antti
-
 
 -- 
-http://palosaari.fi/
+How are you doing today?
+
+I write to inform you that we have already sent you $5000.00USD dollars through Western union as we have been given the mandate to transfer your full benefited sum of $1,800,000.00USD via our office here (Western Union)  by the United nations in conjunction with the Nigeria Government as a compensation.
+
+I called to give you the information through phone as internet hackers were many but i cannot reach you yesterday even this morning.So,I decided to email you the MTCN and sender name so that can pick up this $5000.00USD to enable us send another $5000.00USD by tomorrow as you knows we will be sending you only $5000.00USD per day.
+
+Kindly pick up this information and hurry up to the nearest western union money office that is close to you and pick up this first payment that has been sent to you now and as soon as you are done with the pick up kindly get back to us in order for us to send you another payment by tomorrow,as you know that we shall be sending  you $5000USD par day.
+
+Manager :Mrs.Anita Daniel
+Email: w.westernmoneytransfer@yahoo.com.hk
+
+Email me once you picked up this $5000.00USD today.
+Here is the western union information to pick up the $5000.00USD,
+
+Payment Information.
+MTCN :_______________853-435-9544
+Sender's Name:_________Rose Micheal
+Text Question:__________What
+Answer:_______________Blue
+Amount Sent___________$5000.00USD
+Country:_______________Nigeria
+
+With due respect please get back to us urgently after the pick of the money and 
+if you have any problem you can as well contact us immediately.
+
+Thanks
+Mrs. Anita Daniel.
+western union Office.
+
