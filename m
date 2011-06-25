@@ -1,204 +1,182 @@
 Return-path: <mchehab@pedra>
-Received: from proofpoint-cluster.metrocast.net ([65.175.128.136]:51438 "EHLO
-	proofpoint-cluster.metrocast.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750832Ab1F2FH6 (ORCPT
+Received: from gelbbaer.kn-bremen.de ([78.46.108.116]:55310 "EHLO
+	smtp.kn-bremen.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751605Ab1FYTgP (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 29 Jun 2011 01:07:58 -0400
-Subject: Re: [RFCv3 PATCH 12/18] vb2_poll: don't start DMA, leave that to
- the first read().
-From: Andy Walls <awalls@md.metrocast.net>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	Pawel Osciak <pawel@osciak.com>,
-	Marek Szyprowski <m.szyprowski@samsung.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>
-Date: Wed, 29 Jun 2011 01:08:08 -0400
-In-Reply-To: <4E0A6B18.8030407@redhat.com>
-References: <1307459123-17810-1-git-send-email-hverkuil@xs4all.nl>
-	 <f1a14e0985ddaa053e45522fe7bbdfae56057ec2.1307458245.git.hans.verkuil@cisco.com>
-	 <4E08FBA5.5080006@redhat.com> <201106280933.57364.hverkuil@xs4all.nl>
-	 <4E09B919.9040100@redhat.com>
-	 <cd2c9732-aee5-492b-ade2-bee084f79739@email.android.com>
-	 <4E09CC6A.8080900@redhat.com> <1309302853.2377.21.camel@palomino.walls.org>
-	 <4E0A6B18.8030407@redhat.com>
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
-Message-ID: <1309324089.2359.89.camel@palomino.walls.org>
-Mime-Version: 1.0
+	Sat, 25 Jun 2011 15:36:15 -0400
+From: Juergen Lock <nox@jelal.kn-bremen.de>
+Date: Sat, 25 Jun 2011 21:34:27 +0200
+To: linux-media@vger.kernel.org
+Cc: hselasky@c2i.net
+Subject: [PATCH] pctv452e.c: switch rc handling to rc.core
+Message-ID: <20110625193427.GA66720@triton8.kn-bremen.de>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Tue, 2011-06-28 at 21:00 -0300, Mauro Carvalho Chehab wrote:
-> Em 28-06-2011 20:14, Andy Walls escreveu:
-> > On Tue, 2011-06-28 at 09:43 -0300, Mauro Carvalho Chehab wrote:
-> >> Em 28-06-2011 09:21, Andy Walls escreveu:
-> > 
-> >>> It is also the case that a driver's poll method should never sleep.
-> >>
-> >> True.
-> > 
-> >>> One issue is how to start streaming with apps that:
-> >>> - Open /dev/video/ in a nonblocking mode, and
-> >>> - Use the read() method
-> >>>
-> >>> while doing it in a way that is POSIX compliant and doesn't break existing apps.  
-> >>
-> >> Well, a first call for poll() may rise a thread that will prepare the buffers, and
-> >> return with 0 while there's no data available.
-> > 
-> > Sure, but that doesn't solve the problem of an app only select()-ing or
-> > poll()-ing for exception fd's and not starting any IO.
-> 
-> Well, a file descriptor can be used only for one thing: or it is a stream file
-> descriptor, or it is an event descriptor. You can't have both for the same
-> file descriptor. If an application need to check for both, the standard Unix way is:
-> 
-> 	fd_set set;
-> 
-> 	FD_ZERO (&set);
-> 	FD_SET (fd_stream, &set);
-> 	FD_SET (fd_event, &set);
-> 
-> 	select (FD_SETSIZE, &set, NULL, NULL, &timeout);
-> 
-> In other words, or the events nodes need to be different, or an ioctl is needed
-> in order to tell the Kernel that the associated file descriptor will be used
-> for an event, and that vb2 should not bother with it.
+This is on top of the submitted pctv452e.c driver and was done similar
+to how ttusb2 works.  Tested with lirc (devinput) and ir-keytable(1).
 
-Um, no, that is not correct for Unix fd's and socket descriptors in
-general.  I realize that v4l2 events need to be enabled with an ioctl(),
-but do we have a restriction that that can't happen on the same fd as
-the one used for streaming?
+Signed-off-by: Juergen Lock <nox@jelal.kn-bremen.de>
 
-Back in the days before threads were commonly available on Unix systems,
-a process would use a single thread calling select() to handle I/O on a
-serial port:
-
-	fd_set rfds, wfds;
-	int ttyfd;
-	...
-	FD_ZERO(&rfds);
-	FD_SET(ttyfd, &rfds);
-	FD_ZERO(&wfds);
-	FD_SET(ttyfd, &wfds);
-
-	n = select(ttyfd+1, &rfds, &wfds, NULL, NULL);
-
-Or TCP socket
-
-	fd_set rfds, wfds, efds;
-	int sockd;
-	...
-	FD_ZERO(&rfds);
-	FD_SET(sockd, &rfds);
-	FD_ZERO(&wfds);
-	FD_SET(sockd, &wfds);
-	FD_ZERO(&efds);
-	FD_SET(sockd, &efds);
-
-	n = select(sockd+1, &rfds, &wfds, &efds, NULL);
-
-
-
-> >>> The other constraint is to ensure when only poll()-ing for exception
-> >> conditions, not having significant IO side effects.
-> >>>
-> >>> I'm pretty sure sleeping in a driver's poll() method, or having
-> >> significant side effects, is not ine the spirit of the POSIX select()
-> >> and poll(), even if the letter of POSIX says nothing about it.
-> >>>
-> >>> The method I suggested to Hans is completely POSIX compliant for
-> >> apps using read() and select() and was checked against MythTV as
-> >> having no bad side effects.  (And by thought experiment doesn't break
-> >> any sensible app using nonblocking IO with select() and read().)
-> >>>
-> >>> I did not do analysis for apps that use mmap(), which I guess is the
-> >> current concern.
-> >>
-> >> The concern is that it is pointing that there are available data, even
-> >> when there is an error.
-> >> This looks like a POSIX violation for me.
-> > 
-> > It isn't.
-> > 
-> > From the specification for select():
-> > http://pubs.opengroup.org/onlinepubs/009695399/functions/select.html
-> > 
-> > "A descriptor shall be considered ready for reading when a call to an
-> > input function with O_NONBLOCK clear would not block, whether or not the
-> > function would transfer data successfully. (The function might return
-> > data, an end-of-file indication, or an error other than one indicating
-> > that it is blocked, and in each of these cases the descriptor shall be
-> > considered ready for reading.)"
-> 
-> My understanding from the above is that "ready" means:
-> 	- data;
-> 	- EOF;
-> 	- error.
-
-Waiting for data to arrive on an fd, while not streaming is an error
-condition for select() should return.  Something has to be done about
-that fd in that case, or select()-ing on it is futile.
-
-
-> if POLLIN (or POLLOUT) is returned, it should mean one of the above, e. g.
-> the device is ready to provide data or some error occurred.
-> 
-> Btw, we're talking about poll(), and not select(). The poll() doc is clearer
-> (http://pubs.opengroup.org/onlinepubs/009695399/functions/poll.html):
-> 
-> POLLIN
->     Data other than high-priority data may be read without blocking. 
-> 
-> POLLOUT
->     Normal data may be written without blocking. 
-> 
-> Saying that a -EAGAIN means that data is "ready" is an API abuse.
-
-EAGAIN is the correct errno fo the read that returns no data.  The abuse
-is the revent value returned from poll().  However, for any application
-that open()s a device node that supports mutliple open()s, it is a valid
-circumstance that can happen with POSIX.
-
-One way to avoid abusing the revent value returned by poll(), for the
-initial poll() call where streaming has not started, is to modify the
-kernel infrastructure that calls the driver poll() methods.  If the
-kernel passes down to the driver for what the caller is polling, the
-driver poll() method could know that only the exception set for an fd
-was being poll()-ed.  In that case, the driver would know not to start
-streaming and use a return value that made sense.
-
-That solution seems like a lot of work and a large perturbation to the
-kernel.
-
-The only other solution I can think of is to do nothing.  Then
-v4l2-event monitoring will always have the unfortunate side effect of
-starting the stream.
-
-
->  This
-> can actually work, but it will effectively mean that poll or select won't
-> do anything, except for wasting a some CPU cycles.
-
-The wasted CPU cycles are an insignificant, one-time penalty during the
-first iteration of a loop that will use several orders of magnitude more
-CPU cycles to fetch and process video data. 
-
-It avoids unecessarily prohibiting modification of v4l2 controls or
-other resources that cannot be modified while streaming, for an
-application that is in a phase where it only wishes to poll() for v4l2
-events without starting a stream.
-
-It mainatins backward compatability with existing programs.  Those
-existing programs *must* handle read() errors after select() or poll()
-indicates that the fd won't block on the next read(), and the call to
-read() will start the stream.
-
-Regards,
-Andy
-
-> Cheers,
-> Mauro.
-
-
+--- a/drivers/media/dvb/dvb-usb/pctv452e.c
++++ b/drivers/media/dvb/dvb-usb/pctv452e.c
+@@ -98,6 +98,7 @@ struct pctv452e_state {
+ 
+ 	u8 c;	   /* transaction counter, wraps around...  */
+ 	u8 initialized; /* set to 1 if 0x15 has been sent */
++	u16 last_rc_key;
+ };
+ 
+ static int
+@@ -535,83 +536,10 @@ int pctv452e_power_ctrl(struct dvb_usb_d
+ 	return 0;
+ }
+ 
+-/* Remote control stuff */
+-static struct rc_map_table pctv452e_rc_keys[] = {
+-	{0x0700, KEY_MUTE},
+-	{0x0701, KEY_VENDOR},  // pinnacle logo (top middle)
+-	{0x0739, KEY_POWER},
+-	{0x0703, KEY_VOLUMEUP},
+-	{0x0709, KEY_VOLUMEDOWN},
+-	{0x0706, KEY_CHANNELUP},
+-	{0x070c, KEY_CHANNELDOWN},
+-	{0x070f, KEY_1},
+-	{0x0715, KEY_2},
+-	{0x0710, KEY_3},
+-	{0x0718, KEY_4},
+-	{0x071b, KEY_5},
+-	{0x071e, KEY_6},
+-	{0x0711, KEY_7},
+-	{0x0721, KEY_8},
+-	{0x0712, KEY_9},
+-	{0x0727, KEY_0},
+-	{0x0724, KEY_TV}, // left of '0'
+-	{0x072a, KEY_T}, // right of '0'
+-	{0x072d, KEY_REWIND},
+-	{0x0733, KEY_FORWARD},
+-	{0x0730, KEY_PLAY},
+-	{0x0736, KEY_RECORD},
+-	{0x073c, KEY_STOP},
+-	{0x073f, KEY_HELP}
+-};
+-
+-/* Remote Control Stuff fo S2-3600 (copied from TT-S1500): */
+-static struct rc_map_table tt_connect_s2_3600_rc_key[] = {
+-	{0x1501, KEY_POWER},
+-	{0x1502, KEY_SHUFFLE}, /* ? double-arrow key */
+-	{0x1503, KEY_1},
+-	{0x1504, KEY_2},
+-	{0x1505, KEY_3},
+-	{0x1506, KEY_4},
+-	{0x1507, KEY_5},
+-	{0x1508, KEY_6},
+-	{0x1509, KEY_7},
+-	{0x150a, KEY_8},
+-	{0x150b, KEY_9},
+-	{0x150c, KEY_0},
+-	{0x150d, KEY_UP},
+-	{0x150e, KEY_LEFT},
+-	{0x150f, KEY_OK},
+-	{0x1510, KEY_RIGHT},
+-	{0x1511, KEY_DOWN},
+-	{0x1512, KEY_INFO},
+-	{0x1513, KEY_EXIT},
+-	{0x1514, KEY_RED},
+-	{0x1515, KEY_GREEN},
+-	{0x1516, KEY_YELLOW},
+-	{0x1517, KEY_BLUE},
+-	{0x1518, KEY_MUTE},
+-	{0x1519, KEY_TEXT},
+-	{0x151a, KEY_MODE},  /* ? TV/Radio */
+-	{0x1521, KEY_OPTION},
+-	{0x1522, KEY_EPG},
+-	{0x1523, KEY_CHANNELUP},
+-	{0x1524, KEY_CHANNELDOWN},
+-	{0x1525, KEY_VOLUMEUP},
+-	{0x1526, KEY_VOLUMEDOWN},
+-	{0x1527, KEY_SETUP},
+-	{0x153a, KEY_RECORD},/* these keys are only in the black remote */
+-	{0x153b, KEY_PLAY},
+-	{0x153c, KEY_STOP},
+-	{0x153d, KEY_REWIND},
+-	{0x153e, KEY_PAUSE},
+-	{0x153f, KEY_FORWARD}
+-};
+-
+-static int pctv452e_rc_query(struct dvb_usb_device *d, u32 *keyevent, int *keystate) {
++static int pctv452e_rc_query(struct dvb_usb_device *d) {
+ 	struct pctv452e_state *state = (struct pctv452e_state *)d->priv;
+ 	u8 b[CMD_BUFFER_SIZE];
+ 	u8 rx[PCTV_ANSWER_LEN];
+-	u8 keybuf[5];
+ 	int ret, i;
+ 	u8 id = state->c++;
+ 
+@@ -621,8 +549,6 @@ static int pctv452e_rc_query(struct dvb_
+ 	b[2] = PCTV_CMD_IR;
+ 	b[3] = 0;
+ 
+-	*keystate = REMOTE_NO_KEY_PRESSED;
+-
+ 	/* send ir request */
+ 	ret = dvb_usb_generic_rw(d, b, 4, rx, PCTV_ANSWER_LEN, 0);
+ 	if (ret != 0) return ret;
+@@ -637,16 +563,14 @@ static int pctv452e_rc_query(struct dvb_
+ 
+ 	if ((rx[3] == 9) &&  (rx[12] & 0x01)) {
+ 		/* got a "press" event */
++		state->last_rc_key = (rx[7] << 8) | rx[6];
+ 		if (debug > 2) {
+ 	 		printk("%s: cmd=0x%02x sys=0x%02x\n", __func__, rx[6], rx[7]);
+ 		}
+-		keybuf[0] = 0x01;// DVB_USB_RC_NEC_KEY_PRESSED; why is this #define'd privately?
+-		keybuf[1] = rx[7];
+-		keybuf[2] = ~keybuf[1]; // fake checksum
+-		keybuf[3] = rx[6];
+-		keybuf[4] = ~keybuf[3]; // fake checksum
+-		dvb_usb_nec_rc_key_to_event(d, keybuf, keyevent, keystate);
+-
++		rc_keydown(d->rc_dev, state->last_rc_key, 0);
++	} else if (state->last_rc_key) {
++		rc_keyup(d->rc_dev);
++		state->last_rc_key = 0;
+ 	}
+ 
+ 	return 0;
+@@ -1294,11 +1218,11 @@ static struct dvb_usb_device_properties 
+ 	/* Untested. */
+ 	/* .read_mac_address = pctv452e_read_mac_address, */
+ 
+-	.rc.legacy = {
+-		.rc_map_table     = pctv452e_rc_keys,
+-		.rc_map_size      = ARRAY_SIZE(pctv452e_rc_keys),
++	.rc.core = {
++		.rc_interval      = 100, /* Less than IR_KEYPRESS_TIMEOUT */
++		.rc_codes         = RC_MAP_DIB0700_RC5_TABLE,
+ 		.rc_query         = pctv452e_rc_query,
+-		.rc_interval      = 100,
++		.allowed_protos   = RC_TYPE_UNKNOWN,
+ 	},
+ 
+ 	.num_adapters     = 1,
+@@ -1352,11 +1276,11 @@ static struct dvb_usb_device_properties 
+ 	.power_ctrl		= pctv452e_power_ctrl,
+ 	.read_mac_address	= pctv452e_read_mac_address,
+ 
+-	.rc.legacy = {
+-		.rc_map_table   = tt_connect_s2_3600_rc_key,
+-		.rc_map_size    = ARRAY_SIZE(tt_connect_s2_3600_rc_key),
+-		.rc_query       = pctv452e_rc_query,
+-		.rc_interval    = 500,
++	.rc.core = {
++		.rc_interval      = 100, /* Less than IR_KEYPRESS_TIMEOUT */
++		.rc_codes         = RC_MAP_TT_1500,
++		.rc_query         = pctv452e_rc_query,
++		.allowed_protos   = RC_TYPE_UNKNOWN,
+ 	},
+ 
+ 	.num_adapters		= 1,
