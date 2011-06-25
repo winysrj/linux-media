@@ -1,35 +1,51 @@
 Return-path: <mchehab@pedra>
-Received: from moutng.kundenserver.de ([212.227.126.186]:60158 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751682Ab1FHLaq (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 8 Jun 2011 07:30:46 -0400
-Date: Wed, 8 Jun 2011 13:30:37 +0200 (CEST)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Kassey Lee <ygli@marvell.com>
-cc: linux-media@vger.kernel.org, ytang5@marvell.com, corbet@lwn.net,
-	qingx@marvell.com, jwan@marvell.com, leiwen@marvell.com
-Subject: Re: [PATCH] V4L/DVB: v4l: Add driver for Marvell PXA910 CCIC
-In-Reply-To: <1307530660-25464-1-git-send-email-ygli@marvell.com>
-Message-ID: <Pine.LNX.4.64.1106081322590.24274@axis700.grange>
-References: <1307530660-25464-1-git-send-email-ygli@marvell.com>
+Received: from mailout-de.gmx.net ([213.165.64.23]:60294 "HELO
+	mailout-de.gmx.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1751930Ab1FYAiU convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 24 Jun 2011 20:38:20 -0400
+From: Oliver Endriss <o.endriss@gmx.de>
+Reply-To: Linux Media Mailing List <linux-media@vger.kernel.org>
+To: Simon Liddicott <simon@liddicott.com>
+Subject: Re: [DVB] Octopus driver status
+Date: Sat, 25 Jun 2011 02:37:58 +0200
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	=?iso-8859-15?q?S=E9bastien_RAILLARD?= (COEXSI) <sr@coexsi.fr>
+References: <017201cc31ec$de287ce0$9a7976a0$@coexsi.fr> <4E047B9C.1010308@redhat.com> <BANLkTinzBGMxwd7AmxPhG3Q1pCx0EsUxvA@mail.gmail.com>
+In-Reply-To: <BANLkTinzBGMxwd7AmxPhG3Q1pCx0EsUxvA@mail.gmail.com>
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain;
+  charset="iso-8859-15"
+Content-Transfer-Encoding: 8BIT
+Content-Disposition: inline
+Message-Id: <201106250237.59401@orion.escape-edv.de>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Hi Kassey
+On Friday 24 June 2011 14:44:50 Simon Liddicott wrote:
+> Do you have a Terratec Cinergy 2400i? It belongs to the ngene family but has
+> PLL tuners. http://linuxtv.org/wiki/index.php/TerraTec_Cinergy_2400i_DVB-T
+> 
+> There are some drivers floating on the net that I have got to work in Ubuntu
+> 8.04 but the current ngene drivers has moved on a long way and left it
+> behind.
 
-Thanks for the new version, but, IIUC, you agreed to reimplement your 
-driver on top of a common ccic core, which means, a lot of code will 
-change. So, it doesn't really make much sense now to make and review new 
-stand-alone versions of your driver, right? So, shall we wait until Jon's 
-CCIC code stabilises a bit and you rebase your driver on top of it? Of 
-course, you can also work together with Jon on the drivers to get them 
-faster in shape and in a way, suitable fou you both.
+Sorry, I do not have this device, and I have no plans to work on it.
+Terratec did not contribute in any way to the ngene driver. [1]
 
-Thanks
-Guennadi
----
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
-http://www.open-technology.de/
+As always, patches are welcome.
+
+CU
+Oliver
+
+[1] Some time ago I had a look at that driver, and found that it could
+    not be added to the kernel, due to an GPL-incompatible proprietary
+    license for some files.
+
+-- 
+----------------------------------------------------------------
+VDR Remote Plugin 0.4.0: http://www.escape-edv.de/endriss/vdr/
+4 MByte Mod: http://www.escape-edv.de/endriss/dvb-mem-mod/
+Full-TS Mod: http://www.escape-edv.de/endriss/dvb-full-ts-mod/
+----------------------------------------------------------------
