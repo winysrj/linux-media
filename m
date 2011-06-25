@@ -1,191 +1,80 @@
 Return-path: <mchehab@pedra>
-Received: from ams-iport-1.cisco.com ([144.254.224.140]:31494 "EHLO
-	ams-iport-1.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754439Ab1F2LPV (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 29 Jun 2011 07:15:21 -0400
-From: Hans Verkuil <hansverk@cisco.com>
-To: Marek Szyprowski <m.szyprowski@samsung.com>
-Subject: Re: [PATCH/RFC] media: vb2: change queue initialization order
-Date: Wed, 29 Jun 2011 13:15:10 +0200
-Cc: linux-media@vger.kernel.org,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	Pawel Osciak <pawel@osciak.com>,
-	Jonathan Corbet <corbet@lwn.net>,
-	"Uwe =?iso-8859-15?q?Kleine-K=F6nig?="
-	<u.kleine-koenig@pengutronix.de>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	Marin Mitov <mitov@issp.bas.bg>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>
-References: <1309340946-5658-1-git-send-email-m.szyprowski@samsung.com>
-In-Reply-To: <1309340946-5658-1-git-send-email-m.szyprowski@samsung.com>
+Received: from mx1.redhat.com ([209.132.183.28]:32000 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751452Ab1FYORU (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 25 Jun 2011 10:17:20 -0400
+Message-ID: <4E05EDEE.1000201@redhat.com>
+Date: Sat, 25 Jun 2011 11:17:18 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-15"
+To: Hans Verkuil <hverkuil@xs4all.nl>
+CC: linux-media <linux-media@vger.kernel.org>
+Subject: Re: RFC tuner-core: how to set vt->type in g_tuner?
+References: <201106251602.45572.hverkuil@xs4all.nl>
+In-Reply-To: <201106251602.45572.hverkuil@xs4all.nl>
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Message-Id: <201106291315.10611.hansverk@cisco.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Wednesday, June 29, 2011 11:49:06 Marek Szyprowski wrote:
-> This patch introduces VB2_STREAMON_WITHOUT_BUFFERS io flag and changes
-> the order of operations during stream on operation. Now the buffer are
-> first queued to the driver and then the start_streaming method is called.
-> This resolves the most common case when the driver needs to know buffer
-> addresses to enable dma engine and start streaming. For drivers that can
-> handle start_streaming without queued buffers (mem2mem and 'one shot'
-> capture case) a new VB2_STREAMON_WITHOUT_BUFFERS io flag has been
-> introduced. Driver can set it to let videobuf2 know that it support this
+Em 25-06-2011 11:02, Hans Verkuil escreveu:
+> Hi all,
+> 
+> The tuner-core.c implementation does this at the start of g_tuner:
+> 
+>         if (check_mode(t, vt->type) == -EINVAL)
+>                 return 0;
+>         vt->type = t->mode;
+> 
+> The idea is that the vt->type is set depending on whether the VIDIOC_G_TUNER
+> ioctl is called from a radio device node or a video device node. If we have a
+> tuner that can do both radio and TV, then the type is set to whatever the
+> current tuner mode is.
+> 
+> This seems reasonable, but it will actually run into problems when g_tuner
+> is called for audio demodulators like msp3400 or cx25840. These need to know
+> the correct vt->type in order to fill in the right fields.
+> 
+> The problem here is that the tuner subdevices are not necessarily called first.
+> In fact, the msp3400/cx25840 are actually called first by ivtv.
+> 
+> So the msp3400 will get called with type TV, and later the tuner may change that
+> to type RADIO. This causes inconsistencies. This has actually been observed when
+> testing with ivtv and a PVR-500.
+> 
+> There are two solutions:
+> 
+> 1) Audit the drivers and ensure that the tuner subdevices are registered first.
+> 
+> 2) Do not allow the tuner to switch the type.
+
+(2) is the right thing to do. A VIDIOC_GET_foo should not change anything. They are
+supposed to be read only access.
+
+> 
+> The problem with 1 is that this will be hard to enforce in the long term. Another
+> problem with 1 is that I do think it is a bit unexpected from an application PoV
+> that the type is suddenly inconsistent with the node the ioctl is called from.
+> 
+> The problem with 2 is that some sensible defaults need to be filled in if the
+> a radio/TV tuner is called with vt->type set to a different mode than the current
 > mode.
 > 
-> This patch also updates videobuf2 clients (s5p-fimc, mem2mem_testdev and
-> vivi) to work properly with the changed order of operations and enables
-> use of the newly introduced flag.
+> I do not think that is very hard though: afc/signal can be 0, ditto for rxsubchans.
+> The audmode field should just report the value last set with s_tuner.
 > 
-> Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
-> Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
-> Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
-> CC: Pawel Osciak <pawel@osciak.com>
-> ---
+> g_frequency has the same problem as g_tuner. I believe g_frequency shouldn't change
+> the type either. Since it already has the last set frequency for tv or radio it can
+> just report it.
 > 
->  drivers/media/video/mem2mem_testdev.c       |    4 +-
->  drivers/media/video/s5p-fimc/fimc-capture.c |   65 
-++++++++++++++++----------
->  drivers/media/video/s5p-fimc/fimc-core.c    |    4 +-
->  drivers/media/video/videobuf2-core.c        |   21 ++++-----
->  drivers/media/video/vivi.c                  |    2 +-
->  include/media/videobuf2-core.h              |   11 +++--
->  6 files changed, 62 insertions(+), 45 deletions(-)
+> I think the second solution is the easiest to implement and the most intuitive as
+> well.
 > 
+> Comments?
 > 
-> ---
-> 
-> Hello,
-> 
-> This patch introduces significant changes in the vb2 streamon operation,
-> so all vb2 clients need to be checked and updated. Right now I didn't
-> update mx3_camera and sh_mobile_ceu_camera drivers. Once we agree that
-> this patch can be merged, I will update it to include all the required
-> changes to these two drivers as well.
-> 
-> Best regards
-> -- 
-> Marek Szyprowski
-> Samsung Poland R&D Center
-> 
-
-<snip>
-
-> diff --git a/drivers/media/video/videobuf2-core.c 
-b/drivers/media/video/videobuf2-core.c
-> index 5517913..911e2eb 100644
-> --- a/drivers/media/video/videobuf2-core.c
-> +++ b/drivers/media/video/videobuf2-core.c
-> @@ -1136,17 +1136,23 @@ int vb2_streamon(struct vb2_queue *q, enum 
-v4l2_buf_type type)
->  	}
->  
->  	/*
-> -	 * Cannot start streaming on an OUTPUT device if no buffers have
-> -	 * been queued yet.
-> +	 * Cannot start streaming if driver requires queued buffers.
->  	 */
-> -	if (V4L2_TYPE_IS_OUTPUT(q->type)) {
-> +	if (!(q->io_flags & VB2_STREAMON_WITHOUT_BUFFERS)) {
->  		if (list_empty(&q->queued_list)) {
-> -			dprintk(1, "streamon: no output buffers queued\n");
-> +			dprintk(1, "streamon: no buffers queued\n");
->  			return -EINVAL;
->  		}
->  	}
->  
->  	/*
-> +	 * If any buffers were queued before streamon,
-> +	 * we can now pass them to driver for processing.
-> +	 */
-> +	list_for_each_entry(vb, &q->queued_list, queued_entry)
-> +		__enqueue_in_driver(vb);
-> +
-> +	/*
->  	 * Let driver notice that streaming state has been enabled.
->  	 */
->  	ret = call_qop(q, start_streaming, q);
-
-Am I missing something? What is the purpose of this flag? Why not let the 
-driver check in start_streaming whether any buffers have been queued and 
-return -EINVAL if there aren't any? Between setting a flag or just doing the 
-test in start_streaming I would prefer just doing the test.
-
-To make it even easier you can perhaps add an extra argument to 
-start_streaming with the number of buffers that are already queued.
-
-I can't help thinking that this is made more difficult than it really is.
-
-Regards,
-
-	Hans
-
-> @@ -1157,13 +1163,6 @@ int vb2_streamon(struct vb2_queue *q, enum 
-v4l2_buf_type type)
->  
->  	q->streaming = 1;
->  
-> -	/*
-> -	 * If any buffers were queued before streamon,
-> -	 * we can now pass them to driver for processing.
-> -	 */
-> -	list_for_each_entry(vb, &q->queued_list, queued_entry)
-> -		__enqueue_in_driver(vb);
-> -
->  	dprintk(3, "Streamon successful\n");
->  	return 0;
->  }
-> diff --git a/drivers/media/video/vivi.c b/drivers/media/video/vivi.c
-> index 2238a61..e740a44 100644
-> --- a/drivers/media/video/vivi.c
-> +++ b/drivers/media/video/vivi.c
-> @@ -1232,7 +1232,7 @@ static int __init vivi_create_instance(int inst)
->  	q = &dev->vb_vidq;
->  	memset(q, 0, sizeof(dev->vb_vidq));
->  	q->type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
-> -	q->io_modes = VB2_MMAP | VB2_USERPTR | VB2_READ;
-> +	q->io_modes = VB2_MMAP | VB2_READ | VB2_STREAMON_WITHOUT_BUFFERS;
->  	q->drv_priv = dev;
->  	q->buf_struct_size = sizeof(struct vivi_buffer);
->  	q->ops = &vivi_video_qops;
-> diff --git a/include/media/videobuf2-core.h b/include/media/videobuf2-core.h
-> index f87472a..cdc0558 100644
-> --- a/include/media/videobuf2-core.h
-> +++ b/include/media/videobuf2-core.h
-> @@ -84,12 +84,15 @@ struct vb2_plane {
->   * @VB2_USERPTR:	driver supports USERPTR with streaming API
->   * @VB2_READ:		driver supports read() style access
->   * @VB2_WRITE:		driver supports write() style access
-> + * @VB2_STREAMON_WITHOUT_BUFFERS: driver supports stream_on() without 
-buffers
-> + *			queued
->   */
->  enum vb2_io_modes {
-> -	VB2_MMAP	= (1 << 0),
-> -	VB2_USERPTR	= (1 << 1),
-> -	VB2_READ	= (1 << 2),
-> -	VB2_WRITE	= (1 << 3),
-> +	VB2_MMAP			= (1 << 0),
-> +	VB2_USERPTR			= (1 << 1),
-> +	VB2_READ			= (1 << 2),
-> +	VB2_WRITE			= (1 << 3),
-> +	VB2_STREAMON_WITHOUT_BUFFERS	= (1 << 16),
->  };
->  
->  /**
-> -- 
-> 1.7.1.569.g6f426
-> 
+> 	Hans
 > --
 > To unsubscribe from this list: send the line "unsubscribe linux-media" in
 > the body of a message to majordomo@vger.kernel.org
 > More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
-> 
+
