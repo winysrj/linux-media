@@ -1,183 +1,133 @@
 Return-path: <mchehab@pedra>
-Received: from mail-ww0-f44.google.com ([74.125.82.44]:51000 "EHLO
+Received: from mail-ww0-f44.google.com ([74.125.82.44]:43059 "EHLO
 	mail-ww0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751933Ab1F3WVm (ORCPT
+	with ESMTP id S1751571Ab1FYNYx (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 30 Jun 2011 18:21:42 -0400
-Received: by wwe5 with SMTP id 5so2673722wwe.1
-        for <linux-media@vger.kernel.org>; Thu, 30 Jun 2011 15:21:40 -0700 (PDT)
-Subject: [PATCH] STV0288 Fast Channel Acquisition
-From: Malcolm Priestley <tvboxspy@gmail.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: =?ISO-8859-1?Q?S=E9bastien?= "RAILLARD (COEXSI)" <sr@coexsi.fr>
-In-Reply-To: <00a301cc365e$b6d415c0$247c4140$@coexsi.fr>
-References: <00a301cc365e$b6d415c0$247c4140$@coexsi.fr>
-Content-Type: text/plain; charset="UTF-8"
-Date: Thu, 30 Jun 2011 23:21:33 +0100
-Message-ID: <1309472493.11947.12.camel@localhost>
-Mime-Version: 1.0
-Content-Transfer-Encoding: 8bit
+	Sat, 25 Jun 2011 09:24:53 -0400
+Received: by wwe5 with SMTP id 5so3589101wwe.1
+        for <linux-media@vger.kernel.org>; Sat, 25 Jun 2011 06:24:52 -0700 (PDT)
+Subject: [PATCH] Make Compro VideoMate Vista T750F actually work
+To: linux-media@vger.kernel.org
+From: Carlos Corbacho <carlos@strangeworlds.co.uk>
+Date: Sat, 25 Jun 2011 14:24:28 +0100
+Message-ID: <20110625132421.18612.63063.stgit@localhost>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Wed, 2011-06-29 at 15:16 +0200, Sébastien RAILLARD (COEXSI) wrote:
+Based on the work of John Newbigin, Davor Emard and others who contributed
+on the mailing lists.
 
-> On some other transponders, like ASTRA 19.2E 11567-V-22000, the card nearly
-> never manage to get the lock: it's looking like the signal isn't good
-> enough.
-> I turned on the debugging of the stb6000 and stv0288 modules, but I can't
-> see anything wrong.
+The previous 'support' for this card was a partial merge of John's changes
+that, as far as I can tell, never actually got the thing working (no DVB-T,
+analog tuner not initialised).
 
-I have had similar problems with the stv0288 on astra 19.2 and 28.2 with
-various frequencies.
+Initialise the analog tuner properly and hook up the DVB tuner and demodulator.
 
-I have been using this patch for some time which seems to improve
-things.
+DVB-T and analog now work (though I can't tune every DVB channel, but I think
+there's an issue with the aerial and signal boosters here that is causing
+me problems).
 
-The STV0288 has a fast channel function which eliminates
-the need for software carrier search.
-
-The patch removes the slow carrier search and replaces
-it with this faster and more reliable built-in chip function.
-
-If carrier is lost while channel is running, fast channel
-attempts to recover it.
-
-The patch also reguires registers 50-57 to be set correctly
-with inittab. All current combinations in the kernel media
-tree have been checked and tested.
-
-Signed-off-by: Malcolm Priestley <tvboxspy@gmail.com>
+Signed-off-by: Carlos Corbacho <carlos@strangeworlds.co.uk>
 ---
- drivers/media/dvb/frontends/stv0288.c |   75 +++++++++++++++++++++-----------
- 1 files changed, 49 insertions(+), 26 deletions(-)
+I've dropped remote control support for now - I need to re-review the original
+patches in more detail and also differentiate between the T750 and T750F (I
+know how to do this based on the eeprom, but that'll take some time to get
+ready and getting the rest of the card working first is more important).
 
-diff --git a/drivers/media/dvb/frontends/stv0288.c b/drivers/media/dvb/frontends/stv0288.c
-index 8e0cfad..fa5cba5 100644
---- a/drivers/media/dvb/frontends/stv0288.c
-+++ b/drivers/media/dvb/frontends/stv0288.c
-@@ -142,6 +142,12 @@ static int stv0288_set_symbolrate(struct dvb_frontend *fe, u32 srate)
- 		stv0288_writeregI(state, 0x28, b[0]);
- 		stv0288_writeregI(state, 0x29, b[1]);
- 		stv0288_writeregI(state, 0x2a, b[2]);
-+
-+		stv0288_writeregI(state, 0x22, 0x0);
-+		stv0288_writeregI(state, 0x23, 0x0);
-+		stv0288_writeregI(state, 0x2b, 0x0);
-+		stv0288_writeregI(state, 0x2c, 0x0);
-+
- 		dprintk("stv0288: stv0288_set_symbolrate\n");
- 
+ drivers/media/video/saa7134/saa7134-cards.c |   13 ++++++++++++-
+ drivers/media/video/saa7134/saa7134-dvb.c   |   25 +++++++++++++++++++++++++
+ 2 files changed, 37 insertions(+), 1 deletions(-)
+
+diff --git a/drivers/media/video/saa7134/saa7134-cards.c b/drivers/media/video/saa7134/saa7134-cards.c
+index e2062b2..0f9fb99 100644
+--- a/drivers/media/video/saa7134/saa7134-cards.c
++++ b/drivers/media/video/saa7134/saa7134-cards.c
+@@ -4951,8 +4951,9 @@ struct saa7134_board saa7134_boards[] = {
+ 		.audio_clock    = 0x00187de7,
+ 		.tuner_type     = TUNER_XC2028,
+ 		.radio_type     = UNSET,
+-		.tuner_addr	= ADDR_UNSET,
++		.tuner_addr	= 0x61,
+ 		.radio_addr	= ADDR_UNSET,
++		.mpeg           = SAA7134_MPEG_DVB,
+ 		.inputs = {{
+ 			.name   = name_tv,
+ 			.vmux   = 3,
+@@ -6992,6 +6993,11 @@ static int saa7134_xc2028_callback(struct saa7134_dev *dev,
+ 			msleep(10);
+ 			saa7134_set_gpio(dev, 18, 1);
+ 		break;
++		case SAA7134_BOARD_VIDEOMATE_T750:
++			saa7134_set_gpio(dev, 20, 0);
++			msleep(10);
++			saa7134_set_gpio(dev, 20, 1);
++		break;
+ 		}
  	return 0;
-@@ -309,12 +315,13 @@ static u8 stv0288_inittab[] = {
- 	0xf1, 0x0,
- 	0xf2, 0xc0,
- 	0x51, 0x36,
--	0x52, 0x09,
--	0x53, 0x94,
--	0x54, 0x62,
--	0x55, 0x29,
--	0x56, 0x64,
--	0x57, 0x2b,
-+	0x52, 0x21,
-+	/* Fast Channel MIN/MAX Freqency Bounds MSB bit 7 sets stop */
-+	0x53, 0x94, /*Min MSB (0-6)*/
-+	0x54, 0x62, /*Min LSB*/
-+	0x55, 0x29, /*Max MSB (0-6)*/
-+	0x56, 0x64, /*Max LSB*/
-+	0x57, 0x2b, /* Increment (signed) */
- 	0xff, 0xff,
+ 	}
+@@ -7451,6 +7457,11 @@ int saa7134_board_init1(struct saa7134_dev *dev)
+ 		saa_andorl(SAA7134_GPIO_GPMODE0 >> 2,   0x0e050000, 0x0c050000);
+ 		saa_andorl(SAA7134_GPIO_GPSTATUS0 >> 2, 0x0e050000, 0x0c050000);
+ 		break;
++	case SAA7134_BOARD_VIDEOMATE_T750:
++		/* enable the analog tuner */
++		saa_andorl(SAA7134_GPIO_GPMODE0 >> 2,   0x00008000, 0x00008000);
++		saa_andorl(SAA7134_GPIO_GPSTATUS0 >> 2, 0x00008000, 0x00008000);
++		break;
+ 	}
+ 	return 0;
+ }
+diff --git a/drivers/media/video/saa7134/saa7134-dvb.c b/drivers/media/video/saa7134/saa7134-dvb.c
+index 996a206..1e4ef16 100644
+--- a/drivers/media/video/saa7134/saa7134-dvb.c
++++ b/drivers/media/video/saa7134/saa7134-dvb.c
+@@ -56,6 +56,7 @@
+ #include "lgs8gxx.h"
+ 
+ #include "zl10353.h"
++#include "qt1010.h"
+ 
+ #include "zl10036.h"
+ #include "zl10039.h"
+@@ -939,6 +940,18 @@ static struct zl10353_config behold_x7_config = {
+ 	.disable_i2c_gate_ctrl = 1,
  };
  
-@@ -356,6 +363,35 @@ static int stv0288_init(struct dvb_frontend *fe)
- 	return 0;
- }
- 
-+/* STV0288 Fast channel accquisition and blind search */
-+static int stv0288_get_fast(struct dvb_frontend *fe)
-+{
-+	struct stv0288_state *state = fe->demodulator_priv;
-+	int timeout = 0;
++static struct zl10353_config videomate_t750_zl10353_config = {
++	.demod_address         = 0x0f,
++	.no_tuner              = 1,
++	.parallel_ts           = 1,
++	.disable_i2c_gate_ctrl = 1,
++};
 +
-+	/* Coarse Tune */
-+	stv0288_writeregI(state, 0x50, 0x35);
-+	/* Wait 15ms */
-+	msleep(15);
-+	/* Fine Tune Control & Center Carrier */
-+	stv0288_writeregI(state, 0x50, 0x16);
-+	/* Check for Timing lock */
-+	while (!(stv0288_readreg(state, 0x1e) & 0x80)) {
-+		if (timeout++ > 5)
-+			return -EINVAL;
-+		msleep(15);
-+	}
-+
-+	/* Center Carrier for further length of time */
-+	stv0288_writeregI(state, 0x50, 0x14);
-+	udelay(500);
-+	/* Fast Search End*/
-+	stv0288_writeregI(state, 0x50, 0x10);
-+
-+	return 0;
-+}
++static struct qt1010_config videomate_t750_qt1010_config = {
++	.i2c_address = 0x62
++};
 +
 +
- static int stv0288_read_status(struct dvb_frontend *fe, fe_status_t *status)
- {
- 	struct stv0288_state *state = fe->demodulator_priv;
-@@ -369,6 +405,9 @@ static int stv0288_read_status(struct dvb_frontend *fe, fe_status_t *status)
- 	*status = 0;
- 	if (sync & 0x80)
- 		*status |= FE_HAS_CARRIER | FE_HAS_SIGNAL;
-+		else
-+		stv0288_get_fast(fe); /*try to recover*/
-+
- 	if (sync & 0x10)
- 		*status |= FE_HAS_VITERBI;
- 	if (sync & 0x08) {
-@@ -458,9 +497,7 @@ static int stv0288_set_frontend(struct dvb_frontend *fe,
- {
- 	struct stv0288_state *state = fe->demodulator_priv;
- 	struct dtv_frontend_properties *c = &fe->dtv_property_cache;
--
--	char tm;
--	unsigned char tda[3];
-+	int ret = 0;
+ /* ==================================================================
+  * tda10086 based DVB-S cards, helper functions
+  */
+@@ -1650,6 +1663,18 @@ static int dvb_init(struct saa7134_dev *dev)
+ 					__func__);
  
- 	dprintk("%s : FE_SET_FRONTEND\n", __func__);
- 
-@@ -487,28 +524,14 @@ static int stv0288_set_frontend(struct dvb_frontend *fe,
- 	stv0288_set_symbolrate(fe, c->symbol_rate);
- 	/* Carrier lock control register */
- 	stv0288_writeregI(state, 0x15, 0xc5);
--
--	tda[0] = 0x2b; /* CFRM */
--	tda[2] = 0x0; /* CFRL */
--	for (tm = -6; tm < 7;) {
--		/* Viterbi status */
--		if (stv0288_readreg(state, 0x24) & 0x8)
--			break;
--
--		tda[2] += 40;
--		if (tda[2] < 40)
--			tm++;
--		tda[1] = (unsigned char)tm;
--		stv0288_writeregI(state, 0x2b, tda[1]);
--		stv0288_writeregI(state, 0x2c, tda[2]);
--		udelay(30);
--	}
-+	/* Search for carrier */
-+	ret = stv0288_get_fast(fe);
- 
- 	state->tuner_frequency = c->frequency;
- 	state->fec_inner = FEC_AUTO;
- 	state->symbol_rate = c->symbol_rate;
- 
--	return 0;
-+	return ret;
- }
- 
- static int stv0288_i2c_gate_ctrl(struct dvb_frontend *fe, int enable)
--- 
-1.7.4.1
+ 		break;
++	case SAA7134_BOARD_VIDEOMATE_T750:
++		fe0->dvb.frontend = dvb_attach(zl10353_attach,
++						&videomate_t750_zl10353_config,
++						&dev->i2c_adap);
++		if (fe0->dvb.frontend != NULL) {
++			if (dvb_attach(qt1010_attach,
++					fe0->dvb.frontend,
++					&dev->i2c_adap,
++					&videomate_t750_qt1010_config) == NULL)
++				wprintk("error attaching QT1010\n");
++		}
++		break;
+ 	case SAA7134_BOARD_ZOLID_HYBRID_PCI:
+ 		fe0->dvb.frontend = dvb_attach(tda10048_attach,
+ 					       &zolid_tda10048_config,
 
