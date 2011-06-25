@@ -1,245 +1,196 @@
 Return-path: <mchehab@pedra>
-Received: from tex.lwn.net ([70.33.254.29]:46418 "EHLO vena.lwn.net"
+Received: from mx1.redhat.com ([209.132.183.28]:25147 "EHLO mx1.redhat.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751244Ab1FNOtu (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 14 Jun 2011 10:49:50 -0400
-Date: Tue, 14 Jun 2011 08:49:48 -0600
-From: Jonathan Corbet <corbet@lwn.net>
-To: Kassey Lee <kassey1216@gmail.com>
-Cc: linux-media@vger.kernel.org, g.liakhovetski@gmx.de,
-	Kassey Lee <ygli@marvell.com>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Daniel Drake <dsd@laptop.org>
-Subject: Re: [PATCH 2/8] marvell-cam: Separate out the Marvell camera core
-Message-ID: <20110614084948.2d158323@bike.lwn.net>
-In-Reply-To: <BANLkTikVeHLL6+T74tpmwmsL4_3h5f3PmA@mail.gmail.com>
-References: <1307814409-46282-1-git-send-email-corbet@lwn.net>
-	<1307814409-46282-3-git-send-email-corbet@lwn.net>
-	<BANLkTikVeHLL6+T74tpmwmsL4_3h5f3PmA@mail.gmail.com>
-Mime-Version: 1.0
+	id S1751100Ab1FYMPI (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 25 Jun 2011 08:15:08 -0400
+Message-ID: <4E05D13A.6030209@redhat.com>
+Date: Sat, 25 Jun 2011 09:14:50 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+MIME-Version: 1.0
+To: Hans Verkuil <hverkuil@xs4all.nl>
+CC: LKML <linux-kernel@vger.kernel.org>,
+	Devin Heitmueller <dheitmueller@kernellabs.com>,
+	Jesper Juhl <jj@chaosbits.net>, trivial@kernel.org,
+	linux-media@vger.kernel.org, ceph-devel@vger.kernel.org,
+	Sage Weil <sage@newdream.net>, Mike Isely <isely@isely.net>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Hans De Goede <hdegoede@redhat.com>,
+	Jean-Francois Moine <moinejf@free.fr>
+Subject: Re: [PATCH] [media] Stop using linux/version.h on most drivers
+References: <alpine.LNX.2.00.1106232344480.17688@swampdragon.chaosbits.net> <4E04A122.2080002@infradead.org> <4E04D696.7020800@redhat.com> <201106251209.21228.hverkuil@xs4all.nl>
+In-Reply-To: <201106251209.21228.hverkuil@xs4all.nl>
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 8bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Tue, 14 Jun 2011 10:58:47 +0800
-Kassey Lee <kassey1216@gmail.com> wrote:
+Em 25-06-2011 07:09, Hans Verkuil escreveu:
+> On Friday, June 24, 2011 20:25:26 Mauro Carvalho Chehab wrote:
+>> All the modified drivers didn't have any version increment since
+>> Jan, 1 2011. Several of them didn't have any version increment
+>> for a long time, even having new features and important bug fixes
+>> happening.
+>>
+>> As we're now filling the QUERYCAP version with the current Kernel
+>> Release, we don't need to maintain a per-driver version control
+>> anymore. So, let's just use the default.
+>>
+>> In order to preserve the Kernel module version history, a
+>> KERNEL_VERSION() macro were added to all modified drivers, and
+>> the extraver number were incremented.
+>>
+>> I opted to preserve the per-driver version control to a few
+>> drivers: cx18, davinci, fsl-viu, gspca, ivtv, m5mols, soc_camera,
+>> pwc, s2255, s5p-fimc and sh_vou. The rationale is that the 
+>> per-driver version control seems to be actively maintained on 
+>> those.
+>>
+>> A few drivers are still using the legacy way to handle ioctl's.
+>> So, we can't do such change on them, otherwise, they'll break.
+>> Those are: uvc, pvrusb2, et61x251 and sn9c102.
+>>
+>> Yet, I think that the better for them would be to just use the
+>> default version numbering, instead of doing that by themselves.
+>>
+>> While here, removed a few not needed include linux/version.h.
+>>
+>> Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+> 
+> Sorry, but I have to say NACK to this.
+> 
+> If we do this, then we should do this consistently.
 
-> > +#include <linux/wait.h>
-> > +#include <linux/delay.h>
-> > +#include <linux/io.h>
-> > +
-> Would be good to sort headers alphabetically
+IMO, all drivers should stop reporting its own version via V4L2 API:
+people forget to maintain it on a consistent way. That was my original
+proposal, and it can still be implemented later.
 
-Um, I suppose.  You're sure you don't want inverse Christmas-tree ordering?
-:)
+This patch does it on a consistent way: on places were version is not updated
+for more than 6 months (2 kernel releases) and use video_ioctl2, the version 
+string were replaced by a number that it is greater than the previous value.
 
-> > +static int cafe_smbus_write_done(struct mcam_camera *mcam)
-> > +{
-> > +       unsigned long flags;
-> > +       int c1;
-> > +
-> > +       /*
-> > +        * We must delay after the interrupt, or the controller gets confused
-> > +        * and never does give us good status.  Fortunately, we don't do this
-> > +        * often.
-> > +        */
-> > +       udelay(20);
-> > +       spin_lock_irqsave(&mcam->dev_lock, flags);
-> > +       c1 = mcam_reg_read(mcam, REG_TWSIC1);
-> > +       spin_unlock_irqrestore(&mcam->dev_lock, flags);
-> do you really want to use spin_lock to protect REG_TWSIC1, this
-> register is not access in ISR ?
+My original proposal were to replace it on every place, but you and Devin
+argued against. So, this approach is a mid-term: let's do it initially
+where it makes more sense, and discuss what will be done with the remaining
+drivers that implement their own version control.
 
-I use the spinlock to protect all accesses to the MMIO space; I don't think
-it makes sense to have multiple threads mucking around in there at ths same
-time.
+With the mid-term approach taken by this patch, we warrant that, when newer
+V4L2 core API changes are applied, the version number will also be incremented,
+reflecting that changes could have affected the driver.
 
-Also, once again, this is a reshuffle of code which has worked for years; I
-don't think it's the right time to mess with the locking decisions.
+> I thought it over and filling it with the current kernel version would work
+> well with one exception: the pwc driver has a major number of 10 which is
+> larger than the kernel's major number. (cpia2 has a version of 3.0.0, so that
+> just works).
 
-> > +/*
-> > + * Controller-level stuff
-> > + */
-> > +
-> > +static void cafe_ctlr_init(struct mcam_camera *mcam)
-> cafe_init is enough
+That's what I've explained on my first email about this subject: the only driver that has
+a numbering > 3.0.0 is the pwc driver, and it does that on a not consistent way:
+when you've removed the V4L1 API, you've incremented the version string, but you forgot
+to upgrade the caps->version. So, if any application is relying on it for pwc, the
+check is currently broken.
 
-Disagree.  This is controller-level (as opposed to TWSI) programming, so
-the related functions have "ctlr" in them.  This doesn't seem like a level
-of detail that needs a great deal of discussion...?
+> I am inclined to sort of close my eyes for that one and just replace it as
+> well, but that's just me :-)
 
-> > +#define cam_err(cam, fmt, arg...) \
-> > +       dev_err((cam)->dev, fmt, ##arg);
-> > +#define cam_warn(cam, fmt, arg...) \
-> > +       dev_warn((cam)->dev, fmt, ##arg);
-> > +#define cam_dbg(cam, fmt, arg...) \
-> > +       dev_dbg((cam)->dev, fmt, ##arg);
-> > +
-> you 've define these in cafe_driver.c, better to share one
+I like the idea of replacing pwc version to 3.0.0. We moved it into drivers/media 
+at 2006-03-25. On that time, the version was: 9.0.2-unofficial, and only the V4L1 API
+was implemented.
 
-Do look at the cafe version:
+In other words, the pwc driver never returned version 3.0.0 to VIDIOC_QUERYCAP.
+So, it is safe to just use 3.x.y. Assuming that we'll be incrementing Kernel major
+versions on every 10 years, the namespace conflicts will happen 70 years from now ;)
+Seriously, I don't think we need to be concerned with a conflict with 10.0.x. numbering
+that will happen on lots of years in the future (also, because we probably won't use
+the extraver numbering).
 
-#define cam_err(cam, fmt, arg...) \
-	dev_err(&(cam)->pdev->dev, fmt, ##arg);
+> The only thing that needs to be done is that media_build needs some hack to
+> set the version field to the source git tree kernel version instead of the
+> target's kernel version.
 
-They're not the same, so can't be shared.  Probably the cafe ones should be
-renamed to cafe_err() or whatever to avoid this sort of confusion.
+Yes. After applying those patches, we'll need to fix the out-of-tree media_build.
+It shouldn't be hard: a patch can just add a logic that uses a V4L2_VERSION
+version defined on v4l/v4l2-version.h, for example.
 
-> > +static void mcam_ctlr_image(struct mcam_camera *cam)
-> > +{
-> > +       int imgsz;
-> > +       struct v4l2_pix_format *fmt = &cam->pix_format;
-> > +
-> > +       imgsz = ((fmt->height << IMGSZ_V_SHIFT) & IMGSZ_V_MASK) |
-> > +               (fmt->bytesperline & IMGSZ_H_MASK);
-> Superfluous parenthesis
+> To simplify that and to accomodate the four ioctl-legacy drivers we can
+> make a simple include/media/version.h header that defines a V4L2_API_VERSION
+> define.
 
-See http://lwn.net/Articles/382023/ :)
+I would not care much about those. The current situation is:
+	- et61x251: only one USB ID is currently supported there: 102c:6251, using
+the TAS5130D1B sensor. The gspca etoms driver supports the same USB ID with the
+same sensor. IMO, we can just move this driver to staging and remove it.
+	- sn9c102: I think that there are still a few USB ID's there that aren't yet
+at the gspca/sonix* drivers, but Jean-François/Hans could give us a better status.
+Anyway, no new features or bug fixes are added there for a long time, and core changes
+should likely not affect this driver, as it doesn't use the subdev layer nor 
+video_ioctl2. So, we can just keep its version there until its removal;
+	- pvrusb2: Mike Isely said on a reply to one of your patches that he's finally
+migrating it to use video_ioctl2.
+	- uvcvideo: not sure about its current status about its migration to video_ioctl2.
+If Laurent is not doing a migration to video_ioctl2 any time soon, a simple patch for it
+could make it act consistently. In any case, I don't think we should create a 
+include/media/version.h just due to uvcvideo.
 
-I feel that use of parentheses to make order of evaluation in complex
-expressions explicit is no sin.
+> An alternative is to just add an api_version field to v4l2_querycap.
+> That would work fine too.
+> 
+> One reason for doing that may be to help out-of-tree drivers: for those a
+> driver version *does* make sense. I know, we shouldn't have to care about
+> out-of-tree drivers, but on the other hand why make life hard for them without
+> a good reason?
 
-> > +static void mcam_ctlr_irq_enable(struct mcam_camera *cam)
-> mcam_irq_enable is OK
+Adding anything at the V4L2 API in order to accommodate a need for an out-of-tree
+driver is out of the question. While we have some reserved space there, we should not
+waste it due to out-of-tree drivers.
 
-Sure, it would be OK; there isn't the distinction with the TWSI IRQs that
-the cafe driver has.  I also don't think that the longer name contributes
-greatly to global warming.
+> The more I think about it, the more I like the idea of an api_version field.
+> It would keep pwc happy, it wouldn't require many changes to drivers, and it
+> will not affect out-of-tree drivers.
 
-> > +/*
-> > + * We have found the sensor on the i2c.  Let's try to have a
-> > + * conversation.
-> > + */
-> > +static int mcam_cam_init(struct mcam_camera *cam)
-> > +{
-> > +       struct v4l2_dbg_chip_ident chip;
-> > +       int ret;
-> > +
-> > +       mutex_lock(&cam->s_mutex);
-> > +       if (cam->state != S_NOTREADY)
-> > +               cam_warn(cam, "Cam init with device in funky state %d",
-> > +                               cam->state);
-> > +       ret = __mcam_cam_reset(cam);
-> > +       if (ret)
-> > +               goto out;
-> > +       chip.ident = V4L2_IDENT_NONE;
-> > +       chip.match.type = V4L2_CHIP_MATCH_I2C_ADDR;
-> > +       chip.match.addr = cam->sensor_addr;
-> > +       ret = sensor_call(cam, core, g_chip_ident, &chip);
-> > +       if (ret)
-> > +               goto out;
-> > +       cam->sensor_type = chip.ident;
-> > +       if (cam->sensor_type != V4L2_IDENT_OV7670) {
-> again, CCIC do not need to know sensor's name.
+As I've explained before, pwc will work with 3.0.0, because there are no namespace
+conflicts in any predictable future. The _only_ version that it ever reported with
+V4L2 since April, 2006 is 10.0.12 (see commit 2b455db6d456ef2d44808a8377fd3bc832e08317).
+For sure, no application is currently checking for its version, as it reports the
+same version. So, even on the remote far-away case where we might have a conflict,
+it will be on just one specific stable Kernel release (Kernel 10.0.12).
 
-And, again, that will be fixed.  But that's a job for a separate patch.
+Removing the driver-specific version reported via V4L2 API is a good thing, due to a
+series of reasons:
+	1) every time include/linux/version.h changes, all media drivers need to be
+	   recompiled;
+	2) eventually, this macro will be changed at 3.0 times;
+	3) developers are lazy on updating it at a per-driver basis; The information
+	   there is not consistent;
+	4) a check for LINUX_VERSION_CODE (and its equivalent media_build replacement)
+	   will be changed on a consistent way, being incremented when new features are
+	   added at the Kernel;
+	5) An userspace application could use it in order to check if unsupported ioctl's
+	   will return -ENOIOCTLCMD (see my patch adding this change to V4L2 API);
+	6) From time to time, people do the wrong thing, including version.h where it is
+	   not needed, and spending Kernel Janitor's time to cleanup the mess.
 
-> > +static int mcam_vidioc_reqbufs(struct file *filp, void *priv,
-> > +               struct v4l2_requestbuffers *req)
-> > +{
-> > +       struct mcam_camera *cam = filp->private_data;
-> > +       int ret = 0;  /* Silence warning */
-> > +
-> > +       /*
-> > +        * Make sure it's something we can do.  User pointers could be
-> > +        * implemented without great pain, but that's not been done yet.
-> > +        */
-> > +       if (req->memory != V4L2_MEMORY_MMAP)
-> > +               return -EINVAL;
-> only MMAP ?
+Anyway, the approach I'm taking is to:
 
-Yes, the current code doesn't do USERPTR, never has.  The vb2 conversion
-(already working in my tree here, BTW) will fix that.
+1) apply a patch making optional for the drivers to fill it;
 
-> > +static int mcam_vidioc_qbuf(struct file *filp, void *priv,
-> > +               struct v4l2_buffer *buf)
-> > +{
-> > +       struct mcam_camera *cam = filp->private_data;
-> > +       struct mcam_sio_buffer *sbuf;
-> > +       int ret = -EINVAL;
-> > +       unsigned long flags;
-> > +
-> > +       mutex_lock(&cam->s_mutex);
-> > +       if (buf->index >= cam->n_sbufs)
-> > +               goto out;
-> > +       sbuf = cam->sb_bufs + buf->index;
-> > +       if (sbuf->v4lbuf.flags & V4L2_BUF_FLAG_QUEUED) {
-> > +               ret = 0; /* Already queued?? */
-> > +               goto out;
-> > +       }
-> > +       if (sbuf->v4lbuf.flags & V4L2_BUF_FLAG_DONE) {
-> > +               /* Spec doesn't say anything, seems appropriate tho */
-> > +               ret = -EBUSY;
-> > +               goto out;
-> > +       }
-> > +       sbuf->v4lbuf.flags |= V4L2_BUF_FLAG_QUEUED;
-> > +       spin_lock_irqsave(&cam->dev_lock, flags);
-> > +       list_add(&sbuf->list, &cam->sb_avail);
-> list_add_tail is better.
+2) removing it were it is clearly an improvement. The drivers that
+still keeps its own version control are basically:
+	- the 4 drivers that don't use video-ioctl2;
+	- the SoC drivers;
+	- 4 drivers that are currently using it at regular basis: gspca, s2255, cx18 and ivtv;
+	- pwc;
+	- radio drivers;
 
-I would dispute that - I'd rather reuse cache-hot buffers.  But it's
-totally irrelevant; all this buffer-handling code is headed for the bit
-bucket with vb2.
+3) If you agree, I would also do the same for pwc, as it makes sense to me;
 
-> > +static int mcam_vidioc_querycap(struct file *file, void *priv,
-> > +               struct v4l2_capability *cap)
-> > +{
-> > +       strcpy(cap->driver, "marvell_ccic");
-> > +       strcpy(cap->card, "marvell_ccic");
-> strlcpy is better
+4) double-check with the SoC driver developers and with the other maintainers that use the
+version control, if using LINUX_VERSION_CODE (and its equivalent media_build replacement)
+would fit for them;
 
-Why?  There's no mystery about the length of the string.
+5) Do the same change for the radio drivers;
 
-> > +static int mcam_vidioc_enum_input(struct file *filp, void *priv,
-> > +               struct v4l2_input *input)
-> > +{
-> > +       if (input->index != 0)
-> > +               return -EINVAL;
-> > +
-> > +       input->type = V4L2_INPUT_TYPE_CAMERA;
-> > +       input->std = V4L2_STD_ALL; /* Not sure what should go here */
-> > +       strcpy(input->name, "Camera");
-> strlcpy
+6) If a per-API version control fits to everybody, change v4l2-ioctl to enforce it via 
+   video_ioctl2, updating the V4L2 API accordingly.
 
-Ditto.
+Cheers,
+Mauro.
 
-> > +int mccic_register(struct mcam_camera *cam)
-> > +{
-> > +       struct i2c_board_info ov7670_info = {
-> > +               .type = "ov7670",
-> > +               .addr = 0x42,
-> > +               .platform_data = &sensor_cfg,
-> > +       };
-> you can put this in board.c
-
-Agreed, that's exactly where it needs to be.  Or in the device tree, if
-that's in use.  All that will be done when the ov7670 dependency is
-removed. 
-
-> > +       /*
-> > +        * Try to find the sensor.
-> > +        */
-> > +       cam->sensor_addr = ov7670_info.addr;
-> > +       cam->sensor = v4l2_i2c_new_subdev_board(&cam->v4l2_dev,
-> > +                       &cam->i2c_adapter, &ov7670_info, NULL);
-> I do not thinks so.
-
-I don't understand what this comment is meant to mean...?
-
-> > +/*
-> > + * Register I/O functions.  These are here because the platform code
-> > + * may legitimately need to mess with the register space.
-> > + */
-> > +/*
-> > + * Device register I/O
-> > + */
-> > +static inline void mcam_reg_write(struct mcam_camera *cam, unsigned int reg,
-> > +               unsigned int val)
-> u32 val
-
-*shrug*, that would work too, yes.
-
-Thanks,
-
-jon
