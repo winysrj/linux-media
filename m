@@ -1,47 +1,74 @@
 Return-path: <mchehab@pedra>
-Received: from mailout3.w1.samsung.com ([210.118.77.13]:9512 "EHLO
-	mailout3.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933337Ab1FBKN1 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 2 Jun 2011 06:13:27 -0400
-MIME-version: 1.0
-Content-transfer-encoding: 7BIT
-Content-type: TEXT/PLAIN
-Date: Thu, 02 Jun 2011 12:12:03 +0200
-From: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Subject: [PATCH 6/7] s5p-fimc: Use pix_mp for the color format lookup
-In-reply-to: <1307009524-1208-1-git-send-email-s.nawrocki@samsung.com>
-To: linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org
-Cc: m.szyprowski@samsung.com, kyungmin.park@samsung.com,
-	s.nawrocki@samsung.com, sw0312.kim@samsung.com,
-	riverful.kim@samsung.com
-Message-id: <1307009524-1208-7-git-send-email-s.nawrocki@samsung.com>
-References: <1307009524-1208-1-git-send-email-s.nawrocki@samsung.com>
+Received: from mx1.redhat.com ([209.132.183.28]:43397 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754247Ab1FZQHk (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 26 Jun 2011 12:07:40 -0400
+Date: Sun, 26 Jun 2011 13:06:15 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	LKML <linux-kernel@vger.kernel.org>
+Subject: [PATCH 10/14] [media] sn9c102: Use LINUX_VERSION_CODE for
+ VIDIOC_QUERYCAP
+Message-ID: <20110626130615.6291b917@pedra>
+In-Reply-To: <cover.1309103285.git.mchehab@redhat.com>
+References: <cover.1309103285.git.mchehab@redhat.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
+To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-With multi-planar formats fmt.pix_mp member of struct v4l2_format
-should be used rather than fmt.pix. Fix find_fmt() function to do
-the right thing.
+sn9c102 doesn't use vidioc_ioctl2. As the API is changing to use
+a common version for all drivers, we need to expliticly fix this
+driver.
 
-Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
----
- drivers/media/video/s5p-fimc/fimc-core.c |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
+Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
 
-diff --git a/drivers/media/video/s5p-fimc/fimc-core.c b/drivers/media/video/s5p-fimc/fimc-core.c
-index 85b47a3..873a879 100644
---- a/drivers/media/video/s5p-fimc/fimc-core.c
-+++ b/drivers/media/video/s5p-fimc/fimc-core.c
-@@ -841,7 +841,7 @@ struct fimc_fmt *find_format(struct v4l2_format *f, unsigned int mask)
+diff --git a/drivers/media/video/sn9c102/sn9c102.h b/drivers/media/video/sn9c102/sn9c102.h
+index cbfc444..22ea211 100644
+--- a/drivers/media/video/sn9c102/sn9c102.h
++++ b/drivers/media/video/sn9c102/sn9c102.h
+@@ -21,7 +21,6 @@
+ #ifndef _SN9C102_H_
+ #define _SN9C102_H_
  
- 	for (i = 0; i < ARRAY_SIZE(fimc_formats); ++i) {
- 		fmt = &fimc_formats[i];
--		if (fmt->fourcc == f->fmt.pix.pixelformat &&
-+		if (fmt->fourcc == f->fmt.pix_mp.pixelformat &&
- 		   (fmt->flags & mask))
- 			break;
- 	}
+-#include <linux/version.h>
+ #include <linux/usb.h>
+ #include <linux/videodev2.h>
+ #include <media/v4l2-common.h>
+diff --git a/drivers/media/video/sn9c102/sn9c102_core.c b/drivers/media/video/sn9c102/sn9c102_core.c
+index 44bf6c3..0729c65 100644
+--- a/drivers/media/video/sn9c102/sn9c102_core.c
++++ b/drivers/media/video/sn9c102/sn9c102_core.c
+@@ -33,6 +33,7 @@
+ #include <linux/stat.h>
+ #include <linux/mm.h>
+ #include <linux/vmalloc.h>
++#include <linux/version.h>
+ #include <linux/page-flags.h>
+ #include <asm/byteorder.h>
+ #include <asm/page.h>
+@@ -47,8 +48,7 @@
+ #define SN9C102_MODULE_AUTHOR   "(C) 2004-2007 Luca Risolia"
+ #define SN9C102_AUTHOR_EMAIL    "<luca.risolia@studio.unibo.it>"
+ #define SN9C102_MODULE_LICENSE  "GPL"
+-#define SN9C102_MODULE_VERSION  "1:1.47pre49"
+-#define SN9C102_MODULE_VERSION_CODE  KERNEL_VERSION(1, 1, 47)
++#define SN9C102_MODULE_VERSION  "1:1.48"
+ 
+ /*****************************************************************************/
+ 
+@@ -2158,7 +2158,7 @@ sn9c102_vidioc_querycap(struct sn9c102_device* cam, void __user * arg)
+ {
+ 	struct v4l2_capability cap = {
+ 		.driver = "sn9c102",
+-		.version = SN9C102_MODULE_VERSION_CODE,
++		.version = LINUX_VERSION_CODE,
+ 		.capabilities = V4L2_CAP_VIDEO_CAPTURE | V4L2_CAP_READWRITE |
+ 				V4L2_CAP_STREAMING,
+ 	};
 -- 
-1.7.5.2
+1.7.1
+
 
