@@ -1,107 +1,195 @@
 Return-path: <mchehab@pedra>
-Received: from 5571f1ba.dsl.concepts.nl ([85.113.241.186]:51204 "EHLO
-	his10.thuis.hoogenraad.info" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1753805Ab1FSMkK (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 19 Jun 2011 08:40:10 -0400
-Message-ID: <4DFDEE23.1070106@hoogenraad.net>
-Date: Sun, 19 Jun 2011 14:40:03 +0200
-From: Jan Hoogenraad <jan-conceptronic@hoogenraad.net>
-MIME-Version: 1.0
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-CC: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: change in build .sh due to Pulseaudio device removal /
-References: <4DFBB431.60101@redhat.com> <4DFCDE6D.8090008@hoogenraad.net> <4DFDE849.8030404@redhat.com>
-In-Reply-To: <4DFDE849.8030404@redhat.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Received: from mx1.redhat.com ([209.132.183.28]:5900 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754301Ab1FZQHx (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 26 Jun 2011 12:07:53 -0400
+Date: Sun, 26 Jun 2011 13:06:20 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	LKML <linux-kernel@vger.kernel.org>,
+	Laurent Pincart <laurent.pinchart@ideasonboard.com>,
+	Mike Isely <isely@isely.net>
+Subject: [PATCH 00/14] Remove linux/version.h from most drivers/media
+Message-ID: <20110626130620.4b5ed679@pedra>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
+To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Mauro:
+At the V4L2 API, one of the fields of VIDIOC_QUERYCAP requires the usage
+of KERNEL_VERSION macro, in order to provide the driver version. However,
+this is not handled consistently across subsystems. There are very few
+drivers that take it seriously.
 
-You are completely right. Getting the packages automatically is very 
-user-friendly. Furthermore, this will make media_build a great place to 
-start of users stuck with older kernels.
+So, instead of the current way, let's replace it by a subsystem version.
+Removing the driver-specific version reported via V4L2 API is a good
+thing, due to several reasons:
+	1) every time include/linux/version.h changes, all media drivers
+	   need to be recompiled;
+	2) eventually, this macro will be changed at Kernel 3.x;
+	3) developers are lazy on updating it at a per-driver basis; 
+	   The information  there is not consistent;
+	4) a check for the V4L2 API, incremented as new changes are added
+	   means that the changes will happen on a consistent way, being 
+	   incremented when new features are added at the Kernel;
+	5) From time to time, people do the wrong thing, including version.h
+	   where it is not needed, and spending Kernel Janitor's time to 
+	   cleanup the mess.
 
+There's one additional reason for the change: before this patch series,
+a call to an unsupported ioctl would be returning -EINVAL. So, userspace
+applications can't detect if the error were due to invalid parameters,
+or to unsupported ioctl. This series changes the behavior to return
+-ENOIOCTLCMD for non-supported ioctl's.
 
-On Ubuntu, the package name is  libproc-processtable-perl
-the command to install it is (on Ubuntu, usually no root user is used, 
-but rather per command invokation).
+So, after this patch series, if VIDIOC_QUERYCAP returns version 3.x.y,
+userspace applications can rely on -ENOIOCTLCMD in order to detect that
+an ioctl is not supported by a given driver.
 
-The command for installation will be:
+After this patch series, the only places at drivers/media that will keep 
+linux/version.h are:
+	drivers/media/video/et61x251/et61x251_core.c
+	drivers/media/video/pvrusb2/pvrusb2-v4l2.c
+	drivers/media/video/sn9c102/sn9c102_core.c
+	drivers/media/video/uvc/uvc_driver.c
+	drivers/media/video/uvc/uvc_v4l2.c
+And, of course: drivers/media/video/v4l2-ioctl.c
 
-  sudo apt-get install libproc-processtable-perl
+The rationale is that et61x251, pvrusb2, sn9c102 and uvc uses the
+legacy way of handling ioctl's. Two of those drivers are obsoleted by
+gspca. The other two drivers (pvrusb2 and uvc) needs porting.
 
-There is no
-/etc/system-release
-on my system
+Mauro Carvalho Chehab (14):
+  [media] v4l2 core: return -ENOIOCTLCMD if an ioctl doesn't exist
+  [media] return -ENOIOCTLCMD for unsupported ioctl's at legacy drivers
+  [media] v4l2-ioctl: Add a default value for kernel version
+  [media] drxd, siano: Remove unused include linux/version.h
+  [media] Stop using linux/version.h on most video drivers
+  [media] pwc: Use the default version for VIDIOC_QUERYCAP
+  [media] ivtv,cx18: Use default version control for VIDIOC_QUERYCAP
+  [media] et61x251: Use LINUX_VERSION_CODE for VIDIOC_QUERYCAP
+  [media] pvrusb2: Use LINUX_VERSION_CODE for VIDIOC_QUERYCAP
+  [media] sn9c102: Use LINUX_VERSION_CODE for VIDIOC_QUERYCAP
+  [media] uvcvideo: Use LINUX_VERSION_CODE for VIDIOC_QUERYCAP
+  [media] Stop using linux/version.h the remaining video drivers
+  [media] radio: Use the subsystem version control for VIDIOC_QUERYCAP
+  [media] DocBook/v4l: Document the new system-wide version behavior
 
-However, there is a file /etc/lsb-release
-cat /etc/lsb-release
-DISTRIB_ID=Ubuntu
-DISTRIB_RELEASE=10.04
-DISTRIB_CODENAME=lucid
-DISTRIB_DESCRIPTION="Ubuntu 10.04.2 LTS"
+ Documentation/DocBook/media/Makefile               |    1 +
+ Documentation/DocBook/media/v4l/common.xml         |   10 ++++++++-
+ Documentation/DocBook/media/v4l/func-ioctl.xml     |   17 ++++++++-------
+ Documentation/DocBook/media/v4l/v4l2.xml           |    7 ++++++
+ .../DocBook/media/v4l/vidioc-querycap.xml          |   15 ++++++++-----
+ drivers/media/dvb/frontends/drxd_hard.c            |    1 -
+ drivers/media/dvb/siano/smscoreapi.h               |    1 -
+ drivers/media/radio/dsbr100.c                      |    7 +----
+ drivers/media/radio/radio-aimslab.c                |    5 +---
+ drivers/media/radio/radio-aztech.c                 |    5 +---
+ drivers/media/radio/radio-cadet.c                  |    5 +---
+ drivers/media/radio/radio-gemtek.c                 |    7 +----
+ drivers/media/radio/radio-maxiradio.c              |   10 +++-----
+ drivers/media/radio/radio-mr800.c                  |    6 +---
+ drivers/media/radio/radio-rtrack2.c                |    5 +---
+ drivers/media/radio/radio-sf16fmi.c                |    5 +---
+ drivers/media/radio/radio-tea5764.c                |    6 +---
+ drivers/media/radio/radio-terratec.c               |    5 +---
+ drivers/media/radio/radio-timb.c                   |    3 +-
+ drivers/media/radio/radio-trust.c                  |    5 +---
+ drivers/media/radio/radio-typhoon.c                |    9 +++----
+ drivers/media/radio/radio-zoltrix.c                |    5 +---
+ drivers/media/radio/si470x/radio-si470x-i2c.c      |    4 +--
+ drivers/media/radio/si470x/radio-si470x-usb.c      |    2 -
+ drivers/media/radio/si470x/radio-si470x.h          |    1 -
+ drivers/media/radio/wl128x/fmdrv.h                 |    5 +---
+ drivers/media/radio/wl128x/fmdrv_v4l2.c            |    1 -
+ drivers/media/video/arv.c                          |    5 +--
+ drivers/media/video/au0828/au0828-core.c           |    1 +
+ drivers/media/video/au0828/au0828-video.c          |    5 ----
+ drivers/media/video/bt8xx/bttv-driver.c            |   14 +++---------
+ drivers/media/video/bt8xx/bttvp.h                  |    3 --
+ drivers/media/video/bw-qcam.c                      |    3 +-
+ drivers/media/video/c-qcam.c                       |    3 +-
+ drivers/media/video/cpia2/cpia2.h                  |    5 ----
+ drivers/media/video/cpia2/cpia2_v4l.c              |   12 +++-------
+ drivers/media/video/cx18/cx18-driver.h             |    1 -
+ drivers/media/video/cx18/cx18-ioctl.c              |    1 -
+ drivers/media/video/cx18/cx18-version.h            |    8 +------
+ drivers/media/video/cx231xx/cx231xx-video.c        |   14 +++---------
+ drivers/media/video/cx231xx/cx231xx.h              |    1 -
+ drivers/media/video/cx23885/altera-ci.c            |    1 -
+ drivers/media/video/cx23885/cx23885-417.c          |    1 -
+ drivers/media/video/cx23885/cx23885-core.c         |   13 ++---------
+ drivers/media/video/cx23885/cx23885-video.c        |    1 -
+ drivers/media/video/cx23885/cx23885.h              |    3 +-
+ drivers/media/video/cx88/cx88-alsa.c               |   19 +++--------------
+ drivers/media/video/cx88/cx88-blackbird.c          |   20 ++----------------
+ drivers/media/video/cx88/cx88-dvb.c                |   18 ++--------------
+ drivers/media/video/cx88/cx88-mpeg.c               |   11 ++-------
+ drivers/media/video/cx88/cx88-video.c              |   21 ++-----------------
+ drivers/media/video/cx88/cx88.h                    |    4 +-
+ drivers/media/video/davinci/vpif_capture.c         |    9 ++-----
+ drivers/media/video/davinci/vpif_capture.h         |    7 +-----
+ drivers/media/video/davinci/vpif_display.c         |    9 ++-----
+ drivers/media/video/davinci/vpif_display.h         |    8 +------
+ drivers/media/video/em28xx/em28xx-video.c          |   14 ++++--------
+ drivers/media/video/et61x251/et61x251.h            |    1 -
+ drivers/media/video/et61x251/et61x251_core.c       |   16 +++-----------
+ drivers/media/video/fsl-viu.c                      |   10 +-------
+ drivers/media/video/gspca/gl860/gl860.h            |    1 -
+ drivers/media/video/gspca/gspca.c                  |   12 +++-------
+ drivers/media/video/hdpvr/hdpvr-core.c             |    1 +
+ drivers/media/video/hdpvr/hdpvr-video.c            |    2 -
+ drivers/media/video/hdpvr/hdpvr.h                  |    6 -----
+ drivers/media/video/ivtv/ivtv-driver.h             |    1 -
+ drivers/media/video/ivtv/ivtv-ioctl.c              |    1 -
+ drivers/media/video/ivtv/ivtv-version.h            |    7 +-----
+ drivers/media/video/m5mols/m5mols_capture.c        |    2 -
+ drivers/media/video/m5mols/m5mols_core.c           |    1 -
+ drivers/media/video/mem2mem_testdev.c              |    4 +--
+ drivers/media/video/mx1_camera.c                   |    5 +--
+ drivers/media/video/mx2_camera.c                   |    5 +--
+ drivers/media/video/mx3_camera.c                   |    3 +-
+ drivers/media/video/omap1_camera.c                 |    5 +--
+ drivers/media/video/omap24xxcam.c                  |    5 +--
+ drivers/media/video/omap3isp/isp.c                 |    1 +
+ drivers/media/video/omap3isp/ispvideo.c            |    1 -
+ drivers/media/video/omap3isp/ispvideo.h            |    3 +-
+ drivers/media/video/pms.c                          |    4 +--
+ drivers/media/video/pvrusb2/pvrusb2-main.c         |    1 +
+ drivers/media/video/pvrusb2/pvrusb2-v4l2.c         |    9 +------
+ drivers/media/video/pwc/pwc-ioctl.h                |    1 -
+ drivers/media/video/pwc/pwc-v4l.c                  |    1 -
+ drivers/media/video/pwc/pwc.h                      |    7 +-----
+ drivers/media/video/pxa_camera.c                   |    5 +--
+ drivers/media/video/s2255drv.c                     |   15 +++----------
+ drivers/media/video/s5p-fimc/fimc-capture.c        |    2 -
+ drivers/media/video/s5p-fimc/fimc-core.c           |    3 +-
+ drivers/media/video/saa7134/saa7134-core.c         |   12 +++-------
+ drivers/media/video/saa7134/saa7134-empress.c      |    1 -
+ drivers/media/video/saa7134/saa7134-video.c        |    2 -
+ drivers/media/video/saa7134/saa7134.h              |    3 +-
+ drivers/media/video/saa7164/saa7164.h              |    1 -
+ drivers/media/video/sh_mobile_ceu_camera.c         |    3 +-
+ drivers/media/video/sh_vou.c                       |    3 +-
+ drivers/media/video/sn9c102/sn9c102.h              |    1 -
+ drivers/media/video/sn9c102/sn9c102_core.c         |   16 +++-----------
+ drivers/media/video/timblogiw.c                    |    1 -
+ drivers/media/video/tlg2300/pd-common.h            |    1 -
+ drivers/media/video/tlg2300/pd-main.c              |    1 +
+ drivers/media/video/tlg2300/pd-radio.c             |    2 -
+ drivers/media/video/usbvision/usbvision-video.c    |   12 +----------
+ drivers/media/video/uvc/uvc_driver.c               |    3 +-
+ drivers/media/video/uvc/uvc_v4l2.c                 |    4 +-
+ drivers/media/video/uvc/uvcvideo.h                 |    3 +-
+ drivers/media/video/v4l2-ioctl.c                   |    6 +++-
+ drivers/media/video/vino.c                         |    5 +---
+ drivers/media/video/vivi.c                         |   14 +++---------
+ drivers/media/video/w9966.c                        |    4 +--
+ drivers/media/video/zoran/zoran.h                  |    4 ---
+ drivers/media/video/zoran/zoran_card.c             |    7 ++++-
+ drivers/media/video/zoran/zoran_driver.c           |    3 --
+ drivers/media/video/zr364xx.c                      |    6 +---
+ 114 files changed, 186 insertions(+), 461 deletions(-)
 
-I will make an updated script in the next week.
-
-Mauro Carvalho Chehab wrote:
-> Em 18-06-2011 14:20, Jan Hoogenraad escreveu:
->> Mauro:
->>
->> The change in build.sh
->> http://git.linuxtv.org/media_build.git?a=commitdiff;h=16cf0606fd59484236356e400a89c083e76da64b
->>
->> now requires installation of a Perl package Proc::ProcessTable  that is not present in standard Ubuntu systems.
->>
->> I needed to run
->>   sudo aptitude install libproc-processtable-perl
->> before I could continue after the change.
->>
->> Is there a way around this ?
->
-> The media_build requires several packages that may not be present on some
-> installation. The build.sh script has a logic to detect the missing parts
-> and to output what's the missing requirements:
->
-> echo "Checking if the needed tools are present"
-> run ./check_needs.pl
->
-> (I moved right now the perl-specific checks into check_needs.pl script)
->
-> Unfortunately, package names are distro-specific. So, as I use only Fedora/RHEL
-> here, the only hints it have are for them. From my experiences, between the
-> rpm-based distros, the package names are either equal or very close, so such
-> hints probably are probably good enough for Suse and Mandriva users.
->
->> From what I understand, the standard Ubuntu repositories already provide a package
-> for Proc::ProcessTable. So, the only thing that it is not ok is the package name hint.
->
-> Could you please provide us a patch adding the Ubuntu (and likely Debian) package
-> name?
->
-> IMHO, the better would be to modify the check logic, in order to check what's the
-> system, and provide a hint based on it. If the OS type is not found, then fall back
-> to some default.
->
-> I think that the LSB default to get the distribution is by reading /etc/system-release.
-> Those are provided on RHEL6 and Fedora (plus, the old way: /etc/redhat-release).
->
-> So, IMHO, all we need to do is to write a logic for the error report part of the check,
-> that opens /etc/system-release, identify what's the distro, and provide the package
-> name and some instructions on how to install the missing parts to the userspace.
->
-> The right way for adding such logic would be to install the OS's on some VM with the
-> minimum install, run the script and add the missing parts on it.
->
-> Cheers,
-> Mauro.
->
-
-
--- 
-Jan Hoogenraad
-Hoogenraad Interface Services
-Postbus 2717
-3500 GS Utrecht
