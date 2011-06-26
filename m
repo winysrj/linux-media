@@ -1,21 +1,21 @@
 Return-path: <mchehab@pedra>
 Received: from mail.tu-berlin.de ([130.149.7.33])
 	by www.linuxtv.org with esmtp (Exim 4.69)
-	(envelope-from <eddie@lania.nl>) id 1QZ2p9-0006CH-4E
-	for linux-dvb@linuxtv.org; Tue, 21 Jun 2011 17:25:30 +0200
+	(envelope-from <eddie@lania.nl>) id 1QapBa-0000Ry-AQ
+	for linux-dvb@linuxtv.org; Sun, 26 Jun 2011 15:15:46 +0200
 Received: from edla.lania.nl ([84.245.4.170])
-	by mail.tu-berlin.de (exim-4.75/mailfrontend-4) with esmtps
+	by mail.tu-berlin.de (exim-4.75/mailfrontend-1) with esmtps
 	[TLSv1:AES256-SHA:256] for <linux-dvb@linuxtv.org>
-	id 1QZ2p8-00069m-CR; Tue, 21 Jun 2011 17:25:07 +0200
+	id 1QapBZ-00076W-MY; Sun, 26 Jun 2011 15:15:38 +0200
 Received: from apollo.lania-intra.net (apollo.lania-intra.net [192.168.169.2])
-	by edla.lania.nl (8.14.4/8.14.4) with ESMTP id p5LFP3id026358
-	for <linux-dvb@linuxtv.org>; Tue, 21 Jun 2011 17:25:04 +0200
+	by edla.lania.nl (8.14.4/8.14.4) with ESMTP id p5QDFaY5006251
+	for <linux-dvb@linuxtv.org>; Sun, 26 Jun 2011 15:15:36 +0200
 From: Eddie Lania <eddie@lania.nl>
 To: linux-dvb@linuxtv.org
-Date: Tue, 21 Jun 2011 17:25:02 +0200
-Message-ID: <1308669902.6370.5.camel@e2800fedora.lania-intra.net>
+Date: Sun, 26 Jun 2011 15:15:35 +0200
+Message-ID: <1309094135.12082.6.camel@e2800fedora.lania-intra.net>
 Mime-Version: 1.0
-Subject: [linux-dvb] Elgato eyetv hybrid (0df9:0018)
+Subject: Re: [linux-dvb] Elgato eyetv hybrid (0df9:0018)
 Reply-To: linux-media@vger.kernel.org
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/options/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
@@ -30,23 +30,25 @@ Errors-To: linux-dvb-bounces+mchehab=redhat.com@linuxtv.org
 Sender: <mchehab@pedra>
 List-ID: <linux-dvb@linuxtv.org>
 
-Hello,
+About the missing support for the Elgato Eyetv Hybrid.
 
-Since a while i am the proud owner of an Elgato Eyetb Hybrid usb tv
-tuner stick.
+A while ago i found on the internet info that Micronas has released a
+gpl'ed driver for the device.
 
-I tried to get my device, an Elgato eyetev hybrid, to work using the
-latest drivers from git but it doesn't work (yet).
+But it appears that nobody has been
+willing to do the work to get it upstream.
 
-Can somebody tell if this device (usb device 0df9:0018) is/will be
-supported?
+However, I found a message at:
+http://www.mail-archive.com/em28xx@mcentral.de/msg01188.html
 
->From what i found on the internet, the device's specs are:
+Perhaps the person in that message can be contacted about the missing
+driver and details ?
+So it wouldn't be necessary to reinvent the wheel? And support for the
+device can be added easily?
 
-Model: EU 2008
-USB Contoller: Empia EM2884
-Stereo A/V Decoder: Micronas AVF 49x08
-Hybrid Channel Decoder: Micronas DRX-K DRX3926K:A1 0.9.0
+To bad I can't program myself.
+
+I hope Devin is reading this.
 
 Regards,
 
