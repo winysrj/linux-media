@@ -1,61 +1,139 @@
 Return-path: <mchehab@pedra>
-Received: from mail-wy0-f174.google.com ([74.125.82.174]:45258 "EHLO
-	mail-wy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932177Ab1FBJTu convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 2 Jun 2011 05:19:50 -0400
-Received: by wya21 with SMTP id 21so449306wya.19
-        for <linux-media@vger.kernel.org>; Thu, 02 Jun 2011 02:19:49 -0700 (PDT)
-Subject: Re: [beagleboard] [PATCH v6 2/2] Add support for mt9p031 sensor in Beagleboard XM.
-Mime-Version: 1.0 (Apple Message framework v1084)
-Content-Type: text/plain; charset=us-ascii
-From: Koen Kooi <koen@beagleboard.org>
-In-Reply-To: <BANLkTimDJG3xgwhKznQG0sHKKutmHQSOpw@mail.gmail.com>
-Date: Thu, 2 Jun 2011 11:19:45 +0200
-Cc: beagleboard@googlegroups.com, linux-media@vger.kernel.org,
-	g.liakhovetski@gmx.de, laurent.pinchart@ideasonboard.com,
-	carlighting@yahoo.co.nz, mch_kot@yahoo.com.cn
-Content-Transfer-Encoding: 8BIT
-Message-Id: <9B67B12E-0A3B-4D31-A708-44C1AF06A242@beagleboard.org>
-References: <1306942609-2440-1-git-send-email-javier.martin@vista-silicon.com> <1306942609-2440-2-git-send-email-javier.martin@vista-silicon.com> <F6CCC3E5-67AF-4D22-9541-C31A91924DFE@beagleboard.org> <BANLkTimDJG3xgwhKznQG0sHKKutmHQSOpw@mail.gmail.com>
-To: javier Martin <javier.martin@vista-silicon.com>
+Received: from moutng.kundenserver.de ([212.227.17.8]:58355 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754312Ab1FZRNq (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 26 Jun 2011 13:13:46 -0400
+From: Arnd Bergmann <arnd@arndb.de>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+Subject: Re: [PATCH] [media] v4l2 core: return -ENOIOCTLCMD if an ioctl doesn't exist
+Date: Sun, 26 Jun 2011 19:13:05 +0200
+Cc: Sakari Ailus <sakari.ailus@iki.fi>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+	Linus Torvalds <torvalds@linux-foundation.org>
+References: <4E0519B7.3000304@redhat.com> <4E0752E0.5030901@iki.fi> <4E075C45.3010200@redhat.com>
+In-Reply-To: <4E075C45.3010200@redhat.com>
+MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201106261913.05752.arnd@arndb.de>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
+On Sunday 26 June 2011 18:20:21 Mauro Carvalho Chehab wrote:
 
-Op 2 jun 2011, om 08:52 heeft javier Martin het volgende geschreven:
+> > The V4L2 core probably should return -ENOIOCTLCMD when an IOCTL isn't implemented, but as long as vfs_ioctl() would stay as it is, the user space would still get -EINVAL. Or is vfs_ioctl() about to change?
+> > 
+> > fs/ioctl.c:
+> > ----8<-----------
+> > static long vfs_ioctl(struct file *filp, unsigned int cmd,
+> >                       unsigned long arg)
+> > {
+> >         int error = -ENOTTY;
+> > 
+> >         if (!filp->f_op || !filp->f_op->unlocked_ioctl)
+> >                 goto out;
+> > 
+> >         error = filp->f_op->unlocked_ioctl(filp, cmd, arg);
+> >         if (error == -ENOIOCTLCMD)
+> >                 error = -EINVAL;
+> >  out:
+> >         return error;
+> > }
+> > ----8<-----------
 
-> Hi Koen,
+One of the differences between the old ->ioctl() and the ->unlocked_ioctl()
+function is that unlocked_ioctl could point to the same function as
+->compat_ioctl(), so we have to catch functions returning -ENOIOCTLCMD.
+
+> Good catch!
 > 
-> On 1 June 2011 20:08, Koen Kooi <koen@beagleboard.org> wrote:
->> 
->> Op 1 jun 2011, om 17:36 heeft Javier Martin het volgende geschreven:
->> 
->>> New "version" and "vdd_io" flags have been added.
->>> 
->>> A subtle change now prevents camera from being registered
->>> in the wrong platform.
->> 
->> I get a decent picture now with the following:
->> 
->> media-ctl -r -l '"mt9p031 2-0048":0->"OMAP3 ISP CCDC":0[1], "OMAP3 ISP CCDC":1->"OMAP3 ISP CCDC output":0[1]'
->> media-ctl -f '"mt9p031 2-0048":0[SGRBG12 320x240], "OMAP3 ISP CCDC":0[SGRBG8 320x240], "OMAP3 ISP CCDC":1[SGRBG8 320x240]'
->> 
->> yavta-nc --stdout -f SGRBG8 -s 320x240 -n 4 --capture=10000 --skip 3 -F $(media-ctl -e "OMAP3 ISP CCDC output") | mplayer-bayer - -demuxer  rawvideo -rawvideo w=320:h=240:format=ba81:size=76800 -vo fbdev2 -vf ba81
->> 
->> 720p also seems to work.
->> 
->> It is really, really dark though. Is this due to missing controls or due to the laneshifting?
+> At the recent git history, the return for -ENOIOCTLCMD were modified
+> by this changeset:
 > 
-> I suspect it is due to the patched mplayer.
-> I know this because I have enabled some custom patterns in the sensor,
-> thus generating pure red, blue and green pictures and they didn't seem
-> so when played through mplayer-bayer.
+> commit b19dd42faf413b4705d4adb38521e82d73fa4249
+> Author: Arnd Bergmann <arnd@arndb.de>
+> Date:   Sun Jul 4 00:15:10 2010 +0200
 > 
-> You could try the same if you want. Just to confirm.
+>     bkl: Remove locked .ioctl file operation
+> ...
+> @@ -39,21 +38,12 @@ static long vfs_ioctl(struct file *filp, unsigned int cmd,
+>  {
+>         int error = -ENOTTY;
+>  
+> -   if (!filp->f_op)
+> + if (!filp->f_op || !filp->f_op->unlocked_ioctl)
+>                 goto out;
+>  
+> -   if (filp->f_op->unlocked_ioctl) {
+> -           error = filp->f_op->unlocked_ioctl(filp, cmd, arg);
+> -           if (error == -ENOIOCTLCMD)
+> -                   error = -EINVAL;
+> -           goto out;
+> -   } else if (filp->f_op->ioctl) {
+> -           lock_kernel();
+> -           error = filp->f_op->ioctl(filp->f_path.dentry->d_inode,
+> -                                     filp, cmd, arg);
+> -           unlock_kernel();
+> ...
+> 
+> Before Arnd's patch, locked ioctl's were returning -ENOIOCTLCMD, and
+> unlocked ones were returning -EINVAL. Now, the return of -ENOIOCTLCMD
+> doesn't go to userspace anymore. IMO, that's wrong and can cause
+> regressions, as some subsystems like DVB were returning -ENOIOCTLCMD
+> to userspace.
 
-So mplayer-bayer is a bad test :) So what other tool(chain) can I use to display images captured with this driver? Ideally I would use mediactl to point the CCDC output to the v4l2 overlay, but I guess that would need some extra code in the ISP and omapvout drivers.
-I heard it's really sunny in Texas where they will be testing this, so the mplayer darkness might be OK for there.
+ENOIOCTLCMD should never be returned to user space, see the comment
+in include/linux/errno.h:
 
-regards,
+/*
+ * These should never be seen by user programs.  To return one of ERESTART*
+ * codes, signal_pending() MUST be set.  Note that ptrace can observe these
+ * at syscall exit tracing, but they will never be left for the debugged user
+ * process to see.
+ */
 
-Koen
+There was a lot of debate whether undefined ioctls on non-ttys should
+return -EINVAL or -ENOTTY, including mass-conversions from -ENOTTY to
+-EINVAL at some point in the pre-git era, IIRC.
+
+Inside of v4l2, I believe this is handled by video_usercopy(), which
+turns the driver's -ENOIOCTLCMD into -ENOTTY. What cases do you observe
+where this is not done correctly and we do return ENOIOCTLCMD to
+vfs_ioctl?
+
+> The right fix would be to remove this from fs:
+> 
+> diff --git a/fs/ioctl.c b/fs/ioctl.c
+> index 1d9b9fc..802fbbd 100644
+> --- a/fs/ioctl.c
+> +++ b/fs/ioctl.c
+> @@ -41,8 +41,6 @@ static long vfs_ioctl(struct file *filp, unsigned int cmd,
+>  		goto out;
+>  
+>  	error = filp->f_op->unlocked_ioctl(filp, cmd, arg);
+> -	if (error == -ENOIOCTLCMD)
+> -		error = -EINVAL;
+>   out:
+>  	return error;
+>  }
+> 
+> However, the replacement from -EINVAL to -ENOIOCTLCMD is there since 2.6.12 for
+> unlocked_ioctl:
+> 
+> $ git blame b19dd42f^1 fs/ioctl.c 
+> ...
+> ^1da177e (Linus Torvalds    2005-04-16 15:20:36 -0700  46)              error = filp->f_op->unlocked_ioctl(filp, cmd, arg);
+> ^1da177e (Linus Torvalds    2005-04-16 15:20:36 -0700  47)              if (error == -ENOIOCTLCMD)
+> ^1da177e (Linus Torvalds    2005-04-16 15:20:36 -0700  48)                      error = -EINVAL;
+> 
+> Linus,
+> 
+> what would be the expected behaviour?
+
+Note that 1da177e is the initial commit to git, Linus did not write that
+code, although he might have an opinion.
+
+	Arnd
