@@ -1,59 +1,113 @@
 Return-path: <mchehab@pedra>
-Received: from tex.lwn.net ([70.33.254.29]:57302 "EHLO vena.lwn.net"
+Received: from mx1.redhat.com ([209.132.183.28]:31872 "EHLO mx1.redhat.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754325Ab1FTTPE (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 20 Jun 2011 15:15:04 -0400
-From: Jonathan Corbet <corbet@lwn.net>
-To: linux-media@vger.kernel.org
-Cc: g.liakhovetski@gmx.de, Kassey Lee <ygli@marvell.com>
-Subject: [RFC] Second marvell-cam patch series
-Date: Mon, 20 Jun 2011 13:14:35 -0600
-Message-Id: <1308597280-138673-1-git-send-email-corbet@lwn.net>
+	id S1754285Ab1FZQHq (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 26 Jun 2011 12:07:46 -0400
+Date: Sun, 26 Jun 2011 13:06:19 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	LKML <linux-kernel@vger.kernel.org>
+Subject: [PATCH 02/14] [media] return -ENOIOCTLCMD for unsupported ioctl's
+ at legacy drivers
+Message-ID: <20110626130619.2338a6a8@pedra>
+In-Reply-To: <cover.1309103285.git.mchehab@redhat.com>
+References: <cover.1309103285.git.mchehab@redhat.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
+To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-OK, here's my second series of marvell-cam patches for comment; the main
-thing here is (finally) the addition of videobuf2 vmalloc and dma-contig
-support.  Anybody who would just rather look at the final product can grab:
+Those drivers are not relying at the V4L2 core to handle the ioctl's.
+So, we need to manually patch them every time a change goes to the
+core.
 
-	git://git.lwn.net/linux-2.6.git mmp-linuxtv
+Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
 
-There is one real mystery here; ideas would be welcome.  When I switch to
-contiguous DMA mode, mplayer gets faster as one might expect - copying all
-those frames in the kernel hurts.  But a basic gstreamer pipeline:
-
-  gst-launch v4l2src ! ffmpegcolorspace ! videoscale ! ximagesink
-
-slows down by a factor of two.  Somehow the gst-launch binary finds a way
-to use twice as much time processing frames.  Given that the difference
-should not really even be visible to user space, I'm at a total loss here.
-
-In this series:
-
-Jonathan Corbet (5):
-      marvell-cam: convert to videobuf2
-      marvell-cam: include file cleanup
-      marvell-cam: no need to initialize the DMA buffers
-      marvell-cam: Don't spam the logs on frame loss
-      marvell-cam: implement contiguous DMA operation
-
- Kconfig       |    4 
- cafe-driver.c |    6 
- mcam-core.c   |  785 +++++++++++++++++++++++++---------------------------------
- mcam-core.h   |   47 ++-
- mmp-driver.c  |    1 
- 5 files changed, 387 insertions(+), 456 deletions(-)
-
-Todo items at this point:
-
- - Scatter/gather DMA support (probably)
- - Eliminate ov7670 assumptions
- - Userptr support (should Just Work in DMA-contiguous mode)
-
-Comments?
-
-Thanks,
-
-jon
+diff --git a/drivers/media/video/et61x251/et61x251_core.c b/drivers/media/video/et61x251/et61x251_core.c
+index a982750..4bf43b1 100644
+--- a/drivers/media/video/et61x251/et61x251_core.c
++++ b/drivers/media/video/et61x251/et61x251_core.c
+@@ -2480,16 +2480,8 @@ static long et61x251_ioctl_v4l2(struct file *filp,
+ 	case VIDIOC_S_PARM:
+ 		return et61x251_vidioc_s_parm(cam, arg);
+ 
+-	case VIDIOC_G_STD:
+-	case VIDIOC_S_STD:
+-	case VIDIOC_QUERYSTD:
+-	case VIDIOC_ENUMSTD:
+-	case VIDIOC_QUERYMENU:
+-	case VIDIOC_ENUM_FRAMEINTERVALS:
+-		return -EINVAL;
+-
+ 	default:
+-		return -EINVAL;
++		return -ENOIOCTLCMD;
+ 
+ 	}
+ }
+diff --git a/drivers/media/video/pvrusb2/pvrusb2-v4l2.c b/drivers/media/video/pvrusb2/pvrusb2-v4l2.c
+index 3876114..1c299a8 100644
+--- a/drivers/media/video/pvrusb2/pvrusb2-v4l2.c
++++ b/drivers/media/video/pvrusb2/pvrusb2-v4l2.c
+@@ -369,11 +369,6 @@ static long pvr2_v4l2_do_ioctl(struct file *file, unsigned int cmd, void *arg)
+ 		break;
+ 	}
+ 
+-	case VIDIOC_S_AUDIO:
+-	{
+-		ret = -EINVAL;
+-		break;
+-	}
+ 	case VIDIOC_G_TUNER:
+ 	{
+ 		struct v4l2_tuner *vt = (struct v4l2_tuner *)arg;
+@@ -850,7 +845,7 @@ static long pvr2_v4l2_do_ioctl(struct file *file, unsigned int cmd, void *arg)
+ #endif
+ 
+ 	default :
+-		ret = -EINVAL;
++		ret = -ENOIOCTLCMD;
+ 		break;
+ 	}
+ 
+diff --git a/drivers/media/video/sn9c102/sn9c102_core.c b/drivers/media/video/sn9c102/sn9c102_core.c
+index 0e07c49..44bf6c3 100644
+--- a/drivers/media/video/sn9c102/sn9c102_core.c
++++ b/drivers/media/video/sn9c102/sn9c102_core.c
+@@ -3187,16 +3187,8 @@ static long sn9c102_ioctl_v4l2(struct file *filp,
+ 	case VIDIOC_S_AUDIO:
+ 		return sn9c102_vidioc_s_audio(cam, arg);
+ 
+-	case VIDIOC_G_STD:
+-	case VIDIOC_S_STD:
+-	case VIDIOC_QUERYSTD:
+-	case VIDIOC_ENUMSTD:
+-	case VIDIOC_QUERYMENU:
+-	case VIDIOC_ENUM_FRAMEINTERVALS:
+-		return -EINVAL;
+-
+ 	default:
+-		return -EINVAL;
++		return -ENOIOCTLCMD;
+ 
+ 	}
+ }
+diff --git a/drivers/media/video/uvc/uvc_v4l2.c b/drivers/media/video/uvc/uvc_v4l2.c
+index 543a803..1fe2c8f 100644
+--- a/drivers/media/video/uvc/uvc_v4l2.c
++++ b/drivers/media/video/uvc/uvc_v4l2.c
+@@ -83,7 +83,7 @@ static int uvc_ioctl_ctrl_map(struct uvc_video_chain *chain,
+ 	default:
+ 		uvc_trace(UVC_TRACE_CONTROL, "Unsupported V4L2 control type "
+ 			  "%u.\n", xmap->v4l2_type);
+-		ret = -EINVAL;
++		ret = -ENOIOCTLCMD;
+ 		goto done;
+ 	}
+ 
+-- 
+1.7.1
 
 
