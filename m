@@ -1,51 +1,64 @@
 Return-path: <mchehab@pedra>
-Received: from moutng.kundenserver.de ([212.227.17.10]:59725 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751320Ab1FGGqY (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 7 Jun 2011 02:46:24 -0400
-Date: Tue, 7 Jun 2011 08:46:19 +0200 (CEST)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Kuninori Morimoto <kuninori.morimoto.gx@renesas.com>
-cc: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: [PATCH] V4L: tw9910: remove bogus ENUMINPUT implementation
-In-Reply-To: <w3ppqmq8n1a.wl%kuninori.morimoto.gx@renesas.com>
-Message-ID: <Pine.LNX.4.64.1106070845400.31635@axis700.grange>
-References: <Pine.LNX.4.64.1106061915210.11169@axis700.grange>
- <Pine.LNX.4.64.1106061922460.11169@axis700.grange>
- <w3ppqmq8n1a.wl%kuninori.morimoto.gx@renesas.com>
+Received: from mx1.redhat.com ([209.132.183.28]:19241 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753694Ab1FZNXE (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 26 Jun 2011 09:23:04 -0400
+Received: from int-mx09.intmail.prod.int.phx2.redhat.com (int-mx09.intmail.prod.int.phx2.redhat.com [10.5.11.22])
+	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id p5QDN4pr018038
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
+	for <linux-media@vger.kernel.org>; Sun, 26 Jun 2011 09:23:04 -0400
+Received: from [10.11.8.3] (vpn-8-3.rdu.redhat.com [10.11.8.3])
+	by int-mx09.intmail.prod.int.phx2.redhat.com (8.14.4/8.14.4) with ESMTP id p5QDN3vJ029492
+	for <linux-media@vger.kernel.org>; Sun, 26 Jun 2011 09:23:03 -0400
+Message-ID: <4E0732B6.7080406@redhat.com>
+Date: Sun, 26 Jun 2011 10:23:02 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: [PATCH] [media] DocBook/v4l: Remove references to the old V4L1 compat
+ layer
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Tue, 7 Jun 2011, Kuninori Morimoto wrote:
+The old V4L1 Kernel copatibility layer was removed, but the API
+spec still says that it is there.
 
-> 
-> Dear Guennadi
-> 
-> Thank you for your email.
-> 
-> > Morimoto-san, sorry, that was a wrong address of yours again in the 
-> > original mail. With the correct request also comes a request: would it be 
-> > difficult for you to give this patch a try? If you don't happen to have a 
-> > set up ready at hand, no problem, I'll dig out some video signal source 
-> > myself and test.
-> 
-> I'm sorry too.
-> I don't know why, but I had lost V4L2 ML since last month somehow.
-> I didn't notice about it.
-> 
-> I tried this patch on SH7724 Ecovec board.
-> I'm using NTSC video player, and it works well.
-> 
-> But I just played video.
-> Is this test OK for you ?
+Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
 
-Yes, very good, thanks very much! Can I add your "Tested-by" to the patch?
-
-Thanks
-Guennadi
----
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
-http://www.open-technology.de/
+diff --git a/Documentation/DocBook/media/v4l/compat.xml b/Documentation/DocBook/media/v4l/compat.xml
+index 9f7cd4f..b010ac6 100644
+--- a/Documentation/DocBook/media/v4l/compat.xml
++++ b/Documentation/DocBook/media/v4l/compat.xml
+@@ -10,12 +10,10 @@ driver writers to port or update their code.</para>
+     <para>The Video For Linux API was first introduced in Linux 2.1 to
+ unify and replace various TV and radio device related interfaces,
+ developed independently by driver writers in prior years. Starting
+-with Linux 2.5 the much improved V4L2 API replaces the V4L API,
+-although existing drivers will continue to support V4L applications in
+-the future, either directly or through the V4L2 compatibility layer in
+-the <filename>videodev</filename> kernel module translating ioctls on
+-the fly. For a transition period not all drivers will support the V4L2
+-API.</para>
++with Linux 2.5 the much improved V4L2 API replaces the V4L API.
++The support for the old V4L calls were removed from Kernel, but the
++library <xref linkend="libv4l" /> supports the conversion of a V4L
++API system call into a V4L2 one.</para>
+ 
+     <section>
+       <title>Opening and Closing Devices</title>
+@@ -84,12 +82,7 @@ not compatible with V4L or V4L2.</para> </footnote>,
+ device file. V4L2 drivers <emphasis>may</emphasis> support multiple
+ opens, see <xref linkend="open" /> for details and consequences.</para>
+ 
+-      <para>V4L drivers respond to V4L2 ioctls with an &EINVAL;. The
+-compatibility layer in the V4L2 <filename>videodev</filename> module
+-can translate V4L ioctl requests to their V4L2 counterpart, however a
+-V4L2 driver usually needs more preparation to become fully V4L
+-compatible. This is covered in more detail in <xref
+-	  linkend="driver" />.</para>
++      <para>V4L drivers respond to V4L2 ioctls with an &EINVAL;.</para>
+     </section>
+ 
+     <section>
