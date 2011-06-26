@@ -1,53 +1,73 @@
 Return-path: <mchehab@pedra>
-Received: from mail.kapsi.fi ([217.30.184.167]:50036 "EHLO mail.kapsi.fi"
+Received: from mx1.redhat.com ([209.132.183.28]:17478 "EHLO mx1.redhat.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752136Ab1FTVKv (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 20 Jun 2011 17:10:51 -0400
-Message-ID: <4DFFB75A.8050808@iki.fi>
-Date: Tue, 21 Jun 2011 00:10:50 +0300
-From: Antti Palosaari <crope@iki.fi>
-MIME-Version: 1.0
-To: Markus Rechberger <mrechberger@gmail.com>
-CC: Rune Evjen <rune.evjen@gmail.com>, linux-media@vger.kernel.org
-Subject: Re: PCTV nanoStick T2 290e (Sony CXD2820R DVB-T/T2/C) - DVB-C channel
- scan in mythtv - missing
-References: <BANLkTimkYw70GAu1keW-N6ND=AyiRn2+CA@mail.gmail.com>	<4DF49E2A.9030804@iki.fi>	<BANLkTi=dGyN8SEwwAStD0Ob99k+FKkQPFg@mail.gmail.com>	<BANLkTik=37qHUx273bSRN91HeyYrtUv6og@mail.gmail.com>	<BANLkTi=gdVhVKjF4tqUwy+DxFv9imUipHw@mail.gmail.com> <BANLkTikDCbQUwW_mAdMHAxQGE0AGp+1ebQ@mail.gmail.com>
-In-Reply-To: <BANLkTikDCbQUwW_mAdMHAxQGE0AGp+1ebQ@mail.gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+	id S1753651Ab1FZQH4 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 26 Jun 2011 12:07:56 -0400
+Date: Sun, 26 Jun 2011 13:06:08 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	LKML <linux-kernel@vger.kernel.org>
+Subject: [PATCH 06/14] [media] pwc: Use the default version for
+ VIDIOC_QUERYCAP
+Message-ID: <20110626130608.6f491f24@pedra>
+In-Reply-To: <cover.1309103285.git.mchehab@redhat.com>
+References: <cover.1309103285.git.mchehab@redhat.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
+To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On 06/21/2011 12:04 AM, Markus Rechberger wrote:
-> On Mon, Jun 20, 2011 at 10:55 PM, Rune Evjen<rune.evjen@gmail.com>  wrote:
->> 2011/6/20 Markus Rechberger<mrechberger@gmail.com>:
->>> to tell the difference the amplifier is for DVB-T2, DVB-C is disabled
->>> in windows because it's not reliable.
->>> Technically the chip supports it but the LNA decreases the quality.
->>> There are already some other PCI boards
->>> out there with that chip which do not use that LNA which should have a
->>> better performance with that Sony chip.
->>
->> Is it possible to work around this by disabling the lna or is the
->> quality decreased permanently as part of the hardware design,
->> independently of whether the lna is enabled or not ?
->>
->> I searched the linux-media list and it seems that an lna option was
->> discussed as a module parameter, but modinfo for the module I use [1]
->> (using the media_build git repository) doesn't show a lna parameter.
->> Can the lna be disabled in another way ?
->>
->
-> no, otherwise it would be sold as full hybrid device. DVB-T2 is weak
-> that's why it was added.
-> Failing DVB-C would increase the device return rate, that's why it is
-> sold as DVB-T2 only.
+After discussing with Hans, change pwc to use the default version
+control.
 
-How the others have resolved that problem? Is that signal strength only 
-issue when TDA18271 tuner is used?
+The only version ever used for pwc driver is 10.0.12, due to
+commit 2b455db6d456ef2d44808a8377fd3bc832e08317.
 
+Changing it to 3.x.y won't conflict with the old version.
+There's no namespace conflicts in any predictable future.
 
-Antti
+Even on the remote far-away case where we might have a conflict,
+it will be on just one specific stable Kernel release (Kernel 10.0.12),
+if we ever have such stable release.
 
+So, it is safe and consistent on using 3.x.y numering schema for
+it.
+
+Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+
+diff --git a/drivers/media/video/pwc/pwc-v4l.c b/drivers/media/video/pwc/pwc-v4l.c
+index f85c512..059bd95 100644
+--- a/drivers/media/video/pwc/pwc-v4l.c
++++ b/drivers/media/video/pwc/pwc-v4l.c
+@@ -349,7 +349,6 @@ static int pwc_querycap(struct file *file, void *fh, struct v4l2_capability *cap
+ 	strcpy(cap->driver, PWC_NAME);
+ 	strlcpy(cap->card, vdev->name, sizeof(cap->card));
+ 	usb_make_path(pdev->udev, cap->bus_info, sizeof(cap->bus_info));
+-	cap->version = PWC_VERSION_CODE;
+ 	cap->capabilities =
+ 		V4L2_CAP_VIDEO_CAPTURE	|
+ 		V4L2_CAP_STREAMING	|
+diff --git a/drivers/media/video/pwc/pwc.h b/drivers/media/video/pwc/pwc.h
+index 78185c6..98950de 100644
+--- a/drivers/media/video/pwc/pwc.h
++++ b/drivers/media/video/pwc/pwc.h
+@@ -44,12 +44,7 @@
+ #include <media/pwc-ioctl.h>
+ 
+ /* Version block */
+-#define PWC_MAJOR	10
+-#define PWC_MINOR	0
+-#define PWC_EXTRAMINOR	15
+-
+-#define PWC_VERSION_CODE KERNEL_VERSION(PWC_MAJOR, PWC_MINOR, PWC_EXTRAMINOR)
+-#define PWC_VERSION __stringify(PWC_MAJOR) "." __stringify(PWC_MINOR) "." __stringify(PWC_EXTRAMINOR)
++#define PWC_VERSION	"10.0.15"
+ #define PWC_NAME 	"pwc"
+ #define PFX		PWC_NAME ": "
+ 
 -- 
-http://palosaari.fi/
+1.7.1
+
+
