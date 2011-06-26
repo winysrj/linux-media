@@ -1,20 +1,24 @@
 Return-path: <mchehab@pedra>
 Received: from mail.tu-berlin.de ([130.149.7.33])
 	by www.linuxtv.org with esmtp (Exim 4.69)
-	(envelope-from <mutoid@gmail.com>) id 1QYxxf-0000b3-N5
-	for linux-dvb@linuxtv.org; Tue, 21 Jun 2011 12:13:36 +0200
-Received: from mail-gy0-f182.google.com ([209.85.160.182])
-	by mail.tu-berlin.de (exim-4.75/mailfrontend-3) with esmtps
-	[TLSv1:RC4-SHA:128] for <linux-dvb@linuxtv.org>
-	id 1QYxxf-00053A-EU; Tue, 21 Jun 2011 12:13:35 +0200
-Received: by gyf3 with SMTP id 3so846778gyf.41
-	for <linux-dvb@linuxtv.org>; Tue, 21 Jun 2011 03:13:33 -0700 (PDT)
-MIME-Version: 1.0
-Date: Tue, 21 Jun 2011 12:13:32 +0200
-Message-ID: <BANLkTi=4Mo4BUhXnL3ALJVzCSBO9TbrY-w@mail.gmail.com>
-From: mutoid <mutoid@gmail.com>
-To: linux-dvb@linuxtv.org
-Subject: [linux-dvb] impossible to tune card, but I can watch TV :?
+	(envelope-from <eddie@lania.nl>) id 1Qalvj-0005X6-JM
+	for linux-dvb@linuxtv.org; Sun, 26 Jun 2011 11:47:03 +0200
+Received: from edla.lania.nl ([84.245.4.170])
+	by mail.tu-berlin.de (exim-4.75/mailfrontend-1) with esmtps
+	[TLSv1:AES256-SHA:256] for <linux-dvb@linuxtv.org>
+	id 1Qalvj-000728-JR; Sun, 26 Jun 2011 11:47:03 +0200
+Received: from apollo.lania-intra.net (apollo.lania-intra.net [192.168.169.2])
+	by edla.lania.nl (8.14.4/8.14.4) with ESMTP id p5Q9kvAx002076
+	for <linux-dvb@linuxtv.org>; Sun, 26 Jun 2011 11:46:58 +0200
+From: Eddie Lania <eddie@lania.nl>
+To: "E.John Brown" <eddie500@bigpond.com>
+Date: Sun, 26 Jun 2011 11:46:57 +0200
+In-Reply-To: <4E06F037.1050509@bigpond.com>
+References: <4E06F037.1050509@bigpond.com>
+Message-ID: <1309081617.1912.11.camel@e2800fedora.lania-intra.net>
+Mime-Version: 1.0
+Cc: linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] Elgato eyetb usb tv tuner
 Reply-To: linux-media@vger.kernel.org
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/options/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
@@ -23,118 +27,73 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: multipart/mixed; boundary="===============2056185147=="
-Errors-To: linux-dvb-bounces+mchehab=redhat.com@linuxtv.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Errors-To: linux-dvb-bounces+mchehab=linuxtv.org@linuxtv.org
 Sender: <mchehab@pedra>
 List-ID: <linux-dvb@linuxtv.org>
 
---===============2056185147==
-Content-Type: multipart/alternative; boundary=20cf305e252bae43b204a6361a4e
+Hi John,
 
---20cf305e252bae43b204a6361a4e
-Content-Type: text/plain; charset=ISO-8859-1
+dmesg does not show anything useful. That's because the device is not
+supported yet.
 
-Hello,
+lsusb only shows there is a device with ID 0df9:0018
+>From what i found on the internet, the device's specs are:
+Model: EU 2008
+USB Controller: Empia EM2884
+Stereo A/V Decoder: Micronas AVF 49x08
+Hybrid Channel Decoder: Micronas DRX-K DRX3926K:A1 0.9.0
 
-I have an Avermedia Super 007, installed in a headless Linux machine to
-multicast some TV channels.
+I spoke to a few people on the IRC linuxtv channel @freenode and it
+appears to be a 2884/drxk/avfb combo.
+Micronas has allowed a GPL driver to be released.  But nobody has been
+willing to do the work to get it upstream.
+It still needs a couple dozen hours worth of work to get up and running,
+and deal with all the codingstyle issues, etc.
 
-I use "mumudvb" and works fine, without problem. I can stream 4 TV channels
-and 4 radios at once
+I hope that someone is willing to do this somewhere in the nearby
+future.
 
-But now I need to extract EPG data, using dbvtune and tv_grab_dvb
+It's a great device; it can do dvb-c and dvb-t but also has an analogue
+tuner for tv and radio, and it can capture video/audio from
+composite/s-video connected devices as well.
 
-I tried 2 configurations:
+I'd love to see this device working in Linux in the future.
 
-* Kworld USB DVB-T + dvbtune + tv_grab_dvb = works fine
+Regards,
 
-~# dvbtune -c 1 -f 770000
-Using DVB card "Afatech AF9013 DVB-T"
-tuning DVB-T (in United Kingdom) to 770000000 Hz
-polling....
-Getting frontend event
-FE_STATUS:
-polling....
-Getting frontend event
-FE_STATUS: FE_HAS_SIGNAL FE_HAS_LOCK FE_HAS_CARRIER FE_HAS_VITERBI
-FE_HAS_SYNC
-Event:  Frequency: 780600000
-        SymbolRate: 0
-        FEC_inner:  2
-
-Bit error rate: 0
-Signal strength: 51993
-SNR: 120
-FE_STATUS: FE_HAS_SIGNAL FE_HAS_LOCK FE_HAS_CARRIER FE_HAS_VITERBI
-FE_HAS_SYNC
+Eddie.
 
 
-* Avermedia Super 007 + dvbtune = no working
+On Sun, 2011-06-26 at 16:39 +0800, E.John Brown wrote:
+> Dear Eddie,
+>                    Have you tried running dmesg in a terminal it will 
+> give you a list of what hardware is running in the kernel and if it has 
+> a driver and or firmware.
+>                    See my output sample.
+>      7.646537] ivtv: Start initialization, version 1.4.2
+> [    7.646634] ivtv0: Initializing card 0
+> [    7.646636] ivtv0: Autodetected Hauppauge card (cx23416 based)
+> [    7.646693] ivtv 0000:01:05.0: PCI INT A -> GSI 20 (level, low) -> IRQ 20
+> [    7.647485] ivtv i2c driver #0: Test OK
+> [    7.702997] tveeprom 0-0050: Hauppauge model 25019, rev C589, serial# 
+> 10495999
+> [    7.702999] tveeprom 0-0050: tuner model is TCL MFPE05 2 (idx 89, 
+> type 38)
+> [    7.703014] tveeprom 0-0050: TV standards PAL(B/G) PAL(I) SECAM(L/L') 
+> PAL(D/D1/K) (eeprom
+> This is a Hauppauge card
+> Notice that the output tells you the driver details (ivtv i2c driver #0 
+> Test OK)
+> 
+> Another command is lsusb will show usb devices connected
+> Check if your tuner needs firmware and that its in the right place ie 
+> /libs/firmware
 
-~# dvbtune -c 0 -f 770000
-Using DVB card "Philips TDA10046H DVB-T"
-tuning DVB-T (in United Kingdom) to 770000000 Hz
-polling....
-Getting frontend event
-FE_STATUS:
-polling....
-polling....
-polling....
-polling....
-
-Why can I use dvbtune with one USB card but not with a PCI card?
-
-Thanks.
-
---20cf305e252bae43b204a6361a4e
-Content-Type: text/html; charset=ISO-8859-1
-Content-Transfer-Encoding: quoted-printable
-
-Hello,<div><br></div><div>I have an=A0Avermedia Super 007, installed in a h=
-eadless Linux machine to multicast some TV channels.</div><div><br></div><d=
-iv>I use &quot;mumudvb&quot; and works fine, without problem. I can stream =
-4 TV channels and 4 radios at once</div>
-<div><br></div><div>But now I need to extract EPG data, using dbvtune and t=
-v_grab_dvb</div><div><br></div><div>I tried 2 configurations:</div><div><br=
-></div><div>* Kworld USB DVB-T + dvbtune +=A0tv_grab_dvb =3D works fine</di=
-v>
-<div><br></div><div><div>~# dvbtune -c 1 -f 770000</div><div>Using DVB card=
- &quot;Afatech AF9013 DVB-T&quot;</div><div>tuning DVB-T (in United Kingdom=
-) to 770000000 Hz</div><div>polling....</div><div>Getting frontend event</d=
-iv>
-<div>FE_STATUS:</div><div>polling....</div><div>Getting frontend event</div=
-><div>FE_STATUS: FE_HAS_SIGNAL FE_HAS_LOCK FE_HAS_CARRIER FE_HAS_VITERBI FE=
-_HAS_SYNC</div><div>Event: =A0Frequency: 780600000</div><div>=A0 =A0 =A0 =
-=A0 SymbolRate: 0</div>
-<div>=A0 =A0 =A0 =A0 FEC_inner: =A02</div><div><br></div><div>Bit error rat=
-e: 0</div><div>Signal strength: 51993</div><div>SNR: 120</div><div>FE_STATU=
-S: FE_HAS_SIGNAL FE_HAS_LOCK FE_HAS_CARRIER FE_HAS_VITERBI FE_HAS_SYNC</div=
-></div>
-<div><br></div><div><br></div><div>* Avermedia Super 007 + dvbtune =3D no w=
-orking=A0</div><div><br></div><div><div>~# dvbtune -c 0 -f 770000</div><div=
->Using DVB card &quot;Philips TDA10046H DVB-T&quot;</div><div>tuning DVB-T =
-(in United Kingdom) to 770000000 Hz</div>
-<div>polling....</div><div>Getting frontend event</div><div>FE_STATUS:</div=
-><div>polling....</div><div>polling....</div></div><div><meta http-equiv=3D=
-"content-type" content=3D"text/html; charset=3Dutf-8">polling....</div><div=
-><meta http-equiv=3D"content-type" content=3D"text/html; charset=3Dutf-8">p=
-olling....</div>
-<div><br></div><div>Why can I use dvbtune with one USB card but not with a =
-PCI card?</div><div><br></div><div>Thanks.</div><div><br></div><div><br></d=
-iv>
-
---20cf305e252bae43b204a6361a4e--
-
-
---===============2056185147==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
 
 _______________________________________________
 linux-dvb users mailing list
 For V4L/DVB development, please use instead linux-media@vger.kernel.org
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
---===============2056185147==--
