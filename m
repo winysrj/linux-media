@@ -1,54 +1,86 @@
 Return-path: <mchehab@pedra>
-Received: from mx1.redhat.com ([209.132.183.28]:26210 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752781Ab1FIPwF (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 9 Jun 2011 11:52:05 -0400
-From: Jarod Wilson <jarod@redhat.com>
+Received: from relay4-d.mail.gandi.net ([217.70.183.196]:48923 "EHLO
+	relay4-d.mail.gandi.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754967Ab1FZVDo convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 26 Jun 2011 17:03:44 -0400
+Message-ID: <4E079E9F.7050004@free.fr>
+Date: Sun, 26 Jun 2011 23:03:27 +0200
+From: mossroy <mossroy@free.fr>
+MIME-Version: 1.0
 To: linux-media@vger.kernel.org
-Cc: Jarod Wilson <jarod@redhat.com>,
-	Andy Walls <awalls@md.metrocast.net>, stable@kernel.org
-Subject: [PATCH] [media] lirc_zilog: fix spinning rx thread
-Date: Thu,  9 Jun 2011 11:51:56 -0400
-Message-Id: <1307634716-10809-1-git-send-email-jarod@redhat.com>
+CC: Christoph Pfister <christophpfister@gmail.com>, n_estre@yahoo.fr,
+	alkahan@free.fr, alexis@via.ecp.fr, ben@geexbox.org,
+	xavier@dalaen.com, jean-michel.baudrey@orange.fr,
+	lissyx@dyndns.org, sylvestre.cartier@gmail.com,
+	brossard.damien@gmail.com, johann.ollivierlapeyre@gmail.com,
+	jean-michel-62@orange.fr
+Subject: Re: Updates to French scan files
+References: <4DFFA7B6.9070906@free.fr>	<4DFFA917.5060509@iki.fi>	<4E017D7D.4050307@free.fr> <BANLkTimQymz5K6YhhUgPeWjMFkkVoU6j4A@mail.gmail.com>
+In-Reply-To: <BANLkTimQymz5K6YhhUgPeWjMFkkVoU6j4A@mail.gmail.com>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 8BIT
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-We were calling schedule_timeout with the rx thread's task state still
-at TASK_RUNNING, which it shouldn't be. Make sure we call
-set_current_state(TASK_INTERRUPTIBLE) *before* schedule_timeout, and
-we're all good here. I believe this problem was mistakenly introduced in
-commit 5bd6b0464b68d429bc8a3fe6595d19c39dfc4d95, and I'm not sure how I
-missed it before, as I swear I tested the patchset that was included in,
-but alas, stuff happens...
+Thanks for your answer.
 
-CC: Andy Walls <awalls@md.metrocast.net>
-CC: stable@kernel.org
-Signed-off-by: Jarod Wilson <jarod@redhat.com>
----
- drivers/staging/lirc/lirc_zilog.c |    4 ++--
- 1 files changed, 2 insertions(+), 2 deletions(-)
+The French frequencies are (almost) all included in the 
+"auto-With167kHzOffsets" file.
+In fact, the offset can officially be -167, 0, +167 (which are included 
+in this file), but also +333 and +500 (see page 11 of 
+http://www.csa.fr/upload/publication/CSATNT.pdf )
 
-diff --git a/drivers/staging/lirc/lirc_zilog.c b/drivers/staging/lirc/lirc_zilog.c
-index dd6a57c..4e051f6 100644
---- a/drivers/staging/lirc/lirc_zilog.c
-+++ b/drivers/staging/lirc/lirc_zilog.c
-@@ -475,14 +475,14 @@ static int lirc_thread(void *arg)
- 	dprintk("poll thread started\n");
- 
- 	while (!kthread_should_stop()) {
-+		set_current_state(TASK_INTERRUPTIBLE);
-+
- 		/* if device not opened, we can sleep half a second */
- 		if (atomic_read(&ir->open_count) == 0) {
- 			schedule_timeout(HZ/2);
- 			continue;
- 		}
- 
--		set_current_state(TASK_INTERRUPTIBLE);
--
- 		/*
- 		 * This is ~113*2 + 24 + jitter (2*repeat gap + code length).
- 		 * We use this interval as the chip resets every time you poll
--- 
-1.7.1
+I checked that all the frequencies currently declared in the 19 fr-* 
+files (remaining after this cleanup : 
+http://linuxtv.org/hg/dvb-apps/rev/795f75601b73 ) are included in 
+"auto-With167kHzOffsets" (except that some use a 166kHz offset instead 
+of 167kHz : I suppose this difference of 1kHz can be ignored)
 
+I checked each of these 19 existing fr-* files (see 
+http://linuxtv.org/hg/dvb-apps/file/93a96e9ce765/util/scan/dvb-t ) to 
+see if the frequencies were outdated (compared to the official 
+frequencies : 
+http://www.tousaunumerique.fr/professionnels/en-savoir-plus/documentation/categorie-doc/plans-de-frequences/ 
+)
+Most of them ARE outdated, except :
+- Brest and Laval (frequencies are correct)
+- Toulouse, because the frequencies will only change on November 8th 2011
+- I have a doubt for Villebon because I did not find which transponder 
+it uses
+
+I saw that w-scan uses only the offsets -167, 0, and +167 for country 
+FR. I suppose they're the most usual ones.
+
+I would suggest to :
+- delete the 19 remaining fr-* files
+- make the French users use the auto-With167kHzOffsets file (should we 
+create a fr-All file, that would be a link to auto-With167kHzOffsets ?)
+- create a file with a more complete list of frequencies, that would 
+also include the +333 and +500 offsets, in case they were used. We might 
+call it auto-WithUnusualOffsets for example
+I might provide a patch for that, of course.
+
+I have put in copy of this email the authors of some of the existing 
+fr-* files (Maybe some of these addresses are now invalid). If you 
+missed the beginning of the thread : 
+http://www.mail-archive.com/linux-media@vger.kernel.org/msg33394.html
+
+What's your opinion?
+
+Le 26/06/2011 16:56, Christoph Pfister a écrit :
+> 2011/6/22 mossroy<mossroy@free.fr>:
+> <snip>
+>> Would it be harmful to have only one list with all those frequencies (there
+>> are 57) for all the country?
+> <snip>
+>
+> http://linuxtv.org/hg/dvb-apps/file/tip/util/scan/dvb-t/auto-Default
+> http://linuxtv.org/hg/dvb-apps/file/tip/util/scan/dvb-t/auto-With167kHzOffsets
+> http://linuxtv.org/hg/dvb-apps/file/tip/util/scan/dvb-t/auto-Australia
+> http://linuxtv.org/hg/dvb-apps/file/tip/util/scan/dvb-t/auto-Italy
+> http://linuxtv.org/hg/dvb-apps/file/tip/util/scan/dvb-t/auto-Taiwan
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message tomajordomo@vger.kernel.org
+> More majordomo info athttp://vger.kernel.org/majordomo-info.html
