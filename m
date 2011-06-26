@@ -1,55 +1,56 @@
 Return-path: <mchehab@pedra>
-Received: from bear.ext.ti.com ([192.94.94.41]:37979 "EHLO bear.ext.ti.com"
+Received: from mx1.redhat.com ([209.132.183.28]:38845 "EHLO mx1.redhat.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750696Ab1FVEGO convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 22 Jun 2011 00:06:14 -0400
-From: "Nori, Sekhar" <nsekhar@ti.com>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-CC: dlos <davinci-linux-open-source@linux.davincidsp.com>,
-	LAK <linux-arm-kernel@lists.infradead.org>,
-	LMML <linux-media@vger.kernel.org>
-Date: Wed, 22 Jun 2011 09:35:58 +0530
-Subject: RE: [PATCH 1/1] davinci: dm646x: move vpif related code to driver
-	core	header from platform
-Message-ID: <B85A65D85D7EB246BE421B3FB0FBB593024D6262FF@dbde02.ent.ti.com>
-References: <1305899929-2509-1-git-send-email-manjunath.hadli@ti.com>
- <B85A65D85D7EB246BE421B3FB0FBB593024D2D28E3@dbde02.ent.ti.com>
-In-Reply-To: <B85A65D85D7EB246BE421B3FB0FBB593024D2D28E3@dbde02.ent.ti.com>
-Content-Language: en-US
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-MIME-Version: 1.0
+	id S1753771Ab1FZQHa (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 26 Jun 2011 12:07:30 -0400
+Date: Sun, 26 Jun 2011 13:06:10 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	LKML <linux-kernel@vger.kernel.org>
+Subject: [PATCH 04/14] [media] drxd, siano: Remove unused include
+ linux/version.h
+Message-ID: <20110626130610.04b01c69@pedra>
+In-Reply-To: <cover.1309103285.git.mchehab@redhat.com>
+References: <cover.1309103285.git.mchehab@redhat.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
+To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Thu, Jun 02, 2011 at 22:51:58, Nori, Sekhar wrote:
-> Hi Mauro,
-> 
-> On Fri, May 20, 2011 at 19:28:49, Hadli, Manjunath wrote:
-> > move vpif related code for capture and display drivers
-> > from dm646x platform header file to vpif.h as these definitions
-> > are related to driver code more than the platform or board.
-> > 
-> > Signed-off-by: Manjunath Hadli <manjunath.hadli@ti.com>
-> 
-> Will you be taking this patch through your tree?
-> 
-> If not, with your ack, I can queue it for inclusion
-> through the ARM tree.
-> 
+Both drxd and siano drivers were including linux/version.h without
+any reason. Probably, this is due to some compatibility code that
+used to exist before having their support added into the Linux
+Kernel.
 
-Ping :)
+Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
 
-Thanks,
-Sekhar
+diff --git a/drivers/media/dvb/frontends/drxd_hard.c b/drivers/media/dvb/frontends/drxd_hard.c
+index ea4c1c3..f132e49 100644
+--- a/drivers/media/dvb/frontends/drxd_hard.c
++++ b/drivers/media/dvb/frontends/drxd_hard.c
+@@ -28,7 +28,6 @@
+ #include <linux/delay.h>
+ #include <linux/firmware.h>
+ #include <linux/i2c.h>
+-#include <linux/version.h>
+ #include <asm/div64.h>
+ 
+ #include "dvb_frontend.h"
+diff --git a/drivers/media/dvb/siano/smscoreapi.h b/drivers/media/dvb/siano/smscoreapi.h
+index 8ecadec..c592ae0 100644
+--- a/drivers/media/dvb/siano/smscoreapi.h
++++ b/drivers/media/dvb/siano/smscoreapi.h
+@@ -22,7 +22,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ #ifndef __SMS_CORE_API_H__
+ #define __SMS_CORE_API_H__
+ 
+-#include <linux/version.h>
+ #include <linux/device.h>
+ #include <linux/list.h>
+ #include <linux/mm.h>
+-- 
+1.7.1
 
-> > ---
-> >  arch/arm/mach-davinci/include/mach/dm646x.h |   53 +-------------------
-> >  drivers/media/video/davinci/vpif.h          |    1 +
-> >  drivers/media/video/davinci/vpif_capture.h  |    2 +-
-> >  drivers/media/video/davinci/vpif_display.h  |    1 +
-> >  include/media/davinci/vpif.h                |   73 +++++++++++++++++++++++++++
-> >  5 files changed, 77 insertions(+), 53 deletions(-)
-> >  create mode 100644 include/media/davinci/vpif.h
 
