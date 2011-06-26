@@ -1,162 +1,91 @@
 Return-path: <mchehab@pedra>
-Received: from nm22-vm0.bullet.mail.sp2.yahoo.com ([98.139.91.222]:46298 "HELO
-	nm22-vm0.bullet.mail.sp2.yahoo.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with SMTP id S933153Ab1FADVy convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 31 May 2011 23:21:54 -0400
-Message-ID: <115690.73510.qm@web112018.mail.gq1.yahoo.com>
-Date: Tue, 31 May 2011 20:21:53 -0700 (PDT)
-From: Chris Rodley <carlighting@yahoo.co.nz>
-Subject: Re: [beagleboard] [PATCH v5 2/2] Add support for mt9p031 (LI-5M03 module) in Beagleboard xM.
-To: javier.martin@vista-silicon.com
-Cc: beagleboard@googlegroups.com, linux-media@vger.kernel.org,
-	g.liakhovetski@gmx.de, laurent.pinchart@ideasonboard.com,
-	mch_kot@yahoo.com.cn, koen@beagleboard.org
+Received: from mail-iw0-f174.google.com ([209.85.214.174]:45756 "EHLO
+	mail-iw0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755642Ab1FZV77 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 26 Jun 2011 17:59:59 -0400
+Received: by iwn6 with SMTP id 6so3652227iwn.19
+        for <linux-media@vger.kernel.org>; Sun, 26 Jun 2011 14:59:58 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+In-Reply-To: <201106182153.55096.hverkuil@xs4all.nl>
+References: <BANLkTikb1Row7_+-e30udc9e5KBjuwcaJg@mail.gmail.com> <201106182153.55096.hverkuil@xs4all.nl>
+From: Christian Gmeiner <christian.gmeiner@gmail.com>
+Date: Sun, 26 Jun 2011 21:59:36 +0000
+Message-ID: <BANLkTi=BGKnG5b86SJn8z82Xb0aKAgFkJw@mail.gmail.com>
+Subject: Re: V4L2_PIX_FMT_MPEG and S_FMT
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-media@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8BIT
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Hi Javier,
-
-On 01/06/11 01:34, Koen Kooi wrote:
-> root@beagleboardxMC:~# yavta -f SGRBG8 -s 320x240 -n 4 --capture=10 --skip 3 -F `media-ctl -e "OMAP3 ISP CCDC output"`
-> Device /dev/video2 opened.
-> Device `OMAP3 ISP CCDC output' on `media' is a video capture device.
-> Video format set: SGRBG8 (47425247) 320x240 buffer size 76800
-> Video format: SGRBG8 (47425247) 320x240 buffer size 76800
-> 4 buffers requested.
-> length: 76800 offset: 0
-> Buffer 0 mapped at address 0x402cf000.
-> length: 76800 offset: 77824
-> Buffer 1 mapped at address 0x402fe000.
-> length: 76800 offset: 155648
-> Buffer 2 mapped at address 0x40362000.
-> length: 76800 offset: 233472
-> Buffer 3 mapped at address 0x40416000.
-> 0 (0) [-] 4294967295 76800 bytes 167.403289 1306829219.931121 0.002 fps
-> 1 (1) [-] 4294967295 76800 bytes 167.633148 1306829220.160980 4.350 fps
-> 2 (2) [-] 4294967295 76800 bytes 167.744506 1306829220.272308 8.980 fps
-> 3 (3) [-] 4294967295 76800 bytes 167.855865 1306829220.383667 8.980 fps
-> 4 (0) [-] 4294967295 76800 bytes 167.967193 1306829220.495025 8.982 fps
-> 5 (1) [-] 4294967295 76800 bytes 168.078552 1306829220.606384 8.980 fps
-> 6 (2) [-] 4294967295 76800 bytes 168.189910 1306829220.717742 8.980 fps
-> 7 (3) [-] 4294967295 76800 bytes 168.301269 1306829220.829071 8.980 fps
-> 8 (0) [-] 4294967295 76800 bytes 168.412597 1306829220.940429 8.982 fps
-> 9 (1) [-] 4294967295 76800 bytes 168.523956 1306829221.051788 8.980 fps
-> Captured 10 frames in 1.254212 seconds (7.973134 fps, 612336.670356 B/s).
-> 4 buffers released.
+> On Saturday, June 18, 2011 21:11:37 Christian Gmeiner wrote:
+>> Hi all,
+>>
+>> I am still in the process of porting a driver to v4l2 framework. This
+>> device is capable of decoding MPEG-1 and MPEG-2 streams.
 >
-> So that seems to be working! I haven't checked the frames yet, but is isn't throwing ISP errors anymore.
+> Are we talking about decoding multiplexed streams or elementary streams?
+> E.g., audio+video or just the elementary video stream?
+>
 
-Unfortunately still not working for me.
-My board is not the BeagleBoard XM but is similar. It is an omap3530 board and power to the camera (VDD and VDD_IO) is controlled by GPIO 57 and 58.
+We are talking about elementary video stream only.
 
-Here is my code for the board-omap3beagle-camera.c file.
-Instead of triggering the regulators I set them up in the board file and then turn them on - This approach worked fine in v1 of your patch, but has not worked on any version since - Is there anything you can see as an issue?:
+> For decoding elementary streams pixelformats are being defined in an
+> RFC by Kamil Debski:
+>
+> http://comments.gmane.org/gmane.linux.drivers.video-input-infrastructure/34229
+>
 
-#include <linux/gpio.h>
-//#include <linux/regulator/machine.h>
+That would fix the problem I have - fine.
 
-#include <plat/i2c.h>
+> For multiplexed streams ivtv just uses V4L2_PIX_FMT_MPEG which can be used
+> for any MPEG program or transport stream. There is currently no method of
+> communicating to userspace which audio/video formats inside that PS/TS stream
+> are supported.
+>
+> The problem is that that information is hidden inside the stream. If your
+> hardware does multiplexed stream decoding, then what happens when you give
+> it an mpeg stream with unsupported codecs? Does the hardware give an error?
+>
+> Regards,
+>
+>        Hans
+>
+>> See http://dxr3.sourceforge.net/about.html for more details.
+>> So I have programmed this:
+>>
+>> static int vidioc_enum_fmt_vid_out(struct file *file, void *fh,
+>>                               struct v4l2_fmtdesc *fmt)
+>> {
+>>       if (fmt->index > 0)
+>>               return -EINVAL;
+>>
+>>       fmt->flags = V4L2_FMT_FLAG_COMPRESSED;
+>>       fmt->pixelformat = V4L2_PIX_FMT_MPEG;
+>>       strlcpy(fmt->description, "MPEG 1/2", sizeof(fmt->description));
+>>
+>>       return 0;
+>> }
+>>
+>> There is nothing in struct v4l2_format which indicates MPEG1, MPEG2 or
+>> MPEG4. As a result
+>> of this, it is not possible to return -EINVAL if somebody wants to
+>> decode/playback MPEG4 content.
+>>
+>> Any ideas how to achieve it?
+>>
+>> Thanks
+>> --
+>> Christian Gmeiner, MSc
+>> --
+>> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+>> the body of a message to majordomo@vger.kernel.org
+>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>>
+>>
+>
 
-#include <media/mt9p031.h>
-
-#include "devices.h"
-#include "../../../drivers/media/video/omap3isp/isp.h"
-
-#define MT9P031_RESET_GPIO	98
-#define MT9P031_XCLK		ISP_XCLK_A
-
-//static struct regulator *reg_1v8, *reg_2v8;
-
-static int beagle_cam_set_xclk(struct v4l2_subdev *subdev, int hz)
-{
-	struct isp_device *isp = v4l2_dev_to_isp_device(subdev->v4l2_dev);
-	int ret;
-
-	ret = isp->platform_cb.set_xclk(isp, hz, MT9P031_XCLK);
-	return 0;
-}
-
-static int beagle_cam_reset(struct v4l2_subdev *subdev, int active)
-{
-	/* Set RESET_BAR to !active */
-	gpio_set_value(MT9P031_RESET_GPIO, !active);
-
-	return 0;
-}
-
-static struct mt9p031_platform_data beagle_mt9p031_platform_data = {
-	.set_xclk               = beagle_cam_set_xclk,
-	.reset                  = beagle_cam_reset,
-};
-
-static struct i2c_board_info mt9p031_camera_i2c_device = {
-	I2C_BOARD_INFO("mt9p031", 0x48),
-	.platform_data = &beagle_mt9p031_platform_data,
-};
-
-static struct isp_subdev_i2c_board_info mt9p031_camera_subdevs[] = {
-	{
-		.board_info = &mt9p031_camera_i2c_device,
-		.i2c_adapter_id = 2,
-	},
-	{ NULL, 0, },
-};
-
-static struct isp_v4l2_subdevs_group beagle_camera_subdevs[] = {
-	{
-		.subdevs = mt9p031_camera_subdevs,
-		.interface = ISP_INTERFACE_PARALLEL,
-		.bus = {
-				.parallel = {
-					.data_lane_shift = 0,
-					.clk_pol = 1,
-					.bridge = ISPCTRL_PAR_BRIDGE_DISABLE,
-				}
-		},
-	},
-	{ },
-};
-
-static struct isp_platform_data beagle_isp_platform_data = {
-	.subdevs = beagle_camera_subdevs,
-};
-
-static int __init beagle_camera_init(void)
-{
-/* New code START */
-	gpio_set_value(58, 0);
- 	printk(KERN_INFO "Power on 58 1v8 init..\n");	
-
-	gpio_set_value(57, 0);
-	printk(KERN_INFO "Power on 57 2v8 init..\n");
-/* New code END */ 
-
-/* ORIG CODE
-{
-	reg_1v8 = regulator_get(NULL, "cam_1v8");
-	if (IS_ERR(reg_1v8))
-		pr_err("%s: cannot get cam_1v8 regulator\n", __func__);
-	else
-		regulator_enable(reg_1v8);
-
-	reg_2v8 = regulator_get(NULL, "cam_2v8");
-	if (IS_ERR(reg_2v8))
-		pr_err("%s: cannot get cam_2v8 regulator\n", __func__);
-	else
-		regulator_enable(reg_2v8);*/
-
-	omap_register_i2c_bus(2, 100, NULL, 0);
-	gpio_request(MT9P031_RESET_GPIO, "cam_rst");
-	gpio_direction_output(MT9P031_RESET_GPIO, 0);
-	omap3_init_camera(&beagle_isp_platform_data);
-	return 0;
-}
-late_initcall(beagle_camera_init);
-
-
-Regards,
-Chris
+--
+Christian Gmeiner, MSc
