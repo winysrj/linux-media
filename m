@@ -1,43 +1,67 @@
 Return-path: <mchehab@pedra>
-Received: from moutng.kundenserver.de ([212.227.17.8]:64800 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752610Ab1F0QOu (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 27 Jun 2011 12:14:50 -0400
-From: Arnd Bergmann <arnd@arndb.de>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-Subject: Re: [PATCH] [media] v4l2 core: return -ENOIOCTLCMD if an ioctl  doesn't exist
-Date: Mon, 27 Jun 2011 18:14:35 +0200
-Cc: Hans Verkuil <hverkuil@xs4all.nl>,
-	Sakari Ailus <sakari.ailus@iki.fi>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
-	Linus Torvalds <torvalds@linux-foundation.org>
-References: <4E0519B7.3000304@redhat.com> <201106271656.04612.hverkuil@xs4all.nl> <4E08A2E6.6020902@redhat.com>
-In-Reply-To: <4E08A2E6.6020902@redhat.com>
-MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201106271814.36251.arnd@arndb.de>
+Received: from smtp4-g21.free.fr ([212.27.42.4]:34495 "EHLO smtp4-g21.free.fr"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754838Ab1FZWAi (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 26 Jun 2011 18:00:38 -0400
+Subject: Re: Updates to French scan files
+From: Alexis de Lattre <alexis@via.ecp.fr>
+To: mossroy <mossroy@free.fr>
+Cc: linux-media@vger.kernel.org,
+	Christoph Pfister <christophpfister@gmail.com>,
+	n_estre@yahoo.fr, alkahan@free.fr, ben@geexbox.org,
+	xavier@dalaen.com, jean-michel.baudrey@orange.fr,
+	lissyx@dyndns.org, sylvestre.cartier@gmail.com,
+	brossard.damien@gmail.com, johann.ollivierlapeyre@gmail.com,
+	jean-michel-62@orange.fr
+In-Reply-To: <4E079E9F.7050004@free.fr>
+References: <4DFFA7B6.9070906@free.fr>	<4DFFA917.5060509@iki.fi>
+	 <4E017D7D.4050307@free.fr>
+	 <BANLkTimQymz5K6YhhUgPeWjMFkkVoU6j4A@mail.gmail.com>
+	 <4E079E9F.7050004@free.fr>
+Content-Type: text/plain; charset="UTF-8"
+Date: Mon, 27 Jun 2011 00:00:22 +0200
+Message-ID: <1309125622.5421.15.camel@wide>
+Mime-Version: 1.0
+Content-Transfer-Encoding: 8bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Monday 27 June 2011, Mauro Carvalho Chehab wrote:
-> > The point is that the spec can easily be improved to make such 'NOP' operations
-> > explicit, or to require that if a capability is present, then the corresponding
-> > ioctl(s) must also be present. Things like that are easy to verify as well with
-> > v4l2-compliance.
-> 
-> We currently have more than 64 ioctl's. Adding a capability bit for each doesn't
-> seem the right thing to do. Ok, some could be grouped, but, even so, there are
-> drivers that implement the VIDIOC_G, but doesn't implement the corresponding VIDIO_S.
-> So, I think we don't have enough available bits for doing that.
+Dear LinuxTV friends,
 
-It shouldn't be too hard to do an ioctl command that returns a le_bitmask with the
-ioctl command number as an index (0 to 91, currently), and the bit set for each
-command that has the corresponding v4l2_ioctl_ops member filled for the device.
-That would be an obvious way to query the operations, but I don't know if it's
-useful.
+Le dimanche 26 juin 2011 à 23:03 +0200, mossroy a écrit :
+> I would suggest to :
+> - delete the 19 remaining fr-* files
+> - make the French users use the auto-With167kHzOffsets file (should we 
+> create a fr-All file, that would be a link to auto-With167kHzOffsets ?)
+> - create a file with a more complete list of frequencies, that would 
+> also include the +333 and +500 offsets, in case they were used. We might 
+> call it auto-WithUnusualOffsets for example
+> I might provide a patch for that, of course.
 
-	Arnd
+I fully support your suggestion. I think that the
+one-scan-file-per-transmitter is a non-sense (unfortunately, I
+participated to this non-sense... but I was just doing "as everybody
+else"). We should have one freq file per country, even if it takes more
+time to scan... but as scanning is done only once, it is not a problem.
+I think that we should have switched to the "one-scan-file-per-country"
+a long time ago, because it would have simplified the job of Linux users
+of lot !
+
+I am aware that, for France :
+Freq in Mhz = 306 + (8 x N) + (0,166 x D)
+
+N = UHF channel number, between 21 et 69
+D can be -1 , 0 , 1 , 2 or 3 = small freq offset
+
+In order to simplify things, I would propose only ONE scan file with
+offset -166, 0, 166, 333 and 500. OK, it will take more time for users
+to run a scan (+66 %) compared to having a file with only offsets -166,
+0, 166 but at least we are sure to cover all the possible offset that
+can be used in France, and we simplify things as much as we can for
+users.
+
+Regards,
+
+-- 
+Alexis de Lattre
+
