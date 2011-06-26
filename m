@@ -1,92 +1,114 @@
 Return-path: <mchehab@pedra>
-Received: from smtp-vbr13.xs4all.nl ([194.109.24.33]:1816 "EHLO
-	smtp-vbr13.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753724Ab1FXN6P (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 24 Jun 2011 09:58:15 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Devin Heitmueller <dheitmueller@kernellabs.com>
-Subject: Re: [RFC] Don't use linux/version.h anymore to indicate a per-driver version - Was: Re: [PATCH 03/37] Remove unneeded version.h includes from include/
-Date: Fri, 24 Jun 2011 15:54:10 +0200
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Jesper Juhl <jj@chaosbits.net>,
-	LKML <linux-kernel@vger.kernel.org>, trivial@kernel.org,
-	linux-media@vger.kernel.org, ceph-devel@vger.kernel.org,
-	Sage Weil <sage@newdream.net>
-References: <alpine.LNX.2.00.1106232344480.17688@swampdragon.chaosbits.net> <4E04912A.4090305@infradead.org> <BANLkTim9cBiiK_GsZaspxpPJQDBvAcKCWg@mail.gmail.com>
-In-Reply-To: <BANLkTim9cBiiK_GsZaspxpPJQDBvAcKCWg@mail.gmail.com>
-MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
+Received: from mx1.redhat.com ([209.132.183.28]:24359 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754154Ab1FZQHc (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 26 Jun 2011 12:07:32 -0400
+Date: Sun, 26 Jun 2011 13:06:11 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	LKML <linux-kernel@vger.kernel.org>
+Subject: [PATCH 07/14] [media] ivtv,cx18: Use default version control for
+ VIDIOC_QUERYCAP
+Message-ID: <20110626130611.219bb01d@pedra>
+In-Reply-To: <cover.1309103285.git.mchehab@redhat.com>
+References: <cover.1309103285.git.mchehab@redhat.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
-Message-Id: <201106241554.10751.hverkuil@xs4all.nl>
+To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Friday, June 24, 2011 15:45:59 Devin Heitmueller wrote:
-> On Fri, Jun 24, 2011 at 9:29 AM, Mauro Carvalho Chehab
-> <mchehab@infradead.org> wrote:
-> >> MythTV has a bunch of these too (mainly so the code can adapt to
-> >> driver bugs that are fixed in later revisions).  Putting Mauro's patch
-> >> upstream will definitely cause breakage.
-> >
-> > It shouldn't, as ivtv driver version is lower than 3.0.0. All the old bug fixes
-> > aren't needed if version is >= 3.0.0.
-> >
-> > Besides that, trusting on a driver revision number to detect that a bug is
-> > there is not the right thing to do, as version numbers are never increased at
-> > the stable kernels (nor distro modified kernels take care of increasing revision
-> > number as patches are backported there).
-> 
-> The versions are increased at the discretion of the driver maintainer,
-> usually when there is some userland visible change in driver behavior.
->  I assure you the application developers don't *want* to rely on such
-> a mechanism, but there have definitely been cases in the past where
-> there was no easy way to detect the behavior of the driver from
-> userland.
-> 
-> It lets application developers work around things like violations of
-> the V4L2 standard which get fixed in newer revisions of the driver.
-> It provides them the ability to put a hack in their code that says "if
-> (version < X) then this driver feature is broken and I shouldn't use
-> it."
+After discussing with Andy Walls on irc, we've agreeded that this
+is the best thing to do. No regressions will be introduced, as 3.x.y
+is greater then the current versions for cx18 and ivtv.
 
-Indeed. Ideally we shouldn't need it. But reality is different.
+Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
 
-What we have right now works and I see no compelling reason to change the
-behavior.
+diff --git a/drivers/media/video/cx18/cx18-driver.h b/drivers/media/video/cx18/cx18-driver.h
+index 0864272..1834207 100644
+--- a/drivers/media/video/cx18/cx18-driver.h
++++ b/drivers/media/video/cx18/cx18-driver.h
+@@ -25,7 +25,6 @@
+ #ifndef CX18_DRIVER_H
+ #define CX18_DRIVER_H
+ 
+-#include <linux/version.h>
+ #include <linux/module.h>
+ #include <linux/moduleparam.h>
+ #include <linux/init.h>
+diff --git a/drivers/media/video/cx18/cx18-ioctl.c b/drivers/media/video/cx18/cx18-ioctl.c
+index 1933d4d..6ec61c9 100644
+--- a/drivers/media/video/cx18/cx18-ioctl.c
++++ b/drivers/media/video/cx18/cx18-ioctl.c
+@@ -469,7 +469,6 @@ static int cx18_querycap(struct file *file, void *fh,
+ 	strlcpy(vcap->card, cx->card_name, sizeof(vcap->card));
+ 	snprintf(vcap->bus_info, sizeof(vcap->bus_info),
+ 		 "PCI:%s", pci_name(cx->pci_dev));
+-	vcap->version = CX18_DRIVER_VERSION; 	    /* version */
+ 	vcap->capabilities = cx->v4l2_cap; 	    /* capabilities */
+ 	return 0;
+ }
+diff --git a/drivers/media/video/cx18/cx18-version.h b/drivers/media/video/cx18/cx18-version.h
+index cd189b6..fed48b6 100644
+--- a/drivers/media/video/cx18/cx18-version.h
++++ b/drivers/media/video/cx18/cx18-version.h
+@@ -23,12 +23,6 @@
+ #define CX18_VERSION_H
+ 
+ #define CX18_DRIVER_NAME "cx18"
+-#define CX18_DRIVER_VERSION_MAJOR 1
+-#define CX18_DRIVER_VERSION_MINOR 5
+-#define CX18_DRIVER_VERSION_PATCHLEVEL 0
+-
+-#define CX18_VERSION __stringify(CX18_DRIVER_VERSION_MAJOR) "." __stringify(CX18_DRIVER_VERSION_MINOR) "." __stringify(CX18_DRIVER_VERSION_PATCHLEVEL)
+-#define CX18_DRIVER_VERSION KERNEL_VERSION(CX18_DRIVER_VERSION_MAJOR, \
+-	CX18_DRIVER_VERSION_MINOR, CX18_DRIVER_VERSION_PATCHLEVEL)
++#define CX18_VERSION "1.5.1"
+ 
+ #endif
+diff --git a/drivers/media/video/ivtv/ivtv-driver.h b/drivers/media/video/ivtv/ivtv-driver.h
+index 84bdf0f..8f9cc17 100644
+--- a/drivers/media/video/ivtv/ivtv-driver.h
++++ b/drivers/media/video/ivtv/ivtv-driver.h
+@@ -36,7 +36,6 @@
+  *                using information provided by Jiun-Kuei Jung @ AVerMedia.
+  */
+ 
+-#include <linux/version.h>
+ #include <linux/module.h>
+ #include <linux/init.h>
+ #include <linux/delay.h>
+diff --git a/drivers/media/video/ivtv/ivtv-ioctl.c b/drivers/media/video/ivtv/ivtv-ioctl.c
+index f9e347d..ac210ac 100644
+--- a/drivers/media/video/ivtv/ivtv-ioctl.c
++++ b/drivers/media/video/ivtv/ivtv-ioctl.c
+@@ -757,7 +757,6 @@ static int ivtv_querycap(struct file *file, void *fh, struct v4l2_capability *vc
+ 	strlcpy(vcap->driver, IVTV_DRIVER_NAME, sizeof(vcap->driver));
+ 	strlcpy(vcap->card, itv->card_name, sizeof(vcap->card));
+ 	snprintf(vcap->bus_info, sizeof(vcap->bus_info), "PCI:%s", pci_name(itv->pdev));
+-	vcap->version = IVTV_DRIVER_VERSION; 	    /* version */
+ 	vcap->capabilities = itv->v4l2_cap; 	    /* capabilities */
+ 	return 0;
+ }
+diff --git a/drivers/media/video/ivtv/ivtv-version.h b/drivers/media/video/ivtv/ivtv-version.h
+index b67a404..a20f346 100644
+--- a/drivers/media/video/ivtv/ivtv-version.h
++++ b/drivers/media/video/ivtv/ivtv-version.h
+@@ -21,11 +21,6 @@
+ #define IVTV_VERSION_H
+ 
+ #define IVTV_DRIVER_NAME "ivtv"
+-#define IVTV_DRIVER_VERSION_MAJOR 1
+-#define IVTV_DRIVER_VERSION_MINOR 4
+-#define IVTV_DRIVER_VERSION_PATCHLEVEL 2
+-
+-#define IVTV_VERSION __stringify(IVTV_DRIVER_VERSION_MAJOR) "." __stringify(IVTV_DRIVER_VERSION_MINOR) "." __stringify(IVTV_DRIVER_VERSION_PATCHLEVEL)
+-#define IVTV_DRIVER_VERSION KERNEL_VERSION(IVTV_DRIVER_VERSION_MAJOR,IVTV_DRIVER_VERSION_MINOR,IVTV_DRIVER_VERSION_PATCHLEVEL)
++#define IVTV_VERSION "1.4.3"
+ 
+ #endif
+-- 
+1.7.1
 
-Regards,
 
-	Hans
-
-> > In other words, relying on it doesn't work fine.
-> 
-> It's the best (and really only solution) we have today.
-> 
-> >> Also, it screws up the ability for users to get fixes through the
-> >> media_build tree (unless you are increasing the revision constantly
-> >> with every merge you do).
-> >
-> > Why? Developers don't increase version numbers on every applied patch
-> > (with is great, as it avoids merge conflicts).
-> 
-> The driver maintainer doesn't *have* to increase the version - he does
-> it when he thinks it's appropriate.  The point is you are taking that
-> discretion out of *their* hands, and you yourself are unaware of when
-> it is actually needed.
-> 
-> You need to stop looking at this from a purist standpoint and think of
-> how application developers actually use the API.  They need tools like
-> this to allow them to work around driver bugs while having a source
-> codebase which operates against different kernels (including kernels
-> that may still have those bugs).
-> 
-> Sure, in a perfect world where drivers don't have bugs and
-> applications don't have to run against older kernels, what you are
-> saying is not illogical.  But then again, we don't live in a perfect
-> world.
-> 
-> Devin
-> 
-> 
