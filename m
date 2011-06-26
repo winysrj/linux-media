@@ -1,38 +1,130 @@
 Return-path: <mchehab@pedra>
-Received: from mail-ww0-f44.google.com ([74.125.82.44]:56817 "EHLO
-	mail-ww0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751834Ab1FGJWc (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 7 Jun 2011 05:22:32 -0400
+Received: from mx1.redhat.com ([209.132.183.28]:46352 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754044Ab1FZRbR (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 26 Jun 2011 13:31:17 -0400
+Message-ID: <4E076CC6.2070408@redhat.com>
+Date: Sun, 26 Jun 2011 14:30:46 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
 MIME-Version: 1.0
-In-Reply-To: <20110607075221.GB4407@amd.com>
-References: <1307053663-24572-1-git-send-email-ohad@wizery.com>
- <20110606100950.GC30762@amd.com> <BANLkTi=i2s-Ujiy4qn_XQv+9dMjUC9R66A@mail.gmail.com>
- <20110606153557.GE1953@amd.com> <BANLkTinwwVO4TmsxuTfSBf6jqYrEVV3b_A@mail.gmail.com>
- <20110606192030.GA4356@amd.com> <BANLkTinx21-E3DRe9D7LRB8e1aeOwv=-9A@mail.gmail.com>
- <20110607075221.GB4407@amd.com>
-From: Ohad Ben-Cohen <ohad@wizery.com>
-Date: Tue, 7 Jun 2011 12:22:11 +0300
-Message-ID: <BANLkTimR3KofKA3LSKXdX8k1FGR0XUxu=Q@mail.gmail.com>
-Subject: Re: [RFC 0/6] iommu: generic api migration and grouping
-To: "Roedel, Joerg" <Joerg.Roedel@amd.com>
-Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	"linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>,
-	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
-	"linux-arm-kernel@lists.infradead.org"
-	<linux-arm-kernel@lists.infradead.org>,
-	"laurent.pinchart@ideasonboard.com"
-	<laurent.pinchart@ideasonboard.com>,
-	"Hiroshi.DOYU@nokia.com" <Hiroshi.DOYU@nokia.com>,
-	"arnd@arndb.de" <arnd@arndb.de>,
-	"davidb@codeaurora.org" <davidb@codeaurora.org>,
-	Omar Ramirez Luna <omar.ramirez@ti.com>
+To: Arnd Bergmann <arnd@arndb.de>
+CC: Sakari Ailus <sakari.ailus@iki.fi>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+	Linus Torvalds <torvalds@linux-foundation.org>
+Subject: Re: [PATCH] [media] v4l2 core: return -ENOIOCTLCMD if an ioctl doesn't
+ exist
+References: <4E0519B7.3000304@redhat.com> <4E0752E0.5030901@iki.fi> <4E075C45.3010200@redhat.com> <201106261913.05752.arnd@arndb.de>
+In-Reply-To: <201106261913.05752.arnd@arndb.de>
 Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Tue, Jun 7, 2011 at 10:52 AM, Roedel, Joerg <Joerg.Roedel@amd.com> wrote:
-> Yup. Btw, is there any IOMMU hardware which supports non-natural
-> alignment? In this case we need to expose these requirements somehow.
+Em 26-06-2011 14:13, Arnd Bergmann escreveu:
+> On Sunday 26 June 2011 18:20:21 Mauro Carvalho Chehab wrote:
+> 
+>>> The V4L2 core probably should return -ENOIOCTLCMD when an IOCTL isn't implemented, but as long as vfs_ioctl() would stay as it is, the user space would still get -EINVAL. Or is vfs_ioctl() about to change?
+>>>
+>>> fs/ioctl.c:
+>>> ----8<-----------
+>>> static long vfs_ioctl(struct file *filp, unsigned int cmd,
+>>>                       unsigned long arg)
+>>> {
+>>>         int error = -ENOTTY;
+>>>
+>>>         if (!filp->f_op || !filp->f_op->unlocked_ioctl)
+>>>                 goto out;
+>>>
+>>>         error = filp->f_op->unlocked_ioctl(filp, cmd, arg);
+>>>         if (error == -ENOIOCTLCMD)
+>>>                 error = -EINVAL;
+>>>  out:
+>>>         return error;
+>>> }
+>>> ----8<-----------
+> 
+> One of the differences between the old ->ioctl() and the ->unlocked_ioctl()
+> function is that unlocked_ioctl could point to the same function as
+> ->compat_ioctl(), so we have to catch functions returning -ENOIOCTLCMD.
+> 
+>> Good catch!
+>>
+>> At the recent git history, the return for -ENOIOCTLCMD were modified
+>> by this changeset:
+>>
+>> commit b19dd42faf413b4705d4adb38521e82d73fa4249
+>> Author: Arnd Bergmann <arnd@arndb.de>
+>> Date:   Sun Jul 4 00:15:10 2010 +0200
+>>
+>>     bkl: Remove locked .ioctl file operation
+>> ...
+>> @@ -39,21 +38,12 @@ static long vfs_ioctl(struct file *filp, unsigned int cmd,
+>>  {
+>>         int error = -ENOTTY;
+>>  
+>> -   if (!filp->f_op)
+>> + if (!filp->f_op || !filp->f_op->unlocked_ioctl)
+>>                 goto out;
+>>  
+>> -   if (filp->f_op->unlocked_ioctl) {
+>> -           error = filp->f_op->unlocked_ioctl(filp, cmd, arg);
+>> -           if (error == -ENOIOCTLCMD)
+>> -                   error = -EINVAL;
+>> -           goto out;
+>> -   } else if (filp->f_op->ioctl) {
+>> -           lock_kernel();
+>> -           error = filp->f_op->ioctl(filp->f_path.dentry->d_inode,
+>> -                                     filp, cmd, arg);
+>> -           unlock_kernel();
+>> ...
+>>
+>> Before Arnd's patch, locked ioctl's were returning -ENOIOCTLCMD, and
+>> unlocked ones were returning -EINVAL. Now, the return of -ENOIOCTLCMD
+>> doesn't go to userspace anymore. IMO, that's wrong and can cause
+>> regressions, as some subsystems like DVB were returning -ENOIOCTLCMD
+>> to userspace.
+> 
+> ENOIOCTLCMD should never be returned to user space, see the comment
+> in include/linux/errno.h:
+> 
+> /*
+>  * These should never be seen by user programs.  To return one of ERESTART*
+>  * codes, signal_pending() MUST be set.  Note that ptrace can observe these
+>  * at syscall exit tracing, but they will never be left for the debugged user
+>  * process to see.
+>  */
+> 
 
-Not sure there are. Let's start with natural alignment, and extend it
-only if someone with additional requirements shows up.
+Ah, ok.
+
+> There was a lot of debate whether undefined ioctls on non-ttys should
+> return -EINVAL or -ENOTTY, including mass-conversions from -ENOTTY to
+> -EINVAL at some point in the pre-git era, IIRC.
+> 
+> Inside of v4l2, I believe this is handled by video_usercopy(), which
+> turns the driver's -ENOIOCTLCMD into -ENOTTY. What cases do you observe
+> where this is not done correctly and we do return ENOIOCTLCMD to
+> vfs_ioctl?
+
+Well, currently, it is returning -EINVAL maybe due to the mass-conversions
+you've mentioned.
+
+The point is that -EINVAL has too many meanings at V4L. It currently can be
+either that an ioctl is not supported, or that one of the parameters had
+an invalid parameter. If the userspace can't distinguish between an unimplemented
+ioctl and an invalid parameter, it can't decide if it needs to fall back to
+some different methods of handling a V4L device.
+
+Maybe the answer would be to return -ENOTTY when an ioctl is not implemented.
+
+>> Linus,
+>>
+>> what would be the expected behaviour?
+> 
+> Note that 1da177e is the initial commit to git, Linus did not write that
+> code, although he might have an opinion.
+
+Yes, I know. I'm expecting his comments on it.
+
+Mauro.
