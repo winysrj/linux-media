@@ -1,260 +1,626 @@
 Return-path: <mchehab@pedra>
-Received: from mail.juropnet.hu ([212.24.188.131]:50949 "EHLO mail.juropnet.hu"
+Received: from mx1.redhat.com ([209.132.183.28]:11418 "EHLO mx1.redhat.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751456Ab1FCPXk (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 3 Jun 2011 11:23:40 -0400
-Received: from [94.248.227.103]
-	by mail.juropnet.hu with esmtps (TLS1.0:DHE_RSA_AES_256_CBC_SHA1:32)
-	(Exim 4.69)
-	(envelope-from <istvan_v@mailbox.hu>)
-	id 1QSWDl-0002zq-Qq
-	for linux-media@vger.kernel.org; Fri, 03 Jun 2011 17:23:39 +0200
-Message-ID: <4DE8FC75.8060008@mailbox.hu>
-Date: Fri, 03 Jun 2011 17:23:33 +0200
-From: "istvan_v@mailbox.hu" <istvan_v@mailbox.hu>
-MIME-Version: 1.0
-To: linux-media@vger.kernel.org
-Subject: XC4000: added mutex
-References: <4D764337.6050109@email.cz>	<20110531124843.377a2a80@glory.local>	<BANLkTi=Lq+FF++yGhRmOa4NCigSt6ZurHg@mail.gmail.com>	<20110531174323.0f0c45c0@glory.local> <BANLkTimEEGsMP6PDXf5W5p9wW7wdWEEOiA@mail.gmail.com>
-In-Reply-To: <BANLkTimEEGsMP6PDXf5W5p9wW7wdWEEOiA@mail.gmail.com>
-Content-Type: multipart/mixed;
- boundary="------------080805080604030202000902"
+	id S1754186Ab1FZQHf (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 26 Jun 2011 12:07:35 -0400
+Date: Sun, 26 Jun 2011 13:06:12 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	LKML <linux-kernel@vger.kernel.org>
+Subject: [PATCH 12/14] [media] Stop using linux/version.h the remaining
+ video drivers
+Message-ID: <20110626130612.696b3187@pedra>
+In-Reply-To: <cover.1309103285.git.mchehab@redhat.com>
+References: <cover.1309103285.git.mchehab@redhat.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
+To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-This is a multi-part message in MIME format.
---------------080805080604030202000902
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Standardize the remaining video drivers to return the API version
+for the VIDIOC_QUERYCAP version, instead of a per-driver version.
 
-This patch adds a mutex to xc4000_priv, to protect the driver
-from being accessed by multiple processes at the same time.
+Those drivers had the version updated more recently or are SoC
+drivers. Even so, it doesn't sound a good idea to keep a per-driver
+version control, so, let's use the per-subsystem version control
+instead.
 
-Signed-off-by: Istvan Varga <istvan_v@mailbox.hu>
+Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
 
-
---------------080805080604030202000902
-Content-Type: text/x-patch;
- name="xc4000_mutex.patch"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: attachment;
- filename="xc4000_mutex.patch"
-
-diff -uNr xc4000_orig/drivers/media/common/tuners/xc4000.c xc4000/drivers/media/common/tuners/xc4000.c
---- xc4000_orig/drivers/media/common/tuners/xc4000.c	2011-06-03 16:35:23.000000000 +0200
-+++ xc4000/drivers/media/common/tuners/xc4000.c	2011-06-03 17:02:59.000000000 +0200
-@@ -28,6 +28,7 @@
- #include <linux/delay.h>
- #include <linux/dvb/frontend.h>
+diff --git a/drivers/media/video/davinci/vpif_capture.c b/drivers/media/video/davinci/vpif_capture.c
+index d93ad74..49e4deb 100644
+--- a/drivers/media/video/davinci/vpif_capture.c
++++ b/drivers/media/video/davinci/vpif_capture.c
+@@ -33,7 +33,6 @@
  #include <linux/i2c.h>
-+#include <linux/mutex.h>
- #include <asm/unaligned.h>
+ #include <linux/platform_device.h>
+ #include <linux/io.h>
+-#include <linux/version.h>
+ #include <linux/slab.h>
+ #include <media/v4l2-device.h>
+ #include <media/v4l2-ioctl.h>
+@@ -44,6 +43,7 @@
  
- #include "dvb_frontend.h"
-@@ -91,6 +92,7 @@
- 	struct firmware_properties cur_fw;
- 	__u16	hwmodel;
- 	__u16	hwvers;
-+	struct mutex	lock;
- };
+ MODULE_DESCRIPTION("TI DaVinci VPIF Capture driver");
+ MODULE_LICENSE("GPL");
++MODULE_VERSION(VPIF_CAPTURE_VERSION);
  
- /* Misc Defines */
-@@ -1144,10 +1146,12 @@
+ #define vpif_err(fmt, arg...)	v4l2_err(&vpif_obj.v4l2_dev, fmt, ## arg)
+ #define vpif_dbg(level, debug, fmt, arg...)	\
+@@ -1677,7 +1677,6 @@ static int vpif_querycap(struct file *file, void  *priv,
  {
- 	struct xc4000_priv *priv = fe->tuner_priv;
- 	unsigned int type;
--	int	ret;
-+	int	ret = -EREMOTEIO;
+ 	struct vpif_capture_config *config = vpif_dev->platform_data;
  
- 	dprintk(1, "%s() frequency=%d (Hz)\n", __func__, params->frequency);
- 
-+	mutex_lock(&priv->lock);
-+
- 	if (fe->ops.info.type == FE_ATSC) {
- 		dprintk(1, "%s() ATSC\n", __func__);
- 		switch (params->u.vsb.modulation) {
-@@ -1171,7 +1175,8 @@
- 			type = DTV6;
- 			break;
- 		default:
--			return -EINVAL;
-+			ret = -EINVAL;
-+			goto fail;
- 		}
- 	} else if (fe->ops.info.type == FE_OFDM) {
- 		dprintk(1, "%s() OFDM\n", __func__);
-@@ -1207,28 +1212,29 @@
- 			break;
- 		default:
- 			printk(KERN_ERR "xc4000 bandwidth not set!\n");
--			return -EINVAL;
-+			ret = -EINVAL;
-+			goto fail;
- 		}
- 		priv->rf_mode = XC_RF_MODE_AIR;
- 	} else {
- 		printk(KERN_ERR "xc4000 modulation type not supported!\n");
--		return -EINVAL;
-+		ret = -EINVAL;
-+		goto fail;
+-	cap->version = VPIF_CAPTURE_VERSION_CODE;
+ 	cap->capabilities = V4L2_CAP_VIDEO_CAPTURE | V4L2_CAP_STREAMING;
+ 	strlcpy(cap->driver, "vpif capture", sizeof(cap->driver));
+ 	strlcpy(cap->bus_info, "DM646x Platform", sizeof(cap->bus_info));
+@@ -2211,10 +2210,8 @@ static __init int vpif_probe(struct platform_device *pdev)
+ 		vfd->v4l2_dev = &vpif_obj.v4l2_dev;
+ 		vfd->release = video_device_release;
+ 		snprintf(vfd->name, sizeof(vfd->name),
+-			 "DM646x_VPIFCapture_DRIVER_V%d.%d.%d",
+-			 (VPIF_CAPTURE_VERSION_CODE >> 16) & 0xff,
+-			 (VPIF_CAPTURE_VERSION_CODE >> 8) & 0xff,
+-			 (VPIF_CAPTURE_VERSION_CODE) & 0xff);
++			 "DM646x_VPIFCapture_DRIVER_V%s",
++			 VPIF_CAPTURE_VERSION);
+ 		/* Set video_dev to the video device */
+ 		ch->video_dev = vfd;
  	}
+diff --git a/drivers/media/video/davinci/vpif_capture.h b/drivers/media/video/davinci/vpif_capture.h
+index 7a4196d..064550f 100644
+--- a/drivers/media/video/davinci/vpif_capture.h
++++ b/drivers/media/video/davinci/vpif_capture.h
+@@ -23,7 +23,6 @@
  
- 	dprintk(1, "%s() frequency=%d (compensated)\n",
- 		__func__, priv->freq_hz);
+ /* Header files */
+ #include <linux/videodev2.h>
+-#include <linux/version.h>
+ #include <media/v4l2-common.h>
+ #include <media/v4l2-device.h>
+ #include <media/videobuf-core.h>
+@@ -33,11 +32,7 @@
+ #include "vpif.h"
  
- 	/* Make sure the correct firmware type is loaded */
--	if (check_firmware(fe, type, 0, priv->if_khz) != XC_RESULT_SUCCESS) {
--		return -EREMOTEIO;
--	}
-+	if (check_firmware(fe, type, 0, priv->if_khz) != XC_RESULT_SUCCESS)
-+		goto fail;
+ /* Macros */
+-#define VPIF_MAJOR_RELEASE		0
+-#define VPIF_MINOR_RELEASE		0
+-#define VPIF_BUILD			1
+-#define VPIF_CAPTURE_VERSION_CODE	((VPIF_MAJOR_RELEASE << 16) | \
+-	(VPIF_MINOR_RELEASE << 8) | VPIF_BUILD)
++#define VPIF_CAPTURE_VERSION		"0.0.2"
  
- 	ret = xc_SetSignalSource(priv, priv->rf_mode);
- 	if (ret != XC_RESULT_SUCCESS) {
- 		printk(KERN_ERR
--			"xc4000: xc_SetSignalSource(%d) failed\n",
--			priv->rf_mode);
--		return -EREMOTEIO;
-+		       "xc4000: xc_SetSignalSource(%d) failed\n",
-+		       priv->rf_mode);
-+		goto fail;
- 	}
+ #define VPIF_VALID_FIELD(field)		(((V4L2_FIELD_ANY == field) || \
+ 	(V4L2_FIELD_NONE == field)) || \
+diff --git a/drivers/media/video/davinci/vpif_display.c b/drivers/media/video/davinci/vpif_display.c
+index cdf659a..286f029 100644
+--- a/drivers/media/video/davinci/vpif_display.c
++++ b/drivers/media/video/davinci/vpif_display.c
+@@ -29,7 +29,6 @@
+ #include <linux/i2c.h>
+ #include <linux/platform_device.h>
+ #include <linux/io.h>
+-#include <linux/version.h>
+ #include <linux/slab.h>
  
- 	ret = xc_SetTVStandard(priv,
-@@ -1236,33 +1242,32 @@
- 		XC4000_Standard[priv->video_standard].AudioMode);
- 	if (ret != XC_RESULT_SUCCESS) {
- 		printk(KERN_ERR "xc4000: xc_SetTVStandard failed\n");
--		return -EREMOTEIO;
--	}
--#ifdef DJH_DEBUG
--	ret = xc_set_IF_frequency(priv, priv->if_khz);
--	if (ret != XC_RESULT_SUCCESS) {
--		printk(KERN_ERR "xc4000: xc_Set_IF_frequency(%d) failed\n",
--		       priv->if_khz);
--		return -EIO;
-+		goto fail;
- 	}
--#endif
- 	xc_tune_channel(priv, priv->freq_hz, XC_TUNE_DIGITAL);
+ #include <asm/irq.h>
+@@ -47,6 +46,7 @@
  
- 	if (debug)
- 		xc_debug_dump(priv);
+ MODULE_DESCRIPTION("TI DaVinci VPIF Display driver");
+ MODULE_LICENSE("GPL");
++MODULE_VERSION(VPIF_DISPLAY_VERSION);
  
--	return 0;
-+	ret = 0;
-+
-+fail:
-+	mutex_unlock(&priv->lock);
-+
-+	return ret;
+ #define DM646X_V4L2_STD (V4L2_STD_525_60 | V4L2_STD_625_50)
+ 
+@@ -701,7 +701,6 @@ static int vpif_querycap(struct file *file, void  *priv,
+ {
+ 	struct vpif_display_config *config = vpif_dev->platform_data;
+ 
+-	cap->version = VPIF_DISPLAY_VERSION_CODE;
+ 	cap->capabilities = V4L2_CAP_VIDEO_OUTPUT | V4L2_CAP_STREAMING;
+ 	strlcpy(cap->driver, "vpif display", sizeof(cap->driver));
+ 	strlcpy(cap->bus_info, "Platform", sizeof(cap->bus_info));
+@@ -1740,10 +1739,8 @@ static __init int vpif_probe(struct platform_device *pdev)
+ 		vfd->v4l2_dev = &vpif_obj.v4l2_dev;
+ 		vfd->release = video_device_release;
+ 		snprintf(vfd->name, sizeof(vfd->name),
+-			 "DM646x_VPIFDisplay_DRIVER_V%d.%d.%d",
+-			 (VPIF_DISPLAY_VERSION_CODE >> 16) & 0xff,
+-			 (VPIF_DISPLAY_VERSION_CODE >> 8) & 0xff,
+-			 (VPIF_DISPLAY_VERSION_CODE) & 0xff);
++			 "DM646x_VPIFDisplay_DRIVER_V%s",
++			 VPIF_DISPLAY_VERSION);
+ 
+ 		/* Set video_dev to the video device */
+ 		ch->video_dev = vfd;
+diff --git a/drivers/media/video/davinci/vpif_display.h b/drivers/media/video/davinci/vpif_display.h
+index b53aaa8..5d1936d 100644
+--- a/drivers/media/video/davinci/vpif_display.h
++++ b/drivers/media/video/davinci/vpif_display.h
+@@ -18,7 +18,6 @@
+ 
+ /* Header files */
+ #include <linux/videodev2.h>
+-#include <linux/version.h>
+ #include <media/v4l2-common.h>
+ #include <media/v4l2-device.h>
+ #include <media/videobuf-core.h>
+@@ -27,12 +26,7 @@
+ #include "vpif.h"
+ 
+ /* Macros */
+-#define VPIF_MAJOR_RELEASE	(0)
+-#define VPIF_MINOR_RELEASE	(0)
+-#define VPIF_BUILD		(1)
+-
+-#define VPIF_DISPLAY_VERSION_CODE \
+-	((VPIF_MAJOR_RELEASE << 16) | (VPIF_MINOR_RELEASE << 8) | VPIF_BUILD)
++#define VPIF_DISPLAY_VERSION	"0.0.2"
+ 
+ #define VPIF_VALID_FIELD(field) \
+ 	(((V4L2_FIELD_ANY == field) || (V4L2_FIELD_NONE == field)) || \
+diff --git a/drivers/media/video/fsl-viu.c b/drivers/media/video/fsl-viu.c
+index 908d701..27cb197 100644
+--- a/drivers/media/video/fsl-viu.c
++++ b/drivers/media/video/fsl-viu.c
+@@ -23,19 +23,13 @@
+ #include <linux/io.h>
+ #include <linux/of_platform.h>
+ #include <linux/slab.h>
+-#include <linux/version.h>
+ #include <media/v4l2-common.h>
+ #include <media/v4l2-device.h>
+ #include <media/v4l2-ioctl.h>
+ #include <media/videobuf-dma-contig.h>
+ 
+ #define DRV_NAME		"fsl_viu"
+-#define VIU_MAJOR_VERSION	0
+-#define VIU_MINOR_VERSION	5
+-#define VIU_RELEASE		0
+-#define VIU_VERSION		KERNEL_VERSION(VIU_MAJOR_VERSION, \
+-					       VIU_MINOR_VERSION, \
+-					       VIU_RELEASE)
++#define VIU_VERSION		"0.5.1"
+ 
+ #define BUFFER_TIMEOUT		msecs_to_jiffies(500)  /* 0.5 seconds */
+ 
+@@ -610,7 +604,6 @@ static int vidioc_querycap(struct file *file, void *priv,
+ {
+ 	strcpy(cap->driver, "viu");
+ 	strcpy(cap->card, "viu");
+-	cap->version = VIU_VERSION;
+ 	cap->capabilities =	V4L2_CAP_VIDEO_CAPTURE |
+ 				V4L2_CAP_STREAMING     |
+ 				V4L2_CAP_VIDEO_OVERLAY |
+@@ -1684,3 +1677,4 @@ module_exit(viu_exit);
+ MODULE_DESCRIPTION("Freescale Video-In(VIU)");
+ MODULE_AUTHOR("Hongjun Chen");
+ MODULE_LICENSE("GPL");
++MODULE_VERSION(VIU_VERSION);
+diff --git a/drivers/media/video/m5mols/m5mols_capture.c b/drivers/media/video/m5mols/m5mols_capture.c
+index d71a390..bf704cb 100644
+--- a/drivers/media/video/m5mols/m5mols_capture.c
++++ b/drivers/media/video/m5mols/m5mols_capture.c
+@@ -18,11 +18,9 @@
+ #include <linux/irq.h>
+ #include <linux/interrupt.h>
+ #include <linux/delay.h>
+-#include <linux/version.h>
+ #include <linux/gpio.h>
+ #include <linux/regulator/consumer.h>
+ #include <linux/videodev2.h>
+-#include <linux/version.h>
+ #include <media/v4l2-ctrls.h>
+ #include <media/v4l2-device.h>
+ #include <media/v4l2-subdev.h>
+diff --git a/drivers/media/video/m5mols/m5mols_core.c b/drivers/media/video/m5mols/m5mols_core.c
+index 76eac26..05d086e 100644
+--- a/drivers/media/video/m5mols/m5mols_core.c
++++ b/drivers/media/video/m5mols/m5mols_core.c
+@@ -18,7 +18,6 @@
+ #include <linux/irq.h>
+ #include <linux/interrupt.h>
+ #include <linux/delay.h>
+-#include <linux/version.h>
+ #include <linux/gpio.h>
+ #include <linux/regulator/consumer.h>
+ #include <linux/videodev2.h>
+diff --git a/drivers/media/video/mx1_camera.c b/drivers/media/video/mx1_camera.c
+index bc0c23a..0c4277a 100644
+--- a/drivers/media/video/mx1_camera.c
++++ b/drivers/media/video/mx1_camera.c
+@@ -31,7 +31,6 @@
+ #include <linux/sched.h>
+ #include <linux/slab.h>
+ #include <linux/time.h>
+-#include <linux/version.h>
+ #include <linux/videodev2.h>
+ 
+ #include <media/soc_camera.h>
+@@ -73,7 +72,7 @@
+ #define CSISR_SOF_INT		(1 << 16)
+ #define CSISR_DRDY		(1 << 0)
+ 
+-#define VERSION_CODE KERNEL_VERSION(0, 0, 1)
++#define DRIVER_VERSION "0.0.2"
+ #define DRIVER_NAME "mx1-camera"
+ 
+ #define CSI_IRQ_MASK	(CSISR_SFF_OR_INT | CSISR_RFF_OR_INT | \
+@@ -680,7 +679,6 @@ static int mx1_camera_querycap(struct soc_camera_host *ici,
+ {
+ 	/* cap->name is set by the friendly caller:-> */
+ 	strlcpy(cap->card, "i.MX1/i.MXL Camera", sizeof(cap->card));
+-	cap->version = VERSION_CODE;
+ 	cap->capabilities = V4L2_CAP_VIDEO_CAPTURE | V4L2_CAP_STREAMING;
+ 
+ 	return 0;
+@@ -887,4 +885,5 @@ module_exit(mx1_camera_exit);
+ MODULE_DESCRIPTION("i.MX1/i.MXL SoC Camera Host driver");
+ MODULE_AUTHOR("Paulius Zaleckas <paulius.zaleckas@teltonika.lt>");
+ MODULE_LICENSE("GPL v2");
++MODULE_VERSION(DRIVER_VERSION);
+ MODULE_ALIAS("platform:" DRIVER_NAME);
+diff --git a/drivers/media/video/mx2_camera.c b/drivers/media/video/mx2_camera.c
+index 4eab1c6..e05e800 100644
+--- a/drivers/media/video/mx2_camera.c
++++ b/drivers/media/video/mx2_camera.c
+@@ -23,7 +23,6 @@
+ #include <linux/mm.h>
+ #include <linux/moduleparam.h>
+ #include <linux/time.h>
+-#include <linux/version.h>
+ #include <linux/device.h>
+ #include <linux/platform_device.h>
+ #include <linux/mutex.h>
+@@ -47,7 +46,7 @@
+ #include <asm/dma.h>
+ 
+ #define MX2_CAM_DRV_NAME "mx2-camera"
+-#define MX2_CAM_VERSION_CODE KERNEL_VERSION(0, 0, 5)
++#define MX2_CAM_VERSION "0.0.6"
+ #define MX2_CAM_DRIVER_DESCRIPTION "i.MX2x_Camera"
+ 
+ /* reset values */
+@@ -1014,7 +1013,6 @@ static int mx2_camera_querycap(struct soc_camera_host *ici,
+ {
+ 	/* cap->name is set by the friendly caller:-> */
+ 	strlcpy(cap->card, MX2_CAM_DRIVER_DESCRIPTION, sizeof(cap->card));
+-	cap->version = MX2_CAM_VERSION_CODE;
+ 	cap->capabilities = V4L2_CAP_VIDEO_CAPTURE | V4L2_CAP_STREAMING;
+ 
+ 	return 0;
+@@ -1523,3 +1521,4 @@ module_exit(mx2_camera_exit);
+ MODULE_DESCRIPTION("i.MX27/i.MX25 SoC Camera Host driver");
+ MODULE_AUTHOR("Sascha Hauer <sha@pengutronix.de>");
+ MODULE_LICENSE("GPL");
++MODULE_VERSION(MX2_CAM_VERSION);
+diff --git a/drivers/media/video/mx3_camera.c b/drivers/media/video/mx3_camera.c
+index c7680eb..36f0ed9 100644
+--- a/drivers/media/video/mx3_camera.c
++++ b/drivers/media/video/mx3_camera.c
+@@ -11,7 +11,6 @@
+ 
+ #include <linux/init.h>
+ #include <linux/module.h>
+-#include <linux/version.h>
+ #include <linux/videodev2.h>
+ #include <linux/platform_device.h>
+ #include <linux/clk.h>
+@@ -1000,7 +999,6 @@ static int mx3_camera_querycap(struct soc_camera_host *ici,
+ {
+ 	/* cap->name is set by the firendly caller:-> */
+ 	strlcpy(cap->card, "i.MX3x Camera", sizeof(cap->card));
+-	cap->version = KERNEL_VERSION(0, 2, 2);
+ 	cap->capabilities = V4L2_CAP_VIDEO_CAPTURE | V4L2_CAP_STREAMING;
+ 
+ 	return 0;
+@@ -1325,4 +1323,5 @@ module_exit(mx3_camera_exit);
+ MODULE_DESCRIPTION("i.MX3x SoC Camera Host driver");
+ MODULE_AUTHOR("Guennadi Liakhovetski <lg@denx.de>");
+ MODULE_LICENSE("GPL v2");
++MODULE_VERSION("0.2.3");
+ MODULE_ALIAS("platform:" MX3_CAM_DRV_NAME);
+diff --git a/drivers/media/video/omap1_camera.c b/drivers/media/video/omap1_camera.c
+index e7cfc85..9bfe4c1 100644
+--- a/drivers/media/video/omap1_camera.c
++++ b/drivers/media/video/omap1_camera.c
+@@ -26,7 +26,6 @@
+ #include <linux/interrupt.h>
+ #include <linux/platform_device.h>
+ #include <linux/slab.h>
+-#include <linux/version.h>
+ 
+ #include <media/omap1_camera.h>
+ #include <media/soc_camera.h>
+@@ -38,7 +37,7 @@
+ 
+ 
+ #define DRIVER_NAME		"omap1-camera"
+-#define VERSION_CODE		KERNEL_VERSION(0, 0, 1)
++#define DRIVER_VERSION		"0.0.2"
+ 
+ 
+ /*
+@@ -1431,7 +1430,6 @@ static int omap1_cam_querycap(struct soc_camera_host *ici,
+ {
+ 	/* cap->name is set by the friendly caller:-> */
+ 	strlcpy(cap->card, "OMAP1 Camera", sizeof(cap->card));
+-	cap->version = VERSION_CODE;
+ 	cap->capabilities = V4L2_CAP_VIDEO_CAPTURE | V4L2_CAP_STREAMING;
+ 
+ 	return 0;
+@@ -1718,4 +1716,5 @@ MODULE_PARM_DESC(sg_mode, "videobuf mode, 0: dma-contig (default), 1: dma-sg");
+ MODULE_DESCRIPTION("OMAP1 Camera Interface driver");
+ MODULE_AUTHOR("Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>");
+ MODULE_LICENSE("GPL v2");
++MODULE_LICENSE(DRIVER_VERSION);
+ MODULE_ALIAS("platform:" DRIVER_NAME);
+diff --git a/drivers/media/video/omap24xxcam.c b/drivers/media/video/omap24xxcam.c
+index f6626e8..ba3a8af 100644
+--- a/drivers/media/video/omap24xxcam.c
++++ b/drivers/media/video/omap24xxcam.c
+@@ -31,7 +31,6 @@
+ #include <linux/interrupt.h>
+ #include <linux/videodev2.h>
+ #include <linux/pci.h>		/* needed for videobufs */
+-#include <linux/version.h>
+ #include <linux/platform_device.h>
+ #include <linux/clk.h>
+ #include <linux/io.h>
+@@ -43,7 +42,7 @@
+ 
+ #include "omap24xxcam.h"
+ 
+-#define OMAP24XXCAM_VERSION KERNEL_VERSION(0, 0, 0)
++#define OMAP24XXCAM_VERSION "0.0.1"
+ 
+ #define RESET_TIMEOUT_NS 10000
+ 
+@@ -993,7 +992,6 @@ static int vidioc_querycap(struct file *file, void *fh,
+ 
+ 	strlcpy(cap->driver, CAM_NAME, sizeof(cap->driver));
+ 	strlcpy(cap->card, cam->vfd->name, sizeof(cap->card));
+-	cap->version = OMAP24XXCAM_VERSION;
+ 	cap->capabilities = V4L2_CAP_VIDEO_CAPTURE | V4L2_CAP_STREAMING;
+ 
+ 	return 0;
+@@ -1889,6 +1887,7 @@ static void __exit omap24xxcam_cleanup(void)
+ MODULE_AUTHOR("Sakari Ailus <sakari.ailus@nokia.com>");
+ MODULE_DESCRIPTION("OMAP24xx Video for Linux camera driver");
+ MODULE_LICENSE("GPL");
++MODULE_VERSION(OMAP24XXCAM_VERSION);
+ module_param(video_nr, int, 0);
+ MODULE_PARM_DESC(video_nr,
+ 		 "Minor number for video device (-1 ==> auto assign)");
+diff --git a/drivers/media/video/omap3isp/isp.c b/drivers/media/video/omap3isp/isp.c
+index c9fd04e..a7bbe68 100644
+--- a/drivers/media/video/omap3isp/isp.c
++++ b/drivers/media/video/omap3isp/isp.c
+@@ -2234,3 +2234,4 @@ module_exit(isp_cleanup);
+ MODULE_AUTHOR("Nokia Corporation");
+ MODULE_DESCRIPTION("TI OMAP3 ISP driver");
+ MODULE_LICENSE("GPL");
++MODULE_VERSION(ISP_VIDEO_DRIVER_VERSION);
+diff --git a/drivers/media/video/omap3isp/ispvideo.c b/drivers/media/video/omap3isp/ispvideo.c
+index 9cd8f1a..fd965ad 100644
+--- a/drivers/media/video/omap3isp/ispvideo.c
++++ b/drivers/media/video/omap3isp/ispvideo.c
+@@ -695,7 +695,6 @@ isp_video_querycap(struct file *file, void *fh, struct v4l2_capability *cap)
+ 	strlcpy(cap->driver, ISP_VIDEO_DRIVER_NAME, sizeof(cap->driver));
+ 	strlcpy(cap->card, video->video.name, sizeof(cap->card));
+ 	strlcpy(cap->bus_info, "media", sizeof(cap->bus_info));
+-	cap->version = ISP_VIDEO_DRIVER_VERSION;
+ 
+ 	if (video->type == V4L2_BUF_TYPE_VIDEO_CAPTURE)
+ 		cap->capabilities = V4L2_CAP_VIDEO_CAPTURE | V4L2_CAP_STREAMING;
+diff --git a/drivers/media/video/omap3isp/ispvideo.h b/drivers/media/video/omap3isp/ispvideo.h
+index 911bea6..53160aa 100644
+--- a/drivers/media/video/omap3isp/ispvideo.h
++++ b/drivers/media/video/omap3isp/ispvideo.h
+@@ -27,7 +27,6 @@
+ #define OMAP3_ISP_VIDEO_H
+ 
+ #include <linux/v4l2-mediabus.h>
+-#include <linux/version.h>
+ #include <media/media-entity.h>
+ #include <media/v4l2-dev.h>
+ #include <media/v4l2-fh.h>
+@@ -35,7 +34,7 @@
+ #include "ispqueue.h"
+ 
+ #define ISP_VIDEO_DRIVER_NAME		"ispvideo"
+-#define ISP_VIDEO_DRIVER_VERSION	KERNEL_VERSION(0, 0, 1)
++#define ISP_VIDEO_DRIVER_VERSION	"0.0.2"
+ 
+ struct isp_device;
+ struct isp_video;
+diff --git a/drivers/media/video/pxa_camera.c b/drivers/media/video/pxa_camera.c
+index b42bfa5..c5b27a4 100644
+--- a/drivers/media/video/pxa_camera.c
++++ b/drivers/media/video/pxa_camera.c
+@@ -22,7 +22,6 @@
+ #include <linux/mm.h>
+ #include <linux/moduleparam.h>
+ #include <linux/time.h>
+-#include <linux/version.h>
+ #include <linux/device.h>
+ #include <linux/platform_device.h>
+ #include <linux/clk.h>
+@@ -40,7 +39,7 @@
+ #include <mach/dma.h>
+ #include <mach/camera.h>
+ 
+-#define PXA_CAM_VERSION_CODE KERNEL_VERSION(0, 0, 5)
++#define PXA_CAM_VERSION "0.0.6"
+ #define PXA_CAM_DRV_NAME "pxa27x-camera"
+ 
+ /* Camera Interface */
+@@ -1578,7 +1577,6 @@ static int pxa_camera_querycap(struct soc_camera_host *ici,
+ {
+ 	/* cap->name is set by the firendly caller:-> */
+ 	strlcpy(cap->card, pxa_cam_driver_description, sizeof(cap->card));
+-	cap->version = PXA_CAM_VERSION_CODE;
+ 	cap->capabilities = V4L2_CAP_VIDEO_CAPTURE | V4L2_CAP_STREAMING;
+ 
+ 	return 0;
+@@ -1843,4 +1841,5 @@ module_exit(pxa_camera_exit);
+ MODULE_DESCRIPTION("PXA27x SoC Camera Host driver");
+ MODULE_AUTHOR("Guennadi Liakhovetski <kernel@pengutronix.de>");
+ MODULE_LICENSE("GPL");
++MODULE_VERSION(PXA_CAM_VERSION);
+ MODULE_ALIAS("platform:" PXA_CAM_DRV_NAME);
+diff --git a/drivers/media/video/s2255drv.c b/drivers/media/video/s2255drv.c
+index 704e2cb..803c9c8 100644
+--- a/drivers/media/video/s2255drv.c
++++ b/drivers/media/video/s2255drv.c
+@@ -42,7 +42,6 @@
+ #include <linux/mutex.h>
+ #include <linux/slab.h>
+ #include <linux/videodev2.h>
+-#include <linux/version.h>
+ #include <linux/mm.h>
+ #include <media/videobuf-vmalloc.h>
+ #include <media/v4l2-common.h>
+@@ -51,12 +50,7 @@
+ #include <linux/vmalloc.h>
+ #include <linux/usb.h>
+ 
+-#define S2255_MAJOR_VERSION	1
+-#define S2255_MINOR_VERSION	22
+-#define S2255_RELEASE		0
+-#define S2255_VERSION		KERNEL_VERSION(S2255_MAJOR_VERSION, \
+-					       S2255_MINOR_VERSION, \
+-					       S2255_RELEASE)
++#define S2255_VERSION		"1.22.1"
+ #define FIRMWARE_FILE_NAME "f2255usb.bin"
+ 
+ /* default JPEG quality */
+@@ -851,7 +845,6 @@ static int vidioc_querycap(struct file *file, void *priv,
+ 	strlcpy(cap->driver, "s2255", sizeof(cap->driver));
+ 	strlcpy(cap->card, "s2255", sizeof(cap->card));
+ 	usb_make_path(dev->udev, cap->bus_info, sizeof(cap->bus_info));
+-	cap->version = S2255_VERSION;
+ 	cap->capabilities = V4L2_CAP_VIDEO_CAPTURE | V4L2_CAP_STREAMING;
+ 	return 0;
  }
+@@ -1979,9 +1972,8 @@ static int s2255_probe_v4l(struct s2255_dev *dev)
+ 			  video_device_node_name(&channel->vdev));
  
- static int xc4000_set_analog_params(struct dvb_frontend *fe,
- 	struct analog_parameters *params)
+ 	}
+-	printk(KERN_INFO "Sensoray 2255 V4L driver Revision: %d.%d\n",
+-	       S2255_MAJOR_VERSION,
+-	       S2255_MINOR_VERSION);
++	printk(KERN_INFO "Sensoray 2255 V4L driver Revision: %s\n",
++	       S2255_VERSION);
+ 	/* if no channels registered, return error and probe will fail*/
+ 	if (atomic_read(&dev->num_channels) == 0) {
+ 		v4l2_device_unregister(&dev->v4l2_dev);
+@@ -2713,3 +2705,4 @@ module_exit(usb_s2255_exit);
+ MODULE_DESCRIPTION("Sensoray 2255 Video for Linux driver");
+ MODULE_AUTHOR("Dean Anderson (Sensoray Company Inc.)");
+ MODULE_LICENSE("GPL");
++MODULE_VERSION(S2255_VERSION);
+diff --git a/drivers/media/video/s5p-fimc/fimc-capture.c b/drivers/media/video/s5p-fimc/fimc-capture.c
+index d142b40..576b54e 100644
+--- a/drivers/media/video/s5p-fimc/fimc-capture.c
++++ b/drivers/media/video/s5p-fimc/fimc-capture.c
+@@ -11,7 +11,6 @@
+ 
+ #include <linux/module.h>
+ #include <linux/kernel.h>
+-#include <linux/version.h>
+ #include <linux/types.h>
+ #include <linux/errno.h>
+ #include <linux/bug.h>
+@@ -467,7 +466,6 @@ static int fimc_vidioc_querycap_capture(struct file *file, void *priv,
+ 	strncpy(cap->driver, fimc->pdev->name, sizeof(cap->driver) - 1);
+ 	strncpy(cap->card, fimc->pdev->name, sizeof(cap->card) - 1);
+ 	cap->bus_info[0] = 0;
+-	cap->version = KERNEL_VERSION(1, 0, 0);
+ 	cap->capabilities = V4L2_CAP_STREAMING | V4L2_CAP_VIDEO_CAPTURE |
+ 			    V4L2_CAP_VIDEO_CAPTURE_MPLANE;
+ 
+diff --git a/drivers/media/video/s5p-fimc/fimc-core.c b/drivers/media/video/s5p-fimc/fimc-core.c
+index dc91a85..31b8b31 100644
+--- a/drivers/media/video/s5p-fimc/fimc-core.c
++++ b/drivers/media/video/s5p-fimc/fimc-core.c
+@@ -13,7 +13,6 @@
+ 
+ #include <linux/module.h>
+ #include <linux/kernel.h>
+-#include <linux/version.h>
+ #include <linux/types.h>
+ #include <linux/errno.h>
+ #include <linux/bug.h>
+@@ -786,7 +785,6 @@ static int fimc_m2m_querycap(struct file *file, void *priv,
+ 	strncpy(cap->driver, fimc->pdev->name, sizeof(cap->driver) - 1);
+ 	strncpy(cap->card, fimc->pdev->name, sizeof(cap->card) - 1);
+ 	cap->bus_info[0] = 0;
+-	cap->version = KERNEL_VERSION(1, 0, 0);
+ 	cap->capabilities = V4L2_CAP_STREAMING |
+ 		V4L2_CAP_VIDEO_CAPTURE | V4L2_CAP_VIDEO_OUTPUT |
+ 		V4L2_CAP_VIDEO_CAPTURE_MPLANE | V4L2_CAP_VIDEO_OUTPUT_MPLANE;
+@@ -1949,3 +1947,4 @@ module_exit(fimc_exit);
+ MODULE_AUTHOR("Sylwester Nawrocki <s.nawrocki@samsung.com>");
+ MODULE_DESCRIPTION("S5P FIMC camera host interface/video postprocessor driver");
+ MODULE_LICENSE("GPL");
++MODULE_VERSION("1.0.1");
+diff --git a/drivers/media/video/sh_mobile_ceu_camera.c b/drivers/media/video/sh_mobile_ceu_camera.c
+index 3ae5c9c..aa48e27 100644
+--- a/drivers/media/video/sh_mobile_ceu_camera.c
++++ b/drivers/media/video/sh_mobile_ceu_camera.c
+@@ -27,7 +27,6 @@
+ #include <linux/mm.h>
+ #include <linux/moduleparam.h>
+ #include <linux/time.h>
+-#include <linux/version.h>
+ #include <linux/slab.h>
+ #include <linux/device.h>
+ #include <linux/platform_device.h>
+@@ -1827,7 +1826,6 @@ static int sh_mobile_ceu_querycap(struct soc_camera_host *ici,
+ 				  struct v4l2_capability *cap)
  {
- 	struct xc4000_priv *priv = fe->tuner_priv;
--	int	ret;
-+	int	ret = -EREMOTEIO;
- 
- 	dprintk(1, "%s() frequency=%d (in units of 62.5khz)\n",
- 		__func__, params->frequency);
- 
-+	mutex_lock(&priv->lock);
-+
- 	/* Fix me: it could be air. */
- 	priv->rf_mode = params->mode;
- 	if (params->mode > XC_RF_MODE_CABLE)
-@@ -1317,16 +1322,15 @@
- tune_channel:
- 
- 	/* FIXME - firmware type not being set properly */
--	if (check_firmware(fe, DTV8, 0, priv->if_khz) != XC_RESULT_SUCCESS) {
--		return -EREMOTEIO;
--	}
-+	if (check_firmware(fe, DTV8, 0, priv->if_khz) != XC_RESULT_SUCCESS)
-+		goto fail;
- 
- 	ret = xc_SetSignalSource(priv, priv->rf_mode);
- 	if (ret != XC_RESULT_SUCCESS) {
- 		printk(KERN_ERR
--			"xc4000: xc_SetSignalSource(%d) failed\n",
--			priv->rf_mode);
--		return -EREMOTEIO;
-+		       "xc4000: xc_SetSignalSource(%d) failed\n",
-+		       priv->rf_mode);
-+		goto fail;
- 	}
- 
- 	ret = xc_SetTVStandard(priv,
-@@ -1334,7 +1338,7 @@
- 		XC4000_Standard[priv->video_standard].AudioMode);
- 	if (ret != XC_RESULT_SUCCESS) {
- 		printk(KERN_ERR "xc4000: xc_SetTVStandard failed\n");
--		return -EREMOTEIO;
-+		goto fail;
- 	}
- 
- 	xc_tune_channel(priv, priv->freq_hz, XC_TUNE_ANALOG);
-@@ -1342,7 +1346,12 @@
- 	if (debug)
- 		xc_debug_dump(priv);
- 
--	return 0;
-+	ret = 0;
-+
-+fail:
-+	mutex_unlock(&priv->lock);
-+
-+	return ret;
+ 	strlcpy(cap->card, "SuperH_Mobile_CEU", sizeof(cap->card));
+-	cap->version = KERNEL_VERSION(0, 0, 5);
+ 	cap->capabilities = V4L2_CAP_VIDEO_CAPTURE | V4L2_CAP_STREAMING;
+ 	return 0;
  }
+@@ -2158,4 +2156,5 @@ module_exit(sh_mobile_ceu_exit);
+ MODULE_DESCRIPTION("SuperH Mobile CEU driver");
+ MODULE_AUTHOR("Magnus Damm");
+ MODULE_LICENSE("GPL");
++MODULE_VERSION("0.0.6");
+ MODULE_ALIAS("platform:sh_mobile_ceu");
+diff --git a/drivers/media/video/sh_vou.c b/drivers/media/video/sh_vou.c
+index 07cf0c6..6a72987 100644
+--- a/drivers/media/video/sh_vou.c
++++ b/drivers/media/video/sh_vou.c
+@@ -19,7 +19,6 @@
+ #include <linux/platform_device.h>
+ #include <linux/pm_runtime.h>
+ #include <linux/slab.h>
+-#include <linux/version.h>
+ #include <linux/videodev2.h>
  
- static int xc4000_get_frequency(struct dvb_frontend *fe, u32 *freq)
-@@ -1367,8 +1376,12 @@
- 	struct xc4000_priv *priv = fe->tuner_priv;
- 	u16	lock_status = 0;
+ #include <media/sh_vou.h>
+@@ -393,7 +392,6 @@ static int sh_vou_querycap(struct file *file, void  *priv,
+ 	dev_dbg(vou_file->vbq.dev, "%s()\n", __func__);
  
-+	mutex_lock(&priv->lock);
-+
- 	xc_get_lock_status(priv, &lock_status);
- 
-+	mutex_unlock(&priv->lock);
-+
- 	dprintk(1, "%s() lock_status = 0x%08x\n", __func__, lock_status);
- 
- 	*status = lock_status;
-@@ -1385,9 +1398,13 @@
- static int xc4000_init(struct dvb_frontend *fe)
- {
- 	struct xc4000_priv *priv = fe->tuner_priv;
-+	int	ret;
- 	dprintk(1, "%s()\n", __func__);
- 
--	if (check_firmware(fe, DTV8, 0, priv->if_khz) != XC_RESULT_SUCCESS) {
-+	mutex_lock(&priv->lock);
-+	ret = check_firmware(fe, DTV8, 0, priv->if_khz);
-+	mutex_unlock(&priv->lock);
-+	if (ret != XC_RESULT_SUCCESS) {
- 		printk(KERN_ERR "xc4000: Unable to initialise tuner\n");
- 		return -EREMOTEIO;
- 	}
-@@ -1471,6 +1488,7 @@
- 	case 1:
- 		/* new tuner instance */
- 		priv->bandwidth = BANDWIDTH_6_MHZ;
-+		mutex_init(&priv->lock);
- 		fe->tuner_priv = priv;
- 		break;
- 	default:
-@@ -1522,7 +1540,9 @@
- 
- 	/* FIXME: For now, load the firmware at startup.  We will remove this
- 	   before the code goes to production... */
-+	mutex_lock(&priv->lock);
- 	check_firmware(fe, DTV8, 0, priv->if_khz);
-+	mutex_unlock(&priv->lock);
- 
- 	return fe;
- fail:
+ 	strlcpy(cap->card, "SuperH VOU", sizeof(cap->card));
+-	cap->version = KERNEL_VERSION(0, 1, 0);
+ 	cap->capabilities = V4L2_CAP_VIDEO_OUTPUT | V4L2_CAP_STREAMING;
+ 	return 0;
+ }
+@@ -1490,4 +1488,5 @@ module_exit(sh_vou_exit);
+ MODULE_DESCRIPTION("SuperH VOU driver");
+ MODULE_AUTHOR("Guennadi Liakhovetski <g.liakhovetski@gmx.de>");
+ MODULE_LICENSE("GPL v2");
++MODULE_VERSION("0.1.0");
+ MODULE_ALIAS("platform:sh-vou");
+-- 
+1.7.1
 
---------------080805080604030202000902--
+
