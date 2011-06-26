@@ -1,36 +1,123 @@
 Return-path: <mchehab@pedra>
-Received: from mailout-de.gmx.net ([213.165.64.23]:58636 "HELO
-	mailout-de.gmx.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1751569Ab1FLR61 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 12 Jun 2011 13:58:27 -0400
-From: Toralf =?utf-8?q?F=C3=B6rster?= <toralf.foerster@gmx.de>
-To: linux-media@vger.kernel.org
-Subject: firmware segfault with 'Terratec Cinergy T USB XXS (HD)/ T3'
-Date: Sun, 12 Jun 2011 19:58:22 +0200
-Cc: linux-kernel@vger.kernel.org
+Received: from mx1.redhat.com ([209.132.183.28]:10894 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754097Ab1FZQUj (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 26 Jun 2011 12:20:39 -0400
+Message-ID: <4E075C45.3010200@redhat.com>
+Date: Sun, 26 Jun 2011 13:20:21 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="utf-8"
-Content-Transfer-Encoding: 8BIT
-Message-Id: <201106121958.22865.toralf.foerster@gmx.de>
+To: Sakari Ailus <sakari.ailus@iki.fi>
+CC: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+	Arnd Bergmann <arnd@arndb.de>,
+	Linus Torvalds <torvalds@linux-foundation.org>
+Subject: Re: [PATCH] [media] v4l2 core: return -ENOIOCTLCMD if an ioctl doesn't
+ exist
+References: <4E0519B7.3000304@redhat.com> <4E0752E0.5030901@iki.fi>
+In-Reply-To: <4E0752E0.5030901@iki.fi>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-When I plugin that USB receiver into a docked ThinkPad T400, s2ram it and
-resume it, I got this line within /var/log/message :
+Hi Sakari,
 
-2011-06-12T19:49:10.030+02:00 n22 kernel: firmware[29666]: segfault at 46 ip b770b0a8 sp bfb21560 error 4 in libc-2.12.2.so[b76af000+156000]
-2011-06-12T19:49:10.000+02:00 n22 udevd-work[29659]: 'firmware --firmware=dvb-usb-dib0700-1.20.fw --devpath=/devices/pci0000:00/0000:00:1a.7/usb1/1-1/firmware/1-1' unexpected exit with 
-status 0x008b
+Em 26-06-2011 12:40, Sakari Ailus escreveu:
+> Mauro Carvalho Chehab wrote:
+>> Currently, -EINVAL is used to return either when an IOCTL is not
+>> implemented, or if the ioctl was not implemented.
+> 
+> Hi Mauro,
+> 
+> Thanks for the patch.
+> 
+> The V4L2 core probably should return -ENOIOCTLCMD when an IOCTL isn't implemented, but as long as vfs_ioctl() would stay as it is, the user space would still get -EINVAL. Or is vfs_ioctl() about to change?
+> 
+> fs/ioctl.c:
+> ----8<-----------
+> static long vfs_ioctl(struct file *filp, unsigned int cmd,
+>                       unsigned long arg)
+> {
+>         int error = -ENOTTY;
+> 
+>         if (!filp->f_op || !filp->f_op->unlocked_ioctl)
+>                 goto out;
+> 
+>         error = filp->f_op->unlocked_ioctl(filp, cmd, arg);
+>         if (error == -ENOIOCTLCMD)
+>                 error = -EINVAL;
+>  out:
+>         return error;
+> }
+> ----8<-----------
+> 
 
+Good catch!
 
-Furthermore in the upper left corner a cursor is blinking and the system stays
-in this mode until I plug off the USB stick. Then after a while the KDE desktop
-is back.
+At the recent git history, the return for -ENOIOCTLCMD were modified
+by this changeset:
 
+commit b19dd42faf413b4705d4adb38521e82d73fa4249
+Author: Arnd Bergmann <arnd@arndb.de>
+Date:   Sun Jul 4 00:15:10 2010 +0200
 
--- 
-MfG/Sincerely
-Toralf Förster
-pgp finger print: 7B1A 07F4 EC82 0F90 D4C2 8936 872A E508 7DB6 9DA3
+    bkl: Remove locked .ioctl file operation
+...
+@@ -39,21 +38,12 @@ static long vfs_ioctl(struct file *filp, unsigned int cmd,
+ {
+        int error = -ENOTTY;
+ 
+-   if (!filp->f_op)
++ if (!filp->f_op || !filp->f_op->unlocked_ioctl)
+                goto out;
+ 
+-   if (filp->f_op->unlocked_ioctl) {
+-           error = filp->f_op->unlocked_ioctl(filp, cmd, arg);
+-           if (error == -ENOIOCTLCMD)
+-                   error = -EINVAL;
+-           goto out;
+-   } else if (filp->f_op->ioctl) {
+-           lock_kernel();
+-           error = filp->f_op->ioctl(filp->f_path.dentry->d_inode,
+-                                     filp, cmd, arg);
+-           unlock_kernel();
+...
+
+Before Arnd's patch, locked ioctl's were returning -ENOIOCTLCMD, and
+unlocked ones were returning -EINVAL. Now, the return of -ENOIOCTLCMD
+doesn't go to userspace anymore. IMO, that's wrong and can cause
+regressions, as some subsystems like DVB were returning -ENOIOCTLCMD
+to userspace.
+
+The right fix would be to remove this from fs:
+
+diff --git a/fs/ioctl.c b/fs/ioctl.c
+index 1d9b9fc..802fbbd 100644
+--- a/fs/ioctl.c
++++ b/fs/ioctl.c
+@@ -41,8 +41,6 @@ static long vfs_ioctl(struct file *filp, unsigned int cmd,
+ 		goto out;
+ 
+ 	error = filp->f_op->unlocked_ioctl(filp, cmd, arg);
+-	if (error == -ENOIOCTLCMD)
+-		error = -EINVAL;
+  out:
+ 	return error;
+ }
+
+However, the replacement from -EINVAL to -ENOIOCTLCMD is there since 2.6.12 for
+unlocked_ioctl:
+
+$ git blame b19dd42f^1 fs/ioctl.c 
+...
+^1da177e (Linus Torvalds    2005-04-16 15:20:36 -0700  46)              error = filp->f_op->unlocked_ioctl(filp, cmd, arg);
+^1da177e (Linus Torvalds    2005-04-16 15:20:36 -0700  47)              if (error == -ENOIOCTLCMD)
+^1da177e (Linus Torvalds    2005-04-16 15:20:36 -0700  48)                      error = -EINVAL;
+
+Linus,
+
+what would be the expected behaviour?
+
+Thanks,
+Mauro
