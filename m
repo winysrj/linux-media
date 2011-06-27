@@ -1,124 +1,203 @@
 Return-path: <mchehab@pedra>
-Received: from proofpoint-cluster.metrocast.net ([65.175.128.136]:36041 "EHLO
-	proofpoint-cluster.metrocast.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752189Ab1FBU3l (ORCPT
+Received: from smtp-68.nebula.fi ([83.145.220.68]:39419 "EHLO
+	smtp-68.nebula.fi" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757505Ab1F0MnW (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 2 Jun 2011 16:29:41 -0400
-References: <4DE6B2F1.5080509@redhat.com>
-In-Reply-To: <4DE6B2F1.5080509@redhat.com>
+	Mon, 27 Jun 2011 08:43:22 -0400
+Date: Mon, 27 Jun 2011 15:43:16 +0300
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	sakari.ailus@maxwell.research.nokia.com,
+	Sylwester Nawrocki <snjw23@gmail.com>,
+	Stan <svarbanov@mm-sol.com>, Hans Verkuil <hansverk@cisco.com>,
+	saaguirre@ti.com, Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: Re: [PATCH v2] V4L: add media bus configuration subdev operations
+Message-ID: <20110627124316.GE12671@valkosipuli.localdomain>
+References: <Pine.LNX.4.64.1106222314570.3535@axis700.grange>
+ <20110623220129.GA10918@valkosipuli.localdomain>
+ <Pine.LNX.4.64.1106240021540.5348@axis700.grange>
+ <20110627081912.GC12671@valkosipuli.localdomain>
+ <Pine.LNX.4.64.1106271029240.9394@axis700.grange>
 MIME-Version: 1.0
-Content-Type: text/plain;
- charset=UTF-8
-Content-Transfer-Encoding: 8bit
-Subject: Re: Media patches with review pending (14 patches)
-From: Andy Walls <awalls@md.metrocast.net>
-Date: Thu, 02 Jun 2011 16:29:41 -0400
-To: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	LMML <linux-media@vger.kernel.org>
-CC: =?ISO-8859-1?Q?Hern=E1n_Ordiales?= <h.ordiales@gmail.com>,
-	Manu Abraham <abraham.manu@gmail.com>,
-	Oliver Endriss <o.endriss@gmx.de>,
-	"Tomasz G. Burak" <tomekbu@op.pl>
-Message-ID: <2684ed35-97d1-4eb7-9684-768c916c38da@email.android.com>
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <Pine.LNX.4.64.1106271029240.9394@axis700.grange>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Mauro Carvalho Chehab <mchehab@redhat.com> wrote:
+Hi Guennadi,
 
->This is the list of the patches currently on my queue (13 patches from
->patchwork and one patch that patchwork lost due to a database
->corruption).
->
->There's not much patches there, as I've applied most of the pending
->stuff. Unfortunately, however, patchwork is not reliable. I noticed
->at least 2 patches lost when reviewing the patch series. I've applied
->one of them manually.
->
->So, please point me if is there a pending patch that I didn't catch.
->
->Thanks!
->Mauro
->
->		== Patches for Manu Abraham <abraham.manu@gmail.com> review == 
->
->Jun,11 2010: stb0899: Removed an extra byte sent at init on DiSEqC bus 
->http://patchwork.kernel.org/patch/105621  Florent AUDEBERT
-><florent.audebert@anevia.com>
->Aug, 7 2010: Refactor Mantis DMA transfer to deliver 16Kb TS data per
->interrupt     http://patchwork.kernel.org/patch/118173  Marko Ristola
-><marko.ristola@kolumbus.fi>
->May, 4 2011: stb0899: Fix not locking DVB-S transponder                
->http://patchwork.kernel.org/patch/753382  Lutz Sammer <johns98@gmx.net>
->May,21 2011: Disable dynamic current limit for ttpci budget cards      
->http://patchwork.kernel.org/patch/805872  Guy Martin
-><gmsoft@tuxicoman.be>
->May,23 2011: Increase a timeout, so that bad scheduling does not
->accidentially caus http://patchwork.kernel.org/patch/809002  Hans
->Petter Selasky <hselasky@c2i.net>
->May,25 2011: Add remote control support for mantis                     
->                            Christoph Pinkl <christoph.pinkl@gmail.com>
->May,24 2011: Fix the derot zig-zag to work with TT-USB2.0 TechnoTrend. 
->http://patchwork.kernel.org/patch/826102  Hans Petter Selasky
-><hselasky@c2i.net>
->Jun, 1 2011: stv090x: set status bits when there is no lock            
->http://patchwork.kernel.org/patch/840602  Guy Martin
-><gmsoft@tuxicoman.be>
->
->The RC support for mantis is a patch that it used to be on patchwork,
->but got lost.
->
->		== Waiting for Hernán Ordiales<h.ordiales@gmail.com> comments and new
->patch == 
->
->May, 3 2011: Adding support to the Geniatech/MyGica SBTVD Stick S870
->remote control http://patchwork.kernel.org/patch/751702  Mauro Carvalho
->Chehab <mchehab@redhat.com>
->
->		== Waiting for Tomasz G. Burak <tomekbu@op.pl> comments and new patch
->== 
->
->Feb, 7 2011: DVB-USB: Remote Control for TwinhanDTV StarBox DVB-S USB
->and clones    http://patchwork.kernel.org/patch/751832  Tomasz G. Burak
-><tomekbu@op.pl>
->
->		== Patches for Andy Walls <awalls@md.metrocast.net> review == 
->
->May,25 2011: ivtv: use display information in info not in var for
->panning           http://patchwork.kernel.org/patch/815492  Laurent
->Pinchart <laurent.pinchart@ideasonboard.com>
->
->		== Patches waiting my tests with mb86a20s/ISDB-T == 
->
->May,19 2011: saa7134-dvb.c kworld_sbtvd                                
->http://patchwork.kernel.org/patch/798782  Manoel Pinheiro
-><pinusdtv@hotmail.com>
->May,19 2011: [RFC] add i2c_gate_ctrl to mb86a20s.c                     
->http://patchwork.kernel.org/patch/799532  Manoel Pinheiro
-><pinusdtv@hotmail.com>
->
->		== Waiting for Oliver Endriss<o.endriss@gmx.de> review == 
->
->May,12 2011: ngene: blocking and nonblocking io for sec0               
->http://patchwork.kernel.org/patch/780072  Issa Gorissen
-><flop.m@usa.net>
->
->
->Number of pending patches per reviewer:
->Manu Abraham <abraham.manu@gmail.com>                                 :
->8
->Mauro Carvalho Chehab <mchehab@redhat.com>                            :
->2
->Andy Walls <awalls@md.metrocast.net>                                  :
->1
->Hernán Ordiales <h.ordiales@gmail.com>                                :
->1
->Oliver Endriss <o.endriss@gmx.de>                                     :
->1
->Tomasz G. Burak <tomekbu@op.pl>                 
+On Mon, Jun 27, 2011 at 10:54:11AM +0200, Guennadi Liakhovetski wrote:
+> Hi Sakari
+> 
+> On Mon, 27 Jun 2011, Sakari Ailus wrote:
+> 
+> > On Fri, Jun 24, 2011 at 12:35:03AM +0200, Guennadi Liakhovetski wrote:
+> > > Hi Sakari
+> > 
+> > Hi Guennadi,
+> > 
+> > > On Fri, 24 Jun 2011, Sakari Ailus wrote:
+> > > 
+> > > > Hi Guennadi,
+> > > > 
+> > > > Thanks for the patch. I have a few comments below.
+> > > > 
+> > > > On Wed, Jun 22, 2011 at 11:26:29PM +0200, Guennadi Liakhovetski wrote:
+> > 
+> > [clip]
+> > 
+> > > > > diff --git a/include/media/v4l2-subdev.h b/include/media/v4l2-subdev.h
+> > > > > index 1562c4f..75919ef 100644
+> > > > > --- a/include/media/v4l2-subdev.h
+> > > > > +++ b/include/media/v4l2-subdev.h
+> > > > > @@ -255,6 +255,10 @@ struct v4l2_subdev_audio_ops {
+> > > > >     try_mbus_fmt: try to set a pixel format on a video data source
+> > > > >  
+> > > > >     s_mbus_fmt: set a pixel format on a video data source
+> > > > > +
+> > > > > +   g_mbus_config: get supported mediabus configurations
+> > > > > +
+> > > > > +   s_mbus_config: set a certain mediabus configuration
+> > > > >   */
+> > > > >  struct v4l2_subdev_video_ops {
+> > > > >  	int (*s_routing)(struct v4l2_subdev *sd, u32 input, u32 output, u32 config);
+> > > > > @@ -294,6 +298,8 @@ struct v4l2_subdev_video_ops {
+> > > > >  			    struct v4l2_mbus_framefmt *fmt);
+> > > > >  	int (*s_mbus_fmt)(struct v4l2_subdev *sd,
+> > > > >  			  struct v4l2_mbus_framefmt *fmt);
+> > > > > +	int (*g_mbus_config)(struct v4l2_subdev *sd, struct v4l2_mbus_config *cfg);
+> > > > > +	int (*s_mbus_config)(struct v4l2_subdev *sd, struct v4l2_mbus_config *cfg);
+> > > > 
+> > > > How would the ops be used and by whom?
+> > > 
+> > > In the first line I want to use them to make re-use of soc-camera and 
+> > > other subdev drivers possible. Soc-camera drivers would switch to these 
+> > > from their specific bus-configuration methods, other drivers are free to 
+> > > use or not to use them.
+> > > 
+> > > > How complete configuration for CSI2 bus is the above intend to be? Complete,
+> > > > I suppose, and so I think we'll also need to specify how e.g. the CSI2 clock
+> > > > and data lanes have been connected between transmitter and receiver. This is
+> > > > less trivial to guess than clock polarity and requires further information
+> > > > from the board and lane mapping configuration capabilities of both.
+> > > > Shouldn't this information be also added to CSI2 configuration?
+> > > > 
+> > > > Do you think a single bitmask would suffice for this in the long run?
+> > > 
+> > > If you have certain additions to this API I would be happy to consider 
+> > > them. Otherwise, if you just suppose, that we might need more 
+> > > configuration options, we can always add them in the future, when we know 
+> > > more about them and have specific use-cases, with which we can test them. 
+> > > E.g., I am not sure what data- and clock-lane connection possibilities you 
+> > > refer to above. Don't you _have_ to connect lane 1 to 1 etc?
+> > 
+> > You don't need to. It actually depends on the hardware: the OMAP 3 CSI-2
+> > receiver, for example, may freely configure the order of the data and clock
+> > lanes. And you'll actually have to do that configuration since this is
+> > purely board dependent.
+> 
+> Nice
+> 
+> > I'm not sure whether the CSI-2 specification requires this, however. I
+> > wouldn't be surprised if there were sensors which could also do this.
+> 
+> Ok, to be flexible and consistent, we could do the same as with other 
+> parameters. We could design a query like "to which pin can you route data 
+> lane 1?" with possible replies "I can only route lane 1 to pin 1," or "I 
+> can route lane 1 to pins 1, 2, 3, 4, or 5" (for 4 data-lanes and one clock 
+> lane. Then the configuration request could do "please, route your data 
+> lane 1 to pin 1." Or we can hard-code this routing in the platform data 
+> for now.
+> 
+> I, probably, already mentioned this before, but this is also how the 
+> present soc-camera API evolved in the past: in the beginning it also was 
+> completely static, then I noticed, that instead of hard coding the 
+> configuration, I can let drivers negotiate parameters automatically. Then 
+> gradually the number of auto-negotiated parameters grew, as more flexible 
+> hardware had to be handled.
+> 
+> We could do the same here: first hard-code this, then see, if it is 
+> becoming a burden, having to hard-code these. Notice, that 
+> auto-configuring these should not be a problem. This is not like 
+> configuring a signal polarity, of which one can work better, than the 
+> other.
 
-This pull request from a few days ago contained Laurent's ivtvfb patch:
+I'm definitely for hard coding this kind of information. The driver may
+define a default order for the lanes, and then the mapping to the actual
+lanes may be stored in the platform data. The same for the receiver. So the
+configuration would actually be different on transmitter and receiver: it's
+not a parameter which is shared among both of them.
 
-http://permalink.gmane.org/gmane.linux.drivers.video-input-infrastructure/33251
+> > For OMAP 3 ISP driver this configuration is in struct isp_csiphy_lanes_cfg
+> > in drivers/media/video/omap3isp/ispcsiphy.h at the moment.
+> > 
+> > The OMAP 3 ISP driver currently uses all the lanes it has, as far as I
+> > understand, so you can't disable them right now.
+> > 
+> > > > I can see some use for the information in the set operation in lane
+> > > > configuration, for example, as you mentioned. My guess would be that the
+> > > > number of lanes _might_ be something that the user space would want to know
+> > > > or possibly even configure --- but we'll first need to discuss low-level
+> > > > sensor control interface.
+> > > > 
+> > > > But otherwise the configuration should likely be rather static and board
+> > > > specific. Wouldn't the subdevs get this as part of the platform data, or
+> > > > how?
+> > > > 
+> > > > I would just keep the bus configuration static board dependent information
+> > > > until we have that part working and used by drivers and extend it later on.
+> > > 
+> > > As I said, drivers are free to not use these methods and implement a 
+> > > platform-provided configuration method. In which case, as, I think, Hans 
+> > > pointed out earlier, they can also choose to use this struct in their 
+> > > platform data.
+> > 
+> > If the structures are expected to be generic I somehow feel that a field of
+> > flags isn't the best way to describe the configuration of CSI-2 or other
+> > busses. Why not to just use a structure with bus type and an union for
+> > bus-specific configuration parameters? It'd be easier to access and also to
+> > change as needed than flags in an unsigned long field.
+> 
+> Well, yes, a union can be a good idea, thanks.
+> 
+> > Also, this structure is primarily about capabilities and not configuration.
+> > Having settings e.g. for active low vsync and the opposite isn't making this
+> > easier for drivers. There should be just one --- more so if the matching
+> > will be specific to SoC camera only.
+> > 
+> > What would you think of having separate structures for configuration and
+> > capabilities of the busses? I think this way the mechanism would be more
+> > useful outside the scope of SoC camera. The CSI-2 and parallel busses are
+> > still quite generic.
+> 
+> Disagree, O'm quite happy with the current flag system, used for both 
+> capabilities and configuration.
 
-Regards,
-Andy
+What do you think about use outside SoC camera where we don't have
+negotiation? The bus configuration should be generic and not dependent on
+SoC camera. There isn't any generic CSI-2 configuration outside SoC camera
+right now but I think it would make sense to have that some day.
+
+> > That said, at this point I'm not exactly sure what configuration should be
+> > board specific and what should be dynamically configurable. The lane setup I
+> > mentioned earlier, for example, is something that would be good to be
+> > dynamically configurable in the future. Even if there are e.g. two lanes the
+> > user still might want to use just one. In this case you need to be able to
+> > tell the hardware has that two lanes but you only use one of them.
+> 
+> Yes, but what exactly do you want to make configurable? The _number_ of 
+> lanes, or their routing?
+
+Number of the lanes. When e.g. the sensor does binning and skipping and the
+output data rate is much lower than at the native output size, one could use
+less lanes than at the native size. For the user it doesn't matter which
+of the lanes are being used.
+
+Kind regards,
+
+-- 
+Sakari Ailus
+sakari.ailus@iki.fi
