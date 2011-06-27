@@ -1,254 +1,271 @@
 Return-path: <mchehab@pedra>
-Received: from mail-wy0-f174.google.com ([74.125.82.174]:35943 "EHLO
-	mail-wy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753040Ab1FBWbH (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 2 Jun 2011 18:31:07 -0400
-From: Ohad Ben-Cohen <ohad@wizery.com>
-To: <linux-media@vger.kernel.org>, <linux-omap@vger.kernel.org>,
-	<linux-kernel@vger.kernel.org>,
-	<linux-arm-kernel@lists.infradead.org>
-Cc: <laurent.pinchart@ideasonboard.com>, <Hiroshi.DOYU@nokia.com>,
-	<arnd@arndb.de>, <davidb@codeaurora.org>, <Joerg.Roedel@amd.com>,
-	Ohad Ben-Cohen <ohad@wizery.com>
-Subject: [RFC 3/6] media: omap3isp: generic iommu api migration
-Date: Fri,  3 Jun 2011 01:27:40 +0300
-Message-Id: <1307053663-24572-4-git-send-email-ohad@wizery.com>
-In-Reply-To: <1307053663-24572-1-git-send-email-ohad@wizery.com>
-References: <1307053663-24572-1-git-send-email-ohad@wizery.com>
+Received: from mx1.redhat.com ([209.132.183.28]:63855 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751261Ab1F0Nyb (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 27 Jun 2011 09:54:31 -0400
+Message-ID: <4E088B83.2050001@redhat.com>
+Date: Mon, 27 Jun 2011 10:54:11 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+MIME-Version: 1.0
+To: Hans Verkuil <hverkuil@xs4all.nl>
+CC: Sakari Ailus <sakari.ailus@iki.fi>, Arnd Bergmann <arnd@arndb.de>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+	Linus Torvalds <torvalds@linux-foundation.org>
+Subject: Re: [PATCH] [media] v4l2 core: return -ENOIOCTLCMD if an ioctl  doesn't
+ exist
+References: <4E0519B7.3000304@redhat.com> <201106262020.20432.arnd@arndb.de>    <4E077FB9.7030600@redhat.com> <201106270738.27417.hverkuil@xs4all.nl>    <20110627120233.GD12671@valkosipuli.localdomain> <86e5c1f0a0222d3b2cf371f3c9d3b067.squirrel@webmail.xs4all.nl>
+In-Reply-To: <86e5c1f0a0222d3b2cf371f3c9d3b067.squirrel@webmail.xs4all.nl>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-First step towards migrating omap3isp to the generic iommu api.
+Em 27-06-2011 09:17, Hans Verkuil escreveu:
+>> Hi Hans,
+>>
+>> On Mon, Jun 27, 2011 at 07:38:27AM +0200, Hans Verkuil wrote:
+>>> On Sunday, June 26, 2011 20:51:37 Mauro Carvalho Chehab wrote:
+>>>> Em 26-06-2011 15:20, Arnd Bergmann escreveu:
+>>>>> On Sunday 26 June 2011 19:30:46 Mauro Carvalho Chehab wrote:
+>>>>>>> There was a lot of debate whether undefined ioctls on non-ttys
+>>> should
+>>>>>>> return -EINVAL or -ENOTTY, including mass-conversions from -ENOTTY
+>>> to
+>>>>>>> -EINVAL at some point in the pre-git era, IIRC.
+>>>>>>>
+>>>>>>> Inside of v4l2, I believe this is handled by video_usercopy(),
+>>> which
+>>>>>>> turns the driver's -ENOIOCTLCMD into -ENOTTY. What cases do you
+>>> observe
+>>>>>>> where this is not done correctly and we do return ENOIOCTLCMD to
+>>>>>>> vfs_ioctl?
+>>>>>>
+>>>>>> Well, currently, it is returning -EINVAL maybe due to the
+>>> mass-conversions
+>>>>>> you've mentioned.
+>>>>>
+>>>>> I mean what do you return *to* vfs_ioctl from v4l? The conversions
+>>> must
+>>>>> have been long before we introduced compat_ioctl and ENOIOCTLCMD.
+>>>>>
+>>>>> As far as I can tell, video_ioctl2 has always converted ENOIOCTLCMD
+>>> into
+>>>>> EINVAL, so changing the vfs functions would not have any effect.
+>>>>
+>>>> Yes.  This discussion was originated by a RFC patch proposing to
+>>> change
+>>>> video_ioctl2 to return -ENOIOCTLCMD instead of -EINVAL.
+>>>>
+>>>>>> The point is that -EINVAL has too many meanings at V4L. It
+>>> currently can be
+>>>>>> either that an ioctl is not supported, or that one of the
+>>> parameters had
+>>>>>> an invalid parameter. If the userspace can't distinguish between an
+>>> unimplemented
+>>>>>> ioctl and an invalid parameter, it can't decide if it needs to fall
+>>> back to
+>>>>>> some different methods of handling a V4L device.
+>>>>>>
+>>>>>> Maybe the answer would be to return -ENOTTY when an ioctl is not
+>>> implemented.
+>>>>>
+>>>>> That is what a lot of subsystems do these days. But wouldn't that
+>>> change
+>>>>> your ABI?
+>>>>
+>>>> Yes. The patch in question is also changing the DocBook spec for the
+>>> ABI. We'll
+>>>> likely need to drop some notes about that at the
+>>> features-to-be-removed.txt.
+>>>>
+>>>> I don't think that applications are relying at -EINVAL in order to
+>>> detect if
+>>>> an ioctl is not supported, but before merging such patch, we need to
+>>> double-check.
+>>>
+>>> I really don't think we can change this behavior. It's been part of the
+>>> spec since
+>>> forever and it is not just open source apps that can rely on this, but
+>>> also closed
+>>> source. Making an ABI change like this can really mess up applications.
+>>>
+>>> We should instead review the spec and ensure that applications can
+>>> discover what
+>>> is and what isn't supported through e.g. capabilities.
+>>
+>> As far as I understand, V4L2 wouldn't be the only kernel API to use ENOTTY
+>> to tell that an ioctl doesn't exist; there are others. And many switched
+>> from EINVAL they used in the past. From that point it would be good to do
+>> it
+>> on V4L2 as well. Although I have to reckon that the V4L2 API does serve
+>> use
+>> cases of quite different natures than these --- I can't think of an
+>> equivalent e.g. to that astronomy application using V4L1 in the scope of
+>> these:
+>>
+>> Examples:
+>> - Networking
+>> - KVM
+>> - SCSI/libata-scsi
+>>
+>> Currently EINVAL is used to signal from a phletora of conditions in V4L2,
+>> usually bad, in a way or another, parameters to an ioctl. The more low
+>> level
+>> APIs we add (for cameras, for example), the less guessing of parameters
+>> can
+>> be done in general. I think it would be important to distinguish the two
+>> cases and we don't have enumeration capability (do we?) to tell which
+>> IOCTLs
+>> the application should be expect to be able to use.
+> 
+> While we don't have an enum capability, in many cases you can deduce
+> whether a particular ioctl should be supported or not. Usually based on
+> capabilities, sometimes because certain ioctls allow 'NOP' operations that
+> allow you to test for their presence.
+> 
+> Of course, drivers are not always consistent here, but that's a separate
+> problem.
 
-At this point we still need a handle of the omap-specific iommu, mainly
-because we highly depend on omap's iovmm.
+Any "hint" code that would try to do some NOP operations may fail. One of the
+reasons is that such hint is not documented. Yet, I don't officially support
+such "hint" methods at the API.
 
-Migration will be fully completed only once omap's iovmm will be generalized
-(or replaced by a generic virtual memory manager framework).
+>> Interestingly enough, V4L2 core (v4l2_ioctl() in v4l2-dev.c) does return
+>> ENOTTY *right now* when the IOCTL handler is not defined. Have we heard
+>> about this up to now? :-)
+> 
+> No, but that's because all drivers have an ioctl handler :-) So you never
+> see ENOTTY.
 
-Signed-off-by: Ohad Ben-Cohen <ohad@wizery.com>
----
- drivers/media/video/omap3isp/isp.c      |   41 +++++++++++++++++++++++++-----
- drivers/media/video/omap3isp/isp.h      |    3 ++
- drivers/media/video/omap3isp/ispccdc.c  |   16 ++++++------
- drivers/media/video/omap3isp/ispstat.c  |    6 ++--
- drivers/media/video/omap3isp/ispvideo.c |    4 +-
- 5 files changed, 50 insertions(+), 20 deletions(-)
+Well, a V4L1 call now returns -ENOTTY, with the current behaviour. 
 
-diff --git a/drivers/media/video/omap3isp/isp.c b/drivers/media/video/omap3isp/isp.c
-index 897a1cf..25bade9 100644
---- a/drivers/media/video/omap3isp/isp.c
-+++ b/drivers/media/video/omap3isp/isp.c
-@@ -80,6 +80,13 @@
- #include "isph3a.h"
- #include "isphist.h"
- 
-+/*
-+ * this is provided as an interim solution until omap3isp doesn't need
-+ * any omap-specific iommu API
-+ */
-+#define to_iommu(dev)							\
-+	(struct iommu *)platform_get_drvdata(to_platform_device(dev))
-+
- static unsigned int autoidle;
- module_param(autoidle, int, 0444);
- MODULE_PARM_DESC(autoidle, "Enable OMAP3ISP AUTOIDLE support");
-@@ -1975,7 +1982,8 @@ static int isp_remove(struct platform_device *pdev)
- 	isp_cleanup_modules(isp);
- 
- 	omap3isp_get(isp);
--	iommu_put(isp->iommu);
-+	iommu_detach_device(isp->domain, isp->iommu_dev);
-+	iommu_domain_free(isp->domain);
- 	omap3isp_put(isp);
- 
- 	free_irq(isp->irq_num, isp);
-@@ -2123,25 +2131,41 @@ static int isp_probe(struct platform_device *pdev)
- 	}
- 
- 	/* IOMMU */
--	isp->iommu = iommu_get("isp");
--	if (IS_ERR_OR_NULL(isp->iommu)) {
--		isp->iommu = NULL;
-+	isp->iommu_dev = omap_find_iommu_device("isp");
-+	if (!isp->iommu_dev) {
-+		dev_err(isp->dev, "omap_find_iommu_device failed\n");
- 		ret = -ENODEV;
- 		goto error_isp;
- 	}
- 
-+	/* to be removed once iommu migration is complete */
-+	isp->iommu = to_iommu(isp->iommu_dev);
-+
-+	isp->domain = iommu_domain_alloc();
-+	if (!isp->domain) {
-+		dev_err(isp->dev, "can't alloc iommu domain\n");
-+		ret = -ENOMEM;
-+		goto error_isp;
-+	}
-+
-+	ret = iommu_attach_device(isp->domain, isp->iommu_dev);
-+	if (ret) {
-+		dev_err(&pdev->dev, "can't attach iommu device: %d\n", ret);
-+		goto free_domain;
-+	}
-+
- 	/* Interrupt */
- 	isp->irq_num = platform_get_irq(pdev, 0);
- 	if (isp->irq_num <= 0) {
- 		dev_err(isp->dev, "No IRQ resource\n");
- 		ret = -ENODEV;
--		goto error_isp;
-+		goto detach_dev;
- 	}
- 
- 	if (request_irq(isp->irq_num, isp_isr, IRQF_SHARED, "OMAP3 ISP", isp)) {
- 		dev_err(isp->dev, "Unable to request IRQ\n");
- 		ret = -EINVAL;
--		goto error_isp;
-+		goto detach_dev;
- 	}
- 
- 	/* Entities */
-@@ -2162,8 +2186,11 @@ error_modules:
- 	isp_cleanup_modules(isp);
- error_irq:
- 	free_irq(isp->irq_num, isp);
-+detach_dev:
-+	iommu_detach_device(isp->domain, isp->iommu_dev);
-+free_domain:
-+	iommu_domain_free(isp->domain);
- error_isp:
--	iommu_put(isp->iommu);
- 	omap3isp_put(isp);
- error:
- 	isp_put_clocks(isp);
-diff --git a/drivers/media/video/omap3isp/isp.h b/drivers/media/video/omap3isp/isp.h
-index 2620c40..1b54aa4 100644
---- a/drivers/media/video/omap3isp/isp.h
-+++ b/drivers/media/video/omap3isp/isp.h
-@@ -32,6 +32,7 @@
- #include <linux/io.h>
- #include <linux/platform_device.h>
- #include <linux/wait.h>
-+#include <linux/iommu.h>
- #include <plat/iommu.h>
- #include <plat/iovmm.h>
- 
-@@ -289,6 +290,8 @@ struct isp_device {
- 	unsigned int subclk_resources;
- 
- 	struct iommu *iommu;
-+	struct iommu_domain *domain;
-+	struct device *iommu_dev;
- 
- 	struct isp_platform_callback platform_cb;
- };
-diff --git a/drivers/media/video/omap3isp/ispccdc.c b/drivers/media/video/omap3isp/ispccdc.c
-index 39d501b..b59b06f 100644
---- a/drivers/media/video/omap3isp/ispccdc.c
-+++ b/drivers/media/video/omap3isp/ispccdc.c
-@@ -365,7 +365,7 @@ static void ccdc_lsc_free_request(struct isp_ccdc_device *ccdc,
- 		dma_unmap_sg(isp->dev, req->iovm->sgt->sgl,
- 			     req->iovm->sgt->nents, DMA_TO_DEVICE);
- 	if (req->table)
--		iommu_vfree(isp->iommu, req->table);
-+		iommu_vfree(isp->domain, isp->iommu, req->table);
- 	kfree(req);
- }
- 
-@@ -437,8 +437,8 @@ static int ccdc_lsc_config(struct isp_ccdc_device *ccdc,
- 
- 		req->enable = 1;
- 
--		req->table = iommu_vmalloc(isp->iommu, 0, req->config.size,
--					   IOMMU_FLAG);
-+		req->table = iommu_vmalloc(isp->domain, isp->iommu, 0,
-+					req->config.size, IOMMU_FLAG);
- 		if (IS_ERR_VALUE(req->table)) {
- 			req->table = 0;
- 			ret = -ENOMEM;
-@@ -733,15 +733,15 @@ static int ccdc_config(struct isp_ccdc_device *ccdc,
- 			 * already done by iommu_vmalloc().
- 			 */
- 			size = ccdc->fpc.fpnum * 4;
--			table_new = iommu_vmalloc(isp->iommu, 0, size,
--						  IOMMU_FLAG);
-+			table_new = iommu_vmalloc(isp->domain, isp->iommu, 0,
-+							size, IOMMU_FLAG);
- 			if (IS_ERR_VALUE(table_new))
- 				return -ENOMEM;
- 
- 			if (copy_from_user(da_to_va(isp->iommu, table_new),
- 					   (__force void __user *)
- 					   ccdc->fpc.fpcaddr, size)) {
--				iommu_vfree(isp->iommu, table_new);
-+				iommu_vfree(isp->domain, isp->iommu, table_new);
- 				return -EFAULT;
- 			}
- 
-@@ -751,7 +751,7 @@ static int ccdc_config(struct isp_ccdc_device *ccdc,
- 
- 		ccdc_configure_fpc(ccdc);
- 		if (table_old != 0)
--			iommu_vfree(isp->iommu, table_old);
-+			iommu_vfree(isp->domain, isp->iommu, table_old);
- 	}
- 
- 	return ccdc_lsc_config(ccdc, ccdc_struct);
-@@ -2287,5 +2287,5 @@ void omap3isp_ccdc_cleanup(struct isp_device *isp)
- 	ccdc_lsc_free_queue(ccdc, &ccdc->lsc.free_queue);
- 
- 	if (ccdc->fpc.fpcaddr != 0)
--		iommu_vfree(isp->iommu, ccdc->fpc.fpcaddr);
-+		iommu_vfree(isp->domain, isp->iommu, ccdc->fpc.fpcaddr);
- }
-diff --git a/drivers/media/video/omap3isp/ispstat.c b/drivers/media/video/omap3isp/ispstat.c
-index b44cb68..afb7d78 100644
---- a/drivers/media/video/omap3isp/ispstat.c
-+++ b/drivers/media/video/omap3isp/ispstat.c
-@@ -366,7 +366,7 @@ static void isp_stat_bufs_free(struct ispstat *stat)
- 				dma_unmap_sg(isp->dev, buf->iovm->sgt->sgl,
- 					     buf->iovm->sgt->nents,
- 					     DMA_FROM_DEVICE);
--			iommu_vfree(isp->iommu, buf->iommu_addr);
-+			iommu_vfree(isp->domain, isp->iommu, buf->iommu_addr);
- 		} else {
- 			if (!buf->virt_addr)
- 				continue;
-@@ -399,8 +399,8 @@ static int isp_stat_bufs_alloc_iommu(struct ispstat *stat, unsigned int size)
- 		struct iovm_struct *iovm;
- 
- 		WARN_ON(buf->dma_addr);
--		buf->iommu_addr = iommu_vmalloc(isp->iommu, 0, size,
--						IOMMU_FLAG);
-+		buf->iommu_addr = iommu_vmalloc(isp->domain, isp->iommu, 0,
-+							size, IOMMU_FLAG);
- 		if (IS_ERR((void *)buf->iommu_addr)) {
- 			dev_err(stat->isp->dev,
- 				 "%s: Can't acquire memory for "
-diff --git a/drivers/media/video/omap3isp/ispvideo.c b/drivers/media/video/omap3isp/ispvideo.c
-index 9cd8f1a..7bc7986 100644
---- a/drivers/media/video/omap3isp/ispvideo.c
-+++ b/drivers/media/video/omap3isp/ispvideo.c
-@@ -446,7 +446,7 @@ ispmmu_vmap(struct isp_device *isp, const struct scatterlist *sglist, int sglen)
- 	sgt->nents = sglen;
- 	sgt->orig_nents = sglen;
- 
--	da = iommu_vmap(isp->iommu, 0, sgt, IOMMU_FLAG);
-+	da = iommu_vmap(isp->domain, isp->iommu, 0, sgt, IOMMU_FLAG);
- 	if (IS_ERR_VALUE(da))
- 		kfree(sgt);
- 
-@@ -462,7 +462,7 @@ static void ispmmu_vunmap(struct isp_device *isp, dma_addr_t da)
- {
- 	struct sg_table *sgt;
- 
--	sgt = iommu_vunmap(isp->iommu, (u32)da);
-+	sgt = iommu_vunmap(isp->domain, isp->iommu, (u32)da);
- 	kfree(sgt);
- }
- 
--- 
-1.7.1
+Btw, there are two drivers returning -ENOTTY, when the device got disconnected
+(or firmware were not uploaded).
 
+The truth is that the current API specs for return code is bogus.
+
+> 
+>> As you mention, switching to ENOTTY in general would change the ABI which
+>> would potentially break applications. Can this be handled in a way or
+>> another? My understanding is that not many applications would rely on
+>> EINVAL
+>> telling an IOCTL isn't implemented. GStreamer v4l2src might be one in its
+>> attempt to figure out what kind of image sizes the device supports. Fixing
+>> this would be a very small change.
+>>
+>> In short, I think it would be beneficial to switch to ENOTTY in the long
+>> run even if it causes some momentary pain.
+> 
+> I would like that as well, but the V4L2 Specification explicitly mentions
+> EINVAL as the error code if an ioctl is not supported. It has done so
+> since it was created. You cannot just change that. And closed source
+> programs may  very well rely on this.
+
+The V4L2 spec needs to be fixed with respect to error codes. Driver authors
+are much more creative than DocBook authors ;) There are a lot of return
+codes used by the drivers whose API spec doesn't mention (and, on this subject, 
+the same applies to the DVB API). What I've seen is that:
+- Sometimes, a core return code is returned. One of the important examples is
+  the ENOSPC error returned when the usb core refuses to stream when the USB
+  bus reached 80% of the available bandwidth. There's a patch floating around that
+  would allow to override the 80% hard limit, via sysfs. So, if properly documented,
+  an userspace application could give a hint that the user needs to either use a
+  different bus or try to change the hard limit;
+- For every ioctl, it presents its own "private" list of error codes. If someone wants
+  to add a new code (for example, standardizing ENOTTY or ENOSPC), all affected
+  ioctl's will need to be touched. This is hard to maintain;
+- Drivers are not compliant with error codes.
+
+The right thing to do is to create a separate chapter for error codes, based on errno(3)
+man page, where we document all error codes that should be used by the drivers. Then,
+at the ioctl pages, link to the common chapter and, only when needed, document special
+cases where an error code for that specific ioctl has some special meaning.
+
+I ran a script here to check how many different error codes are used inside drivers/media:
+
+$ find drivers/media -type f -name '*.[ch]'  >files
+$ grep define `find . -name errno*.h`|perl -ne 'print "$1\n" if (/\#define\s+(E[^\s]+)/)'|sort|uniq >errors
+$ for i in `cat errors`; do COUNT=$(git grep -c $i `cat files`|wc -l); if [ "$COUNT" != "0" ]; then echo $i $COUNT; fi; done
+
+The result is that we're using 53 different types of errors, but the API specs documents
+only 17 of them. Those are the currently used errors at drivers/media:
+
+ERROR CODE     |NUMBER OF *.c/*.h FILES USING IT
+---------------|--------------------------------
+E2BIG           1
+EACCES          8
+EAGAIN          66
+EBADF           1
+EBADFD          1
+EBADR           2
+EBADRQC         2
+EBUSY           149
+ECHILD          1
+ECONNRESET      25
+EDEADLK         1
+EDOM            1
+EEXIST          3
+EFAULT          230
+EFBIG           1
+EILSEQ          8
+EINIT           2
+EINPROGRESS     6
+EINTR           21
+EINVAL          501
+EIO             305
+EMFILE          1
+ENFILE          7
+ENOBUFS         7
+ENODATA         4
+ENODEV          270
+ENOENT          46
+ENOIOCTLCMD     31
+ENOMEM          359
+ENOSPC          13
+ENOSR           7
+ENOSYS          15
+ENOTSUP         3
+ENOTSUPP        3
+ENOTTY          5
+ENXIO           26
+EOPNOTSUPP      19
+EOVERFLOW       14
+EPERM           47
+EPIPE           12
+EPROTO          11
+ERANGE          25
+EREMOTE         80
+EREMOTEIO       80
+ERESTART        32
+ERESTARTSYS     32
+ESHUTDOWN       27
+ESPIPE          3
+ETIME           53
+ETIMEDOUT       37
+EUSERS          2
+EWOULDBLOCK     14
+EXDEV           1
+
+I suspect that we'll need to both fix some drivers, and the API, as I bet that
+the same error conditions are reported differently on different drivers.
+
+> I don't think changing such an important return value is acceptable.
+
+As I said, the current API is bogus with respect to error codes. Of course,
+we need to do take care to avoid userspace applications breakage, but we can't
+use the excuse that it is there for a long time as a reason for not fixing it.
+
+> A better approach would be to allow applications to deduce whether ioctls
+> are (should be) present or not based on capabilities, etc. And document
+> that in the spec and ensure that drivers do this right.
+> 
+> The v4l2-compliance tool is already checking that where possible.
+> 
+> Regards,
+> 
+>       Hans
+> 
+
+Thanks,
+Mauro
