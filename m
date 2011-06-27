@@ -1,36 +1,85 @@
 Return-path: <mchehab@pedra>
-Received: from mail-ew0-f46.google.com ([209.85.215.46]:53666 "EHLO
-	mail-ew0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751638Ab1FKRAB (ORCPT
+Received: from smtp1-g21.free.fr ([212.27.42.1]:55316 "EHLO smtp1-g21.free.fr"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1757432Ab1F0Koh convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 11 Jun 2011 13:00:01 -0400
-Received: by ewy4 with SMTP id 4so1215060ewy.19
-        for <linux-media@vger.kernel.org>; Sat, 11 Jun 2011 10:00:00 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <201106111753.21581.hverkuil@xs4all.nl>
-References: <1307804731-16430-1-git-send-email-hverkuil@xs4all.nl>
-	<BANLkTikWiEb+aGGbSNSZ+YtdeVRB6QaJtg@mail.gmail.com>
-	<201106111753.21581.hverkuil@xs4all.nl>
-Date: Sat, 11 Jun 2011 13:00:00 -0400
-Message-ID: <BANLkTi=gSXAgTfhU=cjJLaqD6EnDApL=kA@mail.gmail.com>
-Subject: Re: [RFCv2 PATCH 0/5] tuner-core: fix s_std and s_tuner
-From: Devin Heitmueller <dheitmueller@kernellabs.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
+	Mon, 27 Jun 2011 06:44:37 -0400
+Date: Mon, 27 Jun 2011 12:45:58 +0200
+From: Jean-Francois Moine <moinejf@free.fr>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: [PATCH 00/14] Remove linux/version.h from most drivers/media
+Message-ID: <20110627124558.08cd8684@tele>
+In-Reply-To: <4E07808C.9060105@redhat.com>
+References: <20110626130620.4b5ed679@pedra>
+	<20110626201420.018490cd@tele>
+	<4E07808C.9060105@redhat.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8BIT
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Sat, Jun 11, 2011 at 11:53 AM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
-> Do you happen to know not-too-expensive cards that you can buy that have
-> this sort of tuners? It may be useful to be able to test this myself.
+On Sun, 26 Jun 2011 15:55:08 -0300
+Mauro Carvalho Chehab <mchehab@redhat.com> wrote:
 
-Anything with an xc3028 or xc5000 would have this issue.  I don't
-really keep close track of current shipping DVB products, but the 3028
-was definitely very chip in products from a couple of years ago.
+> I'll move it to the right changeset at the version 2 of this series.
 
-Devin
+Hi Mauro,
+
+I have some changes to the gspca.c patch
+- the version must stay 2.12.0
+- the 'info' may be simplified:
+
+diff --git a/drivers/media/video/gspca/gspca.c b/drivers/media/video/gspca/gspca.c
+index e526aa3..1aa6ae2 100644
+--- a/drivers/media/video/gspca/gspca.c
++++ b/drivers/media/video/gspca/gspca.c
+@@ -24,7 +24,6 @@
+ #define MODULE_NAME "gspca"
+ 
+ #include <linux/init.h>
+-#include <linux/version.h>
+ #include <linux/fs.h>
+ #include <linux/vmalloc.h>
+ #include <linux/sched.h>
+@@ -51,11 +50,12 @@
+ #error "DEF_NURBS too big"
+ #endif
+ 
++#define DRIVER_VERSION_NUMBER	"2.12.0"
++
+ MODULE_AUTHOR("Jean-François Moine <http://moinejf.free.fr>");
+ MODULE_DESCRIPTION("GSPCA USB Camera Driver");
+ MODULE_LICENSE("GPL");
+-
+-#define DRIVER_VERSION_NUMBER	KERNEL_VERSION(2, 12, 0)
++MODULE_VERSION(DRIVER_VERSION_NUMBER);
+ 
+ #ifdef GSPCA_DEBUG
+ int gspca_debug = D_ERR | D_PROBE;
+@@ -1291,7 +1291,6 @@ static int vidioc_querycap(struct file *file, void  *priv,
+ 	}
+ 	usb_make_path(gspca_dev->dev, (char *) cap->bus_info,
+ 			sizeof(cap->bus_info));
+-	cap->version = DRIVER_VERSION_NUMBER;
+ 	cap->capabilities = V4L2_CAP_VIDEO_CAPTURE
+ 			  | V4L2_CAP_STREAMING
+ 			  | V4L2_CAP_READWRITE;
+@@ -2478,10 +2477,7 @@ EXPORT_SYMBOL(gspca_auto_gain_n_exposure);
+ /* -- module insert / remove -- */
+ static int __init gspca_init(void)
+ {
+-	info("v%d.%d.%d registered",
+-		(DRIVER_VERSION_NUMBER >> 16) & 0xff,
+-		(DRIVER_VERSION_NUMBER >> 8) & 0xff,
+-		DRIVER_VERSION_NUMBER & 0xff);
++	info("v" DRIVER_VERSION_NUMBER " registered");
+ 	return 0;
+ }
+ static void __exit gspca_exit(void)
+
 
 -- 
-Devin J. Heitmueller - Kernel Labs
-http://www.kernellabs.com
+Ken ar c'hentañ	|	      ** Breizh ha Linux atav! **
+Jef		|		http://moinejf.free.fr/
