@@ -1,78 +1,72 @@
 Return-path: <mchehab@pedra>
-Received: from mail-wy0-f174.google.com ([74.125.82.174]:38695 "EHLO
-	mail-wy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758440Ab1FAQYY (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 1 Jun 2011 12:24:24 -0400
-Received: by wya21 with SMTP id 21so4227809wya.19
-        for <linux-media@vger.kernel.org>; Wed, 01 Jun 2011 09:24:22 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <4DE64531.2050301@redhat.com>
-References: <4C125DD5.6060604@anevia.com>
-	<4CBD9543.2050107@anevia.com>
-	<4CBDC1CC.6030704@gmail.com>
-	<4DE64531.2050301@redhat.com>
-Date: Wed, 1 Jun 2011 21:54:22 +0530
-Message-ID: <BANLkTi=DED6Op1Viq7chGUZFcsMTYYdo6g@mail.gmail.com>
-Subject: Re: [PATCH] stb0899: Removed an extra byte sent at init on DiSEqC bus
-From: Manu Abraham <abraham.manu@gmail.com>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Florent AUDEBERT <florent.audebert@anevia.com>,
-	linux-media@vger.kernel.org,
-	Florent Audebert <faudebert@anevia.com>
-Content-Type: text/plain; charset=ISO-8859-1
+Received: from mailout4.w1.samsung.com ([210.118.77.14]:11518 "EHLO
+	mailout4.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751455Ab1F0PSP (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 27 Jun 2011 11:18:15 -0400
+MIME-version: 1.0
+Content-transfer-encoding: 7BIT
+Content-type: text/plain; charset=us-ascii
+Received: from eu_spt1 ([210.118.77.14]) by mailout4.w1.samsung.com
+ (Sun Java(tm) System Messaging Server 6.3-8.04 (built Jul 29 2009; 32bit))
+ with ESMTP id <0LNG007XJFUE8JB0@mailout4.w1.samsung.com> for
+ linux-media@vger.kernel.org; Mon, 27 Jun 2011 16:18:14 +0100 (BST)
+Received: from linux.samsung.com ([106.116.38.10])
+ by spt1.w1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14
+ 2004)) with ESMTPA id <0LNG002RUFUD32@spt1.w1.samsung.com> for
+ linux-media@vger.kernel.org; Mon, 27 Jun 2011 16:18:13 +0100 (BST)
+Date: Mon, 27 Jun 2011 17:18:09 +0200
+From: Marek Szyprowski <m.szyprowski@samsung.com>
+Subject: RE: The return value of __vb2_queue_alloc()
+In-reply-to: <20110624142701.0c5c7a7e@bike.lwn.net>
+To: 'Jonathan Corbet' <corbet@lwn.net>,
+	'Pawel Osciak' <pawel@osciak.com>
+Cc: linux-media@vger.kernel.org,
+	Marek Szyprowski <m.szyprowski@samsung.com>
+Message-id: <001801cc34dd$6c7bef20$4573cd60$%szyprowski@samsung.com>
+Content-language: pl
+References: <20110624141927.1c89a033@bike.lwn.net>
+ <20110624142701.0c5c7a7e@bike.lwn.net>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On 6/1/11, Mauro Carvalho Chehab <mchehab@redhat.com> wrote:
-> Em 19-10-2010 14:05, Mauro Carvalho Chehab escreveu:
->> Em 19-10-2010 10:55, Florent AUDEBERT escreveu:
->>> On 06/11/2010 06:01 PM, Florent AUDEBERT wrote:
->>>> I noticed a stray 0x00 at init on DiSEqC bus (KNC1 DVB-S2) with a DiSEqC
->>>> tool analyzer.
->>>>
->>>> I removed the register from initialization table and all seem to go well
->>>> (at least for my KNC board).
->>>
->>> Hi,
->>>
->>> This old small patch had been marked superseded on patchwork[1].
->>>
->>> Is there an non-obvious case when patches go superseded ? Perhaps I
->>> missed
->>> something but it seems to me no other patch replaced it.
->>
->> This is one of the bad things with patchwork: there's no "reason" field
->> associated
->> to a status change, nor it marks when the status were changed.
->>
->> A search on my linux-media box, showed that this patch were there, waiting
->> for
->> Manu review, at the email I sent on Jul, 6 2010. The patch still applies,
->> and
->> I didn't find any reply from Manu giving any feedback about it.
->>
->> So, I'm re-tagging it as under review.
->>
->> Manu, any comments about this patch (and the other remaining patches that
->> we're
->> waiting fro your review) ?
->
-> Manu,
->
-> Please ack or nack this patch. It was sent about 1,5 years ago! if you don't
-> comment, I'll assume that this patch is ok and I'll apply it.
->
-> Thanks,
-> Mauro.
+Hello,
 
-Mauro,
+On Friday, June 24, 2011 10:27 PM Jonathan Corbet wrote:
 
-I have been away from home and not yet back due to a nasty back
-sprain, but expect to return mid next week. Please hold off on the
-patches that you need inputs from my side. I will get back on these,
-the following weekend.
+> On Fri, 24 Jun 2011 14:19:27 -0600
+> Jonathan Corbet <corbet@lwn.net> wrote:
+> 
+> > Here's a little something I decided to hack on rather than addressing all
+> > the real work I have to do.
+> 
+> ...and while I was looking at this code, I noticed one little curious
+> thing:
+> 
+> int vb2_reqbufs(struct vb2_queue *q, struct v4l2_requestbuffers *req)
+> {
+> /* ... */
+> 	/* Finally, allocate buffers and video memory */
+> 	ret = __vb2_queue_alloc(q, req->memory, num_buffers, num_planes,
+> 				plane_sizes);
+> 	if (ret < 0) {
+> 		dprintk(1, "Memory allocation failed with error: %d\n", ret);
+> 		return ret;
+> 	}
+> 
+> If you actually look at __vb2_queue_alloc(), it claims to return the
+> number of buffers actually allocated, and an inspection of the code bears
+> up that claim.  So it can never return a negative value.  Do you maybe
+> want "if (ret <= 0) {" there instead?  One assumes there will be few
+> drivers so accommodating as to work with zero buffers.
 
-Sorry about any inconvenience caused.
+You are right. There is no point asking driver if it accepts zero buffers. 
+Thanks for pointing the bug!
 
-Thanks,
-Manu
+Best regards
+-- 
+Marek Szyprowski
+Samsung Poland R&D Center
+
+
+
