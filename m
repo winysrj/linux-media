@@ -1,61 +1,73 @@
 Return-path: <mchehab@pedra>
-Received: from mailout1.w1.samsung.com ([210.118.77.11]:46033 "EHLO
-	mailout1.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751450Ab1FMKIg (ORCPT
+Received: from mail-iy0-f174.google.com ([209.85.210.174]:47624 "EHLO
+	mail-iy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756346Ab1F0Gbg (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 13 Jun 2011 06:08:36 -0400
-Received: from eu_spt1 (mailout1.w1.samsung.com [210.118.77.11])
- by mailout1.w1.samsung.com
- (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14 2004))
- with ESMTP id <0LMQ007J346AZT@mailout1.w1.samsung.com> for
- linux-media@vger.kernel.org; Mon, 13 Jun 2011 11:08:35 +0100 (BST)
-Received: from linux.samsung.com ([106.116.38.10])
- by spt1.w1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14
- 2004)) with ESMTPA id <0LMQ00BOD46AIZ@spt1.w1.samsung.com> for
- linux-media@vger.kernel.org; Mon, 13 Jun 2011 11:08:34 +0100 (BST)
-Date: Mon, 13 Jun 2011 11:48:16 +0200
-From: Marek Szyprowski <m.szyprowski@samsung.com>
-Subject: [GIT PULL for v3.0] videobuf2 fixes
-To: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Message-id: <ADF13DA15EB3FE4FBA487CCC7BEFDF361C9C26C5C0@bssrvexch01>
-MIME-version: 1.0
-Content-type: text/plain; charset=utf-8
-Content-language: en-US
-Content-transfer-encoding: base64
+	Mon, 27 Jun 2011 02:31:36 -0400
+Received: by iyb12 with SMTP id 12so3830580iyb.19
+        for <linux-media@vger.kernel.org>; Sun, 26 Jun 2011 23:31:36 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <1309125622.5421.15.camel@wide>
+References: <4DFFA7B6.9070906@free.fr>
+	<4DFFA917.5060509@iki.fi>
+	<4E017D7D.4050307@free.fr>
+	<BANLkTimQymz5K6YhhUgPeWjMFkkVoU6j4A@mail.gmail.com>
+	<4E079E9F.7050004@free.fr>
+	<1309125622.5421.15.camel@wide>
+Date: Mon, 27 Jun 2011 08:31:35 +0200
+Message-ID: <BANLkTi=we3eOeFq6ru245i20e5uD-YRyMA@mail.gmail.com>
+Subject: Re: Updates to French scan files
+From: Johann Ollivier Lapeyre <johann.ollivierlapeyre@gmail.com>
+To: Alexis de Lattre <alexis@via.ecp.fr>
+Cc: mossroy <mossroy@free.fr>, linux-media@vger.kernel.org,
+	Christoph Pfister <christophpfister@gmail.com>,
+	n_estre@yahoo.fr, alkahan@free.fr, ben@geexbox.org,
+	xavier@dalaen.com, jean-michel.baudrey@orange.fr,
+	lissyx@dyndns.org, sylvestre.cartier@gmail.com,
+	brossard.damien@gmail.com, jean-michel-62@orange.fr
+Content-Type: text/plain; charset=ISO-8859-1
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-SGVsbG8gTWF1cm8sDQoNCknigJl2ZSBjb2xsZWN0ZWQgdmlkZW9idWYyIGZpeGVzIGFuZCBwcmVw
-YXJlZCBhIHNlcGFyYXRlIGJyYW5jaCB3aXRoIHRoZW0uDQoNClRoZSBmb2xsb3dpbmcgY2hhbmdl
-cyBzaW5jZSBjb21taXQgNTljNWY0NmZiZTAxYTAwZWVkZjU0YTIzNzg5NjM0NDM4YmI4MDYwMzoN
-Cg0KICBMaW51eCAzLjAtcmMyICgyMDExLTA2LTA2IDE4OjA2OjMzICswOTAwKQ0KDQphcmUgYXZh
-aWxhYmxlIGluIHRoZSBnaXQgcmVwb3NpdG9yeSBhdDoNCiAgZ2l0Oi8vZ2l0LmluZnJhZGVhZC5v
-cmcvdXNlcnMva21wYXJrL2xpbnV4LTIuNi1zYW1zdW5nIHZiMi1maXhlcy1mb3ItMy4wDQoNCk1h
-cmVrIFN6eXByb3dza2kgKDMpOg0KICAgICAgbWVkaWE6IHZiMjogYWRkIF9fR0ZQX05PV0FSTiB0
-byBkbWEtc2cgYWxsb2NhdG9yDQogICAgICBSZXZlcnQgIlttZWRpYV0gdjRsMjogdmIyOiBvbmUg
-bW9yZSBmaXggZm9yIFJFUUJVRlMoKSINCiAgICAgIG1lZGlhOiB2YjI6IHJlc2V0IHF1ZXVlZF9j
-b3VudCB2YWx1ZSBkdXJpbmcgcXVldWUgcmVpbml0aWFsaXphdGlvbg0KDQogZHJpdmVycy9tZWRp
-YS92aWRlby92aWRlb2J1ZjItY29yZS5jICAgfCAgICA4ICstLS0tLS0tDQogZHJpdmVycy9tZWRp
-YS92aWRlby92aWRlb2J1ZjItZG1hLXNnLmMgfCAgICAyICstDQogMiBmaWxlcyBjaGFuZ2VkLCAy
-IGluc2VydGlvbnMoKyksIDggZGVsZXRpb25zKC0pDQoNCkJlc3QgcmVnYXJkcw0KLS0NCk1hcmVr
-IFN6eXByb3dza2kNClNhbXN1bmcgUG9sYW5kIFImRCBDZW50ZXINCg0KDQoNClRoZSBhYm92ZSBt
-ZXNzYWdlIGlzIGludGVuZGVkIHNvbGVseSBmb3IgdGhlIG5hbWVkIGFkZHJlc3NlZSBhbmQgbWF5
-IGNvbnRhaW4gdHJhZGUgc2VjcmV0LCBpbmR1c3RyaWFsIHRlY2hub2xvZ3kgb3IgcHJpdmlsZWdl
-ZCBhbmQgY29uZmlkZW50aWFsIGluZm9ybWF0aW9uIG90aGVyd2lzZSBwcm90ZWN0ZWQgdW5kZXIg
-YXBwbGljYWJsZSBsYXcuIEFueSB1bmF1dGhvcml6ZWQgZGlzc2VtaW5hdGlvbiwgZGlzdHJpYnV0
-aW9uLCBjb3B5aW5nIG9yIHVzZSBvZiB0aGUgaW5mb3JtYXRpb24gY29udGFpbmVkIGluIHRoaXMg
-Y29tbXVuaWNhdGlvbiBpcyBzdHJpY3RseSBwcm9oaWJpdGVkLiBJZiB5b3UgaGF2ZSByZWNlaXZl
-ZCB0aGlzIGNvbW11bmljYXRpb24gaW4gZXJyb3IsIHBsZWFzZSBub3RpZnkgc2VuZGVyIGJ5IGVt
-YWlsIGFuZCBkZWxldGUgdGhpcyBjb21tdW5pY2F0aW9uIGltbWVkaWF0ZWx5Lg0KDQoNClBvd3nF
-vHN6YSB3aWFkb21vxZvEhyBwcnplem5hY3pvbmEgamVzdCB3ecWCxIVjem5pZSBkbGEgYWRyZXNh
-dGEgbmluaWVqc3plaiB3aWFkb21vxZtjaSBpIG1vxbxlIHphd2llcmHEhyBpbmZvcm1hY2plIGLE
-mWTEhWNlIHRhamVtbmljxIUgaGFuZGxvd8SFLCB0YWplbW5pY8SFIHByemVkc2nEmWJpb3JzdHdh
-IG9yYXogaW5mb3JtYWNqZSBvIGNoYXJha3RlcnplIHBvdWZueW0gY2hyb25pb25lIG9ib3dpxIV6
-dWrEhWN5bWkgcHJ6ZXBpc2FtaSBwcmF3YS4gSmFraWVrb2x3aWVrIG5pZXVwcmF3bmlvbmUgaWNo
-IHJvenBvd3N6ZWNobmlhbmllLCBkeXN0cnlidWNqYSwga29waW93YW5pZSBsdWIgdcW8eWNpZSBp
-bmZvcm1hY2ppIHphd2FydHljaCB3IHBvd3nFvHN6ZWogd2lhZG9tb8WbY2kgamVzdCB6YWJyb25p
-b25lLiBKZcWbbGkgb3RyenltYcWCZcWbIHBvd3nFvHN6xIUgd2lhZG9tb8WbxIcgb215xYJrb3dv
-LCB1cHJ6ZWptaWUgcHJvc3rEmSBwb2luZm9ybXVqIG8gdHltIGZha2NpZSBkcm9nxIUgbWFpbG93
-xIUgbmFkYXdjxJkgdGVqIHdpYWRvbW/Fm2NpIG9yYXogbmllenfFgm9jem5pZSB1c3XFhCBwb3d5
-xbxzesSFIHdpYWRvbW/Fm8SHIHplIHN3b2plZ28ga29tcHV0ZXJhLg0K
+Dear LinuxTV friends,
+
+> In order to simplify things, I would propose only ONE scan file with
+> offset -166, 0, 166, 333 and 500. OK, it will take more time for users
+> to run a scan (+66 %) compared to having a file with only offsets -166,
+> 0, 166 but at least we are sure to cover all the possible offset that
+> can be used in France, and we simplify things as much as we can for
+> users.
+
+As a simple user regarding LinuxTV, i had to:
+1) Buy a TV card, and plug it
+2) Try TV software to "scan", and see this is not working
+3) google the issue and found a tuto
+4) try the tuto
+5) scan
+6) scream "this fucking card **** **** * ****" to everyone ( false, i
+keep it in my head)
+
+7 to 34) Iterate many many time between 3 and 6
+
+35) At least found the Freq in Mhz = 306 + (8 x N) + (0,166 x D) thing
+on an obscure and random forum
+36) take  an editor, my favorite scripting language, and program
+something to get the good file for Brest
+37) test a scan
+38) See this is not working
+39) scream " i don't know the **** others parameter like polarisation"
+(yes, still in my head)
+...
+87) Found how to finally get a working file for brest
+88) Send the Brest file to [i don't remember], and Alexis gently said
+he commited it.
+
+I think this took me enough lifetime to say that +66% on scan is
+really not an issue. +66% is good, even 200% is good!
+1) You launch the scan, and see how it's progressing
+2) take a coffee and read some news on the net.
+3) And finally enjoy the fact the card found all TV channel.
+4) At the end, say to the world "the linux/linux-media developers are
+fu***** good"
+
+IMHO, this is a much better process ;-)
