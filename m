@@ -1,55 +1,53 @@
 Return-path: <mchehab@pedra>
-Received: from moutng.kundenserver.de ([212.227.17.10]:54827 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750871Ab1FMSqg (ORCPT
+Received: from perceval.ideasonboard.com ([95.142.166.194]:50516 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755975Ab1F0A7c (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 13 Jun 2011 14:46:36 -0400
-Date: Mon, 13 Jun 2011 20:46:34 +0200 (CEST)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Robert Jarzmik <robert.jarzmik@free.fr>
-cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	=?ISO-8859-1?Q?Teresa_G=E1mez?= <t.gamez@phytec.de>
-Subject: Re: [PATCH 1/2] V4L: mt9m111: propagate higher level abstraction
- down in functions
-In-Reply-To: <4DF656A7.5020709@free.fr>
-Message-ID: <Pine.LNX.4.64.1106132046110.27497@axis700.grange>
-References: <Pine.LNX.4.64.1106061918010.11169@axis700.grange>
- <4DED36A8.5000300@free.fr> <Pine.LNX.4.64.1106071159030.31635@axis700.grange>
- <4DF656A7.5020709@free.fr>
+	Sun, 26 Jun 2011 20:59:32 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+Subject: Re: [PATCH] [media] Stop using linux/version.h on most drivers
+Date: Mon, 27 Jun 2011 02:59:38 +0200
+Cc: Hans Verkuil <hverkuil@xs4all.nl>,
+	LKML <linux-kernel@vger.kernel.org>,
+	Devin Heitmueller <dheitmueller@kernellabs.com>,
+	Jesper Juhl <jj@chaosbits.net>, trivial@kernel.org,
+	linux-media@vger.kernel.org, ceph-devel@vger.kernel.org,
+	Sage Weil <sage@newdream.net>, Mike Isely <isely@isely.net>,
+	Hans De Goede <hdegoede@redhat.com>,
+	"Jean-Francois Moine" <moinejf@free.fr>
+References: <alpine.LNX.2.00.1106232344480.17688@swampdragon.chaosbits.net> <201106251209.21228.hverkuil@xs4all.nl> <4E05D13A.6030209@redhat.com>
+In-Reply-To: <4E05D13A.6030209@redhat.com>
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201106270259.38405.laurent.pinchart@ideasonboard.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Mon, 13 Jun 2011, Robert Jarzmik wrote:
+Hi Mauro,
 
-> On 06/07/2011 12:02 PM, Guennadi Liakhovetski wrote:
-> > 
-> > A general question to you: from your comments I haven't understood: have
-> > you also tested the patches or only reviewed them?
-> 
-> I had reviewed them so far.
-> 
-> Now, please have my :
-> Acked-by: Robert Jarzmik <robert.jarzmik@free.fr>
+On Saturday 25 June 2011 14:14:50 Mauro Carvalho Chehab wrote:
+> Em 25-06-2011 07:09, Hans Verkuil escreveu:
+> > On Friday, June 24, 2011 20:25:26 Mauro Carvalho Chehab wrote:
 
-Great, thanks a lot!
+[snip]
 
-> 
-> The ack includes a test done on my platform, with a suspend in the middle of
-> an image capture. The system wakes up and sends back the captured image
-> without a problem.
-> The test is for your 2 patch series : "mt9m111: propagate higher level
-> abstraction down in functions" and v2 of "pxa-camera: minor updates".
-> 
-> Cheers.
-> 
-> --
-> Robert
+> 	- uvcvideo: not sure about its current status about its migration to
+> video_ioctl2. If Laurent is not doing a migration to video_ioctl2 any time
+> soon, a simple patch for it could make it act consistently. In any case, I
+> don't think we should create a include/media/version.h just due to
+> uvcvideo.
 
-Regards
-Guennadi
----
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
-http://www.open-technology.de/
+That's not on my todo-list for now, -EBUSY :-)
+
+I bump the uvcvideo driver version whenever the userspace API changes. Using 
+the kernel version number applications could find out whether the API they 
+need is implemented, but detecting API changes would become more difficult. 
+That might not be a real issue though, as applications usually don't care.
+
+-- 
+Regards,
+
+Laurent Pinchart
