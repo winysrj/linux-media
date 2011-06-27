@@ -1,57 +1,75 @@
 Return-path: <mchehab@pedra>
-Received: from einhorn.in-berlin.de ([192.109.42.8]:38543 "EHLO
-	einhorn.in-berlin.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752761Ab1FXVKq convert rfc822-to-8bit (ORCPT
+Received: from smtp-vbr6.xs4all.nl ([194.109.24.26]:3838 "EHLO
+	smtp-vbr6.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756593Ab1F0Fiv (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 24 Jun 2011 17:10:46 -0400
-Date: Fri, 24 Jun 2011 23:10:28 +0200
-From: Stefan Richter <stefanr@s5r6.in-berlin.de>
-To: Devin Heitmueller <dheitmueller@kernellabs.com>
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	Jesper Juhl <jj@chaosbits.net>,
-	LKML <linux-kernel@vger.kernel.org>, trivial@kernel.org,
-	linux-media@vger.kernel.org, ceph-devel@vger.kernel.org,
-	Sage Weil <sage@newdream.net>
-Subject: Re: [RFC] Don't use linux/version.h anymore to indicate a
- per-driver version - Was: Re: [PATCH 03/37] Remove unneeded version.h
- includes from include/
-Message-ID: <20110624231028.7f03dcae@stein>
-In-Reply-To: <BANLkTimj-oEDvWxMao6zJ_sudUntEVjO1w@mail.gmail.com>
-References: <alpine.LNX.2.00.1106232344480.17688@swampdragon.chaosbits.net>
-	<4E04912A.4090305@infradead.org>
-	<BANLkTim9cBiiK_GsZaspxpPJQDBvAcKCWg@mail.gmail.com>
-	<201106241554.10751.hverkuil@xs4all.nl>
-	<4E04A122.2080002@infradead.org>
-	<20110624203404.7a3f6f6a@stein>
-	<BANLkTimj-oEDvWxMao6zJ_sudUntEVjO1w@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8BIT
+	Mon, 27 Jun 2011 01:38:51 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+Subject: Re: [PATCH] [media] v4l2 core: return -ENOIOCTLCMD if an ioctl doesn't exist
+Date: Mon, 27 Jun 2011 07:38:27 +0200
+Cc: Arnd Bergmann <arnd@arndb.de>, Sakari Ailus <sakari.ailus@iki.fi>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+	Linus Torvalds <torvalds@linux-foundation.org>
+References: <4E0519B7.3000304@redhat.com> <201106262020.20432.arnd@arndb.de> <4E077FB9.7030600@redhat.com>
+In-Reply-To: <4E077FB9.7030600@redhat.com>
+MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201106270738.27417.hverkuil@xs4all.nl>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Jun 24 Devin Heitmueller wrote:
-> Really, this is all about applications being able to jam a hack into
-> their code that translates to "don't call this ioctl() with some
-> particular argument if it's driver W less than version X, because the
-> driver had a bug that is likely to panic the guy's PC".  Sure, it's a
-> crummy solution, but at this point it's the best that we have got.
+On Sunday, June 26, 2011 20:51:37 Mauro Carvalho Chehab wrote:
+> Em 26-06-2011 15:20, Arnd Bergmann escreveu:
+> > On Sunday 26 June 2011 19:30:46 Mauro Carvalho Chehab wrote:
+> >>> There was a lot of debate whether undefined ioctls on non-ttys should
+> >>> return -EINVAL or -ENOTTY, including mass-conversions from -ENOTTY to
+> >>> -EINVAL at some point in the pre-git era, IIRC.
+> >>>
+> >>> Inside of v4l2, I believe this is handled by video_usercopy(), which
+> >>> turns the driver's -ENOIOCTLCMD into -ENOTTY. What cases do you observe
+> >>> where this is not done correctly and we do return ENOIOCTLCMD to
+> >>> vfs_ioctl?
+> >>
+> >> Well, currently, it is returning -EINVAL maybe due to the mass-conversions
+> >> you've mentioned.
+> > 
+> > I mean what do you return *to* vfs_ioctl from v4l? The conversions must
+> > have been long before we introduced compat_ioctl and ENOIOCTLCMD.
+> > 
+> > As far as I can tell, video_ioctl2 has always converted ENOIOCTLCMD into
+> > EINVAL, so changing the vfs functions would not have any effect.
+> 
+> Yes.  This discussion was originated by a RFC patch proposing to change 
+> video_ioctl2 to return -ENOIOCTLCMD instead of -EINVAL.
+> 
+> >> The point is that -EINVAL has too many meanings at V4L. It currently can be
+> >> either that an ioctl is not supported, or that one of the parameters had
+> >> an invalid parameter. If the userspace can't distinguish between an unimplemented
+> >> ioctl and an invalid parameter, it can't decide if it needs to fall back to
+> >> some different methods of handling a V4L device.
+> >>
+> >> Maybe the answer would be to return -ENOTTY when an ioctl is not implemented.
+> > 
+> > That is what a lot of subsystems do these days. But wouldn't that change
+> > your ABI?
+> 
+> Yes. The patch in question is also changing the DocBook spec for the ABI. We'll
+> likely need to drop some notes about that at the features-to-be-removed.txt.
+> 
+> I don't think that applications are relying at -EINVAL in order to detect if
+> an ioctl is not supported, but before merging such patch, we need to double-check.
 
-The second best.  The best that we have got is that the user runs a fixed
-kernel.
+I really don't think we can change this behavior. It's been part of the spec since
+forever and it is not just open source apps that can rely on this, but also closed
+source. Making an ABI change like this can really mess up applications.
 
-Anyway; if this is the only purpose that this interface version¹ serves,
-then Mauro's subsystem-centralized solution has the benefit that it
-eliminates mistakes due to oversight by individual driver authors.
-Especially because the kind of implementation behavior changes that are
-tracked by this type of version datum are sometimes just discovered or
-documented in hindsight.  On the other hand, Mauro's solution is redundant
-to the uname(2) syscall.
+We should instead review the spec and ensure that applications can discover what
+is and what isn't supported through e.g. capabilities.
 
-¹) Yes, it is still an ABI version, nothing less.  With all its backwards
-and forwards compatibility ramifications.
--- 
-Stefan Richter
--=====-==-== -==- ==---
-http://arcgraph.de/sr/
+Regards,
+
+	Hans
