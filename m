@@ -1,139 +1,166 @@
 Return-path: <mchehab@pedra>
-Received: from mail-qy0-f174.google.com ([209.85.216.174]:39805 "EHLO
-	mail-qy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753344Ab1FFTWp convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 6 Jun 2011 15:22:45 -0400
-Received: by qyk7 with SMTP id 7so962107qyk.19
-        for <linux-media@vger.kernel.org>; Mon, 06 Jun 2011 12:22:44 -0700 (PDT)
+Received: from mx1.redhat.com ([209.132.183.28]:55650 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750948Ab1F0PeO (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 27 Jun 2011 11:34:14 -0400
+Message-ID: <4E08A2E6.6020902@redhat.com>
+Date: Mon, 27 Jun 2011 12:33:58 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
 MIME-Version: 1.0
-In-Reply-To: <BANLkTimFT+D3_vZVj5KMiB7jMvq=088Y7A@mail.gmail.com>
-References: <BANLkTimFT+D3_vZVj5KMiB7jMvq=088Y7A@mail.gmail.com>
-Date: Mon, 6 Jun 2011 21:22:44 +0200
-Message-ID: <BANLkTim9d3yi3OQn4AxfwV6pfv+KY-KseA@mail.gmail.com>
-Subject: [PATCH] cx231xx: Add support for Hauppauge WinTV USB2-FM
-From: Peter Moon <pomoon@gmail.com>
-To: linux-media@vger.kernel.org
+To: Hans Verkuil <hverkuil@xs4all.nl>
+CC: Sakari Ailus <sakari.ailus@iki.fi>, Arnd Bergmann <arnd@arndb.de>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+	Linus Torvalds <torvalds@linux-foundation.org>
+Subject: Re: [PATCH] [media] v4l2 core: return -ENOIOCTLCMD if an ioctl  doesn't
+ exist
+References: <4E0519B7.3000304@redhat.com> <86e5c1f0a0222d3b2cf371f3c9d3b067.squirrel@webmail.xs4all.nl> <4E088B83.2050001@redhat.com> <201106271656.04612.hverkuil@xs4all.nl>
+In-Reply-To: <201106271656.04612.hverkuil@xs4all.nl>
 Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-This patch adds support for the " Hauppauge WinTV USB2-FM" Analog Stick.
+Em 27-06-2011 11:56, Hans Verkuil escreveu:
+> On Monday, June 27, 2011 15:54:11 Mauro Carvalho Chehab wrote:
+>> Em 27-06-2011 09:17, Hans Verkuil escreveu:
+>>> While we don't have an enum capability, in many cases you can deduce
+>>> whether a particular ioctl should be supported or not. Usually based on
+>>> capabilities, sometimes because certain ioctls allow 'NOP' operations that
+>>> allow you to test for their presence.
+>>>
+>>> Of course, drivers are not always consistent here, but that's a separate
+>>> problem.
+>>
+>> Any "hint" code that would try to do some NOP operations may fail. One of the
+>> reasons is that such hint is not documented. Yet, I don't officially support
+>> such "hint" methods at the API.
+> 
+> The point is that the spec can easily be improved to make such 'NOP' operations
+> explicit, or to require that if a capability is present, then the corresponding
+> ioctl(s) must also be present. Things like that are easy to verify as well with
+> v4l2-compliance.
 
-Signed-off-by: Peter Moon <pomoon@gmail.com>
+We currently have more than 64 ioctl's. Adding a capability bit for each doesn't
+seem the right thing to do. Ok, some could be grouped, but, even so, there are
+drivers that implement the VIDIOC_G, but doesn't implement the corresponding VIDIO_S.
+So, I think we don't have enough available bits for doing that.
 
-diff -ru linux.orig/drivers/media/video/cx231xx/cx231xx-avcore.c
-linux/drivers/media/video/cx231xx/cx231xx-avcore.c
---- linux.orig/drivers/media/video/cx231xx/cx231xx-avcore.c     2011-06-03
-21:53:42.000000000 +0200
-+++ linux/drivers/media/video/cx231xx/cx231xx-avcore.c  2011-06-03
-21:54:13.000000000 +0200
-@@ -355,6 +355,7 @@
-       case CX231XX_BOARD_HAUPPAUGE_EXETER:
-       case CX231XX_BOARD_HAUPPAUGE_USBLIVE2:
-       case CX231XX_BOARD_PV_PLAYTV_USB_HYBRID:
-+       case CX231XX_BOARD_HAUPPAUGE_USB2_FM:
-               if (avmode == POLARIS_AVMODE_ANALOGT_TV) {
-                       while (afe_power_status != (FLD_PWRDN_TUNING_BIAS |
-                                               FLD_PWRDN_ENABLE_PLL)) {
-@@ -1729,6 +1730,7 @@
-       case CX231XX_BOARD_CNXT_RDU_250:
-       case CX231XX_BOARD_CNXT_VIDEO_GRABBER:
-       case CX231XX_BOARD_HAUPPAUGE_EXETER:
-+       case CX231XX_BOARD_HAUPPAUGE_USB2_FM:
-               func_mode = 0x03;
-               break;
-       case CX231XX_BOARD_CNXT_RDE_253S:
-diff -ru linux.orig/drivers/media/video/cx231xx/cx231xx-cards.c
-linux/drivers/media/video/cx231xx/cx231xx-cards.c
---- linux.orig/drivers/media/video/cx231xx/cx231xx-cards.c      2011-06-03
-21:53:42.000000000 +0200
-+++ linux/drivers/media/video/cx231xx/cx231xx-cards.c   2011-06-03
-21:54:13.000000000 +0200
-@@ -532,6 +532,41 @@
-                       .gpio = NULL,
-               } },
-       },
-+       [CX231XX_BOARD_HAUPPAUGE_USB2_FM] = {
-+               .name = "Hauppauge WinTV USB2 FM",
-+               .tuner_type = TUNER_NXP_TDA18271,
-+               .tuner_addr = 0x60,
-+               .tuner_gpio = RDE250_XCV_TUNER,
-+               .tuner_sif_gpio = 0x05,
-+               .tuner_scl_gpio = 0x1a,
-+               .tuner_sda_gpio = 0x1b,
-+               .decoder = CX231XX_AVDECODER,
-+               .output_mode = OUT_MODE_VIP11,
-+               .ctl_pin_status_mask = 0xFFFFFFC4,
-+               .agc_analog_digital_select_gpio = 0x0c,
-+               .gpio_pin_status_mask = 0x4001000,
-+               .tuner_i2c_master = 1,
-+               .norm = V4L2_STD_PAL,
-+
-+               .input = {{
-+                       .type = CX231XX_VMUX_TELEVISION,
-+                       .vmux = CX231XX_VIN_3_1,
-+                       .amux = CX231XX_AMUX_VIDEO,
-+                       .gpio = NULL,
-+               }, {
-+                       .type = CX231XX_VMUX_COMPOSITE1,
-+                       .vmux = CX231XX_VIN_2_1,
-+                       .amux = CX231XX_AMUX_LINE_IN,
-+                       .gpio = NULL,
-+               }, {
-+                       .type = CX231XX_VMUX_SVIDEO,
-+                       .vmux = CX231XX_VIN_1_1 |
-+                               (CX231XX_VIN_1_2 << 8) |
-+                               CX25840_SVIDEO_ON,
-+                       .amux = CX231XX_AMUX_LINE_IN,
-+                       .gpio = NULL,
-+               } },
-+       },
- };
- const unsigned int cx231xx_bcount = ARRAY_SIZE(cx231xx_boards);
+>> Btw, there are two drivers returning -ENOTTY, when the device got disconnected
+>> (or firmware were not uploaded).
+>>
+>> The truth is that the current API specs for return code is bogus.
+> 
+> Bogus in what way? It's been documented very clearly for years. We may not like
+> that design decision (I certainly don't like it), but someone clearly thought
+> about it at the time.
 
-@@ -553,6 +588,8 @@
-        .driver_info = CX231XX_BOARD_CNXT_RDE_250},
-       {USB_DEVICE(0x0572, 0x58A0),
-        .driver_info = CX231XX_BOARD_CNXT_RDU_250},
-+       {USB_DEVICE(0x2040, 0xb110),
-+        .driver_info = CX231XX_BOARD_HAUPPAUGE_USB2_FM},
-       {USB_DEVICE(0x2040, 0xb120),
-        .driver_info = CX231XX_BOARD_HAUPPAUGE_EXETER},
-       {USB_DEVICE(0x2040, 0xb140),
-diff -ru linux.orig/drivers/media/video/cx231xx/cx231xx-core.c
-linux/drivers/media/video/cx231xx/cx231xx-core.c
---- linux.orig/drivers/media/video/cx231xx/cx231xx-core.c       2011-06-03
-21:53:42.000000000 +0200
-+++ linux/drivers/media/video/cx231xx/cx231xx-core.c    2011-06-03
-21:54:13.000000000 +0200
-@@ -742,6 +742,7 @@
-               case CX231XX_BOARD_CNXT_RDU_253S:
-               case CX231XX_BOARD_HAUPPAUGE_EXETER:
-               case CX231XX_BOARD_PV_PLAYTV_USB_HYBRID:
-+               case CX231XX_BOARD_HAUPPAUGE_USB2_FM:
-               errCode = cx231xx_set_agc_analog_digital_mux_select(dev, 0);
-                       break;
-               default:
-@@ -1381,6 +1382,7 @@
-       case CX231XX_BOARD_CNXT_RDU_253S:
-       case CX231XX_BOARD_HAUPPAUGE_EXETER:
-       case CX231XX_BOARD_PV_PLAYTV_USB_HYBRID:
-+       case CX231XX_BOARD_HAUPPAUGE_USB2_FM:
-       errCode = cx231xx_set_agc_analog_digital_mux_select(dev, 0);
-               break;
-       default:
-diff -ru linux.orig/drivers/media/video/cx231xx/cx231xx.h
-linux/drivers/media/video/cx231xx/cx231xx.h
---- linux.orig/drivers/media/video/cx231xx/cx231xx.h    2011-06-03
-21:53:42.000000000 +0200
-+++ linux/drivers/media/video/cx231xx/cx231xx.h 2011-06-03
-21:55:49.000000000 +0200
-@@ -67,6 +67,7 @@
- #define CX231XX_BOARD_PV_XCAPTURE_USB 11
- #define CX231XX_BOARD_KWORLD_UB430_USB_HYBRID 12
- #define CX231XX_BOARD_ICONBIT_U100 13
-+#define CX231XX_BOARD_HAUPPAUGE_USB2_FM 14
+Bogus in the sense that drivers don't follow them, as they're returning undocumented
+values. Any application strictly following it will have troubles.
 
- /* Limits minimum and default number of buffers */
- #define CX231XX_MIN_BUF                 4
+>> The right thing to do is to create a separate chapter for error codes, based on errno(3)
+>> man page, where we document all error codes that should be used by the drivers. Then,
+>> at the ioctl pages, link to the common chapter and, only when needed, document special
+>> cases where an error code for that specific ioctl has some special meaning.
+> 
+> Great, I've no problem with that. But this particular error code you want to change
+> is actually implemented *consistently* in all drivers. There is no confusion, no
+> ambiguity, and it is according to the spec.
+
+As I said, from userspace perspective, it is not consistent to assume that EINVAL means
+not implemented. For sure at VIDIOC_S_foo, this is not consistent. Even on some GET types
+of ioctl, like for example [1][2], there are other reasons for an EINVAL return.
+
+[1] http://linuxtv.org/downloads/v4l-dvb-apis/vidioc-cropcap.html
+[2] http://linuxtv.org/downloads/v4l-dvb-apis/vidioc-g-audio.html
+
+The only way to make it consistent is to use different return codes for "invalid parameters" 
+and for "unsupported ioctl".
+
+>> I ran a script here to check how many different error codes are used inside drivers/media:
+>>
+>> $ find drivers/media -type f -name '*.[ch]'  >files
+>> $ grep define `find . -name errno*.h`|perl -ne 'print "$1\n" if (/\#define\s+(E[^\s]+)/)'|sort|uniq >errors
+>> $ for i in `cat errors`; do COUNT=$(git grep -c $i `cat files`|wc -l); if [ "$COUNT" != "0" ]; then echo $i $COUNT; fi; done
+>>
+>> The result is that we're using 53 different types of errors, but the API specs documents
+>> only 17 of them. Those are the currently used errors at drivers/media:
+>>
+>> ERROR CODE     |NUMBER OF *.c/*.h FILES USING IT
+>> ---------------|--------------------------------
+>> E2BIG           1
+>> EACCES          8
+>> EAGAIN          66
+>> EBADF           1
+>> EBADFD          1
+>> EBADR           2
+>> EBADRQC         2
+>> EBUSY           149
+>> ECHILD          1
+>> ECONNRESET      25
+>> EDEADLK         1
+>> EDOM            1
+>> EEXIST          3
+>> EFAULT          230
+>> EFBIG           1
+>> EILSEQ          8
+>> EINIT           2
+>> EINPROGRESS     6
+>> EINTR           21
+>> EINVAL          501
+>> EIO             305
+>> EMFILE          1
+>> ENFILE          7
+>> ENOBUFS         7
+>> ENODATA         4
+>> ENODEV          270
+>> ENOENT          46
+>> ENOIOCTLCMD     31
+>> ENOMEM          359
+>> ENOSPC          13
+>> ENOSR           7
+>> ENOSYS          15
+>> ENOTSUP         3
+>> ENOTSUPP        3
+>> ENOTTY          5
+>> ENXIO           26
+>> EOPNOTSUPP      19
+>> EOVERFLOW       14
+>> EPERM           47
+>> EPIPE           12
+>> EPROTO          11
+>> ERANGE          25
+>> EREMOTE         80
+>> EREMOTEIO       80
+>> ERESTART        32
+>> ERESTARTSYS     32
+>> ESHUTDOWN       27
+>> ESPIPE          3
+>> ETIME           53
+>> ETIMEDOUT       37
+>> EUSERS          2
+>> EWOULDBLOCK     14
+>> EXDEV           1
+>>
+>> I suspect that we'll need to both fix some drivers, and the API, as I bet that
+>> the same error conditions are reported differently on different drivers.
+>>
+>>> I don't think changing such an important return value is acceptable.
+>>
+>> As I said, the current API is bogus with respect to error codes. Of course,
+>> we need to do take care to avoid userspace applications breakage, but we can't
+>> use the excuse that it is there for a long time as a reason for not fixing it.
+> 
+> The fact that many drivers use error codes creatively doesn't give us an excuse
+> to just change the one error code that is actually used everywhere according to
+> the spec! That's faulty logic.
+
+The fix that it is needed is to provide a consistent way for an userspace application
+to know for sure when an ioctl is not supported. It can be done on a simple way of
+just returning a different error code for it, or with complex mechanisms like adding
+a per-ioctl flag and some hint logics based on NOP.
+
+The V4L2 is complex enough for us to add more complexity with hints and cap flags.
+
+Thanks,
+Mauro
