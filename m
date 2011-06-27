@@ -1,56 +1,43 @@
 Return-path: <mchehab@pedra>
-Received: from mail-iy0-f174.google.com ([209.85.210.174]:38786 "EHLO
-	mail-iy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756302Ab1F1Frx (ORCPT
+Received: from moutng.kundenserver.de ([212.227.17.8]:64800 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752610Ab1F0QOu (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 28 Jun 2011 01:47:53 -0400
-Received: by iyb12 with SMTP id 12so4662559iyb.19
-        for <linux-media@vger.kernel.org>; Mon, 27 Jun 2011 22:47:52 -0700 (PDT)
+	Mon, 27 Jun 2011 12:14:50 -0400
+From: Arnd Bergmann <arnd@arndb.de>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+Subject: Re: [PATCH] [media] v4l2 core: return -ENOIOCTLCMD if an ioctl  doesn't exist
+Date: Mon, 27 Jun 2011 18:14:35 +0200
+Cc: Hans Verkuil <hverkuil@xs4all.nl>,
+	Sakari Ailus <sakari.ailus@iki.fi>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+	Linus Torvalds <torvalds@linux-foundation.org>
+References: <4E0519B7.3000304@redhat.com> <201106271656.04612.hverkuil@xs4all.nl> <4E08A2E6.6020902@redhat.com>
+In-Reply-To: <4E08A2E6.6020902@redhat.com>
 MIME-Version: 1.0
-In-Reply-To: <BANLkTi=we3eOeFq6ru245i20e5uD-YRyMA@mail.gmail.com>
-References: <4DFFA7B6.9070906@free.fr>
-	<4DFFA917.5060509@iki.fi>
-	<4E017D7D.4050307@free.fr>
-	<BANLkTimQymz5K6YhhUgPeWjMFkkVoU6j4A@mail.gmail.com>
-	<4E079E9F.7050004@free.fr>
-	<1309125622.5421.15.camel@wide>
-	<BANLkTi=we3eOeFq6ru245i20e5uD-YRyMA@mail.gmail.com>
-Date: Tue, 28 Jun 2011 07:47:51 +0200
-Message-ID: <BANLkTinVNv429OC-6pyO4-epAmCE7rYYwQ@mail.gmail.com>
-Subject: Re: Updates to French scan files
-From: Christoph Pfister <christophpfister@gmail.com>
-To: Johann Ollivier Lapeyre <johann.ollivierlapeyre@gmail.com>
-Cc: Alexis de Lattre <alexis@via.ecp.fr>, mossroy <mossroy@free.fr>,
-	linux-media@vger.kernel.org, n_estre@yahoo.fr, alkahan@free.fr,
-	ben@geexbox.org, xavier@dalaen.com, jean-michel.baudrey@orange.fr,
-	lissyx@dyndns.org, sylvestre.cartier@gmail.com,
-	brossard.damien@gmail.com, jean-michel-62@orange.fr
-Content-Type: text/plain; charset=UTF-8
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201106271814.36251.arnd@arndb.de>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-2011/6/27 Johann Ollivier Lapeyre <johann.ollivierlapeyre@gmail.com>:
-> Dear LinuxTV friends,
->
->> In order to simplify things, I would propose only ONE scan file with
->> offset -166, 0, 166, 333 and 500. OK, it will take more time for users
->> to run a scan (+66 %) compared to having a file with only offsets -166,
->> 0, 166 but at least we are sure to cover all the possible offset that
->> can be used in France, and we simplify things as much as we can for
->> users.
-<snip>
+On Monday 27 June 2011, Mauro Carvalho Chehab wrote:
+> > The point is that the spec can easily be improved to make such 'NOP' operations
+> > explicit, or to require that if a capability is present, then the corresponding
+> > ioctl(s) must also be present. Things like that are easy to verify as well with
+> > v4l2-compliance.
+> 
+> We currently have more than 64 ioctl's. Adding a capability bit for each doesn't
+> seem the right thing to do. Ok, some could be grouped, but, even so, there are
+> drivers that implement the VIDIOC_G, but doesn't implement the corresponding VIDIO_S.
+> So, I think we don't have enough available bits for doing that.
 
-There are five files,
-- auto-Default
-- auto-With167kHzOffsets
-- auto-Australia
-- auto-Italy
-- auto-Taiwan
+It shouldn't be too hard to do an ioctl command that returns a le_bitmask with the
+ioctl command number as an index (0 to 91, currently), and the bit set for each
+command that has the corresponding v4l2_ioctl_ops member filled for the device.
+That would be an obvious way to query the operations, but I don't know if it's
+useful.
 
-which cover all dvb-t transmitters known to me. If your device can
-deal with auto* parameters, they're sufficient. (some / many?) devices
-can also deal with the 167kHz offset automatically. It is extremely
-unlikely that one of the other offsets will be used in future, so I
-wait for evidence before I take any action there.
-
-Christoph
+	Arnd
