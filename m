@@ -1,76 +1,89 @@
 Return-path: <mchehab@pedra>
-Received: from tex.lwn.net ([70.33.254.29]:49481 "EHLO vena.lwn.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752666Ab1F0Qjq (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 27 Jun 2011 12:39:46 -0400
-Date: Mon, 27 Jun 2011 10:39:44 -0600
-From: Jonathan Corbet <corbet@lwn.net>
-To: Marek Szyprowski <m.szyprowski@samsung.com>
-Cc: 'Pawel Osciak' <pawel@osciak.com>,
-	'Hans Verkuil' <hverkuil@xs4all.nl>,
-	linux-media@vger.kernel.org,
-	'Mauro Carvalho Chehab' <mchehab@infradead.org>,
-	'Kyungmin Park' <kyungmin.park@samsung.com>,
-	g.liakhovetski@gmx.de, Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	'Kamil Debski' <k.debski@samsung.com>
-Subject: Re: [RFC] vb2: Push buffer allocation and freeing into drivers
-Message-ID: <20110627103944.504bd2a9@bike.lwn.net>
-In-Reply-To: <001901cc34e4$9f348970$dd9d9c50$%szyprowski@samsung.com>
-References: <20110624141927.1c89a033@bike.lwn.net>
-	<001901cc34e4$9f348970$dd9d9c50$%szyprowski@samsung.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 8bit
+Received: from smtp-vbr4.xs4all.nl ([194.109.24.24]:3777 "EHLO
+	smtp-vbr4.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756834Ab1F1QUm (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 28 Jun 2011 12:20:42 -0400
+Received: from tschai.localnet (215.80-203-102.nextgentel.com [80.203.102.215])
+	(authenticated bits=0)
+	by smtp-vbr4.xs4all.nl (8.13.8/8.13.8) with ESMTP id p5SGKeHs014539
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-media@vger.kernel.org>; Tue, 28 Jun 2011 18:20:41 +0200 (CEST)
+	(envelope-from hverkuil@xs4all.nl)
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: "linux-media" <linux-media@vger.kernel.org>
+Subject: [PATCH] Fix locking problem in vivi
+Date: Tue, 28 Jun 2011 18:20:40 +0200
+MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201106281820.40189.hverkuil@xs4all.nl>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Mon, 27 Jun 2011 18:09:41 +0200
-Marek Szyprowski <m.szyprowski@samsung.com> wrote:
+Fix sleep-in-atomic-context bug in vivi (you need to run with lock debugging on):
 
-> Thanks for your work! I really appreciate your effort for making the kernel
-> code better. :) However I would like to get some more comments before making
-> the final decision.
+Jun 28 18:14:39 tschai kernel: [   80.970478] BUG: sleeping function called from invalid context at kernel/mutex.c:271
+Jun 28 18:14:39 tschai kernel: [   80.970483] in_atomic(): 0, irqs_disabled(): 1, pid: 2854, name: vivi-000
+Jun 28 18:14:39 tschai kernel: [   80.970485] INFO: lockdep is turned off.
+Jun 28 18:14:39 tschai kernel: [   80.970486] irq event stamp: 0
+Jun 28 18:14:39 tschai kernel: [   80.970487] hardirqs last  enabled at (0): [<          (null)>]           (null)
+Jun 28 18:14:39 tschai kernel: [   80.970490] hardirqs last disabled at (0): [<ffffffff8109a90b>] copy_process+0x61b/0x1440
+Jun 28 18:14:39 tschai kernel: [   80.970495] softirqs last  enabled at (0): [<ffffffff8109a90b>] copy_process+0x61b/0x1440
+Jun 28 18:14:39 tschai kernel: [   80.970498] softirqs last disabled at (0): [<          (null)>]           (null)
+Jun 28 18:14:39 tschai kernel: [   80.970502] Pid: 2854, comm: vivi-000 Tainted: P            3.0.0-rc1-tschai #372
+Jun 28 18:14:39 tschai kernel: [   80.970504] Call Trace:
+Jun 28 18:14:39 tschai kernel: [   80.970509]  [<ffffffff81089be3>] __might_sleep+0xf3/0x130
+Jun 28 18:14:39 tschai kernel: [   80.970512]  [<ffffffff8176967f>] mutex_lock_nested+0x2f/0x60
+Jun 28 18:14:39 tschai kernel: [   80.970517]  [<ffffffffa0acee3e>] vivi_fillbuff+0x20e/0x3f0 [vivi]
+Jun 28 18:14:39 tschai kernel: [   80.970520]  [<ffffffff81407004>] ? do_raw_spin_lock+0x54/0x150
+Jun 28 18:14:39 tschai kernel: [   80.970524]  [<ffffffff8104ef5e>] ? read_tsc+0xe/0x20
+Jun 28 18:14:39 tschai kernel: [   80.970528]  [<ffffffff810c9d87>] ? getnstimeofday+0x57/0xe0
+Jun 28 18:14:39 tschai kernel: [   80.970531]  [<ffffffffa0acf1b1>] vivi_thread+0x191/0x2f0 [vivi]
+Jun 28 18:14:39 tschai kernel: [   80.970534]  [<ffffffff81093aa0>] ? try_to_wake_up+0x2d0/0x2d0
+Jun 28 18:14:39 tschai kernel: [   80.970537]  [<ffffffffa0acf020>] ? vivi_fillbuff+0x3f0/0x3f0 [vivi]
+Jun 28 18:14:39 tschai kernel: [   80.970541]  [<ffffffff810bff46>] kthread+0xb6/0xc0
+Jun 28 18:14:39 tschai kernel: [   80.970544]  [<ffffffff817743e4>] kernel_thread_helper+0x4/0x10
+Jun 28 18:14:39 tschai kernel: [   80.970547]  [<ffffffff8176b4d4>] ? retint_restore_args+0x13/0x13
+Jun 28 18:14:39 tschai kernel: [   80.970550]  [<ffffffff810bfe90>] ? __init_kthread_worker+0x70/0x70
+Jun 28 18:14:39 tschai kernel: [   80.970552]  [<ffffffff817743e0>] ? gs_change+0x13/0x13
 
-That's fine - it *was* an RFC, after all...:)
+Tested with vivi.
 
-> The main difference between buffer_init() and buffer_alloc() is the fact
-> that buffer_init() is called when the buffer has all internal data filled in
-> (like for example index) and, what is more important, memory buffers for all
-> planes are already allocated.
+This bug was introduced in 2.6.39.
 
-I had thought that might be the case, but none of the in-tree drivers
-needed that information.  Obviously, I don't want to break other stuff
-which is coming (that driver *is* headed for mainline, right? :), so the
-idea of simply repurposing buf_init() won't quite work.  Too bad, moving
-it took out a lot of error-handling code.
+Regards,
 
-Could this more involved initialization code move to buf_prepare(),
-perhaps with a flag in the buffer for stuff that only has to happen once?
-Or maybe there could be a highly optional buf_map() (or some such) for
-this kind of special-case driver?  
+	Hans
 
-> I considered similar solution during videobuf2 development, but decided
-> that having access to all information about buffer internals (index, plane
-> addresses) is something that might be really useful for device drivers.
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
 
-I guess the question is: is it sufficiently useful to enough drivers to
-create a separate callback for?  I'm not convinced...but I could certainly
-be wrong about that.
-
-> Creating additional buffer_alloc() and buffer_free() callbacks (and keeping
-> buffer_init and buffer_cleanup) just to make the code nicer was already 
-> pointed to be just an over-engineering.
-
-I don't think there's a need for a buf_free(), given that buf_cleanup() is
-already there.  But I really dislike the "vb2_buffer must be the first
-structure field" requirement; it's fragile in the long term.  The kernel
-has usually gone out of its way to avoid adding that kind of hidden
-constraint.
-
-Oh, well.  I'd like to see the change merged, I think it makes things a
-little better.  But I've said my piece now and don't intend to argue it
-further - I'll keep using vb2 either way :)
-
-Thanks,
-
-jon
+diff --git a/drivers/media/video/vivi.c b/drivers/media/video/vivi.c
+index 2238a61..52eff8b 100644
+--- a/drivers/media/video/vivi.c
++++ b/drivers/media/video/vivi.c
+@@ -524,11 +524,13 @@ static void vivi_thread_tick(struct vivi_dev *dev)
+ 	spin_lock_irqsave(&dev->slock, flags);
+ 	if (list_empty(&dma_q->active)) {
+ 		dprintk(dev, 1, "No active queue to serve\n");
+-		goto unlock;
++		spin_unlock_irqrestore(&dev->slock, flags);
++		return;
+ 	}
+ 
+ 	buf = list_entry(dma_q->active.next, struct vivi_buffer, list);
+ 	list_del(&buf->list);
++	spin_unlock_irqrestore(&dev->slock, flags);
+ 
+ 	do_gettimeofday(&buf->vb.v4l2_buf.timestamp);
+ 
+@@ -538,8 +540,6 @@ static void vivi_thread_tick(struct vivi_dev *dev)
+ 
+ 	vb2_buffer_done(&buf->vb, VB2_BUF_STATE_DONE);
+ 	dprintk(dev, 2, "[%p/%d] done\n", buf, buf->vb.v4l2_buf.index);
+-unlock:
+-	spin_unlock_irqrestore(&dev->slock, flags);
+ }
+ 
+ #define frames_to_ms(frames)					\
