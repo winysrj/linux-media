@@ -1,64 +1,39 @@
 Return-path: <mchehab@pedra>
-Received: from jacques.telenet-ops.be ([195.130.132.50]:53876 "EHLO
-	jacques.telenet-ops.be" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754220Ab1FMRNh (ORCPT
+Received: from mail-vx0-f174.google.com ([209.85.220.174]:46339 "EHLO
+	mail-vx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1759389Ab1F1QtD (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 13 Jun 2011 13:13:37 -0400
-Message-ID: <4DF6453E.6010601@telenet.be>
-Date: Mon, 13 Jun 2011 19:13:34 +0200
-From: Bart Coninckx <bart.coninckx@telenet.be>
+	Tue, 28 Jun 2011 12:49:03 -0400
+Received: by vxb39 with SMTP id 39so289327vxb.19
+        for <linux-media@vger.kernel.org>; Tue, 28 Jun 2011 09:49:01 -0700 (PDT)
 MIME-Version: 1.0
-To: linux-media@vger.kernel.org
-Subject: Re: "dvb_ca adaptor 0: PC card did not respond :(" with Technotrend
- S2-3200
-References: <4DF53E1F.7010903@telenet.be>
-In-Reply-To: <4DF53E1F.7010903@telenet.be>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+In-Reply-To: <4E08FDD8.6090300@helmutauer.de>
+References: <4E08FDD8.6090300@helmutauer.de>
+Date: Tue, 28 Jun 2011 18:49:01 +0200
+Message-ID: <BANLkTi=8TOy87YYxXb=HosHTPw_jEzBBLQ@mail.gmail.com>
+Subject: Re: FM RDS receiver
+From: Markus Rechberger <mrechberger@gmail.com>
+To: Helmut Auer <vdr@helmutauer.de>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=ISO-8859-1
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On 06/13/11 00:30, Bart Coninckx wrote:
-> Hi all,
+On Tue, Jun 28, 2011 at 12:02 AM, Helmut Auer <vdr@helmutauer.de> wrote:
+> Hello List,
 >
->
-> hope you can help me this one, because there's not a whole of info about
-> similar problems to be found.
->
-> I have a Technotrend S2-3200 with CI and on three different distros I
-> get this
->
-> "dvb_ca adaptor 0: PC card did not respond :(
->
->
-> in /var/log/messages.
->
-> I guess this is the reason why I cannot see encrypted channels on Linux.
-> Unencrypted works fine. In Windows XP the cord works fine too.
->
-> I tried Opensuse 11.4, the latest Mythbuntu and the latest Mythdora.
->
-> Can anyone give any hints on how to go about this?
->
->
-> thx!!!
->
-> Bart
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at http://vger.kernel.org/majordomo-info.html
+> Can you recommend any FM receiver card or usb stick currently available in
+> Germany with RDS support ?
 
+We do have some FM Receiver/Transmitters which support RDS, however they
+are still only available upon request at this time.
+Audio is represented by ALSA (snd-usb-audio), radio can be controlled
+via v4l1/v4l2 from userspace.
 
-All,
+Alternatively Sundtek MediaTV Pro also supports RDS and is available
+on the market
+right now (decoders can be requested), audio is represented as OSS,
+although Alsa shouldn't be too difficult using
+the new userspace Alsa interface.
 
-(risking to just talk to myself, but hey, that would not be the first time).
-
-
-I manually reinstalled the latest linuxtv media drivers, but this this 
-does not seem to bring any relieve.
-
-Any ideas much appreciated!
-
-
-B.
+Markus
