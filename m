@@ -1,66 +1,57 @@
 Return-path: <mchehab@pedra>
-Received: from linux-sh.org ([111.68.239.195]:42066 "EHLO linux-sh.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752704Ab1FXGTo (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 24 Jun 2011 02:19:44 -0400
-Date: Fri, 24 Jun 2011 15:19:27 +0900
-From: Paul Mundt <lethal@linux-sh.org>
-To: Geert Uytterhoeven <geert@linux-m68k.org>
-Cc: Florian Tobias Schandinat <FlorianSchandinat@gmx.de>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	linux-fbdev@vger.kernel.org, linux-media@vger.kernel.org,
-	dri-devel@lists.freedesktop.org
-Subject: Re: [PATCH/RFC] fbdev: Add FOURCC-based format configuration API
-Message-ID: <20110624061926.GA26504@linux-sh.org>
-References: <4DDAE63A.3070203@gmx.de> <1308670579-15138-1-git-send-email-laurent.pinchart@ideasonboard.com> <BANLkTim6wUaeZCya=9dMvU7iHj4W4E57Fg@mail.gmail.com> <201106220031.57972.laurent.pinchart@ideasonboard.com> <4E018189.3020305@gmx.de> <BANLkTikMLE=F4OLTRhQ6LYR=d1x6xukJXA@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <BANLkTikMLE=F4OLTRhQ6LYR=d1x6xukJXA@mail.gmail.com>
+Received: from smtp-vbr10.xs4all.nl ([194.109.24.30]:2255 "EHLO
+	smtp-vbr10.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757279Ab1F1L0T (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 28 Jun 2011 07:26:19 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [RFCv2 PATCH 09/13] v4l2-framework.txt: updated v4l2_fh_init documentation.
+Date: Tue, 28 Jun 2011 13:26:01 +0200
+Message-Id: <d67715183a6748170f21e9ebb89e954e6228912e.1309260043.git.hans.verkuil@cisco.com>
+In-Reply-To: <1309260365-4831-1-git-send-email-hverkuil@xs4all.nl>
+References: <1309260365-4831-1-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <3d92b242dcf5e7766d128d6c1f05c0bd837a2633.1309260043.git.hans.verkuil@cisco.com>
+References: <3d92b242dcf5e7766d128d6c1f05c0bd837a2633.1309260043.git.hans.verkuil@cisco.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Thu, Jun 23, 2011 at 06:08:03PM +0200, Geert Uytterhoeven wrote:
-> On Wed, Jun 22, 2011 at 07:45, Florian Tobias Schandinat
-> <FlorianSchandinat@gmx.de> wrote:
-> > On 06/21/2011 10:31 PM, Laurent Pinchart wrote:
-> >> On Tuesday 21 June 2011 22:49:14 Geert Uytterhoeven wrote:
-> >>> As FOURCC values are always 4 ASCII characters (hence all 4 bytes must
-> >>> be non-zero), I don't think there are any conflicts with existing values
-> >>> of
-> >>> nonstd. To make it even safer and easier to parse, you could set bit 31
-> >>> of
-> >>> nonstd as a FOURCC indicator.
-> >>
-> >> I would then create a union between nonstd and fourcc, and document nonstd
-> >> as
-> >> being used for the legacy API only. Most existing drivers use a couple of
-> >> nonstd bits only. The driver that (ab)uses nonstd the most is pxafb and
-> >> uses
-> >> bits 22:0. Bits 31:24 are never used as far as I can tell, so nonstd&
-> >> 0xff000000 != 0 could be used as a FOURCC mode test.
-> >>
-> >> This assumes that FOURCCs will never have their last character set to
-> >> '\0'. Is
-> >> that a safe assumption for the future ?
-> >
-> > Yes, I think. The information I found indicates that space should be used
-> > for padding, so a \0 shouldn't exist.
-> > I think using only the nonstd field and requiring applications to check the
-> > capabilities would be possible, although not fool proof ;)
-> 
-> So we can declare the 8 msb bits of nonstd reserved, and assume FOURCC if
-> any of them is set.
-> 
-> Nicely backwards compatible, as sane drivers should reject nonstd values they
-> don't support (apps _will_ start filling in FOURCC values ignoring capabilities,
-> won't they?).
-> 
-That seems like a reasonable case, but if we're going to do that then
-certainly the nonstd bit encoding needs to be documented and treated as a
-hard ABI.
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-I'm not so sure about the if any bit in the upper byte is set assume
-FOURCC case though, there will presumably be other users in the future
-that will want bits for themselves, too. What exactly was the issue with
-having a FOURCC capability bit in the upper byte?
+v4l2_fh_init now returns void instead of int, updated the doc.
+
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ Documentation/video4linux/v4l2-framework.txt |    8 ++------
+ 1 files changed, 2 insertions(+), 6 deletions(-)
+
+diff --git a/Documentation/video4linux/v4l2-framework.txt b/Documentation/video4linux/v4l2-framework.txt
+index cf21f7a..312a0e2 100644
+--- a/Documentation/video4linux/v4l2-framework.txt
++++ b/Documentation/video4linux/v4l2-framework.txt
+@@ -817,11 +817,7 @@ int my_open(struct file *file)
+ 
+ 	...
+ 
+-	ret = v4l2_fh_init(&my_fh->fh, vfd);
+-	if (ret) {
+-		kfree(my_fh);
+-		return ret;
+-	}
++	v4l2_fh_init(&my_fh->fh, vfd);
+ 
+ 	...
+ 
+@@ -844,7 +840,7 @@ int my_release(struct file *file)
+ 
+ Below is a short description of the v4l2_fh functions used:
+ 
+-int v4l2_fh_init(struct v4l2_fh *fh, struct video_device *vdev)
++void v4l2_fh_init(struct v4l2_fh *fh, struct video_device *vdev)
+ 
+   Initialise the file handle. This *MUST* be performed in the driver's
+   v4l2_file_operations->open() handler.
+-- 
+1.7.1
+
