@@ -1,61 +1,151 @@
 Return-path: <mchehab@pedra>
-Received: from tex.lwn.net ([70.33.254.29]:55062 "EHLO vena.lwn.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751017Ab1F3WSG (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 30 Jun 2011 18:18:06 -0400
-Date: Thu, 30 Jun 2011 16:18:03 -0600
-From: Jonathan Corbet <corbet@lwn.net>
-To: Marek Szyprowski <m.szyprowski@samsung.com>
-Cc: linux-media@vger.kernel.org,
-	'Kyungmin Park' <kyungmin.park@samsung.com>,
-	'Pawel Osciak' <pawel@osciak.com>,
-	'Uwe =?ISO-8859-1?B?S2xlaW5lLUv2bmlnJw==?=
-	<u.kleine-koenig@pengutronix.de>,
-	'Hans Verkuil' <hverkuil@xs4all.nl>,
-	'Marin Mitov' <mitov@issp.bas.bg>,
-	'Laurent Pinchart' <laurent.pinchart@ideasonboard.com>,
-	'Guennadi Liakhovetski' <g.liakhovetski@gmx.de>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>
-Subject: Re: [PATCH/RFC] media: vb2: change queue initialization order
-Message-ID: <20110630161803.04e1db20@bike.lwn.net>
-In-Reply-To: <003501cc3666$5725a230$0570e690$%szyprowski@samsung.com>
-References: <1309340946-5658-1-git-send-email-m.szyprowski@samsung.com>
-	<20110629072627.10081454@bike.lwn.net>
-	<003501cc3666$5725a230$0570e690$%szyprowski@samsung.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 8bit
+Received: from smtp-vbr10.xs4all.nl ([194.109.24.30]:4019 "EHLO
+	smtp-vbr10.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757319Ab1F1L0U (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 28 Jun 2011 07:26:20 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [RFCv2 PATCH 12/13] v4l2-ctrls/v4l2-events: small coding style cleanups
+Date: Tue, 28 Jun 2011 13:26:04 +0200
+Message-Id: <cc47decdce317c84ecfd80b307a59be752142f9b.1309260043.git.hans.verkuil@cisco.com>
+In-Reply-To: <1309260365-4831-1-git-send-email-hverkuil@xs4all.nl>
+References: <1309260365-4831-1-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <3d92b242dcf5e7766d128d6c1f05c0bd837a2633.1309260043.git.hans.verkuil@cisco.com>
+References: <3d92b242dcf5e7766d128d6c1f05c0bd837a2633.1309260043.git.hans.verkuil@cisco.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Wed, 29 Jun 2011 16:10:45 +0200
-Marek Szyprowski <m.szyprowski@samsung.com> wrote:
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-> > I do still wonder why this is an issue - why not pass the buffers through
-> > to the driver at VIDIOC_QBUF time?  I assume there must be a reason for
-> > doing things this way, I'd like to understand what it is.  
-> 
-> I want to delay giving the ownership of the buffers to the driver until it
-> is certain that start_streaming method will be called. This way I achieve
-> a well defined states of the queued buffers:
-> 
-> 1. successful start_streaming() -> the driver is processing the queue buffers
-> 2. unsuccessful start_streaming() -> the driver is responsible to discard all
->    queued buffers
-> 3. stop_streaming() called -> the driver has finished or discarded all queued
->    buffers
+Thanks to Laurent Pinchart <laurent.pinchart@ideasonboard.com>.
 
-So it's a buffer ownership thing.  I wonder if there would be value in
-adding a buf_give_them_all_back_now() callback?  You have an implicit
-change of buffer ownership now that seems easy for drivers to mess up.  It
-might be better to send an explicit signal at such times and, perhaps,
-even require the driver to explicitly hand each buffer back to vb2?  That
-would make the rules clear and give some flexibility - stopping and
-starting streaming without needing to start over with buffers, for example.
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ drivers/media/video/v4l2-ctrls.c |    2 +-
+ drivers/media/video/v4l2-event.c |    6 ++----
+ include/media/v4l2-ctrls.h       |    1 -
+ include/media/v4l2-event.h       |   34 +++++++++++++++++++---------------
+ 4 files changed, 22 insertions(+), 21 deletions(-)
 
-Dunno, I'm just sort of babbling as I think; what's there now clearly
-works.
+diff --git a/drivers/media/video/v4l2-ctrls.c b/drivers/media/video/v4l2-ctrls.c
+index 627a1e4..bc08f86 100644
+--- a/drivers/media/video/v4l2-ctrls.c
++++ b/drivers/media/video/v4l2-ctrls.c
+@@ -586,7 +586,7 @@ static void send_event(struct v4l2_fh *fh, struct v4l2_ctrl *ctrl, u32 changes)
+ 	struct v4l2_subscribed_event *sev;
+ 
+ 	if (list_empty(&ctrl->ev_subs))
+-			return;
++		return;
+ 	fill_event(&ev, ctrl, changes);
+ 
+ 	list_for_each_entry(sev, &ctrl->ev_subs, node)
+diff --git a/drivers/media/video/v4l2-event.c b/drivers/media/video/v4l2-event.c
+index b1c19fc..53b190c 100644
+--- a/drivers/media/video/v4l2-event.c
++++ b/drivers/media/video/v4l2-event.c
+@@ -100,10 +100,9 @@ static struct v4l2_subscribed_event *v4l2_event_subscribed(
+ 
+ 	assert_spin_locked(&fh->vdev->fh_lock);
+ 
+-	list_for_each_entry(sev, &fh->subscribed, list) {
++	list_for_each_entry(sev, &fh->subscribed, list)
+ 		if (sev->type == type && sev->id == id)
+ 			return sev;
+-	}
+ 
+ 	return NULL;
+ }
+@@ -169,9 +168,8 @@ void v4l2_event_queue(struct video_device *vdev, const struct v4l2_event *ev)
+ 
+ 	spin_lock_irqsave(&vdev->fh_lock, flags);
+ 
+-	list_for_each_entry(fh, &vdev->fh_list, list) {
++	list_for_each_entry(fh, &vdev->fh_list, list)
+ 		__v4l2_event_queue_fh(fh, ev, &timestamp);
+-	}
+ 
+ 	spin_unlock_irqrestore(&vdev->fh_lock, flags);
+ }
+diff --git a/include/media/v4l2-ctrls.h b/include/media/v4l2-ctrls.h
+index 5fc3a2d..0a22209 100644
+--- a/include/media/v4l2-ctrls.h
++++ b/include/media/v4l2-ctrls.h
+@@ -31,7 +31,6 @@ struct v4l2_ctrl_helper;
+ struct v4l2_ctrl;
+ struct video_device;
+ struct v4l2_subdev;
+-struct v4l2_event_subscription;
+ struct v4l2_subscribed_event;
+ struct v4l2_fh;
+ 
+diff --git a/include/media/v4l2-event.h b/include/media/v4l2-event.h
+index 6da793f..7abeb39 100644
+--- a/include/media/v4l2-event.h
++++ b/include/media/v4l2-event.h
+@@ -33,41 +33,45 @@ struct v4l2_fh;
+ struct v4l2_subscribed_event;
+ struct video_device;
+ 
++/** struct v4l2_kevent - Internal kernel event struct.
++  * @list:	List node for the v4l2_fh->available list.
++  * @sev:	Pointer to parent v4l2_subscribed_event.
++  * @event:	The event itself.
++  */
+ struct v4l2_kevent {
+-	/* list node for the v4l2_fh->available list */
+ 	struct list_head	list;
+-	/* pointer to parent v4l2_subscribed_event */
+ 	struct v4l2_subscribed_event *sev;
+-	/* event itself */
+ 	struct v4l2_event	event;
+ };
+ 
++/** struct v4l2_subscribed_event - Internal struct representing a subscribed event.
++  * @list:	List node for the v4l2_fh->subscribed list.
++  * @type:	Event type.
++  * @id:	Associated object ID (e.g. control ID). 0 if there isn't any.
++  * @flags:	Copy of v4l2_event_subscription->flags.
++  * @fh:	Filehandle that subscribed to this event.
++  * @node:	List node that hooks into the object's event list (if there is one).
++  * @replace:	Optional callback that can replace event 'old' with event 'new'.
++  * @merge:	Optional callback that can merge event 'old' into event 'new'.
++  * @elems:	The number of elements in the events array.
++  * @first:	The index of the events containing the oldest available event.
++  * @in_use:	The number of queued events.
++  * @events:	An array of @elems events.
++  */
+ struct v4l2_subscribed_event {
+-	/* list node for the v4l2_fh->subscribed list */
+ 	struct list_head	list;
+-	/* event type */
+ 	u32			type;
+-	/* associated object ID (e.g. control ID) */
+ 	u32			id;
+-	/* copy of v4l2_event_subscription->flags */
+ 	u32			flags;
+-	/* filehandle that subscribed to this event */
+ 	struct v4l2_fh		*fh;
+-	/* list node that hooks into the object's event list (if there is one) */
+ 	struct list_head	node;
+-	/* Optional callback that can replace event 'old' with event 'new'. */
+ 	void			(*replace)(struct v4l2_event *old,
+ 					   const struct v4l2_event *new);
+-	/* Optional callback that can merge event 'old' into event 'new'. */
+ 	void			(*merge)(const struct v4l2_event *old,
+ 					 struct v4l2_event *new);
+-	/* the number of elements in the events array */
+ 	unsigned		elems;
+-	/* the index of the events containing the oldest available event */
+ 	unsigned		first;
+-	/* the number of queued events */
+ 	unsigned		in_use;
+-	/* an array of elems events */
+ 	struct v4l2_kevent	events[];
+ };
+ 
+-- 
+1.7.1
 
-Thanks,
-
-jon
