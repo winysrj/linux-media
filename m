@@ -1,239 +1,77 @@
 Return-path: <mchehab@pedra>
-Received: from smtp-vbr1.xs4all.nl ([194.109.24.21]:4440 "EHLO
-	smtp-vbr1.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755402Ab1FGPFj (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 7 Jun 2011 11:05:39 -0400
+Received: from smtp-vbr10.xs4all.nl ([194.109.24.30]:3056 "EHLO
+	smtp-vbr10.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757322Ab1F1L0V (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 28 Jun 2011 07:26:21 -0400
 From: Hans Verkuil <hverkuil@xs4all.nl>
 To: linux-media@vger.kernel.org
 Cc: Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [RFCv3 PATCH 15/18] V4L2 spec: document control events.
-Date: Tue,  7 Jun 2011 17:05:20 +0200
-Message-Id: <98e709029bba1bffd345d60f8a5f14b869f6a11b.1307458245.git.hans.verkuil@cisco.com>
-In-Reply-To: <1307459123-17810-1-git-send-email-hverkuil@xs4all.nl>
-References: <1307459123-17810-1-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <a1daecb26b464ddd980297783d04941f1f34666b.1307458245.git.hans.verkuil@cisco.com>
-References: <a1daecb26b464ddd980297783d04941f1f34666b.1307458245.git.hans.verkuil@cisco.com>
+Subject: [RFCv2 PATCH 13/13] v4l2-event.h: add overview documentation to the header.
+Date: Tue, 28 Jun 2011 13:26:05 +0200
+Message-Id: <671351808887ca28ad4b844b343fefc5fa360641.1309260043.git.hans.verkuil@cisco.com>
+In-Reply-To: <1309260365-4831-1-git-send-email-hverkuil@xs4all.nl>
+References: <1309260365-4831-1-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <3d92b242dcf5e7766d128d6c1f05c0bd837a2633.1309260043.git.hans.verkuil@cisco.com>
+References: <3d92b242dcf5e7766d128d6c1f05c0bd837a2633.1309260043.git.hans.verkuil@cisco.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
 From: Hans Verkuil <hans.verkuil@cisco.com>
 
+It's getting confusing who is linking to what, so add an overview at
+the start of the header.
+
 Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
 ---
- Documentation/DocBook/media/v4l/vidioc-dqevent.xml |   17 +++-
- .../DocBook/media/v4l/vidioc-subscribe-event.xml   |  142 +++++++++++++++++++-
- 2 files changed, 157 insertions(+), 2 deletions(-)
+ include/media/v4l2-event.h |   34 ++++++++++++++++++++++++++++++++++
+ 1 files changed, 34 insertions(+), 0 deletions(-)
 
-diff --git a/Documentation/DocBook/media/v4l/vidioc-dqevent.xml b/Documentation/DocBook/media/v4l/vidioc-dqevent.xml
-index 4e0a7cc..b8c4f76 100644
---- a/Documentation/DocBook/media/v4l/vidioc-dqevent.xml
-+++ b/Documentation/DocBook/media/v4l/vidioc-dqevent.xml
-@@ -81,6 +81,13 @@
- 	  </row>
- 	  <row>
- 	    <entry></entry>
-+	    <entry>&v4l2-event-ctrl;</entry>
-+            <entry><structfield>ctrl</structfield></entry>
-+	    <entry>Event data for event V4L2_EVENT_CTRL.
-+            </entry>
-+	  </row>
-+	  <row>
-+	    <entry></entry>
- 	    <entry>__u8</entry>
-             <entry><structfield>data</structfield>[64]</entry>
- 	    <entry>Event data. Defined by the event type. The union
-@@ -110,8 +117,16 @@
- 	    <entry>Event timestamp.</entry>
- 	  </row>
- 	  <row>
-+	    <entry>u32</entry>
-+	    <entry><structfield>id</structfield></entry>
-+            <entry></entry>
-+	    <entry>The ID associated with the event source. If the event does not
-+		have an associated ID (this depends on the event type), then this
-+		is 0.</entry>
-+	  </row>
-+	  <row>
- 	    <entry>__u32</entry>
--	    <entry><structfield>reserved</structfield>[9]</entry>
-+	    <entry><structfield>reserved</structfield>[8]</entry>
-             <entry></entry>
- 	    <entry>Reserved for future extensions. Drivers must set
- 	    the array to zero.</entry>
-diff --git a/Documentation/DocBook/media/v4l/vidioc-subscribe-event.xml b/Documentation/DocBook/media/v4l/vidioc-subscribe-event.xml
-index 8b50179..975f603 100644
---- a/Documentation/DocBook/media/v4l/vidioc-subscribe-event.xml
-+++ b/Documentation/DocBook/media/v4l/vidioc-subscribe-event.xml
-@@ -64,7 +64,19 @@
- 	  </row>
- 	  <row>
- 	    <entry>__u32</entry>
--	    <entry><structfield>reserved</structfield>[7]</entry>
-+	    <entry><structfield>id</structfield></entry>
-+	    <entry>ID of the event source. If there is no ID associated with
-+		the event source, then set this to 0. Whether or not an event
-+		needs an ID depends on the event type.</entry>
-+	  </row>
-+	  <row>
-+	    <entry>__u32</entry>
-+	    <entry><structfield>flags</structfield></entry>
-+	    <entry>Event flags, see <xref linkend="event-flags" />.</entry>
-+	  </row>
-+	  <row>
-+	    <entry>__u32</entry>
-+	    <entry><structfield>reserved</structfield>[5]</entry>
- 	    <entry>Reserved for future extensions. Drivers and applications
- 	    must set the array to zero.</entry>
- 	  </row>
-@@ -100,6 +112,23 @@
- 	    </entry>
- 	  </row>
- 	  <row>
-+	    <entry><constant>V4L2_EVENT_CTRL</constant></entry>
-+	    <entry>3</entry>
-+	    <entry>This event requires that the <structfield>id</structfield>
-+		matches the control ID from which you want to receive events.
-+		This event is triggered if the control's value changes, if a
-+		button control is pressed or if the control's flags change.
-+	    	This event has &v4l2-event-ctrl; associated with it. This struct
-+		contains much of the same information as &v4l2-queryctrl; and
-+		&v4l2-control;.
-+
-+		If the event is generated due to a call to &VIDIOC-S-CTRL; or
-+		&VIDIOC-S-EXT-CTRLS;, then the event will not be sent to
-+		the file handle that called the ioctl function. This prevents
-+		nasty feedback loops.
-+	    </entry>
-+	  </row>
-+	  <row>
- 	    <entry><constant>V4L2_EVENT_PRIVATE_START</constant></entry>
- 	    <entry>0x08000000</entry>
- 	    <entry>Base event number for driver-private events.</entry>
-@@ -108,6 +137,23 @@
-       </tgroup>
-     </table>
+diff --git a/include/media/v4l2-event.h b/include/media/v4l2-event.h
+index 7abeb39..5f14e88 100644
+--- a/include/media/v4l2-event.h
++++ b/include/media/v4l2-event.h
+@@ -29,6 +29,40 @@
+ #include <linux/videodev2.h>
+ #include <linux/wait.h>
  
-+    <table pgwide="1" frame="none" id="event-flags">
-+      <title>Event Flags</title>
-+      <tgroup cols="3">
-+	&cs-def;
-+	<tbody valign="top">
-+	  <row>
-+	    <entry><constant>V4L2_EVENT_SUB_FL_SEND_INITIAL</constant></entry>
-+	    <entry>0x0001</entry>
-+	    <entry>When this event is subscribed an initial event will be sent
-+		containing the current status. This only makes sense for events
-+		that are triggered by a status change. Other events will ignore
-+		this flag.</entry>
-+	  </row>
-+	</tbody>
-+      </tgroup>
-+    </table>
++/*
++ * Overview:
++ *
++ * Events are subscribed per-filehandle. An event specification consists of a
++ * type and is optionally associated with an object identified through the
++ * 'id' field. So an event is uniquely identified by the (type, id) tuple.
++ *
++ * The v4l2-fh struct has a list of subscribed events. The v4l2_subscribed_event
++ * struct is added to that list, one for every subscribed event.
++ *
++ * Each v4l2_subscribed_event struct ends with an array of v4l2_kevent structs.
++ * This array (ringbuffer, really) is used to store any events raised by the
++ * driver. The v4l2_kevent struct links into the 'available' list of the
++ * v4l2_fh struct so VIDIOC_DQEVENT will know which event to dequeue first.
++ *
++ * Finally, if the event subscription is associated with a particular object
++ * such as a V4L2 control, then that object needs to know about that as well
++ * so that an event can be raised by that object. So the 'node' field can
++ * be used to link the v4l2_subscribed_event struct into a list of that
++ * object.
++ *
++ * So to summarize:
++ *
++ * struct v4l2_fh has two lists: one of the subscribed events, and one of the
++ * pending events.
++ *
++ * struct v4l2_subscribed_event has a ringbuffer of raised (pending) events of
++ * that particular type.
++ *
++ * If struct v4l2_subscribed_event is associated with a specific object, then
++ * that object will have an internal list of struct v4l2_subscribed_event so
++ * it knows who subscribed an event to that object.
++ */
 +
-     <table frame="none" pgwide="1" id="v4l2-event-vsync">
-       <title>struct <structname>v4l2_event_vsync</structname></title>
-       <tgroup cols="3">
-@@ -122,6 +168,100 @@
-       </tgroup>
-     </table>
- 
-+    <table frame="none" pgwide="1" id="v4l2-event-ctrl">
-+      <title>struct <structname>v4l2_event_ctrl</structname></title>
-+      <tgroup cols="4">
-+	&cs-str;
-+	<tbody valign="top">
-+	  <row>
-+	    <entry>__u32</entry>
-+	    <entry><structfield>changes</structfield></entry>
-+	    <entry></entry>
-+	    <entry>A bitmask that tells what has changed. See <xref linkend="changes-flags" />.</entry>
-+	  </row>
-+	  <row>
-+	    <entry>__u32</entry>
-+	    <entry><structfield>type</structfield></entry>
-+	    <entry></entry>
-+	    <entry>The type of the control. See &v4l2-ctrl-type;.</entry>
-+	  </row>
-+	  <row>
-+	    <entry>union (anonymous)</entry>
-+	    <entry></entry>
-+	    <entry></entry>
-+	    <entry></entry>
-+	  </row>
-+	  <row>
-+	    <entry></entry>
-+	    <entry>__s32</entry>
-+	    <entry><structfield>value</structfield></entry>
-+	    <entry>The 32-bit value of the control for 32-bit control types.
-+		This is 0 for string controls since the value of a string
-+		cannot be passed using &VIDIOC-DQEVENT;.</entry>
-+	  </row>
-+	  <row>
-+	    <entry></entry>
-+	    <entry>__s64</entry>
-+	    <entry><structfield>value64</structfield></entry>
-+	    <entry>The 64-bit value of the control for 64-bit control types.</entry>
-+	  </row>
-+	  <row>
-+	    <entry>__u32</entry>
-+	    <entry><structfield>flags</structfield></entry>
-+	    <entry></entry>
-+	    <entry>The control flags. See <xref linkend="control-flags" />.</entry>
-+	  </row>
-+	  <row>
-+	    <entry>__s32</entry>
-+	    <entry><structfield>minimum</structfield></entry>
-+	    <entry></entry>
-+	    <entry>The minimum value of the control. See &v4l2-queryctrl;.</entry>
-+	  </row>
-+	  <row>
-+	    <entry>__s32</entry>
-+	    <entry><structfield>maximum</structfield></entry>
-+	    <entry></entry>
-+	    <entry>The maximum value of the control. See &v4l2-queryctrl;.</entry>
-+	  </row>
-+	  <row>
-+	    <entry>__s32</entry>
-+	    <entry><structfield>step</structfield></entry>
-+	    <entry></entry>
-+	    <entry>The step value of the control. See &v4l2-queryctrl;.</entry>
-+	  </row>
-+	  <row>
-+	    <entry>__s32</entry>
-+	    <entry><structfield>default_value</structfield></entry>
-+	    <entry></entry>
-+	    <entry>The default value value of the control. See &v4l2-queryctrl;.</entry>
-+	  </row>
-+	</tbody>
-+      </tgroup>
-+    </table>
-+
-+    <table pgwide="1" frame="none" id="changes-flags">
-+      <title>Changes</title>
-+      <tgroup cols="3">
-+	&cs-def;
-+	<tbody valign="top">
-+	  <row>
-+	    <entry><constant>V4L2_EVENT_CTRL_CH_VALUE</constant></entry>
-+	    <entry>0x0001</entry>
-+	    <entry>This control event was triggered because the value of the control
-+		changed. Special case: if a button control is pressed, then this
-+		event is sent as well, even though there is not explicit value
-+		associated with a button control.</entry>
-+	  </row>
-+	  <row>
-+	    <entry><constant>V4L2_EVENT_CTRL_CH_FLAGS</constant></entry>
-+	    <entry>0x0002</entry>
-+	    <entry>This control event was triggered because the control flags
-+		changed.</entry>
-+	  </row>
-+	</tbody>
-+      </tgroup>
-+    </table>
-+
-   </refsect1>
- </refentry>
- <!--
+ struct v4l2_fh;
+ struct v4l2_subscribed_event;
+ struct video_device;
 -- 
 1.7.1
 
