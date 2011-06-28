@@ -1,158 +1,174 @@
 Return-path: <mchehab@pedra>
-Received: from mx1.redhat.com ([209.132.183.28]:55945 "EHLO mx1.redhat.com"
+Received: from mx1.redhat.com ([209.132.183.28]:34509 "EHLO mx1.redhat.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753489Ab1FJHTv (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 10 Jun 2011 03:19:51 -0400
-Message-ID: <4DF1C57F.10801@redhat.com>
-Date: Fri, 10 Jun 2011 09:19:27 +0200
-From: Hans de Goede <hdegoede@redhat.com>
-MIME-Version: 1.0
-To: Sarah Sharp <sarah.a.sharp@linux.intel.com>
-CC: linux-usb@vger.kernel.org, linux-media@vger.kernel.org,
-	linux-kernel@vger.kernel.org, libusb-devel@lists.sourceforge.net,
-	Alexander Graf <agraf@suse.de>,
-	Gerd Hoffmann <kraxel@redhat.com>, hector@marcansoft.com,
-	Jan Kiszka <jan.kiszka@siemens.com>,
-	Stefan Hajnoczi <stefanha@linux.vnet.ibm.com>,
-	pbonzini@redhat.com, Anthony Liguori <aliguori@us.ibm.com>,
-	Jes Sorensen <Jes.Sorensen@redhat.com>,
-	Alan Stern <stern@rowland.harvard.edu>,
-	Oliver Neukum <oliver@neukum.org>, Greg KH <greg@kroah.com>,
-	Felipe Balbi <balbi@ti.com>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Clemens Ladisch <clemens@ladisch.de>,
-	Jaroslav Kysela <perex@perex.cz>, Takashi Iwai <tiwai@suse.de>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Subject: Re: USB mini-summit at LinuxCon Vancouver
-References: <20110610002103.GA7169@xanatos>
-In-Reply-To: <20110610002103.GA7169@xanatos>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+	id S1758913Ab1F1QcQ (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 28 Jun 2011 12:32:16 -0400
+Date: Mon, 27 Jun 2011 23:17:35 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	LKML <linux-kernel@vger.kernel.org>
+Subject: [PATCHv2 00/13] Remove linux/version.h from most drivers/media/
+Message-ID: <20110627231735.3682c84a@pedra>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
+To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Hi,
+At the V4L2 API, one of the fields of VIDIOC_QUERYCAP requires the usage
+of KERNEL_VERSION macro, in order to provide the driver version. However,
+this is not handled consistently across subsystems. There are very few
+drivers that take it seriously.
 
-On 06/10/2011 02:21 AM, Sarah Sharp wrote:
-> I'm pleased to announce a USB mini-summit at LinuxCon Vancouver.
->
-> What:	USB mini-summit
-> When:	Tuesday, August 16th, all day
-> Where:	At the conference venue, room TBD pending confirmation from
-> 	Angela Brown.
->
-> Proposed topics include USB virtualization, and improved bandwidth APIs
-> between the USB core and drivers (especially webcam drivers).  See the
-> detailed topic list below.  Anyone is also welcome to propose or show up
-> with a USB related topic.  MUSB?  USB 3.0 gadget drivers?  USB-IP?
->
+So, instead of the current way, let's replace it by a subsystem version.
+After this patch series, only 4 drivers will keep including linux/version.h
+on their c files, as they don't use the V4L2 core ioctl handler
+(uvc, pvrusb2, sn9c102 and et61x251).
 
-I would like to give a short presentation on / demo off the usb redirection
-over the network (USB-IP replacement with a less dumb protocol) I've been
-working on, followed by a questions and answers session.
+After this patch series, if VIDIOC_QUERYCAP returns version 3.x.y,
+with x > 0, then userspace applications can be sure that the V4L2 core
+is using V4L2 API version 3.x.y.
 
-For those who want to give this a try now, see:
-http://hansdegoede.livejournal.com/9682.html
+-
 
-Sheets from the presentation I gave on this at FOSDEM:
-http://people.fedoraproject.org/~jwrdegoede/usb-redir.pdf
+The version 2 of this patch series removes the patches that were
+replacing -EINVAL error code when an ioctl is not implemented, as
+more changes will likely be needed at the DocBook and on drivers,
+in order to fix the inconsistencies. I'll be working on that and
+submit those changes later.
 
-> The USB mini-summit does overlap with the virtualization mini-summit by
-> a day, but I'm hoping we can schedule talks so some of the
-> virtualization folks can make it to the USB mini-summit.  The other
-> option was on Friday during the conference which was not ideal.
->
-> Proposed topics:
->
-> Topic 1
-> -------
->
-> The KVM folks suggested that it would be good to get USB and
-> virtualization developers together to talk about how to virtualize the
-> xHCI host controller.  The xHCI spec architect worked closely with
-> VMWare to get some extra goodies in the spec to help virtualization, and
-> I'd like to see the other virtualization developers take advantage of
-> that.  I'd also like us to hash out any issues they have been finding in
-> the USB core or xHCI driver during the virtualization effort.
+Per Jean-Francois request, I broke the gspca patch into a separate
+one, and simplified the info() call.
 
-I'm not really happy with how the management / hand over of userspace
-to kernel space drivers and vice versa works. This is a problem when
-doing usb-redirection to a virtual machine. I think this is best discussed
-in a separate thread, and then if needed further discussed during the
-mini summit. I'll send a mail on this shortly. I'll use the same address
-list as this mail, except that I'm going to cut linux-kernel from the CC list.
+Also added Hans ack into the patch series.
 
+Mauro Carvalho Chehab (13):
+  [media] v4l2-ioctl: Add a default value for kernel version
+  [media] drxd, siano: Remove unused include linux/version.h
+  [media] Stop using linux/version.h on most video drivers
+  [media] pwc: Use the default version for VIDIOC_QUERYCAP
+  [media] ivtv,cx18: Use default version control for VIDIOC_QUERYCAP
+  [media] et61x251: Use LINUX_VERSION_CODE for VIDIOC_QUERYCAP
+  [media] pvrusb2: Use LINUX_VERSION_CODE for VIDIOC_QUERYCAP
+  [media] sn9c102: Use LINUX_VERSION_CODE for VIDIOC_QUERYCAP
+  [media] uvcvideo: Use LINUX_VERSION_CODE for VIDIOC_QUERYCAP
+  [media] gspca: don't include linux/version.h
+  [media] Stop using linux/version.h the remaining video drivers
+  [media] radio: Use the subsystem version control for VIDIOC_QUERYCAP
+  [media] DocBook/v4l: Document the new system-wide version behavior
 
-> Topic 2
-> -------
->
-> I'd also like to get the V4L and audio developers who work with USB
-> devices together with the core USB folks to talk about bandwidth
-> management under xHCI.
->
-> One of the issues is that since the xHCI hardware does bandwidth
-> management, not the xHCI driver, a schedule that will take too much
-> bandwidth will get rejected much sooner than any USB driver currently
-> expects (during a call to usb_set_interface).  This poses issues, since
-> most USB video drivers negotiate the video size and frame rate after
-> they call usb_set_interface, so they don't know whether they can fall
-> back to a less bandwidth-intensive setting.  Currently, they just submit
-> URBs with less and less bandwidth until one interval setting gets
-> accepted that won't work under xHCI.
->
-> A second issue is that that some drivers need less bandwidth than the
-> device advertises, and the xHCI driver currently uses whatever periodic
-> interval the device advertises in its descriptors.  This is not what the
-> video/audio driver wants, especially in the case of buggy high speed
-> devices that advertise the interval in frames, not microframes.  There
-> needs to be some way for the drivers to communicate their bandwidth
-> needs to the USB core.  We've known about this issue for a while, and I
-> think it's time to get everyone in the same room and hash out an API.
+ Documentation/DocBook/media/v4l/common.xml         |   10 ++++++++-
+ Documentation/DocBook/media/v4l/v4l2.xml           |    6 +++++
+ .../DocBook/media/v4l/vidioc-querycap.xml          |   15 ++++++++-----
+ drivers/media/dvb/frontends/drxd_hard.c            |    1 -
+ drivers/media/dvb/siano/smscoreapi.h               |    1 -
+ drivers/media/radio/dsbr100.c                      |    7 +----
+ drivers/media/radio/radio-aimslab.c                |    5 +---
+ drivers/media/radio/radio-aztech.c                 |    5 +---
+ drivers/media/radio/radio-cadet.c                  |    5 +---
+ drivers/media/radio/radio-gemtek.c                 |    7 +----
+ drivers/media/radio/radio-maxiradio.c              |   10 +++-----
+ drivers/media/radio/radio-mr800.c                  |    6 +---
+ drivers/media/radio/radio-rtrack2.c                |    5 +---
+ drivers/media/radio/radio-sf16fmi.c                |    5 +---
+ drivers/media/radio/radio-tea5764.c                |    6 +---
+ drivers/media/radio/radio-terratec.c               |    5 +---
+ drivers/media/radio/radio-timb.c                   |    3 +-
+ drivers/media/radio/radio-trust.c                  |    5 +---
+ drivers/media/radio/radio-typhoon.c                |    9 +++----
+ drivers/media/radio/radio-zoltrix.c                |    5 +---
+ drivers/media/radio/si470x/radio-si470x-i2c.c      |    4 +--
+ drivers/media/radio/si470x/radio-si470x-usb.c      |    2 -
+ drivers/media/radio/si470x/radio-si470x.h          |    1 -
+ drivers/media/radio/wl128x/fmdrv.h                 |    5 +---
+ drivers/media/radio/wl128x/fmdrv_v4l2.c            |    1 -
+ drivers/media/video/arv.c                          |    5 +--
+ drivers/media/video/au0828/au0828-core.c           |    1 +
+ drivers/media/video/au0828/au0828-video.c          |    5 ----
+ drivers/media/video/bt8xx/bttv-driver.c            |   14 +++---------
+ drivers/media/video/bt8xx/bttvp.h                  |    3 --
+ drivers/media/video/bw-qcam.c                      |    3 +-
+ drivers/media/video/c-qcam.c                       |    3 +-
+ drivers/media/video/cpia2/cpia2.h                  |    5 ----
+ drivers/media/video/cpia2/cpia2_v4l.c              |   12 +++-------
+ drivers/media/video/cx18/cx18-driver.h             |    1 -
+ drivers/media/video/cx18/cx18-ioctl.c              |    1 -
+ drivers/media/video/cx18/cx18-version.h            |    8 +------
+ drivers/media/video/cx231xx/cx231xx-video.c        |   14 +++---------
+ drivers/media/video/cx231xx/cx231xx.h              |    1 -
+ drivers/media/video/cx23885/altera-ci.c            |    1 -
+ drivers/media/video/cx23885/cx23885-417.c          |    1 -
+ drivers/media/video/cx23885/cx23885-core.c         |   13 ++---------
+ drivers/media/video/cx23885/cx23885-video.c        |    1 -
+ drivers/media/video/cx23885/cx23885.h              |    3 +-
+ drivers/media/video/cx88/cx88-alsa.c               |   19 +++--------------
+ drivers/media/video/cx88/cx88-blackbird.c          |   20 ++----------------
+ drivers/media/video/cx88/cx88-dvb.c                |   18 ++--------------
+ drivers/media/video/cx88/cx88-mpeg.c               |   11 ++-------
+ drivers/media/video/cx88/cx88-video.c              |   21 ++-----------------
+ drivers/media/video/cx88/cx88.h                    |    4 +-
+ drivers/media/video/davinci/vpif_capture.c         |    9 ++-----
+ drivers/media/video/davinci/vpif_capture.h         |    7 +-----
+ drivers/media/video/davinci/vpif_display.c         |    9 ++-----
+ drivers/media/video/davinci/vpif_display.h         |    8 +------
+ drivers/media/video/em28xx/em28xx-video.c          |   14 ++++--------
+ drivers/media/video/et61x251/et61x251.h            |    1 -
+ drivers/media/video/et61x251/et61x251_core.c       |    6 ++--
+ drivers/media/video/fsl-viu.c                      |   10 +-------
+ drivers/media/video/gspca/gl860/gl860.h            |    1 -
+ drivers/media/video/gspca/gspca.c                  |   12 +++-------
+ drivers/media/video/hdpvr/hdpvr-core.c             |    1 +
+ drivers/media/video/hdpvr/hdpvr-video.c            |    2 -
+ drivers/media/video/hdpvr/hdpvr.h                  |    6 -----
+ drivers/media/video/ivtv/ivtv-driver.h             |    1 -
+ drivers/media/video/ivtv/ivtv-ioctl.c              |    1 -
+ drivers/media/video/ivtv/ivtv-version.h            |    7 +-----
+ drivers/media/video/m5mols/m5mols_capture.c        |    2 -
+ drivers/media/video/m5mols/m5mols_core.c           |    1 -
+ drivers/media/video/mem2mem_testdev.c              |    4 +--
+ drivers/media/video/mx1_camera.c                   |    5 +--
+ drivers/media/video/mx2_camera.c                   |    5 +--
+ drivers/media/video/mx3_camera.c                   |    3 +-
+ drivers/media/video/omap1_camera.c                 |    5 +--
+ drivers/media/video/omap24xxcam.c                  |    5 +--
+ drivers/media/video/omap3isp/isp.c                 |    1 +
+ drivers/media/video/omap3isp/ispvideo.c            |    1 -
+ drivers/media/video/omap3isp/ispvideo.h            |    3 +-
+ drivers/media/video/pms.c                          |    4 +--
+ drivers/media/video/pvrusb2/pvrusb2-main.c         |    1 +
+ drivers/media/video/pvrusb2/pvrusb2-v4l2.c         |    2 +-
+ drivers/media/video/pwc/pwc-ioctl.h                |    1 -
+ drivers/media/video/pwc/pwc-v4l.c                  |    1 -
+ drivers/media/video/pwc/pwc.h                      |    7 +-----
+ drivers/media/video/pxa_camera.c                   |    5 +--
+ drivers/media/video/s2255drv.c                     |   15 +++----------
+ drivers/media/video/s5p-fimc/fimc-capture.c        |    2 -
+ drivers/media/video/s5p-fimc/fimc-core.c           |    3 +-
+ drivers/media/video/saa7134/saa7134-core.c         |   12 +++-------
+ drivers/media/video/saa7134/saa7134-empress.c      |    1 -
+ drivers/media/video/saa7134/saa7134-video.c        |    2 -
+ drivers/media/video/saa7134/saa7134.h              |    3 +-
+ drivers/media/video/saa7164/saa7164.h              |    1 -
+ drivers/media/video/sh_mobile_ceu_camera.c         |    3 +-
+ drivers/media/video/sh_vou.c                       |    3 +-
+ drivers/media/video/sn9c102/sn9c102.h              |    1 -
+ drivers/media/video/sn9c102/sn9c102_core.c         |    6 ++--
+ drivers/media/video/timblogiw.c                    |    1 -
+ drivers/media/video/tlg2300/pd-common.h            |    1 -
+ drivers/media/video/tlg2300/pd-main.c              |    1 +
+ drivers/media/video/tlg2300/pd-radio.c             |    2 -
+ drivers/media/video/usbvision/usbvision-video.c    |   12 +----------
+ drivers/media/video/uvc/uvc_driver.c               |    3 +-
+ drivers/media/video/uvc/uvc_v4l2.c                 |    2 +-
+ drivers/media/video/uvc/uvcvideo.h                 |    3 +-
+ drivers/media/video/v4l2-ioctl.c                   |    2 +
+ drivers/media/video/vino.c                         |    5 +---
+ drivers/media/video/vivi.c                         |   14 +++---------
+ drivers/media/video/w9966.c                        |    4 +--
+ drivers/media/video/zoran/zoran.h                  |    4 ---
+ drivers/media/video/zoran/zoran_card.c             |    7 ++++-
+ drivers/media/video/zoran/zoran_driver.c           |    3 --
+ drivers/media/video/zr364xx.c                      |    6 +---
+ 112 files changed, 169 insertions(+), 426 deletions(-)
 
-Interesting, being able to tell the core how much bandwidth a device
-will actually use (versus what it claims as maxpacketsize in its
-descriptors) is something which we really need. I know of at least
-2 usb1 webcam chipsets (and drivers) which have only 1 altsetting which
-claim 1023 bytes maxpacketsize. But they also have a register which
-allows the driver to configure how large the largest (iso) packet it
-sends will actually be.
-
-Currently these drivers have this "beauty" to be able to tell the
-linux usb core that they won't be using 1023 as maxpacketsize but
-something else, and thus function without needing full usb1 bandwidth:
-
-struct usb_host_interface *alt;
-alt = &gspca_dev->dev->config->intf_cache[0]->altsetting[1];
-alt->endpoint[0].desc.wMaxPacketSize = cpu_to_le16(packet_size);
-ret = usb_set_interface(gspca_dev->dev, gspca_dev->iface, 1);
-
-Yes they are overwriting the kernels cached descriptors ...
-
-###
-
-Something which I would also like to bring to everyone's attention
-is that we really need to fix the ehci schedule code wrt scheduling
-usb1 transfers over usb2 hubs.
-
-The current code is very broken when it comes to periodic transfers,
-it basically disallows using the last microframe (let alone the
-crossing of the frame boundary and using the first microframe of
-the next frame).
-
-This means that trying to submit isoc transfers with a size of 1023
-will just plain fail, even if this is the only device on the entire
-bus. This is one of the reasons I ended up doing the hack above, so
-that these devices will at least work (be it at a decreased framerate)
-through a usb2 hub.
-
-Things become even messier when the device has a build in usb audio
-microphone, often this will just not work.
-
-Finally fixing this has become more important now then ever since
-sandybridge machines (and maybe generation one core i# machines too,
-I don't know) no longer have a companion controller, but instead
-have an integrated usb2 hub.
-
-Regards,
-
-Hans
