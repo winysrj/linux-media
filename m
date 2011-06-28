@@ -1,55 +1,71 @@
 Return-path: <mchehab@pedra>
-Received: from smtp-vbr18.xs4all.nl ([194.109.24.38]:2300 "EHLO
-	smtp-vbr18.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757689Ab1FKNe5 (ORCPT
+Received: from mail1.matrix-vision.com ([78.47.19.71]:48701 "EHLO
+	mail1.matrix-vision.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757762Ab1F1OX0 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 11 Jun 2011 09:34:57 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
+	Tue, 28 Jun 2011 10:23:26 -0400
+Received: from mail1.matrix-vision.com (localhost [127.0.0.1])
+	by mail1.matrix-vision.com (Postfix) with ESMTP id B0C98722B2
+	for <linux-media@vger.kernel.org>; Tue, 28 Jun 2011 16:23:24 +0200 (CEST)
+Received: from erinome (g2.matrix-vision.com [80.152.136.245])
+	by mail1.matrix-vision.com (Postfix) with ESMTPA id 8355072232
+	for <linux-media@vger.kernel.org>; Tue, 28 Jun 2011 16:23:24 +0200 (CEST)
+Received: from erinome (localhost [127.0.0.1])
+	by erinome (Postfix) with ESMTP id DD64C6F8A
+	for <linux-media@vger.kernel.org>; Tue, 28 Jun 2011 16:23:23 +0200 (CEST)
+Received: from ap437-joe.intern.matrix-vision.de (host65-46.intern.matrix-vision.de [192.168.65.46])
+	by erinome (Postfix) with ESMTPA id C278B6F8A
+	for <linux-media@vger.kernel.org>; Tue, 28 Jun 2011 16:23:23 +0200 (CEST)
+From: Michael Jones <michael.jones@matrix-vision.de>
 To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [RFCv1 PATCH 7/7] tuner-core: s_tuner should not change tuner mode.
-Date: Sat, 11 Jun 2011 15:34:43 +0200
-Message-Id: <2a85334a8d3f0861fc10f2d6adbf46946d12bb0e.1307798213.git.hans.verkuil@cisco.com>
-In-Reply-To: <1307799283-15518-1-git-send-email-hverkuil@xs4all.nl>
-References: <1307799283-15518-1-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <9e1e782993aa0d0edf06fd5697743beca7717a53.1307798213.git.hans.verkuil@cisco.com>
-References: <9e1e782993aa0d0edf06fd5697743beca7717a53.1307798213.git.hans.verkuil@cisco.com>
+Subject: [RFC PATCH] capture-example: allow V4L2_PIX_FMT_GREY with USERPTR
+Date: Tue, 28 Jun 2011 16:23:18 +0200
+Message-Id: <1309270998-5070-1-git-send-email-michael.jones@matrix-vision.de>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+There is an assumption that the format coming from the device
+needs 2 bytes per pixel, which is not the case when the device
+delivers e.g. V4L2_PIX_FMT_GREY. This doesn't manifest itself with
+IO_METHOD_MMAP because init_mmap() (the default) doesn't take
+sizeimage as an argument.
 
-According to the spec the tuner type field is not used when calling
-S_TUNER: index, audmode and reserved are the only writable fields.
-
-So remove the type check. Instead, just set the audmode if the current
-tuner mode is set to radio.
-
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Signed-off-by: Michael Jones <michael.jones@matrix-vision.de>
 ---
- drivers/media/video/tuner-core.c |    8 +++-----
- 1 files changed, 3 insertions(+), 5 deletions(-)
 
-diff --git a/drivers/media/video/tuner-core.c b/drivers/media/video/tuner-core.c
-index 7280998..0ffcf54 100644
---- a/drivers/media/video/tuner-core.c
-+++ b/drivers/media/video/tuner-core.c
-@@ -1156,12 +1156,10 @@ static int tuner_s_tuner(struct v4l2_subdev *sd, struct v4l2_tuner *vt)
- {
- 	struct tuner *t = to_tuner(sd);
+This same issue would apply to other formats which have 1 byte per pixel,
+this patch only fixes it for GREY.  Is this OK for now, or does somebody
+have a better suggestion for supporting other formats as well?
+
+ contrib/test/capture-example.c |    4 +++-
+ 1 files changed, 3 insertions(+), 1 deletions(-)
+
+diff --git a/contrib/test/capture-example.c b/contrib/test/capture-example.c
+index 3852c58..0eb5235 100644
+--- a/contrib/test/capture-example.c
++++ b/contrib/test/capture-example.c
+@@ -416,6 +416,7 @@ static void init_device(void)
+ 	struct v4l2_crop crop;
+ 	struct v4l2_format fmt;
+ 	unsigned int min;
++	unsigned int bytes_per_pixel;
  
--	if (!set_mode(t, vt->type))
--		return 0;
--
--	if (t->mode == V4L2_TUNER_RADIO)
-+	if (t->mode == V4L2_TUNER_RADIO) {
- 		t->audmode = vt->audmode;
--	set_freq(t, 0);
-+		set_freq(t, 0);
-+	}
+ 	if (-1 == xioctl(fd, VIDIOC_QUERYCAP, &cap)) {
+ 		if (EINVAL == errno) {
+@@ -519,7 +520,8 @@ static void init_device(void)
+ 	}
  
- 	return 0;
- }
+ 	/* Buggy driver paranoia. */
+-	min = fmt.fmt.pix.width * 2;
++	bytes_per_pixel = fmt.fmt.pix.pixelformat == V4L2_PIX_FMT_GREY ? 1 : 2;
++	min = fmt.fmt.pix.width * bytes_per_pixel;
+ 	if (fmt.fmt.pix.bytesperline < min)
+ 		fmt.fmt.pix.bytesperline = min;
+ 	min = fmt.fmt.pix.bytesperline * fmt.fmt.pix.height;
 -- 
-1.7.1
+1.7.5.4
 
+
+MATRIX VISION GmbH, Talstrasse 16, DE-71570 Oppenweiler
+Registergericht: Amtsgericht Stuttgart, HRB 271090
+Geschaeftsfuehrer: Gerhard Thullner, Werner Armingeon, Uwe Furtner
