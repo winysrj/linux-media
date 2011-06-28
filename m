@@ -1,59 +1,52 @@
 Return-path: <mchehab@pedra>
-Received: from moutng.kundenserver.de ([212.227.17.10]:54204 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751596Ab1FFRMh (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 6 Jun 2011 13:12:37 -0400
-Date: Mon, 6 Jun 2011 19:12:28 +0200 (CEST)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-cc: Baruch Siach <baruch@tkos.co.il>,
-	Sascha Hauer <s.hauer@pengutronix.de>
-Subject: [PATCH] V4L: mx2_camera: .try_fmt shouldn't fail
-Message-ID: <Pine.LNX.4.64.1106061902500.11169@axis700.grange>
-MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Received: from earthlight.etchedpixels.co.uk ([81.2.110.250]:43735 "EHLO
+	www.etchedpixels.co.uk" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1759678Ab1F1QkN (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 28 Jun 2011 12:40:13 -0400
+Date: Tue, 28 Jun 2011 17:42:23 +0100
+From: Alan Cox <alan@lxorguk.ukuu.org.uk>
+To: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: Hans Verkuil <hverkuil@xs4all.nl>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Sakari Ailus <sakari.ailus@iki.fi>,
+	Arnd Bergmann <arnd@arndb.de>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+Subject: Re: [PATCH] [media] v4l2 core: return -ENOIOCTLCMD if an ioctl
+ doesn't exist
+Message-ID: <20110628174223.3d78ca4c@lxorguk.ukuu.org.uk>
+In-Reply-To: <BANLkTi=6W0quy1M71UapwKDe97E67b4EiA@mail.gmail.com>
+References: <4E0519B7.3000304@redhat.com>
+	<201106271907.59067.hverkuil@xs4all.nl>
+	<BANLkTin=PTbTwBR2s+owMLy+GmKigeoYvg@mail.gmail.com>
+	<201106280804.48742.hverkuil@xs4all.nl>
+	<BANLkTi=6W0quy1M71UapwKDe97E67b4EiA@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-If the user is requesting too large a frame, instead of failing
-select an acceptable geometry, preserving the requested aspect ratio.
+> (In fact, the _correct_ thing to do would probably be to just do
+> 
+>    #define ENOIOCTLCMD ENOTTY
+> 
+> and get rid of any translation - just giving ENOTTY a more appropriate
+> name and less chance for confusion)
 
-Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
----
+Some code uses the two to separate 'the driver specific helper code
+doesn't handle this' and 'does handle this'. In that situation you take
+away the ability of a driver to override a midlayer ioctl with -ENOTTY to
+say "I don't support this even if most people do"
 
-Attention: completely untested! Please, give it a spin on an i.MX25, 
-specifically, please, try to force a TRY_FMT with too large a frame to 
-test this path. Maybe you'll need to use some debugging printk().
+> There may be applications out there that really break when they get
+> ENOTTY instead of EINVAL. But most cases that check for errors from
+> ioctl's tend to just say "did this succeed or not" rather than "did
+> this return EINVAL". That's *doubly* true since the error code has
+> been ambiguous, so checking for the exact error code has always been
+> pretty pointless.
 
- drivers/media/video/mx2_camera.c |   15 ++++++++++-----
- 1 files changed, 10 insertions(+), 5 deletions(-)
-
-diff --git a/drivers/media/video/mx2_camera.c b/drivers/media/video/mx2_camera.c
-index 4eab1c6..8e073a3 100644
---- a/drivers/media/video/mx2_camera.c
-+++ b/drivers/media/video/mx2_camera.c
-@@ -974,11 +974,16 @@ static int mx2_camera_try_fmt(struct soc_camera_device *icd,
- 		if (pix->bytesperline < 0)
- 			return pix->bytesperline;
- 		pix->sizeimage = pix->height * pix->bytesperline;
--		if (pix->sizeimage > (4 * 0x3ffff)) { /* CSIRXCNT limit */
--			dev_warn(icd->dev.parent,
--					"Image size (%u) above limit\n",
--					pix->sizeimage);
--			return -EINVAL;
-+		/* Check against the CSIRXCNT limit */
-+		if (pix->sizeimage > 4 * 0x3ffff) {
-+			/* Adjust geometry, preserve aspect ratio */
-+			unsigned int new_height = int_sqrt(4 * 0x3ffff *
-+					pix->height / pix->bytesperline);
-+			pix->width = new_height * pix->width / pix->height;
-+			pix->height = new_height;
-+			pix->bytesperline = soc_mbus_bytes_per_line(pix->width,
-+							xlate->host_fmt);
-+			BUG_ON(pix->bytesperline < 0);
- 		}
- 	}
- 
--- 
-1.7.2.5
-
+Chances are if anything is busted its busted the other way on Linux and
+expects -ENOTTY. Certainly the large number I've been fixing over time
+haven't shown up any problems.
