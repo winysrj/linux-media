@@ -1,86 +1,99 @@
 Return-path: <mchehab@pedra>
-Received: from nm6-vm0.bullet.mail.ukl.yahoo.com ([217.146.183.234]:37704 "HELO
-	nm6-vm0.bullet.mail.ukl.yahoo.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with SMTP id S1752987Ab1FWVh6 convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 23 Jun 2011 17:37:58 -0400
-Received: by iwn6 with SMTP id 6so1914633iwn.19
-        for <linux-media@vger.kernel.org>; Thu, 23 Jun 2011 14:37:55 -0700 (PDT)
+Received: from smtp-vbr2.xs4all.nl ([194.109.24.22]:2127 "EHLO
+	smtp-vbr2.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756042Ab1F1GGK (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 28 Jun 2011 02:06:10 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Linus Torvalds <torvalds@linux-foundation.org>
+Subject: Re: [PATCH] [media] v4l2 core: return -ENOIOCTLCMD if an ioctl doesn't exist
+Date: Tue, 28 Jun 2011 08:04:48 +0200
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Sakari Ailus <sakari.ailus@iki.fi>,
+	Arnd Bergmann <arnd@arndb.de>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+References: <4E0519B7.3000304@redhat.com> <201106271907.59067.hverkuil@xs4all.nl> <BANLkTin=PTbTwBR2s+owMLy+GmKigeoYvg@mail.gmail.com>
+In-Reply-To: <BANLkTin=PTbTwBR2s+owMLy+GmKigeoYvg@mail.gmail.com>
 MIME-Version: 1.0
-In-Reply-To: <BANLkTi=SM+syVFQOs3_22tGZN1v+AcKGpQ@mail.gmail.com>
-References: <BANLkTi=SM+syVFQOs3_22tGZN1v+AcKGpQ@mail.gmail.com>
-Date: Thu, 23 Jun 2011 23:37:55 +0200
-Message-ID: <BANLkTimSqC3bAyJQneXkmM8Mae5Ono1JLA@mail.gmail.com>
-Subject: Fwd: [PATCH] STV22 Dual USB DVB-T Tuner HDTV linux kernel support
-From: David <reality_es@yahoo.es>
-To: Antti Palosaari <crope@iki.fi>
-Cc: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201106280804.48742.hverkuil@xs4all.nl>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Hello:
+On Monday, June 27, 2011 22:48:48 Linus Torvalds wrote:
+> On Mon, Jun 27, 2011 at 10:07 AM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
+> >
+> > No, what we do is perfectly consistent: i.e. we always return EINVAL when an
+> > ioctl is not supported. That's what 'consistent' means. Whether that is the
+> > *right* error code is something else.
+> 
+> You don't even understand the problem.
+> 
+> The problem is two-fold:
+>  (a) it's the _wrong_ error code (this part you seem to get)
+> but also
+>  (b) you ALSO return -EINVAL for ioctl's you support!
+> 
+> How har dis (b) to understand? The fact is, -EINVAL does not mean "I
+> don't support that ioctl". It _should_ mean "I _do_ support that
+> ioctl, but you passed me bogus arguments for that ioctl that I cannot
+> handle".
+> 
+> And right now, for the v4l crowd, -EINVAL means "random error code
+> that _could_ be because the ioctl doesn't exist, but it could also be
+> because the ioctl _does_ exist but didn't like it's value".
+> 
+> See the problem?
 
-I expect the patches finally are ok.
+Duh. Of course I see the problem. I've seen the problem ever since I started
+working on V4L back in 2004.
 
-This patches add
+Of course, since vfs_ioctl does the same thing this is clearly isn't some
+isolated V4L thing. Pot. Kettle.
+ 
+> The correct error code for "I don't understand this ioctl" is ENOTTY.
+> The naming may be odd, but you should think of that error value as a
+> "unrecognized ioctl number, you're feeding me random numbers that I
+> don't understand and I assume for historical reasons that you tried to
+> do some tty operation on me".
+> 
+> I don't understand why the v4l people have such a hard time getting
+> this. This has been going on for years.
+> 
+> I would suggest that somebody just switch around the EINVAL in
+> __video_do_ioctl() to -ENOTTY (and change the ENOIOCTLCMD translation
+> to also make it ENOTTY instead of EINVAL) and just try to see if
+> anything breaks.
+> 
+> Maybe things actually break, and we'd have to undo it for
+> compatibility reasons (and perhaps add a comment about the program
+> that is so flaky that it needs a EINVAL return from the ioctl), but I
+> really do not understand people like you who seem to argue against
+> doing the right thing without even _trying_ it.
+> 
+> Saying that your API is "consistent" is clearly bullshit. Your API is
+> _wrong_. It's not consistent. Returning EINVAL can mean two different
+> things, there's no way to tell which case it was - that's not
+> "consistent" by any stretch of the imagination.
 
-Signed-off-by: Emilio David Diaus Lopez <reality_es@yahoo.es>
------------------------------------------
+I call it consistently wrong :-)
 
--- ./drivers/media/dvb/dvb-usb/af9015.c.orig    2011-06-21
-12:39:44.000000000 +0200
-+++ ./drivers/media/dvb/dvb-usb/af9015.c        2011-06-22
-12:05:28.000000000 +0200
-@@ -749,6 +749,8 @@ static const struct af9015_rc_setup af90
-               RC_MAP_AZUREWAVE_AD_TU700 },
-       { (USB_VID_MSI_2 << 16) + USB_PID_MSI_DIGI_VOX_MINI_III,
-               RC_MAP_MSI_DIGIVOX_III },
-+       { (USB_VID_KWORLD_2 << 16) + USB_PID_SVEON_STV22,
-+               RC_MAP_MSI_DIGIVOX_III },
-       { (USB_VID_LEADTEK << 16) + USB_PID_WINFAST_DTV_DONGLE_GOLD,
-               RC_MAP_LEADTEK_Y04G0051 },
-       { (USB_VID_AVERMEDIA << 16) + USB_PID_AVERMEDIA_VOLAR_X,
-@@ -1309,6 +1311,7 @@ static struct usb_device_id af9015_usb_t
-               USB_PID_TERRATEC_CINERGY_T_STICK_DUAL_RC)},
- /* 35 */{USB_DEVICE(USB_VID_AVERMEDIA, USB_PID_AVERMEDIA_A850T)},
-       {USB_DEVICE(USB_VID_GTEK,      USB_PID_TINYTWIN_3)},
-+       {USB_DEVICE(USB_VID_KWORLD_2,  USB_PID_SVEON_STV22)},
-       {0},
- };
- MODULE_DEVICE_TABLE(usb, af9015_usb_table);
-@@ -1649,6 +1652,11 @@ static struct dvb_usb_device_properties
-                               .warm_ids = {NULL},
-                       },
-                       {
-+                               .name = "Sveon STV22 Dual USB DVB-T
-Tuner HDTV ",
-+                               .cold_ids = {&af9015_usb_table[37], NULL},
-+                               .warm_ids = {NULL},
-+                       },
-+                       {
-                               .name = "Leadtek WinFast DTV2000DS",
-                               .cold_ids = {&af9015_usb_table[29], NULL},
-                               .warm_ids = {NULL},
+Listen, this error code is wrong. But it unfortunately has been documented
+like that for years. It's part of the V4L userspace API. I have no clue who
+may rely on this. I have no clue what might break if we change it. And the
+only way to know that is by actually releasing a kernel with that change.
 
-------------------------------
---- ./drivers/media/dvb/dvb-usb/dvb-usb-ids.h.orig      2011-06-21
-12:39:45.000000000 +0200
-+++ ./drivers/media/dvb/dvb-usb/dvb-usb-ids.h   2011-06-18
-11:48:22.000000000 +0200
-@@ -128,6 +128,7 @@
- #define USB_PID_INTEL_CE9500                           0x9500
- #define USB_PID_KWORLD_399U                            0xe399
- #define USB_PID_KWORLD_399U_2                          0xe400
-+#define USB_PID_SVEON_STV22                            0xe401
- #define USB_PID_KWORLD_395U                            0xe396
- #define USB_PID_KWORLD_395U_2                          0xe39b
- #define USB_PID_KWORLD_395U_3                          0xe395
-------------------------
-1.1
------------------------
-Thanks for your time
+It was my understanding that we shouldn't break the userspace API. This breaks
+the userspace API. If everyone else says it's fine to break the userspace API
+this time, then who am I to object?
 
-goodbye
-Emilio David Diaus López
+Regards,
+
+	Hans
+
+> 
+>                             Linus
+> 
