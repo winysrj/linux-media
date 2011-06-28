@@ -1,130 +1,115 @@
 Return-path: <mchehab@pedra>
-Received: from smtp-vbr16.xs4all.nl ([194.109.24.36]:1071 "EHLO
-	smtp-vbr16.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753709Ab1F2GbF (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 29 Jun 2011 02:31:05 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-Subject: Re: [RFCv3 PATCH 12/18] vb2_poll: don't start DMA, leave that to the first read().
-Date: Wed, 29 Jun 2011 08:30:30 +0200
-Cc: Andy Walls <awalls@md.metrocast.net>, linux-media@vger.kernel.org,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	Pawel Osciak <pawel@osciak.com>,
-	Marek Szyprowski <m.szyprowski@samsung.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>
-References: <1307459123-17810-1-git-send-email-hverkuil@xs4all.nl> <4E09CC6A.8080900@redhat.com> <201106281558.37065.hverkuil@xs4all.nl>
-In-Reply-To: <201106281558.37065.hverkuil@xs4all.nl>
-MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="utf-8"
+Received: from mx1.redhat.com ([209.132.183.28]:35971 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1757189Ab1F1Qb4 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 28 Jun 2011 12:31:56 -0400
+Date: Mon, 27 Jun 2011 23:17:26 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	LKML <linux-kernel@vger.kernel.org>
+Subject: [PATCHv2 05/13] [media] ivtv,cx18: Use default version control for
+ VIDIOC_QUERYCAP
+Message-ID: <20110627231726.325fe71b@pedra>
+In-Reply-To: <cover.1309226359.git.mchehab@redhat.com>
+References: <cover.1309226359.git.mchehab@redhat.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
-Message-Id: <201106290830.30494.hverkuil@xs4all.nl>
+To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Tuesday, June 28, 2011 15:58:36 Hans Verkuil wrote:
-> On Tuesday, June 28, 2011 14:43:22 Mauro Carvalho Chehab wrote:
-> > Em 28-06-2011 09:21, Andy Walls escreveu:
-> > > Mauro Carvalho Chehab <mchehab@redhat.com> wrote:
-> > 
-> > >> I'm not very comfortable with vb2 returning unexpected errors there.
-> > >> Also,
-> > >> for me it is clear that, if read will fail, POLLERR should be rised.
-> > >>
-> > >> Mauro. 
-> > >> --
-> > >> To unsubscribe from this list: send the line "unsubscribe linux-media"
-> > >> in
-> > >> the body of a message to majordomo@vger.kernel.org
-> > >> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> > > 
-> > > It is also the case that a driver's poll method should never sleep.
-> > 
-> > True.
-> 
-> Actually, it is allowed, but only since kernel 2.6.29 (before that it could
-> apparently give rise to busy looping if you were unlucky). But the main use
-> case is userspace file systems like fuse. Not so much in regular drivers.
-> 
-> Since drivers can sleep when starting streaming (ivtv will do that, in any
-> case), we were in violation of the poll kernel API for a long time :-)
-> 
-> > > I will try to find the conversation I had with laurent on interpreting the POSIX spec on error returns from select() and poll().  I will also try to find links to previos discussion with Hans on this.
-> > > 
-> > > One issue is how to start streaming with apps that:
-> > > - Open /dev/video/ in a nonblocking mode, and
-> > > - Use the read() method
-> > > 
-> > > while doing it in a way that is POSIX compliant and doesn't break existing apps.  
-> > 
-> > Well, a first call for poll() may rise a thread that will prepare the buffers, and
-> > return with 0 while there's no data available.
-> 
-> There is actually no guarantee whatsoever that if poll says you can read(), that that
-> read also has to succeed. Other threads can have read the data already, and errors may
-> have occured. And in fact, just starting streaming gives no guarantee that there is
-> anything to read. For example, starting the DMA engine when there is no valid input
-> signal. Many drivers (certainly those dealing with digital interfaces as opposed to
-> analog) will just sit and wait. A non-blocking read will just return 0 without
-> reading anything.
-> 
-> So the current poll implementation (and that includes the one in videobuf-core.c as
-> well) actually does *not* give any guarantee about whether data will be available
-> in read().
+After discussing with Andy Walls on irc, we've agreeded that this
+is the best thing to do. No regressions will be introduced, as 3.x.y
+is greater then the current versions for cx18 and ivtv.
 
-Never mind this. I didn't look carefully enough: it does start the DMA and then poll
-waits for data to arrive. So when poll says there is data, then there is really data.
-Although applications should always handle EAGAIN anyway: some drivers do return it,
-even when data is supposed to be available (I had to add that to qv4l2 at one time).
+Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
 
-Regards,
+diff --git a/drivers/media/video/cx18/cx18-driver.h b/drivers/media/video/cx18/cx18-driver.h
+index 0864272..1834207 100644
+--- a/drivers/media/video/cx18/cx18-driver.h
++++ b/drivers/media/video/cx18/cx18-driver.h
+@@ -25,7 +25,6 @@
+ #ifndef CX18_DRIVER_H
+ #define CX18_DRIVER_H
+ 
+-#include <linux/version.h>
+ #include <linux/module.h>
+ #include <linux/moduleparam.h>
+ #include <linux/init.h>
+diff --git a/drivers/media/video/cx18/cx18-ioctl.c b/drivers/media/video/cx18/cx18-ioctl.c
+index 1933d4d..6ec61c9 100644
+--- a/drivers/media/video/cx18/cx18-ioctl.c
++++ b/drivers/media/video/cx18/cx18-ioctl.c
+@@ -469,7 +469,6 @@ static int cx18_querycap(struct file *file, void *fh,
+ 	strlcpy(vcap->card, cx->card_name, sizeof(vcap->card));
+ 	snprintf(vcap->bus_info, sizeof(vcap->bus_info),
+ 		 "PCI:%s", pci_name(cx->pci_dev));
+-	vcap->version = CX18_DRIVER_VERSION; 	    /* version */
+ 	vcap->capabilities = cx->v4l2_cap; 	    /* capabilities */
+ 	return 0;
+ }
+diff --git a/drivers/media/video/cx18/cx18-version.h b/drivers/media/video/cx18/cx18-version.h
+index cd189b6..fed48b6 100644
+--- a/drivers/media/video/cx18/cx18-version.h
++++ b/drivers/media/video/cx18/cx18-version.h
+@@ -23,12 +23,6 @@
+ #define CX18_VERSION_H
+ 
+ #define CX18_DRIVER_NAME "cx18"
+-#define CX18_DRIVER_VERSION_MAJOR 1
+-#define CX18_DRIVER_VERSION_MINOR 5
+-#define CX18_DRIVER_VERSION_PATCHLEVEL 0
+-
+-#define CX18_VERSION __stringify(CX18_DRIVER_VERSION_MAJOR) "." __stringify(CX18_DRIVER_VERSION_MINOR) "." __stringify(CX18_DRIVER_VERSION_PATCHLEVEL)
+-#define CX18_DRIVER_VERSION KERNEL_VERSION(CX18_DRIVER_VERSION_MAJOR, \
+-	CX18_DRIVER_VERSION_MINOR, CX18_DRIVER_VERSION_PATCHLEVEL)
++#define CX18_VERSION "1.5.1"
+ 
+ #endif
+diff --git a/drivers/media/video/ivtv/ivtv-driver.h b/drivers/media/video/ivtv/ivtv-driver.h
+index 84bdf0f..8f9cc17 100644
+--- a/drivers/media/video/ivtv/ivtv-driver.h
++++ b/drivers/media/video/ivtv/ivtv-driver.h
+@@ -36,7 +36,6 @@
+  *                using information provided by Jiun-Kuei Jung @ AVerMedia.
+  */
+ 
+-#include <linux/version.h>
+ #include <linux/module.h>
+ #include <linux/init.h>
+ #include <linux/delay.h>
+diff --git a/drivers/media/video/ivtv/ivtv-ioctl.c b/drivers/media/video/ivtv/ivtv-ioctl.c
+index f9e347d..ac210ac 100644
+--- a/drivers/media/video/ivtv/ivtv-ioctl.c
++++ b/drivers/media/video/ivtv/ivtv-ioctl.c
+@@ -757,7 +757,6 @@ static int ivtv_querycap(struct file *file, void *fh, struct v4l2_capability *vc
+ 	strlcpy(vcap->driver, IVTV_DRIVER_NAME, sizeof(vcap->driver));
+ 	strlcpy(vcap->card, itv->card_name, sizeof(vcap->card));
+ 	snprintf(vcap->bus_info, sizeof(vcap->bus_info), "PCI:%s", pci_name(itv->pdev));
+-	vcap->version = IVTV_DRIVER_VERSION; 	    /* version */
+ 	vcap->capabilities = itv->v4l2_cap; 	    /* capabilities */
+ 	return 0;
+ }
+diff --git a/drivers/media/video/ivtv/ivtv-version.h b/drivers/media/video/ivtv/ivtv-version.h
+index b67a404..a20f346 100644
+--- a/drivers/media/video/ivtv/ivtv-version.h
++++ b/drivers/media/video/ivtv/ivtv-version.h
+@@ -21,11 +21,6 @@
+ #define IVTV_VERSION_H
+ 
+ #define IVTV_DRIVER_NAME "ivtv"
+-#define IVTV_DRIVER_VERSION_MAJOR 1
+-#define IVTV_DRIVER_VERSION_MINOR 4
+-#define IVTV_DRIVER_VERSION_PATCHLEVEL 2
+-
+-#define IVTV_VERSION __stringify(IVTV_DRIVER_VERSION_MAJOR) "." __stringify(IVTV_DRIVER_VERSION_MINOR) "." __stringify(IVTV_DRIVER_VERSION_PATCHLEVEL)
+-#define IVTV_DRIVER_VERSION KERNEL_VERSION(IVTV_DRIVER_VERSION_MAJOR,IVTV_DRIVER_VERSION_MINOR,IVTV_DRIVER_VERSION_PATCHLEVEL)
++#define IVTV_VERSION "1.4.3"
+ 
+ #endif
+-- 
+1.7.1
 
-	Hans
 
-> 
-> And from the same POSIX link you posted:
-> 
-> "The poll() function shall support regular files, terminal and pseudo-terminal devices,
-> FIFOs, pipes, sockets and [XSR] [Option Start]  STREAMS-based files. [Option End]
-> The behavior of poll() on elements of fds that refer to other types of file is unspecified."
-> 
-> Note the last line: we do not fall under this posix document.
->  
-> > > The other constraint is to ensure when only poll()-ing for exception conditions, not having significant IO side effects.
-> > > 
-> > > I'm pretty sure sleeping in a driver's poll() method, or having significant side effects, is not ine the spirit of the POSIX select() and poll(), even if the letter of POSIX says nothing about it.
-> > > 
-> > > The method I suggested to Hans is completely POSIX compliant for apps using read() and select() and was checked against MythTV as having no bad side effects.  (And by thought experiment doesn't break any sensible app using nonblocking IO with select() and read().)
-> > > 
-> > > I did not do analysis for apps that use mmap(), which I guess is the current concern.
-> 
-> There isn't a problem with mmap(). For the stream I/O API you have to call STREAMON
-> explicitly in order to start streaming. poll() will not do that for you.
-> 
-> I was thinking that one improvement that could be realized is that vb2_poll could
-> do some basic checks, such as checking whether streaming was already in progress
-> (EBUSY), but then I realized that it already does that: this code is only active
-> if there is no streaming in progress anyway.
-> 
-> Regards,
-> 
-> 	Hans
-> 
-> > 
-> > The concern is that it is pointing that there are available data, even when there is an error.
-> > This looks like a POSIX violation for me.
-> > 
-> > Cheers,
-> > Mauro.
-> > --
-> > To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> > the body of a message to majordomo@vger.kernel.org
-> > More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> > 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
-> 
