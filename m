@@ -1,99 +1,75 @@
 Return-path: <mchehab@pedra>
-Received: from caramon.arm.linux.org.uk ([78.32.30.218]:52509 "EHLO
-	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756549Ab1FHWOQ (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 8 Jun 2011 18:14:16 -0400
-Date: Wed, 8 Jun 2011 23:13:30 +0100
-From: Russell King - ARM Linux <linux@arm.linux.org.uk>
-To: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
-Cc: Tony Lindgren <tony@atomide.com>,
-	"linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	linux-arm-kernel@lists.infradead.org,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: [RESEND] [PATCH 1/2] OMAP1: allow reserving memory for camera
-Message-ID: <20110608221330.GA13246@n2100.arm.linux.org.uk>
-References: <201012051929.07220.jkrzyszt@tis.icnet.pl> <20101210170356.GA28472@n2100.arm.linux.org.uk> <201012102203.54413.jkrzyszt@tis.icnet.pl> <201106082354.10985.jkrzyszt@tis.icnet.pl>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <201106082354.10985.jkrzyszt@tis.icnet.pl>
+Received: from mx1.redhat.com ([209.132.183.28]:64067 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1757309Ab1F1QcB (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 28 Jun 2011 12:32:01 -0400
+Date: Mon, 27 Jun 2011 23:17:28 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	LKML <linux-kernel@vger.kernel.org>
+Subject: [PATCHv2 06/13] [media] et61x251: Use LINUX_VERSION_CODE for
+ VIDIOC_QUERYCAP
+Message-ID: <20110627231728.2e895fa7@pedra>
+In-Reply-To: <cover.1309226359.git.mchehab@redhat.com>
+References: <cover.1309226359.git.mchehab@redhat.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
+To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Wed, Jun 08, 2011 at 11:53:49PM +0200, Janusz Krzysztofik wrote:
-> On Fri 10 Dec 2010 at 22:03:52 Janusz Krzysztofik wrote:
-> > Friday 10 December 2010 18:03:56 Russell King - ARM Linux napisał(a):
-> > > On Fri, Dec 10, 2010 at 12:03:07PM +0100, Janusz Krzysztofik wrote:
-> > > >  void __init omap1_camera_init(void *info)
-> > > >  {
-> > > >  
-> > > >  	struct platform_device *dev = &omap1_camera_device;
-> > > > 
-> > > > +	dma_addr_t paddr = omap1_camera_phys_mempool_base;
-> > > > +	dma_addr_t size = omap1_camera_phys_mempool_size;
-> > > > 
-> > > >  	int ret;
-> > > >  	
-> > > >  	dev->dev.platform_data = info;
-> > > > 
-> > > > +	if (paddr) {
-> > > > +		if (dma_declare_coherent_memory(&dev->dev, paddr, paddr, size,
-> > > > +				DMA_MEMORY_MAP | DMA_MEMORY_EXCLUSIVE))
-> > > 
-> > > Although this works, you're ending up with SDRAM being mapped via
-> > > ioremap, which uses MT_DEVICE - so what is SDRAM ends up being
-> > > mapped as if it were a device.
-> > > 
-> > > For OMAP1, which is ARMv5 or lower, device memory becomes
-> > > 'uncacheable, unbufferable' which is luckily what is used for the
-> > > DMA coherent memory on those platforms - so no technical problem
-> > > here.
-> > > 
-> > > However, on ARMv6 and later, ioremapped memory is device memory,
-> > > which has different ordering wrt normal memory mappings, and may
-> > > appear on different busses on the CPU's interface.  So, this is
-> > > something I don't encourage as it's unclear that the hardware will
-> > > work.
-> > > 
-> > > Essentially, dma_declare_coherent_memory() on ARM with main SDRAM
-> > > should be viewed as a 'it might work, it might not, and it might
-> > > stop working in the future' kind of interface.  In other words,
-> > > there is no guarantee that this kind of thing will be supported in
-> > > the future.
-> > 
-> > I was affraid of an unswer of this kind. I'm not capable of comming
-> > out with any better, alternative solutions. Any hints other than
-> > giving up with that old videobuf-contig, coherent memory based
-> > interface? Or can we agree on that 'luckily uncacheable,
-> > unbufferable, SDRAM based DMA coherent memory' solution for now?
-> 
-> Russell, Tony,
-> 
-> Sorry for getting back to this old thread, but since my previous 
-> attempts to provide[1] or support[2] a possibly better solution to the 
-> problem all failed on one hand, and I can see patches not very different 
-> from mine[3] being accepted for arch/arm/mach-{mx3,imx} during this and 
-> previous merge windows[4][5][6] on the other, is there any chance for the 
-> 'dma_declare_coherent_memory() over a memblock_alloc()->free()->remove() 
-> obtained area' based solution being accepted for omap1_camera as well if 
-> I resend it refreshed?
+et61x251 doesn't use vidioc_ioctl2. As the API is changing to use
+a common version for all drivers, we need to expliticly fix this
+driver.
 
-I stand by my answer to your patches quoted above from a technical point
-of view; we should not be mapping SDRAM using device mappings.
+Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
 
-That ioremap() inside dma_declare_coherent_memory() needs to die, but
-it seems that those who now look after the DMA API really aren't
-interested in the technical details of this being wrong for some
-architecture - just like they're not really interested in the details
-of devices using dma-engines for their DMA support.
+diff --git a/drivers/media/video/et61x251/et61x251.h b/drivers/media/video/et61x251/et61x251.h
+index bf66189..14bb907 100644
+--- a/drivers/media/video/et61x251/et61x251.h
++++ b/drivers/media/video/et61x251/et61x251.h
+@@ -21,7 +21,6 @@
+ #ifndef _ET61X251_H_
+ #define _ET61X251_H_
+ 
+-#include <linux/version.h>
+ #include <linux/usb.h>
+ #include <linux/videodev2.h>
+ #include <media/v4l2-common.h>
+diff --git a/drivers/media/video/et61x251/et61x251_core.c b/drivers/media/video/et61x251/et61x251_core.c
+index a982750..d7efb33 100644
+--- a/drivers/media/video/et61x251/et61x251_core.c
++++ b/drivers/media/video/et61x251/et61x251_core.c
+@@ -18,6 +18,7 @@
+  * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.               *
+  ***************************************************************************/
+ 
++#include <linux/version.h>
+ #include <linux/module.h>
+ #include <linux/init.h>
+ #include <linux/kernel.h>
+@@ -48,8 +49,7 @@
+ #define ET61X251_MODULE_AUTHOR  "(C) 2006-2007 Luca Risolia"
+ #define ET61X251_AUTHOR_EMAIL   "<luca.risolia@studio.unibo.it>"
+ #define ET61X251_MODULE_LICENSE "GPL"
+-#define ET61X251_MODULE_VERSION "1:1.09"
+-#define ET61X251_MODULE_VERSION_CODE  KERNEL_VERSION(1, 1, 9)
++#define ET61X251_MODULE_VERSION "1.1.10"
+ 
+ /*****************************************************************************/
+ 
+@@ -1579,7 +1579,7 @@ et61x251_vidioc_querycap(struct et61x251_device* cam, void __user * arg)
+ {
+ 	struct v4l2_capability cap = {
+ 		.driver = "et61x251",
+-		.version = ET61X251_MODULE_VERSION_CODE,
++		.version = LINUX_VERSION_CODE,
+ 		.capabilities = V4L2_CAP_VIDEO_CAPTURE | V4L2_CAP_READWRITE |
+ 				V4L2_CAP_STREAMING,
+ 	};
+-- 
+1.7.1
 
-I'm afraid that the DMA support in Linux sucks because of this, and I
-have no real desire to participate in discussions with brick walls over
-this.
 
-Certainly the memblock_alloc()+free()+remove() is the right way to
-reserve the memory, but as it stands dma_declare_coherent_memory()
-should not be used on ARMv6 or higher CPUs to pass that memory to the
-device driver.
