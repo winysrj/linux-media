@@ -1,163 +1,118 @@
 Return-path: <mchehab@pedra>
-Received: from smtp-68.nebula.fi ([83.145.220.68]:49230 "EHLO
-	smtp-68.nebula.fi" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752586Ab1F3GD0 (ORCPT
+Received: from proofpoint-cluster.metrocast.net ([65.175.128.136]:50868 "EHLO
+	proofpoint-cluster.metrocast.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1756855Ab1F1Ka3 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 30 Jun 2011 02:03:26 -0400
-Date: Thu, 30 Jun 2011 09:03:21 +0300
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Hans Verkuil <hansverk@cisco.com>
-Cc: linux-media@vger.kernel.org,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Subject: Re: [RFCv2 PATCH] Add support for V4L2_EVENT_SUB_FL_ALLOW_FEEDBACK
-Message-ID: <20110630060321.GI12671@valkosipuli.localdomain>
-References: <201106291400.37234.hansverk@cisco.com>
+	Tue, 28 Jun 2011 06:30:29 -0400
+References: <1302267045.1749.38.camel@gagarin> <AFEB19DA-4FD6-4472-9825-F13A112B0E2A@wilsonet.com> <1302276147.1749.46.camel@gagarin> <B9A35B3D-DC47-4D95-88F5-5453DD3F506C@wilsonet.com> <BANLkTimyT98dabuYsrwLrcm2wQFv2uQB9g@mail.gmail.com> <44DC1ED9-2697-4F92-A81A-CD024C913CCB@wilsonet.com> <BANLkTi=3Gq+8kXm40O55y55O6A6Q4-3g-g@mail.gmail.com> <CDB2A354-8564-447E-99A3-66502E83E4CB@wilsonet.com> <8f1c0f8a-e4cd-4e3b-8ad4-f58212dfd9d4@email.android.com> <099D978B-BC30-4527-870E-85ECEE74501D@wilsonet.com> <1302476895.2282.12.camel@localhost> <679F6706-8E38-4DF4-9F06-65EC3747339E@wilsonet.com>
+In-Reply-To: <679F6706-8E38-4DF4-9F06-65EC3747339E@wilsonet.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <201106291400.37234.hansverk@cisco.com>
+Content-Type: text/plain;
+ charset=UTF-8
+Content-Transfer-Encoding: 8bit
+Subject: Re: HVR-1250/CX23885 IR Rx
+From: Andy Walls <awalls@md.metrocast.net>
+Date: Tue, 28 Jun 2011 06:30:38 -0400
+To: Jarod Wilson <jarod@wilsonet.com>
+CC: Devin Heitmueller <dheitmueller@kernellabs.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Message-ID: <444047a2-87a6-4823-a1cd-961493f6680f@email.android.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Wed, Jun 29, 2011 at 02:00:37PM +0200, Hans Verkuil wrote:
-> Hi all,
+Jarod Wilson <jarod@wilsonet.com> wrote:
 
-Hi Hans,
+>On Apr 10, 2011, at 7:08 PM, Andy Walls wrote:
+>
+>> On Sat, 2011-04-09 at 21:39 -0400, Jarod Wilson wrote:
+>> 
+>>>> Jarod,
+>>>> 
+>>>> The HVR-1850 uses a raw IR receiver in the CX23888 and older
+>>> HVR-1250s use the raw IR receiver in the CX23885.  They both work
+>for
+>>> Rx (I need to tweak the Cx23885 rx watermark though), but I never
+>>> found time to finish Tx (lack of kernel interface when I had time).
+>>>> 
+>>>> If you obtain one of these I can answer any driver questions.
+>>> 
+>>> Quite some time back, I bought an HVR-1800 and an HVR-1250. I know
+>one of
+>>> them came with an mceusb transceiver and remote, as was pretty sure
+>it was
+>>> the 1800. For some reason, I didn't recall the 1250 coming with
+>anything at
+>>> all, but looking at dmesg output for it:
+>>> 
+>>> cx23885 driver version 0.0.2 loaded
+>>> cx23885 0000:03:00.0: PCI INT A -> GSI 16 (level, low) -> IRQ 16
+>>> CORE cx23885[0]: subsystem: 0070:7911, board: Hauppauge
+>WinTV-HVR1250 [card=3,autodetected]
+>>> tveeprom 0-0050: Hauppauge model 79001, rev E3D9, serial# 4904656
+>>> tveeprom 0-0050: MAC address is 00:0d:fe:4a:d6:d0
+>>> tveeprom 0-0050: tuner model is Microtune MT2131 (idx 139, type 4)
+>>> tveeprom 0-0050: TV standards NTSC(M) ATSC/DVB Digital (eeprom 0x88)
+>>> tveeprom 0-0050: audio processor is CX23885 (idx 39)
+>>> tveeprom 0-0050: decoder processor is CX23885 (idx 33)
+>>> tveeprom 0-0050: has no radio, has IR receiver, has no IR
+>transmitter
+>>> 
+>>> So it seems I do have hardware. However, its one of the two tuner
+>cards in
+>>> my "production" mythtv backend right now, making it a bit hard to do
+>any
+>>> experimenting with. If I can get it out of there, it looks like I
+>just add
+>>> an enable_885_ir=1, and I should be able to poke at it...
+>> 
+>> Yeah.  Igor's TeVii S470 CX23885 based card had interrupt storms when
+>> enabled, so IR for '885 chips is disabled by default.  To
+>investigate, I
+>> tried to by an HVR-1250 with a CX23885, but instead got an HVR-1275
+>with
+>> a CX23888.  dandel, on IRC, did a pretty decent job in testing
+>HVR-1250
+>> operation and finding it works, despite climbing kernel
+>> build/development learning curve at the time.
+>...
+>
+>Finally got some time to play with my 1250, dug out its rx cable, turns
+>out to
+>be the same one I special-ordered to work on the 1150 Devin sent me.
+>Oops.
+>Anyway. First impressions, not so good. Got a panic on boot, somewhere
+>in
+>cx23885_video_irq, iirc, when booting with enable_885_ir=1 set.
+>However, dmesg
+>was somewhere in the middle of cx18 init of the HVR-1600 in the box.
+>Dunno if
+>there's any way that's actually directly related, but I yanked the
+>1600. After
+>doing that, the box managed to boot fine, but then while testing
+>w/ir-keytable
+>and an RC-6 remote, I got what I think was the same panic -- definitely
+>the
+>cx23885_video_irq bit in the trace, something about sleeping while
+>atomic, IP
+>at mwait_idle. (On the plus side, IR did seem to be working before
+>that).
+>
+>Note also that this is a 2.6.32-based kernel with a 2.6.38-era backport
+>of the
+>driver code, because that's what was on this box. Was about to put it
+>back into
+>"production" use, but hey, its summer, there's nothing really for it to
+>record
+>for another few months, so I'll keep it out and throw it into another
+>box with
+>a newer kernel and serial console, etc., so I can further debug...
+>
+>
+>-- 
+>Jarod Wilson
+>jarod@wilsonet.com
 
-Thanks for the patch.
+In a very early version of the CX23885 IR changes I made the mistake of performing I2C transactions in an interrupt handler.  That has been fixed in cx23885 for quite some time though.  It also required some I2C fixes in cx25840-core.c IIRC, which again, has been fixed for some time.
 
-Just one comment. I guess it's not strict in DocBook but many of the lines
-are well over 80 characters. The paragraphs especially would be easier read
-when wrapped around that column. I could also be I'm the only one whose
-$COLUMNS == 80. :-)
-
-> Second attempt: inverted the meaning of the flag as per Laurent's suggestion.
-> 
-> Regards,
-> 
-> 	Hans
-> 
-> 
-> 
-> Normally no control events will go to the filehandle that called the
-> VIDIOC_S_CTRL/VIDIOC_S_EXT_CTRLS ioctls. This is to prevent a feedback
-> loop.
-> 
-> This can now be overridden by setting the new V4L2_EVENT_SUB_FL_ALLOW_FEEDBACK
-> flag.
-> 
-> Based on suggestions from Mauro Carvalho Chehab <mchehab@redhat.com> and
-> Laurent Pinchart <laurent.pinchart@ideasonboard.com>.
-> 
-> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-> ---
->  .../DocBook/media/v4l/vidioc-subscribe-event.xml   |   36 ++++++++++++++++----
->  drivers/media/video/v4l2-ctrls.c                   |    3 +-
->  include/linux/videodev2.h                          |    3 +-
->  3 files changed, 33 insertions(+), 9 deletions(-)
-> 
-> diff --git a/Documentation/DocBook/media/v4l/vidioc-subscribe-event.xml b/Documentation/DocBook/media/v4l/vidioc-subscribe-event.xml
-> index 039a969..25471e8 100644
-> --- a/Documentation/DocBook/media/v4l/vidioc-subscribe-event.xml
-> +++ b/Documentation/DocBook/media/v4l/vidioc-subscribe-event.xml
-> @@ -114,25 +114,28 @@
->  	  <row>
->  	    <entry><constant>V4L2_EVENT_CTRL</constant></entry>
->  	    <entry>3</entry>
-> -	    <entry>This event requires that the <structfield>id</structfield>
-> +	    <entry><para>This event requires that the <structfield>id</structfield>
->  		matches the control ID from which you want to receive events.
->  		This event is triggered if the control's value changes, if a
->  		button control is pressed or if the control's flags change.
->  	    	This event has a &v4l2-event-ctrl; associated with it. This struct
->  		contains much of the same information as &v4l2-queryctrl; and
-> -		&v4l2-control;.
-> +		&v4l2-control;.</para>
->  
-> -		If the event is generated due to a call to &VIDIOC-S-CTRL; or
-> -		&VIDIOC-S-EXT-CTRLS;, then the event will not be sent to
-> +		<para>If the event is generated due to a call to &VIDIOC-S-CTRL; or
-> +		&VIDIOC-S-EXT-CTRLS;, then the event will <emphasis>not</emphasis> be sent to
->  		the file handle that called the ioctl function. This prevents
-> -		nasty feedback loops.
-> +		nasty feedback loops. If you <emphasis>do</emphasis> want to get the
-> +		event, then set the <constant>V4L2_EVENT_SUB_FL_ALLOW_FEEDBACK</constant>
-> +		flag.
-> +		</para>
->  
-> -		This event type will ensure that no information is lost when
-> +		<para>This event type will ensure that no information is lost when
->  		more events are raised than there is room internally. In that
->  		case the &v4l2-event-ctrl; of the second-oldest event is kept,
->  		but the <structfield>changes</structfield> field of the
->  		second-oldest event is ORed with the <structfield>changes</structfield>
-> -		field of the oldest event.
-> +		field of the oldest event.</para>
->  	    </entry>
->  	  </row>
->  	  <row>
-> @@ -157,6 +160,25 @@
->  		that are triggered by a status change such as <constant>V4L2_EVENT_CTRL</constant>.
->  		Other events will ignore this flag.</entry>
->  	  </row>
-> +	  <row>
-> +	    <entry><constant>V4L2_EVENT_SUB_FL_ALLOW_FEEDBACK</constant></entry>
-> +	    <entry>0x0002</entry>
-> +	    <entry><para>If set, then events directly caused by an ioctl will also be sent to
-> +		the filehandle that called that ioctl. For example, changing a control using
-> +		&VIDIOC-S-CTRL; will cause a V4L2_EVENT_CTRL to be sent back to that same
-> +		filehandle. Normally such events are suppressed to prevent feedback loops
-> +		where an application changes a control to a one value and then another, and
-> +		then receives an event telling it that that control has changed to the first
-> +		value.</para>
-> +
-> +		<para>Since it can't tell whether that event was caused by another application
-> +		or by the &VIDIOC-S-CTRL; call it is hard to decide whether to set the
-> +		control to the value in the event, or ignore it.</para>
-> +
-> +		<para>Think carefully when you set this flag so you won't get into situations
-> +		like that.</para>
-> +	    </entry>
-> +	  </row>
->  	</tbody>
->        </tgroup>
->      </table>
-> diff --git a/drivers/media/video/v4l2-ctrls.c b/drivers/media/video/v4l2-ctrls.c
-> index bc08f86..bd2456d 100644
-> --- a/drivers/media/video/v4l2-ctrls.c
-> +++ b/drivers/media/video/v4l2-ctrls.c
-> @@ -590,7 +590,8 @@ static void send_event(struct v4l2_fh *fh, struct v4l2_ctrl *ctrl, u32 changes)
->  	fill_event(&ev, ctrl, changes);
->  
->  	list_for_each_entry(sev, &ctrl->ev_subs, node)
-> -		if (sev->fh && sev->fh != fh)
-> +		if (sev->fh && (sev->fh != fh ||
-> +				(sev->flags & V4L2_EVENT_SUB_FL_ALLOW_FEEDBACK)))
->  			v4l2_event_queue_fh(sev->fh, &ev);
->  }
->  
-> diff --git a/include/linux/videodev2.h b/include/linux/videodev2.h
-> index baafe2f..2c4e837 100644
-> --- a/include/linux/videodev2.h
-> +++ b/include/linux/videodev2.h
-> @@ -1832,7 +1832,8 @@ struct v4l2_event {
->  	__u32				reserved[8];
->  };
->  
-> -#define V4L2_EVENT_SUB_FL_SEND_INITIAL (1 << 0)
-> +#define V4L2_EVENT_SUB_FL_SEND_INITIAL		(1 << 0)
-> +#define V4L2_EVENT_SUB_FL_ALLOW_FEEDBACK	(1 << 1)
->  
->  struct v4l2_event_subscription {
->  	__u32				type;
-> -- 
-> 1.7.1
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-
--- 
-Sakari Ailus
-sakari.ailus@iki.fi
+Regards,
+Andy
