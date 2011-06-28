@@ -1,179 +1,190 @@
 Return-path: <mchehab@pedra>
-Received: from mailout3.samsung.com ([203.254.224.33]:64759 "EHLO
-	mailout3.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752905Ab1FOIGB (ORCPT
+Received: from comal.ext.ti.com ([198.47.26.152]:55693 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1757847Ab1F1McM convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 15 Jun 2011 04:06:01 -0400
-Received: from epcpsbgm1.samsung.com (mailout3.samsung.com [203.254.224.33])
- by mailout3.samsung.com
- (Oracle Communications Messaging Exchange Server 7u4-19.01 64bit (built Sep  7
- 2010)) with ESMTP id <0LMT00H9JNTQ28S0@mailout3.samsung.com> for
- linux-media@vger.kernel.org; Wed, 15 Jun 2011 17:05:50 +0900 (KST)
-Received: from AMDN157 ([106.116.48.215])
- by mmp2.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14 2004))
- with ESMTPA id <0LMT00KIUNTK77@mmp2.samsung.com> for
- linux-media@vger.kernel.org; Wed, 15 Jun 2011 17:05:49 +0900 (KST)
-Date: Wed, 15 Jun 2011 10:05:42 +0200
-From: Kamil Debski <k.debski@samsung.com>
-Subject: RE: [PATCH 1/4 v9] v4l: add fourcc definitions for compressed formats.
-In-reply-to: <201106150839.59635.hverkuil@xs4all.nl>
-To: 'Hans Verkuil' <hverkuil@xs4all.nl>
-Cc: linux-media@vger.kernel.org,
-	Marek Szyprowski <m.szyprowski@samsung.com>,
-	kyungmin.park@samsung.com, jaeryul.oh@samsung.com,
-	laurent.pinchart@ideasonboard.com, jtp.park@samsung.com
-Message-id: <005501cc2b33$099b4940$1cd1dbc0$%debski@samsung.com>
-MIME-version: 1.0
-Content-type: text/plain; charset=US-ASCII
-Content-language: en-gb
-Content-transfer-encoding: 7BIT
-References: <1308069416-24723-1-git-send-email-k.debski@samsung.com>
- <1308069416-24723-2-git-send-email-k.debski@samsung.com>
- <201106150839.59635.hverkuil@xs4all.nl>
+	Tue, 28 Jun 2011 08:32:12 -0400
+From: "Hadli, Manjunath" <manjunath.hadli@ti.com>
+To: "'Laurent Pinchart'" <laurent.pinchart@ideasonboard.com>
+CC: "davinci-linux-open-source@linux.davincidsp.com"
+	<davinci-linux-open-source@linux.davincidsp.com>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Date: Tue, 28 Jun 2011 18:02:01 +0530
+Subject: RE: [RFC] Media Controller Capture driver for DM365
+Message-ID: <B85A65D85D7EB246BE421B3FB0FBB593024BCEF738@dbde02.ent.ti.com>
+References: <B85A65D85D7EB246BE421B3FB0FBB593024BBC5CB6@dbde02.ent.ti.com>
+ <201105020006.24338.laurent.pinchart@ideasonboard.com>
+In-Reply-To: <201105020006.24338.laurent.pinchart@ideasonboard.com>
+Content-Language: en-US
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+MIME-Version: 1.0
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Hi,
 
+Laurent,
+  Sorry for getting back late on this. I was also tied up. I am following it up with the patches.
 
-> -----Original Message-----
-> From: Hans Verkuil [mailto:hverkuil@xs4all.nl]
-> Sent: 15 June 2011 08:40
-> To: Kamil Debski
-> Cc: linux-media@vger.kernel.org; m.szyprowski@samsung.com;
-> kyungmin.park@samsung.com; jaeryul.oh@samsung.com;
-> laurent.pinchart@ideasonboard.com; jtp.park@samsung.com
-> Subject: Re: [PATCH 1/4 v9] v4l: add fourcc definitions for compressed
-> formats.
+-Manju
+
+On Mon, May 02, 2011 at 03:36:23, Laurent Pinchart wrote:
+> Hi Manjunath,
 > 
-> On Tuesday, June 14, 2011 18:36:53 Kamil Debski wrote:
-> > Add fourcc definitions and documentation for the following
-> > compressed formats: H264, H264 without start codes,
-> > MPEG1/2/4 ES, DIVX versions 3.11, 4, 5.0-5.0.2, 5.03 and up,
-> > XVID, VC1 Annex G and Annex L compliant.
-> >
-> > Signed-off-by: Kamil Debski <k.debski@samsung.com>
-> > Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
-> > ---
-> >  Documentation/DocBook/media/v4l/controls.xml |    7 ++-
-> >  Documentation/DocBook/media/v4l/pixfmt.xml   |   67
-> +++++++++++++++++++++++++-
-> >  include/linux/videodev2.h                    |   21 +++++++--
-> >  3 files changed, 88 insertions(+), 7 deletions(-)
-> >
-> > diff --git a/Documentation/DocBook/media/v4l/controls.xml
-> b/Documentation/DocBook/media/v4l/controls.xml
-
-[snip]
-
-> > diff --git a/include/linux/videodev2.h b/include/linux/videodev2.h
-> > index 8a4c309..65bcb61 100644
-> > --- a/include/linux/videodev2.h
-> > +++ b/include/linux/videodev2.h
-> > @@ -376,7 +376,20 @@ struct v4l2_pix_format {
-> >  #define V4L2_PIX_FMT_MJPEG    v4l2_fourcc('M', 'J', 'P', 'G') /* Motion-
-> JPEG   */
-> >  #define V4L2_PIX_FMT_JPEG     v4l2_fourcc('J', 'P', 'E', 'G') /* JFIF
-> JPEG     */
-> >  #define V4L2_PIX_FMT_DV       v4l2_fourcc('d', 'v', 's', 'd') /* 1394
-> */
-> > -#define V4L2_PIX_FMT_MPEG     v4l2_fourcc('M', 'P', 'E', 'G') /* MPEG-
-> 1/2/4    */
-> > +#define V4L2_PIX_FMT_MPEG     v4l2_fourcc('M', 'P', 'E', 'G') /* MPEG-
-> 1/2/4 Multiplexed */
-> > +#define V4L2_PIX_FMT_H264     v4l2_fourcc('H', '2', '6', '4') /* H264
-> with start codes */
-> > +#define V4L2_PIX_FMT_H264_NO_SC v4l2_fourcc('A', 'V', 'C', '1') /* H264
-> without start codes */
-> > +#define V4L2_PIX_FMT_H263     v4l2_fourcc('H', '2', '6', '3') /* H263
-> */
-> > +#define V4L2_PIX_FMT_MPEG1    v4l2_fourcc('M', 'P', 'G', '1') /* MPEG-1
-> ES     */
-> > +#define V4L2_PIX_FMT_MPEG2    v4l2_fourcc('M', 'P', 'G', '2') /* MPEG-2
-> ES     */
-> > +#define V4L2_PIX_FMT_MPEG4    v4l2_fourcc('M', 'P', 'G', '4') /* MPEG-4
-> ES     */
-> > +#define V4L2_PIX_FMT_DIVX3    v4l2_fourcc('D', 'I', 'V', '3') /* DivX
-> 3.11     */
-> > +#define V4L2_PIX_FMT_DIVX4    v4l2_fourcc('D', 'I', 'V', '4') /* DivX
-> 4.12     */
-> > +#define V4L2_PIX_FMT_DIVX500  v4l2_fourcc('D', 'X', '5', '0') /* DivX
-> 5.00 - 5.02  */
-> > +#define V4L2_PIX_FMT_DIVX5    v4l2_fourcc('D', 'I', 'V', '5') /* DivX
-> 5.03 - x  */
+> On Wednesday 27 April 2011 16:14:03 Hadli, Manjunath wrote:
+> > Introduction
+> > ------------
+> > This is the proposal of the initial version of design and 
+> > implementation of the DM365 VPFE (Video Port Front End) drivers using 
+> > Media Controloler , the initial version which supports the following:
+> > 1) dm365 vpfe
+> > 2) ccdc,previewer,resizer,h3a,af blocks
+> > 3) supports both continuous and single-shot modes
+> > 4) supports user pointer exchange and memory mapped modes for buffer 
+> > allocation
+> > 
+> > This driver bases its design on Laurent Pinchart's Media Controller 
+> > Design whose patches for Media Controller and subdev enhancements form the base.
+> > The driver also takes copious elements taken from Laurent Pinchart and 
+> > others' OMAP ISP driver based on Media Controller. So thank you all 
+> > the people who are responsible for the Media Controller and the OMAP 
+> > ISP driver.
 > 
-> Wasn't DIVX removed due to licensing issues?
-
-The idea is to have a separate patch that will add DIVX support to the driver.
-I thought that I could leave the pixel format definitions here - if any other
-driver cares to use them.
-
-There is no problem to remove it from videodev2.h also and have the DIVX patch
-add it. Do you think we should do it this way?
- 
-> > +#define V4L2_PIX_FMT_XVID     v4l2_fourcc('X', 'V', 'I', 'D') /* Xvid
-> */
-> > +#define V4L2_PIX_FMT_VC1_ANNEX_G v4l2_fourcc('V', 'C', '1', 'G') /* SMPTE
-> 421M Annex G compliant stream */
-> > +#define V4L2_PIX_FMT_VC1_ANNEX_L v4l2_fourcc('V', 'C', '1', 'L') /* SMPTE
-> 421M Annex L compliant stream */
+> You're welcome.
 > 
-> Just to verify: are all these formats actually used in the driver?
-
-All but the DIVX and V4L2_PIX_FMT_H264_NO_SC pixel format.
-V4L2_PIX_FMT_H264_NO_SC pixel format was requested by Laurent.
-
-> >
-> >  /*  Vendor-specific formats   */
-> >  #define V4L2_PIX_FMT_CPIA1    v4l2_fourcc('C', 'P', 'I', 'A') /* cpia1
-> YUV */
-> > @@ -1151,7 +1164,7 @@ enum v4l2_colorfx {
-> >  #define V4L2_CID_MPEG_BASE 			(V4L2_CTRL_CLASS_MPEG |
-> 0x900)
-> >  #define V4L2_CID_MPEG_CLASS 			(V4L2_CTRL_CLASS_MPEG |
-1)
-> >
-> > -/*  MPEG streams */
-> > +/*  MPEG streams, specific to multiplexed streams */
-> >  #define V4L2_CID_MPEG_STREAM_TYPE 		(V4L2_CID_MPEG_BASE+0)
-> >  enum v4l2_mpeg_stream_type {
-> >  	V4L2_MPEG_STREAM_TYPE_MPEG2_PS   = 0, /* MPEG-2 program stream */
-> > @@ -1173,7 +1186,7 @@ enum v4l2_mpeg_stream_vbi_fmt {
-> >  	V4L2_MPEG_STREAM_VBI_FMT_IVTV = 1,  /* VBI in private packets, IVTV
-> format */
-> >  };
-> >
-> > -/*  MPEG audio */
-> > +/*  MPEG audio controls specific to multiplexed streams  */
-> >  #define V4L2_CID_MPEG_AUDIO_SAMPLING_FREQ 	(V4L2_CID_MPEG_BASE+100)
-> >  enum v4l2_mpeg_audio_sampling_freq {
-> >  	V4L2_MPEG_AUDIO_SAMPLING_FREQ_44100 = 0,
-> > @@ -1289,7 +1302,7 @@ enum v4l2_mpeg_audio_ac3_bitrate {
-> >  	V4L2_MPEG_AUDIO_AC3_BITRATE_640K = 18,
-> >  };
-> >
-> > -/*  MPEG video */
-> > +/*  MPEG video controls specific to multiplexed streams */
+> > Also, the core functionality of the driver comes from the arago vpfe 
+> > capture driver of which the CCDC capture was based on V4L2, with other 
+> > drivers like Previwer, and Resizer.
+> > 
+> > The specification for DM365 can be found here:
+> > dm365  vpfe: http://www.ti.com/litv/pdf/sprufg8c
+> > 
+> > The initial version of the  driver implementation can be found here:
+> > 
+> > http://git.linuxtv.org/mhadli/v4l-dvb-davinci_devices.git?a=shortlog;h
+> > =refs
+> > /heads/mc_release
 > 
-> The 'multiplexed' part of this comment is only true for VIDEO_ENCODING. The
-> other controls are valid for elementary streams as well.
-
-Ok, I will remove this comment.
-
+> I'll try to review the code, but I got the DM644x V4L2 display driver on my todo-list first :-)
 > 
-> >  #define V4L2_CID_MPEG_VIDEO_ENCODING 		(V4L2_CID_MPEG_BASE+200)
-> >  enum v4l2_mpeg_video_encoding {
-> >  	V4L2_MPEG_VIDEO_ENCODING_MPEG_1     = 0,
-> >
+> > Driver Design: Main entities
+> > ----------------------------
+> > The hardware modules for dm355,dm365 are mainly ipipe, ipipeif,isif. 
+> > These hardware modules are generically exposed to the user level in 
+> > the for of
+> > dm6446 style modules. Mainly -
+> > ccdc, previewer, resizer in addition to the other histogram and auto 
+> > color/white balance correction and auto focus modules.
 > 
+> I'm curious, why do you name the modules CCDC and previewer in the code, when they're called ISIF, IPIPEIF and IPIPE in the documentation ? That's quite confusing.
+The driver is intended to support Dm365, Dm355 and Dm6446. The three are similar and there are some internal differences. The counterparts for IPIPE in Dm6446 are known by names as CCDC , previewer etc and a good part of the world knows the driver by that name. So rather than changing the names, we decided to keep them as-is.
+> 
+> > 1)MT9P031 sensor  module for RAW capture
+> > 2)TVP7002 decoder module for HD inputs 3)TVP514x decoder module for SD 
+> > inputs 4)CCDC capture module 5)Previewer Module for Bayer to YUV 
+> > conversion 6)Resizer Module for scaling
+> > 
+> > Connection for on-the-fly capture
+> > ---------------------------------
+> > Mt9P031 
+> > ------>CCDC--->Previewer(optional)--->Resizer(optional)--->Video
+> > 
+> > TVP7002 ---
+> > 
+> > TV514x  ---
+> > 
+> > File Organisation
+> > -----------------
+> > 
+> > main driver files
+> > ----------------
+> > drivers/media/video/davinci/vpfe_capture.c
+> > include/media/davinci/vpfe_capture.h
+> > 
+> > Instantiatiation of the v4l2 device, media device and all  subdevs 
+> > from here.
+> > 
+> > video Interface files
+> > ---------------------
+> > drivers/media/video/davinci/vpfe_video.c
+> > include/media/davinci/vpfe_video.h
+> > 
+> > Implements all the v4l2 video operations with a generic implementation 
+> > for continuous and one shot mode.
+> > 
+> > subdev interface files
+> > ----------------------
+> > These file implement the subdev interface functionality for each of 
+> > the subdev entities - mainly the entry points and their 
+> > implementations in a IP generic way.
+> > 
+> > drivers/media/video/davinci/vpfe_ccdc.c
+> > drivers/media/video/davinci/vpfe_previewer.c
+> > drivers/media/video/davinci/vpfe_resizer.c
+> > drivers/media/video/davinci/vpfe_af.c
+> > drivers/media/video/davinci/vpfe_aew.c
+> > drivers/media/video/mt9p031.c
+> > drivers/media/video/tvp514x.c
+> > drivers/media/video/tvp7002.c
+> > drivers/media/video/ths7353.c
+> > 
+> > include/media/davinci/vpfe_ccdc.h
+> > include/media/davinci/vpfe_previewer.h
+> > include/media/davinci/vpfe_resizer.h
+> > include/media/davinci/vpfe_af.h
+> > include/media/davinci/vpfe_aew.h
+> > include/media/tvp514x.h
+> > drivers/media/video/tvp514x_regs.h
+> > include/media/tvp7002.h
+> > drivers/media/video/tvp7002_reg.h
+> > 
+> > core implementation files
+> > -------------------------
+> > These provide a core implementation routines for ccdc, ipipeif, 
+> > ipipe,aew, af, resizer hardware modules.
+> > 
+> > drivers/media/video/davinci/dm365_ccdc.c
+> > drivers/media/video/davinci/dm365_ipipe.c
+> > drivers/media/video/davinci/dm365_def_para.c
+> > drivers/media/video/davinci/dm365_ipipe_hw.c
+> > drivers/media/video/davinci/dm3xx_ipipe.c
+> > drivers/media/video/davinci/dm365_aew.c
+> > drivers/media/video/davinci/dm365_af.c
+> > drivers/media/video/davinci/dm365_a3_hw.c
+> 
+> Why don't you combine the davinci/vpfe_*.c files with the davinci/dm365_*.c files ? What's the reason for splitting functionality between vpfe_ccdc.c and dm365_ccdc.c for instance ?
+The driver is intended to support DM365, DM355 and DM6446. So the vpfe_ files implement the high level interfaces whereas the dm365_ files implement the specifics for the device.
+> 
+> > include/media/davinci/imp_common.h
+> > include/media/davinci/dm365_ccdc.h
+> > include/media/davinci/dm365_ipipe.h
+> > include/media/davinci/imp_hw_if.h
+> > include/media/davinci/dm3xx_ipipe.h
+> > include/media/davinci/dm365_aew.h
+> > include/media/davinci/dm365_af.h
+> > include/media/davinci/dm365_a3_hw.h
+> > include/media/davinci/vpfe_types.h
+> > 
+> > drivers/media/video/davinci/dm365_ccdc_regs.h
+> > drivers/media/video/davinci/ccdc_hw_device.h
+> > drivers/media/video/davinci/dm365_def_para.h
+> > drivers/media/video/davinci/dm365_ipipe_hw.h
+> > 
+> > TODOs:
+> > ======
+> > 
+> > 1. Support NV12/YUYV format
+> > 2. Support more than 1 buffer for single-shot mode 3. Enable Resizer-B 
+> > 4. Remove duplicate format setting in ipipe 5. Remove function 
+> > declarations in dm365_ipipe.c by removing function pointer table 6. 
+> > Remove function declarations in dm365_ccdc.c by removing function 
+> > pointer table 7. Make multilevel previewer module ioctl into single 
+> > level 8. Move kernel only headers into drivers/media/video/davinci 
+> > from include/media/davinci
+> 
+> --
 > Regards,
 > 
-> 	Hans
-
-Best regards,
---
-Kamil Debski
-Linux Platform Group
-Samsung Poland R&D Center
-
+> Laurent Pinchart
+> 
 
