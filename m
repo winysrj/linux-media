@@ -1,76 +1,89 @@
 Return-path: <mchehab@pedra>
-Received: from mx1.redhat.com ([209.132.183.28]:58743 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1759931Ab1FAVph (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 1 Jun 2011 17:45:37 -0400
-Message-ID: <4DE6B2F1.5080509@redhat.com>
-Date: Wed, 01 Jun 2011 18:45:21 -0300
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-MIME-Version: 1.0
-To: LMML <linux-media@vger.kernel.org>
-CC: Andy Walls <awalls@md.metrocast.net>,
-	=?UTF-8?B?SGVybsOhbiBPcmRpYWxlcw==?= <h.ordiales@gmail.com>,
-	Manu Abraham <abraham.manu@gmail.com>,
-	Oliver Endriss <o.endriss@gmx.de>,
-	"Tomasz G. Burak" <tomekbu@op.pl>
-Subject: Media patches with review pending (14 patches)
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Received: from mail-qy0-f174.google.com ([209.85.216.174]:47274 "EHLO
+	mail-qy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755674Ab1F1Ai1 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 27 Jun 2011 20:38:27 -0400
+Received: by qyk29 with SMTP id 29so1652970qyk.19
+        for <linux-media@vger.kernel.org>; Mon, 27 Jun 2011 17:38:26 -0700 (PDT)
+Subject: Re: HVR-1250/CX23885 IR Rx
+Mime-Version: 1.0 (Apple Message framework v1084)
+Content-Type: text/plain; charset=us-ascii
+From: Jarod Wilson <jarod@wilsonet.com>
+In-Reply-To: <1302476895.2282.12.camel@localhost>
+Date: Mon, 27 Jun 2011 20:38:23 -0400
+Cc: Devin Heitmueller <dheitmueller@kernellabs.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Content-Transfer-Encoding: 8BIT
+Message-Id: <679F6706-8E38-4DF4-9F06-65EC3747339E@wilsonet.com>
+References: <1302267045.1749.38.camel@gagarin> <AFEB19DA-4FD6-4472-9825-F13A112B0E2A@wilsonet.com> <1302276147.1749.46.camel@gagarin> <B9A35B3D-DC47-4D95-88F5-5453DD3F506C@wilsonet.com> <BANLkTimyT98dabuYsrwLrcm2wQFv2uQB9g@mail.gmail.com> <44DC1ED9-2697-4F92-A81A-CD024C913CCB@wilsonet.com> <BANLkTi=3Gq+8kXm40O55y55O6A6Q4-3g-g@mail.gmail.com> <CDB2A354-8564-447E-99A3-66502E83E4CB@wilsonet.com> <8f1c0f8a-e4cd-4e3b-8ad4-f58212dfd9d4@email.android.com> <099D978B-BC30-4527-870E-85ECEE74501D@wilsonet.com> <1302476895.2282.12.camel@localhost>
+To: Andy Walls <awalls@md.metrocast.net>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-This is the list of the patches currently on my queue (13 patches from
-patchwork and one patch that patchwork lost due to a database corruption).
+On Apr 10, 2011, at 7:08 PM, Andy Walls wrote:
 
-There's not much patches there, as I've applied most of the pending
-stuff. Unfortunately, however, patchwork is not reliable. I noticed
-at least 2 patches lost when reviewing the patch series. I've applied
-one of them manually.
+> On Sat, 2011-04-09 at 21:39 -0400, Jarod Wilson wrote:
+> 
+>>> Jarod,
+>>> 
+>>> The HVR-1850 uses a raw IR receiver in the CX23888 and older
+>> HVR-1250s use the raw IR receiver in the CX23885.  They both work for
+>> Rx (I need to tweak the Cx23885 rx watermark though), but I never
+>> found time to finish Tx (lack of kernel interface when I had time).
+>>> 
+>>> If you obtain one of these I can answer any driver questions.
+>> 
+>> Quite some time back, I bought an HVR-1800 and an HVR-1250. I know one of
+>> them came with an mceusb transceiver and remote, as was pretty sure it was
+>> the 1800. For some reason, I didn't recall the 1250 coming with anything at
+>> all, but looking at dmesg output for it:
+>> 
+>> cx23885 driver version 0.0.2 loaded
+>> cx23885 0000:03:00.0: PCI INT A -> GSI 16 (level, low) -> IRQ 16
+>> CORE cx23885[0]: subsystem: 0070:7911, board: Hauppauge WinTV-HVR1250 [card=3,autodetected]
+>> tveeprom 0-0050: Hauppauge model 79001, rev E3D9, serial# 4904656
+>> tveeprom 0-0050: MAC address is 00:0d:fe:4a:d6:d0
+>> tveeprom 0-0050: tuner model is Microtune MT2131 (idx 139, type 4)
+>> tveeprom 0-0050: TV standards NTSC(M) ATSC/DVB Digital (eeprom 0x88)
+>> tveeprom 0-0050: audio processor is CX23885 (idx 39)
+>> tveeprom 0-0050: decoder processor is CX23885 (idx 33)
+>> tveeprom 0-0050: has no radio, has IR receiver, has no IR transmitter
+>> 
+>> So it seems I do have hardware. However, its one of the two tuner cards in
+>> my "production" mythtv backend right now, making it a bit hard to do any
+>> experimenting with. If I can get it out of there, it looks like I just add
+>> an enable_885_ir=1, and I should be able to poke at it...
+> 
+> Yeah.  Igor's TeVii S470 CX23885 based card had interrupt storms when
+> enabled, so IR for '885 chips is disabled by default.  To investigate, I
+> tried to by an HVR-1250 with a CX23885, but instead got an HVR-1275 with
+> a CX23888.  dandel, on IRC, did a pretty decent job in testing HVR-1250
+> operation and finding it works, despite climbing kernel
+> build/development learning curve at the time.
+...
 
-So, please point me if is there a pending patch that I didn't catch.
+Finally got some time to play with my 1250, dug out its rx cable, turns out to
+be the same one I special-ordered to work on the 1150 Devin sent me. Oops.
+Anyway. First impressions, not so good. Got a panic on boot, somewhere in
+cx23885_video_irq, iirc, when booting with enable_885_ir=1 set. However, dmesg
+was somewhere in the middle of cx18 init of the HVR-1600 in the box. Dunno if
+there's any way that's actually directly related, but I yanked the 1600. After
+doing that, the box managed to boot fine, but then while testing w/ir-keytable
+and an RC-6 remote, I got what I think was the same panic -- definitely the
+cx23885_video_irq bit in the trace, something about sleeping while atomic, IP
+at mwait_idle. (On the plus side, IR did seem to be working before that).
 
-Thanks!
-Mauro
-
-		== Patches for Manu Abraham <abraham.manu@gmail.com> review == 
-
-Jun,11 2010: stb0899: Removed an extra byte sent at init on DiSEqC bus              http://patchwork.kernel.org/patch/105621  Florent AUDEBERT <florent.audebert@anevia.com>
-Aug, 7 2010: Refactor Mantis DMA transfer to deliver 16Kb TS data per interrupt     http://patchwork.kernel.org/patch/118173  Marko Ristola <marko.ristola@kolumbus.fi>
-May, 4 2011: stb0899: Fix not locking DVB-S transponder                             http://patchwork.kernel.org/patch/753382  Lutz Sammer <johns98@gmx.net>
-May,21 2011: Disable dynamic current limit for ttpci budget cards                   http://patchwork.kernel.org/patch/805872  Guy Martin <gmsoft@tuxicoman.be>
-May,23 2011: Increase a timeout, so that bad scheduling does not accidentially caus http://patchwork.kernel.org/patch/809002  Hans Petter Selasky <hselasky@c2i.net>
-May,25 2011: Add remote control support for mantis                                                                            Christoph Pinkl <christoph.pinkl@gmail.com>
-May,24 2011: Fix the derot zig-zag to work with TT-USB2.0 TechnoTrend.              http://patchwork.kernel.org/patch/826102  Hans Petter Selasky <hselasky@c2i.net>
-Jun, 1 2011: stv090x: set status bits when there is no lock                         http://patchwork.kernel.org/patch/840602  Guy Martin <gmsoft@tuxicoman.be>
-
-The RC support for mantis is a patch that it used to be on patchwork, but got lost.
-
-		== Waiting for Hernán Ordiales<h.ordiales@gmail.com> comments and new patch == 
-
-May, 3 2011: Adding support to the Geniatech/MyGica SBTVD Stick S870 remote control http://patchwork.kernel.org/patch/751702  Mauro Carvalho Chehab <mchehab@redhat.com>
-
-		== Waiting for Tomasz G. Burak <tomekbu@op.pl> comments and new patch == 
-
-Feb, 7 2011: DVB-USB: Remote Control for TwinhanDTV StarBox DVB-S USB and clones    http://patchwork.kernel.org/patch/751832  Tomasz G. Burak <tomekbu@op.pl>
-
-		== Patches for Andy Walls <awalls@md.metrocast.net> review == 
-
-May,25 2011: ivtv: use display information in info not in var for panning           http://patchwork.kernel.org/patch/815492  Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-
-		== Patches waiting my tests with mb86a20s/ISDB-T == 
-
-May,19 2011: saa7134-dvb.c kworld_sbtvd                                             http://patchwork.kernel.org/patch/798782  Manoel Pinheiro <pinusdtv@hotmail.com>
-May,19 2011: [RFC] add i2c_gate_ctrl to mb86a20s.c                                  http://patchwork.kernel.org/patch/799532  Manoel Pinheiro <pinusdtv@hotmail.com>
-
-		== Waiting for Oliver Endriss<o.endriss@gmx.de> review == 
-
-May,12 2011: ngene: blocking and nonblocking io for sec0                            http://patchwork.kernel.org/patch/780072  Issa Gorissen <flop.m@usa.net>
+Note also that this is a 2.6.32-based kernel with a 2.6.38-era backport of the
+driver code, because that's what was on this box. Was about to put it back into
+"production" use, but hey, its summer, there's nothing really for it to record
+for another few months, so I'll keep it out and throw it into another box with
+a newer kernel and serial console, etc., so I can further debug...
 
 
-Number of pending patches per reviewer:
-  Manu Abraham <abraham.manu@gmail.com>                                 : 8
-  Mauro Carvalho Chehab <mchehab@redhat.com>                            : 2
-  Andy Walls <awalls@md.metrocast.net>                                  : 1
-  Hernán Ordiales <h.ordiales@gmail.com>                                : 1
-  Oliver Endriss <o.endriss@gmx.de>                                     : 1
-  Tomasz G. Burak <tomekbu@op.pl>                                       : 1
+-- 
+Jarod Wilson
+jarod@wilsonet.com
+
+
+
