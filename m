@@ -1,175 +1,90 @@
 Return-path: <mchehab@pedra>
-Received: from qmta11.emeryville.ca.mail.comcast.net ([76.96.27.211]:47686
-	"EHLO qmta11.emeryville.ca.mail.comcast.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757427Ab1FVRh1 (ORCPT
+Received: from smtp-vbr1.xs4all.nl ([194.109.24.21]:4741 "EHLO
+	smtp-vbr1.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757697Ab1F1Mx1 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 22 Jun 2011 13:37:27 -0400
-Date: Wed, 22 Jun 2011 10:30:45 -0700
-From: matt mooney <mfm@muteddisk.com>
-To: Kirill Smelkov <kirr@mns.spb.ru>
-Cc: linux-usb@vger.kernel.org, Greg Kroah-Hartman <gregkh@suse.de>,
-	linux-uvc-devel@lists.berlios.de, linux-media@vger.kernel.org,
-	linux-kernel@vger.kernel.org,
-	Alan Stern <stern@rowland.harvard.edu>
-Subject: Re: [RFC, PATCH] USB: EHCI: Allow users to override 80% max periodic bandwidth
-Message-ID: <20110622173045.GC56479@haskell.muteddisk.com>
-References: <1308758567-8205-1-git-send-email-kirr@mns.spb.ru>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1308758567-8205-1-git-send-email-kirr@mns.spb.ru>
+	Tue, 28 Jun 2011 08:53:27 -0400
+Received: from tschai.localnet (64-103-25-233.cisco.com [64.103.25.233])
+	(authenticated bits=0)
+	by smtp-vbr1.xs4all.nl (8.13.8/8.13.8) with ESMTP id p5SCrNKs093342
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-media@vger.kernel.org>; Tue, 28 Jun 2011 14:53:25 +0200 (CEST)
+	(envelope-from hverkuil@xs4all.nl)
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: "linux-media" <linux-media@vger.kernel.org>
+Subject: [GIT PATCHES FOR 3.1] Add Control Event and autofoo/foo support
+Date: Tue, 28 Jun 2011 14:53:22 +0200
+MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201106281453.22685.hverkuil@xs4all.nl>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On 20:02 Wed 22 Jun     , Kirill Smelkov wrote:
-> There are cases, when 80% max isochronous bandwidth is too limiting.
-> 
-> For example I have two USB video capture cards which stream uncompressed
-> video, and to stream full NTSC + PAL videos we'd need
-> 
->     NTSC 640x480 YUV422 @30fps      ~17.6 MB/s
->     PAL  720x576 YUV422 @25fps      ~19.7 MB/s
-> 
-> isoc bandwidth.
-> 
-> Now, due to limited alt settings in capture devices NTSC one ends up
-> streaming with max_pkt_size=2688  and  PAL with max_pkt_size=2892, both
-> with interval=1. In terms of microframe time allocation this gives
-> 
->     NTSC    ~53us
->     PAL     ~57us
-> 
-> and together
-> 
->     ~110us  >  100us == 80% of 125us uframe time.
-> 
-> So those two devices can't work together simultaneously because the'd
-> over allocate isochronous bandwidth.
-> 
-> 80% seemed a bit arbitrary to me, and I've tried to raise it to 90% and
-> both devices started to work together, so I though sometimes it would be
-> a good idea for users to override hardcoded default of max 80% isoc
-> bandwidth.
+Hi Mauro,
 
-There is nothing arbitrary about 80%. The USB 2.0 Specification constrains
-periodic transfers for high-speed endpoints to 80% of the microframe. See
-section 5.6.4.
+This is the same as the first pull request, except for:
 
--mfm
- 
-> After all, isn't it a user who should decide how to load the bus? If I
-> can live with 10% or even 5% bulk bandwidth that should be ok. I'm a USB
-> newcomer, but that 80% seems to be chosen pretty arbitrary to me, just
-> to serve as a reasonable default.
-> 
-> NOTE: for two streams with max_pkt_size=3072 (worst case) both time
-> allocation would be 60us+60us=120us which is 96% periodic bandwidth
-> leaving 4% for bulk and control. I think this should work too.
-> 
-> Signed-off-by: Kirill Smelkov <kirr@mns.spb.ru>
-> Cc: Alan Stern <stern@rowland.harvard.edu>
-> ---
->  drivers/usb/host/ehci-hcd.c   |   16 ++++++++++++++++
->  drivers/usb/host/ehci-sched.c |   17 +++++++----------
->  2 files changed, 23 insertions(+), 10 deletions(-)
-> 
-> diff --git a/drivers/usb/host/ehci-hcd.c b/drivers/usb/host/ehci-hcd.c
-> index c606b02..1d36e72 100644
-> --- a/drivers/usb/host/ehci-hcd.c
-> +++ b/drivers/usb/host/ehci-hcd.c
-> @@ -112,6 +112,14 @@ static unsigned int hird;
->  module_param(hird, int, S_IRUGO);
->  MODULE_PARM_DESC(hird, "host initiated resume duration, +1 for each 75us\n");
->  
-> +/*
-> + * max periodic time per microframe
-> + * (be careful, USB 2.0 requires it to be 100us = 80% of 125us)
-> + */
-> +static unsigned int uframe_periodic_max = 100;
-> +module_param(uframe_periodic_max, uint, S_IRUGO);
-> +MODULE_PARM_DESC(uframe_periodic_max, "maximum allowed periodic part of a microframe, us");
-> +
->  #define	INTR_MASK (STS_IAA | STS_FATAL | STS_PCD | STS_ERR | STS_INT)
->  
->  /*-------------------------------------------------------------------------*/
-> @@ -571,6 +579,14 @@ static int ehci_init(struct usb_hcd *hcd)
->  	hcc_params = ehci_readl(ehci, &ehci->caps->hcc_params);
->  
->  	/*
-> +	 * tell user, if using non-standard (80% == 100 usec/uframe) bandwidth
-> +	 */
-> +	if (uframe_periodic_max != 100)
-> +		ehci_info(ehci, "using non-standard max periodic bandwith "
-> +				"(%u%% == %u usec/uframe)",
-> +				100*uframe_periodic_max/125, uframe_periodic_max);
-> +
-> +	/*
->  	 * hw default: 1K periodic list heads, one per frame.
->  	 * periodic_size can shrink by USBCMD update if hcc_params allows.
->  	 */
-> diff --git a/drivers/usb/host/ehci-sched.c b/drivers/usb/host/ehci-sched.c
-> index d12426f..fb374f2 100644
-> --- a/drivers/usb/host/ehci-sched.c
-> +++ b/drivers/usb/host/ehci-sched.c
-> @@ -172,7 +172,7 @@ periodic_usecs (struct ehci_hcd *ehci, unsigned frame, unsigned uframe)
->  		}
->  	}
->  #ifdef	DEBUG
-> -	if (usecs > 100)
-> +	if (usecs > uframe_periodic_max)
->  		ehci_err (ehci, "uframe %d sched overrun: %d usecs\n",
->  			frame * 8 + uframe, usecs);
->  #endif
-> @@ -709,11 +709,8 @@ static int check_period (
->  	if (uframe >= 8)
->  		return 0;
->  
-> -	/*
-> -	 * 80% periodic == 100 usec/uframe available
-> -	 * convert "usecs we need" to "max already claimed"
-> -	 */
-> -	usecs = 100 - usecs;
-> +	/* convert "usecs we need" to "max already claimed" */
-> +	usecs = uframe_periodic_max - usecs;
->  
->  	/* we "know" 2 and 4 uframe intervals were rejected; so
->  	 * for period 0, check _every_ microframe in the schedule.
-> @@ -1286,9 +1283,9 @@ itd_slot_ok (
->  {
->  	uframe %= period;
->  	do {
-> -		/* can't commit more than 80% periodic == 100 usec */
-> +		/* can't commit more than uframe_periodic_max usec */
->  		if (periodic_usecs (ehci, uframe >> 3, uframe & 0x7)
-> -				> (100 - usecs))
-> +				> (uframe_periodic_max - usecs))
->  			return 0;
->  
->  		/* we know urb->interval is 2^N uframes */
-> @@ -1345,7 +1342,7 @@ sitd_slot_ok (
->  #endif
->  
->  		/* check starts (OUT uses more than one) */
-> -		max_used = 100 - stream->usecs;
-> +		max_used = uframe_periodic_max - stream->usecs;
->  		for (tmp = stream->raw_mask & 0xff; tmp; tmp >>= 1, uf++) {
->  			if (periodic_usecs (ehci, frame, uf) > max_used)
->  				return 0;
-> @@ -1354,7 +1351,7 @@ sitd_slot_ok (
->  		/* for IN, check CSPLIT */
->  		if (stream->c_usecs) {
->  			uf = uframe & 7;
-> -			max_used = 100 - stream->c_usecs;
-> +			max_used = uframe_periodic_max - stream->c_usecs;
->  			do {
->  				tmp = 1 << uf;
->  				tmp <<= 8;
-> -- 
-> 1.7.6.rc1
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-kernel" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> Please read the FAQ at  http://www.tux.org/lkml/
-> 
+- the poll patch has been removed (to be discussed further)
+- a new patch has been added that fixes your manual_mode_value comments.
+
+Note that I have left out the 'event feedback' fix in this patch series.
+I'm going to make a patch for the second patch series instead: it's much
+easier to implement there (that may have been a reason why I didn't
+implement such a flag in the first place). I'll post that fix later for
+review.
+
+Regards,
+
+	Hans
+
+The following changes since commit 7023c7dbc3944f42aa1d6910a6098c5f9e23d3f1:
+
+  [media] DVB: dvb-net, make the kconfig text helpful (2011-06-21 15:55:15 -0300)
+
+are available in the git repository at:
+  ssh://linuxtv.org/git/hverkuil/media_tree.git core8b
+
+Hans Verkuil (18):
+      v4l2-ctrls: introduce call_op define
+      v4l2-ctrls: simplify error_idx handling.
+      v4l2-ctrls: drivers should be able to ignore the READ_ONLY flag
+      v4l2-ioctl: add ctrl_handler to v4l2_fh
+      v4l2-subdev: implement per-filehandle control handlers.
+      v4l2-ctrls: fix and improve volatile control handling.
+      v4l2-controls.txt: update to latest v4l2-ctrl.c changes.
+      v4l2-ctrls: add v4l2_ctrl_auto_cluster to simplify autogain/gain scenarios
+      DocBook: Improve cluster documentation and document the new autoclusters.
+      vivi: add autogain/gain support to test the autocluster functionality.
+      v4l2-ctrls: add v4l2_fh pointer to the set control functions.
+      v4l2-ctrls: add control events.
+      v4l2-ctrls: simplify event subscription.
+      V4L2 spec: document control events.
+      vivi: support control events.
+      ivtv: add control event support.
+      v4l2-compat-ioctl32: add VIDIOC_DQEVENT support.
+      v4l2-ctrls: make manual_mode_value 8 bits and check against control range.
+
+ Documentation/DocBook/media/v4l/vidioc-dqevent.xml |   17 +-
+ .../DocBook/media/v4l/vidioc-subscribe-event.xml   |  142 +++++++++-
+ Documentation/video4linux/v4l2-controls.txt        |   69 ++++-
+ drivers/media/radio/radio-wl1273.c                 |    2 +-
+ drivers/media/radio/wl128x/fmdrv_v4l2.c            |    2 +-
+ drivers/media/video/ivtv/ivtv-fileops.c            |   34 +--
+ drivers/media/video/ivtv/ivtv-ioctl.c              |    2 +
+ drivers/media/video/saa7115.c                      |    4 +-
+ drivers/media/video/v4l2-compat-ioctl32.c          |   37 +++
+ drivers/media/video/v4l2-ctrls.c                   |  333 ++++++++++++++++----
+ drivers/media/video/v4l2-device.c                  |    1 +
+ drivers/media/video/v4l2-event.c                   |  130 ++++++--
+ drivers/media/video/v4l2-fh.c                      |    6 +-
+ drivers/media/video/v4l2-ioctl.c                   |   40 ++-
+ drivers/media/video/v4l2-subdev.c                  |   14 +-
+ drivers/media/video/vivi.c                         |   53 +++-
+ include/linux/videodev2.h                          |   29 ++-
+ include/media/v4l2-ctrls.h                         |   92 +++++-
+ include/media/v4l2-event.h                         |    2 +
+ include/media/v4l2-fh.h                            |    2 +
+ kernel/compat.c                                    |    1 +
+ 21 files changed, 849 insertions(+), 163 deletions(-)
