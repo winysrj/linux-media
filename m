@@ -1,207 +1,305 @@
 Return-path: <mchehab@pedra>
-Received: from smtp-vbr1.xs4all.nl ([194.109.24.21]:2736 "EHLO
-	smtp-vbr1.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755180Ab1FGPFe (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 7 Jun 2011 11:05:34 -0400
+Received: from smtp-vbr10.xs4all.nl ([194.109.24.30]:3251 "EHLO
+	smtp-vbr10.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757176Ab1F1L0P (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 28 Jun 2011 07:26:15 -0400
 From: Hans Verkuil <hverkuil@xs4all.nl>
 To: linux-media@vger.kernel.org
 Cc: Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [RFCv3 PATCH 06/18] v4l2-ctrls: fix and improve volatile control handling.
-Date: Tue,  7 Jun 2011 17:05:11 +0200
-Message-Id: <819fb54ca8dfd5529cdd65ab0f3e4be068d1d278.1307458245.git.hans.verkuil@cisco.com>
-In-Reply-To: <1307459123-17810-1-git-send-email-hverkuil@xs4all.nl>
-References: <1307459123-17810-1-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <a1daecb26b464ddd980297783d04941f1f34666b.1307458245.git.hans.verkuil@cisco.com>
-References: <a1daecb26b464ddd980297783d04941f1f34666b.1307458245.git.hans.verkuil@cisco.com>
+Subject: [RFCv2 PATCH 02/13] v4l2-ctrls/event: remove struct v4l2_ctrl_fh, instead use v4l2_subscribed_event
+Date: Tue, 28 Jun 2011 13:25:54 +0200
+Message-Id: <45c38fb3f55b993136692e1d900dacd6cd2d85ad.1309260043.git.hans.verkuil@cisco.com>
+In-Reply-To: <1309260365-4831-1-git-send-email-hverkuil@xs4all.nl>
+References: <1309260365-4831-1-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <3d92b242dcf5e7766d128d6c1f05c0bd837a2633.1309260043.git.hans.verkuil@cisco.com>
+References: <3d92b242dcf5e7766d128d6c1f05c0bd837a2633.1309260043.git.hans.verkuil@cisco.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
 From: Hans Verkuil <hans.verkuil@cisco.com>
 
-If you have a cluster of controls that is a mix of volatile and non-volatile
-controls, then requesting the value of the volatile control would fail if the
-master control of that cluster was non-volatile. The code assumed that the
-volatile state of the master control was the same for all other controls in
-the cluster.
-
-This is now fixed.
-
-In addition, it was clear from bugs in some drivers that it was confusing that
-the ctrl->cur union had to be used in g_volatile_ctrl. Several drivers used the
-'new' values instead. The framework was changed so that drivers now set the new
-value instead of the current value.
-
-This has an additional benefit as well: the volatile values are now only stored
-in the 'new' value, leaving the current value alone. This is useful for
-autofoo/foo control clusters where you want to have a 'foo' control act like a
-volatile control if 'autofoo' is on, but as a normal control when it is off.
-
-Since with this change the cur value is no longer overwritten when g_volatile_ctrl
-is called, you can use it to remember the original 'foo' value. For example:
-
-autofoo = 0, foo = 10 and foo is non-volatile.
-
-Now autofoo is set to 1 and foo is marked volatile. Retrieving the foo value
-will get the volatile value. Set autofoo back to 0, which marks foo as non-
-volatile again, and retrieving foo will get the old current value of 10.
+The v4l2_ctrl_fh struct connected v4l2_ctrl with v4l2_fh so the control
+would know which filehandles subscribed to it. However, it is much easier
+to use struct v4l2_subscribed_event directly for that and get rid of that
+intermediate struct.
 
 Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
 ---
- drivers/media/radio/radio-wl1273.c      |    2 +-
- drivers/media/radio/wl128x/fmdrv_v4l2.c |    2 +-
- drivers/media/video/saa7115.c           |    4 +-
- drivers/media/video/v4l2-ctrls.c        |   52 ++++++++++++++++++++++++++-----
- 4 files changed, 48 insertions(+), 12 deletions(-)
+ drivers/media/video/v4l2-ctrls.c |   50 ++++++++++++++-----------------------
+ drivers/media/video/v4l2-event.c |   34 +++++++++----------------
+ include/media/v4l2-ctrls.h       |   17 +++++-------
+ include/media/v4l2-event.h       |    9 +++++++
+ 4 files changed, 47 insertions(+), 63 deletions(-)
 
-diff --git a/drivers/media/radio/radio-wl1273.c b/drivers/media/radio/radio-wl1273.c
-index 459f727..46cacf8 100644
---- a/drivers/media/radio/radio-wl1273.c
-+++ b/drivers/media/radio/radio-wl1273.c
-@@ -1382,7 +1382,7 @@ static int wl1273_fm_g_volatile_ctrl(struct v4l2_ctrl *ctrl)
- 
- 	switch (ctrl->id) {
- 	case  V4L2_CID_TUNE_ANTENNA_CAPACITOR:
--		ctrl->cur.val = wl1273_fm_get_tx_ctune(radio);
-+		ctrl->val = wl1273_fm_get_tx_ctune(radio);
- 		break;
- 
- 	default:
-diff --git a/drivers/media/radio/wl128x/fmdrv_v4l2.c b/drivers/media/radio/wl128x/fmdrv_v4l2.c
-index 8701072..d50e5ac 100644
---- a/drivers/media/radio/wl128x/fmdrv_v4l2.c
-+++ b/drivers/media/radio/wl128x/fmdrv_v4l2.c
-@@ -191,7 +191,7 @@ static int fm_g_volatile_ctrl(struct v4l2_ctrl *ctrl)
- 
- 	switch (ctrl->id) {
- 	case  V4L2_CID_TUNE_ANTENNA_CAPACITOR:
--		ctrl->cur.val = fm_tx_get_tune_cap_val(fmdev);
-+		ctrl->val = fm_tx_get_tune_cap_val(fmdev);
- 		break;
- 	default:
- 		fmwarn("%s: Unknown IOCTL: %d\n", __func__, ctrl->id);
-diff --git a/drivers/media/video/saa7115.c b/drivers/media/video/saa7115.c
-index 0db9092..f2ae405 100644
---- a/drivers/media/video/saa7115.c
-+++ b/drivers/media/video/saa7115.c
-@@ -757,8 +757,8 @@ static int saa711x_g_volatile_ctrl(struct v4l2_ctrl *ctrl)
- 	switch (ctrl->id) {
- 	case V4L2_CID_CHROMA_AGC:
- 		/* chroma gain cluster */
--		if (state->agc->cur.val)
--			state->gain->cur.val =
-+		if (state->agc->val)
-+			state->gain->val =
- 				saa711x_read(sd, R_0F_CHROMA_GAIN_CNTL) & 0x7f;
- 		break;
- 	}
 diff --git a/drivers/media/video/v4l2-ctrls.c b/drivers/media/video/v4l2-ctrls.c
-index 0b1b30f..a46d5c1 100644
+index f581910..079f952 100644
 --- a/drivers/media/video/v4l2-ctrls.c
 +++ b/drivers/media/video/v4l2-ctrls.c
-@@ -25,8 +25,10 @@
- #include <media/v4l2-ctrls.h>
- #include <media/v4l2-dev.h>
+@@ -581,15 +581,15 @@ static void fill_event(struct v4l2_event *ev, struct v4l2_ctrl *ctrl, u32 change
+ static void send_event(struct v4l2_fh *fh, struct v4l2_ctrl *ctrl, u32 changes)
+ {
+ 	struct v4l2_event ev;
+-	struct v4l2_ctrl_fh *pos;
++	struct v4l2_subscribed_event *sev;
  
-+#define has_op(master, op) \
-+	(master->ops && master->ops->op)
- #define call_op(master, op) \
--	((master->ops && master->ops->op) ? master->ops->op(master) : 0)
-+	(has_op(master, op) ? master->ops->op(master) : 0)
+-	if (list_empty(&ctrl->fhs))
++	if (list_empty(&ctrl->ev_subs))
+ 			return;
+ 	fill_event(&ev, ctrl, changes);
  
- /* Internal temporary helper struct, one for each v4l2_ext_control */
- struct ctrl_helper {
-@@ -626,6 +628,20 @@ static int new_to_user(struct v4l2_ext_control *c,
+-	list_for_each_entry(pos, &ctrl->fhs, node)
+-		if (pos->fh != fh)
+-			v4l2_event_queue_fh(pos->fh, &ev);
++	list_for_each_entry(sev, &ctrl->ev_subs, node)
++		if (sev->fh && sev->fh != fh)
++			v4l2_event_queue_fh(sev->fh, &ev);
+ }
+ 
+ /* Helper function: copy the current control value back to the caller */
+@@ -867,7 +867,7 @@ void v4l2_ctrl_handler_free(struct v4l2_ctrl_handler *hdl)
+ {
+ 	struct v4l2_ctrl_ref *ref, *next_ref;
+ 	struct v4l2_ctrl *ctrl, *next_ctrl;
+-	struct v4l2_ctrl_fh *ctrl_fh, *next_ctrl_fh;
++	struct v4l2_subscribed_event *sev, *next_sev;
+ 
+ 	if (hdl == NULL || hdl->buckets == NULL)
+ 		return;
+@@ -881,10 +881,8 @@ void v4l2_ctrl_handler_free(struct v4l2_ctrl_handler *hdl)
+ 	/* Free all controls owned by the handler */
+ 	list_for_each_entry_safe(ctrl, next_ctrl, &hdl->ctrls, node) {
+ 		list_del(&ctrl->node);
+-		list_for_each_entry_safe(ctrl_fh, next_ctrl_fh, &ctrl->fhs, node) {
+-			list_del(&ctrl_fh->node);
+-			kfree(ctrl_fh);
+-		}
++		list_for_each_entry_safe(sev, next_sev, &ctrl->ev_subs, node)
++			list_del(&sev->node);
+ 		kfree(ctrl);
+ 	}
+ 	kfree(hdl->buckets);
+@@ -1084,7 +1082,7 @@ static struct v4l2_ctrl *v4l2_ctrl_new(struct v4l2_ctrl_handler *hdl,
+ 	}
+ 
+ 	INIT_LIST_HEAD(&ctrl->node);
+-	INIT_LIST_HEAD(&ctrl->fhs);
++	INIT_LIST_HEAD(&ctrl->ev_subs);
+ 	ctrl->handler = hdl;
+ 	ctrl->ops = ops;
+ 	ctrl->id = id;
+@@ -2027,41 +2025,31 @@ int v4l2_ctrl_s_ctrl(struct v4l2_ctrl *ctrl, s32 val)
+ }
+ EXPORT_SYMBOL(v4l2_ctrl_s_ctrl);
+ 
+-void v4l2_ctrl_add_fh(struct v4l2_ctrl_handler *hdl,
+-		struct v4l2_ctrl_fh *ctrl_fh,
+-		struct v4l2_event_subscription *sub)
++void v4l2_ctrl_add_event(struct v4l2_ctrl *ctrl,
++				struct v4l2_subscribed_event *sev)
+ {
+-	struct v4l2_ctrl *ctrl = v4l2_ctrl_find(hdl, sub->id);
+-
+ 	v4l2_ctrl_lock(ctrl);
+-	list_add_tail(&ctrl_fh->node, &ctrl->fhs);
++	list_add_tail(&sev->node, &ctrl->ev_subs);
+ 	if (ctrl->type != V4L2_CTRL_TYPE_CTRL_CLASS &&
+-	    (sub->flags & V4L2_EVENT_SUB_FL_SEND_INITIAL)) {
++	    (sev->flags & V4L2_EVENT_SUB_FL_SEND_INITIAL)) {
+ 		struct v4l2_event ev;
+ 
+ 		fill_event(&ev, ctrl, V4L2_EVENT_CTRL_CH_VALUE |
+ 			V4L2_EVENT_CTRL_CH_FLAGS);
+-		v4l2_event_queue_fh(ctrl_fh->fh, &ev);
++		v4l2_event_queue_fh(sev->fh, &ev);
+ 	}
+ 	v4l2_ctrl_unlock(ctrl);
+ }
+-EXPORT_SYMBOL(v4l2_ctrl_add_fh);
++EXPORT_SYMBOL(v4l2_ctrl_add_event);
+ 
+-void v4l2_ctrl_del_fh(struct v4l2_ctrl *ctrl, struct v4l2_fh *fh)
++void v4l2_ctrl_del_event(struct v4l2_ctrl *ctrl,
++				struct v4l2_subscribed_event *sev)
+ {
+-	struct v4l2_ctrl_fh *pos;
+-
+ 	v4l2_ctrl_lock(ctrl);
+-	list_for_each_entry(pos, &ctrl->fhs, node) {
+-		if (pos->fh == fh) {
+-			list_del(&pos->node);
+-			kfree(pos);
+-			break;
+-		}
+-	}
++	list_del(&sev->node);
+ 	v4l2_ctrl_unlock(ctrl);
+ }
+-EXPORT_SYMBOL(v4l2_ctrl_del_fh);
++EXPORT_SYMBOL(v4l2_ctrl_del_event);
+ 
+ int v4l2_ctrl_subscribe_fh(struct v4l2_fh *fh,
+ 			struct v4l2_event_subscription *sub, unsigned n)
+diff --git a/drivers/media/video/v4l2-event.c b/drivers/media/video/v4l2-event.c
+index 70fa82d..dc68f60 100644
+--- a/drivers/media/video/v4l2-event.c
++++ b/drivers/media/video/v4l2-event.c
+@@ -213,7 +213,6 @@ int v4l2_event_subscribe(struct v4l2_fh *fh,
+ {
+ 	struct v4l2_subscribed_event *sev, *found_ev;
+ 	struct v4l2_ctrl *ctrl = NULL;
+-	struct v4l2_ctrl_fh *ctrl_fh = NULL;
+ 	unsigned long flags;
+ 
+ 	if (sub->type == V4L2_EVENT_CTRL) {
+@@ -222,17 +221,9 @@ int v4l2_event_subscribe(struct v4l2_fh *fh,
+ 			return -EINVAL;
+ 	}
+ 
+-	sev = kmalloc(sizeof(*sev), GFP_KERNEL);
++	sev = kzalloc(sizeof(*sev), GFP_KERNEL);
+ 	if (!sev)
+ 		return -ENOMEM;
+-	if (ctrl) {
+-		ctrl_fh = kzalloc(sizeof(*ctrl_fh), GFP_KERNEL);
+-		if (!ctrl_fh) {
+-			kfree(sev);
+-			return -ENOMEM;
+-		}
+-		ctrl_fh->fh = fh;
+-	}
+ 
+ 	spin_lock_irqsave(&fh->vdev->fh_lock, flags);
+ 
+@@ -241,22 +232,19 @@ int v4l2_event_subscribe(struct v4l2_fh *fh,
+ 		INIT_LIST_HEAD(&sev->list);
+ 		sev->type = sub->type;
+ 		sev->id = sub->id;
++		sev->fh = fh;
++		sev->flags = sub->flags;
+ 
+ 		list_add(&sev->list, &fh->subscribed);
+-		sev = NULL;
+ 	}
+ 
+ 	spin_unlock_irqrestore(&fh->vdev->fh_lock, flags);
+ 
+ 	/* v4l2_ctrl_add_fh uses a mutex, so do this outside the spin lock */
+-	if (ctrl) {
+-		if (found_ev)
+-			kfree(ctrl_fh);
+-		else
+-			v4l2_ctrl_add_fh(fh->ctrl_handler, ctrl_fh, sub);
+-	}
+-
+-	kfree(sev);
++	if (found_ev)
++		kfree(sev);
++	else if (ctrl)
++		v4l2_ctrl_add_event(ctrl, sev);
+ 
  	return 0;
  }
+@@ -298,15 +286,17 @@ int v4l2_event_unsubscribe(struct v4l2_fh *fh,
+ 	spin_lock_irqsave(&fh->vdev->fh_lock, flags);
  
-+static int ctrl_to_user(struct v4l2_ext_control *c,
-+		       struct v4l2_ctrl *ctrl)
-+{
-+	if (ctrl->is_volatile)
-+		return new_to_user(c, ctrl);
-+	return cur_to_user(c, ctrl);
-+}
-+
-+static int ctrl_is_volatile(struct v4l2_ext_control *c,
-+		       struct v4l2_ctrl *ctrl)
-+{
-+	return ctrl->is_volatile;
-+}
-+
- /* Copy the new value to the current value. */
- static void new_to_cur(struct v4l2_ctrl *ctrl)
- {
-@@ -1535,7 +1551,7 @@ int v4l2_g_ext_ctrls(struct v4l2_ctrl_handler *hdl, struct v4l2_ext_controls *cs
- 	struct ctrl_helper helper[4];
- 	struct ctrl_helper *helpers = helper;
- 	int ret;
--	int i;
-+	int i, j;
- 
- 	cs->error_idx = cs->count;
- 	cs->ctrl_class = V4L2_CTRL_ID2CLASS(cs->ctrl_class);
-@@ -1562,6 +1578,7 @@ int v4l2_g_ext_ctrls(struct v4l2_ctrl_handler *hdl, struct v4l2_ext_controls *cs
- 	for (i = 0; !ret && i < cs->count; i++) {
- 		struct v4l2_ctrl *ctrl = helpers[i].ctrl;
- 		struct v4l2_ctrl *master = ctrl->cluster[0];
-+		bool has_volatiles;
- 
- 		if (helpers[i].handled)
- 			continue;
-@@ -1569,12 +1586,25 @@ int v4l2_g_ext_ctrls(struct v4l2_ctrl_handler *hdl, struct v4l2_ext_controls *cs
- 		cs->error_idx = i;
- 
- 		v4l2_ctrl_lock(master);
--		/* g_volatile_ctrl will update the current control values */
--		if (ctrl->is_volatile)
-+
-+		/* Any volatile controls requested from this cluster? */
-+		has_volatiles = ctrl->is_volatile;
-+		if (!has_volatiles && has_op(master, g_volatile_ctrl) &&
-+				master->ncontrols > 1)
-+			has_volatiles = cluster_walk(i + 1, cs, helpers,
-+						ctrl_is_volatile);
-+
-+		/* g_volatile_ctrl will update the new control values */
-+		if (has_volatiles) {
-+			for (j = 0; j < master->ncontrols; j++)
-+				cur_to_new(master->cluster[j]);
- 			ret = call_op(master, g_volatile_ctrl);
--		/* If OK, then copy the current control values to the caller */
-+		}
-+		/* If OK, then copy the current (for non-volatile controls)
-+		   or the new (for volatile controls) control values to the
-+		   caller */
- 		if (!ret)
--			ret = cluster_walk(i, cs, helpers, cur_to_user);
-+			ret = cluster_walk(i, cs, helpers, ctrl_to_user);
- 		v4l2_ctrl_unlock(master);
- 		cluster_done(i, cs, helpers);
- 	}
-@@ -1596,15 +1626,21 @@ static int get_ctrl(struct v4l2_ctrl *ctrl, s32 *val)
- {
- 	struct v4l2_ctrl *master = ctrl->cluster[0];
- 	int ret = 0;
-+	int i;
- 
- 	if (ctrl->flags & V4L2_CTRL_FLAG_WRITE_ONLY)
- 		return -EACCES;
- 
- 	v4l2_ctrl_lock(master);
- 	/* g_volatile_ctrl will update the current control values */
--	if (ctrl->is_volatile)
-+	if (ctrl->is_volatile) {
-+		for (i = 0; i < master->ncontrols; i++)
-+			cur_to_new(master->cluster[i]);
- 		ret = call_op(master, g_volatile_ctrl);
--	*val = ctrl->cur.val;
-+		*val = ctrl->val;
-+	} else {
-+		*val = ctrl->cur.val;
+ 	sev = v4l2_event_subscribed(fh, sub->type, sub->id);
+-	if (sev != NULL)
++	if (sev != NULL) {
+ 		list_del(&sev->list);
++		sev->fh = NULL;
 +	}
- 	v4l2_ctrl_unlock(master);
- 	return ret;
- }
+ 
+ 	spin_unlock_irqrestore(&fh->vdev->fh_lock, flags);
+-	if (sev->type == V4L2_EVENT_CTRL) {
++	if (sev && sev->type == V4L2_EVENT_CTRL) {
+ 		struct v4l2_ctrl *ctrl = v4l2_ctrl_find(fh->ctrl_handler, sev->id);
+ 
+ 		if (ctrl)
+-			v4l2_ctrl_del_fh(ctrl, fh);
++			v4l2_ctrl_del_event(ctrl, sev);
+ 	}
+ 
+ 	kfree(sev);
+diff --git a/include/media/v4l2-ctrls.h b/include/media/v4l2-ctrls.h
+index de68a59..635adc2 100644
+--- a/include/media/v4l2-ctrls.h
++++ b/include/media/v4l2-ctrls.h
+@@ -31,6 +31,7 @@ struct v4l2_ctrl;
+ struct video_device;
+ struct v4l2_subdev;
+ struct v4l2_event_subscription;
++struct v4l2_subscribed_event;
+ struct v4l2_fh;
+ 
+ /** struct v4l2_ctrl_ops - The control operations that the driver has to provide.
+@@ -53,6 +54,7 @@ struct v4l2_ctrl_ops {
+ 
+ /** struct v4l2_ctrl - The control structure.
+   * @node:	The list node.
++  * @ev_subs:	The list of control event subscriptions.
+   * @handler:	The handler that owns the control.
+   * @cluster:	Point to start of cluster array.
+   * @ncontrols:	Number of controls in cluster array.
+@@ -108,7 +110,7 @@ struct v4l2_ctrl_ops {
+ struct v4l2_ctrl {
+ 	/* Administrative fields */
+ 	struct list_head node;
+-	struct list_head fhs;
++	struct list_head ev_subs;
+ 	struct v4l2_ctrl_handler *handler;
+ 	struct v4l2_ctrl **cluster;
+ 	unsigned ncontrols;
+@@ -184,11 +186,6 @@ struct v4l2_ctrl_handler {
+ 	int error;
+ };
+ 
+-struct v4l2_ctrl_fh {
+-	struct list_head node;
+-	struct v4l2_fh *fh;
+-};
+-
+ /** struct v4l2_ctrl_config - Control configuration structure.
+   * @ops:	The control ops.
+   * @id:	The control ID.
+@@ -497,10 +494,10 @@ s32 v4l2_ctrl_g_ctrl(struct v4l2_ctrl *ctrl);
+ int v4l2_ctrl_s_ctrl(struct v4l2_ctrl *ctrl, s32 val);
+ 
+ /* Internal helper functions that deal with control events. */
+-void v4l2_ctrl_add_fh(struct v4l2_ctrl_handler *hdl,
+-		struct v4l2_ctrl_fh *ctrl_fh,
+-		struct v4l2_event_subscription *sub);
+-void v4l2_ctrl_del_fh(struct v4l2_ctrl *ctrl, struct v4l2_fh *fh);
++void v4l2_ctrl_add_event(struct v4l2_ctrl *ctrl,
++		struct v4l2_subscribed_event *sev);
++void v4l2_ctrl_del_event(struct v4l2_ctrl *ctrl,
++		struct v4l2_subscribed_event *sev);
+ 
+ /** v4l2_ctrl_subscribe_fh() - Helper function that subscribes a control event.
+   * @fh:	The file handler that subscribed the control event.
+diff --git a/include/media/v4l2-event.h b/include/media/v4l2-event.h
+index 042b893..eda17f8 100644
+--- a/include/media/v4l2-event.h
++++ b/include/media/v4l2-event.h
+@@ -38,9 +38,18 @@ struct v4l2_kevent {
+ };
+ 
+ struct v4l2_subscribed_event {
++	/* list node for the v4l2_fh->subscribed list */
+ 	struct list_head	list;
++	/* event type */
+ 	u32			type;
++	/* associated object ID (e.g. control ID) */
+ 	u32			id;
++	/* copy of v4l2_event_subscription->flags */
++	u32			flags;
++	/* filehandle that subscribed to this event */
++	struct v4l2_fh		*fh;
++	/* list node that hooks into the object's event list (if there is one) */
++	struct list_head	node;
+ };
+ 
+ int v4l2_event_alloc(struct v4l2_fh *fh, unsigned int n);
 -- 
 1.7.1
 
