@@ -1,43 +1,61 @@
 Return-path: <mchehab@pedra>
-Received: from mail-ey0-f174.google.com ([209.85.215.174]:54524 "EHLO
-	mail-ey0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752201Ab1FOHxx (ORCPT
+Received: from smtp-vbr16.xs4all.nl ([194.109.24.36]:1057 "EHLO
+	smtp-vbr16.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756443Ab1F1GXN (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 15 Jun 2011 03:53:53 -0400
-Received: by eyx24 with SMTP id 24so57368eyx.19
-        for <linux-media@vger.kernel.org>; Wed, 15 Jun 2011 00:53:52 -0700 (PDT)
+	Tue, 28 Jun 2011 02:23:13 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+Subject: Re: [RFCv3 PATCH 11/18] v4l2-ctrls: add v4l2_fh pointer to the set control functions.
+Date: Tue, 28 Jun 2011 08:22:57 +0200
+Cc: linux-media@vger.kernel.org, Hans Verkuil <hans.verkuil@cisco.com>
+References: <1307459123-17810-1-git-send-email-hverkuil@xs4all.nl> <5efc95cbe00dda4ee88523f173a3998257120bdd.1307458245.git.hans.verkuil@cisco.com> <4E08F407.1090809@redhat.com>
+In-Reply-To: <4E08F407.1090809@redhat.com>
 MIME-Version: 1.0
-In-Reply-To: <201106151026.36509.past@biztrend.ru>
-References: <201106151026.36509.past@biztrend.ru>
-Date: Wed, 15 Jun 2011 03:53:52 -0400
-Message-ID: <BANLkTimTErrOsveFRQVUfaKjexKKS=TjoA@mail.gmail.com>
-Subject: Re: xc4000 and analog tv
-From: Devin Heitmueller <dheitmueller@kernellabs.com>
-To: Artem Pastukhov <artem.pastukhov@gmail.com>
-Cc: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201106280822.57297.hverkuil@xs4all.nl>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Wed, Jun 15, 2011 at 2:26 AM, Artem Pastukhov
-<artem.pastukhov@gmail.com> wrote:
-> It's possible to get analog tv from xc4000?
->
-> I have Pinnacle PCTV Hybrid Stick Solo
+On Monday, June 27, 2011 23:20:07 Mauro Carvalho Chehab wrote:
+> Em 07-06-2011 12:05, Hans Verkuil escreveu:
+> > From: Hans Verkuil <hans.verkuil@cisco.com>
+> > 
+> > When an application changes a control you want to generate an event.
+> > However, you want to avoid sending such an event back to the application
+> > (file handle) that caused the change.
+> 
+> Why? 
+> 
+> I can see two usecases for an event-triggered control change:
+> 	1) when two applications are used, and one changed a value that could
+> affect the other;
+> 	2) as a way to implement async changes.
+> 
+> However, it seems, from your comments, that you're covering only case (1).
+> 
+> There are several reasons why we need to support case (2):
+> 
+> Some controls may be associated to a servo mechanism (like zoom, optical
+> focus, etc), or may require some time to happen (like charging a flash device).
+> So, it makes sense to have events back to the application that caused the change.
+> 
+> Kernel should not assume that the application that requested a change on a control
+> doesn't want to receive the notification back when the event actually happened.
+> This way, both cases will be covered.
+> 
+> Yet, I failed to see where, in the code, such restriction were imposed.
 
-No, this is not currently possible.
+Async changes are triggered by the driver, not an application. Any changes
+made by the driver will be sent to all applications.
 
-The limitation has nothing to do with the xc4000 driver but rather the
-dvb-usb framework which currently has no analog support at all.  This
-is a problem common to all dib0700 devices, and up to this point no
-developer has been prepared to spend the 50-100 hours needed to add
-analog support.  You should not expect this situation to change
-anytime soon, as it's been a known issue for years.
+That said, I think I should add a flag like V4L2_EVENT_SUB_FL_NO_FEEDBACK
+to explicitly let applications decide.
+
+That's easy enough.
 
 Regards,
 
-Devin
-
--- 
-Devin J. Heitmueller - Kernel Labs
-http://www.kernellabs.com
+	Hans
