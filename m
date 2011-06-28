@@ -1,98 +1,130 @@
 Return-path: <mchehab@pedra>
-Received: from mailout3.w1.samsung.com ([210.118.77.13]:58899 "EHLO
-	mailout3.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758014Ab1FJShH (ORCPT
+Received: from mail-wy0-f174.google.com ([74.125.82.174]:41089 "EHLO
+	mail-wy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750974Ab1F1Vjt convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 10 Jun 2011 14:37:07 -0400
-MIME-version: 1.0
-Content-transfer-encoding: 7BIT
-Content-type: TEXT/PLAIN
-Date: Fri, 10 Jun 2011 20:36:44 +0200
-From: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Subject: [PATCH/RFC 03/19] s5p-fimc: Remove registration of video nodes from
- probe()
-In-reply-to: <1307731020-7100-1-git-send-email-s.nawrocki@samsung.com>
-To: linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org
-Cc: hans.verkuil@cisco.com, laurent.pinchart@ideasonboard.com,
-	m.szyprowski@samsung.com, kyungmin.park@samsung.com,
-	s.nawrocki@samsung.com, sw0312.kim@samsung.com,
-	riverful.kim@samsung.com
-Message-id: <1307731020-7100-4-git-send-email-s.nawrocki@samsung.com>
-References: <1307731020-7100-1-git-send-email-s.nawrocki@samsung.com>
+	Tue, 28 Jun 2011 17:39:49 -0400
+Received: by wyg8 with SMTP id 8so464891wyg.19
+        for <linux-media@vger.kernel.org>; Tue, 28 Jun 2011 14:39:48 -0700 (PDT)
+References: <1302267045.1749.38.camel@gagarin> <AFEB19DA-4FD6-4472-9825-F13A112B0E2A@wilsonet.com> <1302276147.1749.46.camel@gagarin> <B9A35B3D-DC47-4D95-88F5-5453DD3F506C@wilsonet.com> <BANLkTimyT98dabuYsrwLrcm2wQFv2uQB9g@mail.gmail.com> <44DC1ED9-2697-4F92-A81A-CD024C913CCB@wilsonet.com> <BANLkTi=3Gq+8kXm40O55y55O6A6Q4-3g-g@mail.gmail.com> <CDB2A354-8564-447E-99A3-66502E83E4CB@wilsonet.com> <8f1c0f8a-e4cd-4e3b-8ad4-f58212dfd9d4@email.android.com> <099D978B-BC30-4527-870E-85ECEE74501D@wilsonet.com> <1302476895.2282.12.camel@localhost> <679F6706-8E38-4DF4-9F06-65EC3747339E@wilsonet.com> <444047a2-87a6-4823-a1cd-961493f6680f@email.android.com>
+In-Reply-To: <444047a2-87a6-4823-a1cd-961493f6680f@email.android.com>
+Mime-Version: 1.0 (Apple Message framework v1084)
+Content-Type: text/plain; charset=us-ascii
+Message-Id: <8450B359-034A-4DE2-BD8D-50DA6BE98A17@wilsonet.com>
+Content-Transfer-Encoding: 8BIT
+Cc: Devin Heitmueller <dheitmueller@kernellabs.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+From: Jarod Wilson <jarod@wilsonet.com>
+Subject: Re: HVR-1250/CX23885 IR Rx
+Date: Tue, 28 Jun 2011 17:39:29 -0400
+To: Andy Walls <awalls@md.metrocast.net>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Do not register video nodes during FIMC device probe. Also make
-fimc_register_m2m_device() public for use by the media device driver.
+On Jun 28, 2011, at 6:30 AM, Andy Walls wrote:
 
-Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
----
- drivers/media/video/s5p-fimc/fimc-core.c |   18 +-----------------
- drivers/media/video/s5p-fimc/fimc-core.h |    1 +
- 2 files changed, 2 insertions(+), 17 deletions(-)
+> Jarod Wilson <jarod@wilsonet.com> wrote:
+> 
+>> On Apr 10, 2011, at 7:08 PM, Andy Walls wrote:
+>> 
+>>> On Sat, 2011-04-09 at 21:39 -0400, Jarod Wilson wrote:
+>>> 
+>>>>> Jarod,
+>>>>> 
+>>>>> The HVR-1850 uses a raw IR receiver in the CX23888 and older
+>>>> HVR-1250s use the raw IR receiver in the CX23885.  They both work
+>> for
+>>>> Rx (I need to tweak the Cx23885 rx watermark though), but I never
+>>>> found time to finish Tx (lack of kernel interface when I had time).
+>>>>> 
+>>>>> If you obtain one of these I can answer any driver questions.
+>>>> 
+>>>> Quite some time back, I bought an HVR-1800 and an HVR-1250. I know
+>> one of
+>>>> them came with an mceusb transceiver and remote, as was pretty sure
+>> it was
+>>>> the 1800. For some reason, I didn't recall the 1250 coming with
+>> anything at
+>>>> all, but looking at dmesg output for it:
+>>>> 
+>>>> cx23885 driver version 0.0.2 loaded
+>>>> cx23885 0000:03:00.0: PCI INT A -> GSI 16 (level, low) -> IRQ 16
+>>>> CORE cx23885[0]: subsystem: 0070:7911, board: Hauppauge
+>> WinTV-HVR1250 [card=3,autodetected]
+>>>> tveeprom 0-0050: Hauppauge model 79001, rev E3D9, serial# 4904656
+>>>> tveeprom 0-0050: MAC address is 00:0d:fe:4a:d6:d0
+>>>> tveeprom 0-0050: tuner model is Microtune MT2131 (idx 139, type 4)
+>>>> tveeprom 0-0050: TV standards NTSC(M) ATSC/DVB Digital (eeprom 0x88)
+>>>> tveeprom 0-0050: audio processor is CX23885 (idx 39)
+>>>> tveeprom 0-0050: decoder processor is CX23885 (idx 33)
+>>>> tveeprom 0-0050: has no radio, has IR receiver, has no IR
+>> transmitter
+>>>> 
+>>>> So it seems I do have hardware. However, its one of the two tuner
+>> cards in
+>>>> my "production" mythtv backend right now, making it a bit hard to do
+>> any
+>>>> experimenting with. If I can get it out of there, it looks like I
+>> just add
+>>>> an enable_885_ir=1, and I should be able to poke at it...
+>>> 
+>>> Yeah.  Igor's TeVii S470 CX23885 based card had interrupt storms when
+>>> enabled, so IR for '885 chips is disabled by default.  To
+>> investigate, I
+>>> tried to by an HVR-1250 with a CX23885, but instead got an HVR-1275
+>> with
+>>> a CX23888.  dandel, on IRC, did a pretty decent job in testing
+>> HVR-1250
+>>> operation and finding it works, despite climbing kernel
+>>> build/development learning curve at the time.
+>> ...
+>> 
+>> Finally got some time to play with my 1250, dug out its rx cable, turns
+>> out to
+>> be the same one I special-ordered to work on the 1150 Devin sent me.
+>> Oops.
+>> Anyway. First impressions, not so good. Got a panic on boot, somewhere
+>> in
+>> cx23885_video_irq, iirc, when booting with enable_885_ir=1 set.
+>> However, dmesg
+>> was somewhere in the middle of cx18 init of the HVR-1600 in the box.
+>> Dunno if
+>> there's any way that's actually directly related, but I yanked the
+>> 1600. After
+>> doing that, the box managed to boot fine, but then while testing
+>> w/ir-keytable
+>> and an RC-6 remote, I got what I think was the same panic -- definitely
+>> the
+>> cx23885_video_irq bit in the trace, something about sleeping while
+>> atomic, IP
+>> at mwait_idle. (On the plus side, IR did seem to be working before
+>> that).
+>> 
+>> Note also that this is a 2.6.32-based kernel with a 2.6.38-era backport
+>> of the
+>> driver code, because that's what was on this box. Was about to put it
+>> back into
+>> "production" use, but hey, its summer, there's nothing really for it to
+>> record
+>> for another few months, so I'll keep it out and throw it into another
+>> box with
+>> a newer kernel and serial console, etc., so I can further debug...
+> 
+> In a very early version of the CX23885 IR changes I made the mistake of performing I2C transactions in an interrupt handler.  That has been fixed in cx23885 for quite some time though.  It also required some I2C fixes in cx25840-core.c IIRC, which again, has been fixed for some time.
 
-diff --git a/drivers/media/video/s5p-fimc/fimc-core.c b/drivers/media/video/s5p-fimc/fimc-core.c
-index ad15d46..b464da5 100644
---- a/drivers/media/video/s5p-fimc/fimc-core.c
-+++ b/drivers/media/video/s5p-fimc/fimc-core.c
-@@ -1491,7 +1491,7 @@ static struct v4l2_m2m_ops m2m_ops = {
- 	.job_abort	= fimc_job_abort,
- };
- 
--static int fimc_register_m2m_device(struct fimc_dev *fimc)
-+int fimc_register_m2m_device(struct fimc_dev *fimc)
- {
- 	struct video_device *vfd;
- 	struct platform_device *pdev;
-@@ -1700,25 +1700,12 @@ static int fimc_probe(struct platform_device *pdev)
- 		goto err_irq;
- 	}
- 
--	ret = fimc_register_m2m_device(fimc);
--	if (ret)
--		goto err_irq;
--
--	/* At least one camera sensor is required to register capture node */
--	if (cap_input_index >= 0) {
--		ret = fimc_register_capture_device(fimc);
--		if (ret)
--			goto err_m2m;
--	}
--
- 	dev_dbg(&pdev->dev, "%s(): fimc-%d registered successfully\n",
- 		__func__, fimc->id);
- 
- 	pm_runtime_put_sync(&fimc->pdev->dev);
- 	return 0;
- 
--err_m2m:
--	fimc_unregister_m2m_device(fimc);
- err_irq:
- 	free_irq(fimc->irq, fimc);
- err_clk:
-@@ -1805,9 +1792,6 @@ static int __devexit fimc_remove(struct platform_device *pdev)
- 	fimc_suspend(&pdev->dev);
- 	pm_runtime_set_suspended(&pdev->dev);
- 
--	fimc_unregister_m2m_device(fimc);
--	fimc_unregister_capture_device(fimc);
--
- 	vb2_dma_contig_cleanup_ctx(fimc->alloc_ctx);
- 
- 	clk_disable(fimc->clock[CLK_BUS]);
-diff --git a/drivers/media/video/s5p-fimc/fimc-core.h b/drivers/media/video/s5p-fimc/fimc-core.h
-index 55c1410..c088dac 100644
---- a/drivers/media/video/s5p-fimc/fimc-core.h
-+++ b/drivers/media/video/s5p-fimc/fimc-core.h
-@@ -644,6 +644,7 @@ int fimc_set_scaler_info(struct fimc_ctx *ctx);
- int fimc_prepare_config(struct fimc_ctx *ctx, u32 flags);
- int fimc_prepare_addr(struct fimc_ctx *ctx, struct vb2_buffer *vb,
- 		      struct fimc_frame *frame, struct fimc_addr *paddr);
-+int fimc_register_m2m_device(struct fimc_dev *fimc);
- 
- /* -----------------------------------------------------*/
- /* fimc-capture.c					*/
+Up and running on 3.0-rc5 now, and I'm not seeing the panic, but the
+box keeps hard-locking after some number of keypresses. Can't get a
+peep out of it with sysrq, nmi watchdog doesn't seem to fire, etc.
+
+At the suggestion of "Dark Shadow", I've also tried booting the box
+with pci=nomsi. Works a treat then. Since his HVR-1270 and my HVR-1250
+both behave much better with pci=nomsi, I'm thinking that in the
+short-term, we should probably make sure msi doesn't get enabled in
+the cx23885 driver, and longer-term, we can look at fixing it.
+
 -- 
-1.7.5.4
+Jarod Wilson
+jarod@wilsonet.com
+
+
 
