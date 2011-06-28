@@ -1,268 +1,82 @@
 Return-path: <mchehab@pedra>
-Received: from mail-vx0-f174.google.com ([209.85.220.174]:59371 "EHLO
-	mail-vx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752684Ab1FIDRm convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 8 Jun 2011 23:17:42 -0400
-Received: by vxi39 with SMTP id 39so878214vxi.19
-        for <linux-media@vger.kernel.org>; Wed, 08 Jun 2011 20:17:41 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <BANLkTi=TkEK=o7pEBgWjQ+P+GDFYQ989EQ@mail.gmail.com>
-References: <BANLkTikSacfHp6ndaf8FPJi-PDu-PFSTsg@mail.gmail.com>
-	<3527e900-1d63-46cc-ba72-af763111a16a@email.android.com>
-	<BANLkTi=OgqhmkYLd9_YnyW8JSvZgiQWTfw@mail.gmail.com>
-	<1307579065.2461.8.camel@localhost>
-	<BANLkTikU0dkQwmo_akC5TUg9JP8Oa=Te1w@mail.gmail.com>
-	<8236986e-5cf5-4a10-ada2-96d8e37882c3@email.android.com>
-	<BANLkTi=TkEK=o7pEBgWjQ+P+GDFYQ989EQ@mail.gmail.com>
-Date: Wed, 8 Jun 2011 21:17:41 -0600
-Message-ID: <BANLkTimRuMqtuJmCt_Z8wGp3KKozmBdSQQ@mail.gmail.com>
-Subject: Re: [PATCH] cx23885: Add IR Rx support for HVR-1270 boards
-From: Dark Shadow <shadowofdarkness@gmail.com>
-To: Andy Walls <awalls@md.metrocast.net>
-Cc: linux-media@vger.kernel.org
+Received: from mx1.redhat.com ([209.132.183.28]:33926 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756253Ab1F1QcN convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 28 Jun 2011 12:32:13 -0400
+Date: Mon, 27 Jun 2011 23:17:34 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	LKML <linux-kernel@vger.kernel.org>
+Subject: [PATCHv2 10/13] [media] gspca: don't include linux/version.h
+Message-ID: <20110627231734.6b68b99c@pedra>
+In-Reply-To: <cover.1309226359.git.mchehab@redhat.com>
+References: <cover.1309226359.git.mchehab@redhat.com>
+Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 8BIT
+To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Wed, Jun 8, 2011 at 8:31 PM, Dark Shadow <shadowofdarkness@gmail.com> wrote:
-> On Wed, Jun 8, 2011 at 7:34 PM, Andy Walls <awalls@md.metrocast.net> wrote:
->> Dark Shadow <shadowofdarkness@gmail.com> wrote:
->>
->>>On Wed, Jun 8, 2011 at 6:24 PM, Andy Walls <awalls@md.metrocast.net>
->>>wrote:
->>>> On Wed, 2011-06-08 at 13:18 -0600, Dark Shadow wrote:
->>>>> On Wed, Jun 8, 2011 at 4:19 AM, Andy Walls <awalls@md.metrocast.net>
->>>wrote:
->>>>> > Dark Shadow <shadowofdarkness@gmail.com> wrote:
->>>>> >
->>>>> >>I have a capture card that was sold as a Hauppauge HVR-1250
->>>(according
->>>>> >>to the box) that I am trying to use but I am having trouble
->>>getting
->>>>> >>all it's features at once. When I leave it auto detected by the
->>>module
->>>>> >>I have working TV in MythTV even though it thinks it is a 1270 but
->>>IR
->>>>> >>isn't setup.
->>>>> >>
->>>>> >>dmesg outputs
->>>>> >>#modprobe cx23885 enable_885_ir=1
->>>>> >>[ † †7.592714] cx23885 driver version 0.0.2 loaded
->>>>> >>[ † †7.592748] cx23885 0000:07:00.0: PCI INT A -> GSI 17 (level,
->>>low)
->>>>> >>-> IRQ 17
->>>>> >>[ † †7.592926] CORE cx23885[0]: subsystem: 0070:2211, board:
->>>Hauppauge
->>>>> >>WinTV-HVR1270 [card=18,autodetected]
->>>>> >>[ † †7.728163] IR JVC protocol handler initialized
->>>>> >>[ † †7.738971] tveeprom 0-0050: Hauppauge model 22111, rev C2F5,
->>>>> >>serial# 6429897
->>>>> >>[ † †7.738974] tveeprom 0-0050: MAC address is 00:0d:fe:62:1c:c9
->>>>> >>[ † †7.738975] tveeprom 0-0050: tuner model is NXP 18271C2 (idx
->>>155,
->>>>> >>type 54)
->>>>> >>[ † †7.738977] tveeprom 0-0050: TV standards NTSC(M) ATSC/DVB
->>>Digital
->>>>> >>(eeprom 0x88)
->>>>> >>[ † †7.738979] tveeprom 0-0050: audio processor is CX23888 (idx
->>>40)
->>>>> >>[ † †7.738980] tveeprom 0-0050: decoder processor is CX23888 (idx
->>>34)
->>>>> >>[ † †7.738982] tveeprom 0-0050: has no radio, has IR receiver, has
->>>no
->>>>> >>IR transmitter
->>>>> >>[ † †7.738983] cx23885[0]: hauppauge eeprom: model=22111
->>>>> >>[ † †7.738985] cx23885_dvb_register() allocating 1 frontend(s)
->>>>> >>[ † †7.738991] cx23885[0]: cx23885 based dvb card
->>>>> >>[ † †7.961122] IR Sony protocol handler initialized
->>>>> >>[ † †7.977301] tda18271 1-0060: creating new instance
->>>>> >>[ † †7.979325] TDA18271HD/C2 detected @ 1-0060
->>>>> >>[ † †8.209663] DVB: registering new adapter (cx23885[0])
->>>>> >>[ † †8.209668] DVB: registering adapter 0 frontend 0 (LG
->>>Electronics
->>>>> >>LGDT3305 VSB/QAM Frontend)...
->>>>> >>[ † †8.210095] cx23885_dev_checkrevision() Hardware revision =
->>>0xd0
->>>>> >>[ † †8.210101] cx23885[0]/0: found at 0000:07:00.0, rev: 4, irq:
->>>17,
->>>>> >>latency: 0, mmio: 0xf7c00000
->>>>> >>[ † †8.210109] cx23885 0000:07:00.0: setting latency timer to 64
->>>>> >>[ † †8.210186] cx23885 0000:07:00.0: irq 49 for MSI/MSI-X
->>>>
->>>>> >>#ir-keytable -a /etc/rc_maps.cfg
->>>>> >>Old keytable cleared
->>>>> >>Wrote 136 keycode(s) to driver
->>>>> >>Protocols changed to RC-5
->>>>
->>>>> >>I have heard this should show up as a normal keyboard to the
->>>system
->>>>> >>but no button presses cause anything to happen to the system and
->>>>> >>trying lirc with devinput (with devinput lircd.conf) and then
->>>opening
->>>>> >>irw doesn't show any button presses either
->>>>
->>>>
->>>>> > Don't force your card to a 1250, if the driver detects it is a
->>>1270
->>>>> with a CX23888 chip. †No need to use the enable_885_ir parameter
->>>with
->>>>> a CX23888 chip, either. †It only applies for two board models with
->>>>> actual CX23885 chips.
->>>>> >
->>>>> > Use of IR with the CX23888 chip should be realtively trouble free,
->>>>> *if* the 1270's IR has been enabled in the driver code. †It likely
->>>has
->>>>> not been. †I don't have the source code in front of me at the moment
->>>>> to check.
->>>>> >
->>>>> > It shouldn't be hard for anyone to patch a few files in the
->>>cx23885
->>>>> driver to add it. †Patches are welcome...
->>>>> >
->>>>
->>>>> Under auto detect without the enable_885_ir there is no difference
->>>so
->>>>> I can only hope someone will add support for it.
->>>>
->>>> I wasn't kidding when I said the patch is sholdn't be hard for
->>>anyone.
->>>> It is really, really simple cut-and-paste job. †In fact here is an
->>>> *untested* patch.
->>>>
->>>> Regards,
->>>> Andy
->>>>
->>>> cx23885: Add IR Rx support for HVR-1270 boards
->>>>
->>>> Signed-off-by: Andy Walls <awalls@md.metrocast.net>
->>>>
->>>>
->>>> diff --git a/drivers/media/video/cx23885/cx23885-cards.c
->>>b/drivers/media/video/cx23885/cx23885-cards.c
->>>> index ea88722..5635588 100644
->>>> --- a/drivers/media/video/cx23885/cx23885-cards.c
->>>> +++ b/drivers/media/video/cx23885/cx23885-cards.c
->>>> @@ -1097,12 +1097,19 @@ int cx23885_ir_init(struct cx23885_dev *dev)
->>>> † † † †case CX23885_BOARD_HAUPPAUGE_HVR1800:
->>>> † † † †case CX23885_BOARD_HAUPPAUGE_HVR1200:
->>>> † † † †case CX23885_BOARD_HAUPPAUGE_HVR1400:
->>>> - † † † case CX23885_BOARD_HAUPPAUGE_HVR1270:
->>>> † † † †case CX23885_BOARD_HAUPPAUGE_HVR1275:
->>>> † † † †case CX23885_BOARD_HAUPPAUGE_HVR1255:
->>>> † † † †case CX23885_BOARD_HAUPPAUGE_HVR1210:
->>>> † † † † † † † †/* FIXME: Implement me */
->>>> † † † † † † † †break;
->>>> + † † † case CX23885_BOARD_HAUPPAUGE_HVR1270:
->>>> + † † † † † † † ret = cx23888_ir_probe(dev);
->>>> + † † † † † † † if (ret)
->>>> + † † † † † † † † † † † break;
->>>> + † † † † † † † dev->sd_ir = cx23885_find_hw(dev, CX23885_HW_888_IR);
->>>> + † † † † † † † v4l2_subdev_call(dev->sd_cx25840, core,
->>>s_io_pin_config,
->>>> + † † † † † † † † † † † † † † † †ir_rx_pin_cfg_count, ir_rx_pin_cfg);
->>>> + † † † † † † † break;
->>>> † † † †case CX23885_BOARD_HAUPPAUGE_HVR1850:
->>>> † † † †case CX23885_BOARD_HAUPPAUGE_HVR1290:
->>>> † † † † † † † †ret = cx23888_ir_probe(dev);
->>>> @@ -1156,6 +1163,7 @@ int cx23885_ir_init(struct cx23885_dev *dev)
->>>> †void cx23885_ir_fini(struct cx23885_dev *dev)
->>>> †{
->>>> † † † †switch (dev->board) {
->>>> + † † † case CX23885_BOARD_HAUPPAUGE_HVR1270:
->>>> † † † †case CX23885_BOARD_HAUPPAUGE_HVR1850:
->>>> † † † †case CX23885_BOARD_HAUPPAUGE_HVR1290:
->>>> † † † † † † † †cx23885_irq_remove(dev, PCI_MSK_IR);
->>>> @@ -1199,6 +1207,7 @@ int netup_jtag_io(void *device, int tms, int
->>>tdi, int read_tdo)
->>>> †void cx23885_ir_pci_int_enable(struct cx23885_dev *dev)
->>>> †{
->>>> † † † †switch (dev->board) {
->>>> + † † † case CX23885_BOARD_HAUPPAUGE_HVR1270:
->>>> † † † †case CX23885_BOARD_HAUPPAUGE_HVR1850:
->>>> † † † †case CX23885_BOARD_HAUPPAUGE_HVR1290:
->>>> † † † † † † † †if (dev->sd_ir)
->>>> @@ -1357,6 +1366,7 @@ void cx23885_card_setup(struct cx23885_dev
->>>*dev)
->>>> † † † †case CX23885_BOARD_NETUP_DUAL_DVBS2_CI:
->>>> † † † †case CX23885_BOARD_NETUP_DUAL_DVB_T_C_CI_RF:
->>>> † † † †case CX23885_BOARD_COMPRO_VIDEOMATE_E800:
->>>> + † † † case CX23885_BOARD_HAUPPAUGE_HVR1270:
->>>> † † † †case CX23885_BOARD_HAUPPAUGE_HVR1850:
->>>> † † † †case CX23885_BOARD_MYGICA_X8506:
->>>> † † † †case CX23885_BOARD_MAGICPRO_PROHDTVE2:
->>>> diff --git a/drivers/media/video/cx23885/cx23885-input.c
->>>b/drivers/media/video/cx23885/cx23885-input.c
->>>> index e97cafd..bc28d2c 100644
->>>> --- a/drivers/media/video/cx23885/cx23885-input.c
->>>> +++ b/drivers/media/video/cx23885/cx23885-input.c
->>>> @@ -82,6 +82,7 @@ void cx23885_input_rx_work_handler(struct
->>>cx23885_dev *dev, u32 events)
->>>> † † † † † † † †return;
->>>>
->>>> † † † †switch (dev->board) {
->>>> + † † † case CX23885_BOARD_HAUPPAUGE_HVR1270:
->>>> † † † †case CX23885_BOARD_HAUPPAUGE_HVR1850:
->>>> † † † †case CX23885_BOARD_HAUPPAUGE_HVR1290:
->>>> † † † †case CX23885_BOARD_TEVII_S470:
->>>> @@ -133,6 +134,7 @@ static int cx23885_input_ir_start(struct
->>>cx23885_dev *dev)
->>>>
->>>> † † † †v4l2_subdev_call(dev->sd_ir, ir, rx_g_parameters, &params);
->>>> † † † †switch (dev->board) {
->>>> + † † † case CX23885_BOARD_HAUPPAUGE_HVR1270:
->>>> † † † †case CX23885_BOARD_HAUPPAUGE_HVR1850:
->>>> † † † †case CX23885_BOARD_HAUPPAUGE_HVR1290:
->>>> † † † †case CX23885_BOARD_HAUPPAUGE_HVR1250:
->>>> @@ -257,6 +259,7 @@ int cx23885_input_init(struct cx23885_dev *dev)
->>>> † † † † † † † †return -ENODEV;
->>>>
->>>> † † † †switch (dev->board) {
->>>> + † † † case CX23885_BOARD_HAUPPAUGE_HVR1270:
->>>> † † † †case CX23885_BOARD_HAUPPAUGE_HVR1850:
->>>> † † † †case CX23885_BOARD_HAUPPAUGE_HVR1290:
->>>> † † † †case CX23885_BOARD_HAUPPAUGE_HVR1250:
->>>>
->>>>
->>>>
->>>>
->>>>
->>>
->>>Thank you I just tested those changes and they work (in getting the IR
->>>to work to the same level as forcing the card model and not cause
->>>problems for the video)
->>>
->>>I still can't use the remote any more then forcing the card model but
->>>I have a guess on that. According to everything I have read the
->>>ir-kbd-i2c module is needed but it never auto loads on my system so I
->>>am thinking it is just not updated to know about this card and may
->>>only need the same type of changes as the cx23885 module. (I am
->>>guessing since I can't even program a Hello World) Is there any chance
->>>you would be able to see if any easy changes could be done to it.
->>
->> You don't need ir-kbd-i2c for this ir unit. †If you don't have the right keymap loaded, the remote won't work though.
->>
->> The cx23885 module has a parameter called ir_888_debug (or something similar). †Set it to a value of around 7 or so. †The cx23885 module will log pulse and space measurments to dmesg or var/log/messages. †That way you can at least verify pulses are being processed.
->>
->> If pulses are not being processed, check that the cable is firmly plugged into the card and that you have fresh batteries in the remote.
->>
->> I don't have a 1270 of my own, so I can't help too much.
->>
->> Andy
->>
->
->
->
-> I have been unable to get any debug output but on two occasions I got
-> the down arrow to work on the XBMC menu but both times were followed
-> by the system locking up and I can't reproduce it anymore.
->
-> Do I need the parameter to enable ir or not? I have tried it both ways.
->
+Instead of handling a per-driver driver version, use the
+per-subsystem one.
 
-After a couple more 1 button freezes the computer. I had one occasion
-that for about 20 seconds the remote was working perfect (play/pause,
-arrows, volume) then it just stopped working for no reason (but
-luckily didn't crash the computer) This was with no module parameters.
+As reviewed by Jean-Francois Moine <moinejf@free.fr>:
+	- the 'info' may be simplified:
 
-So it can work but is extremely flaky.
+Reviewed-by: Jean-Francois Moine <moinejf@free.fr>
+Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+
+diff --git a/drivers/media/video/gspca/gspca.c b/drivers/media/video/gspca/gspca.c
+index 08ce994..d0b79a9 100644
+--- a/drivers/media/video/gspca/gspca.c
++++ b/drivers/media/video/gspca/gspca.c
+@@ -24,7 +24,6 @@
+ #define MODULE_NAME "gspca"
+ 
+ #include <linux/init.h>
+-#include <linux/version.h>
+ #include <linux/fs.h>
+ #include <linux/vmalloc.h>
+ #include <linux/sched.h>
+@@ -51,11 +50,12 @@
+ #error "DEF_NURBS too big"
+ #endif
+ 
++#define DRIVER_VERSION_NUMBER	"2.13.0"
++
+ MODULE_AUTHOR("Jean-Fran√ßois Moine <http://moinejf.free.fr>");
+ MODULE_DESCRIPTION("GSPCA USB Camera Driver");
+ MODULE_LICENSE("GPL");
+-
+-#define DRIVER_VERSION_NUMBER	KERNEL_VERSION(2, 13, 0)
++MODULE_VERSION(DRIVER_VERSION_NUMBER);
+ 
+ #ifdef GSPCA_DEBUG
+ int gspca_debug = D_ERR | D_PROBE;
+@@ -1291,7 +1291,6 @@ static int vidioc_querycap(struct file *file, void  *priv,
+ 	}
+ 	usb_make_path(gspca_dev->dev, (char *) cap->bus_info,
+ 			sizeof(cap->bus_info));
+-	cap->version = DRIVER_VERSION_NUMBER;
+ 	cap->capabilities = V4L2_CAP_VIDEO_CAPTURE
+ 			  | V4L2_CAP_STREAMING
+ 			  | V4L2_CAP_READWRITE;
+@@ -2478,10 +2477,7 @@ EXPORT_SYMBOL(gspca_auto_gain_n_exposure);
+ /* -- module insert / remove -- */
+ static int __init gspca_init(void)
+ {
+-	info("v%d.%d.%d registered",
+-		(DRIVER_VERSION_NUMBER >> 16) & 0xff,
+-		(DRIVER_VERSION_NUMBER >> 8) & 0xff,
+-		DRIVER_VERSION_NUMBER & 0xff);
++	info("v" DRIVER_VERSION_NUMBER " registered");
+ 	return 0;
+ }
+ static void __exit gspca_exit(void)
+-- 
+1.7.1
+
+
