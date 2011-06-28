@@ -1,49 +1,56 @@
 Return-path: <mchehab@pedra>
-Received: from metis.ext.pengutronix.de ([92.198.50.35]:54725 "EHLO
-	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754417Ab1FHUsG (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 8 Jun 2011 16:48:06 -0400
-Date: Wed, 8 Jun 2011 22:47:58 +0200
-From: Uwe =?iso-8859-1?Q?Kleine-K=F6nig?=
-	<u.kleine-koenig@pengutronix.de>
-To: linux-media@vger.kernel.org
-Cc: kernel@pengutronix.de, Marek Szyprowski <m.szyprowski@samsung.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	Pawel Osciak <p.osciak@samsung.com>,
-	Hans Verkuil <hverkuil@xs4all.nl>
-Subject: vb2: about vb2_queue->queued_count
-Message-ID: <20110608204758.GA15070@pengutronix.de>
+Received: from mail-iy0-f174.google.com ([209.85.210.174]:38786 "EHLO
+	mail-iy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756302Ab1F1Frx (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 28 Jun 2011 01:47:53 -0400
+Received: by iyb12 with SMTP id 12so4662559iyb.19
+        for <linux-media@vger.kernel.org>; Mon, 27 Jun 2011 22:47:52 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
+In-Reply-To: <BANLkTi=we3eOeFq6ru245i20e5uD-YRyMA@mail.gmail.com>
+References: <4DFFA7B6.9070906@free.fr>
+	<4DFFA917.5060509@iki.fi>
+	<4E017D7D.4050307@free.fr>
+	<BANLkTimQymz5K6YhhUgPeWjMFkkVoU6j4A@mail.gmail.com>
+	<4E079E9F.7050004@free.fr>
+	<1309125622.5421.15.camel@wide>
+	<BANLkTi=we3eOeFq6ru245i20e5uD-YRyMA@mail.gmail.com>
+Date: Tue, 28 Jun 2011 07:47:51 +0200
+Message-ID: <BANLkTinVNv429OC-6pyO4-epAmCE7rYYwQ@mail.gmail.com>
+Subject: Re: Updates to French scan files
+From: Christoph Pfister <christophpfister@gmail.com>
+To: Johann Ollivier Lapeyre <johann.ollivierlapeyre@gmail.com>
+Cc: Alexis de Lattre <alexis@via.ecp.fr>, mossroy <mossroy@free.fr>,
+	linux-media@vger.kernel.org, n_estre@yahoo.fr, alkahan@free.fr,
+	ben@geexbox.org, xavier@dalaen.com, jean-michel.baudrey@orange.fr,
+	lissyx@dyndns.org, sylvestre.cartier@gmail.com,
+	brossard.damien@gmail.com, jean-michel-62@orange.fr
+Content-Type: text/plain; charset=UTF-8
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Hello,
+2011/6/27 Johann Ollivier Lapeyre <johann.ollivierlapeyre@gmail.com>:
+> Dear LinuxTV friends,
+>
+>> In order to simplify things, I would propose only ONE scan file with
+>> offset -166, 0, 166, 333 and 500. OK, it will take more time for users
+>> to run a scan (+66 %) compared to having a file with only offsets -166,
+>> 0, 166 but at least we are sure to cover all the possible offset that
+>> can be used in France, and we simplify things as much as we can for
+>> users.
+<snip>
 
-I'm still debugging my new video overlay device driver. The current
-problem is again when playing back a second video.
+There are five files,
+- auto-Default
+- auto-With167kHzOffsets
+- auto-Australia
+- auto-Italy
+- auto-Taiwan
 
-After streamoff is called at the end of the first video, I disable the
-overlay and call vb2_buffer_done on the last buffer. This is exited
-early because vb->state == VB2_BUF_STATE_DEQUEUED.
-This results in vb->vb2_queue->queued_count being 1.
+which cover all dvb-t transmitters known to me. If your device can
+deal with auto* parameters, they're sufficient. (some / many?) devices
+can also deal with the 167kHz offset automatically. It is extremely
+unlikely that one of the other offsets will be used in future, so I
+wait for evidence before I take any action there.
 
-Now if the new video starts I call vb2_queue_init in the .vidioc_reqbufs
-callback on my queue (that still has queued_count == 1). After
-vb2_queue_init returns queued_count is still 1 though q->queued_list is
-reset to be empty.
-
-__vb2_queue_cancel has a similar problem, &q->queued_list is reset, but
-queued_count is not.
-
-OTOH queued_count seems to be read only by vb2_wait_for_all_buffers
-which currently has no users. :-)
-
-Best regards
-Uwe
-
--- 
-Pengutronix e.K.                           | Uwe Kleine-König            |
-Industrial Linux Solutions                 | http://www.pengutronix.de/  |
+Christoph
