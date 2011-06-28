@@ -1,62 +1,94 @@
 Return-path: <mchehab@pedra>
-Received: from mx1.redhat.com ([209.132.183.28]:6474 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750874Ab1FHCUJ (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 7 Jun 2011 22:20:09 -0400
-Received: from int-mx01.intmail.prod.int.phx2.redhat.com (int-mx01.intmail.prod.int.phx2.redhat.com [10.5.11.11])
-	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id p582K8cj010424
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
-	for <linux-media@vger.kernel.org>; Tue, 7 Jun 2011 22:20:09 -0400
-Received: from [10.3.236.210] (vpn-236-210.phx2.redhat.com [10.3.236.210])
-	by int-mx01.intmail.prod.int.phx2.redhat.com (8.13.8/8.13.8) with ESMTP id p582K7g1014694
-	for <linux-media@vger.kernel.org>; Tue, 7 Jun 2011 22:20:08 -0400
-Message-ID: <4DEEDC57.7050707@redhat.com>
-Date: Tue, 07 Jun 2011 23:20:07 -0300
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-MIME-Version: 1.0
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: [PATCH 00/15] DVB Frontend Documentation patches
-References: <20110607224542.597d46bc@pedra>
-In-Reply-To: <20110607224542.597d46bc@pedra>
-Content-Type: text/plain; charset=ISO-8859-1
+Received: from proofpoint-cluster.metrocast.net ([65.175.128.136]:50258 "EHLO
+	proofpoint-cluster.metrocast.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751777Ab1F1XN6 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 28 Jun 2011 19:13:58 -0400
+Subject: Re: [RFCv3 PATCH 12/18] vb2_poll: don't start DMA, leave that to
+ the first read().
+From: Andy Walls <awalls@md.metrocast.net>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Pawel Osciak <pawel@osciak.com>,
+	Marek Szyprowski <m.szyprowski@samsung.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>
+Date: Tue, 28 Jun 2011 19:14:11 -0400
+In-Reply-To: <4E09CC6A.8080900@redhat.com>
+References: <1307459123-17810-1-git-send-email-hverkuil@xs4all.nl>
+	 <f1a14e0985ddaa053e45522fe7bbdfae56057ec2.1307458245.git.hans.verkuil@cisco.com>
+	 <4E08FBA5.5080006@redhat.com> <201106280933.57364.hverkuil@xs4all.nl>
+	 <4E09B919.9040100@redhat.com>
+	 <cd2c9732-aee5-492b-ade2-bee084f79739@email.android.com>
+	 <4E09CC6A.8080900@redhat.com>
+Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
+Message-ID: <1309302853.2377.21.camel@palomino.walls.org>
+Mime-Version: 1.0
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Em 07-06-2011 22:45, Mauro Carvalho Chehab escreveu:
-> This series of patches updates the DVB v5 documentation, sinchronizing
-> the current implementation with the API spec.
-> Among other things, it:
-> 	- adds a logic that discovers API gaps between the header
-> 	  file and the API specs;
-> 	- adds/fixes the DVB S2API (DVBv5) additions;
-> 	- adds the FE_ATSC frontend descriptions (both v3 and v5);
-> 	- adds a relation of DVBv5 parameters for usage for each
-> 	  supported delivery system.
-> 
-> The API updates were made at the best effort basis, by doing a sort
-> of "reverse engineering" approach, e. g., by looking at the code
-> and trying to figure out what changed, why and how. Due to that,
-> I bet people will find errors on it. Also, English is not my native
-> language, and I didn't have time for doing a language review.
-> 
-> so I'm sure that language/style/typo fixes are needed.
-> 
-> So, I'd like to encourage people to carefully read the docs and
-> send us patches with fixes.
-> 
-> Anyway, as the situation after those patches are better than before them,
-> I'm pushing it to the main repository. This helps to review, as the
-> linuxtv scripts will re-format the DocBook into html.
+On Tue, 2011-06-28 at 09:43 -0300, Mauro Carvalho Chehab wrote:
+> Em 28-06-2011 09:21, Andy Walls escreveu:
 
-The linuxtv API specs were updated at linuxtv.org. For those that want 
-to review, the changes were at chapter 9 of the API spec[1], mainly at:
+> > It is also the case that a driver's poll method should never sleep.
+> 
+> True.
 
-http://linuxtv.org/downloads/v4l-dvb-apis/dvb_frontend.html
-http://linuxtv.org/downloads/v4l-dvb-apis/FE_GET_SET_PROPERTY.html
-http://linuxtv.org/downloads/v4l-dvb-apis/frontend_h.html
+> > One issue is how to start streaming with apps that:
+> > - Open /dev/video/ in a nonblocking mode, and
+> > - Use the read() method
+> > 
+> > while doing it in a way that is POSIX compliant and doesn't break existing apps.  
+> 
+> Well, a first call for poll() may rise a thread that will prepare the buffers, and
+> return with 0 while there's no data available.
 
-[1] http://linuxtv.org/downloads/v4l-dvb-apis/
+Sure, but that doesn't solve the problem of an app only select()-ing or
+poll()-ing for exception fd's and not starting any IO.
 
-Cheers,
-Mauro.
+
+> > The other constraint is to ensure when only poll()-ing for exception
+> conditions, not having significant IO side effects.
+> > 
+> > I'm pretty sure sleeping in a driver's poll() method, or having
+> significant side effects, is not ine the spirit of the POSIX select()
+> and poll(), even if the letter of POSIX says nothing about it.
+> > 
+> > The method I suggested to Hans is completely POSIX compliant for
+> apps using read() and select() and was checked against MythTV as
+> having no bad side effects.  (And by thought experiment doesn't break
+> any sensible app using nonblocking IO with select() and read().)
+> > 
+> > I did not do analysis for apps that use mmap(), which I guess is the
+> current concern.
+> 
+> The concern is that it is pointing that there are available data, even
+> when there is an error.
+> This looks like a POSIX violation for me.
+
+It isn't.
+
+>From the specification for select():
+http://pubs.opengroup.org/onlinepubs/009695399/functions/select.html
+
+"A descriptor shall be considered ready for reading when a call to an
+input function with O_NONBLOCK clear would not block, whether or not the
+function would transfer data successfully. (The function might return
+data, an end-of-file indication, or an error other than one indicating
+that it is blocked, and in each of these cases the descriptor shall be
+considered ready for reading.)"
+
+To a userspace app, a non-blocking read() can always return an error,
+regarless of the previous select() or poll() result.  And all
+applications that use select() or poll() folowed by a nonblocking read()
+should be prepared to handle an errno from the read().
+
+However, that excerpt from the select() specification does imply, that
+perhaps, the driver should probably start streaming using a work item
+and one of the CMWQ workers, so that the read() doesn't block.
+
+Regards,
+Andy
+
+
