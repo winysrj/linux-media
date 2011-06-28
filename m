@@ -1,45 +1,57 @@
 Return-path: <mchehab@pedra>
-Received: from mail-fx0-f46.google.com ([209.85.161.46]:38043 "EHLO
-	mail-fx0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751826Ab1FNNzW (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 14 Jun 2011 09:55:22 -0400
-Content-Type: text/plain; charset=utf-8; format=flowed; delsp=yes
-To: "Marek Szyprowski" <m.szyprowski@samsung.com>,
-	"Arnd Bergmann" <arnd@arndb.de>
-Cc: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-	linux-media@vger.kernel.org, linux-mm@kvack.org,
-	linaro-mm-sig@lists.linaro.org,
-	"'Kyungmin Park'" <kyungmin.park@samsung.com>,
-	"'Andrew Morton'" <akpm@linux-foundation.org>,
-	"'KAMEZAWA Hiroyuki'" <kamezawa.hiroyu@jp.fujitsu.com>,
-	"'Ankita Garg'" <ankita@in.ibm.com>,
-	"'Daniel Walker'" <dwalker@codeaurora.org>,
-	"'Mel Gorman'" <mel@csn.ul.ie>,
-	"'Jesse Barker'" <jesse.barker@linaro.org>
-Subject: Re: [PATCH 08/10] mm: cma: Contiguous Memory Allocator added
-References: <1307699698-29369-1-git-send-email-m.szyprowski@samsung.com>
- <201106101821.50437.arnd@arndb.de>
- <006a01cc29a9$1394c330$3abe4990$%szyprowski@samsung.com>
- <201106141549.29315.arnd@arndb.de>
-Date: Tue, 14 Jun 2011 15:55:19 +0200
-MIME-Version: 1.0
+Received: from mx1.redhat.com ([209.132.183.28]:32845 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1758740Ab1F1QcD (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 28 Jun 2011 12:32:03 -0400
+Date: Mon, 27 Jun 2011 23:17:29 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	LKML <linux-kernel@vger.kernel.org>
+Subject: [PATCHv2 07/13] [media] pvrusb2: Use LINUX_VERSION_CODE for
+ VIDIOC_QUERYCAP
+Message-ID: <20110627231729.16f15ce6@pedra>
+In-Reply-To: <cover.1309226359.git.mchehab@redhat.com>
+References: <cover.1309226359.git.mchehab@redhat.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
-From: "Michal Nazarewicz" <mina86@mina86.com>
-Message-ID: <op.vw2jmhir3l0zgt@mnazarewicz-glaptop>
-In-Reply-To: <201106141549.29315.arnd@arndb.de>
+To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Tue, 14 Jun 2011 15:49:29 +0200, Arnd Bergmann <arnd@arndb.de> wrote:
-> Please explain the exact requirements that lead you to defining multiple
-> contexts.
+pvrusb2 doesn't use vidioc_ioctl2. As the API is changing to use
+a common version for all drivers, we need to expliticly fix this
+driver.
 
-Some devices may have access only to some banks of memory.  Some devices
-may use different banks of memory for different purposes.
+Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
 
+diff --git a/drivers/media/video/pvrusb2/pvrusb2-main.c b/drivers/media/video/pvrusb2/pvrusb2-main.c
+index 2254194..c1d9bb6 100644
+--- a/drivers/media/video/pvrusb2/pvrusb2-main.c
++++ b/drivers/media/video/pvrusb2/pvrusb2-main.c
+@@ -168,6 +168,7 @@ module_exit(pvr_exit);
+ MODULE_AUTHOR(DRIVER_AUTHOR);
+ MODULE_DESCRIPTION(DRIVER_DESC);
+ MODULE_LICENSE("GPL");
++MODULE_VERSION("0.9.1");
+ 
+ 
+ /*
+diff --git a/drivers/media/video/pvrusb2/pvrusb2-v4l2.c b/drivers/media/video/pvrusb2/pvrusb2-v4l2.c
+index 3876114..573749a 100644
+--- a/drivers/media/video/pvrusb2/pvrusb2-v4l2.c
++++ b/drivers/media/video/pvrusb2/pvrusb2-v4l2.c
+@@ -91,7 +91,7 @@ static struct v4l2_capability pvr_capability ={
+ 	.driver         = "pvrusb2",
+ 	.card           = "Hauppauge WinTV pvr-usb2",
+ 	.bus_info       = "usb",
+-	.version        = KERNEL_VERSION(0, 9, 0),
++	.version        = LINUX_VERSION_CODE,
+ 	.capabilities   = (V4L2_CAP_VIDEO_CAPTURE |
+ 			   V4L2_CAP_TUNER | V4L2_CAP_AUDIO | V4L2_CAP_RADIO |
+ 			   V4L2_CAP_READWRITE),
 -- 
-Best regards,                                         _     _
-.o. | Liege of Serenely Enlightened Majesty of      o' \,=./ `o
-..o | Computer Science,  Michal "mina86" Nazarewicz    (o o)
-ooo +-----<email/xmpp: mnazarewicz@google.com>-----ooO--(_)--Ooo--
+1.7.1
+
+
