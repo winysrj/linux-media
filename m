@@ -1,169 +1,113 @@
 Return-path: <mchehab@pedra>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:42970 "EHLO arroyo.ext.ti.com"
+Received: from mx1.redhat.com ([209.132.183.28]:9256 "EHLO mx1.redhat.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755127Ab1FQKmF (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 17 Jun 2011 06:42:05 -0400
-Message-ID: <4DFB3122.3040208@ti.com>
-Date: Fri, 17 Jun 2011 16:19:06 +0530
-From: Archit Taneja <archit@ti.com>
+	id S1755959Ab1F1BuV (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 27 Jun 2011 21:50:21 -0400
+Message-ID: <4E093357.8070303@redhat.com>
+Date: Mon, 27 Jun 2011 22:50:15 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
 MIME-Version: 1.0
-To: "Hiremath, Vaibhav" <hvaibhav@ti.com>
-CC: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	"mchehab@redhat.com" <mchehab@redhat.com>,
-	"hverkuil@xs4all.nl" <hverkuil@xs4all.nl>
-Subject: Re: [PATCH] omap_vout: Added check in reqbuf & mmap for buf_size
- allocation
-References: <hvaibhav@ti.com> <1308255249-18762-1-git-send-email-hvaibhav@ti.com> <4DFB1445.3000102@ti.com> <19F8576C6E063C45BE387C64729E739404E30727E0@dbde02.ent.ti.com> <4DFB2C0E.4040100@ti.com> <19F8576C6E063C45BE387C64729E739404E30727F2@dbde02.ent.ti.com>
-In-Reply-To: <19F8576C6E063C45BE387C64729E739404E30727F2@dbde02.ent.ti.com>
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
-Content-Transfer-Encoding: 7bit
+To: Jean-Francois Moine <moinejf@free.fr>
+CC: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: [PATCH 00/14] Remove linux/version.h from most drivers/media
+References: <20110626130620.4b5ed679@pedra>	<20110626201420.018490cd@tele>	<4E07808C.9060105@redhat.com> <20110627124558.08cd8684@tele>
+In-Reply-To: <20110627124558.08cd8684@tele>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Hi,
+Em 27-06-2011 07:45, Jean-Francois Moine escreveu:
+> On Sun, 26 Jun 2011 15:55:08 -0300
+> Mauro Carvalho Chehab <mchehab@redhat.com> wrote:
+> 
+>> I'll move it to the right changeset at the version 2 of this series.
+> 
+> Hi Mauro,
+> 
+> I have some changes to the gspca.c patch
+> - the version must stay 2.12.0
+> - the 'info' may be simplified:
+> 
+> diff --git a/drivers/media/video/gspca/gspca.c b/drivers/media/video/gspca/gspca.c
+> index e526aa3..1aa6ae2 100644
+> --- a/drivers/media/video/gspca/gspca.c
+> +++ b/drivers/media/video/gspca/gspca.c
+> @@ -24,7 +24,6 @@
+>  #define MODULE_NAME "gspca"
+>  
+>  #include <linux/init.h>
+> -#include <linux/version.h>
+>  #include <linux/fs.h>
+>  #include <linux/vmalloc.h>
+>  #include <linux/sched.h>
+> @@ -51,11 +50,12 @@
+>  #error "DEF_NURBS too big"
+>  #endif
+>  
+> +#define DRIVER_VERSION_NUMBER	"2.12.0"
+> +
+>  MODULE_AUTHOR("Jean-François Moine <http://moinejf.free.fr>");
+>  MODULE_DESCRIPTION("GSPCA USB Camera Driver");
+>  MODULE_LICENSE("GPL");
+> -
+> -#define DRIVER_VERSION_NUMBER	KERNEL_VERSION(2, 12, 0)
 
-On Friday 17 June 2011 03:53 PM, Hiremath, Vaibhav wrote:
->> -----Original Message-----
->> From: Taneja, Archit
->> Sent: Friday, June 17, 2011 3:57 PM
->> To: Hiremath, Vaibhav
->> Cc: linux-media@vger.kernel.org; mchehab@redhat.com; hverkuil@xs4all.nl
->> Subject: Re: [PATCH] omap_vout: Added check in reqbuf&  mmap for buf_size
->> allocation
->>
->> Hi,
->>
->> On Friday 17 June 2011 03:33 PM, Hiremath, Vaibhav wrote:
->>>
->>>> -----Original Message-----
->>>> From: Taneja, Archit
->>>> Sent: Friday, June 17, 2011 2:16 PM
->>>> To: Hiremath, Vaibhav
->>>> Cc: linux-media@vger.kernel.org; mchehab@redhat.com; hverkuil@xs4all.nl
->>>> Subject: Re: [PATCH] omap_vout: Added check in reqbuf&   mmap for
->> buf_size
->>>> allocation
->>>>
->>>> Hi,
->>>>
->>>> On Friday 17 June 2011 01:44 AM, Hiremath, Vaibhav wrote:
->>>>> From: Vaibhav Hiremath<hvaibhav@ti.com>
->>>>>
->>>>> The usecase where, user allocates small size of buffer
->>>>> through bootargs (video1_bufsize/video2_bufsize) and later from
->>>> application
->>>>> tries to set the format which requires larger buffer size, driver
->>>> doesn't
->>>>> check for insufficient buffer size and allows application to map extra
->>>> buffer.
->>>>> This leads to kernel crash, when user application tries to access
->> memory
->>>>> beyond the allocation size.
->>>>
->>>> Query: Why do we pass the bufsize as bootargs in the first place? Is it
->>>> needed at probe time?
->>>>
->>> [Hiremath, Vaibhav] Yes, look out for variable
->> (video1_bufsize/video2_bufsize) in code.
->>
->> Yes, but why do we need to allocate some fixed size buffers at boot
->> time? Is it done because it makes our allocation happens faster during
->> reqbufs? Or is it required for VRFB?
->>
->> Could you explain the reason/startegy behind allocating buffers of a
->> particular size at boot time?
->>
-> [Hiremath, Vaibhav] This is required to get rid of Linux memory fragmentation, user can reserve the memory based on usecase during boot time itself.
+Hmm... So, you want to revert this change?
 
-Ah okay, so if someone has passed this bootarg then he/she is certain 
-about the max size needed for their use cases, now if they request for a 
-larger buffer, its their fault, and hence we can return an error.
-The patch makes sense now :)
+commit 5943ba139182f6a3f27492efecb29b0a514b787f
+Author: Jean-François Moine <moinejf@free.fr>
+Date:   Tue May 17 04:03:51 2011 -0300
 
-I think we now need to work on what happens if the user doesn't enter 
-video1_bufsize/video2_bufsize bootargs at all. "OMAP_VOUT_MAX_BUF_SIZE" 
-doesn't look scalable I guess. Should we try not to allocate anything if 
-video1_bufsize/video2_bufsize are not mentioned in bootargs? Another 
-approach could be to replace OMAP_VOUT_MAX_BUF_SIZE with an inline 
-function which returns the max buffer size based on what maximum 
-dimensions the DSS for the current OMAP can support?
+    [media] gspca - main: Version change to 2.13
+    
+    Signed-off-by: Jean-François Moine <moinejf@free.fr>
+    Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
 
-Thanks,
-Archit
+diff --git a/drivers/media/video/gspca/gspca.c b/drivers/media/video/gspca/gspca.c
+index e526aa3..739abd4 100644
+--- a/drivers/media/video/gspca/gspca.c
++++ b/drivers/media/video/gspca/gspca.c
+@@ -55,7 +55,7 @@ MODULE_AUTHOR("Jean-François Moine <http://moinejf.free.fr>");
+ MODULE_DESCRIPTION("GSPCA USB Camera Driver");
+ MODULE_LICENSE("GPL");
+ 
+-#define DRIVER_VERSION_NUMBER	KERNEL_VERSION(2, 12, 0)
++#define DRIVER_VERSION_NUMBER	KERNEL_VERSION(2, 13, 0)
+ 
+ #ifdef GSPCA_DEBUG
+ int gspca_debug = D_ERR | D_PROBE;
 
->
-> Thanks,
-> Vaibhav
->
->> Thanks,
->> Archit
->>
->>>
->>> Thanks,
->>> Vaibhav
->>>
->>>> Thanks,
->>>> Archit
->>>>
->>>>>
->>>>> Added check in both mmap and reqbuf call back function,
->>>>> and return error if the size of the buffer allocated by user through
->>>>> bootargs is less than the S_FMT size.
->>>>>
->>>>> Signed-off-by: Vaibhav Hiremath<hvaibhav@ti.com>
->>>>> ---
->>>>>     drivers/media/video/omap/omap_vout.c |   16 ++++++++++++++++
->>>>>     1 files changed, 16 insertions(+), 0 deletions(-)
->>>>>
->>>>> diff --git a/drivers/media/video/omap/omap_vout.c
->>>> b/drivers/media/video/omap/omap_vout.c
->>>>> index 3bc909a..343b50c 100644
->>>>> --- a/drivers/media/video/omap/omap_vout.c
->>>>> +++ b/drivers/media/video/omap/omap_vout.c
->>>>> @@ -678,6 +678,14 @@ static int omap_vout_buffer_setup(struct
->>>> videobuf_queue *q, unsigned int *count,
->>>>>     	startindex = (vout->vid == OMAP_VIDEO1) ?
->>>>>     		video1_numbuffers : video2_numbuffers;
->>>>>
->>>>> +	/* Check the size of the buffer */
->>>>> +	if (*size>    vout->buffer_size) {
->>>>> +		v4l2_err(&vout->vid_dev->v4l2_dev,
->>>>> +				"buffer allocation mismatch [%u] [%u]\n",
->>>>> +				*size, vout->buffer_size);
->>>>> +		return -ENOMEM;
->>>>> +	}
->>>>> +
->>>>>     	for (i = startindex; i<    *count; i++) {
->>>>>     		vout->buffer_size = *size;
->>>>>
->>>>> @@ -856,6 +864,14 @@ static int omap_vout_mmap(struct file *file,
->> struct
->>>> vm_area_struct *vma)
->>>>>     				(vma->vm_pgoff<<    PAGE_SHIFT));
->>>>>     		return -EINVAL;
->>>>>     	}
->>>>> +	/* Check the size of the buffer */
->>>>> +	if (size>    vout->buffer_size) {
->>>>> +		v4l2_err(&vout->vid_dev->v4l2_dev,
->>>>> +				"insufficient memory [%lu] [%u]\n",
->>>>> +				size, vout->buffer_size);
->>>>> +		return -ENOMEM;
->>>>> +	}
->>>>> +
->>>>>     	q->bufs[i]->baddr = vma->vm_start;
->>>>>
->>>>>     	vma->vm_flags |= VM_RESERVED;
->>>>> --
->>>>> 1.6.2.4
->>>>>
->>>>> --
->>>>> To unsubscribe from this list: send the line "unsubscribe linux-media"
->>>> in
->>>>> the body of a message to majordomo@vger.kernel.org
->>>>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->>>>>
->>>
->>>
->
->
+If so, I prefer if you do it on a separate patch.
+
+
+> +MODULE_VERSION(DRIVER_VERSION_NUMBER);
+>  
+>  #ifdef GSPCA_DEBUG
+>  int gspca_debug = D_ERR | D_PROBE;
+> @@ -1291,7 +1291,6 @@ static int vidioc_querycap(struct file *file, void  *priv,
+>  	}
+>  	usb_make_path(gspca_dev->dev, (char *) cap->bus_info,
+>  			sizeof(cap->bus_info));
+> -	cap->version = DRIVER_VERSION_NUMBER;
+>  	cap->capabilities = V4L2_CAP_VIDEO_CAPTURE
+>  			  | V4L2_CAP_STREAMING
+>  			  | V4L2_CAP_READWRITE;
+> @@ -2478,10 +2477,7 @@ EXPORT_SYMBOL(gspca_auto_gain_n_exposure);
+>  /* -- module insert / remove -- */
+>  static int __init gspca_init(void)
+>  {
+> -	info("v%d.%d.%d registered",
+> -		(DRIVER_VERSION_NUMBER >> 16) & 0xff,
+> -		(DRIVER_VERSION_NUMBER >> 8) & 0xff,
+> -		DRIVER_VERSION_NUMBER & 0xff);
+> +	info("v" DRIVER_VERSION_NUMBER " registered");
+
+Ok, I'll add this change into the patch.
+
+>  	return 0;
+>  }
+>  static void __exit gspca_exit(void)
+> 
+> 
 
