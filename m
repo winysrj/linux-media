@@ -1,94 +1,133 @@
 Return-path: <mchehab@pedra>
-Received: from mail.juropnet.hu ([212.24.188.131]:36259 "EHLO mail.juropnet.hu"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756831Ab1FDO4W (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 4 Jun 2011 10:56:22 -0400
-Received: from [94.248.226.52]
-	by mail.juropnet.hu with esmtps (TLS1.0:DHE_RSA_AES_256_CBC_SHA1:32)
-	(Exim 4.69)
-	(envelope-from <istvan_v@mailbox.hu>)
-	id 1QSsGx-0002S0-7N
-	for linux-media@vger.kernel.org; Sat, 04 Jun 2011 16:56:21 +0200
-Message-ID: <4DEA4792.8@mailbox.hu>
-Date: Sat, 04 Jun 2011 16:56:18 +0200
-From: "istvan_v@mailbox.hu" <istvan_v@mailbox.hu>
+Received: from smtp-vbr5.xs4all.nl ([194.109.24.25]:4736 "EHLO
+	smtp-vbr5.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758470Ab1F1PSK (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 28 Jun 2011 11:18:10 -0400
+Received: from tschai.localnet (64-103-25-233.cisco.com [64.103.25.233])
+	(authenticated bits=0)
+	by smtp-vbr5.xs4all.nl (8.13.8/8.13.8) with ESMTP id p5SFI7oZ059110
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-media@vger.kernel.org>; Tue, 28 Jun 2011 17:18:08 +0200 (CEST)
+	(envelope-from hverkuil@xs4all.nl)
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: "linux-media" <linux-media@vger.kernel.org>
+Subject: [RFC PATCH] Add support for V4L2_EVENT_SUB_FL_NO_FEEDBACK
+Date: Tue, 28 Jun 2011 17:18:07 +0200
 MIME-Version: 1.0
-To: linux-media@vger.kernel.org
-Subject: XC4000: simplified load_scode
-References: <4D764337.6050109@email.cz>	<20110531124843.377a2a80@glory.local>	<BANLkTi=Lq+FF++yGhRmOa4NCigSt6ZurHg@mail.gmail.com>	<20110531174323.0f0c45c0@glory.local> <BANLkTimEEGsMP6PDXf5W5p9wW7wdWEEOiA@mail.gmail.com>
-In-Reply-To: <BANLkTimEEGsMP6PDXf5W5p9wW7wdWEEOiA@mail.gmail.com>
-Content-Type: multipart/mixed;
- boundary="------------010902010206030006070003"
+Content-Type: Text/Plain;
+  charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201106281718.07158.hverkuil@xs4all.nl>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-This is a multi-part message in MIME format.
---------------010902010206030006070003
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+Originally no control events would go to the filehandle that called the
+VIDIOC_S_CTRL/VIDIOC_S_EXT_CTRLS ioctls. This was to prevent a feedback
+loop.
 
-Removed unused code from load_scode() (all SCODE firmwares are
-assumed to have the HAS_IF bit set).
+This is now only done if the new V4L2_EVENT_SUB_FL_NO_FEEDBACK flag is
+set.
 
-Signed-off-by: Istvan Varga <istvan_v@mailbox.hu>
+Based on a suggestion from Mauro Carvalho Chehab <mchehab@redhat.com>.
 
+This goes on top of the patch series I posted today titled:
+"Allocate events per-event-type, v4l2-ctrls cleanup"
 
---------------010902010206030006070003
-Content-Type: text/x-patch;
- name="xc4000_scode.patch"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: attachment;
- filename="xc4000_scode.patch"
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ .../DocBook/media/v4l/vidioc-subscribe-event.xml   |   31 ++++++++++++++------
+ drivers/media/video/v4l2-ctrls.c                   |    3 +-
+ include/linux/videodev2.h                          |    3 +-
+ 3 files changed, 26 insertions(+), 11 deletions(-)
 
-diff -uNr xc4000_orig/drivers/media/common/tuners/xc4000.c xc4000/drivers/media/common/tuners/xc4000.c
---- xc4000_orig/drivers/media/common/tuners/xc4000.c	2011-06-04 13:10:37.000000000 +0200
-+++ xc4000/drivers/media/common/tuners/xc4000.c	2011-06-04 13:19:55.000000000 +0200
-@@ -781,8 +781,7 @@
- 		p += sizeof(size);
+diff --git a/Documentation/DocBook/media/v4l/vidioc-subscribe-event.xml b/Documentation/DocBook/media/v4l/vidioc-subscribe-event.xml
+index 039a969..0d4465f 100644
+--- a/Documentation/DocBook/media/v4l/vidioc-subscribe-event.xml
++++ b/Documentation/DocBook/media/v4l/vidioc-subscribe-event.xml
+@@ -114,25 +114,20 @@
+ 	  <row>
+ 	    <entry><constant>V4L2_EVENT_CTRL</constant></entry>
+ 	    <entry>3</entry>
+-	    <entry>This event requires that the <structfield>id</structfield>
++	    <entry><para>This event requires that the <structfield>id</structfield>
+ 		matches the control ID from which you want to receive events.
+ 		This event is triggered if the control's value changes, if a
+ 		button control is pressed or if the control's flags change.
+ 	    	This event has a &v4l2-event-ctrl; associated with it. This struct
+ 		contains much of the same information as &v4l2-queryctrl; and
+-		&v4l2-control;.
++		&v4l2-control;.</para>
  
- 		if (!size || size > endp - p) {
--			printk("Firmware type ");
--			printk("(%x), id %llx is corrupted "
-+			printk("Firmware type (%x), id %llx is corrupted "
- 			       "(size=%d, expected %d)\n",
- 			       type, (unsigned long long)id,
- 			       (unsigned)(endp - p), size);
-@@ -840,10 +839,10 @@
- 			 v4l2_std_id *id, __u16 int_freq, int scode)
- {
- 	struct xc4000_priv *priv = fe->tuner_priv;
--	int                pos, rc;
--	unsigned char	   *p;
--	u8 scode_buf[13];
--	u8 indirect_mode[5];
-+	int		pos, rc;
-+	unsigned char	*p;
-+	u8		scode_buf[13];
-+	u8		indirect_mode[5];
+-		If the event is generated due to a call to &VIDIOC-S-CTRL; or
+-		&VIDIOC-S-EXT-CTRLS;, then the event will not be sent to
+-		the file handle that called the ioctl function. This prevents
+-		nasty feedback loops.
+-
+-		This event type will ensure that no information is lost when
++		<para>This event type will ensure that no information is lost when
+ 		more events are raised than there is room internally. In that
+ 		case the &v4l2-event-ctrl; of the second-oldest event is kept,
+ 		but the <structfield>changes</structfield> field of the
+ 		second-oldest event is ORed with the <structfield>changes</structfield>
+-		field of the oldest event.
++		field of the oldest event.</para>
+ 	    </entry>
+ 	  </row>
+ 	  <row>
+@@ -157,6 +152,24 @@
+ 		that are triggered by a status change such as <constant>V4L2_EVENT_CTRL</constant>.
+ 		Other events will ignore this flag.</entry>
+ 	  </row>
++	  <row>
++	    <entry><constant>V4L2_EVENT_SUB_FL_NO_FEEDBACK</constant></entry>
++	    <entry>0x0002</entry>
++	    <entry><para>If set, then events directly caused by an ioctl will not be sent to
++		the filehandle that called that ioctl. For example, changing a control using
++		&VIDIOC-S-CTRL; will not cause a V4L2_EVENT_CTRL to be sent back to that
++		same filehandle. All other filehandles that are subscribed to that event
++		will still receive it. This prevents feedback loops where an application
++		changes a control to a one value and then another, and then receives an
++		event telling it that that control has changed to the first value.</para>
++
++		<para>Since it can't tell whether that event was caused by another application
++		or by the first value change it is hard to decide whether to set the
++		control to the value in the event, or ignore it.</para>
++
++		<para>This flag will prevent this situation from happening.</para>
++	    </entry>
++	  </row>
+ 	</tbody>
+       </tgroup>
+     </table>
+diff --git a/drivers/media/video/v4l2-ctrls.c b/drivers/media/video/v4l2-ctrls.c
+index bc08f86..bac793a 100644
+--- a/drivers/media/video/v4l2-ctrls.c
++++ b/drivers/media/video/v4l2-ctrls.c
+@@ -590,7 +590,8 @@ static void send_event(struct v4l2_fh *fh, struct v4l2_ctrl *ctrl, u32 changes)
+ 	fill_event(&ev, ctrl, changes);
  
- 	dprintk(1, "%s called int_freq=%d\n", __func__, int_freq);
+ 	list_for_each_entry(sev, &ctrl->ev_subs, node)
+-		if (sev->fh && sev->fh != fh)
++		if (sev->fh && (sev->fh != fh ||
++				!(sev->flags & V4L2_EVENT_SUB_FL_NO_FEEDBACK)))
+ 			v4l2_event_queue_fh(sev->fh, &ev);
+ }
  
-@@ -863,18 +862,9 @@
+diff --git a/include/linux/videodev2.h b/include/linux/videodev2.h
+index baafe2f..00bae77 100644
+--- a/include/linux/videodev2.h
++++ b/include/linux/videodev2.h
+@@ -1832,7 +1832,8 @@ struct v4l2_event {
+ 	__u32				reserved[8];
+ };
  
- 	p = priv->firm[pos].ptr;
+-#define V4L2_EVENT_SUB_FL_SEND_INITIAL (1 << 0)
++#define V4L2_EVENT_SUB_FL_SEND_INITIAL	(1 << 0)
++#define V4L2_EVENT_SUB_FL_NO_FEEDBACK	(1 << 1)
  
--	if (priv->firm[pos].type & HAS_IF) {
--		if (priv->firm[pos].size != 12 * 16 || scode >= 16)
--			return -EINVAL;
--		p += 12 * scode;
--	} else {
--		/* 16 SCODE entries per file; each SCODE entry is 12 bytes and
--		 * has a 2-byte size header in the firmware format. */
--		if (priv->firm[pos].size != 14 * 16 || scode >= 16 ||
--		    le16_to_cpu(*(__u16 *)(p + 14 * scode)) != 12)
--			return -EINVAL;
--		p += 14 * scode + 2;
--	}
-+	if (priv->firm[pos].size != 12 * 16 || scode >= 16)
-+		return -EINVAL;
-+	p += 12 * scode;
- 
- 	tuner_info("Loading SCODE for type=");
- 	dump_firm_type_and_int_freq(priv->firm[pos].type,
+ struct v4l2_event_subscription {
+ 	__u32				type;
+-- 
+1.7.1
 
---------------010902010206030006070003--
