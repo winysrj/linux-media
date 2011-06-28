@@ -1,133 +1,238 @@
 Return-path: <mchehab@pedra>
-Received: from mx1.redhat.com ([209.132.183.28]:45321 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751234Ab1FUMFp (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 21 Jun 2011 08:05:45 -0400
-Message-ID: <4E008909.1060909@redhat.com>
-Date: Tue, 21 Jun 2011 09:05:29 -0300
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Received: from proofpoint-cluster.metrocast.net ([65.175.128.136]:55362 "EHLO
+	proofpoint-cluster.metrocast.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1757526Ab1F1MV7 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 28 Jun 2011 08:21:59 -0400
+References: <1307459123-17810-1-git-send-email-hverkuil@xs4all.nl> <f1a14e0985ddaa053e45522fe7bbdfae56057ec2.1307458245.git.hans.verkuil@cisco.com> <4E08FBA5.5080006@redhat.com> <201106280933.57364.hverkuil@xs4all.nl> <4E09B919.9040100@redhat.com>
+In-Reply-To: <4E09B919.9040100@redhat.com>
 MIME-Version: 1.0
-To: Andreas Oberritter <obi@linuxtv.org>
-CC: HoP <jpetrous@gmail.com>,
-	Devin Heitmueller <dheitmueller@kernellabs.com>,
-	=?ISO-8859-1?Q?=22S=E9bastien_RAILLARD_=28COEXSI=29=22?=
-	<sr@coexsi.fr>,
-	=?ISO-8859-1?Q?R=E9mi_Denis-Courmont?= <remi@remlab.net>,
-	linux-media@vger.kernel.org
-Subject: Re: [RFC] vtunerc - virtual DVB device driver
-References: <BANLkTimtnbAzLTdFY2OiSddHTjmD_99CfA@mail.gmail.com>	<201106202037.19535.remi@remlab.net>	<BANLkTinn0uN3VwGfqCbYbxFoVf6aNo1VSA@mail.gmail.com>	<BANLkTin14LnwP+_K1m-RsEXza4M4CjqnEw@mail.gmail.com>	<BANLkTimR-zWnnLBcD2w8d8NpeFJi=eT9nQ@mail.gmail.com>	<005a01cc2f7d$a799be30$f6cd3a90$@coexsi.fr>	<BANLkTinbQ8oBJt7fScuT5vHGFktbaQNY5A@mail.gmail.com>	<BANLkTimTdMa_X1ygF8=B5gLdLXq1o-ER0g@mail.gmail.com>	<BANLkTimkZN9AtLanwvct+1p2DZOHSgF6Aw@mail.gmail.com>	<BANLkTimg0X5H5T8CsSR5Tr0CZbCZKiDEEA@mail.gmail.com>	<4DFFB1DA.5000602@redhat.com> <BANLkTikZ++5dZssDRuxJzNUEG_TDkZPGRg@mail.gmail.com> <4DFFF56D.5070602@redhat.com> <4E007AA7.7070400@linuxtv.org>
-In-Reply-To: <4E007AA7.7070400@linuxtv.org>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain;
+ charset=UTF-8
+Content-Transfer-Encoding: 8bit
+Subject: Re: [RFCv3 PATCH 12/18] vb2_poll: don't start DMA, leave that to the first read().
+From: Andy Walls <awalls@md.metrocast.net>
+Date: Tue, 28 Jun 2011 08:21:51 -0400
+To: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>
+CC: linux-media@vger.kernel.org, Hans Verkuil <hans.verkuil@cisco.com>,
+	Pawel Osciak <pawel@osciak.com>,
+	Marek Szyprowski <m.szyprowski@samsung.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>
+Message-ID: <cd2c9732-aee5-492b-ade2-bee084f79739@email.android.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Em 21-06-2011 08:04, Andreas Oberritter escreveu:
-> On 06/21/2011 03:35 AM, Mauro Carvalho Chehab wrote:
->> Em 20-06-2011 18:31, HoP escreveu:
->>> 2011/6/20 Mauro Carvalho Chehab <mchehab@redhat.com>:
->>>> Em 20-06-2011 17:24, HoP escreveu:
->>>>> 2011/6/20 Devin Heitmueller <dheitmueller@kernellabs.com>:
->>>>>> On Mon, Jun 20, 2011 at 3:56 PM, HoP <jpetrous@gmail.com> wrote:
->>>>>>> Do you think it is really serious enough reason to prevent of having
->>>>>>> such virtualization driver in the kernel?
->>>>>>>
->>>>>>> Let check my situation and tell me how I should continue (TBH, I already
->>>>>>> thought that driver can be accepted, but my dumb brain thought because
->>>>>>> of non quality code/design or so. It was really big "surprise" which
->>>>>>> reason was used aginst it):
->>>>>>
->>>>>> Yes, this is entirely a political issue and not a technical one.
->>>>>
->>>>> Political? So we can declare that politics win (again) technicians. Sad.
+Mauro Carvalho Chehab <mchehab@redhat.com> wrote:
+
+>Em 28-06-2011 04:33, Hans Verkuil escreveu:
+>> On Monday, June 27, 2011 23:52:37 Mauro Carvalho Chehab wrote:
+>>> Em 07-06-2011 12:05, Hans Verkuil escreveu:
+>>>> From: Hans Verkuil <hans.verkuil@cisco.com>
 >>>>
->>>> This is not a political issue. It is a licensing issue. If you want to use
->>>> someone's else code, you need to accept the licensing terms that the developers
->>>> are giving you, by either paying the price for the code usage (on closed source
->>>> licensing models), or by accepting the license when using an open-sourced code.
+>>>> The vb2_poll function would start read-DMA if called without any
+>streaming
+>>>> in progress. This unfortunately does not work if the application
+>just wants
+>>>> to poll for exceptions. This information of what the application is
+>polling
+>>>> for is sadly unavailable in the driver.
 >>>>
->>>> Preserving the open-source eco-system is something that everyone
->>>> developing open source expect: basically, you're free to do whatever
->>>> you want, but if you're using a code written by an open-source developer,
->>>> the expected behaviour that GPL asks (and that the developer wants, when he
->>>> opted for GPL) is that you should return back to the community with any
->>>> changes you did, including derivative work. This is an essential rule of working
->>>> with GPL.
+>>>> Andy Walls suggested to just return POLLIN | POLLRDNORM and let the
+>first
+>>>> call to read() start the DMA. This initial read() call will return
+>EAGAIN
+>>>> since no actual data is available yet, but it does start the DMA.
 >>>>
->>>> If you're not happy with that, that's fine. You can implement another stack
->>>> that is not GPL-licensed.
+>>>> Applications must handle EAGAIN in any case since there can be
+>other reasons
+>>>> for EAGAIN as well.
+>>>>
+>>>> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+>>>> ---
+>>>>  drivers/media/video/videobuf2-core.c |   17 +++--------------
+>>>>  1 files changed, 3 insertions(+), 14 deletions(-)
+>>>>
+>>>> diff --git a/drivers/media/video/videobuf2-core.c
+>b/drivers/media/video/videobuf2-core.c
+>>>> index 6ba1461..ad75c95 100644
+>>>> --- a/drivers/media/video/videobuf2-core.c
+>>>> +++ b/drivers/media/video/videobuf2-core.c
+>>>> @@ -1372,27 +1372,16 @@ static int __vb2_cleanup_fileio(struct
+>vb2_queue *q);
+>>>>  unsigned int vb2_poll(struct vb2_queue *q, struct file *file,
+>poll_table *wait)
+>>>>  {
+>>>>  	unsigned long flags;
+>>>> -	unsigned int ret;
+>>>>  	struct vb2_buffer *vb = NULL;
+>>>>  
+>>>>  	/*
+>>>>  	 * Start file I/O emulator only if streaming API has not been
+>used yet.
+>>>>  	 */
+>>>>  	if (q->num_buffers == 0 && q->fileio == NULL) {
+>>>> -		if (!V4L2_TYPE_IS_OUTPUT(q->type) && (q->io_modes & VB2_READ)) {
+>>>> -			ret = __vb2_init_fileio(q, 1);
+>>>> -			if (ret)
+>>>> -				return POLLERR;
+>>>> -		}
+>>>> -		if (V4L2_TYPE_IS_OUTPUT(q->type) && (q->io_modes & VB2_WRITE)) {
+>>>> -			ret = __vb2_init_fileio(q, 0);
+>>>> -			if (ret)
+>>>> -				return POLLERR;
+>>>> -			/*
+>>>> -			 * Write to OUTPUT queue can be done immediately.
+>>>> -			 */
+>>>> +		if (!V4L2_TYPE_IS_OUTPUT(q->type) && (q->io_modes & VB2_READ))
+>>>> +			return POLLIN | POLLRDNORM;
+>>>> +		if (V4L2_TYPE_IS_OUTPUT(q->type) && (q->io_modes & VB2_WRITE))
+>>>>  			return POLLOUT | POLLWRNORM;
+>>>> -		}
+>>>>  	}
 >>>
->>> Mauro, you totally misunderstood me. If you see on my first post in that thread
->>> I was sending full GPL-ed driver to the mailinglist.
->>
->> You misunderstood me. Something that exposes the kernel interface to for an
->> userspace client driver to implement DVB is not a driver, it is a wrapper.
->>
->> The real driver will be in userspace, using the DVB stack, and can even be
->> closed source. Some developers already tried to do things like that and sell
->> the userspace code. Such code submission were nacked. There is even one case
->> where the kernelspace code were dropped due to that (and later, replaced by an
->> opensource driver).
->>
->> We don't want to go on this way again.
-> 
-> Mauro and Devin, I think you're missing the point. This is not about
-> creating drivers in userspace. This is not about open or closed source.
-> The "vtuner" interface, as implemented for the Dreambox, is used to
-> access remote tuners: Put x tuners into y boxes and access them from
-> another box as if they were local. It's used in conjunction with further
-> software to receive the transport stream over a network connection.
-> Honza's code does the same thing.
-> 
-> You don't need it in order to create closed source drivers. You can
-> already create closed kernel drivers now. Also, you can create tuner
-> drivers in userspace using the i2c-dev interface. If you like to connect
-> a userspace driver to a DVB API device node, you can distribute a small
-> (open or closed) wrapper with it. So what are you arguing about?
-> Everything you're feared of can already be done since virtually forever.
+>>> There is one behavior change on this patchset:  __vb2_init_fileio()
+>checks for some
+>>> troubles that may happen during device streaming initialization,
+>returning POLLERR
+>>> if there is a problem there.
+>>>
+>>> By moving this code to be called only at read, it means the poll()
+>will not fail
+>>> anymore, but the first read() will fail. The man page for read()
+>doesn't tell that
+>>> -EBUSY or -ENOMEM could happen there. The same happens with V4L2
+>specs. So, it is
+>>> clearly violating kernel ABI.
+>>>
+>>> NACK.
+>> 
+>> Actually, almost nothing changes in the ABI. It's counterintuitive,
+>but
+>> this is what happens:
+>> 
+>> 1) The poll() function in a driver does not actually return any error
+>codes.
+>> It never did. It returns a poll mask, which is expected to be POLLERR
+>in case
+>> of any error. All that it does is that select() returns if it waits
+>for reading
+>> or writing. Any actual error codes are never propagated. 
+>
+>Yes, but POLLERR will return error on the vb2 cases that return -EBUSY
+>or -ENOMEM.
+>This doesn't violate the ioctl ABI.
+>
+>> This means BTW that
+>> our poll manual page is wrong (what a surprise), most of those error
+>codes can
+>> never be returned.
+>
+>True. The DocBook needs a fix. Posix describes it as:
+>	http://pubs.opengroup.org/onlinepubs/009695399/functions/poll.html
+>
+>> 
+>> 2) Suppose we try to start streaming in poll. If this works, then
+>poll returns,
+>> with POLLIN set, and the next read() will succeed (actually, it can
+>return an
+>> error as well, but for other error conditions in case of e.g.
+>hardware errors).
+>> 
+>> The problem with this is of course that this will also start the
+>streaming if
+>> all we wanted to wait for was an exception. That's not what we want
+>at all.
+>> Ideally we could inspect in the driver what the caller wanted to wait
+>for, but
+>> that information is not available, unfortunately.
+>> 
+>> 3) The other case is that we try to start streaming in poll and it
+>fails.
+>> In that case any errors are lost and poll returns POLLERR (note that
+>the poll(2)
+>> manual page says that POLLERR is for output only, but clearly in the
+>linux
+>> kernel it is accepted both input and output).
+>
+>Posix doesn't impose such restriction.
+>
+>> But for the select() call this POLLERR information is lost as well
+>and the
+>> application will call read() anyway, which now will attempt to start
+>the
+>> streaming (again after poll() tried it the first time) and this time
+>it
+>> returns the actual error code.
+>
+>The posix list of acceptable errors are:
+>	http://pubs.opengroup.org/onlinepubs/009695399/functions/read.html
+>On that list, ENOMEM seems to be acceptable, but EBUSY doesn't.
+>
+>We should not use anything outside the acceptable error codes there, as
+>otherwise,
+>applications like cat, more, less, etc may not work. The read interface
+>should
+>be simple enough to allow applications that are not aware of the V4L2
+>api to
+>work. So, it should follow whatever supported by standard files.
+>
+>> Just try this with capture-example: start it in mmap mode, then try
+>to run
+>> it in read mode from a second console. The EBUSY error comes from the
+>read()
+>> command, not from select(). With or without this patch,
+>capture-example
+>> behaves exactly the same.
+>> 
+>> The only ABI change I see is with poll(2) and epoll(7) where POLLERR
+>is no
+>> longer returned. Since this isn't documented at all anyway (and the
+>poll(2)
+>> manual page is actually unclear about whether you can expect it), 
+>
+>Posix seems clear enough to me.
+>
+>> I am
+>> actually quite happy with this change. After this analysis I realized
+>it is
+>> even better than expected.
+>
+>> I never liked that poll starts streaming, poll should be a fast
+>function,
+>> not something that does a lot of other things.
+>> 
+>> It's actually a very nice change, but I admit that it is tricky to
+>analyze.
+>
+>I'm not very comfortable with vb2 returning unexpected errors there.
+>Also,
+>for me it is clear that, if read will fail, POLLERR should be rised.
+>
+>Mauro. 
+>--
+>To unsubscribe from this list: send the line "unsubscribe linux-media"
+>in
+>the body of a message to majordomo@vger.kernel.org
+>More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
-Yes, but we don't need to review/maintain a kernel driver meant to be
-used by closed source applications, and, if they're using a GPL'd code
-inside a closed source application, they can be sued.
+It is also the case that a driver's poll method should never sleep.
 
-I didn't review the patchset, but, from the description, I understood that
-it were developed to use some Dreambox-specific closed source applications.
-With such requirement, for me it is just a wrapper to some closed source
-application.
+I will try to find the conversation I had with laurent on interpreting the POSIX spec on error returns from select() and poll().  I will also try to find links to previos discussion with Hans on this.
 
-That's said, I'm not against a driver that allows using a DVB kernel
-driver by a DVB open source application either inside a virtual machine
-or on a remote machine. This seems useful for me. So, if the code could
-be turned into it, I'll review and consider for its inclusion upstream.
+One issue is how to start streaming with apps that:
+- Open /dev/video/ in a nonblocking mode, and
+- Use the read() method
 
-For that to happen, it should not try to use any Dreambox specific application
-or protocol, but to just use the standard DVBv5 API, as you've pointed.
+while doing it in a way that is POSIX compliant and doesn't break existing apps.  
 
-> If you're feared of exposing kernel interfaces to userspace, then I
-> think your only option is to remove the whole userspace. You might want
-> to remove i2c-dev and the loadable module interface first.
-> 
-> Regarding the code, Honza, I think the interface is neither clean nor
-> generic enough to be included in the kernel. It doesn't make much sense
-> to stay compatible to the interface used by the Dreambox. This interface
-> evolved from very old versions of the DVB API and therefore carries way
-> too much cruft and hacks for a shiny new interface. As a side note: Your
-> ioctl constants already differ from the original vtuner code.
-> 
-> IMO, at least these steps need to be taken:
-> - Remove unused code. You already mentioned it, but it really should be
-> removed before submitting code, because it makes review much harder.
-> - Remove redefined structs and constants.
-> - Drop support for anything older than S2API.
-> - Define a way to use an existing demux instead of registering a new
-> software demux. On hardware that supports it, an input channel should be
-> allocated for each vtuner, in order to use the hardware's filtering and
-> decoding capabilities.
-> - Drop VTUNER_SET_NAME, VTUNER_SET_HAS_OUTPUTS, VTUNER_SET_MODES,
-> VTUNER_SET_TYPE and VTUNER_SET_NUM_MODES. They are all either specific
-> to the Dreambox or already obsoleted by S2API commands or should be
-> implemented as new S2API commands.
-> 
-> Regards,
-> Andreas
+The other constraint is to ensure when only poll()-ing for exception conditions, not having significant IO side effects.
 
+
+I'm pretty sure sleeping in a driver's poll() method, or having significant side effects, is not ine the spirit of the POSIX select() and poll(), even if the letter of POSIX says nothing about it.
+
+The method I suggested to Hans is completely POSIX compliant for apps using read() and select() and was checked against MythTV as having no bad side effects.  (And by thought experiment doesn't break any sensible app using nonblocking IO with select() and read().)
+
+I did not do analysis for apps that use mmap(), which I guess is the current concern.
+Regards,
+Andy
