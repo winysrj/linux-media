@@ -1,134 +1,90 @@
 Return-path: <mchehab@pedra>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:58152 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753927Ab1FTOJM (ORCPT
+Received: from mail-qw0-f46.google.com ([209.85.216.46]:39115 "EHLO
+	mail-qw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750974Ab1F2CRy (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 20 Jun 2011 10:09:12 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Subject: Re: [RFCv1 PATCH 4/8] v4l2-event: add optional 'merge' callback to merge two events
-Date: Mon, 20 Jun 2011 16:09:32 +0200
-Cc: linux-media@vger.kernel.org, sakari.ailus@iki.fi,
-	Hans Verkuil <hans.verkuil@cisco.com>
-References: <1308064953-11156-1-git-send-email-hverkuil@xs4all.nl> <e3b0b697f29a86fa0299b51bfdb808e4df847175.1308063857.git.hans.verkuil@cisco.com>
-In-Reply-To: <e3b0b697f29a86fa0299b51bfdb808e4df847175.1308063857.git.hans.verkuil@cisco.com>
-MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-15"
+	Tue, 28 Jun 2011 22:17:54 -0400
+Received: by qwk3 with SMTP id 3so401985qwk.19
+        for <linux-media@vger.kernel.org>; Tue, 28 Jun 2011 19:17:54 -0700 (PDT)
+Subject: Re: HVR-1250/CX23885 IR Rx
+Mime-Version: 1.0 (Apple Message framework v1084)
+Content-Type: text/plain; charset=us-ascii
+From: Jarod Wilson <jarod@wilsonet.com>
+In-Reply-To: <1309300374.2377.6.camel@palomino.walls.org>
+Date: Tue, 28 Jun 2011 22:17:52 -0400
+Cc: Devin Heitmueller <dheitmueller@kernellabs.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
 Content-Transfer-Encoding: 7bit
-Message-Id: <201106201609.32954.laurent.pinchart@ideasonboard.com>
+Message-Id: <810E4A6F-80BA-417F-9F9E-3B1274DAFD1B@wilsonet.com>
+References: <1302267045.1749.38.camel@gagarin> <AFEB19DA-4FD6-4472-9825-F13A112B0E2A@wilsonet.com> <1302276147.1749.46.camel@gagarin> <B9A35B3D-DC47-4D95-88F5-5453DD3F506C@wilsonet.com> <BANLkTimyT98dabuYsrwLrcm2wQFv2uQB9g@mail.gmail.com> <44DC1ED9-2697-4F92-A81A-CD024C913CCB@wilsonet.com> <BANLkTi=3Gq+8kXm40O55y55O6A6Q4-3g-g@mail.gmail.com> <CDB2A354-8564-447E-99A3-66502E83E4CB@wilsonet.com> <8f1c0f8a-e4cd-4e3b-8ad4-f58212dfd9d4@email.android.com> <099D978B-BC30-4527-870E-85ECEE74501D@wilsonet.com> <1302476895.2282.12.camel@localhost> <679F6706-8E38-4DF4-9F06-65EC3747339E@wilsonet.com> <444047a2-87a6-4823-a1cd-961493f6680f@email.android.com> <8450B359-034A-4DE2-BD8D-50DA6BE98A17@wilsonet.com> <1309300374.2377.6.camel@palomino.walls.org>
+To: Andy Walls <awalls@md.metrocast.net>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Hi Hans,
+On Jun 28, 2011, at 6:32 PM, Andy Walls wrote:
 
-Thanks for the patch.
+> On Tue, 2011-06-28 at 17:39 -0400, Jarod Wilson wrote:
+> 
+>> Up and running on 3.0-rc5 now, and I'm not seeing the panic, but the
+>> box keeps hard-locking after some number of keypresses. Can't get a
+>> peep out of it with sysrq, nmi watchdog doesn't seem to fire, etc.
+>> 
+>> At the suggestion of "Dark Shadow", I've also tried booting the box
+>> with pci=nomsi. Works a treat then. Since his HVR-1270 and my HVR-1250
+>> both behave much better with pci=nomsi, I'm thinking that in the
+>> short-term, we should probably make sure msi doesn't get enabled in
+>> the cx23885 driver, and longer-term, we can look at fixing it.
+> 
+> Sounds fine.  But fixcing the cx23885 driver to deal with both PCIe
+> emulation of legacy PCI INTx and PCIe MSI will likely be very involved.
+> (Maybe I'm wrong?)
 
-On Tuesday 14 June 2011 17:22:29 Hans Verkuil wrote:
-> From: Hans Verkuil <hans.verkuil@cisco.com>
-> 
-> When the event queue for a subscribed event is full, then the oldest
-> event is dropped. It would be nice if the contents of that oldest
-> event could be merged with the next-oldest. That way no information is
-> lost, only intermediate steps are lost.
-> 
-> This patch adds an optional merge function that will be called to do
-> this job and implements it for the control event.
-> 
-> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-> ---
->  drivers/media/video/v4l2-event.c |   27 ++++++++++++++++++++++++++-
->  include/media/v4l2-event.h       |    5 +++++
->  2 files changed, 31 insertions(+), 1 deletions(-)
-> 
-> diff --git a/drivers/media/video/v4l2-event.c
-> b/drivers/media/video/v4l2-event.c index 9e325dd..aeec2d5 100644
-> --- a/drivers/media/video/v4l2-event.c
-> +++ b/drivers/media/video/v4l2-event.c
-> @@ -113,6 +113,7 @@ static void __v4l2_event_queue_fh(struct v4l2_fh *fh,
-> const struct v4l2_event *e {
->  	struct v4l2_subscribed_event *sev;
->  	struct v4l2_kevent *kev;
-> +	bool copy_payload = true;
-> 
->  	/* Are we subscribed? */
->  	sev = v4l2_event_subscribed(fh, ev->type, ev->id);
-> @@ -130,12 +131,23 @@ static void __v4l2_event_queue_fh(struct v4l2_fh *fh,
-> const struct v4l2_event *e sev->in_use--;
->  		sev->first = sev_pos(sev, 1);
->  		fh->navailable--;
-> +		if (sev->merge) {
-> +			if (sev->elems == 1) {
-> +				sev->merge(&kev->event, ev, &kev->event);
-> +				copy_payload = false;
-> +			} else {
-> +				struct v4l2_kevent *second_oldest =
-> +					sev->events + sev_pos(sev, 0);
-> +				sev->merge(&second_oldest->event, &second_oldest->event, &kev-
->event);
-> +			}
-> +		}
->  	}
-> 
->  	/* Take one and fill it. */
->  	kev = sev->events + sev_pos(sev, sev->in_use);
->  	kev->event.type = ev->type;
-> -	kev->event.u = ev->u;
-> +	if (copy_payload)
-> +		kev->event.u = ev->u;
->  	kev->event.id = ev->id;
->  	kev->event.timestamp = *ts;
->  	kev->event.sequence = fh->sequence;
-> @@ -184,6 +196,17 @@ int v4l2_event_pending(struct v4l2_fh *fh)
->  }
->  EXPORT_SYMBOL_GPL(v4l2_event_pending);
-> 
-> +static void ctrls_merge(struct v4l2_event *dst,
-> +			const struct v4l2_event *new,
-> +			const struct v4l2_event *old)
-> +{
-> +	u32 changes = new->u.ctrl.changes | old->u.ctrl.changes;
-> +
-> +	if (dst == old)
-> +		dst->u.ctrl = new->u.ctrl;
-> +	dst->u.ctrl.changes = changes;
-> +}
-> +
->  int v4l2_event_subscribe(struct v4l2_fh *fh,
->  			 struct v4l2_event_subscription *sub, unsigned elems)
->  {
-> @@ -210,6 +233,8 @@ int v4l2_event_subscribe(struct v4l2_fh *fh,
->  	sev->flags = sub->flags;
->  	sev->fh = fh;
->  	sev->elems = elems;
-> +	if (ctrl)
-> +		sev->merge = ctrls_merge;
-> 
->  	spin_lock_irqsave(&fh->vdev->fh_lock, flags);
->  	found_ev = v4l2_event_subscribed(fh, sub->type, sub->id);
-> diff --git a/include/media/v4l2-event.h b/include/media/v4l2-event.h
-> index 8d681e5..111b2bc 100644
-> --- a/include/media/v4l2-event.h
-> +++ b/include/media/v4l2-event.h
-> @@ -55,6 +55,11 @@ struct v4l2_subscribed_event {
->  	struct v4l2_fh		*fh;
->  	/* list node that hooks into the object's event list (if there is one) */
->  	struct list_head	node;
-> +	/* Optional callback that can merge two events.
-> +	   Note that 'dst' can be the same as either 'new' or 'old'. */
+I'm not sure either, but I know a few PCI gurus at work who could
+probably lend some insight.
 
-This can lead to various problems in drivers, if the code forgets that 
-changing dst will change new or old. Would it be possible to make it a two 
-arguments (dst, src) function ?
 
-> +	void			(*merge)(struct v4l2_event *dst,
-> +					 const struct v4l2_event *new,
-> +					 const struct v4l2_event *old);
->  	/* the number of elements in the events array */
->  	unsigned		elems;
->  	/* the index of the events containing the oldest available event */
+> Taking a trip down memory lane to 2 Dec 2010...
+> http://www.spinics.net/lists/linux-media/msg25956.html
+
+Man. I really gotta learn to search the list archive (and bugzillas
+assigned to me...) before sending mail to the list, eh? ;)
+
+
+> On Wed, 2010-12-01 at 21:52 -0800, David Liontooth wrote:
+>> On 11/29/2010 04:38 AM, Andy Walls wrote:
+>>> On Sun, 2010-11-28 at 23:49 -0800, David Liontooth wrote:
+> 
+>>> For a quick band-aid, use "pci=nomsi" on your kernel command line, and
+>>> reboot to reset the CX23888 hardware.
+>>> 
+>>> The problem is MSI.  The cx23885 driver isn't ready for it.  The patch
+>>> that enabled MSI for cx23885 probably needs to be reverted until some of
+>>> these issues are sorted out.
+> 
+>> -- what do we lose by removing the MSI support patch?
+> 
+> Problems mostly. The driver was written to work with emulated legacy PCI
+> INTx interrupts, which are to be treated as level triggered, and not
+> PCIe MSI, which are to be treated as edge triggered.  That's why I say
+> the cx23885 driver isn't ready for MSI, but I'm not sure how involved an
+> audit and conversion would be.  I know an audit will take time and
+> expertise.
+
+Dropping msi support looks to be quite trivial, I got the card behaving
+after only a few lines of change in cx23885-core.c without having to pass
+in pci=nomsi, but I *only* tried IR, I haven't tried video capture. I'll
+see if I can give that a spin tomorrow, and if that behaves, I can send
+along the diff. If we wanted to get really fancy, I could add a modparam
+to let people turn msi back on. (Never had a single issue with this card
+recording with msi enabled, only IR seems busted).
+
+Just had another thought though... I have an HVR-1800 that *does* have
+issues recording, and the way the video is corrupted, its possible that
+its msi-related... Will have to keep that in mind next time I poke at it.
 
 -- 
-Regards,
+Jarod Wilson
+jarod@wilsonet.com
 
-Laurent Pinchart
+
+
