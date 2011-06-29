@@ -1,89 +1,130 @@
 Return-path: <mchehab@pedra>
-Received: from mail-qy0-f174.google.com ([209.85.216.174]:47274 "EHLO
-	mail-qy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755674Ab1F1Ai1 convert rfc822-to-8bit (ORCPT
+Received: from smtp-vbr16.xs4all.nl ([194.109.24.36]:1071 "EHLO
+	smtp-vbr16.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753709Ab1F2GbF (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 27 Jun 2011 20:38:27 -0400
-Received: by qyk29 with SMTP id 29so1652970qyk.19
-        for <linux-media@vger.kernel.org>; Mon, 27 Jun 2011 17:38:26 -0700 (PDT)
-Subject: Re: HVR-1250/CX23885 IR Rx
-Mime-Version: 1.0 (Apple Message framework v1084)
-Content-Type: text/plain; charset=us-ascii
-From: Jarod Wilson <jarod@wilsonet.com>
-In-Reply-To: <1302476895.2282.12.camel@localhost>
-Date: Mon, 27 Jun 2011 20:38:23 -0400
-Cc: Devin Heitmueller <dheitmueller@kernellabs.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Content-Transfer-Encoding: 8BIT
-Message-Id: <679F6706-8E38-4DF4-9F06-65EC3747339E@wilsonet.com>
-References: <1302267045.1749.38.camel@gagarin> <AFEB19DA-4FD6-4472-9825-F13A112B0E2A@wilsonet.com> <1302276147.1749.46.camel@gagarin> <B9A35B3D-DC47-4D95-88F5-5453DD3F506C@wilsonet.com> <BANLkTimyT98dabuYsrwLrcm2wQFv2uQB9g@mail.gmail.com> <44DC1ED9-2697-4F92-A81A-CD024C913CCB@wilsonet.com> <BANLkTi=3Gq+8kXm40O55y55O6A6Q4-3g-g@mail.gmail.com> <CDB2A354-8564-447E-99A3-66502E83E4CB@wilsonet.com> <8f1c0f8a-e4cd-4e3b-8ad4-f58212dfd9d4@email.android.com> <099D978B-BC30-4527-870E-85ECEE74501D@wilsonet.com> <1302476895.2282.12.camel@localhost>
-To: Andy Walls <awalls@md.metrocast.net>
+	Wed, 29 Jun 2011 02:31:05 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+Subject: Re: [RFCv3 PATCH 12/18] vb2_poll: don't start DMA, leave that to the first read().
+Date: Wed, 29 Jun 2011 08:30:30 +0200
+Cc: Andy Walls <awalls@md.metrocast.net>, linux-media@vger.kernel.org,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Pawel Osciak <pawel@osciak.com>,
+	Marek Szyprowski <m.szyprowski@samsung.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>
+References: <1307459123-17810-1-git-send-email-hverkuil@xs4all.nl> <4E09CC6A.8080900@redhat.com> <201106281558.37065.hverkuil@xs4all.nl>
+In-Reply-To: <201106281558.37065.hverkuil@xs4all.nl>
+MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="utf-8"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201106290830.30494.hverkuil@xs4all.nl>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Apr 10, 2011, at 7:08 PM, Andy Walls wrote:
-
-> On Sat, 2011-04-09 at 21:39 -0400, Jarod Wilson wrote:
+On Tuesday, June 28, 2011 15:58:36 Hans Verkuil wrote:
+> On Tuesday, June 28, 2011 14:43:22 Mauro Carvalho Chehab wrote:
+> > Em 28-06-2011 09:21, Andy Walls escreveu:
+> > > Mauro Carvalho Chehab <mchehab@redhat.com> wrote:
+> > 
+> > >> I'm not very comfortable with vb2 returning unexpected errors there.
+> > >> Also,
+> > >> for me it is clear that, if read will fail, POLLERR should be rised.
+> > >>
+> > >> Mauro. 
+> > >> --
+> > >> To unsubscribe from this list: send the line "unsubscribe linux-media"
+> > >> in
+> > >> the body of a message to majordomo@vger.kernel.org
+> > >> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> > > 
+> > > It is also the case that a driver's poll method should never sleep.
+> > 
+> > True.
 > 
->>> Jarod,
->>> 
->>> The HVR-1850 uses a raw IR receiver in the CX23888 and older
->> HVR-1250s use the raw IR receiver in the CX23885.  They both work for
->> Rx (I need to tweak the Cx23885 rx watermark though), but I never
->> found time to finish Tx (lack of kernel interface when I had time).
->>> 
->>> If you obtain one of these I can answer any driver questions.
->> 
->> Quite some time back, I bought an HVR-1800 and an HVR-1250. I know one of
->> them came with an mceusb transceiver and remote, as was pretty sure it was
->> the 1800. For some reason, I didn't recall the 1250 coming with anything at
->> all, but looking at dmesg output for it:
->> 
->> cx23885 driver version 0.0.2 loaded
->> cx23885 0000:03:00.0: PCI INT A -> GSI 16 (level, low) -> IRQ 16
->> CORE cx23885[0]: subsystem: 0070:7911, board: Hauppauge WinTV-HVR1250 [card=3,autodetected]
->> tveeprom 0-0050: Hauppauge model 79001, rev E3D9, serial# 4904656
->> tveeprom 0-0050: MAC address is 00:0d:fe:4a:d6:d0
->> tveeprom 0-0050: tuner model is Microtune MT2131 (idx 139, type 4)
->> tveeprom 0-0050: TV standards NTSC(M) ATSC/DVB Digital (eeprom 0x88)
->> tveeprom 0-0050: audio processor is CX23885 (idx 39)
->> tveeprom 0-0050: decoder processor is CX23885 (idx 33)
->> tveeprom 0-0050: has no radio, has IR receiver, has no IR transmitter
->> 
->> So it seems I do have hardware. However, its one of the two tuner cards in
->> my "production" mythtv backend right now, making it a bit hard to do any
->> experimenting with. If I can get it out of there, it looks like I just add
->> an enable_885_ir=1, and I should be able to poke at it...
+> Actually, it is allowed, but only since kernel 2.6.29 (before that it could
+> apparently give rise to busy looping if you were unlucky). But the main use
+> case is userspace file systems like fuse. Not so much in regular drivers.
 > 
-> Yeah.  Igor's TeVii S470 CX23885 based card had interrupt storms when
-> enabled, so IR for '885 chips is disabled by default.  To investigate, I
-> tried to by an HVR-1250 with a CX23885, but instead got an HVR-1275 with
-> a CX23888.  dandel, on IRC, did a pretty decent job in testing HVR-1250
-> operation and finding it works, despite climbing kernel
-> build/development learning curve at the time.
-...
+> Since drivers can sleep when starting streaming (ivtv will do that, in any
+> case), we were in violation of the poll kernel API for a long time :-)
+> 
+> > > I will try to find the conversation I had with laurent on interpreting the POSIX spec on error returns from select() and poll().  I will also try to find links to previos discussion with Hans on this.
+> > > 
+> > > One issue is how to start streaming with apps that:
+> > > - Open /dev/video/ in a nonblocking mode, and
+> > > - Use the read() method
+> > > 
+> > > while doing it in a way that is POSIX compliant and doesn't break existing apps.  
+> > 
+> > Well, a first call for poll() may rise a thread that will prepare the buffers, and
+> > return with 0 while there's no data available.
+> 
+> There is actually no guarantee whatsoever that if poll says you can read(), that that
+> read also has to succeed. Other threads can have read the data already, and errors may
+> have occured. And in fact, just starting streaming gives no guarantee that there is
+> anything to read. For example, starting the DMA engine when there is no valid input
+> signal. Many drivers (certainly those dealing with digital interfaces as opposed to
+> analog) will just sit and wait. A non-blocking read will just return 0 without
+> reading anything.
+> 
+> So the current poll implementation (and that includes the one in videobuf-core.c as
+> well) actually does *not* give any guarantee about whether data will be available
+> in read().
 
-Finally got some time to play with my 1250, dug out its rx cable, turns out to
-be the same one I special-ordered to work on the 1150 Devin sent me. Oops.
-Anyway. First impressions, not so good. Got a panic on boot, somewhere in
-cx23885_video_irq, iirc, when booting with enable_885_ir=1 set. However, dmesg
-was somewhere in the middle of cx18 init of the HVR-1600 in the box. Dunno if
-there's any way that's actually directly related, but I yanked the 1600. After
-doing that, the box managed to boot fine, but then while testing w/ir-keytable
-and an RC-6 remote, I got what I think was the same panic -- definitely the
-cx23885_video_irq bit in the trace, something about sleeping while atomic, IP
-at mwait_idle. (On the plus side, IR did seem to be working before that).
+Never mind this. I didn't look carefully enough: it does start the DMA and then poll
+waits for data to arrive. So when poll says there is data, then there is really data.
+Although applications should always handle EAGAIN anyway: some drivers do return it,
+even when data is supposed to be available (I had to add that to qv4l2 at one time).
 
-Note also that this is a 2.6.32-based kernel with a 2.6.38-era backport of the
-driver code, because that's what was on this box. Was about to put it back into
-"production" use, but hey, its summer, there's nothing really for it to record
-for another few months, so I'll keep it out and throw it into another box with
-a newer kernel and serial console, etc., so I can further debug...
+Regards,
 
+	Hans
 
--- 
-Jarod Wilson
-jarod@wilsonet.com
-
-
-
+> 
+> And from the same POSIX link you posted:
+> 
+> "The poll() function shall support regular files, terminal and pseudo-terminal devices,
+> FIFOs, pipes, sockets and [XSR] [Option Start]  STREAMS-based files. [Option End]
+> The behavior of poll() on elements of fds that refer to other types of file is unspecified."
+> 
+> Note the last line: we do not fall under this posix document.
+>  
+> > > The other constraint is to ensure when only poll()-ing for exception conditions, not having significant IO side effects.
+> > > 
+> > > I'm pretty sure sleeping in a driver's poll() method, or having significant side effects, is not ine the spirit of the POSIX select() and poll(), even if the letter of POSIX says nothing about it.
+> > > 
+> > > The method I suggested to Hans is completely POSIX compliant for apps using read() and select() and was checked against MythTV as having no bad side effects.  (And by thought experiment doesn't break any sensible app using nonblocking IO with select() and read().)
+> > > 
+> > > I did not do analysis for apps that use mmap(), which I guess is the current concern.
+> 
+> There isn't a problem with mmap(). For the stream I/O API you have to call STREAMON
+> explicitly in order to start streaming. poll() will not do that for you.
+> 
+> I was thinking that one improvement that could be realized is that vb2_poll could
+> do some basic checks, such as checking whether streaming was already in progress
+> (EBUSY), but then I realized that it already does that: this code is only active
+> if there is no streaming in progress anyway.
+> 
+> Regards,
+> 
+> 	Hans
+> 
+> > 
+> > The concern is that it is pointing that there are available data, even when there is an error.
+> > This looks like a POSIX violation for me.
+> > 
+> > Cheers,
+> > Mauro.
+> > --
+> > To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> > the body of a message to majordomo@vger.kernel.org
+> > More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> > 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
+> 
