@@ -1,69 +1,84 @@
 Return-path: <mchehab@pedra>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:56550 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757381Ab1FUWzP (ORCPT
+Received: from proofpoint-cluster.metrocast.net ([65.175.128.136]:35194 "EHLO
+	proofpoint-cluster.metrocast.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1755962Ab1F2Xeh (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 21 Jun 2011 18:55:15 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Stephan Lachowsky <stephan.lachowsky@maxim-ic.com>
-Subject: Re: [PATCH] [media] uvcvideo: Fix control mapping for devices with multiple chains
-Date: Wed, 22 Jun 2011 00:55:36 +0200
-Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	"linux-uvc-devel@lists.berlios.de" <linux-uvc-devel@lists.berlios.de>
-References: <1306880661.2916.39.camel@svmlwks101>
-In-Reply-To: <1306880661.2916.39.camel@svmlwks101>
-MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
+	Wed, 29 Jun 2011 19:34:37 -0400
+Subject: Re: [PATCH] Revert "V4L/DVB: cx23885: Enable Message Signaled
+ Interrupts(MSI)"
+From: Andy Walls <awalls@md.metrocast.net>
+To: Jarod Wilson <jarod@redhat.com>
+Cc: stoth@kernellabs.com, linux-media@vger.kernel.org,
+	Kusanagi Kouichi <slash@ac.auone-net.jp>
+In-Reply-To: <1309384173-12933-1-git-send-email-jarod@redhat.com>
+References: <1309384173-12933-1-git-send-email-jarod@redhat.com>
+Content-Type: text/plain; charset="UTF-8"
+Date: Wed, 29 Jun 2011 19:35:04 -0400
+Message-ID: <1309390504.3110.40.camel@morgan.silverblock.net>
+Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
-Message-Id: <201106220055.37215.laurent.pinchart@ideasonboard.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Hi Stephan,
-
-On Wednesday 01 June 2011 00:24:21 Stephan Lachowsky wrote:
-> The search for matching extension units fails to take account of the
-> current chain.  In the case where you have two distinct video chains,
-> both containing an XU with the same GUID but different unit ids, you
-> will be unable to perform a mapping on the second chain because entity
-> on the first chain will always be found first
+On Wed, 2011-06-29 at 17:49 -0400, Jarod Wilson wrote:
+> This reverts commit e38030f3ff02684eb9e25e983a03ad318a10a2ea.
 > 
-> Fix this by only searching the current chain when performing a control
-> mapping.  This is analogous to the search used by uvc_find_control(),
-> and is the correct behaviour.
+> MSI flat-out doesn't work right on cx2388x devices yet. There are now
+> multiple reports of cards that hard-lock systems when MSI is enabled,
+> including my own HVR-1250 when trying to use its built-in IR receiver.
+> Disable MSI and it works just fine. Similar for another user's HVR-1270.
+> Issues have also been reported with the HVR-1850 when MSI is enabled,
+> and the 1850 behavior sounds similar to an as-yet-undiagnosed issue I've
+> seen with an 1800.
+> 
+> References:
+> 
+> http://www.spinics.net/lists/linux-media/msg25956.html
+> http://www.spinics.net/lists/linux-media/msg33676.html
+> http://www.spinics.net/lists/linux-media/msg34734.html
+> 
+> CC: Andy Walls <awalls@md.metrocast.net>
 
-Thanks for the patch. I agree with your analysis, but I'm concerned about 
-devices that might have extension units not connected to any chain. They would 
-become unaccessible.
+Fine by me.
 
-Devices for which extension unit control mappings have been published have all 
-their XUs connected to a chain, so I'm OK with the patch. I will add a TODO 
-comment to remind me of the issue, and I'll solve the problem later if it ever 
-occurs.
+Acked-by: Andy Walls <awalls@md.metrocast.net>
 
-> Signed-off-by: Stephan Lachowsky <stephan.lachowsky@maxim-ic.com>
+but you should really
+
+Cc: Steven Toth <stoth@kernellabs.com>
+
+> CC: Kusanagi Kouichi <slash@ac.auone-net.jp>
+> Signed-off-by: Jarod Wilson <jarod@redhat.com>
 > ---
->  drivers/media/video/uvc/uvc_ctrl.c |    4 ++--
->  1 files changed, 2 insertions(+), 2 deletions(-)
+>  drivers/media/video/cx23885/cx23885-core.c |    9 ++-------
+>  1 files changed, 2 insertions(+), 7 deletions(-)
 > 
-> diff --git a/drivers/media/video/uvc/uvc_ctrl.c
-> b/drivers/media/video/uvc/uvc_ctrl.c index 59f8a9a..a77648f 100644
-> --- a/drivers/media/video/uvc/uvc_ctrl.c
-> +++ b/drivers/media/video/uvc/uvc_ctrl.c
-> @@ -1565,8 +1565,8 @@ int uvc_ctrl_add_mapping(struct uvc_video_chain
-> *chain, return -EINVAL;
+> diff --git a/drivers/media/video/cx23885/cx23885-core.c b/drivers/media/video/cx23885/cx23885-core.c
+> index 64d9b21..419777a 100644
+> --- a/drivers/media/video/cx23885/cx23885-core.c
+> +++ b/drivers/media/video/cx23885/cx23885-core.c
+> @@ -2060,12 +2060,8 @@ static int __devinit cx23885_initdev(struct pci_dev *pci_dev,
+>  		goto fail_irq;
 >  	}
-> 
-> -	/* Search for the matching (GUID/CS) control in the given device */
-> -	list_for_each_entry(entity, &dev->entities, list) {
-> +	/* Search for the matching (GUID/CS) control on the current chain */
-> +	list_for_each_entry(entity, &chain->entities, chain) {
->  		unsigned int i;
-> 
->  		if (UVC_ENTITY_TYPE(entity) != UVC_VC_EXTENSION_UNIT ||
+>  
+> -	if (!pci_enable_msi(pci_dev))
+> -		err = request_irq(pci_dev->irq, cx23885_irq,
+> -				  IRQF_DISABLED, dev->name, dev);
+> -	else
+> -		err = request_irq(pci_dev->irq, cx23885_irq,
+> -				  IRQF_SHARED | IRQF_DISABLED, dev->name, dev);
+> +	err = request_irq(pci_dev->irq, cx23885_irq,
+> +			  IRQF_SHARED | IRQF_DISABLED, dev->name, dev);
+>  	if (err < 0) {
+>  		printk(KERN_ERR "%s: can't get IRQ %d\n",
+>  		       dev->name, pci_dev->irq);
+> @@ -2114,7 +2110,6 @@ static void __devexit cx23885_finidev(struct pci_dev *pci_dev)
+>  
+>  	/* unregister stuff */
+>  	free_irq(pci_dev->irq, dev);
+> -	pci_disable_msi(pci_dev);
+>  
+>  	cx23885_dev_unregister(dev);
+>  	v4l2_device_unregister(v4l2_dev);
 
--- 
-Regards,
 
-Laurent Pinchart
