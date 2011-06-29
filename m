@@ -1,134 +1,76 @@
 Return-path: <mchehab@pedra>
-Received: from proofpoint-cluster.metrocast.net ([65.175.128.136]:47185 "EHLO
-	proofpoint-cluster.metrocast.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751608Ab1FLP3m (ORCPT
+Received: from moutng.kundenserver.de ([212.227.17.9]:56545 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751118Ab1F2NPj (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 12 Jun 2011 11:29:42 -0400
-References: <1307799283-15518-1-git-send-email-hverkuil@xs4all.nl> <201106121423.17503.hverkuil@xs4all.nl> <4DF4C912.7050805@redhat.com> <201106121633.45020.hverkuil@xs4all.nl>
-In-Reply-To: <201106121633.45020.hverkuil@xs4all.nl>
+	Wed, 29 Jun 2011 09:15:39 -0400
+Date: Wed, 29 Jun 2011 15:15:37 +0200 (CEST)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+cc: Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: [PULL] first soc-camera pull for 3.1
+Message-ID: <Pine.LNX.4.64.1106291511280.12577@axis700.grange>
 MIME-Version: 1.0
-Content-Type: text/plain;
- charset=UTF-8
-Content-Transfer-Encoding: 8bit
-Subject: Re: [RFCv1 PATCH 7/7] tuner-core: s_tuner should not change tuner mode.
-From: Andy Walls <awalls@md.metrocast.net>
-Date: Sun, 12 Jun 2011 11:29:48 -0400
-To: Hans Verkuil <hverkuil@xs4all.nl>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>
-CC: Linux Media Mailing List <linux-media@vger.kernel.org>
-Message-ID: <551d8a80-376f-45db-b62b-14b7b44ca403@email.android.com>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Hans Verkuil <hverkuil@xs4all.nl> wrote:
+Hi Mauro
 
->On Sunday, June 12, 2011 16:11:30 Mauro Carvalho Chehab wrote:
->> Em 12-06-2011 09:23, Hans Verkuil escreveu:
->> > That's not unreasonably to do at some point in time, but it doesn't
->actually
->> > answer my question, which is: should the core refuse
->VIDIOC_S_FREQUENCY calls
->> > where the type doesn't match the device node (i.e. radio vs tv)? I
->think it
->> > makes no sense to call VIDIOC_S_FREQUENCY on a radio node with type
->ANALOG_TV.
->> 
->> No. The core shouldn't do it, otherwise tuner will break. The code
->doesn't know if
->> the opened device is radio or video.
->
->I don't follow this. In v4l2-ioctl.c it is easy to tell if the opened
->device
->is radio or not by looking at vfd->vfl_type.
->
->> >> diff --git a/drivers/media/video/cx18/cx18-ioctl.c
->b/drivers/media/video/cx18/cx18-ioctl.c
->> >> index 1933d4d..5463548 100644
->> >> --- a/drivers/media/video/cx18/cx18-ioctl.c
->> >> +++ b/drivers/media/video/cx18/cx18-ioctl.c
->> >> @@ -611,6 +611,11 @@ static int cx18_g_frequency(struct file
->*file, void *fh,
->> >>  	if (vf->tuner != 0)
->> >>  		return -EINVAL;
->> >>  
->> >> +	if (test_bit(CX18_F_I_RADIO_USER, &cx->i_flags))
->> >> +		vf->type = V4L2_TUNER_RADIO;
->> >> +	else
->> >> +		vf->type = V4L2_TUNER_ANALOG_TV;
->> >> +
->> > 
->> > NACK.
->> > 
->> > This sets the type to the current mode. But what we want is to set
->the type to
->> > the current device node. That's what my RFCv4 does (and that patch
->requires no
->> > driver change).
->> 
->> I didn't get your RFCv4 patches here yet, but the fix should be at
->the driver: it
->> needs to set the type before calling g_frequency. G_FREQUENCY
->shouldn't change the
->> device mode, but, instead, to return the frequency and mode currently
->in usage..
->
->Why bother changing drivers (and probably missing a few) if you can do
->it
->in v4l2-ioctl.c and let drivers just pass it on?
->
->This is the patch in question, BTW:
->
->diff --git a/drivers/media/video/v4l2-ioctl.c
->b/drivers/media/video/v4l2-ioctl.c
->index 213ba7d..26bf3bf 100644
->--- a/drivers/media/video/v4l2-ioctl.c
->+++ b/drivers/media/video/v4l2-ioctl.c
->@@ -1822,6 +1822,8 @@ static long __video_do_ioctl(struct file *file,
->                if (!ops->vidioc_g_tuner)
->                        break;
-> 
->+               p->type = (vfd->vfl_type == VFL_TYPE_RADIO) ?
->+                       V4L2_TUNER_RADIO : V4L2_TUNER_ANALOG_TV;
->                ret = ops->vidioc_g_tuner(file, fh, p);
->                if (!ret)
->                        dbgarg(cmd, "index=%d, name=%s, type=%d, "
->@@ -1840,6 +1842,8 @@ static long __video_do_ioctl(struct file *file,
-> 
->                if (!ops->vidioc_s_tuner)
->                        break;
->+               p->type = (vfd->vfl_type == VFL_TYPE_RADIO) ?
->+                       V4L2_TUNER_RADIO : V4L2_TUNER_ANALOG_TV;
->                dbgarg(cmd, "index=%d, name=%s, type=%d, "
->                                "capability=0x%x, rangelow=%d, "
->                                "rangehigh=%d, signal=%d, afc=%d, "
->@@ -1858,6 +1862,8 @@ static long __video_do_ioctl(struct file *file,
->                if (!ops->vidioc_g_frequency)
->                        break;
-> 
->+               p->type = (vfd->vfl_type == VFL_TYPE_RADIO) ?
->+                       V4L2_TUNER_RADIO : V4L2_TUNER_ANALOG_TV;
->                ret = ops->vidioc_g_frequency(file, fh, p);
->                if (!ret)
->                       dbgarg(cmd, "tuner=%d, type=%d, frequency=%d\n",
->
->Neither of these three ioctls will change the tuner mode, BTW. With
->this
->code in place drivers that use video_ioctl2 can now rely on the type
->field
->being a sensible value.
-> 
->Regards,
->
->	Hans
->--
->To unsubscribe from this list: send the line "unsubscribe linux-media"
->in
->the body of a message to majordomo@vger.kernel.org
->More majordomo info at  http://vger.kernel.org/majordomo-info.html
+I expect at least one more soc-camera pull request for 3.1, so far a bunch 
+of patches, that have been lying around since a while already.
 
-Right.  In fact for s_tuner (and g_tuner) the spec implies that app writers should not fill in the field. 
+The following changes since commit 7023c7dbc3944f42aa1d6910a6098c5f9e23d3f1:
 
-BTW, S_tuner only really changes analog audio decoding right?
+  [media] DVB: dvb-net, make the kconfig text helpful (2011-06-21 15:55:15 -0300)
 
-Regards,
-Andy
+are available in the git repository at:
+  git://linuxtv.org/gliakhovetski/v4l-dvb.git for-3.1
+
+Andrew Chew (6):
+      V4L: ov9740: Cleanup hex casing inconsistencies
+      V4L: ov9740: Correct print in ov9740_reg_rmw()
+      V4L: ov9740: Fixed some settings
+      V4L: ov9740: Remove hardcoded resolution regs
+      V4L: ov9740: Reorder video and core ops
+      V4L: ov9740: Add suspend/resume
+
+Guennadi Liakhovetski (11):
+      V4L: mx3_camera: remove redundant calculations
+      V4L: pxa_camera: remove redundant calculations
+      V4L: pxa-camera: try to force progressive video format
+      V4L: pxa-camera: switch to using subdev .s_power() core operation
+      V4L: mx2_camera: .try_fmt shouldn't fail
+      V4L: sh_mobile_ceu_camera: remove redundant calculations
+      V4L: tw9910: remove bogus ENUMINPUT implementation
+      V4L: soc-camera: MIPI flags are not sensor flags
+      V4L: mt9m111: propagate higher level abstraction down in functions
+      V4L: mt9m111: switch to v4l2-subdev .s_power() method
+      V4L: soc-camera: remove several now unused soc-camera client operations
+
+Josh Wu (1):
+      V4L: at91: add Atmel Image Sensor Interface (ISI) support
+
+ drivers/media/video/Kconfig                |    8 +
+ drivers/media/video/Makefile               |    1 +
+ drivers/media/video/atmel-isi.c            | 1048 ++++++++++++++++++++++++++++
+ drivers/media/video/mt9m111.c              |  218 ++++---
+ drivers/media/video/mx2_camera.c           |   15 +-
+ drivers/media/video/mx3_camera.c           |   12 -
+ drivers/media/video/ov9740.c               |  543 ++++++++-------
+ drivers/media/video/pxa_camera.c           |   25 +-
+ drivers/media/video/sh_mobile_ceu_camera.c |    5 -
+ drivers/media/video/soc_camera.c           |   17 +-
+ drivers/media/video/tw9910.c               |   11 -
+ include/media/atmel-isi.h                  |  119 ++++
+ include/media/soc_camera.h                 |   15 +-
+ 13 files changed, 1631 insertions(+), 406 deletions(-)
+ create mode 100644 drivers/media/video/atmel-isi.c
+ create mode 100644 include/media/atmel-isi.h
+
+Thanks
+Guennadi
+---
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
+http://www.open-technology.de/
