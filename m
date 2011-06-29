@@ -1,83 +1,105 @@
 Return-path: <mchehab@pedra>
-Received: from mail-ww0-f42.google.com ([74.125.82.42]:37062 "EHLO
-	mail-ww0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751247Ab1F1Tt6 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 28 Jun 2011 15:49:58 -0400
-Received: by wwg11 with SMTP id 11so3309715wwg.1
-        for <linux-media@vger.kernel.org>; Tue, 28 Jun 2011 12:49:57 -0700 (PDT)
-From: Bogdan Cristea <cristeab@gmail.com>
-To: linux-media@vger.kernel.org
-Subject: Patch proposition for DVB-T configuration file for Paris area
-Date: Tue, 28 Jun 2011 21:47:03 +0200
+Received: from mx1.redhat.com ([209.132.183.28]:14594 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755481Ab1F2NGP (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 29 Jun 2011 09:06:15 -0400
+Message-ID: <4E0B2382.4090409@redhat.com>
+Date: Wed, 29 Jun 2011 15:07:14 +0200
+From: Hans de Goede <hdegoede@redhat.com>
 MIME-Version: 1.0
-Content-Type: Multipart/Mixed;
-  boundary="Boundary-00=_3+iCOXgIulcX5Ur"
-Message-Id: <201106282147.03423.cristeab@gmail.com>
+To: Hans Verkuil <hansverk@cisco.com>
+CC: linux-media@vger.kernel.org
+Subject: Re: RFC: poll behavior
+References: <201106291326.47527.hansverk@cisco.com> <4E0B1644.5030809@redhat.com> <201106291442.30210.hansverk@cisco.com>
+In-Reply-To: <201106291442.30210.hansverk@cisco.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
---Boundary-00=_3+iCOXgIulcX5Ur
-Content-Type: Text/Plain;
-  charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Hi,
 
-Hi
+On 06/29/2011 02:42 PM, Hans Verkuil wrote:
+> On Wednesday, June 29, 2011 14:10:44 Hans de Goede wrote:
+>> Hi,
+>>
+>> On 06/29/2011 01:26 PM, Hans Verkuil wrote:
 
-I would like to propose the attached patch for de DVB-T configuration file for 
-Paris area (found in openSUSE 11.4 in this location)
-/usr/share/dvb/dvb-t/fr-Paris
+<Snip>
 
-With the current configuration file only 5 channels are found, while in 
-reality there are almost 35 channels.
+>>> 4) Proposal to change the poll behavior
+>>>
+>>> For the short term I propose that condition c is handled as follows:
+>>>
+>>> If for the filehandle passed to poll() no events have been subscribed, then
+>>> keep the old behavior (i.e. start streaming). If events have been subscribed,
+>>> however, then implement the new behavior (return POLLERR).
+>>>
+>>
+>> If events have been subscribed and no events are pending then the right
+>> behavior would be to return 0, not POLLERR, otherwise a waiting app
+>> will return from the poll immediately, or am I missing something?
+>
+> Yes and no. For select() POLLERR is ignored if you are only waiting for POLLPRI.
+>
+> But I see that that does not happen for the poll(2) API (see do_pollfd() in
+> fs/select.c). This means that POLLERR is indeed not a suitable event it
+> return. It will have to be POLLIN or POLLOUT instead.
+>
+> This is actually a real problem with poll(2): if there is no streaming in progress
+> and the driver does not support r/w, and you want to poll for just POLLPRI, then
+> POLLERR will be set, and poll(2) will always return. But select(2) will work fine.
+>
+> In other words, poll(2) and select(2) handle POLLPRI differently with respect to
+> POLLERR. What a mess. You can't really return POLLERR and support POLLPRI at the
+> same time.
+>
 
-regards
--- 
-Bogdan Cristea
-Embedded Software Engineer
-Philog
-46 rue d'Amsterdam
-75009 Paris, France
-tel: +33 (0)6 21 64 15 81
-web: http://sites.google.com/site/cristeab/
+Ok, yet more reason to go with my proposal, but then simplified to:
 
---Boundary-00=_3+iCOXgIulcX5Ur
-Content-Type: text/x-patch;
-  charset="UTF-8";
-  name="fr-Paris.patch"
-Content-Transfer-Encoding: quoted-printable
-Content-Disposition: attachment;
-	filename="fr-Paris.patch"
+When streaming has not started return POLLIN or POLLOUT (or-ed with
+POLLPRI if events are pending).
 
-8,23c8,19
-< #R1: France 3, France 2, France 5, LCP, France =C3=B4
-< #R2: Direct 8, BFM TV, i>TELE, DirectStar, Gulli, France 4
-< #R3: CANAL+, CANAL+ CINEMA, CANAL+ SPORT, PLANETE, TPS STAR
-< #R4: ARTE HD, PARIS PREMIERE, M6, W9, NT1
-< #R5: TF1 HD, France 2 HD, M6HD
-< #R6: TF1, NRJ12, Eurosport, LCI, TMC, TF6, ARTE
-< #Local: Canal 21, IDF1, NRJ Paris, BFM Business Paris
-<=20
-< T 585834000 8MHz 3/4 NONE QAM64 8k 1/8 NONE
-< T 505834000 8MHz 3/4 NONE QAM64 8k 1/8 NONE
-< T 481834000 8MHz 3/4 NONE QAM64 8k 1/8 NONE
-< T 545834000 8MHz 3/4 NONE QAM64 8k 1/8 NONE
-< T 529834000 8MHz 3/4 NONE QAM64 8k 1/8 NONE
-< T 561834000 8MHz 3/4 NONE QAM64 8k 1/8 NONE
-< T 569834000 8MHz 2/3 NONE QAM64 8k 1/32 NONE
-<=20
-=2D--
-> T 474166000 8MHz 2/3 NONE QAM64 8k 1/32 NONE
-> T 498166000 8MHz 2/3 NONE QAM64 8k 1/32 NONE
-> T 522166000 8MHz 2/3 NONE QAM64 8k 1/32 NONE
-> T 538166000 8MHz 2/3 NONE QAM64 8k 1/32 NONE
-> T 562166000 8MHz 2/3 NONE QAM64 8k 1/32 NONE
-> T 586166000 8MHz 3/4 NONE QAM64 8k 1/8 NONE
-> T 714166000 8MHz 3/4 NONE QAM64 8k 1/8 NONE
-> T 738166000 8MHz 2/3 NONE QAM64 8k 1/32 NONE
-> T 754166000 8MHz 2/3 NONE QAM64 8k 1/32 NONE
-> T 762166000 8MHz 2/3 NONE QAM64 8k 1/32 NONE
-> T 786166000 8MHz 2/3 NONE QAM64 8k 1/32 NONE
-> T 810166000 8MHz 2/3 NONE QAM64 8k 1/32 NONE
 
---Boundary-00=_3+iCOXgIulcX5Ur--
+>>> Since events are new I think this is a safe change that will not affect
+>>> existing applications.
+>>>
+>>> In the long term I propose that we put this in the feature-removal-schedule
+>>> for v3.3 or so and stop poll from starting streaming altogether.
+>>
+>> Alternative suggestion:
+>>
+>> In scenario c + there are no events subscribed simply return POLL_IN /
+>> POLL_OUT, iow signal the app, sure you're free to do a read / write to
+>> start streaming, no need to wait with that :)
+>>
+>> Advantages
+>> -we stop starting the stream from poll *now*
+>> -for select we only set an fd in read or write fds, depending
+>>    on the devices capabilities + file rights, rather then both
+>
+> Nobody ever sets both, why would you do that?
+>
+
+True, still the fact that POLLERR would result in the fd getting
+set in both sets if the fd is specified in both also pleas against
+using POLLERR
+
+>> -for poll we don't return POLLERR, potentially breaking apps
+>>    (I highly doubt broken apps will be fixed as quickly as you
+>>     want, skype has yet to move to libv4l ...)
+>
+> I'm happy with that, but Mauro isn't.
+
+I thought Mauro was against returning POLLERR when not streaming,
+since this may break apps, if we return POLLIN or POLLOUT, the app
+will call read() or write() and we can do the starting of the
+stream there (and then wait or return -EAGAIN).
+
+This way apps who don't like POLLERR won't break, AFAIK that was
+Mauro's main point that POLLERR might break apps, but I could be
+wrong there, Mauro ?
+
+Regards,
+
+Hans
