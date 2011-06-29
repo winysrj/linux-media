@@ -1,57 +1,47 @@
 Return-path: <mchehab@pedra>
-Received: from proofpoint-cluster.metrocast.net ([65.175.128.136]:39035 "EHLO
-	proofpoint-cluster.metrocast.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751159Ab1FLPeF (ORCPT
+Received: from perceval.ideasonboard.com ([95.142.166.194]:54941 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754128Ab1F2P6s (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 12 Jun 2011 11:34:05 -0400
-References: <1307799283-15518-1-git-send-email-hverkuil@xs4all.nl> <201106121430.03114.hverkuil@xs4all.nl> <1307883186.2592.10.camel@localhost> <201106121523.15127.hverkuil@xs4all.nl> <1307886285.2592.31.camel@localhost> <BANLkTiktMGy_7e0VDs=VDy0rb1rZwk9rXw@mail.gmail.com>
-In-Reply-To: <BANLkTiktMGy_7e0VDs=VDy0rb1rZwk9rXw@mail.gmail.com>
+	Wed, 29 Jun 2011 11:58:48 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Michael Jones <michael.jones@matrix-vision.de>
+Subject: Re: auto-loading omap3-isp
+Date: Wed, 29 Jun 2011 17:59:04 +0200
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
+References: <4E0B3718.1030202@matrix-vision.de>
+In-Reply-To: <4E0B3718.1030202@matrix-vision.de>
 MIME-Version: 1.0
-Content-Type: text/plain;
- charset=UTF-8
-Content-Transfer-Encoding: 8bit
-Subject: Re: [RFCv1 PATCH 7/7] tuner-core: s_tuner should not change tuner mode.
-From: Andy Walls <awalls@md.metrocast.net>
-Date: Sun, 12 Jun 2011 11:34:09 -0400
-To: Devin Heitmueller <dheitmueller@kernellabs.com>
-CC: Hans Verkuil <hverkuil@xs4all.nl>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Message-ID: <cf933f52-a61d-40d4-bcb4-c69988e41708@email.android.com>
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201106291759.04498.laurent.pinchart@ideasonboard.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Devin Heitmueller <dheitmueller@kernellabs.com> wrote:
+Hi Michael,
 
->On Sun, Jun 12, 2011 at 9:44 AM, Andy Walls <awalls@md.metrocast.net>
->wrote:
->> BTW, the cx18-alsa module annoys me as a developer.  PulseAudio holds
->> the device nodes open, pinning the cx18-alsa and cx18 modules in
->kernel.
->> When killed, PulseAudio respawns rapidly and reopens the nodes.
->> Unloading cx18 for development purposes is a real pain when the
->> cx18-alsa module exists.
->
->We've talked about this before, but something just feels wrong about
->this.  I don't have this problem with other drivers that provide an
->"-alsa" module.  For example, my ngene tree has four ALSA PCM devices
->and 16 mixer controls, yet PulseAudio doesn't keep the module in use.
->
->The more I think about this, the more I suspect this is just some sort
->of subtle bug in the cx18 ALSA driver where some resource is not being
->freed.
->
->Devin
->
->-- 
->Devin J. Heitmueller - Kernel Labs
->http://www.kernellabs.com
+On Wednesday 29 June 2011 16:30:48 Michael Jones wrote:
+> I am trying to get omap3-isp.ko to be loaded upon bootup.  The problem
+> is that iommu2.ko needs to be loaded first, which can't just be compiled
+> into the kernel.  Udev will see '/sys/devices/platform/omap3isp' and
+> load omap3-isp.ko, which fails because iommu2.ko hasn't been loaded yet.
+>  iommu2 doesn't have a counterpart in /sys/devices/, so I don't know how
+> to get udev to load it first.
+> 
+> I can think of a few ways to accomplish this, but they all amount to
+> hacking the init sequence (e.g. the udev init script).  I'm looking for
+> a better way.
+> 
+> How are others doing this?
 
-I'll recheck with my shiny new Fedora 15 install maybe later tonight.
+I replace the tristate option by a bool option for the IOMMU config.
 
-The only thing that springs to mind that PA may not like is no mixer controls.  Some basic code is there in cx18-alsa-mixer.c, but never registered.
+OMAP3 IOMMU support will move to the generic IOMMU API soon, so I'm not sure 
+if it's worth fixing the problem it now.
 
-Pactl does have some magic cmd to let go of the nodes, but I can never remember it.
-
+-- 
 Regards,
-Andy 
+
+Laurent Pinchart
