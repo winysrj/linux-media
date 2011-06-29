@@ -1,68 +1,46 @@
 Return-path: <mchehab@pedra>
-Received: from mail-px0-f179.google.com ([209.85.212.179]:39364 "EHLO
-	mail-px0-f179.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754422Ab1FFQMN (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 6 Jun 2011 12:12:13 -0400
-From: "Justin P. Mattock" <justinmattock@gmail.com>
-To: trivial@kernel.org
-Cc: mchehab@infradead.org, linux-media@vger.kernel.org,
-	linux-kernel@vger.kernel.org,
-	"Justin P. Mattock" <justinmattock@gmail.com>
-Subject: [PATCH]drivers:media:dvb:frontends:s5h1420.c Change: clock_settting to clock_setting
-Date: Mon,  6 Jun 2011 09:11:52 -0700
-Message-Id: <1307376712-3283-1-git-send-email-justinmattock@gmail.com>
+Received: from mail-iy0-f174.google.com ([209.85.210.174]:56210 "EHLO
+	mail-iy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752184Ab1F2Idd (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 29 Jun 2011 04:33:33 -0400
+Received: by iyb12 with SMTP id 12so836509iyb.19
+        for <linux-media@vger.kernel.org>; Wed, 29 Jun 2011 01:33:33 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <201106282147.03423.cristeab@gmail.com>
+References: <201106282147.03423.cristeab@gmail.com>
+Date: Wed, 29 Jun 2011 10:33:32 +0200
+Message-ID: <BANLkTim5eH6sSaK0tL98MrZaRgR2++M67Q@mail.gmail.com>
+Subject: Re: Patch proposition for DVB-T configuration file for Paris area
+From: Christoph Pfister <christophpfister@gmail.com>
+To: Bogdan Cristea <cristeab@gmail.com>
+Cc: linux-media@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-From: "Justin P. Mattock" <justinmattock@gmail.com>
+2011/6/28 Bogdan Cristea <cristeab@gmail.com>:
+> Hi
+>
+> I would like to propose the attached patch for de DVB-T configuration file for
+> Paris area (found in openSUSE 11.4 in this location)
+> /usr/share/dvb/dvb-t/fr-Paris
 
-The below patch, changes clock_settting to clock_setting. 
-Note: This could be intentionally set this way from the beginning and/or is a typo.
+http://linuxtv.org/hg/dvb-apps/file/148ede2a6809/util/scan/dvb-t/fr-Paris
+- last change: november 2008.
 
-Signed-off-by: Justin P. Mattock <justinmattock@gmail.com>
+Christoph
 
----
- drivers/media/dvb/frontends/s5h1420.c |   12 ++++++------
- 1 files changed, 6 insertions(+), 6 deletions(-)
 
-diff --git a/drivers/media/dvb/frontends/s5h1420.c b/drivers/media/dvb/frontends/s5h1420.c
-index 17f8cdf..3879d2e 100644
---- a/drivers/media/dvb/frontends/s5h1420.c
-+++ b/drivers/media/dvb/frontends/s5h1420.c
-@@ -634,7 +634,7 @@ static int s5h1420_set_frontend(struct dvb_frontend* fe,
- 	struct s5h1420_state* state = fe->demodulator_priv;
- 	int frequency_delta;
- 	struct dvb_frontend_tune_settings fesettings;
--	uint8_t clock_settting;
-+	uint8_t clock_setting;
- 
- 	dprintk("enter %s\n", __func__);
- 
-@@ -684,19 +684,19 @@ static int s5h1420_set_frontend(struct dvb_frontend* fe,
- 	switch (state->fclk) {
- 	default:
- 	case 88000000:
--		clock_settting = 80;
-+		clock_setting = 80;
- 		break;
- 	case 86000000:
--		clock_settting = 78;
-+		clock_setting = 78;
- 		break;
- 	case 80000000:
--		clock_settting = 72;
-+		clock_setting = 72;
- 		break;
- 	case 59000000:
--		clock_settting = 51;
-+		clock_setting = 51;
- 		break;
- 	case 44000000:
--		clock_settting = 36;
-+		clock_setting = 36;
- 		break;
- 	}
- 	dprintk("pll01: %d, ToneFreq: %d\n", state->fclk/1000000 - 8, (state->fclk + (TONE_FREQ * 32) - 1) / (TONE_FREQ * 32));
--- 
-1.7.5.2
-
+> With the current configuration file only 5 channels are found, while in
+> reality there are almost 35 channels.
+>
+> regards
+> --
+> Bogdan Cristea
+> Embedded Software Engineer
+> Philog
+> 46 rue d'Amsterdam
+> 75009 Paris, France
+> tel: +33 (0)6 21 64 15 81
+> web: http://sites.google.com/site/cristeab/
