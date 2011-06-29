@@ -1,119 +1,65 @@
 Return-path: <mchehab@pedra>
-Received: from smtp-vbr6.xs4all.nl ([194.109.24.26]:4149 "EHLO
-	smtp-vbr6.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753123Ab1FNPWz (ORCPT
+Received: from mailout1.w1.samsung.com ([210.118.77.11]:22100 "EHLO
+	mailout1.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755936Ab1F2Mvy (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 14 Jun 2011 11:22:55 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
+	Wed, 29 Jun 2011 08:51:54 -0400
+Received: from spt2.w1.samsung.com (mailout1.w1.samsung.com [210.118.77.11])
+ by mailout1.w1.samsung.com
+ (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14 2004))
+ with ESMTP id <0LNJ00LJZYEGE3@mailout1.w1.samsung.com> for
+ linux-media@vger.kernel.org; Wed, 29 Jun 2011 13:51:52 +0100 (BST)
+Received: from linux.samsung.com ([106.116.38.10])
+ by spt2.w1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14
+ 2004)) with ESMTPA id <0LNJ00JAQYEFY9@spt2.w1.samsung.com> for
+ linux-media@vger.kernel.org; Wed, 29 Jun 2011 13:51:51 +0100 (BST)
+Date: Wed, 29 Jun 2011 14:51:12 +0200
+From: Tomasz Stanislawski <t.stanislaws@samsung.com>
+Subject: [PATCH 3/8] v4l: add g_dv_preset callback to V4L2 subdev
+In-reply-to: <1309351877-32444-1-git-send-email-t.stanislaws@samsung.com>
 To: linux-media@vger.kernel.org
-Cc: laurent.pinchart@ideasonboard.com, sakari.ailus@iki.fi,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [RFCv1 PATCH 4/8] v4l2-event: add optional 'merge' callback to merge two events
-Date: Tue, 14 Jun 2011 17:22:29 +0200
-Message-Id: <e3b0b697f29a86fa0299b51bfdb808e4df847175.1308063857.git.hans.verkuil@cisco.com>
-In-Reply-To: <1308064953-11156-1-git-send-email-hverkuil@xs4all.nl>
-References: <1308064953-11156-1-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <3d92b242dcf5e7766d128d6c1f05c0bd837a2633.1308063857.git.hans.verkuil@cisco.com>
-References: <3d92b242dcf5e7766d128d6c1f05c0bd837a2633.1308063857.git.hans.verkuil@cisco.com>
+Cc: m.szyprowski@samsung.com, t.stanislaws@samsung.com,
+	kyungmin.park@samsung.com, hverkuil@xs4all.nl,
+	laurent.pinchart@ideasonboard.com
+Message-id: <1309351877-32444-4-git-send-email-t.stanislaws@samsung.com>
+MIME-version: 1.0
+Content-type: TEXT/PLAIN
+Content-transfer-encoding: 7BIT
+References: <1309351877-32444-1-git-send-email-t.stanislaws@samsung.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+Callback is used to acquire current digital video preset from a subdev.
+It is used to avoid keeping dv preset in top-level driver.
 
-When the event queue for a subscribed event is full, then the oldest
-event is dropped. It would be nice if the contents of that oldest
-event could be merged with the next-oldest. That way no information is
-lost, only intermediate steps are lost.
-
-This patch adds an optional merge function that will be called to do
-this job and implements it for the control event.
-
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Signed-off-by: Tomasz Stanislawski <t.stanislaws@samsung.com>
+Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
 ---
- drivers/media/video/v4l2-event.c |   27 ++++++++++++++++++++++++++-
- include/media/v4l2-event.h       |    5 +++++
- 2 files changed, 31 insertions(+), 1 deletions(-)
+ include/media/v4l2-subdev.h |    4 ++++
+ 1 files changed, 4 insertions(+), 0 deletions(-)
 
-diff --git a/drivers/media/video/v4l2-event.c b/drivers/media/video/v4l2-event.c
-index 9e325dd..aeec2d5 100644
---- a/drivers/media/video/v4l2-event.c
-+++ b/drivers/media/video/v4l2-event.c
-@@ -113,6 +113,7 @@ static void __v4l2_event_queue_fh(struct v4l2_fh *fh, const struct v4l2_event *e
- {
- 	struct v4l2_subscribed_event *sev;
- 	struct v4l2_kevent *kev;
-+	bool copy_payload = true;
+diff --git a/include/media/v4l2-subdev.h b/include/media/v4l2-subdev.h
+index 476fcdd..af491a1 100644
+--- a/include/media/v4l2-subdev.h
++++ b/include/media/v4l2-subdev.h
+@@ -242,6 +242,8 @@ struct v4l2_subdev_audio_ops {
+    s_dv_preset: set dv (Digital Video) preset in the sub device. Similar to
+ 	s_std()
  
- 	/* Are we subscribed? */
- 	sev = v4l2_event_subscribed(fh, ev->type, ev->id);
-@@ -130,12 +131,23 @@ static void __v4l2_event_queue_fh(struct v4l2_fh *fh, const struct v4l2_event *e
- 		sev->in_use--;
- 		sev->first = sev_pos(sev, 1);
- 		fh->navailable--;
-+		if (sev->merge) {
-+			if (sev->elems == 1) {
-+				sev->merge(&kev->event, ev, &kev->event);
-+				copy_payload = false;
-+			} else {
-+				struct v4l2_kevent *second_oldest =
-+					sev->events + sev_pos(sev, 0);
-+				sev->merge(&second_oldest->event, &second_oldest->event, &kev->event);
-+			}
-+		}
- 	}
- 
- 	/* Take one and fill it. */
- 	kev = sev->events + sev_pos(sev, sev->in_use);
- 	kev->event.type = ev->type;
--	kev->event.u = ev->u;
-+	if (copy_payload)
-+		kev->event.u = ev->u;
- 	kev->event.id = ev->id;
- 	kev->event.timestamp = *ts;
- 	kev->event.sequence = fh->sequence;
-@@ -184,6 +196,17 @@ int v4l2_event_pending(struct v4l2_fh *fh)
- }
- EXPORT_SYMBOL_GPL(v4l2_event_pending);
- 
-+static void ctrls_merge(struct v4l2_event *dst,
-+			const struct v4l2_event *new,
-+			const struct v4l2_event *old)
-+{
-+	u32 changes = new->u.ctrl.changes | old->u.ctrl.changes;
++   g_dv_preset: get current dv (Digital Video) preset in the sub device.
 +
-+	if (dst == old)
-+		dst->u.ctrl = new->u.ctrl;
-+	dst->u.ctrl.changes = changes;
-+}
-+
- int v4l2_event_subscribe(struct v4l2_fh *fh,
- 			 struct v4l2_event_subscription *sub, unsigned elems)
- {
-@@ -210,6 +233,8 @@ int v4l2_event_subscribe(struct v4l2_fh *fh,
- 	sev->flags = sub->flags;
- 	sev->fh = fh;
- 	sev->elems = elems;
-+	if (ctrl)
-+		sev->merge = ctrls_merge;
+    query_dv_preset: query dv preset in the sub device. This is similar to
+ 	querystd()
  
- 	spin_lock_irqsave(&fh->vdev->fh_lock, flags);
- 	found_ev = v4l2_event_subscribed(fh, sub->type, sub->id);
-diff --git a/include/media/v4l2-event.h b/include/media/v4l2-event.h
-index 8d681e5..111b2bc 100644
---- a/include/media/v4l2-event.h
-+++ b/include/media/v4l2-event.h
-@@ -55,6 +55,11 @@ struct v4l2_subscribed_event {
- 	struct v4l2_fh		*fh;
- 	/* list node that hooks into the object's event list (if there is one) */
- 	struct list_head	node;
-+	/* Optional callback that can merge two events.
-+	   Note that 'dst' can be the same as either 'new' or 'old'. */
-+	void			(*merge)(struct v4l2_event *dst,
-+					 const struct v4l2_event *new,
-+					 const struct v4l2_event *old);
- 	/* the number of elements in the events array */
- 	unsigned		elems;
- 	/* the index of the events containing the oldest available event */
+@@ -282,6 +284,8 @@ struct v4l2_subdev_video_ops {
+ 			struct v4l2_dv_enum_preset *preset);
+ 	int (*s_dv_preset)(struct v4l2_subdev *sd,
+ 			struct v4l2_dv_preset *preset);
++	int (*g_dv_preset)(struct v4l2_subdev *sd,
++			struct v4l2_dv_preset *preset);
+ 	int (*query_dv_preset)(struct v4l2_subdev *sd,
+ 			struct v4l2_dv_preset *preset);
+ 	int (*s_dv_timings)(struct v4l2_subdev *sd,
 -- 
-1.7.1
+1.7.5.4
 
