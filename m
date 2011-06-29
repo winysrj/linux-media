@@ -1,697 +1,641 @@
 Return-path: <mchehab@pedra>
-Received: from mailout2.w1.samsung.com ([210.118.77.12]:31204 "EHLO
+Received: from mailout2.w1.samsung.com ([210.118.77.12]:30330 "EHLO
 	mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932248Ab1FVSBn (ORCPT
+	with ESMTP id S1755976Ab1F2MwB (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 22 Jun 2011 14:01:43 -0400
-Date: Wed, 22 Jun 2011 20:01:15 +0200
-From: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Subject: [PATCH v2 09/18] s5p-fimc: Conversion to the control framework
-In-reply-to: <1308765684-10677-1-git-send-email-s.nawrocki@samsung.com>
-To: linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org
-Cc: m.szyprowski@samsung.com, kyungmin.park@samsung.com,
-	s.nawrocki@samsung.com, sw0312.kim@samsung.com,
-	riverful.kim@samsung.com
-Message-id: <1308765684-10677-10-git-send-email-s.nawrocki@samsung.com>
+	Wed, 29 Jun 2011 08:52:01 -0400
+Received: from spt2.w1.samsung.com (mailout2.w1.samsung.com [210.118.77.12])
+ by mailout2.w1.samsung.com
+ (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14 2004))
+ with ESMTP id <0LNJ00JALYEIJ4@mailout2.w1.samsung.com> for
+ linux-media@vger.kernel.org; Wed, 29 Jun 2011 13:51:54 +0100 (BST)
+Received: from linux.samsung.com ([106.116.38.10])
+ by spt2.w1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14
+ 2004)) with ESMTPA id <0LNJ002MPYEFYU@spt2.w1.samsung.com> for
+ linux-media@vger.kernel.org; Wed, 29 Jun 2011 13:51:52 +0100 (BST)
+Date: Wed, 29 Jun 2011 14:51:16 +0200
+From: Tomasz Stanislawski <t.stanislaws@samsung.com>
+Subject: [PATCH 7/8] v4l: s5p-tv: add SDO driver for Samsung S5P platform
+In-reply-to: <1309351877-32444-1-git-send-email-t.stanislaws@samsung.com>
+To: linux-media@vger.kernel.org
+Cc: m.szyprowski@samsung.com, t.stanislaws@samsung.com,
+	kyungmin.park@samsung.com, hverkuil@xs4all.nl,
+	laurent.pinchart@ideasonboard.com
+Message-id: <1309351877-32444-8-git-send-email-t.stanislaws@samsung.com>
 MIME-version: 1.0
 Content-type: TEXT/PLAIN
 Content-transfer-encoding: 7BIT
-References: <1308765684-10677-1-git-send-email-s.nawrocki@samsung.com>
+References: <1309351877-32444-1-git-send-email-t.stanislaws@samsung.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-The FIMC entity supports rotation, horizontal and vertical flip
-in camera capture and memory-to-memory operation mode.
-Due to atomic contexts used in mem-to-mem driver the control
-values need to be cached in drivers internal data structure.
+Add drivers for Standard Definition output (SDO) on Samsung platforms
+from S5P family. The driver provides control over streaming analog TV
+via Composite connector.
 
-Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Driver is using:
+- v4l2 framework
+- runtime PM
+
+Signed-off-by: Tomasz Stanislawski <t.stanislaws@samsung.com>
 Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+Reviewed-by: Marek Szyprowski <m.szyprowski@samsung.com>
+Reviewed-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Reviewed-by: Hans Verkuil <hverkuil@xs4all.nl>
 ---
- drivers/media/video/s5p-fimc/fimc-capture.c |   60 +++---
- drivers/media/video/s5p-fimc/fimc-core.c    |  291 +++++++++++----------------
- drivers/media/video/s5p-fimc/fimc-core.h    |   34 ++--
- drivers/media/video/s5p-fimc/fimc-mdevice.c |   11 +-
- drivers/media/video/s5p-fimc/fimc-reg.c     |   32 +---
- 5 files changed, 186 insertions(+), 242 deletions(-)
+ drivers/media/video/s5p-tv/Kconfig    |   11 +
+ drivers/media/video/s5p-tv/Makefile   |    2 +
+ drivers/media/video/s5p-tv/regs-sdo.h |   63 +++++
+ drivers/media/video/s5p-tv/sdo_drv.c  |  479 +++++++++++++++++++++++++++++++++
+ 4 files changed, 555 insertions(+), 0 deletions(-)
+ create mode 100644 drivers/media/video/s5p-tv/regs-sdo.h
+ create mode 100644 drivers/media/video/s5p-tv/sdo_drv.c
 
-diff --git a/drivers/media/video/s5p-fimc/fimc-capture.c b/drivers/media/video/s5p-fimc/fimc-capture.c
-index 5ac8f15..887a3fc 100644
---- a/drivers/media/video/s5p-fimc/fimc-capture.c
-+++ b/drivers/media/video/s5p-fimc/fimc-capture.c
-@@ -28,6 +28,7 @@
- #include <media/videobuf2-core.h>
- #include <media/videobuf2-dma-contig.h>
+diff --git a/drivers/media/video/s5p-tv/Kconfig b/drivers/media/video/s5p-tv/Kconfig
+index 893be5b..9c1f634 100644
+--- a/drivers/media/video/s5p-tv/Kconfig
++++ b/drivers/media/video/s5p-tv/Kconfig
+@@ -46,4 +46,15 @@ config VIDEO_SAMSUNG_S5P_HDMIPHY
+ 	  as module. It is an I2C driver, that exposes a V4L2
+ 	  subdev for use by other drivers.
  
-+#include "fimc-mdevice.h"
- #include "fimc-core.h"
- 
- static int fimc_stop_capture(struct fimc_dev *fimc)
-@@ -260,6 +261,29 @@ static struct vb2_ops fimc_capture_qops = {
- 	.stop_streaming		= stop_streaming,
- };
- 
-+/**
-+ * fimc_capture_ctrls_create - initialize the control handler
-+ *
-+ * Initialize the capture video node control handler and populate it
-+ * with FIMC specific controls. If the linked sensor subdevice does
-+ * not expose a video node add its controls to the FIMC control
-+ * handler. This function must be called with the graph mutex held.
-+ */
-+int fimc_capture_ctrls_create(struct fimc_dev *fimc)
-+{
-+	int ret;
++config VIDEO_SAMSUNG_S5P_SDO
++	tristate "Samsung Analog TV Driver"
++	depends on VIDEO_DEV && VIDEO_V4L2
++	depends on VIDEO_SAMSUNG_S5P_TV
++	help
++	  Say Y here if you want support for the analog TV output
++	  interface in S5P Samsung SoC. The driver can be compiled
++	  as module. It is an auxiliary driver, that exposes a V4L2
++	  subdev for use by other drivers. This driver requires
++	  hdmiphy driver to work correctly.
 +
-+	if (WARN_ON(fimc->vid_cap.ctx == NULL))
-+		return -ENXIO;
-+	if (fimc->vid_cap.ctx->ctrls_rdy)
-+		return 0;
-+	ret = fimc_ctrls_create(fimc->vid_cap.ctx);
-+	if (ret || subdev_has_devnode(fimc->pipeline.sensor))
-+		return ret;
-+	return v4l2_ctrl_add_handler(&fimc->vid_cap.ctx->ctrl_handler,
-+				    fimc->pipeline.sensor->ctrl_handler);
+ endif # VIDEO_SAMSUNG_S5P_TV
+diff --git a/drivers/media/video/s5p-tv/Makefile b/drivers/media/video/s5p-tv/Makefile
+index 1b07132..c874d16 100644
+--- a/drivers/media/video/s5p-tv/Makefile
++++ b/drivers/media/video/s5p-tv/Makefile
+@@ -10,4 +10,6 @@ obj-$(CONFIG_VIDEO_SAMSUNG_S5P_HDMIPHY) += s5p-hdmiphy.o
+ s5p-hdmiphy-y += hdmiphy_drv.o
+ obj-$(CONFIG_VIDEO_SAMSUNG_S5P_HDMI) += s5p-hdmi.o
+ s5p-hdmi-y += hdmi_drv.o
++obj-$(CONFIG_VIDEO_SAMSUNG_S5P_SDO) += s5p-sdo.o
++s5p-sdo-y += sdo_drv.o
+ 
+diff --git a/drivers/media/video/s5p-tv/regs-sdo.h b/drivers/media/video/s5p-tv/regs-sdo.h
+new file mode 100644
+index 0000000..7f7c2b8
+--- /dev/null
++++ b/drivers/media/video/s5p-tv/regs-sdo.h
+@@ -0,0 +1,63 @@
++/* drivers/media/video/s5p-tv/regs-sdo.h
++ *
++ * Copyright (c) 2010-2011 Samsung Electronics Co., Ltd.
++ *		http://www.samsung.com/
++ *
++ * SDO register description file
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
++ */
++
++#ifndef SAMSUNG_REGS_SDO_H
++#define SAMSUNG_REGS_SDO_H
++
++/*
++ * Register part
++ */
++
++#define SDO_CLKCON			0x0000
++#define SDO_CONFIG			0x0008
++#define SDO_VBI				0x0014
++#define SDO_DAC				0x003C
++#define SDO_CCCON			0x0180
++#define SDO_IRQ				0x0280
++#define SDO_IRQMASK			0x0284
++#define SDO_VERSION			0x03D8
++
++/*
++ * Bit definition part
++ */
++
++/* SDO Clock Control Register (SDO_CLKCON) */
++#define SDO_TVOUT_SW_RESET		(1 << 4)
++#define SDO_TVOUT_CLOCK_READY		(1 << 1)
++#define SDO_TVOUT_CLOCK_ON		(1 << 0)
++
++/* SDO Video Standard Configuration Register (SDO_CONFIG) */
++#define SDO_PROGRESSIVE			(1 << 4)
++#define SDO_NTSC_M			0
++#define SDO_PAL_M			1
++#define SDO_PAL_BGHID			2
++#define SDO_PAL_N			3
++#define SDO_PAL_NC			4
++#define SDO_NTSC_443			8
++#define SDO_PAL_60			9
++#define SDO_STANDARD_MASK		0xf
++
++/* SDO VBI Configuration Register (SDO_VBI) */
++#define SDO_CVBS_WSS_INS		(1 << 14)
++#define SDO_CVBS_CLOSED_CAPTION_MASK	(3 << 12)
++
++/* SDO DAC Configuration Register (SDO_DAC) */
++#define SDO_POWER_ON_DAC		(1 << 0)
++
++/* SDO Color Compensation On/Off Control (SDO_CCCON) */
++#define SDO_COMPENSATION_BHS_ADJ_OFF	(1 << 4)
++#define SDO_COMPENSATION_CVBS_COMP_OFF	(1 << 0)
++
++/* SDO Interrupt Request Register (SDO_IRQ) */
++#define SDO_VSYNC_IRQ_PEND		(1 << 0)
++
++#endif /* SAMSUNG_REGS_SDO_H */
+diff --git a/drivers/media/video/s5p-tv/sdo_drv.c b/drivers/media/video/s5p-tv/sdo_drv.c
+new file mode 100644
+index 0000000..4dddd6b
+--- /dev/null
++++ b/drivers/media/video/s5p-tv/sdo_drv.c
+@@ -0,0 +1,479 @@
++/*
++ * Samsung Standard Definition Output (SDO) driver
++ *
++ * Copyright (c) 2010-2011 Samsung Electronics Co., Ltd.
++ *
++ * Tomasz Stanislawski, <t.stanislaws@samsung.com>
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License as published
++ * by the Free Software Foundiation. either version 2 of the License,
++ * or (at your option) any later version
++ */
++
++#include <linux/clk.h>
++#include <linux/delay.h>
++#include <linux/kernel.h>
++#include <linux/module.h>
++#include <linux/interrupt.h>
++#include <linux/io.h>
++#include <linux/irq.h>
++#include <linux/platform_device.h>
++#include <linux/pm_runtime.h>
++#include <linux/regulator/consumer.h>
++#include <linux/slab.h>
++
++#include <media/v4l2-subdev.h>
++
++#include "regs-sdo.h"
++
++MODULE_AUTHOR("Tomasz Stanislawski, <t.stanislaws@samsung.com>");
++MODULE_DESCRIPTION("Samsung Standard Definition Output (SDO)");
++MODULE_LICENSE("GPL");
++
++#define SDO_DEFAULT_STD	V4L2_STD_PAL
++
++struct sdo_format {
++	v4l2_std_id id;
++	/* all modes are 720 pixels wide */
++	unsigned int height;
++	unsigned int cookie;
++};
++
++struct sdo_device {
++	/** pointer to device parent */
++	struct device *dev;
++	/** base address of SDO registers */
++	void __iomem *regs;
++	/** SDO interrupt */
++	unsigned int irq;
++	/** DAC source clock */
++	struct clk *sclk_dac;
++	/** DAC clock */
++	struct clk *dac;
++	/** DAC physical interface */
++	struct clk *dacphy;
++	/** clock for control of VPLL */
++	struct clk *fout_vpll;
++	/** regulator for SDO IP power */
++	struct regulator *vdac;
++	/** regulator for SDO plug detection */
++	struct regulator *vdet;
++	/** subdev used as device interface */
++	struct v4l2_subdev sd;
++	/** current format */
++	const struct sdo_format *fmt;
++};
++
++static inline struct sdo_device *sd_to_sdev(struct v4l2_subdev *sd)
++{
++	return container_of(sd, struct sdo_device, sd);
 +}
 +
- static int fimc_capture_open(struct file *file)
- {
- 	struct fimc_dev *fimc = video_drvdata(file);
-@@ -280,9 +304,10 @@ static int fimc_capture_open(struct file *file)
- 		return ret;
- 	}
- 
--	++fimc->vid_cap.refcnt;
-+	if (++fimc->vid_cap.refcnt == 1)
-+		ret = fimc_capture_ctrls_create(fimc);
- 
--	return 0;
-+	return ret;
- }
- 
- static int fimc_capture_close(struct file *file)
-@@ -293,11 +318,11 @@ static int fimc_capture_close(struct file *file)
- 
- 	if (--fimc->vid_cap.refcnt == 0) {
- 		fimc_stop_capture(fimc);
-+		fimc_ctrls_delete(fimc->vid_cap.ctx);
- 		vb2_queue_release(&fimc->vid_cap.vbq);
- 	}
- 
- 	pm_runtime_put_sync(&fimc->pdev->dev);
--
- 	return v4l2_fh_release(file);
- }
- 
-@@ -534,30 +559,6 @@ static int fimc_cap_dqbuf(struct file *file, void *priv,
- 	return vb2_dqbuf(&fimc->vid_cap.vbq, buf, file->f_flags & O_NONBLOCK);
- }
- 
--static int fimc_cap_s_ctrl(struct file *file, void *priv,
--			   struct v4l2_control *ctrl)
--{
--	struct fimc_dev *fimc = video_drvdata(file);
--	struct fimc_ctx *ctx = fimc->vid_cap.ctx;
--	int ret = -EINVAL;
--
--	/* Allow any controls but 90/270 rotation while streaming */
--	if (!fimc_capture_active(ctx->fimc_dev) ||
--	    ctrl->id != V4L2_CID_ROTATE ||
--	    (ctrl->value != 90 && ctrl->value != 270)) {
--		ret = check_ctrl_val(ctx, ctrl);
--		if (!ret) {
--			ret = fimc_s_ctrl(ctx, ctrl);
--			if (!ret)
--				ctx->state |= FIMC_PARAMS;
--		}
--	}
--	if (ret == -EINVAL)
--		ret = v4l2_subdev_call(ctx->fimc_dev->vid_cap.sd,
--				       core, s_ctrl, ctrl);
--	return ret;
--}
--
- static int fimc_cap_cropcap(struct file *file, void *fh,
- 			    struct v4l2_cropcap *cr)
- {
-@@ -644,10 +645,6 @@ static const struct v4l2_ioctl_ops fimc_capture_ioctl_ops = {
- 	.vidioc_streamon		= fimc_cap_streamon,
- 	.vidioc_streamoff		= fimc_cap_streamoff,
- 
--	.vidioc_queryctrl		= fimc_vidioc_queryctrl,
--	.vidioc_g_ctrl			= fimc_vidioc_g_ctrl,
--	.vidioc_s_ctrl			= fimc_cap_s_ctrl,
--
- 	.vidioc_g_crop			= fimc_cap_g_crop,
- 	.vidioc_s_crop			= fimc_cap_s_crop,
- 	.vidioc_cropcap			= fimc_cap_cropcap,
-@@ -731,6 +728,7 @@ int fimc_register_capture_device(struct fimc_dev *fimc,
- 	if (ret)
- 		goto err_ent;
- 
-+	vfd->ctrl_handler = &ctx->ctrl_handler;
- 	ret = video_register_device(vfd, VFL_TYPE_GRABBER, -1);
- 	if (ret) {
- 		v4l2_err(v4l2_dev, "Failed to register video device\n");
-diff --git a/drivers/media/video/s5p-fimc/fimc-core.c b/drivers/media/video/s5p-fimc/fimc-core.c
-index 155ffcb..2aa4612 100644
---- a/drivers/media/video/s5p-fimc/fimc-core.c
-+++ b/drivers/media/video/s5p-fimc/fimc-core.c
-@@ -163,43 +163,6 @@ static struct fimc_fmt fimc_formats[] = {
- 	},
- };
- 
--static struct v4l2_queryctrl fimc_ctrls[] = {
--	{
--		.id		= V4L2_CID_HFLIP,
--		.type		= V4L2_CTRL_TYPE_BOOLEAN,
--		.name		= "Horizontal flip",
--		.minimum	= 0,
--		.maximum	= 1,
--		.default_value	= 0,
--	}, {
--		.id		= V4L2_CID_VFLIP,
--		.type		= V4L2_CTRL_TYPE_BOOLEAN,
--		.name		= "Vertical flip",
--		.minimum	= 0,
--		.maximum	= 1,
--		.default_value	= 0,
--	}, {
--		.id		= V4L2_CID_ROTATE,
--		.type		= V4L2_CTRL_TYPE_INTEGER,
--		.name		= "Rotation (CCW)",
--		.minimum	= 0,
--		.maximum	= 270,
--		.step		= 90,
--		.default_value	= 0,
--	},
--};
--
--
--static struct v4l2_queryctrl *get_ctrl(int id)
--{
--	int i;
--
--	for (i = 0; i < ARRAY_SIZE(fimc_ctrls); ++i)
--		if (id == fimc_ctrls[i].id)
--			return &fimc_ctrls[i];
--	return NULL;
--}
--
- int fimc_check_scaler_ratio(int sw, int sh, int dw, int dh, int rot)
- {
- 	int tx, ty;
-@@ -773,6 +736,116 @@ static struct vb2_ops fimc_qops = {
- 	.stop_streaming	 = stop_streaming,
- };
- 
-+/*
-+ * V4L2 controls handling
-+ */
-+#define ctrl_to_ctx(__ctrl) \
-+	container_of((__ctrl)->handler, struct fimc_ctx, ctrl_handler)
-+
-+static int fimc_s_ctrl(struct v4l2_ctrl *ctrl)
++static inline
++void sdo_write_mask(struct sdo_device *sdev, u32 reg_id, u32 value, u32 mask)
 +{
-+	struct fimc_ctx *ctx = ctrl_to_ctx(ctrl);
-+	struct fimc_dev *fimc = ctx->fimc_dev;
-+	struct samsung_fimc_variant *variant = fimc->variant;
-+	unsigned long flags;
-+	int ret = 0;
++	u32 old = readl(sdev->regs + reg_id);
++	value = (value & mask) | (old & ~mask);
++	writel(value, sdev->regs + reg_id);
++}
 +
-+	if (ctrl->flags & V4L2_CTRL_FLAG_INACTIVE)
-+		return 0;
++static inline
++void sdo_write(struct sdo_device *sdev, u32 reg_id, u32 value)
++{
++	writel(value, sdev->regs + reg_id);
++}
 +
-+	switch (ctrl->id) {
-+	case V4L2_CID_HFLIP:
-+		spin_lock_irqsave(&ctx->slock, flags);
-+		ctx->hflip = ctrl->val;
-+		break;
++static inline
++u32 sdo_read(struct sdo_device *sdev, u32 reg_id)
++{
++	return readl(sdev->regs + reg_id);
++}
 +
-+	case V4L2_CID_VFLIP:
-+		spin_lock_irqsave(&ctx->slock, flags);
-+		ctx->vflip = ctrl->val;
-+		break;
++static irqreturn_t sdo_irq_handler(int irq, void *dev_data)
++{
++	struct sdo_device *sdev = dev_data;
 +
-+	case V4L2_CID_ROTATE:
-+		if (fimc_capture_pending(fimc) ||
-+		    fimc_ctx_state_is_set(FIMC_DST_FMT | FIMC_SRC_FMT, ctx)) {
-+			ret = fimc_check_scaler_ratio(ctx->s_frame.width,
-+					ctx->s_frame.height, ctx->d_frame.width,
-+					ctx->d_frame.height, ctrl->val);
-+		}
-+		if (ret) {
-+			v4l2_err(fimc->m2m.vfd, "Out of scaler range\n");
-+			return -EINVAL;
-+		}
-+		if ((ctrl->val == 90 || ctrl->val == 270) &&
-+		    !variant->has_out_rot)
-+			return -EINVAL;
-+		spin_lock_irqsave(&ctx->slock, flags);
-+		ctx->rotation = ctrl->val;
-+		break;
++	/* clear interrupt */
++	sdo_write_mask(sdev, SDO_IRQ, ~0, SDO_VSYNC_IRQ_PEND);
++	return IRQ_HANDLED;
++}
 +
-+	default:
-+		v4l2_err(fimc->v4l2_dev, "Invalid control: 0x%X\n", ctrl->id);
-+		return -EINVAL;
-+	}
-+	ctx->state |= FIMC_PARAMS;
-+	set_bit(ST_CAPT_APPLY_CFG, &fimc->state);
-+	spin_unlock_irqrestore(&ctx->slock, flags);
++static void sdo_reg_debug(struct sdo_device *sdev)
++{
++#define DBGREG(reg_id) \
++	dev_info(sdev->dev, #reg_id " = %08x\n", \
++		sdo_read(sdev, reg_id))
++
++	DBGREG(SDO_CLKCON);
++	DBGREG(SDO_CONFIG);
++	DBGREG(SDO_VBI);
++	DBGREG(SDO_DAC);
++	DBGREG(SDO_IRQ);
++	DBGREG(SDO_IRQMASK);
++	DBGREG(SDO_VERSION);
++}
++
++static const struct sdo_format sdo_format[] = {
++	{ V4L2_STD_PAL_N,	.height = 576, .cookie = SDO_PAL_N },
++	{ V4L2_STD_PAL_Nc,	.height = 576, .cookie = SDO_PAL_NC },
++	{ V4L2_STD_PAL_M,	.height = 480, .cookie = SDO_PAL_M },
++	{ V4L2_STD_PAL_60,	.height = 480, .cookie = SDO_PAL_60 },
++	{ V4L2_STD_NTSC_443,	.height = 480, .cookie = SDO_NTSC_443 },
++	{ V4L2_STD_PAL,		.height = 576, .cookie = SDO_PAL_BGHID },
++	{ V4L2_STD_NTSC_M,	.height = 480, .cookie = SDO_NTSC_M },
++};
++
++static const struct sdo_format *sdo_find_format(v4l2_std_id id)
++{
++	int i;
++	for (i = 0; i < ARRAY_SIZE(sdo_format); ++i)
++		if (sdo_format[i].id & id)
++			return &sdo_format[i];
++	return NULL;
++}
++
++static int sdo_g_tvnorms_output(struct v4l2_subdev *sd, v4l2_std_id *std)
++{
++	*std = V4L2_STD_NTSC_M | V4L2_STD_PAL_M | V4L2_STD_PAL |
++		V4L2_STD_PAL_N | V4L2_STD_PAL_Nc |
++		V4L2_STD_NTSC_443 | V4L2_STD_PAL_60;
 +	return 0;
 +}
 +
-+static const struct v4l2_ctrl_ops fimc_ctrl_ops = {
-+	.s_ctrl = fimc_s_ctrl,
++static int sdo_s_std_output(struct v4l2_subdev *sd, v4l2_std_id std)
++{
++	struct sdo_device *sdev = sd_to_sdev(sd);
++	const struct sdo_format *fmt;
++	fmt = sdo_find_format(std);
++	if (fmt == NULL)
++		return -EINVAL;
++	sdev->fmt = fmt;
++	return 0;
++}
++
++static int sdo_g_std_output(struct v4l2_subdev *sd, v4l2_std_id *std)
++{
++	*std = sd_to_sdev(sd)->fmt->id;
++	return 0;
++}
++
++static int sdo_g_mbus_fmt(struct v4l2_subdev *sd,
++	struct v4l2_mbus_framefmt *fmt)
++{
++	struct sdo_device *sdev = sd_to_sdev(sd);
++
++	if (!sdev->fmt)
++		return -ENXIO;
++	/* all modes are 720 pixels wide */
++	fmt->width = 720;
++	fmt->height = sdev->fmt->height;
++	fmt->code = V4L2_MBUS_FMT_FIXED;
++	fmt->field = V4L2_FIELD_INTERLACED;
++	return 0;
++}
++
++static int sdo_s_power(struct v4l2_subdev *sd, int on)
++{
++	struct sdo_device *sdev = sd_to_sdev(sd);
++	struct device *dev = sdev->dev;
++	int ret;
++
++	dev_info(dev, "sdo_s_power(%d)\n", on);
++
++	if (on)
++		ret = pm_runtime_get_sync(dev);
++	else
++		ret = pm_runtime_put_sync(dev);
++
++	/* only values < 0 indicate errors */
++	return IS_ERR_VALUE(ret) ? ret : 0;
++}
++
++static int sdo_streamon(struct sdo_device *sdev)
++{
++	/* set proper clock for Timing Generator */
++	clk_set_rate(sdev->fout_vpll, 54000000);
++	dev_info(sdev->dev, "fout_vpll.rate = %lu\n",
++	clk_get_rate(sdev->fout_vpll));
++	/* enable clock in SDO */
++	sdo_write_mask(sdev, SDO_CLKCON, ~0, SDO_TVOUT_CLOCK_ON);
++	clk_enable(sdev->dacphy);
++	/* enable DAC */
++	sdo_write_mask(sdev, SDO_DAC, ~0, SDO_POWER_ON_DAC);
++	sdo_reg_debug(sdev);
++	return 0;
++}
++
++static int sdo_streamoff(struct sdo_device *sdev)
++{
++	int tries;
++
++	sdo_write_mask(sdev, SDO_DAC, 0, SDO_POWER_ON_DAC);
++	clk_disable(sdev->dacphy);
++	sdo_write_mask(sdev, SDO_CLKCON, 0, SDO_TVOUT_CLOCK_ON);
++	for (tries = 100; tries; --tries) {
++		if (sdo_read(sdev, SDO_CLKCON) & SDO_TVOUT_CLOCK_READY)
++			break;
++		mdelay(1);
++	}
++	if (tries == 0)
++		dev_err(sdev->dev, "failed to stop streaming\n");
++	return tries ? 0 : -EIO;
++}
++
++static int sdo_s_stream(struct v4l2_subdev *sd, int on)
++{
++	struct sdo_device *sdev = sd_to_sdev(sd);
++	return on ? sdo_streamon(sdev) : sdo_streamoff(sdev);
++}
++
++static const struct v4l2_subdev_core_ops sdo_sd_core_ops = {
++	.s_power = sdo_s_power,
 +};
 +
-+int fimc_ctrls_create(struct fimc_ctx *ctx)
++static const struct v4l2_subdev_video_ops sdo_sd_video_ops = {
++	.s_std_output = sdo_s_std_output,
++	.g_std_output = sdo_g_std_output,
++	.g_tvnorms_output = sdo_g_tvnorms_output,
++	.g_mbus_fmt = sdo_g_mbus_fmt,
++	.s_stream = sdo_s_stream,
++};
++
++static const struct v4l2_subdev_ops sdo_sd_ops = {
++	.core = &sdo_sd_core_ops,
++	.video = &sdo_sd_video_ops,
++};
++
++static int sdo_runtime_suspend(struct device *dev)
 +{
-+	if (ctx->ctrls_rdy)
-+		return 0;
-+	v4l2_ctrl_handler_init(&ctx->ctrl_handler, 3);
++	struct v4l2_subdev *sd = dev_get_drvdata(dev);
++	struct sdo_device *sdev = sd_to_sdev(sd);
 +
-+	ctx->ctrl_rotate = v4l2_ctrl_new_std(&ctx->ctrl_handler, &fimc_ctrl_ops,
-+				     V4L2_CID_HFLIP, 0, 1, 1, 0);
-+	ctx->ctrl_hflip = v4l2_ctrl_new_std(&ctx->ctrl_handler, &fimc_ctrl_ops,
-+				    V4L2_CID_VFLIP, 0, 1, 1, 0);
-+	ctx->ctrl_vflip = v4l2_ctrl_new_std(&ctx->ctrl_handler, &fimc_ctrl_ops,
-+				    V4L2_CID_ROTATE, 0, 270, 90, 0);
-+	ctx->ctrls_rdy = ctx->ctrl_handler.error == 0;
-+
-+	return ctx->ctrl_handler.error;
++	dev_info(dev, "suspend\n");
++	regulator_disable(sdev->vdet);
++	regulator_disable(sdev->vdac);
++	clk_disable(sdev->sclk_dac);
++	return 0;
 +}
 +
-+void fimc_ctrls_delete(struct fimc_ctx *ctx)
++static int sdo_runtime_resume(struct device *dev)
 +{
-+	if (ctx->ctrls_rdy) {
-+		v4l2_ctrl_handler_free(&ctx->ctrl_handler);
-+		ctx->ctrls_rdy = false;
++	struct v4l2_subdev *sd = dev_get_drvdata(dev);
++	struct sdo_device *sdev = sd_to_sdev(sd);
++
++	dev_info(dev, "resume\n");
++	clk_enable(sdev->sclk_dac);
++	regulator_enable(sdev->vdac);
++	regulator_enable(sdev->vdet);
++
++	/* software reset */
++	sdo_write_mask(sdev, SDO_CLKCON, ~0, SDO_TVOUT_SW_RESET);
++	mdelay(10);
++	sdo_write_mask(sdev, SDO_CLKCON, 0, SDO_TVOUT_SW_RESET);
++
++	/* setting TV mode */
++	sdo_write_mask(sdev, SDO_CONFIG, sdev->fmt->cookie, SDO_STANDARD_MASK);
++	/* XXX: forcing interlaced mode using undocumented bit */
++	sdo_write_mask(sdev, SDO_CONFIG, 0, SDO_PROGRESSIVE);
++	/* turn all VBI off */
++	sdo_write_mask(sdev, SDO_VBI, 0, SDO_CVBS_WSS_INS |
++		SDO_CVBS_CLOSED_CAPTION_MASK);
++	/* turn all post processing off */
++	sdo_write_mask(sdev, SDO_CCCON, ~0, SDO_COMPENSATION_BHS_ADJ_OFF |
++		SDO_COMPENSATION_CVBS_COMP_OFF);
++	sdo_reg_debug(sdev);
++	return 0;
++}
++
++static const struct dev_pm_ops sdo_pm_ops = {
++	.runtime_suspend = sdo_runtime_suspend,
++	.runtime_resume	 = sdo_runtime_resume,
++};
++
++static int __devinit sdo_probe(struct platform_device *pdev)
++{
++	struct device *dev = &pdev->dev;
++	struct sdo_device *sdev;
++	struct resource *res;
++	int ret = 0;
++	struct clk *sclk_vpll;
++
++	dev_info(dev, "probe start\n");
++	sdev = kzalloc(sizeof *sdev, GFP_KERNEL);
++	if (!sdev) {
++		dev_err(dev, "not enough memory.\n");
++		ret = -ENOMEM;
++		goto fail;
 +	}
-+}
++	sdev->dev = dev;
 +
-+void fimc_ctrls_activate(struct fimc_ctx *ctx, bool active)
-+{
-+	if (!ctx->ctrls_rdy)
-+		return;
-+
-+	mutex_lock(&ctx->ctrl_handler.lock);
-+	v4l2_ctrl_activate(ctx->ctrl_rotate, active);
-+	v4l2_ctrl_activate(ctx->ctrl_hflip, active);
-+	v4l2_ctrl_activate(ctx->ctrl_vflip, active);
-+
-+	if (active) {
-+		ctx->rotation = ctx->ctrl_rotate->val;
-+		ctx->hflip    = ctx->ctrl_hflip->val;
-+		ctx->vflip    = ctx->ctrl_vflip->val;
-+	} else {
-+		ctx->rotation = 0;
-+		ctx->hflip    = 0;
-+		ctx->vflip    = 0;
++	/* mapping registers */
++	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
++	if (res == NULL) {
++		dev_err(dev, "get memory resource failed.\n");
++		ret = -ENXIO;
++		goto fail_sdev;
 +	}
-+	mutex_unlock(&ctx->ctrl_handler.lock);
++
++	sdev->regs = ioremap(res->start, resource_size(res));
++	if (sdev->regs == NULL) {
++		dev_err(dev, "register mapping failed.\n");
++		ret = -ENXIO;
++		goto fail_sdev;
++	}
++
++	/* acquiring interrupt */
++	res = platform_get_resource(pdev, IORESOURCE_IRQ, 0);
++	if (res == NULL) {
++		dev_err(dev, "get interrupt resource failed.\n");
++		ret = -ENXIO;
++		goto fail_regs;
++	}
++	ret = request_irq(res->start, sdo_irq_handler, 0, "s5p-sdo", sdev);
++	if (ret) {
++		dev_err(dev, "request interrupt failed.\n");
++		goto fail_regs;
++	}
++	sdev->irq = res->start;
++
++	/* acquire clocks */
++	sdev->sclk_dac = clk_get(dev, "sclk_dac");
++	if (IS_ERR_OR_NULL(sdev->sclk_dac)) {
++		dev_err(dev, "failed to get clock 'sclk_dac'\n");
++		ret = -ENXIO;
++		goto fail_irq;
++	}
++	sdev->dac = clk_get(dev, "dac");
++	if (IS_ERR_OR_NULL(sdev->dac)) {
++		dev_err(dev, "failed to get clock 'dac'\n");
++		ret = -ENXIO;
++		goto fail_sclk_dac;
++	}
++	sdev->dacphy = clk_get(dev, "dacphy");
++	if (IS_ERR_OR_NULL(sdev->dacphy)) {
++		dev_err(dev, "failed to get clock 'dacphy'\n");
++		ret = -ENXIO;
++		goto fail_dac;
++	}
++	sclk_vpll = clk_get(dev, "sclk_vpll");
++	if (IS_ERR_OR_NULL(sclk_vpll)) {
++		dev_err(dev, "failed to get clock 'sclk_vpll'\n");
++		ret = -ENXIO;
++		goto fail_dacphy;
++	}
++	clk_set_parent(sdev->sclk_dac, sclk_vpll);
++	clk_put(sclk_vpll);
++	sdev->fout_vpll = clk_get(dev, "fout_vpll");
++	if (IS_ERR_OR_NULL(sdev->fout_vpll)) {
++		dev_err(dev, "failed to get clock 'fout_vpll'\n");
++		goto fail_dacphy;
++	}
++	dev_info(dev, "fout_vpll.rate = %lu\n", clk_get_rate(sclk_vpll));
++
++	/* acquire regulator */
++	sdev->vdac = regulator_get(dev, "vdd33a_dac");
++	if (IS_ERR_OR_NULL(sdev->vdac)) {
++		dev_err(dev, "failed to get regulator 'vdac'\n");
++		goto fail_fout_vpll;
++	}
++	sdev->vdet = regulator_get(dev, "vdet");
++	if (IS_ERR_OR_NULL(sdev->vdet)) {
++		dev_err(dev, "failed to get regulator 'vdet'\n");
++		goto fail_vdac;
++	}
++
++	/* enable gate for dac clock, because mixer uses it */
++	clk_enable(sdev->dac);
++
++	/* configure power management */
++	pm_runtime_enable(dev);
++
++	/* configuration of interface subdevice */
++	v4l2_subdev_init(&sdev->sd, &sdo_sd_ops);
++	sdev->sd.owner = THIS_MODULE;
++	strlcpy(sdev->sd.name, "s5p-sdo", sizeof sdev->sd.name);
++
++	/* set default format */
++	sdev->fmt = sdo_find_format(SDO_DEFAULT_STD);
++	BUG_ON(sdev->fmt == NULL);
++
++	/* keeping subdev in device's private for use by other drivers */
++	dev_set_drvdata(dev, &sdev->sd);
++
++	dev_info(dev, "probe succeeded\n");
++	return 0;
++
++fail_vdac:
++	regulator_put(sdev->vdac);
++fail_fout_vpll:
++	clk_put(sdev->fout_vpll);
++fail_dacphy:
++	clk_put(sdev->dacphy);
++fail_dac:
++	clk_put(sdev->dac);
++fail_sclk_dac:
++	clk_put(sdev->sclk_dac);
++fail_irq:
++	free_irq(sdev->irq, sdev);
++fail_regs:
++	iounmap(sdev->regs);
++fail_sdev:
++	kfree(sdev);
++fail:
++	dev_info(dev, "probe failed\n");
++	return ret;
 +}
 +
-+/*
-+ * V4L2 ioctl handlers
-+ */
- static int fimc_m2m_querycap(struct file *file, void *fh,
- 			     struct v4l2_capability *cap)
- {
-@@ -1070,136 +1143,6 @@ static int fimc_m2m_streamoff(struct file *file, void *fh,
- 	return v4l2_m2m_streamoff(file, ctx->m2m_ctx, type);
- }
- 
--int fimc_vidioc_queryctrl(struct file *file, void *fh,
--			  struct v4l2_queryctrl *qc)
--{
--	struct fimc_ctx *ctx = fh_to_ctx(fh);
--	struct fimc_dev *fimc = ctx->fimc_dev;
--	struct v4l2_queryctrl *c;
--	int ret = -EINVAL;
--
--	c = get_ctrl(qc->id);
--	if (c) {
--		*qc = *c;
--		return 0;
--	}
--
--	if (fimc_ctx_state_is_set(FIMC_CTX_CAP, ctx)) {
--		return v4l2_subdev_call(ctx->fimc_dev->vid_cap.sd,
--					core, queryctrl, qc);
--	}
--	return ret;
--}
--
--int fimc_vidioc_g_ctrl(struct file *file, void *fh, struct v4l2_control *ctrl)
--{
--	struct fimc_ctx *ctx = fh_to_ctx(fh);
--	struct fimc_dev *fimc = ctx->fimc_dev;
--
--	switch (ctrl->id) {
--	case V4L2_CID_HFLIP:
--		ctrl->value = (FLIP_X_AXIS & ctx->flip) ? 1 : 0;
--		break;
--	case V4L2_CID_VFLIP:
--		ctrl->value = (FLIP_Y_AXIS & ctx->flip) ? 1 : 0;
--		break;
--	case V4L2_CID_ROTATE:
--		ctrl->value = ctx->rotation;
--		break;
--	default:
--		if (fimc_ctx_state_is_set(FIMC_CTX_CAP, ctx)) {
--			return v4l2_subdev_call(fimc->vid_cap.sd, core,
--						g_ctrl, ctrl);
--		} else {
--			v4l2_err(fimc->m2m.vfd, "Invalid control\n");
--			return -EINVAL;
--		}
--	}
--	dbg("ctrl->value= %d", ctrl->value);
--
--	return 0;
--}
--
--int check_ctrl_val(struct fimc_ctx *ctx,  struct v4l2_control *ctrl)
--{
--	struct v4l2_queryctrl *c;
--	c = get_ctrl(ctrl->id);
--	if (!c)
--		return -EINVAL;
--
--	if (ctrl->value < c->minimum || ctrl->value > c->maximum
--		|| (c->step != 0 && ctrl->value % c->step != 0)) {
--		v4l2_err(ctx->fimc_dev->m2m.vfd, "Invalid control value\n");
--		return -ERANGE;
--	}
--
--	return 0;
--}
--
--int fimc_s_ctrl(struct fimc_ctx *ctx, struct v4l2_control *ctrl)
--{
--	struct samsung_fimc_variant *variant = ctx->fimc_dev->variant;
--	struct fimc_dev *fimc = ctx->fimc_dev;
--	int ret = 0;
--
--	switch (ctrl->id) {
--	case V4L2_CID_HFLIP:
--		if (ctrl->value)
--			ctx->flip |= FLIP_X_AXIS;
--		else
--			ctx->flip &= ~FLIP_X_AXIS;
--		break;
--
--	case V4L2_CID_VFLIP:
--		if (ctrl->value)
--			ctx->flip |= FLIP_Y_AXIS;
--		else
--			ctx->flip &= ~FLIP_Y_AXIS;
--		break;
--
--	case V4L2_CID_ROTATE:
--		if (fimc_ctx_state_is_set(FIMC_DST_FMT | FIMC_SRC_FMT, ctx)) {
--			ret = fimc_check_scaler_ratio(ctx->s_frame.width,
--					ctx->s_frame.height, ctx->d_frame.width,
--					ctx->d_frame.height, ctrl->value);
--		}
--
--		if (ret) {
--			v4l2_err(fimc->m2m.vfd, "Out of scaler range\n");
--			return -EINVAL;
--		}
--
--		/* Check for the output rotator availability */
--		if ((ctrl->value == 90 || ctrl->value == 270) &&
--		    (ctx->in_path == FIMC_DMA && !variant->has_out_rot))
--			return -EINVAL;
--		ctx->rotation = ctrl->value;
--		break;
--
--	default:
--		v4l2_err(fimc->v4l2_dev, "Invalid control\n");
--		return -EINVAL;
--	}
--
--	fimc_ctx_state_lock_set(FIMC_PARAMS, ctx);
--
--	return 0;
--}
--
--static int fimc_m2m_s_ctrl(struct file *file, void *fh,
--			   struct v4l2_control *ctrl)
--{
--	struct fimc_ctx *ctx = fh_to_ctx(fh);
--	int ret = 0;
--
--	ret = check_ctrl_val(ctx, ctrl);
--	if (ret)
--		return ret;
--
--	ret = fimc_s_ctrl(ctx, ctrl);
--	return 0;
--}
--
- static int fimc_m2m_cropcap(struct file *file, void *fh,
- 			    struct v4l2_cropcap *cr)
- {
-@@ -1365,10 +1308,6 @@ static const struct v4l2_ioctl_ops fimc_m2m_ioctl_ops = {
- 	.vidioc_streamon		= fimc_m2m_streamon,
- 	.vidioc_streamoff		= fimc_m2m_streamoff,
- 
--	.vidioc_queryctrl		= fimc_vidioc_queryctrl,
--	.vidioc_g_ctrl			= fimc_vidioc_g_ctrl,
--	.vidioc_s_ctrl			= fimc_m2m_s_ctrl,
--
- 	.vidioc_g_crop			= fimc_m2m_g_crop,
- 	.vidioc_s_crop			= fimc_m2m_s_crop,
- 	.vidioc_cropcap			= fimc_m2m_cropcap
-@@ -1426,7 +1365,12 @@ static int fimc_m2m_open(struct file *file)
- 	ret = v4l2_fh_init(&ctx->fh, fimc->m2m.vfd);
- 	if (ret)
- 		goto error;
-+	ret = fimc_ctrls_create(ctx);
++static int __devexit sdo_remove(struct platform_device *pdev)
++{
++	struct v4l2_subdev *sd = dev_get_drvdata(&pdev->dev);
++	struct sdo_device *sdev = sd_to_sdev(sd);
++
++	pm_runtime_disable(&pdev->dev);
++	clk_disable(sdev->dac);
++	regulator_put(sdev->vdet);
++	regulator_put(sdev->vdac);
++	clk_put(sdev->fout_vpll);
++	clk_put(sdev->dacphy);
++	clk_put(sdev->dac);
++	clk_put(sdev->sclk_dac);
++	free_irq(sdev->irq, sdev);
++	iounmap(sdev->regs);
++	kfree(sdev);
++
++	dev_info(&pdev->dev, "remove successful\n");
++	return 0;
++}
++
++static struct platform_driver sdo_driver __refdata = {
++	.probe = sdo_probe,
++	.remove = __devexit_p(sdo_remove),
++	.driver = {
++		.name = "s5p-sdo",
++		.owner = THIS_MODULE,
++		.pm = &sdo_pm_ops,
++	}
++};
++
++static int __init sdo_init(void)
++{
++	int ret;
++	static const char banner[] __initdata = KERN_INFO \
++		"Samsung Standard Definition Output (SDO) driver, "
++		"(c) 2010-2011 Samsung Electronics Co., Ltd.\n";
++	printk(banner);
++
++	ret = platform_driver_register(&sdo_driver);
 +	if (ret)
-+		goto error_fh;
- 
-+	/* Use separate control handler per file handle */
-+	ctx->fh.ctrl_handler = &ctx->ctrl_handler;
- 	file->private_data = &ctx->fh;
- 	v4l2_fh_add(&ctx->fh);
- 
-@@ -1444,13 +1388,15 @@ static int fimc_m2m_open(struct file *file)
- 	ctx->m2m_ctx = v4l2_m2m_ctx_init(fimc->m2m.m2m_dev, ctx, queue_init);
- 	if (IS_ERR(ctx->m2m_ctx)) {
- 		ret = PTR_ERR(ctx->m2m_ctx);
--		goto error_fh;
-+		goto error_c;
- 	}
- 
- 	if (fimc->m2m.refcnt++ == 0)
- 		set_bit(ST_M2M_RUN, &fimc->state);
- 	return 0;
- 
-+error_c:
-+	fimc_ctrls_delete(ctx);
- error_fh:
- 	v4l2_fh_del(&ctx->fh);
- 	v4l2_fh_exit(&ctx->fh);
-@@ -1468,6 +1414,7 @@ static int fimc_m2m_release(struct file *file)
- 		task_pid_nr(current), fimc->state, fimc->m2m.refcnt);
- 
- 	v4l2_m2m_ctx_release(ctx->m2m_ctx);
-+	fimc_ctrls_delete(ctx);
- 	v4l2_fh_del(&ctx->fh);
- 	v4l2_fh_exit(&ctx->fh);
- 
-diff --git a/drivers/media/video/s5p-fimc/fimc-core.h b/drivers/media/video/s5p-fimc/fimc-core.h
-index b7cf3d3..6ccd446 100644
---- a/drivers/media/video/s5p-fimc/fimc-core.h
-+++ b/drivers/media/video/s5p-fimc/fimc-core.h
-@@ -20,6 +20,7 @@
- 
- #include <media/media-entity.h>
- #include <media/videobuf2-core.h>
-+#include <media/v4l2-ctrls.h>
- #include <media/v4l2-device.h>
- #include <media/v4l2-mem2mem.h>
- #include <media/v4l2-mediabus.h>
-@@ -62,6 +63,7 @@ enum fimc_dev_flags {
- 	ST_CAPT_STREAM,
- 	ST_CAPT_SHUT,
- 	ST_CAPT_INUSE,
-+	ST_CAPT_APPLY_CFG,
- };
- 
- #define fimc_m2m_active(dev) test_bit(ST_M2M_RUN, &(dev)->state)
-@@ -128,11 +130,6 @@ enum fimc_color_fmt {
- /* Y (16 ~ 235), Cb/Cr (16 ~ 240) */
- #define	FIMC_COLOR_RANGE_NARROW		(1 << 3)
- 
--#define	FLIP_NONE			0
--#define	FLIP_X_AXIS			1
--#define	FLIP_Y_AXIS			2
--#define	FLIP_XY_AXIS			(FLIP_X_AXIS | FLIP_Y_AXIS)
--
- /**
-  * struct fimc_fmt - the driver's internal color format data
-  * @mbus_code: Media Bus pixel code, -1 if not applicable
-@@ -451,12 +448,18 @@ struct fimc_dev {
-  * @scaler:		image scaler properties
-  * @effect:		image effect
-  * @rotation:		image clockwise rotation in degrees
-- * @flip:		image flip mode
-+ * @hflip:		indicates image horizontal flip if set
-+ * @vflip:		indicates image vertical flip if set
-  * @flags:		additional flags for image conversion
-  * @state:		flags to keep track of user configuration
-  * @fimc_dev:		the FIMC device this context applies to
-  * @m2m_ctx:		memory-to-memory device context
-  * @fh:			v4l2 file handle
-+ * @ctrl_handler:	v4l2 controls handler
-+ * @ctrl_rotate		image rotation control
-+ * @ctrl_hflip		horizontal flip control
-+ * @ctrl_vflip		vartical flip control
-+ * @ctrls_rdy:		true if the control handler is initialized
-  */
- struct fimc_ctx {
- 	spinlock_t		slock;
-@@ -471,12 +474,18 @@ struct fimc_ctx {
- 	struct fimc_scaler	scaler;
- 	struct fimc_effect	effect;
- 	int			rotation;
--	u32			flip;
-+	unsigned int		hflip:1;
-+	unsigned int		vflip:1;
- 	u32			flags;
- 	u32			state;
- 	struct fimc_dev		*fimc_dev;
- 	struct v4l2_m2m_ctx	*m2m_ctx;
- 	struct v4l2_fh		fh;
-+	struct v4l2_ctrl_handler ctrl_handler;
-+	struct v4l2_ctrl	*ctrl_rotate;
-+	struct v4l2_ctrl	*ctrl_hflip;
-+	struct v4l2_ctrl	*ctrl_vflip;
-+	bool			ctrls_rdy;
- };
- 
- #define fh_to_ctx(__fh) container_of(__fh, struct fimc_ctx, fh)
-@@ -632,15 +641,11 @@ int fimc_hw_set_camera_type(struct fimc_dev *fimc,
- /* fimc-core.c */
- int fimc_vidioc_enum_fmt_mplane(struct file *file, void *priv,
- 				struct v4l2_fmtdesc *f);
--int fimc_vidioc_queryctrl(struct file *file, void *priv,
--			  struct v4l2_queryctrl *qc);
--int fimc_vidioc_g_ctrl(struct file *file, void *priv,
--		       struct v4l2_control *ctrl);
--
- int fimc_try_fmt_mplane(struct fimc_ctx *ctx, struct v4l2_format *f);
- int fimc_try_crop(struct fimc_ctx *ctx, struct v4l2_crop *cr);
--int check_ctrl_val(struct fimc_ctx *ctx,  struct v4l2_control *ctrl);
--int fimc_s_ctrl(struct fimc_ctx *ctx, struct v4l2_control *ctrl);
-+int fimc_ctrls_create(struct fimc_ctx *ctx);
-+void fimc_ctrls_delete(struct fimc_ctx *ctx);
-+void fimc_ctrls_activate(struct fimc_ctx *ctx, bool active);
- int fimc_fill_format(struct fimc_frame *frame, struct v4l2_format *f);
- 
- struct fimc_fmt *find_format(struct v4l2_format *f, unsigned int mask);
-@@ -663,6 +668,7 @@ void fimc_unregister_driver(void);
- int fimc_register_capture_device(struct fimc_dev *fimc,
- 				 struct v4l2_device *v4l2_dev);
- void fimc_unregister_capture_device(struct fimc_dev *fimc);
-+int fimc_capture_ctrls_create(struct fimc_dev *fimc);
- int fimc_vid_cap_buf_queue(struct fimc_dev *fimc,
- 			     struct fimc_vid_buffer *fimc_vb);
- int fimc_capture_suspend(struct fimc_dev *fimc);
-diff --git a/drivers/media/video/s5p-fimc/fimc-mdevice.c b/drivers/media/video/s5p-fimc/fimc-mdevice.c
-index f461fad..48f63f9 100644
---- a/drivers/media/video/s5p-fimc/fimc-mdevice.c
-+++ b/drivers/media/video/s5p-fimc/fimc-mdevice.c
-@@ -22,6 +22,7 @@
- #include <linux/types.h>
- #include <linux/slab.h>
- #include <linux/version.h>
-+#include <media/v4l2-ctrls.h>
- #include <media/media-device.h>
- 
- #include "fimc-core.h"
-@@ -615,15 +616,23 @@ static int fimc_md_link_notify(struct media_pad *source,
- 		ret = __fimc_pipeline_shutdown(fimc);
- 		fimc->pipeline.sensor = NULL;
- 		fimc->pipeline.csis = NULL;
++		printk(KERN_ERR "SDO platform driver register failed\n");
 +
-+		mutex_lock(&fimc->lock);
-+		fimc_ctrls_delete(fimc->vid_cap.ctx);
-+		mutex_unlock(&fimc->lock);
- 		return ret;
- 	}
- 	/*
- 	 * Link activation. Enable power of pipeline elements only if the
- 	 * pipeline is already in use, i.e. its video node is opened.
-+	 * Recreate the controls destroyed during the link deactivation.
- 	 */
- 	mutex_lock(&fimc->lock);
--	if (fimc->vid_cap.refcnt > 0)
-+	if (fimc->vid_cap.refcnt > 0) {
- 		ret = __fimc_pipeline_initialize(fimc, source->entity, true);
-+		if (!ret)
-+			ret = fimc_capture_ctrls_create(fimc);
-+	}
- 	mutex_unlock(&fimc->lock);
- 
- 	return ret ? -EPIPE : ret;
-diff --git a/drivers/media/video/s5p-fimc/fimc-reg.c b/drivers/media/video/s5p-fimc/fimc-reg.c
-index c688263..50937b4 100644
---- a/drivers/media/video/s5p-fimc/fimc-reg.c
-+++ b/drivers/media/video/s5p-fimc/fimc-reg.c
-@@ -41,19 +41,11 @@ static u32 fimc_hw_get_in_flip(struct fimc_ctx *ctx)
- {
- 	u32 flip = S5P_MSCTRL_FLIP_NORMAL;
- 
--	switch (ctx->flip) {
--	case FLIP_X_AXIS:
-+	if (ctx->hflip)
- 		flip = S5P_MSCTRL_FLIP_X_MIRROR;
--		break;
--	case FLIP_Y_AXIS:
-+	if (ctx->vflip)
- 		flip = S5P_MSCTRL_FLIP_Y_MIRROR;
--		break;
--	case FLIP_XY_AXIS:
--		flip = S5P_MSCTRL_FLIP_180;
--		break;
--	default:
--		break;
--	}
++	return ret;
++}
++module_init(sdo_init);
 +
- 	if (ctx->rotation <= 90)
- 		return flip;
- 
-@@ -64,19 +56,11 @@ static u32 fimc_hw_get_target_flip(struct fimc_ctx *ctx)
- {
- 	u32 flip = S5P_CITRGFMT_FLIP_NORMAL;
- 
--	switch (ctx->flip) {
--	case FLIP_X_AXIS:
--		flip = S5P_CITRGFMT_FLIP_X_MIRROR;
--		break;
--	case FLIP_Y_AXIS:
--		flip = S5P_CITRGFMT_FLIP_Y_MIRROR;
--		break;
--	case FLIP_XY_AXIS:
--		flip = S5P_CITRGFMT_FLIP_180;
--		break;
--	default:
--		break;
--	}
-+	if (ctx->hflip)
-+		flip |= S5P_CITRGFMT_FLIP_X_MIRROR;
-+	if (ctx->vflip)
-+		flip |= S5P_CITRGFMT_FLIP_Y_MIRROR;
-+
- 	if (ctx->rotation <= 90)
- 		return flip;
- 
++static void __exit sdo_exit(void)
++{
++	platform_driver_unregister(&sdo_driver);
++}
++module_exit(sdo_exit);
 -- 
 1.7.5.4
 
