@@ -1,63 +1,145 @@
 Return-path: <mchehab@pedra>
-Received: from mail-ey0-f174.google.com ([209.85.215.174]:46360 "EHLO
-	mail-ey0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756741Ab1FBGwx convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 2 Jun 2011 02:52:53 -0400
-Received: by eyx24 with SMTP id 24so183530eyx.19
-        for <linux-media@vger.kernel.org>; Wed, 01 Jun 2011 23:52:51 -0700 (PDT)
+Received: from sj-iport-6.cisco.com ([171.71.176.117]:59153 "EHLO
+	sj-iport-6.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754722Ab1F2NoC (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 29 Jun 2011 09:44:02 -0400
+From: Hans Verkuil <hansverk@cisco.com>
+To: Hans de Goede <hdegoede@redhat.com>
+Subject: Re: RFC: poll behavior
+Date: Wed, 29 Jun 2011 15:43:51 +0200
+Cc: linux-media@vger.kernel.org
+References: <201106291326.47527.hansverk@cisco.com> <201106291442.30210.hansverk@cisco.com> <4E0B2382.4090409@redhat.com>
+In-Reply-To: <4E0B2382.4090409@redhat.com>
 MIME-Version: 1.0
-In-Reply-To: <F6CCC3E5-67AF-4D22-9541-C31A91924DFE@beagleboard.org>
-References: <1306942609-2440-1-git-send-email-javier.martin@vista-silicon.com>
-	<1306942609-2440-2-git-send-email-javier.martin@vista-silicon.com>
-	<F6CCC3E5-67AF-4D22-9541-C31A91924DFE@beagleboard.org>
-Date: Thu, 2 Jun 2011 08:52:49 +0200
-Message-ID: <BANLkTimDJG3xgwhKznQG0sHKKutmHQSOpw@mail.gmail.com>
-Subject: Re: [beagleboard] [PATCH v6 2/2] Add support for mt9p031 sensor in
- Beagleboard XM.
-From: javier Martin <javier.martin@vista-silicon.com>
-To: Koen Kooi <koen@beagleboard.org>
-Cc: beagleboard@googlegroups.com, linux-media@vger.kernel.org,
-	g.liakhovetski@gmx.de, laurent.pinchart@ideasonboard.com,
-	carlighting@yahoo.co.nz, mch_kot@yahoo.com.cn
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201106291543.51271.hansverk@cisco.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Hi Koen,
+On Wednesday, June 29, 2011 15:07:14 Hans de Goede wrote:
+> Hi,
+> 
+> On 06/29/2011 02:42 PM, Hans Verkuil wrote:
+> > On Wednesday, June 29, 2011 14:10:44 Hans de Goede wrote:
+> >> Hi,
+> >>
+> >> On 06/29/2011 01:26 PM, Hans Verkuil wrote:
+> 
+> <Snip>
+> 
+> >>> 4) Proposal to change the poll behavior
+> >>>
+> >>> For the short term I propose that condition c is handled as follows:
+> >>>
+> >>> If for the filehandle passed to poll() no events have been subscribed, then
+> >>> keep the old behavior (i.e. start streaming). If events have been subscribed,
+> >>> however, then implement the new behavior (return POLLERR).
+> >>>
+> >>
+> >> If events have been subscribed and no events are pending then the right
+> >> behavior would be to return 0, not POLLERR, otherwise a waiting app
+> >> will return from the poll immediately, or am I missing something?
+> >
+> > Yes and no. For select() POLLERR is ignored if you are only waiting for POLLPRI.
+> >
+> > But I see that that does not happen for the poll(2) API (see do_pollfd() in
+> > fs/select.c). This means that POLLERR is indeed not a suitable event it
+> > return. It will have to be POLLIN or POLLOUT instead.
+> >
+> > This is actually a real problem with poll(2): if there is no streaming in progress
+> > and the driver does not support r/w, and you want to poll for just POLLPRI, then
+> > POLLERR will be set, and poll(2) will always return. But select(2) will work fine.
+> >
+> > In other words, poll(2) and select(2) handle POLLPRI differently with respect to
+> > POLLERR. What a mess. You can't really return POLLERR and support POLLPRI at the
+> > same time.
+> >
+> 
+> Ok, yet more reason to go with my proposal, but then simplified to:
+> 
+> When streaming has not started return POLLIN or POLLOUT (or-ed with
+> POLLPRI if events are pending).
 
-On 1 June 2011 20:08, Koen Kooi <koen@beagleboard.org> wrote:
->
-> Op 1 jun 2011, om 17:36 heeft Javier Martin het volgende geschreven:
->
->> New "version" and "vdd_io" flags have been added.
->>
->> A subtle change now prevents camera from being registered
->> in the wrong platform.
->
-> I get a decent picture now with the following:
->
-> media-ctl -r -l '"mt9p031 2-0048":0->"OMAP3 ISP CCDC":0[1], "OMAP3 ISP CCDC":1->"OMAP3 ISP CCDC output":0[1]'
-> media-ctl -f '"mt9p031 2-0048":0[SGRBG12 320x240], "OMAP3 ISP CCDC":0[SGRBG8 320x240], "OMAP3 ISP CCDC":1[SGRBG8 320x240]'
->
-> yavta-nc --stdout -f SGRBG8 -s 320x240 -n 4 --capture=10000 --skip 3 -F $(media-ctl -e "OMAP3 ISP CCDC output") | mplayer-bayer - -demuxer  rawvideo -rawvideo w=320:h=240:format=ba81:size=76800 -vo fbdev2 -vf ba81
->
-> 720p also seems to work.
->
-> It is really, really dark though. Is this due to missing controls or due to the laneshifting?
+So would this be what you are looking for:
 
-I suspect it is due to the patched mplayer.
-I know this because I have enabled some custom patterns in the sensor,
-thus generating pure red, blue and green pictures and they didn't seem
-so when played through mplayer-bayer.
+diff --git a/drivers/media/video/videobuf2-core.c b/drivers/media/video/videobuf2-core.c
+index 6ba1461..a3ce5a3 100644
+--- a/drivers/media/video/videobuf2-core.c
++++ b/drivers/media/video/videobuf2-core.c
+@@ -1371,35 +1371,37 @@ static int __vb2_cleanup_fileio(struct vb2_queue *q);
+  */
+ unsigned int vb2_poll(struct vb2_queue *q, struct file *file, poll_table *wait)
+ {
++	struct video_device *vfd = video_devdata(file);
+ 	unsigned long flags;
+ 	unsigned int ret;
+ 	struct vb2_buffer *vb = NULL;
++	bool have_events = false;
++	unsigned int res = 0;
++
++	if (test_bit(V4L2_FL_USES_V4L2_FH, &vfd->flags)) {
++		struct v4l2_fh *fh = file->private_data;
++
++		/* Is this file handle subscribed to any events? */
++		have_events = fh->events != NULL;
++		if (have_events && v4l2_event_pending(fh))
++			res = POLLPRI;
++	} 
+ 
+ 	/*
+ 	 * Start file I/O emulator only if streaming API has not been used yet.
+ 	 */
+ 	if (q->num_buffers == 0 && q->fileio == NULL) {
+-		if (!V4L2_TYPE_IS_OUTPUT(q->type) && (q->io_modes & VB2_READ)) {
+-			ret = __vb2_init_fileio(q, 1);
+-			if (ret)
+-				return POLLERR;
+-		}
+-		if (V4L2_TYPE_IS_OUTPUT(q->type) && (q->io_modes & VB2_WRITE)) {
+-			ret = __vb2_init_fileio(q, 0);
+-			if (ret)
+-				return POLLERR;
+-			/*
+-			 * Write to OUTPUT queue can be done immediately.
+-			 */
+-			return POLLOUT | POLLWRNORM;
+-		}
++		if (!V4L2_TYPE_IS_OUTPUT(q->type) && (q->io_modes & VB2_READ))
++			return res | POLLIN | POLLRDNORM;
++		if (V4L2_TYPE_IS_OUTPUT(q->type) && (q->io_modes & VB2_WRITE))
++			return res | POLLOUT | POLLWRNORM;
+ 	}
+ 
+ 	/*
+ 	 * There is nothing to wait for if no buffers have already been queued.
+ 	 */
+ 	if (list_empty(&q->queued_list))
+-		return POLLERR;
++		return have_events ? res : POLLERR;
+ 
+ 	poll_wait(file, &q->done_wq, wait);
+ 
+@@ -1414,10 +1416,10 @@ unsigned int vb2_poll(struct vb2_queue *q, struct file *file, poll_table *wait)
+ 
+ 	if (vb && (vb->state == VB2_BUF_STATE_DONE
+ 			|| vb->state == VB2_BUF_STATE_ERROR)) {
+-		return (V4L2_TYPE_IS_OUTPUT(q->type)) ? POLLOUT | POLLWRNORM :
++		return res | (V4L2_TYPE_IS_OUTPUT(q->type)) ? POLLOUT | POLLWRNORM :
+ 			POLLIN | POLLRDNORM;
+ 	}
+-	return 0;
++	return res;
+ }
+ EXPORT_SYMBOL_GPL(vb2_poll);
+ 
 
-You could try the same if you want. Just to confirm.
+One note: the only time POLLERR is now returned is if no buffers have been queued
+and no events have been subscribed to. I think that qualifies as an error condition.
+I am not 100% certain, though.
 
--- 
-Javier Martin
-Vista Silicon S.L.
-CDTUC - FASE C - Oficina S-345
-Avda de los Castros s/n
-39005- Santander. Cantabria. Spain
-+34 942 25 32 60
-www.vista-silicon.com
+Comments?
+
+	Hans
