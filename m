@@ -1,50 +1,63 @@
 Return-path: <mchehab@pedra>
-Received: from earthlight.etchedpixels.co.uk ([81.2.110.250]:55341 "EHLO
-	www.etchedpixels.co.uk" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1755273Ab1FJMv2 (ORCPT
+Received: from mailout1.w1.samsung.com ([210.118.77.11]:62400 "EHLO
+	mailout1.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753284Ab1F2JhL (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 10 Jun 2011 08:51:28 -0400
-Date: Fri, 10 Jun 2011 13:52:17 +0100
-From: Alan Cox <alan@lxorguk.ukuu.org.uk>
-To: Marek Szyprowski <m.szyprowski@samsung.com>
-Cc: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-	linux-media@vger.kernel.org, linux-mm@kvack.org,
-	linaro-mm-sig@lists.linaro.org,
-	"'Michal Nazarewicz'" <mina86@mina86.com>,
-	"'Kyungmin Park'" <kyungmin.park@samsung.com>,
-	"'Andrew Morton'" <akpm@linux-foundation.org>,
-	"'KAMEZAWA Hiroyuki'" <kamezawa.hiroyu@jp.fujitsu.com>,
-	"'Ankita Garg'" <ankita@in.ibm.com>,
-	"'Daniel Walker'" <dwalker@codeaurora.org>,
-	"'Johan MOSSBERG'" <johan.xx.mossberg@stericsson.com>,
-	"'Mel Gorman'" <mel@csn.ul.ie>, "'Arnd Bergmann'" <arnd@arndb.de>,
-	"'Jesse Barker'" <jesse.barker@linaro.org>
-Subject: Re: [PATCH 02/10] lib: genalloc: Generic allocator improvements
-Message-ID: <20110610135217.701a2fd2@lxorguk.ukuu.org.uk>
-In-Reply-To: <000c01cc2769$02669b70$0733d250$%szyprowski@samsung.com>
-References: <1307699698-29369-1-git-send-email-m.szyprowski@samsung.com>
-	<1307699698-29369-3-git-send-email-m.szyprowski@samsung.com>
-	<20110610122451.15af86d1@lxorguk.ukuu.org.uk>
-	<000c01cc2769$02669b70$0733d250$%szyprowski@samsung.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+	Wed, 29 Jun 2011 05:37:11 -0400
+Received: from spt2.w1.samsung.com (mailout1.w1.samsung.com [210.118.77.11])
+ by mailout1.w1.samsung.com
+ (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14 2004))
+ with ESMTP id <0LNJ006QCPDXBO@mailout1.w1.samsung.com> for
+ linux-media@vger.kernel.org; Wed, 29 Jun 2011 10:37:09 +0100 (BST)
+Received: from linux.samsung.com ([106.116.38.10])
+ by spt2.w1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14
+ 2004)) with ESMTPA id <0LNJ005XIPDW3X@spt2.w1.samsung.com> for
+ linux-media@vger.kernel.org; Wed, 29 Jun 2011 10:37:08 +0100 (BST)
+Date: Wed, 29 Jun 2011 11:37:00 +0200
+From: Marek Szyprowski <m.szyprowski@samsung.com>
+Subject: [PATCH] media: vb2: fix allocation failure check
+To: linux-media@vger.kernel.org
+Cc: Marek Szyprowski <m.szyprowski@samsung.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	Pawel Osciak <pawel@osciak.com>,
+	Jonathan Corbet <corbet@lwn.net>
+Message-id: <1309340220-3139-1-git-send-email-m.szyprowski@samsung.com>
+MIME-version: 1.0
+Content-type: TEXT/PLAIN
+Content-transfer-encoding: 7BIT
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-> I plan to replace it with lib/bitmap.c bitmap_* based allocator (similar like
-> it it is used by dma_declare_coherent_memory() and friends in
-> drivers/base/dma-coherent.c). We need something really simple for CMA area
-> management. 
-> 
-> IMHO allocate_resource and friends a bit too heavy here, but good to know 
-> that such allocator also exists.
+__vb2_queue_alloc function returns the number of successfully allocated
+buffers. There is no point in checking if the returned value is negative.
+If this function returns 0, videobuf2 should just return -ENOMEM to
+userspace, because no driver can work without memory buffers.
 
-Not sure I'd class allocate_resource as heavyweight but providing it's
-using something that already exists rather than inventing yet another
-allocator.
+Reported-by: Jonathan Corbet <corbet@lwn.net>
+Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
+Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+CC: Pawel Osciak <pawel@osciak.com>
+---
+ drivers/media/video/videobuf2-core.c |    6 +++---
+ 1 files changed, 3 insertions(+), 3 deletions(-)
 
-This wants dealing with before it goes upstream though so the chaneges in
-lib/*c etc never have to reach mainline and then get changed back.
+diff --git a/drivers/media/video/videobuf2-core.c b/drivers/media/video/videobuf2-core.c
+index 6ba1461..5517913 100644
+--- a/drivers/media/video/videobuf2-core.c
++++ b/drivers/media/video/videobuf2-core.c
+@@ -539,9 +539,9 @@ int vb2_reqbufs(struct vb2_queue *q, struct v4l2_requestbuffers *req)
+ 	/* Finally, allocate buffers and video memory */
+ 	ret = __vb2_queue_alloc(q, req->memory, num_buffers, num_planes,
+ 				plane_sizes);
+-	if (ret < 0) {
+-		dprintk(1, "Memory allocation failed with error: %d\n", ret);
+-		return ret;
++	if (ret == 0) {
++		dprintk(1, "Memory allocation failed\n");
++		return -ENOMEM;
+ 	}
+ 
+ 	/*
+-- 
+1.7.1.569.g6f426
 
-Alan
