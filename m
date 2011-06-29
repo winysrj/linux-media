@@ -1,106 +1,86 @@
 Return-path: <mchehab@pedra>
-Received: from mx1.redhat.com ([209.132.183.28]:41850 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753464Ab1FHUZ1 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 8 Jun 2011 16:25:27 -0400
-Received: from int-mx02.intmail.prod.int.phx2.redhat.com (int-mx02.intmail.prod.int.phx2.redhat.com [10.5.11.12])
-	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id p58KPRcm011479
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
-	for <linux-media@vger.kernel.org>; Wed, 8 Jun 2011 16:25:27 -0400
-Received: from pedra (vpn-10-126.rdu.redhat.com [10.11.10.126])
-	by int-mx02.intmail.prod.int.phx2.redhat.com (8.13.8/8.13.8) with ESMTP id p58KP4Up024316
-	for <linux-media@vger.kernel.org>; Wed, 8 Jun 2011 16:25:26 -0400
-Date: Wed, 8 Jun 2011 17:23:10 -0300
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: [PATCH 13/13] [media] DocBook/video.xml: Document the remaining
- data structures
-Message-ID: <20110608172310.6d91b712@pedra>
-In-Reply-To: <cover.1307563765.git.mchehab@redhat.com>
-References: <cover.1307563765.git.mchehab@redhat.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
-To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
+Received: from mail-vw0-f46.google.com ([209.85.212.46]:61878 "EHLO
+	mail-vw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752595Ab1F2W6p convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 29 Jun 2011 18:58:45 -0400
+Received: by vws1 with SMTP id 1so1242968vws.19
+        for <linux-media@vger.kernel.org>; Wed, 29 Jun 2011 15:58:44 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <1309384173-12933-1-git-send-email-jarod@redhat.com>
+References: <1309384173-12933-1-git-send-email-jarod@redhat.com>
+From: Dark Shadow <shadowofdarkness@gmail.com>
+Date: Wed, 29 Jun 2011 16:58:24 -0600
+Message-ID: <BANLkTinL33p=bShbB70y7fJLCxyhgcWy=w@mail.gmail.com>
+Subject: Re: [PATCH] Revert "V4L/DVB: cx23885: Enable Message Signaled Interrupts(MSI)"
+To: Jarod Wilson <jarod@redhat.com>
+Cc: linux-media@vger.kernel.org, Andy Walls <awalls@md.metrocast.net>,
+	Kusanagi Kouichi <slash@ac.auone-net.jp>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Now, all data structures are commented. A few ioctls remain undocumented:
+On Wed, Jun 29, 2011 at 3:49 PM, Jarod Wilson <jarod@redhat.com> wrote:
+> This reverts commit e38030f3ff02684eb9e25e983a03ad318a10a2ea.
+>
+> MSI flat-out doesn't work right on cx2388x devices yet. There are now
+> multiple reports of cards that hard-lock systems when MSI is enabled,
+> including my own HVR-1250 when trying to use its built-in IR receiver.
+> Disable MSI and it works just fine. Similar for another user's HVR-1270.
+> Issues have also been reported with the HVR-1850 when MSI is enabled,
+> and the 1850 behavior sounds similar to an as-yet-undiagnosed issue I've
+> seen with an 1800.
+>
+> References:
+>
+> http://www.spinics.net/lists/linux-media/msg25956.html
+> http://www.spinics.net/lists/linux-media/msg33676.html
+> http://www.spinics.net/lists/linux-media/msg34734.html
+>
+> CC: Andy Walls <awalls@md.metrocast.net>
+> CC: Kusanagi Kouichi <slash@ac.auone-net.jp>
+> Signed-off-by: Jarod Wilson <jarod@redhat.com>
+> ---
+>  drivers/media/video/cx23885/cx23885-core.c |    9 ++-------
+>  1 files changed, 2 insertions(+), 7 deletions(-)
+>
+> diff --git a/drivers/media/video/cx23885/cx23885-core.c b/drivers/media/video/cx23885/cx23885-core.c
+> index 64d9b21..419777a 100644
+> --- a/drivers/media/video/cx23885/cx23885-core.c
+> +++ b/drivers/media/video/cx23885/cx23885-core.c
+> @@ -2060,12 +2060,8 @@ static int __devinit cx23885_initdev(struct pci_dev *pci_dev,
+>                goto fail_irq;
+>        }
+>
+> -       if (!pci_enable_msi(pci_dev))
+> -               err = request_irq(pci_dev->irq, cx23885_irq,
+> -                                 IRQF_DISABLED, dev->name, dev);
+> -       else
+> -               err = request_irq(pci_dev->irq, cx23885_irq,
+> -                                 IRQF_SHARED | IRQF_DISABLED, dev->name, dev);
+> +       err = request_irq(pci_dev->irq, cx23885_irq,
+> +                         IRQF_SHARED | IRQF_DISABLED, dev->name, dev);
+>        if (err < 0) {
+>                printk(KERN_ERR "%s: can't get IRQ %d\n",
+>                       dev->name, pci_dev->irq);
+> @@ -2114,7 +2110,6 @@ static void __devexit cx23885_finidev(struct pci_dev *pci_dev)
+>
+>        /* unregister stuff */
+>        free_irq(pci_dev->irq, dev);
+> -       pci_disable_msi(pci_dev);
+>
+>        cx23885_dev_unregister(dev);
+>        v4l2_device_unregister(v4l2_dev);
+> --
+> 1.7.1
+>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>
 
-Error: no ID for constraint linkend: VIDEO_GET_SIZE.
-Error: no ID for constraint linkend: VIDEO_GET_FRAME_RATE.
-Error: no ID for constraint linkend: VIDEO_GET_PTS.
-Error: no ID for constraint linkend: VIDEO_GET_FRAME_COUNT.
-Error: no ID for constraint linkend: VIDEO_COMMAND.
-Error: no ID for constraint linkend: VIDEO_TRY_COMMAND.
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
-
-diff --git a/Documentation/DocBook/media/dvb/video.xml b/Documentation/DocBook/media/dvb/video.xml
-index ef30f69..539c79b 100644
---- a/Documentation/DocBook/media/dvb/video.xml
-+++ b/Documentation/DocBook/media/dvb/video.xml
-@@ -37,8 +37,8 @@ stream.
- </para>
- </section>
- 
--<section id="video-display-format-t">
--<title>video_display_format_t</title>
-+<section id="video-displayformat-t">
-+<title>video_displayformat_t</title>
- <para>In case the display format of the video stream and of the display hardware differ the
- application has to specify how to handle the cropping of the picture. This can be done using
- the VIDEO_SET_DISPLAY_FORMAT call (??) which accepts
-@@ -89,6 +89,49 @@ typedef enum {
- </programlisting>
- </section>
- 
-+<section id="video-command">
-+<para>The structure must be zeroed before use by the application
-+This ensures it can be extended safely in the future.</para>
-+<title>struct video-command</title>
-+<programlisting>
-+struct video_command {
-+	__u32 cmd;
-+	__u32 flags;
-+	union {
-+		struct {
-+			__u64 pts;
-+		} stop;
-+
-+		struct {
-+			/&#x22C6; 0 or 1000 specifies normal speed,
-+			   1 specifies forward single stepping,
-+			   -1 specifies backward single stepping,
-+			   &gt;>1: playback at speed/1000 of the normal speed,
-+			   &lt;-1: reverse playback at (-speed/1000) of the normal speed. &#x22C6;/
-+			__s32 speed;
-+			__u32 format;
-+		} play;
-+
-+		struct {
-+			__u32 data[16];
-+		} raw;
-+	};
-+};
-+</programlisting>
-+</section>
-+
-+<section id="video-size-t">
-+<title>struct video_size-t</title>
-+<programlisting>
-+typedef struct {
-+	int w;
-+	int h;
-+	video_format_t aspect_ratio;
-+} video_size_t;
-+</programlisting>
-+</section>
-+
-+
- <section id="video-event">
- <title>struct video_event</title>
- <para>The following is the structure of a video event as it is returned by the VIDEO_GET_EVENT
--- 
-1.7.1
-
+Tested and it fixed my HVR-1270 IR. I also tested a couple minutes of
+live TV and it still works.
