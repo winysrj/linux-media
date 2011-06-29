@@ -1,108 +1,107 @@
 Return-path: <mchehab@pedra>
-Received: from mx1.redhat.com ([209.132.183.28]:5857 "EHLO mx1.redhat.com"
+Received: from mx1.redhat.com ([209.132.183.28]:41101 "EHLO mx1.redhat.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751149Ab1FJIg7 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 10 Jun 2011 04:36:59 -0400
-Message-ID: <4DF1D79F.3020401@redhat.com>
-Date: Fri, 10 Jun 2011 10:36:47 +0200
-From: Hans de Goede <hdegoede@redhat.com>
+	id S1755299Ab1F2Lhh (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 29 Jun 2011 07:37:37 -0400
+Message-ID: <4E0B0E75.5030505@redhat.com>
+Date: Wed, 29 Jun 2011 08:37:25 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
 MIME-Version: 1.0
-To: balbi@ti.com
-CC: linux-usb@vger.kernel.org,
-	Sarah Sharp <sarah.a.sharp@linux.intel.com>,
-	linux-media@vger.kernel.org, libusb-devel@lists.sourceforge.net,
-	Alexander Graf <agraf@suse.de>,
-	Gerd Hoffmann <kraxel@redhat.com>, hector@marcansoft.com,
-	Jan Kiszka <jan.kiszka@siemens.com>,
-	Stefan Hajnoczi <stefanha@linux.vnet.ibm.com>,
-	pbonzini@redhat.com, Anthony Liguori <aliguori@us.ibm.com>,
-	Jes Sorensen <Jes.Sorensen@redhat.com>,
-	Alan Stern <stern@rowland.harvard.edu>,
-	Oliver Neukum <oliver@neukum.org>, Greg KH <greg@kroah.com>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Clemens Ladisch <clemens@ladisch.de>,
-	Jaroslav Kysela <perex@perex.cz>, Takashi Iwai <tiwai@suse.de>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Subject: Re: Improving kernel -> userspace (usbfs)  usb device hand off
-References: <20110610002103.GA7169@xanatos> <4DF1CDE1.4080303@redhat.com> <20110610082158.GH31396@legolas.emea.dhcp.ti.com>
-In-Reply-To: <20110610082158.GH31396@legolas.emea.dhcp.ti.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+To: Andy Walls <awalls@md.metrocast.net>
+CC: Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Pawel Osciak <pawel@osciak.com>,
+	Marek Szyprowski <m.szyprowski@samsung.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>
+Subject: Re: [RFCv3 PATCH 12/18] vb2_poll: don't start DMA, leave that to
+ the first read().
+References: <1307459123-17810-1-git-send-email-hverkuil@xs4all.nl>	 <f1a14e0985ddaa053e45522fe7bbdfae56057ec2.1307458245.git.hans.verkuil@cisco.com>	 <4E08FBA5.5080006@redhat.com> <201106280933.57364.hverkuil@xs4all.nl>	 <4E09B919.9040100@redhat.com>	 <cd2c9732-aee5-492b-ade2-bee084f79739@email.android.com>	 <4E09CC6A.8080900@redhat.com> <1309302853.2377.21.camel@palomino.walls.org>	 <4E0A6B18.8030407@redhat.com> <1309324089.2359.89.camel@palomino.walls.org>
+In-Reply-To: <1309324089.2359.89.camel@palomino.walls.org>
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Hi,
-
-On 06/10/2011 10:22 AM, Felipe Balbi wrote:
-> Hi,
->
-> On Fri, Jun 10, 2011 at 09:55:13AM +0200, Hans de Goede wrote:
->> Currently this will cause the usb mass storage driver to see a
->> disconnect, and any possible still pending writes are lost ...
+Em 29-06-2011 02:08, Andy Walls escreveu:
+> On Tue, 2011-06-28 at 21:00 -0300, Mauro Carvalho Chehab wrote:
+>> Em 28-06-2011 20:14, Andy Walls escreveu:
+>>> On Tue, 2011-06-28 at 09:43 -0300, Mauro Carvalho Chehab wrote:
+>>>> Em 28-06-2011 09:21, Andy Walls escreveu:
+>>>
+>>>>> It is also the case that a driver's poll method should never sleep.
+>>>>
+>>>> True.
+>>>
+>>>>> One issue is how to start streaming with apps that:
+>>>>> - Open /dev/video/ in a nonblocking mode, and
+>>>>> - Use the read() method
+>>>>>
+>>>>> while doing it in a way that is POSIX compliant and doesn't break existing apps.  
+>>>>
+>>>> Well, a first call for poll() may rise a thread that will prepare the buffers, and
+>>>> return with 0 while there's no data available.
+>>>
+>>> Sure, but that doesn't solve the problem of an app only select()-ing or
+>>> poll()-ing for exception fd's and not starting any IO.
 >>
->> This is IMHO unacceptable, but currently there is nothing we can
->> do to avoid this.
+>> Well, a file descriptor can be used only for one thing: or it is a stream file
+>> descriptor, or it is an event descriptor. You can't have both for the same
+>> file descriptor. If an application need to check for both, the standard Unix way is:
 >>
->> 2) So called dual mode cameras are (cheap) stillcams often even
->> without an lcdscreen viewfinder, and battery backed sram instead
->> of flash, which double as a webcam. We have drivers for both the
->> stillcam function of these (in libgphoto2, so using usbfs) as
->> well as for the webcam function (v4l2 kernel drivers).
+>> 	fd_set set;
 >>
->> These drivers work well, and are mature. Yet the user experience
->> is rather poor. Under gnome the still-cam contents will be
->> automatically be made available as a "drive" using a gvfs-gphoto2 fuse
->> mount. This however involves sending a disconnect to the v4l2 kernel
->> driver, and thus the /dev/video# node disappearing. So if a user
->> wants to use the device as a webcam he/she needs to first go to
->> nautilus and unmount the gvfs mount. Until that is done the user will
->> simply get a message from an app like cheese that he has no webcam,
->> not even an ebusy error, just that he has no such device.
->
-> that sounds quite weird. Should only happen if still image and video
-> functions are on different configurations or different alt-settings of
-> the same interface. But if they are on same configurations and separate
-> interfaces, you should be able to bind gphoto to the still image
-> interface and v4l2 to the camera interface.
->
-> How's the device setup ?
->
+>> 	FD_ZERO (&set);
+>> 	FD_SET (fd_stream, &set);
+>> 	FD_SET (fd_event, &set);
+>>
+>> 	select (FD_SETSIZE, &set, NULL, NULL, &timeout);
+>>
+>> In other words, or the events nodes need to be different, or an ioctl is needed
+>> in order to tell the Kernel that the associated file descriptor will be used
+>> for an event, and that vb2 should not bother with it.
+> 
+> Um, no, that is not correct for Unix fd's and socket descriptors in
+> general.  I realize that v4l2 events need to be enabled with an ioctl(),
+> but do we have a restriction that that can't happen on the same fd as
+> the one used for streaming?
+> 
+> Back in the days before threads were commonly available on Unix systems,
+> a process would use a single thread calling select() to handle I/O on a
+> serial port:
+> 
+> 	fd_set rfds, wfds;
+> 	int ttyfd;
+> 	...
+> 	FD_ZERO(&rfds);
+> 	FD_SET(ttyfd, &rfds);
+> 	FD_ZERO(&wfds);
+> 	FD_SET(ttyfd, &wfds);
+> 
+> 	n = select(ttyfd+1, &rfds, &wfds, NULL, NULL);
+> 
+> Or TCP socket
+> 
+> 	fd_set rfds, wfds, efds;
+> 	int sockd;
+> 	...
+> 	FD_ZERO(&rfds);
+> 	FD_SET(sockd, &rfds);
+> 	FD_ZERO(&wfds);
+> 	FD_SET(sockd, &wfds);
+> 	FD_ZERO(&efds);
+> 	FD_SET(sockd, &efds);
+> 
+> 	n = select(sockd+1, &rfds, &wfds, &efds, NULL);
 
-These are very cheap devices, and as such poorly designed. There still
-and webcam functionality is on the same interface. This is likely done
-this way because the devices cannot handle both functions at the same
-time.
+On both serial and socket devices, if select returns a file descriptor,
+the data is there or the device/socket got disconnected.
 
->> So what do we need to make this situation better:
->> 1) A usb_driver callback alternative to the disconnect callback,
->>     I propose to call this soft_disconnect. This serves 2 purposes
->>     a) It will allow the driver to tell the caller that that is not
->>        a good idea by returning an error code (think usb mass storage
->>        driver and mounted filesystem
->
-> I'm not sure you even need a driver callback for that. Should we leave
-> that to Desktop manager ?
+> Waiting for data to arrive on an fd, while not streaming is an error
+> condition for select() should return. 
 
-Not sure what you mean here, but we need for a way for drivers to say
-no to a software caused disconnection. See my usb mass storage device
-which is still mounted getting redirected to a vm example. This cannot
-be reliably done from userspace. Where as it is trivial to do this
-from kernel space. One could advocate to make the existing disconnect
-ioctl use the new soft_disconnect usb_driver callback instead of
-adding a new usbfs ioctl for this, but that means that a driver
-can block any and all userspace triggered disconnects. Where as
-having a new ioctl, means that apps which want to play nice can play
-nice, while keeping the possibility of a hard userspace initiated
-disconnect.
+Yes, but poll() starts the streaming, if the mmap mode were not started, 
+according with the V4L2 spec:
+	http://linuxtv.org/downloads/v4l-dvb-apis/func-poll.html
 
-One could also argue that making the existing disconnect ioctl return
--EBUSY in some cases now is an ABI change.
-
-Regards,
-
-Hans
-
-
-
-
-
+Thanks,
+Mauro.
