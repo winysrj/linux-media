@@ -1,81 +1,58 @@
 Return-path: <mchehab@pedra>
-Received: from mx1.redhat.com ([209.132.183.28]:49625 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756710Ab1FPPfG (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 16 Jun 2011 11:35:06 -0400
-Message-ID: <4DFA22A5.1080303@redhat.com>
-Date: Thu, 16 Jun 2011 12:35:01 -0300
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Received: from relay4-d.mail.gandi.net ([217.70.183.196]:54009 "EHLO
+	relay4-d.mail.gandi.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751679Ab1F2NQL (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 29 Jun 2011 09:16:11 -0400
+Received: from mfilter12-d.gandi.net (mfilter12-d.gandi.net [217.70.178.129])
+	by relay4-d.mail.gandi.net (Postfix) with ESMTP id B30C4172088
+	for <linux-media@vger.kernel.org>; Wed, 29 Jun 2011 15:16:09 +0200 (CEST)
+Received: from relay4-d.mail.gandi.net ([217.70.183.196])
+	by mfilter12-d.gandi.net (mfilter12-d.gandi.net [10.0.15.180]) (amavisd-new, port 10024)
+	with ESMTP id jqB3TQDhommo for <linux-media@vger.kernel.org>;
+	Wed, 29 Jun 2011 15:16:08 +0200 (CEST)
+Received: from WIN7PC (ALyon-157-1-15-84.w81-251.abo.wanadoo.fr [81.251.54.84])
+	(Authenticated sender: sr@coexsi.fr)
+	by relay4-d.mail.gandi.net (Postfix) with ESMTPSA id 1CB15172071
+	for <linux-media@vger.kernel.org>; Wed, 29 Jun 2011 15:16:08 +0200 (CEST)
+From: =?iso-8859-1?Q?S=E9bastien_RAILLARD_=28COEXSI=29?= <sr@coexsi.fr>
+To: "Linux Media Mailing List" <linux-media@vger.kernel.org>
+Subject: [DVB] TT S-1500b tuning issue
+Date: Wed, 29 Jun 2011 15:16:10 +0200
+Message-ID: <00a301cc365e$b6d415c0$247c4140$@coexsi.fr>
 MIME-Version: 1.0
-To: Hans de Goede <hdegoede@redhat.com>
-CC: Devin Heitmueller <dheitmueller@kernellabs.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: Some fixes for alsa_stream
-References: <4DF6C10C.8070605@redhat.com>	<4DF758AF.3010301@redhat.com>	<4DF75C84.9000200@redhat.com>	<4DF7667C.9030502@redhat.com> <BANLkTi=9L+oxjpUaFo3ge0iqcZ2NCjJWWA@mail.gmail.com> <4DF76D88.5000506@redhat.com> <4DF77229.2020607@redhat.com> <4DF77405.2070104@redhat.com> <4DF8B716.1020406@redhat.com> <4DF8C0D2.5070900@redhat.com> <4DF8C32A.7090004@redhat.com> <4DF8D37C.7010307@redhat.com> <4DF9F734.1090508@redhat.com> <4DFA1561.1030905@redhat.com> <4DFA1D05.6020004@redhat.com>
-In-Reply-To: <4DFA1D05.6020004@redhat.com>
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain;
+	charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
+Content-Language: fr
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Em 16-06-2011 12:11, Hans de Goede escreveu:
+Dear all,
 
->>> I've also changed the default -alsa-pb value to "default" as we should
->>> not be picking something else then the user / distro configured defaults
->>> for output IMHO. The user can set a generic default in alsarc, and override
->>> that on the cmdline if he/she wants, but unless overridden on the cmdline
->>> we should respect the users generic default as specified in his
->>> alsarc.
->>
->> While pulseaudio refuses to work via ssh, this is actually a very bad idea.
->> Xawtv is used by developers to test their stuff, and they generally do it
->> on a remote machine, with the console captured via tty port, in order to
->> be able to catch panic messages.
->>
-> 
-> I'm sure developers are quite capable of creating either an .alsarc, pass
-> the cmdline option, or change pulseaudio's config to accept non local console
-> connections.
+We have found what seems to be a tuning issue in the driver for the ALPS
+BSBE1-D01A used in the new TT-S-1500b card from Technotrend.
+On some transponders, like ASTRA 19.2E 11817-V-27500, the card can work very
+well (no lock issues) for hours.
 
-As far as I noticed, most media developers seems to not be comfortable with 
-pulseaudio. Using pulseaudio by default would require more experience from
-developers, otherwise nobody will be able to properly support it.
+On some other transponders, like ASTRA 19.2E 11567-V-22000, the card nearly
+never manage to get the lock: it's looking like the signal isn't good
+enough.
+I turned on the debugging of the stb6000 and stv0288 modules, but I can't
+see anything wrong.
 
-For example, the only way I know that works to remove an audio 
-module used by pulseaudio is by doing dirty tricks like: 
+Also, we have noticed that the lock maybe lost by intermittence on others
+transponders where it may work fine for few hours and then stop working for
+few hours.
 
-while : ; do kill pulseaudio; rmmod <audio_module> && break; done
+After doing some researches about the ALPS BSBE1-D01A frontend, I've found
+it's the one used in the DREAMBOX DVB-S tuner module (that is running
+Linux), but I didn't manage to find the source code repository to check
+their drivers, maybe someone know where is it?
 
-I was told that there's a pactl syntax, but I was never able to find how to
-make it work, not even on a local console (and I need it supported via ssh).
->From other posts, other developers at this ML also didn't discover how to do 
-it yet.
+Best regards,
+Sebastien.
 
-A pulseaudio or .alsarc config to enable ssh would be fine, but, again,
-that's not obvious.
 
-While developers are not comfortable with pulseaudio, turning it into a default
-is a bad idea.
 
-> 
-> We should try to have sane user oriented defaults, not developer oriented
-> defaults.
-> 
-> Also not all developers work the same way you do, so having a certain default
-> just so it matches your work flow also is a bad idea IMHO.
-> 
->> For now, please revert this patch. After having pulseaudio fixed to properly
->> handle the audio group, I'm ok to re-add it.
->>
->>> We could consider making the desired latency configurable, currently
->>> I've hardcoded it to 30 ms (was 38 with the old code on my system) note
->>> that I've chosen to specify the latency in ms rather then in a number
->>> of samples, since it should be samplerate independent IMO.
->>
->> Yeah, having latency configurable sounds a good idea to me.
-> 
-> Done.
 
-Thanks!
-
-Mauro
