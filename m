@@ -1,78 +1,56 @@
 Return-path: <mchehab@pedra>
-Received: from gerard.telenet-ops.be ([195.130.132.48]:41909 "EHLO
-	gerard.telenet-ops.be" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756013Ab1FNKsy (ORCPT
+Received: from perceval.ideasonboard.com ([95.142.166.194]:52910 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751735Ab1F2KaL (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 14 Jun 2011 06:48:54 -0400
-Message-ID: <4DF73C94.7010003@telenet.be>
-Date: Tue, 14 Jun 2011 12:48:52 +0200
-From: Bart Coninckx <bart.coninckx@telenet.be>
+	Wed, 29 Jun 2011 06:30:11 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: "Hans Verkuil" <hverkuil@xs4all.nl>
+Subject: Re: [RFC PATCH] Add support for V4L2_EVENT_SUB_FL_NO_FEEDBACK
+Date: Wed, 29 Jun 2011 12:30:26 +0200
+Cc: "linux-media" <linux-media@vger.kernel.org>
+References: <201106281718.07158.hverkuil@xs4all.nl> <201106291157.02631.laurent.pinchart@ideasonboard.com> <3a51f8dd0eaf0a5f8e3a86c1500648d3.squirrel@webmail.xs4all.nl>
+In-Reply-To: <3a51f8dd0eaf0a5f8e3a86c1500648d3.squirrel@webmail.xs4all.nl>
 MIME-Version: 1.0
-To: Issa Gorissen <flop.m@usa.net>
-CC: linux-media@vger.kernel.org
-Subject: Re: "dvb_ca adaptor 0: PC card did not respond :(" with Technotrend
- S2-3200
-References: <4DF53E1F.7010903@telenet.be> <4DF73B45.7000900@usa.net>
-In-Reply-To: <4DF73B45.7000900@usa.net>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
+Message-Id: <201106291230.26516.laurent.pinchart@ideasonboard.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On 06/14/11 12:43, Issa Gorissen wrote:
-> On 13/06/2011 00:30, Bart Coninckx wrote:
->> Hi all,
->>
->>
->> hope you can help me this one, because there's not a whole of info
->> about similar problems to be found.
->>
->> I have a Technotrend S2-3200 with CI and on three different distros I
->> get this
->>
->> "dvb_ca adaptor 0: PC card did not respond :(
->>
->>
->> in /var/log/messages.
->
-> Hi Bart,
->
-> I've got the same card running under OpenSuse 11.4 and Mythtv 0.24.1
->
-> I also have the same warning message, but somehow, when Mythtv grabs the
-> device, the CAM will be reset successfully (at least, in my case).
->
-> In the past, I solved this annoyance by adding a sleep in the CAM init
-> code [1] relevant to the S2-3200 until I found out Mythtv does something
-> about it.
->
-> [1] drivers/media/dvb/dvb-core/dvb_ca_en50221.c in function
-> dvb_ca_en50221_thread(void) add a sleep of 5 or 10 secs between the 1st
-> dprintk and the main loop.
->
-> Hope this helps,
-> --
-> Issa
+Hi Hans,
 
-Issa,
+On Wednesday 29 June 2011 12:06:57 Hans Verkuil wrote:
+> > On Tuesday 28 June 2011 17:18:07 Hans Verkuil wrote:
+> >> Originally no control events would go to the filehandle that called the
+> >> VIDIOC_S_CTRL/VIDIOC_S_EXT_CTRLS ioctls. This was to prevent a feedback
+> >> loop.
+> >> 
+> >> This is now only done if the new V4L2_EVENT_SUB_FL_NO_FEEDBACK flag is
+> >> set.
+> > 
+> > What about doing it the other way around ? Most applications won't want
+> > that feedback, you could disable it by default.
+> 
+> I thought about that, but that's harder to explain since that flag would
+> then suppress an exception to the normal handling of event.
+> 
+> It's easier to say: events are sent to everyone, but if you set this flag,
+> then we make this exception.
 
-thx a mille for this. I actually haven't really tried in Mythtv itself, 
-I was just experimenting with szap and mplayer. But I figured that if 
-they aren't working there, they would not elsewhere.
+Events are sent to everyone but you, but if you set this flag, you get them as 
+well.
 
-I do notice that while taking the card out and putting it back it, the 
-CAM show as initialized successfully in dmesg.
+It's not that hard ;-)
 
-I will try your suggestion though. Off topic, but would you advice 11.4 
-in favor of 11.3? As a secondary route, I was thinking about using 
-sasc-ng (softcamming, legal in this case) and the code seems not to want 
-to compile on 11.4. Also 11.4 broke after updating the kernel.
+> I suspect that most applications do not need to set this flag anyway, only
+> applications like qv4l2 that create a control panel need it.
 
+Most applications won't need events for controls they modify themselves. While 
+this might not break them, it would still be a waste of resources.
 
-thx again!
+-- 
+Regards,
 
-
-B.
-
-
-
+Laurent Pinchart
