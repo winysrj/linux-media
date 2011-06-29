@@ -1,84 +1,66 @@
 Return-path: <mchehab@pedra>
-Received: from proofpoint-cluster.metrocast.net ([65.175.128.136]:35194 "EHLO
-	proofpoint-cluster.metrocast.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755962Ab1F2Xeh (ORCPT
+Received: from mailout2.w1.samsung.com ([210.118.77.12]:30330 "EHLO
+	mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755873Ab1F2Mv6 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 29 Jun 2011 19:34:37 -0400
-Subject: Re: [PATCH] Revert "V4L/DVB: cx23885: Enable Message Signaled
- Interrupts(MSI)"
-From: Andy Walls <awalls@md.metrocast.net>
-To: Jarod Wilson <jarod@redhat.com>
-Cc: stoth@kernellabs.com, linux-media@vger.kernel.org,
-	Kusanagi Kouichi <slash@ac.auone-net.jp>
-In-Reply-To: <1309384173-12933-1-git-send-email-jarod@redhat.com>
-References: <1309384173-12933-1-git-send-email-jarod@redhat.com>
-Content-Type: text/plain; charset="UTF-8"
-Date: Wed, 29 Jun 2011 19:35:04 -0400
-Message-ID: <1309390504.3110.40.camel@morgan.silverblock.net>
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+	Wed, 29 Jun 2011 08:51:58 -0400
+Received: from eu_spt1 (mailout2.w1.samsung.com [210.118.77.12])
+ by mailout2.w1.samsung.com
+ (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14 2004))
+ with ESMTP id <0LNJ009BTYEGZV@mailout2.w1.samsung.com> for
+ linux-media@vger.kernel.org; Wed, 29 Jun 2011 13:51:53 +0100 (BST)
+Received: from linux.samsung.com ([106.116.38.10])
+ by spt1.w1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14
+ 2004)) with ESMTPA id <0LNJ00LHOYEF4Q@spt1.w1.samsung.com> for
+ linux-media@vger.kernel.org; Wed, 29 Jun 2011 13:51:51 +0100 (BST)
+Date: Wed, 29 Jun 2011 14:51:11 +0200
+From: Tomasz Stanislawski <t.stanislaws@samsung.com>
+Subject: [PATCH 2/8] v4l: add g_tvnorms_output callback to V4L2 subdev
+In-reply-to: <1309351877-32444-1-git-send-email-t.stanislaws@samsung.com>
+To: linux-media@vger.kernel.org
+Cc: m.szyprowski@samsung.com, t.stanislaws@samsung.com,
+	kyungmin.park@samsung.com, hverkuil@xs4all.nl,
+	laurent.pinchart@ideasonboard.com
+Message-id: <1309351877-32444-3-git-send-email-t.stanislaws@samsung.com>
+MIME-version: 1.0
+Content-type: TEXT/PLAIN
+Content-transfer-encoding: 7BIT
+References: <1309351877-32444-1-git-send-email-t.stanislaws@samsung.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Wed, 2011-06-29 at 17:49 -0400, Jarod Wilson wrote:
-> This reverts commit e38030f3ff02684eb9e25e983a03ad318a10a2ea.
-> 
-> MSI flat-out doesn't work right on cx2388x devices yet. There are now
-> multiple reports of cards that hard-lock systems when MSI is enabled,
-> including my own HVR-1250 when trying to use its built-in IR receiver.
-> Disable MSI and it works just fine. Similar for another user's HVR-1270.
-> Issues have also been reported with the HVR-1850 when MSI is enabled,
-> and the 1850 behavior sounds similar to an as-yet-undiagnosed issue I've
-> seen with an 1800.
-> 
-> References:
-> 
-> http://www.spinics.net/lists/linux-media/msg25956.html
-> http://www.spinics.net/lists/linux-media/msg33676.html
-> http://www.spinics.net/lists/linux-media/msg34734.html
-> 
-> CC: Andy Walls <awalls@md.metrocast.net>
+Callback is used to acquire TV norms supported by a subdev.
+It is used to avoid having standards in top-level driver.
 
-Fine by me.
+Signed-off-by: Tomasz Stanislawski <t.stanislaws@samsung.com>
+Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+Reviewed-by: Hans Verkuil <hverkuil@xs4all.nl>
+---
+ include/media/v4l2-subdev.h |    4 ++++
+ 1 files changed, 4 insertions(+), 0 deletions(-)
 
-Acked-by: Andy Walls <awalls@md.metrocast.net>
-
-but you should really
-
-Cc: Steven Toth <stoth@kernellabs.com>
-
-> CC: Kusanagi Kouichi <slash@ac.auone-net.jp>
-> Signed-off-by: Jarod Wilson <jarod@redhat.com>
-> ---
->  drivers/media/video/cx23885/cx23885-core.c |    9 ++-------
->  1 files changed, 2 insertions(+), 7 deletions(-)
-> 
-> diff --git a/drivers/media/video/cx23885/cx23885-core.c b/drivers/media/video/cx23885/cx23885-core.c
-> index 64d9b21..419777a 100644
-> --- a/drivers/media/video/cx23885/cx23885-core.c
-> +++ b/drivers/media/video/cx23885/cx23885-core.c
-> @@ -2060,12 +2060,8 @@ static int __devinit cx23885_initdev(struct pci_dev *pci_dev,
->  		goto fail_irq;
->  	}
->  
-> -	if (!pci_enable_msi(pci_dev))
-> -		err = request_irq(pci_dev->irq, cx23885_irq,
-> -				  IRQF_DISABLED, dev->name, dev);
-> -	else
-> -		err = request_irq(pci_dev->irq, cx23885_irq,
-> -				  IRQF_SHARED | IRQF_DISABLED, dev->name, dev);
-> +	err = request_irq(pci_dev->irq, cx23885_irq,
-> +			  IRQF_SHARED | IRQF_DISABLED, dev->name, dev);
->  	if (err < 0) {
->  		printk(KERN_ERR "%s: can't get IRQ %d\n",
->  		       dev->name, pci_dev->irq);
-> @@ -2114,7 +2110,6 @@ static void __devexit cx23885_finidev(struct pci_dev *pci_dev)
->  
->  	/* unregister stuff */
->  	free_irq(pci_dev->irq, dev);
-> -	pci_disable_msi(pci_dev);
->  
->  	cx23885_dev_unregister(dev);
->  	v4l2_device_unregister(v4l2_dev);
-
+diff --git a/include/media/v4l2-subdev.h b/include/media/v4l2-subdev.h
+index 1562c4f..476fcdd 100644
+--- a/include/media/v4l2-subdev.h
++++ b/include/media/v4l2-subdev.h
+@@ -225,6 +225,9 @@ struct v4l2_subdev_audio_ops {
+    s_std_output: set v4l2_std_id for video OUTPUT devices. This is ignored by
+ 	video input devices.
+ 
++   g_tvnorms_output: get v4l2_std_id with all standards supported by video
++	OUTPUT device. This is ignored by video input devices.
++
+    s_crystal_freq: sets the frequency of the crystal used to generate the
+ 	clocks in Hz. An extra flags field allows device specific configuration
+ 	regarding clock frequency dividers, etc. If not used, then set flags
+@@ -261,6 +264,7 @@ struct v4l2_subdev_video_ops {
+ 	int (*s_crystal_freq)(struct v4l2_subdev *sd, u32 freq, u32 flags);
+ 	int (*s_std_output)(struct v4l2_subdev *sd, v4l2_std_id std);
+ 	int (*querystd)(struct v4l2_subdev *sd, v4l2_std_id *std);
++	int (*g_tvnorms_output)(struct v4l2_subdev *sd, v4l2_std_id *std);
+ 	int (*g_input_status)(struct v4l2_subdev *sd, u32 *status);
+ 	int (*s_stream)(struct v4l2_subdev *sd, int enable);
+ 	int (*cropcap)(struct v4l2_subdev *sd, struct v4l2_cropcap *cc);
+-- 
+1.7.5.4
 
