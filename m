@@ -1,101 +1,59 @@
 Return-path: <mchehab@pedra>
-Received: from mx1.redhat.com ([209.132.183.28]:28608 "EHLO mx1.redhat.com"
+Received: from smtp.nokia.com ([147.243.1.48]:20410 "EHLO mgw-sa02.nokia.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757538Ab1FJPTU (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 10 Jun 2011 11:19:20 -0400
-Message-ID: <4DF235F0.9080209@redhat.com>
-Date: Fri, 10 Jun 2011 12:19:12 -0300
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
+	id S1752277Ab1F2TT4 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 29 Jun 2011 15:19:56 -0400
+Message-ID: <4E0B7AAE.7010900@iki.fi>
+Date: Wed, 29 Jun 2011 22:19:10 +0300
+From: Sakari Ailus <sakari.ailus@iki.fi>
 MIME-Version: 1.0
-To: Randy Dunlap <randy.dunlap@oracle.com>
-CC: Stephen Rothwell <sfr@canb.auug.org.au>,
-	linux-media@vger.kernel.org, linux-next@vger.kernel.org,
-	LKML <linux-kernel@vger.kernel.org>
-Subject: Re: linux-next: Tree for June 8 (docbook/media)
-References: <20110608161046.4ad95776.sfr@canb.auug.org.au> <20110608125243.e63a07fc.randy.dunlap@oracle.com> <4DF11E15.5030907@infradead.org> <4DF12263.3070900@redhat.com> <4DF12DD1.7060606@oracle.com> <4DF1581E.8050308@redhat.com> <4DF1593A.6080306@oracle.com> <4DF21254.6090106@redhat.com> <4DF23271.7070407@oracle.com>
-In-Reply-To: <4DF23271.7070407@oracle.com>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+CC: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	sakari.ailus@maxwell.research.nokia.com,
+	Sylwester Nawrocki <snjw23@gmail.com>,
+	Stan <svarbanov@mm-sol.com>, Hans Verkuil <hansverk@cisco.com>,
+	saaguirre@ti.com, Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: Re: [PATCH v2] V4L: add media bus configuration subdev operations
+References: <Pine.LNX.4.64.1106222314570.3535@axis700.grange> <20110623220129.GA10918@valkosipuli.localdomain> <Pine.LNX.4.64.1106240021540.5348@axis700.grange> <20110627081912.GC12671@valkosipuli.localdomain> <Pine.LNX.4.64.1106271029240.9394@axis700.grange> <Pine.LNX.4.64.1106291806260.12577@axis700.grange>
+In-Reply-To: <Pine.LNX.4.64.1106291806260.12577@axis700.grange>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Em 10-06-2011 12:04, Randy Dunlap escreveu:
-> On 06/10/11 05:47, Mauro Carvalho Chehab wrote:
->> Hi Randy,
+Guennadi Liakhovetski wrote:
+> On Mon, 27 Jun 2011, Guennadi Liakhovetski wrote:
+> 
+> [snip]
+> 
+>>> If the structures are expected to be generic I somehow feel that a field of
+>>> flags isn't the best way to describe the configuration of CSI-2 or other
+>>> busses. Why not to just use a structure with bus type and an union for
+>>> bus-specific configuration parameters? It'd be easier to access and also to
+>>> change as needed than flags in an unsigned long field.
 >>
->> Em 09-06-2011 20:37, Randy Dunlap escreveu:
->>>
->>> Big hint:  I see these errors not during "make htmldocs" but during a kernel code build
->>> when CONFIG_BUILD_DOCSRC=y.
->>>
->>> Sorry, I should have mentioned this earlier.
->>
->> I couldn't reach any troubles there. Documentation build is stopping earlier.
->> I'm using the -next tree for 20110610:
->>
->> $ make defconfig
->> $ make CONFIG_BUILD_DOCSRC=y -j 16 Documentation/
+>> Well, yes, a union can be a good idea, thanks.
 > 
-> 
-> Maybe that incantation does not set CONFIG_HEADERS_CHECK, which
-> CONFIG_BUILD_DOCSRC depends on.
-> 
-> [build errors snipped]
-> 
->>
->> Could you please send me your .config?
-> 
-> yes, attached.
-> 
+> ...on a second thought, we currently only have one field: flags, and it is 
+> common for all 3 bus types: parallel, reduced parallel (bt.656, etc.), and 
+> CSI-2. In the future, when we need more parameters for any of these busses 
+> we'll just add such a union, shouldn't be a problem.
 
-Hmm... didn't work either. With your config:
+What I meant above was that I would prefer to describe the capabilities
+in a structure which would contain appropriate data type for the field,
+not as flags or sets of flags in a bit field.
 
-[mchehab@buidmachine linux-next]$ make -j 16 Documentation/
-  CHK     include/linux/version.h
-  CHK     include/generated/utsrelease.h
-  CALL    scripts/checksyscalls.sh
-  HOSTCC  Documentation/networking/timestamping/timestamping
-Documentation/networking/timestamping/timestamping.c:45:30: error: linux/net_tstamp.h: No such file or directory
-Documentation/networking/timestamping/timestamping.c: In function ‘main’:
-Documentation/networking/timestamping/timestamping.c:331: error: storage size of ‘hwconfig’ isn’t known
-Documentation/networking/timestamping/timestamping.c:331: error: storage size of ‘hwconfig_requested’ isn’t known
-Documentation/networking/timestamping/timestamping.c:355: error: ‘SOF_TIMESTAMPING_TX_HARDWARE’ undeclared (first use in this function)
-Documentation/networking/timestamping/timestamping.c:355: error: (Each undeclared identifier is reported only once
-Documentation/networking/timestamping/timestamping.c:355: error: for each function it appears in.)
-Documentation/networking/timestamping/timestamping.c:357: error: ‘SOF_TIMESTAMPING_TX_SOFTWARE’ undeclared (first use in this function)
-Documentation/networking/timestamping/timestamping.c:359: error: ‘SOF_TIMESTAMPING_RX_HARDWARE’ undeclared (first use in this function)
-Documentation/networking/timestamping/timestamping.c:361: error: ‘SOF_TIMESTAMPING_RX_SOFTWARE’ undeclared (first use in this function)
-Documentation/networking/timestamping/timestamping.c:363: error: ‘SOF_TIMESTAMPING_SOFTWARE’ undeclared (first use in this function)
-Documentation/networking/timestamping/timestamping.c:365: error: ‘SOF_TIMESTAMPING_SYS_HARDWARE’ undeclared (first use in this function)
-Documentation/networking/timestamping/timestamping.c:367: error: ‘SOF_TIMESTAMPING_RAW_HARDWARE’ undeclared (first use in this function)
-Documentation/networking/timestamping/timestamping.c:387: error: ‘HWTSTAMP_TX_ON’ undeclared (first use in this function)
-Documentation/networking/timestamping/timestamping.c:387: error: ‘HWTSTAMP_TX_OFF’ undeclared (first use in this function)
-Documentation/networking/timestamping/timestamping.c:390: error: ‘HWTSTAMP_FILTER_PTP_V1_L4_SYNC’ undeclared (first use in this function)
-Documentation/networking/timestamping/timestamping.c:390: error: ‘HWTSTAMP_FILTER_NONE’ undeclared (first use in this function)
-Documentation/networking/timestamping/timestamping.c:331: warning: unused variable ‘hwconfig_requested’
-Documentation/networking/timestamping/timestamping.c:331: warning: unused variable ‘hwconfig’
-make[3]: *** [Documentation/networking/timestamping/timestamping] Error 1
-make[2]: *** [Documentation/networking/timestamping] Error 2
-make[1]: *** [Documentation/networking] Error 2
-make: *** [Documentation/] Error 2
+This would allow e.g. just testing for
+v4l2_mbus_config.u.parallel.hsync_active_low instead of
+v4l2_mbus_config.flags & V4L2_MBUS_HSYNC_ACTIVE_LOW. This way the flags
+used for the bus also express the bus explicitly rather than implicitly.
 
-PS.: A full build against next is broken:
-$ make -j 27
-  CHK     include/linux/version.h
-  CHK     include/generated/utsrelease.h
-  CALL    scripts/checksyscalls.sh
-  CHK     include/generated/compile.h
-  CC      arch/x86/lib/memmove_64.o
-gcc: arch/x86/lib/memmove_64.c: No such file or directory
-gcc: no input files
-make[1]: *** [arch/x86/lib/memmove_64.o] Error 1
-make: *** [arch/x86/lib] Error 2
-make: *** Waiting for unfinished jobs....
+Do you see downsides with this compared to using an integer field as
+flags? The other benefits of this are described in my earlier comment.
 
-My tree is on this commit:
+Regards,
 
-commit c4c5f633751496147f2d846844aa084a1dbca0f4
-Author: Stephen Rothwell <sfr@canb.auug.org.au>
-Date:   Fri Jun 10 16:17:26 2011 +1000
-
-    Add linux-next specific files for 20110610
+-- 
+Sakari Ailus
+sakari.ailus@iki.fi
