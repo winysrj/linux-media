@@ -1,64 +1,52 @@
 Return-path: <mchehab@pedra>
-Received: from casper.infradead.org ([85.118.1.10]:38885 "EHLO
-	casper.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755311Ab1FXLfa (ORCPT
+Received: from perceval.ideasonboard.com ([95.142.166.194]:59915 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752116Ab1F2AFn (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 24 Jun 2011 07:35:30 -0400
-Message-ID: <4E04767A.5020201@infradead.org>
-Date: Fri, 24 Jun 2011 08:35:22 -0300
-From: Mauro Carvalho Chehab <mchehab@infradead.org>
+	Tue, 28 Jun 2011 20:05:43 -0400
+Received: from lancelot.localnet (unknown [91.178.33.185])
+	by perceval.ideasonboard.com (Postfix) with ESMTPSA id E381635B82
+	for <linux-media@vger.kernel.org>; Wed, 29 Jun 2011 00:05:40 +0000 (UTC)
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: "'linux-media@vger.kernel.org'" <linux-media@vger.kernel.org>
+Subject: [GIT PATCHES FOR 3.0] v4l core and uvcvideo fixes
+Date: Wed, 29 Jun 2011 02:05:51 +0200
 MIME-Version: 1.0
-To: Ralf Baechle <ralf@linux-mips.org>
-CC: Takashi Iwai <tiwai@suse.de>, Jaroslav Kysela <perex@perex.cz>,
-	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-	alsa-devel@alsa-project.org, linux-mips@linux-mips.org
-Subject: Re: [PATCH] SOUND: Fix non-ISA_DMA_API build failure
-References: <20110623144750.GA10180@linux-mips.org> <s5hzkl7zlcq.wl%tiwai@suse.de> <20110624111608.GA6327@linux-mips.org>
-In-Reply-To: <20110624111608.GA6327@linux-mips.org>
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: Text/Plain;
+  charset="us-ascii"
 Content-Transfer-Encoding: 7bit
+Message-Id: <201106290205.52374.laurent.pinchart@ideasonboard.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Em 24-06-2011 08:16, Ralf Baechle escreveu:
-> On Fri, Jun 24, 2011 at 10:26:13AM +0200, Takashi Iwai wrote:
-> 
->> Hrm...  I still don't understand why ES18XX or others were selected at
->> the first place.  Isn't it covered by the conditional in
->> sound/isa/Kconfig like below?
->>
->> ================================================================
->> menuconfig SND_ISA
->> 	bool "ISA sound devices"
->> 	depends on ISA && ISA_DMA_API
->> ...
->> if SND_ISA
->> ...
->> config SND_ES18XX
->> 	tristate "Generic ESS ES18xx driver"
->> ...
->> endif	# SND_ISA
->> ================================================================
->>
->> Isn't SND_ISA=n in your case although ISA_DMA_API=n?
-> 
-> The answer is hidden in this Kconfig warning:
-> 
-> warning: (RADIO_MIROPCM20) selects SND_ISA which has unmet direct dependencies (SOUND && !M68K && SND && ISA && ISA_DMA_API)
-> 
-> This is due to the following in drivers/media/radio/Kconfig:
-> 
-> config RADIO_MIROPCM20
->         tristate "miroSOUND PCM20 radio"
->         depends on ISA && VIDEO_V4L2 && SND
->         select SND_ISA
->         select SND_MIRO
-> 
-> So SND_ISA gets forced on even though the dependency on ISA_DMA_API is not
-> fulfilled.  That's solved by adding the dependency on ISA_DMA_API to
-> RADIO_MIROPCM20.
+Hi Mauro,
 
-Another option would be to convert the two above selects into depends on.
+The following changes since commit b0af8dfdd67699e25083478c63eedef2e72ebd85:
 
-Cheers,
-Mauro
+  Linux 3.0-rc5 (2011-06-27 19:12:22 -0700)
+
+are available in the git repository at:
+  git://linuxtv.org/pinchartl/uvcvideo.git uvcvideo-stable
+
+Laurent Pinchart (2):
+      v4l: Don't access media entity after is has been destroyed
+      uvcvideo: Ignore entities for terminals with no supported format
+
+Sjoerd Simons (2):
+      uvcvideo: Remove buffers from the queues when freeing
+      uvcvideo: Disable the queue when failing to start
+
+ drivers/media/video/uvc/uvc_entity.c |   34 ++++++++++++++++++-----------
+ drivers/media/video/uvc/uvc_queue.c  |    2 +
+ drivers/media/video/uvc/uvc_video.c  |    4 ++-
+ drivers/media/video/v4l2-dev.c       |   39 ++++++---------------------------
+ 4 files changed, 33 insertions(+), 46 deletions(-
+
+The first two patches fix serious regressions causing oopses and need to go in 
+3.0. The last two patches fix non-regression bugs and can be delayed until 3.1 
+if needed.
+
+-- 
+Regards,
+
+Laurent Pinchart
