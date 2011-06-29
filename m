@@ -1,103 +1,138 @@
 Return-path: <mchehab@pedra>
-Received: from smtp-vbr9.xs4all.nl ([194.109.24.29]:3319 "EHLO
-	smtp-vbr9.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754687Ab1FRKkE (ORCPT
+Received: from rtp-iport-1.cisco.com ([64.102.122.148]:29467 "EHLO
+	rtp-iport-1.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754772Ab1F2LBy (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 18 Jun 2011 06:40:04 -0400
-Received: from tschai.localnet (215.80-203-102.nextgentel.com [80.203.102.215])
-	(authenticated bits=0)
-	by smtp-vbr9.xs4all.nl (8.13.8/8.13.8) with ESMTP id p5IAe1Yh061307
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-media@vger.kernel.org>; Sat, 18 Jun 2011 12:40:02 +0200 (CEST)
-	(envelope-from hverkuil@xs4all.nl)
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: "linux-media" <linux-media@vger.kernel.org>
-Subject: [GIT PATCHES FOR 3.1] Improve event and control handling
-Date: Sat, 18 Jun 2011 12:39:56 +0200
+	Wed, 29 Jun 2011 07:01:54 -0400
+From: Hans Verkuil <hansverk@cisco.com>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Subject: Re: [PATCH/RFC] media: vb2: change queue initialization order
+Date: Wed, 29 Jun 2011 13:01:40 +0200
+Cc: Marek Szyprowski <m.szyprowski@samsung.com>,
+	linux-media@vger.kernel.org,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	Pawel Osciak <pawel@osciak.com>,
+	Jonathan Corbet <corbet@lwn.net>,
+	"Uwe =?iso-8859-15?q?Kleine-K=F6nig?="
+	<u.kleine-koenig@pengutronix.de>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	Marin Mitov <mitov@issp.bas.bg>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>
+References: <1309340946-5658-1-git-send-email-m.szyprowski@samsung.com> <201106291244.48473.laurent.pinchart@ideasonboard.com>
+In-Reply-To: <201106291244.48473.laurent.pinchart@ideasonboard.com>
 MIME-Version: 1.0
 Content-Type: Text/Plain;
-  charset="us-ascii"
+  charset="iso-8859-15"
 Content-Transfer-Encoding: 7bit
-Message-Id: <201106181239.56449.hverkuil@xs4all.nl>
+Message-Id: <201106291301.40548.hansverk@cisco.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Hi Mauro,
+On Wednesday, June 29, 2011 12:44:48 Laurent Pinchart wrote:
+> Hi Marek,
+> 
+> On Wednesday 29 June 2011 11:49:06 Marek Szyprowski wrote:
+> > This patch introduces VB2_STREAMON_WITHOUT_BUFFERS io flag and changes
+> > the order of operations during stream on operation. Now the buffer are
+> > first queued to the driver and then the start_streaming method is called.
+> > This resolves the most common case when the driver needs to know buffer
+> > addresses to enable dma engine and start streaming. For drivers that can
+> > handle start_streaming without queued buffers (mem2mem and 'one shot'
+> > capture case) a new VB2_STREAMON_WITHOUT_BUFFERS io flag has been
+> > introduced. Driver can set it to let videobuf2 know that it support this
+> > mode.
+> 
+> Is starting/stopping DMA engines that expensive on most hardware ? Several 
+> mails mentioned that drivers should keep one buffer around to avoid stopping 
+> the DMA engine in case of buffer underrun. The OMAP3 ISP driver just stops 
+the 
+> ISP when it runs out of buffers, and restart it when a new buffer is queued. 
 
-This pull requests sits on top of my previous pull request:
+Yes, this can be expensive. For video capture (e.g. from HDMI) you never want 
+to stop capturing when you run out of buffers. Starting it up again will lead 
+to a 1 or 2 frame delay, which is unacceptable for e.g. video conferencing.
 
-http://www.mail-archive.com/linux-media@vger.kernel.org/msg32762.html
+And when I start the DMA engine I'd like to know whether only one buffer is 
+queued or if I have two or more. In the latter case I can setup both the 
+'current' and 'next' pointers in the DMA engine which will make the first 
+frame available quicker (otherwise you will probably get an additional frame 
+delay).
 
-This core9 branch contains the same patches as the earlier core8, so if you
-want you can also pull everything from the core9 branch.
+> Switching the order of the start_streaming and __enqueue_in_driver calls 
+would 
+> make my life more difficult on the OMAP3 because I will have to check if the 
+> queue is streaming in the qbuf callback. Your s5p-fimc driver has to check 
+for 
+> that as well. I wonder if it really helps for other drivers.
 
-The patches in this pull request are almost the same as these:
-
-http://www.mail-archive.com/linux-media@vger.kernel.org/msg33054.html
-
-The two changes are the addition of documentation (both DocBook and
-v4l2-framework.txt) and patch 4 in the link above: instead of one single
-merge() callback it is now split into a replace() callback and a merge()
-callback. When I was documenting the original merge() callback I realized
-that it really had to be split into two callbacks or it would be too
-confusing.
-
-It's been tested extensively with ivtv and vivi.
-
-I've added support for waiting/polling on the control event to v4l2-ctl:
-
-http://git.linuxtv.org/hverkuil/v4l-utils.git?a=shortlog;h=refs/heads/core
-
-The first four and the last three patches deal with a change in the event
-handling, adding guarantees to the framework what should be done when the
-internal event queues become full and events need to be dropped. It's much
-more useful now.
-
-The four v4l2-ctrls patches improve the internal datastructures and reduce
-the time spent with a lock held. In particular it gets rid of a potential
-quadratic algorithm, replacing it with a linear one (and making the code
-shorter as well). It is the first important step towards allowing certain
-types of controls to be set from interrupt context.
+Why not add a 'is_streaming' boolean argument to enqueue_in_driver?
 
 Regards,
 
 	Hans
 
-The following changes since commit a07d17c00db2cff623aea8113d6cfd181baf86a1:
-
-  v4l2-compat-ioctl32: add VIDIOC_DQEVENT support. (2011-06-10 10:57:27 +0200)
-
-are available in the git repository at:
-  ssh://linuxtv.org/git/hverkuil/media_tree.git core9
-
-Hans Verkuil (11):
-      v4l2-events/fh: merge v4l2_events into v4l2_fh
-      v4l2-ctrls/event: remove struct v4l2_ctrl_fh, instead use v4l2_subscribed_event
-      v4l2-event/ctrls/fh: allocate events per fh and per type instead of just per-fh
-      v4l2-event: add optional merge and replace callbacks
-      v4l2-ctrls: don't initially set CH_VALUE for write-only controls
-      v4l2-ctrls: improve discovery of controls of the same cluster
-      v4l2-ctrls: split try_or_set_ext_ctrls()
-      v4l2-ctrls: v4l2_ctrl_handler_setup code simplification
-      v4l2-framework.txt: updated v4l2_fh_init documentation.
-      v4l2-framework.txt: update v4l2_event section.
-      DocBook: update V4L Event Interface section.
-
- Documentation/DocBook/media/v4l/dev-event.xml      |   30 ++-
- .../DocBook/media/v4l/vidioc-subscribe-event.xml   |   15 +-
- Documentation/video4linux/v4l2-framework.txt       |   59 ++-
- drivers/media/video/ivtv/ivtv-fileops.c            |   10 +-
- drivers/media/video/ivtv/ivtv-ioctl.c              |    4 +-
- drivers/media/video/omap3isp/ispccdc.c             |    3 +-
- drivers/media/video/omap3isp/ispstat.c             |    3 +-
- drivers/media/video/v4l2-ctrls.c                   |  416 +++++++++-----------
- drivers/media/video/v4l2-event.c                   |  218 ++++------
- drivers/media/video/v4l2-fh.c                      |   19 +-
- drivers/media/video/v4l2-subdev.c                  |   17 +-
- drivers/media/video/vivi.c                         |    4 +-
- drivers/usb/gadget/uvc_v4l2.c                      |   22 +-
- include/media/v4l2-ctrls.h                         |   39 +--
- include/media/v4l2-event.h                         |   44 ++-
- include/media/v4l2-fh.h                            |   11 +-
- include/media/v4l2-subdev.h                        |    2 -
- 17 files changed, 417 insertions(+), 499 deletions(-)
+> 
+> > This patch also updates videobuf2 clients (s5p-fimc, mem2mem_testdev and
+> > vivi) to work properly with the changed order of operations and enables
+> > use of the newly introduced flag.
+> > 
+> > Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
+> > Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
+> > Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+> > CC: Pawel Osciak <pawel@osciak.com>
+> > ---
+> > 
+> >  drivers/media/video/mem2mem_testdev.c       |    4 +-
+> >  drivers/media/video/s5p-fimc/fimc-capture.c |   65
+> > ++++++++++++++++----------
+> > drivers/media/video/s5p-fimc/fimc-core.c    |    4 +-
+> >  drivers/media/video/videobuf2-core.c        |   21 ++++-----
+> >  drivers/media/video/vivi.c                  |    2 +-
+> >  include/media/videobuf2-core.h              |   11 +++--
+> >  6 files changed, 62 insertions(+), 45 deletions(-)
+> > 
+> > 
+> > ---
+> > 
+> > Hello,
+> > 
+> > This patch introduces significant changes in the vb2 streamon operation,
+> > so all vb2 clients need to be checked and updated. Right now I didn't
+> > update mx3_camera and sh_mobile_ceu_camera drivers. Once we agree that
+> > this patch can be merged, I will update it to include all the required
+> > changes to these two drivers as well.
+> > 
+> > Best regards
+> > -- 
+> > Marek Szyprowski
+> > Samsung Poland R&D Center
+> 
+> [snip]
+> 
+> > diff --git a/drivers/media/video/vivi.c b/drivers/media/video/vivi.c
+> > index 2238a61..e740a44 100644
+> > --- a/drivers/media/video/vivi.c
+> > +++ b/drivers/media/video/vivi.c
+> > @@ -1232,7 +1232,7 @@ static int __init vivi_create_instance(int inst)
+> >         q = &dev->vb_vidq;
+> >         memset(q, 0, sizeof(dev->vb_vidq));
+> >         q->type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
+> > -       q->io_modes = VB2_MMAP | VB2_USERPTR | VB2_READ;
+> > +       q->io_modes = VB2_MMAP | VB2_READ | VB2_STREAMON_WITHOUT_BUFFERS;
+> 
+> Why do you remove VB2_USERPTR support from vivi ?
+> 
+> >         q->drv_priv = dev;
+> >         q->buf_struct_size = sizeof(struct vivi_buffer);
+> >         q->ops = &vivi_video_qops;
+> 
+> -- 
+> Regards,
+> 
+> Laurent Pinchart
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
