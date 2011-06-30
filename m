@@ -1,81 +1,85 @@
 Return-path: <mchehab@pedra>
-Received: from mx1.redhat.com ([209.132.183.28]:53420 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752409Ab1FLOgR (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 12 Jun 2011 10:36:17 -0400
-Message-ID: <4DF4CEDB.9070501@redhat.com>
-Date: Sun, 12 Jun 2011 11:36:11 -0300
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Received: from smtp-68.nebula.fi ([83.145.220.68]:39205 "EHLO
+	smtp-68.nebula.fi" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751104Ab1F3Qum (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 30 Jun 2011 12:50:42 -0400
+Date: Thu, 30 Jun 2011 19:50:37 +0300
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Sylwester Nawrocki <snjw23@gmail.com>,
+	Stan <svarbanov@mm-sol.com>, Hans Verkuil <hansverk@cisco.com>,
+	saaguirre@ti.com, Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: Re: [PATCH v2] V4L: add media bus configuration subdev operations
+Message-ID: <20110630165037.GL12671@valkosipuli.localdomain>
+References: <Pine.LNX.4.64.1106222314570.3535@axis700.grange>
+ <20110623220129.GA10918@valkosipuli.localdomain>
+ <Pine.LNX.4.64.1106240021540.5348@axis700.grange>
+ <20110627081912.GC12671@valkosipuli.localdomain>
+ <Pine.LNX.4.64.1106271029240.9394@axis700.grange>
+ <Pine.LNX.4.64.1106291806260.12577@axis700.grange>
+ <4E0B7AAE.7010900@iki.fi>
+ <Pine.LNX.4.64.1106292122220.17571@axis700.grange>
 MIME-Version: 1.0
-To: Hans Verkuil <hverkuil@xs4all.nl>
-CC: linux-media@vger.kernel.org, Mike Isely <isely@isely.net>,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: Re: [RFCv4 PATCH 6/8] v4l2-ioctl.c: prefill tuner type for g_frequency
- and g/s_tuner.
-References: <1307876389-30347-1-git-send-email-hverkuil@xs4all.nl> <e2a61ca8e17b7354a69bcb1b5ca35301efb5581e.1307875512.git.hans.verkuil@cisco.com>
-In-Reply-To: <e2a61ca8e17b7354a69bcb1b5ca35301efb5581e.1307875512.git.hans.verkuil@cisco.com>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <Pine.LNX.4.64.1106292122220.17571@axis700.grange>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Em 12-06-2011 07:59, Hans Verkuil escreveu:
-> From: Hans Verkuil <hans.verkuil@cisco.com>
+On Wed, Jun 29, 2011 at 09:28:06PM +0200, Guennadi Liakhovetski wrote:
+> On Wed, 29 Jun 2011, Sakari Ailus wrote:
 > 
-> The subdevs are supposed to receive a valid tuner type for the g_frequency
-> and g/s_tuner subdev ops. Some drivers do this, others don't. So prefill
-> this in v4l2-ioctl.c based on whether the device node from which this is
-> called is a radio node or not.
+> > Guennadi Liakhovetski wrote:
+> > > On Mon, 27 Jun 2011, Guennadi Liakhovetski wrote:
+> > > 
+> > > [snip]
+> > > 
+> > >>> If the structures are expected to be generic I somehow feel that a field of
+> > >>> flags isn't the best way to describe the configuration of CSI-2 or other
+> > >>> busses. Why not to just use a structure with bus type and an union for
+> > >>> bus-specific configuration parameters? It'd be easier to access and also to
+> > >>> change as needed than flags in an unsigned long field.
+> > >>
+> > >> Well, yes, a union can be a good idea, thanks.
+> > > 
+> > > ...on a second thought, we currently only have one field: flags, and it is 
+> > > common for all 3 bus types: parallel, reduced parallel (bt.656, etc.), and 
+> > > CSI-2. In the future, when we need more parameters for any of these busses 
+> > > we'll just add such a union, shouldn't be a problem.
+> > 
+> > What I meant above was that I would prefer to describe the capabilities
+> > in a structure which would contain appropriate data type for the field,
+> > not as flags or sets of flags in a bit field.
+> > 
+> > This would allow e.g. just testing for
+> > v4l2_mbus_config.u.parallel.hsync_active_low instead of
+> > v4l2_mbus_config.flags & V4L2_MBUS_HSYNC_ACTIVE_LOW. This way the flags
+> > used for the bus also express the bus explicitly rather than implicitly.
 > 
-> The spec does not require applications to fill in the type, and if they
-> leave it at 0 then the 'supported_mode' call in tuner-core.c will return
-> false and the ioctl does nothing.
+> I don't think, using flags is any less explicit, than using struct 
+> members. As I already explained, I'd like to use the same interface for 
+> querying capabilities, the present configuration, and setting a 
+> configuration. This is easily achieved with flags. See the 
+> v4l2_mbus_config_compatible() function and try to rewrite all the bitwise 
+> operations in it, using your struct.
 
-Interesting solution. Yes, this is the proper fix, but only after being sure
-that no drivers allow switch to radio using the video device, and vice-versa.
+I still don't like the use of flags this way. I do admit that
+v4l2_mbus_config_compatible() might be more difficult to write. It's still a
+tiny piece of code. Speaking of which, should it be part of the latest
+patch?
 
-Unfortunately, this is not the case, currently.
+As far as I understand, v4l2_mbus_config_compatible() is meant for SoC
+camera compatibility only. I would like that the interface which is not SoC
+camera dependent would not get compatibility burden right from the
+beginning. That said, it's a nice property that e.g. sensor drivers written
+for SoC camera would work without it as well --- is this what the patch
+would achieve, or a part of it?
 
-Most drivers allow this, following the previous V4L2 specs. Changing such
-behavior will probably require to write something at 
-Documentation/feature-removal-schedule.txt, as we're changing the behavior.
+Regards,
 
-
-> 
-> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-> ---
->  drivers/media/video/v4l2-ioctl.c |    6 ++++++
->  1 files changed, 6 insertions(+), 0 deletions(-)
-> 
-> diff --git a/drivers/media/video/v4l2-ioctl.c b/drivers/media/video/v4l2-ioctl.c
-> index 213ba7d..26bf3bf 100644
-> --- a/drivers/media/video/v4l2-ioctl.c
-> +++ b/drivers/media/video/v4l2-ioctl.c
-> @@ -1822,6 +1822,8 @@ static long __video_do_ioctl(struct file *file,
->  		if (!ops->vidioc_g_tuner)
->  			break;
->  
-> +		p->type = (vfd->vfl_type == VFL_TYPE_RADIO) ?
-> +			V4L2_TUNER_RADIO : V4L2_TUNER_ANALOG_TV;
->  		ret = ops->vidioc_g_tuner(file, fh, p);
->  		if (!ret)
->  			dbgarg(cmd, "index=%d, name=%s, type=%d, "
-> @@ -1840,6 +1842,8 @@ static long __video_do_ioctl(struct file *file,
->  
->  		if (!ops->vidioc_s_tuner)
->  			break;
-> +		p->type = (vfd->vfl_type == VFL_TYPE_RADIO) ?
-> +			V4L2_TUNER_RADIO : V4L2_TUNER_ANALOG_TV;
->  		dbgarg(cmd, "index=%d, name=%s, type=%d, "
->  				"capability=0x%x, rangelow=%d, "
->  				"rangehigh=%d, signal=%d, afc=%d, "
-> @@ -1858,6 +1862,8 @@ static long __video_do_ioctl(struct file *file,
->  		if (!ops->vidioc_g_frequency)
->  			break;
->  
-> +		p->type = (vfd->vfl_type == VFL_TYPE_RADIO) ?
-> +			V4L2_TUNER_RADIO : V4L2_TUNER_ANALOG_TV;
->  		ret = ops->vidioc_g_frequency(file, fh, p);
->  		if (!ret)
->  			dbgarg(cmd, "tuner=%d, type=%d, frequency=%d\n",
-
+-- 
+Sakari Ailus
+sakari.ailus@iki.fi
