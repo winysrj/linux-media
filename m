@@ -1,45 +1,41 @@
 Return-path: <mchehab@pedra>
-Received: from mail-qw0-f46.google.com ([209.85.216.46]:59652 "EHLO
-	mail-qw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753645Ab1FGQM4 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 7 Jun 2011 12:12:56 -0400
-Received: by qwk3 with SMTP id 3so2217631qwk.19
-        for <linux-media@vger.kernel.org>; Tue, 07 Jun 2011 09:12:55 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <BANLkTi=3eyHgiXCsH2uibPsV0L7Eq79fnw@mail.gmail.com>
-References: <BANLkTimFT+D3_vZVj5KMiB7jMvq=088Y7A@mail.gmail.com>
-	<BANLkTim9d3yi3OQn4AxfwV6pfv+KY-KseA@mail.gmail.com>
-	<BANLkTi=3eyHgiXCsH2uibPsV0L7Eq79fnw@mail.gmail.com>
-Date: Tue, 7 Jun 2011 18:12:55 +0200
-Message-ID: <BANLkTi=B5NmqnFqt5f90VdTEZUCZ_Tvuew@mail.gmail.com>
-Subject: Re: [PATCH] cx231xx: Add support for Hauppauge WinTV USB2-FM
-From: Peter Moon <pomoon@gmail.com>
-To: Devin Heitmueller <dheitmueller@kernellabs.com>
-Cc: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+Received: from tex.lwn.net ([70.33.254.29]:58893 "EHLO vena.lwn.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754187Ab1F3UFm (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 30 Jun 2011 16:05:42 -0400
+From: Jonathan Corbet <corbet@lwn.net>
+To: linux-media@vger.kernel.org
+Cc: Marek Szyprowski <m.szyprowski@samsung.com>,
+	Kassey Lee <ygli@marvell.com>, Jonathan Corbet <corbet@lwn.net>
+Subject: [PATCH 2/2] marvell-cam: use S/G DMA by default
+Date: Thu, 30 Jun 2011 14:05:28 -0600
+Message-Id: <1309464328-67565-3-git-send-email-corbet@lwn.net>
+In-Reply-To: <1309464328-67565-1-git-send-email-corbet@lwn.net>
+References: <1309464328-67565-1-git-send-email-corbet@lwn.net>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Mon, Jun 6, 2011 at 10:00 PM, Devin Heitmueller
-<dheitmueller@kernellabs.com> wrote:
-> On Mon, Jun 6, 2011 at 3:22 PM, Peter Moon <pomoon@gmail.com> wrote:
->> This patch adds support for the " Hauppauge WinTV USB2-FM" Analog Stick.
->>
->> Signed-off-by: Peter Moon <pomoon@gmail.com>
->
-> My only comment is that the func_mode in cx231xx_dif_set_standard()
-> should be 0x01, not 0x03.  Change that, resubmit the patch after
-> testing, and I will put my Reviewed-By on it.
+Scatter/gather DMA mode works nicely on this platform and is clearly the
+best way of doing things.
 
-I will make the change you suggest and retest.
+Signed-off-by: Jonathan Corbet <corbet@lwn.net>
+---
+ drivers/media/video/marvell-ccic/mmp-driver.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
 
-> Also, there is actually another USB ID which is the exact same product
-> (but targeted at NTSC by default).  I'll have to lookup the ID though.
+diff --git a/drivers/media/video/marvell-ccic/mmp-driver.c b/drivers/media/video/marvell-ccic/mmp-driver.c
+index 7b9c48c..8415915 100644
+--- a/drivers/media/video/marvell-ccic/mmp-driver.c
++++ b/drivers/media/video/marvell-ccic/mmp-driver.c
+@@ -180,7 +180,7 @@ static int mmpcam_probe(struct platform_device *pdev)
+ 	mcam->dev = &pdev->dev;
+ 	mcam->use_smbus = 0;
+ 	mcam->chip_id = V4L2_IDENT_ARMADA610;
+-	mcam->buffer_mode = B_vmalloc;  /* Switch to dma */
++	mcam->buffer_mode = B_DMA_sg;
+ 	spin_lock_init(&mcam->dev_lock);
+ 	/*
+ 	 * Get our I/O memory.
+-- 
+1.7.5.4
 
-According to the Windows driver inf file that I have, the USB ID of
-the NTSC version is 2040:b111.
-
-I can add the USB device definition for the NTSC targeted device as well.
-
-Peter Moon
