@@ -1,86 +1,107 @@
 Return-path: <mchehab@pedra>
-Received: from mail1-out1.atlantis.sk ([80.94.52.55]:33514 "EHLO
-	mail.atlantis.sk" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1755776Ab1FTTJn (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 20 Jun 2011 15:09:43 -0400
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Subject: [PATCH] [resend] tea575x: allow multiple opens
-Cc: linux-media@vger.kernel.org, alsa-devel@alsa-project.org,
-	Kernel development list <linux-kernel@vger.kernel.org>
-Content-Disposition: inline
-From: Ondrej Zary <linux@rainbow-software.org>
-Date: Mon, 20 Jun 2011 21:09:25 +0200
+Received: from mx1.redhat.com ([209.132.183.28]:1128 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751299Ab1F3OK2 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 30 Jun 2011 10:10:28 -0400
+Message-ID: <4E0C83CF.2070401@redhat.com>
+Date: Thu, 30 Jun 2011 11:10:23 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
 MIME-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
+To: Roman Byshko <rbyshko@gmail.com>
+CC: linux-media@vger.kernel.org
+Subject: Re: em28xx / ADS Tech USB Instant TV (USBAV-704)
+References: <AANLkTimC48YCZQurf-MO+Fy4O3Kp7Y8c=Vnnfva08f=0@mail.gmail.com> <BANLkTi=SgxDYij3AC=eLfCd2DNuaPMks0g@mail.gmail.com>
+In-Reply-To: <BANLkTi=SgxDYij3AC=eLfCd2DNuaPMks0g@mail.gmail.com>
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 7bit
-Message-Id: <201106202109.29164.linux@rainbow-software.org>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Change locking to allow tea575x-radio device to be opened multiple times.
+Em 01-05-2011 15:13, Roman Byshko escreveu:
+> Hi,
+> 
+> unfortunately nobody replied to me, so I contacted Mauro (thank you!)
+> and got some guidance.
+> 
+> According to http://www.linuxtv.org/wiki/index.php/Bus_snooping/sniffing
+> I sniffed my device
+> 
+> http://www.linuxtv.org/wiki/index.php/ADS_Tech_Instant_TV_(USBAV-704)
+> 
+> two times. Just in case. The outputs are not identical. Is it ok?
+> 
+> Please find both files attached. I could have adjusted em28xx_cards.c
+> by myself, but I know too little. So
+> can you please do it or give me hints if this takes too much time.
 
-Signed-off-by: Ondrej Zary <linux@rainbow-software.org>
+This device is not touching at the GPIO bits, according with your logs
+with is something unusual, but a few devices don't need GPIO's.
 
---- linux-2.6.39-rc2-/include/sound/tea575x-tuner.h	2011-06-11 15:21:50.000000000 +0200
-+++ linux-2.6.39-rc2/include/sound/tea575x-tuner.h	2011-06-11 14:50:55.000000000 +0200
-@@ -49,7 +49,7 @@ struct snd_tea575x {
- 	bool tuned;			/* tuned to a station */
- 	unsigned int val;		/* hw value */
- 	unsigned long freq;		/* frequency */
--	unsigned long in_use;		/* set if the device is in use */
-+	struct mutex mutex;
- 	struct snd_tea575x_ops *ops;
- 	void *private_data;
- 	u8 card[32];
---- linux-2.6.39-rc2-/sound/i2c/other/tea575x-tuner.c	2011-06-11 15:21:50.000000000 +0200
-+++ linux-2.6.39-rc2/sound/i2c/other/tea575x-tuner.c	2011-06-11 14:57:28.000000000 +0200
-@@ -282,26 +282,9 @@ static int vidioc_s_input(struct file *f
- 	return 0;
- }
- 
--static int snd_tea575x_exclusive_open(struct file *file)
--{
--	struct snd_tea575x *tea = video_drvdata(file);
--
--	return test_and_set_bit(0, &tea->in_use) ? -EBUSY : 0;
--}
--
--static int snd_tea575x_exclusive_release(struct file *file)
--{
--	struct snd_tea575x *tea = video_drvdata(file);
--
--	clear_bit(0, &tea->in_use);
--	return 0;
--}
--
- static const struct v4l2_file_operations tea575x_fops = {
- 	.owner		= THIS_MODULE,
--	.open           = snd_tea575x_exclusive_open,
--	.release        = snd_tea575x_exclusive_release,
--	.ioctl		= video_ioctl2,
-+	.unlocked_ioctl	= video_ioctl2,
- };
- 
- static const struct v4l2_ioctl_ops tea575x_ioctl_ops = {
-@@ -340,13 +323,14 @@ int snd_tea575x_init(struct snd_tea575x
- 	if (snd_tea575x_read(tea) != 0x55AA)
- 		return -ENODEV;
- 
--	tea->in_use = 0;
- 	tea->val = TEA575X_BIT_BAND_FM | TEA575X_BIT_SEARCH_10_40;
- 	tea->freq = 90500 * 16;		/* 90.5Mhz default */
- 	snd_tea575x_set_freq(tea);
- 
- 	tea->vd = tea575x_radio;
- 	video_set_drvdata(&tea->vd, tea);
-+	mutex_init(&tea->mutex);
-+	tea->vd.lock = &tea->mutex;
- 
- 	v4l2_ctrl_handler_init(&tea->ctrl_handler, 1);
- 	tea->vd.ctrl_handler = &tea->ctrl_handler;
+The logs shows that the I2C device addresses are:
+	0x4a - saa7113h
+	0x60 - not sure... it may be an IR chip. Maybe the Sonix is used as an IR decoder?
+	0x86 - tda9887 (part of the tuner)
+	0xc6 - Probably, this is the tuner
+
+It seems close to EM2820_BOARD_GADMEI_TVR200 (card=62):
+
+        [EM2820_BOARD_GADMEI_TVR200] = {
+                .name         = "Gadmei TVR200",
+                .tuner_type   = TUNER_LG_PAL_NEW_TAPC,
+                .tda9887_conf = TDA9887_PRESENT,
+                .decoder      = EM28XX_SAA711X,
+                .input        = { {
+                        .type     = EM28XX_VMUX_TELEVISION,
+                        .vmux     = SAA7115_COMPOSITE2,
+                        .amux     = EM28XX_AMUX_LINE_IN,
+                }, {
+                        .type     = EM28XX_VMUX_COMPOSITE1,
+                        .vmux     = SAA7115_COMPOSITE0,
+                        .amux     = EM28XX_AMUX_LINE_IN,
+                }, {
+                        .type     = EM28XX_VMUX_SVIDEO,
+                        .vmux     = SAA7115_SVIDEO3,
+                        .amux     = EM28XX_AMUX_LINE_IN,
+                } },
+        },
 
 
--- 
-Ondrej Zary
+But, eventually, the audio/video interfaces are on different places.
+
+You'll basically need to write an entry similar to the above, replacing the tuner type
+by the one that represents the tuner FQ1216ME, and replace the .vmux/.amux entries to
+match the entries used on your device. It shouldn't be hard to get the vmux entry by
+taking a look at the "i2c_master_send(0x4a>>1," logs. All you need is to check at the
+saa7113 datasheet (publicly available), and see what registers represent the video ports
+(or look at the saa7115 driver). You'll also need to get the commands from your log that
+are programming the audio mux register.
+
+As there are not that much options, you might also use a trial and error approach, as
+using the wrong values for vmux/amux won't damage your card.
+
+It doesn't seem hard to add support for it, but you'll need to carefully check each
+entry.
+
+As this board doesn't have an eeprom, autodetecting it is tricky. For your tests, you'll
+need to explicitly tell the driver to use your new entry, with card= modprobe option.
+
+After having it done, please send us the patches, and the logs. It may be possible to
+add an autodetection for it, based on the I2C addresses in usage (0xc6 is not a common
+address, so this will probably work).
+
+After having the video/audio working, we may try to figure out how IR works on it. From
+your logs, it seems that it reads from 0x60 device only:
+
+$ grep 0x60 /tmp/cmds2.txt 
+i2c_master_recv(0x60>>1, &buf, 0x01); /* 12 */
+i2c_master_recv(0x60>>1, &buf, 0x01); /* ff */
+i2c_master_recv(0x60>>1, &buf, 0x01); /* ff */
+i2c_master_recv(0x60>>1, &buf, 0x01); /* ff */
+i2c_master_recv(0x60>>1, &buf, 0x01); /* ff */
+i2c_master_recv(0x60>>1, &buf, 0x01); /* ff */
+i2c_master_recv(0x60>>1, &buf, 0x01); /* ff */
+
+Probably, a value different than 0xff means that a keystroke happened on your IR.
+
+Thanks,
+Mauro
