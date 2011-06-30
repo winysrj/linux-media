@@ -1,141 +1,143 @@
 Return-path: <mchehab@pedra>
-Received: from bear.ext.ti.com ([192.94.94.41]:37686 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753570Ab1F3NN2 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 30 Jun 2011 09:13:28 -0400
-Received: from dbdp20.itg.ti.com ([172.24.170.38])
-	by bear.ext.ti.com (8.13.7/8.13.7) with ESMTP id p5UDDP14022254
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-media@vger.kernel.org>; Thu, 30 Jun 2011 08:13:27 -0500
-From: Manjunath Hadli <manjunath.hadli@ti.com>
-To: LMML <linux-media@vger.kernel.org>
-CC: dlos <davinci-linux-open-source@linux.davincidsp.com>,
-	Manjunath Hadli <manjunath.hadli@ti.com>
-Subject: [ RFC PATCH 0/8] RFC for Media Controller capture driver for DM365
-Date: Thu, 30 Jun 2011 18:43:09 +0530
-Message-ID: <1309439597-15998-1-git-send-email-manjunath.hadli@ti.com>
+Received: from sj-iport-3.cisco.com ([171.71.176.72]:50517 "EHLO
+	sj-iport-3.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751057Ab1F3Nql (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 30 Jun 2011 09:46:41 -0400
+From: Hans Verkuil <hansverk@cisco.com>
+To: Hans de Goede <hdegoede@redhat.com>
+Subject: Re: RFC: poll behavior
+Date: Thu, 30 Jun 2011 15:46:35 +0200
+Cc: linux-media@vger.kernel.org
+References: <201106291326.47527.hansverk@cisco.com> <201106291543.51271.hansverk@cisco.com> <4E0B3818.5060200@redhat.com>
+In-Reply-To: <4E0B3818.5060200@redhat.com>
 MIME-Version: 1.0
-Content-Type: text/plain
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201106301546.35803.hansverk@cisco.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Thease are the RFC patches for the DM365 video capture, of which 
-the current set includes only CCDC and the VPFE framework. Once
-the present set is reviewed, I will send out the other parts
-like H3A, sensor additions etc.
+On Wednesday, June 29, 2011 16:35:04 Hans de Goede wrote:
+> Hi,
+> 
+> On 06/29/2011 03:43 PM, Hans Verkuil wrote:
+> > On Wednesday, June 29, 2011 15:07:14 Hans de Goede wrote:
+> 
+> <snip>
+> 
+> >   	if (q->num_buffers == 0&&  q->fileio == NULL) {
+> > -		if (!V4L2_TYPE_IS_OUTPUT(q->type)&&  (q->io_modes&  VB2_READ)) {
+> > -			ret = __vb2_init_fileio(q, 1);
+> > -			if (ret)
+> > -				return POLLERR;
+> > -		}
+> > -		if (V4L2_TYPE_IS_OUTPUT(q->type)&&  (q->io_modes&  VB2_WRITE)) {
+> > -			ret = __vb2_init_fileio(q, 0);
+> > -			if (ret)
+> > -				return POLLERR;
+> > -			/*
+> > -			 * Write to OUTPUT queue can be done immediately.
+> > -			 */
+> > -			return POLLOUT | POLLWRNORM;
+> > -		}
+> > +		if (!V4L2_TYPE_IS_OUTPUT(q->type)&&  (q->io_modes&  VB2_READ))
+> > +			return res | POLLIN | POLLRDNORM;
+> > +		if (V4L2_TYPE_IS_OUTPUT(q->type)&&  (q->io_modes&  VB2_WRITE))
+> > +			return res | POLLOUT | POLLWRNORM;
+> >   	}
+> >
+> >   	/*
+> >   	 * There is nothing to wait for if no buffers have already been 
+queued.
+> >   	 */
+> >   	if (list_empty(&q->queued_list))
+> > -		return POLLERR;
+> > +		return have_events ? res : POLLERR;
+> >
+> 
+> This seems more accurate to me, given that in case of select the 2 influence
+> different fd sets:
+> 
+> 		return res | POLLERR;
 
-Introduction
-------------
-This is the proposal of the initial version of design and implementation  of
-the Davinci family (dm644x,dm355,dm365)VPFE (Video Port Front End) drivers
-using Media Controloler , the initial version which supports
-the following:
-1) dm365 vpfe
-2) ccdc,previewer,resizer,h3a,af blocks
-3) supports both continuous and single-shot modes
-4) supports user pointer exchange and memory mapped modes for buffer allocation
+Hmm. The problem is that the poll(2) API will always return if POLLERR is set, 
+even if you only want to wait on POLLPRI. That's a perfectly valid thing to 
+do. An alternative is to just not use POLLERR and return res|POLLIN or res|
+POLLOUT depending on V4L2_TYPE_IS_OUTPUT().
 
-This driver bases its design on Laurent Pinchart's Media Controller Design
-whose patches for Media Controller and subdev enhancements form the base.
-The driver also takes copious elements taken from Laurent Pinchart and
-others' OMAP ISP driver based on Media Controller. So thank you all the
-people who are responsible for the Media Controller and the OMAP ISP driver.
+Another option is to just return res (which is your suggestion below as well).
+I think this is also a reasonable approach. It would in fact allow one thread 
+to call poll(2) and another thread to call REQBUFS/QBUF/STREAMON on the same 
+filehandle. And the other thread would return from poll(2) as soon as the 
+first frame becomes available.
 
-Also, the core functionality of the driver comes from the arago vpfe capture
-driver of which the CCDC capture was based on V4L2, with other drivers like
-Previwer, and Resizer.
+This also leads to another ambiguity with poll(): what should poll do if 
+another filehandle started streaming? So fh1 called STREAMON (and so becomes 
+the 'owner' of the stream), and you poll on fh2. If a frame becomes available, 
+should fh2 wake up? Is fh2 allowed to call DQBUF?
 
-The current driver caters to dm6446,dm355 and dm365 of which the current
-implementation works for dm365. The three VPFE IPs have some common elements
-in terms of some highe level functionality but there are differences in terms
-of register definitions and some core blocks.
+To be honest, I think vb2 should keep track of the filehandle that started 
+streaming rather than leaving that to drivers, but that's a separate issue.
 
-The individual specifications for each of these can be found here:
-dm6446 vpfe: http://www.ti.com/litv/pdf/sprue38h
-dm355  vpfe: http://www.ti.com/litv/pdf/spruf71a
-dm365  vpfe: http://www.ti.com/litv/pdf/sprufg8c
+I really wonder whether we should ever use POLLERR at all: it is extremely
+vague how it should be interpreted, and it doesn't actually tell you what is 
+wrong. And is it really an error if you poll on a non-streaming node?
 
-The initial version of the  driver implementation can be found here:
+As shown by the use-case above, I don't think it is an error at all.
 
-http://git.linuxtv.org/mhadli/v4l-dvb-davinci_devices.git?a=shortlog;h=refs/heads/mc_release
+The default poll mask that is returned when the device doesn't support poll
+is #define DEFAULT_POLLMASK (POLLIN | POLLOUT | POLLRDNORM | POLLWRNORM).
 
-Driver Design: Main entities
-----------------------------
-The hardware modules for dm355,dm365 are mainly ipipe, ipipeif,isif. These
-hardware modules are generically exposed to the user level in the for of
-dm6446 style modules. Mainly -
-ccdc, previewer, resizer in addition to the other histogram and
-auto color/white balance correction and auto focus modules.
+So if they don't return POLLERR for such devices, perhaps we shouldn't either.
 
-1)MT9P031 sensor  module for RAW capture
-2)TVP7002 decoder module for HD inputs
-3)TVP514x decoder module for SD inputs
-4)CCDC capture module
-5)Previewer Module for Bayer to YUV conversion
-6)Resizer Module for scaling
+Regards,
 
-Connection for on-the-fly capture
----------------------------------
-Mt9P031 ------>CCDC--->Previewer(optional)--->Resizer(optional)--->Video
-           |
-TVP7002 ---
-           |
-TV514x  ---
+	Hans
 
-
-Manjunath Hadli (3):
-  davinci: vpfe: add dm3xx IPIPEIF hardware support module
-  davinci: vpfe: add support for CCDC hardware for dm365
-  davinci: vpfe: build infrastructure for dm365
-
-Nagabhushana Netagunte (5):
-  davinci: vpfe: add IPIPE hardware layer support
-  davinci: vpfe: add IPIPE support for media controller driver
-  davinci: vpfe: add ccdc driver with media controller interface
-  davinci: vpfe: add v4l2 video driver support
-  davinci: vpfe: v4l2 capture driver with media interface
-
- drivers/media/video/davinci/Kconfig           |   46 +-
- drivers/media/video/davinci/Makefile          |   17 +-
- drivers/media/video/davinci/ccdc_hw_device.h  |    6 +-
- drivers/media/video/davinci/dm365_ccdc.c      | 1517 +++++++++
- drivers/media/video/davinci/dm365_ccdc_regs.h |  309 ++
- drivers/media/video/davinci/dm365_def_para.c  |  485 +++
- drivers/media/video/davinci/dm365_def_para.h  |   39 +
- drivers/media/video/davinci/dm365_ipipe.c     | 4086 +++++++++++++++++++++++++
- drivers/media/video/davinci/dm365_ipipe_hw.c  | 1012 ++++++
- drivers/media/video/davinci/dm365_ipipe_hw.h  |  539 ++++
- drivers/media/video/davinci/dm3xx_ipipeif.c   |  368 +++
- drivers/media/video/davinci/vpfe_capture.c    |  793 +++++
- drivers/media/video/davinci/vpfe_ccdc.c       |  813 +++++
- drivers/media/video/davinci/vpfe_video.c      | 1712 +++++++++++
- include/media/davinci/dm365_ccdc.h            |  722 +++++
- include/media/davinci/dm365_ipipe.h           | 1353 ++++++++
- include/media/davinci/dm3xx_ipipeif.h         |  292 ++
- include/media/davinci/imp_common.h            |  231 ++
- include/media/davinci/imp_hw_if.h             |  177 ++
- include/media/davinci/vpfe_capture.h          |  158 +
- include/media/davinci/vpfe_ccdc.h             |   89 +
- include/media/davinci/vpfe_types.h            |   50 +-
- include/media/davinci/vpfe_video.h            |  142 +
- 23 files changed, 14914 insertions(+), 42 deletions(-)
- create mode 100644 drivers/media/video/davinci/dm365_ccdc.c
- create mode 100644 drivers/media/video/davinci/dm365_ccdc_regs.h
- create mode 100644 drivers/media/video/davinci/dm365_def_para.c
- create mode 100644 drivers/media/video/davinci/dm365_def_para.h
- create mode 100644 drivers/media/video/davinci/dm365_ipipe.c
- create mode 100644 drivers/media/video/davinci/dm365_ipipe_hw.c
- create mode 100644 drivers/media/video/davinci/dm365_ipipe_hw.h
- create mode 100644 drivers/media/video/davinci/dm3xx_ipipeif.c
- create mode 100644 drivers/media/video/davinci/vpfe_capture.c
- create mode 100644 drivers/media/video/davinci/vpfe_ccdc.c
- create mode 100644 drivers/media/video/davinci/vpfe_video.c
- create mode 100644 include/media/davinci/dm365_ccdc.h
- create mode 100644 include/media/davinci/dm365_ipipe.h
- create mode 100644 include/media/davinci/dm3xx_ipipeif.h
- create mode 100644 include/media/davinci/imp_common.h
- create mode 100644 include/media/davinci/imp_hw_if.h
- create mode 100644 include/media/davinci/vpfe_capture.h
- create mode 100644 include/media/davinci/vpfe_ccdc.h
- create mode 100644 include/media/davinci/vpfe_video.h
-
+> 
+> >   	poll_wait(file,&q->done_wq, wait);
+> >
+> > @@ -1414,10 +1416,10 @@ unsigned int vb2_poll(struct vb2_queue *q, struct 
+file *file, poll_table *wait)
+> >
+> >   	if (vb&&  (vb->state == VB2_BUF_STATE_DONE
+> >   			|| vb->state == VB2_BUF_STATE_ERROR)) {
+> > -		return (V4L2_TYPE_IS_OUTPUT(q->type)) ? POLLOUT | POLLWRNORM :
+> > +		return res | (V4L2_TYPE_IS_OUTPUT(q->type)) ? POLLOUT | 
+POLLWRNORM :
+> >   			POLLIN | POLLRDNORM;
+> 
+> I would prefer to see this as:
+> 		res |= (V4L2_TYPE_IS_OUTPUT(q->type)) ? POLLOUT | POLLWRNORM :
+> 			POLLIN | POLLRDNORM;
+> 
+> 
+> >   	}
+> > -	return 0;
+> > +	return res;
+> >   }
+> >   EXPORT_SYMBOL_GPL(vb2_poll);
+> >
+> >
+> > One note: the only time POLLERR is now returned is if no buffers have been 
+queued
+> > and no events have been subscribed to. I think that qualifies as an error 
+condition.
+> > I am not 100% certain, though.
+> 
+> I think it would be better to simply wait (iow return 0) then. I know that
+> gstreamer for example uses separate consumer and producer threads, so it is
+> possible for the producer thread to wait in select while all buffers have 
+been
+> handed to the (lagging) consumer thread, once the consumer thread has 
+consumed
+> a buffer it will queue it, and once filled the select will return it to
+> the producer thread, who shoves it into the pipeline again, etc.
+> 
+> Regards,
+> 
+> Hans
+> 
+> 
