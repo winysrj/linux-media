@@ -1,174 +1,62 @@
 Return-path: <mchehab@pedra>
-Received: from smtp-vbr1.xs4all.nl ([194.109.24.21]:4635 "EHLO
-	smtp-vbr1.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753305Ab1FLLAE (ORCPT
+Received: from mail1-out1.atlantis.sk ([80.94.52.55]:52672 "EHLO
+	mail.atlantis.sk" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1751396Ab1F3ShI (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 12 Jun 2011 07:00:04 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Mike Isely <isely@isely.net>, Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [RFCv4 PATCH 4/8] tuner-core: fix s_std and s_tuner.
-Date: Sun, 12 Jun 2011 12:59:45 +0200
-Message-Id: <58e65d1d111ba7fa1d0610af92e77d7aefb75d11.1307875512.git.hans.verkuil@cisco.com>
-In-Reply-To: <1307876389-30347-1-git-send-email-hverkuil@xs4all.nl>
-References: <1307876389-30347-1-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <980897e53f7cc2ec9bbbf58d9d451ee56a249309.1307875512.git.hans.verkuil@cisco.com>
-References: <980897e53f7cc2ec9bbbf58d9d451ee56a249309.1307875512.git.hans.verkuil@cisco.com>
+	Thu, 30 Jun 2011 14:37:08 -0400
+From: Ondrej Zary <linux@rainbow-software.org>
+To: Randy Dunlap <randy.dunlap@oracle.com>
+Subject: Re: [PATCH] media: fix radio-sf16fmr2 build when SND is not enabled
+Date: Thu, 30 Jun 2011 20:36:49 +0200
+Cc: Stephen Rothwell <sfr@canb.auug.org.au>,
+	linux-media@vger.kernel.org, linux-next@vger.kernel.org,
+	LKML <linux-kernel@vger.kernel.org>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+References: <20110630165302.12ee1bd0.sfr@canb.auug.org.au> <20110630103104.0a5b8ce6.randy.dunlap@oracle.com>
+In-Reply-To: <20110630103104.0a5b8ce6.randy.dunlap@oracle.com>
+MIME-Version: 1.0
+Content-Type: text/plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+Message-Id: <201106302036.56468.linux@rainbow-software.org>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+On Thursday 30 June 2011 19:31:04 Randy Dunlap wrote:
+> From: Randy Dunlap <randy.dunlap@oracle.com>
+> 
+> When CONFIG_SND is not enabled, radio-sf16fmr2 build fails with:
+> 
+> ERROR: "snd_tea575x_init" [drivers/media/radio/radio-sf16fmr2.ko] undefined!
+> ERROR: "snd_tea575x_exit" [drivers/media/radio/radio-sf16fmr2.ko] undefined!
+> 
+> so make this driver depend on SND.
 
-Both s_std and s_tuner are broken because set_mode_freq is called before the
-new std (for s_std) and audmode (for s_tuner) are set.
+I broke this when converting the driver to use common TEA575x code.
+Thanks for finding and fixing it.
 
-This patch splits set_mode_freq in a set_mode and a set_freq and in s_std
-first calls set_mode, and if that returns true (i.e. the mode is supported)
-then they set t->std/t->audmode and call set_freq.
+> Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
+> Cc: Hans Verkuil <hverkuil@xs4all.nl>
+> Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
+> Cc: linux-media@vger.kernel.org
+> ---
+>  drivers/media/radio/Kconfig |    2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
+> 
+> --- linux-next-20110630.orig/drivers/media/radio/Kconfig
+> +++ linux-next-20110630/drivers/media/radio/Kconfig
+> @@ -201,7 +201,7 @@ config RADIO_SF16FMI
+>  
+>  config RADIO_SF16FMR2
+>  	tristate "SF16FMR2 Radio"
+> -	depends on ISA && VIDEO_V4L2
+> +	depends on ISA && VIDEO_V4L2 && SND
+>  	---help---
+>  	  Choose Y here if you have one of these FM radio cards.
 
-This fixes a bug where changing std or audmode would actually change it to
-the previous value.
 
-Discovered while testing analog TV standards for cx18 with a tda18271 tuner.
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- drivers/media/video/tuner-core.c |   60 +++++++++++++++++++++-----------------
- 1 files changed, 33 insertions(+), 27 deletions(-)
-
-diff --git a/drivers/media/video/tuner-core.c b/drivers/media/video/tuner-core.c
-index 462a8f4..bf7fc33 100644
---- a/drivers/media/video/tuner-core.c
-+++ b/drivers/media/video/tuner-core.c
-@@ -739,19 +739,15 @@ static bool supported_mode(struct tuner *t, enum v4l2_tuner_type mode)
- }
- 
- /**
-- * set_mode_freq - Switch tuner to other mode.
-- * @client:	struct i2c_client pointer
-+ * set_mode - Switch tuner to other mode.
-  * @t:		a pointer to the module's internal struct_tuner
-  * @mode:	enum v4l2_type (radio or TV)
-- * @freq:	frequency to set (0 means to use the previous one)
-  *
-  * If tuner doesn't support the needed mode (radio or TV), prints a
-  * debug message and returns false, changing its state to standby.
-- * Otherwise, changes the state and sets frequency to the last value
-- * and returns true.
-+ * Otherwise, changes the state and returns true.
-  */
--static bool set_mode_freq(struct i2c_client *client, struct tuner *t,
--			 enum v4l2_tuner_type mode, unsigned int freq)
-+static bool set_mode(struct tuner *t, enum v4l2_tuner_type mode)
- {
- 	struct analog_demod_ops *analog_ops = &t->fe.ops.analog_ops;
- 
-@@ -767,17 +763,27 @@ static bool set_mode_freq(struct i2c_client *client, struct tuner *t,
- 		t->mode = mode;
- 		tuner_dbg("Changing to mode %d\n", mode);
- 	}
-+	return true;
-+}
-+
-+/**
-+ * set_freq - Set the tuner to the desired frequency.
-+ * @t:		a pointer to the module's internal struct_tuner
-+ * @freq:	frequency to set (0 means to use the current frequency)
-+ */
-+static void set_freq(struct tuner *t, unsigned int freq)
-+{
-+	struct i2c_client *client = v4l2_get_subdevdata(&t->sd);
-+
- 	if (t->mode == V4L2_TUNER_RADIO) {
--		if (freq)
--			t->radio_freq = freq;
--		set_radio_freq(client, t->radio_freq);
-+		if (!freq)
-+			freq = t->radio_freq;
-+		set_radio_freq(client, freq);
- 	} else {
--		if (freq)
--			t->tv_freq = freq;
--		set_tv_freq(client, t->tv_freq);
-+		if (!freq)
-+			freq = t->tv_freq;
-+		set_tv_freq(client, freq);
- 	}
--
--	return true;
- }
- 
- /*
-@@ -1034,9 +1040,9 @@ static void tuner_status(struct dvb_frontend *fe)
- static int tuner_s_radio(struct v4l2_subdev *sd)
- {
- 	struct tuner *t = to_tuner(sd);
--	struct i2c_client *client = v4l2_get_subdevdata(sd);
- 
--	set_mode_freq(client, t, V4L2_TUNER_RADIO, 0);
-+	if (set_mode(t, V4L2_TUNER_RADIO))
-+		set_freq(t, 0);
- 	return 0;
- }
- 
-@@ -1068,24 +1074,23 @@ static int tuner_s_power(struct v4l2_subdev *sd, int on)
- static int tuner_s_std(struct v4l2_subdev *sd, v4l2_std_id std)
- {
- 	struct tuner *t = to_tuner(sd);
--	struct i2c_client *client = v4l2_get_subdevdata(sd);
- 
--	if (!set_mode_freq(client, t, V4L2_TUNER_ANALOG_TV, 0))
-+	if (!set_mode(t, V4L2_TUNER_ANALOG_TV))
- 		return 0;
- 
- 	t->std = tuner_fixup_std(t, std);
- 	if (t->std != std)
- 		tuner_dbg("Fixup standard %llx to %llx\n", std, t->std);
--
-+	set_freq(t, 0);
- 	return 0;
- }
- 
- static int tuner_s_frequency(struct v4l2_subdev *sd, struct v4l2_frequency *f)
- {
- 	struct tuner *t = to_tuner(sd);
--	struct i2c_client *client = v4l2_get_subdevdata(sd);
- 
--	set_mode_freq(client, t, f->type, f->frequency);
-+	if (set_mode(t, f->type))
-+		set_freq(t, f->frequency);
- 	return 0;
- }
- 
-@@ -1154,13 +1159,14 @@ static int tuner_g_tuner(struct v4l2_subdev *sd, struct v4l2_tuner *vt)
- static int tuner_s_tuner(struct v4l2_subdev *sd, struct v4l2_tuner *vt)
- {
- 	struct tuner *t = to_tuner(sd);
--	struct i2c_client *client = v4l2_get_subdevdata(sd);
- 
--	if (!set_mode_freq(client, t, vt->type, 0))
-+	if (!set_mode(t, vt->type))
- 		return 0;
- 
--	if (t->mode == V4L2_TUNER_RADIO)
-+	if (t->mode == V4L2_TUNER_RADIO) {
- 		t->audmode = vt->audmode;
-+		set_freq(t, 0);
-+	}
- 
- 	return 0;
- }
-@@ -1195,8 +1201,8 @@ static int tuner_resume(struct i2c_client *c)
- 	tuner_dbg("resume\n");
- 
- 	if (!t->standby)
--		set_mode_freq(c, t, t->type, 0);
--
-+		if (set_mode(t, t->type))
-+			set_freq(t, 0);
- 	return 0;
- }
- 
 -- 
-1.7.1
-
+Ondrej Zary
