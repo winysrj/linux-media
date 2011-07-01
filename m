@@ -1,135 +1,252 @@
-Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ey0-f174.google.com ([209.85.215.174]:54463 "EHLO
-	mail-ey0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752852Ab1GNBSz convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 13 Jul 2011 21:18:55 -0400
-Received: by eyx24 with SMTP id 24so2317475eyx.19
-        for <linux-media@vger.kernel.org>; Wed, 13 Jul 2011 18:18:53 -0700 (PDT)
+Return-path: <mchehab@pedra>
+Received: from smtp-vbr18.xs4all.nl ([194.109.24.38]:3834 "EHLO
+	smtp-vbr18.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753929Ab1GANhd (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 1 Jul 2011 09:37:33 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: "linux-kernel" <linux-kernel@vger.kernel.org>
+Subject: [RFC PATCH] poll: add poll_requested_events() function
+Date: Fri, 1 Jul 2011 15:37:30 +0200
+Cc: "linux-media" <linux-media@vger.kernel.org>,
+	linux-fsdevel@vger.kernel.org, viro@zeniv.linux.org.uk
 MIME-Version: 1.0
-In-Reply-To: <19F8576C6E063C45BE387C64729E739404E35E4272@dbde02.ent.ti.com>
-References: <1310581347-31102-1-git-send-email-agnel.joel@gmail.com>
-	<19F8576C6E063C45BE387C64729E739404E35E4272@dbde02.ent.ti.com>
-Date: Wed, 13 Jul 2011 20:18:52 -0500
-Message-ID: <CAD=GYpZHbZSLSwuEFX7UWrb5_S0mrrVB1v_+=L-QN8Cs-f9Ndg@mail.gmail.com>
-Subject: Re: [beagleboard] [RFC v1] mt9v113: VGA camera sensor driver and
- support for BeagleBoard
-From: Joel A Fernandes <agnel.joel@gmail.com>
-To: beagleboard@googlegroups.com
-Cc: "Kridner, Jason" <jdk@ti.com>,
-	Javier Martin <javier.martin@vista-silicon.com>,
-	"laurent.pinchart@ideasonboard.com"
-	<laurent.pinchart@ideasonboard.com>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	"Kooi, Koen" <k-kooi@ti.com>, "Prakash, Punya" <pprakash@ti.com>,
-	"Maupin, Chase" <chase.maupin@ti.com>,
-	"Kipisz, Steven" <s-kipisz2@ti.com>,
-	"Aguirre, Sergio" <saaguirre@ti.com>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
-Sender: linux-media-owner@vger.kernel.org
+Content-Type: Text/Plain;
+  charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201107011537.30829.hverkuil@xs4all.nl>
 List-ID: <linux-media.vger.kernel.org>
+Sender: <mchehab@pedra>
 
-Hi Vaibhav,
+In some cases the poll() implementation in a driver has to do different
+things depending on the events the caller wants to poll for. An example is
+when a driver needs to start a DMA engine if the caller polls for POLLIN,
+but doesn't want to do that if POLLIN is not requested but instead only
+POLLOUT or POLLPRI is requested. This is something that can happen in the
+video4linux subsystem.
 
-Thanks for your email.
+Unfortunately, the current epoll/poll/select implementation doesn't provide
+that information reliably. The poll_table_struct does have it: it has a key
+field with the event mask. But once a poll() call matches one or more bits
+of that mask any following poll() calls are passed a NULL poll_table_struct
+pointer.
 
-On Wed, Jul 13, 2011 at 2:55 PM, Hiremath, Vaibhav <hvaibhav@ti.com> wrote:
->
->> -----Original Message-----
->> From: beagleboard@googlegroups.com [mailto:beagleboard@googlegroups.com]
->> On Behalf Of Joel A Fernandes
->> Sent: Wednesday, July 13, 2011 11:52 PM
->> To: beagleboard@googlegroups.com
->> Cc: Joel A Fernandes; Kridner, Jason; Javier Martin;
->> laurent.pinchart@ideasonboard.com; linux-media@vger.kernel.org; Kooi,
->> Koen; Prakash, Punya; Maupin, Chase; Kipisz, Steven; Aguirre, Sergio
->> Subject: [beagleboard] [RFC v1] mt9v113: VGA camera sensor driver and
->> support for BeagleBoard
->>
->> * Adds support for mt9v113 sensor by borrowing heavily from PSP 2.6.37
->> kernel patches
->> * Adapted to changes in v4l2 framework and ISP driver
->>
->> Signed-off-by: Joel A Fernandes <agnel.joel@gmail.com>
->> ---
->> This patch will apply against the 2.6.39 kernel built from the OE-
->> development tree (Which is essentially
->> the v2.6.39 from the main tree with OE patches for BeagleBoard support and
->> a few other features)
->>
->> If you have the Leapord imaging camera board with this particular sensor,
->> I would apprecite it if anyone could
->> try this patch out and provide any feedback/test results.
->>
->> To get the complete tree which works on a BeagleBoard-xM with all the OE
->> patches and this patch,
->> you can clone: https://github.com/joelagnel/linux-omap-2.6/tree/oedev-
->> 2.6.39-mt9v113
->>
->> It will compile and work on a BeagleBoard-xM with the defconfig at:
->> http://cgit.openembedded.org/cgit.cgi/openembedded/tree/recipes/linux/linu
->> x-omap-2.6.39/beagleboard/defconfig
->>
->> Also you will need to apply my media-ctl patch (or clone the tree) to
->> setup the formats:
->> https://github.com/joelagnel/media-
->> ctl/commit/cdf24d1249ac1ff3cd6f70ad80c3b76ac28ba0d5
->>
->> Binaries for quick testing on a BeagleBoard-xM:
->> U-boot: http://utdallas.edu/~joel.fernandes/u-boot.bin
->> U-boot: http://utdallas.edu/~joel.fernandes/MLO
->> uEnv.txt: http://utdallas.edu/~joel.fernandes/uEnv.txt
->> media-ctl: http://utdallas.edu/~joel.fernandes/media-ctl
->> kernel: http://utdallas.edu/~joel.fernandes/uImage
->>
->> media-ctl/yavta commands you could use to get it to show a picture can be
->> found at:
->> http://utdallas.edu/~joel.fernandes/stream.sh
->>
->> Note:
->> The BeagleBoard camera board file in this patch replaces the old one, so
->> this will take away support for the 5M
->> sensor (mt9p031), I hope this can be forgiven considering this is an
->> RFC :). I am working on a common board file
->> that will work for both sensors.
->>
->  [Hiremath, Vaibhav] Joel,
->
-> I am bit surprised by this patch submission, first of all, the patch has been submitted without my knowledge. And I was not aware that you are targeting linux-media for this code-snippet.
->
-> This code needs lot of cleanup and changes to get to the level where we can submit it to the linux-media, and I think I clearly mentioned about known issues with this patch/driver in the commit itself. Please refer to the below commit -
->
-> http://arago-project.org/git/projects/?p=linux-omap3.git;a=commitdiff;h=c6174e0658b9aaa8f7a3ec9fe562619084d34f59
->
-> I agree that we had some internal discussion on this and I was under assumption that this effort was only towards beagle openembedded and not for linux-media.
->
-[Joel]
+And without this information select(nfds, NULL, NULL, &exceptfds, NULL) will
+start video streaming when all you wanted was to wait for events that are
+signalled with POLLPRI.
 
-I'm sorry, actually the intent of the RFC was to get immediate VGA
-camera support to Beagle users and some testing with our kernel. The
-other intention was to help your team with the differences in what has
-changed across the kernels as a reference so that you reuse some of
-the work. Certainly I was not going to claim authorship or make the
-final submission.
+The solution is to set the qproc field to NULL in poll_table_struct once
+poll() matches the events, not the poll_table_struct pointer itself. That
+way drivers can obtain the mask through a new poll_requested_events inline.
 
-About Signed-off-by lines (if that's what you refer to about
-authorship), I intentionally didn't include it in my temporary git
-tree as I wanted to make sure if I could use it without permission. My
-intention was to rebase and include the relevant SOB lines after I got
-clarification on this. Could you suggest a general rule about SOB
-lines and whether these can be used without permission when you
-reuse/adapt a patch?
+The poll_table_struct can still be NULL since some kernel code calls it
+internally (netfs_state_poll() in ./drivers/staging/pohmelfs/netfs.h). In
+that case poll_requested_events() returns ~0 (i.e. all events).
 
-I hoped that the words "borrowed from PSP" in the commit summary, the
-relevant links to the commits in your tree in the commit summaries and
-the retaining of copyright information in the code made it clear that
-I was not the original author.
+Since eventpoll always leaves the key field at ~0 instead of using the
+requested events mask, that source was changed as well to properly fill in
+the key field.
 
-I understand that it is a bit frustrating to see someone take your
-code when its not yet complete, anyway I hope my commits help in some
-way. Atleast there might be a few people who test your code on the
-Beagle and give your team some valuable feedback.
+No driver changes were necessary. This patch is against v3.0-rc5.
 
-Thanks,
-Joel
+Comments?
+
+	Hans
+
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ fs/eventpoll.c       |   14 ++++++++++----
+ fs/select.c          |   32 ++++++++++++++------------------
+ include/linux/poll.h |    7 ++++++-
+ 3 files changed, 30 insertions(+), 23 deletions(-)
+
+diff --git a/fs/eventpoll.c b/fs/eventpoll.c
+index f9cfd16..022c652 100644
+--- a/fs/eventpoll.c
++++ b/fs/eventpoll.c
+@@ -650,9 +650,11 @@ static int ep_read_events_proc(struct eventpoll *ep, struct list_head *head,
+ 			       void *priv)
+ {
+ 	struct epitem *epi, *tmp;
++	poll_table pt = { NULL, ~0UL };
+ 
+ 	list_for_each_entry_safe(epi, tmp, head, rdllink) {
+-		if (epi->ffd.file->f_op->poll(epi->ffd.file, NULL) &
++		pt.key = epi->event.events;
++		if (epi->ffd.file->f_op->poll(epi->ffd.file, &pt) &
+ 		    epi->event.events)
+ 			return POLLIN | POLLRDNORM;
+ 		else {
+@@ -946,6 +948,7 @@ static int ep_insert(struct eventpoll *ep, struct epoll_event *event,
+ 	/* Initialize the poll table using the queue callback */
+ 	epq.epi = epi;
+ 	init_poll_funcptr(&epq.pt, ep_ptable_queue_proc);
++	epq.pt.key = event->events;
+ 
+ 	/*
+ 	 * Attach the item to the poll hooks and get current event bits.
+@@ -1027,20 +1030,21 @@ static int ep_modify(struct eventpoll *ep, struct epitem *epi, struct epoll_even
+ {
+ 	int pwake = 0;
+ 	unsigned int revents;
++	poll_table pt = { NULL, ~0UL };
+ 
+ 	/*
+ 	 * Set the new event interest mask before calling f_op->poll();
+ 	 * otherwise we might miss an event that happens between the
+ 	 * f_op->poll() call and the new event set registering.
+ 	 */
+-	epi->event.events = event->events;
++	epi->event.events = pt.key = event->events;
+ 	epi->event.data = event->data; /* protected by mtx */
+ 
+ 	/*
+ 	 * Get current event bits. We can safely use the file* here because
+ 	 * its usage count has been increased by the caller of this function.
+ 	 */
+-	revents = epi->ffd.file->f_op->poll(epi->ffd.file, NULL);
++	revents = epi->ffd.file->f_op->poll(epi->ffd.file, &pt);
+ 
+ 	/*
+ 	 * If the item is "hot" and it is not registered inside the ready
+@@ -1075,6 +1079,7 @@ static int ep_send_events_proc(struct eventpoll *ep, struct list_head *head,
+ 	unsigned int revents;
+ 	struct epitem *epi;
+ 	struct epoll_event __user *uevent;
++	poll_table pt = { NULL, ~0UL };
+ 
+ 	/*
+ 	 * We can loop without lock because we are passed a task private list.
+@@ -1087,7 +1092,8 @@ static int ep_send_events_proc(struct eventpoll *ep, struct list_head *head,
+ 
+ 		list_del_init(&epi->rdllink);
+ 
+-		revents = epi->ffd.file->f_op->poll(epi->ffd.file, NULL) &
++		pt.key = epi->event.events;
++		revents = epi->ffd.file->f_op->poll(epi->ffd.file, &pt) &
+ 			epi->event.events;
+ 
+ 		/*
+diff --git a/fs/select.c b/fs/select.c
+index d33418f..2da21b8 100644
+--- a/fs/select.c
++++ b/fs/select.c
+@@ -386,13 +386,11 @@ get_max:
+ static inline void wait_key_set(poll_table *wait, unsigned long in,
+ 				unsigned long out, unsigned long bit)
+ {
+-	if (wait) {
+-		wait->key = POLLEX_SET;
+-		if (in & bit)
+-			wait->key |= POLLIN_SET;
+-		if (out & bit)
+-			wait->key |= POLLOUT_SET;
+-	}
++	wait->key = POLLEX_SET;
++	if (in & bit)
++		wait->key |= POLLIN_SET;
++	if (out & bit)
++		wait->key |= POLLOUT_SET;
+ }
+ 
+ int do_select(int n, fd_set_bits *fds, struct timespec *end_time)
+@@ -414,7 +412,7 @@ int do_select(int n, fd_set_bits *fds, struct timespec *end_time)
+ 	poll_initwait(&table);
+ 	wait = &table.pt;
+ 	if (end_time && !end_time->tv_sec && !end_time->tv_nsec) {
+-		wait = NULL;
++		wait->qproc = NULL;
+ 		timed_out = 1;
+ 	}
+ 
+@@ -459,17 +457,17 @@ int do_select(int n, fd_set_bits *fds, struct timespec *end_time)
+ 					if ((mask & POLLIN_SET) && (in & bit)) {
+ 						res_in |= bit;
+ 						retval++;
+-						wait = NULL;
++						wait->qproc = NULL;
+ 					}
+ 					if ((mask & POLLOUT_SET) && (out & bit)) {
+ 						res_out |= bit;
+ 						retval++;
+-						wait = NULL;
++						wait->qproc = NULL;
+ 					}
+ 					if ((mask & POLLEX_SET) && (ex & bit)) {
+ 						res_ex |= bit;
+ 						retval++;
+-						wait = NULL;
++						wait->qproc = NULL;
+ 					}
+ 				}
+ 			}
+@@ -481,7 +479,7 @@ int do_select(int n, fd_set_bits *fds, struct timespec *end_time)
+ 				*rexp = res_ex;
+ 			cond_resched();
+ 		}
+-		wait = NULL;
++		wait->qproc = NULL;
+ 		if (retval || timed_out || signal_pending(current))
+ 			break;
+ 		if (table.error) {
+@@ -738,9 +736,7 @@ static inline unsigned int do_pollfd(struct pollfd *pollfd, poll_table *pwait)
+ 		if (file != NULL) {
+ 			mask = DEFAULT_POLLMASK;
+ 			if (file->f_op && file->f_op->poll) {
+-				if (pwait)
+-					pwait->key = pollfd->events |
+-							POLLERR | POLLHUP;
++				pwait->key = pollfd->events | POLLERR | POLLHUP;
+ 				mask = file->f_op->poll(file, pwait);
+ 			}
+ 			/* Mask out unneeded events. */
+@@ -763,7 +759,7 @@ static int do_poll(unsigned int nfds,  struct poll_list *list,
+ 
+ 	/* Optimise the no-wait case */
+ 	if (end_time && !end_time->tv_sec && !end_time->tv_nsec) {
+-		pt = NULL;
++		pt->qproc = NULL;
+ 		timed_out = 1;
+ 	}
+ 
+@@ -788,7 +784,7 @@ static int do_poll(unsigned int nfds,  struct poll_list *list,
+ 				 */
+ 				if (do_pollfd(pfd, pt)) {
+ 					count++;
+-					pt = NULL;
++					pt->qproc = NULL;
+ 				}
+ 			}
+ 		}
+@@ -796,7 +792,7 @@ static int do_poll(unsigned int nfds,  struct poll_list *list,
+ 		 * All waiters have already been registered, so don't provide
+ 		 * a poll_table to them on the next loop iteration.
+ 		 */
+-		pt = NULL;
++		pt->qproc = NULL;
+ 		if (!count) {
+ 			count = wait->error;
+ 			if (signal_pending(current))
+diff --git a/include/linux/poll.h b/include/linux/poll.h
+index cf40010..fe1e360 100644
+--- a/include/linux/poll.h
++++ b/include/linux/poll.h
+@@ -39,10 +39,15 @@ typedef struct poll_table_struct {
+ 
+ static inline void poll_wait(struct file * filp, wait_queue_head_t * wait_address, poll_table *p)
+ {
+-	if (p && wait_address)
++	if (p && p->qproc && wait_address)
+ 		p->qproc(filp, wait_address, p);
+ }
+ 
++static inline unsigned long poll_requested_events(const poll_table *p)
++{
++	return p ? p->key : ~0UL;
++}
++
+ static inline void init_poll_funcptr(poll_table *pt, poll_queue_proc qproc)
+ {
+ 	pt->qproc = qproc;
+-- 
+1.7.1
+
