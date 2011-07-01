@@ -1,43 +1,66 @@
-Return-path: <mchehab@localhost>
-Received: from smtp-68.nebula.fi ([83.145.220.68]:48814 "EHLO
-	smtp-68.nebula.fi" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754984Ab1GLVWs (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 12 Jul 2011 17:22:48 -0400
-Date: Wed, 13 Jul 2011 00:22:44 +0300
-From: 'Sakari Ailus' <sakari.ailus@iki.fi>
-To: "Hadli, Manjunath" <manjunath.hadli@ti.com>
-Cc: 'Laurent Pinchart' <laurent.pinchart@ideasonboard.com>,
-	'LMML' <linux-media@vger.kernel.org>,
-	'dlos' <davinci-linux-open-source@linux.davincidsp.com>
-Subject: Re: [ RFC PATCH 0/8] RFC for Media Controller capture driver for
- DM365
-Message-ID: <20110712212244.GJ22072@valkosipuli.localdomain>
-References: <1309439597-15998-1-git-send-email-manjunath.hadli@ti.com>
- <20110630135736.GK12671@valkosipuli.localdomain>
- <B85A65D85D7EB246BE421B3FB0FBB593024BCEF739@dbde02.ent.ti.com>
- <201107041522.37437.laurent.pinchart@ideasonboard.com>
- <B85A65D85D7EB246BE421B3FB0FBB593024BCEF73A@dbde02.ent.ti.com>
- <4E11E695.9090508@iki.fi>
- <B85A65D85D7EB246BE421B3FB0FBB593024BCEF73B@dbde02.ent.ti.com>
- <B85A65D85D7EB246BE421B3FB0FBB593024BCEF73D@dbde02.ent.ti.com>
+Return-path: <mchehab@pedra>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:35071 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756864Ab1GAWuG (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 1 Jul 2011 18:50:06 -0400
+Message-ID: <4E0E4F14.1080007@ti.com>
+Date: Fri, 1 Jul 2011 15:49:56 -0700
+From: Archit Taneja <a0393947@ti.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <B85A65D85D7EB246BE421B3FB0FBB593024BCEF73D@dbde02.ent.ti.com>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+CC: "Hiremath, Vaibhav" <hvaibhav@ti.com>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Subject: Re: [GIT PULL for v3.0] OMAP_VOUT bug fixes and code cleanup
+References: <1308771169-10741-1-git-send-email-hvaibhav@ti.com> <4E0E1683.8080002@redhat.com>
+In-Reply-To: <4E0E1683.8080002@redhat.com>
+Content-Type: text/plain; charset="UTF-8"; format=flowed
+Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
-Sender: <mchehab@infradead.org>
+Sender: <mchehab@pedra>
 
-On Tue, Jul 12, 2011 at 05:31:52PM +0530, Hadli, Manjunath wrote:
-> 
-> Sakari/Laurent,
->   Did you get some time to review the code? Will look forward for your comments.
-> -Manju
+Hi,
 
-Hi Manju,
+On Friday 01 July 2011 11:48 AM, Mauro Carvalho Chehab wrote:
+> Em 22-06-2011 16:32, hvaibhav@ti.com escreveu:
+>> The following changes since commit af0d6a0a3a30946f7df69c764791f1b0643f7cd6:
+>>    Linus Torvalds (1):
+>>          Merge branch 'x86-urgent-for-linus' of git://git.kernel.org/.../tip/linux-2.6-tip
+>>
+>> are available in the git repository at:
+>>
+>>    git://arago-project.org/git/people/vaibhav/ti-psp-omap-video.git for-linux-media
+>>
+>
+>> Archit Taneja (3):
+>>        OMAP_VOUT: CLEANUP: Move generic functions and macros to common files
+>>        OMAP_VOUT: CLEANUP: Make rotation related helper functions more descriptive
+>>        OMAP_VOUT: Create separate file for VRFB related API's
+>
+> Those are cleanup patches. NACK for 3.0. Cleanups should be sent to -next kernel (3.1).
 
-I'll try to review this in near future.
+The first 2 patches are pre-requisite cleanup patches required for the 
+3rd patch. The third patch adds functionality, it prevents the driver 
+using VRFB for OMAP4, and forces the use of SDMA buffers.
 
--- 
-Sakari Ailus
-sakari.ailus@iki.fi
+So the patch set as a whole is not only cleanup, and I guess we could 
+push it for 3.0.
+
+Archit
+
+>
+>> Vaibhav Hiremath (2):
+>>        OMAP_VOUT: Change hardcoded device node number to -1
+>>        omap_vout: Added check in reqbuf&  mmap for buf_size allocation
+>>
+>> Vladimir Pantelic (1):
+>>        OMAP_VOUTLIB: Fix wrong resizer calculation
+>
+> The 3 above patches are ok for 3.0. Added.
+>
+> Thanks,
+> Mauro.
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
