@@ -1,65 +1,41 @@
-Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:36990 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753063Ab1GaXaJ (ORCPT
+Return-path: <mchehab@pedra>
+Received: from out3.smtp.messagingengine.com ([66.111.4.27]:37293 "EHLO
+	out3.smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1757817Ab1GAVdW (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 31 Jul 2011 19:30:09 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Geert Uytterhoeven <geert@linux-m68k.org>
-Subject: Re: [PATCH/RFC] fbdev: Add FOURCC-based format configuration API
-Date: Mon, 1 Aug 2011 01:30:19 +0200
-Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Florian Tobias Schandinat <FlorianSchandinat@gmx.de>,
-	Paul Mundt <lethal@linux-sh.org>, linux-fbdev@vger.kernel.org,
-	linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org
-References: <4DDAE63A.3070203@gmx.de> <201107281251.35018.laurent.pinchart@ideasonboard.com> <CAMuHMdX=c=p7oASCE+GgY9AgaCPWoXRQyjEGpn4BvA9xSY6GQg@mail.gmail.com>
-In-Reply-To: <CAMuHMdX=c=p7oASCE+GgY9AgaCPWoXRQyjEGpn4BvA9xSY6GQg@mail.gmail.com>
+	Fri, 1 Jul 2011 17:33:22 -0400
+Date: Fri, 1 Jul 2011 14:24:27 -0700
+From: Greg KH <greg@kroah.com>
+To: Kirill Smelkov <kirr@mns.spb.ru>
+Cc: Alan Stern <stern@rowland.harvard.edu>,
+	Sarah Sharp <sarah.a.sharp@linux.intel.com>,
+	matt mooney <mfm@muteddisk.com>,
+	Greg Kroah-Hartman <gregkh@suse.de>, linux-usb@vger.kernel.org,
+	linux-uvc-devel@lists.berlios.de, linux-media@vger.kernel.org,
+	linux-kernel@vger.kernel.org
+Subject: Re: [PATCH v3 2/2] USB: EHCI: Allow users to override 80% max
+ periodic bandwidth
+Message-ID: <20110701212427.GA11831@kroah.com>
+References: <cover.1309520144.git.kirr@mns.spb.ru>
+ <69ea2dd940481508f190419c53c780b626460b22.1309520144.git.kirr@mns.spb.ru>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201108010130.19713.laurent.pinchart@ideasonboard.com>
-Sender: linux-media-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <69ea2dd940481508f190419c53c780b626460b22.1309520144.git.kirr@mns.spb.ru>
 List-ID: <linux-media.vger.kernel.org>
+Sender: <mchehab@pedra>
 
-Hi Geert,
+On Fri, Jul 01, 2011 at 03:47:11PM +0400, Kirill Smelkov wrote:
+>  drivers/usb/host/ehci-sysfs.c |  104 +++++++++++++++++++++++++++++++++++++++--
 
-Thanks for the feedback.
+As you are adding new sysfs files, it is required that you also add new
+entries in the Documentation/ABI/ directory.
 
-On Sunday 31 July 2011 22:32:42 Geert Uytterhoeven wrote:
-> On Thu, Jul 28, 2011 at 12:51, Laurent Pinchart wrote:
-> >> As for struct fb_var_screeninfo fields to support switching to a FOURCC
-> >> mode, I also prefer an explicit dedicated flag to specify switching to
-> >> it. Even though using FOURCC doesn't fit under the notion of a
-> >> videomode, using one of .vmode bits is too tempting, so, I would
-> >> actually take the plunge and use FB_VMODE_FOURCC.
-> > 
-> > Another option would be to consider any grayscale > 1 value as a FOURCC.
-> > I've briefly checked the in-tree drivers: they only assign grayscale
-> > with 0 or 1, and check whether grayscale is 0 or different than 0. If a
-> > userspace application only sets grayscale > 1 when talking to a driver
-> > that supports the FOURCC-based API, we could get rid of the flag.
-> > 
-> > What can't be easily found out is whether existing applications set
-> > grayscale to a > 1 value. They would break when used with FOURCC-aware
-> > drivers if we consider any grayscale > 1 value as a FOURCC. Is that a
-> > risk we can take ?
-> 
-> I think we can. I'd expect applications to use either 1 or -1 (i.e. all
-> ones), both are invalid FOURCC values.
+Please do that for these files so that people have an idea of what they
+are, and how to use them.
 
-OK.
+Care to redo this series with that change?
 
-> Still, I prefer the nonstd way.
-> And limiting traditional nonstd values to the lowest 24 bits (there
-> are no in-tree drivers using the highest 8 bits, right?).
+thanks,
 
-None that I've found. I still have a preference for the grayscale field 
-though. As mentioned by Guennadi, the grayscale field would become redundant 
-for FOURCC-based formats. It's then a good candidate, and would let drivers 
-(and applications) do any crazy stuff they want with the nonstd field.
-
--- 
-Regards,
-
-Laurent Pinchart
+greg k-h
