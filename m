@@ -1,81 +1,78 @@
-Return-path: <linux-media-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.17.8]:60207 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755904Ab1G2K5D (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 29 Jul 2011 06:57:03 -0400
-Received: from 6a.grange (6a.grange [192.168.1.11])
-	by axis700.grange (Postfix) with ESMTPS id 5026118B03B
-	for <linux-media@vger.kernel.org>; Fri, 29 Jul 2011 12:57:00 +0200 (CEST)
-Received: from lyakh by 6a.grange with local (Exim 4.72)
-	(envelope-from <g.liakhovetski@gmx.de>)
-	id 1QmkkW-0007nK-1K
-	for linux-media@vger.kernel.org; Fri, 29 Jul 2011 12:57:00 +0200
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: linux-media@vger.kernel.org
-Subject: [PATCH 08/59] V4L: mt9m111: support the new mbus-config subdev ops
-Date: Fri, 29 Jul 2011 12:56:08 +0200
-Message-Id: <1311937019-29914-9-git-send-email-g.liakhovetski@gmx.de>
-In-Reply-To: <1311937019-29914-1-git-send-email-g.liakhovetski@gmx.de>
-References: <1311937019-29914-1-git-send-email-g.liakhovetski@gmx.de>
-Sender: linux-media-owner@vger.kernel.org
+Return-path: <mchehab@pedra>
+Received: from smtp-68.nebula.fi ([83.145.220.68]:40967 "EHLO
+	smtp-68.nebula.fi" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754902Ab1GAIUX (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 1 Jul 2011 04:20:23 -0400
+Date: Fri, 1 Jul 2011 11:20:18 +0300
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	linux-media@vger.kernel.org, laurent.pinchart@ideasonboard.com
+Subject: Re: [GIT PULL FOR 3.1] Bitmask controls, flash API and adp1653
+ driver
+Message-ID: <20110701082017.GM12671@valkosipuli.localdomain>
+References: <20110610092703.GH7830@valkosipuli.localdomain>
+ <4E0D226E.5010809@redhat.com>
+ <201107010957.39930.hverkuil@xs4all.nl>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <201107010957.39930.hverkuil@xs4all.nl>
 List-ID: <linux-media.vger.kernel.org>
+Sender: <mchehab@pedra>
 
-Extend the driver to also support [gs]_mbus_config() subdevice video
-operations.
+Hi Hans and Mauro,
 
-Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
----
- drivers/media/video/mt9m111.c |   20 +++++++++++++++++++-
- 1 files changed, 19 insertions(+), 1 deletions(-)
+On Fri, Jul 01, 2011 at 09:57:39AM +0200, Hans Verkuil wrote:
+> On Friday, July 01, 2011 03:27:10 Mauro Carvalho Chehab wrote:
+> > Em 10-06-2011 06:27, Sakari Ailus escreveu:
+> > > Hi Mauro,
+> > > 
+> > > This pull request adds the bitmask controls, flash API and the adp1653
+> > > driver. What has changed since the patches is:
+> > > 
+> > > - Adp1653 flash faults control is volatile. Fix this.
+> > > - Flash interface marked as experimental.
+> > > - Moved the DocBook documentation to a new location.
+> > > - The target version is 3.1, not 2.6.41.
+> > > 
+> > > The following changes since commit 75125b9d44456e0cf2d1fbb72ae33c13415299d1:
+> > > 
+> > >   [media] DocBook: Don't be noisy at make cleanmediadocs (2011-06-09 16:40:58 -0300)
+> > > 
+> > > are available in the git repository at:
+> > >   ssh://linuxtv.org/git/sailus/media_tree.git media-for-3.1
+> > > 
+> > > Hans Verkuil (3):
+> > >       v4l2-ctrls: add new bitmask control type.
+> > >       vivi: add bitmask test control.
+> > >       DocBook: document V4L2_CTRL_TYPE_BITMASK.
+> > 
+> > I'm sure I've already mentioned, but I think it was at the Hans pull request:
+> > the specs don't mention what endiannes is needed for the bitmask controls: 
+> > machine endianess, little endian or big endian.  IMO, we should stick with either
+> > LE or BE.
+> 
+> Sorry Sakari, I should have fixed that. But since the patch was going through
+> your repository I forgot about it. Anyway, it should be machine endianess. You
+> have to be able to do (value & bit_define). The bit_defines for each bitmask
+> control should be part of the control's definition in videodev2.h.
 
-diff --git a/drivers/media/video/mt9m111.c b/drivers/media/video/mt9m111.c
-index a357aa8..c2fe5c9 100644
---- a/drivers/media/video/mt9m111.c
-+++ b/drivers/media/video/mt9m111.c
-@@ -14,9 +14,10 @@
- #include <linux/gpio.h>
- #include <linux/delay.h>
- 
-+#include <media/soc_camera.h>
-+#include <media/soc_mediabus.h>
- #include <media/v4l2-common.h>
- #include <media/v4l2-chip-ident.h>
--#include <media/soc_camera.h>
- 
- /*
-  * MT9M111, MT9M112 and MT9M131:
-@@ -1016,6 +1017,22 @@ static int mt9m111_enum_fmt(struct v4l2_subdev *sd, unsigned int index,
- 	return 0;
- }
- 
-+static int mt9m111_g_mbus_config(struct v4l2_subdev *sd,
-+				struct v4l2_mbus_config *cfg)
-+{
-+	struct i2c_client *client = v4l2_get_subdevdata(sd);
-+	struct soc_camera_device *icd = client->dev.platform_data;
-+	struct soc_camera_link *icl = to_soc_camera_link(icd);
-+
-+	cfg->flags = V4L2_MBUS_MASTER | V4L2_MBUS_PCLK_SAMPLE_RISING |
-+		V4L2_MBUS_HSYNC_ACTIVE_HIGH | V4L2_MBUS_VSYNC_ACTIVE_HIGH |
-+		V4L2_MBUS_DATA_ACTIVE_HIGH;
-+	cfg->type = V4L2_MBUS_PARALLEL;
-+	cfg->flags = soc_camera_apply_board_flags(icl, cfg);
-+
-+	return 0;
-+}
-+
- static struct v4l2_subdev_video_ops mt9m111_subdev_video_ops = {
- 	.s_mbus_fmt	= mt9m111_s_fmt,
- 	.g_mbus_fmt	= mt9m111_g_fmt,
-@@ -1024,6 +1041,7 @@ static struct v4l2_subdev_video_ops mt9m111_subdev_video_ops = {
- 	.g_crop		= mt9m111_g_crop,
- 	.cropcap	= mt9m111_cropcap,
- 	.enum_mbus_fmt	= mt9m111_enum_fmt,
-+	.g_mbus_config	= mt9m111_g_mbus_config,
- };
- 
- static struct v4l2_subdev_ops mt9m111_subdev_ops = {
+No problem, Hans.
+
+The bit defines would change from endianness to another if the endianness
+were to be either big or little. I agree to using machine endianness ---
+that was also my assumption previously.
+
+> It makes no sense to require LE or BE. We don't do that for other control types,
+> so why should bitmask be any different?
+> 
+> Can you add this clarification to DocBook?
+
+Sure I can. Mauro: are you ok with this?
+
+Cheers,
+
 -- 
-1.7.2.5
-
+Sakari Ailus
+sakari.ailus@iki.fi
