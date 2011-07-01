@@ -1,128 +1,193 @@
 Return-path: <mchehab@pedra>
-Received: from mailout4.w1.samsung.com ([210.118.77.14]:46886 "EHLO
-	mailout4.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754047Ab1GEHl4 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 5 Jul 2011 03:41:56 -0400
-MIME-version: 1.0
-Content-transfer-encoding: 7BIT
-Content-type: TEXT/PLAIN
-Date: Tue, 05 Jul 2011 09:41:44 +0200
-From: Marek Szyprowski <m.szyprowski@samsung.com>
-Subject: [PATCH 2/8] mm: alloc_contig_freed_pages() added
-In-reply-to: <1309851710-3828-1-git-send-email-m.szyprowski@samsung.com>
-To: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-	linux-media@vger.kernel.org, linux-mm@kvack.org,
-	linaro-mm-sig@lists.linaro.org
-Cc: Michal Nazarewicz <mina86@mina86.com>,
-	Marek Szyprowski <m.szyprowski@samsung.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	Andrew Morton <akpm@linux-foundation.org>,
-	KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>,
-	Ankita Garg <ankita@in.ibm.com>,
-	Daniel Walker <dwalker@codeaurora.org>,
-	Mel Gorman <mel@csn.ul.ie>, Arnd Bergmann <arnd@arndb.de>,
-	Jesse Barker <jesse.barker@linaro.org>,
-	Jonathan Corbet <corbet@lwn.net>,
-	Chunsang Jeong <chunsang.jeong@linaro.org>
-Message-id: <1309851710-3828-3-git-send-email-m.szyprowski@samsung.com>
-References: <1309851710-3828-1-git-send-email-m.szyprowski@samsung.com>
+Received: from smtp-vbr2.xs4all.nl ([194.109.24.22]:2648 "EHLO
+	smtp-vbr2.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756569Ab1GAQVk (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 1 Jul 2011 12:21:40 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Hans de Goede <hdegoede@redhat.com>
+Subject: Re: Some comments on the new autocluster patches
+Date: Fri, 1 Jul 2011 18:21:33 +0200
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
+References: <4E0DE283.2030107@redhat.com>
+In-Reply-To: <4E0DE283.2030107@redhat.com>
+MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201107011821.33960.hverkuil@xs4all.nl>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-From: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+On Friday, July 01, 2011 17:06:43 Hans de Goede wrote:
+> Hi Hans (et all),
+> 
+> I've been working on doing a much needed cleanup to the pwc driver,
+> converting it to videobuf2 and using the new ctrl framework.
+> 
+> I hope to be able to send a pull request for this, this weekend.
 
-This commit introduces alloc_contig_freed_pages() function
-which allocates (ie. removes from buddy system) free pages
-in range.  Caller has to guarantee that all pages in range
-are in buddy system.
+Thanks!
 
-Along with this function, a free_contig_pages() function is
-provided which frees all (or a subset of) pages allocated
-with alloc_contig_free_pages().
+> I saw your pull request and I'm looking forward to be able to
+> play with ctrl events. I do have some comments on your autofoo
+> cluster patches and related changes though.
+> 
+> First of all there is:
+> "v4l2-ctrls: fix and improve volatile control handling."
+> 
+> I must admit I was a bit confused about needing to set
+> cur.val rather then just val from the g_volatile_ctrl op
+> myself at first too, but I've gotten used to it now :)
+> 
+> With that said I'm not quite sure I like to proposed change
+> though, where g_ctrl will return the new value as long as the
+> control is volatile and then jump to the old cur val when
+> it turns non volatile (ie autogain is turned off) this seems
+> wrong to me, it will certainly surprise both driver writers
+> and v4l2 app users alike!
+> 
+> Also this requires special care taking by drivers when ie
+> autogain gets turned off, either they need to update cur.val
+> with the real current value, or they need to send the cur.val
+> to the device at this point to ensure the device's setting
+> and cur.val match.
+> 
+> Actually this brings me to the second point, making ie gain
+> non volatile as soon as autogain gets turned off, can be wrong,
+> as the gain may have changed between the last g_volatile_ctrl
+> call and the autogain getting turned off. I admit that
+> your solution of simply not updating cur.val and at all as long
+> as the ctrl is volatile and then jump back to cur.val avoids
+> this, but I find that less then ideal.
+> 
+> The entire model of having a separate manual value (stored in
+> cur.val) and an autocontrolled value stored in val as long
+> as the control is volatile, seems to assume a device with
+> 2 separate registers for gain, one with the active gain,
+> and one with a manual gain preset. Where in auto mode only
+> the active gain is controlled and switching to manual
+> gain mode copies the manual gain value to the active gain.
+> 
+> This is IMHO a pretty limited model of reality, I know
+> you have experience with a device which happens to work
+> like that, but many do not work like that.
 
-Michal Nazarewicz has modified the function to make it easier
-to allocate not MAX_ORDER_NR_PAGES aligned pages by making it
-return pfn of one-past-the-last allocated page.
+The problem with the old approach was that cur.val was overwritten. So you
+lost that information completely. The new approach keeps that value and
+it is up to the driver what to do when the autogain is switched off.
 
-Signed-off-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Signed-off-by: Michal Nazarewicz <m.nazarewicz@samsung.com>
-Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
-Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
-CC: Michal Nazarewicz <mina86@mina86.com>
----
- include/linux/page-isolation.h |    3 ++
- mm/page_alloc.c                |   44 ++++++++++++++++++++++++++++++++++++++++
- 2 files changed, 47 insertions(+), 0 deletions(-)
+In s_ctrl you can either use val (this is either a new manual gain value
+set by the application, or the last manual gain value), or you can do
+something like this:
 
-diff --git a/include/linux/page-isolation.h b/include/linux/page-isolation.h
-index 58cdbac..f1417ed 100644
---- a/include/linux/page-isolation.h
-+++ b/include/linux/page-isolation.h
-@@ -32,6 +32,9 @@ test_pages_isolated(unsigned long start_pfn, unsigned long end_pfn);
-  */
- extern int set_migratetype_isolate(struct page *page);
- extern void unset_migratetype_isolate(struct page *page);
-+extern unsigned long alloc_contig_freed_pages(unsigned long start,
-+					      unsigned long end, gfp_t flag);
-+extern void free_contig_pages(struct page *page, int nr_pages);
+if (autogain->cur.val == 1 && autogain->val == 0 && !gain->is_new)
+	gain->val = read_gain();
+
+But I also see my patch below :-)
+
+> Actually the pwc has 2 registers, but when switching to
+> manual mode, it updates the manual setting register, with
+> the last value set in the active register by the autogain,
+> so the other way around then your model assumes.
+
+One possible problem with this approach BTW is that those gain values
+set by the autogain on the chip are not always reliable. If I toggle the
+autogain quickly from false to true to false, then the gain value after
+I switch back to false from e.g. the saa7115 is usually bogus.
+
+> 
+> 
+> But we should not be looking at existing hardware at all,
+> instead we should be looking at the user experience, and
+> build our model from there. Drivers will have to cope
+> with all the different variations on this theme at the
+> driver level IMHO.
+> 
+> And looking from the users perspective the right choice
+> is obvious IMHO. When the user turns of auto-foo, then
+> following the principle of least surprise, the right
+> thing to do is to leave the control at its current
+> setting, because likely the user wants to make some
+> adjustments to the auto-foo chosen value for foo.
+> Rather then to start over with some $random (from the
+> users perspective) value for foo. Imagine that
+> auto-foo has been on since driver loading, then the
+> value in cur.val has never been seen by the user before,
+> yet switching to manual all of a sudden switches
+> to this unseen value -> confused user
+
+Is this the least surprise? First of all: generally user-visible controls
+like gain are not normally refreshed, so the value you see is the value the
+user set the last time. Calling g_volatile_ctrl when switching back to manual
+gain would actually unexpectedly change the value. Another reason for not doing
+this is that the user might have painstakingly determined a great manual gain
+value, which is completely undone if he switches on autogain mode and then
+switches it off again.
+
+It's not so simple...
+
+Think of a TV: the manual values don't change when you turn on or off an
+autofoo control. Frankly, I think that volatile behavior for writable controls
+is dubious at best. Perhaps we should add a flag that you need to explicitly
+set in order to get the volatile value. E.g. G_CTRL(V4L2_CID_GAIN) gives the
+normal manual gain, and G_CTRL(V4L2_CID_GAIN | V4L2_CTRL_FLAG_VOLATILE) gives
+the 'volatile' gain.
+
+Or just add a proper read-only volatile control like AUTOGAIN_GAIN (ugly name).
+
+> I suggest that when an auto-foo control gets turned of
+> the code calls g_volatile_ctrl one last time after
+> actually turning it off and stores the result in cur.val
+
+I would prefer to make this optional by passing an extra flag or
+something like that to v4l2_ctrl_autocluster. It's easy enough to do
+in the control framework, but hardware varies too much to assume that
+this is what you always want.
+
+> Actually in my current pwc code I've done this by moving
+> the clearing of the volatile flag to the g_volatile_ctrl
+> op, when g_volatile_ctrl-foo gets called and auto-foo is
+> off, then g_volatile_ctrl-foo clears the volatile flag.
+> 
+> This avoid needlessly calling g_volatile_ctrl-foo if
+> auto-foo gets turned off, but no one cares about the
+> value of foo after that.
+
+I think I need to see the code first.
  
- /*
-  * For migration.
-diff --git a/mm/page_alloc.c b/mm/page_alloc.c
-index 4e8985a..00e9b24 100644
---- a/mm/page_alloc.c
-+++ b/mm/page_alloc.c
-@@ -5600,6 +5600,50 @@ out:
- 	spin_unlock_irqrestore(&zone->lock, flags);
- }
- 
-+unsigned long alloc_contig_freed_pages(unsigned long start, unsigned long end,
-+				       gfp_t flag)
-+{
-+	unsigned long pfn = start, count;
-+	struct page *page;
-+	struct zone *zone;
-+	int order;
-+
-+	VM_BUG_ON(!pfn_valid(start));
-+	zone = page_zone(pfn_to_page(start));
-+
-+	spin_lock_irq(&zone->lock);
-+
-+	page = pfn_to_page(pfn);
-+	for (;;) {
-+		VM_BUG_ON(page_count(page) || !PageBuddy(page));
-+		list_del(&page->lru);
-+		order = page_order(page);
-+		zone->free_area[order].nr_free--;
-+		rmv_page_order(page);
-+		__mod_zone_page_state(zone, NR_FREE_PAGES, -(1UL << order));
-+		pfn  += 1 << order;
-+		if (pfn >= end)
-+			break;
-+		VM_BUG_ON(!pfn_valid(pfn));
-+		page += 1 << order;
-+	}
-+
-+	spin_unlock_irq(&zone->lock);
-+
-+	/* After this, pages in the range can be freed one be one */
-+	page = pfn_to_page(start);
-+	for (count = pfn - start; count; --count, ++page)
-+		prep_new_page(page, 0, flag);
-+
-+	return pfn;
-+}
-+
-+void free_contig_pages(struct page *page, int nr_pages)
-+{
-+	for (; nr_pages; --nr_pages, ++page)
-+		__free_page(page);
-+}
-+
- #ifdef CONFIG_MEMORY_HOTREMOVE
- /*
-  * All pages in the range must be isolated before calling this.
--- 
-1.7.1.569.g6f426
+> Note that this depends on the old behavior of
+> g_volatile_ctrl setting cur.val rather then just val.
 
+This new behavior is definitely better and I want to keep that.
+
+Below is a patch for v4l2-ctrls.c that changes the behavior in just the
+way you want it.
+
+It's on top of my 'core8c' branch:
+
+http://git.linuxtv.org/hverkuil/media_tree.git?a=shortlog;h=refs/heads/core8c
+
+Regards,
+
+	Hans
+
+diff --git a/drivers/media/video/v4l2-ctrls.c b/drivers/media/video/v4l2-ctrls.c
+index 37a50e5..65d9be7 100644
+--- a/drivers/media/video/v4l2-ctrls.c
++++ b/drivers/media/video/v4l2-ctrls.c
+@@ -1915,6 +1915,15 @@ static int try_set_ext_ctrls(struct v4l2_fh *fh, struct v4l2_ctrl_handler *hdl,
+ 			if (master->cluster[j])
+ 				master->cluster[j]->is_new = 0;
+ 
++		if (has_op(master, g_volatile_ctrl) && !is_cur_manual(master)) {
++			for (j = 0; j < master->ncontrols; j++)
++				cur_to_new(master->cluster[j]);
++			if (!call_op(master, g_volatile_ctrl))
++				for (j = 1; j < master->ncontrols; j++)
++					if (master->cluster[j]->is_volatile)
++						master->cluster[j]->is_new = 1;
++		}
++
+ 		/* Copy the new caller-supplied control values.
+ 		   user_to_new() sets 'is_new' to 1. */
+ 		do {
