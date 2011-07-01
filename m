@@ -1,85 +1,92 @@
-Return-path: <linux-media-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.126.171]:50410 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756074Ab1G2K5D (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 29 Jul 2011 06:57:03 -0400
-Received: from 6a.grange (6a.grange [192.168.1.11])
-	by axis700.grange (Postfix) with ESMTPS id 9698A18B041
-	for <linux-media@vger.kernel.org>; Fri, 29 Jul 2011 12:57:00 +0200 (CEST)
-Received: from lyakh by 6a.grange with local (Exim 4.72)
-	(envelope-from <g.liakhovetski@gmx.de>)
-	id 1QmkkW-0007nk-CV
-	for linux-media@vger.kernel.org; Fri, 29 Jul 2011 12:57:00 +0200
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: linux-media@vger.kernel.org
-Subject: [PATCH 16/59] V4L: ov772x: support the new mbus-config subdev ops
-Date: Fri, 29 Jul 2011 12:56:16 +0200
-Message-Id: <1311937019-29914-17-git-send-email-g.liakhovetski@gmx.de>
-In-Reply-To: <1311937019-29914-1-git-send-email-g.liakhovetski@gmx.de>
-References: <1311937019-29914-1-git-send-email-g.liakhovetski@gmx.de>
-Sender: linux-media-owner@vger.kernel.org
+Return-path: <mchehab@pedra>
+Received: from mail.mnsspb.ru ([84.204.75.2]:39335 "EHLO mail.mnsspb.ru"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754832Ab1GAJ2G (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 1 Jul 2011 05:28:06 -0400
+Date: Fri, 1 Jul 2011 13:27:03 +0400
+From: Kirill Smelkov <kirr@mns.spb.ru>
+To: Sarah Sharp <sarah.a.sharp@linux.intel.com>
+Cc: Alan Stern <stern@rowland.harvard.edu>,
+	matt mooney <mfm@muteddisk.com>,
+	Greg Kroah-Hartman <gregkh@suse.de>, linux-usb@vger.kernel.org,
+	linux-uvc-devel@lists.berlios.de, linux-media@vger.kernel.org,
+	linux-kernel@vger.kernel.org
+Subject: Re: [PATCH v2 0/2] USB: EHCI: Allow users to override 80% max
+	periodic bandwidth
+Message-ID: <20110701092703.GA17010@tugrik.mns.mnsspb.ru>
+References: <cover.1308933456.git.kirr@mns.spb.ru> <20110630180101.GB7979@xanatos>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20110630180101.GB7979@xanatos>
 List-ID: <linux-media.vger.kernel.org>
+Sender: <mchehab@pedra>
 
-Extend the driver to also support [gs]_mbus_config() subdevice video
-operations.
+On Thu, Jun 30, 2011 at 11:01:01AM -0700, Sarah Sharp wrote:
+> On Fri, Jun 24, 2011 at 08:48:06PM +0400, Kirill Smelkov wrote:
+> > 
+> > Changes since v1:
+> > 
+> > 
+> >  - dropped RFC status as "this seems like the sort of feature somebody might
+> >    reasonably want to use -- if they know exactly what they're doing";
+> > 
+> >  - new preparatory patch (1/2) which moves already-in-there sysfs code into
+> >    ehci-sysfs.c;
+> > 
+> >  - moved uframe_periodic_max parameter from module option to sysfs attribute,
+> >    so that it can be set per controller and at runtime, added validity checks;
+> > 
+> >  - clarified a bit bandwith analysis for 96% max periodic setup as noticed by
+> >    Alan Stern;
+> > 
+> >  - clarified patch description saying that set in stone 80% max periodic is
+> >    specified by USB 2.0;
+> 
+> Have you tested this patch by maxing out this bandwidth on various
+> types of host controllers?  It's entirely possible that you'll run into
+> vendor-specific bugs if you try to pack the schedule with isochronous
+> transfers.  I don't think any hardware designer would seriously test or
+> validate their hardware with a schedule that is basically a violation of
+> the USB bus spec (more than 80% for periodic transfers).
 
-Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
----
- drivers/media/video/ov772x.c |   24 +++++++++++++++++++++---
- 1 files changed, 21 insertions(+), 3 deletions(-)
+I've only tested it to work on my HP Mini 5103 with N10 chipset:
 
-diff --git a/drivers/media/video/ov772x.c b/drivers/media/video/ov772x.c
-index 458265b..b70ffba 100644
---- a/drivers/media/video/ov772x.c
-+++ b/drivers/media/video/ov772x.c
-@@ -21,11 +21,12 @@
- #include <linux/slab.h>
- #include <linux/delay.h>
- #include <linux/videodev2.h>
--#include <media/v4l2-chip-ident.h>
--#include <media/v4l2-subdev.h>
-+
-+#include <media/ov772x.h>
- #include <media/soc_camera.h>
- #include <media/soc_mediabus.h>
--#include <media/ov772x.h>
-+#include <media/v4l2-chip-ident.h>
-+#include <media/v4l2-subdev.h>
- 
- /*
-  * register offset
-@@ -1095,6 +1096,22 @@ static int ov772x_enum_fmt(struct v4l2_subdev *sd, unsigned int index,
- 	return 0;
- }
- 
-+static int ov772x_g_mbus_config(struct v4l2_subdev *sd,
-+				struct v4l2_mbus_config *cfg)
-+{
-+	struct i2c_client *client = v4l2_get_subdevdata(sd);
-+	struct soc_camera_device *icd = client->dev.platform_data;
-+	struct soc_camera_link *icl = to_soc_camera_link(icd);
-+
-+	cfg->flags = V4L2_MBUS_PCLK_SAMPLE_RISING | V4L2_MBUS_MASTER |
-+		V4L2_MBUS_VSYNC_ACTIVE_HIGH | V4L2_MBUS_HSYNC_ACTIVE_HIGH |
-+		V4L2_MBUS_DATA_ACTIVE_HIGH;
-+	cfg->type = V4L2_MBUS_PARALLEL;
-+	cfg->flags = soc_camera_apply_board_flags(icl, cfg);
-+
-+	return 0;
-+}
-+
- static struct v4l2_subdev_video_ops ov772x_subdev_video_ops = {
- 	.s_stream	= ov772x_s_stream,
- 	.g_mbus_fmt	= ov772x_g_fmt,
-@@ -1103,6 +1120,7 @@ static struct v4l2_subdev_video_ops ov772x_subdev_video_ops = {
- 	.cropcap	= ov772x_cropcap,
- 	.g_crop		= ov772x_g_crop,
- 	.enum_mbus_fmt	= ov772x_enum_fmt,
-+	.g_mbus_config	= ov772x_g_mbus_config,
- };
- 
- static struct v4l2_subdev_ops ov772x_subdev_ops = {
--- 
-1.7.2.5
+    kirr@mini:~$ lspci 
+    00:00.0 Host bridge: Intel Corporation N10 Family DMI Bridge
+    00:02.0 VGA compatible controller: Intel Corporation N10 Family Integrated Graphics Controller
+    00:02.1 Display controller: Intel Corporation N10 Family Integrated Graphics Controller
+    00:1b.0 Audio device: Intel Corporation N10/ICH 7 Family High Definition Audio Controller (rev 02)
+    00:1c.0 PCI bridge: Intel Corporation N10/ICH 7 Family PCI Express Port 1 (rev 02)
+    00:1c.3 PCI bridge: Intel Corporation N10/ICH 7 Family PCI Express Port 4 (rev 02)
+    00:1d.0 USB Controller: Intel Corporation N10/ICH 7 Family USB UHCI Controller #1 (rev 02)
+    00:1d.1 USB Controller: Intel Corporation N10/ICH 7 Family USB UHCI Controller #2 (rev 02)
+    00:1d.2 USB Controller: Intel Corporation N10/ICH 7 Family USB UHCI Controller #3 (rev 02)
+    00:1d.3 USB Controller: Intel Corporation N10/ICH 7 Family USB UHCI Controller #4 (rev 02)
+    00:1d.7 USB Controller: Intel Corporation N10/ICH 7 Family USB2 EHCI Controller (rev 02)
+    00:1e.0 PCI bridge: Intel Corporation 82801 Mobile PCI Bridge (rev e2)
+    00:1f.0 ISA bridge: Intel Corporation NM10 Family LPC Controller (rev 02)
+    00:1f.2 SATA controller: Intel Corporation N10/ICH7 Family SATA AHCI Controller (rev 02)
+    01:00.0 Network controller: Broadcom Corporation BCM4313 802.11b/g/n Wireless LAN Controller (rev 01)
+    02:00.0 Ethernet controller: Marvell Technology Group Ltd. 88E8059 PCI-E Gigabit Ethernet Controller (rev 11)
 
+The system works stable with 110us/uframe (~88%) isoc bandwith allocated for
+integrated UVC webcam and external EM28XX based capture board.
+
+
+> But if Alan is fine with giving users a way to shoot themselves in the
+> foot, and it's disabled by default, then I don't particularly mind this
+> patch.
+
+Yes, it is disabled by default, I mean max periodic bandwidth is set to
+100us/uframe by default exactly as it was before the patch. So only
+those of us who need the extreme settings are taking the risk - normal
+users who do not alter uframe_periodic_max attribute should not see any
+change at all.
+
+
+Thanks for commenting. I'll extend my testing information and notes on
+do-not-do-harm bahaviour in updated patch.
+
+
+Kirill
