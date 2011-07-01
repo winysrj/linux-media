@@ -1,67 +1,51 @@
-Return-path: <mchehab@localhost>
-Received: from mx1.redhat.com ([209.132.183.28]:13211 "EHLO mx1.redhat.com"
+Return-path: <mchehab@pedra>
+Received: from smtp1-g21.free.fr ([212.27.42.1]:57577 "EHLO smtp1-g21.free.fr"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756166Ab1GKB7q (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 10 Jul 2011 21:59:46 -0400
-Received: from int-mx10.intmail.prod.int.phx2.redhat.com (int-mx10.intmail.prod.int.phx2.redhat.com [10.5.11.23])
-	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id p6B1xjNp011640
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
-	for <linux-media@vger.kernel.org>; Sun, 10 Jul 2011 21:59:45 -0400
-Received: from pedra (vpn-225-29.phx2.redhat.com [10.3.225.29])
-	by int-mx10.intmail.prod.int.phx2.redhat.com (8.14.4/8.14.4) with ESMTP id p6B1xKKb030664
-	for <linux-media@vger.kernel.org>; Sun, 10 Jul 2011 21:59:45 -0400
-Date: Sun, 10 Jul 2011 22:58:57 -0300
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: [PATCH 11/21] [media] em28xx-i2c: Add a read after I2C write
-Message-ID: <20110710225857.23dff9d8@pedra>
-In-Reply-To: <cover.1310347962.git.mchehab@redhat.com>
-References: <cover.1310347962.git.mchehab@redhat.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+	id S1757255Ab1GAQlq (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 1 Jul 2011 12:41:46 -0400
+Message-ID: <4E0DF8C1.3090109@free.fr>
+Date: Fri, 01 Jul 2011 18:41:37 +0200
+From: Robert Jarzmik <robert.jarzmik@free.fr>
+Reply-To: robert.jarzmik@free.fr
+MIME-Version: 1.0
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+CC: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: [PATCH] Fix suspend/resume of pxa_camera driver
+References: <1217113647-20638-1-git-send-email-robert.jarzmik@free.fr> <Pine.LNX.4.64.0807270155020.29126@axis700.grange> <878wvnkd8n.fsf@free.fr> <Pine.LNX.4.64.0807271337270.1604@axis700.grange> <87tze997uu.fsf@free.fr> <Pine.LNX.4.64.0807291902200.17188@axis700.grange> <87iqun2ge3.fsf@free.fr> <Pine.LNX.4.64.0807310008190.26534@axis700.grange> <Pine.LNX.4.64.1106281515030.30771@axis700.grange>
+In-Reply-To: <Pine.LNX.4.64.1106281515030.30771@axis700.grange>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
-To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
 List-ID: <linux-media.vger.kernel.org>
-Sender: <mchehab@infradead.org>
+Sender: <mchehab@pedra>
 
-All I2C logs we got for em28xx does that. With Terratec H5, at
-400MHz speed, it seems that this is required, to avoid having
-troubles at the I2C bus.
+On 06/28/2011 03:47 PM, Guennadi Liakhovetski wrote:
+> Hi Robert
+>
+> Hope you don't mind me resuming an almost 3 year old mail thread;) I'm
+> referring to your patches to soc-camera core and pxa-camera, adding PM
+> support to them. Below is your message again, explaining, why the standard
+> pm hooks cannot be used to suspend and resume the camera host and the
+> camera sensor. While trying to make soc-camera play nicer with the V4L2
+> generic framework, I was trying to eliminate as many redundant pieces from
+> soc-camera as possible and replace them with standard methods. This made
+> me re-consider those your patches. Let's have a look at your
+> argumentation:
+>
+> So, we currently have 3 instances: soc-camera bus, i2c bus, and pxa-camera
+> platform device driver. You say, i2c resumes as first, then at some point
+> pxa-camera and soc-camera - in this or reverse order. This is why we
+> cannoe use i2c-resume to bring the sensor up before pxa-camera has
+> restored its master clock. So, currently we hook onto the soc-camera bus,
+> which then calls pxa-camera's resume, which then restores camera host's
+> state and resumes the sensor. Now, the question: wouldn't this also work,
+> if we eliminate the soc-camera resume path? And instead just used
+> pxa-camera resume method to bring up the sensor? Coule you please test the
+> below patch?
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+Tested and working, the resume works OK, which means your thinking is 
+good :)
 
-diff --git a/drivers/media/video/em28xx/em28xx-i2c.c b/drivers/media/video/em28xx/em28xx-i2c.c
-index 548d2df..36f5a9b 100644
---- a/drivers/media/video/em28xx/em28xx-i2c.c
-+++ b/drivers/media/video/em28xx/em28xx-i2c.c
-@@ -181,16 +181,25 @@ static int em2800_i2c_recv_bytes(struct em28xx *dev, unsigned char addr,
- 
- /*
-  * em28xx_i2c_send_bytes()
-- * untested for more than 4 bytes
-  */
- static int em28xx_i2c_send_bytes(void *data, unsigned char addr, char *buf,
- 				 short len, int stop)
- {
- 	int wrcount = 0;
- 	struct em28xx *dev = (struct em28xx *)data;
-+	int write_timeout, ret;
- 
- 	wrcount = dev->em28xx_write_regs_req(dev, stop ? 2 : 3, addr, buf, len);
- 
-+	/* Seems to be required after a write */
-+	for (write_timeout = EM2800_I2C_WRITE_TIMEOUT; write_timeout > 0;
-+	     write_timeout -= 5) {
-+		ret = dev->em28xx_read_reg(dev, 0x05);
-+		if (!ret)
-+			break;
-+		msleep(5);
-+	}
-+
- 	return wrcount;
- }
- 
--- 
-1.7.1
+Cheers.
 
-
+--
+Robert
