@@ -1,63 +1,100 @@
 Return-path: <mchehab@pedra>
-Received: from ppsw-50.csi.cam.ac.uk ([131.111.8.150]:37022 "EHLO
-	ppsw-50.csi.cam.ac.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751480Ab1GENkt (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 5 Jul 2011 09:40:49 -0400
-Message-ID: <4E131649.5030906@cam.ac.uk>
-Date: Tue, 05 Jul 2011 14:48:57 +0100
-From: Jonathan Cameron <jic23@cam.ac.uk>
-MIME-Version: 1.0
-To: Sakari Ailus <sakari.ailus@iki.fi>
-CC: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	laurent.pinchart@ideasonboard.com
-Subject: Re: omap3isp: known causes of "CCDC won't become idle!
-References: <4E12F3DE.5030109@cam.ac.uk> <20110705121916.GP12671@valkosipuli.localdomain>
-In-Reply-To: <20110705121916.GP12671@valkosipuli.localdomain>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Received: from mailout3.w1.samsung.com ([210.118.77.13]:62510 "EHLO
+	mailout3.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750883Ab1GAPEh (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 1 Jul 2011 11:04:37 -0400
+MIME-version: 1.0
+Content-transfer-encoding: 7BIT
+Content-type: TEXT/PLAIN
+Received: from spt2.w1.samsung.com ([210.118.77.13]) by mailout3.w1.samsung.com
+ (Sun Java(tm) System Messaging Server 6.3-8.04 (built Jul 29 2009; 32bit))
+ with ESMTP id <0LNN00ESKTVNRX80@mailout3.w1.samsung.com> for
+ linux-media@vger.kernel.org; Fri, 01 Jul 2011 16:04:35 +0100 (BST)
+Received: from linux.samsung.com ([106.116.38.10])
+ by spt2.w1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14
+ 2004)) with ESMTPA id <0LNN0006UTVM2O@spt2.w1.samsung.com> for
+ linux-media@vger.kernel.org; Fri, 01 Jul 2011 16:04:34 +0100 (BST)
+Date: Fri, 01 Jul 2011 17:04:31 +0200
+From: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Subject: [PATCH v2 3/4] noon010pc30: Clean up the s_power callback
+In-reply-to: <1309532672-17920-1-git-send-email-s.nawrocki@samsung.com>
+To: linux-media@vger.kernel.org
+Cc: m.szyprowski@samsung.com, kyungmin.park@samsung.com,
+	laurent.pinchart@ideasonboard.com, s.nawrocki@samsung.com,
+	sw0312.kim@samsung.com, riverful.kim@samsung.com
+Message-id: <1309532672-17920-4-git-send-email-s.nawrocki@samsung.com>
+References: <1309532672-17920-1-git-send-email-s.nawrocki@samsung.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On 07/05/11 13:19, Sakari Ailus wrote:
-> On Tue, Jul 05, 2011 at 12:22:06PM +0100, Jonathan Cameron wrote:
->> Hi Laurent,
->>
->> I'm just trying to get an mt9v034 sensor working on a beagle xm.
->> Everything more or less works, except that after a random number
->> of frames of capture, I tend to get won't become idle messages
->> and the vd0 and vd1 interrupts tend to turn up at same time.
->>
->> I was just wondering if there are any known issues with the ccdc
->> driver / silicon that might explain this?
->>
->> I also note that it appears to be impossible to disable HS_VS_IRQarch/arm/mach-s3c2410/Kconfig:# cpu frequency scaling support
+Remove unneeded check for the platform data in s_power operation.
+Do not reset the image resolution and pixel format set by user
+when cycling sensor's power.
+Add a small delay for a proper reset signal shape.
 
->> despite the datasheet claiming this can be done.  Is this a known
->> issue?
-> 
-> The same interrupt may be used to produce an interrupt per horizontal sync
-> but the driver doesn't use that. I remember of a case where the two sync
-> signals had enough crosstalk to cause vertical sync interrupt per every
-> horizontal sync. (It's been discussed on this list.) This might not be the
-> case here, though: you should be flooded with HS_VS interrupts.
-As far as I can tell, the driver doesn't use either interrupt (except to pass
-it up as an event). Hence I was trying to mask it purely to cut down on the
-interrupt load.
-> 
-> The VD* counters are counting and interrupts are produced (AFAIR) even if
-> the CCDC is disabled.
-Oh goody...
-> 
-> Once the CCDC starts receiving a frame, it becomes busy, and becomes idle
-> only when it has received the full frame. For this reason it's important
-> that the full frame is actually received by the CCDC, otherwise this is due
-> to happen when the CCDC is being stopped at the end of the stream.
-Fair enough.  Is there any software reason why it might think it hasn't received
-the whole frame?  Obviously it could in theory be a hardware issue, but it's
-a bit odd that it can reliably do a certain number of frames before falling over.
+Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+---
+ drivers/media/video/noon010pc30.c |   24 ++++++++++++------------
+ 1 files changed, 12 insertions(+), 12 deletions(-)
 
-
-
-
-
+diff --git a/drivers/media/video/noon010pc30.c b/drivers/media/video/noon010pc30.c
+index 3e24783..d05db4b 100644
+--- a/drivers/media/video/noon010pc30.c
++++ b/drivers/media/video/noon010pc30.c
+@@ -297,8 +297,10 @@ static int noon010_power_ctrl(struct v4l2_subdev *sd, bool reset, bool sleep)
+ 	u8 reg = sleep ? 0xF1 : 0xF0;
+ 	int ret = 0;
+ 
+-	if (reset)
++	if (reset) {
+ 		ret = cam_i2c_write(sd, POWER_CTRL_REG, reg | 0x02);
++		udelay(20);
++	}
+ 	if (!ret) {
+ 		ret = cam_i2c_write(sd, POWER_CTRL_REG, reg);
+ 		if (reset && !ret)
+@@ -587,24 +589,20 @@ static int noon010_base_config(struct v4l2_subdev *sd)
+ static int noon010_s_power(struct v4l2_subdev *sd, int on)
+ {
+ 	struct noon010_info *info = to_noon010(sd);
+-	const struct noon010pc30_platform_data *pdata = info->pdata;
+-	int ret = 0;
+-
+-	if (WARN(pdata == NULL, "No platform data!\n"))
+-		return -ENOMEM;
++	int ret;
+ 
++	mutex_lock(&info->lock);
+ 	if (on) {
+ 		ret = power_enable(info);
+-		if (ret)
+-			return ret;
+-		ret = noon010_base_config(sd);
++		if (!ret)
++			ret = noon010_base_config(sd);
++		if (!ret)
++			ret = noon010_set_params(sd);
+ 	} else {
+ 		noon010_power_ctrl(sd, false, true);
+ 		ret = power_disable(info);
+-		info->curr_win = NULL;
+-		info->curr_fmt = NULL;
+ 	}
+-
++	mutex_unlock(&info->lock);
+ 	return ret;
+ }
+ 
+@@ -735,6 +733,8 @@ static int noon010_probe(struct i2c_client *client,
+ 	info->i2c_reg_page	= -1;
+ 	info->gpio_nreset	= -EINVAL;
+ 	info->gpio_nstby	= -EINVAL;
++	info->curr_fmt		= &noon010_formats[0];
++	info->curr_win		= &noon010_sizes[0];
+ 
+ 	if (gpio_is_valid(pdata->gpio_nreset)) {
+ 		ret = gpio_request(pdata->gpio_nreset, "NOON010PC30 NRST");
+-- 
+1.7.5.4
 
