@@ -1,276 +1,333 @@
-Return-path: <linux-media-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.126.187]:58521 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756196Ab1G2K5E (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 29 Jul 2011 06:57:04 -0400
-Received: from 6a.grange (6a.grange [192.168.1.11])
-	by axis700.grange (Postfix) with ESMTPS id 793DF18B051
-	for <linux-media@vger.kernel.org>; Fri, 29 Jul 2011 12:57:01 +0200 (CEST)
-Received: from lyakh by 6a.grange with local (Exim 4.72)
-	(envelope-from <g.liakhovetski@gmx.de>)
-	id 1QmkkX-0007om-DS
-	for linux-media@vger.kernel.org; Fri, 29 Jul 2011 12:57:01 +0200
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: linux-media@vger.kernel.org
-Subject: [PATCH 37/59] V4L: pxa_camera: convert to the new mbus-config subdev operations
-Date: Fri, 29 Jul 2011 12:56:37 +0200
-Message-Id: <1311937019-29914-38-git-send-email-g.liakhovetski@gmx.de>
-In-Reply-To: <1311937019-29914-1-git-send-email-g.liakhovetski@gmx.de>
-References: <1311937019-29914-1-git-send-email-g.liakhovetski@gmx.de>
-Sender: linux-media-owner@vger.kernel.org
+Return-path: <mchehab@pedra>
+Received: from mail.mnsspb.ru ([84.204.75.2]:33646 "EHLO mail.mnsspb.ru"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755630Ab1GALsY (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 1 Jul 2011 07:48:24 -0400
+From: Kirill Smelkov <kirr@mns.spb.ru>
+To: Alan Stern <stern@rowland.harvard.edu>
+Cc: Sarah Sharp <sarah.a.sharp@linux.intel.com>,
+	matt mooney <mfm@muteddisk.com>,
+	Greg Kroah-Hartman <gregkh@suse.de>, linux-usb@vger.kernel.org,
+	linux-uvc-devel@lists.berlios.de, linux-media@vger.kernel.org,
+	linux-kernel@vger.kernel.org, Kirill Smelkov <kirr@mns.spb.ru>
+Subject: [PATCH v3 2/2] USB: EHCI: Allow users to override 80% max periodic bandwidth
+Date: Fri,  1 Jul 2011 15:47:11 +0400
+Message-Id: <69ea2dd940481508f190419c53c780b626460b22.1309520144.git.kirr@mns.spb.ru>
+In-Reply-To: <cover.1309520144.git.kirr@mns.spb.ru>
+References: <cover.1309520144.git.kirr@mns.spb.ru>
+In-Reply-To: <cover.1309520144.git.kirr@mns.spb.ru>
+References: <cover.1309520144.git.kirr@mns.spb.ru>
 List-ID: <linux-media.vger.kernel.org>
+Sender: <mchehab@pedra>
 
-Switch from soc-camera specific .{query,set}_bus_param() to V4L2
-subdevice .[gs]_mbus_config() operations.
+There are cases, when 80% max isochronous bandwidth is too limiting.
 
-Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+For example I have two USB video capture cards which stream uncompressed
+video, and to stream full NTSC + PAL videos we'd need
+
+    NTSC 640x480 YUV422 @30fps      ~17.6 MB/s
+    PAL  720x576 YUV422 @25fps      ~19.7 MB/s
+
+isoc bandwidth.
+
+Now, due to limited alt settings in capture devices NTSC one ends up
+streaming with max_pkt_size=2688  and  PAL with max_pkt_size=2892, both
+with interval=1. In terms of microframe time allocation this gives
+
+    NTSC    ~53us
+    PAL     ~57us
+
+and together
+
+    ~110us  >  100us == 80% of 125us uframe time.
+
+So those two devices can't work together simultaneously because the'd
+over allocate isochronous bandwidth.
+
+80% seemed a bit arbitrary to me, and I've tried to raise it to 90% and
+both devices started to work together, so I though sometimes it would be
+a good idea for users to override hardcoded default of max 80% isoc
+bandwidth.
+
+After all, isn't it a user who should decide how to load the bus? If I
+can live with 10% or even 5% bulk bandwidth that should be ok. I'm a USB
+newcomer, but that 80% set in stone by USB 2.0 specification seems to be
+chosen pretty arbitrary to me, just to serve as a reasonable default.
+
+NOTE 1
+~~~~~~
+
+for two streams with max_pkt_size=3072 (worst case) both time
+allocation would be 60us+60us=120us which is 96% periodic bandwidth
+leaving 4% for bulk and control.  Alan Stern suggested that bulk then
+would be problematic (less than 300*8 bittimes left per microframe), but
+I think that is still enough for control traffic.
+
+NOTE 2
+~~~~~~
+
+Sarah Sharp expressed concern that maxing out periodic bandwidth
+could lead to vendor-specific hardware bugs on host controllers, because
+
+> It's entirely possible that you'll run into
+> vendor-specific bugs if you try to pack the schedule with isochronous
+> transfers.  I don't think any hardware designer would seriously test or
+> validate their hardware with a schedule that is basically a violation of
+> the USB bus spec (more than 80% for periodic transfers).
+
+So far I've only tested this patch on my HP Mini 5103 with N10 chipeset
+
+    kirr@mini:~$ lspci
+    00:00.0 Host bridge: Intel Corporation N10 Family DMI Bridge
+    00:02.0 VGA compatible controller: Intel Corporation N10 Family Integrated Graphics Controller
+    00:02.1 Display controller: Intel Corporation N10 Family Integrated Graphics Controller
+    00:1b.0 Audio device: Intel Corporation N10/ICH 7 Family High Definition Audio Controller (rev 02)
+    00:1c.0 PCI bridge: Intel Corporation N10/ICH 7 Family PCI Express Port 1 (rev 02)
+    00:1c.3 PCI bridge: Intel Corporation N10/ICH 7 Family PCI Express Port 4 (rev 02)
+    00:1d.0 USB Controller: Intel Corporation N10/ICH 7 Family USB UHCI Controller #1 (rev 02)
+    00:1d.1 USB Controller: Intel Corporation N10/ICH 7 Family USB UHCI Controller #2 (rev 02)
+    00:1d.2 USB Controller: Intel Corporation N10/ICH 7 Family USB UHCI Controller #3 (rev 02)
+    00:1d.3 USB Controller: Intel Corporation N10/ICH 7 Family USB UHCI Controller #4 (rev 02)
+    00:1d.7 USB Controller: Intel Corporation N10/ICH 7 Family USB2 EHCI Controller (rev 02)
+    00:1e.0 PCI bridge: Intel Corporation 82801 Mobile PCI Bridge (rev e2)
+    00:1f.0 ISA bridge: Intel Corporation NM10 Family LPC Controller (rev 02)
+    00:1f.2 SATA controller: Intel Corporation N10/ICH7 Family SATA AHCI Controller (rev 02)
+    01:00.0 Network controller: Broadcom Corporation BCM4313 802.11b/g/n Wireless LAN Controller (rev 01)
+    02:00.0 Ethernet controller: Marvell Technology Group Ltd. 88E8059 PCI-E Gigabit Ethernet Controller (rev 11)
+
+and the system works stable with 110us/uframe (~88%) isoc bandwith allocated for
+above-mentioned isochronous transfers.
+
+NOTE 3
+~~~~~~
+
+This feature is off by default. I mean max periodic bandwidth is set to
+100us/uframe by default exactly as it was before the patch. So only those of us
+who need the extreme settings are taking the risk - normal users who do not
+alter uframe_periodic_max sysfs attribute should not see any change at all.
+
+Cc: Sarah Sharp <sarah.a.sharp@linux.intel.com>
+Signed-off-by: Kirill Smelkov <kirr@mns.spb.ru>
 ---
- drivers/media/video/pxa_camera.c |  140 ++++++++++++++++++++++----------------
- 1 files changed, 80 insertions(+), 60 deletions(-)
+ drivers/usb/host/ehci-hcd.c   |    6 ++
+ drivers/usb/host/ehci-sched.c |   17 +++----
+ drivers/usb/host/ehci-sysfs.c |  104 +++++++++++++++++++++++++++++++++++++++--
+ drivers/usb/host/ehci.h       |    2 +
+ 4 files changed, 115 insertions(+), 14 deletions(-)
 
-diff --git a/drivers/media/video/pxa_camera.c b/drivers/media/video/pxa_camera.c
-index d07df22..79fb22c 100644
---- a/drivers/media/video/pxa_camera.c
-+++ b/drivers/media/video/pxa_camera.c
-@@ -214,6 +214,7 @@ struct pxa_camera_dev {
- 	unsigned long		ciclk;
- 	unsigned long		mclk;
- 	u32			mclk_divisor;
-+	u16			width_flags;	/* max 10 bits */
+diff --git a/drivers/usb/host/ehci-hcd.c b/drivers/usb/host/ehci-hcd.c
+index 8306155..4ee62be 100644
+--- a/drivers/usb/host/ehci-hcd.c
++++ b/drivers/usb/host/ehci-hcd.c
+@@ -572,6 +572,12 @@ static int ehci_init(struct usb_hcd *hcd)
+ 	hcc_params = ehci_readl(ehci, &ehci->caps->hcc_params);
  
- 	struct list_head	capture;
- 
-@@ -1020,37 +1021,20 @@ static int test_platform_param(struct pxa_camera_dev *pcdev,
- 	 * quick capture interface supports both.
+ 	/*
++	 * by default set standard 80% (== 100 usec/uframe) max periodic
++	 * bandwidth as required by USB 2.0
++	 */
++	ehci->uframe_periodic_max = 100;
++
++	/*
+ 	 * hw default: 1K periodic list heads, one per frame.
+ 	 * periodic_size can shrink by USBCMD update if hcc_params allows.
  	 */
- 	*flags = (pcdev->platform_flags & PXA_CAMERA_MASTER ?
--		  SOCAM_MASTER : SOCAM_SLAVE) |
--		SOCAM_HSYNC_ACTIVE_HIGH |
--		SOCAM_HSYNC_ACTIVE_LOW |
--		SOCAM_VSYNC_ACTIVE_HIGH |
--		SOCAM_VSYNC_ACTIVE_LOW |
--		SOCAM_DATA_ACTIVE_HIGH |
--		SOCAM_PCLK_SAMPLE_RISING |
--		SOCAM_PCLK_SAMPLE_FALLING;
-+		  V4L2_MBUS_MASTER : V4L2_MBUS_SLAVE) |
-+		V4L2_MBUS_HSYNC_ACTIVE_HIGH |
-+		V4L2_MBUS_HSYNC_ACTIVE_LOW |
-+		V4L2_MBUS_VSYNC_ACTIVE_HIGH |
-+		V4L2_MBUS_VSYNC_ACTIVE_LOW |
-+		V4L2_MBUS_DATA_ACTIVE_HIGH |
-+		V4L2_MBUS_PCLK_SAMPLE_RISING |
-+		V4L2_MBUS_PCLK_SAMPLE_FALLING;
- 
- 	/* If requested data width is supported by the platform, use it */
--	switch (buswidth) {
--	case 10:
--		if (!(pcdev->platform_flags & PXA_CAMERA_DATAWIDTH_10))
--			return -EINVAL;
--		*flags |= SOCAM_DATAWIDTH_10;
--		break;
--	case 9:
--		if (!(pcdev->platform_flags & PXA_CAMERA_DATAWIDTH_9))
--			return -EINVAL;
--		*flags |= SOCAM_DATAWIDTH_9;
--		break;
--	case 8:
--		if (!(pcdev->platform_flags & PXA_CAMERA_DATAWIDTH_8))
--			return -EINVAL;
--		*flags |= SOCAM_DATAWIDTH_8;
--		break;
--	default:
--		return -EINVAL;
--	}
-+	if ((1 << (buswidth - 1)) & pcdev->width_flags)
-+		return 0;
- 
--	return 0;
-+	return -EINVAL;
- }
- 
- static void pxa_camera_setup_cicr(struct soc_camera_device *icd,
-@@ -1070,12 +1054,12 @@ static void pxa_camera_setup_cicr(struct soc_camera_device *icd,
- 	 * Datawidth is now guaranteed to be equal to one of the three values.
- 	 * We fix bit-per-pixel equal to data-width...
- 	 */
--	switch (flags & SOCAM_DATAWIDTH_MASK) {
--	case SOCAM_DATAWIDTH_10:
-+	switch (icd->current_fmt->host_fmt->bits_per_sample) {
-+	case 10:
- 		dw = 4;
- 		bpp = 0x40;
- 		break;
--	case SOCAM_DATAWIDTH_9:
-+	case 9:
- 		dw = 3;
- 		bpp = 0x20;
- 		break;
-@@ -1084,7 +1068,7 @@ static void pxa_camera_setup_cicr(struct soc_camera_device *icd,
- 		 * Actually it can only be 8 now,
- 		 * default is just to silence compiler warnings
- 		 */
--	case SOCAM_DATAWIDTH_8:
-+	case 8:
- 		dw = 2;
- 		bpp = 0;
+diff --git a/drivers/usb/host/ehci-sched.c b/drivers/usb/host/ehci-sched.c
+index 6c9fbe3..2abf854 100644
+--- a/drivers/usb/host/ehci-sched.c
++++ b/drivers/usb/host/ehci-sched.c
+@@ -172,7 +172,7 @@ periodic_usecs (struct ehci_hcd *ehci, unsigned frame, unsigned uframe)
+ 		}
  	}
-@@ -1093,11 +1077,11 @@ static void pxa_camera_setup_cicr(struct soc_camera_device *icd,
- 		cicr4 |= CICR4_PCLK_EN;
- 	if (pcdev->platform_flags & PXA_CAMERA_MCLK_EN)
- 		cicr4 |= CICR4_MCLK_EN;
--	if (flags & SOCAM_PCLK_SAMPLE_FALLING)
-+	if (flags & V4L2_MBUS_PCLK_SAMPLE_FALLING)
- 		cicr4 |= CICR4_PCP;
--	if (flags & SOCAM_HSYNC_ACTIVE_LOW)
-+	if (flags & V4L2_MBUS_HSYNC_ACTIVE_LOW)
- 		cicr4 |= CICR4_HSP;
--	if (flags & SOCAM_VSYNC_ACTIVE_LOW)
-+	if (flags & V4L2_MBUS_VSYNC_ACTIVE_LOW)
- 		cicr4 |= CICR4_VSP;
+ #ifdef	DEBUG
+-	if (usecs > 100)
++	if (usecs > ehci->uframe_periodic_max)
+ 		ehci_err (ehci, "uframe %d sched overrun: %d usecs\n",
+ 			frame * 8 + uframe, usecs);
+ #endif
+@@ -709,11 +709,8 @@ static int check_period (
+ 	if (uframe >= 8)
+ 		return 0;
  
- 	cicr0 = __raw_readl(pcdev->base + CICR0);
-@@ -1151,9 +1135,11 @@ static void pxa_camera_setup_cicr(struct soc_camera_device *icd,
+-	/*
+-	 * 80% periodic == 100 usec/uframe available
+-	 * convert "usecs we need" to "max already claimed"
+-	 */
+-	usecs = 100 - usecs;
++	/* convert "usecs we need" to "max already claimed" */
++	usecs = ehci->uframe_periodic_max - usecs;
  
- static int pxa_camera_set_bus_param(struct soc_camera_device *icd, __u32 pixfmt)
+ 	/* we "know" 2 and 4 uframe intervals were rejected; so
+ 	 * for period 0, check _every_ microframe in the schedule.
+@@ -1286,9 +1283,9 @@ itd_slot_ok (
  {
-+	struct v4l2_subdev *sd = soc_camera_to_subdev(icd);
- 	struct soc_camera_host *ici = to_soc_camera_host(icd->parent);
- 	struct pxa_camera_dev *pcdev = ici->priv;
--	unsigned long bus_flags, camera_flags, common_flags;
-+	struct v4l2_mbus_config cfg = {.type = V4L2_MBUS_PARALLEL,};
-+	unsigned long bus_flags, common_flags;
- 	int ret;
- 	struct pxa_cam *cam = icd->host_priv;
+ 	uframe %= period;
+ 	do {
+-		/* can't commit more than 80% periodic == 100 usec */
++		/* can't commit more than uframe_periodic_max usec */
+ 		if (periodic_usecs (ehci, uframe >> 3, uframe & 0x7)
+-				> (100 - usecs))
++				> (ehci->uframe_periodic_max - usecs))
+ 			return 0;
  
-@@ -1162,44 +1148,58 @@ static int pxa_camera_set_bus_param(struct soc_camera_device *icd, __u32 pixfmt)
- 	if (ret < 0)
- 		return ret;
+ 		/* we know urb->interval is 2^N uframes */
+@@ -1345,7 +1342,7 @@ sitd_slot_ok (
+ #endif
  
--	camera_flags = icd->ops->query_bus_param(icd);
--
--	common_flags = soc_camera_bus_param_compatible(camera_flags, bus_flags);
--	if (!common_flags)
--		return -EINVAL;
-+	ret = v4l2_subdev_call(sd, video, g_mbus_config, &cfg);
-+	if (!ret) {
-+		common_flags = soc_mbus_config_compatible(&cfg,
-+							  bus_flags);
-+		if (!common_flags) {
-+			dev_warn(icd->parent,
-+				 "Flags incompatible: camera 0x%x, host 0x%lx\n",
-+				 cfg.flags, bus_flags);
-+			return -EINVAL;
-+		}
-+	} else if (ret != -ENOIOCTLCMD) {
-+		return ret;
-+	} else {
-+		common_flags = bus_flags;
-+	}
+ 		/* check starts (OUT uses more than one) */
+-		max_used = 100 - stream->usecs;
++		max_used = ehci->uframe_periodic_max - stream->usecs;
+ 		for (tmp = stream->raw_mask & 0xff; tmp; tmp >>= 1, uf++) {
+ 			if (periodic_usecs (ehci, frame, uf) > max_used)
+ 				return 0;
+@@ -1354,7 +1351,7 @@ sitd_slot_ok (
+ 		/* for IN, check CSPLIT */
+ 		if (stream->c_usecs) {
+ 			uf = uframe & 7;
+-			max_used = 100 - stream->c_usecs;
++			max_used = ehci->uframe_periodic_max - stream->c_usecs;
+ 			do {
+ 				tmp = 1 << uf;
+ 				tmp <<= 8;
+diff --git a/drivers/usb/host/ehci-sysfs.c b/drivers/usb/host/ehci-sysfs.c
+index 29824a9..14ced00 100644
+--- a/drivers/usb/host/ehci-sysfs.c
++++ b/drivers/usb/host/ehci-sysfs.c
+@@ -74,21 +74,117 @@ static ssize_t store_companion(struct device *dev,
+ }
+ static DEVICE_ATTR(companion, 0644, show_companion, store_companion);
  
- 	pcdev->channels = 1;
- 
- 	/* Make choises, based on platform preferences */
--	if ((common_flags & SOCAM_HSYNC_ACTIVE_HIGH) &&
--	    (common_flags & SOCAM_HSYNC_ACTIVE_LOW)) {
-+	if ((common_flags & V4L2_MBUS_HSYNC_ACTIVE_HIGH) &&
-+	    (common_flags & V4L2_MBUS_HSYNC_ACTIVE_LOW)) {
- 		if (pcdev->platform_flags & PXA_CAMERA_HSP)
--			common_flags &= ~SOCAM_HSYNC_ACTIVE_HIGH;
-+			common_flags &= ~V4L2_MBUS_HSYNC_ACTIVE_HIGH;
- 		else
--			common_flags &= ~SOCAM_HSYNC_ACTIVE_LOW;
-+			common_flags &= ~V4L2_MBUS_HSYNC_ACTIVE_LOW;
- 	}
- 
--	if ((common_flags & SOCAM_VSYNC_ACTIVE_HIGH) &&
--	    (common_flags & SOCAM_VSYNC_ACTIVE_LOW)) {
-+	if ((common_flags & V4L2_MBUS_VSYNC_ACTIVE_HIGH) &&
-+	    (common_flags & V4L2_MBUS_VSYNC_ACTIVE_LOW)) {
- 		if (pcdev->platform_flags & PXA_CAMERA_VSP)
--			common_flags &= ~SOCAM_VSYNC_ACTIVE_HIGH;
-+			common_flags &= ~V4L2_MBUS_VSYNC_ACTIVE_HIGH;
- 		else
--			common_flags &= ~SOCAM_VSYNC_ACTIVE_LOW;
-+			common_flags &= ~V4L2_MBUS_VSYNC_ACTIVE_LOW;
- 	}
- 
--	if ((common_flags & SOCAM_PCLK_SAMPLE_RISING) &&
--	    (common_flags & SOCAM_PCLK_SAMPLE_FALLING)) {
-+	if ((common_flags & V4L2_MBUS_PCLK_SAMPLE_RISING) &&
-+	    (common_flags & V4L2_MBUS_PCLK_SAMPLE_FALLING)) {
- 		if (pcdev->platform_flags & PXA_CAMERA_PCP)
--			common_flags &= ~SOCAM_PCLK_SAMPLE_RISING;
-+			common_flags &= ~V4L2_MBUS_PCLK_SAMPLE_RISING;
- 		else
--			common_flags &= ~SOCAM_PCLK_SAMPLE_FALLING;
-+			common_flags &= ~V4L2_MBUS_PCLK_SAMPLE_FALLING;
- 	}
- 
--	cam->flags = common_flags;
--
--	ret = icd->ops->set_bus_param(icd, common_flags);
--	if (ret < 0)
-+	cfg.flags = common_flags;
-+	ret = v4l2_subdev_call(sd, video, s_mbus_config, &cfg);
-+	if (ret < 0 && ret != -ENOIOCTLCMD) {
-+		dev_dbg(icd->parent, "camera s_mbus_config(0x%lx) returned %d\n",
-+			common_flags, ret);
- 		return ret;
++
++/*
++ * Display / Set uframe_periodic_max
++ */
++static ssize_t show_uframe_periodic_max(struct device *dev,
++					struct device_attribute *attr,
++					char *buf)
++{
++	struct ehci_hcd		*ehci;
++	int			n;
++
++	ehci = hcd_to_ehci(bus_to_hcd(dev_get_drvdata(dev)));
++	n = scnprintf(buf, PAGE_SIZE, "%d\n", ehci->uframe_periodic_max);
++	return n;
++}
++
++
++static ssize_t store_uframe_periodic_max(struct device *dev,
++					struct device_attribute *attr,
++					const char *buf, size_t count)
++{
++	struct ehci_hcd		*ehci;
++	unsigned		uframe_periodic_max;
++	unsigned		frame, uframe;
++	unsigned short		allocated_max;
++	unsigned long		flags;
++	ssize_t			ret;
++
++	ehci = hcd_to_ehci(bus_to_hcd(dev_get_drvdata(dev)));
++	if (kstrtouint(buf, 0, &uframe_periodic_max) < 0)
++		return -EINVAL;
++
++	if (uframe_periodic_max < 100 || uframe_periodic_max >= 125) {
++		ehci_info(ehci, "rejecting invalid request for "
++				"uframe_periodic_max=%u\n", uframe_periodic_max);
++		return -EINVAL;
 +	}
 +
-+	cam->flags = common_flags;
- 
- 	pxa_camera_setup_cicr(icd, common_flags, pixfmt);
- 
-@@ -1209,17 +1209,31 @@ static int pxa_camera_set_bus_param(struct soc_camera_device *icd, __u32 pixfmt)
- static int pxa_camera_try_bus_param(struct soc_camera_device *icd,
- 				    unsigned char buswidth)
- {
-+	struct v4l2_subdev *sd = soc_camera_to_subdev(icd);
- 	struct soc_camera_host *ici = to_soc_camera_host(icd->parent);
- 	struct pxa_camera_dev *pcdev = ici->priv;
--	unsigned long bus_flags, camera_flags;
-+	struct v4l2_mbus_config cfg = {.type = V4L2_MBUS_PARALLEL,};
-+	unsigned long bus_flags, common_flags;
- 	int ret = test_platform_param(pcdev, buswidth, &bus_flags);
- 
- 	if (ret < 0)
- 		return ret;
- 
--	camera_flags = icd->ops->query_bus_param(icd);
-+	ret = v4l2_subdev_call(sd, video, g_mbus_config, &cfg);
-+	if (!ret) {
-+		common_flags = soc_mbus_config_compatible(&cfg,
-+							  bus_flags);
-+		if (!common_flags) {
-+			dev_warn(icd->parent,
-+				 "Flags incompatible: camera 0x%x, host 0x%lx\n",
-+				 cfg.flags, bus_flags);
-+			return -EINVAL;
++	ret = -EINVAL;
++
++	/*
++	 * lock, so that our checking does not race with possible periodic
++	 * bandwidth allocation through submitting new urbs.
++	 */
++	spin_lock_irqsave (&ehci->lock, flags);
++
++	/*
++	 * for request to decrease max periodic bandwidth, we have to check
++	 * every microframe in the schedule to see whether the decrease is
++	 * possible.
++	 */
++	if (uframe_periodic_max < ehci->uframe_periodic_max) {
++		allocated_max = 0;
++
++		for (frame = 0; frame < ehci->periodic_size; ++frame)
++			for (uframe = 0; uframe < 7; ++uframe)
++				allocated_max = max(allocated_max,
++						    periodic_usecs (ehci, frame, uframe));
++
++		if (allocated_max > uframe_periodic_max) {
++			ehci_info(ehci,
++				"cannot decrease uframe_periodic_max becase "
++				"periodic bandwidth is already allocated "
++				"(%u > %u)\n",
++				allocated_max, uframe_periodic_max);
++			goto out_unlock;
 +		}
-+	} else if (ret == -ENOIOCTLCMD) {
-+		ret = 0;
 +	}
- 
--	return soc_camera_bus_param_compatible(camera_flags, bus_flags) ? 0 : -EINVAL;
++
++	/* increasing is always ok */
++
++	ehci_info(ehci, "setting max periodic bandwidth to %u%% "
++			"(== %u usec/uframe)\n",
++			100*uframe_periodic_max/125, uframe_periodic_max);
++
++	if (uframe_periodic_max != 100)
++		ehci_warn(ehci, "max periodic bandwidth set is non-standard\n");
++
++	ehci->uframe_periodic_max = uframe_periodic_max;
++	ret = count;
++
++out_unlock:
++	spin_unlock_irqrestore (&ehci->lock, flags);
 +	return ret;
++}
++static DEVICE_ATTR(uframe_periodic_max, 0644, show_uframe_periodic_max, store_uframe_periodic_max);
++
++
+ static inline int create_sysfs_files(struct ehci_hcd *ehci)
+ {
++	struct device	*controller = ehci_to_hcd(ehci)->self.controller;
+ 	int	i = 0;
+ 
+ 	/* with integrated TT there is no companion! */
+ 	if (!ehci_is_TDI(ehci))
+-		i = device_create_file(ehci_to_hcd(ehci)->self.controller,
+-				       &dev_attr_companion);
++		i = device_create_file(controller, &dev_attr_companion);
++	if (i)
++		goto out;
++
++	i = device_create_file(controller, &dev_attr_uframe_periodic_max);
++out:
+ 	return i;
  }
  
- static const struct soc_mbus_pixelfmt pxa_camera_formats[] = {
-@@ -1687,6 +1701,12 @@ static int __devinit pxa_camera_probe(struct platform_device *pdev)
- 			 "data widths, using default 10 bit\n");
- 		pcdev->platform_flags |= PXA_CAMERA_DATAWIDTH_10;
- 	}
-+	if (pcdev->platform_flags & PXA_CAMERA_DATAWIDTH_8)
-+		pcdev->width_flags = 1 << 7;
-+	if (pcdev->platform_flags & PXA_CAMERA_DATAWIDTH_9)
-+		pcdev->width_flags |= 1 << 8;
-+	if (pcdev->platform_flags & PXA_CAMERA_DATAWIDTH_10)
-+		pcdev->width_flags |= 1 << 9;
- 	pcdev->mclk = pcdev->pdata->mclk_10khz * 10000;
- 	if (!pcdev->mclk) {
- 		dev_warn(&pdev->dev,
+ static inline void remove_sysfs_files(struct ehci_hcd *ehci)
+ {
++	struct device	*controller = ehci_to_hcd(ehci)->self.controller;
++
+ 	/* with integrated TT there is no companion! */
+ 	if (!ehci_is_TDI(ehci))
+-		device_remove_file(ehci_to_hcd(ehci)->self.controller,
+-				   &dev_attr_companion);
++		device_remove_file(controller, &dev_attr_companion);
++
++	device_remove_file(controller, &dev_attr_uframe_periodic_max);
+ }
+diff --git a/drivers/usb/host/ehci.h b/drivers/usb/host/ehci.h
+index bd6ff48..fa3129f 100644
+--- a/drivers/usb/host/ehci.h
++++ b/drivers/usb/host/ehci.h
+@@ -87,6 +87,8 @@ struct ehci_hcd {			/* one per controller */
+ 	union ehci_shadow	*pshadow;	/* mirror hw periodic table */
+ 	int			next_uframe;	/* scan periodic, start here */
+ 	unsigned		periodic_sched;	/* periodic activity count */
++	unsigned		uframe_periodic_max; /* max periodic time per uframe */
++
+ 
+ 	/* list of itds & sitds completed while clock_frame was still active */
+ 	struct list_head	cached_itd_list;
 -- 
-1.7.2.5
+1.7.6.rc3
 
