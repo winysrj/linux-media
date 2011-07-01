@@ -1,104 +1,83 @@
 Return-path: <mchehab@pedra>
-Received: from comal.ext.ti.com ([198.47.26.152]:46883 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932176Ab1GELep convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 5 Jul 2011 07:34:45 -0400
-From: "JAIN, AMBER" <amber@ti.com>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	"Hiremath, Vaibhav" <hvaibhav@ti.com>
-CC: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	David Rientjes <rientjes@google.com>,
-	Andrew Morton <akpm@linux-foundation.org>
-Date: Tue, 5 Jul 2011 17:04:05 +0530
-Subject: RE: [GIT PULL for v3.0] OMAP_VOUT bug fixes and code cleanup
-Message-ID: <5A47E75E594F054BAF48C5E4FC4B92AB037BD02799@dbde02.ent.ti.com>
-References: <1308771169-10741-1-git-send-email-hvaibhav@ti.com>
- <4E0E153F.5000303@redhat.com>
-In-Reply-To: <4E0E153F.5000303@redhat.com>
-Content-Language: en-US
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-MIME-Version: 1.0
+Received: from mailout1.w1.samsung.com ([210.118.77.11]:60701 "EHLO
+	mailout1.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756207Ab1GAMy2 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 1 Jul 2011 08:54:28 -0400
+Received: from eu_spt1 (mailout1.w1.samsung.com [210.118.77.11])
+ by mailout1.w1.samsung.com
+ (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14 2004))
+ with ESMTP id <0LNN00ETFNUJ0K@mailout1.w1.samsung.com> for
+ linux-media@vger.kernel.org; Fri, 01 Jul 2011 13:54:19 +0100 (BST)
+Received: from linux.samsung.com ([106.116.38.10])
+ by spt1.w1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14
+ 2004)) with ESMTPA id <0LNN007IFNUIZL@spt1.w1.samsung.com> for
+ linux-media@vger.kernel.org; Fri, 01 Jul 2011 13:54:18 +0100 (BST)
+Date: Fri, 01 Jul 2011 14:54:17 +0200
+From: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Subject: Re: [PATCH/RFC v4] V4L: add media bus configuration subdev operations
+In-reply-to: <Pine.LNX.4.64.1107010036390.20437@axis700.grange>
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Cc: Sylwester Nawrocki <snjw23@gmail.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Sakari Ailus <sakari.ailus@iki.fi>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	sakari.ailus@maxwell.research.nokia.com,
+	Stan <svarbanov@mm-sol.com>, Hans Verkuil <hansverk@cisco.com>,
+	saaguirre@ti.com, Mauro Carvalho Chehab <mchehab@infradead.org>
+Message-id: <4E0DC379.4060807@samsung.com>
+MIME-version: 1.0
+Content-type: text/plain; charset=ISO-8859-1
+Content-transfer-encoding: 7BIT
+References: <Pine.LNX.4.64.1106291819520.12577@axis700.grange>
+ <4E0CEFEB.2080005@gmail.com> <Pine.LNX.4.64.1107010036390.20437@axis700.grange>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-
-
-> -----Original Message-----
-> From: Mauro Carvalho Chehab [mailto:mchehab@redhat.com]
-> Sent: Saturday, July 02, 2011 12:13 AM
-> To: Hiremath, Vaibhav
-> Cc: linux-media@vger.kernel.org; JAIN, AMBER; David Rientjes; Andrew
-> Morton
-> Subject: Re: [GIT PULL for v3.0] OMAP_VOUT bug fixes and code cleanup
+On 07/01/2011 12:42 AM, Guennadi Liakhovetski wrote:
+...
+>>> +/**
+>>> + * v4l2_mbus_type - media bus type
+>>> + * @V4L2_MBUS_PARALLEL:	parallel interface with hsync and vsync
+>>> + * @V4L2_MBUS_BT656:	parallel interface with embedded synchronisation, can
+>>> + *			also be used for BT.1120
+>>> + * @V4L2_MBUS_CSI2:	MIPI CSI-2 serial interface
+>>> + */
+>>> +enum v4l2_mbus_type {
+>>> +	V4L2_MBUS_PARALLEL,
+>>> +	V4L2_MBUS_BT656,
+>>> +	V4L2_MBUS_CSI2,
+>>
+>> How about internal connections between processing blocks inside SoCs?
+>> Don't we want to also list those here? I mean direct connections
+>> like Preview Engine -> Resizer in TI SoCs or Display Mixer -> Video Capture
+>> Engine in Samsung SoCs.
+>> If there is no all possible bus types in this list I can't see how
+>> driver's for such hardware could be converted to use this new interface. 
+>>
+>> Perhaps we could add something like
+>> V4L2_MBUS_INTERNAL or V4L2_MBUS_USER1...?
 > 
-> Em 22-06-2011 16:32, hvaibhav@ti.com escreveu:
-> > The following changes since commit
-> af0d6a0a3a30946f7df69c764791f1b0643f7cd6:
-> >   Linus Torvalds (1):
-> >         Merge branch 'x86-urgent-for-linus' of
-> git://git.kernel.org/.../tip/linux-2.6-tip
-> >
-> > are available in the git repository at:
-> >
-> >   git://arago-project.org/git/people/vaibhav/ti-psp-omap-video.git for-
-> linux-media
-> >
-> > Amber Jain (2):
-> >       V4L2: omap_vout: Remove GFP_DMA allocation as ZONE_DMA is not
-> configured on OMAP
-> >       OMAP2: V4L2: Remove GFP_DMA allocation as ZONE_DMA is not
-> configured on OMAP
-> 
-> > From: Amber Jain <amber@ti.com>
-> > Date: Tue May 31 11:45:36 2011 -0300
-> >
-> > OMAP2: V4L2: Remove GFP_DMA allocation as ZONE_DMA is not configured on
-> OMAP
-> >
-> > Remove GFP_DMA from the __get_free_pages() call from omap24xxcam as
-> ZONE_DMA
-> > is not configured on OMAP. Earlier the page allocator used to return a
-> page
-> > from ZONE_NORMAL even when GFP_DMA is passed and CONFIG_ZONE_DMA is
-> disabled.
-> > As a result of commit a197b59ae6e8bee56fcef37ea2482dc08414e2ac, page
-> allocator
-> > returns null in such a scenario with a warning emitted to kernel log.
-> >
-> > Signed-off-by: Amber Jain <amber@ti.com>
-> > Acked-by: Sakari Ailus <sakari.ailus@iki.fi>
-> > Signed-off-by: Vaibhav Hiremath <hvaibhav@ti.com>
-> >
-> > diff --git a/drivers/media/video/omap24xxcam.c
-> b/drivers/media/video/omap24xxcam.c
-> > index f6626e8..d92d4c6 100644
-> > --- a/drivers/media/video/omap24xxcam.c
-> > +++ b/drivers/media/video/omap24xxcam.c
-> > @@ -309,11 +309,11 @@ static int
-> omap24xxcam_vbq_alloc_mmap_buffer(struct videobuf_buffer *vb)
-> >  			order--;
-> >
-> >  		/* try to allocate as many contiguous pages as possible */
-> > -		page = alloc_pages(GFP_KERNEL | GFP_DMA, order);
-> > +		page = alloc_pages(GFP_KERNEL, order);
-> >  		/* if allocation fails, try to allocate smaller amount */
-> >  		while (page == NULL) {
-> >  			order--;
-> > -			page = alloc_pages(GFP_KERNEL | GFP_DMA, order);
-> > +			page = alloc_pages(GFP_KERNEL, order);
-> >  			if (page == NULL && !order) {
-> >  				err = -ENOMEM;
-> >  				goto out;
-> 
-> Hmm... the proper fix wouldn't be to define ZONE_DMA at OMAP?
+> Maybe. But again, this patch is not aiming at covering all possible cases. 
+> We discuss it to avoid stupid or wrong things. Correct but incomplete 
+> things can always be added. So, once someone get to implement such a 
+> connection, using this API, they will just add one more type here. Why I'm 
 
-I don't think so, my understanding for ZOME_DMA is that it is defined for architectures that have restrictions on memory addresses that can be used for DMA. OMAP doesn't have any such restriction and hence we should not define ZONE_DMA.
+Sure, we can add more types when needed. The only parameters I'm aware of
+at the moment for such an internal bus is clock type and clock frequency.
+It certainly needs more investigation and discussing.
 
-Please let me know if I have missed some point.
+Your patch looks OK to me, except is has only a declaration of
+v4l2_mbus_config_compatible() and the implementation is lost somewhere.
+I guess we'll need to replace the "flags" field with an union ewentually,
+but it would be good to get the patch merged in this form so we can finally
+move forward with the sensor drivers standardization.
 
-Thanks,
-Amber
-> 
-> Thanks,
-> Mauro
+> also unsure whether and how to add it now is, that these types define bus 
+> properties. E.g., on CSI-2 you have up to 4 data lanes, a clock lane with 
+> certain properties etc. What properties does the "internal" bus have? I 
+> would leave it out until we really get to implement it.
+
+Regards,
+-- 
+Sylwester Nawrocki
+Samsung Poland R&D Center
