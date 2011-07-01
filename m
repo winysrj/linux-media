@@ -1,676 +1,373 @@
 Return-path: <mchehab@pedra>
-Received: from moutng.kundenserver.de ([212.227.126.187]:53388 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752689Ab1GDHfX (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 4 Jul 2011 03:35:23 -0400
-Date: Mon, 4 Jul 2011 09:35:17 +0200 (CEST)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: angela wan <angela.j.wan@gmail.com>
-cc: Bastian Hecht <hechtb@googlemail.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	linux-media@vger.kernel.org, ygli@marvell.com, jwan@marvell.com
-Subject: Re: [PATCH] media: initial driver for ov5642 CMOS sensor
-In-Reply-To: <CABbt3s4BMgRran0SFDZFJ_K9XZhrNYmX7cTFqFpLng2OrHEAWQ@mail.gmail.com>
-Message-ID: <Pine.LNX.4.64.1107040930510.27050@axis700.grange>
-References: <alpine.DEB.2.02.1106241052240.26253@ipanema>
- <201106271249.20073.laurent.pinchart@ideasonboard.com>
- <BANLkTinVcK+JFonhszc=q4zW9eb5_iF1iA@mail.gmail.com>
- <CABbt3s4BMgRran0SFDZFJ_K9XZhrNYmX7cTFqFpLng2OrHEAWQ@mail.gmail.com>
-MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Received: from mailout2.w1.samsung.com ([210.118.77.12]:21550 "EHLO
+	mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751121Ab1GAPEj (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 1 Jul 2011 11:04:39 -0400
+Received: from eu_spt1 (mailout2.w1.samsung.com [210.118.77.12])
+ by mailout2.w1.samsung.com
+ (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14 2004))
+ with ESMTP id <0LNN008PDTVOAX@mailout2.w1.samsung.com> for
+ linux-media@vger.kernel.org; Fri, 01 Jul 2011 16:04:36 +0100 (BST)
+Received: from linux.samsung.com ([106.116.38.10])
+ by spt1.w1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14
+ 2004)) with ESMTPA id <0LNN00JL9TVMGH@spt1.w1.samsung.com> for
+ linux-media@vger.kernel.org; Fri, 01 Jul 2011 16:04:35 +0100 (BST)
+Date: Fri, 01 Jul 2011 17:04:30 +0200
+From: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Subject: [PATCH v2 2/4] noon010pc30: Convert to the pad level ops
+In-reply-to: <1309532672-17920-1-git-send-email-s.nawrocki@samsung.com>
+To: linux-media@vger.kernel.org
+Cc: m.szyprowski@samsung.com, kyungmin.park@samsung.com,
+	laurent.pinchart@ideasonboard.com, s.nawrocki@samsung.com,
+	sw0312.kim@samsung.com, riverful.kim@samsung.com
+Message-id: <1309532672-17920-3-git-send-email-s.nawrocki@samsung.com>
+MIME-version: 1.0
+Content-type: TEXT/PLAIN
+Content-transfer-encoding: 7BIT
+References: <1309532672-17920-1-git-send-email-s.nawrocki@samsung.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Hi Angela
+Replace g/s_mbus_fmt ops with the pad level get/set_fmt operations.
+Add media entity initialization and set subdev flags so the host driver
+creates a v4l-subdev device node for the driver. A mutex is added for
+serializing operations on subdevice node. When setting format
+is attempted during streaming EBUSY error code will be returned.
+After the device is powered up it will now remain in "power sleep"
+mode until s_stream(1) is called. The "power sleep" mode is used
+to suspend/resume frame generation at the sensor's output through
+s_stream op. Also the data format is now retained over s_power
+cycles.
 
-On Sun, 3 Jul 2011, angela wan wrote:
-
-> Hi, Bastian,
-> 
->    Could the setting in ov5642.c like ov5642_default_regs_init and
-> ov5642_default_regs_finalise adapt to different board? From my experience,
-> ov5642 may have difference settings for differnt boards. So could we put the
-> setting in another file instead of in the common driver?
-
-No, that's not the solution, that we want. What we want is find the 
-differences, understand them and learn to calculate them. So, for example, 
-if you need different power management procedures, or if you feed the 
-sensor with a different frequency clock, or if you use different lenses 
-and your WB or gain or any other parameters differ then, we might have to 
-use or add some platform parameters and verify them in the driver.
-
-Thanks
-Guennadi
-
-> Best Regards,
-> Angela Wan
-> 
-> Application Processor Systems Engineering,
-> Marvell Technology Group Ltd.
-> 
-> 
-> On Tue, Jun 28, 2011 at 5:48 AM, Bastian Hecht <hechtb@googlemail.com>wrote:
-> 
-> > 2011/6/27 Laurent Pinchart <laurent.pinchart@ideasonboard.com>:
-> > > Hi Bastian,
-> > >
-> > > Thanks for the patch.
-> > >
-> > > On Friday 24 June 2011 12:57:36 Bastian Hecht wrote:
-> > >> This is an initial driver release for the Omnivision 5642 CMOS sensor.
-> > >>
-> > >> Signed-off-by: Bastian Hecht <hechtb@gmail.com>
-> > >> ---
-> > >>
-> > >> diff --git a/drivers/media/video/ov5642.c b/drivers/media/video/ov5642.c
-> > >> new file mode 100644
-> > >> index 0000000..3cdae97
-> > >> --- /dev/null
-> > >> +++ b/drivers/media/video/ov5642.c
-> > >> @@ -0,0 +1,1011 @@
-> > >> +/*
-> > >> + * Driver for OV5642 CMOS Image Sensor from Omnivision
-> > >> + *
-> > >> + * Copyright (C) 2011, Bastian Hecht <hechtb@gmail.com>
-> > >> + *
-> > >> + * Based on Sony IMX074 Camera Driver
-> > >> + * Copyright (C) 2010, Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-> > >> + *
-> > >> + * Based on Omnivision OV7670 Camera Driver
-> > >> + * Copyright (C) 2006-7 Jonathan Corbet <corbet@lwn.net>
-> > >> + *
-> > >> + * This program is free software; you can redistribute it and/or modify
-> > >> + * it under the terms of the GNU General Public License version 2 as
-> > >> + * published by the Free Software Foundation.
-> > >> + */
-> > >> +
-> > >> +#include <linux/delay.h>
-> > >> +#include <linux/i2c.h>
-> > >> +#include <linux/slab.h>
-> > >> +#include <linux/videodev2.h>
-> > >> +
-> > >> +#include <media/soc_camera.h>
-> > >> +#include <media/soc_mediabus.h>
-> > >> +#include <media/v4l2-chip-ident.h>
-> > >> +#include <media/v4l2-subdev.h>
-> > >> +
-> > >> +/* OV5642 registers */
-> > >> +#define REG_CHIP_ID_HIGH             0x300a
-> > >> +#define REG_CHIP_ID_LOW                      0x300b
-> > >> +
-> > >> +#define REG_WINDOW_START_X_HIGH              0x3800
-> > >> +#define REG_WINDOW_START_X_LOW               0x3801
-> > >> +#define REG_WINDOW_START_Y_HIGH              0x3802
-> > >> +#define REG_WINDOW_START_Y_LOW               0x3803
-> > >> +#define REG_WINDOW_WIDTH_HIGH                0x3804
-> > >> +#define REG_WINDOW_WIDTH_LOW         0x3805
-> > >> +#define REG_WINDOW_HEIGHT_HIGH               0x3806
-> > >> +#define REG_WINDOW_HEIGHT_LOW                0x3807
-> > >> +#define REG_OUT_WIDTH_HIGH           0x3808
-> > >> +#define REG_OUT_WIDTH_LOW            0x3809
-> > >> +#define REG_OUT_HEIGHT_HIGH          0x380a
-> > >> +#define REG_OUT_HEIGHT_LOW           0x380b
-> > >> +#define REG_OUT_TOTAL_WIDTH_HIGH     0x380c
-> > >> +#define REG_OUT_TOTAL_WIDTH_LOW              0x380d
-> > >> +#define REG_OUT_TOTAL_HEIGHT_HIGH    0x380e
-> > >> +#define REG_OUT_TOTAL_HEIGHT_LOW     0x380f
-> > >> +
-> > >> +/*
-> > >> + * define standard resolution.
-> > >> + * Works currently only for up to 720 lines
-> > >> + * eg. 320x240, 640x480, 800x600, 1280x720, 2048x720
-> > >> + */
-> > >> +
-> > >> +#define OV5642_WIDTH         1280
-> > >> +#define OV5642_HEIGHT                720
-> > >> +#define OV5642_TOTAL_WIDTH   3200
-> > >> +#define OV5642_TOTAL_HEIGHT  2000
-> > >> +#define OV5642_SENSOR_SIZE_X 2592
-> > >> +#define OV5642_SENSOR_SIZE_Y 1944
-> > >> +
-> > >> +struct regval_list {
-> > >> +     u16 reg_num;
-> > >> +     u8 value;
-> > >> +};
-> > >> +
-> > >> +static struct regval_list ov5642_default_regs_init[] = {
-> > >> +     { 0x3103, 0x93 },
-> > >> +     { 0x3008, 0x82 },
-> > >> +     { 0x3017, 0x7f },
-> > >> +     { 0x3018, 0xfc },
-> > >> +     { 0x3810, 0xc2 },
-> > >> +     { 0x3615, 0xf0 },
-> > >> +     { 0x3000, 0x0  },
-> > >> +     { 0x3001, 0x0  },
-> > >> +     { 0x3002, 0x0  },
-> > >> +     { 0x3003, 0x0  },
-> > >> +     { 0x3004, 0xff },
-> > >> +     { 0x3030, 0x2b },
-> > >> +     { 0x3011, 0x8  },
-> > >> +     { 0x3010, 0x10 },
-> > >> +     { 0x3604, 0x60 },
-> > >> +     { 0x3622, 0x60 },
-> > >> +     { 0x3621, 0x9  },
-> > >> +     { 0x3709, 0x0  },
-> > >> +     { 0x4000, 0x21 },
-> > >> +     { 0x401d, 0x22 },
-> > >> +     { 0x3600, 0x54 },
-> > >> +     { 0x3605, 0x4  },
-> > >> +     { 0x3606, 0x3f },
-> > >> +     { 0x3c01, 0x80 },
-> > >> +     { 0x300d, 0x22 },
-> > >> +     { 0x3623, 0x22 },
-> > >> +     { 0x5000, 0x4f },
-> > >> +     { 0x5020, 0x4  },
-> > >> +     { 0x5181, 0x79 },
-> > >> +     { 0x5182, 0x0  },
-> > >> +     { 0x5185, 0x22 },
-> > >> +     { 0x5197, 0x1  },
-> > >> +     { 0x5500, 0xa  },
-> > >> +     { 0x5504, 0x0  },
-> > >> +     { 0x5505, 0x7f },
-> > >> +     { 0x5080, 0x8  },
-> > >> +     { 0x300e, 0x18 },
-> > >> +     { 0x4610, 0x0  },
-> > >> +     { 0x471d, 0x5  },
-> > >> +     { 0x4708, 0x6  },
-> > >> +     { 0x370c, 0xa0 },
-> > >> +     { 0x5687, 0x94 },
-> > >> +     { 0x501f, 0x0  },
-> > >> +     { 0x5000, 0x4f },
-> > >> +     { 0x5001, 0xcf },
-> > >> +     { 0x4300, 0x30 },
-> > >> +     { 0x4300, 0x30 },
-> > >> +     { 0x460b, 0x35 },
-> > >> +     { 0x471d, 0x0  },
-> > >> +     { 0x3002, 0xc  },
-> > >> +     { 0x3002, 0x0  },
-> > >> +     { 0x4713, 0x3  },
-> > >> +     { 0x471c, 0x50 },
-> > >> +     { 0x4721, 0x2  },
-> > >> +     { 0x4402, 0x90 },
-> > >> +     { 0x460c, 0x22 },
-> > >> +     { 0x3815, 0x44 },
-> > >> +     { 0x3503, 0x7  },
-> > >> +     { 0x3501, 0x73 },
-> > >> +     { 0x3502, 0x80 },
-> > >> +     { 0x350b, 0x0  },
-> > >> +     { 0x3818, 0xc8 },
-> > >> +     { 0x3824, 0x11 },
-> > >> +     { 0x3a00, 0x78 },
-> > >> +     { 0x3a1a, 0x4  },
-> > >> +     { 0x3a13, 0x30 },
-> > >> +     { 0x3a18, 0x0  },
-> > >> +     { 0x3a19, 0x7c },
-> > >> +     { 0x3a08, 0x12 },
-> > >> +     { 0x3a09, 0xc0 },
-> > >> +     { 0x3a0a, 0xf  },
-> > >> +     { 0x3a0b, 0xa0 },
-> > >> +     { 0x350c, 0x7  },
-> > >> +     { 0x350d, 0xd0 },
-> > >> +     { 0x3a0d, 0x8  },
-> > >> +     { 0x3a0e, 0x6  },
-> > >> +     { 0x3500, 0x0  },
-> > >> +     { 0x3501, 0x0  },
-> > >> +     { 0x3502, 0x0  },
-> > >> +     { 0x350a, 0x0  },
-> > >> +     { 0x350b, 0x0  },
-> > >> +     { 0x3503, 0x0  },
-> > >> +     { 0x3a0f, 0x3c },
-> > >> +     { 0x3a10, 0x32 },
-> > >> +     { 0x3a1b, 0x3c },
-> > >> +     { 0x3a1e, 0x32 },
-> > >> +     { 0x3a11, 0x80 },
-> > >> +     { 0x3a1f, 0x20 },
-> > >> +     { 0x3030, 0x2b },
-> > >> +     { 0x3a02, 0x0  },
-> > >> +     { 0x3a03, 0x7d },
-> > >> +     { 0x3a04, 0x0  },
-> > >> +     { 0x3a14, 0x0  },
-> > >> +     { 0x3a15, 0x7d },
-> > >> +     { 0x3a16, 0x0  },
-> > >> +     { 0x3a00, 0x78 },
-> > >> +     { 0x3a08, 0x9  },
-> > >> +     { 0x3a09, 0x60 },
-> > >> +     { 0x3a0a, 0x7  },
-> > >> +     { 0x3a0b, 0xd0 },
-> > >> +     { 0x3a0d, 0x10 },
-> > >> +     { 0x3a0e, 0xd  },
-> > >> +     { 0x4407, 0x4  },
-> > >> +     { 0x5193, 0x70 },
-> > >> +     { 0x589b, 0x0  },
-> > >> +     { 0x589a, 0xc0 },
-> > >> +     { 0x401e, 0x20 },
-> > >> +     { 0x4001, 0x42 },
-> > >> +     { 0x401c, 0x6  },
-> > >> +     { 0x3825, 0xac },
-> > >> +     { 0x3827, 0xc  },
-> > >> +     { 0x528a, 0x1  },
-> > >> +     { 0x528b, 0x4  },
-> > >> +     { 0x528c, 0x8  },
-> > >> +     { 0x528d, 0x10 },
-> > >> +     { 0x528e, 0x20 },
-> > >> +     { 0x528f, 0x28 },
-> > >> +     { 0x5290, 0x30 },
-> > >> +     { 0x5292, 0x0  },
-> > >> +     { 0x5293, 0x1  },
-> > >> +     { 0x5294, 0x0  },
-> > >> +     { 0x5295, 0x4  },
-> > >> +     { 0x5296, 0x0  },
-> > >> +     { 0x5297, 0x8  },
-> > >> +     { 0x5298, 0x0  },
-> > >> +     { 0x5299, 0x10 },
-> > >> +     { 0x529a, 0x0  },
-> > >> +     { 0x529b, 0x20 },
-> > >> +     { 0x529c, 0x0  },
-> > >> +     { 0x529d, 0x28 },
-> > >> +     { 0x529e, 0x0  },
-> > >> +     { 0x529f, 0x30 },
-> > >> +     { 0x5282, 0x0  },
-> > >> +     { 0x5300, 0x0  },
-> > >> +     { 0x5301, 0x20 },
-> > >> +     { 0x5302, 0x0  },
-> > >> +     { 0x5303, 0x7c },
-> > >> +     { 0x530c, 0x0  },
-> > >> +     { 0x530d, 0xc  },
-> > >> +     { 0x530e, 0x20 },
-> > >> +     { 0x530f, 0x80 },
-> > >> +     { 0x5310, 0x20 },
-> > >> +     { 0x5311, 0x80 },
-> > >> +     { 0x5308, 0x20 },
-> > >> +     { 0x5309, 0x40 },
-> > >> +     { 0x5304, 0x0  },
-> > >> +     { 0x5305, 0x30 },
-> > >> +     { 0x5306, 0x0  },
-> > >> +     { 0x5307, 0x80 },
-> > >> +     { 0x5314, 0x8  },
-> > >> +     { 0x5315, 0x20 },
-> > >> +     { 0x5319, 0x30 },
-> > >> +     { 0x5316, 0x10 },
-> > >> +     { 0x5317, 0x0  },
-> > >> +     { 0x5318, 0x2  },
-> > >> +     { 0x5380, 0x1  },
-> > >> +     { 0x5381, 0x0  },
-> > >> +     { 0x5382, 0x0  },
-> > >> +     { 0x5383, 0x4e },
-> > >> +     { 0x5384, 0x0  },
-> > >> +     { 0x5385, 0xf  },
-> > >> +     { 0x5386, 0x0  },
-> > >> +     { 0x5387, 0x0  },
-> > >> +     { 0x5388, 0x1  },
-> > >> +     { 0x5389, 0x15 },
-> > >> +     { 0x538a, 0x0  },
-> > >> +     { 0x538b, 0x31 },
-> > >> +     { 0x538c, 0x0  },
-> > >> +     { 0x538d, 0x0  },
-> > >> +     { 0x538e, 0x0  },
-> > >> +     { 0x538f, 0xf  },
-> > >> +     { 0x5390, 0x0  },
-> > >> +     { 0x5391, 0xab },
-> > >> +     { 0x5392, 0x0  },
-> > >> +     { 0x5393, 0xa2 },
-> > >> +     { 0x5394, 0x8  },
-> > >> +     { 0x5480, 0x14 },
-> > >> +     { 0x5481, 0x21 },
-> > >> +     { 0x5482, 0x36 },
-> > >> +     { 0x5483, 0x57 },
-> > >> +     { 0x5484, 0x65 },
-> > >> +     { 0x5485, 0x71 },
-> > >> +     { 0x5486, 0x7d },
-> > >> +     { 0x5487, 0x87 },
-> > >> +     { 0x5488, 0x91 },
-> > >> +     { 0x5489, 0x9a },
-> > >> +     { 0x548a, 0xaa },
-> > >> +     { 0x548b, 0xb8 },
-> > >> +     { 0x548c, 0xcd },
-> > >> +     { 0x548d, 0xdd },
-> > >> +     { 0x548e, 0xea },
-> > >> +     { 0x548f, 0x1d },
-> > >> +     { 0x5490, 0x5  },
-> > >> +     { 0x5491, 0x0  },
-> > >> +     { 0x5492, 0x4  },
-> > >> +     { 0x5493, 0x20 },
-> > >> +     { 0x5494, 0x3  },
-> > >> +     { 0x5495, 0x60 },
-> > >> +     { 0x5496, 0x2  },
-> > >> +     { 0x5497, 0xb8 },
-> > >> +     { 0x5498, 0x2  },
-> > >> +     { 0x5499, 0x86 },
-> > >> +     { 0x549a, 0x2  },
-> > >> +     { 0x549b, 0x5b },
-> > >> +     { 0x549c, 0x2  },
-> > >> +     { 0x549d, 0x3b },
-> > >> +     { 0x549e, 0x2  },
-> > >> +     { 0x549f, 0x1c },
-> > >> +     { 0x54a0, 0x2  },
-> > >> +     { 0x54a1, 0x4  },
-> > >> +     { 0x54a2, 0x1  },
-> > >> +     { 0x54a3, 0xed },
-> > >> +     { 0x54a4, 0x1  },
-> > >> +     { 0x54a5, 0xc5 },
-> > >> +     { 0x54a6, 0x1  },
-> > >> +     { 0x54a7, 0xa5 },
-> > >> +     { 0x54a8, 0x1  },
-> > >> +     { 0x54a9, 0x6c },
-> > >> +     { 0x54aa, 0x1  },
-> > >> +     { 0x54ab, 0x41 },
-> > >> +     { 0x54ac, 0x1  },
-> > >> +     { 0x54ad, 0x20 },
-> > >> +     { 0x54ae, 0x0  },
-> > >> +     { 0x54af, 0x16 },
-> > >> +     { 0x54b0, 0x1  },
-> > >> +     { 0x54b1, 0x20 },
-> > >> +     { 0x54b2, 0x0  },
-> > >> +     { 0x54b3, 0x10 },
-> > >> +     { 0x54b4, 0x0  },
-> > >> +     { 0x54b5, 0xf0 },
-> > >> +     { 0x54b6, 0x0  },
-> > >> +     { 0x54b7, 0xdf },
-> > >> +     { 0x5402, 0x3f },
-> > >> +     { 0x5403, 0x0  },
-> > >> +     { 0x3406, 0x0  },
-> > >> +     { 0x5180, 0xff },
-> > >> +     { 0x5181, 0x52 },
-> > >> +     { 0x5182, 0x11 },
-> > >> +     { 0x5183, 0x14 },
-> > >> +     { 0x5184, 0x25 },
-> > >> +     { 0x5185, 0x24 },
-> > >> +     { 0x5186, 0x6  },
-> > >> +     { 0x5187, 0x8  },
-> > >> +     { 0x5188, 0x8  },
-> > >> +     { 0x5189, 0x7c },
-> > >> +     { 0x518a, 0x60 },
-> > >> +     { 0x518b, 0xb2 },
-> > >> +     { 0x518c, 0xb2 },
-> > >> +     { 0x518d, 0x44 },
-> > >> +     { 0x518e, 0x3d },
-> > >> +     { 0x518f, 0x58 },
-> > >> +     { 0x5190, 0x46 },
-> > >> +     { 0x5191, 0xf8 },
-> > >> +     { 0x5192, 0x4  },
-> > >> +     { 0x5193, 0x70 },
-> > >> +     { 0x5194, 0xf0 },
-> > >> +     { 0x5195, 0xf0 },
-> > >> +     { 0x5196, 0x3  },
-> > >> +     { 0x5197, 0x1  },
-> > >> +     { 0x5198, 0x4  },
-> > >> +     { 0x5199, 0x12 },
-> > >> +     { 0x519a, 0x4  },
-> > >> +     { 0x519b, 0x0  },
-> > >> +     { 0x519c, 0x6  },
-> > >> +     { 0x519d, 0x82 },
-> > >> +     { 0x519e, 0x0  },
-> > >> +     { 0x5025, 0x80 },
-> > >> +     { 0x3a0f, 0x38 },
-> > >> +     { 0x3a10, 0x30 },
-> > >> +     { 0x3a1b, 0x3a },
-> > >> +     { 0x3a1e, 0x2e },
-> > >> +     { 0x3a11, 0x60 },
-> > >> +     { 0x3a1f, 0x10 },
-> > >> +     { 0x5688, 0xa6 },
-> > >> +     { 0x5689, 0x6a },
-> > >> +     { 0x568a, 0xea },
-> > >> +     { 0x568b, 0xae },
-> > >> +     { 0x568c, 0xa6 },
-> > >> +     { 0x568d, 0x6a },
-> > >> +     { 0x568e, 0x62 },
-> > >> +     { 0x568f, 0x26 },
-> > >> +     { 0x5583, 0x40 },
-> > >> +     { 0x5584, 0x40 },
-> > >> +     { 0x5580, 0x2  },
-> > >> +     { 0x5000, 0xcf },
-> > >> +     { 0x5800, 0x27 },
-> > >> +     { 0x5801, 0x19 },
-> > >> +     { 0x5802, 0x12 },
-> > >> +     { 0x5803, 0xf  },
-> > >> +     { 0x5804, 0x10 },
-> > >> +     { 0x5805, 0x15 },
-> > >> +     { 0x5806, 0x1e },
-> > >> +     { 0x5807, 0x2f },
-> > >> +     { 0x5808, 0x15 },
-> > >> +     { 0x5809, 0xd  },
-> > >> +     { 0x580a, 0xa  },
-> > >> +     { 0x580b, 0x9  },
-> > >> +     { 0x580c, 0xa  },
-> > >> +     { 0x580d, 0xc  },
-> > >> +     { 0x580e, 0x12 },
-> > >> +     { 0x580f, 0x19 },
-> > >> +     { 0x5810, 0xb  },
-> > >> +     { 0x5811, 0x7  },
-> > >> +     { 0x5812, 0x4  },
-> > >> +     { 0x5813, 0x3  },
-> > >> +     { 0x5814, 0x3  },
-> > >> +     { 0x5815, 0x6  },
-> > >> +     { 0x5816, 0xa  },
-> > >> +     { 0x5817, 0xf  },
-> > >> +     { 0x5818, 0xa  },
-> > >> +     { 0x5819, 0x5  },
-> > >> +     { 0x581a, 0x1  },
-> > >> +     { 0x581b, 0x0  },
-> > >> +     { 0x581c, 0x0  },
-> > >> +     { 0x581d, 0x3  },
-> > >> +     { 0x581e, 0x8  },
-> > >> +     { 0x581f, 0xc  },
-> > >> +     { 0x5820, 0xa  },
-> > >> +     { 0x5821, 0x5  },
-> > >> +     { 0x5822, 0x1  },
-> > >> +     { 0x5823, 0x0  },
-> > >> +     { 0x5824, 0x0  },
-> > >> +     { 0x5825, 0x3  },
-> > >> +     { 0x5826, 0x8  },
-> > >> +     { 0x5827, 0xc  },
-> > >> +     { 0x5828, 0xe  },
-> > >> +     { 0x5829, 0x8  },
-> > >> +     { 0x582a, 0x6  },
-> > >> +     { 0x582b, 0x4  },
-> > >> +     { 0x582c, 0x5  },
-> > >> +     { 0x582d, 0x7  },
-> > >> +     { 0x582e, 0xb  },
-> > >> +     { 0x582f, 0x12 },
-> > >> +     { 0x5830, 0x18 },
-> > >> +     { 0x5831, 0x10 },
-> > >> +     { 0x5832, 0xc  },
-> > >> +     { 0x5833, 0xa  },
-> > >> +     { 0x5834, 0xb  },
-> > >> +     { 0x5835, 0xe  },
-> > >> +     { 0x5836, 0x15 },
-> > >> +     { 0x5837, 0x19 },
-> > >> +     { 0x5838, 0x32 },
-> > >> +     { 0x5839, 0x1f },
-> > >> +     { 0x583a, 0x18 },
-> > >> +     { 0x583b, 0x16 },
-> > >> +     { 0x583c, 0x17 },
-> > >> +     { 0x583d, 0x1e },
-> > >> +     { 0x583e, 0x26 },
-> > >> +     { 0x583f, 0x53 },
-> > >> +     { 0x5840, 0x10 },
-> > >> +     { 0x5841, 0xf  },
-> > >> +     { 0x5842, 0xd  },
-> > >> +     { 0x5843, 0xc  },
-> > >> +     { 0x5844, 0xe  },
-> > >> +     { 0x5845, 0x9  },
-> > >> +     { 0x5846, 0x11 },
-> > >> +     { 0x5847, 0x10 },
-> > >> +     { 0x5848, 0x10 },
-> > >> +     { 0x5849, 0x10 },
-> > >> +     { 0x584a, 0x10 },
-> > >> +     { 0x584b, 0xe  },
-> > >> +     { 0x584c, 0x10 },
-> > >> +     { 0x584d, 0x10 },
-> > >> +     { 0x584e, 0x11 },
-> > >> +     { 0x584f, 0x10 },
-> > >> +     { 0x5850, 0xf  },
-> > >> +     { 0x5851, 0xc  },
-> > >> +     { 0x5852, 0xf  },
-> > >> +     { 0x5853, 0x10 },
-> > >> +     { 0x5854, 0x10 },
-> > >> +     { 0x5855, 0xf  },
-> > >> +     { 0x5856, 0xe  },
-> > >> +     { 0x5857, 0xb  },
-> > >> +     { 0x5858, 0x10 },
-> > >> +     { 0x5859, 0xd  },
-> > >> +     { 0x585a, 0xd  },
-> > >> +     { 0x585b, 0xc  },
-> > >> +     { 0x585c, 0xc  },
-> > >> +     { 0x585d, 0xc  },
-> > >> +     { 0x585e, 0xb  },
-> > >> +     { 0x585f, 0xc  },
-> > >> +     { 0x5860, 0xc  },
-> > >> +     { 0x5861, 0xc  },
-> > >> +     { 0x5862, 0xd  },
-> > >> +     { 0x5863, 0x8  },
-> > >> +     { 0x5864, 0x11 },
-> > >> +     { 0x5865, 0x18 },
-> > >> +     { 0x5866, 0x18 },
-> > >> +     { 0x5867, 0x19 },
-> > >> +     { 0x5868, 0x17 },
-> > >> +     { 0x5869, 0x19 },
-> > >> +     { 0x586a, 0x16 },
-> > >> +     { 0x586b, 0x13 },
-> > >> +     { 0x586c, 0x13 },
-> > >> +     { 0x586d, 0x12 },
-> > >> +     { 0x586e, 0x13 },
-> > >> +     { 0x586f, 0x16 },
-> > >> +     { 0x5870, 0x14 },
-> > >> +     { 0x5871, 0x12 },
-> > >> +     { 0x5872, 0x10 },
-> > >> +     { 0x5873, 0x11 },
-> > >> +     { 0x5874, 0x11 },
-> > >> +     { 0x5875, 0x16 },
-> > >> +     { 0x5876, 0x14 },
-> > >> +     { 0x5877, 0x11 },
-> > >> +     { 0x5878, 0x10 },
-> > >> +     { 0x5879, 0xf  },
-> > >> +     { 0x587a, 0x10 },
-> > >> +     { 0x587b, 0x14 },
-> > >> +     { 0x587c, 0x13 },
-> > >> +     { 0x587d, 0x12 },
-> > >> +     { 0x587e, 0x11 },
-> > >> +     { 0x587f, 0x11 },
-> > >> +     { 0x5880, 0x12 },
-> > >> +     { 0x5881, 0x15 },
-> > >> +     { 0x5882, 0x14 },
-> > >> +     { 0x5883, 0x15 },
-> > >> +     { 0x5884, 0x15 },
-> > >> +     { 0x5885, 0x15 },
-> > >> +     { 0x5886, 0x13 },
-> > >> +     { 0x5887, 0x17 },
-> > >> +     { 0x3710, 0x10 },
-> > >> +     { 0x3632, 0x51 },
-> > >> +     { 0x3702, 0x10 },
-> > >> +     { 0x3703, 0xb2 },
-> > >> +     { 0x3704, 0x18 },
-> > >> +     { 0x370b, 0x40 },
-> > >> +     { 0x370d, 0x3  },
-> > >> +     { 0x3631, 0x1  },
-> > >> +     { 0x3632, 0x52 },
-> > >> +     { 0x3606, 0x24 },
-> > >> +     { 0x3620, 0x96 },
-> > >> +     { 0x5785, 0x7  },
-> > >> +     { 0x3a13, 0x30 },
-> > >> +     { 0x3600, 0x52 },
-> > >> +     { 0x3604, 0x48 },
-> > >> +     { 0x3606, 0x1b },
-> > >> +     { 0x370d, 0xb  },
-> > >> +     { 0x370f, 0xc0 },
-> > >> +     { 0x3709, 0x1  },
-> > >> +     { 0x3823, 0x0  },
-> > >> +     { 0x5007, 0x0  },
-> > >> +     { 0x5009, 0x0  },
-> > >> +     { 0x5011, 0x0  },
-> > >> +     { 0x5013, 0x0  },
-> > >> +     { 0x519e, 0x0  },
-> > >> +     { 0x5086, 0x0  },
-> > >> +     { 0x5087, 0x0  },
-> > >> +     { 0x5088, 0x0  },
-> > >> +     { 0x5089, 0x0  },
-> > >> +     { 0x302b, 0x0  },
-> > >> +     { 0x3503, 0x7  },
-> > >> +     { 0x3011, 0x8  },
-> > >> +     { 0x350c, 0x2  },
-> > >> +     { 0x350d, 0xe4 },
-> > >> +     { 0x3621, 0xc9 },
-> > >> +     { 0x370a, 0x81 },
-> > >> +     { 0xffff, 0xff },
-> > >> +};
-> > >> +
-> > >> +static struct regval_list ov5642_default_regs_finalise[] = {
-> > >> +     { 0x3810, 0xc2 },
-> > >> +     { 0x3818, 0xc9 },
-> > >> +     { 0x381c, 0x10 },
-> > >> +     { 0x381d, 0xa0 },
-> > >> +     { 0x381e, 0x5  },
-> > >> +     { 0x381f, 0xb0 },
-> > >> +     { 0x3820, 0x0  },
-> > >> +     { 0x3821, 0x0  },
-> > >> +     { 0x3824, 0x11 },
-> > >> +     { 0x3a08, 0x1b },
-> > >> +     { 0x3a09, 0xc0 },
-> > >> +     { 0x3a0a, 0x17 },
-> > >> +     { 0x3a0b, 0x20 },
-> > >> +     { 0x3a0d, 0x2  },
-> > >> +     { 0x3a0e, 0x1  },
-> > >> +     { 0x401c, 0x4  },
-> > >> +     { 0x5682, 0x5  },
-> > >> +     { 0x5683, 0x0  },
-> > >> +     { 0x5686, 0x2  },
-> > >> +     { 0x5687, 0xcc },
-> > >> +     { 0x5001, 0x4f },
-> > >> +     { 0x589b, 0x6  },
-> > >> +     { 0x589a, 0xc5 },
-> > >> +     { 0x3503, 0x0  },
-> > >> +     { 0x460c, 0x20 },
-> > >> +     { 0x460b, 0x37 },
-> > >> +     { 0x471c, 0xd0 },
-> > >> +     { 0x471d, 0x5  },
-> > >> +     { 0x3815, 0x1  },
-> > >> +     { 0x3818, 0xc1 },
-> > >> +     { 0x501f, 0x0  },
-> > >> +     { 0x5002, 0xe0 },
-> > >> +     { 0x4300, 0x32 }, /* UYVY */
-> > >> +     { 0x3002, 0x1c },
-> > >> +     { 0x4800, 0x14 },
-> > >> +     { 0x4801, 0xf  },
-> > >> +     { 0x3007, 0x3b },
-> > >> +     { 0x300e, 0x4  },
-> > >> +     { 0x4803, 0x50 },
-> > >> +     { 0x3815, 0x1  },
-> > >> +     { 0x4713, 0x2  },
-> > >> +     { 0x4842, 0x1  },
-> > >> +     { 0x300f, 0xe  },
-> > >> +     { 0x3003, 0x3  },
-> > >> +     { 0x3003, 0x1  },
-> > >> +     { 0xffff, 0xff },
-> > >
-> > > Any chance to replace hardcoded values by #define's ?
-> >
-> > Hello Laurent,
-> >
-> > this was (obviously) derived from a register-value list. As I don't
-> > have the documentation for this sensor, I have to ask my source for
-> > every entry. For building an advanced driver the first step was to add
-> > geometry support. But the upcoming growing feature set will lead to
-> > more defines as I learn the meaning of the registers.
-> >
-> > best regards,
-> >
-> >  Bastian Hecht
-> >
-> >
-> > >
-> > > --
-> > > Regards,
-> > >
-> > > Laurent Pinchart
-> > >
-> > --
-> > To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> > the body of a message to majordomo@vger.kernel.org
-> > More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> >
-> 
-
+Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
 ---
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
-http://www.open-technology.de/
+ drivers/media/video/Kconfig       |    2 +-
+ drivers/media/video/noon010pc30.c |  142 +++++++++++++++++++++++++------------
+ 2 files changed, 98 insertions(+), 46 deletions(-)
+
+diff --git a/drivers/media/video/Kconfig b/drivers/media/video/Kconfig
+index ae9790e..f92b9bb 100644
+--- a/drivers/media/video/Kconfig
++++ b/drivers/media/video/Kconfig
+@@ -746,7 +746,7 @@ config VIDEO_VIA_CAMERA
+ 
+ config VIDEO_NOON010PC30
+ 	tristate "NOON010PC30 CIF camera sensor support"
+-	depends on I2C && VIDEO_V4L2
++	depends on I2C && VIDEO_V4L2 && EXPERIMENTAL && VIDEO_V4L2_SUBDEV_API
+ 	---help---
+ 	  This driver supports NOON010PC30 CIF camera from Siliconfile
+ 
+diff --git a/drivers/media/video/noon010pc30.c b/drivers/media/video/noon010pc30.c
+index 37eca91..3e24783 100644
+--- a/drivers/media/video/noon010pc30.c
++++ b/drivers/media/video/noon010pc30.c
+@@ -1,7 +1,7 @@
+ /*
+  * Driver for SiliconFile NOON010PC30 CIF (1/11") Image Sensor with ISP
+  *
+- * Copyright (C) 2010 Samsung Electronics
++ * Copyright (C) 2010 - 2011 Samsung Electronics
+  * Contact: Sylwester Nawrocki, <s.nawrocki@samsung.com>
+  *
+  * Initial register configuration based on a driver authored by
+@@ -130,14 +130,19 @@ static const char * const noon010_supply_name[] = {
+ #define NOON010_NUM_SUPPLIES ARRAY_SIZE(noon010_supply_name)
+ 
+ struct noon010_info {
++	/* A mutex protecting curr_fmt, curr_win fields and the bit flags */
++	struct mutex lock;
+ 	struct v4l2_subdev sd;
++	struct media_pad pad;
+ 	struct v4l2_ctrl_handler hdl;
+ 	const struct noon010pc30_platform_data *pdata;
+ 	const struct noon010_format *curr_fmt;
+ 	const struct noon010_frmsize *curr_win;
++	struct v4l2_mbus_framefmt format;
+ 	unsigned int hflip:1;
+ 	unsigned int vflip:1;
+ 	unsigned int power:1;
++	unsigned int streaming:1;
+ 	u8 i2c_reg_page;
+ 	struct regulator_bulk_data supply[NOON010_NUM_SUPPLIES];
+ 	u32 gpio_nreset;
+@@ -313,6 +318,7 @@ static int noon010_enable_autowhitebalance(struct v4l2_subdev *sd, int on)
+ 	return ret;
+ }
+ 
++/* Called with struct noon010_info.lock mutex held */
+ static int noon010_set_flip(struct v4l2_subdev *sd, int hflip, int vflip)
+ {
+ 	struct noon010_info *info = to_noon010(sd);
+@@ -342,7 +348,7 @@ static int noon010_set_params(struct v4l2_subdev *sd)
+ 	struct noon010_info *info = to_noon010(sd);
+ 	int ret;
+ 
+-	if (!info->curr_win)
++	if (!info->curr_win || !info->power)
+ 		return -EINVAL;
+ 
+ 	ret = cam_i2c_write(sd, VDO_CTL_REG(0), info->curr_win->vid_ctl1);
+@@ -354,7 +360,8 @@ static int noon010_set_params(struct v4l2_subdev *sd)
+ }
+ 
+ /* Find nearest matching image pixel size. */
+-static int noon010_try_frame_size(struct v4l2_mbus_framefmt *mf)
++static int noon010_try_frame_size(struct v4l2_mbus_framefmt *mf,
++				  const struct noon010_frmsize **size)
+ {
+ 	unsigned int min_err = ~0;
+ 	int i = ARRAY_SIZE(noon010_sizes);
+@@ -374,11 +381,14 @@ static int noon010_try_frame_size(struct v4l2_mbus_framefmt *mf)
+ 	if (match) {
+ 		mf->width  = match->width;
+ 		mf->height = match->height;
++		if (size)
++			*size = match;
+ 		return 0;
+ 	}
+ 	return -EINVAL;
+ }
+ 
++/* Called with struct info.lock mutex held */
+ static int power_enable(struct noon010_info *info)
+ {
+ 	int ret;
+@@ -419,6 +429,7 @@ static int power_enable(struct noon010_info *info)
+ 	return 0;
+ }
+ 
++/* Called with struct info.lock mutex held */
+ static int power_disable(struct noon010_info *info)
+ {
+ 	int ret;
+@@ -464,36 +475,42 @@ static int noon010_s_ctrl(struct v4l2_ctrl *ctrl)
+ 	}
+ }
+ 
+-static int noon010_enum_fmt(struct v4l2_subdev *sd, unsigned int index,
+-			    enum v4l2_mbus_pixelcode *code)
++static int noon010_enum_mbus_code(struct v4l2_subdev *sd,
++				  struct v4l2_subdev_fh *fh,
++				  struct v4l2_subdev_mbus_code_enum *code)
+ {
+-	if (!code || index >= ARRAY_SIZE(noon010_formats))
++	if (code->index >= ARRAY_SIZE(noon010_formats))
+ 		return -EINVAL;
+ 
+-	*code = noon010_formats[index].code;
++	code->code = noon010_formats[code->index].code;
+ 	return 0;
+ }
+ 
+-static int noon010_g_fmt(struct v4l2_subdev *sd, struct v4l2_mbus_framefmt *mf)
++static int noon010_get_fmt(struct v4l2_subdev *sd, struct v4l2_subdev_fh *fh,
++			   struct v4l2_subdev_format *fmt)
+ {
+ 	struct noon010_info *info = to_noon010(sd);
+-	int ret;
+-
+-	if (!mf)
+-		return -EINVAL;
++	struct v4l2_mbus_framefmt *mf;
+ 
+-	if (!info->curr_win || !info->curr_fmt) {
+-		ret = noon010_set_params(sd);
+-		if (ret)
+-			return ret;
++	if (fmt->which == V4L2_SUBDEV_FORMAT_TRY) {
++		if (fh) {
++			mf = v4l2_subdev_get_try_format(fh, 0);
++			fmt->format = *mf;
++		}
++		return 0;
+ 	}
++	/* Active format */
++	mf = &fmt->format;
+ 
++	mutex_lock(&info->lock);
+ 	mf->width	= info->curr_win->width;
+ 	mf->height	= info->curr_win->height;
+ 	mf->code	= info->curr_fmt->code;
+ 	mf->colorspace	= info->curr_fmt->colorspace;
+-	mf->field	= V4L2_FIELD_NONE;
++	mutex_unlock(&info->lock);
+ 
++	mf->field	= V4L2_FIELD_NONE;
++	mf->colorspace	= V4L2_COLORSPACE_JPEG;
+ 	return 0;
+ }
+ 
+@@ -503,40 +520,50 @@ static const struct noon010_format *try_fmt(struct v4l2_subdev *sd,
+ {
+ 	int i = ARRAY_SIZE(noon010_formats);
+ 
+-	noon010_try_frame_size(mf);
+-
+-	while (i--)
++	while (--i)
+ 		if (mf->code == noon010_formats[i].code)
+ 			break;
+-
+ 	mf->code = noon010_formats[i].code;
+ 
+ 	return &noon010_formats[i];
+ }
+ 
+-static int noon010_try_fmt(struct v4l2_subdev *sd,
+-			   struct v4l2_mbus_framefmt *mf)
+-{
+-	if (!sd || !mf)
+-		return -EINVAL;
+-
+-	try_fmt(sd, mf);
+-	return 0;
+-}
+-
+-static int noon010_s_fmt(struct v4l2_subdev *sd,
+-			 struct v4l2_mbus_framefmt *mf)
++static int noon010_set_fmt(struct v4l2_subdev *sd, struct v4l2_subdev_fh *fh,
++			   struct v4l2_subdev_format *fmt)
+ {
+ 	struct noon010_info *info = to_noon010(sd);
++	const struct noon010_frmsize *size = NULL;
++	const struct noon010_format *nf;
++	struct v4l2_mbus_framefmt *mf;
++	int ret;
+ 
+-	if (!sd || !mf)
++	if (fmt->pad != 0)
+ 		return -EINVAL;
+ 
+-	info->curr_fmt = try_fmt(sd, mf);
++	nf = try_fmt(sd, &fmt->format);
++	noon010_try_frame_size(&fmt->format, &size);
++	fmt->format.colorspace = V4L2_COLORSPACE_JPEG;
+ 
+-	return noon010_set_params(sd);
++	if (fmt->which == V4L2_SUBDEV_FORMAT_TRY) {
++		if (fh) {
++			mf = v4l2_subdev_get_try_format(fh, 0);
++			*mf = fmt->format;
++		}
++		return 0;
++	}
++	mutex_lock(&info->lock);
++	if (info->streaming) {
++		ret = -EBUSY;
++	} else {
++		info->curr_fmt = nf;
++		info->curr_win = size;
++		ret = noon010_set_params(sd);
++	}
++	mutex_unlock(&info->lock);
++	return ret;
+ }
+ 
++/* Called with struct noon010_info.lock mutex held */
+ static int noon010_base_config(struct v4l2_subdev *sd)
+ {
+ 	struct noon010_info *info = to_noon010(sd);
+@@ -550,8 +577,6 @@ static int noon010_base_config(struct v4l2_subdev *sd)
+ 	}
+ 	if (!ret)
+ 		ret = noon010_set_flip(sd, 1, 0);
+-	if (!ret)
+-		ret = noon010_power_ctrl(sd, false, false);
+ 
+ 	/* Synchronize the control handler and the registers state */
+ 	if (!ret)
+@@ -583,6 +608,21 @@ static int noon010_s_power(struct v4l2_subdev *sd, int on)
+ 	return ret;
+ }
+ 
++static int noon010_s_stream(struct v4l2_subdev *sd, int on)
++{
++	struct noon010_info *info = to_noon010(sd);
++	int ret = 0;
++
++	mutex_lock(&info->lock);
++	if (!info->streaming != !on) {
++		ret = noon010_power_ctrl(sd, false, !on);
++		if (!ret)
++			info->streaming = on;
++	}
++	mutex_unlock(&info->lock);
++	return ret;
++}
++
+ static int noon010_g_chip_ident(struct v4l2_subdev *sd,
+ 				struct v4l2_dbg_chip_ident *chip)
+ {
+@@ -617,15 +657,19 @@ static const struct v4l2_subdev_core_ops noon010_core_ops = {
+ 	.log_status	= noon010_log_status,
+ };
+ 
+-static const struct v4l2_subdev_video_ops noon010_video_ops = {
+-	.g_mbus_fmt	= noon010_g_fmt,
+-	.s_mbus_fmt	= noon010_s_fmt,
+-	.try_mbus_fmt	= noon010_try_fmt,
+-	.enum_mbus_fmt	= noon010_enum_fmt,
++static struct v4l2_subdev_pad_ops noon010_pad_ops = {
++	.enum_mbus_code	= noon010_enum_mbus_code,
++	.get_fmt	= noon010_get_fmt,
++	.set_fmt	= noon010_set_fmt,
++};
++
++static struct v4l2_subdev_video_ops noon010_video_ops = {
++	.s_stream	= noon010_s_stream,
+ };
+ 
+ static const struct v4l2_subdev_ops noon010_ops = {
+ 	.core	= &noon010_core_ops,
++	.pad	= &noon010_pad_ops,
+ 	.video	= &noon010_video_ops,
+ };
+ 
+@@ -666,9 +710,11 @@ static int noon010_probe(struct i2c_client *client,
+ 	if (!info)
+ 		return -ENOMEM;
+ 
++	mutex_init(&info->lock);
+ 	sd = &info->sd;
+ 	strlcpy(sd->name, MODULE_NAME, sizeof(sd->name));
+ 	v4l2_i2c_subdev_init(sd, client, &noon010_ops);
++	sd->flags |= V4L2_SUBDEV_FL_HAS_DEVNODE;
+ 
+ 	v4l2_ctrl_handler_init(&info->hdl, 3);
+ 
+@@ -720,11 +766,17 @@ static int noon010_probe(struct i2c_client *client,
+ 	if (ret)
+ 		goto np_reg_err;
+ 
++	info->pad.flags = MEDIA_PAD_FL_SOURCE;
++	sd->entity.type = MEDIA_ENT_T_V4L2_SUBDEV_SENSOR;
++	ret = media_entity_init(&sd->entity, 1, &info->pad, 0);
++	if (ret < 0)
++		goto np_me_err;
++
+ 	ret = noon010_detect(client, info);
+ 	if (!ret)
+ 		return 0;
+ 
+-	/* the sensor detection failed */
++np_me_err:
+ 	regulator_bulk_free(NOON010_NUM_SUPPLIES, info->supply);
+ np_reg_err:
+ 	if (gpio_is_valid(info->gpio_nstby))
+@@ -751,10 +803,10 @@ static int noon010_remove(struct i2c_client *client)
+ 
+ 	if (gpio_is_valid(info->gpio_nreset))
+ 		gpio_free(info->gpio_nreset);
+-
+ 	if (gpio_is_valid(info->gpio_nstby))
+ 		gpio_free(info->gpio_nstby);
+ 
++	media_entity_cleanup(&sd->entity);
+ 	kfree(info);
+ 	return 0;
+ }
+-- 
+1.7.5.4
+
