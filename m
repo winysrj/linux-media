@@ -1,98 +1,74 @@
-Return-path: <mchehab@localhost>
-Received: from proofpoint-cluster.metrocast.net ([65.175.128.136]:38759 "EHLO
-	proofpoint-cluster.metrocast.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752283Ab1GFBFb (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 5 Jul 2011 21:05:31 -0400
-References: <1309351877-32444-1-git-send-email-t.stanislaws@samsung.com> <201107050926.38639.hverkuil@xs4all.nl> <4E12FEA3.6010500@redhat.com> <201107051520.17361.hverkuil@xs4all.nl> <b1f62aa0-bcc1-497f-843f-7c4473f75f73@email.android.com> <4E139D50.4050406@redhat.com>
-In-Reply-To: <4E139D50.4050406@redhat.com>
+Return-path: <mchehab@pedra>
+Received: from metis.ext.pengutronix.de ([92.198.50.35]:41481 "EHLO
+	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752471Ab1GBIHo (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sat, 2 Jul 2011 04:07:44 -0400
+Date: Sat, 2 Jul 2011 10:07:41 +0200
+From: Wolfram Sang <w.sang@pengutronix.de>
+To: linux-media@vger.kernel.org
+Cc: Jean-Francois Moine <moinejf@free.fr>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: Re: [PATCH] [media] gspca/zc3xx: add usb_id for HP Premium Starter
+ Cam
+Message-ID: <20110702080741.GA5578@pengutronix.de>
+References: <1308140202-14854-1-git-send-email-w.sang@pengutronix.de>
 MIME-Version: 1.0
-Content-Type: text/plain;
- charset=UTF-8
-Content-Transfer-Encoding: 8bit
-Subject: Re: [RFC] DV timings spec fixes at V4L2 API - was: [PATCH 1/8] v4l: add macro for 1080p59_54 preset
-From: Andy Walls <awalls@md.metrocast.net>
-Date: Tue, 05 Jul 2011 21:05:34 -0400
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-CC: Hans Verkuil <hverkuil@xs4all.nl>,
-	Tomasz Stanislawski <t.stanislaws@samsung.com>,
-	linux-media@vger.kernel.org, m.szyprowski@samsung.com,
-	kyungmin.park@samsung.com, laurent.pinchart@ideasonboard.com
-Message-ID: <76f37109-8b9b-4bd6-aee8-0d4f75cc0dc2@email.android.com>
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="sdtB3X0nJg68CQEu"
+Content-Disposition: inline
+In-Reply-To: <1308140202-14854-1-git-send-email-w.sang@pengutronix.de>
 List-ID: <linux-media.vger.kernel.org>
-Sender: <mchehab@infradead.org>
+Sender: <mchehab@pedra>
 
-Mauro Carvalho Chehab <mchehab@redhat.com> wrote:
 
->Em 05-07-2011 16:02, Andy Walls escreveu:
->> Hans Verkuil <hverkuil@xs4all.nl> wrote:
->>> I can work on the proposal this week for that. The only reason the
->fps
->>> hasn't been added
->>> yet is that I never had the time to do the research on how to
->represent
->>> the fps reliably
->>> for all CEA/VESA formats. Hmm, pixelclock / total_framesize should
->>> always work, of course.
->>>
->>> We can add a flags field as well (for interlaced vs progressive and
->>> perhaps others such as
->>> normal vs reduced blanking).
->>>
->>> That leaves the problem with GTF/CVT. I'll get back to that
->tomorrow. I
->>> have ideas, but
->>> I need to discuss it first.
->>>
->>> Regards,
->>>
->>> 	Hans
->>> --
->>> To unsubscribe from this list: send the line "unsubscribe
->linux-media"
->>> in
->>> the body of a message to majordomo@vger.kernel.org
->>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->> 
->> For fps you could use horizontal_line_freq/lines_per_frame.
->> 
->> However, all of the non-integer fps numbers I have seen in this email
->chain all seem to be multiples of 29.97002997 Hz. So maybe you could
->just use the closest integer rate with a flag labeled
->"ntsc_bw_timing_hack" to indicate the fractional rates. :) 
->
->CEA-861 has some other timings that are not 60 Hz * 1000/1001. Yet,
->v4l2_fract
->is capable of handling any of such timings, as, whatever frequency
->taken, it
->needs to be a fractional number. Btw, even some userspace libraries
->prefer to
->represent fps using a fraction, instead of a float, to avoid rounding
->issues.
->
->> 
->> That 29.97 Hz number comes from the NTSC decision in 1953(!) to
->change the horizontal line freq to 4.5 MHz/286.  Note that
->> 
->> (4.5 MHz/286)/525 = 30 * (1000/1001) = 29.97002997 Hz
->
->One of the rationale for that decision was to avoid flicking issues
->with cathodic 
->ray monitors and fluorescent lamps.
-> 
->> It is interesting to see one of the most ingenious analog hacks in TV
->history (to achieve color and B&W backward compatabilty while staying
->in the 10% tolerance of the old B&W receivers) being codified in
->digital standards over 50 years later. It boggles the mind...
->
->Yes. Bad (and good) API decisions will stay forever.
->
->Cheers,
->Mauro.
+--sdtB3X0nJg68CQEu
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Oops, yes I see the 60.054 Hz rate corresponds to a 262 line field (524 line frame) at the standard NTSC line rate.
+On Wed, Jun 15, 2011 at 02:16:42PM +0200, Wolfram Sang wrote:
+> Signed-off-by: Wolfram Sang <w.sang@pengutronix.de>
+> ---
 
-Weird stuff.
+Ping. Who is picking this up? Anything to be done on my side?
 
-Regards,
-Andy
+>=20
+> Fixes https://bugzilla.kernel.org/show_bug.cgi?id=3D13479
+>=20
+>  drivers/media/video/gspca/zc3xx.c |    1 +
+>  1 files changed, 1 insertions(+), 0 deletions(-)
+>=20
+> diff --git a/drivers/media/video/gspca/zc3xx.c b/drivers/media/video/gspc=
+a/zc3xx.c
+> index 61cdd56..dbbab48 100644
+> --- a/drivers/media/video/gspca/zc3xx.c
+> +++ b/drivers/media/video/gspca/zc3xx.c
+> @@ -6970,6 +6970,7 @@ static const struct sd_desc sd_desc =3D {
+>  };
+> =20
+>  static const struct usb_device_id device_table[] =3D {
+> +	{USB_DEVICE(0x03f0, 0x1b07)},
+>  	{USB_DEVICE(0x041e, 0x041e)},
+>  	{USB_DEVICE(0x041e, 0x4017)},
+>  	{USB_DEVICE(0x041e, 0x401c), .driver_info =3D SENSOR_PAS106},
+> --=20
+> 1.7.2.5
+>=20
+
+--=20
+Pengutronix e.K.                           | Wolfram Sang                |
+Industrial Linux Solutions                 | http://www.pengutronix.de/  |
+
+--sdtB3X0nJg68CQEu
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.11 (GNU/Linux)
+
+iEYEARECAAYFAk4O0c0ACgkQD27XaX1/VRsj1ACfTm+FmGqVGoLrXt/y1rxoeg2/
+Tp0An00EpKJ9ulqlwtXxHXjZTbzN9rlS
+=TM0R
+-----END PGP SIGNATURE-----
+
+--sdtB3X0nJg68CQEu--
