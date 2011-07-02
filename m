@@ -1,43 +1,41 @@
-Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ffm.saftware.de ([83.141.3.46]:55814 "EHLO ffm.saftware.de"
+Return-path: <mchehab@pedra>
+Received: from mail.mnsspb.ru ([84.204.75.2]:53664 "EHLO mail.mnsspb.ru"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S965172Ab1GOKwA (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 15 Jul 2011 06:52:00 -0400
-Message-ID: <4E201BC8.5000305@linuxtv.org>
-Date: Fri, 15 Jul 2011 12:51:52 +0200
-From: Andreas Oberritter <obi@linuxtv.org>
+	id S1751006Ab1GBKIX (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 2 Jul 2011 06:08:23 -0400
+Date: Sat, 2 Jul 2011 14:07:12 +0400
+From: Kirill Smelkov <kirr@mns.spb.ru>
+To: Greg KH <greg@kroah.com>
+Cc: Alan Stern <stern@rowland.harvard.edu>,
+	Sarah Sharp <sarah.a.sharp@linux.intel.com>,
+	matt mooney <mfm@muteddisk.com>,
+	Greg Kroah-Hartman <gregkh@suse.de>, linux-usb@vger.kernel.org,
+	linux-uvc-devel@lists.berlios.de, linux-media@vger.kernel.org,
+	linux-kernel@vger.kernel.org
+Subject: Re: [PATCH v3 2/2] USB: EHCI: Allow users to override 80% max
+	periodic bandwidth
+Message-ID: <20110702100712.GA18338@tugrik.mns.mnsspb.ru>
+References: <cover.1309520144.git.kirr@mns.spb.ru> <69ea2dd940481508f190419c53c780b626460b22.1309520144.git.kirr@mns.spb.ru> <20110701212427.GA11831@kroah.com>
 MIME-Version: 1.0
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-CC: linux-media@vger.kernel.org
-Subject: Re: [git:v4l-dvb/for_v3.1] [media] DVB: dvb_frontend: off by one
- in	dtv_property_dump()
-References: <E1Qh7ma-00025Z-5V@www.linuxtv.org> <4E1E376B.30108@linuxtv.org>
-In-Reply-To: <4E1E376B.30108@linuxtv.org>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Sender: linux-media-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20110701212427.GA11831@kroah.com>
 List-ID: <linux-media.vger.kernel.org>
+Sender: <mchehab@pedra>
 
-On 14.07.2011 02:25, Andreas Oberritter wrote:
-> On 13.07.2011 23:28, Mauro Carvalho Chehab wrote:
->> This is an automatic generated email to let you know that the following patch were queued at the 
->> http://git.linuxtv.org/media_tree.git tree:
->>
->> Subject: [media] DVB: dvb_frontend: off by one in dtv_property_dump()
->> Author:  Dan Carpenter <error27@gmail.com>
->> Date:    Thu May 26 05:44:52 2011 -0300
->>
->> If the tvp->cmd == DTV_MAX_COMMAND then we read past the end of the
->> array.
+On Fri, Jul 01, 2011 at 02:24:27PM -0700, Greg KH wrote:
+> On Fri, Jul 01, 2011 at 03:47:11PM +0400, Kirill Smelkov wrote:
+> >  drivers/usb/host/ehci-sysfs.c |  104 +++++++++++++++++++++++++++++++++++++++--
+> 
+> As you are adding new sysfs files, it is required that you also add new
+> entries in the Documentation/ABI/ directory.
+> 
+> Please do that for these files so that people have an idea of what they
+> are, and how to use them.
+> 
+> Care to redo this series with that change?
 
-Hi Mauro,
+Sure, I'll post v4 with documentation included.
 
-in case you missed my comment, here's the changeset that already fixed the
-issue differently:
-
-http://git.linuxtv.org/media_tree.git?a=commitdiff;h=3995223038d71e75def28c11d4e802f0bb7eff38
-
-See also this thread: http://www.spinics.net/lists/linux-kernel-janitors/msg09077.html
-
-Regards,
-Andreas
+Thanks,
+Kirill
