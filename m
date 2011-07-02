@@ -1,102 +1,84 @@
-Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pz0-f46.google.com ([209.85.210.46]:50135 "EHLO
-	mail-pz0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752377Ab1GMWNc convert rfc822-to-8bit (ORCPT
+Return-path: <mchehab@pedra>
+Received: from 5571f1ba.dsl.concepts.nl ([85.113.241.186]:52058 "EHLO
+	his10.thuis.hoogenraad.info" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1753268Ab1GBUYD (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 13 Jul 2011 18:13:32 -0400
+	Sat, 2 Jul 2011 16:24:03 -0400
+Message-ID: <4E0F7E5F.3040702@hoogenraad.net>
+Date: Sat, 02 Jul 2011 22:23:59 +0200
+From: Jan Hoogenraad <jan-conceptronic@hoogenraad.net>
 MIME-Version: 1.0
-In-Reply-To: <20110713150840.2fa8e2b3.rdunlap@xenotime.net>
-References: <20110710125109.c72f9c2d.rdunlap@xenotime.net>
-	<CACqU3MWBb4J8rmaRv23=-_=GXppGSUdqmOqeXoqWi4ZJ7ZYewg@mail.gmail.com>
-	<20110713150023.0dde9ef4.rdunlap@xenotime.net>
-	<CACqU3MVh+4JMX5ywPgWrrXXuAcAYtHJyumXGDcteageJAG12wA@mail.gmail.com>
-	<20110713150840.2fa8e2b3.rdunlap@xenotime.net>
-Date: Wed, 13 Jul 2011 18:13:31 -0400
-Message-ID: <CACqU3MXSwJG14PwD0c6R7VZg9fO=XLj=-QDN5ntbQp+0xDn82A@mail.gmail.com>
-Subject: Re: [PATCH 1/9] stringify: add HEX_STRING()
-From: Arnaud Lacombe <lacombar@gmail.com>
-To: Randy Dunlap <rdunlap@xenotime.net>
-Cc: lkml <linux-kernel@vger.kernel.org>, linux-kbuild@vger.kernel.org,
-	linux-media@vger.kernel.org, mchehab@infradead.org
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
-Sender: linux-media-owner@vger.kernel.org
+To: Arthur Marsh <arthur.marsh@internode.on.net>
+CC: linux-media@vger.kernel.org, Joel Stanley <joel@jms.id.au>
+Subject: Re: Fwd: 0bda:2838 Ezcap DVB USB adaptor - no device files created
+ /  RTL2831U/RTL2832U
+References: <4E0EC37F.1010201@internode.on.net>
+In-Reply-To: <4E0EC37F.1010201@internode.on.net>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
+Sender: <mchehab@pedra>
 
-Hi,
+This is the same problem why the tree on
+http://linuxtv.org/hg/~jhoogenraad/rtl2831-r2/
+does not work for newer kernels.
 
-On Wed, Jul 13, 2011 at 6:08 PM, Randy Dunlap <rdunlap@xenotime.net> wrote:
-> On Wed, 13 Jul 2011 18:06:15 -0400 Arnaud Lacombe wrote:
->
->> Hi,
->>
->> On Wed, Jul 13, 2011 at 6:00 PM, Randy Dunlap <rdunlap@xenotime.net> wrote:
->> > On Wed, 13 Jul 2011 17:49:48 -0400 Arnaud Lacombe wrote:
->> >
->> >> Hi,
->> >>
->> >> On Sun, Jul 10, 2011 at 3:51 PM, Randy Dunlap <rdunlap@xenotime.net> wrote:
->> >> > From: Randy Dunlap <rdunlap@xenotime.net>
->> >> >
->> >> > Add HEX_STRING(value) to stringify.h so that drivers can
->> >> > convert kconfig hex values (without leading "0x") to useful
->> >> > hex constants.
->> >> >
->> >> > Several drivers/media/radio/ drivers need this.  I haven't
->> >> > checked if any other drivers need to do this.
->> >> >
->> >> > Alternatively, kconfig could produce hex config symbols with
->> >> > leading "0x".
->> >> >
->> >> Actually, I used to have a patch to make hex value have a mandatory
->> >> "0x" prefix, in the Kconfig. I even fixed all the issue in the tree,
->> >> it never make it to the tree (not sure why). Here's the relevant
->> >> thread:
->> >>
->> >> https://patchwork.kernel.org/patch/380591/
->> >> https://patchwork.kernel.org/patch/380621/
->> >> https://patchwork.kernel.org/patch/380601/
->> >>
->> >
->> > I prefer that this be fixed in kconfig, so long as it won't cause
->> > any other issues.  That's why I mentioned it.
->> >
->> >>
->> >> > Signed-off-by: Randy Dunlap <rdunlap@xenotime.net>
->> >> > ---
->> >> >  include/linux/stringify.h |    7 +++++++
->> >> >  1 file changed, 7 insertions(+)
->> >> >
->> >> > NOTE: The other 8 patches are on lkml and linux-media mailing lists.
->> >> >
->> >> > --- linux-next-20110707.orig/include/linux/stringify.h
->> >> > +++ linux-next-20110707/include/linux/stringify.h
->> >> > @@ -9,4 +9,11 @@
->> >> >  #define __stringify_1(x...)    #x
->> >> >  #define __stringify(x...)      __stringify_1(x)
->> >> >
->> >> > +/*
->> >> > + * HEX_STRING(value) is useful for CONFIG_ values that are in hex,
->> >> > + * but kconfig does not put a leading "0x" on them.
->> >> > + */
->> >> > +#define HEXSTRINGVALUE(h, value)       h##value
->> >> > +#define HEX_STRING(value)              HEXSTRINGVALUE(0x, value)
->> >> > +
->> >> that seems hackish...
->> >
->> > It's a common idiom for concatenating strings in the kernel.
->> >
->> I meant hackish not because *how* it is done, but because *why* it has
->> to be done, that is, because the Kconfig miss the prefix, which is
->> really no big deal.
->>
->> > How would you do it without (instead of) a kconfig fix/patch?
->> >
->> have the Kconfig use the "0x" prefix since the beginning.
->
-> Sure, go for it.  I'll ack it.  ;)  [or Review it :]
-> and test it.
->
-it is already among the hunks in https://patchwork.kernel.org/patch/380601/
+I have decided AGAINST making it runnable on newer kernels, as there are 
+some people working right now on a new release.
 
- - Arnaud
+Once the status becomes more clear, I'll update
+http://www.linuxtv.org/wiki/index.php/Realtek_RTL2831U
+
+Arthur Marsh wrote:
+> Hi, I bought one of these things having seen the Linux penguin on the
+> box and compiled the code from the
+> http://jms.id.au/wiki/EzcapDvbAdapter web page on a quad core AMD64
+> machine using 3.0.0-rc5 Linux kernel and GCC 4.6.1 under Debian sid.
+>
+> On boot-up the device is at least partially recognised:
+>
+> [ 1.430924] usb 1-5: New USB device found, idVendor=0bda, idProduct=2838
+> [ 1.431005] usb 1-5: Product: RTL2838UHIDIR
+> [ 6.245292] IR NEC protocol handler initialized
+> [ 6.284327] IR RC5(x) protocol handler initialized
+> [ 6.338049] IR RC6 protocol handler initialized
+> [ 6.371470] IR JVC protocol handler initialized
+> [ 6.448155] IR Sony protocol handler initialized
+> [ 6.590577] lirc_dev: IR Remote Control driver registered, major 252
+> [ 6.591144] IR LIRC bridge handler initialized
+> [ 7.085160] usbcore: registered new interface driver dvb_usb_rtl2832u
+>
+>
+> $ lsmod|grep dvb
+> dvb_usb_rtl2832u 111764 0
+> dvb_usb 18302 1 dvb_usb_rtl2832u
+> dvb_core 77682 1 dvb_usb
+> rc_core 18294 7
+> dvb_usb,ir_lirc_codec,ir_sony_decoder,ir_jvc_decoder,ir_rc6_decoder,ir_rc5_decoder,ir_nec_decoder
+>
+> i2c_core 23876 7
+> dvb_usb,max6650,radeon,drm_kms_helper,drm,i2c_algo_bit,i2c_piix4
+> usbcore 119731 5 dvb_usb_rtl2832u,dvb_usb,ohci_hcd,ehci_hcd
+>
+> but apparently no device files are created (there is no /dev/dvb tree).
+>
+> Any suggestions for things to try to get this working welcome.
+>
+> Regards,
+>
+> Arthur.
+>
+>
+>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at http://vger.kernel.org/majordomo-info.html
+>
+
+
+-- 
+Jan Hoogenraad
+Hoogenraad Interface Services
+Postbus 2717
+3500 GS Utrecht
