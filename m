@@ -1,91 +1,143 @@
-Return-path: <linux-media-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.17.8]:60226 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756304Ab1G2K5F (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 29 Jul 2011 06:57:05 -0400
-Received: from 6a.grange (6a.grange [192.168.1.11])
-	by axis700.grange (Postfix) with ESMTPS id 2AA5E18B056
-	for <linux-media@vger.kernel.org>; Fri, 29 Jul 2011 12:57:02 +0200 (CEST)
-Received: from lyakh by 6a.grange with local (Exim 4.72)
-	(envelope-from <g.liakhovetski@gmx.de>)
-	id 1QmkkY-0007pS-1t
-	for linux-media@vger.kernel.org; Fri, 29 Jul 2011 12:57:02 +0200
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: linux-media@vger.kernel.org
-Subject: [PATCH 51/59] V4L: ov772x: remove superfluous soc-camera client operations
-Date: Fri, 29 Jul 2011 12:56:51 +0200
-Message-Id: <1311937019-29914-52-git-send-email-g.liakhovetski@gmx.de>
-In-Reply-To: <1311937019-29914-1-git-send-email-g.liakhovetski@gmx.de>
-References: <1311937019-29914-1-git-send-email-g.liakhovetski@gmx.de>
-Sender: linux-media-owner@vger.kernel.org
+Return-path: <mchehab@pedra>
+Received: from metis.ext.pengutronix.de ([92.198.50.35]:44559 "EHLO
+	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755195Ab1GBUKA (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sat, 2 Jul 2011 16:10:00 -0400
+Date: Sat, 2 Jul 2011 22:09:54 +0200
+From: Uwe =?iso-8859-1?Q?Kleine-K=F6nig?=
+	<u.kleine-koenig@pengutronix.de>
+To: Sylwester Nawrocki <snjw23@gmail.com>
+Cc: linux-media@vger.kernel.org,
+	Marek Szyprowski <m.szyprowski@samsung.com>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	kernel@pengutronix.de
+Subject: Re: [PATCH] media/at91sam9x5-video: new driver for the high end
+ overlay on at91sam9x5
+Message-ID: <20110702200954.GZ11559@pengutronix.de>
+References: <1309377531-9246-1-git-send-email-u.kleine-koenig@pengutronix.de>
+ <4E0E3A20.6040002@gmail.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=iso-8859-1
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <4E0E3A20.6040002@gmail.com>
 List-ID: <linux-media.vger.kernel.org>
+Sender: <mchehab@pedra>
 
-Now that all soc-camera hosts have been ported to use V4L2 subdevice
-mediabus-config operations and soc-camera client bus-parameter operations
-have been made optional, they can be removed.
+Hello Sylwester,
 
-Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
----
- drivers/media/video/ov772x.c |   25 -------------------------
- include/media/ov772x.h       |    1 -
- 2 files changed, 0 insertions(+), 26 deletions(-)
+thanks for your feedback. A few comments below. For the statements I
+don't reply to, you can consider a "OK, will be fixed in v2".
 
-diff --git a/drivers/media/video/ov772x.c b/drivers/media/video/ov772x.c
-index b70ffba..f77e899 100644
---- a/drivers/media/video/ov772x.c
-+++ b/drivers/media/video/ov772x.c
-@@ -621,29 +621,6 @@ static int ov772x_s_stream(struct v4l2_subdev *sd, int enable)
- 	return 0;
- }
+On Fri, Jul 01, 2011 at 11:20:32PM +0200, Sylwester Nawrocki wrote:
+> On 06/29/2011 09:58 PM, Uwe Kleine-König wrote:
+> > +	if (handled&  heoimr)
+> > +		return IRQ_HANDLED;
+> > +	else
+> 
+> else could be omitted
+I like the else, but don't care much.
  
--static int ov772x_set_bus_param(struct soc_camera_device *icd,
--				unsigned long		  flags)
--{
--	return 0;
--}
--
--static unsigned long ov772x_query_bus_param(struct soc_camera_device *icd)
--{
--	struct i2c_client *client = to_i2c_client(to_soc_camera_control(icd));
--	struct ov772x_priv *priv = i2c_get_clientdata(client);
--	struct soc_camera_link *icl = to_soc_camera_link(icd);
--	unsigned long flags = SOCAM_PCLK_SAMPLE_RISING | SOCAM_MASTER |
--		SOCAM_VSYNC_ACTIVE_HIGH | SOCAM_HSYNC_ACTIVE_HIGH |
--		SOCAM_DATA_ACTIVE_HIGH;
--
--	if (priv->info->flags & OV772X_FLAG_8BIT)
--		flags |= SOCAM_DATAWIDTH_8;
--	else
--		flags |= SOCAM_DATAWIDTH_10;
--
--	return soc_camera_apply_sensor_flags(icl, flags);
--}
--
- static int ov772x_g_ctrl(struct v4l2_subdev *sd, struct v4l2_control *ctrl)
- {
- 	struct ov772x_priv *priv = container_of(sd, struct ov772x_priv, subdev);
-@@ -1070,8 +1047,6 @@ static int ov772x_video_probe(struct soc_camera_device *icd,
- }
+> > +	if (rect->left<  0)
+> > +		hwxpos = 0;
+> > +	else
+> > +		hwxpos = rect->left;
+> 
+> Could be rewritten as:
+> 
+> 	hwxpos = rect->left < 0 ? 0 : rect->left;
+could even be rewritten as
+
+	hwxpos = max(rect->left, 0);
  
- static struct soc_camera_ops ov772x_ops = {
--	.set_bus_param		= ov772x_set_bus_param,
--	.query_bus_param	= ov772x_query_bus_param,
- 	.controls		= ov772x_controls,
- 	.num_controls		= ARRAY_SIZE(ov772x_controls),
- };
-diff --git a/include/media/ov772x.h b/include/media/ov772x.h
-index f9e27c0..00dbb7c 100644
---- a/include/media/ov772x.h
-+++ b/include/media/ov772x.h
-@@ -15,7 +15,6 @@
- /* for flags */
- #define OV772X_FLAG_VFLIP	(1 << 0) /* Vertical flip image */
- #define OV772X_FLAG_HFLIP	(1 << 1) /* Horizontal flip image */
--#define OV772X_FLAG_8BIT	(1 << 2) /* default 10 bit */
+> > +static void at91sam9x5_video_vb_wait_prepare(struct vb2_queue *q)
+> > +{
+> > +	struct at91sam9x5_video_priv *priv =
+> > +		container_of(q, struct at91sam9x5_video_priv, queue);
+> > +	unsigned long flags;
+> > +
+> > +	debug("cfgupdate=%d hwstate=%d cfgstate=%d\n",
+> > +			priv->cfgupdate, priv->hwstate, priv->cfgstate);
+> > +	debug("bufs=%p,%p\n", priv->cur.vb, priv->next.vb);
+> > +	spin_lock_irqsave(&priv->lock, flags);
+> > +
+> > +	at91sam9x5_video_handle_irqstat(priv);
+> > +
+> > +	at91sam9x5_video_write32(priv, REG_HEOIER,
+> > +			REG_HEOIxR_ADD | REG_HEOIxR_DMA |
+> > +			REG_HEOIxR_UADD | REG_HEOIxR_UDMA |
+> > +			REG_HEOIxR_VADD | REG_HEOIxR_VDMA);
+> 
+> What the above two calls are intended to be doing ?
+handle_irqstat handles the eventual pending irqs. The second call
+enables irqs for "frame done" (..._DMA) and "new descriptor loaded"
+(..._ADD).
+
+> > +const struct vb2_ops at91sam9x5_video_vb_ops = {
+> > +	.queue_setup = at91sam9x5_video_vb_queue_setup,
+> > +
+> > +	.wait_prepare = at91sam9x5_video_vb_wait_prepare,
+> > +	.wait_finish = at91sam9x5_video_vb_wait_finish,
+> 
+> These 2 functions are intended to unlock and lock respectively the mutex
+> that is used to serialize ioctl handlers, in particular DQBUF.
+> I'm not sure if you're doing the right thing in 
+> at91sam9x5_video_vb_wait_prepare/at91sam9x5_video_vb_wait_finish. 
+I'm not taking a mutex for sure.
  
- /*
-  * for Edge ctrl
+> > +
+> > +	.buf_prepare = at91sam9x5_video_vb_buf_prepare,
+> > +	.buf_queue = at91sam9x5_video_vb_buf_queue,
+> > +};
+> > +
+> > +static int at91sam9x5_video_vidioc_querycap(struct file *filp,
+> > +		void *fh, struct v4l2_capability *cap)
+> > +{
+> > +	strcpy(cap->driver, DRIVER_NAME);
+> > +	cap->capabilities = V4L2_CAP_VIDEO_OUTPUT | V4L2_CAP_STREAMING |
+> > +		V4L2_CAP_VIDEO_OVERLAY;
+> > +
+> > +	/* XXX */
+> > +	cap->version = 0;
+> 
+> There is no need to set this field any more. It will be overwritten
+> with kernel versions in __video_do_ioctl(). See this for more details:
+> http://git.linuxtv.org/media_tree.git?a=commit;h=33436a81b0d4d1036ffcf0edb7e3bfa65d18ad08
+I saw the discussion on the ML, but missed that it was already
+committed.
+
+> > +	cap->card[0] = '\0';
+> > +	cap->bus_info[0] = '\0';
+I assume I need to fill these with more sensible values?
+
+> > +static int __init at91sam9x5_video_init(void)
+> > +{
+> > +	/* XXX: register the device in arch/arm/mach-at91 */
+> > +	int ret;
+> > +	const struct resource res[] = {
+> > +		{
+> > +			.start = 0xf8038280,
+> > +			.end = 0xf803833f,
+> > +			.flags = IORESOURCE_MEM,
+> > +		}, {
+> > +			.start = 25,
+> > +			.end = 25,
+> > +			.flags = IORESOURCE_IRQ,
+> > +		},
+> > +	};
+> > +	const struct at91sam9x5_video_pdata pdata = {
+> > +		.base_width = 800,
+> > +		.base_height = 480,
+> > +	};
+> 
+> What is it needed for ? Couldn't it be hard coded in the driver
+> or queried somehow ?
+Ah, this isn't needed any more since I use the fbinfo to get the same
+info. I will just remove that.
+ 
+Best regards
+Uwe
+
 -- 
-1.7.2.5
-
+Pengutronix e.K.                           | Uwe Kleine-König            |
+Industrial Linux Solutions                 | http://www.pengutronix.de/  |
