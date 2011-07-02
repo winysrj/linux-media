@@ -1,153 +1,89 @@
-Return-path: <mchehab@localhost>
-Received: from mailout1.w1.samsung.com ([210.118.77.11]:11820 "EHLO
-	mailout1.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754506Ab1GKNrj (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 11 Jul 2011 09:47:39 -0400
-Date: Mon, 11 Jul 2011 15:47:32 +0200
-From: Marek Szyprowski <m.szyprowski@samsung.com>
-Subject: RE: [Linaro-mm-sig] [PATCH 6/8] drivers: add Contiguous Memory
- Allocator
-In-reply-to: <201107091657.07925.jkrzyszt@tis.icnet.pl>
-To: 'Janusz Krzysztofik' <jkrzyszt@tis.icnet.pl>,
-	'Arnd Bergmann' <arnd@arndb.de>
-Cc: 'Marin Mitov' <mitov@issp.bas.bg>,
-	'Daniel Walker' <dwalker@codeaurora.org>,
-	'Russell King - ARM Linux' <linux@arm.linux.org.uk>,
-	'Jonathan Corbet' <corbet@lwn.net>,
-	'Mel Gorman' <mel@csn.ul.ie>,
-	'Chunsang Jeong' <chunsang.jeong@linaro.org>,
-	'KAMEZAWA Hiroyuki' <kamezawa.hiroyu@jp.fujitsu.com>,
-	linux-kernel@vger.kernel.org,
-	'Michal Nazarewicz' <mina86@mina86.com>,
-	'Guennadi Liakhovetski' <g.liakhovetski@gmx.de>,
-	linaro-mm-sig@lists.linaro.org,
-	'Jesse Barker' <jesse.barker@linaro.org>,
-	'Kyungmin Park' <kyungmin.park@samsung.com>,
-	'Ankita Garg' <ankita@in.ibm.com>,
-	'FUJITA Tomonori' <fujita.tomonori@lab.ntt.co.jp>,
-	'Andrew Morton' <akpm@linux-foundation.org>,
-	linux-mm@kvack.org, linux-arm-kernel@lists.infradead.org,
-	linux-media@vger.kernel.org
-Message-id: <001e01cc3fd1$159f7bf0$40de73d0$%szyprowski@samsung.com>
-MIME-version: 1.0
-Content-type: text/plain; charset=us-ascii
-Content-language: pl
-Content-transfer-encoding: 7BIT
-References: <1309851710-3828-1-git-send-email-m.szyprowski@samsung.com>
- <alpine.LFD.2.00.1107061034200.14596@xanadu.home>
- <201107061659.45253.arnd@arndb.de> <201107091657.07925.jkrzyszt@tis.icnet.pl>
+Return-path: <mchehab@pedra>
+Received: from mx1.redhat.com ([209.132.183.28]:62244 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751183Ab1GBOal (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 2 Jul 2011 10:30:41 -0400
+Message-ID: <4E0F2BD3.3050803@redhat.com>
+Date: Sat, 02 Jul 2011 16:31:47 +0200
+From: Hans de Goede <hdegoede@redhat.com>
+MIME-Version: 1.0
+To: Hans Verkuil <hverkuil@xs4all.nl>
+CC: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: Some comments on the new autocluster patches
+References: <4E0DE283.2030107@redhat.com> <201107011821.33960.hverkuil@xs4all.nl> <4E0EF2D3.8030109@redhat.com> <201107021310.25562.hverkuil@xs4all.nl>
+In-Reply-To: <201107021310.25562.hverkuil@xs4all.nl>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
-Sender: <mchehab@infradead.org>
+Sender: <mchehab@pedra>
 
-Hello,
+Hi,
 
-On Saturday, July 09, 2011 4:57 PM Janusz Krzysztofik	wrote:
+On 07/02/2011 01:10 PM, Hans Verkuil wrote:
+> On Saturday, July 02, 2011 12:28:35 Hans de Goede wrote:
+>> Hi,
+>>
+>> <snip snip snip>
+>>
+>> Ok, thinking about this some more and reading Hans V's comments
+>> I think that the current code in Hans V's core8c branch is fine,
+>> and should go to 3.1 (rather then be delayed to 3.2).
+>>
+>> As for the fundamental question what to do with foo
+>> controls when autofoo goes from auto to manual, as discussed
+>> there are 2 options:
+>> 1) Restore the last known / previous manual setting
+>> 2) Keep foo at the current setting, iow the last setting
+>>      configured by autofoo
+>
+> Or option 3:
+>
+> Just don't report the automatic foo values at all. What possible purpose
+> does it serve?
+Reporting should be seen separate of what to do with the actual
+setting of for example gain as in use by the device when autogain
+gets turned off, that is what I'm talking about here, when autogain
+gets turned off (iow gain gets set to manual) there are 2 and only
+2 options
 
-> On Wed, 6 Jul 2011 at 16:59:45 Arnd Bergmann wrote:
-> > On Wednesday 06 July 2011, Nicolas Pitre wrote:
-> > > On Wed, 6 Jul 2011, Russell King - ARM Linux wrote:
-> > > > Another issue is that when a platform has restricted DMA regions,
-> > > > they typically don't fall into the highmem zone.  As the
-> > > > dmabounce code allocates from the DMA coherent allocator to
-> > > > provide it with guaranteed DMA-able memory, that would be rather
-> > > > inconvenient.
-> > >
-> > > Do we encounter this in practice i.e. do those platforms requiring
-> > > large contiguous allocations motivating this work have such DMA
-> > > restrictions?
-> >
-> > You can probably find one or two of those, but we don't have to
-> > optimize for that case. I would at least expect the maximum size of
-> > the allocation to be smaller than the DMA limit for these, and
-> > consequently mandate that they define a sufficiently large
-> > CONSISTENT_DMA_SIZE for the crazy devices, or possibly add a hack to
-> > unmap some low memory and call
-> > dma_declare_coherent_memory() for the device.
-> 
-> Once found that Russell has dropped his "ARM: DMA: steal memory for DMA
-> coherent mappings" for now, let me get back to this idea of a hack that
-> would allow for safely calling dma_declare_coherent_memory() in order to
-> assign a device with a block of contiguous memory for exclusive use.
+1) leave the gain at the value last set by the devices
+    autogain function (this may not be supported on all hardware)
+2) restore the last known manual gain setting
 
-We tested such approach and finally with 3.0-rc1 it works fine. You can find
-an example for dma_declare_coherent() together with required memblock_remove()
-calls in the following patch series:
-http://www.spinics.net/lists/linux-samsung-soc/msg05026.html 
-"[PATCH 0/3 v2] ARM: S5P: Add support for MFC device on S5PV210 and EXYNOS4"
+What we report or not report for gain while autogain is active
+is irrelevant for this choice, when switching to manual we can
+either leave gain as is, or we restore the last known setting.
+Independent of any values we may have reported.
 
-> Assuming there should be no problem with successfully allocating a large
-> continuous block of coherent memory at boot time with
-> dma_alloc_coherent(), this block could be reserved for the device. The
-> only problem is with the dma_declare_coherent_memory() calling
-> ioremap(), which was designed with a device's dedicated physical memory
-> in mind, but shouldn't be called on a memory already mapped.
+ > It is my impression that drivers implement it 'just because
+ > they can', and not because it is meaningful.
 
-All these issues with ioremap has been finally resolved in 3.0-rc1. Like
-Russell pointed me in http://www.spinics.net/lists/arm-kernel/msg127644.html,
-ioremap can be fixed to work on early reserved memory areas by selecting
-ARCH_HAS_HOLES_MEMORYMODEL Kconfig option.
+Well it is drivers responsibility to export hardware functionality
+(in a standardized manner), then it is up to applications whether
+they use it or not. And it is actually quite meaning full, you
+are very much thinking TV and not webcams here, being able to
+see that the autofoo is actually doing something, and what
+it is doing is very useful for webcams. For example maybe it is
+choosing a low exposure (to get highframerate) high gain, which
+leads to more noise in the picture then the user wants
 
-> There were three approaches proposed, two of them in August 2010:
-> http://www.spinics.net/lists/linux-media/msg22179.html,
-> http://www.spinics.net/lists/arm-kernel/msg96318.html,
-> and a third one in January 2011:
-> http://www.spinics.net/lists/linux-arch/msg12637.html.
-> 
-> As far as I can understand the reason why both of the first two were
-> NAKed, it was suggested that videobuf-dma-contig shouldn't use coherent
-> if all it requires is a contiguous memory, and a new API should be
-> invented, or dma_pool API extended, for providing contiguous memory.
+webcams are like photography, you've a shutter and a sensitivity
+(iso) setting being able to see what a camera chooses in full
+auto mode is quite useful.
 
-This is another story. DMA-mapping framework definitely needs some 
-extensions to allow more detailed specification of the allocated memory
-(currently we have only coherent and nearly ARM-specific writecombine).
-During Linaro Memory Management summit we agreed that the 
-dma_alloc_attrs() function might be needed to clean-up the API and
-provide a nice way of adding new memory parameters. Having a possibility
-to allocate contiguous cached buffers might be one of the new DMA
-attributes. Here are some details of my proposal:
-http://www.spinics.net/lists/linux-mm/msg21235.html
+> I'm not aware of any application that actually refreshes e.g. gain values
+> when autogain is on, so end-users never see it anyway.
 
-> The
-> CMA was pointed out as a new work in progress contiguous memory API.
+v4l2ucp has an option to update the ctrl readings every 1 / 2 / 5
+seconds. And I use this often to track what the autofoo is doing
+and / or to verify that it doing anything at all.
 
-That was probably the biggest mistake at the beginning. We definitely 
-should have learned dma-mapping framework and its internals.
+> But I think we should stop supporting volatile writable controls.
 
-> Now
-> it turns out it's not, it's only a helper to ensure that
-> dma_alloc_coherent() always succeeds, and videobuf2-dma-contig is still
-> going to allocate buffers from coherent memory.
+NACK, and note that we already don't do that, what we do is switch
+a control from volatile read only (inactive) to non volatile rw-mode
+and back. The only question is what to do at the transition.
 
-I hope that once the dma_alloc_attrs() API will be accepted, I will add
-support for memory attributes to videobuf2-dma-contig allocator. 
- 
-> (CCing both authors, Marin Mitov and Guennadi Liakhovetski, and their
-> main opponent, FUJITA Tomonori)
-> 
-> The third solution was not discussed much after it was pointed out as
-> being not very different from those two in terms of the above mentioned
-> rationale.
-> 
-> All three solutions was different from now suggested method of unmapping
-> some low memory and then calling dma_declare_coherent_memory() which
-> ioremaps it in that those tried to reserve some boot time allocated
-> coherent memory, already mapped correctly, without (io)remapping it.
-> 
-> If there are still problems with the CMA on one hand, and a need for a
-> hack to handle "crazy devices" is still seen, regardless of CMA
-> available and working or not, on the other, maybe we should get back to
-> the idea of adopting coherent API to new requirements, review those
-> three proposals again and select one which seems most acceptable to
-> everyone? Being a submitter of the third, I'll be happy to refresh it if
-> selected.
+Regards,
 
-I'm open to discussion.
-
-Best regards
--- 
-Marek Szyprowski
-Samsung Poland R&D Center
-
-
+Hans
