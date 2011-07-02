@@ -1,86 +1,79 @@
 Return-path: <mchehab@pedra>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:50417 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753198Ab1GEPCX (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 5 Jul 2011 11:02:23 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Sakari Ailus <sakari.ailus@iki.fi>
-Subject: Re: omap3isp: known causes of "CCDC won't become idle!
-Date: Tue, 5 Jul 2011 17:02:52 +0200
-Cc: Jonathan Cameron <jic23@cam.ac.uk>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-References: <4E12F3DE.5030109@cam.ac.uk> <4E131649.5030906@cam.ac.uk> <20110705143807.GQ12671@valkosipuli.localdomain>
-In-Reply-To: <20110705143807.GQ12671@valkosipuli.localdomain>
+Received: from mx1.redhat.com ([209.132.183.28]:24227 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752022Ab1GBSd0 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 2 Jul 2011 14:33:26 -0400
+Message-ID: <4E0F6473.3030309@redhat.com>
+Date: Sat, 02 Jul 2011 15:33:23 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
+To: Hans Verkuil <hverkuil@xs4all.nl>
+CC: Hans de Goede <hdegoede@redhat.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: Some comments on the new autocluster patches
+References: <4E0DE283.2030107@redhat.com> <4E0E6C6E.7050408@redhat.com> <201107021136.31542.hverkuil@xs4all.nl>
+In-Reply-To: <201107021136.31542.hverkuil@xs4all.nl>
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 7bit
-Message-Id: <201107051702.53128.laurent.pinchart@ideasonboard.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Tuesday 05 July 2011 16:38:07 Sakari Ailus wrote:
-> On Tue, Jul 05, 2011 at 02:48:57PM +0100, Jonathan Cameron wrote:
-> > On 07/05/11 13:19, Sakari Ailus wrote:
-> > > On Tue, Jul 05, 2011 at 12:22:06PM +0100, Jonathan Cameron wrote:
-> > >> Hi Laurent,
-> > >> 
-> > >> I'm just trying to get an mt9v034 sensor working on a beagle xm.
-> > >> Everything more or less works, except that after a random number
-> > >> of frames of capture, I tend to get won't become idle messages
-> > >> and the vd0 and vd1 interrupts tend to turn up at same time.
-> > >> 
-> > >> I was just wondering if there are any known issues with the ccdc
-> > >> driver / silicon that might explain this?
-> > >> 
-> > >> I also note that it appears to be impossible to disable
-> > >> HS_VS_IRQarch/arm/mach-s3c2410/Kconfig:# cpu frequency scaling
-> > >> support
-> > >> 
-> > >> despite the datasheet claiming this can be done.  Is this a known
-> > >> issue?
-> > > 
-> > > The same interrupt may be used to produce an interrupt per horizontal
-> > > sync but the driver doesn't use that. I remember of a case where the
-> > > two sync signals had enough crosstalk to cause vertical sync interrupt
-> > > per every horizontal sync. (It's been discussed on this list.) This
-> > > might not be the case here, though: you should be flooded with HS_VS
-> > > interrupts.
-> > 
-> > As far as I can tell, the driver doesn't use either interrupt (except to
-> > pass it up as an event). Hence I was trying to mask it purely to cut
-> > down on the interrupt load.
+Em 02-07-2011 06:36, Hans Verkuil escreveu:
+> On Saturday, July 02, 2011 02:55:10 Mauro Carvalho Chehab wrote:
+>> Em 01-07-2011 12:06, Hans de Goede escreveu:
+>>> Hi Hans (et all),
+>>>
+>>> I've been working on doing a much needed cleanup to the pwc driver,
+>>> converting it to videobuf2 and using the new ctrl framework.
+>>>
+>>> I hope to be able to send a pull request for this, this weekend.
+>>>
+>>> I saw your pull request and I'm looking forward to be able to
+>>> play with ctrl events. I do have some comments on your autofoo
+>>> cluster patches and related changes though.
+>>>
+>>
+>> Hi Hans & Hans,
+>>
+>> I've applied Hans V. patches at the tree, to allow them to be better
+>> tested. I'm not 100% comfortable with the patches, and, from my understanding
+>> the poll() changes are needed, in order to fix vivi behavior and add the
+>> event patches for ivtv. I didn't have much time to test the patches (is qv4l2
+>> already ready to test them?)
 > 
-> It does. This is the only way to detect the CCDC has finished processing a
-> frame.
-
-We actually use the VD0 and VD1 interrupts for that, not the HS_VS interrupt.
-
-> > > The VD* counters are counting and interrupts are produced (AFAIR) even
-> > > if the CCDC is disabled.
-> > 
-> > Oh goody...
-> > 
-> > > Once the CCDC starts receiving a frame, it becomes busy, and becomes
-> > > idle only when it has received the full frame. For this reason it's
-> > > important that the full frame is actually received by the CCDC,
-> > > otherwise this is due to happen when the CCDC is being stopped at the
-> > > end of the stream.
-> > 
-> > Fair enough.  Is there any software reason why it might think it hasn't
-> > received the whole frame?  Obviously it could in theory be a hardware
-> > issue, but it's a bit odd that it can reliably do a certain number of
-> > frames before falling over.
+> I have a version that I use for testing in this repo:
 > 
-> Others than those which Laurent already pointed out, one which crosses my
-> mind is the vsync polarity. The Documentation/video4linux/omap3isp.txt does
-> mention it. It _may_ have the effect that one line of input is missed by
-> the VD* counters. Thus the VD* counters might never reach the expected
-> value --- the last line of the frame.
+> http://git.linuxtv.org/hverkuil/v4l-utils.git?a=shortlog;h=refs/heads/core
+> 
+> It's pretty ugly, though. Now that the patches are merged I'll work on cleaning
+> it up. I do have patches for v4l2-ctl as well to easily test control events.
+> That's good code and I'll commit that today.
+> 
+> Regarding qv4l2: as long as the poll() situation is not resolved I can't commit
+> it to v4l-utils anyway. It is just doesn't work in that specific situation.
+> 
+>> Due to that, it is probably safer to hold those patches to be merged upstream 
+>> at 3.2, after playing with them for a while at the development tree and at -next.
+> 
+> Note that the only time these patches become problematic is when you want to
+> wait on events, and just events. None of these patches will break existing
+> applications. It is also not a new problem, we had this issue ever since we
+> introduced DQEVENT. It's just that this new control event is more likely to
+> be used in situations where this issue is triggered (e.g. qv4l2-like apps).
+> 
+> Since this control event is also going to be used in embedded applications
+> (flash API and the HDMI API we are working on) I am not in favor of delaying
+> this an extra kernel cycle. Delaying the qv4l2 changes is another matter of
+> course. Those will have to wait. Hmm, I could only enable the control events
+> in qv4l2 for drivers that do *not* support the read/write API. That would
+> work, I guess. I'll have to think about that a bit.
 
-I would first try to increase vertical blanking to see if it helps.
+DQEVENT is used only be one driver, currently (I never count vivi, as it is not really
+a driver).
 
--- 
-Regards,
+The new control event will not be used by any driver until we solve the poll issue,
+so, there's no much sense to hurry and merge it before solving the polling issue, as
+we might need to change something, depending on the feedback we'll got from fs people.
 
-Laurent Pinchart
+Cheers,
+Mauro.
