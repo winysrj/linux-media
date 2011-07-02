@@ -1,65 +1,70 @@
-Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail1-out1.atlantis.sk ([80.94.52.55]:38370 "EHLO
-	mail.atlantis.sk" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1755132Ab1GVUBI (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 22 Jul 2011 16:01:08 -0400
-To: Joerg Heckenbach <joerg@heckenbach-aw.de>
-Subject: [PATCH] [resend] usbvision: disable scaling for Nogatech MicroCam
-Cc: Dwaine Garden <dwainegarden@rogers.com>,
-	linux-media@vger.kernel.org,
-	Kernel development list <linux-kernel@vger.kernel.org>,
-	"Hans Verkuil" <hverkuil@xs4all.nl>
-Content-Disposition: inline
-From: Ondrej Zary <linux@rainbow-software.org>
-Date: Fri, 22 Jul 2011 22:00:50 +0200
+Return-path: <mchehab@pedra>
+Received: from mx1.redhat.com ([209.132.183.28]:52768 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753993Ab1GBK1I (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 2 Jul 2011 06:27:08 -0400
+Message-ID: <4E0EF2D3.8030109@redhat.com>
+Date: Sat, 02 Jul 2011 12:28:35 +0200
+From: Hans de Goede <hdegoede@redhat.com>
 MIME-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
+To: Hans Verkuil <hverkuil@xs4all.nl>
+CC: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: Some comments on the new autocluster patches
+References: <4E0DE283.2030107@redhat.com> <201107011821.33960.hverkuil@xs4all.nl>
+In-Reply-To: <201107011821.33960.hverkuil@xs4all.nl>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
-Message-Id: <201107222200.55834.linux@rainbow-software.org>
-Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
+Sender: <mchehab@pedra>
 
-Scaling causes bad artifacts (horizontal lines) with compression at least
-with Nogatech MicroCam so disable it (for this HW).
+Hi,
 
-This also fixes messed up image with some programs (Cheese with 160x120,
-Adobe Flash). HW seems to support only image widths that are multiple of 64
-but the driver does not account that in vidioc_try_fmt_vid_cap(). Cheese
-calls try_fmt with 160x120, succeeds and then assumes that it really gets
-data in that resolution - but it gets 128x120 instead. Don't know if this
-affects other usbvision devices, it would be great if someone could test it.
+<snip snip snip>
 
-Signed-off-by: Ondrej Zary <linux@rainbow-software.org>
+Ok, thinking about this some more and reading Hans V's comments
+I think that the current code in Hans V's core8c branch is fine,
+and should go to 3.1 (rather then be delayed to 3.2).
 
-diff -urp linux-2.6.39-rc2-/drivers/media/video/usbvision//usbvision-video.c linux-2.6.39-rc2/drivers/media/video/usbvision/usbvision-video.c
---- linux-2.6.39-rc2-/drivers/media/video/usbvision//usbvision-video.c	2011-07-16 16:42:35.000000000 +0200
-+++ linux-2.6.39-rc2/drivers/media/video/usbvision/usbvision-video.c	2011-07-16 16:36:43.000000000 +0200
-@@ -924,6 +924,11 @@ static int vidioc_try_fmt_vid_cap(struct
- 	RESTRICT_TO_RANGE(vf->fmt.pix.width, MIN_FRAME_WIDTH, MAX_FRAME_WIDTH);
- 	RESTRICT_TO_RANGE(vf->fmt.pix.height, MIN_FRAME_HEIGHT, MAX_FRAME_HEIGHT);
- 
-+	if (usbvision_device_data[usbvision->dev_model].codec == CODEC_WEBCAM) {
-+		vf->fmt.pix.width = MAX_FRAME_WIDTH;
-+		vf->fmt.pix.height = MAX_FRAME_HEIGHT;
-+	}
-+
- 	vf->fmt.pix.bytesperline = vf->fmt.pix.width*
- 		usbvision->palette.bytes_per_pixel;
- 	vf->fmt.pix.sizeimage = vf->fmt.pix.bytesperline*vf->fmt.pix.height;
-@@ -952,6 +957,11 @@ static int vidioc_s_fmt_vid_cap(struct f
- 
- 	usbvision->cur_frame = NULL;
- 
-+	if (usbvision_device_data[usbvision->dev_model].codec == CODEC_WEBCAM) {
-+		vf->fmt.pix.width = MAX_FRAME_WIDTH;
-+		vf->fmt.pix.height = MAX_FRAME_HEIGHT;
-+	}
-+
- 	/* by now we are committed to the new data... */
- 	usbvision_set_output(usbvision, vf->fmt.pix.width, vf->fmt.pix.height);
- 
+As for the fundamental question what to do with foo
+controls when autofoo goes from auto to manual, as discussed
+there are 2 options:
+1) Restore the last known / previous manual setting
+2) Keep foo at the current setting, iow the last setting
+    configured by autofoo
 
--- 
-Ondrej Zary
+Although it would be great if we could standardize on
+one of these. I think that the answer here is to leave
+this decision to the driver:
+- In some cases this may not be under our control at all
+   (ie with uvc devices),
+-in other cases the hardware in question may make it
+  impossible to read the setting as configured by autofoo,
+  thus forcing scenario 1 so that we are sure the actual
+  value for foo being used by the device matches what we
+  report to the user once autofoo is in manual mode
+
+That leaves Hans V's suggestion what to do with volatile
+controls wrt reporting this to userspace. Hans V. suggested
+splitting the control essentially in 2 controls, one r/w
+with the manual value and a read only one with the volatile
+value (*). I don't think this is a good idea, having 2
+controls for one foo, will only clutter v4l2 control panels
+or applets. I think we should try to keep the controls
+we present to the user (and thus too userspace) to a minimum.
+
+I suggest that instead of creating 2 controls, we add a
+VOLATILE ctrl flag, which can then be set together with
+the INACTIVE flag to indicate to a v4l2 control panel that
+the value may change without it receiving change events. The
+v4l2 control panel can then decide how it wants to deal with
+this, ie poll to keep its display updated, ignore the flag,
+...
+
+Regards,
+
+Hans
+
+
+*) Either through a special flag signalling give me the
+volatile value, or just outright making the 2 2 separate
+controls.
