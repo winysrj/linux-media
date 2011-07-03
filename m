@@ -1,63 +1,108 @@
-Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-68.nebula.fi ([83.145.220.68]:43601 "EHLO
-	smtp-68.nebula.fi" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753160Ab1GZTFl (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 26 Jul 2011 15:05:41 -0400
-Date: Tue, 26 Jul 2011 22:05:37 +0300
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Hans de Goede <hdegoede@redhat.com>
-Cc: Yordan Kamenov <ykamenov@mm-sol.com>, linux-media@vger.kernel.org,
-	sakari.ailus@maxwell.research.nokia.com
-Subject: Re: [PATCH v4 1/1] libv4l: Add plugin support to libv4l
-Message-ID: <20110726190536.GE32629@valkosipuli.localdomain>
-References: <1304436396-10501-1-git-send-email-ykamenov@mm-sol.com>
- <1678f1f41284ad9665de8717b7b8be117ddf9596.1304435825.git.ykamenov@mm-sol.com>
- <4E234D53.4030604@redhat.com>
- <4E2999C6.1090006@mm-sol.com>
- <4E2C5826.6040109@redhat.com>
+Return-path: <mchehab@pedra>
+Received: from mailout-de.gmx.net ([213.165.64.22]:56312 "HELO
+	mailout-de.gmx.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1751329Ab1GCV2P (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sun, 3 Jul 2011 17:28:15 -0400
+From: Oliver Endriss <o.endriss@gmx.de>
+To: linux-media@vger.kernel.org
+Subject: [PATCH 3/5] ddbridge: Allow compiling of the driver
+Date: Sun, 3 Jul 2011 23:25:29 +0200
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>
+References: <201107032321.46092@orion.escape-edv.de>
+In-Reply-To: <201107032321.46092@orion.escape-edv.de>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
 Content-Disposition: inline
-In-Reply-To: <4E2C5826.6040109@redhat.com>
-Sender: linux-media-owner@vger.kernel.org
+Message-Id: <201107032325.30206@orion.escape-edv.de>
 List-ID: <linux-media.vger.kernel.org>
+Sender: <mchehab@pedra>
 
-On Sun, Jul 24, 2011 at 07:36:38PM +0200, Hans de Goede wrote:
-> Hi,
-> 
-> On 07/22/2011 05:39 PM, Yordan Kamenov wrote:
-> >Hi Hans,
-> >
-> >Hans de Goede wrote:
-> >>Hi,
-> >>
-> >>Sorry it took so long, but I've just merged the plugin
-> >>support into v4l-utils git. I did make some minor mods /
-> >>bugfixes before merging, see the commit message in git.
-> >>
-> >>Regards,
-> >>
-> >>Hans
-> >>
-> >>p.s.
-> >>
-> >>I think we should expand the plugin support with support
-> >>for a output devices, iow add a write() dev_op. If you
-> >>guys agree I can easily do so myself, we should do this
-> >>asap before people start depending on the ABI
-> >>(although there is no ABI stability promise until I
-> >>release 0.10.x, see my message to the list wrt
-> >>the start of the 0.9.x cycle).
-> >>
-> >
-> >I think that it is a good point, you can add write() and
-> >reserved dev_ops.
-> 
-> Ok, done, this is in v4l-utils git master now.
+Driver added to Makefile and Kconfig.
 
-Wow! Thanks, Hans and Yordan! :-)
+Signed-off-by: Oliver Endriss <o.endriss@gmx.de>
+---
+ drivers/media/dvb/Kconfig           |    4 ++++
+ drivers/media/dvb/Makefile          |    3 ++-
+ drivers/media/dvb/ddbridge/Kconfig  |   18 ++++++++++++++++++
+ drivers/media/dvb/ddbridge/Makefile |   14 ++++++++++++++
+ 4 files changed, 38 insertions(+), 1 deletions(-)
+ create mode 100644 drivers/media/dvb/ddbridge/Kconfig
+ create mode 100644 drivers/media/dvb/ddbridge/Makefile
 
+diff --git a/drivers/media/dvb/Kconfig b/drivers/media/dvb/Kconfig
+index ee214c3..f6e40b3 100644
+--- a/drivers/media/dvb/Kconfig
++++ b/drivers/media/dvb/Kconfig
+@@ -80,6 +80,10 @@ comment "Supported nGene Adapters"
+ 	depends on DVB_CORE && PCI && I2C
+ 	source "drivers/media/dvb/ngene/Kconfig"
+ 
++comment "Supported ddbridge ('Octopus') Adapters"
++	depends on DVB_CORE && PCI && I2C
++	source "drivers/media/dvb/ddbridge/Kconfig"
++
+ comment "Supported DVB Frontends"
+ 	depends on DVB_CORE
+ source "drivers/media/dvb/frontends/Kconfig"
+diff --git a/drivers/media/dvb/Makefile b/drivers/media/dvb/Makefile
+index a1a0875..b2cefe6 100644
+--- a/drivers/media/dvb/Makefile
++++ b/drivers/media/dvb/Makefile
+@@ -15,6 +15,7 @@ obj-y        := dvb-core/	\
+ 		dm1105/		\
+ 		pt1/		\
+ 		mantis/		\
+-		ngene/
++		ngene/		\
++		ddbridge/
+ 
+ obj-$(CONFIG_DVB_FIREDTV)	+= firewire/
+diff --git a/drivers/media/dvb/ddbridge/Kconfig b/drivers/media/dvb/ddbridge/Kconfig
+new file mode 100644
+index 0000000..d099e1a
+--- /dev/null
++++ b/drivers/media/dvb/ddbridge/Kconfig
+@@ -0,0 +1,18 @@
++config DVB_DDBRIDGE
++	tristate "Digital Devices bridge support"
++	depends on DVB_CORE && PCI && I2C
++	select DVB_LNBP21 if !DVB_FE_CUSTOMISE
++	select DVB_STV6110x if !DVB_FE_CUSTOMISE
++	select DVB_STV090x if !DVB_FE_CUSTOMISE
++	select DVB_DRXK if !DVB_FE_CUSTOMISE
++	select DVB_TDA18271C2DD if !DVB_FE_CUSTOMISE
++	---help---
++	  Support for cards with the Digital Devices PCI express bridge:
++	  - Octopus PCIe Bridge
++	  - Octopus mini PCIe Bridge
++	  - Octopus LE
++	  - DuoFlex S2 Octopus
++	  - DuoFlex CT Octopus
++	  - cineS2(v6)
++
++	  Say Y if you own such a card and want to use it.
+diff --git a/drivers/media/dvb/ddbridge/Makefile b/drivers/media/dvb/ddbridge/Makefile
+new file mode 100644
+index 0000000..de4fe19
+--- /dev/null
++++ b/drivers/media/dvb/ddbridge/Makefile
+@@ -0,0 +1,14 @@
++#
++# Makefile for the ddbridge device driver
++#
++
++ddbridge-objs := ddbridge-core.o
++
++obj-$(CONFIG_DVB_DDBRIDGE) += ddbridge.o
++
++EXTRA_CFLAGS += -Idrivers/media/dvb/dvb-core/
++EXTRA_CFLAGS += -Idrivers/media/dvb/frontends/
++EXTRA_CFLAGS += -Idrivers/media/common/tuners/
++
++# For the staging CI driver cxd2099
++EXTRA_CFLAGS += -Idrivers/staging/cxd2099/
 -- 
-Sakari Ailus
-sakari.ailus@iki.fi
+1.7.4.1
+
