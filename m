@@ -1,62 +1,38 @@
-Return-path: <linux-media-owner@vger.kernel.org>
-Received: from tex.lwn.net ([70.33.254.29]:34950 "EHLO vena.lwn.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754301Ab1GNUfo (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 14 Jul 2011 16:35:44 -0400
-From: Jonathan Corbet <corbet@lwn.net>
+Return-path: <mchehab@pedra>
+Received: from mailout-de.gmx.net ([213.165.64.22]:34781 "HELO
+	mailout-de.gmx.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1751203Ab1GCVXL (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sun, 3 Jul 2011 17:23:11 -0400
+From: Oliver Endriss <o.endriss@gmx.de>
 To: linux-media@vger.kernel.org
-Cc: Marek Szyprowski <m.szyprowski@samsung.com>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>
-Subject: [PATCH] Non-coherent contiguous DMA for videobuf2
-Date: Thu, 14 Jul 2011 14:35:09 -0600
-Message-Id: <1310675711-39744-1-git-send-email-corbet@lwn.net>
-Sender: linux-media-owner@vger.kernel.org
+Subject: [PATCH 0/5] Driver support for cards based on Digital Devices bridge (ddbridge)
+Date: Sun, 3 Jul 2011 23:21:45 +0200
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>
+MIME-Version: 1.0
+Content-Type: text/plain;
+  charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+Message-Id: <201107032321.46092@orion.escape-edv.de>
 List-ID: <linux-media.vger.kernel.org>
+Sender: <mchehab@pedra>
 
-Some of you may have noticed that I've been spending a bit of my time with
-my nose in the V4L2 code recently...  In this process, I've been chasing a
-strange mystery: when the mmp-camera driver is run in contiguous DMA mode,
-things in user space (gstreamer or mplayer) slow way down, despite the fact
-that they should not even see the difference.
+[PATCH 1/5] ddbridge: Initial check-in
+[PATCH 2/5] ddbridge: Codingstyle fixes
+[PATCH 3/5] ddbridge: Allow compiling of the driver
+[PATCH 4/5] cxd2099: Fix compilation of ngene/ddbridge for DVB_CXD2099=n
+[PATCH 5/5] cxd2099: Update Kconfig descrition (ddbridge support)
 
-I've also been looking at the discussions on coherent memory on the ARM
-architecture and the merry mixups that come from conflicting page
-attributes.  Then it occurred to me that the two things might be related.
-Yes, I'm a little dense, but things do get through eventually.
+Note:
+This patch series depends on the previous one:
+[PATCH 00/16] New drivers: DRX-K, TDA18271c2, Updates: CXD2099 and ngene
 
-So I sat down and bashed out a new vb2 mode for non-coherent but contiguous
-DMA buffers.  Once it worked, I noticed two things:
+CU
+Oliver
 
- - Buffer allocation is far more reliable, since buffers need not come from
-   the coherent pool.
-
- - I can now get a full 30+ FPS on the XO 1.75, despite the fact that they
-   still don't have acceleration working on the display side.  Using the
-   dma-contig mode, that rate is about 10FPS.  Cached memory is a nice
-   thing.
-
-Given this, I see no reason to use coherent buffers with vb2 - at least,
-not for any platform I've worked on - and every reason to go non-coherent.
-So here's a patch adding the new mode, and one showing how mmp-camera uses
-it.
-
-Jonathan Corbet (2):
-      videobuf2: Add a non-coherent contiguous DMA mode
-      marvell-cam: Convert contiguous DMA to non-coherent
-
- drivers/media/video/Kconfig                  |    5 +
- drivers/media/video/Makefile                 |    1 
- drivers/media/video/marvell-ccic/Kconfig     |    1 
- drivers/media/video/marvell-ccic/mcam-core.c |   62 ++++++++++---
- drivers/media/video/marvell-ccic/mcam-core.h |    2 
- drivers/media/video/videobuf2-dma-nc.c       |  125 +++++++++++++++++++++++++++
- include/media/videobuf2-dma-nc.h             |    9 +
- 7 files changed, 190 insertions(+), 15 deletions(-)
-
-Comments?
-
-Thanks,
-
-jon
-
-
+-- 
+----------------------------------------------------------------
+VDR Remote Plugin 0.4.0: http://www.escape-edv.de/endriss/vdr/
+4 MByte Mod: http://www.escape-edv.de/endriss/dvb-mem-mod/
+Full-TS Mod: http://www.escape-edv.de/endriss/dvb-full-ts-mod/
+----------------------------------------------------------------
