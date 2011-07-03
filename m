@@ -1,91 +1,55 @@
-Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:43189 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754677Ab1G2J5P (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 29 Jul 2011 05:57:15 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Sakari Ailus <sakari.ailus@iki.fi>
-Subject: Re: [PATCH 2/3] v4l: events: Define frame start event
-Date: Fri, 29 Jul 2011 11:57:17 +0200
-Cc: linux-media@vger.kernel.org, hans.verkuil@cisco.com,
-	snjw23@gmail.com
-References: <4E2F0C53.10907@iki.fi> <201107291138.16958.laurent.pinchart@ideasonboard.com> <20110729095402.GO32629@valkosipuli.localdomain>
-In-Reply-To: <20110729095402.GO32629@valkosipuli.localdomain>
+Return-path: <mchehab@pedra>
+Received: from mailout-de.gmx.net ([213.165.64.23]:49634 "HELO
+	mailout-de.gmx.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1750730Ab1GCRFq (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sun, 3 Jul 2011 13:05:46 -0400
+From: Oliver Endriss <o.endriss@gmx.de>
+To: linux-media@vger.kernel.org
+Subject: [PATCH 15/16] ngene: Update for latest cxd2099
+Date: Sun, 3 Jul 2011 19:03:49 +0200
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>
+References: <201107031831.20378@orion.escape-edv.de>
+In-Reply-To: <201107031831.20378@orion.escape-edv.de>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
+Content-Type: text/plain;
   charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
-Message-Id: <201107291157.17781.laurent.pinchart@ideasonboard.com>
-Sender: linux-media-owner@vger.kernel.org
+Content-Disposition: inline
+Message-Id: <201107031903.50571@orion.escape-edv.de>
 List-ID: <linux-media.vger.kernel.org>
+Sender: <mchehab@pedra>
 
-On Friday 29 July 2011 11:54:03 Sakari Ailus wrote:
-> On Fri, Jul 29, 2011 at 11:38:16AM +0200, Laurent Pinchart wrote:
-> > On Friday 29 July 2011 09:44:46 Sakari Ailus wrote:
-> > > On Thu, Jul 28, 2011 at 10:36:57PM +0200, Laurent Pinchart wrote:
-> > > > On Thursday 28 July 2011 22:28:57 Sakari Ailus wrote:
-> > > > > On Thu, Jul 28, 2011 at 01:52:21PM +0200, Laurent Pinchart wrote:
-> > > > > > On Tuesday 26 July 2011 20:49:43 Sakari Ailus wrote:
-> > > > [snip]
-> > > > 
-> > > > > > > +    <table frame="none" pgwide="1" id="v4l2-event-frame-sync">
-> > > > > > > +      <title>struct
-> > > > > > > <structname>v4l2_event_frame_sync</structname></title> +
-> > > > > > > <tgroup cols="3">
-> > > > > > > +	&cs-str;
-> > > > > > > +	<tbody valign="top">
-> > > > > > > +	  <row>
-> > > > > > > +	    <entry>__u32</entry>
-> > > > > > > +	    <entry><structfield>buffer_sequence</structfield></entry>
-> > > > > > > +	    <entry>
-> > > > > > > +	      The sequence number of the buffer to be handled next or
-> > > > > > > +	      currently handled by the driver.
-> > > > > > 
-> > > > > > What happens if a particular piece of hardware can capture two
-> > > > > > (or more) simultaneous streams from the same video source (an
-> > > > > > unscaled compressed stream and a scaled down uncompressed stream
-> > > > > > for instance) ? Applications don't need to start both streams at
-> > > > > > the same time, what buffer sequence number should be reported in
-> > > > > > that case ?
-> > > > > 
-> > > > > I think that if the video data comes from the same source, the
-> > > > > sequence numbers should definitely be in sync. This would mean
-> > > > > that for the second stream the first sequence number wouldn't be
-> > > > > zero.
-> > > > 
-> > > > Then we should document this somewhere. Here is probably not the best
-> > > > place to document that, but the buffer_sequence documentation should
-> > > > still refer to the explanation.
-> > > > 
-> > > > I also find the wording a bit unclear. The "buffer to be handled
-> > > > next" could mean the buffer that will be given to an application at
-> > > > the next DQBUF call. Maybe we should refer to frame sequence numbers
-> > > > instead of buffer sequence numbers.
-> > > 
-> > > What's the difference? I would consider the two the same.
-> > 
-> > If we have multiple simultaneous streams from the same source, I think it
-> > would make sense to start thinking about frame sequence numbers instead
-> > of buffer sequence numbers. The buffer sequence number would then just
-> > store the frame sequence number of the frame stored in the buffer. This
-> > would (in my opinion) simplify the spec's understanding.
-> 
-> Another good point from you, I agree with this.
-> 
-> > > ..."buffer to be written next to by the hardware"?
-> > 
-> > What about ..."buffer that will store the image" ?
-> 
-> But which image? And if there is no buffer, no image is written to it
-> either.
-> 
-> "frame to be processed or being processed by the hardware"?
+Modifications for latest cxd2099.
 
-"frame being received" ? This is a *frame* sync event, it should contain the 
-sequence number of the frame that triggered it.
+Signed-off-by: Oliver Endriss <o.endriss@gmx.de>
+---
+ drivers/media/dvb/ngene/ngene-core.c |    9 ++++++++-
+ 1 files changed, 8 insertions(+), 1 deletions(-)
 
+diff --git a/drivers/media/dvb/ngene/ngene-core.c b/drivers/media/dvb/ngene/ngene-core.c
+index fa4b3eb..df0f0bd 100644
+--- a/drivers/media/dvb/ngene/ngene-core.c
++++ b/drivers/media/dvb/ngene/ngene-core.c
+@@ -1582,11 +1582,18 @@ static int init_channels(struct ngene *dev)
+ 	return 0;
+ }
+ 
++static struct cxd2099_cfg cxd_cfg = {
++	.bitrate = 62000,
++	.adr = 0x40,
++	.polarity = 0,
++	.clock_mode = 0,
++};
++
+ static void cxd_attach(struct ngene *dev)
+ {
+ 	struct ngene_ci *ci = &dev->ci;
+ 
+-	ci->en = cxd2099_attach(0x40, dev, &dev->channel[0].i2c_adapter);
++	ci->en = cxd2099_attach(&cxd_cfg, dev, &dev->channel[0].i2c_adapter);
+ 	ci->dev = dev;
+ 	return;
+ }
 -- 
-Regards,
+1.7.4.1
 
-Laurent Pinchart
