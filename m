@@ -1,89 +1,137 @@
-Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:45222 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751394Ab1GVXbh (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 22 Jul 2011 19:31:37 -0400
-Message-ID: <4E2A0856.7050009@iki.fi>
-Date: Sat, 23 Jul 2011 02:31:34 +0300
-From: Antti Palosaari <crope@iki.fi>
+Return-path: <mchehab@pedra>
+Received: from mailout-de.gmx.net ([213.165.64.23]:38362 "HELO
+	mailout-de.gmx.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1751183Ab1GCXYb (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sun, 3 Jul 2011 19:24:31 -0400
+From: Oliver Endriss <o.endriss@gmx.de>
+Reply-To: linux-media@vger.kernel.org
+To: linux-media@vger.kernel.org
+Subject: Re: [PATCH 0/5] Driver support for cards based on Digital Devices bridge (ddbridge)
+Date: Mon, 4 Jul 2011 01:24:03 +0200
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Ralph Metzler <rjkm@metzlerbros.de>
+References: <201107032321.46092@orion.escape-edv.de> <4E10ECEA.6040808@redhat.com>
+In-Reply-To: <4E10ECEA.6040808@redhat.com>
 MIME-Version: 1.0
-To: HoP <jpetrous@gmail.com>
-CC: linux-media@vger.kernel.org
-Subject: Re: [PATCH] cxd2820r: fix possible out-of-array lookup
-References: <CAJbz7-29H=e=C2SyY-6Ru23Zzv6sH7wBbOm72ZWMxqOagakuKQ@mail.gmail.com>	<4E29FB9E.4060507@iki.fi>	<CAJbz7-3HkkEoDa3qGvoaF61ohhdxo38ZxF+GWGV+tBQ0yEBopA@mail.gmail.com>	<4E29FF56.5080604@iki.fi> <CAJbz7-0pDj7mdgHAyyuSOfwGmYdNaKqxM9RxWZdQbEN0Eyjx9w@mail.gmail.com>
-In-Reply-To: <CAJbz7-0pDj7mdgHAyyuSOfwGmYdNaKqxM9RxWZdQbEN0Eyjx9w@mail.gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: text/plain;
+  charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Sender: linux-media-owner@vger.kernel.org
+Content-Disposition: inline
+Message-Id: <201107040124.04924@orion.escape-edv.de>
 List-ID: <linux-media.vger.kernel.org>
+Sender: <mchehab@pedra>
 
-On 07/23/2011 02:01 AM, HoP wrote:
-> 2011/7/23 Antti Palosaari<crope@iki.fi>:
->> On 07/23/2011 01:47 AM, HoP wrote:
->>>
->>> 2011/7/23 Antti Palosaari<crope@iki.fi>:
->>>>
->>>> On 07/23/2011 01:18 AM, HoP wrote:
->>>>>
->>>>> In case of i2c write operation there is only one element in msg[] array.
->>>>> Don't access msg[1] in that case.
->>>>
->>>> NACK.
->>>> I suspect you confuse now local msg2 and msg that is passed as function
->>>> parameter. Could you double check and explain?
->>>>
->>>
->>> Ok, may I really understand it badly.
->>>
->>> My intention was that in case of tda18271_write_regs() there is
->>> i2c_transfer() called with msg[] array of one element only.
->>> So am I wrong?
->>
->> No. There is only one msg array in write and in case of reg read there is
->> two elements, first one is write and second is read.
->>
->> But now I see what you mean. msg2[1] is set as garbage fields in case of
->> incoming msg len is 1. True, but it does not harm since it is not used in
->> that case.
->
-> In case of write, cxd2820r_tuner_i2c_xfer() gets msg[] parameter
-> with only one element, true? If so, then my patch is correct.
+Hi Mauro,
 
-Yes it is true but nonsense. It is also wrong to make always msg2 as two 
-element array too, but those are just simpler and generates most likely 
-some code less. Could you see it can cause problem in some case?
+On Monday 04 July 2011 00:27:54 Mauro Carvalho Chehab wrote:
+> Hi Oliver,
+> 
+> Em 03-07-2011 18:21, Oliver Endriss escreveu:
+> > [PATCH 1/5] ddbridge: Initial check-in
+> > [PATCH 2/5] ddbridge: Codingstyle fixes
+> > [PATCH 3/5] ddbridge: Allow compiling of the driver
+> > [PATCH 4/5] cxd2099: Fix compilation of ngene/ddbridge for DVB_CXD2099=n
+> > [PATCH 5/5] cxd2099: Update Kconfig descrition (ddbridge support)
+> > 
+> > Note:
+> > This patch series depends on the previous one:
+> > [PATCH 00/16] New drivers: DRX-K, TDA18271c2, Updates: CXD2099 and ngene
+> 
+> I've applied both series today on an experimental tree that I use when merging
+> some complex drivers. They are at:
+> 	http://git.linuxtv.org/mchehab/experimental.git?a=shortlog;h=refs/heads/ngene
+> 
+> I didn't actually reviewed the patch series yet, but I noticed some troubles
+> related to Coding Style, and 2 compilation breakages, when all drivers are selected,
+> due to some duplicated symbols. So, I've applied some patches fixing the issues
+> I noticed. It would be great if you could test if the changes didn't break anything.
 
-If you want to fix that then please make it general enough to work for 
-example when 3 or 4 messages are send in one I2C transaction (also 
-rather nonsense since I don't know any driver using more than 2 msgs in 
-I2C xfer).
+Apparently these duplicated symbols did not show up here,
+because I compiled the drivers as modules. :-(
 
-And one point more for I2C implementations, i2c_transfer() should 
-implement repeated start sequence to messages given. But I am almost 
-sure there is rather none I2C adapter HW which can do that really. Whole 
-i2c_transfer() usage is for read operation. Logically i2c_master_send() 
-and i2c_master_recv() should be used instead since no repeated start but 
-that's not possible (in normal two msg read) without caching writes in 
-adapter.
+> There's a problem that I've noticed already at the patch series: the usage of
+> CHK_ERROR macro hided a trouble on some places, especially at drxd_hard.c.
+> 
+> As you know, the macro was defined as:
+> 	#define CHK_ERROR(s) if ((status = s)) break
+> 
+> I've replaced it, on all places, using a small perl script, as the above is a CodingStyle
+> violation, and may hide some troubles[1].
 
->> The idea of whole system is just add 2 bytes to incoming msg .buf and then
->> forward that message.
->>
->
-> Yes. I just learnt it, very clever way. What I only don't understand is
-> why do you decrease msg2[0].len. Seems really like some hw bug.
+True.
 
-NXP tuner driver used does not write any payload bytes to I2C, only 
-device address, and that's upset I2C adapter. Many devices using NXP 
-tuners just write as register 0 (have seen from sniffs) when reading to 
-avoid that. For TDA18218 driver I added such functionality to the tuner 
-driver since it should not make harm.
+> [1] http://git.linuxtv.org/mchehab/experimental.git?a=commit;h=792ecdd1cc494a1e10ed494052ed697ab4e1aa8a
+> 
+> After the removal, I've noticed that this works fine on several places
+> where the code have things like:
+> 	do {
+> 		status = foo()
+> 		if (status < 0)
+> 			break;
+> 
+> 	} while (0);
+> 
+> There are places, however, that there are two loops, like, for example, at:
+> 
+> static int DRX_Start(struct drxd_state *state, s32 off)
+> {
+> ...
+> 	do {
+> ...
+> 		switch (p->transmission_mode) {
+> 		case TRANSMISSION_MODE_8K:
+> 			transmissionParams |= SC_RA_RAM_OP_PARAM_MODE_8K;
+> 			if (state->type_A) {
+> 				status = Write16(state, EC_SB_REG_TR_MODE__A, EC_SB_REG_TR_MODE_8K, 0x0000);
+> 				if (status < 0)
+> 					break;
+> 			}
+> 			break;
+> ...
+> 		}
+> 
+> ...
+> 	} while (0);
+> 
+> 	return status;
+> 
+> On those cases, instead of returning the error status, the function
+> will just ignore the error and proceed to the next switch(). In this specific 
+> routine, as there are no locks inside the code, the better fix would be to 
+> just replace:
+> 	if (status < 0)
+> 		break;
+> by
+> 	if (status < 0)
+> 		return (status);
+> 
+> But I suspect that the same trouble is also present on other parts of the code.
+> 
+> Another issue that I've noticed alread is that, on some places, instead of doing 
+> "return -EINVAL" (or some other proper error code), the code is just doing: "return -1".
+> 
+> Could you please take a look on those issues?
 
-For short, you don't need to write register to read for NXP tuner, it is 
-always starting from reg 0.
+That CHK_ERROR stuff appears very dangerous to me.
+Btw, this is why I did not remove the curly braces { } in some cases:
+        if (...) {
+                CHK_ERROR(...)
+        }
+It would have caused really nasty effects.
 
-regards
-Antti
+Anyway, I spent the whole weekend to re-format the code carefully
+and create both patch series, trying not to break anything.
+I simply cannot go through the driver code and verify everything.
+Please note that I am not the driver author!
+
+I think Ralph should comment on this.
+
+CU
+Oliver
 
 -- 
-http://palosaari.fi/
+----------------------------------------------------------------
+VDR Remote Plugin 0.4.0: http://www.escape-edv.de/endriss/vdr/
+4 MByte Mod: http://www.escape-edv.de/endriss/dvb-mem-mod/
+Full-TS Mod: http://www.escape-edv.de/endriss/dvb-full-ts-mod/
+----------------------------------------------------------------
