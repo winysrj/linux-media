@@ -1,65 +1,43 @@
-Return-path: <mchehab@localhost>
-Received: from mail-vx0-f174.google.com ([209.85.220.174]:33074 "EHLO
-	mail-vx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751458Ab1GLFV7 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 12 Jul 2011 01:21:59 -0400
-Received: by vxb39 with SMTP id 39so3191764vxb.19
-        for <linux-media@vger.kernel.org>; Mon, 11 Jul 2011 22:21:58 -0700 (PDT)
+Return-path: <mchehab@pedra>
+Received: from mailout-de.gmx.net ([213.165.64.23]:51061 "HELO
+	mailout-de.gmx.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1751253Ab1GCQ5q (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sun, 3 Jul 2011 12:57:46 -0400
+From: Oliver Endriss <o.endriss@gmx.de>
+To: linux-media@vger.kernel.org
+Subject: [PATCH 10/16] ngene: Fix return code if no demux was found
+Date: Sun, 3 Jul 2011 18:57:26 +0200
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>
+References: <201107031831.20378@orion.escape-edv.de>
+In-Reply-To: <201107031831.20378@orion.escape-edv.de>
 MIME-Version: 1.0
-In-Reply-To: <BANLkTimHtpaScRYe2kuFNW9Ja9x343aOTQ@mail.gmail.com>
-References: <BANLkTimHtpaScRYe2kuFNW9Ja9x343aOTQ@mail.gmail.com>
-Date: Tue, 12 Jul 2011 13:21:58 +0800
-Message-ID: <CAGA24MJe9xBwm1J-cVH4Qi3b=7Ze+1PXEWzFh7dS8eHrBZoHWw@mail.gmail.com>
-Subject: Re: [PATCH] [media] videobuf2-dma-contig: return NULL if alloc fails
-From: Jun Nie <niej0001@gmail.com>
-To: Pawel Osciak <pawel@osciak.com>, Hans Verkuil <hverkuil@xs4all.nl>,
-	linux-media <linux-media@vger.kernel.org>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+Message-Id: <201107031857.28037@orion.escape-edv.de>
 List-ID: <linux-media.vger.kernel.org>
-Sender: <mchehab@infradead.org>
+Sender: <mchehab@pedra>
 
-2011/6/23 Jun Nie <niej0001@gmail.com>:
-> return NULL if alloc fails to avoid taking error code as
-> buffer pointer
->
-> Signed-off-by: Jun Nie <njun@marvell.com>
-> ---
->  drivers/media/video/videobuf2-dma-contig.c |    4 ++--
->  1 files changed, 2 insertions(+), 2 deletions(-)
->
-> diff --git a/drivers/media/video/videobuf2-dma-contig.c
-> b/drivers/media/video/videobuf2-dma-contig.c
-> index a790a5f..8e8c7aa 100644
-> --- a/drivers/media/video/videobuf2-dma-contig.c
-> +++ b/drivers/media/video/videobuf2-dma-contig.c
-> @@ -40,7 +40,7 @@ static void *vb2_dma_contig_alloc(void *alloc_ctx,
-> unsigned long size)
->
->        buf = kzalloc(sizeof *buf, GFP_KERNEL);
->        if (!buf)
-> -               return ERR_PTR(-ENOMEM);
-> +               return NULL;
->
->        buf->vaddr = dma_alloc_coherent(conf->dev, size, &buf->paddr,
->                                        GFP_KERNEL);
-> @@ -48,7 +48,7 @@ static void *vb2_dma_contig_alloc(void *alloc_ctx,
-> unsigned long size)
->                dev_err(conf->dev, "dma_alloc_coherent of size %ld failed\n",
->                        size);
->                kfree(buf);
-> -               return ERR_PTR(-ENOMEM);
-> +               return NULL;
->        }
->
->        buf->conf = conf;
-> --
-> 1.7.0.4
->
+Fix return code if no demux was found (cineS2_probe).
 
-How do you think about this fix?
-Thanks!
+Signed-off-by: Oliver Endriss <o.endriss@gmx.de>
+---
+ drivers/media/dvb/ngene/ngene-cards.c |    1 +
+ 1 files changed, 1 insertions(+), 0 deletions(-)
 
-Jun
+diff --git a/drivers/media/dvb/ngene/ngene-cards.c b/drivers/media/dvb/ngene/ngene-cards.c
+index 0d550a9..0d879cb 100644
+--- a/drivers/media/dvb/ngene/ngene-cards.c
++++ b/drivers/media/dvb/ngene/ngene-cards.c
+@@ -274,6 +274,7 @@ static int cineS2_probe(struct ngene_channel *chan)
+ 		demod_attach_drxk(chan, i2c);
+ 	} else {
+ 		printk(KERN_ERR "No demod found on chan %d\n", chan->number);
++		return -ENODEV;
+ 	}
+ 	return 0;
+ }
+-- 
+1.7.4.1
+
