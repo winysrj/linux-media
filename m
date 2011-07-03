@@ -1,743 +1,387 @@
-Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr10.xs4all.nl ([194.109.24.30]:1435 "EHLO
-	smtp-vbr10.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751296Ab1GZLGS (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 26 Jul 2011 07:06:18 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Sakari Ailus <sakari.ailus@iki.fi>
-Subject: Re: [PATCH v3] V4L: add two new ioctl()s for multi-size videobuffer management
-Date: Tue, 26 Jul 2011 13:05:29 +0200
-Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Pawel Osciak <pawel@osciak.com>
-References: <Pine.LNX.4.64.1107201025120.12084@axis700.grange> <Pine.LNX.4.64.1107201641030.12084@axis700.grange> <20110720151946.GH29320@valkosipuli.localdomain>
-In-Reply-To: <20110720151946.GH29320@valkosipuli.localdomain>
+Return-path: <mchehab@pedra>
+Received: from mail.mnsspb.ru ([84.204.75.2]:35628 "EHLO mail.mnsspb.ru"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756154Ab1GCQiM (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 3 Jul 2011 12:38:12 -0400
+From: Kirill Smelkov <kirr@mns.spb.ru>
+To: Alan Stern <stern@rowland.harvard.edu>
+Cc: Sarah Sharp <sarah.a.sharp@linux.intel.com>,
+	matt mooney <mfm@muteddisk.com>,
+	Greg Kroah-Hartman <gregkh@suse.de>, linux-usb@vger.kernel.org,
+	linux-uvc-devel@lists.berlios.de, linux-media@vger.kernel.org,
+	linux-kernel@vger.kernel.org, Kirill Smelkov <kirr@mns.spb.ru>
+Subject: =?UTF-8?q?=5BPATCH=20v4=202/2=5D=20USB=3A=20EHCI=3A=20Allow=20users=20to=20override=2080=25=20max=20periodic=20bandwidth?=
+Date: Sun,  3 Jul 2011 20:36:57 +0400
+Message-Id: <814bb70c49a62111145aafe705884065ae0af869.1309710420.git.kirr@mns.spb.ru>
+In-Reply-To: <cover.1309710420.git.kirr@mns.spb.ru>
+References: <cover.1309710420.git.kirr@mns.spb.ru>
+In-Reply-To: <cover.1309710420.git.kirr@mns.spb.ru>
+References: <cover.1309710420.git.kirr@mns.spb.ru>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201107261305.29863.hverkuil@xs4all.nl>
-Sender: linux-media-owner@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 List-ID: <linux-media.vger.kernel.org>
+Sender: <mchehab@pedra>
 
-On Wednesday, July 20, 2011 17:19:46 Sakari Ailus wrote:
-> On Wed, Jul 20, 2011 at 04:47:46PM +0200, Guennadi Liakhovetski wrote:
-> > On Wed, 20 Jul 2011, Sakari Ailus wrote:
-> > 
-> > > Hi, Guennadi!
-> > > 
-> > > Thanks for the patch!
-> > > 
-> > > On Wed, Jul 20, 2011 at 10:43:08AM +0200, Guennadi Liakhovetski wrote:
-> > > > A possibility to preallocate and initialise buffers of different sizes
-> > > > in V4L2 is required for an efficient implementation of asnapshot mode.
-> > > > This patch adds two new ioctl()s: VIDIOC_CREATE_BUFS and
-> > > > VIDIOC_PREPARE_BUF and defines respective data structures.
-> > > > 
-> > > > Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-> > > > ---
-> > > > 
-> > > > It's been almost a month since v2, the only comments were a request to 
-> > > > increase the reserved space in the new ioctl() and to improve 
-> > > > documentation. The reserved field is increased in this version, 
-> > > > documentation also has been improved in multiple locations. I think, 
-> > > > documentation can be further improved at any time, but if there are no 
-> > > > objections against the actual contents of this patch, maybe we can commit 
-> > > > this version. I still don't see v3.0;-), so, maybe we even can push it for 
-> > > > 3.1. A trivial comparison with v2 shows the size of the reserved field as 
-> > > > the only change in the API, and the compatibility fix as the only two 
-> > > > functional changes.
-> > > > 
-> > > > v3: addressed multiple comments by Sakari Ailus
-> > > > 
-> > > > 1. increased reserved field in "struct v4l2_create_buffers" to 8 32-bit 
-> > > >    ints
-> > > > 2. multiple documentation fixes and improvements
-> > > > 3. fixed misplaced "case VIDIOC_PREPARE_BUF" in ioctl 32-bit compatibility 
-> > > >    processing
-> > > > 
-> > > > v2:
-> > > > 
-> > > > 1. add preliminary Documentation
-> > > > 2. add flag V4L2_BUFFER_FLAG_NO_CACHE_CLEAN
-> > > > 3. remove VIDIOC_DESTROY_BUFS
-> > > > 4. rename SUBMIT to VIDIOC_PREPARE_BUF
-> > > > 5. add reserved field to struct v4l2_create_buffers
-> > > > 6. cache handling flags moved to struct v4l2_buffer for processing during 
-> > > >    VIDIOC_PREPARE_BUF
-> > > > 7. VIDIOC_PREPARE_BUF now uses struct v4l2_buffer as its argument
-> > > > 
-> > > > 
-> > > >  Documentation/DocBook/media/v4l/io.xml             |   17 +++
-> > > >  Documentation/DocBook/media/v4l/v4l2.xml           |    2 +
-> > > >  .../DocBook/media/v4l/vidioc-create-bufs.xml       |  152 ++++++++++++++++++++
-> > > >  .../DocBook/media/v4l/vidioc-prepare-buf.xml       |   96 ++++++++++++
-> > > >  drivers/media/video/v4l2-compat-ioctl32.c          |   68 ++++++++-
-> > > >  drivers/media/video/v4l2-ioctl.c                   |   32 ++++
-> > > >  include/linux/videodev2.h                          |   16 ++
-> > > >  include/media/v4l2-ioctl.h                         |    2 +
-> > > >  8 files changed, 377 insertions(+), 8 deletions(-)
-> > > >  create mode 100644 Documentation/DocBook/media/v4l/vidioc-create-bufs.xml
-> > > >  create mode 100644 Documentation/DocBook/media/v4l/vidioc-prepare-buf.xml
-> > > > 
-> > > > diff --git a/Documentation/DocBook/media/v4l/io.xml b/Documentation/DocBook/media/v4l/io.xml
-> > > > index 227e7ac..6249d0e 100644
-> > > > --- a/Documentation/DocBook/media/v4l/io.xml
-> > > > +++ b/Documentation/DocBook/media/v4l/io.xml
-> > > > @@ -927,6 +927,23 @@ ioctl is called.</entry>
-> > > >  Applications set or clear this flag before calling the
-> > > >  <constant>VIDIOC_QBUF</constant> ioctl.</entry>
-> > > >  	  </row>
-> > > > +	  <row>
-> > > > +	    <entry><constant>V4L2_BUF_FLAG_NO_CACHE_INVALIDATE</constant></entry>
-> > > > +	    <entry>0x0400</entry>
-> > > > +	    <entry>Caches do not have to be invalidated for this buffer.
-> > > > +Typically applications shall use this flag, if the data, captured in the buffer
-> > > > +is not going to br touched by the CPU, instead the buffer will, probably, be
-> > > > +passed on to a DMA-capable hardware unit for further processing or output.
-> > > > +</entry>
-> > > > +	  </row>
-> > > > +	  <row>
-> > > > +	    <entry><constant>V4L2_BUF_FLAG_NO_CACHE_CLEAN</constant></entry>
-> > > > +	    <entry>0x0800</entry>
-> > > > +	    <entry>Caches do not have to be cleaned for this buffer.
-> > > > +Typically applications shall use this flag for output buffers, if the data
-> > > > +in this buffer has not been created by the CPU, but by some DMA-capable unit,
-> > > > +in which case caches have not been used.</entry>
-> > > > +	  </row>
-> > > >  	</tbody>
-> > > >        </tgroup>
-> > > >      </table>
-> > > > diff --git a/Documentation/DocBook/media/v4l/v4l2.xml b/Documentation/DocBook/media/v4l/v4l2.xml
-> > > > index 0d05e87..06bb179 100644
-> > > > --- a/Documentation/DocBook/media/v4l/v4l2.xml
-> > > > +++ b/Documentation/DocBook/media/v4l/v4l2.xml
-> > > > @@ -462,6 +462,7 @@ and discussions on the V4L mailing list.</revremark>
-> > > >      &sub-close;
-> > > >      &sub-ioctl;
-> > > >      <!-- All ioctls go here. -->
-> > > > +    &sub-create-bufs;
-> > > >      &sub-cropcap;
-> > > >      &sub-dbg-g-chip-ident;
-> > > >      &sub-dbg-g-register;
-> > > > @@ -504,6 +505,7 @@ and discussions on the V4L mailing list.</revremark>
-> > > >      &sub-queryctrl;
-> > > >      &sub-query-dv-preset;
-> > > >      &sub-querystd;
-> > > > +    &sub-prepare-buf;
-> > > >      &sub-reqbufs;
-> > > >      &sub-s-hw-freq-seek;
-> > > >      &sub-streamon;
-> > > > diff --git a/Documentation/DocBook/media/v4l/vidioc-create-bufs.xml b/Documentation/DocBook/media/v4l/vidioc-create-bufs.xml
-> > > > new file mode 100644
-> > > > index 0000000..5f0158c
-> > > > --- /dev/null
-> > > > +++ b/Documentation/DocBook/media/v4l/vidioc-create-bufs.xml
-> > > > @@ -0,0 +1,152 @@
-> > > > +<refentry id="vidioc-create-bufs">
-> > > > +  <refmeta>
-> > > > +    <refentrytitle>ioctl VIDIOC_CREATE_BUFS</refentrytitle>
-> > > > +    &manvol;
-> > > > +  </refmeta>
-> > > > +
-> > > > +  <refnamediv>
-> > > > +    <refname>VIDIOC_CREATE_BUFS</refname>
-> > > > +    <refpurpose>Create buffers for Memory Mapped or User Pointer I/O</refpurpose>
-> > > > +  </refnamediv>
-> > > > +
-> > > > +  <refsynopsisdiv>
-> > > > +    <funcsynopsis>
-> > > > +      <funcprototype>
-> > > > +	<funcdef>int <function>ioctl</function></funcdef>
-> > > > +	<paramdef>int <parameter>fd</parameter></paramdef>
-> > > > +	<paramdef>int <parameter>request</parameter></paramdef>
-> > > > +	<paramdef>struct v4l2_create_buffers *<parameter>argp</parameter></paramdef>
-> > > > +      </funcprototype>
-> > > > +    </funcsynopsis>
-> > > > +  </refsynopsisdiv>
-> > > > +
-> > > > +  <refsect1>
-> > > > +    <title>Arguments</title>
-> > > > +
-> > > > +    <variablelist>
-> > > > +      <varlistentry>
-> > > > +	<term><parameter>fd</parameter></term>
-> > > > +	<listitem>
-> > > > +	  <para>&fd;</para>
-> > > > +	</listitem>
-> > > > +      </varlistentry>
-> > > > +      <varlistentry>
-> > > > +	<term><parameter>request</parameter></term>
-> > > > +	<listitem>
-> > > > +	  <para>VIDIOC_CREATE_BUFS</para>
-> > > > +	</listitem>
-> > > > +      </varlistentry>
-> > > > +      <varlistentry>
-> > > > +	<term><parameter>argp</parameter></term>
-> > > > +	<listitem>
-> > > > +	  <para></para>
-> > > > +	</listitem>
-> > > > +      </varlistentry>
-> > > > +    </variablelist>
-> > > > +  </refsect1>
-> > > > +
-> > > > +  <refsect1>
-> > > > +    <title>Description</title>
-> > > > +
-> > > > +    <para>This ioctl is used to create buffers for <link linkend="mmap">memory
-> > > > +mapped</link> or <link linkend="userp">user pointer</link>
-> > > > +I/O. It can be used as an alternative to the <constant>VIDIOC_REQBUFS</constant>
-> > > > +ioctl, when a tighter control over buffers is required. This ioctl can be called
-> > > > +multiple times to create buffers of different sizes.
+There are cases, when 80% max isochronous bandwidth is too limiting.
 
-I realized that it is not clear from the documentation whether it is possible to call
-VIDIOC_REQBUFS and make additional calls to VIDIOC_CREATE_BUFS afterwards.
+For example I have two USB video capture cards which stream uncompressed
+video, and to stream full NTSC + PAL videos we'd need
 
-I can't remember whether the code allows it or not, but it should be clearly documented.
+    NTSC 640x480 YUV422 @30fps      ~17.6 MB/s
+    PAL  720x576 YUV422 @25fps      ~19.7 MB/s
 
-> > > > +
-> > > > +    <para>To allocate device buffers applications initialize all
-> > > > +fields of the <structname>v4l2_create_buffers</structname> structure.
-> > > > +They set the <structfield>type</structfield> field in the
-> > > > +<structname>v4l2_format</structname> structure, embedded in this
-> > > > +structure, to the respective stream or buffer type.
-> > > > +<structfield>count</structfield> must be set to the number of required
-> > > > +buffers. <structfield>memory</structfield> specifies the required I/O
-> > > > +method. Applications have two possibilities to specify the size of buffers
-> > > > +to be prepared: they can either set the <structfield>size</structfield>
-> > > > +field explicitly to a non-zero value, or fill in the frame format data in the
-> > > > +<structfield>format</structfield> field. In the latter case buffer sizes
-> > > > +will be calculated automatically by the driver. The
-> > > > +<structfield>reserved</structfield> array must be zeroed. When the ioctl
-> > > > +is called with a pointer to this structure the driver will attempt to allocate
-> > > > +up to the requested number of buffers and store the actual number allocated
-> > > > +and the starting index in the <structfield>count</structfield> and
-> > > > +the <structfield>index</structfield> fields respectively.
-> > > > +<structfield>count</structfield> can be smaller than the number requested.
-> > > > +-ENOMEM is returned, if the driver runs out of free memory.</para>
-> > > 
-> > > No need to mention -ENOMEM here. It's already in the return values below;
-> > > the same goes for the EINVAL just below.
-> > 
-> > Yes, incremental patches welcome.
-> > 
-> > > 
-> > > > +    <para>When the I/O method is not supported the ioctl
-> > > > +returns an &EINVAL;.</para>
-> > > > +
-> > > > +    <table pgwide="1" frame="none" id="v4l2-create-buffers">
-> > > > +      <title>struct <structname>v4l2_create_buffers</structname></title>
-> > > > +      <tgroup cols="3">
-> > > > +	&cs-str;
-> > > > +	<tbody valign="top">
-> > > > +	  <row>
-> > > > +	    <entry>__u32</entry>
-> > > > +	    <entry><structfield>index</structfield></entry>
-> > > > +	    <entry>The starting buffer index, returned by the driver.</entry>
-> > > > +	  </row>
-> > > > +	  <row>
-> > > > +	    <entry>__u32</entry>
-> > > > +	    <entry><structfield>count</structfield></entry>
-> > > > +	    <entry>The number of buffers requested or granted.</entry>
-> > > > +	  </row>
-> > > > +	  <row>
-> > > > +	    <entry>&v4l2-memory;</entry>
-> > > > +	    <entry><structfield>memory</structfield></entry>
-> > > > +	    <entry>Applications set this field to
-> > > > +<constant>V4L2_MEMORY_MMAP</constant> or
-> > > > +<constant>V4L2_MEMORY_USERPTR</constant>.</entry>
-> > > > +	  </row>
-> > > > +	  <row>
-> > > > +	    <entry>__u32</entry>
-> > > > +	    <entry><structfield>size</structfield></entry>
-> > > > +	    <entry>Explicit size of buffers, being created.</entry>
-> > > > +	  </row>
-> > > > +	  <row>
-> > > > +	    <entry>&v4l2-format;</entry>
-> > > > +	    <entry><structfield>format</structfield></entry>
-> > > > +	    <entry>Application has to set the <structfield>type</structfield>
-> > > > +field, other fields should be used, if the application wants to allocate buffers
-> > > > +for a specific frame format.</entry>
-> > > > +	  </row>
-> > > > +	  <row>
-> > > > +	    <entry>__u32</entry>
-> > > > +	    <entry><structfield>reserved</structfield>[8]</entry>
-> > > > +	    <entry>A place holder for future extensions.</entry>
-> > > > +	  </row>
-> > > > +	</tbody>
-> > > > +      </tgroup>
-> > > > +    </table>
-> > > > +  </refsect1>
-> > > > +
-> > > > +  <refsect1>
-> > > > +    &return-value;
-> > > > +
-> > > > +    <variablelist>
-> > > > +      <varlistentry>
-> > > > +	<term><errorcode>ENOMEM</errorcode></term>
-> > > > +	<listitem>
-> > > > +	  <para>No memory to allocate buffers for <link linkend="mmap">memory
-> > > > +mapped</link> I/O.</para>
-> > > > +	</listitem>
-> > > > +      </varlistentry>
-> > > > +      <varlistentry>
-> > > > +	<term><errorcode>EINVAL</errorcode></term>
-> > > > +	<listitem>
-> > > > +	  <para>The buffer type (<structfield>type</structfield> field) or the
-> > > > +requested I/O method (<structfield>memory</structfield>) is not
-> > > > +supported.</para>
-> > > > +	</listitem>
-> > > > +      </varlistentry>
-> > > > +    </variablelist>
-> > > > +  </refsect1>
-> > > > +</refentry>
-> > > > +
-> > > > +<!--
-> > > > +Local Variables:
-> > > > +mode: sgml
-> > > > +sgml-parent-document: "v4l2.sgml"
-> > > > +indent-tabs-mode: nil
-> > > > +End:
-> > > > +-->
-> > > > diff --git a/Documentation/DocBook/media/v4l/vidioc-prepare-buf.xml b/Documentation/DocBook/media/v4l/vidioc-prepare-buf.xml
-> > > > new file mode 100644
-> > > > index 0000000..509e752
-> > > > --- /dev/null
-> > > > +++ b/Documentation/DocBook/media/v4l/vidioc-prepare-buf.xml
-> > > > @@ -0,0 +1,96 @@
-> > > > +<refentry id="vidioc-prepare-buf">
-> > > > +  <refmeta>
-> > > > +    <refentrytitle>ioctl VIDIOC_PREPARE_BUF</refentrytitle>
-> > > > +    &manvol;
-> > > > +  </refmeta>
-> > > > +
-> > > > +  <refnamediv>
-> > > > +    <refname>VIDIOC_PREPARE_BUF</refname>
-> > > > +    <refpurpose>Prepare a buffer for I/O</refpurpose>
-> > > > +  </refnamediv>
-> > > > +
-> > > > +  <refsynopsisdiv>
-> > > > +    <funcsynopsis>
-> > > > +      <funcprototype>
-> > > > +	<funcdef>int <function>ioctl</function></funcdef>
-> > > > +	<paramdef>int <parameter>fd</parameter></paramdef>
-> > > > +	<paramdef>int <parameter>request</parameter></paramdef>
-> > > > +	<paramdef>struct v4l2_buffer *<parameter>argp</parameter></paramdef>
-> > > 
-> > > I'm not sure if we want to use struct v4l2_buffer here. It's an obvious
-> > > choice, but there's an issue in using it.
-> > > 
-> > > The struct is almost full i.e. there are very few reserved fields in it,
-> > > namely two, counting the input field which was unused AFAIR. There are now
-> > > three ioctls using it as their argument.
-> > > 
-> > > Future functionality which would be nice:
-> > > 
-> > > - Format counters. Every format set by S_FMT (or gotten by G_FMT) should
-> > >   come with a counter value so that the user would know the format of
-> > >   dequeued buffers when setting the format on-the-fly. Currently there are
-> > >   only bytesperline and length, but the format can't be explicitly
-> > >   determined from those.
+isoc bandwidth.
 
-Actually, the index field will give you that information. When you create the
-buffers you know that range [index, index + count - 1] is associated with that
-specific format.
+Now, due to limited alt settings in capture devices NTSC one ends up
+streaming with max_pkt_size=2688  and  PAL with max_pkt_size=2892, both
+with interval=1. In terms of microframe time allocation this gives
 
-> > > - Binding to generic DMA buffers. This can likely be achieved by using the m
-> > >   union in struct v4l2_buffer. (Speaking of which: these buffers likely have
-> > >   a cache behaviour defined for them, e.g. they might be non-cacheable. This
-> > >   probably has no effect on the cache flags in V4L2 but it might still be
-> > >   good to keep this in mind.)
+    NTSC    ~53us
+    PAL     ~57us
 
-That will definitely be done through the 'm' union.
+and together
 
-> > > I don't have an obvious replacement for it either. There are two options I
-> > > can see: Create a new struct v4l2_ext_buffer which contains the old
-> > > v4l2_buffer plus a bunch of reserved fields, or use the two last fields to
-> > > hold a pointer to an extension struct, v4l2_buffer_ext. The new structure
-> > > would later be used to contain the reserved fields.
-> > > 
-> > > I admit that this is not an issue right now, myt point is that I don't want
-> > > this to be an issue in the future either.
-> > 
-> > Good, then we'll address it, when it becomes an issue.
-> 
-> Defining v4l2_ext_buffer will mean there's a new ioctl. I think we should be
-> a little more future proof if we can. Extending the current v4l2_buffer by
-> another structure with a pointer from v4l2_buffer doesn't need this.
-> 
-> I would like to have someone else's opinion on what to do with this. The
-> resolution might as well be to accept the situation and resolve it when
-> there's an absolute need to.
+    ~110us  >  100us == 80% of 125us uframe time.
 
-Trying to define a new structure when we don't know if we need one, let alone
-what should be in there, doesn't seem useful to me. Especially since it would
-require yet another struct. I'm with Guennadi on this one.
+So those two devices can't work together simultaneously because the'd
+over allocate isochronous bandwidth.
 
-> 
-> > > 
-> > > > +      </funcprototype>
-> > > > +    </funcsynopsis>
-> > > > +  </refsynopsisdiv>
-> > > > +
-> > > > +  <refsect1>
-> > > > +    <title>Arguments</title>
-> > > > +
-> > > > +    <variablelist>
-> > > > +      <varlistentry>
-> > > > +	<term><parameter>fd</parameter></term>
-> > > > +	<listitem>
-> > > > +	  <para>&fd;</para>
-> > > > +	</listitem>
-> > > > +      </varlistentry>
-> > > > +      <varlistentry>
-> > > > +	<term><parameter>request</parameter></term>
-> > > > +	<listitem>
-> > > > +	  <para>VIDIOC_PREPARE_BUF</para>
-> > > > +	</listitem>
-> > > > +      </varlistentry>
-> > > > +      <varlistentry>
-> > > > +	<term><parameter>argp</parameter></term>
-> > > > +	<listitem>
-> > > > +	  <para></para>
-> > > > +	</listitem>
-> > > > +      </varlistentry>
-> > > > +    </variablelist>
-> > > > +  </refsect1>
-> > > > +
-> > > > +  <refsect1>
-> > > > +    <title>Description</title>
-> > > > +
-> > > > +    <para>Applications can optionally call the
-> > > > +<constant>VIDIOC_PREPARE_BUF</constant> ioctl to pass ownership of the buffer
-> > > > +to the driver before actually enqueuing it, using the
-> > > > +<constant>VIDIOC_QBUF</constant> ioctl, and to prepare it for future I/O.
-> > > > +Such preparations may include cache invalidation or cleaning. Performing them
-> > > > +in advance saves time during the actual I/O. In case such cache operations are
-> > > > +not required, the application can use one of
-> > > > +<constant>V4L2_BUF_FLAG_NO_CACHE_INVALIDATE</constant> and
-> > > > +<constant>V4L2_BUF_FLAG_NO_CACHE_CLEAN</constant> flags to skip the respective
-> > > > +step.</para>
-> > > > +
-> > > > +    <para>The <structname>v4l2_buffer</structname> structure is
-> > > > +specified in <xref linkend="buffer" />.</para>
-> > > > +  </refsect1>
-> > > > +
-> > > > +  <refsect1>
-> > > > +    &return-value;
-> > > > +
-> > > > +    <variablelist>
-> > > > +      <varlistentry>
-> > > > +	<term><errorcode>EBUSY</errorcode></term>
-> > > > +	<listitem>
-> > > > +	  <para>File I/O is in progress.</para>
-> > > > +	</listitem>
-> > > > +      </varlistentry>
-> > > > +      <varlistentry>
-> > > > +	<term><errorcode>EINVAL</errorcode></term>
-> > > > +	<listitem>
-> > > > +	  <para>The buffer <structfield>type</structfield> is not
-> > > > +supported, or the <structfield>index</structfield> is out of bounds,
-> > > > +or no buffers have been allocated yet, or the
-> > > > +<structfield>userptr</structfield> or
-> > > > +<structfield>length</structfield> are invalid.</para>
-> > > > +	</listitem>
-> > > > +      </varlistentry>
-> > > > +    </variablelist>
-> > > > +  </refsect1>
-> > > > +</refentry>
-> > > > +
-> > > > +<!--
-> > > > +Local Variables:
-> > > > +mode: sgml
-> > > > +sgml-parent-document: "v4l2.sgml"
-> > > > +indent-tabs-mode: nil
-> > > > +End:
-> > > > +-->
-> > > > diff --git a/drivers/media/video/v4l2-compat-ioctl32.c b/drivers/media/video/v4l2-compat-ioctl32.c
-> > > > index 61979b7..4105f69 100644
-> > > > --- a/drivers/media/video/v4l2-compat-ioctl32.c
-> > > > +++ b/drivers/media/video/v4l2-compat-ioctl32.c
-> > > > @@ -159,11 +159,16 @@ struct v4l2_format32 {
-> > > >  	} fmt;
-> > > >  };
-> > > >  
-> > > > -static int get_v4l2_format32(struct v4l2_format *kp, struct v4l2_format32 __user *up)
-> > > > +struct v4l2_create_buffers32 {
-> > > > +	__u32			index;		/* output: buffers index...index + count - 1 have been created */
-> > > > +	__u32			count;
-> > > > +	enum v4l2_memory        memory;
-> > > > +	__u32			size;		/* Explicit size, e.g., for compressed streams */
-> > > > +	struct v4l2_format32	format;		/* "type" is used always, the rest if size == 0 */
-> > > > +};
-> > > > +
-> > > > +static int __get_v4l2_format32(struct v4l2_format *kp, struct v4l2_format32 __user *up)
-> > > >  {
-> > > > -	if (!access_ok(VERIFY_READ, up, sizeof(struct v4l2_format32)) ||
-> > > > -			get_user(kp->type, &up->type))
-> > > > -			return -EFAULT;
-> > > >  	switch (kp->type) {
-> > > >  	case V4L2_BUF_TYPE_VIDEO_CAPTURE:
-> > > >  	case V4L2_BUF_TYPE_VIDEO_OUTPUT:
-> > > > @@ -192,11 +197,24 @@ static int get_v4l2_format32(struct v4l2_format *kp, struct v4l2_format32 __user
-> > > >  	}
-> > > >  }
-> > > >  
-> > > > -static int put_v4l2_format32(struct v4l2_format *kp, struct v4l2_format32 __user *up)
-> > > > +static int get_v4l2_format32(struct v4l2_format *kp, struct v4l2_format32 __user *up)
-> > > > +{
-> > > > +	if (!access_ok(VERIFY_READ, up, sizeof(struct v4l2_format32)) ||
-> > > > +			get_user(kp->type, &up->type))
-> > > > +			return -EFAULT;
-> > > > +	return __get_v4l2_format32(kp, up);
-> > > > +}
-> > > > +
-> > > > +static int get_v4l2_create32(struct v4l2_create_buffers *kp, struct v4l2_create_buffers32 __user *up)
-> > > > +{
-> > > > +	if (!access_ok(VERIFY_READ, up, sizeof(struct v4l2_create_buffers32)) ||
-> > > > +	    copy_from_user(kp, up, offsetof(struct v4l2_create_buffers32, format.fmt)))
-> > > > +			return -EFAULT;
-> > > > +	return __get_v4l2_format32(&kp->format, &up->format);
-> > > > +}
-> > > > +
-> > > > +static int __put_v4l2_format32(struct v4l2_format *kp, struct v4l2_format32 __user *up)
-> > > >  {
-> > > > -	if (!access_ok(VERIFY_WRITE, up, sizeof(struct v4l2_format32)) ||
-> > > > -		put_user(kp->type, &up->type))
-> > > > -		return -EFAULT;
-> > > >  	switch (kp->type) {
-> > > >  	case V4L2_BUF_TYPE_VIDEO_CAPTURE:
-> > > >  	case V4L2_BUF_TYPE_VIDEO_OUTPUT:
-> > > > @@ -225,6 +243,22 @@ static int put_v4l2_format32(struct v4l2_format *kp, struct v4l2_format32 __user
-> > > >  	}
-> > > >  }
-> > > >  
-> > > > +static int put_v4l2_format32(struct v4l2_format *kp, struct v4l2_format32 __user *up)
-> > > > +{
-> > > > +	if (!access_ok(VERIFY_WRITE, up, sizeof(struct v4l2_format32)) ||
-> > > > +		put_user(kp->type, &up->type))
-> > > > +		return -EFAULT;
-> > > > +	return __put_v4l2_format32(kp, up);
-> > > > +}
-> > > > +
-> > > > +static int put_v4l2_create32(struct v4l2_create_buffers *kp, struct v4l2_create_buffers32 __user *up)
-> > > > +{
-> > > > +	if (!access_ok(VERIFY_WRITE, up, sizeof(struct v4l2_create_buffers32)) ||
-> > > > +	    copy_to_user(up, kp, offsetof(struct v4l2_create_buffers32, format.fmt)))
-> > > > +			return -EFAULT;
-> > > > +	return __put_v4l2_format32(&kp->format, &up->format);
-> > > > +}
-> > > > +
-> > > >  struct v4l2_standard32 {
-> > > >  	__u32		     index;
-> > > >  	__u32		     id[2]; /* __u64 would get the alignment wrong */
-> > > > @@ -702,6 +736,8 @@ static int put_v4l2_event32(struct v4l2_event *kp, struct v4l2_event32 __user *u
-> > > >  #define VIDIOC_S_EXT_CTRLS32    _IOWR('V', 72, struct v4l2_ext_controls32)
-> > > >  #define VIDIOC_TRY_EXT_CTRLS32  _IOWR('V', 73, struct v4l2_ext_controls32)
-> > > >  #define	VIDIOC_DQEVENT32	_IOR ('V', 89, struct v4l2_event32)
-> > > > +#define VIDIOC_CREATE_BUFS32	_IOWR('V', 92, struct v4l2_create_buffers32)
-> > > > +#define VIDIOC_PREPARE_BUF32	_IOWR('V', 93, struct v4l2_buffer32)
-> > > >  
-> > > >  #define VIDIOC_OVERLAY32	_IOW ('V', 14, s32)
-> > > >  #define VIDIOC_STREAMON32	_IOW ('V', 18, s32)
-> > > > @@ -721,6 +757,7 @@ static long do_video_ioctl(struct file *file, unsigned int cmd, unsigned long ar
-> > > >  		struct v4l2_standard v2s;
-> > > >  		struct v4l2_ext_controls v2ecs;
-> > > >  		struct v4l2_event v2ev;
-> > > > +		struct v4l2_create_buffers v2crt;
-> > > >  		unsigned long vx;
-> > > >  		int vi;
-> > > >  	} karg;
-> > > > @@ -751,6 +788,8 @@ static long do_video_ioctl(struct file *file, unsigned int cmd, unsigned long ar
-> > > >  	case VIDIOC_S_INPUT32: cmd = VIDIOC_S_INPUT; break;
-> > > >  	case VIDIOC_G_OUTPUT32: cmd = VIDIOC_G_OUTPUT; break;
-> > > >  	case VIDIOC_S_OUTPUT32: cmd = VIDIOC_S_OUTPUT; break;
-> > > > +	case VIDIOC_CREATE_BUFS32: cmd = VIDIOC_CREATE_BUFS; break;
-> > > > +	case VIDIOC_PREPARE_BUF32: cmd = VIDIOC_PREPARE_BUF; break;
-> > > >  	}
-> > > >  
-> > > >  	switch (cmd) {
-> > > > @@ -775,6 +814,12 @@ static long do_video_ioctl(struct file *file, unsigned int cmd, unsigned long ar
-> > > >  		compatible_arg = 0;
-> > > >  		break;
-> > > >  
-> > > > +	case VIDIOC_CREATE_BUFS:
-> > > > +		err = get_v4l2_create32(&karg.v2crt, up);
-> > > > +		compatible_arg = 0;
-> > > > +		break;
-> > > > +
-> > > > +	case VIDIOC_PREPARE_BUF:
-> > > >  	case VIDIOC_QUERYBUF:
-> > > >  	case VIDIOC_QBUF:
-> > > >  	case VIDIOC_DQBUF:
-> > > > @@ -860,6 +905,11 @@ static long do_video_ioctl(struct file *file, unsigned int cmd, unsigned long ar
-> > > >  		err = put_v4l2_format32(&karg.v2f, up);
-> > > >  		break;
-> > > >  
-> > > > +	case VIDIOC_CREATE_BUFS:
-> > > > +		err = put_v4l2_create32(&karg.v2crt, up);
-> > > > +		break;
-> > > > +
-> > > > +	case VIDIOC_PREPARE_BUF:
-> > > >  	case VIDIOC_QUERYBUF:
-> > > >  	case VIDIOC_QBUF:
-> > > >  	case VIDIOC_DQBUF:
-> > > > @@ -959,6 +1009,8 @@ long v4l2_compat_ioctl32(struct file *file, unsigned int cmd, unsigned long arg)
-> > > >  	case VIDIOC_DQEVENT32:
-> > > >  	case VIDIOC_SUBSCRIBE_EVENT:
-> > > >  	case VIDIOC_UNSUBSCRIBE_EVENT:
-> > > > +	case VIDIOC_CREATE_BUFS32:
-> > > > +	case VIDIOC_PREPARE_BUF32:
-> > > >  		ret = do_video_ioctl(file, cmd, arg);
-> > > >  		break;
-> > > >  
-> > > > diff --git a/drivers/media/video/v4l2-ioctl.c b/drivers/media/video/v4l2-ioctl.c
-> > > > index 002ce13..7824152 100644
-> > > > --- a/drivers/media/video/v4l2-ioctl.c
-> > > > +++ b/drivers/media/video/v4l2-ioctl.c
-> > > > @@ -260,6 +260,8 @@ static const char *v4l2_ioctls[] = {
-> > > >  	[_IOC_NR(VIDIOC_DQEVENT)]	   = "VIDIOC_DQEVENT",
-> > > >  	[_IOC_NR(VIDIOC_SUBSCRIBE_EVENT)]  = "VIDIOC_SUBSCRIBE_EVENT",
-> > > >  	[_IOC_NR(VIDIOC_UNSUBSCRIBE_EVENT)] = "VIDIOC_UNSUBSCRIBE_EVENT",
-> > > > +	[_IOC_NR(VIDIOC_CREATE_BUFS)]      = "VIDIOC_CREATE_BUFS",
-> > > > +	[_IOC_NR(VIDIOC_PREPARE_BUF)]      = "VIDIOC_PREPARE_BUF",
-> > > >  };
-> > > >  #define V4L2_IOCTLS ARRAY_SIZE(v4l2_ioctls)
-> > > >  
-> > > > @@ -2216,6 +2218,36 @@ static long __video_do_ioctl(struct file *file,
-> > > >  		dbgarg(cmd, "type=0x%8.8x", sub->type);
-> > > >  		break;
-> > > >  	}
-> > > > +	case VIDIOC_CREATE_BUFS:
-> > > > +	{
-> > > > +		struct v4l2_create_buffers *create = arg;
-> > > > +
-> > > > +		if (!ops->vidioc_create_bufs)
-> > > > +			break;
-> > > > +		ret = check_fmt(ops, create->format.type);
-> > > > +		if (ret)
-> > > > +			break;
-> > > > +
-> > > > +		if (create->size)
-> > > > +			CLEAR_AFTER_FIELD(create, count);
-> > > > +		ret = ops->vidioc_create_bufs(file, fh, create);
-> > > > +
-> > > > +		dbgarg(cmd, "count=%d\n", create->count);
-> > > > +		break;
-> > > > +	}
-> > > > +	case VIDIOC_PREPARE_BUF:
-> > > > +	{
-> > > > +		struct v4l2_buffer *b = arg;
-> > > > +
-> > > > +		if (!ops->vidioc_prepare_buf)
-> > > > +			break;
-> > > > +
-> > > > +		ret = ops->vidioc_prepare_buf(file, fh, b);
-> > > > +
-> > > > +		dbgarg(cmd, "index=%d", b->index);
-> > > > +		break;
-> > > > +	}
-> > > >  	default:
-> > > >  	{
-> > > >  		bool valid_prio = true;
-> > > > diff --git a/include/linux/videodev2.h b/include/linux/videodev2.h
-> > > > index fca24cc..0b594c7 100644
-> > > > --- a/include/linux/videodev2.h
-> > > > +++ b/include/linux/videodev2.h
-> > > > @@ -653,6 +653,9 @@ struct v4l2_buffer {
-> > > >  #define V4L2_BUF_FLAG_ERROR	0x0040
-> > > >  #define V4L2_BUF_FLAG_TIMECODE	0x0100	/* timecode field is valid */
-> > > >  #define V4L2_BUF_FLAG_INPUT     0x0200  /* input field is valid */
-> > > > +/* Cache handling flags */
-> > > > +#define V4L2_BUF_FLAG_NO_CACHE_INVALIDATE	0x0400
-> > > > +#define V4L2_BUF_FLAG_NO_CACHE_CLEAN		0x0800
-> > > >  
-> > > >  /*
-> > > >   *	O V E R L A Y   P R E V I E W
-> > > > @@ -2092,6 +2095,16 @@ struct v4l2_dbg_chip_ident {
-> > > >  	__u32 revision;    /* chip revision, chip specific */
-> > > >  } __attribute__ ((packed));
-> > > >  
-> > > > +/* VIDIOC_CREATE_BUFS */
-> > > > +struct v4l2_create_buffers {
-> > > > +	__u32			index;		/* output: buffers index...index + count - 1 have been created */
-> > > > +	__u32			count;
-> > > > +	enum v4l2_memory        memory;
-> > > 
-> > > Aren't enums something to avoid in public APIs? -> __u32?
-> > 
-> > They are, but this specific enum is already used in "struct 
-> > v4l2_requestbuffers" and "struct v4l2_buffer" so, I decided, it would be 
-> > consistent to use it here too, even if it involves extra compat craft, and 
-> > the embedded struct v4l2_format also includes an enum in it anyway, so, 
-> > basically, they are all over the place.
-> 
-> In my understanding that goes for all enums, not only those that would be
-> newly introduced to the API. E.g. struct v4l2_event_ctrl.type is actually
-> enum v4l2_ctrl_type rather than __u32. struct v4l2_queryctrl uses the enum,
-> v4l2_event_ctrl does not.
+80% seemed a bit arbitrary to me, and I've tried to raise it to 90% and
+both devices started to work together, so I though sometimes it would be
+a good idea for users to override hardcoded default of max 80% isoc
+bandwidth.
 
-True, but since v4l2_create_buffers uses struct v4l2_format already which
-has enums I see no advantage to using __u32 over enum. In struct v4l2_event_ctrl
-the use of __u32 prevented needing more complex compat code.
+After all, isn't it a user who should decide how to load the bus? If I
+can live with 10% or even 5% bulk bandwidth that should be ok. I'm a USB
+newcomer, but that 80% set in stone by USB 2.0 specification seems to be
+chosen pretty arbitrary to me, just to serve as a reasonable default.
 
-> 
-> > > 
-> > > > +	__u32			size;		/* Explicit size, e.g., for compressed streams */
-> > > > +	struct v4l2_format	format;		/* "type" is used always, the rest if size == 0 */
-> > > > +	__u32			reserved[8];
-> > > > +};
-> 
-> Btw. what about __attribute__ ((packed)) for the structure? Not all
-> interface structs use it, though.
+NOTE 1
+~~~~~~
 
-It doesn't really help you here. In some cases it prevents having to make
-compat32 code, but since we need it anyway...
+for two streams with max_pkt_size=3072 (worst case) both time
+allocation would be 60us+60us=120us which is 96% periodic bandwidth
+leaving 4% for bulk and control.  Alan Stern suggested that bulk then
+would be problematic (less than 300*8 bittimes left per microframe), but
+I think that is still enough for control traffic.
 
-> 
-> > > >  /*
-> > > >   *	I O C T L   C O D E S   F O R   V I D E O   D E V I C E S
-> > > >   *
-> > > > @@ -2182,6 +2195,9 @@ struct v4l2_dbg_chip_ident {
-> > > >  #define	VIDIOC_SUBSCRIBE_EVENT	 _IOW('V', 90, struct v4l2_event_subscription)
-> > > >  #define	VIDIOC_UNSUBSCRIBE_EVENT _IOW('V', 91, struct v4l2_event_subscription)
-> > > >  
-> > > > +#define VIDIOC_CREATE_BUFS	_IOWR('V', 92, struct v4l2_create_buffers)
-> > > > +#define VIDIOC_PREPARE_BUF	 _IOW('V', 93, struct v4l2_buffer)
-> > > > +
-> > > >  /* Reminder: when adding new ioctls please add support for them to
-> > > >     drivers/media/video/v4l2-compat-ioctl32.c as well! */
-> > > >  
-> > > > diff --git a/include/media/v4l2-ioctl.h b/include/media/v4l2-ioctl.h
-> > > > index dd9f1e7..4d1c74a 100644
-> > > > --- a/include/media/v4l2-ioctl.h
-> > > > +++ b/include/media/v4l2-ioctl.h
-> > > > @@ -122,6 +122,8 @@ struct v4l2_ioctl_ops {
-> > > >  	int (*vidioc_qbuf)    (struct file *file, void *fh, struct v4l2_buffer *b);
-> > > >  	int (*vidioc_dqbuf)   (struct file *file, void *fh, struct v4l2_buffer *b);
-> > > >  
-> > > > +	int (*vidioc_create_bufs)(struct file *file, void *fh, struct v4l2_create_buffers *b);
-> > > > +	int (*vidioc_prepare_buf)(struct file *file, void *fh, struct v4l2_buffer *b);
-> > > >  
-> > > >  	int (*vidioc_overlay) (struct file *file, void *fh, unsigned int i);
-> > > >  	int (*vidioc_g_fbuf)   (struct file *file, void *fh,
-> > > 
-> > > Regards,
-> > 
-> > So, I take it as an ack;-)
-> 
-> It's not an ack yet but we're definitely close. :-)
-> 
-> 
+NOTE 2
+~~~~~~
 
-I am happy with the API. The only thing that's unclear to me is whether you can call
-CREATE_BUFS after REQBUFS. And if not, then why not? It would also be helpful to see
-the full patch series as the last one was from April. It is interesting to see how
-this will interface with vb2.
+Sarah Sharp expressed concern that maxing out periodic bandwidth
+could lead to vendor-specific hardware bugs on host controllers, because
 
-Regards,
+> It's entirely possible that you'll run into
+> vendor-specific bugs if you try to pack the schedule with isochronous
+> transfers.  I don't think any hardware designer would seriously test or
+> validate their hardware with a schedule that is basically a violation of
+> the USB bus spec (more than 80% for periodic transfers).
 
-	Hans
+So far I've only tested this patch on my HP Mini 5103 with N10 chipset
+
+    kirr@mini:~$ lspci
+    00:00.0 Host bridge: Intel Corporation N10 Family DMI Bridge
+    00:02.0 VGA compatible controller: Intel Corporation N10 Family Integrated Graphics Controller
+    00:02.1 Display controller: Intel Corporation N10 Family Integrated Graphics Controller
+    00:1b.0 Audio device: Intel Corporation N10/ICH 7 Family High Definition Audio Controller (rev 02)
+    00:1c.0 PCI bridge: Intel Corporation N10/ICH 7 Family PCI Express Port 1 (rev 02)
+    00:1c.3 PCI bridge: Intel Corporation N10/ICH 7 Family PCI Express Port 4 (rev 02)
+    00:1d.0 USB Controller: Intel Corporation N10/ICH 7 Family USB UHCI Controller #1 (rev 02)
+    00:1d.1 USB Controller: Intel Corporation N10/ICH 7 Family USB UHCI Controller #2 (rev 02)
+    00:1d.2 USB Controller: Intel Corporation N10/ICH 7 Family USB UHCI Controller #3 (rev 02)
+    00:1d.3 USB Controller: Intel Corporation N10/ICH 7 Family USB UHCI Controller #4 (rev 02)
+    00:1d.7 USB Controller: Intel Corporation N10/ICH 7 Family USB2 EHCI Controller (rev 02)
+    00:1e.0 PCI bridge: Intel Corporation 82801 Mobile PCI Bridge (rev e2)
+    00:1f.0 ISA bridge: Intel Corporation NM10 Family LPC Controller (rev 02)
+    00:1f.2 SATA controller: Intel Corporation N10/ICH7 Family SATA AHCI Controller (rev 02)
+    01:00.0 Network controller: Broadcom Corporation BCM4313 802.11b/g/n Wireless LAN Controller (rev 01)
+    02:00.0 Ethernet controller: Marvell Technology Group Ltd. 88E8059 PCI-E Gigabit Ethernet Controller (rev 11)
+
+and the system works stable with 110us/uframe (~88%) isoc bandwith allocated for
+above-mentioned isochronous transfers.
+
+NOTE 3
+~~~~~~
+
+This feature is off by default. I mean max periodic bandwidth is set to
+100us/uframe by default exactly as it was before the patch. So only those of us
+who need the extreme settings are taking the risk - normal users who do not
+alter uframe_periodic_max sysfs attribute should not see any change at all.
+
+NOTE 4
+~~~~~~
+
+I've tried to update documentation in Documentation/ABI/ thoroughly, but
+only "TBD" was put into Documentation/usb/ehci.txt -- the text there seems
+to be outdated and much needing refreshing, before it could be amended.
+
+Cc: Sarah Sharp <sarah.a.sharp@linux.intel.com>
+Signed-off-by: Kirill Smelkov <kirr@mns.spb.ru>
+Acked-by: Alan Stern <stern@rowland.harvard.edu>
+---
+ Documentation/ABI/testing/sysfs-module |   23 +++++++
+ Documentation/usb/ehci.txt             |    2 +
+ drivers/usb/host/ehci-hcd.c            |    6 ++
+ drivers/usb/host/ehci-sched.c          |   17 ++---
+ drivers/usb/host/ehci-sysfs.c          |  104 ++++++++++++++++++++++++++++++-
+ drivers/usb/host/ehci.h                |    2 +
+ 6 files changed, 140 insertions(+), 14 deletions(-)
+
+diff --git a/Documentation/ABI/testing/sysfs-module b/Documentation/ABI/testing/sysfs-module
+index cfcec3b..9489ea8 100644
+--- a/Documentation/ABI/testing/sysfs-module
++++ b/Documentation/ABI/testing/sysfs-module
+@@ -10,3 +10,26 @@ KernelVersion:	2.6.35
+ Contact:	masa-korg@dsn.okisemi.com
+ Description:	Write/read Option ROM data.
+ 
++
++What:		/sys/module/ehci_hcd/drivers/.../uframe_periodic_max
++Date:		July 2011
++KernelVersion:	3.1
++Contact:	Kirill Smelkov <kirr@mns.spb.ru>
++Description:	Maximum time allowed for periodic transfers per microframe (μs)
++
++		[ USB 2.0 sets maximum allowed time for periodic transfers per
++		  microframe to be 80%, that is 100 microseconds out of 125
++		  microseconds (full microframe).
++
++		  However there are cases, when 80% max isochronous bandwidth is
++		  too limiting. For example two video streams could require 110
++		  microseconds of isochronous bandwidth per microframe to work
++		  together. ]
++
++		Through this setting it is possible to raise the limit so that
++		the host controller would allow allocating more than 100
++		microseconds of periodic bandwidth per microframe.
++
++		Beware, non-standard modes are usually not thoroughly tested by
++		hardware designers, and the hardware can malfunction when this
++		setting differ from default 100.
+diff --git a/Documentation/usb/ehci.txt b/Documentation/usb/ehci.txt
+index 9dcafa7..160bd6c 100644
+--- a/Documentation/usb/ehci.txt
++++ b/Documentation/usb/ehci.txt
+@@ -210,3 +210,5 @@ TBD:  Interrupt and ISO transfer performance issues.  Those periodic
+ transfers are fully scheduled, so the main issue is likely to be how
+ to trigger "high bandwidth" modes.
+ 
++TBD:  More than standard 80% periodic bandwidth allocation is possible
++through sysfs uframe_periodic_max parameter. Describe that.
+diff --git a/drivers/usb/host/ehci-hcd.c b/drivers/usb/host/ehci-hcd.c
+index 8306155..4ee62be 100644
+--- a/drivers/usb/host/ehci-hcd.c
++++ b/drivers/usb/host/ehci-hcd.c
+@@ -572,6 +572,12 @@ static int ehci_init(struct usb_hcd *hcd)
+ 	hcc_params = ehci_readl(ehci, &ehci->caps->hcc_params);
+ 
+ 	/*
++	 * by default set standard 80% (== 100 usec/uframe) max periodic
++	 * bandwidth as required by USB 2.0
++	 */
++	ehci->uframe_periodic_max = 100;
++
++	/*
+ 	 * hw default: 1K periodic list heads, one per frame.
+ 	 * periodic_size can shrink by USBCMD update if hcc_params allows.
+ 	 */
+diff --git a/drivers/usb/host/ehci-sched.c b/drivers/usb/host/ehci-sched.c
+index 6c9fbe3..2abf854 100644
+--- a/drivers/usb/host/ehci-sched.c
++++ b/drivers/usb/host/ehci-sched.c
+@@ -172,7 +172,7 @@ periodic_usecs (struct ehci_hcd *ehci, unsigned frame, unsigned uframe)
+ 		}
+ 	}
+ #ifdef	DEBUG
+-	if (usecs > 100)
++	if (usecs > ehci->uframe_periodic_max)
+ 		ehci_err (ehci, "uframe %d sched overrun: %d usecs\n",
+ 			frame * 8 + uframe, usecs);
+ #endif
+@@ -709,11 +709,8 @@ static int check_period (
+ 	if (uframe >= 8)
+ 		return 0;
+ 
+-	/*
+-	 * 80% periodic == 100 usec/uframe available
+-	 * convert "usecs we need" to "max already claimed"
+-	 */
+-	usecs = 100 - usecs;
++	/* convert "usecs we need" to "max already claimed" */
++	usecs = ehci->uframe_periodic_max - usecs;
+ 
+ 	/* we "know" 2 and 4 uframe intervals were rejected; so
+ 	 * for period 0, check _every_ microframe in the schedule.
+@@ -1286,9 +1283,9 @@ itd_slot_ok (
+ {
+ 	uframe %= period;
+ 	do {
+-		/* can't commit more than 80% periodic == 100 usec */
++		/* can't commit more than uframe_periodic_max usec */
+ 		if (periodic_usecs (ehci, uframe >> 3, uframe & 0x7)
+-				> (100 - usecs))
++				> (ehci->uframe_periodic_max - usecs))
+ 			return 0;
+ 
+ 		/* we know urb->interval is 2^N uframes */
+@@ -1345,7 +1342,7 @@ sitd_slot_ok (
+ #endif
+ 
+ 		/* check starts (OUT uses more than one) */
+-		max_used = 100 - stream->usecs;
++		max_used = ehci->uframe_periodic_max - stream->usecs;
+ 		for (tmp = stream->raw_mask & 0xff; tmp; tmp >>= 1, uf++) {
+ 			if (periodic_usecs (ehci, frame, uf) > max_used)
+ 				return 0;
+@@ -1354,7 +1351,7 @@ sitd_slot_ok (
+ 		/* for IN, check CSPLIT */
+ 		if (stream->c_usecs) {
+ 			uf = uframe & 7;
+-			max_used = 100 - stream->c_usecs;
++			max_used = ehci->uframe_periodic_max - stream->c_usecs;
+ 			do {
+ 				tmp = 1 << uf;
+ 				tmp <<= 8;
+diff --git a/drivers/usb/host/ehci-sysfs.c b/drivers/usb/host/ehci-sysfs.c
+index 29824a9..14ced00 100644
+--- a/drivers/usb/host/ehci-sysfs.c
++++ b/drivers/usb/host/ehci-sysfs.c
+@@ -74,21 +74,117 @@ static ssize_t store_companion(struct device *dev,
+ }
+ static DEVICE_ATTR(companion, 0644, show_companion, store_companion);
+ 
++
++/*
++ * Display / Set uframe_periodic_max
++ */
++static ssize_t show_uframe_periodic_max(struct device *dev,
++					struct device_attribute *attr,
++					char *buf)
++{
++	struct ehci_hcd		*ehci;
++	int			n;
++
++	ehci = hcd_to_ehci(bus_to_hcd(dev_get_drvdata(dev)));
++	n = scnprintf(buf, PAGE_SIZE, "%d\n", ehci->uframe_periodic_max);
++	return n;
++}
++
++
++static ssize_t store_uframe_periodic_max(struct device *dev,
++					struct device_attribute *attr,
++					const char *buf, size_t count)
++{
++	struct ehci_hcd		*ehci;
++	unsigned		uframe_periodic_max;
++	unsigned		frame, uframe;
++	unsigned short		allocated_max;
++	unsigned long		flags;
++	ssize_t			ret;
++
++	ehci = hcd_to_ehci(bus_to_hcd(dev_get_drvdata(dev)));
++	if (kstrtouint(buf, 0, &uframe_periodic_max) < 0)
++		return -EINVAL;
++
++	if (uframe_periodic_max < 100 || uframe_periodic_max >= 125) {
++		ehci_info(ehci, "rejecting invalid request for "
++				"uframe_periodic_max=%u\n", uframe_periodic_max);
++		return -EINVAL;
++	}
++
++	ret = -EINVAL;
++
++	/*
++	 * lock, so that our checking does not race with possible periodic
++	 * bandwidth allocation through submitting new urbs.
++	 */
++	spin_lock_irqsave (&ehci->lock, flags);
++
++	/*
++	 * for request to decrease max periodic bandwidth, we have to check
++	 * every microframe in the schedule to see whether the decrease is
++	 * possible.
++	 */
++	if (uframe_periodic_max < ehci->uframe_periodic_max) {
++		allocated_max = 0;
++
++		for (frame = 0; frame < ehci->periodic_size; ++frame)
++			for (uframe = 0; uframe < 7; ++uframe)
++				allocated_max = max(allocated_max,
++						    periodic_usecs (ehci, frame, uframe));
++
++		if (allocated_max > uframe_periodic_max) {
++			ehci_info(ehci,
++				"cannot decrease uframe_periodic_max becase "
++				"periodic bandwidth is already allocated "
++				"(%u > %u)\n",
++				allocated_max, uframe_periodic_max);
++			goto out_unlock;
++		}
++	}
++
++	/* increasing is always ok */
++
++	ehci_info(ehci, "setting max periodic bandwidth to %u%% "
++			"(== %u usec/uframe)\n",
++			100*uframe_periodic_max/125, uframe_periodic_max);
++
++	if (uframe_periodic_max != 100)
++		ehci_warn(ehci, "max periodic bandwidth set is non-standard\n");
++
++	ehci->uframe_periodic_max = uframe_periodic_max;
++	ret = count;
++
++out_unlock:
++	spin_unlock_irqrestore (&ehci->lock, flags);
++	return ret;
++}
++static DEVICE_ATTR(uframe_periodic_max, 0644, show_uframe_periodic_max, store_uframe_periodic_max);
++
++
+ static inline int create_sysfs_files(struct ehci_hcd *ehci)
+ {
++	struct device	*controller = ehci_to_hcd(ehci)->self.controller;
+ 	int	i = 0;
+ 
+ 	/* with integrated TT there is no companion! */
+ 	if (!ehci_is_TDI(ehci))
+-		i = device_create_file(ehci_to_hcd(ehci)->self.controller,
+-				       &dev_attr_companion);
++		i = device_create_file(controller, &dev_attr_companion);
++	if (i)
++		goto out;
++
++	i = device_create_file(controller, &dev_attr_uframe_periodic_max);
++out:
+ 	return i;
+ }
+ 
+ static inline void remove_sysfs_files(struct ehci_hcd *ehci)
+ {
++	struct device	*controller = ehci_to_hcd(ehci)->self.controller;
++
+ 	/* with integrated TT there is no companion! */
+ 	if (!ehci_is_TDI(ehci))
+-		device_remove_file(ehci_to_hcd(ehci)->self.controller,
+-				   &dev_attr_companion);
++		device_remove_file(controller, &dev_attr_companion);
++
++	device_remove_file(controller, &dev_attr_uframe_periodic_max);
+ }
+diff --git a/drivers/usb/host/ehci.h b/drivers/usb/host/ehci.h
+index bd6ff48..fa3129f 100644
+--- a/drivers/usb/host/ehci.h
++++ b/drivers/usb/host/ehci.h
+@@ -87,6 +87,8 @@ struct ehci_hcd {			/* one per controller */
+ 	union ehci_shadow	*pshadow;	/* mirror hw periodic table */
+ 	int			next_uframe;	/* scan periodic, start here */
+ 	unsigned		periodic_sched;	/* periodic activity count */
++	unsigned		uframe_periodic_max; /* max periodic time per uframe */
++
+ 
+ 	/* list of itds & sitds completed while clock_frame was still active */
+ 	struct list_head	cached_itd_list;
+-- 
+1.7.6.rc3
+
