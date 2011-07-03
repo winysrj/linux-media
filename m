@@ -1,63 +1,51 @@
-Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-iy0-f174.google.com ([209.85.210.174]:43947 "EHLO
-	mail-iy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750940Ab1GaUcn convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 31 Jul 2011 16:32:43 -0400
+Return-path: <mchehab@pedra>
+Received: from mailout-de.gmx.net ([213.165.64.22]:56378 "HELO
+	mailout-de.gmx.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1751069Ab1GCV2Q (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sun, 3 Jul 2011 17:28:16 -0400
+From: Oliver Endriss <o.endriss@gmx.de>
+To: linux-media@vger.kernel.org
+Subject: [PATCH 5/5] cxd2099: Update Kconfig description (ddbridge support)
+Date: Sun, 3 Jul 2011 23:27:51 +0200
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>
+References: <201107032321.46092@orion.escape-edv.de>
+In-Reply-To: <201107032321.46092@orion.escape-edv.de>
 MIME-Version: 1.0
-In-Reply-To: <201107281251.35018.laurent.pinchart@ideasonboard.com>
-References: <4DDAE63A.3070203@gmx.de>
-	<201107111732.52156.laurent.pinchart@ideasonboard.com>
-	<Pine.LNX.4.64.1107280943470.20737@axis700.grange>
-	<201107281251.35018.laurent.pinchart@ideasonboard.com>
-Date: Sun, 31 Jul 2011 22:32:42 +0200
-Message-ID: <CAMuHMdX=c=p7oASCE+GgY9AgaCPWoXRQyjEGpn4BvA9xSY6GQg@mail.gmail.com>
-Subject: Re: [PATCH/RFC] fbdev: Add FOURCC-based format configuration API
-From: Geert Uytterhoeven <geert@linux-m68k.org>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Florian Tobias Schandinat <FlorianSchandinat@gmx.de>,
-	Paul Mundt <lethal@linux-sh.org>, linux-fbdev@vger.kernel.org,
-	linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8BIT
-Sender: linux-media-owner@vger.kernel.org
+Content-Type: text/plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+Message-Id: <201107032327.52762@orion.escape-edv.de>
 List-ID: <linux-media.vger.kernel.org>
+Sender: <mchehab@pedra>
 
-On Thu, Jul 28, 2011 at 12:51, Laurent Pinchart
-<laurent.pinchart@ideasonboard.com> wrote:
->> As for struct fb_var_screeninfo fields to support switching to a FOURCC
->> mode, I also prefer an explicit dedicated flag to specify switching to it.
->> Even though using FOURCC doesn't fit under the notion of a videomode, using
->> one of .vmode bits is too tempting, so, I would actually take the plunge and
->> use FB_VMODE_FOURCC.
->
-> Another option would be to consider any grayscale > 1 value as a FOURCC. I've
-> briefly checked the in-tree drivers: they only assign grayscale with 0 or 1,
-> and check whether grayscale is 0 or different than 0. If a userspace
-> application only sets grayscale > 1 when talking to a driver that supports the
-> FOURCC-based API, we could get rid of the flag.
->
-> What can't be easily found out is whether existing applications set grayscale
-> to a > 1 value. They would break when used with FOURCC-aware drivers if we
-> consider any grayscale > 1 value as a FOURCC. Is that a risk we can take ?
+Update Kconfig description (ddbridge with cxd2099)
 
-I think we can. I'd expect applications to use either 1 or -1 (i.e.
-all ones), both are
-invalid FOURCC values.
+Signed-off-by: Oliver Endriss <o.endriss@gmx.de>
+---
+ drivers/staging/cxd2099/Kconfig |   11 ++++++-----
+ 1 files changed, 6 insertions(+), 5 deletions(-)
 
-Still, I prefer the nonstd way.
-And limiting traditional nonstd values to the lowest 24 bits (there
-are no in-tree
-drivers using the highest 8 bits, right?).
+diff --git a/drivers/staging/cxd2099/Kconfig b/drivers/staging/cxd2099/Kconfig
+index 9d638c3..b48aefd 100644
+--- a/drivers/staging/cxd2099/Kconfig
++++ b/drivers/staging/cxd2099/Kconfig
+@@ -1,9 +1,10 @@
+ config DVB_CXD2099
+-        tristate "CXD2099AR Common Interface driver"
+-        depends on DVB_CORE && PCI && I2C && DVB_NGENE
+-        ---help---
+-          Support for the CI module found on cineS2 DVB-S2, supported by
+-	  the Micronas PCIe device driver (ngene).
++	tristate "CXD2099AR Common Interface driver"
++	depends on DVB_CORE && PCI && I2C
++	---help---
++	  Support for the CI module found on cards based on
++	  - Micronas ngene PCIe bridge: cineS2 etc.
++	  - Digital Devices PCIe bridge: Octopus series
+ 
+ 	  For now, data is passed through '/dev/dvb/adapterX/sec0':
+ 	    - Encrypted data must be written to 'sec0'.
+-- 
+1.7.4.1
 
-Gr{oetje,eeting}s,
-
-                        Geert
-
---
-Geert Uytterhoeven -- There's lots of Linux beyond ia32 -- geert@linux-m68k.org
-
-In personal conversations with technical people, I call myself a hacker. But
-when I'm talking to journalists I just say "programmer" or something like that.
-                                -- Linus Torvalds
