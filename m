@@ -1,82 +1,94 @@
-Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:35130 "EHLO mail.kapsi.fi"
+Return-path: <mchehab@pedra>
+Received: from mail.mnsspb.ru ([84.204.75.2]:35625 "EHLO mail.mnsspb.ru"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753617Ab1GOXmN (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 15 Jul 2011 19:42:13 -0400
-Message-ID: <4E20D042.3000302@iki.fi>
-Date: Sat, 16 Jul 2011 02:41:54 +0300
-From: Antti Palosaari <crope@iki.fi>
-MIME-Version: 1.0
-To: Andreas Oberritter <obi@linuxtv.org>
-CC: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Ralph Metzler <rjkm@metzlerbros.de>,
-	linux-media@vger.kernel.org
-Subject: Re: [PATCH 0/5] Driver support for cards based on Digital Devices
- bridge (ddbridge)
-References: <201107032321.46092@orion.escape-edv.de> <4E1F8E1F.3000008@redhat.com> <4E1FBA6F.10509@redhat.com> <201107150717.08944@orion.escape-edv.de> <19999.63914.990114.26990@morden.metzler> <4E203FD0.4030503@redhat.com> <4E207252.5050506@linuxtv.org>
-In-Reply-To: <4E207252.5050506@linuxtv.org>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
-Sender: linux-media-owner@vger.kernel.org
+	id S1756118Ab1GCQiL (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 3 Jul 2011 12:38:11 -0400
+From: Kirill Smelkov <kirr@mns.spb.ru>
+To: Alan Stern <stern@rowland.harvard.edu>
+Cc: Sarah Sharp <sarah.a.sharp@linux.intel.com>,
+	matt mooney <mfm@muteddisk.com>,
+	Greg Kroah-Hartman <gregkh@suse.de>, linux-usb@vger.kernel.org,
+	linux-uvc-devel@lists.berlios.de, linux-media@vger.kernel.org,
+	linux-kernel@vger.kernel.org, Kirill Smelkov <kirr@mns.spb.ru>
+Subject: [PATCH v4 0/2] USB: EHCI: Allow users to override 80% max periodic bandwidth
+Date: Sun,  3 Jul 2011 20:36:55 +0400
+Message-Id: <cover.1309710420.git.kirr@mns.spb.ru>
 List-ID: <linux-media.vger.kernel.org>
+Sender: <mchehab@pedra>
 
-On 07/15/2011 08:01 PM, Andreas Oberritter wrote:
-> On 15.07.2011 15:25, Mauro Carvalho Chehab wrote:
->> Em 15-07-2011 05:26, Ralph Metzler escreveu:
->>> At the same time I want to add delivery system properties to
->>> support everything in one frontend device.
->>> Adding a parameter to select C or T as default should help in most
->>> cases where the application does not support switching yet.
->>
->> If I understood well, creating a multi-delivery type of frontend for
->> devices like DRX-K makes sense for me.
->>
->> We need to take some care about how to add support for them, to avoid
->> breaking userspace, or to follow kernel deprecating rules, by adding
->> some legacy compatibility glue for a few kernel versions. So, the sooner
->> we add such support, the better, as less drivers will need to support
->> a "fallback" mechanism.
->>
->> The current DVB version 5 API doesn't prevent some userspace application
->> to change the delivery system[1] for a given frontend. This feature is
->> actually used by DVB-T2 and DVB-S2 drivers. This actually improved the
->> DVB API multi-fe support, by avoiding the need of create of a secondary
->> frontend for T2/S2.
->>
->> Userspace applications can detect that feature by using FE_CAN_2G_MODULATION
->> flag, but this mechanism doesn't allow other types of changes like
->> from/to DVB-T/DVB-C or from/to DVB-T/ISDB-T. So, drivers that allow such
->> type of delivery system switch, using the same chip ended by needing to
->> add two frontends.
->>
->> Maybe we can add a generic FE_CAN_MULTI_DELIVERY flag to fe_caps_t, and
->> add a way to query the type of delivery systems supported by a driver.
->>
->> [1] http://linuxtv.org/downloads/v4l-dvb-apis/FE_GET_SET_PROPERTY.html#DTV-DELIVERY-SYSTEM
->
-> I don't think it's necessary to add a new flag. It should be sufficient
-> to add a property like "DTV_SUPPORTED_DELIVERY_SYSTEMS", which should be
-> read-only and return an array of type fe_delivery_system_t.
->
-> Querying this new property on present kernels hopefully fails with a
-> non-zero return code. in which case FE_GET_INFO should be used to query
-> the delivery system.
->
-> In future kernels we can provide a default implementation, returning
-> exactly one fe_delivery_system_t for unported drivers. Other drivers
-> should be able to override this default implementation in their
-> get_property callback.
+There are cases, when 80% max isochronous bandwidth is too limiting.
 
-One thing I want to say is that consider about devices which does have 
-MFE using two different *physical* demods, not integrated to same silicon.
+Let's allow knowledgeable users to override that 80% max limit explicitly for
+extreme cases, like 2 high bandwidth isochronously streaming devices on the
+same High Speed USB bus in order to make them work simultaneously.
 
-If you add such FE delsys switch mechanism it needs some more glue to 
-bind two physical FEs to one virtual FE. I see much easier to keep all 
-FEs as own - just register those under the same adapter if FEs are shared.
+See full details in PATCH 2/2.
 
-regards
-Antti
 
+Changes since v3:
+
+ - as suggested by Greg KH added new entry to Documentation/ABI/;
+
+ - for consistency also touched Documentation/usb/ehci.txt reminding we now
+   have new setting for periodic transfers scheduler.
+
+   The base text in-there requires much updating regarding isochronous
+   transfers, so only "TBD" with brief description was put because I'm not the best
+   person to get EHCI description into shape;
+
+ - added ACK to PATCH 2/2 from Alan Stern based on previous feedback. (I hope
+   it's still semi-ok to put it, inspite of adding new not-reviewed text into
+   docs);
+
+ - minor cosmetics in patch descriptions.
+
+
+Changes since v2:
+
+ - changed the copyright in ehci-sysfs from David Brownell to Alan Stern;
+
+ - added ACK to PATCH 1/2 from Alan Stern;
+
+ - inspired by concerns raised by Sarah Sharp, added more details about testing
+   done on N10 chipset, system stability, and that no-harm-is-done for those,
+   who do not change uframe_periodic_max from default 100us;
+
+ - when decreasing uframe_periodic_max, compare with the maximum number of
+   microseconds already allocated for any uframe, instead of stopping as soon
+   as it finds something above the new limit.
+
+
+Changes since v1:
+
+ - dropped RFC status as "this seems like the sort of feature somebody might
+   reasonably want to use -- if they know exactly what they're doing";
+
+ - new preparatory patch (1/2) which moves already-in-there sysfs code into
+   ehci-sysfs.c;
+
+ - moved uframe_periodic_max parameter from module option to sysfs attribute,
+   so that it can be set per controller and at runtime, added validity checks;
+
+ - clarified a bit bandwidth analysis for 96% max periodic setup as noticed by
+   Alan Stern;
+
+ - clarified patch description saying that set in stone 80% max periodic is
+   specified by USB 2.0;
+
+Kirill Smelkov (2):
+  USB: EHCI: Move sysfs related bits into ehci-sysfs.c
+  USB: EHCI: Allow users to override 80% max periodic bandwidth
+
+ Documentation/ABI/testing/sysfs-module |   23 ++++
+ Documentation/usb/ehci.txt             |    2 +
+ drivers/usb/host/ehci-hcd.c            |   11 ++-
+ drivers/usb/host/ehci-hub.c            |   75 -------------
+ drivers/usb/host/ehci-sched.c          |   17 +--
+ drivers/usb/host/ehci-sysfs.c          |  190 ++++++++++++++++++++++++++++++++
+ drivers/usb/host/ehci.h                |    2 +
+ 7 files changed, 233 insertions(+), 87 deletions(-)
+ create mode 100644 drivers/usb/host/ehci-sysfs.c
 
 -- 
-http://palosaari.fi/
+1.7.6.rc3
+
