@@ -1,51 +1,27 @@
-Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.dev.rtsoft.ru ([213.79.90.226]:38454 "HELO
-	mail.dev.rtsoft.ru" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1754674Ab1GVSRy (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 22 Jul 2011 14:17:54 -0400
-To: linux-media@vger.kernel.org, mchehab@infradead.org
-Subject: [PATCH] bt8xx: use pci_dev->subsystem_{vendor|device}
-Content-Disposition: inline
-From: Sergei Shtylyov <sshtylyov@ru.mvista.com>
-Date: Fri, 22 Jul 2011 22:16:04 +0400
+Return-path: <mchehab@pedra>
+Received: from mailout-de.gmx.net ([213.165.64.22]:57937 "HELO
+	mailout-de.gmx.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1752135Ab1GCR4F (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sun, 3 Jul 2011 13:56:05 -0400
+From: Oliver Endriss <o.endriss@gmx.de>
+To: linux-media@vger.kernel.org
+Subject: [PATCH 03/16] DRX-K: Initial check-in
+Date: Sun, 3 Jul 2011 19:55:37 +0200
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>
+References: <201107031831.20378@orion.escape-edv.de>
+In-Reply-To: <201107031831.20378@orion.escape-edv.de>
 MIME-Version: 1.0
 Content-Type: text/plain;
   charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
-Message-Id: <201107222216.04703.sshtylyov@ru.mvista.com>
-Sender: linux-media-owner@vger.kernel.org
+Content-Disposition: inline
+Message-Id: <201107031955.38421@orion.escape-edv.de>
 List-ID: <linux-media.vger.kernel.org>
+Sender: <mchehab@pedra>
 
-The driver reads PCI subsystem IDs from the PCI configuration registers while
-they are already stored by the PCI subsystem in the 'subsystem_{vendor|device}'
-fields of 'struct pci_dev'...
+As the patch is too large, it is available from here:
 
-Signed-off-by: Sergei Shtylyov <sshtylyov@ru.mvista.com>
+http://escape-edv.de/endriss/tmp/dvb-20110703/0003-drxk-Initial-check-in.patch
 
----
-The patch is against the recent Linus' tree.
-
- drivers/media/video/bt8xx/bttv-cards.c |    7 ++-----
- 1 file changed, 2 insertions(+), 5 deletions(-)
-
-Index: linux-2.6/drivers/media/video/bt8xx/bttv-cards.c
-===================================================================
---- linux-2.6.orig/drivers/media/video/bt8xx/bttv-cards.c
-+++ linux-2.6/drivers/media/video/bt8xx/bttv-cards.c
-@@ -2892,13 +2892,10 @@ void __devinit bttv_idcard(struct bttv *
- {
- 	unsigned int gpiobits;
- 	int i,type;
--	unsigned short tmp;
- 
- 	/* read PCI subsystem ID */
--	pci_read_config_word(btv->c.pci, PCI_SUBSYSTEM_ID, &tmp);
--	btv->cardid = tmp << 16;
--	pci_read_config_word(btv->c.pci, PCI_SUBSYSTEM_VENDOR_ID, &tmp);
--	btv->cardid |= tmp;
-+	btv->cardid  = btv->c.pci->subsystem_device << 16;
-+	btv->cardid |= btv->c.pci->subsystem_vendor;
- 
- 	if (0 != btv->cardid && 0xffffffff != btv->cardid) {
- 		/* look for the card */
+CU
+Oliver
