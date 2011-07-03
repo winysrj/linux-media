@@ -1,78 +1,46 @@
-Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout2.w1.samsung.com ([210.118.77.12]:23066 "EHLO
-	mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S964856Ab1GOGSs (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 15 Jul 2011 02:18:48 -0400
-Received: from spt2.w1.samsung.com (mailout2.w1.samsung.com [210.118.77.12])
- by mailout2.w1.samsung.com
- (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14 2004))
- with ESMTP id <0LOD00LFH2VBI2@mailout2.w1.samsung.com> for
- linux-media@vger.kernel.org; Fri, 15 Jul 2011 07:18:47 +0100 (BST)
-Received: from linux.samsung.com ([106.116.38.10])
- by spt2.w1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14
- 2004)) with ESMTPA id <0LOD008V12VAJ6@spt2.w1.samsung.com> for
- linux-media@vger.kernel.org; Fri, 15 Jul 2011 07:18:46 +0100 (BST)
-Date: Fri, 15 Jul 2011 08:18:03 +0200
-From: Marek Szyprowski <m.szyprowski@samsung.com>
-Subject: RE: [PATCH] videobuf2: Do not unconditionally map S/G buffers into
- kernel space
-In-reply-to: <20110714151044.44cb89ee@bike.lwn.net>
-To: 'Jonathan Corbet' <corbet@lwn.net>, linux-media@vger.kernel.org,
-	'Mauro Carvalho Chehab' <mchehab@redhat.com>
-Message-id: <000201cc42b6$f3ef9e70$dbcedb50$%szyprowski@samsung.com>
-MIME-version: 1.0
-Content-type: text/plain; charset=us-ascii
-Content-language: pl
-Content-transfer-encoding: 7BIT
-References: <20110714151044.44cb89ee@bike.lwn.net>
-Sender: linux-media-owner@vger.kernel.org
+Return-path: <mchehab@pedra>
+Received: from mail-gy0-f174.google.com ([209.85.160.174]:64082 "EHLO
+	mail-gy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754840Ab1GCCri (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sat, 2 Jul 2011 22:47:38 -0400
+Received: by gyh3 with SMTP id 3so1671741gyh.19
+        for <linux-media@vger.kernel.org>; Sat, 02 Jul 2011 19:47:37 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <4E0F7E5F.3040702@hoogenraad.net>
+References: <4E0EC37F.1010201@internode.on.net> <4E0F7E5F.3040702@hoogenraad.net>
+From: Joel Stanley <joel@jms.id.au>
+Date: Sun, 3 Jul 2011 12:17:16 +0930
+Message-ID: <CACPK8Xd5HzdVSX6=QKoNjWMWCOMTKh7s=1==j9aDki6zJcFBBw@mail.gmail.com>
+Subject: Re: Fwd: 0bda:2838 Ezcap DVB USB adaptor - no device files created / RTL2831U/RTL2832U
+To: Jan Hoogenraad <jan-conceptronic@hoogenraad.net>
+Cc: Arthur Marsh <arthur.marsh@internode.on.net>,
+	linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
 List-ID: <linux-media.vger.kernel.org>
+Sender: <mchehab@pedra>
 
-Hello,
+Hello Jan,
 
-On Thursday, July 14, 2011 11:11 PM Jonathan Corbet wrote:
+On Sun, Jul 3, 2011 at 05:53, Jan Hoogenraad
+<jan-conceptronic@hoogenraad.net> wrote:
+> I have decided AGAINST making it runnable on newer kernels, as there are
+> some people working right now on a new release.
 
-> The one in-tree videobuf2-dma-sg driver (mmp-camera) has no need for a
-> kernel-space mapping of the buffers; one suspects that most other drivers
-> would not either.  The videobuf2-dma-sg module does the right thing if
-> buf->vaddr == NULL - it maps the buffer on demand if somebody needs it.  So
-> let's not map the buffer at allocation time; that will save a little CPU
-> time and a lot of address space in the vmalloc range.
-> 
-> Signed-off-by: Jonathan Corbet <corbet@lwn.net>
+I appreciate that you would prefer efforts to go towards a upstream
+driver. In the mean time I've updated the git tree[1] on my website.
+There were no real changes required; just a re-build with an updated
+dvb-usb.h and dvb_frontend.h from the kernel tree. Checkout the
+linux-3 branch.
 
-Acked-by: Marek Szyprowski <m.szyprowski@samsung.com>
+> Once the status becomes more clear, I'll update
+> http://www.linuxtv.org/wiki/index.php/Realtek_RTL2831U
 
-> ---
->  drivers/media/video/videobuf2-dma-sg.c |    6 ------
->  1 files changed, 0 insertions(+), 6 deletions(-)
-> 
-> diff --git a/drivers/media/video/videobuf2-dma-sg.c
-> b/drivers/media/video/videobuf2-dma-sg.c
-> index b2d9485..0e8edc1 100644
-> --- a/drivers/media/video/videobuf2-dma-sg.c
-> +++ b/drivers/media/video/videobuf2-dma-sg.c
-> @@ -77,12 +77,6 @@ static void *vb2_dma_sg_alloc(void *alloc_ctx, unsigned
-> long size)
-> 
->  	printk(KERN_DEBUG "%s: Allocated buffer of %d pages\n",
->  		__func__, buf->sg_desc.num_pages);
-> -
-> -	if (!buf->vaddr)
-> -		buf->vaddr = vm_map_ram(buf->pages,
-> -					buf->sg_desc.num_pages,
-> -					-1,
-> -					PAGE_KERNEL);
->  	return buf;
-> 
->  fail_pages_alloc:
-> --
-> 1.7.6
+Are you able to give us more information on this new driver? Is there
+a tree somewhere we can test, or perhaps assist in writing the driver?
 
-Best regards
--- 
-Marek Szyprowski
-Samsung Poland R&D Center
+Cheers,
 
+Joel
 
+[1] A disclaimer: the git tree is a horrible hack so that I can watch
+tv; I look forward to a in-tree driver.
