@@ -1,45 +1,62 @@
-Return-path: <linux-media-owner@vger.kernel.org>
-Received: from narfation.org ([79.140.41.39]:43169 "EHLO v3-1039.vlinux.de"
+Return-path: <mchehab@pedra>
+Received: from mx1.redhat.com ([209.132.183.28]:15621 "EHLO mx1.redhat.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754186Ab1G0Jzw (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 27 Jul 2011 05:55:52 -0400
-From: Sven Eckelmann <sven@narfation.org>
-To: linux-arch@vger.kernel.org
-Cc: linux-kernel@vger.kernel.org, Sven Eckelmann <sven@narfation.org>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	linux-media@vger.kernel.org
-Subject: [PATCHv4 05/11] omap3isp: Use *_dec_not_zero instead of *_add_unless
-Date: Wed, 27 Jul 2011 11:47:44 +0200
-Message-Id: <1311760070-21532-5-git-send-email-sven@narfation.org>
-In-Reply-To: <1311760070-21532-1-git-send-email-sven@narfation.org>
-References: <1311760070-21532-1-git-send-email-sven@narfation.org>
-Sender: linux-media-owner@vger.kernel.org
+	id S1752930Ab1GCUPo (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 3 Jul 2011 16:15:44 -0400
+Received: from int-mx01.intmail.prod.int.phx2.redhat.com (int-mx01.intmail.prod.int.phx2.redhat.com [10.5.11.11])
+	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id p63KFiu1025351
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
+	for <linux-media@vger.kernel.org>; Sun, 3 Jul 2011 16:15:44 -0400
+Message-ID: <4E10CE35.5080506@redhat.com>
+Date: Sun, 03 Jul 2011 22:16:53 +0200
+From: Hans de Goede <hdegoede@redhat.com>
+MIME-Version: 1.0
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+CC: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: [ANNOUNCE] Media subsystem workshop 2011 - Prague - Oct 24-26
+References: <4E02357E.4060400@redhat.com>
+In-Reply-To: <4E02357E.4060400@redhat.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
+Sender: <mchehab@pedra>
 
-atomic_dec_not_zero is defined for each architecture through
-<linux/atomic.h> to provide the functionality of
-atomic_add_unless(x, -1, 0).
+Hi Mauro,
 
-Signed-off-by: Sven Eckelmann <sven@narfation.org>
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: linux-media@vger.kernel.org
----
- drivers/media/video/omap3isp/ispstat.c |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
+On Wednesday 22 June 2011 20:33:34 Mauro Carvalho Chehab wrote:
+> Media subsystem workshop 2011 - Prague - Oct 24-26
+>
+> Since 2007, we're doing annual mini-summits for the media subsystem,
+> in order to plan the new features that will be introduced there.
+>
+> Last year, during the Kernel Summit 2010, it was decided that the Kernel
+> Summit 2011 format will be modified, in order to strength the interaction
+> between the several sub-system mini-summits and the main Kernel Summit.
+> If this idea works well, the next Kernel Summits will also follow the
+> same format.
+>
+> So, some mini-summits were proposed to happen together with the Kernel
+> Summit 2011. Among a few others, the Media subsystem was accepted to be
+> held with this year's Kernel Summit.
+>
+> So, we'd like to announce that the Media subsystem workshop 2011 will
+> happen together with the Kernel Summit 2011.
+ >
+> The Media subsystem workshop is on early planning stages, but the idea
+> is that we'll have an entire day to do the media discussions. We'll
+> also planning to have workshop presentations inside the Kernel Summit
+> 2011 with the workshop and Kernel Summit attendants present, where
+> workshop results will be presented.
+>
+> So, I'd like to invite V4L, DVB and RC developers to submit proposals
+> for the themes to be discussed. Please email me if you're interested
+> on being invited for the event.
 
-diff --git a/drivers/media/video/omap3isp/ispstat.c b/drivers/media/video/omap3isp/ispstat.c
-index b44cb68..81b1ec9 100644
---- a/drivers/media/video/omap3isp/ispstat.c
-+++ b/drivers/media/video/omap3isp/ispstat.c
-@@ -652,7 +652,7 @@ static int isp_stat_buf_process(struct ispstat *stat, int buf_state)
- {
- 	int ret = STAT_NO_BUF;
- 
--	if (!atomic_add_unless(&stat->buf_err, -1, 0) &&
-+	if (!atomic_dec_not_zero(&stat->buf_err) &&
- 	    buf_state == STAT_BUF_DONE && stat->state == ISPSTAT_ENABLED) {
- 		ret = isp_stat_buf_queue(stat);
- 		isp_stat_buf_next(stat);
--- 
-1.7.5.4
+This has convinced me to come to Prague for this + kernel summit. So I
+hope I can get an invitation :)
+
+Regards,
+
+Hans
+
 
