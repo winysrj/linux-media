@@ -1,46 +1,55 @@
-Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ey0-f171.google.com ([209.85.215.171]:57617 "EHLO
-	mail-ey0-f171.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754329Ab1G0Oht convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 27 Jul 2011 10:37:49 -0400
-Received: by eye22 with SMTP id 22so1966798eye.2
-        for <linux-media@vger.kernel.org>; Wed, 27 Jul 2011 07:37:47 -0700 (PDT)
+Return-path: <mchehab@pedra>
+Received: from mx1.redhat.com ([209.132.183.28]:42556 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754324Ab1GCOOi (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 3 Jul 2011 10:14:38 -0400
+Message-ID: <4E10792B.3040109@redhat.com>
+Date: Sun, 03 Jul 2011 11:14:03 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
 MIME-Version: 1.0
-In-Reply-To: <201107271630.51411.toralf.foerster@gmx.de>
-References: <201107271630.51411.toralf.foerster@gmx.de>
-Date: Wed, 27 Jul 2011 10:37:46 -0400
-Message-ID: <CAGoCfixnuanGSK4YGPo_fCJ5_pJUPAGL-6fpamBRMXHWKcYzdQ@mail.gmail.com>
-Subject: Re: DVB-T issues w/ kernel 3.0
-From: Devin Heitmueller <dheitmueller@kernellabs.com>
-To: =?ISO-8859-1?Q?Toralf_F=F6rster?= <toralf.foerster@gmx.de>
-Cc: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
-Sender: linux-media-owner@vger.kernel.org
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+CC: Dmitry Butskoy <buc@odusz.so-cdu.ru>,
+	Hans De Goede <hdegoede@redhat.com>,
+	Asterios Dramis <asterios.dramis@gmail.com>
+Subject: Xawtv version 3.101 released
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
+Sender: <mchehab@pedra>
 
-2011/7/27 Toralf Förster <toralf.foerster@gmx.de>:
-> Hello,
->
-> I'm wondering, whether there are known issues with the new kernel version just
-> b/c of https://forums.gentoo.org/viewtopic.php?p=6766690#6766690 and
-> https://bugs.kde.org/show_bug.cgi?id=278561
+Today, we're releasing the version 3.101 of xawtv, with the following
+fixes:
 
-Hello Toralf,
+* Man fix to remove mention of v4l1, and describe libv4l instead
+* Fixes at fr/es manuals
+* Warning fixes
+* Addition of alsa streaming at xawtv: now, for devices with video
+  associated with audio inputs.
+* Use X11 editres, instead of its on version, based on a port from
+  a motif library released under a licence that is not GPL compatible
+* Add auto-detection logic for xawtv: by default, it will now seek for
+  the first TV device. If not available, fall back to the first grabber
+  device.
+* Add auto-detection logic for scanv: by default, it will now seek for
+  the first TV device. If not available, fails.
+* Add optional support for libexplain at the v4l2/libv4l driver.
+  Libexplain provides a  more complete explanation for the error codes,
+  helping developers to better track what's happened.
+* Don't expose tuner commands, on devices that are grabber or  webcams
+  at xawtv.
 
-I don't think you're the first person to report this issue.  That
-said, I don't think any developers have seen it, so it would be a very
-useful exercise if you could bisect the kernel and figure out which
-patch introduced the problem.
+Dmitry Butskoy fixed the manuals and some warnings.
 
-Once we know what patch introduced the problem we will have a much
-better idea what action needs to be taken to address it.
+Asterios Dramis pointed to a trouble with a file imported from Motif, used
+on "motv" with a non-GPL license. The code were replaced to use a X11 
+library instead.
 
-Cheers,
+Hans de Goede fixed the alsa stream code, added the auto-detection
+mode and fixing more warnings.
 
-Devin
+The tarball is available at:
 
--- 
-Devin J. Heitmueller - Kernel Labs
-http://www.kernellabs.com
+http://linuxtv.org/downloads/xawtv/xawtv-3.101.tar.bz2
+
+Enjoy!
+Mauro
