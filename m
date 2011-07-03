@@ -1,65 +1,45 @@
-Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ey0-f171.google.com ([209.85.215.171]:56475 "EHLO
-	mail-ey0-f171.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751516Ab1GXSoo (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 24 Jul 2011 14:44:44 -0400
-Received: by eye22 with SMTP id 22so3133708eye.2
-        for <linux-media@vger.kernel.org>; Sun, 24 Jul 2011 11:44:43 -0700 (PDT)
-MIME-Version: 1.0
-Date: Sun, 24 Jul 2011 14:44:43 -0400
-Message-ID: <CAGoCfix0L_POhtmVi8qstEcQ5xNCb+dpP0zoQjCaL9LUmFZ10A@mail.gmail.com>
-Subject: [PATCH] cx231xx: Fix power ramping issue
-From: Devin Heitmueller <dheitmueller@kernellabs.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Gerd Hoffmann <kraxel@redhat.com>
-Content-Type: multipart/mixed; boundary=00504502c87388648d04a8d51700
-Sender: linux-media-owner@vger.kernel.org
+Return-path: <mchehab@pedra>
+Received: from fox.seas.upenn.edu ([158.130.68.12]:58953 "EHLO
+	fox.seas.upenn.edu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752938Ab1GCUbw (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sun, 3 Jul 2011 16:31:52 -0400
+From: Rafi Rubin <rafi@seas.upenn.edu>
+To: linux-media@vger.kernel.org, linux-input@vger.kernel.org,
+	jarod@redhat.com
+Cc: Rafi Rubin <rafi@seas.upenn.edu>
+Subject: [PATCH 2/2] mceusb: increase default timeout to 100ms
+Date: Sun,  3 Jul 2011 16:13:53 -0400
+Message-Id: <1309724033-27804-2-git-send-email-rafi@seas.upenn.edu>
+In-Reply-To: <1309724033-27804-1-git-send-email-rafi@seas.upenn.edu>
+References: <1309724033-27804-1-git-send-email-rafi@seas.upenn.edu>
 List-ID: <linux-media.vger.kernel.org>
+Sender: <mchehab@pedra>
 
---00504502c87388648d04a8d51700
-Content-Type: text/plain; charset=ISO-8859-1
+Signed-off-by: Rafi Rubin <rafi@seas.upenn.edu>
+---
+This changes the default to something a little more sane.  I have one
+mceusb device that currently does not respond properly to the initial
+polling and is left using the default timeout.  1ms does not work well.
 
-Attached is a patch which addresses the issue discussed by Mauro and
-Gerd for the "-32" errors seen with the Hauppauge USBLive 2.
+I propose changing the default to 100ms to match the timeout reported by
+my other mceusb device and works fine for me.
+---
+ drivers/media/rc/mceusb.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
 
-Devin
-
+diff --git a/drivers/media/rc/mceusb.c b/drivers/media/rc/mceusb.c
+index 377f826..956d296 100644
+--- a/drivers/media/rc/mceusb.c
++++ b/drivers/media/rc/mceusb.c
+@@ -1082,7 +1082,7 @@ static struct rc_dev *mceusb_init_rc_dev(struct mceusb_dev *ir)
+ 	rc->priv = ir;
+ 	rc->driver_type = RC_DRIVER_IR_RAW;
+ 	rc->allowed_protos = RC_TYPE_ALL;
+-	rc->timeout = US_TO_NS(1000);
++	rc->timeout = MS_TO_NS(100);
+ 	if (!ir->flags.no_tx) {
+ 		rc->s_tx_mask = mceusb_set_tx_mask;
+ 		rc->s_tx_carrier = mceusb_set_tx_carrier;
 -- 
-Devin J. Heitmueller - Kernel Labs
-http://www.kernellabs.com
+1.7.5.4
 
---00504502c87388648d04a8d51700
-Content-Type: text/x-patch; charset=US-ASCII; name="cx231xx_config_hz.patch"
-Content-Disposition: attachment; filename="cx231xx_config_hz.patch"
-Content-Transfer-Encoding: base64
-X-Attachment-Id: f_gqicvo9a0
-
-Y3gyMzF4eDogRml4IHBvd2VyIHJhbXAgdGltZSB0byBiZSBjb25zaXN0ZW50IHJlZ2FyZGxlc3Mg
-b2YgQ09ORklHX0haCgpGcm9tOiBEZXZpbiBIZWl0bXVlbGxlciA8ZGhlaXRtdWVsbGVyQGtlcm5l
-bGxhYnMuY29tPgoKT24gcGxhdGZvcm1zIHRoYXQgaGF2ZSBDT05GSUdfSFogc2V0IHRvIDEwMCwg
-dGhlIHBvd2VyIHJhbXAgdGltZSBlZmZlY3RpdmVseQplbmRzIHVwIGJlaW5nIDEwbXMuICBIb3dl
-dmVyLCBvbiB0aG9zZSB0aGF0IGhhdmUgYSBoaWdoZXIgQ09ORklHX0haLCB0aGUgdGltZQplbmRz
-IHVwICphY3R1YWxseSogYmVpbmcgNW1zLCB3aGljaCBkb2Vzbid0IGFsbG93IGVub3VnaCB0aW1l
-IGZvciB0aGUgaGFyZHdhcmUKdG8gYmUgZnVsbHkgcG93ZXJlZCB1cCBiZWZvcmUgYXR0ZW1wdGlu
-ZyB0byBhZGRyZXNzIGl0IHZpYSBpMmMuCgpDaGFuZ2UgdGhlIGNvbnN0YW50IHRvIDEwbXMsIHdo
-aWNoIGlzIGxvbmcgZW5vdWdoIGZvciB0aGUgaGFyZHdhcmUgdG8gcG93ZXIKdXAsIGFuZCB3b24n
-dCByZWFsbHkgYmUgYW55bW9yZSB0aW1lIHRoYW4gaXQgd2FzIHByZXZpb3VzbHkgb24gcGxhdGZv
-cm1zCndpdGggQ09ORklHX0haIGJlaW5nIDEwMC4KCkNyZWRpdCBnb2VzIHRvIE1hdXJvIENhcnZh
-bGhvIENoZWhhYiBhbmQgR2VyZCBIb2ZmbWFubiB3aG8gcHJldmlvdXNseQppbnZlc3RpZ2F0ZWQg
-dGhpcyBpc3N1ZS4KClRlc3RlZCB3aXRoIHRoZSBIYXVwcGF1Z2UgVVNCTGl2ZSAyLCB3aXRoIHdo
-aWNoIHRoZSBwcm9ibGVtIHdhcyByZWFkaWx5CnJlcHJvZHVjaWJsZSBhZnRlciBzZXR0aW5nIENP
-TkZJR19IWiB0byAxMDAwLgoKU2lnbmVkLW9mZi1ieTogRGV2aW4gSGVpdG11ZWxsZXIgPGRoZWl0
-bXVlbGxlckBrZXJuZWxsYWJzLmNvbT4KQ2M6IE1hdXJvIENhcnZhbGhvIENoZWhhYiA8bWNoZWhh
-YkByZWRoYXQuY29tPgpDYzogR2VyZCBIb2ZmbWFubiA8a3JheGVsQHJlZGhhdC5jb20+CgpkaWZm
-IC0tZ2l0IGEvZHJpdmVycy9tZWRpYS92aWRlby9jeDIzMXh4L2N4MjMxeHguaCBiL2RyaXZlcnMv
-bWVkaWEvdmlkZW8vY3gyMzF4eC9jeDIzMXh4LmgKaW5kZXggYjM5Yjg1ZS4uNDcyZDE2OSAxMDA2
-NDQKLS0tIGEvZHJpdmVycy9tZWRpYS92aWRlby9jeDIzMXh4L2N4MjMxeHguaAorKysgYi9kcml2
-ZXJzL21lZGlhL3ZpZGVvL2N4MjMxeHgvY3gyMzF4eC5oCkBAIC00Myw3ICs0Myw3IEBACiAjaW5j
-bHVkZSAiY3gyMzF4eC1jb25mLXJlZy5oIgogCiAjZGVmaW5lIERSSVZFUl9OQU1FICAgICAgICAg
-ICAgICAgICAgICAgImN4MjMxeHgiCi0jZGVmaW5lIFBXUl9TTEVFUF9JTlRFUlZBTCAgICAgICAg
-ICAgICAgNQorI2RlZmluZSBQV1JfU0xFRVBfSU5URVJWQUwgICAgICAgICAgICAgIDEwCiAKIC8q
-IEkyQyBhZGRyZXNzZXMgZm9yIGNvbnRyb2wgYmxvY2sgaW4gQ3gyMzF4eCAqLwogI2RlZmluZSAg
-ICAgQUZFX0RFVklDRV9BRERSRVNTCQkweDYwCg==
---00504502c87388648d04a8d51700--
