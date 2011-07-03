@@ -1,103 +1,83 @@
-Return-path: <linux-media-owner@vger.kernel.org>
-Received: from casper.infradead.org ([85.118.1.10]:45816 "EHLO
-	casper.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750805Ab1GaFIh (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 31 Jul 2011 01:08:37 -0400
-Message-ID: <4E34E34E.9040200@infradead.org>
-Date: Sun, 31 Jul 2011 02:08:30 -0300
-From: Mauro Carvalho Chehab <mchehab@infradead.org>
+Return-path: <mchehab@pedra>
+Received: from mailout-de.gmx.net ([213.165.64.23]:50822 "HELO
+	mailout-de.gmx.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1751082Ab1GCQ5l (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sun, 3 Jul 2011 12:57:41 -0400
+From: Oliver Endriss <o.endriss@gmx.de>
+To: linux-media@vger.kernel.org
+Subject: [PATCH 06/16] DRX-K, TDA18271c2: Add build support
+Date: Sun, 3 Jul 2011 18:51:43 +0200
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>
+References: <201107031831.20378@orion.escape-edv.de>
+In-Reply-To: <201107031831.20378@orion.escape-edv.de>
 MIME-Version: 1.0
-To: Randy Dunlap <rdunlap@xenotime.net>
-CC: linux-media@vger.kernel.org, Kamil Debski <k.debski@samsung.com>
-Subject: Re: media Documentation Errors
-References: <20110730165133.74b91104.rdunlap@xenotime.net>
-In-Reply-To: <20110730165133.74b91104.rdunlap@xenotime.net>
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain;
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
-Sender: linux-media-owner@vger.kernel.org
+Content-Disposition: inline
+Message-Id: <201107031851.44285@orion.escape-edv.de>
 List-ID: <linux-media.vger.kernel.org>
+Sender: <mchehab@pedra>
 
-Hi Randy,
+Add both drivers to Makefile and Kconfig.
 
-Em 30-07-2011 20:51, Randy Dunlap escreveu:
-> Hi,
-> 
-> What do I need to do to eliminate these errors?
-> (from 3.0-git12)
+Signed-off-by: Oliver Endriss <o.endriss@gmx.de>
+---
+ drivers/media/dvb/frontends/Kconfig  |   21 +++++++++++++++++++++
+ drivers/media/dvb/frontends/Makefile |    3 +++
+ 2 files changed, 24 insertions(+), 0 deletions(-)
 
-Thanks for reporting it.
+diff --git a/drivers/media/dvb/frontends/Kconfig b/drivers/media/dvb/frontends/Kconfig
+index 44b816f..32e08e3 100644
+--- a/drivers/media/dvb/frontends/Kconfig
++++ b/drivers/media/dvb/frontends/Kconfig
+@@ -49,6 +49,27 @@ config DVB_STV6110x
+ 	help
+ 	  A Silicon tuner that supports DVB-S and DVB-S2 modes
+ 
++comment "Multistandard (cable + terrestrial) frontends"
++	depends on DVB_CORE
++
++config DVB_DRXK
++	tristate "Micronas DRXK based"
++	depends on DVB_CORE && I2C
++	default m if DVB_FE_CUSTOMISE
++	help
++	  Micronas DRX-K DVB-C/T demodulator.
++
++	  Say Y when you want to support this frontend.
++
++config DVB_TDA18271C2DD
++	tristate "NXP TDA18271C2 silicon tuner"
++	depends on DVB_CORE && I2C
++	default m if DVB_FE_CUSTOMISE
++	help
++	  NXP TDA18271 silicon tuner.
++
++	  Say Y when you want to support this tuner.
++
+ comment "DVB-S (satellite) frontends"
+ 	depends on DVB_CORE
+ 
+diff --git a/drivers/media/dvb/frontends/Makefile b/drivers/media/dvb/frontends/Makefile
+index 2f3a6f7..6a6ba05 100644
+--- a/drivers/media/dvb/frontends/Makefile
++++ b/drivers/media/dvb/frontends/Makefile
+@@ -10,6 +10,7 @@ stv0900-objs = stv0900_core.o stv0900_sw.o
+ au8522-objs = au8522_dig.o au8522_decoder.o
+ drxd-objs = drxd_firm.o drxd_hard.o
+ cxd2820r-objs = cxd2820r_core.o cxd2820r_c.o cxd2820r_t.o cxd2820r_t2.o
++drxk-objs := drxk_hard.o
+ 
+ obj-$(CONFIG_DVB_PLL) += dvb-pll.o
+ obj-$(CONFIG_DVB_STV0299) += stv0299.o
+@@ -88,4 +89,6 @@ obj-$(CONFIG_DVB_MB86A20S) += mb86a20s.o
+ obj-$(CONFIG_DVB_IX2505V) += ix2505v.o
+ obj-$(CONFIG_DVB_STV0367) += stv0367.o
+ obj-$(CONFIG_DVB_CXD2820R) += cxd2820r.o
++obj-$(CONFIG_DVB_DRXK) += drxk.o
++obj-$(CONFIG_DVB_TDA18271C2DD) += tda18271c2dd.o
+ 
+-- 
+1.7.4.1
 
-> Error: no ID for constraint linkend: v4l2-mpeg-video-header-mode.
-> Error: no ID for constraint linkend: v4l2-mpeg-video-multi-slice-mode.
-> Error: no ID for constraint linkend: v4l2-mpeg-video-h264-entropy-mode.
-> Error: no ID for constraint linkend: v4l2-mpeg-video-h264-level.
-> Error: no ID for constraint linkend: v4l2-mpeg-video-h264-loop-filter-mode.
-> Error: no ID for constraint linkend: v4l2-mpeg-video-h264-profile.
-> Error: no ID for constraint linkend: v4l2-mpeg-video-h264-vui-sar-idc.
-> Error: no ID for constraint linkend: v4l2-mpeg-video-mpeg4-level.
-> Error: no ID for constraint linkend: v4l2-mpeg-video-mpeg4-profile.
-> Error: no ID for constraint linkend: v4l2-mpeg-mfc51-video-frame-skip-mode.
-> Error: no ID for constraint linkend: v4l2-mpeg-mfc51-video-force-frame-type.
-> Error: no ID for constraint linkend: v4l2-mpeg-video-header-mode.
-> Error: no ID for constraint linkend: v4l2-mpeg-video-multi-slice-mode.
-> Error: no ID for constraint linkend: v4l2-mpeg-video-h264-entropy-mode.
-> Error: no ID for constraint linkend: v4l2-mpeg-video-h264-level.
-> Error: no ID for constraint linkend: v4l2-mpeg-video-h264-loop-filter-mode.
-> Error: no ID for constraint linkend: v4l2-mpeg-video-h264-profile.
-> Error: no ID for constraint linkend: v4l2-mpeg-video-h264-vui-sar-idc.
-> Error: no ID for constraint linkend: v4l2-mpeg-video-mpeg4-level.
-> Error: no ID for constraint linkend: v4l2-mpeg-video-mpeg4-profile.
-> Error: no ID for constraint linkend: v4l2-mpeg-mfc51-video-frame-skip-mode.
-> Error: no ID for constraint linkend: v4l2-mpeg-mfc51-video-force-frame-type.
-
-This probably means that Samsung guys didn't properly documented those new stuff
-into the DocBook, e. g. they're defined at include/linux/videodev2.h, but
-either there's no documentation for them, or the links inside the docbook
-don't match.
-
-Kamil?
-
-> Error: no ID for constraint linkend: AUDIO_GET_PTS.  
-> Error: no ID for constraint linkend: AUDIO_BILINGUAL_CHANNEL_SELECT.
-> Error: no ID for constraint linkend: CA_RESET.
-> Error: no ID for constraint linkend: CA_GET_CAP.
-> Error: no ID for constraint linkend: CA_GET_SLOT_INFO.
-> Error: no ID for constraint linkend: CA_GET_DESCR_INFO.
-> Error: no ID for constraint linkend: CA_GET_MSG.
-> Error: no ID for constraint linkend: CA_SEND_MSG.
-> Error: no ID for constraint linkend: CA_SET_DESCR.
-> Error: no ID for constraint linkend: CA_SET_PID.
-> Error: no ID for constraint linkend: DMX_GET_PES_PIDS.
-> Error: no ID for constraint linkend: DMX_GET_CAPS.
-> Error: no ID for constraint linkend: DMX_SET_SOURCE.
-> Error: no ID for constraint linkend: DMX_ADD_PID.
-> Error: no ID for constraint linkend: DMX_REMOVE_PID.
-> Error: no ID for constraint linkend: NET_ADD_IF.
-> Error: no ID for constraint linkend: NET_REMOVE_IF.
-> Error: no ID for constraint linkend: NET_GET_IF.
-> Error: no ID for constraint linkend: VIDEO_GET_SIZE.
-> Error: no ID for constraint linkend: VIDEO_GET_FRAME_RATE.
-> Error: no ID for constraint linkend: VIDEO_GET_PTS.
-> Error: no ID for constraint linkend: VIDEO_GET_FRAME_COUNT.
-> Error: no ID for constraint linkend: VIDEO_COMMAND.
-> Error: no ID for constraint linkend: VIDEO_TRY_COMMAND.
-
-Those are some already known issue: The DVB API spec doesn't match the current
-DVB API stack implementation, e. g. those ioctl's are defined at the DVB code,
-but the API doesn't specify them.
-
-We need to work to sync the above. Worse than that, several of the above ioctl's
-are defined at the code, but are used only on one legacy driver and on some
-out-of-tree drivers for years.
-
-This is one of the things I'd like to discuss with the media people during the
-KS/2011.
-
-None of the above are fatal errors: they'll just leave a few html links at the the
-spec appendices without pointing to the place where they should be defined.
-
-My idea is to have all of them fixed for 3.2.
-
-Thanks,
-Mauro
