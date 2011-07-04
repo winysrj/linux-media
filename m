@@ -1,85 +1,71 @@
 Return-path: <mchehab@pedra>
-Received: from ppsw-41.csi.cam.ac.uk ([131.111.8.141]:36714 "EHLO
-	ppsw-41.csi.cam.ac.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754075Ab1GEPN4 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 5 Jul 2011 11:13:56 -0400
-Message-ID: <4E132C1B.3070904@cam.ac.uk>
-Date: Tue, 05 Jul 2011 16:22:03 +0100
-From: Jonathan Cameron <jic23@cam.ac.uk>
+Received: from devils.ext.ti.com ([198.47.26.153]:57859 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750944Ab1GDFKC convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 4 Jul 2011 01:10:02 -0400
+From: "Hiremath, Vaibhav" <hvaibhav@ti.com>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+CC: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Date: Mon, 4 Jul 2011 10:39:54 +0530
+Subject: RE: [GIT PULL for v3.0] OMAP_VOUT bug fixes and code cleanup
+Message-ID: <19F8576C6E063C45BE387C64729E739404E34857AE@dbde02.ent.ti.com>
+References: <1308771169-10741-1-git-send-email-hvaibhav@ti.com>
+ <4E0E1683.8080002@redhat.com>
+In-Reply-To: <4E0E1683.8080002@redhat.com>
+Content-Language: en-US
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 MIME-Version: 1.0
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-CC: Sakari Ailus <sakari.ailus@iki.fi>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: omap3isp: known causes of "CCDC won't become idle!
-References: <4E12F3DE.5030109@cam.ac.uk> <4E131649.5030906@cam.ac.uk> <20110705143807.GQ12671@valkosipuli.localdomain> <201107051702.53128.laurent.pinchart@ideasonboard.com>
-In-Reply-To: <201107051702.53128.laurent.pinchart@ideasonboard.com>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On 07/05/11 16:02, Laurent Pinchart wrote:
-> On Tuesday 05 July 2011 16:38:07 Sakari Ailus wrote:
->> On Tue, Jul 05, 2011 at 02:48:57PM +0100, Jonathan Cameron wrote:
->>> On 07/05/11 13:19, Sakari Ailus wrote:
->>>> On Tue, Jul 05, 2011 at 12:22:06PM +0100, Jonathan Cameron wrote:
->>>>> Hi Laurent,
->>>>>
->>>>> I'm just trying to get an mt9v034 sensor working on a beagle xm.
->>>>> Everything more or less works, except that after a random number
->>>>> of frames of capture, I tend to get won't become idle messages
->>>>> and the vd0 and vd1 interrupts tend to turn up at same time.
->>>>>
->>>>> I was just wondering if there are any known issues with the ccdc
->>>>> driver / silicon that might explain this?
->>>>>
->>>>> I also note that it appears to be impossible to disable
->>>>> HS_VS_IRQarch/arm/mach-s3c2410/Kconfig:# cpu frequency scaling
->>>>> support
->>>>>
->>>>> despite the datasheet claiming this can be done.  Is this a known
->>>>> issue?
->>>>
->>>> The same interrupt may be used to produce an interrupt per horizontal
->>>> sync but the driver doesn't use that. I remember of a case where the
->>>> two sync signals had enough crosstalk to cause vertical sync interrupt
->>>> per every horizontal sync. (It's been discussed on this list.) This
->>>> might not be the case here, though: you should be flooded with HS_VS
->>>> interrupts.
->>>
->>> As far as I can tell, the driver doesn't use either interrupt (except to
->>> pass it up as an event). Hence I was trying to mask it purely to cut
->>> down on the interrupt load.
->>
->> It does. This is the only way to detect the CCDC has finished processing a
->> frame.
+
+> -----Original Message-----
+> From: Mauro Carvalho Chehab [mailto:mchehab@redhat.com]
+> Sent: Saturday, July 02, 2011 12:19 AM
+> To: Hiremath, Vaibhav
+> Cc: linux-media@vger.kernel.org
+> Subject: Re: [GIT PULL for v3.0] OMAP_VOUT bug fixes and code cleanup
 > 
-> We actually use the VD0 and VD1 interrupts for that, not the HS_VS interrupt.
+> Em 22-06-2011 16:32, hvaibhav@ti.com escreveu:
+> > The following changes since commit
+> af0d6a0a3a30946f7df69c764791f1b0643f7cd6:
+> >   Linus Torvalds (1):
+> >         Merge branch 'x86-urgent-for-linus' of
+> git://git.kernel.org/.../tip/linux-2.6-tip
+> >
+> > are available in the git repository at:
+> >
+> >   git://arago-project.org/git/people/vaibhav/ti-psp-omap-video.git for-
+> linux-media
+> >
 > 
->>>> The VD* counters are counting and interrupts are produced (AFAIR) even
->>>> if the CCDC is disabled.
->>>
->>> Oh goody...
->>>
->>>> Once the CCDC starts receiving a frame, it becomes busy, and becomes
->>>> idle only when it has received the full frame. For this reason it's
->>>> important that the full frame is actually received by the CCDC,
->>>> otherwise this is due to happen when the CCDC is being stopped at the
->>>> end of the stream.
->>>
->>> Fair enough.  Is there any software reason why it might think it hasn't
->>> received the whole frame?  Obviously it could in theory be a hardware
->>> issue, but it's a bit odd that it can reliably do a certain number of
->>> frames before falling over.
->>
->> Others than those which Laurent already pointed out, one which crosses my
->> mind is the vsync polarity. The Documentation/video4linux/omap3isp.txt does
->> mention it. It _may_ have the effect that one line of input is missed by
->> the VD* counters. Thus the VD* counters might never reach the expected
->> value --- the last line of the frame.
+> > Archit Taneja (3):
+> >       OMAP_VOUT: CLEANUP: Move generic functions and macros to common
+> files
+> >       OMAP_VOUT: CLEANUP: Make rotation related helper functions more
+> descriptive
+> >       OMAP_VOUT: Create separate file for VRFB related API's
 > 
-> I would first try to increase vertical blanking to see if it helps.
-Have done. No luck as yet.  This sensor mt9v034 annoyingly starts live.
-Right now this means I get two frames with very short vblank (10% ratio, at 60fps,
-so sub 2 microseonds.)  Whilst the failure seems to be at a later time, I'd
-obviously like to get rid of these.
+> Those are cleanup patches. NACK for 3.0. Cleanups should be sent to -next
+> kernel (3.1).
+> 
+[Hiremath, Vaibhav] Ok, will queue it for 3.1.
+
+
+> > Vaibhav Hiremath (2):
+> >       OMAP_VOUT: Change hardcoded device node number to -1
+> >       omap_vout: Added check in reqbuf & mmap for buf_size allocation
+> >
+> > Vladimir Pantelic (1):
+> >       OMAP_VOUTLIB: Fix wrong resizer calculation
+> 
+> The 3 above patches are ok for 3.0. Added.
+> 
+[Hiremath, Vaibhav] Thanks,
+
+Thanks,
+Vaibhav
+
+> Thanks,
+> Mauro.
