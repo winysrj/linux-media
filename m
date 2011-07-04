@@ -1,628 +1,494 @@
-Return-path: <linux-media-owner@vger.kernel.org>
-Received: from impaqm4.telefonica.net ([213.4.138.20]:52530 "EHLO
-	telefonica.net" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1753767Ab1GPLi1 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 16 Jul 2011 07:38:27 -0400
-From: Jose Alberto Reguero <jareguero@telefonica.net>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-Subject: [PATCH] improve recection with limits frecuenies and tda827x
-Date: Sat, 16 Jul 2011 13:38:13 +0200
-Cc: linux-media@vger.kernel.org,
-	Michael Krufky <mkrufky@kernellabs.com>
-References: <201106070205.08118.jareguero@telefonica.net> <201107070057.06317.jareguero@telefonica.net> <4E1D927A.5090006@redhat.com>
-In-Reply-To: <4E1D927A.5090006@redhat.com>
-MIME-Version: 1.0
-Content-Type: Multipart/Mixed;
-  boundary="Boundary-00=_ngXIOSTtHdJZlCr"
-Message-Id: <201107161338.15263.jareguero@telefonica.net>
-Sender: linux-media-owner@vger.kernel.org
+Return-path: <mchehab@pedra>
+Received: from mailout2.w1.samsung.com ([210.118.77.12]:17598 "EHLO
+	mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758471Ab1GDRzo (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 4 Jul 2011 13:55:44 -0400
+Date: Mon, 04 Jul 2011 19:54:58 +0200
+From: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Subject: [PATCH v3 07/19] s5p-fimc: Remove v4l2_device from video capture and
+ m2m driver
+In-reply-to: <1309802110-16682-1-git-send-email-s.nawrocki@samsung.com>
+To: linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org
+Cc: m.szyprowski@samsung.com, kyungmin.park@samsung.com,
+	s.nawrocki@samsung.com, sw0312.kim@samsung.com,
+	riverful.kim@samsung.com
+Message-id: <1309802110-16682-8-git-send-email-s.nawrocki@samsung.com>
+MIME-version: 1.0
+Content-type: TEXT/PLAIN
+Content-transfer-encoding: 7BIT
+References: <1309802110-16682-1-git-send-email-s.nawrocki@samsung.com>
 List-ID: <linux-media.vger.kernel.org>
+Sender: <mchehab@pedra>
 
---Boundary-00=_ngXIOSTtHdJZlCr
-Content-Type: Text/Plain;
-  charset="utf-8"
-Content-Transfer-Encoding: quoted-printable
+Currently there is a v4l2_device instance being registered per each
+(capture and memory-to-memory) video node created per FIMC H/W instance.
+This patch is a prerequisite for using the top level v4l2_device
+instantiated by the media device driver.
+To retain current debug trace semantic (so it's possible to distinguish
+between the capture and m2m FIMC) the video_device is used in place
+of v4l2_device where appropriate.
 
-On Mi=C3=A9rcoles, 13 de Julio de 2011 14:41:30 Mauro Carvalho Chehab escri=
-bi=C3=B3:
-> Em 06-07-2011 19:57, Jose Alberto Reguero escreveu:
-> > This patch add suport for the dvb-t part of CT-3650.
-> >=20
-> > Jose Alberto
-> >=20
-> > Signed-off-by: Jose Alberto Reguero <jareguero@telefonica.net>
-> >=20
-> > patches/lmml_951522_add_support_for_the_dvb_t_part_of_ct_3650_v2.patch
-> > Content-Type: text/plain; charset=3D"utf-8"
-> > MIME-Version: 1.0
-> > Content-Transfer-Encoding: 7bit
-> > Subject: add support for the dvb-t part of CT-3650 v2
-> > Date: Wed, 06 Jul 2011 22:57:04 -0000
-> > From: Jose Alberto Reguero <jareguero@telefonica.net>
-> > X-Patchwork-Id: 951522
-> > Message-Id: <201107070057.06317.jareguero@telefonica.net>
-> > To: linux-media@vger.kernel.org
-> >=20
-> > This patch add suport for the dvb-t part of CT-3650.
-> >=20
-> > Jose Alberto
-> >=20
-> > Signed-off-by: Jose Alberto Reguero <jareguero@telefonica.net>
-> >=20
-> >=20
-> > diff -ur linux/drivers/media/common/tuners/tda827x.c
-> > linux.new/drivers/media/common/tuners/tda827x.c ---
-> > linux/drivers/media/common/tuners/tda827x.c	2010-07-03
-> > 23:22:08.000000000 +0200 +++
-> > linux.new/drivers/media/common/tuners/tda827x.c	2011-07-04
-> > 12:00:29.931561053 +0200 @@ -135,14 +135,29 @@
-> >=20
-> >  static int tuner_transfer(struct dvb_frontend *fe,
-> > =20
-> >  			  struct i2c_msg *msg,
-> >=20
-> > -			  const int size)
-> > +			  int size)
-> >=20
-> >  {
-> > =20
-> >  	int rc;
-> >  	struct tda827x_priv *priv =3D fe->tuner_priv;
-> >=20
-> > +	struct i2c_msg msgr[2];
-> >=20
-> >  	if (fe->ops.i2c_gate_ctrl)
-> >  =09
-> >  		fe->ops.i2c_gate_ctrl(fe, 1);
-> >=20
-> > -	rc =3D i2c_transfer(priv->i2c_adap, msg, size);
-> > +	if (priv->cfg->i2cr && (msg->flags =3D=3D I2C_M_RD)) {
-> > +		msgr[0].addr =3D msg->addr;
-> > +		msgr[0].flags =3D 0;
-> > +		msgr[0].len =3D msg->len - 1;
-> > +		msgr[0].buf =3D msg->buf;
-> > +		msgr[1].addr =3D msg->addr;
-> > +		msgr[1].flags =3D I2C_M_RD;
-> > +		msgr[1].len =3D 1;
-> > +		msgr[1].buf =3D msg->buf;
-> > +		size =3D 2;
-> > +		rc =3D i2c_transfer(priv->i2c_adap, msgr, size);
-> > +		msg->buf[msg->len - 1] =3D msgr[1].buf[0];
-> > +	} else {
-> > +		rc =3D i2c_transfer(priv->i2c_adap, msg, size);
-> > +	}
-> >=20
-> >  	if (fe->ops.i2c_gate_ctrl)
-> >  =09
-> >  		fe->ops.i2c_gate_ctrl(fe, 0);
->=20
-> No. You should be applying such fix at the I2C adapter instead. This is t=
-he
-> code at the ttusb2 driver:
->=20
-> static int ttusb2_i2c_xfer(struct i2c_adapter *adap,struct i2c_msg
-> msg[],int num) {
-> 	struct dvb_usb_device *d =3D i2c_get_adapdata(adap);
-> 	static u8 obuf[60], ibuf[60];
-> 	int i,read;
->=20
-> 	if (mutex_lock_interruptible(&d->i2c_mutex) < 0)
-> 		return -EAGAIN;
->=20
-> 	if (num > 2)
-> 		warn("more than 2 i2c messages at a time is not handled yet.=20
-TODO.");
->=20
-> 	for (i =3D 0; i < num; i++) {
-> 		read =3D i+1 < num && (msg[i+1].flags & I2C_M_RD);
->=20
-> 		obuf[0] =3D (msg[i].addr << 1) | read;
-> 		obuf[1] =3D msg[i].len;
->=20
-> 		/* read request */
-> 		if (read)
-> 			obuf[2] =3D msg[i+1].len;
-> 		else
-> 			obuf[2] =3D 0;
->=20
-> 		memcpy(&obuf[3],msg[i].buf,msg[i].len);
->=20
-> 		if (ttusb2_msg(d, CMD_I2C_XFER, obuf, msg[i].len+3, ibuf, obuf[2] +=20
-3) <
-> 0) { err("i2c transfer failed.");
-> 			break;
-> 		}
->=20
-> 		if (read) {
-> 			memcpy(msg[i+1].buf,&ibuf[3],msg[i+1].len);
-> 			i++;
-> 		}
-> 	}
->=20
-> 	mutex_unlock(&d->i2c_mutex);
-> 	return i;
-> }
->=20
-> Clearly, this routine has issues, as it assumes that all transfers with
-> reads will be broken into just two msgs, where the first one is a write,
-> and a second one is a read, and that no transfers will be bigger than 2
-> messages.
->=20
-> It shouldn't be hard to adapt it to handle transfers on either way, and to
-> remove the limit of 2 transfers.
->=20
-> > @@ -540,7 +555,7 @@
-> >=20
-> >  		if_freq =3D 5000000;
-> >  		break;
-> >  =09
-> >  	}
-> >=20
-> > -	tuner_freq =3D params->frequency + if_freq;
-> > +	tuner_freq =3D params->frequency;
-> >=20
-> >  	if (fe->ops.info.type =3D=3D FE_QAM) {
-> >  =09
-> >  		dprintk("%s select tda827xa_dvbc\n", __func__);
-> >=20
-> > @@ -554,6 +569,8 @@
-> >=20
-> >  		i++;
-> >  =09
-> >  	}
-> >=20
-> > +	tuner_freq +=3D if_freq;
-> > +
-> >=20
-> >  	N =3D ((tuner_freq + 31250) / 62500) << frequency_map[i].spd;
-> >  	buf[0] =3D 0;            // subaddress
-> >  	buf[1] =3D N >> 8;
->=20
-> This seems to be a bug fix, but you're touching only at the DVB-C. If the
-> table lookup should not consider if_freq, the same fix is needed on the
-> other similar logics at the driver.
->=20
-> Also, please send such patch in separate.
->
+Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+---
+ drivers/media/video/s5p-fimc/fimc-capture.c |   43 ++++++----------
+ drivers/media/video/s5p-fimc/fimc-core.c    |   70 ++++++++++----------------
+ drivers/media/video/s5p-fimc/fimc-core.h    |   15 +++---
+ drivers/media/video/s5p-fimc/fimc-reg.c     |    7 ++-
+ 4 files changed, 55 insertions(+), 80 deletions(-)
 
-Only tested with tda827xa and DVB-T and two limit frecuencies.=20
-
- Signed-off-by: Jose Alberto Reguero <jareguero@telefonica.net>
-
-Jose Alberto
-
-> > diff -ur linux/drivers/media/common/tuners/tda827x.h
-> > linux.new/drivers/media/common/tuners/tda827x.h ---
-> > linux/drivers/media/common/tuners/tda827x.h	2010-07-03
-> > 23:22:08.000000000 +0200 +++
-> > linux.new/drivers/media/common/tuners/tda827x.h	2011-05-21
-> > 22:48:31.484340005 +0200 @@ -38,6 +38,8 @@
-> >=20
-> >  	int 	     switch_addr;
-> >  =09
-> >  	void (*agcf)(struct dvb_frontend *fe);
-> >=20
-> > +
-> > +	u8 i2cr;
-> >=20
-> >  };
->=20
-> Nack. Fix the transfer routine at the ttusb2 side.
->=20
-> > diff -ur linux/drivers/media/dvb/dvb-usb/ttusb2.c
-> > linux.new/drivers/media/dvb/dvb-usb/ttusb2.c ---
-> > linux/drivers/media/dvb/dvb-usb/ttusb2.c	2011-01-10 16:24:45.000000000
-> > +0100 +++ linux.new/drivers/media/dvb/dvb-usb/ttusb2.c	2011-07-05
-> > 12:35:51.842182196 +0200 @@ -30,6 +30,7 @@
-> >=20
-> >  #include "tda826x.h"
-> >  #include "tda10086.h"
-> >  #include "tda1002x.h"
-> >=20
-> > +#include "tda10048.h"
-> >=20
-> >  #include "tda827x.h"
-> >  #include "lnbp21.h"
-> >=20
-> > @@ -44,6 +45,7 @@
-> >=20
-> >  struct ttusb2_state {
-> > =20
-> >  	u8 id;
-> >  	u16 last_rc_key;
-> >=20
-> > +	struct dvb_frontend *fe;
-> >=20
-> >  };
-> > =20
-> >  static int ttusb2_msg(struct dvb_usb_device *d, u8 cmd,
-> >=20
-> > @@ -190,6 +190,22 @@
-> >=20
-> >  	.deltaf =3D 0xa511,
-> > =20
-> >  };
-> >=20
-> > +static struct tda10048_config tda10048_config =3D {
-> > +	.demod_address    =3D 0x10 >> 1,
-> > +	.output_mode      =3D TDA10048_PARALLEL_OUTPUT,
-> > +	.inversion        =3D TDA10048_INVERSION_ON,
-> > +	.dtv6_if_freq_khz =3D TDA10048_IF_4000,
-> > +	.dtv7_if_freq_khz =3D TDA10048_IF_4500,
-> > +	.dtv8_if_freq_khz =3D TDA10048_IF_5000,
-> > +	.clk_freq_khz     =3D TDA10048_CLK_16000,
-> > +	.no_firmware      =3D 1,
-> > +};
-> > +
-> > +static struct tda827x_config tda827x_config =3D {
-> > +	.i2cr =3D 1,
-> > +	.config =3D 0,
-> > +};
-> > +
-> >=20
-> >  static int ttusb2_frontend_tda10086_attach(struct dvb_usb_adapter *ada=
-p)
-> >  {
-> > =20
-> >  	if (usb_set_interface(adap->dev->udev,0,3) < 0)
-> >=20
-> > @@ -205,18 +221,32 @@
-> >=20
-> >  static int ttusb2_frontend_tda10023_attach(struct dvb_usb_adapter *ada=
-p)
-> >  {
-> >=20
-> > +
-> > +	struct ttusb2_state *state;
-> >=20
-> >  	if (usb_set_interface(adap->dev->udev, 0, 3) < 0)
-> >  =09
-> >  		err("set interface to alts=3D3 failed");
-> >=20
-> > +	state =3D (struct ttusb2_state *)adap->dev->priv;
-> >=20
-> >  	if ((adap->fe =3D dvb_attach(tda10023_attach, &tda10023_config,
-> >  	&adap->dev->i2c_adap, 0x48)) =3D=3D NULL) {
-> >  =09
-> >  		deb_info("TDA10023 attach failed\n");
-> >  		return -ENODEV;
-> >  =09
-> >  	}
-> >=20
-> > +	adap->fe->id =3D 1;
-> > +	tda10048_config.fe =3D adap->fe;
-> > +	if ((state->fe =3D dvb_attach(tda10048_attach, &tda10048_config,
-> > &adap->dev->i2c_adap)) =3D=3D NULL) { +		deb_info("TDA10048 attach
-> > failed\n");
-> > +		return -ENODEV;
-> > +	}
-> > +	dvb_register_frontend(&adap->dvb_adap, state->fe);
-> > +	if (dvb_attach(tda827x_attach, state->fe, 0x61, &adap->dev->i2c_adap,
-> > &tda827x_config) =3D=3D NULL) { +		printk(KERN_ERR "%s: No tda827x
-> > found!\n", __func__);
-> > +		return -ENODEV;
-> > +	}
-> >=20
-> >  	return 0;
-> > =20
-> >  }
-> > =20
-> >  static int ttusb2_tuner_tda827x_attach(struct dvb_usb_adapter *adap)
-> >  {
-> >=20
-> > -	if (dvb_attach(tda827x_attach, adap->fe, 0x61, &adap->dev->i2c_adap,
-> > NULL) =3D=3D NULL) { +	if (dvb_attach(tda827x_attach, adap->fe, 0x61,
-> > &adap->dev->i2c_adap, &tda827x_config) =3D=3D NULL) {
-> >=20
-> >  		printk(KERN_ERR "%s: No tda827x found!\n", __func__);
-> >  		return -ENODEV;
-> >  =09
-> >  	}
-> >=20
-> > @@ -242,6 +272,19 @@
-> >=20
-> >  static struct dvb_usb_device_properties ttusb2_properties_s2400;
-> >  static struct dvb_usb_device_properties ttusb2_properties_ct3650;
-> >=20
-> > +static void ttusb2_usb_disconnect (struct usb_interface *intf)
-> > +{
-> > +	struct dvb_usb_device *d =3D usb_get_intfdata (intf);
-> > +	struct ttusb2_state * state;
-> > +
-> > +	state =3D (struct ttusb2_state *)d->priv;
-> > +	if (state->fe) {
-> > +		dvb_unregister_frontend(state->fe);
-> > +		dvb_frontend_detach(state->fe);
-> > +	}
-> > +	dvb_usb_device_exit (intf);
->=20
-> CodingStyle: don't put a space on the above. Please, always check your
-> patches with ./script/checkpatch.pl
->=20
-> > +}
-> > +
-> >=20
-> >  static int ttusb2_probe(struct usb_interface *intf,
-> > =20
-> >  		const struct usb_device_id *id)
-> > =20
-> >  {
-> >=20
-> > @@ -422,7 +465,7 @@
-> >=20
-> >  static struct usb_driver ttusb2_driver =3D {
-> > =20
-> >  	.name		=3D "dvb_usb_ttusb2",
-> >  	.probe		=3D ttusb2_probe,
-> >=20
-> > -	.disconnect =3D dvb_usb_device_exit,
-> > +	.disconnect =3D ttusb2_usb_disconnect,
-> >=20
-> >  	.id_table	=3D ttusb2_table,
-> > =20
-> >  };
-> >=20
-> > diff -ur linux/drivers/media/dvb/frontends/Makefile
-> > linux.new/drivers/media/dvb/frontends/Makefile ---
-> > linux/drivers/media/dvb/frontends/Makefile	2011-05-06 05:45:29.000000000
-> > +0200 +++ linux.new/drivers/media/dvb/frontends/Makefile	2011-07-05
-> > 01:36:24.621564185 +0200 @@ -4,6 +4,7 @@
-> >=20
-> >  EXTRA_CFLAGS +=3D -Idrivers/media/dvb/dvb-core/
-> >  EXTRA_CFLAGS +=3D -Idrivers/media/common/tuners/
-> >=20
-> > +EXTRA_CFLAGS +=3D -Idrivers/media/dvb/dvb-usb/
-> >=20
-> >  stb0899-objs =3D stb0899_drv.o stb0899_algo.o
-> >  stv0900-objs =3D stv0900_core.o stv0900_sw.o
-> >=20
-> > diff -ur linux/drivers/media/dvb/frontends/tda10048.c
-> > linux.new/drivers/media/dvb/frontends/tda10048.c ---
-> > linux/drivers/media/dvb/frontends/tda10048.c	2010-10-25
-> > 01:34:58.000000000 +0200 +++
-> > linux.new/drivers/media/dvb/frontends/tda10048.c	2011-07-05
-> > 01:57:47.758466025 +0200 @@ -30,6 +30,7 @@
-> >=20
-> >  #include "dvb_frontend.h"
-> >  #include "dvb_math.h"
-> >  #include "tda10048.h"
-> >=20
-> > +#include "dvb-usb.h"
-> >=20
-> >  #define TDA10048_DEFAULT_FIRMWARE "dvb-fe-tda10048-1.0.fw"
-> >  #define TDA10048_DEFAULT_FIRMWARE_SIZE 24878
-> >=20
-> > @@ -214,6 +215,8 @@
-> >=20
-> >  	{ TDA10048_CLK_16000, TDA10048_IF_3800,  10, 3, 0 },
-> >  	{ TDA10048_CLK_16000, TDA10048_IF_4000,  10, 3, 0 },
-> >  	{ TDA10048_CLK_16000, TDA10048_IF_4300,  10, 3, 0 },
-> >=20
-> > +	{ TDA10048_CLK_16000, TDA10048_IF_4500,   5, 3, 0 },
-> > +	{ TDA10048_CLK_16000, TDA10048_IF_5000,   5, 3, 0 },
-> >=20
-> >  	{ TDA10048_CLK_16000, TDA10048_IF_36130, 10, 3, 0 },
-> > =20
-> >  };
-> >=20
-> > @@ -429,6 +432,19 @@
-> >=20
-> >  	return 0;
-> > =20
-> >  }
-> >=20
-> > +static int tda10048_set_pll(struct dvb_frontend *fe)
-> > +{
-> > +	struct tda10048_state *state =3D fe->demodulator_priv;
-> > +
-> > +	dprintk(1, "%s()\n", __func__);
-> > +
-> > +	tda10048_writereg(state, TDA10048_CONF_PLL1, 0x0f);
-> > +	tda10048_writereg(state, TDA10048_CONF_PLL2, (u8)(state-
->pll_mfactor));
-> > +	tda10048_writereg(state, TDA10048_CONF_PLL3, tda10048_readreg(state,
-> > TDA10048_CONF_PLL3) | ((u8)(state->pll_nfactor) | 0x40)); +
-> > +	return 0;
-> > +}
-> > +
-> >=20
-> >  static int tda10048_set_if(struct dvb_frontend *fe, enum fe_bandwidth
-> >  bw) {
-> > =20
-> >  	struct tda10048_state *state =3D fe->demodulator_priv;
-> >=20
-> > @@ -478,6 +494,9 @@
-> >=20
-> >  	dprintk(1, "- pll_nfactor =3D %d\n", state->pll_nfactor);
-> >  	dprintk(1, "- pll_pfactor =3D %d\n", state->pll_pfactor);
-> >=20
-> > +	/* Set the  pll registers */
-> > +	tda10048_set_pll(fe);
-> > +
-> >=20
-> >  	/* Calculate the sample frequency */
-> >  	state->sample_freq =3D state->xtal_hz * (state->pll_mfactor + 45);
-> >  	state->sample_freq /=3D (state->pll_nfactor + 1);
-> >=20
-> > @@ -710,12 +729,16 @@
-> >=20
-> >  	if (config->disable_gate_access)
-> >  =09
-> >  		return 0;
-> >=20
-> > -	if (enable)
-> > -		return tda10048_writereg(state, TDA10048_CONF_C4_1,
-> > -			tda10048_readreg(state, TDA10048_CONF_C4_1) | 0x02);
-> > -	else
-> > -		return tda10048_writereg(state, TDA10048_CONF_C4_1,
-> > -			tda10048_readreg(state, TDA10048_CONF_C4_1) & 0xfd);
-> > +	if (config->fe && config->fe->ops.i2c_gate_ctrl) {
-> > +		return config->fe->ops.i2c_gate_ctrl(config->fe, enable);
-> > +	} else {
-> > +		if (enable)
-> > +			return tda10048_writereg(state, TDA10048_CONF_C4_1,
-> > +				tda10048_readreg(state, TDA10048_CONF_C4_1) | 0x02);
-> > +		else
-> > +			return tda10048_writereg(state, TDA10048_CONF_C4_1,
-> > +				tda10048_readreg(state, TDA10048_CONF_C4_1) & 0xfd);
-> > +	}
-> >=20
-> >  }
-> > =20
-> >  static int tda10048_output_mode(struct dvb_frontend *fe, int serial)
-> >=20
-> > @@ -772,20 +795,45 @@
-> >=20
-> >  	return 0;
-> > =20
-> >  }
-> >=20
-> > +static int tda10048_sleep(struct dvb_frontend *fe)
-> > +{
-> > +	struct tda10048_state *state =3D fe->demodulator_priv;
-> > +	struct tda10048_config *config =3D &state->config;
-> > +	struct dvb_usb_adapter *adap;
-> > +
-> > +	dprintk(1, "%s()\n", __func__);
-> > +
-> > +	if (config->fe) {
-> > +		adap =3D fe->dvb->priv;
-> > +		if (adap->dev->props.power_ctrl)
-> > +			adap->dev->props.power_ctrl(adap->dev, 0);
-> > +	}
-> > +
-> > +	return 0;
-> > +}
-> > +
-> >=20
-> >  /* Establish sane defaults and load firmware. */
-> >  static int tda10048_init(struct dvb_frontend *fe)
-> >  {
-> > =20
-> >  	struct tda10048_state *state =3D fe->demodulator_priv;
-> >  	struct tda10048_config *config =3D &state->config;
-> >=20
-> > +	struct dvb_usb_adapter *adap;
-> >=20
-> >  	int ret =3D 0, i;
-> >  =09
-> >  	dprintk(1, "%s()\n", __func__);
-> >=20
-> > +	if (config->fe) {
-> > +		adap =3D fe->dvb->priv;
-> > +		if (adap->dev->props.power_ctrl)
-> > +			adap->dev->props.power_ctrl(adap->dev, 1);
-> > +	}
-> > +
-> > +
-> >=20
-> >  	/* Apply register defaults */
-> >  	for (i =3D 0; i < ARRAY_SIZE(init_tab); i++)
-> >  =09
-> >  		tda10048_writereg(state, init_tab[i].reg, init_tab[i].data);
-> >=20
-> > -	if (state->fwloaded =3D=3D 0)
-> > +	if ((state->fwloaded =3D=3D 0) && (!config->no_firmware))
-> >=20
-> >  		ret =3D tda10048_firmware_upload(fe);
-> >  =09
-> >  	/* Set either serial or parallel */
-> >=20
-> > @@ -1174,6 +1222,7 @@
-> >=20
-> >  	.release =3D tda10048_release,
-> >  	.init =3D tda10048_init,
-> >=20
-> > +	.sleep =3D tda10048_sleep,
-> >=20
-> >  	.i2c_gate_ctrl =3D tda10048_i2c_gate_ctrl,
-> >  	.set_frontend =3D tda10048_set_frontend,
-> >  	.get_frontend =3D tda10048_get_frontend,
-> >=20
-> > diff -ur linux/drivers/media/dvb/frontends/tda10048.h
-> > linux.new/drivers/media/dvb/frontends/tda10048.h ---
-> > linux/drivers/media/dvb/frontends/tda10048.h	2010-07-03
-> > 23:22:08.000000000 +0200 +++
-> > linux.new/drivers/media/dvb/frontends/tda10048.h	2011-07-05
-> > 02:02:42.775466043 +0200 @@ -51,6 +51,7 @@
-> >=20
-> >  #define TDA10048_IF_4300  4300
-> >  #define TDA10048_IF_4500  4500
-> >  #define TDA10048_IF_4750  4750
-> >=20
-> > +#define TDA10048_IF_5000  5000
-> >=20
-> >  #define TDA10048_IF_36130 36130
-> > =20
-> >  	u16 dtv6_if_freq_khz;
-> >  	u16 dtv7_if_freq_khz;
-> >=20
-> > @@ -62,6 +63,10 @@
-> >=20
-> >  	/* Disable I2C gate access */
-> >  	u8 disable_gate_access;
-> >=20
-> > +
-> > +	u8 no_firmware;
-> > +
-> > +	struct dvb_frontend *fe;
-> >=20
-> >  };
-> > =20
-> >  #if defined(CONFIG_DVB_TDA10048) || \
->=20
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-
---Boundary-00=_ngXIOSTtHdJZlCr
-Content-Type: text/x-patch;
-  charset="UTF-8";
-  name="tda727x.diff"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: attachment;
-	filename="tda727x.diff"
-
-diff -ur linux/drivers/media/common/tuners/tda827x.c linux.new/drivers/media/common/tuners/tda827x.c
---- linux/drivers/media/common/tuners/tda827x.c	2010-07-03 23:22:08.000000000 +0200
-+++ linux.new/drivers/media/common/tuners/tda827x.c	2011-07-16 13:20:40.426284643 +0200
-@@ -176,7 +176,7 @@
- 		if_freq = 5000000;
+diff --git a/drivers/media/video/s5p-fimc/fimc-capture.c b/drivers/media/video/s5p-fimc/fimc-capture.c
+index e7aa61e..70892e4 100644
+--- a/drivers/media/video/s5p-fimc/fimc-capture.c
++++ b/drivers/media/video/s5p-fimc/fimc-capture.c
+@@ -130,7 +130,6 @@ static int start_streaming(struct vb2_queue *q)
+ 	fimc->vid_cap.buf_index = 0;
+ 
+ 	set_bit(ST_CAPT_PEND, &fimc->state);
+-
+ 	return 0;
+ }
+ 
+@@ -177,7 +176,6 @@ static int buffer_prepare(struct vb2_buffer *vb)
+ {
+ 	struct vb2_queue *vq = vb->vb2_queue;
+ 	struct fimc_ctx *ctx = vq->drv_priv;
+-	struct v4l2_device *v4l2_dev = &ctx->fimc_dev->m2m.v4l2_dev;
+ 	int i;
+ 
+ 	if (!ctx->d_frame.fmt || vq->type != V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE)
+@@ -187,7 +185,8 @@ static int buffer_prepare(struct vb2_buffer *vb)
+ 		unsigned long size = get_plane_size(&ctx->d_frame, i);
+ 
+ 		if (vb2_plane_size(vb, i) < size) {
+-			v4l2_err(v4l2_dev, "User buffer too small (%ld < %ld)\n",
++			v4l2_err(ctx->fimc_dev->vid_cap.vfd,
++				 "User buffer too small (%ld < %ld)\n",
+ 				 vb2_plane_size(vb, i), size);
+ 			return -EINVAL;
+ 		}
+@@ -398,7 +397,8 @@ static int fimc_cap_s_fmt_mplane(struct file *file, void *priv,
+ 	pix = &f->fmt.pix_mp;
+ 	frame->fmt = find_format(f, FMT_FLAGS_M2M | FMT_FLAGS_CAM);
+ 	if (!frame->fmt) {
+-		err("fimc target format not found\n");
++		v4l2_err(fimc->vid_cap.vfd,
++			 "Not supported capture (FIMC target) color format\n");
+ 		return -EINVAL;
+ 	}
+ 
+@@ -458,7 +458,7 @@ static int fimc_cap_streamon(struct file *file, void *priv,
+ 		return -EBUSY;
+ 
+ 	if (!(ctx->state & FIMC_DST_FMT)) {
+-		v4l2_err(&fimc->vid_cap.v4l2_dev, "Format is not set\n");
++		v4l2_err(fimc->vid_cap.vfd, "Format is not set\n");
+ 		return -EINVAL;
+ 	}
+ 
+@@ -588,9 +588,8 @@ static int fimc_cap_s_crop(struct file *file, void *fh,
+ 		return ret;
+ 
+ 	if (!(ctx->state & FIMC_DST_FMT)) {
+-		v4l2_err(&fimc->vid_cap.v4l2_dev,
+-			 "Capture color format not set\n");
+-		return -EINVAL; /* TODO: make sure this is the right value */
++		v4l2_err(fimc->vid_cap.vfd, "Capture format is not set\n");
++		return -EINVAL;
+ 	}
+ 
+ 	f = &ctx->s_frame;
+@@ -599,7 +598,7 @@ static int fimc_cap_s_crop(struct file *file, void *fh,
+ 				      ctx->d_frame.width, ctx->d_frame.height,
+ 				      ctx->rotation);
+ 	if (ret) {
+-		v4l2_err(&fimc->vid_cap.v4l2_dev, "Out of the scaler range\n");
++		v4l2_err(fimc->vid_cap.vfd, "Out of the scaler range\n");
+ 		return ret;
+ 	}
+ 
+@@ -643,16 +642,16 @@ static const struct v4l2_ioctl_ops fimc_capture_ioctl_ops = {
+ };
+ 
+ /* fimc->lock must be already initialized */
+-int fimc_register_capture_device(struct fimc_dev *fimc)
++int fimc_register_capture_device(struct fimc_dev *fimc,
++				 struct v4l2_device *v4l2_dev)
+ {
+-	struct v4l2_device *v4l2_dev = &fimc->vid_cap.v4l2_dev;
+ 	struct video_device *vfd;
+ 	struct fimc_vid_cap *vid_cap;
+ 	struct fimc_ctx *ctx;
+ 	struct v4l2_format f;
+ 	struct fimc_frame *fr;
+ 	struct vb2_queue *q;
+-	int ret;
++	int ret = -ENOMEM;
+ 
+ 	ctx = kzalloc(sizeof *ctx, GFP_KERNEL);
+ 	if (!ctx)
+@@ -670,20 +669,14 @@ int fimc_register_capture_device(struct fimc_dev *fimc)
+ 	fr->width = fr->f_width = fr->o_width = 640;
+ 	fr->height = fr->f_height = fr->o_height = 480;
+ 
+-	snprintf(v4l2_dev->name, sizeof(v4l2_dev->name),
+-		 "%s.capture", dev_name(&fimc->pdev->dev));
+-
+-	ret = v4l2_device_register(NULL, v4l2_dev);
+-	if (ret)
+-		goto err_info;
+-
+ 	vfd = video_device_alloc();
+ 	if (!vfd) {
+ 		v4l2_err(v4l2_dev, "Failed to allocate video device\n");
+-		goto err_v4l2_reg;
++		goto err_vd_alloc;
+ 	}
+ 
+-	strlcpy(vfd->name, v4l2_dev->name, sizeof(vfd->name));
++	snprintf(vfd->name, sizeof(vfd->name), "%s.capture",
++		 dev_name(&fimc->pdev->dev));
+ 
+ 	vfd->fops	= &fimc_capture_fops;
+ 	vfd->ioctl_ops	= &fimc_capture_ioctl_ops;
+@@ -728,8 +721,7 @@ int fimc_register_capture_device(struct fimc_dev *fimc)
+ 		goto err_vd_reg;
+ 	}
+ 
+-	v4l2_info(v4l2_dev,
+-		  "FIMC capture driver registered as /dev/video%d\n",
++	v4l2_info(vfd, "FIMC capture driver registered as /dev/video%d\n",
+ 		  vfd->num);
+ 	return 0;
+ 
+@@ -737,11 +729,8 @@ err_vd_reg:
+ 	media_entity_cleanup(&vfd->entity);
+ err_ent:
+ 	video_device_release(vfd);
+-err_v4l2_reg:
+-	v4l2_device_unregister(v4l2_dev);
+-err_info:
++err_vd_alloc:
+ 	kfree(ctx);
+-	dev_err(&fimc->pdev->dev, "failed to install\n");
+ 	return ret;
+ }
+ 
+diff --git a/drivers/media/video/s5p-fimc/fimc-core.c b/drivers/media/video/s5p-fimc/fimc-core.c
+index fd6a308..8e2f2ee 100644
+--- a/drivers/media/video/s5p-fimc/fimc-core.c
++++ b/drivers/media/video/s5p-fimc/fimc-core.c
+@@ -236,10 +236,11 @@ static int fimc_get_scaler_factor(u32 src, u32 tar, u32 *ratio, u32 *shift)
+ 
+ int fimc_set_scaler_info(struct fimc_ctx *ctx)
+ {
++	struct samsung_fimc_variant *variant = ctx->fimc_dev->variant;
++	struct device *dev = &ctx->fimc_dev->pdev->dev;
+ 	struct fimc_scaler *sc = &ctx->scaler;
+ 	struct fimc_frame *s_frame = &ctx->s_frame;
+ 	struct fimc_frame *d_frame = &ctx->d_frame;
+-	struct samsung_fimc_variant *variant = ctx->fimc_dev->variant;
+ 	int tx, ty, sx, sy;
+ 	int ret;
+ 
+@@ -251,15 +252,14 @@ int fimc_set_scaler_info(struct fimc_ctx *ctx)
+ 		ty = d_frame->height;
+ 	}
+ 	if (tx <= 0 || ty <= 0) {
+-		v4l2_err(&ctx->fimc_dev->m2m.v4l2_dev,
+-			"invalid target size: %d x %d", tx, ty);
++		dev_err(dev, "Invalid target size: %dx%d", tx, ty);
+ 		return -EINVAL;
+ 	}
+ 
+ 	sx = s_frame->width;
+ 	sy = s_frame->height;
+ 	if (sx <= 0 || sy <= 0) {
+-		err("invalid source size: %d x %d", sx, sy);
++		dev_err(dev, "Invalid source size: %dx%d", sx, sy);
+ 		return -EINVAL;
+ 	}
+ 	sc->real_width = sx;
+@@ -898,7 +898,7 @@ int fimc_vidioc_try_fmt_mplane(struct file *file, void *priv,
+ 	mask = is_output ? FMT_FLAGS_M2M : FMT_FLAGS_M2M | FMT_FLAGS_CAM;
+ 	fmt = find_format(f, mask);
+ 	if (!fmt) {
+-		v4l2_err(&fimc->m2m.v4l2_dev, "Fourcc format (0x%X) invalid.\n",
++		v4l2_err(fimc->v4l2_dev, "Fourcc format (0x%X) invalid.\n",
+ 			 pix->pixelformat);
+ 		return -EINVAL;
+ 	}
+@@ -973,7 +973,7 @@ static int fimc_m2m_s_fmt_mplane(struct file *file, void *priv,
+ 	vq = v4l2_m2m_get_vq(ctx->m2m_ctx, f->type);
+ 
+ 	if (vb2_is_busy(vq)) {
+-		v4l2_err(&fimc->m2m.v4l2_dev, "queue (%d) busy\n", f->type);
++		v4l2_err(fimc->m2m.vfd, "queue (%d) busy\n", f->type);
+ 		return -EBUSY;
+ 	}
+ 
+@@ -982,7 +982,7 @@ static int fimc_m2m_s_fmt_mplane(struct file *file, void *priv,
+ 	} else if (f->type == V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE) {
+ 		frame = &ctx->d_frame;
+ 	} else {
+-		v4l2_err(&fimc->m2m.v4l2_dev,
++		v4l2_err(fimc->m2m.vfd,
+ 			 "Wrong buffer/video queue type (%d)\n", f->type);
+ 		return -EINVAL;
+ 	}
+@@ -1110,7 +1110,7 @@ int fimc_vidioc_g_ctrl(struct file *file, void *priv,
+ 			return v4l2_subdev_call(fimc->vid_cap.sd, core,
+ 						g_ctrl, ctrl);
+ 		} else {
+-			v4l2_err(&fimc->m2m.v4l2_dev, "Invalid control\n");
++			v4l2_err(fimc->m2m.vfd, "Invalid control\n");
+ 			return -EINVAL;
+ 		}
+ 	}
+@@ -1128,8 +1128,7 @@ int check_ctrl_val(struct fimc_ctx *ctx,  struct v4l2_control *ctrl)
+ 
+ 	if (ctrl->value < c->minimum || ctrl->value > c->maximum
+ 		|| (c->step != 0 && ctrl->value % c->step != 0)) {
+-		v4l2_err(&ctx->fimc_dev->m2m.v4l2_dev,
+-		"Invalid control value\n");
++		v4l2_err(ctx->fimc_dev->m2m.vfd, "Invalid control value\n");
+ 		return -ERANGE;
+ 	}
+ 
+@@ -1165,7 +1164,7 @@ int fimc_s_ctrl(struct fimc_ctx *ctx, struct v4l2_control *ctrl)
+ 		}
+ 
+ 		if (ret) {
+-			v4l2_err(&fimc->m2m.v4l2_dev, "Out of scaler range\n");
++			v4l2_err(fimc->m2m.vfd, "Out of scaler range\n");
+ 			return -EINVAL;
+ 		}
+ 
+@@ -1177,7 +1176,7 @@ int fimc_s_ctrl(struct fimc_ctx *ctx, struct v4l2_control *ctrl)
  		break;
- 	}
--	tuner_freq = params->frequency + if_freq;
-+	tuner_freq = params->frequency;
  
- 	i = 0;
- 	while (tda827x_table[i].lomax < tuner_freq) {
-@@ -185,6 +185,8 @@
- 		i++;
+ 	default:
+-		v4l2_err(&fimc->m2m.v4l2_dev, "Invalid control\n");
++		v4l2_err(fimc->v4l2_dev, "Invalid control\n");
+ 		return -EINVAL;
  	}
  
-+	tuner_freq += if_freq;
+@@ -1245,7 +1244,7 @@ int fimc_try_crop(struct fimc_ctx *ctx, struct v4l2_crop *cr)
+ 	int i;
+ 
+ 	if (cr->c.top < 0 || cr->c.left < 0) {
+-		v4l2_err(&fimc->m2m.v4l2_dev,
++		v4l2_err(fimc->m2m.vfd,
+ 			"doesn't support negative values for top & left\n");
+ 		return -EINVAL;
+ 	}
+@@ -1326,7 +1325,7 @@ static int fimc_m2m_s_crop(struct file *file, void *fh, struct v4l2_crop *cr)
+ 						      ctx->rotation);
+ 		}
+ 		if (ret) {
+-			v4l2_err(&fimc->m2m.v4l2_dev, "Out of scaler range\n");
++			v4l2_err(fimc->m2m.vfd, "Out of scaler range\n");
+ 			return -EINVAL;
+ 		}
+ 	}
+@@ -1494,30 +1493,23 @@ static struct v4l2_m2m_ops m2m_ops = {
+ 	.job_abort	= fimc_job_abort,
+ };
+ 
+-int fimc_register_m2m_device(struct fimc_dev *fimc)
++int fimc_register_m2m_device(struct fimc_dev *fimc,
++			     struct v4l2_device *v4l2_dev)
+ {
+ 	struct video_device *vfd;
+ 	struct platform_device *pdev;
+-	struct v4l2_device *v4l2_dev;
+ 	int ret = 0;
+ 
+ 	if (!fimc)
+ 		return -ENODEV;
+ 
+ 	pdev = fimc->pdev;
+-	v4l2_dev = &fimc->m2m.v4l2_dev;
+-
+-	snprintf(v4l2_dev->name, sizeof(v4l2_dev->name),
+-		 "%s.m2m", dev_name(&pdev->dev));
+-
+-	ret = v4l2_device_register(&pdev->dev, v4l2_dev);
+-	if (ret)
+-		goto err_m2m_r1;
++	fimc->v4l2_dev = v4l2_dev;
+ 
+ 	vfd = video_device_alloc();
+ 	if (!vfd) {
+ 		v4l2_err(v4l2_dev, "Failed to allocate video device\n");
+-		goto err_m2m_r1;
++		return -ENOMEM;
+ 	}
+ 
+ 	vfd->fops	= &fimc_m2m_fops;
+@@ -1527,42 +1519,35 @@ int fimc_register_m2m_device(struct fimc_dev *fimc)
+ 	vfd->release	= video_device_release;
+ 	vfd->lock	= &fimc->lock;
+ 
+-	snprintf(vfd->name, sizeof(vfd->name), "%s:m2m", dev_name(&pdev->dev));
+-
++	snprintf(vfd->name, sizeof(vfd->name), "%s.m2m", dev_name(&pdev->dev));
+ 	video_set_drvdata(vfd, fimc);
+-	platform_set_drvdata(pdev, fimc);
+ 
+ 	fimc->m2m.vfd = vfd;
+ 	fimc->m2m.m2m_dev = v4l2_m2m_init(&m2m_ops);
+ 	if (IS_ERR(fimc->m2m.m2m_dev)) {
+ 		v4l2_err(v4l2_dev, "failed to initialize v4l2-m2m device\n");
+ 		ret = PTR_ERR(fimc->m2m.m2m_dev);
+-		goto err_m2m_r2;
++		goto err_init;
+ 	}
+ 
+ 	ret = media_entity_init(&vfd->entity, 0, NULL, 0);
+ 	if (ret)
+-		goto err_m2m_r3;
++		goto err_me;
+ 
+ 	ret = video_register_device(vfd, VFL_TYPE_GRABBER, -1);
+ 	if (ret) {
+-		v4l2_err(v4l2_dev,
+-			 "%s(): failed to register video device\n", __func__);
+-		goto err_m2m_r4;
++		v4l2_err(vfd, "Failed to register video device\n");
++		goto err_vd;
+ 	}
+-	v4l2_info(v4l2_dev,
+-		  "FIMC m2m driver registered as /dev/video%d\n", vfd->num);
+-
++	v4l2_info(vfd, "FIMC m2m driver registered as /dev/video%d\n", vfd->num);
+ 	return 0;
+-err_m2m_r4:
 +
- 	N = ((tuner_freq + 125000) / 250000) << (tda827x_table[i].spd + 2);
- 	buf[0] = 0;
- 	buf[1] = (N>>8) | 0x40;
-@@ -540,7 +542,7 @@
- 		if_freq = 5000000;
- 		break;
- 	}
--	tuner_freq = params->frequency + if_freq;
-+	tuner_freq = params->frequency;
++err_vd:
+ 	media_entity_cleanup(&vfd->entity);
+-err_m2m_r3:
++err_me:
+ 	v4l2_m2m_release(fimc->m2m.m2m_dev);
+-err_m2m_r2:
++err_init:
+ 	video_device_release(fimc->m2m.vfd);
+-err_m2m_r1:
+-	v4l2_device_unregister(v4l2_dev);
+-
+ 	return ret;
+ }
  
- 	if (fe->ops.info.type == FE_QAM) {
- 		dprintk("%s select tda827xa_dvbc\n", __func__);
-@@ -554,6 +556,8 @@
- 		i++;
- 	}
+@@ -1573,7 +1558,6 @@ void fimc_unregister_m2m_device(struct fimc_dev *fimc)
  
-+	tuner_freq += if_freq;
-+
- 	N = ((tuner_freq + 31250) / 62500) << frequency_map[i].spd;
- 	buf[0] = 0;            // subaddress
- 	buf[1] = N >> 8;
+ 	if (fimc->m2m.m2m_dev)
+ 		v4l2_m2m_release(fimc->m2m.m2m_dev);
+-	v4l2_device_unregister(&fimc->m2m.v4l2_dev);
+ 	if (fimc->m2m.vfd) {
+ 		media_entity_cleanup(&fimc->m2m.vfd->entity);
+ 		video_unregister_device(fimc->m2m.vfd);
+diff --git a/drivers/media/video/s5p-fimc/fimc-core.h b/drivers/media/video/s5p-fimc/fimc-core.h
+index 210301e..fe82bf7 100644
+--- a/drivers/media/video/s5p-fimc/fimc-core.h
++++ b/drivers/media/video/s5p-fimc/fimc-core.h
+@@ -281,14 +281,12 @@ struct fimc_frame {
+ /**
+  * struct fimc_m2m_device - v4l2 memory-to-memory device data
+  * @vfd: the video device node for v4l2 m2m mode
+- * @v4l2_dev: v4l2 device for m2m mode
+  * @m2m_dev: v4l2 memory-to-memory device data
+  * @ctx: hardware context data
+  * @refcnt: the reference counter
+  */
+ struct fimc_m2m_device {
+ 	struct video_device	*vfd;
+-	struct v4l2_device	v4l2_dev;
+ 	struct v4l2_m2m_dev	*m2m_dev;
+ 	struct fimc_ctx		*ctx;
+ 	int			refcnt;
+@@ -298,7 +296,6 @@ struct fimc_m2m_device {
+  * struct fimc_vid_cap - camera capture device information
+  * @ctx: hardware context data
+  * @vfd: video device node for camera capture mode
+- * @v4l2_dev: v4l2_device struct to manage subdevs
+  * @sd: pointer to camera sensor subdevice currently in use
+  * @vd_pad: fimc video capture node pad
+  * @fmt: Media Bus format configured at selected image sensor
+@@ -316,7 +313,6 @@ struct fimc_vid_cap {
+ 	struct fimc_ctx			*ctx;
+ 	struct vb2_alloc_ctx		*alloc_ctx;
+ 	struct video_device		*vfd;
+-	struct v4l2_device		v4l2_dev;
+ 	struct v4l2_subdev		*sd;;
+ 	struct media_pad		vd_pad;
+ 	struct v4l2_mbus_framefmt	fmt;
+@@ -407,6 +403,7 @@ struct fimc_ctx;
+  * @regs_res:	the resource claimed for IO registers
+  * @irq:	FIMC interrupt number
+  * @irq_queue:	interrupt handler waitqueue
++ * @v4l2_dev:	root v4l2_device
+  * @m2m:	memory-to-memory V4L2 device information
+  * @vid_cap:	camera capture device information
+  * @state:	flags used to synchronize m2m and capture mode operation
+@@ -425,6 +422,7 @@ struct fimc_dev {
+ 	struct resource			*regs_res;
+ 	int				irq;
+ 	wait_queue_head_t		irq_queue;
++	struct v4l2_device		*v4l2_dev;
+ 	struct fimc_m2m_device		m2m;
+ 	struct fimc_vid_cap		vid_cap;
+ 	unsigned long			state;
+@@ -569,7 +567,7 @@ static inline struct fimc_frame *ctx_get_frame(struct fimc_ctx *ctx,
+ 	} else if (V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE == type) {
+ 		frame = &ctx->d_frame;
+ 	} else {
+-		v4l2_err(&ctx->fimc_dev->m2m.v4l2_dev,
++		v4l2_err(ctx->fimc_dev->v4l2_dev,
+ 			"Wrong buffer/video queue type (%d)\n", type);
+ 		return ERR_PTR(-EINVAL);
+ 	}
+@@ -644,11 +642,14 @@ int fimc_set_scaler_info(struct fimc_ctx *ctx);
+ int fimc_prepare_config(struct fimc_ctx *ctx, u32 flags);
+ int fimc_prepare_addr(struct fimc_ctx *ctx, struct vb2_buffer *vb,
+ 		      struct fimc_frame *frame, struct fimc_addr *paddr);
+-int fimc_register_m2m_device(struct fimc_dev *fimc);
++int fimc_register_m2m_device(struct fimc_dev *fimc,
++			     struct v4l2_device *v4l2_dev);
++void fimc_unregister_m2m_device(struct fimc_dev *fimc);
+ 
+ /* -----------------------------------------------------*/
+ /* fimc-capture.c					*/
+-int fimc_register_capture_device(struct fimc_dev *fimc);
++int fimc_register_capture_device(struct fimc_dev *fimc,
++				 struct v4l2_device *v4l2_dev);
+ void fimc_unregister_capture_device(struct fimc_dev *fimc);
+ int fimc_vid_cap_buf_queue(struct fimc_dev *fimc,
+ 			     struct fimc_vid_buffer *fimc_vb);
+diff --git a/drivers/media/video/s5p-fimc/fimc-reg.c b/drivers/media/video/s5p-fimc/fimc-reg.c
+index 938dadf..c688263 100644
+--- a/drivers/media/video/s5p-fimc/fimc-reg.c
++++ b/drivers/media/video/s5p-fimc/fimc-reg.c
+@@ -596,7 +596,7 @@ int fimc_hw_set_camera_source(struct fimc_dev *fimc,
+ 		}
+ 
+ 		if (i == ARRAY_SIZE(pix_desc)) {
+-			v4l2_err(&fimc->vid_cap.v4l2_dev,
++			v4l2_err(fimc->vid_cap.vfd,
+ 				 "Camera color format not supported: %d\n",
+ 				 fimc->vid_cap.fmt.code);
+ 			return -EINVAL;
+@@ -661,8 +661,9 @@ int fimc_hw_set_camera_type(struct fimc_dev *fimc,
+ 		if (vid_cap->fmt.code == V4L2_MBUS_FMT_VYUY8_2X8) {
+ 			tmp = S5P_CSIIMGFMT_YCBCR422_8BIT;
+ 		} else {
+-			err("camera image format not supported: %d",
+-			    vid_cap->fmt.code);
++			v4l2_err(fimc->vid_cap.vfd,
++				 "Not supported camera pixel format: %d",
++				 vid_cap->fmt.code);
+ 			return -EINVAL;
+ 		}
+ 		tmp |= (cam->csi_data_align == 32) << 8;
+-- 
+1.7.5.4
 
---Boundary-00=_ngXIOSTtHdJZlCr--
