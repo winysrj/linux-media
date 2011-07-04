@@ -1,63 +1,62 @@
-Return-path: <mchehab@localhost>
-Received: from swampdragon.chaosbits.net ([90.184.90.115]:13415 "EHLO
-	swampdragon.chaosbits.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754847Ab1GIVbx (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sat, 9 Jul 2011 17:31:53 -0400
-Date: Sat, 9 Jul 2011 23:22:17 +0200 (CEST)
-From: Jesper Juhl <jj@chaosbits.net>
-To: linux-kernel@vger.kernel.org
-cc: trivial@kernel.org, Mauro Carvalho Chehab <mchehab@infradead.org>,
-	linux-media@vger.kernel.org, Andy Lowe <source@mvista.com>
-Subject: [PATCH 6/7] drivers/media: static should be at beginning of
- declaration
-In-Reply-To: <alpine.LNX.2.00.1107092304160.25516@swampdragon.chaosbits.net>
-Message-ID: <alpine.LNX.2.00.1107092320450.25516@swampdragon.chaosbits.net>
-References: <alpine.LNX.2.00.1107092304160.25516@swampdragon.chaosbits.net>
+Return-path: <mchehab@pedra>
+Received: from moutng.kundenserver.de ([212.227.126.186]:60264 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754352Ab1GDOqZ (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 4 Jul 2011 10:46:25 -0400
+From: Arnd Bergmann <arnd@arndb.de>
+To: Ankita Garg <ankita@in.ibm.com>
+Subject: Re: [Linaro-mm-sig] [PATCH 08/10] mm: cma: Contiguous Memory Allocator added
+Date: Mon, 4 Jul 2011 16:45:29 +0200
+Cc: Larry Bassel <lbassel@codeaurora.org>,
+	Marek Szyprowski <m.szyprowski@samsung.com>,
+	"'Zach Pfeffer'" <zach.pfeffer@linaro.org>,
+	"'Daniel Walker'" <dwalker@codeaurora.org>,
+	"'Daniel Stone'" <daniels@collabora.com>,
+	"'Jesse Barker'" <jesse.barker@linaro.org>,
+	"'Mel Gorman'" <mel@csn.ul.ie>,
+	"'KAMEZAWA Hiroyuki'" <kamezawa.hiroyu@jp.fujitsu.com>,
+	linux-kernel@vger.kernel.org,
+	"'Michal Nazarewicz'" <mina86@mina86.com>,
+	linaro-mm-sig@lists.linaro.org, linux-mm@kvack.org,
+	"'Kyungmin Park'" <kyungmin.park@samsung.com>,
+	"'Andrew Morton'" <akpm@linux-foundation.org>,
+	linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org
+References: <1307699698-29369-1-git-send-email-m.szyprowski@samsung.com> <201106160006.07742.arnd@arndb.de> <20110704052539.GK12667@in.ibm.com>
+In-Reply-To: <20110704052539.GK12667@in.ibm.com>
 MIME-Version: 1.0
-Content-Type: MULTIPART/MIXED; BOUNDARY="8323328-655509267-1310246537=:25516"
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201107041645.29385.arnd@arndb.de>
 List-ID: <linux-media.vger.kernel.org>
-Sender: <mchehab@infradead.org>
+Sender: <mchehab@pedra>
 
-  This message is in MIME format.  The first part should be readable text,
-  while the remaining parts are likely unreadable without MIME-aware tools.
+On Monday 04 July 2011, Ankita Garg wrote:
+> > It still sounds to me that this can be done using the NUMA properties
+> > that Linux already understands, and teaching more subsystems about it,
+> > but maybe the memory hotplug developers have already come up with
+> > another scheme. The way that memory hotplug and CMA choose their
+> > memory regions certainly needs to take both into account. As far as
+> > I can see there are both conflicting and synergistic effects when
+> > you combine the two.
+> > 
+> 
+> Recently, we proposed a generic 'memory regions' framework to exploit
+> the memory power management capabilities on the embedded boards. Think
+> of some of the above CMA requirements could be met by this fraemwork.
+> One of the main goals of regions is to make the VM aware of the hardware
+> memory boundaries, like bank. For managing memory power consumption,
+> memory regions are created aligned to the hardware granularity at which
+> the power can be managed (ie, the memory power consumption operations
+> like on/off can be performed). If attributed are associated with each of
+> these regions, some of these regions could be marked as CMA-only,
+> ensuring that only movable and per-bank memory is allocated. More
+> details on the design can be found here:
+> 
+> http://lkml.org/lkml/2011/5/27/177
+> http://lkml.org/lkml/2011/6/29/202
+> http://lwn.net/Articles/446493/
 
---8323328-655509267-1310246537=:25516
-Content-Type: TEXT/PLAIN; charset=ISO-8859-7
-Content-Transfer-Encoding: 8BIT
+Thanks for the pointers, that is exactly what I was looking for.
 
-Make sure that the 'static' keywork is at the beginning of declaration
-for drivers/media/video/omap/omap_vout.c
-
-This gets rid of warnings like
-  warning: ¡static¢ is not at beginning of declaration
-when building with -Wold-style-declaration (and/or -Wextra which also
-enables it).
-
-Signed-off-by: Jesper Juhl <jj@chaosbits.net>
----
- drivers/media/video/omap/omap_vout.c |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
-
-diff --git a/drivers/media/video/omap/omap_vout.c b/drivers/media/video/omap/omap_vout.c
-index 4d07c58..a647894 100644
---- a/drivers/media/video/omap/omap_vout.c
-+++ b/drivers/media/video/omap/omap_vout.c
-@@ -129,7 +129,7 @@ module_param(debug, bool, S_IRUGO);
- MODULE_PARM_DESC(debug, "Debug level (0-1)");
- 
- /* list of image formats supported by OMAP2 video pipelines */
--const static struct v4l2_fmtdesc omap_formats[] = {
-+static const struct v4l2_fmtdesc omap_formats[] = {
- 	{
- 		/* Note:  V4L2 defines RGB565 as:
- 		 *
--- 
-1.7.6
-
-
--- 
-Jesper Juhl <jj@chaosbits.net>       http://www.chaosbits.net/
-Don't top-post http://www.catb.org/jargon/html/T/top-post.html
-Plain text mails only, please.
-
---8323328-655509267-1310246537=:25516--
+	Arnd
