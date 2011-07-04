@@ -1,42 +1,55 @@
-Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-gy0-f174.google.com ([209.85.160.174]:56574 "EHLO
-	mail-gy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750895Ab1GVWra (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 22 Jul 2011 18:47:30 -0400
-Received: by gyh3 with SMTP id 3so1558577gyh.19
-        for <linux-media@vger.kernel.org>; Fri, 22 Jul 2011 15:47:29 -0700 (PDT)
+Return-path: <mchehab@pedra>
+Received: from smtp-vbr14.xs4all.nl ([194.109.24.34]:2523 "EHLO
+	smtp-vbr14.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751324Ab1GDGbE (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 4 Jul 2011 02:31:04 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Hans de Goede <hdegoede@redhat.com>
+Subject: Re: New ctrl framework also enumerates classes
+Date: Mon, 4 Jul 2011 08:30:58 +0200
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
+References: <4E115C4E.804@redhat.com>
+In-Reply-To: <4E115C4E.804@redhat.com>
 MIME-Version: 1.0
-In-Reply-To: <4E29FB9E.4060507@iki.fi>
-References: <CAJbz7-29H=e=C2SyY-6Ru23Zzv6sH7wBbOm72ZWMxqOagakuKQ@mail.gmail.com>
-	<4E29FB9E.4060507@iki.fi>
-Date: Sat, 23 Jul 2011 00:47:29 +0200
-Message-ID: <CAJbz7-3HkkEoDa3qGvoaF61ohhdxo38ZxF+GWGV+tBQ0yEBopA@mail.gmail.com>
-Subject: Re: [PATCH] cxd2820r: fix possible out-of-array lookup
-From: HoP <jpetrous@gmail.com>
-To: Antti Palosaari <crope@iki.fi>
-Cc: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
-Sender: linux-media-owner@vger.kernel.org
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201107040830.58788.hverkuil@xs4all.nl>
 List-ID: <linux-media.vger.kernel.org>
+Sender: <mchehab@pedra>
 
-2011/7/23 Antti Palosaari <crope@iki.fi>:
-> On 07/23/2011 01:18 AM, HoP wrote:
->>
->> In case of i2c write operation there is only one element in msg[] array.
->> Don't access msg[1] in that case.
->
-> NACK.
-> I suspect you confuse now local msg2 and msg that is passed as function
-> parameter. Could you double check and explain?
->
+On Monday, July 04, 2011 08:23:10 Hans de Goede wrote:
+> Hi All,
+> 
+> One last thing before I really leave on vacation which just popped
+> in my mind as something which I had not mentioned yet.
+> 
+> The new ctrl framework also enumerates classes when enumerating
+> ctrls with the next flag. I wonder if this is intentional?
 
-Ok, may I really understand it badly.
+It's absolutely intentional. It's needed to produce the headers of the
+tabs in e.g. qv4l2. It's been part of the spec for several years now.
 
-My intention was that in case of tda18271_write_regs() there is
-i2c_transfer() called with msg[] array of one element only.
-So am I wrong?
+> IOW if this is a feature or a bug?
+> 
+> Either way this confuses various userspace apps, gtk-v4l prints
+> warnings about an unknown control type,
 
-Thanks
+It should just skip such types.
 
-Honza
+> and v4l2ucp gets a very
+> messed up UI because of this change. Thus unless there are
+> really strong reasons to do this, I suggest we skip classes
+> when enumerating controls.
+
+Those apps should be fixed. If apps see an unknown type, then they should
+always just skip such controls (and later add support for it, of course).
+
+Another control type (bitmask) will be merged soon as well, so the same
+problem will occur with that, but this is all really an application bug.
+Apps should be tested with vivi: that driver has all control types that we
+have, so that's a good driver to test with.
+
+Regards,
+
+	Hans
