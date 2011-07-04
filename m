@@ -1,55 +1,52 @@
-Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:26987 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751483Ab1GXRfJ (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 24 Jul 2011 13:35:09 -0400
-Message-ID: <4E2C5826.6040109@redhat.com>
-Date: Sun, 24 Jul 2011 19:36:38 +0200
-From: Hans de Goede <hdegoede@redhat.com>
+Return-path: <mchehab@pedra>
+Received: from perceval.ideasonboard.com ([95.142.166.194]:44970 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752478Ab1GDWrP (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 4 Jul 2011 18:47:15 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+Subject: Re: [RFC] DV timings spec fixes at V4L2 API - was: [PATCH 1/8] v4l: add macro for 1080p59_54 preset
+Date: Tue, 5 Jul 2011 00:47:43 +0200
+Cc: Tomasz Stanislawski <t.stanislaws@samsung.com>,
+	linux-media@vger.kernel.org, m.szyprowski@samsung.com,
+	kyungmin.park@samsung.com, hverkuil@xs4all.nl
+References: <1309351877-32444-1-git-send-email-t.stanislaws@samsung.com> <1309351877-32444-2-git-send-email-t.stanislaws@samsung.com> <4E11E5AE.30304@redhat.com>
+In-Reply-To: <4E11E5AE.30304@redhat.com>
 MIME-Version: 1.0
-To: Yordan Kamenov <ykamenov@mm-sol.com>
-CC: linux-media@vger.kernel.org,
-	sakari.ailus@maxwell.research.nokia.com
-Subject: Re: [PATCH v4 1/1] libv4l: Add plugin support to libv4l
-References: <1304436396-10501-1-git-send-email-ykamenov@mm-sol.com> <1678f1f41284ad9665de8717b7b8be117ddf9596.1304435825.git.ykamenov@mm-sol.com> <4E234D53.4030604@redhat.com> <4E2999C6.1090006@mm-sol.com>
-In-Reply-To: <4E2999C6.1090006@mm-sol.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: Text/Plain;
+  charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Sender: linux-media-owner@vger.kernel.org
+Message-Id: <201107050047.44275.laurent.pinchart@ideasonboard.com>
 List-ID: <linux-media.vger.kernel.org>
+Sender: <mchehab@pedra>
 
-Hi,
+Hi Mauro,
 
-On 07/22/2011 05:39 PM, Yordan Kamenov wrote:
-> Hi Hans,
->
-> Hans de Goede wrote:
->> Hi,
->>
->> Sorry it took so long, but I've just merged the plugin
->> support into v4l-utils git. I did make some minor mods /
->> bugfixes before merging, see the commit message in git.
->>
->> Regards,
->>
->> Hans
->>
->> p.s.
->>
->> I think we should expand the plugin support with support
->> for a output devices, iow add a write() dev_op. If you
->> guys agree I can easily do so myself, we should do this
->> asap before people start depending on the ABI
->> (although there is no ABI stability promise until I
->> release 0.10.x, see my message to the list wrt
->> the start of the 0.9.x cycle).
->>
->
-> I think that it is a good point, you can add write() and
-> reserved dev_ops.
+On Monday 04 July 2011 18:09:18 Mauro Carvalho Chehab wrote:
 
-Ok, done, this is in v4l-utils git master now.
+[snip]
 
+> 1) PRESET STANDARDS
+>    ====== =========
+> 
+> There are 3 specs involved with DV presets: ITU-R BT 709 and BT 1120 and
+> CEA 861.
+> 
+> At ITU-R BT.709, both 60Hz and 60/1.001 Hz are equally called as "60 Hz".
+> BT.1120 follows the same logic, as it uses BT.709 as a reference for video
+> timings.
+> 
+> The CEA-861-E spec says at item 4, that:
+
+[snip]
+
+> At the same item, the table 2 describes several video parameters for each
+> preset, associating the Video Identification Codes (VIC) for each preset.
+
+This might be a bit out of scope, but why aren't we using the VICs as DV 
+presets ?
+
+-- 
 Regards,
 
-Hans
+Laurent Pinchart
