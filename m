@@ -1,36 +1,39 @@
-Return-path: <mchehab@localhost>
-Received: from mail-gx0-f174.google.com ([209.85.161.174]:60349 "EHLO
-	mail-gx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S965080Ab1GMIfR (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 13 Jul 2011 04:35:17 -0400
+Return-path: <mchehab@pedra>
+Received: from mail-ew0-f46.google.com ([209.85.215.46]:39368 "EHLO
+	mail-ew0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754395Ab1GDLZN (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 4 Jul 2011 07:25:13 -0400
+Received: by ewy4 with SMTP id 4so1723425ewy.19
+        for <linux-media@vger.kernel.org>; Mon, 04 Jul 2011 04:25:11 -0700 (PDT)
 MIME-Version: 1.0
-In-Reply-To: <Pine.LNX.4.44L0.1107121143500.31381-100000@netrider.rowland.org>
-References: <CACVXFVOL67EjcMxfizC0JR-=wraNTneZicw_OBfCGkseZh7Lig@mail.gmail.com>
-	<Pine.LNX.4.44L0.1107121143500.31381-100000@netrider.rowland.org>
-Date: Wed, 13 Jul 2011 16:35:16 +0800
-Message-ID: <CACVXFVP6T19WgdZbrTt+2R+Mh4ZWyv7ZmwBv3eC9hj7L2=3Yxw@mail.gmail.com>
-Subject: Re: [PATCH] uvcvideo: add fix suspend/resume quirk for Microdia camera
-From: Ming Lei <tom.leiming@gmail.com>
-To: Alan Stern <stern@rowland.harvard.edu>
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Ming Lei <ming.lei@canonical.com>, linux-media@vger.kernel.org,
-	linux-usb@vger.kernel.org, Jeremy Kerr <jeremy.kerr@canonical.com>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>
+In-Reply-To: <1308568877-9164-1-git-send-email-javier.martin@vista-silicon.com>
+References: <1308568877-9164-1-git-send-email-javier.martin@vista-silicon.com>
+Date: Mon, 4 Jul 2011 13:25:10 +0200
+Message-ID: <CACKLOr2YT6z1_75Zi1g4ujQq+EAN3tVgUKatK+8ZyjnERvOzig@mail.gmail.com>
+Subject: Re: [PATCH v8 1/2] Add driver for Aptina Micron mt9p031 sensor.
+From: javier Martin <javier.martin@vista-silicon.com>
+To: linux-media@vger.kernel.org
+Cc: g.liakhovetski@gmx.de, laurent.pinchart@ideasonboard.com,
+	carlighting@yahoo.co.nz, beagleboard@googlegroups.com,
+	mch_kot@yahoo.com.cn,
+	Javier Martin <javier.martin@vista-silicon.com>
 Content-Type: text/plain; charset=ISO-8859-1
 List-ID: <linux-media.vger.kernel.org>
-Sender: <mchehab@infradead.org>
+Sender: <mchehab@pedra>
 
-Hi,
+Hi, Laurent.
+How is it going?
 
-On Tue, Jul 12, 2011 at 11:44 PM, Alan Stern <stern@rowland.harvard.edu> wrote:
+Is there any chance these changes to be included for next release?
+We are afraid that changes in the framework may turn the patches useless.
 
-> Maybe this device needs a USB_QUIRK_RESET_RESUME entry in quirks.c.
+Thank you.
 
-RESET_RESUME quirk makes things worse, now stream data is not received from
-the camera at all even in resume from runtime suspend case. So the quirk can
-make the device totally useless, :-)
-
-thanks,
 -- 
-Ming Lei
+Javier Martin
+Vista Silicon S.L.
+CDTUC - FASE C - Oficina S-345
+Avda de los Castros s/n
+39005- Santander. Cantabria. Spain
++34 942 25 32 60
+www.vista-silicon.com
