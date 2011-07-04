@@ -1,793 +1,107 @@
-Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-68.nebula.fi ([83.145.220.68]:51542 "EHLO
-	smtp-68.nebula.fi" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752244Ab1GMSu5 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 13 Jul 2011 14:50:57 -0400
-Date: Wed, 13 Jul 2011 21:50:50 +0300
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Manjunath Hadli <manjunath.hadli@ti.com>
-Cc: LMML <linux-media@vger.kernel.org>,
-	dlos <davinci-linux-open-source@linux.davincidsp.com>,
-	Nagabhushana Netagunte <nagabhushana.netagunte@ti.com>
-Subject: Re: [RFC PATCH 1/8] davinci: vpfe: add dm3xx IPIPEIF hardware
- support module
-Message-ID: <20110713185050.GC27451@valkosipuli.localdomain>
-References: <1309439597-15998-1-git-send-email-manjunath.hadli@ti.com>
- <1309439597-15998-2-git-send-email-manjunath.hadli@ti.com>
+Return-path: <mchehab@pedra>
+Received: from e28smtp07.in.ibm.com ([122.248.162.7]:58697 "EHLO
+	e28smtp07.in.ibm.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750992Ab1GDFZt (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 4 Jul 2011 01:25:49 -0400
+Date: Mon, 4 Jul 2011 10:55:39 +0530
+From: Ankita Garg <ankita@in.ibm.com>
+To: Arnd Bergmann <arnd@arndb.de>
+Cc: Larry Bassel <lbassel@codeaurora.org>,
+	Marek Szyprowski <m.szyprowski@samsung.com>,
+	"'Zach Pfeffer'" <zach.pfeffer@linaro.org>,
+	"'Daniel Walker'" <dwalker@codeaurora.org>,
+	"'Daniel Stone'" <daniels@collabora.com>,
+	"'Jesse Barker'" <jesse.barker@linaro.org>,
+	"'Mel Gorman'" <mel@csn.ul.ie>,
+	"'KAMEZAWA Hiroyuki'" <kamezawa.hiroyu@jp.fujitsu.com>,
+	linux-kernel@vger.kernel.org,
+	"'Michal Nazarewicz'" <mina86@mina86.com>,
+	linaro-mm-sig@lists.linaro.org, linux-mm@kvack.org,
+	"'Kyungmin Park'" <kyungmin.park@samsung.com>,
+	"'Andrew Morton'" <akpm@linux-foundation.org>,
+	linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org
+Subject: Re: [Linaro-mm-sig] [PATCH 08/10] mm: cma: Contiguous Memory
+ Allocator added
+Message-ID: <20110704052539.GK12667@in.ibm.com>
+Reply-To: Ankita Garg <ankita@in.ibm.com>
+References: <1307699698-29369-1-git-send-email-m.szyprowski@samsung.com>
+ <000901cc2b37$4c21f030$e465d090$%szyprowski@samsung.com>
+ <20110615213958.GB28032@labbmf-linux.qualcomm.com>
+ <201106160006.07742.arnd@arndb.de>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <1309439597-15998-2-git-send-email-manjunath.hadli@ti.com>
-Sender: linux-media-owner@vger.kernel.org
+In-Reply-To: <201106160006.07742.arnd@arndb.de>
 List-ID: <linux-media.vger.kernel.org>
+Sender: <mchehab@pedra>
 
-Hi Manju,
+Hi,
 
-Thanks for the patchset!
-
-I have a few comments on this patch below. I haven't read the rest of the
-patches yet so I may have more comments on this one when I do that.
-
-On Thu, Jun 30, 2011 at 06:43:10PM +0530, Manjunath Hadli wrote:
-> add support for dm3xx IPIPEIF hardware setup. This is the
-> lowest software layer for the dm3x vpfe driver which directly
-> accesses hardware. Add support for features like default
-> pixel correction, dark frame substraction  and hardware setup.
+On Thu, Jun 16, 2011 at 12:06:07AM +0200, Arnd Bergmann wrote:
+> On Wednesday 15 June 2011 23:39:58 Larry Bassel wrote:
+> > On 15 Jun 11 10:36, Marek Szyprowski wrote:
+> > > On Tuesday, June 14, 2011 10:42 PM Arnd Bergmann wrote:
+> > > 
+> > > > On Tuesday 14 June 2011 20:58:25 Zach Pfeffer wrote:
+> > > > > I've seen this split bank allocation in Qualcomm and TI SoCs, with
+> > > > > Samsung, that makes 3 major SoC vendors (I would be surprised if
+> > > > > Nvidia didn't also need to do this) - so I think some configurable
+> > > > > method to control allocations is necessarily. The chips can't do
+> > > > > decode without it (and by can't do I mean 1080P and higher decode is
+> > > > > not functionally useful). Far from special, this would appear to be
+> > > > > the default.
+> > 
+> > We at Qualcomm have some platforms that have memory of different
+> > performance characteristics, some drivers will need a way of
+> > specifying that they need fast memory for an allocation (and would prefer
+> > an error if it is not available rather than a fallback to slower
+> > memory). It would also be bad if allocators who don't need fast
+> > memory got it "accidentally", depriving those who really need it.
 > 
-> Signed-off-by: Manjunath Hadli <manjunath.hadli@ti.com>
-> Signed-off-by: Nagabhushana Netagunte <nagabhushana.netagunte@ti.com>
-> ---
->  drivers/media/video/davinci/dm3xx_ipipeif.c |  368 +++++++++++++++++++++++++++
->  include/media/davinci/dm3xx_ipipeif.h       |  292 +++++++++++++++++++++
->  2 files changed, 660 insertions(+), 0 deletions(-)
->  create mode 100644 drivers/media/video/davinci/dm3xx_ipipeif.c
->  create mode 100644 include/media/davinci/dm3xx_ipipeif.h
+> Can you describe how the memory areas differ specifically?
+> Is there one that is always faster but very small, or are there
+> just specific circumstances under which some memory is faster than
+> another?
 > 
-> diff --git a/drivers/media/video/davinci/dm3xx_ipipeif.c b/drivers/media/video/davinci/dm3xx_ipipeif.c
-> new file mode 100644
-> index 0000000..36cb61b
-> --- /dev/null
-> +++ b/drivers/media/video/davinci/dm3xx_ipipeif.c
-> @@ -0,0 +1,368 @@
-> +/*
-> +* Copyright (C) 2011 Texas Instruments Inc
-> +*
-> +* This program is free software; you can redistribute it and/or
-> +* modify it under the terms of the GNU General Public License as
-> +* published by the Free Software Foundation version 2.
-> +*
-> +* This program is distributed in the hope that it will be useful,
-> +* but WITHOUT ANY WARRANTY; without even the implied warranty of
-> +* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-> +* GNU General Public License for more details.
-> +*
-> +* You should have received a copy of the GNU General Public License
-> +* along with this program; if not, write to the Free Software
-> +* Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307 USA
-> +*
-> +* ipipe module to hold common functionality across DM355 and DM365
-> +*/
-> +#include <linux/kernel.h>
-> +#include <linux/platform_device.h>
-> +#include <linux/uaccess.h>
-> +#include <linux/io.h>
-> +#include <linux/v4l2-mediabus.h>
-> +#include <media/davinci/dm3xx_ipipeif.h>
-> +
-> +#define DM355	0
-> +#define DM365	1
-> +
-> +static void *__iomem ipipeif_base_addr;
-
-This looks device specific. What about using dev_set/get_drvdata and remove
-this one?
-
-> +static int device_type;
-
-Ditto. Both should be in a device specific struct.
-
-> +static inline u32 regr_if(u32 offset)
-> +{
-> +	return readl(ipipeif_base_addr + offset);
-> +}
-> +
-> +static inline void regw_if(u32 val, u32 offset)
-> +{
-> +	writel(val, ipipeif_base_addr + offset);
-> +}
-> +
-> +void ipipeif_set_enable(char en, unsigned int mode)
-> +{
-> +	regw_if(1, IPIPEIF_ENABLE);
-> +}
-> +
-> +u32 ipipeif_get_enable(void)
-> +{
-> +	return regr_if(IPIPEIF_ENABLE);
-> +}
-> +
-> +int ipipeif_set_address(struct ipipeif *params, unsigned int address)
-> +{
-
-If address is a value for a register you should use u32. 
-
-> +	unsigned int val1;
-> +	unsigned int val;
-> +
-> +	if (params->source != 0) {
-> +		val = ((params->adofs >> 5) & IPIPEIF_ADOFS_LSB_MASK);
-> +		regw_if(val, IPIPEIF_ADOFS);
-
-You may do without val as well.
-
-> +		/* lower sixteen bit */
-> +		val = ((address >> IPIPEIF_ADDRL_SHIFT) & IPIPEIF_ADDRL_MASK);
-> +		regw_if(val, IPIPEIF_ADDRL);
-> +
-> +		/* upper next seven bit */
-> +		val1 =
-> +		    ((address >> IPIPEIF_ADDRU_SHIFT) & IPIPEIF_ADDRU_MASK);
-> +		regw_if(val1, IPIPEIF_ADDRU);
-> +	} else
-> +		return -1;
-
-What's -1? If this is an error, Exxxxx codes should be used.
-
-The error check should become first and the rest of the function may be
-unindented by one tab stop.
-
-> +	return 0;
-> +}
-> +
-> +static void ipipeif_config_dpc(struct ipipeif_dpc *dpc)
-> +{
-> +	u32 val;
-> +
-> +	if (dpc->en) {
-> +		val = ((dpc->en & 1) << IPIPEIF_DPC2_EN_SHIFT);
-> +		val |= (dpc->thr & IPIPEIF_DPC2_THR_MASK);
-> +	} else
-> +		val = 0;
-> +
-> +	regw_if(val, IPIPEIF_DPC2);
-> +}
-> +
-> +/* This function sets up IPIPEIF and is called from
-> + * ipipe_hw_setup()
-> + */
-> +int ipipeif_hw_setup(struct ipipeif *params)
-> +{
-> +	enum v4l2_mbus_pixelcode isif_port_if;
-> +	unsigned int val1 = 0x7;
-
-7 looks like a magic number.
-
-> +	unsigned int val;
-> +
-> +	if (NULL == params)
-> +		return -1;
-
-Same here, and I can also see elsewhere.
-
-> +	/* Enable clock to IPIPEIF and IPIPE */
-> +	if (device_type == DM365)
-> +		vpss_enable_clock(VPSS_IPIPEIF_CLOCK, 1);
-> +
-> +	/* Combine all the fields to make CFG1 register of IPIPEIF */
-> +	val = params->mode << ONESHOT_SHIFT;
-> +	val |= params->source << INPSRC_SHIFT;
-> +	val |= params->clock_select << CLKSEL_SHIFT;
-> +	val |= params->avg_filter << AVGFILT_SHIFT;
-> +	val |= params->decimation << DECIM_SHIFT;
-> +
-> +	if (device_type == DM355) {
-> +		val |= params->var.if_base.ialaw << IALAW_SHIFT;
-> +		val |= params->var.if_base.pack_mode << PACK8IN_SHIFT;
-> +		val |= params->var.if_base.clk_div << CLKDIV_SHIFT;
-> +		val |= params->var.if_base.data_shift << DATASFT_SHIFT;
-> +	} else {
-> +		/* DM365 IPIPE 5.1 */
-> +		val |= params->var.if_5_1.pack_mode << PACK8IN_SHIFT;
-> +		val |= params->var.if_5_1.source1 << INPSRC1_SHIFT;
-> +		if (params->source != SDRAM_YUV)
-> +			val |= params->var.if_5_1.data_shift << DATASFT_SHIFT;
-> +		else
-> +			val &= (~(val1 << DATASFT_SHIFT));
-> +	}
-> +	regw_if(val, IPIPEIF_GFG1);
-> +
-> +	switch (params->source) {
-> +	case CCDC:
-> +		{
-> +			regw_if(params->gain, IPIPEIF_GAIN);
-> +			break;
-> +		}
-
-Braces aren't needed here.
-
-> +	case SDRAM_RAW:
-> +	case CCDC_DARKFM:
-> +		{
-> +			regw_if(params->gain, IPIPEIF_GAIN);
-> +			/* fall through */
-> +		}
-
-Ditto.
-
-> +	case SDRAM_YUV:
-> +		{
-> +			val |= params->var.if_5_1.data_shift << DATASFT_SHIFT;
-> +			regw_if(params->glob_hor_size, IPIPEIF_PPLN);
-> +			regw_if(params->glob_ver_size, IPIPEIF_LPFR);
-> +			regw_if(params->hnum, IPIPEIF_HNUM);
-> +			regw_if(params->vnum, IPIPEIF_VNUM);
-> +
-> +			break;
-> +		}
-> +	default:
-> +		/* Do nothing */
-> +		;
-
-Is this not an error?
-
-> +	}
-> +
-> +	/*check if decimation is enable or not */
-> +	if (params->decimation)
-> +		regw_if(params->rsz, IPIPEIF_RSZ);
-> +
-> +	if (device_type == DM365) {
-
-You can do an opposite check and then return if it's true. By removing the
-brackes from cases you can unindent this by two tab stops. The function is
-also very long.
-
-> +		/* Setup sync alignment and initial rsz position */
-> +		val = params->var.if_5_1.align_sync & 1;
-> +		val <<= IPIPEIF_INIRSZ_ALNSYNC_SHIFT;
-> +		val |= (params->var.if_5_1.rsz_start & IPIPEIF_INIRSZ_MASK);
-> +		regw_if(val, IPIPEIF_INIRSZ);
-> +
-> +		/* Enable DPCM decompression */
-> +		switch (params->source) {
-> +		case SDRAM_RAW:
-> +			{
-> +				val = 0;
-> +				if (params->var.if_5_1.dpcm.en) {
-> +					val = params->var.if_5_1.dpcm.en & 1;
-> +					val |= (params->var.if_5_1.dpcm.type
-> +						  & 1)
-> +					    << IPIPEIF_DPCM_BITS_SHIFT;
-> +					val |=
-> +					    (params->var.if_5_1.dpcm.pred & 1)
-> +					    << IPIPEIF_DPCM_PRED_SHIFT;
-> +				}
-> +				regw_if(val, IPIPEIF_DPCM);
-> +
-> +				/* set DPC */
-> +				ipipeif_config_dpc(&params->var.if_5_1.dpc);
-> +
-> +				regw_if(params->var.if_5_1.clip, IPIPEIF_OCLIP);
-> +				/* fall through for SDRAM YUV mode */
-> +				isif_port_if =
-> +				    params->var.if_5_1.isif_port.if_type;
-> +				/* configure CFG2 */
-> +				switch (isif_port_if) {
-> +				case V4L2_MBUS_FMT_YUYV8_1X16:
-> +					val |=
-> +					    (0 <<
-> +					      IPIPEIF_CFG2_YUV8_SHIFT);
-
-This has no effect.
-
-> +					val |=
-> +					    (1 <<
-> +					      IPIPEIF_CFG2_YUV16_SHIFT);
-> +					regw_if(val, IPIPEIF_CFG2);
-> +					break;
-> +				default:
-> +					val |=
-> +					    (0 <<
-> +					      IPIPEIF_CFG2_YUV8_SHIFT);
-> +					val |=
-> +					    (0 <<
-> +					      IPIPEIF_CFG2_YUV16_SHIFT);
-
-Neither do the above two statements.
-
-> +					regw_if(val, IPIPEIF_CFG2);
-> +					break;
-> +				}
-> +			}
-> +		case SDRAM_YUV:
-> +			{
-> +				/* Set clock divider */
-> +				if (params->clock_select == SDRAM_CLK) {
-> +					val |=
-> +					    ((params->var.if_5_1.clk_div.m - 1)
-> +					     << IPIPEIF_CLKDIV_M_SHIFT);
-> +					val |=
-> +					    (params->var.if_5_1.clk_div.n - 1);
-> +					regw_if(val, IPIPEIF_CLKDIV);
-> +				}
-> +
-> +				break;
-> +			}
-> +		case CCDC:
-> +		case CCDC_DARKFM:
-> +			{
-> +				/* set DPC */
-> +				ipipeif_config_dpc(&params->var.if_5_1.dpc);
-> +
-> +				/* Set DF gain & threshold control */
-> +				val = 0;
-> +				if (params->var.if_5_1.df_gain_en) {
-> +					val = (params->var.if_5_1.df_gain_thr
-> +						 & IPIPEIF_DF_GAIN_THR_MASK);
-> +					regw_if(val, IPIPEIF_DFSGTH);
-> +					val = ((params->var.if_5_1.df_gain_en
-> +						  & 1)
-> +						 << IPIPEIF_DF_GAIN_EN_SHIFT);
-> +					val |= (params->var.if_5_1.df_gain
-> +						  & IPIPEIF_DF_GAIN_MASK);
-> +				}
-> +				regw_if(val, IPIPEIF_DFSGVL);
-> +				isif_port_if =
-> +				    params->var.if_5_1.isif_port.if_type;
-
-Indentation.
-
-> +
-> +				/* configure CFG2 */
-> +				val =
-> +				    params->var.if_5_1.isif_port.hdpol
-> +				    << IPIPEIF_CFG2_HDPOL_SHIFT;
-> +				val |=
-> +				    params->var.if_5_1.isif_port.vdpol
-> +				    << IPIPEIF_CFG2_VDPOL_SHIFT;
-> +				switch (isif_port_if) {
-> +				case V4L2_MBUS_FMT_YUYV8_1X16:
-> +				case V4L2_MBUS_FMT_YUYV10_1X20:
-> +					{
-> +						val |=
-> +						    (0 <<
-> +						     IPIPEIF_CFG2_YUV8_SHIFT);
-> +						val |=
-> +						    (1 <<
-> +						     IPIPEIF_CFG2_YUV16_SHIFT);
-
-It might make sense to use #defines with descriptive names rather than zeros
-and ones.
-
-> +						break;
-> +					}
-> +				case V4L2_MBUS_FMT_YUYV8_2X8:
-> +				case V4L2_MBUS_FMT_Y8_1X8:
-> +				case V4L2_MBUS_FMT_YUYV10_2X10:
-> +					{
-> +						val |=
-> +						    (1 <<
-> +						     IPIPEIF_CFG2_YUV8_SHIFT);
-> +						val |=
-> +						    (1 <<
-> +						     IPIPEIF_CFG2_YUV16_SHIFT);
-> +						val |=
-> +						    ((params->var.if_5_1.
-> +						      pix_order)
-> +						     <<
-> +						     IPIPEIF_CFG2_YUV8P_SHIFT);
-> +						break;
-> +					}
-> +				default:
-> +					{
-> +						/* Bayer */
-> +						regw_if(params->var.if_5_1.clip,
-> +							IPIPEIF_OCLIP);
-> +						val |=
-> +						    (0 <<
-> +						     IPIPEIF_CFG2_YUV16_SHIFT);
-> +					}
-> +				}
-> +				regw_if(val, IPIPEIF_CFG2);
-> +				break;
-> +			}
-> +		default:
-> +			/* do nothing */
-> +			;
-> +		}
-> +	}
-> +	return 0;
-> +}
-> +
-> +static int __devinit dm3xx_ipipeif_probe(struct platform_device *pdev)
-> +{
-> +	static resource_size_t  res_len;
-> +	struct resource *res;
-> +	int status;
-> +
-> +	if (NULL != pdev->dev.platform_data)
-
-Lvalue would be better right for readability.
-
-> +		device_type = DM365;
-> +
-> +	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
-> +	if (!res)
-> +		return -ENOENT;
-> +
-> +	res_len = res->end - res->start + 1;
-> +
-> +	res = request_mem_region(res->start, res_len, res->name);
-> +	if (!res)
-> +		return -EBUSY;
-> +
-> +	ipipeif_base_addr = ioremap_nocache(res->start, res_len);
-> +	if (!ipipeif_base_addr) {
-> +		status = -EBUSY;
-> +		goto fail;
-> +	}
-> +	return 0;
-> +
-> +fail:
-> +	release_mem_region(res->start, res_len);
-> +
-> +	return status;
-> +}
-> +
-> +static int dm3xx_ipipeif_remove(struct platform_device *pdev)
-> +{
-> +	struct resource *res;
-> +
-> +	iounmap(ipipeif_base_addr);
-> +	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
-> +	if (res)
-> +		release_mem_region(res->start, res->end - res->start + 1);
-> +	return 0;
-> +}
-> +
-> +static struct platform_driver dm3xx_ipipeif_driver = {
-> +	.driver = {
-> +		.name   = "dm3xx_ipipeif",
-> +		.owner = THIS_MODULE,
-> +	},
-> +	.remove = __devexit_p(dm3xx_ipipeif_remove),
-> +	.probe = dm3xx_ipipeif_probe,
-> +};
-> +
-> +static int dm3xx_ipipeif_init(void)
-> +{
-> +	return platform_driver_register(&dm3xx_ipipeif_driver);
-> +}
-> +
-> +static void dm3xx_ipipeif_exit(void)
-> +{
-> +	platform_driver_unregister(&dm3xx_ipipeif_driver);
-> +}
-> +
-> +module_init(dm3xx_ipipeif_init);
-> +module_exit(dm3xx_ipipeif_exit);
-> +
-> +MODULE_LICENSE("GPL2");
-> diff --git a/include/media/davinci/dm3xx_ipipeif.h b/include/media/davinci/dm3xx_ipipeif.h
-> new file mode 100644
-> index 0000000..87389ff
-> --- /dev/null
-> +++ b/include/media/davinci/dm3xx_ipipeif.h
-> @@ -0,0 +1,292 @@
-> +/*
-> +* Copyright (C) 2011 Texas Instruments Inc
-> +*
-> +* This program is free software; you can redistribute it and/or
-> +* modify it under the terms of the GNU General Public License as
-> +* published by the Free Software Foundation version 2.
-> +*
-> +* This program is distributed in the hope that it will be useful,
-> +* but WITHOUT ANY WARRANTY; without even the implied warranty of
-> +* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-> +* GNU General Public License for more details.
-> +*
-> +* You should have received a copy of the GNU General Public License
-> +* along with this program; if not, write to the Free Software
-> +* Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307 USA
-> +*/
-> +
-> +#ifndef _DM3XX_IPIPEIF_H
-> +#define _DM3XX_IPIPEIF_H
-> +/* Used to shift input image data based on the data lines connected
-> + * to parallel port
-> + */
-> +/* IPIPE base specific types */
-> +enum ipipeif_data_shift {
-> +	IPIPEIF_BITS15_2,
-> +	IPIPEIF_BITS14_1,
-> +	IPIPEIF_BITS13_0,
-> +	IPIPEIF_BITS12_0,
-> +	IPIPEIF_BITS11_0,
-> +	IPIPEIF_BITS10_0,
-> +	IPIPEIF_BITS9_0
-> +};
-> +
-> +enum ipipeif_clkdiv {
-> +	IPIPEIF_DIVIDE_HALF,
-> +	IPIPEIF_DIVIDE_THIRD,
-> +	IPIPEIF_DIVIDE_FOURTH,
-> +	IPIPEIF_DIVIDE_FIFTH,
-> +	IPIPEIF_DIVIDE_SIXTH,
-> +	IPIPEIF_DIVIDE_EIGHTH,
-> +	IPIPEIF_DIVIDE_SIXTEENTH,
-> +	IPIPEIF_DIVIDE_THIRTY
-> +};
-> +
-> +/* IPIPE 5.1 interface types */
-> +/* dpcm predicator for IPIPE 5.1 */
-> +enum ipipeif_dpcm_pred {
-> +	DPCM_SIMPLE_PRED,
-> +	DPCM_ADV_PRED
-> +};
-> +/* data shift for IPIPE 5.1 */
-> +enum ipipeif_5_1_data_shift {
-> +	IPIPEIF_5_1_BITS11_0,
-> +	IPIPEIF_5_1_BITS10_0,
-> +	IPIPEIF_5_1_BITS9_0,
-> +	IPIPEIF_5_1_BITS8_0,
-> +	IPIPEIF_5_1_BITS7_0,
-> +	IPIPEIF_5_1_BITS15_4,
-> +};
-> +
-> +/* clockdiv for IPIPE 5.1 */
-> +struct ipipeif_5_1_clkdiv {
-> +	unsigned char m;
-> +	unsigned char n;
-> +};
-> +
-> +/* DPC at the if for IPIPE 5.1 */
-> +struct ipipeif_dpc {
-> +	/* 0 - disable, 1 - enable */
-> +	unsigned char en;
-> +	/* threshold */
-> +	unsigned short thr;
-> +};
-> +
-> +enum ipipeif_decimation {
-> +	IPIPEIF_DECIMATION_OFF,
-> +	IPIPEIF_DECIMATION_ON
-> +};
-
-If these are used as register values they should be explicitly defined.
-
-> +enum	ipipeif_pixel_order {
-> +	IPIPEIF_CBCR_Y,
-> +	IPIPEIF_Y_CBCR
-> +};
-> +
-> +#ifdef __KERNEL__
-
-This file is under include/media which isn't included by user space --- user
-space headers belong under include/linux. Interface and internal definitions
-should be in a separate header file.
-
-> +#include <linux/kernel.h>
-> +#include <mach/hardware.h>
-> +#include <linux/io.h>
-> +#include <media/davinci/vpss.h>
-> +#include <media/davinci/vpfe_types.h>
-> +
-> +enum ipipeif_clock {
-> +	PIXCEL_CLK,
-> +	SDRAM_CLK
-
-IPIPEIF prefix here?
-
-> +};
-> +
-> +enum ipipeif_pack_mode  {
-> +	IPIPEIF_PACK_16_BIT,
-> +	IPIPEIF_PACK_8_BIT
-> +};
-> +
-> +enum ipipe_oper_mode {
-> +	CONTINUOUS,
-> +	ONE_SHOT
-> +};
-> +
-> +enum ipipeif_5_1_pack_mode  {
-> +	IPIPEIF_5_1_PACK_16_BIT,
-> +	IPIPEIF_5_1_PACK_8_BIT,
-> +	IPIPEIF_5_1_PACK_8_BIT_A_LAW,
-> +	IPIPEIF_5_1_PACK_12_BIT
-> +};
-> +
-> +enum  ipipeif_avg_filter {
-> +	AVG_OFF,
-> +	AVG_ON
-> +};
-> +
-> +enum  ipipeif_input_source {
-> +	CCDC,
-> +	SDRAM_RAW,
-> +	CCDC_DARKFM,
-> +	SDRAM_YUV
-> +};
-> +
-> +enum ipipeif_ialaw {
-> +	ALAW_OFF,
-> +	ALAW_ON
-> +};
-> +
-> +struct ipipeif_base {
-> +	enum ipipeif_ialaw ialaw;
-> +	enum ipipeif_pack_mode pack_mode;
-> +	enum ipipeif_data_shift data_shift;
-> +	enum ipipeif_clkdiv clk_div;
-> +};
-> +
-> +enum  ipipeif_input_src1 {
-> +	SRC1_PARALLEL_PORT,
-> +	SRC1_SDRAM_RAW,
-> +	SRC1_ISIF_DARKFM,
-> +	SRC1_SDRAM_YUV
-> +};
-> +
-> +enum ipipeif_dpcm_type {
-> +	DPCM_8BIT_10BIT,
-> +	DPCM_8BIT_12BIT
-> +};
-> +
-> +struct ipipeif_dpcm_decomp {
-> +	unsigned char en;
-> +	enum ipipeif_dpcm_type type;
-> +	enum ipipeif_dpcm_pred pred;
-> +};
-> +
-> +enum ipipeif_dfs_dir {
-> +	IPIPEIF_PORT_MINUS_SDRAM,
-> +	IPIPEIF_SDRAM_MINUS_PORT
-> +};
-> +
-> +struct ipipeif_5_1 {
-> +	enum ipipeif_5_1_pack_mode pack_mode;
-> +	enum ipipeif_5_1_data_shift data_shift;
-> +	enum ipipeif_input_src1 source1;
-> +	struct ipipeif_5_1_clkdiv clk_div;
-> +	/* Defect pixel correction */
-> +	struct ipipeif_dpc dpc;
-> +	/* DPCM decompression */
-> +	struct ipipeif_dpcm_decomp dpcm;
-> +	/* ISIF port pixel order */
-> +	enum ipipeif_pixel_order pix_order;
-> +	/* interface parameters from isif */
-> +	struct vpfe_hw_if_param isif_port;
-> +	/* clipped to this value */
-> +	unsigned short clip;
-> +	/* Align HSync and VSync to rsz_start */
-> +	unsigned char align_sync;
-> +	/* resizer start position */
-> +	unsigned int rsz_start;
-> +	/* DF gain enable */
-> +	unsigned char df_gain_en;
-> +	/* DF gain value */
-> +	unsigned short df_gain;
-> +	/* DF gain threshold value */
-> +	unsigned short df_gain_thr;
-> +};
-> +
-> +/* ipipeif structures common to DM350 and DM365 used by ipipeif API */
-> +struct ipipeif {
-> +	enum ipipe_oper_mode mode;
-> +	enum ipipeif_input_source source;
-> +	enum ipipeif_clock clock_select;
-> +	unsigned int glob_hor_size;
-> +	unsigned int glob_ver_size;
-> +	unsigned int hnum;
-> +	unsigned int vnum;
-> +	unsigned int adofs;
-> +	unsigned char rsz;
-> +	enum ipipeif_decimation decimation;
-> +	enum ipipeif_avg_filter avg_filter;
-> +	unsigned short gain;
-> +	/* IPIPE 5.1 */
-> +	union var_part {
-> +		struct ipipeif_base if_base;
-> +		struct ipipeif_5_1  if_5_1;
-> +	} var;
-> +};
-> +
-> +/* IPIPEIF Register Offsets from the base address */
-> +#define IPIPEIF_ENABLE			(0x00)
-> +#define IPIPEIF_GFG1			(0x04)
-> +#define IPIPEIF_PPLN			(0x08)
-> +#define IPIPEIF_LPFR			(0x0C)
-> +#define IPIPEIF_HNUM			(0x10)
-> +#define IPIPEIF_VNUM			(0x14)
-> +#define IPIPEIF_ADDRU			(0x18)
-> +#define IPIPEIF_ADDRL			(0x1C)
-> +#define IPIPEIF_ADOFS			(0x20)
-> +#define IPIPEIF_RSZ			(0x24)
-> +#define IPIPEIF_GAIN			(0x28)
-> +
-> +/* Below registers are available only on IPIPE 5.1 */
-> +#define IPIPEIF_DPCM			(0x2C)
-> +#define IPIPEIF_CFG2			(0x30)
-> +#define IPIPEIF_INIRSZ			(0x34)
-> +#define IPIPEIF_OCLIP			(0x38)
-> +#define IPIPEIF_DTUDF			(0x3C)
-> +#define IPIPEIF_CLKDIV			(0x40)
-> +#define IPIPEIF_DPC1			(0x44)
-> +#define IPIPEIF_DPC2			(0x48)
-> +#define IPIPEIF_DFSGVL			(0x4C)
-> +#define IPIPEIF_DFSGTH			(0x50)
-> +#define IPIPEIF_RSZ3A			(0x54)
-> +#define IPIPEIF_INIRSZ3A		(0x58)
-> +#define IPIPEIF_RSZ_MIN			(16)
-> +#define IPIPEIF_RSZ_MAX			(112)
-> +#define IPIPEIF_RSZ_CONST		(16)
-> +#define SETBIT(reg, bit)   (reg = ((reg) | ((0x00000001)<<(bit))))
-> +#define RESETBIT(reg, bit) (reg = ((reg) & (~(0x00000001<<(bit)))))
-> +
-> +#define IPIPEIF_ADOFS_LSB_MASK		(0x1FF)
-> +#define IPIPEIF_ADOFS_LSB_SHIFT		(5)
-> +#define IPIPEIF_ADOFS_MSB_MASK		(0x200)
-> +#define IPIPEIF_ADDRU_MASK		(0x7FF)
-> +#define IPIPEIF_ADDRL_SHIFT		(5)
-> +#define IPIPEIF_ADDRL_MASK		(0xFFFF)
-> +#define IPIPEIF_ADDRU_SHIFT		(21)
-> +#define IPIPEIF_ADDRMSB_SHIFT		(31)
-> +#define IPIPEIF_ADDRMSB_LEFT_SHIFT	(10)
-> +
-> +/* CFG1 Masks and shifts */
-> +#define ONESHOT_SHIFT			(0)
-> +#define DECIM_SHIFT			(1)
-> +#define INPSRC_SHIFT			(2)
-> +#define CLKDIV_SHIFT			(4)
-> +#define AVGFILT_SHIFT			(7)
-> +#define PACK8IN_SHIFT			(8)
-> +#define IALAW_SHIFT			(9)
-> +#define CLKSEL_SHIFT			(10)
-> +#define DATASFT_SHIFT			(11)
-> +#define INPSRC1_SHIFT			(14)
-
-IPIPEIF prefix. Are these related to a particular register or a set of
-registers?
-
-> +/* DPC2 */
-> +#define IPIPEIF_DPC2_EN_SHIFT		(12)
-> +#define IPIPEIF_DPC2_THR_MASK		(0xFFF)
-> +#define IPIPEIF_DF_GAIN_EN_SHIFT	(10)
-> +#define IPIPEIF_DF_GAIN_MASK		(0x3FF)
-> +#define IPIPEIF_DF_GAIN_THR_MASK	(0xFFF)
-> +/* DPCM */
-> +#define IPIPEIF_DPCM_BITS_SHIFT		(2)
-> +#define IPIPEIF_DPCM_PRED_SHIFT		(1)
-> +/* CFG2 */
-> +#define IPIPEIF_CFG2_HDPOL_SHIFT	(1)
-> +#define IPIPEIF_CFG2_VDPOL_SHIFT	(2)
-> +#define IPIPEIF_CFG2_YUV8_SHIFT		(6)
-> +#define	IPIPEIF_CFG2_YUV16_SHIFT	(3)
-> +#define	IPIPEIF_CFG2_YUV8P_SHIFT	(7)
-> +
-> +/* INIRSZ */
-> +#define IPIPEIF_INIRSZ_ALNSYNC_SHIFT	(13)
-> +#define IPIPEIF_INIRSZ_MASK		(0x1FFF)
-> +
-> +/* CLKDIV */
-> +#define IPIPEIF_CLKDIV_M_SHIFT		8
-> +
-> +int ipipeif_set_address(struct ipipeif *if_params, unsigned int address);
-> +void ipipeif_set_enable(char en, unsigned int mode);
-> +int ipipeif_hw_setup(struct ipipeif *if_params);
-> +u32 ipipeif_get_enable(void);
-> +
-> +#endif
-> +#endif
-> -- 
-> 1.6.2.4
+> > > > The possible conflict that I still see with per-bank CMA regions are:
+> > > > 
+> > > > * It completely destroys memory power management in cases where that
+> > > >   is based on powering down entire memory banks.
+> > > 
+> We already established that we have to know something about the banks,
+> and your additional input makes it even clearer that we need to consider
+> the bigger picture here: We need to describe parts of memory separately
+> regarding general performance, device specific allocations and hotplug
+> characteristics.
 > 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> It still sounds to me that this can be done using the NUMA properties
+> that Linux already understands, and teaching more subsystems about it,
+> but maybe the memory hotplug developers have already come up with
+> another scheme. The way that memory hotplug and CMA choose their
+> memory regions certainly needs to take both into account. As far as
+> I can see there are both conflicting and synergistic effects when
+> you combine the two.
+> 
+
+Recently, we proposed a generic 'memory regions' framework to exploit
+the memory power management capabilities on the embedded boards. Think
+of some of the above CMA requirements could be met by this fraemwork.
+One of the main goals of regions is to make the VM aware of the hardware
+memory boundaries, like bank. For managing memory power consumption,
+memory regions are created aligned to the hardware granularity at which
+the power can be managed (ie, the memory power consumption operations
+like on/off can be performed). If attributed are associated with each of
+these regions, some of these regions could be marked as CMA-only,
+ensuring that only movable and per-bank memory is allocated. More
+details on the design can be found here:
+
+http://lkml.org/lkml/2011/5/27/177
+http://lkml.org/lkml/2011/6/29/202
+http://lwn.net/Articles/446493/
 
 -- 
-Sakari Ailus
-sakari.ailus@iki.fi
+Regards,
+Ankita Garg (ankita@in.ibm.com)
+Linux Technology Center
+IBM India Systems & Technology Labs,
+Bangalore, India
