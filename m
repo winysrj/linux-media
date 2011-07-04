@@ -1,153 +1,96 @@
-Return-path: <mchehab@localhost>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:58249 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752661Ab1GFMM6 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 6 Jul 2011 08:12:58 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-Subject: Re: [RFC] DV timings spec fixes at V4L2 API - was: [PATCH 1/8] v4l: add macro for 1080p59_54 preset
-Date: Wed, 6 Jul 2011 14:13:32 +0200
-Cc: Hans Verkuil <hverkuil@xs4all.nl>,
-	Tomasz Stanislawski <t.stanislaws@samsung.com>,
-	linux-media@vger.kernel.org, m.szyprowski@samsung.com,
-	kyungmin.park@samsung.com
-References: <1309351877-32444-1-git-send-email-t.stanislaws@samsung.com> <201107061403.48526.laurent.pinchart@ideasonboard.com> <4E145082.5080406@redhat.com>
-In-Reply-To: <4E145082.5080406@redhat.com>
+Return-path: <mchehab@pedra>
+Received: from relay01.digicable.hu ([92.249.128.189]:33908 "EHLO
+	relay01.digicable.hu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752055Ab1GDVdO (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 4 Jul 2011 17:33:14 -0400
+Received: from [94.21.97.51]
+	by relay01.digicable.hu with esmtpa
+	id 1QdqF9-0008Tg-PZ for <linux-media@vger.kernel.org>; Mon, 04 Jul 2011 22:59:48 +0200
+Message-ID: <4E12297D.4040302@freemail.hu>
+Date: Mon, 04 Jul 2011 22:58:37 +0200
+From: =?UTF-8?B?TsOpbWV0aCBNw6FydG9u?= <nm127@freemail.hu>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201107061413.33300.laurent.pinchart@ideasonboard.com>
+To: V4L Mailing List <linux-media@vger.kernel.org>
+Subject: gspca: video0 becomes video1 after "ISOC data error"
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 List-ID: <linux-media.vger.kernel.org>
-Sender: <mchehab@infradead.org>
+Sender: <mchehab@pedra>
 
-On Wednesday 06 July 2011 14:09:38 Mauro Carvalho Chehab wrote:
-> Em 06-07-2011 09:03, Laurent Pinchart escreveu:
-> > On Wednesday 06 July 2011 13:48:35 Mauro Carvalho Chehab wrote:
-> >> Em 06-07-2011 08:31, Hans Verkuil escreveu:
-> >>>> Em 05-07-2011 10:20, Hans Verkuil escreveu:
-> >>>>>> I failed to see what information is provided by the "presets" name.
-> >>>>>> If this were removed from the ioctl, and fps would be added
-> >>>>>> instead, the API would be clearer. The only adjustment would be to
-> >>>>>> use "index" as the preset selection key. Anyway, it is too late for
-> >>>>>> such change. We need to live with that.
-> >>>>> 
-> >>>>> Adding the fps solves nothing. Because that still does not give you
-> >>>>> specific timings. You can have 1920x1080P60 that has quite different
-> >>>>> timings from the CEA-861 standard and that may not be supported by a
-> >>>>> TV.
-> >>>>> 
-> >>>>> If you are working with HDMI, then you may want to filter all
-> >>>>> supported presets to those of the CEA standard.
-> >>>>> 
-> >>>>> That's one thing that is missing at the moment: that presets
-> >>>>> belonging to a certain standard get their own range. Since we only
-> >>>>> do CEA861 right now it hasn't been an issue, but it will.
-> >>>> 
-> >>>> I prepared a long email about that, but then I realized that we're
-> >>>> investing our time intosomething broken, at the light of all DV timing
-> >>>> standards. So, I've dropped it and started from scratch.
-> >>>> 
-> >>>> From what I've got, there are some hardware that can only do a limited
-> >>>> set of DV timings. If this were not the case, we could simply just use
-> >>>> the VIDIOC_S_DV_TIMINGS/VIDIOC_G_DV_TIMINGS, and put the CEA 861 and
-> >>>> VESA timings into some userspace library.
-> >>>> 
-> >>>> In other words, the PRESET API is meant to solve the case where
-> >>>> hardware only support a limited set of frequencies, that may or may
-> >>>> not be inside the CEA standard.
-> >>>> 
-> >>>> Let's assume we never added the current API, and discuss how it would
-> >>>> properly fulfill the user needs. An API that would likely work is:
-> >>>> 
-> >>>> struct v4l2_dv_enum_preset2 {
-> >>>> 
-> >>>> 	__u32	  index;
-> >>>> 	__u8	  name[32]; /* Name of the preset timing */
-> >>>> 	
-> >>>> 	struct v4l2_fract fps;
-> >>>> 
-> >>>> #define DV_PRESET_IS_PROGRESSIVE	1<<31
-> >>>> #define DV_PRESET_SPEC(flag)		(flag && 0xff)
-> >>>> #define DV_PRESET_IS_CEA861		1
-> >>>> #define DV_PRESET_IS_DMT		2
-> >>>> #define DV_PRESET_IS_CVF		3
-> >>>> #define DV_PRESET_IS_GTF		4
-> >>>> #define DV_PRESET_IS_VENDOR_SPECIFIC	5
-> >>>> 
-> >>>> 	__u32	flags;		/* Interlaced/progressive, DV specs, etc */
-> >>>> 	
-> >>>> 	__u32	width;		/* width in pixels */
-> >>>> 	__u32	height;		/* height in lines */
-> >>>> 	__u32	polarities;	/* Positive or negative polarity */
-> >>>> 	__u64	pixelclock;	/* Pixel clock in HZ. Ex. 74.25MHz->74250000 */
-> >>>> 	__u32	hfrontporch;	/* Horizpontal front porch in pixels */
-> >>>> 	__u32	hsync;		/* Horizontal Sync length in pixels */
-> >>>> 	__u32	hbackporch;	/* Horizontal back porch in pixels */
-> >>>> 	__u32	vfrontporch;	/* Vertical front porch in pixels */
-> >>>> 	__u32	vsync;		/* Vertical Sync length in lines */
-> >>>> 	__u32	vbackporch;	/* Vertical back porch in lines */
-> >>>> 	__u32	il_vfrontporch;	/* Vertical front porch for bottom field of
-> >>>> 	
-> >>>> 				 * interlaced field formats
-> >>>> 				 */
-> >>>> 	
-> >>>> 	__u32	il_vsync;	/* Vertical sync length for bottom field of
-> >>>> 	
-> >>>> 				 * interlaced field formats
-> >>>> 				 */
-> >>>> 	
-> >>>> 	__u32	il_vbackporch;	/* Vertical back porch for bottom field of
-> >>>> 	
-> >>>> 				 * interlaced field formats
-> >>>> 				 */
-> >>>> 	
-> >>>> 	__u32	  reserved[4];
-> >>>> 
-> >>>> };
-> >>>> 
-> >>>> #define	VIDIOC_ENUM_DV_PRESETS2	_IOWR('V', 83, struct
-> >>>> v4l2_dv_enum_preset2)
-> >>>> #define	VIDIOC_S_DV_PRESET2	_IOWR('V', 84, u32 index)
-> >>>> #define	VIDIOC_G_DV_PRESET2	_IOWR('V', 85, u32 index)
-> >>>> 
-> >>>> Such preset API seems to work for all cases. Userspace can use any DV
-> >>>> timing information to select the desired format, and don't need to
-> >>>> have a switch for a preset macro to try to guess what the format
-> >>>> actually means. Also, there's no need to touch at the API spec every
-> >>>> time a new DV timeline is needed.
-> >>>> 
-> >>>> Also, it should be noticed that, since the size of the data on the
-> >>>> above definitions are different than the old ones, _IO macros will
-> >>>> provide a different magic number, so, adding these won't break the
-> >>>> existing API.
-> >>>> 
-> >>>> So, I think we should work on this proposal, and mark the existing one
-> >>>> as deprecated.
-> >>> 
-> >>> This proposal makes it very hard for applications to directly select a
-> >>> format like 720p50 because the indices can change at any time.
-> >> 
-> >> Why? All the application needs to do is to call VIDIOC_ENUM_DV_PRESETS2,
-> >> check what line it wants, and do a S_DV_PRESET2, just like any other
-> >> place where V4L2 defines an ENUM function.
-> > 
-> > Forcing applications to enumerate all presets when they already know what
-> > preset they want doesn't seem like a very good solution to me.
-> 
-> If the app already know, it might simply do VIDIOC_S_DV_PRESET2(index).
-> This would work for an embedded hardware. The only care to be taken is to
-> change the index number if the Kernel changes, or to be sure that, on the
-> embedded tree, that newer DV lines will be added only after the previous
-> one.
-> 
-> Anyway, a broken API cannot be justified by a weak argument that not
-> needing to do an ENUM will save a few nanosseconds for some embedded
-> hardware during application initialization time.
+Hi,
 
-We're talking about dozens of syscalls, not a couple of nanoseconds.
+I'm running Debian with Linux 2.6.38-2-486 on a computer. I have a hama AC-150 webcam
+attached to this computer. The webcam works continouosly and I use mencoder to do some
+cropping and transformation and to encode the video stream to a file.
 
--- 
+When I plug the device the following appears in the dmesg:
+
+[439884.692090] usb 3-1: new full speed USB device using uhci_hcd and address 6
+[439884.841721] usb 3-1: New USB device found, idVendor=0c45, idProduct=6142
+[439884.841958] usb 3-1: New USB device strings: Mfr=0, Product=1, SerialNumber=0
+[439884.842153] usb 3-1: Product: USB camera
+[439884.851327] gspca: probing 0c45:6142
+[439884.856694] sonixj: Sonix chip id: 12
+[439884.942767] sonixj: Sensor po2030n
+[439884.947226] input: sonixj as /devices/pci0000:00/0000:00:0b.0/usb3/3-1/input/input4
+[439884.968553] gspca: video0 created
+
+The camera works and sometimes the following messages appear in dmesg:
+
+[2992914.118137] gspca: ISOC data error: [3] len=0, status=-84
+[3020511.187726] gspca: ISOC data error: [16] len=0, status=-84
+[3071235.051448] gspca: ISOC data error: [22] len=0, status=-84
+[3178268.392602] gspca: ISOC data error: [11] len=0, status=-84
+[3195506.149353] gspca: ISOC data error: [14] len=0, status=-84
+[3200576.757068] gspca: ISOC data error: [13] len=0, status=-84
+[3242983.446235] gspca: ISOC data error: [20] len=0, status=-84
+[3242983.446406] gspca: ISOC data error: [21] len=0, status=-84
+[3242983.446526] gspca: ISOC data error: [22] len=0, status=-84
+[3242983.446638] gspca: ISOC data error: [23] len=0, status=-84
+[3242983.468410] gspca: ISOC data error: [0] len=0, status=-84
+[3242983.468578] gspca: ISOC data error: [1] len=0, status=-84
+[3242983.468709] gspca: ISOC data error: [2] len=0, status=-84
+[3242983.468827] gspca: ISOC data error: [3] len=0, status=-84
+...
+[3242983.579375] gspca: ISOC data error: [22] len=0, status=-84
+[3242983.579375] gspca: ISOC data error: [23] len=0, status=-84
+[3242983.588379] gspca: URB error -84, resubmitting
+[3242983.591697] usb 3-1: USB disconnect, address 6
+[3242983.592489] gspca: ISOC data error: [0] len=0, status=-84
+[3242983.592630] gspca: ISOC data error: [1] len=0, status=-84
+[3242983.592744] gspca: ISOC data error: [2] len=0, status=-84
+[3242983.592856] gspca: ISOC data error: [3] len=0, status=-84
+...
+[3242983.594935] gspca: ISOC data error: [22] len=0, status=-84
+[3242983.595044] gspca: ISOC data error: [23] len=0, status=-84
+[3242983.595149] gspca: usb_submit_urb() ret -19
+[3242983.602605] gspca: video0 disconnect
+[3242983.899568] usb 3-1: new full speed USB device using uhci_hcd and address 7
+[3242984.077146] usb 3-1: New USB device found, idVendor=0c45, idProduct=6142
+[3242984.077375] usb 3-1: New USB device strings: Mfr=0, Product=1, SerialNumber=0
+[3242984.077563] usb 3-1: Product: USB camera
+[3242984.096020] gspca: probing 0c45:6142
+[3242984.117655] sonixj: Sonix chip id: 12
+[3242984.221778] sonixj: Sensor po2030n
+[3242984.249883] input: sonixj as /devices/pci0000:00/0000:00:0b.0/usb3/3-1/input/input5
+[3242984.258533] gspca: video1 created
+
+At this point the user space application (mencoder) still have the /dev/video0 device open
+but the video0 device is no longer there. Instead the video1 is created.
+
+I already saw similar behaviour in case of suspend-resume cycle, see
+Bug 13419 - gspca: /dev/video0 changes to /dev/video1 after suspend
+https://bugzilla.kernel.org/show_bug.cgi?id=13419
+
+The error code -84 refers to EILSEQ (Illegal byte sequence) according to include/asm-generic/errno.h .
+What could be the reason for "ISO data error"?
+
+I guess the video0 is disconnected as part of error recovery. In this case, however
+the video1 device is created so the user space application looses the original
+video streaming device. Is this how it shall work?
+
 Regards,
 
-Laurent Pinchart
+	Márton Németh
+
+
