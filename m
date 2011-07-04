@@ -1,80 +1,176 @@
-Return-path: <mchehab@localhost>
-Received: from smtp-68.nebula.fi ([83.145.220.68]:55416 "EHLO
-	smtp-68.nebula.fi" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753311Ab1GFMiO (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 6 Jul 2011 08:38:14 -0400
-Date: Wed, 6 Jul 2011 15:38:08 +0300
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: mchehab@redhat.com
-Cc: linux-media@vger.kernel.org, laurent.pinchart@ideasonboard.com,
-	hverkuil@xs4all.nl
-Subject: [GIT PULL FOR 3.1] Bitmask controls, flash API and adp1653 driver
-Message-ID: <20110706123808.GS12671@valkosipuli.localdomain>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+Return-path: <mchehab@pedra>
+Received: from mailout2.w1.samsung.com ([210.118.77.12]:17598 "EHLO
+	mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758401Ab1GDRzn (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 4 Jul 2011 13:55:43 -0400
+Date: Mon, 04 Jul 2011 19:55:03 +0200
+From: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Subject: [PATCH v3 12/19] s5p-fimc: Add PM helper function for streaming control
+In-reply-to: <1309802110-16682-1-git-send-email-s.nawrocki@samsung.com>
+To: linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org
+Cc: m.szyprowski@samsung.com, kyungmin.park@samsung.com,
+	s.nawrocki@samsung.com, sw0312.kim@samsung.com,
+	riverful.kim@samsung.com
+Message-id: <1309802110-16682-13-git-send-email-s.nawrocki@samsung.com>
+MIME-version: 1.0
+Content-type: TEXT/PLAIN
+Content-transfer-encoding: 7BIT
+References: <1309802110-16682-1-git-send-email-s.nawrocki@samsung.com>
 List-ID: <linux-media.vger.kernel.org>
-Sender: <mchehab@infradead.org>
+Sender: <mchehab@pedra>
 
-Hi Mauro,
+Create a helper function for (re)starting streaming in PM resume calls.
 
-This pull request adds the bitmask controls, flash API and the adp1653
-driver.
+Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+---
+ drivers/media/video/s5p-fimc/fimc-capture.c |   80 ++++++++++++++++-----------
+ drivers/media/video/s5p-fimc/fimc-core.c    |    4 +-
+ drivers/media/video/s5p-fimc/fimc-core.h    |    3 +
+ 3 files changed, 52 insertions(+), 35 deletions(-)
 
-Laurent noticed an issue with the previous pull request and I've fixed that.
-
-Changes since the second pull request:
-
-- Properly call validate_new_int() from validate_new() for bitmask controls.
-
-Changes since the first pull request to the second one:
-
-- Added a patch to document the V4L2 control endianness. It's on the top.
-- Rebased the patches. I haven't tested vivi, though.
-- The adp1653 uses dev_pm_ops instead of i2c ops for suspend/resume.
-
-Changes since the last patchset since the first pull request:
-
-- Adp1653 flash faults control is volatile. Fix this.
-- Flash interface marked as experimental.
-- Moved the DocBook documentation to a new location.
-- The target version is 3.1, not 2.6.41.
-
-The following changes since commit df6aabbeb2b8799d97f3886fc994c318bc6a6843:
-
-  [media] v4l2-ctrls.c: add support for V4L2_EVENT_SUB_FL_ALLOW_FEEDBACK (2011-07-01 20:54:51 -0300)
-
-are available in the git repository at:
-  ssh://linuxtv.org/git/sailus/media_tree.git media-for-3.1-flash-4
-
-Hans Verkuil (3):
-      v4l2-ctrls: add new bitmask control type.
-      vivi: add bitmask test control.
-      DocBook: document V4L2_CTRL_TYPE_BITMASK.
-
-Sakari Ailus (4):
-      v4l: Add a class and a set of controls for flash devices.
-      v4l: Add flash control documentation
-      adp1653: Add driver for LED flash controller
-      v4l: Document V4L2 control endianness as machine endianness.
-
- Documentation/DocBook/media/v4l/compat.xml         |   11 +
- Documentation/DocBook/media/v4l/controls.xml       |  291 ++++++++++++
- Documentation/DocBook/media/v4l/v4l2.xml           |    6 +-
- .../DocBook/media/v4l/vidioc-g-ext-ctrls.xml       |    7 +
- .../DocBook/media/v4l/vidioc-queryctrl.xml         |   12 +-
- drivers/media/video/Kconfig                        |    9 +
- drivers/media/video/Makefile                       |    1 +
- drivers/media/video/adp1653.c                      |  491 ++++++++++++++++++++
- drivers/media/video/v4l2-common.c                  |    3 +
- drivers/media/video/v4l2-ctrls.c                   |   63 +++-
- drivers/media/video/vivi.c                         |   18 +-
- include/linux/videodev2.h                          |   37 ++
- include/media/adp1653.h                            |  126 +++++
- 13 files changed, 1068 insertions(+), 7 deletions(-)
- create mode 100644 drivers/media/video/adp1653.c
- create mode 100644 include/media/adp1653.h
-
+diff --git a/drivers/media/video/s5p-fimc/fimc-capture.c b/drivers/media/video/s5p-fimc/fimc-capture.c
+index 7c6c420..7af4ac5 100644
+--- a/drivers/media/video/s5p-fimc/fimc-capture.c
++++ b/drivers/media/video/s5p-fimc/fimc-capture.c
+@@ -30,6 +30,48 @@
+ #include "fimc-mdevice.h"
+ #include "fimc-core.h"
+ 
++/**
++ * fimc_start_capture - initialize the H/W for camera capture operation
++ *
++ * Initialize the camera capture datapath so when this function successfuly
++ * completes all what is needed to start the capture pipeline is asserting
++ * the global capture bit ImgCptEn.
++ */
++static int fimc_start_capture(struct fimc_dev *fimc)
++{
++	struct fimc_ctx *ctx = fimc->vid_cap.ctx;
++	struct fimc_sensor_info *sensor;
++	unsigned long flags;
++	int ret = 0;
++
++	if (fimc->pipeline.sensor == NULL || ctx == NULL)
++		return -EIO;
++	sensor = v4l2_get_subdev_hostdata(fimc->pipeline.sensor);
++
++	spin_lock_irqsave(&fimc->slock, flags);
++	fimc_prepare_dma_offset(ctx, &ctx->d_frame);
++	fimc_set_yuv_order(ctx);
++
++	fimc_hw_set_camera_polarity(fimc, sensor->pdata);
++	fimc_hw_set_camera_type(fimc, sensor->pdata);
++	fimc_hw_set_camera_source(fimc, sensor->pdata);
++	fimc_hw_set_camera_offset(fimc, &ctx->s_frame);
++
++	ret = fimc_set_scaler_info(ctx);
++	if (!ret) {
++		fimc_hw_set_input_path(ctx);
++		fimc_hw_set_prescaler(ctx);
++		fimc_hw_set_mainscaler(ctx);
++		fimc_hw_set_target_format(ctx);
++		fimc_hw_set_rotation(ctx);
++		fimc_hw_set_effect(ctx);
++		fimc_hw_set_output_path(ctx);
++		fimc_hw_set_out_dma(ctx);
++	}
++	spin_unlock_irqrestore(&fimc->slock, flags);
++	return ret;
++}
++
+ static int fimc_stop_capture(struct fimc_dev *fimc)
+ {
+ 	unsigned long flags;
+@@ -89,47 +131,19 @@ static int start_streaming(struct vb2_queue *q)
+ {
+ 	struct fimc_ctx *ctx = q->drv_priv;
+ 	struct fimc_dev *fimc = ctx->fimc_dev;
+-	struct s5p_fimc_isp_info *isp_info;
++	struct fimc_vid_cap *vid_cap = &fimc->vid_cap;
+ 	int ret;
+ 
+ 	fimc_hw_reset(fimc);
+ 
+-	ret = v4l2_subdev_call(fimc->vid_cap.sd, video, s_stream, 1);
+-	if (ret && ret != -ENOIOCTLCMD)
+-		return ret;
++	vid_cap->active_buf_cnt = 0;
++	vid_cap->frame_count = 0;
++	vid_cap->buf_index = 0;
+ 
+-	ret = fimc_prepare_config(ctx, ctx->state);
++	ret = fimc_start_capture(fimc);
+ 	if (ret)
+ 		return ret;
+ 
+-	isp_info = &fimc->pdata->isp_info[fimc->vid_cap.input_index];
+-	fimc_hw_set_camera_type(fimc, isp_info);
+-	fimc_hw_set_camera_source(fimc, isp_info);
+-	fimc_hw_set_camera_offset(fimc, &ctx->s_frame);
+-
+-	if (ctx->state & FIMC_PARAMS) {
+-		ret = fimc_set_scaler_info(ctx);
+-		if (ret) {
+-			err("Scaler setup error");
+-			return ret;
+-		}
+-		fimc_hw_set_input_path(ctx);
+-		fimc_hw_set_prescaler(ctx);
+-		fimc_hw_set_mainscaler(ctx);
+-		fimc_hw_set_target_format(ctx);
+-		fimc_hw_set_rotation(ctx);
+-		fimc_hw_set_effect(ctx);
+-	}
+-
+-	fimc_hw_set_output_path(ctx);
+-	fimc_hw_set_out_dma(ctx);
+-
+-	INIT_LIST_HEAD(&fimc->vid_cap.pending_buf_q);
+-	INIT_LIST_HEAD(&fimc->vid_cap.active_buf_q);
+-	fimc->vid_cap.active_buf_cnt = 0;
+-	fimc->vid_cap.frame_count = 0;
+-	fimc->vid_cap.buf_index = 0;
+-
+ 	set_bit(ST_CAPT_PEND, &fimc->state);
+ 	return 0;
+ }
+diff --git a/drivers/media/video/s5p-fimc/fimc-core.c b/drivers/media/video/s5p-fimc/fimc-core.c
+index cb89146..a3edaf8 100644
+--- a/drivers/media/video/s5p-fimc/fimc-core.c
++++ b/drivers/media/video/s5p-fimc/fimc-core.c
+@@ -476,7 +476,7 @@ int fimc_prepare_addr(struct fimc_ctx *ctx, struct vb2_buffer *vb,
+ }
+ 
+ /* Set order for 1 and 2 plane YCBCR 4:2:2 formats. */
+-static void fimc_set_yuv_order(struct fimc_ctx *ctx)
++void fimc_set_yuv_order(struct fimc_ctx *ctx)
+ {
+ 	/* The one only mode supported in SoC. */
+ 	ctx->in_order_2p = S5P_FIMC_LSB_CRCB;
+@@ -518,7 +518,7 @@ static void fimc_set_yuv_order(struct fimc_ctx *ctx)
+ 	dbg("ctx->out_order_1p= %d", ctx->out_order_1p);
+ }
+ 
+-static void fimc_prepare_dma_offset(struct fimc_ctx *ctx, struct fimc_frame *f)
++void fimc_prepare_dma_offset(struct fimc_ctx *ctx, struct fimc_frame *f)
+ {
+ 	struct samsung_fimc_variant *variant = ctx->fimc_dev->variant;
+ 	u32 i, depth = 0;
+diff --git a/drivers/media/video/s5p-fimc/fimc-core.h b/drivers/media/video/s5p-fimc/fimc-core.h
+index 86288c8..ab911be 100644
+--- a/drivers/media/video/s5p-fimc/fimc-core.h
++++ b/drivers/media/video/s5p-fimc/fimc-core.h
+@@ -663,6 +663,9 @@ int fimc_set_scaler_info(struct fimc_ctx *ctx);
+ int fimc_prepare_config(struct fimc_ctx *ctx, u32 flags);
+ int fimc_prepare_addr(struct fimc_ctx *ctx, struct vb2_buffer *vb,
+ 		      struct fimc_frame *frame, struct fimc_addr *paddr);
++void fimc_prepare_dma_offset(struct fimc_ctx *ctx, struct fimc_frame *f);
++void fimc_set_yuv_order(struct fimc_ctx *ctx);
++
+ int fimc_register_m2m_device(struct fimc_dev *fimc,
+ 			     struct v4l2_device *v4l2_dev);
+ void fimc_unregister_m2m_device(struct fimc_dev *fimc);
 -- 
-Sakari Ailus
-sakari.ailus@iki.fi
+1.7.5.4
+
