@@ -1,152 +1,99 @@
-Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:15585 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751342Ab1GZNuT (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 26 Jul 2011 09:50:19 -0400
-Message-ID: <4E2EC67E.6010300@redhat.com>
-Date: Tue, 26 Jul 2011 15:51:58 +0200
-From: Hans de Goede <hdegoede@redhat.com>
-MIME-Version: 1.0
-To: Hans Verkuil <hverkuil@xs4all.nl>
-CC: Hans Verkuil <hansverk@cisco.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: Some comments on the new autocluster patches
-References: <4E0DE283.2030107@redhat.com> <201107041143.13458.hansverk@cisco.com> <4E1C4B2E.7010403@redhat.com> <201107261126.22285.hverkuil@xs4all.nl>
-In-Reply-To: <201107261126.22285.hverkuil@xs4all.nl>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-Sender: linux-media-owner@vger.kernel.org
+Return-path: <mchehab@pedra>
+Received: from mailout3.w1.samsung.com ([210.118.77.13]:43518 "EHLO
+	mailout3.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758153Ab1GDRzm (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 4 Jul 2011 13:55:42 -0400
+MIME-version: 1.0
+Content-transfer-encoding: 7BIT
+Content-type: TEXT/PLAIN
+Date: Mon, 04 Jul 2011 19:54:55 +0200
+From: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Subject: [PATCH v3 04/19] s5p-fimc: Remove sclk_cam clock handling
+In-reply-to: <1309802110-16682-1-git-send-email-s.nawrocki@samsung.com>
+To: linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org
+Cc: m.szyprowski@samsung.com, kyungmin.park@samsung.com,
+	s.nawrocki@samsung.com, sw0312.kim@samsung.com,
+	riverful.kim@samsung.com
+Message-id: <1309802110-16682-5-git-send-email-s.nawrocki@samsung.com>
+References: <1309802110-16682-1-git-send-email-s.nawrocki@samsung.com>
 List-ID: <linux-media.vger.kernel.org>
+Sender: <mchehab@pedra>
 
-Hi,
+The external sclk_cam clocks will be handled at the media device
+driver level.
 
-On 07/26/2011 11:26 AM, Hans Verkuil wrote:
-> OK, I'm back to work after my vacation, so it's time to go through the
-> backlog...
->
+Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+---
+ drivers/media/video/s5p-fimc/fimc-core.c |   12 ++----------
+ drivers/media/video/s5p-fimc/fimc-core.h |    3 +--
+ 2 files changed, 3 insertions(+), 12 deletions(-)
 
-Welcome back :)
+diff --git a/drivers/media/video/s5p-fimc/fimc-core.c b/drivers/media/video/s5p-fimc/fimc-core.c
+index 36a8d63..fd6a308 100644
+--- a/drivers/media/video/s5p-fimc/fimc-core.c
++++ b/drivers/media/video/s5p-fimc/fimc-core.c
+@@ -30,7 +30,7 @@
+ #include "fimc-core.h"
+ 
+ static char *fimc_clocks[MAX_FIMC_CLOCKS] = {
+-	"sclk_fimc", "fimc", "sclk_cam"
++	"sclk_fimc", "fimc"
+ };
+ 
+ static struct fimc_fmt fimc_formats[] = {
+@@ -1648,7 +1648,6 @@ static int fimc_probe(struct platform_device *pdev)
+ 	struct samsung_fimc_driverdata *drv_data;
+ 	struct s5p_platform_fimc *pdata;
+ 	int ret = 0;
+-	int cap_input_index = -1;
+ 
+ 	dev_dbg(&pdev->dev, "%s():\n", __func__);
+ 
+@@ -1701,14 +1700,6 @@ static int fimc_probe(struct platform_device *pdev)
+ 		goto err_req_region;
+ 	}
+ 
+-	fimc->num_clocks = MAX_FIMC_CLOCKS - 1;
+-
+-	/* Check if a video capture node needs to be registered. */
+-	if (pdata && pdata->num_clients > 0) {
+-		cap_input_index = 0;
+-		fimc->num_clocks++;
+-	}
+-
+ 	res = platform_get_resource(pdev, IORESOURCE_IRQ, 0);
+ 	if (!res) {
+ 		dev_err(&pdev->dev, "failed to get IRQ resource\n");
+@@ -1717,6 +1708,7 @@ static int fimc_probe(struct platform_device *pdev)
+ 	}
+ 	fimc->irq = res->start;
+ 
++	fimc->num_clocks = MAX_FIMC_CLOCKS;
+ 	ret = fimc_clk_get(fimc);
+ 	if (ret)
+ 		goto err_regs_unmap;
+diff --git a/drivers/media/video/s5p-fimc/fimc-core.h b/drivers/media/video/s5p-fimc/fimc-core.h
+index c088dac..f059216 100644
+--- a/drivers/media/video/s5p-fimc/fimc-core.h
++++ b/drivers/media/video/s5p-fimc/fimc-core.h
+@@ -34,7 +34,7 @@
+ 
+ /* Time to wait for next frame VSYNC interrupt while stopping operation. */
+ #define FIMC_SHUTDOWN_TIMEOUT	((100*HZ)/1000)
+-#define MAX_FIMC_CLOCKS		3
++#define MAX_FIMC_CLOCKS		2
+ #define MODULE_NAME		"s5p-fimc"
+ #define FIMC_MAX_DEVS		4
+ #define FIMC_MAX_OUT_BUFS	4
+@@ -46,7 +46,6 @@
+ enum {
+ 	CLK_BUS,
+ 	CLK_GATE,
+-	CLK_CAM,
+ };
+ 
+ enum fimc_dev_flags {
+-- 
+1.7.5.4
 
-> On Tuesday, July 12, 2011 15:25:02 Hans de Goede wrote:
->> Hi,
->>
->> On 07/04/2011 11:43 AM, Hans Verkuil wrote:
-
-<snip snip>
-
->>> It is relevant. Take an application that saves the current state of all
->>> controls and restores it the next time it is started. If you report the
->>> device's autogain value instead of the manual gain, then that manual gain
->>> value is lost. I consider this a major drawback.
->>
->> If autogain is on, then the gain is RO, so it should not be saved. Let alone
->> restored.
->
-> Marking gain as inactive is fine, but marking it as read-only is not so clear.
-> Currently the RO flag is static. This allows control panels to use e.g. a text
-> field instead of an input field to show the value.
->
-> I would like to keep that functionality. If we make the RO flag dynamic, then
-> GUIs won't know whether to show it as a disabled input field or as a text field.
->
-> Whereas with the inactive flag they will know that it has to be a disabled
-> input field.
->
-
-Agreed, where I wrote read only I meant inactive, which does make it less clear
-that the control should not be saved / restored by a save / restore app.
-
-> When the inactive flag is set, it is still allowed to set the value. However,
-> if we add a volatile flag as well, then we may want to have the combination
-> 'inactive and volatile' return an error when an application attempts to set the
-> value.
-
-I think that is a good solution to indicate dynamic-readonly ness (more or less),
-and thus to indicate that the control should not be written (and thus not saved/
-restored).
-
-> Or is this too complex and should we just discard the value in a case like that?
-
-I would prefer returning an error, so that things don't silently fail, also
-unless we actually return an error many apps are likely to get this wrong.
-
-<snip snip>
-
->> I still believe that everything boils down to 2 possible scenarios,
->> and the rest follows from that. With the 2 scenarios being:
->>
->> 1) There is a manual setting which is constant until explicitly
->> changed, when (ie) gain switches from auto mode to manual mode
->> then the actual used gain is reset to this manual setting
->>
->> 2) There is a single gain setting / register, which is r/w when the
->> control is in manual mode and ro when in auto mode. When auto mode
->> gets switched off, the gain stays at the last value set by auto mode.
->>
->> 2) Is what most webcam sensors (and the pwc firmware) implement at
->> the hardware level, and what to me also makes the most sense for webcams.
->>
->> To me this whole discussion centers around these 2 scenarios, with you
->> being a proponent of 1), and I guess that for video capture boards 1 makes
->> a lot of sense, and me being a proponent of 2.
->>
->> Proposal: lets agree that these 2 methods of handling autofoo controls
->> both exist and both have merits in certain cases, this means letting
->> it be up to the driver to choose which method to implement.
->
-> OK.
->
->> If we can agree on this, then the next step would be to document both
->> methods, as well as how the controls should behave in either scenario.
->> I'm willing to write up a first draft for this.
->
-> I can do that as well, see below.
-
-Ah great, you just saved me some work I always like it when people
-save me work :)
-
-<snip snip>
-
->> I think we need to agree that we disagree :)
->
-> Actually, I agree with much of what you wrote :-)
->
-
-Good :)
-
-> OK, so we have two scenarios:
->
-> 1) There is a manual setting which is constant until explicitly changed, when e.g.
-> gain switches from auto mode to manual mode then the actual used gain is reset to
-> this manual setting.
->
-> In this case the e.g. gain control is *not* marked volatile, but just inactive.
-> If the hardware can return the gain as set by the autogain circuit, then that has
-> to be exported as a separate read-only control (e.g. 'Current Gain').
->
->
-> 2) There is a single gain setting / register, which is active when the control is in
-> manual mode and inactive and volatile when in auto mode. When auto mode gets switched
-> off, the gain stays at the last value set by auto mode.
->
-> This scenario is only possible, of course, if you can obtain the gain value as set
-> by the autogain circuitry.
->
-
-I fully agree with the above, +1
-
-> An open question is whether writing to an inactive and volatile control should return
-> an error or not.
-
-I would prefer an error return.
-
-> Webcams should follow scenario 2 (if possible).
->
-> It is less obvious what to recommend for video capture devices. I'd leave it up to
-> the driver for now.
-
-Sounds good to me.
-
-Regards,
-
-Hans
