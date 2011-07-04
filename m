@@ -1,327 +1,696 @@
 Return-path: <mchehab@pedra>
-Received: from mailout4.w1.samsung.com ([210.118.77.14]:46886 "EHLO
-	mailout4.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754062Ab1GEHl5 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 5 Jul 2011 03:41:57 -0400
+Received: from mailout2.w1.samsung.com ([210.118.77.12]:17598 "EHLO
+	mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758505Ab1GDRzq (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 4 Jul 2011 13:55:46 -0400
+Date: Mon, 04 Jul 2011 19:55:01 +0200
+From: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Subject: [PATCH v3 10/19] s5p-fimc: Conversion to the control framework
+In-reply-to: <1309802110-16682-1-git-send-email-s.nawrocki@samsung.com>
+To: linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org
+Cc: m.szyprowski@samsung.com, kyungmin.park@samsung.com,
+	s.nawrocki@samsung.com, sw0312.kim@samsung.com,
+	riverful.kim@samsung.com
+Message-id: <1309802110-16682-11-git-send-email-s.nawrocki@samsung.com>
 MIME-version: 1.0
-Content-transfer-encoding: 7BIT
 Content-type: TEXT/PLAIN
-Date: Tue, 05 Jul 2011 09:41:43 +0200
-From: Marek Szyprowski <m.szyprowski@samsung.com>
-Subject: [PATCH 1/8] mm: move some functions from memory_hotplug.c to
- page_isolation.c
-In-reply-to: <1309851710-3828-1-git-send-email-m.szyprowski@samsung.com>
-To: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-	linux-media@vger.kernel.org, linux-mm@kvack.org,
-	linaro-mm-sig@lists.linaro.org
-Cc: Michal Nazarewicz <mina86@mina86.com>,
-	Marek Szyprowski <m.szyprowski@samsung.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	Andrew Morton <akpm@linux-foundation.org>,
-	KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>,
-	Ankita Garg <ankita@in.ibm.com>,
-	Daniel Walker <dwalker@codeaurora.org>,
-	Mel Gorman <mel@csn.ul.ie>, Arnd Bergmann <arnd@arndb.de>,
-	Jesse Barker <jesse.barker@linaro.org>,
-	Jonathan Corbet <corbet@lwn.net>,
-	Chunsang Jeong <chunsang.jeong@linaro.org>
-Message-id: <1309851710-3828-2-git-send-email-m.szyprowski@samsung.com>
-References: <1309851710-3828-1-git-send-email-m.szyprowski@samsung.com>
+Content-transfer-encoding: 7BIT
+References: <1309802110-16682-1-git-send-email-s.nawrocki@samsung.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-From: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+The FIMC entity supports rotation, horizontal and vertical flip
+in camera capture and memory-to-memory operation mode.
+Due to atomic contexts used in mem-to-mem driver the control
+values need to be cached in drivers internal data structure.
 
-Memory hotplug is a logic for making pages unused in the specified
-range of pfn. So, some of core logics can be used for other purpose
-as allocating a very large contigous memory block.
-
-This patch moves some functions from mm/memory_hotplug.c to
-mm/page_isolation.c. This helps adding a function for large-alloc in
-page_isolation.c with memory-unplug technique.
-
-Signed-off-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-[m.nazarewicz: reworded commit message]
-Signed-off-by: Michal Nazarewicz <m.nazarewicz@samsung.com>
+Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
 Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
-[m.szyprowski: rebased and updated to Linux v3.0-rc1]
-Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
-CC: Michal Nazarewicz <mina86@mina86.com>
 ---
- include/linux/page-isolation.h |    7 +++
- mm/memory_hotplug.c            |  111 --------------------------------------
- mm/page_isolation.c            |  115 ++++++++++++++++++++++++++++++++++++++++
- 3 files changed, 122 insertions(+), 111 deletions(-)
+ drivers/media/video/s5p-fimc/fimc-capture.c |   60 +++---
+ drivers/media/video/s5p-fimc/fimc-core.c    |  291 +++++++++++----------------
+ drivers/media/video/s5p-fimc/fimc-core.h    |   34 ++--
+ drivers/media/video/s5p-fimc/fimc-mdevice.c |   11 +-
+ drivers/media/video/s5p-fimc/fimc-reg.c     |   32 +---
+ 5 files changed, 186 insertions(+), 242 deletions(-)
 
-diff --git a/include/linux/page-isolation.h b/include/linux/page-isolation.h
-index 051c1b1..58cdbac 100644
---- a/include/linux/page-isolation.h
-+++ b/include/linux/page-isolation.h
-@@ -33,5 +33,12 @@ test_pages_isolated(unsigned long start_pfn, unsigned long end_pfn);
- extern int set_migratetype_isolate(struct page *page);
- extern void unset_migratetype_isolate(struct page *page);
+diff --git a/drivers/media/video/s5p-fimc/fimc-capture.c b/drivers/media/video/s5p-fimc/fimc-capture.c
+index 0ceb16d..b193b7e 100644
+--- a/drivers/media/video/s5p-fimc/fimc-capture.c
++++ b/drivers/media/video/s5p-fimc/fimc-capture.c
+@@ -27,6 +27,7 @@
+ #include <media/videobuf2-core.h>
+ #include <media/videobuf2-dma-contig.h>
  
-+/*
-+ * For migration.
++#include "fimc-mdevice.h"
+ #include "fimc-core.h"
+ 
+ static int fimc_stop_capture(struct fimc_dev *fimc)
+@@ -257,6 +258,29 @@ static struct vb2_ops fimc_capture_qops = {
+ 	.stop_streaming		= stop_streaming,
+ };
+ 
++/**
++ * fimc_capture_ctrls_create - initialize the control handler
++ *
++ * Initialize the capture video node control handler and populate it
++ * with FIMC specific controls. If the linked sensor subdevice does
++ * not expose a video node add its controls to the FIMC control
++ * handler. This function must be called with the graph mutex held.
 + */
++int fimc_capture_ctrls_create(struct fimc_dev *fimc)
++{
++	int ret;
 +
-+int test_pages_in_a_zone(unsigned long start_pfn, unsigned long end_pfn);
-+unsigned long scan_lru_pages(unsigned long start, unsigned long end);
-+int do_migrate_range(unsigned long start_pfn, unsigned long end_pfn);
++	if (WARN_ON(fimc->vid_cap.ctx == NULL))
++		return -ENXIO;
++	if (fimc->vid_cap.ctx->ctrls_rdy)
++		return 0;
++	ret = fimc_ctrls_create(fimc->vid_cap.ctx);
++	if (ret || subdev_has_devnode(fimc->pipeline.sensor))
++		return ret;
++	return v4l2_ctrl_add_handler(&fimc->vid_cap.ctx->ctrl_handler,
++				    fimc->pipeline.sensor->ctrl_handler);
++}
++
+ static int fimc_capture_open(struct file *file)
+ {
+ 	struct fimc_dev *fimc = video_drvdata(file);
+@@ -277,9 +301,10 @@ static int fimc_capture_open(struct file *file)
+ 		return ret;
+ 	}
  
- #endif
-diff --git a/mm/memory_hotplug.c b/mm/memory_hotplug.c
-index c46887b..c32ca23 100644
---- a/mm/memory_hotplug.c
-+++ b/mm/memory_hotplug.c
-@@ -645,117 +645,6 @@ int is_mem_section_removable(unsigned long start_pfn, unsigned long nr_pages)
+-	++fimc->vid_cap.refcnt;
++	if (++fimc->vid_cap.refcnt == 1)
++		ret = fimc_capture_ctrls_create(fimc);
+ 
+-	return 0;
++	return ret;
  }
  
- /*
-- * Confirm all pages in a range [start, end) is belongs to the same zone.
-- */
--static int test_pages_in_a_zone(unsigned long start_pfn, unsigned long end_pfn)
--{
--	unsigned long pfn;
--	struct zone *zone = NULL;
--	struct page *page;
--	int i;
--	for (pfn = start_pfn;
--	     pfn < end_pfn;
--	     pfn += MAX_ORDER_NR_PAGES) {
--		i = 0;
--		/* This is just a CONFIG_HOLES_IN_ZONE check.*/
--		while ((i < MAX_ORDER_NR_PAGES) && !pfn_valid_within(pfn + i))
--			i++;
--		if (i == MAX_ORDER_NR_PAGES)
--			continue;
--		page = pfn_to_page(pfn + i);
--		if (zone && page_zone(page) != zone)
--			return 0;
--		zone = page_zone(page);
--	}
--	return 1;
--}
+ static int fimc_capture_close(struct file *file)
+@@ -290,11 +315,11 @@ static int fimc_capture_close(struct file *file)
+ 
+ 	if (--fimc->vid_cap.refcnt == 0) {
+ 		fimc_stop_capture(fimc);
++		fimc_ctrls_delete(fimc->vid_cap.ctx);
+ 		vb2_queue_release(&fimc->vid_cap.vbq);
+ 	}
+ 
+ 	pm_runtime_put_sync(&fimc->pdev->dev);
 -
--/*
-- * Scanning pfn is much easier than scanning lru list.
-- * Scan pfn from start to end and Find LRU page.
-- */
--static unsigned long scan_lru_pages(unsigned long start, unsigned long end)
+ 	return v4l2_fh_release(file);
+ }
+ 
+@@ -530,30 +555,6 @@ static int fimc_cap_dqbuf(struct file *file, void *priv,
+ 	return vb2_dqbuf(&fimc->vid_cap.vbq, buf, file->f_flags & O_NONBLOCK);
+ }
+ 
+-static int fimc_cap_s_ctrl(struct file *file, void *priv,
+-			   struct v4l2_control *ctrl)
 -{
--	unsigned long pfn;
--	struct page *page;
--	for (pfn = start; pfn < end; pfn++) {
--		if (pfn_valid(pfn)) {
--			page = pfn_to_page(pfn);
--			if (PageLRU(page))
--				return pfn;
+-	struct fimc_dev *fimc = video_drvdata(file);
+-	struct fimc_ctx *ctx = fimc->vid_cap.ctx;
+-	int ret = -EINVAL;
+-
+-	/* Allow any controls but 90/270 rotation while streaming */
+-	if (!fimc_capture_active(ctx->fimc_dev) ||
+-	    ctrl->id != V4L2_CID_ROTATE ||
+-	    (ctrl->value != 90 && ctrl->value != 270)) {
+-		ret = check_ctrl_val(ctx, ctrl);
+-		if (!ret) {
+-			ret = fimc_s_ctrl(ctx, ctrl);
+-			if (!ret)
+-				ctx->state |= FIMC_PARAMS;
 -		}
 -	}
--	return 0;
--}
--
--static struct page *
--hotremove_migrate_alloc(struct page *page, unsigned long private, int **x)
--{
--	/* This should be improooooved!! */
--	return alloc_page(GFP_HIGHUSER_MOVABLE);
--}
--
--#define NR_OFFLINE_AT_ONCE_PAGES	(256)
--static int
--do_migrate_range(unsigned long start_pfn, unsigned long end_pfn)
--{
--	unsigned long pfn;
--	struct page *page;
--	int move_pages = NR_OFFLINE_AT_ONCE_PAGES;
--	int not_managed = 0;
--	int ret = 0;
--	LIST_HEAD(source);
--
--	for (pfn = start_pfn; pfn < end_pfn && move_pages > 0; pfn++) {
--		if (!pfn_valid(pfn))
--			continue;
--		page = pfn_to_page(pfn);
--		if (!get_page_unless_zero(page))
--			continue;
--		/*
--		 * We can skip free pages. And we can only deal with pages on
--		 * LRU.
--		 */
--		ret = isolate_lru_page(page);
--		if (!ret) { /* Success */
--			put_page(page);
--			list_add_tail(&page->lru, &source);
--			move_pages--;
--			inc_zone_page_state(page, NR_ISOLATED_ANON +
--					    page_is_file_cache(page));
--
--		} else {
--#ifdef CONFIG_DEBUG_VM
--			printk(KERN_ALERT "removing pfn %lx from LRU failed\n",
--			       pfn);
--			dump_page(page);
--#endif
--			put_page(page);
--			/* Because we don't have big zone->lock. we should
--			   check this again here. */
--			if (page_count(page)) {
--				not_managed++;
--				ret = -EBUSY;
--				break;
--			}
--		}
--	}
--	if (!list_empty(&source)) {
--		if (not_managed) {
--			putback_lru_pages(&source);
--			goto out;
--		}
--		/* this function returns # of failed pages */
--		ret = migrate_pages(&source, hotremove_migrate_alloc, 0,
--								true, true);
--		if (ret)
--			putback_lru_pages(&source);
--	}
--out:
+-	if (ret == -EINVAL)
+-		ret = v4l2_subdev_call(ctx->fimc_dev->vid_cap.sd,
+-				       core, s_ctrl, ctrl);
 -	return ret;
 -}
 -
--/*
-  * remove from free_area[] and mark all as Reserved.
-  */
- static int
-diff --git a/mm/page_isolation.c b/mm/page_isolation.c
-index 4ae42bb..15b41ec 100644
---- a/mm/page_isolation.c
-+++ b/mm/page_isolation.c
-@@ -5,6 +5,9 @@
- #include <linux/mm.h>
- #include <linux/page-isolation.h>
- #include <linux/pageblock-flags.h>
-+#include <linux/memcontrol.h>
-+#include <linux/migrate.h>
-+#include <linux/mm_inline.h>
- #include "internal.h"
+ static int fimc_cap_cropcap(struct file *file, void *fh,
+ 			    struct v4l2_cropcap *cr)
+ {
+@@ -640,10 +641,6 @@ static const struct v4l2_ioctl_ops fimc_capture_ioctl_ops = {
+ 	.vidioc_streamon		= fimc_cap_streamon,
+ 	.vidioc_streamoff		= fimc_cap_streamoff,
  
- static inline struct page *
-@@ -139,3 +142,115 @@ int test_pages_isolated(unsigned long start_pfn, unsigned long end_pfn)
- 	spin_unlock_irqrestore(&zone->lock, flags);
- 	return ret ? 0 : -EBUSY;
- }
-+
-+
+-	.vidioc_queryctrl		= fimc_vidioc_queryctrl,
+-	.vidioc_g_ctrl			= fimc_vidioc_g_ctrl,
+-	.vidioc_s_ctrl			= fimc_cap_s_ctrl,
+-
+ 	.vidioc_g_crop			= fimc_cap_g_crop,
+ 	.vidioc_s_crop			= fimc_cap_s_crop,
+ 	.vidioc_cropcap			= fimc_cap_cropcap,
+@@ -727,6 +724,7 @@ int fimc_register_capture_device(struct fimc_dev *fimc,
+ 	if (ret)
+ 		goto err_ent;
+ 
++	vfd->ctrl_handler = &ctx->ctrl_handler;
+ 	ret = video_register_device(vfd, VFL_TYPE_GRABBER, -1);
+ 	if (ret) {
+ 		v4l2_err(v4l2_dev, "Failed to register video device\n");
+diff --git a/drivers/media/video/s5p-fimc/fimc-core.c b/drivers/media/video/s5p-fimc/fimc-core.c
+index 1f84cc6..cb89146 100644
+--- a/drivers/media/video/s5p-fimc/fimc-core.c
++++ b/drivers/media/video/s5p-fimc/fimc-core.c
+@@ -162,43 +162,6 @@ static struct fimc_fmt fimc_formats[] = {
+ 	},
+ };
+ 
+-static struct v4l2_queryctrl fimc_ctrls[] = {
+-	{
+-		.id		= V4L2_CID_HFLIP,
+-		.type		= V4L2_CTRL_TYPE_BOOLEAN,
+-		.name		= "Horizontal flip",
+-		.minimum	= 0,
+-		.maximum	= 1,
+-		.default_value	= 0,
+-	}, {
+-		.id		= V4L2_CID_VFLIP,
+-		.type		= V4L2_CTRL_TYPE_BOOLEAN,
+-		.name		= "Vertical flip",
+-		.minimum	= 0,
+-		.maximum	= 1,
+-		.default_value	= 0,
+-	}, {
+-		.id		= V4L2_CID_ROTATE,
+-		.type		= V4L2_CTRL_TYPE_INTEGER,
+-		.name		= "Rotation (CCW)",
+-		.minimum	= 0,
+-		.maximum	= 270,
+-		.step		= 90,
+-		.default_value	= 0,
+-	},
+-};
+-
+-
+-static struct v4l2_queryctrl *get_ctrl(int id)
+-{
+-	int i;
+-
+-	for (i = 0; i < ARRAY_SIZE(fimc_ctrls); ++i)
+-		if (id == fimc_ctrls[i].id)
+-			return &fimc_ctrls[i];
+-	return NULL;
+-}
+-
+ int fimc_check_scaler_ratio(int sw, int sh, int dw, int dh, int rot)
+ {
+ 	int tx, ty;
+@@ -777,6 +740,116 @@ static struct vb2_ops fimc_qops = {
+ 	.start_streaming = start_streaming,
+ };
+ 
 +/*
-+ * Confirm all pages in a range [start, end) is belongs to the same zone.
++ * V4L2 controls handling
 + */
-+int test_pages_in_a_zone(unsigned long start_pfn, unsigned long end_pfn)
-+{
-+	unsigned long pfn;
-+	struct zone *zone = NULL;
-+	struct page *page;
-+	int i;
-+	for (pfn = start_pfn;
-+	     pfn < end_pfn;
-+	     pfn += MAX_ORDER_NR_PAGES) {
-+		i = 0;
-+		/* This is just a CONFIG_HOLES_IN_ZONE check.*/
-+		while ((i < MAX_ORDER_NR_PAGES) && !pfn_valid_within(pfn + i))
-+			i++;
-+		if (i == MAX_ORDER_NR_PAGES)
-+			continue;
-+		page = pfn_to_page(pfn + i);
-+		if (zone && page_zone(page) != zone)
-+			return 0;
-+		zone = page_zone(page);
-+	}
-+	return 1;
-+}
++#define ctrl_to_ctx(__ctrl) \
++	container_of((__ctrl)->handler, struct fimc_ctx, ctrl_handler)
 +
-+/*
-+ * Scanning pfn is much easier than scanning lru list.
-+ * Scan pfn from start to end and Find LRU page.
-+ */
-+unsigned long scan_lru_pages(unsigned long start, unsigned long end)
++static int fimc_s_ctrl(struct v4l2_ctrl *ctrl)
 +{
-+	unsigned long pfn;
-+	struct page *page;
-+	for (pfn = start; pfn < end; pfn++) {
-+		if (pfn_valid(pfn)) {
-+			page = pfn_to_page(pfn);
-+			if (PageLRU(page))
-+				return pfn;
++	struct fimc_ctx *ctx = ctrl_to_ctx(ctrl);
++	struct fimc_dev *fimc = ctx->fimc_dev;
++	struct samsung_fimc_variant *variant = fimc->variant;
++	unsigned long flags;
++	int ret = 0;
++
++	if (ctrl->flags & V4L2_CTRL_FLAG_INACTIVE)
++		return 0;
++
++	switch (ctrl->id) {
++	case V4L2_CID_HFLIP:
++		spin_lock_irqsave(&ctx->slock, flags);
++		ctx->hflip = ctrl->val;
++		break;
++
++	case V4L2_CID_VFLIP:
++		spin_lock_irqsave(&ctx->slock, flags);
++		ctx->vflip = ctrl->val;
++		break;
++
++	case V4L2_CID_ROTATE:
++		if (fimc_capture_pending(fimc) ||
++		    fimc_ctx_state_is_set(FIMC_DST_FMT | FIMC_SRC_FMT, ctx)) {
++			ret = fimc_check_scaler_ratio(ctx->s_frame.width,
++					ctx->s_frame.height, ctx->d_frame.width,
++					ctx->d_frame.height, ctrl->val);
 +		}
++		if (ret) {
++			v4l2_err(fimc->m2m.vfd, "Out of scaler range\n");
++			return -EINVAL;
++		}
++		if ((ctrl->val == 90 || ctrl->val == 270) &&
++		    !variant->has_out_rot)
++			return -EINVAL;
++		spin_lock_irqsave(&ctx->slock, flags);
++		ctx->rotation = ctrl->val;
++		break;
++
++	default:
++		v4l2_err(fimc->v4l2_dev, "Invalid control: 0x%X\n", ctrl->id);
++		return -EINVAL;
 +	}
++	ctx->state |= FIMC_PARAMS;
++	set_bit(ST_CAPT_APPLY_CFG, &fimc->state);
++	spin_unlock_irqrestore(&ctx->slock, flags);
 +	return 0;
 +}
 +
-+struct page *
-+hotremove_migrate_alloc(struct page *page, unsigned long private, int **x)
++static const struct v4l2_ctrl_ops fimc_ctrl_ops = {
++	.s_ctrl = fimc_s_ctrl,
++};
++
++int fimc_ctrls_create(struct fimc_ctx *ctx)
 +{
-+	/* This should be improooooved!! */
-+	return alloc_page(GFP_HIGHUSER_MOVABLE);
++	if (ctx->ctrls_rdy)
++		return 0;
++	v4l2_ctrl_handler_init(&ctx->ctrl_handler, 3);
++
++	ctx->ctrl_rotate = v4l2_ctrl_new_std(&ctx->ctrl_handler, &fimc_ctrl_ops,
++				     V4L2_CID_HFLIP, 0, 1, 1, 0);
++	ctx->ctrl_hflip = v4l2_ctrl_new_std(&ctx->ctrl_handler, &fimc_ctrl_ops,
++				    V4L2_CID_VFLIP, 0, 1, 1, 0);
++	ctx->ctrl_vflip = v4l2_ctrl_new_std(&ctx->ctrl_handler, &fimc_ctrl_ops,
++				    V4L2_CID_ROTATE, 0, 270, 90, 0);
++	ctx->ctrls_rdy = ctx->ctrl_handler.error == 0;
++
++	return ctx->ctrl_handler.error;
 +}
 +
-+#define NR_OFFLINE_AT_ONCE_PAGES	(256)
-+int do_migrate_range(unsigned long start_pfn, unsigned long end_pfn)
++void fimc_ctrls_delete(struct fimc_ctx *ctx)
 +{
-+	unsigned long pfn;
-+	struct page *page;
-+	int move_pages = NR_OFFLINE_AT_ONCE_PAGES;
-+	int not_managed = 0;
-+	int ret = 0;
-+	LIST_HEAD(source);
-+
-+	for (pfn = start_pfn; pfn < end_pfn && move_pages > 0; pfn++) {
-+		if (!pfn_valid(pfn))
-+			continue;
-+		page = pfn_to_page(pfn);
-+		if (!get_page_unless_zero(page))
-+			continue;
-+		/*
-+		 * We can skip free pages. And we can only deal with pages on
-+		 * LRU.
-+		 */
-+		ret = isolate_lru_page(page);
-+		if (!ret) { /* Success */
-+			put_page(page);
-+			list_add_tail(&page->lru, &source);
-+			move_pages--;
-+			inc_zone_page_state(page, NR_ISOLATED_ANON +
-+					    page_is_file_cache(page));
-+
-+		} else {
-+#ifdef CONFIG_DEBUG_VM
-+			printk(KERN_ALERT "removing pfn %lx from LRU failed\n",
-+			       pfn);
-+			dump_page(page);
-+#endif
-+			put_page(page);
-+			/* Because we don't have big zone->lock. we should
-+			   check this again here. */
-+			if (page_count(page)) {
-+				not_managed++;
-+				ret = -EBUSY;
-+				break;
-+			}
-+		}
++	if (ctx->ctrls_rdy) {
++		v4l2_ctrl_handler_free(&ctx->ctrl_handler);
++		ctx->ctrls_rdy = false;
 +	}
-+	if (!list_empty(&source)) {
-+		if (not_managed) {
-+			putback_lru_pages(&source);
-+			goto out;
-+		}
-+		/* this function returns # of failed pages */
-+		ret = migrate_pages(&source, hotremove_migrate_alloc, 0,
-+								true, true);
-+		if (ret)
-+			putback_lru_pages(&source);
-+	}
-+out:
-+	return ret;
 +}
 +
++void fimc_ctrls_activate(struct fimc_ctx *ctx, bool active)
++{
++	if (!ctx->ctrls_rdy)
++		return;
++
++	mutex_lock(&ctx->ctrl_handler.lock);
++	v4l2_ctrl_activate(ctx->ctrl_rotate, active);
++	v4l2_ctrl_activate(ctx->ctrl_hflip, active);
++	v4l2_ctrl_activate(ctx->ctrl_vflip, active);
++
++	if (active) {
++		ctx->rotation = ctx->ctrl_rotate->val;
++		ctx->hflip    = ctx->ctrl_hflip->val;
++		ctx->vflip    = ctx->ctrl_vflip->val;
++	} else {
++		ctx->rotation = 0;
++		ctx->hflip    = 0;
++		ctx->vflip    = 0;
++	}
++	mutex_unlock(&ctx->ctrl_handler.lock);
++}
++
++/*
++ * V4L2 ioctl handlers
++ */
+ static int fimc_m2m_querycap(struct file *file, void *fh,
+ 			     struct v4l2_capability *cap)
+ {
+@@ -1073,136 +1146,6 @@ static int fimc_m2m_streamoff(struct file *file, void *fh,
+ 	return v4l2_m2m_streamoff(file, ctx->m2m_ctx, type);
+ }
+ 
+-int fimc_vidioc_queryctrl(struct file *file, void *fh,
+-			  struct v4l2_queryctrl *qc)
+-{
+-	struct fimc_ctx *ctx = fh_to_ctx(fh);
+-	struct fimc_dev *fimc = ctx->fimc_dev;
+-	struct v4l2_queryctrl *c;
+-	int ret = -EINVAL;
+-
+-	c = get_ctrl(qc->id);
+-	if (c) {
+-		*qc = *c;
+-		return 0;
+-	}
+-
+-	if (fimc_ctx_state_is_set(FIMC_CTX_CAP, ctx)) {
+-		return v4l2_subdev_call(ctx->fimc_dev->vid_cap.sd,
+-					core, queryctrl, qc);
+-	}
+-	return ret;
+-}
+-
+-int fimc_vidioc_g_ctrl(struct file *file, void *fh, struct v4l2_control *ctrl)
+-{
+-	struct fimc_ctx *ctx = fh_to_ctx(fh);
+-	struct fimc_dev *fimc = ctx->fimc_dev;
+-
+-	switch (ctrl->id) {
+-	case V4L2_CID_HFLIP:
+-		ctrl->value = (FLIP_X_AXIS & ctx->flip) ? 1 : 0;
+-		break;
+-	case V4L2_CID_VFLIP:
+-		ctrl->value = (FLIP_Y_AXIS & ctx->flip) ? 1 : 0;
+-		break;
+-	case V4L2_CID_ROTATE:
+-		ctrl->value = ctx->rotation;
+-		break;
+-	default:
+-		if (fimc_ctx_state_is_set(FIMC_CTX_CAP, ctx)) {
+-			return v4l2_subdev_call(fimc->vid_cap.sd, core,
+-						g_ctrl, ctrl);
+-		} else {
+-			v4l2_err(fimc->m2m.vfd, "Invalid control\n");
+-			return -EINVAL;
+-		}
+-	}
+-	dbg("ctrl->value= %d", ctrl->value);
+-
+-	return 0;
+-}
+-
+-int check_ctrl_val(struct fimc_ctx *ctx,  struct v4l2_control *ctrl)
+-{
+-	struct v4l2_queryctrl *c;
+-	c = get_ctrl(ctrl->id);
+-	if (!c)
+-		return -EINVAL;
+-
+-	if (ctrl->value < c->minimum || ctrl->value > c->maximum
+-		|| (c->step != 0 && ctrl->value % c->step != 0)) {
+-		v4l2_err(ctx->fimc_dev->m2m.vfd, "Invalid control value\n");
+-		return -ERANGE;
+-	}
+-
+-	return 0;
+-}
+-
+-int fimc_s_ctrl(struct fimc_ctx *ctx, struct v4l2_control *ctrl)
+-{
+-	struct samsung_fimc_variant *variant = ctx->fimc_dev->variant;
+-	struct fimc_dev *fimc = ctx->fimc_dev;
+-	int ret = 0;
+-
+-	switch (ctrl->id) {
+-	case V4L2_CID_HFLIP:
+-		if (ctrl->value)
+-			ctx->flip |= FLIP_X_AXIS;
+-		else
+-			ctx->flip &= ~FLIP_X_AXIS;
+-		break;
+-
+-	case V4L2_CID_VFLIP:
+-		if (ctrl->value)
+-			ctx->flip |= FLIP_Y_AXIS;
+-		else
+-			ctx->flip &= ~FLIP_Y_AXIS;
+-		break;
+-
+-	case V4L2_CID_ROTATE:
+-		if (fimc_ctx_state_is_set(FIMC_DST_FMT | FIMC_SRC_FMT, ctx)) {
+-			ret = fimc_check_scaler_ratio(ctx->s_frame.width,
+-					ctx->s_frame.height, ctx->d_frame.width,
+-					ctx->d_frame.height, ctrl->value);
+-		}
+-
+-		if (ret) {
+-			v4l2_err(fimc->m2m.vfd, "Out of scaler range\n");
+-			return -EINVAL;
+-		}
+-
+-		/* Check for the output rotator availability */
+-		if ((ctrl->value == 90 || ctrl->value == 270) &&
+-		    (ctx->in_path == FIMC_DMA && !variant->has_out_rot))
+-			return -EINVAL;
+-		ctx->rotation = ctrl->value;
+-		break;
+-
+-	default:
+-		v4l2_err(fimc->v4l2_dev, "Invalid control\n");
+-		return -EINVAL;
+-	}
+-
+-	fimc_ctx_state_lock_set(FIMC_PARAMS, ctx);
+-
+-	return 0;
+-}
+-
+-static int fimc_m2m_s_ctrl(struct file *file, void *fh,
+-			   struct v4l2_control *ctrl)
+-{
+-	struct fimc_ctx *ctx = fh_to_ctx(fh);
+-	int ret = 0;
+-
+-	ret = check_ctrl_val(ctx, ctrl);
+-	if (ret)
+-		return ret;
+-
+-	ret = fimc_s_ctrl(ctx, ctrl);
+-	return 0;
+-}
+-
+ static int fimc_m2m_cropcap(struct file *file, void *fh,
+ 			    struct v4l2_cropcap *cr)
+ {
+@@ -1368,10 +1311,6 @@ static const struct v4l2_ioctl_ops fimc_m2m_ioctl_ops = {
+ 	.vidioc_streamon		= fimc_m2m_streamon,
+ 	.vidioc_streamoff		= fimc_m2m_streamoff,
+ 
+-	.vidioc_queryctrl		= fimc_vidioc_queryctrl,
+-	.vidioc_g_ctrl			= fimc_vidioc_g_ctrl,
+-	.vidioc_s_ctrl			= fimc_m2m_s_ctrl,
+-
+ 	.vidioc_g_crop			= fimc_m2m_g_crop,
+ 	.vidioc_s_crop			= fimc_m2m_s_crop,
+ 	.vidioc_cropcap			= fimc_m2m_cropcap
+@@ -1429,7 +1368,12 @@ static int fimc_m2m_open(struct file *file)
+ 	ret = v4l2_fh_init(&ctx->fh, fimc->m2m.vfd);
+ 	if (ret)
+ 		goto error;
++	ret = fimc_ctrls_create(ctx);
++	if (ret)
++		goto error_fh;
+ 
++	/* Use separate control handler per file handle */
++	ctx->fh.ctrl_handler = &ctx->ctrl_handler;
+ 	file->private_data = &ctx->fh;
+ 	v4l2_fh_add(&ctx->fh);
+ 
+@@ -1447,13 +1391,15 @@ static int fimc_m2m_open(struct file *file)
+ 	ctx->m2m_ctx = v4l2_m2m_ctx_init(fimc->m2m.m2m_dev, ctx, queue_init);
+ 	if (IS_ERR(ctx->m2m_ctx)) {
+ 		ret = PTR_ERR(ctx->m2m_ctx);
+-		goto error_fh;
++		goto error_c;
+ 	}
+ 
+ 	if (fimc->m2m.refcnt++ == 0)
+ 		set_bit(ST_M2M_RUN, &fimc->state);
+ 	return 0;
+ 
++error_c:
++	fimc_ctrls_delete(ctx);
+ error_fh:
+ 	v4l2_fh_del(&ctx->fh);
+ 	v4l2_fh_exit(&ctx->fh);
+@@ -1471,6 +1417,7 @@ static int fimc_m2m_release(struct file *file)
+ 		task_pid_nr(current), fimc->state, fimc->m2m.refcnt);
+ 
+ 	v4l2_m2m_ctx_release(ctx->m2m_ctx);
++	fimc_ctrls_delete(ctx);
+ 	v4l2_fh_del(&ctx->fh);
+ 	v4l2_fh_exit(&ctx->fh);
+ 
+diff --git a/drivers/media/video/s5p-fimc/fimc-core.h b/drivers/media/video/s5p-fimc/fimc-core.h
+index 2591066..3606369 100644
+--- a/drivers/media/video/s5p-fimc/fimc-core.h
++++ b/drivers/media/video/s5p-fimc/fimc-core.h
+@@ -20,6 +20,7 @@
+ 
+ #include <media/media-entity.h>
+ #include <media/videobuf2-core.h>
++#include <media/v4l2-ctrls.h>
+ #include <media/v4l2-device.h>
+ #include <media/v4l2-mem2mem.h>
+ #include <media/v4l2-mediabus.h>
+@@ -62,6 +63,7 @@ enum fimc_dev_flags {
+ 	ST_CAPT_STREAM,
+ 	ST_CAPT_SHUT,
+ 	ST_CAPT_INUSE,
++	ST_CAPT_APPLY_CFG,
+ };
+ 
+ #define fimc_m2m_active(dev) test_bit(ST_M2M_RUN, &(dev)->state)
+@@ -128,11 +130,6 @@ enum fimc_color_fmt {
+ /* Y (16 ~ 235), Cb/Cr (16 ~ 240) */
+ #define	FIMC_COLOR_RANGE_NARROW		(1 << 3)
+ 
+-#define	FLIP_NONE			0
+-#define	FLIP_X_AXIS			1
+-#define	FLIP_Y_AXIS			2
+-#define	FLIP_XY_AXIS			(FLIP_X_AXIS | FLIP_Y_AXIS)
+-
+ /**
+  * struct fimc_fmt - the driver's internal color format data
+  * @mbus_code: Media Bus pixel code, -1 if not applicable
+@@ -455,12 +452,18 @@ struct fimc_dev {
+  * @scaler:		image scaler properties
+  * @effect:		image effect
+  * @rotation:		image clockwise rotation in degrees
+- * @flip:		image flip mode
++ * @hflip:		indicates image horizontal flip if set
++ * @vflip:		indicates image vertical flip if set
+  * @flags:		additional flags for image conversion
+  * @state:		flags to keep track of user configuration
+  * @fimc_dev:		the FIMC device this context applies to
+  * @m2m_ctx:		memory-to-memory device context
+  * @fh:			v4l2 file handle
++ * @ctrl_handler:	v4l2 controls handler
++ * @ctrl_rotate		image rotation control
++ * @ctrl_hflip		horizontal flip control
++ * @ctrl_vflip		vartical flip control
++ * @ctrls_rdy:		true if the control handler is initialized
+  */
+ struct fimc_ctx {
+ 	spinlock_t		slock;
+@@ -475,12 +478,18 @@ struct fimc_ctx {
+ 	struct fimc_scaler	scaler;
+ 	struct fimc_effect	effect;
+ 	int			rotation;
+-	u32			flip;
++	unsigned int		hflip:1;
++	unsigned int		vflip:1;
+ 	u32			flags;
+ 	u32			state;
+ 	struct fimc_dev		*fimc_dev;
+ 	struct v4l2_m2m_ctx	*m2m_ctx;
+ 	struct v4l2_fh		fh;
++	struct v4l2_ctrl_handler ctrl_handler;
++	struct v4l2_ctrl	*ctrl_rotate;
++	struct v4l2_ctrl	*ctrl_hflip;
++	struct v4l2_ctrl	*ctrl_vflip;
++	bool			ctrls_rdy;
+ };
+ 
+ #define fh_to_ctx(__fh) container_of(__fh, struct fimc_ctx, fh)
+@@ -636,15 +645,11 @@ int fimc_hw_set_camera_type(struct fimc_dev *fimc,
+ /* fimc-core.c */
+ int fimc_vidioc_enum_fmt_mplane(struct file *file, void *priv,
+ 				struct v4l2_fmtdesc *f);
+-int fimc_vidioc_queryctrl(struct file *file, void *priv,
+-			  struct v4l2_queryctrl *qc);
+-int fimc_vidioc_g_ctrl(struct file *file, void *priv,
+-		       struct v4l2_control *ctrl);
+-
+ int fimc_try_fmt_mplane(struct fimc_ctx *ctx, struct v4l2_format *f);
+ int fimc_try_crop(struct fimc_ctx *ctx, struct v4l2_crop *cr);
+-int check_ctrl_val(struct fimc_ctx *ctx,  struct v4l2_control *ctrl);
+-int fimc_s_ctrl(struct fimc_ctx *ctx, struct v4l2_control *ctrl);
++int fimc_ctrls_create(struct fimc_ctx *ctx);
++void fimc_ctrls_delete(struct fimc_ctx *ctx);
++void fimc_ctrls_activate(struct fimc_ctx *ctx, bool active);
+ int fimc_fill_format(struct fimc_frame *frame, struct v4l2_format *f);
+ 
+ struct fimc_fmt *find_format(struct v4l2_format *f, unsigned int mask);
+@@ -667,6 +672,7 @@ void fimc_unregister_driver(void);
+ int fimc_register_capture_device(struct fimc_dev *fimc,
+ 				 struct v4l2_device *v4l2_dev);
+ void fimc_unregister_capture_device(struct fimc_dev *fimc);
++int fimc_capture_ctrls_create(struct fimc_dev *fimc);
+ int fimc_vid_cap_buf_queue(struct fimc_dev *fimc,
+ 			     struct fimc_vid_buffer *fimc_vb);
+ int fimc_capture_suspend(struct fimc_dev *fimc);
+diff --git a/drivers/media/video/s5p-fimc/fimc-mdevice.c b/drivers/media/video/s5p-fimc/fimc-mdevice.c
+index 10c8d5d..54e889b 100644
+--- a/drivers/media/video/s5p-fimc/fimc-mdevice.c
++++ b/drivers/media/video/s5p-fimc/fimc-mdevice.c
+@@ -22,6 +22,7 @@
+ #include <linux/types.h>
+ #include <linux/slab.h>
+ #include <linux/version.h>
++#include <media/v4l2-ctrls.h>
+ #include <media/media-device.h>
+ 
+ #include "fimc-core.h"
+@@ -626,15 +627,23 @@ static int fimc_md_link_notify(struct media_pad *source,
+ 		ret = __fimc_pipeline_shutdown(fimc);
+ 		fimc->pipeline.sensor = NULL;
+ 		fimc->pipeline.csis = NULL;
++
++		mutex_lock(&fimc->lock);
++		fimc_ctrls_delete(fimc->vid_cap.ctx);
++		mutex_unlock(&fimc->lock);
+ 		return ret;
+ 	}
+ 	/*
+ 	 * Link activation. Enable power of pipeline elements only if the
+ 	 * pipeline is already in use, i.e. its video node is opened.
++	 * Recreate the controls destroyed during the link deactivation.
+ 	 */
+ 	mutex_lock(&fimc->lock);
+-	if (fimc->vid_cap.refcnt > 0)
++	if (fimc->vid_cap.refcnt > 0) {
+ 		ret = __fimc_pipeline_initialize(fimc, source->entity, true);
++		if (!ret)
++			ret = fimc_capture_ctrls_create(fimc);
++	}
+ 	mutex_unlock(&fimc->lock);
+ 
+ 	return ret ? -EPIPE : ret;
+diff --git a/drivers/media/video/s5p-fimc/fimc-reg.c b/drivers/media/video/s5p-fimc/fimc-reg.c
+index c688263..50937b4 100644
+--- a/drivers/media/video/s5p-fimc/fimc-reg.c
++++ b/drivers/media/video/s5p-fimc/fimc-reg.c
+@@ -41,19 +41,11 @@ static u32 fimc_hw_get_in_flip(struct fimc_ctx *ctx)
+ {
+ 	u32 flip = S5P_MSCTRL_FLIP_NORMAL;
+ 
+-	switch (ctx->flip) {
+-	case FLIP_X_AXIS:
++	if (ctx->hflip)
+ 		flip = S5P_MSCTRL_FLIP_X_MIRROR;
+-		break;
+-	case FLIP_Y_AXIS:
++	if (ctx->vflip)
+ 		flip = S5P_MSCTRL_FLIP_Y_MIRROR;
+-		break;
+-	case FLIP_XY_AXIS:
+-		flip = S5P_MSCTRL_FLIP_180;
+-		break;
+-	default:
+-		break;
+-	}
++
+ 	if (ctx->rotation <= 90)
+ 		return flip;
+ 
+@@ -64,19 +56,11 @@ static u32 fimc_hw_get_target_flip(struct fimc_ctx *ctx)
+ {
+ 	u32 flip = S5P_CITRGFMT_FLIP_NORMAL;
+ 
+-	switch (ctx->flip) {
+-	case FLIP_X_AXIS:
+-		flip = S5P_CITRGFMT_FLIP_X_MIRROR;
+-		break;
+-	case FLIP_Y_AXIS:
+-		flip = S5P_CITRGFMT_FLIP_Y_MIRROR;
+-		break;
+-	case FLIP_XY_AXIS:
+-		flip = S5P_CITRGFMT_FLIP_180;
+-		break;
+-	default:
+-		break;
+-	}
++	if (ctx->hflip)
++		flip |= S5P_CITRGFMT_FLIP_X_MIRROR;
++	if (ctx->vflip)
++		flip |= S5P_CITRGFMT_FLIP_Y_MIRROR;
++
+ 	if (ctx->rotation <= 90)
+ 		return flip;
+ 
 -- 
-1.7.1.569.g6f426
+1.7.5.4
 
