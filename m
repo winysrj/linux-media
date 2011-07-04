@@ -1,119 +1,102 @@
-Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.mnsspb.ru ([84.204.75.2]:49714 "EHLO mail.mnsspb.ru"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753439Ab1G1Nzu (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 28 Jul 2011 09:55:50 -0400
-Date: Thu, 28 Jul 2011 17:54:45 +0400
-From: Kirill Smelkov <kirr@mns.spb.ru>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	linux-media@vger.kernel.org
-Subject: Re: [git:v4l-dvb/for_v3.1] [media] uvcvideo: Add FIX_BANDWIDTH
-	quirk to HP Webcam on HP Mini 5103 netbook
-Message-ID: <20110728135445.GA6599@tugrik.mns.mnsspb.ru>
-References: <E1QmAuS-0002S0-Pd@www.linuxtv.org> <20110728114236.GA5391@tugrik.mns.mnsspb.ru> <4E3167F9.7020908@redhat.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <4E3167F9.7020908@redhat.com>
-Sender: linux-media-owner@vger.kernel.org
+Return-path: <mchehab@pedra>
+Received: from mailout3.w1.samsung.com ([210.118.77.13]:43518 "EHLO
+	mailout3.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758463Ab1GDRzo (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 4 Jul 2011 13:55:44 -0400
+MIME-version: 1.0
+Content-transfer-encoding: 7BIT
+Content-type: TEXT/PLAIN
+Date: Mon, 04 Jul 2011 19:54:56 +0200
+From: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Subject: [PATCH v3 05/19] s5p-fimc: Limit number of available inputs to one
+In-reply-to: <1309802110-16682-1-git-send-email-s.nawrocki@samsung.com>
+To: linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org
+Cc: m.szyprowski@samsung.com, kyungmin.park@samsung.com,
+	s.nawrocki@samsung.com, sw0312.kim@samsung.com,
+	riverful.kim@samsung.com
+Message-id: <1309802110-16682-6-git-send-email-s.nawrocki@samsung.com>
+References: <1309802110-16682-1-git-send-email-s.nawrocki@samsung.com>
 List-ID: <linux-media.vger.kernel.org>
+Sender: <mchehab@pedra>
 
-Mauro, thanks for answering,
+Camera sensors at FIMC input are no longer selected with S_INPUT ioctl.
+They will be attached to required FIMC entity through pipeline
+re-configuration at the media device level.
 
-On Thu, Jul 28, 2011 at 10:45:29AM -0300, Mauro Carvalho Chehab wrote:
-> Em 28-07-2011 08:42, Kirill Smelkov escreveu:
-> > On Wed, Jul 27, 2011 at 09:42:08PM +0200, Mauro Carvalho Chehab wrote:
-> >> This is an automatic generated email to let you know that the following patch were queued at the 
-> >> http://git.linuxtv.org/media_tree.git tree:
-> >>
-> >> Subject: [media] uvcvideo: Add FIX_BANDWIDTH quirk to HP Webcam on HP Mini 5103 netbook
-> >> Author:  Kirill Smelkov <kirr@mns.spb.ru>
-> >> Date:    Fri Jul 22 11:47:22 2011 -0300
-> > 
-> > Thanks
-> > 
-> > 
-> >> The camera there identifies itself as being manufactured by Cheng Uei
-> >> Precision Industry Co., Ltd (Foxlink), and product is titled as "HP
-> >> Webcam [2 MP Fixed]".
-> >>
-> >> I was trying to get 2 USB video capture devices to work simultaneously,
-> >> and noticed that the above mentioned webcam always requires packet size
-> >> = 3072 bytes per micro frame (~= 23.4 MB/s isoc bandwidth), which is far
-> >> more than enough to get standard NTSC 640x480x2x30 = ~17.6 MB/s isoc
-> >> bandwidth.
-> >>
-> >> As there are alt interfaces with smaller MxPS
-> >>
-> >>     T:  Bus=01 Lev=01 Prnt=01 Port=03 Cnt=01 Dev#=  2 Spd=480  MxCh= 0
-> >>     D:  Ver= 2.00 Cls=ef(misc ) Sub=02 Prot=01 MxPS=64 #Cfgs=  1
-> >>     P:  Vendor=05c8 ProdID=0403 Rev= 1.06
-> >>     S:  Manufacturer=Foxlink
-> >>     S:  Product=HP Webcam [2 MP Fixed]
-> >>     S:  SerialNumber=200909240102
-> >>     C:* #Ifs= 2 Cfg#= 1 Atr=80 MxPwr=500mA
-> >>     A:  FirstIf#= 0 IfCount= 2 Cls=0e(video) Sub=03 Prot=00
-> >>     I:* If#= 0 Alt= 0 #EPs= 1 Cls=0e(video) Sub=01 Prot=00 Driver=uvcvideo
-> >>     E:  Ad=83(I) Atr=03(Int.) MxPS=  16 Ivl=4ms
-> >>     I:* If#= 1 Alt= 0 #EPs= 0 Cls=0e(video) Sub=02 Prot=00 Driver=uvcvideo
-> >>     I:  If#= 1 Alt= 1 #EPs= 1 Cls=0e(video) Sub=02 Prot=00 Driver=uvcvideo
-> >>     E:  Ad=81(I) Atr=05(Isoc) MxPS= 128 Ivl=125us
-> >>     I:  If#= 1 Alt= 2 #EPs= 1 Cls=0e(video) Sub=02 Prot=00 Driver=uvcvideo
-> >>     E:  Ad=81(I) Atr=05(Isoc) MxPS= 512 Ivl=125us
-> >>     I:  If#= 1 Alt= 3 #EPs= 1 Cls=0e(video) Sub=02 Prot=00 Driver=uvcvideo
-> >>     E:  Ad=81(I) Atr=05(Isoc) MxPS=1024 Ivl=125us
-> >>     I:  If#= 1 Alt= 4 #EPs= 1 Cls=0e(video) Sub=02 Prot=00 Driver=uvcvideo
-> >>     E:  Ad=81(I) Atr=05(Isoc) MxPS=1536 Ivl=125us
-> >>     I:  If#= 1 Alt= 5 #EPs= 1 Cls=0e(video) Sub=02 Prot=00 Driver=uvcvideo
-> >>     E:  Ad=81(I) Atr=05(Isoc) MxPS=2048 Ivl=125us
-> >>     I:  If#= 1 Alt= 6 #EPs= 1 Cls=0e(video) Sub=02 Prot=00 Driver=uvcvideo
-> >>     E:  Ad=81(I) Atr=05(Isoc) MxPS=2688 Ivl=125us
-> >>     I:  If#= 1 Alt= 7 #EPs= 1 Cls=0e(video) Sub=02 Prot=00 Driver=uvcvideo
-> >>     E:  Ad=81(I) Atr=05(Isoc) MxPS=3072 Ivl=125us
-> >>
-> >> UVC_QUIRK_FIX_BANDWIDTH helps here and NTSC video can be served with
-> >> MxPS=2688 i.e. 20.5 MB/s isoc bandwidth.
-> >>
-> >> In terms of microframe time allocation, before the quirk NTSC video
-> >> required 60 usecs / microframe and 53 usecs / microframe after.
-> >>
-> >> Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-> >> Signed-off-by: Kirill Smelkov <kirr@mns.spb.ru>
-> >> Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
-> > 
-> > 
-> > May I ask, why you removed the reference to cc62a7eb? Original patch
-> > description contained the following paragraph just before sob
-> > 
-> >     Now with tweaked ehci-hcd to allow up to 90% isoc bandwidth (cc62a7eb
-> >     "USB: EHCI: Allow users to override 80% max periodic bandwidth") I can
-> >     capture two video sources -- PAL 720x576 YUV422 @25fps + NTSC 640x480
-> >     YUV422 @30fps simultaneously.  Hooray!
-> > 
-> > 
-> > which was removed on applying.
-> 
-> For a few reasons:
-> 1) I was not sure if the changeset reference was not changed when
+Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+---
+ drivers/media/video/s5p-fimc/fimc-capture.c |   43 ++++-----------------------
+ 1 files changed, 6 insertions(+), 37 deletions(-)
 
-And it was not changed, because when I referenced it, it was already in
-Greg's usb tree, and Linus pulls from Greg and Greg does not destroy
-history as far as I can tell...
+diff --git a/drivers/media/video/s5p-fimc/fimc-capture.c b/drivers/media/video/s5p-fimc/fimc-capture.c
+index a806e48..5b08b69 100644
+--- a/drivers/media/video/s5p-fimc/fimc-capture.c
++++ b/drivers/media/video/s5p-fimc/fimc-capture.c
+@@ -562,57 +562,26 @@ static int fimc_cap_s_fmt_mplane(struct file *file, void *priv,
+ }
+ 
+ static int fimc_cap_enum_input(struct file *file, void *priv,
+-				     struct v4l2_input *i)
++			       struct v4l2_input *i)
+ {
+ 	struct fimc_ctx *ctx = priv;
+-	struct s5p_platform_fimc *pldata = ctx->fimc_dev->pdata;
+-	struct s5p_fimc_isp_info *isp_info;
+ 
+-	if (i->index >= pldata->num_clients)
++	if (i->index != 0)
+ 		return -EINVAL;
+ 
+-	isp_info = &pldata->isp_info[i->index];
+ 
+ 	i->type = V4L2_INPUT_TYPE_CAMERA;
+-	strncpy(i->name, isp_info->board_info->type, 32);
+ 	return 0;
+ }
+ 
+-static int fimc_cap_s_input(struct file *file, void *priv,
+-				  unsigned int i)
++static int fimc_cap_s_input(struct file *file, void *priv, unsigned int i)
+ {
+-	struct fimc_ctx *ctx = priv;
+-	struct fimc_dev *fimc = ctx->fimc_dev;
+-	struct s5p_platform_fimc *pdata = fimc->pdata;
+-
+-	if (fimc_capture_active(ctx->fimc_dev))
+-		return -EBUSY;
+-
+-	if (i >= pdata->num_clients)
+-		return -EINVAL;
+-
+-
+-	if (fimc->vid_cap.sd) {
+-		int ret = v4l2_subdev_call(fimc->vid_cap.sd, core, s_power, 0);
+-		if (ret)
+-			err("s_power failed: %d", ret);
+-
+-		clk_disable(fimc->clock[CLK_CAM]);
+-	}
+-
+-	/* Release the attached sensor subdevice. */
+-	fimc_subdev_unregister(fimc);
+-
+-	return fimc_isp_subdev_init(fimc, i);
++	return i == 0 ? i : -EINVAL;
+ }
+ 
+-static int fimc_cap_g_input(struct file *file, void *priv,
+-				       unsigned int *i)
++static int fimc_cap_g_input(struct file *file, void *priv, unsigned int *i)
+ {
+-	struct fimc_ctx *ctx = priv;
+-	struct fimc_vid_cap *cap = &ctx->fimc_dev->vid_cap;
+-
+-	*i = cap->input_index;
++	*i = 0;
+ 	return 0;
+ }
+ 
+-- 
+1.7.5.4
 
->    merged upstream, and I was too lazy^Wbusy to double check ;)
-
-It's just doing `git log linus/master | grep cc62a7eb`. Compared or less
-time to editing...
-
-
-> 2) Reducing the amount of bandwidth used is good, even without trying to use
->    two webcams;
-> 3) The bandwidth override patch is independent of this one.
-
-Yes, but coupled, and also they were motivated by each other. Could we
-please merge my comment back, or is it too late?
-
-
-Thanks,
-Kirill
