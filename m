@@ -1,86 +1,99 @@
-Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-vx0-f174.google.com ([209.85.220.174]:51318 "EHLO
-	mail-vx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751074Ab1GYIPb (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 25 Jul 2011 04:15:31 -0400
-Received: by vxh35 with SMTP id 35so2704412vxh.19
-        for <linux-media@vger.kernel.org>; Mon, 25 Jul 2011 01:15:31 -0700 (PDT)
+Return-path: <mchehab@pedra>
+Received: from mail-ew0-f46.google.com ([209.85.215.46]:33595 "EHLO
+	mail-ew0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750949Ab1GEAzD (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 4 Jul 2011 20:55:03 -0400
+Received: by ewy4 with SMTP id 4so1879061ewy.19
+        for <linux-media@vger.kernel.org>; Mon, 04 Jul 2011 17:55:02 -0700 (PDT)
 MIME-Version: 1.0
-In-Reply-To: <4E2A0856.7050009@iki.fi>
-References: <CAJbz7-29H=e=C2SyY-6Ru23Zzv6sH7wBbOm72ZWMxqOagakuKQ@mail.gmail.com>
-	<4E29FB9E.4060507@iki.fi>
-	<CAJbz7-3HkkEoDa3qGvoaF61ohhdxo38ZxF+GWGV+tBQ0yEBopA@mail.gmail.com>
-	<4E29FF56.5080604@iki.fi>
-	<CAJbz7-0pDj7mdgHAyyuSOfwGmYdNaKqxM9RxWZdQbEN0Eyjx9w@mail.gmail.com>
-	<4E2A0856.7050009@iki.fi>
-Date: Mon, 25 Jul 2011 10:15:30 +0200
-Message-ID: <CAJbz7-0mXyUOa7psF+vgd6V1sm13TyKvkjuBh7ea9u_hNVVv9A@mail.gmail.com>
-Subject: Re: [PATCH] cxd2820r: fix possible out-of-array lookup
-From: HoP <jpetrous@gmail.com>
-To: Antti Palosaari <crope@iki.fi>
-Cc: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
-Sender: linux-media-owner@vger.kernel.org
+Date: Mon, 4 Jul 2011 20:55:01 -0400
+Message-ID: <CAGoCfizfCM2oCoRb7sWfyTL34JNMK2Yq_rM-SMwswWGLtewNCg@mail.gmail.com>
+Subject: [PATCH] dvb_frontend: fix race condition in stopping/starting frontend
+From: Devin Heitmueller <dheitmueller@kernellabs.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Content-Type: multipart/mixed; boundary=0015174c41d809f32104a747ef53
 List-ID: <linux-media.vger.kernel.org>
+Sender: <mchehab@pedra>
 
-Hi Antti
+--0015174c41d809f32104a747ef53
+Content-Type: text/plain; charset=ISO-8859-1
 
-2011/7/23 Antti Palosaari <crope@iki.fi>:
-> On 07/23/2011 02:01 AM, HoP wrote:
->>
->> 2011/7/23 Antti Palosaari<crope@iki.fi>:
->>>
->>> On 07/23/2011 01:47 AM, HoP wrote:
->>>>
->>>> 2011/7/23 Antti Palosaari<crope@iki.fi>:
->>>>>
->>>>> On 07/23/2011 01:18 AM, HoP wrote:
->>>>>>
->>>>>> In case of i2c write operation there is only one element in msg[]
->>>>>> array.
->>>>>> Don't access msg[1] in that case.
->>>>>
->>>>> NACK.
->>>>> I suspect you confuse now local msg2 and msg that is passed as function
->>>>> parameter. Could you double check and explain?
+Attached is a patch which addresses a race condition in the DVB core
+related to closing/reopening the DVB frontend device in quick
+succession.  This is the reason that devices such as the HVR-1300,
+HVR-3000, and HVR-4000 have been failing to scan properly under MythTV
+and w_scan.
 
-Can you confirm your NACK?
+The gory details of the race are described in the patch.
 
-As I wrote before, my patch was about read access out of msg[] array
-parameter of function cxd2820r_tuner_i2c_xfer() in case when msg[]
-array has only one element (what should be case when using
-tda18271_write_regs() for example). Or am I still missed something?
+Devin
 
-[snip]
+-- 
+Devin J. Heitmueller - Kernel Labs
+http://www.kernellabs.com
 
-> And one point more for I2C implementations, i2c_transfer() should implement
-> repeated start sequence to messages given. But I am almost sure there is
-> rather none I2C adapter HW which can do that really. Whole i2c_transfer()
+--0015174c41d809f32104a747ef53
+Content-Type: text/x-patch; charset=US-ASCII; name="frontend_dvb_init.patch"
+Content-Disposition: attachment; filename="frontend_dvb_init.patch"
+Content-Transfer-Encoding: base64
+X-Attachment-Id: f_gpq5c3t10
 
-Strange enought. Or may better say that linux/i2c.h must fool if you are right,
-because there you can read:
-
---- linux/i2c.h ---
- * An i2c_msg is the low level representation of one segment of an I2C
- * transaction.  It is visible to drivers in the @i2c_transfer() procedure,
- * to userspace from i2c-dev, and to I2C adapter drivers through the
- * @i2c_adapter.@master_xfer() method.
- *
- * Except when I2C "protocol mangling" is used, all I2C adapters implement
- * the standard rules for I2C transactions.  Each transaction begins with a
- * START.  That is followed by the slave address, and a bit encoding read
- * versus write.  Then follow all the data bytes, possibly including a byte
- * with SMBus PEC.  The transfer terminates with a NAK, or when all those
- * bytes have been transferred and ACKed.  If this is the last message in a
- * group, it is followed by a STOP.  Otherwise it is followed by the next
- * @i2c_msg transaction segment, beginning with a (repeated) START.
----
-
-It says quite the reverse - all multimessage transfers have using
-repeated START.
-Very annoying. At least for kernel newbies.
-
-Regards
-
-Honza
+ZHZiX2Zyb250ZW5kOiBmaXggcmFjZSBjb25kaXRpb24gaW4gc3RvcHBpbmcvc3RhcnRpbmcgZnJv
+bnRlbmQKCkZyb206IERldmluIEhlaXRtdWVsbGVyIDxkaGVpdG11ZWxsZXJAa2VybmVsbGFicy5j
+b20+CgpUaGVyZSBpcyBhIHJhY2UgY29uZGl0aW9uIGV4aGliaXRlZCB3aGVuIGNoYW5uZWwgc2Nh
+bm5lcnMgc3VjaCBhcyB3X3NjYW4gYW5kCk15dGhUViBxdWlja2x5IGNsb3NlIGFuZCB0aGVuIHJl
+b3BlbiB0aGUgZnJvbnRlbmQgZGV2aWNlIG5vZGUuCgpVbmRlciBub3JtYWwgY29uZGl0aW9ucywg
+dGhlIGJlaGF2aW9yIGlzIGFzIGZvbGxvd3M6CgoxLiAgQXBwbGljYXRpb24gY2xvc2VzIHRoZSBk
+ZXZpY2Ugbm9kZQoyLiAgRFZCIGZyb250ZW5kIGlvY3RsIGNhbGxzIGR2Yl9mcm9udGVuZF9yZWxl
+YXNlIHdoaWNoIHNldHMKICAgIGZlcHJpdi0+cmVsZWFzZV9qaWZmaWVzCjMuICBEVkIgZnJvbnRl
+bmQgdGhyZWFkICpldmVudHVhbGx5KiBjYWxscyBkdmJfZnJvbnRlbmRfaXNfZXhpdGluZygpIHdo
+aWNoCiAgICBjb21wYXJlcyBmZXByaXYtPnJlbGVhc2VfamlmZmllcywgYW5kIHNodXRzIGRvd24g
+dGhlIHRocmVhZCBpZiB0aW1lb3V0IGhhcwogICAgZXhwaXJlZAo0LiAgVGhyZWFkIGdvZXMgYXdh
+eQo1LiAgQXBwbGljYXRpb24gb3BlbnMgZnJvbnRlbmQgZGV2aWNlCjYuICBEVkIgZnJvbnRlbmQg
+aW9jdGwoKSBjYWxscyB0c19idXNfY3RybCgxKQo3LiAgRFZCIGZyb250ZW5kIGlvY3RsKCkgY3Jl
+YXRlcyBuZXcgZnJvbnRlbmQgdGhyZWFkLCB3aGljaCBjYWxscwogICAgZHZiX2Zyb250ZW5kX2lu
+aXQoKSwgd2hpY2ggaGFzIGRlbW9kIGRyaXZlciBpbml0KCkgcm91dGluZSBzZXR1cCBpbml0aWFs
+CiAgICByZWdpc3RlciBzdGF0ZSBmb3IgZGVtb2QgY2hpcC4KOC4gIFR1bmluZyByZXF1ZXN0IGlz
+IGlzc3VlZC4KClRoZSByYWNlIG9jY3VycyB3aGVuIHRoZSBhcHBsaWNhdGlvbiBpbiBzdGVwIDUg
+cGVyZm9ybXMgdGhlIG5ldyBvcGVuKCkgY2FsbApiZWZvcmUgdGhlIGZyb250ZW5kIHRocmVhZCBp
+cyBzaHV0ZG93bi4gIEluIHRoaXMgY2FzZSB0aGUgdHNfYnVzX2N0cmwoKSBjYWxsCmlzIG1hZGUs
+IHdoaWNoIHN0cm9iZXMgdGhlIFJFU0VUIHBpbiBvbiB0aGUgZGVtb2R1bGF0b3IsIGJ1dCB0aGUK
+ZHZiX2Zyb250ZW5kX2luaXQoKSBmdW5jdGlvbiBuZXZlciBnZXRzIGNhbGxlZCBiZWNhdXNlIHRo
+ZSBmcm9udGVuZCB0aHJlYWQKaGFzbid0IGdvbmUgYXdheSB5ZXQuICBBcyBhIHJlc3VsdCwgdGhl
+IGluaXRpYWwgcmVnaXN0ZXIgY29uZmlnIGZvciB0aGUgZGVtb2QKaXMgKm5ldmVyKiBzZXR1cCwg
+Y2F1c2luZyBzdWJzZXF1ZW50IHR1bmluZyByZXF1ZXN0cyB0byBmYWlsLgoKSWYgdGhlcmUgaXMg
+dGltZSBiZXR3ZWVuIHRoZSBjbG9zZSBhbmQgb3BlbiAoZW5vdWdoIGZvciB0aGUgZHZiIGZyb250
+ZW5kCnRocmVhZCB0byBiZSB0b3JuIGRvd24pLCB0aGVuIGluIHRoYXQgY2FzZSB0aGUgbmV3IGZy
+b250ZW5kIHRocmVhZCBpcyBjcmVhdGVkCmFuZCB0aHVzIHRoZSBkdmJfZnJvbnRlbmRfaW5pdCgp
+IGZ1bmN0aW9uIGRvZXMgZ2V0IGNhbGxlZC4KClRoZSBmaXggaXMgdG8gc2V0IHRoZSBmbGFnIHdo
+aWNoIGZvcmNlcyByZWluaXRpYWxpemF0aW9uIGlmIHdlIGRpZCBpbiBmYWN0CmNhbGwgdHNfYnVz
+X2N0cmwoKS4KClRoaXMgcHJvYmxlbSBoYXMgYmVlbiBzZWVuIG9uIHRoZSBIVlItMTMwMCwgSFZS
+LTMwMDAsIGFuZCBIVlItNDAwMCwgYW5kIGlzCmxpa2VseSBvY2N1cmluZyBvbiBvdGhlciBkZXNp
+Z25zIGFzIHdlbGwgd2hlcmUgdHNfYnVzX2N0cmwoKSBhY3R1YWxseSBzdHJvYmVzCnRoZSByZXNl
+dCBwaW4gb24gdGhlIGRlbW9kdWxhdG9yLgoKTm90ZSB0aGF0IHRoaXMgcGF0Y2ggc2hvdWxkIHN1
+cGVyY2VkZSBhbnkgcGF0Y2hlcyBzdWJtaXR0ZWQgZm9yIHRoZQoxMzAwLzMwMDAvNDAwMCB3aGlj
+aCByZW1vdmUgdGhlIGNvZGUgdGhhdCByZW1vdmVzIEdQSU8gY29kZSBpbgpjeDg4MDJfZHZiX2Fk
+dmlzZV9hY3F1aXJlKCksIHdoaWNoIGhhdmUgYmVlbiBjaXJjdWxhdGluZyBieSB1c2VycyBmb3Ig
+c29tZQp0aW1lIG5vdy4uLgoKQ2Fub25pY2FsIHRyYWNraW5nIHRoaXMgaXNzdWUgaW4gTGF1bmNo
+cGFkIDQzOTE2MzoKCmh0dHBzOi8vYnVncy5sYXVuY2hwYWQubmV0L215dGh0di8rYnVnLzQzOTE2
+MwoKVGhhbmtzIHRvIEpvbiBTYXllcnMgZnJvbSBIYXVwcGF1Z2UgYW5kIEZsb3JlbnQgQXVkZWJl
+cnQgZnJvbSBBbmV2aWEgUy5BLiBmb3IKcHJvdmlkaW5nIGhhcmR3YXJlIHRvIHRlc3QvZGVidWcg
+d2l0aC4KClNpZ25lZC1vZmYtYnk6IERldmluIEhlaXRtdWVsbGVyIDxkaGVpdG11ZWxsZXJAa2Vy
+bmVsbGFicy5jb20+CkNjOiBKb24gU2F5ZXJzIDxqLnNheWVyc0BoYXVwcGF1Z2UuY28udWs+CkNj
+OiBGbG9yZW50IEF1ZGViZXJ0IDxmbG9yZW50LmF1ZGViZXJ0QGFuZXZpYS5jb20+CgpkaWZmIC0t
+Z2l0IGEvZHJpdmVycy9tZWRpYS9kdmIvZHZiLWNvcmUvZHZiX2Zyb250ZW5kLmMgYi9kcml2ZXJz
+L21lZGlhL2R2Yi9kdmItY29yZS9kdmJfZnJvbnRlbmQuYwppbmRleCBiZWQ3YmZlLi5lZmU5YzMw
+IDEwMDY0NAotLS0gYS9kcml2ZXJzL21lZGlhL2R2Yi9kdmItY29yZS9kdmJfZnJvbnRlbmQuYwor
+KysgYi9kcml2ZXJzL21lZGlhL2R2Yi9kdmItY29yZS9kdmJfZnJvbnRlbmQuYwpAQCAtMTk4OSw2
+ICsxOTg5LDE0IEBAIHN0YXRpYyBpbnQgZHZiX2Zyb250ZW5kX29wZW4oc3RydWN0IGlub2RlICpp
+bm9kZSwgc3RydWN0IGZpbGUgKmZpbGUpCiAJaWYgKGR2YmRldi0+dXNlcnMgPT0gLTEgJiYgZmUt
+Pm9wcy50c19idXNfY3RybCkgewogCQlpZiAoKHJldCA9IGZlLT5vcHMudHNfYnVzX2N0cmwoZmUs
+IDEpKSA8IDApCiAJCQlnb3RvIGVycjA7CisKKwkJLyogSWYgd2UgdG9vayBjb250cm9sIG9mIHRo
+ZSBidXMsIHdlIG5lZWQgdG8gZm9yY2UKKwkJICAgcmVpbml0aWFsaXphdGlvbi4gIFRoaXMgaXMg
+YmVjYXVzZSBtYW55IHRzX2J1c19jdHJsKCkKKwkJICAgZnVuY3Rpb25zIHN0cm9iZSB0aGUgUkVT
+RVQgcGluIG9uIHRoZSBkZW1vZCwgYW5kIGlmIHRoZQorCQkgICBmcm9udGVuZCB0aHJlYWQgYWxy
+ZWFkeSBleGlzdHMgdGhlbiB0aGUgZHZiX2luaXQoKSByb3V0aW5lCisJCSAgIHdvbid0IGdldCBj
+YWxsZWQgKHdoaWNoIGlzIHdoYXQgdXN1YWxseSBkb2VzIGluaXRpYWwKKwkJICAgcmVnaXN0ZXIg
+Y29uZmlndXJhdGlvbikuICovCisJCWZlcHJpdi0+cmVpbml0aWFsaXNlID0gMTsKIAl9CiAKIAlp
+ZiAoKHJldCA9IGR2Yl9nZW5lcmljX29wZW4gKGlub2RlLCBmaWxlKSkgPCAwKQo=
+--0015174c41d809f32104a747ef53--
