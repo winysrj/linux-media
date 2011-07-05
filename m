@@ -1,64 +1,82 @@
-Return-path: <mchehab@pedra>
-Received: from caramon.arm.linux.org.uk ([78.32.30.218]:55157 "EHLO
-	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932374Ab1GEM3N (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 5 Jul 2011 08:29:13 -0400
-Date: Tue, 5 Jul 2011 13:27:21 +0100
-From: Russell King - ARM Linux <linux@arm.linux.org.uk>
-To: Arnd Bergmann <arnd@arndb.de>
-Cc: Marek Szyprowski <m.szyprowski@samsung.com>,
-	Ankita Garg <ankita@in.ibm.com>,
-	Daniel Walker <dwalker@codeaurora.org>,
-	Jesse Barker <jesse.barker@linaro.org>,
-	Mel Gorman <mel@csn.ul.ie>,
-	Chunsang Jeong <chunsang.jeong@linaro.org>,
-	Jonathan Corbet <corbet@lwn.net>, linux-kernel@vger.kernel.org,
-	Michal Nazarewicz <mina86@mina86.com>,
-	linaro-mm-sig@lists.linaro.org, linux-mm@kvack.org,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>,
-	Andrew Morton <akpm@linux-foundation.org>,
-	linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org
-Subject: Re: [PATCH 4/8] mm: MIGRATE_CMA migration type added
-Message-ID: <20110705122721.GB8286@n2100.arm.linux.org.uk>
-References: <1309851710-3828-1-git-send-email-m.szyprowski@samsung.com> <1309851710-3828-5-git-send-email-m.szyprowski@samsung.com> <201107051344.31298.arnd@arndb.de>
+Return-path: <mchehab@localhost>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:58223 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751424Ab1GETHl convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 5 Jul 2011 15:07:41 -0400
+Received: from dbdp20.itg.ti.com ([172.24.170.38])
+	by arroyo.ext.ti.com (8.13.7/8.13.7) with ESMTP id p65J7cfv017263
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-media@vger.kernel.org>; Tue, 5 Jul 2011 14:07:41 -0500
+From: "Hiremath, Vaibhav" <hvaibhav@ti.com>
+To: "JAIN, AMBER" <amber@ti.com>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+CC: "Semwal, Sumit" <sumit.semwal@ti.com>,
+	"Nilofer, Samreen" <samreen@ti.com>
+Date: Wed, 6 Jul 2011 00:37:37 +0530
+Subject: RE: [PATCH 6/6] V4l2: OMAP: VOUT: Minor Cleanup, removing the
+ unnecessary code.
+Message-ID: <19F8576C6E063C45BE387C64729E739404E3485E6D@dbde02.ent.ti.com>
+References: <1307458058-29030-1-git-send-email-amber@ti.com>
+ <1307458058-29030-7-git-send-email-amber@ti.com>
+In-Reply-To: <1307458058-29030-7-git-send-email-amber@ti.com>
+Content-Language: en-US
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <201107051344.31298.arnd@arndb.de>
 List-ID: <linux-media.vger.kernel.org>
-Sender: <mchehab@pedra>
+Sender: <mchehab@infradead.org>
 
-On Tue, Jul 05, 2011 at 01:44:31PM +0200, Arnd Bergmann wrote:
-> > @@ -198,6 +198,12 @@ config MIGRATION
-> >  	  pages as migration can relocate pages to satisfy a huge page
-> >  	  allocation instead of reclaiming.
-> >  
-> > +config CMA_MIGRATE_TYPE
-> > +	bool
-> > +	help
-> > +	  This enables the use the MIGRATE_CMA migrate type, which lets lets CMA
-> > +	  work on almost arbitrary memory range and not only inside ZONE_MOVABLE.
-> > +
-> >  config PHYS_ADDR_T_64BIT
-> >  	def_bool 64BIT || ARCH_PHYS_ADDR_T_64BIT
+
+> -----Original Message-----
+> From: JAIN, AMBER
+> Sent: Tuesday, June 07, 2011 8:18 PM
+> To: linux-media@vger.kernel.org
+> Cc: Hiremath, Vaibhav; Semwal, Sumit; JAIN, AMBER; Nilofer, Samreen
+> Subject: [PATCH 6/6] V4l2: OMAP: VOUT: Minor Cleanup, removing the
+> unnecessary code.
 > 
-> This is currently only selected on ARM with your patch set. 
+> Minor changes to remove the unused code from omap_vout driver.
+> 
+> Signed-off-by: Amber Jain <amber@ti.com>
+> Signed-off-by: Samreen <samreen@ti.com>
+> ---
+>  drivers/media/video/omap/omap_vout.c |    6 ------
+>  1 files changed, 0 insertions(+), 6 deletions(-)
+> 
+> diff --git a/drivers/media/video/omap/omap_vout.c
+> b/drivers/media/video/omap/omap_vout.c
+> index 25025a1..4aeea06 100644
+> --- a/drivers/media/video/omap/omap_vout.c
+> +++ b/drivers/media/video/omap/omap_vout.c
+> @@ -1090,10 +1090,7 @@ static int vidioc_enum_fmt_vid_out_mplane(struct
+> file *file, void *fh,
+>  			struct v4l2_fmtdesc *fmt)
+>  {
+>  	int index = fmt->index;
+> -	enum v4l2_buf_type type = fmt->type;
+> 
+> -	fmt->index = index;
+> -	fmt->type = type;
+[Hiremath, Vaibhav] These lines are not present in main-line driver? Which baseline have you used for this patch?
 
-That's because CMA is targeted at solving the "we need massive contiguous
-DMA areas" problem on ARM SoCs.
+Thanks,
+Vaibhav
 
-And it does this without addressing the technical architecture problems
-surrounding multiple aliasing mappings with differing attributes which
-actually make it unsuitable for use on ARM.  This is not the first time
-I've pointed that out, and I'm now at the point of basically ignoring
-this CMA work because I'm tired of constantly pointing this out.
+>  	if (index >= NUM_OUTPUT_FORMATS)
+>  		return -EINVAL;
+> 
+> @@ -1268,10 +1265,7 @@ static int vidioc_enum_fmt_vid_overlay(struct file
+> *file, void *fh,
+>  			struct v4l2_fmtdesc *fmt)
+>  {
+>  	int index = fmt->index;
+> -	enum v4l2_buf_type type = fmt->type;
+> 
+> -	fmt->index = index;
+> -	fmt->type = type;
+>  	if (index >= NUM_OUTPUT_FORMATS)
+>  		return -EINVAL;
+> 
+> --
+> 1.7.1
 
-My silence on this subject must not be taken as placid acceptance of the
-approach, but revulsion at seemingly being constantly ignored and having
-these patches pushed time and time again with nothing really changing on
-that issue.
-
-It will be a sad day if these patches make their way into mainline without
-that being addressed, and will show contempt for architecture maintainers
-if it does.
