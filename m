@@ -1,62 +1,89 @@
-Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qw0-f46.google.com ([209.85.216.46]:57678 "EHLO
-	mail-qw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752012Ab1G2RbN (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 29 Jul 2011 13:31:13 -0400
-Received: by qwk3 with SMTP id 3so1943254qwk.19
-        for <linux-media@vger.kernel.org>; Fri, 29 Jul 2011 10:31:12 -0700 (PDT)
-References: <20110729025356.28cc99e8@redhat.com>
-In-Reply-To: <20110729025356.28cc99e8@redhat.com>
-Mime-Version: 1.0 (Apple Message framework v1084)
-Content-Type: text/plain; charset=us-ascii
-Message-Id: <019F3E90-A128-4527-8698-1E2FE89341C9@wilsonet.com>
-Content-Transfer-Encoding: 7bit
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
-From: Jarod Wilson <jarod@wilsonet.com>
-Subject: Re: [PATCH 1/2] [media] rc-main: Fix device de-registration logic
-Date: Fri, 29 Jul 2011 13:30:56 -0400
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-Sender: linux-media-owner@vger.kernel.org
+Return-path: <mchehab@pedra>
+Received: from mailout4.w1.samsung.com ([210.118.77.14]:64980 "EHLO
+	mailout4.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750812Ab1GEKZi (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 5 Jul 2011 06:25:38 -0400
+MIME-version: 1.0
+Content-transfer-encoding: 7BIT
+Content-type: text/plain; charset=us-ascii
+Date: Tue, 05 Jul 2011 12:24:58 +0200
+From: Marek Szyprowski <m.szyprowski@samsung.com>
+Subject: RE: [PATCH 6/8] drivers: add Contiguous Memory Allocator
+In-reply-to: <1309851710-3828-7-git-send-email-m.szyprowski@samsung.com>
+To: Marek Szyprowski <m.szyprowski@samsung.com>,
+	linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+	linux-media@vger.kernel.org, linux-mm@kvack.org,
+	linaro-mm-sig@lists.linaro.org
+Cc: 'Michal Nazarewicz' <mina86@mina86.com>,
+	'Kyungmin Park' <kyungmin.park@samsung.com>,
+	'Andrew Morton' <akpm@linux-foundation.org>,
+	'KAMEZAWA Hiroyuki' <kamezawa.hiroyu@jp.fujitsu.com>,
+	'Ankita Garg' <ankita@in.ibm.com>,
+	'Daniel Walker' <dwalker@codeaurora.org>,
+	'Mel Gorman' <mel@csn.ul.ie>, 'Arnd Bergmann' <arnd@arndb.de>,
+	'Jesse Barker' <jesse.barker@linaro.org>,
+	'Jonathan Corbet' <corbet@lwn.net>,
+	'Chunsang Jeong' <chunsang.jeong@linaro.org>
+Message-id: <000101cc3afd$cac46ff0$604d4fd0$%szyprowski@samsung.com>
+Content-language: pl
+References: <1309851710-3828-1-git-send-email-m.szyprowski@samsung.com>
+ <1309851710-3828-7-git-send-email-m.szyprowski@samsung.com>
 List-ID: <linux-media.vger.kernel.org>
+Sender: <mchehab@pedra>
 
-On Jul 29, 2011, at 1:53 AM, Mauro Carvalho Chehab wrote:
+Hello,
 
-> rc unregister logic were deadly broken, preventing some drivers to
-> be removed. Among the broken things, rc_dev_uevent() is being called
-> during device_del(), causing a data filling on an area that it is
-> not ready anymore.
+On Tuesday, July 05, 2011 9:42 AM Marek Szyprowski wrote:
+
+> The Contiguous Memory Allocator is a set of helper functions for DMA
+> mapping framework that improves allocations of contiguous memory chunks.
 > 
-> Also, some drivers have a stop callback defined, that needs to be called
-> before data removal, as it stops data polling.
+> CMA grabs memory on system boot, marks it with CMA_MIGRATE_TYPE and
+> gives back to the system. Kernel is allowed to allocate movable pages
+> within CMA's managed memory so that it can be used for example for page
+> cache when DMA mapping do not use it. On dma_alloc_from_contiguous()
+> request such pages are migrated out of CMA area to free required
+> contiguous block and fulfill the request. This allows to allocate large
+> contiguous chunks of memory at any time assuming that there is enough
+> free memory available in the system.
 > 
-> Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+> This code is heavily based on earlier works by Michal Nazarewicz.
 > 
-> diff --git a/drivers/media/rc/rc-main.c b/drivers/media/rc/rc-main.c
-> index 51a23f4..666d4bb 100644
-> --- a/drivers/media/rc/rc-main.c
-> +++ b/drivers/media/rc/rc-main.c
-> @@ -928,10 +928,6 @@ out:
+> Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
+> Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+> CC: Michal Nazarewicz <mina86@mina86.com>
+> ---
+>  drivers/base/Kconfig           |   77 +++++++++
+>  drivers/base/Makefile          |    1 +
+>  drivers/base/dma-contiguous.c  |  367
+> ++++++++++++++++++++++++++++++++++++++++
+>  include/linux/dma-contiguous.h |  104 +++++++++++
+>  4 files changed, 549 insertions(+), 0 deletions(-)
+>  create mode 100644 drivers/base/dma-contiguous.c
+>  create mode 100644 include/linux/dma-contiguous.h
 > 
-> static void rc_dev_release(struct device *device)
-> {
-> -	struct rc_dev *dev = to_rc_dev(device);
-> -
-> -	kfree(dev);
-> -	module_put(THIS_MODULE);
-> }
+> diff --git a/drivers/base/Kconfig b/drivers/base/Kconfig
+> index d57e8d0..95ae1a7 100644
+> --- a/drivers/base/Kconfig
+> +++ b/drivers/base/Kconfig
+> @@ -168,4 +168,81 @@ config SYS_HYPERVISOR
+>  	bool
+>  	default n
+> 
+> +config CMA
+> +	bool "Contiguous Memory Allocator"
+> +	depends HAVE_DMA_CONTIGUOUS && HAVE_MEMBLOCK
 
-Since this function become a no-op, does it make sense to just remove it
-and not set a .release function for static struct device_type rc_dev_type?
+The above line should be obviously "depends on HAVE_DMA_CONTIGUOUS &&
+HAVE_MEMBLOCK".
+I'm sorry for posting broken version. 
 
-Other than that, after reading through the patch several times, along with
-the resulting rc-main.c and some input code, everything seems to make
-sense to me. Will do some quick sanity-testing with a few of my various
-devices before I give an ack though, just to be sure. :)
+(snipped)
 
+Best regards
 -- 
-Jarod Wilson
-jarod@wilsonet.com
+Marek Szyprowski
+Samsung Poland R&D Center
 
 
 
