@@ -1,91 +1,49 @@
-Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ww0-f44.google.com ([74.125.82.44]:44740 "EHLO
-	mail-ww0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754865Ab1GOCIi convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 14 Jul 2011 22:08:38 -0400
+Return-path: <mchehab@pedra>
+Received: from caramon.arm.linux.org.uk ([78.32.30.218]:46617 "EHLO
+	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932176Ab1GELeM (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 5 Jul 2011 07:34:12 -0400
+Date: Tue, 5 Jul 2011 12:33:45 +0100
+From: Russell King - ARM Linux <linux@arm.linux.org.uk>
+To: Marek Szyprowski <m.szyprowski@samsung.com>
+Cc: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+	linux-media@vger.kernel.org, linux-mm@kvack.org,
+	linaro-mm-sig@lists.linaro.org,
+	Daniel Walker <dwalker@codeaurora.org>,
+	Arnd Bergmann <arnd@arndb.de>,
+	Jonathan Corbet <corbet@lwn.net>, Mel Gorman <mel@csn.ul.ie>,
+	Chunsang Jeong <chunsang.jeong@linaro.org>,
+	Michal Nazarewicz <mina86@mina86.com>,
+	Jesse Barker <jesse.barker@linaro.org>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	Ankita Garg <ankita@in.ibm.com>,
+	Andrew Morton <akpm@linux-foundation.org>,
+	KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Subject: Re: [PATCH 6/8] drivers: add Contiguous Memory Allocator
+Message-ID: <20110705113345.GA8286@n2100.arm.linux.org.uk>
+References: <1309851710-3828-1-git-send-email-m.szyprowski@samsung.com> <1309851710-3828-7-git-send-email-m.szyprowski@samsung.com>
 MIME-Version: 1.0
-In-Reply-To: <Pine.LNX.4.44L0.1107141055270.1983-100000@iolanthe.rowland.org>
-References: <CACVXFVOHqze=HRxhwmfDaDEs9bQ7rsAi9P4WFwn1OY3G4x5hTg@mail.gmail.com>
-	<Pine.LNX.4.44L0.1107141055270.1983-100000@iolanthe.rowland.org>
-Date: Fri, 15 Jul 2011 10:08:36 +0800
-Message-ID: <CACVXFVNMLewOae=77+hTCqNPtR4yKdjrYKLxC7LiH2FN13thMQ@mail.gmail.com>
-Subject: Re: [PATCH] uvcvideo: add fix suspend/resume quirk for Microdia camera
-From: Ming Lei <tom.leiming@gmail.com>
-To: Alan Stern <stern@rowland.harvard.edu>
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Ming Lei <ming.lei@canonical.com>, linux-media@vger.kernel.org,
-	linux-usb@vger.kernel.org, Jeremy Kerr <jeremy.kerr@canonical.com>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
-Sender: linux-media-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <1309851710-3828-7-git-send-email-m.szyprowski@samsung.com>
 List-ID: <linux-media.vger.kernel.org>
+Sender: <mchehab@pedra>
 
-Hi,
+On Tue, Jul 05, 2011 at 09:41:48AM +0200, Marek Szyprowski wrote:
+> The Contiguous Memory Allocator is a set of helper functions for DMA
+> mapping framework that improves allocations of contiguous memory chunks.
+> 
+> CMA grabs memory on system boot, marks it with CMA_MIGRATE_TYPE and
+> gives back to the system. Kernel is allowed to allocate movable pages
+> within CMA's managed memory so that it can be used for example for page
+> cache when DMA mapping do not use it. On dma_alloc_from_contiguous()
+> request such pages are migrated out of CMA area to free required
+> contiguous block and fulfill the request. This allows to allocate large
+> contiguous chunks of memory at any time assuming that there is enough
+> free memory available in the system.
+> 
+> This code is heavily based on earlier works by Michal Nazarewicz.
 
-On Thu, Jul 14, 2011 at 11:03 PM, Alan Stern <stern@rowland.harvard.edu> wrote:
-
-> All right; this tends to confirm your guess that the BIOS messes up the
-> device by resetting it during system resume.
-
-Yes.  BIOS messes the device first, then usbcore has to reset the device
-at the end of resume, so the device behaves badly: ISO transfer oddly
-
->> This also indicates the usb reset during resume does make the uvc device
->> broken.
->
-> Resetting the device doesn't actually _break_ it -- if it did then the
-> device would _never_ work because the first thing that usbcore does to
-> initialize a new device is reset it!
-
-I means the reset in resume breaks the device, not the reset in enumeration, :-)
-(the only extra reset in rpm resume will make the device not work)
-
->
-> More likely, the reset erases some device setting that uvcvideo
-> installed while binding.  Evidently uvcvideo does not re-install the
-> setting during reset-resume; this is probably a bug in the driver.
-
-Yes, maybe some settings inside device have changed after the
-reset signal, I don't know if it is a normal behaviour.
-
-I have tried to add some code in .probe path to .resume path,
-but still not make it work. Anyway, it is not easy thing, because we
-have not the internal knowledge of uvc device implementation, and
-have to try it by guess.
-
->> The below quirk  fixes the issue now.
->>
->> diff --git a/drivers/usb/core/quirks.c b/drivers/usb/core/quirks.c
->> index 81ce6a8..93c6fa2 100644
->> --- a/drivers/usb/core/quirks.c
->> +++ b/drivers/usb/core/quirks.c
->> @@ -82,6 +82,9 @@ static const struct usb_device_id usb_quirk_list[] = {
->>       /* Broadcom BCM92035DGROM BT dongle */
->>       { USB_DEVICE(0x0a5c, 0x2021), .driver_info = USB_QUIRK_RESET_RESUME },
->>
->> +     /* Microdia uvc camera */
->> +     { USB_DEVICE(0x0c45, 0x6437), .driver_info = USB_QUIRK_RESET_MORPHS },
->> +
->>       /* Action Semiconductor flash disk */
->>       { USB_DEVICE(0x10d6, 0x2200), .driver_info =
->>                       USB_QUIRK_STRING_FETCH_255 },
->
-> It would be better to fix uvcvideo, if you could figure out what it
-> needs to do differently.  This quirk is only a workaround, because the
-> device doesn't really morph.
-
-In fact we can understand the quirk is used to avoid reset in system resume,
-which is one of its original purpose too.
-
-I will do some tests to figure out solution in uvc driver, but I am
-not sure I can
-find it quickly because I debug it remotely and network is very
-slowly. If I can't
-find out the solution in uvc driver, could you accept the workaround of
-USB_QUIRK_RESET_MORPHS first?
-
-thanks,
--- 
-Ming Lei
+And how are you addressing the technical concerns about aliasing of
+cache attributes which I keep bringing up with this and you keep
+ignoring and telling me that I'm standing in your way.
