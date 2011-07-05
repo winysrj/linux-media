@@ -1,72 +1,48 @@
-Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:49174 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751741Ab1GQWWs (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 17 Jul 2011 18:22:48 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Subject: Re: [PATCH] v4l: mt9v032: Fix Bayer pattern
-Date: Mon, 18 Jul 2011 00:22:52 +0200
-Cc: linux-media@vger.kernel.org
-References: <1310761106-29722-1-git-send-email-laurent.pinchart@ideasonboard.com> <201107172334.29292.laurent.pinchart@ideasonboard.com> <Pine.LNX.4.64.1107180013220.13485@axis700.grange>
-In-Reply-To: <Pine.LNX.4.64.1107180013220.13485@axis700.grange>
+Return-path: <mchehab@pedra>
+Received: from moutng.kundenserver.de ([212.227.17.9]:54202 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932176Ab1GELbv (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 5 Jul 2011 07:31:51 -0400
+From: Arnd Bergmann <arnd@arndb.de>
+To: Marek Szyprowski <m.szyprowski@samsung.com>
+Subject: Re: [PATCH 3/8] mm: alloc_contig_range() added
+Date: Tue, 5 Jul 2011 13:31:17 +0200
+Cc: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+	linux-media@vger.kernel.org, linux-mm@kvack.org,
+	linaro-mm-sig@lists.linaro.org,
+	Michal Nazarewicz <mina86@mina86.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	Andrew Morton <akpm@linux-foundation.org>,
+	KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>,
+	Ankita Garg <ankita@in.ibm.com>,
+	Daniel Walker <dwalker@codeaurora.org>,
+	Mel Gorman <mel@csn.ul.ie>,
+	Jesse Barker <jesse.barker@linaro.org>,
+	Jonathan Corbet <corbet@lwn.net>,
+	Chunsang Jeong <chunsang.jeong@linaro.org>
+References: <1309851710-3828-1-git-send-email-m.szyprowski@samsung.com> <1309851710-3828-4-git-send-email-m.szyprowski@samsung.com>
+In-Reply-To: <1309851710-3828-4-git-send-email-m.szyprowski@samsung.com>
 MIME-Version: 1.0
 Content-Type: Text/Plain;
-  charset="iso-8859-1"
+  charset="iso-8859-15"
 Content-Transfer-Encoding: 7bit
-Message-Id: <201107180022.52876.laurent.pinchart@ideasonboard.com>
-Sender: linux-media-owner@vger.kernel.org
+Message-Id: <201107051331.17661.arnd@arndb.de>
 List-ID: <linux-media.vger.kernel.org>
+Sender: <mchehab@pedra>
 
-On Monday 18 July 2011 00:14:21 Guennadi Liakhovetski wrote:
-> On Sun, 17 Jul 2011, Laurent Pinchart wrote:
-> > Hi Guennadi,
-> > 
-> > On Saturday 16 July 2011 23:40:23 Guennadi Liakhovetski wrote:
-> > > On Sat, 16 Jul 2011, Laurent Pinchart wrote:
-> > > > On Saturday 16 July 2011 01:11:28 Guennadi Liakhovetski wrote:
-> > > > > On Fri, 15 Jul 2011, Laurent Pinchart wrote:
-> > > > > > Compute crop rectangle boundaries to ensure a GRBG Bayer pattern.
-> > > > > > 
-> > > > > > Signed-off-by: Laurent Pinchart
-> > > > > > <laurent.pinchart@ideasonboard.com> ---
-> > > > > > 
-> > > > > >  drivers/media/video/mt9v032.c |   20 ++++++++++----------
-> > > > > >  1 files changed, 10 insertions(+), 10 deletions(-)
-> > > > > > 
-> > > > > > If there's no comment I'll send a pull request for this patch in
-> > > > > > a couple of days.
-> > > > > 
-> > > > > Hm, I might have a comment: why?... Isn't it natural to accept the
-> > > > > fact, that different sensors put a different Bayer pixel at their
-> > > > > sensor matrix origin? Isn't that why we have all possible Bayer
-> > > > > formats? Maybe you just have to choose a different output format?
-> > > > 
-> > > > That's the other solution. The driver currently claims the device
-> > > > outputs SGRBG, but configures it to output SGBGR. This is clearly a
-> > > > bug. Is it better to modify the format than the crop rectangle
-> > > > location ?
-> > > 
-> > > Actually, it is interesting. I just looked (again) in the mt9v032 and
-> > > some other Aptina Bayer sensor datasheets, and they actually have
-> > > _odd_ numbers of rows and columns. So, mt9v032 actually has 753x481
-> > > active pixels. And that extra pixel is explicitly provided to adjust
-> > > the origin colour. Ok, they write, it is for uniformity with the
-> > > mirrored image, but who believes them?;-) So, maybe you should adjust
-> > > your max values to the above ones, then taking one pixel out of your
-> > > image will not reduce your useful image size.
-> > 
-> > I'm not sure what you mean. Even though the pixel array is bigger than
-> > that, the maximum output width/height are 752x480 according to the
-> > datasheet.
+On Tuesday 05 July 2011, Marek Szyprowski wrote:
+> From: Michal Nazarewicz <m.nazarewicz@samsung.com>
 > 
-> Have a look at the "Pixel array structure" (p.10 in my version) section.
+> This commit adds the alloc_contig_range() function which tries
+> to allecate given range of pages.  It tries to migrate all
+> already allocated pages that fall in the range thus freeing them.
+> Once all pages in the range are freed they are removed from the
+> buddy system thus allocated for the caller to use.
+> 
+> Signed-off-by: Michal Nazarewicz <m.nazarewicz@samsung.com>
+> Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+> [m.szyprowski: renamed some variables for easier code reading]
+> Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
+> CC: Michal Nazarewicz <mina86@mina86.com>
 
-I've seen that, but the sensor is still unable to output an image bigger than 
-752x480. See registers 3 and 4 maximum values on page 24 (in my version :-)).
-
--- 
-Regards,
-
-Laurent Pinchart
+Acked-by: Arnd Bergmann <arnd@arndb.de>
