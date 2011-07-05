@@ -1,95 +1,68 @@
-Return-path: <linux-media-owner@vger.kernel.org>
-Received: from oproxy1-pub.bluehost.com ([66.147.249.253]:36560 "HELO
-	oproxy1-pub.bluehost.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1752050Ab1GMVZd (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 13 Jul 2011 17:25:33 -0400
-Date: Wed, 13 Jul 2011 14:11:05 -0700
-From: Randy Dunlap <rdunlap@xenotime.net>
-To: Mauro Carvalho Chehab <mchehab@infradead.org>
-Cc: lkml <linux-kernel@vger.kernel.org>, linux-kbuild@vger.kernel.org,
-	linux-media@vger.kernel.org
-Subject: Re: [PATCH 1/9] stringify: add HEX_STRING()
-Message-Id: <20110713141105.e5a3b00e.rdunlap@xenotime.net>
-In-Reply-To: <4E1E08A9.4030807@infradead.org>
-References: <20110710125109.c72f9c2d.rdunlap@xenotime.net>
-	<4E1E08A9.4030807@infradead.org>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
-Sender: linux-media-owner@vger.kernel.org
+Return-path: <mchehab@pedra>
+Received: from smtp-68.nebula.fi ([83.145.220.68]:51548 "EHLO
+	smtp-68.nebula.fi" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753909Ab1GEQQp (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 5 Jul 2011 12:16:45 -0400
+Date: Tue, 5 Jul 2011 19:16:40 +0300
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: Jonathan Cameron <jic23@cam.ac.uk>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: omap3isp: known causes of "CCDC won't become idle!
+Message-ID: <20110705161640.GR12671@valkosipuli.localdomain>
+References: <4E12F3DE.5030109@cam.ac.uk>
+ <4E131649.5030906@cam.ac.uk>
+ <20110705143807.GQ12671@valkosipuli.localdomain>
+ <201107051702.53128.laurent.pinchart@ideasonboard.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <201107051702.53128.laurent.pinchart@ideasonboard.com>
 List-ID: <linux-media.vger.kernel.org>
+Sender: <mchehab@pedra>
 
-On Wed, 13 Jul 2011 18:05:45 -0300 Mauro Carvalho Chehab wrote:
-
-> Em 10-07-2011 16:51, Randy Dunlap escreveu:
-> > From: Randy Dunlap <rdunlap@xenotime.net>
+On Tue, Jul 05, 2011 at 05:02:52PM +0200, Laurent Pinchart wrote:
+> On Tuesday 05 July 2011 16:38:07 Sakari Ailus wrote:
+> > On Tue, Jul 05, 2011 at 02:48:57PM +0100, Jonathan Cameron wrote:
+> > > On 07/05/11 13:19, Sakari Ailus wrote:
+> > > > On Tue, Jul 05, 2011 at 12:22:06PM +0100, Jonathan Cameron wrote:
+> > > >> Hi Laurent,
+> > > >> 
+> > > >> I'm just trying to get an mt9v034 sensor working on a beagle xm.
+> > > >> Everything more or less works, except that after a random number
+> > > >> of frames of capture, I tend to get won't become idle messages
+> > > >> and the vd0 and vd1 interrupts tend to turn up at same time.
+> > > >> 
+> > > >> I was just wondering if there are any known issues with the ccdc
+> > > >> driver / silicon that might explain this?
+> > > >> 
+> > > >> I also note that it appears to be impossible to disable
+> > > >> HS_VS_IRQarch/arm/mach-s3c2410/Kconfig:# cpu frequency scaling
+> > > >> support
+> > > >> 
+> > > >> despite the datasheet claiming this can be done.  Is this a known
+> > > >> issue?
+> > > > 
+> > > > The same interrupt may be used to produce an interrupt per horizontal
+> > > > sync but the driver doesn't use that. I remember of a case where the
+> > > > two sync signals had enough crosstalk to cause vertical sync interrupt
+> > > > per every horizontal sync. (It's been discussed on this list.) This
+> > > > might not be the case here, though: you should be flooded with HS_VS
+> > > > interrupts.
+> > > 
+> > > As far as I can tell, the driver doesn't use either interrupt (except to
+> > > pass it up as an event). Hence I was trying to mask it purely to cut
+> > > down on the interrupt load.
 > > 
-> > Add HEX_STRING(value) to stringify.h so that drivers can
-> > convert kconfig hex values (without leading "0x") to useful
-> > hex constants.
-> > 
-> > Several drivers/media/radio/ drivers need this.  I haven't
-> > checked if any other drivers need to do this.
-> > 
-> > Alternatively, kconfig could produce hex config symbols with
-> > leading "0x".
+> > It does. This is the only way to detect the CCDC has finished processing a
+> > frame.
 > 
-> Hi Randy,
-> 
-> After applying patch 1/9 and 2/9 over 3.0-rc7+media patches, I'm
-> now getting this error:
-> 
-> drivers/media/radio/radio-aimslab.c:52:1: error: invalid suffix "x20f" on integer constant
+> We actually use the VD0 and VD1 interrupts for that, not the HS_VS interrupt.
 
-Hi Mauro,
+Right; I confused the two for a moment.
 
-I built all of these drivers with my patches applied,
-but I'll see if I can find where this error is coming from.
+Cheers,
 
-Thanks for checking & letting me know.
-
-
-> $ grep 20f .config
-> CONFIG_RADIO_RTRACK_PORT=20f
-> 
-> $ gcc --version
-> gcc (GCC) 4.4.5 20110214 (Red Hat 4.4.5-6)
-> 
-> Before this patch, this were working (or, at least, weren't producing
-> any error).
-> 
-> Perhaps the breakage on your compilation happened due to another
-> patch at the tree? If so, the better would be to apply this patch
-> series together with the ones that caused the breakage, to avoid
-> bisect troubles.
-> 
-> > 
-> > Signed-off-by: Randy Dunlap <rdunlap@xenotime.net>
-> > ---
-> >  include/linux/stringify.h |    7 +++++++
-> >  1 file changed, 7 insertions(+)
-> > 
-> > NOTE: The other 8 patches are on lkml and linux-media mailing lists.
-> > 
-> > --- linux-next-20110707.orig/include/linux/stringify.h
-> > +++ linux-next-20110707/include/linux/stringify.h
-> > @@ -9,4 +9,11 @@
-> >  #define __stringify_1(x...)	#x
-> >  #define __stringify(x...)	__stringify_1(x)
-> >  
-> > +/*
-> > + * HEX_STRING(value) is useful for CONFIG_ values that are in hex,
-> > + * but kconfig does not put a leading "0x" on them.
-> > + */
-> > +#define HEXSTRINGVALUE(h, value)	h##value
-> > +#define HEX_STRING(value)		HEXSTRINGVALUE(0x, value)
-> > +
-> >  #endif	/* !__LINUX_STRINGIFY_H */
-> 
-> --
-
-
----
-~Randy
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
+-- 
+Sakari Ailus
+sakari.ailus@iki.fi
