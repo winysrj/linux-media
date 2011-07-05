@@ -1,74 +1,100 @@
-Return-path: <linux-media-owner@vger.kernel.org>
-Received: from oproxy7-pub.bluehost.com ([67.222.55.9]:45992 "HELO
-	oproxy7-pub.bluehost.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1751433Ab1G3Xvf (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 30 Jul 2011 19:51:35 -0400
-Date: Sat, 30 Jul 2011 16:51:33 -0700
-From: Randy Dunlap <rdunlap@xenotime.net>
-To: linux-media@vger.kernel.org
-Cc: mchehab@infradead.org
-Subject: media Documentation Errors
-Message-Id: <20110730165133.74b91104.rdunlap@xenotime.net>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
-Sender: linux-media-owner@vger.kernel.org
+Return-path: <mchehab@localhost>
+Received: from comal.ext.ti.com ([198.47.26.152]:46028 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751424Ab1GETLr convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 5 Jul 2011 15:11:47 -0400
+Received: from dbdp20.itg.ti.com ([172.24.170.38])
+	by comal.ext.ti.com (8.13.7/8.13.7) with ESMTP id p65JBhAi030132
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-media@vger.kernel.org>; Tue, 5 Jul 2011 14:11:46 -0500
+From: "Hiremath, Vaibhav" <hvaibhav@ti.com>
+To: "Hiremath, Vaibhav" <hvaibhav@ti.com>,
+	"JAIN, AMBER" <amber@ti.com>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+CC: "Semwal, Sumit" <sumit.semwal@ti.com>,
+	"Nilofer, Samreen" <samreen@ti.com>
+Date: Wed, 6 Jul 2011 00:41:41 +0530
+Subject: RE: [PATCH 6/6] V4l2: OMAP: VOUT: Minor Cleanup, removing the
+ unnecessary code.
+Message-ID: <19F8576C6E063C45BE387C64729E739404E3485E6E@dbde02.ent.ti.com>
+References: <1307458058-29030-1-git-send-email-amber@ti.com>
+ <1307458058-29030-7-git-send-email-amber@ti.com>
+Content-Language: en-US
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+MIME-Version: 1.0
 List-ID: <linux-media.vger.kernel.org>
-
-Hi,
-
-What do I need to do to eliminate these errors?
-(from 3.0-git12)
+Sender: <mchehab@infradead.org>
 
 
-Error: no ID for constraint linkend: v4l2-mpeg-video-header-mode.
-Error: no ID for constraint linkend: v4l2-mpeg-video-multi-slice-mode.
-Error: no ID for constraint linkend: v4l2-mpeg-video-h264-entropy-mode.
-Error: no ID for constraint linkend: v4l2-mpeg-video-h264-level.
-Error: no ID for constraint linkend: v4l2-mpeg-video-h264-loop-filter-mode.
-Error: no ID for constraint linkend: v4l2-mpeg-video-h264-profile.
-Error: no ID for constraint linkend: v4l2-mpeg-video-h264-vui-sar-idc.
-Error: no ID for constraint linkend: v4l2-mpeg-video-mpeg4-level.
-Error: no ID for constraint linkend: v4l2-mpeg-video-mpeg4-profile.
-Error: no ID for constraint linkend: v4l2-mpeg-mfc51-video-frame-skip-mode.
-Error: no ID for constraint linkend: v4l2-mpeg-mfc51-video-force-frame-type.
-Error: no ID for constraint linkend: v4l2-mpeg-video-header-mode.
-Error: no ID for constraint linkend: v4l2-mpeg-video-multi-slice-mode.
-Error: no ID for constraint linkend: v4l2-mpeg-video-h264-entropy-mode.
-Error: no ID for constraint linkend: v4l2-mpeg-video-h264-level.
-Error: no ID for constraint linkend: v4l2-mpeg-video-h264-loop-filter-mode.
-Error: no ID for constraint linkend: v4l2-mpeg-video-h264-profile.
-Error: no ID for constraint linkend: v4l2-mpeg-video-h264-vui-sar-idc.
-Error: no ID for constraint linkend: v4l2-mpeg-video-mpeg4-level.
-Error: no ID for constraint linkend: v4l2-mpeg-video-mpeg4-profile.
-Error: no ID for constraint linkend: v4l2-mpeg-mfc51-video-frame-skip-mode.
-Error: no ID for constraint linkend: v4l2-mpeg-mfc51-video-force-frame-type.
-Error: no ID for constraint linkend: AUDIO_GET_PTS.  Error: no ID for constraint linkend: AUDIO_BILINGUAL_CHANNEL_SELECT.
-Error: no ID for constraint linkend: CA_RESET.
-Error: no ID for constraint linkend: CA_GET_CAP.
-Error: no ID for constraint linkend: CA_GET_SLOT_INFO.
-Error: no ID for constraint linkend: CA_GET_DESCR_INFO.
-Error: no ID for constraint linkend: CA_GET_MSG.
-Error: no ID for constraint linkend: CA_SEND_MSG.
-Error: no ID for constraint linkend: CA_SET_DESCR.
-Error: no ID for constraint linkend: CA_SET_PID.
-Error: no ID for constraint linkend: DMX_GET_PES_PIDS.
-Error: no ID for constraint linkend: DMX_GET_CAPS.
-Error: no ID for constraint linkend: DMX_SET_SOURCE.
-Error: no ID for constraint linkend: DMX_ADD_PID.
-Error: no ID for constraint linkend: DMX_REMOVE_PID.
-Error: no ID for constraint linkend: NET_ADD_IF.
-Error: no ID for constraint linkend: NET_REMOVE_IF.
-Error: no ID for constraint linkend: NET_GET_IF.
-Error: no ID for constraint linkend: VIDEO_GET_SIZE.
-Error: no ID for constraint linkend: VIDEO_GET_FRAME_RATE.
-Error: no ID for constraint linkend: VIDEO_GET_PTS.
-Error: no ID for constraint linkend: VIDEO_GET_FRAME_COUNT.
-Error: no ID for constraint linkend: VIDEO_COMMAND.
-Error: no ID for constraint linkend: VIDEO_TRY_COMMAND.
+> -----Original Message-----
+> From: Hiremath, Vaibhav
+> Sent: Wednesday, July 06, 2011 12:38 AM
+> To: JAIN, AMBER; linux-media@vger.kernel.org
+> Cc: Semwal, Sumit; Nilofer, Samreen
+> Subject: RE: [PATCH 6/6] V4l2: OMAP: VOUT: Minor Cleanup, removing the
+> unnecessary code.
+> 
+> 
+> > -----Original Message-----
+> > From: JAIN, AMBER
+> > Sent: Tuesday, June 07, 2011 8:18 PM
+> > To: linux-media@vger.kernel.org
+> > Cc: Hiremath, Vaibhav; Semwal, Sumit; JAIN, AMBER; Nilofer, Samreen
+> > Subject: [PATCH 6/6] V4l2: OMAP: VOUT: Minor Cleanup, removing the
+> > unnecessary code.
+> >
+> > Minor changes to remove the unused code from omap_vout driver.
+> >
+> > Signed-off-by: Amber Jain <amber@ti.com>
+> > Signed-off-by: Samreen <samreen@ti.com>
+> > ---
+> >  drivers/media/video/omap/omap_vout.c |    6 ------
+> >  1 files changed, 0 insertions(+), 6 deletions(-)
+> >
+> > diff --git a/drivers/media/video/omap/omap_vout.c
+> > b/drivers/media/video/omap/omap_vout.c
+> > index 25025a1..4aeea06 100644
+> > --- a/drivers/media/video/omap/omap_vout.c
+> > +++ b/drivers/media/video/omap/omap_vout.c
+> > @@ -1090,10 +1090,7 @@ static int vidioc_enum_fmt_vid_out_mplane(struct
+> > file *file, void *fh,
+> >  			struct v4l2_fmtdesc *fmt)
+> >  {
+> >  	int index = fmt->index;
+> > -	enum v4l2_buf_type type = fmt->type;
+> >
+> > -	fmt->index = index;
+> > -	fmt->type = type;
+> [Hiremath, Vaibhav] These lines are not present in main-line driver? Which
+> baseline have you used for this patch?
+[Hiremath, Vaibhav] My bad, I hit send button quite early. I will queue this up for 3.1.
 
+Acked-by: Vaibhav Hiremath <hvaibhav@ti.com>
 
----
-~Randy
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
+Thanks,
+Vaibhav
+
+> 
+> Thanks,
+> Vaibhav
+> 
+> >  	if (index >= NUM_OUTPUT_FORMATS)
+> >  		return -EINVAL;
+> >
+> > @@ -1268,10 +1265,7 @@ static int vidioc_enum_fmt_vid_overlay(struct
+> file
+> > *file, void *fh,
+> >  			struct v4l2_fmtdesc *fmt)
+> >  {
+> >  	int index = fmt->index;
+> > -	enum v4l2_buf_type type = fmt->type;
+> >
+> > -	fmt->index = index;
+> > -	fmt->type = type;
+> >  	if (index >= NUM_OUTPUT_FORMATS)
+> >  		return -EINVAL;
+> >
+> > --
+> > 1.7.1
+
