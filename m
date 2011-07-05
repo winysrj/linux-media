@@ -1,85 +1,74 @@
 Return-path: <mchehab@pedra>
-Received: from mx1.redhat.com ([209.132.183.28]:40717 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756598Ab1GAOAd (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 1 Jul 2011 10:00:33 -0400
-Message-ID: <4E0DD2FD.4070606@redhat.com>
-Date: Fri, 01 Jul 2011 11:00:29 -0300
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Received: from smtp-68.nebula.fi ([83.145.220.68]:57928 "EHLO
+	smtp-68.nebula.fi" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932124Ab1GELUe (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 5 Jul 2011 07:20:34 -0400
+Date: Tue, 5 Jul 2011 14:20:29 +0300
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: mchehab@redhat.com
+Cc: linux-media@vger.kernel.org, laurent.pinchart@ideasonboard.com,
+	hverkuil@xs4all.nl
+Subject: [GIT PULL FOR 3.1] Bitmask controls, flash API and adp1653 driver
+Message-ID: <20110705112029.GO12671@valkosipuli.localdomain>
 MIME-Version: 1.0
-To: Jonathan Liu <net147@gmail.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: Leadtek CoolCommand Y0400046
-References: <4E0DBC7C.5030106@gmail.com>
-In-Reply-To: <4E0DBC7C.5030106@gmail.com>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Em 01-07-2011 09:24, Jonathan Liu escreveu:
-> Hi Mauro,
-> 
-> I had a problem with my the Y0400046 remote control not working properly with my Leadtek WinFast TV2000 XP Deluxe.
-> It seems the keycode mask is incorrect for my particular card.
-> I have attached a patch which fixes the issue for me but i'm not sure if it is the correct way to do it.
-> If you have some time can you take a look at the patch?
+Hi Mauro,
 
-(c/c Linux media ML)
+This pull request adds the bitmask controls, flash API and the adp1653
+driver.
 
-> 
-> Any help is greatly appreciated.
-> 
-> Regards,
-> Jonathan
-> 
-> 0001-media-bttv-input-Fix-WinFast-2000-keycode-mask.patch
-> 
-> 
-> From caa0c6ad14ef361dbaba01e9b6844d2606f5411a Mon Sep 17 00:00:00 2001
-> From: Jonathan Liu <net147@gmail.com>
-> Date: Fri, 1 Jul 2011 22:08:46 +1000
-> Subject: [PATCH] [media] bttv-input: Fix WinFast 2000 keycode mask
-> 
-> The remote control for Leadtek WinFast TV2000 XP Deluxe doesn't work
-> as the keycode mask is incorrect. This fixes the keycode mask so the
-> remote control codes are correctly interpreted.
-> 
-> Signed-off-by: Jonathan Liu <net147@gmail.com>
-> ---
->  drivers/media/video/bt8xx/bttv-input.c |    2 +-
->  1 files changed, 1 insertions(+), 1 deletions(-)
-> 
-> diff --git a/drivers/media/video/bt8xx/bttv-input.c b/drivers/media/video/bt8xx/bttv-input.c
-> index 677d70c..f861a00 100644
-> --- a/drivers/media/video/bt8xx/bttv-input.c
-> +++ b/drivers/media/video/bt8xx/bttv-input.c
-> @@ -469,7 +469,7 @@ int bttv_input_init(struct bttv *btv)
->  
->  	case BTTV_BOARD_WINFAST2000:
->  		ir_codes         = RC_MAP_WINFAST;
-> -		ir->mask_keycode = 0x1f8;
-> +		ir->mask_keycode = (btv->cardid == 0x6606107d) ? 0x8f8: 0x1f8;
->  		break;
->  	case BTTV_BOARD_MAGICTVIEW061:
->  	case BTTV_BOARD_MAGICTVIEW063:
-> -- 1.7.6
+Changes since the first pull request:
 
-Hmm.. I see, there are a few different models using the same board entry:
+- Added a patch to document the V4L2 control endianness. It's on the top.
+- Rebased the patches. I haven't tested vivi, though.
+- The adp1653 uses dev_pm_ops instead of i2c ops for suspend/resume.
 
-drivers/media/video/bt8xx/bttv-cards.c:   { 0x6606107d, BTTV_BOARD_WINFAST2000,   "Leadtek WinFast TV 2000" },
-drivers/media/video/bt8xx/bttv-cards.c:   { 0x6609107d, BTTV_BOARD_WINFAST2000,   "Leadtek TV 2000 XP" },
-drivers/media/video/bt8xx/bttv-cards.c:   { 0x217d6606, BTTV_BOARD_WINFAST2000,   "Leadtek WinFast TV 2000" },
-drivers/media/video/bt8xx/bttv-cards.c:   { 0xfff6f6ff, BTTV_BOARD_WINFAST2000,   "Leadtek WinFast TV 2000" },
+Changes since the last patchset since the first pull request:
 
-What we generally do, on such cases is to create a separate entry for the board that
-has something different. This helps to track the differences between them.
+- Adp1653 flash faults control is volatile. Fix this.
+- Flash interface marked as experimental.
+- Moved the DocBook documentation to a new location.
+- The target version is 3.1, not 2.6.41.
 
-Yet, your solution seems to work fine. I'm wandering if the other board models may
-also have a problem with the keycode mask.
+The following changes since commit df6aabbeb2b8799d97f3886fc994c318bc6a6843:
 
-Well, for now, I'll apply your patch as-is, but it would be good to have some feedback
-from other users with similar boards.
+  [media] v4l2-ctrls.c: add support for V4L2_EVENT_SUB_FL_ALLOW_FEEDBACK (2011-07-01 20:54:51 -0300)
 
-Thanks,
-Mauro
+are available in the git repository at:
+  ssh://linuxtv.org/git/sailus/media_tree.git media-for-3.1-flash-3
+
+Hans Verkuil (3):
+      v4l2-ctrls: add new bitmask control type.
+      vivi: add bitmask test control.
+      DocBook: document V4L2_CTRL_TYPE_BITMASK.
+
+Sakari Ailus (4):
+      v4l: Add a class and a set of controls for flash devices.
+      v4l: Add flash control documentation
+      adp1653: Add driver for LED flash controller
+      v4l: Document V4L2 control endianness as machine endianness.
+
+ Documentation/DocBook/media/v4l/compat.xml         |   11 +
+ Documentation/DocBook/media/v4l/controls.xml       |  291 ++++++++++++
+ Documentation/DocBook/media/v4l/v4l2.xml           |    6 +-
+ .../DocBook/media/v4l/vidioc-g-ext-ctrls.xml       |    7 +
+ .../DocBook/media/v4l/vidioc-queryctrl.xml         |   12 +-
+ drivers/media/video/Kconfig                        |    9 +
+ drivers/media/video/Makefile                       |    1 +
+ drivers/media/video/adp1653.c                      |  491 ++++++++++++++++++++
+ drivers/media/video/v4l2-common.c                  |    3 +
+ drivers/media/video/v4l2-ctrls.c                   |   62 +++-
+ drivers/media/video/vivi.c                         |   18 +-
+ include/linux/videodev2.h                          |   37 ++
+ include/media/adp1653.h                            |  126 +++++
+ 13 files changed, 1067 insertions(+), 7 deletions(-)
+ create mode 100644 drivers/media/video/adp1653.c
+ create mode 100644 include/media/adp1653.h
+
+-- 
+Sakari Ailus
+sakari.ailus@iki.fi
