@@ -1,75 +1,86 @@
-Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:33601 "EHLO
+Return-path: <mchehab@pedra>
+Received: from perceval.ideasonboard.com ([95.142.166.194]:50417 "EHLO
 	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751084Ab1GOSYP (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 15 Jul 2011 14:24:15 -0400
+	with ESMTP id S1753198Ab1GEPCX (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 5 Jul 2011 11:02:23 -0400
 From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: linux-media@vger.kernel.org
-Cc: linux-omap@vger.kernel.org, sakari.ailus@maxwell.research.nokia.com
-Subject: [PATCH 3/3] omap3isp: Support configurable HS/VS polarities
-Date: Fri, 15 Jul 2011 20:24:10 +0200
-Message-Id: <1310754250-28788-4-git-send-email-laurent.pinchart@ideasonboard.com>
-In-Reply-To: <1310754250-28788-1-git-send-email-laurent.pinchart@ideasonboard.com>
-References: <1310754250-28788-1-git-send-email-laurent.pinchart@ideasonboard.com>
-Sender: linux-media-owner@vger.kernel.org
+To: Sakari Ailus <sakari.ailus@iki.fi>
+Subject: Re: omap3isp: known causes of "CCDC won't become idle!
+Date: Tue, 5 Jul 2011 17:02:52 +0200
+Cc: Jonathan Cameron <jic23@cam.ac.uk>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+References: <4E12F3DE.5030109@cam.ac.uk> <4E131649.5030906@cam.ac.uk> <20110705143807.GQ12671@valkosipuli.localdomain>
+In-Reply-To: <20110705143807.GQ12671@valkosipuli.localdomain>
+MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201107051702.53128.laurent.pinchart@ideasonboard.com>
 List-ID: <linux-media.vger.kernel.org>
+Sender: <mchehab@pedra>
 
-Add two fields to the ISP parallel platform data to set the HS and VS
-signals polarities.
+On Tuesday 05 July 2011 16:38:07 Sakari Ailus wrote:
+> On Tue, Jul 05, 2011 at 02:48:57PM +0100, Jonathan Cameron wrote:
+> > On 07/05/11 13:19, Sakari Ailus wrote:
+> > > On Tue, Jul 05, 2011 at 12:22:06PM +0100, Jonathan Cameron wrote:
+> > >> Hi Laurent,
+> > >> 
+> > >> I'm just trying to get an mt9v034 sensor working on a beagle xm.
+> > >> Everything more or less works, except that after a random number
+> > >> of frames of capture, I tend to get won't become idle messages
+> > >> and the vd0 and vd1 interrupts tend to turn up at same time.
+> > >> 
+> > >> I was just wondering if there are any known issues with the ccdc
+> > >> driver / silicon that might explain this?
+> > >> 
+> > >> I also note that it appears to be impossible to disable
+> > >> HS_VS_IRQarch/arm/mach-s3c2410/Kconfig:# cpu frequency scaling
+> > >> support
+> > >> 
+> > >> despite the datasheet claiming this can be done.  Is this a known
+> > >> issue?
+> > > 
+> > > The same interrupt may be used to produce an interrupt per horizontal
+> > > sync but the driver doesn't use that. I remember of a case where the
+> > > two sync signals had enough crosstalk to cause vertical sync interrupt
+> > > per every horizontal sync. (It's been discussed on this list.) This
+> > > might not be the case here, though: you should be flooded with HS_VS
+> > > interrupts.
+> > 
+> > As far as I can tell, the driver doesn't use either interrupt (except to
+> > pass it up as an event). Hence I was trying to mask it purely to cut
+> > down on the interrupt load.
+> 
+> It does. This is the only way to detect the CCDC has finished processing a
+> frame.
 
-Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
----
- drivers/media/video/omap3isp/isp.h     |    6 ++++++
- drivers/media/video/omap3isp/ispccdc.c |    4 ++--
- 2 files changed, 8 insertions(+), 2 deletions(-)
+We actually use the VD0 and VD1 interrupts for that, not the HS_VS interrupt.
 
-diff --git a/drivers/media/video/omap3isp/isp.h b/drivers/media/video/omap3isp/isp.h
-index 2620c40..529e582 100644
---- a/drivers/media/video/omap3isp/isp.h
-+++ b/drivers/media/video/omap3isp/isp.h
-@@ -139,6 +139,10 @@ struct isp_reg {
-  *		3 - CAMEXT[13:6] -> CAM[7:0]
-  * @clk_pol: Pixel clock polarity
-  *		0 - Non Inverted, 1 - Inverted
-+ * @hs_pol: Horizontal synchronization polarity
-+ *		0 - Active high, 1 - Active low
-+ * @vs_pol: Vertical synchronization polarity
-+ *		0 - Active high, 1 - Active low
-  * @bridge: CCDC Bridge input control
-  *		ISPCTRL_PAR_BRIDGE_DISABLE - Disable
-  *		ISPCTRL_PAR_BRIDGE_LENDIAN - Little endian
-@@ -147,6 +151,8 @@ struct isp_reg {
- struct isp_parallel_platform_data {
- 	unsigned int data_lane_shift:2;
- 	unsigned int clk_pol:1;
-+	unsigned int hs_pol:1;
-+	unsigned int vs_pol:1;
- 	unsigned int bridge:4;
- };
- 
-diff --git a/drivers/media/video/omap3isp/ispccdc.c b/drivers/media/video/omap3isp/ispccdc.c
-index 6766247..b8cb7dd 100644
---- a/drivers/media/video/omap3isp/ispccdc.c
-+++ b/drivers/media/video/omap3isp/ispccdc.c
-@@ -1148,6 +1148,8 @@ static void ccdc_configure(struct isp_ccdc_device *ccdc)
- 	omap3isp_configure_bridge(isp, ccdc->input, pdata, shift);
- 
- 	ccdc->syncif.datsz = depth_out;
-+	ccdc->syncif.hdpol = pdata ? pdata->hs_pol : 0;
-+	ccdc->syncif.vdpol = pdata ? pdata->vs_pol : 0;
- 	ccdc_config_sync_if(ccdc, &ccdc->syncif);
- 
- 	/* CCDC_PAD_SINK */
-@@ -2256,8 +2258,6 @@ int omap3isp_ccdc_init(struct isp_device *isp)
- 	ccdc->syncif.fldout = 0;
- 	ccdc->syncif.fldpol = 0;
- 	ccdc->syncif.fldstat = 0;
--	ccdc->syncif.hdpol = 0;
--	ccdc->syncif.vdpol = 0;
- 
- 	ccdc->clamp.oblen = 0;
- 	ccdc->clamp.dcsubval = 0;
+> > > The VD* counters are counting and interrupts are produced (AFAIR) even
+> > > if the CCDC is disabled.
+> > 
+> > Oh goody...
+> > 
+> > > Once the CCDC starts receiving a frame, it becomes busy, and becomes
+> > > idle only when it has received the full frame. For this reason it's
+> > > important that the full frame is actually received by the CCDC,
+> > > otherwise this is due to happen when the CCDC is being stopped at the
+> > > end of the stream.
+> > 
+> > Fair enough.  Is there any software reason why it might think it hasn't
+> > received the whole frame?  Obviously it could in theory be a hardware
+> > issue, but it's a bit odd that it can reliably do a certain number of
+> > frames before falling over.
+> 
+> Others than those which Laurent already pointed out, one which crosses my
+> mind is the vsync polarity. The Documentation/video4linux/omap3isp.txt does
+> mention it. It _may_ have the effect that one line of input is missed by
+> the VD* counters. Thus the VD* counters might never reach the expected
+> value --- the last line of the frame.
+
+I would first try to increase vertical blanking to see if it helps.
+
 -- 
-1.7.3.4
+Regards,
 
+Laurent Pinchart
