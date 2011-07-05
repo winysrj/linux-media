@@ -1,45 +1,43 @@
-Return-path: <linux-media-owner@vger.kernel.org>
-Received: from casper.infradead.org ([85.118.1.10]:54898 "EHLO
-	casper.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754143Ab1GVMts (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 22 Jul 2011 08:49:48 -0400
-Message-ID: <4E2971D4.1060109@infradead.org>
-Date: Fri, 22 Jul 2011 09:49:24 -0300
-From: Mauro Carvalho Chehab <mchehab@infradead.org>
+Return-path: <mchehab@pedra>
+Received: from caramon.arm.linux.org.uk ([78.32.30.218]:55165 "EHLO
+	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755002Ab1GEMax (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 5 Jul 2011 08:30:53 -0400
+Date: Tue, 5 Jul 2011 13:30:35 +0100
+From: Russell King - ARM Linux <linux@arm.linux.org.uk>
+To: Arnd Bergmann <arnd@arndb.de>
+Cc: Marek Szyprowski <m.szyprowski@samsung.com>,
+	linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+	linux-media@vger.kernel.org, linux-mm@kvack.org,
+	linaro-mm-sig@lists.linaro.org,
+	Daniel Walker <dwalker@codeaurora.org>,
+	Jonathan Corbet <corbet@lwn.net>, Mel Gorman <mel@csn.ul.ie>,
+	Chunsang Jeong <chunsang.jeong@linaro.org>,
+	Michal Nazarewicz <mina86@mina86.com>,
+	Jesse Barker <jesse.barker@linaro.org>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	Ankita Garg <ankita@in.ibm.com>,
+	Andrew Morton <akpm@linux-foundation.org>,
+	KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Subject: Re: [PATCH 6/8] drivers: add Contiguous Memory Allocator
+Message-ID: <20110705123035.GD8286@n2100.arm.linux.org.uk>
+References: <1309851710-3828-1-git-send-email-m.szyprowski@samsung.com> <1309851710-3828-7-git-send-email-m.szyprowski@samsung.com> <20110705113345.GA8286@n2100.arm.linux.org.uk> <201107051427.44899.arnd@arndb.de>
 MIME-Version: 1.0
-To: Stas Sergeev <stsp@list.ru>
-CC: linux-media@vger.kernel.org
-Subject: Re: [patch][saa7134] do not change mute state for capturing audio
-References: <4E19D2F7.6060803@list.ru> <4E1E05AC.2070002@infradead.org> <4E1E0A1D.6000604@list.ru> <4E1E1571.6010400@infradead.org> <4E1E8108.3060305@list.ru> <4E1F9A25.1020208@infradead.org> <4E22AF12.4020600@list.ru> <4E22CCC0.8030803@infradead.org> <4E24BEB8.4060501@redhat.com> <4E257FF5.4040401@infradead.org> <4E258B60.6010007@list.ru> <4E25906D.3020200@infradead.org> <4E259B0C.90107@list.ru> <4E25A26A.2000204@infradead.org> <4E25A7C2.3050609@list.ru> <4E25C7AE.5020503@infradead.org> <4E25CF35.7000802@list.ru> <4E25DB37.8020609@infradead.org> <4E25FDE4.7040805@list.ru> <4E262772.9060509@infradead.org> <4E266799.8030706@list.ru> <4E26AEC0.5000405@infradead.org> <4E26B1E7.2080107@list.ru> <4E26B29B.4010109@infradead.org> <4E292BED.60108@list.ru> <4E296D00.9040608@infradead.org> <4E296F6C.9080107@list.ru>
-In-Reply-To: <4E296F6C.9080107@list.ru>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
-Sender: linux-media-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <201107051427.44899.arnd@arndb.de>
 List-ID: <linux-media.vger.kernel.org>
+Sender: <mchehab@pedra>
 
-Em 22-07-2011 09:39, Stas Sergeev escreveu:
-> 22.07.2011 16:28, Mauro Carvalho Chehab wrote:
->> In this specific case, applications like mplayer,
->> using the alsa parameters for streaming will stop work, as mplayer
->> won't touch at the mixer or at the V4L mute control. So,
->> it will have the same practical effect of a kernel bug at the
->> audio part of the driver.
-> Let me quote you again:
-> ---
-> Some applications like mplayer don't use V4L2_CID_AUDIO_MUTE to unmute a
-> video device. They assume the current behavior that starting video also
-> unmutes audio.
+On Tue, Jul 05, 2011 at 02:27:44PM +0200, Arnd Bergmann wrote:
+> It's also a preexisting problem as far as I can tell, and it needs
+> to be solved in __dma_alloc for both cases, dma_alloc_from_contiguous
+> and __alloc_system_pages as introduced in patch 7.
 
-Let me rephase it:
-Some applications like mplayer don't use V4L2_CID_AUDIO_MUTE to unmute a
-video device. They assume the current behavior that starting audio on a
-video board also unmutes audio.
+Which is now resolved in linux-next, and has been through this cycle
+as previously discussed.
 
-> ---
-> Could you please explain how my patch breaks
-> "starting video also unmutes audio"? I haven't touched
-> anything related to "starting video", so, if starting video
-> used to unmute audio, it will keep it that way.
-> Can you tell me how exactly I can reproduce that breakage?
-
+It's taken some time because the guy who tested the patch for me said
+he'd review other platforms but never did, so I've just about given up
+waiting and stuffed it in ready for the 3.1 merge window irrespective
+of anything else.
