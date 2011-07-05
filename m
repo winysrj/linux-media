@@ -1,42 +1,60 @@
-Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ew0-f46.google.com ([209.85.215.46]:47819 "EHLO
-	mail-ew0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750851Ab1G0PB3 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 27 Jul 2011 11:01:29 -0400
-Received: by ewy4 with SMTP id 4so1305048ewy.19
-        for <linux-media@vger.kernel.org>; Wed, 27 Jul 2011 08:01:28 -0700 (PDT)
+Return-path: <mchehab@pedra>
+Received: from smtp-vbr6.xs4all.nl ([194.109.24.26]:4822 "EHLO
+	smtp-vbr6.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753759Ab1GEGq2 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 5 Jul 2011 02:46:28 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Subject: Re: [RFC] DV timings spec fixes at V4L2 API - was: [PATCH 1/8] v4l: add macro for 1080p59_54 preset
+Date: Tue, 5 Jul 2011 08:46:18 +0200
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Tomasz Stanislawski <t.stanislaws@samsung.com>,
+	linux-media@vger.kernel.org, m.szyprowski@samsung.com,
+	kyungmin.park@samsung.com
+References: <1309351877-32444-1-git-send-email-t.stanislaws@samsung.com> <4E11E5AE.30304@redhat.com> <201107050047.44275.laurent.pinchart@ideasonboard.com>
+In-Reply-To: <201107050047.44275.laurent.pinchart@ideasonboard.com>
 MIME-Version: 1.0
-In-Reply-To: <CAFk738Ej-Qst8au4WXGXBAsmcrMBkRRB=MEgAcWSS1R=C81w5Q@mail.gmail.com>
-References: <201107271630.51411.toralf.foerster@gmx.de>
-	<CAGoCfixnuanGSK4YGPo_fCJ5_pJUPAGL-6fpamBRMXHWKcYzdQ@mail.gmail.com>
-	<CAFk738Ej-Qst8au4WXGXBAsmcrMBkRRB=MEgAcWSS1R=C81w5Q@mail.gmail.com>
-Date: Wed, 27 Jul 2011 11:01:27 -0400
-Message-ID: <CAGoCfiz-Pkdd3cy6yMygNU0iWTmS2STszN_OEmVwGdTmVO-TtQ@mail.gmail.com>
-Subject: Re: DVB-T issues w/ kernel 3.0
-From: Devin Heitmueller <dheitmueller@kernellabs.com>
-To: Steffen Barszus <steffenbpunkt@googlemail.com>
-Cc: =?ISO-8859-1?Q?Toralf_F=F6rster?= <toralf.foerster@gmx.de>,
-	linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
-Sender: linux-media-owner@vger.kernel.org
+Content-Type: Text/Plain;
+  charset="utf-8"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201107050846.18443.hverkuil@xs4all.nl>
 List-ID: <linux-media.vger.kernel.org>
+Sender: <mchehab@pedra>
 
-On Wed, Jul 27, 2011 at 10:57 AM, Steffen Barszus
-<steffenbpunkt@googlemail.com> wrote:
-> Quote:
-> "The drivers from 2011-02-05 does not run, but the drivers from
-> 2010-10-16 runs perfectly. "
->
-> should give at least a startingpoint/timeframe for bisecting ...
-> allthough would be more usefull if based linuxtv git.
+On Tuesday, July 05, 2011 00:47:43 Laurent Pinchart wrote:
+> Hi Mauro,
+> 
+> On Monday 04 July 2011 18:09:18 Mauro Carvalho Chehab wrote:
+> 
+> [snip]
+> 
+> > 1) PRESET STANDARDS
+> >    ====== =========
+> > 
+> > There are 3 specs involved with DV presets: ITU-R BT 709 and BT 1120 and
+> > CEA 861.
+> > 
+> > At ITU-R BT.709, both 60Hz and 60/1.001 Hz are equally called as "60 Hz".
+> > BT.1120 follows the same logic, as it uses BT.709 as a reference for video
+> > timings.
+> > 
+> > The CEA-861-E spec says at item 4, that:
+> 
+> [snip]
+> 
+> > At the same item, the table 2 describes several video parameters for each
+> > preset, associating the Video Identification Codes (VIC) for each preset.
+> 
+> This might be a bit out of scope, but why aren't we using the VICs as DV 
+> presets ?
 
-Bear in mind the user was using the "s2-liplianin" branch and *not*
-the mainline linux_media tree.  Hence anybody who does a bisect should
-be sure the starting/ending points are accurate.
+The VIC does more than just set the timings. It also determines the pixel
+aspect ratio. So exactly the same video timings may have two VICs, the only
+difference being the pixel aspect which is *not* part of the timings. The VIC
+is part of the AVI InfoFrame, however.
 
-Devin
+So VIC != timings.
 
--- 
-Devin J. Heitmueller - Kernel Labs
-http://www.kernellabs.com
+Regards,
+
+	Hans
