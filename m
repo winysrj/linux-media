@@ -1,59 +1,152 @@
 Return-path: <mchehab@localhost>
-Received: from oproxy8-pub.bluehost.com ([69.89.22.20]:47926 "HELO
-	oproxy8-pub.bluehost.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1755939Ab1GJUAm (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 10 Jul 2011 16:00:42 -0400
-Date: Sun, 10 Jul 2011 12:57:36 -0700
-From: Randy Dunlap <rdunlap@xenotime.net>
-To: lkml <linux-kernel@vger.kernel.org>
-Cc: linux-media@vger.kernel.org, mchehab@infradead.org
-Subject: [PATCH 6/9] media/radio: fix terratec CONFIG IO PORT
-Message-Id: <20110710125736.0a16e25d.rdunlap@xenotime.net>
-In-Reply-To: <20110710125109.c72f9c2d.rdunlap@xenotime.net>
-References: <20110710125109.c72f9c2d.rdunlap@xenotime.net>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Received: from bear.ext.ti.com ([192.94.94.41]:54832 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755838Ab1GFDCh convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 5 Jul 2011 23:02:37 -0400
+Received: from dbdp20.itg.ti.com ([172.24.170.38])
+	by bear.ext.ti.com (8.13.7/8.13.7) with ESMTP id p6632YfJ023637
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-media@vger.kernel.org>; Tue, 5 Jul 2011 22:02:36 -0500
+From: "JAIN, AMBER" <amber@ti.com>
+To: "Hiremath, Vaibhav" <hvaibhav@ti.com>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+CC: "Semwal, Sumit" <sumit.semwal@ti.com>
+Date: Wed, 6 Jul 2011 08:32:32 +0530
+Subject: RE: [PATCH 2/6] V4L2: OMAP: VOUT: dma map and unmap v4l2 buffers in
+ qbuf and dqbuf
+Message-ID: <5A47E75E594F054BAF48C5E4FC4B92AB037BD028BC@dbde02.ent.ti.com>
+References: <1307458058-29030-1-git-send-email-amber@ti.com>
+ <1307458058-29030-3-git-send-email-amber@ti.com>
+ <19F8576C6E063C45BE387C64729E739404E3485E6C@dbde02.ent.ti.com>
+In-Reply-To: <19F8576C6E063C45BE387C64729E739404E3485E6C@dbde02.ent.ti.com>
+Content-Language: en-US
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+MIME-Version: 1.0
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@infradead.org>
 
-From: Randy Dunlap <rdunlap@xenotime.net>
 
-Modify radio-terratec to use HEX_STRING(CONFIG_RADIO_TERRATEC_PORT)
-so that the correct IO port value is used.
 
-Fixes the IO port value that is used since this is hex:
-CONFIG_RADIO_TERRATEC_PORT=590
-but it was being interpreted as decimal instead of hex.
+> -----Original Message-----
+> From: Hiremath, Vaibhav
+> Sent: Wednesday, July 06, 2011 12:34 AM
+> To: JAIN, AMBER; linux-media@vger.kernel.org
+> Cc: Semwal, Sumit
+> Subject: RE: [PATCH 2/6] V4L2: OMAP: VOUT: dma map and unmap v4l2 buffers
+> in qbuf and dqbuf
+> 
+> 
+> > -----Original Message-----
+> > From: JAIN, AMBER
+> > Sent: Tuesday, June 07, 2011 8:18 PM
+> > To: linux-media@vger.kernel.org
+> > Cc: Hiremath, Vaibhav; Semwal, Sumit; JAIN, AMBER
+> > Subject: [PATCH 2/6] V4L2: OMAP: VOUT: dma map and unmap v4l2 buffers in
+> > qbuf and dqbuf
+> >
+> [Hiremath, Vaibhav] few minor comments below -
+> 
+> > Add support to map the buffer using dma_map_single during qbuf which
+> > inturn
+> > calls cache flush and unmap the same during dqbuf. This is done to
+> prevent
+> > the artifacts seen because of cache-coherency issues on OMAP4
+> >
+> > Signed-off-by: Amber Jain <amber@ti.com>
+> > ---
+> >  drivers/media/video/omap/omap_vout.c |   29
+> +++++++++++++++++++++++++++--
+> >  1 files changed, 27 insertions(+), 2 deletions(-)
+> >
+> > diff --git a/drivers/media/video/omap/omap_vout.c
+> > b/drivers/media/video/omap/omap_vout.c
+> > index 6fe7efa..435fe65 100644
+> > --- a/drivers/media/video/omap/omap_vout.c
+> > +++ b/drivers/media/video/omap/omap_vout.c
+> > @@ -37,6 +37,7 @@
+> >  #include <linux/platform_device.h>
+> >  #include <linux/irq.h>
+> >  #include <linux/videodev2.h>
+> > +#include <linux/dma-mapping.h>
+> >
+> >  #include <media/videobuf-dma-contig.h>
+> >  #include <media/v4l2-device.h>
+> > @@ -768,6 +769,17 @@ static int omap_vout_buffer_prepare(struct
+> > videobuf_queue *q,
+> >  		vout->queued_buf_addr[vb->i] = (u8 *)
+> >  			omap_vout_uservirt_to_phys(vb->baddr);
+> >  	} else {
+> > +		int addr, dma_addr;
+> [Hiremath, Vaibhav] Why is it "int"? It should be either u32 or unsigned
+> long or dma_addr_t. Also you don't need type casting everywhere with this.
 
-Signed-off-by: Randy Dunlap <rdunlap@xenotime.net>
----
- drivers/media/radio/radio-terratec.c |    7 +++++--
- 1 file changed, 5 insertions(+), 2 deletions(-)
+Ok, I will change it.
 
---- linux-next-20110707.orig/drivers/media/radio/radio-terratec.c
-+++ linux-next-20110707/drivers/media/radio/radio-terratec.c
-@@ -27,6 +27,7 @@
- #include <linux/module.h>	/* Modules 			*/
- #include <linux/init.h>		/* Initdata			*/
- #include <linux/ioport.h>	/* request_region		*/
-+#include <linux/stringify.h>
- #include <linux/videodev2.h>	/* kernel radio structs		*/
- #include <linux/mutex.h>
- #include <linux/io.h>		/* outb, outb_p			*/
-@@ -39,10 +40,12 @@ MODULE_LICENSE("GPL");
- MODULE_VERSION("0.0.3");
- 
- #ifndef CONFIG_RADIO_TERRATEC_PORT
--#define CONFIG_RADIO_TERRATEC_PORT 0x590
-+#define __RADIO_TERRATEC_PORT 0x590
-+#else
-+#define __RADIO_TERRATEC_PORT HEX_STRING(CONFIG_RADIO_TERRATEC_PORT)
- #endif
- 
--static int io = CONFIG_RADIO_TERRATEC_PORT;
-+static int io = __RADIO_TERRATEC_PORT;
- static int radio_nr = -1;
- 
- module_param(io, int, 0);
+> 
+> > +		unsigned long size;
+> > +
+> > +		addr = (unsigned long) vout->buf_virt_addr[vb->i];
+> > +		size = (unsigned long) vb->size;
+> > +
+> > +		dma_addr = dma_map_single(vout->vid_dev->v4l2_dev.dev, (void
+> > *) addr,
+> > +				(unsigned) size, DMA_TO_DEVICE);
+> [Hiremath, Vaibhav] Why type casting required here?
+> 
+> > +		if (dma_mapping_error(vout->vid_dev->v4l2_dev.dev, dma_addr))
+> > +			printk(KERN_ERR "dma_map_single failed\n");
+> [Hiremath, Vaibhav] Can this be changed to v4l2_err?
+
+Ok, I will change it.
+
+> 
+> > +
+> >  		vout->queued_buf_addr[vb->i] = (u8 *)vout->buf_phy_addr[vb-
+> > >i];
+> >  	}
+> >
+> > @@ -1549,15 +1561,28 @@ static int vidioc_dqbuf(struct file *file, void
+> > *fh, struct v4l2_buffer *b)
+> >  	struct omap_vout_device *vout = fh;
+> >  	struct videobuf_queue *q = &vout->vbq;
+> >
+> > +	unsigned long size;
+> > +	u32 addr;
+> > +	struct videobuf_buffer *vb;
+> > +	int ret;
+> > +
+> [Hiremath, Vaibhav] Just for readability can you put them in order
+> (lengthwise)?
+> 
+> > +	vb = q->bufs[b->index];
+> > +
+> >  	if (!vout->streaming)
+> >  		return -EINVAL;
+> >
+> >  	if (file->f_flags & O_NONBLOCK)
+> >  		/* Call videobuf_dqbuf for non blocking mode */
+> > -		return videobuf_dqbuf(q, (struct v4l2_buffer *)b, 1);
+> > +		ret = videobuf_dqbuf(q, (struct v4l2_buffer *)b, 1);
+> >  	else
+> >  		/* Call videobuf_dqbuf for  blocking mode */
+> > -		return videobuf_dqbuf(q, (struct v4l2_buffer *)b, 0);
+> > +		ret = videobuf_dqbuf(q, (struct v4l2_buffer *)b, 0);
+> > +
+> > +	addr = (unsigned long) vout->buf_phy_addr[vb->i];
+> > +	size = (unsigned long) vb->size;
+> > +	dma_unmap_single(vout->vid_dev->v4l2_dev.dev,  addr,
+> > +				(unsigned) size, DMA_TO_DEVICE);
+> [Hiremath, Vaibhav] Type cast???
+> 
+> Thanks,
+> Vaibhav
+> 
+> > +	return ret;
+> >  }
+> >
+> >  static int vidioc_streamon(struct file *file, void *fh, enum
+> > v4l2_buf_type i)
+> > --
+> > 1.7.1
+
