@@ -1,99 +1,82 @@
-Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pv0-f174.google.com ([74.125.83.174]:32869 "EHLO
-	mail-pv0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752102Ab1GMWGP convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 13 Jul 2011 18:06:15 -0400
+Return-path: <mchehab@localhost>
+Received: from caramon.arm.linux.org.uk ([78.32.30.218]:46639 "EHLO
+	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753245Ab1GFPu1 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 6 Jul 2011 11:50:27 -0400
+Date: Wed, 6 Jul 2011 16:48:57 +0100
+From: Russell King - ARM Linux <linux@arm.linux.org.uk>
+To: Arnd Bergmann <arnd@arndb.de>
+Cc: linux-arm-kernel@lists.infradead.org,
+	'Daniel Walker' <dwalker@codeaurora.org>,
+	'Jonathan Corbet' <corbet@lwn.net>,
+	'Mel Gorman' <mel@csn.ul.ie>,
+	'Chunsang Jeong' <chunsang.jeong@linaro.org>,
+	'Jesse Barker' <jesse.barker@linaro.org>,
+	'KAMEZAWA Hiroyuki' <kamezawa.hiroyu@jp.fujitsu.com>,
+	linux-kernel@vger.kernel.org,
+	'Michal Nazarewicz' <mina86@mina86.com>,
+	linaro-mm-sig@lists.linaro.org, linux-mm@kvack.org,
+	'Kyungmin Park' <kyungmin.park@samsung.com>,
+	'Ankita Garg' <ankita@in.ibm.com>,
+	'Andrew Morton' <akpm@linux-foundation.org>,
+	Marek Szyprowski <m.szyprowski@samsung.com>,
+	linux-media@vger.kernel.org
+Subject: Re: [PATCH 6/8] drivers: add Contiguous Memory Allocator
+Message-ID: <20110706154857.GG8286@n2100.arm.linux.org.uk>
+References: <1309851710-3828-1-git-send-email-m.szyprowski@samsung.com> <201107061609.29996.arnd@arndb.de> <20110706142345.GC8286@n2100.arm.linux.org.uk> <201107061651.49824.arnd@arndb.de>
 MIME-Version: 1.0
-In-Reply-To: <20110713150023.0dde9ef4.rdunlap@xenotime.net>
-References: <20110710125109.c72f9c2d.rdunlap@xenotime.net>
-	<CACqU3MWBb4J8rmaRv23=-_=GXppGSUdqmOqeXoqWi4ZJ7ZYewg@mail.gmail.com>
-	<20110713150023.0dde9ef4.rdunlap@xenotime.net>
-Date: Wed, 13 Jul 2011 18:06:15 -0400
-Message-ID: <CACqU3MVh+4JMX5ywPgWrrXXuAcAYtHJyumXGDcteageJAG12wA@mail.gmail.com>
-Subject: Re: [PATCH 1/9] stringify: add HEX_STRING()
-From: Arnaud Lacombe <lacombar@gmail.com>
-To: Randy Dunlap <rdunlap@xenotime.net>
-Cc: lkml <linux-kernel@vger.kernel.org>, linux-kbuild@vger.kernel.org,
-	linux-media@vger.kernel.org, mchehab@infradead.org
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
-Sender: linux-media-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <201107061651.49824.arnd@arndb.de>
 List-ID: <linux-media.vger.kernel.org>
+Sender: <mchehab@infradead.org>
 
-Hi,
+On Wed, Jul 06, 2011 at 04:51:49PM +0200, Arnd Bergmann wrote:
+> On Wednesday 06 July 2011, Russell King - ARM Linux wrote:
+> > On Wed, Jul 06, 2011 at 04:09:29PM +0200, Arnd Bergmann wrote:
+> > > Maybe you can simply adapt the default location of the contiguous memory
+> > > are like this:
+> > > - make CONFIG_CMA depend on CONFIG_HIGHMEM on ARM, at compile time
+> > > - if ZONE_HIGHMEM exist during boot, put the CMA area in there
+> > > - otherwise, put the CMA area at the top end of lowmem, and change
+> > >   the zone sizes so ZONE_HIGHMEM stretches over all of the CMA memory.
+> > 
+> > One of the requirements of the allocator is that the returned memory
+> > should be zero'd (because it can be exposed to userspace via ALSA
+> > and frame buffers.)
+> > 
+> > Zeroing the memory from all the contexts which dma_alloc_coherent
+> > is called from is a trivial matter if its in lowmem, but highmem is
+> > harder.
+> 
+> I don't see how. The pages get allocated from an unmapped area
+> or memory, mapped into the kernel address space as uncached or wc
+> and then cleared. This should be the same for lowmem or highmem
+> pages.
 
-On Wed, Jul 13, 2011 at 6:00 PM, Randy Dunlap <rdunlap@xenotime.net> wrote:
-> On Wed, 13 Jul 2011 17:49:48 -0400 Arnaud Lacombe wrote:
->
->> Hi,
->>
->> On Sun, Jul 10, 2011 at 3:51 PM, Randy Dunlap <rdunlap@xenotime.net> wrote:
->> > From: Randy Dunlap <rdunlap@xenotime.net>
->> >
->> > Add HEX_STRING(value) to stringify.h so that drivers can
->> > convert kconfig hex values (without leading "0x") to useful
->> > hex constants.
->> >
->> > Several drivers/media/radio/ drivers need this.  I haven't
->> > checked if any other drivers need to do this.
->> >
->> > Alternatively, kconfig could produce hex config symbols with
->> > leading "0x".
->> >
->> Actually, I used to have a patch to make hex value have a mandatory
->> "0x" prefix, in the Kconfig. I even fixed all the issue in the tree,
->> it never make it to the tree (not sure why). Here's the relevant
->> thread:
->>
->> https://patchwork.kernel.org/patch/380591/
->> https://patchwork.kernel.org/patch/380621/
->> https://patchwork.kernel.org/patch/380601/
->>
->
-> I prefer that this be fixed in kconfig, so long as it won't cause
-> any other issues.  That's why I mentioned it.
->
->>
->> > Signed-off-by: Randy Dunlap <rdunlap@xenotime.net>
->> > ---
->> >  include/linux/stringify.h |    7 +++++++
->> >  1 file changed, 7 insertions(+)
->> >
->> > NOTE: The other 8 patches are on lkml and linux-media mailing lists.
->> >
->> > --- linux-next-20110707.orig/include/linux/stringify.h
->> > +++ linux-next-20110707/include/linux/stringify.h
->> > @@ -9,4 +9,11 @@
->> >  #define __stringify_1(x...)    #x
->> >  #define __stringify(x...)      __stringify_1(x)
->> >
->> > +/*
->> > + * HEX_STRING(value) is useful for CONFIG_ values that are in hex,
->> > + * but kconfig does not put a leading "0x" on them.
->> > + */
->> > +#define HEXSTRINGVALUE(h, value)       h##value
->> > +#define HEX_STRING(value)              HEXSTRINGVALUE(0x, value)
->> > +
->> that seems hackish...
->
-> It's a common idiom for concatenating strings in the kernel.
->
-I meant hackish not because *how* it is done, but because *why* it has
-to be done, that is, because the Kconfig miss the prefix, which is
-really no big deal.
+You don't want to clear them via their uncached or WC mapping, but via
+their cached mapping _before_ they get their alternative mapping, and
+flush any cached out of that mapping - both L1 and L2 caches.
 
-> How would you do it without (instead of) a kconfig fix/patch?
->
-have the Kconfig use the "0x" prefix since the beginning.
+For lowmem pages, that's easy.  For highmem pages, they need to be
+individually kmap'd to zero them etc.  (alloc_pages() warns on
+GFP_HIGHMEM + GFP_ZERO from atomic contexts - and dma_alloc_coherent
+must be callable from such contexts.)
 
- - Arnaud
+That may be easier now that we don't have the explicit indicies for
+kmap_atomics, but at that time it wasn't easily possible.
 
->> >  #endif /* !__LINUX_STRINGIFY_H */
->> > --
->
->
-> ---
-> ~Randy
-> *** Remember to use Documentation/SubmitChecklist when testing your code ***
->
+> > Another issue is that when a platform has restricted DMA regions,
+> > they typically don't fall into the highmem zone.  As the dmabounce
+> > code allocates from the DMA coherent allocator to provide it with
+> > guaranteed DMA-able memory, that would be rather inconvenient.
+> 
+> True. The dmabounce code would consequently have to allocate
+> the memory through an internal function that avoids the
+> contiguous allocation area and goes straight to ZONE_DMA memory
+> as it does today.
+
+CMA's whole purpose for existing is to provide _dma-able_ contiguous
+memory for things like cameras and such like found on crippled non-
+scatter-gather hardware.  If that memory is not DMA-able what's the
+point?
