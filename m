@@ -1,75 +1,112 @@
-Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:51758 "EHLO mx1.redhat.com"
+Return-path: <mchehab@localhost>
+Received: from mx1.redhat.com ([209.132.183.28]:59954 "EHLO mx1.redhat.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751058Ab1GOMkn (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 15 Jul 2011 08:40:43 -0400
-Message-ID: <4E203543.6090905@redhat.com>
-Date: Fri, 15 Jul 2011 09:40:35 -0300
+	id S1755361Ab1GFSEs (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 6 Jul 2011 14:04:48 -0400
+Date: Wed, 6 Jul 2011 15:03:49 -0300
 From: Mauro Carvalho Chehab <mchehab@redhat.com>
-MIME-Version: 1.0
-To: linux-media@vger.kernel.org
-CC: Oliver Endriss <o.endriss@gmx.de>,
-	Ralph Metzler <rjkm@metzlerbros.de>
-Subject: Re: [PATCH 0/5] Driver support for cards based on Digital Devices
- bridge (ddbridge)
-References: <201107032321.46092@orion.escape-edv.de> <201107150145.29547@orion.escape-edv.de> <4E1FBF93.6040702@redhat.com> <201107150721.25744@orion.escape-edv.de>
-In-Reply-To: <201107150721.25744@orion.escape-edv.de>
-Content-Type: text/plain; charset=UTF-8
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+Subject: [PATCH RFCv3 17/17] [media] return -ENOTTY for unsupported ioctl's
+ at legacy drivers
+Message-ID: <20110706150349.44795968@pedra>
+In-Reply-To: <cover.1309974026.git.mchehab@redhat.com>
+References: <cover.1309974026.git.mchehab@redhat.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
-Sender: linux-media-owner@vger.kernel.org
+To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
 List-ID: <linux-media.vger.kernel.org>
+Sender: <mchehab@infradead.org>
 
-Em 15-07-2011 02:21, Oliver Endriss escreveu:
-> On Friday 15 July 2011 06:18:27 Mauro Carvalho Chehab wrote:
->> Em 14-07-2011 20:45, Oliver Endriss escreveu:
->>> - DVB-T tuning does not work anymore.
->>
->> The enclosed patch should fix the issue. It were due to a wrong goto error
->> replacements that happened at the changeset that were fixing the error
->> propagation logic. Sorry for that.
->>
->> Please test.
-> 
-> Done. DVB-T works again. Thanks.
+Those drivers are not relying at the V4L2 core to handle the ioctl's.
+So, we need to manually patch them every time a change goes to the
+core.
 
-Thanks for reporting the issue and testing the fix!
+Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
 
-> @all
-> Could someone please test DVB-C?
-> 
->> [media] drxk: Fix a bug at some switches that broke DVB-T
->>     
->> The error propagation changeset c23bf4402 broke the DVB-T
->> code, as it wrongly replaced some break with goto error.
->> Fix the broken logic.
->>
->> Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
->>
->> diff --git a/drivers/media/dvb/frontends/drxk_hard.c b/drivers/media/dvb/frontends/drxk_hard.c
->> index a0e2ff5..217796d 100644
->> --- a/drivers/media/dvb/frontends/drxk_hard.c
->> +++ b/drivers/media/dvb/frontends/drxk_hard.c
->> @@ -3451,13 +3451,13 @@ static int DVBTCtrlSetEchoThreshold(struct drxk_state *state,
->>  		data |= ((echoThres->threshold <<
->>  			OFDM_SC_RA_RAM_ECHO_THRES_2K__B)
->>  			& (OFDM_SC_RA_RAM_ECHO_THRES_2K__M));
->> -		goto error;
->> +		break;
->>  	case DRX_FFTMODE_8K:
->>  		data &= ~OFDM_SC_RA_RAM_ECHO_THRES_8K__M;
->>  		data |= ((echoThres->threshold <<
->>  			OFDM_SC_RA_RAM_ECHO_THRES_8K__B)
->>  			& (OFDM_SC_RA_RAM_ECHO_THRES_8K__M));
->> -		goto error;
->> +		break;
->>  	default:
->>  		return -EINVAL;
->>  		goto error;
-> 		^^^^^^^^^^^
-> Hm, this 'goto' should be removed.
+diff --git a/drivers/media/video/et61x251/et61x251_core.c b/drivers/media/video/et61x251/et61x251_core.c
+index d7efb33..9a1e80a 100644
+--- a/drivers/media/video/et61x251/et61x251_core.c
++++ b/drivers/media/video/et61x251/et61x251_core.c
+@@ -2480,16 +2480,8 @@ static long et61x251_ioctl_v4l2(struct file *filp,
+ 	case VIDIOC_S_PARM:
+ 		return et61x251_vidioc_s_parm(cam, arg);
+ 
+-	case VIDIOC_G_STD:
+-	case VIDIOC_S_STD:
+-	case VIDIOC_QUERYSTD:
+-	case VIDIOC_ENUMSTD:
+-	case VIDIOC_QUERYMENU:
+-	case VIDIOC_ENUM_FRAMEINTERVALS:
+-		return -EINVAL;
+-
+ 	default:
+-		return -EINVAL;
++		return -ENOTTY;
+ 
+ 	}
+ }
+diff --git a/drivers/media/video/pvrusb2/pvrusb2-v4l2.c b/drivers/media/video/pvrusb2/pvrusb2-v4l2.c
+index 573749a..e27f8ab 100644
+--- a/drivers/media/video/pvrusb2/pvrusb2-v4l2.c
++++ b/drivers/media/video/pvrusb2/pvrusb2-v4l2.c
+@@ -369,11 +369,6 @@ static long pvr2_v4l2_do_ioctl(struct file *file, unsigned int cmd, void *arg)
+ 		break;
+ 	}
+ 
+-	case VIDIOC_S_AUDIO:
+-	{
+-		ret = -EINVAL;
+-		break;
+-	}
+ 	case VIDIOC_G_TUNER:
+ 	{
+ 		struct v4l2_tuner *vt = (struct v4l2_tuner *)arg;
+@@ -850,7 +845,7 @@ static long pvr2_v4l2_do_ioctl(struct file *file, unsigned int cmd, void *arg)
+ #endif
+ 
+ 	default :
+-		ret = -EINVAL;
++		ret = -ENOTTY;
+ 		break;
+ 	}
+ 
+diff --git a/drivers/media/video/sn9c102/sn9c102_core.c b/drivers/media/video/sn9c102/sn9c102_core.c
+index d8eece8..16cb07c 100644
+--- a/drivers/media/video/sn9c102/sn9c102_core.c
++++ b/drivers/media/video/sn9c102/sn9c102_core.c
+@@ -3187,16 +3187,8 @@ static long sn9c102_ioctl_v4l2(struct file *filp,
+ 	case VIDIOC_S_AUDIO:
+ 		return sn9c102_vidioc_s_audio(cam, arg);
+ 
+-	case VIDIOC_G_STD:
+-	case VIDIOC_S_STD:
+-	case VIDIOC_QUERYSTD:
+-	case VIDIOC_ENUMSTD:
+-	case VIDIOC_QUERYMENU:
+-	case VIDIOC_ENUM_FRAMEINTERVALS:
+-		return -EINVAL;
+-
+ 	default:
+-		return -EINVAL;
++		return -ENOTTY;
+ 
+ 	}
+ }
+diff --git a/drivers/media/video/uvc/uvc_v4l2.c b/drivers/media/video/uvc/uvc_v4l2.c
+index cdd967b..7afb97b 100644
+--- a/drivers/media/video/uvc/uvc_v4l2.c
++++ b/drivers/media/video/uvc/uvc_v4l2.c
+@@ -83,7 +83,7 @@ static int uvc_ioctl_ctrl_map(struct uvc_video_chain *chain,
+ 	default:
+ 		uvc_trace(UVC_TRACE_CONTROL, "Unsupported V4L2 control type "
+ 			  "%u.\n", xmap->v4l2_type);
+-		ret = -EINVAL;
++		ret = -ENOTTY;
+ 		goto done;
+ 	}
+ 
+-- 
+1.7.1
 
-True. I've just added a small trivial patch removing this goto, and a break after
-a return.
-
-Thanks!
-Mauro
