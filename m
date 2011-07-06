@@ -1,54 +1,60 @@
-Return-path: <linux-media-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.17.9]:62182 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752173Ab1G3RGk (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 30 Jul 2011 13:06:40 -0400
-Date: Sat, 30 Jul 2011 19:06:32 +0200 (CEST)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-cc: Pawel Osciak <pawel@osciak.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Sakari Ailus <sakari.ailus@iki.fi>,
-	Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: Re: [PATCH v3] V4L: add two new ioctl()s for multi-size videobuffer
- management
-In-Reply-To: <201107301550.53638.hverkuil@xs4all.nl>
-Message-ID: <Pine.LNX.4.64.1107301850130.12984@axis700.grange>
-References: <Pine.LNX.4.64.1107201025120.12084@axis700.grange>
- <201107280856.55731.hverkuil@xs4all.nl> <CAMm-=zCU1B1zXNK7hp_B8hAW0YfcrN9V8M_uSDva8TbXL2AKbQ@mail.gmail.com>
- <201107301550.53638.hverkuil@xs4all.nl>
+Return-path: <mchehab@localhost>
+Received: from mail-wy0-f174.google.com ([74.125.82.174]:33663 "EHLO
+	mail-wy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751148Ab1GFQJF (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 6 Jul 2011 12:09:05 -0400
+Content-Type: text/plain; charset=utf-8; format=flowed; delsp=yes
+To: "Russell King - ARM Linux" <linux@arm.linux.org.uk>,
+	"Christoph Lameter" <cl@linux.com>
+Cc: "Arnd Bergmann" <arnd@arndb.de>,
+	linux-arm-kernel@lists.infradead.org,
+	"'Daniel Walker'" <dwalker@codeaurora.org>,
+	"'Jonathan Corbet'" <corbet@lwn.net>,
+	"'Mel Gorman'" <mel@csn.ul.ie>,
+	"'Chunsang Jeong'" <chunsang.jeong@linaro.org>,
+	"'Jesse Barker'" <jesse.barker@linaro.org>,
+	"'KAMEZAWA Hiroyuki'" <kamezawa.hiroyu@jp.fujitsu.com>,
+	linux-kernel@vger.kernel.org, linaro-mm-sig@lists.linaro.org,
+	linux-mm@kvack.org, "'Kyungmin Park'" <kyungmin.park@samsung.com>,
+	"'Ankita Garg'" <ankita@in.ibm.com>,
+	"'Andrew Morton'" <akpm@linux-foundation.org>,
+	"Marek Szyprowski" <m.szyprowski@samsung.com>,
+	linux-media@vger.kernel.org
+Subject: Re: [PATCH 6/8] drivers: add Contiguous Memory Allocator
+References: <1309851710-3828-1-git-send-email-m.szyprowski@samsung.com>
+ <201107061609.29996.arnd@arndb.de>
+ <20110706142345.GC8286@n2100.arm.linux.org.uk>
+ <201107061651.49824.arnd@arndb.de>
+ <20110706154857.GG8286@n2100.arm.linux.org.uk>
+ <alpine.DEB.2.00.1107061100290.17624@router.home>
+Date: Wed, 06 Jul 2011 18:09:00 +0200
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Sender: linux-media-owner@vger.kernel.org
+Content-Transfer-Encoding: 7bit
+From: "Michal Nazarewicz" <mina86@mina86.com>
+Message-ID: <op.vx7ghajd3l0zgt@mnazarewicz-glaptop>
+In-Reply-To: <alpine.DEB.2.00.1107061100290.17624@router.home>
 List-ID: <linux-media.vger.kernel.org>
+Sender: <mchehab@infradead.org>
 
-On Sat, 30 Jul 2011, Hans Verkuil wrote:
+On Wed, 06 Jul 2011 18:05:00 +0200, Christoph Lameter <cl@linux.com> wrote:
+> ZONE_DMA is a zone for memory of legacy (crippled) devices that cannot  
+> DMA into all of memory (and so is ZONE_DMA32).  Memory from ZONE_NORMAL
+> can be used for DMA as well and a fully capable device would be expected
+> to handle any memory in the system for DMA transfers.
+>
+> "guaranteed" dmaable memory? DMA abilities are device specific. Well  
+> maybe you can call ZONE_DMA memory to be guaranteed if you guarantee
+> that any device must at mininum be able to perform DMA into ZONE_DMA
+> memory. But there may not be much of that memory around so you would
+> want to limit the use of that scarce resource.
 
-> On Saturday, July 30, 2011 06:21:37 Pawel Osciak wrote:
+As pointed in Marek's other mail, this reasoning is not helping in any
+way.  In case of video codec on various Samsung devices (and from some
+other threads this is not limited to Samsung), the codec needs separate
+buffers in separate memory banks.
 
-[snip]
-
-> > So when the driver sees a larger buffer being queued, it is
-> > to change the current streaming format for the duration of filling
-> > that buffer and switch back afterwards?
-> 
-> No. We do not have a mechanism (yet) to tie a pipeline configuration to
-> a queued buffer (to be discussed in next week in Cambourne).
-> 
-> It is my understanding that you change the current streaming format, and
-> then queue the large (prepared) buffer and switch back afterwards.
-
-Yes, this is also how I see it - the driver just has a chance to verify, 
-whether the queued buffer is not large enough for the current format and 
-fail QBUF, although this behaviour is currently not documented in the QBUF 
-specification...
-
-Thanks
-Guennadi
----
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
-http://www.open-technology.de/
+-- 
+Best regards,                                         _     _
+.o. | Liege of Serenely Enlightened Majesty of      o' \,=./ `o
+..o | Computer Science,  Michal "mina86" Nazarewicz    (o o)
+ooo +-----<email/xmpp: mnazarewicz@google.com>-----ooO--(_)--Ooo--
