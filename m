@@ -1,65 +1,52 @@
-Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-68.nebula.fi ([83.145.220.68]:45706 "EHLO
-	smtp-68.nebula.fi" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750927Ab1GWFtC (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 23 Jul 2011 01:49:02 -0400
-Date: Sat, 23 Jul 2011 08:48:57 +0300
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Jonathan Corbet <corbet@lwn.net>
-Cc: Marek Szyprowski <m.szyprowski@samsung.com>,
-	linux-media@vger.kernel.org,
-	'Mauro Carvalho Chehab' <mchehab@redhat.com>,
-	'Pawel Osciak' <pawel@osciak.com>
-Subject: Re: [PATCH 1/2] videobuf2: Add a non-coherent contiguous DMA mode
-Message-ID: <20110723054857.GK29320@valkosipuli.localdomain>
-References: <1310675711-39744-1-git-send-email-corbet@lwn.net>
- <1310675711-39744-2-git-send-email-corbet@lwn.net>
- <000001cc42b5$40c025f0$c24071d0$%szyprowski@samsung.com>
- <20110715083003.79802a49@bike.lwn.net>
- <00cb01cc4518$55c0c490$01424db0$%szyprowski@samsung.com>
- <20110722135547.5a0b38db@bike.lwn.net>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20110722135547.5a0b38db@bike.lwn.net>
-Sender: linux-media-owner@vger.kernel.org
+Return-path: <mchehab@localhost>
+Received: from mailout4.w1.samsung.com ([210.118.77.14]:36440 "EHLO
+	mailout4.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752031Ab1GFRNs (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 6 Jul 2011 13:13:48 -0400
+MIME-version: 1.0
+Content-transfer-encoding: 7BIT
+Content-type: TEXT/PLAIN
+Received: from spt2.w1.samsung.com ([210.118.77.14]) by mailout4.w1.samsung.com
+ (Sun Java(tm) System Messaging Server 6.3-8.04 (built Jul 29 2009; 32bit))
+ with ESMTP id <0LNX008LB96YI9A0@mailout4.w1.samsung.com> for
+ linux-media@vger.kernel.org; Wed, 06 Jul 2011 18:13:46 +0100 (BST)
+Received: from linux.samsung.com ([106.116.38.10])
+ by spt2.w1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14
+ 2004)) with ESMTPA id <0LNX00CKT96X5U@spt2.w1.samsung.com> for
+ linux-media@vger.kernel.org; Wed, 06 Jul 2011 18:13:46 +0100 (BST)
+Date: Wed, 06 Jul 2011 19:13:38 +0200
+From: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Subject: [PATCH 0/3] s5p-csis driver updates for 3.1
+To: linux-media@vger.kernel.org
+Cc: m.szyprowski@samsung.com, kyungmin.park@samsung.com,
+	laurent.pinchart@ideasonboard.com, s.nawrocki@samsung.com,
+	sw0312.kim@samsung.com, riverful.kim@samsung.com
+Message-id: <1309972421-29690-1-git-send-email-s.nawrocki@samsung.com>
 List-ID: <linux-media.vger.kernel.org>
+Sender: <mchehab@infradead.org>
 
-Hi Jonathan,
+The following are a few updates for s5p-csis MIPI-CSI receiver driver.
+I have originally missed the fact there are multiple voltages to be
+supplied externally for the MIPI-CSI receiver and PHY and the driver
+have to make sure they are all enabled at PMIC. The patch 1/3 fixes
+it by adding a relevant regulator supply.
+Patch 2/3 fixes issues with resume from suspend to memory. Finally
+patch 3/3 enables a device node for s5p-mipi-csis subdev as 
+it is more flexible to control the subdev from library/application
+rather than doing this in the kernel.
 
-On Fri, Jul 22, 2011 at 01:55:47PM -0600, Jonathan Corbet wrote:
-> > >  You *can't* do the mapping at allocation time...
-> > 
-> > Could you elaborate why you can't create the mapping at allocation time? 
-> > DMA-mapping api requires the following call sequence:
-> > dma_map_single()
-> > ...
-> > dma_sync_single_for_cpu()
-> > dma_sync_single_for_device()
-> > ...
-> > dma_unmap_single()
-> > 
-> > I see no problem to call dma_map_single() on buffer creation and 
-> > dma_unmap_single() on release. dma_sync_single_for_{device,cpu} can
-> > be used on buffer_{prepare,finish}.
-> 
-> Yes, it could be done that way.  I guess I've always, rightly or wrongly,
-> seen streaming mappings as transient things that aren't meant to be kept
-> around for long periods of time.  Especially if they might, somehow, be
-> taking up limited resources like IOMMU slots.  But I honestly have no idea
-> whether it's better to keep a set of mappings around and use the sync
-> functions, or whether it's better to remake them each time.
 
-Creating IOMMU mappings (and removing them) usually takes considerable
-amount of time but usually consume practically no resources, so they are
-kept while the buffers are pinned to system memory.
+Sylwester Nawrocki (3):
+  s5p-csis: Handle all available power supplies
+  s5p-csis: Rework of the system suspend/resume helpers
+  s5p-csis: Enable v4l subdev device node
 
-Do you have hardware which has limitations on IOMMU mappings?
+ drivers/media/video/s5p-fimc/mipi-csis.c |   88 +++++++++++++++++-------------
+ 1 files changed, 50 insertions(+), 38 deletions(-)
 
-For example, the OMA 3 IOMMU can be used to map the whole system memory (if
-you need it) and it does page tabe walking, too.
 
--- 
-Sakari Ailus
-sakari.ailus@iki.fi
+Regards,
+-
+Sylwester Nawrocki
+Samsung Poland R&D Center
+
