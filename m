@@ -1,126 +1,56 @@
-Return-path: <linux-media-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.17.9]:52195 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756308Ab1G2K5G (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 29 Jul 2011 06:57:06 -0400
-Received: from 6a.grange (6a.grange [192.168.1.11])
-	by axis700.grange (Postfix) with ESMTPS id 72C3118B048
-	for <linux-media@vger.kernel.org>; Fri, 29 Jul 2011 12:57:02 +0200 (CEST)
-Received: from lyakh by 6a.grange with local (Exim 4.72)
-	(envelope-from <g.liakhovetski@gmx.de>)
-	id 1QmkkY-0007pk-BY
-	for linux-media@vger.kernel.org; Fri, 29 Jul 2011 12:57:02 +0200
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: linux-media@vger.kernel.org
-Subject: [PATCH 57/59] V4L: soc_camera_platform: remove superfluous soc-camera client operations
-Date: Fri, 29 Jul 2011 12:56:57 +0200
-Message-Id: <1311937019-29914-58-git-send-email-g.liakhovetski@gmx.de>
-In-Reply-To: <1311937019-29914-1-git-send-email-g.liakhovetski@gmx.de>
-References: <1311937019-29914-1-git-send-email-g.liakhovetski@gmx.de>
-Sender: linux-media-owner@vger.kernel.org
+Return-path: <mchehab@localhost>
+Received: from emh02.mail.saunalahti.fi ([62.142.5.108]:56435 "EHLO
+	emh02.mail.saunalahti.fi" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756056Ab1GFT7Y (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 6 Jul 2011 15:59:24 -0400
+Message-ID: <4E14BE93.2030205@kolumbus.fi>
+Date: Wed, 06 Jul 2011 22:59:15 +0300
+From: Marko Ristola <marko.ristola@kolumbus.fi>
+MIME-Version: 1.0
+To: Devin Heitmueller <dheitmueller@kernellabs.com>
+CC: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	Andy Walls <awalls@md.metrocast.net>,
+	linux-media@vger.kernel.org
+Subject: Re: [RFCv2 PATCH 0/5] tuner-core: fix s_std and s_tuner
+References: <1307804731-16430-1-git-send-email-hverkuil@xs4all.nl>	<201106152237.02427.hverkuil@xs4all.nl>	<BANLkTimVQDoHo+5-2ZkU0sE0LWiUjHeBXg@mail.gmail.com>	<201106160821.15352.hverkuil@xs4all.nl>	<4DF9E5AB.1050707@redhat.com>	<BANLkTi=Wq=swMMBfK+X9gVQ0XhL4OSxXFA@mail.gmail.com>	<4E14A127.8040805@kolumbus.fi> <CAGoCfiwjXYBR8FBYMS8BsBM20mCQLvWQbyhLh-psA_HX73SGjw@mail.gmail.com>
+In-Reply-To: <CAGoCfiwjXYBR8FBYMS8BsBM20mCQLvWQbyhLh-psA_HX73SGjw@mail.gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
+Sender: <mchehab@infradead.org>
 
-Now that all soc-camera hosts have been ported to use V4L2 subdevice
-mediabus-config operations and soc-camera client bus-parameter operations
-have been made optional, they can be removed.
+06.07.2011 21:17, Devin Heitmueller kirjoitti:
+> On Wed, Jul 6, 2011 at 1:53 PM, Marko Ristola <marko.ristola@kolumbus.fi> wrote:
+>>
+> 
+> All that said, I believe that you are correct in that the business
+> logic needs to ultimately be decided by the bridge driver, rather than
+> having the dvb/tuner core blindly calling the sleep routines against
+> the tuner and demod drivers without a full understanding of what
+> impact it has on the board as a whole.
 
-Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
----
- drivers/media/video/soc_camera_platform.c |   31 +----------------------------
- include/media/soc_camera_platform.h       |    1 -
- 2 files changed, 1 insertions(+), 31 deletions(-)
+You wrote it nicely and compactly.
 
-diff --git a/drivers/media/video/soc_camera_platform.c b/drivers/media/video/soc_camera_platform.c
-index 7045e45..f5ebe59 100644
---- a/drivers/media/video/soc_camera_platform.c
-+++ b/drivers/media/video/soc_camera_platform.c
-@@ -30,32 +30,12 @@ static struct soc_camera_platform_priv *get_priv(struct platform_device *pdev)
- 	return container_of(subdev, struct soc_camera_platform_priv, subdev);
- }
- 
--static struct soc_camera_platform_info *get_info(struct soc_camera_device *icd)
--{
--	struct platform_device *pdev =
--		to_platform_device(to_soc_camera_control(icd));
--	return pdev->dev.platform_data;
--}
--
- static int soc_camera_platform_s_stream(struct v4l2_subdev *sd, int enable)
- {
- 	struct soc_camera_platform_info *p = v4l2_get_subdevdata(sd);
- 	return p->set_capture(p, enable);
- }
- 
--static int soc_camera_platform_set_bus_param(struct soc_camera_device *icd,
--					     unsigned long flags)
--{
--	return 0;
--}
--
--static unsigned long
--soc_camera_platform_query_bus_param(struct soc_camera_device *icd)
--{
--	struct soc_camera_platform_info *p = get_info(icd);
--	return p->bus_param;
--}
--
- static int soc_camera_platform_fill_fmt(struct v4l2_subdev *sd,
- 					struct v4l2_mbus_framefmt *mf)
- {
-@@ -142,11 +122,6 @@ static struct v4l2_subdev_ops platform_subdev_ops = {
- 	.video	= &platform_subdev_video_ops,
- };
- 
--static struct soc_camera_ops soc_camera_platform_ops = {
--	.set_bus_param		= soc_camera_platform_set_bus_param,
--	.query_bus_param	= soc_camera_platform_query_bus_param,
--};
--
- static int soc_camera_platform_probe(struct platform_device *pdev)
- {
- 	struct soc_camera_host *ici;
-@@ -175,7 +150,7 @@ static int soc_camera_platform_probe(struct platform_device *pdev)
- 	/* Set the control device reference */
- 	icd->control = &pdev->dev;
- 
--	icd->ops = &soc_camera_platform_ops;
-+	icd->ops = NULL;
- 
- 	ici = to_soc_camera_host(icd->parent);
- 
-@@ -190,7 +165,6 @@ static int soc_camera_platform_probe(struct platform_device *pdev)
- 	return ret;
- 
- evdrs:
--	icd->ops = NULL;
- 	platform_set_drvdata(pdev, NULL);
- 	kfree(priv);
- 	return ret;
-@@ -199,11 +173,8 @@ evdrs:
- static int soc_camera_platform_remove(struct platform_device *pdev)
- {
- 	struct soc_camera_platform_priv *priv = get_priv(pdev);
--	struct soc_camera_platform_info *p = pdev->dev.platform_data;
--	struct soc_camera_device *icd = p->icd;
- 
- 	v4l2_device_unregister_subdev(&priv->subdev);
--	icd->ops = NULL;
- 	platform_set_drvdata(pdev, NULL);
- 	kfree(priv);
- 	return 0;
-diff --git a/include/media/soc_camera_platform.h b/include/media/soc_camera_platform.h
-index a15f92b..8aa4200 100644
---- a/include/media/soc_camera_platform.h
-+++ b/include/media/soc_camera_platform.h
-@@ -21,7 +21,6 @@ struct soc_camera_platform_info {
- 	const char *format_name;
- 	unsigned long format_depth;
- 	struct v4l2_mbus_framefmt format;
--	unsigned long bus_param;
- 	unsigned long mbus_param;
- 	enum v4l2_mbus_type mbus_type;
- 	struct soc_camera_device *icd;
--- 
-1.7.2.5
+What do you think about tracking coarse last busy time rather than figuring out accurate idle time?
 
+dvb_frontend.c and V4L side would just poll the device:
+"bridge->wake()". wake() will just store current "busy" timestamp to the bridge device
+with coarse accuracy, if subdevices are already at active state.
+If subdevices are powered off, it will first power them on and resume them, and then store "busy" timestamp.
+
+Bridge device would have a "delayed task": "Check after 3 minutes: If I haven't been busy
+for three minutes, I'll go to sleep. I'll suspend the subdevices and power them off."
+
+The "delayed task" would refresh itself: check again after last awake time + 3 minutes.
+
+"Delayed task" could be further developed to support multiple suspend states.
+
+> 
+> Cheers,
+> 
+> Devin
+> 
+
+
+Marko
