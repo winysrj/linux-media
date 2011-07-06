@@ -1,88 +1,171 @@
-Return-path: <linux-media-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.17.10]:57167 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756187Ab1G2K5E (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 29 Jul 2011 06:57:04 -0400
-Received: from 6a.grange (6a.grange [192.168.1.11])
-	by axis700.grange (Postfix) with ESMTPS id AF69A18B055
-	for <linux-media@vger.kernel.org>; Fri, 29 Jul 2011 12:57:01 +0200 (CEST)
-Received: from lyakh by 6a.grange with local (Exim 4.72)
-	(envelope-from <g.liakhovetski@gmx.de>)
-	id 1QmkkX-0007p1-Kz
-	for linux-media@vger.kernel.org; Fri, 29 Jul 2011 12:57:01 +0200
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: linux-media@vger.kernel.org
-Subject: [PATCH 42/59] V4L: imx074: remove superfluous soc-camera client operations
-Date: Fri, 29 Jul 2011 12:56:42 +0200
-Message-Id: <1311937019-29914-43-git-send-email-g.liakhovetski@gmx.de>
-In-Reply-To: <1311937019-29914-1-git-send-email-g.liakhovetski@gmx.de>
-References: <1311937019-29914-1-git-send-email-g.liakhovetski@gmx.de>
-Sender: linux-media-owner@vger.kernel.org
+Return-path: <mchehab@localhost>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:53305 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755654Ab1GFCz0 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 5 Jul 2011 22:55:26 -0400
+Received: from dbdp20.itg.ti.com ([172.24.170.38])
+	by arroyo.ext.ti.com (8.13.7/8.13.7) with ESMTP id p662tN1O009253
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-media@vger.kernel.org>; Tue, 5 Jul 2011 21:55:25 -0500
+From: "JAIN, AMBER" <amber@ti.com>
+To: "Hiremath, Vaibhav" <hvaibhav@ti.com>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+CC: "Semwal, Sumit" <sumit.semwal@ti.com>
+Date: Wed, 6 Jul 2011 08:25:21 +0530
+Subject: RE: [PATCH 1/6] V4L2: OMAP: VOUT: isr handling extended for DPI and
+ HDMI interface
+Message-ID: <5A47E75E594F054BAF48C5E4FC4B92AB037BD028BA@dbde02.ent.ti.com>
+References: <1307458058-29030-1-git-send-email-amber@ti.com>
+ <1307458058-29030-2-git-send-email-amber@ti.com>
+ <19F8576C6E063C45BE387C64729E739404E3485E6B@dbde02.ent.ti.com>
+In-Reply-To: <19F8576C6E063C45BE387C64729E739404E3485E6B@dbde02.ent.ti.com>
+Content-Language: en-US
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+MIME-Version: 1.0
 List-ID: <linux-media.vger.kernel.org>
+Sender: <mchehab@infradead.org>
 
-Now that all soc-camera hosts have been ported to use V4L2 subdevice
-mediabus-config operations and soc-camera client bus-parameter operations
-have been made optional, they can be removed.
 
-Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
----
- drivers/media/video/imx074.c |   24 +-----------------------
- 1 files changed, 1 insertions(+), 23 deletions(-)
 
-diff --git a/drivers/media/video/imx074.c b/drivers/media/video/imx074.c
-index 63f17aa..20756e0 100644
---- a/drivers/media/video/imx074.c
-+++ b/drivers/media/video/imx074.c
-@@ -298,26 +298,6 @@ static struct v4l2_subdev_ops imx074_subdev_ops = {
- 	.video	= &imx074_subdev_video_ops,
- };
- 
--/*
-- * We have to provide soc-camera operations, but we don't have anything to say
-- * there. The MIPI CSI2 driver will provide .query_bus_param and .set_bus_param
-- */
--static unsigned long imx074_query_bus_param(struct soc_camera_device *icd)
--{
--	return 0;
--}
--
--static int imx074_set_bus_param(struct soc_camera_device *icd,
--				 unsigned long flags)
--{
--	return -EINVAL;
--}
--
--static struct soc_camera_ops imx074_ops = {
--	.query_bus_param	= imx074_query_bus_param,
--	.set_bus_param		= imx074_set_bus_param,
--};
--
- static int imx074_video_probe(struct soc_camera_device *icd,
- 			      struct i2c_client *client)
- {
-@@ -457,12 +437,11 @@ static int imx074_probe(struct i2c_client *client,
- 
- 	v4l2_i2c_subdev_init(&priv->subdev, client, &imx074_subdev_ops);
- 
--	icd->ops	= &imx074_ops;
-+	icd->ops	= NULL;
- 	priv->fmt	= &imx074_colour_fmts[0];
- 
- 	ret = imx074_video_probe(icd, client);
- 	if (ret < 0) {
--		icd->ops = NULL;
- 		kfree(priv);
- 		return ret;
- 	}
-@@ -476,7 +455,6 @@ static int imx074_remove(struct i2c_client *client)
- 	struct soc_camera_device *icd = client->dev.platform_data;
- 	struct soc_camera_link *icl = to_soc_camera_link(icd);
- 
--	icd->ops = NULL;
- 	if (icl->free_bus)
- 		icl->free_bus(icl);
- 	kfree(priv);
--- 
-1.7.2.5
+> -----Original Message-----
+> From: Hiremath, Vaibhav
+> Sent: Wednesday, July 06, 2011 12:17 AM
+> To: JAIN, AMBER; linux-media@vger.kernel.org
+> Cc: Semwal, Sumit
+> Subject: RE: [PATCH 1/6] V4L2: OMAP: VOUT: isr handling extended for DPI
+> and HDMI interface
+> 
+> 
+> > -----Original Message-----
+> > From: JAIN, AMBER
+> > Sent: Tuesday, June 07, 2011 8:18 PM
+> > To: linux-media@vger.kernel.org
+> > Cc: Hiremath, Vaibhav; Semwal, Sumit; JAIN, AMBER
+> > Subject: [PATCH 1/6] V4L2: OMAP: VOUT: isr handling extended for DPI and
+> > HDMI interface
+> [Hiremath, Vaibhav] Few minor comments below -
+> 
+> >
+> > Extending the omap vout isr handling for:
+> > - secondary lcd over DPI interface,
+> > - HDMI interface.
+> >
+> [Hiremath, Vaibhav] It would be useful to mention about OMAP4 DSS block
+> (these are new additions compared to OAMP3), that's where both the
+> interfaces are getting used, right?
+
+Ok, will add that.
+
+> 
+> > Signed-off-by: Amber Jain <amber@ti.com>
+> > ---
+> >  drivers/media/video/omap/omap_vout.c |   26 +++++++++++++++++++-------
+> >  1 files changed, 19 insertions(+), 7 deletions(-)
+> >
+> > diff --git a/drivers/media/video/omap/omap_vout.c
+> > b/drivers/media/video/omap/omap_vout.c
+> > index a831241..6fe7efa 100644
+> > --- a/drivers/media/video/omap/omap_vout.c
+> > +++ b/drivers/media/video/omap/omap_vout.c
+> > @@ -544,10 +544,20 @@ void omap_vout_isr(void *arg, unsigned int
+> > irqstatus)
+> >
+> >  	spin_lock(&vout->vbq_lock);
+> >  	do_gettimeofday(&timevalue);
+> > -	if (cur_display->type == OMAP_DISPLAY_TYPE_DPI) {
+> > -		if (!(irqstatus & DISPC_IRQ_VSYNC))
+> > -			goto vout_isr_err;
+> >
+> > +	if (cur_display->type != OMAP_DISPLAY_TYPE_VENC) {
+> > +		switch (cur_display->type) {
+> > +		case OMAP_DISPLAY_TYPE_DPI:
+> > +			if (!(irqstatus & (DISPC_IRQ_VSYNC | DISPC_IRQ_VSYNC2)))
+> > +				goto vout_isr_err;
+> > +			break;
+> > +		case OMAP_DISPLAY_TYPE_HDMI:
+> > +			if (!(irqstatus & DISPC_IRQ_EVSYNC_EVEN))
+> > +				goto vout_isr_err;
+> > +			break;
+> > +		default:
+> > +			goto vout_isr_err;
+> > +		}
+> [Hiremath, Vaibhav] how about implementing this like,
+> 
+> 
+> if (cur_display->type != OMAP_DISPLAY_TYPE_VENC) {
+> 	unsigned int status;
+> 
+> 	switch (cur_display->type) {
+> 	case OMAP_DISPLAY_TYPE_DPI:
+> 		status = DISPC_IRQ_VSYNC | DISPC_IRQ_VSYNC2;
+> 		break;
+> 	case OMAP_DISPLAY_TYPE_HDMI:
+> 		status = DISPC_IRQ_EVSYNC_EVEN;
+> 		break;
+> 	default:
+> 		goto vout_isr_err;
+> 	}
+> 	If (!(irqstatus & status))
+> 		goto vout_isr_err;
+> 
+> 
+> Thanks,
+> Vaibhav
+
+It can be done, but I don't really see a benefit of using a new variable for it as it is used just once for check.
+
+> 
+> >  		if (!vout->first_int && (vout->cur_frm != vout->next_frm)) {
+> >  			vout->cur_frm->ts = timevalue;
+> >  			vout->cur_frm->state = VIDEOBUF_DONE;
+> > @@ -571,7 +581,7 @@ void omap_vout_isr(void *arg, unsigned int
+> irqstatus)
+> >  		ret = omapvid_init(vout, addr);
+> >  		if (ret)
+> >  			printk(KERN_ERR VOUT_NAME
+> > -					"failed to set overlay info\n");
+> > +		[Hiremath, Vaibhav] 			"failed to set overlay
+> info\n");
+> >  		/* Enable the pipeline and set the Go bit */
+> >  		ret = omapvid_apply_changes(vout);
+> >  		if (ret)
+> > @@ -925,7 +935,7 @@ static int omap_vout_release(struct file *file)
+> >  		u32 mask = 0;
+> >
+> >  		mask = DISPC_IRQ_VSYNC | DISPC_IRQ_EVSYNC_EVEN |
+> > -			DISPC_IRQ_EVSYNC_ODD;
+> > +			DISPC_IRQ_EVSYNC_ODD | DISPC_IRQ_VSYNC2;
+> >  		omap_dispc_unregister_isr(omap_vout_isr, vout, mask);
+> >  		vout->streaming = 0;
+> >
+> > @@ -1596,7 +1606,8 @@ static int vidioc_streamon(struct file *file, void
+> > *fh, enum v4l2_buf_type i)
+> >  	addr = (unsigned long) vout->queued_buf_addr[vout->cur_frm->i]
+> >  		+ vout->cropped_offset;
+> >
+> > -	mask = DISPC_IRQ_VSYNC | DISPC_IRQ_EVSYNC_EVEN |
+> > DISPC_IRQ_EVSYNC_ODD;
+> > +	mask = DISPC_IRQ_VSYNC | DISPC_IRQ_EVSYNC_EVEN |
+> > DISPC_IRQ_EVSYNC_ODD
+> > +		| DISPC_IRQ_VSYNC2;
+> >
+> >  	omap_dispc_register_isr(omap_vout_isr, vout, mask);
+> >
+> > @@ -1646,7 +1657,8 @@ static int vidioc_streamoff(struct file *file,
+> void
+> > *fh, enum v4l2_buf_type i)
+> >  		return -EINVAL;
+> >
+> >  	vout->streaming = 0;
+> > -	mask = DISPC_IRQ_VSYNC | DISPC_IRQ_EVSYNC_EVEN |
+> > DISPC_IRQ_EVSYNC_ODD;
+> > +	mask = DISPC_IRQ_VSYNC | DISPC_IRQ_EVSYNC_EVEN |
+> > DISPC_IRQ_EVSYNC_ODD
+> > +		| DISPC_IRQ_VSYNC2;
+> >
+> >  	omap_dispc_unregister_isr(omap_vout_isr, vout, mask);
+> >
+> > --
+> > 1.7.1
 
