@@ -1,166 +1,77 @@
 Return-path: <mchehab@localhost>
-Received: from mail.juropnet.hu ([212.24.188.131]:38355 "EHLO mail.juropnet.hu"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757498Ab1GKN6q (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 11 Jul 2011 09:58:46 -0400
-Received: from [94.248.228.50] (helo=linux-mrjj.localnet)
-	by mail.juropnet.hu with esmtps (TLS1.0:DHE_RSA_AES_256_CBC_SHA1:32)
-	(Exim 4.69)
-	(envelope-from <istvan_v@mailbox.hu>)
-	id 1QgH0P-0006dm-BD
-	for linux-media@vger.kernel.org; Mon, 11 Jul 2011 15:58:43 +0200
-From: Istvan Varga <istvan_v@mailbox.hu>
-To: linux-media@vger.kernel.org
-Subject: [PATCH] cx23885: added support for card 107d:6f39
+Received: from caramon.arm.linux.org.uk ([78.32.30.218]:59749 "EHLO
+	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752913Ab1GFRRd (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 6 Jul 2011 13:17:33 -0400
+Date: Wed, 6 Jul 2011 18:15:42 +0100
+From: Russell King - ARM Linux <linux@arm.linux.org.uk>
+To: Christoph Lameter <cl@linux.com>
+Cc: Michal Nazarewicz <mina86@mina86.com>,
+	Arnd Bergmann <arnd@arndb.de>,
+	linux-arm-kernel@lists.infradead.org,
+	'Daniel Walker' <dwalker@codeaurora.org>,
+	'Jonathan Corbet' <corbet@lwn.net>,
+	'Mel Gorman' <mel@csn.ul.ie>,
+	'Chunsang Jeong' <chunsang.jeong@linaro.org>,
+	'Jesse Barker' <jesse.barker@linaro.org>,
+	'KAMEZAWA Hiroyuki' <kamezawa.hiroyu@jp.fujitsu.com>,
+	linux-kernel@vger.kernel.org, linaro-mm-sig@lists.linaro.org,
+	linux-mm@kvack.org, 'Kyungmin Park' <kyungmin.park@samsung.com>,
+	'Ankita Garg' <ankita@in.ibm.com>,
+	'Andrew Morton' <akpm@linux-foundation.org>,
+	Marek Szyprowski <m.szyprowski@samsung.com>,
+	linux-media@vger.kernel.org, Andi Kleen <andi@firstfloor.org>
+Subject: Re: [PATCH 6/8] drivers: add Contiguous Memory Allocator
+Message-ID: <20110706171542.GJ8286@n2100.arm.linux.org.uk>
+References: <1309851710-3828-1-git-send-email-m.szyprowski@samsung.com> <201107061609.29996.arnd@arndb.de> <20110706142345.GC8286@n2100.arm.linux.org.uk> <201107061651.49824.arnd@arndb.de> <20110706154857.GG8286@n2100.arm.linux.org.uk> <alpine.DEB.2.00.1107061100290.17624@router.home> <op.vx7ghajd3l0zgt@mnazarewicz-glaptop> <alpine.DEB.2.00.1107061114150.19547@router.home>
 MIME-Version: 1.0
-Date: Mon, 11 Jul 2011 15:58:35 +0200
-Content-Type: Text/Plain;
-  charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201107111558.35588.istvan_v@mailbox.hu>
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <alpine.DEB.2.00.1107061114150.19547@router.home>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@infradead.org>
 
-This patch, based on code by Mirek Slugen, implements support for the
-Leadtek WinFast PxDVR3200 H card with XC4000 tuner (107d:6f39).
+On Wed, Jul 06, 2011 at 11:19:00AM -0500, Christoph Lameter wrote:
+> What I described is the basic memory architecture of Linux. I am not that
+> familiar with ARM and the issue discussed here. Only got involved because
+> ZONE_DMA was mentioned. The nature of ZONE_DMA is often misunderstood.
+> 
+> The allocation of the memory banks for the Samsung devices has to fit
+> somehow into one of these zones. Its probably best to put the memory banks
+> into ZONE_NORMAL and not have any dependency on ZONE_DMA at all.
 
-Signed-off-by: Istvan Varga <istvan_v@mailbox.hu>
+Let me teach you about the ARM memory management on Linux.
 
-diff -uNr xc4000_orig/drivers/media/video/cx23885/cx23885-cards.c xc4000/drivers/media/video/cx23885/cx23885-cards.c
---- xc4000_orig/drivers/media/video/cx23885/cx23885-cards.c	2011-07-08 16:47:29.000000000 +0200
-+++ xc4000/drivers/media/video/cx23885/cx23885-cards.c	2011-07-10 13:31:15.000000000 +0200
-@@ -31,6 +31,7 @@
- #include "tuner-xc2028.h"
- #include "netup-init.h"
- #include "altera-ci.h"
-+#include "xc4000.h"
- #include "xc5000.h"
- #include "cx23888-ir.h"
- 
-@@ -175,6 +176,34 @@
- 		.name		= "Leadtek Winfast PxDVR3200 H",
- 		.portc		= CX23885_MPEG_DVB,
- 	},
-+	[CX23885_BOARD_LEADTEK_WINFAST_PXDVR3200_H_XC4000] = {
-+		.name		= "Leadtek Winfast PxDVR3200 H XC4000",
-+		.porta		= CX23885_ANALOG_VIDEO,
-+		.portc		= CX23885_MPEG_DVB,
-+		.tuner_type	= TUNER_XC4000,
-+		.tuner_addr	= 0x61,
-+		.radio_type	= TUNER_XC4000,
-+		.radio_addr	= 0x61,
-+		.input		= {{
-+			.type	= CX23885_VMUX_TELEVISION,
-+			.vmux	= CX25840_VIN2_CH1 |
-+				  CX25840_VIN5_CH2 |
-+				  CX25840_NONE0_CH3,
-+		}, {
-+			.type	= CX23885_VMUX_COMPOSITE1,
-+			.vmux	= CX25840_COMPOSITE1,
-+		}, {
-+			.type	= CX23885_VMUX_SVIDEO,
-+			.vmux	= CX25840_SVIDEO_LUMA3 |
-+				  CX25840_SVIDEO_CHROMA4,
-+		}, {
-+			.type	= CX23885_VMUX_COMPONENT,
-+			.vmux	= CX25840_VIN7_CH1 |
-+				  CX25840_VIN6_CH2 |
-+				  CX25840_VIN8_CH3 |
-+				  CX25840_COMPONENT_ON,
-+		} },
-+	},
- 	[CX23885_BOARD_COMPRO_VIDEOMATE_E650F] = {
- 		.name		= "Compro VideoMate E650F",
- 		.portc		= CX23885_MPEG_DVB,
-@@ -433,6 +462,10 @@
- 		.subdevice = 0x6681,
- 		.card      = CX23885_BOARD_LEADTEK_WINFAST_PXDVR3200_H,
- 	}, {
-+		.subvendor = 0x107d,
-+		.subdevice = 0x6f39,
-+		.card	   = CX23885_BOARD_LEADTEK_WINFAST_PXDVR3200_H_XC4000,
-+	}, {
- 		.subvendor = 0x185b,
- 		.subdevice = 0xe800,
- 		.card      = CX23885_BOARD_COMPRO_VIDEOMATE_E650F,
-@@ -749,6 +782,7 @@
- 	case CX23885_BOARD_HAUPPAUGE_HVR1500:
- 	case CX23885_BOARD_HAUPPAUGE_HVR1500Q:
- 	case CX23885_BOARD_LEADTEK_WINFAST_PXDVR3200_H:
-+	case CX23885_BOARD_LEADTEK_WINFAST_PXDVR3200_H_XC4000:
- 	case CX23885_BOARD_COMPRO_VIDEOMATE_E650F:
- 	case CX23885_BOARD_COMPRO_VIDEOMATE_E800:
- 	case CX23885_BOARD_LEADTEK_WINFAST_PXTV1200:
-@@ -909,6 +943,7 @@
- 		cx_set(GP0_IO, 0x000f000f);
- 		break;
- 	case CX23885_BOARD_LEADTEK_WINFAST_PXDVR3200_H:
-+	case CX23885_BOARD_LEADTEK_WINFAST_PXDVR3200_H_XC4000:
- 	case CX23885_BOARD_COMPRO_VIDEOMATE_E650F:
- 	case CX23885_BOARD_COMPRO_VIDEOMATE_E800:
- 	case CX23885_BOARD_LEADTEK_WINFAST_PXTV1200:
-@@ -1334,6 +1369,7 @@
- 	case CX23885_BOARD_HAUPPAUGE_HVR1700:
- 	case CX23885_BOARD_HAUPPAUGE_HVR1400:
- 	case CX23885_BOARD_LEADTEK_WINFAST_PXDVR3200_H:
-+	case CX23885_BOARD_LEADTEK_WINFAST_PXDVR3200_H_XC4000:
- 	case CX23885_BOARD_COMPRO_VIDEOMATE_E650F:
- 	case CX23885_BOARD_HAUPPAUGE_HVR1270:
- 	case CX23885_BOARD_HAUPPAUGE_HVR1275:
-@@ -1362,6 +1398,7 @@
- 	case CX23885_BOARD_HAUPPAUGE_HVR1800lp:
- 	case CX23885_BOARD_HAUPPAUGE_HVR1700:
- 	case CX23885_BOARD_LEADTEK_WINFAST_PXDVR3200_H:
-+	case CX23885_BOARD_LEADTEK_WINFAST_PXDVR3200_H_XC4000:
- 	case CX23885_BOARD_COMPRO_VIDEOMATE_E650F:
- 	case CX23885_BOARD_NETUP_DUAL_DVBS2_CI:
- 	case CX23885_BOARD_NETUP_DUAL_DVB_T_C_CI_RF:
-diff -uNr xc4000_orig/drivers/media/video/cx23885/cx23885-dvb.c xc4000/drivers/media/video/cx23885/cx23885-dvb.c
---- xc4000_orig/drivers/media/video/cx23885/cx23885-dvb.c	2011-07-08 16:47:29.000000000 +0200
-+++ xc4000/drivers/media/video/cx23885/cx23885-dvb.c	2011-07-10 13:36:32.000000000 +0200
-@@ -37,6 +37,7 @@
- #include "tda8290.h"
- #include "tda18271.h"
- #include "lgdt330x.h"
-+#include "xc4000.h"
- #include "xc5000.h"
- #include "max2165.h"
- #include "tda10048.h"
-@@ -921,6 +922,26 @@
- 				fe->ops.tuner_ops.set_config(fe, &ctl);
- 		}
- 		break;
-+	case CX23885_BOARD_LEADTEK_WINFAST_PXDVR3200_H_XC4000:
-+		i2c_bus = &dev->i2c_bus[0];
-+
-+		fe0->dvb.frontend = dvb_attach(zl10353_attach,
-+					       &dvico_fusionhdtv_xc3028,
-+					       &i2c_bus->i2c_adap);
-+		if (fe0->dvb.frontend != NULL) {
-+			struct dvb_frontend	*fe;
-+			struct xc4000_config	cfg = {
-+				.i2c_address	  = 0x61,
-+				.default_pm	  = 0,
-+				.dvb_amplitude	  = 134,
-+				.set_smoothedcvbs = 1,
-+				.if_khz		  = 4560
-+			};
-+
-+			fe = dvb_attach(xc4000_attach, fe0->dvb.frontend,
-+					&dev->i2c_bus[1].i2c_adap, &cfg);
-+		}
-+		break;
- 	case CX23885_BOARD_TBS_6920:
- 		i2c_bus = &dev->i2c_bus[1];
- 
-diff -uNr xc4000_orig/drivers/media/video/cx23885/cx23885.h xc4000/drivers/media/video/cx23885/cx23885.h
---- xc4000_orig/drivers/media/video/cx23885/cx23885.h	2011-07-08 16:47:29.000000000 +0200
-+++ xc4000/drivers/media/video/cx23885/cx23885.h	2011-07-10 13:26:11.000000000 +0200
-@@ -85,6 +85,7 @@
- #define CX23885_BOARD_LEADTEK_WINFAST_PXTV1200 28
- #define CX23885_BOARD_GOTVIEW_X5_3D_HYBRID     29
- #define CX23885_BOARD_NETUP_DUAL_DVB_T_C_CI_RF 30
-+#define CX23885_BOARD_LEADTEK_WINFAST_PXDVR3200_H_XC4000 31
- 
- #define GPIO_0 0x00000001
- #define GPIO_1 0x00000002
+Firstly, lets go over the structure of zones in Linux.  There are three
+zones - ZONE_DMA, ZONE_NORMAL and ZONE_HIGHMEM.  These zones are filled
+in that order.  So, ZONE_DMA starts at zero.  Following on from ZONE_DMA
+is ZONE_NORMAL memory, and lastly ZONE_HIGHMEM.
+
+At boot, we pass all memory over to the kernel as follows:
+
+1. If there is no DMA zone, then we pass all low memory over as ZONE_NORMAL.
+
+2. If there is a DMA zone, by default we pass all low memory as ZONE_DMA.
+   This is required so drivers which use GFP_DMA can work.
+
+   Platforms with restricted DMA requirements can modify that layout to
+   move memory from ZONE_DMA into ZONE_NORMAL, thereby restricting the
+   upper address which the kernel allocators will give for GFP_DMA
+   allocations.
+
+3. In either case, any high memory as ZONE_HIGHMEM if configured (or memory
+   is truncated if not.)
+
+So, when we have (eg) a platform where only the _even_ MBs of memory are
+DMA-able, we have a 1MB DMA zone at the beginning of system memory, and
+everything else in ZONE_NORMAL.  This means GFP_DMA will return either
+memory from the first 1MB or fail if it can't.  This is the behaviour we
+desire.
+
+Normal allocations will come from ZONE_NORMAL _first_ and then try ZONE_DMA
+if there's no other alternative.  This is the same desired behaviour as
+x86.
+
+So, ARM is no different from x86, with the exception that the 16MB DMA
+zone due to ISA ends up being different sizes on ARM depending on our
+restrictions.
