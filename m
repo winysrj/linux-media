@@ -1,94 +1,699 @@
-Return-path: <linux-media-owner@vger.kernel.org>
-Received: from casper.infradead.org ([85.118.1.10]:57506 "EHLO
-	casper.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751481Ab1GSP2I (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 19 Jul 2011 11:28:08 -0400
-Message-ID: <4E25A26A.2000204@infradead.org>
-Date: Tue, 19 Jul 2011 12:27:38 -0300
-From: Mauro Carvalho Chehab <mchehab@infradead.org>
-MIME-Version: 1.0
-To: Stas Sergeev <stsp@list.ru>
-CC: Lennart Poettering <lpoetter@redhat.com>,
-	linux-media@vger.kernel.org,
-	"Nickolay V. Shmyrev" <nshmyrev@yandex.ru>,
-	Devin Heitmueller <dheitmueller@kernellabs.com>,
-	ALSA devel <alsa-devel@alsa-project.org>
-Subject: Re: [patch][saa7134] do not change mute state for capturing audio
-References: <4E19D2F7.6060803@list.ru> <4E1E05AC.2070002@infradead.org> <4E1E0A1D.6000604@list.ru> <4E1E1571.6010400@infradead.org> <4E1E8108.3060305@list.ru> <4E1F9A25.1020208@infradead.org> <4E22AF12.4020600@list.ru> <4E22CCC0.8030803@infradead.org> <4E24BEB8.4060501@redhat.com> <4E257FF5.4040401@infradead.org> <4E258B60.6010007@list.ru> <4E25906D.3020200@infradead.org> <4E259B0C.90107@list.ru>
-In-Reply-To: <4E259B0C.90107@list.ru>
-Content-Type: text/plain; charset=UTF-8
+Return-path: <mchehab@localhost>
+Received: from mx1.redhat.com ([209.132.183.28]:5273 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755264Ab1GFSEg (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 6 Jul 2011 14:04:36 -0400
+Date: Wed, 6 Jul 2011 15:04:01 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+Subject: [PATCH RFCv3 14/17] [media] DocBook/dvb: Use generic descriptions
+ for the frontend API
+Message-ID: <20110706150401.0223251a@pedra>
+In-Reply-To: <cover.1309974026.git.mchehab@redhat.com>
+References: <cover.1309974026.git.mchehab@redhat.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
-Sender: linux-media-owner@vger.kernel.org
+To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
 List-ID: <linux-media.vger.kernel.org>
+Sender: <mchehab@infradead.org>
 
-Em 19-07-2011 11:56, Stas Sergeev escreveu:
-> 19.07.2011 18:10, Mauro Carvalho Chehab wrote:
->> As this is an USB device, in general, people don't connect the line out
->> pin. So, typically, in order to unmute this particular device for TV, one
->> should unmute both AC97 MONO and AC97 VIDEO, and mute AC97 LINE IN.
->>
->> If the application latter changes to SVideo, the AC97 VIDEO should be
->> muted, and AC97 LINE IN should be unmuted.
-> Unless I am missing the point, you need some mixer control
-> that will just unmute the "currently-configured things".
-> If you can unmute all the right things when an app just
-> starts capturing, then you can as well unmute the same
-> things by that _single_ mixer control.
-> And if the app changes the output to SVideo, as in your
-> example, you can first mute everything, and then unmute
-> the new lines, but only if the old lines were unmuted.
-> IMHO, that logic will not break the existing apps.
+Move generic stuff into gen-errors.xml, and remove them from
+DVB API. While here, removes two bogus error codes that aren't
+supported or used on Linux: EINTERNAL and ENOSIGNAL.
 
-That is the current logic, except that we don't create an additional
-virtual mixer control like the one you've proposed via ALSA API.
+Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
 
-The business logic coded into the Kernel is that, when audio stream is 
-started or a different input is selected, the driver checks the
-current applicable mute/volumes and sets the pertinent ones to unmute,
-muting the others.
+diff --git a/Documentation/DocBook/media/dvb/dvbproperty.xml b/Documentation/DocBook/media/dvb/dvbproperty.xml
+index 33274bc..207e1a5 100644
+--- a/Documentation/DocBook/media/dvb/dvbproperty.xml
++++ b/Documentation/DocBook/media/dvb/dvbproperty.xml
+@@ -82,15 +82,6 @@ struct dtv_properties {
+  </row></tbody></tgroup></informaltable>
+ &return-value-dvb;
+ <informaltable><tgroup cols="2"><tbody><row>
+-  <entry align="char"><para>EINVAL</para></entry>
+-  <entry align="char"><para>Invalid parameter(s) received or number of parameters out of the range.</para></entry>
+- </row><row>
+-  <entry align="char"><para>ENOMEM</para></entry>
+-  <entry align="char"><para>Out of memory.</para></entry>
+- </row><row>
+-  <entry align="char"><para>EFAULT</para></entry>
+-  <entry align="char"><para>Failure while copying data from/to userspace.</para></entry>
+- </row><row>
+   <entry align="char"><para>EOPNOTSUPP</para></entry>
+   <entry align="char"><para>Property type not supported.</para></entry>
+  </row></tbody></tgroup></informaltable>
+@@ -139,15 +130,6 @@ struct dtv_properties {
+  </row></tbody></tgroup></informaltable>
+ &return-value-dvb;
+ <informaltable><tgroup cols="2"><tbody><row>
+-  <entry align="char"><para>EINVAL</para></entry>
+-  <entry align="char"><para>Invalid parameter(s) received or number of parameters out of the range.</para></entry>
+- </row><row>
+-  <entry align="char"><para>ENOMEM</para></entry>
+-  <entry align="char"><para>Out of memory.</para></entry>
+- </row><row>
+-  <entry align="char"><para>EFAULT</para></entry>
+-  <entry align="char"><para>Failure while copying data from/to userspace.</para></entry>
+- </row><row>
+   <entry align="char"><para>EOPNOTSUPP</para></entry>
+   <entry align="char"><para>Property type not supported.</para></entry>
+  </row></tbody></tgroup></informaltable>
+diff --git a/Documentation/DocBook/media/dvb/frontend.xml b/Documentation/DocBook/media/dvb/frontend.xml
+index c5a5cb4..61407ea 100644
+--- a/Documentation/DocBook/media/dvb/frontend.xml
++++ b/Documentation/DocBook/media/dvb/frontend.xml
+@@ -575,7 +575,7 @@ typedef enum fe_hierarchy {
+ <para>File descriptor returned by a previous call to open().</para>
+ </entry>
+  </row></tbody></tgroup></informaltable>
+-&return-value-dvb;
++<para>RETURN VALUE</para>
+ <informaltable><tgroup cols="2"><tbody><row><entry
+  align="char">
+ <para>EBADF</para>
+@@ -692,37 +692,8 @@ typedef enum fe_hierarchy {
+ <para>The bit error rate is stored into *ber.</para>
+ </entry>
+  </row></tbody></tgroup></informaltable>
++
+ &return-value-dvb;
+-<informaltable><tgroup cols="2"><tbody><row><entry
+- align="char">
+-<para>EBADF</para>
+-</entry><entry
+- align="char">
+-<para>fd is not a valid open file descriptor.</para>
+-</entry>
+- </row><row><entry
+- align="char">
+-<para>EFAULT</para>
+-</entry><entry
+- align="char">
+-<para>ber points to invalid address.</para>
+-</entry>
+- </row><row><entry
+- align="char">
+-<para>ENOSIGNAL</para>
+-</entry><entry
+- align="char">
+-<para>There is no signal, thus no meaningful bit error rate. Also
+- returned if the front-end is not turned on.</para>
+-</entry>
+- </row><row><entry
+- align="char">
+-<para>ENOSYS</para>
+-</entry><entry
+- align="char">
+-<para>Function not available for this device.</para>
+-</entry>
+- </row></tbody></tgroup></informaltable>
+ </section>
+ 
+ <section id="FE_READ_SNR">
+@@ -770,36 +741,6 @@ typedef enum fe_hierarchy {
+  </row></tbody></tgroup></informaltable>
+ 
+ &return-value-dvb;
+-<informaltable><tgroup cols="2"><tbody><row><entry
+- align="char">
+-<para>EBADF</para>
+-</entry><entry
+- align="char">
+-<para>fd is not a valid open file descriptor.</para>
+-</entry>
+- </row><row><entry
+- align="char">
+-<para>EFAULT</para>
+-</entry><entry
+- align="char">
+-<para>snr points to invalid address.</para>
+-</entry>
+- </row><row><entry
+- align="char">
+-<para>ENOSIGNAL</para>
+-</entry><entry
+- align="char">
+-<para>There is no signal, thus no meaningful signal strength
+- value. Also returned if front-end is not turned on.</para>
+-</entry>
+- </row><row><entry
+- align="char">
+-<para>ENOSYS</para>
+-</entry><entry
+- align="char">
+-<para>Function not available for this device.</para>
+-</entry>
+- </row></tbody></tgroup></informaltable>
+ </section>
+ 
+ <section id="FE_READ_SIGNAL_STRENGTH">
+@@ -846,37 +787,8 @@ typedef enum fe_hierarchy {
+ <para>The signal strength value is stored into *strength.</para>
+ </entry>
+  </row></tbody></tgroup></informaltable>
++
+ &return-value-dvb;
+-<informaltable><tgroup cols="2"><tbody><row><entry
+- align="char">
+-<para>EBADF</para>
+-</entry><entry
+- align="char">
+-<para>fd is not a valid open file descriptor.</para>
+-</entry>
+- </row><row><entry
+- align="char">
+-<para>EFAULT</para>
+-</entry><entry
+- align="char">
+-<para>status points to invalid address.</para>
+-</entry>
+- </row><row><entry
+- align="char">
+-<para>ENOSIGNAL</para>
+-</entry><entry
+- align="char">
+-<para>There is no signal, thus no meaningful signal strength
+- value. Also returned if front-end is not turned on.</para>
+-</entry>
+- </row><row><entry
+- align="char">
+-<para>ENOSYS</para>
+-</entry><entry
+- align="char">
+-<para>Function not available for this device.</para>
+-</entry>
+- </row></tbody></tgroup></informaltable>
+ </section>
+ 
+ <section id="FE_READ_UNCORRECTED_BLOCKS">
+@@ -930,29 +842,8 @@ typedef enum fe_hierarchy {
+  so far.</para>
+ </entry>
+  </row></tbody></tgroup></informaltable>
++
+ &return-value-dvb;
+-<informaltable><tgroup cols="2"><tbody><row><entry
+- align="char">
+-<para>EBADF</para>
+-</entry><entry
+- align="char">
+-<para>fd is not a valid open file descriptor.</para>
+-</entry>
+- </row><row><entry
+- align="char">
+-<para>EFAULT</para>
+-</entry><entry
+- align="char">
+-<para>ublocks points to invalid address.</para>
+-</entry>
+- </row><row><entry
+- align="char">
+-<para>ENOSYS</para>
+-</entry><entry
+- align="char">
+-<para>Function not available for this device.</para>
+-</entry>
+- </row></tbody></tgroup></informaltable>
+ </section>
+ 
+ <section id="FE_SET_FRONTEND">
+@@ -1005,23 +896,10 @@ typedef enum fe_hierarchy {
+ <para>Points to parameters for tuning operation.</para>
+ </entry>
+  </row></tbody></tgroup></informaltable>
++
+ &return-value-dvb;
+ <informaltable><tgroup cols="2"><tbody><row><entry
+  align="char">
+-<para>EBADF</para>
+-</entry><entry
+- align="char">
+-<para>fd is not a valid open file descriptor.</para>
+-</entry>
+- </row><row><entry
+- align="char">
+-<para>EFAULT</para>
+-</entry><entry
+- align="char">
+-<para>p points to invalid address.</para>
+-</entry>
+- </row><row><entry
+- align="char">
+ <para>EINVAL</para>
+ </entry><entry
+  align="char">
+@@ -1078,23 +956,8 @@ typedef enum fe_hierarchy {
+  </row></tbody></tgroup></informaltable>
+ 
+ &return-value-dvb;
+-
+ <informaltable><tgroup cols="2"><tbody><row><entry
+  align="char">
+-<para>EBADF</para>
+-</entry><entry
+- align="char">
+-<para>fd is not a valid open file descriptor.</para>
+-</entry>
+- </row><row><entry
+- align="char">
+-<para>EFAULT</para>
+-</entry><entry
+- align="char">
+-<para>p points to invalid address.</para>
+-</entry>
+- </row><row><entry
+- align="char">
+ <para>EINVAL</para>
+ </entry><entry
+  align="char">
+@@ -1181,20 +1044,6 @@ typedef enum fe_hierarchy {
+ &return-value-dvb;
+ <informaltable><tgroup cols="2"><tbody><row><entry
+  align="char">
+-<para>EBADF</para>
+-</entry><entry
+- align="char">
+-<para>fd is not a valid open file descriptor.</para>
+-</entry>
+- </row><row><entry
+- align="char">
+-<para>EFAULT</para>
+-</entry><entry
+- align="char">
+-<para>ev points to invalid address.</para>
+-</entry>
+- </row><row><entry
+- align="char">
+ <para>EWOULDBLOCK</para>
+ </entry><entry
+  align="char">
+@@ -1206,11 +1055,6 @@ typedef enum fe_hierarchy {
+ <para>EOVERFLOW</para>
+ </entry><entry
+  align="char">
+-</entry>
+- </row><row><entry
+- align="char">
+-</entry><entry
+- align="char">
+ <para>Overflow in event queue - one or more events were lost.</para>
+ </entry>
+ </row></tbody></tgroup></informaltable>
+@@ -1264,21 +1108,6 @@ typedef enum fe_hierarchy {
+ </entry>
+  </row></tbody></tgroup></informaltable>
+ &return-value-dvb;
+-<informaltable><tgroup cols="2"><tbody><row><entry
+- align="char">
+-<para>EBADF</para>
+-</entry><entry
+- align="char">
+-<para>fd is not a valid open file descriptor.</para>
+-</entry>
+- </row><row><entry
+- align="char">
+-<para>EFAULT</para>
+-</entry><entry
+- align="char">
+-<para>info points to invalid address.</para>
+-</entry>
+-</row></tbody></tgroup></informaltable>
+ </section>
+ 
+ <section id="FE_DISEQC_RESET_OVERLOAD">
+@@ -1322,28 +1151,6 @@ typedef enum fe_hierarchy {
+  </row></tbody></tgroup></informaltable>
+ 
+ &return-value-dvb;
+-<informaltable><tgroup cols="2"><tbody><row><entry
+- align="char">
+-<para>EBADF</para>
+-</entry><entry
+- align="char">
+-<para>fd is not a valid file descriptor.</para>
+-</entry>
+- </row><row><entry
+- align="char">
+-<para>EPERM</para>
+-</entry><entry
+- align="char">
+-<para>Permission denied (needs read/write access).</para>
+-</entry>
+- </row><row><entry
+- align="char">
+-<para>EINTERNAL</para>
+-</entry><entry
+- align="char">
+-<para>Internal error in the device driver.</para>
+-</entry>
+-</row></tbody></tgroup></informaltable>
+ </section>
+ 
+ <section id="FE_DISEQC_SEND_MASTER_CMD">
+@@ -1394,43 +1201,6 @@ typedef enum fe_hierarchy {
+  </row></tbody></tgroup></informaltable>
+ 
+ &return-value-dvb;
+-<informaltable><tgroup cols="2"><tbody><row><entry
+- align="char">
+-<para>EBADF</para>
+-</entry><entry
+- align="char">
+-<para>fd is not a valid file descriptor.</para>
+-</entry>
+- </row><row><entry
+- align="char">
+-<para>EFAULT</para>
+-</entry><entry
+- align="char">
+-<para>Seq points to an invalid address.</para>
+-</entry>
+- </row><row><entry
+- align="char">
+-<para>EINVAL</para>
+-</entry><entry
+- align="char">
+-<para>The data structure referred to by seq is invalid in some
+- way.</para>
+-</entry>
+- </row><row><entry
+- align="char">
+-<para>EPERM</para>
+-</entry><entry
+- align="char">
+-<para>Permission denied (needs read/write access).</para>
+-</entry>
+- </row><row><entry
+- align="char">
+-<para>EINTERNAL</para>
+-</entry><entry
+- align="char">
+-<para>Internal error in the device driver.</para>
+-</entry>
+-</row></tbody></tgroup></informaltable>
+ </section>
+ 
+ <section id="FE_DISEQC_RECV_SLAVE_REPLY">
+@@ -1481,43 +1251,6 @@ typedef enum fe_hierarchy {
+ </entry>
+  </row></tbody></tgroup></informaltable>
+ &return-value-dvb;
+-<informaltable><tgroup cols="2"><tbody><row><entry
+- align="char">
+-<para>EBADF</para>
+-</entry><entry
+- align="char">
+-<para>fd is not a valid file descriptor.</para>
+-</entry>
+- </row><row><entry
+- align="char">
+-<para>EFAULT</para>
+-</entry><entry
+- align="char">
+-<para>Seq points to an invalid address.</para>
+-</entry>
+- </row><row><entry
+- align="char">
+-<para>EINVAL</para>
+-</entry><entry
+- align="char">
+-<para>The data structure referred to by seq is invalid in some
+- way.</para>
+-</entry>
+- </row><row><entry
+- align="char">
+-<para>EPERM</para>
+-</entry><entry
+- align="char">
+-<para>Permission denied (needs read/write access).</para>
+-</entry>
+- </row><row><entry
+- align="char">
+-<para>EINTERNAL</para>
+-</entry><entry
+- align="char">
+-<para>Internal error in the device driver.</para>
+-</entry>
+- </row></tbody></tgroup></informaltable>
+ </section>
+ 
+ <section id="FE_DISEQC_SEND_BURST">
+@@ -1566,43 +1299,6 @@ typedef enum fe_hierarchy {
+  </row></tbody></tgroup></informaltable>
+ 
+ &return-value-dvb;
+-<informaltable><tgroup cols="2"><tbody><row><entry
+- align="char">
+-<para>EBADF</para>
+-</entry><entry
+- align="char">
+-<para>fd is not a valid file descriptor.</para>
+-</entry>
+- </row><row><entry
+- align="char">
+-<para>EFAULT</para>
+-</entry><entry
+- align="char">
+-<para>Seq points to an invalid address.</para>
+-</entry>
+- </row><row><entry
+- align="char">
+-<para>EINVAL</para>
+-</entry><entry
+- align="char">
+-<para>The data structure referred to by seq is invalid in some
+- way.</para>
+-</entry>
+- </row><row><entry
+- align="char">
+-<para>EPERM</para>
+-</entry><entry
+- align="char">
+-<para>Permission denied (needs read/write access).</para>
+-</entry>
+- </row><row><entry
+- align="char">
+-<para>EINTERNAL</para>
+-</entry><entry
+- align="char">
+-<para>Internal error in the device driver.</para>
+-</entry>
+-</row></tbody></tgroup></informaltable>
+ </section>
+ 
+ <section id="FE_SET_TONE">
+@@ -1649,42 +1345,6 @@ typedef enum fe_hierarchy {
+ </entry>
+  </row></tbody></tgroup></informaltable>
+ &return-value-dvb;
+-<informaltable><tgroup cols="2"><tbody><row><entry
+- align="char">
+-<para>ENODEV</para>
+-</entry><entry
+- align="char">
+-<para>Device driver not loaded/available.</para>
+-</entry>
+- </row><row><entry
+- align="char">
+-<para>EBUSY</para>
+-</entry><entry
+- align="char">
+-<para>Device or resource busy.</para>
+-</entry>
+- </row><row><entry
+- align="char">
+-<para>EINVAL</para>
+-</entry><entry
+- align="char">
+-<para>Invalid argument.</para>
+-</entry>
+- </row><row><entry
+- align="char">
+-<para>EPERM</para>
+-</entry><entry
+- align="char">
+-<para>File not opened with read permissions.</para>
+-</entry>
+- </row><row><entry
+- align="char">
+-<para>EINTERNAL</para>
+-</entry><entry
+- align="char">
+-<para>Internal error in the device driver.</para>
+-</entry>
+-</row></tbody></tgroup></informaltable>
+ </section>
+ 
+ <section id="FE_SET_VOLTAGE">
+@@ -1733,42 +1393,6 @@ typedef enum fe_hierarchy {
+  </row></tbody></tgroup></informaltable>
+ 
+ &return-value-dvb;
+-<informaltable><tgroup cols="2"><tbody><row><entry
+- align="char">
+-<para>ENODEV</para>
+-</entry><entry
+- align="char">
+-<para>Device driver not loaded/available.</para>
+-</entry>
+- </row><row><entry
+- align="char">
+-<para>EBUSY</para>
+-</entry><entry
+- align="char">
+-<para>Device or resource busy.</para>
+-</entry>
+- </row><row><entry
+- align="char">
+-<para>EINVAL</para>
+-</entry><entry
+- align="char">
+-<para>Invalid argument.</para>
+-</entry>
+- </row><row><entry
+- align="char">
+-<para>EPERM</para>
+-</entry><entry
+- align="char">
+-<para>File not opened with read permissions.</para>
+-</entry>
+- </row><row><entry
+- align="char">
+-<para>EINTERNAL</para>
+-</entry><entry
+- align="char">
+-<para>Internal error in the device driver.</para>
+-</entry>
+- </row></tbody></tgroup></informaltable>
+ </section>
+ 
+ <section id="FE_ENABLE_HIGH_LNB_VOLTAGE">
+@@ -1818,42 +1442,6 @@ typedef enum fe_hierarchy {
+  </row></tbody></tgroup></informaltable>
+ 
+ &return-value-dvb;
+-<informaltable><tgroup cols="2"><tbody><row><entry
+- align="char">
+-<para>ENODEV</para>
+-</entry><entry
+- align="char">
+-<para>Device driver not loaded/available.</para>
+-</entry>
+- </row><row><entry
+- align="char">
+-<para>EBUSY</para>
+-</entry><entry
+- align="char">
+-<para>Device or resource busy.</para>
+-</entry>
+- </row><row><entry
+- align="char">
+-<para>EINVAL</para>
+-</entry><entry
+- align="char">
+-<para>Invalid argument.</para>
+-</entry>
+- </row><row><entry
+- align="char">
+-<para>EPERM</para>
+-</entry><entry
+- align="char">
+-<para>File not opened with read permissions.</para>
+-</entry>
+- </row><row><entry
+- align="char">
+-<para>EINTERNAL</para>
+-</entry><entry
+- align="char">
+-<para>Internal error in the device driver.</para>
+-</entry>
+- </row></tbody></tgroup></informaltable>
+ </section>
+ 
+ <section id="FE_SET_FRONTEND_TUNE_MODE">
+@@ -1886,10 +1474,6 @@ FE_TUNE_MODE_ONESHOT When set, this flag will disable any zigzagging or other "n
+  </row></tbody></tgroup></informaltable>
+ 
+ &return-value-dvb;
+-<informaltable><tgroup cols="2"><tbody><row>
+-<entry align="char"><para>EINVAL</para></entry>
+-<entry align="char"><para>Invalid argument.</para></entry>
+- </row></tbody></tgroup></informaltable>
+ </section>
+ 
+ <section id="FE_DISHNETWORK_SEND_LEGACY_CMD">
+@@ -1924,11 +1508,6 @@ sends the specified raw cmd to the dish via DISEqC.
+  </row></tbody></tgroup></informaltable>
+ 
+ &return-value-dvb;
+-<informaltable><tgroup cols="1"><tbody><row>
+-<entry align="char">
+-	<para>There are no errors in use for this call</para>
+-</entry>
+-</row></tbody></tgroup></informaltable>
+ </section>
+ 
+ </section>
+diff --git a/Documentation/DocBook/media/v4l/gen-errors.xml b/Documentation/DocBook/media/v4l/gen-errors.xml
+index 3e6ddd9..dedcc90 100644
+--- a/Documentation/DocBook/media/v4l/gen-errors.xml
++++ b/Documentation/DocBook/media/v4l/gen-errors.xml
+@@ -8,7 +8,7 @@
+ 	<!-- Keep it ordered alphabetically -->
+       <row>
+ 	<entry>EBADF</entry>
+-	<entry><parameter>fd</parameter> is not a valid open file descriptor.</entry>
++	<entry>The file descriptor is not a valid.</entry>
+       </row>
+       <row>
+ 	<entry>EBUSY</entry>
+@@ -21,18 +21,20 @@
+       </row>
+       <row>
+ 	<entry>EFAULT</entry>
+-	<entry><parameter>fd</parameter> is not a valid open file descriptor.</entry>
++	<entry>There was a failure while copying data from/to userspace.</entry>
+       </row>
+       <row>
+ 	<entry>EINVAL</entry>
+-	<entry>One or more of the ioctl parameters are invalid. This is a widely
+-	       error code. see the individual ioctl requests for actual causes.</entry>
++	<entry>One or more of the ioctl parameters are invalid or out of the
++	       allowed range. This is a widely error code. See the individual
++	       ioctl requests for specific causes.</entry>
+       </row>
+       <row>
+ 	<entry>EINVAL or ENOTTY</entry>
+ 	<entry>The ioctl is not supported by the driver, actually meaning that
+ 	       the required functionality is not available, or the file
+-	       descriptor is not for a media device.</entry>
++	       descriptor is not for a media device. The usage of EINVAL is
++	       deprecated and will be fixed on a latter patch.</entry>
+       </row>
+       <row>
+         <entry>ENODEV</entry>
+@@ -49,6 +51,17 @@
+ 	       for periodic transfers (up to 80% of the USB bandwidth).</entry>
+       </row>
+       <row>
++	<entry>ENOSYS or EOPNOTSUPP</entry>
++	<entry>Function not available for this device (dvb API only. Will likely
++	       be replaced anytime soon by ENOTTY).</entry>
++      </row>
++      <row>
++	<entry>EPERM</entry>
++	<entry>Permission denied. Can be returned if the device needs write
++		permission, or some special capabilities is needed
++		(e. g. root)</entry>
++      </row>
++      <row>
+ 	<entry>EWOULDBLOCK</entry>
+ 	<entry>Operation would block. Used when the ioctl would need to wait
+ 	       for an event, but the device was opened in non-blocking mode.</entry>
+-- 
+1.7.1
 
-Yet, they allow users to manually adjust the volume controls, as someone
-may want for example to use the mixer to mix the original TV audio with
-a microphone, for example, connected at the LINE IN input that some boards
-offer.
-
-Also, some newer devices are coming with the capability of mixing video
-inputs (s5p driver recently added a video mixer). It makes sense for
-applications that use it, to also allow controlling the audio mixer.
-
-That's basically why we want to expose such controls to userspace: to allow
-users to control the audio mixer when they need, for whatever reason.
-
-If I understood PA concepts, its philosophy seems to hide those controls
-that aren't meant to be used by the default usecase. As such, it should
-not be exposing any mixer/mute at all from a V4L device.
-
-The proper fix seems to make PA to use libmedia_dev[1] to detect what audio
-input devices are associated with a V4L board and removing them for the
-list of controlled devices by default, eventually allowing the users to add
-them again via some configuration parameter.
-
-[1] http://git.linuxtv.org/v4l-utils.git?a=blob;f=utils/libmedia_dev/README
-
->> Moving such logic to happen at userspace would be very complex, and will
->> break existing applications.
-> If this is the case, then how does the simplest
-> xawtv's mute/unmute thing works with all these
-> boards right now? (not that I have checked it does,
-> but I hope so. :)
-
-Xawtv mute/unmute probably needs fix. It uses 3 different API's for that:
-V4L2, ALSA and OSS. Most of the logic there is for OSS, witch can be removed
-nowadays.
-
-Feel free to submit patches for it.
-
-Yet, as you may be aware of that, the V4L2 API offers a few audio controls 
-(volume, mute, balance, bass, treble), that applies to the current 
-stream, on the drivers that provide them. So, a video application may opt to
-not control the alsa mixers directly, but, instead, use the V4L2 controls.
-
-Thanks,
-Mauro
 
