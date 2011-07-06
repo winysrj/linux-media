@@ -1,41 +1,28 @@
-Return-path: <mchehab@pedra>
-Received: from out3.smtp.messagingengine.com ([66.111.4.27]:37293 "EHLO
-	out3.smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757817Ab1GAVdW (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 1 Jul 2011 17:33:22 -0400
-Date: Fri, 1 Jul 2011 14:24:27 -0700
-From: Greg KH <greg@kroah.com>
-To: Kirill Smelkov <kirr@mns.spb.ru>
-Cc: Alan Stern <stern@rowland.harvard.edu>,
-	Sarah Sharp <sarah.a.sharp@linux.intel.com>,
-	matt mooney <mfm@muteddisk.com>,
-	Greg Kroah-Hartman <gregkh@suse.de>, linux-usb@vger.kernel.org,
-	linux-uvc-devel@lists.berlios.de, linux-media@vger.kernel.org,
-	linux-kernel@vger.kernel.org
-Subject: Re: [PATCH v3 2/2] USB: EHCI: Allow users to override 80% max
- periodic bandwidth
-Message-ID: <20110701212427.GA11831@kroah.com>
-References: <cover.1309520144.git.kirr@mns.spb.ru>
- <69ea2dd940481508f190419c53c780b626460b22.1309520144.git.kirr@mns.spb.ru>
+Return-path: <mchehab@localhost>
+Received: from equal.cluenet.org ([109.74.200.177]:60233 "EHLO
+	equal.cluenet.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753250Ab1GFMLO (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 6 Jul 2011 08:11:14 -0400
+Received: from snow.nullroute.eu.org (unknown [IPv6:2001:470:1f0b:614:4a5d:60ff:fee8:658f])
+	by equal.cluenet.org (Postfix) with ESMTPSA id 24F01128001
+	for <linux-media@vger.kernel.org>; Wed,  6 Jul 2011 12:04:16 +0000 (UTC)
+From: =?UTF-8?q?Mantas=20Mikul=C4=97nas?= <grawity@nullroute.eu.org>
+To: linux-media@vger.kernel.org
+Subject: [PATCH] Upside-down webcam on Asus K52JT
+Date: Wed,  6 Jul 2011 15:04:03 +0300
+Message-Id: <1309953844-3500-1-git-send-email-grawity@nullroute.eu.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <69ea2dd940481508f190419c53c780b626460b22.1309520144.git.kirr@mns.spb.ru>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 List-ID: <linux-media.vger.kernel.org>
-Sender: <mchehab@pedra>
+Sender: <mchehab@infradead.org>
 
-On Fri, Jul 01, 2011 at 03:47:11PM +0400, Kirill Smelkov wrote:
->  drivers/usb/host/ehci-sysfs.c |  104 +++++++++++++++++++++++++++++++++++++++--
+Greetings from yet another owner of an Asus laptop. Hopefully this is the right place... patch included.
 
-As you are adding new sysfs files, it is required that you also add new
-entries in the Documentation/ABI/ directory.
+- device: 04f2:b1e5
+- manufacturer: "ASUSTeK Computer Inc.        "
+- product: "K52JT"
 
-Please do that for these files so that people have an idea of what they
-are, and how to use them.
+-- 
+Mantas
 
-Care to redo this series with that change?
-
-thanks,
-
-greg k-h
