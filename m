@@ -1,99 +1,53 @@
-Return-path: <mchehab@pedra>
-Received: from mail-ew0-f46.google.com ([209.85.215.46]:33595 "EHLO
-	mail-ew0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750949Ab1GEAzD (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 4 Jul 2011 20:55:03 -0400
-Received: by ewy4 with SMTP id 4so1879061ewy.19
-        for <linux-media@vger.kernel.org>; Mon, 04 Jul 2011 17:55:02 -0700 (PDT)
-MIME-Version: 1.0
-Date: Mon, 4 Jul 2011 20:55:01 -0400
-Message-ID: <CAGoCfizfCM2oCoRb7sWfyTL34JNMK2Yq_rM-SMwswWGLtewNCg@mail.gmail.com>
-Subject: [PATCH] dvb_frontend: fix race condition in stopping/starting frontend
-From: Devin Heitmueller <dheitmueller@kernellabs.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Content-Type: multipart/mixed; boundary=0015174c41d809f32104a747ef53
+Return-path: <mchehab@localhost>
+Received: from mx1.redhat.com ([209.132.183.28]:65315 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755111Ab1GFSE2 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 6 Jul 2011 14:04:28 -0400
+Date: Wed, 6 Jul 2011 15:03:59 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+Subject: [PATCH RFCv3 13/17] [media] dvb-bt8xx: Don't return -EFAULT when a
+ device is not found
+Message-ID: <20110706150359.28924e4a@pedra>
+In-Reply-To: <cover.1309974026.git.mchehab@redhat.com>
+References: <cover.1309974026.git.mchehab@redhat.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
+To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
 List-ID: <linux-media.vger.kernel.org>
-Sender: <mchehab@pedra>
+Sender: <mchehab@infradead.org>
 
---0015174c41d809f32104a747ef53
-Content-Type: text/plain; charset=ISO-8859-1
+When a device (or their PCI structs) are not found, the error should
+be -ENODEV. -EFAULT is reserved for errors while copying arguments
+from/to userspace.
 
-Attached is a patch which addresses a race condition in the DVB core
-related to closing/reopening the DVB frontend device in quick
-succession.  This is the reason that devices such as the HVR-1300,
-HVR-3000, and HVR-4000 have been failing to scan properly under MythTV
-and w_scan.
+Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
 
-The gory details of the race are described in the patch.
-
-Devin
-
+diff --git a/drivers/media/dvb/bt8xx/dvb-bt8xx.c b/drivers/media/dvb/bt8xx/dvb-bt8xx.c
+index 1e1106d..521d691 100644
+--- a/drivers/media/dvb/bt8xx/dvb-bt8xx.c
++++ b/drivers/media/dvb/bt8xx/dvb-bt8xx.c
+@@ -892,7 +892,7 @@ static int __devinit dvb_bt8xx_probe(struct bttv_sub_device *sub)
+ 	if (!(bttv_pci_dev = bttv_get_pcidev(card->bttv_nr))) {
+ 		printk("dvb_bt8xx: no pci device for card %d\n", card->bttv_nr);
+ 		kfree(card);
+-		return -EFAULT;
++		return -ENODEV;
+ 	}
+ 
+ 	if (!(card->bt = dvb_bt8xx_878_match(card->bttv_nr, bttv_pci_dev))) {
+@@ -902,7 +902,7 @@ static int __devinit dvb_bt8xx_probe(struct bttv_sub_device *sub)
+ 		       "installed, try removing it.\n");
+ 
+ 		kfree(card);
+-		return -EFAULT;
++		return -ENODEV;
+ 	}
+ 
+ 	mutex_init(&card->bt->gpio_lock);
 -- 
-Devin J. Heitmueller - Kernel Labs
-http://www.kernellabs.com
+1.7.1
 
---0015174c41d809f32104a747ef53
-Content-Type: text/x-patch; charset=US-ASCII; name="frontend_dvb_init.patch"
-Content-Disposition: attachment; filename="frontend_dvb_init.patch"
-Content-Transfer-Encoding: base64
-X-Attachment-Id: f_gpq5c3t10
 
-ZHZiX2Zyb250ZW5kOiBmaXggcmFjZSBjb25kaXRpb24gaW4gc3RvcHBpbmcvc3RhcnRpbmcgZnJv
-bnRlbmQKCkZyb206IERldmluIEhlaXRtdWVsbGVyIDxkaGVpdG11ZWxsZXJAa2VybmVsbGFicy5j
-b20+CgpUaGVyZSBpcyBhIHJhY2UgY29uZGl0aW9uIGV4aGliaXRlZCB3aGVuIGNoYW5uZWwgc2Nh
-bm5lcnMgc3VjaCBhcyB3X3NjYW4gYW5kCk15dGhUViBxdWlja2x5IGNsb3NlIGFuZCB0aGVuIHJl
-b3BlbiB0aGUgZnJvbnRlbmQgZGV2aWNlIG5vZGUuCgpVbmRlciBub3JtYWwgY29uZGl0aW9ucywg
-dGhlIGJlaGF2aW9yIGlzIGFzIGZvbGxvd3M6CgoxLiAgQXBwbGljYXRpb24gY2xvc2VzIHRoZSBk
-ZXZpY2Ugbm9kZQoyLiAgRFZCIGZyb250ZW5kIGlvY3RsIGNhbGxzIGR2Yl9mcm9udGVuZF9yZWxl
-YXNlIHdoaWNoIHNldHMKICAgIGZlcHJpdi0+cmVsZWFzZV9qaWZmaWVzCjMuICBEVkIgZnJvbnRl
-bmQgdGhyZWFkICpldmVudHVhbGx5KiBjYWxscyBkdmJfZnJvbnRlbmRfaXNfZXhpdGluZygpIHdo
-aWNoCiAgICBjb21wYXJlcyBmZXByaXYtPnJlbGVhc2VfamlmZmllcywgYW5kIHNodXRzIGRvd24g
-dGhlIHRocmVhZCBpZiB0aW1lb3V0IGhhcwogICAgZXhwaXJlZAo0LiAgVGhyZWFkIGdvZXMgYXdh
-eQo1LiAgQXBwbGljYXRpb24gb3BlbnMgZnJvbnRlbmQgZGV2aWNlCjYuICBEVkIgZnJvbnRlbmQg
-aW9jdGwoKSBjYWxscyB0c19idXNfY3RybCgxKQo3LiAgRFZCIGZyb250ZW5kIGlvY3RsKCkgY3Jl
-YXRlcyBuZXcgZnJvbnRlbmQgdGhyZWFkLCB3aGljaCBjYWxscwogICAgZHZiX2Zyb250ZW5kX2lu
-aXQoKSwgd2hpY2ggaGFzIGRlbW9kIGRyaXZlciBpbml0KCkgcm91dGluZSBzZXR1cCBpbml0aWFs
-CiAgICByZWdpc3RlciBzdGF0ZSBmb3IgZGVtb2QgY2hpcC4KOC4gIFR1bmluZyByZXF1ZXN0IGlz
-IGlzc3VlZC4KClRoZSByYWNlIG9jY3VycyB3aGVuIHRoZSBhcHBsaWNhdGlvbiBpbiBzdGVwIDUg
-cGVyZm9ybXMgdGhlIG5ldyBvcGVuKCkgY2FsbApiZWZvcmUgdGhlIGZyb250ZW5kIHRocmVhZCBp
-cyBzaHV0ZG93bi4gIEluIHRoaXMgY2FzZSB0aGUgdHNfYnVzX2N0cmwoKSBjYWxsCmlzIG1hZGUs
-IHdoaWNoIHN0cm9iZXMgdGhlIFJFU0VUIHBpbiBvbiB0aGUgZGVtb2R1bGF0b3IsIGJ1dCB0aGUK
-ZHZiX2Zyb250ZW5kX2luaXQoKSBmdW5jdGlvbiBuZXZlciBnZXRzIGNhbGxlZCBiZWNhdXNlIHRo
-ZSBmcm9udGVuZCB0aHJlYWQKaGFzbid0IGdvbmUgYXdheSB5ZXQuICBBcyBhIHJlc3VsdCwgdGhl
-IGluaXRpYWwgcmVnaXN0ZXIgY29uZmlnIGZvciB0aGUgZGVtb2QKaXMgKm5ldmVyKiBzZXR1cCwg
-Y2F1c2luZyBzdWJzZXF1ZW50IHR1bmluZyByZXF1ZXN0cyB0byBmYWlsLgoKSWYgdGhlcmUgaXMg
-dGltZSBiZXR3ZWVuIHRoZSBjbG9zZSBhbmQgb3BlbiAoZW5vdWdoIGZvciB0aGUgZHZiIGZyb250
-ZW5kCnRocmVhZCB0byBiZSB0b3JuIGRvd24pLCB0aGVuIGluIHRoYXQgY2FzZSB0aGUgbmV3IGZy
-b250ZW5kIHRocmVhZCBpcyBjcmVhdGVkCmFuZCB0aHVzIHRoZSBkdmJfZnJvbnRlbmRfaW5pdCgp
-IGZ1bmN0aW9uIGRvZXMgZ2V0IGNhbGxlZC4KClRoZSBmaXggaXMgdG8gc2V0IHRoZSBmbGFnIHdo
-aWNoIGZvcmNlcyByZWluaXRpYWxpemF0aW9uIGlmIHdlIGRpZCBpbiBmYWN0CmNhbGwgdHNfYnVz
-X2N0cmwoKS4KClRoaXMgcHJvYmxlbSBoYXMgYmVlbiBzZWVuIG9uIHRoZSBIVlItMTMwMCwgSFZS
-LTMwMDAsIGFuZCBIVlItNDAwMCwgYW5kIGlzCmxpa2VseSBvY2N1cmluZyBvbiBvdGhlciBkZXNp
-Z25zIGFzIHdlbGwgd2hlcmUgdHNfYnVzX2N0cmwoKSBhY3R1YWxseSBzdHJvYmVzCnRoZSByZXNl
-dCBwaW4gb24gdGhlIGRlbW9kdWxhdG9yLgoKTm90ZSB0aGF0IHRoaXMgcGF0Y2ggc2hvdWxkIHN1
-cGVyY2VkZSBhbnkgcGF0Y2hlcyBzdWJtaXR0ZWQgZm9yIHRoZQoxMzAwLzMwMDAvNDAwMCB3aGlj
-aCByZW1vdmUgdGhlIGNvZGUgdGhhdCByZW1vdmVzIEdQSU8gY29kZSBpbgpjeDg4MDJfZHZiX2Fk
-dmlzZV9hY3F1aXJlKCksIHdoaWNoIGhhdmUgYmVlbiBjaXJjdWxhdGluZyBieSB1c2VycyBmb3Ig
-c29tZQp0aW1lIG5vdy4uLgoKQ2Fub25pY2FsIHRyYWNraW5nIHRoaXMgaXNzdWUgaW4gTGF1bmNo
-cGFkIDQzOTE2MzoKCmh0dHBzOi8vYnVncy5sYXVuY2hwYWQubmV0L215dGh0di8rYnVnLzQzOTE2
-MwoKVGhhbmtzIHRvIEpvbiBTYXllcnMgZnJvbSBIYXVwcGF1Z2UgYW5kIEZsb3JlbnQgQXVkZWJl
-cnQgZnJvbSBBbmV2aWEgUy5BLiBmb3IKcHJvdmlkaW5nIGhhcmR3YXJlIHRvIHRlc3QvZGVidWcg
-d2l0aC4KClNpZ25lZC1vZmYtYnk6IERldmluIEhlaXRtdWVsbGVyIDxkaGVpdG11ZWxsZXJAa2Vy
-bmVsbGFicy5jb20+CkNjOiBKb24gU2F5ZXJzIDxqLnNheWVyc0BoYXVwcGF1Z2UuY28udWs+CkNj
-OiBGbG9yZW50IEF1ZGViZXJ0IDxmbG9yZW50LmF1ZGViZXJ0QGFuZXZpYS5jb20+CgpkaWZmIC0t
-Z2l0IGEvZHJpdmVycy9tZWRpYS9kdmIvZHZiLWNvcmUvZHZiX2Zyb250ZW5kLmMgYi9kcml2ZXJz
-L21lZGlhL2R2Yi9kdmItY29yZS9kdmJfZnJvbnRlbmQuYwppbmRleCBiZWQ3YmZlLi5lZmU5YzMw
-IDEwMDY0NAotLS0gYS9kcml2ZXJzL21lZGlhL2R2Yi9kdmItY29yZS9kdmJfZnJvbnRlbmQuYwor
-KysgYi9kcml2ZXJzL21lZGlhL2R2Yi9kdmItY29yZS9kdmJfZnJvbnRlbmQuYwpAQCAtMTk4OSw2
-ICsxOTg5LDE0IEBAIHN0YXRpYyBpbnQgZHZiX2Zyb250ZW5kX29wZW4oc3RydWN0IGlub2RlICpp
-bm9kZSwgc3RydWN0IGZpbGUgKmZpbGUpCiAJaWYgKGR2YmRldi0+dXNlcnMgPT0gLTEgJiYgZmUt
-Pm9wcy50c19idXNfY3RybCkgewogCQlpZiAoKHJldCA9IGZlLT5vcHMudHNfYnVzX2N0cmwoZmUs
-IDEpKSA8IDApCiAJCQlnb3RvIGVycjA7CisKKwkJLyogSWYgd2UgdG9vayBjb250cm9sIG9mIHRo
-ZSBidXMsIHdlIG5lZWQgdG8gZm9yY2UKKwkJICAgcmVpbml0aWFsaXphdGlvbi4gIFRoaXMgaXMg
-YmVjYXVzZSBtYW55IHRzX2J1c19jdHJsKCkKKwkJICAgZnVuY3Rpb25zIHN0cm9iZSB0aGUgUkVT
-RVQgcGluIG9uIHRoZSBkZW1vZCwgYW5kIGlmIHRoZQorCQkgICBmcm9udGVuZCB0aHJlYWQgYWxy
-ZWFkeSBleGlzdHMgdGhlbiB0aGUgZHZiX2luaXQoKSByb3V0aW5lCisJCSAgIHdvbid0IGdldCBj
-YWxsZWQgKHdoaWNoIGlzIHdoYXQgdXN1YWxseSBkb2VzIGluaXRpYWwKKwkJICAgcmVnaXN0ZXIg
-Y29uZmlndXJhdGlvbikuICovCisJCWZlcHJpdi0+cmVpbml0aWFsaXNlID0gMTsKIAl9CiAKIAlp
-ZiAoKHJldCA9IGR2Yl9nZW5lcmljX29wZW4gKGlub2RlLCBmaWxlKSkgPCAwKQo=
---0015174c41d809f32104a747ef53--
