@@ -1,277 +1,121 @@
-Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr14.xs4all.nl ([194.109.24.34]:4808 "EHLO
-	smtp-vbr14.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751087Ab1GZKLd (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 26 Jul 2011 06:11:33 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Sakari Ailus <sakari.ailus@iki.fi>
-Subject: Re: [RFC 1/3] v4l: Move event documentation from SUBSCRIBE_EVENT to DQEVENT
-Date: Tue, 26 Jul 2011 12:11:28 +0200
-Cc: linux-media@vger.kernel.org
-References: <4E2588AD.4070106@maxwell.research.nokia.com> <1311082688-16185-1-git-send-email-sakari.ailus@iki.fi>
-In-Reply-To: <1311082688-16185-1-git-send-email-sakari.ailus@iki.fi>
+Return-path: <mchehab@localhost>
+Received: from rcdn-iport-5.cisco.com ([173.37.86.76]:4729 "EHLO
+	rcdn-iport-5.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752900Ab1GFLQh (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 6 Jul 2011 07:16:37 -0400
+Received: from OSLEXCP11.eu.tandberg.int ([173.38.136.5])
+	by rcdn-core-2.cisco.com (8.14.3/8.14.3) with ESMTP id p66BGXME007433
+	for <linux-media@vger.kernel.org>; Wed, 6 Jul 2011 11:16:36 GMT
+Received: from cobaltpc1.localnet ([10.54.77.72])
+	by ultra.eu.tandberg.int (8.13.1/8.13.1) with ESMTP id p66BGY7V031410
+	for <linux-media@vger.kernel.org>; Wed, 6 Jul 2011 13:16:35 +0200
+From: Hans Verkuil <hansverk@cisco.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: RFC: Changes to preset handling
+Date: Wed, 6 Jul 2011 13:16:12 +0200
 MIME-Version: 1.0
 Content-Type: Text/Plain;
-  charset="iso-8859-15"
+  charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Message-Id: <201107261211.28542.hverkuil@xs4all.nl>
-Sender: linux-media-owner@vger.kernel.org
+Message-Id: <201107061316.12948.hansverk@cisco.com>
 List-ID: <linux-media.vger.kernel.org>
+Sender: <mchehab@infradead.org>
 
-On Tuesday, July 19, 2011 15:38:06 Sakari Ailus wrote:
-> Move documentation of structures used in DQEVENT from SUBSCRIBE_EVENT to
-> DQEVENT.
-> 
-> Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
+There has been some discussion recently regarding the preset API:
 
-Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+http://www.mail-archive.com/linux-media@vger.kernel.org/msg33774.html
 
-This is a much better place!
+The current presets are:
 
-Regards,
+#define         V4L2_DV_INVALID         0
+#define         V4L2_DV_480P59_94       1 /* BT.1362 */
+#define         V4L2_DV_576P50          2 /* BT.1362 */
+#define         V4L2_DV_720P24          3 /* SMPTE 296M */
+#define         V4L2_DV_720P25          4 /* SMPTE 296M */
+#define         V4L2_DV_720P30          5 /* SMPTE 296M */
+#define         V4L2_DV_720P50          6 /* SMPTE 296M */
+#define         V4L2_DV_720P59_94       7 /* SMPTE 274M */
+#define         V4L2_DV_720P60          8 /* SMPTE 274M/296M */
+#define         V4L2_DV_1080I29_97      9 /* BT.1120/ SMPTE 274M */
+#define         V4L2_DV_1080I30         10 /* BT.1120/ SMPTE 274M */
+#define         V4L2_DV_1080I25         11 /* BT.1120 */
+#define         V4L2_DV_1080I50         12 /* SMPTE 296M */
+#define         V4L2_DV_1080I60         13 /* SMPTE 296M */
+#define         V4L2_DV_1080P24         14 /* SMPTE 296M */
+#define         V4L2_DV_1080P25         15 /* SMPTE 296M */
+#define         V4L2_DV_1080P30         16 /* SMPTE 296M */
+#define         V4L2_DV_1080P50         17 /* BT.1120 */
+#define         V4L2_DV_1080P60         18 /* BT.1120 */
+
+One thing that needs to change is that the comments should refer to the
+CEA-861 standard since all these presets are from that document. The other
+thing is that the macros should contain the name of the standard and the
+exact resolution. This allows for adding presets from other standards
+such as the VESA DMT standard.
+
+The proposed list of presets would look like this:
+
+#define         V4L2_DV_INVALID                    0
+#define         V4L2_DV_CEA861_720X480P59_94       1 /* CEA-861, VIC 2, 3 */
+#define         V4L2_DV_480P59_94       V4L2_DV_CEA861_720X480P59_94
+#define         V4L2_DV_CEA861_720X576P50          2 /* CEA-861, VIC 17, 18 */
+#define         V4L2_DV_576P50          V4L2_DV_CEA861_720X576P50
+#define         V4L2_DV_CEA861_1280X720P24         3 /* CEA-861, VIC 60 */
+#define         V4L2_DV_720P24          V4L2_DV_CEA861_1280X720P24
+...
+#define         V4L2_DV_CEA861_1280X720P59_94      7 /* CEA-861, VIC 4 */
+#define         V4L2_DV_720P59_94       V4L2_DV_CEA861_1280X720P59_94
+#define         V4L2_DV_CEA861_1280X720P60         8 /* CEA-861, VIC 4 */
+#define         V4L2_DV_720P60          V4L2_DV_CEA861_1280X720P60
+...
+
+The old names become aliases to the new ones.
+
+I would also like to reserve the range 1-65535 for the CEA presets, so a comment
+is needed for this.
+
+The other part that needs to be extended is struct v4l2_dv_enum_presets. Currently
+this returns a human readable description of the format and the width and height.
+
+What is missing is the fps or frame period and a flags field that can tell whether
+this is an interlaced or progressive format.
+
+So I propose to extend the struct as follows:
+
+struct v4l2_dv_enum_preset {
+        __u32   index;
+        __u32   preset;
+        __u8    name[32]; /* Name of the preset timing */
+        __u32   width;
+        __u32   height;
+        struct v4l2_fract fps;
+        __u32   flags;
+        __u32   reserved[1];
+};
+
+#define V4L2_DV_ENUM_FL_INTERLACED (1 << 0)
+
+What is better: that the v4l2_fract represents frames-per-second or that it represents
+time-per-frame? G/S_PARM uses the latter, but I find the first more logical.
+
+Another thing that is missing in VIDIOC_ENUM_DV_PRESETS is that you cannot put in a
+specific preset and get back this information. Instead it is index based. This is fine
+when you want to enumerate all available presets, but it is annoying when you want to
+find the specifics one particular preset.
+
+I propose that we define a specific index value (e.g. 0x80000000) that will let the
+driver return the information about the preset instead (or -EINVAL if the preset is
+not supported by the driver). So:
+
+#define V4L2_DV_ENUM_USE_PRESET 0x80000000
+
+A separate issue is how to handle calculated modes based on the VESA GTF and CVT
+standards. For a video transmitter the VIDIOC_S_DV_TIMINGS can be used, although
+the application has to do the calculations. For video receiving things are much
+more complex. This needs more research. There are several possibilities, but it
+isn't clear which works best. Some experimentation is needed, but due to vacations
+this will have to be postponed.
+
+Comment?
 
 	Hans
-
-> ---
->  Documentation/DocBook/media/v4l/vidioc-dqevent.xml |  107 ++++++++++++++++++++
->  .../DocBook/media/v4l/vidioc-subscribe-event.xml   |  107 --------------------
->  2 files changed, 107 insertions(+), 107 deletions(-)
-> 
-> diff --git a/Documentation/DocBook/media/v4l/vidioc-dqevent.xml b/Documentation/DocBook/media/v4l/vidioc-dqevent.xml
-> index 7769642..5200b68 100644
-> --- a/Documentation/DocBook/media/v4l/vidioc-dqevent.xml
-> +++ b/Documentation/DocBook/media/v4l/vidioc-dqevent.xml
-> @@ -135,6 +135,113 @@
->        </tgroup>
->      </table>
->  
-> +    <table frame="none" pgwide="1" id="v4l2-event-vsync">
-> +      <title>struct <structname>v4l2_event_vsync</structname></title>
-> +      <tgroup cols="3">
-> +	&cs-str;
-> +	<tbody valign="top">
-> +	  <row>
-> +	    <entry>__u8</entry>
-> +	    <entry><structfield>field</structfield></entry>
-> +	    <entry>The upcoming field. See &v4l2-field;.</entry>
-> +	  </row>
-> +	</tbody>
-> +      </tgroup>
-> +    </table>
-> +
-> +    <table frame="none" pgwide="1" id="v4l2-event-ctrl">
-> +      <title>struct <structname>v4l2_event_ctrl</structname></title>
-> +      <tgroup cols="4">
-> +	&cs-str;
-> +	<tbody valign="top">
-> +	  <row>
-> +	    <entry>__u32</entry>
-> +	    <entry><structfield>changes</structfield></entry>
-> +	    <entry></entry>
-> +	    <entry>A bitmask that tells what has changed. See <xref linkend="changes-flags" />.</entry>
-> +	  </row>
-> +	  <row>
-> +	    <entry>__u32</entry>
-> +	    <entry><structfield>type</structfield></entry>
-> +	    <entry></entry>
-> +	    <entry>The type of the control. See &v4l2-ctrl-type;.</entry>
-> +	  </row>
-> +	  <row>
-> +	    <entry>union (anonymous)</entry>
-> +	    <entry></entry>
-> +	    <entry></entry>
-> +	    <entry></entry>
-> +	  </row>
-> +	  <row>
-> +	    <entry></entry>
-> +	    <entry>__s32</entry>
-> +	    <entry><structfield>value</structfield></entry>
-> +	    <entry>The 32-bit value of the control for 32-bit control types.
-> +		This is 0 for string controls since the value of a string
-> +		cannot be passed using &VIDIOC-DQEVENT;.</entry>
-> +	  </row>
-> +	  <row>
-> +	    <entry></entry>
-> +	    <entry>__s64</entry>
-> +	    <entry><structfield>value64</structfield></entry>
-> +	    <entry>The 64-bit value of the control for 64-bit control types.</entry>
-> +	  </row>
-> +	  <row>
-> +	    <entry>__u32</entry>
-> +	    <entry><structfield>flags</structfield></entry>
-> +	    <entry></entry>
-> +	    <entry>The control flags. See <xref linkend="control-flags" />.</entry>
-> +	  </row>
-> +	  <row>
-> +	    <entry>__s32</entry>
-> +	    <entry><structfield>minimum</structfield></entry>
-> +	    <entry></entry>
-> +	    <entry>The minimum value of the control. See &v4l2-queryctrl;.</entry>
-> +	  </row>
-> +	  <row>
-> +	    <entry>__s32</entry>
-> +	    <entry><structfield>maximum</structfield></entry>
-> +	    <entry></entry>
-> +	    <entry>The maximum value of the control. See &v4l2-queryctrl;.</entry>
-> +	  </row>
-> +	  <row>
-> +	    <entry>__s32</entry>
-> +	    <entry><structfield>step</structfield></entry>
-> +	    <entry></entry>
-> +	    <entry>The step value of the control. See &v4l2-queryctrl;.</entry>
-> +	  </row>
-> +	  <row>
-> +	    <entry>__s32</entry>
-> +	    <entry><structfield>default_value</structfield></entry>
-> +	    <entry></entry>
-> +	    <entry>The default value value of the control. See &v4l2-queryctrl;.</entry>
-> +	  </row>
-> +	</tbody>
-> +      </tgroup>
-> +    </table>
-> +
-> +    <table pgwide="1" frame="none" id="changes-flags">
-> +      <title>Changes</title>
-> +      <tgroup cols="3">
-> +	&cs-def;
-> +	<tbody valign="top">
-> +	  <row>
-> +	    <entry><constant>V4L2_EVENT_CTRL_CH_VALUE</constant></entry>
-> +	    <entry>0x0001</entry>
-> +	    <entry>This control event was triggered because the value of the control
-> +		changed. Special case: if a button control is pressed, then this
-> +		event is sent as well, even though there is not explicit value
-> +		associated with a button control.</entry>
-> +	  </row>
-> +	  <row>
-> +	    <entry><constant>V4L2_EVENT_CTRL_CH_FLAGS</constant></entry>
-> +	    <entry>0x0002</entry>
-> +	    <entry>This control event was triggered because the control flags
-> +		changed.</entry>
-> +	  </row>
-> +	</tbody>
-> +      </tgroup>
-> +    </table>
->    </refsect1>
->    <refsect1>
->      &return-value;
-> diff --git a/Documentation/DocBook/media/v4l/vidioc-subscribe-event.xml b/Documentation/DocBook/media/v4l/vidioc-subscribe-event.xml
-> index 69c0d8a..275be96 100644
-> --- a/Documentation/DocBook/media/v4l/vidioc-subscribe-event.xml
-> +++ b/Documentation/DocBook/media/v4l/vidioc-subscribe-event.xml
-> @@ -183,113 +183,6 @@
->        </tgroup>
->      </table>
->  
-> -    <table frame="none" pgwide="1" id="v4l2-event-vsync">
-> -      <title>struct <structname>v4l2_event_vsync</structname></title>
-> -      <tgroup cols="3">
-> -	&cs-str;
-> -	<tbody valign="top">
-> -	  <row>
-> -	    <entry>__u8</entry>
-> -	    <entry><structfield>field</structfield></entry>
-> -	    <entry>The upcoming field. See &v4l2-field;.</entry>
-> -	  </row>
-> -	</tbody>
-> -      </tgroup>
-> -    </table>
-> -
-> -    <table frame="none" pgwide="1" id="v4l2-event-ctrl">
-> -      <title>struct <structname>v4l2_event_ctrl</structname></title>
-> -      <tgroup cols="4">
-> -	&cs-str;
-> -	<tbody valign="top">
-> -	  <row>
-> -	    <entry>__u32</entry>
-> -	    <entry><structfield>changes</structfield></entry>
-> -	    <entry></entry>
-> -	    <entry>A bitmask that tells what has changed. See <xref linkend="changes-flags" />.</entry>
-> -	  </row>
-> -	  <row>
-> -	    <entry>__u32</entry>
-> -	    <entry><structfield>type</structfield></entry>
-> -	    <entry></entry>
-> -	    <entry>The type of the control. See &v4l2-ctrl-type;.</entry>
-> -	  </row>
-> -	  <row>
-> -	    <entry>union (anonymous)</entry>
-> -	    <entry></entry>
-> -	    <entry></entry>
-> -	    <entry></entry>
-> -	  </row>
-> -	  <row>
-> -	    <entry></entry>
-> -	    <entry>__s32</entry>
-> -	    <entry><structfield>value</structfield></entry>
-> -	    <entry>The 32-bit value of the control for 32-bit control types.
-> -		This is 0 for string controls since the value of a string
-> -		cannot be passed using &VIDIOC-DQEVENT;.</entry>
-> -	  </row>
-> -	  <row>
-> -	    <entry></entry>
-> -	    <entry>__s64</entry>
-> -	    <entry><structfield>value64</structfield></entry>
-> -	    <entry>The 64-bit value of the control for 64-bit control types.</entry>
-> -	  </row>
-> -	  <row>
-> -	    <entry>__u32</entry>
-> -	    <entry><structfield>flags</structfield></entry>
-> -	    <entry></entry>
-> -	    <entry>The control flags. See <xref linkend="control-flags" />.</entry>
-> -	  </row>
-> -	  <row>
-> -	    <entry>__s32</entry>
-> -	    <entry><structfield>minimum</structfield></entry>
-> -	    <entry></entry>
-> -	    <entry>The minimum value of the control. See &v4l2-queryctrl;.</entry>
-> -	  </row>
-> -	  <row>
-> -	    <entry>__s32</entry>
-> -	    <entry><structfield>maximum</structfield></entry>
-> -	    <entry></entry>
-> -	    <entry>The maximum value of the control. See &v4l2-queryctrl;.</entry>
-> -	  </row>
-> -	  <row>
-> -	    <entry>__s32</entry>
-> -	    <entry><structfield>step</structfield></entry>
-> -	    <entry></entry>
-> -	    <entry>The step value of the control. See &v4l2-queryctrl;.</entry>
-> -	  </row>
-> -	  <row>
-> -	    <entry>__s32</entry>
-> -	    <entry><structfield>default_value</structfield></entry>
-> -	    <entry></entry>
-> -	    <entry>The default value value of the control. See &v4l2-queryctrl;.</entry>
-> -	  </row>
-> -	</tbody>
-> -      </tgroup>
-> -    </table>
-> -
-> -    <table pgwide="1" frame="none" id="changes-flags">
-> -      <title>Changes</title>
-> -      <tgroup cols="3">
-> -	&cs-def;
-> -	<tbody valign="top">
-> -	  <row>
-> -	    <entry><constant>V4L2_EVENT_CTRL_CH_VALUE</constant></entry>
-> -	    <entry>0x0001</entry>
-> -	    <entry>This control event was triggered because the value of the control
-> -		changed. Special case: if a button control is pressed, then this
-> -		event is sent as well, even though there is not explicit value
-> -		associated with a button control.</entry>
-> -	  </row>
-> -	  <row>
-> -	    <entry><constant>V4L2_EVENT_CTRL_CH_FLAGS</constant></entry>
-> -	    <entry>0x0002</entry>
-> -	    <entry>This control event was triggered because the control flags
-> -		changed.</entry>
-> -	  </row>
-> -	</tbody>
-> -      </tgroup>
-> -    </table>
->    </refsect1>
->    <refsect1>
->      &return-value;
-> 
