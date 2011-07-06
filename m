@@ -1,151 +1,393 @@
 Return-path: <mchehab@localhost>
-Received: from mailout4.w1.samsung.com ([210.118.77.14]:31666 "EHLO
-	mailout4.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751880Ab1GGRwi (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 7 Jul 2011 13:52:38 -0400
-MIME-version: 1.0
-Content-transfer-encoding: 7BIT
-Content-type: text/plain; charset=UTF-8; format=flowed
-Received: from spt2.w1.samsung.com ([210.118.77.14]) by mailout4.w1.samsung.com
- (Sun Java(tm) System Messaging Server 6.3-8.04 (built Jul 29 2009; 32bit))
- with ESMTP id <0LNZ0009A5NO3530@mailout4.w1.samsung.com> for
- linux-media@vger.kernel.org; Thu, 07 Jul 2011 18:52:36 +0100 (BST)
-Received: from [106.116.48.223] by spt2.w1.samsung.com
+Received: from mailout2.w1.samsung.com ([210.118.77.12]:19387 "EHLO
+	mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753964Ab1GFJX2 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 6 Jul 2011 05:23:28 -0400
+Received: from eu_spt1 (mailout2.w1.samsung.com [210.118.77.12])
+ by mailout2.w1.samsung.com
  (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14 2004))
- with ESMTPA id <0LNZ00HCU5NNHD@spt2.w1.samsung.com> for
- linux-media@vger.kernel.org; Thu, 07 Jul 2011 18:52:35 +0100 (BST)
-Date: Thu, 07 Jul 2011 19:52:32 +0200
+ with ESMTP id <0LNW00EWONF2R3@mailout2.w1.samsung.com> for
+ linux-media@vger.kernel.org; Wed, 06 Jul 2011 10:23:26 +0100 (BST)
+Received: from linux.samsung.com ([106.116.38.10])
+ by spt1.w1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14
+ 2004)) with ESMTPA id <0LNW001K5NF1BE@spt1.w1.samsung.com> for
+ linux-media@vger.kernel.org; Wed, 06 Jul 2011 10:23:25 +0100 (BST)
+Date: Wed, 06 Jul 2011 11:23:13 +0200
 From: Tomasz Stanislawski <t.stanislaws@samsung.com>
-Subject: Re: [RFC] DV timings spec fixes at V4L2 API - was: [PATCH 1/8] v4l:
- add macro for 1080p59_54 preset
-In-reply-to: <4E15BA35.9090806@redhat.com>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media@vger.kernel.org, m.szyprowski@samsung.com,
-	kyungmin.park@samsung.com, laurent.pinchart@ideasonboard.com
-Message-id: <4E15F260.2010004@samsung.com>
-References: <1309351877-32444-1-git-send-email-t.stanislaws@samsung.com>
- <761c3894fa161d5e702cccf80443c7dd.squirrel@webmail.xs4all.nl>
- <4E14BA02.1010207@redhat.com> <201107071333.24501.hverkuil@xs4all.nl>
- <4E15BA35.9090806@redhat.com>
+Subject: [PATCH] v4l: remove single to multiplane conversion
+To: linux-media@vger.kernel.org
+Cc: m.szyprowski@samsung.com, t.stanislaws@samsung.com,
+	kyungmin.park@samsung.com, mchehab@redhat.com, pawel@osciak.com
+Message-id: <1309944193-11275-1-git-send-email-t.stanislaws@samsung.com>
+MIME-version: 1.0
+Content-type: TEXT/PLAIN
+Content-transfer-encoding: 7BIT
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@infradead.org>
 
-Hi Mauro, Hans,
+This patch removes an implicit conversion between multi and single plane
+formats from V4L2 framework. The conversion is to be performed by libv4l2.
 
-I am really surprised by the havoc caused by the little 2-line patch.
+Signed-off-by: Tomasz Stanislawski <t.stanislaws@samsung.com>
+Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+---
+ drivers/media/video/v4l2-ioctl.c |  250 ++------------------------------------
+ 1 files changed, 12 insertions(+), 238 deletions(-)
 
-Let me sum up what I (don't) like in Hans' and Mauro's approaches:
+diff --git a/drivers/media/video/v4l2-ioctl.c b/drivers/media/video/v4l2-ioctl.c
+index 213ba7d..07f2abd 100644
+--- a/drivers/media/video/v4l2-ioctl.c
++++ b/drivers/media/video/v4l2-ioctl.c
+@@ -476,63 +476,6 @@ static int check_fmt(const struct v4l2_ioctl_ops *ops, enum v4l2_buf_type type)
+ 	return -EINVAL;
+ }
+ 
+-/**
+- * fmt_sp_to_mp() - Convert a single-plane format to its multi-planar 1-plane
+- * equivalent
+- */
+-static int fmt_sp_to_mp(const struct v4l2_format *f_sp,
+-			struct v4l2_format *f_mp)
+-{
+-	struct v4l2_pix_format_mplane *pix_mp = &f_mp->fmt.pix_mp;
+-	const struct v4l2_pix_format *pix = &f_sp->fmt.pix;
+-
+-	if (f_sp->type == V4L2_BUF_TYPE_VIDEO_CAPTURE)
+-		f_mp->type = V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE;
+-	else if (f_sp->type == V4L2_BUF_TYPE_VIDEO_OUTPUT)
+-		f_mp->type = V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE;
+-	else
+-		return -EINVAL;
+-
+-	pix_mp->width = pix->width;
+-	pix_mp->height = pix->height;
+-	pix_mp->pixelformat = pix->pixelformat;
+-	pix_mp->field = pix->field;
+-	pix_mp->colorspace = pix->colorspace;
+-	pix_mp->num_planes = 1;
+-	pix_mp->plane_fmt[0].sizeimage = pix->sizeimage;
+-	pix_mp->plane_fmt[0].bytesperline = pix->bytesperline;
+-
+-	return 0;
+-}
+-
+-/**
+- * fmt_mp_to_sp() - Convert a multi-planar 1-plane format to its single-planar
+- * equivalent
+- */
+-static int fmt_mp_to_sp(const struct v4l2_format *f_mp,
+-			struct v4l2_format *f_sp)
+-{
+-	const struct v4l2_pix_format_mplane *pix_mp = &f_mp->fmt.pix_mp;
+-	struct v4l2_pix_format *pix = &f_sp->fmt.pix;
+-
+-	if (f_mp->type == V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE)
+-		f_sp->type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
+-	else if (f_mp->type == V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE)
+-		f_sp->type = V4L2_BUF_TYPE_VIDEO_OUTPUT;
+-	else
+-		return -EINVAL;
+-
+-	pix->width = pix_mp->width;
+-	pix->height = pix_mp->height;
+-	pix->pixelformat = pix_mp->pixelformat;
+-	pix->field = pix_mp->field;
+-	pix->colorspace = pix_mp->colorspace;
+-	pix->sizeimage = pix_mp->plane_fmt[0].sizeimage;
+-	pix->bytesperline = pix_mp->plane_fmt[0].bytesperline;
+-
+-	return 0;
+-}
+-
+ static long __video_do_ioctl(struct file *file,
+ 		unsigned int cmd, void *arg)
+ {
+@@ -540,7 +483,6 @@ static long __video_do_ioctl(struct file *file,
+ 	const struct v4l2_ioctl_ops *ops = vfd->ioctl_ops;
+ 	void *fh = file->private_data;
+ 	struct v4l2_fh *vfh = NULL;
+-	struct v4l2_format f_copy;
+ 	int use_fh_prio = 0;
+ 	long ret = -EINVAL;
+ 
+@@ -702,42 +644,15 @@ static long __video_do_ioctl(struct file *file,
+ 
+ 		switch (f->type) {
+ 		case V4L2_BUF_TYPE_VIDEO_CAPTURE:
+-			if (ops->vidioc_g_fmt_vid_cap) {
++			if (ops->vidioc_g_fmt_vid_cap)
+ 				ret = ops->vidioc_g_fmt_vid_cap(file, fh, f);
+-			} else if (ops->vidioc_g_fmt_vid_cap_mplane) {
+-				if (fmt_sp_to_mp(f, &f_copy))
+-					break;
+-				ret = ops->vidioc_g_fmt_vid_cap_mplane(file, fh,
+-								       &f_copy);
+-				if (ret)
+-					break;
+-
+-				/* Driver is currently in multi-planar format,
+-				 * we can't return it in single-planar API*/
+-				if (f_copy.fmt.pix_mp.num_planes > 1) {
+-					ret = -EBUSY;
+-					break;
+-				}
+-
+-				ret = fmt_mp_to_sp(&f_copy, f);
+-			}
+ 			if (!ret)
+ 				v4l_print_pix_fmt(vfd, &f->fmt.pix);
+ 			break;
+ 		case V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE:
+-			if (ops->vidioc_g_fmt_vid_cap_mplane) {
++			if (ops->vidioc_g_fmt_vid_cap_mplane)
+ 				ret = ops->vidioc_g_fmt_vid_cap_mplane(file,
+ 									fh, f);
+-			} else if (ops->vidioc_g_fmt_vid_cap) {
+-				if (fmt_mp_to_sp(f, &f_copy))
+-					break;
+-				ret = ops->vidioc_g_fmt_vid_cap(file,
+-								fh, &f_copy);
+-				if (ret)
+-					break;
+-
+-				ret = fmt_sp_to_mp(&f_copy, f);
+-			}
+ 			if (!ret)
+ 				v4l_print_pix_fmt_mplane(vfd, &f->fmt.pix_mp);
+ 			break;
+@@ -747,42 +662,15 @@ static long __video_do_ioctl(struct file *file,
+ 								    fh, f);
+ 			break;
+ 		case V4L2_BUF_TYPE_VIDEO_OUTPUT:
+-			if (ops->vidioc_g_fmt_vid_out) {
++			if (ops->vidioc_g_fmt_vid_out)
+ 				ret = ops->vidioc_g_fmt_vid_out(file, fh, f);
+-			} else if (ops->vidioc_g_fmt_vid_out_mplane) {
+-				if (fmt_sp_to_mp(f, &f_copy))
+-					break;
+-				ret = ops->vidioc_g_fmt_vid_out_mplane(file, fh,
+-									&f_copy);
+-				if (ret)
+-					break;
+-
+-				/* Driver is currently in multi-planar format,
+-				 * we can't return it in single-planar API*/
+-				if (f_copy.fmt.pix_mp.num_planes > 1) {
+-					ret = -EBUSY;
+-					break;
+-				}
+-
+-				ret = fmt_mp_to_sp(&f_copy, f);
+-			}
+ 			if (!ret)
+ 				v4l_print_pix_fmt(vfd, &f->fmt.pix);
+ 			break;
+ 		case V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE:
+-			if (ops->vidioc_g_fmt_vid_out_mplane) {
++			if (ops->vidioc_g_fmt_vid_out_mplane)
+ 				ret = ops->vidioc_g_fmt_vid_out_mplane(file,
+ 									fh, f);
+-			} else if (ops->vidioc_g_fmt_vid_out) {
+-				if (fmt_mp_to_sp(f, &f_copy))
+-					break;
+-				ret = ops->vidioc_g_fmt_vid_out(file,
+-								fh, &f_copy);
+-				if (ret)
+-					break;
+-
+-				ret = fmt_sp_to_mp(&f_copy, f);
+-			}
+ 			if (!ret)
+ 				v4l_print_pix_fmt_mplane(vfd, &f->fmt.pix_mp);
+ 			break;
+@@ -829,44 +717,15 @@ static long __video_do_ioctl(struct file *file,
+ 		case V4L2_BUF_TYPE_VIDEO_CAPTURE:
+ 			CLEAR_AFTER_FIELD(f, fmt.pix);
+ 			v4l_print_pix_fmt(vfd, &f->fmt.pix);
+-			if (ops->vidioc_s_fmt_vid_cap) {
++			if (ops->vidioc_s_fmt_vid_cap)
+ 				ret = ops->vidioc_s_fmt_vid_cap(file, fh, f);
+-			} else if (ops->vidioc_s_fmt_vid_cap_mplane) {
+-				if (fmt_sp_to_mp(f, &f_copy))
+-					break;
+-				ret = ops->vidioc_s_fmt_vid_cap_mplane(file, fh,
+-									&f_copy);
+-				if (ret)
+-					break;
+-
+-				if (f_copy.fmt.pix_mp.num_planes > 1) {
+-					/* Drivers shouldn't adjust from 1-plane
+-					 * to more than 1-plane formats */
+-					ret = -EBUSY;
+-					WARN_ON(1);
+-					break;
+-				}
+-
+-				ret = fmt_mp_to_sp(&f_copy, f);
+-			}
+ 			break;
+ 		case V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE:
+ 			CLEAR_AFTER_FIELD(f, fmt.pix_mp);
+ 			v4l_print_pix_fmt_mplane(vfd, &f->fmt.pix_mp);
+-			if (ops->vidioc_s_fmt_vid_cap_mplane) {
++			if (ops->vidioc_s_fmt_vid_cap_mplane)
+ 				ret = ops->vidioc_s_fmt_vid_cap_mplane(file,
+ 									fh, f);
+-			} else if (ops->vidioc_s_fmt_vid_cap &&
+-					f->fmt.pix_mp.num_planes == 1) {
+-				if (fmt_mp_to_sp(f, &f_copy))
+-					break;
+-				ret = ops->vidioc_s_fmt_vid_cap(file,
+-								fh, &f_copy);
+-				if (ret)
+-					break;
+-
+-				ret = fmt_sp_to_mp(&f_copy, f);
+-			}
+ 			break;
+ 		case V4L2_BUF_TYPE_VIDEO_OVERLAY:
+ 			CLEAR_AFTER_FIELD(f, fmt.win);
+@@ -877,44 +736,15 @@ static long __video_do_ioctl(struct file *file,
+ 		case V4L2_BUF_TYPE_VIDEO_OUTPUT:
+ 			CLEAR_AFTER_FIELD(f, fmt.pix);
+ 			v4l_print_pix_fmt(vfd, &f->fmt.pix);
+-			if (ops->vidioc_s_fmt_vid_out) {
++			if (ops->vidioc_s_fmt_vid_out)
+ 				ret = ops->vidioc_s_fmt_vid_out(file, fh, f);
+-			} else if (ops->vidioc_s_fmt_vid_out_mplane) {
+-				if (fmt_sp_to_mp(f, &f_copy))
+-					break;
+-				ret = ops->vidioc_s_fmt_vid_out_mplane(file, fh,
+-									&f_copy);
+-				if (ret)
+-					break;
+-
+-				if (f_copy.fmt.pix_mp.num_planes > 1) {
+-					/* Drivers shouldn't adjust from 1-plane
+-					 * to more than 1-plane formats */
+-					ret = -EBUSY;
+-					WARN_ON(1);
+-					break;
+-				}
+-
+-				ret = fmt_mp_to_sp(&f_copy, f);
+-			}
+ 			break;
+ 		case V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE:
+ 			CLEAR_AFTER_FIELD(f, fmt.pix_mp);
+ 			v4l_print_pix_fmt_mplane(vfd, &f->fmt.pix_mp);
+-			if (ops->vidioc_s_fmt_vid_out_mplane) {
++			if (ops->vidioc_s_fmt_vid_out_mplane)
+ 				ret = ops->vidioc_s_fmt_vid_out_mplane(file,
+ 									fh, f);
+-			} else if (ops->vidioc_s_fmt_vid_out &&
+-					f->fmt.pix_mp.num_planes == 1) {
+-				if (fmt_mp_to_sp(f, &f_copy))
+-					break;
+-				ret = ops->vidioc_s_fmt_vid_out(file,
+-								fh, &f_copy);
+-				if (ret)
+-					break;
+-
+-				ret = fmt_mp_to_sp(&f_copy, f);
+-			}
+ 			break;
+ 		case V4L2_BUF_TYPE_VIDEO_OUTPUT_OVERLAY:
+ 			CLEAR_AFTER_FIELD(f, fmt.win);
+@@ -963,44 +793,16 @@ static long __video_do_ioctl(struct file *file,
+ 		switch (f->type) {
+ 		case V4L2_BUF_TYPE_VIDEO_CAPTURE:
+ 			CLEAR_AFTER_FIELD(f, fmt.pix);
+-			if (ops->vidioc_try_fmt_vid_cap) {
++			if (ops->vidioc_try_fmt_vid_cap)
+ 				ret = ops->vidioc_try_fmt_vid_cap(file, fh, f);
+-			} else if (ops->vidioc_try_fmt_vid_cap_mplane) {
+-				if (fmt_sp_to_mp(f, &f_copy))
+-					break;
+-				ret = ops->vidioc_try_fmt_vid_cap_mplane(file,
+-								fh, &f_copy);
+-				if (ret)
+-					break;
+-
+-				if (f_copy.fmt.pix_mp.num_planes > 1) {
+-					/* Drivers shouldn't adjust from 1-plane
+-					 * to more than 1-plane formats */
+-					ret = -EBUSY;
+-					WARN_ON(1);
+-					break;
+-				}
+-				ret = fmt_mp_to_sp(&f_copy, f);
+-			}
+ 			if (!ret)
+ 				v4l_print_pix_fmt(vfd, &f->fmt.pix);
+ 			break;
+ 		case V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE:
+ 			CLEAR_AFTER_FIELD(f, fmt.pix_mp);
+-			if (ops->vidioc_try_fmt_vid_cap_mplane) {
++			if (ops->vidioc_try_fmt_vid_cap_mplane)
+ 				ret = ops->vidioc_try_fmt_vid_cap_mplane(file,
+ 									 fh, f);
+-			} else if (ops->vidioc_try_fmt_vid_cap &&
+-					f->fmt.pix_mp.num_planes == 1) {
+-				if (fmt_mp_to_sp(f, &f_copy))
+-					break;
+-				ret = ops->vidioc_try_fmt_vid_cap(file,
+-								  fh, &f_copy);
+-				if (ret)
+-					break;
+-
+-				ret = fmt_sp_to_mp(&f_copy, f);
+-			}
+ 			if (!ret)
+ 				v4l_print_pix_fmt_mplane(vfd, &f->fmt.pix_mp);
+ 			break;
+@@ -1012,44 +814,16 @@ static long __video_do_ioctl(struct file *file,
+ 			break;
+ 		case V4L2_BUF_TYPE_VIDEO_OUTPUT:
+ 			CLEAR_AFTER_FIELD(f, fmt.pix);
+-			if (ops->vidioc_try_fmt_vid_out) {
++			if (ops->vidioc_try_fmt_vid_out)
+ 				ret = ops->vidioc_try_fmt_vid_out(file, fh, f);
+-			} else if (ops->vidioc_try_fmt_vid_out_mplane) {
+-				if (fmt_sp_to_mp(f, &f_copy))
+-					break;
+-				ret = ops->vidioc_try_fmt_vid_out_mplane(file,
+-								fh, &f_copy);
+-				if (ret)
+-					break;
+-
+-				if (f_copy.fmt.pix_mp.num_planes > 1) {
+-					/* Drivers shouldn't adjust from 1-plane
+-					 * to more than 1-plane formats */
+-					ret = -EBUSY;
+-					WARN_ON(1);
+-					break;
+-				}
+-				ret = fmt_mp_to_sp(&f_copy, f);
+-			}
+ 			if (!ret)
+ 				v4l_print_pix_fmt(vfd, &f->fmt.pix);
+ 			break;
+ 		case V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE:
+ 			CLEAR_AFTER_FIELD(f, fmt.pix_mp);
+-			if (ops->vidioc_try_fmt_vid_out_mplane) {
++			if (ops->vidioc_try_fmt_vid_out_mplane)
+ 				ret = ops->vidioc_try_fmt_vid_out_mplane(file,
+ 									 fh, f);
+-			} else if (ops->vidioc_try_fmt_vid_out &&
+-					f->fmt.pix_mp.num_planes == 1) {
+-				if (fmt_mp_to_sp(f, &f_copy))
+-					break;
+-				ret = ops->vidioc_try_fmt_vid_out(file,
+-								  fh, &f_copy);
+-				if (ret)
+-					break;
+-
+-				ret = fmt_sp_to_mp(&f_copy, f);
+-			}
+ 			if (!ret)
+ 				v4l_print_pix_fmt_mplane(vfd, &f->fmt.pix_mp);
+ 			break;
+-- 
+1.7.5.4
 
-Hans approach:
-- extend v4l2_enum_dv_preset with fps and flags fields,
-- allow enumerating presets by both index and preset code
-- add standard to macro names for presets
-
-Pros:
-- backward compatible with existing api
-- very simple and effective. Setting desired preset using only 2 lines 
-of code
-- easy to add unfortunate 1080p59_94
-- easy to differentiate 1080p59_94 from 1080p60 using VIDIOC_ENUM_DV_PRESET
-
-Cons:
-- number of existing macros must increase extensionally with number of 
-features. Height, progressiveness, frequency are already present. 
-Standard family is added in Hans' RFC. Some presets involve width. 
-Therefore multiple holes are expected making usage of macros very 
-unreliable.
-- it is not possible to use VIDIOC_S_DV_PRESET to handle case when 
-application just wants a preset that has 720 height. The application has 
-to enumerate all existing/possible presets  (number of possible 
-combinations may be large) to find a preset that suits to the 
-application's needs.
-- unnecessary redundancy, preset is nothing more than a standardized index
-
-Mauro's approach:
-- enumerate all possible presets using VIDIOC_ENUM_DV_PRESETS2
-- choose suitable preset using index field from
-
-Pros:
-- consistency: preset can only be addressed by index field,
-- no preset macros
-
-Cons:
-- structure v4l2_dv_enum_preset2 contains BT.656/BT.1120 timing related 
-data, the structure should be more general. Most application would not 
-use timing fields, so maybe there is no need of adding them to the 
-structure.
-- applications still has to enumerate through all possible combinations 
-to find a suitable preset
-- not compatible with existing API, two way to configure DV hardware
-
-I propose following requirements for DV preset api basing on pros and 
-cons from overmentioned approaches.
-- an application should be able to choose a preset with desired 
-parameters using single ioctl call
-- preset should be accessed using single key. I prefer to use index as a 
-key because it gives more flexibility to a driver.
-- compatible with existing api as much as possible
-
-What do you think about approach similar to S_FMT?
-Please look at the code below.
-
-struct v4l2_dv_preset2 {
-    u16 width;
-    u16 height;
-    v4l2_fract fps;
-    u32 flags; /* progressiveness, standard hints, rounding constraints */
-    u32 reserved[];
-};
-
-/* Values for the standard field */
-#define V4L2_DV_BT_656_1120     0       /* BT.656/1120 timing type */
-
-struct v4l2_enum_dv_preset2 {
-    u32 index;
-    char name[32];
-    struct v4l2_dv_preset2 preset;
-    struct v4l2_dv_timings timings; /* to be removed ? */
-    u32 reserved[];
-};
-
-#define    VIDIOC_ENUM_DV_PRESETS2    _IOWR('V', 83, struct 
-v4l2_dv_enum_preset2)
-#define    VIDIOC_S_DV_PRESET2    _IOWR('V', 84, struct v4l2_dv_preset2)
-#define    VIDIOC_G_DV_PRESET2    _IOWR('V', 85, struct v4l2_dv_preset2)
-#define    VIDIOC_TRY_DV_PRESET2    _IOWR('V', 86, struct v4l2_dv_preset2)
-
-To set a mode with height 720 lines the applications would execute code 
-below:
-
-struct v4l2_dv_preset2 preset = {    .height = 720 };
-ioctl(fd, VIDIOC_S_DV_PRESET2, &preset);
-
-The preset is selected using the most interesting features like 
-width/height/frequency and progressiveness.
-The driver would find the preset with vertical resolution as close as 
-possible to 720.
-The width and fps is zero so driver is free to choose suitable/default ones.
-The field flags may contain hind about choosing preset that belong to 
-specific DV standard family.
-
-I do not feel competent in the field of DV standard. Could give me more 
-ideas about flags?
-The flags could contain  constraint  bits similar to ones presented in 
-SELECTION api.
-Maybe structures v4l2_dv_preset and v4l2_enum_dv_presets could be 
-utilized for purpose of presented api.
-Maybe using some union/structure align magic it would be possible to 
-keep binary compatibility with existing programs.
-
-For now, I have removed unfortunate 1080P59_94 format from S5P-TV driver.
-I would be very happy if the driver was merged into 3.1.
-I think that it would be not possible due to 1080p59_94 issue.
-The driver did not lose much of its functionality because it still 
-supports 1080p60.
-Moreover, adding 1080p59_94 is relatively trivial.
-
-I hope you find this information useful.
-
-Regards,
-Tomasz Stanislawski
