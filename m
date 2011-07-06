@@ -1,89 +1,59 @@
-Return-path: <mchehab@pedra>
-Received: from mx1.redhat.com ([209.132.183.28]:62244 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751183Ab1GBOal (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 2 Jul 2011 10:30:41 -0400
-Message-ID: <4E0F2BD3.3050803@redhat.com>
-Date: Sat, 02 Jul 2011 16:31:47 +0200
-From: Hans de Goede <hdegoede@redhat.com>
-MIME-Version: 1.0
-To: Hans Verkuil <hverkuil@xs4all.nl>
-CC: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: Some comments on the new autocluster patches
-References: <4E0DE283.2030107@redhat.com> <201107011821.33960.hverkuil@xs4all.nl> <4E0EF2D3.8030109@redhat.com> <201107021310.25562.hverkuil@xs4all.nl>
-In-Reply-To: <201107021310.25562.hverkuil@xs4all.nl>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Return-path: <mchehab@localhost>
+Received: from mailout4.w1.samsung.com ([210.118.77.14]:30321 "EHLO
+	mailout4.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754171Ab1GFPre (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 6 Jul 2011 11:47:34 -0400
+MIME-version: 1.0
+Content-transfer-encoding: 7BIT
+Content-type: text/plain; charset=us-ascii
+Date: Wed, 06 Jul 2011 17:47:27 +0200
+From: Marek Szyprowski <m.szyprowski@samsung.com>
+Subject: RE: [PATCH 6/8] drivers: add Contiguous Memory Allocator
+In-reply-to: <20110706153704.GF8286@n2100.arm.linux.org.uk>
+To: 'Russell King - ARM Linux' <linux@arm.linux.org.uk>
+Cc: 'Arnd Bergmann' <arnd@arndb.de>, linux-kernel@vger.kernel.org,
+	linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
+	linux-mm@kvack.org, linaro-mm-sig@lists.linaro.org,
+	'Daniel Walker' <dwalker@codeaurora.org>,
+	'Jonathan Corbet' <corbet@lwn.net>,
+	'Mel Gorman' <mel@csn.ul.ie>,
+	'Chunsang Jeong' <chunsang.jeong@linaro.org>,
+	'Michal Nazarewicz' <mina86@mina86.com>,
+	'Jesse Barker' <jesse.barker@linaro.org>,
+	'Kyungmin Park' <kyungmin.park@samsung.com>,
+	'Ankita Garg' <ankita@in.ibm.com>,
+	'Andrew Morton' <akpm@linux-foundation.org>,
+	'KAMEZAWA Hiroyuki' <kamezawa.hiroyu@jp.fujitsu.com>
+Message-id: <007801cc3bf4$01fdefe0$05f9cfa0$%szyprowski@samsung.com>
+Content-language: pl
+References: <1309851710-3828-1-git-send-email-m.szyprowski@samsung.com>
+ <20110705113345.GA8286@n2100.arm.linux.org.uk>
+ <006301cc3be4$daab1850$900148f0$%szyprowski@samsung.com>
+ <201107061609.29996.arnd@arndb.de>
+ <007101cc3bec$dfbba8c0$9f32fa40$%szyprowski@samsung.com>
+ <20110706153704.GF8286@n2100.arm.linux.org.uk>
 List-ID: <linux-media.vger.kernel.org>
-Sender: <mchehab@pedra>
+Sender: <mchehab@infradead.org>
 
-Hi,
+Hello,
 
-On 07/02/2011 01:10 PM, Hans Verkuil wrote:
-> On Saturday, July 02, 2011 12:28:35 Hans de Goede wrote:
->> Hi,
->>
->> <snip snip snip>
->>
->> Ok, thinking about this some more and reading Hans V's comments
->> I think that the current code in Hans V's core8c branch is fine,
->> and should go to 3.1 (rather then be delayed to 3.2).
->>
->> As for the fundamental question what to do with foo
->> controls when autofoo goes from auto to manual, as discussed
->> there are 2 options:
->> 1) Restore the last known / previous manual setting
->> 2) Keep foo at the current setting, iow the last setting
->>      configured by autofoo
->
-> Or option 3:
->
-> Just don't report the automatic foo values at all. What possible purpose
-> does it serve?
-Reporting should be seen separate of what to do with the actual
-setting of for example gain as in use by the device when autogain
-gets turned off, that is what I'm talking about here, when autogain
-gets turned off (iow gain gets set to manual) there are 2 and only
-2 options
+On Wednesday, July 06, 2011 5:37 PM Russell King - ARM Linux wrote:
 
-1) leave the gain at the value last set by the devices
-    autogain function (this may not be supported on all hardware)
-2) restore the last known manual gain setting
+> On Wed, Jul 06, 2011 at 04:56:23PM +0200, Marek Szyprowski wrote:
+> > This will not solve our problems. We need CMA also to create at least one
+> > device private area that for sure will be in low memory (video codec).
+> 
+> You make these statements but you don't say why.  Can you please
+> explain why the video codec needs low memory - does it have a
+> restricted number of memory address bits which it can manipulate?
 
-What we report or not report for gain while autogain is active
-is irrelevant for this choice, when switching to manual we can
-either leave gain as is, or we restore the last known setting.
-Independent of any values we may have reported.
+Nope, it only needs to put some type of memory buffers in first bank 
+(effectively in 30000000-34ffffff area) and the others in the second bank
+(40000000-57ffffff area). The values are given for Samsung GONI board.
 
- > It is my impression that drivers implement it 'just because
- > they can', and not because it is meaningful.
+Best regards
+-- 
+Marek Szyprowski
+Samsung Poland R&D Center
 
-Well it is drivers responsibility to export hardware functionality
-(in a standardized manner), then it is up to applications whether
-they use it or not. And it is actually quite meaning full, you
-are very much thinking TV and not webcams here, being able to
-see that the autofoo is actually doing something, and what
-it is doing is very useful for webcams. For example maybe it is
-choosing a low exposure (to get highframerate) high gain, which
-leads to more noise in the picture then the user wants
 
-webcams are like photography, you've a shutter and a sensitivity
-(iso) setting being able to see what a camera chooses in full
-auto mode is quite useful.
-
-> I'm not aware of any application that actually refreshes e.g. gain values
-> when autogain is on, so end-users never see it anyway.
-
-v4l2ucp has an option to update the ctrl readings every 1 / 2 / 5
-seconds. And I use this often to track what the autofoo is doing
-and / or to verify that it doing anything at all.
-
-> But I think we should stop supporting volatile writable controls.
-
-NACK, and note that we already don't do that, what we do is switch
-a control from volatile read only (inactive) to non volatile rw-mode
-and back. The only question is what to do at the transition.
-
-Regards,
-
-Hans
