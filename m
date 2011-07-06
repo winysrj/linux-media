@@ -1,96 +1,76 @@
 Return-path: <mchehab@localhost>
-Received: from mx1.redhat.com ([209.132.183.28]:12312 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755361Ab1GFSEm (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 6 Jul 2011 14:04:42 -0400
-Date: Wed, 6 Jul 2011 15:04:03 -0300
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
-Subject: [PATCH RFCv3 16/17] [media] v4l2 core: return -ENOTTY if an ioctl
- doesn't exist
-Message-ID: <20110706150403.5ddb7a30@pedra>
-In-Reply-To: <cover.1309974026.git.mchehab@redhat.com>
-References: <cover.1309974026.git.mchehab@redhat.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
-To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
+Received: from mailout3.w1.samsung.com ([210.118.77.13]:17271 "EHLO
+	mailout3.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753145Ab1GFO4a (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 6 Jul 2011 10:56:30 -0400
+MIME-version: 1.0
+Content-transfer-encoding: 7BIT
+Content-type: text/plain; charset=us-ascii
+Date: Wed, 06 Jul 2011 16:56:23 +0200
+From: Marek Szyprowski <m.szyprowski@samsung.com>
+Subject: RE: [PATCH 6/8] drivers: add Contiguous Memory Allocator
+In-reply-to: <201107061609.29996.arnd@arndb.de>
+To: 'Arnd Bergmann' <arnd@arndb.de>
+Cc: 'Russell King - ARM Linux' <linux@arm.linux.org.uk>,
+	linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+	linux-media@vger.kernel.org, linux-mm@kvack.org,
+	linaro-mm-sig@lists.linaro.org,
+	'Daniel Walker' <dwalker@codeaurora.org>,
+	'Jonathan Corbet' <corbet@lwn.net>,
+	'Mel Gorman' <mel@csn.ul.ie>,
+	'Chunsang Jeong' <chunsang.jeong@linaro.org>,
+	'Michal Nazarewicz' <mina86@mina86.com>,
+	'Jesse Barker' <jesse.barker@linaro.org>,
+	'Kyungmin Park' <kyungmin.park@samsung.com>,
+	'Ankita Garg' <ankita@in.ibm.com>,
+	'Andrew Morton' <akpm@linux-foundation.org>,
+	'KAMEZAWA Hiroyuki' <kamezawa.hiroyu@jp.fujitsu.com>
+Message-id: <007101cc3bec$dfbba8c0$9f32fa40$%szyprowski@samsung.com>
+Content-language: pl
+References: <1309851710-3828-1-git-send-email-m.szyprowski@samsung.com>
+ <20110705113345.GA8286@n2100.arm.linux.org.uk>
+ <006301cc3be4$daab1850$900148f0$%szyprowski@samsung.com>
+ <201107061609.29996.arnd@arndb.de>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@infradead.org>
 
-Currently, -EINVAL is used to return either when an IOCTL is not
-implemented, or if the ioctl was not implemented.
+Hello,
 
-Note: Drivers that don't use video_ioctl2, will need extra patches.
+On Wednesday, July 06, 2011 4:09 PM Arnd Bergmann wrote:
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+> On Wednesday 06 July 2011, Marek Szyprowski wrote:
+> > The only problem that might need to be resolved is GFP_ATOMIC allocation
+> > (updating page properties probably requires some locking), but it can be
+> > served from a special area which is created on boot without low-memory
+> > mapping at all. None sane driver will call dma_alloc_coherent(GFP_ATOMIC)
+> > for large buffers anyway.
+> 
+> Would it be easier to start with a version that only allocated from memory
+> without a low-memory mapping at first?
+>
+> This would be similar to the approach that Russell's fix for the regular
+> dma_alloc_coherent has taken, except that you need to also allow the memory
+> to be used as highmem user pages.
+> 
+> Maybe you can simply adapt the default location of the contiguous memory
+> are like this:
+> - make CONFIG_CMA depend on CONFIG_HIGHMEM on ARM, at compile time
+> - if ZONE_HIGHMEM exist during boot, put the CMA area in there
+> - otherwise, put the CMA area at the top end of lowmem, and change
+>   the zone sizes so ZONE_HIGHMEM stretches over all of the CMA memory.
 
-diff --git a/Documentation/DocBook/media/v4l/gen-errors.xml b/Documentation/DocBook/media/v4l/gen-errors.xml
-index dedcc90..8117c60 100644
---- a/Documentation/DocBook/media/v4l/gen-errors.xml
-+++ b/Documentation/DocBook/media/v4l/gen-errors.xml
-@@ -30,13 +30,6 @@
- 	       ioctl requests for specific causes.</entry>
-       </row>
-       <row>
--	<entry>EINVAL or ENOTTY</entry>
--	<entry>The ioctl is not supported by the driver, actually meaning that
--	       the required functionality is not available, or the file
--	       descriptor is not for a media device. The usage of EINVAL is
--	       deprecated and will be fixed on a latter patch.</entry>
--      </row>
--      <row>
-         <entry>ENODEV</entry>
- 	<entry>Device not found or was removed.</entry>
-       </row>
-@@ -45,6 +38,12 @@
- 	<entry>There's not enough memory to handle the desired operation.</entry>
-       </row>
-       <row>
-+	<entry>ENOTTY</entry>
-+	<entry>The ioctl is not supported by the driver, actually meaning that
-+	       the required functionality is not available, or the file
-+	       descriptor is not for a media device.</entry>
-+      </row>
-+      <row>
- 	<entry>ENOSPC</entry>
- 	<entry>On USB devices, the stream ioctl's can return this error, meaning
- 	       that this request would overcommit the usb bandwidth reserved
-diff --git a/Documentation/DocBook/media/v4l/v4l2.xml b/Documentation/DocBook/media/v4l/v4l2.xml
-index c5ee398..43386a6 100644
---- a/Documentation/DocBook/media/v4l/v4l2.xml
-+++ b/Documentation/DocBook/media/v4l/v4l2.xml
-@@ -132,7 +132,9 @@ applications. -->
- 	<date>2011-06-27</date>
- 	<authorinitials>mcc, po</authorinitials>
- 	<revremark>Documented that VIDIOC_QUERYCAP now returns a per-subsystem version instead of a per-driver one.</revremark>
-+	<revremark>Standardize an error code for invalid ioctl.</revremark>
-       </revision>
-+
-       <revision>
- 	<revnumber>2.6.39</revnumber>
- 	<date>2011-03-01</date>
-diff --git a/drivers/media/video/v4l2-ioctl.c b/drivers/media/video/v4l2-ioctl.c
-index f9aebac..4253276 100644
---- a/drivers/media/video/v4l2-ioctl.c
-+++ b/drivers/media/video/v4l2-ioctl.c
-@@ -543,12 +543,12 @@ static long __video_do_ioctl(struct file *file,
- 	struct v4l2_fh *vfh = NULL;
- 	struct v4l2_format f_copy;
- 	int use_fh_prio = 0;
--	long ret = -EINVAL;
-+	long ret = -ENOTTY;
- 
- 	if (ops == NULL) {
- 		printk(KERN_WARNING "videodev: \"%s\" has no ioctl_ops.\n",
- 				vfd->name);
--		return -EINVAL;
-+		return ret;
- 	}
- 
- 	if ((vfd->debug & V4L2_DEBUG_IOCTL) &&
+This will not solve our problems. We need CMA also to create at least one
+device private area that for sure will be in low memory (video codec).
+
+I will rewrite ARM dma-mapping & CMA integration patch basing on the latest 
+ARM for-next patches and add proof-of-concept of the solution presented in my
+previous mail (2-level page tables and unmapping pages from low-mem).
+
+Best regards
 -- 
-1.7.1
+Marek Szyprowski
+Samsung Poland R&D Center
+
+
 
 
