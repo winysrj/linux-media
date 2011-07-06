@@ -1,59 +1,76 @@
-Return-path: <linux-media-owner@vger.kernel.org>
-Received: from casper.infradead.org ([85.118.1.10]:43529 "EHLO
-	casper.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753745Ab1GVM2x (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 22 Jul 2011 08:28:53 -0400
-Message-ID: <4E296D00.9040608@infradead.org>
-Date: Fri, 22 Jul 2011 09:28:48 -0300
-From: Mauro Carvalho Chehab <mchehab@infradead.org>
-MIME-Version: 1.0
-To: Stas Sergeev <stsp@list.ru>
-CC: linux-media@vger.kernel.org
-Subject: Re: [patch][saa7134] do not change mute state for capturing audio
-References: <4E19D2F7.6060803@list.ru> <4E1E05AC.2070002@infradead.org> <4E1E0A1D.6000604@list.ru> <4E1E1571.6010400@infradead.org> <4E1E8108.3060305@list.ru> <4E1F9A25.1020208@infradead.org> <4E22AF12.4020600@list.ru> <4E22CCC0.8030803@infradead.org> <4E24BEB8.4060501@redhat.com> <4E257FF5.4040401@infradead.org> <4E258B60.6010007@list.ru> <4E25906D.3020200@infradead.org> <4E259B0C.90107@list.ru> <4E25A26A.2000204@infradead.org> <4E25A7C2.3050609@list.ru> <4E25C7AE.5020503@infradead.org> <4E25CF35.7000802@list.ru> <4E25DB37.8020609@infradead.org> <4E25FDE4.7040805@list.ru> <4E262772.9060509@infradead.org> <4E266799.8030706@list.ru> <4E26AEC0.5000405@infradead.org> <4E26B1E7.2080107@list.ru> <4E26B29B.4010109@infradead.org> <4E292BED.60108@list.ru>
-In-Reply-To: <4E292BED.60108@list.ru>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
-Sender: linux-media-owner@vger.kernel.org
+Return-path: <mchehab@localhost>
+Received: from mail-ww0-f42.google.com ([74.125.82.42]:62127 "EHLO
+	mail-ww0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755484Ab1GFUff (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 6 Jul 2011 16:35:35 -0400
+Received: by wwg11 with SMTP id 11so3499598wwg.1
+        for <linux-media@vger.kernel.org>; Wed, 06 Jul 2011 13:35:33 -0700 (PDT)
+Subject: RE: [DVB] TT S-1500b tuning issue
+From: Malcolm Priestley <tvboxspy@gmail.com>
+To: 'Linux Media Mailing List' <linux-media@vger.kernel.org>
+Cc: 'Oliver Endriss' <o.endriss@gmx.de>,
+	=?ISO-8859-1?Q?S=E9bastien?= "RAILLARD (COEXSI)" <sr@coexsi.fr>
+In-Reply-To: <007201cc3bd0$a1b4aa70$e51dff50$@coexsi.fr>
+References: <00a301cc365e$b6d415c0$247c4140$@coexsi.fr>
+	 <201107040043.00393@orion.escape-edv.de>
+	 <007201cc3bd0$a1b4aa70$e51dff50$@coexsi.fr>
+Content-Type: text/plain; charset="UTF-8"
+Date: Wed, 06 Jul 2011 21:35:24 +0100
+Message-ID: <1309984524.6358.18.camel@localhost>
+Mime-Version: 1.0
+Content-Transfer-Encoding: 8bit
 List-ID: <linux-media.vger.kernel.org>
+Sender: <mchehab@infradead.org>
 
-Em 22-07-2011 04:51, Stas Sergeev escreveu:
-> Ok, Mauro, so may I take your silence as an evidence
-> that this reiterating myth about the mplayer breakage
-> is just a myth?
+On Wed, 2011-07-06 at 13:34 +0200, Sébastien RAILLARD (COEXSI) wrote:
+> 
+> > -----Original Message-----
+> > From: Oliver Endriss [mailto:o.endriss@gmx.de]
+> > Sent: lundi 4 juillet 2011 00:43
+> > To: Linux Media Mailing List
+> > Cc: Sébastien RAILLARD (COEXSI); Malcolm Priestley
+> > Subject: Re: [DVB] TT S-1500b tuning issue
+> > 
+> > On Wednesday 29 June 2011 15:16:10 Sébastien RAILLARD wrote:
+> > > Dear all,
+> > >
+> > > We have found what seems to be a tuning issue in the driver for the
+> > > ALPS BSBE1-D01A used in the new TT-S-1500b card from Technotrend.
+> > > On some transponders, like ASTRA 19.2E 11817-V-27500, the card can
+> > > work very well (no lock issues) for hours.
+> > >
+> > > On some other transponders, like ASTRA 19.2E 11567-V-22000, the card
+> > > nearly never manage to get the lock: it's looking like the signal
+> > > isn't good enough.
+> > 
+> > Afaics the problem is caused by the tuning loop
+> >     for (tm = -6; tm < 7;)
+> > in stv0288_set_frontend().
+> > 
+> > I doubt that this code works reliably.
+> > Apparently it never obtains a lock within the given delay (30us).
+It's actually quite slow caused by any delay in the I2C bus. I doubt
+given the age many controllers run at the 400kHz spec, if barely 100kHz.
 
-It is due to my lack of time of explaining the obvious for you.
-Changing the behavior of the kernel drivers has consequences
-on userspace, called regressions. Regressions are not allowed
-at the Linux Kernel: a binary that used to run with an old
-kernel should keep running on a new kernel.
- 
-In this specific case, applications like mplayer,
-using the alsa parameters for streaming will stop work, as mplayer
-won't touch at the mixer or at the V4L mute control. So,
-it will have the same practical effect of a kernel bug at the
-audio part of the driver.
+> > 
+> > Could you please try the attached patch?
+> > It disables the loop and tries to tune to the center frequency.
+> > 
+> 
+> Ok, I've tested this patch with ASTRA 19.2 #24 transponder that wasn't
+> always working: it seems to work.
+> I think it would be great to test it for few days more to be sure.
 
-> Look, I spent time on investigating the problem, on
-> trying the different approaches to fix it, on explaining
-> the problem to you, etc. So maybe I deserve something
-> more than just a blunt "NACK, lets fix real bugs" reply
-> you initially did? :)
-> Note: that's the first time I got the nack without any
-> explanation in the very first reply, and with the false
-> explanations later. My patch doesn't break mplayer: it
-> can't, since mplayer does not use that interface at all.
-> And my patch fixes a real problem, so even if it is for
-> some reasons incorrect, it certainly deserves a better
-> treatment than the false claims.
-> I guess you are doing this in order to just push your
-> own patch, and you'll do that anyway, so this "letter of
-> disappointment" is going to be my last posting to that
-> thread, unless you decide to explain your nack after all. :)
+Unfortunately, this patch does not work well at all.
 
-I probably won't push my own patch, at least for now, as it
-is not tested, and I'm currently lacking time to install a few
-saa7134 boards for testing.
+All that is happening is that the carrier offset is getting forced to 0,
+after it has been updated by the lock control register losing a 'good'
+lock.
 
+The value is typically around ~f800+.
+
+Perhaps the loop should be knocked down slightly to -9. The loop was
+probably intended for 22000 symbol rate.
+
+tvboxspy
 
