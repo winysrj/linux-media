@@ -1,77 +1,65 @@
-Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pv0-f174.google.com ([74.125.83.174]:45025 "EHLO
-	mail-pv0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932677Ab1GOBot convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 14 Jul 2011 21:44:49 -0400
+Return-path: <mchehab@localhost>
+Received: from smtp-out.google.com ([216.239.44.51]:44639 "EHLO
+	smtp-out.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756057Ab1GFUn5 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 6 Jul 2011 16:43:57 -0400
+Received: from kpbe16.cbf.corp.google.com (kpbe16.cbf.corp.google.com [172.25.105.80])
+	by smtp-out.google.com with ESMTP id p66KhuKR031995
+	for <linux-media@vger.kernel.org>; Wed, 6 Jul 2011 13:43:56 -0700
+Received: from pzk26 (pzk26.prod.google.com [10.243.19.154])
+	by kpbe16.cbf.corp.google.com with ESMTP id p66Kh2nN023884
+	(version=TLSv1/SSLv3 cipher=RC4-SHA bits=128 verify=NOT)
+	for <linux-media@vger.kernel.org>; Wed, 6 Jul 2011 13:43:55 -0700
+Received: by pzk26 with SMTP id 26so326045pzk.38
+        for <linux-media@vger.kernel.org>; Wed, 06 Jul 2011 13:43:54 -0700 (PDT)
+Date: Wed, 6 Jul 2011 13:43:53 -0700 (PDT)
+From: David Rientjes <rientjes@google.com>
+To: "JAIN, AMBER" <amber@ti.com>
+cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	"Hiremath, Vaibhav" <hvaibhav@ti.com>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	Andrew Morton <akpm@linux-foundation.org>
+Subject: RE: [GIT PULL for v3.0] OMAP_VOUT bug fixes and code cleanup
+In-Reply-To: <5A47E75E594F054BAF48C5E4FC4B92AB037BD02799@dbde02.ent.ti.com>
+Message-ID: <alpine.DEB.2.00.1107061342380.2622@chino.kir.corp.google.com>
+References: <1308771169-10741-1-git-send-email-hvaibhav@ti.com> <4E0E153F.5000303@redhat.com> <5A47E75E594F054BAF48C5E4FC4B92AB037BD02799@dbde02.ent.ti.com>
 MIME-Version: 1.0
-In-Reply-To: <20110710125356.b6cb17c2.rdunlap@xenotime.net>
-References: <20110710125109.c72f9c2d.rdunlap@xenotime.net>
-	<20110710125356.b6cb17c2.rdunlap@xenotime.net>
-Date: Thu, 14 Jul 2011 21:44:48 -0400
-Message-ID: <CACqU3MXTahX6oSsyfmejPHBL_7Fv1AKJz663k6hDQs7jCDGvtg@mail.gmail.com>
-Subject: Re: [PATCH 2/9] media/radio: fix aimslab CONFIG IO PORT
-From: Arnaud Lacombe <lacombar@gmail.com>
-To: Randy Dunlap <rdunlap@xenotime.net>
-Cc: lkml <linux-kernel@vger.kernel.org>, linux-media@vger.kernel.org,
-	mchehab@infradead.org
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
-Sender: linux-media-owner@vger.kernel.org
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 List-ID: <linux-media.vger.kernel.org>
+Sender: <mchehab@infradead.org>
 
-Hi,
+On Tue, 5 Jul 2011, JAIN, AMBER wrote:
 
-2 to 7 will be not needed. I screwed up a autoconf.h generation while
-refactoring the code. This is being addressed in the kbuild tree by:
+> > > diff --git a/drivers/media/video/omap24xxcam.c
+> > b/drivers/media/video/omap24xxcam.c
+> > > index f6626e8..d92d4c6 100644
+> > > --- a/drivers/media/video/omap24xxcam.c
+> > > +++ b/drivers/media/video/omap24xxcam.c
+> > > @@ -309,11 +309,11 @@ static int
+> > omap24xxcam_vbq_alloc_mmap_buffer(struct videobuf_buffer *vb)
+> > >  			order--;
+> > >
+> > >  		/* try to allocate as many contiguous pages as possible */
+> > > -		page = alloc_pages(GFP_KERNEL | GFP_DMA, order);
+> > > +		page = alloc_pages(GFP_KERNEL, order);
+> > >  		/* if allocation fails, try to allocate smaller amount */
+> > >  		while (page == NULL) {
+> > >  			order--;
+> > > -			page = alloc_pages(GFP_KERNEL | GFP_DMA, order);
+> > > +			page = alloc_pages(GFP_KERNEL, order);
+> > >  			if (page == NULL && !order) {
+> > >  				err = -ENOMEM;
+> > >  				goto out;
+> > 
+> > Hmm... the proper fix wouldn't be to define ZONE_DMA at OMAP?
+> 
+> I don't think so, my understanding for ZOME_DMA is that it is defined 
+> for architectures that have restrictions on memory addresses that can be 
+> used for DMA. OMAP doesn't have any such restriction and hence we should 
+> not define ZONE_DMA.
+> 
 
-https://patchwork.kernel.org/patch/975652/
+s/should not define/do not need to define/
 
-My bad,
- - Arnaud
-
-On Sun, Jul 10, 2011 at 3:53 PM, Randy Dunlap <rdunlap@xenotime.net> wrote:
-> From: Randy Dunlap <rdunlap@xenotime.net>
->
-> Modify radio-aimslab to use HEX_STRING(CONFIG_RADIO_RTRACK_PORT)
-> so that the correct IO port value is used.
->
-> Fixes this error message when CONFIG_RADIO_RTRACK_PORT=20f:
-> drivers/media/radio/radio-aimslab.c:49:17: error: invalid suffix "f" on integer constant
->
-> Signed-off-by: Randy Dunlap <rdunlap@xenotime.net>
-> ---
->  drivers/media/radio/radio-aimslab.c |    7 +++++--
->  1 file changed, 5 insertions(+), 2 deletions(-)
->
-> --- linux-next-20110707.orig/drivers/media/radio/radio-aimslab.c
-> +++ linux-next-20110707/drivers/media/radio/radio-aimslab.c
-> @@ -32,6 +32,7 @@
->  #include <linux/init.h>                /* Initdata                     */
->  #include <linux/ioport.h>      /* request_region               */
->  #include <linux/delay.h>       /* msleep                       */
-> +#include <linux/stringify.h>
->  #include <linux/videodev2.h>   /* kernel radio structs         */
->  #include <linux/io.h>          /* outb, outb_p                 */
->  #include <media/v4l2-device.h>
-> @@ -43,10 +44,12 @@ MODULE_LICENSE("GPL");
->  MODULE_VERSION("0.0.3");
->
->  #ifndef CONFIG_RADIO_RTRACK_PORT
-> -#define CONFIG_RADIO_RTRACK_PORT -1
-> +#define __RADIO_RTRACK_PORT -1
-> +#else
-> +#define __RADIO_RTRACK_PORT HEX_STRING(CONFIG_RADIO_RTRACK_PORT)
->  #endif
->
-> -static int io = CONFIG_RADIO_RTRACK_PORT;
-> +static int io = __RADIO_RTRACK_PORT;
->  static int radio_nr = -1;
->
->  module_param(io, int, 0);
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-kernel" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> Please read the FAQ at  http://www.tux.org/lkml/
->
+Right, if omap does not have DMA restrictions then the GFP_DMA usage that 
+is removed with this patch was incorrect.
