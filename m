@@ -1,58 +1,66 @@
-Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wy0-f174.google.com ([74.125.82.174]:43957 "EHLO
-	mail-wy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751191Ab1GWIyP (ORCPT
+Return-path: <mchehab@localhost>
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:33113 "EHLO
+	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751568Ab1GFWMV (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 23 Jul 2011 04:54:15 -0400
-Received: by wyg8 with SMTP id 8so1906775wyg.19
-        for <linux-media@vger.kernel.org>; Sat, 23 Jul 2011 01:54:13 -0700 (PDT)
-Subject: Re: [PATCH] cxd2820r: fix possible out-of-array lookup
-From: Malcolm Priestley <tvboxspy@gmail.com>
-To: HoP <jpetrous@gmail.com>
-Cc: Antti Palosaari <crope@iki.fi>, linux-media@vger.kernel.org
-In-Reply-To: <CAJbz7-3-xGQOsk2CHq1pfyDoSLSKUo3ULt-7QAfuUfFBuiMt1g@mail.gmail.com>
-References: <CAJbz7-29H=e=C2SyY-6Ru23Zzv6sH7wBbOm72ZWMxqOagakuKQ@mail.gmail.com>
-	 <4E29FB9E.4060507@iki.fi>
-	 <CAJbz7-3HkkEoDa3qGvoaF61ohhdxo38ZxF+GWGV+tBQ0yEBopA@mail.gmail.com>
-	 <4E29FF56.5080604@iki.fi>
-	 <CAJbz7-0pDj7mdgHAyyuSOfwGmYdNaKqxM9RxWZdQbEN0Eyjx9w@mail.gmail.com>
-	 <4E2A0856.7050009@iki.fi> <4E2A099B.2030601@iki.fi>
-	 <CAJbz7-3-xGQOsk2CHq1pfyDoSLSKUo3ULt-7QAfuUfFBuiMt1g@mail.gmail.com>
-Content-Type: text/plain; charset="UTF-8"
-Date: Sat, 23 Jul 2011 09:54:06 +0100
-Message-ID: <1311411246.2131.11.camel@localhost>
+	Wed, 6 Jul 2011 18:12:21 -0400
+Date: Wed, 6 Jul 2011 15:11:12 -0700
+From: Andrew Morton <akpm@linux-foundation.org>
+To: Arnd Bergmann <arnd@arndb.de>
+Cc: Marek Szyprowski <m.szyprowski@samsung.com>,
+	linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+	linux-media@vger.kernel.org, linux-mm@kvack.org,
+	linaro-mm-sig@lists.linaro.org,
+	Michal Nazarewicz <mina86@mina86.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>,
+	Ankita Garg <ankita@in.ibm.com>,
+	Daniel Walker <dwalker@codeaurora.org>,
+	Mel Gorman <mel@csn.ul.ie>,
+	Jesse Barker <jesse.barker@linaro.org>,
+	Jonathan Corbet <corbet@lwn.net>,
+	Chunsang Jeong <chunsang.jeong@linaro.org>
+Subject: Re: [PATCHv11 0/8] Contiguous Memory Allocator
+Message-Id: <20110706151112.5c619431.akpm@linux-foundation.org>
+In-Reply-To: <201107051407.17249.arnd@arndb.de>
+References: <1309851710-3828-1-git-send-email-m.szyprowski@samsung.com>
+	<201107051407.17249.arnd@arndb.de>
 Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
-Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
+Sender: <mchehab@infradead.org>
 
-On Sat, 2011-07-23 at 01:47 +0200, HoP wrote:
-> 2011/7/23 Antti Palosaari <crope@iki.fi>:
-> > On 07/23/2011 02:31 AM, Antti Palosaari wrote:
-> >>
-> >> On 07/23/2011 02:01 AM, HoP wrote:
-> >>>
-> >>> 2011/7/23 Antti Palosaari<crope@iki.fi>:
-> >>>>
-> >>>> But now I see what you mean. msg2[1] is set as garbage fields in case of
-> >>>> incoming msg len is 1. True, but it does not harm since it is not
-> >>>> used in
-> >>>> that case.
-> >>>
-> >>> In case of write, cxd2820r_tuner_i2c_xfer() gets msg[] parameter
-> >>> with only one element, true? If so, then my patch is correct.
-> >>
-> >> Yes it is true but nonsense. It is also wrong to make always msg2 as two
-> >> element array too, but those are just simpler and generates most likely
-> >> some code less. Could you see it can cause problem in some case?
-> >
-> > Now I thought it more, could it crash if it point out of memory area?
-Arrays are not fussy they will read anything, just don't poke them :-)
-> 
-> I see you finally understood what I wanted to do :-)
-> 
-> I'm surprised that it not crashed already. I thought I have to missed something.
+On Tue, 5 Jul 2011 14:07:17 +0200
+Arnd Bergmann <arnd@arndb.de> wrote:
 
-It does not crash because num is constant throughout, when the number of
-messages is one the second element isn't transferred.
+> On Tuesday 05 July 2011, Marek Szyprowski wrote:
+> > This is yet another round of Contiguous Memory Allocator patches. I hope
+> > that I've managed to resolve all the items discussed during the Memory
+> > Management summit at Linaro Meeting in Budapest and pointed later on
+> > mailing lists. The goal is to integrate it as tight as possible with
+> > other kernel subsystems (like memory management and dma-mapping) and
+> > finally merge to mainline.
+> 
+> You have certainly addressed all of my concerns, this looks really good now!
+> 
+> Andrew, can you add this to your -mm tree? What's your opinion on the
+> current state, do you think this is ready for merging in 3.1 or would
+> you want to have more reviews from core memory management people?
+> 
+> My reviews were mostly on the driver and platform API side, and I think
+> we're fine there now, but I don't really understand the impacts this has
+> in mm.
+
+I could review it and put it in there on a preliminary basis for some
+runtime testing.  But the question in my mind is how different will the
+code be after the problems which rmk has identified have been fixed?
+
+If "not very different" then that effort and testing will have been
+worthwhile.
+
+If "very different" or "unworkable" then it was all for naught.
+
+So.  Do we have a feeling for the magnitude of the changes which will
+be needed to fix these things up?
 
