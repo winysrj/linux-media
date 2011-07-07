@@ -1,83 +1,93 @@
-Return-path: <linux-media-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.17.10]:55080 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752970Ab1GQWay (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 17 Jul 2011 18:30:54 -0400
-Date: Mon, 18 Jul 2011 00:30:52 +0200 (CEST)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-cc: linux-media@vger.kernel.org
-Subject: Re: [PATCH] v4l: mt9v032: Fix Bayer pattern
-In-Reply-To: <201107180022.52876.laurent.pinchart@ideasonboard.com>
-Message-ID: <Pine.LNX.4.64.1107180028460.13485@axis700.grange>
-References: <1310761106-29722-1-git-send-email-laurent.pinchart@ideasonboard.com>
- <201107172334.29292.laurent.pinchart@ideasonboard.com>
- <Pine.LNX.4.64.1107180013220.13485@axis700.grange>
- <201107180022.52876.laurent.pinchart@ideasonboard.com>
+Return-path: <mchehab@localhost>
+Received: from emh01.mail.saunalahti.fi ([62.142.5.107]:40748 "EHLO
+	emh01.mail.saunalahti.fi" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752681Ab1GGSg0 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 7 Jul 2011 14:36:26 -0400
+Message-ID: <4E15FCA0.6000404@kolumbus.fi>
+Date: Thu, 07 Jul 2011 21:36:16 +0300
+From: Marko Ristola <marko.ristola@kolumbus.fi>
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Sender: linux-media-owner@vger.kernel.org
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+CC: Devin Heitmueller <dheitmueller@kernellabs.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	Andy Walls <awalls@md.metrocast.net>,
+	linux-media@vger.kernel.org
+Subject: Re: [RFCv2 PATCH 0/5] tuner-core: fix s_std and s_tuner
+References: <1307804731-16430-1-git-send-email-hverkuil@xs4all.nl>	<201106152237.02427.hverkuil@xs4all.nl>	<BANLkTimVQDoHo+5-2ZkU0sE0LWiUjHeBXg@mail.gmail.com>	<201106160821.15352.hverkuil@xs4all.nl>	<4DF9E5AB.1050707@redhat.com>	<BANLkTi=Wq=swMMBfK+X9gVQ0XhL4OSxXFA@mail.gmail.com>	<4E14A127.8040805@kolumbus.fi> <CAGoCfiwjXYBR8FBYMS8BsBM20mCQLvWQbyhLh-psA_HX73SGjw@mail.gmail.com> <4E14BE93.2030205@kolumbus.fi> <4E15CD4E.1040507@redhat.com>
+In-Reply-To: <4E15CD4E.1040507@redhat.com>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
+Sender: <mchehab@infradead.org>
 
-On Mon, 18 Jul 2011, Laurent Pinchart wrote:
 
-> On Monday 18 July 2011 00:14:21 Guennadi Liakhovetski wrote:
-> > On Sun, 17 Jul 2011, Laurent Pinchart wrote:
-> > > Hi Guennadi,
-> > > 
-> > > On Saturday 16 July 2011 23:40:23 Guennadi Liakhovetski wrote:
-> > > > On Sat, 16 Jul 2011, Laurent Pinchart wrote:
-> > > > > On Saturday 16 July 2011 01:11:28 Guennadi Liakhovetski wrote:
-> > > > > > On Fri, 15 Jul 2011, Laurent Pinchart wrote:
-> > > > > > > Compute crop rectangle boundaries to ensure a GRBG Bayer pattern.
-> > > > > > > 
-> > > > > > > Signed-off-by: Laurent Pinchart
-> > > > > > > <laurent.pinchart@ideasonboard.com> ---
-> > > > > > > 
-> > > > > > >  drivers/media/video/mt9v032.c |   20 ++++++++++----------
-> > > > > > >  1 files changed, 10 insertions(+), 10 deletions(-)
-> > > > > > > 
-> > > > > > > If there's no comment I'll send a pull request for this patch in
-> > > > > > > a couple of days.
-> > > > > > 
-> > > > > > Hm, I might have a comment: why?... Isn't it natural to accept the
-> > > > > > fact, that different sensors put a different Bayer pixel at their
-> > > > > > sensor matrix origin? Isn't that why we have all possible Bayer
-> > > > > > formats? Maybe you just have to choose a different output format?
-> > > > > 
-> > > > > That's the other solution. The driver currently claims the device
-> > > > > outputs SGRBG, but configures it to output SGBGR. This is clearly a
-> > > > > bug. Is it better to modify the format than the crop rectangle
-> > > > > location ?
-> > > > 
-> > > > Actually, it is interesting. I just looked (again) in the mt9v032 and
-> > > > some other Aptina Bayer sensor datasheets, and they actually have
-> > > > _odd_ numbers of rows and columns. So, mt9v032 actually has 753x481
-> > > > active pixels. And that extra pixel is explicitly provided to adjust
-> > > > the origin colour. Ok, they write, it is for uniformity with the
-> > > > mirrored image, but who believes them?;-) So, maybe you should adjust
-> > > > your max values to the above ones, then taking one pixel out of your
-> > > > image will not reduce your useful image size.
-> > > 
-> > > I'm not sure what you mean. Even though the pixel array is bigger than
-> > > that, the maximum output width/height are 752x480 according to the
-> > > datasheet.
-> > 
-> > Have a look at the "Pixel array structure" (p.10 in my version) section.
+Hi.
+
+IMO, your thoughts about core resource locking mechanism sound good.
+I say here some thoughts and examples how the resource locking mechanism might work.
+
+IMHO, It's good enough now if we are heading to a solution.
+At least I would not alone find a proper concept.
+
+07.07.2011 18:14, Mauro Carvalho Chehab kirjoitti:
+> Em 06-07-2011 16:59, Marko Ristola escreveu:
+>> 06.07.2011 21:17, Devin Heitmueller kirjoitti:
+>>> On Wed, Jul 6, 2011 at 1:53 PM, Marko Ristola <marko.ristola@kolumbus.fi> wrote:
+>>>>
 > 
-> I've seen that, but the sensor is still unable to output an image bigger than 
-> 752x480. See registers 3 and 4 maximum values on page 24 (in my version :-)).
+> IMO, the proper solution is to provide a core resource locking mechanism, that will keep
+> track about what device resources are in usage (tuner, analog audio/video demods, digital
+> demods, sec, radio reception, i2c buses, etc), and some mechanisms like the above that will
+> power the subdevice off when it is not being used for a given amount of time (a Kconfig option
+> can be added so set the time to X minutes or to disable such mechanism, in order to preserve
+> back compatibility).
+> 
 
-Right, sorry, what I mean, is, that even when you use one pixel to adjust 
-your image origin, you don't actually lose the size. So, you can output 
-752 pixels in a row whether you begin at 0 or 1. That's why I suggested to 
-set max width to 753, but then make sure it's always actually even. That 
-way a configuration offset = 1, width = 752 will also be valid.
+> One special case for the locking mechanisms that may or may not be covered by such core
+> resource locking is the access to the I2C buses. Currently, the DVB, V4L and remote controller
+> stacks may try to use resources behind I2C at the same time. The I2C core has a locking schema,
+> but it works only if a transaction is atomically commanded. So, if it requires multiple I2C 
+> transfers, all of them need to be grouped into one i2c xfer call. Complex operations like firmware
+> transfers are protected by the I2C locking, so one driver might be generating RC polling events
+> while a firmware is being transferring, causing it to fail.
 
-Thanks
-Guennadi
----
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
-http://www.open-technology.de/
+A generic locking schema could have shared/exclusive locks by name (device name, pointer ?).
+A generic resource "set of named locks" could contain these locks.
+
+Firmware load would take an exclusive lock on "I2C master" for the whole transfer.
+RC polling would take a shared lock on "I2C master" and an exclusive lock on "RC UART" device.
+Or if there is no need to share I2C device, RC polling would just take exclusive lock on "I2C Master".
+
+If I2C bus must be quiesced for 10ms after frontend's tuning action, "I2C master" exclusive lock
+could be held 10ms after last I2C transfer. "i2c/bridge1" state should be protected if the frontend
+is behind an I2C bridge.
+
+The existing I2C xfer mutex would be as it is now: it is a lower level lock, no regressions to come.
+
+Taking a shared lock of "tuner_power_switch" would mark that the device must not be turned off.
+While holding the shared lock, no "deferred watch" would be needed.
+While releasing "tuner_power_switch" lock, usage timestamp on that name should be updated.
+If there are no more "tuner_power_switch" holders, "delayed task" could be activated and
+run after 3 minutes to power the device off if needed.
+
+Bridge drivers that don't have full runtime power saving support, would
+not introduce a callback which a "delayed task" would run to turn power off / on.
+
+> 
+> Regards,
+> Mauro
+
+IMO, suspend / resume code must be a separate thing.
+
+We might want to suspend the laptop while watching a DVB channel.
+We don't want to have runtime power management active while watching a DVB channel.
+
+Suspend quiesces the device possibly in one phase. It needs to have the device
+in a good state before suspending: take an exclusive "I2C Master"
+lock before going to suspend. While resuming, release "I2C Master" lock.
+
+So even though these details are incomplete, suspend/resume could perhaps
+be integrated with the generic advanced locking scheme.
+
+Regards,
+Marko
