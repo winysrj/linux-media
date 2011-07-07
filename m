@@ -1,43 +1,94 @@
-Return-path: <mchehab@pedra>
-Received: from caramon.arm.linux.org.uk ([78.32.30.218]:55165 "EHLO
-	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755002Ab1GEMax (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 5 Jul 2011 08:30:53 -0400
-Date: Tue, 5 Jul 2011 13:30:35 +0100
-From: Russell King - ARM Linux <linux@arm.linux.org.uk>
-To: Arnd Bergmann <arnd@arndb.de>
-Cc: Marek Szyprowski <m.szyprowski@samsung.com>,
-	linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-	linux-media@vger.kernel.org, linux-mm@kvack.org,
-	linaro-mm-sig@lists.linaro.org,
-	Daniel Walker <dwalker@codeaurora.org>,
-	Jonathan Corbet <corbet@lwn.net>, Mel Gorman <mel@csn.ul.ie>,
-	Chunsang Jeong <chunsang.jeong@linaro.org>,
-	Michal Nazarewicz <mina86@mina86.com>,
-	Jesse Barker <jesse.barker@linaro.org>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	Ankita Garg <ankita@in.ibm.com>,
-	Andrew Morton <akpm@linux-foundation.org>,
-	KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Subject: Re: [PATCH 6/8] drivers: add Contiguous Memory Allocator
-Message-ID: <20110705123035.GD8286@n2100.arm.linux.org.uk>
-References: <1309851710-3828-1-git-send-email-m.szyprowski@samsung.com> <1309851710-3828-7-git-send-email-m.szyprowski@samsung.com> <20110705113345.GA8286@n2100.arm.linux.org.uk> <201107051427.44899.arnd@arndb.de>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <201107051427.44899.arnd@arndb.de>
+Return-path: <mchehab@localhost>
+Received: from mail02.prevas.se ([62.95.78.10]:35000 "EHLO mail02.prevas.se"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752850Ab1GGSP0 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 7 Jul 2011 14:15:26 -0400
+Subject: Re: SV: SV: omap3isp - H3A auto white balance
+From: Daniel Lundborg <daniel.lundborg@prevas.se>
+To: Jonathan Cameron <jic23@cam.ac.uk>
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	linux-media@vger.kernel.org
+In-Reply-To: <4E15DCA4.1060901@cam.ac.uk>
+References: <CA7B7D6C54015B459601D68441548157C5A3FC@prevas1.prevas.se>
+	 <201105311710.25200.laurent.pinchart@ideasonboard.com>
+	 <CA7B7D6C54015B459601D68441548157C5A403@prevas1.prevas.se>
+	 <201107070153.07591.laurent.pinchart@ideasonboard.com>
+	 <CA7B7D6C54015B459601D68441548157C5A42B@prevas1.prevas.se>
+	 <4E15DCA4.1060901@cam.ac.uk>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 8BIT
+Date: Thu, 07 Jul 2011 20:15:24 +0200
+Message-ID: <1310062524.15571.10.camel@daniel-Aspire-4315>
+Mime-Version: 1.0
 List-ID: <linux-media.vger.kernel.org>
-Sender: <mchehab@pedra>
+Sender: <mchehab@infradead.org>
 
-On Tue, Jul 05, 2011 at 02:27:44PM +0200, Arnd Bergmann wrote:
-> It's also a preexisting problem as far as I can tell, and it needs
-> to be solved in __dma_alloc for both cases, dma_alloc_from_contiguous
-> and __alloc_system_pages as introduced in patch 7.
+Hi Jonathan,
 
-Which is now resolved in linux-next, and has been through this cycle
-as previously discussed.
+if you change the mt9v034_set_chip_control in mt9v034_configure to..
 
-It's taken some time because the guy who tested the patch for me said
-he'd review other platforms but never did, so I've just about given up
-waiting and stuffed it in ready for the 3.1 merge window irrespective
-of anything else.
+ret = mt9v034_set_chip_control(mt9v034, MT9V034_CHIP_CONTROL_RESERVED, 0);  // Clear bit 9 for normal operation
+
+..it will start streaming as you startup the driver.
+
+You could consider clearing all bits in mt9v034_configure and in mt9v034_s_stream you set the correct bits for streaming. Look at Laurents mt9v032 driver code.
+
+
+Regards,
+
+Daniel
+
+ 
+On Thu, 2011-07-07 at 17:19 +0100, Jonathan Cameron wrote:
+> Hi Daniel,
+> 
+> Thanks for the driver. Couple of quick queries.  What do I need
+> for streaming mode (and does this work well for you?)
+> 
+> If I can get this working, I'm happy to pick up the job of patch
+> cleanup for you as a thank you.
+> 
+> Jonathan
+> > Hello again,
+> > 
+> >> Hi Daniel,
+> >>
+> >> On Wednesday 01 June 2011 10:49:43 Daniel Lundborg wrote:
+> >>>> On Tuesday 31 May 2011 12:07:08 Daniel Lundborg wrote:
+> >>>>
+> >>>> [snip]
+> >>>>
+> >>>>>> Any chance you will submit the driver for inclusion in the
+> > kernel?
+> >>>>> Yes if there is an interest in it. I can create a patch from
+> > your
+> >>>>> omap3isp-next-sensors tree if you want.
+> >>>>
+> >>>> That would be nice, thank you.
+> >>>
+> >>> Here's the patch:
+> >>
+> >> [snip]
+> >>
+> >> The patch is corrupted as your mailer wraps lines. Could you please
+> > fix that, 
+> >> or send it as an attachement ?
+> > 
+> > I will add it as an attachment to this email.
+> > 
+> >>
+> >> Please also include a commit message with your SoB line.
+> >>
+> >> -- 
+> >> Regards,
+> >>
+> >> Laurent Pinchart
+> > 
+> > I'm not sure how to add a commit message to the patch.
+> > 
+> > 
+> > Regards,
+> > 
+> > Daniel Lundborg
+> 
+
