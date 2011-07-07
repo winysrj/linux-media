@@ -1,33 +1,135 @@
-Return-path: <linux-media-owner@vger.kernel.org>
-Received: from casper.infradead.org ([85.118.1.10]:60587 "EHLO
-	casper.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753785Ab1GVND0 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 22 Jul 2011 09:03:26 -0400
-Message-ID: <4E297505.7090307@infradead.org>
-Date: Fri, 22 Jul 2011 10:03:01 -0300
-From: Mauro Carvalho Chehab <mchehab@infradead.org>
+Return-path: <mchehab@localhost>
+Received: from mx1.redhat.com ([209.132.183.28]:57003 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753101Ab1GGRqV (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 7 Jul 2011 13:46:21 -0400
+Message-ID: <4E15F0EA.4080003@redhat.com>
+Date: Thu, 07 Jul 2011 14:46:18 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
 MIME-Version: 1.0
-To: Stas Sergeev <stsp@list.ru>
-CC: linux-media@vger.kernel.org
-Subject: Re: [patch][saa7134] do not change mute state for capturing audio
-References: <4E19D2F7.6060803@list.ru> <4E1E05AC.2070002@infradead.org> <4E1E0A1D.6000604@list.ru> <4E1E1571.6010400@infradead.org> <4E1E8108.3060305@list.ru> <4E1F9A25.1020208@infradead.org> <4E22AF12.4020600@list.ru> <4E22CCC0.8030803@infradead.org> <4E24BEB8.4060501@redhat.com> <4E257FF5.4040401@infradead.org> <4E258B60.6010007@list.ru> <4E25906D.3020200@infradead.org> <4E259B0C.90107@list.ru> <4E25A26A.2000204@infradead.org> <4E25A7C2.3050609@list.ru> <4E25C7AE.5020503@infradead.org> <4E25CF35.7000802@list.ru> <4E25DB37.8020609@infradead.org> <4E25FDE4.7040805@list.ru> <4E262772.9060509@infradead.org> <4E266799.8030706@list.ru> <4E26AEC0.5000405@infradead.org> <4E26B1E7.2080107@list.ru> <4E26B29B.4010109@infradead.org> <4E292BED.60108@list.ru> <4E296D00.9040608@infradead.org> <4E296F6C.9080107@list.ru> <4E2971D4.1060109@infradead.org> <4E29738F.7040605@list.ru>
-In-Reply-To: <4E29738F.7040605@list.ru>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+CC: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+Subject: Re: [PATCH RFCv3 03/17] [media] DocBook: Use the generic error code
+ page also for MC API
+References: <cover.1309974026.git.mchehab@redhat.com> <201107071729.03676.hverkuil@xs4all.nl> <4E15E9AC.9050800@redhat.com> <201107071928.57090.hverkuil@xs4all.nl>
+In-Reply-To: <201107071928.57090.hverkuil@xs4all.nl>
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 7bit
-Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
+Sender: <mchehab@infradead.org>
 
-Em 22-07-2011 09:56, Stas Sergeev escreveu:
-> 22.07.2011 16:49, Mauro Carvalho Chehab wrote:
->> Let me rephase it:
->> Some applications like mplayer don't use V4L2_CID_AUDIO_MUTE to unmute a
->> video device. They assume the current behavior that starting audio on a
->> video board also unmutes audio.
-> Could you please give me a command line I can use
-> to verify that? Or any pointers to the code, anything
-> to check?
+Em 07-07-2011 14:28, Hans Verkuil escreveu:
+> On Thursday, July 07, 2011 19:15:24 Mauro Carvalho Chehab wrote:
+>> Em 07-07-2011 12:29, Hans Verkuil escreveu:
+>>> On Wednesday, July 06, 2011 20:03:52 Mauro Carvalho Chehab wrote:
+>>>> Instead of having their own generic error codes at the MC API, move
+>>>> its section to the generic one and be sure that all media ioctl's
+>>>> will point to it.
+>>>>
+>>>> Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+>>>>
+>>>> diff --git a/Documentation/DocBook/media/v4l/gen-errors.xml b/Documentation/DocBook/media/v4l/gen-errors.xml
+>>>> index 6ef476a..a7f73c9 100644
+>>>> --- a/Documentation/DocBook/media/v4l/gen-errors.xml
+>>>> +++ b/Documentation/DocBook/media/v4l/gen-errors.xml
+>>>> @@ -5,6 +5,11 @@
+>>>>    <tgroup cols="2">
+>>>>      &cs-str;
+>>>>      <tbody valign="top">
+>>>> +	<!-- Keep it ordered alphabetically -->
+>>>> +      <row>
+>>>> +	<entry>EBADF</entry>
+>>>> +	<entry><parameter>fd</parameter> is not a valid open file descriptor.</entry>
+>>>> +      </row>
+>>>>        <row>
+>>>>  	<entry>EBUSY</entry>
+>>>>  	<entry>The ioctl can't be handled because the device is busy. This is
+>>>> @@ -15,7 +20,16 @@
+>>>>  	       problem first (typically: stop the stream before retrying).</entry>
+>>>>        </row>
+>>>>        <row>
+>>>> +	<entry>EFAULT</entry>
+>>>> +	<entry><parameter>fd</parameter> is not a valid open file descriptor.</entry>
+>>>
+>>> This seems to be a copy-and-paste error. The original text in media-func-ioctl.xml says this:
+>>>
+>>> 	  <para><parameter>argp</parameter> references an inaccessible memory
+>>> 	  area.</para>
+>>
+>> Ah, yes. Anyway, a latter patch changes it to:
+> 
+> OK, I missed that. It was a bit confusing to review.
 
-Here, I add the following line at my .mplayer/config:
+Yeah. Documentation patches are harder to handle than normal patches. I did several
+changes on the existing patches, but perfecting each patch individually will probably
+take forever.
 
-tv		= "driver=v4l2:device=/dev/video0:norm=PAL-M:chanlist=us-bcast:alsa=1:adevice=hw.1:audiorate=32000:immediatemode=0:amode=1"
+>>
+>> 	<entry>EFAULT</entry>
+>> 	<entry>There was a failure while copying data from/to userspace.</entry>
+>>       </row>
+>>
+>> referencing a parameter name there is a bad thing anyway, as this is now at the common
+>> ioctl error code.
+>>
+>> Instead of just using a posix-like error code:
+>> 	EFAULT          Bad address (POSIX.1)
+>>
+>> I opted to use a more valuable description, explaining the reason for such error,
+>> e. g. that there was a failure at the data copy from/to userspace.
+>>
+>> It may be better to change it to:
+>>
+>> 	<entry>EFAULT</entry>
+>> 	<entry>There was a failure while copying data from/to userspace, probably
+>> 		caused by an invalid pointer reference.</entry>
+>>
+>> I think I'll add the above description at the latter patch.
+>>
+>> I was intending to add there the other possible error causes found at V4L/DVB API's
+>> and drivers, but the changes I did took me a longer time than I was expecting
+>> originally.  I'll eventually do that when I have more time. 
+>>
+>> It would be really great if we could find some volunteer to help syncing 
+>> the media API specs with the code.
+>>
+>>>> +      </row>
+>>>> +      <row>
+>>>>  	<entry>EINVAL</entry>
+>>>> +	<entry>One or more of the ioctl parameters are invalid. This is a widely
+>>>
+>>> widely -> widely used
+>>>
+>>>> +	       error code. see the individual ioctl requests for actual causes.</entry>
+>>>
+>>> see -> See
+>>
+>> Fixed. 
+> 
+> OK, with these changes you have my
+> 
+> Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+> 
+> as well for this patch.
+
+Thanks!
+
+> Just for my understanding: do you plan on merging this for 3.1? I have no objection to
+> that. Together with the querycap version changes it is easy to add compatibility support
+> to libv4l should that be necessary. I'm not convinced there won't be any fallout from
+> this change, but at least there is a decent way of working around it if needed. And there
+> is no doubt that -ENOTTY is a much better return code.
+
+Yes, that's my plan. Having both patch series merged together seemed a good idea to me, as
+it becomes easier for applications to benefit of that.
+> 
+> When this is merged I'll modify v4l2-compliance, v4l2-ctl (if necessary) and qv4l2.
+
+OK.
+
+> 
+> Regards,
+> 
+> 	Hans
+
