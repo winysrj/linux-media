@@ -1,69 +1,67 @@
-Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:63896 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752890Ab1G2VZi (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 29 Jul 2011 17:25:38 -0400
-Message-ID: <4E332550.2060806@redhat.com>
-Date: Fri, 29 Jul 2011 18:25:36 -0300
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Return-path: <mchehab@localhost>
+Received: from smtp-vbr18.xs4all.nl ([194.109.24.38]:2239 "EHLO
+	smtp-vbr18.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753530Ab1GGQqh (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 7 Jul 2011 12:46:37 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Jonathan Corbet <corbet@lwn.net>
+Subject: Re: [RFC PATCH] poll: add poll_requested_events() function
+Date: Thu, 7 Jul 2011 18:46:33 +0200
+Cc: "linux-kernel" <linux-kernel@vger.kernel.org>,
+	"linux-media" <linux-media@vger.kernel.org>,
+	linux-fsdevel@vger.kernel.org, viro@zeniv.linux.org.uk
+References: <201107011537.30829.hverkuil@xs4all.nl> <20110707104255.6771771d@bike.lwn.net>
+In-Reply-To: <20110707104255.6771771d@bike.lwn.net>
 MIME-Version: 1.0
-To: Jarod Wilson <jarod@wilsonet.com>
-CC: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: [PATCH 1/2] [media] rc-main: Fix device de-registration logic
-References: <20110729025356.28cc99e8@redhat.com> <019F3E90-A128-4527-8698-1E2FE89341C9@wilsonet.com>
-In-Reply-To: <019F3E90-A128-4527-8698-1E2FE89341C9@wilsonet.com>
-Content-Type: text/plain; charset=UTF-8
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
-Sender: linux-media-owner@vger.kernel.org
+Message-Id: <201107071846.33586.hverkuil@xs4all.nl>
 List-ID: <linux-media.vger.kernel.org>
+Sender: <mchehab@infradead.org>
 
-Em 29-07-2011 14:30, Jarod Wilson escreveu:
-> On Jul 29, 2011, at 1:53 AM, Mauro Carvalho Chehab wrote:
+On Thursday, July 07, 2011 18:42:55 Jonathan Corbet wrote:
+> On Fri, 1 Jul 2011 15:37:30 +0200
+> Hans Verkuil <hverkuil@xs4all.nl> wrote:
 > 
->> rc unregister logic were deadly broken, preventing some drivers to
->> be removed. Among the broken things, rc_dev_uevent() is being called
->> during device_del(), causing a data filling on an area that it is
->> not ready anymore.
->>
->> Also, some drivers have a stop callback defined, that needs to be called
->> before data removal, as it stops data polling.
->>
->> Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
->>
->> diff --git a/drivers/media/rc/rc-main.c b/drivers/media/rc/rc-main.c
->> index 51a23f4..666d4bb 100644
->> --- a/drivers/media/rc/rc-main.c
->> +++ b/drivers/media/rc/rc-main.c
->> @@ -928,10 +928,6 @@ out:
->>
->> static void rc_dev_release(struct device *device)
->> {
->> -	struct rc_dev *dev = to_rc_dev(device);
->> -
->> -	kfree(dev);
->> -	module_put(THIS_MODULE);
->> }
+> > In some cases the poll() implementation in a driver has to do different
+> > things depending on the events the caller wants to poll for. An example is
+> > when a driver needs to start a DMA engine if the caller polls for POLLIN,
+> > but doesn't want to do that if POLLIN is not requested but instead only
+> > POLLOUT or POLLPRI is requested. This is something that can happen in the
+> > video4linux subsystem.
 > 
-> Since this function become a no-op, does it make sense to just remove it
-> and not set a .release function for static struct device_type rc_dev_type?
-
-As you tested, this function needs to exist... well, other drivers sometimes
-do the same, by defining it as a no-op function.
-
-> Other than that, after reading through the patch several times, along with
-> the resulting rc-main.c and some input code, everything seems to make
-> sense to me. Will do some quick sanity-testing with a few of my various
-> devices before I give an ack though, just to be sure. :)
-
-Thanks! Yeah, a test with other devices is welcome, as we don't want fix for one
-and break for the others ;)
-
-The logic there looks simple, but it is, in fact, tricky, especially since
-drivers may have polling tasks running, and they need to be cancelled before 
-freeing the resources.
-
-Cheers,
-Mauro
-
+> The change makes sense to me, FWIW.  One bit of trivia I noticed while
+> looking at it:
 > 
+> > @@ -796,7 +792,7 @@ static int do_poll(unsigned int nfds,  struct poll_list *list,
+> >  		 * All waiters have already been registered, so don't provide
+> >  		 * a poll_table to them on the next loop iteration.
+> >  		 */
+> > -		pt = NULL;
+> > +		pt->qproc = NULL;
+> >  		if (!count) {
+> >  			count = wait->error;
+> >  			if (signal_pending(current))
+> 
+> The comment at the beginning of this hunk is no longer accurate since the
+> poll_table is, indeed, still being supplied.  The previous comment in the
+> same function:
+> 
+> 				/*
+> 				 * Fish for events. If we found one, record it
+> 				 * and kill the poll_table, so we don't
+> 				 * needlessly register any other waiters after
+> 				 * this. They'll get immediately deregistered
+> 				 * when we break out and return.
+> 				 */
+> 
+> Could also use tweaking.
 
+Indeed! I'll make an RFCv3 tomorrow fixing this.
+
+Thanks for looking at this!
+
+Regards,
+
+	Hans
