@@ -1,90 +1,150 @@
-Return-path: <mchehab@pedra>
-Received: from smtp-vbr16.xs4all.nl ([194.109.24.36]:4258 "EHLO
-	smtp-vbr16.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754963Ab1GAH5w (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 1 Jul 2011 03:57:52 -0400
+Return-path: <mchehab@localhost>
+Received: from smtp-vbr10.xs4all.nl ([194.109.24.30]:2170 "EHLO
+	smtp-vbr10.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756785Ab1GGPbp (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 7 Jul 2011 11:31:45 -0400
 From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Sakari Ailus <sakari.ailus@iki.fi>
-Subject: Re: [GIT PULL FOR 3.1] Bitmask controls, flash API and adp1653 driver
-Date: Fri, 1 Jul 2011 09:57:39 +0200
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	linux-media@vger.kernel.org, laurent.pinchart@ideasonboard.com
-References: <20110610092703.GH7830@valkosipuli.localdomain> <4E0D226E.5010809@redhat.com>
-In-Reply-To: <4E0D226E.5010809@redhat.com>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: [PATCH RFCv3 00/17] Error code fixes and return -ENOTTY for no-ioctl
+Date: Thu, 7 Jul 2011 17:31:31 +0200
+Cc: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+	Stefan Richter <stefanr@s5r6.in-berlin.de>
+References: <20110706150404.3ac4ed6e@pedra>
+In-Reply-To: <20110706150404.3ac4ed6e@pedra>
 MIME-Version: 1.0
 Content-Type: Text/Plain;
-  charset="utf-8"
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
-Message-Id: <201107010957.39930.hverkuil@xs4all.nl>
+Message-Id: <201107071731.31434.hverkuil@xs4all.nl>
 List-ID: <linux-media.vger.kernel.org>
-Sender: <mchehab@pedra>
+Sender: <mchehab@infradead.org>
 
-On Friday, July 01, 2011 03:27:10 Mauro Carvalho Chehab wrote:
-> Em 10-06-2011 06:27, Sakari Ailus escreveu:
-> > Hi Mauro,
-> > 
-> > This pull request adds the bitmask controls, flash API and the adp1653
-> > driver. What has changed since the patches is:
-> > 
-> > - Adp1653 flash faults control is volatile. Fix this.
-> > - Flash interface marked as experimental.
-> > - Moved the DocBook documentation to a new location.
-> > - The target version is 3.1, not 2.6.41.
-> > 
-> > The following changes since commit 75125b9d44456e0cf2d1fbb72ae33c13415299d1:
-> > 
-> >   [media] DocBook: Don't be noisy at make cleanmediadocs (2011-06-09 16:40:58 -0300)
-> > 
-> > are available in the git repository at:
-> >   ssh://linuxtv.org/git/sailus/media_tree.git media-for-3.1
-> > 
-> > Hans Verkuil (3):
-> >       v4l2-ctrls: add new bitmask control type.
-> >       vivi: add bitmask test control.
-> >       DocBook: document V4L2_CTRL_TYPE_BITMASK.
+On Wednesday, July 06, 2011 20:04:04 Mauro Carvalho Chehab wrote:
+> This patch series contain some fixes on how error codes are handled
+> at the media API's. It consists on two parts. 
 > 
-> I'm sure I've already mentioned, but I think it was at the Hans pull request:
-> the specs don't mention what endiannes is needed for the bitmask controls: 
-> machine endianess, little endian or big endian.  IMO, we should stick with either
-> LE or BE.
+> The first part have the DocBook changes:
+> - Create a generic errno xml file, used by all media API's
+>   (V4L, MC, LIRC and DVB);
+> - Move the generic errorcodes to the new file;
+> - Removes code duplication/inconsistency along the several
+>   API files;
+> - Removes two bogus undefined errorcodes: EINTERNAL/ENOSIGNAL
+>   from the ioctl's.
+> 
+> The second part have the code changes:
+> - Some fixes on a few drivers that use EFAULT on a wrong
+>   way, and not compliant with the DVB API;
+> - The usage of ENOTTY meaning that no ioctl is implemented.
 
-Sorry Sakari, I should have fixed that. But since the patch was going through
-your repository I forgot about it. Anyway, it should be machine endianess. You
-have to be able to do (value & bit_define). The bit_defines for each bitmask
-control should be part of the control's definition in videodev2.h.
+Except for patch 03/17 (see my comments there):
 
-It makes no sense to require LE or BE. We don't do that for other control types,
-so why should bitmask be any different?
-
-Can you add this clarification to DocBook?
+Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
 
 Regards,
 
 	Hans
 
+> TODO:
+> - Some DVB open/close API description are mentioning the
+>   non-existent EINTERNAL error code;
+> - firedtv driver needs to be fixed with respect to the usage
+>   of -EFAULT (Stefan c/c).
+> - The DVB driver uses a couple different error codes to mean that
+>   an ioctl is not implemented: ENOSYS and EOPNOTSUPP. The last
+>   one is used on most places. It would be great to standardize
+>   this error code as well, but further study is required.
+> - There are still several error codes not present at gen-errors.xml.
+>   A match between what's currently used at the drivers and the
+>   API is needed. Probably, both code and DocBook needs to be
+>   changed, as, on several cases, different drivers return different
+>   error codes for the same error.
 > 
-> > 
-> > Sakari Ailus (3):
-> >       v4l: Add a class and a set of controls for flash devices.
-> >       v4l: Add flash control documentation
-> >       adp1653: Add driver for LED flash controller
-> > 
-> >  Documentation/DocBook/media/v4l/compat.xml         |   11 +
-> >  Documentation/DocBook/media/v4l/controls.xml       |  283 ++++++++++++
-> >  Documentation/DocBook/media/v4l/v4l2.xml           |    9 +-
-> >  .../DocBook/media/v4l/vidioc-g-ext-ctrls.xml       |    7 +
-> >  .../DocBook/media/v4l/vidioc-queryctrl.xml         |   12 +-
-> >  drivers/media/video/Kconfig                        |    9 +
-> >  drivers/media/video/Makefile                       |    1 +
-> >  drivers/media/video/adp1653.c                      |  485 ++++++++++++++++++++
-> >  drivers/media/video/v4l2-common.c                  |    3 +
-> >  drivers/media/video/v4l2-ctrls.c                   |   62 +++-
-> >  drivers/media/video/vivi.c                         |   18 +-
-> >  include/linux/videodev2.h                          |   37 ++
-> >  include/media/adp1653.h                            |  126 +++++
-> >  13 files changed, 1058 insertions(+), 5 deletions(-)
-> >  create mode 100644 drivers/media/video/adp1653.c
-> >  create mode 100644 include/media/adp1653.h
-> > 
+> Mauro Carvalho Chehab (17):
+>   [media] DocBook: Add a chapter to describe media errors
+>   [media] DocBook: Use the generic ioctl error codes for all V4L
+>     ioctl's
+>   [media] DocBook: Use the generic error code page also for MC API
+>   [media] DocBook/media-ioc-setup-link.xml: Remove EBUSY
+>   [media] DocBook: Remove V4L generic error description for ioctl()
+>   [media] DocBook: Add an error code session for LIRC interface
+>   [media] DocBook: Add return error codes to LIRC ioctl session
+>   [media] siano: bad parameter is -EINVAL and not -EFAULT
+>   [media] nxt6000: i2c bus error should return -EIO
+>   [media] DVB: Point to the generic error chapter
+>   [media] DocBook/audio.xml: Remove generic errors
+>   [media] DocBook/demux.xml: Remove generic errors
+>   [media] dvb-bt8xx: Don't return -EFAULT when a device is not found
+>   [media] DocBook/dvb: Use generic descriptions for the frontend API
+>   [media] DocBook/dvb: Use generic descriptions for the video API
+>   [media] v4l2 core: return -ENOTTY if an ioctl doesn't exist
+>   [media] return -ENOTTY for unsupported ioctl's at legacy drivers
+> 
+>  Documentation/DocBook/.gitignore                   |    2 +
+>  Documentation/DocBook/media/Makefile               |   42 ++-
+>  Documentation/DocBook/media/dvb/audio.xml          |  372 +--------------
+>  Documentation/DocBook/media/dvb/ca.xml             |    6 +-
+>  Documentation/DocBook/media/dvb/demux.xml          |  121 +-----
+>  Documentation/DocBook/media/dvb/dvbproperty.xml    |   23 +-
+>  Documentation/DocBook/media/dvb/frontend.xml       |  487 +-------------------
+>  Documentation/DocBook/media/dvb/video.xml          |  418 +----------------
+>  Documentation/DocBook/media/v4l/func-ioctl.xml     |   72 +---
+>  Documentation/DocBook/media/v4l/gen-errors.xml     |   77 +++
+>  .../DocBook/media/v4l/lirc_device_interface.xml    |    4 +-
+>  .../DocBook/media/v4l/media-func-ioctl.xml         |   47 +--
+>  .../DocBook/media/v4l/media-ioc-device-info.xml    |    3 +-
+>  .../DocBook/media/v4l/media-ioc-setup-link.xml     |    9 -
+>  Documentation/DocBook/media/v4l/v4l2.xml           |    2 +
+>  Documentation/DocBook/media/v4l/vidioc-cropcap.xml |   13 +-
+>  .../DocBook/media/v4l/vidioc-dbg-g-chip-ident.xml  |   11 +-
+>  .../DocBook/media/v4l/vidioc-dbg-g-register.xml    |   17 -
+>  Documentation/DocBook/media/v4l/vidioc-dqevent.xml |   10 +-
+>  .../DocBook/media/v4l/vidioc-encoder-cmd.xml       |   11 +-
+>  .../media/v4l/vidioc-enum-frameintervals.xml       |   11 -
+>  .../DocBook/media/v4l/vidioc-enum-framesizes.xml   |   11 -
+>  .../DocBook/media/v4l/vidioc-enumaudio.xml         |   12 +-
+>  .../DocBook/media/v4l/vidioc-enumaudioout.xml      |   12 +-
+>  Documentation/DocBook/media/v4l/vidioc-g-audio.xml |   18 +-
+>  .../DocBook/media/v4l/vidioc-g-audioout.xml        |   18 +-
+>  Documentation/DocBook/media/v4l/vidioc-g-crop.xml  |   17 -
+>  .../DocBook/media/v4l/vidioc-g-dv-preset.xml       |   12 +-
+>  .../DocBook/media/v4l/vidioc-g-dv-timings.xml      |   11 +-
+>  .../DocBook/media/v4l/vidioc-g-enc-index.xml       |   17 -
+>  Documentation/DocBook/media/v4l/vidioc-g-fbuf.xml  |   19 +-
+>  Documentation/DocBook/media/v4l/vidioc-g-fmt.xml   |   20 +-
+>  Documentation/DocBook/media/v4l/vidioc-g-input.xml |   19 +-
+>  .../DocBook/media/v4l/vidioc-g-jpegcomp.xml        |   17 -
+>  .../DocBook/media/v4l/vidioc-g-output.xml          |   18 +-
+>  Documentation/DocBook/media/v4l/vidioc-g-parm.xml  |   17 -
+>  .../DocBook/media/v4l/vidioc-g-priority.xml        |    3 +-
+>  .../DocBook/media/v4l/vidioc-g-sliced-vbi-cap.xml  |   11 +-
+>  Documentation/DocBook/media/v4l/vidioc-g-std.xml   |    9 +-
+>  .../DocBook/media/v4l/vidioc-log-status.xml        |   17 -
+>  Documentation/DocBook/media/v4l/vidioc-overlay.xml |   11 +-
+>  Documentation/DocBook/media/v4l/vidioc-qbuf.xml    |   17 -
+>  .../DocBook/media/v4l/vidioc-query-dv-preset.xml   |   22 -
+>  .../DocBook/media/v4l/vidioc-querycap.xml          |   19 -
+>  .../DocBook/media/v4l/vidioc-querystd.xml          |   23 -
+>  Documentation/DocBook/media/v4l/vidioc-reqbufs.xml |   16 -
+>  .../DocBook/media/v4l/vidioc-streamon.xml          |   14 +-
+>  .../DocBook/media/v4l/vidioc-subdev-g-fmt.xml      |    3 +
+>  .../DocBook/media/v4l/vidioc-subscribe-event.xml   |   11 +-
+>  Documentation/DocBook/media_api.tmpl               |    9 +-
+>  drivers/media/dvb/bt8xx/dvb-bt8xx.c                |    4 +-
+>  drivers/media/dvb/frontends/nxt6000.c              |    2 +-
+>  drivers/media/dvb/siano/smscoreapi.c               |    2 +-
+>  drivers/media/video/et61x251/et61x251_core.c       |   10 +-
+>  drivers/media/video/pvrusb2/pvrusb2-v4l2.c         |    7 +-
+>  drivers/media/video/sn9c102/sn9c102_core.c         |   10 +-
+>  drivers/media/video/uvc/uvc_v4l2.c                 |    2 +-
+>  drivers/media/video/v4l2-ioctl.c                   |    4 +-
+>  58 files changed, 267 insertions(+), 1955 deletions(-)
+>  create mode 100644 Documentation/DocBook/media/v4l/gen-errors.xml
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 > 
 > 
