@@ -1,189 +1,102 @@
-Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout-de.gmx.net ([213.165.64.22]:50467 "HELO
-	mailout-de.gmx.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1755381Ab1GPPlr (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 16 Jul 2011 11:41:47 -0400
-From: Oliver Endriss <o.endriss@gmx.de>
-Reply-To: linux-media@vger.kernel.org
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-Subject: Re: [PATCH 0/5] Driver support for cards based on Digital Devices bridge (ddbridge)
-Date: Sat, 16 Jul 2011 17:40:53 +0200
-Cc: Antti Palosaari <crope@iki.fi>,
-	Andreas Oberritter <obi@linuxtv.org>,
-	Ralph Metzler <rjkm@metzlerbros.de>,
-	linux-media@vger.kernel.org
-References: <201107032321.46092@orion.escape-edv.de> <4E219D49.1070709@iki.fi> <4E21A63A.8040008@redhat.com>
-In-Reply-To: <4E21A63A.8040008@redhat.com>
+Return-path: <mchehab@localhost>
+Received: from mx1.redhat.com ([209.132.183.28]:43810 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755029Ab1GGRP0 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 7 Jul 2011 13:15:26 -0400
+Message-ID: <4E15E9AC.9050800@redhat.com>
+Date: Thu, 07 Jul 2011 14:15:24 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
 MIME-Version: 1.0
-Content-Type: text/plain;
-  charset="utf-8"
+To: Hans Verkuil <hverkuil@xs4all.nl>
+CC: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+Subject: Re: [PATCH RFCv3 03/17] [media] DocBook: Use the generic error code
+ page also for MC API
+References: <cover.1309974026.git.mchehab@redhat.com> <20110706150352.436f7a2a@pedra> <201107071729.03676.hverkuil@xs4all.nl>
+In-Reply-To: <201107071729.03676.hverkuil@xs4all.nl>
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-Message-Id: <201107161740.54543@orion.escape-edv.de>
-Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
+Sender: <mchehab@infradead.org>
 
-On Saturday 16 July 2011 16:54:50 Mauro Carvalho Chehab wrote:
-> Em 16-07-2011 11:16, Antti Palosaari escreveu:
-> > On 07/16/2011 03:25 PM, Mauro Carvalho Chehab wrote:
-> >> Em 15-07-2011 20:41, Antti Palosaari escreveu:
-> >>> On 07/15/2011 08:01 PM, Andreas Oberritter wrote:
-> >>>> On 15.07.2011 15:25, Mauro Carvalho Chehab wrote:
-> >>>>> Em 15-07-2011 05:26, Ralph Metzler escreveu:
-> >>>>>> At the same time I want to add delivery system properties to
-> >>>>>> support everything in one frontend device.
-> >>>>>> Adding a parameter to select C or T as default should help in most
-> >>>>>> cases where the application does not support switching yet.
-> >>>>>
-> >>>>> If I understood well, creating a multi-delivery type of frontend for
-> >>>>> devices like DRX-K makes sense for me.
-> >>>>>
-> >>>>> We need to take some care about how to add support for them, to avoid
-> >>>>> breaking userspace, or to follow kernel deprecating rules, by adding
-> >>>>> some legacy compatibility glue for a few kernel versions. So, the sooner
-> >>>>> we add such support, the better, as less drivers will need to support
-> >>>>> a "fallback" mechanism.
-> >>>>>
-> >>>>> The current DVB version 5 API doesn't prevent some userspace application
-> >>>>> to change the delivery system[1] for a given frontend. This feature is
-> >>>>> actually used by DVB-T2 and DVB-S2 drivers. This actually improved the
-> >>>>> DVB API multi-fe support, by avoiding the need of create of a secondary
-> >>>>> frontend for T2/S2.
-> >>>>>
-> >>>>> Userspace applications can detect that feature by using FE_CAN_2G_MODULATION
-> >>>>> flag, but this mechanism doesn't allow other types of changes like
-> >>>>> from/to DVB-T/DVB-C or from/to DVB-T/ISDB-T. So, drivers that allow such
-> >>>>> type of delivery system switch, using the same chip ended by needing to
-> >>>>> add two frontends.
-> >>>>>
-> >>>>> Maybe we can add a generic FE_CAN_MULTI_DELIVERY flag to fe_caps_t, and
-> >>>>> add a way to query the type of delivery systems supported by a driver.
-> >>>>>
-> >>>>> [1] http://linuxtv.org/downloads/v4l-dvb-apis/FE_GET_SET_PROPERTY.html#DTV-DELIVERY-SYSTEM
-> >>>>
-> >>>> I don't think it's necessary to add a new flag. It should be sufficient
-> >>>> to add a property like "DTV_SUPPORTED_DELIVERY_SYSTEMS", which should be
-> >>>> read-only and return an array of type fe_delivery_system_t.
-> >>>>
-> >>>> Querying this new property on present kernels hopefully fails with a
-> >>>> non-zero return code. in which case FE_GET_INFO should be used to query
-> >>>> the delivery system.
-> >>>>
-> >>>> In future kernels we can provide a default implementation, returning
-> >>>> exactly one fe_delivery_system_t for unported drivers. Other drivers
-> >>>> should be able to override this default implementation in their
-> >>>> get_property callback.
-> >>>
-> >>> One thing I want to say is that consider about devices which does have MFE using two different *physical* demods, not integrated to same silicon.
-> >>>
-> >>> If you add such FE delsys switch mechanism it needs some more glue to bind two physical FEs to one virtual FE. I see much easier to keep all FEs as own - just register those under the same adapter if FEs are shared.
-> >>
-> >> In this case, the driver should just create two frontends, as currently.
-> >>
-> >> There's a difference when there are two physical FE's and just one FE:
-> >> with 2 FE's, the userspace application can just keep both opened at
-> >> the same time. Some applications (like vdr) assumes that all multi-fe
-> >> are like that.
-> > 
-> > Does this mean demod is not sleeping (.init() called)?
-> > 
-> >> When there's just a single FE, but the driver needs to "fork" it in two
-> >> due to the API troubles, the driver needs to prevent the usage of both
-> >> fe's, either at open or at the ioctl level. So, applications like vdr
-> >> will only use the first frontend.
-> > 
-> > Lets take example. There is shared MFE having DVB-S, DVB-T and DVB-C. DVB-T and DVB-C are integrated to one chip whilst DVB-S have own.
-> > 
-> > Currently it will shown as:
+Em 07-07-2011 12:29, Hans Verkuil escreveu:
+> On Wednesday, July 06, 2011 20:03:52 Mauro Carvalho Chehab wrote:
+>> Instead of having their own generic error codes at the MC API, move
+>> its section to the generic one and be sure that all media ioctl's
+>> will point to it.
+>>
+>> Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+>>
+>> diff --git a/Documentation/DocBook/media/v4l/gen-errors.xml b/Documentation/DocBook/media/v4l/gen-errors.xml
+>> index 6ef476a..a7f73c9 100644
+>> --- a/Documentation/DocBook/media/v4l/gen-errors.xml
+>> +++ b/Documentation/DocBook/media/v4l/gen-errors.xml
+>> @@ -5,6 +5,11 @@
+>>    <tgroup cols="2">
+>>      &cs-str;
+>>      <tbody valign="top">
+>> +	<!-- Keep it ordered alphabetically -->
+>> +      <row>
+>> +	<entry>EBADF</entry>
+>> +	<entry><parameter>fd</parameter> is not a valid open file descriptor.</entry>
+>> +      </row>
+>>        <row>
+>>  	<entry>EBUSY</entry>
+>>  	<entry>The ioctl can't be handled because the device is busy. This is
+>> @@ -15,7 +20,16 @@
+>>  	       problem first (typically: stop the stream before retrying).</entry>
+>>        </row>
+>>        <row>
+>> +	<entry>EFAULT</entry>
+>> +	<entry><parameter>fd</parameter> is not a valid open file descriptor.</entry>
 > 
-> Let me name the approaches:
+> This seems to be a copy-and-paste error. The original text in media-func-ioctl.xml says this:
 > 
-> Approach 1)
-> > * adapter0
-> > ** frontend0 (DVB-S)
-> > ** frontend1 (DVB-T)
-> > ** frontend2 (DVB-C)
+> 	  <para><parameter>argp</parameter> references an inaccessible memory
+> 	  area.</para>
+
+Ah, yes. Anyway, a latter patch changes it to:
+
+	<entry>EFAULT</entry>
+	<entry>There was a failure while copying data from/to userspace.</entry>
+      </row>
+
+referencing a parameter name there is a bad thing anyway, as this is now at the common
+ioctl error code.
+
+Instead of just using a posix-like error code:
+	EFAULT          Bad address (POSIX.1)
+
+I opted to use a more valuable description, explaining the reason for such error,
+e. g. that there was a failure at the data copy from/to userspace.
+
+It may be better to change it to:
+
+	<entry>EFAULT</entry>
+	<entry>There was a failure while copying data from/to userspace, probably
+		caused by an invalid pointer reference.</entry>
+
+I think I'll add the above description at the latter patch.
+
+I was intending to add there the other possible error causes found at V4L/DVB API's
+and drivers, but the changes I did took me a longer time than I was expecting
+originally.  I'll eventually do that when I have more time. 
+
+It would be really great if we could find some volunteer to help syncing 
+the media API specs with the code.
+
+>> +      </row>
+>> +      <row>
+>>  	<entry>EINVAL</entry>
+>> +	<entry>One or more of the ioctl parameters are invalid. This is a widely
 > 
-> Approach 2)
-> > Your new "ideal" solution will be:
-> > * adapter0
-> > ** frontend0 (DVB-S/T/C)
+> widely -> widely used
 > 
-> Approach 3)
-> > What really happens (mixed old and new):
-
-Why does this happen?
-
-> > * adapter0
-> > ** frontend0 (DVB-S)
-> > ** frontend1 (DVB-T/C)
->
-> What I've said before is that approach 3 is the "ideal" solution.
-
-No, sorry.
-
-> > It does not look very good to offer this kind of mixed solution, since it is possible to offer only one solution for userspace, new or old, but not mixing.
+>> +	       error code. see the individual ioctl requests for actual causes.</entry>
 > 
-> Good point. 
-> 
-> There's an additional aspect to handle: if a driver that uses approach 1, a conversion
-> to either approach 2 or 3 would break existing applications that can't handle with
-> the new approach.
-> 
-> There's a 4th posibility: always offering fe0 with MFE capabilities, and creating additional fe's
-> for old applications that can't cope with the new mode.
-> For example, on a device that supports DVB-S/DVB-S2/DVB-T/DVB-T2/DVB-C/ISDB-T, it will be shown as:
-> 
-> Approach 4) fe0 is a frontend "superset"
-> 
-> *adapter0
-> *frontend0 (DVB-S/DVB-S2/DVB-T/DVB-T2/DVB-C/ISDB-T) - aka: FE superset
-> *frontend1 (DVB-S/DVB-S2)
-> *frontend2 (DVB-T/DVB-T2)
-> *frontend3 (DVB-C)
-> *frontend4 (ISDB-T)
-> 
-> fe0 will need some special logic to allow redirecting a FE call to the right fe, if
-> there are more than one physical frontend bound into the FE API.
-> 
-> I'm starting to think that (4) is the better approach, as it won't break legacy
-> applications, and it will provide an easier way for new applications to control
-> the frontend with just one frontend.
+> see -> See
 
-Nack. Do not make it more complicated than neccessary!
-Approach (2) is the way to go.
+Fixed. 
 
-I consider the current way as a clear abuse of the DVB API.
-It is a bug, not a feature!
-
-Originally it was intended to support multiple data paths per adapter.
-For example, A dual tuner DVB-S card should have been implemented as
-one adapter:
-
-adapterX +--- demux0/frontend0/ca0/dvr0/net0
-         |
-         +--- demux1/frontend1/ca1/dvr1/net1
-
-(Both tuners can be used concurrently without limitations.)
-
-My proposal is:
-If there is any kind of shared hardware, i.e. the application cannot
-use both adapters independently, these hardware must be folded into a
-single frontend.
-
-It is not so hard to implement, even for separate chips:
-The driver just has to "switch" from one set of frontend ops to another.
-
-Btw, which applications do really handle this fronten0/1 stuff correctly?
-VDR definitely does not. Access to the frontend1 fails.
-
-CU
-Oliver
-
--- 
-----------------------------------------------------------------
-VDR Remote Plugin 0.4.0: http://www.escape-edv.de/endriss/vdr/
-4 MByte Mod: http://www.escape-edv.de/endriss/dvb-mem-mod/
-Full-TS Mod: http://www.escape-edv.de/endriss/dvb-full-ts-mod/
-----------------------------------------------------------------
+Thanks!
+Mauro
