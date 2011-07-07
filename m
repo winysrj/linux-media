@@ -1,54 +1,125 @@
 Return-path: <mchehab@localhost>
-Received: from tex.lwn.net ([70.33.254.29]:36257 "EHLO vena.lwn.net"
+Received: from cnc.isely.net ([75.149.91.89]:54758 "EHLO cnc.isely.net"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752146Ab1GHUwI (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 8 Jul 2011 16:52:08 -0400
-From: Jonathan Corbet <corbet@lwn.net>
-To: linux-media@vger.kernel.org
-Cc: Marek Szyprowski <m.szyprowski@samsung.com>,
-	Kassey Lee <ygli@marvell.com>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Jonathan Corbet <corbet@lwn.net>
-Subject: [PATCH 3/6] marvell-cam: remove {min,max}_buffers parameters
-Date: Fri,  8 Jul 2011 14:50:47 -0600
-Message-Id: <1310158250-168899-4-git-send-email-corbet@lwn.net>
-In-Reply-To: <1310158250-168899-1-git-send-email-corbet@lwn.net>
-References: <1310158250-168899-1-git-send-email-corbet@lwn.net>
+	id S1751880Ab1GGQoP (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 7 Jul 2011 12:44:15 -0400
+Date: Thu, 7 Jul 2011 11:44:14 -0500 (CDT)
+From: Mike Isely <isely@isely.net>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+Subject: Re: [PATCH RFCv3 17/17] [media] return -ENOTTY for unsupported
+ ioctl's at legacy drivers
+In-Reply-To: <20110706150349.44795968@pedra>
+Message-ID: <alpine.DEB.1.10.1107071143210.967@cnc.isely.net>
+References: <cover.1309974026.git.mchehab@redhat.com> <20110706150349.44795968@pedra>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@infradead.org>
 
-Somewhere along the way the code stopped actually paying any attention to
-them, and I doubt anybody has ever made use of them.
 
-Signed-off-by: Jonathan Corbet <corbet@lwn.net>
----
- drivers/media/video/marvell-ccic/mcam-core.c |   13 -------------
- 1 files changed, 0 insertions(+), 13 deletions(-)
+For the pvrusb2 portion of this patch:
 
-diff --git a/drivers/media/video/marvell-ccic/mcam-core.c b/drivers/media/video/marvell-ccic/mcam-core.c
-index 8a99ec2..9867b3b 100644
---- a/drivers/media/video/marvell-ccic/mcam-core.c
-+++ b/drivers/media/video/marvell-ccic/mcam-core.c
-@@ -72,19 +72,6 @@ MODULE_PARM_DESC(dma_buf_size,
- 		"parameters require larger buffers, an attempt to reallocate "
- 		"will be made.");
- 
--static int min_buffers = 1;
--module_param(min_buffers, uint, 0644);
--MODULE_PARM_DESC(min_buffers,
--		"The minimum number of streaming I/O buffers we are willing "
--		"to work with.");
--
--static int max_buffers = 10;
--module_param(max_buffers, uint, 0644);
--MODULE_PARM_DESC(max_buffers,
--		"The maximum number of streaming I/O buffers an application "
--		"will be allowed to allocate.  These buffers are big and live "
--		"in vmalloc space.");
--
- static int flip;
- module_param(flip, bool, 0444);
- MODULE_PARM_DESC(flip,
+Acked-By: Mike Isely <isely@pobox.com>
+
+  -Mike
+
+On Wed, 6 Jul 2011, Mauro Carvalho Chehab wrote:
+
+> Those drivers are not relying at the V4L2 core to handle the ioctl's.
+> So, we need to manually patch them every time a change goes to the
+> core.
+> 
+> Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+> 
+> diff --git a/drivers/media/video/et61x251/et61x251_core.c b/drivers/media/video/et61x251/et61x251_core.c
+> index d7efb33..9a1e80a 100644
+> --- a/drivers/media/video/et61x251/et61x251_core.c
+> +++ b/drivers/media/video/et61x251/et61x251_core.c
+> @@ -2480,16 +2480,8 @@ static long et61x251_ioctl_v4l2(struct file *filp,
+>  	case VIDIOC_S_PARM:
+>  		return et61x251_vidioc_s_parm(cam, arg);
+>  
+> -	case VIDIOC_G_STD:
+> -	case VIDIOC_S_STD:
+> -	case VIDIOC_QUERYSTD:
+> -	case VIDIOC_ENUMSTD:
+> -	case VIDIOC_QUERYMENU:
+> -	case VIDIOC_ENUM_FRAMEINTERVALS:
+> -		return -EINVAL;
+> -
+>  	default:
+> -		return -EINVAL;
+> +		return -ENOTTY;
+>  
+>  	}
+>  }
+> diff --git a/drivers/media/video/pvrusb2/pvrusb2-v4l2.c b/drivers/media/video/pvrusb2/pvrusb2-v4l2.c
+> index 573749a..e27f8ab 100644
+> --- a/drivers/media/video/pvrusb2/pvrusb2-v4l2.c
+> +++ b/drivers/media/video/pvrusb2/pvrusb2-v4l2.c
+> @@ -369,11 +369,6 @@ static long pvr2_v4l2_do_ioctl(struct file *file, unsigned int cmd, void *arg)
+>  		break;
+>  	}
+>  
+> -	case VIDIOC_S_AUDIO:
+> -	{
+> -		ret = -EINVAL;
+> -		break;
+> -	}
+>  	case VIDIOC_G_TUNER:
+>  	{
+>  		struct v4l2_tuner *vt = (struct v4l2_tuner *)arg;
+> @@ -850,7 +845,7 @@ static long pvr2_v4l2_do_ioctl(struct file *file, unsigned int cmd, void *arg)
+>  #endif
+>  
+>  	default :
+> -		ret = -EINVAL;
+> +		ret = -ENOTTY;
+>  		break;
+>  	}
+>  
+> diff --git a/drivers/media/video/sn9c102/sn9c102_core.c b/drivers/media/video/sn9c102/sn9c102_core.c
+> index d8eece8..16cb07c 100644
+> --- a/drivers/media/video/sn9c102/sn9c102_core.c
+> +++ b/drivers/media/video/sn9c102/sn9c102_core.c
+> @@ -3187,16 +3187,8 @@ static long sn9c102_ioctl_v4l2(struct file *filp,
+>  	case VIDIOC_S_AUDIO:
+>  		return sn9c102_vidioc_s_audio(cam, arg);
+>  
+> -	case VIDIOC_G_STD:
+> -	case VIDIOC_S_STD:
+> -	case VIDIOC_QUERYSTD:
+> -	case VIDIOC_ENUMSTD:
+> -	case VIDIOC_QUERYMENU:
+> -	case VIDIOC_ENUM_FRAMEINTERVALS:
+> -		return -EINVAL;
+> -
+>  	default:
+> -		return -EINVAL;
+> +		return -ENOTTY;
+>  
+>  	}
+>  }
+> diff --git a/drivers/media/video/uvc/uvc_v4l2.c b/drivers/media/video/uvc/uvc_v4l2.c
+> index cdd967b..7afb97b 100644
+> --- a/drivers/media/video/uvc/uvc_v4l2.c
+> +++ b/drivers/media/video/uvc/uvc_v4l2.c
+> @@ -83,7 +83,7 @@ static int uvc_ioctl_ctrl_map(struct uvc_video_chain *chain,
+>  	default:
+>  		uvc_trace(UVC_TRACE_CONTROL, "Unsupported V4L2 control type "
+>  			  "%u.\n", xmap->v4l2_type);
+> -		ret = -EINVAL;
+> +		ret = -ENOTTY;
+>  		goto done;
+>  	}
+>  
+> 
+
 -- 
-1.7.6
 
+Mike Isely
+isely @ isely (dot) net
+PGP: 03 54 43 4D 75 E5 CC 92 71 16 01 E2 B5 F5 C1 E8
