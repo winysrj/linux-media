@@ -1,61 +1,105 @@
-Return-path: <linux-media-owner@vger.kernel.org>
-Received: from yop.chewa.net ([91.121.105.214]:36073 "EHLO yop.chewa.net"
+Return-path: <mchehab@localhost>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:35408 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752116Ab1GQHjX convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 17 Jul 2011 03:39:23 -0400
-Received: from basile.remlab.net (cs27062010.pp.htv.fi [89.27.62.10])
-	(using TLSv1 with cipher DHE-RSA-AES256-SHA (256/256 bits))
-	(No client certificate requested)
-	(Authenticated sender: remi)
-	by yop.chewa.net (Postfix) with ESMTPSA id 43024FE
-	for <linux-media@vger.kernel.org>; Sun, 17 Jul 2011 09:39:22 +0200 (CEST)
-From: "=?utf-8?q?R=C3=A9mi?= Denis-Courmont" <remi@remlab.net>
-To: linux-media@vger.kernel.org
-Subject: Re: [PATCH 0/5] Driver support for cards based on Digital Devices bridge (ddbridge)
-Date: Sun, 17 Jul 2011 10:39:17 +0300
-References: <201107032321.46092@orion.escape-edv.de> <4E21B3EC.9060709@linuxtv.org> <4E223344.1080109@redhat.com>
-In-Reply-To: <4E223344.1080109@redhat.com>
+	id S1755675Ab1GGMVa (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 7 Jul 2011 08:21:30 -0400
+Received: from dlep33.itg.ti.com ([157.170.170.112])
+	by arroyo.ext.ti.com (8.13.7/8.13.7) with ESMTP id p67CLTMq022123
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-media@vger.kernel.org>; Thu, 7 Jul 2011 07:21:29 -0500
+Received: from dlep26.itg.ti.com (smtp-le.itg.ti.com [157.170.170.27])
+	by dlep33.itg.ti.com (8.13.7/8.13.8) with ESMTP id p67CLT5m006865
+	for <linux-media@vger.kernel.org>; Thu, 7 Jul 2011 07:21:29 -0500 (CDT)
+Received: from dlee74.ent.ti.com (localhost [127.0.0.1])
+	by dlep26.itg.ti.com (8.13.8/8.13.8) with ESMTP id p67CLThY007588
+	for <linux-media@vger.kernel.org>; Thu, 7 Jul 2011 07:21:29 -0500 (CDT)
+From: Amber Jain <amber@ti.com>
+To: <linux-media@vger.kernel.org>
+CC: hvaibhav@ti.com, Amber Jain <amber@ti.com>
+Subject: [PATCH v2 2/3] V4L2: OMAP: VOUT: dma map and unmap v4l2 buffers in qbuf and dqbuf
+Date: Thu, 7 Jul 2011 17:51:17 +0530
+Message-ID: <1310041278-8810-3-git-send-email-amber@ti.com>
+In-Reply-To: <1310041278-8810-1-git-send-email-amber@ti.com>
+References: <1310041278-8810-1-git-send-email-amber@ti.com>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="utf-8"
-Content-Transfer-Encoding: 8BIT
-Message-Id: <201107171039.18383.remi@remlab.net>
-Sender: linux-media-owner@vger.kernel.org
+Content-Type: text/plain
 List-ID: <linux-media.vger.kernel.org>
+Sender: <mchehab@infradead.org>
 
-Le dimanche 17 juillet 2011 03:56:36 Mauro Carvalho Chehab, vous avez écrit :
-> >>> After all, you cannot connect both a DVB-C cable and a DVB-T antenna at
-> >>> the same time, so the vast majority of users won't ever want to switch
-> >>> modes at all.
-> >> 
-> >> You are wrong, actually you can. At least here in Finland some cable
-> >> networks offers DVB-T too.
-> 
-> As Antti and Rémi pointed, there are issues with some cable operators. Not
-> sure how critical is that, but an userspace application changing it via
-> sysfs might work while the applications are not ported to support both
-> ways.
+Add support to map the buffer using dma_map_single during qbuf which inturn
+calls cache flush and unmap the same during dqbuf. This is done to prevent
+the artifacts seen because of cache-coherency issues on OMAP4
 
-Telling applications to use sysfs... I can see many ways that you might regret 
-that in the future...
+Signed-off-by: Amber Jain <amber@ti.com>
+---
+Changes from v1:
+- Changed the definition of address variables to be u32 instead of int.
+- Removed extra typedef for size variable.
 
-Accessing sysfs directly from an application is against all the good practices 
-I thought I had learnt regarding Linux. There is the theoretical possibility 
-that udev gets "explicit" support for Linux DVB and exposes the properties 
-nicely. But that would be rather inconvenient, and cannot be used to change 
-properties.
+ drivers/media/video/omap/omap_vout.c |   29 +++++++++++++++++++++++++++--
+ 1 files changed, 27 insertions(+), 2 deletions(-)
 
-> Antti/Rémi, how the current applications work with one physical frontend
-> supporting both DVB-T and DVB-C? Do they allow to change channels from one
-> to the other mode on a transparent way?
-
-I don't know. VLC does not care if you switch from DVB-T to DVB-C, to the DVD 
-drive or to YouTube. Each channel (or at least each multiplex) is a different 
-playlist item. So it'll close the all device nodes and (re)open them. There 
-are obviously other applications at stake.
-
+diff --git a/drivers/media/video/omap/omap_vout.c b/drivers/media/video/omap/omap_vout.c
+index 6cd3622..7d3410a 100644
+--- a/drivers/media/video/omap/omap_vout.c
++++ b/drivers/media/video/omap/omap_vout.c
+@@ -37,6 +37,7 @@
+ #include <linux/platform_device.h>
+ #include <linux/irq.h>
+ #include <linux/videodev2.h>
++#include <linux/dma-mapping.h>
+ 
+ #include <media/videobuf-dma-contig.h>
+ #include <media/v4l2-device.h>
+@@ -778,6 +779,17 @@ static int omap_vout_buffer_prepare(struct videobuf_queue *q,
+ 		vout->queued_buf_addr[vb->i] = (u8 *)
+ 			omap_vout_uservirt_to_phys(vb->baddr);
+ 	} else {
++		u32 addr, dma_addr;
++		unsigned long size;
++
++		addr = (unsigned long) vout->buf_virt_addr[vb->i];
++		size = (unsigned long) vb->size;
++
++		dma_addr = dma_map_single(vout->vid_dev->v4l2_dev.dev, (void *) addr,
++				size, DMA_TO_DEVICE);
++		if (dma_mapping_error(vout->vid_dev->v4l2_dev.dev, dma_addr))
++			v4l2_err(&vout->vid_dev->v4l2_dev, "dma_map_single failed\n");
++
+ 		vout->queued_buf_addr[vb->i] = (u8 *)vout->buf_phy_addr[vb->i];
+ 	}
+ 
+@@ -1567,15 +1579,28 @@ static int vidioc_dqbuf(struct file *file, void *fh, struct v4l2_buffer *b)
+ 	struct omap_vout_device *vout = fh;
+ 	struct videobuf_queue *q = &vout->vbq;
+ 
++	int ret;
++	u32 addr;
++	unsigned long size;
++	struct videobuf_buffer *vb;
++
++	vb = q->bufs[b->index];
++
+ 	if (!vout->streaming)
+ 		return -EINVAL;
+ 
+ 	if (file->f_flags & O_NONBLOCK)
+ 		/* Call videobuf_dqbuf for non blocking mode */
+-		return videobuf_dqbuf(q, (struct v4l2_buffer *)b, 1);
++		ret = videobuf_dqbuf(q, (struct v4l2_buffer *)b, 1);
+ 	else
+ 		/* Call videobuf_dqbuf for  blocking mode */
+-		return videobuf_dqbuf(q, (struct v4l2_buffer *)b, 0);
++		ret = videobuf_dqbuf(q, (struct v4l2_buffer *)b, 0);
++
++	addr = (unsigned long) vout->buf_phy_addr[vb->i];
++	size = (unsigned long) vb->size;
++	dma_unmap_single(vout->vid_dev->v4l2_dev.dev,  addr,
++				size, DMA_TO_DEVICE);
++	return ret;
+ }
+ 
+ static int vidioc_streamon(struct file *file, void *fh, enum v4l2_buf_type i)
 -- 
-Rémi Denis-Courmont
-http://www.remlab.net/
-http://fi.linkedin.com/in/remidenis
+1.7.1
+
