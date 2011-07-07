@@ -1,59 +1,161 @@
-Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-68.nebula.fi ([83.145.220.68]:42989 "EHLO
-	smtp-68.nebula.fi" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753208Ab1GZL23 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 26 Jul 2011 07:28:29 -0400
-Date: Tue, 26 Jul 2011 14:28:25 +0300
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: Re: [PATCH] adp1653: check platform_data before usage
-Message-ID: <20110726112825.GB32507@valkosipuli.localdomain>
-References: <55316b63b7084f869d550fd600f29d2e0dfa862c.1311603384.git.andriy.shevchenko@linux.intel.com>
+Return-path: <mchehab@localhost>
+Received: from smtp-vbr18.xs4all.nl ([194.109.24.38]:2984 "EHLO
+	smtp-vbr18.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756839Ab1GGP3I (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 7 Jul 2011 11:29:08 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: [PATCH RFCv3 03/17] [media] DocBook: Use the generic error code page also for MC API
+Date: Thu, 7 Jul 2011 17:29:03 +0200
+Cc: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+References: <cover.1309974026.git.mchehab@redhat.com> <20110706150352.436f7a2a@pedra>
+In-Reply-To: <20110706150352.436f7a2a@pedra>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <55316b63b7084f869d550fd600f29d2e0dfa862c.1311603384.git.andriy.shevchenko@linux.intel.com>
-Sender: linux-media-owner@vger.kernel.org
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201107071729.03676.hverkuil@xs4all.nl>
 List-ID: <linux-media.vger.kernel.org>
+Sender: <mchehab@infradead.org>
 
-Hi, Andy!
-
-On Mon, Jul 25, 2011 at 05:16:41PM +0300, Andy Shevchenko wrote:
-> The driver requires platform_data to be present. That's why we need to check
-> and fail in case of the absence of necessary data.
+On Wednesday, July 06, 2011 20:03:52 Mauro Carvalho Chehab wrote:
+> Instead of having their own generic error codes at the MC API, move
+> its section to the generic one and be sure that all media ioctl's
+> will point to it.
 > 
-> Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-> Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
-> Cc: Sakari Ailus <sakari.ailus@iki.fi>
-> ---
->  drivers/media/video/adp1653.c |    4 ++++
->  1 files changed, 4 insertions(+), 0 deletions(-)
-
-Thanks for the patch. I'll add this to my next pull req.
-
+> Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
 > 
-> diff --git a/drivers/media/video/adp1653.c b/drivers/media/video/adp1653.c
-> index be7befd..8ad89ff 100644
-> --- a/drivers/media/video/adp1653.c
-> +++ b/drivers/media/video/adp1653.c
-> @@ -413,6 +413,10 @@ static int adp1653_probe(struct i2c_client *client,
->  	struct adp1653_flash *flash;
->  	int ret;
+> diff --git a/Documentation/DocBook/media/v4l/gen-errors.xml b/Documentation/DocBook/media/v4l/gen-errors.xml
+> index 6ef476a..a7f73c9 100644
+> --- a/Documentation/DocBook/media/v4l/gen-errors.xml
+> +++ b/Documentation/DocBook/media/v4l/gen-errors.xml
+> @@ -5,6 +5,11 @@
+>    <tgroup cols="2">
+>      &cs-str;
+>      <tbody valign="top">
+> +	<!-- Keep it ordered alphabetically -->
+> +      <row>
+> +	<entry>EBADF</entry>
+> +	<entry><parameter>fd</parameter> is not a valid open file descriptor.</entry>
+> +      </row>
+>        <row>
+>  	<entry>EBUSY</entry>
+>  	<entry>The ioctl can't be handled because the device is busy. This is
+> @@ -15,7 +20,16 @@
+>  	       problem first (typically: stop the stream before retrying).</entry>
+>        </row>
+>        <row>
+> +	<entry>EFAULT</entry>
+> +	<entry><parameter>fd</parameter> is not a valid open file descriptor.</entry>
+
+This seems to be a copy-and-paste error. The original text in media-func-ioctl.xml says this:
+
+	  <para><parameter>argp</parameter> references an inaccessible memory
+	  area.</para>
+
+> +      </row>
+> +      <row>
+>  	<entry>EINVAL</entry>
+> +	<entry>One or more of the ioctl parameters are invalid. This is a widely
+
+widely -> widely used
+
+> +	       error code. see the individual ioctl requests for actual causes.</entry>
+
+see -> See
+
+Regards,
+
+	Hans
+
+> +      </row>
+> +      <row>
+> +	<entry>EINVAL or ENOTTY</entry>
+>  	<entry>The ioctl is not supported by the driver, actually meaning that
+>  	       the required functionality is not available.</entry>
+>        </row>
+> @@ -25,7 +39,7 @@
+>        </row>
+>        <row>
+>  	<entry>ENOSPC</entry>
+> -	<entry>On USB devices, the stream ioctl's can return this error meaning
+> +	<entry>On USB devices, the stream ioctl's can return this error, meaning
+>  	       that this request would overcommit the usb bandwidth reserved
+>  	       for periodic transfers (up to 80% of the USB bandwidth).</entry>
+>        </row>
+> diff --git a/Documentation/DocBook/media/v4l/media-func-ioctl.xml b/Documentation/DocBook/media/v4l/media-func-ioctl.xml
+> index bda8604..e0ee285 100644
+> --- a/Documentation/DocBook/media/v4l/media-func-ioctl.xml
+> +++ b/Documentation/DocBook/media/v4l/media-func-ioctl.xml
+> @@ -63,54 +63,10 @@
+>    </refsect1>
 >  
-> +	/* we couldn't work without platform data */
-> +	if (client->dev.platform_data == NULL)
-> +		return -ENODEV;
-> +
->  	flash = kzalloc(sizeof(*flash), GFP_KERNEL);
->  	if (flash == NULL)
->  		return -ENOMEM;
-> -- 
-> 1.7.5.4
+>    <refsect1>
+> -    <title>Return Value</title>
+> -
+> -    <para><function>ioctl()</function> returns <returnvalue>0</returnvalue> on
+> -    success. On failure, <returnvalue>-1</returnvalue> is returned, and the
+> -    <varname>errno</varname> variable is set appropriately. Generic error codes
+> -    are listed below, and request-specific error codes are listed in the
+> +    &return-value;
+> +    <para>Request-specific error codes are listed in the
+>      individual requests descriptions.</para>
+>      <para>When an ioctl that takes an output or read/write parameter fails,
+>      the parameter remains unmodified.</para>
+> -
+> -    <variablelist>
+> -      <varlistentry>
+> -	<term><errorcode>EBADF</errorcode></term>
+> -	<listitem>
+> -	  <para><parameter>fd</parameter> is not a valid open file descriptor.
+> -	  </para>
+> -	</listitem>
+> -      </varlistentry>
+> -      <varlistentry>
+> -	<term><errorcode>EFAULT</errorcode></term>
+> -	<listitem>
+> -	  <para><parameter>argp</parameter> references an inaccessible memory
+> -	  area.</para>
+> -	</listitem>
+> -      </varlistentry>
+> -      <varlistentry>
+> -	<term><errorcode>EINVAL</errorcode></term>
+> -	<listitem>
+> -	  <para>The <parameter>request</parameter> or the data pointed to by
+> -	  <parameter>argp</parameter> is not valid. This is a very common error
+> -	  code, see the individual ioctl requests listed in
+> -	  <xref linkend="media-user-func" /> for actual causes.</para>
+> -	</listitem>
+> -      </varlistentry>
+> -      <varlistentry>
+> -	<term><errorcode>ENOMEM</errorcode></term>
+> -	<listitem>
+> -	  <para>Insufficient kernel memory was available to complete the
+> -	  request.</para>
+> -	</listitem>
+> -      </varlistentry>
+> -      <varlistentry>
+> -	<term><errorcode>ENOTTY</errorcode></term>
+> -	<listitem>
+> -	  <para><parameter>fd</parameter> is  not  associated  with  a character
+> -	  special device.</para>
+> -	</listitem>
+> -      </varlistentry>
+> -    </variablelist>
+>    </refsect1>
+>  </refentry>
+> diff --git a/Documentation/DocBook/media/v4l/media-ioc-device-info.xml b/Documentation/DocBook/media/v4l/media-ioc-device-info.xml
+> index 1f32373..2ce5214 100644
+> --- a/Documentation/DocBook/media/v4l/media-ioc-device-info.xml
+> +++ b/Documentation/DocBook/media/v4l/media-ioc-device-info.xml
+> @@ -127,7 +127,6 @@
+>    </refsect1>
+>  
+>    <refsect1>
+> -    <title>Return value</title>
+> -    <para>This function doesn't return specific error codes.</para>
+> +    &return-value;
+>    </refsect1>
+>  </refentry>
 > 
-
--- 
-Sakari Ailus
-sakari.ailus@iki.fi
