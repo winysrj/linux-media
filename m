@@ -1,45 +1,69 @@
-Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:19797 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755043Ab1G0U3s (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 27 Jul 2011 16:29:48 -0400
-Received: from int-mx09.intmail.prod.int.phx2.redhat.com (int-mx09.intmail.prod.int.phx2.redhat.com [10.5.11.22])
-	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id p6RKTmX3028328
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
-	for <linux-media@vger.kernel.org>; Wed, 27 Jul 2011 16:29:48 -0400
-Received: from localhost.localdomain (vpn-227-4.phx2.redhat.com [10.3.227.4])
-	by int-mx09.intmail.prod.int.phx2.redhat.com (8.14.4/8.14.4) with ESMTP id p6RKTkxu009397
-	for <linux-media@vger.kernel.org>; Wed, 27 Jul 2011 16:29:47 -0400
-Date: Wed, 27 Jul 2011 17:29:32 -0300
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: [PATCH 1/3] [media] drxk: Fix error return code during drxk init
-Message-ID: <20110727172932.4b42e59d@redhat.com>
-In-Reply-To: <cover.1311798269.git.mchehab@redhat.com>
-References: <cover.1311798269.git.mchehab@redhat.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
-To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
-Sender: linux-media-owner@vger.kernel.org
+Return-path: <mchehab@localhost>
+Received: from devils.ext.ti.com ([198.47.26.153]:52290 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755675Ab1GGMVd (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 7 Jul 2011 08:21:33 -0400
+Received: from dlep33.itg.ti.com ([157.170.170.112])
+	by devils.ext.ti.com (8.13.7/8.13.7) with ESMTP id p67CLWF0029975
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-media@vger.kernel.org>; Thu, 7 Jul 2011 07:21:32 -0500
+Received: from dlep26.itg.ti.com (smtp-le.itg.ti.com [157.170.170.27])
+	by dlep33.itg.ti.com (8.13.7/8.13.8) with ESMTP id p67CLW7E006868
+	for <linux-media@vger.kernel.org>; Thu, 7 Jul 2011 07:21:32 -0500 (CDT)
+Received: from dlee74.ent.ti.com (localhost [127.0.0.1])
+	by dlep26.itg.ti.com (8.13.8/8.13.8) with ESMTP id p67CLW8r007650
+	for <linux-media@vger.kernel.org>; Thu, 7 Jul 2011 07:21:32 -0500 (CDT)
+From: Amber Jain <amber@ti.com>
+To: <linux-media@vger.kernel.org>
+CC: hvaibhav@ti.com, Amber Jain <amber@ti.com>,
+	Samreen <samreen@ti.com>
+Subject: [PATCH v2 3/3] V4l2: OMAP: VOUT: Minor Cleanup, removing the unnecessary code.
+Date: Thu, 7 Jul 2011 17:51:18 +0530
+Message-ID: <1310041278-8810-4-git-send-email-amber@ti.com>
+In-Reply-To: <1310041278-8810-1-git-send-email-amber@ti.com>
+References: <1310041278-8810-1-git-send-email-amber@ti.com>
+MIME-Version: 1.0
+Content-Type: text/plain
 List-ID: <linux-media.vger.kernel.org>
+Sender: <mchehab@infradead.org>
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+Minor changes to remove the unused code from omap_vout driver.
 
-diff --git a/drivers/media/dvb/frontends/drxk_hard.c b/drivers/media/dvb/frontends/drxk_hard.c
-index 5694955..5b22c1f 100644
---- a/drivers/media/dvb/frontends/drxk_hard.c
-+++ b/drivers/media/dvb/frontends/drxk_hard.c
-@@ -6171,7 +6171,7 @@ error:
- 	if (status < 0)
- 		printk(KERN_ERR "drxk: Error %d on %s\n", status, __func__);
+Signed-off-by: Amber Jain <amber@ti.com>
+Signed-off-by: Samreen <samreen@ti.com>
+---
+Changes from v1:
+- None.
+
+ drivers/media/video/omap/omap_vout.c |    6 ------
+ 1 files changed, 0 insertions(+), 6 deletions(-)
+
+diff --git a/drivers/media/video/omap/omap_vout.c b/drivers/media/video/omap/omap_vout.c
+index 7d3410a..548f4cd 100644
+--- a/drivers/media/video/omap/omap_vout.c
++++ b/drivers/media/video/omap/omap_vout.c
+@@ -1041,10 +1041,7 @@ static int vidioc_enum_fmt_vid_out(struct file *file, void *fh,
+ 			struct v4l2_fmtdesc *fmt)
+ {
+ 	int index = fmt->index;
+-	enum v4l2_buf_type type = fmt->type;
  
--	return 0;
-+	return status;
- }
+-	fmt->index = index;
+-	fmt->type = type;
+ 	if (index >= NUM_OUTPUT_FORMATS)
+ 		return -EINVAL;
  
- static void drxk_c_release(struct dvb_frontend *fe)
+@@ -1213,10 +1210,7 @@ static int vidioc_enum_fmt_vid_overlay(struct file *file, void *fh,
+ 			struct v4l2_fmtdesc *fmt)
+ {
+ 	int index = fmt->index;
+-	enum v4l2_buf_type type = fmt->type;
+ 
+-	fmt->index = index;
+-	fmt->type = type;
+ 	if (index >= NUM_OUTPUT_FORMATS)
+ 		return -EINVAL;
+ 
 -- 
 1.7.1
-
 
