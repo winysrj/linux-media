@@ -1,48 +1,56 @@
-Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:54762 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751243Ab1GTN6M (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 20 Jul 2011 09:58:12 -0400
-Received: from lancelot.localnet (unknown [91.178.170.101])
-	by perceval.ideasonboard.com (Postfix) with ESMTPSA id 4ED04359A1
-	for <linux-media@vger.kernel.org>; Wed, 20 Jul 2011 13:58:11 +0000 (UTC)
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: linux-media@vger.kernel.org
-Subject: [GIT PULL FOR v3.1] OMAP3 ISP fixes
-Date: Wed, 20 Jul 2011 15:58:11 +0200
+Return-path: <mchehab@localhost>
+Received: from mail-vw0-f46.google.com ([209.85.212.46]:47617 "EHLO
+	mail-vw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751349Ab1GGF3J (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 7 Jul 2011 01:29:09 -0400
+Date: Thu, 7 Jul 2011 01:29:05 -0400 (EDT)
+From: Nicolas Pitre <nicolas.pitre@linaro.org>
+To: Arnd Bergmann <arnd@arndb.de>
+cc: linaro-mm-sig@lists.linaro.org,
+	'Daniel Walker' <dwalker@codeaurora.org>,
+	Russell King - ARM Linux <linux@arm.linux.org.uk>,
+	linux-media@vger.kernel.org, 'Jonathan Corbet' <corbet@lwn.net>,
+	'Mel Gorman' <mel@csn.ul.ie>,
+	'Chunsang Jeong' <chunsang.jeong@linaro.org>,
+	lkml <linux-kernel@vger.kernel.org>,
+	'Michal Nazarewicz' <mina86@mina86.com>,
+	'Jesse Barker' <jesse.barker@linaro.org>,
+	'Kyungmin Park' <kyungmin.park@samsung.com>,
+	'KAMEZAWA Hiroyuki' <kamezawa.hiroyu@jp.fujitsu.com>,
+	'Andrew Morton' <akpm@linux-foundation.org>,
+	linux-mm@kvack.org, linux-arm-kernel@lists.infradead.org,
+	'Ankita Garg' <ankita@in.ibm.com>
+Subject: Re: [Linaro-mm-sig] [PATCH 6/8] drivers: add Contiguous Memory
+ Allocator
+In-Reply-To: <201107062223.01940.arnd@arndb.de>
+Message-ID: <alpine.LFD.2.00.1107070126440.14596@xanadu.home>
+References: <1309851710-3828-1-git-send-email-m.szyprowski@samsung.com> <201107061831.59739.arnd@arndb.de> <alpine.LFD.2.00.1107061459520.14596@xanadu.home> <201107062223.01940.arnd@arndb.de>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201107201558.12877.laurent.pinchart@ideasonboard.com>
-Sender: linux-media-owner@vger.kernel.org
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 List-ID: <linux-media.vger.kernel.org>
+Sender: <mchehab@infradead.org>
 
-Hi Mauro,
+On Wed, 6 Jul 2011, Arnd Bergmann wrote:
 
-The following changes since commit 9bc5f6fa12c9e3e1e73e66bfabe9d463ea779b08:
+> On Wednesday 06 July 2011 21:10:07 Nicolas Pitre wrote:
+> > If you get a highmem page, because the cache is VIPT, that page might 
+> > still be cached even if it wasn't mapped.  With a VIVT cache we must 
+> > flush the cache whenever a highmem page is unmapped.  There is no such 
+> > restriction with VIPT i.e. ARMv6 and above.  Therefore to make sure the 
+> > highmem page you get doesn't have cache lines associated to it, you must 
+> > first map it cacheable, then perform cache invalidation on it, and 
+> > eventually remap it as non-cacheable.  This is necessary because there 
+> > is no way to perform cache maintenance on L1 cache using physical 
+> > addresses unfortunately.  See commit 7e5a69e83b for an example of what 
+> > this entails (fortunately commit 3e4d3af501 made things much easier and 
+> > therefore commit 39af22a79 greatly simplified things).
+> 
+> Ok, thanks for the explanation. This definitely makes the highmem approach
+> much harder to get right, and slower. Let's hope then that Marek's approach
+> of using small pages for the contiguous memory region and changing their
+> attributes on the fly works out better than this.
 
-  [media] drxk: Remove goto/break after return (2011-07-15 09:35:58 -0300)
+I would say that both approaches have fairly equivalent complexity.
 
-are available in the git repository at:
-  git://linuxtv.org/pinchartl/media.git omap3isp-next-omap3isp
 
-Kalle Jokiniemi (2):
-      OMAP3: ISP: Add regulator control for omap34xx
-      OMAP3: RX-51: define vdds_csib regulator supply
-
-Laurent Pinchart (1):
-      omap3isp: Support configurable HS/VS polarities
-
- arch/arm/mach-omap2/board-rx51-peripherals.c |    5 ++++
- drivers/media/video/omap3isp/isp.h           |    6 +++++
- drivers/media/video/omap3isp/ispccdc.c       |    4 +-
- drivers/media/video/omap3isp/ispccp2.c       |   27 ++++++++++++++++++++++++-
- drivers/media/video/omap3isp/ispccp2.h       |    1 +
- 5 files changed, 39 insertions(+), 4 deletions(-)
-
--- 
-Regards,
-
-Laurent Pinchart
+Nicolas
