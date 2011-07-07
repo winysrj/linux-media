@@ -1,111 +1,121 @@
 Return-path: <mchehab@localhost>
-Received: from mx1.redhat.com ([209.132.183.28]:5527 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752553Ab1GFLFI (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 6 Jul 2011 07:05:08 -0400
-Message-ID: <4E14415A.9010001@redhat.com>
-Date: Wed, 06 Jul 2011 08:04:58 -0300
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Received: from smtp-vbr12.xs4all.nl ([194.109.24.32]:1448 "EHLO
+	smtp-vbr12.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755125Ab1GGR3D (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 7 Jul 2011 13:29:03 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+Subject: Re: [PATCH RFCv3 03/17] [media] DocBook: Use the generic error code page also for MC API
+Date: Thu, 7 Jul 2011 19:28:56 +0200
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+References: <cover.1309974026.git.mchehab@redhat.com> <201107071729.03676.hverkuil@xs4all.nl> <4E15E9AC.9050800@redhat.com>
+In-Reply-To: <4E15E9AC.9050800@redhat.com>
 MIME-Version: 1.0
-To: Hans Verkuil <hverkuil@xs4all.nl>
-CC: Tomasz Stanislawski <t.stanislaws@samsung.com>,
-	linux-media@vger.kernel.org, m.szyprowski@samsung.com,
-	kyungmin.park@samsung.com, laurent.pinchart@ideasonboard.com
-Subject: Re: [RFC] DV timings spec fixes at V4L2 API - was: [PATCH 1/8] v4l:
- add macro for 1080p59_54 preset
-References: <1309351877-32444-1-git-send-email-t.stanislaws@samsung.com> <201107050926.38639.hverkuil@xs4all.nl> <4E12FEA3.6010500@redhat.com> <201107051520.17361.hverkuil@xs4all.nl>
-In-Reply-To: <201107051520.17361.hverkuil@xs4all.nl>
-Content-Type: text/plain; charset=UTF-8
+Content-Type: Text/Plain;
+  charset="utf-8"
 Content-Transfer-Encoding: 7bit
+Message-Id: <201107071928.57090.hverkuil@xs4all.nl>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@infradead.org>
 
-Em 05-07-2011 10:20, Hans Verkuil escreveu:
- 
->> I failed to see what information is provided by the "presets" name. If this were removed
->> from the ioctl, and fps would be added instead, the API would be clearer. The only
->> adjustment would be to use "index" as the preset selection key. Anyway, it is too late
->> for such change. We need to live with that.
+On Thursday, July 07, 2011 19:15:24 Mauro Carvalho Chehab wrote:
+> Em 07-07-2011 12:29, Hans Verkuil escreveu:
+> > On Wednesday, July 06, 2011 20:03:52 Mauro Carvalho Chehab wrote:
+> >> Instead of having their own generic error codes at the MC API, move
+> >> its section to the generic one and be sure that all media ioctl's
+> >> will point to it.
+> >>
+> >> Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+> >>
+> >> diff --git a/Documentation/DocBook/media/v4l/gen-errors.xml b/Documentation/DocBook/media/v4l/gen-errors.xml
+> >> index 6ef476a..a7f73c9 100644
+> >> --- a/Documentation/DocBook/media/v4l/gen-errors.xml
+> >> +++ b/Documentation/DocBook/media/v4l/gen-errors.xml
+> >> @@ -5,6 +5,11 @@
+> >>    <tgroup cols="2">
+> >>      &cs-str;
+> >>      <tbody valign="top">
+> >> +	<!-- Keep it ordered alphabetically -->
+> >> +      <row>
+> >> +	<entry>EBADF</entry>
+> >> +	<entry><parameter>fd</parameter> is not a valid open file descriptor.</entry>
+> >> +      </row>
+> >>        <row>
+> >>  	<entry>EBUSY</entry>
+> >>  	<entry>The ioctl can't be handled because the device is busy. This is
+> >> @@ -15,7 +20,16 @@
+> >>  	       problem first (typically: stop the stream before retrying).</entry>
+> >>        </row>
+> >>        <row>
+> >> +	<entry>EFAULT</entry>
+> >> +	<entry><parameter>fd</parameter> is not a valid open file descriptor.</entry>
+> > 
+> > This seems to be a copy-and-paste error. The original text in media-func-ioctl.xml says this:
+> > 
+> > 	  <para><parameter>argp</parameter> references an inaccessible memory
+> > 	  area.</para>
 > 
-> Adding the fps solves nothing. Because that still does not give you specific timings.
-> You can have 1920x1080P60 that has quite different timings from the CEA-861 standard
-> and that may not be supported by a TV.
+> Ah, yes. Anyway, a latter patch changes it to:
+
+OK, I missed that. It was a bit confusing to review.
+
 > 
-> If you are working with HDMI, then you may want to filter all supported presets to
-> those of the CEA standard.
+> 	<entry>EFAULT</entry>
+> 	<entry>There was a failure while copying data from/to userspace.</entry>
+>       </row>
 > 
-> That's one thing that is missing at the moment: that presets belonging to a certain
-> standard get their own range. Since we only do CEA861 right now it hasn't been an
-> issue, but it will.
+> referencing a parameter name there is a bad thing anyway, as this is now at the common
+> ioctl error code.
+> 
+> Instead of just using a posix-like error code:
+> 	EFAULT          Bad address (POSIX.1)
+> 
+> I opted to use a more valuable description, explaining the reason for such error,
+> e. g. that there was a failure at the data copy from/to userspace.
+> 
+> It may be better to change it to:
+> 
+> 	<entry>EFAULT</entry>
+> 	<entry>There was a failure while copying data from/to userspace, probably
+> 		caused by an invalid pointer reference.</entry>
+> 
+> I think I'll add the above description at the latter patch.
+> 
+> I was intending to add there the other possible error causes found at V4L/DVB API's
+> and drivers, but the changes I did took me a longer time than I was expecting
+> originally.  I'll eventually do that when I have more time. 
+> 
+> It would be really great if we could find some volunteer to help syncing 
+> the media API specs with the code.
+> 
+> >> +      </row>
+> >> +      <row>
+> >>  	<entry>EINVAL</entry>
+> >> +	<entry>One or more of the ioctl parameters are invalid. This is a widely
+> > 
+> > widely -> widely used
+> > 
+> >> +	       error code. see the individual ioctl requests for actual causes.</entry>
+> > 
+> > see -> See
+> 
+> Fixed. 
 
-I prepared a long email about that, but then I realized that we're investing our time into
-something broken, at the light of all DV timing standards. So, I've dropped it and
-started from scratch.
+OK, with these changes you have my
 
->From what I've got, there are some hardware that can only do a limited set of DV timings.
-If this were not the case, we could simply just use the VIDIOC_S_DV_TIMINGS/VIDIOC_G_DV_TIMINGS,
-and put the CEA 861 and VESA timings into some userspace library.
+Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
 
-In other words, the PRESET API is meant to solve the case where hardware only support
-a limited set of frequencies, that may or may not be inside the CEA standard.
+as well for this patch.
 
-Let's assume we never added the current API, and discuss how it would properly fulfill
-the user needs. An API that would likely work is:
+Just for my understanding: do you plan on merging this for 3.1? I have no objection to
+that. Together with the querycap version changes it is easy to add compatibility support
+to libv4l should that be necessary. I'm not convinced there won't be any fallout from
+this change, but at least there is a decent way of working around it if needed. And there
+is no doubt that -ENOTTY is a much better return code.
 
-struct v4l2_dv_enum_preset2 {
-	__u32	  index;
-	__u8	  name[32]; /* Name of the preset timing */
+When this is merged I'll modify v4l2-compliance, v4l2-ctl (if necessary) and qv4l2.
 
-	struct v4l2_fract fps;
+Regards,
 
-#define DV_PRESET_IS_PROGRESSIVE	1<<31
-#define DV_PRESET_SPEC(flag)		(flag && 0xff)
-#define DV_PRESET_IS_CEA861		1
-#define DV_PRESET_IS_DMT		2
-#define DV_PRESET_IS_CVF		3
-#define DV_PRESET_IS_GTF		4
-#define DV_PRESET_IS_VENDOR_SPECIFIC	5
-
-	__u32	flags;		/* Interlaced/progressive, DV specs, etc */
-
-	__u32	width;		/* width in pixels */
-	__u32	height;		/* height in lines */
-	__u32	polarities;	/* Positive or negative polarity */
-	__u64	pixelclock;	/* Pixel clock in HZ. Ex. 74.25MHz->74250000 */
-	__u32	hfrontporch;	/* Horizpontal front porch in pixels */
-	__u32	hsync;		/* Horizontal Sync length in pixels */
-	__u32	hbackporch;	/* Horizontal back porch in pixels */
-	__u32	vfrontporch;	/* Vertical front porch in pixels */
-	__u32	vsync;		/* Vertical Sync length in lines */
-	__u32	vbackporch;	/* Vertical back porch in lines */
-	__u32	il_vfrontporch;	/* Vertical front porch for bottom field of
-				 * interlaced field formats
-				 */
-	__u32	il_vsync;	/* Vertical sync length for bottom field of
-				 * interlaced field formats
-				 */
-	__u32	il_vbackporch;	/* Vertical back porch for bottom field of
-				 * interlaced field formats
-				 */
-	__u32	  reserved[4];
-};
-
-#define	VIDIOC_ENUM_DV_PRESETS2	_IOWR('V', 83, struct v4l2_dv_enum_preset2)
-#define	VIDIOC_S_DV_PRESET2	_IOWR('V', 84, u32 index)
-#define	VIDIOC_G_DV_PRESET2	_IOWR('V', 85, u32 index)
-
-Such preset API seems to work for all cases. Userspace can use any DV timing
-information to select the desired format, and don't need to have a switch for
-a preset macro to try to guess what the format actually means. Also, there's no
-need to touch at the API spec every time a new DV timeline is needed.
-
-Also, it should be noticed that, since the size of the data on the above definitions
-are different than the old ones, _IO macros will provide a different magic number,
-so, adding these won't break the existing API.
-
-So, I think we should work on this proposal, and mark the existing one as deprecated.
-
-Thanks,
-Mauro
-
-
+	Hans
