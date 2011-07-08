@@ -1,63 +1,54 @@
-Return-path: <linux-media-owner@vger.kernel.org>
-Received: from casper.infradead.org ([85.118.1.10]:38937 "EHLO
-	casper.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750730Ab1GWB2o (ORCPT
+Return-path: <mchehab@localhost>
+Received: from out5.smtp.messagingengine.com ([66.111.4.29]:50483 "EHLO
+	out5.smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752658Ab1GHBVX (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 22 Jul 2011 21:28:44 -0400
-Message-ID: <4E2A23C7.3040209@infradead.org>
-Date: Fri, 22 Jul 2011 22:28:39 -0300
-From: Mauro Carvalho Chehab <mchehab@infradead.org>
+	Thu, 7 Jul 2011 21:21:23 -0400
+Date: Thu, 7 Jul 2011 18:19:33 -0700
+From: Greg KH <greg@kroah.com>
+To: Jarod Wilson <jarod@wilsonet.com>
+Cc: Jarod Wilson <jarod@redhat.com>, linux-media@vger.kernel.org,
+	devel@driverdev.osuosl.org
+Subject: Re: [PATCH] [staging] lirc_serial: allocate irq at init time
+Message-ID: <20110708011933.GA3059@kroah.com>
+References: <1308252706-13879-1-git-send-email-jarod@redhat.com>
+ <20110705172119.GA19358@kroah.com>
+ <CANOx78EPynqirWSuSyRCjhwUks2Br1R1vBQGSD6H7HpYtydH=w@mail.gmail.com>
 MIME-Version: 1.0
-To: Stas Sergeev <stsp@list.ru>
-CC: linux-media@vger.kernel.org
-Subject: Re: [patch][saa7134] do not change mute state for capturing audio
-References: <4E19D2F7.6060803@list.ru> <4E1E05AC.2070002@infradead.org> <4E1E0A1D.6000604@list.ru> <4E1E1571.6010400@infradead.org> <4E1E8108.3060305@list.ru> <4E1F9A25.1020208@infradead.org> <4E22AF12.4020600@list.ru> <4E22CCC0.8030803@infradead.org> <4E24BEB8.4060501@redhat.com> <4E257FF5.4040401@infradead.org> <4E258B60.6010007@list.ru> <4E25906D.3020200@infradead.org> <4E259B0C.90107@list.ru> <4E25A26A.2000204@infradead.org> <4E25A7C2.3050609@list.ru> <4E25C7AE.5020503@infradead.org> <4E25CF35.7000802@list.ru> <4E25DB37.8020609@infradead.org> <4E25FDE4.7040805@list.ru> <4E262772.9060509@infradead.org> <4E266799.8030706@list.ru> <4E26AEC0.5000405@infradead.org> <4E26B1E7.2080107@list.ru> <4E26B29B.4010109@infradead.org> <4E292BED.60108@list.ru> <4E296D00.9040608@infradead.org> <4E296F6C.9080107@list.ru> <4E2971D4.1060109@infradead.org> <4E29738F.7040605@list.ru> <4E297505.7090307@infradead.org> <4E29E02A.1020402@list.ru>
-In-Reply-To: <4E29E02A.1020402@list.ru>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
-Sender: linux-media-owner@vger.kernel.org
+Content-Type: text/plain; charset=iso-8859-1
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <CANOx78EPynqirWSuSyRCjhwUks2Br1R1vBQGSD6H7HpYtydH=w@mail.gmail.com>
 List-ID: <linux-media.vger.kernel.org>
+Sender: <mchehab@infradead.org>
 
-Em 22-07-2011 17:40, Stas Sergeev escreveu:
-> 22.07.2011 17:03, Mauro Carvalho Chehab wrote:
->> Here, I add the following line at my .mplayer/config:
->>
->> tv        = "driver=v4l2:device=/dev/video0:norm=PAL-M:chanlist=us-bcast:alsa=1:adevice=hw.1:audiorate=32000:immediatemode=0:amode=1"
-> Thanks for starting to answer what I was asking for over a week. :)
-> If this is the case (not verified yet), there may be the simple
-> automute logic that will fix that in an absense of an auto-unmute
-> in alsa.
-> Initially, the driver may be put in an auto-mute state.
-> It is mute until the tuner is tuned: after the tuner is tuned,
-> the audio gets immediately automatically unmuted.
-> If the app does not want this to happen, it may use
-> the V4L2_CID_AUDIO_MUTE before tuning, to put the device
-> in a permanent-mute state.
-> So, in short, I suggest to bind the auto-unmute to the
-> tuner tune, rather than to the capture start. And that
-> should be a separate, third mute state, automute. If the
-> app explicitly wants the mute or unmute, this automute
-> logic disables.
-> Do you know any app that will regress even with that?
+On Thu, Jul 07, 2011 at 08:31:28PM -0400, Jarod Wilson wrote:
+> On Tue, Jul 5, 2011 at 1:21 PM, Greg KH <greg@kroah.com> wrote:
+> > On Thu, Jun 16, 2011 at 03:31:46PM -0400, Jarod Wilson wrote:
+> >> There's really no good reason not to just grab the desired IRQ at driver
+> >> init time, instead of every time the lirc device node is accessed. This
+> >> also improves the speed and reliability with which a serial transmitter
+> >> can operate, as back-to-back transmission attempts (i.e., channel change
+> >> to a multi-digit channel) don't have to spend time acquiring and then
+> >> releasing the IRQ for every digit, sometimes multiple times, if lircd
+> >> has been told to use the min_repeat parameter.
+> >>
+> >> CC: devel@driverdev.osuosl.org
+> >> Signed-off-by: Jarod Wilson <jarod@redhat.com>
+> >> ---
+> >>  drivers/staging/lirc/lirc_serial.c |   44 +++++++++++++++++------------------
+> >>  1 files changed, 21 insertions(+), 23 deletions(-)
+> >
+> > This patch doesn't apply to the staging-next branch, care to respin it
+> > and resend it so I can apply it?
+> 
+> This actually got merged into mainline a few days ago via the media tree.
+> 
+> http://git.kernel.org/?p=linux/kernel/git/torvalds/linux-2.6.git;a=commitdiff;h=c4b0afee3c1730cf9b0f6ad21729928d23d3918e
+> 
+> Do you want me to take a look at what's in staging-next and fix that
+> up to apply on top of the above?
 
-Mplayer was just one example of an application that I know
-it doesn't call V4L2_CID_AUDIO_MUTE to unmute. I didn't 
-check for other applications and scripts that may break
-with such change.
+No, if it went in there, that's fine with me.
 
-Your approach of moving it to VIDIOC_S_FREQUENCY (if I 
-understood well) won't work, as, every time someone would 
-change the channel, it will be unmuted, causing troubles
-on applications like "scantv" (part of xawtv).
-
-You can't associate such logic to any ioctl, due to the
-same reasons. Also, associating with V4L open also will
-cause side effects, as udev opens all V4L devices when
-the device is detected.
-
-You should also remind that it is possible to use a separate
-application (like v4l2-ctl) while a device is opened
-by other applications, and even to not have the device
-opened while streaming (radio applications allow that).
-
-Mauro.
+greg k-h
