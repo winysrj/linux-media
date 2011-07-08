@@ -1,41 +1,56 @@
-Return-path: <linux-media-owner@vger.kernel.org>
-Received: from yop.chewa.net ([91.121.105.214]:56361 "EHLO yop.chewa.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754445Ab1GPQhz convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 16 Jul 2011 12:37:55 -0400
-Received: from basile.remlab.net (cs27062010.pp.htv.fi [89.27.62.10])
-	(using TLSv1 with cipher DHE-RSA-AES256-SHA (256/256 bits))
-	(No client certificate requested)
-	(Authenticated sender: remi)
-	by yop.chewa.net (Postfix) with ESMTPSA id ACCAA4F6
-	for <linux-media@vger.kernel.org>; Sat, 16 Jul 2011 18:37:53 +0200 (CEST)
-From: "=?utf-8?q?R=C3=A9mi?= Denis-Courmont" <remi@remlab.net>
-To: linux-media@vger.kernel.org
-Subject: Re: [PATCH 0/5] Driver support for cards based on Digital Devices bridge (ddbridge)
-Date: Sat, 16 Jul 2011 19:37:48 +0300
-References: <201107032321.46092@orion.escape-edv.de> <4E21B1E6.4090302@iki.fi> <4E21B3EC.9060709@linuxtv.org>
-In-Reply-To: <4E21B3EC.9060709@linuxtv.org>
+Return-path: <mchehab@localhost>
+Received: from mail-pv0-f174.google.com ([74.125.83.174]:53824 "EHLO
+	mail-pv0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752986Ab1GHAcm (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 7 Jul 2011 20:32:42 -0400
+Received: by pvg12 with SMTP id 12so809044pvg.19
+        for <linux-media@vger.kernel.org>; Thu, 07 Jul 2011 17:32:42 -0700 (PDT)
+Date: Thu, 7 Jul 2011 17:32:37 -0700
+From: Dmitry Torokhov <dmitry.torokhov@gmail.com>
+To: Jarod Wilson <jarod@wilsonet.com>
+Cc: linux-media@vger.kernel.org
+Subject: Re: [git:v4l-dvb/for_v3.1] [media] rc: call input_sync after
+ scancode reports
+Message-ID: <20110708003236.GB9684@core.coreip.homeip.net>
+References: <E1QevX3-000086-VJ@www.linuxtv.org>
+ <20110707235813.GA9684@core.coreip.homeip.net>
+ <CANOx78H1+UTaHa87FYEcqXoAdbVoBO__gAuD0mHrA9ub_GkQew@mail.gmail.com>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="utf-8"
-Content-Transfer-Encoding: 8BIT
-Message-Id: <201107161937.48981.remi@remlab.net>
-Sender: linux-media-owner@vger.kernel.org
+Content-Type: text/plain; charset=iso-8859-1
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <CANOx78H1+UTaHa87FYEcqXoAdbVoBO__gAuD0mHrA9ub_GkQew@mail.gmail.com>
 List-ID: <linux-media.vger.kernel.org>
+Sender: <mchehab@infradead.org>
 
-Le samedi 16 juillet 2011 18:53:16 Andreas Oberritter, vous avez Ã©crit :
-> > You are wrong, actually you can. At least here in Finland some cable
-> > networks offers DVB-T too.
+On Thu, Jul 07, 2011 at 08:28:12PM -0400, Jarod Wilson wrote:
+> On Thu, Jul 7, 2011 at 7:58 PM, Dmitry Torokhov
+> <dmitry.torokhov@gmail.com> wrote:
+> > On Fri, Jul 01, 2011 at 09:34:45PM +0200, Mauro Carvalho Chehab wrote:
+> >> This is an automatic generated email to let you know that the following patch were queued at the
+> >> http://git.linuxtv.org/media_tree.git tree:
+> >>
+> >> Subject: [media] rc: call input_sync after scancode reports
+> >> Author:  Jarod Wilson <jarod@redhat.com>
+> >> Date:    Thu Jun 23 10:40:55 2011 -0300
+> >>
+> >> Due to commit cdda911c34006f1089f3c87b1a1f31ab3a4722f2, evdev only
+> >> becomes readable when the buffer contains an EV_SYN/SYN_REPORT event. If
+> >> we get a repeat or a scancode we don't have a mapping for, we never call
+> >> input_sync, and thus those events don't get reported in a timely
+> >> fashion.
+> >
+> > Hmm, any chance to get it into 3.0?
 > 
-> I know that there are cable operators which use DVB-T, but they don't
-> use DVB-C simultaneously. This wouldn't make sense, unless they didn't
-> want their customers to receive their signals.
+> Its actually already there, I think the branch was just mis-named, or
+> something along those lines.
+> 
+> http://git.kernel.org/?p=linux/kernel/git/torvalds/linux-2.6.git;a=commitdiff;h=98c32bcded0e249fd48726930ae9f393e0e318b4
+> 
 
-They do offer both simultaneously. DNA (formerly Welho) in Helsinki provides 
-both DVB-T and DVB-C on the same cable, obviously on different frequencies.
+Ah, good then.
+
+Thanks.
 
 -- 
-RÃ©mi Denis-Courmont
-http://www.remlab.net/
-http://fi.linkedin.com/in/remidenis
+Dmitry
