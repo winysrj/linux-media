@@ -1,45 +1,54 @@
-Return-path: <mchehab@pedra>
-Received: from fox.seas.upenn.edu ([158.130.68.12]:58953 "EHLO
-	fox.seas.upenn.edu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752938Ab1GCUbw (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sun, 3 Jul 2011 16:31:52 -0400
-From: Rafi Rubin <rafi@seas.upenn.edu>
-To: linux-media@vger.kernel.org, linux-input@vger.kernel.org,
-	jarod@redhat.com
-Cc: Rafi Rubin <rafi@seas.upenn.edu>
-Subject: [PATCH 2/2] mceusb: increase default timeout to 100ms
-Date: Sun,  3 Jul 2011 16:13:53 -0400
-Message-Id: <1309724033-27804-2-git-send-email-rafi@seas.upenn.edu>
-In-Reply-To: <1309724033-27804-1-git-send-email-rafi@seas.upenn.edu>
-References: <1309724033-27804-1-git-send-email-rafi@seas.upenn.edu>
+Return-path: <mchehab@localhost>
+Received: from tex.lwn.net ([70.33.254.29]:36257 "EHLO vena.lwn.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752146Ab1GHUwI (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 8 Jul 2011 16:52:08 -0400
+From: Jonathan Corbet <corbet@lwn.net>
+To: linux-media@vger.kernel.org
+Cc: Marek Szyprowski <m.szyprowski@samsung.com>,
+	Kassey Lee <ygli@marvell.com>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Jonathan Corbet <corbet@lwn.net>
+Subject: [PATCH 3/6] marvell-cam: remove {min,max}_buffers parameters
+Date: Fri,  8 Jul 2011 14:50:47 -0600
+Message-Id: <1310158250-168899-4-git-send-email-corbet@lwn.net>
+In-Reply-To: <1310158250-168899-1-git-send-email-corbet@lwn.net>
+References: <1310158250-168899-1-git-send-email-corbet@lwn.net>
 List-ID: <linux-media.vger.kernel.org>
-Sender: <mchehab@pedra>
+Sender: <mchehab@infradead.org>
 
-Signed-off-by: Rafi Rubin <rafi@seas.upenn.edu>
+Somewhere along the way the code stopped actually paying any attention to
+them, and I doubt anybody has ever made use of them.
+
+Signed-off-by: Jonathan Corbet <corbet@lwn.net>
 ---
-This changes the default to something a little more sane.  I have one
-mceusb device that currently does not respond properly to the initial
-polling and is left using the default timeout.  1ms does not work well.
+ drivers/media/video/marvell-ccic/mcam-core.c |   13 -------------
+ 1 files changed, 0 insertions(+), 13 deletions(-)
 
-I propose changing the default to 100ms to match the timeout reported by
-my other mceusb device and works fine for me.
----
- drivers/media/rc/mceusb.c |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
-
-diff --git a/drivers/media/rc/mceusb.c b/drivers/media/rc/mceusb.c
-index 377f826..956d296 100644
---- a/drivers/media/rc/mceusb.c
-+++ b/drivers/media/rc/mceusb.c
-@@ -1082,7 +1082,7 @@ static struct rc_dev *mceusb_init_rc_dev(struct mceusb_dev *ir)
- 	rc->priv = ir;
- 	rc->driver_type = RC_DRIVER_IR_RAW;
- 	rc->allowed_protos = RC_TYPE_ALL;
--	rc->timeout = US_TO_NS(1000);
-+	rc->timeout = MS_TO_NS(100);
- 	if (!ir->flags.no_tx) {
- 		rc->s_tx_mask = mceusb_set_tx_mask;
- 		rc->s_tx_carrier = mceusb_set_tx_carrier;
+diff --git a/drivers/media/video/marvell-ccic/mcam-core.c b/drivers/media/video/marvell-ccic/mcam-core.c
+index 8a99ec2..9867b3b 100644
+--- a/drivers/media/video/marvell-ccic/mcam-core.c
++++ b/drivers/media/video/marvell-ccic/mcam-core.c
+@@ -72,19 +72,6 @@ MODULE_PARM_DESC(dma_buf_size,
+ 		"parameters require larger buffers, an attempt to reallocate "
+ 		"will be made.");
+ 
+-static int min_buffers = 1;
+-module_param(min_buffers, uint, 0644);
+-MODULE_PARM_DESC(min_buffers,
+-		"The minimum number of streaming I/O buffers we are willing "
+-		"to work with.");
+-
+-static int max_buffers = 10;
+-module_param(max_buffers, uint, 0644);
+-MODULE_PARM_DESC(max_buffers,
+-		"The maximum number of streaming I/O buffers an application "
+-		"will be allowed to allocate.  These buffers are big and live "
+-		"in vmalloc space.");
+-
+ static int flip;
+ module_param(flip, bool, 0444);
+ MODULE_PARM_DESC(flip,
 -- 
-1.7.5.4
+1.7.6
 
