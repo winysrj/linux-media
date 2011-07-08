@@ -1,41 +1,71 @@
-Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp12.mail.ru ([94.100.176.89]:46892 "EHLO smtp12.mail.ru"
+Return-path: <mchehab@localhost>
+Received: from tex.lwn.net ([70.33.254.29]:36261 "EHLO vena.lwn.net"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752535Ab1GWNZe (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 23 Jul 2011 09:25:34 -0400
-Message-ID: <4E2ACAAD.4050602@list.ru>
-Date: Sat, 23 Jul 2011 17:20:45 +0400
-From: Stas Sergeev <stsp@list.ru>
-MIME-Version: 1.0
-To: Mauro Carvalho Chehab <mchehab@infradead.org>
-CC: linux-media@vger.kernel.org
-Subject: Re: [patch][saa7134] do not change mute state for capturing audio
-References: <4E19D2F7.6060803@list.ru> <4E1E0A1D.6000604@list.ru> <4E1E1571.6010400@infradead.org> <4E1E8108.3060305@list.ru> <4E1F9A25.1020208@infradead.org> <4E22AF12.4020600@list.ru> <4E22CCC0.8030803@infradead.org> <4E24BEB8.4060501@redhat.com> <4E257FF5.4040401@infradead.org> <4E258B60.6010007@list.ru> <4E25906D.3020200@infradead.org> <4E259B0C.90107@list.ru> <4E25A26A.2000204@infradead.org> <4E25A7C2.3050609@list.ru> <4E25C7AE.5020503@infradead.org> <4E25CF35.7000802@list.ru> <4E25DB37.8020609@infradead.org> <4E25FDE4.7040805@list.ru> <4E262772.9060509@infradead.org> <4E266799.8030706@list.ru> <4E26AEC0.5000405@infradead.org> <4E26B1E7.2080107@list.ru> <4E26B29B.4010109@infradead.org> <4E292BED.60108@list.ru> <4E296D00.9040608@infradead.org> <4E296F6C.9080107@list.ru> <4E2971D4.1060109@infradead.org> <4E29738F.7040605@list.ru> <4E297505.7090307@infradead.org> <4E29E02A.1020402@list.ru> <4E2A23C7.3040209@infradead.org> <4E2A7BF0.8080606@list.ru> <4E2AC742.8020407@infradead.org>
-In-Reply-To: <4E2AC742.8020407@infradead.org>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
-Sender: linux-media-owner@vger.kernel.org
+	id S1752446Ab1GHUwJ (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 8 Jul 2011 16:52:09 -0400
+From: Jonathan Corbet <corbet@lwn.net>
+To: linux-media@vger.kernel.org
+Cc: Marek Szyprowski <m.szyprowski@samsung.com>,
+	Kassey Lee <ygli@marvell.com>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Jonathan Corbet <corbet@lwn.net>
+Subject: [PATCH 6/6] marvell-cam: clean up a couple of unused cam structure fields
+Date: Fri,  8 Jul 2011 14:50:50 -0600
+Message-Id: <1310158250-168899-7-git-send-email-corbet@lwn.net>
+In-Reply-To: <1310158250-168899-1-git-send-email-corbet@lwn.net>
+References: <1310158250-168899-1-git-send-email-corbet@lwn.net>
 List-ID: <linux-media.vger.kernel.org>
+Sender: <mchehab@infradead.org>
 
-23.07.2011 17:06, Mauro Carvalho Chehab wrote:
->> I would suggest fixing all such an apps, even if we
->> are not going to change that in the driver.
-> If application needs to change due to a patch, this is a
-> regression,
-I said "even if we are not going to change that in the
-driver", which, imho, removes any ambiguity from my
-phrase.
+Delete a couple of leftover fields whose time has passed.
 
->> But how can scantv (or anything else) rely on the
->> fact that the board was muted when that app starts?
->> I guess it can't, and mutes it explicitly first, no?
-> Even if it mutes, every time a channel is changed, it
-> will be unmuted, if you put such unmute logic at
-> VIDIOC_S_FREQUENCY.
-As I said, I propose the automute state to be a separate,
-_third_ state. mute/unmute/automute.
-Automute state is only set initially, but if the app
-explicitly sets any other state, it is no longer affected.
-Since an app can't rely on the state before it was
-started, it should set the mute state explicitly first.
-In this case, it will not be autounmuted after tuning.
+Signed-off-by: Jonathan Corbet <corbet@lwn.net>
+---
+ drivers/media/video/marvell-ccic/mcam-core.c |    2 --
+ drivers/media/video/marvell-ccic/mcam-core.h |    3 ---
+ 2 files changed, 0 insertions(+), 5 deletions(-)
+
+diff --git a/drivers/media/video/marvell-ccic/mcam-core.c b/drivers/media/video/marvell-ccic/mcam-core.c
+index 073e72c..83c1451 100644
+--- a/drivers/media/video/marvell-ccic/mcam-core.c
++++ b/drivers/media/video/marvell-ccic/mcam-core.c
+@@ -1638,7 +1638,6 @@ static void mcam_frame_complete(struct mcam_camera *cam, int frame)
+ 	clear_bit(CF_DMA_ACTIVE, &cam->flags);
+ 	cam->next_buf = frame;
+ 	cam->buf_seq[frame] = ++(cam->sequence);
+-	cam->last_delivered = frame;
+ 	frames++;
+ 	/*
+ 	 * "This should never happen"
+@@ -1741,7 +1740,6 @@ int mccic_register(struct mcam_camera *cam)
+ 	mcam_set_config_needed(cam, 1);
+ 	cam->pix_format = mcam_def_pix_format;
+ 	cam->mbus_code = mcam_def_mbus_code;
+-	INIT_LIST_HEAD(&cam->dev_list);
+ 	INIT_LIST_HEAD(&cam->buffers);
+ 	mcam_ctlr_init(cam);
+ 
+diff --git a/drivers/media/video/marvell-ccic/mcam-core.h b/drivers/media/video/marvell-ccic/mcam-core.h
+index aa55255..917200e 100644
+--- a/drivers/media/video/marvell-ccic/mcam-core.h
++++ b/drivers/media/video/marvell-ccic/mcam-core.h
+@@ -116,8 +116,6 @@ struct mcam_camera {
+ 	struct v4l2_subdev *sensor;
+ 	unsigned short sensor_addr;
+ 
+-	struct list_head dev_list;	/* link to other devices */
+-
+ 	/* Videobuf2 stuff */
+ 	struct vb2_queue vb_queue;
+ 	struct list_head buffers;	/* Available frames */
+@@ -138,7 +136,6 @@ struct mcam_camera {
+ 	/* DMA buffers - DMA modes */
+ 	struct mcam_vb_buffer *vb_bufs[MAX_DMA_BUFS];
+ 	struct vb2_alloc_ctx *vb_alloc_ctx;
+-	unsigned short last_delivered;
+ 
+ 	/* Mode-specific ops, set at open time */
+ 	void (*dma_setup)(struct mcam_camera *cam);
+-- 
+1.7.6
+
