@@ -1,112 +1,44 @@
-Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:33361 "EHLO mx1.redhat.com"
+Return-path: <mchehab@localhost>
+Received: from mx1.redhat.com ([209.132.183.28]:43569 "EHLO mx1.redhat.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751692Ab1GRTyw (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 18 Jul 2011 15:54:52 -0400
-Received: from int-mx01.intmail.prod.int.phx2.redhat.com (int-mx01.intmail.prod.int.phx2.redhat.com [10.5.11.11])
-	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id p6IJsqBe025561
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
-	for <linux-media@vger.kernel.org>; Mon, 18 Jul 2011 15:54:52 -0400
-From: Jarod Wilson <jarod@redhat.com>
-To: linux-media@vger.kernel.org
-Cc: Jarod Wilson <jarod@redhat.com>
-Subject: [PATCH v2 5/9] [media] mceusb: query device for firmware emulator version
-Date: Mon, 18 Jul 2011 15:54:25 -0400
-Message-Id: <1311018869-22794-6-git-send-email-jarod@redhat.com>
-In-Reply-To: <1310681394-3530-1-git-send-email-jarod@redhat.com>
-References: <1310681394-3530-1-git-send-email-jarod@redhat.com>
-Sender: linux-media-owner@vger.kernel.org
+	id S1752038Ab1GHNJc (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 8 Jul 2011 09:09:32 -0400
+Message-ID: <4E170186.8060002@redhat.com>
+Date: Fri, 08 Jul 2011 10:09:26 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+MIME-Version: 1.0
+To: =?UTF-8?B?TWFyY28gRGllZ28gQXVyw6lsaW8gTWVzcXVpdGE=?=
+	<marcodiegomesquita@gmail.com>
+CC: Hans de Goede <hdegoede@redhat.com>,
+	linux-media <linux-media@vger.kernel.org>
+Subject: Re: Pach under review.
+References: <CAE_m23n+Hj3xkC5UrUow64mLGaKAOKmR8yPDAATnZ=kWpqWaKw@mail.gmail.com>
+In-Reply-To: <CAE_m23n+Hj3xkC5UrUow64mLGaKAOKmR8yPDAATnZ=kWpqWaKw@mail.gmail.com>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 List-ID: <linux-media.vger.kernel.org>
+Sender: <mchehab@infradead.org>
 
-Supposedly, there are essentially three different classes of devices
-that are compatible with Microsoft's specs. First are the "legacy"
-devices, which are built using Microsoft-provided hardware specs and
-firmware. Second are "emulator" devices, which are built using custom
-hardware and firmware, written to emulate Microsoft's firmware. Third
-are "port" devices, which have their own device driver and firmware,
-which provides compatible data to higher levels of the stack.
+Em 07-07-2011 23:12, Marco Diego Aurélio Mesquita escreveu:
+> Hi!
+> 
+> I would like to have my patch[1] ready for linux 3.0. It's a simple
+> one-liner to solve an easy to fix problem. Is there anything I can do
+> o accelerate the review process?
+> 
+> Please, CC me your answers as I'm not subscribed to the list.
+> 
+> Tanks!
+> 
+> [1] https://patchwork.kernel.org/patch/849142/
 
->From what I can tell, things like nuvoton-cir and fintek-cir are
-essentially "port" devices -- their raw IR buffer format is very similar
-to that of the mceusb devices. Now, within the mceusb driver, we have
-three different "generations", which at first, seemed like maybe they
-mapped to emulator versions. Unfortuantely, every single device I have
-responds "illegal command" to the query to get firmware emulator version
-from the hardware, which means they're either all emulator version 1, or
-they're legacy devices, and our different "generations" aren't at all
-related here. Though in theory, its possible the gen1 devices are
-"legacy" devices and the rest are emulator v1. There are some useful
-features of the v2 interface I was hoping to play with, but alas...
 
-Signed-off-by: Jarod Wilson <jarod@redhat.com>
----
- drivers/media/rc/mceusb.c |   19 +++++++++++++++++--
- 1 files changed, 17 insertions(+), 2 deletions(-)
+Hi Marco,
 
-diff --git a/drivers/media/rc/mceusb.c b/drivers/media/rc/mceusb.c
-index f1fc11d..fb2fa9d 100644
---- a/drivers/media/rc/mceusb.c
-+++ b/drivers/media/rc/mceusb.c
-@@ -438,12 +438,14 @@ struct mceusb_dev {
- 	enum mceusb_model_type model;
- 
- 	bool need_reset;	/* flag to issue a device resume cmd */
-+	u8 emver;		/* emulator interface version */
- };
- 
- /* MCE Device Command Strings, generally a port and command pair */
- static char DEVICE_RESUME[]	= {MCE_CMD_NULL, MCE_CMD_PORT_SYS,
- 				   MCE_CMD_RESUME};
- static char GET_REVISION[]	= {MCE_CMD_PORT_SYS, MCE_CMD_G_REVISION};
-+static char GET_EMVER[]		= {MCE_CMD_PORT_SYS, MCE_CMD_GETEMVER};
- static char GET_WAKEVERSION[]	= {MCE_CMD_PORT_SYS, MCE_CMD_GETWAKEVERSION};
- static char GET_UNKNOWN2[]	= {MCE_CMD_PORT_IR, MCE_CMD_UNKNOWN2};
- static char GET_CARRIER_FREQ[]	= {MCE_CMD_PORT_IR, MCE_CMD_GETIRCFS};
-@@ -915,6 +917,9 @@ static void mceusb_handle_command(struct mceusb_dev *ir, int index)
- 		break;
- 
- 	/* 1-byte return value commands */
-+	case MCE_RSP_EQEMVER:
-+		ir->emver = hi;
-+		break;
- 	case MCE_RSP_EQIRTXPORTS:
- 		ir->tx_mask = hi;
- 		break;
-@@ -1037,6 +1042,13 @@ static void mceusb_dev_recv(struct urb *urb, struct pt_regs *regs)
- 	usb_submit_urb(urb, GFP_ATOMIC);
- }
- 
-+static void mceusb_get_emulator_version(struct mceusb_dev *ir)
-+{
-+	/* If we get no reply or an illegal command reply, its ver 1, says MS */
-+	ir->emver = 1;
-+	mce_async_out(ir, GET_EMVER, sizeof(GET_EMVER));
-+}
-+
- static void mceusb_gen1_init(struct mceusb_dev *ir)
- {
- 	int ret;
-@@ -1290,6 +1302,9 @@ static int __devinit mceusb_dev_probe(struct usb_interface *intf,
- 	mce_dbg(&intf->dev, "Flushing receive buffers\n");
- 	mce_flush_rx_buffer(ir, maxp);
- 
-+	/* figure out which firmware/emulator version this hardware has */
-+	mceusb_get_emulator_version(ir);
-+
- 	/* initialize device */
- 	if (ir->flags.microsoft_gen1)
- 		mceusb_gen1_init(ir);
-@@ -1307,8 +1322,8 @@ static int __devinit mceusb_dev_probe(struct usb_interface *intf,
- 	device_set_wakeup_capable(ir->dev, true);
- 	device_set_wakeup_enable(ir->dev, true);
- 
--	dev_info(&intf->dev, "Registered %s on usb%d:%d\n", name,
--		 dev->bus->busnum, dev->devnum);
-+	dev_info(&intf->dev, "Registered %s with mce emulator interface "
-+		 "version %x\n", name, ir->emver);
- 
- 	return 0;
- 
--- 
-1.7.1
+Hans is currently in vacations, so, we'll likely need to wait for his return.
+I prefer to not rush merging it, because I don't have the pac207 datasheets,
+and it is a good idea to have more tests on it. What webcams had you test
+needing such fix?
 
+Thanks,
+Mauro
