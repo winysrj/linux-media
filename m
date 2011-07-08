@@ -1,85 +1,85 @@
-Return-path: <linux-media-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.126.171]:50412 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754003Ab1GQQxv (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 17 Jul 2011 12:53:51 -0400
-Date: Sun, 17 Jul 2011 18:53:49 +0200 (CEST)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-cc: Michael Grzeschik <m.grzeschik@pengutronix.de>,
+Return-path: <mchehab@localhost>
+Received: from caramon.arm.linux.org.uk ([78.32.30.218]:55547 "EHLO
+	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751393Ab1GHR1a (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 8 Jul 2011 13:27:30 -0400
+Date: Fri, 8 Jul 2011 18:25:41 +0100
+From: Russell King - ARM Linux <linux@arm.linux.org.uk>
+To: Arnd Bergmann <arnd@arndb.de>
+Cc: linux-arm-kernel@lists.infradead.org,
+	Daniel Walker <dwalker@codeaurora.org>,
+	Jonathan Corbet <corbet@lwn.net>, Mel Gorman <mel@csn.ul.ie>,
+	Chunsang Jeong <chunsang.jeong@linaro.org>,
+	Jesse Barker <jesse.barker@linaro.org>,
+	KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>,
+	linux-kernel@vger.kernel.org,
+	Michal Nazarewicz <mina86@mina86.com>,
+	linaro-mm-sig@lists.linaro.org, linux-mm@kvack.org,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	Ankita Garg <ankita@in.ibm.com>,
+	Andrew Morton <akpm@linux-foundation.org>,
+	Marek Szyprowski <m.szyprowski@samsung.com>,
 	linux-media@vger.kernel.org
-Subject: Re: [PATCH 3/5] mt9m111: move lastpage to struct mt9m111 for multi
- instances
-In-Reply-To: <201107141727.24309.laurent.pinchart@ideasonboard.com>
-Message-ID: <Pine.LNX.4.64.1107171853100.13485@axis700.grange>
-References: <1310485146-27759-1-git-send-email-m.grzeschik@pengutronix.de>
- <1310485146-27759-3-git-send-email-m.grzeschik@pengutronix.de>
- <201107141727.24309.laurent.pinchart@ideasonboard.com>
+Subject: Re: [PATCH 6/8] drivers: add Contiguous Memory Allocator
+Message-ID: <20110708172541.GM4812@n2100.arm.linux.org.uk>
+References: <1309851710-3828-1-git-send-email-m.szyprowski@samsung.com> <201107051427.44899.arnd@arndb.de> <20110705123035.GD8286@n2100.arm.linux.org.uk> <201107051558.39344.arnd@arndb.de>
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Sender: linux-media-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <201107051558.39344.arnd@arndb.de>
 List-ID: <linux-media.vger.kernel.org>
+Sender: <mchehab@infradead.org>
 
-On Thu, 14 Jul 2011, Laurent Pinchart wrote:
+On Tue, Jul 05, 2011 at 03:58:39PM +0200, Arnd Bergmann wrote:
+> Ah, sorry I missed that patch on the mailing list, found it now in
+> your for-next branch.
 
-> Hi Michael,
-> 
-> On Tuesday 12 July 2011 17:39:04 Michael Grzeschik wrote:
-> > Signed-off-by: Michael Grzeschik <m.grzeschik@pengutronix.de>
-> > ---
-> >  drivers/media/video/mt9m111.c |    7 ++++---
-> >  1 files changed, 4 insertions(+), 3 deletions(-)
-> > 
-> > diff --git a/drivers/media/video/mt9m111.c b/drivers/media/video/mt9m111.c
-> > index e08b46c..8ad99a9 100644
-> > --- a/drivers/media/video/mt9m111.c
-> > +++ b/drivers/media/video/mt9m111.c
-> > @@ -170,6 +170,7 @@ struct mt9m111 {
-> >  	enum mt9m111_context context;
-> >  	struct v4l2_rect rect;
-> >  	const struct mt9m111_datafmt *fmt;
-> > +	int lastpage;
-> >  	unsigned int gain;
-> >  	unsigned char autoexposure;
-> >  	unsigned char datawidth;
-> > @@ -192,17 +193,17 @@ static int reg_page_map_set(struct i2c_client
-> > *client, const u16 reg) {
-> >  	int ret = 0;
-> >  	u16 page;
-> > -	static int lastpage = -1;	/* PageMap cache value */
-> 
-> You're loosing lastpage initialization to -1.
+I've been searching for this email to reply to for the last day or
+so...
 
-Seconded. A fixed version of this patch will ve welcome for 3.2.
+> If I'm reading your "ARM: DMA: steal memory for DMA coherent mappings"
+> correctly, the idea is to have a per-platform compile-time amount
+> of memory that is reserved purely for coherent allocations and
+> taking out of the buddy allocator, right?
 
-Thanks
-Guennadi
+Yes, because every time I've looked at taking out memory mappings in
+the first level page tables, it's always been a major issue.
 
-> 
-> > +	struct mt9m111 *mt9m111 = to_mt9m111(client);
-> > 
-> >  	page = (reg >> 8);
-> > -	if (page == lastpage)
-> > +	if (page == mt9m111->lastpage)
-> >  		return 0;
-> >  	if (page > 2)
-> >  		return -EINVAL;
-> > 
-> >  	ret = i2c_smbus_write_word_data(client, MT9M111_PAGE_MAP, swab16(page));
-> >  	if (!ret)
-> > -		lastpage = page;
-> > +		mt9m111->lastpage = page;
-> >  	return ret;
-> >  }
-> 
-> -- 
-> Regards,
-> 
-> Laurent Pinchart
-> 
+We have a method where we can remove first level mappings on
+uniprocessor systems in the ioremap code just fine - we use that so
+that systems can setup section and supersection mappings.  They can
+tear them down as well - and we update other tasks L1 page tables
+when they get switched in.
 
----
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
-http://www.open-technology.de/
+This, however, doesn't work on SMP, because if you have a DMA allocation
+(which is permitted from IRQ context) you must have some way of removing
+the L1 page table entries from all CPUs TLBs and the page tables currently
+in use and any future page tables which those CPUs may switch to.
+
+The easy bit is "future page tables" - that can be done in the same way
+as the ioremap() code does with a generation number, checked when a new
+page table is switched in.  The problem is the current CPUs, and as we
+know trying to call smp_call_function() with IRQs disabled is not
+permitted due to deadlock.
+
+So, in a SMP system, there is no safe way to remove L1 page table entries
+from IRQ context.  That means if memory is mapped for the buddy allocators
+using L1 page table entries, then it is fixed for that application on a
+SMP system.
+
+However, that's not really what I wanted to find this email for.  That
+is I'm dropping the "ARM: DMA: steal memory for DMA coherent mappings"
+patch for this merge window because - as I found out yesterday - it
+prevents the Assabet platform booting, and so would be a regression.
+
+Plus, I have a report of a regression with the streaming DMA API
+speculative prefetch fixes causing the IOP ADMA raid5 async offload
+stuff to explode - which may result in the streaming DMA API fixes
+being reverted (which will leave ARMv6+ vulnerable to data corruption.)
+As I have no time to work through the RAID5 code, async_tx code, and
+IOP ADMA code to get to the bottom of it (because of this flood of
+patches) I think a revert is looking likely - either that or I'll have
+to tell the bug reporter to go away, which really isn't on.  It's on
+LKML if anyone's interested in trying to diagnose it, the
+"PROBLEM: ARM-dma-mapping-fix-for-speculative-prefetching cause OOPS"
+thread.
