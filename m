@@ -1,101 +1,44 @@
 Return-path: <mchehab@localhost>
-Received: from mail-ew0-f46.google.com ([209.85.215.46]:54054 "EHLO
-	mail-ew0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754222Ab1GJQrr (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 10 Jul 2011 12:47:47 -0400
-Received: by ewy4 with SMTP id 4so1133366ewy.19
-        for <linux-media@vger.kernel.org>; Sun, 10 Jul 2011 09:47:45 -0700 (PDT)
+Received: from mx1.redhat.com ([209.132.183.28]:54304 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752139Ab1GHNJQ (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 8 Jul 2011 09:09:16 -0400
+Message-ID: <4E170176.8090506@redhat.com>
+Date: Fri, 08 Jul 2011 10:09:10 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
 MIME-Version: 1.0
-Date: Sun, 10 Jul 2011 12:47:45 -0400
-Message-ID: <CAGoCfixSHJO6HzubymWkfq_vR6iiw4RhOc_3AgfeqT5rqMQ+jA@mail.gmail.com>
-Subject: [PATCH] cx88: properly maintain decoder config when using MPEG encoder
-From: Devin Heitmueller <dheitmueller@kernellabs.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Florent Audebert <florent.audebert@anevia.com>
-Content-Type: multipart/mixed; boundary=0015174c338874f62904a7b9d3f4
+To: =?UTF-8?B?TWFyY28gRGllZ28gQXVyw6lsaW8gTWVzcXVpdGE=?=
+	<marcodiegomesquita@gmail.com>
+CC: Hans de Goede <hdegoede@redhat.com>,
+	linux-media <linux-media@vger.kernel.org>
+Subject: Re: Pach under review.
+References: <CAE_m23n+Hj3xkC5UrUow64mLGaKAOKmR8yPDAATnZ=kWpqWaKw@mail.gmail.com>
+In-Reply-To: <CAE_m23n+Hj3xkC5UrUow64mLGaKAOKmR8yPDAATnZ=kWpqWaKw@mail.gmail.com>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@infradead.org>
 
---0015174c338874f62904a7b9d3f4
-Content-Type: text/plain; charset=ISO-8859-1
+Em 07-07-2011 23:12, Marco Diego Aurélio Mesquita escreveu:
+> Hi!
+> 
+> I would like to have my patch[1] ready for linux 3.0. It's a simple
+> one-liner to solve an easy to fix problem. Is there anything I can do
+> o accelerate the review process?
+> 
+> Please, CC me your answers as I'm not subscribed to the list.
+> 
+> Tanks!
+> 
+> [1] https://patchwork.kernel.org/patch/849142/
 
-Hello,
 
-The attached patch addresses a problem raised by Florent Audebert
-where the video decoder was not setup properly if you were capturing
-on the HVR-1300's s-video port while using the MPEG encoder.
+Hi Marco,
 
-The issue is described in greater detail in the patch itself.
+Hans is currently in vacations, so, we'll likely need to wait for his return.
+I prefer to not rush merging it, because I don't have the pac207 datasheets,
+and it is a good idea to have more tests on it. What webcams had you tested
+needing such fix?
 
-Devin
-
--- 
-Devin J. Heitmueller - Kernel Labs
-http://www.kernellabs.com
-
---0015174c338874f62904a7b9d3f4
-Content-Type: application/octet-stream; name="cx88-svideo-mpeg.patch"
-Content-Disposition: attachment; filename="cx88-svideo-mpeg.patch"
-Content-Transfer-Encoding: base64
-X-Attachment-Id: f_gpy8iy1b0
-
-Y3g4ODogcHJvcGVybHkgbWFpbnRhaW4gZGVjb2RlciBjb25maWcgd2hlbiB1c2luZyBNUEVHIGVu
-Y29kZXIKCkZyb206IERldmluIEhlaXRtdWVsbGVyIDxkaGVpdG11ZWxsZXJAa2VybmVsbGFicy5j
-b20+CgpUaGUgY3g4OCBkcml2ZXIgd291bGQgZm9yY2UgY29yZS0+aW5wdXQgdG8gYWx3YXlzIGJl
-IHplcm8gd2hlbiBkb2luZyB0aGUKdGhlIHJlcXVlc3RfYWNxdWlyZSgpLiAgV2hpbGUgaXQgd2Fz
-bid0IGFjdHVhbGx5IGNoYW5naW5nIHRoZSBpbnB1dCByZWdpc3RlcgppbiB0aGUgaGFyZHdhcmUs
-IHRoZSBkcml2ZXIgbWFrZXMgZGVjaXNpb24gYmFzZWQgb24gdGhlIGN1cnJlbnQgaW5wdXQuICBJ
-bgpwYXJ0aWN1bGFyLCBpdCBkZWNpZGVzIHdoZXRoZXIgdG8gZG8gdGhpbmdzIGxpa2UgZW5hYmxp
-bmcgdGhlIGNvbWIgZmlsdGVyCndoZW4gb24gYSBjb21wb3NpdGUgaW5wdXQgYnV0IGRpc2FibGlu
-ZyBpdCBvbiBzLXZpZGVvLiAgU28gZm9yIGV4YW1wbGUsIG9uCnRoZSBIVlItMTMwMCwgdXNpbmcg
-dGhlIHMtdmlkZW8gaW5wdXQgd2l0aCB0aGUgTVBFRyBlbmNvZGVyIHdvdWxkIGVuZCB1cCB3aXRo
-CnRoZSB2aWRlbyBkZWNvZGVyIGNvcmUgY29uZmlndXJlZCBhcyB0aG91Z2ggdGhlIGlucHV0IHR5
-cGUgd2VyZSBjb21wb3NpdGUuCgpJbiBzaG9ydCwgdGhlIGRyaXZlciBzdGF0ZSBkaWQgbm90IG1h
-dGNoIHRoZSBoYXJkd2FyZSBzdGF0ZS4KClRoaXMgcGF0Y2ggZG9lcyB0d28gdGhpbmdzOgoKMS4g
-IEl0IGZvcmNlcyB0aGUgaW5wdXQgdG8gemVybyBvbmx5IGlmIGFjdHVhbGx5IHN3aXRjaGluZyB0
-byBEVkIgbW9kZS4gIFRoaXMKcHJldmVudHMgdGhlIGlucHV0IGZyb20gY2hhbmdpbmcgd2hlbiB0
-aGUgYmxhY2tiaXJkIGRyaXZlciBvcGVucyB0aGUgZGV2aWNlLgoKMi4gIEtlZXAgdHJhY2sgb2Yg
-d2hhdCB0aGUgaW5wdXQgd2FzIHNldCB0byB3aGVuIHN3aXRjaGluZyB0byBEVkIsIGFuZCByZXNl
-dAppdCBiYWNrIHdoZW4gZG9uZS4gIFRoaXMgZWxpbWluYXRlcyBhIGNvbmRpdGlvbiB3aGVyZSBm
-b3IgZXhhbXBsZSB0aGUgdXNlcgpoYWQgdGhlIGFuYWxvZyBzaWRlIG9mIHRoZSBib2FyZCBzZXQg
-dG8gY2FwdHVyZSBvbiB0aGUgcy12aWRlbyBpbnB1dCwgdGhlbgpoZSB1c2VkIERWQiBmb3IgYSBi
-aXQsIHRoZW4gdGhlIGFuYWxvZyBpbnB1dCB3b3VsZCB1bmV4cGVjdGVkbHkgYmUgc2V0IHRvCnRo
-ZSB0dW5lciBpbnB1dC4KClRoaXMgd29yayB3YXMgc3BvbnNvcmVkIGJ5IEFuZXZpYSBTLkEuCgpT
-aWduZWQtb2ZmLWJ5OiBEZXZpbiBIZWl0bXVlbGxlciA8ZGhlaXRtdWVsbGVyQGtlcm5lbGxhYnMu
-Y29tPgpDYzogRmxvcmVudCBBdWRlYmVydCA8ZmxvcmVudC5hdWRlYmVydEBhbmV2aWEuY29tPgoK
-ZGlmZiAtLWdpdCBhL2RyaXZlcnMvbWVkaWEvdmlkZW8vY3g4OC9jeDg4LW1wZWcuYyBiL2RyaXZl
-cnMvbWVkaWEvdmlkZW8vY3g4OC9jeDg4LW1wZWcuYwppbmRleCAxYTdiOTgzLi4zMzhkZjQ4IDEw
-MDY0NAotLS0gYS9kcml2ZXJzL21lZGlhL3ZpZGVvL2N4ODgvY3g4OC1tcGVnLmMKKysrIGIvZHJp
-dmVycy9tZWRpYS92aWRlby9jeDg4L2N4ODgtbXBlZy5jCkBAIC02MTMsMTMgKzYxMywxNyBAQCBz
-dGF0aWMgaW50IGN4ODgwMl9yZXF1ZXN0X2FjcXVpcmUoc3RydWN0IGN4ODgwMl9kcml2ZXIgKmRy
-dikKIAkgICAgY29yZS0+YWN0aXZlX3R5cGVfaWQgIT0gZHJ2LT50eXBlX2lkKQogCQlyZXR1cm4g
-LUVCVVNZOwogCi0JY29yZS0+aW5wdXQgPSAwOwotCWZvciAoaSA9IDA7Ci0JICAgICBpIDwgKHNp
-emVvZihjb3JlLT5ib2FyZC5pbnB1dCkgLyBzaXplb2Yoc3RydWN0IGN4ODhfaW5wdXQpKTsKLQkg
-ICAgIGkrKykgewotCQlpZiAoY29yZS0+Ym9hcmQuaW5wdXRbaV0udHlwZSA9PSBDWDg4X1ZNVVhf
-RFZCKSB7Ci0JCQljb3JlLT5pbnB1dCA9IGk7Ci0JCQlicmVhazsKKwlpZiAoZHJ2LT50eXBlX2lk
-ID09IENYODhfTVBFR19EVkIpIHsKKwkJLyogV2hlbiBzd2l0Y2hpbmcgdG8gRFZCLCBhbHdheXMg
-c2V0IHRoZSBpbnB1dCB0byB0aGUgdHVuZXIgKi8KKwkJY29yZS0+bGFzdF9hbmFsb2dfaW5wdXQg
-PSBjb3JlLT5pbnB1dDsKKwkJY29yZS0+aW5wdXQgPSAwOworCQlmb3IgKGkgPSAwOworCQkgICAg
-IGkgPCAoc2l6ZW9mKGNvcmUtPmJvYXJkLmlucHV0KSAvIHNpemVvZihzdHJ1Y3QgY3g4OF9pbnB1
-dCkpOworCQkgICAgIGkrKykgeworCQkJaWYgKGNvcmUtPmJvYXJkLmlucHV0W2ldLnR5cGUgPT0g
-Q1g4OF9WTVVYX0RWQikgeworCQkJCWNvcmUtPmlucHV0ID0gaTsKKwkJCQlicmVhazsKKwkJCX0K
-IAkJfQogCX0KIApAQCAtNjQ0LDYgKzY0OCwxMiBAQCBzdGF0aWMgaW50IGN4ODgwMl9yZXF1ZXN0
-X3JlbGVhc2Uoc3RydWN0IGN4ODgwMl9kcml2ZXIgKmRydikKIAogCWlmIChkcnYtPmFkdmlzZV9y
-ZWxlYXNlICYmIC0tY29yZS0+YWN0aXZlX3JlZiA9PSAwKQogCXsKKwkJaWYgKGRydi0+dHlwZV9p
-ZCA9PSBDWDg4X01QRUdfRFZCKSB7CisJCQkvKiBJZiB0aGUgRFZCIGRyaXZlciBpcyByZWxlYXNp
-bmcsIHJlc2V0IHRoZSBpbnB1dAorCQkJICAgc3RhdGUgdG8gdGhlIGxhc3QgY29uZmlndXJlZCBh
-bmFsb2cgaW5wdXQgKi8KKwkJCWNvcmUtPmlucHV0ID0gY29yZS0+bGFzdF9hbmFsb2dfaW5wdXQ7
-CisJCX0KKwogCQlkcnYtPmFkdmlzZV9yZWxlYXNlKGRydik7CiAJCWNvcmUtPmFjdGl2ZV90eXBl
-X2lkID0gQ1g4OF9CT0FSRF9OT05FOwogCQltcGVnX2RiZygxLCIlcygpIFBvc3QgcmVsZWFzZSBH
-UElPPSV4XG4iLCBfX2Z1bmNfXywgY3hfcmVhZChNT19HUDBfSU8pKTsKZGlmZiAtLWdpdCBhL2Ry
-aXZlcnMvbWVkaWEvdmlkZW8vY3g4OC9jeDg4LmggYi9kcml2ZXJzL21lZGlhL3ZpZGVvL2N4ODgv
-Y3g4OC5oCmluZGV4IDU3MTkwNjMuLmNmNTNhMGQgMTAwNjQ0Ci0tLSBhL2RyaXZlcnMvbWVkaWEv
-dmlkZW8vY3g4OC9jeDg4LmgKKysrIGIvZHJpdmVycy9tZWRpYS92aWRlby9jeDg4L2N4ODguaApA
-QCAtMzc3LDYgKzM3Nyw3IEBAIHN0cnVjdCBjeDg4X2NvcmUgewogCXUzMiAgICAgICAgICAgICAg
-ICAgICAgICAgIGF1ZGlvbW9kZV9tYW51YWw7CiAJdTMyICAgICAgICAgICAgICAgICAgICAgICAg
-YXVkaW9tb2RlX2N1cnJlbnQ7CiAJdTMyICAgICAgICAgICAgICAgICAgICAgICAgaW5wdXQ7CisJ
-dTMyICAgICAgICAgICAgICAgICAgICAgICAgbGFzdF9hbmFsb2dfaW5wdXQ7CiAJdTMyICAgICAg
-ICAgICAgICAgICAgICAgICAgYXN0YXQ7CiAJdTMyCQkJICAgdXNlX25pY2FtOwogCXVuc2lnbmVk
-IGxvbmcJCSAgIGxhc3RfY2hhbmdlOwo=
---0015174c338874f62904a7b9d3f4--
+Thanks,
+Mauro
