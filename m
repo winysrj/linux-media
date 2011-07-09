@@ -1,153 +1,107 @@
-Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:38680 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932420Ab1GVWEC (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 22 Jul 2011 18:04:02 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Kirill Smelkov <kirr@mns.spb.ru>
-Subject: Re: [PATCH, RESEND] uvcvideo: Add FIX_BANDWIDTH quirk to HP Webcam found on HP Mini 5103 netbook
-Date: Sat, 23 Jul 2011 00:03:57 +0200
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Andrew Morton <akpm@linux-foundation.org>,
-	linux-uvc-devel@lists.berlios.de, linux-media@vger.kernel.org,
-	linux-kernel@vger.kernel.org
-References: <20110722144722.GA3717@tugrik.mns.mnsspb.ru>
-In-Reply-To: <20110722144722.GA3717@tugrik.mns.mnsspb.ru>
+Return-path: <mchehab@localhost>
+Received: from d1.icnet.pl ([212.160.220.21]:55499 "EHLO d1.icnet.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754146Ab1GIPAJ (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 9 Jul 2011 11:00:09 -0400
+From: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
+To: Arnd Bergmann <arnd@arndb.de>
+Subject: Re: [Linaro-mm-sig] [PATCH 6/8] drivers: add Contiguous Memory Allocator
+Date: Sat, 9 Jul 2011 16:57:07 +0200
+Cc: linux-arm-kernel@lists.infradead.org,
+	Nicolas Pitre <nicolas.pitre@linaro.org>,
+	"Russell King - ARM Linux" <linux@arm.linux.org.uk>,
+	"'Daniel Walker'" <dwalker@codeaurora.org>,
+	"'Jonathan Corbet'" <corbet@lwn.net>,
+	"'Mel Gorman'" <mel@csn.ul.ie>,
+	"'Chunsang Jeong'" <chunsang.jeong@linaro.org>,
+	linux-kernel@vger.kernel.org,
+	"'Michal Nazarewicz'" <mina86@mina86.com>,
+	linaro-mm-sig@lists.linaro.org,
+	"'Jesse Barker'" <jesse.barker@linaro.org>,
+	"'Kyungmin Park'" <kyungmin.park@samsung.com>,
+	"'Ankita Garg'" <ankita@in.ibm.com>,
+	"'Andrew Morton'" <akpm@linux-foundation.org>, linux-mm@kvack.org,
+	"'KAMEZAWA Hiroyuki'" <kamezawa.hiroyu@jp.fujitsu.com>,
+	linux-media@vger.kernel.org,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Marin Mitov <mitov@issp.bas.bg>,
+	FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp>
+References: <1309851710-3828-1-git-send-email-m.szyprowski@samsung.com> <alpine.LFD.2.00.1107061034200.14596@xanadu.home> <201107061659.45253.arnd@arndb.de>
+In-Reply-To: <201107061659.45253.arnd@arndb.de>
 MIME-Version: 1.0
+Message-Id: <201107091657.07925.jkrzyszt@tis.icnet.pl>
 Content-Type: Text/Plain;
   charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
-Message-Id: <201107230003.59800.laurent.pinchart@ideasonboard.com>
-Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
+Sender: <mchehab@infradead.org>
 
-Hi Kirill,
+On Wed, 6 Jul 2011 at 16:59:45 Arnd Bergmann wrote:
+> On Wednesday 06 July 2011, Nicolas Pitre wrote:
+> > On Wed, 6 Jul 2011, Russell King - ARM Linux wrote:
+> > > Another issue is that when a platform has restricted DMA regions,
+> > > they typically don't fall into the highmem zone.  As the
+> > > dmabounce code allocates from the DMA coherent allocator to
+> > > provide it with guaranteed DMA-able memory, that would be rather
+> > > inconvenient.
+> > 
+> > Do we encounter this in practice i.e. do those platforms requiring
+> > large contiguous allocations motivating this work have such DMA
+> > restrictions?
+> 
+> You can probably find one or two of those, but we don't have to
+> optimize for that case. I would at least expect the maximum size of
+> the allocation to be smaller than the DMA limit for these, and
+> consequently mandate that they define a sufficiently large
+> CONSISTENT_DMA_SIZE for the crazy devices, or possibly add a hack to
+> unmap some low memory and call
+> dma_declare_coherent_memory() for the device.
 
-On Friday 22 July 2011 16:47:22 Kirill Smelkov wrote:
->  [ Cc'ing Andrew Morton -- Andrew, could you please pick this patch, in
->    case there is no response from maintainers again? Thanks beforehand. ]
-> 
-> 
-> Hello up there,
-> 
-> My first posting was 1 month ago, and a reminder ~ 2 weeks ago. All
-> without a reply. v3.0 is out and they say the merge window will be
-> shorter this time, so in oder not to miss it, I've decided to resend my
-> patch on lowering USB periodic bandwidth allocation topic.
+Once found that Russell has dropped his "ARM: DMA: steal memory for DMA 
+coherent mappings" for now, let me get back to this idea of a hack that 
+would allow for safely calling dma_declare_coherent_memory() in order to 
+assign a device with a block of contiguous memory for exclusive use. 
+Assuming there should be no problem with successfully allocating a large 
+continuous block of coherent memory at boot time with 
+dma_alloc_coherent(), this block could be reserved for the device. The 
+only problem is with the dma_declare_coherent_memory() calling 
+ioremap(), which was designed with a device's dedicated physical memory 
+in mind, but shouldn't be called on a memory already mapped.
 
-I'm very very sorry for missing the patch (and worse, twice :-/).
+There were three approaches proposed, two of them in August 2010:
+http://www.spinics.net/lists/linux-media/msg22179.html,
+http://www.spinics.net/lists/arm-kernel/msg96318.html,
+and a third one in January 2011:
+http://www.spinics.net/lists/linux-arch/msg12637.html.
 
-> Could this simple patch be please applied?
+As far as I can understand the reason why both of the first two were 
+NAKed, it was suggested that videobuf-dma-contig shouldn't use coherent 
+if all it requires is a contiguous memory, and a new API should be 
+invented, or dma_pool API extended, for providing contiguous memory. The 
+CMA was pointed out as a new work in progress contiguous memory API. Now 
+it turns out it's not, it's only a helper to ensure that 
+dma_alloc_coherent() always succeeds, and videobuf2-dma-contig is still 
+going to allocate buffers from coherent memory.
 
-Yes it can. I see that Andrew already applied it to his tree. Mauro, should it 
-go through there, or through your tree ? I've pushed it to my tree at 
-git://linuxtv.org/pinchartl/uvcvideo.git uvcvideo-stable, so you can already 
-pull.
+(CCing both authors, Marin Mitov and Guennadi Liakhovetski, and their 
+main opponent, FUJITA Tomonori)
 
-> Thanks,
-> Kirill
-> 
-> 
-> P.S.
-> 
-> Referenced in the description cc62a7eb (USB: EHCI: Allow users to
-> override 80% max periodic bandwidth) will be entering the mainline via
-> Greg's usb tree.
-> 
-> ---- 8< ----
-> From: Kirill Smelkov <kirr@mns.spb.ru>
-> Subject: [PATCH] uvcvideo: Add FIX_BANDWIDTH quirk to HP Webcam found on HP
-> Mini 5103 netbook
-> 
-> The camera there identifies itself as being manufactured by Cheng Uei
-> Precision Industry Co., Ltd (Foxlink), and product is titled as "HP
-> Webcam [2 MP Fixed]".
+The third solution was not discussed much after it was pointed out as 
+being not very different from those two in terms of the above mentioned 
+rationale.
 
-The device isn't listed in the supported devices list. Could you please send 
-me its lsusb -v output ?
+All three solutions was different from now suggested method of unmapping 
+some low memory and then calling dma_declare_coherent_memory() which 
+ioremaps it in that those tried to reserve some boot time allocated 
+coherent memory, already mapped correctly, without (io)remapping it.
 
-> I was trying to get 2 USB video capture devices to work simultaneously,
-> and noticed that the above mentioned webcam always requires packet size
-> = 3072 bytes per micro frame (~= 23.4 MB/s isoc bandwidth), which is far
-> more than enough to get standard NTSC 640x480x2x30 = ~17.6 MB/s isoc
-> bandwidth.
-> 
-> As there are alt interfaces with smaller MxPS
-> 
->     T:  Bus=01 Lev=01 Prnt=01 Port=03 Cnt=01 Dev#=  2 Spd=480  MxCh= 0
->     D:  Ver= 2.00 Cls=ef(misc ) Sub=02 Prot=01 MxPS=64 #Cfgs=  1
->     P:  Vendor=05c8 ProdID=0403 Rev= 1.06
->     S:  Manufacturer=Foxlink
->     S:  Product=HP Webcam [2 MP Fixed]
->     S:  SerialNumber=200909240102
->     C:* #Ifs= 2 Cfg#= 1 Atr=80 MxPwr=500mA
->     A:  FirstIf#= 0 IfCount= 2 Cls=0e(video) Sub=03 Prot=00
->     I:* If#= 0 Alt= 0 #EPs= 1 Cls=0e(video) Sub=01 Prot=00 Driver=uvcvideo
->     E:  Ad=83(I) Atr=03(Int.) MxPS=  16 Ivl=4ms
->     I:* If#= 1 Alt= 0 #EPs= 0 Cls=0e(video) Sub=02 Prot=00 Driver=uvcvideo
->     I:  If#= 1 Alt= 1 #EPs= 1 Cls=0e(video) Sub=02 Prot=00 Driver=uvcvideo
->     E:  Ad=81(I) Atr=05(Isoc) MxPS= 128 Ivl=125us
->     I:  If#= 1 Alt= 2 #EPs= 1 Cls=0e(video) Sub=02 Prot=00 Driver=uvcvideo
->     E:  Ad=81(I) Atr=05(Isoc) MxPS= 512 Ivl=125us
->     I:  If#= 1 Alt= 3 #EPs= 1 Cls=0e(video) Sub=02 Prot=00 Driver=uvcvideo
->     E:  Ad=81(I) Atr=05(Isoc) MxPS=1024 Ivl=125us
->     I:  If#= 1 Alt= 4 #EPs= 1 Cls=0e(video) Sub=02 Prot=00 Driver=uvcvideo
->     E:  Ad=81(I) Atr=05(Isoc) MxPS=1536 Ivl=125us
->     I:  If#= 1 Alt= 5 #EPs= 1 Cls=0e(video) Sub=02 Prot=00 Driver=uvcvideo
->     E:  Ad=81(I) Atr=05(Isoc) MxPS=2048 Ivl=125us
->     I:  If#= 1 Alt= 6 #EPs= 1 Cls=0e(video) Sub=02 Prot=00 Driver=uvcvideo
->     E:  Ad=81(I) Atr=05(Isoc) MxPS=2688 Ivl=125us
->     I:  If#= 1 Alt= 7 #EPs= 1 Cls=0e(video) Sub=02 Prot=00 Driver=uvcvideo
->     E:  Ad=81(I) Atr=05(Isoc) MxPS=3072 Ivl=125us
-> 
-> UVC_QUIRK_FIX_BANDWIDTH helps here and NTSC video can be served with
-> MxPS=2688 i.e. 20.5 MB/s isoc bandwidth.
-> 
-> In terms of microframe time allocation, before the quirk NTSC video
-> required 60 usecs / microframe and 53 usecs / microframe after.
-> 
-> 
-> P.S.
-> 
-> Now with tweaked ehci-hcd to allow up to 90% isoc bandwidth (cc62a7eb
-> "USB: EHCI: Allow users to override 80% max periodic bandwidth") I can
-> capture two video sources -- PAL 720x576 YUV422 @25fps + NTSC 640x480
-> YUV422 @30fps simultaneously.  Hooray!
-> 
-> Signed-off-by: Kirill Smelkov <kirr@mns.spb.ru>
+If there are still problems with the CMA on one hand, and a need for a 
+hack to handle "crazy devices" is still seen, regardless of CMA 
+available and working or not, on the other, maybe we should get back to 
+the idea of adopting coherent API to new requirements, review those 
+three proposals again and select one which seems most acceptable to 
+everyone? Being a submitter of the third, I'll be happy to refresh it if 
+selected.
 
-Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-
-> ---
->  drivers/media/video/uvc/uvc_driver.c |    9 +++++++++
->  1 files changed, 9 insertions(+), 0 deletions(-)
-> 
-> diff --git a/drivers/media/video/uvc/uvc_driver.c
-> b/drivers/media/video/uvc/uvc_driver.c index b6eae48..f633700 100644
-> --- a/drivers/media/video/uvc/uvc_driver.c
-> +++ b/drivers/media/video/uvc/uvc_driver.c
-> @@ -2130,6 +2130,15 @@ static struct usb_device_id uvc_ids[] = {
->  	  .bInterfaceProtocol	= 0,
->  	  .driver_info 		= UVC_QUIRK_PROBE_MINMAX
-> 
->  				| UVC_QUIRK_BUILTIN_ISIGHT },
-> 
-> +	/* Foxlink ("HP Webcam" on HP Mini 5103) */
-> +	{ .match_flags		= USB_DEVICE_ID_MATCH_DEVICE
-> +				| USB_DEVICE_ID_MATCH_INT_INFO,
-> +	  .idVendor		= 0x05c8,
-> +	  .idProduct		= 0x0403,
-> +	  .bInterfaceClass	= USB_CLASS_VIDEO,
-> +	  .bInterfaceSubClass	= 1,
-> +	  .bInterfaceProtocol	= 0,
-> +	  .driver_info		= UVC_QUIRK_FIX_BANDWIDTH },
->  	/* Genesys Logic USB 2.0 PC Camera */
->  	{ .match_flags		= USB_DEVICE_ID_MATCH_DEVICE
-> 
->  				| USB_DEVICE_ID_MATCH_INT_INFO,
-
--- 
-Regards,
-
-Laurent Pinchart
+Thanks,
+Janusz
