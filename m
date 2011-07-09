@@ -1,57 +1,63 @@
-Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:40688 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753031Ab1GZOgj (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 26 Jul 2011 10:36:39 -0400
-Message-ID: <4E2ED15B.6070601@redhat.com>
-Date: Tue, 26 Jul 2011 16:38:19 +0200
-From: Hans de Goede <hdegoede@redhat.com>
+Return-path: <mchehab@localhost>
+Received: from swampdragon.chaosbits.net ([90.184.90.115]:13415 "EHLO
+	swampdragon.chaosbits.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754847Ab1GIVbx (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sat, 9 Jul 2011 17:31:53 -0400
+Date: Sat, 9 Jul 2011 23:22:17 +0200 (CEST)
+From: Jesper Juhl <jj@chaosbits.net>
+To: linux-kernel@vger.kernel.org
+cc: trivial@kernel.org, Mauro Carvalho Chehab <mchehab@infradead.org>,
+	linux-media@vger.kernel.org, Andy Lowe <source@mvista.com>
+Subject: [PATCH 6/7] drivers/media: static should be at beginning of
+ declaration
+In-Reply-To: <alpine.LNX.2.00.1107092304160.25516@swampdragon.chaosbits.net>
+Message-ID: <alpine.LNX.2.00.1107092320450.25516@swampdragon.chaosbits.net>
+References: <alpine.LNX.2.00.1107092304160.25516@swampdragon.chaosbits.net>
 MIME-Version: 1.0
-To: Hans Verkuil <hverkuil@xs4all.nl>
-CC: Hans Verkuil <hansverk@cisco.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: Some comments on the new autocluster patches
-References: <4E0DE283.2030107@redhat.com> <201107261126.22285.hverkuil@xs4all.nl> <4E2EC67E.6010300@redhat.com> <201107261619.47827.hverkuil@xs4all.nl>
-In-Reply-To: <201107261619.47827.hverkuil@xs4all.nl>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-Sender: linux-media-owner@vger.kernel.org
+Content-Type: MULTIPART/MIXED; BOUNDARY="8323328-655509267-1310246537=:25516"
 List-ID: <linux-media.vger.kernel.org>
+Sender: <mchehab@infradead.org>
 
-Hi,
+  This message is in MIME format.  The first part should be readable text,
+  while the remaining parts are likely unreadable without MIME-aware tools.
 
-On 07/26/2011 04:19 PM, Hans Verkuil wrote:
-> On Tuesday, July 26, 2011 15:51:58 Hans de Goede wrote:
->
+--8323328-655509267-1310246537=:25516
+Content-Type: TEXT/PLAIN; charset=ISO-8859-7
+Content-Transfer-Encoding: 8BIT
 
-<snip>
+Make sure that the 'static' keywork is at the beginning of declaration
+for drivers/media/video/omap/omap_vout.c
 
->>> An open question is whether writing to an inactive and volatile control should return
->>> an error or not.
->>
->> I would prefer an error return.
->
-> I am worried about backwards compatibility, though. Right now inactive controls
-> can be written safely. Suddenly you add the volatile flag and doing the same thing
-> causes an error.
->
-> Also, a program that saves control values will have to skip any control that:
->
-> 1) Is read or write only
-> 2) Is inactive and volatile
->
-> The first is obvious, but the second not so much.
->
-> Another reason for not returning an error is that it makes v4l2-ctrls.c more complex: if
-> autogain is on and I call VIDIOC_S_EXT_CTRLS to set autogain to off and gain to a new
-> manual value, then it is quite difficult to detect that in this case setting gain is OK
-> (since autogain is turned off at the same time).
->
-> The more I think about it, the more I think this should just be allowed. The value
-> disappears into a black hole, but at least it won't break any apps.
+This gets rid of warnings like
+  warning: ¡static¢ is not at beginning of declaration
+when building with -Wold-style-declaration (and/or -Wextra which also
+enables it).
 
-Ok disappear into a black hole it is :)
+Signed-off-by: Jesper Juhl <jj@chaosbits.net>
+---
+ drivers/media/video/omap/omap_vout.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
 
-Regards,
+diff --git a/drivers/media/video/omap/omap_vout.c b/drivers/media/video/omap/omap_vout.c
+index 4d07c58..a647894 100644
+--- a/drivers/media/video/omap/omap_vout.c
++++ b/drivers/media/video/omap/omap_vout.c
+@@ -129,7 +129,7 @@ module_param(debug, bool, S_IRUGO);
+ MODULE_PARM_DESC(debug, "Debug level (0-1)");
+ 
+ /* list of image formats supported by OMAP2 video pipelines */
+-const static struct v4l2_fmtdesc omap_formats[] = {
++static const struct v4l2_fmtdesc omap_formats[] = {
+ 	{
+ 		/* Note:  V4L2 defines RGB565 as:
+ 		 *
+-- 
+1.7.6
 
-Hans
+
+-- 
+Jesper Juhl <jj@chaosbits.net>       http://www.chaosbits.net/
+Don't top-post http://www.catb.org/jargon/html/T/top-post.html
+Plain text mails only, please.
+
+--8323328-655509267-1310246537=:25516--
