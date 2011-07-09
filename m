@@ -1,45 +1,66 @@
-Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp9.mail.ru ([94.100.176.54]:50745 "EHLO smtp9.mail.ru"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752089Ab1GSGgs (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 19 Jul 2011 02:36:48 -0400
-Message-ID: <4E2524DF.7070502@list.ru>
-Date: Tue, 19 Jul 2011 10:31:59 +0400
-From: Stas Sergeev <stsp@list.ru>
+Return-path: <mchehab@localhost>
+Received: from outbound.icp-qv1-irony-out1.iinet.net.au ([203.59.1.106]:41744
+	"EHLO outbound.icp-qv1-irony-out1.iinet.net.au" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752216Ab1GIRVp (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sat, 9 Jul 2011 13:21:45 -0400
+Message-ID: <4E188BFB.2080406@iinet.net.au>
+Date: Sun, 10 Jul 2011 01:12:27 +0800
+From: Mike <michael.stock@iinet.net.au>
 MIME-Version: 1.0
-To: Lennart Poettering <lpoetter@redhat.com>
-CC: Mauro Carvalho Chehab <mchehab@infradead.org>,
-	linux-media@vger.kernel.org,
-	"Nickolay V. Shmyrev" <nshmyrev@yandex.ru>,
-	Devin Heitmueller <dheitmueller@kernellabs.com>,
-	ALSA devel <alsa-devel@alsa-project.org>,
-	lennart@poettering.net
-Subject: Re: [patch][saa7134] do not change mute state for capturing audio
-References: <4E19D2F7.6060803@list.ru> <4E1E05AC.2070002@infradead.org> <4E1E0A1D.6000604@list.ru> <4E1E1571.6010400@infradead.org> <4E1E8108.3060305@list.ru> <4E1F9A25.1020208@infradead.org> <4E22AF12.4020600@list.ru> <4E22CCC0.8030803@infradead.org> <4E24BEB8.4060501@redhat.com>
-In-Reply-To: <4E24BEB8.4060501@redhat.com>
-Content-Type: text/plain; charset=UTF-8; format=flowed
+To: Devin Heitmueller <dheitmueller@kernellabs.com>
+CC: linux-media@vger.kernel.org
+Subject: Re: Bug in HVR1300. Found part of a patch, if reverted
+References: <4DCBEB52.5060808@iinet.net.au> <CAGoCfixa7tT1rensOa9GW1NRHrkxgSmwvSrAqP=THJpm2rZJzQ@mail.gmail.com>
+In-Reply-To: <CAGoCfixa7tT1rensOa9GW1NRHrkxgSmwvSrAqP=THJpm2rZJzQ@mail.gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
-Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
+Sender: <mchehab@infradead.org>
 
-19.07.2011 03:16, Lennart Poettering wrote:
-> ALSA doesn't really have a enumeration API which would allow us to get 
-> device properties without opening and configuring a device. In fact, 
-> we can't even figure out whether a device may be opened in duplex or 
-> simplex without opening it.
+On Thu, May 12, 2011 at 10:14 AM, Mike <michael.stock@iinet.net.au> wrote:
+>> Hi there
+>>
+>> in the latest kernel (and all those since when the patch was written) this
+>> patch is still required for the HVR-1300 to work, any chance of it getting
+>> incorporated?
+>>
+>> thanks
+>> Mike
+> Hello Mike,
 >
-> And that's why we have to probe audio devices, even if it sucks.
-Hi Lennart, thanks for your opinion.
+> Please try out the following patch which has been submitted upstream,
+> which should fix the actual underlying problem (the patch that has
+> been circulating in Launchpad 439163 doesn't fix the *actual* issue).
+>
+> https://launchpadlibrarian.net/74557311/frontend_dvb_init.patch
+>
+> The above patch has been submitted for upstream inclusion, so feedback
+> from users would be useful.
+>
+> Thanks,
+>
+> Devin
+>
+Hi Devin,
 
-I am puzzled with the "even if it sucks" part, what
-does it mean? I see 2 possible interpretations of it:
+thankyou very much for investigating and patching.
 
-1. "Even if it sucks with some drivers that have bugs,
-like the saa7134_alsa one". If that interpretation is
-what you implied, then could you please also evaluate
-the fix like this one:
-  http://www.spinics.net/lists/linux-media/msg35237.html
+unfortunately for me, my system (ubuntu 10.04 with 2.6.32-32) will not 
+boot to try it...
 
-2. "Even if it sucks in general". In this case, what solution
-would you propose to get the problem of the white
-noise fixed?
+After downloading source via "git clone 
+git://linuxtv.org/media_build.git" and successfully patching, compiling 
+and installing the modules using a text terminal, i reboot and before i 
+get to X my system hangs about 30 seconds into the boot process right 
+after a bunch of messages warning me about using backported media build 
+on an old kernel ("don't use it for production" etc etc).
+
+i would be more than happy to test your patch but i'm sorry i'm not sure 
+what to do about that booting problem. i think i will need to try to 
+find a way to re-install the standard ubuntu media modules into my 
+2.6.32-32 module directories (whilst running a different kernel) to even 
+allow my system to boot on 2.6.32-32 !!
+
+Mike
+
