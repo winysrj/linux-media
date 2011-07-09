@@ -1,68 +1,47 @@
-Return-path: <mchehab@pedra>
-Received: from smtp-68.nebula.fi ([83.145.220.68]:51548 "EHLO
-	smtp-68.nebula.fi" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753909Ab1GEQQp (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 5 Jul 2011 12:16:45 -0400
-Date: Tue, 5 Jul 2011 19:16:40 +0300
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: Jonathan Cameron <jic23@cam.ac.uk>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: omap3isp: known causes of "CCDC won't become idle!
-Message-ID: <20110705161640.GR12671@valkosipuli.localdomain>
-References: <4E12F3DE.5030109@cam.ac.uk>
- <4E131649.5030906@cam.ac.uk>
- <20110705143807.GQ12671@valkosipuli.localdomain>
- <201107051702.53128.laurent.pinchart@ideasonboard.com>
+Return-path: <mchehab@localhost>
+Received: from mail.kapsi.fi ([217.30.184.167]:53961 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751471Ab1GICsa (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 8 Jul 2011 22:48:30 -0400
+Message-ID: <4E17C17A.1030205@iki.fi>
+Date: Sat, 09 Jul 2011 05:48:26 +0300
+From: Antti Palosaari <crope@iki.fi>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <201107051702.53128.laurent.pinchart@ideasonboard.com>
+To: Peter Chen <cwz0522@gmail.com>
+CC: linux-media@vger.kernel.org
+Subject: Re: where to find the old hg repo. ?
+References: <CAMwFWNYZWLRS-T_xMcJf1-RX+E2hNZ4FmGSk5Q9zpkKxarYP9Q@mail.gmail.com>
+In-Reply-To: <CAMwFWNYZWLRS-T_xMcJf1-RX+E2hNZ4FmGSk5Q9zpkKxarYP9Q@mail.gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
-Sender: <mchehab@pedra>
+Sender: <mchehab@infradead.org>
 
-On Tue, Jul 05, 2011 at 05:02:52PM +0200, Laurent Pinchart wrote:
-> On Tuesday 05 July 2011 16:38:07 Sakari Ailus wrote:
-> > On Tue, Jul 05, 2011 at 02:48:57PM +0100, Jonathan Cameron wrote:
-> > > On 07/05/11 13:19, Sakari Ailus wrote:
-> > > > On Tue, Jul 05, 2011 at 12:22:06PM +0100, Jonathan Cameron wrote:
-> > > >> Hi Laurent,
-> > > >> 
-> > > >> I'm just trying to get an mt9v034 sensor working on a beagle xm.
-> > > >> Everything more or less works, except that after a random number
-> > > >> of frames of capture, I tend to get won't become idle messages
-> > > >> and the vd0 and vd1 interrupts tend to turn up at same time.
-> > > >> 
-> > > >> I was just wondering if there are any known issues with the ccdc
-> > > >> driver / silicon that might explain this?
-> > > >> 
-> > > >> I also note that it appears to be impossible to disable
-> > > >> HS_VS_IRQarch/arm/mach-s3c2410/Kconfig:# cpu frequency scaling
-> > > >> support
-> > > >> 
-> > > >> despite the datasheet claiming this can be done.  Is this a known
-> > > >> issue?
-> > > > 
-> > > > The same interrupt may be used to produce an interrupt per horizontal
-> > > > sync but the driver doesn't use that. I remember of a case where the
-> > > > two sync signals had enough crosstalk to cause vertical sync interrupt
-> > > > per every horizontal sync. (It's been discussed on this list.) This
-> > > > might not be the case here, though: you should be flooded with HS_VS
-> > > > interrupts.
-> > > 
-> > > As far as I can tell, the driver doesn't use either interrupt (except to
-> > > pass it up as an event). Hence I was trying to mask it purely to cut
-> > > down on the interrupt load.
-> > 
-> > It does. This is the only way to detect the CCDC has finished processing a
-> > frame.
-> 
-> We actually use the VD0 and VD1 interrupts for that, not the HS_VS interrupt.
+On 07/09/2011 05:14 AM, Peter Chen wrote:
+> Dear all,
+> I need the old revision of the mxl500x-af9015 to driver the USB device
+> 07ca:815c from AVerMedia.
+> Original path is:  http://linuxtv.org/hg/~anttip/af9015-mxl500x
+>
+> the wanted revision is af9015-mxl500x-1487a7dcf22a or other
+> newer/latest revision.
+>
+> One of my friend in his company has successfully use the driver to watch TV,
+> but he cannot send the source to me according company policy.
+>
+> Is it not integrated into mainline kernel?
 
-Right; I confused the two for a moment.
+I removed it since it have been inside main Kernel ages.
 
-Cheers,
+Are you sure product ID is 815c? Current driver does not have this ID 
+and I am almost 100% sure it was never supported. You should add new 
+device entry for that device to af9015.c in order to get it working. 
+Please send patch.
+
+
+regards
+Antti
+
 
 -- 
-Sakari Ailus
-sakari.ailus@iki.fi
+http://palosaari.fi/
