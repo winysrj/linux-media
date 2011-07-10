@@ -1,74 +1,59 @@
-Return-path: <linux-media-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.126.171]:65480 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932300Ab1GNR4M (ORCPT
+Return-path: <mchehab@localhost>
+Received: from oproxy4-pub.bluehost.com ([69.89.21.11]:39799 "HELO
+	oproxy4-pub.bluehost.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1755984Ab1GJUAn (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 14 Jul 2011 13:56:12 -0400
-Date: Thu, 14 Jul 2011 19:56:10 +0200 (CEST)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Sakari Ailus <sakari.ailus@iki.fi>
-cc: linux-media@vger.kernel.org
-Subject: Re: [RFC] Binning on sensors
-In-Reply-To: <20110714113201.GD27451@valkosipuli.localdomain>
-Message-ID: <Pine.LNX.4.64.1107141955280.10688@axis700.grange>
-References: <20110714113201.GD27451@valkosipuli.localdomain>
-MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Sender: linux-media-owner@vger.kernel.org
+	Sun, 10 Jul 2011 16:00:43 -0400
+Date: Sun, 10 Jul 2011 12:58:32 -0700
+From: Randy Dunlap <rdunlap@xenotime.net>
+To: lkml <linux-kernel@vger.kernel.org>
+Cc: linux-media@vger.kernel.org, mchehab@infradead.org
+Subject: [PATCH 7/9] media/radio: fix trust CONFIG IO PORT
+Message-Id: <20110710125832.fdcef732.rdunlap@xenotime.net>
+In-Reply-To: <20110710125109.c72f9c2d.rdunlap@xenotime.net>
+References: <20110710125109.c72f9c2d.rdunlap@xenotime.net>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
+Sender: <mchehab@infradead.org>
 
-On Thu, 14 Jul 2011, Sakari Ailus wrote:
+From: Randy Dunlap <rdunlap@xenotime.net>
 
-> Hi all,
-> 
-> I was thinking about the sensor binning controls.
+Modify radio-trust to use HEX_STRING(CONFIG_RADIO_TRUST_PORT)
+so that the correct IO port value is used.
 
-What wrong with just doing S_FMT on the subdev pad? Binning does in fact 
-implement scaling.
+Fixes the IO port value that is used since this is hex:
+CONFIG_RADIO_TRUST_PORT=350
+but it was being interpreted as decimal instead of hex.
 
-Thanks
-Guennadi
-
-> 
-> I have a sensor which can do binning both horizontally and vertically, but
-> the two are connected. So, the sensor supports e.g. 3x1 and 1x3 binning but
-> not 3x3.
-> 
-> However, most (I assume) sensors do not have dependencies between the two.
-> The interface which would be provided to the user still should be able to
-> tell what is supported, whether the two are independent or not.
-> 
-> I have a few ideas how to achieve this.
-> 
-> 1. Implement dependent binning as a menu control. The user will have an easy
-> way to enumerate binning and select it. If horizontal and vertical binning
-> factors are independent, two integer controls are provided. The downside is
-> that there are two ways to do this, and integer to string and back
-> conversions involved.
-> 
-> 2. Menu control is used all the time. The benefit is that the user gets a
-> single interface, but the downside is that if there are many possible
-> binning factors both horizontally and vertically, the size of the menu grows
-> large. Typically binning ends at 2 or 4, though.
-> 
-> 3. Implement two integer controls. The user is responsible for selecting a
-> valid configuration. A way to enumerate possible values would have to be
-> implemented. One option would be an ioctl but I don't like the idea.
-> 
-> Comments are welcome as always.
-> 
-> Cheers,
-> 
-> -- 
-> Sakari Ailus
-> sakari.ailus@iki.fi
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
-
+Signed-off-by: Randy Dunlap <rdunlap@xenotime.net>
 ---
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
-http://www.open-technology.de/
+ drivers/media/radio/radio-trust.c |    7 +++++--
+ 1 file changed, 5 insertions(+), 2 deletions(-)
+
+--- linux-next-20110707.orig/drivers/media/radio/radio-trust.c
++++ linux-next-20110707/drivers/media/radio/radio-trust.c
+@@ -19,6 +19,7 @@
+ #include <linux/module.h>
+ #include <linux/init.h>
+ #include <linux/ioport.h>
++#include <linux/stringify.h>
+ #include <linux/videodev2.h>
+ #include <linux/io.h>
+ #include <media/v4l2-device.h>
+@@ -32,10 +33,12 @@ MODULE_VERSION("0.0.3");
+ /* acceptable ports: 0x350 (JP3 shorted), 0x358 (JP3 open) */
+ 
+ #ifndef CONFIG_RADIO_TRUST_PORT
+-#define CONFIG_RADIO_TRUST_PORT -1
++#define __RADIO_TRUST_PORT -1
++#else
++#define __RADIO_TRUST_PORT HEX_STRING(CONFIG_RADIO_TRUST_PORT)
+ #endif
+ 
+-static int io = CONFIG_RADIO_TRUST_PORT;
++static int io = __RADIO_TRUST_PORT;
+ static int radio_nr = -1;
+ 
+ module_param(io, int, 0);
