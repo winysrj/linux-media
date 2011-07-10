@@ -1,247 +1,168 @@
-Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout2.w1.samsung.com ([210.118.77.12]:23243 "EHLO
-	mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751120Ab1GTI53 (ORCPT
+Return-path: <mchehab@localhost>
+Received: from mail-wy0-f174.google.com ([74.125.82.174]:37109 "EHLO
+	mail-wy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756678Ab1GJWW1 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 20 Jul 2011 04:57:29 -0400
-Date: Wed, 20 Jul 2011 10:57:17 +0200
-From: Marek Szyprowski <m.szyprowski@samsung.com>
-Subject: [PATCH 5/8] mm: MIGRATE_CMA isolation functions added
-In-reply-to: <1311152240-16384-1-git-send-email-m.szyprowski@samsung.com>
-To: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-	linux-media@vger.kernel.org, linux-mm@kvack.org,
-	linaro-mm-sig@lists.linaro.org
-Cc: Michal Nazarewicz <mina86@mina86.com>,
-	Marek Szyprowski <m.szyprowski@samsung.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	Andrew Morton <akpm@linux-foundation.org>,
-	KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>,
-	Ankita Garg <ankita@in.ibm.com>,
-	Daniel Walker <dwalker@codeaurora.org>,
-	Mel Gorman <mel@csn.ul.ie>, Arnd Bergmann <arnd@arndb.de>,
-	Jesse Barker <jesse.barker@linaro.org>,
-	Jonathan Corbet <corbet@lwn.net>,
-	Chunsang Jeong <chunsang.jeong@linaro.org>,
-	Russell King <linux@arm.linux.org.uk>
-Message-id: <1311152240-16384-6-git-send-email-m.szyprowski@samsung.com>
-MIME-version: 1.0
-Content-type: TEXT/PLAIN
-Content-transfer-encoding: 7BIT
-References: <1311152240-16384-1-git-send-email-m.szyprowski@samsung.com>
-Sender: linux-media-owner@vger.kernel.org
+	Sun, 10 Jul 2011 18:22:27 -0400
+Received: by wyg8 with SMTP id 8so2239533wyg.19
+        for <linux-media@vger.kernel.org>; Sun, 10 Jul 2011 15:22:26 -0700 (PDT)
+Subject: [PATCH] STV0288 frontend provide wider carrier search and DVB-S2
+ drop out.
+From: Malcolm Priestley <tvboxspy@gmail.com>
+To: 'Linux Media Mailing List' <linux-media@vger.kernel.org>
+Cc: 'Oliver Endriss' <o.endriss@gmx.de>,
+	=?ISO-8859-1?Q?S=E9bastien?= "RAILLARD (COEXSI)" <sr@coexsi.fr>
+In-Reply-To: <1309984524.6358.18.camel@localhost>
+References: <00a301cc365e$b6d415c0$247c4140$@coexsi.fr>
+	 <201107040043.00393@orion.escape-edv.de>
+	 <007201cc3bd0$a1b4aa70$e51dff50$@coexsi.fr>
+	 <1309984524.6358.18.camel@localhost>
+Content-Type: text/plain; charset="UTF-8"
+Date: Sun, 10 Jul 2011 23:22:17 +0100
+Message-ID: <1310336537.2472.4.camel@localhost>
+Mime-Version: 1.0
+Content-Transfer-Encoding: 8bit
 List-ID: <linux-media.vger.kernel.org>
+Sender: <mchehab@infradead.org>
 
-From: Michal Nazarewicz <m.nazarewicz@samsung.com>
+On Wed, 2011-07-06 at 21:35 +0100, Malcolm Priestley wrote:
+> On Wed, 2011-07-06 at 13:34 +0200, Sébastien RAILLARD (COEXSI) wrote:
+> > 
+> > > -----Original Message-----
+> > > From: Oliver Endriss [mailto:o.endriss@gmx.de]
+> > > Sent: lundi 4 juillet 2011 00:43
+> > > To: Linux Media Mailing List
+> > > Cc: Sébastien RAILLARD (COEXSI); Malcolm Priestley
+> > > Subject: Re: [DVB] TT S-1500b tuning issue
+> > > 
+> > > On Wednesday 29 June 2011 15:16:10 Sébastien RAILLARD wrote:
+> > > > Dear all,
+> > > >
+> > > > We have found what seems to be a tuning issue in the driver for the
+> > > > ALPS BSBE1-D01A used in the new TT-S-1500b card from Technotrend.
+> > > > On some transponders, like ASTRA 19.2E 11817-V-27500, the card can
+> > > > work very well (no lock issues) for hours.
+> > > >
+> > > > On some other transponders, like ASTRA 19.2E 11567-V-22000, the card
+> > > > nearly never manage to get the lock: it's looking like the signal
+> > > > isn't good enough.
+> > > 
+> > > Afaics the problem is caused by the tuning loop
+> > >     for (tm = -6; tm < 7;)
+> > > in stv0288_set_frontend().
+> > > 
+> > > I doubt that this code works reliably.
+> > > Apparently it never obtains a lock within the given delay (30us).
+> It's actually quite slow caused by any delay in the I2C bus. I doubt
+> given the age many controllers run at the 400kHz spec, if barely 100kHz.
+> 
+> > > 
+> > > Could you please try the attached patch?
+> > > It disables the loop and tries to tune to the center frequency.
+> > > 
+> > 
+> > Ok, I've tested this patch with ASTRA 19.2 #24 transponder that wasn't
+> > always working: it seems to work.
+> > I think it would be great to test it for few days more to be sure.
+> 
+> Unfortunately, this patch does not work well at all.
+> 
+> All that is happening is that the carrier offset is getting forced to 0,
+> after it has been updated by the lock control register losing a 'good'
+> lock.
+> 
+> The value is typically around ~f800+.
+> 
+> Perhaps the loop should be knocked down slightly to -9. The loop was
+> probably intended for 22000 symbol rate.
 
-This commit changes various functions that change pages and
-pageblocks migrate type between MIGRATE_ISOLATE and
-MIGRATE_MOVABLE in such a way as to allow to work with
-MIGRATE_CMA migrate type.
+The following patch provides wider carrier search.
 
-Signed-off-by: Michal Nazarewicz <m.nazarewicz@samsung.com>
-Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
-Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
-CC: Michal Nazarewicz <mina86@mina86.com>
-Acked-by: Arnd Bergmann <arnd@arndb.de>
+As with existing code search starts at MSB aligned. The boundary
+is widened to start at -9.  In order to save time, if no carrier is
+detected at the start it advances to the next alignment until carrier
+is found.
+
+The stv0288 will detect a DVB-S2 carrier on all steps , a
+time out of 11 steps is introduced to drop out of the loop.
+
+In stv0288_set_symbol carrier and timing loops are restored to
+default values (inittab) before setting the symbol rate on each tune. A
+slight drift was noticed with full scan in the higher IF frequencies of
+each band.
+
+Signed-off-by: Malcolm Priestley <tvboxspy@gmail.com>
 ---
- include/linux/page-isolation.h |   40 +++++++++++++++++++++++++++-------------
- mm/page_alloc.c                |   19 ++++++++++++-------
- mm/page_isolation.c            |   15 ++++++++-------
- 3 files changed, 47 insertions(+), 27 deletions(-)
+ drivers/media/dvb/frontends/stv0288.c |   29
++++++++++++++++++++++--------
+ 1 files changed, 21 insertions(+), 8 deletions(-)
 
-diff --git a/include/linux/page-isolation.h b/include/linux/page-isolation.h
-index 856d9cf..b2a81fd 100644
---- a/include/linux/page-isolation.h
-+++ b/include/linux/page-isolation.h
-@@ -3,39 +3,53 @@
+diff --git a/drivers/media/dvb/frontends/stv0288.c
+b/drivers/media/dvb/frontends/stv0288.c
+index 8e0cfad..0aa3962 100644
+--- a/drivers/media/dvb/frontends/stv0288.c
++++ b/drivers/media/dvb/frontends/stv0288.c
+@@ -127,6 +127,11 @@ static int stv0288_set_symbolrate(struct
+dvb_frontend *fe, u32 srate)
+ 	if ((srate < 1000000) || (srate > 45000000))
+ 		return -EINVAL;
  
- /*
-  * Changes migrate type in [start_pfn, end_pfn) to be MIGRATE_ISOLATE.
-- * If specified range includes migrate types other than MOVABLE,
-+ * If specified range includes migrate types other than MOVABLE or CMA,
-  * this will fail with -EBUSY.
-  *
-  * For isolating all pages in the range finally, the caller have to
-  * free all pages in the range. test_page_isolated() can be used for
-  * test it.
-  */
--extern int
--start_isolate_page_range(unsigned long start_pfn, unsigned long end_pfn);
-+int __start_isolate_page_range(unsigned long start_pfn, unsigned long end_pfn,
-+			       unsigned migratetype);
++	stv0288_writeregI(state, 0x22, 0);
++	stv0288_writeregI(state, 0x23, 0);
++	stv0288_writeregI(state, 0x2b, 0xff);
++	stv0288_writeregI(state, 0x2c, 0xf7);
 +
-+static inline int
-+start_isolate_page_range(unsigned long start_pfn, unsigned long end_pfn)
-+{
-+	return __start_isolate_page_range(start_pfn, end_pfn, MIGRATE_MOVABLE);
-+}
-+
-+int __undo_isolate_page_range(unsigned long start_pfn, unsigned long end_pfn,
-+			      unsigned migratetype);
+ 	temp = (unsigned int)srate / 1000;
  
- /*
-  * Changes MIGRATE_ISOLATE to MIGRATE_MOVABLE.
-  * target range is [start_pfn, end_pfn)
-  */
--extern int
--undo_isolate_page_range(unsigned long start_pfn, unsigned long end_pfn);
-+static inline int
-+undo_isolate_page_range(unsigned long start_pfn, unsigned long end_pfn)
-+{
-+	return __undo_isolate_page_range(start_pfn, end_pfn, MIGRATE_MOVABLE);
-+}
+ 		temp = temp * 32768;
+@@ -461,6 +466,7 @@ static int stv0288_set_frontend(struct dvb_frontend
+*fe,
  
- /*
-- * test all pages in [start_pfn, end_pfn)are isolated or not.
-+ * Test all pages in [start_pfn, end_pfn) are isolated or not.
-  */
--extern int
--test_pages_isolated(unsigned long start_pfn, unsigned long end_pfn);
-+int test_pages_isolated(unsigned long start_pfn, unsigned long end_pfn);
+ 	char tm;
+ 	unsigned char tda[3];
++	u8 reg, time_out = 0;
  
- /*
-- * Internal funcs.Changes pageblock's migrate type.
-- * Please use make_pagetype_isolated()/make_pagetype_movable().
-+ * Internal functions. Changes pageblock's migrate type.
-  */
--extern int set_migratetype_isolate(struct page *page);
--extern void unset_migratetype_isolate(struct page *page);
-+int set_migratetype_isolate(struct page *page);
-+void __unset_migratetype_isolate(struct page *page, unsigned migratetype);
-+static inline void unset_migratetype_isolate(struct page *page)
-+{
-+	__unset_migratetype_isolate(page, MIGRATE_MOVABLE);
-+}
- extern unsigned long alloc_contig_freed_pages(unsigned long start,
- 					      unsigned long end, gfp_t flag);
- extern int alloc_contig_range(unsigned long start, unsigned long end,
--			      gfp_t flags);
-+			      gfp_t flags, unsigned migratetype);
- extern void free_contig_pages(struct page *page, int nr_pages);
+ 	dprintk("%s : FE_SET_FRONTEND\n", __func__);
  
- /*
-diff --git a/mm/page_alloc.c b/mm/page_alloc.c
-index e6c403c..2d2cf29 100644
---- a/mm/page_alloc.c
-+++ b/mm/page_alloc.c
-@@ -5634,7 +5634,7 @@ out:
- 	return ret;
- }
+@@ -488,22 +494,29 @@ static int stv0288_set_frontend(struct
+dvb_frontend *fe,
+ 	/* Carrier lock control register */
+ 	stv0288_writeregI(state, 0x15, 0xc5);
  
--void unset_migratetype_isolate(struct page *page)
-+void __unset_migratetype_isolate(struct page *page, unsigned migratetype)
- {
- 	struct zone *zone;
- 	unsigned long flags;
-@@ -5642,8 +5642,8 @@ void unset_migratetype_isolate(struct page *page)
- 	spin_lock_irqsave(&zone->lock, flags);
- 	if (get_pageblock_migratetype(page) != MIGRATE_ISOLATE)
- 		goto out;
--	set_pageblock_migratetype(page, MIGRATE_MOVABLE);
--	move_freepages_block(zone, page, MIGRATE_MOVABLE);
-+	set_pageblock_migratetype(page, migratetype);
-+	move_freepages_block(zone, page, migratetype);
- out:
- 	spin_unlock_irqrestore(&zone->lock, flags);
- }
-@@ -5748,6 +5748,10 @@ static int __alloc_contig_migrate_range(unsigned long start, unsigned long end)
-  * @start:	start PFN to allocate
-  * @end:	one-past-the-last PFN to allocate
-  * @flags:	flags passed to alloc_contig_freed_pages().
-+ * @migratetype:	migratetype of the underlaying pageblocks (either
-+ *			#MIGRATE_MOVABLE or #MIGRATE_CMA).  All pageblocks
-+ *			in range must have the same migratetype and it must
-+ *			be either of the two.
-  *
-  * The PFN range does not have to be pageblock or MAX_ORDER_NR_PAGES
-  * aligned, hovewer it's callers responsibility to guarantee that we
-@@ -5759,7 +5763,7 @@ static int __alloc_contig_migrate_range(unsigned long start, unsigned long end)
-  * need to be freed with free_contig_pages().
-  */
- int alloc_contig_range(unsigned long start, unsigned long end,
--		       gfp_t flags)
-+		       gfp_t flags, unsigned migratetype)
- {
- 	unsigned long outer_start, outer_end;
- 	int ret;
-@@ -5787,8 +5791,8 @@ int alloc_contig_range(unsigned long start, unsigned long end,
- 	 * them.
- 	 */
- 
--	ret = start_isolate_page_range(pfn_to_maxpage(start),
--				       pfn_to_maxpage_up(end));
-+	ret = __start_isolate_page_range(pfn_to_maxpage(start),
-+					 pfn_to_maxpage_up(end), migratetype);
- 	if (ret)
- 		goto done;
- 
-@@ -5826,7 +5830,8 @@ int alloc_contig_range(unsigned long start, unsigned long end,
- 
- 	ret = 0;
- done:
--	undo_isolate_page_range(pfn_to_maxpage(start), pfn_to_maxpage_up(end));
-+	__undo_isolate_page_range(pfn_to_maxpage(start), pfn_to_maxpage_up(end),
-+				  migratetype);
- 	return ret;
- }
- 
-diff --git a/mm/page_isolation.c b/mm/page_isolation.c
-index 270a026..e232b25 100644
---- a/mm/page_isolation.c
-+++ b/mm/page_isolation.c
-@@ -23,10 +23,11 @@ __first_valid_page(unsigned long pfn, unsigned long nr_pages)
- }
- 
- /*
-- * start_isolate_page_range() -- make page-allocation-type of range of pages
-+ * __start_isolate_page_range() -- make page-allocation-type of range of pages
-  * to be MIGRATE_ISOLATE.
-  * @start_pfn: The lower PFN of the range to be isolated.
-  * @end_pfn: The upper PFN of the range to be isolated.
-+ * @migratetype: migrate type to set in error recovery.
-  *
-  * Making page-allocation-type to be MIGRATE_ISOLATE means free pages in
-  * the range will never be allocated. Any free pages and pages freed in the
-@@ -35,8 +36,8 @@ __first_valid_page(unsigned long pfn, unsigned long nr_pages)
-  * start_pfn/end_pfn must be aligned to pageblock_order.
-  * Returns 0 on success and -EBUSY if any part of range cannot be isolated.
-  */
--int
--start_isolate_page_range(unsigned long start_pfn, unsigned long end_pfn)
-+int __start_isolate_page_range(unsigned long start_pfn, unsigned long end_pfn,
-+			       unsigned migratetype)
- {
- 	unsigned long pfn;
- 	unsigned long undo_pfn;
-@@ -59,7 +60,7 @@ undo:
- 	for (pfn = start_pfn;
- 	     pfn < undo_pfn;
- 	     pfn += pageblock_nr_pages)
--		unset_migratetype_isolate(pfn_to_page(pfn));
-+		__unset_migratetype_isolate(pfn_to_page(pfn), migratetype);
- 
- 	return -EBUSY;
- }
-@@ -67,8 +68,8 @@ undo:
- /*
-  * Make isolated pages available again.
-  */
--int
--undo_isolate_page_range(unsigned long start_pfn, unsigned long end_pfn)
-+int __undo_isolate_page_range(unsigned long start_pfn, unsigned long end_pfn,
-+			      unsigned migratetype)
- {
- 	unsigned long pfn;
- 	struct page *page;
-@@ -80,7 +81,7 @@ undo_isolate_page_range(unsigned long start_pfn, unsigned long end_pfn)
- 		page = __first_valid_page(pfn, pageblock_nr_pages);
- 		if (!page || get_pageblock_migratetype(page) != MIGRATE_ISOLATE)
- 			continue;
--		unset_migratetype_isolate(page);
-+		__unset_migratetype_isolate(page, migratetype);
+-	tda[0] = 0x2b; /* CFRM */
+ 	tda[2] = 0x0; /* CFRL */
+-	for (tm = -6; tm < 7;) {
++	for (tm = -9; tm < 7;) {
+ 		/* Viterbi status */
+-		if (stv0288_readreg(state, 0x24) & 0x8)
+-			break;
+-
+-		tda[2] += 40;
+-		if (tda[2] < 40)
++		reg = stv0288_readreg(state, 0x24);
++		if (reg & 0x8)
++				break;
++		if (reg & 0x80) {
++			time_out++;
++			if (time_out > 10)
++				break;
++			tda[2] += 40;
++			if (tda[2] < 40)
++				tm++;
++		} else {
+ 			tm++;
++			tda[2] = 0;
++			time_out = 0;
++		}
+ 		tda[1] = (unsigned char)tm;
+ 		stv0288_writeregI(state, 0x2b, tda[1]);
+ 		stv0288_writeregI(state, 0x2c, tda[2]);
+ 		udelay(30);
  	}
- 	return 0;
- }
+-
+ 	state->tuner_frequency = c->frequency;
+ 	state->fec_inner = FEC_AUTO;
+ 	state->symbol_rate = c->symbol_rate;
 -- 
-1.7.1.569.g6f426
+1.7.4.1
 
