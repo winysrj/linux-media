@@ -1,62 +1,61 @@
-Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr6.xs4all.nl ([194.109.24.26]:4048 "EHLO
-	smtp-vbr6.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752417Ab1GZOjM (ORCPT
+Return-path: <mchehab@localhost>
+Received: from oproxy4-pub.bluehost.com ([69.89.21.11]:51498 "HELO
+	oproxy4-pub.bluehost.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1755747Ab1GJUAj (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 26 Jul 2011 10:39:12 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Hans de Goede <hdegoede@redhat.com>
-Subject: Re: Some comments on the new autocluster patches
-Date: Tue, 26 Jul 2011 16:39:00 +0200
-Cc: Hans Verkuil <hansverk@cisco.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-References: <4E0DE283.2030107@redhat.com> <201107261619.47827.hverkuil@xs4all.nl> <4E2ED15B.6070601@redhat.com>
-In-Reply-To: <4E2ED15B.6070601@redhat.com>
-MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
+	Sun, 10 Jul 2011 16:00:39 -0400
+Date: Sun, 10 Jul 2011 12:55:45 -0700
+From: Randy Dunlap <rdunlap@xenotime.net>
+To: lkml <linux-kernel@vger.kernel.org>
+Cc: linux-media@vger.kernel.org, mchehab@infradead.org
+Subject: [PATCH 4/9] media/radio: fix gemtek CONFIG IO PORT
+Message-Id: <20110710125545.8f010dd7.rdunlap@xenotime.net>
+In-Reply-To: <20110710125109.c72f9c2d.rdunlap@xenotime.net>
+References: <20110710125109.c72f9c2d.rdunlap@xenotime.net>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
-Message-Id: <201107261639.00101.hverkuil@xs4all.nl>
-Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
+Sender: <mchehab@infradead.org>
 
-On Tuesday, July 26, 2011 16:38:19 Hans de Goede wrote:
-> Hi,
-> 
-> On 07/26/2011 04:19 PM, Hans Verkuil wrote:
-> > On Tuesday, July 26, 2011 15:51:58 Hans de Goede wrote:
-> >
-> 
-> <snip>
-> 
-> >>> An open question is whether writing to an inactive and volatile control should return
-> >>> an error or not.
-> >>
-> >> I would prefer an error return.
-> >
-> > I am worried about backwards compatibility, though. Right now inactive controls
-> > can be written safely. Suddenly you add the volatile flag and doing the same thing
-> > causes an error.
-> >
-> > Also, a program that saves control values will have to skip any control that:
-> >
-> > 1) Is read or write only
-> > 2) Is inactive and volatile
-> >
-> > The first is obvious, but the second not so much.
-> >
-> > Another reason for not returning an error is that it makes v4l2-ctrls.c more complex: if
-> > autogain is on and I call VIDIOC_S_EXT_CTRLS to set autogain to off and gain to a new
-> > manual value, then it is quite difficult to detect that in this case setting gain is OK
-> > (since autogain is turned off at the same time).
-> >
-> > The more I think about it, the more I think this should just be allowed. The value
-> > disappears into a black hole, but at least it won't break any apps.
-> 
-> Ok disappear into a black hole it is :)
+From: Randy Dunlap <rdunlap@xenotime.net>
 
-Good. Then I'll try to work on this this week.
+Modify radio-gemtek to use HEX_STRING(CONFIG_RADIO_GEMTEK_PORT)
+so that the correct IO port value is used.
 
-Regards,
+Fixes this error message when CONFIG_RADIO_GEMTEK_PORT=34c:
+drivers/media/radio/radio-gemtek.c:49:18: error: invalid suffix "c" on integer constant
 
-	Hans
+Signed-off-by: Randy Dunlap <rdunlap@xenotime.net>
+---
+ drivers/media/radio/radio-gemtek.c |    7 +++++--
+ 1 file changed, 5 insertions(+), 2 deletions(-)
+
+--- linux-next-20110707.orig/drivers/media/radio/radio-gemtek.c
++++ linux-next-20110707/drivers/media/radio/radio-gemtek.c
+@@ -20,6 +20,7 @@
+ #include <linux/init.h>		/* Initdata			*/
+ #include <linux/ioport.h>	/* request_region		*/
+ #include <linux/delay.h>	/* udelay			*/
++#include <linux/stringify.h>
+ #include <linux/videodev2.h>	/* kernel radio structs		*/
+ #include <linux/mutex.h>
+ #include <linux/io.h>		/* outb, outb_p			*/
+@@ -40,13 +41,15 @@ MODULE_VERSION("0.0.4");
+  */
+ 
+ #ifndef CONFIG_RADIO_GEMTEK_PORT
+-#define CONFIG_RADIO_GEMTEK_PORT -1
++#define __RADIO_GEMTEK_PORT -1
++#else
++#define __RADIO_GEMTEK_PORT HEX_STRING(CONFIG_RADIO_GEMTEK_PORT)
+ #endif
+ #ifndef CONFIG_RADIO_GEMTEK_PROBE
+ #define CONFIG_RADIO_GEMTEK_PROBE 1
+ #endif
+ 
+-static int io		= CONFIG_RADIO_GEMTEK_PORT;
++static int io		= __RADIO_GEMTEK_PORT;
+ static int probe	= CONFIG_RADIO_GEMTEK_PROBE;
+ static int hardmute;
+ static int shutdown	= 1;
