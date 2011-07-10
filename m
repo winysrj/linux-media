@@ -1,103 +1,105 @@
-Return-path: <mchehab@pedra>
-Received: from smtp.nokia.com ([147.243.128.24]:59368 "EHLO mgw-da01.nokia.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755119Ab1GBSDr (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 2 Jul 2011 14:03:47 -0400
-Message-ID: <4E0F5D79.4070308@iki.fi>
-Date: Sat, 02 Jul 2011 21:03:37 +0300
-From: Sakari Ailus <sakari.ailus@iki.fi>
-MIME-Version: 1.0
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-CC: Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org,
-	laurent.pinchart@ideasonboard.com
-Subject: Re: [GIT PULL FOR 3.1] Bitmask controls, flash API and adp1653 driver
-References: <20110610092703.GH7830@valkosipuli.localdomain> <4E0D226E.5010809@redhat.com> <201107010957.39930.hverkuil@xs4all.nl> <20110701111512.GN12671@valkosipuli.localdomain> <4E0DB2A8.10102@redhat.com>
-In-Reply-To: <4E0DB2A8.10102@redhat.com>
-Content-Type: text/plain; charset=ISO-8859-1
+Return-path: <mchehab@localhost>
+Received: from mail-ww0-f42.google.com ([74.125.82.42]:41782 "EHLO
+	mail-ww0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753791Ab1GJWhW (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 10 Jul 2011 18:37:22 -0400
+Received: by wwg11 with SMTP id 11so1779057wwg.1
+        for <linux-media@vger.kernel.org>; Sun, 10 Jul 2011 15:37:21 -0700 (PDT)
+Subject: [PATCH] STV0288 frontend provide wider carrier search and DVB-S2
+ drop out. resend
+From: Malcolm Priestley <tvboxspy@gmail.com>
+To: 'Linux Media Mailing List' <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset="UTF-8"
+Date: Sun, 10 Jul 2011 23:37:13 +0100
+Message-ID: <1310337433.2472.9.camel@localhost>
+Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
-Sender: <mchehab@pedra>
+Sender: <mchehab@infradead.org>
 
-Mauro Carvalho Chehab wrote:
-> Em 01-07-2011 08:15, Sakari Ailus escreveu:
->> On Fri, Jul 01, 2011 at 09:57:39AM +0200, Hans Verkuil wrote:
->>> On Friday, July 01, 2011 03:27:10 Mauro Carvalho Chehab wrote:
->>>> Em 10-06-2011 06:27, Sakari Ailus escreveu:
->>>>> Hi Mauro,
->>>>>
->>>>> This pull request adds the bitmask controls, flash API and the adp1653
->>>>> driver. What has changed since the patches is:
->>>>>
->>>>> - Adp1653 flash faults control is volatile. Fix this.
->>>>> - Flash interface marked as experimental.
->>>>> - Moved the DocBook documentation to a new location.
->>>>> - The target version is 3.1, not 2.6.41.
->>>>>
->>>>> The following changes since commit 75125b9d44456e0cf2d1fbb72ae33c13415299d1:
->>>>>
->>>>>   [media] DocBook: Don't be noisy at make cleanmediadocs (2011-06-09 16:40:58 -0300)
->>>>>
->>>>> are available in the git repository at:
->>>>>   ssh://linuxtv.org/git/sailus/media_tree.git media-for-3.1
->>>>>
->>>>> Hans Verkuil (3):
->>>>>       v4l2-ctrls: add new bitmask control type.
->>>>>       vivi: add bitmask test control.
->>>>>       DocBook: document V4L2_CTRL_TYPE_BITMASK.
->>>>
->>>> I'm sure I've already mentioned, but I think it was at the Hans pull request:
->>>> the specs don't mention what endiannes is needed for the bitmask controls: 
->>>> machine endianess, little endian or big endian.  IMO, we should stick with either
->>>> LE or BE.
->>>
->>> Sorry Sakari, I should have fixed that. But since the patch was going through
->>> your repository I forgot about it. Anyway, it should be machine endianess. You
->>> have to be able to do (value & bit_define). The bit_defines for each bitmask
->>> control should be part of the control's definition in videodev2.h.
->>>
->>> It makes no sense to require LE or BE. We don't do that for other control types,
->>> so why should bitmask be any different?
->>>
->>> Can you add this clarification to DocBook?
->>
->> Thinking about this some more, if we're to say something about the
->> endianness we should specify it for all controls, not just bitmasks. I
->> really wonder if need this at all: why would you think the endianness in a
->> bitmask would be some other than machine endianness, be it a V4L2 control or
->> a flags field in, say, struct v4l2_buffer? It would make sense to document
->> it if it differs from the norm, so in my opinion such statement would be
->> redundant.
-> 
-> Because someone might have the "bright" idea of exposing a hardware register via
-> V4L2_CTRL_TYPE_BITMASK directly without reminding about the endiannes, and do the
-> wrong thing.
+The following patch provides wider carrier search.
 
-The same could be done to an integer control as well, the bitmask isn't
-special in that sense. Just my opinion.
+As with existing code search starts at MSB aligned. The boundary
+is widened to start at -9.  In order to save time, if no carrier is
+detected at the start it advances to the next alignment until carrier
+is found.
 
-The spec says "When for example a hardware register accepts values 0-511
-and the driver reports 0-65535, step should be 128." on step field in
-struct v4l2_queryctrl. This suggests that registers may be exposed to
-user space as integer controls.
+The stv0288 will detect a DVB-S2 carrier on all steps , a
+time out of 11 steps is introduced to drop out of the loop.
 
-So endianness issues may exist on other types of controls as well if the
-programmer didn't remember that other endian than his existed.
+In stv0288_set_symbol carrier and timing loops are restored to
+default values (inittab) before setting the symbol rate on each tune. A
+slight drift was noticed with full scan in the higher IF frequencies of
+each band.
 
-> There's not much problem on being redundant at the specs, but not specifying it
-> means that different implementations will still be valid.
-> 
-> Btw, if you take a look at the descriptions for RGB format at the spec, you'll see
-> that endiannes problems already happened in the past: the specs had to explicitly
-> allow both endiannes for a few RGB formats due to that.
-> 
-> I'm ok if we standardize that it should be the machine endiannes, but we should
-> be explicit on that.
+Signed-off-by: Malcolm Priestley <tvboxspy@gmail.com>
+---
+ drivers/media/dvb/frontends/stv0288.c |   29 +++++++++++++++++++++--------
+ 1 files changed, 21 insertions(+), 8 deletions(-)
 
-I'll add a few words on this, but should it be added to bitmask controls
-documentation or controls in general?
-
-Regards,
-
+diff --git a/drivers/media/dvb/frontends/stv0288.c b/drivers/media/dvb/frontends/stv0288.c
+index 8e0cfad..0aa3962 100644
+--- a/drivers/media/dvb/frontends/stv0288.c
++++ b/drivers/media/dvb/frontends/stv0288.c
+@@ -127,6 +127,11 @@ static int stv0288_set_symbolrate(struct dvb_frontend *fe, u32 srate)
+ 	if ((srate < 1000000) || (srate > 45000000))
+ 		return -EINVAL;
+ 
++	stv0288_writeregI(state, 0x22, 0);
++	stv0288_writeregI(state, 0x23, 0);
++	stv0288_writeregI(state, 0x2b, 0xff);
++	stv0288_writeregI(state, 0x2c, 0xf7);
++
+ 	temp = (unsigned int)srate / 1000;
+ 
+ 		temp = temp * 32768;
+@@ -461,6 +466,7 @@ static int stv0288_set_frontend(struct dvb_frontend *fe,
+ 
+ 	char tm;
+ 	unsigned char tda[3];
++	u8 reg, time_out = 0;
+ 
+ 	dprintk("%s : FE_SET_FRONTEND\n", __func__);
+ 
+@@ -488,22 +494,29 @@ static int stv0288_set_frontend(struct dvb_frontend *fe,
+ 	/* Carrier lock control register */
+ 	stv0288_writeregI(state, 0x15, 0xc5);
+ 
+-	tda[0] = 0x2b; /* CFRM */
+ 	tda[2] = 0x0; /* CFRL */
+-	for (tm = -6; tm < 7;) {
++	for (tm = -9; tm < 7;) {
+ 		/* Viterbi status */
+-		if (stv0288_readreg(state, 0x24) & 0x8)
+-			break;
+-
+-		tda[2] += 40;
+-		if (tda[2] < 40)
++		reg = stv0288_readreg(state, 0x24);
++		if (reg & 0x8)
++				break;
++		if (reg & 0x80) {
++			time_out++;
++			if (time_out > 10)
++				break;
++			tda[2] += 40;
++			if (tda[2] < 40)
++				tm++;
++		} else {
+ 			tm++;
++			tda[2] = 0;
++			time_out = 0;
++		}
+ 		tda[1] = (unsigned char)tm;
+ 		stv0288_writeregI(state, 0x2b, tda[1]);
+ 		stv0288_writeregI(state, 0x2c, tda[2]);
+ 		udelay(30);
+ 	}
+-
+ 	state->tuner_frequency = c->frequency;
+ 	state->fec_inner = FEC_AUTO;
+ 	state->symbol_rate = c->symbol_rate;
 -- 
-Sakari Ailus
-sakari.ailus@iki.fi
+1.7.4.1
+
