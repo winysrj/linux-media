@@ -1,75 +1,47 @@
-Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pz0-f46.google.com ([209.85.210.46]:59453 "EHLO
-	mail-pz0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751623Ab1GMVtu convert rfc822-to-8bit (ORCPT
+Return-path: <mchehab@localhost>
+Received: from mail-gy0-f174.google.com ([209.85.160.174]:47380 "EHLO
+	mail-gy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755529Ab1GJJOc convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 13 Jul 2011 17:49:50 -0400
+	Sun, 10 Jul 2011 05:14:32 -0400
+Received: by gyh3 with SMTP id 3so1197014gyh.19
+        for <linux-media@vger.kernel.org>; Sun, 10 Jul 2011 02:14:32 -0700 (PDT)
 MIME-Version: 1.0
-In-Reply-To: <20110710125109.c72f9c2d.rdunlap@xenotime.net>
-References: <20110710125109.c72f9c2d.rdunlap@xenotime.net>
-Date: Wed, 13 Jul 2011 17:49:48 -0400
-Message-ID: <CACqU3MWBb4J8rmaRv23=-_=GXppGSUdqmOqeXoqWi4ZJ7ZYewg@mail.gmail.com>
-Subject: Re: [PATCH 1/9] stringify: add HEX_STRING()
-From: Arnaud Lacombe <lacombar@gmail.com>
-To: Randy Dunlap <rdunlap@xenotime.net>
-Cc: lkml <linux-kernel@vger.kernel.org>, linux-kbuild@vger.kernel.org,
-	linux-media@vger.kernel.org, mchehab@infradead.org
+In-Reply-To: <CAJQbCa=kCtgLp=DhNP+CQUMt6Hr-NR=VtGqmDGNRpF_fx6atDA@mail.gmail.com>
+References: <CAJQbCa=kCtgLp=DhNP+CQUMt6Hr-NR=VtGqmDGNRpF_fx6atDA@mail.gmail.com>
+Date: Sun, 10 Jul 2011 10:14:32 +0100
+Message-ID: <CAJQbCakj4MscEOKeLo4w6m1-8cvSXxiSMk6ZYfvxF591ivZ81Q@mail.gmail.com>
+Subject: media_build failure
+From: Duncan Brown <dunc.brown@gmail.com>
+To: linux-media@vger.kernel.org
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 8BIT
-Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
+Sender: <mchehab@infradead.org>
 
-Hi,
+Hi all
 
-On Sun, Jul 10, 2011 at 3:51 PM, Randy Dunlap <rdunlap@xenotime.net> wrote:
-> From: Randy Dunlap <rdunlap@xenotime.net>
->
-> Add HEX_STRING(value) to stringify.h so that drivers can
-> convert kconfig hex values (without leading "0x") to useful
-> hex constants.
->
-> Several drivers/media/radio/ drivers need this.  I haven't
-> checked if any other drivers need to do this.
->
-> Alternatively, kconfig could produce hex config symbols with
-> leading "0x".
->
-Actually, I used to have a patch to make hex value have a mandatory
-"0x" prefix, in the Kconfig. I even fixed all the issue in the tree,
-it never make it to the tree (not sure why). Here's the relevant
-thread:
+I'm having issues using the latest drivers using the media_build
+script. (Fedora 14 - 2.6.35.13-92.x86_64)
 
-https://patchwork.kernel.org/patch/380591/
-https://patchwork.kernel.org/patch/380621/
-https://patchwork.kernel.org/patch/380601/
+The build appears to go ok apart from midway where I get:
 
- - Arnaud
+Building modules, stage 2.
+  MODPOST 461 modules
+WARNING: "put_compat_timespec" [/usr/src/media_build/v4l/
+v4l2-compat-ioctl32.ko] undefined!
 
-> Signed-off-by: Randy Dunlap <rdunlap@xenotime.net>
-> ---
->  include/linux/stringify.h |    7 +++++++
->  1 file changed, 7 insertions(+)
->
-> NOTE: The other 8 patches are on lkml and linux-media mailing lists.
->
-> --- linux-next-20110707.orig/include/linux/stringify.h
-> +++ linux-next-20110707/include/linux/stringify.h
-> @@ -9,4 +9,11 @@
->  #define __stringify_1(x...)    #x
->  #define __stringify(x...)      __stringify_1(x)
->
-> +/*
-> + * HEX_STRING(value) is useful for CONFIG_ values that are in hex,
-> + * but kconfig does not put a leading "0x" on them.
-> + */
-> +#define HEXSTRINGVALUE(h, value)       h##value
-> +#define HEX_STRING(value)              HEXSTRINGVALUE(0x, value)
-> +
-that seems hackish...
+The build then continues and appears to finish fine. make install is
+no problem either.
 
->  #endif /* !__LINUX_STRINGIFY_H */
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-kbuild" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->
+On reboot all my media/dvb devices have disappeared and any attempt to
+modprobe results a load of unknowm symbol in module errors, and in
+dmesg:
+
+v4l2_compat_ioctl32: Unknown symbol put_compat_timespec (err 0)
+
+Can anyone help, this was working perfectly only a few weeks ago
+
+thanks
+
+Dunc
