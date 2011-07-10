@@ -1,119 +1,101 @@
-Return-path: <linux-media-owner@vger.kernel.org>
-Received: from casper.infradead.org ([85.118.1.10]:46493 "EHLO
-	casper.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750903Ab1GSTaJ (ORCPT
+Return-path: <mchehab@localhost>
+Received: from mail-ew0-f46.google.com ([209.85.215.46]:54054 "EHLO
+	mail-ew0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754222Ab1GJQrr (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 19 Jul 2011 15:30:09 -0400
-Message-ID: <4E25DB37.8020609@infradead.org>
-Date: Tue, 19 Jul 2011 16:29:59 -0300
-From: Mauro Carvalho Chehab <mchehab@infradead.org>
+	Sun, 10 Jul 2011 12:47:47 -0400
+Received: by ewy4 with SMTP id 4so1133366ewy.19
+        for <linux-media@vger.kernel.org>; Sun, 10 Jul 2011 09:47:45 -0700 (PDT)
 MIME-Version: 1.0
-To: Stas Sergeev <stsp@list.ru>
-CC: Lennart Poettering <lpoetter@redhat.com>,
-	linux-media@vger.kernel.org,
-	"Nickolay V. Shmyrev" <nshmyrev@yandex.ru>,
-	Devin Heitmueller <dheitmueller@kernellabs.com>,
-	ALSA devel <alsa-devel@alsa-project.org>
-Subject: Re: [patch][saa7134] do not change mute state for capturing audio
-References: <4E19D2F7.6060803@list.ru> <4E1E05AC.2070002@infradead.org> <4E1E0A1D.6000604@list.ru> <4E1E1571.6010400@infradead.org> <4E1E8108.3060305@list.ru> <4E1F9A25.1020208@infradead.org> <4E22AF12.4020600@list.ru> <4E22CCC0.8030803@infradead.org> <4E24BEB8.4060501@redhat.com> <4E257FF5.4040401@infradead.org> <4E258B60.6010007@list.ru> <4E25906D.3020200@infradead.org> <4E259B0C.90107@list.ru> <4E25A26A.2000204@infradead.org> <4E25A7C2.3050609@list.ru> <4E25C7AE.5020503@infradead.org> <4E25CF35.7000802@list.ru>
-In-Reply-To: <4E25CF35.7000802@list.ru>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
-Sender: linux-media-owner@vger.kernel.org
+Date: Sun, 10 Jul 2011 12:47:45 -0400
+Message-ID: <CAGoCfixSHJO6HzubymWkfq_vR6iiw4RhOc_3AgfeqT5rqMQ+jA@mail.gmail.com>
+Subject: [PATCH] cx88: properly maintain decoder config when using MPEG encoder
+From: Devin Heitmueller <dheitmueller@kernellabs.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Florent Audebert <florent.audebert@anevia.com>
+Content-Type: multipart/mixed; boundary=0015174c338874f62904a7b9d3f4
 List-ID: <linux-media.vger.kernel.org>
+Sender: <mchehab@infradead.org>
 
-Em 19-07-2011 15:38, Stas Sergeev escreveu:
-> 19.07.2011 22:06, Mauro Carvalho Chehab wrote:
->>> Unless I am mistaken, this control is usually called a
->>> "Master Playback Switch" in the alsa world.
->> No, you're mistaken: on most boards, you have only one volume control/switch,
->> for capture. So, it would be a "master capture switch",
-> Well, for such a cards we don't need to export
-> the additional element, they are fine already.
-> We can rename it to "Master Capture Switch",
-> or may not.
+--0015174c338874f62904a7b9d3f4
+Content-Type: text/plain; charset=ISO-8859-1
 
-Adding a new volume control that changes the mute values for the other controls
-or renaming it don't solve anything.
+Hello,
 
->>  but I don't think
->> that there's such alsa "generic" volume control. Even in the case where
->> you have a volume control for the LINE OUT pin[1], in general, you also need to
->> unmute the capture, so, it would be a "master capture and LINE OUT switch",
->> and, for sure alsa currently not provide anything like that.
-> I think you can still call it a "Master Capture Switch",
-> if it enables everything.
+The attached patch addresses a problem raised by Florent Audebert
+where the video decoder was not setup properly if you were capturing
+on the HVR-1300's s-video port while using the MPEG encoder.
 
-That would be wrong.
+The issue is described in greater detail in the patch itself.
 
->>> So, am I right that the only problem is that it is not
->>> exported to the user by some drivers right now?
->> No, you're mistaken again. Such "master capture and LINE OUT switch" type of control
->> _is_exported_ via the V4L2 API as V4L2_CID_AUDIO_MUTE. 
-> Sorry, I meant the _alsa_ drivers here.
-> So, to rephrase:
-> 
-> So, am I right that the only problem is that it is not
-> exported to the user by some _alsa_ drivers right now?
+Devin
 
-I fail to see why this would be a problem.
+-- 
+Devin J. Heitmueller - Kernel Labs
+http://www.kernellabs.com
 
-The problem I see is that PA is trying to handle a V4L device as if it would be a 
-normal audio capture pin, and starting a capture while the device is not ready for that,
-as no input or TV/radio station were selected at the time PA starts capturing.
+--0015174c338874f62904a7b9d3f4
+Content-Type: application/octet-stream; name="cx88-svideo-mpeg.patch"
+Content-Disposition: attachment; filename="cx88-svideo-mpeg.patch"
+Content-Transfer-Encoding: base64
+X-Attachment-Id: f_gpy8iy1b0
 
->> Some applications like mplayer don't use V4L2_CID_AUDIO_MUTE to unmute a video
->> device. They assume the current behavior that starting video also unmutes audio.
->> (mplayer is not symmetric with regard to the usage of this control, as it uses
->> V4L2_CID_AUDIO_MUTE to mute the device after the end of a capture).
->>
->> So, changing the logic at the drivers will break existing applications.
-> I do not propose changing any V4L2 ioctls, my
-> change concerns only the alsa driver.
-> 
->> It is probably doable to split the mute control for the LINE OUT pin from the
->> mute control of the PCM capture. Such patch would make sense, as the alsa
->> capture doesn't need to touch at the line out pin, but the patch should
->> let V4L2_CID_AUDIO_MUTE control to affect both LINE OUT and PCM capture
->> mutes, otherwise applications will break.
-> That's exactly what I was talking about from the very
-> beginning, saying that the single control currently controls
-> way too much, and providing an examples about 2 separate
-> controls. But... I haven't found the way to implement that,
-> not sure of this is possible at all. :(
-
-It is doable, although it is probably not trivial.
-
-Devices with saa7130 (PCI_DEVICE_ID_PHILIPS_SAA7130) doesn't enable the
-alsa module, as they don't support I2S transfers, required for PCM audio.
-So, we need to take care only on saa7133/4/5 devices.
-
-The mute code is at saa7134-tvaudio.c, mute_input_7134() function. For
-saa7134, it does:
-
-        if (PCI_DEVICE_ID_PHILIPS_SAA7134 == dev->pci->device)
-                /* 7134 mute */
-                saa_writeb(SAA7134_AUDIO_MUTE_CTRL, mute ?
-                                                    SAA7134_MUTE_MASK |
-                                                    SAA7134_MUTE_ANALOG |
-                                                    SAA7134_MUTE_I2S :
-                                                    SAA7134_MUTE_MASK);
-
-Clearly, there are two mute flags: SAA7134_MUTE_ANALOG and SAA7134_MUTE_I2S.
-
-I2S is for PCM (as it is a digital audio interface). The other flag is for
-analog.
-
-So, if the device is a saa7134, it is easy to split the analog output and the
-PCM one. For saa7133 and saa7135, you probably need to double check at the
-datasheet, is is there a way to disable/enable just the I2S interface, but,
-from saa7134_enable_i2s():
-	/* Start I2S */
-        saa_writeb(SAA7134_I2S_AUDIO_OUTPUT, 0x11);
-
-I bet that there is some value (maybe 0?) that disables I2S transfers, muting
-the PCM stream. It should be tested if saa7133/5 devices accept to enable/disable
-PCM streams if the device is already streaming.
-
-Cheers,
-Mauro
+Y3g4ODogcHJvcGVybHkgbWFpbnRhaW4gZGVjb2RlciBjb25maWcgd2hlbiB1c2luZyBNUEVHIGVu
+Y29kZXIKCkZyb206IERldmluIEhlaXRtdWVsbGVyIDxkaGVpdG11ZWxsZXJAa2VybmVsbGFicy5j
+b20+CgpUaGUgY3g4OCBkcml2ZXIgd291bGQgZm9yY2UgY29yZS0+aW5wdXQgdG8gYWx3YXlzIGJl
+IHplcm8gd2hlbiBkb2luZyB0aGUKdGhlIHJlcXVlc3RfYWNxdWlyZSgpLiAgV2hpbGUgaXQgd2Fz
+bid0IGFjdHVhbGx5IGNoYW5naW5nIHRoZSBpbnB1dCByZWdpc3RlcgppbiB0aGUgaGFyZHdhcmUs
+IHRoZSBkcml2ZXIgbWFrZXMgZGVjaXNpb24gYmFzZWQgb24gdGhlIGN1cnJlbnQgaW5wdXQuICBJ
+bgpwYXJ0aWN1bGFyLCBpdCBkZWNpZGVzIHdoZXRoZXIgdG8gZG8gdGhpbmdzIGxpa2UgZW5hYmxp
+bmcgdGhlIGNvbWIgZmlsdGVyCndoZW4gb24gYSBjb21wb3NpdGUgaW5wdXQgYnV0IGRpc2FibGlu
+ZyBpdCBvbiBzLXZpZGVvLiAgU28gZm9yIGV4YW1wbGUsIG9uCnRoZSBIVlItMTMwMCwgdXNpbmcg
+dGhlIHMtdmlkZW8gaW5wdXQgd2l0aCB0aGUgTVBFRyBlbmNvZGVyIHdvdWxkIGVuZCB1cCB3aXRo
+CnRoZSB2aWRlbyBkZWNvZGVyIGNvcmUgY29uZmlndXJlZCBhcyB0aG91Z2ggdGhlIGlucHV0IHR5
+cGUgd2VyZSBjb21wb3NpdGUuCgpJbiBzaG9ydCwgdGhlIGRyaXZlciBzdGF0ZSBkaWQgbm90IG1h
+dGNoIHRoZSBoYXJkd2FyZSBzdGF0ZS4KClRoaXMgcGF0Y2ggZG9lcyB0d28gdGhpbmdzOgoKMS4g
+IEl0IGZvcmNlcyB0aGUgaW5wdXQgdG8gemVybyBvbmx5IGlmIGFjdHVhbGx5IHN3aXRjaGluZyB0
+byBEVkIgbW9kZS4gIFRoaXMKcHJldmVudHMgdGhlIGlucHV0IGZyb20gY2hhbmdpbmcgd2hlbiB0
+aGUgYmxhY2tiaXJkIGRyaXZlciBvcGVucyB0aGUgZGV2aWNlLgoKMi4gIEtlZXAgdHJhY2sgb2Yg
+d2hhdCB0aGUgaW5wdXQgd2FzIHNldCB0byB3aGVuIHN3aXRjaGluZyB0byBEVkIsIGFuZCByZXNl
+dAppdCBiYWNrIHdoZW4gZG9uZS4gIFRoaXMgZWxpbWluYXRlcyBhIGNvbmRpdGlvbiB3aGVyZSBm
+b3IgZXhhbXBsZSB0aGUgdXNlcgpoYWQgdGhlIGFuYWxvZyBzaWRlIG9mIHRoZSBib2FyZCBzZXQg
+dG8gY2FwdHVyZSBvbiB0aGUgcy12aWRlbyBpbnB1dCwgdGhlbgpoZSB1c2VkIERWQiBmb3IgYSBi
+aXQsIHRoZW4gdGhlIGFuYWxvZyBpbnB1dCB3b3VsZCB1bmV4cGVjdGVkbHkgYmUgc2V0IHRvCnRo
+ZSB0dW5lciBpbnB1dC4KClRoaXMgd29yayB3YXMgc3BvbnNvcmVkIGJ5IEFuZXZpYSBTLkEuCgpT
+aWduZWQtb2ZmLWJ5OiBEZXZpbiBIZWl0bXVlbGxlciA8ZGhlaXRtdWVsbGVyQGtlcm5lbGxhYnMu
+Y29tPgpDYzogRmxvcmVudCBBdWRlYmVydCA8ZmxvcmVudC5hdWRlYmVydEBhbmV2aWEuY29tPgoK
+ZGlmZiAtLWdpdCBhL2RyaXZlcnMvbWVkaWEvdmlkZW8vY3g4OC9jeDg4LW1wZWcuYyBiL2RyaXZl
+cnMvbWVkaWEvdmlkZW8vY3g4OC9jeDg4LW1wZWcuYwppbmRleCAxYTdiOTgzLi4zMzhkZjQ4IDEw
+MDY0NAotLS0gYS9kcml2ZXJzL21lZGlhL3ZpZGVvL2N4ODgvY3g4OC1tcGVnLmMKKysrIGIvZHJp
+dmVycy9tZWRpYS92aWRlby9jeDg4L2N4ODgtbXBlZy5jCkBAIC02MTMsMTMgKzYxMywxNyBAQCBz
+dGF0aWMgaW50IGN4ODgwMl9yZXF1ZXN0X2FjcXVpcmUoc3RydWN0IGN4ODgwMl9kcml2ZXIgKmRy
+dikKIAkgICAgY29yZS0+YWN0aXZlX3R5cGVfaWQgIT0gZHJ2LT50eXBlX2lkKQogCQlyZXR1cm4g
+LUVCVVNZOwogCi0JY29yZS0+aW5wdXQgPSAwOwotCWZvciAoaSA9IDA7Ci0JICAgICBpIDwgKHNp
+emVvZihjb3JlLT5ib2FyZC5pbnB1dCkgLyBzaXplb2Yoc3RydWN0IGN4ODhfaW5wdXQpKTsKLQkg
+ICAgIGkrKykgewotCQlpZiAoY29yZS0+Ym9hcmQuaW5wdXRbaV0udHlwZSA9PSBDWDg4X1ZNVVhf
+RFZCKSB7Ci0JCQljb3JlLT5pbnB1dCA9IGk7Ci0JCQlicmVhazsKKwlpZiAoZHJ2LT50eXBlX2lk
+ID09IENYODhfTVBFR19EVkIpIHsKKwkJLyogV2hlbiBzd2l0Y2hpbmcgdG8gRFZCLCBhbHdheXMg
+c2V0IHRoZSBpbnB1dCB0byB0aGUgdHVuZXIgKi8KKwkJY29yZS0+bGFzdF9hbmFsb2dfaW5wdXQg
+PSBjb3JlLT5pbnB1dDsKKwkJY29yZS0+aW5wdXQgPSAwOworCQlmb3IgKGkgPSAwOworCQkgICAg
+IGkgPCAoc2l6ZW9mKGNvcmUtPmJvYXJkLmlucHV0KSAvIHNpemVvZihzdHJ1Y3QgY3g4OF9pbnB1
+dCkpOworCQkgICAgIGkrKykgeworCQkJaWYgKGNvcmUtPmJvYXJkLmlucHV0W2ldLnR5cGUgPT0g
+Q1g4OF9WTVVYX0RWQikgeworCQkJCWNvcmUtPmlucHV0ID0gaTsKKwkJCQlicmVhazsKKwkJCX0K
+IAkJfQogCX0KIApAQCAtNjQ0LDYgKzY0OCwxMiBAQCBzdGF0aWMgaW50IGN4ODgwMl9yZXF1ZXN0
+X3JlbGVhc2Uoc3RydWN0IGN4ODgwMl9kcml2ZXIgKmRydikKIAogCWlmIChkcnYtPmFkdmlzZV9y
+ZWxlYXNlICYmIC0tY29yZS0+YWN0aXZlX3JlZiA9PSAwKQogCXsKKwkJaWYgKGRydi0+dHlwZV9p
+ZCA9PSBDWDg4X01QRUdfRFZCKSB7CisJCQkvKiBJZiB0aGUgRFZCIGRyaXZlciBpcyByZWxlYXNp
+bmcsIHJlc2V0IHRoZSBpbnB1dAorCQkJICAgc3RhdGUgdG8gdGhlIGxhc3QgY29uZmlndXJlZCBh
+bmFsb2cgaW5wdXQgKi8KKwkJCWNvcmUtPmlucHV0ID0gY29yZS0+bGFzdF9hbmFsb2dfaW5wdXQ7
+CisJCX0KKwogCQlkcnYtPmFkdmlzZV9yZWxlYXNlKGRydik7CiAJCWNvcmUtPmFjdGl2ZV90eXBl
+X2lkID0gQ1g4OF9CT0FSRF9OT05FOwogCQltcGVnX2RiZygxLCIlcygpIFBvc3QgcmVsZWFzZSBH
+UElPPSV4XG4iLCBfX2Z1bmNfXywgY3hfcmVhZChNT19HUDBfSU8pKTsKZGlmZiAtLWdpdCBhL2Ry
+aXZlcnMvbWVkaWEvdmlkZW8vY3g4OC9jeDg4LmggYi9kcml2ZXJzL21lZGlhL3ZpZGVvL2N4ODgv
+Y3g4OC5oCmluZGV4IDU3MTkwNjMuLmNmNTNhMGQgMTAwNjQ0Ci0tLSBhL2RyaXZlcnMvbWVkaWEv
+dmlkZW8vY3g4OC9jeDg4LmgKKysrIGIvZHJpdmVycy9tZWRpYS92aWRlby9jeDg4L2N4ODguaApA
+QCAtMzc3LDYgKzM3Nyw3IEBAIHN0cnVjdCBjeDg4X2NvcmUgewogCXUzMiAgICAgICAgICAgICAg
+ICAgICAgICAgIGF1ZGlvbW9kZV9tYW51YWw7CiAJdTMyICAgICAgICAgICAgICAgICAgICAgICAg
+YXVkaW9tb2RlX2N1cnJlbnQ7CiAJdTMyICAgICAgICAgICAgICAgICAgICAgICAgaW5wdXQ7CisJ
+dTMyICAgICAgICAgICAgICAgICAgICAgICAgbGFzdF9hbmFsb2dfaW5wdXQ7CiAJdTMyICAgICAg
+ICAgICAgICAgICAgICAgICAgYXN0YXQ7CiAJdTMyCQkJICAgdXNlX25pY2FtOwogCXVuc2lnbmVk
+IGxvbmcJCSAgIGxhc3RfY2hhbmdlOwo=
+--0015174c338874f62904a7b9d3f4--
