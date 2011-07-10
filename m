@@ -1,46 +1,58 @@
-Return-path: <mchehab@pedra>
-Received: from smtp1-g21.free.fr ([212.27.42.1]:51930 "EHLO smtp1-g21.free.fr"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752090Ab1GBIyK convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sat, 2 Jul 2011 04:54:10 -0400
-Date: Sat, 2 Jul 2011 10:55:37 +0200
-From: Jean-Francois Moine <moinejf@free.fr>
-To: Wolfram Sang <w.sang@pengutronix.de>
-Cc: linux-media@vger.kernel.org
-Subject: Re: [PATCH] [media] gspca/zc3xx: add usb_id for HP Premium Starter
- Cam
-Message-ID: <20110702105537.50d0e1df@tele>
-In-Reply-To: <20110702080741.GA5578@pengutronix.de>
-References: <1308140202-14854-1-git-send-email-w.sang@pengutronix.de>
-	<20110702080741.GA5578@pengutronix.de>
+Return-path: <mchehab@localhost>
+Received: from oproxy5-pub.bluehost.com ([67.222.38.55]:60700 "HELO
+	oproxy5-pub.bluehost.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1755470Ab1GJUAi (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 10 Jul 2011 16:00:38 -0400
+Date: Sun, 10 Jul 2011 12:53:56 -0700
+From: Randy Dunlap <rdunlap@xenotime.net>
+To: lkml <linux-kernel@vger.kernel.org>
+Cc: linux-media@vger.kernel.org, mchehab@infradead.org
+Subject: [PATCH 2/9] media/radio: fix aimslab CONFIG IO PORT
+Message-Id: <20110710125356.b6cb17c2.rdunlap@xenotime.net>
+In-Reply-To: <20110710125109.c72f9c2d.rdunlap@xenotime.net>
+References: <20110710125109.c72f9c2d.rdunlap@xenotime.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
-Sender: <mchehab@pedra>
+Sender: <mchehab@infradead.org>
 
-On Sat, 2 Jul 2011 10:07:41 +0200
-Wolfram Sang <w.sang@pengutronix.de> wrote:
+From: Randy Dunlap <rdunlap@xenotime.net>
 
-> On Wed, Jun 15, 2011 at 02:16:42PM +0200, Wolfram Sang wrote:
-> > Signed-off-by: Wolfram Sang <w.sang@pengutronix.de>
-> > ---
-> 
-> Ping. Who is picking this up? Anything to be done on my side?
+Modify radio-aimslab to use HEX_STRING(CONFIG_RADIO_RTRACK_PORT)
+so that the correct IO port value is used.
 
-Sorry, I was a bit busy and I did not see your mail.
+Fixes this error message when CONFIG_RADIO_RTRACK_PORT=20f:
+drivers/media/radio/radio-aimslab.c:49:17: error: invalid suffix "f" on integer constant
 
-May you add an entry in Documentation/video4linux/gspca.txt and resubmit?
+Signed-off-by: Randy Dunlap <rdunlap@xenotime.net>
+---
+ drivers/media/radio/radio-aimslab.c |    7 +++++--
+ 1 file changed, 5 insertions(+), 2 deletions(-)
 
-Thanks.
-
-> > 
-> > Fixes https://bugzilla.kernel.org/show_bug.cgi?id=13479
-> > 
-> >  drivers/media/video/gspca/zc3xx.c |    1 +
-> >  1 files changed, 1 insertions(+), 0 deletions(-)
-	[snip]
-
--- 
-Ken ar c'hentañ	|	      ** Breizh ha Linux atav! **
-Jef		|		http://moinejf.free.fr/
+--- linux-next-20110707.orig/drivers/media/radio/radio-aimslab.c
++++ linux-next-20110707/drivers/media/radio/radio-aimslab.c
+@@ -32,6 +32,7 @@
+ #include <linux/init.h>		/* Initdata			*/
+ #include <linux/ioport.h>	/* request_region		*/
+ #include <linux/delay.h>	/* msleep			*/
++#include <linux/stringify.h>
+ #include <linux/videodev2.h>	/* kernel radio structs		*/
+ #include <linux/io.h>		/* outb, outb_p			*/
+ #include <media/v4l2-device.h>
+@@ -43,10 +44,12 @@ MODULE_LICENSE("GPL");
+ MODULE_VERSION("0.0.3");
+ 
+ #ifndef CONFIG_RADIO_RTRACK_PORT
+-#define CONFIG_RADIO_RTRACK_PORT -1
++#define __RADIO_RTRACK_PORT -1
++#else
++#define __RADIO_RTRACK_PORT HEX_STRING(CONFIG_RADIO_RTRACK_PORT)
+ #endif
+ 
+-static int io = CONFIG_RADIO_RTRACK_PORT;
++static int io = __RADIO_RTRACK_PORT;
+ static int radio_nr = -1;
+ 
+ module_param(io, int, 0);
