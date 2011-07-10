@@ -1,56 +1,63 @@
 Return-path: <mchehab@localhost>
-Received: from mail-gy0-f174.google.com ([209.85.160.174]:42337 "EHLO
-	mail-gy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754258Ab1GJLZh convert rfc822-to-8bit (ORCPT
+Received: from mail-bw0-f46.google.com ([209.85.214.46]:51650 "EHLO
+	mail-bw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756614Ab1GJThT convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 10 Jul 2011 07:25:37 -0400
-Received: by gyh3 with SMTP id 3so1209023gyh.19
-        for <linux-media@vger.kernel.org>; Sun, 10 Jul 2011 04:25:37 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <CAJQbCakj4MscEOKeLo4w6m1-8cvSXxiSMk6ZYfvxF591ivZ81Q@mail.gmail.com>
-References: <CAJQbCa=kCtgLp=DhNP+CQUMt6Hr-NR=VtGqmDGNRpF_fx6atDA@mail.gmail.com>
-	<CAJQbCakj4MscEOKeLo4w6m1-8cvSXxiSMk6ZYfvxF591ivZ81Q@mail.gmail.com>
-Date: Sun, 10 Jul 2011 12:25:37 +0100
-Message-ID: <CAJQbCak5Xs1Ch_GAiaNezbepFeyj48tmgyeHXkNqDkErwX=YfQ@mail.gmail.com>
-Subject: Re: media_build failure
-From: Duncan Brown <dunc.brown@gmail.com>
+	Sun, 10 Jul 2011 15:37:19 -0400
+Received: by bwd5 with SMTP id 5so2780795bwd.19
+        for <linux-media@vger.kernel.org>; Sun, 10 Jul 2011 12:37:17 -0700 (PDT)
+Date: Sun, 10 Jul 2011 21:37:14 +0200
+From: Stefan Seyfried <stefan.seyfried@googlemail.com>
 To: linux-media@vger.kernel.org
+Subject: Re: [Patch] dvb-apps: add test tool for DMX_OUT_TSDEMUX_TAP
+Message-ID: <20110710213714.5b60a7c7@susi.home.s3e.de>
+In-Reply-To: <201107101645.47915.remi@remlab.net>
+References: <20110710124303.26655303@susi.home.s3e.de>
+	<201107101645.47915.remi@remlab.net>
+Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 8BIT
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@infradead.org>
 
-On Sun, Jul 10, 2011 at 10:14 AM, Duncan Brown <dunc.brown@gmail.com> wrote:
-> Hi all
->
-> I'm having issues using the latest drivers using the media_build
-> script. (Fedora 14 - 2.6.35.13-92.x86_64)
->
-> The build appears to go ok apart from midway where I get:
->
-> Building modules, stage 2.
->   MODPOST 461 modules
-> WARNING: "put_compat_timespec" [/usr/src/media_build/v4l/
-> v4l2-compat-ioctl32.ko] undefined!
->
-> The build then continues and appears to finish fine. make install is
-> no problem either.
->
-> On reboot all my media/dvb devices have disappeared and any attempt to
-> modprobe results a load of unknowm symbol in module errors, and in
-> dmesg:
->
-> v4l2_compat_ioctl32: Unknown symbol put_compat_timespec (err 0)
->
-> Can anyone help, this was working perfectly only a few weeks ago
->
->
+Am Sun, 10 Jul 2011 16:45:46 +0300
+schrieb "Rémi Denis-Courmont" <remi@remlab.net>:
 
-As a temporary fix, I've just copied over the original
-v4l2-compat-ioctl32.ko from the fedora kernel tree over the
-media_build version in lib/modules. After a reboot everything is back
-and running again.
+> Le dimanche 10 juillet 2011 13:43:03 Stefan Seyfried, vous avez écrit :
+> > Hi all,
+> > 
+> > I patched test_dvr to use DMX_OUT_TSDEMUX_TAP and named it test_tapdmx.
+> > Might be useful for others, too :-)
+> > This is my first experience with mercurial, so bear with me if it's
+> > totally wrong.
+> 
+> Did it work for you? We at VideoLAN.org could not get DMX_OUT_TSDEMUX_TAP to 
+> work with any of three distinct device/drivers (on two different delivery 
+> systems). We do get TS packets, but they seem to be partly corrupt.
 
-Would be nice to know why its failing to build properly however
+Yes, worked today on plain openSUSE Factory, kernel 3.0.0-rc5-1-desktop
 
-Dunc
+I did read your post to the list and actually looked up on how to use the
+interface in the vlc code you linked ;-).
+
+My device is a TeVii S660 USB DVB-S2
+
+usb 2-1: New USB device found, idVendor=9022, idProduct=d660
+usb 2-1: New USB device strings: Mfr=1, Product=2, SerialNumber=0
+usb 2-1: Product: DVBS2BOX
+usb 2-1: Manufacturer: TBS-Tech
+dvb-usb: found a 'TeVii S660 USB' in cold state, will try to load a firmware
+
+I successfully recorded an audio and a video PID from Astra 19.2E
+transponder 11836 MHz horizontal
+
+Trying to record the complete TS (pid 0x2000) did produce dropouts, but
+that might be due to insufficient buffer size or something like that.
+
+In general the DMX_OUT_TSDEMUX_TAP interface worked well.
+
+Just try it with my test_tapdmx :-)
+-- 
+Stefan Seyfried
+
+"Dispatch war rocket Ajax to bring back his body!"
