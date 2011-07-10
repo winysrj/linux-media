@@ -1,41 +1,37 @@
-Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:51707 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751434Ab1GVXoB (ORCPT
+Return-path: <mchehab@localhost>
+Received: from mail-iy0-f174.google.com ([209.85.210.174]:57942 "EHLO
+	mail-iy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756218Ab1GJSOg (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 22 Jul 2011 19:44:01 -0400
-Received: from lancelot.localnet (unknown [91.178.30.248])
-	by perceval.ideasonboard.com (Postfix) with ESMTPSA id 91868359A4
-	for <linux-media@vger.kernel.org>; Fri, 22 Jul 2011 23:44:00 +0000 (UTC)
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: linux-media@vger.kernel.org
-Subject: [GIT PULL FOR v3.1] Sensor driver fixes
-Date: Sat, 23 Jul 2011 01:44:05 +0200
+	Sun, 10 Jul 2011 14:14:36 -0400
+Received: by iyb12 with SMTP id 12so3072407iyb.19
+        for <linux-media@vger.kernel.org>; Sun, 10 Jul 2011 11:14:36 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201107230144.05954.laurent.pinchart@ideasonboard.com>
-Sender: linux-media-owner@vger.kernel.org
+From: Christian Gmeiner <christian.gmeiner@gmail.com>
+Date: Sun, 10 Jul 2011 18:14:16 +0000
+Message-ID: <CAH9NwWeGQfBqaS36tQ=T3+1tM3i4Govzzkw0ur_hut07M36_HA@mail.gmail.com>
+Subject: [PATCH 1/3] Add 8-bit and 16-bit YCrCb media bus pixel codes
+To: linux-media@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
 List-ID: <linux-media.vger.kernel.org>
+Sender: <mchehab@infradead.org>
 
-Hi Mauro,
+Signed-off-by: Christian Gmeiner
+---
+diff --git a/include/linux/v4l2-mediabus.h b/include/linux/v4l2-mediabus.h
+index 5ea7f75..11b916d 100644
+--- a/include/linux/v4l2-mediabus.h
++++ b/include/linux/v4l2-mediabus.h
+@@ -92,6 +92,10 @@ enum v4l2_mbus_pixelcode {
 
-The following changes since commit f0a21151140da01c71de636f482f2eddec2840cc:
+        /* JPEG compressed formats - next is 0x4002 */
+        V4L2_MBUS_FMT_JPEG_1X8 = 0x4001,
++
++       /* YCrCb formats - next is 0x5003 */
++       V4L2_MBUS_FMT_YCRCB_1X8 = 0x5001,
++       V4L2_MBUS_FMT_YCRCB_1X16 = 0x5002,
+ };
 
-  Merge tag 'v3.0' into staging/for_v3.1 (2011-07-22 13:33:14 -0300)
-
-are available in the git repository at:
-
-  git://linuxtv.org/pinchartl/media.git omap3isp-next-sensors
-
-Laurent Pinchart (1):
-      v4l: mt9v032: Fix Bayer pattern
-
- drivers/media/video/mt9v032.c |   20 ++++++++++----------
- 1 files changed, 10 insertions(+), 10 deletions(-)
-
--- 
-Regards,
-
-Laurent Pinchart
+ /**
+--
+1.7.6
