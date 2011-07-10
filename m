@@ -1,63 +1,52 @@
-Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ey0-f171.google.com ([209.85.215.171]:41918 "EHLO
-	mail-ey0-f171.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752693Ab1GXNDA (ORCPT
+Return-path: <mchehab@localhost>
+Received: from oproxy4-pub.bluehost.com ([69.89.21.11]:35417 "HELO
+	oproxy4-pub.bluehost.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1754888Ab1GJUAg (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 24 Jul 2011 09:03:00 -0400
-Received: by eye22 with SMTP id 22so3067501eye.2
-        for <linux-media@vger.kernel.org>; Sun, 24 Jul 2011 06:02:59 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <4E2C16B5.5010703@redhat.com>
-References: <CAGoCfiyp4TB6RvF75WFrFLkTxha0-XKrXnR8L13BwJu938PaHg@mail.gmail.com>
-	<4E2C16B5.5010703@redhat.com>
-Date: Sun, 24 Jul 2011 09:02:59 -0400
-Message-ID: <CAGoCfiyM1O1o2Ops=fzwPEL2pR-e4TbSqm0qDXtQqAfifa0KjQ@mail.gmail.com>
-Subject: Re: [PATCH] Fix regression introduced which broke the Hauppauge
- USBLive 2
-From: Devin Heitmueller <dheitmueller@kernellabs.com>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Gerd Hoffmann <kraxel@redhat.com>,
-	Sri Deevi <Srinivasa.Deevi@conexant.com>,
-	Palash Bandyopadhyay <Palash.Bandyopadhyay@conexant.com>
-Content-Type: text/plain; charset=ISO-8859-1
-Sender: linux-media-owner@vger.kernel.org
+	Sun, 10 Jul 2011 16:00:36 -0400
+Date: Sun, 10 Jul 2011 12:51:09 -0700
+From: Randy Dunlap <rdunlap@xenotime.net>
+To: lkml <linux-kernel@vger.kernel.org>
+Cc: linux-kbuild@vger.kernel.org, linux-media@vger.kernel.org,
+	mchehab@infradead.org
+Subject: [PATCH 1/9] stringify: add HEX_STRING()
+Message-Id: <20110710125109.c72f9c2d.rdunlap@xenotime.net>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
+Sender: <mchehab@infradead.org>
 
-On Sun, Jul 24, 2011 at 8:57 AM, Mauro Carvalho Chehab
-<mchehab@redhat.com> wrote:
-> I proposed the same fix sometime ago, when Gerd reported this issue
-> for me. His feedback was that this partially fixed the issue, but
-> he reported that he also needed to increase the set_power_mode delay
-> from 5 to 50 ms in order to fully initialize the cx231xx hardware,
-> as on the enclosed patch. It seems he tested with vanilla Fedora kernel.
->
-> So, I suspect that HZ may be affecting this driver as well. As you know,
-> if HZ is configured with 100, the minimum msleep() delay will be 10.
-> so, instead of waiting for 5ms, it will wait for 10ms for the device
-> to powerup.
->
-> It would be great to configure HZ with 1000 and see the differences with
-> and without Gerd's patch.
->
-> Cheers,
-> Mauro.
+From: Randy Dunlap <rdunlap@xenotime.net>
 
-I don't dispute the possibility that there is some *other* bug that
-effects users who have some other value for HZ, but neither I nor the
-other use saw it.  Without this patch though, the device is broken for
-*everybody*.
+Add HEX_STRING(value) to stringify.h so that drivers can
+convert kconfig hex values (without leading "0x") to useful
+hex constants.
 
-I would suggest checking in this patch, and separately the HZ issue
-can be investigated.
+Several drivers/media/radio/ drivers need this.  I haven't
+checked if any other drivers need to do this.
 
-I'll see if I can find some cycles today to reconfigure my kernel with
-a different HZ.  Will also check the datasheets and see if Conexant
-documented any sort of time for power ramping.  It's not uncommon for
-such documentation to include a diagram showing timing for power up.
+Alternatively, kconfig could produce hex config symbols with
+leading "0x".
 
-Devin
+Signed-off-by: Randy Dunlap <rdunlap@xenotime.net>
+---
+ include/linux/stringify.h |    7 +++++++
+ 1 file changed, 7 insertions(+)
 
--- 
-Devin J. Heitmueller - Kernel Labs
-http://www.kernellabs.com
+NOTE: The other 8 patches are on lkml and linux-media mailing lists.
+
+--- linux-next-20110707.orig/include/linux/stringify.h
++++ linux-next-20110707/include/linux/stringify.h
+@@ -9,4 +9,11 @@
+ #define __stringify_1(x...)	#x
+ #define __stringify(x...)	__stringify_1(x)
+ 
++/*
++ * HEX_STRING(value) is useful for CONFIG_ values that are in hex,
++ * but kconfig does not put a leading "0x" on them.
++ */
++#define HEXSTRINGVALUE(h, value)	h##value
++#define HEX_STRING(value)		HEXSTRINGVALUE(0x, value)
++
+ #endif	/* !__LINUX_STRINGIFY_H */
