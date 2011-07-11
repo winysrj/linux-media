@@ -1,64 +1,67 @@
 Return-path: <mchehab@localhost>
-Received: from mail-pz0-f46.google.com ([209.85.210.46]:63639 "EHLO
-	mail-pz0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754179Ab1GLTPu (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 12 Jul 2011 15:15:50 -0400
-Received: by pzk9 with SMTP id 9so4148709pzk.19
-        for <linux-media@vger.kernel.org>; Tue, 12 Jul 2011 12:15:50 -0700 (PDT)
-MIME-Version: 1.0
-Date: Tue, 12 Jul 2011 21:15:49 +0200
-Message-ID: <CAD996AykLF4Uhj1of2tRS=hkTu=5+0mbGquF1fQda8dMTmuYNg@mail.gmail.com>
-Subject: [PATCH] update the dvb-t channels for de-Berlin
-From: =?ISO-8859-1?Q?Alexander_Fut=E1sz?= <aldafu@cs.tu-berlin.de>
-To: linux-media@vger.kernel.org
-Content-Type: multipart/mixed; boundary=bcaec5314a43b633ca04a7e4205e
+Received: from mx1.redhat.com ([209.132.183.28]:13211 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756166Ab1GKB7q (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 10 Jul 2011 21:59:46 -0400
+Received: from int-mx10.intmail.prod.int.phx2.redhat.com (int-mx10.intmail.prod.int.phx2.redhat.com [10.5.11.23])
+	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id p6B1xjNp011640
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
+	for <linux-media@vger.kernel.org>; Sun, 10 Jul 2011 21:59:45 -0400
+Received: from pedra (vpn-225-29.phx2.redhat.com [10.3.225.29])
+	by int-mx10.intmail.prod.int.phx2.redhat.com (8.14.4/8.14.4) with ESMTP id p6B1xKKb030664
+	for <linux-media@vger.kernel.org>; Sun, 10 Jul 2011 21:59:45 -0400
+Date: Sun, 10 Jul 2011 22:58:57 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: [PATCH 11/21] [media] em28xx-i2c: Add a read after I2C write
+Message-ID: <20110710225857.23dff9d8@pedra>
+In-Reply-To: <cover.1310347962.git.mchehab@redhat.com>
+References: <cover.1310347962.git.mchehab@redhat.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
+To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@infradead.org>
 
---bcaec5314a43b633ca04a7e4205e
-Content-Type: text/plain; charset=ISO-8859-1
+All I2C logs we got for em28xx does that. With Terratec H5, at
+400MHz speed, it seems that this is required, to avoid having
+troubles at the I2C bus.
 
-Hi,
+Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
 
-attched is a patch which reflects the recent changes in the DVB-T
-channel offering for Berlin, Germany.
-See http://www.mabb.de/digitale-welt/dvb-t/programme.html
+diff --git a/drivers/media/video/em28xx/em28xx-i2c.c b/drivers/media/video/em28xx/em28xx-i2c.c
+index 548d2df..36f5a9b 100644
+--- a/drivers/media/video/em28xx/em28xx-i2c.c
++++ b/drivers/media/video/em28xx/em28xx-i2c.c
+@@ -181,16 +181,25 @@ static int em2800_i2c_recv_bytes(struct em28xx *dev, unsigned char addr,
+ 
+ /*
+  * em28xx_i2c_send_bytes()
+- * untested for more than 4 bytes
+  */
+ static int em28xx_i2c_send_bytes(void *data, unsigned char addr, char *buf,
+ 				 short len, int stop)
+ {
+ 	int wrcount = 0;
+ 	struct em28xx *dev = (struct em28xx *)data;
++	int write_timeout, ret;
+ 
+ 	wrcount = dev->em28xx_write_regs_req(dev, stop ? 2 : 3, addr, buf, len);
+ 
++	/* Seems to be required after a write */
++	for (write_timeout = EM2800_I2C_WRITE_TIMEOUT; write_timeout > 0;
++	     write_timeout -= 5) {
++		ret = dev->em28xx_read_reg(dev, 0x05);
++		if (!ret)
++			break;
++		msleep(5);
++	}
++
+ 	return wrcount;
+ }
+ 
+-- 
+1.7.1
 
-Cheers
 
---bcaec5314a43b633ca04a7e4205e
-Content-Type: text/x-patch; charset=US-ASCII; name="dvbt-berlin-channel-update.diff"
-Content-Disposition: attachment; filename="dvbt-berlin-channel-update.diff"
-Content-Transfer-Encoding: base64
-X-Attachment-Id: f_gq18qvnl0
-
-ZGlmZiAtciAxNDhlZGUyYTY4MDkgdXRpbC9zY2FuL2R2Yi10L2RlLUJlcmxpbgotLS0gYS91dGls
-L3NjYW4vZHZiLXQvZGUtQmVybGluCVR1ZSBKdW4gMjggMDc6NTA6MjQgMjAxMSArMDIwMAorKysg
-Yi91dGlsL3NjYW4vZHZiLXQvZGUtQmVybGluCVR1ZSBKdWwgMTIgMjE6MDg6NDMgMjAxMSArMDIw
-MApAQCAtMSwxMiArMSwxMSBAQAogIyBEVkItVCBCZXJsaW4KICMgQ3JlYXRlZCBmcm9tIGh0dHA6
-Ly93d3cudWViZXJhbGxmZXJuc2VoZW4uZGUvZGF0YS9zZW5kZXJsaXN0ZS5wZGYKICMgVCBmcmVx
-IGJ3IGZlY19oaSBmZWNfbG8gbW9kIHRyYW5zbWlzc2lvbi1tb2RlIGd1YXJkLWludGVydmFsIGhp
-ZXJhcmNoeQotVCAxNzc1MDAwMDAgN01IeiAzLzQgTk9ORSBRQU0xNiA4ayAxLzggTk9ORSAjIENI
-MDU6IFRlbGUgNSwgSFNFIDI0LCBXRFIsIFNXUiAoQlcgLyBSUCkKLVQgMTkxNTAwMDAwIDdNSHog
-Mi8zIE5PTkUgUUFNMTYgOGsgMS84IE5PTkUgIyBDSDA3OiBNRFIsIE5EUiwgYXJ0ZQogVCA1MDYw
-MDAwMDAgOE1IeiAyLzMgTk9ORSBRQU0xNiA4ayAxLzggTk9ORSAjIENIMjU6IFJUTCwgUlRMIDIs
-IFN1cGVyIFJUTCwgVk9YCiBUIDUyMjAwMDAwMCA4TUh6IDIvMyBOT05FIFFBTTE2IDhrIDEvOCBO
-T05FICMgQ0gyNzogRGFzIEVyc3RlLCBSQkIsIFBob2VuaXgsIEVpbnNFeHRyYQogVCA1NzAwMDAw
-MDAgOE1IeiAyLzMgTk9ORSBRQU0xNiA4ayAxLzQgTk9ORSAjIENIMzM6IFpERiwgM3NhdCwgS2lL
-YSAvIFpERm5lbywgWkRGaW5mb2thbmFsCi1UIDYxODAwMDAwMCA4TUh6IDIvMyBOT05FIFFBTTY0
-IDhrIDEvNCBOT05FICMgQ0gzOTogRGFzIFZpZXJ0ZSwgQmliZWwuVFYsIFFWQywgQmF5ZXJpc2No
-ZXMgRmVybnNlaGVuCitUIDYxODAwMDAwMCA4TUh6IDIvMyBOT05FIFFBTTY0IDhrIDEvNCBOT05F
-ICMgQ0gzOTogUVZDLCBEYXMgVmllcnRlLCBCaWJlbCBUViwgQmF5ZXJpc2NoZXMgRmVybnNlaGVu
-LCBuLXR2LCBDSGFubmVsMjEvRXVyb25ld3MgKyA3IFJhZGlvcHJvZ3JhbW1lCiBUIDY1ODAwMDAw
-MCA4TUh6IDIvMyBOT05FIFFBTTE2IDhrIDEvOCBOT05FICMgQ0g0NDogUHJvU2llYmVuLCBTYXQu
-MSwgS2FiZWwxLCBOMjQKLVQgNzU0MDAwMDAwIDhNSHogMi8zIE5PTkUgUUFNMTYgOGsgMS84IE5P
-TkUgIyBDSDU2OiBFdXJvc3BvcnQsIFRWLkIsIFNwb3J0MSwgOUxpdmUKLVQgNzc4MDAwMDAwIDhN
-SHogMi8zIE5PTkUgUUFNMTYgOGsgMS84IE5PTkUgIyBDSDU5OiBuLXR2LCBFdXJvTmV3cyAvIENo
-YW5uZWwgMjEgU2hvcCwgUExBQ0UyQkUgKyA4IFJhZGlvcHJvZ3JhbW1lCitUIDY4MjAwMDAwMCA4
-TUh6IDIvMyBOT05FIFFBTTE2IDhrIDEvOCBOT05FICMgQ0g0NzogTURSLCBORFIsIGFydGUKK1Qg
-NzA2MDAwMDAwIDhNSHogMi8zIE5PTkUgUUFNMTYgOGsgMS84IE5PTkUgIyBDSDUwOiBUZWxlIDUs
-IEhTRSAyNCwgV0RSLCBTV1IgKEJXIC8gUlApCitUIDc1NDAwMDAwMCA4TUh6IDIvMyBOT05FIFFB
-TTE2IDhrIDEvOCBOT05FICMgQ0g1NjogRXVyb3Nwb3J0LCBUVi5CLCBTcG9ydDEsIDlMaXZlLCBz
-aXh4Cg==
---bcaec5314a43b633ca04a7e4205e--
