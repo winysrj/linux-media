@@ -1,89 +1,55 @@
-Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-68.nebula.fi ([83.145.220.68]:42314 "EHLO
-	smtp-68.nebula.fi" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755786Ab1G2JyH (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 29 Jul 2011 05:54:07 -0400
-Date: Fri, 29 Jul 2011 12:54:03 +0300
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: linux-media@vger.kernel.org, hans.verkuil@cisco.com,
-	snjw23@gmail.com
-Subject: Re: [PATCH 2/3] v4l: events: Define frame start event
-Message-ID: <20110729095402.GO32629@valkosipuli.localdomain>
-References: <4E2F0C53.10907@iki.fi>
- <201107282236.57896.laurent.pinchart@ideasonboard.com>
- <20110729074446.GL32629@valkosipuli.localdomain>
- <201107291138.16958.laurent.pinchart@ideasonboard.com>
+Return-path: <mchehab@localhost>
+Received: from mx1.redhat.com ([209.132.183.28]:50070 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753997Ab1GKO3t (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 11 Jul 2011 10:29:49 -0400
+Message-ID: <4E1B0928.6080300@redhat.com>
+Date: Mon, 11 Jul 2011 16:31:04 +0200
+From: Hans de Goede <hdegoede@redhat.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <201107291138.16958.laurent.pinchart@ideasonboard.com>
-Sender: linux-media-owner@vger.kernel.org
+To: Hans Verkuil <hverkuil@xs4all.nl>
+CC: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: New ctrl framework also enumerates classes
+References: <4E115C4E.804@redhat.com> <201107040830.58788.hverkuil@xs4all.nl>
+In-Reply-To: <201107040830.58788.hverkuil@xs4all.nl>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
+Sender: <mchehab@infradead.org>
 
-On Fri, Jul 29, 2011 at 11:38:16AM +0200, Laurent Pinchart wrote:
-> Hi Sakari,
-> 
-> On Friday 29 July 2011 09:44:46 Sakari Ailus wrote:
-> > On Thu, Jul 28, 2011 at 10:36:57PM +0200, Laurent Pinchart wrote:
-> > > On Thursday 28 July 2011 22:28:57 Sakari Ailus wrote:
-> > > > On Thu, Jul 28, 2011 at 01:52:21PM +0200, Laurent Pinchart wrote:
-> > > > > On Tuesday 26 July 2011 20:49:43 Sakari Ailus wrote:
-> > > [snip]
-> > > 
-> > > > > > +    <table frame="none" pgwide="1" id="v4l2-event-frame-sync">
-> > > > > > +      <title>struct
-> > > > > > <structname>v4l2_event_frame_sync</structname></title> +     
-> > > > > > <tgroup cols="3">
-> > > > > > +	&cs-str;
-> > > > > > +	<tbody valign="top">
-> > > > > > +	  <row>
-> > > > > > +	    <entry>__u32</entry>
-> > > > > > +	    <entry><structfield>buffer_sequence</structfield></entry>
-> > > > > > +	    <entry>
-> > > > > > +	      The sequence number of the buffer to be handled next or
-> > > > > > +	      currently handled by the driver.
-> > > > > 
-> > > > > What happens if a particular piece of hardware can capture two (or
-> > > > > more) simultaneous streams from the same video source (an unscaled
-> > > > > compressed stream and a scaled down uncompressed stream for
-> > > > > instance) ? Applications don't need to start both streams at the
-> > > > > same time, what buffer sequence number should be reported in that
-> > > > > case ?
-> > > > 
-> > > > I think that if the video data comes from the same source, the sequence
-> > > > numbers should definitely be in sync. This would mean that for the
-> > > > second stream the first sequence number wouldn't be zero.
-> > > 
-> > > Then we should document this somewhere. Here is probably not the best
-> > > place to document that, but the buffer_sequence documentation should
-> > > still refer to the explanation.
-> > > 
-> > > I also find the wording a bit unclear. The "buffer to be handled next"
-> > > could mean the buffer that will be given to an application at the next
-> > > DQBUF call. Maybe we should refer to frame sequence numbers instead of
-> > > buffer sequence numbers.
-> > 
-> > What's the difference? I would consider the two the same.
-> 
-> If we have multiple simultaneous streams from the same source, I think it 
-> would make sense to start thinking about frame sequence numbers instead of 
-> buffer sequence numbers. The buffer sequence number would then just store the 
-> frame sequence number of the frame stored in the buffer. This would (in my 
-> opinion) simplify the spec's understanding.
+Hi,
 
-Another good point from you, I agree with this.
+On 07/04/2011 08:30 AM, Hans Verkuil wrote:
+> On Monday, July 04, 2011 08:23:10 Hans de Goede wrote:
+>> Hi All,
+>>
+>> One last thing before I really leave on vacation which just popped
+>> in my mind as something which I had not mentioned yet.
+>>
+>> The new ctrl framework also enumerates classes when enumerating
+>> ctrls with the next flag. I wonder if this is intentional?
+>
+> It's absolutely intentional. It's needed to produce the headers of the
+> tabs in e.g. qv4l2. It's been part of the spec for several years now.
+>
+>> IOW if this is a feature or a bug?
+>>
+>> Either way this confuses various userspace apps, gtk-v4l prints
+>> warnings about an unknown control type,
+>
+> It should just skip such types.
+>
+>> and v4l2ucp gets a very
+>> messed up UI because of this change. Thus unless there are
+>> really strong reasons to do this, I suggest we skip classes
+>> when enumerating controls.
+>
+> Those apps should be fixed. If apps see an unknown type, then they should
+> always just skip such controls (and later add support for it, of course).
 
-> > ..."buffer to be written next to by the hardware"?
-> 
-> What about ..."buffer that will store the image" ?
+Ok, I will fix those apps (for gtk-v4l I'm involved upstream, for v4l2ucp
+I'll fix it for Fedora and submit a patch upstream).
 
-But which image? And if there is no buffer, no image is written to it
-either.
+Regards,
 
-"frame to be processed or being processed by the hardware"?
-
--- 
-Sakari Ailus
-sakari.ailus@iki.fi
+Hans
