@@ -1,134 +1,128 @@
-Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout-de.gmx.net ([213.165.64.22]:53246 "HELO
-	mailout-de.gmx.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1751893Ab1G3OZZ convert rfc822-to-8bit (ORCPT
+Return-path: <mchehab@localhost>
+Received: from perceval.ideasonboard.com ([95.142.166.194]:49344 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754425Ab1GKKyB (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 30 Jul 2011 10:25:25 -0400
-From: Oliver Endriss <o.endriss@gmx.de>
-Reply-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-To: Rune Evjen <rune.evjen@gmail.com>
-Subject: Cine CT V6 (was: Re: [DVB] Octopus driver status)
-Date: Sat, 30 Jul 2011 16:25:00 +0200
+	Mon, 11 Jul 2011 06:54:01 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Jonathan Cameron <jic23@cam.ac.uk>
+Subject: Re: Error routes through omap3isp ccdc.
+Date: Mon, 11 Jul 2011 12:54:42 +0200
 Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
-References: <017201cc31ec$de287ce0$9a7976a0$@coexsi.fr> <201106241151.34019@orion.escape-edv.de> <CAP_oYQ5NRpGPd9Kb5YU9Xu-wtsMc+SPTkLjFjX2Q72_rF=4ODg@mail.gmail.com>
-In-Reply-To: <CAP_oYQ5NRpGPd9Kb5YU9Xu-wtsMc+SPTkLjFjX2Q72_rF=4ODg@mail.gmail.com>
+References: <4E1AD36D.4030702@cam.ac.uk>
+In-Reply-To: <4E1AD36D.4030702@cam.ac.uk>
 MIME-Version: 1.0
-Content-Type: text/plain;
+Content-Type: Text/Plain;
   charset="iso-8859-1"
-Content-Transfer-Encoding: 8BIT
-Content-Disposition: inline
-Message-Id: <201107301625.01245@orion.escape-edv.de>
-Sender: linux-media-owner@vger.kernel.org
+Content-Transfer-Encoding: 7bit
+Message-Id: <201107111254.43151.laurent.pinchart@ideasonboard.com>
 List-ID: <linux-media.vger.kernel.org>
+Sender: <mchehab@infradead.org>
 
-Hi,
+Hi Jonathan,
 
-the Cine CT V6 is very new and not yet supported,
-but the driver is under development.
+On Monday 11 July 2011 12:41:49 Jonathan Cameron wrote:
+> Hi All,
+> 
+> Came across this when my camera driver failed to load..
+> 
+> Following causes a kernel panic.
+> 
+> Set up link between cdcc and ccdc output to memory.
+> (at this point intitializing a capture gives an invalid
+> arguement error which is fine.)
+> 
+> Now set the format on ISP CCDC/0 to SGRBG10 752x480 (doubt what these
+> settings are actually matters).  Actually come to think of it, this
+> may only be relevant as otherwise, the format of my attempted stream
+> setup from userspace doesn't matter.
+> 
+> Blithely attempt to grab frames from userspace off the ccdc output.
+> (note it has no input.)
+> 
+> Null pointer exception occurs because:
+> 
+> pad = media_entity_remote_source(&ccdc->pads[CCDC_PAD_SINK]);
+> in
+> static void ccdc_configure(struct isp_ccdc_device *ccdc)
+> 
+> returns null and this is not checked.
 
-When ready, it will be added to media_build_experimental first.
-After some testing period it will be submitted to linux-media.
+Good catch, thanks.
 
-CU
-Oliver
+> Obvious local fix is to check the value of pad and allow ccdc_configure
+> to return an error + pass this up out of ccdc_set_stream.
+> 
+> Something like the following does the trick.
+> (not sure error code is right choice!)
+> 
+> Patch is against todays linux-next + a few unconnected things to make
+> that tree actually build for the beagle xm.
+> 
+> Grep isn't indicating any exactly matching cases to this problem, so
+> the rest of the tree may be fine.
+> 
+>  [PATCH] omap3isp: check if there is actually a source for ispccdc when
+>  setting up the link.
+> 
+> Without this if no source actually exists and the ccdc is configured
+> to output to memory, a read from userspace will cause a null pointer
+> exception.
 
+Thanks for the patch.
 
-On Friday 29 July 2011 16:52:19 Rune Evjen wrote:
-> Dear all,
+I think we should try to fix it in ispvideo.c instead. You could add a check 
+to isp_video_validate_pipeline() to make sure that the pipeline has a video 
+source.
+
+> Signed-off-by: Jonathan Cameron <jic23@cam.ac.uk>
+> ---
+>  drivers/media/video/omap3isp/ispccdc.c |    9 +++++++--
+>  1 files changed, 7 insertions(+), 2 deletions(-)
 > 
-> I am looking into buying the Digital Devices Cine CT V6 (product link:
-> http://shop.digital-devices.de/epages/62357162.sf/en_GB/?ObjectPath=/Shops/62357162/Products/091203)
+> diff --git a/drivers/media/video/omap3isp/ispccdc.c
+> b/drivers/media/video/omap3isp/ispccdc.c index 6766247..2703a94 100644
+> --- a/drivers/media/video/omap3isp/ispccdc.c
+> +++ b/drivers/media/video/omap3isp/ispccdc.c
+> @@ -1110,7 +1110,7 @@ static const u32 ccdc_sgbrg_pattern =
+>  	ISPCCDC_COLPTN_R_Ye  << ISPCCDC_COLPTN_CP3PLC2_SHIFT |
+>  	ISPCCDC_COLPTN_Gr_Cy << ISPCCDC_COLPTN_CP3PLC3_SHIFT;
 > 
-> Is this card including multiple dvb-c tuners supported by the ddbridge
-> (Lattice bridge) driver ?
+> -static void ccdc_configure(struct isp_ccdc_device *ccdc)
+> +static int ccdc_configure(struct isp_ccdc_device *ccdc)
+>  {
+>  	struct isp_device *isp = to_isp_device(ccdc);
+>  	struct isp_parallel_platform_data *pdata = NULL;
+> @@ -1127,6 +1127,8 @@ static void ccdc_configure(struct isp_ccdc_device
+> *ccdc) u32 ccdc_pattern;
 > 
-> Is the driver available also in git://linuxtv.org/media_build.git or
-> do I need to use
-> http://linuxtv.org/hg/~endriss/media_build_experimental ?
+>  	pad = media_entity_remote_source(&ccdc->pads[CCDC_PAD_SINK]);
+> +	if (pad == NULL)
+> +		return -ENODEV;
+>  	sensor = media_entity_to_v4l2_subdev(pad->entity);
+>  	if (ccdc->input == CCDC_INPUT_PARALLEL)
+>  		pdata = &((struct isp_v4l2_subdevs_group *)sensor->host_priv)
+> @@ -1257,6 +1259,7 @@ unlock:
+>  	spin_unlock_irqrestore(&ccdc->lsc.req_lock, flags);
 > 
-> Best regards,
+>  	ccdc_apply_controls(ccdc);
+> +	return 0;
+>  }
 > 
-> Rune Evjen
+>  static void __ccdc_enable(struct isp_ccdc_device *ccdc, int enable)
+> @@ -1726,7 +1729,9 @@ static int ccdc_set_stream(struct v4l2_subdev *sd,
+> int enable) isp_reg_set(isp, OMAP3_ISP_IOMEM_CCDC, ISPCCDC_CFG,
+>  			    ISPCCDC_CFG_VDLC);
 > 
+> -		ccdc_configure(ccdc);
+> +		ret = ccdc_configure(ccdc);
+> +		if (ret < 0)
+> +			return ret;
 > 
-> 2011/6/24 Oliver Endriss <o.endriss@gmx.de>:
-> > Hi,
-> >
-> > On Thursday 23 June 2011 23:31:08 Sébastien RAILLARD wrote:
-> >> Dear all,
-> >>
-> >> I'm looking at the Octopus DVB cards system from Digital Devices for a while
-> >> as their system seems to be very interesting
-> >>
-> >> Here is link with their products:
-> >> http://shop.digital-devices.de/epages/62357162.sf/en_GB/?ObjectPath=/Shops/6
-> >> 2357162/Categories
-> >>
-> >> The good points I have found:
-> >>
-> >> * They support most of the common DVB standards: DVB-C, DVB-T, DVB-S and
-> >> DVB-S2
-> >> * They are moderately priced
-> >> * There is a CAM support with a CI adapter for unscrambling channels
-> >> * They are using the now de-facto standard PCI-Express bus
-> >> * The new Octopus system is using a LATTICE PCI-Express bridge that seems to
-> >> be more future proof than the previous bridge Micronas APB7202A
-> >> * They seem to be well engineered ("Designed and manufactured in Germany" as
-> >> they say!)
-> >>
-> >> And now the doubts :
-> >>
-> >> * The DVB-C/T frontend driver is specific to this system and is very new, so
-> >> as Devin said one week ago, it's maybe not yet production ready
-> >> * The way the CAM is supported break all the existing userland DVB
-> >> applications (gnutv, mumudvb, vlc, etc.)
-> >> * There isn't so much information about the Digital Devices company and
-> >> their products roadmap (at least in English)
-> >>
-> >> So, my two very simple questions to the developers who worked on the drivers
-> >> (I think Oliver and Ralph did) and know the product:
-> >> * How you feel the future about the Octopus driver?
-> >
-> > The drivers work fine. I am not aware of any problems.
-> >
-> > All Digital Devices cards and tuner variants are supported by the driver
-> > http://linuxtv.org/hg/~endriss/media_build_experimental
-> >
-> > ddbridge (Lattice bridge):
-> > - Octopus (all variants)
-> > - cineS2 v6
-> > - DuoFlex S2 (stv0900 + stv6110 + lnbp21)
-> > - DuoFlex C/T (Micronas DRXK + NXP TDA18271C2)
-> >
-> > ngene bridge:
-> > - cineS2 (v4,v5), Satix S2 Dual
-> > - PCIe bridge, mini PCIe bridge
-> > - DuoFlex S2 (stv0900 + stv6110 + lnbp21)
-> > - DuoFlex C/T (Micronas DRXK + NXP TDA18271C2)
-> >
-> > For a German description, see
-> > http://www.vdr-portal.de/board16-video-disk-recorder/board85-hdtv-dvb-s2/105803-aktuelle-treiber-für-octopus-ddbridge-cines2-ngene-ddbridge-duoflex-s2-duoflex-ct-sowie-tt-s2-6400
-> >
-> > From an operational point of view, the driver is ready for the kernel.
-> > Unfortunately I did not have the time yet to clean up the coding-style.
-> > There are thousands of coding-style issues waiting to be fixed...
-> >
-> >> * Do you think a compatibility mode (like module parameter) can be added to
-> >> simulate the way the CAM is handled in the other drivers?
-> >
-> > Yes, this could be done:
-> > ++ The CI could be used with any application.
-> > -- The CI will be attached to one tuner exclusively.
-> >
-> > It is not very hard to implement this.
-> > Patches are welcome. ;-)
-> >
-> > CU
-> > Oliver
+>  		/* TODO: Don't configure the video port if all of its output
+>  		 * links are inactive.
 
 -- 
-----------------------------------------------------------------
-VDR Remote Plugin 0.4.0: http://www.escape-edv.de/endriss/vdr/
-4 MByte Mod: http://www.escape-edv.de/endriss/dvb-mem-mod/
-Full-TS Mod: http://www.escape-edv.de/endriss/dvb-full-ts-mod/
-----------------------------------------------------------------
+Regards,
+
+Laurent Pinchart
