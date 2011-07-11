@@ -1,65 +1,55 @@
-Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp2.mail.ru ([94.100.176.130]:54449 "EHLO smtp2.mail.ru"
+Return-path: <mchehab@localhost>
+Received: from mx1.redhat.com ([209.132.183.28]:13354 "EHLO mx1.redhat.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751586Ab1GMVQm (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 13 Jul 2011 17:16:42 -0400
-Message-ID: <4E1E0A1D.6000604@list.ru>
-Date: Thu, 14 Jul 2011 01:11:57 +0400
-From: Stas Sergeev <stsp@list.ru>
-MIME-Version: 1.0
-To: Mauro Carvalho Chehab <mchehab@infradead.org>
-CC: linux-media@vger.kernel.org,
-	"Nickolay V. Shmyrev" <nshmyrev@yandex.ru>,
-	Devin Heitmueller <dheitmueller@kernellabs.com>
-Subject: Re: [patch][saa7134] do not change mute state for capturing audio
-References: <4E19D2F7.6060803@list.ru> <4E1E05AC.2070002@infradead.org>
-In-Reply-To: <4E1E05AC.2070002@infradead.org>
-Content-Type: text/plain; charset=UTF-8; format=flowed
+	id S1756664Ab1GKCAC (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 10 Jul 2011 22:00:02 -0400
+Received: from int-mx10.intmail.prod.int.phx2.redhat.com (int-mx10.intmail.prod.int.phx2.redhat.com [10.5.11.23])
+	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id p6B2028d018193
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
+	for <linux-media@vger.kernel.org>; Sun, 10 Jul 2011 22:00:02 -0400
+Received: from pedra (vpn-225-29.phx2.redhat.com [10.3.225.29])
+	by int-mx10.intmail.prod.int.phx2.redhat.com (8.14.4/8.14.4) with ESMTP id p6B1xKKh030664
+	for <linux-media@vger.kernel.org>; Sun, 10 Jul 2011 22:00:01 -0400
+Date: Sun, 10 Jul 2011 22:59:03 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: [PATCH 18/21] [media] drxk: Fix driver removal
+Message-ID: <20110710225903.2e34373b@pedra>
+In-Reply-To: <cover.1310347962.git.mchehab@redhat.com>
+References: <cover.1310347962.git.mchehab@redhat.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
-Sender: linux-media-owner@vger.kernel.org
+To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
 List-ID: <linux-media.vger.kernel.org>
+Sender: <mchehab@infradead.org>
 
-14.07.2011 00:53, Mauro Carvalho Chehab wrote:
->> When pulseaudio enables the audio capturing, the
->> driver unmutes the sound. But, if no app have properly
->> tuned the tuner yet, you get the white noise.
->> I think the capturing must not touch the mute state,
->> because, without tuning the tuner first, you can't capture
->> anything anyway.
->> Without this patch I am getting the white noise on every
->> xorg/pulseaudio startup, which made me to always think
->> that pulseaudio is a joke and will soon be removed. :)
-> Nack. We shouldn't patch a kernel driver due to an userspace bad behavior.
-But I really think that the driver behaves badly here.
-Suppose we had 2 separate mute switches: the input
-mute, that mutes the signal as it just enters the saa
-chip, and the output mute, that mutes only the output
-of the tuner card, that is connected to the sound card's
-line input.
-With that configuration, we'd allow the alsa driver to
-unmute only the input switch, so that it can record, but
-leave the output switch still muted, so that the sound
-not to come to the sound card directly.
-Now that we don't have the output mute switch, we
-allow the alsa driver to unmute not only the recording
-that it may need, but also the sound output that goes
-to the sound card! IMHO, this is the entirely unwanted
-side effect, so I blame the saa driver, and not the pulseaudio.
+Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
 
-There are also other things to consider:
-1. You can't record anything (except for the white noise)
-before some xawtv sets up everything. So what is the
-use-case of the current (mis)behaveur?
-2. The alsa driver, trying to manage the mute state on
-its own, badly interwinds with the mute state of the
-(xawtv) program. 2 programs cannot control the same
-mute state for good, and of course the xawtv must have
-the preference, as the alsa driver have no slightest
-idea about the card's state.
-3. The problem is very severe. Hearing the loud white
-noise on every startup is not something the human can
-easily tolerate. So deferring it for the unknown period
-is simply not very productive.
+diff --git a/drivers/media/dvb/frontends/drxk_hard.c b/drivers/media/dvb/frontends/drxk_hard.c
+index aaef8e3..7ea73df 100644
+--- a/drivers/media/dvb/frontends/drxk_hard.c
++++ b/drivers/media/dvb/frontends/drxk_hard.c
+@@ -6431,6 +6431,18 @@ struct dvb_frontend *drxk_attach(const struct drxk_config *config,
+ 	if (init_drxk(state) < 0)
+ 		goto error;
+ 	*fe_t = &state->t_frontend;
++
++#ifdef CONFIG_MEDIA_ATTACH
++	/*
++	 * HACK: As this function initializes both DVB-T and DVB-C fe symbols,
++	 * and calling it twice would create the state twice, leading into
++	 * memory leaks, the right way is to call it only once. However, dvb
++	 * release functions will call symbol_put twice. So, the solution is to
++	 * artificially increment the usage count, in order to allow the
++	 * driver to be released.
++	 */
++	symbol_get(drxk_attach);
++#endif
+ 	return &state->c_frontend;
+ 
+ error:
+-- 
+1.7.1
 
-Can you please name a few downsides of the approach
-I proposed?
+
