@@ -1,93 +1,232 @@
-Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:5652 "EHLO mx1.redhat.com"
+Return-path: <mchehab@localhost>
+Received: from mx1.redhat.com ([209.132.183.28]:36099 "EHLO mx1.redhat.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752899Ab1GRQrD (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 18 Jul 2011 12:47:03 -0400
-From: Jarod Wilson <jarod@redhat.com>
-To: linux-media@vger.kernel.org
-Cc: Jarod Wilson <jarod@redhat.com>,
-	Andy Walls <awalls@md.metrocast.net>,
-	Chris W <lkml@psychogeeks.com>,
-	Randy Dunlap <rdunlap@xenotime.net>,
-	linux-kernel@vger.kernel.org
-Subject: [PATCH] [media] imon: don't submit urb before rc_dev set up
-Date: Mon, 18 Jul 2011 12:46:49 -0400
-Message-Id: <1311007609-28210-1-git-send-email-jarod@redhat.com>
-In-Reply-To: <A91CBD95-B2AF-4F43-8BEC-6C8007ABB33C@wilsonet.com>
-References: <A91CBD95-B2AF-4F43-8BEC-6C8007ABB33C@wilsonet.com>
-Sender: linux-media-owner@vger.kernel.org
+	id S1756822Ab1GKCAG (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 10 Jul 2011 22:00:06 -0400
+Received: from int-mx10.intmail.prod.int.phx2.redhat.com (int-mx10.intmail.prod.int.phx2.redhat.com [10.5.11.23])
+	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id p6B205NG018207
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
+	for <linux-media@vger.kernel.org>; Sun, 10 Jul 2011 22:00:05 -0400
+Received: from pedra (vpn-225-29.phx2.redhat.com [10.3.225.29])
+	by int-mx10.intmail.prod.int.phx2.redhat.com (8.14.4/8.14.4) with ESMTP id p6B1xKKj030664
+	for <linux-media@vger.kernel.org>; Sun, 10 Jul 2011 22:00:04 -0400
+Date: Sun, 10 Jul 2011 22:59:05 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: [PATCH 19/21] [media] drxk: Simplify the DVB-C set mode logic
+Message-ID: <20110710225905.5d1e021b@pedra>
+In-Reply-To: <cover.1310347962.git.mchehab@redhat.com>
+References: <cover.1310347962.git.mchehab@redhat.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
+To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
 List-ID: <linux-media.vger.kernel.org>
+Sender: <mchehab@infradead.org>
 
-The interface 0 urb callback was being wired up before the rc_dev device
-was allocated, meaning the callback could be called with a null rc_dev,
-leading to an oops. This likely only ever happens on the older 0xffdc
-SoundGraph devices, which continually trigger interrupts even when they
-have no valid keydata, and the window in which it could happen is small,
-but its actually happening regularly for at least one user, and its an
-obvious fix. Compile and sanity-tested with one of my own imon devices.
+Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
 
-CC: Andy Walls <awalls@md.metrocast.net>
-CC: Chris W <lkml@psychogeeks.com>
-CC: Randy Dunlap <rdunlap@xenotime.net>
-CC: linux-kernel@vger.kernel.org
-Reported-by: Chris W <lkml@psychogeeks.com>
-Signed-off-by: Jarod Wilson <jarod@redhat.com>
----
- drivers/media/rc/imon.c |   28 ++++++++++++++--------------
- 1 files changed, 14 insertions(+), 14 deletions(-)
-
-diff --git a/drivers/media/rc/imon.c b/drivers/media/rc/imon.c
-index caa3e3a..26238f5 100644
---- a/drivers/media/rc/imon.c
-+++ b/drivers/media/rc/imon.c
-@@ -2132,6 +2132,18 @@ static struct imon_context *imon_init_intf0(struct usb_interface *intf)
- 		goto find_endpoint_failed;
- 	}
+diff --git a/drivers/media/dvb/frontends/drxk_hard.c b/drivers/media/dvb/frontends/drxk_hard.c
+index 7ea73df..bb8627f 100644
+--- a/drivers/media/dvb/frontends/drxk_hard.c
++++ b/drivers/media/dvb/frontends/drxk_hard.c
+@@ -1806,57 +1806,59 @@ static int SetOperationMode(struct drxk_state *state,
+ 	if (status < 0)
+ 		goto error;
  
-+	ictx->idev = imon_init_idev(ictx);
-+	if (!ictx->idev) {
-+		dev_err(dev, "%s: input device setup failed\n", __func__);
-+		goto idev_setup_failed;
-+	}
+-	if (state->m_OperationMode != oMode) {
+-		switch (state->m_OperationMode) {
+-			/* OM_NONE was added for start up */
+-		case OM_NONE:
+-			break;
+-		case OM_DVBT:
+-			status = MPEGTSStop(state);
+-			if (status < 0)
+-				goto error;
+-			status = PowerDownDVBT(state, true);
+-			if (status < 0)
+-				goto error;
+-			state->m_OperationMode = OM_NONE;
+-			break;
+-		case OM_QAM_ITU_A:	/* fallthrough */
+-		case OM_QAM_ITU_C:
+-			status = MPEGTSStop(state);
+-			if (status < 0)
+-				goto error;
+-			status = PowerDownQAM(state);
+-			if (status < 0)
+-				goto error;
+-			state->m_OperationMode = OM_NONE;
+-			break;
+-		case OM_QAM_ITU_B:
+-		default:
+-			status = -EINVAL;
++	/* Device is already at the required mode */
++	if (state->m_OperationMode == oMode)
++		return 0;
 +
-+	ictx->rdev = imon_init_rdev(ictx);
-+	if (!ictx->rdev) {
-+		dev_err(dev, "%s: rc device setup failed\n", __func__);
-+		goto rdev_setup_failed;
++	switch (state->m_OperationMode) {
++		/* OM_NONE was added for start up */
++	case OM_NONE:
++		break;
++	case OM_DVBT:
++		status = MPEGTSStop(state);
++		if (status < 0)
++			goto error;
++		status = PowerDownDVBT(state, true);
++		if (status < 0)
++			goto error;
++		state->m_OperationMode = OM_NONE;
++		break;
++	case OM_QAM_ITU_A:	/* fallthrough */
++	case OM_QAM_ITU_C:
++		status = MPEGTSStop(state);
++		if (status < 0)
+ 			goto error;
+-		}
++		status = PowerDownQAM(state);
++		if (status < 0)
++			goto error;
++		state->m_OperationMode = OM_NONE;
++		break;
++	case OM_QAM_ITU_B:
++	default:
++		status = -EINVAL;
++		goto error;
 +	}
-+
- 	usb_fill_int_urb(ictx->rx_urb_intf0, ictx->usbdev_intf0,
- 		usb_rcvintpipe(ictx->usbdev_intf0,
- 			ictx->rx_endpoint_intf0->bEndpointAddress),
-@@ -2145,26 +2157,14 @@ static struct imon_context *imon_init_intf0(struct usb_interface *intf)
- 		goto urb_submit_failed;
+ 
+-		/*
+-			Power up new standard
+-			*/
+-		switch (oMode) {
+-		case OM_DVBT:
+-			state->m_OperationMode = oMode;
+-			status = SetDVBTStandard(state, oMode);
+-			if (status < 0)
+-				goto error;
+-			break;
+-		case OM_QAM_ITU_A:	/* fallthrough */
+-		case OM_QAM_ITU_C:
+-			state->m_OperationMode = oMode;
+-			status = SetQAMStandard(state, oMode);
+-			if (status < 0)
+-				goto error;
+-			break;
+-		case OM_QAM_ITU_B:
+-		default:
+-			status = -EINVAL;
+-		}
++	/*
++		Power up new standard
++		*/
++	switch (oMode) {
++	case OM_DVBT:
++		state->m_OperationMode = oMode;
++		status = SetDVBTStandard(state, oMode);
++		if (status < 0)
++			goto error;
++		break;
++	case OM_QAM_ITU_A:	/* fallthrough */
++	case OM_QAM_ITU_C:
++		state->m_OperationMode = oMode;
++		status = SetQAMStandard(state, oMode);
++		if (status < 0)
++			goto error;
++		break;
++	case OM_QAM_ITU_B:
++	default:
++		status = -EINVAL;
  	}
+ error:
+ 	if (status < 0)
+@@ -3086,35 +3088,28 @@ static int InitAGC(struct drxk_state *state, bool isDTV)
+ 	clpCyclen = 500;
+ 	clpSumMax = 1023;
  
--	ictx->idev = imon_init_idev(ictx);
--	if (!ictx->idev) {
--		dev_err(dev, "%s: input device setup failed\n", __func__);
--		goto idev_setup_failed;
+-	if (IsQAM(state)) {
+-		/* Standard specific settings */
+-		clpSumMin = 8;
+-		clpDirTo = (u16) -9;
+-		clpCtrlMode = 0;
+-		snsSumMin = 8;
+-		snsDirTo = (u16) -9;
+-		kiInnergainMin = (u16) -1030;
+-	} else {
+-		status = -EINVAL;
+-		goto error;
 -	}
--
--	ictx->rdev = imon_init_rdev(ictx);
--	if (!ictx->rdev) {
--		dev_err(dev, "%s: rc device setup failed\n", __func__);
--		goto rdev_setup_failed;
+-	if (IsQAM(state)) {
+-		ifIaccuHiTgtMax = 0x2380;
+-		ifIaccuHiTgt = 0x2380;
+-		ingainTgtMin = 0x0511;
+-		ingainTgt = 0x0511;
+-		ingainTgtMax = 5119;
+-		fastClpCtrlDelay =
+-			state->m_qamIfAgcCfg.FastClipCtrlDelay;
+-	} else {
+-		ifIaccuHiTgtMax = 0x1200;
+-		ifIaccuHiTgt = 0x1200;
+-		ingainTgtMin = 13424;
+-		ingainTgt = 13424;
+-		ingainTgtMax = 30000;
+-		fastClpCtrlDelay =
+-			state->m_dvbtIfAgcCfg.FastClipCtrlDelay;
++	/* AGCInit() not available for DVBT; init done in microcode */
++	if (!IsQAM(state)) {
++		printk(KERN_ERR "drxk: %s: mode %d is not DVB-C\n", __func__, state->m_OperationMode);
++		return -EINVAL;
+ 	}
++
++	/* FIXME: Analog TV AGC require different settings */
++
++	/* Standard specific settings */
++	clpSumMin = 8;
++	clpDirTo = (u16) -9;
++	clpCtrlMode = 0;
++	snsSumMin = 8;
++	snsDirTo = (u16) -9;
++	kiInnergainMin = (u16) -1030;
++	ifIaccuHiTgtMax = 0x2380;
++	ifIaccuHiTgt = 0x2380;
++	ingainTgtMin = 0x0511;
++	ingainTgt = 0x0511;
++	ingainTgtMax = 5119;
++	fastClpCtrlDelay = state->m_qamIfAgcCfg.FastClipCtrlDelay;
++
+ 	status = write16(state, SCU_RAM_AGC_FAST_CLP_CTRL_DELAY__A, fastClpCtrlDelay);
+ 	if (status < 0)
+ 		goto error;
+@@ -3238,13 +3233,13 @@ static int InitAGC(struct drxk_state *state, bool isDTV)
+ 	status = read16(state, SCU_RAM_AGC_KI__A, &data);
+ 	if (status < 0)
+ 		goto error;
+-	if (IsQAM(state)) {
+-		data = 0x0657;
+-		data &= ~SCU_RAM_AGC_KI_RF__M;
+-		data |= (DRXK_KI_RAGC_QAM << SCU_RAM_AGC_KI_RF__B);
+-		data &= ~SCU_RAM_AGC_KI_IF__M;
+-		data |= (DRXK_KI_IAGC_QAM << SCU_RAM_AGC_KI_IF__B);
 -	}
--
- 	mutex_unlock(&ictx->lock);
- 	return ictx;
++
++	data = 0x0657;
++	data &= ~SCU_RAM_AGC_KI_RF__M;
++	data |= (DRXK_KI_RAGC_QAM << SCU_RAM_AGC_KI_RF__B);
++	data &= ~SCU_RAM_AGC_KI_IF__M;
++	data |= (DRXK_KI_IAGC_QAM << SCU_RAM_AGC_KI_IF__B);
++
+ 	status = write16(state, SCU_RAM_AGC_KI__A, data);
+ error:
+ 	if (status < 0)
+@@ -5627,6 +5622,8 @@ static int SetQAMStandard(struct drxk_state *state,
+ #undef DRXK_QAMA_TAPS_SELECT
+ #endif
  
-+urb_submit_failed:
-+	rc_unregister_device(ictx->rdev);
- rdev_setup_failed:
- 	input_unregister_device(ictx->idev);
- idev_setup_failed:
--	usb_kill_urb(ictx->rx_urb_intf0);
--urb_submit_failed:
- find_endpoint_failed:
- 	mutex_unlock(&ictx->lock);
- 	usb_free_urb(tx_urb);
++	dprintk(1, "\n");
++
+ 	/* added antenna switch */
+ 	SwitchAntennaToQAM(state);
+ 
 -- 
 1.7.1
+
 
