@@ -1,53 +1,165 @@
-Return-path: <linux-media-owner@vger.kernel.org>
-Received: from casper.infradead.org ([85.118.1.10]:51101 "EHLO
-	casper.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752928Ab1GWPJI (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 23 Jul 2011 11:09:08 -0400
-Message-ID: <4E2AE40F.7030108@infradead.org>
-Date: Sat, 23 Jul 2011 12:09:03 -0300
-From: Mauro Carvalho Chehab <mchehab@infradead.org>
-MIME-Version: 1.0
-To: Stas Sergeev <stsp@list.ru>
-CC: linux-media@vger.kernel.org
-Subject: Re: [patch][saa7134] do not change mute state for capturing audio
-References: <4E19D2F7.6060803@list.ru> <4E1E1571.6010400@infradead.org> <4E1E8108.3060305@list.ru> <4E1F9A25.1020208@infradead.org> <4E22AF12.4020600@list.ru> <4E22CCC0.8030803@infradead.org> <4E24BEB8.4060501@redhat.com> <4E257FF5.4040401@infradead.org> <4E258B60.6010007@list.ru> <4E25906D.3020200@infradead.org> <4E259B0C.90107@list.ru> <4E25A26A.2000204@infradead.org> <4E25A7C2.3050609@list.ru> <4E25C7AE.5020503@infradead.org> <4E25CF35.7000802@list.ru> <4E25DB37.8020609@infradead.org> <4E25FDE4.7040805@list.ru> <4E262772.9060509@infradead.org> <4E266799.8030706@list.ru> <4E26AEC0.5000405@infradead.org> <4E26B1E7.2080107@list.ru> <4E26B29B.4010109@infradead.org> <4E292BED.60108@list.ru> <4E296D00.9040608@infradead.org> <4E296F6C.9080107@list.ru> <4E2971D4.1060109@infradead.org> <4E29738F.7040605@list.ru> <4E297505.7090307@infradead.org> <4E29E02A.1020402@list.ru> <4E2A23C7.3040209@infradead.org> <4E2A7BF0.8080606@list.ru> <4E2AC742.8020407@infradead.org> <4E2ACAAD.4050602@list.ru>
-In-Reply-To: <4E2ACAAD.4050602@list.ru>
-Content-Type: text/plain; charset=UTF-8
+Return-path: <mchehab@localhost>
+Received: from mx1.redhat.com ([209.132.183.28]:49027 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756664Ab1GKB74 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 10 Jul 2011 21:59:56 -0400
+Received: from int-mx10.intmail.prod.int.phx2.redhat.com (int-mx10.intmail.prod.int.phx2.redhat.com [10.5.11.23])
+	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id p6B1xuSh023478
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
+	for <linux-media@vger.kernel.org>; Sun, 10 Jul 2011 21:59:56 -0400
+Received: from pedra (vpn-225-29.phx2.redhat.com [10.3.225.29])
+	by int-mx10.intmail.prod.int.phx2.redhat.com (8.14.4/8.14.4) with ESMTP id p6B1xKKe030664
+	for <linux-media@vger.kernel.org>; Sun, 10 Jul 2011 21:59:55 -0400
+Date: Sun, 10 Jul 2011 22:59:01 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: [PATCH 15/21] [media] drxk: Fix the antenna switch logic
+Message-ID: <20110710225901.446e2f7d@pedra>
+In-Reply-To: <cover.1310347962.git.mchehab@redhat.com>
+References: <cover.1310347962.git.mchehab@redhat.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
-Sender: linux-media-owner@vger.kernel.org
+To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
 List-ID: <linux-media.vger.kernel.org>
+Sender: <mchehab@infradead.org>
 
-Em 23-07-2011 10:20, Stas Sergeev escreveu:
-> 23.07.2011 17:06, Mauro Carvalho Chehab wrote:
->>> I would suggest fixing all such an apps, even if we
->>> are not going to change that in the driver.
->> If application needs to change due to a patch, this is a
->> regression,
-> I said "even if we are not going to change that in the
-> driver", which, imho, removes any ambiguity from my
-> phrase.
-> 
->>> But how can scantv (or anything else) rely on the
->>> fact that the board was muted when that app starts?
->>> I guess it can't, and mutes it explicitly first, no?
->> Even if it mutes, every time a channel is changed, it
->> will be unmuted, if you put such unmute logic at
->> VIDIOC_S_FREQUENCY.
-> As I said, I propose the automute state to be a separate,
-> _third_ state. mute/unmute/automute.
-> Automute state is only set initially, but if the app
-> explicitly sets any other state, it is no longer affected.
-> Since an app can't rely on the state before it was
-> started, it should set the mute state explicitly first.
-> In this case, it will not be autounmuted after tuning.
+Terratec H5 doesn't require to switch mode, but generates
+an error due to this logic. Also, GPIO's are board-dependent.
 
-Hard to tell about your solution without seeing a patch.
+So, add it at the board config struct.
 
-Not sure if this will be consistent, especially if PA
-restarts for whatever reason (X restart? manual restart?).
+Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
 
-Anyway, we're discussing a lot for a kernel fix for PA,
-while the right thing to do is to fix PA itself.
+diff --git a/drivers/media/dvb/frontends/drxk.h b/drivers/media/dvb/frontends/drxk.h
+index 9c99f31..67589b6 100644
+--- a/drivers/media/dvb/frontends/drxk.h
++++ b/drivers/media/dvb/frontends/drxk.h
+@@ -4,10 +4,25 @@
+ #include <linux/types.h>
+ #include <linux/i2c.h>
+ 
++/**
++ * struct drxk_config - Configure the initial parameters for DRX-K
++ *
++ * adr:			I2C Address of the DRX-K
++ * single_master:	Device is on the single master mode
++ * no_i2c_bridge:	Don't switch the I2C bridge to talk with tuner
++ * antenna_uses_gpio:	Use GPIO to control the antenna
++ * antenna_dvbc:	GPIO for changing antenna to DVB-C
++ * antenna_dvbt:	GPIO for changing antenna to DVB-T
++ * microcode_name:	Name of the firmware file with the microcode
++ */
+ struct drxk_config {
+-	u8 adr;
+-	u32 single_master : 1;
+-	u32 no_i2c_bridge : 1;
++	u8	adr;
++	bool	single_master;
++	bool	no_i2c_bridge;
++
++	bool	antenna_uses_gpio;
++	u16	antenna_dvbc, antenna_dvbt;
++
+ 	const char *microcode_name;
+ };
+ 
+diff --git a/drivers/media/dvb/frontends/drxk_hard.c b/drivers/media/dvb/frontends/drxk_hard.c
+index 1d29ed2..91f3296 100644
+--- a/drivers/media/dvb/frontends/drxk_hard.c
++++ b/drivers/media/dvb/frontends/drxk_hard.c
+@@ -618,6 +618,10 @@ error:
+ 
+ static int init_state(struct drxk_state *state)
+ {
++	/*
++	 * FIXME: most (all?) of the values bellow should be moved into
++	 * struct drxk_config, as they are probably board-specific
++	 */
+ 	u32 ulVSBIfAgcMode = DRXK_AGC_CTRL_AUTO;
+ 	u32 ulVSBIfAgcOutputLevel = 0;
+ 	u32 ulVSBIfAgcMinLevel = 0;
+@@ -672,10 +676,6 @@ static int init_state(struct drxk_state *state)
+ 	u32 ulRfMirror = 1;
+ 	u32 ulPowerDown = 0;
+ 
+-	u32 ulAntennaDVBT = 1;
+-	u32 ulAntennaDVBC = 0;
+-	u32 ulAntennaSwitchDVBTDVBC = 0;
+-
+ 	dprintk(1, "\n");
+ 
+ 	state->m_hasLNA = false;
+@@ -858,11 +858,6 @@ static int init_state(struct drxk_state *state)
+ 	state->m_GPIOCfg = (ulGPIOCfg);
+ 	state->m_GPIO = (ulGPIO == 0 ? 0 : 1);
+ 
+-	state->m_AntennaDVBT = (ulAntennaDVBT == 0 ? 0 : 1);
+-	state->m_AntennaDVBC = (ulAntennaDVBC == 0 ? 0 : 1);
+-	state->m_AntennaSwitchDVBTDVBC =
+-	    (ulAntennaSwitchDVBTDVBC == 0 ? 0 : 1);
+-
+ 	state->m_bPowerDown = false;
+ 	state->m_currentPowerMode = DRX_POWER_DOWN;
+ 
+@@ -5819,9 +5814,10 @@ error:
+ 
+ static int SwitchAntennaToQAM(struct drxk_state *state)
+ {
+-	int status = -EINVAL;
++	int status = 0;
+ 
+ 	dprintk(1, "\n");
++
+ 	if (state->m_AntennaSwitchDVBTDVBC != 0) {
+ 		if (state->m_GPIO != state->m_AntennaDVBC) {
+ 			state->m_GPIO = state->m_AntennaDVBC;
+@@ -5835,7 +5831,7 @@ static int SwitchAntennaToQAM(struct drxk_state *state)
+ 
+ static int SwitchAntennaToDVBT(struct drxk_state *state)
+ {
+-	int status = -EINVAL;
++	int status = 0;
+ 
+ 	dprintk(1, "\n");
+ 	if (state->m_AntennaSwitchDVBTDVBC != 0) {
+@@ -6344,6 +6340,9 @@ struct dvb_frontend *drxk_attach(const struct drxk_config *config,
+ 	state->single_master = config->single_master;
+ 	state->microcode_name = config->microcode_name;
+ 	state->no_i2c_bridge = config->no_i2c_bridge;
++	state->m_AntennaSwitchDVBTDVBC = config->antenna_uses_gpio;
++	state->m_AntennaDVBC = config->antenna_dvbc;
++	state->m_AntennaDVBT = config->antenna_dvbt;
+ 
+ 	mutex_init(&state->mutex);
+ 	mutex_init(&state->ctlock);
+diff --git a/drivers/media/dvb/frontends/drxk_hard.h b/drivers/media/dvb/frontends/drxk_hard.h
+index b042755..8b29dc8 100644
+--- a/drivers/media/dvb/frontends/drxk_hard.h
++++ b/drivers/media/dvb/frontends/drxk_hard.h
+@@ -321,16 +321,17 @@ struct drxk_state {
+ 	u8                m_deviceSpin;
+ 	u32               m_iqmRcRate;
+ 
+-	u16               m_AntennaDVBC;
+-	u16               m_AntennaDVBT;
+-	u16               m_AntennaSwitchDVBTDVBC;
+-
+ 	enum DRXPowerMode m_currentPowerMode;
+ 
+ 	/* Configurable parameters at the driver */
+ 
++	bool              m_AntennaSwitchDVBTDVBC;
++	u16               m_AntennaDVBC;
++	u16               m_AntennaDVBT;
++
+ 	u32 single_master : 1;		/* Use single master i2c mode */
+ 	u32 no_i2c_bridge : 1;		/* Tuner is not on port 1, don't use I2C bridge */
++
+ 	const char *microcode_name;
+ 
+ };
+-- 
+1.7.1
 
-Mauro.
+
