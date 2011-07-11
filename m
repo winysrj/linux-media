@@ -1,169 +1,250 @@
-Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:45029 "EHLO mx1.redhat.com"
+Return-path: <mchehab@localhost>
+Received: from mx1.redhat.com ([209.132.183.28]:7032 "EHLO mx1.redhat.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752120Ab1GMV0Z (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 13 Jul 2011 17:26:25 -0400
-From: Jarod Wilson <jarod@redhat.com>
-To: linux-media@vger.kernel.org
-Cc: Jarod Wilson <jarod@redhat.com>, Chris Dodge <chris@redrat.co.uk>,
-	Andrew Vincer <andrew.vincer@redrat.co.uk>,
-	Stephen Cox <scox_nz@yahoo.com>
-Subject: [PATCH 3/3] [media] redrat3: improve compat with lirc userspace decode
-Date: Wed, 13 Jul 2011 17:26:07 -0400
-Message-Id: <1310592367-11501-4-git-send-email-jarod@redhat.com>
-In-Reply-To: <1310592367-11501-1-git-send-email-jarod@redhat.com>
-References: <1310592367-11501-1-git-send-email-jarod@redhat.com>
-Sender: linux-media-owner@vger.kernel.org
+	id S1755753Ab1GKB72 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 10 Jul 2011 21:59:28 -0400
+Received: from int-mx10.intmail.prod.int.phx2.redhat.com (int-mx10.intmail.prod.int.phx2.redhat.com [10.5.11.23])
+	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id p6B1xRS1018096
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
+	for <linux-media@vger.kernel.org>; Sun, 10 Jul 2011 21:59:27 -0400
+Received: from pedra (vpn-225-29.phx2.redhat.com [10.3.225.29])
+	by int-mx10.intmail.prod.int.phx2.redhat.com (8.14.4/8.14.4) with ESMTP id p6B1xKKS030664
+	for <linux-media@vger.kernel.org>; Sun, 10 Jul 2011 21:59:27 -0400
+Date: Sun, 10 Jul 2011 22:58:48 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: [PATCH 01/21] [media] drxk: add drxk prefix to the errors
+Message-ID: <20110710225848.3135c47f@pedra>
+In-Reply-To: <cover.1310347962.git.mchehab@redhat.com>
+References: <cover.1310347962.git.mchehab@redhat.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
+To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
 List-ID: <linux-media.vger.kernel.org>
+Sender: <mchehab@infradead.org>
 
-This is admittedly a bit of a hack, but if we change our timeout value
-to something longer and fudge our synthesized trailing space sample
-based on the initial pulse sample, rc-core decode continues to work just
-fine with both rc-6 and rc-5, and now lirc userspace decode shows proper
-repeats for both of those protocols as well. Also tested NEC
-successfully with both decode options.
+It is hard to identify the origin for those errors without a
+prefix to indicate which driver produced them:
 
-We do still need a reset timer callback using the hardware's timeout
-value to make sure we actually process samples correctly, regardless of
-our somewhat hacky timeout and synthesized trailer above.
+[ 1390.220984] i2c_write error
+[ 1390.224133] I2C Write error
+[ 1391.284202] i2c_read error
+[ 1392.288685] i2c_read error
 
-This also adds a missing del_timer_sync call to the module unload path.
+Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
 
-CC: Chris Dodge <chris@redrat.co.uk>
-CC: Andrew Vincer <andrew.vincer@redrat.co.uk>
-CC: Stephen Cox <scox_nz@yahoo.com>
-Signed-off-by: Jarod Wilson <jarod@redhat.com>
----
- drivers/media/rc/redrat3.c |   43 ++++++++++++++++++++++++-------------------
- 1 files changed, 24 insertions(+), 19 deletions(-)
-
-diff --git a/drivers/media/rc/redrat3.c b/drivers/media/rc/redrat3.c
-index 5312e34..5fc2f05 100644
---- a/drivers/media/rc/redrat3.c
-+++ b/drivers/media/rc/redrat3.c
-@@ -205,6 +205,7 @@ struct redrat3_dev {
+diff --git a/drivers/media/dvb/frontends/drxk_hard.c b/drivers/media/dvb/frontends/drxk_hard.c
+index 24f9897..f550332 100644
+--- a/drivers/media/dvb/frontends/drxk_hard.c
++++ b/drivers/media/dvb/frontends/drxk_hard.c
+@@ -317,7 +317,7 @@ static int i2c_write(struct i2c_adapter *adap, u8 adr, u8 *data, int len)
+ 	    .addr = adr, .flags = 0, .buf = data, .len = len };
  
- 	/* rx signal timeout timer */
- 	struct timer_list rx_timeout;
-+	u32 hw_timeout;
+ 	if (i2c_transfer(adap, &msg, 1) != 1) {
+-		printk(KERN_ERR "i2c_write error\n");
++		printk(KERN_ERR "drxk: i2c write error at addr 0x%02x\n", adr);
+ 		return -1;
+ 	}
+ 	return 0;
+@@ -332,7 +332,7 @@ static int i2c_read(struct i2c_adapter *adap,
+ 	 .buf = answ, .len = alen}
+ 	};
+ 	if (i2c_transfer(adap, msgs, 2) != 2) {
+-		printk(KERN_ERR "i2c_read error\n");
++		printk(KERN_ERR "drxk: i2c read error at addr 0x%02x\n", adr);
+ 		return -1;
+ 	}
+ 	return 0;
+@@ -479,7 +479,8 @@ static int WriteBlock(struct drxk_state *state, u32 Address,
+ 		status = i2c_write(state->i2c, state->demod_address,
+ 				   &state->Chunk[0], Chunk + AdrLength);
+ 		if (status < 0) {
+-			printk(KERN_ERR "I2C Write error\n");
++			printk(KERN_ERR "drxk: %s: i2c write error at addr 0x%02x\n",
++			       __func__, Address);
+ 			break;
+ 		}
+ 		pBlock += Chunk;
+@@ -505,7 +506,7 @@ int PowerUpDevice(struct drxk_state *state)
+ 			data = 0;
+ 			if (i2c_write(state->i2c,
+ 				      state->demod_address, &data, 1) < 0)
+-				printk(KERN_ERR "powerup failed\n");
++				printk(KERN_ERR "drxk: powerup failed\n");
+ 			msleep(10);
+ 			retryCount++;
+ 		} while (i2c_read1(state->i2c,
+@@ -989,7 +990,7 @@ static int GetDeviceCapabilities(struct drxk_state *state)
+ 			state->m_hasIRQN = false;
+ 			break;
+ 		default:
+-			printk(KERN_ERR "DeviceID not supported = %02x\n",
++			printk(KERN_ERR "drxk: DeviceID not supported = %02x\n",
+ 			       ((sioTopJtagidLo >> 12) & 0xFF));
+ 			status = -1;
+ 			break;
+@@ -1256,7 +1257,7 @@ static int BLChainCmd(struct drxk_state *state,
+ 		} while ((blStatus == 0x1) &&
+ 			 ((time_is_after_jiffies(end))));
+ 		if (blStatus == 0x1) {
+-			printk(KERN_ERR "SIO not ready\n");
++			printk(KERN_ERR "drxk: SIO not ready\n");
+ 			mutex_unlock(&state->mutex);
+ 			return -1;
+ 		}
+@@ -1344,7 +1345,7 @@ static int DVBTEnableOFDMTokenRing(struct drxk_state *state, bool enable)
+ 			break;
+ 	} while ((data != desiredStatus) && ((time_is_after_jiffies(end))));
+ 	if (data != desiredStatus) {
+-		printk(KERN_ERR "SIO not ready\n");
++		printk(KERN_ERR "drxk: SIO not ready\n");
+ 		return -1;
+ 	}
+ 	return status;
+@@ -1419,7 +1420,7 @@ static int scu_command(struct drxk_state *state,
+ 		} while (!(curCmd == DRX_SCU_READY)
+ 			 && (time_is_after_jiffies(end)));
+ 		if (curCmd != DRX_SCU_READY) {
+-			printk(KERN_ERR "SCU not ready\n");
++			printk(KERN_ERR "drxk: SCU not ready\n");
+ 			mutex_unlock(&state->mutex);
+ 			return -1;
+ 		}
+@@ -1439,18 +1440,18 @@ static int scu_command(struct drxk_state *state,
  
- 	/* Is the device currently receiving? */
- 	bool recv_in_progress;
-@@ -428,7 +429,7 @@ static void redrat3_process_ir_data(struct redrat3_dev *rr3)
- 	DEFINE_IR_RAW_EVENT(rawir);
- 	struct redrat3_signal_header header;
- 	struct device *dev;
--	int i;
-+	int i, trailer = 0;
- 	unsigned long delay;
- 	u32 mod_freq, single_len;
- 	u16 *len_vals;
-@@ -454,7 +455,8 @@ static void redrat3_process_ir_data(struct redrat3_dev *rr3)
- 	if (!(header.length >= RR3_HEADER_LENGTH))
- 		dev_warn(dev, "read returned less than rr3 header len\n");
+ 			/* check a few fixed error codes */
+ 			if (err == SCU_RESULT_UNKSTD) {
+-				printk(KERN_ERR "SCU_RESULT_UNKSTD\n");
++				printk(KERN_ERR "drxk: SCU_RESULT_UNKSTD\n");
+ 				mutex_unlock(&state->mutex);
+ 				return -1;
+ 			} else if (err == SCU_RESULT_UNKCMD) {
+-				printk(KERN_ERR "SCU_RESULT_UNKCMD\n");
++				printk(KERN_ERR "drxk: SCU_RESULT_UNKCMD\n");
+ 				mutex_unlock(&state->mutex);
+ 				return -1;
+ 			}
+ 			/* here it is assumed that negative means error,
+ 			   and positive no error */
+ 			else if (err < 0) {
+-				printk(KERN_ERR "%s ERROR\n", __func__);
++				printk(KERN_ERR "drxk: %s ERROR\n", __func__);
+ 				mutex_unlock(&state->mutex);
+ 				return -1;
+ 			}
+@@ -1458,7 +1459,7 @@ static int scu_command(struct drxk_state *state,
+ 	} while (0);
+ 	mutex_unlock(&state->mutex);
+ 	if (status < 0)
+-		printk(KERN_ERR "%s: status = %d\n", __func__, status);
++		printk(KERN_ERR "drxk: %s: status = %d\n", __func__, status);
  
--	delay = usecs_to_jiffies(rr3->rc->timeout / 1000);
-+	/* Make sure we reset the IR kfifo after a bit of inactivity */
-+	delay = usecs_to_jiffies(rr3->hw_timeout);
- 	mod_timer(&rr3->rx_timeout, jiffies + delay);
- 
- 	memcpy(&tmp32, sig_data + RR3_PAUSE_OFFSET, sizeof(tmp32));
-@@ -503,6 +505,9 @@ static void redrat3_process_ir_data(struct redrat3_dev *rr3)
- 			rawir.pulse = true;
- 
- 		rawir.duration = US_TO_NS(single_len);
-+		/* Save initial pulse length to fudge trailer */
-+		if (i == 0)
-+			trailer = rawir.duration;
- 		/* cap the value to IR_MAX_DURATION */
- 		rawir.duration &= IR_MAX_DURATION;
- 
-@@ -515,7 +520,10 @@ static void redrat3_process_ir_data(struct redrat3_dev *rr3)
- 	if (i % 2) {
- 		rawir.pulse = false;
- 		/* this duration is made up, and may not be ideal... */
--		rawir.duration = rr3->rc->timeout / 2;
-+		if (trailer < US_TO_NS(1000))
-+			rawir.duration = US_TO_NS(2800);
-+		else
-+			rawir.duration = trailer;
- 		rr3_dbg(dev, "storing trailing space with duration %d\n",
- 			rawir.duration);
- 		ir_raw_event_store_with_filter(rr3->rc, &rawir);
-@@ -619,36 +627,31 @@ static inline void redrat3_delete(struct redrat3_dev *rr3,
- 	kfree(rr3);
+ 	return status;
  }
+@@ -2720,7 +2721,7 @@ static int BLDirectCmd(struct drxk_state *state, u32 targetAddr,
+ 				break;
+ 		} while ((blStatus == 0x1) && time_is_after_jiffies(end));
+ 		if (blStatus == 0x1) {
+-			printk(KERN_ERR "SIO not ready\n");
++			printk(KERN_ERR "drxk: SIO not ready\n");
+ 			mutex_unlock(&state->mutex);
+ 			return -1;
+ 		}
+@@ -3534,7 +3535,7 @@ static int SetDVBTStandard(struct drxk_state *state,
+ 	} while (0);
  
--static u32 redrat3_get_timeout(struct device *dev,
--			       struct rc_dev *rc, struct usb_device *udev)
-+static u32 redrat3_get_timeout(struct redrat3_dev *rr3)
+ 	if (status < 0)
+-		printk(KERN_ERR "%s status - %08x\n", __func__, status);
++		printk(KERN_ERR "drxk: %s status - %08x\n", __func__, status);
+ 
+ 	return status;
+ }
+@@ -3589,7 +3590,7 @@ static int SetDVBT(struct drxk_state *state, u16 IntermediateFreqkHz,
+ 	u16 param1;
+ 	int status;
+ 
+-	/* printk(KERN_DEBUG "%s IF =%d, TFO = %d\n", __func__, IntermediateFreqkHz, tunerFreqOffset); */
++	/* printk(KERN_DEBUG "drxk: %s IF =%d, TFO = %d\n", __func__, IntermediateFreqkHz, tunerFreqOffset); */
+ 	do {
+ 		status = scu_command(state, SCU_RAM_COMMAND_STANDARD_OFDM | SCU_RAM_COMMAND_CMD_DEMOD_STOP, 0, NULL, 1, &cmdResult);
+ 		if (status < 0)
+@@ -4089,7 +4090,7 @@ static int SetQAMMeasurement(struct drxk_state *state,
+ 	} while (0);
+ 
+ 	if (status < 0)
+-		printk(KERN_ERR "%s: status - %08x\n", __func__, status);
++		printk(KERN_ERR "drxk: %s: status - %08x\n", __func__, status);
+ 
+ 	return status;
+ }
+@@ -5107,7 +5108,7 @@ static int QAMSetSymbolrate(struct drxk_state *state)
+ 		/* Select & calculate correct IQM rate */
+ 		adcFrequency = (state->m_sysClockFreq * 1000) / 3;
+ 		ratesel = 0;
+-		/* printk(KERN_DEBUG "SR %d\n", state->param.u.qam.symbol_rate); */
++		/* printk(KERN_DEBUG "drxk: SR %d\n", state->param.u.qam.symbol_rate); */
+ 		if (state->param.u.qam.symbol_rate <= 1188750)
+ 			ratesel = 3;
+ 		else if (state->param.u.qam.symbol_rate <= 2377500)
+@@ -5174,7 +5175,7 @@ static int GetQAMLockStatus(struct drxk_state *state, u32 *pLockStatus)
+ 			SCU_RAM_COMMAND_CMD_DEMOD_GET_LOCK, 0, NULL, 2,
+ 			Result);
+ 	if (status < 0)
+-		printk(KERN_ERR "%s status = %08x\n", __func__, status);
++		printk(KERN_ERR "drxk: %s status = %08x\n", __func__, status);
+ 
+ 	if (Result[1] < SCU_RAM_QAM_LOCKED_LOCKED_DEMOD_LOCKED) {
+ 		/* 0x0000 NOT LOCKED */
+@@ -5444,7 +5445,7 @@ static int SetQAM(struct drxk_state *state, u16 IntermediateFreqkHz,
+ 	} while (0);
+ 
+ 	if (status < 0)
+-		printk(KERN_ERR "%s %d\n", __func__, status);
++		printk(KERN_ERR "drxk: %s %d\n", __func__, status);
+ 
+ 	return status;
+ }
+@@ -5734,9 +5735,9 @@ static int load_microcode(struct drxk_state *state, char *mc_name)
+ 	err = request_firmware(&fw, mc_name, state->i2c->dev.parent);
+ 	if (err < 0) {
+ 		printk(KERN_ERR
+-		       "Could not load firmware file %s.\n", mc_name);
++		       "drxk: Could not load firmware file %s.\n", mc_name);
+ 		printk(KERN_INFO
+-		       "Copy %s to your hotplug directory!\n", mc_name);
++		       "drxk: Copy %s to your hotplug directory!\n", mc_name);
+ 		return err;
+ 	}
+ 	err = DownloadMicrocode(state, fw->data, fw->size);
+@@ -5970,7 +5971,7 @@ static int drxk_gate_ctrl(struct dvb_frontend *fe, int enable)
  {
- 	u32 *tmp;
--	u32 timeout = MS_TO_NS(150); /* a sane default, if things go haywire */
-+	u32 timeout = MS_TO_US(150); /* a sane default, if things go haywire */
- 	int len, ret, pipe;
+ 	struct drxk_state *state = fe->demodulator_priv;
  
- 	len = sizeof(*tmp);
- 	tmp = kzalloc(len, GFP_KERNEL);
- 	if (!tmp) {
--		dev_warn(dev, "Memory allocation faillure\n");
-+		dev_warn(rr3->dev, "Memory allocation faillure\n");
- 		return timeout;
- 	}
- 
--	pipe = usb_rcvctrlpipe(udev, 0);
--	ret = usb_control_msg(udev, pipe, RR3_GET_IR_PARAM,
-+	pipe = usb_rcvctrlpipe(rr3->udev, 0);
-+	ret = usb_control_msg(rr3->udev, pipe, RR3_GET_IR_PARAM,
- 			      USB_TYPE_VENDOR | USB_RECIP_DEVICE | USB_DIR_IN,
- 			      RR3_IR_IO_SIG_TIMEOUT, 0, tmp, len, HZ * 5);
- 	if (ret != len) {
--		dev_warn(dev, "Failed to read timeout from hardware\n");
-+		dev_warn(rr3->dev, "Failed to read timeout from hardware\n");
- 		return timeout;
- 	}
- 
--	timeout = US_TO_NS(redrat3_len_to_us(be32_to_cpu(*tmp)));
--	if (timeout < rc->min_timeout)
--		timeout = rc->min_timeout;
--	else if (timeout > rc->max_timeout)
--		timeout = rc->max_timeout;
-+	timeout = redrat3_len_to_us(be32_to_cpu(*tmp));
- 
--	rr3_dbg(dev, "Got timeout of %d ms\n", timeout / (1000 * 1000));
-+	rr3_dbg(rr3->dev, "Got timeout of %d ms\n", timeout / 1000);
- 	return timeout;
+-	/* printk(KERN_DEBUG "drxk_gate %d\n", enable); */
++	/* printk(KERN_DEBUG "drxk: drxk_gate %d\n", enable); */
+ 	return ConfigureI2CBridge(state, enable ? true : false);
  }
  
-@@ -1100,9 +1103,7 @@ static struct rc_dev *redrat3_init_rc_dev(struct redrat3_dev *rr3)
- 	rc->priv = rr3;
- 	rc->driver_type = RC_DRIVER_IR_RAW;
- 	rc->allowed_protos = RC_TYPE_ALL;
--	rc->min_timeout = MS_TO_NS(RR3_RX_MIN_TIMEOUT);
--	rc->max_timeout = MS_TO_NS(RR3_RX_MAX_TIMEOUT);
--	rc->timeout = redrat3_get_timeout(dev, rc, rr3->udev);
-+	rc->timeout = US_TO_NS(2750);
- 	rc->tx_ir = redrat3_transmit_ir;
- 	rc->s_tx_carrier = redrat3_set_tx_carrier;
- 	rc->driver_name = DRIVER_NAME;
-@@ -1232,6 +1233,9 @@ static int __devinit redrat3_dev_probe(struct usb_interface *intf,
- 	if (retval < 0)
- 		goto error;
+@@ -5990,7 +5991,7 @@ static int drxk_set_parameters(struct dvb_frontend *fe,
+ 	fe->ops.tuner_ops.get_frequency(fe, &IF);
+ 	Start(state, 0, IF);
  
-+	/* store current hardware timeout, in us, will use for kfifo resets */
-+	rr3->hw_timeout = redrat3_get_timeout(rr3);
-+
- 	/* default.. will get overridden by any sends with a freq defined */
- 	rr3->carrier = 38000;
+-	/* printk(KERN_DEBUG "%s IF=%d done\n", __func__, IF); */
++	/* printk(KERN_DEBUG "drxk: %s IF=%d done\n", __func__, IF); */
  
-@@ -1270,6 +1274,7 @@ static void __devexit redrat3_dev_disconnect(struct usb_interface *intf)
+ 	return 0;
+ }
+@@ -6068,7 +6069,7 @@ static void drxk_t_release(struct dvb_frontend *fe)
+ #if 0
+ 	struct drxk_state *state = fe->demodulator_priv;
  
- 	usb_set_intfdata(intf, NULL);
- 	rc_unregister_device(rr3->rc);
-+	del_timer_sync(&rr3->rx_timeout);
- 	redrat3_delete(rr3, udev);
- 
- 	rr3_ftr(&intf->dev, "RedRat3 IR Transceiver now disconnected\n");
+-	printk(KERN_DEBUG "%s\n", __func__);
++	printk(KERN_DEBUG "drxk: %s\n", __func__);
+ 	kfree(state);
+ #endif
+ }
 -- 
 1.7.1
+
 
