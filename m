@@ -1,90 +1,116 @@
-Return-path: <linux-media-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.17.8]:57507 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750893Ab1GSOKy (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 19 Jul 2011 10:10:54 -0400
-Date: Tue, 19 Jul 2011 16:10:52 +0200 (CEST)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Michael Grzeschik <m.grzeschik@pengutronix.de>
-cc: linux-media@vger.kernel.org
-Subject: Re: [PATCH v2] mt9m111: move lastpage to struct mt9m111 for multi
- instances
-In-Reply-To: <1311081995-25409-1-git-send-email-m.grzeschik@pengutronix.de>
-Message-ID: <Pine.LNX.4.64.1107191608040.1008@axis700.grange>
-References: <1310485146-27759-3-git-send-email-m.grzeschik@pengutronix.de>
- <1311081995-25409-1-git-send-email-m.grzeschik@pengutronix.de>
-MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Sender: linux-media-owner@vger.kernel.org
+Return-path: <mchehab@localhost>
+Received: from mx1.redhat.com ([209.132.183.28]:8000 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756415Ab1GKB7i (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 10 Jul 2011 21:59:38 -0400
+Received: from int-mx10.intmail.prod.int.phx2.redhat.com (int-mx10.intmail.prod.int.phx2.redhat.com [10.5.11.23])
+	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id p6B1xcct011624
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
+	for <linux-media@vger.kernel.org>; Sun, 10 Jul 2011 21:59:38 -0400
+Received: from pedra (vpn-225-29.phx2.redhat.com [10.3.225.29])
+	by int-mx10.intmail.prod.int.phx2.redhat.com (8.14.4/8.14.4) with ESMTP id p6B1xKKW030664
+	for <linux-media@vger.kernel.org>; Sun, 10 Jul 2011 21:59:37 -0400
+Date: Sun, 10 Jul 2011 22:58:52 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: [PATCH 05/21] [media] drxk: Move I2C address into a config
+ structure
+Message-ID: <20110710225852.7f815f7a@pedra>
+In-Reply-To: <cover.1310347962.git.mchehab@redhat.com>
+References: <cover.1310347962.git.mchehab@redhat.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
+To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
 List-ID: <linux-media.vger.kernel.org>
+Sender: <mchehab@infradead.org>
 
-Hi Michael
+Currently, the only parameter to be configured is the I2C
+address. However, Terratec H5 logs shows that it needs a different
+setting for some things, and it has its own firmware.
 
-Looks good now, thanks. Unfortunately, we've already missed the 3.1 merge 
-window, unless Linus decides to release one more 3.0-rcX kernel. But 
-still, I think, this can qualify as a fix, so, it should be ok even after 
--rc1.
+So, move the addr into a config structure, in order to allow adding
+the required configuration bits.
 
-Thanks
-Guennadi
+Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
 
-On Tue, 19 Jul 2011, Michael Grzeschik wrote:
+diff --git a/drivers/media/dvb/ddbridge/ddbridge-core.c b/drivers/media/dvb/ddbridge/ddbridge-core.c
+index def03d4..573d540 100644
+--- a/drivers/media/dvb/ddbridge/ddbridge-core.c
++++ b/drivers/media/dvb/ddbridge/ddbridge-core.c
+@@ -574,10 +574,12 @@ static int demod_attach_drxk(struct ddb_input *input)
+ {
+ 	struct i2c_adapter *i2c = &input->port->i2c->adap;
+ 	struct dvb_frontend *fe;
++	struct drxk_config config;
+ 
+-	fe = input->fe = dvb_attach(drxk_attach,
+-				    i2c, 0x29 + (input->nr&1),
+-				    &input->fe2);
++	memset(&config, 0, sizeof(config));
++	config.adr = 0x29 + (input->nr & 1);
++
++	fe = input->fe = dvb_attach(drxk_attach, &config, i2c, &input->fe2);
+ 	if (!input->fe) {
+ 		printk(KERN_ERR "No DRXK found!\n");
+ 		return -ENODEV;
+diff --git a/drivers/media/dvb/frontends/drxk.h b/drivers/media/dvb/frontends/drxk.h
+index d1c133e..a7b295f 100644
+--- a/drivers/media/dvb/frontends/drxk.h
++++ b/drivers/media/dvb/frontends/drxk.h
+@@ -4,7 +4,11 @@
+ #include <linux/types.h>
+ #include <linux/i2c.h>
+ 
+-extern struct dvb_frontend *drxk_attach(struct i2c_adapter *i2c,
+-					u8 adr,
++struct drxk_config {
++	u8 adr;
++};
++
++extern struct dvb_frontend *drxk_attach(const struct drxk_config *config,
++					struct i2c_adapter *i2c,
+ 					struct dvb_frontend **fe_t);
+ #endif
+diff --git a/drivers/media/dvb/frontends/drxk_hard.c b/drivers/media/dvb/frontends/drxk_hard.c
+index 8b2e06e..d351e6a 100644
+--- a/drivers/media/dvb/frontends/drxk_hard.c
++++ b/drivers/media/dvb/frontends/drxk_hard.c
+@@ -6341,10 +6341,12 @@ static struct dvb_frontend_ops drxk_t_ops = {
+ 	.read_ucblocks = drxk_read_ucblocks,
+ };
+ 
+-struct dvb_frontend *drxk_attach(struct i2c_adapter *i2c, u8 adr,
++struct dvb_frontend *drxk_attach(const struct drxk_config *config,
++				 struct i2c_adapter *i2c,
+ 				 struct dvb_frontend **fe_t)
+ {
+ 	struct drxk_state *state = NULL;
++	u8 adr = config->adr;
+ 
+ 	dprintk(1, "\n");
+ 	state = kzalloc(sizeof(struct drxk_state), GFP_KERNEL);
+diff --git a/drivers/media/dvb/ngene/ngene-cards.c b/drivers/media/dvb/ngene/ngene-cards.c
+index 9f72dd8..0564192 100644
+--- a/drivers/media/dvb/ngene/ngene-cards.c
++++ b/drivers/media/dvb/ngene/ngene-cards.c
+@@ -213,9 +213,12 @@ static int port_has_drxk(struct i2c_adapter *i2c, int port)
+ static int demod_attach_drxk(struct ngene_channel *chan,
+ 			     struct i2c_adapter *i2c)
+ {
+-	chan->fe = dvb_attach(drxk_attach,
+-				   i2c, 0x29 + (chan->number^2),
+-				   &chan->fe2);
++	struct drxk_config config;
++
++	memset(&config, 0, sizeof(config));
++	config.adr = 0x29 + (chan->number ^ 2);
++
++	chan->fe = dvb_attach(drxk_attach, &config, i2c, &chan->fe2);
+ 	if (!chan->fe) {
+ 		printk(KERN_ERR "No DRXK found!\n");
+ 		return -ENODEV;
+-- 
+1.7.1
 
-> Signed-off-by: Michael Grzeschik <m.grzeschik@pengutronix.de>
-> ---
-> v1 -> v2: added initial value -1 for lastpage
-> 
->  drivers/media/video/mt9m111.c |    9 ++++++---
->  1 files changed, 6 insertions(+), 3 deletions(-)
-> 
-> diff --git a/drivers/media/video/mt9m111.c b/drivers/media/video/mt9m111.c
-> index a357aa8..07af26e 100644
-> --- a/drivers/media/video/mt9m111.c
-> +++ b/drivers/media/video/mt9m111.c
-> @@ -184,6 +184,7 @@ struct mt9m111 {
->  	struct mutex power_lock; /* lock to protect power_count */
->  	int power_count;
->  	const struct mt9m111_datafmt *fmt;
-> +	int lastpage;	/* PageMap cache value */
->  	unsigned int gain;
->  	unsigned char autoexposure;
->  	unsigned char datawidth;
-> @@ -202,17 +203,17 @@ static int reg_page_map_set(struct i2c_client *client, const u16 reg)
->  {
->  	int ret;
->  	u16 page;
-> -	static int lastpage = -1;	/* PageMap cache value */
-> +	struct mt9m111 *mt9m111 = to_mt9m111(client);
->  
->  	page = (reg >> 8);
-> -	if (page == lastpage)
-> +	if (page == mt9m111->lastpage)
->  		return 0;
->  	if (page > 2)
->  		return -EINVAL;
->  
->  	ret = i2c_smbus_write_word_data(client, MT9M111_PAGE_MAP, swab16(page));
->  	if (!ret)
-> -		lastpage = page;
-> +		mt9m111->lastpage = page;
->  	return ret;
->  }
->  
-> @@ -932,6 +933,8 @@ static int mt9m111_video_probe(struct soc_camera_device *icd,
->  	BUG_ON(!icd->parent ||
->  	       to_soc_camera_host(icd->parent)->nr != icd->iface);
->  
-> +	mt9m111->lastpage = -1;
-> +
->  	mt9m111->autoexposure = 1;
->  	mt9m111->autowhitebalance = 1;
->  
-> -- 
-> 1.7.5.4
-> 
 
----
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
-http://www.open-technology.de/
