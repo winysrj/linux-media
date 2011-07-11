@@ -1,71 +1,69 @@
-Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-68.nebula.fi ([83.145.220.68]:46400 "EHLO
-	smtp-68.nebula.fi" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752427Ab1G0IP1 (ORCPT
+Return-path: <mchehab@localhost>
+Received: from mail-iy0-f174.google.com ([209.85.210.174]:46523 "EHLO
+	mail-iy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750870Ab1GKV2b convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 27 Jul 2011 04:15:27 -0400
-Date: Wed, 27 Jul 2011 11:15:22 +0300
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: Re: [PATCH] adp1653: check error code of adp1653_init_controls
-Message-ID: <20110727081522.GH32629@valkosipuli.localdomain>
-References: <1b238cd98e03909bc4955113ffbe7e0c9f0db4f8.1311753459.git.andriy.shevchenko@linux.intel.com>
+	Mon, 11 Jul 2011 17:28:31 -0400
+Received: by iyb12 with SMTP id 12so4073045iyb.19
+        for <linux-media@vger.kernel.org>; Mon, 11 Jul 2011 14:28:31 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1b238cd98e03909bc4955113ffbe7e0c9f0db4f8.1311753459.git.andriy.shevchenko@linux.intel.com>
-Sender: linux-media-owner@vger.kernel.org
+In-Reply-To: <201107111258.50144.laurent.pinchart@ideasonboard.com>
+References: <CAH9NwWc+zLqPyBcC99wbsbNkdjzMFfn2zuGm1VfmZctgpOGMew@mail.gmail.com>
+ <201107111258.50144.laurent.pinchart@ideasonboard.com>
+From: Christian Gmeiner <christian.gmeiner@gmail.com>
+Date: Mon, 11 Jul 2011 21:28:11 +0000
+Message-ID: <CAH9NwWecm8MUDNJPCaaWbA-6cX66foJnH7-S5CF7_nq9yg5U9A@mail.gmail.com>
+Subject: Re: [PATCH 2/3] Document 8-bit and 16-bit YCrCb media bus pixel codes
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: linux-media@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8BIT
 List-ID: <linux-media.vger.kernel.org>
+Sender: <mchehab@infradead.org>
 
-On Wed, Jul 27, 2011 at 10:58:02AM +0300, Andy Shevchenko wrote:
-> Potentially the adp1653_init_controls could return an error. In our case the
-> error was ignored, meanwhile it means incorrect initialization of V4L2
-> controls.
+Hi Laurent,
 
-Hi, Andy!
+2011/7/11 Laurent Pinchart <laurent.pinchart@ideasonboard.com>:
+> Hi Christian,
+>
+> On Sunday 10 July 2011 20:14:21 Christian Gmeiner wrote:
+>> Signed-off-by: Christian Gmeiner
+>> ---
+>> diff --git a/Documentation/DocBook/media/v4l/subdev-formats.xml
+>> b/Documentation/DocBook/media/v4l/subdev-formats.xml
+>> index 49c532e..18e30b0 100644
+>> --- a/Documentation/DocBook/media/v4l/subdev-formats.xml
+>> +++ b/Documentation/DocBook/media/v4l/subdev-formats.xml
+>> @@ -2565,5 +2565,43 @@
+>>         </tgroup>
+>>        </table>
+>>      </section>
+>> +
+>> +    <section>
+>> +      <title>YCrCb Formats</title>
+>> +
+>> +      <para>YCbCr represents colors as a combination of three values:
+>> +      <itemizedlist>
+>> +       <listitem><para>Y - the luminosity (roughly the
+>> brightness)</para></listitem>
+>> +       <listitem><para>Cb - the chrominance of the blue
+>> primary</para></listitem>
+>> +       <listitem><para>Cr - the chrominance of the red
+>> primary</para></listitem>
+>
+> How does that differ from YUV ?
 
-Many thanks for the another patch! I'll add this to my next pull req as
-well.
 
-Just FYI: As this is clearly a regular patch for the V4L2 subsystem, I think
-cc'ing the linux-kernel list isn't necessary.
+I need to say that I am very new to this whole format stuff and so I
+am not really sure.
+In the data sheet
+http://dxr3.sourceforge.net/download/hardware/ADV7175A_6A.pdf there is
+on the
+first page a FUNCTIONAL BLOCK DIAGRAM which shows that there is a
+"YCrCb to YUV Matrix"
+stage in the pipeline. I am also fine to use a YUV format for the media bus.
+Any suggestions?
 
-> Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-> Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
-> Cc: Sakari Ailus <sakari.ailus@iki.fi>
-> ---
->  drivers/media/video/adp1653.c |    6 +++++-
->  1 files changed, 5 insertions(+), 1 deletions(-)
-> 
-> diff --git a/drivers/media/video/adp1653.c b/drivers/media/video/adp1653.c
-> index 8ad89ff..3379e6d 100644
-> --- a/drivers/media/video/adp1653.c
-> +++ b/drivers/media/video/adp1653.c
-> @@ -429,7 +429,11 @@ static int adp1653_probe(struct i2c_client *client,
->  	flash->subdev.internal_ops = &adp1653_internal_ops;
->  	flash->subdev.flags |= V4L2_SUBDEV_FL_HAS_DEVNODE;
->  
-> -	adp1653_init_controls(flash);
-> +	ret = adp1653_init_controls(flash);
-> +	if (ret) {
-> +		kfree(flash);
-> +		return ret;
-> +	}
->  
->  	ret = media_entity_init(&flash->subdev.entity, 0, NULL, 0);
->  	if (ret < 0)
-> -- 
-> 1.7.5.4
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-
-Cheers,
-
--- 
-Sakari Ailus
-sakari.ailus@iki.fi
+Greets,
+--
+Christian Gmeiner, MSc
