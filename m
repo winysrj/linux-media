@@ -1,31 +1,58 @@
-Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ww0-f44.google.com ([74.125.82.44]:33950 "EHLO
-	mail-ww0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751469Ab1GRSZA (ORCPT
+Return-path: <mchehab@localhost>
+Received: from mo-p00-ob.rzone.de ([81.169.146.162]:31544 "EHLO
+	mo-p00-ob.rzone.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758057Ab1GKQSv (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 18 Jul 2011 14:25:00 -0400
-Received: by wwe5 with SMTP id 5so3440126wwe.1
-        for <linux-media@vger.kernel.org>; Mon, 18 Jul 2011 11:24:59 -0700 (PDT)
+	Mon, 11 Jul 2011 12:18:51 -0400
+From: Ralph Metzler <rjkm@metzlerbros.de>
 MIME-Version: 1.0
-Date: Mon, 18 Jul 2011 20:24:58 +0200
-Message-ID: <CAMQ=zVYqROZrs=ivxLH3zT6Wssu8c=-FtBTiRmFVopKtSPnnSQ@mail.gmail.com>
-Subject: em28xx: new board id [eb1a:2881]
-From: unknown unknown <unknown.obvious@googlemail.com>
-To: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=UTF-8
-Sender: linux-media-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+Message-ID: <19995.8804.939482.9336@morden.metzler>
+Date: Mon, 11 Jul 2011 18:18:44 +0200
+To: Devin Heitmueller <dheitmueller@kernellabs.com>
+Cc: Oliver Endriss <o.endriss@gmx.de>, linux-media@vger.kernel.org,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Michael Krufky <mkrufky@kernellabs.com>
+Subject: Re: [PATCH 00/16] New drivers: DRX-K, TDA18271c2, Updates: CXD2099
+ and ngene
+In-Reply-To: <CAGoCfiwaYhXFi1_QXX55nfSOivgnk1YyDNP5_sXL61k3hdabQA@mail.gmail.com>
+References: <201107031831.20378@orion.escape-edv.de>
+	<CAGoCfiwaYhXFi1_QXX55nfSOivgnk1YyDNP5_sXL61k3hdabQA@mail.gmail.com>
 List-ID: <linux-media.vger.kernel.org>
+Sender: <mchehab@infradead.org>
 
- Hi,
+Hi Devin,
 
- I've made tests with my Hybrid TV Stick:
+Devin Heitmueller writes:
+ > On Sun, Jul 3, 2011 at 12:31 PM, Oliver Endriss <o.endriss@gmx.de> wrote:
+ > > [PATCH 01/16] tda18271c2dd: Initial check-in
+ > > [PATCH 02/16] tda18271c2dd: Lots of coding-style fixes
+ > 
+ > Oliver,
+ > 
+ > Why the new driver for the 18271c2?  There is already such a driver,
+ > and in the past we've rejected multiple drivers for the same chip
+ > unless there is a *very* compelling reason to do such.
+ > 
+ > The existing 18271 driver supports the C2 and is actively maintained.
+ > 
 
- Model: eMPIA Technology, Inc. EM2881 Video Controller
- Vendor/Product id: [eb1a:2881].
+AFAIR, there were at least 2 reasons.
+One was that the existing driver does not accept 2 (or even 4) tuners with the
+same address (but behind different demods) on the same I2C bus which
+is the case on duoflex C/T addon cards.
+The other was that it does not give back the intermediate frequency
+which the demod needs. (This is currently done by misusing
+get_frequency() but I added a get_if() call in newer internal versions
+which should be added to dvb-core/dvb_frontend.h)
+Feel free to change ngene/ddbridge to use the existing driver but it
+will need some major changes in tda18271_attach() and a few other places.
 
- Tests made:
 
-     - Analog [Module Load] (There is no Analog-TV at my Place, so I can't test)
-     - DVB    [Worked]
+Regards,
+Ralph
 
- Tested-by:  unknown dot obvious at googlemail com
+
+
+
