@@ -1,78 +1,56 @@
-Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr7.xs4all.nl ([194.109.24.27]:2259 "EHLO
-	smtp-vbr7.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750946Ab1GZL6S (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 26 Jul 2011 07:58:18 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Sakari Ailus <sakari.ailus@iki.fi>
-Subject: Re: [PATCH v3] V4L: add two new ioctl()s for multi-size videobuffer management
-Date: Tue, 26 Jul 2011 13:57:31 +0200
-Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Pawel Osciak <pawel@osciak.com>
-References: <Pine.LNX.4.64.1107201025120.12084@axis700.grange> <201107261305.29863.hverkuil@xs4all.nl> <20110726114427.GC32507@valkosipuli.localdomain>
-In-Reply-To: <20110726114427.GC32507@valkosipuli.localdomain>
+Return-path: <mchehab@localhost>
+Received: from mx1.redhat.com ([209.132.183.28]:6623 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1758138Ab1GKSpp (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 11 Jul 2011 14:45:45 -0400
+Received: from int-mx09.intmail.prod.int.phx2.redhat.com (int-mx09.intmail.prod.int.phx2.redhat.com [10.5.11.22])
+	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id p6BIjjf5002147
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
+	for <linux-media@vger.kernel.org>; Mon, 11 Jul 2011 14:45:45 -0400
+Date: Mon, 11 Jul 2011 14:45:44 -0400
+From: Jarod Wilson <jarod@redhat.com>
+To: mchehab@redhat.com
+Cc: linux-media@vger.kernel.org
+Subject: [GIT PULL] last-minute IR fixes for 3.0
+Message-ID: <20110711184544.GA7245@redhat.com>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201107261357.31673.hverkuil@xs4all.nl>
-Sender: linux-media-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 List-ID: <linux-media.vger.kernel.org>
+Sender: <mchehab@infradead.org>
 
-On Tuesday, July 26, 2011 13:44:28 Sakari Ailus wrote:
-> Hi Hans and Guennadi,
+Hey Mauro,
 
-<snip>
+I know its late in the game, but after a weekend of testing here, and
+feedback from other folks testing, I'd like to see if we can sneak a few
+more minor changes into kernel 3.0. If not, these can probably all go in
+via the stable tree later, but here they are... These changes greatly
+improve the reliability of IR functionality for cx23885, mceusb and
+nuvoton-cir users (the latter two primarily when using non-stock remotes
+and lirc userspace decode -- RC5 and RC6 both work fine w/o this change).
 
-> > I realized that it is not clear from the documentation whether it is possible to call
-> > VIDIOC_REQBUFS and make additional calls to VIDIOC_CREATE_BUFS afterwards.
-> 
-> That's actually a must if one wants to release buffers. Currently no other
-> method than requesting 0 buffers using REQBUFS is provided (apart from
-> closing the file handle).
+The following changes since commit e3bbfa78bab125f58b831b5f7f45b5a305091d72:
 
-I was referring to the non-0 use-case :-)
+  Merge branch 'hwmon-for-linus' of git://git.kernel.org/pub/scm/linux/kernel/git/groeck/staging (2011-07-10 10:24:47 -0700)
 
-> > I can't remember whether the code allows it or not, but it should be clearly documented.
-> 
-> I would guess no user application would have to call REQBUFS with other than
-> zero buffers when using CREATE_BUFS. This must be an exception if mixing
-> REQBUFS and CREATE_BUFS is not allowed in general. That said, I don't see a
-> reason to prohibit either, but perhaps Guennadi has more informed opinion
-> on this.
- 
-<snip>
+are available in the git repository at:
 
-> > > > > Future functionality which would be nice:
-> > > > > 
-> > > > > - Format counters. Every format set by S_FMT (or gotten by G_FMT) should
-> > > > >   come with a counter value so that the user would know the format of
-> > > > >   dequeued buffers when setting the format on-the-fly. Currently there are
-> > > > >   only bytesperline and length, but the format can't be explicitly
-> > > > >   determined from those.
-> > 
-> > Actually, the index field will give you that information. When you create the
-> > buffers you know that range [index, index + count - 1] is associated with that
-> > specific format.
-> 
-> Some hardware is able to change the format while streaming is ongoing (for
-> example: OMAP 3). The problem is that the user should be able to know which
-> frame has the new format.
+  git://git.kernel.org/pub/scm/linux/kernel/git/jarod/linux-2.6-ir.git/ for-3.0
 
-Ah, of course.
+Jarod Wilson (2):
+      Revert "V4L/DVB: cx23885: Enable Message Signaled Interrupts(MSI)"
+      [media] nuvoton-cir: make idle timeout more sane
 
-> Of course one could stop streaming but this would mean lost frames.
-> 
-> A flag has been proposed to this previously. That's one option but forces
-> the user to keep track of the changes since only one change is allowed until
-> it has taken effect.
+Rafi Rubin (2):
+      [media] mceusb: Timeout unit corrections
+      [media] mceusb: increase default timeout to 100ms
 
-Something to discuss next week, I think.
+ drivers/media/rc/mceusb.c                  |    9 +++++----
+ drivers/media/rc/nuvoton-cir.c             |    2 +-
+ drivers/media/video/cx23885/cx23885-core.c |    9 ++-------
+ 3 files changed, 8 insertions(+), 12 deletions(-)
 
-Regards,
+-- 
+Jarod Wilson
+jarod@redhat.com
 
-	Hans
