@@ -1,157 +1,93 @@
-Return-path: <mchehab@pedra>
-Received: from mail-fx0-f52.google.com ([209.85.161.52]:65322 "EHLO
-	mail-fx0-f52.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755783Ab1GCP3b (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sun, 3 Jul 2011 11:29:31 -0400
-Received: by fxd18 with SMTP id 18so4553324fxd.11
-        for <linux-media@vger.kernel.org>; Sun, 03 Jul 2011 08:29:29 -0700 (PDT)
-Message-ID: <4E108AD5.8080700@gmail.com>
-Date: Sun, 03 Jul 2011 17:29:25 +0200
-From: Sylwester Nawrocki <snjw23@gmail.com>
-MIME-Version: 1.0
-To: =?UTF-8?B?VXdlIEtsZWluZS1Lw7ZuaWc=?=
-	<u.kleine-koenig@pengutronix.de>
-CC: linux-media@vger.kernel.org,
-	Marek Szyprowski <m.szyprowski@samsung.com>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	kernel@pengutronix.de
-Subject: Re: [PATCH] media/at91sam9x5-video: new driver for the high end overlay
- on at91sam9x5
-References: <1309377531-9246-1-git-send-email-u.kleine-koenig@pengutronix.de> <4E0E3A20.6040002@gmail.com> <20110702200954.GZ11559@pengutronix.de>
-In-Reply-To: <20110702200954.GZ11559@pengutronix.de>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Return-path: <mchehab@localhost>
+Received: from mx1.redhat.com ([209.132.183.28]:27879 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756562Ab1GKB7s (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 10 Jul 2011 21:59:48 -0400
+Received: from int-mx10.intmail.prod.int.phx2.redhat.com (int-mx10.intmail.prod.int.phx2.redhat.com [10.5.11.23])
+	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id p6B1xlkx018148
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
+	for <linux-media@vger.kernel.org>; Sun, 10 Jul 2011 21:59:47 -0400
+Received: from pedra (vpn-225-29.phx2.redhat.com [10.3.225.29])
+	by int-mx10.intmail.prod.int.phx2.redhat.com (8.14.4/8.14.4) with ESMTP id p6B1xKKc030664
+	for <linux-media@vger.kernel.org>; Sun, 10 Jul 2011 21:59:46 -0400
+Date: Sun, 10 Jul 2011 22:58:59 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: [PATCH 12/21] [media] drxk: Allow to disable I2C Bridge control
+ switch
+Message-ID: <20110710225859.34c874cf@pedra>
+In-Reply-To: <cover.1310347962.git.mchehab@redhat.com>
+References: <cover.1310347962.git.mchehab@redhat.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
+To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
 List-ID: <linux-media.vger.kernel.org>
-Sender: <mchehab@pedra>
+Sender: <mchehab@infradead.org>
 
-Hello Uwe,
+On em28xx, tda18271C2 is accessible when the i2c port
+is not touched. Touching on it breaks the driver.
 
-On 07/02/2011 10:09 PM, Uwe Kleine-König wrote:
-> Hello Sylwester,
-> 
-> thanks for your feedback. A few comments below. For the statements I
-> don't reply to, you can consider a "OK, will be fixed in v2".
-> 
-> On Fri, Jul 01, 2011 at 11:20:32PM +0200, Sylwester Nawrocki wrote:
->> On 06/29/2011 09:58 PM, Uwe Kleine-König wrote:
->>> +	if (handled&   heoimr)
->>> +		return IRQ_HANDLED;
->>> +	else
->>
->> else could be omitted
-> I like the else, but don't care much.
+Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
 
-sure, it was purely a personal preference.
+diff --git a/drivers/media/dvb/frontends/drxk.h b/drivers/media/dvb/frontends/drxk.h
+index dd54512..9c99f31 100644
+--- a/drivers/media/dvb/frontends/drxk.h
++++ b/drivers/media/dvb/frontends/drxk.h
+@@ -7,6 +7,7 @@
+ struct drxk_config {
+ 	u8 adr;
+ 	u32 single_master : 1;
++	u32 no_i2c_bridge : 1;
+ 	const char *microcode_name;
+ };
+ 
+diff --git a/drivers/media/dvb/frontends/drxk_hard.c b/drivers/media/dvb/frontends/drxk_hard.c
+index adb454a..5233526 100644
+--- a/drivers/media/dvb/frontends/drxk_hard.c
++++ b/drivers/media/dvb/frontends/drxk_hard.c
+@@ -2784,6 +2784,8 @@ static int ConfigureI2CBridge(struct drxk_state *state, bool bEnableBridge)
+ 	if (state->m_DrxkState == DRXK_POWERED_DOWN)
+ 		return -1;
+ 
++	if (state->no_i2c_bridge)
++		return 0;
+ 	do {
+ 		status = write16(state, SIO_HI_RA_RAM_PAR_1__A, SIO_HI_RA_RAM_PAR_1_PAR1_SEC_KEY);
+ 		if (status < 0)
+@@ -6360,6 +6362,7 @@ struct dvb_frontend *drxk_attach(const struct drxk_config *config,
+ 	state->demod_address = adr;
+ 	state->single_master = config->single_master;
+ 	state->microcode_name = config->microcode_name;
++	state->no_i2c_bridge = config->no_i2c_bridge;
+ 
+ 	mutex_init(&state->mutex);
+ 	mutex_init(&state->ctlock);
+diff --git a/drivers/media/dvb/frontends/drxk_hard.h b/drivers/media/dvb/frontends/drxk_hard.h
+index 8cdadce..b042755 100644
+--- a/drivers/media/dvb/frontends/drxk_hard.h
++++ b/drivers/media/dvb/frontends/drxk_hard.h
+@@ -330,6 +330,7 @@ struct drxk_state {
+ 	/* Configurable parameters at the driver */
+ 
+ 	u32 single_master : 1;		/* Use single master i2c mode */
++	u32 no_i2c_bridge : 1;		/* Tuner is not on port 1, don't use I2C bridge */
+ 	const char *microcode_name;
+ 
+ };
+diff --git a/drivers/media/video/em28xx/em28xx-dvb.c b/drivers/media/video/em28xx/em28xx-dvb.c
+index 93f0af5..9b2be03 100644
+--- a/drivers/media/video/em28xx/em28xx-dvb.c
++++ b/drivers/media/video/em28xx/em28xx-dvb.c
+@@ -304,6 +304,7 @@ static struct drxd_config em28xx_drxd = {
+ struct drxk_config terratec_h5_drxk = {
+ 	.adr = 0x29,
+ 	.single_master = 1,
++	.no_i2c_bridge = 1,
+ 	.microcode_name = "terratec_h5.fw",
+ };
+ 
+-- 
+1.7.1
 
->>> +	if (rect->left<   0)
->>> +		hwxpos = 0;
->>> +	else
->>> +		hwxpos = rect->left;
->>
->> Could be rewritten as:
->>
->> 	hwxpos = rect->left<  0 ? 0 : rect->left;
-> could even be rewritten as
-> 
-> 	hwxpos = max(rect->left, 0);
 
-ok, I give up, couldn't make it any simpler;)
-
-> 
->>> +static void at91sam9x5_video_vb_wait_prepare(struct vb2_queue *q)
->>> +{
->>> +	struct at91sam9x5_video_priv *priv =
->>> +		container_of(q, struct at91sam9x5_video_priv, queue);
->>> +	unsigned long flags;
->>> +
->>> +	debug("cfgupdate=%d hwstate=%d cfgstate=%d\n",
->>> +			priv->cfgupdate, priv->hwstate, priv->cfgstate);
->>> +	debug("bufs=%p,%p\n", priv->cur.vb, priv->next.vb);
->>> +	spin_lock_irqsave(&priv->lock, flags);
->>> +
->>> +	at91sam9x5_video_handle_irqstat(priv);
->>> +
->>> +	at91sam9x5_video_write32(priv, REG_HEOIER,
->>> +			REG_HEOIxR_ADD | REG_HEOIxR_DMA |
->>> +			REG_HEOIxR_UADD | REG_HEOIxR_UDMA |
->>> +			REG_HEOIxR_VADD | REG_HEOIxR_VDMA);
->>
->> What the above two calls are intended to be doing ?
->
-> handle_irqstat handles the eventual pending irqs. The second call
-> enables irqs for "frame done" (..._DMA) and "new descriptor loaded"
-> (..._ADD).
-
-OK, so it looks to me like irqs are unmasked in wait_prepare and masked
-back in wait_finish. I would try to move this logic to start_streaming and
-the interrupt handler.
-It seems this way too much dependant on when wait_prepare/wait_finish are
-called by videobuf2. AFAIK those callbacks are not called in non-blocking
-mode.
-
-> 
->>> +const struct vb2_ops at91sam9x5_video_vb_ops = {
->>> +	.queue_setup = at91sam9x5_video_vb_queue_setup,
->>> +
->>> +	.wait_prepare = at91sam9x5_video_vb_wait_prepare,
->>> +	.wait_finish = at91sam9x5_video_vb_wait_finish,
->>
->> These 2 functions are intended to unlock and lock respectively the mutex
->> that is used to serialize ioctl handlers, in particular DQBUF.
->> I'm not sure if you're doing the right thing in
->> at91sam9x5_video_vb_wait_prepare/at91sam9x5_video_vb_wait_finish.
-> I'm not taking a mutex for sure.
-
-All right, so this needs to be changed. If you decide to add a file
-operations mutex and protect each file operation individually in the driver,
-rather than assigning a pointer to such mutex to struct video_device::lock
-and let the core serialize file ops, then wait_prepare/wait_finish
-could be omitted.
-
-> 
->>> +
->>> +	.buf_prepare = at91sam9x5_video_vb_buf_prepare,
->>> +	.buf_queue = at91sam9x5_video_vb_buf_queue,
->>> +};
-
-Also if your driver is supposed to support write() method,
-vidioc_streamon/vidioc_streamoff should be just a pass-through for
-vb2_streamon/vb2_streamoff and the hardware control should happen in
-start_streaming, stop_streaming callbacks.
-
-I can't see a stop_streaming callback in your vb2 operations set.
-It's been made mandatory recently, thus it would be good to add it.
-
->>> +
->>> +static int at91sam9x5_video_vidioc_querycap(struct file *filp,
->>> +		void *fh, struct v4l2_capability *cap)
->>> +{
->>> +	strcpy(cap->driver, DRIVER_NAME);
-
-I would go for a strlcpy here, better to be safe than sorry. ;-)
-
->>> +	cap->capabilities = V4L2_CAP_VIDEO_OUTPUT | V4L2_CAP_STREAMING |
->>> +		V4L2_CAP_VIDEO_OVERLAY;
->>> +
->>> +	/* XXX */
->>> +	cap->version = 0;
->>
->> There is no need to set this field any more. It will be overwritten
->> with kernel versions in __video_do_ioctl(). See this for more details:
->> http://git.linuxtv.org/media_tree.git?a=commit;h=33436a81b0d4d1036ffcf0edb7e3bfa65d18ad08
-> I saw the discussion on the ML, but missed that it was already
-> committed.
-> 
->>> +	cap->card[0] = '\0';
->>> +	cap->bus_info[0] = '\0';
-> I assume I need to fill these with more sensible values?
-
-I think bus_info is not very useful for this driver and can be left as is.
-As for cap->card, I'm not sure. Some drivers just just fill it in with
-a video node name (/dev/video*), some are more creative.
-Here is what the V4L2 specifications says:
-http://linuxtv.org/downloads/v4l-dvb-apis/vidioc-querycap.html
-
---
-Regards,
-Sylwester
