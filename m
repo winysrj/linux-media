@@ -1,107 +1,69 @@
-Return-path: <mchehab@pedra>
-Received: from e28smtp07.in.ibm.com ([122.248.162.7]:58697 "EHLO
-	e28smtp07.in.ibm.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750992Ab1GDFZt (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 4 Jul 2011 01:25:49 -0400
-Date: Mon, 4 Jul 2011 10:55:39 +0530
-From: Ankita Garg <ankita@in.ibm.com>
-To: Arnd Bergmann <arnd@arndb.de>
-Cc: Larry Bassel <lbassel@codeaurora.org>,
-	Marek Szyprowski <m.szyprowski@samsung.com>,
-	"'Zach Pfeffer'" <zach.pfeffer@linaro.org>,
-	"'Daniel Walker'" <dwalker@codeaurora.org>,
-	"'Daniel Stone'" <daniels@collabora.com>,
-	"'Jesse Barker'" <jesse.barker@linaro.org>,
-	"'Mel Gorman'" <mel@csn.ul.ie>,
-	"'KAMEZAWA Hiroyuki'" <kamezawa.hiroyu@jp.fujitsu.com>,
-	linux-kernel@vger.kernel.org,
-	"'Michal Nazarewicz'" <mina86@mina86.com>,
-	linaro-mm-sig@lists.linaro.org, linux-mm@kvack.org,
-	"'Kyungmin Park'" <kyungmin.park@samsung.com>,
-	"'Andrew Morton'" <akpm@linux-foundation.org>,
-	linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org
-Subject: Re: [Linaro-mm-sig] [PATCH 08/10] mm: cma: Contiguous Memory
- Allocator added
-Message-ID: <20110704052539.GK12667@in.ibm.com>
-Reply-To: Ankita Garg <ankita@in.ibm.com>
-References: <1307699698-29369-1-git-send-email-m.szyprowski@samsung.com>
- <000901cc2b37$4c21f030$e465d090$%szyprowski@samsung.com>
- <20110615213958.GB28032@labbmf-linux.qualcomm.com>
- <201106160006.07742.arnd@arndb.de>
+Return-path: <mchehab@localhost>
+Received: from mail-ey0-f174.google.com ([209.85.215.174]:43259 "EHLO
+	mail-ey0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757981Ab1GKQ1o (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 11 Jul 2011 12:27:44 -0400
+Received: by eyx24 with SMTP id 24so1410619eyx.19
+        for <linux-media@vger.kernel.org>; Mon, 11 Jul 2011 09:27:43 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <201106160006.07742.arnd@arndb.de>
+In-Reply-To: <19995.8804.939482.9336@morden.metzler>
+References: <201107031831.20378@orion.escape-edv.de>
+	<CAGoCfiwaYhXFi1_QXX55nfSOivgnk1YyDNP5_sXL61k3hdabQA@mail.gmail.com>
+	<19995.8804.939482.9336@morden.metzler>
+Date: Mon, 11 Jul 2011 12:27:42 -0400
+Message-ID: <CAGoCfizQhU10ECyHwcdY+T6=66-KcPxRL-j_w3ELHpK=6+wwdg@mail.gmail.com>
+Subject: Re: [PATCH 00/16] New drivers: DRX-K, TDA18271c2, Updates: CXD2099
+ and ngene
+From: Devin Heitmueller <dheitmueller@kernellabs.com>
+To: Ralph Metzler <rjkm@metzlerbros.de>
+Cc: Oliver Endriss <o.endriss@gmx.de>, linux-media@vger.kernel.org,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Michael Krufky <mkrufky@kernellabs.com>
+Content-Type: text/plain; charset=ISO-8859-1
 List-ID: <linux-media.vger.kernel.org>
-Sender: <mchehab@pedra>
+Sender: <mchehab@infradead.org>
 
-Hi,
+Hi Ralph,
 
-On Thu, Jun 16, 2011 at 12:06:07AM +0200, Arnd Bergmann wrote:
-> On Wednesday 15 June 2011 23:39:58 Larry Bassel wrote:
-> > On 15 Jun 11 10:36, Marek Szyprowski wrote:
-> > > On Tuesday, June 14, 2011 10:42 PM Arnd Bergmann wrote:
-> > > 
-> > > > On Tuesday 14 June 2011 20:58:25 Zach Pfeffer wrote:
-> > > > > I've seen this split bank allocation in Qualcomm and TI SoCs, with
-> > > > > Samsung, that makes 3 major SoC vendors (I would be surprised if
-> > > > > Nvidia didn't also need to do this) - so I think some configurable
-> > > > > method to control allocations is necessarily. The chips can't do
-> > > > > decode without it (and by can't do I mean 1080P and higher decode is
-> > > > > not functionally useful). Far from special, this would appear to be
-> > > > > the default.
-> > 
-> > We at Qualcomm have some platforms that have memory of different
-> > performance characteristics, some drivers will need a way of
-> > specifying that they need fast memory for an allocation (and would prefer
-> > an error if it is not available rather than a fallback to slower
-> > memory). It would also be bad if allocators who don't need fast
-> > memory got it "accidentally", depriving those who really need it.
-> 
-> Can you describe how the memory areas differ specifically?
-> Is there one that is always faster but very small, or are there
-> just specific circumstances under which some memory is faster than
-> another?
-> 
-> > > > The possible conflict that I still see with per-bank CMA regions are:
-> > > > 
-> > > > * It completely destroys memory power management in cases where that
-> > > >   is based on powering down entire memory banks.
-> > > 
-> We already established that we have to know something about the banks,
-> and your additional input makes it even clearer that we need to consider
-> the bigger picture here: We need to describe parts of memory separately
-> regarding general performance, device specific allocations and hotplug
-> characteristics.
-> 
-> It still sounds to me that this can be done using the NUMA properties
-> that Linux already understands, and teaching more subsystems about it,
-> but maybe the memory hotplug developers have already come up with
-> another scheme. The way that memory hotplug and CMA choose their
-> memory regions certainly needs to take both into account. As far as
-> I can see there are both conflicting and synergistic effects when
-> you combine the two.
-> 
+Good to hear from you.
 
-Recently, we proposed a generic 'memory regions' framework to exploit
-the memory power management capabilities on the embedded boards. Think
-of some of the above CMA requirements could be met by this fraemwork.
-One of the main goals of regions is to make the VM aware of the hardware
-memory boundaries, like bank. For managing memory power consumption,
-memory regions are created aligned to the hardware granularity at which
-the power can be managed (ie, the memory power consumption operations
-like on/off can be performed). If attributed are associated with each of
-these regions, some of these regions could be marked as CMA-only,
-ensuring that only movable and per-bank memory is allocated. More
-details on the design can be found here:
+> AFAIR, there were at least 2 reasons.
+> One was that the existing driver does not accept 2 (or even 4) tuners with the
+> same address (but behind different demods) on the same I2C bus which
+> is the case on duoflex C/T addon cards.
 
-http://lkml.org/lkml/2011/5/27/177
-http://lkml.org/lkml/2011/6/29/202
-http://lwn.net/Articles/446493/
+Do you mean that you are relying solely on the i2c gates on the
+"other" demods being closed so that the tuners associated with the
+other inputs do not receive the commands?  If so, that would
+definitely create the need for some weird locking structure (since
+today demods typically do not manage their i2c gates in tandem).
+
+> The other was that it does not give back the intermediate frequency
+> which the demod needs. (This is currently done by misusing
+> get_frequency() but I added a get_if() call in newer internal versions
+> which should be added to dvb-core/dvb_frontend.h)
+
+Generally speaking with other devices the IF is configured for the
+tuner depending on the target modulation (there is a tda18271_config
+struct passed at attach time containing the IF for various modes).
+Then the demod driver is also configured for a particular IF.
+
+Are you changing the IF based on something other than the target
+modulation type?  Or do you need to vary the IF based on different
+frequencies within the same modulation?
+
+> Feel free to change ngene/ddbridge to use the existing driver but it
+> will need some major changes in tda18271_attach() and a few other places.
+
+If there are indeed good reasons, then so be it.  But it feels like we
+are working around deficiencies in the core DVB framework that would
+apply to all drivers, and it would be good if we could avoid the
+maintenance headaches associated with two different drivers for the
+same chip.
+
+Devin
 
 -- 
-Regards,
-Ankita Garg (ankita@in.ibm.com)
-Linux Technology Center
-IBM India Systems & Technology Labs,
-Bangalore, India
+Devin J. Heitmueller - Kernel Labs
+http://www.kernellabs.com
