@@ -1,137 +1,102 @@
-Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:37252 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751289Ab1G0Ryc (ORCPT
+Return-path: <mchehab@localhost>
+Received: from d1.icnet.pl ([212.160.220.21]:50562 "EHLO d1.icnet.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752804Ab1GLJ4A convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 27 Jul 2011 13:54:32 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Sylwester Nawrocki <snjw23@gmail.com>
-Subject: Re: [PATCH] mt9p031: Aptina (Micron) MT9P031 5MP sensor driver
-Date: Wed, 27 Jul 2011 19:54:32 +0200
-Cc: linux-media@vger.kernel.org, javier.martin@vista-silicon.com,
-	shotty317@gmail.com
-References: <CACKLOr1veNZ_6E3V_m1Tf+mxxUAKiRKDbboW-fMbRGUrLns_XA@mail.gmail.com> <1311757981-6968-1-git-send-email-laurent.pinchart@ideasonboard.com> <4E304C2C.6070505@gmail.com>
-In-Reply-To: <4E304C2C.6070505@gmail.com>
+	Tue, 12 Jul 2011 05:56:00 -0400
+From: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
+To: "Russell King - ARM Linux" <linux@arm.linux.org.uk>
+Subject: Re: [RESEND] [PATCH 1/2] OMAP1: allow reserving memory for camera
+Date: Tue, 12 Jul 2011 11:53:26 +0200
+Cc: Tony Lindgren <tony@atomide.com>,
+	"linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	linux-arm-kernel@lists.infradead.org,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+References: <201012051929.07220.jkrzyszt@tis.icnet.pl> <201106082354.10985.jkrzyszt@tis.icnet.pl> <20110608221330.GA13246@n2100.arm.linux.org.uk>
+In-Reply-To: <20110608221330.GA13246@n2100.arm.linux.org.uk>
 MIME-Version: 1.0
 Content-Type: Text/Plain;
   charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201107271954.33149.laurent.pinchart@ideasonboard.com>
-Sender: linux-media-owner@vger.kernel.org
+Content-Transfer-Encoding: 8BIT
+Message-Id: <201107121153.27115.jkrzyszt@tis.icnet.pl>
 List-ID: <linux-media.vger.kernel.org>
+Sender: <mchehab@infradead.org>
 
-Hi Sylwester,
-
-Thanks for the review.
-
-On Wednesday 27 July 2011 19:34:36 Sylwester Nawrocki wrote:
-> On 07/27/2011 11:13 AM, Laurent Pinchart wrote:
-
-[snip]
-
-> > +static int mt9p031_probe(struct i2c_client *client,
-> > +				const struct i2c_device_id *did)
-> > +{
-> > +	struct mt9p031_platform_data *pdata = client->dev.platform_data;
-> > +	struct i2c_adapter *adapter = to_i2c_adapter(client->dev.parent);
-> > +	struct mt9p031 *mt9p031;
-> > +	unsigned int i;
-> > +	int ret;
-> > +
-> > +	if (!i2c_check_functionality(adapter, I2C_FUNC_SMBUS_WORD_DATA)) {
-> > +		dev_warn(&adapter->dev,
-> > +			"I2C-Adapter doesn't support I2C_FUNC_SMBUS_WORD\n");
-> > +		return -EIO;
-> > +	}
-> > +
-> > +	mt9p031 = kzalloc(sizeof(*mt9p031), GFP_KERNEL);
-> > +	if (mt9p031 == NULL)
-> > +		return -ENOMEM;
-> > +
-> > +	mt9p031->pdata = pdata;
-> > +	mt9p031->output_control	= MT9P031_OUTPUT_CONTROL_DEF;
-> > +	mt9p031->mode2 = MT9P031_READ_MODE_2_ROW_BLC;
-> > +
-> > +	v4l2_ctrl_handler_init(&mt9p031->ctrls, ARRAY_SIZE(mt9p031_ctrls) + 4);
-> > +
-> > +	v4l2_ctrl_new_std(&mt9p031->ctrls,&mt9p031_ctrl_ops,
-> > +			  V4L2_CID_EXPOSURE, MT9P031_SHUTTER_WIDTH_MIN,
-> > +			  MT9P031_SHUTTER_WIDTH_MAX, 1,
-> > +			  MT9P031_SHUTTER_WIDTH_DEF);
-> > +	v4l2_ctrl_new_std(&mt9p031->ctrls,&mt9p031_ctrl_ops,
-> > +			  V4L2_CID_GAIN, MT9P031_GLOBAL_GAIN_MIN,
-> > +			  MT9P031_GLOBAL_GAIN_MAX, 1, MT9P031_GLOBAL_GAIN_DEF);
-> > +	v4l2_ctrl_new_std(&mt9p031->ctrls,&mt9p031_ctrl_ops,
-> > +			  V4L2_CID_HFLIP, 0, 1, 1, 0);
-> > +	v4l2_ctrl_new_std(&mt9p031->ctrls,&mt9p031_ctrl_ops,
-> > +			  V4L2_CID_VFLIP, 0, 1, 1, 0);
-> > +
-> > +	for (i = 0; i<  ARRAY_SIZE(mt9p031_ctrls); ++i)
-> > +		v4l2_ctrl_new_custom(&mt9p031->ctrls,&mt9p031_ctrls[i], NULL);
-> > +
-> > +	mt9p031->subdev.ctrl_handler =&mt9p031->ctrls;
-> > +
-> > +	if (mt9p031->ctrls.error)
-> > +		printk(KERN_INFO "%s: control initialization error %d\n",
-> > +		       __func__, mt9p031->ctrls.error);
-> > +
-> > +	mutex_init(&mt9p031->power_lock);
-> > +	v4l2_i2c_subdev_init(&mt9p031->subdev, client,&mt9p031_subdev_ops);
-> > +	mt9p031->subdev.internal_ops =&mt9p031_subdev_internal_ops;
-> > +
-> > +	mt9p031->pad.flags = MEDIA_PAD_FL_SOURCE;
-> > +	ret = media_entity_init(&mt9p031->subdev.entity, 1,&mt9p031->pad, 0);
-> > +	if (ret<  0)
-> > +		goto done;
-> > +
-> > +	mt9p031->subdev.flags |= V4L2_SUBDEV_FL_HAS_DEVNODE;
-> > +
-> > +	mt9p031->crop.width = MT9P031_WINDOW_WIDTH_DEF;
-> > +	mt9p031->crop.height = MT9P031_WINDOW_HEIGHT_DEF;
-> > +	mt9p031->crop.left = MT9P031_COLUMN_START_DEF;
-> > +	mt9p031->crop.top = MT9P031_ROW_START_DEF;
-> > +
-> > +	if (mt9p031->pdata->version == MT9P031_MONOCHROME_VERSION)
-> > +		mt9p031->format.code = V4L2_MBUS_FMT_Y12_1X12;
-> > +	else
-> > +		mt9p031->format.code = V4L2_MBUS_FMT_SGRBG12_1X12;
-> > +
-> > +	mt9p031->format.width = MT9P031_WINDOW_WIDTH_DEF;
-> > +	mt9p031->format.height = MT9P031_WINDOW_HEIGHT_DEF;
-> > +	mt9p031->format.field = V4L2_FIELD_NONE;
-> > +	mt9p031->format.colorspace = V4L2_COLORSPACE_SRGB;
-> > +
-> > +	ret = mt9p031_pll_get_divs(mt9p031);
-> > +
-> > +done:
-> > +	if (ret<  0)
+On Thu, 9 Jun 2011 at 00:13:30 Russell King - ARM Linux wrote:
+> On Wed, Jun 08, 2011 at 11:53:49PM +0200, Janusz Krzysztofik wrote:
+> > On Fri 10 Dec 2010 at 22:03:52 Janusz Krzysztofik wrote:
+> > > Friday 10 December 2010 18:03:56 Russell King - ARM Linux napisał(a):
+> > > > On Fri, Dec 10, 2010 at 12:03:07PM +0100, Janusz Krzysztofik wrote:
+> > > > >  void __init omap1_camera_init(void *info)
+> > > > >  {
+> > > > >  
+> > > > >  	struct platform_device *dev = &omap1_camera_device;
+> > > > > 
+> > > > > +	dma_addr_t paddr = omap1_camera_phys_mempool_base;
+> > > > > +	dma_addr_t size = omap1_camera_phys_mempool_size;
+> > > > > 
+> > > > >  	int ret;
+> > > > >  	
+> > > > >  	dev->dev.platform_data = info;
+> > > > > 
+> > > > > +	if (paddr) {
+> > > > > +		if (dma_declare_coherent_memory(&dev->dev, paddr, paddr, size,
+> > > > > +				DMA_MEMORY_MAP | DMA_MEMORY_EXCLUSIVE))
+> > > > 
+> > > > Although this works, you're ending up with SDRAM being mapped
+> > > > via ioremap, which uses MT_DEVICE - so what is SDRAM ends up
+> > > > being mapped as if it were a device.
+> > > > 
+> > > > For OMAP1, which is ARMv5 or lower, device memory becomes
+> > > > 'uncacheable, unbufferable' which is luckily what is used for
+> > > > the DMA coherent memory on those platforms - so no technical
+> > > > problem here.
+> > > > 
+> > > > However, on ARMv6 and later, ioremapped memory is device
+> > > > memory, which has different ordering wrt normal memory
+> > > > mappings, and may appear on different busses on the CPU's
+> > > > interface.  So, this is something I don't encourage as it's
+> > > > unclear that the hardware will work.
+> > > > 
+> > > > Essentially, dma_declare_coherent_memory() on ARM with main
+> > > > SDRAM should be viewed as a 'it might work, it might not, and
+> > > > it might stop working in the future' kind of interface.  In
+> > > > other words, there is no guarantee that this kind of thing
+> > > > will be supported in the future.
+> > 
+> > Russell, Tony,
+> > 
+> > Sorry for getting back to this old thread, but since my previous
+> > attempts to provide[1] or support[2] a possibly better solution to
+> > the problem all failed on one hand, and I can see patches not very
+> > different from mine[3] being accepted for arch/arm/mach-{mx3,imx}
+> > during this and previous merge windows[4][5][6] on the other, is
+> > there any chance for the 'dma_declare_coherent_memory() over a
+> > memblock_alloc()->free()->remove() obtained area' based solution
+> > being accepted for omap1_camera as well if I resend it refreshed?
 > 
-> It seems there is a v4l2_ctrl_handler_free() missing here...
+> I stand by my answer to your patches quoted above from a technical
+> point of view; we should not be mapping SDRAM using device mappings.
 
-Good catch. I'll fix that (and the next one as well), and add a 
-media_entity_cleanup() here as well.
+Russell,
+Would it change anything here if we define ARCH_HAS_HOLES_MEMORYMODEL, 
+as suggested by Marek Szyprowski recently[*], when configuring for 
+ARCH_OMAP1 with VIDEO_OMAP1 (camera) selected?
 
-> > +		kfree(mt9p031);
-> > +
-> > +	return ret;
-> > +}
-> > +
-> > +static int mt9p031_remove(struct i2c_client *client)
-> > +{
-> > +	struct v4l2_subdev *subdev = i2c_get_clientdata(client);
-> > +	struct mt9p031 *mt9p031 = to_mt9p031(subdev);
-> > +
-> > +	v4l2_device_unregister_subdev(subdev);
-> > +	media_entity_cleanup(&subdev->entity);
-> 
-> ... and here.
-> 
-> > +	kfree(mt9p031);
-> > +
-> > +	return 0;
-> > +}
+[*] http://lists.infradead.org/pipermail/linux-arm-kernel/2011-July/057447.html
 
--- 
-Regards,
+> Certainly the memblock_alloc()+free()+remove() is the right way to
+> reserve the memory, but as it stands dma_declare_coherent_memory()
+> should not be used on ARMv6 or higher CPUs to pass that memory to the
+> device driver.
 
-Laurent Pinchart
+Tony,
+With full respect to all Russell's reservations about incorrectness of 
+ioremapping SDRAM in general, would you be willing to accept this 
+solution in the OMAP1 camera case, taking into account that, quoting 
+Russell, "there is no technical problem here", and similiar solutions 
+had been accepted recently with other ARM platforms?
+
+Thanks,
+Janusz
