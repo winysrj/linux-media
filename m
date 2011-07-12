@@ -1,88 +1,37 @@
-Return-path: <linux-media-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:53105 "EHLO comal.ext.ti.com"
+Return-path: <mchehab@localhost>
+Received: from mail.kapsi.fi ([217.30.184.167]:47590 "EHLO mail.kapsi.fi"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751289Ab1GRSUU convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 18 Jul 2011 14:20:20 -0400
-Received: from dbdp20.itg.ti.com ([172.24.170.38])
-	by comal.ext.ti.com (8.13.7/8.13.7) with ESMTP id p6IIKH27021719
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-media@vger.kernel.org>; Mon, 18 Jul 2011 13:20:19 -0500
-Received: from dbde70.ent.ti.com (localhost [127.0.0.1])
-	by dbdp20.itg.ti.com (8.13.8/8.13.8) with ESMTP id p6IIKHi3025241
-	for <linux-media@vger.kernel.org>; Mon, 18 Jul 2011 23:50:17 +0530 (IST)
-From: "Hiremath, Vaibhav" <hvaibhav@ti.com>
-To: "JAIN, AMBER" <amber@ti.com>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-CC: "Nilofer, Samreen" <samreen@ti.com>
-Date: Mon, 18 Jul 2011 23:50:17 +0530
-Subject: RE: [PATCH v2 3/3] V4l2: OMAP: VOUT: Minor Cleanup, removing the
- unnecessary code.
-Message-ID: <19F8576C6E063C45BE387C64729E739404E3737BA9@dbde02.ent.ti.com>
-References: <1310041278-8810-1-git-send-email-amber@ti.com>
- <1310041278-8810-4-git-send-email-amber@ti.com>
-In-Reply-To: <1310041278-8810-4-git-send-email-amber@ti.com>
-Content-Language: en-US
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+	id S932076Ab1GLXCw (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 12 Jul 2011 19:02:52 -0400
+Message-ID: <4E1CD298.7030707@iki.fi>
+Date: Wed, 13 Jul 2011 02:02:48 +0300
+From: Antti Palosaari <crope@iki.fi>
 MIME-Version: 1.0
-Sender: linux-media-owner@vger.kernel.org
+To: David <reality_es@yahoo.es>
+CC: linux-media@vger.kernel.org
+Subject: Re: Fwd: [PATCH] STV22 Dual USB DVB-T Tuner HDTV linux kernel support
+References: <BANLkTi=SM+syVFQOs3_22tGZN1v+AcKGpQ@mail.gmail.com>	<BANLkTimSqC3bAyJQneXkmM8Mae5Ono1JLA@mail.gmail.com>	<4E17CF84.108@iki.fi> <CA+x4LmirEv-+PDUDV=eSXv7fiMJbnz-k7Q7jT3oZOgVvGPF_rw@mail.gmail.com>
+In-Reply-To: <CA+x4LmirEv-+PDUDV=eSXv7fiMJbnz-k7Q7jT3oZOgVvGPF_rw@mail.gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
+Sender: <mchehab@infradead.org>
+
+On 07/12/2011 11:33 PM, David wrote:
+> The new patches are done, please tell me if i have to make any
+> changes. Thanks for your time.
+
+Patch was still broken formally, seems like even Patchwork [1] cannot 
+catch it. Anyhow, I copied it manually my tree [2] in order to go 
+forward. No need your action any-more, thank you!
+
+[1] https://patchwork.kernel.org/project/linux-media/list/
+[2] 
+http://git.linuxtv.org/anttip/media_tree.git?a=shortlog;h=refs/heads/af9015
 
 
-> -----Original Message-----
-> From: JAIN, AMBER
-> Sent: Thursday, July 07, 2011 5:51 PM
-> To: linux-media@vger.kernel.org
-> Cc: Hiremath, Vaibhav; JAIN, AMBER; Nilofer, Samreen
-> Subject: [PATCH v2 3/3] V4l2: OMAP: VOUT: Minor Cleanup, removing the
-> unnecessary code.
-> 
-> Minor changes to remove the unused code from omap_vout driver.
-> 
-> Signed-off-by: Amber Jain <amber@ti.com>
-> Signed-off-by: Samreen <samreen@ti.com>
-> ---
-> Changes from v1:
-> - None.
-> 
->  drivers/media/video/omap/omap_vout.c |    6 ------
->  1 files changed, 0 insertions(+), 6 deletions(-)
-> 
-> diff --git a/drivers/media/video/omap/omap_vout.c
-> b/drivers/media/video/omap/omap_vout.c
-> index 7d3410a..548f4cd 100644
-> --- a/drivers/media/video/omap/omap_vout.c
-> +++ b/drivers/media/video/omap/omap_vout.c
-> @@ -1041,10 +1041,7 @@ static int vidioc_enum_fmt_vid_out(struct file
-> *file, void *fh,
->  			struct v4l2_fmtdesc *fmt)
->  {
->  	int index = fmt->index;
-> -	enum v4l2_buf_type type = fmt->type;
-> 
-> -	fmt->index = index;
-> -	fmt->type = type;
->  	if (index >= NUM_OUTPUT_FORMATS)
->  		return -EINVAL;
-> 
-> @@ -1213,10 +1210,7 @@ static int vidioc_enum_fmt_vid_overlay(struct file
-> *file, void *fh,
->  			struct v4l2_fmtdesc *fmt)
->  {
->  	int index = fmt->index;
-> -	enum v4l2_buf_type type = fmt->type;
-> 
-> -	fmt->index = index;
-> -	fmt->type = type;
->  	if (index >= NUM_OUTPUT_FORMATS)
->  		return -EINVAL;
-> 
-[Hiremath, Vaibhav] Acked-By: Vaibhav Hiremath <hvaibhav@ti.com>
+regards
+Antti
 
-Thanks,
-Vaibhav
-
-> --
-> 1.7.1
-
+-- 
+http://palosaari.fi/
