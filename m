@@ -1,43 +1,40 @@
-Return-path: <mchehab@pedra>
-Received: from mailout-de.gmx.net ([213.165.64.23]:51061 "HELO
-	mailout-de.gmx.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1751253Ab1GCQ5q (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sun, 3 Jul 2011 12:57:46 -0400
-From: Oliver Endriss <o.endriss@gmx.de>
-To: linux-media@vger.kernel.org
-Subject: [PATCH 10/16] ngene: Fix return code if no demux was found
-Date: Sun, 3 Jul 2011 18:57:26 +0200
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>
-References: <201107031831.20378@orion.escape-edv.de>
-In-Reply-To: <201107031831.20378@orion.escape-edv.de>
-MIME-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-Message-Id: <201107031857.28037@orion.escape-edv.de>
+Return-path: <mchehab@localhost>
+Received: from tex.lwn.net ([70.33.254.29]:42676 "EHLO vena.lwn.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753704Ab1GLPf5 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 12 Jul 2011 11:35:57 -0400
+Date: Tue, 12 Jul 2011 09:35:56 -0600
+From: Jonathan Corbet <corbet@lwn.net>
+To: Hans de Goede <hdegoede@redhat.com>
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: [ANNOUNCE] Media subsystem workshop 2011 - Prague - Oct 24-26
+Message-ID: <20110712093556.50d7dde2@bike.lwn.net>
+In-Reply-To: <4E1B5823.7060609@redhat.com>
+References: <4E02357E.4060400@redhat.com>
+	<4E1B5823.7060609@redhat.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 8bit
 List-ID: <linux-media.vger.kernel.org>
-Sender: <mchehab@pedra>
+Sender: <mchehab@infradead.org>
 
-Fix return code if no demux was found (cineS2_probe).
+On Mon, 11 Jul 2011 22:08:03 +0200
+Hans de Goede <hdegoede@redhat.com> wrote:
 
-Signed-off-by: Oliver Endriss <o.endriss@gmx.de>
----
- drivers/media/dvb/ngene/ngene-cards.c |    1 +
- 1 files changed, 1 insertions(+), 0 deletions(-)
+> On Wednesday 22 June 2011 20:33:34 Mauro Carvalho Chehab wrote:
+> > Media subsystem workshop 2011 - Prague - Oct 24-26
+> >  
+> 
+> The below website says Oct 23 - 25, I'm confused now and I hope
+> to book a plane ticket soon. Can someone tell me which
+> dates are correct ?
+> 
+> http://events.linuxfoundation.org/events/linux-kernel-summit
 
-diff --git a/drivers/media/dvb/ngene/ngene-cards.c b/drivers/media/dvb/ngene/ngene-cards.c
-index 0d550a9..0d879cb 100644
---- a/drivers/media/dvb/ngene/ngene-cards.c
-+++ b/drivers/media/dvb/ngene/ngene-cards.c
-@@ -274,6 +274,7 @@ static int cineS2_probe(struct ngene_channel *chan)
- 		demod_attach_drxk(chan, i2c);
- 	} else {
- 		printk(KERN_ERR "No demod found on chan %d\n", chan->number);
-+		return -ENODEV;
- 	}
- 	return 0;
- }
--- 
-1.7.4.1
+There has been talk from within the LF about shifting the kernel summit
+forward one day (starting the 23rd) to minimize conflicts with LinuxCon
+and such.  I wasn't aware that this action had actually been taken, but I
+guess it has.  I would consider the web site to be correct.
 
+jon
