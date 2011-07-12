@@ -1,145 +1,91 @@
-Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([147.243.128.24]:34098 "EHLO mgw-da01.nokia.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751105Ab1GSNiL (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 19 Jul 2011 09:38:11 -0400
-Received: from maxwell.research.nokia.com (maxwell.research.nokia.com [172.21.50.162])
-	by mgw-da01.nokia.com (Switch-3.4.4/Switch-3.4.3) with ESMTP id p6JDc8Af032138
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-media@vger.kernel.org>; Tue, 19 Jul 2011 16:38:10 +0300
-Received: from kaali.localdomain (kaali.localdomain [192.168.239.7])
-	by maxwell.research.nokia.com (Postfix) with ESMTPS id A988738638F
-	for <linux-media@vger.kernel.org>; Tue, 19 Jul 2011 16:38:08 +0300 (EEST)
-Received: from sailus by kaali.localdomain with local (Exim 4.72)
-	(envelope-from <sakari.ailus@maxwell.research.nokia.com>)
-	id 1QjAUy-0004Dz-EP
-	for linux-media@vger.kernel.org; Tue, 19 Jul 2011 16:38:08 +0300
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: linux-media@vger.kernel.org
-Subject: [RFC 2/3] v4l: events: Define frame start event
-Date: Tue, 19 Jul 2011 16:38:07 +0300
-Message-Id: <1311082688-16185-2-git-send-email-sakari.ailus@iki.fi>
-In-Reply-To: <4E2588AD.4070106@maxwell.research.nokia.com>
-References: <4E2588AD.4070106@maxwell.research.nokia.com>
-Sender: linux-media-owner@vger.kernel.org
+Return-path: <mchehab@localhost>
+Received: from nm17-vm0.bullet.mail.ukl.yahoo.com ([217.146.183.93]:29061 "HELO
+	nm17-vm0.bullet.mail.ukl.yahoo.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with SMTP id S1753653Ab1GLUdM convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 12 Jul 2011 16:33:12 -0400
+Received: by iyb12 with SMTP id 12so4983243iyb.19
+        for <linux-media@vger.kernel.org>; Tue, 12 Jul 2011 13:33:09 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <4E17CF84.108@iki.fi>
+References: <BANLkTi=SM+syVFQOs3_22tGZN1v+AcKGpQ@mail.gmail.com>
+	<BANLkTimSqC3bAyJQneXkmM8Mae5Ono1JLA@mail.gmail.com>
+	<4E17CF84.108@iki.fi>
+Date: Tue, 12 Jul 2011 22:33:08 +0200
+Message-ID: <CA+x4LmirEv-+PDUDV=eSXv7fiMJbnz-k7Q7jT3oZOgVvGPF_rw@mail.gmail.com>
+Subject: Re: Fwd: [PATCH] STV22 Dual USB DVB-T Tuner HDTV linux kernel support
+From: David <reality_es@yahoo.es>
+To: Antti Palosaari <crope@iki.fi>, linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 List-ID: <linux-media.vger.kernel.org>
+Sender: <mchehab@infradead.org>
 
-Define a frame start event to tell user space when the reception of a frame
-starts.
+Hello Again:
 
-Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
----
- Documentation/DocBook/media/v4l/vidioc-dqevent.xml |   26 ++++++++++++++++++++
- .../DocBook/media/v4l/vidioc-subscribe-event.xml   |   18 +++++++++++++
- include/linux/videodev2.h                          |   12 +++++++--
- 3 files changed, 53 insertions(+), 3 deletions(-)
+The new patches are done, please tell me if i have to make any
+changes. Thanks for your time.
 
-diff --git a/Documentation/DocBook/media/v4l/vidioc-dqevent.xml b/Documentation/DocBook/media/v4l/vidioc-dqevent.xml
-index 5200b68..d2cb8db 100644
---- a/Documentation/DocBook/media/v4l/vidioc-dqevent.xml
-+++ b/Documentation/DocBook/media/v4l/vidioc-dqevent.xml
-@@ -88,6 +88,12 @@
- 	  </row>
- 	  <row>
- 	    <entry></entry>
-+	    <entry>&v4l2-event-frame-sync;</entry>
-+            <entry><structfield>frame</structfield></entry>
-+	    <entry>Event data for event V4L2_EVENT_FRAME_START.</entry>
-+	  </row>
-+	  <row>
-+	    <entry></entry>
- 	    <entry>__u8</entry>
-             <entry><structfield>data</structfield>[64]</entry>
- 	    <entry>Event data. Defined by the event type. The union
-@@ -220,6 +226,26 @@
-       </tgroup>
-     </table>
- 
-+    <table frame="none" pgwide="1" id="v4l2-event-frame-sync">
-+      <title>struct <structname>v4l2_event_frame_sync</structname></title>
-+      <tgroup cols="3">
-+	&cs-str;
-+	<tbody valign="top">
-+	  <row>
-+	    <entry>__u32</entry>
-+	    <entry><structfield>buffer_sequence</structfield></entry>
-+	    <entry>
-+	      The sequence number of the buffer to be handled next or
-+	      currently handled by the driver.
-+	    </entry>
-+	  </row>
-+	</tbody>
-+      </tgroup>
-+    </table>
-+
-+    <para>&v4l2-event-frame-sync; is associated with
-+    <constant>V4L2_EVENT_FRAME_START</constant> event.</para>
-+
-     <table pgwide="1" frame="none" id="changes-flags">
-       <title>Changes</title>
-       <tgroup cols="3">
-diff --git a/Documentation/DocBook/media/v4l/vidioc-subscribe-event.xml b/Documentation/DocBook/media/v4l/vidioc-subscribe-event.xml
-index 275be96..7ec42bb 100644
---- a/Documentation/DocBook/media/v4l/vidioc-subscribe-event.xml
-+++ b/Documentation/DocBook/media/v4l/vidioc-subscribe-event.xml
-@@ -139,6 +139,24 @@
- 	    </entry>
- 	  </row>
- 	  <row>
-+	    <entry><constant>V4L2_EVENT_FRAME_START</constant></entry>
-+	    <entry>4</entry>
-+	    <entry>
-+	      <para>Triggered immediately when the reception of a
-+	      frame has begun. This event has a
-+	      &v4l2-event-frame-sync; associated with it.</para>
-+
-+	      <para>A driver will only generate this event when the
-+	      hardware can generate it. This might not be the case
-+	      e.g. when the hardware has no DMA buffer to write the
-+	      image data to. In such cases the
-+	      <structfield>buffer_sequence</structfield> field in
-+	      &v4l2-event-frame-sync; will not be incremented either.
-+	      This causes two consecutive buffer sequence numbers to
-+	      have n times frame interval in between them.</para>
-+	    </entry>
-+	  </row>
-+	  <row>
- 	    <entry><constant>V4L2_EVENT_PRIVATE_START</constant></entry>
- 	    <entry>0x08000000</entry>
- 	    <entry>Base event number for driver-private events.</entry>
-diff --git a/include/linux/videodev2.h b/include/linux/videodev2.h
-index fca24cc..4265102 100644
---- a/include/linux/videodev2.h
-+++ b/include/linux/videodev2.h
-@@ -2006,6 +2006,7 @@ struct v4l2_streamparm {
- #define V4L2_EVENT_VSYNC			1
- #define V4L2_EVENT_EOS				2
- #define V4L2_EVENT_CTRL				3
-+#define V4L2_EVENT_FRAME_START			4
- #define V4L2_EVENT_PRIVATE_START		0x08000000
- 
- /* Payload for V4L2_EVENT_VSYNC */
-@@ -2032,12 +2033,17 @@ struct v4l2_event_ctrl {
- 	__s32 default_value;
- };
- 
-+struct v4l2_event_frame_sync {
-+	__u32 buffer_sequence;
-+};
-+
- struct v4l2_event {
- 	__u32				type;
- 	union {
--		struct v4l2_event_vsync vsync;
--		struct v4l2_event_ctrl	ctrl;
--		__u8			data[64];
-+		struct v4l2_event_vsync		vsync;
-+		struct v4l2_event_ctrl		ctrl;
-+		struct v4l2_event_frame_sync	frame_sync;
-+		__u8				data[64];
- 	} u;
- 	__u32				pending;
- 	__u32				sequence;
--- 
-1.7.2.5
+Signed-off-by: Emilio David Diaus Lopez <reality_es@yahoo.es>
+----------------------------------------------
+--- ./drivers/media/dvb/dvb-usb/af9015.c.orig    2011-03-22
+05:45:24.000000000 +0100
++++ ./drivers/media/dvb/dvb-usb/af9015.c    2011-07-12 22:04:15.612645277 +0200
+@@ -759,6 +759,8 @@ static const struct af9015_rc_setup af90
+         RC_MAP_DIGITALNOW_TINYTWIN },
+     { (USB_VID_GTEK << 16) + USB_PID_TINYTWIN_3,
+         RC_MAP_DIGITALNOW_TINYTWIN },
++    { (USB_VID_KWORLD_2 << 16) + USB_PID_SVEON_STV22,
++        RC_MAP_MSI_DIGIVOX_III },
+     { }
+ };
 
+@@ -1309,6 +1311,7 @@ static struct usb_device_id af9015_usb_t
+         USB_PID_TERRATEC_CINERGY_T_STICK_DUAL_RC)},
+ /* 35 */{USB_DEVICE(USB_VID_AVERMEDIA, USB_PID_AVERMEDIA_A850T)},
+     {USB_DEVICE(USB_VID_GTEK,      USB_PID_TINYTWIN_3)},
++    {USB_DEVICE(USB_VID_KWORLD_2,  USB_PID_SVEON_STV22)},
+     {0},
+ };
+ MODULE_DEVICE_TABLE(usb, af9015_usb_table);
+@@ -1502,7 +1505,7 @@ static struct dvb_usb_device_properties
+
+         .i2c_algo = &af9015_i2c_algo,
+
+-        .num_device_descs = 9, /* check max from dvb-usb.h */
++        .num_device_descs = 10, /* check max from dvb-usb.h */
+         .devices = {
+             {
+                 .name = "Xtensions XD-380",
+@@ -1554,6 +1557,11 @@ static struct dvb_usb_device_properties
+                 .cold_ids = {&af9015_usb_table[20], NULL},
+                 .warm_ids = {NULL},
+             },
++                        {
++                .name = "Sveon STV22 Dual USB DVB-T Tuner HDTV ",
++                .cold_ids = {&af9015_usb_table[37], NULL},
++                .warm_ids = {NULL},
++            },
+         }
+     }, {
+         .caps = DVB_USB_IS_AN_I2C_ADAPTER,
+------------------------
+--- ./drivers/media/dvb/dvb-usb/dvb-usb-ids.h.orig    2011-06-08
+03:51:23.000000000 +0200
++++ ./drivers/media/dvb/dvb-usb/dvb-usb-ids.h    2011-07-12
+22:06:22.432044202 +0200
+@@ -315,6 +315,7 @@
+ #define USB_PID_FRIIO_WHITE                0x0001
+ #define USB_PID_TVWAY_PLUS                0x0002
+ #define USB_PID_SVEON_STV20                0xe39d
++#define USB_PID_SVEON_STV22                0xe401
+ #define USB_PID_AZUREWAVE_AZ6027            0x3275
+ #define USB_PID_TERRATEC_DVBS2CI_V1            0x10a4
+ #define USB_PID_TERRATEC_DVBS2CI_V2            0x10ac
+----------------------
+1.3
+-------------------------
+
+regards
+
+Emilio David Diaus López
