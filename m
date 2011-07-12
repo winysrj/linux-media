@@ -1,36 +1,60 @@
 Return-path: <mchehab@localhost>
-Received: from mx1.redhat.com ([209.132.183.28]:2044 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751282Ab1GFQE1 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 6 Jul 2011 12:04:27 -0400
-Message-ID: <4E14877F.6060208@redhat.com>
-Date: Wed, 06 Jul 2011 13:04:15 -0300
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-MIME-Version: 1.0
-To: Stefan Richter <stefanr@s5r6.in-berlin.de>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: -EFAULT error code at firedtv driver
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+Received: from metis.ext.pengutronix.de ([92.198.50.35]:55673 "EHLO
+	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753096Ab1GLNrA (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 12 Jul 2011 09:47:00 -0400
+From: Michael Olbrich <m.olbrich@pengutronix.de>
+To: linux-media@vger.kernel.org
+Cc: kernel@pengutronix.de, Michael Olbrich <m.olbrich@pengutronix.de>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Pawel Osciak <pawel@osciak.com>
+Subject: [PATCH] v4l: mem2mem: add wait_{prepare,finish} ops to m2m_testdev
+Date: Tue, 12 Jul 2011 15:46:44 +0200
+Message-Id: <1310478404-9279-1-git-send-email-m.olbrich@pengutronix.de>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@infradead.org>
 
-Hi Stefan,
+These are necessary to prevent dead-locks e.g. if one thread waits
+in dqbuf at one end and another tries to queue a buffer at the
+other end.
 
-I'm validating if all drivers are behaving equally with respect to the
-error codes returned to userspace, and double-checking with the API.
+Signed-off-by: Michael Olbrich <m.olbrich@pengutronix.de>
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
+Cc: Pawel Osciak <pawel@osciak.com>
+---
+ drivers/media/video/mem2mem_testdev.c |   14 ++++++++++++++
+ 1 files changed, 14 insertions(+), 0 deletions(-)
 
-On almost all places, -EFAULT code is used only to indicate when
-copy_from_user/copy_to_user fails. However, firedtv uses a lot of
--EFAULT, where it seems to me that other error codes should be used
-instead (like -EIO for bus transfer errors and -EINVAL/-ERANGE for 
-invalid/out of range parameters).
+diff --git a/drivers/media/video/mem2mem_testdev.c b/drivers/media/video/mem2mem_testdev.c
+index b03d74e..effefa0 100644
+--- a/drivers/media/video/mem2mem_testdev.c
++++ b/drivers/media/video/mem2mem_testdev.c
+@@ -795,10 +795,24 @@ static void m2mtest_buf_queue(struct vb2_buffer *vb)
+ 	v4l2_m2m_buf_queue(ctx->m2m_ctx, vb);
+ }
+ 
++static void m2mtest_wait_prepare(struct vb2_queue *q)
++{
++	struct m2mtest_ctx *ctx = vb2_get_drv_priv(q);
++	m2mtest_unlock(ctx);
++}
++
++static void m2mtest_wait_finish(struct vb2_queue *q)
++{
++	struct m2mtest_ctx *ctx = vb2_get_drv_priv(q);
++	m2mtest_lock(ctx);
++}
++
+ static struct vb2_ops m2mtest_qops = {
+ 	.queue_setup	 = m2mtest_queue_setup,
+ 	.buf_prepare	 = m2mtest_buf_prepare,
+ 	.buf_queue	 = m2mtest_buf_queue,
++	.wait_prepare	 = m2mtest_wait_prepare,
++	.wait_finish	 = m2mtest_wait_finish,
+ };
+ 
+ static int queue_init(void *priv, struct vb2_queue *src_vq, struct vb2_queue *dst_vq)
+-- 
+1.7.5.4
 
-I'll be posting soon a series of patches fixing the error codes on the
-other places, but, as I don't know how do you use -EFAULT inside the
-firewire core, I prefer to not touch at firedtv.
-
-Could you please take a look on it?
-
-Thanks!
-Mauro
