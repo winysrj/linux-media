@@ -1,135 +1,133 @@
-Return-path: <mchehab@pedra>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:37960 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756180Ab1GDNUk (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 4 Jul 2011 09:20:40 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Michael Jones <michael.jones@matrix-vision.de>
-Subject: Re: [PATCH] v4l: Don't register media entities for subdev device nodes
-Date: Mon, 4 Jul 2011 15:21:09 +0200
-Cc: linux-media@vger.kernel.org,
-	sakari.ailus@maxwell.research.nokia.com
-References: <1302531990-5395-1-git-send-email-laurent.pinchart@ideasonboard.com> <4E11BBF9.4000201@matrix-vision.de>
-In-Reply-To: <4E11BBF9.4000201@matrix-vision.de>
-MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201107041521.10191.laurent.pinchart@ideasonboard.com>
+Return-path: <mchehab@localhost>
+Received: from mailout1.w1.samsung.com ([210.118.77.11]:51609 "EHLO
+	mailout1.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752078Ab1GLFfH convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 12 Jul 2011 01:35:07 -0400
+Date: Tue, 12 Jul 2011 07:34:28 +0200
+From: Marek Szyprowski <m.szyprowski@samsung.com>
+Subject: RE: [Linaro-mm-sig] [PATCH 6/8] drivers: add Contiguous Memory
+ Allocator
+In-reply-to: <201107112101.18601.jkrzyszt@tis.icnet.pl>
+To: 'Janusz Krzysztofik' <jkrzyszt@tis.icnet.pl>
+Cc: 'Arnd Bergmann' <arnd@arndb.de>, 'Marin Mitov' <mitov@issp.bas.bg>,
+	'Daniel Walker' <dwalker@codeaurora.org>,
+	'Russell King - ARM Linux' <linux@arm.linux.org.uk>,
+	'Jonathan Corbet' <corbet@lwn.net>,
+	'Mel Gorman' <mel@csn.ul.ie>,
+	'Chunsang Jeong' <chunsang.jeong@linaro.org>,
+	'KAMEZAWA Hiroyuki' <kamezawa.hiroyu@jp.fujitsu.com>,
+	linux-kernel@vger.kernel.org,
+	'Michal Nazarewicz' <mina86@mina86.com>,
+	'Guennadi Liakhovetski' <g.liakhovetski@gmx.de>,
+	linaro-mm-sig@lists.linaro.org,
+	'Jesse Barker' <jesse.barker@linaro.org>,
+	'Kyungmin Park' <kyungmin.park@samsung.com>,
+	'Ankita Garg' <ankita@in.ibm.com>,
+	'FUJITA Tomonori' <fujita.tomonori@lab.ntt.co.jp>,
+	'Andrew Morton' <akpm@linux-foundation.org>,
+	linux-mm@kvack.org, linux-arm-kernel@lists.infradead.org,
+	linux-media@vger.kernel.org
+Message-id: <000d01cc4055$5e9ee050$1bdca0f0$%szyprowski@samsung.com>
+MIME-version: 1.0
+Content-type: text/plain; charset=utf-8
+Content-language: pl
+Content-transfer-encoding: 8BIT
+References: <1309851710-3828-1-git-send-email-m.szyprowski@samsung.com>
+ <201107091657.07925.jkrzyszt@tis.icnet.pl>
+ <001e01cc3fd1$159f7bf0$40de73d0$%szyprowski@samsung.com>
+ <201107112101.18601.jkrzyszt@tis.icnet.pl>
 List-ID: <linux-media.vger.kernel.org>
-Sender: <mchehab@pedra>
+Sender: <mchehab@infradead.org>
 
-Hi Michael,
+Hello,
 
-On Monday 04 July 2011 15:11:21 Michael Jones wrote:
-> On 04/11/2011 04:26 PM, Laurent Pinchart wrote:
-> > Subdevs already have their own entity, don't register as second one when
-> > registering the subdev device node.
-> > 
-> > Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-> > ---
-> > 
-> >  drivers/media/video/v4l2-dev.c |   15 ++++++++++-----
-> >  1 files changed, 10 insertions(+), 5 deletions(-)
-> > 
-> > diff --git a/drivers/media/video/v4l2-dev.c
-> > b/drivers/media/video/v4l2-dev.c index 498e674..6dc7196 100644
-> > --- a/drivers/media/video/v4l2-dev.c
-> > +++ b/drivers/media/video/v4l2-dev.c
-> > @@ -389,7 +389,8 @@ static int v4l2_open(struct inode *inode, struct file
-> > *filp)
-> > 
-> >  	video_get(vdev);
-> >  	mutex_unlock(&videodev_lock);
-> >  
-> >  #if defined(CONFIG_MEDIA_CONTROLLER)
-> > 
-> > -	if (vdev->v4l2_dev && vdev->v4l2_dev->mdev) {
-> > +	if (vdev->v4l2_dev && vdev->v4l2_dev->mdev &&
-> > +	    vdev->vfl_type != VFL_TYPE_SUBDEV) {
-> > 
-> >  		entity = media_entity_get(&vdev->entity);
-> >  		if (!entity) {
-> >  		
-> >  			ret = -EBUSY;
-> > 
-> > @@ -415,7 +416,8 @@ err:
-> >  	/* decrease the refcount in case of an error */
-> >  	if (ret) {
-> >  
-> >  #if defined(CONFIG_MEDIA_CONTROLLER)
-> > 
-> > -		if (vdev->v4l2_dev && vdev->v4l2_dev->mdev)
-> > +		if (vdev->v4l2_dev && vdev->v4l2_dev->mdev &&
-> > +		    vdev->vfl_type != VFL_TYPE_SUBDEV)
-> > 
-> >  			media_entity_put(entity);
-> >  
-> >  #endif
-> >  
-> >  		video_put(vdev);
-> > 
-> > @@ -437,7 +439,8 @@ static int v4l2_release(struct inode *inode, struct
-> > file *filp)
-> > 
-> >  			mutex_unlock(vdev->lock);
-> >  	
-> >  	}
-> >  
-> >  #if defined(CONFIG_MEDIA_CONTROLLER)
-> > 
-> > -	if (vdev->v4l2_dev && vdev->v4l2_dev->mdev)
-> > +	if (vdev->v4l2_dev && vdev->v4l2_dev->mdev &&
-> > +	    vdev->vfl_type != VFL_TYPE_SUBDEV)
-> > 
-> >  		media_entity_put(&vdev->entity);
-> >  
-> >  #endif
-> >  
-> >  	/* decrease the refcount unconditionally since the release()
-> > 
-> > @@ -686,7 +689,8 @@ int __video_register_device(struct video_device
-> > *vdev, int type, int nr,
-> > 
-> >  #if defined(CONFIG_MEDIA_CONTROLLER)
-> >  
-> >  	/* Part 5: Register the entity. */
-> > 
-> > -	if (vdev->v4l2_dev && vdev->v4l2_dev->mdev) {
-> > +	if (vdev->v4l2_dev && vdev->v4l2_dev->mdev &&
-> > +	    vdev->vfl_type != VFL_TYPE_SUBDEV) {
-> > 
-> >  		vdev->entity.type = MEDIA_ENT_T_DEVNODE_V4L;
-> >  		vdev->entity.name = vdev->name;
-> >  		vdev->entity.v4l.major = VIDEO_MAJOR;
-> > 
-> > @@ -733,7 +737,8 @@ void video_unregister_device(struct video_device
-> > *vdev)
-> > 
-> >  		return;
-> >  
-> >  #if defined(CONFIG_MEDIA_CONTROLLER)
-> > 
-> > -	if (vdev->v4l2_dev && vdev->v4l2_dev->mdev)
-> > +	if (vdev->v4l2_dev && vdev->v4l2_dev->mdev &&
-> > +	    vdev->vfl_type != VFL_TYPE_SUBDEV)
-> > 
-> >  		media_device_unregister_entity(&vdev->entity);
-> >  
-> >  #endif
+On Monday, July 11, 2011 9:01 PM Janusz Krzysztofik wrote:
+
+> Dnia poniedziałek, 11 lipca 2011 o 15:47:32 Marek Szyprowski napisał(a):
+> > Hello,
+> >
+> > On Saturday, July 09, 2011 4:57 PM Janusz Krzysztofik	wrote:
+> > > On Wed, 6 Jul 2011 at 16:59:45 Arnd Bergmann wrote:
+> > > > On Wednesday 06 July 2011, Nicolas Pitre wrote:
+> > > > > On Wed, 6 Jul 2011, Russell King - ARM Linux wrote:
+> > > > > > Another issue is that when a platform has restricted DMA
+> > > > > > regions, they typically don't fall into the highmem zone.
+> > > > > > As the dmabounce code allocates from the DMA coherent
+> > > > > > allocator to provide it with guaranteed DMA-able memory,
+> > > > > > that would be rather inconvenient.
+> > > > >
+> > > > > Do we encounter this in practice i.e. do those platforms
+> > > > > requiring large contiguous allocations motivating this work
+> > > > > have such DMA restrictions?
+> > > >
+> > > > You can probably find one or two of those, but we don't have to
+> > > > optimize for that case. I would at least expect the maximum size
+> > > > of the allocation to be smaller than the DMA limit for these,
+> > > > and consequently mandate that they define a sufficiently large
+> > > > CONSISTENT_DMA_SIZE for the crazy devices, or possibly add a
+> > > > hack to unmap some low memory and call
+> > > > dma_declare_coherent_memory() for the device.
+> > >
+> > > Once found that Russell has dropped his "ARM: DMA: steal memory for
+> > > DMA coherent mappings" for now, let me get back to this idea of a
+> > > hack that would allow for safely calling
+> > > dma_declare_coherent_memory() in order to assign a device with a
+> > > block of contiguous memory for exclusive use.
+> >
+> > We tested such approach and finally with 3.0-rc1 it works fine. You
+> > can find an example for dma_declare_coherent() together with
+> > required memblock_remove() calls in the following patch series:
+> > http://www.spinics.net/lists/linux-samsung-soc/msg05026.html
+> > "[PATCH 0/3 v2] ARM: S5P: Add support for MFC device on S5PV210 and
+> > EXYNOS4"
+> >
+> > > Assuming there should be no problem with successfully allocating a
+> > > large continuous block of coherent memory at boot time with
+> > > dma_alloc_coherent(), this block could be reserved for the device.
+> > > The only problem is with the dma_declare_coherent_memory() calling
+> > > ioremap(), which was designed with a device's dedicated physical
+> > > memory in mind, but shouldn't be called on a memory already
+> > > mapped.
+> >
+> > All these issues with ioremap has been finally resolved in 3.0-rc1.
+> > Like Russell pointed me in
+> > http://www.spinics.net/lists/arm-kernel/msg127644.html, ioremap can
+> > be fixed to work on early reserved memory areas by selecting
+> > ARCH_HAS_HOLES_MEMORYMODEL Kconfig option.
 > 
-> Hi Laurent,
-> 
-> If v4l2_subdev has a 'struct media_entity' inside of its 'struct
-> video_device' member, why does it need a media_entity of its own?
-> Shouldn't we eliminate v4l2_subdev.entity and always just use
-> v4l2_subdev.devnode.entity where it is needed?  Or do they have 2
-> different purposes?
+> I'm not sure. Recently I tried to refresh my now 7 months old patch in
+> which I used that 'memblock_remove() then dma_declare_coherent_memery()'
+> method[1]. It was different from your S5P MFC example in that it didn't
+> punch any holes in the system memory, only stole a block of SDRAM from
+> its tail. But Russell reminded me again: "we should not be mapping SDRAM
+> using device mappings."[2]. Would defining ARCH_HAS_HOLES_MEMORYMODEL
+> (even if it was justified) make any diference in my case? I don't think
+> so.
 
-Not all subdevs have a devnode. struct video_device is embedded in struct 
-v4l2_subdev, but it's not used for devnode-less subdevs.
+Defining ARCH_HAS_HOLES_MEMORYMODEL changes the behavior of valid_pfn()
+macro/function, which is used in the ioremap(). When defined, valid_pfn()
+checks if the selected pfn is inside system memory or not (using memblock
+information). If the area is removed with memblock_remove(), then a check
+with valid_pfn() fails and ioremap() doesn't complain about mapping
+system memory.
 
+> Wnat I think, after Russell, is that we still need that obligatory
+> ioremap() removed from dma_declare_coherent_memory(), or made it
+> optional, or a separate dma_declare_coherent_memory()-like function
+> without (obligatory) ioremap() provided by the DMA API, in order to get
+> the dma_declare_coherent_memery() method being accepted without any
+> reservations when used inside arch/arm, I'm afraid.
+
+Please check again with 3.0-rc1. ARCH_HAS_HOLES_MEMORYMODEL solution was
+suggested by Russell. It looks like this is the correct solution for this
+problem, because I don't believe that ioremap() will be removed from 
+dma_declare_coherent() anytime soon. 
+
+Best regards
 -- 
-Regards,
+Marek Szyprowski
+Samsung Poland R&D Center
 
-Laurent Pinchart
+
+
