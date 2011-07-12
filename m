@@ -1,62 +1,64 @@
-Return-path: <mchehab@pedra>
-Received: from brigitte.telenet-ops.be ([195.130.137.66]:48038 "EHLO
-	brigitte.telenet-ops.be" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751662Ab1GDAGx (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sun, 3 Jul 2011 20:06:53 -0400
-Subject: Re: [PATCH 5/5] cxd2099: Update Kconfig description (ddbridge
- support)
-From: Walter Van Eetvelt <walter@van.eetvelt.be>
-To: Oliver Endriss <o.endriss@gmx.de>
-Cc: linux-media@vger.kernel.org,
-	Mauro Carvalho Chehab <mchehab@redhat.com>
-In-Reply-To: <201107032327.52762@orion.escape-edv.de>
-References: <201107032321.46092@orion.escape-edv.de>
-	 <201107032327.52762@orion.escape-edv.de>
-Content-Type: text/plain; charset="UTF-8"
-Date: Mon, 04 Jul 2011 02:06:51 +0200
-Message-ID: <1309738011.3666.33.camel@Zonnebloem.ZONNEWIND.VL>
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+Return-path: <mchehab@localhost>
+Received: from mail-pz0-f46.google.com ([209.85.210.46]:63639 "EHLO
+	mail-pz0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754179Ab1GLTPu (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 12 Jul 2011 15:15:50 -0400
+Received: by pzk9 with SMTP id 9so4148709pzk.19
+        for <linux-media@vger.kernel.org>; Tue, 12 Jul 2011 12:15:50 -0700 (PDT)
+MIME-Version: 1.0
+Date: Tue, 12 Jul 2011 21:15:49 +0200
+Message-ID: <CAD996AykLF4Uhj1of2tRS=hkTu=5+0mbGquF1fQda8dMTmuYNg@mail.gmail.com>
+Subject: [PATCH] update the dvb-t channels for de-Berlin
+From: =?ISO-8859-1?Q?Alexander_Fut=E1sz?= <aldafu@cs.tu-berlin.de>
+To: linux-media@vger.kernel.org
+Content-Type: multipart/mixed; boundary=bcaec5314a43b633ca04a7e4205e
 List-ID: <linux-media.vger.kernel.org>
-Sender: <mchehab@pedra>
+Sender: <mchehab@infradead.org>
 
-Oliver Endriss schreef op Sun 03-07-2011 om 23:27 [+0200]:
-> Update Kconfig description (ddbridge with cxd2099)
-> 
-> Signed-off-by: Oliver Endriss <o.endriss@gmx.de>
-> ---
->  drivers/staging/cxd2099/Kconfig |   11 ++++++-----
->  1 files changed, 6 insertions(+), 5 deletions(-)
-> 
-> diff --git a/drivers/staging/cxd2099/Kconfig b/drivers/staging/cxd2099/Kconfig
-> index 9d638c3..b48aefd 100644
-> --- a/drivers/staging/cxd2099/Kconfig
-> +++ b/drivers/staging/cxd2099/Kconfig
-> @@ -1,9 +1,10 @@
->  config DVB_CXD2099
-> -        tristate "CXD2099AR Common Interface driver"
-> -        depends on DVB_CORE && PCI && I2C && DVB_NGENE
-> -        ---help---
-> -          Support for the CI module found on cineS2 DVB-S2, supported by
-> -	  the Micronas PCIe device driver (ngene).
-> +	tristate "CXD2099AR Common Interface driver"
-> +	depends on DVB_CORE && PCI && I2C
-> +	---help---
-> +	  Support for the CI module found on cards based on
-> +	  - Micronas ngene PCIe bridge: cineS2 etc.
-> +	  - Digital Devices PCIe bridge: Octopus series
->  
->  	  For now, data is passed through '/dev/dvb/adapterX/sec0':
->  	    - Encrypted data must be written to 'sec0'.
-Hi Oliver,
-=> can you explain a bit more on "data is passed through
-'/dev/dvb/adapterX/sec0':"
+--bcaec5314a43b633ca04a7e4205e
+Content-Type: text/plain; charset=ISO-8859-1
 
-How is the idea behind the setup?
+Hi,
 
-Is each adapter having its own sec0?  
+attched is a patch which reflects the recent changes in the DVB-T
+channel offering for Berlin, Germany.
+See http://www.mabb.de/digitale-welt/dvb-t/programme.html
 
-Walter
+Cheers
 
+--bcaec5314a43b633ca04a7e4205e
+Content-Type: text/x-patch; charset=US-ASCII; name="dvbt-berlin-channel-update.diff"
+Content-Disposition: attachment; filename="dvbt-berlin-channel-update.diff"
+Content-Transfer-Encoding: base64
+X-Attachment-Id: f_gq18qvnl0
 
-
+ZGlmZiAtciAxNDhlZGUyYTY4MDkgdXRpbC9zY2FuL2R2Yi10L2RlLUJlcmxpbgotLS0gYS91dGls
+L3NjYW4vZHZiLXQvZGUtQmVybGluCVR1ZSBKdW4gMjggMDc6NTA6MjQgMjAxMSArMDIwMAorKysg
+Yi91dGlsL3NjYW4vZHZiLXQvZGUtQmVybGluCVR1ZSBKdWwgMTIgMjE6MDg6NDMgMjAxMSArMDIw
+MApAQCAtMSwxMiArMSwxMSBAQAogIyBEVkItVCBCZXJsaW4KICMgQ3JlYXRlZCBmcm9tIGh0dHA6
+Ly93d3cudWViZXJhbGxmZXJuc2VoZW4uZGUvZGF0YS9zZW5kZXJsaXN0ZS5wZGYKICMgVCBmcmVx
+IGJ3IGZlY19oaSBmZWNfbG8gbW9kIHRyYW5zbWlzc2lvbi1tb2RlIGd1YXJkLWludGVydmFsIGhp
+ZXJhcmNoeQotVCAxNzc1MDAwMDAgN01IeiAzLzQgTk9ORSBRQU0xNiA4ayAxLzggTk9ORSAjIENI
+MDU6IFRlbGUgNSwgSFNFIDI0LCBXRFIsIFNXUiAoQlcgLyBSUCkKLVQgMTkxNTAwMDAwIDdNSHog
+Mi8zIE5PTkUgUUFNMTYgOGsgMS84IE5PTkUgIyBDSDA3OiBNRFIsIE5EUiwgYXJ0ZQogVCA1MDYw
+MDAwMDAgOE1IeiAyLzMgTk9ORSBRQU0xNiA4ayAxLzggTk9ORSAjIENIMjU6IFJUTCwgUlRMIDIs
+IFN1cGVyIFJUTCwgVk9YCiBUIDUyMjAwMDAwMCA4TUh6IDIvMyBOT05FIFFBTTE2IDhrIDEvOCBO
+T05FICMgQ0gyNzogRGFzIEVyc3RlLCBSQkIsIFBob2VuaXgsIEVpbnNFeHRyYQogVCA1NzAwMDAw
+MDAgOE1IeiAyLzMgTk9ORSBRQU0xNiA4ayAxLzQgTk9ORSAjIENIMzM6IFpERiwgM3NhdCwgS2lL
+YSAvIFpERm5lbywgWkRGaW5mb2thbmFsCi1UIDYxODAwMDAwMCA4TUh6IDIvMyBOT05FIFFBTTY0
+IDhrIDEvNCBOT05FICMgQ0gzOTogRGFzIFZpZXJ0ZSwgQmliZWwuVFYsIFFWQywgQmF5ZXJpc2No
+ZXMgRmVybnNlaGVuCitUIDYxODAwMDAwMCA4TUh6IDIvMyBOT05FIFFBTTY0IDhrIDEvNCBOT05F
+ICMgQ0gzOTogUVZDLCBEYXMgVmllcnRlLCBCaWJlbCBUViwgQmF5ZXJpc2NoZXMgRmVybnNlaGVu
+LCBuLXR2LCBDSGFubmVsMjEvRXVyb25ld3MgKyA3IFJhZGlvcHJvZ3JhbW1lCiBUIDY1ODAwMDAw
+MCA4TUh6IDIvMyBOT05FIFFBTTE2IDhrIDEvOCBOT05FICMgQ0g0NDogUHJvU2llYmVuLCBTYXQu
+MSwgS2FiZWwxLCBOMjQKLVQgNzU0MDAwMDAwIDhNSHogMi8zIE5PTkUgUUFNMTYgOGsgMS84IE5P
+TkUgIyBDSDU2OiBFdXJvc3BvcnQsIFRWLkIsIFNwb3J0MSwgOUxpdmUKLVQgNzc4MDAwMDAwIDhN
+SHogMi8zIE5PTkUgUUFNMTYgOGsgMS84IE5PTkUgIyBDSDU5OiBuLXR2LCBFdXJvTmV3cyAvIENo
+YW5uZWwgMjEgU2hvcCwgUExBQ0UyQkUgKyA4IFJhZGlvcHJvZ3JhbW1lCitUIDY4MjAwMDAwMCA4
+TUh6IDIvMyBOT05FIFFBTTE2IDhrIDEvOCBOT05FICMgQ0g0NzogTURSLCBORFIsIGFydGUKK1Qg
+NzA2MDAwMDAwIDhNSHogMi8zIE5PTkUgUUFNMTYgOGsgMS84IE5PTkUgIyBDSDUwOiBUZWxlIDUs
+IEhTRSAyNCwgV0RSLCBTV1IgKEJXIC8gUlApCitUIDc1NDAwMDAwMCA4TUh6IDIvMyBOT05FIFFB
+TTE2IDhrIDEvOCBOT05FICMgQ0g1NjogRXVyb3Nwb3J0LCBUVi5CLCBTcG9ydDEsIDlMaXZlLCBz
+aXh4Cg==
+--bcaec5314a43b633ca04a7e4205e--
