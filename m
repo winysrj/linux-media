@@ -1,51 +1,81 @@
-Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:6523 "EHLO mx1.redhat.com"
+Return-path: <mchehab@localhost>
+Received: from mail.mnsspb.ru ([84.204.75.2]:50761 "EHLO mail.mnsspb.ru"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752815Ab1GMXqL (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 13 Jul 2011 19:46:11 -0400
-Received: from int-mx10.intmail.prod.int.phx2.redhat.com (int-mx10.intmail.prod.int.phx2.redhat.com [10.5.11.23])
-	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id p6DNkBQq011271
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
-	for <linux-media@vger.kernel.org>; Wed, 13 Jul 2011 19:46:11 -0400
-Message-ID: <4E1E2E3D.6030507@redhat.com>
-Date: Wed, 13 Jul 2011 20:46:05 -0300
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
+	id S1751111Ab1GLI7u (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 12 Jul 2011 04:59:50 -0400
+Date: Tue, 12 Jul 2011 12:58:52 +0400
+From: Kirill Smelkov <kirr@mns.spb.ru>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: linux-uvc-devel@lists.berlios.de, linux-media@vger.kernel.org,
+	linux-kernel@vger.kernel.org
+Subject: Re: [PATCH] uvcvideo: Add FIX_BANDWIDTH quirk to HP Webcam found
+	on HP Mini 5103 netbook
+Message-ID: <20110712085852.GA12576@tugrik.mns.mnsspb.ru>
+References: <1308679663-11431-1-git-send-email-kirr@mns.spb.ru>
 MIME-Version: 1.0
-To: Jarod Wilson <jarod@redhat.com>
-CC: linux-media@vger.kernel.org
-Subject: Re: [PATCH 0/3] redrat3 driver updates for 3.1
-References: <1310592367-11501-1-git-send-email-jarod@redhat.com>
-In-Reply-To: <1310592367-11501-1-git-send-email-jarod@redhat.com>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
-Sender: linux-media-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <1308679663-11431-1-git-send-email-kirr@mns.spb.ru>
 List-ID: <linux-media.vger.kernel.org>
+Sender: <mchehab@infradead.org>
 
-Em 13-07-2011 18:26, Jarod Wilson escreveu:
-> These changes make the redrat3 driver cooperate better with both in-kernel
-> and lirc userspace decoding of signals, tested with RC5, RC6 and NEC.
-> There's probably more we can do to make this a bit less hackish, but its
-> working quite well here for me right now.
+On Tue, Jun 21, 2011 at 10:07:43PM +0400, Kirill Smelkov wrote:
+> The camera there identifeis itself as being manufactured by Cheng Uei
+> Precision Industry Co., Ltd (Foxlink), and product is titled as "HP
+> Webcam [2 MP Fixed]".
 > 
-> Jarod Wilson (3):
->   [media] redrat3: sending extra trailing space was useless
->   [media] redrat3: cap duration in the right place
->   [media] redrat3: improve compat with lirc userspace decode
-
-
-Applied, thanks. There's one small issue on it (32 bits compilation):
-
-drivers/media/rc/redrat3.c: In function ‘redrat3_init_rc_dev’:
-drivers/media/rc/redrat3.c:1106: warning: assignment from incompatible pointer type
-compilation succeeded
-
-
+> I was trying to get 2 USB video capture devices to work simultaneously,
+> and noticed that the above mentioned webcam always requires packet size
+> = 3072 bytes per micro frame (~= 23.4 MB/s isoc bandwidth), which is far
+> more than enough to get standard NTSC 640x480x2x30 = ~17.6 MB/s isoc
+> bandwidth.
 > 
->  drivers/media/rc/redrat3.c |   61 ++++++++++++++++++++-----------------------
->  1 files changed, 28 insertions(+), 33 deletions(-)
+> As there are alt interfaces with smaller MxPS
 > 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>     T:  Bus=01 Lev=01 Prnt=01 Port=03 Cnt=01 Dev#=  2 Spd=480  MxCh= 0
+>     D:  Ver= 2.00 Cls=ef(misc ) Sub=02 Prot=01 MxPS=64 #Cfgs=  1
+>     P:  Vendor=05c8 ProdID=0403 Rev= 1.06
+>     S:  Manufacturer=Foxlink
+>     S:  Product=HP Webcam [2 MP Fixed]
+>     S:  SerialNumber=200909240102
+>     C:* #Ifs= 2 Cfg#= 1 Atr=80 MxPwr=500mA
+>     A:  FirstIf#= 0 IfCount= 2 Cls=0e(video) Sub=03 Prot=00
+>     I:* If#= 0 Alt= 0 #EPs= 1 Cls=0e(video) Sub=01 Prot=00 Driver=uvcvideo
+>     E:  Ad=83(I) Atr=03(Int.) MxPS=  16 Ivl=4ms
+>     I:* If#= 1 Alt= 0 #EPs= 0 Cls=0e(video) Sub=02 Prot=00 Driver=uvcvideo
+>     I:  If#= 1 Alt= 1 #EPs= 1 Cls=0e(video) Sub=02 Prot=00 Driver=uvcvideo
+>     E:  Ad=81(I) Atr=05(Isoc) MxPS= 128 Ivl=125us
+>     I:  If#= 1 Alt= 2 #EPs= 1 Cls=0e(video) Sub=02 Prot=00 Driver=uvcvideo
+>     E:  Ad=81(I) Atr=05(Isoc) MxPS= 512 Ivl=125us
+>     I:  If#= 1 Alt= 3 #EPs= 1 Cls=0e(video) Sub=02 Prot=00 Driver=uvcvideo
+>     E:  Ad=81(I) Atr=05(Isoc) MxPS=1024 Ivl=125us
+>     I:  If#= 1 Alt= 4 #EPs= 1 Cls=0e(video) Sub=02 Prot=00 Driver=uvcvideo
+>     E:  Ad=81(I) Atr=05(Isoc) MxPS=1536 Ivl=125us
+>     I:  If#= 1 Alt= 5 #EPs= 1 Cls=0e(video) Sub=02 Prot=00 Driver=uvcvideo
+>     E:  Ad=81(I) Atr=05(Isoc) MxPS=2048 Ivl=125us
+>     I:  If#= 1 Alt= 6 #EPs= 1 Cls=0e(video) Sub=02 Prot=00 Driver=uvcvideo
+>     E:  Ad=81(I) Atr=05(Isoc) MxPS=2688 Ivl=125us
+>     I:  If#= 1 Alt= 7 #EPs= 1 Cls=0e(video) Sub=02 Prot=00 Driver=uvcvideo
+>     E:  Ad=81(I) Atr=05(Isoc) MxPS=3072 Ivl=125us
+> 
+> UVC_QUIRK_FIX_BANDWIDTH helps here and NTSC video can be served with
+> MxPS=2688 i.e. 20.5 MB/s isoc bandwidth.
+> 
+> In terms of microframe time allocation, before the quirk NTSC video
+> required 60 usecs / microframe and 53 usecs / microframe after.
+> 
+> 
+> P.S. Now with tweaked ehci-hcd to allow up to 90% isoc bandwith (instead of
+> allowed for high speed 80%) I can capture two video sources -- PAL 720x576
+> YUV422 @25fps + NTSC 640x480 YUV422 @30fps simultaneously. Hooray!
+> 
+> Signed-off-by: Kirill Smelkov <kirr@mns.spb.ru>
 
+
+Silence...  though even the above-mentioned EHCI tweak was merged already:
+
+http://git.kernel.org/?p=linux/kernel/git/gregkh/usb-2.6.git;a=commitdiff;h=cc62a7eb6396e8be95b9a30053ed09191818b99b
+
+
+Hope this patch is not lost and thanks,
+Kirill
