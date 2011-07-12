@@ -1,57 +1,43 @@
-Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp8.mail.ru ([94.100.176.53]:57635 "EHLO smtp8.mail.ru"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752596Ab1GQJti (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 17 Jul 2011 05:49:38 -0400
-Message-ID: <4E22AF12.4020600@list.ru>
-Date: Sun, 17 Jul 2011 13:44:50 +0400
-From: Stas Sergeev <stsp@list.ru>
+Return-path: <mchehab@localhost>
+Received: from smtp-68.nebula.fi ([83.145.220.68]:48814 "EHLO
+	smtp-68.nebula.fi" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754984Ab1GLVWs (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 12 Jul 2011 17:22:48 -0400
+Date: Wed, 13 Jul 2011 00:22:44 +0300
+From: 'Sakari Ailus' <sakari.ailus@iki.fi>
+To: "Hadli, Manjunath" <manjunath.hadli@ti.com>
+Cc: 'Laurent Pinchart' <laurent.pinchart@ideasonboard.com>,
+	'LMML' <linux-media@vger.kernel.org>,
+	'dlos' <davinci-linux-open-source@linux.davincidsp.com>
+Subject: Re: [ RFC PATCH 0/8] RFC for Media Controller capture driver for
+ DM365
+Message-ID: <20110712212244.GJ22072@valkosipuli.localdomain>
+References: <1309439597-15998-1-git-send-email-manjunath.hadli@ti.com>
+ <20110630135736.GK12671@valkosipuli.localdomain>
+ <B85A65D85D7EB246BE421B3FB0FBB593024BCEF739@dbde02.ent.ti.com>
+ <201107041522.37437.laurent.pinchart@ideasonboard.com>
+ <B85A65D85D7EB246BE421B3FB0FBB593024BCEF73A@dbde02.ent.ti.com>
+ <4E11E695.9090508@iki.fi>
+ <B85A65D85D7EB246BE421B3FB0FBB593024BCEF73B@dbde02.ent.ti.com>
+ <B85A65D85D7EB246BE421B3FB0FBB593024BCEF73D@dbde02.ent.ti.com>
 MIME-Version: 1.0
-To: Mauro Carvalho Chehab <mchehab@infradead.org>
-CC: linux-media@vger.kernel.org,
-	"Nickolay V. Shmyrev" <nshmyrev@yandex.ru>,
-	Devin Heitmueller <dheitmueller@kernellabs.com>,
-	ALSA devel <alsa-devel@alsa-project.org>
-Subject: Re: [patch][saa7134] do not change mute state for capturing audio
-References: <4E19D2F7.6060803@list.ru> <4E1E05AC.2070002@infradead.org> <4E1E0A1D.6000604@list.ru> <4E1E1571.6010400@infradead.org> <4E1E8108.3060305@list.ru> <4E1F9A25.1020208@infradead.org>
-In-Reply-To: <4E1F9A25.1020208@infradead.org>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
-Sender: linux-media-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <B85A65D85D7EB246BE421B3FB0FBB593024BCEF73D@dbde02.ent.ti.com>
 List-ID: <linux-media.vger.kernel.org>
+Sender: <mchehab@infradead.org>
 
-15.07.2011 05:38, Mauro Carvalho Chehab wrote:
-> If you want, feel free to propose a patch fixing that logic at saa7134, instead
-> of just removing it.
-Hi, I've just verified that pulseaudio indeed does
-the sound capturing on startup:
----
-saa7134[0]/alsa: saa7134[0] at 0xfe8fb800 irq 22 registered as card 2
-saa7134[0]/alsa: rec_start: afmt=2 ch=1  =>  fmt=0xcd swap=-
-saa7134[0]/alsa: rec_start: afmt=2 ch=1  =>  fmt=0xcd swap=-
-saa7134[0]/alsa: rec_start: afmt=2 ch=2  =>  fmt=0xdd swap=-
-saa7134[0]/alsa: rec_start: afmt=2 ch=2  =>  fmt=0xdd swap=-
-saa7134[0]/alsa: rec_start: afmt=2 ch=2  =>  fmt=0xdd swap=-
-saa7134[0]/alsa: rec_start: afmt=2 ch=2  =>  fmt=0xdd swap=-
-saa7134[0]/alsa: rec_start: afmt=2 ch=1  =>  fmt=0xcd swap=-
-saa7134[0]/alsa: rec_start: afmt=2 ch=1  =>  fmt=0xcd swap=-
-saa7134[0]/alsa: rec_start: afmt=2 ch=2  =>  fmt=0xdd swap=-
-saa7134[0]/alsa: rec_start: afmt=2 ch=2  =>  fmt=0xdd swap=-
-saa7134[0]/alsa: rec_start: afmt=2 ch=2  =>  fmt=0xdd swap=-
-saa7134[0]/alsa: rec_start: afmt=2 ch=2  =>  fmt=0xdd swap=-
-saa7134[0]/alsa: irq: field oops [even]
----
+On Tue, Jul 12, 2011 at 05:31:52PM +0530, Hadli, Manjunath wrote:
+> 
+> Sakari/Laurent,
+>   Did you get some time to review the code? Will look forward for your comments.
+> -Manju
 
-So your proposal is not going to fix anything at all.
+Hi Manju,
 
-Can we get back to discussing/applying mine then?
-And if the other drivers has that autounmute logic,
-then I suggest removing it there as well. You have
-not named any use-case for it, so I think there is none.
-I also think that the whole auto-unmute logic in your
-drivers is entirely flawed: for instance, I don't think
-recording from the sound card will automatically
-unmute its line-in or something else, so you are probably
-not following the generic alsa style here.
-I am adding alsa-devel to CC to find out what they
-think about that whole auto-unmute question.
+I'll try to review this in near future.
+
+-- 
+Sakari Ailus
+sakari.ailus@iki.fi
