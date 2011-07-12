@@ -1,28 +1,56 @@
-Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-iw0-f174.google.com ([209.85.214.174]:33662 "EHLO
-	mail-iw0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755315Ab1GPO7L (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 16 Jul 2011 10:59:11 -0400
-Received: by iwn6 with SMTP id 6so1921508iwn.19
-        for <linux-media@vger.kernel.org>; Sat, 16 Jul 2011 07:59:11 -0700 (PDT)
+Return-path: <mchehab@localhost>
+Received: from mail.kapsi.fi ([217.30.184.167]:55607 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754932Ab1GLXKl (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 12 Jul 2011 19:10:41 -0400
+Message-ID: <4E1CD46D.5050408@iki.fi>
+Date: Wed, 13 Jul 2011 02:10:37 +0300
+From: Antti Palosaari <crope@iki.fi>
 MIME-Version: 1.0
-In-Reply-To: <D6539750-BBE4-4FD8-B4FD-43E621E1B868@gmail.com>
-References: <D6539750-BBE4-4FD8-B4FD-43E621E1B868@gmail.com>
-Date: Sat, 16 Jul 2011 16:59:10 +0200
-Message-ID: <CAL7owaBjwjQtNsnDb8dwfLoiaFnB20gzhYDWzeV_gScV88L+eA@mail.gmail.com>
-Subject: Re: http://linuxtv.org/hg/dvb-apps/file/5e68946b0e0d/util/scan/atsc/us-Cable-Standard-center-frequencies-QAM256
-From: Christoph Pfister <christophpfister@gmail.com>
-To: Cotie Jones <intlvelvet@gmail.com>
-Cc: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=UTF-8
-Sender: linux-media-owner@vger.kernel.org
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+CC: linux-media@vger.kernel.org, Juergen Lock <nox@jelal.kn-bremen.de>,
+	Emilio David Diaus Lopez <reality_es@yahoo.es>
+Subject: [GIT PULL FOR 3.0.1] AF9015 changes
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
+Sender: <mchehab@infradead.org>
 
-2011/5/9 Cotie Jones <intlvelvet@gmail.com>:
-> # US EIA/NCTA Standard Cable center frequencies, added missing muxes
-<snip>
+Moikka Mauro,
 
-Updated, thanks.
+Send these to the next possible Kernel as normal changes.
 
-Christoph
+t. Antti
+
+
+The following changes since commit 0fce922ba851a74cc8bff7084a0a910e521345f2:
+
+   Merge commit '2c53b436a30867eb6b47dd7bab23ba638d1fb0d2' into af9015 
+(2011-06-15 14:37:52 +0300)
+
+are available in the git repository at:
+
+   git://linuxtv.org/anttip/media_tree.git af9015
+
+Antti Palosaari (5):
+       af9015: map remote for MSI DIGIVOX Duo
+       af9015: small optimization
+       af9015: add more I2C msg checks
+       af9015: remove old FW based IR polling code
+       af9015: remove 2nd I2C-adapter
+
+Emilio David Diaus Lopez (1):
+       af9015: add support for Sveon STV22 [1b80:e401]
+
+Juergen Lock (1):
+       af9015: setup rc keytable for LC-Power LC-USB-DVBT
+
+  drivers/media/dvb/dvb-usb/af9015.c      |  135 
++++++++++++--------------------
+  drivers/media/dvb/dvb-usb/af9015.h      |    1 -
+  drivers/media/dvb/dvb-usb/dvb-usb-ids.h |    1 +
+  3 files changed, 48 insertions(+), 89 deletions(-)
+
+
+-- 
+http://palosaari.fi/
