@@ -1,52 +1,74 @@
-Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:61201 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754780Ab1GNWJ7 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 14 Jul 2011 18:09:59 -0400
-Received: from int-mx01.intmail.prod.int.phx2.redhat.com (int-mx01.intmail.prod.int.phx2.redhat.com [10.5.11.11])
-	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id p6EM9xrK020692
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
-	for <linux-media@vger.kernel.org>; Thu, 14 Jul 2011 18:09:59 -0400
-From: Jarod Wilson <jarod@redhat.com>
-To: linux-media@vger.kernel.org
-Cc: Jarod Wilson <jarod@redhat.com>
-Subject: [PATCH 2/9] [media] mceusb: give hardware time to reply to cmds
-Date: Thu, 14 Jul 2011 18:09:47 -0400
-Message-Id: <1310681394-3530-3-git-send-email-jarod@redhat.com>
-In-Reply-To: <1310681394-3530-1-git-send-email-jarod@redhat.com>
-References: <1310681394-3530-1-git-send-email-jarod@redhat.com>
-Sender: linux-media-owner@vger.kernel.org
+Return-path: <mchehab@localhost>
+Received: from moutng.kundenserver.de ([212.227.17.8]:55692 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753096Ab1GLNjy (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 12 Jul 2011 09:39:54 -0400
+From: Arnd Bergmann <arnd@arndb.de>
+To: "Russell King - ARM Linux" <linux@arm.linux.org.uk>
+Subject: Re: [PATCH 6/8] drivers: add Contiguous Memory Allocator
+Date: Tue, 12 Jul 2011 15:39:31 +0200
+Cc: linux-arm-kernel@lists.infradead.org,
+	Daniel Walker <dwalker@codeaurora.org>,
+	Jonathan Corbet <corbet@lwn.net>, Mel Gorman <mel@csn.ul.ie>,
+	Chunsang Jeong <chunsang.jeong@linaro.org>,
+	Jesse Barker <jesse.barker@linaro.org>,
+	KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>,
+	linux-kernel@vger.kernel.org,
+	Michal Nazarewicz <mina86@mina86.com>,
+	linaro-mm-sig@lists.linaro.org, linux-mm@kvack.org,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	Ankita Garg <ankita@in.ibm.com>,
+	Andrew Morton <akpm@linux-foundation.org>,
+	Marek Szyprowski <m.szyprowski@samsung.com>,
+	linux-media@vger.kernel.org
+References: <1309851710-3828-1-git-send-email-m.szyprowski@samsung.com> <201107051558.39344.arnd@arndb.de> <20110708172541.GM4812@n2100.arm.linux.org.uk>
+In-Reply-To: <20110708172541.GM4812@n2100.arm.linux.org.uk>
+MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201107121539.31548.arnd@arndb.de>
 List-ID: <linux-media.vger.kernel.org>
+Sender: <mchehab@infradead.org>
 
-Sometimes the init routine is blasting commands out to the hardware
-faster than it can reply. Throw a brief delay in there to give the
-hardware a chance to reply before we send the next command.
+On Friday 08 July 2011, Russell King - ARM Linux wrote:
+> On Tue, Jul 05, 2011 at 03:58:39PM +0200, Arnd Bergmann wrote:
+> 
+> > If I'm reading your "ARM: DMA: steal memory for DMA coherent mappings"
+> > correctly, the idea is to have a per-platform compile-time amount
+> > of memory that is reserved purely for coherent allocations and
+> > taking out of the buddy allocator, right?
+> 
+> Yes, because every time I've looked at taking out memory mappings in
+> the first level page tables, it's always been a major issue.
+> 
+> We have a method where we can remove first level mappings on
+> uniprocessor systems in the ioremap code just fine - we use that so
+> that systems can setup section and supersection mappings.  They can
+> tear them down as well - and we update other tasks L1 page tables
+> when they get switched in.
+> 
+> This, however, doesn't work on SMP, because if you have a DMA allocation
+> (which is permitted from IRQ context) you must have some way of removing
+> the L1 page table entries from all CPUs TLBs and the page tables currently
+> in use and any future page tables which those CPUs may switch to.
 
-Signed-off-by: Jarod Wilson <jarod@redhat.com>
----
- drivers/media/rc/mceusb.c |    2 ++
- 1 files changed, 2 insertions(+), 0 deletions(-)
+Ah, interesting. So there is no tlb flush broadcast operation and it
+always goes through IPI?
 
-diff --git a/drivers/media/rc/mceusb.c b/drivers/media/rc/mceusb.c
-index 111bead..13a853b 100644
---- a/drivers/media/rc/mceusb.c
-+++ b/drivers/media/rc/mceusb.c
-@@ -37,6 +37,7 @@
- #include <linux/slab.h>
- #include <linux/usb.h>
- #include <linux/usb/input.h>
-+#include <linux/delay.h>
- #include <media/rc-core.h>
- 
- #define DRIVER_VERSION	"1.91"
-@@ -735,6 +736,7 @@ static void mce_request_packet(struct mceusb_dev *ir, unsigned char *data,
- static void mce_async_out(struct mceusb_dev *ir, unsigned char *data, int size)
- {
- 	mce_request_packet(ir, data, size, MCEUSB_TX);
-+	mdelay(10);
- }
- 
- static void mce_flush_rx_buffer(struct mceusb_dev *ir, int size)
--- 
-1.7.1
+> So, in a SMP system, there is no safe way to remove L1 page table entries
+> from IRQ context.  That means if memory is mapped for the buddy allocators
+> using L1 page table entries, then it is fixed for that application on a
+> SMP system.
 
+Ok. Can we limit GFP_ATOMIC to memory that doesn't need to be remapped then?
+I guess we can assume that there is no regression if we just skip
+the dma_alloc_contiguous step in dma_alloc_coherent for any atomic
+callers and immediately fall back to the regular allocator.
+
+Unfortunately, this still means we have to keep both methods. I was
+hoping that with CMA doing dynamic remapping there would be no need for
+keeping a significant number of pages reserved for this.
+
+	Arnd
