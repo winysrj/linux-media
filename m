@@ -1,83 +1,103 @@
-Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:35510 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751974Ab1G0TWb (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 27 Jul 2011 15:22:31 -0400
-Message-ID: <4E306572.3020006@iki.fi>
-Date: Wed, 27 Jul 2011 22:22:26 +0300
-From: Antti Palosaari <crope@iki.fi>
-MIME-Version: 1.0
-To: Jose Alberto Reguero <jareguero@telefonica.net>
-CC: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	linux-media@vger.kernel.org,
-	Michael Krufky <mkrufky@kernellabs.com>,
-	Guy Martin <gmsoft@tuxicoman.be>
-Subject: Re: [PATCH] add support for the dvb-t part of CT-3650 v3
-References: <201106070205.08118.jareguero@telefonica.net> <201107231741.53794.jareguero@telefonica.net> <4E2B092F.5040107@iki.fi> <201107232345.03173.jareguero@telefonica.net>
-In-Reply-To: <201107232345.03173.jareguero@telefonica.net>
-Content-Type: text/plain; charset=UTF-8; format=flowed
+Return-path: <mchehab@localhost>
+Received: from mail-vw0-f46.google.com ([209.85.212.46]:44150 "EHLO
+	mail-vw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750703Ab1GMEUI (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 13 Jul 2011 00:20:08 -0400
+Subject: Re: Imon module Oops and kernel hang
+Mime-Version: 1.0 (Apple Message framework v1084)
+Content-Type: text/plain; charset=us-ascii
+From: Jarod Wilson <jarod@wilsonet.com>
+In-Reply-To: <4E1CCC26.4060506@psychogeeks.com>
+Date: Wed, 13 Jul 2011 00:20:05 -0400
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	linux-kernel@vger.kernel.org, Randy Dunlap <rdunlap@xenotime.net>
 Content-Transfer-Encoding: 7bit
-Sender: linux-media-owner@vger.kernel.org
+Message-Id: <1B380AD0-FE0D-47DF-B2C3-605253C9C783@wilsonet.com>
+References: <4E1B978C.2030407@psychogeeks.com> <20110712080309.d538fec9.rdunlap@xenotime.net> <7B814F02-408C-434F-B813-8630B60914DA@wilsonet.com> <4E1CCC26.4060506@psychogeeks.com>
+To: Chris W <lkml@psychogeeks.com>
 List-ID: <linux-media.vger.kernel.org>
+Sender: <mchehab@infradead.org>
 
-On 07/24/2011 12:45 AM, Jose Alberto Reguero wrote:
+On Jul 12, 2011, at 6:35 PM, Chris W wrote:
 
-> Read without write work as with write. Attached updated patch.
+> Thanks for the reply.
+> 
+> On 13/07/11 05:55, Jarod Wilson wrote:
+>> 
+>> I don't see any rc_imon_pad or rc_imon_mce modules there, and I've not
+>> seen any panics with multiple imon devices here, so I'm guessing you
+>> didn't build either of the possible imon keymaps, and having a null
+>> keymap is interacting badly with rc_g_keycode_from_table.
+> 
+> 
+> There is only one imon device in this machine.
 
-> ttusb2-6.diff
-
-> -		read = i+1<  num&&  (msg[i+1].flags&  I2C_M_RD);
-> +		write_read = i+1<  num&&  (msg[i+1].flags&  I2C_M_RD);
-> +		read = msg[i].flags&  I2C_M_RD;
-
-ttusb2 I2C-adapter seems to be fine for my eyes now. No more writing any 
-random bytes in case of single read. Good!
-
-
-> +	.dtv6_if_freq_khz = TDA10048_IF_4000,
-> +	.dtv7_if_freq_khz = TDA10048_IF_4500,
-> +	.dtv8_if_freq_khz = TDA10048_IF_5000,
-> +	.clk_freq_khz     = TDA10048_CLK_16000,
-
-
-> +static int ct3650_i2c_gate_ctrl(struct dvb_frontend* fe, int enable)
-
-cosmetic issue rename to ttusb2_ct3650_i2c_gate_ctrl
+Understood. What I meant is that *I* have multiple imon devices, and
+haven't seen any such panic with any of them. :)
 
 
+> The rc keymap modules have been built (en masse as a result of
+> CONFIG_RC_MAP=m) but I am not explicitly loading them and they do not
+> get automatically loaded.
 
->   	{ TDA10048_CLK_16000, TDA10048_IF_4000,  10, 3, 0 },
-> +	{ TDA10048_CLK_16000, TDA10048_IF_4500,   5, 3, 0 },
-> +	{ TDA10048_CLK_16000, TDA10048_IF_5000,   5, 3, 0 },
-
-> +	/* Set the  pll registers */
-> +	tda10048_writereg(state, TDA10048_CONF_PLL1, 0x0f);
-> +	tda10048_writereg(state, TDA10048_CONF_PLL2, (u8)(state->pll_mfactor));
-> +	tda10048_writereg(state, TDA10048_CONF_PLL3, tda10048_readreg(state, TDA10048_CONF_PLL3) | ((u8)(state->pll_nfactor) | 0x40));
-
-This if only issue can have effect to functionality and I want double 
-check. I see few things.
-
-1) clock (and PLL) settings should be done generally only once at 
-.init() and probably .sleep() in case of needed for sleep. Something 
-like start clock in init, stop clock in sleep. It is usually very first 
-thing to set before other. Now it is in wrong place - .set_frontend().
-
-2) Those clock settings seem somehow weird. As you set different PLL M 
-divider for 6 MHz bandwidth than others. Have you looked those are 
-really correct? I suspect there could be some other Xtal than 16MHz and 
-thus those are wrong. Which Xtals there is inside device used? There is 
-most likely 3 Xtals, one for each chip. It is metal box nearest to chip.
+Huh. That's unexpected. They get auto-loaded here, last I knew. I'll have
+to give one of my devices a spin tomorrow, not sure exactly what the last
+kernel I tried one of them on was. Pretty sure they're working fine with
+the Fedora 15 2.6.38.x kernels and vanilla (but Fedora-configured) 3.0-rc
+kernels though.
 
 
-Ran checkpatch.pl also to find out style issues before send patch.
+> I just tried this:
+> 
+> kepler ~ # rmmod rc_winfast ir_lirc_codec lirc_dev ir_sony_decoder
+> ir_jvc_decoder ir_rc6_decoder ir_rc5_decoder ir_nec_decoder
+> 
+> kepler ~ # modprobe -v rc-imon-pad
+> insmod /lib/modules/2.6.39.3/kernel/drivers/media/rc/keymaps/rc-imon-pad.ko
+> 
+> kepler ~ # modprobe -v rc-imon-mce
+> insmod /lib/modules/2.6.39.3/kernel/drivers/media/rc/keymaps/rc-imon-mce.ko
+...
+> kepler ~ # modprobe -v imon debug=1
+> insmod /lib/modules/2.6.39.3/kernel/drivers/media/rc/imon.ko debug=1
+> 
+> with the same crash (below).  (I have the tainting nvidia driver loaded
+> today but it was absent yesterday)
+> 
+> Perhaps there something else in the kernel config that must be on in
+> order to support the keymaps?
+> 
+> Any other thoughts?
 
-I have send new version, hopefully final, of MFE. It changes array name 
-from adap->mfe to adap-fe. You should also update that.
+Not at the moment. That T.889 line is... odd. No clue what the heck that
+thing is. Lemme see what I can see tomorrow (just past midnight here at
+the moment), if I don't hit anything, I might need a copy of your kernel
+config to repro.
 
+> Jul 13 08:21:14 kepler Call Trace:
+> Jul 13 08:21:14 kepler [<c101e9ae>] ? T.889+0x2e/0x50
+> Jul 13 08:21:14 kepler [<f8e3759c>] imon_remote_key_lookup+0x1c/0x70 [imon]
+> Jul 13 08:21:14 kepler [<f8e376dc>] imon_incoming_packet+0x5c/0xe10 [imon]
+> Jul 13 08:21:14 kepler [<fbcde004>] ? _nv004358rm+0x24/0x70 [nvidia]
+> Jul 13 08:21:14 kepler [<fbcde030>] ? _nv004358rm+0x50/0x70 [nvidia]
+> Jul 13 08:21:14 kepler [<c124f353>] ? __ata_qc_complete+0x73/0x110
+> Jul 13 08:21:14 kepler [<f8e38563>] usb_rx_callback_intf0+0x63/0x70 [imon]
+> Jul 13 08:21:14 kepler [<c1272cc8>] usb_hcd_giveback_urb+0x48/0xb0
+> Jul 13 08:21:14 kepler [<c128a5ee>] uhci_giveback_urb+0x8e/0x220
+> Jul 13 08:21:14 kepler [<c128ac16>] uhci_scan_schedule+0x396/0x9a0
+> Jul 13 08:21:14 kepler [<c128cfd1>] uhci_irq+0x91/0x170
+> Jul 13 08:21:14 kepler [<c1271de1>] usb_hcd_irq+0x21/0x50
+> Jul 13 08:21:14 kepler [<c1051246>] handle_irq_event_percpu+0x36/0x140
+> Jul 13 08:21:14 kepler [<c1015f06>] ? __io_apic_modify_irq+0x76/0x90
+> Jul 13 08:21:14 kepler [<c1053000>] ? handle_edge_irq+0x100/0x100
+> Jul 13 08:21:14 kepler [<c1051382>] handle_irq_event+0x32/0x60
+> Jul 13 08:21:14 kepler [<c1053045>] handle_fasteoi_irq+0x45/0xc0
 
-regards
-Antti
 
 -- 
-http://palosaari.fi/
+Jarod Wilson
+jarod@wilsonet.com
+
+
+
