@@ -1,129 +1,97 @@
-Return-path: <mchehab@localhost>
-Received: from bear.ext.ti.com ([192.94.94.41]:59577 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751473Ab1GETQU convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 5 Jul 2011 15:16:20 -0400
-Received: from dbdp20.itg.ti.com ([172.24.170.38])
-	by bear.ext.ti.com (8.13.7/8.13.7) with ESMTP id p65JGG5d001641
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-media@vger.kernel.org>; Tue, 5 Jul 2011 14:16:19 -0500
-From: "Hiremath, Vaibhav" <hvaibhav@ti.com>
-To: "JAIN, AMBER" <amber@ti.com>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-CC: "Semwal, Sumit" <sumit.semwal@ti.com>,
-	"Nilofer, Samreen" <samreen@ti.com>
-Date: Wed, 6 Jul 2011 00:46:15 +0530
-Subject: RE: [PATCH 3/6] V4L2: OMAP: VOUT: Adapt to Multiplanar APIs
-Message-ID: <19F8576C6E063C45BE387C64729E739404E3485E6F@dbde02.ent.ti.com>
-References: <1307458058-29030-1-git-send-email-amber@ti.com>
- <1307458058-29030-4-git-send-email-amber@ti.com>
-In-Reply-To: <1307458058-29030-4-git-send-email-amber@ti.com>
-Content-Language: en-US
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Return-path: <linux-media-owner@vger.kernel.org>
+Received: from casper.infradead.org ([85.118.1.10]:50846 "EHLO
+	casper.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752137Ab1GMWAp (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 13 Jul 2011 18:00:45 -0400
+Message-ID: <4E1E1571.6010400@infradead.org>
+Date: Wed, 13 Jul 2011 19:00:17 -0300
+From: Mauro Carvalho Chehab <mchehab@infradead.org>
 MIME-Version: 1.0
+To: Stas Sergeev <stsp@list.ru>
+CC: linux-media@vger.kernel.org,
+	"Nickolay V. Shmyrev" <nshmyrev@yandex.ru>,
+	Devin Heitmueller <dheitmueller@kernellabs.com>
+Subject: Re: [patch][saa7134] do not change mute state for capturing audio
+References: <4E19D2F7.6060803@list.ru> <4E1E05AC.2070002@infradead.org> <4E1E0A1D.6000604@list.ru>
+In-Reply-To: <4E1E0A1D.6000604@list.ru>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
+Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
-Sender: <mchehab@infradead.org>
 
+Em 13-07-2011 18:11, Stas Sergeev escreveu:
+> 14.07.2011 00:53, Mauro Carvalho Chehab wrote:
+>>> When pulseaudio enables the audio capturing, the
+>>> driver unmutes the sound. But, if no app have properly
+>>> tuned the tuner yet, you get the white noise.
+>>> I think the capturing must not touch the mute state,
+>>> because, without tuning the tuner first, you can't capture
+>>> anything anyway.
+>>> Without this patch I am getting the white noise on every
+>>> xorg/pulseaudio startup, which made me to always think
+>>> that pulseaudio is a joke and will soon be removed. :)
+>> Nack. We shouldn't patch a kernel driver due to an userspace bad behavior.
+> But I really think that the driver behaves badly here.
+> Suppose we had 2 separate mute switches: the input
+> mute, that mutes the signal as it just enters the saa
+> chip, and the output mute, that mutes only the output
+> of the tuner card, that is connected to the sound card's
+> line input.
+> With that configuration, we'd allow the alsa driver to
+> unmute only the input switch, so that it can record, but
+> leave the output switch still muted, so that the sound
+> not to come to the sound card directly.
 
-> -----Original Message-----
-> From: JAIN, AMBER
-> Sent: Tuesday, June 07, 2011 8:18 PM
-> To: linux-media@vger.kernel.org
-> Cc: Hiremath, Vaibhav; Semwal, Sumit; JAIN, AMBER; Nilofer, Samreen
-> Subject: [PATCH 3/6] V4L2: OMAP: VOUT: Adapt to Multiplanar APIs
-> 
-> Adapting the omap_vout driver for multiplanar API support.
-> 
-[Hiremath, Vaibhav] Personally I think it doesn't make sense to change function names only without adding functionality.
+Well, on such configuration, there are, in fact, 4 mutes:
+the two ones you've mentioned, plus the sound card LINE IN
+mute and the sound card master output.
 
-So I would suggest merging this patch with the actual multi-planar format support patch, which I believe is not part of this series.
+The media drivers should control the input that belongs to
+saa7134. The userspace applications like pulseaudio should
+control the sound card volume/mute, but the driver should
+control the saa7134 mute/audio switch.
 
-Irrespective of this, can you create separate patch series for,
+> Now that we don't have the output mute switch, we
+> allow the alsa driver to unmute not only the recording
+> that it may need, but also the sound output that goes
+> to the sound card! IMHO, this is the entirely unwanted
+> side effect, so I blame the saa driver, and not the pulseaudio.
 
-  V4L2: OMAP: VOUT: isr handling extended for DPI and HDMI interface
-  V4L2: OMAP: VOUT: dma map and unmap v4l2 buffers in qbuf and dqbuf
-  V4l2: OMAP: VOUT: Minor Cleanup, removing the unnecessary code.
+Why this is unwanted? You shouldn't expect that the poor
+users to control each mute control. They just need to control
+one: the sound card outut.
 
-Thanks,
-Vaibhav
+> There are also other things to consider:
+> 1. You can't record anything (except for the white noise)
+> before some xawtv sets up everything. So what is the
+> use-case of the current (mis)behaveur?
 
-> Signed-off-by: Amber Jain <amber@ti.com>
-> Signed-off-by: Samreen <samreen@ti.com>
-> ---
->  drivers/media/video/omap/omap_vout.c |   19 ++++++++++---------
->  1 files changed, 10 insertions(+), 9 deletions(-)
+If you're getting a white noise, then there's a bug either
+at xawtv, at the driver or both. It is likely board-specific,
+as, at least the last time I tested, saa7134 audio were working
+properly.
+
+> 2. The alsa driver, trying to manage the mute state on
+> its own, badly interwinds with the mute state of the
+> (xawtv) program. 2 programs cannot control the same
+> mute state for good, and of course the xawtv must have
+> the preference, as the alsa driver have no slightest
+> idea about the card's state.
+
+There's no sense on keeping the device unmuted after
+stop streaming.
+
+> 3. The problem is very severe. Hearing the loud white
+> noise on every startup is not something the human can
+> easily tolerate. So deferring it for the unknown period
+> is simply not very productive.
+
+As I said before, the white noise bug should be fixed.
+With what xawtv versions are you noticing problems? Are you using
+xawtv 3.101? If so, xawtv 3.101 assumes that you're using digital
+streams. Maybe your board entry is broken for digital streams.
 > 
-> diff --git a/drivers/media/video/omap/omap_vout.c
-> b/drivers/media/video/omap/omap_vout.c
-> index 435fe65..70fb45e 100644
-> --- a/drivers/media/video/omap/omap_vout.c
-> +++ b/drivers/media/video/omap/omap_vout.c
-> @@ -1014,12 +1014,13 @@ static int vidioc_querycap(struct file *file, void
-> *fh,
->  	strlcpy(cap->driver, VOUT_NAME, sizeof(cap->driver));
->  	strlcpy(cap->card, vout->vfd->name, sizeof(cap->card));
->  	cap->bus_info[0] = '\0';
-> -	cap->capabilities = V4L2_CAP_STREAMING | V4L2_CAP_VIDEO_OUTPUT;
-> +	cap->capabilities = V4L2_CAP_STREAMING | V4L2_CAP_VIDEO_OUTPUT |
-> +				V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE;
-> 
->  	return 0;
->  }
-> 
-> -static int vidioc_enum_fmt_vid_out(struct file *file, void *fh,
-> +static int vidioc_enum_fmt_vid_out_mplane(struct file *file, void *fh,
->  			struct v4l2_fmtdesc *fmt)
->  {
->  	int index = fmt->index;
-> @@ -1038,7 +1039,7 @@ static int vidioc_enum_fmt_vid_out(struct file *file,
-> void *fh,
->  	return 0;
->  }
-> 
-> -static int vidioc_g_fmt_vid_out(struct file *file, void *fh,
-> +static int vidioc_g_fmt_vid_out_mplane(struct file *file, void *fh,
->  			struct v4l2_format *f)
->  {
->  	struct omap_vout_device *vout = fh;
-> @@ -1048,7 +1049,7 @@ static int vidioc_g_fmt_vid_out(struct file *file,
-> void *fh,
-> 
->  }
-> 
-> -static int vidioc_try_fmt_vid_out(struct file *file, void *fh,
-> +static int vidioc_try_fmt_vid_out_mplane(struct file *file, void *fh,
->  			struct v4l2_format *f)
->  {
->  	struct omap_overlay *ovl;
-> @@ -1071,7 +1072,7 @@ static int vidioc_try_fmt_vid_out(struct file *file,
-> void *fh,
->  	return 0;
->  }
-> 
-> -static int vidioc_s_fmt_vid_out(struct file *file, void *fh,
-> +static int vidioc_s_fmt_vid_out_mplane(struct file *file, void *fh,
->  			struct v4l2_format *f)
->  {
->  	int ret, bpp;
-> @@ -1817,10 +1818,10 @@ static int vidioc_g_fbuf(struct file *file, void
-> *fh,
-> 
->  static const struct v4l2_ioctl_ops vout_ioctl_ops = {
->  	.vidioc_querycap      			= vidioc_querycap,
-> -	.vidioc_enum_fmt_vid_out 		= vidioc_enum_fmt_vid_out,
-> -	.vidioc_g_fmt_vid_out			= vidioc_g_fmt_vid_out,
-> -	.vidioc_try_fmt_vid_out			= vidioc_try_fmt_vid_out,
-> -	.vidioc_s_fmt_vid_out			= vidioc_s_fmt_vid_out,
-> +	.vidioc_enum_fmt_vid_out_mplane		=
-> vidioc_enum_fmt_vid_out_mplane,
-> +	.vidioc_g_fmt_vid_out_mplane		= vidioc_g_fmt_vid_out_mplane,
-> +	.vidioc_try_fmt_vid_out_mplane		=
-> vidioc_try_fmt_vid_out_mplane,
-> +	.vidioc_s_fmt_vid_out_mplane		= vidioc_s_fmt_vid_out_mplane,
->  	.vidioc_queryctrl    			= vidioc_queryctrl,
->  	.vidioc_g_ctrl       			= vidioc_g_ctrl,
->  	.vidioc_s_fbuf				= vidioc_s_fbuf,
-> --
-> 1.7.1
+> Can you please name a few downsides of the approach
+> I proposed?
 
