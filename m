@@ -1,64 +1,74 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp1-g21.free.fr ([212.27.42.1]:52352 "EHLO smtp1-g21.free.fr"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752099Ab1GULZF convert rfc822-to-8bit (ORCPT
+Received: from swampdragon.chaosbits.net ([90.184.90.115]:29226 "EHLO
+	swampdragon.chaosbits.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751630Ab1GMU6P (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 21 Jul 2011 07:25:05 -0400
-Date: Thu, 21 Jul 2011 13:27:01 +0200
-From: Jean-Francois Moine <moinejf@free.fr>
-To: Luiz Ramos <lramos.prof@yahoo.com.br>
-Cc: linux-media@vger.kernel.org
-Subject: Re: [PATCH] Fix wrong register mask in gspca/sonixj.c
-Message-ID: <20110721132701.2a305d8e@tele>
-In-Reply-To: <1311244993.60601.YahooMailClassic@web121810.mail.ne1.yahoo.com>
-References: <20110720131212.13a9f8d2@tele>
-	<1311244993.60601.YahooMailClassic@web121810.mail.ne1.yahoo.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+	Wed, 13 Jul 2011 16:58:15 -0400
+Date: Wed, 13 Jul 2011 22:58:13 +0200 (CEST)
+From: Jesper Juhl <jj@chaosbits.net>
+To: Mauro Carvalho Chehab <mchehab@infradead.org>
+cc: Devin Heitmueller <dheitmueller@kernellabs.com>,
+	Andreas Oberritter <obi@linuxtv.org>,
+	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: [PATCH] media, Micronas dvb-t: Fix mem leaks, don't needlessly zero
+ mem, fix spelling
+Message-ID: <alpine.LNX.2.00.1107132255450.22281@swampdragon.chaosbits.net>
+MIME-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, 21 Jul 2011 03:43:13 -0700 (PDT)
-Luiz Ramos <lramos.prof@yahoo.com.br> wrote:
+In drivers/media/dvb/frontends/drxd_hard.c::load_firmware() I see 3
+small issues:
 
-> Now my doubts. Unless I misunderstood something, it seems these are
-> the our assumptions regarding reg01 and reg17:
-> 
->   - reg01 bit 6 is set when bridge runs at 48 MHz; if reset, 24 MHz
->   - reg17 bits 0..4 is a mask for dividing a sensor clock of 48 MHz,
-> so
->     - if reg17 = x | 01 then clock = 48 MHz
->     - if reg17 = x | 02 then clock = 24 MHz
->     - if reg17 = x | 04 then clock = 12 MHz
-> 
-> Putting some printk at the code version 2.13.3, the values of these
-> registers at the last command are:
-> 
->   - at 640x480 ........... reg01 = 0x66  reg17 = 0x64
->   - at 320x240/160x120 ... reg01 = 0x26  reg17 = 0x61
-> 
-> So, at 640x480 the bridge would be running at 48 MHz and the sensor
-> at 12 MHz. At lower resolutions the bridge would be running at 24 MHz
-> and the sensor at 48 MHz. It seems that this is not what we'd like to
-> do.
+ 1) When the 'fw' variable goes out of scope we'll leak the memory
+ allocated to it by request_firmware() by neglecting to call
+ release_firmware().
 
->From the documentation, the register 17 contains a divide factor of the
-bridge clock (the sensor has no clock). So:
+ 2) After a successful request_firmware() we allocate fw->size bytes
+ of memory using kzalloc() only to immediately overwrite all that
+ memory with memcpy(), so asking for zeroed memory seems like wasted
+ effort - just use kmalloc().
 
-- reg01 = 0x66  reg17 = 0x64 --> bridge 48 MHz sensor 12 MHz
-- reg01 = 0x26  reg17 = 0x61 --> bridge 24 MHz sensor 24 MHz
+ 3) In one of the error messages "no memory" lacks a space and is
+ written as "nomemory".
 
-> I made some experiences, and noticed that:
-> 
->   - making reg17 = 0x62 (sensor clock at 24 MHz) and reg01 = 0x26
->     (bridge clock at 24 MHz) at 320x240 and lower makes it work again.
->     I think this reaches the goal of having both clocks at 24 MHz, but
->     at 10 fps
+This patch fixes all 3 issues.
 
-In fact, bridge 24 MHz and sensor 12 MHz. This seems the best
-configuration.
+Signed-off-by: Jesper Juhl <jj@chaosbits.net>
+---
+ drivers/media/dvb/frontends/drxd_hard.c |    6 ++++--
+ 1 files changed, 4 insertions(+), 2 deletions(-)
+
+diff --git a/drivers/media/dvb/frontends/drxd_hard.c b/drivers/media/dvb/frontends/drxd_hard.c
+index f132e49..0266a83 100644
+--- a/drivers/media/dvb/frontends/drxd_hard.c
++++ b/drivers/media/dvb/frontends/drxd_hard.c
+@@ -909,14 +909,16 @@ static int load_firmware(struct drxd_state *state, const char *fw_name)
+ 		return -EIO;
+ 	}
+ 
+-	state->microcode = kzalloc(fw->size, GFP_KERNEL);
++	state->microcode = kmalloc(fw->size, GFP_KERNEL);
+ 	if (state->microcode == NULL) {
+-		printk(KERN_ERR "drxd: firmware load failure: nomemory\n");
++		release_firmware(fw);
++		printk(KERN_ERR "drxd: firmware load failure: no memory\n");
+ 		return -ENOMEM;
+ 	}
+ 
+ 	memcpy(state->microcode, fw->data, fw->size);
+ 	state->microcode_length = fw->size;
++	release_firmware(fw);
+ 	return 0;
+ }
+ 
+-- 
+1.7.6
+
 
 -- 
-Ken ar c'hentañ	|	      ** Breizh ha Linux atav! **
-Jef		|		http://moinejf.free.fr/
+Jesper Juhl <jj@chaosbits.net>       http://www.chaosbits.net/
+Don't top-post http://www.catb.org/jargon/html/T/top-post.html
+Plain text mails only, please.
+
