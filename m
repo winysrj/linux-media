@@ -1,67 +1,41 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from tex.lwn.net ([70.33.254.29]:54274 "EHLO vena.lwn.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754455Ab1GNVJf (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 14 Jul 2011 17:09:35 -0400
-Date: Thu, 14 Jul 2011 15:09:34 -0600
-From: Jonathan Corbet <corbet@lwn.net>
-To: linux-media@vger.kernel.org
-Cc: Marek Szyprowski <m.szyprowski@samsung.com>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>
-Subject: [PATCH] videobuf2: call buf_finish() on unprocessed buffers
-Message-ID: <20110714150934.74777696@bike.lwn.net>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 8bit
+Received: from gelbbaer.kn-bremen.de ([78.46.108.116]:50544 "EHLO
+	smtp.kn-bremen.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752530Ab1GMX07 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 13 Jul 2011 19:26:59 -0400
+From: Juergen Lock <nox@jelal.kn-bremen.de>
+Date: Thu, 14 Jul 2011 01:26:14 +0200
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Juergen Lock <nox@jelal.kn-bremen.de>, linux-media@vger.kernel.org,
+	hselasky@c2i.net
+Subject: Re: [PATCH] pctv452e.c: switch rc handling to rc.core
+Message-ID: <20110713232614.GA57768@triton8.kn-bremen.de>
+References: <20110625193427.GA66720@triton8.kn-bremen.de>
+ <4E1E1CA7.5090004@redhat.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <4E1E1CA7.5090004@redhat.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-When user space stops streaming, there may be buffers which have been given
-to buf_prepare() and which may or may not have been passed to buf_queue().
-The videobuf2 core simply takes those buffers back; if buf_prepare() does
-work that needs cleaning up (like setting up a DMA mapping), that cleanup
-will not happen.
+On Wed, Jul 13, 2011 at 07:31:03PM -0300, Mauro Carvalho Chehab wrote:
+> Em 25-06-2011 16:34, Juergen Lock escreveu:
+> > This is on top of the submitted pctv452e.c driver and was done similar
+> > to how ttusb2 works.  Tested with lirc (devinput) and ir-keytable(1).
+> 
+> You should submit pctv452e driver first, otherwise I can't apply
+> this one ;)
 
-This patch establishes a simple contract with drivers: buffers given to
-buf_prepare() will eventually see a buf_finish() call.
+Heh well Hans <hselasky@c2i.net> last did that a little while ago
+iirc, tho of course he didn't write it. :)  (Do I guess right it
+never got committed earlier because of stb0899 tuning problems for
+which the fix(es?) are still waiting to be committed?  At least
+I think I still need patches here if I don't want w_scan to miss
+random transponders...  I.e. it only finds like 70% of what's on
+Astra 19.2E and missed different ones each time I ran it without
+stb0899 patches.)
 
-Signed-off-by: Jonathan Corbet <corbet@lwn.net>
----
- drivers/media/video/videobuf2-core.c |    8 +++++++-
- 1 files changed, 7 insertions(+), 1 deletions(-)
-
-diff --git a/drivers/media/video/videobuf2-core.c b/drivers/media/video/videobuf2-core.c
-index 6ba1461..2ba08ab 100644
---- a/drivers/media/video/videobuf2-core.c
-+++ b/drivers/media/video/videobuf2-core.c
-@@ -1177,6 +1177,7 @@ EXPORT_SYMBOL_GPL(vb2_streamon);
-  */
- static void __vb2_queue_cancel(struct vb2_queue *q)
- {
-+	struct vb2_buffer *vb;
- 	unsigned int i;
- 
- 	/*
-@@ -1188,13 +1189,18 @@ static void __vb2_queue_cancel(struct vb2_queue *q)
- 	q->streaming = 0;
- 
- 	/*
--	 * Remove all buffers from videobuf's list...
-+	 * Remove all buffers from videobuf's list...  Give the driver
-+	 * a chance to clean them up first, though.
- 	 */
-+	list_for_each_entry(vb, &q->queued_list, queued_entry)
-+		call_qop(q, buf_finish, vb);
- 	INIT_LIST_HEAD(&q->queued_list);
- 	/*
- 	 * ...and done list; userspace will not receive any buffers it
- 	 * has not already dequeued before initiating cancel.
- 	 */
-+	list_for_each_entry(vb, &q->done_list, done_entry)
-+		call_qop(q, buf_finish, vb);
- 	INIT_LIST_HEAD(&q->done_list);
- 	wake_up_all(&q->done_wq);
- 
--- 
-1.7.6
-
+ Cheers,
+	Juergen
