@@ -1,61 +1,104 @@
-Return-path: <mchehab@localhost>
-Received: from smtp109.prem.mail.ac4.yahoo.com ([76.13.13.92]:29962 "HELO
-	smtp109.prem.mail.ac4.yahoo.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with SMTP id S1753093Ab1GFQTH (ORCPT
+Return-path: <linux-media-owner@vger.kernel.org>
+Received: from oproxy1-pub.bluehost.com ([66.147.249.253]:60211 "HELO
+	oproxy1-pub.bluehost.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1752193Ab1GMWEV (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 6 Jul 2011 12:19:07 -0400
-Date: Wed, 6 Jul 2011 11:19:00 -0500 (CDT)
-From: Christoph Lameter <cl@linux.com>
-To: Michal Nazarewicz <mina86@mina86.com>
-cc: Russell King - ARM Linux <linux@arm.linux.org.uk>,
-	Arnd Bergmann <arnd@arndb.de>,
-	linux-arm-kernel@lists.infradead.org,
-	'Daniel Walker' <dwalker@codeaurora.org>,
-	'Jonathan Corbet' <corbet@lwn.net>,
-	'Mel Gorman' <mel@csn.ul.ie>,
-	'Chunsang Jeong' <chunsang.jeong@linaro.org>,
-	'Jesse Barker' <jesse.barker@linaro.org>,
-	'KAMEZAWA Hiroyuki' <kamezawa.hiroyu@jp.fujitsu.com>,
-	linux-kernel@vger.kernel.org, linaro-mm-sig@lists.linaro.org,
-	linux-mm@kvack.org, 'Kyungmin Park' <kyungmin.park@samsung.com>,
-	'Ankita Garg' <ankita@in.ibm.com>,
-	'Andrew Morton' <akpm@linux-foundation.org>,
-	Marek Szyprowski <m.szyprowski@samsung.com>,
-	linux-media@vger.kernel.org, Andi Kleen <andi@firstfloor.org>
-Subject: Re: [PATCH 6/8] drivers: add Contiguous Memory Allocator
-In-Reply-To: <op.vx7ghajd3l0zgt@mnazarewicz-glaptop>
-Message-ID: <alpine.DEB.2.00.1107061114150.19547@router.home>
-References: <1309851710-3828-1-git-send-email-m.szyprowski@samsung.com> <201107061609.29996.arnd@arndb.de> <20110706142345.GC8286@n2100.arm.linux.org.uk> <201107061651.49824.arnd@arndb.de> <20110706154857.GG8286@n2100.arm.linux.org.uk>
- <alpine.DEB.2.00.1107061100290.17624@router.home> <op.vx7ghajd3l0zgt@mnazarewicz-glaptop>
-MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+	Wed, 13 Jul 2011 18:04:21 -0400
+Date: Wed, 13 Jul 2011 15:04:18 -0700
+From: Randy Dunlap <rdunlap@xenotime.net>
+To: Mauro Carvalho Chehab <mchehab@infradead.org>
+Cc: lkml <linux-kernel@vger.kernel.org>, linux-kbuild@vger.kernel.org,
+	linux-media@vger.kernel.org
+Subject: Re: [PATCH 1/9] stringify: add HEX_STRING()
+Message-Id: <20110713150418.b8c33758.rdunlap@xenotime.net>
+In-Reply-To: <4E1E08A9.4030807@infradead.org>
+References: <20110710125109.c72f9c2d.rdunlap@xenotime.net>
+	<4E1E08A9.4030807@infradead.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
+Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
-Sender: <mchehab@infradead.org>
 
-On Wed, 6 Jul 2011, Michal Nazarewicz wrote:
+On Wed, 13 Jul 2011 18:05:45 -0300 Mauro Carvalho Chehab wrote:
 
-> On Wed, 06 Jul 2011 18:05:00 +0200, Christoph Lameter <cl@linux.com> wrote:
-> > ZONE_DMA is a zone for memory of legacy (crippled) devices that cannot DMA
-> > into all of memory (and so is ZONE_DMA32).  Memory from ZONE_NORMAL
-> > can be used for DMA as well and a fully capable device would be expected
-> > to handle any memory in the system for DMA transfers.
-> >
-> > "guaranteed" dmaable memory? DMA abilities are device specific. Well maybe
-> > you can call ZONE_DMA memory to be guaranteed if you guarantee
-> > that any device must at mininum be able to perform DMA into ZONE_DMA
-> > memory. But there may not be much of that memory around so you would
-> > want to limit the use of that scarce resource.
->
-> As pointed in Marek's other mail, this reasoning is not helping in any
-> way.  In case of video codec on various Samsung devices (and from some
-> other threads this is not limited to Samsung), the codec needs separate
-> buffers in separate memory banks.
+> Em 10-07-2011 16:51, Randy Dunlap escreveu:
+> > From: Randy Dunlap <rdunlap@xenotime.net>
+> > 
+> > Add HEX_STRING(value) to stringify.h so that drivers can
+> > convert kconfig hex values (without leading "0x") to useful
+> > hex constants.
+> > 
+> > Several drivers/media/radio/ drivers need this.  I haven't
+> > checked if any other drivers need to do this.
+> > 
+> > Alternatively, kconfig could produce hex config symbols with
+> > leading "0x".
+> 
+> Hi Randy,
+> 
+> After applying patch 1/9 and 2/9 over 3.0-rc7+media patches, I'm
+> now getting this error:
+> 
+> drivers/media/radio/radio-aimslab.c:52:1: error: invalid suffix "x20f" on integer constant
+> 
+> $ grep 20f .config
+> CONFIG_RADIO_RTRACK_PORT=20f
+> 
+> $ gcc --version
+> gcc (GCC) 4.4.5 20110214 (Red Hat 4.4.5-6)
+> 
+> Before this patch, this were working (or, at least, weren't producing
+> any error).
+> 
+> Perhaps the breakage on your compilation happened due to another
+> patch at the tree? If so, the better would be to apply this patch
 
-What I described is the basic memory architecture of Linux. I am not that
-familiar with ARM and the issue discussed here. Only got involved because
-ZONE_DMA was mentioned. The nature of ZONE_DMA is often misunderstood.
+Do you suspect that?
 
-The allocation of the memory banks for the Samsung devices has to fit
-somehow into one of these zones. Its probably best to put the memory banks
-into ZONE_NORMAL and not have any dependency on ZONE_DMA at all.
+I built this patch series against the latest linux-next (20110707),
+so it should contain media patches as of that date.
 
+> series together with the ones that caused the breakage, to avoid
+> bisect troubles.
+
+Sure, if we know what patch it is (if there indeed is one).
+
+Can you do:
+$ make drivers/media/radio/radio-aimslab.i
+
+and tell me what this line contains for you?
+Mine says:
+
+static int io = 0x20f;
+
+
+> > 
+> > Signed-off-by: Randy Dunlap <rdunlap@xenotime.net>
+> > ---
+> >  include/linux/stringify.h |    7 +++++++
+> >  1 file changed, 7 insertions(+)
+> > 
+> > NOTE: The other 8 patches are on lkml and linux-media mailing lists.
+> > 
+> > --- linux-next-20110707.orig/include/linux/stringify.h
+> > +++ linux-next-20110707/include/linux/stringify.h
+> > @@ -9,4 +9,11 @@
+> >  #define __stringify_1(x...)	#x
+> >  #define __stringify(x...)	__stringify_1(x)
+> >  
+> > +/*
+> > + * HEX_STRING(value) is useful for CONFIG_ values that are in hex,
+> > + * but kconfig does not put a leading "0x" on them.
+> > + */
+> > +#define HEXSTRINGVALUE(h, value)	h##value
+> > +#define HEX_STRING(value)		HEXSTRINGVALUE(0x, value)
+> > +
+> >  #endif	/* !__LINUX_STRINGIFY_H */
+> 
+> --
+
+
+---
+~Randy
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
