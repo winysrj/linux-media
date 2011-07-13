@@ -1,64 +1,102 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.126.186]:49469 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755532Ab1G2K5D (ORCPT
+Received: from mail-pz0-f46.google.com ([209.85.210.46]:50135 "EHLO
+	mail-pz0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752377Ab1GMWNc convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 29 Jul 2011 06:57:03 -0400
-Received: from 6a.grange (6a.grange [192.168.1.11])
-	by axis700.grange (Postfix) with ESMTPS id 170DC189B83
-	for <linux-media@vger.kernel.org>; Fri, 29 Jul 2011 12:57:00 +0200 (CEST)
-Received: from lyakh by 6a.grange with local (Exim 4.72)
-	(envelope-from <g.liakhovetski@gmx.de>)
-	id 1QmkkV-0007nB-TH
-	for linux-media@vger.kernel.org; Fri, 29 Jul 2011 12:56:59 +0200
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: linux-media@vger.kernel.org
-Subject: [PATCH 05/59] V4L: imx074: support the new mbus-config subdev ops
-Date: Fri, 29 Jul 2011 12:56:05 +0200
-Message-Id: <1311937019-29914-6-git-send-email-g.liakhovetski@gmx.de>
-In-Reply-To: <1311937019-29914-1-git-send-email-g.liakhovetski@gmx.de>
-References: <1311937019-29914-1-git-send-email-g.liakhovetski@gmx.de>
+	Wed, 13 Jul 2011 18:13:32 -0400
+MIME-Version: 1.0
+In-Reply-To: <20110713150840.2fa8e2b3.rdunlap@xenotime.net>
+References: <20110710125109.c72f9c2d.rdunlap@xenotime.net>
+	<CACqU3MWBb4J8rmaRv23=-_=GXppGSUdqmOqeXoqWi4ZJ7ZYewg@mail.gmail.com>
+	<20110713150023.0dde9ef4.rdunlap@xenotime.net>
+	<CACqU3MVh+4JMX5ywPgWrrXXuAcAYtHJyumXGDcteageJAG12wA@mail.gmail.com>
+	<20110713150840.2fa8e2b3.rdunlap@xenotime.net>
+Date: Wed, 13 Jul 2011 18:13:31 -0400
+Message-ID: <CACqU3MXSwJG14PwD0c6R7VZg9fO=XLj=-QDN5ntbQp+0xDn82A@mail.gmail.com>
+Subject: Re: [PATCH 1/9] stringify: add HEX_STRING()
+From: Arnaud Lacombe <lacombar@gmail.com>
+To: Randy Dunlap <rdunlap@xenotime.net>
+Cc: lkml <linux-kernel@vger.kernel.org>, linux-kbuild@vger.kernel.org,
+	linux-media@vger.kernel.org, mchehab@infradead.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Extend the driver to also support [gs]_mbus_config() subdevice video
-operations.
+Hi,
 
-Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
----
- drivers/media/video/imx074.c |   12 ++++++++++++
- 1 files changed, 12 insertions(+), 0 deletions(-)
+On Wed, Jul 13, 2011 at 6:08 PM, Randy Dunlap <rdunlap@xenotime.net> wrote:
+> On Wed, 13 Jul 2011 18:06:15 -0400 Arnaud Lacombe wrote:
+>
+>> Hi,
+>>
+>> On Wed, Jul 13, 2011 at 6:00 PM, Randy Dunlap <rdunlap@xenotime.net> wrote:
+>> > On Wed, 13 Jul 2011 17:49:48 -0400 Arnaud Lacombe wrote:
+>> >
+>> >> Hi,
+>> >>
+>> >> On Sun, Jul 10, 2011 at 3:51 PM, Randy Dunlap <rdunlap@xenotime.net> wrote:
+>> >> > From: Randy Dunlap <rdunlap@xenotime.net>
+>> >> >
+>> >> > Add HEX_STRING(value) to stringify.h so that drivers can
+>> >> > convert kconfig hex values (without leading "0x") to useful
+>> >> > hex constants.
+>> >> >
+>> >> > Several drivers/media/radio/ drivers need this.  I haven't
+>> >> > checked if any other drivers need to do this.
+>> >> >
+>> >> > Alternatively, kconfig could produce hex config symbols with
+>> >> > leading "0x".
+>> >> >
+>> >> Actually, I used to have a patch to make hex value have a mandatory
+>> >> "0x" prefix, in the Kconfig. I even fixed all the issue in the tree,
+>> >> it never make it to the tree (not sure why). Here's the relevant
+>> >> thread:
+>> >>
+>> >> https://patchwork.kernel.org/patch/380591/
+>> >> https://patchwork.kernel.org/patch/380621/
+>> >> https://patchwork.kernel.org/patch/380601/
+>> >>
+>> >
+>> > I prefer that this be fixed in kconfig, so long as it won't cause
+>> > any other issues.  That's why I mentioned it.
+>> >
+>> >>
+>> >> > Signed-off-by: Randy Dunlap <rdunlap@xenotime.net>
+>> >> > ---
+>> >> >  include/linux/stringify.h |    7 +++++++
+>> >> >  1 file changed, 7 insertions(+)
+>> >> >
+>> >> > NOTE: The other 8 patches are on lkml and linux-media mailing lists.
+>> >> >
+>> >> > --- linux-next-20110707.orig/include/linux/stringify.h
+>> >> > +++ linux-next-20110707/include/linux/stringify.h
+>> >> > @@ -9,4 +9,11 @@
+>> >> >  #define __stringify_1(x...)    #x
+>> >> >  #define __stringify(x...)      __stringify_1(x)
+>> >> >
+>> >> > +/*
+>> >> > + * HEX_STRING(value) is useful for CONFIG_ values that are in hex,
+>> >> > + * but kconfig does not put a leading "0x" on them.
+>> >> > + */
+>> >> > +#define HEXSTRINGVALUE(h, value)       h##value
+>> >> > +#define HEX_STRING(value)              HEXSTRINGVALUE(0x, value)
+>> >> > +
+>> >> that seems hackish...
+>> >
+>> > It's a common idiom for concatenating strings in the kernel.
+>> >
+>> I meant hackish not because *how* it is done, but because *why* it has
+>> to be done, that is, because the Kconfig miss the prefix, which is
+>> really no big deal.
+>>
+>> > How would you do it without (instead of) a kconfig fix/patch?
+>> >
+>> have the Kconfig use the "0x" prefix since the beginning.
+>
+> Sure, go for it.  I'll ack it.  ;)  [or Review it :]
+> and test it.
+>
+it is already among the hunks in https://patchwork.kernel.org/patch/380601/
 
-diff --git a/drivers/media/video/imx074.c b/drivers/media/video/imx074.c
-index 0382ea7..63f17aa 100644
---- a/drivers/media/video/imx074.c
-+++ b/drivers/media/video/imx074.c
-@@ -267,6 +267,17 @@ static int imx074_g_chip_ident(struct v4l2_subdev *sd,
- 	return 0;
- }
- 
-+static int imx074_g_mbus_config(struct v4l2_subdev *sd,
-+				struct v4l2_mbus_config *cfg)
-+{
-+	cfg->type = V4L2_MBUS_CSI2;
-+	cfg->flags = V4L2_MBUS_CSI2_2_LANE |
-+		V4L2_MBUS_CSI2_CHANNEL_0 |
-+		V4L2_MBUS_CSI2_CONTINUOUS_CLOCK;
-+
-+	return 0;
-+}
-+
- static struct v4l2_subdev_video_ops imx074_subdev_video_ops = {
- 	.s_stream	= imx074_s_stream,
- 	.s_mbus_fmt	= imx074_s_fmt,
-@@ -275,6 +286,7 @@ static struct v4l2_subdev_video_ops imx074_subdev_video_ops = {
- 	.enum_mbus_fmt	= imx074_enum_fmt,
- 	.g_crop		= imx074_g_crop,
- 	.cropcap	= imx074_cropcap,
-+	.g_mbus_config	= imx074_g_mbus_config,
- };
- 
- static struct v4l2_subdev_core_ops imx074_subdev_core_ops = {
--- 
-1.7.2.5
-
+ - Arnaud
