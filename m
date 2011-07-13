@@ -1,54 +1,58 @@
-Return-path: <mchehab@localhost>
-Received: from out5.smtp.messagingengine.com ([66.111.4.29]:50483 "EHLO
-	out5.smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752658Ab1GHBVX (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 7 Jul 2011 21:21:23 -0400
-Date: Thu, 7 Jul 2011 18:19:33 -0700
-From: Greg KH <greg@kroah.com>
-To: Jarod Wilson <jarod@wilsonet.com>
-Cc: Jarod Wilson <jarod@redhat.com>, linux-media@vger.kernel.org,
-	devel@driverdev.osuosl.org
-Subject: Re: [PATCH] [staging] lirc_serial: allocate irq at init time
-Message-ID: <20110708011933.GA3059@kroah.com>
-References: <1308252706-13879-1-git-send-email-jarod@redhat.com>
- <20110705172119.GA19358@kroah.com>
- <CANOx78EPynqirWSuSyRCjhwUks2Br1R1vBQGSD6H7HpYtydH=w@mail.gmail.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <CANOx78EPynqirWSuSyRCjhwUks2Br1R1vBQGSD6H7HpYtydH=w@mail.gmail.com>
+Return-path: <linux-media-owner@vger.kernel.org>
+Received: from mx1.redhat.com ([209.132.183.28]:25810 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752067Ab1GMV0V (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 13 Jul 2011 17:26:21 -0400
+From: Jarod Wilson <jarod@redhat.com>
+To: linux-media@vger.kernel.org
+Cc: Jarod Wilson <jarod@redhat.com>, Chris Dodge <chris@redrat.co.uk>,
+	Andrew Vincer <andrew.vincer@redrat.co.uk>,
+	Stephen Cox <scox_nz@yahoo.com>
+Subject: [PATCH 1/3] [media] redrat3: sending extra trailing space was useless
+Date: Wed, 13 Jul 2011 17:26:05 -0400
+Message-Id: <1310592367-11501-2-git-send-email-jarod@redhat.com>
+In-Reply-To: <1310592367-11501-1-git-send-email-jarod@redhat.com>
+References: <1310592367-11501-1-git-send-email-jarod@redhat.com>
+Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
-Sender: <mchehab@infradead.org>
 
-On Thu, Jul 07, 2011 at 08:31:28PM -0400, Jarod Wilson wrote:
-> On Tue, Jul 5, 2011 at 1:21 PM, Greg KH <greg@kroah.com> wrote:
-> > On Thu, Jun 16, 2011 at 03:31:46PM -0400, Jarod Wilson wrote:
-> >> There's really no good reason not to just grab the desired IRQ at driver
-> >> init time, instead of every time the lirc device node is accessed. This
-> >> also improves the speed and reliability with which a serial transmitter
-> >> can operate, as back-to-back transmission attempts (i.e., channel change
-> >> to a multi-digit channel) don't have to spend time acquiring and then
-> >> releasing the IRQ for every digit, sometimes multiple times, if lircd
-> >> has been told to use the min_repeat parameter.
-> >>
-> >> CC: devel@driverdev.osuosl.org
-> >> Signed-off-by: Jarod Wilson <jarod@redhat.com>
-> >> ---
-> >>  drivers/staging/lirc/lirc_serial.c |   44 +++++++++++++++++------------------
-> >>  1 files changed, 21 insertions(+), 23 deletions(-)
-> >
-> > This patch doesn't apply to the staging-next branch, care to respin it
-> > and resend it so I can apply it?
-> 
-> This actually got merged into mainline a few days ago via the media tree.
-> 
-> http://git.kernel.org/?p=linux/kernel/git/torvalds/linux-2.6.git;a=commitdiff;h=c4b0afee3c1730cf9b0f6ad21729928d23d3918e
-> 
-> Do you want me to take a look at what's in staging-next and fix that
-> up to apply on top of the above?
+We already add a trailing space, this wasn't doing anything useful, and
+actually confused lirc userspace a bit. Rip it out.
 
-No, if it went in there, that's fine with me.
+CC: Chris Dodge <chris@redrat.co.uk>
+CC: Andrew Vincer <andrew.vincer@redrat.co.uk>
+CC: Stephen Cox <scox_nz@yahoo.com>
+Signed-off-by: Jarod Wilson <jarod@redhat.com>
+---
+ drivers/media/rc/redrat3.c |   12 +-----------
+ 1 files changed, 1 insertions(+), 11 deletions(-)
 
-greg k-h
+diff --git a/drivers/media/rc/redrat3.c b/drivers/media/rc/redrat3.c
+index 5147767..9134254 100644
+--- a/drivers/media/rc/redrat3.c
++++ b/drivers/media/rc/redrat3.c
+@@ -414,20 +414,10 @@ static u32 redrat3_us_to_len(u32 microsec)
+ 
+ }
+ 
+-/* timer callback to send long trailing space on receive timeout */
++/* timer callback to send reset event */
+ static void redrat3_rx_timeout(unsigned long data)
+ {
+ 	struct redrat3_dev *rr3 = (struct redrat3_dev *)data;
+-	DEFINE_IR_RAW_EVENT(rawir);
+-
+-	rawir.pulse = false;
+-	rawir.duration = rr3->rc->timeout;
+-	rr3_dbg(rr3->dev, "storing trailing space with duration %d\n",
+-		rawir.duration);
+-	ir_raw_event_store_with_filter(rr3->rc, &rawir);
+-
+-	rr3_dbg(rr3->dev, "calling ir_raw_event_handle\n");
+-	ir_raw_event_handle(rr3->rc);
+ 
+ 	rr3_dbg(rr3->dev, "calling ir_raw_event_reset\n");
+ 	ir_raw_event_reset(rr3->rc);
+-- 
+1.7.1
+
