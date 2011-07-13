@@ -1,95 +1,50 @@
 Return-path: <mchehab@localhost>
-Received: from comal.ext.ti.com ([198.47.26.152]:41196 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751826Ab1GGF6S convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 7 Jul 2011 01:58:18 -0400
-From: "JAIN, AMBER" <amber@ti.com>
-To: "Hiremath, Vaibhav" <hvaibhav@ti.com>,
-	David Rientjes <rientjes@google.com>
-CC: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	Andrew Morton <akpm@linux-foundation.org>
-Date: Thu, 7 Jul 2011 11:27:40 +0530
-Subject: RE: [GIT PULL for v3.0] OMAP_VOUT bug fixes and code cleanup
-Message-ID: <5A47E75E594F054BAF48C5E4FC4B92AB037BD02DC8@dbde02.ent.ti.com>
-References: <1308771169-10741-1-git-send-email-hvaibhav@ti.com>
- <4E0E153F.5000303@redhat.com>
- <5A47E75E594F054BAF48C5E4FC4B92AB037BD02799@dbde02.ent.ti.com>
- <alpine.DEB.2.00.1107061342380.2622@chino.kir.corp.google.com>
- <19F8576C6E063C45BE387C64729E739404E3486239@dbde02.ent.ti.com>
-In-Reply-To: <19F8576C6E063C45BE387C64729E739404E3486239@dbde02.ent.ti.com>
-Content-Language: en-US
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-MIME-Version: 1.0
+Received: from smtp-vbr5.xs4all.nl ([194.109.24.25]:1727 "EHLO
+	smtp-vbr5.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S965211Ab1GMJjW (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 13 Jul 2011 05:39:22 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [RFCv1 PATCH 4/6] videobuf: only start streaming in poll() if so requested by the poll mask.
+Date: Wed, 13 Jul 2011 11:39:02 +0200
+Message-Id: <ba332614a31008c2261fd39c5b93e34143f8c73a.1310549521.git.hans.verkuil@cisco.com>
+In-Reply-To: <1310549944-23756-1-git-send-email-hverkuil@xs4all.nl>
+References: <1310549944-23756-1-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <bec0b6db54a6b435d219e5ad2d9f010848dd8c2b.1310549521.git.hans.verkuil@cisco.com>
+References: <bec0b6db54a6b435d219e5ad2d9f010848dd8c2b.1310549521.git.hans.verkuil@cisco.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@infradead.org>
 
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ drivers/media/video/videobuf-core.c |    3 ++-
+ 1 files changed, 2 insertions(+), 1 deletions(-)
 
-> -----Original Message-----
-> From: Hiremath, Vaibhav
-> Sent: Thursday, July 07, 2011 11:25 AM
-> To: David Rientjes; JAIN, AMBER
-> Cc: Mauro Carvalho Chehab; linux-media@vger.kernel.org; Andrew Morton
-> Subject: RE: [GIT PULL for v3.0] OMAP_VOUT bug fixes and code cleanup
-> 
-> > -----Original Message-----
-> > From: David Rientjes [mailto:rientjes@google.com]
-> > Sent: Thursday, July 07, 2011 2:14 AM
-> > To: JAIN, AMBER
-> > Cc: Mauro Carvalho Chehab; Hiremath, Vaibhav; linux-
-> media@vger.kernel.org;
-> > Andrew Morton
-> > Subject: RE: [GIT PULL for v3.0] OMAP_VOUT bug fixes and code cleanup
-> >
-> > On Tue, 5 Jul 2011, JAIN, AMBER wrote:
-> >
-> > > > > diff --git a/drivers/media/video/omap24xxcam.c
-> > > > b/drivers/media/video/omap24xxcam.c
-> > > > > index f6626e8..d92d4c6 100644
-> > > > > --- a/drivers/media/video/omap24xxcam.c
-> > > > > +++ b/drivers/media/video/omap24xxcam.c
-> > > > > @@ -309,11 +309,11 @@ static int
-> > > > omap24xxcam_vbq_alloc_mmap_buffer(struct videobuf_buffer *vb)
-> > > > >  			order--;
-> > > > >
-> > > > >  		/* try to allocate as many contiguous pages as possible
-> > */
-> > > > > -		page = alloc_pages(GFP_KERNEL | GFP_DMA, order);
-> > > > > +		page = alloc_pages(GFP_KERNEL, order);
-> > > > >  		/* if allocation fails, try to allocate smaller amount
-> > */
-> > > > >  		while (page == NULL) {
-> > > > >  			order--;
-> > > > > -			page = alloc_pages(GFP_KERNEL | GFP_DMA, order);
-> > > > > +			page = alloc_pages(GFP_KERNEL, order);
-> > > > >  			if (page == NULL && !order) {
-> > > > >  				err = -ENOMEM;
-> > > > >  				goto out;
-> > > >
-> > > > Hmm... the proper fix wouldn't be to define ZONE_DMA at OMAP?
-> > >
-> > > I don't think so, my understanding for ZOME_DMA is that it is defined
-> > > for architectures that have restrictions on memory addresses that can
-> be
-> > > used for DMA. OMAP doesn't have any such restriction and hence we
-> should
-> > > not define ZONE_DMA.
-> > >
-> >
-> > s/should not define/do not need to define/
-> >
-> > Right, if omap does not have DMA restrictions then the GFP_DMA usage
-> that
-> > is removed with this patch was incorrect.
-> [Hiremath, Vaibhav] I did not understand your comment; can you please help
-> me to understand here?
+diff --git a/drivers/media/video/videobuf-core.c b/drivers/media/video/videobuf-core.c
+index de4fa4e..ffdf59c 100644
+--- a/drivers/media/video/videobuf-core.c
++++ b/drivers/media/video/videobuf-core.c
+@@ -1129,6 +1129,7 @@ unsigned int videobuf_poll_stream(struct file *file,
+ 				  struct videobuf_queue *q,
+ 				  poll_table *wait)
+ {
++	unsigned long req_events = poll_requested_events(wait);
+ 	struct videobuf_buffer *buf = NULL;
+ 	unsigned int rc = 0;
+ 
+@@ -1137,7 +1138,7 @@ unsigned int videobuf_poll_stream(struct file *file,
+ 		if (!list_empty(&q->stream))
+ 			buf = list_entry(q->stream.next,
+ 					 struct videobuf_buffer, stream);
+-	} else {
++	} else if (req_events & (POLLIN | POLLRDNORM)) {
+ 		if (!q->reading)
+ 			__videobuf_read_start(q);
+ 		if (!q->reading) {
+-- 
+1.7.1
 
-I think what David wants to say is that if we do not have DMA restrictions on OMAP we should have not used GFP_DMA flag for page allocation at first place. Is my understanding correct David?
-
-~Amber
-
-> 
-> Thanks,
-> Vaibhav
