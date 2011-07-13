@@ -1,112 +1,134 @@
-Return-path: <mchehab@localhost>
-Received: from mx1.redhat.com ([209.132.183.28]:59954 "EHLO mx1.redhat.com"
+Return-path: <linux-media-owner@vger.kernel.org>
+Received: from mx1.redhat.com ([209.132.183.28]:41795 "EHLO mx1.redhat.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755361Ab1GFSEs (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 6 Jul 2011 14:04:48 -0400
-Date: Wed, 6 Jul 2011 15:03:49 -0300
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
-Subject: [PATCH RFCv3 17/17] [media] return -ENOTTY for unsupported ioctl's
- at legacy drivers
-Message-ID: <20110706150349.44795968@pedra>
-In-Reply-To: <cover.1309974026.git.mchehab@redhat.com>
-References: <cover.1309974026.git.mchehab@redhat.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
-To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
+	id S1751732Ab1GMV6p (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 13 Jul 2011 17:58:45 -0400
+Received: from int-mx02.intmail.prod.int.phx2.redhat.com (int-mx02.intmail.prod.int.phx2.redhat.com [10.5.11.12])
+	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id p6DLwil7014623
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
+	for <linux-media@vger.kernel.org>; Wed, 13 Jul 2011 17:58:44 -0400
+From: Jarod Wilson <jarod@redhat.com>
+To: linux-media@vger.kernel.org
+Cc: Jarod Wilson <jarod@redhat.com>
+Subject: [PATCH] [media] imon: rate-limit send_packet spew
+Date: Wed, 13 Jul 2011 17:58:41 -0400
+Message-Id: <1310594321-12921-1-git-send-email-jarod@redhat.com>
+Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
-Sender: <mchehab@infradead.org>
 
-Those drivers are not relying at the V4L2 core to handle the ioctl's.
-So, we need to manually patch them every time a change goes to the
-core.
+There are folks with flaky imon hardware out there that doesn't always
+respond to requests to write to their displays for some reason, which
+can flood logs quickly when something like lcdproc is trying to
+constantly update the display, so lets rate-limit all that error spew.
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+Signed-off-by: Jarod Wilson <jarod@redhat.com>
+---
+ drivers/media/rc/imon.c |   25 +++++++++++++------------
+ 1 files changed, 13 insertions(+), 12 deletions(-)
 
-diff --git a/drivers/media/video/et61x251/et61x251_core.c b/drivers/media/video/et61x251/et61x251_core.c
-index d7efb33..9a1e80a 100644
---- a/drivers/media/video/et61x251/et61x251_core.c
-+++ b/drivers/media/video/et61x251/et61x251_core.c
-@@ -2480,16 +2480,8 @@ static long et61x251_ioctl_v4l2(struct file *filp,
- 	case VIDIOC_S_PARM:
- 		return et61x251_vidioc_s_parm(cam, arg);
+diff --git a/drivers/media/rc/imon.c b/drivers/media/rc/imon.c
+index 6bc35ee..ba48c1e 100644
+--- a/drivers/media/rc/imon.c
++++ b/drivers/media/rc/imon.c
+@@ -516,19 +516,19 @@ static int send_packet(struct imon_context *ictx)
+ 	if (retval) {
+ 		ictx->tx.busy = false;
+ 		smp_rmb(); /* ensure later readers know we're not busy */
+-		pr_err("error submitting urb(%d)\n", retval);
++		pr_err_ratelimited("error submitting urb(%d)\n", retval);
+ 	} else {
+ 		/* Wait for transmission to complete (or abort) */
+ 		mutex_unlock(&ictx->lock);
+ 		retval = wait_for_completion_interruptible(
+ 				&ictx->tx.finished);
+ 		if (retval)
+-			pr_err("task interrupted\n");
++			pr_err_ratelimited("task interrupted\n");
+ 		mutex_lock(&ictx->lock);
  
--	case VIDIOC_G_STD:
--	case VIDIOC_S_STD:
--	case VIDIOC_QUERYSTD:
--	case VIDIOC_ENUMSTD:
--	case VIDIOC_QUERYMENU:
--	case VIDIOC_ENUM_FRAMEINTERVALS:
--		return -EINVAL;
--
- 	default:
--		return -EINVAL;
-+		return -ENOTTY;
- 
- 	}
- }
-diff --git a/drivers/media/video/pvrusb2/pvrusb2-v4l2.c b/drivers/media/video/pvrusb2/pvrusb2-v4l2.c
-index 573749a..e27f8ab 100644
---- a/drivers/media/video/pvrusb2/pvrusb2-v4l2.c
-+++ b/drivers/media/video/pvrusb2/pvrusb2-v4l2.c
-@@ -369,11 +369,6 @@ static long pvr2_v4l2_do_ioctl(struct file *file, unsigned int cmd, void *arg)
- 		break;
+ 		retval = ictx->tx.status;
+ 		if (retval)
+-			pr_err("packet tx failed (%d)\n", retval);
++			pr_err_ratelimited("packet tx failed (%d)\n", retval);
  	}
  
--	case VIDIOC_S_AUDIO:
--	{
--		ret = -EINVAL;
--		break;
--	}
- 	case VIDIOC_G_TUNER:
- 	{
- 		struct v4l2_tuner *vt = (struct v4l2_tuner *)arg;
-@@ -850,7 +845,7 @@ static long pvr2_v4l2_do_ioctl(struct file *file, unsigned int cmd, void *arg)
- #endif
+ 	kfree(control_req);
+@@ -830,20 +830,20 @@ static ssize_t vfd_write(struct file *file, const char *buf,
  
- 	default :
--		ret = -EINVAL;
-+		ret = -ENOTTY;
- 		break;
+ 	ictx = file->private_data;
+ 	if (!ictx) {
+-		pr_err("no context for device\n");
++		pr_err_ratelimited("no context for device\n");
+ 		return -ENODEV;
  	}
  
-diff --git a/drivers/media/video/sn9c102/sn9c102_core.c b/drivers/media/video/sn9c102/sn9c102_core.c
-index d8eece8..16cb07c 100644
---- a/drivers/media/video/sn9c102/sn9c102_core.c
-+++ b/drivers/media/video/sn9c102/sn9c102_core.c
-@@ -3187,16 +3187,8 @@ static long sn9c102_ioctl_v4l2(struct file *filp,
- 	case VIDIOC_S_AUDIO:
- 		return sn9c102_vidioc_s_audio(cam, arg);
+ 	mutex_lock(&ictx->lock);
  
--	case VIDIOC_G_STD:
--	case VIDIOC_S_STD:
--	case VIDIOC_QUERYSTD:
--	case VIDIOC_ENUMSTD:
--	case VIDIOC_QUERYMENU:
--	case VIDIOC_ENUM_FRAMEINTERVALS:
--		return -EINVAL;
--
- 	default:
--		return -EINVAL;
-+		return -ENOTTY;
- 
- 	}
- }
-diff --git a/drivers/media/video/uvc/uvc_v4l2.c b/drivers/media/video/uvc/uvc_v4l2.c
-index cdd967b..7afb97b 100644
---- a/drivers/media/video/uvc/uvc_v4l2.c
-+++ b/drivers/media/video/uvc/uvc_v4l2.c
-@@ -83,7 +83,7 @@ static int uvc_ioctl_ctrl_map(struct uvc_video_chain *chain,
- 	default:
- 		uvc_trace(UVC_TRACE_CONTROL, "Unsupported V4L2 control type "
- 			  "%u.\n", xmap->v4l2_type);
--		ret = -EINVAL;
-+		ret = -ENOTTY;
- 		goto done;
+ 	if (!ictx->dev_present_intf0) {
+-		pr_err("no iMON device present\n");
++		pr_err_ratelimited("no iMON device present\n");
+ 		retval = -ENODEV;
+ 		goto exit;
  	}
  
+ 	if (n_bytes <= 0 || n_bytes > 32) {
+-		pr_err("invalid payload size\n");
++		pr_err_ratelimited("invalid payload size\n");
+ 		retval = -EINVAL;
+ 		goto exit;
+ 	}
+@@ -869,7 +869,7 @@ static ssize_t vfd_write(struct file *file, const char *buf,
+ 
+ 		retval = send_packet(ictx);
+ 		if (retval) {
+-			pr_err("send packet failed for packet #%d\n", seq / 2);
++			pr_err_ratelimited("send packet #%d failed\n", seq / 2);
+ 			goto exit;
+ 		} else {
+ 			seq += 2;
+@@ -883,7 +883,7 @@ static ssize_t vfd_write(struct file *file, const char *buf,
+ 	ictx->usb_tx_buf[7] = (unsigned char) seq;
+ 	retval = send_packet(ictx);
+ 	if (retval)
+-		pr_err("send packet failed for packet #%d\n", seq / 2);
++		pr_err_ratelimited("send packet #%d failed\n", seq / 2);
+ 
+ exit:
+ 	mutex_unlock(&ictx->lock);
+@@ -912,20 +912,21 @@ static ssize_t lcd_write(struct file *file, const char *buf,
+ 
+ 	ictx = file->private_data;
+ 	if (!ictx) {
+-		pr_err("no context for device\n");
++		pr_err_ratelimited("no context for device\n");
+ 		return -ENODEV;
+ 	}
+ 
+ 	mutex_lock(&ictx->lock);
+ 
+ 	if (!ictx->display_supported) {
+-		pr_err("no iMON display present\n");
++		pr_err_ratelimited("no iMON display present\n");
+ 		retval = -ENODEV;
+ 		goto exit;
+ 	}
+ 
+ 	if (n_bytes != 8) {
+-		pr_err("invalid payload size: %d (expected 8)\n", (int)n_bytes);
++		pr_err_ratelimited("invalid payload size: %d (expected 8)\n",
++				   (int)n_bytes);
+ 		retval = -EINVAL;
+ 		goto exit;
+ 	}
+@@ -937,7 +938,7 @@ static ssize_t lcd_write(struct file *file, const char *buf,
+ 
+ 	retval = send_packet(ictx);
+ 	if (retval) {
+-		pr_err("send packet failed!\n");
++		pr_err_ratelimited("send packet failed!\n");
+ 		goto exit;
+ 	} else {
+ 		dev_dbg(ictx->dev, "%s: write %d bytes to LCD\n",
 -- 
 1.7.1
 
