@@ -1,56 +1,100 @@
-Return-path: <mchehab@pedra>
-Received: from fox.seas.upenn.edu ([158.130.68.12]:58953 "EHLO
-	fox.seas.upenn.edu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753214Ab1GCUbw (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sun, 3 Jul 2011 16:31:52 -0400
-From: Rafi Rubin <rafi@seas.upenn.edu>
-To: linux-media@vger.kernel.org, linux-input@vger.kernel.org,
-	jarod@redhat.com
-Cc: Rafi Rubin <rafi@seas.upenn.edu>
-Subject: [PATCH 1/2] mceusb: Timeout unit corrections
-Date: Sun,  3 Jul 2011 16:13:52 -0400
-Message-Id: <1309724033-27804-1-git-send-email-rafi@seas.upenn.edu>
+Return-path: <linux-media-owner@vger.kernel.org>
+Received: from oproxy7-pub.bluehost.com ([67.222.55.9]:37231 "HELO
+	oproxy7-pub.bluehost.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1751718Ab1GMWIm convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 13 Jul 2011 18:08:42 -0400
+Date: Wed, 13 Jul 2011 15:08:40 -0700
+From: Randy Dunlap <rdunlap@xenotime.net>
+To: Arnaud Lacombe <lacombar@gmail.com>
+Cc: lkml <linux-kernel@vger.kernel.org>, linux-kbuild@vger.kernel.org,
+	linux-media@vger.kernel.org, mchehab@infradead.org
+Subject: Re: [PATCH 1/9] stringify: add HEX_STRING()
+Message-Id: <20110713150840.2fa8e2b3.rdunlap@xenotime.net>
+In-Reply-To: <CACqU3MVh+4JMX5ywPgWrrXXuAcAYtHJyumXGDcteageJAG12wA@mail.gmail.com>
+References: <20110710125109.c72f9c2d.rdunlap@xenotime.net>
+	<CACqU3MWBb4J8rmaRv23=-_=GXppGSUdqmOqeXoqWi4ZJ7ZYewg@mail.gmail.com>
+	<20110713150023.0dde9ef4.rdunlap@xenotime.net>
+	<CACqU3MVh+4JMX5ywPgWrrXXuAcAYtHJyumXGDcteageJAG12wA@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
+Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
-Sender: <mchehab@pedra>
 
-Unit missmatch in mceusb_handle_command.  It should be converting to us,
-not 1/10th of ms.
+On Wed, 13 Jul 2011 18:06:15 -0400 Arnaud Lacombe wrote:
 
-mceusb_dev_printdata 100us/ms -> 1000us/ms
+> Hi,
+> 
+> On Wed, Jul 13, 2011 at 6:00 PM, Randy Dunlap <rdunlap@xenotime.net> wrote:
+> > On Wed, 13 Jul 2011 17:49:48 -0400 Arnaud Lacombe wrote:
+> >
+> >> Hi,
+> >>
+> >> On Sun, Jul 10, 2011 at 3:51 PM, Randy Dunlap <rdunlap@xenotime.net> wrote:
+> >> > From: Randy Dunlap <rdunlap@xenotime.net>
+> >> >
+> >> > Add HEX_STRING(value) to stringify.h so that drivers can
+> >> > convert kconfig hex values (without leading "0x") to useful
+> >> > hex constants.
+> >> >
+> >> > Several drivers/media/radio/ drivers need this.  I haven't
+> >> > checked if any other drivers need to do this.
+> >> >
+> >> > Alternatively, kconfig could produce hex config symbols with
+> >> > leading "0x".
+> >> >
+> >> Actually, I used to have a patch to make hex value have a mandatory
+> >> "0x" prefix, in the Kconfig. I even fixed all the issue in the tree,
+> >> it never make it to the tree (not sure why). Here's the relevant
+> >> thread:
+> >>
+> >> https://patchwork.kernel.org/patch/380591/
+> >> https://patchwork.kernel.org/patch/380621/
+> >> https://patchwork.kernel.org/patch/380601/
+> >>
+> >
+> > I prefer that this be fixed in kconfig, so long as it won't cause
+> > any other issues.  That's why I mentioned it.
+> >
+> >>
+> >> > Signed-off-by: Randy Dunlap <rdunlap@xenotime.net>
+> >> > ---
+> >> >  include/linux/stringify.h |    7 +++++++
+> >> >  1 file changed, 7 insertions(+)
+> >> >
+> >> > NOTE: The other 8 patches are on lkml and linux-media mailing lists.
+> >> >
+> >> > --- linux-next-20110707.orig/include/linux/stringify.h
+> >> > +++ linux-next-20110707/include/linux/stringify.h
+> >> > @@ -9,4 +9,11 @@
+> >> >  #define __stringify_1(x...)    #x
+> >> >  #define __stringify(x...)      __stringify_1(x)
+> >> >
+> >> > +/*
+> >> > + * HEX_STRING(value) is useful for CONFIG_ values that are in hex,
+> >> > + * but kconfig does not put a leading "0x" on them.
+> >> > + */
+> >> > +#define HEXSTRINGVALUE(h, value)       h##value
+> >> > +#define HEX_STRING(value)              HEXSTRINGVALUE(0x, value)
+> >> > +
+> >> that seems hackish...
+> >
+> > It's a common idiom for concatenating strings in the kernel.
+> >
+> I meant hackish not because *how* it is done, but because *why* it has
+> to be done, that is, because the Kconfig miss the prefix, which is
+> really no big deal.
+> 
+> > How would you do it without (instead of) a kconfig fix/patch?
+> >
+> have the Kconfig use the "0x" prefix since the beginning.
 
-Signed-off-by: Rafi Rubin <rafi@seas.upenn.edu>
 
+Sure, go for it.  I'll ack it.  ;)  [or Review it :]
+and test it.
+
+thanks,
 ---
-
-Fixing the interpretation of the timeout corrects buggy behavior,
-particularly when using a mceusb reciever in lirc mode for arbitrary
-remote controls (the mce remotes actually worked, don't know why).
----
- drivers/media/rc/mceusb.c |    4 ++--
- 1 files changed, 2 insertions(+), 2 deletions(-)
-
-diff --git a/drivers/media/rc/mceusb.c b/drivers/media/rc/mceusb.c
-index ad927fc..377f826 100644
---- a/drivers/media/rc/mceusb.c
-+++ b/drivers/media/rc/mceusb.c
-@@ -551,7 +551,7 @@ static void mceusb_dev_printdata(struct mceusb_dev *ir, char *buf,
- 		case MCE_CMD_S_TIMEOUT:
- 			/* value is in units of 50us, so x*50/100 or x/2 ms */
- 			dev_info(dev, "%s receive timeout of %d ms\n",
--				 inout, ((data1 << 8) | data2) / 2);
-+				 inout, ((data1 << 8) | data2) / 20);
- 			break;
- 		case MCE_CMD_G_TIMEOUT:
- 			dev_info(dev, "Get receive timeout\n");
-@@ -835,7 +835,7 @@ static void mceusb_handle_command(struct mceusb_dev *ir, int index)
- 	switch (ir->buf_in[index]) {
- 	/* 2-byte return value commands */
- 	case MCE_CMD_S_TIMEOUT:
--		ir->rc->timeout = US_TO_NS((hi << 8 | lo) / 2);
-+		ir->rc->timeout = US_TO_NS((hi << 8 | lo) * MCE_TIME_UNIT);
- 		break;
- 
- 	/* 1-byte return value commands */
--- 
-1.7.5.4
-
+~Randy
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
