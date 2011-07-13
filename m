@@ -1,70 +1,93 @@
-Return-path: <mchehab@pedra>
-Received: from mx1.redhat.com ([209.132.183.28]:52768 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753993Ab1GBK1I (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 2 Jul 2011 06:27:08 -0400
-Message-ID: <4E0EF2D3.8030109@redhat.com>
-Date: Sat, 02 Jul 2011 12:28:35 +0200
-From: Hans de Goede <hdegoede@redhat.com>
+Return-path: <mchehab@localhost>
+Received: from casper.infradead.org ([85.118.1.10]:39834 "EHLO
+	casper.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753964Ab1GMOgW (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 13 Jul 2011 10:36:22 -0400
+Message-ID: <4E1DAD47.9030100@infradead.org>
+Date: Wed, 13 Jul 2011 11:35:51 -0300
+From: Mauro Carvalho Chehab <mchehab@infradead.org>
 MIME-Version: 1.0
-To: Hans Verkuil <hverkuil@xs4all.nl>
-CC: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: Some comments on the new autocluster patches
-References: <4E0DE283.2030107@redhat.com> <201107011821.33960.hverkuil@xs4all.nl>
-In-Reply-To: <201107011821.33960.hverkuil@xs4all.nl>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+To: Fabio Belavenuto <belavenuto@gmail.com>
+CC: Jean Delvare <jdelvare@suse.de>,
+	Andy Walls <awalls@md.metrocast.net>,
+	linux-media@vger.kernel.org
+Subject: Re: [PATCH] [media] tea5764: Fix module parameter permissions
+References: <201107081100.37406.jdelvare@suse.de> <fe03786e-e629-4260-b637-80a58ce37728@email.android.com> <201107111354.09782.jdelvare@suse.de> <CAHmkXtGiry-ieG5okHd4Uxo3LS6gapPYCdE6BsJBsw2HVsmGiA@mail.gmail.com>
+In-Reply-To: <CAHmkXtGiry-ieG5okHd4Uxo3LS6gapPYCdE6BsJBsw2HVsmGiA@mail.gmail.com>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 List-ID: <linux-media.vger.kernel.org>
-Sender: <mchehab@pedra>
 
-Hi,
+Em 11-07-2011 09:25, Fabio Belavenuto escreveu:
+> Hi,
+> 
+> I'm the author. Sorry for my bad english, I'm from Brazil. :D
+> 
+> Yes, the intent of the "1" is to set the default value, in case
+> compile built-in.
+> 
+> I like the module to be generic, decided to choose enabled by default.
+> 
+> Fábio
+> 
+> 2011/7/11 Jean Delvare <jdelvare@suse.de>:
+>> Hi Andy,
+>>
+>> On Friday 08 July 2011 12:34:38 pm Andy Walls wrote:
+>>> Jean Delvare <jdelvare@suse.de> wrote:
+>>>> The third parameter of module_param is supposed to represent sysfs
+>>>> file permissions. A value of "1" leads to the following:
+>>>>
+>>>> $ ls -l /sys/module/radio_tea5764/parameters/
+>>>> total 0
+>>>> ---------x 1 root root 4096 Jul  8 09:17 use_xtal
+>>>>
+>>>> I am changing it to "0" to align with the other module parameters in
+>>>> this driver.
+>>>>
+>>>> Signed-off-by: Jean Delvare <jdelvare@suse.de>
+>>>> Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
+>>>> Cc: Fabio Belavenuto <belavenuto@gmail.com>
+>>>> ---
+>>>> drivers/media/radio/radio-tea5764.c |    2 +-
+>>>> 1 file changed, 1 insertion(+), 1 deletion(-)
+>>>>
+>>>> ---
+>>>> linux-3.0-rc6.orig/drivers/media/radio/radio-tea5764.c      2011-05-20
+>>>> 10:41:19.000000000 +0200
+>>>> +++ linux-3.0-rc6/drivers/media/radio/radio-tea5764.c        2011-07-08
+>>>> 09:15:16.000000000 +0200
+>>>> @@ -596,7 +596,7 @@ MODULE_AUTHOR(DRIVER_AUTHOR);
+>>>> MODULE_DESCRIPTION(DRIVER_DESC);
+>>>> MODULE_LICENSE("GPL");
+>>>>
+>>>> -module_param(use_xtal, int, 1);
+>>>> +module_param(use_xtal, int, 0);
+>>>> MODULE_PARM_DESC(use_xtal, "Chip have a xtal connected in board");
+>>>> module_param(radio_nr, int, 0);
+>>>> MODULE_PARM_DESC(radio_nr, "video4linux device number to use");
+>>>
+>>> To whomever might know:
+>>>
+>>> Was the intent of the "1" to set the default value of the parameter?
+>>
+>> My guess is yes, and as a matter of fact 1 is indeed the default value
+>> of use_xtal. Only the author of the code (Fabio Belavenuto) could tell
+>> for sure, but he seems to be no longer involved so I wouldn't wait for
+>> him.
 
-<snip snip snip>
+The value there is not the default value, but the permissions. From what
+I understand, the xtal frequency should be set at boot time, so setting
+it to 000 seems to do the work. So, I'm applying Jean's patch.
 
-Ok, thinking about this some more and reading Hans V's comments
-I think that the current code in Hans V's core8c branch is fine,
-and should go to 3.1 (rather then be delayed to 3.2).
+>>
+>> --
+>> Jean Delvare
+>> Suse L3
+>>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
-As for the fundamental question what to do with foo
-controls when autofoo goes from auto to manual, as discussed
-there are 2 options:
-1) Restore the last known / previous manual setting
-2) Keep foo at the current setting, iow the last setting
-    configured by autofoo
-
-Although it would be great if we could standardize on
-one of these. I think that the answer here is to leave
-this decision to the driver:
-- In some cases this may not be under our control at all
-   (ie with uvc devices),
--in other cases the hardware in question may make it
-  impossible to read the setting as configured by autofoo,
-  thus forcing scenario 1 so that we are sure the actual
-  value for foo being used by the device matches what we
-  report to the user once autofoo is in manual mode
-
-That leaves Hans V's suggestion what to do with volatile
-controls wrt reporting this to userspace. Hans V. suggested
-splitting the control essentially in 2 controls, one r/w
-with the manual value and a read only one with the volatile
-value (*). I don't think this is a good idea, having 2
-controls for one foo, will only clutter v4l2 control panels
-or applets. I think we should try to keep the controls
-we present to the user (and thus too userspace) to a minimum.
-
-I suggest that instead of creating 2 controls, we add a
-VOLATILE ctrl flag, which can then be set together with
-the INACTIVE flag to indicate to a v4l2 control panel that
-the value may change without it receiving change events. The
-v4l2 control panel can then decide how it wants to deal with
-this, ie poll to keep its display updated, ignore the flag,
-...
-
-Regards,
-
-Hans
-
-
-*) Either through a special flag signalling give me the
-volatile value, or just outright making the 2 2 separate
-controls.
