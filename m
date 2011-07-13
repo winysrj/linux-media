@@ -1,90 +1,95 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.17.9]:58062 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752206Ab1GOPbV (ORCPT
+Received: from oproxy1-pub.bluehost.com ([66.147.249.253]:36560 "HELO
+	oproxy1-pub.bluehost.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1752050Ab1GMVZd (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 15 Jul 2011 11:31:21 -0400
-Date: Fri, 15 Jul 2011 17:31:13 +0200 (CEST)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Teresa Gamez <T.Gamez@phytec.de>
-cc: LBM <lbm9527@qq.com>, linux-media <linux-media@vger.kernel.org>
-Subject: Re: Migrate from soc_camera to v4l2
-In-Reply-To: <1310737039.2366.394.camel@lws-gamez>
-Message-ID: <Pine.LNX.4.64.1107151710220.22613@axis700.grange>
-References: <tencent_0C81805C0261B60E5643A744@qq.com>
- <Pine.LNX.4.64.1107130902070.30737@axis700.grange> <1310737039.2366.394.camel@lws-gamez>
-MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+	Wed, 13 Jul 2011 17:25:33 -0400
+Date: Wed, 13 Jul 2011 14:11:05 -0700
+From: Randy Dunlap <rdunlap@xenotime.net>
+To: Mauro Carvalho Chehab <mchehab@infradead.org>
+Cc: lkml <linux-kernel@vger.kernel.org>, linux-kbuild@vger.kernel.org,
+	linux-media@vger.kernel.org
+Subject: Re: [PATCH 1/9] stringify: add HEX_STRING()
+Message-Id: <20110713141105.e5a3b00e.rdunlap@xenotime.net>
+In-Reply-To: <4E1E08A9.4030807@infradead.org>
+References: <20110710125109.c72f9c2d.rdunlap@xenotime.net>
+	<4E1E08A9.4030807@infradead.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello Teresa
+On Wed, 13 Jul 2011 18:05:45 -0300 Mauro Carvalho Chehab wrote:
 
-On Fri, 15 Jul 2011, Teresa Gamez wrote:
-
-> Hello Guennadi,
+> Em 10-07-2011 16:51, Randy Dunlap escreveu:
+> > From: Randy Dunlap <rdunlap@xenotime.net>
+> > 
+> > Add HEX_STRING(value) to stringify.h so that drivers can
+> > convert kconfig hex values (without leading "0x") to useful
+> > hex constants.
+> > 
+> > Several drivers/media/radio/ drivers need this.  I haven't
+> > checked if any other drivers need to do this.
+> > 
+> > Alternatively, kconfig could produce hex config symbols with
+> > leading "0x".
 > 
-> Am Mittwoch, den 13.07.2011, 09:14 +0200 schrieb Guennadi Liakhovetski:
-> > On Wed, 13 Jul 2011, LBM wrote:
-> > 
-> > > my dear Guennadi
-> > >      I'm wrong about that "v4l2-int-device",maybe it just "V4L2".  
-> > >        Now i have a board of OMAP3530 and a cmos camera MT9M111,so i want to get the image from the mt9m111.
-> > >  and ,I want to use the V4L2 API. But in the linux kernel 2.6.38,the driver of the mt9m111 is  a soc_camera.I see some thing about how to convert the soc_camera to V4L2,like "soc-camera: (partially) convert to v4l2-(sub)dev API".
-> > >       Can you tell me how to migrate from soc_camera to v4l2,and
-> > >      or do you tell me some experience about that?
-> > 
-> > Currently there's no standard way to make a driver to work with both 
-> > soc-camera and (pure) v4l2-subdev APIs. It is being worked on:
-> > 
-> > http://www.spinics.net/lists/linux-media/msg34878.html
-> > 
-> > and, hopefully, beginning with the next kernel version 3.1 it will become 
-> > at least theoretically possible. For now you just have to hack the driver 
-> > yourself for your local uses by removing all soc-camera specific code and 
-> > replacing it with your own glue, something along these lines:
+> Hi Randy,
 > 
-> We are also interested in the support of the MT9M111 and MT9V022 for OMAP-4460/OMAP-4430/OMAP-3525.
-> I have not taken a deeper look at it yet. But what do you mean by theoretically possible?
-
-By this I mean, that most important APIs, required for a "proper" 
-conversion, suitable for the mainline, should be in place by then. 
-Although there still might be one thing, preventing this: controls. 
-Unfortunately, it looks like Hans haven't found the time yet to submit a 
-new version of his soc-camera conversion to the new v4l2 control 
-framework, and even if he did, it would be very difficult for me ATM to 
-find time to review, merge and push it. So, I'm not sure if it would be 
-possible to do a proper conversion without that, maybe not, then we'd 
-have to work on controls conversion too.
-
-> Could it work out of the box? Or is there more work to do? 
-
-No, first the APIs have to be made compatible, then individual drivers 
-have to be converted one by one.
-
-Thanks
-Guennadi
-
+> After applying patch 1/9 and 2/9 over 3.0-rc7+media patches, I'm
+> now getting this error:
 > 
-> Regards,
-> Teresa
+> drivers/media/radio/radio-aimslab.c:52:1: error: invalid suffix "x20f" on integer constant
+
+Hi Mauro,
+
+I built all of these drivers with my patches applied,
+but I'll see if I can find where this error is coming from.
+
+Thanks for checking & letting me know.
+
+
+> $ grep 20f .config
+> CONFIG_RADIO_RTRACK_PORT=20f
 > 
-> > http://thread.gmane.org/gmane.linux.drivers.video-input-infrastructure/11486/focus=11691
+> $ gcc --version
+> gcc (GCC) 4.4.5 20110214 (Red Hat 4.4.5-6)
+> 
+> Before this patch, this were working (or, at least, weren't producing
+> any error).
+> 
+> Perhaps the breakage on your compilation happened due to another
+> patch at the tree? If so, the better would be to apply this patch
+> series together with the ones that caused the breakage, to avoid
+> bisect troubles.
+> 
 > > 
-> > Thanks
-> > Guennadi
+> > Signed-off-by: Randy Dunlap <rdunlap@xenotime.net>
 > > ---
-> > Guennadi Liakhovetski, Ph.D.
-> > Freelance Open-Source Software Developer
-> > http://www.open-technology.de/
-> > --
-> > To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> > the body of a message to majordomo@vger.kernel.org
-> > More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> >  include/linux/stringify.h |    7 +++++++
+> >  1 file changed, 7 insertions(+)
+> > 
+> > NOTE: The other 8 patches are on lkml and linux-media mailing lists.
+> > 
+> > --- linux-next-20110707.orig/include/linux/stringify.h
+> > +++ linux-next-20110707/include/linux/stringify.h
+> > @@ -9,4 +9,11 @@
+> >  #define __stringify_1(x...)	#x
+> >  #define __stringify(x...)	__stringify_1(x)
+> >  
+> > +/*
+> > + * HEX_STRING(value) is useful for CONFIG_ values that are in hex,
+> > + * but kconfig does not put a leading "0x" on them.
+> > + */
+> > +#define HEXSTRINGVALUE(h, value)	h##value
+> > +#define HEX_STRING(value)		HEXSTRINGVALUE(0x, value)
+> > +
+> >  #endif	/* !__LINUX_STRINGIFY_H */
 > 
-> 
+> --
+
 
 ---
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
-http://www.open-technology.de/
+~Randy
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
