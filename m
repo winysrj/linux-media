@@ -1,44 +1,78 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([92.198.50.35]:37098 "EHLO
-	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754334Ab1G2L5f (ORCPT
+Received: from casper.infradead.org ([85.118.1.10]:59530 "EHLO
+	casper.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751812Ab1GMVFu (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 29 Jul 2011 07:57:35 -0400
-Date: Fri, 29 Jul 2011 13:57:32 +0200
-From: Uwe =?iso-8859-1?Q?Kleine-K=F6nig?=
-	<u.kleine-koenig@pengutronix.de>
-To: Jan Pohanka <xhpohanka@gmail.com>
-Cc: linux-media@vger.kernel.org, s.hauer@pengutronix.de
-Subject: Re: mx2_camera driver on mx27ipcam: dma_alloc_coherent size  failed
-Message-ID: <20110729115732.GA16561@pengutronix.de>
-References: <op.vzdduqnuyxxkfz@localhost.localdomain>
- <20110729075143.GX16561@pengutronix.de>
- <op.vzdhx5ucyxxkfz@localhost.localdomain>
- <20110729092311.GY16561@pengutronix.de>
- <op.vzdldvr1yxxkfz@localhost.localdomain>
+	Wed, 13 Jul 2011 17:05:50 -0400
+Message-ID: <4E1E08A9.4030807@infradead.org>
+Date: Wed, 13 Jul 2011 18:05:45 -0300
+From: Mauro Carvalho Chehab <mchehab@infradead.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <op.vzdldvr1yxxkfz@localhost.localdomain>
+To: Randy Dunlap <rdunlap@xenotime.net>
+CC: lkml <linux-kernel@vger.kernel.org>, linux-kbuild@vger.kernel.org,
+	linux-media@vger.kernel.org
+Subject: Re: [PATCH 1/9] stringify: add HEX_STRING()
+References: <20110710125109.c72f9c2d.rdunlap@xenotime.net>
+In-Reply-To: <20110710125109.c72f9c2d.rdunlap@xenotime.net>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello Jan,
+Em 10-07-2011 16:51, Randy Dunlap escreveu:
+> From: Randy Dunlap <rdunlap@xenotime.net>
+> 
+> Add HEX_STRING(value) to stringify.h so that drivers can
+> convert kconfig hex values (without leading "0x") to useful
+> hex constants.
+> 
+> Several drivers/media/radio/ drivers need this.  I haven't
+> checked if any other drivers need to do this.
+> 
+> Alternatively, kconfig could produce hex config symbols with
+> leading "0x".
 
-On Fri, Jul 29, 2011 at 12:14:09PM +0200, Jan Pohanka wrote:
-> which repository should I search
-> 90026c8c823bff54172eab33a5e7fcecfd3df635 in? I have not found it in
-> git.pengutronix.de/git/imx/linux-2.6.git nor in vanilla sources.
-Seems my copy'n'paste foo isn't optimal.  Commit
-dca7c0b4293a06d1ed9387e729a4882896abccc2 is the relevant, it's in
-vanilla.
+Hi Randy,
 
-http://git.kernel.org/linus/dca7c0b4293a06d1ed9387e729a4882896abccc2
+After applying patch 1/9 and 2/9 over 3.0-rc7+media patches, I'm
+now getting this error:
 
-Best regards
-Uwe
+drivers/media/radio/radio-aimslab.c:52:1: error: invalid suffix "x20f" on integer constant
 
--- 
-Pengutronix e.K.                           | Uwe Kleine-König            |
-Industrial Linux Solutions                 | http://www.pengutronix.de/  |
+$ grep 20f .config
+CONFIG_RADIO_RTRACK_PORT=20f
+
+$ gcc --version
+gcc (GCC) 4.4.5 20110214 (Red Hat 4.4.5-6)
+
+Before this patch, this were working (or, at least, weren't producing
+any error).
+
+Perhaps the breakage on your compilation happened due to another
+patch at the tree? If so, the better would be to apply this patch
+series together with the ones that caused the breakage, to avoid
+bisect troubles.
+
+> 
+> Signed-off-by: Randy Dunlap <rdunlap@xenotime.net>
+> ---
+>  include/linux/stringify.h |    7 +++++++
+>  1 file changed, 7 insertions(+)
+> 
+> NOTE: The other 8 patches are on lkml and linux-media mailing lists.
+> 
+> --- linux-next-20110707.orig/include/linux/stringify.h
+> +++ linux-next-20110707/include/linux/stringify.h
+> @@ -9,4 +9,11 @@
+>  #define __stringify_1(x...)	#x
+>  #define __stringify(x...)	__stringify_1(x)
+>  
+> +/*
+> + * HEX_STRING(value) is useful for CONFIG_ values that are in hex,
+> + * but kconfig does not put a leading "0x" on them.
+> + */
+> +#define HEXSTRINGVALUE(h, value)	h##value
+> +#define HEX_STRING(value)		HEXSTRINGVALUE(0x, value)
+> +
+>  #endif	/* !__LINUX_STRINGIFY_H */
+
