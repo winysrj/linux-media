@@ -1,53 +1,92 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.17.8]:59827 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756065Ab1GQQyS (ORCPT
+Received: from mail-iy0-f174.google.com ([209.85.210.174]:39637 "EHLO
+	mail-iy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752407Ab1GMS6d convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 17 Jul 2011 12:54:18 -0400
-Date: Sun, 17 Jul 2011 18:54:16 +0200 (CEST)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Michael Grzeschik <m.grzeschik@pengutronix.de>
-cc: linux-media@vger.kernel.org
-Subject: Re: [PATCH 2/5] mt9m111: fix missing return value check mt9m111_reg_clear
-In-Reply-To: <1310485146-27759-2-git-send-email-m.grzeschik@pengutronix.de>
-Message-ID: <Pine.LNX.4.64.1107171854101.13485@axis700.grange>
-References: <1310485146-27759-1-git-send-email-m.grzeschik@pengutronix.de>
- <1310485146-27759-2-git-send-email-m.grzeschik@pengutronix.de>
+	Wed, 13 Jul 2011 14:58:33 -0400
+Received: by iyb12 with SMTP id 12so5801991iyb.19
+        for <linux-media@vger.kernel.org>; Wed, 13 Jul 2011 11:58:33 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+In-Reply-To: <CAH9NwWecm8MUDNJPCaaWbA-6cX66foJnH7-S5CF7_nq9yg5U9A@mail.gmail.com>
+References: <CAH9NwWc+zLqPyBcC99wbsbNkdjzMFfn2zuGm1VfmZctgpOGMew@mail.gmail.com>
+ <201107111258.50144.laurent.pinchart@ideasonboard.com> <CAH9NwWecm8MUDNJPCaaWbA-6cX66foJnH7-S5CF7_nq9yg5U9A@mail.gmail.com>
+From: Christian Gmeiner <christian.gmeiner@gmail.com>
+Date: Wed, 13 Jul 2011 18:58:12 +0000
+Message-ID: <CAH9NwWdSkpVYg9px9Wxr_yCvo4m2vU+L6A=cyVYG_+-s2RFMpQ@mail.gmail.com>
+Subject: Re: [PATCH 2/3] Document 8-bit and 16-bit YCrCb media bus pixel codes
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: linux-media@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, 12 Jul 2011, Michael Grzeschik wrote:
+2011/7/11 Christian Gmeiner <christian.gmeiner@gmail.com>:
+> Hi Laurent,
+>
+> 2011/7/11 Laurent Pinchart <laurent.pinchart@ideasonboard.com>:
+>> Hi Christian,
+>>
+>> On Sunday 10 July 2011 20:14:21 Christian Gmeiner wrote:
+>>> Signed-off-by: Christian Gmeiner
+>>> ---
+>>> diff --git a/Documentation/DocBook/media/v4l/subdev-formats.xml
+>>> b/Documentation/DocBook/media/v4l/subdev-formats.xml
+>>> index 49c532e..18e30b0 100644
+>>> --- a/Documentation/DocBook/media/v4l/subdev-formats.xml
+>>> +++ b/Documentation/DocBook/media/v4l/subdev-formats.xml
+>>> @@ -2565,5 +2565,43 @@
+>>>         </tgroup>
+>>>        </table>
+>>>      </section>
+>>> +
+>>> +    <section>
+>>> +      <title>YCrCb Formats</title>
+>>> +
+>>> +      <para>YCbCr represents colors as a combination of three values:
+>>> +      <itemizedlist>
+>>> +       <listitem><para>Y - the luminosity (roughly the
+>>> brightness)</para></listitem>
+>>> +       <listitem><para>Cb - the chrominance of the blue
+>>> primary</para></listitem>
+>>> +       <listitem><para>Cr - the chrominance of the red
+>>> primary</para></listitem>
+>>
+>> How does that differ from YUV ?
+>
+>
+> I need to say that I am very new to this whole format stuff and so I
+> am not really sure.
+> In the data sheet
+> http://dxr3.sourceforge.net/download/hardware/ADV7175A_6A.pdf there is
+> on the
+> first page a FUNCTIONAL BLOCK DIAGRAM which shows that there is a
+> "YCrCb to YUV Matrix"
+> stage in the pipeline. I am also fine to use a YUV format for the media bus.
+> Any suggestions?
 
-> Signed-off-by: Michael Grzeschik <m.grzeschik@pengutronix.de>
 
-Applied, thanks
+Okay I think I have found the difference between YUV and YCrCb - see [1]
 
-> ---
->  drivers/media/video/mt9m111.c |    4 +++-
->  1 files changed, 3 insertions(+), 1 deletions(-)
-> 
-> diff --git a/drivers/media/video/mt9m111.c b/drivers/media/video/mt9m111.c
-> index f10dcf0..e08b46c 100644
-> --- a/drivers/media/video/mt9m111.c
-> +++ b/drivers/media/video/mt9m111.c
-> @@ -248,7 +248,9 @@ static int mt9m111_reg_clear(struct i2c_client *client, const u16 reg,
->  	int ret = 0;
->  
->  	ret = mt9m111_reg_read(client, reg);
-> -	return mt9m111_reg_write(client, reg, ret & ~data);
-> +	if (ret >= 0)
-> +		ret = mt9m111_reg_write(client, reg, ret & ~data);
-> +	return ret;
->  }
->  
->  static int mt9m111_set_context(struct i2c_client *client,
-> -- 
-> 1.7.5.4
-> 
+YCbCr 4:2:2
+(Redirected from YUV 4:2:2)
 
----
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
-http://www.open-technology.de/
+FourCCs: YUY2, UYVY, YUV2 (Apple Component Video stored in MOV files)
+Samples: http://samples.mplayerhq.hu/V-codecs/YUV2/
+
+(These FourCC names only reflect that the YCbCr of digital media is
+often falsely mixed up with analog PAL's YUV color space.)
+
+YCbCr 4:2:2 is a packed YCbCr format in which a pair of consecutive
+pixels is represented by 1 Y sample each but share a Cb sample and a
+Cr sample.
+
+This type of data may be packaged in a container format with a a
+FourCC of YUY2 which indicates the following byte formatting:
+
+
+[1] http://wiki.multimedia.cx/index.php?title=YUV_4:2:2
+
+Greets,
+--
+Christian Gmeiner, MSc
