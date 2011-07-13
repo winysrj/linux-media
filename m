@@ -1,62 +1,37 @@
-Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:58788 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752913Ab1GaWH5 (ORCPT
+Return-path: <mchehab@localhost>
+Received: from smtp-vbr5.xs4all.nl ([194.109.24.25]:3410 "EHLO
+	smtp-vbr5.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S965159Ab1GMJjS (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 31 Jul 2011 18:07:57 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Sven Eckelmann <sven@narfation.org>
-Subject: Re: [PATCHv4 05/11] omap3isp: Use *_dec_not_zero instead of *_add_unless
-Date: Sun, 31 Jul 2011 17:00:43 +0200
-Cc: linux-arch@vger.kernel.org, linux-kernel@vger.kernel.org,
-	linux-media@vger.kernel.org
-References: <1311760070-21532-1-git-send-email-sven@narfation.org> <1311760070-21532-5-git-send-email-sven@narfation.org>
-In-Reply-To: <1311760070-21532-5-git-send-email-sven@narfation.org>
-MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-15"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201107311700.43515.laurent.pinchart@ideasonboard.com>
-Sender: linux-media-owner@vger.kernel.org
+	Wed, 13 Jul 2011 05:39:18 -0400
+Received: from tschai.lan (215.80-203-102.nextgentel.com [80.203.102.215])
+	(authenticated bits=0)
+	by smtp-vbr5.xs4all.nl (8.13.8/8.13.8) with ESMTP id p6D9dGwp048541
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-media@vger.kernel.org>; Wed, 13 Jul 2011 11:39:17 +0200 (CEST)
+	(envelope-from hverkuil@xs4all.nl)
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: [RFCv1 PATCH 0/6] Don't start streaming unless requested by the poll mask.
+Date: Wed, 13 Jul 2011 11:38:58 +0200
+Message-Id: <1310549944-23756-1-git-send-email-hverkuil@xs4all.nl>
 List-ID: <linux-media.vger.kernel.org>
+Sender: <mchehab@infradead.org>
 
-Hi Sven,
+The patch adding core support for poll_requested_events() looks ready for v3.1,
+so this patch series builds on it to fix the vivi and ivtv drivers.
 
-Thanks for the patch.
+It also uses it in videobuf. I think it makes sense to add it there as well,
+even though no videobuf-drivers use events (yet).
 
-On Wednesday 27 July 2011 11:47:44 Sven Eckelmann wrote:
-> atomic_dec_not_zero is defined for each architecture through
-> <linux/atomic.h> to provide the functionality of
-> atomic_add_unless(x, -1, 0).
-> 
-> Signed-off-by: Sven Eckelmann <sven@narfation.org>
-> Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+If there are no comments, then I'd like to make a pull request for this by
+the end of the week.
 
-Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-
-I'll queue this to my tree for v3.2. Please let me know if you would rather 
-push the patch through another tree.
-
-> Cc: linux-media@vger.kernel.org
-> ---
->  drivers/media/video/omap3isp/ispstat.c |    2 +-
->  1 files changed, 1 insertions(+), 1 deletions(-)
-> 
-> diff --git a/drivers/media/video/omap3isp/ispstat.c
-> b/drivers/media/video/omap3isp/ispstat.c index b44cb68..81b1ec9 100644
-> --- a/drivers/media/video/omap3isp/ispstat.c
-> +++ b/drivers/media/video/omap3isp/ispstat.c
-> @@ -652,7 +652,7 @@ static int isp_stat_buf_process(struct ispstat *stat,
-> int buf_state) {
->  	int ret = STAT_NO_BUF;
-> 
-> -	if (!atomic_add_unless(&stat->buf_err, -1, 0) &&
-> +	if (!atomic_dec_not_zero(&stat->buf_err) &&
->  	    buf_state == STAT_BUF_DONE && stat->state == ISPSTAT_ENABLED) {
->  		ret = isp_stat_buf_queue(stat);
->  		isp_stat_buf_next(stat);
-
--- 
 Regards,
 
-Laurent Pinchart
+	Hans
+
+PS: Note that I'm having vacation until July 25th, so I won't be very active on
+the mailinglist. These poll patches are the only thing that I'm working on since
+I really want to get these merged for v3.1.
+
