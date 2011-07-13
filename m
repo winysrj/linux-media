@@ -1,55 +1,51 @@
-Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mta11.charter.net ([216.33.127.80]:53371 "EHLO
-	mta11.charter.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752681Ab1G3ViQ (ORCPT
+Return-path: <mchehab@localhost>
+Received: from perceval.ideasonboard.com ([95.142.166.194]:52210 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S965029Ab1GMIib (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 30 Jul 2011 17:38:16 -0400
-Message-ID: <4E3479CC.7040403@cuw.edu>
-Date: Sat, 30 Jul 2011 16:38:20 -0500
-From: Greg Dietsche <gregory.dietsche@cuw.edu>
+	Wed, 13 Jul 2011 04:38:31 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Ming Lei <tom.leiming@gmail.com>
+Subject: Re: [PATCH] uvcvideo: add fix suspend/resume quirk for Microdia camera
+Date: Wed, 13 Jul 2011 10:38:32 +0200
+Cc: Ming Lei <ming.lei@canonical.com>, linux-media@vger.kernel.org,
+	linux-usb@vger.kernel.org, Jeremy Kerr <jeremy.kerr@canonical.com>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>
+References: <20110711174811.3c383595@tom-ThinkPad-T410> <201107111244.21360.laurent.pinchart@ideasonboard.com> <CACVXFVO3oY=RH8qDBEC7nNDxC0bc+JX8shJC2cb-FaojRwxrdg@mail.gmail.com>
+In-Reply-To: <CACVXFVO3oY=RH8qDBEC7nNDxC0bc+JX8shJC2cb-FaojRwxrdg@mail.gmail.com>
 MIME-Version: 1.0
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-CC: mchehab@infradead.org, linux-media@vger.kernel.org,
-	linux-kernel@vger.kernel.org, trivial@kernel.org,
-	jpiszcz@lucidpixels.com
-Subject: Re: [PATCH] uvcvideo: correct kernel version reference
-References: <alpine.DEB.2.02.1107301020220.4925@p34.internal.lan> <201107302236.13354.laurent.pinchart@ideasonboard.com> <4E347824.9080207@cuw.edu> <201107302334.38723.laurent.pinchart@ideasonboard.com>
-In-Reply-To: <201107302334.38723.laurent.pinchart@ideasonboard.com>
-Content-Type: text/plain; charset=ISO-8859-15; format=flowed
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
-Sender: linux-media-owner@vger.kernel.org
+Message-Id: <201107131038.33153.laurent.pinchart@ideasonboard.com>
 List-ID: <linux-media.vger.kernel.org>
+Sender: <mchehab@infradead.org>
 
+On Tuesday 12 July 2011 03:21:05 Ming Lei wrote:
+> On Mon, Jul 11, 2011 at 6:44 PM, Laurent Pinchart wrote:
+> > That's unfortunately not acceptable as-is. If two cameras are connected
+> > to the system, and only one of them doesn't support suspend/resume, the
+> > other will be affected by your patch.
+> 
+> Yes, other cameras may be affected, but they still can work well, so
+> the patch still makes sense.
 
+They can still work, but not optimally, as they will be reset instead of 
+suspended/resumed. That's not acceptable.
 
-On 07/30/2011 04:34 PM, Laurent Pinchart wrote:
-> Hi Greg,
->
-> On Saturday 30 July 2011 23:31:16 Greg Dietsche wrote:
->    
->> On 07/30/2011 03:36 PM, Laurent Pinchart wrote:
->>      
->>> Hi Greg,
->>>
->>> Thanks for the patch.
->>>
->>> On Saturday 30 July 2011 17:47:30 Greg Dietsche wrote:
->>>        
->>>> change from v2.6.42 to v3.2
->>>>          
->>> This patch would be queued for v3.2. As the code it fixes will go away at
->>> the same time, it would be pretty pointless to apply it :-) Thanks for
->>> warning me though.
->>>        
->> you're welcome - I thought the merge window was still open for 3.1 ...
->> so that's why I sent it in.
->>      
-> Linus' merge window is still open, but this will have to go through Mauro's
-> tree, and it won't make it on time.
->
->    
-Ah, that makes sense :) Anyway it is very trivial...
+> > Have you tried to investigate why suspend/resume fails for the
+> > above-mentioned camera, instead of working around the problem ?
+> 
+> I have investigated the problem, and not found failures in the
+> suspend/resume path,
+> either .suspend or .resume callback return successful, but no stream
+> packets are received from camera any longer after resume from sleep. Once
+> doing a unbind& bind will make the camera work again.
+> 
+> Could you give any suggestions to help to find the root cause of the
+> problem?
 
-thanks for the explanation!
+-- 
+Regards,
 
-Greg
+Laurent Pinchart
