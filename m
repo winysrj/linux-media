@@ -1,71 +1,90 @@
-Return-path: <mchehab@pedra>
-Received: from mail.tu-berlin.de ([130.149.7.33])
-	by www.linuxtv.org with esmtp (Exim 4.69)
-	(envelope-from <dheitmueller@kernellabs.com>) id 1QSTm4-0007zP-Pn
-	for linux-dvb@linuxtv.org; Fri, 03 Jun 2011 14:46:49 +0200
-Received: from mail-ew0-f54.google.com ([209.85.215.54])
-	by mail.tu-berlin.de (exim-4.75/mailfrontend-4) with esmtps
-	[TLSv1:RC4-SHA:128] for <linux-dvb@linuxtv.org>
-	id 1QSTm4-0001O9-BD; Fri, 03 Jun 2011 14:46:48 +0200
-Received: by ewy1 with SMTP id 1so913654ewy.41
-	for <linux-dvb@linuxtv.org>; Fri, 03 Jun 2011 05:46:47 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <4DE8D5AC.7060002@mailbox.hu>
-References: <4D764337.6050109@email.cz> <20110531124843.377a2a80@glory.local>
-	<BANLkTi=Lq+FF++yGhRmOa4NCigSt6ZurHg@mail.gmail.com>
-	<20110531174323.0f0c45c0@glory.local>
-	<BANLkTimEEGsMP6PDXf5W5p9wW7wdWEEOiA@mail.gmail.com>
-	<4DE8D5AC.7060002@mailbox.hu>
-Date: Fri, 3 Jun 2011 08:46:46 -0400
-Message-ID: <BANLkTi=c+OQvh9Mj4njF4dJtSQdR=cAMaA@mail.gmail.com>
-From: Devin Heitmueller <dheitmueller@kernellabs.com>
-To: "istvan_v@mailbox.hu" <istvan_v@mailbox.hu>
-Cc: linux-dvb@linuxtv.org, thunder.m@email.cz,
-	Mauro Carvalho Chehab <mchehab@redhat.com>
-Subject: Re: [linux-dvb] XC4000: added card_type
-Reply-To: linux-media@vger.kernel.org
-List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/options/linux-dvb>,
-	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
-List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
-List-Post: <mailto:linux-dvb@linuxtv.org>
-List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
-List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
-	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
-Sender: <mchehab@pedra>
-List-ID: <linux-dvb@linuxtv.org>
+Return-path: <linux-media-owner@vger.kernel.org>
+Received: from mail-qy0-f174.google.com ([209.85.216.174]:40449 "EHLO
+	mail-qy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752259Ab1GMWLl convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 13 Jul 2011 18:11:41 -0400
+References: <4E1B978C.2030407@psychogeeks.com> <20110712080309.d538fec9.rdunlap@xenotime.net> <7B814F02-408C-434F-B813-8630B60914DA@wilsonet.com> <4E1CCC26.4060506@psychogeeks.com> <1B380AD0-FE0D-47DF-B2C3-605253C9C783@wilsonet.com> <4E1D3045.7050507@psychogeeks.com>
+In-Reply-To: <4E1D3045.7050507@psychogeeks.com>
+Mime-Version: 1.0 (Apple Message framework v1084)
+Content-Type: text/plain; charset=us-ascii
+Message-Id: <2E869B1F-D476-4645-BE26-B1DD77DF1735@wilsonet.com>
+Content-Transfer-Encoding: 8BIT
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	linux-kernel@vger.kernel.org, Randy Dunlap <rdunlap@xenotime.net>
+From: Jarod Wilson <jarod@wilsonet.com>
+Subject: Re: Imon module Oops and kernel hang
+Date: Wed, 13 Jul 2011 18:11:22 -0400
+To: Chris W <lkml@psychogeeks.com>
+Sender: linux-media-owner@vger.kernel.org
+List-ID: <linux-media.vger.kernel.org>
 
-On Fri, Jun 3, 2011 at 8:38 AM, istvan_v@mailbox.hu <istvan_v@mailbox.hu> wrote:
-> This patch adds support for selecting a card type in struct
-> xc4000_config, to allow for implementing some card specific code
-> in the driver.
->
-> Signed-off-by: Istvan Varga <istvan_v@mailbox.hu>
+On Jul 13, 2011, at 1:42 AM, Chris W wrote:
 
-Hi Istan,
+> 
+> On 13/07/11 14:20, Jarod Wilson wrote:
+> 
+>>> Chris W wrote:
+>>> The rc keymap modules have been built (en masse as a result of
+>>> CONFIG_RC_MAP=m) but I am not explicitly loading them and they do not
+>>> get automatically loaded.
+>> 
+>> Huh. That's unexpected. They get auto-loaded here, last I knew. I'll
+>> have to give one of my devices a spin tomorrow, not sure exactly what
+>> the last kernel I tried one of them on was. Pretty sure they're
+>> working fine with the Fedora 15 2.6.38.x kernels and vanilla (but
+>> Fedora-configured) 3.0-rc kernels though.
+> 
+> 
+> I just ran depmod to make sure things were straight in this dept.
+> 
+> kepler ~ # depmod -F System.map -e -av 2.6.39.3
+> 
+> There are no reported errors.   The modules rc-imon-mce.ko,
+> rc-imon-pad.ko and imon.ko depend only on rc-core.ko according to the
+> output.  There don't seem to be any explicit dependencies to the keymaps
+> (not a kernel dev so I don't know if there should be)
 
-I understand what you're trying to do here, but this is not a good
-approach.  We do not want to be littering tuner drivers with
-card-specific if() statements.  Also, this is inconsistent with the
-way all other tuner drivers work.
+Yeah, imon depends on rc-core, and requests its keymap via rc-core, so
+rc-core should then load up rc-imon-pad. Just tried on 3.0-rc7+ here,
+and everything is happy:
 
-The approach you are attempting may seem easier at first, but it gets
-very difficult to manage over time as the number of boards that use
-the driver increases.
+[10791.866789] imon 3-2:1.0: usb_probe_interface
+[10791.868944] imon 3-2:1.0: usb_probe_interface - got id
+[10791.871332] input: iMON Panel, Knob and Mouse(15c2:0042) as /devices/pci0000:00/0000:00:03.1/usb3/3-2/3-2:1.0/input/input18
+[10791.916037] Registered IR keymap rc-imon-pad
+[10791.918709] input: iMON Remote (15c2:0042) as /devices/pci0000:00/0000:00:03.1/usb3/3-2/3-2:1.0/rc/rc6/input19
+[10791.921331] rc6: iMON Remote (15c2:0042) as /devices/pci0000:00/0000:00:03.1/usb3/3-2/3-2:1.0/rc/rc6
+[10791.930038] imon 3-2:1.0: iMON device (15c2:0042, intf0) on usb<3:3> initialized
+[10791.932507] imon 3-2:1.1: usb_probe_interface
+[10791.934949] imon 3-2:1.1: usb_probe_interface - got id
+[10791.937416] imon 3-2:1.1: iMON device (15c2:0042, intf1) on usb<3:3> initialized
+[10791.939996] usbcore: registered new interface driver imon
 
-You should have the bridge driver be setting up the cfg structure and
-passing it to the xc4000 driver, just like the xc5000 and xc3028 do.
+Just noticed your report is for 2.6.39.x and 2.6.38.x only, but I'm not
+aware of any relevant imon changes between 2.6.39 and 3.0.
 
-Devin
+>>> Perhaps there something else in the kernel config that must be on in
+>>> order to support the keymaps?
+>>> 
+>>> Any other thoughts?
+>> 
+>> Not at the moment. That T.889 line is... odd. No clue what the heck
+>> that thing is. Lemme see what I can see tomorrow (just past midnight
+>> here at the moment), if I don't hit anything, I might need a copy of
+>> your kernel config to repro.
+> 
+> I can only see the "T.889" string in the System.map, kernel binary and
+> kernel/sched.o (but not the source?).  I have sent the config file
+> off-list to Jarod.
+
+Looks like I'll probably have to give that a spin, since I'm not seeing
+the problem here (I can also switch to an 0xffdc device, which is actually
+handled a bit differently by the driver).
 
 -- 
-Devin J. Heitmueller - Kernel Labs
-http://www.kernellabs.com
+Jarod Wilson
+jarod@wilsonet.com
 
-_______________________________________________
-linux-dvb users mailing list
-For V4L/DVB development, please use instead linux-media@vger.kernel.org
-linux-dvb@linuxtv.org
-http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+
+
