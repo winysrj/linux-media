@@ -1,60 +1,116 @@
-Return-path: <mchehab@localhost>
-Received: from mail-wy0-f174.google.com ([74.125.82.174]:33663 "EHLO
-	mail-wy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751148Ab1GFQJF (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 6 Jul 2011 12:09:05 -0400
-Content-Type: text/plain; charset=utf-8; format=flowed; delsp=yes
-To: "Russell King - ARM Linux" <linux@arm.linux.org.uk>,
-	"Christoph Lameter" <cl@linux.com>
-Cc: "Arnd Bergmann" <arnd@arndb.de>,
-	linux-arm-kernel@lists.infradead.org,
-	"'Daniel Walker'" <dwalker@codeaurora.org>,
-	"'Jonathan Corbet'" <corbet@lwn.net>,
-	"'Mel Gorman'" <mel@csn.ul.ie>,
-	"'Chunsang Jeong'" <chunsang.jeong@linaro.org>,
-	"'Jesse Barker'" <jesse.barker@linaro.org>,
-	"'KAMEZAWA Hiroyuki'" <kamezawa.hiroyu@jp.fujitsu.com>,
-	linux-kernel@vger.kernel.org, linaro-mm-sig@lists.linaro.org,
-	linux-mm@kvack.org, "'Kyungmin Park'" <kyungmin.park@samsung.com>,
-	"'Ankita Garg'" <ankita@in.ibm.com>,
-	"'Andrew Morton'" <akpm@linux-foundation.org>,
-	"Marek Szyprowski" <m.szyprowski@samsung.com>,
-	linux-media@vger.kernel.org
-Subject: Re: [PATCH 6/8] drivers: add Contiguous Memory Allocator
-References: <1309851710-3828-1-git-send-email-m.szyprowski@samsung.com>
- <201107061609.29996.arnd@arndb.de>
- <20110706142345.GC8286@n2100.arm.linux.org.uk>
- <201107061651.49824.arnd@arndb.de>
- <20110706154857.GG8286@n2100.arm.linux.org.uk>
- <alpine.DEB.2.00.1107061100290.17624@router.home>
-Date: Wed, 06 Jul 2011 18:09:00 +0200
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-From: "Michal Nazarewicz" <mina86@mina86.com>
-Message-ID: <op.vx7ghajd3l0zgt@mnazarewicz-glaptop>
-In-Reply-To: <alpine.DEB.2.00.1107061100290.17624@router.home>
+Return-path: <linux-media-owner@vger.kernel.org>
+Received: from lo.gmane.org ([80.91.229.12]:43391 "EHLO lo.gmane.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753515Ab1GNTKH (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 14 Jul 2011 15:10:07 -0400
+Received: from list by lo.gmane.org with local (Exim 4.69)
+	(envelope-from <gldv-linux-media@m.gmane.org>)
+	id 1QhRIT-0004nW-An
+	for linux-media@vger.kernel.org; Thu, 14 Jul 2011 21:10:05 +0200
+Received: from athedsl-4491808.home.otenet.gr ([94.71.86.40])
+        by main.gmane.org with esmtp (Gmexim 0.1 (Debian))
+        id 1AlnuQ-0007hv-00
+        for <linux-media@vger.kernel.org>; Thu, 14 Jul 2011 21:10:05 +0200
+Received: from snjw23 by athedsl-4491808.home.otenet.gr with local (Gmexim 0.1 (Debian))
+        id 1AlnuQ-0007hv-00
+        for <linux-media@vger.kernel.org>; Thu, 14 Jul 2011 21:10:05 +0200
+To: linux-media@vger.kernel.org
+From: Sylwester Nawrocki <snjw23@gmail.com>
+Subject: =?ISO-8859-15?Q?Re:_[GIT_PATCHES_FOR_3.1]_s5p-fimc_and_noon010p?= =?ISO-8859-15?Q?c30_drivers_conversion=0A_to_media_controller_API?=
+Date: Thu, 14 Jul 2011 22:07:03 +0300
+Message-ID: <almarsoft.8585519850362298955@news.gmane.org>
+References: <4E17216F.7030200@samsung.com> <4E1F18E5.9050703@redhat.com>
+Content-Type: text/plain; charset=ISO-8859-15; format=flowed
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <4E1F18E5.9050703@redhat.com>
+Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
-Sender: <mchehab@infradead.org>
 
-On Wed, 06 Jul 2011 18:05:00 +0200, Christoph Lameter <cl@linux.com> wrote:
-> ZONE_DMA is a zone for memory of legacy (crippled) devices that cannot  
-> DMA into all of memory (and so is ZONE_DMA32).  Memory from ZONE_NORMAL
-> can be used for DMA as well and a fully capable device would be expected
-> to handle any memory in the system for DMA transfers.
->
-> "guaranteed" dmaable memory? DMA abilities are device specific. Well  
-> maybe you can call ZONE_DMA memory to be guaranteed if you guarantee
-> that any device must at mininum be able to perform DMA into ZONE_DMA
-> memory. But there may not be much of that memory around so you would
-> want to limit the use of that scarce resource.
+Hi Mauro,
 
-As pointed in Marek's other mail, this reasoning is not helping in any
-way.  In case of video codec on various Samsung devices (and from some
-other threads this is not limited to Samsung), the codec needs separate
-buffers in separate memory banks.
+On Thu, 14 Jul 2011 13:27:17 -0300, Mauro Carvalho Chehab 
+<mchehab@redhat.com> wrote:
+> Em 08-07-2011 12:25, Sylwester Nawrocki escreveu:
+> > Hi Mauro,
+> > 
+> > The following changes since commit 
+6068c012c3741537c9f965be5b4249f989aa5efc:
+> > 
+> >   [media] v4l: Document V4L2 control endianness as machine 
+endianness (2011-07-07 19:26:11 -0300)
+> > 
+> > are available in the git repository at:
+> >   git://git.infradead.org/users/kmpark/linux-2.6-samsung 
+s5p-fimc-next
+> > 
+> > These patches convert FIMC and the sensor driver to media 
+controller API,
+> > i.e. a top level media device is added to be able to manage at 
+runtime
+> > attached sensors and all video processing entities present in the 
+SoC.
+> > An additional subdev at FIMC capture driver exposes the scaler and
+> > composing functionality of the video capture IP.
+> > The previously existing functionality is entirely retained.
+> > 
+> > I have introduced a few changes comparing to the last version 
+(v3) sent
+> > to the ML, as commented below.
+> > 
+> > Sylwester Nawrocki (28):
+> >       s5p-fimc: Add support for runtime PM in the mem-to-mem 
+driver
+> >       s5p-fimc: Add media entity initialization
+> >       s5p-fimc: Remove registration of video nodes from probe()
 
--- 
-Best regards,                                         _     _
-.o. | Liege of Serenely Enlightened Majesty of      o' \,=./ `o
-..o | Computer Science,  Michal "mina86" Nazarewicz    (o o)
-ooo +-----<email/xmpp: mnazarewicz@google.com>-----ooO--(_)--Ooo--
+
+> That patch seems weird for me. If they aren't registered at probe,
+> when they're registered?
+
+They are registered in the media device probe callback, please see 
+fimc-mdevice.c, fimc_md_probe(). After all the modules they depend on 
+were initialized and registered. 
+This is needed to assure proper initialization sequence. 
+I also needed media device instance at hand when registering a video 
+node.
+
+> >       s5p-fimc: Remove sclk_cam clock handling
+> >       s5p-fimc: Limit number of available inputs to one
+
+
+> Camera sensors at FIMC input are no longer selected with S_INPUT 
+ioctl.
+> They will be attached to required FIMC entity through pipeline
+> re-configuration at the media device level.
+
+
+> Why? The proper way to select an input is via S_INPUT. The driver 
+may also
+> optionally allow changing it via the media device, but it should 
+not be
+> a mandatory requirement, as the media device API is optional.
+
+The problem I'm trying to solve here is sharing the sensors and 
+mipi-csi receivers between multiple FIMC H/W instances. Previously 
+the driver supported attaching a sensor to only one selected FIMC at 
+compile time. You could, for instance, specify all sensors as the 
+selected FIMC's platform data and then use S_INPUT to choose between 
+them. The sensor could not be used together with any other FIMC. But 
+this is desired due to different capabilities of the FIMC IP 
+instances. And now, instead of hardcoding a sensor assigment to 
+particular video node, the sensors are bound to the media device. The 
+media device driver takes the list of sensors and attaches them one 
+by one to subsequent FIMC instances when it is initializing. Each 
+sensor has a link to each FIMC but only one of them is active by 
+default. That said an user application can use selected camera by 
+opening corresponding video node. Which camera is at which node can 
+be queried with G_INPUT.
+
+I could try to implement the previous S_INPUT behaviour, but IMHO 
+this would lead to considerable and unnecessary driver code 
+complication due to supporting overlapping APIs.
+
+--
+Regards,
+Sylwester
+
