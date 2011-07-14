@@ -1,81 +1,54 @@
-Return-path: <mchehab@localhost>
-Received: from mail.mnsspb.ru ([84.204.75.2]:50761 "EHLO mail.mnsspb.ru"
+Return-path: <linux-media-owner@vger.kernel.org>
+Received: from mx1.redhat.com ([209.132.183.28]:40664 "EHLO mx1.redhat.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751111Ab1GLI7u (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 12 Jul 2011 04:59:50 -0400
-Date: Tue, 12 Jul 2011 12:58:52 +0400
-From: Kirill Smelkov <kirr@mns.spb.ru>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: linux-uvc-devel@lists.berlios.de, linux-media@vger.kernel.org,
-	linux-kernel@vger.kernel.org
-Subject: Re: [PATCH] uvcvideo: Add FIX_BANDWIDTH quirk to HP Webcam found
-	on HP Mini 5103 netbook
-Message-ID: <20110712085852.GA12576@tugrik.mns.mnsspb.ru>
-References: <1308679663-11431-1-git-send-email-kirr@mns.spb.ru>
+	id S1755196Ab1GNQCv (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 14 Jul 2011 12:02:51 -0400
+Message-ID: <4E1F1323.1010007@redhat.com>
+Date: Thu, 14 Jul 2011 13:02:43 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1308679663-11431-1-git-send-email-kirr@mns.spb.ru>
+To: Tomasz Stanislawski <t.stanislaws@samsung.com>
+CC: linux-media@vger.kernel.org, m.szyprowski@samsung.com,
+	kyungmin.park@samsung.com, hverkuil@xs4all.nl,
+	laurent.pinchart@ideasonboard.com
+Subject: Re: [PATCH 5/8] v4l: fix v4l_fill_dv_preset_info function
+References: <1309351877-32444-1-git-send-email-t.stanislaws@samsung.com> <1309351877-32444-6-git-send-email-t.stanislaws@samsung.com>
+In-Reply-To: <1309351877-32444-6-git-send-email-t.stanislaws@samsung.com>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
+Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
-Sender: <mchehab@infradead.org>
 
-On Tue, Jun 21, 2011 at 10:07:43PM +0400, Kirill Smelkov wrote:
-> The camera there identifeis itself as being manufactured by Cheng Uei
-> Precision Industry Co., Ltd (Foxlink), and product is titled as "HP
-> Webcam [2 MP Fixed]".
+Em 29-06-2011 09:51, Tomasz Stanislawski escreveu:
+> The function fills struct v4l2_dv_enum_preset with appropriate
+> preset parameters but it forgets to zero field named reserved.
+> This patch fixes this bug.
 > 
-> I was trying to get 2 USB video capture devices to work simultaneously,
-> and noticed that the above mentioned webcam always requires packet size
-> = 3072 bytes per micro frame (~= 23.4 MB/s isoc bandwidth), which is far
-> more than enough to get standard NTSC 640x480x2x30 = ~17.6 MB/s isoc
-> bandwidth.
+> Signed-off-by: Tomasz Stanislawski <t.stanislaws@samsung.com>
+> ---
+>  drivers/media/video/v4l2-common.c |    2 ++
+>  1 files changed, 2 insertions(+), 0 deletions(-)
 > 
-> As there are alt interfaces with smaller MxPS
-> 
->     T:  Bus=01 Lev=01 Prnt=01 Port=03 Cnt=01 Dev#=  2 Spd=480  MxCh= 0
->     D:  Ver= 2.00 Cls=ef(misc ) Sub=02 Prot=01 MxPS=64 #Cfgs=  1
->     P:  Vendor=05c8 ProdID=0403 Rev= 1.06
->     S:  Manufacturer=Foxlink
->     S:  Product=HP Webcam [2 MP Fixed]
->     S:  SerialNumber=200909240102
->     C:* #Ifs= 2 Cfg#= 1 Atr=80 MxPwr=500mA
->     A:  FirstIf#= 0 IfCount= 2 Cls=0e(video) Sub=03 Prot=00
->     I:* If#= 0 Alt= 0 #EPs= 1 Cls=0e(video) Sub=01 Prot=00 Driver=uvcvideo
->     E:  Ad=83(I) Atr=03(Int.) MxPS=  16 Ivl=4ms
->     I:* If#= 1 Alt= 0 #EPs= 0 Cls=0e(video) Sub=02 Prot=00 Driver=uvcvideo
->     I:  If#= 1 Alt= 1 #EPs= 1 Cls=0e(video) Sub=02 Prot=00 Driver=uvcvideo
->     E:  Ad=81(I) Atr=05(Isoc) MxPS= 128 Ivl=125us
->     I:  If#= 1 Alt= 2 #EPs= 1 Cls=0e(video) Sub=02 Prot=00 Driver=uvcvideo
->     E:  Ad=81(I) Atr=05(Isoc) MxPS= 512 Ivl=125us
->     I:  If#= 1 Alt= 3 #EPs= 1 Cls=0e(video) Sub=02 Prot=00 Driver=uvcvideo
->     E:  Ad=81(I) Atr=05(Isoc) MxPS=1024 Ivl=125us
->     I:  If#= 1 Alt= 4 #EPs= 1 Cls=0e(video) Sub=02 Prot=00 Driver=uvcvideo
->     E:  Ad=81(I) Atr=05(Isoc) MxPS=1536 Ivl=125us
->     I:  If#= 1 Alt= 5 #EPs= 1 Cls=0e(video) Sub=02 Prot=00 Driver=uvcvideo
->     E:  Ad=81(I) Atr=05(Isoc) MxPS=2048 Ivl=125us
->     I:  If#= 1 Alt= 6 #EPs= 1 Cls=0e(video) Sub=02 Prot=00 Driver=uvcvideo
->     E:  Ad=81(I) Atr=05(Isoc) MxPS=2688 Ivl=125us
->     I:  If#= 1 Alt= 7 #EPs= 1 Cls=0e(video) Sub=02 Prot=00 Driver=uvcvideo
->     E:  Ad=81(I) Atr=05(Isoc) MxPS=3072 Ivl=125us
-> 
-> UVC_QUIRK_FIX_BANDWIDTH helps here and NTSC video can be served with
-> MxPS=2688 i.e. 20.5 MB/s isoc bandwidth.
-> 
-> In terms of microframe time allocation, before the quirk NTSC video
-> required 60 usecs / microframe and 53 usecs / microframe after.
-> 
-> 
-> P.S. Now with tweaked ehci-hcd to allow up to 90% isoc bandwith (instead of
-> allowed for high speed 80%) I can capture two video sources -- PAL 720x576
-> YUV422 @25fps + NTSC 640x480 YUV422 @30fps simultaneously. Hooray!
-> 
-> Signed-off-by: Kirill Smelkov <kirr@mns.spb.ru>
+> diff --git a/drivers/media/video/v4l2-common.c b/drivers/media/video/v4l2-common.c
+> index 003e648..e7c02e9 100644
+> --- a/drivers/media/video/v4l2-common.c
+> +++ b/drivers/media/video/v4l2-common.c
+> @@ -592,6 +592,8 @@ int v4l_fill_dv_preset_info(u32 preset, struct v4l2_dv_enum_preset *info)
+>  	info->width = dv_presets[preset].width;
+>  	info->height = dv_presets[preset].height;
+>  	strlcpy(info->name, dv_presets[preset].name, sizeof(info->name));
+> +	/* assure that reserved fields are zeroed */
+> +	memset(info->reserved, 0, sizeof(info->reserved));
+>  	return 0;
+>  }
+>  EXPORT_SYMBOL_GPL(v4l_fill_dv_preset_info);
 
+This patch is not needed, except if you're doing a different logic.
+v4l2-ioctl makes sure of cleaning the reserved and write fields from
+the structs before passing the syscall to the drivers.
 
-Silence...  though even the above-mentioned EHCI tweak was merged already:
+So, if you're filling data from an userspace call, you don't need to
+use. If you're instead allocating data, use *zalloc calls.
 
-http://git.kernel.org/?p=linux/kernel/git/gregkh/usb-2.6.git;a=commitdiff;h=cc62a7eb6396e8be95b9a30053ed09191818b99b
-
-
-Hope this patch is not lost and thanks,
-Kirill
+Cheers,
+Mauro
