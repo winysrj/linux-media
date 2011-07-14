@@ -1,91 +1,47 @@
-Return-path: <mchehab@localhost>
-Received: from mx1.redhat.com ([209.132.183.28]:45553 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755753Ab1GKB7W (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 10 Jul 2011 21:59:22 -0400
-Received: from int-mx10.intmail.prod.int.phx2.redhat.com (int-mx10.intmail.prod.int.phx2.redhat.com [10.5.11.23])
-	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id p6B1xLxe018078
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
-	for <linux-media@vger.kernel.org>; Sun, 10 Jul 2011 21:59:22 -0400
-Received: from pedra (vpn-225-29.phx2.redhat.com [10.3.225.29])
-	by int-mx10.intmail.prod.int.phx2.redhat.com (8.14.4/8.14.4) with ESMTP id p6B1xKKP030664
-	for <linux-media@vger.kernel.org>; Sun, 10 Jul 2011 21:59:21 -0400
-Date: Sun, 10 Jul 2011 22:59:07 -0300
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: [PATCH 21/21] [media] drxk: Add a fallback method for QAM parameter
- setting
-Message-ID: <20110710225907.32cddb94@pedra>
-In-Reply-To: <cover.1310347962.git.mchehab@redhat.com>
-References: <cover.1310347962.git.mchehab@redhat.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
-To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
+Return-path: <linux-media-owner@vger.kernel.org>
+Received: from smtp-68.nebula.fi ([83.145.220.68]:33088 "EHLO
+	smtp-68.nebula.fi" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754478Ab1GNMaB (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 14 Jul 2011 08:30:01 -0400
+Date: Thu, 14 Jul 2011 15:29:57 +0300
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: nitesh moundekar <niteshmoundekar@gmail.com>
+Cc: linux-media@vger.kernel.org
+Subject: Re: [RFC] Binning on sensors
+Message-ID: <20110714122956.GG27451@valkosipuli.localdomain>
+References: <20110714113201.GD27451@valkosipuli.localdomain>
+ <CAF5T7dk0HN-aBj_uK37=bpGEnsTZ6dwraNNfAOvwFWbtpveBGg@mail.gmail.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <CAF5T7dk0HN-aBj_uK37=bpGEnsTZ6dwraNNfAOvwFWbtpveBGg@mail.gmail.com>
+Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
-Sender: <mchehab@infradead.org>
 
-The QAM standard is set using this scu_command:
-	SCU_RAM_COMMAND_STANDARD_QAM |
-	SCU_RAM_COMMAND_CMD_DEMOD_SET_PARAM
+On Thu, Jul 14, 2011 at 05:46:21PM +0530, nitesh moundekar wrote:
+> Hi all,
+> 
+> This is my first mail in linux mailing list and I hope I contribute
+> something.
+> 
+> I worked at image sensor company and I had the idea that binning control are
+> used by these companies to get optimum performance & power usage for their
+> sensors at various resolutions in their drivers. I have not seen sensor
+> binning usage at user level. Can we get some use cases ?
 
-The driver implements a version that has 4 parameters, however,
-Terratec H5 needs to break this into two separate commands, otherwise,
-DVB-C doesn't work.
+Hi Nitesh,
 
-With this fix, scan is now properly working and getting the
-channel list:
->>> tune to: 609000000:INVERSION_AUTO:5217000:FEC_3_4:QAM_256
->>> tuning status == 0x00
->>> tuning status == 0x07
->>> tuning status == 0x1f
+This is related to performing sensor configuration from user space. Binning
+is just one of the settings the sensors have, and it should be exposed to
+user space as such rather than be implicitly set by the sensor driver based
+on other settings such as the output resolution.
 
-0x0093 0x0026: pmt_pid 0x0758 (null) -- SporTV2 (running, scrambled)
-0x0093 0x0027: pmt_pid 0x0748 (null) -- SporTV (running, scrambled)
-0x0093 0x0036: pmt_pid 0x0768 (null) -- FX (running, scrambled)
-0x0093 0x0052: pmt_pid 0x0788 (null) -- The History Channel (running, scrambled)
+Binning controls (or other interface) would most likely be available on
+v4l2_subdev user space interface which is exposed by the sensor driver.
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+Regards,
 
-diff --git a/drivers/media/dvb/frontends/drxk_hard.c b/drivers/media/dvb/frontends/drxk_hard.c
-index 5745f52..f74a176 100644
---- a/drivers/media/dvb/frontends/drxk_hard.c
-+++ b/drivers/media/dvb/frontends/drxk_hard.c
-@@ -5389,7 +5389,7 @@ static int SetQAM(struct drxk_state *state, u16 IntermediateFreqkHz,
- {
- 	int status;
- 	u8 parameterLen;
--	u16 setEnvParameters[5];
-+	u16 setEnvParameters[5] = { 0, 0, 0, 0, 0 };
- 	u16 setParamParameters[4] = { 0, 0, 0, 0 };
- 	u16 cmdResult;
- 
-@@ -5456,9 +5456,25 @@ static int SetQAM(struct drxk_state *state, u16 IntermediateFreqkHz,
- 	setParamParameters[1] = DRXK_QAM_I12_J17;	/* interleave mode   */
- 
- 	status = scu_command(state, SCU_RAM_COMMAND_STANDARD_QAM | SCU_RAM_COMMAND_CMD_DEMOD_SET_PARAM, 4, setParamParameters, 1, &cmdResult);
-+	if (status < 0) {
-+		/* Fall-back to the simpler call */
-+		setParamParameters[0] = QAM_TOP_ANNEX_A;
-+		if (state->m_OperationMode == OM_QAM_ITU_C)
-+			setEnvParameters[0] = QAM_TOP_ANNEX_C;	/* Annex */
-+		else
-+			setEnvParameters[0] = 0;
-+
-+		status = scu_command(state, SCU_RAM_COMMAND_STANDARD_QAM | SCU_RAM_COMMAND_CMD_DEMOD_SET_ENV, 1, setEnvParameters, 1, &cmdResult);
- 	if (status < 0)
- 		goto error;
- 
-+		setParamParameters[0] = state->m_Constellation; /* constellation     */
-+		setParamParameters[1] = DRXK_QAM_I12_J17;       /* interleave mode   */
-+
-+		status = scu_command(state, SCU_RAM_COMMAND_STANDARD_QAM | SCU_RAM_COMMAND_CMD_DEMOD_SET_PARAM, 2, setParamParameters, 1, &cmdResult);
-+	}
-+	if (status < 0)
-+		goto error;
- 
- 	/* STEP 3: enable the system in a mode where the ADC provides valid signal
- 		setup constellation independent registers */
 -- 
-1.7.1
-
+Sakari Ailus
+sakari.ailus@iki.fi
