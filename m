@@ -1,54 +1,72 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:40664 "EHLO mx1.redhat.com"
+Received: from ffm.saftware.de ([83.141.3.46]:50432 "EHLO ffm.saftware.de"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755196Ab1GNQCv (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 14 Jul 2011 12:02:51 -0400
-Message-ID: <4E1F1323.1010007@redhat.com>
-Date: Thu, 14 Jul 2011 13:02:43 -0300
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
+	id S1750997Ab1GNAZZ (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 13 Jul 2011 20:25:25 -0400
+Received: from localhost (localhost [127.0.0.1])
+	by ffm.saftware.de (Postfix) with ESMTP id BC4572C14C4
+	for <linux-media@vger.kernel.org>; Thu, 14 Jul 2011 02:25:21 +0200 (CEST)
+Received: from ffm.saftware.de ([127.0.0.1])
+	by localhost (ffm.saftware.de [127.0.0.1]) (amavisd-new, port 10024)
+	with LMTP id 3rLWFFEeaWE6 for <linux-media@vger.kernel.org>;
+	Thu, 14 Jul 2011 02:25:17 +0200 (CEST)
+Message-ID: <4E1E376B.30108@linuxtv.org>
+Date: Thu, 14 Jul 2011 02:25:15 +0200
+From: Andreas Oberritter <obi@linuxtv.org>
 MIME-Version: 1.0
-To: Tomasz Stanislawski <t.stanislaws@samsung.com>
-CC: linux-media@vger.kernel.org, m.szyprowski@samsung.com,
-	kyungmin.park@samsung.com, hverkuil@xs4all.nl,
-	laurent.pinchart@ideasonboard.com
-Subject: Re: [PATCH 5/8] v4l: fix v4l_fill_dv_preset_info function
-References: <1309351877-32444-1-git-send-email-t.stanislaws@samsung.com> <1309351877-32444-6-git-send-email-t.stanislaws@samsung.com>
-In-Reply-To: <1309351877-32444-6-git-send-email-t.stanislaws@samsung.com>
-Content-Type: text/plain; charset=UTF-8
+To: linux-media@vger.kernel.org
+Subject: Re: [git:v4l-dvb/for_v3.1] [media] DVB: dvb_frontend: off by one
+ in	dtv_property_dump()
+References: <E1Qh7ma-00025Z-5V@www.linuxtv.org>
+In-Reply-To: <E1Qh7ma-00025Z-5V@www.linuxtv.org>
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em 29-06-2011 09:51, Tomasz Stanislawski escreveu:
-> The function fills struct v4l2_dv_enum_preset with appropriate
-> preset parameters but it forgets to zero field named reserved.
-> This patch fixes this bug.
+On 13.07.2011 23:28, Mauro Carvalho Chehab wrote:
+> This is an automatic generated email to let you know that the following patch were queued at the 
+> http://git.linuxtv.org/media_tree.git tree:
 > 
-> Signed-off-by: Tomasz Stanislawski <t.stanislaws@samsung.com>
+> Subject: [media] DVB: dvb_frontend: off by one in dtv_property_dump()
+> Author:  Dan Carpenter <error27@gmail.com>
+> Date:    Thu May 26 05:44:52 2011 -0300
+> 
+> If the tvp->cmd == DTV_MAX_COMMAND then we read past the end of the
+> array.
+
+That's wrong, because the array size is DTV_MAX_COMMAND + 1. Using the
+ARRAY_SIZE macro instead might reduce the confusion.
+
+Regards,
+Andreas
+
+> Signed-off-by: Dan Carpenter <error27@gmail.com>
+> Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+> 
+>  drivers/media/dvb/dvb-core/dvb_frontend.c |    2 +-
+>  1 files changed, 1 insertions(+), 1 deletions(-)
+> 
 > ---
->  drivers/media/video/v4l2-common.c |    2 ++
->  1 files changed, 2 insertions(+), 0 deletions(-)
 > 
-> diff --git a/drivers/media/video/v4l2-common.c b/drivers/media/video/v4l2-common.c
-> index 003e648..e7c02e9 100644
-> --- a/drivers/media/video/v4l2-common.c
-> +++ b/drivers/media/video/v4l2-common.c
-> @@ -592,6 +592,8 @@ int v4l_fill_dv_preset_info(u32 preset, struct v4l2_dv_enum_preset *info)
->  	info->width = dv_presets[preset].width;
->  	info->height = dv_presets[preset].height;
->  	strlcpy(info->name, dv_presets[preset].name, sizeof(info->name));
-> +	/* assure that reserved fields are zeroed */
-> +	memset(info->reserved, 0, sizeof(info->reserved));
->  	return 0;
->  }
->  EXPORT_SYMBOL_GPL(v4l_fill_dv_preset_info);
+> http://git.linuxtv.org/media_tree.git?a=commitdiff;h=a3e4adf274f86b2363fedaa964297cb38526cef0
+> 
+> diff --git a/drivers/media/dvb/dvb-core/dvb_frontend.c b/drivers/media/dvb/dvb-core/dvb_frontend.c
+> index bed7bfe..c9c3c79 100644
+> --- a/drivers/media/dvb/dvb-core/dvb_frontend.c
+> +++ b/drivers/media/dvb/dvb-core/dvb_frontend.c
+> @@ -982,7 +982,7 @@ static void dtv_property_dump(struct dtv_property *tvp)
+>  {
+>  	int i;
+>  
+> -	if (tvp->cmd <= 0 || tvp->cmd > DTV_MAX_COMMAND) {
+> +	if (tvp->cmd <= 0 || tvp->cmd >= DTV_MAX_COMMAND) {
+>  		printk(KERN_WARNING "%s: tvp.cmd = 0x%08x undefined\n",
+>  			__func__, tvp->cmd);
+>  		return;
+> 
+> _______________________________________________
+> linuxtv-commits mailing list
+> linuxtv-commits@linuxtv.org
+> http://www.linuxtv.org/cgi-bin/mailman/listinfo/linuxtv-commits
 
-This patch is not needed, except if you're doing a different logic.
-v4l2-ioctl makes sure of cleaning the reserved and write fields from
-the structs before passing the syscall to the drivers.
-
-So, if you're filling data from an userspace call, you don't need to
-use. If you're instead allocating data, use *zalloc calls.
-
-Cheers,
-Mauro
