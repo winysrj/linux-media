@@ -1,47 +1,55 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-68.nebula.fi ([83.145.220.68]:33088 "EHLO
-	smtp-68.nebula.fi" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754478Ab1GNMaB (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 14 Jul 2011 08:30:01 -0400
-Date: Thu, 14 Jul 2011 15:29:57 +0300
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: nitesh moundekar <niteshmoundekar@gmail.com>
-Cc: linux-media@vger.kernel.org
-Subject: Re: [RFC] Binning on sensors
-Message-ID: <20110714122956.GG27451@valkosipuli.localdomain>
-References: <20110714113201.GD27451@valkosipuli.localdomain>
- <CAF5T7dk0HN-aBj_uK37=bpGEnsTZ6dwraNNfAOvwFWbtpveBGg@mail.gmail.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <CAF5T7dk0HN-aBj_uK37=bpGEnsTZ6dwraNNfAOvwFWbtpveBGg@mail.gmail.com>
+Received: from mx1.redhat.com ([209.132.183.28]:37906 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754825Ab1GNWKA (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 14 Jul 2011 18:10:00 -0400
+Received: from int-mx01.intmail.prod.int.phx2.redhat.com (int-mx01.intmail.prod.int.phx2.redhat.com [10.5.11.11])
+	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id p6EMA07W010315
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
+	for <linux-media@vger.kernel.org>; Thu, 14 Jul 2011 18:10:00 -0400
+From: Jarod Wilson <jarod@redhat.com>
+To: linux-media@vger.kernel.org
+Cc: Jarod Wilson <jarod@redhat.com>
+Subject: [PATCH 3/9] [media] mceusb: set wakeup bits for IR-based resume
+Date: Thu, 14 Jul 2011 18:09:48 -0400
+Message-Id: <1310681394-3530-4-git-send-email-jarod@redhat.com>
+In-Reply-To: <1310681394-3530-1-git-send-email-jarod@redhat.com>
+References: <1310681394-3530-1-git-send-email-jarod@redhat.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, Jul 14, 2011 at 05:46:21PM +0530, nitesh moundekar wrote:
-> Hi all,
-> 
-> This is my first mail in linux mailing list and I hope I contribute
-> something.
-> 
-> I worked at image sensor company and I had the idea that binning control are
-> used by these companies to get optimum performance & power usage for their
-> sensors at various resolutions in their drivers. I have not seen sensor
-> binning usage at user level. Can we get some use cases ?
+Its not uncommon for folks to force these bits enabled, because people
+do want to wake their htpc kit via their remote. Lets just set the bits
+for 'em.
 
-Hi Nitesh,
+Signed-off-by: Jarod Wilson <jarod@redhat.com>
+---
+ drivers/media/rc/mceusb.c |    5 +++++
+ 1 files changed, 5 insertions(+), 0 deletions(-)
 
-This is related to performing sensor configuration from user space. Binning
-is just one of the settings the sensors have, and it should be exposed to
-user space as such rather than be implicitly set by the sensor driver based
-on other settings such as the output resolution.
-
-Binning controls (or other interface) would most likely be available on
-v4l2_subdev user space interface which is exposed by the sensor driver.
-
-Regards,
-
+diff --git a/drivers/media/rc/mceusb.c b/drivers/media/rc/mceusb.c
+index 13a853b..7ff755f 100644
+--- a/drivers/media/rc/mceusb.c
++++ b/drivers/media/rc/mceusb.c
+@@ -37,6 +37,7 @@
+ #include <linux/slab.h>
+ #include <linux/usb.h>
+ #include <linux/usb/input.h>
++#include <linux/pm_wakeup.h>
+ #include <linux/delay.h>
+ #include <media/rc-core.h>
+ 
+@@ -1290,6 +1291,10 @@ static int __devinit mceusb_dev_probe(struct usb_interface *intf,
+ 
+ 	usb_set_intfdata(intf, ir);
+ 
++	/* enable wake via this device */
++	device_set_wakeup_capable(ir->dev, true);
++	device_set_wakeup_enable(ir->dev, true);
++
+ 	dev_info(&intf->dev, "Registered %s on usb%d:%d\n", name,
+ 		 dev->bus->busnum, dev->devnum);
+ 
 -- 
-Sakari Ailus
-sakari.ailus@iki.fi
+1.7.1
+
