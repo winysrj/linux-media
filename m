@@ -1,132 +1,135 @@
-Return-path: <mchehab@pedra>
-Received: from smtp-vbr6.xs4all.nl ([194.109.24.26]:1081 "EHLO
-	smtp-vbr6.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755161Ab1GAJqA (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 1 Jul 2011 05:46:00 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-Subject: Re: RFC: poll behavior
-Date: Fri, 1 Jul 2011 11:45:51 +0200
-Cc: Hans Verkuil <hansverk@cisco.com>,
-	Hans de Goede <hdegoede@redhat.com>,
-	linux-media@vger.kernel.org
-References: <201106291326.47527.hansverk@cisco.com> <201106301546.35803.hansverk@cisco.com> <4E0CDE03.1040906@redhat.com>
-In-Reply-To: <4E0CDE03.1040906@redhat.com>
+Return-path: <linux-media-owner@vger.kernel.org>
+Received: from mail-ey0-f174.google.com ([209.85.215.174]:54463 "EHLO
+	mail-ey0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752852Ab1GNBSz convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 13 Jul 2011 21:18:55 -0400
+Received: by eyx24 with SMTP id 24so2317475eyx.19
+        for <linux-media@vger.kernel.org>; Wed, 13 Jul 2011 18:18:53 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201107011145.51118.hverkuil@xs4all.nl>
+In-Reply-To: <19F8576C6E063C45BE387C64729E739404E35E4272@dbde02.ent.ti.com>
+References: <1310581347-31102-1-git-send-email-agnel.joel@gmail.com>
+	<19F8576C6E063C45BE387C64729E739404E35E4272@dbde02.ent.ti.com>
+Date: Wed, 13 Jul 2011 20:18:52 -0500
+Message-ID: <CAD=GYpZHbZSLSwuEFX7UWrb5_S0mrrVB1v_+=L-QN8Cs-f9Ndg@mail.gmail.com>
+Subject: Re: [beagleboard] [RFC v1] mt9v113: VGA camera sensor driver and
+ support for BeagleBoard
+From: Joel A Fernandes <agnel.joel@gmail.com>
+To: beagleboard@googlegroups.com
+Cc: "Kridner, Jason" <jdk@ti.com>,
+	Javier Martin <javier.martin@vista-silicon.com>,
+	"laurent.pinchart@ideasonboard.com"
+	<laurent.pinchart@ideasonboard.com>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	"Kooi, Koen" <k-kooi@ti.com>, "Prakash, Punya" <pprakash@ti.com>,
+	"Maupin, Chase" <chase.maupin@ti.com>,
+	"Kipisz, Steven" <s-kipisz2@ti.com>,
+	"Aguirre, Sergio" <saaguirre@ti.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
+Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
-Sender: <mchehab@pedra>
 
-On Thursday, June 30, 2011 22:35:15 Mauro Carvalho Chehab wrote:
-> Em 30-06-2011 10:46, Hans Verkuil escreveu:
-> > On Wednesday, June 29, 2011 16:35:04 Hans de Goede wrote:
-> >> Hi,
-> >>
-> >> On 06/29/2011 03:43 PM, Hans Verkuil wrote:
-> >>> On Wednesday, June 29, 2011 15:07:14 Hans de Goede wrote:
-> >>
-> >> <snip>
-> >>
-> >>>   	if (q->num_buffers == 0&&  q->fileio == NULL) {
-> >>> -		if (!V4L2_TYPE_IS_OUTPUT(q->type)&&  (q->io_modes&  VB2_READ)) {
-> >>> -			ret = __vb2_init_fileio(q, 1);
-> >>> -			if (ret)
-> >>> -				return POLLERR;
-> >>> -		}
-> >>> -		if (V4L2_TYPE_IS_OUTPUT(q->type)&&  (q->io_modes&  VB2_WRITE)) {
-> >>> -			ret = __vb2_init_fileio(q, 0);
-> >>> -			if (ret)
-> >>> -				return POLLERR;
-> >>> -			/*
-> >>> -			 * Write to OUTPUT queue can be done immediately.
-> >>> -			 */
-> >>> -			return POLLOUT | POLLWRNORM;
-> >>> -		}
-> >>> +		if (!V4L2_TYPE_IS_OUTPUT(q->type)&&  (q->io_modes&  VB2_READ))
-> >>> +			return res | POLLIN | POLLRDNORM;
-> >>> +		if (V4L2_TYPE_IS_OUTPUT(q->type)&&  (q->io_modes&  VB2_WRITE))
-> >>> +			return res | POLLOUT | POLLWRNORM;
-> 
-> It is wrong to return POLLIN/POLLOUT if the stream hasn't started yet. You should
-> return it only when data is ready. Otherwise you should return 0.
-> 
-> >>>   	}
-> >>>
-> >>>   	/*
-> >>>   	 * There is nothing to wait for if no buffers have already been 
-> > queued.
-> >>>   	 */
-> >>>   	if (list_empty(&q->queued_list))
-> >>> -		return POLLERR;
-> >>> +		return have_events ? res : POLLERR;
-> >>>
-> >>
-> >> This seems more accurate to me, given that in case of select the 2 influence
-> >> different fd sets:
-> >>
-> >> 		return res | POLLERR;
-> > 
-> > Hmm. The problem is that the poll(2) API will always return if POLLERR is set, 
-> > even if you only want to wait on POLLPRI.
-> 
-> Yes, but this is the right thing to do: an error condition has happened. If you're
-> in doubt, think that poll() is being used for a text file or a socket: if the connection
-> has dropped, or there's a problem to access the file, poll() needs to return, as there is
-> a condition error that needs to be handled.
-> 
-> > That's a perfectly valid thing to 
-> > do. An alternative is to just not use POLLERR and return res|POLLIN or res|
-> > POLLOUT depending on V4L2_TYPE_IS_OUTPUT().
-> 
-> You should only rise POLLERR if a problem happened at the events delivery or at
-> the device streaming.
-> 
-> > Another option is to just return res (which is your suggestion below as well).
-> > I think this is also a reasonable approach. It would in fact allow one thread 
-> > to call poll(2) and another thread to call REQBUFS/QBUF/STREAMON on the same 
-> > filehandle. And the other thread would return from poll(2) as soon as the 
-> > first frame becomes available.
-> > 
-> > This also leads to another ambiguity with poll(): what should poll do if 
-> > another filehandle started streaming? So fh1 called STREAMON (and so becomes 
-> > the 'owner' of the stream), and you poll on fh2. If a frame becomes available, 
-> > should fh2 wake up? Is fh2 allowed to call DQBUF?
-> 
-> IMO, both fh's should get the same results. This is what happens if you're
-> writing into a file and two or more processes are selecting at the EOF.
+Hi Vaibhav,
 
-Yes, but multiple filehandles are allowed to write/read from a file at the
-same time. That's not true for V4L2. Only one filehandle can do I/O at a time.
+Thanks for your email.
 
-I'm going to look into changing fs/select.c so that the poll driver function
-can actually see the event mask provided by the application.
+On Wed, Jul 13, 2011 at 2:55 PM, Hiremath, Vaibhav <hvaibhav@ti.com> wrote:
+>
+>> -----Original Message-----
+>> From: beagleboard@googlegroups.com [mailto:beagleboard@googlegroups.com]
+>> On Behalf Of Joel A Fernandes
+>> Sent: Wednesday, July 13, 2011 11:52 PM
+>> To: beagleboard@googlegroups.com
+>> Cc: Joel A Fernandes; Kridner, Jason; Javier Martin;
+>> laurent.pinchart@ideasonboard.com; linux-media@vger.kernel.org; Kooi,
+>> Koen; Prakash, Punya; Maupin, Chase; Kipisz, Steven; Aguirre, Sergio
+>> Subject: [beagleboard] [RFC v1] mt9v113: VGA camera sensor driver and
+>> support for BeagleBoard
+>>
+>> * Adds support for mt9v113 sensor by borrowing heavily from PSP 2.6.37
+>> kernel patches
+>> * Adapted to changes in v4l2 framework and ISP driver
+>>
+>> Signed-off-by: Joel A Fernandes <agnel.joel@gmail.com>
+>> ---
+>> This patch will apply against the 2.6.39 kernel built from the OE-
+>> development tree (Which is essentially
+>> the v2.6.39 from the main tree with OE patches for BeagleBoard support and
+>> a few other features)
+>>
+>> If you have the Leapord imaging camera board with this particular sensor,
+>> I would apprecite it if anyone could
+>> try this patch out and provide any feedback/test results.
+>>
+>> To get the complete tree which works on a BeagleBoard-xM with all the OE
+>> patches and this patch,
+>> you can clone: https://github.com/joelagnel/linux-omap-2.6/tree/oedev-
+>> 2.6.39-mt9v113
+>>
+>> It will compile and work on a BeagleBoard-xM with the defconfig at:
+>> http://cgit.openembedded.org/cgit.cgi/openembedded/tree/recipes/linux/linu
+>> x-omap-2.6.39/beagleboard/defconfig
+>>
+>> Also you will need to apply my media-ctl patch (or clone the tree) to
+>> setup the formats:
+>> https://github.com/joelagnel/media-
+>> ctl/commit/cdf24d1249ac1ff3cd6f70ad80c3b76ac28ba0d5
+>>
+>> Binaries for quick testing on a BeagleBoard-xM:
+>> U-boot: http://utdallas.edu/~joel.fernandes/u-boot.bin
+>> U-boot: http://utdallas.edu/~joel.fernandes/MLO
+>> uEnv.txt: http://utdallas.edu/~joel.fernandes/uEnv.txt
+>> media-ctl: http://utdallas.edu/~joel.fernandes/media-ctl
+>> kernel: http://utdallas.edu/~joel.fernandes/uImage
+>>
+>> media-ctl/yavta commands you could use to get it to show a picture can be
+>> found at:
+>> http://utdallas.edu/~joel.fernandes/stream.sh
+>>
+>> Note:
+>> The BeagleBoard camera board file in this patch replaces the old one, so
+>> this will take away support for the 5M
+>> sensor (mt9p031), I hope this can be forgiven considering this is an
+>> RFC :). I am working on a common board file
+>> that will work for both sensors.
+>>
+>  [Hiremath, Vaibhav] Joel,
+>
+> I am bit surprised by this patch submission, first of all, the patch has been submitted without my knowledge. And I was not aware that you are targeting linux-media for this code-snippet.
+>
+> This code needs lot of cleanup and changes to get to the level where we can submit it to the linux-media, and I think I clearly mentioned about known issues with this patch/driver in the commit itself. Please refer to the below commit -
+>
+> http://arago-project.org/git/projects/?p=linux-omap3.git;a=commitdiff;h=c6174e0658b9aaa8f7a3ec9fe562619084d34f59
+>
+> I agree that we had some internal discussion on this and I was under assumption that this effort was only towards beagle openembedded and not for linux-media.
+>
+[Joel]
 
-Regards,
+I'm sorry, actually the intent of the RFC was to get immediate VGA
+camera support to Beagle users and some testing with our kernel. The
+other intention was to help your team with the differences in what has
+changed across the kernels as a reference so that you reuse some of
+the work. Certainly I was not going to claim authorship or make the
+final submission.
 
-	Hans
+About Signed-off-by lines (if that's what you refer to about
+authorship), I intentionally didn't include it in my temporary git
+tree as I wanted to make sure if I could use it without permission. My
+intention was to rebase and include the relevant SOB lines after I got
+clarification on this. Could you suggest a general rule about SOB
+lines and whether these can be used without permission when you
+reuse/adapt a patch?
 
-> 
-> Anyway, changing from the current behavior may break applications.
-> 
-> > To be honest, I think vb2 should keep track of the filehandle that started 
-> > streaming rather than leaving that to drivers, but that's a separate issue.
-> > 
-> > I really wonder whether we should ever use POLLERR at all: it is extremely
-> > vague how it should be interpreted, and it doesn't actually tell you what is 
-> > wrong. And is it really an error if you poll on a non-streaming node?
-> 
-> See above. You need to rise it if, for example, an error occurred, and no data
-> will be ready for read(), write() or DQEVENT. That's the reason why POLLERR
-> exists.
-> 
-> Cheers,
-> Mauro
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
-> 
+I hoped that the words "borrowed from PSP" in the commit summary, the
+relevant links to the commits in your tree in the commit summaries and
+the retaining of copyright information in the code made it clear that
+I was not the original author.
+
+I understand that it is a bit frustrating to see someone take your
+code when its not yet complete, anyway I hope my commits help in some
+way. Atleast there might be a few people who test your code on the
+Beagle and give your team some valuable feedback.
+
+Thanks,
+Joel
