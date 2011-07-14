@@ -1,51 +1,67 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp10.mail.ru ([94.100.176.152]:41335 "EHLO smtp10.mail.ru"
+Received: from mx1.redhat.com ([209.132.183.28]:54234 "EHLO mx1.redhat.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750952Ab1GSNta (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 19 Jul 2011 09:49:30 -0400
-Message-ID: <4E258B60.6010007@list.ru>
-Date: Tue, 19 Jul 2011 17:49:20 +0400
-From: Stas Sergeev <stsp@list.ru>
-MIME-Version: 1.0
-To: Lennart Poettering <lpoetter@redhat.com>
-CC: Mauro Carvalho Chehab <mchehab@infradead.org>,
-	linux-media@vger.kernel.org,
-	"Nickolay V. Shmyrev" <nshmyrev@yandex.ru>,
-	Devin Heitmueller <dheitmueller@kernellabs.com>,
-	ALSA devel <alsa-devel@alsa-project.org>,
-	lennart@poettering.net
-Subject: Re: [patch][saa7134] do not change mute state for capturing audio
-References: <4E19D2F7.6060803@list.ru> <4E1E05AC.2070002@infradead.org> <4E1E0A1D.6000604@list.ru> <4E1E1571.6010400@infradead.org> <4E1E8108.3060305@list.ru> <4E1F9A25.1020208@infradead.org> <4E22AF12.4020600@list.ru> <4E22CCC0.8030803@infradead.org> <4E24BEB8.4060501@redhat.com> <4E257FF5.4040401@infradead.org>
-In-Reply-To: <4E257FF5.4040401@infradead.org>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+	id S932350Ab1GNWKH (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 14 Jul 2011 18:10:07 -0400
+Received: from int-mx01.intmail.prod.int.phx2.redhat.com (int-mx01.intmail.prod.int.phx2.redhat.com [10.5.11.11])
+	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id p6EMA7BT024742
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
+	for <linux-media@vger.kernel.org>; Thu, 14 Jul 2011 18:10:07 -0400
+From: Jarod Wilson <jarod@redhat.com>
+To: linux-media@vger.kernel.org
+Cc: Jarod Wilson <jarod@redhat.com>
+Subject: [PATCH 9/9] [media] mceusb: update version, copyright, author
+Date: Thu, 14 Jul 2011 18:09:54 -0400
+Message-Id: <1310681394-3530-10-git-send-email-jarod@redhat.com>
+In-Reply-To: <1310681394-3530-1-git-send-email-jarod@redhat.com>
+References: <1310681394-3530-1-git-send-email-jarod@redhat.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-19.07.2011 17:00, Mauro Carvalho Chehab wrote:
-> Several video boards have the option of plugging a loop cable between
-> the device output pin and the motherboard line in pin. So, if you start
-> capturing, you'll also enabling the output of such pin, as the kernel
-> driver has no way to know if the user decided to use a wire cable,
-> instead
-> of the ALSA PCM stream.
-> So, if users with such cables are lucky, it will play something, but,
-> on most cases, it will just tune into a non-existing station, and it will
-> produce a white noise.
-This needs to be clarified a bit (for Lennart).
-Initially, before the board is tuned to some station,
-the sound is wisely muted. It is muted for both the
-capturing and the pass-through cable.
-As far as I can tell, if you want to probe the card by
-capturing, you can capture the silence, you don't need
-any real sound to record.
-The problem here is that the particular driver has a
-"nice code" (or a hack) that unmutes both the capturing
-and the pass-through cable when you capture anything.
->From my POV, exactly that leads to the problem. Simply
-removing that piece of code makes the peace in the world:
-the app that tunes the board, also unmutes the sound anyway.
+Add note about recent updates coming from Microsoft's publicly available
+specs on Windows Media Center remotes and receivers/transmitters.
 
-My question was and still is: do we need to search for
-any other solution at all? Do we need to modify PA, if
-it is entirely fine with capturing the silence for probing audio?
+Signed-off-by: Jarod Wilson <jarod@redhat.com>
+---
+ drivers/media/rc/mceusb.c |   11 ++++++++---
+ 1 files changed, 8 insertions(+), 3 deletions(-)
+
+diff --git a/drivers/media/rc/mceusb.c b/drivers/media/rc/mceusb.c
+index fa1d182..053d079 100644
+--- a/drivers/media/rc/mceusb.c
++++ b/drivers/media/rc/mceusb.c
+@@ -1,7 +1,7 @@
+ /*
+  * Driver for USB Windows Media Center Ed. eHome Infrared Transceivers
+  *
+- * Copyright (c) 2010 by Jarod Wilson <jarod@redhat.com>
++ * Copyright (c) 2010-2011, Jarod Wilson <jarod@redhat.com>
+  *
+  * Based on the original lirc_mceusb and lirc_mceusb2 drivers, by Dan
+  * Conti, Martin Blatter and Daniel Melander, the latter of which was
+@@ -15,6 +15,11 @@
+  * Jon Smirl, which included enhancements and simplifications to the
+  * incoming IR buffer parsing routines.
+  *
++ * Updated in July of 2011 with the aid of Microsoft's official
++ * remote/transceiver requirements and specification document, found at
++ * download.microsoft.com, title
++ * Windows-Media-Center-RC-IR-Collection-Green-Button-Specification-03-08-2011-V2.pdf
++ *
+  *
+  * This program is free software; you can redistribute it and/or modify
+  * it under the terms of the GNU General Public License as published by
+@@ -41,8 +46,8 @@
+ #include <linux/delay.h>
+ #include <media/rc-core.h>
+ 
+-#define DRIVER_VERSION	"1.91"
+-#define DRIVER_AUTHOR	"Jarod Wilson <jarod@wilsonet.com>"
++#define DRIVER_VERSION	"1.92"
++#define DRIVER_AUTHOR	"Jarod Wilson <jarod@redhat.com>"
+ #define DRIVER_DESC	"Windows Media Center Ed. eHome Infrared Transceiver " \
+ 			"device driver"
+ #define DRIVER_NAME	"mceusb"
+-- 
+1.7.1
+
