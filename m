@@ -1,109 +1,107 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:36791 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750718Ab1GOEBk (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 15 Jul 2011 00:01:40 -0400
-Message-ID: <4E1FBB9E.7070103@redhat.com>
-Date: Fri, 15 Jul 2011 01:01:34 -0300
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Received: from moutng.kundenserver.de ([212.227.17.8]:55020 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753524Ab1GNWCK (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 14 Jul 2011 18:02:10 -0400
+Date: Fri, 15 Jul 2011 00:02:06 +0200 (CEST)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Sakari Ailus <sakari.ailus@iki.fi>
+cc: linux-media@vger.kernel.org
+Subject: Re: [RFC] Binning on sensors
+In-Reply-To: <20110714212638.GH27451@valkosipuli.localdomain>
+Message-ID: <Pine.LNX.4.64.1107142353350.10688@axis700.grange>
+References: <20110714113201.GD27451@valkosipuli.localdomain>
+ <Pine.LNX.4.64.1107141955280.10688@axis700.grange>
+ <20110714212638.GH27451@valkosipuli.localdomain>
 MIME-Version: 1.0
-To: Oliver Endriss <o.endriss@gmx.de>
-CC: linux-media@vger.kernel.org, Ralph Metzler <rjkm@metzlerbros.de>
-Subject: Re: [PATCH 0/5] Driver support for cards based on Digital Devices
- bridge (ddbridge)
-References: <201107032321.46092@orion.escape-edv.de> <201107150145.29547@orion.escape-edv.de> <4E1F8E1F.3000008@redhat.com> <201107150411.45222@orion.escape-edv.de>
-In-Reply-To: <201107150411.45222@orion.escape-edv.de>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em 14-07-2011 23:11, Oliver Endriss escreveu:
-> On Friday 15 July 2011 02:47:27 Mauro Carvalho Chehab wrote:
->> Em 14-07-2011 20:45, Oliver Endriss escreveu:
->>> On Monday 04 July 2011 02:17:52 Mauro Carvalho Chehab wrote:
->>>> Em 03-07-2011 20:24, Oliver Endriss escreveu:
->>> ...
->>>>> Anyway, I spent the whole weekend to re-format the code carefully
->>>>> and create both patch series, trying not to break anything.
->>>>> I simply cannot go through the driver code and verify everything.
->>>>
->>>> As the changes on CHK_ERROR were done via script, it is unlikely that it
->>>> introduced any problems (well, except if some function is returning
->>>> a positive value as an error code, but I think that this is not the
->>>> case).
->>>>
->>>> I did the same replacement when I've cleanup the drx-d driver (well, the 
->>>> script were not the same, but it used a similar approach), and the changes 
->>>> didn't break anything, but it is safer to have a test, to be sure that no
->>>> functional changes were introduced.
->>>>
->>>> A simple test with the code and some working board is probably enough
->>>> to verify that nothing broke.
->>>
->>> Finally I found some time to do this 'simple' test.
->>
->> Thanks for testing it. Big changes on complex driver require testing.
->>
->>> Congratulations! You completely broke the DRXK for ngene and ddbridge:
->>> - DVB-T tuning does not work anymore.
->>
->> I don't have any DVB-T signal here. I'll double check what changed there
->> and see if I can identify a possible cause for it, but eventually I may
->> not discover what's wrong. 
->>
->> Before I start bisecting, I need to know if the starting point is working.
->> So, had you test that DVB-T was working after your cleanup patches?
+On Fri, 15 Jul 2011, Sakari Ailus wrote:
+
+> Hi Guennadi,
 > 
-> Yes, it worked.
+> Thanks for the comments.
 > 
-> And now I double checked with media_build of July 3th + my patch series:
-> It works as expected.
-
-Ok, thanks for checking it. I'll see if I can discover what has changed.
- 
-> Well, I did not test DVB-C, but people reported that DVB-C was working
-> before I applied my cleanups. So I assume it worked.
-
->>> (DVB-C not tested: I currently do not have access to a DVB-C signal.)
->>
->> Hmm... are you sure that DVB-C used to work? I found an error on DVB-C setup for
->> the device I used for test, fixed on this patch:
->>
->> http://git.linuxtv.org/media_tree.git?a=commitdiff;h=21ff98772327ff182f54d2fcca69448e440e23d3
->>
->> Basically, on the device I tested, scu command:
->> 	SCU_RAM_COMMAND_STANDARD_QAM | SCU_RAM_COMMAND_CMD_DEMOD_SET_PARAM
->> requires 2 parameters, instead of 4.
->>
->> I've preserved the old behavior there, assuming that your code was working, but I suspect that
->> at least you need to do this:
->>
->> +               setParamParameters[0] = QAM_TOP_ANNEX_A;
->> +               if (state->m_OperationMode == OM_QAM_ITU_C)
->> +                       setEnvParameters[0] = QAM_TOP_ANNEX_C;  /* Annex */
->> +               else
->> +                       setEnvParameters[0] = 0;
->> +
->> +               status = scu_command(state, SCU_RAM_COMMAND_STANDARD_QAM | SCU_RAM_COMMAND_CMD_DEMOD_SET_ENV, 1, setEnvParameters, 1, &cmdResult);
->>
->> Due to this logic there, at SetQAM:
->>
->>        	/* Env parameters */
->>         setEnvParameters[2] = QAM_TOP_ANNEX_A;  /* Annex */
->>         if (state->m_OperationMode == OM_QAM_ITU_C)
->>                 setEnvParameters[2] = QAM_TOP_ANNEX_C;  /* Annex */
->>
->> This var is filled, but there's no call to SCU_RAM_COMMAND_CMD_DEMOD_SET_ENV. Also,
->> iti initializes it as parameters[2], instead of parameters[0].
+> On Thu, Jul 14, 2011 at 07:56:10PM +0200, Guennadi Liakhovetski wrote:
+> > On Thu, 14 Jul 2011, Sakari Ailus wrote:
+> > 
+> > > Hi all,
+> > > 
+> > > I was thinking about the sensor binning controls.
+> > 
+> > What wrong with just doing S_FMT on the subdev pad? Binning does in fact 
+> > implement scaling.
 > 
-> Sorry, I can't test it. Maybe Ralph can comment on this.
+> Nothing really. Supporting setting binning using S_FMT is fine.
+> 
+> However, the interface does not express binning capabilities in any way. To
+> effectively use binning settings one must know the capabilities. Binning is
+> scaling but the choices are so coarse that the capabilities are a must.
+> 
+> The capabilities could be found implicitly by trying out different formats
+> and looking back at the result. That's still not quite trivial.
+> 
+> If there would be a good way to enumerate the binning capabilities, combined
+> with S_FMT it'd be close to perfect.
 
-Ralph,
+Then how about something like ENUM_SCALE(S)?
 
-could you please double check the DEMOD_SET_ENV logic at the driver, before my fallback
-code to use a 2 parameters call for scu_command, instead of 4 (required by the firmware
-I have here for Terratec)?
+Thanks
+Guennadi
 
-Thanks!
-Mauro
+> 
+> > > I have a sensor which can do binning both horizontally and vertically, but
+> > > the two are connected. So, the sensor supports e.g. 3x1 and 1x3 binning but
+> > > not 3x3.
+> > > 
+> > > However, most (I assume) sensors do not have dependencies between the two.
+> > > The interface which would be provided to the user still should be able to
+> > > tell what is supported, whether the two are independent or not.
+> > > 
+> > > I have a few ideas how to achieve this.
+> > > 
+> > > 1. Implement dependent binning as a menu control. The user will have an easy
+> > > way to enumerate binning and select it. If horizontal and vertical binning
+> > > factors are independent, two integer controls are provided. The downside is
+> > > that there are two ways to do this, and integer to string and back
+> > > conversions involved.
+> > > 
+> > > 2. Menu control is used all the time. The benefit is that the user gets a
+> > > single interface, but the downside is that if there are many possible
+> > > binning factors both horizontally and vertically, the size of the menu grows
+> > > large. Typically binning ends at 2 or 4, though.
+> > > 
+> > > 3. Implement two integer controls. The user is responsible for selecting a
+> > > valid configuration. A way to enumerate possible values would have to be
+> > > implemented. One option would be an ioctl but I don't like the idea.
+> > > 
+> > > Comments are welcome as always.
+> > > 
+> > > Cheers,
+> > > 
+> > > -- 
+> > > Sakari Ailus
+> > > sakari.ailus@iki.fi
+> > > --
+> > > To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> > > the body of a message to majordomo@vger.kernel.org
+> > > More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> > > 
+> > 
+> > ---
+> > Guennadi Liakhovetski, Ph.D.
+> > Freelance Open-Source Software Developer
+> > http://www.open-technology.de/
+> 
+> -- 
+> Sakari Ailus
+> sakari.ailus@iki.fi
+> 
+
+---
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
+http://www.open-technology.de/
