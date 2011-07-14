@@ -1,74 +1,71 @@
-Return-path: <mchehab@pedra>
-Received: from smtp-68.nebula.fi ([83.145.220.68]:55025 "EHLO
-	smtp-68.nebula.fi" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753132Ab1GALPS (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 1 Jul 2011 07:15:18 -0400
-Date: Fri, 1 Jul 2011 14:15:12 +0300
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	linux-media@vger.kernel.org, laurent.pinchart@ideasonboard.com
-Subject: Re: [GIT PULL FOR 3.1] Bitmask controls, flash API and adp1653
- driver
-Message-ID: <20110701111512.GN12671@valkosipuli.localdomain>
-References: <20110610092703.GH7830@valkosipuli.localdomain>
- <4E0D226E.5010809@redhat.com>
- <201107010957.39930.hverkuil@xs4all.nl>
+Return-path: <linux-media-owner@vger.kernel.org>
+Received: from smtp15.mail.ru ([94.100.176.133]:39921 "EHLO smtp15.mail.ru"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752268Ab1GNFoG (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 14 Jul 2011 01:44:06 -0400
+Message-ID: <4E1E8108.3060305@list.ru>
+Date: Thu, 14 Jul 2011 09:39:20 +0400
+From: Stas Sergeev <stsp@list.ru>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <201107010957.39930.hverkuil@xs4all.nl>
+To: Mauro Carvalho Chehab <mchehab@infradead.org>
+CC: linux-media@vger.kernel.org,
+	"Nickolay V. Shmyrev" <nshmyrev@yandex.ru>,
+	Devin Heitmueller <dheitmueller@kernellabs.com>
+Subject: Re: [patch][saa7134] do not change mute state for capturing audio
+References: <4E19D2F7.6060803@list.ru> <4E1E05AC.2070002@infradead.org> <4E1E0A1D.6000604@list.ru> <4E1E1571.6010400@infradead.org>
+In-Reply-To: <4E1E1571.6010400@infradead.org>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
+Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
-Sender: <mchehab@pedra>
 
-On Fri, Jul 01, 2011 at 09:57:39AM +0200, Hans Verkuil wrote:
-> On Friday, July 01, 2011 03:27:10 Mauro Carvalho Chehab wrote:
-> > Em 10-06-2011 06:27, Sakari Ailus escreveu:
-> > > Hi Mauro,
-> > > 
-> > > This pull request adds the bitmask controls, flash API and the adp1653
-> > > driver. What has changed since the patches is:
-> > > 
-> > > - Adp1653 flash faults control is volatile. Fix this.
-> > > - Flash interface marked as experimental.
-> > > - Moved the DocBook documentation to a new location.
-> > > - The target version is 3.1, not 2.6.41.
-> > > 
-> > > The following changes since commit 75125b9d44456e0cf2d1fbb72ae33c13415299d1:
-> > > 
-> > >   [media] DocBook: Don't be noisy at make cleanmediadocs (2011-06-09 16:40:58 -0300)
-> > > 
-> > > are available in the git repository at:
-> > >   ssh://linuxtv.org/git/sailus/media_tree.git media-for-3.1
-> > > 
-> > > Hans Verkuil (3):
-> > >       v4l2-ctrls: add new bitmask control type.
-> > >       vivi: add bitmask test control.
-> > >       DocBook: document V4L2_CTRL_TYPE_BITMASK.
-> > 
-> > I'm sure I've already mentioned, but I think it was at the Hans pull request:
-> > the specs don't mention what endiannes is needed for the bitmask controls: 
-> > machine endianess, little endian or big endian.  IMO, we should stick with either
-> > LE or BE.
-> 
-> Sorry Sakari, I should have fixed that. But since the patch was going through
-> your repository I forgot about it. Anyway, it should be machine endianess. You
-> have to be able to do (value & bit_define). The bit_defines for each bitmask
-> control should be part of the control's definition in videodev2.h.
-> 
-> It makes no sense to require LE or BE. We don't do that for other control types,
-> so why should bitmask be any different?
-> 
-> Can you add this clarification to DocBook?
+14.07.2011 02:00, Mauro Carvalho Chehab wrote:
 
-Thinking about this some more, if we're to say something about the
-endianness we should specify it for all controls, not just bitmasks. I
-really wonder if need this at all: why would you think the endianness in a
-bitmask would be some other than machine endianness, be it a V4L2 control or
-a flags field in, say, struct v4l2_buffer? It would make sense to document
-it if it differs from the norm, so in my opinion such statement would be
-redundant.
+>> Now that we don't have the output mute switch, we
+>> allow the alsa driver to unmute not only the recording
+>> that it may need, but also the sound output that goes
+>> to the sound card! IMHO, this is the entirely unwanted
+>> side effect, so I blame the saa driver, and not the pulseaudio.
+> Why this is unwanted? You shouldn't expect that the poor
+> users to control each mute control. They just need to control
+> one: the sound card outut.
+Controlling the sound card output makes no sense
+here: I don't want to mute the entire sound only when
+I want to mute the TV-tuner.
+On the other hand, why exactly would you unmute
+the output when capturing? Obviously to allow the
+capturing itself.
+Why, at the same time, would you enable the pass-through
+link to the sound card? Unwanted side-effect: it is
+not needed for capturing, and it gives the noise.
+That have to be fixed.
+So: even if pulseaudio wants to record the white
+noise for one reason or another, at least it doesn't
+output it to the sound card, so what it does is perfectly
+safe. Enabling the pass-through link to the sound card
+is a bug here.
 
--- 
-Sakari Ailus
-sakari.ailus@iki.fi
+>> There are also other things to consider:
+>> 1. You can't record anything (except for the white noise)
+>> before some xawtv sets up everything. So what is the
+>> use-case of the current (mis)behaveur?
+So is there a use-case?
+
+> If you're getting a white noise, then there's a bug either
+> at xawtv, at the driver or both. It is likely board-specific,
+> as, at least the last time I tested, saa7134 audio were working
+> properly.
+I don't see your point, I described the bug precisely.
+The capture unmutes the pass-through link to the
+sound card, so whatever is captured (white noise),
+gets also immediately outputed to the speakers, even
+though pulseaudio does not feed that to the sound
+card.
+
+> As I said before, the white noise bug should be fixed.
+> With what xawtv versions are you noticing problems? Are you using
+> xawtv 3.101? If so, xawtv 3.101 assumes that you're using digital
+There is nothing to do with xawtv here: as I said,
+the noise happens on xorg startup. Starting xawtv
+actually makes it to disappear, but I can't always
+start xawtv just for that.
