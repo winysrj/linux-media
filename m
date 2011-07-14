@@ -1,57 +1,53 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga09.intel.com ([134.134.136.24]:63020 "EHLO mga09.intel.com"
+Received: from mx1.redhat.com ([209.132.183.28]:50301 "EHLO mx1.redhat.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755054Ab1G1IAH (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 28 Jul 2011 04:00:07 -0400
-From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-To: linux-media@vger.kernel.org
-Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
-	Sakari Ailus <sakari.ailus@iki.fi>
-Subject: [PATCHv2] adp1653: check error code of adp1653_init_controls
-Date: Thu, 28 Jul 2011 10:59:38 +0300
-Message-Id: <4db811899ccd7b5315080790a627974e3569c7cc.1311839940.git.andriy.shevchenko@linux.intel.com>
-In-Reply-To: <20110727081522.GH32629@valkosipuli.localdomain>
-References: <20110727081522.GH32629@valkosipuli.localdomain>
+	id S1754656Ab1GNOke (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 14 Jul 2011 10:40:34 -0400
+Received: from int-mx01.intmail.prod.int.phx2.redhat.com (int-mx01.intmail.prod.int.phx2.redhat.com [10.5.11.11])
+	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id p6EEeYnr001686
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
+	for <linux-media@vger.kernel.org>; Thu, 14 Jul 2011 10:40:34 -0400
+Message-ID: <4E1EFFD0.6090501@redhat.com>
+Date: Thu, 14 Jul 2011 10:40:16 -0400
+From: Jarod Wilson <jarod@redhat.com>
+MIME-Version: 1.0
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+CC: linux-media@vger.kernel.org
+Subject: Re: [PATCH 0/3] redrat3 driver updates for 3.1
+References: <1310592367-11501-1-git-send-email-jarod@redhat.com> <4E1E2E3D.6030507@redhat.com>
+In-Reply-To: <4E1E2E3D.6030507@redhat.com>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Potentially the adp1653_init_controls could return an error. In our case the
-error was ignored, meanwhile it means incorrect initialization of V4L2
-controls. Additionally we have to free control handler structures in case of
-apd1653_init_controls or media_entity_init failure.
+Mauro Carvalho Chehab wrote:
+> Em 13-07-2011 18:26, Jarod Wilson escreveu:
+>> These changes make the redrat3 driver cooperate better with both in-kernel
+>> and lirc userspace decoding of signals, tested with RC5, RC6 and NEC.
+>> There's probably more we can do to make this a bit less hackish, but its
+>> working quite well here for me right now.
+>>
+>> Jarod Wilson (3):
+>>    [media] redrat3: sending extra trailing space was useless
+>>    [media] redrat3: cap duration in the right place
+>>    [media] redrat3: improve compat with lirc userspace decode
+>
+>
+> Applied, thanks. There's one small issue on it (32 bits compilation):
+>
+> drivers/media/rc/redrat3.c: In function ‘redrat3_init_rc_dev’:
+> drivers/media/rc/redrat3.c:1106: warning: assignment from incompatible pointer type
+> compilation succeeded
 
-Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Cc: Sakari Ailus <sakari.ailus@iki.fi>
----
- drivers/media/video/adp1653.c |   11 +++++++++--
- 1 files changed, 9 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/media/video/adp1653.c b/drivers/media/video/adp1653.c
-index 8ad89ff..279d75d 100644
---- a/drivers/media/video/adp1653.c
-+++ b/drivers/media/video/adp1653.c
-@@ -429,12 +429,19 @@ static int adp1653_probe(struct i2c_client *client,
- 	flash->subdev.internal_ops = &adp1653_internal_ops;
- 	flash->subdev.flags |= V4L2_SUBDEV_FL_HAS_DEVNODE;
- 
--	adp1653_init_controls(flash);
-+	ret = adp1653_init_controls(flash);
-+	if (ret)
-+		goto free_and_quit;
- 
- 	ret = media_entity_init(&flash->subdev.entity, 0, NULL, 0);
- 	if (ret < 0)
--		kfree(flash);
-+		goto free_and_quit;
- 
-+	return 0;
-+
-+free_and_quit:
-+	v4l2_ctrl_handler_free(&flash->ctrls);
-+	kfree(flash);
- 	return ret;
- }
- 
+I've mainly been working atop 3.0-rc bits, so I wasn't getting that 
+warning. I believe that's new, following merge of one of David 
+Härdeman's patches that reworks tx a bit, iirc. I'll take care of that 
+as soon as I can.
+
 -- 
-1.7.5.4
+Jarod Wilson
+jarod@redhat.com
+
 
