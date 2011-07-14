@@ -1,46 +1,64 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from yop.chewa.net ([91.121.105.214]:44527 "EHLO yop.chewa.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752130Ab1GQHvS convert rfc822-to-8bit (ORCPT
+Received: from smtp-68.nebula.fi ([83.145.220.68]:51768 "EHLO
+	smtp-68.nebula.fi" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932318Ab1GNWfX (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 17 Jul 2011 03:51:18 -0400
-From: "=?utf-8?q?R=C3=A9mi?= Denis-Courmont" <remi@remlab.net>
-To: Andreas Oberritter <obi@linuxtv.org>
-Subject: Re: [PATCH 0/5] Driver support for cards based on Digital Devices bridge (ddbridge)
-Date: Sun, 17 Jul 2011 10:51:12 +0300
+	Thu, 14 Jul 2011 18:35:23 -0400
+Date: Fri, 15 Jul 2011 01:35:19 +0300
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
 Cc: linux-media@vger.kernel.org
-References: <201107032321.46092@orion.escape-edv.de> <201107161937.48981.remi@remlab.net> <4E224E35.7040704@linuxtv.org>
-In-Reply-To: <4E224E35.7040704@linuxtv.org>
+Subject: Re: [RFC] Binning on sensors
+Message-ID: <20110714223519.GJ27451@valkosipuli.localdomain>
+References: <20110714113201.GD27451@valkosipuli.localdomain>
+ <Pine.LNX.4.64.1107141955280.10688@axis700.grange>
+ <20110714212638.GH27451@valkosipuli.localdomain>
+ <Pine.LNX.4.64.1107142353350.10688@axis700.grange>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="utf-8"
-Content-Transfer-Encoding: 8BIT
-Message-Id: <201107171051.13292.remi@remlab.net>
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <Pine.LNX.4.64.1107142353350.10688@axis700.grange>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Le dimanche 17 juillet 2011 05:51:33 Andreas Oberritter, vous avez écrit :
-> On 16.07.2011 18:37, Rémi Denis-Courmont wrote:
-> > Le samedi 16 juillet 2011 18:53:16 Andreas Oberritter, vous avez écrit :
-> >>> You are wrong, actually you can. At least here in Finland some cable
-> >>> networks offers DVB-T too.
-> >> 
-> >> I know that there are cable operators which use DVB-T, but they don't
-> >> use DVB-C simultaneously. This wouldn't make sense, unless they didn't
-> >> want their customers to receive their signals.
-> > 
-> > They do offer both simultaneously. DNA (formerly Welho) in Helsinki
-> > provides both DVB-T and DVB-C on the same cable, obviously on different
-> > frequencies.
+On Fri, Jul 15, 2011 at 12:02:06AM +0200, Guennadi Liakhovetski wrote:
+> On Fri, 15 Jul 2011, Sakari Ailus wrote:
 > 
-> Is there any channel available on DVB-T which isn't available on DVB-C
-> in this cable network?
+> > Hi Guennadi,
+> > 
+> > Thanks for the comments.
+> > 
+> > On Thu, Jul 14, 2011 at 07:56:10PM +0200, Guennadi Liakhovetski wrote:
+> > > On Thu, 14 Jul 2011, Sakari Ailus wrote:
+> > > 
+> > > > Hi all,
+> > > > 
+> > > > I was thinking about the sensor binning controls.
+> > > 
+> > > What wrong with just doing S_FMT on the subdev pad? Binning does in fact 
+> > > implement scaling.
+> > 
+> > Nothing really. Supporting setting binning using S_FMT is fine.
+> > 
+> > However, the interface does not express binning capabilities in any way. To
+> > effectively use binning settings one must know the capabilities. Binning is
+> > scaling but the choices are so coarse that the capabilities are a must.
+> > 
+> > The capabilities could be found implicitly by trying out different formats
+> > and looking back at the result. That's still not quite trivial.
+> > 
+> > If there would be a good way to enumerate the binning capabilities, combined
+> > with S_FMT it'd be close to perfect.
+> 
+> Then how about something like ENUM_SCALE(S)?
 
-Probably, I wouldn't know. My S******g TV won't provision channels from both 
-systems at the same time. And Linux does not support DVB-T on my TT-connect 
-CT-3650 tuner.
+For enumerating scaler capabilities?
+
+The capabilities and features vary wildly --- actually binning (and
+skipping) are probably the only types of scaling the properties of which can
+be fully expressed so tersely. What would you think about enumerating only
+binning and skipping?
 
 -- 
-Rémi Denis-Courmont
-http://www.remlab.net/
-http://fi.linkedin.com/in/remidenis
+Sakari Ailus
+sakari.ailus@iki.fi
