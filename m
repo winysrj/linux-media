@@ -1,78 +1,146 @@
-Return-path: <mchehab@localhost>
-Received: from mailout4.w1.samsung.com ([210.118.77.14]:48803 "EHLO
-	mailout4.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754248Ab1GFJYu (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 6 Jul 2011 05:24:50 -0400
-MIME-version: 1.0
-Content-transfer-encoding: 7BIT
-Content-type: TEXT/PLAIN
-Received: from spt2.w1.samsung.com ([210.118.77.14]) by mailout4.w1.samsung.com
- (Sun Java(tm) System Messaging Server 6.3-8.04 (built Jul 29 2009; 32bit))
- with ESMTP id <0LNW003XONHDD120@mailout4.w1.samsung.com> for
- linux-media@vger.kernel.org; Wed, 06 Jul 2011 10:24:49 +0100 (BST)
-Received: from linux.samsung.com ([106.116.38.10])
- by spt2.w1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14
- 2004)) with ESMTPA id <0LNW002Q0NHCVE@spt2.w1.samsung.com> for
- linux-media@vger.kernel.org; Wed, 06 Jul 2011 10:24:48 +0100 (BST)
-Date: Wed, 06 Jul 2011 11:24:40 +0200
-From: Tomasz Stanislawski <t.stanislaws@samsung.com>
-Subject: [PATCH 2/2] v4l2-ctl: fix wrapped open/close
+Return-path: <linux-media-owner@vger.kernel.org>
+Received: from mx1.redhat.com ([209.132.183.28]:19627 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S932134Ab1GNRUt (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 14 Jul 2011 13:20:49 -0400
+Received: from int-mx01.intmail.prod.int.phx2.redhat.com (int-mx01.intmail.prod.int.phx2.redhat.com [10.5.11.11])
+	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id p6EHKnCI023444
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
+	for <linux-media@vger.kernel.org>; Thu, 14 Jul 2011 13:20:49 -0400
+From: Jarod Wilson <jarod@redhat.com>
 To: linux-media@vger.kernel.org
-Cc: m.szyprowski@samsung.com, t.stanislaws@samsung.com,
-	kyungmin.park@samsung.com, mchehab@redhat.com, pawel@osciak.com,
-	hdegoede@redhat.com
-Message-id: <1309944280-11936-1-git-send-email-t.stanislaws@samsung.com>
+Cc: Jarod Wilson <jarod@redhat.com>
+Subject: [PATCH v2] [media] imon: rate-limit send_packet spew
+Date: Thu, 14 Jul 2011 13:20:46 -0400
+Message-Id: <1310664046-29073-1-git-send-email-jarod@redhat.com>
+In-Reply-To: <1310594321-12921-1-git-send-email-jarod@redhat.com>
+References: <1310594321-12921-1-git-send-email-jarod@redhat.com>
+Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
-Sender: <mchehab@infradead.org>
 
-When running in libv4l2 warp mode, the application did not use
-v4l2_open and v4l2_close in some cases. This patch fixes this
-issue substituting open/close calls with test_open/test_close
-which are libv4l2-aware.
+There are folks with flaky imon hardware out there that doesn't always
+respond to requests to write to their displays for some reason, which
+can flood logs quickly when something like lcdproc is trying to
+constantly update the display, so lets rate-limit all that error spew.
 
-Signed-off-by: Tomasz Stanislawski <t.stanislaws@samsung.com>
-Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+v2: add missing ratelimit.h include
+
+Signed-off-by: Jarod Wilson <jarod@redhat.com>
 ---
- utils/v4l2-ctl/v4l2-ctl.cpp |    8 ++++----
- 1 files changed, 4 insertions(+), 4 deletions(-)
+ drivers/media/rc/imon.c |   26 ++++++++++++++------------
+ 1 files changed, 14 insertions(+), 12 deletions(-)
 
-diff --git a/utils/v4l2-ctl/v4l2-ctl.cpp b/utils/v4l2-ctl/v4l2-ctl.cpp
-index 227ce1a..02f97e4 100644
---- a/utils/v4l2-ctl/v4l2-ctl.cpp
-+++ b/utils/v4l2-ctl/v4l2-ctl.cpp
-@@ -1604,13 +1604,13 @@ static void list_devices()
+diff --git a/drivers/media/rc/imon.c b/drivers/media/rc/imon.c
+index 6bc35ee..caa3e3a 100644
+--- a/drivers/media/rc/imon.c
++++ b/drivers/media/rc/imon.c
+@@ -34,6 +34,7 @@
+ #include <linux/module.h>
+ #include <linux/slab.h>
+ #include <linux/uaccess.h>
++#include <linux/ratelimit.h>
  
- 	for (dev_vec::iterator iter = files.begin();
- 			iter != files.end(); ++iter) {
--		int fd = open(iter->c_str(), O_RDWR);
-+		int fd = test_open(iter->c_str(), O_RDWR);
- 		std::string bus_info;
+ #include <linux/input.h>
+ #include <linux/usb.h>
+@@ -516,19 +517,19 @@ static int send_packet(struct imon_context *ictx)
+ 	if (retval) {
+ 		ictx->tx.busy = false;
+ 		smp_rmb(); /* ensure later readers know we're not busy */
+-		pr_err("error submitting urb(%d)\n", retval);
++		pr_err_ratelimited("error submitting urb(%d)\n", retval);
+ 	} else {
+ 		/* Wait for transmission to complete (or abort) */
+ 		mutex_unlock(&ictx->lock);
+ 		retval = wait_for_completion_interruptible(
+ 				&ictx->tx.finished);
+ 		if (retval)
+-			pr_err("task interrupted\n");
++			pr_err_ratelimited("task interrupted\n");
+ 		mutex_lock(&ictx->lock);
  
- 		if (fd < 0)
- 			continue;
- 		doioctl(fd, VIDIOC_QUERYCAP, &vcap);
--		close(fd);
-+		test_close(fd);
- 		bus_info = (const char *)vcap.bus_info;
- 		if (cards[bus_info].empty())
- 			cards[bus_info] += std::string((char *)vcap.card) + " (" + bus_info + "):\n";
-@@ -2535,7 +2535,7 @@ int main(int argc, char **argv)
- 		return 1;
+ 		retval = ictx->tx.status;
+ 		if (retval)
+-			pr_err("packet tx failed (%d)\n", retval);
++			pr_err_ratelimited("packet tx failed (%d)\n", retval);
  	}
  
--	if ((fd = open(device, O_RDWR)) < 0) {
-+	if ((fd = test_open(device, O_RDWR)) < 0) {
- 		fprintf(stderr, "Failed to open %s: %s\n", device,
- 			strerror(errno));
- 		exit(1);
-@@ -3693,6 +3693,6 @@ int main(int argc, char **argv)
- 			perror("VIDIOC_QUERYCAP");
+ 	kfree(control_req);
+@@ -830,20 +831,20 @@ static ssize_t vfd_write(struct file *file, const char *buf,
+ 
+ 	ictx = file->private_data;
+ 	if (!ictx) {
+-		pr_err("no context for device\n");
++		pr_err_ratelimited("no context for device\n");
+ 		return -ENODEV;
  	}
  
--	close(fd);
-+	test_close(fd);
- 	exit(app_result);
- }
+ 	mutex_lock(&ictx->lock);
+ 
+ 	if (!ictx->dev_present_intf0) {
+-		pr_err("no iMON device present\n");
++		pr_err_ratelimited("no iMON device present\n");
+ 		retval = -ENODEV;
+ 		goto exit;
+ 	}
+ 
+ 	if (n_bytes <= 0 || n_bytes > 32) {
+-		pr_err("invalid payload size\n");
++		pr_err_ratelimited("invalid payload size\n");
+ 		retval = -EINVAL;
+ 		goto exit;
+ 	}
+@@ -869,7 +870,7 @@ static ssize_t vfd_write(struct file *file, const char *buf,
+ 
+ 		retval = send_packet(ictx);
+ 		if (retval) {
+-			pr_err("send packet failed for packet #%d\n", seq / 2);
++			pr_err_ratelimited("send packet #%d failed\n", seq / 2);
+ 			goto exit;
+ 		} else {
+ 			seq += 2;
+@@ -883,7 +884,7 @@ static ssize_t vfd_write(struct file *file, const char *buf,
+ 	ictx->usb_tx_buf[7] = (unsigned char) seq;
+ 	retval = send_packet(ictx);
+ 	if (retval)
+-		pr_err("send packet failed for packet #%d\n", seq / 2);
++		pr_err_ratelimited("send packet #%d failed\n", seq / 2);
+ 
+ exit:
+ 	mutex_unlock(&ictx->lock);
+@@ -912,20 +913,21 @@ static ssize_t lcd_write(struct file *file, const char *buf,
+ 
+ 	ictx = file->private_data;
+ 	if (!ictx) {
+-		pr_err("no context for device\n");
++		pr_err_ratelimited("no context for device\n");
+ 		return -ENODEV;
+ 	}
+ 
+ 	mutex_lock(&ictx->lock);
+ 
+ 	if (!ictx->display_supported) {
+-		pr_err("no iMON display present\n");
++		pr_err_ratelimited("no iMON display present\n");
+ 		retval = -ENODEV;
+ 		goto exit;
+ 	}
+ 
+ 	if (n_bytes != 8) {
+-		pr_err("invalid payload size: %d (expected 8)\n", (int)n_bytes);
++		pr_err_ratelimited("invalid payload size: %d (expected 8)\n",
++				   (int)n_bytes);
+ 		retval = -EINVAL;
+ 		goto exit;
+ 	}
+@@ -937,7 +939,7 @@ static ssize_t lcd_write(struct file *file, const char *buf,
+ 
+ 	retval = send_packet(ictx);
+ 	if (retval) {
+-		pr_err("send packet failed!\n");
++		pr_err_ratelimited("send packet failed!\n");
+ 		goto exit;
+ 	} else {
+ 		dev_dbg(ictx->dev, "%s: write %d bytes to LCD\n",
 -- 
 1.7.5.4
 
