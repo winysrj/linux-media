@@ -1,48 +1,57 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ey0-f171.google.com ([209.85.215.171]:55437 "EHLO
-	mail-ey0-f171.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932200Ab1GVVbr (ORCPT
+Received: from smtp4-g21.free.fr ([212.27.42.4]:46572 "EHLO smtp4-g21.free.fr"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753961Ab1GORSd convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 22 Jul 2011 17:31:47 -0400
+	Fri, 15 Jul 2011 13:18:33 -0400
+From: remzouille <remzouille@free.fr>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+Subject: Re: patch for Asus My Cinema PS3-100 (1043:48cd)
+Date: Fri, 15 Jul 2011 19:18:24 +0200
+References: <201107141128.23344.remzouille@free.fr> <4E1F1E5F.2040302@redhat.com>
+In-Reply-To: <4E1F1E5F.2040302@redhat.com>
+Cc: linux-media@vger.kernel.org
 MIME-Version: 1.0
-In-Reply-To: <201107222322.07843.linux@rainbow-software.org>
-References: <201107222200.55834.linux@rainbow-software.org>
-	<CAGoCfiwqzs70A26WgN2pJJvz2aDzY9siOcTuOCkYm3nDHB=J1Q@mail.gmail.com>
-	<201107222322.07843.linux@rainbow-software.org>
-Date: Fri, 22 Jul 2011 17:31:46 -0400
-Message-ID: <CAGoCfiyGUR7-aPqoFOHW=DkBNxav+=34np68ZPutdQWcU4GO=A@mail.gmail.com>
-Subject: Re: [PATCH] [resend] usbvision: disable scaling for Nogatech MicroCam
-From: Devin Heitmueller <dheitmueller@kernellabs.com>
-To: Ondrej Zary <linux@rainbow-software.org>
-Cc: Joerg Heckenbach <joerg@heckenbach-aw.de>,
-	Dwaine Garden <dwainegarden@rogers.com>,
-	linux-media@vger.kernel.org,
-	Kernel development list <linux-kernel@vger.kernel.org>,
-	Hans Verkuil <hverkuil@xs4all.nl>
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: Text/Plain;
+  charset="utf-8"
+Content-Transfer-Encoding: 8BIT
+Message-Id: <201107151918.24938.remzouille@free.fr>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, Jul 22, 2011 at 5:22 PM, Ondrej Zary <linux@rainbow-software.org> wrote:
-> Seems that this bug is widespread - the same problem appears also in guvcview
-> and adobe flash. I think that the driver is broken too - it should return
-> corrected resolution in TRY_FMT.
+Le jeudi 14 juillet 2011 18:50:39, vous avez écrit :
+> Em 14-07-2011 06:28, remzouille escreveu:
+> > Hi all,
+> > 
+> > This is the patch against kernel 2.6.32 I used to get to work my TV card
+> > Asus My Cinema PS3-100 (1043:48cd).
+> > 
+> > More information on this card can be found on this page :
+> > 
+> > http://techblog.hollants.com/2009/09/asus-mycinema-ps3-100-3-in-1-tv-card
+> > /
+> > 
+> > This card seems to be a clone of the Asus Tiger 3in1, numbered 147 in the
+> > SAA7134 module, so I gave it the temporary number of 1470.
+> > 
+> > It has in addition a remote controller that works fine with the
+> > ir_codes_asus_pc39_table. I haven't finished the work on all keys but the
+> > most usefull ones are working.
+> 
+> Please finish the keytable mapping and re-send it with your Signed-off-By.
+> 
 
-Well, if the driver does not return the resolution it is actually
-capturing in, then that indeed is a driver bug.  That's a different
-issue though than what your patch proposed.
+Ok, I'll do that when I am back at home in a few days.
+As I said, the remote is already quite fully functional.
 
-You should make the TRY_FMT call specifying an invalid resolution and
-see if it returns the real resolution the device will capture at.  If
-it doesn't, then fix *that* bug.
+> > DVB-T and remote have been tested and work fine.
+> > DVB-S, FM and Composite input haven't been tested.
+> > 
+> > Hope that will help some of you.
+> 
+> Thanks!
+> Mauro
 
-The application needs to know the capturing resolution, so it's
-possible that it does properly handle the driver passing back the real
-resolution and the driver is at fault, in which case no change is
-needed to the app at all.
+You're welcome !
 
-Devin
-
--- 
-Devin J. Heitmueller - Kernel Labs
-http://www.kernellabs.com
+Rémi
