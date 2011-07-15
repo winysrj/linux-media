@@ -1,50 +1,62 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:54791 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751263Ab1GRStr (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 18 Jul 2011 14:49:47 -0400
-From: <hvaibhav@ti.com>
-To: <linux-media@vger.kernel.org>
-CC: mchehab@redhat.com
-Subject: [GIT PULL for v3.1] OMAP_VOUT code cleanup
-Date: Tue, 19 Jul 2011 00:19:30 +0530
-Message-ID: <1311014970-29235-1-git-send-email-hvaibhav@ti.com>
+Received: from mailout-de.gmx.net ([213.165.64.23]:53955 "HELO
+	mailout-de.gmx.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1750837Ab1GOFWF (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 15 Jul 2011 01:22:05 -0400
+From: Oliver Endriss <o.endriss@gmx.de>
+Reply-To: linux-media@vger.kernel.org
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+Subject: Re: [PATCH 0/5] Driver support for cards based on Digital Devices bridge (ddbridge)
+Date: Fri, 15 Jul 2011 07:17:06 +0200
+Cc: linux-media@vger.kernel.org, Ralph Metzler <rjkm@metzlerbros.de>
+References: <201107032321.46092@orion.escape-edv.de> <4E1F8E1F.3000008@redhat.com> <4E1FBA6F.10509@redhat.com>
+In-Reply-To: <4E1FBA6F.10509@redhat.com>
 MIME-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain;
+  charset="utf-8"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+Message-Id: <201107150717.08944@orion.escape-edv.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
+On Friday 15 July 2011 05:56:31 Mauro Carvalho Chehab wrote:
+> Em 14-07-2011 21:47, Mauro Carvalho Chehab escreveu:
+> > Em 14-07-2011 20:45, Oliver Endriss escreveu:
+> >> - DVB-T tuning does not work anymore.
+> > I think that the better is to revert my patch and apply a solution similar
+> > to cxd2820r_attach. It should work fine if called just once (like ngene/ddbridge)
+> > or twice (like em28xx).
+> 
+> I ended by fixing it at the easiest way: Just add a hack at em28xx to work the same
+> way as ngene/ddbridge.
+> 
+> The code is not beautiful, but in order to fix, I would also need to touch at
+> tda18271c2dd. Let's do it on another time.
+> 
+> [media] Remove the double symbol increment hack from drxk_hard
 
-The following changes since commit 5dcd07b9f39ca3e9be5bcc387d193fc0674e1c81:
-  Linus Torvalds (1):
-        Merge git://git.kernel.org/.../steve/gfs2-2.6-fixes
+Thanks, module unloading works again.
 
-are available in the git repository at:
+> Both ngene and ddbrige calls dvb_attach once for drxk_attach.
+> The logic used there, and by tda18271c2dd driver is different
+> from similar logic on other frontends.
+> 
+> The right fix is to change them to use the same logic, but,
+> while we don't do that, we need to patch em28xx-dvb in order
+> to do cope with ngene/ddbridge magic.
 
-  git://arago-project.org/git/people/vaibhav/ti-psp-omap-video.git for-linux-media
+I disagree: The right fix is to extend the framework, and drop the
+secondary frondend completely. The current way of supporting
+multi-standard tuners is abusing the DVB API.
 
-Amber Jain (5):
-      V4L2: omap_vout: Remove GFP_DMA allocation as ZONE_DMA is not configured on OMAP
-      OMAP2: V4L2: Remove GFP_DMA allocation as ZONE_DMA is not configured on OMAP
-      V4L2: OMAP: VOUT: isr handling extended for DPI and HDMI interface
-      V4L2: OMAP: VOUT: dma map and unmap v4l2 buffers in qbuf and dqbuf
-      V4l2: OMAP: VOUT: Minor Cleanup, removing the unnecessary code.
+CU
+Oliver
 
-Archit Taneja (3):
-      OMAP_VOUT: CLEANUP: Move generic functions and macros to common files
-      OMAP_VOUT: CLEANUP: Make rotation related helper functions more descriptive
-      OMAP_VOUT: Create separate file for VRFB related API's
-
- drivers/media/video/omap/Kconfig          |    7 +-
- drivers/media/video/omap/Makefile         |    1 +
- drivers/media/video/omap/omap_vout.c      |  645 +++++++----------------------
- drivers/media/video/omap/omap_vout_vrfb.c |  390 +++++++++++++++++
- drivers/media/video/omap/omap_vout_vrfb.h |   40 ++
- drivers/media/video/omap/omap_voutdef.h   |   78 ++++
- drivers/media/video/omap/omap_voutlib.c   |   46 ++
- drivers/media/video/omap/omap_voutlib.h   |   12 +-
- drivers/media/video/omap24xxcam.c         |    4 +-
- 9 files changed, 710 insertions(+), 513 deletions(-)
- create mode 100644 drivers/media/video/omap/omap_vout_vrfb.c
- create mode 100644 drivers/media/video/omap/omap_vout_vrfb.h
+-- 
+----------------------------------------------------------------
+VDR Remote Plugin 0.4.0: http://www.escape-edv.de/endriss/vdr/
+4 MByte Mod: http://www.escape-edv.de/endriss/dvb-mem-mod/
+Full-TS Mod: http://www.escape-edv.de/endriss/dvb-full-ts-mod/
+----------------------------------------------------------------
