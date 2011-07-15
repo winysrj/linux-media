@@ -1,175 +1,67 @@
-Return-path: <mchehab@localhost>
-Received: from einhorn.in-berlin.de ([192.109.42.8]:48091 "EHLO
-	einhorn.in-berlin.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752717Ab1GFRd3 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 6 Jul 2011 13:33:29 -0400
-Date: Wed, 6 Jul 2011 19:33:15 +0200
-From: Stefan Richter <stefanr@s5r6.in-berlin.de>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: <linux-media@vger.kernel.org>, Henrik Kurelid <henrik@kurelid.se>
-Subject: [PATCH] [media] firedtv: change some -EFAULT returns to more
- fitting error codes
-Message-ID: <20110706193315.42fb981c@stein>
-In-Reply-To: <4E14877F.6060208@redhat.com>
-References: <4E14877F.6060208@redhat.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Return-path: <linux-media-owner@vger.kernel.org>
+Received: from perceval.ideasonboard.com ([95.142.166.194]:46401 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750865Ab1GONvt (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 15 Jul 2011 09:51:49 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Teresa Gamez <T.Gamez@phytec.de>
+Subject: Re: Migrate from soc_camera to v4l2
+Date: Fri, 15 Jul 2011 15:51:44 +0200
+Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	LBM <lbm9527@qq.com>, "linux-media" <linux-media@vger.kernel.org>
+References: <tencent_0C81805C0261B60E5643A744@qq.com> <Pine.LNX.4.64.1107130902070.30737@axis700.grange> <1310737039.2366.394.camel@lws-gamez>
+In-Reply-To: <1310737039.2366.394.camel@lws-gamez>
+MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="utf-8"
 Content-Transfer-Encoding: 7bit
+Message-Id: <201107151551.44802.laurent.pinchart@ideasonboard.com>
+Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
-Sender: <mchehab@infradead.org>
 
-Mauro Carvalho Chehab wrote:
-> I'm validating if all drivers are behaving equally with respect to the
-> error codes returned to userspace, and double-checking with the API.
+Hi Teresa,
+
+On Friday 15 July 2011 15:37:19 Teresa Gamez wrote:
+> Am Mittwoch, den 13.07.2011, 09:14 +0200 schrieb Guennadi Liakhovetski:
+> > On Wed, 13 Jul 2011, LBM wrote:
+> > > my dear Guennadi
+> > > 
+> > >      I'm wrong about that "v4l2-int-device",maybe it just "V4L2".
+> > >      
+> > >        Now i have a board of OMAP3530 and a cmos camera MT9M111,so i
+> > >        want to get the image from the mt9m111.
+> > >  
+> > >  and ,I want to use the V4L2 API. But in the linux kernel 2.6.38,the
+> > >  driver of the mt9m111 is  a soc_camera.I see some thing about how to
+> > >  convert the soc_camera to V4L2,like "soc-camera: (partially) convert
+> > >  to v4l2-(sub)dev API".
+> > >  
+> > >       Can you tell me how to migrate from soc_camera to v4l2,and
+> > >      
+> > >      or do you tell me some experience about that?
+> > 
+> > Currently there's no standard way to make a driver to work with both
+> > soc-camera and (pure) v4l2-subdev APIs. It is being worked on:
+> > 
+> > http://www.spinics.net/lists/linux-media/msg34878.html
+> > 
+> > and, hopefully, beginning with the next kernel version 3.1 it will become
+> > at least theoretically possible. For now you just have to hack the driver
+> > yourself for your local uses by removing all soc-camera specific code and
 > 
-> On almost all places, -EFAULT code is used only to indicate when
-> copy_from_user/copy_to_user fails. However, firedtv uses a lot of
-> -EFAULT, where it seems to me that other error codes should be used
-> instead (like -EIO for bus transfer errors and -EINVAL/-ERANGE for 
-> invalid/out of range parameters).
+> > replacing it with your own glue, something along these lines:
+> We are also interested in the support of the MT9M111 and MT9V022 for
+> OMAP-4460/OMAP-4430/OMAP-3525. I have not taken a deeper look at it yet.
+> But what do you mean by theoretically possible? Could it work out of the
+> box? Or is there more work to do?
 
-This concerns only the CI (CAM) related code of firedtv of which I know
-little.  Let's just pass through the error returns of lower level I/O
-code where applicable, and -EACCES (permission denied) when a seemingly
-valid but negative FCP response or an unknown-to-firedtv CA message is
-received.
-
-Signed-off-by: Stefan Richter <stefanr@s5r6.in-berlin.de>
-Cc: Henrik Kurelid <henrik@kurelid.se>
----
-Only tested on FireDTV-{C,T}/CI without CAM.
-
- drivers/media/dvb/firewire/firedtv-avc.c |    2 
- drivers/media/dvb/firewire/firedtv-ci.c  |   34 +++++++++++------------
- 2 files changed, 17 insertions(+), 19 deletions(-)
-
-Index: b/drivers/media/dvb/firewire/firedtv-avc.c
-===================================================================
---- a/drivers/media/dvb/firewire/firedtv-avc.c
-+++ b/drivers/media/dvb/firewire/firedtv-avc.c
-@@ -1208,7 +1208,7 @@ int avc_ca_pmt(struct firedtv *fdtv, cha
- 	if (r->response != AVC_RESPONSE_ACCEPTED) {
- 		dev_err(fdtv->device,
- 			"CA PMT failed with response 0x%x\n",
-r->response);
--		ret = -EFAULT;
-+		ret = -EACCES;
- 	}
- out:
- 	mutex_unlock(&fdtv->avc_mutex);
-Index: b/drivers/media/dvb/firewire/firedtv-ci.c
-===================================================================
---- a/drivers/media/dvb/firewire/firedtv-ci.c
-+++ b/drivers/media/dvb/firewire/firedtv-ci.c
-@@ -45,11 +45,6 @@ static int fdtv_get_ca_flags(struct fire
- 	return flags;
- }
- 
--static int fdtv_ca_reset(struct firedtv *fdtv)
--{
--	return avc_ca_reset(fdtv) ? -EFAULT : 0;
--}
--
- static int fdtv_ca_get_caps(void *arg)
- {
- 	struct ca_caps *cap = arg;
-@@ -65,12 +60,14 @@ static int fdtv_ca_get_slot_info(struct
- {
- 	struct firedtv_tuner_status stat;
- 	struct ca_slot_info *slot = arg;
-+	int err;
- 
--	if (avc_tuner_status(fdtv, &stat))
--		return -EFAULT;
-+	err = avc_tuner_status(fdtv, &stat);
-+	if (err)
-+		return err;
- 
- 	if (slot->num != 0)
--		return -EFAULT;
-+		return -EACCES;
- 
- 	slot->type = CA_CI;
- 	slot->flags = fdtv_get_ca_flags(&stat);
-@@ -81,21 +78,21 @@ static int fdtv_ca_app_info(struct fired
- {
- 	struct ca_msg *reply = arg;
- 
--	return avc_ca_app_info(fdtv, reply->msg, &reply->length) ?
--EFAULT : 0;
-+	return avc_ca_app_info(fdtv, reply->msg, &reply->length);
- }
- 
- static int fdtv_ca_info(struct firedtv *fdtv, void *arg)
- {
- 	struct ca_msg *reply = arg;
- 
--	return avc_ca_info(fdtv, reply->msg, &reply->length) ? -EFAULT :
-0;
-+	return avc_ca_info(fdtv, reply->msg, &reply->length);
- }
- 
- static int fdtv_ca_get_mmi(struct firedtv *fdtv, void *arg)
- {
- 	struct ca_msg *reply = arg;
- 
--	return avc_ca_get_mmi(fdtv, reply->msg, &reply->length) ?
--EFAULT : 0;
-+	return avc_ca_get_mmi(fdtv, reply->msg, &reply->length);
- }
- 
- static int fdtv_ca_get_msg(struct firedtv *fdtv, void *arg)
-@@ -111,14 +108,15 @@ static int fdtv_ca_get_msg(struct firedt
- 		err = fdtv_ca_info(fdtv, arg);
- 		break;
- 	default:
--		if (avc_tuner_status(fdtv, &stat))
--			err = -EFAULT;
--		else if (stat.ca_mmi == 1)
-+		err = avc_tuner_status(fdtv, &stat);
-+		if (err)
-+			break;
-+		if (stat.ca_mmi == 1)
- 			err = fdtv_ca_get_mmi(fdtv, arg);
- 		else {
- 			dev_info(fdtv->device, "unhandled CA message
-0x%08x\n", fdtv->ca_last_command);
--			err = -EFAULT;
-+			err = -EACCES;
- 		}
- 	}
- 	fdtv->ca_last_command = 0;
-@@ -141,7 +139,7 @@ static int fdtv_ca_pmt(struct firedtv *f
- 		data_length = msg->msg[3];
- 	}
- 
--	return avc_ca_pmt(fdtv, &msg->msg[data_pos], data_length) ?
--EFAULT : 0;
-+	return avc_ca_pmt(fdtv, &msg->msg[data_pos], data_length);
- }
- 
- static int fdtv_ca_send_msg(struct firedtv *fdtv, void *arg)
-@@ -170,7 +168,7 @@ static int fdtv_ca_send_msg(struct fired
- 	default:
- 		dev_err(fdtv->device, "unhandled CA message 0x%08x\n",
- 			fdtv->ca_last_command);
--		err = -EFAULT;
-+		err = -EACCES;
- 	}
- 	return err;
- }
-@@ -184,7 +182,7 @@ static int fdtv_ca_ioctl(struct file *fi
- 
- 	switch (cmd) {
- 	case CA_RESET:
--		err = fdtv_ca_reset(fdtv);
-+		err = avc_ca_reset(fdtv);
- 		break;
- 	case CA_GET_CAP:
- 		err = fdtv_ca_get_caps(arg);
-
+The OMAP4 has unfortunately no V4L2 driver, so OMAP4 support is pretty much 
+impossible today. The situation might change, but unless someone is willing to 
+fund a couple of developers to work on this full time, I don't expect a proper 
+OMAP4 V4L2 driver before at least one year.
 
 -- 
-Stefan Richter
--=====-==-== -=== --==-
-http://arcgraph.de/sr/
+Regards,
+
+Laurent Pinchart
