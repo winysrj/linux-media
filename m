@@ -1,150 +1,78 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:33503 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753100Ab1GWRre (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 23 Jul 2011 13:47:34 -0400
-Message-ID: <4E2B092F.5040107@iki.fi>
-Date: Sat, 23 Jul 2011 20:47:27 +0300
-From: Antti Palosaari <crope@iki.fi>
-MIME-Version: 1.0
-To: Jose Alberto Reguero <jareguero@telefonica.net>
-CC: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	linux-media@vger.kernel.org,
-	Michael Krufky <mkrufky@kernellabs.com>,
-	Guy Martin <gmsoft@tuxicoman.be>
-Subject: Re: [PATCH] add support for the dvb-t part of CT-3650 v3
-References: <201106070205.08118.jareguero@telefonica.net> <201107231221.10705.jareguero@telefonica.net> <4E2AA481.4030103@iki.fi> <201107231741.53794.jareguero@telefonica.net>
-In-Reply-To: <201107231741.53794.jareguero@telefonica.net>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 8bit
+Received: from mailout2.w1.samsung.com ([210.118.77.12]:23066 "EHLO
+	mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S964856Ab1GOGSs (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 15 Jul 2011 02:18:48 -0400
+Received: from spt2.w1.samsung.com (mailout2.w1.samsung.com [210.118.77.12])
+ by mailout2.w1.samsung.com
+ (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14 2004))
+ with ESMTP id <0LOD00LFH2VBI2@mailout2.w1.samsung.com> for
+ linux-media@vger.kernel.org; Fri, 15 Jul 2011 07:18:47 +0100 (BST)
+Received: from linux.samsung.com ([106.116.38.10])
+ by spt2.w1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14
+ 2004)) with ESMTPA id <0LOD008V12VAJ6@spt2.w1.samsung.com> for
+ linux-media@vger.kernel.org; Fri, 15 Jul 2011 07:18:46 +0100 (BST)
+Date: Fri, 15 Jul 2011 08:18:03 +0200
+From: Marek Szyprowski <m.szyprowski@samsung.com>
+Subject: RE: [PATCH] videobuf2: Do not unconditionally map S/G buffers into
+ kernel space
+In-reply-to: <20110714151044.44cb89ee@bike.lwn.net>
+To: 'Jonathan Corbet' <corbet@lwn.net>, linux-media@vger.kernel.org,
+	'Mauro Carvalho Chehab' <mchehab@redhat.com>
+Message-id: <000201cc42b6$f3ef9e70$dbcedb50$%szyprowski@samsung.com>
+MIME-version: 1.0
+Content-type: text/plain; charset=us-ascii
+Content-language: pl
+Content-transfer-encoding: 7BIT
+References: <20110714151044.44cb89ee@bike.lwn.net>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 07/23/2011 06:41 PM, Jose Alberto Reguero wrote:
-> On Sábado, 23 de Julio de 2011 12:37:53 Antti Palosaari escribió:
->> On 07/23/2011 01:21 PM, Jose Alberto Reguero wrote:
->>> On Sábado, 23 de Julio de 2011 11:42:58 Antti Palosaari escribió:
->>>> On 07/23/2011 11:26 AM, Jose Alberto Reguero wrote:
->>>>> The problem is in i2c read in tda827x_probe_version. Without the fix
->>>>> sometimes, when changing the code the tuner is detected as  tda827xo
->>>>> instead of tda827xa. That is because the variable where i2c read should
->>>>> store the value is initialized, and sometimes it works.
->>>>
->>>> struct i2c_msg msg = { .addr = priv->i2c_addr, .flags = I2C_M_RD,
->>>>
->>>> 			       .buf =&data, .len = 1 };
->>>>
->>>> rc = tuner_transfer(fe,&msg, 1);
->>>>
->>>> :-( Could you read what I write. It is a little bit annoying to find out
->>>>
->>>> everything for you. You just answer every time something like it does
->>>> not work and I should always find out what's problem.
->>>>
->>>> As I pointed out read will never work since I2C adapter supports only
->>>> read done in WRITE+READ combination. Driver uses read which is single
->>>> READ without write.
->>>>
->>>> You should implement new read. You can look example from af9015 or other
->>>> drivers using tda827x
->>>>
->>>> This have been never worked thus I Cc Guy Martin who have added DVB-C
->>>> support for that device.
->>>>
->>>>
->>>> regards
->>>> Antti
->>>
->>> I don't understand you. I think that you don' see the fix, but the old
->>> code. Old code:
->>>
->>> read = i+1<    num&&    (msg[i+1].flags&    I2C_M_RD);
->>>
->>> Fix:
->>>
->>> read1 = i+1<   num&&   (msg[i+1].flags&   I2C_M_RD); for the tda10023 and
->>> tda10048 read2 = msg[i].flags&   I2C_M_RD; for the tda827x
->>>
->>> Jose Alberto
->>
->> First of all I must apologize of blaming you about that I2C adapter,
->> sorry, I should going to shame now. It was me who doesn't read your
->> changes as should :/
->>
->> Your changes are logically OK and implements correctly single reading as
->> needed. Some comments still;
->> * consider renaming read1 and read2 for example write_read and read
->> * obuf[1] contains WRITE len. your code sets that now as READ len.
->> Probably it should be 0 always in single write since no bytes written.
->> * remove useless checks from end of the "if (foo) if (foo)";
->> if (read1 || read2) {
->> 	if (read1) {
->> [...]
->> 	} else if (read2)
->>
->> If you store some variables at the beginning, olen, ilen, obuf, ibuf,
->> you can increase i++ for write+read and rest of the code in function can
->> be same (no more if read or write + read). But maybe it is safe to keep
->> closer original than change such much.
->>
->>
->> regards
->> Antti
->
-> There are a second i2c read, but less important.It is in:
->
-> tda827xa_set_params
->
-> ............
->          buf[0] = 0xa0;
->          buf[1] = 0x40;
->          msg.len = 2;
->          rc = tuner_transfer(fe,&msg, 1);
->          if (rc<  0)
->                  goto err;
->
->          msleep(11);
->          msg.flags = I2C_M_RD;
->          rc = tuner_transfer(fe,&msg, 1);
->          if (rc<  0)
->                  goto err;
->          msg.flags = 0;
->
->          buf[1]>>= 4;
-> ............
-> I supposed that buf[0] is the register to read and they read the value in
-> buf[1]. The code now seem to work ok but perhaps is wrong.
+Hello,
 
-This one is as translated to "normal" C we usually use;
-write_reg(0xa0, 0x40); // write one reg
-read_regs(2); // read 2 regs
+On Thursday, July 14, 2011 11:11 PM Jonathan Corbet wrote:
 
-example from the sniff
-  AA B0 31 05 C2 02 00 A0 40                        ª°1.Â.. @
-  55 B0 31 03 C2 02 00 4A 44 08 00 00 00 71 AC EC   U°1.Â..JD....q¬ì
-  AA B1 31 05 C2 02 00 30 11                        ª±1.Â..0.
-  55 B1 31 03 C2 02 00 4A 44 08 00 00 00 71 AC EC   U±1.Â..JD....q¬ì
+> The one in-tree videobuf2-dma-sg driver (mmp-camera) has no need for a
+> kernel-space mapping of the buffers; one suspects that most other drivers
+> would not either.  The videobuf2-dma-sg module does the right thing if
+> buf->vaddr == NULL - it maps the buffer on demand if somebody needs it.  So
+> let's not map the buffer at allocation time; that will save a little CPU
+> time and a lot of address space in the vmalloc range.
+> 
+> Signed-off-by: Jonathan Corbet <corbet@lwn.net>
 
+Acked-by: Marek Szyprowski <m.szyprowski@samsung.com>
 
-AA USB direction to device
-B1 USB msg seq
-31 USB cmd
-05 USB data len (4+5=9, 4=hdr len, 5=data len, 9=total)
-C2 I2C addr (addr << 1)
-02 I2C write len
-00 I2C read len
-30 I2C data [0]
-11 I2C data [1]
+> ---
+>  drivers/media/video/videobuf2-dma-sg.c |    6 ------
+>  1 files changed, 0 insertions(+), 6 deletions(-)
+> 
+> diff --git a/drivers/media/video/videobuf2-dma-sg.c
+> b/drivers/media/video/videobuf2-dma-sg.c
+> index b2d9485..0e8edc1 100644
+> --- a/drivers/media/video/videobuf2-dma-sg.c
+> +++ b/drivers/media/video/videobuf2-dma-sg.c
+> @@ -77,12 +77,6 @@ static void *vb2_dma_sg_alloc(void *alloc_ctx, unsigned
+> long size)
+> 
+>  	printk(KERN_DEBUG "%s: Allocated buffer of %d pages\n",
+>  		__func__, buf->sg_desc.num_pages);
+> -
+> -	if (!buf->vaddr)
+> -		buf->vaddr = vm_map_ram(buf->pages,
+> -					buf->sg_desc.num_pages,
+> -					-1,
+> -					PAGE_KERNEL);
+>  	return buf;
+> 
+>  fail_pages_alloc:
+> --
+> 1.7.6
 
-So it seems actually to write 30 11 and then read 4a 44 as reply. But if 
-you read driver code it does not write "30 11" instead just reads. Maybe 
-buggy I2C adap implementation or buggy tuner driver (Linux driver or 
-driver where sniff taken). Try to read without write and with write and 
-compare if there is any difference.
-
-
-regards
-Antti
-
+Best regards
 -- 
-http://palosaari.fi/
+Marek Szyprowski
+Samsung Poland R&D Center
+
+
