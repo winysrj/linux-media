@@ -1,62 +1,41 @@
-Return-path: <mchehab@pedra>
-Received: from moutng.kundenserver.de ([212.227.126.186]:60264 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754352Ab1GDOqZ (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 4 Jul 2011 10:46:25 -0400
-From: Arnd Bergmann <arnd@arndb.de>
-To: Ankita Garg <ankita@in.ibm.com>
-Subject: Re: [Linaro-mm-sig] [PATCH 08/10] mm: cma: Contiguous Memory Allocator added
-Date: Mon, 4 Jul 2011 16:45:29 +0200
-Cc: Larry Bassel <lbassel@codeaurora.org>,
-	Marek Szyprowski <m.szyprowski@samsung.com>,
-	"'Zach Pfeffer'" <zach.pfeffer@linaro.org>,
-	"'Daniel Walker'" <dwalker@codeaurora.org>,
-	"'Daniel Stone'" <daniels@collabora.com>,
-	"'Jesse Barker'" <jesse.barker@linaro.org>,
-	"'Mel Gorman'" <mel@csn.ul.ie>,
-	"'KAMEZAWA Hiroyuki'" <kamezawa.hiroyu@jp.fujitsu.com>,
-	linux-kernel@vger.kernel.org,
-	"'Michal Nazarewicz'" <mina86@mina86.com>,
-	linaro-mm-sig@lists.linaro.org, linux-mm@kvack.org,
-	"'Kyungmin Park'" <kyungmin.park@samsung.com>,
-	"'Andrew Morton'" <akpm@linux-foundation.org>,
-	linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org
-References: <1307699698-29369-1-git-send-email-m.szyprowski@samsung.com> <201106160006.07742.arnd@arndb.de> <20110704052539.GK12667@in.ibm.com>
-In-Reply-To: <20110704052539.GK12667@in.ibm.com>
+Return-path: <linux-media-owner@vger.kernel.org>
+Received: from mx1.redhat.com ([209.132.183.28]:40921 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753018Ab1GOQC1 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 15 Jul 2011 12:02:27 -0400
+Message-ID: <4E20648F.6080601@redhat.com>
+Date: Fri, 15 Jul 2011 13:02:23 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+CC: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: [RFC] soc-camera: remove device and bus abstractions
+References: <Pine.LNX.4.64.1107151738210.22613@axis700.grange>
+In-Reply-To: <Pine.LNX.4.64.1107151738210.22613@axis700.grange>
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 7bit
-Message-Id: <201107041645.29385.arnd@arndb.de>
+Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
-Sender: <mchehab@pedra>
 
-On Monday 04 July 2011, Ankita Garg wrote:
-> > It still sounds to me that this can be done using the NUMA properties
-> > that Linux already understands, and teaching more subsystems about it,
-> > but maybe the memory hotplug developers have already come up with
-> > another scheme. The way that memory hotplug and CMA choose their
-> > memory regions certainly needs to take both into account. As far as
-> > I can see there are both conflicting and synergistic effects when
-> > you combine the two.
-> > 
+Em 15-07-2011 12:49, Guennadi Liakhovetski escreveu:
+> I'm currently working on removing "struct device" from "struct 
+> soc_camera_device" and the "struct bus_type soc_camera_bus_type" bus. 
+> Reasoning - well, I've just got enough of them;-) Everything, what they 
+> are currently providing, can also be implemented directly. They served 
+> their purpose during the active soc-camera API development as a nice 
+> abstraction to build around, as debugging means, etc. But not, that also 
+> subdevices have got their own "struct video_device" and with "struct 
+> device" nodes embedded, I thi, we in v4l2 have (more than) enough devices 
+> to satisfy all sysfs fans;-)
+
+Very welcome plan.
 > 
-> Recently, we proposed a generic 'memory regions' framework to exploit
-> the memory power management capabilities on the embedded boards. Think
-> of some of the above CMA requirements could be met by this fraemwork.
-> One of the main goals of regions is to make the VM aware of the hardware
-> memory boundaries, like bank. For managing memory power consumption,
-> memory regions are created aligned to the hardware granularity at which
-> the power can be managed (ie, the memory power consumption operations
-> like on/off can be performed). If attributed are associated with each of
-> these regions, some of these regions could be marked as CMA-only,
-> ensuring that only movable and per-bank memory is allocated. More
-> details on the design can be found here:
-> 
-> http://lkml.org/lkml/2011/5/27/177
-> http://lkml.org/lkml/2011/6/29/202
-> http://lwn.net/Articles/446493/
+> So, this is just to let everyone know about my plans, don't know whether I 
+> manage it for 3.1, or will have to postpone to 3.2. In any case if anyone 
+> has any principle objections against this plan, please shout now!
 
-Thanks for the pointers, that is exactly what I was looking for.
+It is probably too late for 3.1, as the merge window will likely start next
+week. So, all patches for 3.1 are likely already submitted.
 
-	Arnd
+Cheers,
+Mauro.
