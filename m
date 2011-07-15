@@ -1,38 +1,47 @@
-Return-path: <mchehab@pedra>
-Received: from mailout-de.gmx.net ([213.165.64.22]:34781 "HELO
-	mailout-de.gmx.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1751203Ab1GCVXL (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sun, 3 Jul 2011 17:23:11 -0400
-From: Oliver Endriss <o.endriss@gmx.de>
-To: linux-media@vger.kernel.org
-Subject: [PATCH 0/5] Driver support for cards based on Digital Devices bridge (ddbridge)
-Date: Sun, 3 Jul 2011 23:21:45 +0200
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>
+Return-path: <linux-media-owner@vger.kernel.org>
+Received: from iolanthe.rowland.org ([192.131.102.54]:48784 "HELO
+	iolanthe.rowland.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1750998Ab1GOPZr (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 15 Jul 2011 11:25:47 -0400
+Date: Fri, 15 Jul 2011 11:25:47 -0400 (EDT)
+From: Alan Stern <stern@rowland.harvard.edu>
+To: Ming Lei <tom.leiming@gmail.com>
+cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Ming Lei <ming.lei@canonical.com>,
+	<linux-media@vger.kernel.org>, <linux-usb@vger.kernel.org>,
+	Jeremy Kerr <jeremy.kerr@canonical.com>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>
+Subject: Re: [PATCH] uvcvideo: add fix suspend/resume quirk for Microdia
+ camera
+In-Reply-To: <CACVXFVPHfskUCxhznpATknNxokmL5hft-b+KoxWiMzprVmuJ4w@mail.gmail.com>
+Message-ID: <Pine.LNX.4.44L0.1107151122490.1866-100000@iolanthe.rowland.org>
 MIME-Version: 1.0
-Content-Type: text/plain;
-  charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-Message-Id: <201107032321.46092@orion.escape-edv.de>
+Content-Type: TEXT/PLAIN; charset=UTF-8
+Content-Transfer-Encoding: 8BIT
+Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
-Sender: <mchehab@pedra>
 
-[PATCH 1/5] ddbridge: Initial check-in
-[PATCH 2/5] ddbridge: Codingstyle fixes
-[PATCH 3/5] ddbridge: Allow compiling of the driver
-[PATCH 4/5] cxd2099: Fix compilation of ngene/ddbridge for DVB_CXD2099=n
-[PATCH 5/5] cxd2099: Update Kconfig descrition (ddbridge support)
+On Fri, 15 Jul 2011, Ming Lei wrote:
 
-Note:
-This patch series depends on the previous one:
-[PATCH 00/16] New drivers: DRX-K, TDA18271c2, Updates: CXD2099 and ngene
+> Hi,
+> 
+> On Fri, Jul 15, 2011 at 10:27 PM, Alan Stern <stern@rowland.harvard.edu> wrote:
+> 
+> > This is fine with me.  However, it is strange that the Set-Interface
+> > request is necessary.  After being reset, the device should
+> > automatically be in altsetting 0 for all interfaces.
+> 
+> For uvc devices, seems it is not strange, see uvc_video_init(), which
+> is called in .probe path and executes Set-Interface 0 first, then starts
+> to get/set video control.
 
-CU
-Oliver
+I see what you mean.  Apparently other UVC devices also need to receive
+a Set-Interface(0) request before they will work right.  (It's still 
+strange, though...)
 
--- 
-----------------------------------------------------------------
-VDR Remote Plugin 0.4.0: http://www.escape-edv.de/endriss/vdr/
-4 MByte Mod: http://www.escape-edv.de/endriss/dvb-mem-mod/
-Full-TS Mod: http://www.escape-edv.de/endriss/dvb-full-ts-mod/
-----------------------------------------------------------------
+Anyway, since the driver does this during probe, it makes sense to do 
+it during reset-resume as well.
+
+Alan Stern
+
