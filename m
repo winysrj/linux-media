@@ -1,93 +1,48 @@
-Return-path: <mchehab@localhost>
-Received: from casper.infradead.org ([85.118.1.10]:39834 "EHLO
-	casper.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753964Ab1GMOgW (ORCPT
+Return-path: <linux-media-owner@vger.kernel.org>
+Received: from smtp1-g21.free.fr ([212.27.42.1]:43050 "EHLO smtp1-g21.free.fr"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754094Ab1GOHql convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 13 Jul 2011 10:36:22 -0400
-Message-ID: <4E1DAD47.9030100@infradead.org>
-Date: Wed, 13 Jul 2011 11:35:51 -0300
-From: Mauro Carvalho Chehab <mchehab@infradead.org>
-MIME-Version: 1.0
-To: Fabio Belavenuto <belavenuto@gmail.com>
-CC: Jean Delvare <jdelvare@suse.de>,
-	Andy Walls <awalls@md.metrocast.net>,
-	linux-media@vger.kernel.org
-Subject: Re: [PATCH] [media] tea5764: Fix module parameter permissions
-References: <201107081100.37406.jdelvare@suse.de> <fe03786e-e629-4260-b637-80a58ce37728@email.android.com> <201107111354.09782.jdelvare@suse.de> <CAHmkXtGiry-ieG5okHd4Uxo3LS6gapPYCdE6BsJBsw2HVsmGiA@mail.gmail.com>
-In-Reply-To: <CAHmkXtGiry-ieG5okHd4Uxo3LS6gapPYCdE6BsJBsw2HVsmGiA@mail.gmail.com>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+	Fri, 15 Jul 2011 03:46:41 -0400
+Received: from tele (unknown [IPv6:2a01:e35:2f5c:9de0:212:bfff:fe1e:8db5])
+	by smtp1-g21.free.fr (Postfix) with ESMTP id 23F909400CB
+	for <linux-media@vger.kernel.org>; Fri, 15 Jul 2011 09:46:34 +0200 (CEST)
+Date: Fri, 15 Jul 2011 09:48:27 +0200
+From: Jean-Francois Moine <moinejf@free.fr>
+To: linux-media@vger.kernel.org
+Subject: Re: [PATCH] Fix wrong register mask in gspca/sonixj.c
+Message-ID: <20110715094827.1a2211f5@tele>
+In-Reply-To: <1310695719.58713.YahooMailClassic@web121818.mail.ne1.yahoo.com>
+References: <1310695719.58713.YahooMailClassic@web121818.mail.ne1.yahoo.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
+Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em 11-07-2011 09:25, Fabio Belavenuto escreveu:
-> Hi,
-> 
-> I'm the author. Sorry for my bad english, I'm from Brazil. :D
-> 
-> Yes, the intent of the "1" is to set the default value, in case
-> compile built-in.
-> 
-> I like the module to be generic, decided to choose enabled by default.
-> 
-> FÃ¡bio
-> 
-> 2011/7/11 Jean Delvare <jdelvare@suse.de>:
->> Hi Andy,
->>
->> On Friday 08 July 2011 12:34:38 pm Andy Walls wrote:
->>> Jean Delvare <jdelvare@suse.de> wrote:
->>>> The third parameter of module_param is supposed to represent sysfs
->>>> file permissions. A value of "1" leads to the following:
->>>>
->>>> $ ls -l /sys/module/radio_tea5764/parameters/
->>>> total 0
->>>> ---------x 1 root root 4096 Jul  8 09:17 use_xtal
->>>>
->>>> I am changing it to "0" to align with the other module parameters in
->>>> this driver.
->>>>
->>>> Signed-off-by: Jean Delvare <jdelvare@suse.de>
->>>> Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
->>>> Cc: Fabio Belavenuto <belavenuto@gmail.com>
->>>> ---
->>>> drivers/media/radio/radio-tea5764.c |    2 +-
->>>> 1 file changed, 1 insertion(+), 1 deletion(-)
->>>>
->>>> ---
->>>> linux-3.0-rc6.orig/drivers/media/radio/radio-tea5764.c      2011-05-20
->>>> 10:41:19.000000000 +0200
->>>> +++ linux-3.0-rc6/drivers/media/radio/radio-tea5764.c        2011-07-08
->>>> 09:15:16.000000000 +0200
->>>> @@ -596,7 +596,7 @@ MODULE_AUTHOR(DRIVER_AUTHOR);
->>>> MODULE_DESCRIPTION(DRIVER_DESC);
->>>> MODULE_LICENSE("GPL");
->>>>
->>>> -module_param(use_xtal, int, 1);
->>>> +module_param(use_xtal, int, 0);
->>>> MODULE_PARM_DESC(use_xtal, "Chip have a xtal connected in board");
->>>> module_param(radio_nr, int, 0);
->>>> MODULE_PARM_DESC(radio_nr, "video4linux device number to use");
->>>
->>> To whomever might know:
->>>
->>> Was the intent of the "1" to set the default value of the parameter?
->>
->> My guess is yes, and as a matter of fact 1 is indeed the default value
->> of use_xtal. Only the author of the code (Fabio Belavenuto) could tell
->> for sure, but he seems to be no longer involved so I wouldn't wait for
->> him.
+On Thu, 14 Jul 2011 19:08:39 -0700 (PDT)
+Luiz Ramos <luizzramos@yahoo.com.br> wrote:
 
-The value there is not the default value, but the permissions. From what
-I understand, the xtal frequency should be set at boot time, so setting
-it to 000 seems to do the work. So, I'm applying Jean's patch.
+> Signed-off-by: Luiz Carlos Ramos <lramos.prof <at> yahoo.com.br>
+> 
+> 
+> --- a/drivers/media/video/gspca/sonixj.c        2011-07-14
+> 13:14:41.000000000 -0300 +++
+> b/drivers/media/video/gspca/sonixj.c        2011-07-14
+> 13:22:26.000000000 -0300 @@ -2386,7 +2386,7 @@ static int
+> sd_start(struct gspca_dev *gs reg_w1(gspca_dev, 0x01, 0x22);
+> msleep(100); reg01 = SCL_SEL_OD | S_PDN_INV;
+> -               reg17 &= MCK_SIZE_MASK;
+> +               reg17 &= ~MCK_SIZE_MASK; /* that is, reset bits 4..0 */
+>  		  reg17 |= 0x04;          /* clock / 4 */
+>                 break;
+>         }
 
->>
->> --
->> Jean Delvare
->> Suse L3
->>
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Acked-by: Jean-François Moine <moinejf@free.fr>
 
+Luiz, may you get and try the last gspca tarball from my web site? (you
+will have to redo your patch, because I have not yet uploaded it)
+
+-- 
+Ken ar c'hentañ	|	      ** Breizh ha Linux atav! **
+Jef		|		http://moinejf.free.fr/
