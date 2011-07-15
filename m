@@ -1,90 +1,77 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.126.171]:61584 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751419Ab1GURvU (ORCPT
+Received: from mail-pv0-f174.google.com ([74.125.83.174]:45025 "EHLO
+	mail-pv0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932677Ab1GOBot convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 21 Jul 2011 13:51:20 -0400
-Date: Thu, 21 Jul 2011 19:51:12 +0200 (CEST)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Mauro Carvalho Chehab <mchehab@infradead.org>
-cc: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: [PULL v2] V4L, soc-camera: second pull for 3.1
-In-Reply-To: <Pine.LNX.4.64.1107171905040.13485@axis700.grange>
-Message-ID: <Pine.LNX.4.64.1107211948590.24569@axis700.grange>
-References: <Pine.LNX.4.64.1107171905040.13485@axis700.grange>
+	Thu, 14 Jul 2011 21:44:49 -0400
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+In-Reply-To: <20110710125356.b6cb17c2.rdunlap@xenotime.net>
+References: <20110710125109.c72f9c2d.rdunlap@xenotime.net>
+	<20110710125356.b6cb17c2.rdunlap@xenotime.net>
+Date: Thu, 14 Jul 2011 21:44:48 -0400
+Message-ID: <CACqU3MXTahX6oSsyfmejPHBL_7Fv1AKJz663k6hDQs7jCDGvtg@mail.gmail.com>
+Subject: Re: [PATCH 2/9] media/radio: fix aimslab CONFIG IO PORT
+From: Arnaud Lacombe <lacombar@gmail.com>
+To: Randy Dunlap <rdunlap@xenotime.net>
+Cc: lkml <linux-kernel@vger.kernel.org>, linux-media@vger.kernel.org,
+	mchehab@infradead.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro
+Hi,
 
-Hopefully, no more hick-ups this time:
+2 to 7 will be not needed. I screwed up a autoconf.h generation while
+refactoring the code. This is being addressed in the kbuild tree by:
 
-The following changes since commit bec969c908bb22931fd5ab8ecdf99de8702a6a31:
+https://patchwork.kernel.org/patch/975652/
 
-  [media] v4l: s5p-tv: add TV Mixer driver for Samsung S5P platform (2011-07-14 13:09:48 -0300)
+My bad,
+ - Arnaud
 
-are available in the git repository at:
-  git://linuxtv.org/gliakhovetski/v4l-dvb.git for-3.1
-
-Bastian Hecht (1):
-      V4L: initial driver for ov5642 CMOS sensor
-
-Guennadi Liakhovetski (8):
-      V4L: pxa-camera: switch to using standard PM hooks
-      V4L: soc-camera: remove now unused soc-camera specific PM hooks
-      V4L: soc-camera: group struct field initialisations together
-      V4L: add media bus configuration subdev operations
-      V4L: sh_mobile_csi2: switch away from using the soc-camera bus notifier
-      V4L: soc-camera: un-export the soc-camera bus
-      V4L: soc-camera: remove soc-camera bus and devices on it
-      V4L: sh_mobile_ceu_camera: fix Oops when USERPTR mapping fails
-
-Michael Grzeschik (2):
-      V4L: mt9m111: fix missing return value check mt9m111_reg_clear
-      V4L: mt9m111: rewrite set_pixfmt
-
- arch/arm/mach-shmobile/board-ap4evb.c      |   12 +-
- arch/arm/mach-shmobile/board-mackerel.c    |   13 +-
- arch/sh/boards/mach-ap325rxa/setup.c       |   15 +-
- drivers/media/video/Kconfig                |    6 +
- drivers/media/video/Makefile               |    1 +
- drivers/media/video/atmel-isi.c            |   64 +-
- drivers/media/video/mt9m001.c              |   14 +-
- drivers/media/video/mt9m111.c              |  189 ++----
- drivers/media/video/mt9t031.c              |    3 +-
- drivers/media/video/mt9t112.c              |   10 +-
- drivers/media/video/mt9v022.c              |   10 +-
- drivers/media/video/mx1_camera.c           |   42 +-
- drivers/media/video/mx2_camera.c           |   46 +-
- drivers/media/video/mx3_camera.c           |   56 +-
- drivers/media/video/omap1_camera.c         |   52 +-
- drivers/media/video/ov2640.c               |   13 +-
- drivers/media/video/ov5642.c               | 1011 ++++++++++++++++++++++++++++
- drivers/media/video/ov772x.c               |   10 +-
- drivers/media/video/ov9640.c               |   13 +-
- drivers/media/video/ov9740.c               |   13 +-
- drivers/media/video/pxa_camera.c           |   66 +-
- drivers/media/video/rj54n1cb0c.c           |    7 +-
- drivers/media/video/sh_mobile_ceu_camera.c |  199 ++++--
- drivers/media/video/sh_mobile_csi2.c       |  135 ++--
- drivers/media/video/soc_camera.c           |  264 +++-----
- drivers/media/video/soc_camera_platform.c  |   10 +-
- drivers/media/video/tw9910.c               |   10 +-
- include/media/sh_mobile_ceu.h              |   10 +-
- include/media/sh_mobile_csi2.h             |    8 +-
- include/media/soc_camera.h                 |   29 +-
- include/media/soc_camera_platform.h        |   15 +-
- include/media/v4l2-chip-ident.h            |    1 +
- include/media/v4l2-mediabus.h              |   63 ++
- include/media/v4l2-subdev.h                |   10 +
- 34 files changed, 1703 insertions(+), 717 deletions(-)
- create mode 100644 drivers/media/video/ov5642.c
-
-Thanks
-Guennadi
----
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
-http://www.open-technology.de/
+On Sun, Jul 10, 2011 at 3:53 PM, Randy Dunlap <rdunlap@xenotime.net> wrote:
+> From: Randy Dunlap <rdunlap@xenotime.net>
+>
+> Modify radio-aimslab to use HEX_STRING(CONFIG_RADIO_RTRACK_PORT)
+> so that the correct IO port value is used.
+>
+> Fixes this error message when CONFIG_RADIO_RTRACK_PORT=20f:
+> drivers/media/radio/radio-aimslab.c:49:17: error: invalid suffix "f" on integer constant
+>
+> Signed-off-by: Randy Dunlap <rdunlap@xenotime.net>
+> ---
+>  drivers/media/radio/radio-aimslab.c |    7 +++++--
+>  1 file changed, 5 insertions(+), 2 deletions(-)
+>
+> --- linux-next-20110707.orig/drivers/media/radio/radio-aimslab.c
+> +++ linux-next-20110707/drivers/media/radio/radio-aimslab.c
+> @@ -32,6 +32,7 @@
+>  #include <linux/init.h>                /* Initdata                     */
+>  #include <linux/ioport.h>      /* request_region               */
+>  #include <linux/delay.h>       /* msleep                       */
+> +#include <linux/stringify.h>
+>  #include <linux/videodev2.h>   /* kernel radio structs         */
+>  #include <linux/io.h>          /* outb, outb_p                 */
+>  #include <media/v4l2-device.h>
+> @@ -43,10 +44,12 @@ MODULE_LICENSE("GPL");
+>  MODULE_VERSION("0.0.3");
+>
+>  #ifndef CONFIG_RADIO_RTRACK_PORT
+> -#define CONFIG_RADIO_RTRACK_PORT -1
+> +#define __RADIO_RTRACK_PORT -1
+> +#else
+> +#define __RADIO_RTRACK_PORT HEX_STRING(CONFIG_RADIO_RTRACK_PORT)
+>  #endif
+>
+> -static int io = CONFIG_RADIO_RTRACK_PORT;
+> +static int io = __RADIO_RTRACK_PORT;
+>  static int radio_nr = -1;
+>
+>  module_param(io, int, 0);
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-kernel" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> Please read the FAQ at  http://www.tux.org/lkml/
+>
