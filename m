@@ -1,123 +1,75 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from tex.lwn.net ([70.33.254.29]:38527 "EHLO vena.lwn.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752240Ab1GOOaF (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 15 Jul 2011 10:30:05 -0400
-Date: Fri, 15 Jul 2011 08:30:03 -0600
-From: Jonathan Corbet <corbet@lwn.net>
-To: Marek Szyprowski <m.szyprowski@samsung.com>
-Cc: linux-media@vger.kernel.org,
-	'Mauro Carvalho Chehab' <mchehab@redhat.com>
-Subject: Re: [PATCH 1/2] videobuf2: Add a non-coherent contiguous DMA mode
-Message-ID: <20110715083003.79802a49@bike.lwn.net>
-In-Reply-To: <000001cc42b5$40c025f0$c24071d0$%szyprowski@samsung.com>
-References: <1310675711-39744-1-git-send-email-corbet@lwn.net>
-	<1310675711-39744-2-git-send-email-corbet@lwn.net>
-	<000001cc42b5$40c025f0$c24071d0$%szyprowski@samsung.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 8bit
+Received: from perceval.ideasonboard.com ([95.142.166.194]:43685 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750953Ab1GOUSa (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 15 Jul 2011 16:18:30 -0400
+Received: from localhost.localdomain (unknown [91.178.94.100])
+	by perceval.ideasonboard.com (Postfix) with ESMTPSA id 4C705359A4
+	for <linux-media@vger.kernel.org>; Fri, 15 Jul 2011 20:18:29 +0000 (UTC)
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: linux-media@vger.kernel.org
+Subject: [PATCH] v4l: mt9v032: Fix Bayer pattern
+Date: Fri, 15 Jul 2011 22:18:26 +0200
+Message-Id: <1310761106-29722-1-git-send-email-laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi, Marek,
+Compute crop rectangle boundaries to ensure a GRBG Bayer pattern.
 
-Thanks for having a look.
+Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+---
+ drivers/media/video/mt9v032.c |   20 ++++++++++----------
+ 1 files changed, 10 insertions(+), 10 deletions(-)
 
-> > +static unsigned int vb2_dma_nc_num_users(void *vbuf)
-> > +{
-> > +	struct vb2_nc_buf *buf = vbuf;
-> > +
-> > +	return atomic_read(&buf->refcount);
-> > +	/* Let's hope they don't fork() about now... */
-> 
-> This comment is really not needed here. vm_handler takes care of correct
-> reference
-> counting of the buffer when vma is duplicated (in case of operations like fork).
+If there's no comment I'll send a pull request for this patch in a couple of
+days.
 
-I'm just a little worried about race conditions with this refcounting; what
-keeps the count from changing between when you check it (for a value of
-one, not zero) and when you act on it?  I mentioned fork() because it won't
-care about any local locks.  But...if the count is <=1, that means, I
-guess, that nobody has the buffer mapped, so fork() is not going to take
-things.  So it's probably safe; I'll take the comment out.
+diff --git a/drivers/media/video/mt9v032.c b/drivers/media/video/mt9v032.c
+index 1319c2c..c64e1dc 100644
+--- a/drivers/media/video/mt9v032.c
++++ b/drivers/media/video/mt9v032.c
+@@ -31,14 +31,14 @@
+ #define MT9V032_CHIP_VERSION				0x00
+ #define		MT9V032_CHIP_ID_REV1			0x1311
+ #define		MT9V032_CHIP_ID_REV3			0x1313
+-#define MT9V032_ROW_START				0x01
+-#define		MT9V032_ROW_START_MIN			4
+-#define		MT9V032_ROW_START_DEF			10
+-#define		MT9V032_ROW_START_MAX			482
+-#define MT9V032_COLUMN_START				0x02
++#define MT9V032_COLUMN_START				0x01
+ #define		MT9V032_COLUMN_START_MIN		1
+-#define		MT9V032_COLUMN_START_DEF		2
++#define		MT9V032_COLUMN_START_DEF		1
+ #define		MT9V032_COLUMN_START_MAX		752
++#define MT9V032_ROW_START				0x02
++#define		MT9V032_ROW_START_MIN			4
++#define		MT9V032_ROW_START_DEF			5
++#define		MT9V032_ROW_START_MAX			482
+ #define MT9V032_WINDOW_HEIGHT				0x03
+ #define		MT9V032_WINDOW_HEIGHT_MIN		1
+ #define		MT9V032_WINDOW_HEIGHT_DEF		480
+@@ -420,13 +420,13 @@ static int mt9v032_set_crop(struct v4l2_subdev *subdev,
+ 	struct v4l2_rect *__crop;
+ 	struct v4l2_rect rect;
+ 
+-	/* Clamp the crop rectangle boundaries and align them to a multiple of 2
+-	 * pixels.
++	/* Clamp the crop rectangle boundaries and align them to a non multiple
++	 * of 2 pixels to ensure a GRBG Bayer pattern.
+ 	 */
+-	rect.left = clamp(ALIGN(crop->rect.left, 2),
++	rect.left = clamp(ALIGN(crop->rect.left + 1, 2) - 1,
+ 			  MT9V032_COLUMN_START_MIN,
+ 			  MT9V032_COLUMN_START_MAX);
+-	rect.top = clamp(ALIGN(crop->rect.top, 2),
++	rect.top = clamp(ALIGN(crop->rect.top + 1, 2) - 1,
+ 			 MT9V032_ROW_START_MIN,
+ 			 MT9V032_ROW_START_MAX);
+ 	rect.width = clamp(ALIGN(crop->rect.width, 2),
+-- 
+Regards,
 
-> I would add a pointer to driver's struct device as an argument for this memory
-> allocator context (like it is done for dma_contig/coherent) and move
-> dma_map_single()
-> and dma_unmap_single() calls directly into the allocator. The driver needs only
-> to
-> call dma_sync_single_for_{cpu,device} in buf_prepare and buf_finish
-> respectively.
+Laurent Pinchart
 
-I had thought about doing that, but decided to mirror the scatter/gather
-version, which pushes the mapping into the drivers.  I do think consistency
-makes some sense; if the mapping is to be done in the memops code, dma-sg
-should change.
-
-The problem is that there's no convenient callback into the allocators
-where the mapping and unmapping can be done now.  So I'd have had to add a
-couple of memops to do that.  You *can't* do the mapping at allocation
-time...  Rather than add more memops, I decided to do it in the driver,
-where some there are callbacks that happen at the right times.
-
-Would you rather I added the memops and did things that way?
-
-> The allocator does it's job right, but I still have some concerns.
-> alloc_pages_exact()
-> are really not so reliable if system is running for a longer time and memory
-> gets
-> fragmented. 
-
-Trust me, I'm well aware of that - though compaction and THP have made that
-a whole lot better than it was.  The real point, though, is this:
-alloc_pages_exact() is *way* more reliable than dma_alloc_coherent() on
-some systems.
-
-> This allocator also will not get any advantage of the IOMMU module
-> if such
-> is available (the allocator will still use one big chunk of physically
-> contiguous
-> memory block instead of allocating smaller chunks and mapping them contiguously
-> into
-> device io address space).
-
-True, but the system I'm working on doesn't have a nice IOMMU like that.
-Extending the allocator for such support doesn't seem like that hard a
-thing to do, but I don't have the hardware to do it with.
-
-> I plan to focus on these issues once I finish working on dma-mapping extensions.
-> My
-> idea is to introduce dma_alloc_attrs() function which will unify
-> dma_alloc_coherent,
-> dma_alloc_writecombine, dma_alloc_non-coherent and provide some additional 
-> functionality. This way the driver will be able to provide some attributes to 
-> control the properties of the memory. By default a standard COHERENT
-> (=non-cached)
-> memory will be provided, but we can have attributes for WRITECOMBINE memory and
-> NON-COHERENT (afair specific to some pci busses) and real CACHED memory (which
-> requires manual synchronization).
-> 
-> Having a common way of allocating a dma buffer enables us to use vb2-dma-contig 
-> allocator for all sub-types of the memory.
-
-I had thought about just extending dma-contig to support both modes, but I
-didn't find enough common code there to make it worthwhile.  I'm not sure
-how much value there is in mashing it all into one box; the drivers have to
-be aware of the differences in each case.
-
-Improving the DMA API makes sense - it's been fairly static for a long
-time.  I also wouldn't expect any such changes to be merged anytime real
-soon - you're playing in a lot of sensitive arch and mm playgrounds (I
-suspect you've noticed that :).  
-
-In the mean time I have an allocator which increases frame rates by a
-factor of three on my hardware, one which could easily be ready for 3.2 (no
-point in trying to rush it for 3.1, certainly).  Do I understand you to say
-that you'd rather not see it go in?  My preference would be to merge it; we
-can always make a switch if and when something better shows up elsewhere.
-I doubt it will have accumulated a huge number of users.  What say you?
-
-Thanks,
-
-jon
