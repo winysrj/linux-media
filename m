@@ -1,86 +1,52 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.126.186]:58593 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756061Ab1G2K5D (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 29 Jul 2011 06:57:03 -0400
-Received: from 6a.grange (6a.grange [192.168.1.11])
-	by axis700.grange (Postfix) with ESMTPS id CE21D18B046
-	for <linux-media@vger.kernel.org>; Fri, 29 Jul 2011 12:57:00 +0200 (CEST)
-Received: from lyakh by 6a.grange with local (Exim 4.72)
-	(envelope-from <g.liakhovetski@gmx.de>)
-	id 1QmkkW-0007nt-Gf
-	for linux-media@vger.kernel.org; Fri, 29 Jul 2011 12:57:00 +0200
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: linux-media@vger.kernel.org
-Subject: [PATCH 19/59] V4L: rj54n1cb0c: support the new mbus-config subdev ops
-Date: Fri, 29 Jul 2011 12:56:19 +0200
-Message-Id: <1311937019-29914-20-git-send-email-g.liakhovetski@gmx.de>
-In-Reply-To: <1311937019-29914-1-git-send-email-g.liakhovetski@gmx.de>
-References: <1311937019-29914-1-git-send-email-g.liakhovetski@gmx.de>
+Received: from mx1.redhat.com ([209.132.183.28]:3978 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750893Ab1GOMIu (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 15 Jul 2011 08:08:50 -0400
+Message-ID: <4E202DCC.40006@redhat.com>
+Date: Fri, 15 Jul 2011 09:08:44 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+MIME-Version: 1.0
+To: Andreas Oberritter <obi@linuxtv.org>
+CC: linux-media@vger.kernel.org
+Subject: Re: [git:v4l-dvb/for_v3.1] [media] DVB: dvb_frontend: off by one
+ in	dtv_property_dump()
+References: <E1Qh7ma-00025Z-5V@www.linuxtv.org> <4E1E376B.30108@linuxtv.org> <4E201BC8.5000305@linuxtv.org>
+In-Reply-To: <4E201BC8.5000305@linuxtv.org>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Extend the driver to also support [gs]_mbus_config() subdevice video
-operations.
+Em 15-07-2011 07:51, Andreas Oberritter escreveu:
+> On 14.07.2011 02:25, Andreas Oberritter wrote:
+>> On 13.07.2011 23:28, Mauro Carvalho Chehab wrote:
+>>> This is an automatic generated email to let you know that the following patch were queued at the 
+>>> http://git.linuxtv.org/media_tree.git tree:
+>>>
+>>> Subject: [media] DVB: dvb_frontend: off by one in dtv_property_dump()
+>>> Author:  Dan Carpenter <error27@gmail.com>
+>>> Date:    Thu May 26 05:44:52 2011 -0300
+>>>
+>>> If the tvp->cmd == DTV_MAX_COMMAND then we read past the end of the
+>>> array.
+> 
+> Hi Mauro,
+> 
+> in case you missed my comment, here's the changeset that already fixed the
+> issue differently:
+> 
+> http://git.linuxtv.org/media_tree.git?a=commitdiff;h=3995223038d71e75def28c11d4e802f0bb7eff38
+> 
+> See also this thread: http://www.spinics.net/lists/linux-kernel-janitors/msg09077.html
 
-Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
----
- drivers/media/video/rj54n1cb0c.c |   34 ++++++++++++++++++++++++++++++++++
- 1 files changed, 34 insertions(+), 0 deletions(-)
+Ah, thanks for remind me!
 
-diff --git a/drivers/media/video/rj54n1cb0c.c b/drivers/media/video/rj54n1cb0c.c
-index 847ccc0..d19c79b 100644
---- a/drivers/media/video/rj54n1cb0c.c
-+++ b/drivers/media/video/rj54n1cb0c.c
-@@ -1337,6 +1337,38 @@ static struct v4l2_subdev_core_ops rj54n1_subdev_core_ops = {
- #endif
- };
- 
-+static int rj54n1_g_mbus_config(struct v4l2_subdev *sd,
-+				struct v4l2_mbus_config *cfg)
-+{
-+	struct i2c_client *client = v4l2_get_subdevdata(sd);
-+	struct soc_camera_device *icd = client->dev.platform_data;
-+	struct soc_camera_link *icl = to_soc_camera_link(icd);
-+
-+	cfg->flags =
-+		V4L2_MBUS_PCLK_SAMPLE_RISING | V4L2_MBUS_PCLK_SAMPLE_FALLING |
-+		V4L2_MBUS_MASTER | V4L2_MBUS_DATA_ACTIVE_HIGH |
-+		V4L2_MBUS_HSYNC_ACTIVE_HIGH | V4L2_MBUS_VSYNC_ACTIVE_HIGH;
-+	cfg->type = V4L2_MBUS_PARALLEL;
-+	cfg->flags = soc_camera_apply_board_flags(icl, cfg);
-+
-+	return 0;
-+}
-+
-+static int rj54n1_s_mbus_config(struct v4l2_subdev *sd,
-+				const struct v4l2_mbus_config *cfg)
-+{
-+	struct i2c_client *client = v4l2_get_subdevdata(sd);
-+	struct soc_camera_device *icd = client->dev.platform_data;
-+	struct soc_camera_link *icl = to_soc_camera_link(icd);
-+
-+	/* Figures 2.5-1 to 2.5-3 - default falling pixclk edge */
-+	if (soc_camera_apply_board_flags(icl, cfg) &
-+	    V4L2_MBUS_PCLK_SAMPLE_RISING)
-+		return reg_write(client, RJ54N1_OUT_SIGPO, 1 << 4);
-+	else
-+		return reg_write(client, RJ54N1_OUT_SIGPO, 0);
-+}
-+
- static struct v4l2_subdev_video_ops rj54n1_subdev_video_ops = {
- 	.s_stream	= rj54n1_s_stream,
- 	.s_mbus_fmt	= rj54n1_s_fmt,
-@@ -1346,6 +1378,8 @@ static struct v4l2_subdev_video_ops rj54n1_subdev_video_ops = {
- 	.g_crop		= rj54n1_g_crop,
- 	.s_crop		= rj54n1_s_crop,
- 	.cropcap	= rj54n1_cropcap,
-+	.g_mbus_config	= rj54n1_g_mbus_config,
-+	.s_mbus_config	= rj54n1_s_mbus_config,
- };
- 
- static struct v4l2_subdev_ops rj54n1_subdev_ops = {
--- 
-1.7.2.5
+Yeah, I followed that tread and applied the right place, but hundreds of patches later,
+and patchwork 'blaming' me of not committing or rejecting that patch, I ended by applying
+the wrong version also. Thanks for pointing me!
 
+I've reverted the wrong patch at the tree.
+
+Thanks!
+Mauro
