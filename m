@@ -1,38 +1,52 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp10.mail.ru ([94.100.176.152]:47878 "EHLO smtp10.mail.ru"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751122Ab1GVHvM (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 22 Jul 2011 03:51:12 -0400
-Message-ID: <4E292BED.60108@list.ru>
-Date: Fri, 22 Jul 2011 11:51:09 +0400
-From: Stas Sergeev <stsp@list.ru>
+Received: from mo-p00-ob.rzone.de ([81.169.146.162]:60600 "EHLO
+	mo-p00-ob.rzone.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S965146Ab1GOI0b (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 15 Jul 2011 04:26:31 -0400
+From: Ralph Metzler <rjkm@metzlerbros.de>
 MIME-Version: 1.0
-To: Mauro Carvalho Chehab <mchehab@infradead.org>
-CC: linux-media@vger.kernel.org
-Subject: Re: [patch][saa7134] do not change mute state for capturing audio
-References: <4E19D2F7.6060803@list.ru> <4E1E05AC.2070002@infradead.org> <4E1E0A1D.6000604@list.ru> <4E1E1571.6010400@infradead.org> <4E1E8108.3060305@list.ru> <4E1F9A25.1020208@infradead.org> <4E22AF12.4020600@list.ru> <4E22CCC0.8030803@infradead.org> <4E24BEB8.4060501@redhat.com> <4E257FF5.4040401@infradead.org> <4E258B60.6010007@list.ru> <4E25906D.3020200@infradead.org> <4E259B0C.90107@list.ru> <4E25A26A.2000204@infradead.org> <4E25A7C2.3050609@list.ru> <4E25C7AE.5020503@infradead.org> <4E25CF35.7000802@list.ru> <4E25DB37.8020609@infradead.org> <4E25FDE4.7040805@list.ru> <4E262772.9060509@infradead.org> <4E266799.8030706@list.ru> <4E26AEC0.5000405@infradead.org> <4E26B1E7.2080107@list.ru> <4E26B29B.4010109@infradead.org>
-In-Reply-To: <4E26B29B.4010109@infradead.org>
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
+Message-ID: <19999.63914.990114.26990@morden.metzler>
+Date: Fri, 15 Jul 2011 10:26:18 +0200
+To: linux-media@vger.kernel.org
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>
+Subject: Re: [PATCH 0/5] Driver support for cards based on Digital Devices bridge (ddbridge)
+In-Reply-To: <201107150717.08944@orion.escape-edv.de>
+References: <201107032321.46092@orion.escape-edv.de>
+	<4E1F8E1F.3000008@redhat.com>
+	<4E1FBA6F.10509@redhat.com>
+	<201107150717.08944@orion.escape-edv.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Ok, Mauro, so may I take your silence as an evidence
-that this reiterating myth about the mplayer breakage
-is just a myth?
-Look, I spent time on investigating the problem, on
-trying the different approaches to fix it, on explaining
-the problem to you, etc. So maybe I deserve something
-more than just a blunt "NACK, lets fix real bugs" reply
-you initially did? :)
-Note: that's the first time I got the nack without any
-explanation in the very first reply, and with the false
-explanations later. My patch doesn't break mplayer: it
-can't, since mplayer does not use that interface at all.
-And my patch fixes a real problem, so even if it is for
-some reasons incorrect, it certainly deserves a better
-treatment than the false claims.
-I guess you are doing this in order to just push your
-own patch, and you'll do that anyway, so this "letter of
-disappointment" is going to be my last posting to that
-thread, unless you decide to explain your nack after all. :)
+Oliver Endriss writes:
+ > > Both ngene and ddbrige calls dvb_attach once for drxk_attach.
+ > > The logic used there, and by tda18271c2dd driver is different
+ > > from similar logic on other frontends.
+ > > 
+ > > The right fix is to change them to use the same logic, but,
+ > > while we don't do that, we need to patch em28xx-dvb in order
+ > > to do cope with ngene/ddbridge magic.
+ > 
+ > I disagree: The right fix is to extend the framework, and drop the
+ > secondary frondend completely. The current way of supporting
+ > multi-standard tuners is abusing the DVB API.
+ > 
+
+Yes, exactly what I wanted to say.
+
+I am just working on yet another C/T combo. This time stv0367 and
+TDA18212. For both there are existing drivers and our own version again.
+I am trying to merge them so that there is not yet another
+discussion regarding new driver versions (but the very first version
+might still come out with separate drivers).
+At the same time I want to add delivery system properties to 
+support everything in one frontend device.
+Adding a parameter to select C or T as default should help in most
+cases where the application does not support switching yet.
+
+Regards,
+Ralph
+
