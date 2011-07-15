@@ -1,80 +1,77 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:36439 "EHLO mail.kapsi.fi"
+Received: from mx1.redhat.com ([209.132.183.28]:6189 "EHLO mx1.redhat.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752281Ab1GZANu (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 25 Jul 2011 20:13:50 -0400
-Received: from dyn3-82-128-185-212.psoas.suomi.net ([82.128.185.212] helo=localhost.localdomain)
-	by mail.kapsi.fi with esmtpsa (TLS1.0:DHE_RSA_AES_256_CBC_SHA1:32)
-	(Exim 4.69)
-	(envelope-from <crope@iki.fi>)
-	id 1QlVHQ-0005WM-Eg
-	for linux-media@vger.kernel.org; Tue, 26 Jul 2011 03:13:48 +0300
-Message-ID: <4E2E06BC.4090104@iki.fi>
-Date: Tue, 26 Jul 2011 03:13:48 +0300
-From: Antti Palosaari <crope@iki.fi>
+	id S1754495Ab1GORec (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 15 Jul 2011 13:34:32 -0400
+Message-ID: <4E207A22.9030209@redhat.com>
+Date: Fri, 15 Jul 2011 14:34:26 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
 MIME-Version: 1.0
-To: linux-media@vger.kernel.org
-Subject: [PATCH 0/3] DVB USB MFE
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+To: Andreas Oberritter <obi@linuxtv.org>
+CC: Ralph Metzler <rjkm@metzlerbros.de>, linux-media@vger.kernel.org
+Subject: Re: [PATCH 0/5] Driver support for cards based on Digital Devices
+ bridge (ddbridge)
+References: <201107032321.46092@orion.escape-edv.de> <4E1F8E1F.3000008@redhat.com> <4E1FBA6F.10509@redhat.com> <201107150717.08944@orion.escape-edv.de> <19999.63914.990114.26990@morden.metzler> <4E203FD0.4030503@redhat.com> <4E207252.5050506@linuxtv.org>
+In-Reply-To: <4E207252.5050506@linuxtv.org>
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Implement multi-frontend support for DVB USB.
+Em 15-07-2011 14:01, Andreas Oberritter escreveu:
+> On 15.07.2011 15:25, Mauro Carvalho Chehab wrote:
+>> Em 15-07-2011 05:26, Ralph Metzler escreveu:
+>>> At the same time I want to add delivery system properties to 
+>>> support everything in one frontend device.
+>>> Adding a parameter to select C or T as default should help in most
+>>> cases where the application does not support switching yet.
+>>
+>> If I understood well, creating a multi-delivery type of frontend for
+>> devices like DRX-K makes sense for me.
+>>
+>> We need to take some care about how to add support for them, to avoid
+>> breaking userspace, or to follow kernel deprecating rules, by adding
+>> some legacy compatibility glue for a few kernel versions. So, the sooner
+>> we add such support, the better, as less drivers will need to support
+>> a "fallback" mechanism.
+>>
+>> The current DVB version 5 API doesn't prevent some userspace application
+>> to change the delivery system[1] for a given frontend. This feature is
+>> actually used by DVB-T2 and DVB-S2 drivers. This actually improved the
+>> DVB API multi-fe support, by avoiding the need of create of a secondary
+>> frontend for T2/S2.
+>>
+>> Userspace applications can detect that feature by using FE_CAN_2G_MODULATION
+>> flag, but this mechanism doesn't allow other types of changes like
+>> from/to DVB-T/DVB-C or from/to DVB-T/ISDB-T. So, drivers that allow such
+>> type of delivery system switch, using the same chip ended by needing to
+>> add two frontends.
+>>
+>> Maybe we can add a generic FE_CAN_MULTI_DELIVERY flag to fe_caps_t, and
+>> add a way to query the type of delivery systems supported by a driver.
+>>
+>> [1] http://linuxtv.org/downloads/v4l-dvb-apis/FE_GET_SET_PROPERTY.html#DTV-DELIVERY-SYSTEM
+> 
+> I don't think it's necessary to add a new flag. It should be sufficient
+> to add a property like "DTV_SUPPORTED_DELIVERY_SYSTEMS", which should be
+> read-only and return an array of type fe_delivery_system_t.
 
-First patch touches every DVB USB driver since it just changes adap->fe 
-to adap->fe[0] as preparation of actual patch.
+Yes, this would work properly.
 
-See usage example from Anysee driver, patch 3/3.
+> 
+> Querying this new property on present kernels hopefully fails with a
+> non-zero return code. in which case FE_GET_INFO should be used to query
+> the delivery system.
 
-regards
-Antti
+Yes. it currently returns an specific error code for not supported.
+> 
+> In future kernels we can provide a default implementation, returning
+> exactly one fe_delivery_system_t for unported drivers. Other drivers
+> should be able to override this default implementation in their
+> get_property callback.
 
-Antti Palosaari (3):
-   dvb-usb: prepare for multi-frontend support (MFE)
-   dvb-usb: multi-frontend support (MFE)
-   anysee: use multi-frontend (MFE)
-
-  drivers/media/dvb/dvb-usb/af9005.c          |    2 +-
-  drivers/media/dvb/dvb-usb/af9015.c          |   22 +-
-  drivers/media/dvb/dvb-usb/anysee.c          |  321 
-++++++++++++++++++---------
-  drivers/media/dvb/dvb-usb/anysee.h          |    1 +
-  drivers/media/dvb/dvb-usb/au6610.c          |    6 +-
-  drivers/media/dvb/dvb-usb/az6027.c          |   10 +-
-  drivers/media/dvb/dvb-usb/ce6230.c          |    6 +-
-  drivers/media/dvb/dvb-usb/cinergyT2-core.c  |    2 +-
-  drivers/media/dvb/dvb-usb/cxusb.c           |   60 +++---
-  drivers/media/dvb/dvb-usb/dib0700_devices.c |  262 +++++++++++-----------
-  drivers/media/dvb/dvb-usb/dibusb-common.c   |   18 +-
-  drivers/media/dvb/dvb-usb/dibusb-mb.c       |   16 +-
-  drivers/media/dvb/dvb-usb/digitv.c          |    8 +-
-  drivers/media/dvb/dvb-usb/dtt200u.c         |    2 +-
-  drivers/media/dvb/dvb-usb/dtv5100.c         |    8 +-
-  drivers/media/dvb/dvb-usb/dvb-usb-dvb.c     |   85 ++++++--
-  drivers/media/dvb/dvb-usb/dvb-usb-init.c    |    4 +
-  drivers/media/dvb/dvb-usb/dvb-usb.h         |   11 +-
-  drivers/media/dvb/dvb-usb/dw2102.c          |   92 ++++----
-  drivers/media/dvb/dvb-usb/ec168.c           |    6 +-
-  drivers/media/dvb/dvb-usb/friio.c           |    4 +-
-  drivers/media/dvb/dvb-usb/gl861.c           |    6 +-
-  drivers/media/dvb/dvb-usb/gp8psk.c          |    2 +-
-  drivers/media/dvb/dvb-usb/lmedm04.c         |   28 ++--
-  drivers/media/dvb/dvb-usb/m920x.c           |   14 +-
-  drivers/media/dvb/dvb-usb/opera1.c          |    6 +-
-  drivers/media/dvb/dvb-usb/technisat-usb2.c  |   24 +-
-  drivers/media/dvb/dvb-usb/ttusb2.c          |   10 +-
-  drivers/media/dvb/dvb-usb/umt-010.c         |    4 +-
-  drivers/media/dvb/dvb-usb/vp702x.c          |    2 +-
-  drivers/media/dvb/dvb-usb/vp7045.c          |    2 +-
-  31 files changed, 606 insertions(+), 438 deletions(-)
-
--- 
-1.7.6
----
-
-
--- 
-http://palosaari.fi/
-
+Seems fine for me.
+> 
+> Regards,
+> Andreas
 
