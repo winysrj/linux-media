@@ -1,74 +1,91 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ppp118-208-7-216.lns20.bne1.internode.on.net ([118.208.7.216]:54349
-	"EHLO mail.psychogeeks.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752102Ab1GTW4r (ORCPT
+Received: from mail-ww0-f44.google.com ([74.125.82.44]:44740 "EHLO
+	mail-ww0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754865Ab1GOCIi convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 20 Jul 2011 18:56:47 -0400
-Message-ID: <4E275D2A.9070200@psychogeeks.com>
-Date: Thu, 21 Jul 2011 08:56:42 +1000
-From: Chris W <lkml@psychogeeks.com>
+	Thu, 14 Jul 2011 22:08:38 -0400
 MIME-Version: 1.0
-To: Jarod Wilson <jarod@redhat.com>
-CC: linux-media@vger.kernel.org, Andy Walls <awalls@md.metrocast.net>
-Subject: Re: [PATCH] [media] imon: don't parse scancodes until intf configured
-References: <D7E52A85-331A-4650-94F0-C1477F457457@redhat.com> <1311091967-2791-1-git-send-email-jarod@redhat.com> <4E25FFB7.70205@psychogeeks.com> <20110720131830.GC9799@redhat.com>
-In-Reply-To: <20110720131830.GC9799@redhat.com>
+In-Reply-To: <Pine.LNX.4.44L0.1107141055270.1983-100000@iolanthe.rowland.org>
+References: <CACVXFVOHqze=HRxhwmfDaDEs9bQ7rsAi9P4WFwn1OY3G4x5hTg@mail.gmail.com>
+	<Pine.LNX.4.44L0.1107141055270.1983-100000@iolanthe.rowland.org>
+Date: Fri, 15 Jul 2011 10:08:36 +0800
+Message-ID: <CACVXFVNMLewOae=77+hTCqNPtR4yKdjrYKLxC7LiH2FN13thMQ@mail.gmail.com>
+Subject: Re: [PATCH] uvcvideo: add fix suspend/resume quirk for Microdia camera
+From: Ming Lei <tom.leiming@gmail.com>
+To: Alan Stern <stern@rowland.harvard.edu>
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Ming Lei <ming.lei@canonical.com>, linux-media@vger.kernel.org,
+	linux-usb@vger.kernel.org, Jeremy Kerr <jeremy.kerr@canonical.com>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>
 Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 20/07/11 23:18, Jarod Wilson wrote:
-> On Wed, Jul 20, 2011 at 08:05:43AM +1000, Chris W wrote:
->> On 20/07/11 02:12, Jarod Wilson wrote:
->>> The imon devices have either 1 or 2 usb interfaces on them, each wired
->>> up to its own urb callback. The interface 0 urb callback is wired up
->>> before the imon context's rc_dev pointer is filled in, which is
->>> necessary for imon 0xffdc device auto-detection to work properly, but
->>> we need to make sure we don't actually run the callback routines until
->>> we've entirely filled in the necessary bits for each given interface,
->>> lest we wind up oopsing. Technically, any imon device could have hit
->>> this, but the issue is exacerbated on the 0xffdc devices, which send a
->>> constant stream of interrupts, even when they have no valid key data.
+Hi,
+
+On Thu, Jul 14, 2011 at 11:03 PM, Alan Stern <stern@rowland.harvard.edu> wrote:
+
+> All right; this tends to confirm your guess that the BIOS messes up the
+> device by resetting it during system resume.
+
+Yes.  BIOS messes the device first, then usbcore has to reset the device
+at the end of resume, so the device behaves badly: ISO transfer oddly
+
+>> This also indicates the usb reset during resume does make the uvc device
+>> broken.
+>
+> Resetting the device doesn't actually _break_ it -- if it did then the
+> device would _never_ work because the first thing that usbcore does to
+> initialize a new device is reset it!
+
+I means the reset in resume breaks the device, not the reset in enumeration, :-)
+(the only extra reset in rpm resume will make the device not work)
+
+>
+> More likely, the reset erases some device setting that uvcvideo
+> installed while binding.  Evidently uvcvideo does not re-install the
+> setting during reset-resume; this is probably a bug in the driver.
+
+Yes, maybe some settings inside device have changed after the
+reset signal, I don't know if it is a normal behaviour.
+
+I have tried to add some code in .probe path to .resume path,
+but still not make it work. Anyway, it is not easy thing, because we
+have not the internal knowledge of uvc device implementation, and
+have to try it by guess.
+
+>> The below quirk  fixes the issue now.
 >>
+>> diff --git a/drivers/usb/core/quirks.c b/drivers/usb/core/quirks.c
+>> index 81ce6a8..93c6fa2 100644
+>> --- a/drivers/usb/core/quirks.c
+>> +++ b/drivers/usb/core/quirks.c
+>> @@ -82,6 +82,9 @@ static const struct usb_device_id usb_quirk_list[] = {
+>>       /* Broadcom BCM92035DGROM BT dongle */
+>>       { USB_DEVICE(0x0a5c, 0x2021), .driver_info = USB_QUIRK_RESET_RESUME },
 >>
->>
->> OK.  The patch applies and everything continues to work.   There is no
->> obvious difference in the dmesg output on module load, with my device
->> remaining unidentified.  I don't know if that is indicative of anything.
-> 
-> Did you apply this patch on top of the earlier patch, or instead of it?
+>> +     /* Microdia uvc camera */
+>> +     { USB_DEVICE(0x0c45, 0x6437), .driver_info = USB_QUIRK_RESET_MORPHS },
+>> +
+>>       /* Action Semiconductor flash disk */
+>>       { USB_DEVICE(0x10d6, 0x2200), .driver_info =
+>>                       USB_QUIRK_STRING_FETCH_255 },
+>
+> It would be better to fix uvcvideo, if you could figure out what it
+> needs to do differently.  This quirk is only a workaround, because the
+> device doesn't really morph.
 
-On top of it.   I've reversed the patches and installed just the last
-one with this result on loading the module:
+In fact we can understand the quirk is used to avoid reset in system resume,
+which is one of its original purpose too.
 
-input: iMON Panel, Knob and Mouse(15c2:ffdc) as
-/devices/pci0000:00/0000:00:10.2/usb4/4-2/4-2:1.0/input/input8
-imon 4-2:1.0: 0xffdc iMON VFD, iMON IR (id 0x24)
-Registered IR keymap rc-imon-pad
-input: iMON Remote (15c2:ffdc) as
-/devices/pci0000:00/0000:00:10.2/usb4/4-2/4-2:1.0/rc/rc3/input9
-rc3: iMON Remote (15c2:ffdc) as
-/devices/pci0000:00/0000:00:10.2/usb4/4-2/4-2:1.0/rc/rc3
-imon 4-2:1.0: iMON device (15c2:ffdc, intf0) on usb<4:3> initialized
-usbcore: registered new interface driver imon
+I will do some tests to figure out solution in uvc driver, but I am
+not sure I can
+find it quickly because I debug it remotely and network is very
+slowly. If I can't
+find out the solution in uvc driver, could you accept the workaround of
+USB_QUIRK_RESET_MORPHS first?
 
-Much better.
-
->> intf0 decoded packet: 00 00 00 00 00 00 24 01
->> intf0 decoded packet: 00 00 00 00 00 00 24 01
->> intf0 decoded packet: 00 00 00 00 00 00 24 01
-> 
-> One other amusing tidbit: you get continuous spew like the above, because
-> to date, I thought all the ffdc devices had "nothing to report" spew that
-> started with 0xffffff, which we filter out. Sigh. I hate imon hardware...
-
-I am beginning to understand why. That output was only printed with the
-"debug=1" option and is not printed with the patched module.
-
-Regards,
-Chris
-
+thanks,
 -- 
-Chris Williams
-Brisbane, Australia
+Ming Lei
