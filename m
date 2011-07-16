@@ -1,61 +1,41 @@
-Return-path: <mchehab@localhost>
-Received: from oproxy4-pub.bluehost.com ([69.89.21.11]:51498 "HELO
-	oproxy4-pub.bluehost.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1755747Ab1GJUAj (ORCPT
+Return-path: <linux-media-owner@vger.kernel.org>
+Received: from yop.chewa.net ([91.121.105.214]:56361 "EHLO yop.chewa.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754445Ab1GPQhz convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 10 Jul 2011 16:00:39 -0400
-Date: Sun, 10 Jul 2011 12:55:45 -0700
-From: Randy Dunlap <rdunlap@xenotime.net>
-To: lkml <linux-kernel@vger.kernel.org>
-Cc: linux-media@vger.kernel.org, mchehab@infradead.org
-Subject: [PATCH 4/9] media/radio: fix gemtek CONFIG IO PORT
-Message-Id: <20110710125545.8f010dd7.rdunlap@xenotime.net>
-In-Reply-To: <20110710125109.c72f9c2d.rdunlap@xenotime.net>
-References: <20110710125109.c72f9c2d.rdunlap@xenotime.net>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+	Sat, 16 Jul 2011 12:37:55 -0400
+Received: from basile.remlab.net (cs27062010.pp.htv.fi [89.27.62.10])
+	(using TLSv1 with cipher DHE-RSA-AES256-SHA (256/256 bits))
+	(No client certificate requested)
+	(Authenticated sender: remi)
+	by yop.chewa.net (Postfix) with ESMTPSA id ACCAA4F6
+	for <linux-media@vger.kernel.org>; Sat, 16 Jul 2011 18:37:53 +0200 (CEST)
+From: "=?utf-8?q?R=C3=A9mi?= Denis-Courmont" <remi@remlab.net>
+To: linux-media@vger.kernel.org
+Subject: Re: [PATCH 0/5] Driver support for cards based on Digital Devices bridge (ddbridge)
+Date: Sat, 16 Jul 2011 19:37:48 +0300
+References: <201107032321.46092@orion.escape-edv.de> <4E21B1E6.4090302@iki.fi> <4E21B3EC.9060709@linuxtv.org>
+In-Reply-To: <4E21B3EC.9060709@linuxtv.org>
+MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="utf-8"
+Content-Transfer-Encoding: 8BIT
+Message-Id: <201107161937.48981.remi@remlab.net>
+Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
-Sender: <mchehab@infradead.org>
 
-From: Randy Dunlap <rdunlap@xenotime.net>
+Le samedi 16 juillet 2011 18:53:16 Andreas Oberritter, vous avez écrit :
+> > You are wrong, actually you can. At least here in Finland some cable
+> > networks offers DVB-T too.
+> 
+> I know that there are cable operators which use DVB-T, but they don't
+> use DVB-C simultaneously. This wouldn't make sense, unless they didn't
+> want their customers to receive their signals.
 
-Modify radio-gemtek to use HEX_STRING(CONFIG_RADIO_GEMTEK_PORT)
-so that the correct IO port value is used.
+They do offer both simultaneously. DNA (formerly Welho) in Helsinki provides 
+both DVB-T and DVB-C on the same cable, obviously on different frequencies.
 
-Fixes this error message when CONFIG_RADIO_GEMTEK_PORT=34c:
-drivers/media/radio/radio-gemtek.c:49:18: error: invalid suffix "c" on integer constant
-
-Signed-off-by: Randy Dunlap <rdunlap@xenotime.net>
----
- drivers/media/radio/radio-gemtek.c |    7 +++++--
- 1 file changed, 5 insertions(+), 2 deletions(-)
-
---- linux-next-20110707.orig/drivers/media/radio/radio-gemtek.c
-+++ linux-next-20110707/drivers/media/radio/radio-gemtek.c
-@@ -20,6 +20,7 @@
- #include <linux/init.h>		/* Initdata			*/
- #include <linux/ioport.h>	/* request_region		*/
- #include <linux/delay.h>	/* udelay			*/
-+#include <linux/stringify.h>
- #include <linux/videodev2.h>	/* kernel radio structs		*/
- #include <linux/mutex.h>
- #include <linux/io.h>		/* outb, outb_p			*/
-@@ -40,13 +41,15 @@ MODULE_VERSION("0.0.4");
-  */
- 
- #ifndef CONFIG_RADIO_GEMTEK_PORT
--#define CONFIG_RADIO_GEMTEK_PORT -1
-+#define __RADIO_GEMTEK_PORT -1
-+#else
-+#define __RADIO_GEMTEK_PORT HEX_STRING(CONFIG_RADIO_GEMTEK_PORT)
- #endif
- #ifndef CONFIG_RADIO_GEMTEK_PROBE
- #define CONFIG_RADIO_GEMTEK_PROBE 1
- #endif
- 
--static int io		= CONFIG_RADIO_GEMTEK_PORT;
-+static int io		= __RADIO_GEMTEK_PORT;
- static int probe	= CONFIG_RADIO_GEMTEK_PROBE;
- static int hardmute;
- static int shutdown	= 1;
+-- 
+Rémi Denis-Courmont
+http://www.remlab.net/
+http://fi.linkedin.com/in/remidenis
