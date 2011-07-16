@@ -1,111 +1,216 @@
-Return-path: <mchehab@localhost>
-Received: from emh05.mail.saunalahti.fi ([62.142.5.111]:49706 "EHLO
-	emh05.mail.saunalahti.fi" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754626Ab1GFRxw (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 6 Jul 2011 13:53:52 -0400
-Message-ID: <4E14A127.8040805@kolumbus.fi>
-Date: Wed, 06 Jul 2011 20:53:43 +0300
-From: Marko Ristola <marko.ristola@kolumbus.fi>
+Return-path: <linux-media-owner@vger.kernel.org>
+Received: from ffm.saftware.de ([83.141.3.46]:46342 "EHLO ffm.saftware.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752027Ab1GPPxU (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 16 Jul 2011 11:53:20 -0400
+Message-ID: <4E21B3EC.9060709@linuxtv.org>
+Date: Sat, 16 Jul 2011 17:53:16 +0200
+From: Andreas Oberritter <obi@linuxtv.org>
 MIME-Version: 1.0
-To: Devin Heitmueller <dheitmueller@kernellabs.com>
+To: Antti Palosaari <crope@iki.fi>
 CC: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	Andy Walls <awalls@md.metrocast.net>,
+	Ralph Metzler <rjkm@metzlerbros.de>,
 	linux-media@vger.kernel.org
-Subject: Re: [RFCv2 PATCH 0/5] tuner-core: fix s_std and s_tuner
-References: <1307804731-16430-1-git-send-email-hverkuil@xs4all.nl>	<201106152237.02427.hverkuil@xs4all.nl>	<BANLkTimVQDoHo+5-2ZkU0sE0LWiUjHeBXg@mail.gmail.com>	<201106160821.15352.hverkuil@xs4all.nl>	<4DF9E5AB.1050707@redhat.com> <BANLkTi=Wq=swMMBfK+X9gVQ0XhL4OSxXFA@mail.gmail.com>
-In-Reply-To: <BANLkTi=Wq=swMMBfK+X9gVQ0XhL4OSxXFA@mail.gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1
+Subject: Re: [PATCH 0/5] Driver support for cards based on Digital Devices
+ bridge (ddbridge)
+References: <201107032321.46092@orion.escape-edv.de> <4E1F8E1F.3000008@redhat.com> <4E1FBA6F.10509@redhat.com> <201107150717.08944@orion.escape-edv.de> <19999.63914.990114.26990@morden.metzler> <4E203FD0.4030503@redhat.com> <4E207252.5050506@linuxtv.org> <4E20D042.3000302@iki.fi> <4E21832A.20600@redhat.com> <4E219D49.1070709@iki.fi> <4E21A63A.8040008@redhat.com> <4E21B0DE.2020902@linuxtv.org> <4E21B1E6.4090302@iki.fi>
+In-Reply-To: <4E21B1E6.4090302@iki.fi>
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 7bit
+Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
-Sender: <mchehab@infradead.org>
 
+On 16.07.2011 17:44, Antti Palosaari wrote:
+> On 07/16/2011 06:40 PM, Andreas Oberritter wrote:
+>> On 16.07.2011 16:54, Mauro Carvalho Chehab wrote:
+>>> Em 16-07-2011 11:16, Antti Palosaari escreveu:
+>>>> On 07/16/2011 03:25 PM, Mauro Carvalho Chehab wrote:
+>>>>> Em 15-07-2011 20:41, Antti Palosaari escreveu:
+>>>>>> On 07/15/2011 08:01 PM, Andreas Oberritter wrote:
+>>>>>>> On 15.07.2011 15:25, Mauro Carvalho Chehab wrote:
+>>>>>>>> Em 15-07-2011 05:26, Ralph Metzler escreveu:
+>>>>>>>>> At the same time I want to add delivery system properties to
+>>>>>>>>> support everything in one frontend device.
+>>>>>>>>> Adding a parameter to select C or T as default should help in most
+>>>>>>>>> cases where the application does not support switching yet.
+>>>>>>>>
+>>>>>>>> If I understood well, creating a multi-delivery type of frontend
+>>>>>>>> for
+>>>>>>>> devices like DRX-K makes sense for me.
+>>>>>>>>
+>>>>>>>> We need to take some care about how to add support for them, to
+>>>>>>>> avoid
+>>>>>>>> breaking userspace, or to follow kernel deprecating rules, by
+>>>>>>>> adding
+>>>>>>>> some legacy compatibility glue for a few kernel versions. So,
+>>>>>>>> the sooner
+>>>>>>>> we add such support, the better, as less drivers will need to
+>>>>>>>> support
+>>>>>>>> a "fallback" mechanism.
+>>>>>>>>
+>>>>>>>> The current DVB version 5 API doesn't prevent some userspace
+>>>>>>>> application
+>>>>>>>> to change the delivery system[1] for a given frontend. This
+>>>>>>>> feature is
+>>>>>>>> actually used by DVB-T2 and DVB-S2 drivers. This actually
+>>>>>>>> improved the
+>>>>>>>> DVB API multi-fe support, by avoiding the need of create of a
+>>>>>>>> secondary
+>>>>>>>> frontend for T2/S2.
+>>>>>>>>
+>>>>>>>> Userspace applications can detect that feature by using
+>>>>>>>> FE_CAN_2G_MODULATION
+>>>>>>>> flag, but this mechanism doesn't allow other types of changes like
+>>>>>>>> from/to DVB-T/DVB-C or from/to DVB-T/ISDB-T. So, drivers that
+>>>>>>>> allow such
+>>>>>>>> type of delivery system switch, using the same chip ended by
+>>>>>>>> needing to
+>>>>>>>> add two frontends.
+>>>>>>>>
+>>>>>>>> Maybe we can add a generic FE_CAN_MULTI_DELIVERY flag to
+>>>>>>>> fe_caps_t, and
+>>>>>>>> add a way to query the type of delivery systems supported by a
+>>>>>>>> driver.
+>>>>>>>>
+>>>>>>>> [1]
+>>>>>>>> http://linuxtv.org/downloads/v4l-dvb-apis/FE_GET_SET_PROPERTY.html#DTV-DELIVERY-SYSTEM
+>>>>>>>>
+>>>>>>>
+>>>>>>> I don't think it's necessary to add a new flag. It should be
+>>>>>>> sufficient
+>>>>>>> to add a property like "DTV_SUPPORTED_DELIVERY_SYSTEMS", which
+>>>>>>> should be
+>>>>>>> read-only and return an array of type fe_delivery_system_t.
+>>>>>>>
+>>>>>>> Querying this new property on present kernels hopefully fails with a
+>>>>>>> non-zero return code. in which case FE_GET_INFO should be used to
+>>>>>>> query
+>>>>>>> the delivery system.
+>>>>>>>
+>>>>>>> In future kernels we can provide a default implementation, returning
+>>>>>>> exactly one fe_delivery_system_t for unported drivers. Other drivers
+>>>>>>> should be able to override this default implementation in their
+>>>>>>> get_property callback.
+>>>>>>
+>>>>>> One thing I want to say is that consider about devices which does
+>>>>>> have MFE using two different *physical* demods, not integrated to
+>>>>>> same silicon.
+>>>>>>
+>>>>>> If you add such FE delsys switch mechanism it needs some more glue
+>>>>>> to bind two physical FEs to one virtual FE. I see much easier to
+>>>>>> keep all FEs as own - just register those under the same adapter
+>>>>>> if FEs are shared.
+>>>>>
+>>>>> In this case, the driver should just create two frontends, as
+>>>>> currently.
+>>>>>
+>>>>> There's a difference when there are two physical FE's and just one FE:
+>>>>> with 2 FE's, the userspace application can just keep both opened at
+>>>>> the same time. Some applications (like vdr) assumes that all multi-fe
+>>>>> are like that.
+>>>>
+>>>> Does this mean demod is not sleeping (.init() called)?
+>>>>
+>>>>> When there's just a single FE, but the driver needs to "fork" it in
+>>>>> two
+>>>>> due to the API troubles, the driver needs to prevent the usage of both
+>>>>> fe's, either at open or at the ioctl level. So, applications like vdr
+>>>>> will only use the first frontend.
+>>>>
+>>>> Lets take example. There is shared MFE having DVB-S, DVB-T and
+>>>> DVB-C. DVB-T and DVB-C are integrated to one chip whilst DVB-S have
+>>>> own.
 
-Hi.
+One remark: In my previous mail I assumed that in your example DVB-S and
+either DVB-C or DVB-T can be tuned simultaneously, i.e. there are two
+antenna connectors and two tuners in addition to the two demod chips. If
+this assumtion was wrong, then of course approach 2 is the sane one, not
+approach 3.
 
-I think that you could reuse lots of code with smart suspend / resume.
-
-What do you think about this DVB power saving case (about the concept, don't look at details, please):
-
-- One device has responsibility to do the power off when it can be done (mantis_core.ko)
-- In my case there is only one frontend tda10021.ko to take care of.
-
-- dvb_frontend.c would call fe->sleep(fe). The callback goes into mantis_core.ko.
-- mantis_core.ko will traverse all devices on it's responsibility, all (tda10021.ko) are idle.
-=> suspend tda10021.ko by calling tda10021->sleep() and do additional power off things.
-
-- When dvb_frontend.c wants tuner to be woken up,
-  mantis_core.ko does hardware resets and power on first and then resumes tda10021->init(fe).
-
-I implemented something that worked a few years ago with suspend / resume.
-In mantis_dvb.c's driver probe function I modified tuner_ops to enable these runtime powersaving features:
-+                       mantis->fe->ops.tuner_ops.sleep = mantis_dvb_tuner_sleep;
-+                       mantis->fe->ops.tuner_ops.init = mantis_dvb_tuner_init;
-
-That way mantis_core.ko had all needed details to do any advanced power savings I wanted.
-
-Suspend / resume worked well: During resume there was only a glitch at the picture and sound
-and the TV channel watching continued. tda10021 (was cu1216 at that time)
-restored the original TV channel. It took DVB FE_LOCK during resume.
-Suspended DMA transfer was recovered before returning into userspace.
-
-So I think that you need a single device (mantis_core.ko) that can see the whole picture,
-in what states the subdevices are: can you touch the power button?.
-With DVB this is easy because dvb_frontend.c tells when a frontend is idle and when it is not.
-
-The similar idea of some kind of watchdog that is able to track when a single 
-device (frontend) is used and when it is not used, would be sufficient.
-
-The topmost driver (mantis_core.ko in my case) would then be responsible to track multiple frontends
-(subdevices), if they all are idle or not, with suitable mutex protection.
-Then this driver could easilly suspend/resume these subdevices and press power switch when necessary.
-
-
-So the clash between DVB and V4L devices would be solved:
-Both DVB and V4L calls a (different) sleep() function on mantis_core.ko
-mantis_core.ko will turn power off when both "frontends" are sleeping.
-If only one sleeps, the one can be put to sleep or suspended, but power
-button can't be touched.
-
-What do you think?
-
-I did this easy case mantis_core.ko solution in about Summer 2007.
-It needs a rewrite and testing, if I take it from the dust.
-
-Regards,
-Marko Ristola
-
-16.06.2011 15:51, Devin Heitmueller wrote:
-> On Thu, Jun 16, 2011 at 7:14 AM, Mauro Carvalho Chehab
-> <mchehab@redhat.com> wrote:
->> One possible logic that would solve the scripting would be to use a watchdog
->> to monitor ioctl activities. If not used for a while, it could send a s_power
->> to put the device to sleep, but this may not solve all our problems.
+>>>> Currently it will shown as:
+>>>
+>>> Let me name the approaches:
+>>>
+>>> Approach 1)
+>>>> * adapter0
+>>>> ** frontend0 (DVB-S)
+>>>> ** frontend1 (DVB-T)
+>>>> ** frontend2 (DVB-C)
+>>>
+>>> Approach 2)
+>>>> Your new "ideal" solution will be:
+>>>> * adapter0
+>>>> ** frontend0 (DVB-S/T/C)
+>>>
+>>> Approach 3)
+>>>> What really happens (mixed old and new):
+>>>> * adapter0
+>>>> ** frontend0 (DVB-S)
+>>>> ** frontend1 (DVB-T/C)
+>>>
+>>> What I've said before is that approach 3 is the "ideal" solution.
+>>>
+>>>> It does not look very good to offer this kind of mixed solution,
+>>>> since it is possible to offer only one solution for userspace, new
+>>>> or old, but not mixing.
+>>>
+>>> Good point.
+>>>
+>>> There's an additional aspect to handle: if a driver that uses
+>>> approach 1, a conversion
+>>> to either approach 2 or 3 would break existing applications that
+>>> can't handle with
+>>> the new approach.
+>>>
+>>> There's a 4th posibility: always offering fe0 with MFE capabilities,
+>>> and creating additional fe's
+>>> for old applications that can't cope with the new mode.
+>>> For example, on a device that supports
+>>> DVB-S/DVB-S2/DVB-T/DVB-T2/DVB-C/ISDB-T, it will be shown as:
+>>>
+>>> Approach 4) fe0 is a frontend "superset"
+>>>
+>>> *adapter0
+>>> *frontend0 (DVB-S/DVB-S2/DVB-T/DVB-T2/DVB-C/ISDB-T) - aka: FE superset
+>>> *frontend1 (DVB-S/DVB-S2)
+>>> *frontend2 (DVB-T/DVB-T2)
+>>> *frontend3 (DVB-C)
+>>> *frontend4 (ISDB-T)
+>>>
+>>> fe0 will need some special logic to allow redirecting a FE call to
+>>> the right fe, if
+>>> there are more than one physical frontend bound into the FE API.
+>>>
+>>> I'm starting to think that (4) is the better approach, as it won't
+>>> break legacy
+>>> applications, and it will provide an easier way for new applications
+>>> to control
+>>> the frontend with just one frontend.
 >>
->> So, I agree with Devin: we need to add an option to explicitly control the
->> power management logic of the device, having 3 modes of operation:
->>        POWER_AUTO - use the watchdogs to poweroff
->>        POWER_ON - explicitly powers on whatever subdevices are needed in
->>                   order to make the V4L ready to stream;
->>        POWER_OFF - Put all subdevices to power-off if they support it.
+>> Approach 4 would break existing applications, because suddenly they'd
+>> have to cope with an additional device. It would be impossible for an
+>> existing application to tell whether frontend0 (from your example) was a
+>> real device or not.
 >>
->> After implementing such logic, and keeping the default as POWER_ON, we may
->> announce that the default will change to POWER_AUTO, and give some time for
->> userspace apps/scripts that need to use a different mode to change their
->> behaviour. That means that, for example, "radio -qf" will need to change to
->> POWER_ON mode, and "radio -m" should call POWER_OFF.
+>> Approach 2 doesn't make any sense to me.
 > 
-> I've considered this idea before, and it's not bad in theory.  The one
-> thing you will definitely have to watch out for is causing a race
-> between DVB and V4L for hybrid tuners.  In other words, you can have a
-> user switching from analog to digital and you don't want the tuner to
-> get powered down a few seconds after they started streaming video from
-> DVB.
+> I like approach 1 since it is very simple interface. Secondly I like
+> approach 2. I think that more API issue than technical.
 > 
-> Any such solution would have to take the above into account.  We've
-> got a history of race conditions like this and I definitely don't want
-> to see a new one introduced.
 > 
-> Devin
+>> The only sane approach is 3, because it creates one device node per
+>> demod chip. As Ralph already suggested, an easy way to not break
+>> applications is to add a module parameter which selects the default mode
+>> (DVB-C or DVB-T in Antti's example). One could also write a small
+>> command line application to switch modes independently from VDR et al.
+>> After all, you cannot connect both a DVB-C cable and a DVB-T antenna at
+>> the same time, so the vast majority of users won't ever want to switch
+>> modes at all.
 > 
+> You are wrong, actually you can. At least here in Finland some cable
+> networks offers DVB-T too.
+
+I know that there are cable operators which use DVB-T, but they don't
+use DVB-C simultaneously. This wouldn't make sense, unless they didn't
+want their customers to receive their signals.
 
