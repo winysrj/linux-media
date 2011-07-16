@@ -1,151 +1,64 @@
-Return-path: <mchehab@localhost>
-Received: from mx1.redhat.com ([209.132.183.28]:50677 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755554Ab1GFSFC (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 6 Jul 2011 14:05:02 -0400
-Date: Wed, 6 Jul 2011 15:03:53 -0300
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
-Subject: [PATCH RFCv3 05/17] [media] DocBook: Remove V4L generic error
- description for ioctl()
-Message-ID: <20110706150353.36224550@pedra>
-In-Reply-To: <cover.1309974026.git.mchehab@redhat.com>
-References: <cover.1309974026.git.mchehab@redhat.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Return-path: <linux-media-owner@vger.kernel.org>
+Received: from mail1-out1.atlantis.sk ([80.94.52.55]:42555 "EHLO
+	mail.atlantis.sk" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1755574Ab1GPUpE (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sat, 16 Jul 2011 16:45:04 -0400
+From: Ondrej Zary <linux@rainbow-software.org>
+To: Joerg Heckenbach <joerg@heckenbach-aw.de>
+Subject: usbvision: disable scaling for Nogatech MicroCam
+Date: Sat, 16 Jul 2011 22:44:47 +0200
+Cc: Dwaine Garden <dwainegarden@rogers.com>,
+	linux-media@vger.kernel.org,
+	Kernel development list <linux-kernel@vger.kernel.org>
+MIME-Version: 1.0
+Content-Type: text/plain;
+  charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
+Content-Disposition: inline
+Message-Id: <201107162244.52979.linux@rainbow-software.org>
+Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
-Sender: <mchehab@infradead.org>
 
-V4L ioctl function descripton also has a generic error chapter.
-Remove it, as it is now obsoleted by a general, multi-API generic
-error descriptions.
+Scaling causes bad artifacts (horizontal lines) with compression at least
+with Nogatech MicroCam so disable it (for this HW).
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+This also fixes messed up image with some programs (Cheese with 160x120,
+Adobe Flash). HW seems to support only image widths that are multiple of 64
+but the driver does not account that in vidioc_try_fmt_vid_cap(). Cheese
+calls try_fmt with 160x120, succeeds and then assumes that it really gets
+data in that resolution - but it gets 128x120 instead. Don't know if this
+affects other usbvision devices, it would be great if someone could test it.
 
-diff --git a/Documentation/DocBook/media/v4l/func-ioctl.xml b/Documentation/DocBook/media/v4l/func-ioctl.xml
-index b60fd37..2de64be 100644
---- a/Documentation/DocBook/media/v4l/func-ioctl.xml
-+++ b/Documentation/DocBook/media/v4l/func-ioctl.xml
-@@ -64,75 +64,9 @@ their respective function and parameters are specified in <xref
-   </refsect1>
+Signed-off-by: Ondrej Zary <linux@rainbow-software.org>
+
+diff -urp linux-2.6.39-rc2-/drivers/media/video/usbvision//usbvision-video.c linux-2.6.39-rc2/drivers/media/video/usbvision/usbvision-video.c
+--- linux-2.6.39-rc2-/drivers/media/video/usbvision//usbvision-video.c	2011-07-16 16:42:35.000000000 +0200
++++ linux-2.6.39-rc2/drivers/media/video/usbvision/usbvision-video.c	2011-07-16 16:36:43.000000000 +0200
+@@ -924,6 +924,11 @@ static int vidioc_try_fmt_vid_cap(struct
+ 	RESTRICT_TO_RANGE(vf->fmt.pix.width, MIN_FRAME_WIDTH, MAX_FRAME_WIDTH);
+ 	RESTRICT_TO_RANGE(vf->fmt.pix.height, MIN_FRAME_HEIGHT, MAX_FRAME_HEIGHT);
  
-   <refsect1>
--    <title>Return Value</title>
--
--    <para>On success the <function>ioctl()</function> function returns
--<returnvalue>0</returnvalue> and does not reset the
--<varname>errno</varname> variable. On failure
--<returnvalue>-1</returnvalue> is returned, when the ioctl takes an
--output or read/write parameter it remains unmodified, and the
--<varname>errno</varname> variable is set appropriately. See below for
--possible error codes. Generic errors like <errorcode>EBADF</errorcode>
--or <errorcode>EFAULT</errorcode> are not listed in the sections
--discussing individual ioctl requests.</para>
--    <para>Note ioctls may return undefined error codes. Since errors
--may have side effects such as a driver reset applications should
--abort on unexpected errors.</para>
--
--    <variablelist>
--      <varlistentry>
--	<term><errorcode>EBADF</errorcode></term>
--	<listitem>
--	  <para><parameter>fd</parameter> is not a valid open file
--descriptor.</para>
--	</listitem>
--      </varlistentry>
--      <varlistentry>
--	<term><errorcode>EBUSY</errorcode></term>
--	<listitem>
--	  <para>The property cannot be changed right now. Typically
--this error code is returned when I/O is in progress or the driver
--supports multiple opens and another process locked the property.</para>
--	</listitem>
--      </varlistentry>
--      <varlistentry>
--	<term><errorcode>EFAULT</errorcode></term>
--	<listitem>
--	  <para><parameter>argp</parameter> references an inaccessible
--memory area.</para>
--	</listitem>
--      </varlistentry>
--      <varlistentry>
--	<term><errorcode>ENOTTY</errorcode></term>
--	<listitem>
--	  <para><parameter>fd</parameter> is  not  associated  with  a
--character special device.</para>
--	</listitem>
--      </varlistentry>
--      <varlistentry>
--	<term><errorcode>EINVAL</errorcode></term>
--	<listitem>
--	  <para>The <parameter>request</parameter> or the data pointed
--to by <parameter>argp</parameter> is not valid. This is a very common
--error code, see the individual ioctl requests listed in <xref
--	      linkend="user-func" /> for actual causes.</para>
--	</listitem>
--      </varlistentry>
--      <varlistentry>
--	<term><errorcode>ENOMEM</errorcode></term>
--	<listitem>
--	  <para>Not enough physical or virtual memory was available to
--complete the request.</para>
--	</listitem>
--      </varlistentry>
--      <varlistentry>
--	<term><errorcode>ERANGE</errorcode></term>
--	<listitem>
--	  <para>The application attempted to set a control with the
--&VIDIOC-S-CTRL; ioctl to a value which is out of bounds.</para>
--	</listitem>
--      </varlistentry>
--    </variablelist>
-+    &return-value;
-+    <para>When an ioctl that takes an output or read/write parameter fails,
-+    the parameter remains unmodified.</para>
-   </refsect1>
- </refentry>
++	if (usbvision_device_data[usbvision->dev_model].codec == CODEC_WEBCAM) {
++		vf->fmt.pix.width = MAX_FRAME_WIDTH;
++		vf->fmt.pix.height = MAX_FRAME_HEIGHT;
++	}
++
+ 	vf->fmt.pix.bytesperline = vf->fmt.pix.width*
+ 		usbvision->palette.bytes_per_pixel;
+ 	vf->fmt.pix.sizeimage = vf->fmt.pix.bytesperline*vf->fmt.pix.height;
+@@ -952,6 +957,11 @@ static int vidioc_s_fmt_vid_cap(struct f
  
-diff --git a/Documentation/DocBook/media/v4l/gen-errors.xml b/Documentation/DocBook/media/v4l/gen-errors.xml
-index a7f73c9..2b50b63 100644
---- a/Documentation/DocBook/media/v4l/gen-errors.xml
-+++ b/Documentation/DocBook/media/v4l/gen-errors.xml
-@@ -31,7 +31,8 @@
-       <row>
- 	<entry>EINVAL or ENOTTY</entry>
- 	<entry>The ioctl is not supported by the driver, actually meaning that
--	       the required functionality is not available.</entry>
-+	       the required functionality is not available, or the file
-+	       descriptor is not for a media device.</entry>
-       </row>
-       <row>
- 	<entry>ENOMEM</entry>
-@@ -46,3 +47,10 @@
-     </tbody>
-   </tgroup>
- </table>
-+
-+<para>Note 1: ioctls may return other error codes. Since errors may have side
-+effects such as a driver reset, applications should abort on unexpected errors.
-+</para>
-+
-+<para>Note 2: Request-specific error codes are listed in the individual
-+requests descriptions.</para>
-diff --git a/Documentation/DocBook/media/v4l/media-func-ioctl.xml b/Documentation/DocBook/media/v4l/media-func-ioctl.xml
-index e0ee285..39478d0 100644
---- a/Documentation/DocBook/media/v4l/media-func-ioctl.xml
-+++ b/Documentation/DocBook/media/v4l/media-func-ioctl.xml
-@@ -64,6 +64,7 @@
+ 	usbvision->cur_frame = NULL;
  
-   <refsect1>
-     &return-value;
++	if (usbvision_device_data[usbvision->dev_model].codec == CODEC_WEBCAM) {
++		vf->fmt.pix.width = MAX_FRAME_WIDTH;
++		vf->fmt.pix.height = MAX_FRAME_HEIGHT;
++	}
 +
-     <para>Request-specific error codes are listed in the
-     individual requests descriptions.</para>
-     <para>When an ioctl that takes an output or read/write parameter fails,
+ 	/* by now we are committed to the new data... */
+ 	usbvision_set_output(usbvision, vf->fmt.pix.width, vf->fmt.pix.height);
+ 
+
 -- 
-1.7.1
-
-
+Ondrej Zary
