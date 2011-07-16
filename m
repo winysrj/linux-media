@@ -1,35 +1,28 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from linux-sh.org ([111.68.239.195]:50973 "EHLO linux-sh.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752671Ab1GQNQl (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 17 Jul 2011 09:16:41 -0400
-Date: Sun, 17 Jul 2011 22:16:38 +0900
-From: Paul Mundt <lethal@linux-sh.org>
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: [PATCH 6/6] V4L: soc-camera: remove soc-camera bus and devices on it
-Message-ID: <20110717131638.GB14100@linux-sh.org>
-References: <Pine.LNX.4.64.1107160135500.27399@axis700.grange> <Pine.LNX.4.64.1107160209460.27399@axis700.grange>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <Pine.LNX.4.64.1107160209460.27399@axis700.grange>
+Received: from mail-iw0-f174.google.com ([209.85.214.174]:33662 "EHLO
+	mail-iw0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755315Ab1GPO7L (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sat, 16 Jul 2011 10:59:11 -0400
+Received: by iwn6 with SMTP id 6so1921508iwn.19
+        for <linux-media@vger.kernel.org>; Sat, 16 Jul 2011 07:59:11 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <D6539750-BBE4-4FD8-B4FD-43E621E1B868@gmail.com>
+References: <D6539750-BBE4-4FD8-B4FD-43E621E1B868@gmail.com>
+Date: Sat, 16 Jul 2011 16:59:10 +0200
+Message-ID: <CAL7owaBjwjQtNsnDb8dwfLoiaFnB20gzhYDWzeV_gScV88L+eA@mail.gmail.com>
+Subject: Re: http://linuxtv.org/hg/dvb-apps/file/5e68946b0e0d/util/scan/atsc/us-Cable-Standard-center-frequencies-QAM256
+From: Christoph Pfister <christophpfister@gmail.com>
+To: Cotie Jones <intlvelvet@gmail.com>
+Cc: linux-media@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sat, Jul 16, 2011 at 02:14:03AM +0200, Guennadi Liakhovetski wrote:
-> Now that v4l2 subdevices have got their own device objects, having
-> one more device in soc-camera clients became redundant and confusing.
-> This patch removes those devices and the soc-camera bus, they used to
-> reside on.
-> 
-> Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-> ---
-> 
-> This one looks pretty big, most of it are just 10-liners. It removes more 
-> than a 100 lines of code. Tested on sh-mobile, pxa270, i.MX31. Compile 
-> tested with all soc-camera hosts and clients. Hope it doesn't break too 
-> many things, if it does, we'll have the whole 3.1-rc timeframe to fix 
-> them.
-> 
-Acked-by: Paul Mundt <lethal@linux-sh.org>
+2011/5/9 Cotie Jones <intlvelvet@gmail.com>:
+> # US EIA/NCTA Standard Cable center frequencies, added missing muxes
+<snip>
+
+Updated, thanks.
+
+Christoph
