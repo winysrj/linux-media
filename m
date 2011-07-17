@@ -1,197 +1,348 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from casper.infradead.org ([85.118.1.10]:32934 "EHLO
-	casper.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752262Ab1GTAzZ (ORCPT
+Received: from proofpoint-cluster.metrocast.net ([65.175.128.136]:39627 "EHLO
+	proofpoint-cluster.metrocast.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1754651Ab1GQAmu (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 19 Jul 2011 20:55:25 -0400
-Message-ID: <4E262772.9060509@infradead.org>
-Date: Tue, 19 Jul 2011 21:55:14 -0300
-From: Mauro Carvalho Chehab <mchehab@infradead.org>
-MIME-Version: 1.0
-To: Stas Sergeev <stsp@list.ru>
-CC: Lennart Poettering <lpoetter@redhat.com>,
-	linux-media@vger.kernel.org,
-	"Nickolay V. Shmyrev" <nshmyrev@yandex.ru>,
-	Devin Heitmueller <dheitmueller@kernellabs.com>,
-	ALSA devel <alsa-devel@alsa-project.org>
-Subject: Re: [patch][saa7134] do not change mute state for capturing audio
-References: <4E19D2F7.6060803@list.ru> <4E1E05AC.2070002@infradead.org> <4E1E0A1D.6000604@list.ru> <4E1E1571.6010400@infradead.org> <4E1E8108.3060305@list.ru> <4E1F9A25.1020208@infradead.org> <4E22AF12.4020600@list.ru> <4E22CCC0.8030803@infradead.org> <4E24BEB8.4060501@redhat.com> <4E257FF5.4040401@infradead.org> <4E258B60.6010007@list.ru> <4E25906D.3020200@infradead.org> <4E259B0C.90107@list.ru> <4E25A26A.2000204@infradead.org> <4E25A7C2.3050609@list.ru> <4E25C7AE.5020503@infradead.org> <4E25CF35.7000802@list.ru> <4E25DB37.8020609@infradead.org> <4E25FDE4.7040805@list.ru>
-In-Reply-To: <4E25FDE4.7040805@list.ru>
-Content-Type: text/plain; charset=UTF-8
+	Sat, 16 Jul 2011 20:42:50 -0400
+Subject: Re: Imon module Oops and kernel hang
+From: Andy Walls <awalls@md.metrocast.net>
+To: Chris W <lkml@psychogeeks.com>
+Cc: Jarod Wilson <jarod@wilsonet.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	linux-kernel@vger.kernel.org, Randy Dunlap <rdunlap@xenotime.net>
+Date: Sat, 16 Jul 2011 20:43:21 -0400
+In-Reply-To: <4E1E574E.9010403@psychogeeks.com>
+References: <4E1B978C.2030407@psychogeeks.com>
+	 <20110712080309.d538fec9.rdunlap@xenotime.net>
+	 <7B814F02-408C-434F-B813-8630B60914DA@wilsonet.com>
+	 <4E1CCC26.4060506@psychogeeks.com>
+	 <1B380AD0-FE0D-47DF-B2C3-605253C9C783@wilsonet.com>
+	 <4E1D3045.7050507@psychogeeks.com>
+	 <2E869B1F-D476-4645-BE26-B1DD77DF1735@wilsonet.com>
+	 <4E1E574E.9010403@psychogeeks.com>
+Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
+Message-ID: <1310863402.7895.6.camel@palomino.walls.org>
+Mime-Version: 1.0
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em 19-07-2011 18:57, Stas Sergeev escreveu:
-> 19.07.2011 23:29, Mauro Carvalho Chehab wrote:
->>> the additional element, they are fine already.
->>> We can rename it to "Master Capture Switch",
->>> or may not.
->> Adding a new volume control that changes the mute values for the other controls
->> or renaming it don't solve anything.
-> The proposed solution is to have the mute
-> control, that can be valid for all the cards/drivers.
-> Presumably, it should have the similar name
-> for all of them, even though for some it will be
-> a "virtual" control that will control several items,
-> and for others - it should map directly to their
-> single mute control.
-> If we have such a mute control, any app can use
-> it,
-
-Any app can do it right now via the V4L2 api.
-
-> and the auto-unmute logic can be removed
-> from the alsa driver. v4l2 is left as it is now.
-
-What is the sense of capturing data for a device that is not ready
-for stream? PA is doing the wrong thing here, due to the lack of a
-better API support: it is starting stream on a device as a hacky way
-of probing it. As Lennart pointed, even considering a pure audio device,
-this is ugly and takes time.
-
-IMO, the right long term fix is to provide alsa some ioctl that allows
-PA to get the needed info without needing to start streaming, and, for
-the short term, to prevent it to start capture on tuner/grabber devices.
-
-> So that's the proposal, what problems can you see
-> with it?
-
-Userspace application breakage is not allowed. A change like
-that will break the existing applications like mplayer.
-
->>> So, am I right that the only problem is that it is not
->>> exported to the user by some _alsa_ drivers right now?
->> I fail to see why this would be a problem.
-> But that was the problem _you_ named.
-> That is, that right now the app will have difficulties
-> unmuting the complex boards via the alsa interface,
-> because it will have to unmute several items instead
-> of one.
-> I propose to add the single item for that, except for
-> the drivers that already have only one mute switch.
-> With this, the problem you named, seems to be solved.
-> And then, perhaps, the auto-unmute logic can go away.
-> What am I missing?
+On Thu, 2011-07-14 at 12:41 +1000, Chris W wrote:
+> On 14/07/11 08:11, Jarod Wilson wrote:
+> > On Jul 13, 2011, at 1:42 AM, Chris W wrote:
+> > Just noticed your report is for 2.6.39.x and 2.6.38.x only, but I'm
+> > not aware of any relevant imon changes between 2.6.39 and 3.0.
 > 
->> It is doable, although it is probably not trivial.
->> Devices with saa7130 (PCI_DEVICE_ID_PHILIPS_SAA7130) doesn't enable the
->> alsa module, as they don't support I2S transfers, required for PCM audio.
->> So, we need to take care only on saa7133/4/5 devices.
->>
->> The mute code is at saa7134-tvaudio.c, mute_input_7134() function. For
->> saa7134, it does:
->>
->>          if (PCI_DEVICE_ID_PHILIPS_SAA7134 == dev->pci->device)
->>                  /* 7134 mute */
->>                  saa_writeb(SAA7134_AUDIO_MUTE_CTRL, mute ?
->>                                                      SAA7134_MUTE_MASK |
->>                                                      SAA7134_MUTE_ANALOG |
->>                                                      SAA7134_MUTE_I2S :
->>                                                      SAA7134_MUTE_MASK);
->>
->> Clearly, there are two mute flags: SAA7134_MUTE_ANALOG and SAA7134_MUTE_I2S.
-> I was actually already playing with that piece of
-> code, and got no results. Will retry the next week-end
-> to see exactly why...
+> I just tried 3.0.0-rc7 with the same result (used defaults for new
+> config items.  I manually loaded both keymaps before imon.  I looks like
+> the mystery T889 has become a T886... compiler generated temporary name
+> perhaps?
+> 
+> > Looks like I'll probably have to give that a spin, since I'm not
+> > seeing the problem here (I can also switch to an 0xffdc device, which
+> > is actually handled a bit differently by the driver).
+> 
+> I understand that the 0xffdc device covers a multitude of physical
+> variants.   Is there any information from the device itself that drives
+> the selected keymap?  If so, how do I extract it?
+> 
+> Regards,
+> Chris
+> 
+> 
 
-Maybe your device is not a saa7134. For saa7133/saa7135, the
-mute/unmute seems to be done via GPIO, and via amux.
+This is an obviously repeatable NULL pointer dereference in
+rc_g_keycode_from_table().  The faulting line of code in both cases
+disasembles to:
 
-> IIRC the problem was that this does not mute the
-> sound input from the back panel of the board, which
-> would then still go to the pass-through wire in case
-> you are capturing. The only way do mute it, was to
-> configure muxes the way you can't capture at the
-> same time. But I may be wrong with the recollections.
+  1e:	8b 80 dc 00 00 00    	mov    0xdc(%eax),%eax
 
-Well, the change seems to be simple, as we don't actually need to
-split the mute. We just need to control the I2S input/output at
-the alsa driver.
+%eax obviously holds the value 0 (NULL).  But I'm having a hard time
+telling to where exactly that line of assembly corresponds in
+rc_g_keycode_from_table().  And I can't tell from the source which data
+structure has something at offset 0xdc that gets derefernced early:
+struct rc_dev or struct rc_map.
 
-The enclosed patch probably does the trick (completely untested).
+Could you provide the output of 
 
-As I said before, before adding this patch upstream, we need to double
-check if it will work with saa7134, saa7133 and saa7135, preserving
-the old behavior on those devices.
+$ locate rc-core.ko
+$ objdump -d -l /blah/blah/drivers/media/rc/rc-core.ko 
 
--
+for the rc_g_keycode_from_table() function?
 
-saa7134: Don't touch at the analog mute at the alsa driver
+Regards,
+Andy
 
-Instead of setting both analog and digital parts of the driver, alsa
-just needs to enable/disable the I2S capture.
-
-Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
-
-
-diff --git a/drivers/media/video/saa7134/saa7134-alsa.c b/drivers/media/video/saa7134/saa7134-alsa.c
-index 10460fd..2edcdd2 100644
---- a/drivers/media/video/saa7134/saa7134-alsa.c
-+++ b/drivers/media/video/saa7134/saa7134-alsa.c
-@@ -720,7 +720,7 @@ static int snd_card_saa7134_capture_close(struct snd_pcm_substream * substream)
- 
- 	if (saa7134->mute_was_on) {
- 		dev->ctl_mute = 1;
--		saa7134_tvaudio_setmute(dev);
-+		saa7134_i2s_mute(dev, dev->ctl_mute);
- 	}
- 	return 0;
- }
-@@ -777,7 +777,7 @@ static int snd_card_saa7134_capture_open(struct snd_pcm_substream * substream)
- 	if (dev->ctl_mute != 0) {
- 		saa7134->mute_was_on = 1;
- 		dev->ctl_mute = 0;
--		saa7134_tvaudio_setmute(dev);
-+		saa7134_i2s_mute(dev, dev->ctl_mute);
- 	}
- 
- 	err = snd_pcm_hw_constraint_integer(runtime,
-diff --git a/drivers/media/video/saa7134/saa7134-tvaudio.c b/drivers/media/video/saa7134/saa7134-tvaudio.c
-index 57e646b..9cc81ed 100644
---- a/drivers/media/video/saa7134/saa7134-tvaudio.c
-+++ b/drivers/media/video/saa7134/saa7134-tvaudio.c
-@@ -184,6 +184,15 @@ static void tvaudio_setcarrier(struct saa7134_dev *dev,
- #define SAA7134_MUTE_ANALOG 0x04
- #define SAA7134_MUTE_I2S 0x40
- 
-+void saa7134_i2s_mute(struct saa7134_dev *dev, unsigned int mute)
-+{
-+	if (PCI_DEVICE_ID_PHILIPS_SAA7134 == dev->pci->device)
-+		saa_andorb(SAA7134_AUDIO_FORMAT_CTRL, SAA7134_MUTE_I2S,
-+			   mute ? SAA7134_MUTE_I2S : 0);
-+	else
-+	    saa_writeb(SAA7134_I2S_AUDIO_OUTPUT, mute ? 0x11 : 0);
-+}
-+
- static void mute_input_7134(struct saa7134_dev *dev)
- {
- 	unsigned int mute;
-@@ -220,10 +229,11 @@ static void mute_input_7134(struct saa7134_dev *dev)
- 		/* 7134 mute */
- 		saa_writeb(SAA7134_AUDIO_MUTE_CTRL, mute ?
- 						    SAA7134_MUTE_MASK |
--						    SAA7134_MUTE_ANALOG |
--						    SAA7134_MUTE_I2S :
-+						    SAA7134_MUTE_ANALOG :
- 						    SAA7134_MUTE_MASK);
- 
-+	saa7134_i2s_mute(dev, mute);
-+
- 	/* switch internal audio mux */
- 	switch (in->amux) {
- 	case TV:         ausel=0xc0; ics=0x00; ocs=0x02; break;
-diff --git a/drivers/media/video/saa7134/saa7134.h b/drivers/media/video/saa7134/saa7134.h
-index bc8d6bb..7b104cc 100644
---- a/drivers/media/video/saa7134/saa7134.h
-+++ b/drivers/media/video/saa7134/saa7134.h
-@@ -821,6 +821,7 @@ int saa7134_tvaudio_do_scan(struct saa7134_dev *dev);
- int saa_dsp_writel(struct saa7134_dev *dev, int reg, u32 value);
- 
- void saa7134_enable_i2s(struct saa7134_dev *dev);
-+void saa7134_i2s_mute(struct saa7134_dev *dev, unsigned int mute);
- 
- /* ----------------------------------------------------------- */
- /* saa7134-oss.c                                               */
+> Jul 14 11:19:38 kepler BUG: unable to handle kernel
+> Jul 14 11:19:38 kepler NULL pointer dereference
+> Jul 14 11:19:38 kepler at 000000dc
+> Jul 14 11:19:38 kepler IP:
+> Jul 14 11:19:38 kepler [<f8f1949e>] rc_g_keycode_from_table+0x1e/0xe0
+> [rc_core]
+> Jul 14 11:19:38 kepler *pde = 00000000
+> Jul 14 11:19:38 kepler
+> Jul 14 11:19:38 kepler Oops: 0000 [#1]
+> Jul 14 11:19:38 kepler PREEMPT
+> Jul 14 11:19:38 kepler
+> Jul 14 11:19:38 kepler Modules linked in:
+> Jul 14 11:19:38 kepler imon(+)
+> Jul 14 11:19:38 kepler rc_imon_pad
+> Jul 14 11:19:38 kepler rc_imon_mce
+> Jul 14 11:19:38 kepler netconsole
+> Jul 14 11:19:38 kepler asb100
+> Jul 14 11:19:38 kepler hwmon_vid
+> Jul 14 11:19:38 kepler cx22702
+> Jul 14 11:19:38 kepler dvb_pll
+> Jul 14 11:19:38 kepler mt352
+> Jul 14 11:19:38 kepler cx88_dvb
+> Jul 14 11:19:38 kepler cx88_vp3054_i2c
+> Jul 14 11:19:38 kepler videobuf_dvb
+> Jul 14 11:19:38 kepler snd_via82xx
+> Jul 14 11:19:38 kepler snd_ac97_codec
+> Jul 14 11:19:38 kepler cx8800
+> Jul 14 11:19:38 kepler cx8802
+> Jul 14 11:19:38 kepler cx88xx
+> Jul 14 11:19:38 kepler ac97_bus
+> Jul 14 11:19:38 kepler snd_mpu401_uart
+> Jul 14 11:19:38 kepler snd_rawmidi
+> Jul 14 11:19:38 kepler b44
+> Jul 14 11:19:38 kepler ssb
+> Jul 14 11:19:38 kepler rc_core
+> Jul 14 11:19:38 kepler i2c_algo_bit
+> Jul 14 11:19:38 kepler mii
+> Jul 14 11:19:38 kepler tveeprom
+> Jul 14 11:19:38 kepler btcx_risc
+> Jul 14 11:19:38 kepler i2c_viapro
+> Jul 14 11:19:38 kepler videobuf_dma_sg
+> Jul 14 11:19:38 kepler videobuf_core
+> Jul 14 11:19:38 kepler [last unloaded: ir_nec_decoder]
+> Jul 14 11:19:38 kepler
+> Jul 14 11:19:38 kepler
+> Jul 14 11:19:38 kepler Pid: 2885, comm: modprobe Not tainted 3.0.0-rc7 #1
+> Jul 14 11:19:38 kepler System Manufacturer System Name
+> Jul 14 11:19:38 kepler /A7V8X
+> Jul 14 11:19:38 kepler
+> Jul 14 11:19:38 kepler EIP: 0060:[<f8f1949e>] EFLAGS: 00010002 CPU: 0
+> Jul 14 11:19:38 kepler EIP is at rc_g_keycode_from_table+0x1e/0xe0 [rc_core]
+> Jul 14 11:19:38 kepler EAX: 00000000 EBX: f5610800 ECX: 00000008 EDX:
+> 00000000
+> Jul 14 11:19:38 kepler ESI: 00000000 EDI: 00000000 EBP: f7009e48 ESP:
+> f7009e18
+> Jul 14 11:19:38 kepler DS: 007b ES: 007b FS: 0000 GS: 0033 SS: 0068
+> Jul 14 11:19:38 kepler Process modprobe (pid: 2885, ti=f7008000
+> task=f708ada0 task.ti=f5706000)
+> Jul 14 11:19:38 kepler Stack:
+> Jul 14 11:19:38 kepler f71cc8c0
+> Jul 14 11:19:38 kepler 00000082
+> Jul 14 11:19:38 kepler 00000002
+> Jul 14 11:19:38 kepler f7009e2c
+> Jul 14 11:19:38 kepler c101eabb
+> Jul 14 11:19:38 kepler f71cc8c0
+> Jul 14 11:19:38 kepler 00000000
+> Jul 14 11:19:38 kepler 00000086
+> Jul 14 11:19:38 kepler
+> Jul 14 11:19:38 kepler 00000086
+> Jul 14 11:19:38 kepler f5610800
+> Jul 14 11:19:38 kepler 00000000
+> Jul 14 11:19:38 kepler 00000000
+> Jul 14 11:19:38 kepler f7009e58
+> Jul 14 11:19:38 kepler f87be59c
+> Jul 14 11:19:38 kepler f5610800
+> Jul 14 11:19:38 kepler f5610841
+> Jul 14 11:19:38 kepler
+> Jul 14 11:19:38 kepler f7009edc
+> Jul 14 11:19:38 kepler f87be6dc
+> Jul 14 11:19:38 kepler f68c00a4
+> Jul 14 11:19:38 kepler f7009e6c
+> Jul 14 11:19:38 kepler f68c5760
+> Jul 14 11:19:38 kepler f7009e74
+> Jul 14 11:19:38 kepler f68c00a4
+> Jul 14 11:19:38 kepler f7009e98
+> Jul 14 11:19:38 kepler
+> Jul 14 11:19:38 kepler Call Trace:
+> Jul 14 11:19:38 kepler [<c101eabb>] ? T.886+0x1b/0x30
+> Jul 14 11:19:38 kepler [<f87be59c>] imon_remote_key_lookup+0x1c/0x70 [imon]
+> Jul 14 11:19:38 kepler [<f87be6dc>] imon_incoming_packet+0x5c/0xe20 [imon]
+> Jul 14 11:19:38 kepler [<c1259cc8>] ? atapi_qc_complete+0x58/0x2b0
+> Jul 14 11:19:38 kepler [<c1251d23>] ? __ata_qc_complete+0x73/0x110
+> Jul 14 11:19:38 kepler [<f87bf573>] usb_rx_callback_intf0+0x63/0x70 [imon]
+> Jul 14 11:19:38 kepler [<c1275848>] usb_hcd_giveback_urb+0x48/0xb0
+> Jul 14 11:19:38 kepler [<c128d29e>] uhci_giveback_urb+0x8e/0x220
+> Jul 14 11:19:38 kepler [<c128d896>] uhci_scan_schedule+0x366/0x9e0
+> Jul 14 11:19:38 kepler [<c12900e1>] uhci_irq+0x91/0x170
+> Jul 14 11:19:38 kepler [<c1274961>] usb_hcd_irq+0x21/0x50
+> Jul 14 11:19:38 kepler [<c1052a36>] handle_irq_event_percpu+0x36/0x140
+> Jul 14 11:19:38 kepler [<c1016570>] ? __io_apic_modify_irq+0x80/0x90
+> Jul 14 11:19:38 kepler [<c10548c0>] ? handle_edge_irq+0x100/0x100
+> Jul 14 11:19:38 kepler [<c1052b72>] handle_irq_event+0x32/0x60
+> Jul 14 11:19:38 kepler [<c1054905>] handle_fasteoi_irq+0x45/0xc0
+> Jul 14 11:19:38 kepler <IRQ>
+> Jul 14 11:19:38 kepler
+> Jul 14 11:19:38 kepler [<c1003c8a>] ? do_IRQ+0x3a/0xb0
+> Jul 14 11:19:38 kepler [<c1065c93>] ? zone_watermark_ok+0x23/0x30
+> Jul 14 11:19:38 kepler [<c13ddf29>] ? common_interrupt+0x29/0x30
+> Jul 14 11:19:38 kepler [<c11b3d3e>] ? mmx_clear_page+0x7e/0x120
+> Jul 14 11:19:38 kepler [<c1068222>] ? get_page_from_freelist+0x1f2/0x480
+> Jul 14 11:19:38 kepler [<c12206d3>] ? extract_buf+0x83/0xd0
+> Jul 14 11:19:38 kepler [<c1068585>] ? __alloc_pages_nodemask+0xd5/0x5a0
+> Jul 14 11:19:38 kepler [<c10802f5>] ? anon_vma_prepare+0xc5/0x150
+> Jul 14 11:19:38 kepler [<c10782f0>] ? handle_pte_fault+0x440/0x590
+> Jul 14 11:19:38 kepler [<c10b0a9d>] ? __find_get_block+0xad/0x1c0
+> Jul 14 11:19:38 kepler [<c10787d4>] ? handle_mm_fault+0x74/0xb0
+> Jul 14 11:19:38 kepler [<c10194a0>] ? mm_fault_error+0x130/0x130
+> Jul 14 11:19:38 kepler [<c101959a>] ? do_page_fault+0xfa/0x3c0
+> Jul 14 11:19:38 kepler [<c1065c93>] ? zone_watermark_ok+0x23/0x30
+> Jul 14 11:19:38 kepler [<c10e8d35>] ? ext3fs_dirhash+0x115/0x240
+> Jul 14 11:19:38 kepler [<c10e8ae0>] ? ext3_follow_link+0x20/0x20
+> Jul 14 11:19:38 kepler [<c10194a0>] ? mm_fault_error+0x130/0x130
+> Jul 14 11:19:38 kepler [<c13dd7c4>] ? error_code+0x58/0x60
+> Jul 14 11:19:38 kepler [<c10194a0>] ? mm_fault_error+0x130/0x130
+> Jul 14 11:19:38 kepler [<c1061f95>] ? file_read_actor+0x25/0xe0
+> Jul 14 11:19:38 kepler [<c10623dc>] ? find_get_page+0x5c/0xa0
+> Jul 14 11:19:38 kepler [<c106423e>] ? generic_file_aio_read+0x2be/0x720
+> Jul 14 11:19:38 kepler [<c10a54d3>] ? mntput+0x13/0x30
+> Jul 14 11:19:38 kepler [<c108af0c>] ? do_sync_read+0x9c/0xd0
+> Jul 14 11:19:38 kepler [<c108afa3>] ? rw_verify_area+0x63/0x110
+> Jul 14 11:19:38 kepler [<c108ba87>] ? vfs_read+0x97/0x140
+> Jul 14 11:19:38 kepler [<c108ae70>] ? do_sync_write+0xd0/0xd0
+> Jul 14 11:19:38 kepler [<c108bbed>] ? sys_read+0x3d/0x70
+> Jul 14 11:19:38 kepler [<c13dda10>] ? sysenter_do_call+0x12/0x26
+> Jul 14 11:19:38 kepler Code:
+> Jul 14 11:19:38 kepler 8d
+> Jul 14 11:19:38 kepler b6
+> Jul 14 11:19:38 kepler 00
+> Jul 14 11:19:38 kepler 00
+> Jul 14 11:19:38 kepler 00
+> Jul 14 11:19:38 kepler 00
+> Jul 14 11:19:38 kepler 8d
+> Jul 14 11:19:38 kepler bc
+> Jul 14 11:19:38 kepler 27
+> Jul 14 11:19:38 kepler 00
+> Jul 14 11:19:38 kepler 00
+> Jul 14 11:19:38 kepler 00
+> Jul 14 11:19:38 kepler 00
+> Jul 14 11:19:38 kepler 55
+> Jul 14 11:19:38 kepler 89
+> Jul 14 11:19:38 kepler e5
+> Jul 14 11:19:38 kepler 57
+> Jul 14 11:19:38 kepler 56
+> Jul 14 11:19:38 kepler 53
+> Jul 14 11:19:38 kepler 83
+> Jul 14 11:19:38 kepler ec
+> Jul 14 11:19:38 kepler 24
+> Jul 14 11:19:38 kepler 89
+> Jul 14 11:19:38 kepler 45
+> Jul 14 11:19:38 kepler e8
+> Jul 14 11:19:38 kepler 9c
+> Jul 14 11:19:38 kepler 8f
+> Jul 14 11:19:38 kepler 45
+> Jul 14 11:19:38 kepler ec
+> Jul 14 11:19:38 kepler fa
+> Jul 14 11:19:38 kepler 89
+> Jul 14 11:19:38 kepler e0
+> Jul 14 11:19:38 kepler 25
+> Jul 14 11:19:38 kepler 00
+> Jul 14 11:19:38 kepler e0
+> Jul 14 11:19:38 kepler ff
+> Jul 14 11:19:38 kepler ff
+> Jul 14 11:19:38 kepler ff
+> Jul 14 11:19:38 kepler 40
+> Jul 14 11:19:38 kepler 14
+> Jul 14 11:19:38 kepler 8b
+> Jul 14 11:19:38 kepler 45
+> Jul 14 11:19:38 kepler e8
+> Jul 14 11:19:38 kepler syslog-ng[1931]: Error processing log message: <8b>
+> Jul 14 11:19:38 kepler 80
+> Jul 14 11:19:38 kepler dc
+> Jul 14 11:19:38 kepler 00
+> Jul 14 11:19:38 kepler 00
+> Jul 14 11:19:38 kepler 00
+> Jul 14 11:19:38 kepler 89
+> Jul 14 11:19:38 kepler c3
+> Jul 14 11:19:38 kepler 89
+> Jul 14 11:19:38 kepler 45
+> Jul 14 11:19:38 kepler f0
+> Jul 14 11:19:38 kepler 4b
+> Jul 14 11:19:38 kepler 78
+> Jul 14 11:19:38 kepler 38
+> Jul 14 11:19:38 kepler 8b
+> Jul 14 11:19:38 kepler 45
+> Jul 14 11:19:38 kepler e8
+> Jul 14 11:19:38 kepler 31
+> Jul 14 11:19:38 kepler c9
+> Jul 14 11:19:38 kepler 8b
+> Jul 14 11:19:38 kepler b0
+> Jul 14 11:19:38 kepler
+> Jul 14 11:19:38 kepler EIP: [<f8f1949e>]
+> Jul 14 11:19:38 kepler rc_g_keycode_from_table+0x1e/0xe0 [rc_core]
+> Jul 14 11:19:38 kepler SS:ESP 0068:f7009e18
+> Jul 14 11:19:38 kepler CR2: 00000000000000dc
+> Jul 14 11:19:38 kepler ---[ end trace 7467312b172b0d0f ]---
+> Jul 14 11:19:38 kepler Kernel panic - not syncing: Fatal exception in
+> interrupt
+> Jul 14 11:19:38 kepler Pid: 2885, comm: modprobe Tainted: G      D
+> 3.0.0-rc7 #1
+> Jul 14 11:19:38 kepler Call Trace:
+> Jul 14 11:19:38 kepler [<c13db3a7>] panic+0x61/0x145
+> Jul 14 11:19:38 kepler [<c1004f30>] oops_end+0x80/0x80
+> Jul 14 11:19:38 kepler [<c101910e>] no_context+0xbe/0x150
+> Jul 14 11:19:38 kepler [<c101922f>] __bad_area_nosemaphore+0x8f/0x130
+> Jul 14 11:19:38 kepler [<c10194a0>] ? mm_fault_error+0x130/0x130
+> Jul 14 11:19:38 kepler [<c10192e2>] bad_area_nosemaphore+0x12/0x20
+> Jul 14 11:19:38 kepler [<c1019709>] do_page_fault+0x269/0x3c0
+> Jul 14 11:19:38 kepler [<c1040d85>] ? T.314+0x15/0x1b0
+> Jul 14 11:19:38 kepler [<c10194a0>] ? mm_fault_error+0x130/0x130
+> Jul 14 11:19:38 kepler [<c13dd7c4>] error_code+0x58/0x60
+> Jul 14 11:19:38 kepler [<c10194a0>] ? mm_fault_error+0x130/0x130
+> Jul 14 11:19:38 kepler [<f8f1949e>] ? rc_g_keycode_from_table+0x1e/0xe0
+> [rc_core]
+> Jul 14 11:19:38 kepler [<c101eabb>] ? T.886+0x1b/0x30
+> Jul 14 11:19:38 kepler [<f87be59c>] imon_remote_key_lookup+0x1c/0x70 [imon]
+> Jul 14 11:19:38 kepler [<f87be6dc>] imon_incoming_packet+0x5c/0xe20 [imon]
+> Jul 14 11:19:38 kepler [<c1259cc8>] ? atapi_qc_complete+0x58/0x2b0
+> Jul 14 11:19:38 kepler [<c1251d23>] ? __ata_qc_complete+0x73/0x110
+> Jul 14 11:19:38 kepler [<f87bf573>] usb_rx_callback_intf0+0x63/0x70 [imon]
+> Jul 14 11:19:38 kepler [<c1275848>] usb_hcd_giveback_urb+0x48/0xb0
+> Jul 14 11:19:38 kepler [<c128d29e>] uhci_giveback_urb+0x8e/0x220
+> Jul 14 11:19:38 kepler [<c128d896>] uhci_scan_schedule+0x366/0x9e0
+> Jul 14 11:19:38 kepler [<c12900e1>] uhci_irq+0x91/0x170
+> Jul 14 11:19:38 kepler [<c1274961>] usb_hcd_irq+0x21/0x50
+> Jul 14 11:19:38 kepler [<c1052a36>] handle_irq_event_percpu+0x36/0x140
+> Jul 14 11:19:38 kepler [<c1016570>] ? __io_apic_modify_irq+0x80/0x90
+> Jul 14 11:19:38 kepler [<c10548c0>] ? handle_edge_irq+0x100/0x100
+> Jul 14 11:19:38 kepler [<c1052b72>] handle_irq_event+0x32/0x60
+> Jul 14 11:19:38 kepler [<c1054905>] handle_fasteoi_irq+0x45/0xc0
+> Jul 14 11:19:38 kepler <IRQ>
+> Jul 14 11:19:38 kepler [<c1003c8a>] ? do_IRQ+0x3a/0xb0
+> Jul 14 11:19:38 kepler [<c1065c93>] ? zone_watermark_ok+0x23/0x30
+> Jul 14 11:19:38 kepler [<c13ddf29>] ? common_interrupt+0x29/0x30
+> Jul 14 11:19:38 kepler [<c11b3d3e>] ? mmx_clear_page+0x7e/0x120
+> Jul 14 11:19:38 kepler [<c1068222>] ? get_page_from_freelist+0x1f2/0x480
+> Jul 14 11:19:38 kepler [<c12206d3>] ? extract_buf+0x83/0xd0
+> Jul 14 11:19:38 kepler [<c1068585>] ? __alloc_pages_nodemask+0xd5/0x5a0
+> Jul 14 11:19:38 kepler [<c10802f5>] ? anon_vma_prep
+> Jul 14 11:19:38 kepler are+0xc5/0x150
+> Jul 14 11:19:38 kepler [<c10782f0>] ? handle_pte_fault+0x440/0x590
+> Jul 14 11:19:38 kepler [<c10b0a9d>] ? __find_get_block+0xad/0x1c0
+> Jul 14 11:19:38 kepler [<c10787d4>] ? handle_mm_fault+0x74/0xb0
+> Jul 14 11:19:38 kepler [<c10194a0>] ? mm_fault_error+0x130/0x130
+> Jul 14 11:19:38 kepler [<c101959a>] ? do_page_fault+0xfa/0x3c0
+> Jul 14 11:19:38 kepler [<c1065c93>] ? zone_watermark_ok+0x23/0x30
+> Jul 14 11:19:38 kepler [<c10e8d35>] ? ext3fs_dirhash+0x115/0x240
+> Jul 14 11:19:38 kepler [<c10e8ae0>] ? ext3_follow_link+0x20/0x20
+> Jul 14 11:19:38 kepler [<c10194a0>] ? mm_fault_error+0x130/0x130
+> Jul 14 11:19:38 kepler [<c13dd7c4>] ? error_code+0x58/0x60
+> Jul 14 11:19:38 kepler [<c10194a0>] ? mm_fault_error+0x130/0x130
+> Jul 14 11:19:38 kepler [<c1061f95>] ? file_read_actor+0x25/0xe0
+> Jul 14 11:19:38 kepler [<c10623dc>] ? find_get_page+0x5c/0xa0
+> Jul 14 11:19:38 kepler [<c106423e>] ? generic_file_aio_read+0x2be/0x720
+> Jul 14 11:19:38 kepler [<c10a54d3>] ? mntput+0x13/0x30
+> Jul 14 11:19:38 kepler [<c108af0c>] ? do_sync_read+0x9c/0xd0
+> Jul 14 11:19:38 kepler [<c108afa3>] ? rw_verify_area+0x63/0x110
+> Jul 14 11:19:38 kepler [<c108ba87>] ? vfs_read+0x97/0x140
+> Jul 14 11:19:38 kepler [<c108ae70>] ? do_sync_write+0xd0/0xd0
+> Jul 14 11:19:38 kepler [<c108bbed>] ? sys_read+0x3d/0x70
+> Jul 14 11:19:38 kepler [<c13dda10>] ? sysenter_do_call+0x12/0x26
+> 
 
 
