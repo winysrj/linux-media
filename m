@@ -1,56 +1,83 @@
-Return-path: <mchehab@pedra>
-Received: from mailout2.w1.samsung.com ([210.118.77.12]:21550 "EHLO
-	mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751333Ab1GAPEi (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 1 Jul 2011 11:04:38 -0400
-Received: from eu_spt1 (mailout2.w1.samsung.com [210.118.77.12])
- by mailout2.w1.samsung.com
- (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14 2004))
- with ESMTP id <0LNN008PDTVOAX@mailout2.w1.samsung.com> for
- linux-media@vger.kernel.org; Fri, 01 Jul 2011 16:04:36 +0100 (BST)
-Received: from linux.samsung.com ([106.116.38.10])
- by spt1.w1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14
- 2004)) with ESMTPA id <0LNN00058TVM46@spt1.w1.samsung.com> for
- linux-media@vger.kernel.org; Fri, 01 Jul 2011 16:04:35 +0100 (BST)
-Date: Fri, 01 Jul 2011 17:04:28 +0200
-From: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Subject: [PATCH v2 0/4] noon010pc30 driver conversion to the pad level
- operations
-To: linux-media@vger.kernel.org
-Cc: m.szyprowski@samsung.com, kyungmin.park@samsung.com,
-	laurent.pinchart@ideasonboard.com, s.nawrocki@samsung.com,
-	sw0312.kim@samsung.com, riverful.kim@samsung.com
-Message-id: <1309532672-17920-1-git-send-email-s.nawrocki@samsung.com>
-MIME-version: 1.0
-Content-type: TEXT/PLAIN
-Content-transfer-encoding: 7BIT
+Return-path: <linux-media-owner@vger.kernel.org>
+Received: from moutng.kundenserver.de ([212.227.17.10]:61000 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754003Ab1GQQwt (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 17 Jul 2011 12:52:49 -0400
+Date: Sun, 17 Jul 2011 18:52:19 +0200 (CEST)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+cc: Michael Grzeschik <m.grzeschik@pengutronix.de>,
+	linux-media@vger.kernel.org
+Subject: Re: [PATCH 1/5] mt9m111: set inital return values to zero
+In-Reply-To: <201107141725.21401.laurent.pinchart@ideasonboard.com>
+Message-ID: <Pine.LNX.4.64.1107171844150.13485@axis700.grange>
+References: <1310485146-27759-1-git-send-email-m.grzeschik@pengutronix.de>
+ <201107141725.21401.laurent.pinchart@ideasonboard.com>
+MIME-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
-Sender: <mchehab@pedra>
 
-The following patch set converts noon010pc30 camera sensor driver to the 
-subdev pad level operations. Additionally it adds a s_stream operation
-and marks driver as experimental as it now uses V4L2 sub-device API.
-Now unneeded g_chip_ident op is also removed.
+On Thu, 14 Jul 2011, Laurent Pinchart wrote:
 
-Changes since v1:
-- fixed subdev's flags initialization
-- corrected s_stream handler so the sensor's sleep mode is used
-  for suspending/resuming the output signal
-- removed g_chip_indent operation handler
+> Hi Michael,
+> 
+> There's no need to set initial return values to zero if they're assigned to in 
+> all code paths.
+> 
+> [snip]
+> 
+> > *client) static int mt9m111_enable(struct i2c_client *client)
+> >  {
+> >  	struct mt9m111 *mt9m111 = to_mt9m111(client);
+> > -	int ret;
+> > +	int ret = 0;
+> > 
+> >  	ret = reg_set(RESET, MT9M111_RESET_CHIP_ENABLE);
+> >  	if (!ret)
+> 
+> This is a clear example, ret will never be used uninitialized. Initializing it 
+> to 0 would be a waste of resources (although in this case it will probably be 
+> optimized out by the compiler).
 
-Sylwester Nawrocki (4):
-  noon010pc30: Do not ignore errors in initial controls setup
-  noon010pc30: Convert to the pad level ops
-  noon010pc30: Clean up the s_power callback
-  noon010pc30: Remove g_chip_ident operation handler
+Seconded. When I wrote:
 
- drivers/media/video/Kconfig       |    2 +-
- drivers/media/video/noon010pc30.c |  173 +++++++++++++++++++++++--------------
- include/media/v4l2-chip-ident.h   |    3 -
- 3 files changed, 109 insertions(+), 69 deletions(-)
+> > +static int mt9m111_reg_mask(struct i2c_client *client, const u16 reg,
+> > +			    const u16 data, const u16 mask)
+> > +{
+> > +	int ret;
+> > +
+> > +	ret = mt9m111_reg_read(client, reg);
+> > +	return mt9m111_reg_write(client, reg, (ret & ~mask) | data);
+> 
+> Ok, I feel ashamed, that I have accepted this driver in this form... It is 
+> full of such buggy error handling instances, and this adds just one 
+> more... So, I would very appreciate if you could clean them up - before 
+> this patch, and handle this error properly too, otherwise I might do this 
+> myself some time... And, just noticed - "static int lastpage" from 
+> reg_page_map_set() must be moved into struct mt9m111, if this driver shall 
+> be able to handle more than one sensor simultaneously, at least in 
+> principle...
 
+I didn't mean to init all return codes to 0. I meant, before using a 
+result of a reg_read(), you have to check it for error. I.e.,
 
-Regards,
---
-Sylwester Nawrocki
-Samsung Poland R&D Center
++	ret = mt9m111_reg_read(client, reg);
++	if (ret >= 0)
++		ret = mt9m111_reg_write(client, reg, (ret & ~mask) | data);
++	return ret;
+
+In principle, after the updated version of your patch "mt9m111: rewrite 
+set_pixfmt" all errors, returned by reg_read(), reg_write() and reg_mask() 
+are checked, even if some of them I would do a bit differently. E.g., I 
+would propagate the error code instead of replacing it with -EIO, etc. But 
+in principle all error cases are handled, so, we can live with that for 
+now. I'm dropping this patch.
+
+Thanks
+Guennadi
+---
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
+http://www.open-technology.de/
