@@ -1,92 +1,78 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout3.w1.samsung.com ([210.118.77.13]:11915 "EHLO
-	mailout3.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750857Ab1GRGbD (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 18 Jul 2011 02:31:03 -0400
-MIME-version: 1.0
-Content-transfer-encoding: 7BIT
-Content-type: text/plain; charset=us-ascii
-Received: from eu_spt1 ([210.118.77.13]) by mailout3.w1.samsung.com
- (Sun Java(tm) System Messaging Server 6.3-8.04 (built Jul 29 2009; 32bit))
- with ESMTP id <0LOI00DM3NFPE840@mailout3.w1.samsung.com> for
- linux-media@vger.kernel.org; Mon, 18 Jul 2011 07:31:01 +0100 (BST)
-Received: from linux.samsung.com ([106.116.38.10])
- by spt1.w1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14
- 2004)) with ESMTPA id <0LOI00HHDNFO86@spt1.w1.samsung.com> for
- linux-media@vger.kernel.org; Mon, 18 Jul 2011 07:31:00 +0100 (BST)
-Date: Mon, 18 Jul 2011 08:30:13 +0200
-From: Marek Szyprowski <m.szyprowski@samsung.com>
-Subject: RE: [RFCv1 PATCH 3/6] videobuf2: only start streaming in poll() if so
- requested by the poll mask.
-In-reply-to: <7fc8ed81f08a0ac8092c5b6a8badc3427df9bc1e.1310549521.git.hans.verkuil@cisco.com>
-To: 'Hans Verkuil' <hverkuil@xs4all.nl>, linux-media@vger.kernel.org
-Cc: 'Hans Verkuil' <hans.verkuil@cisco.com>,
-	'Pawel Osciak' <pawel@osciak.com>
-Message-id: <00c901cc4514$26629880$7327c980$%szyprowski@samsung.com>
-Content-language: pl
-References: <1310549944-23756-1-git-send-email-hverkuil@xs4all.nl>
- <7fc8ed81f08a0ac8092c5b6a8badc3427df9bc1e.1310549521.git.hans.verkuil@cisco.com>
+Received: from mx1.redhat.com ([209.132.183.28]:7645 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755252Ab1GQBIA (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 16 Jul 2011 21:08:00 -0400
+Message-ID: <4E2235DE.2070107@redhat.com>
+Date: Sat, 16 Jul 2011 22:07:42 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+MIME-Version: 1.0
+To: Antti Palosaari <crope@iki.fi>
+CC: Andreas Oberritter <obi@linuxtv.org>,
+	Ralph Metzler <rjkm@metzlerbros.de>,
+	linux-media@vger.kernel.org
+Subject: Re: [PATCH 0/5] Driver support for cards based on Digital Devices
+ bridge (ddbridge)
+References: <201107032321.46092@orion.escape-edv.de> <4E1F8E1F.3000008@redhat.com> <4E1FBA6F.10509@redhat.com> <201107150717.08944@orion.escape-edv.de> <19999.63914.990114.26990@morden.metzler> <4E203FD0.4030503@redhat.com> <4E207252.5050506@linuxtv.org> <4E20D042.3000302@iki.fi> <4E21832A.20600@redhat.com> <4E219D49.1070709@iki.fi> <4E21A63A.8040008@redhat.com> <4E21B0DE.2020902@linuxtv.org> <4E21B1E6.4090302@iki.fi>
+In-Reply-To: <4E21B1E6.4090302@iki.fi>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello,
+Em 16-07-2011 12:44, Antti Palosaari escreveu:
+> On 07/16/2011 06:40 PM, Andreas Oberritter wrote:
+>> On 16.07.2011 16:54, Mauro Carvalho Chehab wrote:
+>>> Em 16-07-2011 11:16, Antti Palosaari escreveu:
 
-On Wednesday, July 13, 2011 11:39 AM Hans Verkuil wrote:
+>>> Approach 4) fe0 is a frontend "superset"
+>>>
+>>> *adapter0
+>>> *frontend0 (DVB-S/DVB-S2/DVB-T/DVB-T2/DVB-C/ISDB-T) - aka: FE superset
+>>> *frontend1 (DVB-S/DVB-S2)
+>>> *frontend2 (DVB-T/DVB-T2)
+>>> *frontend3 (DVB-C)
+>>> *frontend4 (ISDB-T)
+>>>
+>>> fe0 will need some special logic to allow redirecting a FE call to the right fe, if
+>>> there are more than one physical frontend bound into the FE API.
+>>>
+>>> I'm starting to think that (4) is the better approach, as it won't break legacy
+>>> applications, and it will provide an easier way for new applications to control
+>>> the frontend with just one frontend.
+>>
+>> Approach 4 would break existing applications, because suddenly they'd
+>> have to cope with an additional device. It would be impossible for an
+>> existing application to tell whether frontend0 (from your example) was a
+>> real device or not.
 
-> From: Hans Verkuil <hans.verkuil@cisco.com>
-> 
-> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+(not sure who commented this... somehow, I didn't receive the original email - well,
+I'll just reply on Antti's answer)
 
-Acked-by: Marek Szyprowski <m.szyprowski@samsung.com>
+Yes, an existing application will not know how to handle such fe, but, as the other
+fe's are still provided, they can swill switch the delivery system by replacing the
+frontend they're using. There are some alternatives for this approach, like:
 
-> ---
->  drivers/media/video/videobuf2-core.c |    7 +++++--
->  1 files changed, 5 insertions(+), 2 deletions(-)
-> 
-> diff --git a/drivers/media/video/videobuf2-core.c
-> b/drivers/media/video/videobuf2-core.c
-> index 3015e60..1892bb8 100644
-> --- a/drivers/media/video/videobuf2-core.c
-> +++ b/drivers/media/video/videobuf2-core.c
-> @@ -1365,6 +1365,7 @@ static int __vb2_cleanup_fileio(struct vb2_queue *q);
->   */
->  unsigned int vb2_poll(struct vb2_queue *q, struct file *file, poll_table
-> *wait)
->  {
-> +	unsigned long req_events = poll_requested_events(wait);
->  	unsigned long flags;
->  	unsigned int ret;
->  	struct vb2_buffer *vb = NULL;
-> @@ -1373,12 +1374,14 @@ unsigned int vb2_poll(struct vb2_queue *q, struct
-> file *file, poll_table *wait)
->  	 * Start file I/O emulator only if streaming API has not been used
-> yet.
->  	 */
->  	if (q->num_buffers == 0 && q->fileio == NULL) {
-> -		if (!V4L2_TYPE_IS_OUTPUT(q->type) && (q->io_modes & VB2_READ))
-> {
-> +		if (!V4L2_TYPE_IS_OUTPUT(q->type) && (q->io_modes & VB2_READ)
-> &&
-> +				(req_events & (POLLIN | POLLRDNORM))) {
->  			ret = __vb2_init_fileio(q, 1);
->  			if (ret)
->  				return POLLERR;
->  		}
-> -		if (V4L2_TYPE_IS_OUTPUT(q->type) && (q->io_modes & VB2_WRITE))
-> {
-> +		if (V4L2_TYPE_IS_OUTPUT(q->type) && (q->io_modes & VB2_WRITE)
-> &&
-> +				(req_events & (POLLOUT | POLLWRNORM))) {
->  			ret = __vb2_init_fileio(q, 0);
->  			if (ret)
->  				return POLLERR;
-> --
+Approach 5) fe0 is a frontend "superset", initialized to handle the first registered
+delivery system
 
-Best regards
--- 
-Marek Szyprowski
-Samsung Poland R&D Center
+>>> *adapter0
+>>> *frontend0 (DVB-S/DVB-S2), but allows changing to DVB-T/DVB-T2/DVB-C/ISDB-T
+>>> *frontend1 (DVB-T/DVB-T2)
+>>> *frontend2 (DVB-C)
+>>> *frontend3 (ISDB-T)
 
+(so, it is something between approach 1 and 4)
 
+Being frankly, I think that this would be messy.
 
+In any case, I think that, if we decide for something like approach 4 or 5, we 
+should deprecate the support for the extra frontends, after kernel + 2 versions,
+so, falling back into approach 2 (e. g. just one frontend for all delivery systems).
+
+I also think that we should get a decision about that for 3.1, and port DRX-K to
+the agreed approach before the release of 3.1, as it will be one less driver that
+we'll need to concern about migrating.
+
+Cheers,
+Mauro
