@@ -1,80 +1,46 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:54542 "EHLO mail.kapsi.fi"
+Received: from yop.chewa.net ([91.121.105.214]:44527 "EHLO yop.chewa.net"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751897Ab1HABWK (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 31 Jul 2011 21:22:10 -0400
-Message-ID: <4E35FFBF.9010408@iki.fi>
-Date: Mon, 01 Aug 2011 04:22:07 +0300
-From: Antti Palosaari <crope@iki.fi>
+	id S1752130Ab1GQHvS convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 17 Jul 2011 03:51:18 -0400
+From: "=?utf-8?q?R=C3=A9mi?= Denis-Courmont" <remi@remlab.net>
+To: Andreas Oberritter <obi@linuxtv.org>
+Subject: Re: [PATCH 0/5] Driver support for cards based on Digital Devices bridge (ddbridge)
+Date: Sun, 17 Jul 2011 10:51:12 +0300
+Cc: linux-media@vger.kernel.org
+References: <201107032321.46092@orion.escape-edv.de> <201107161937.48981.remi@remlab.net> <4E224E35.7040704@linuxtv.org>
+In-Reply-To: <4E224E35.7040704@linuxtv.org>
 MIME-Version: 1.0
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-CC: linux-media@vger.kernel.org
-Subject: Re: [PATCH 2/3] dvb-usb: multi-frontend support (MFE)
-References: <4E2E0788.3010507@iki.fi> <4E3061CF.2080009@redhat.com> <4E306BAE.1020302@iki.fi> <4E35F773.3060807@redhat.com>
-In-Reply-To: <4E35F773.3060807@redhat.com>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+Content-Type: Text/Plain;
+  charset="utf-8"
+Content-Transfer-Encoding: 8BIT
+Message-Id: <201107171051.13292.remi@remlab.net>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 08/01/2011 03:46 AM, Mauro Carvalho Chehab wrote:
-> Em 27-07-2011 16:49, Antti Palosaari escreveu:
->> On 07/27/2011 10:06 PM, Mauro Carvalho Chehab wrote:
->>
->>>> +    for (i = 0; i<= x; i++) {
->>>> +        ret = adap->props.frontend_attach(adap);
->>>> +        if (ret || adap->fe[i] == NULL) {
->>>> +            /* only print error when there is no FE at all */
->>>> +            if (i == 0)
->>>> +                err("no frontend was attached by '%s'",
->>>> +                    adap->dev->desc->name);
->>>
->>> This doesn't seem right. One thing is to accept adap->fe[1] to be
->>> NULL. Another thing is to accept an error at the attach. IMO, the
->>> logic should be something like:
->>>
->>>     if (ret<  0)
->>>         return ret;
->>>
->>>     if (!i&&  !adap->fe[0]) {
->>>         err("no adapter!");
->>>         return -ENODEV;
->>>     }
->>
->> Heh, I tried to keep it functioning as earlier not to break anything! Only thing it does now differently is that it keeps silent when 2nd FE attach fails since we don't know always before fe attach if there is fe or not.
->>
->> So since it *does not change old behaviour* it must be OK. Let fix old problems later. There is millions of DVB USB callbacks failing silently - like tuner_attach etc.
->>
->> Surely I want also fix many old issues but it is always too risky.
+Le dimanche 17 juillet 2011 05:51:33 Andreas Oberritter, vous avez écrit :
+> On 16.07.2011 18:37, Rémi Denis-Courmont wrote:
+> > Le samedi 16 juillet 2011 18:53:16 Andreas Oberritter, vous avez écrit :
+> >>> You are wrong, actually you can. At least here in Finland some cable
+> >>> networks offers DVB-T too.
+> >> 
+> >> I know that there are cable operators which use DVB-T, but they don't
+> >> use DVB-C simultaneously. This wouldn't make sense, unless they didn't
+> >> want their customers to receive their signals.
+> > 
+> > They do offer both simultaneously. DNA (formerly Welho) in Helsinki
+> > provides both DVB-T and DVB-C on the same cable, obviously on different
+> > frequencies.
 > 
-> Added support for DRX-K way at dvb-usb:
-> 
-> http://git.linuxtv.org/mchehab/experimental.git/commitdiff/765b3db218f1e9af6432251c2ebe59bc9660cd42
-> http://git.linuxtv.org/mchehab/experimental.git/commitdiff/37fa5797c58068cc60cca6829bd662cd4f883cfa
-> 
-> One bad thing I noticed with the API is that it calls adap->props.frontend_attach(adap)
-> several times, instead of just one, without even passing an argument for the driver to
-> know that it was called twice.
-> 
-> IMO, there are two ways of doing the attach:
-> 
-> 1) call it only once, and, inside the driver, it will loop to add the other FE's;
-> 2) add a parameter, at the call, to say what FE needs to be initialized.
-> 
-> I think (1) is preferred, as it is more flexible, allowing the driver to test for
-> several types of frontends.
+> Is there any channel available on DVB-T which isn't available on DVB-C
+> in this cable network?
 
-For more you add configuration parameters more it goes complex. Now it
-calls attach as many times as .num_frontends is set in adapter
-configuration. It is currently only DRX-K frontend which does not behave
-like other FEs. You have added similar hacks to em28xx and now DVB USB.
-Maybe it could be easier to change DRX-K driver to attach and register
-as others. Also I see it very easy at least in theory to register as one
-DRX-K FE normally and then hack 2nd FE in device driver (which is I
-think done other drivers using that chip too).
+Probably, I wouldn't know. My S******g TV won't provision channels from both 
+systems at the same time. And Linux does not support DVB-T on my TT-connect 
+CT-3650 tuner.
 
-
-regards
-Antti
 -- 
-http://palosaari.fi/
+Rémi Denis-Courmont
+http://www.remlab.net/
+http://fi.linkedin.com/in/remidenis
