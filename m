@@ -1,119 +1,61 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from impaqm1.telefonica.net ([213.4.138.17]:50372 "EHLO
-	telefonica.net" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1752856Ab1GWPl6 convert rfc822-to-8bit (ORCPT
+Received: from yop.chewa.net ([91.121.105.214]:36073 "EHLO yop.chewa.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752116Ab1GQHjX convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 23 Jul 2011 11:41:58 -0400
-From: Jose Alberto Reguero <jareguero@telefonica.net>
-To: Antti Palosaari <crope@iki.fi>
-Subject: Re: [PATCH] add support for the dvb-t part of CT-3650 v3
-Date: Sat, 23 Jul 2011 17:41:51 +0200
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	linux-media@vger.kernel.org,
-	Michael Krufky <mkrufky@kernellabs.com>,
-	Guy Martin <gmsoft@tuxicoman.be>
-References: <201106070205.08118.jareguero@telefonica.net> <201107231221.10705.jareguero@telefonica.net> <4E2AA481.4030103@iki.fi>
-In-Reply-To: <4E2AA481.4030103@iki.fi>
+	Sun, 17 Jul 2011 03:39:23 -0400
+Received: from basile.remlab.net (cs27062010.pp.htv.fi [89.27.62.10])
+	(using TLSv1 with cipher DHE-RSA-AES256-SHA (256/256 bits))
+	(No client certificate requested)
+	(Authenticated sender: remi)
+	by yop.chewa.net (Postfix) with ESMTPSA id 43024FE
+	for <linux-media@vger.kernel.org>; Sun, 17 Jul 2011 09:39:22 +0200 (CEST)
+From: "=?utf-8?q?R=C3=A9mi?= Denis-Courmont" <remi@remlab.net>
+To: linux-media@vger.kernel.org
+Subject: Re: [PATCH 0/5] Driver support for cards based on Digital Devices bridge (ddbridge)
+Date: Sun, 17 Jul 2011 10:39:17 +0300
+References: <201107032321.46092@orion.escape-edv.de> <4E21B3EC.9060709@linuxtv.org> <4E223344.1080109@redhat.com>
+In-Reply-To: <4E223344.1080109@redhat.com>
 MIME-Version: 1.0
 Content-Type: Text/Plain;
   charset="utf-8"
 Content-Transfer-Encoding: 8BIT
-Message-Id: <201107231741.53794.jareguero@telefonica.net>
+Message-Id: <201107171039.18383.remi@remlab.net>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sábado, 23 de Julio de 2011 12:37:53 Antti Palosaari escribió:
-> On 07/23/2011 01:21 PM, Jose Alberto Reguero wrote:
-> > On Sábado, 23 de Julio de 2011 11:42:58 Antti Palosaari escribió:
-> >> On 07/23/2011 11:26 AM, Jose Alberto Reguero wrote:
-> >>> The problem is in i2c read in tda827x_probe_version. Without the fix
-> >>> sometimes, when changing the code the tuner is detected as  tda827xo
-> >>> instead of tda827xa. That is because the variable where i2c read should
-> >>> store the value is initialized, and sometimes it works.
+Le dimanche 17 juillet 2011 03:56:36 Mauro Carvalho Chehab, vous avez écrit :
+> >>> After all, you cannot connect both a DVB-C cable and a DVB-T antenna at
+> >>> the same time, so the vast majority of users won't ever want to switch
+> >>> modes at all.
 > >> 
-> >> struct i2c_msg msg = { .addr = priv->i2c_addr, .flags = I2C_M_RD,
-> >> 
-> >> 			       .buf =&data, .len = 1 };
-> >> 
-> >> rc = tuner_transfer(fe,&msg, 1);
-> >> 
-> >> :-( Could you read what I write. It is a little bit annoying to find out
-> >> 
-> >> everything for you. You just answer every time something like it does
-> >> not work and I should always find out what's problem.
-> >> 
-> >> As I pointed out read will never work since I2C adapter supports only
-> >> read done in WRITE+READ combination. Driver uses read which is single
-> >> READ without write.
-> >> 
-> >> You should implement new read. You can look example from af9015 or other
-> >> drivers using tda827x
-> >> 
-> >> This have been never worked thus I Cc Guy Martin who have added DVB-C
-> >> support for that device.
-> >> 
-> >> 
-> >> regards
-> >> Antti
-> > 
-> > I don't understand you. I think that you don' see the fix, but the old
-> > code. Old code:
-> > 
-> > read = i+1<   num&&   (msg[i+1].flags&   I2C_M_RD);
-> > 
-> > Fix:
-> > 
-> > read1 = i+1<  num&&  (msg[i+1].flags&  I2C_M_RD); for the tda10023 and
-> > tda10048 read2 = msg[i].flags&  I2C_M_RD; for the tda827x
-> > 
-> > Jose Alberto
+> >> You are wrong, actually you can. At least here in Finland some cable
+> >> networks offers DVB-T too.
 > 
-> First of all I must apologize of blaming you about that I2C adapter,
-> sorry, I should going to shame now. It was me who doesn't read your
-> changes as should :/
-> 
-> Your changes are logically OK and implements correctly single reading as
-> needed. Some comments still;
-> * consider renaming read1 and read2 for example write_read and read
-> * obuf[1] contains WRITE len. your code sets that now as READ len.
-> Probably it should be 0 always in single write since no bytes written.
-> * remove useless checks from end of the "if (foo) if (foo)";
-> if (read1 || read2) {
-> 	if (read1) {
-> [...]
-> 	} else if (read2)
-> 
-> If you store some variables at the beginning, olen, ilen, obuf, ibuf,
-> you can increase i++ for write+read and rest of the code in function can
-> be same (no more if read or write + read). But maybe it is safe to keep
-> closer original than change such much.
-> 
-> 
-> regards
-> Antti
+> As Antti and Rémi pointed, there are issues with some cable operators. Not
+> sure how critical is that, but an userspace application changing it via
+> sysfs might work while the applications are not ported to support both
+> ways.
 
-There are a second i2c read, but less important.It is in:
+Telling applications to use sysfs... I can see many ways that you might regret 
+that in the future...
 
-tda827xa_set_params
+Accessing sysfs directly from an application is against all the good practices 
+I thought I had learnt regarding Linux. There is the theoretical possibility 
+that udev gets "explicit" support for Linux DVB and exposes the properties 
+nicely. But that would be rather inconvenient, and cannot be used to change 
+properties.
 
-............
-        buf[0] = 0xa0;
-        buf[1] = 0x40;
-        msg.len = 2;
-        rc = tuner_transfer(fe, &msg, 1);
-        if (rc < 0)
-                goto err;
+> Antti/Rémi, how the current applications work with one physical frontend
+> supporting both DVB-T and DVB-C? Do they allow to change channels from one
+> to the other mode on a transparent way?
 
-        msleep(11);
-        msg.flags = I2C_M_RD;
-        rc = tuner_transfer(fe, &msg, 1);
-        if (rc < 0)
-                goto err;
-        msg.flags = 0;
+I don't know. VLC does not care if you switch from DVB-T to DVB-C, to the DVD 
+drive or to YouTube. Each channel (or at least each multiplex) is a different 
+playlist item. So it'll close the all device nodes and (re)open them. There 
+are obviously other applications at stake.
 
-        buf[1] >>= 4;
-............
-I supposed that buf[0] is the register to read and they read the value in 
-buf[1]. The code now seem to work ok but perhaps is wrong.
-
-Jose Alberto
+-- 
+Rémi Denis-Courmont
+http://www.remlab.net/
+http://fi.linkedin.com/in/remidenis
