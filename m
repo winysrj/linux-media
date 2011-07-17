@@ -1,63 +1,65 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from proxima.lp0.eu ([81.2.80.65]:58114 "EHLO proxima.lp0.eu"
+Received: from mx1.redhat.com ([209.132.183.28]:36204 "EHLO mx1.redhat.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752109Ab1GMXPO (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 13 Jul 2011 19:15:14 -0400
-Message-ID: <4E1E26FD.7020503@simon.arlott.org.uk>
-Date: Thu, 14 Jul 2011 00:15:09 +0100
-From: Simon Arlott <simon@fire.lp0.eu>
+	id S1752620Ab1GQVJx (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 17 Jul 2011 17:09:53 -0400
+Message-ID: <4E234FEF.6000204@redhat.com>
+Date: Sun, 17 Jul 2011 23:11:11 +0200
+From: Hans de Goede <hdegoede@redhat.com>
 MIME-Version: 1.0
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-CC: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
-	linux-media@vger.kernel.org
-Subject: Re: 2.6.39 "tuner-core: remove usage of DIGITAL_TV" breaks saa7134
- with mt2050
-References: <4E1CBAC8.2030404@simon.arlott.org.uk> <4E1D1DAF.4060900@redhat.com>
-In-Reply-To: <4E1D1DAF.4060900@redhat.com>
-Content-Type: text/plain; charset=UTF-8
+To: Tomasz Stanislawski <t.stanislaws@samsung.com>
+CC: linux-media@vger.kernel.org, m.szyprowski@samsung.com,
+	kyungmin.park@samsung.com, mchehab@redhat.com, pawel@osciak.com
+Subject: Re: [PATCH 1/2] libv4l2: add implicit conversion from single- to
+ multi-plane api
+References: <1309944253-11703-1-git-send-email-t.stanislaws@samsung.com>
+In-Reply-To: <1309944253-11703-1-git-send-email-t.stanislaws@samsung.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 13/07/11 05:23, Mauro Carvalho Chehab wrote:
-> Em 12-07-2011 18:21, Simon Arlott escreveu:
->> commit ad020dc2fe9039628cf6cef42cd1b76531ee8411
->> Author: Mauro Carvalho Chehab <mchehab@redhat.com>
->> Date:   Tue Feb 15 09:30:50 2011 -0200
->> 
->>     [media] tuner-core: remove usage of DIGITAL_TV
->>     
->> This breaks my Pinnacle PCTV 300i DVB-T cards as they can no longer tune
->> DVB-T.
->> 
->> [  540.010030] tuner 3-0043: Tuner doesn't support mode 3. Putting tuner to sleep
->> [  540.011017] tuner 2-0043: Tuner doesn't support mode 3. Putting tuner to sleep
->> [  540.012012] tuner 3-0060: Tuner doesn't support mode 3. Putting tuner to sleep
->> [  540.013029] tuner 2-0060: Tuner doesn't support mode 3. Putting tuner to sleep
->> 
->> saa7134 needs to indicate digital TV tuning to mt20xx but it looks like
->> tuner-core no longer has any way to allow a tuner to indicate support
->> for this?
->> 
->> (mt2050_set_tv_freq in mt20xx.c uses V4L2_TUNER_DIGITAL_TV)
-> 
-> Could you please try the enclosed patch? It should fix the issue.
-> I should probably rename T_ANALOG_TV to just T_TV, but I'll do it on
-> a next patch if this one works ok, as we don't want to send a renaming
-> patch to -stable.
+Hi,
 
-This fixes it. Tuner error messages could do with being error level - I
-didn't see the message initially as I have the debugging turned off.
-The -EINVAL never gets passed up to userspace.
+On 07/06/2011 11:24 AM, Tomasz Stanislawski wrote:
+> This patch add implicit conversion of single plane variant of ioctl to
+> multiplane variant. The conversion is performed only in case if a driver
+> implements only mplane api. The conversion is done by substituting SYS_IOCTL
+> with a wrapper that converts single plane call to their mplane analogs.
+> Function v4l2_fd_open was revised to work correctly with the wrapper.
+>
+> Signed-off-by: Tomasz Stanislawski<t.stanislaws@samsung.com>
+> Signed-off-by: Kyungmin Park<kyungmin.park@samsung.com>
 
-> ---
-> [media] Fix Digital TV breakage with mt20xx tuner
-> 
-> The mt20xx tuner passes V4L2_TUNER_DIGITAL_TV to tuner core. However, the
-> check_mode code now doesn't handle it well. Change the logic there to
-> avoid the breakage, and fix a test for analog-only at g_tuner.
+Thanks for the patch, I like the general idea, but I'm not completely
+happy with the implementation.
 
-Thanks,
+I think overloading SYS_ioctl is not such a great idea, since this won't
+work for calls made by libv4lconvert, unless we export it from libv4l2
+and use it in libv4lconvert too, which is quite ugly from an ABI pov.
 
--- 
-Simon Arlott
+This is also problematic in the light of the upcoming plugin support
+(which just landed in v4l-utils git). Notice how that has replaced
+SYS_ioctl with dev_ops->ioctl, so that plugins can intercept ioctls.
+
+Actually the plugni support should make doing this more easy wrt
+libv4lconvert, since libv4lconvert now uses dev_ops->ioctl too.
+
+I think this can and should be handled in the following way, with a
+2 patch patch-set:
+
+Patch1: Make the dev_ops member of v4l2_dev_info a struct rather
+then a pointer to a struct (and adjust v4l_plugin_init accordingly).
+
+Patch2: If one of the devices in question is detected the original
+dev_ops->ioctl should be saved in v4l2_dev_info and be replaced with
+the proposed wrapper, which then calls the saved original in cases
+where it now calls SYS_ioctl.
+
+Regards,
+
+Hans
+
+
+
+
