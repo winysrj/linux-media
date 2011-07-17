@@ -1,107 +1,57 @@
-Return-path: <mchehab@pedra>
-Received: from smtp-vbr10.xs4all.nl ([194.109.24.30]:1932 "EHLO
-	smtp-vbr10.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754332Ab1GBLKf (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sat, 2 Jul 2011 07:10:35 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Hans de Goede <hdegoede@redhat.com>
-Subject: Re: Some comments on the new autocluster patches
-Date: Sat, 2 Jul 2011 13:10:25 +0200
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
-References: <4E0DE283.2030107@redhat.com> <201107011821.33960.hverkuil@xs4all.nl> <4E0EF2D3.8030109@redhat.com>
-In-Reply-To: <4E0EF2D3.8030109@redhat.com>
+Return-path: <linux-media-owner@vger.kernel.org>
+Received: from smtp8.mail.ru ([94.100.176.53]:57635 "EHLO smtp8.mail.ru"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752596Ab1GQJti (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 17 Jul 2011 05:49:38 -0400
+Message-ID: <4E22AF12.4020600@list.ru>
+Date: Sun, 17 Jul 2011 13:44:50 +0400
+From: Stas Sergeev <stsp@list.ru>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
+To: Mauro Carvalho Chehab <mchehab@infradead.org>
+CC: linux-media@vger.kernel.org,
+	"Nickolay V. Shmyrev" <nshmyrev@yandex.ru>,
+	Devin Heitmueller <dheitmueller@kernellabs.com>,
+	ALSA devel <alsa-devel@alsa-project.org>
+Subject: Re: [patch][saa7134] do not change mute state for capturing audio
+References: <4E19D2F7.6060803@list.ru> <4E1E05AC.2070002@infradead.org> <4E1E0A1D.6000604@list.ru> <4E1E1571.6010400@infradead.org> <4E1E8108.3060305@list.ru> <4E1F9A25.1020208@infradead.org>
+In-Reply-To: <4E1F9A25.1020208@infradead.org>
+Content-Type: text/plain; charset=UTF-8; format=flowed
 Content-Transfer-Encoding: 7bit
-Message-Id: <201107021310.25562.hverkuil@xs4all.nl>
+Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
-Sender: <mchehab@pedra>
 
-On Saturday, July 02, 2011 12:28:35 Hans de Goede wrote:
-> Hi,
-> 
-> <snip snip snip>
-> 
-> Ok, thinking about this some more and reading Hans V's comments
-> I think that the current code in Hans V's core8c branch is fine,
-> and should go to 3.1 (rather then be delayed to 3.2).
-> 
-> As for the fundamental question what to do with foo
-> controls when autofoo goes from auto to manual, as discussed
-> there are 2 options:
-> 1) Restore the last known / previous manual setting
-> 2) Keep foo at the current setting, iow the last setting
->     configured by autofoo
+15.07.2011 05:38, Mauro Carvalho Chehab wrote:
+> If you want, feel free to propose a patch fixing that logic at saa7134, instead
+> of just removing it.
+Hi, I've just verified that pulseaudio indeed does
+the sound capturing on startup:
+---
+saa7134[0]/alsa: saa7134[0] at 0xfe8fb800 irq 22 registered as card 2
+saa7134[0]/alsa: rec_start: afmt=2 ch=1  =>  fmt=0xcd swap=-
+saa7134[0]/alsa: rec_start: afmt=2 ch=1  =>  fmt=0xcd swap=-
+saa7134[0]/alsa: rec_start: afmt=2 ch=2  =>  fmt=0xdd swap=-
+saa7134[0]/alsa: rec_start: afmt=2 ch=2  =>  fmt=0xdd swap=-
+saa7134[0]/alsa: rec_start: afmt=2 ch=2  =>  fmt=0xdd swap=-
+saa7134[0]/alsa: rec_start: afmt=2 ch=2  =>  fmt=0xdd swap=-
+saa7134[0]/alsa: rec_start: afmt=2 ch=1  =>  fmt=0xcd swap=-
+saa7134[0]/alsa: rec_start: afmt=2 ch=1  =>  fmt=0xcd swap=-
+saa7134[0]/alsa: rec_start: afmt=2 ch=2  =>  fmt=0xdd swap=-
+saa7134[0]/alsa: rec_start: afmt=2 ch=2  =>  fmt=0xdd swap=-
+saa7134[0]/alsa: rec_start: afmt=2 ch=2  =>  fmt=0xdd swap=-
+saa7134[0]/alsa: rec_start: afmt=2 ch=2  =>  fmt=0xdd swap=-
+saa7134[0]/alsa: irq: field oops [even]
+---
 
-Or option 3:
+So your proposal is not going to fix anything at all.
 
-Just don't report the automatic foo values at all. What possible purpose
-does it serve? It is my impression that drivers implement it 'just because
-they can', and not because it is meaningful.
-
-I'm not aware of any application that actually refreshes e.g. gain values
-when autogain is on, so end-users never see it anyway.
-
-Volatile makes a lot of sense for read-only controls, but for writable
-controls I really don't see why you would want it.
-
-> Although it would be great if we could standardize on
-> one of these. I think that the answer here is to leave
-> this decision to the driver:
-> - In some cases this may not be under our control at all
->    (ie with uvc devices),
-> -in other cases the hardware in question may make it
->   impossible to read the setting as configured by autofoo,
->   thus forcing scenario 1 so that we are sure the actual
->   value for foo being used by the device matches what we
->   report to the user once autofoo is in manual mode
-> 
-> That leaves Hans V's suggestion what to do with volatile
-> controls wrt reporting this to userspace. Hans V. suggested
-> splitting the control essentially in 2 controls, one r/w
-> with the manual value and a read only one with the volatile
-> value (*). I don't think this is a good idea, having 2
-> controls for one foo, will only clutter v4l2 control panels
-> or applets. I think we should try to keep the controls
-> we present to the user (and thus too userspace) to a minimum.
-
-I agree with that.
-
-> I suggest that instead of creating 2 controls, we add a
-> VOLATILE ctrl flag, which can then be set together with
-> the INACTIVE flag to indicate to a v4l2 control panel that
-> the value may change without it receiving change events. The
-> v4l2 control panel can then decide how it wants to deal with
-> this, ie poll to keep its display updated, ignore the flag,
-> ...
-
-A volatile flag is certainly useful for read-only controls.
-
-But I think we should stop supporting volatile writable controls.
-
-It makes no sense from the point of view of a user. You won't see such behavior
-in TVs etc. either. In rare cases you might want to export it through the
-subdev API as a separate control so that advanced applications can get hold of
-that value.
-
-Does anyone know why you would want volatile writable controls?
-
-Regards,
-
-	Hans
-
-> 
-> Regards,
-> 
-> Hans
-> 
-> 
-> *) Either through a special flag signalling give me the
-> volatile value, or just outright making the 2 2 separate
-> controls.
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
+Can we get back to discussing/applying mine then?
+And if the other drivers has that autounmute logic,
+then I suggest removing it there as well. You have
+not named any use-case for it, so I think there is none.
+I also think that the whole auto-unmute logic in your
+drivers is entirely flawed: for instance, I don't think
+recording from the sound card will automatically
+unmute its line-in or something else, so you are probably
+not following the generic alsa style here.
+I am adding alsa-devel to CC to find out what they
+think about that whole auto-unmute question.
