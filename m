@@ -1,172 +1,66 @@
-Return-path: <mchehab@pedra>
-Received: from moutng.kundenserver.de ([212.227.126.171]:52715 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755930Ab1GELpI (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 5 Jul 2011 07:45:08 -0400
-From: Arnd Bergmann <arnd@arndb.de>
-To: Marek Szyprowski <m.szyprowski@samsung.com>
-Subject: Re: [PATCH 4/8] mm: MIGRATE_CMA migration type added
-Date: Tue, 5 Jul 2011 13:44:31 +0200
-Cc: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-	linux-media@vger.kernel.org, linux-mm@kvack.org,
-	linaro-mm-sig@lists.linaro.org,
-	Michal Nazarewicz <mina86@mina86.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	Andrew Morton <akpm@linux-foundation.org>,
-	KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>,
-	Ankita Garg <ankita@in.ibm.com>,
-	Daniel Walker <dwalker@codeaurora.org>,
-	Mel Gorman <mel@csn.ul.ie>,
-	Jesse Barker <jesse.barker@linaro.org>,
-	Jonathan Corbet <corbet@lwn.net>,
-	Chunsang Jeong <chunsang.jeong@linaro.org>
-References: <1309851710-3828-1-git-send-email-m.szyprowski@samsung.com> <1309851710-3828-5-git-send-email-m.szyprowski@samsung.com>
-In-Reply-To: <1309851710-3828-5-git-send-email-m.szyprowski@samsung.com>
+Return-path: <linux-media-owner@vger.kernel.org>
+Received: from mx1.redhat.com ([209.132.183.28]:50420 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751668Ab1GQIUm (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 17 Jul 2011 04:20:42 -0400
+Message-ID: <4E229B52.9040403@redhat.com>
+Date: Sun, 17 Jul 2011 05:20:34 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-15"
+To: Pupthai <pupthai@gmail.com>
+CC: linux-media@vger.kernel.org
+Subject: Re: em28xx detection
+References: <4E2334A4.7000408@gmail.com>
+In-Reply-To: <4E2334A4.7000408@gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Message-Id: <201107051344.31298.arnd@arndb.de>
+Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
-Sender: <mchehab@pedra>
 
-On Tuesday 05 July 2011, Marek Szyprowski wrote:
-> From: Michal Nazarewicz <m.nazarewicz@samsung.com>
+Em 17-07-2011 16:14, Pupthai escreveu:
+> is em2820 detected as em2860
 > 
-> The MIGRATE_CMA migration type has two main characteristics:
-> (i) only movable pages can be allocated from MIGRATE_CMA
-> pageblocks and (ii) page allocator will never change migration
-> type of MIGRATE_CMA pageblocks.
+>>lsusb
 > 
-> This guarantees that page in a MIGRATE_CMA page block can
-> always be migrated somewhere else (unless there's no memory left
-> in the system).
+> Bus 001 Device 004: ID eb1a:2820 eMPIA Technology, Inc.
 > 
-> It is designed to be used with Contiguous Memory Allocator
-> (CMA) for allocating big chunks (eg. 10MiB) of physically
-> contiguous memory. Once driver requests contiguous memory,
-> CMA will migrate pages from MIGRATE_CMA pageblocks.
+>>dmesg | grep em28xx
 > 
-> To minimise number of migrations, MIGRATE_CMA migration type
-> is the last type tried when page allocator falls back to other
-> migration types then requested.
+> usbcore: registered new interface driver em28xx
+> em28xx driver loaded
+> em28xx: New device @ 480 Mbps (eb1a:2820, interface 0, class 0)
+> em28xx #0: chip ID is em2820 (or em2710)
+> em28xx #0: board has no eeprom
+> em28xx #0: found i2c device @ 0x4a [saa7113h]
+> em28xx #0: Your board has no unique USB ID.
+> em28xx #0: A hint were successfully done, based on i2c devicelist hash.
+> em28xx #0: This method is not 100% failproof.
+> em28xx #0: If the board were missdetected, please email this log to:
+> em28xx #0:      V4L Mailing List <linux-media@vger.kernel.org>
+> em28xx #0: Board detected as EM2860/SAA711X Reference Design
+> em28xx #0: Identified as EM2860/SAA711X Reference Design (card=19)
+> em28xx #0: Registering snapshot button...
+> input: em28xx snapshot button as /devices/pci0000:00/0000:00:1d.7/usb1/1-3/input/input1
+> em28xx #0: Config register raw data: 0x00
+> em28xx #0: v4l2 driver version 0.1.2
+> em28xx #0: V4L2 video device registered as video0
 > 
-> Signed-off-by: Michal Nazarewicz <m.nazarewicz@samsung.com>
-> Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
-> [m.szyprowski: cleaned up Kconfig, renamed some functions]
-> Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
-> CC: Michal Nazarewicz <mina86@mina86.com>
+> Nothing works with this device anymore and it used to work with application <motion> and <vlc>  still works fine in windows apps
+> and windows vlc sees a em2820
 
-Acked-by: Arnd Bergmann <arnd@arndb.de>, but I noticed a few things:
+Your device doesn't have an eeprom. So, there's no reliable way to identify
+what board you have. Kernel can try to hint, but there will always be cases
+where two different boards will match such hint. On such cases (like yours),
+you'll need to modprobe em28xx with card= parameter.
 
-> cma migrate fixup
+If your device used to be supported by the in-kernel em28xx driver, all you
+need is to add something like:
+	options em28xx card=20
 
-This text doesn't belong here.
+(well, replacing 20 by the correct card number from Documentation/video4linux/CARDLIST.em28xx)
 
-> +enum {
-> +	MIGRATE_UNMOVABLE,
-> +	MIGRATE_RECLAIMABLE,
-> +	MIGRATE_MOVABLE,
-> +	MIGRATE_PCPTYPES,	/* the number of types on the pcp lists */
-> +	MIGRATE_RESERVE = MIGRATE_PCPTYPES,
-> +#ifdef CONFIG_CMA_MIGRATE_TYPE
-> +	/*
-> +	 * MIGRATE_CMA migration type is designed to mimic the way
-> +	 * ZONE_MOVABLE works.  Only movable pages can be allocated
-> +	 * from MIGRATE_CMA pageblocks and page allocator never
-> +	 * implicitly change migration type of MIGRATE_CMA pageblock.
-> +	 *
-> +	 * The way to use it is to change migratetype of a range of
-> +	 * pageblocks to MIGRATE_CMA which can be done by
-> +	 * __free_pageblock_cma() function.  What is important though
-> +	 * is that a range of pageblocks must be aligned to
-> +	 * MAX_ORDER_NR_PAGES should biggest page be bigger then
-> +	 * a single pageblock.
-> +	 */
-> +	MIGRATE_CMA,
-> +#endif
-> +	MIGRATE_ISOLATE,	/* can't allocate from here */
-> +	MIGRATE_TYPES
-> +};
+If otherwise your board is not listed there, then you'll need to discover what are
+the correct setups for it and send us a patch adding a new card number with your
+configs.
 
-It's not clear to me why you need this #ifdef. Does it hurt if the
-migration type is defined but not used?
-
-> @@ -198,6 +198,12 @@ config MIGRATION
->  	  pages as migration can relocate pages to satisfy a huge page
->  	  allocation instead of reclaiming.
->  
-> +config CMA_MIGRATE_TYPE
-> +	bool
-> +	help
-> +	  This enables the use the MIGRATE_CMA migrate type, which lets lets CMA
-> +	  work on almost arbitrary memory range and not only inside ZONE_MOVABLE.
-> +
->  config PHYS_ADDR_T_64BIT
->  	def_bool 64BIT || ARCH_PHYS_ADDR_T_64BIT
-
-This is currently only selected on ARM with your patch set. 
-
-> diff --git a/mm/compaction.c b/mm/compaction.c
-> index 6cc604b..9e5cc59 100644
-> --- a/mm/compaction.c
-> +++ b/mm/compaction.c
-> @@ -119,6 +119,16 @@ static bool suitable_migration_target(struct page *page)
->  	if (migratetype == MIGRATE_ISOLATE || migratetype == MIGRATE_RESERVE)
->  		return false;
->  
-> +	/* Keep MIGRATE_CMA alone as well. */
-> +	/*
-> +	 * XXX Revisit.  We currently cannot let compaction touch CMA
-> +	 * pages since compaction insists on changing their migration
-> +	 * type to MIGRATE_MOVABLE (see split_free_page() called from
-> +	 * isolate_freepages_block() above).
-> +	 */
-> +	if (is_migrate_cma(migratetype))
-> +		return false;
-> +
->  	/* If the page is a large free page, then allow migration */
->  	if (PageBuddy(page) && page_order(page) >= pageblock_order)
->  		return true;
-
-Do you plan to fix address this before merging the patch set, or is
-it harmless enough to get in this way?
-
->  /*
->   * The order of subdivision here is critical for the IO subsystem.
-> @@ -827,11 +852,15 @@ struct page *__rmqueue_smallest(struct zone *zone, unsigned int order,
->   * This array describes the order lists are fallen back to when
->   * the free lists for the desirable migrate type are depleted
->   */
-> -static int fallbacks[MIGRATE_TYPES][MIGRATE_TYPES-1] = {
-> +static int fallbacks[MIGRATE_TYPES][4] = {
->  	[MIGRATE_UNMOVABLE]   = { MIGRATE_RECLAIMABLE, MIGRATE_MOVABLE,   MIGRATE_RESERVE },
->  	[MIGRATE_RECLAIMABLE] = { MIGRATE_UNMOVABLE,   MIGRATE_MOVABLE,   MIGRATE_RESERVE },
-> +#ifdef CONFIG_CMA_MIGRATE_TYPE
-> +	[MIGRATE_MOVABLE]     = { MIGRATE_RECLAIMABLE, MIGRATE_UNMOVABLE, MIGRATE_CMA    , MIGRATE_RESERVE },
-> +#else
->  	[MIGRATE_MOVABLE]     = { MIGRATE_RECLAIMABLE, MIGRATE_UNMOVABLE, MIGRATE_RESERVE },
-> -	[MIGRATE_RESERVE]     = { MIGRATE_RESERVE,     MIGRATE_RESERVE,   MIGRATE_RESERVE }, /* Never used */
-> +#endif
-> +	[MIGRATE_RESERVE]     = { MIGRATE_RESERVE }, /* Never used */
->  };
->  
->  /*
-> @@ -1044,7 +1086,12 @@ static int rmqueue_bulk(struct zone *zone, unsigned int order,
->  			list_add(&page->lru, list);
->  		else
->  			list_add_tail(&page->lru, list);
-> -		set_page_private(page, migratetype);
-> +#ifdef CONFIG_CMA_MIGRATE_TYPE
-> +		if (is_pageblock_cma(page))
-> +			set_page_private(page, MIGRATE_CMA);
-> +		else
-> +#endif
-> +			set_page_private(page, migratetype);
->  		list = &page->lru;
->  	}
-
-I guess if you can get rid of the first #ifdef I mentioned above, these two can be
-removed as well, without causing any run-time overhead.
-
-	Arnd
+Mauro
