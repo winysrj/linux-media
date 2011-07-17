@@ -1,48 +1,58 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.17.8]:57873 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756164Ab1G2K5D (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 29 Jul 2011 06:57:03 -0400
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: linux-media@vger.kernel.org
-Cc: Robert Jarzmik <robert.jarzmik@free.fr>,
-	Eric Miao <eric.y.miao@gmail.com>
-Subject: [PATCH 29/59] ARM: PXA: use gpio_set_value_cansleep() on pcm990
-Date: Fri, 29 Jul 2011 12:56:29 +0200
-Message-Id: <1311937019-29914-30-git-send-email-g.liakhovetski@gmx.de>
-In-Reply-To: <1311937019-29914-1-git-send-email-g.liakhovetski@gmx.de>
-References: <1311937019-29914-1-git-send-email-g.liakhovetski@gmx.de>
+Received: from mx1.redhat.com ([209.132.183.28]:53113 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752130Ab1GQICG (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 17 Jul 2011 04:02:06 -0400
+Message-ID: <4E2296F3.8040809@redhat.com>
+Date: Sun, 17 Jul 2011 05:01:55 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+MIME-Version: 1.0
+To: =?UTF-8?B?UsOpbWkgRGVuaXMtQ291cm1vbnQ=?= <remi@remlab.net>
+CC: linux-media@vger.kernel.org
+Subject: Re: [PATCH 0/5] Driver support for cards based on Digital Devices
+ bridge (ddbridge)
+References: <201107032321.46092@orion.escape-edv.de> <4E21B3EC.9060709@linuxtv.org> <4E223344.1080109@redhat.com> <201107171039.18383.remi@remlab.net>
+In-Reply-To: <201107171039.18383.remi@remlab.net>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Camera-switching GPIOs are provided by a i2c GPIO extender, switching
-them can send the caller to sleep. Use the GPIO API *_cansleep methods
-explicitly to avoid runtime warnings.
+Em 17-07-2011 04:39, Rémi Denis-Courmont escreveu:
+> Le dimanche 17 juillet 2011 03:56:36 Mauro Carvalho Chehab, vous avez écrit :
+>>>>> After all, you cannot connect both a DVB-C cable and a DVB-T antenna at
+>>>>> the same time, so the vast majority of users won't ever want to switch
+>>>>> modes at all.
+>>>>
+>>>> You are wrong, actually you can. At least here in Finland some cable
+>>>> networks offers DVB-T too.
+>>
+>> As Antti and Rémi pointed, there are issues with some cable operators. Not
+>> sure how critical is that, but an userspace application changing it via
+>> sysfs might work while the applications are not ported to support both
+>> ways.
+> 
+> Telling applications to use sysfs... I can see many ways that you might regret 
+> that in the future...
 
-Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Cc: Robert Jarzmik <robert.jarzmik@free.fr>
-Cc: Eric Miao <eric.y.miao@gmail.com>
----
- arch/arm/mach-pxa/pcm990-baseboard.c |    4 ++--
- 1 files changed, 2 insertions(+), 2 deletions(-)
+I'm expressed it badly. What I meant to say is to have some sort of script
+or a specific application to allow users to change the delivery system, 
+by changing the modprobe parameter, for the MFE drivers supported on <= 3.0 Kernel 
+that won't fit in the agreed approach, while applications don't support 
+the adopted approach directly.
 
-diff --git a/arch/arm/mach-pxa/pcm990-baseboard.c b/arch/arm/mach-pxa/pcm990-baseboard.c
-index 6d5b7e0..8ad2597 100644
---- a/arch/arm/mach-pxa/pcm990-baseboard.c
-+++ b/arch/arm/mach-pxa/pcm990-baseboard.c
-@@ -395,9 +395,9 @@ static int pcm990_camera_set_bus_param(struct soc_camera_link *link,
- 	}
- 
- 	if (flags & SOCAM_DATAWIDTH_8)
--		gpio_set_value(gpio_bus_switch, 1);
-+		gpio_set_value_cansleep(gpio_bus_switch, 1);
- 	else
--		gpio_set_value(gpio_bus_switch, 0);
-+		gpio_set_value_cansleep(gpio_bus_switch, 0);
- 
- 	return 0;
- }
--- 
-1.7.2.5
+> Accessing sysfs directly from an application is against all the good practices 
+> I thought I had learnt regarding Linux. There is the theoretical possibility 
+> that udev gets "explicit" support for Linux DVB and exposes the properties 
+> nicely. But that would be rather inconvenient, and cannot be used to change 
+> properties.
+> 
+>> Antti/Rémi, how the current applications work with one physical frontend
+>> supporting both DVB-T and DVB-C? Do they allow to change channels from one
+>> to the other mode on a transparent way?
+> 
+> I don't know. VLC does not care if you switch from DVB-T to DVB-C, to the DVD 
+> drive or to YouTube. Each channel (or at least each multiplex) is a different 
+> playlist item. So it'll close the all device nodes and (re)open them. There 
+> are obviously other applications at stake.
 
