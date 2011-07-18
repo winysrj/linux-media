@@ -1,52 +1,28 @@
-Return-path: <mchehab@localhost>
-Received: from mx1.redhat.com ([209.132.183.28]:23787 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756415Ab1GKB7o (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 10 Jul 2011 21:59:44 -0400
-Received: from int-mx10.intmail.prod.int.phx2.redhat.com (int-mx10.intmail.prod.int.phx2.redhat.com [10.5.11.23])
-	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id p6B1xiHR011636
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
-	for <linux-media@vger.kernel.org>; Sun, 10 Jul 2011 21:59:44 -0400
-Received: from pedra (vpn-225-29.phx2.redhat.com [10.3.225.29])
-	by int-mx10.intmail.prod.int.phx2.redhat.com (8.14.4/8.14.4) with ESMTP id p6B1xKKa030664
-	for <linux-media@vger.kernel.org>; Sun, 10 Jul 2011 21:59:43 -0400
-Date: Sun, 10 Jul 2011 22:58:56 -0300
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: [PATCH 08/21] [media] drxk: Print an error if firmware is not
- loaded
-Message-ID: <20110710225856.15e840d5@pedra>
-In-Reply-To: <cover.1310347962.git.mchehab@redhat.com>
-References: <cover.1310347962.git.mchehab@redhat.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
-To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
+Return-path: <linux-media-owner@vger.kernel.org>
+Received: from mail-gx0-f174.google.com ([209.85.161.174]:33963 "EHLO
+	mail-gx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751322Ab1GRKt0 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 18 Jul 2011 06:49:26 -0400
+Received: by gxk21 with SMTP id 21so1215532gxk.19
+        for <linux-media@vger.kernel.org>; Mon, 18 Jul 2011 03:49:26 -0700 (PDT)
+MIME-Version: 1.0
+Date: Mon, 18 Jul 2011 06:49:26 -0400
+Message-ID: <CAHiZ1abKhmOJt9BS6yghmwPSMooiX2GoF8HsSB9gs2jt9xW8Tw@mail.gmail.com>
+Subject: Happuage HDPVR 0 byte files.
+From: Greg Williamson <cheeseboy16@gmail.com>
+To: linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
-Sender: <mchehab@infradead.org>
 
-If something bad happens during firmware load, an error
-should be printed at dmesg.
+Hi,  I'm on Archlinux running 2.6.39-ARCH.  When I plug in my hdpvr I
+see it registers.
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
-
-diff --git a/drivers/media/dvb/frontends/drxk_hard.c b/drivers/media/dvb/frontends/drxk_hard.c
-index 89db378..1452e82 100644
---- a/drivers/media/dvb/frontends/drxk_hard.c
-+++ b/drivers/media/dvb/frontends/drxk_hard.c
-@@ -1395,8 +1395,10 @@ static int DownloadMicrocode(struct drxk_state *state,
- 		}
- 
- 		status = write_block(state, Address, BlockSize, pSrc);
--		if (status < 0)
-+		if (status < 0) {
-+			printk(KERN_ERR "drxk: Error %d while loading firmware\n", status);
- 			break;
-+		}
- 		pSrc += BlockSize;
- 		offset += BlockSize;
- 	}
--- 
-1.7.1
+Here is the dmesg output:
+[  778.518866] hdpvr 1-3:1.0: firmware version 0x15 dated Jun 17 2010 09:26:53
+[  778.704965] hdpvr 1-3:1.0: device now attached to video0
+[  778.705006] usbcore: registered new interface driver hdpvr
 
 
+However 'cat /dev/video0 > test.ts' creates 0 byte files every time.
