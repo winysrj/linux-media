@@ -1,45 +1,74 @@
-Return-path: <mchehab@localhost>
-Received: from mail-vw0-f46.google.com ([209.85.212.46]:43092 "EHLO
-	mail-vw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753304Ab1GFOs4 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 6 Jul 2011 10:48:56 -0400
-Date: Wed, 6 Jul 2011 10:37:37 -0400 (EDT)
-From: Nicolas Pitre <nicolas.pitre@linaro.org>
-To: Russell King - ARM Linux <linux@arm.linux.org.uk>
-cc: Arnd Bergmann <arnd@arndb.de>,
-	'Daniel Walker' <dwalker@codeaurora.org>,
-	'Jonathan Corbet' <corbet@lwn.net>,
-	'Mel Gorman' <mel@csn.ul.ie>,
-	'Chunsang Jeong' <chunsang.jeong@linaro.org>,
-	'Jesse Barker' <jesse.barker@linaro.org>,
-	'KAMEZAWA Hiroyuki' <kamezawa.hiroyu@jp.fujitsu.com>,
-	linux-kernel@vger.kernel.org,
-	'Michal Nazarewicz' <mina86@mina86.com>,
-	linaro-mm-sig@lists.linaro.org, linux-mm@kvack.org,
-	'Kyungmin Park' <kyungmin.park@samsung.com>,
-	'Ankita Garg' <ankita@in.ibm.com>,
-	'Andrew Morton' <akpm@linux-foundation.org>,
-	linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org
-Subject: Re: [Linaro-mm-sig] [PATCH 6/8] drivers: add Contiguous Memory
- Allocator
-In-Reply-To: <20110706142345.GC8286@n2100.arm.linux.org.uk>
-Message-ID: <alpine.LFD.2.00.1107061034200.14596@xanadu.home>
-References: <1309851710-3828-1-git-send-email-m.szyprowski@samsung.com> <20110705113345.GA8286@n2100.arm.linux.org.uk> <006301cc3be4$daab1850$900148f0$%szyprowski@samsung.com> <201107061609.29996.arnd@arndb.de>
- <20110706142345.GC8286@n2100.arm.linux.org.uk>
+Return-path: <linux-media-owner@vger.kernel.org>
+Received: from mx1.redhat.com ([209.132.183.28]:53144 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754232Ab1GRSMN (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 18 Jul 2011 14:12:13 -0400
+Received: from int-mx12.intmail.prod.int.phx2.redhat.com (int-mx12.intmail.prod.int.phx2.redhat.com [10.5.11.25])
+	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id p6IICD5g024511
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
+	for <linux-media@vger.kernel.org>; Mon, 18 Jul 2011 14:12:13 -0400
+Message-ID: <4E24776E.2010609@redhat.com>
+Date: Mon, 18 Jul 2011 14:11:58 -0400
+From: Jarod Wilson <jarod@redhat.com>
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+CC: linux-media@vger.kernel.org
+Subject: Re: [PATCH 2/9] [media] mceusb: give hardware time to reply to cmds
+References: <1310681394-3530-1-git-send-email-jarod@redhat.com> <1310681394-3530-3-git-send-email-jarod@redhat.com> <4E1F7C11.1050608@redhat.com> <4E24719C.8040809@redhat.com>
+In-Reply-To: <4E24719C.8040809@redhat.com>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
+Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
-Sender: <mchehab@infradead.org>
 
-On Wed, 6 Jul 2011, Russell King - ARM Linux wrote:
+Jarod Wilson wrote:
+> Mauro Carvalho Chehab wrote:
+>> Em 14-07-2011 19:09, Jarod Wilson escreveu:
+>>> Sometimes the init routine is blasting commands out to the hardware
+>>> faster than it can reply. Throw a brief delay in there to give the
+>>> hardware a chance to reply before we send the next command.
+>>>
+>>> Signed-off-by: Jarod Wilson<jarod@redhat.com>
+>>> ---
+>>> drivers/media/rc/mceusb.c | 2 ++
+>>> 1 files changed, 2 insertions(+), 0 deletions(-)
+>>>
+>>> diff --git a/drivers/media/rc/mceusb.c b/drivers/media/rc/mceusb.c
+>>> index 111bead..13a853b 100644
+>>> --- a/drivers/media/rc/mceusb.c
+>>> +++ b/drivers/media/rc/mceusb.c
+>>> @@ -37,6 +37,7 @@
+>>> #include<linux/slab.h>
+>>> #include<linux/usb.h>
+>>> #include<linux/usb/input.h>
+>>> +#include<linux/delay.h>
+>>> #include<media/rc-core.h>
+>>>
+>>> #define DRIVER_VERSION "1.91"
+>>> @@ -735,6 +736,7 @@ static void mce_request_packet(struct mceusb_dev
+>>> *ir, unsigned char *data,
+>>> static void mce_async_out(struct mceusb_dev *ir, unsigned char *data,
+>>> int size)
+>>> {
+>>> mce_request_packet(ir, data, size, MCEUSB_TX);
+>>> + mdelay(10);
+>>
+>> Can't it be a msleep() instead? Delays spend more power, and keeps the
+>> CPU busy while
+>> running.
+>
+> I think I was thinking we'd end up sleeping in an interrupt handler when
+> we shouldn't be, but upon closer code inspection and actual testing,
+> that's not the case, so yeah, those can be msleeps. While testing all
+> code paths, I also discovered that patch 6 in the series breaks lirc tx
+> support (the lirc dev is registered before the tx function pointers are
+> filled in), so I'll resend at least patches 2 and 6...
 
-> Another issue is that when a platform has restricted DMA regions,
-> they typically don't fall into the highmem zone.  As the dmabounce
-> code allocates from the DMA coherent allocator to provide it with
-> guaranteed DMA-able memory, that would be rather inconvenient.
+I'll just resend an entire v2 series, the changes to patch 2 have 
+cascading impact on multiple patches in the rest of the series.
 
-Do we encounter this in practice i.e. do those platforms requiring large 
-contiguous allocations motivating this work have such DMA restrictions?
+-- 
+Jarod Wilson
+jarod@redhat.com
 
 
-Nicolas
