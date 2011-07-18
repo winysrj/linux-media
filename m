@@ -1,64 +1,47 @@
-Return-path: <mchehab@localhost>
-Received: from proofpoint-cluster.metrocast.net ([65.175.128.136]:58521 "EHLO
-	proofpoint-cluster.metrocast.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751818Ab1GHSvK (ORCPT
+Return-path: <linux-media-owner@vger.kernel.org>
+Received: from mail-vw0-f46.google.com ([209.85.212.46]:38801 "EHLO
+	mail-vw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752450Ab1GROt5 convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 8 Jul 2011 14:51:10 -0400
-References: <CAE_m23n+Hj3xkC5UrUow64mLGaKAOKmR8yPDAATnZ=kWpqWaKw@mail.gmail.com> <4E170176.8090506@redhat.com>
-In-Reply-To: <4E170176.8090506@redhat.com>
-MIME-Version: 1.0
-Content-Type: text/plain;
- charset=UTF-8
-Content-Transfer-Encoding: 8bit
-Subject: Re: Pach under review.
-From: Andy Walls <awalls@md.metrocast.net>
-Date: Fri, 08 Jul 2011 14:51:12 -0400
-To: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	=?ISO-8859-1?Q?Marco_Diego_Aur=E9lio_Mesquita?=
-	<marcodiegomesquita@gmail.com>
-CC: Hans de Goede <hdegoede@redhat.com>,
-	linux-media <linux-media@vger.kernel.org>
-Message-ID: <fe526c05-87cb-419b-a3dd-7f4a150da5a3@email.android.com>
+	Mon, 18 Jul 2011 10:49:57 -0400
+Received: by vws1 with SMTP id 1so2186210vws.19
+        for <linux-media@vger.kernel.org>; Mon, 18 Jul 2011 07:49:56 -0700 (PDT)
+References: <CAHiZ1abKhmOJt9BS6yghmwPSMooiX2GoF8HsSB9gs2jt9xW8Tw@mail.gmail.com>
+In-Reply-To: <CAHiZ1abKhmOJt9BS6yghmwPSMooiX2GoF8HsSB9gs2jt9xW8Tw@mail.gmail.com>
+Mime-Version: 1.0 (Apple Message framework v1084)
+Content-Type: text/plain; charset=us-ascii
+Message-Id: <6F22EB15-4C4F-4D0E-A640-B503499C2EE8@wilsonet.com>
+Content-Transfer-Encoding: 8BIT
+Cc: linux-media@vger.kernel.org
+From: Jarod Wilson <jarod@wilsonet.com>
+Subject: Re: Happuage HDPVR 0 byte files.
+Date: Mon, 18 Jul 2011 10:49:36 -0400
+To: Greg Williamson <cheeseboy16@gmail.com>
+Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
-Sender: <mchehab@infradead.org>
 
-Mauro Carvalho Chehab <mchehab@redhat.com> wrote:
+On Jul 18, 2011, at 6:49 AM, Greg Williamson wrote:
 
->Em 07-07-2011 23:12, Marco Diego Aurélio Mesquita escreveu:
->> Hi!
->> 
->> I would like to have my patch[1] ready for linux 3.0. It's a simple
->> one-liner to solve an easy to fix problem. Is there anything I can do
->> o accelerate the review process?
->> 
->> Please, CC me your answers as I'm not subscribed to the list.
->> 
->> Tanks!
->> 
->> [1] https://patchwork.kernel.org/patch/849142/
->
->
->Hi Marco,
->
->Hans is currently in vacations, so, we'll likely need to wait for his
->return.
->I prefer to not rush merging it, because I don't have the pac207
->datasheets,
->and it is a good idea to have more tests on it. What webcams had you
->tested
->needing such fix?
->
->Thanks,
->Mauro
->--
->To unsubscribe from this list: send the line "unsubscribe linux-media"
->in
->the body of a message to majordomo@vger.kernel.org
->More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> Hi,  I'm on Archlinux running 2.6.39-ARCH.  When I plug in my hdpvr I
+> see it registers.
+> 
+> Here is the dmesg output:
+> [  778.518866] hdpvr 1-3:1.0: firmware version 0x15 dated Jun 17 2010 09:26:53
+> [  778.704965] hdpvr 1-3:1.0: device now attached to video0
+> [  778.705006] usbcore: registered new interface driver hdpvr
+> 
+> 
+> However 'cat /dev/video0 > test.ts' creates 0 byte files every time.
 
-FWIW, a PAC207 datasheet is on line here:
+What audio input do you have wired up, and has the driver been told to
+use the right one? You'll get 0-byte files if there's no audio on the
+selected audio input (default is rear RCA). Can alter the default with
+a modparam (default_audio_input=2 for spdif), or change it on the fly
+using v4l-utils.
 
-http://www.soiseek.com/PIXART/PAC207BCA/index.htm
+-- 
+Jarod Wilson
+jarod@wilsonet.com
 
-Regards,
-Andy
+
+
