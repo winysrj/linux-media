@@ -1,699 +1,111 @@
-Return-path: <mchehab@localhost>
-Received: from mx1.redhat.com ([209.132.183.28]:5273 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755264Ab1GFSEg (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 6 Jul 2011 14:04:36 -0400
-Date: Wed, 6 Jul 2011 15:04:01 -0300
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
-Subject: [PATCH RFCv3 14/17] [media] DocBook/dvb: Use generic descriptions
- for the frontend API
-Message-ID: <20110706150401.0223251a@pedra>
-In-Reply-To: <cover.1309974026.git.mchehab@redhat.com>
-References: <cover.1309974026.git.mchehab@redhat.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Return-path: <linux-media-owner@vger.kernel.org>
+Received: from mail-vw0-f46.google.com ([209.85.212.46]:59139 "EHLO
+	mail-vw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750948Ab1GRPEy (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 18 Jul 2011 11:04:54 -0400
+References: <4E1B978C.2030407@psychogeeks.com> <20110712080309.d538fec9.rdunlap@xenotime.net> <7B814F02-408C-434F-B813-8630B60914DA@wilsonet.com> <4E1CCC26.4060506@psychogeeks.com> <1B380AD0-FE0D-47DF-B2C3-605253C9C783@wilsonet.com> <4E1D3045.7050507@psychogeeks.com> <2E869B1F-D476-4645-BE26-B1DD77DF1735@wilsonet.com> <4E1E574E.9010403@psychogeeks.com> <1310863402.7895.6.camel@palomino.walls.org> <4E223D00.1040505@psychogeeks.com> <1310909766.2276.10.camel@palomino.walls.org>
+In-Reply-To: <1310909766.2276.10.camel@palomino.walls.org>
+Mime-Version: 1.0 (Apple Message framework v1084)
+Content-Type: text/plain; charset=us-ascii
+Message-Id: <A91CBD95-B2AF-4F43-8BEC-6C8007ABB33C@wilsonet.com>
 Content-Transfer-Encoding: 7bit
-To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
+Cc: Chris W <lkml@psychogeeks.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	linux-kernel@vger.kernel.org, Randy Dunlap <rdunlap@xenotime.net>
+From: Jarod Wilson <jarod@wilsonet.com>
+Subject: Re: Imon module Oops and kernel hang
+Date: Mon, 18 Jul 2011 11:04:36 -0400
+To: Andy Walls <awalls@md.metrocast.net>
+Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
-Sender: <mchehab@infradead.org>
 
-Move generic stuff into gen-errors.xml, and remove them from
-DVB API. While here, removes two bogus error codes that aren't
-supported or used on Linux: EINTERNAL and ENOSIGNAL.
+On Jul 17, 2011, at 9:36 AM, Andy Walls wrote:
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+> On Sun, 2011-07-17 at 11:38 +1000, Chris W wrote:
+>> On 17/07/11 10:43, Andy Walls wrote:
+>>> This is an obviously repeatable NULL pointer dereference in
+>>> rc_g_keycode_from_table().  The faulting line of code in both cases
+>>> disasembles to:
+>>> 
+>>>  1e:	8b 80 dc 00 00 00    	mov    0xdc(%eax),%eax
+>>> 
+>>> %eax obviously holds the value 0 (NULL).  But I'm having a hard time
+>>> telling to where exactly that line of assembly corresponds in
+>>> rc_g_keycode_from_table().  And I can't tell from the source which data
+>>> structure has something at offset 0xdc that gets derefernced early:
+>>> struct rc_dev or struct rc_map.
+>>> 
+>>> Could you provide the output of 
+>>> 
+>>> $ locate rc-core.ko
+>>> $ objdump -d -l /blah/blah/drivers/media/rc/rc-core.ko 
+>>> 
+>>> for the rc_g_keycode_from_table() function?
+>> 
+>> 
+>> I have a few copies lying about now.
+> 
+>> This is from my current running kernel
+>> /lib/modules/2.6.38-gentoo-r6/kernel/drivers/media/rc/rc-core.ko
+>> 
+>> and the partial objdump and corresponding oops/crash output:
+> 
+> Thanks.
+> 
+> 
+>> 00000450 <rc_g_keycode_from_table>:
+>> rc_g_keycode_from_table():
+>>     450:	55                   	push   %ebp
+>>     451:	89 e5                	mov    %esp,%ebp
+>>     453:	57                   	push   %edi
+>>     454:	56                   	push   %esi
+>>     455:	53                   	push   %ebx
+>>     456:	83 ec 24             	sub    $0x24,%esp
+> 
+> Store the (struct rc_dev *) "dev" input argument on the stack
+>>     459:	89 45 e8             	mov    %eax,-0x18(%ebp)
+> 
+> local_irq_save(flags):
+>>     45c:	9c                   	pushf
+>>     45d:	8f 45 ec             	popl   -0x14(%ebp)
+>>     460:	fa                   	cli
+> 
+> preempt_disable():
+>>     461:	89 e0                	mov    %esp,%eax
+>>     463:	25 00 e0 ff ff       	and    $0xffffe000,%eax
+>>     468:	ff 40 14             	incl   0x14(%eax)
+> 
+> Move (struct rc_dev *) dev into %eax
+>>     46b:	8b 45 e8             	mov    -0x18(%ebp),%eax
+> 
+> &dev->rc_map->lock 
+>>     46e:	8b 80 d4 00 00 00    	mov    0xd4(%eax),%eax
+> 
+> But that's where the Oops always happens, so the "dev" input argument to
+> the function is NULL.
+> 
+> Someone familiar with the driver/media/rc/imon.c file needs to figure
+> out how rc_g_keycode_from_table() can be called with a NULL first
+> argument: ictx->rdev is NULL when
+> rc_g_keycode_from_table(ictx->rdev,...) is called.
+> 
+> There might be some race at driver initialization, given that at first
+> look ictx-rdev being NULL seems impossible.  Your stack backtraces
+> always indicate some sort of IRQ context, so maybe that matters.
 
-diff --git a/Documentation/DocBook/media/dvb/dvbproperty.xml b/Documentation/DocBook/media/dvb/dvbproperty.xml
-index 33274bc..207e1a5 100644
---- a/Documentation/DocBook/media/dvb/dvbproperty.xml
-+++ b/Documentation/DocBook/media/dvb/dvbproperty.xml
-@@ -82,15 +82,6 @@ struct dtv_properties {
-  </row></tbody></tgroup></informaltable>
- &return-value-dvb;
- <informaltable><tgroup cols="2"><tbody><row>
--  <entry align="char"><para>EINVAL</para></entry>
--  <entry align="char"><para>Invalid parameter(s) received or number of parameters out of the range.</para></entry>
-- </row><row>
--  <entry align="char"><para>ENOMEM</para></entry>
--  <entry align="char"><para>Out of memory.</para></entry>
-- </row><row>
--  <entry align="char"><para>EFAULT</para></entry>
--  <entry align="char"><para>Failure while copying data from/to userspace.</para></entry>
-- </row><row>
-   <entry align="char"><para>EOPNOTSUPP</para></entry>
-   <entry align="char"><para>Property type not supported.</para></entry>
-  </row></tbody></tgroup></informaltable>
-@@ -139,15 +130,6 @@ struct dtv_properties {
-  </row></tbody></tgroup></informaltable>
- &return-value-dvb;
- <informaltable><tgroup cols="2"><tbody><row>
--  <entry align="char"><para>EINVAL</para></entry>
--  <entry align="char"><para>Invalid parameter(s) received or number of parameters out of the range.</para></entry>
-- </row><row>
--  <entry align="char"><para>ENOMEM</para></entry>
--  <entry align="char"><para>Out of memory.</para></entry>
-- </row><row>
--  <entry align="char"><para>EFAULT</para></entry>
--  <entry align="char"><para>Failure while copying data from/to userspace.</para></entry>
-- </row><row>
-   <entry align="char"><para>EOPNOTSUPP</para></entry>
-   <entry align="char"><para>Property type not supported.</para></entry>
-  </row></tbody></tgroup></informaltable>
-diff --git a/Documentation/DocBook/media/dvb/frontend.xml b/Documentation/DocBook/media/dvb/frontend.xml
-index c5a5cb4..61407ea 100644
---- a/Documentation/DocBook/media/dvb/frontend.xml
-+++ b/Documentation/DocBook/media/dvb/frontend.xml
-@@ -575,7 +575,7 @@ typedef enum fe_hierarchy {
- <para>File descriptor returned by a previous call to open().</para>
- </entry>
-  </row></tbody></tgroup></informaltable>
--&return-value-dvb;
-+<para>RETURN VALUE</para>
- <informaltable><tgroup cols="2"><tbody><row><entry
-  align="char">
- <para>EBADF</para>
-@@ -692,37 +692,8 @@ typedef enum fe_hierarchy {
- <para>The bit error rate is stored into *ber.</para>
- </entry>
-  </row></tbody></tgroup></informaltable>
-+
- &return-value-dvb;
--<informaltable><tgroup cols="2"><tbody><row><entry
-- align="char">
--<para>EBADF</para>
--</entry><entry
-- align="char">
--<para>fd is not a valid open file descriptor.</para>
--</entry>
-- </row><row><entry
-- align="char">
--<para>EFAULT</para>
--</entry><entry
-- align="char">
--<para>ber points to invalid address.</para>
--</entry>
-- </row><row><entry
-- align="char">
--<para>ENOSIGNAL</para>
--</entry><entry
-- align="char">
--<para>There is no signal, thus no meaningful bit error rate. Also
-- returned if the front-end is not turned on.</para>
--</entry>
-- </row><row><entry
-- align="char">
--<para>ENOSYS</para>
--</entry><entry
-- align="char">
--<para>Function not available for this device.</para>
--</entry>
-- </row></tbody></tgroup></informaltable>
- </section>
- 
- <section id="FE_READ_SNR">
-@@ -770,36 +741,6 @@ typedef enum fe_hierarchy {
-  </row></tbody></tgroup></informaltable>
- 
- &return-value-dvb;
--<informaltable><tgroup cols="2"><tbody><row><entry
-- align="char">
--<para>EBADF</para>
--</entry><entry
-- align="char">
--<para>fd is not a valid open file descriptor.</para>
--</entry>
-- </row><row><entry
-- align="char">
--<para>EFAULT</para>
--</entry><entry
-- align="char">
--<para>snr points to invalid address.</para>
--</entry>
-- </row><row><entry
-- align="char">
--<para>ENOSIGNAL</para>
--</entry><entry
-- align="char">
--<para>There is no signal, thus no meaningful signal strength
-- value. Also returned if front-end is not turned on.</para>
--</entry>
-- </row><row><entry
-- align="char">
--<para>ENOSYS</para>
--</entry><entry
-- align="char">
--<para>Function not available for this device.</para>
--</entry>
-- </row></tbody></tgroup></informaltable>
- </section>
- 
- <section id="FE_READ_SIGNAL_STRENGTH">
-@@ -846,37 +787,8 @@ typedef enum fe_hierarchy {
- <para>The signal strength value is stored into *strength.</para>
- </entry>
-  </row></tbody></tgroup></informaltable>
-+
- &return-value-dvb;
--<informaltable><tgroup cols="2"><tbody><row><entry
-- align="char">
--<para>EBADF</para>
--</entry><entry
-- align="char">
--<para>fd is not a valid open file descriptor.</para>
--</entry>
-- </row><row><entry
-- align="char">
--<para>EFAULT</para>
--</entry><entry
-- align="char">
--<para>status points to invalid address.</para>
--</entry>
-- </row><row><entry
-- align="char">
--<para>ENOSIGNAL</para>
--</entry><entry
-- align="char">
--<para>There is no signal, thus no meaningful signal strength
-- value. Also returned if front-end is not turned on.</para>
--</entry>
-- </row><row><entry
-- align="char">
--<para>ENOSYS</para>
--</entry><entry
-- align="char">
--<para>Function not available for this device.</para>
--</entry>
-- </row></tbody></tgroup></informaltable>
- </section>
- 
- <section id="FE_READ_UNCORRECTED_BLOCKS">
-@@ -930,29 +842,8 @@ typedef enum fe_hierarchy {
-  so far.</para>
- </entry>
-  </row></tbody></tgroup></informaltable>
-+
- &return-value-dvb;
--<informaltable><tgroup cols="2"><tbody><row><entry
-- align="char">
--<para>EBADF</para>
--</entry><entry
-- align="char">
--<para>fd is not a valid open file descriptor.</para>
--</entry>
-- </row><row><entry
-- align="char">
--<para>EFAULT</para>
--</entry><entry
-- align="char">
--<para>ublocks points to invalid address.</para>
--</entry>
-- </row><row><entry
-- align="char">
--<para>ENOSYS</para>
--</entry><entry
-- align="char">
--<para>Function not available for this device.</para>
--</entry>
-- </row></tbody></tgroup></informaltable>
- </section>
- 
- <section id="FE_SET_FRONTEND">
-@@ -1005,23 +896,10 @@ typedef enum fe_hierarchy {
- <para>Points to parameters for tuning operation.</para>
- </entry>
-  </row></tbody></tgroup></informaltable>
-+
- &return-value-dvb;
- <informaltable><tgroup cols="2"><tbody><row><entry
-  align="char">
--<para>EBADF</para>
--</entry><entry
-- align="char">
--<para>fd is not a valid open file descriptor.</para>
--</entry>
-- </row><row><entry
-- align="char">
--<para>EFAULT</para>
--</entry><entry
-- align="char">
--<para>p points to invalid address.</para>
--</entry>
-- </row><row><entry
-- align="char">
- <para>EINVAL</para>
- </entry><entry
-  align="char">
-@@ -1078,23 +956,8 @@ typedef enum fe_hierarchy {
-  </row></tbody></tgroup></informaltable>
- 
- &return-value-dvb;
--
- <informaltable><tgroup cols="2"><tbody><row><entry
-  align="char">
--<para>EBADF</para>
--</entry><entry
-- align="char">
--<para>fd is not a valid open file descriptor.</para>
--</entry>
-- </row><row><entry
-- align="char">
--<para>EFAULT</para>
--</entry><entry
-- align="char">
--<para>p points to invalid address.</para>
--</entry>
-- </row><row><entry
-- align="char">
- <para>EINVAL</para>
- </entry><entry
-  align="char">
-@@ -1181,20 +1044,6 @@ typedef enum fe_hierarchy {
- &return-value-dvb;
- <informaltable><tgroup cols="2"><tbody><row><entry
-  align="char">
--<para>EBADF</para>
--</entry><entry
-- align="char">
--<para>fd is not a valid open file descriptor.</para>
--</entry>
-- </row><row><entry
-- align="char">
--<para>EFAULT</para>
--</entry><entry
-- align="char">
--<para>ev points to invalid address.</para>
--</entry>
-- </row><row><entry
-- align="char">
- <para>EWOULDBLOCK</para>
- </entry><entry
-  align="char">
-@@ -1206,11 +1055,6 @@ typedef enum fe_hierarchy {
- <para>EOVERFLOW</para>
- </entry><entry
-  align="char">
--</entry>
-- </row><row><entry
-- align="char">
--</entry><entry
-- align="char">
- <para>Overflow in event queue - one or more events were lost.</para>
- </entry>
- </row></tbody></tgroup></informaltable>
-@@ -1264,21 +1108,6 @@ typedef enum fe_hierarchy {
- </entry>
-  </row></tbody></tgroup></informaltable>
- &return-value-dvb;
--<informaltable><tgroup cols="2"><tbody><row><entry
-- align="char">
--<para>EBADF</para>
--</entry><entry
-- align="char">
--<para>fd is not a valid open file descriptor.</para>
--</entry>
-- </row><row><entry
-- align="char">
--<para>EFAULT</para>
--</entry><entry
-- align="char">
--<para>info points to invalid address.</para>
--</entry>
--</row></tbody></tgroup></informaltable>
- </section>
- 
- <section id="FE_DISEQC_RESET_OVERLOAD">
-@@ -1322,28 +1151,6 @@ typedef enum fe_hierarchy {
-  </row></tbody></tgroup></informaltable>
- 
- &return-value-dvb;
--<informaltable><tgroup cols="2"><tbody><row><entry
-- align="char">
--<para>EBADF</para>
--</entry><entry
-- align="char">
--<para>fd is not a valid file descriptor.</para>
--</entry>
-- </row><row><entry
-- align="char">
--<para>EPERM</para>
--</entry><entry
-- align="char">
--<para>Permission denied (needs read/write access).</para>
--</entry>
-- </row><row><entry
-- align="char">
--<para>EINTERNAL</para>
--</entry><entry
-- align="char">
--<para>Internal error in the device driver.</para>
--</entry>
--</row></tbody></tgroup></informaltable>
- </section>
- 
- <section id="FE_DISEQC_SEND_MASTER_CMD">
-@@ -1394,43 +1201,6 @@ typedef enum fe_hierarchy {
-  </row></tbody></tgroup></informaltable>
- 
- &return-value-dvb;
--<informaltable><tgroup cols="2"><tbody><row><entry
-- align="char">
--<para>EBADF</para>
--</entry><entry
-- align="char">
--<para>fd is not a valid file descriptor.</para>
--</entry>
-- </row><row><entry
-- align="char">
--<para>EFAULT</para>
--</entry><entry
-- align="char">
--<para>Seq points to an invalid address.</para>
--</entry>
-- </row><row><entry
-- align="char">
--<para>EINVAL</para>
--</entry><entry
-- align="char">
--<para>The data structure referred to by seq is invalid in some
-- way.</para>
--</entry>
-- </row><row><entry
-- align="char">
--<para>EPERM</para>
--</entry><entry
-- align="char">
--<para>Permission denied (needs read/write access).</para>
--</entry>
-- </row><row><entry
-- align="char">
--<para>EINTERNAL</para>
--</entry><entry
-- align="char">
--<para>Internal error in the device driver.</para>
--</entry>
--</row></tbody></tgroup></informaltable>
- </section>
- 
- <section id="FE_DISEQC_RECV_SLAVE_REPLY">
-@@ -1481,43 +1251,6 @@ typedef enum fe_hierarchy {
- </entry>
-  </row></tbody></tgroup></informaltable>
- &return-value-dvb;
--<informaltable><tgroup cols="2"><tbody><row><entry
-- align="char">
--<para>EBADF</para>
--</entry><entry
-- align="char">
--<para>fd is not a valid file descriptor.</para>
--</entry>
-- </row><row><entry
-- align="char">
--<para>EFAULT</para>
--</entry><entry
-- align="char">
--<para>Seq points to an invalid address.</para>
--</entry>
-- </row><row><entry
-- align="char">
--<para>EINVAL</para>
--</entry><entry
-- align="char">
--<para>The data structure referred to by seq is invalid in some
-- way.</para>
--</entry>
-- </row><row><entry
-- align="char">
--<para>EPERM</para>
--</entry><entry
-- align="char">
--<para>Permission denied (needs read/write access).</para>
--</entry>
-- </row><row><entry
-- align="char">
--<para>EINTERNAL</para>
--</entry><entry
-- align="char">
--<para>Internal error in the device driver.</para>
--</entry>
-- </row></tbody></tgroup></informaltable>
- </section>
- 
- <section id="FE_DISEQC_SEND_BURST">
-@@ -1566,43 +1299,6 @@ typedef enum fe_hierarchy {
-  </row></tbody></tgroup></informaltable>
- 
- &return-value-dvb;
--<informaltable><tgroup cols="2"><tbody><row><entry
-- align="char">
--<para>EBADF</para>
--</entry><entry
-- align="char">
--<para>fd is not a valid file descriptor.</para>
--</entry>
-- </row><row><entry
-- align="char">
--<para>EFAULT</para>
--</entry><entry
-- align="char">
--<para>Seq points to an invalid address.</para>
--</entry>
-- </row><row><entry
-- align="char">
--<para>EINVAL</para>
--</entry><entry
-- align="char">
--<para>The data structure referred to by seq is invalid in some
-- way.</para>
--</entry>
-- </row><row><entry
-- align="char">
--<para>EPERM</para>
--</entry><entry
-- align="char">
--<para>Permission denied (needs read/write access).</para>
--</entry>
-- </row><row><entry
-- align="char">
--<para>EINTERNAL</para>
--</entry><entry
-- align="char">
--<para>Internal error in the device driver.</para>
--</entry>
--</row></tbody></tgroup></informaltable>
- </section>
- 
- <section id="FE_SET_TONE">
-@@ -1649,42 +1345,6 @@ typedef enum fe_hierarchy {
- </entry>
-  </row></tbody></tgroup></informaltable>
- &return-value-dvb;
--<informaltable><tgroup cols="2"><tbody><row><entry
-- align="char">
--<para>ENODEV</para>
--</entry><entry
-- align="char">
--<para>Device driver not loaded/available.</para>
--</entry>
-- </row><row><entry
-- align="char">
--<para>EBUSY</para>
--</entry><entry
-- align="char">
--<para>Device or resource busy.</para>
--</entry>
-- </row><row><entry
-- align="char">
--<para>EINVAL</para>
--</entry><entry
-- align="char">
--<para>Invalid argument.</para>
--</entry>
-- </row><row><entry
-- align="char">
--<para>EPERM</para>
--</entry><entry
-- align="char">
--<para>File not opened with read permissions.</para>
--</entry>
-- </row><row><entry
-- align="char">
--<para>EINTERNAL</para>
--</entry><entry
-- align="char">
--<para>Internal error in the device driver.</para>
--</entry>
--</row></tbody></tgroup></informaltable>
- </section>
- 
- <section id="FE_SET_VOLTAGE">
-@@ -1733,42 +1393,6 @@ typedef enum fe_hierarchy {
-  </row></tbody></tgroup></informaltable>
- 
- &return-value-dvb;
--<informaltable><tgroup cols="2"><tbody><row><entry
-- align="char">
--<para>ENODEV</para>
--</entry><entry
-- align="char">
--<para>Device driver not loaded/available.</para>
--</entry>
-- </row><row><entry
-- align="char">
--<para>EBUSY</para>
--</entry><entry
-- align="char">
--<para>Device or resource busy.</para>
--</entry>
-- </row><row><entry
-- align="char">
--<para>EINVAL</para>
--</entry><entry
-- align="char">
--<para>Invalid argument.</para>
--</entry>
-- </row><row><entry
-- align="char">
--<para>EPERM</para>
--</entry><entry
-- align="char">
--<para>File not opened with read permissions.</para>
--</entry>
-- </row><row><entry
-- align="char">
--<para>EINTERNAL</para>
--</entry><entry
-- align="char">
--<para>Internal error in the device driver.</para>
--</entry>
-- </row></tbody></tgroup></informaltable>
- </section>
- 
- <section id="FE_ENABLE_HIGH_LNB_VOLTAGE">
-@@ -1818,42 +1442,6 @@ typedef enum fe_hierarchy {
-  </row></tbody></tgroup></informaltable>
- 
- &return-value-dvb;
--<informaltable><tgroup cols="2"><tbody><row><entry
-- align="char">
--<para>ENODEV</para>
--</entry><entry
-- align="char">
--<para>Device driver not loaded/available.</para>
--</entry>
-- </row><row><entry
-- align="char">
--<para>EBUSY</para>
--</entry><entry
-- align="char">
--<para>Device or resource busy.</para>
--</entry>
-- </row><row><entry
-- align="char">
--<para>EINVAL</para>
--</entry><entry
-- align="char">
--<para>Invalid argument.</para>
--</entry>
-- </row><row><entry
-- align="char">
--<para>EPERM</para>
--</entry><entry
-- align="char">
--<para>File not opened with read permissions.</para>
--</entry>
-- </row><row><entry
-- align="char">
--<para>EINTERNAL</para>
--</entry><entry
-- align="char">
--<para>Internal error in the device driver.</para>
--</entry>
-- </row></tbody></tgroup></informaltable>
- </section>
- 
- <section id="FE_SET_FRONTEND_TUNE_MODE">
-@@ -1886,10 +1474,6 @@ FE_TUNE_MODE_ONESHOT When set, this flag will disable any zigzagging or other "n
-  </row></tbody></tgroup></informaltable>
- 
- &return-value-dvb;
--<informaltable><tgroup cols="2"><tbody><row>
--<entry align="char"><para>EINVAL</para></entry>
--<entry align="char"><para>Invalid argument.</para></entry>
-- </row></tbody></tgroup></informaltable>
- </section>
- 
- <section id="FE_DISHNETWORK_SEND_LEGACY_CMD">
-@@ -1924,11 +1508,6 @@ sends the specified raw cmd to the dish via DISEqC.
-  </row></tbody></tgroup></informaltable>
- 
- &return-value-dvb;
--<informaltable><tgroup cols="1"><tbody><row>
--<entry align="char">
--	<para>There are no errors in use for this call</para>
--</entry>
--</row></tbody></tgroup></informaltable>
- </section>
- 
- </section>
-diff --git a/Documentation/DocBook/media/v4l/gen-errors.xml b/Documentation/DocBook/media/v4l/gen-errors.xml
-index 3e6ddd9..dedcc90 100644
---- a/Documentation/DocBook/media/v4l/gen-errors.xml
-+++ b/Documentation/DocBook/media/v4l/gen-errors.xml
-@@ -8,7 +8,7 @@
- 	<!-- Keep it ordered alphabetically -->
-       <row>
- 	<entry>EBADF</entry>
--	<entry><parameter>fd</parameter> is not a valid open file descriptor.</entry>
-+	<entry>The file descriptor is not a valid.</entry>
-       </row>
-       <row>
- 	<entry>EBUSY</entry>
-@@ -21,18 +21,20 @@
-       </row>
-       <row>
- 	<entry>EFAULT</entry>
--	<entry><parameter>fd</parameter> is not a valid open file descriptor.</entry>
-+	<entry>There was a failure while copying data from/to userspace.</entry>
-       </row>
-       <row>
- 	<entry>EINVAL</entry>
--	<entry>One or more of the ioctl parameters are invalid. This is a widely
--	       error code. see the individual ioctl requests for actual causes.</entry>
-+	<entry>One or more of the ioctl parameters are invalid or out of the
-+	       allowed range. This is a widely error code. See the individual
-+	       ioctl requests for specific causes.</entry>
-       </row>
-       <row>
- 	<entry>EINVAL or ENOTTY</entry>
- 	<entry>The ioctl is not supported by the driver, actually meaning that
- 	       the required functionality is not available, or the file
--	       descriptor is not for a media device.</entry>
-+	       descriptor is not for a media device. The usage of EINVAL is
-+	       deprecated and will be fixed on a latter patch.</entry>
-       </row>
-       <row>
-         <entry>ENODEV</entry>
-@@ -49,6 +51,17 @@
- 	       for periodic transfers (up to 80% of the USB bandwidth).</entry>
-       </row>
-       <row>
-+	<entry>ENOSYS or EOPNOTSUPP</entry>
-+	<entry>Function not available for this device (dvb API only. Will likely
-+	       be replaced anytime soon by ENOTTY).</entry>
-+      </row>
-+      <row>
-+	<entry>EPERM</entry>
-+	<entry>Permission denied. Can be returned if the device needs write
-+		permission, or some special capabilities is needed
-+		(e. g. root)</entry>
-+      </row>
-+      <row>
- 	<entry>EWOULDBLOCK</entry>
- 	<entry>Operation would block. Used when the ioctl would need to wait
- 	       for an event, but the device was opened in non-blocking mode.</entry>
+Thanks much for the analysis, Andy. I see the problem now. The intf0 urb
+callback is wired up before the rc_dev is, and the callback is what makes
+the rc_g_keycode_from_table call. And as far as I know, all 0xffdc devices
+have the nasty trait of constantly triggering interrupts, even when there's
+no valid keydata. (SoundGraph fixed that in later devices). The code has
+been like this for some time, and I do have 0xffdc devices, none of which
+have hit this somehow, but the fix looks simple and obvious enough. I'll
+try to get something sent along later today.
+
 -- 
-1.7.1
+Jarod Wilson
+jarod@wilsonet.com
+
 
 
