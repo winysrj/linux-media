@@ -1,262 +1,926 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:38497 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755296Ab1G2Igl (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 29 Jul 2011 04:36:41 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-Subject: Re: [GIT PATCHES FOR 3.1] s5p-fimc and noon010pc30 driver updates
-Date: Fri, 29 Jul 2011 10:36:44 +0200
-Cc: Sylwester Nawrocki <snjw23@gmail.com>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	Sakari Ailus <sakari.ailus@iki.fi>
-References: <4E303E5B.9050701@samsung.com> <4E31E960.1080008@gmail.com> <4E3230EE.7040602@redhat.com>
-In-Reply-To: <4E3230EE.7040602@redhat.com>
-MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201107291036.44660.laurent.pinchart@ideasonboard.com>
+Received: from mx1.redhat.com ([209.132.183.28]:39489 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751169Ab1GRNKi (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 18 Jul 2011 09:10:38 -0400
+From: Prarit Bhargava <prarit@redhat.com>
+To: linux-kernel@vger.kernel.org
+Cc: Prarit Bhargava <prarit@redhat.com>, linux-ia64@vger.kernel.org,
+	x86@kernel.org, linux-acpi@vger.kernel.org,
+	linux-ide@vger.kernel.org,
+	openipmi-developer@lists.sourceforge.net,
+	platform-driver-x86@vger.kernel.org, linux-crypto@vger.kernel.org,
+	dri-devel@lists.freedesktop.org, lm-sensors@lm-sensors.org,
+	linux-i2c@vger.kernel.org, linux-input@vger.kernel.org,
+	linux-media@vger.kernel.org, netdev@vger.kernel.org,
+	linux-pci@vger.kernel.org, rtc-linux@googlegroups.com,
+	evel@driverdev.osuosl.org, linux-usb@vger.kernel.org,
+	device-drivers-devel@blackfin.uclinux.org,
+	linux-watchdog@vger.kernel.org, grant.likely@secretlab.ca,
+	dz@debian.org, rpurdie@rpsys.net, eric.piel@tremplin-utc.net,
+	abelay@mit.edu, johnpol@2ka.mipt.ru
+Subject: [PATCH 01/34] System Firmware Interface
+Date: Mon, 18 Jul 2011 09:08:15 -0400
+Message-Id: <1310994528-26276-2-git-send-email-prarit@redhat.com>
+In-Reply-To: <1310994528-26276-1-git-send-email-prarit@redhat.com>
+References: <1310994528-26276-1-git-send-email-prarit@redhat.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
+This patch introduces a general System Firmware interface to the kernel, called
+sysfw.
 
-On Friday 29 July 2011 06:02:54 Mauro Carvalho Chehab wrote:
-> Em 28-07-2011 19:57, Sylwester Nawrocki escreveu:
-> > On 07/28/2011 03:20 PM, Mauro Carvalho Chehab wrote:
-> >> Accumulating sub-dev controls at the video node is the right thing to
-> >> do.
-> >> 
-> >> An MC-aware application will need to handle with that, but that doesn't
-> >> sound to be hard. All such application would need to do is to first
-> >> probe the subdev controls, and, when parsing the videodev controls, not
-> >> register controls with duplicated ID's, or to mark them with some
-> >> special attribute.
-> > 
-> > IMHO it's not a big issue in general. Still, both subdev and the host
-> > device may support same control id. And then even though the control ids
-> > are same on the subdev and the host they could mean physically different
-> > controls (since when registering a subdev at the host driver the host's
-> > controls take precedence and doubling subdev controls are skipped).
-> 
-> True, but, except for specific usecases, the host control is enough.
+Inlcluded in this interface is the ability to search a standard set of fields,
+sysfw_lookup().  The fields are currently based upon the x86 and ia64 SMBIOS
+fields but exapandable to fields that other arches may introduce.  Also
+included is  the ability to search and match against those fields, and run
+a callback function against the matches, sysfw_callback().
 
-Not for embedded devices. In many case the control won't even be implemented 
-by the host. If your system has two sensors connected to the same host, they 
-will both expose an exposure time control. Which one do you configure through 
-the video node ? The two sensors will likely have different bounds for the 
-same control, how do you report that ?
+Modify module code to use sysfw instead of old DMI interface.
 
-Those controls are also quite useless for generic V4L2 applications, which 
-will want auto-exposure anyway. This needs to be implemented in userspace in 
-libv4l.
+[v2]: Modified sysfw_id to include up to 8 matches.  Almost all declarations of
+sysfw_id are __init so the increased kernel image size isn't a big issue.
 
-> > Also there might be some preference at user space, at which stage of the
-> > pipeline to apply some controls. This is where the subdev API helps, and
-> > plain video node API does not.
-> 
-> Again, this is for specific usecases. On such cases, what is expected is
-> that the more generic control will be exported via V4L2 API.
-> 
-> >>> Thus it's a bit hard to imagine that we could do something like
-> >>> "optionally not to inherit controls" as the subdev/MC API is optional.
-> >>> :)
-> >> 
-> >> This was actually implemented. There are some cases at ivtv/cx18 driver
-> >> where both the bridge and a subdev provides the same control (audio
-> >> volume, for example). The idea is to allow the bridge driver to touch
-> >> at the subdev control without exposing it to userspace, since the
-> >> desire was that the bridge driver itself would expose such control,
-> >> using a logic that combines changing the subdev and the bridge
-> >> registers for volume.
-> > 
-> > This seem like hard coding a policy in the driver;) Then there is no way
-> > (it might not be worth the effort though) to play with volume level at
-> > both devices, e.g. to obtain optimal S/N ratio.
-> 
-> In general, playing with just one control is enough. Andy had a different
-> opinion when this issue were discussed, and he thinks that playing with
-> both is better. At the end, this is a developers decision, depending on
-> how much information (and bug reports) he had.
+[v3]: Use sysfs bus instead of class, restore existing dmi class for backwards
+compatibility.
 
-ivtv/cx18 is a completely different use case, where hardware configurations 
-are known, and experiments possible to find out which control(s) to use and 
-how. In this case you can't know in advance what the sensor and host drivers 
-will be used for. Even if you did, fine image quality tuning requires 
-accessing pretty much all controls individually anyway.
+Cc: linux-ia64@vger.kernel.org
+Cc: x86@kernel.org
+Cc: linux-acpi@vger.kernel.org
+Cc: linux-ide@vger.kernel.org
+Cc: openipmi-developer@lists.sourceforge.net
+Cc: platform-driver-x86@vger.kernel.org
+Cc: linux-crypto@vger.kernel.org
+Cc: dri-devel@lists.freedesktop.org
+Cc: lm-sensors@lm-sensors.org
+Cc: linux-i2c@vger.kernel.org
+Cc: linux-ide@vger.kernel.org
+Cc: linux-input@vger.kernel.org
+Cc: linux-media@vger.kernel.org
+Cc: netdev@vger.kernel.org
+Cc: linux-pci@vger.kernel.org
+Cc: rtc-linux@googlegroups.com
+Cc: evel@driverdev.osuosl.org
+Cc: linux-usb@vger.kernel.org
+Cc: device-drivers-devel@blackfin.uclinux.org
+Cc: linux-watchdog@vger.kernel.org
+Cc: grant.likely@secretlab.ca
+Cc: dz@debian.org
+Cc: rpurdie@rpsys.net
+Cc: eric.piel@tremplin-utc.net
+Cc: abelay@mit.edu
+Cc: johnpol@2ka.mipt.ru
+Signed-off-by: Prarit Bhargava <prarit@redhat.com>
+---
+ drivers/firmware/Kconfig        |   25 +++
+ drivers/firmware/Makefile       |    3 +-
+ drivers/firmware/sysfw-sysfs.c  |  306 +++++++++++++++++++++++++++++++++++++++
+ drivers/firmware/sysfw.c        |  168 +++++++++++++++++++++
+ include/linux/mod_devicetable.h |   62 ++++++++
+ include/linux/sysfw.h           |  113 ++++++++++++++
+ init/main.c                     |    3 +
+ scripts/mod/file2alias.c        |   52 ++++----
+ 8 files changed, 705 insertions(+), 27 deletions(-)
+ create mode 100644 drivers/firmware/sysfw-sysfs.c
+ create mode 100644 drivers/firmware/sysfw.c
+ create mode 100644 include/linux/sysfw.h
 
-> > This is a hack...sorry, just joking ;-) Seriously, I think the
-> > situation with the userspace subdevs is a bit different. Because with one
-> > API we directly expose some functionality for applications, with other
-> > we code it in the kernel, to make the devices appear uniform at user
-> > space.
-> 
-> Not sure if I understood you. V4L2 export drivers functionality to
-> userspace in an uniform way. MC api is for special applications that might
-> need to access some internal functions on embedded devices.
-> 
-> Of course, there are some cases where it doesn't make sense to export a
-> subdev control via V4L2 API.
-> 
-> >>> Also, the sensor subdev can be configured in the video node driver as
-> >>> well as through the subdev device node. Both APIs can do the same
-> >>> thing but in order to let the subdev API work as expected the video
-> >>> node driver must be forbidden to configure the subdev.
-> >> 
-> >> Why? For the sensor, a V4L2 API call will look just like a bridge driver
-> >> call. The subdev will need a mutex anyway, as two MC applications may
-> >> be opening it simultaneously. I can't see why it should forbid changing
-> >> the control from the bridge driver call.
-> > 
-> > Please do not forget there might be more than one subdev to configure and
-> > that the bridge itself is also a subdev (which exposes a scaler
-> > interface, for instance). A situation pretty much like in Figure 4.4 [1]
-> > (after the scaler there is also a video node to configure, but we may
-> > assume that pixel resolution at the scaler pad 1 is same as at the video
-> > node). Assuming the format and crop configuration flow is from sensor to
-> > host scaler direction, if we have tried to configure _all_ subdevs when
-> > the last stage of the pipeline is configured (i.e. video node) the whole
-> > scaler and crop/composition configuration we have been destroyed at that
-> > time. And there is more to configure than VIDIOC_S_FMT can do.
-> 
-> Think from users perspective: all user wants is to see a video of a given
-> resolution. S_FMT (and a few other VIDIOC_* calls) have everything that
-> the user wants: the desired resolution, framerate and format.
-> 
-> Specialized applications indeed need more, in order to get the best images
-> for certain types of usages. So, MC is there.
-> 
-> Such applications will probably need to know exactly what's the sensor,
-> what are their bugs, how it is connected, what are the DSP blocks in the
-> patch, how the DSP algorithms are implemented, etc, in order to obtain the
-> the perfect image.
-> 
-> Even on embedded devices like smartphones and tablets, I predict that both
-> types of applications will be developed and used: people may use a generic
-> application like flash player, and an specialized application provided by
-> the manufacturer. Users can even develop their own applications generic
-> apps using V4L2 directly, at the devices that allow that.
-> 
-> As I said before: both application types are welcome. We just need to
-> warrant that a pure V4L application will work reasonably well.
-
-That's why we have libv4l. The driver simply doesn't receive enough 
-information to configure the hardware correctly from the VIDIOC_* calls. And 
-as mentioned above, 3A algorithms, required by "simple" V4L2 applications, 
-need to be implemented in userspace anyway.
-
-> > Allowing the bridge driver to configure subdevs at all times would
-> > prevent the subdev/MC API to work.
-> 
-> Well, then we need to think on an alternative for that. It seems an
-> interesting theme for the media workshop at the Kernel Summit/2011.
->
-> >>> There is a conflict there that in order to use
-> >>> 'optional' API the 'main' API behaviour must be affected....
-> >> 
-> >> It is optional from userspace perspective. A V4L2-only application
-> >> should be able to work with all drivers. However, a MC-aware
-> >> application will likely be specific for some hardware, as it will need
-> >> to know some device-specific stuff.
-> >> 
-> >> Both kinds of applications are welcome, but dropping support for
-> >> V4L2-only applications is the wrong thing to do.
-> >> 
-> >>> And I really cant use V4L2 API only as is because it's too limited.
-> >> 
-> >> Why?
-> > 
-> > For instance there is really yet no support for scaler and composition
-> > onto a target buffer in the Video Capture Interface (we also use sensors
-> > with built in scalers). It's difficult to efficiently manage
-> > capture/preview pipelines. It is impossible to discover the system
-> > topology.
-> 
-> Scaler were always supported by V4L2: if the resolution specified by S_FMT
-> is not what the sensor provides, then scale. All non-embedded drivers with
-> sensor or bridge supports scale does that.
-> 
-> Composition is not properly supported yet. It could make sense to add it to
-> V4L. How do you think MC API would help with composite?
-> 
-> Managing capture/preview pipelines will require some support at V4L2 level.
-> This is a problem that needs to be addressed there anyway, as buffers for
-> preview/capture need to be allocated. There's an RFC about that, but I
-> don't think it covers the pipelines for it.
-
-Managing pipelines is a policy decision, and needs to be implemented in 
-userspace. Once again, the solution here is libv4l.
-
-> Discovering the system topology indeed is not part of V4L2 API and will
-> never be. This is MC API business. There's no overlap with V4L2.
-> 
-> >>> Might be that's why I see more and more often migration to OpenMAX
-> >>> recently.
-> >> 
-> >> I don't think so. People may be adopting OpenMAX just because of some
-> >> marketing strategy from the OpenMAX forum. We don't spend money to
-> >> announce V4L2 ;)
-> >> 
-> > :)
-> > :
-> >> I think that writing a pure OpenMAX driver is the wrong thing to do, as,
-> >> at the long term, it will cost _a_lot_ for the vendors to maintain
-> >> something that will never be merged upstream.
-> > 
-> > In general it depends on priorities. For some chip vendors it might be
-> > more important to provide a solution in short time frame. Getting
-> > something in mainline isn't effortless and spending lot's of time on
-> > this for some parties is unacceptable.
-> 
-> Adding something at a forum like OpenMAX is probably not an easy task ;) It
-> generally takes a long time to change something on open forum
-> specifications. Also, participating on those forums require lots of money,
-> with membership and travel expenses.
-
-Correct me if I'm wrong (I'm not an OpenMAX specialist), but I think it 
-doesn't. OpenMAX isn't really open, and vendors implement proprietary 
-extensions as needed. My understanding is that tt's easier for them to use 
-OpenMAX for that, because they can more or less claim OpenMAX support even 
-with the proprietary extensions, something they couldn't do with V4L2.
-
-If we want to compete there (and I certainly do), we need to provide vendors 
-with clear, easy and well documented APIs that fulfill their needs out of the 
-box. That's of course an evermoving target.
-
-> Adding a new driver that follows the API's is not a long-term effort. The
-> delay is basically one kernel cycle, e. g. about 3-4 months.
-> 
-> Most of the delays on merging drivers for embedded systems, however, take a
-> way longer than that, unfortunately. From what I see, what is delaying
-> driver submission is due to:
-> 	- the lack of how to work with the Linux community. Some developers take a
-> long time to get the 'modus operandi';
-> 	- the need of API changes. It is still generally faster to add a new API
-> addition at the Kernel than on an open forum;
-> 	- the discussions inside the various teams (generally from the same
-> company, or the company and their customers) about the better way to
-> implement some feature.
-> 
-> All the above also happens when developing an OpenMAX driver: companies
-> need to learn how to work with the OpenMax forums, API changes may be
-> required, so they need to participate at the forums, the several internal
-> teams and customers will be discussing the requirements.
-> 
-> I bet that there's also one additional step: to submit the driver to some
-> company that will check the driver compliance with the official API. Such
-> certification process is generally expensive and takes a long time.
-
-I could be wrong, but I very much doubt this ever happens.
-
-> At the end of the day, they'll also spend a lot of time to have the driver
-> done, or they'll end by releasing a "not-quite-openmax" driver, and then
-> needing to rework on that, due to customers complains, or to
-> certification-compliance, loosing time and money.
-
+diff --git a/drivers/firmware/Kconfig b/drivers/firmware/Kconfig
+index efba163..79a1b9d 100644
+--- a/drivers/firmware/Kconfig
++++ b/drivers/firmware/Kconfig
+@@ -157,6 +157,31 @@ config SIGMA
+ 	  If unsure, say N here.  Drivers that need these helpers will select
+ 	  this option automatically.
+ 
++config SYSTEM_FIRMWARE
++	bool "System Firmware Interface"
++	default y
++	help
++	  Enables common System Firmware Interface to export system firmware
++	  (SMBIOS, DMI, etc.) information to kernel and userspace.
++
++config SYSTEM_FIRMWARE_SYSFS
++	bool "Export System Firmware identification via sysfs to userspace"
++	depends on SYSTEM_FIRMWARE
++	help
++	  Say Y here if you want to query system identification information
++	  from userspace through /sys/class/sysfw/id/ or if you want
++	  system firmware (sysfw) based module auto-loading.
++
++config SYSTEM_FIRMWARE_DMI_COMPAT
++	bool "Export dmi compatibility class in sysfs"
++	depends on SYSTEM_FIRMWARE
++	default y
++	help
++	  This exposes /sys/class/dmi/* as a pointer to the sysfw class for
++	  old software.  This is purely a backwards compatability feature and
++	  should not be used in new user space software.  Please see
++	  Documentation/ABI for details.
++
+ source "drivers/firmware/google/Kconfig"
+ 
+ endmenu
+diff --git a/drivers/firmware/Makefile b/drivers/firmware/Makefile
+index 47338c9..41bc64a 100644
+--- a/drivers/firmware/Makefile
++++ b/drivers/firmware/Makefile
+@@ -13,5 +13,6 @@ obj-$(CONFIG_ISCSI_IBFT_FIND)	+= iscsi_ibft_find.o
+ obj-$(CONFIG_ISCSI_IBFT)	+= iscsi_ibft.o
+ obj-$(CONFIG_FIRMWARE_MEMMAP)	+= memmap.o
+ obj-$(CONFIG_SIGMA)		+= sigma.o
+-
+ obj-$(CONFIG_GOOGLE_FIRMWARE)	+= google/
++obj-$(CONFIG_SYSTEM_FIRMWARE)	+= sysfw.o
++obj-$(CONFIG_SYSTEM_FIRMWARE_SYSFS)	+= sysfw-sysfs.o
+diff --git a/drivers/firmware/sysfw-sysfs.c b/drivers/firmware/sysfw-sysfs.c
+new file mode 100644
+index 0000000..48d7d07
+--- /dev/null
++++ b/drivers/firmware/sysfw-sysfs.c
+@@ -0,0 +1,306 @@
++/*
++ * Export sysfs sysfw_field's to userspace
++ *
++ * Updated 2011, Prarit Bhargava, prarit@redhat.com
++ * Copyright 2007, Lennart Poettering
++ *
++ * Licensed under GPLv2
++ */
++
++#include <linux/module.h>
++#include <linux/kernel.h>
++#include <linux/init.h>
++#include <linux/sysfw.h>
++#include <linux/device.h>
++#include <linux/slab.h>
++#include <linux/sysfw.h>
++
++struct sysfw_device_attribute {
++	struct device_attribute dev_attr;
++	int field;
++};
++#define to_sysfw_dev_attr(_dev_attr) \
++	container_of(_dev_attr, struct sysfw_device_attribute, dev_attr)
++
++static ssize_t sys_sysfw_field_show(struct device *dev,
++				  struct device_attribute *attr,
++				  char *page)
++{
++	int field = to_sysfw_dev_attr(attr)->field;
++	ssize_t len;
++	len = scnprintf(page, PAGE_SIZE, "%s\n", sysfw_lookup(field));
++	page[len-1] = '\n';
++	return len;
++}
++
++#define SYSFW_ATTR(_name, _mode, _show, _field)			\
++	{ .dev_attr = __ATTR(_name, _mode, _show, NULL),	\
++	  .field = _field }
++
++#define DEFINE_SYSFW_ATTR_WITH_SHOW(_name, _mode, _field)		\
++static struct sysfw_device_attribute sys_sysfw_##_name##_attr =	\
++	SYSFW_ATTR(_name, _mode, sys_sysfw_field_show, _field);
++
++DEFINE_SYSFW_ATTR_WITH_SHOW(bios_vendor,	0444, SYSFW_BIOS_VENDOR);
++DEFINE_SYSFW_ATTR_WITH_SHOW(bios_version,	0444, SYSFW_BIOS_VERSION);
++DEFINE_SYSFW_ATTR_WITH_SHOW(bios_date,		0444, SYSFW_BIOS_DATE);
++DEFINE_SYSFW_ATTR_WITH_SHOW(sys_vendor,	0444, SYSFW_SYS_VENDOR);
++DEFINE_SYSFW_ATTR_WITH_SHOW(product_name,	0444, SYSFW_PRODUCT_NAME);
++DEFINE_SYSFW_ATTR_WITH_SHOW(product_version,	0444, SYSFW_PRODUCT_VERSION);
++DEFINE_SYSFW_ATTR_WITH_SHOW(product_serial,	0400, SYSFW_PRODUCT_SERIAL);
++DEFINE_SYSFW_ATTR_WITH_SHOW(product_uuid,	0400, SYSFW_PRODUCT_UUID);
++DEFINE_SYSFW_ATTR_WITH_SHOW(board_vendor,	0444, SYSFW_BOARD_VENDOR);
++DEFINE_SYSFW_ATTR_WITH_SHOW(board_name,	0444, SYSFW_BOARD_NAME);
++DEFINE_SYSFW_ATTR_WITH_SHOW(board_version,	0444, SYSFW_BOARD_VERSION);
++DEFINE_SYSFW_ATTR_WITH_SHOW(board_serial,	0400, SYSFW_BOARD_SERIAL);
++DEFINE_SYSFW_ATTR_WITH_SHOW(board_asset_tag,	0444, SYSFW_BOARD_ASSET_TAG);
++DEFINE_SYSFW_ATTR_WITH_SHOW(chassis_vendor,	0444, SYSFW_CHASSIS_VENDOR);
++DEFINE_SYSFW_ATTR_WITH_SHOW(chassis_type,	0444, SYSFW_CHASSIS_TYPE);
++DEFINE_SYSFW_ATTR_WITH_SHOW(chassis_version,	0444, SYSFW_CHASSIS_VERSION);
++DEFINE_SYSFW_ATTR_WITH_SHOW(chassis_serial,	0400, SYSFW_CHASSIS_SERIAL);
++DEFINE_SYSFW_ATTR_WITH_SHOW(chassis_asset_tag,	0444, SYSFW_CHASSIS_ASSET_TAG);
++
++static void ascii_filter(char *d, const char *s)
++{
++	/* Filter out characters we don't want to see in the modalias string */
++	for (; *s; s++)
++		if (*s > ' ' && *s < 127 && *s != ':')
++			*(d++) = *s;
++
++	*d = 0;
++}
++
++static ssize_t get_modalias(char *buffer, size_t buffer_size,
++			    struct device *dev)
++{
++	static const struct mafield {
++		const char *prefix;
++		int field;
++	} fields[] = {
++		{ "bvn", SYSFW_BIOS_VENDOR },
++		{ "bvr", SYSFW_BIOS_VERSION },
++		{ "bd",  SYSFW_BIOS_DATE },
++		{ "svn", SYSFW_SYS_VENDOR },
++		{ "pn",  SYSFW_PRODUCT_NAME },
++		{ "pvr", SYSFW_PRODUCT_VERSION },
++		{ "rvn", SYSFW_BOARD_VENDOR },
++		{ "rn",  SYSFW_BOARD_NAME },
++		{ "rvr", SYSFW_BOARD_VERSION },
++		{ "cvn", SYSFW_CHASSIS_VENDOR },
++		{ "ct",  SYSFW_CHASSIS_TYPE },
++		{ "cvr", SYSFW_CHASSIS_VERSION },
++		{ NULL,  SYSFW_NONE }
++	};
++	ssize_t l, left;
++	char *p;
++	const struct mafield *f;
++	const char *name = dev_name(dev);
++
++	left = buffer_size;
++	p = buffer;
++	name = dev_name(dev);
++	if (!strncmp(dev_name(dev), "sysfw", 5)) {
++		strcpy(buffer, "sysfw");
++		p += 5;
++		left -= 6;
++	}
++#ifdef CONFIG_SYSTEM_FIRMWARE_DMI_COMPAT
++	if (!strncmp(dev_name(dev), "id", 2)) { /* old dmi */
++		strcpy(buffer, "dmi");
++		p +=  3;
++		left -= 4;
++	}
++#endif
++
++	for (f = fields; f->prefix && left > 0; f++) {
++		const char *c;
++		char *t;
++
++		c = sysfw_lookup(f->field);
++		if (!c)
++			continue;
++
++		t = kmalloc(strlen(c) + 1, GFP_KERNEL);
++		if (!t)
++			break;
++		ascii_filter(t, c);
++		l = scnprintf(p, left, ":%s%s", f->prefix, t);
++		kfree(t);
++
++		p += l;
++		left -= l;
++	}
++
++	p[0] = ':';
++	p[1] = 0;
++
++	return p - buffer + 1;
++}
++
++static ssize_t sys_sysfw_modalias_show(struct device *dev,
++				       struct device_attribute *attr,
++				       char *page)
++{
++	ssize_t r;
++	r = get_modalias(page, PAGE_SIZE-1, dev);
++	page[r] = '\n';
++	page[r+1] = 0;
++	return r+1;
++}
++
++static struct device_attribute sys_sysfw_modalias_attr =
++	__ATTR(modalias, 0444, sys_sysfw_modalias_show, NULL);
++
++static struct attribute *sys_sysfw_attributes[SYSFW_STRING_MAX+2];
++
++static struct attribute_group sys_sysfw_attribute_group = {
++	.attrs = sys_sysfw_attributes,
++};
++
++static const struct attribute_group *sys_sysfw_attribute_groups[] = {
++	&sys_sysfw_attribute_group,
++	NULL
++};
++
++static void sys_sysfw_release(struct device *dev)
++{
++	/* nothing to do */
++	return;
++}
++
++static struct device_type sysfw_type = {
++	.groups = sys_sysfw_attribute_groups,
++	.release = sys_sysfw_release,
++};
++
++/* Initialization */
++
++#define ADD_SYSFW_ATTR(_name, _field) \
++	if (sysfw_lookup(_field)) \
++		sys_sysfw_attributes[i++] = \
++		&sys_sysfw_##_name##_attr.dev_attr.attr;
++
++/* In a separate function to keep gcc 3.2 happy - do NOT merge this in
++   sysfw_bus_init! */
++static void __init sysfw_id_init_attr_table(void)
++{
++	int i;
++
++	/* Not necessarily all SYSFW fields are available on all
++	 * systems, hence let's built an attribute table of just
++	 * what's available */
++	i = 0;
++	ADD_SYSFW_ATTR(bios_vendor,       SYSFW_BIOS_VENDOR);
++	ADD_SYSFW_ATTR(bios_version,      SYSFW_BIOS_VERSION);
++	ADD_SYSFW_ATTR(bios_date,         SYSFW_BIOS_DATE);
++	ADD_SYSFW_ATTR(sys_vendor,        SYSFW_SYS_VENDOR);
++	ADD_SYSFW_ATTR(product_name,      SYSFW_PRODUCT_NAME);
++	ADD_SYSFW_ATTR(product_version,   SYSFW_PRODUCT_VERSION);
++	ADD_SYSFW_ATTR(product_serial,    SYSFW_PRODUCT_SERIAL);
++	ADD_SYSFW_ATTR(product_uuid,      SYSFW_PRODUCT_UUID);
++	ADD_SYSFW_ATTR(board_vendor,      SYSFW_BOARD_VENDOR);
++	ADD_SYSFW_ATTR(board_name,        SYSFW_BOARD_NAME);
++	ADD_SYSFW_ATTR(board_version,     SYSFW_BOARD_VERSION);
++	ADD_SYSFW_ATTR(board_serial,      SYSFW_BOARD_SERIAL);
++	ADD_SYSFW_ATTR(board_asset_tag,   SYSFW_BOARD_ASSET_TAG);
++	ADD_SYSFW_ATTR(chassis_vendor,    SYSFW_CHASSIS_VENDOR);
++	ADD_SYSFW_ATTR(chassis_type,      SYSFW_CHASSIS_TYPE);
++	ADD_SYSFW_ATTR(chassis_version,   SYSFW_CHASSIS_VERSION);
++	ADD_SYSFW_ATTR(chassis_serial,    SYSFW_CHASSIS_SERIAL);
++	ADD_SYSFW_ATTR(chassis_asset_tag, SYSFW_CHASSIS_ASSET_TAG);
++	sys_sysfw_attributes[i++] = &sys_sysfw_modalias_attr.attr;
++}
++
++static int sysfw_dev_uevent(struct device *dev, struct kobj_uevent_env *env)
++{
++	ssize_t len;
++
++	if (add_uevent_var(env, "MODALIAS="))
++		return -ENOMEM;
++	len = get_modalias(&env->buf[env->buflen - 1],
++			   sizeof(env->buf) - env->buflen, dev);
++	if (len >= (sizeof(env->buf) - env->buflen))
++		return -ENOMEM;
++	env->buflen += len;
++	return 0;
++}
++
++#ifdef CONFIG_SYSTEM_FIRMWARE_DMI_COMPAT
++/* Hopefully someday we can get rid of this. */
++static struct class dmi_class = {
++	.name = "dmi",
++	.dev_release = (void(*)(struct device *)) kfree,
++	.dev_uevent = sysfw_dev_uevent,
++};
++
++static struct device dmi_dev = {
++	.class = &dmi_class,
++	.groups = sys_sysfw_attribute_groups,
++};
++
++static int __init sysfw_legacy_dmi(void)
++{
++	int ret;
++
++	ret = class_register(&dmi_class);
++	if (ret)
++		return ret;
++
++	dev_set_name(&dmi_dev, "id");
++	ret = device_register(&dmi_dev);
++	return ret;
++}
++#else
++static int __init sysfw_legacy_dmi(void)
++{
++	return 0;
++}
++#endif
++
++static int sysfw_bus_match(struct device *dev, struct device_driver *drv)
++{
++	return 1;
++}
++
++struct bus_type sysfw_bus_type = {
++	.name = "sysfw",
++	.match = sysfw_bus_match,
++	.uevent = sysfw_dev_uevent,
++};
++
++static struct device sysfw_dev = {
++	.bus = &sysfw_bus_type,
++	.type = &sysfw_type,
++};
++
++void sysfw_sysfs_device_init(const char *name)
++{
++	if (!dev_name(&sysfw_dev))
++		dev_set_name(&sysfw_dev, name);
++}
++
++static int __init sysfw_bus_init(void)
++{
++	int ret;
++
++	sysfw_id_init_attr_table();
++
++	ret = bus_register(&sysfw_bus_type);
++	if (ret)
++		return ret;
++
++	ret = device_register(&sysfw_dev);
++	if (ret) {
++		bus_unregister(&sysfw_bus_type);
++	}
++	return ret;
++
++	/* Failing to setup legacy DMI is NOT a fatal error */
++	ret = sysfw_legacy_dmi();
++	if (ret)
++		printk(KERN_ERR "SYSFW: DMI Legacy sysfs did not "
++		       "initialize.\n");
++
++	return 0;
++}
++arch_initcall(sysfw_bus_init);
+diff --git a/drivers/firmware/sysfw.c b/drivers/firmware/sysfw.c
+new file mode 100644
+index 0000000..c37e19e
+--- /dev/null
++++ b/drivers/firmware/sysfw.c
+@@ -0,0 +1,168 @@
++/*
++ * System Firmware (sysfw) support
++ *
++ * started by Prarit Bhargava, Copyright (C) 2011 Red Hat, Inc.
++ *
++ * SYSFW interface to export commonly used values from System Firmware
++ *
++ * Some bits copied directly from original x86 and ia64 dmi*.c files
++ */
++#include <linux/device.h>
++#include <linux/errno.h>
++#include <linux/init.h>
++#include <linux/kernel.h>
++#include <linux/mod_devicetable.h>
++#include <linux/slab.h>
++#include <linux/sysfw.h>
++
++/* Global sysfw instance */
++static struct sysfw_driver *sysfw;
++
++/**
++ * sysfw_driver_register - register a firmware driver
++ * @driver: sysfw_driver struct representing driver to register
++ *
++ * This function registers a sysfw driver.  Since the FW exists for the
++ * lifetime of the system there is no need for an unregister function.
++ */
++int __init sysfw_driver_register(struct sysfw_driver *driver)
++{
++	int ret;
++
++	if (!driver->init || !driver->name) {
++		WARN(1, "System Firmware Interface: driver error\n");
++		return -EFAULT;
++	}
++
++	if (sysfw) {
++		WARN(1, "System Firmware Interface: already registered\n");
++		return -EBUSY;
++	}
++
++	sysfw = driver;
++	ret = sysfw->init();
++	if (ret)
++		return -ENODEV;
++
++	return 0;
++}
++
++/* called in start_kernel(), after memory management has been initialized. */
++void __init sysfw_init_late(void)
++{
++	if (sysfw && sysfw->late)
++		sysfw->late();
++	sysfw_sysfs_device_init(sysfw->name);
++}
++
++/**
++ * sysfw_lookup - find a sysfw value for a given field.
++ * @field: field to lookup
++ *
++ * This function calls into the system firmware and returns an appropriate
++ * string.
++ */
++const char *sysfw_lookup(int field)
++{
++	if (sysfw && sysfw->lookup)
++		return sysfw->lookup(field);
++	return NULL;
++}
++EXPORT_SYMBOL_GPL(sysfw_lookup);
++
++/**
++ * sysfw_vendor_is - checks to see if the vendor fields in the firmware
++ * contain a string
++ * @str: string to search for
++ *
++ * Returns true/false if the string is in any of the SYSFW_*VENDOR* fields.
++ */
++bool sysfw_vendor_is(const char *str)
++{
++	static int fields[] = { SYSFW_BIOS_VENDOR, SYSFW_BIOS_VERSION,
++				SYSFW_SYS_VENDOR, SYSFW_PRODUCT_NAME,
++				SYSFW_PRODUCT_VERSION, SYSFW_BOARD_VENDOR,
++				SYSFW_BOARD_NAME, SYSFW_BOARD_VERSION,
++				SYSFW_NONE };
++	int i;
++
++	if (!sysfw)
++		return false;
++
++	if (!sysfw->lookup)
++		return false;
++
++	for (i = 0; fields[i] != SYSFW_NONE; i++) {
++		if (sysfw_lookup(i) && strstr(sysfw_lookup(i), str))
++			return true;
++	}
++	return false;
++}
++EXPORT_SYMBOL(sysfw_vendor_is);
++
++/**
++ * sysfw_get_date - returns the date of the firmware in YYYYMMDD format.
++ *
++ * Retuns the date the firmware was built in YYYYMMDD for easy comparisons.
++ */
++int sysfw_get_date(void)
++{
++	if (sysfw && sysfw->date)
++		return sysfw->date();
++	return 0;
++}
++EXPORT_SYMBOL(sysfw_get_date);
++
++/* compares and matches the strings in sysfw_id */
++static bool sysfw_match_fields(const struct sysfw_id *id, int exactmatch)
++{
++	int i;
++
++	for (i = 0; i < ARRAY_SIZE(id->matches); i++) {
++		int s = id->matches[i].slot;
++		if (s == SYSFW_NONE)
++			break;
++		if (!sysfw_lookup(s))
++			continue;
++		if (exactmatch &&
++		    !strcmp(sysfw_lookup(s), id->matches[i].substr))
++			continue;
++		if (!exactmatch &&
++		    strstr(sysfw_lookup(s), id->matches[i].substr))
++			continue;
++		/* No match */
++		return false;
++	}
++	return true;
++}
++
++static bool sysfw_is_end_of_table(const struct sysfw_id *id)
++{
++	return id->matches[0].slot == SYSFW_NONE;
++}
++
++/**
++ * sysfw_callback - go through a list and run a function on all matching ids
++ * @list: list of ids to search
++ *
++ * This function takes a list of fields and strings to compare, attempts to
++ * compare the strings to the sysfw fields and runs a callback function for
++ * each positive comparison.  The comparison can stop by returning 0 in
++ * the callback function.
++ */
++const struct sysfw_id *sysfw_callback(const struct sysfw_id *list)
++{
++	const struct sysfw_id *id;
++
++	if (!sysfw)
++		return NULL;
++
++	for (id = list; !sysfw_is_end_of_table(id); id++)
++		if (sysfw_match_fields(id, id->exactmatch)) {
++			if (id->callback)
++				id->callback(id);
++			return id;
++		}
++	return NULL;
++}
++EXPORT_SYMBOL(sysfw_callback);
+diff --git a/include/linux/mod_devicetable.h b/include/linux/mod_devicetable.h
+index ae28e93..89153ad 100644
+--- a/include/linux/mod_devicetable.h
++++ b/include/linux/mod_devicetable.h
+@@ -482,6 +482,68 @@ struct dmi_system_id {
+ 
+ #define DMI_MATCH(a, b)	{ a, b }
+ 
++/*
++ * sysfw field - right now these are based on x86/ia64's SMBIOS fields.  But
++ * other arches are certainly welcome to add additional fields.  The
++ * sys_lookup() functions must be careful to return NULL on non-populated
++ * fields.
++ */
++enum sysfw_field {
++	SYSFW_NONE,
++	SYSFW_BIOS_VENDOR,
++	SYSFW_BIOS_VERSION,
++	SYSFW_BIOS_DATE,
++	SYSFW_SYS_VENDOR,
++	SYSFW_PRODUCT_NAME,
++	SYSFW_PRODUCT_VERSION,
++	SYSFW_PRODUCT_SERIAL,
++	SYSFW_PRODUCT_UUID,
++	SYSFW_BOARD_VENDOR,
++	SYSFW_BOARD_NAME,
++	SYSFW_BOARD_VERSION,
++	SYSFW_BOARD_SERIAL,
++	SYSFW_BOARD_ASSET_TAG,
++	SYSFW_CHASSIS_VENDOR,
++	SYSFW_CHASSIS_TYPE,
++	SYSFW_CHASSIS_VERSION,
++	SYSFW_CHASSIS_SERIAL,
++	SYSFW_CHASSIS_ASSET_TAG,
++	SYSFW_STRING_MAX,
++};
++
++struct sysfw_strmatch {
++	unsigned char slot;
++	char substr[79];
++};
++
++#ifndef __KERNEL__
++struct sysfw_id {
++	kernel_ulong_t callback;
++	kernel_ulong_t ident;
++	struct sysfw_strmatch matches[8];
++	kernel_ulong_t driver_data
++			__attribute__((aligned(sizeof(kernel_ulong_t))));
++	kernel_ulong_t exactmatch;
++};
++#else
++struct sysfw_id {
++	int (*callback)(const struct sysfw_id *);
++	const char *ident;
++	struct sysfw_strmatch matches[8];
++	void *driver_data;
++	kernel_ulong_t exactmatch;
++};
++/*
++ * struct sysfw_device_id appears during expansion of
++ * "MODULE_DEVICE_TABLE(sysfw, x)". Compiler doesn't look inside it
++ * but this is enough for gcc 3.4.6 to error out:
++ *	error: storage size of '__mod_sysfw_device_table' isn't known
++ */
++#define sysfw_device_id sysfw_system_id
++#endif
++
++#define SYSFW_MATCH(a, b)	{ a, b }
++
+ #define PLATFORM_NAME_SIZE	20
+ #define PLATFORM_MODULE_PREFIX	"platform:"
+ 
+diff --git a/include/linux/sysfw.h b/include/linux/sysfw.h
+new file mode 100644
+index 0000000..8dcb674
+--- /dev/null
++++ b/include/linux/sysfw.h
+@@ -0,0 +1,113 @@
++/*
++ * include/linux/sysfw.h
++ *
++ * System Firmware (sysfw) Interface
++ */
++#ifndef _SYSFW_H
++#define _SYSFW_H
++
++#include <linux/mod_devicetable.h>
++
++/*
++ * sysfw_id and sysfw_field (the SYSFW_*) enums are defined in
++ * mod_devicetable.h
++ */
++
++/*
++ * sysfw_driver struct -- passed in to sysfw_init() by every firmware
++ * driver
++ */
++struct sysfw_driver {
++	const char *name;
++	/* find & evaluate firmware */
++	int (*init)(void);
++	/* late init, done after memory management is initialized */
++	int (*late)(void);
++	/* find a specific value in sysfw_field */
++	const char * (*lookup)(int field);
++	/* return date in YYYYMMDD format */
++	int (*date)(void);
++};
++
++#ifdef CONFIG_SYSTEM_FIRMWARE
++/**
++ * sysfw_driver_register - register a firmware driver
++ * @driver: sysfw_driver struct representing driver to register
++ *
++ * This function registers a sysfw driver.  Since the FW exists for the
++ * lifetime of the system there is no need for an unregister function.
++ */
++extern int sysfw_driver_register(struct sysfw_driver *driver);
++
++/**
++ * sysfw_lookup - find a sysfw value for a given field.
++ * @field: field to lookup
++ *
++ * This function calls into the system firmware and returns an appropriate
++ * string.
++ */
++extern const char *sysfw_lookup(int field);
++
++/**
++ * sysfw_get_date - returns the date of the firmware in YYYYMMDD format.
++ *
++ * Retuns the date the firmware was built in YYYYMMDD for easy comparisons.
++ */
++extern int sysfw_get_date(void);
++
++/**
++ * sysfw_vendor_is - checks to see if the vendor fields in the firmware
++ * contain a string
++ * @str: string to search for
++ *
++ * Returns true/false if the string is in any of the SYSFW_*VENDOR* fields.
++ */
++extern bool sysfw_vendor_is(const char *str);
++
++/**
++ * sysfw_callback - go through a list and run a function on all matching ids
++ * @list: list of ids to search
++ *
++ * This function takes a list of fields and strings to compare, attempts to
++ * compare the strings to the sysfw fields and runs a callback function for
++ * each positive comparison.  The comparison can stop by returning 0 in
++ * the callback function.  The function returns the first match in the list.
++ */
++extern const struct sysfw_id *sysfw_callback(const struct sysfw_id *list);
++
++/* Kernel internal only, run after memory management has been initialized */
++extern void sysfw_init_late(void);
++/* Kernel internal only, init's sysfs for the sysfw device */
++extern void sysfw_sysfs_device_init(const char *name);
++
++#else /* CONFIG_SYSTEM_FIRMWARE */
++
++static inline int sysfw_driver_register(struct sysfw_driver *driver)
++{
++	return -1;
++}
++static inline const char *sysfw_lookup(int field)
++{
++	return NULL;
++}
++static inline int sysfw_get_date(void)
++{
++	return 0;
++}
++static inline bool sysfw_vendor_is(const char *str)
++{
++	return false;
++}
++static const struct sysfw_id *sysfw_callback(const struct sysfw_id *list)
++{
++	return NULL;
++}
++static inline void sysfw_init_late(void)
++{
++	return;
++}
++#endif /* CONFIG_SYSTEM_FIRMWARE */
++
++#define sysfw_vendor_contains(str) sysfw_vendor_is(str)
++
++#endif /* _SYSFW_H */
+diff --git a/init/main.c b/init/main.c
+index d7211fa..8b99aeb 100644
+--- a/init/main.c
++++ b/init/main.c
+@@ -68,6 +68,7 @@
+ #include <linux/shmem_fs.h>
+ #include <linux/slab.h>
+ #include <linux/perf_event.h>
++#include <linux/sysfw.h>
+ 
+ #include <asm/io.h>
+ #include <asm/bugs.h>
+@@ -554,6 +555,8 @@ asmlinkage void __init start_kernel(void)
+ 
+ 	kmem_cache_init_late();
+ 
++	sysfw_init_late();
++
+ 	/*
+ 	 * HACK ALERT! This is early. We're enabling the console before
+ 	 * we've done PCI setups etc, and console_init() must be aware of
+diff --git a/scripts/mod/file2alias.c b/scripts/mod/file2alias.c
+index e26e2fb..92a27e3 100644
+--- a/scripts/mod/file2alias.c
++++ b/scripts/mod/file2alias.c
+@@ -753,26 +753,26 @@ static int do_spi_entry(const char *filename, struct spi_device_id *id,
+ 	return 1;
+ }
+ 
+-static const struct dmifield {
++static const struct sysfwfield {
+ 	const char *prefix;
+ 	int field;
+-} dmi_fields[] = {
+-	{ "bvn", DMI_BIOS_VENDOR },
+-	{ "bvr", DMI_BIOS_VERSION },
+-	{ "bd",  DMI_BIOS_DATE },
+-	{ "svn", DMI_SYS_VENDOR },
+-	{ "pn",  DMI_PRODUCT_NAME },
+-	{ "pvr", DMI_PRODUCT_VERSION },
+-	{ "rvn", DMI_BOARD_VENDOR },
+-	{ "rn",  DMI_BOARD_NAME },
+-	{ "rvr", DMI_BOARD_VERSION },
+-	{ "cvn", DMI_CHASSIS_VENDOR },
+-	{ "ct",  DMI_CHASSIS_TYPE },
+-	{ "cvr", DMI_CHASSIS_VERSION },
+-	{ NULL,  DMI_NONE }
++} sysfw_fields[] = {
++	{ "bvn", SYSFW_BIOS_VENDOR },
++	{ "bvr", SYSFW_BIOS_VERSION },
++	{ "bd",  SYSFW_BIOS_DATE },
++	{ "svn", SYSFW_SYS_VENDOR },
++	{ "pn",  SYSFW_PRODUCT_NAME },
++	{ "pvr", SYSFW_PRODUCT_VERSION },
++	{ "rvn", SYSFW_BOARD_VENDOR },
++	{ "rn",  SYSFW_BOARD_NAME },
++	{ "rvr", SYSFW_BOARD_VERSION },
++	{ "cvn", SYSFW_CHASSIS_VENDOR },
++	{ "ct",  SYSFW_CHASSIS_TYPE },
++	{ "cvr", SYSFW_CHASSIS_VERSION },
++	{ NULL,  SYSFW_NONE }
+ };
+ 
+-static void dmi_ascii_filter(char *d, const char *s)
++static void sysfw_ascii_filter(char *d, const char *s)
+ {
+ 	/* Filter out characters we don't want to see in the modalias string */
+ 	for (; *s; s++)
+@@ -783,20 +783,20 @@ static void dmi_ascii_filter(char *d, const char *s)
+ }
+ 
+ 
+-static int do_dmi_entry(const char *filename, struct dmi_system_id *id,
+-			char *alias)
++static int do_sysfw_entry(const char *filename, struct sysfw_id *id,
++			  char *alias)
+ {
+ 	int i, j;
+ 
+-	sprintf(alias, "dmi*");
++	sprintf(alias, "sysfw*");
+ 
+-	for (i = 0; i < ARRAY_SIZE(dmi_fields); i++) {
++	for (i = 0; i < ARRAY_SIZE(sysfw_fields); i++) {
+ 		for (j = 0; j < 4; j++) {
+ 			if (id->matches[j].slot &&
+-			    id->matches[j].slot == dmi_fields[i].field) {
++			    id->matches[j].slot == sysfw_fields[i].field) {
+ 				sprintf(alias + strlen(alias), ":%s*",
+-					dmi_fields[i].prefix);
+-				dmi_ascii_filter(alias + strlen(alias),
++					sysfw_fields[i].prefix);
++				sysfw_ascii_filter(alias + strlen(alias),
+ 						 id->matches[j].substr);
+ 				strcat(alias, "*");
+ 			}
+@@ -1002,10 +1002,10 @@ void handle_moddevtable(struct module *mod, struct elf_info *info,
+ 		do_table(symval, sym->st_size,
+ 			 sizeof(struct spi_device_id), "spi",
+ 			 do_spi_entry, mod);
+-	else if (sym_is(symname, "__mod_dmi_device_table"))
++	else if (sym_is(symname, "__mod_sysfw_device_table"))
+ 		do_table(symval, sym->st_size,
+-			 sizeof(struct dmi_system_id), "dmi",
+-			 do_dmi_entry, mod);
++			 sizeof(struct sysfw_id), "sysfw",
++			 do_sysfw_entry, mod);
+ 	else if (sym_is(symname, "__mod_platform_device_table"))
+ 		do_table(symval, sym->st_size,
+ 			 sizeof(struct platform_device_id), "platform",
 -- 
-Regards,
+1.6.5.2
 
-Laurent Pinchart
