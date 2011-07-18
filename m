@@ -1,93 +1,93 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([147.243.1.48]:19111 "EHLO mgw-sa02.nokia.com"
+Received: from mx1.redhat.com ([209.132.183.28]:5652 "EHLO mx1.redhat.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751191Ab1GVKjo (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 22 Jul 2011 06:39:44 -0400
-Message-ID: <4E29536A.3010003@maxwell.research.nokia.com>
-Date: Fri, 22 Jul 2011 13:39:38 +0300
-From: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
-MIME-Version: 1.0
-To: Sylwester Nawrocki <snjw23@gmail.com>
-CC: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Subject: Re: [RFC 0/3] Frame synchronisation events and support for them in
- the OMAP 3 ISP driver
-References: <4E2588AD.4070106@maxwell.research.nokia.com> <4E284C71.7050806@gmail.com>
-In-Reply-To: <4E284C71.7050806@gmail.com>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+	id S1752899Ab1GRQrD (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 18 Jul 2011 12:47:03 -0400
+From: Jarod Wilson <jarod@redhat.com>
+To: linux-media@vger.kernel.org
+Cc: Jarod Wilson <jarod@redhat.com>,
+	Andy Walls <awalls@md.metrocast.net>,
+	Chris W <lkml@psychogeeks.com>,
+	Randy Dunlap <rdunlap@xenotime.net>,
+	linux-kernel@vger.kernel.org
+Subject: [PATCH] [media] imon: don't submit urb before rc_dev set up
+Date: Mon, 18 Jul 2011 12:46:49 -0400
+Message-Id: <1311007609-28210-1-git-send-email-jarod@redhat.com>
+In-Reply-To: <A91CBD95-B2AF-4F43-8BEC-6C8007ABB33C@wilsonet.com>
+References: <A91CBD95-B2AF-4F43-8BEC-6C8007ABB33C@wilsonet.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Sylwester Nawrocki wrote:
-> Hi Sakari,
+The interface 0 urb callback was being wired up before the rc_dev device
+was allocated, meaning the callback could be called with a null rc_dev,
+leading to an oops. This likely only ever happens on the older 0xffdc
+SoundGraph devices, which continually trigger interrupts even when they
+have no valid keydata, and the window in which it could happen is small,
+but its actually happening regularly for at least one user, and its an
+obvious fix. Compile and sanity-tested with one of my own imon devices.
 
-Hi Sylwester,
+CC: Andy Walls <awalls@md.metrocast.net>
+CC: Chris W <lkml@psychogeeks.com>
+CC: Randy Dunlap <rdunlap@xenotime.net>
+CC: linux-kernel@vger.kernel.org
+Reported-by: Chris W <lkml@psychogeeks.com>
+Signed-off-by: Jarod Wilson <jarod@redhat.com>
+---
+ drivers/media/rc/imon.c |   28 ++++++++++++++--------------
+ 1 files changed, 14 insertions(+), 14 deletions(-)
 
-Thanks for the comments.
-
-> On 07/19/2011 03:37 PM, Sakari Ailus wrote:
->> Hi all,
->>
->> The OMAP 3 ISP driver implements an HS_VS event which is triggered when
->> the reception of a frame begins. This functionality is very, very likely
->> not specific to OMAP 3 ISP so it should be standardised.
->>
->> I have a few patches to do that. Additionally the next expected buffer
->> sequence number is provided with the event, unlike earlier.
->>
->> There are a few open questions, however, and this is why I'm sending the
->> set as RFC.
->>
->>
->> 1) Other frame synchronisation events. The CCDC block in the OMAP 3 ISP
->> is able to trigger interrupts at two chosen lines of the image. These
->> naturally can be translated to events. The driver uses both of them
->> internally at specific points of the frame. Nevertheless, there might be
->> some use for these in user space. Other hardware might implement a
->> number of these which wouldn't be used by the driver itself, but I don't
->> know of that at the moment. On the other hand high resolution timers are
->> also available in user space, so doing timing based on ISP provided
->> events is not quite as important as before --- as long as there's one
->> frame based event produced at a known time, such as V4L2_EVENT_FRAME_START.
-> 
-> I'm curious, have you perhaps tried to measure latency of such up calls
-> to a user space process? I mean this is going to be a real time stuff,
-> with HSYNC periods of 50 us order. Could a user space thread be receiving
-> such periodic events reliably ? From my experience I doubt this can work
-> reliably outside of an interrupt handler even with high priority real time
-> threads.
-> 
-> V4L2_EVENT_FRAME_START event seems OK, but HSYNC events in user space
-> sound rather tricky to me :-)
-
-I think the user space could be interested in just one or two of these
-per frame, not for every line. But how to subscribe them --- if they are
-needed?
-
-Perhaps it'd be better to start with just one and add more once necessary?
-
-> Also HS_VS looks a bit more descriptive than FRAME_START for me.
-
-HS_VS doesn't really tell which one it is (horizontal or vertical), and
-we already have a VSYNC event but it's used for a different purpose.
-HS_VS is specific to the CCDC block and doesn't have that meaning in
-context of serial interfaces.
-
-This is why I proposed FRAME_START.
-
-> But unfortunately I can't come up with a better name, e.g. something like
-> V4L2_EVENT_FRAME_AV_START - frame active video start. Just in case in
-> future there are more specific events added.
-
-What additional information would AV add which isn't evident from
-FRAME_START?
-
-I admit that there could be differencies in terminology used in this
-area; terms that are meaningful to some might not be to others, or they
-could mean different things to them.
-
-Regards,
-
+diff --git a/drivers/media/rc/imon.c b/drivers/media/rc/imon.c
+index caa3e3a..26238f5 100644
+--- a/drivers/media/rc/imon.c
++++ b/drivers/media/rc/imon.c
+@@ -2132,6 +2132,18 @@ static struct imon_context *imon_init_intf0(struct usb_interface *intf)
+ 		goto find_endpoint_failed;
+ 	}
+ 
++	ictx->idev = imon_init_idev(ictx);
++	if (!ictx->idev) {
++		dev_err(dev, "%s: input device setup failed\n", __func__);
++		goto idev_setup_failed;
++	}
++
++	ictx->rdev = imon_init_rdev(ictx);
++	if (!ictx->rdev) {
++		dev_err(dev, "%s: rc device setup failed\n", __func__);
++		goto rdev_setup_failed;
++	}
++
+ 	usb_fill_int_urb(ictx->rx_urb_intf0, ictx->usbdev_intf0,
+ 		usb_rcvintpipe(ictx->usbdev_intf0,
+ 			ictx->rx_endpoint_intf0->bEndpointAddress),
+@@ -2145,26 +2157,14 @@ static struct imon_context *imon_init_intf0(struct usb_interface *intf)
+ 		goto urb_submit_failed;
+ 	}
+ 
+-	ictx->idev = imon_init_idev(ictx);
+-	if (!ictx->idev) {
+-		dev_err(dev, "%s: input device setup failed\n", __func__);
+-		goto idev_setup_failed;
+-	}
+-
+-	ictx->rdev = imon_init_rdev(ictx);
+-	if (!ictx->rdev) {
+-		dev_err(dev, "%s: rc device setup failed\n", __func__);
+-		goto rdev_setup_failed;
+-	}
+-
+ 	mutex_unlock(&ictx->lock);
+ 	return ictx;
+ 
++urb_submit_failed:
++	rc_unregister_device(ictx->rdev);
+ rdev_setup_failed:
+ 	input_unregister_device(ictx->idev);
+ idev_setup_failed:
+-	usb_kill_urb(ictx->rx_urb_intf0);
+-urb_submit_failed:
+ find_endpoint_failed:
+ 	mutex_unlock(&ictx->lock);
+ 	usb_free_urb(tx_urb);
 -- 
-Sakari Ailus
-sakari.ailus@maxwell.research.nokia.com
+1.7.1
+
