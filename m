@@ -1,47 +1,67 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp12.mail.ru ([94.100.176.89]:40399 "EHLO smtp12.mail.ru"
+Received: from mx1.redhat.com ([209.132.183.28]:22035 "EHLO mx1.redhat.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751638Ab1GTKqD (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 20 Jul 2011 06:46:03 -0400
-Message-ID: <4E26B1E7.2080107@list.ru>
-Date: Wed, 20 Jul 2011 14:45:59 +0400
-From: Stas Sergeev <stsp@list.ru>
+	id S1750948Ab1GRRrY (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 18 Jul 2011 13:47:24 -0400
+Received: from int-mx02.intmail.prod.int.phx2.redhat.com (int-mx02.intmail.prod.int.phx2.redhat.com [10.5.11.12])
+	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id p6IHlOja026064
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
+	for <linux-media@vger.kernel.org>; Mon, 18 Jul 2011 13:47:24 -0400
+Message-ID: <4E24719C.8040809@redhat.com>
+Date: Mon, 18 Jul 2011 13:47:08 -0400
+From: Jarod Wilson <jarod@redhat.com>
 MIME-Version: 1.0
-To: Mauro Carvalho Chehab <mchehab@infradead.org>
-CC: Lennart Poettering <lpoetter@redhat.com>,
-	linux-media@vger.kernel.org,
-	"Nickolay V. Shmyrev" <nshmyrev@yandex.ru>,
-	Devin Heitmueller <dheitmueller@kernellabs.com>,
-	ALSA devel <alsa-devel@alsa-project.org>
-Subject: Re: [patch][saa7134] do not change mute state for capturing audio
-References: <4E19D2F7.6060803@list.ru> <4E1E05AC.2070002@infradead.org> <4E1E0A1D.6000604@list.ru> <4E1E1571.6010400@infradead.org> <4E1E8108.3060305@list.ru> <4E1F9A25.1020208@infradead.org> <4E22AF12.4020600@list.ru> <4E22CCC0.8030803@infradead.org> <4E24BEB8.4060501@redhat.com> <4E257FF5.4040401@infradead.org> <4E258B60.6010007@list.ru> <4E25906D.3020200@infradead.org> <4E259B0C.90107@list.ru> <4E25A26A.2000204@infradead.org> <4E25A7C2.3050609@list.ru> <4E25C7AE.5020503@infradead.org> <4E25CF35.7000802@list.ru> <4E25DB37.8020609@infradead.org> <4E25FDE4.7040805@list.ru> <4E262772.9060509@infradead.org> <4E266799.8030706@list.ru> <4E26AEC0.5000405@infradead.org>
-In-Reply-To: <4E26AEC0.5000405@infradead.org>
-Content-Type: text/plain; charset=UTF-8
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+CC: linux-media@vger.kernel.org
+Subject: Re: [PATCH 2/9] [media] mceusb: give hardware time to reply to cmds
+References: <1310681394-3530-1-git-send-email-jarod@redhat.com> <1310681394-3530-3-git-send-email-jarod@redhat.com> <4E1F7C11.1050608@redhat.com>
+In-Reply-To: <4E1F7C11.1050608@redhat.com>
+Content-Type: text/plain; charset=UTF-8; format=flowed
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-20.07.2011 14:32, Mauro Carvalho Chehab wrote:
-> I won't keep discussing something that won't be merged, as it will
-> cause regressions.
-Please explain what regressions it will make!
-I am asking that question over and over again, and
-every time you either ignore it, or refer to an apps
-that use v4l2 ioctls, which are unaffected.
-I wonder why you don't want to explain what regressions
-do you have in mind...
+Mauro Carvalho Chehab wrote:
+> Em 14-07-2011 19:09, Jarod Wilson escreveu:
+>> Sometimes the init routine is blasting commands out to the hardware
+>> faster than it can reply. Throw a brief delay in there to give the
+>> hardware a chance to reply before we send the next command.
+>>
+>> Signed-off-by: Jarod Wilson<jarod@redhat.com>
+>> ---
+>>   drivers/media/rc/mceusb.c |    2 ++
+>>   1 files changed, 2 insertions(+), 0 deletions(-)
+>>
+>> diff --git a/drivers/media/rc/mceusb.c b/drivers/media/rc/mceusb.c
+>> index 111bead..13a853b 100644
+>> --- a/drivers/media/rc/mceusb.c
+>> +++ b/drivers/media/rc/mceusb.c
+>> @@ -37,6 +37,7 @@
+>>   #include<linux/slab.h>
+>>   #include<linux/usb.h>
+>>   #include<linux/usb/input.h>
+>> +#include<linux/delay.h>
+>>   #include<media/rc-core.h>
+>>
+>>   #define DRIVER_VERSION	"1.91"
+>> @@ -735,6 +736,7 @@ static void mce_request_packet(struct mceusb_dev *ir, unsigned char *data,
+>>   static void mce_async_out(struct mceusb_dev *ir, unsigned char *data, int size)
+>>   {
+>>   	mce_request_packet(ir, data, size, MCEUSB_TX);
+>> +	mdelay(10);
+>
+> Can't it be a msleep() instead? Delays spend more power, and keeps the CPU busy while
+> running.
 
-> If the application is starting streaming, audio should be expected on
-> devices
-> where the audio output is internally wired with the capture input.
-> This seems to be the case of your device. There's nothing that can be
-> done to fix a bad hardware design or the lack of enough information
-> from the device manufacturer.
-Well, until you explain the exact breakage of my proposal,
-I won't trust this. :)
+I think I was thinking we'd end up sleeping in an interrupt handler when 
+we shouldn't be, but upon closer code inspection and actual testing, 
+that's not the case, so yeah, those can be msleeps. While testing all 
+code paths, I also discovered that patch 6 in the series breaks lirc tx 
+support (the lirc dev is registered before the tx function pointers are 
+filled in), so I'll resend at least patches 2 and 6...
 
-> I suspect, however, that not changing the GPIO's is a very bad idea, and
-> it will actually break audio for devices with external GPIO-based input
-> switches, but, as this version was already done, it might be useful for some
-> tests. A version 3 will follow shortly.
-I'll test at a week-end whatever we'll have to that date.
+-- 
+Jarod Wilson
+jarod@redhat.com
+
+
