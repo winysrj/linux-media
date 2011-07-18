@@ -1,42 +1,88 @@
-Return-path: <mchehab@pedra>
-Received: from mailout-de.gmx.net ([213.165.64.22]:44976 "HELO
-	mailout-de.gmx.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1756015Ab1GCQcH (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sun, 3 Jul 2011 12:32:07 -0400
-From: Oliver Endriss <o.endriss@gmx.de>
-To: linux-media@vger.kernel.org
-Subject: [PATCH 00/16] New drivers: DRX-K, TDA18271c2, Updates: CXD2099 and ngene
-Date: Sun, 3 Jul 2011 18:31:19 +0200
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>
+Return-path: <linux-media-owner@vger.kernel.org>
+Received: from comal.ext.ti.com ([198.47.26.152]:53105 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751289Ab1GRSUU convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 18 Jul 2011 14:20:20 -0400
+Received: from dbdp20.itg.ti.com ([172.24.170.38])
+	by comal.ext.ti.com (8.13.7/8.13.7) with ESMTP id p6IIKH27021719
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-media@vger.kernel.org>; Mon, 18 Jul 2011 13:20:19 -0500
+Received: from dbde70.ent.ti.com (localhost [127.0.0.1])
+	by dbdp20.itg.ti.com (8.13.8/8.13.8) with ESMTP id p6IIKHi3025241
+	for <linux-media@vger.kernel.org>; Mon, 18 Jul 2011 23:50:17 +0530 (IST)
+From: "Hiremath, Vaibhav" <hvaibhav@ti.com>
+To: "JAIN, AMBER" <amber@ti.com>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+CC: "Nilofer, Samreen" <samreen@ti.com>
+Date: Mon, 18 Jul 2011 23:50:17 +0530
+Subject: RE: [PATCH v2 3/3] V4l2: OMAP: VOUT: Minor Cleanup, removing the
+ unnecessary code.
+Message-ID: <19F8576C6E063C45BE387C64729E739404E3737BA9@dbde02.ent.ti.com>
+References: <1310041278-8810-1-git-send-email-amber@ti.com>
+ <1310041278-8810-4-git-send-email-amber@ti.com>
+In-Reply-To: <1310041278-8810-4-git-send-email-amber@ti.com>
+Content-Language: en-US
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 MIME-Version: 1.0
-Content-Type: text/plain;
-  charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-Message-Id: <201107031831.20378@orion.escape-edv.de>
+Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
-Sender: <mchehab@pedra>
 
-[PATCH 01/16] tda18271c2dd: Initial check-in
-[PATCH 02/16] tda18271c2dd: Lots of coding-style fixes
-[PATCH 03/16] DRX-K: Initial check-in
-[PATCH 04/16] DRX-K: Shrink size of drxk_map.h
-[PATCH 05/16] DRX-K: Tons of coding-style fixes
-[PATCH 06/16] DRX-K, TDA18271c2: Add build support
-[PATCH 07/16] get_dvb_firmware: Get DRX-K firmware for Digital Devices DVB-CT cards
-[PATCH 08/16] ngene: Support Digital Devices DuoFlex CT
-[PATCH 09/16] ngene: Coding style fixes
-[PATCH 10/16] ngene: Fix return code if no demux was found
-[PATCH 11/16] ngene: Fix name of Digital Devices PCIe/miniPCIe
-[PATCH 12/16] ngene: Support DuoFlex CT attached to CineS2 and SaTiX-S2
-[PATCH 13/16] cxd2099: Update to latest version
-[PATCH 14/16] cxd2099: Codingstyle fixes
-[PATCH 15/16] ngene: Update for latest cxd2099
-[PATCH 16/16] ngene: Strip dummy packets inserted by the driver
 
--- 
-----------------------------------------------------------------
-VDR Remote Plugin 0.4.0: http://www.escape-edv.de/endriss/vdr/
-4 MByte Mod: http://www.escape-edv.de/endriss/dvb-mem-mod/
-Full-TS Mod: http://www.escape-edv.de/endriss/dvb-full-ts-mod/
-----------------------------------------------------------------
+> -----Original Message-----
+> From: JAIN, AMBER
+> Sent: Thursday, July 07, 2011 5:51 PM
+> To: linux-media@vger.kernel.org
+> Cc: Hiremath, Vaibhav; JAIN, AMBER; Nilofer, Samreen
+> Subject: [PATCH v2 3/3] V4l2: OMAP: VOUT: Minor Cleanup, removing the
+> unnecessary code.
+> 
+> Minor changes to remove the unused code from omap_vout driver.
+> 
+> Signed-off-by: Amber Jain <amber@ti.com>
+> Signed-off-by: Samreen <samreen@ti.com>
+> ---
+> Changes from v1:
+> - None.
+> 
+>  drivers/media/video/omap/omap_vout.c |    6 ------
+>  1 files changed, 0 insertions(+), 6 deletions(-)
+> 
+> diff --git a/drivers/media/video/omap/omap_vout.c
+> b/drivers/media/video/omap/omap_vout.c
+> index 7d3410a..548f4cd 100644
+> --- a/drivers/media/video/omap/omap_vout.c
+> +++ b/drivers/media/video/omap/omap_vout.c
+> @@ -1041,10 +1041,7 @@ static int vidioc_enum_fmt_vid_out(struct file
+> *file, void *fh,
+>  			struct v4l2_fmtdesc *fmt)
+>  {
+>  	int index = fmt->index;
+> -	enum v4l2_buf_type type = fmt->type;
+> 
+> -	fmt->index = index;
+> -	fmt->type = type;
+>  	if (index >= NUM_OUTPUT_FORMATS)
+>  		return -EINVAL;
+> 
+> @@ -1213,10 +1210,7 @@ static int vidioc_enum_fmt_vid_overlay(struct file
+> *file, void *fh,
+>  			struct v4l2_fmtdesc *fmt)
+>  {
+>  	int index = fmt->index;
+> -	enum v4l2_buf_type type = fmt->type;
+> 
+> -	fmt->index = index;
+> -	fmt->type = type;
+>  	if (index >= NUM_OUTPUT_FORMATS)
+>  		return -EINVAL;
+> 
+[Hiremath, Vaibhav] Acked-By: Vaibhav Hiremath <hvaibhav@ti.com>
+
+Thanks,
+Vaibhav
+
+> --
+> 1.7.1
+
