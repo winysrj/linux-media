@@ -1,91 +1,92 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.mnsspb.ru ([84.204.75.2]:33839 "EHLO mail.mnsspb.ru"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753020Ab1GWSQS (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 23 Jul 2011 14:16:18 -0400
-Date: Sat, 23 Jul 2011 22:15:09 +0400
-From: Kirill Smelkov <kirr@mns.spb.ru>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Andrew Morton <akpm@linux-foundation.org>,
-	linux-uvc-devel@lists.berlios.de, linux-media@vger.kernel.org,
-	linux-kernel@vger.kernel.org
-Subject: Re: [PATCH, RESEND] uvcvideo: Add FIX_BANDWIDTH quirk to HP Webcam
-	found on HP Mini 5103 netbook
-Message-ID: <20110723181509.GA16414@tugrik.mns.mnsspb.ru>
-References: <20110722144722.GA3717@tugrik.mns.mnsspb.ru> <201107230003.59800.laurent.pinchart@ideasonboard.com> <20110722222520.GA14917@tugrik.mns.mnsspb.ru> <201107230112.12868.laurent.pinchart@ideasonboard.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <201107230112.12868.laurent.pinchart@ideasonboard.com>
+Received: from mailout3.w1.samsung.com ([210.118.77.13]:11915 "EHLO
+	mailout3.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750857Ab1GRGbD (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 18 Jul 2011 02:31:03 -0400
+MIME-version: 1.0
+Content-transfer-encoding: 7BIT
+Content-type: text/plain; charset=us-ascii
+Received: from eu_spt1 ([210.118.77.13]) by mailout3.w1.samsung.com
+ (Sun Java(tm) System Messaging Server 6.3-8.04 (built Jul 29 2009; 32bit))
+ with ESMTP id <0LOI00DM3NFPE840@mailout3.w1.samsung.com> for
+ linux-media@vger.kernel.org; Mon, 18 Jul 2011 07:31:01 +0100 (BST)
+Received: from linux.samsung.com ([106.116.38.10])
+ by spt1.w1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14
+ 2004)) with ESMTPA id <0LOI00HHDNFO86@spt1.w1.samsung.com> for
+ linux-media@vger.kernel.org; Mon, 18 Jul 2011 07:31:00 +0100 (BST)
+Date: Mon, 18 Jul 2011 08:30:13 +0200
+From: Marek Szyprowski <m.szyprowski@samsung.com>
+Subject: RE: [RFCv1 PATCH 3/6] videobuf2: only start streaming in poll() if so
+ requested by the poll mask.
+In-reply-to: <7fc8ed81f08a0ac8092c5b6a8badc3427df9bc1e.1310549521.git.hans.verkuil@cisco.com>
+To: 'Hans Verkuil' <hverkuil@xs4all.nl>, linux-media@vger.kernel.org
+Cc: 'Hans Verkuil' <hans.verkuil@cisco.com>,
+	'Pawel Osciak' <pawel@osciak.com>
+Message-id: <00c901cc4514$26629880$7327c980$%szyprowski@samsung.com>
+Content-language: pl
+References: <1310549944-23756-1-git-send-email-hverkuil@xs4all.nl>
+ <7fc8ed81f08a0ac8092c5b6a8badc3427df9bc1e.1310549521.git.hans.verkuil@cisco.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Laurent, All,
+Hello,
 
-On Sat, Jul 23, 2011 at 01:12:11AM +0200, Laurent Pinchart wrote:
-> Hi Kirill,
+On Wednesday, July 13, 2011 11:39 AM Hans Verkuil wrote:
+
+> From: Hans Verkuil <hans.verkuil@cisco.com>
 > 
-> On Saturday 23 July 2011 00:25:20 Kirill Smelkov wrote:
-> > On Sat, Jul 23, 2011 at 12:03:57AM +0200, Laurent Pinchart wrote:
-> > > On Friday 22 July 2011 16:47:22 Kirill Smelkov wrote:
-> > > >  [ Cc'ing Andrew Morton -- Andrew, could you please pick this patch, in
-> > > >  
-> > > >    case there is no response from maintainers again? Thanks beforehand.
-> > > >    ]
-> > > > 
-> > > > Hello up there,
-> > > > 
-> > > > My first posting was 1 month ago, and a reminder ~ 2 weeks ago. All
-> > > > without a reply. v3.0 is out and they say the merge window will be
-> > > > shorter this time, so in oder not to miss it, I've decided to resend my
-> > > > patch on lowering USB periodic bandwidth allocation topic.
-> > > 
-> > > I'm very very sorry for missing the patch (and worse, twice :-/).
-> > 
-> > Nevermind. I'm curious though, whether I did something wrong or anything
-> > else?  I mean how to avoid such long delays next time?
+> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+
+Acked-by: Marek Szyprowski <m.szyprowski@samsung.com>
+
+> ---
+>  drivers/media/video/videobuf2-core.c |    7 +++++--
+>  1 files changed, 5 insertions(+), 2 deletions(-)
 > 
-> It was all my fault, mails piled up in my mailbox and for some reason I marked 
-> yours as processed while they were not. I certainly hope it won't happen 
-> again.
+> diff --git a/drivers/media/video/videobuf2-core.c
+> b/drivers/media/video/videobuf2-core.c
+> index 3015e60..1892bb8 100644
+> --- a/drivers/media/video/videobuf2-core.c
+> +++ b/drivers/media/video/videobuf2-core.c
+> @@ -1365,6 +1365,7 @@ static int __vb2_cleanup_fileio(struct vb2_queue *q);
+>   */
+>  unsigned int vb2_poll(struct vb2_queue *q, struct file *file, poll_table
+> *wait)
+>  {
+> +	unsigned long req_events = poll_requested_events(wait);
+>  	unsigned long flags;
+>  	unsigned int ret;
+>  	struct vb2_buffer *vb = NULL;
+> @@ -1373,12 +1374,14 @@ unsigned int vb2_poll(struct vb2_queue *q, struct
+> file *file, poll_table *wait)
+>  	 * Start file I/O emulator only if streaming API has not been used
+> yet.
+>  	 */
+>  	if (q->num_buffers == 0 && q->fileio == NULL) {
+> -		if (!V4L2_TYPE_IS_OUTPUT(q->type) && (q->io_modes & VB2_READ))
+> {
+> +		if (!V4L2_TYPE_IS_OUTPUT(q->type) && (q->io_modes & VB2_READ)
+> &&
+> +				(req_events & (POLLIN | POLLRDNORM))) {
+>  			ret = __vb2_init_fileio(q, 1);
+>  			if (ret)
+>  				return POLLERR;
+>  		}
+> -		if (V4L2_TYPE_IS_OUTPUT(q->type) && (q->io_modes & VB2_WRITE))
+> {
+> +		if (V4L2_TYPE_IS_OUTPUT(q->type) && (q->io_modes & VB2_WRITE)
+> &&
+> +				(req_events & (POLLOUT | POLLWRNORM))) {
+>  			ret = __vb2_init_fileio(q, 0);
+>  			if (ret)
+>  				return POLLERR;
+> --
 
-I see, thanks. Yes let's hope mail won't do such "surprises" next time.
+Best regards
+-- 
+Marek Szyprowski
+Samsung Poland R&D Center
 
 
 
-> > > > Could this simple patch be please applied?
-> > > 
-> > > Yes it can. I see that Andrew already applied it to his tree. Mauro,
-> > > should it go through there, or through your tree ? I've pushed it to my
-> > > tree at git://linuxtv.org/pinchartl/uvcvideo.git uvcvideo-stable, so you
-> > > can already pull.
-> > 
-> > You've applied the patch from my first posting, but actually in the
-> > RESEND one I've added reference to EHCI-tweaking patch -- it is already
-> > merged into Greg's USB tree (it was not when I first posted), so could you
-> > please reapply? (sorry for confusion).
-> 
-> Sure. That should now be fixed.
-
-Thanks.
-
-
-> > Thanks for replying and for uvcvideo,
-> 
-> You're more than welcome. Thank you for the patch, and thank you for keeping 
-> on pushing :-)
-
-:) Thanks again. I suppose it would be better for my patch to enter the
-mainline through v4l tree then, because it's the normal path for uvc
-bits.
-
-
-
-Thanks,
-Kirill
-
-
-P.S.
-
-And thanks Andrew for backing me up.
