@@ -1,149 +1,163 @@
-Return-path: <mchehab@localhost>
-Received: from comal.ext.ti.com ([198.47.26.152]:44773 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753344Ab1GESrA convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 5 Jul 2011 14:47:00 -0400
-Received: from dbdp20.itg.ti.com ([172.24.170.38])
-	by comal.ext.ti.com (8.13.7/8.13.7) with ESMTP id p65Ikuhr027298
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-media@vger.kernel.org>; Tue, 5 Jul 2011 13:46:59 -0500
-From: "Hiremath, Vaibhav" <hvaibhav@ti.com>
-To: "JAIN, AMBER" <amber@ti.com>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-CC: "Semwal, Sumit" <sumit.semwal@ti.com>
-Date: Wed, 6 Jul 2011 00:16:54 +0530
-Subject: RE: [PATCH 1/6] V4L2: OMAP: VOUT: isr handling extended for DPI and
- HDMI interface
-Message-ID: <19F8576C6E063C45BE387C64729E739404E3485E6B@dbde02.ent.ti.com>
-References: <1307458058-29030-1-git-send-email-amber@ti.com>
- <1307458058-29030-2-git-send-email-amber@ti.com>
-In-Reply-To: <1307458058-29030-2-git-send-email-amber@ti.com>
-Content-Language: en-US
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-MIME-Version: 1.0
+Return-path: <linux-media-owner@vger.kernel.org>
+Received: from mailout1.w1.samsung.com ([210.118.77.11]:64423 "EHLO
+	mailout1.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750745Ab1GRGa6 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 18 Jul 2011 02:30:58 -0400
+Received: from spt2.w1.samsung.com (mailout1.w1.samsung.com [210.118.77.11])
+ by mailout1.w1.samsung.com
+ (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14 2004))
+ with ESMTP id <0LOI00M00NFJKP@mailout1.w1.samsung.com> for
+ linux-media@vger.kernel.org; Mon, 18 Jul 2011 07:30:55 +0100 (BST)
+Received: from linux.samsung.com ([106.116.38.10])
+ by spt2.w1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14
+ 2004)) with ESMTPA id <0LOI000GYNFIVL@spt2.w1.samsung.com> for
+ linux-media@vger.kernel.org; Mon, 18 Jul 2011 07:30:55 +0100 (BST)
+Date: Mon, 18 Jul 2011 08:30:06 +0200
+From: Marek Szyprowski <m.szyprowski@samsung.com>
+Subject: RE: [RFCv1 PATCH 5/6] videobuf2-core: also test for pending events.
+In-reply-to: <7e5b35d540b5937481b1b9a44cd926b170a81188.1310549521.git.hans.verkuil@cisco.com>
+To: 'Hans Verkuil' <hverkuil@xs4all.nl>, linux-media@vger.kernel.org
+Cc: 'Hans Verkuil' <hans.verkuil@cisco.com>,
+	'Pawel Osciak' <pawel@osciak.com>
+Message-id: <00c801cc4514$2263cc90$672b65b0$%szyprowski@samsung.com>
+MIME-version: 1.0
+Content-type: text/plain; charset=us-ascii
+Content-language: pl
+Content-transfer-encoding: 7BIT
+References: <1310549944-23756-1-git-send-email-hverkuil@xs4all.nl>
+ <7e5b35d540b5937481b1b9a44cd926b170a81188.1310549521.git.hans.verkuil@cisco.com>
+Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
-Sender: <mchehab@infradead.org>
 
+Hello,
 
-> -----Original Message-----
-> From: JAIN, AMBER
-> Sent: Tuesday, June 07, 2011 8:18 PM
-> To: linux-media@vger.kernel.org
-> Cc: Hiremath, Vaibhav; Semwal, Sumit; JAIN, AMBER
-> Subject: [PATCH 1/6] V4L2: OMAP: VOUT: isr handling extended for DPI and
-> HDMI interface
-[Hiremath, Vaibhav] Few minor comments below -
+On Wednesday, July 13, 2011 11:39 AM Hans Verkuil wrote:
 
+> From: Hans Verkuil <hans.verkuil@cisco.com>
 > 
-> Extending the omap vout isr handling for:
-> - secondary lcd over DPI interface,
-> - HDMI interface.
-> 
-[Hiremath, Vaibhav] It would be useful to mention about OMAP4 DSS block (these are new additions compared to OAMP3), that's where both the interfaces are getting used, right?
+> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
 
-> Signed-off-by: Amber Jain <amber@ti.com>
+Acked-by: Marek Szyprowski <m.szyprowski@samsung.com>
+
 > ---
->  drivers/media/video/omap/omap_vout.c |   26 +++++++++++++++++++-------
->  1 files changed, 19 insertions(+), 7 deletions(-)
+>  drivers/media/video/videobuf2-core.c |   41 +++++++++++++++++++++++-------
+> ---
+>  1 files changed, 28 insertions(+), 13 deletions(-)
 > 
-> diff --git a/drivers/media/video/omap/omap_vout.c
-> b/drivers/media/video/omap/omap_vout.c
-> index a831241..6fe7efa 100644
-> --- a/drivers/media/video/omap/omap_vout.c
-> +++ b/drivers/media/video/omap/omap_vout.c
-> @@ -544,10 +544,20 @@ void omap_vout_isr(void *arg, unsigned int
-> irqstatus)
+> diff --git a/drivers/media/video/videobuf2-core.c
+> b/drivers/media/video/videobuf2-core.c
+> index 1892bb8..1922bf8 100644
+> --- a/drivers/media/video/videobuf2-core.c
+> +++ b/drivers/media/video/videobuf2-core.c
+> @@ -19,6 +19,9 @@
+>  #include <linux/slab.h>
+>  #include <linux/sched.h>
 > 
->  	spin_lock(&vout->vbq_lock);
->  	do_gettimeofday(&timevalue);
-> -	if (cur_display->type == OMAP_DISPLAY_TYPE_DPI) {
-> -		if (!(irqstatus & DISPC_IRQ_VSYNC))
-> -			goto vout_isr_err;
+> +#include <media/v4l2-dev.h>
+> +#include <media/v4l2-fh.h>
+> +#include <media/v4l2-event.h>
+>  #include <media/videobuf2-core.h>
 > 
-> +	if (cur_display->type != OMAP_DISPLAY_TYPE_VENC) {
-> +		switch (cur_display->type) {
-> +		case OMAP_DISPLAY_TYPE_DPI:
-> +			if (!(irqstatus & (DISPC_IRQ_VSYNC | DISPC_IRQ_VSYNC2)))
-> +				goto vout_isr_err;
-> +			break;
-> +		case OMAP_DISPLAY_TYPE_HDMI:
-> +			if (!(irqstatus & DISPC_IRQ_EVSYNC_EVEN))
-> +				goto vout_isr_err;
-> +			break;
-> +		default:
-> +			goto vout_isr_err;
-> +		}
-[Hiremath, Vaibhav] how about implementing this like,
-
-
-if (cur_display->type != OMAP_DISPLAY_TYPE_VENC) {
-	unsigned int status;
-
-	switch (cur_display->type) {
-	case OMAP_DISPLAY_TYPE_DPI:
-		status = DISPC_IRQ_VSYNC | DISPC_IRQ_VSYNC2;
-		break;
-	case OMAP_DISPLAY_TYPE_HDMI:
-		status = DISPC_IRQ_EVSYNC_EVEN;
-		break;
-	default:
-		goto vout_isr_err;
-	}
-	If (!(irqstatus & status))
-		goto vout_isr_err;
-
-
-Thanks,
-Vaibhav
-
->  		if (!vout->first_int && (vout->cur_frm != vout->next_frm)) {
->  			vout->cur_frm->ts = timevalue;
->  			vout->cur_frm->state = VIDEOBUF_DONE;
-> @@ -571,7 +581,7 @@ void omap_vout_isr(void *arg, unsigned int irqstatus)
->  		ret = omapvid_init(vout, addr);
->  		if (ret)
->  			printk(KERN_ERR VOUT_NAME
-> -					"failed to set overlay info\n");
-> +		[Hiremath, Vaibhav] 			"failed to set overlay info\n");
->  		/* Enable the pipeline and set the Go bit */
->  		ret = omapvid_apply_changes(vout);
->  		if (ret)
-> @@ -925,7 +935,7 @@ static int omap_vout_release(struct file *file)
->  		u32 mask = 0;
+>  static int debug;
+> @@ -1360,15 +1363,28 @@ static int __vb2_cleanup_fileio(struct vb2_queue
+> *q);
+>   * For OUTPUT queues, if a buffer is ready to be dequeued, the file
+> descriptor
+>   * will be reported as available for writing.
+>   *
+> + * If the driver uses struct v4l2_fh, then vb2_poll() will also check for
+> any
+> + * pending events.
+> + *
+>   * The return values from this function are intended to be directly
+> returned
+>   * from poll handler in driver.
+>   */
+>  unsigned int vb2_poll(struct vb2_queue *q, struct file *file, poll_table
+> *wait)
+>  {
+> +	struct video_device *vfd = video_devdata(file);
+>  	unsigned long req_events = poll_requested_events(wait);
+> -	unsigned long flags;
+> -	unsigned int ret;
+>  	struct vb2_buffer *vb = NULL;
+> +	unsigned int res = 0;
+> +	unsigned long flags;
+> +
+> +	if (test_bit(V4L2_FL_USES_V4L2_FH, &vfd->flags)) {
+> +		struct v4l2_fh *fh = file->private_data;
+> +
+> +		if (v4l2_event_pending(fh))
+> +			res = POLLPRI;
+> +		else if (req_events & POLLPRI)
+> +			poll_wait(file, &fh->wait, wait);
+> +	}
 > 
->  		mask = DISPC_IRQ_VSYNC | DISPC_IRQ_EVSYNC_EVEN |
-> -			DISPC_IRQ_EVSYNC_ODD;
-> +			DISPC_IRQ_EVSYNC_ODD | DISPC_IRQ_VSYNC2;
->  		omap_dispc_unregister_isr(omap_vout_isr, vout, mask);
->  		vout->streaming = 0;
+>  	/*
+>  	 * Start file I/O emulator only if streaming API has not been used
+> yet.
+> @@ -1376,19 +1392,17 @@ unsigned int vb2_poll(struct vb2_queue *q, struct
+> file *file, poll_table *wait)
+>  	if (q->num_buffers == 0 && q->fileio == NULL) {
+>  		if (!V4L2_TYPE_IS_OUTPUT(q->type) && (q->io_modes & VB2_READ)
+> &&
+>  				(req_events & (POLLIN | POLLRDNORM))) {
+> -			ret = __vb2_init_fileio(q, 1);
+> -			if (ret)
+> -				return POLLERR;
+> +			if (__vb2_init_fileio(q, 1))
+> +				return res | POLLERR;
+>  		}
+>  		if (V4L2_TYPE_IS_OUTPUT(q->type) && (q->io_modes & VB2_WRITE)
+> &&
+>  				(req_events & (POLLOUT | POLLWRNORM))) {
+> -			ret = __vb2_init_fileio(q, 0);
+> -			if (ret)
+> -				return POLLERR;
+> +			if (__vb2_init_fileio(q, 0))
+> +				return res | POLLERR;
+>  			/*
+>  			 * Write to OUTPUT queue can be done immediately.
+>  			 */
+> -			return POLLOUT | POLLWRNORM;
+> +			return res | POLLOUT | POLLWRNORM;
+>  		}
+>  	}
 > 
-> @@ -1596,7 +1606,8 @@ static int vidioc_streamon(struct file *file, void
-> *fh, enum v4l2_buf_type i)
->  	addr = (unsigned long) vout->queued_buf_addr[vout->cur_frm->i]
->  		+ vout->cropped_offset;
+> @@ -1396,7 +1410,7 @@ unsigned int vb2_poll(struct vb2_queue *q, struct
+> file *file, poll_table *wait)
+>  	 * There is nothing to wait for if no buffers have already been
+> queued.
+>  	 */
+>  	if (list_empty(&q->queued_list))
+> -		return POLLERR;
+> +		return res | POLLERR;
 > 
-> -	mask = DISPC_IRQ_VSYNC | DISPC_IRQ_EVSYNC_EVEN |
-> DISPC_IRQ_EVSYNC_ODD;
-> +	mask = DISPC_IRQ_VSYNC | DISPC_IRQ_EVSYNC_EVEN |
-> DISPC_IRQ_EVSYNC_ODD
-> +		| DISPC_IRQ_VSYNC2;
+>  	poll_wait(file, &q->done_wq, wait);
 > 
->  	omap_dispc_register_isr(omap_vout_isr, vout, mask);
+> @@ -1411,10 +1425,11 @@ unsigned int vb2_poll(struct vb2_queue *q, struct
+> file *file, poll_table *wait)
 > 
-> @@ -1646,7 +1657,8 @@ static int vidioc_streamoff(struct file *file, void
-> *fh, enum v4l2_buf_type i)
->  		return -EINVAL;
-> 
->  	vout->streaming = 0;
-> -	mask = DISPC_IRQ_VSYNC | DISPC_IRQ_EVSYNC_EVEN |
-> DISPC_IRQ_EVSYNC_ODD;
-> +	mask = DISPC_IRQ_VSYNC | DISPC_IRQ_EVSYNC_EVEN |
-> DISPC_IRQ_EVSYNC_ODD
-> +		| DISPC_IRQ_VSYNC2;
-> 
->  	omap_dispc_unregister_isr(omap_vout_isr, vout, mask);
+>  	if (vb && (vb->state == VB2_BUF_STATE_DONE
+>  			|| vb->state == VB2_BUF_STATE_ERROR)) {
+> -		return (V4L2_TYPE_IS_OUTPUT(q->type)) ? POLLOUT | POLLWRNORM :
+> -			POLLIN | POLLRDNORM;
+> +		return (V4L2_TYPE_IS_OUTPUT(q->type)) ?
+> +				res | POLLOUT | POLLWRNORM :
+> +				res | POLLIN | POLLRDNORM;
+>  	}
+> -	return 0;
+> +	return res;
+>  }
+>  EXPORT_SYMBOL_GPL(vb2_poll);
 > 
 > --
-> 1.7.1
+
+Best regards
+-- 
+Marek Szyprowski
+Samsung Poland R&D Center
+
+
 
