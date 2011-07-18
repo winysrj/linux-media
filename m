@@ -1,155 +1,46 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([147.243.1.48]:36386 "EHLO mgw-sa02.nokia.com"
+Received: from mx1.redhat.com ([209.132.183.28]:35335 "EHLO mx1.redhat.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750886Ab1GYJE1 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 25 Jul 2011 05:04:27 -0400
-Message-ID: <4E2D3183.2040303@iki.fi>
-Date: Mon, 25 Jul 2011 12:04:03 +0300
-From: Sakari Ailus <sakari.ailus@iki.fi>
-MIME-Version: 1.0
-To: Sylwester Nawrocki <snjw23@gmail.com>
-CC: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Subject: Re: [RFC 0/3] Frame synchronisation events and support for them in
- the OMAP 3 ISP driver
-References: <4E2588AD.4070106@maxwell.research.nokia.com> <4E284C71.7050806@gmail.com> <4E29536A.3010003@maxwell.research.nokia.com> <4E2987CC.5010303@gmail.com>
-In-Reply-To: <4E2987CC.5010303@gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+	id S1751692Ab1GRTyl (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 18 Jul 2011 15:54:41 -0400
+Received: from int-mx01.intmail.prod.int.phx2.redhat.com (int-mx01.intmail.prod.int.phx2.redhat.com [10.5.11.11])
+	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id p6IJsfW7025531
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
+	for <linux-media@vger.kernel.org>; Mon, 18 Jul 2011 15:54:41 -0400
+From: Jarod Wilson <jarod@redhat.com>
+To: linux-media@vger.kernel.org
+Cc: Jarod Wilson <jarod@redhat.com>
+Subject: [PATCH v2 2/9] [media] mceusb: give hardware time to reply to cmds
+Date: Mon, 18 Jul 2011 15:54:22 -0400
+Message-Id: <1311018869-22794-3-git-send-email-jarod@redhat.com>
+In-Reply-To: <1310681394-3530-1-git-send-email-jarod@redhat.com>
+References: <1310681394-3530-1-git-send-email-jarod@redhat.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Sylwester Nawrocki wrote:
-> Hi,
+Sometimes the init routine is blasting commands out to the hardware
+faster than it can reply. Throw a brief delay in there to give the
+hardware a chance to reply before we send the next command.
 
-Hi Sylwester,
+v2: use msleep instead of mdelay per Mauro's suggestion
 
-Thanks for your comments.
+Signed-off-by: Jarod Wilson <jarod@redhat.com>
+---
+ drivers/media/rc/mceusb.c |    1 +
+ 1 files changed, 1 insertions(+), 0 deletions(-)
 
-> On 07/22/2011 12:39 PM, Sakari Ailus wrote:
-> ...
->>> On 07/19/2011 03:37 PM, Sakari Ailus wrote:
->>>> Hi all,
->>>>
->>>> The OMAP 3 ISP driver implements an HS_VS event which is triggered when
->>>> the reception of a frame begins. This functionality is very, very likely
->>>> not specific to OMAP 3 ISP so it should be standardised.
->>>>
->>>> I have a few patches to do that. Additionally the next expected buffer
->>>> sequence number is provided with the event, unlike earlier.
->>>>
->>>> There are a few open questions, however, and this is why I'm sending the
->>>> set as RFC.
->>>>
->>>>
->>>> 1) Other frame synchronisation events. The CCDC block in the OMAP 3 ISP
->>>> is able to trigger interrupts at two chosen lines of the image. These
->>>> naturally can be translated to events. The driver uses both of them
->>>> internally at specific points of the frame. Nevertheless, there might be
->>>> some use for these in user space. Other hardware might implement a
->>>> number of these which wouldn't be used by the driver itself, but I don't
->>>> know of that at the moment. On the other hand high resolution timers are
->>>> also available in user space, so doing timing based on ISP provided
->>>> events is not quite as important as before --- as long as there's one
->>>> frame based event produced at a known time, such as V4L2_EVENT_FRAME_START.
->>>
->>> I'm curious, have you perhaps tried to measure latency of such up calls
->>> to a user space process? I mean this is going to be a real time stuff,
->>> with HSYNC periods of 50 us order. Could a user space thread be receiving
->>> such periodic events reliably ? From my experience I doubt this can work
->>> reliably outside of an interrupt handler even with high priority real time
->>> threads.
->>>
->>> V4L2_EVENT_FRAME_START event seems OK, but HSYNC events in user space
->>> sound rather tricky to me :-)
->>
->> I think the user space could be interested in just one or two of these
->> per frame, not for every line. But how to subscribe them --- if they are
->> needed?
-> 
-> Yes, that was my understanding. But still we need much better accuracy than
-> in case of VSYNC/FRAME_START. It seems really hard to guarantee in Linux
-> that a specific line event will be received in user space when that actual
-> line is transmitted. There is much better chance that a FRAME_START event
-
-There's nothing that a driver may do itself to make the user space
-receive the event in time, especially if the user space process is not
-running on real-time priority. This is a completely separate issue.
-
-The timestamp is very important here, more important than guaranteed
-timely event delivery.
-
-> is received during the time when a frame that triggered it is being processed.
-
-This is what happens in practice and I do not consider it as an issue.
-Any configuration which is related to the processing of that frame must
-have been given to the driver well beforehand.
-
-> And VSYNC signals last over several horizontal lines (if not tens or thousands)
-> which makes it easier to receive an event when a VSYNC pulse/period hasn't yet
-> expired.
-
-I'm not sure I can follow you here. It's the responsibility of the
-driver / hardware to provide the event. If it can't, then it shouldn't
-allow subscribing it.
-
->>
->> Perhaps it'd be better to start with just one and add more once necessary?
-> 
-> Maybe we could accommodate the struct v4l2_event_subscription::id field for 
-> a horizontal line number, with a special bit indicating any one ?
-
-That's an interesting idea. The subscription problem for line events
-still remains.
-
-> But again I'm not convinced to horizontal line events :) There might be
-> situations when even interrupt handlers are to slow for this.
-
-Events may be delivered when there's an interrupt source which can
-generate an interrupt per event. This is no more complex than generating
-one in the beginning of the frame.
-
-Nevertheless, I don't either think these would be very useful, so I
-think they could be ignored, at least for the time being.
-
->>
->>> Also HS_VS looks a bit more descriptive than FRAME_START for me.
->>
->> HS_VS doesn't really tell which one it is (horizontal or vertical), and
->> we already have a VSYNC event but it's used for a different purpose.
->> HS_VS is specific to the CCDC block and doesn't have that meaning in
->> context of serial interfaces.
->>
->> This is why I proposed FRAME_START.
-> 
-> OK, initially I thought it was that HS_VS means a moment when vertical
-> and horizontal sync (blanking?) signals go off and thus video data 
-> of the first line in a frame is started to be transmitted.
-> I agree that HS_VS isn't that relevant in the CSI terminology.
-
-The OMAP 3 ISP may produce interrupts for either vertical or horizontal
-sync events but the driver only uses it for vertical sync. I guess
-there's little or no imaginable use for HS_VS to generate an interrupt
-per every line. VD_INT interrupts Laurent mentioned are used to generate
-an interrupt on a specific line of the frame.
-
->>> But unfortunately I can't come up with a better name, e.g. something like
->>> V4L2_EVENT_FRAME_AV_START - frame active video start. Just in case in
->>> future there are more specific events added.
->>
->> What additional information would AV add which isn't evident from
->> FRAME_START?
-> 
-> Given different formats of frame headers across the standards (ITU-R BT.656,
-> MIPI-CSI2 and the like) it might be not so obvious at which moment the
-> FRAME_START event is to be triggered. But not being too paranoid I guess
-> we're perfectly fine with VSYNC and FRAME_START events.
-
-It should be trigered when the first bit of data is being received. What
-about FRAME_DATA_START?
-
-Cheers,
-
+diff --git a/drivers/media/rc/mceusb.c b/drivers/media/rc/mceusb.c
+index 111bead..b1ea485 100644
+--- a/drivers/media/rc/mceusb.c
++++ b/drivers/media/rc/mceusb.c
+@@ -735,6 +735,7 @@ static void mce_request_packet(struct mceusb_dev *ir, unsigned char *data,
+ static void mce_async_out(struct mceusb_dev *ir, unsigned char *data, int size)
+ {
+ 	mce_request_packet(ir, data, size, MCEUSB_TX);
++	msleep(10);
+ }
+ 
+ static void mce_flush_rx_buffer(struct mceusb_dev *ir, int size)
 -- 
-Sakari Ailus
-sakari.ailus@iki.fi
+1.7.1
+
