@@ -1,42 +1,49 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-yi0-f46.google.com ([209.85.218.46]:41768 "EHLO
-	mail-yi0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752123Ab1HAA47 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 31 Jul 2011 20:56:59 -0400
+Received: from utm.netup.ru ([193.203.36.250]:54688 "EHLO utm.netup.ru"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753837Ab1GRIsD (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 18 Jul 2011 04:48:03 -0400
+Message-ID: <4E23ED1C.7070609@netup.ru>
+Date: Mon, 18 Jul 2011 12:21:48 +0400
+From: Abylay Ospan <aospan@netup.ru>
 MIME-Version: 1.0
-In-Reply-To: <201107311738.58462.laurent.pinchart@ideasonboard.com>
-References: <CACVXFVPHfskUCxhznpATknNxokmL5hft-b+KoxWiMzprVmuJ4w@mail.gmail.com>
-	<Pine.LNX.4.44L0.1107151122490.1866-100000@iolanthe.rowland.org>
-	<20110716115100.10f6f764@tom-ThinkPad-T410>
-	<201107311738.58462.laurent.pinchart@ideasonboard.com>
-Date: Mon, 1 Aug 2011 08:56:59 +0800
-Message-ID: <CACVXFVMJvZqYH3eS7LH_jgewL40KK74wrSX_-FhqLmyDJmPEGg@mail.gmail.com>
-Subject: Re: [PATCH] uvcvideo: add SetInterface(0) in .reset_resume handler
-From: Ming Lei <tom.leiming@gmail.com>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: linux-media@vger.kernel.org,
-	Alan Stern <stern@rowland.harvard.edu>,
-	linux-usb@vger.kernel.org, Jeremy Kerr <jeremy.kerr@canonical.com>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>
-Content-Type: text/plain; charset=ISO-8859-1
+To: Mauro Carvalho Chehab <mchehab@infradead.org>,
+	linux-media@vger.kernel.org
+Subject: [GIT PULL] NetUP Dual DVB-T/C CI RF card
+Content-Type: text/plain; charset=KOI8-R; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+Hi Mauro,
 
-On Sun, Jul 31, 2011 at 11:38 PM, Laurent Pinchart
-<laurent.pinchart@ideasonboard.com> wrote:
-> Hi Ming,
->
-> Thanks for the patch. I've queued it for v3.2 with a small modification (the
-> usb_set_interface() call has been moved to uvc_video.c).
+Please pull 3 changes from 
+http://stand.netup.tv/gitweb/?p=linux-3.0-netup;a=summary
 
-Thanks for queuing it.
+Thanks!
 
-Considered it is a fix patch, could you queue it for 3.1 -rcX as fix patch?
-But anyway, it is up to you, :-)
 
-thanks,
+The following changes since commit f560f6697f17e2465c8845c09f3a483faef38275:
+
+   Merge git://git.kernel.org/pub/scm/linux/kernel/git/sfrench/cifs-2.6 
+(2011-07-17 12:49:55 -0700)
+
+are available in the git repository at:
+
+   http://stand.netup.tv/gitweb/?p=linux-3.0-netup netup_fw
+
+Abylay Ospan (3):
+       NetUP Dual DVB-T/C CI RF: load firmware according card revision
+       Don't fail if videobuf_dvb_get_frontend return NULL
+       NetUP Dual DVB-T/C CI RF: force card hardware revision by module 
+param
+
+  drivers/media/video/cx23885/cx23885-cards.c |   21 +++++++++++++++++++++
+  drivers/media/video/cx23885/cx23885-dvb.c   |    2 +-
+  2 files changed, 22 insertions(+), 1 deletions(-)
+
+
 -- 
-Ming Lei
+Abylai Ospan<aospan@netup.ru>
+NetUP Inc.
+
