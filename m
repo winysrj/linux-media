@@ -1,96 +1,381 @@
-Return-path: <mchehab@pedra>
-Received: from relay01.digicable.hu ([92.249.128.189]:33908 "EHLO
-	relay01.digicable.hu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752055Ab1GDVdO (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 4 Jul 2011 17:33:14 -0400
-Received: from [94.21.97.51]
-	by relay01.digicable.hu with esmtpa
-	id 1QdqF9-0008Tg-PZ for <linux-media@vger.kernel.org>; Mon, 04 Jul 2011 22:59:48 +0200
-Message-ID: <4E12297D.4040302@freemail.hu>
-Date: Mon, 04 Jul 2011 22:58:37 +0200
-From: =?UTF-8?B?TsOpbWV0aCBNw6FydG9u?= <nm127@freemail.hu>
+Return-path: <linux-media-owner@vger.kernel.org>
+Received: from mail.kapsi.fi ([217.30.184.167]:49167 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750803Ab1GRU2p (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 18 Jul 2011 16:28:45 -0400
+Message-ID: <4E249779.4000503@iki.fi>
+Date: Mon, 18 Jul 2011 23:28:41 +0300
+From: Antti Palosaari <crope@iki.fi>
 MIME-Version: 1.0
-To: V4L Mailing List <linux-media@vger.kernel.org>
-Subject: gspca: video0 becomes video1 after "ISOC data error"
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+To: Jose Alberto Reguero <jareguero@telefonica.net>
+CC: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	linux-media@vger.kernel.org,
+	Michael Krufky <mkrufky@kernellabs.com>
+Subject: Re: [PATCH] add support for the dvb-t part of CT-3650 v3
+References: <201106070205.08118.jareguero@telefonica.net> <201107070057.06317.jareguero@telefonica.net> <4E1D927A.5090006@redhat.com> <201107142200.52970.jareguero@telefonica.net>
+In-Reply-To: <201107142200.52970.jareguero@telefonica.net>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
+Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
-Sender: <mchehab@pedra>
 
-Hi,
+Hello
+I did some review for this since I was interested of adding MFE for 
+Anysee driver which is rather similar (dvb-usb-framework).
 
-I'm running Debian with Linux 2.6.38-2-486 on a computer. I have a hama AC-150 webcam
-attached to this computer. The webcam works continouosly and I use mencoder to do some
-cropping and transformation and to encode the video stream to a file.
+I found this patch have rather major issue(s) which should be fixed 
+properly.
 
-When I plug the device the following appears in the dmesg:
+* it does not compile
+drivers/media/dvb/dvb-usb/dvb-usb.h:24:21: fatal error: dvb-pll.h: No 
+such file or directory
 
-[439884.692090] usb 3-1: new full speed USB device using uhci_hcd and address 6
-[439884.841721] usb 3-1: New USB device found, idVendor=0c45, idProduct=6142
-[439884.841958] usb 3-1: New USB device strings: Mfr=0, Product=1, SerialNumber=0
-[439884.842153] usb 3-1: Product: USB camera
-[439884.851327] gspca: probing 0c45:6142
-[439884.856694] sonixj: Sonix chip id: 12
-[439884.942767] sonixj: Sensor po2030n
-[439884.947226] input: sonixj as /devices/pci0000:00/0000:00:0b.0/usb3/3-1/input/input4
-[439884.968553] gspca: video0 created
+* it puts USB-bridge functionality to the frontend driver
 
-The camera works and sometimes the following messages appear in dmesg:
+* 1st FE, TDA10023, is passed as pointer inside config to 2nd FE 
+TDA10048. Much of glue sleep, i2c etc, those calls are wrapped back to 
+to 1st FE...
 
-[2992914.118137] gspca: ISOC data error: [3] len=0, status=-84
-[3020511.187726] gspca: ISOC data error: [16] len=0, status=-84
-[3071235.051448] gspca: ISOC data error: [22] len=0, status=-84
-[3178268.392602] gspca: ISOC data error: [11] len=0, status=-84
-[3195506.149353] gspca: ISOC data error: [14] len=0, status=-84
-[3200576.757068] gspca: ISOC data error: [13] len=0, status=-84
-[3242983.446235] gspca: ISOC data error: [20] len=0, status=-84
-[3242983.446406] gspca: ISOC data error: [21] len=0, status=-84
-[3242983.446526] gspca: ISOC data error: [22] len=0, status=-84
-[3242983.446638] gspca: ISOC data error: [23] len=0, status=-84
-[3242983.468410] gspca: ISOC data error: [0] len=0, status=-84
-[3242983.468578] gspca: ISOC data error: [1] len=0, status=-84
-[3242983.468709] gspca: ISOC data error: [2] len=0, status=-84
-[3242983.468827] gspca: ISOC data error: [3] len=0, status=-84
-...
-[3242983.579375] gspca: ISOC data error: [22] len=0, status=-84
-[3242983.579375] gspca: ISOC data error: [23] len=0, status=-84
-[3242983.588379] gspca: URB error -84, resubmitting
-[3242983.591697] usb 3-1: USB disconnect, address 6
-[3242983.592489] gspca: ISOC data error: [0] len=0, status=-84
-[3242983.592630] gspca: ISOC data error: [1] len=0, status=-84
-[3242983.592744] gspca: ISOC data error: [2] len=0, status=-84
-[3242983.592856] gspca: ISOC data error: [3] len=0, status=-84
-...
-[3242983.594935] gspca: ISOC data error: [22] len=0, status=-84
-[3242983.595044] gspca: ISOC data error: [23] len=0, status=-84
-[3242983.595149] gspca: usb_submit_urb() ret -19
-[3242983.602605] gspca: video0 disconnect
-[3242983.899568] usb 3-1: new full speed USB device using uhci_hcd and address 7
-[3242984.077146] usb 3-1: New USB device found, idVendor=0c45, idProduct=6142
-[3242984.077375] usb 3-1: New USB device strings: Mfr=0, Product=1, SerialNumber=0
-[3242984.077563] usb 3-1: Product: USB camera
-[3242984.096020] gspca: probing 0c45:6142
-[3242984.117655] sonixj: Sonix chip id: 12
-[3242984.221778] sonixj: Sensor po2030n
-[3242984.249883] input: sonixj as /devices/pci0000:00/0000:00:0b.0/usb3/3-1/input/input5
-[3242984.258533] gspca: video1 created
-
-At this point the user space application (mencoder) still have the /dev/video0 device open
-but the video0 device is no longer there. Instead the video1 is created.
-
-I already saw similar behaviour in case of suspend-resume cycle, see
-Bug 13419 - gspca: /dev/video0 changes to /dev/video1 after suspend
-https://bugzilla.kernel.org/show_bug.cgi?id=13419
-
-The error code -84 refers to EILSEQ (Illegal byte sequence) according to include/asm-generic/errno.h .
-What could be the reason for "ISO data error"?
-
-I guess the video0 is disconnected as part of error recovery. In this case, however
-the video1 device is created so the user space application looses the original
-video streaming device. Is this how it shall work?
-
-Regards,
-
-	Márton Németh
+* no exclusive locking between MFEs. What happens if both are accessed 
+same time?
 
 
+Almost all those are somehow chained to same issue, few calls to 2nd FE 
+are wrapped to 1st FE. Maybe IOCTL override callback could help if those 
+are really needed.
+
+
+regards
+Antti
+
+On 07/14/2011 11:00 PM, Jose Alberto Reguero wrote:
+> The attached patch try to fix the problems mentioned.
+>
+> Jose Alberto
+>
+> Signed-off-by: Jose Alberto Reguero<jareguero@telefonica.net>
+>
+>
+>
+> ttusb2-3.diff
+>
+>
+> diff -ur linux/drivers/media/dvb/dvb-usb/ttusb2.c linux.new/drivers/media/dvb/dvb-usb/ttusb2.c
+> --- linux/drivers/media/dvb/dvb-usb/ttusb2.c	2011-01-10 16:24:45.000000000 +0100
+> +++ linux.new/drivers/media/dvb/dvb-usb/ttusb2.c	2011-07-14 12:55:36.645944109 +0200
+> @@ -30,6 +30,7 @@
+>   #include "tda826x.h"
+>   #include "tda10086.h"
+>   #include "tda1002x.h"
+> +#include "tda10048.h"
+>   #include "tda827x.h"
+>   #include "lnbp21.h"
+>
+> @@ -44,6 +45,7 @@
+>   struct ttusb2_state {
+>   	u8 id;
+>   	u16 last_rc_key;
+> +	struct dvb_frontend *fe;
+>   };
+>
+>   static int ttusb2_msg(struct dvb_usb_device *d, u8 cmd,
+> @@ -82,7 +84,7 @@
+>   {
+>   	struct dvb_usb_device *d = i2c_get_adapdata(adap);
+>   	static u8 obuf[60], ibuf[60];
+> -	int i,read;
+> +	int i, read1, read2;
+>
+>   	if (mutex_lock_interruptible(&d->i2c_mutex)<  0)
+>   		return -EAGAIN;
+> @@ -91,27 +93,33 @@
+>   		warn("more than 2 i2c messages at a time is not handled yet. TODO.");
+>
+>   	for (i = 0; i<  num; i++) {
+> -		read = i+1<  num&&  (msg[i+1].flags&  I2C_M_RD);
+> +		read1 = i+1<  num&&  (msg[i+1].flags&  I2C_M_RD);
+> +		read2 = msg[i].flags&  I2C_M_RD;
+>
+> -		obuf[0] = (msg[i].addr<<  1) | read;
+> +		obuf[0] = (msg[i].addr<<  1) | (read1 | read2);
+>   		obuf[1] = msg[i].len;
+>
+>   		/* read request */
+> -		if (read)
+> +		if (read1)
+>   			obuf[2] = msg[i+1].len;
+> +		else if (read2)
+> +			obuf[2] = msg[i].len;
+>   		else
+>   			obuf[2] = 0;
+>
+> -		memcpy(&obuf[3],msg[i].buf,msg[i].len);
+> +		memcpy(&obuf[3], msg[i].buf, msg[i].len);
+>
+>   		if (ttusb2_msg(d, CMD_I2C_XFER, obuf, msg[i].len+3, ibuf, obuf[2] + 3)<  0) {
+>   			err("i2c transfer failed.");
+>   			break;
+>   		}
+>
+> -		if (read) {
+> -			memcpy(msg[i+1].buf,&ibuf[3],msg[i+1].len);
+> -			i++;
+> +		if (read1 || read2) {
+> +			if (read1) {
+> +				memcpy(msg[i+1].buf,&ibuf[3], msg[i+1].len);
+> +				i++;
+> +			} else if (read2)
+> +				memcpy(msg[i].buf,&ibuf[3], msg[i].len);
+>   		}
+>   	}
+>
+> @@ -190,6 +198,21 @@
+>   	.deltaf = 0xa511,
+>   };
+>
+> +static struct tda10048_config tda10048_config = {
+> +	.demod_address    = 0x10>>  1,
+> +	.output_mode      = TDA10048_PARALLEL_OUTPUT,
+> +	.inversion        = TDA10048_INVERSION_ON,
+> +	.dtv6_if_freq_khz = TDA10048_IF_4000,
+> +	.dtv7_if_freq_khz = TDA10048_IF_4500,
+> +	.dtv8_if_freq_khz = TDA10048_IF_5000,
+> +	.clk_freq_khz     = TDA10048_CLK_16000,
+> +	.no_firmware      = 1,
+> +};
+> +
+> +static struct tda827x_config tda827x_config = {
+> +	.config = 0,
+> +};
+> +
+>   static int ttusb2_frontend_tda10086_attach(struct dvb_usb_adapter *adap)
+>   {
+>   	if (usb_set_interface(adap->dev->udev,0,3)<  0)
+> @@ -205,18 +228,32 @@
+>
+>   static int ttusb2_frontend_tda10023_attach(struct dvb_usb_adapter *adap)
+>   {
+> +
+> +	struct ttusb2_state *state;
+>   	if (usb_set_interface(adap->dev->udev, 0, 3)<  0)
+>   		err("set interface to alts=3 failed");
+> +	state = (struct ttusb2_state *)adap->dev->priv;
+>   	if ((adap->fe = dvb_attach(tda10023_attach,&tda10023_config,&adap->dev->i2c_adap, 0x48)) == NULL) {
+>   		deb_info("TDA10023 attach failed\n");
+>   		return -ENODEV;
+>   	}
+> +	adap->fe->id = 1;
+> +	tda10048_config.fe = adap->fe;
+> +	if ((state->fe = dvb_attach(tda10048_attach,&tda10048_config,&adap->dev->i2c_adap)) == NULL) {
+> +		deb_info("TDA10048 attach failed\n");
+> +		return -ENODEV;
+> +	}
+> +	dvb_register_frontend(&adap->dvb_adap, state->fe);
+> +	if (dvb_attach(tda827x_attach, state->fe, 0x61,&adap->dev->i2c_adap,&tda827x_config) == NULL) {
+> +		printk(KERN_ERR "%s: No tda827x found!\n", __func__);
+> +		return -ENODEV;
+> +	}
+>   	return 0;
+>   }
+>
+>   static int ttusb2_tuner_tda827x_attach(struct dvb_usb_adapter *adap)
+>   {
+> -	if (dvb_attach(tda827x_attach, adap->fe, 0x61,&adap->dev->i2c_adap, NULL) == NULL) {
+> +	if (dvb_attach(tda827x_attach, adap->fe, 0x61,&adap->dev->i2c_adap,&tda827x_config) == NULL) {
+>   		printk(KERN_ERR "%s: No tda827x found!\n", __func__);
+>   		return -ENODEV;
+>   	}
+> @@ -242,6 +279,19 @@
+>   static struct dvb_usb_device_properties ttusb2_properties_s2400;
+>   static struct dvb_usb_device_properties ttusb2_properties_ct3650;
+>
+> +static void ttusb2_usb_disconnect(struct usb_interface *intf)
+> +{
+> +	struct dvb_usb_device *d = usb_get_intfdata(intf);
+> +	struct ttusb2_state *state;
+> +
+> +	state = (struct ttusb2_state *)d->priv;
+> +	if (state->fe) {
+> +		dvb_unregister_frontend(state->fe);
+> +		dvb_frontend_detach(state->fe);
+> +	}
+> +	dvb_usb_device_exit(intf);
+> +}
+> +
+>   static int ttusb2_probe(struct usb_interface *intf,
+>   		const struct usb_device_id *id)
+>   {
+> @@ -422,7 +472,7 @@
+>   static struct usb_driver ttusb2_driver = {
+>   	.name		= "dvb_usb_ttusb2",
+>   	.probe		= ttusb2_probe,
+> -	.disconnect = dvb_usb_device_exit,
+> +	.disconnect = ttusb2_usb_disconnect,
+>   	.id_table	= ttusb2_table,
+>   };
+>
+> diff -ur linux/drivers/media/dvb/frontends/Makefile linux.new/drivers/media/dvb/frontends/Makefile
+> --- linux/drivers/media/dvb/frontends/Makefile	2011-05-06 05:45:29.000000000 +0200
+> +++ linux.new/drivers/media/dvb/frontends/Makefile	2011-07-05 01:36:24.621564185 +0200
+> @@ -4,6 +4,7 @@
+>
+>   EXTRA_CFLAGS += -Idrivers/media/dvb/dvb-core/
+>   EXTRA_CFLAGS += -Idrivers/media/common/tuners/
+> +EXTRA_CFLAGS += -Idrivers/media/dvb/dvb-usb/
+>
+>   stb0899-objs = stb0899_drv.o stb0899_algo.o
+>   stv0900-objs = stv0900_core.o stv0900_sw.o
+> diff -ur linux/drivers/media/dvb/frontends/tda10048.c linux.new/drivers/media/dvb/frontends/tda10048.c
+> --- linux/drivers/media/dvb/frontends/tda10048.c	2010-10-25 01:34:58.000000000 +0200
+> +++ linux.new/drivers/media/dvb/frontends/tda10048.c	2011-07-05 01:57:47.758466025 +0200
+> @@ -30,6 +30,7 @@
+>   #include "dvb_frontend.h"
+>   #include "dvb_math.h"
+>   #include "tda10048.h"
+> +#include "dvb-usb.h"
+>
+>   #define TDA10048_DEFAULT_FIRMWARE "dvb-fe-tda10048-1.0.fw"
+>   #define TDA10048_DEFAULT_FIRMWARE_SIZE 24878
+> @@ -214,6 +215,8 @@
+>   	{ TDA10048_CLK_16000, TDA10048_IF_3800,  10, 3, 0 },
+>   	{ TDA10048_CLK_16000, TDA10048_IF_4000,  10, 3, 0 },
+>   	{ TDA10048_CLK_16000, TDA10048_IF_4300,  10, 3, 0 },
+> +	{ TDA10048_CLK_16000, TDA10048_IF_4500,   5, 3, 0 },
+> +	{ TDA10048_CLK_16000, TDA10048_IF_5000,   5, 3, 0 },
+>   	{ TDA10048_CLK_16000, TDA10048_IF_36130, 10, 3, 0 },
+>   };
+>
+> @@ -429,6 +432,19 @@
+>   	return 0;
+>   }
+>
+> +static int tda10048_set_pll(struct dvb_frontend *fe)
+> +{
+> +	struct tda10048_state *state = fe->demodulator_priv;
+> +
+> +	dprintk(1, "%s()\n", __func__);
+> +
+> +	tda10048_writereg(state, TDA10048_CONF_PLL1, 0x0f);
+> +	tda10048_writereg(state, TDA10048_CONF_PLL2, (u8)(state->pll_mfactor));
+> +	tda10048_writereg(state, TDA10048_CONF_PLL3, tda10048_readreg(state, TDA10048_CONF_PLL3) | ((u8)(state->pll_nfactor) | 0x40));
+> +
+> +	return 0;
+> +}
+> +
+>   static int tda10048_set_if(struct dvb_frontend *fe, enum fe_bandwidth bw)
+>   {
+>   	struct tda10048_state *state = fe->demodulator_priv;
+> @@ -478,6 +494,9 @@
+>   	dprintk(1, "- pll_nfactor = %d\n", state->pll_nfactor);
+>   	dprintk(1, "- pll_pfactor = %d\n", state->pll_pfactor);
+>
+> +	/* Set the  pll registers */
+> +	tda10048_set_pll(fe);
+> +
+>   	/* Calculate the sample frequency */
+>   	state->sample_freq = state->xtal_hz * (state->pll_mfactor + 45);
+>   	state->sample_freq /= (state->pll_nfactor + 1);
+> @@ -710,12 +729,16 @@
+>   	if (config->disable_gate_access)
+>   		return 0;
+>
+> -	if (enable)
+> -		return tda10048_writereg(state, TDA10048_CONF_C4_1,
+> -			tda10048_readreg(state, TDA10048_CONF_C4_1) | 0x02);
+> -	else
+> -		return tda10048_writereg(state, TDA10048_CONF_C4_1,
+> -			tda10048_readreg(state, TDA10048_CONF_C4_1)&  0xfd);
+> +	if (config->fe&&  config->fe->ops.i2c_gate_ctrl) {
+> +		return config->fe->ops.i2c_gate_ctrl(config->fe, enable);
+> +	} else {
+> +		if (enable)
+> +			return tda10048_writereg(state, TDA10048_CONF_C4_1,
+> +				tda10048_readreg(state, TDA10048_CONF_C4_1) | 0x02);
+> +		else
+> +			return tda10048_writereg(state, TDA10048_CONF_C4_1,
+> +				tda10048_readreg(state, TDA10048_CONF_C4_1)&  0xfd);
+> +	}
+>   }
+>
+>   static int tda10048_output_mode(struct dvb_frontend *fe, int serial)
+> @@ -772,20 +795,45 @@
+>   	return 0;
+>   }
+>
+> +static int tda10048_sleep(struct dvb_frontend *fe)
+> +{
+> +	struct tda10048_state *state = fe->demodulator_priv;
+> +	struct tda10048_config *config =&state->config;
+> +	struct dvb_usb_adapter *adap;
+> +
+> +	dprintk(1, "%s()\n", __func__);
+> +
+> +	if (config->fe) {
+> +		adap = fe->dvb->priv;
+> +		if (adap->dev->props.power_ctrl)
+> +			adap->dev->props.power_ctrl(adap->dev, 0);
+> +	}
+> +
+> +	return 0;
+> +}
+> +
+>   /* Establish sane defaults and load firmware. */
+>   static int tda10048_init(struct dvb_frontend *fe)
+>   {
+>   	struct tda10048_state *state = fe->demodulator_priv;
+>   	struct tda10048_config *config =&state->config;
+> +	struct dvb_usb_adapter *adap;
+>   	int ret = 0, i;
+>
+>   	dprintk(1, "%s()\n", __func__);
+>
+> +	if (config->fe) {
+> +		adap = fe->dvb->priv;
+> +		if (adap->dev->props.power_ctrl)
+> +			adap->dev->props.power_ctrl(adap->dev, 1);
+> +	}
+> +
+> +
+>   	/* Apply register defaults */
+>   	for (i = 0; i<  ARRAY_SIZE(init_tab); i++)
+>   		tda10048_writereg(state, init_tab[i].reg, init_tab[i].data);
+>
+> -	if (state->fwloaded == 0)
+> +	if ((state->fwloaded == 0)&&  (!config->no_firmware))
+>   		ret = tda10048_firmware_upload(fe);
+>
+>   	/* Set either serial or parallel */
+> @@ -1174,6 +1222,7 @@
+>
+>   	.release = tda10048_release,
+>   	.init = tda10048_init,
+> +	.sleep = tda10048_sleep,
+>   	.i2c_gate_ctrl = tda10048_i2c_gate_ctrl,
+>   	.set_frontend = tda10048_set_frontend,
+>   	.get_frontend = tda10048_get_frontend,
+> diff -ur linux/drivers/media/dvb/frontends/tda10048.h linux.new/drivers/media/dvb/frontends/tda10048.h
+> --- linux/drivers/media/dvb/frontends/tda10048.h	2010-07-03 23:22:08.000000000 +0200
+> +++ linux.new/drivers/media/dvb/frontends/tda10048.h	2011-07-05 02:02:42.775466043 +0200
+> @@ -51,6 +51,7 @@
+>   #define TDA10048_IF_4300  4300
+>   #define TDA10048_IF_4500  4500
+>   #define TDA10048_IF_4750  4750
+> +#define TDA10048_IF_5000  5000
+>   #define TDA10048_IF_36130 36130
+>   	u16 dtv6_if_freq_khz;
+>   	u16 dtv7_if_freq_khz;
+> @@ -62,6 +63,10 @@
+>
+>   	/* Disable I2C gate access */
+>   	u8 disable_gate_access;
+> +
+> +	u8 no_firmware;
+> +
+> +	struct dvb_frontend *fe;
+>   };
+>
+>   #if defined(CONFIG_DVB_TDA10048) || \
+
+
+-- 
+http://palosaari.fi/
