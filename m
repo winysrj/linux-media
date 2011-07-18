@@ -1,149 +1,57 @@
-Return-path: <mchehab@pedra>
-Received: from moutng.kundenserver.de ([212.227.17.10]:52119 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756758Ab1GARbd (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 1 Jul 2011 13:31:33 -0400
-Date: Fri, 1 Jul 2011 19:31:17 +0200 (CEST)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-cc: Sakari Ailus <sakari.ailus@iki.fi>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	sakari.ailus@maxwell.research.nokia.com,
-	Sylwester Nawrocki <snjw23@gmail.com>,
-	Stan <svarbanov@mm-sol.com>, Hans Verkuil <hansverk@cisco.com>,
-	saaguirre@ti.com, Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: [PATCH v5] V4L: add media bus configuration subdev operations
-Message-ID: <Pine.LNX.4.64.1107011926400.17345@axis700.grange>
-MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Return-path: <linux-media-owner@vger.kernel.org>
+Received: from mx1.redhat.com ([209.132.183.28]:22312 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753419Ab1GRTyp (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 18 Jul 2011 15:54:45 -0400
+Received: from int-mx01.intmail.prod.int.phx2.redhat.com (int-mx01.intmail.prod.int.phx2.redhat.com [10.5.11.11])
+	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id p6IJsjW3003862
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
+	for <linux-media@vger.kernel.org>; Mon, 18 Jul 2011 15:54:45 -0400
+From: Jarod Wilson <jarod@redhat.com>
+To: linux-media@vger.kernel.org
+Cc: Jarod Wilson <jarod@redhat.com>
+Subject: [PATCH v2 3/9] [media] mceusb: set wakeup bits for IR-based resume
+Date: Mon, 18 Jul 2011 15:54:23 -0400
+Message-Id: <1311018869-22794-4-git-send-email-jarod@redhat.com>
+In-Reply-To: <1310681394-3530-1-git-send-email-jarod@redhat.com>
+References: <1310681394-3530-1-git-send-email-jarod@redhat.com>
+Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
-Sender: <mchehab@pedra>
 
-Add media bus configuration types and two subdev operations to get
-supported mediabus configurations and to set a specific configuration.
-Subdevs can support several configurations, e.g., they can send video data
-on 1 or several lanes, can be configured to use a specific CSI-2 channel,
-in such cases subdevice drivers return bitmasks with all respective bits
-set. When a set-configuration operation is called, it has to specify a
-non-ambiguous configuration.
+Its not uncommon for folks to force these bits enabled, because people
+do want to wake their htpc kit via their remote. Lets just set the bits
+for 'em.
 
-Signed-off-by: Stanimir Varbanov <svarbanov@mm-sol.com>
-Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+v2: rebase for mdelay->msleep changes
+
+Signed-off-by: Jarod Wilson <jarod@redhat.com>
 ---
+ drivers/media/rc/mceusb.c |    5 +++++
+ 1 files changed, 5 insertions(+), 0 deletions(-)
 
-Ok, no more RFC. This is the version I'd like to get into 3.1. Please, 
-(n)ack vigorously;) Mauro, if this is accepted, would you like me to push 
-it via my tree or would you take it from the mail?
-
-v5: removed all traces of v4l2-mediabus.c and 
-v4l2_mbus_config_compatible()
-
- include/media/v4l2-mediabus.h |   63 ++++++++++++++++++++++++++++++++++++++++++
- include/media/v4l2-subdev.h   |   10 ++++++
- 2 files changed, 73 insertions(+)
-
-diff --git a/include/media/v4l2-mediabus.h b/include/media/v4l2-mediabus.h
-index 971c7fa..e0fb39a 100644
---- a/include/media/v4l2-mediabus.h
-+++ b/include/media/v4l2-mediabus.h
-@@ -13,6 +13,69 @@
+diff --git a/drivers/media/rc/mceusb.c b/drivers/media/rc/mceusb.c
+index b1ea485..ab074a3 100644
+--- a/drivers/media/rc/mceusb.c
++++ b/drivers/media/rc/mceusb.c
+@@ -37,6 +37,7 @@
+ #include <linux/slab.h>
+ #include <linux/usb.h>
+ #include <linux/usb/input.h>
++#include <linux/pm_wakeup.h>
+ #include <media/rc-core.h>
  
- #include <linux/v4l2-mediabus.h>
+ #define DRIVER_VERSION	"1.91"
+@@ -1289,6 +1290,10 @@ static int __devinit mceusb_dev_probe(struct usb_interface *intf,
  
-+/* Parallel flags */
-+/*
-+ * Can the client run in master or in slave mode. By "Master mode" an operation
-+ * mode is meant, when the client (e.g., a camera sensor) is producing
-+ * horizontal and vertical synchronisation. In "Slave mode" the host is
-+ * providing these signals to the slave.
-+ */
-+#define V4L2_MBUS_MASTER			(1 << 0)
-+#define V4L2_MBUS_SLAVE				(1 << 1)
-+/* Which signal polarities it supports */
-+/* Note: in BT.656 mode HSYNC and VSYNC are unused */
-+#define V4L2_MBUS_HSYNC_ACTIVE_HIGH		(1 << 2)
-+#define V4L2_MBUS_HSYNC_ACTIVE_LOW		(1 << 3)
-+#define V4L2_MBUS_VSYNC_ACTIVE_HIGH		(1 << 4)
-+#define V4L2_MBUS_VSYNC_ACTIVE_LOW		(1 << 5)
-+#define V4L2_MBUS_PCLK_SAMPLE_RISING		(1 << 6)
-+#define V4L2_MBUS_PCLK_SAMPLE_FALLING		(1 << 7)
-+#define V4L2_MBUS_DATA_ACTIVE_HIGH		(1 << 8)
-+#define V4L2_MBUS_DATA_ACTIVE_LOW		(1 << 9)
-+
-+/* Serial flags */
-+/* How many lanes the client can use */
-+#define V4L2_MBUS_CSI2_1_LANE			(1 << 0)
-+#define V4L2_MBUS_CSI2_2_LANE			(1 << 1)
-+#define V4L2_MBUS_CSI2_3_LANE			(1 << 2)
-+#define V4L2_MBUS_CSI2_4_LANE			(1 << 3)
-+/* On which channels it can send video data */
-+#define V4L2_MBUS_CSI2_CHANNEL_0		(1 << 4)
-+#define V4L2_MBUS_CSI2_CHANNEL_1		(1 << 5)
-+#define V4L2_MBUS_CSI2_CHANNEL_2		(1 << 6)
-+#define V4L2_MBUS_CSI2_CHANNEL_3		(1 << 7)
-+/* Does it support only continuous or also non-continuous clock mode */
-+#define V4L2_MBUS_CSI2_CONTINUOUS_CLOCK		(1 << 8)
-+#define V4L2_MBUS_CSI2_NONCONTINUOUS_CLOCK	(1 << 9)
-+
-+#define V4L2_MBUS_CSI2_LANES		(V4L2_MBUS_CSI2_1_LANE | V4L2_MBUS_CSI2_2_LANE | \
-+					 V4L2_MBUS_CSI2_3_LANE | V4L2_MBUS_CSI2_4_LANE)
-+#define V4L2_MBUS_CSI2_CHANNELS		(V4L2_MBUS_CSI2_CHANNEL_0 | V4L2_MBUS_CSI2_CHANNEL_1 | \
-+					 V4L2_MBUS_CSI2_CHANNEL_2 | V4L2_MBUS_CSI2_CHANNEL_3)
-+
-+/**
-+ * v4l2_mbus_type - media bus type
-+ * @V4L2_MBUS_PARALLEL:	parallel interface with hsync and vsync
-+ * @V4L2_MBUS_BT656:	parallel interface with embedded synchronisation, can
-+ *			also be used for BT.1120
-+ * @V4L2_MBUS_CSI2:	MIPI CSI-2 serial interface
-+ */
-+enum v4l2_mbus_type {
-+	V4L2_MBUS_PARALLEL,
-+	V4L2_MBUS_BT656,
-+	V4L2_MBUS_CSI2,
-+};
-+
-+/**
-+ * v4l2_mbus_config - media bus configuration
-+ * @type:	in: interface type
-+ * @flags:	in / out: configuration flags, depending on @type
-+ */
-+struct v4l2_mbus_config {
-+	enum v4l2_mbus_type type;
-+	unsigned int flags;
-+};
-+
- static inline void v4l2_fill_pix_format(struct v4l2_pix_format *pix_fmt,
- 				const struct v4l2_mbus_framefmt *mbus_fmt)
- {
-diff --git a/include/media/v4l2-subdev.h b/include/media/v4l2-subdev.h
-index 1562c4f..a42fb25 100644
---- a/include/media/v4l2-subdev.h
-+++ b/include/media/v4l2-subdev.h
-@@ -255,6 +255,12 @@ struct v4l2_subdev_audio_ops {
-    try_mbus_fmt: try to set a pixel format on a video data source
+ 	usb_set_intfdata(intf, ir);
  
-    s_mbus_fmt: set a pixel format on a video data source
++	/* enable wake via this device */
++	device_set_wakeup_capable(ir->dev, true);
++	device_set_wakeup_enable(ir->dev, true);
 +
-+   g_mbus_config: get supported mediabus configurations
-+
-+   s_mbus_config: set a certain mediabus configuration. This operation is added
-+	for compatibility with soc-camera drivers and should not be used by new
-+	software.
-  */
- struct v4l2_subdev_video_ops {
- 	int (*s_routing)(struct v4l2_subdev *sd, u32 input, u32 output, u32 config);
-@@ -294,6 +300,10 @@ struct v4l2_subdev_video_ops {
- 			    struct v4l2_mbus_framefmt *fmt);
- 	int (*s_mbus_fmt)(struct v4l2_subdev *sd,
- 			  struct v4l2_mbus_framefmt *fmt);
-+	int (*g_mbus_config)(struct v4l2_subdev *sd,
-+			     struct v4l2_mbus_config *cfg);
-+	int (*s_mbus_config)(struct v4l2_subdev *sd,
-+			     const struct v4l2_mbus_config *cfg);
- };
+ 	dev_info(&intf->dev, "Registered %s on usb%d:%d\n", name,
+ 		 dev->bus->busnum, dev->devnum);
  
- /*
 -- 
-1.7.2.5
+1.7.1
 
