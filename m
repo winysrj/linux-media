@@ -1,51 +1,66 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from tex.lwn.net ([70.33.254.29]:36824 "EHLO vena.lwn.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754455Ab1GNVKq (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 14 Jul 2011 17:10:46 -0400
-Date: Thu, 14 Jul 2011 15:10:44 -0600
-From: Jonathan Corbet <corbet@lwn.net>
-To: linux-media@vger.kernel.org,
-	Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Marek Szyprowski <m.szyprowski@samsung.com>
-Subject: [PATCH] videobuf2: Do not unconditionally map S/G buffers into
- kernel space
-Message-ID: <20110714151044.44cb89ee@bike.lwn.net>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 8bit
+Received: from ppp118-208-7-216.lns20.bne1.internode.on.net ([118.208.7.216]:45360
+	"EHLO mail.psychogeeks.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1750846Ab1GRW3N (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 18 Jul 2011 18:29:13 -0400
+Message-ID: <4E24B3B5.5080200@psychogeeks.com>
+Date: Tue, 19 Jul 2011 08:29:09 +1000
+From: Chris W <lkml@psychogeeks.com>
+MIME-Version: 1.0
+To: Jarod Wilson <jarod@redhat.com>
+CC: linux-media@vger.kernel.org, Andy Walls <awalls@md.metrocast.net>,
+	Randy Dunlap <rdunlap@xenotime.net>,
+	linux-kernel@vger.kernel.org
+Subject: Re: [PATCH] [media] imon: don't submit urb before rc_dev set up
+References: <A91CBD95-B2AF-4F43-8BEC-6C8007ABB33C@wilsonet.com> <1311007609-28210-1-git-send-email-jarod@redhat.com>
+In-Reply-To: <1311007609-28210-1-git-send-email-jarod@redhat.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The one in-tree videobuf2-dma-sg driver (mmp-camera) has no need for a
-kernel-space mapping of the buffers; one suspects that most other drivers
-would not either.  The videobuf2-dma-sg module does the right thing if
-buf->vaddr == NULL - it maps the buffer on demand if somebody needs it.  So
-let's not map the buffer at allocation time; that will save a little CPU
-time and a lot of address space in the vmalloc range.
+On 19/07/11 02:46, Jarod Wilson wrote:
+> The interface 0 urb callback was being wired up before the rc_dev device
+> was allocated, meaning the callback could be called with a null rc_dev,
+> leading to an oops. This likely only ever happens on the older 0xffdc
+> SoundGraph devices, which continually trigger interrupts even when they
+> have no valid keydata, and the window in which it could happen is small,
+> but its actually happening regularly for at least one user, and its an
+> obvious fix. Compile and sanity-tested with one of my own imon devices.
 
-Signed-off-by: Jonathan Corbet <corbet@lwn.net>
----
- drivers/media/video/videobuf2-dma-sg.c |    6 ------
- 1 files changed, 0 insertions(+), 6 deletions(-)
+As the "at least one user" I can confirm that the patch has indeed
+corrected the problem on my 2.6.38-gentoo-r6, 2.6.39.3 vanilla, and
+3.0.0-rc7 kernels.
 
-diff --git a/drivers/media/video/videobuf2-dma-sg.c b/drivers/media/video/videobuf2-dma-sg.c
-index b2d9485..0e8edc1 100644
---- a/drivers/media/video/videobuf2-dma-sg.c
-+++ b/drivers/media/video/videobuf2-dma-sg.c
-@@ -77,12 +77,6 @@ static void *vb2_dma_sg_alloc(void *alloc_ctx, unsigned long size)
- 
- 	printk(KERN_DEBUG "%s: Allocated buffer of %d pages\n",
- 		__func__, buf->sg_desc.num_pages);
--
--	if (!buf->vaddr)
--		buf->vaddr = vm_map_ram(buf->pages,
--					buf->sg_desc.num_pages,
--					-1,
--					PAGE_KERNEL);
- 	return buf;
- 
- fail_pages_alloc:
+This is what loading the module with the "debug=1" option outputs:
+
+input: iMON Panel, Knob and Mouse(15c2:ffdc) as
+/devices/pci0000:00/0000:00:10.2/usb4/4-2/4-2:1.0/input/input7
+imon 4-2:1.0: Unknown 0xffdc device, defaulting to VFD and iMON IR (id 0x00)
+Registered IR keymap rc-imon-pad
+input: iMON Remote (15c2:ffdc) as
+/devices/pci0000:00/0000:00:10.2/usb4/4-2/4-2:1.0/rc/rc2/input8
+rc2: iMON Remote (15c2:ffdc) as
+/devices/pci0000:00/0000:00:10.2/usb4/4-2/4-2:1.0/rc/rc2
+imon 4-2:1.0: iMON device (15c2:ffdc, intf0) on usb<4:3> initialized
+usbcore: registered new interface driver imon
+intf0 decoded packet: 00 00 00 00 00 00 24 01
+intf0 decoded packet: 00 00 00 00 00 00 24 01
+intf0 decoded packet: 00 00 00 00 00 00 24 01
+intf0 decoded packet: 00 00 00 00 00 00 24 01
+...
+
+The decoded packet lines are fast and furious with no deliberate IR
+input (the VFD is in use), which might explain how this device managed
+to break the code in the small window available.
+
+Thank you Jarod and Andy for taking the time to track this problem down
+to give it a drubbing.
+
+Regards,
+Chris
+
 -- 
-1.7.6
-
+Chris Williams
+Brisbane, Australia
