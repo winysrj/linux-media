@@ -1,68 +1,128 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.126.187]:64647 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756162Ab1G2K5D (ORCPT
+Received: from devils.ext.ti.com ([198.47.26.153]:35312 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752739Ab1GRSRC convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 29 Jul 2011 06:57:03 -0400
-Received: from 6a.grange (6a.grange [192.168.1.11])
-	by axis700.grange (Postfix) with ESMTPS id 02C0118B04A
-	for <linux-media@vger.kernel.org>; Fri, 29 Jul 2011 12:57:01 +0200 (CEST)
-Received: from lyakh by 6a.grange with local (Exim 4.72)
-	(envelope-from <g.liakhovetski@gmx.de>)
-	id 1QmkkW-0007oE-RI
-	for linux-media@vger.kernel.org; Fri, 29 Jul 2011 12:57:00 +0200
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: linux-media@vger.kernel.org
-Subject: [PATCH 26/59] V4L: soc-camera: compatible bus-width flags
-Date: Fri, 29 Jul 2011 12:56:26 +0200
-Message-Id: <1311937019-29914-27-git-send-email-g.liakhovetski@gmx.de>
-In-Reply-To: <1311937019-29914-1-git-send-email-g.liakhovetski@gmx.de>
-References: <1311937019-29914-1-git-send-email-g.liakhovetski@gmx.de>
+	Mon, 18 Jul 2011 14:17:02 -0400
+Received: from dbdp20.itg.ti.com ([172.24.170.38])
+	by devils.ext.ti.com (8.13.7/8.13.7) with ESMTP id p6IIGxD3013387
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-media@vger.kernel.org>; Mon, 18 Jul 2011 13:17:02 -0500
+Received: from dbde71.ent.ti.com (localhost [127.0.0.1])
+	by dbdp20.itg.ti.com (8.13.8/8.13.8) with ESMTP id p6IIGxYx024792
+	for <linux-media@vger.kernel.org>; Mon, 18 Jul 2011 23:46:59 +0530 (IST)
+From: "Hiremath, Vaibhav" <hvaibhav@ti.com>
+To: "JAIN, AMBER" <amber@ti.com>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Date: Mon, 18 Jul 2011 23:46:59 +0530
+Subject: RE: [PATCH v2 2/3] V4L2: OMAP: VOUT: dma map and unmap v4l2 buffers
+ in qbuf and dqbuf
+Message-ID: <19F8576C6E063C45BE387C64729E739404E3737BA8@dbde02.ent.ti.com>
+References: <1310041278-8810-1-git-send-email-amber@ti.com>
+ <1310041278-8810-3-git-send-email-amber@ti.com>
+In-Reply-To: <1310041278-8810-3-git-send-email-amber@ti.com>
+Content-Language: en-US
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+MIME-Version: 1.0
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-With the new subdevice media-bus configuration methods bus-width is not
-configured along with other bus parameters, instead, it is derived from
-the data format. With those methods it is convenient to specify
-supported bus-widths in the platform data as (1 << (width - 1)). We
-redefine SOCAM_DATAWIDTH_* flags to use the same convention to make
-platform data seemlessly reusable.
 
-Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
----
- include/media/soc_camera.h |   12 ++++++------
- 1 files changed, 6 insertions(+), 6 deletions(-)
+> -----Original Message-----
+> From: JAIN, AMBER
+> Sent: Thursday, July 07, 2011 5:51 PM
+> To: linux-media@vger.kernel.org
+> Cc: Hiremath, Vaibhav; JAIN, AMBER
+> Subject: [PATCH v2 2/3] V4L2: OMAP: VOUT: dma map and unmap v4l2 buffers
+> in qbuf and dqbuf
+> 
+> Add support to map the buffer using dma_map_single during qbuf which
+> inturn
+> calls cache flush and unmap the same during dqbuf. This is done to prevent
+> the artifacts seen because of cache-coherency issues on OMAP4
+> 
+> Signed-off-by: Amber Jain <amber@ti.com>
+> ---
+> Changes from v1:
+> - Changed the definition of address variables to be u32 instead of int.
+> - Removed extra typedef for size variable.
+> 
+>  drivers/media/video/omap/omap_vout.c |   29 +++++++++++++++++++++++++++--
+>  1 files changed, 27 insertions(+), 2 deletions(-)
+> 
+> diff --git a/drivers/media/video/omap/omap_vout.c
+> b/drivers/media/video/omap/omap_vout.c
+> index 6cd3622..7d3410a 100644
+> --- a/drivers/media/video/omap/omap_vout.c
+> +++ b/drivers/media/video/omap/omap_vout.c
+> @@ -37,6 +37,7 @@
+>  #include <linux/platform_device.h>
+>  #include <linux/irq.h>
+>  #include <linux/videodev2.h>
+> +#include <linux/dma-mapping.h>
+> 
+>  #include <media/videobuf-dma-contig.h>
+>  #include <media/v4l2-device.h>
+> @@ -778,6 +779,17 @@ static int omap_vout_buffer_prepare(struct
+> videobuf_queue *q,
+>  		vout->queued_buf_addr[vb->i] = (u8 *)
+>  			omap_vout_uservirt_to_phys(vb->baddr);
+>  	} else {
+> +		u32 addr, dma_addr;
+> +		unsigned long size;
+> +
+> +		addr = (unsigned long) vout->buf_virt_addr[vb->i];
+> +		size = (unsigned long) vb->size;
+> +
+> +		dma_addr = dma_map_single(vout->vid_dev->v4l2_dev.dev, (void
+> *) addr,
+> +				size, DMA_TO_DEVICE);
+> +		if (dma_mapping_error(vout->vid_dev->v4l2_dev.dev, dma_addr))
+> +			v4l2_err(&vout->vid_dev->v4l2_dev, "dma_map_single
+> failed\n");
+> +
+>  		vout->queued_buf_addr[vb->i] = (u8 *)vout->buf_phy_addr[vb-
+> >i];
+>  	}
+> 
+> @@ -1567,15 +1579,28 @@ static int vidioc_dqbuf(struct file *file, void
+> *fh, struct v4l2_buffer *b)
+>  	struct omap_vout_device *vout = fh;
+>  	struct videobuf_queue *q = &vout->vbq;
+> 
+> +	int ret;
+> +	u32 addr;
+> +	unsigned long size;
+> +	struct videobuf_buffer *vb;
+> +
+> +	vb = q->bufs[b->index];
+> +
+>  	if (!vout->streaming)
+>  		return -EINVAL;
+> 
+>  	if (file->f_flags & O_NONBLOCK)
+>  		/* Call videobuf_dqbuf for non blocking mode */
+> -		return videobuf_dqbuf(q, (struct v4l2_buffer *)b, 1);
+> +		ret = videobuf_dqbuf(q, (struct v4l2_buffer *)b, 1);
+>  	else
+>  		/* Call videobuf_dqbuf for  blocking mode */
+> -		return videobuf_dqbuf(q, (struct v4l2_buffer *)b, 0);
+> +		ret = videobuf_dqbuf(q, (struct v4l2_buffer *)b, 0);
+> +
+> +	addr = (unsigned long) vout->buf_phy_addr[vb->i];
+> +	size = (unsigned long) vb->size;
+> +	dma_unmap_single(vout->vid_dev->v4l2_dev.dev,  addr,
+> +				size, DMA_TO_DEVICE);
+> +	return ret;
+>  }
+> 
+>  static int vidioc_streamon(struct file *file, void *fh, enum
+> v4l2_buf_type i)
+[Hiremath, Vaibhav] Acked-By: Vaibhav Hiremath <hvaibhav@ti.com>
 
-diff --git a/include/media/soc_camera.h b/include/media/soc_camera.h
-index 936a504..73337cf 100644
---- a/include/media/soc_camera.h
-+++ b/include/media/soc_camera.h
-@@ -241,19 +241,19 @@ static inline struct v4l2_queryctrl const *soc_camera_find_qctrl(
- #define SOCAM_MASTER			(1 << 0)
- #define SOCAM_SLAVE			(1 << 1)
- #define SOCAM_HSYNC_ACTIVE_HIGH		(1 << 2)
--#define SOCAM_HSYNC_ACTIVE_LOW		(1 << 3)
-+#define SOCAM_HSYNC_ACTIVE_LOW		(1 << 6)
- #define SOCAM_VSYNC_ACTIVE_HIGH		(1 << 4)
- #define SOCAM_VSYNC_ACTIVE_LOW		(1 << 5)
--#define SOCAM_DATAWIDTH_4		(1 << 6)
-+#define SOCAM_DATAWIDTH_4		(1 << 3)
- #define SOCAM_DATAWIDTH_8		(1 << 7)
- #define SOCAM_DATAWIDTH_9		(1 << 8)
- #define SOCAM_DATAWIDTH_10		(1 << 9)
--#define SOCAM_DATAWIDTH_15		(1 << 10)
--#define SOCAM_DATAWIDTH_16		(1 << 11)
-+#define SOCAM_DATAWIDTH_15		(1 << 14)
-+#define SOCAM_DATAWIDTH_16		(1 << 15)
- #define SOCAM_PCLK_SAMPLE_RISING	(1 << 12)
- #define SOCAM_PCLK_SAMPLE_FALLING	(1 << 13)
--#define SOCAM_DATA_ACTIVE_HIGH		(1 << 14)
--#define SOCAM_DATA_ACTIVE_LOW		(1 << 15)
-+#define SOCAM_DATA_ACTIVE_HIGH		(1 << 10)
-+#define SOCAM_DATA_ACTIVE_LOW		(1 << 11)
- #define SOCAM_MIPI_1LANE		(1 << 16)
- #define SOCAM_MIPI_2LANE		(1 << 17)
- #define SOCAM_MIPI_3LANE		(1 << 18)
--- 
-1.7.2.5
+Thanks,
+Vaibhav
+> --
+> 1.7.1
 
