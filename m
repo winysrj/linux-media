@@ -1,58 +1,64 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pz0-f46.google.com ([209.85.210.46]:43679 "EHLO
-	mail-pz0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754896Ab1GQUpM (ORCPT
+Received: from mail-vw0-f46.google.com ([209.85.212.46]:64402 "EHLO
+	mail-vw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751018Ab1GRPL6 convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 17 Jul 2011 16:45:12 -0400
-Received: by pzk3 with SMTP id 3so3433023pzk.5
-        for <linux-media@vger.kernel.org>; Sun, 17 Jul 2011 13:45:12 -0700 (PDT)
-MIME-Version: 1.0
-From: Eddi De Pieri <eddi@depieri.net>
-Date: Sun, 17 Jul 2011 22:44:52 +0200
-Message-ID: <CAKdnbx6EnFYfpncGa3YQkN=8uvS-4XsX4Wxx8od2uc=8Qmzesg@mail.gmail.com>
-Subject: PATCH add drx firmware extraction routine for hauppauge 930c
-To: linux-media@vger.kernel.org
-Content-Type: multipart/mixed; boundary=000e0cd2e1dc86498904a849f53a
+	Mon, 18 Jul 2011 11:11:58 -0400
+Received: by vws1 with SMTP id 1so2205060vws.19
+        for <linux-media@vger.kernel.org>; Mon, 18 Jul 2011 08:11:58 -0700 (PDT)
+References: <CAHiZ1abKhmOJt9BS6yghmwPSMooiX2GoF8HsSB9gs2jt9xW8Tw@mail.gmail.com> <6F22EB15-4C4F-4D0E-A640-B503499C2EE8@wilsonet.com> <CAHiZ1aYTePxxk+OzGVK0hXHWq4Cqf4aeoMW=UTt-rYxw2ibcZA@mail.gmail.com>
+In-Reply-To: <CAHiZ1aYTePxxk+OzGVK0hXHWq4Cqf4aeoMW=UTt-rYxw2ibcZA@mail.gmail.com>
+Mime-Version: 1.0 (Apple Message framework v1084)
+Content-Type: text/plain; charset=us-ascii
+Message-Id: <B9D8F320-6685-4416-B53F-62C34524A547@wilsonet.com>
+Content-Transfer-Encoding: 8BIT
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
+From: Jarod Wilson <jarod@wilsonet.com>
+Subject: Re: Happuage HDPVR 0 byte files.
+Date: Mon, 18 Jul 2011 11:11:40 -0400
+To: Greg Williamson <cheeseboy16@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
---000e0cd2e1dc86498904a849f53a
-Content-Type: text/plain; charset=ISO-8859-1
+Keep it on the mailing list, please.
 
-I'm trying to get this device supported starting from Mauro's work on H5
+On Jul 18, 2011, at 10:58 AM, Greg Williamson wrote:
 
-Here is the firmware extraction for hauppauge hvr930c hardware
+> I'm using rca on the back. Audio input is set to 0. trying to change
+> it results in 'VIDIOC_S_AUDIO: failed: Resource temporarily
+> unavailable'
 
-Signed-off-by: Eddi De Pieri <eddi@depieri.net>
+Hm. Afriad I have no clue what's going on then, just know that not
+having audio connected to the expected input can cause 0-byte files.
+The failure message there is mildly alarming, but I don't know what
+might be the cause. Certainly seems like it could be related to you
+getting 0-byte files though (i.e., same root cause). :)
 
---000e0cd2e1dc86498904a849f53a
-Content-Type: application/octet-stream; name="get_dvb_firmware.diff"
-Content-Disposition: attachment; filename="get_dvb_firmware.diff"
-Content-Transfer-Encoding: base64
-X-Attachment-Id: f_gq8gy8nr0
 
-ZGlmZiAtLWdpdCBhL0RvY3VtZW50YXRpb24vZHZiL2dldF9kdmJfZmlybXdhcmUgYi9Eb2N1bWVu
-dGF0aW9uL2R2Yi9nZXRfZHZiX2Zpcm13YXJlCmluZGV4IGM0NjZmNTguLmEzNGQ5ZDQgMTAwNzU1
-Ci0tLSBhL0RvY3VtZW50YXRpb24vZHZiL2dldF9kdmJfZmlybXdhcmUKKysrIGIvRG9jdW1lbnRh
-dGlvbi9kdmIvZ2V0X2R2Yl9maXJtd2FyZQpAQCAtMjcsNyArMjcsNyBAQCB1c2UgSU86OkhhbmRs
-ZTsKIAkJIm9yNTEyMTEiLCAib3I1MTEzMl9xYW0iLCAib3I1MTEzMl92c2IiLCAiYmx1ZWJpcmQi
-LAogCQkib3BlcmExIiwgImN4MjMxeHgiLCAiY3gxOCIsICJjeDIzODg1IiwgInB2cnVzYjIiLCAi
-bXBjNzE4IiwKIAkJImFmOTAxNSIsICJuZ2VuZSIsICJhejYwMjciLCAibG1lMjUxMF9sZyIsICJs
-bWUyNTEwY19zNzM5NSIsCi0JCSJsbWUyNTEwY19zNzM5NV9vbGQiLCAiZHJ4ayIsICJkcnhrX3Rl
-cnJhdGVjX2g1Iik7CisJCSJsbWUyNTEwY19zNzM5NV9vbGQiLCAiZHJ4ayIsICJkcnhrX2hhdXBw
-YXVnZV9odnI5MzBjIiwgImRyeGtfdGVycmF0ZWNfaDUiKTsKIAogIyBDaGVjayBhcmdzCiBzeW50
-YXgoKSBpZiAoc2NhbGFyKEBBUkdWKSAhPSAxKTsKQEAgLTY1Miw2ICs2NTIsMjQgQEAgc3ViIGRy
-eGsgewogICAgICIkZndmaWxlIgogfQogCitzdWIgZHJ4a19oYXVwcGF1Z2VfaHZyOTMwYyB7Cisg
-ICAgbXkgJHVybCA9ICJodHRwOi8vd3d3LndpbnR2Y2QuY28udWsvZHJpdmVycy8iOworICAgIG15
-ICR6aXBmaWxlID0gIkhWUi05eDBfNV8xMF8zMjVfMjgxNTNfU0lHTkVELnppcCI7CisgICAgbXkg
-JGhhc2ggPSAiODNhYjgyZTdlOTQ4MGVjOGJmMWFlMDE1NWNhNjNjODgiOworICAgIG15ICR0bXBk
-aXIgPSB0ZW1wZGlyKERJUiA9PiAiL3RtcCIsIENMRUFOVVAgPT4gMSk7CisgICAgbXkgJGRydmZp
-bGUgPSAiSFZSLTkwMC9lbU9FTS5zeXMiOworICAgIG15ICRmd2ZpbGUgPSAiZHZiLXVzYi1oYXVw
-cGF1Z2UtOTMwYy1kcnhrLmZ3IjsKKworICAgIGNoZWNrc3RhbmRhcmQoKTsKKworICAgIHdnZXRm
-aWxlKCR6aXBmaWxlLCAkdXJsIC4gJHppcGZpbGUpOworICAgIHZlcmlmeSgkemlwZmlsZSwgJGhh
-c2gpOworICAgIHVuemlwKCR6aXBmaWxlLCAkdG1wZGlyKTsKKyAgICBleHRyYWN0KCIkdG1wZGly
-LyRkcnZmaWxlIiwgMHgxMTdiMCwgMHhBNkMwLCAiJGZ3ZmlsZSIpOworCisgICAgIiRmd2ZpbGUi
-Cit9CisKIHN1YiBkcnhrX3RlcnJhdGVjX2g1IHsKICAgICBteSAkdXJsID0gImh0dHA6Ly93d3cu
-bGludXh0di5vcmcvZG93bmxvYWRzL2Zpcm13YXJlLyI7CiAgICAgbXkgJGhhc2ggPSAiMTkwMDBk
-YWRhOGUyNzQxMTYyY2NjNTBjYzkxZmE3ZjEiOwo=
---000e0cd2e1dc86498904a849f53a--
+> On Mon, Jul 18, 2011 at 10:49 AM, Jarod Wilson <jarod@wilsonet.com> wrote:
+>> On Jul 18, 2011, at 6:49 AM, Greg Williamson wrote:
+>> 
+>>> Hi,  I'm on Archlinux running 2.6.39-ARCH.  When I plug in my hdpvr I
+>>> see it registers.
+>>> 
+>>> Here is the dmesg output:
+>>> [  778.518866] hdpvr 1-3:1.0: firmware version 0x15 dated Jun 17 2010 09:26:53
+>>> [  778.704965] hdpvr 1-3:1.0: device now attached to video0
+>>> [  778.705006] usbcore: registered new interface driver hdpvr
+>>> 
+>>> 
+>>> However 'cat /dev/video0 > test.ts' creates 0 byte files every time.
+>> 
+>> What audio input do you have wired up, and has the driver been told to
+>> use the right one? You'll get 0-byte files if there's no audio on the
+>> selected audio input (default is rear RCA). Can alter the default with
+>> a modparam (default_audio_input=2 for spdif), or change it on the fly
+>> using v4l-utils.
+
+
+-- 
+Jarod Wilson
+jarod@wilsonet.com
+
+
+
