@@ -1,96 +1,87 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.mnsspb.ru ([84.204.75.2]:60372 "EHLO mail.mnsspb.ru"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755219Ab1G1Lnm (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 28 Jul 2011 07:43:42 -0400
-Date: Thu, 28 Jul 2011 15:42:36 +0400
-From: Kirill Smelkov <kirr@mns.spb.ru>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	linux-media@vger.kernel.org
-Subject: Re: [git:v4l-dvb/for_v3.1] [media] uvcvideo: Add FIX_BANDWIDTH
-	quirk to HP Webcam on HP Mini 5103 netbook
-Message-ID: <20110728114236.GA5391@tugrik.mns.mnsspb.ru>
-References: <E1QmAuS-0002S0-Pd@www.linuxtv.org>
+Received: from perceval.ideasonboard.com ([95.142.166.194]:33183 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753552Ab1GRI7I (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 18 Jul 2011 04:59:08 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Subject: Re: [PATCH] v4l: mt9v032: Fix Bayer pattern
+Date: Mon, 18 Jul 2011 10:59:07 +0200
+Cc: linux-media@vger.kernel.org
+References: <1310761106-29722-1-git-send-email-laurent.pinchart@ideasonboard.com> <201107180022.52876.laurent.pinchart@ideasonboard.com> <Pine.LNX.4.64.1107180028460.13485@axis700.grange>
+In-Reply-To: <Pine.LNX.4.64.1107180028460.13485@axis700.grange>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <E1QmAuS-0002S0-Pd@www.linuxtv.org>
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201107181059.07920.laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, Jul 27, 2011 at 09:42:08PM +0200, Mauro Carvalho Chehab wrote:
-> This is an automatic generated email to let you know that the following patch were queued at the 
-> http://git.linuxtv.org/media_tree.git tree:
+On Monday 18 July 2011 00:30:52 Guennadi Liakhovetski wrote:
+> On Mon, 18 Jul 2011, Laurent Pinchart wrote:
+> > On Monday 18 July 2011 00:14:21 Guennadi Liakhovetski wrote:
+> > > On Sun, 17 Jul 2011, Laurent Pinchart wrote:
+> > > > Hi Guennadi,
+> > > > 
+> > > > On Saturday 16 July 2011 23:40:23 Guennadi Liakhovetski wrote:
+> > > > > On Sat, 16 Jul 2011, Laurent Pinchart wrote:
+> > > > > > On Saturday 16 July 2011 01:11:28 Guennadi Liakhovetski wrote:
+> > > > > > > On Fri, 15 Jul 2011, Laurent Pinchart wrote:
+> > > > > > > > Compute crop rectangle boundaries to ensure a GRBG Bayer
+> > > > > > > > pattern.
+> > > > > > > > 
+> > > > > > > > Signed-off-by: Laurent Pinchart
+> > > > > > > > <laurent.pinchart@ideasonboard.com> ---
+> > > > > > > > 
+> > > > > > > >  drivers/media/video/mt9v032.c |   20 ++++++++++----------
+> > > > > > > >  1 files changed, 10 insertions(+), 10 deletions(-)
+> > > > > > > > 
+> > > > > > > > If there's no comment I'll send a pull request for this patch
+> > > > > > > > in a couple of days.
+> > > > > > > 
+> > > > > > > Hm, I might have a comment: why?... Isn't it natural to accept
+> > > > > > > the fact, that different sensors put a different Bayer pixel
+> > > > > > > at their sensor matrix origin? Isn't that why we have all
+> > > > > > > possible Bayer formats? Maybe you just have to choose a
+> > > > > > > different output format?
+> > > > > > 
+> > > > > > That's the other solution. The driver currently claims the device
+> > > > > > outputs SGRBG, but configures it to output SGBGR. This is clearly
+> > > > > > a bug. Is it better to modify the format than the crop rectangle
+> > > > > > location ?
+> > > > > 
+> > > > > Actually, it is interesting. I just looked (again) in the mt9v032
+> > > > > and some other Aptina Bayer sensor datasheets, and they actually
+> > > > > have _odd_ numbers of rows and columns. So, mt9v032 actually has
+> > > > > 753x481 active pixels. And that extra pixel is explicitly provided
+> > > > > to adjust the origin colour. Ok, they write, it is for uniformity
+> > > > > with the mirrored image, but who believes them?;-) So, maybe you
+> > > > > should adjust your max values to the above ones, then taking one
+> > > > > pixel out of your image will not reduce your useful image size.
+> > > > 
+> > > > I'm not sure what you mean. Even though the pixel array is bigger
+> > > > than that, the maximum output width/height are 752x480 according to
+> > > > the datasheet.
+> > > 
+> > > Have a look at the "Pixel array structure" (p.10 in my version)
+> > > section.
+> > 
+> > I've seen that, but the sensor is still unable to output an image bigger
+> > than 752x480. See registers 3 and 4 maximum values on page 24 (in my
+> > version :-)).
 > 
-> Subject: [media] uvcvideo: Add FIX_BANDWIDTH quirk to HP Webcam on HP Mini 5103 netbook
-> Author:  Kirill Smelkov <kirr@mns.spb.ru>
-> Date:    Fri Jul 22 11:47:22 2011 -0300
+> Right, sorry, what I mean, is, that even when you use one pixel to adjust
+> your image origin, you don't actually lose the size. So, you can output
+> 752 pixels in a row whether you begin at 0 or 1. That's why I suggested to
+> set max width to 753, but then make sure it's always actually even. That
+> way a configuration offset = 1, width = 752 will also be valid.
 
-Thanks
+offset = 1, width = 752 is valid. That's the default configuration with this 
+patch applied.
 
+-- 
+Regards,
 
-> The camera there identifies itself as being manufactured by Cheng Uei
-> Precision Industry Co., Ltd (Foxlink), and product is titled as "HP
-> Webcam [2 MP Fixed]".
-> 
-> I was trying to get 2 USB video capture devices to work simultaneously,
-> and noticed that the above mentioned webcam always requires packet size
-> = 3072 bytes per micro frame (~= 23.4 MB/s isoc bandwidth), which is far
-> more than enough to get standard NTSC 640x480x2x30 = ~17.6 MB/s isoc
-> bandwidth.
-> 
-> As there are alt interfaces with smaller MxPS
-> 
->     T:  Bus=01 Lev=01 Prnt=01 Port=03 Cnt=01 Dev#=  2 Spd=480  MxCh= 0
->     D:  Ver= 2.00 Cls=ef(misc ) Sub=02 Prot=01 MxPS=64 #Cfgs=  1
->     P:  Vendor=05c8 ProdID=0403 Rev= 1.06
->     S:  Manufacturer=Foxlink
->     S:  Product=HP Webcam [2 MP Fixed]
->     S:  SerialNumber=200909240102
->     C:* #Ifs= 2 Cfg#= 1 Atr=80 MxPwr=500mA
->     A:  FirstIf#= 0 IfCount= 2 Cls=0e(video) Sub=03 Prot=00
->     I:* If#= 0 Alt= 0 #EPs= 1 Cls=0e(video) Sub=01 Prot=00 Driver=uvcvideo
->     E:  Ad=83(I) Atr=03(Int.) MxPS=  16 Ivl=4ms
->     I:* If#= 1 Alt= 0 #EPs= 0 Cls=0e(video) Sub=02 Prot=00 Driver=uvcvideo
->     I:  If#= 1 Alt= 1 #EPs= 1 Cls=0e(video) Sub=02 Prot=00 Driver=uvcvideo
->     E:  Ad=81(I) Atr=05(Isoc) MxPS= 128 Ivl=125us
->     I:  If#= 1 Alt= 2 #EPs= 1 Cls=0e(video) Sub=02 Prot=00 Driver=uvcvideo
->     E:  Ad=81(I) Atr=05(Isoc) MxPS= 512 Ivl=125us
->     I:  If#= 1 Alt= 3 #EPs= 1 Cls=0e(video) Sub=02 Prot=00 Driver=uvcvideo
->     E:  Ad=81(I) Atr=05(Isoc) MxPS=1024 Ivl=125us
->     I:  If#= 1 Alt= 4 #EPs= 1 Cls=0e(video) Sub=02 Prot=00 Driver=uvcvideo
->     E:  Ad=81(I) Atr=05(Isoc) MxPS=1536 Ivl=125us
->     I:  If#= 1 Alt= 5 #EPs= 1 Cls=0e(video) Sub=02 Prot=00 Driver=uvcvideo
->     E:  Ad=81(I) Atr=05(Isoc) MxPS=2048 Ivl=125us
->     I:  If#= 1 Alt= 6 #EPs= 1 Cls=0e(video) Sub=02 Prot=00 Driver=uvcvideo
->     E:  Ad=81(I) Atr=05(Isoc) MxPS=2688 Ivl=125us
->     I:  If#= 1 Alt= 7 #EPs= 1 Cls=0e(video) Sub=02 Prot=00 Driver=uvcvideo
->     E:  Ad=81(I) Atr=05(Isoc) MxPS=3072 Ivl=125us
-> 
-> UVC_QUIRK_FIX_BANDWIDTH helps here and NTSC video can be served with
-> MxPS=2688 i.e. 20.5 MB/s isoc bandwidth.
-> 
-> In terms of microframe time allocation, before the quirk NTSC video
-> required 60 usecs / microframe and 53 usecs / microframe after.
-> 
-> Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-> Signed-off-by: Kirill Smelkov <kirr@mns.spb.ru>
-> Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
-
-
-May I ask, why you removed the reference to cc62a7eb? Original patch
-description contained the following paragraph just before sob
-
-    Now with tweaked ehci-hcd to allow up to 90% isoc bandwidth (cc62a7eb
-    "USB: EHCI: Allow users to override 80% max periodic bandwidth") I can
-    capture two video sources -- PAL 720x576 YUV422 @25fps + NTSC 640x480
-    YUV422 @30fps simultaneously.  Hooray!
-
-
-which was removed on applying.
-
-
-
-Thanks beforehand for answering,
-Kirill
+Laurent Pinchart
