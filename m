@@ -1,86 +1,49 @@
-Return-path: <mchehab@localhost>
-Received: from mail.juropnet.hu ([212.24.188.131]:59552 "EHLO mail.juropnet.hu"
+Return-path: <linux-media-owner@vger.kernel.org>
+Received: from mx1.redhat.com ([209.132.183.28]:63406 "EHLO mx1.redhat.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757623Ab1GKOHr (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 11 Jul 2011 10:07:47 -0400
-Received: from [94.248.228.50] (helo=linux-mrjj.localnet)
-	by mail.juropnet.hu with esmtps (TLS1.0:DHE_RSA_AES_256_CBC_SHA1:32)
-	(Exim 4.69)
-	(envelope-from <istvan_v@mailbox.hu>)
-	id 1QgH9E-0007Qp-0q
-	for linux-media@vger.kernel.org; Mon, 11 Jul 2011 16:07:46 +0200
-From: Istvan Varga <istvan_v@mailbox.hu>
-To: linux-media@vger.kernel.org
-Subject: [PATCH 2/2] cx88: implemented luma notch filter control
+	id S1750954Ab1GSKbx (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 19 Jul 2011 06:31:53 -0400
+Received: from int-mx09.intmail.prod.int.phx2.redhat.com (int-mx09.intmail.prod.int.phx2.redhat.com [10.5.11.22])
+	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id p6JAVrnn028551
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
+	for <linux-media@vger.kernel.org>; Tue, 19 Jul 2011 06:31:53 -0400
+Received: from shalem.localdomain (vpn1-6-8.ams2.redhat.com [10.36.6.8])
+	by int-mx09.intmail.prod.int.phx2.redhat.com (8.14.4/8.14.4) with ESMTP id p6JAVp25030178
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-CAMELLIA256-SHA bits=256 verify=NO)
+	for <linux-media@vger.kernel.org>; Tue, 19 Jul 2011 06:31:52 -0400
+Message-ID: <4E255D71.8050906@redhat.com>
+Date: Tue, 19 Jul 2011 12:33:21 +0200
+From: Hans de Goede <hdegoede@redhat.com>
 MIME-Version: 1.0
-Date: Mon, 11 Jul 2011 16:07:43 +0200
-Content-Type: Text/Plain;
-  charset="us-ascii"
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: [GIT PATCHES FOR 3.1] pwc: Add support for control events
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
-Message-Id: <201107111607.43487.istvan_v@mailbox.hu>
+Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
-Sender: <mchehab@infradead.org>
 
-The following patch adds a new control that makes it possible to set the
-luma notch filter type to finetune picture quality.
+Hi Mauro,
 
-Signed-off-by: Istvan Varga <istvan_v@mailbox.hu>
+Please pull from my tree to add support for control events to
+the pwc driver. Note that this patch depends upon the patches
+from hverkuils poll tree (and those patches are thus also
+in my tree, but not part of this pull req).
 
-diff -uNr xc4000_orig/drivers/media/video/cx88/cx88-core.c xc4000/drivers/media/video/cx88/cx88-core.c
---- xc4000_orig/drivers/media/video/cx88/cx88-core.c	2011-07-11 15:34:50.000000000 +0200
-+++ xc4000/drivers/media/video/cx88/cx88-core.c	2011-07-11 15:44:35.000000000 +0200
-@@ -636,6 +636,9 @@
- 	cx_write(MO_PCI_INTSTAT,   0xFFFFFFFF); // Clear PCI int
- 	cx_write(MO_INT1_STAT,     0xFFFFFFFF); // Clear RISC int
- 
-+	/* set default notch filter */
-+	cx_andor(MO_HTOTAL, 0x1800, (HLNotchFilter4xFsc << 11));
-+
- 	/* Reset on-board parts */
- 	cx_write(MO_SRST_IO, 0);
- 	msleep(10);
-@@ -994,10 +997,10 @@
- 	// htotal
- 	tmp64 = norm_htotal(norm) * (u64)vdec_clock;
- 	do_div(tmp64, fsc8);
--	htotal = (u32)tmp64 | (HLNotchFilter4xFsc << 11);
-+	htotal = (u32)tmp64;
- 	dprintk(1,"set_tvnorm: MO_HTOTAL        0x%08x [old=0x%08x,htotal=%d]\n",
- 		htotal, cx_read(MO_HTOTAL), (u32)tmp64);
--	cx_write(MO_HTOTAL, htotal);
-+	cx_andor(MO_HTOTAL, 0x07ff, htotal);
- 
- 	// vbi stuff, set vbi offset to 10 (for 20 Clk*2 pixels), this makes
- 	// the effective vbi offset ~244 samples, the same as the Bt8x8
-diff -uNr xc4000_orig/drivers/media/video/cx88/cx88-video.c xc4000/drivers/media/video/cx88/cx88-video.c
---- xc4000_orig/drivers/media/video/cx88/cx88-video.c	2011-07-11 15:34:50.000000000 +0200
-+++ xc4000/drivers/media/video/cx88/cx88-video.c	2011-07-11 15:49:29.000000000 +0200
-@@ -262,6 +262,20 @@
- 		.mask                  = 1 << 9,
- 		.shift                 = 9,
- 	}, {
-+		.v = {
-+			.id            = V4L2_CID_BAND_STOP_FILTER,
-+			.name          = "Notch filter",
-+			.minimum       = 0,
-+			.maximum       = 3,
-+			.step          = 1,
-+			.default_value = 0x0,
-+			.type          = V4L2_CTRL_TYPE_INTEGER,
-+		},
-+		.off                   = 0,
-+		.reg                   = MO_HTOTAL,
-+		.mask                  = 3 << 11,
-+		.shift                 = 11,
-+	}, {
- 	/* --- audio --- */
- 		.v = {
- 			.id            = V4L2_CID_AUDIO_MUTE,
-@@ -320,6 +334,7 @@
- 	V4L2_CID_SHARPNESS,
- 	V4L2_CID_CHROMA_AGC,
- 	V4L2_CID_COLOR_KILLER,
-+	V4L2_CID_BAND_STOP_FILTER,
- 	0
- };
- EXPORT_SYMBOL(cx88_user_ctrls);
+The following changes since commit 30178e8623281063c18592a848cdcd71f78f603d:
+
+   vivi: let vb2_poll handle events. (2011-07-18 13:07:28 +0200)
+
+are available in the git repository at:
+   git://linuxtv.org/hgoede/gspca.git media-for_v3.1
+
+Hans de Goede (1):
+       pwc: Add support for control events
+
+  drivers/media/video/pwc/pwc-if.c  |   84 ++++++++++++++++---------------------
+  drivers/media/video/pwc/pwc-v4l.c |   16 ++++++-
+  drivers/media/video/pwc/pwc.h     |    4 ++
+  3 files changed, 53 insertions(+), 51 deletions(-)
+
+Regards,
+
+Hans
