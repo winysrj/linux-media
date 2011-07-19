@@ -1,87 +1,96 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:53526 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752178Ab1G0I7V (ORCPT
+Received: from impaqm3.telefonica.net ([213.4.138.19]:41732 "EHLO
+	telefonica.net" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1752300Ab1GSI0D convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 27 Jul 2011 04:59:21 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: James <angweiyang@gmail.com>
-Subject: Re: Parallel CMOS Image Sensor with UART Control Interface
-Date: Wed, 27 Jul 2011 10:59:18 +0200
-Cc: Sakari Ailus <sakari.ailus@iki.fi>, linux-media@vger.kernel.org,
-	michael.jones@matrix-vision.de, alexg@meprolight.com
-References: <CAOy7-nMnE6_z4pAmw+Jc1riYSeCWwiNS2=_Ya==+7q5=bNrWuw@mail.gmail.com> <20110726194035.GF32629@valkosipuli.localdomain> <CAOy7-nNmeYy14Rm-NYBNqCoCkAs++rTUabiTZehWyBQ-k0M0og@mail.gmail.com>
-In-Reply-To: <CAOy7-nNmeYy14Rm-NYBNqCoCkAs++rTUabiTZehWyBQ-k0M0og@mail.gmail.com>
+	Tue, 19 Jul 2011 04:26:03 -0400
+From: Jose Alberto Reguero <jareguero@telefonica.net>
+To: Antti Palosaari <crope@iki.fi>
+Subject: Re: [PATCH] add support for the dvb-t part of CT-3650 v3
+Date: Tue, 19 Jul 2011 10:25:49 +0200
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	linux-media@vger.kernel.org,
+	Michael Krufky <mkrufky@kernellabs.com>
+References: <201106070205.08118.jareguero@telefonica.net> <201107190100.16802.jareguero@telefonica.net> <4E24C576.40102@iki.fi>
+In-Reply-To: <4E24C576.40102@iki.fi>
 MIME-Version: 1.0
 Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201107271059.19184.laurent.pinchart@ideasonboard.com>
+  charset="utf-8"
+Content-Transfer-Encoding: 8BIT
+Message-Id: <201107191025.49662.jareguero@telefonica.net>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi James,
-
-On Wednesday 27 July 2011 07:41:59 James wrote:
-> On Wed, Jul 27, 2011 at 3:40 AM, Sakari Ailus <sakari.ailus@iki.fi> wrote:
-> > On Mon, Jul 25, 2011 at 04:43:21PM +0800, James wrote:
-> >> Dear all,
+On Martes, 19 de Julio de 2011 01:44:54 Antti Palosaari escribió:
+> On 07/19/2011 02:00 AM, Jose Alberto Reguero wrote:
+> > On Lunes, 18 de Julio de 2011 22:28:41 Antti Palosaari escribió:
+> >> Hello
+> >> I did some review for this since I was interested of adding MFE for
+> >> Anysee driver which is rather similar (dvb-usb-framework).
 > >> 
-> >> Does anyone came across a v4l2 Linux Device Driver for an Image Sensor
-> >> that uses Parallel CMOS H/V and can only be control by UART interface
-> >> instead of the common I2C or SPI interface?
+> >> I found this patch have rather major issue(s) which should be fixed
+> >> properly.
 > >> 
-> >> A similar sensor is the STMicroelectronics VL5510 Image Sensor
-> >> although it support all 3 types of control interface.
-> >> (http://www.st.com/internet/automotive/product/178477.jsp)
-> >> 
-> >> Most or all the drivers found I found under drivers/media/video uses
-> >> the I2C or SPI interface instead
-> >> 
-> >> I'm new to writing driver and need a reference v4l2 driver for this
-> >> type of image sensor to work with OMAP3530 ISP port on Gumstix's Overo
-> >> board.
-> >> 
-> >> I just need a very simple v4l2 driver that can extract the image from
-> >> the sensor and control over it via the UART control interface.
-> >> 
-> >> Any help is very much appreciated.
+> >> * it does not compile
+> >> drivers/media/dvb/dvb-usb/dvb-usb.h:24:21: fatal error: dvb-pll.h: No
+> >> such file or directory
 > > 
-> > Hi James,
+> > Perhaps you need to add:
+> > -Idrivers/media/dvb/frontends/
+> > in:
+> > drivers/media/dvb/frontends/Makefile
+> > I compile the driver with:
+> > git://linuxtv.org/mchehab/new_build.git
+> > and I not have this problem.
+> 
+> Maybe, I was running latest Git. Not big issue.
+> 
+> >> * it puts USB-bridge functionality to the frontend driver
+> >> 
+> >> * 1st FE, TDA10023, is passed as pointer inside config to 2nd FE
+> >> TDA10048. Much of glue sleep, i2c etc, those calls are wrapped back to
+> >> to 1st FE...
+> >> 
+> >> * no exclusive locking between MFEs. What happens if both are accessed
+> >> same time?
+> >> 
+> >> 
+> >> Almost all those are somehow chained to same issue, few calls to 2nd FE
+> >> are wrapped to 1st FE. Maybe IOCTL override callback could help if those
+> >> are really needed.
 > > 
-> > I think there has been a recent discussion on a similar topic under the
-> > subject "RE: FW: OMAP 3 ISP". The way to do this would be to implement
-> > platform subdevs in V4L2 core, which I think we don't have quite yet.
+> > There are two problems:
 > > 
-> > Cc Laurent and Michael.
+> > First, the two frontends (tda10048 and tda10023)  use tda10023 i2c gate
+> > to talk with the tuner.
 > 
-> Hi Sakari,
+> Very easy to implement correctly. Attach tda10023 first and after that
+> tda10048. Override tda10048 .i2c_gate_ctrl() with tda10023
+> .i2c_gate_ctrl() immediately after tda10048 attach inside ttusb2.c. Now
+> you have both demods (FEs) .i2c_gate_ctrl() which will control
+> physically tda10023 I2C-gate as tuner is behind it.
 > 
-> Thanks for pointing me to the discussion thread.
-> 
-> I found it from the archive at
-> http://thread.gmane.org/gmane.linux.drivers.video-input-infrastructure/3270
-> 0/focus=32721
-> 
-> I read through the threads and see that I'm indeed in similar
-> situation with Alex.
-> 
-> We both have sensor that output CMOS H/V image and only have
-> UART/RS232 for control of the sensor operations via sending/reading
-> packet of bytes. i.e. AGC, contrast, brightness etc..
-> 
-> Since the thread ended on 29-Jun, is there anymore update or information?
-> 
-> As I've a MT9V032 camera with Gusmtix Overo, I was hoping to rely on
-> the MT9V032 driver as a starting point and adapt it for the VL5510
-> sensor using only the UART interface.
 
-As a quick hack, to start with, you can still use an I2C subdev driver. Just 
-remove all I2C-related code from the driver, and register a fake I2C device in 
-board code. That will let you at least develop the driver and test the UART 
-interface.
+I try that, but don't work. I get an oops. Because the i2c gate function of 
+the tda10023 driver use:
 
--- 
-Regards,
+struct tda10023_state* state = fe->demodulator_priv;
 
-Laurent Pinchart
+to get the i2c adress. When called from tda10048, don't work.
+
+Jose Alberto
+ 
+> > The second is that with dvb-usb, there is only one frontend, and if you
+> > wake up the second frontend, the adapter is not wake up. That can be
+> > avoided the way I do in the patch, or mantaining the adapter alwais on.
+> 
+> I think that could be also avoided similarly overriding demod callbacks
+> and adding some more logic inside ttusb2.c.
+> 
+> Proper fix that later problem is surely correct MFE support for
+> DVB-USB-framework. I am now looking for it, lets see how difficult it
+> will be.
+> 
+> 
+> regards
+> Antti
