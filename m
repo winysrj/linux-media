@@ -1,279 +1,88 @@
-Return-path: <mchehab@localhost>
-Received: from smtp-vbr4.xs4all.nl ([194.109.24.24]:4875 "EHLO
-	smtp-vbr4.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750830Ab1GFM4j (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 6 Jul 2011 08:56:39 -0400
-Message-ID: <47a439e504df2ac07b30fd9d77f8fbdb.squirrel@webmail.xs4all.nl>
-In-Reply-To: <4E1455AC.1090704@redhat.com>
-References: <1309351877-32444-1-git-send-email-t.stanislaws@samsung.com>
-    <201107050926.38639.hverkuil@xs4all.nl> <4E12FEA3.6010500@redhat.com>
-    <201107051520.17361.hverkuil@xs4all.nl> <4E14415A.9010001@redhat.com>
-    <416b47156837d78280f98bfd96e36dc7.squirrel@webmail.xs4all.nl>
-    <4E144B93.7060105@redhat.com>
-    <761c3894fa161d5e702cccf80443c7dd.squirrel@webmail.xs4all.nl>
-    <4E1455AC.1090704@redhat.com>
-Date: Wed, 6 Jul 2011 14:56:31 +0200
-Subject: Re: [RFC] DV timings spec fixes at V4L2 API - was: [PATCH 1/8]
- v4l: add macro for 1080p59_54 preset
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: "Mauro Carvalho Chehab" <mchehab@redhat.com>
-Cc: "Tomasz Stanislawski" <t.stanislaws@samsung.com>,
-	linux-media@vger.kernel.org, m.szyprowski@samsung.com,
-	kyungmin.park@samsung.com, laurent.pinchart@ideasonboard.com
+Return-path: <linux-media-owner@vger.kernel.org>
+Received: from nm12-vm3.bullet.mail.ne1.yahoo.com ([98.138.91.142]:43519 "HELO
+	nm12-vm3.bullet.mail.ne1.yahoo.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with SMTP id S1751008Ab1GSBqE convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 18 Jul 2011 21:46:04 -0400
+Message-ID: <1311039554.88024.YahooMailClassic@web121815.mail.ne1.yahoo.com>
+Date: Mon, 18 Jul 2011 18:39:14 -0700 (PDT)
+From: Luiz Ramos <lramos.prof@yahoo.com.br>
+Subject: Re: [PATCH] Fix wrong register mask in gspca/sonixj.c
+To: Jean-Francois Moine <moinejf@free.fr>
+Cc: linux-media@vger.kernel.org
+In-Reply-To: <20110715194448.401bf441@tele>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: 8BIT
+Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
-Sender: <mchehab@infradead.org>
 
-> Em 06-07-2011 09:14, Hans Verkuil escreveu:
->>> Em 06-07-2011 08:31, Hans Verkuil escreveu:
->>>>> Em 05-07-2011 10:20, Hans Verkuil escreveu:
->>>>>
->>>>>>> I failed to see what information is provided by the "presets" name.
->>>>>>> If
->>>>>>> this were removed
->>>>>>> from the ioctl, and fps would be added instead, the API would be
->>>>>>> clearer. The only
->>>>>>> adjustment would be to use "index" as the preset selection key.
->>>>>>> Anyway,
->>>>>>> it is too late
->>>>>>> for such change. We need to live with that.
->>>>>>
->>>>>> Adding the fps solves nothing. Because that still does not give you
->>>>>> specific timings.
->>>>>> You can have 1920x1080P60 that has quite different timings from the
->>>>>> CEA-861 standard
->>>>>> and that may not be supported by a TV.
->>>>>>
->>>>>> If you are working with HDMI, then you may want to filter all
->>>>>> supported
->>>>>> presets to
->>>>>> those of the CEA standard.
->>>>>>
->>>>>> That's one thing that is missing at the moment: that presets
->>>>>> belonging
->>>>>> to a certain
->>>>>> standard get their own range. Since we only do CEA861 right now it
->>>>>> hasn't been an
->>>>>> issue, but it will.
->>>>>
->>>>> I prepared a long email about that, but then I realized that we're
->>>>> investing our time into
->>>>> something broken, at the light of all DV timing standards. So, I've
->>>>> dropped it and
->>>>> started from scratch.
->>>>>
->>>>> From what I've got, there are some hardware that can only do a
->>>>> limited
->>>>> set
->>>>> of DV timings.
->>>>> If this were not the case, we could simply just use the
->>>>> VIDIOC_S_DV_TIMINGS/VIDIOC_G_DV_TIMINGS,
->>>>> and put the CEA 861 and VESA timings into some userspace library.
->>>>>
->>>>> In other words, the PRESET API is meant to solve the case where
->>>>> hardware
->>>>> only support
->>>>> a limited set of frequencies, that may or may not be inside the CEA
->>>>> standard.
->>>>>
->>>>> Let's assume we never added the current API, and discuss how it would
->>>>> properly fulfill
->>>>> the user needs. An API that would likely work is:
->>>>>
->>>>> struct v4l2_dv_enum_preset2 {
->>>>> 	__u32	  index;
->>>>> 	__u8	  name[32]; /* Name of the preset timing */
->>>>>
->>>>> 	struct v4l2_fract fps;
->>>>>
->>>>> #define DV_PRESET_IS_PROGRESSIVE	1<<31
->>>>> #define DV_PRESET_SPEC(flag)		(flag && 0xff)
->>>>> #define DV_PRESET_IS_CEA861		1
->>>>> #define DV_PRESET_IS_DMT		2
->>>>> #define DV_PRESET_IS_CVF		3
->>>>> #define DV_PRESET_IS_GTF		4
->>>>> #define DV_PRESET_IS_VENDOR_SPECIFIC	5
->>>>>
->>>>> 	__u32	flags;		/* Interlaced/progressive, DV specs, etc */
->>>>>
->>>>> 	__u32	width;		/* width in pixels */
->>>>> 	__u32	height;		/* height in lines */
->>>>> 	__u32	polarities;	/* Positive or negative polarity */
->>>>> 	__u64	pixelclock;	/* Pixel clock in HZ. Ex. 74.25MHz->74250000 */
->>>>> 	__u32	hfrontporch;	/* Horizpontal front porch in pixels */
->>>>> 	__u32	hsync;		/* Horizontal Sync length in pixels */
->>>>> 	__u32	hbackporch;	/* Horizontal back porch in pixels */
->>>>> 	__u32	vfrontporch;	/* Vertical front porch in pixels */
->>>>> 	__u32	vsync;		/* Vertical Sync length in lines */
->>>>> 	__u32	vbackporch;	/* Vertical back porch in lines */
->>>>> 	__u32	il_vfrontporch;	/* Vertical front porch for bottom field of
->>>>> 				 * interlaced field formats
->>>>> 				 */
->>>>> 	__u32	il_vsync;	/* Vertical sync length for bottom field of
->>>>> 				 * interlaced field formats
->>>>> 				 */
->>>>> 	__u32	il_vbackporch;	/* Vertical back porch for bottom field of
->>>>> 				 * interlaced field formats
->>>>> 				 */
->>>>> 	__u32	  reserved[4];
->>>>> };
->>>>>
->>>>> #define	VIDIOC_ENUM_DV_PRESETS2	_IOWR('V', 83, struct
->>>>> v4l2_dv_enum_preset2)
->>>>> #define	VIDIOC_S_DV_PRESET2	_IOWR('V', 84, u32 index)
->>>>> #define	VIDIOC_G_DV_PRESET2	_IOWR('V', 85, u32 index)
->>>>>
->>>>> Such preset API seems to work for all cases. Userspace can use any DV
->>>>> timing
->>>>> information to select the desired format, and don't need to have a
->>>>> switch
->>>>> for
->>>>> a preset macro to try to guess what the format actually means. Also,
->>>>> there's no
->>>>> need to touch at the API spec every time a new DV timeline is needed.
->>>>>
->>>>> Also, it should be noticed that, since the size of the data on the
->>>>> above
->>>>> definitions
->>>>> are different than the old ones, _IO macros will provide a different
->>>>> magic
->>>>> number,
->>>>> so, adding these won't break the existing API.
->>>>>
->>>>> So, I think we should work on this proposal, and mark the existing
->>>>> one
->>>>> as
->>>>> deprecated.
->>>>
->>>> This proposal makes it very hard for applications to directly select a
->>>> format like 720p50 because the indices can change at any time.
->>>
->>> Why? All the application needs to do is to call
->>> VIDIOC_ENUM_DV_PRESETS2,
->>> check what line it wants,
->>
->> It's not so easy as you think to find the right timings: you have to
->> check
->> many parameters to be certain you have the right one and not some subtle
->> variation.
->
-> Or you can do a strcmp(v4l2_dv_enum_preset2.name,"my preset").
+Hello, Jean-François,
 
-Yuck. Then you also need to define the names so you know what name to
-match on. Since once you allow this you can never modify the names again.
+I downloaded the tarball you recommended, compiled it and it works nicely.
 
->
->>> and do a S_DV_PRESET2, just like any other place
->>> where V4L2 defines an ENUM function.
->>>
->>> The enum won't change during application runtime, so, they can be
->>> stored
->>> if the application would need to switch to other formats latter.
->>>
->>>> I think
->>>> this is a very desirable feature, particularly for apps running on
->>>> embedded systems where the hardware is known. This was one of the
->>>> design
->>>> considerations at the time this API was made.
->>>
->>> This is a very weak argument. With just one ENUM loop, the application
->>> can
->>> quickly get the right format(s), and associate them with any internal
->>> namespace.
->>
->> That actually isn't easy at all.
->
-> ???
->
->>>> But looking at this I wonder if we shouldn't just make a
->>>> VIDIOC_G_PRESET_TIMINGS function? You give it the preset ID and you
->>>> get
->>>> all the timing information back. No need to deprecate anything. I'm
->>>> not
->>>> even sure if with this change we need to modify struct
->>>> v4l2_dv_enum_preset
->>>> as I proposed in my RFC, although I think we should.
->>>
->>> Won't solve the issue: one new #define is needed for each video timing,
->>> namespaces will be confusing, no support for VESA GVF/ VESA CVT timings
->>> (or worse: we'll end by having thousands of formats at the end of the
->>> day),
->>> instead of just one ENUM ioctl, an extra ioctl will be required for
->>> each
->>> returned value, etc.
->>
->> Presets for GTF/CVT are useless (and I have never seen hardware that has
->> such presets). In practice you have CEA and DMT presets and nothing
->> else.
->>
->> We may need to add PRESET_PRIVATE (just like we do for controls) should
->> we
->> get non-CEA/DMT formats as well. There is no point in having specific
->> preset defines for those IMHO.
->
-> A PRESET_PRIVATE would mean just one DV timing, as the "preset" is the
-> index
-> to get data. So, this won't fix the API.
+The original problem also happened with this package. Playing around
+with reg17 at some points, and looking the code before the commit of 2010-12-21, I could manage to work around the problem.
 
-PRESET_PRIVATE, PRESET_PRIVATE+1, +2, etc. Just as is done in other places.
+Only to remember, in kernel version 2.6.37.6 the webcam became very dark (I could only see things like a 60 W incandescent lamp, one meter long, or things like clear blue sky). It seemed there was some problems with auto-exposure, auto-gain or other similar.
 
->
->>
->> I see very little advantage in throwing away an API that works quite
->> well
->> in practice only to add a new one that isn't much better IMO. Instead we
->> can easily improve the existing API.
->>
->> I *want* to be able to specify the most common CEA/DMT standards
->> directly
->> and unambiguously through presets.
->
-> With my proposal, you can do it.
->
->> It is very easy and nice to use in
->> practice. Once you go into the realm of GTF/CVT, then the preset API is
->> too limited and G/S_DV_TIMINGS need to be used, but that requires much
->> more effort on the part of the application.
->
-> The usage of G/S_DV_TIMINGS require an extra care: in the past, old VGA
-> hardware
-> (and/or monitors) could be damaged if it is programed with some
-> parameters.
-> It used to have some viruses that damaged hardware using it. So, any
-> driver
-> implementing it will need to validate the timings, to be sure that they
-> are
-> on an acceptable range and won't damage the hardware in any way, or it
-> will
-> need to require some special capability (root access) to avoid that an
-> userspace
-> program to damage the hardware.
+However, the difference which effectively changed the things is the value which reg17 carries after line 2535 of gspca_sonixj.c (now referring to the "tarball" code).
 
-Drivers need to validate if necessary, of course.
+I noticed that in 640x480 the device worked fine, but in 320x240 and 160x120 it didn't (I mean: the image is dark). Or'ing reg17 with 0x04 in line 2535 (as it's currently done for VGA) is sufficient to make the webcam work again. The change could be like that:
 
-> The timings on a preset table should be ok, so it is safer to implement
-> the *PRESET
-> ioctls than the *TIMINGS one.
+diff --git a/build/sonixj.c b/build/sonixj.c
+index afde673..802dbfa 100644
+--- a/build/sonixj.c
++++ b/build/sonixj.c
+@@ -2532,6 +2532,10 @@ static int sd_start(struct gspca_dev *gspca_dev)
+                        reg17 &= ~MCK_SIZE_MASK;
+                        reg17 |= 0x04;          /* clock / 4 */
+                }
++               else {                          /* if 320x240 || 160x120 */
++                       reg17 &= ~MCK_SIZE_MASK;
++                       reg17 |= 0x04;
++               }
+                break;
+        case SENSOR_OV7630:
+                init = ov7630_sensor_param1;
 
-You will need the TIMINGS ioctls if you want to handle GTF/CVT formats.
-Those are calculated so the preset API is a poor fit.
+However, the frame rates get limited to 10 fps. Without that change, and in 320x240 and 160x120, they reach 20 fps (of darkness).
 
-Regards,
+I can't see what or'ing that register means, and what's the relationship between this and the webcam darkness. It seems that these bits control some kind of clock; this can be read in the program comments. One other argument in favour of this assumption is the fact that the frame rate changes accordingly to the value of these bits. But I can't see how this relates to exposure.
 
-       Hans
+For my purposes, I'll stay with that change; it's sufficient for my purposes. If you know what I did, please advise me. :-)
 
->> I hope others will pitch in as well with their opinions.
->
-> Agreed.
->
-> Thanks,
-> Mauro.
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->
+Thanks for your help,
+
+Luiz
 
 
+
+
+--- Em sex, 15/7/11, Jean-Francois Moine <moinejf@free.fr> escreveu:
+
+> De: Jean-Francois Moine <moinejf@free.fr>
+> Assunto: Re: [PATCH] Fix wrong register mask in gspca/sonixj.c
+> Para: "Luiz Ramos" <lramos.prof@yahoo.com.br>
+> Cc: linux-media@vger.kernel.org
+> Data: Sexta-feira, 15 de Julho de 2011, 14:44
+> On Fri, 15 Jul 2011 02:57:43 -0700
+> (PDT)
+> Luiz Ramos <lramos.prof@yahoo.com.br>
+> wrote:
+> 
+> > Ok, I'm now grabbing this tarball:
+> > http://moinejf.free.fr/gspca-2.13.2.tar.gz.
+> > 
+> > The site also features a (some) git repository(ies)
+> but I understood
+> > you mean the test version, is it right?
+> 
+> Yes. The tarball is simpler to compile and install.
+> 
+> -- 
+> Ken ar c'hentañ    |   
+>       ** Breizh ha Linux atav! **
+> Jef       
+> |        http://moinejf.free.fr/
+> 
