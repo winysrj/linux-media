@@ -1,25 +1,50 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp2.mail.ru ([94.100.176.130]:57747 "EHLO smtp2.mail.ru"
+Received: from mx1.redhat.com ([209.132.183.28]:35465 "EHLO mx1.redhat.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752516Ab1GWPa1 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 23 Jul 2011 11:30:27 -0400
-Message-ID: <4E2AE7F1.10509@list.ru>
-Date: Sat, 23 Jul 2011 19:25:37 +0400
-From: Stas Sergeev <stsp@list.ru>
+	id S1751032Ab1GSMGZ (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 19 Jul 2011 08:06:25 -0400
+Received: from int-mx01.intmail.prod.int.phx2.redhat.com (int-mx01.intmail.prod.int.phx2.redhat.com [10.5.11.11])
+	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id p6JC6OP9028204
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
+	for <linux-media@vger.kernel.org>; Tue, 19 Jul 2011 08:06:24 -0400
+Received: from shalem.localdomain (vpn1-6-8.ams2.redhat.com [10.36.6.8])
+	by int-mx01.intmail.prod.int.phx2.redhat.com (8.13.8/8.13.8) with ESMTP id p6JC6Mud017131
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-media@vger.kernel.org>; Tue, 19 Jul 2011 08:06:24 -0400
+Message-ID: <4E257399.5020600@redhat.com>
+Date: Tue, 19 Jul 2011 14:07:53 +0200
+From: Hans de Goede <hdegoede@redhat.com>
 MIME-Version: 1.0
-To: Mauro Carvalho Chehab <mchehab@infradead.org>
-CC: linux-media@vger.kernel.org
-Subject: Re: [patch][saa7134] do not change mute state for capturing audio
-References: <4E19D2F7.6060803@list.ru> <4E1E8108.3060305@list.ru> <4E1F9A25.1020208@infradead.org> <4E22AF12.4020600@list.ru> <4E22CCC0.8030803@infradead.org> <4E24BEB8.4060501@redhat.com> <4E257FF5.4040401@infradead.org> <4E258B60.6010007@list.ru> <4E25906D.3020200@infradead.org> <4E259B0C.90107@list.ru> <4E25A26A.2000204@infradead.org> <4E25A7C2.3050609@list.ru> <4E25C7AE.5020503@infradead.org> <4E25CF35.7000802@list.ru> <4E25DB37.8020609@infradead.org> <4E25FDE4.7040805@list.ru> <4E262772.9060509@infradead.org> <4E266799.8030706@list.ru> <4E26AEC0.5000405@infradead.org> <4E26B1E7.2080107@list.ru> <4E26B29B.4010109@infradead.org> <4E292BED.60108@list.ru> <4E296D00.9040608@infradead.org> <4E296F6C.9080107@list.ru> <4E2971D4.1060109@infradead.org> <4E29738F.7040605@list.ru> <4E297505.7090307@infradead.org> <4E29E02A.1020402@list.ru> <4E2A23C7.3040209@infradead.org> <4E2A7BF0.8080606@list.ru> <4E2AC742.8020407@infradead.org> <4E2ACAAD.4050602@list.ru> <4E2AE40F.7030108@infradead.org>
-In-Reply-To: <4E2AE40F.7030108@infradead.org>
-Content-Type: text/plain; charset=UTF-8; format=flowed
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: [GIT PATCHES FOR 3.1] pwc: Add support for control events (v2)
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-23.07.2011 19:09, Mauro Carvalho Chehab wrote:
-> Anyway, we're discussing a lot for a kernel fix for PA,
-Please note that right now we are discussing the
-fix for mplayer or anything else that forgets to
-just explicitly enable/disable the audio!
-IMHO, that should better be fixed first.
+Hi Mauro,
+
+Please pull from my tree to add support for control events to
+the pwc driver. Note that this patch depends upon the patches
+from hverkuils poll tree (and those patches are thus also
+in my tree, but not part of this pull req).
+
+The following changes since commit 30178e8623281063c18592a848cdcd71f78f603d:
+
+   vivi: let vb2_poll handle events. (2011-07-18 13:07:28 +0200)
+
+are available in the git repository at:
+   git://linuxtv.org/hgoede/gspca.git media-for_v3.1
+
+Hans de Goede (2):
+       pwc: Add support for control events
+       pwc: properly mark device_hint as unused in all probe error paths
+
+  drivers/media/video/pwc/pwc-if.c  |   79 ++++++++++++++----------------------
+  drivers/media/video/pwc/pwc-v4l.c |   16 ++++++-
+  drivers/media/video/pwc/pwc.h     |    4 ++
+  3 files changed, 48 insertions(+), 51 deletions(-)
+
+Regards,
+
+Hans
