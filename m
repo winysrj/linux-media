@@ -1,706 +1,318 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wy0-f174.google.com ([74.125.82.174]:37755 "EHLO
-	mail-wy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752184Ab1GYSfM (ORCPT
+Received: from mail-fx0-f52.google.com ([209.85.161.52]:43778 "EHLO
+	mail-fx0-f52.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752456Ab1GSJI0 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 25 Jul 2011 14:35:12 -0400
-Received: by mail-wy0-f174.google.com with SMTP id 8so2946422wyg.19
-        for <linux-media@vger.kernel.org>; Mon, 25 Jul 2011 11:35:11 -0700 (PDT)
-Subject: [PATCH 2/3] it913x Series Driver for Kworld UB499-2T (id
- 1b80:e409) v1.05
-From: Malcolm Priestley <tvboxspy@gmail.com>
-To: linux-media@vger.kernel.org
-Content-Type: text/plain; charset="UTF-8"
-Date: Mon, 25 Jul 2011 19:35:03 +0100
-Message-ID: <1311618903.7655.4.camel@localhost>
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+	Tue, 19 Jul 2011 05:08:26 -0400
+Received: by fxd18 with SMTP id 18so8155842fxd.11
+        for <linux-media@vger.kernel.org>; Tue, 19 Jul 2011 02:08:25 -0700 (PDT)
+From: remi schwartz <remi.schwartz@gmail.com>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+Subject: Re: patch for Asus My Cinema PS3-100 (1043:48cd)
+Date: Tue, 19 Jul 2011 11:08:19 +0200
+Cc: linux-media@vger.kernel.org
+References: <201107141128.23344.remzouille@free.fr> <4E1F1E5F.2040302@redhat.com> <201107151918.24938.remzouille@free.fr>
+In-Reply-To: <201107151918.24938.remzouille@free.fr>
+MIME-Version: 1.0
+Content-Type: Multipart/Mixed;
+  boundary="Boundary-00=_DmUJO80iUI1mzym"
+Message-Id: <201107191108.19855.remi.schwartz@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Driver for Kworld UB499-2T (id 1b80:e409)
+--Boundary-00=_DmUJO80iUI1mzym
+Content-Type: Text/Plain;
+  charset="utf-8"
+Content-Transfer-Encoding: quoted-printable
 
-The device driver has been named it913x, so that support for other family members
-can be added later.
+Le vendredi 15 juillet 2011, remzouille a =C3=A9crit :
+> Le jeudi 14 juillet 2011 18:50:39, vous avez =C3=A9crit :
+> > Em 14-07-2011 06:28, remzouille escreveu:
+> > > Hi all,
+> > >=20
+> > > This is the patch against kernel 2.6.32 I used to get to work my TV
+> > > card Asus My Cinema PS3-100 (1043:48cd).
+> > >=20
+> > > More information on this card can be found on this page :
+> > >=20
+> > > http://techblog.hollants.com/2009/09/asus-mycinema-ps3-100-3-in-1-tv-=
+ca
+> > > rd /
+> > >=20
+> > > This card seems to be a clone of the Asus Tiger 3in1, numbered 147 in
+> > > the SAA7134 module, so I gave it the temporary number of 1470.
+> > >=20
+> > > It has in addition a remote controller that works fine with the
+> > > ir_codes_asus_pc39_table. I haven't finished the work on all keys but
+> > > the most usefull ones are working.
+> >=20
+> > Please finish the keytable mapping and re-send it with your
+> > Signed-off-By.
+>=20
+> Ok, I'll do that when I am back at home in a few days.
+> As I said, the remote is already quite fully functional.
+>=20
 
-TODOs
-Firmware support for other it913x devices.
-Remote control support, there are two known types.
+The remote part is now complete.
+
+> > > DVB-T and remote have been tested and work fine.
+> > > DVB-S, FM and Composite input haven't been tested.
+> > >=20
+> > > Hope that will help some of you.
+> >=20
+> > Thanks!
+> > Mauro
+>=20
+> You're welcome !
+>=20
+> R=C3=A9mi
+
+Signed-off-by: Remzouille <remzouille@free.fr>
+
+--Boundary-00=_DmUJO80iUI1mzym
+Content-Type: text/x-patch;
+  charset="UTF-8";
+  name="saa7134_ps3_100_patch"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: attachment;
+	filename="saa7134_ps3_100_patch"
+
+--- ./include/media/ir-common.h.orig	2009-12-03 04:51:21.000000000 +0100
++++ ./include/media/ir-common.h	2011-07-18 23:53:17.281797898 +0200
+@@ -155,6 +155,7 @@ extern struct ir_scancode_table ir_codes
+ extern struct ir_scancode_table ir_codes_proteus_2309_table;
+ extern struct ir_scancode_table ir_codes_budget_ci_old_table;
+ extern struct ir_scancode_table ir_codes_asus_pc39_table;
++extern struct ir_scancode_table ir_codes_asus_ps3_100_table;
+ extern struct ir_scancode_table ir_codes_encore_enltv_table;
+ extern struct ir_scancode_table ir_codes_encore_enltv2_table;
+ extern struct ir_scancode_table ir_codes_tt_1500_table;
+--- ./drivers/media/common/ir-keymaps.c.orig	2009-12-03 04:51:21.000000000 +0100
++++ ./drivers/media/common/ir-keymaps.c	2011-07-19 00:10:56.090801168 +0200
+@@ -2064,6 +2064,70 @@ struct ir_scancode_table ir_codes_asus_p
+ EXPORT_SYMBOL_GPL(ir_codes_asus_pc39_table);
  
-
-Signed-off-by: Malcolm Priestley <tvboxspy@gmail.com>
-
----
- drivers/media/dvb/dvb-usb/Kconfig       |    7 +
- drivers/media/dvb/dvb-usb/Makefile      |    3 +
- drivers/media/dvb/dvb-usb/dvb-usb-ids.h |    1 +
- drivers/media/dvb/dvb-usb/it913x.c      |  613 +++++++++++++++++++++++++++++++
- 4 files changed, 624 insertions(+), 0 deletions(-)
- create mode 100644 drivers/media/dvb/dvb-usb/it913x.c
-
-diff --git a/drivers/media/dvb/dvb-usb/Kconfig b/drivers/media/dvb/dvb-usb/Kconfig
-index 5d73dec..6e97bb3 100644
---- a/drivers/media/dvb/dvb-usb/Kconfig
-+++ b/drivers/media/dvb/dvb-usb/Kconfig
-@@ -374,3 +374,10 @@ config DVB_USB_TECHNISAT_USB2
- 	select DVB_STV6110x if !DVB_FE_CUSTOMISE
- 	help
- 	  Say Y here to support the Technisat USB2 DVB-S/S2 device
-+
-+config DVB_USB_IT913X
-+	tristate "it913x driver"
-+	depends on DVB_USB
-+	select DVB_IT913X_FE
-+	help
-+	  Say Y here to support the it913x device
-diff --git a/drivers/media/dvb/dvb-usb/Makefile b/drivers/media/dvb/dvb-usb/Makefile
-index 4bac13d..3494d41 100644
---- a/drivers/media/dvb/dvb-usb/Makefile
-+++ b/drivers/media/dvb/dvb-usb/Makefile
-@@ -94,6 +94,9 @@ obj-$(CONFIG_DVB_USB_LME2510) += dvb-usb-lmedm04.o
- dvb-usb-technisat-usb2-objs = technisat-usb2.o
- obj-$(CONFIG_DVB_USB_TECHNISAT_USB2) += dvb-usb-technisat-usb2.o
  
-+dvb-usb-it913x-objs := it913x.o
-+obj-$(CONFIG_DVB_USB_IT913X) += dvb-usb-it913x.o
-+
- EXTRA_CFLAGS += -Idrivers/media/dvb/dvb-core/ -Idrivers/media/dvb/frontends/
- # due to tuner-xc3028
- EXTRA_CFLAGS += -Idrivers/media/common/tuners
-diff --git a/drivers/media/dvb/dvb-usb/dvb-usb-ids.h b/drivers/media/dvb/dvb-usb/dvb-usb-ids.h
-index 2a79b8f..7433261 100644
---- a/drivers/media/dvb/dvb-usb/dvb-usb-ids.h
-+++ b/drivers/media/dvb/dvb-usb/dvb-usb-ids.h
-@@ -136,6 +136,7 @@
- #define USB_PID_KWORLD_PC160_2T				0xc160
- #define USB_PID_KWORLD_PC160_T				0xc161
- #define USB_PID_KWORLD_UB383_T				0xe383
-+#define USB_PID_KWORLD_UB499_2T_T09			0xe409
- #define USB_PID_KWORLD_VSTREAM_COLD			0x17de
- #define USB_PID_KWORLD_VSTREAM_WARM			0x17df
- #define USB_PID_TERRATEC_CINERGY_T_USB_XE		0x0055
-diff --git a/drivers/media/dvb/dvb-usb/it913x.c b/drivers/media/dvb/dvb-usb/it913x.c
-new file mode 100644
-index 0000000..94a611b
---- /dev/null
-+++ b/drivers/media/dvb/dvb-usb/it913x.c
-@@ -0,0 +1,613 @@
-+/* DVB USB compliant linux driver for IT9137
-+ *
-+ * Copyright (C) 2011 Malcolm Priestley (tvboxspy@gmail.com)
-+ * IT9137 (C) ITE Tech Inc.
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License Version 2, as
-+ * published by the Free Software Foundation.
-+ *
-+ * This program is distributed in the hope that it will be useful,
-+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-+ * GNU General Public License for more details.
-+ *
-+ * You should have received a copy of the GNU General Public License
-+ * along with this program; if not, write to the Free Software
-+ * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
-+ *
-+ *
-+ * see Documentation/dvb/README.dvb-usb for more information
-+ * see Documentation/dvb/it9137.txt for firmware information
-+ *
++/*
++ * Remzouille <remzouille@free.fr>
++ * this is the remote control that comes with the asus my cinema ps3-100
++ * base taken from pc39 one
 + */
-+#define DVB_USB_LOG_PREFIX "it913x"
++static struct ir_scancode ir_codes_asus_ps3_100[] = {
++	{ 0x23, KEY_HOME },		/* home */
++	{ 0x21, KEY_TV },		/* tv */
++	{ 0x3c, KEY_TEXT },		/* teletext */
++	{ 0x16, KEY_POWER },		/* close */
++	
++	{ 0x34, KEY_RED },		/* red */
++	{ 0x32, KEY_YELLOW },		/* yellow */
++	{ 0x39, KEY_BLUE },		/* blue */
++	{ 0x38, KEY_GREEN },		/* green */
 +
-+#include <linux/usb.h>
-+#include <linux/usb/input.h>
-+#include <media/rc-core.h>
++	/* Keys 0 to 9 */
++	{ 0x15, KEY_0 },
++	{ 0x29, KEY_1 },
++	{ 0x2d, KEY_2 },
++	{ 0x2b, KEY_3 },
++	{ 0x09, KEY_4 },
++	{ 0x0d, KEY_5 },
++	{ 0x0b, KEY_6 },
++	{ 0x31, KEY_7 },
++	{ 0x35, KEY_8 },
++	{ 0x33, KEY_9 },
 +
-+#include "dvb-usb.h"
-+#include "it913x-fe.h"
++	{ 0x2a, KEY_VOLUMEUP },
++	{ 0x19, KEY_VOLUMEDOWN },
++	{ 0x0a, KEY_CHANNELUP },	/* channel / program + */
++	{ 0x1b, KEY_CHANNELDOWN },	/* channel / program - */
++	
++	{ 0x37, KEY_UP },
++	{ 0x3b, KEY_DOWN },
++	{ 0x27, KEY_LEFT },
++	{ 0x2f, KEY_RIGHT },
++	{ 0x1a, KEY_ENTER },		/* enter */
++	
++	{ 0x1d, KEY_EXIT },		/* back */
++	{ 0x13, KEY_AB },		/* recall */
++	
++	{ 0x1f, KEY_AUDIO },		/* TV audio */
++	{ 0x08, KEY_SCREEN },		/* snapshot */
++	{ 0x11, KEY_ZOOM },		/* full screen */
++	{ 0x3d, KEY_MUTE },		/* mute */
 +
-+/* debug */
-+static int dvb_usb_it913x_debug;
-+#define l_dprintk(var, level, args...) do { \
-+	if ((var >= level)) \
-+		printk(KERN_DEBUG DVB_USB_LOG_PREFIX ": " args); \
-+} while (0)
-+
-+#define deb_info(level, args...) l_dprintk(dvb_usb_it913x_debug, level, args)
-+#define debug_data_snipet(level, name, p) \
-+	 deb_info(level, name" (%02x%02x%02x%02x%02x%02x%02x%02x)", \
-+		*p, *(p+1), *(p+2), *(p+3), *(p+4), \
-+			*(p+5), *(p+6), *(p+7));
-+
-+
-+module_param_named(debug, dvb_usb_it913x_debug, int, 0644);
-+MODULE_PARM_DESC(debug, "set debugging level (1=info (or-able))."
-+			DVB_USB_DEBUG_STATUS);
-+
-+static int pid_filter;
-+module_param_named(pid, pid_filter, int, 0644);
-+MODULE_PARM_DESC(pid, "set default 0=on 1=off");
-+
-+int cmd_counter;
-+
-+DVB_DEFINE_MOD_OPT_ADAPTER_NR(adapter_nr);
-+
-+struct it913x_state {
-+	u8 id;
++	{ 0x0e, KEY_REWIND },		/* backward << */
++	{ 0x2e, KEY_RECORD },		/* recording */
++	{ 0x36, KEY_STOP },
++	{ 0x3a, KEY_FASTFORWARD },	/* forward >> */
++	{ 0x1e, KEY_PREVIOUS },		/* rew */
++	{ 0x25, KEY_PAUSE },		/* pause */
++	{ 0x06, KEY_PLAY },		/* play */
++	{ 0x26, KEY_NEXT },		/* forward */
 +};
 +
-+static int it913x_bulk_write(struct usb_device *dev,
-+				u8 *snd, int len, u8 pipe)
-+{
-+	int ret, actual_l;
++struct ir_scancode_table ir_codes_asus_ps3_100_table = {
++	.scan = ir_codes_asus_ps3_100,
++	.size = ARRAY_SIZE(ir_codes_asus_ps3_100),
++};
++EXPORT_SYMBOL_GPL(ir_codes_asus_ps3_100_table);
 +
-+	ret = usb_bulk_msg(dev, usb_sndbulkpipe(dev, pipe),
-+				snd, len , &actual_l, 100);
-+	return ret;
-+}
 +
-+static int it913x_bulk_read(struct usb_device *dev,
-+				u8 *rev, int len, u8 pipe)
-+{
-+	int ret, actual_l;
-+
-+	ret = usb_bulk_msg(dev, usb_rcvbulkpipe(dev, pipe),
-+				 rev, len , &actual_l, 200);
-+	return ret;
-+}
-+
-+static u16 check_sum(u8 *p, u8 len)
-+{
-+	u16 sum = 0;
-+	u8 i = 1;
-+	while (i < len)
-+		sum += (i++ & 1) ? (*p++) << 8 : *p++;
-+	return ~sum;
-+}
-+
-+static int it913x_io(struct usb_device *udev, u8 mode, u8 pro,
-+			u8 cmd, u32 reg, u8 addr, u8 *data, u8 len)
-+{
-+	int ret = 0, i, buf_size = 1;
-+	u8 *buff;
-+	u8 rlen;
-+	u16 chk_sum;
-+
-+	buff = kzalloc(256, GFP_KERNEL);
-+	if (!buff) {
-+		info("USB Buffer Failed");
-+		return -ENOMEM;
-+	}
-+
-+	buff[buf_size++] = pro;
-+	buff[buf_size++] = cmd;
-+	buff[buf_size++] = cmd_counter;
-+
-+	switch (mode) {
-+	case READ_LONG:
-+	case WRITE_LONG:
-+		buff[buf_size++] = len;
-+		buff[buf_size++] = 2;
-+		buff[buf_size++] = (reg >> 24);
-+		buff[buf_size++] = (reg >> 16) & 0xff;
-+		buff[buf_size++] = (reg >> 8) & 0xff;
-+		buff[buf_size++] = reg & 0xff;
-+	break;
-+	case READ_SHORT:
-+		buff[buf_size++] = addr;
+ /* Encore ENLTV-FM  - black plastic, white front cover with white glowing buttons
+     Juan Pablo Sormani <sorman@gmail.com> */
+ static struct ir_scancode ir_codes_encore_enltv[] = {
+--- ./drivers/media/video/saa7134/saa7134-input.c.orig	2009-12-03 04:51:21.000000000 +0100
++++ ./drivers/media/video/saa7134/saa7134-input.c	2011-07-18 23:53:17.293797824 +0200
+@@ -575,6 +575,11 @@ int saa7134_input_init1(struct saa7134_d
+ 		mask_keydown = 0x0040000;
+ 		rc5_gpio = 1;
+ 		break;
++	case SAA7134_BOARD_ASUSTeK_PS3_100:
++		ir_codes     = &ir_codes_asus_ps3_100_table;
++		mask_keydown = 0x0040000;
++		rc5_gpio = 1;
 +		break;
-+	case WRITE_SHORT:
-+		buff[buf_size++] = len;
-+		buff[buf_size++] = addr;
-+		buff[buf_size++] = (reg >> 8) & 0xff;
-+		buff[buf_size++] = reg & 0xff;
-+	break;
-+	case READ_DATA:
-+	case WRITE_DATA:
-+		break;
-+	case WRITE_CMD:
-+		mode = 7;
-+		break;
-+	default:
-+		kfree(buff);
-+		return -EINVAL;
-+	}
-+
-+	if (mode & 1) {
-+		for (i = 0; i < len ; i++)
-+			buff[buf_size++] = data[i];
-+	}
-+	chk_sum = check_sum(&buff[1], buf_size);
-+
-+	buff[buf_size++] = chk_sum >> 8;
-+	buff[0] = buf_size;
-+	buff[buf_size++] = (chk_sum & 0xff);
-+
-+	ret = it913x_bulk_write(udev, buff, buf_size , 0x02);
-+
-+	ret |= it913x_bulk_read(udev, buff, (mode & 1) ?
-+			5 : len + 5 , 0x01);
-+
-+	rlen = (mode & 0x1) ? 0x1 : len;
-+
-+	if (mode & 1)
-+		ret |= buff[2];
-+	else
-+		memcpy(data, &buff[3], rlen);
-+
-+	cmd_counter++;
-+
-+	kfree(buff);
-+
-+	return (ret < 0) ? -ENODEV : 0;
-+}
-+
-+static int it913x_wr_reg(struct usb_device *udev, u8 pro, u32 reg , u8 data)
-+{
-+	int ret;
-+	u8 b[1];
-+	b[0] = data;
-+	ret = it913x_io(udev, WRITE_LONG, pro,
-+			CMD_DEMOD_WRITE, reg, 0, b, sizeof(b));
-+
-+	return ret;
-+}
-+
-+static int it913x_read_reg(struct usb_device *udev, u32 reg)
-+{
-+	int ret;
-+	u8 data[1];
-+
-+	ret = it913x_io(udev, READ_LONG, DEV_0,
-+			CMD_DEMOD_READ, reg, 0, &data[0], 1);
-+
-+	return (ret < 0) ? ret : data[0];
-+}
-+
-+static u32 it913x_query(struct usb_device *udev, u8 pro)
-+{
-+	int ret;
-+	u32 res = 0;
-+	u8 data[4];
-+	ret = it913x_io(udev, READ_LONG, pro, CMD_DEMOD_READ,
-+		0x1222, 0, &data[0], 1);
-+	if (data[0] == 0x1) {
-+		ret = it913x_io(udev, READ_SHORT, pro,
-+			CMD_QUERYINFO, 0, 0x1, &data[0], 4);
-+		res = (data[0] << 24) + (data[1] << 16) +
-+			(data[2] << 8) + data[3];
-+	}
-+
-+	return (ret < 0) ? 0 : res;
-+}
-+
-+static int it913x_pid_filter_ctrl(struct dvb_usb_adapter *adap, int onoff)
-+{
-+	int ret = 0;
-+	u8 pro = (adap->id == 0) ? DEV_0_DMOD : DEV_1_DMOD;
-+
-+	if (mutex_lock_interruptible(&adap->dev->i2c_mutex) < 0)
-+			return -EAGAIN;
-+	deb_info(1, "PID_C  (%02x)", onoff);
-+
-+	if (!onoff)
-+		ret = it913x_wr_reg(adap->dev->udev, pro, PID_RST, 0x1);
-+
-+	mutex_unlock(&adap->dev->i2c_mutex);
-+	return ret;
-+}
-+
-+static int it913x_pid_filter(struct dvb_usb_adapter *adap,
-+		int index, u16 pid, int onoff)
-+{
-+	struct usb_device *udev = adap->dev->udev;
-+	int ret = 0;
-+	u8 pro = (adap->id == 0) ? DEV_0_DMOD : DEV_1_DMOD;
-+
-+	if (pid_filter > 0)
-+		return 0;
-+
-+	if (mutex_lock_interruptible(&adap->dev->i2c_mutex) < 0)
-+			return -EAGAIN;
-+	deb_info(1, "PID_F  (%02x)", onoff);
-+	if (onoff) {
-+		ret = it913x_wr_reg(udev, pro, PID_EN, 0x1);
-+
-+		ret |= it913x_wr_reg(udev, pro, PID_LSB, (u8)(pid & 0xff));
-+
-+		ret |= it913x_wr_reg(udev, pro, PID_MSB, (u8)(pid >> 8));
-+
-+		ret |= it913x_wr_reg(udev, pro, PID_INX_EN, (u8)onoff);
-+
-+		ret |= it913x_wr_reg(udev, pro, PID_INX, (u8)(index & 0x1f));
-+
-+	}
-+
-+	mutex_unlock(&adap->dev->i2c_mutex);
-+	return 0;
-+}
-+
-+
-+static int it913x_return_status(struct usb_device *udev)
-+{
-+	u32 firm = 0;
-+
-+	firm = it913x_query(udev, DEV_0);
-+	if (firm > 0)
-+		info("Firmware Version %d", firm);
-+
-+	return (firm > 0) ? firm : 0;
-+}
-+
-+static int it913x_i2c_xfer(struct i2c_adapter *adap, struct i2c_msg msg[],
-+				 int num)
-+{
-+	struct dvb_usb_device *d = i2c_get_adapdata(adap);
-+	static u8 data[256];
-+	int ret;
-+	u32 reg;
-+	u8 pro;
-+	if (mutex_lock_interruptible(&d->i2c_mutex) < 0)
-+			return -EAGAIN;
-+
-+	debug_data_snipet(1, "Message out", msg[0].buf);
-+	deb_info(2, "num of messages %d address %02x", num, msg[0].addr);
-+
-+	pro = (msg[0].addr & 0x2) ?  DEV_0_DMOD : 0x0;
-+	pro |= (msg[0].addr & 0x20) ? DEV_1 : DEV_0;
-+	memcpy(data, msg[0].buf, msg[0].len);
-+	reg = (data[0] << 24) + (data[1] << 16) +
-+			(data[2] << 8) + data[3];
-+	if (num == 2) {
-+		ret = it913x_io(d->udev, READ_LONG, pro,
-+			CMD_DEMOD_READ, reg, 0, data, msg[1].len);
-+		memcpy(msg[1].buf, data, msg[1].len);
-+	} else
-+		ret = it913x_io(d->udev, WRITE_LONG, pro, CMD_DEMOD_WRITE,
-+			reg, 0, &data[4], msg[0].len - 4);
-+
-+	mutex_unlock(&d->i2c_mutex);
-+
-+	return ret;
-+}
-+
-+static u32 it913x_i2c_func(struct i2c_adapter *adapter)
-+{
-+	return I2C_FUNC_I2C;
-+}
-+
-+static struct i2c_algorithm it913x_i2c_algo = {
-+	.master_xfer   = it913x_i2c_xfer,
-+	.functionality = it913x_i2c_func,
+ 	case SAA7134_BOARD_ENCORE_ENLTV:
+ 	case SAA7134_BOARD_ENCORE_ENLTV_FM:
+ 		ir_codes     = &ir_codes_encore_enltv_table;
+--- ./drivers/media/video/saa7134/saa7134-dvb.c.orig	2011-06-11 21:08:41.000000000 +0200
++++ ./drivers/media/video/saa7134/saa7134-dvb.c	2011-07-18 23:53:17.293797824 +0200
+@@ -824,6 +824,20 @@ static struct tda1004x_config asus_tiger
+ 	.request_firmware = philips_tda1004x_request_firmware
+ };
+ 
++static struct tda1004x_config asus_ps3_100_config = {
++	.demod_address = 0x0b,
++	.invert        = 1,
++	.invert_oclk   = 0,
++	.xtal_freq     = TDA10046_XTAL_16M,
++	.agc_config    = TDA10046_AGC_TDA827X,
++	.gpio_config   = TDA10046_GP11_I,
++	.if_freq       = TDA10046_FREQ_045,
++	.i2c_gate      = 0x4b,
++	.tuner_address = 0x61,
++	.antenna_switch = 1,
++	.request_firmware = philips_tda1004x_request_firmware
 +};
 +
-+/* Callbacks for DVB USB */
-+static int it913x_identify_state(struct usb_device *udev,
-+		struct dvb_usb_device_properties *props,
-+		struct dvb_usb_device_description **desc,
-+		int *cold)
-+{
-+	int ret = 0, firm_no;
-+	u8 reg, adap, ep, tun0, tun1;
-+
-+	firm_no = it913x_return_status(udev);
-+
-+	ep = it913x_read_reg(udev, 0x49ac);
-+	adap = it913x_read_reg(udev, 0x49c5);
-+	tun0 = it913x_read_reg(udev, 0x49d0);
-+	info("No. Adapters=%x Endpoints=%x Tuner Type=%x", adap, ep, tun0);
-+
-+	if (firm_no > 0) {
-+		*cold = 0;
-+		return 0;
-+	}
-+
-+	if (adap > 2) {
-+		tun1 = it913x_read_reg(udev, 0x49e0);
-+		ret = it913x_wr_reg(udev, DEV_0, GPIOH1_EN, 0x1);
-+		ret |= it913x_wr_reg(udev, DEV_0, GPIOH1_ON, 0x1);
-+		ret |= it913x_wr_reg(udev, DEV_0, GPIOH1_O, 0x1);
-+		msleep(50); /* Delay noticed reset cycle ? */
-+		ret |= it913x_wr_reg(udev, DEV_0, GPIOH1_O, 0x0);
-+		msleep(50);
-+		reg = it913x_read_reg(udev, GPIOH1_O);
-+		if (reg == 0) {
-+			ret |= it913x_wr_reg(udev, DEV_0,  GPIOH1_O, 0x1);
-+			ret |= it913x_return_status(udev);
-+			if (ret != 0)
-+				ret = it913x_wr_reg(udev, DEV_0,
-+					GPIOH1_O, 0x0);
-+		}
-+	} else
-+		props->num_adapters = 1;
-+
-+	reg = it913x_read_reg(udev, IO_MUX_POWER_CLK);
-+
-+	ret |= it913x_wr_reg(udev, DEV_0, 0x4bfb, CHIP2_I2C_ADDR);
-+
-+	ret |= it913x_wr_reg(udev, DEV_0,  CLK_O_EN, 0x1);
-+
-+	*cold = 1;
-+
-+	return (ret < 0) ? -ENODEV : 0;
-+}
-+
-+static int it913x_streaming_ctrl(struct dvb_usb_adapter *adap, int onoff)
-+{
-+	int ret = 0;
-+	u8 pro = (adap->id == 0) ? DEV_0_DMOD : DEV_1_DMOD;
-+
-+	if (mutex_lock_interruptible(&adap->dev->i2c_mutex) < 0)
-+			return -EAGAIN;
-+	deb_info(1, "STM  (%02x)", onoff);
-+
-+	if (!onoff)
-+		ret = it913x_wr_reg(adap->dev->udev, pro, PID_RST, 0x1);
-+
-+
-+	mutex_unlock(&adap->dev->i2c_mutex);
-+
-+	return ret;
-+}
-+
-+
-+static int it913x_download_firmware(struct usb_device *udev,
-+					const struct firmware *fw)
-+{
-+	int ret = 0, i;
-+	u8 packet_size, dlen, tun1;
-+	u8 *fw_data;
-+
-+	packet_size = 0x29;
-+
-+	tun1 = it913x_read_reg(udev, 0x49e0);
-+
-+	ret = it913x_wr_reg(udev, DEV_0,  I2C_CLK, I2C_CLK_100);
-+
-+	info("FRM Starting Firmware Download");
-+	/* This uses scatter write firmware headers follow */
-+	/* 03 XX 00     XX = chip number? */ 
-+
-+	for (i = 0; i < fw->size; i += packet_size) {
-+			if (i > 0)
-+				packet_size = 0x39;
-+			fw_data = (u8 *)(fw->data + i);
-+			dlen = ((i + packet_size) > fw->size)
-+				? (fw->size - i) : packet_size;
-+			ret |= it913x_io(udev, WRITE_DATA, DEV_0,
-+				CMD_SCATTER_WRITE, 0, 0, fw_data, dlen);
-+			udelay(1000);
-+	}
-+
-+	ret |= it913x_io(udev, WRITE_CMD, DEV_0,
-+			CMD_BOOT, 0, 0, NULL, 0);
-+
-+	msleep(100);
-+
-+	if (ret < 0)
-+		info("FRM Firmware Download Failed (%04x)" , ret);
-+	else
-+		info("FRM Firmware Download Completed - Resetting Device");
-+
-+	ret |= it913x_return_status(udev);
-+
-+	msleep(30);
-+
-+	ret |= it913x_wr_reg(udev, DEV_0,  I2C_CLK, I2C_CLK_400);
-+
-+	/* Tuner function */
-+	ret |= it913x_wr_reg(udev, DEV_0_DMOD , 0xec4c, 0xa0);
-+
-+	ret |= it913x_wr_reg(udev, DEV_0,  PADODPU, 0x0);
-+	ret |= it913x_wr_reg(udev, DEV_0,  AGC_O_D, 0x0);
-+	if (tun1 > 0) {
-+		ret |= it913x_wr_reg(udev, DEV_1,  PADODPU, 0x0);
-+		ret |= it913x_wr_reg(udev, DEV_1,  AGC_O_D, 0x0);
-+	}
-+
-+	return (ret < 0) ? -ENODEV : 0;
-+}
-+
-+static int it913x_name(struct dvb_usb_adapter *adap)
-+{
-+	const char *desc = adap->dev->desc->name;
-+	char *fe_name[] = {"_1", "_2", "_3", "_4"};
-+	char *name = adap->fe->ops.info.name;
-+
-+	strlcpy(name, desc, 128);
-+	strlcat(name, fe_name[adap->id], 128);
-+
-+	return 0;
-+}
-+
-+static int it913x_frontend_attach(struct dvb_usb_adapter *adap)
-+{
-+	struct usb_device *udev = adap->dev->udev;
-+	int ret = 0;
-+	u8 adf = it913x_read_reg(udev, IO_MUX_POWER_CLK);
-+	u8 adap_addr = I2C_BASE_ADDR + (adap->id << 5);
-+	u16 ep_size = adap->props.stream.u.bulk.buffersize;
-+
-+	adap->fe = dvb_attach(it913x_fe_attach,
-+		&adap->dev->i2c_adap, adap_addr, adf, IT9137);
-+
-+	if (adap->id == 0 && adap->fe) {
-+		ret = it913x_wr_reg(udev, DEV_0_DMOD, MP2_SW_RST, 0x1);
-+		ret = it913x_wr_reg(udev, DEV_0_DMOD, MP2IF2_SW_RST, 0x1);
-+		ret = it913x_wr_reg(udev, DEV_0, EP0_TX_EN, 0x0f);
-+		ret = it913x_wr_reg(udev, DEV_0, EP0_TX_NAK, 0x1b);
-+		ret = it913x_wr_reg(udev, DEV_0, EP0_TX_EN, 0x2f);
-+		ret = it913x_wr_reg(udev, DEV_0, EP4_TX_LEN_LSB,
-+					ep_size & 0xff);
-+		ret = it913x_wr_reg(udev, DEV_0, EP4_TX_LEN_MSB, ep_size >> 8);
-+		ret = it913x_wr_reg(udev, DEV_0, EP4_MAX_PKT, 0x80);
-+	} else if (adap->id == 1 && adap->fe) {
-+		ret = it913x_wr_reg(udev, DEV_0, EP0_TX_EN, 0x6f);
-+		ret = it913x_wr_reg(udev, DEV_0, EP5_TX_LEN_LSB,
-+					ep_size & 0xff);
-+		ret = it913x_wr_reg(udev, DEV_0, EP5_TX_LEN_MSB, ep_size >> 8);
-+		ret = it913x_wr_reg(udev, DEV_0, EP5_MAX_PKT, 0x80);
-+		ret = it913x_wr_reg(udev, DEV_0_DMOD, MP2IF2_EN, 0x1);
-+		ret = it913x_wr_reg(udev, DEV_1_DMOD, MP2IF_SERIAL, 0x1);
-+		ret = it913x_wr_reg(udev, DEV_1, TOP_HOSTB_SER_MODE, 0x1);
-+		ret = it913x_wr_reg(udev, DEV_0_DMOD, TSIS_ENABLE, 0x1);
-+		ret = it913x_wr_reg(udev, DEV_0_DMOD, MP2_SW_RST, 0x0);
-+		ret = it913x_wr_reg(udev, DEV_0_DMOD, MP2IF2_SW_RST, 0x0);
-+		ret = it913x_wr_reg(udev, DEV_0_DMOD, MP2IF2_HALF_PSB, 0x0);
-+		ret = it913x_wr_reg(udev, DEV_0_DMOD, MP2IF_STOP_EN, 0x1);
-+		ret = it913x_wr_reg(udev, DEV_1_DMOD, MPEG_FULL_SPEED, 0x0);
-+		ret = it913x_wr_reg(udev, DEV_1_DMOD, MP2IF_STOP_EN, 0x0);
-+	} else
-+		return -ENODEV;
-+
-+	ret = it913x_name(adap);
-+
-+	return ret;
-+}
-+
-+/* DVB USB Driver */
-+static struct dvb_usb_device_properties it913x_properties;
-+
-+static int it913x_probe(struct usb_interface *intf,
-+		const struct usb_device_id *id)
-+{
-+	cmd_counter = 0;
-+	if (0 == dvb_usb_device_init(intf, &it913x_properties,
-+				     THIS_MODULE, NULL, adapter_nr)) {
-+		info("DEV registering device driver");
-+		return 0;
-+	}
-+
-+	info("DEV it913x Error");
-+	return -ENODEV;
-+
-+}
-+
-+static struct usb_device_id it913x_table[] = {
-+	{ USB_DEVICE(USB_VID_KWORLD_2, USB_PID_KWORLD_UB499_2T_T09) },
-+	{}		/* Terminating entry */
-+};
-+
-+MODULE_DEVICE_TABLE(usb, it913x_table);
-+
-+static struct dvb_usb_device_properties it913x_properties = {
-+	.caps = DVB_USB_IS_AN_I2C_ADAPTER,
-+	.usb_ctrl = DEVICE_SPECIFIC,
-+	.download_firmware = it913x_download_firmware,
-+	.firmware = "dvb-usb-it9137-01.fw",
-+	.no_reconnect = 1,
-+	.size_of_priv = sizeof(struct it913x_state),
-+	.num_adapters = 2,
-+	.adapter = {
-+		{
-+			.caps = DVB_USB_ADAP_HAS_PID_FILTER|
-+				DVB_USB_ADAP_NEED_PID_FILTERING|
-+				DVB_USB_ADAP_PID_FILTER_CAN_BE_TURNED_OFF,
-+			.streaming_ctrl   = it913x_streaming_ctrl,
-+			.pid_filter_count = 31,
-+			.pid_filter = it913x_pid_filter,
-+			.pid_filter_ctrl  = it913x_pid_filter_ctrl,
-+			.frontend_attach  = it913x_frontend_attach,
-+			/* parameter for the MPEG2-data transfer */
-+			.stream = {
-+				.type = USB_BULK,
-+				.count = 10,
-+				.endpoint = 0x04,
-+				.u = {/* Keep Low if PID filter on */
-+					.bulk = {
-+						.buffersize = 3584,
-+
-+					}
-+				}
+ /* ------------------------------------------------------------------
+  * special case: this card uses saa713x GPIO22 for the mode switch
+  */
+@@ -1465,6 +1479,31 @@ static int dvb_init(struct saa7134_dev *
+ 						" found!\n", __func__);
+ 					goto dettach_frontend;
+ 				}
 +			}
++		}
++		break;
++	case SAA7134_BOARD_ASUSTeK_PS3_100:
++		if (!use_frontend) {     /* terrestrial */
++			if (configure_tda827x_fe(dev, &asus_ps3_100_config,
++							&tda827x_cfg_2) < 0)
++				goto dettach_frontend;
++		} else {  		/* satellite */
++			fe0->dvb.frontend = dvb_attach(tda10086_attach,
++						&flydvbs, &dev->i2c_adap);
++			if (fe0->dvb.frontend) {
++				if (dvb_attach(tda826x_attach,
++						fe0->dvb.frontend, 0x60,
++						&dev->i2c_adap, 0) == NULL) {
++					wprintk("%s: Asus My Cinema PS3-100, no "
++						"tda826x found!\n", __func__);
++					goto dettach_frontend;
++				}
++				if (dvb_attach(lnbp21_attach, fe0->dvb.frontend,
++						&dev->i2c_adap, 0, 0) == NULL) {
++					wprintk("%s: Asus My Cinema PS3-100, no lnbp21"
++						" found!\n", __func__);
++					goto dettach_frontend;
++				}
+ 			}
+ 		}
+ 		break;
+--- ./drivers/media/video/saa7134/saa7134-cards.c.orig	2011-06-11 21:08:41.000000000 +0200
++++ ./drivers/media/video/saa7134/saa7134-cards.c	2011-07-19 10:54:04.549428209 +0200
+@@ -5012,6 +5012,36 @@ struct saa7134_board saa7134_boards[] =
+ 			.gpio = 0x0200000,
+ 		},
+ 	},
++	[SAA7134_BOARD_ASUSTeK_PS3_100] = {
++		.name           = "Asus My Cinema PS3-100",
++		.audio_clock    = 0x00187de7,
++		.tuner_type     = TUNER_PHILIPS_TDA8290,
++		.radio_type     = UNSET,
++		.tuner_addr     = ADDR_UNSET,
++		.radio_addr     = ADDR_UNSET,
++		.tuner_config   = 2,
++		.gpiomask       = 1 << 21,
++		.mpeg           = SAA7134_MPEG_DVB,
++		.inputs         = {{
++			.name = name_tv,
++			.vmux = 1,
++			.amux = TV,
++			.tv   = 1,
++		}, {
++			.name = name_comp,
++			.vmux = 0,
++			.amux = LINE2,
++		}, {
++			.name = name_svideo,
++			.vmux = 8,
++			.amux = LINE2,
++		} },
++		.radio = {
++			.name = name_radio,
++			.amux = TV,
++			.gpio = 0x0200000,
 +		},
-+			{
-+			.caps = DVB_USB_ADAP_HAS_PID_FILTER|
-+				DVB_USB_ADAP_NEED_PID_FILTERING|
-+				DVB_USB_ADAP_PID_FILTER_CAN_BE_TURNED_OFF,
-+			.streaming_ctrl   = it913x_streaming_ctrl,
-+			.pid_filter_count = 31,
-+			.pid_filter = it913x_pid_filter,
-+			.pid_filter_ctrl  = it913x_pid_filter_ctrl,
-+			.frontend_attach  = it913x_frontend_attach,
-+			/* parameter for the MPEG2-data transfer */
-+			.stream = {
-+				.type = USB_BULK,
-+				.count = 5,
-+				.endpoint = 0x05,
-+				.u = {
-+					.bulk = {
-+						.buffersize = 3584,
-+
-+					}
-+				}
-+			}
-+		}
 +	},
-+	.identify_state   = it913x_identify_state,
-+	.i2c_algo         = &it913x_i2c_algo,
-+	.num_device_descs = 1,
-+	.devices = {
-+		{   "Kworld UB499-2T T09(IT9137)",
-+			{ &it913x_table[0], NULL },
-+			},
-+
+ 	[SAA7134_BOARD_REAL_ANGEL_220] = {
+ 		.name           = "Zogis Real Angel 220",
+ 		.audio_clock    = 0x00187de7,
+@@ -6407,6 +6437,12 @@ struct pci_device_id saa7134_pci_tbl[] =
+ 		.driver_data  = SAA7134_BOARD_ASUSTeK_TIGER_3IN1,
+ 	}, {
+ 		.vendor       = PCI_VENDOR_ID_PHILIPS,
++		.device       = PCI_DEVICE_ID_PHILIPS_SAA7133,
++		.subvendor    = 0x1043,
++		.subdevice    = 0x48cd,
++		.driver_data  = SAA7134_BOARD_ASUSTeK_PS3_100,
++	}, {
++		.vendor       = PCI_VENDOR_ID_PHILIPS,
+ 		.device       = PCI_DEVICE_ID_PHILIPS_SAA7134,
+ 		.subvendor    = 0x17de,
+ 		.subdevice    = 0x7128,
+@@ -6753,6 +6789,7 @@ int saa7134_board_init1(struct saa7134_d
+ 	case SAA7134_BOARD_ASUSTeK_P7131_DUAL:
+ 	case SAA7134_BOARD_ASUSTeK_P7131_HYBRID_LNA:
+ 	case SAA7134_BOARD_ASUSTeK_P7131_ANALOG:
++	case SAA7134_BOARD_ASUSTeK_PS3_100:
+ 	case SAA7134_BOARD_FLYDVBTDUO:
+ 	case SAA7134_BOARD_PROTEUS_2309:
+ 	case SAA7134_BOARD_AVERMEDIA_A16AR:
+@@ -7181,6 +7218,14 @@ int saa7134_board_init2(struct saa7134_d
+ 	{
+ 		u8 data[] = { 0x3c, 0x33, 0x60};
+ 		struct i2c_msg msg = {.addr = 0x0b, .flags = 0, .buf = data,
++							.len = sizeof(data)};
++		i2c_transfer(&dev->i2c_adap, &msg, 1);
++		break;
 +	}
-+};
-+
-+static struct usb_driver it913x_driver = {
-+	.name		= "it913x",
-+	.probe		= it913x_probe,
-+	.disconnect	= dvb_usb_device_exit,
-+	.id_table	= it913x_table,
-+};
-+
-+/* module stuff */
-+static int __init it913x_module_init(void)
-+{
-+	int result = usb_register(&it913x_driver);
-+	if (result) {
-+		err("usb_register failed. Error number %d", result);
-+		return result;
-+	}
-+
-+	return 0;
-+}
-+
-+static void __exit it913x_module_exit(void)
-+{
-+	/* deregister this driver from the USB subsystem */
-+	usb_deregister(&it913x_driver);
-+}
-+
-+module_init(it913x_module_init);
-+module_exit(it913x_module_exit);
-+
-+MODULE_AUTHOR("Malcolm Priestley <tvboxspy@gmail.com>");
-+MODULE_DESCRIPTION("it913x USB 2 Driver");
-+MODULE_VERSION("1.05");
-+MODULE_LICENSE("GPL");
--- 
-1.7.4.1
++	case SAA7134_BOARD_ASUSTeK_PS3_100:
++	{
++		u8 data[] = { 0x3c, 0x33, 0x60};
++		struct i2c_msg msg = {.addr = 0x0b, .flags = 0, .buf = data,
+ 							.len = sizeof(data)};
+ 		i2c_transfer(&dev->i2c_adap, &msg, 1);
+ 		break;
+--- ./drivers/media/video/saa7134/saa7134.h.orig	2011-06-11 21:08:41.000000000 +0200
++++ ./drivers/media/video/saa7134/saa7134.h	2011-07-18 23:53:17.297799213 +0200
+@@ -271,6 +271,7 @@ struct saa7134_format {
+ #define SAA7134_BOARD_AVERMEDIA_M103    145
+ #define SAA7134_BOARD_ASUSTeK_P7131_ANALOG 146
+ #define SAA7134_BOARD_ASUSTeK_TIGER_3IN1   147
++#define SAA7134_BOARD_ASUSTeK_PS3_100   1470
+ #define SAA7134_BOARD_ENCORE_ENLTV_FM53 148
+ #define SAA7134_BOARD_AVERMEDIA_M135A    149
+ #define SAA7134_BOARD_REAL_ANGEL_220     150
 
-
-
-
+--Boundary-00=_DmUJO80iUI1mzym--
