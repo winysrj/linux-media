@@ -1,266 +1,90 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([147.243.1.48]:19195 "EHLO mgw-sa02.nokia.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753032Ab1GZStt (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 26 Jul 2011 14:49:49 -0400
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: linux-media@vger.kernel.org
-Cc: hans.verkuil@cisco.com, snjw23@gmail.com,
-	laurent.pinchart@ideasonboard.com
-Subject: [PATCH 1/3] v4l: Move event documentation from SUBSCRIBE_EVENT to DQEVENT
-Date: Tue, 26 Jul 2011 21:49:42 +0300
-Message-Id: <1311706184-22658-1-git-send-email-sakari.ailus@iki.fi>
-In-Reply-To: <4E2F0C53.10907@iki.fi>
-References: <4E2F0C53.10907@iki.fi>
+Received: from moutng.kundenserver.de ([212.227.17.8]:57507 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750893Ab1GSOKy (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 19 Jul 2011 10:10:54 -0400
+Date: Tue, 19 Jul 2011 16:10:52 +0200 (CEST)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Michael Grzeschik <m.grzeschik@pengutronix.de>
+cc: linux-media@vger.kernel.org
+Subject: Re: [PATCH v2] mt9m111: move lastpage to struct mt9m111 for multi
+ instances
+In-Reply-To: <1311081995-25409-1-git-send-email-m.grzeschik@pengutronix.de>
+Message-ID: <Pine.LNX.4.64.1107191608040.1008@axis700.grange>
+References: <1310485146-27759-3-git-send-email-m.grzeschik@pengutronix.de>
+ <1311081995-25409-1-git-send-email-m.grzeschik@pengutronix.de>
+MIME-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Move documentation of structures used in DQEVENT from SUBSCRIBE_EVENT to
-DQEVENT.
+Hi Michael
 
-Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
-Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+Looks good now, thanks. Unfortunately, we've already missed the 3.1 merge 
+window, unless Linus decides to release one more 3.0-rcX kernel. But 
+still, I think, this can qualify as a fix, so, it should be ok even after 
+-rc1.
+
+Thanks
+Guennadi
+
+On Tue, 19 Jul 2011, Michael Grzeschik wrote:
+
+> Signed-off-by: Michael Grzeschik <m.grzeschik@pengutronix.de>
+> ---
+> v1 -> v2: added initial value -1 for lastpage
+> 
+>  drivers/media/video/mt9m111.c |    9 ++++++---
+>  1 files changed, 6 insertions(+), 3 deletions(-)
+> 
+> diff --git a/drivers/media/video/mt9m111.c b/drivers/media/video/mt9m111.c
+> index a357aa8..07af26e 100644
+> --- a/drivers/media/video/mt9m111.c
+> +++ b/drivers/media/video/mt9m111.c
+> @@ -184,6 +184,7 @@ struct mt9m111 {
+>  	struct mutex power_lock; /* lock to protect power_count */
+>  	int power_count;
+>  	const struct mt9m111_datafmt *fmt;
+> +	int lastpage;	/* PageMap cache value */
+>  	unsigned int gain;
+>  	unsigned char autoexposure;
+>  	unsigned char datawidth;
+> @@ -202,17 +203,17 @@ static int reg_page_map_set(struct i2c_client *client, const u16 reg)
+>  {
+>  	int ret;
+>  	u16 page;
+> -	static int lastpage = -1;	/* PageMap cache value */
+> +	struct mt9m111 *mt9m111 = to_mt9m111(client);
+>  
+>  	page = (reg >> 8);
+> -	if (page == lastpage)
+> +	if (page == mt9m111->lastpage)
+>  		return 0;
+>  	if (page > 2)
+>  		return -EINVAL;
+>  
+>  	ret = i2c_smbus_write_word_data(client, MT9M111_PAGE_MAP, swab16(page));
+>  	if (!ret)
+> -		lastpage = page;
+> +		mt9m111->lastpage = page;
+>  	return ret;
+>  }
+>  
+> @@ -932,6 +933,8 @@ static int mt9m111_video_probe(struct soc_camera_device *icd,
+>  	BUG_ON(!icd->parent ||
+>  	       to_soc_camera_host(icd->parent)->nr != icd->iface);
+>  
+> +	mt9m111->lastpage = -1;
+> +
+>  	mt9m111->autoexposure = 1;
+>  	mt9m111->autowhitebalance = 1;
+>  
+> -- 
+> 1.7.5.4
+> 
+
 ---
- Documentation/DocBook/media/v4l/vidioc-dqevent.xml |  107 ++++++++++++++++++++
- .../DocBook/media/v4l/vidioc-subscribe-event.xml   |  107 --------------------
- 2 files changed, 107 insertions(+), 107 deletions(-)
-
-diff --git a/Documentation/DocBook/media/v4l/vidioc-dqevent.xml b/Documentation/DocBook/media/v4l/vidioc-dqevent.xml
-index 7769642..5200b68 100644
---- a/Documentation/DocBook/media/v4l/vidioc-dqevent.xml
-+++ b/Documentation/DocBook/media/v4l/vidioc-dqevent.xml
-@@ -135,6 +135,113 @@
-       </tgroup>
-     </table>
- 
-+    <table frame="none" pgwide="1" id="v4l2-event-vsync">
-+      <title>struct <structname>v4l2_event_vsync</structname></title>
-+      <tgroup cols="3">
-+	&cs-str;
-+	<tbody valign="top">
-+	  <row>
-+	    <entry>__u8</entry>
-+	    <entry><structfield>field</structfield></entry>
-+	    <entry>The upcoming field. See &v4l2-field;.</entry>
-+	  </row>
-+	</tbody>
-+      </tgroup>
-+    </table>
-+
-+    <table frame="none" pgwide="1" id="v4l2-event-ctrl">
-+      <title>struct <structname>v4l2_event_ctrl</structname></title>
-+      <tgroup cols="4">
-+	&cs-str;
-+	<tbody valign="top">
-+	  <row>
-+	    <entry>__u32</entry>
-+	    <entry><structfield>changes</structfield></entry>
-+	    <entry></entry>
-+	    <entry>A bitmask that tells what has changed. See <xref linkend="changes-flags" />.</entry>
-+	  </row>
-+	  <row>
-+	    <entry>__u32</entry>
-+	    <entry><structfield>type</structfield></entry>
-+	    <entry></entry>
-+	    <entry>The type of the control. See &v4l2-ctrl-type;.</entry>
-+	  </row>
-+	  <row>
-+	    <entry>union (anonymous)</entry>
-+	    <entry></entry>
-+	    <entry></entry>
-+	    <entry></entry>
-+	  </row>
-+	  <row>
-+	    <entry></entry>
-+	    <entry>__s32</entry>
-+	    <entry><structfield>value</structfield></entry>
-+	    <entry>The 32-bit value of the control for 32-bit control types.
-+		This is 0 for string controls since the value of a string
-+		cannot be passed using &VIDIOC-DQEVENT;.</entry>
-+	  </row>
-+	  <row>
-+	    <entry></entry>
-+	    <entry>__s64</entry>
-+	    <entry><structfield>value64</structfield></entry>
-+	    <entry>The 64-bit value of the control for 64-bit control types.</entry>
-+	  </row>
-+	  <row>
-+	    <entry>__u32</entry>
-+	    <entry><structfield>flags</structfield></entry>
-+	    <entry></entry>
-+	    <entry>The control flags. See <xref linkend="control-flags" />.</entry>
-+	  </row>
-+	  <row>
-+	    <entry>__s32</entry>
-+	    <entry><structfield>minimum</structfield></entry>
-+	    <entry></entry>
-+	    <entry>The minimum value of the control. See &v4l2-queryctrl;.</entry>
-+	  </row>
-+	  <row>
-+	    <entry>__s32</entry>
-+	    <entry><structfield>maximum</structfield></entry>
-+	    <entry></entry>
-+	    <entry>The maximum value of the control. See &v4l2-queryctrl;.</entry>
-+	  </row>
-+	  <row>
-+	    <entry>__s32</entry>
-+	    <entry><structfield>step</structfield></entry>
-+	    <entry></entry>
-+	    <entry>The step value of the control. See &v4l2-queryctrl;.</entry>
-+	  </row>
-+	  <row>
-+	    <entry>__s32</entry>
-+	    <entry><structfield>default_value</structfield></entry>
-+	    <entry></entry>
-+	    <entry>The default value value of the control. See &v4l2-queryctrl;.</entry>
-+	  </row>
-+	</tbody>
-+      </tgroup>
-+    </table>
-+
-+    <table pgwide="1" frame="none" id="changes-flags">
-+      <title>Changes</title>
-+      <tgroup cols="3">
-+	&cs-def;
-+	<tbody valign="top">
-+	  <row>
-+	    <entry><constant>V4L2_EVENT_CTRL_CH_VALUE</constant></entry>
-+	    <entry>0x0001</entry>
-+	    <entry>This control event was triggered because the value of the control
-+		changed. Special case: if a button control is pressed, then this
-+		event is sent as well, even though there is not explicit value
-+		associated with a button control.</entry>
-+	  </row>
-+	  <row>
-+	    <entry><constant>V4L2_EVENT_CTRL_CH_FLAGS</constant></entry>
-+	    <entry>0x0002</entry>
-+	    <entry>This control event was triggered because the control flags
-+		changed.</entry>
-+	  </row>
-+	</tbody>
-+      </tgroup>
-+    </table>
-   </refsect1>
-   <refsect1>
-     &return-value;
-diff --git a/Documentation/DocBook/media/v4l/vidioc-subscribe-event.xml b/Documentation/DocBook/media/v4l/vidioc-subscribe-event.xml
-index 69c0d8a..275be96 100644
---- a/Documentation/DocBook/media/v4l/vidioc-subscribe-event.xml
-+++ b/Documentation/DocBook/media/v4l/vidioc-subscribe-event.xml
-@@ -183,113 +183,6 @@
-       </tgroup>
-     </table>
- 
--    <table frame="none" pgwide="1" id="v4l2-event-vsync">
--      <title>struct <structname>v4l2_event_vsync</structname></title>
--      <tgroup cols="3">
--	&cs-str;
--	<tbody valign="top">
--	  <row>
--	    <entry>__u8</entry>
--	    <entry><structfield>field</structfield></entry>
--	    <entry>The upcoming field. See &v4l2-field;.</entry>
--	  </row>
--	</tbody>
--      </tgroup>
--    </table>
--
--    <table frame="none" pgwide="1" id="v4l2-event-ctrl">
--      <title>struct <structname>v4l2_event_ctrl</structname></title>
--      <tgroup cols="4">
--	&cs-str;
--	<tbody valign="top">
--	  <row>
--	    <entry>__u32</entry>
--	    <entry><structfield>changes</structfield></entry>
--	    <entry></entry>
--	    <entry>A bitmask that tells what has changed. See <xref linkend="changes-flags" />.</entry>
--	  </row>
--	  <row>
--	    <entry>__u32</entry>
--	    <entry><structfield>type</structfield></entry>
--	    <entry></entry>
--	    <entry>The type of the control. See &v4l2-ctrl-type;.</entry>
--	  </row>
--	  <row>
--	    <entry>union (anonymous)</entry>
--	    <entry></entry>
--	    <entry></entry>
--	    <entry></entry>
--	  </row>
--	  <row>
--	    <entry></entry>
--	    <entry>__s32</entry>
--	    <entry><structfield>value</structfield></entry>
--	    <entry>The 32-bit value of the control for 32-bit control types.
--		This is 0 for string controls since the value of a string
--		cannot be passed using &VIDIOC-DQEVENT;.</entry>
--	  </row>
--	  <row>
--	    <entry></entry>
--	    <entry>__s64</entry>
--	    <entry><structfield>value64</structfield></entry>
--	    <entry>The 64-bit value of the control for 64-bit control types.</entry>
--	  </row>
--	  <row>
--	    <entry>__u32</entry>
--	    <entry><structfield>flags</structfield></entry>
--	    <entry></entry>
--	    <entry>The control flags. See <xref linkend="control-flags" />.</entry>
--	  </row>
--	  <row>
--	    <entry>__s32</entry>
--	    <entry><structfield>minimum</structfield></entry>
--	    <entry></entry>
--	    <entry>The minimum value of the control. See &v4l2-queryctrl;.</entry>
--	  </row>
--	  <row>
--	    <entry>__s32</entry>
--	    <entry><structfield>maximum</structfield></entry>
--	    <entry></entry>
--	    <entry>The maximum value of the control. See &v4l2-queryctrl;.</entry>
--	  </row>
--	  <row>
--	    <entry>__s32</entry>
--	    <entry><structfield>step</structfield></entry>
--	    <entry></entry>
--	    <entry>The step value of the control. See &v4l2-queryctrl;.</entry>
--	  </row>
--	  <row>
--	    <entry>__s32</entry>
--	    <entry><structfield>default_value</structfield></entry>
--	    <entry></entry>
--	    <entry>The default value value of the control. See &v4l2-queryctrl;.</entry>
--	  </row>
--	</tbody>
--      </tgroup>
--    </table>
--
--    <table pgwide="1" frame="none" id="changes-flags">
--      <title>Changes</title>
--      <tgroup cols="3">
--	&cs-def;
--	<tbody valign="top">
--	  <row>
--	    <entry><constant>V4L2_EVENT_CTRL_CH_VALUE</constant></entry>
--	    <entry>0x0001</entry>
--	    <entry>This control event was triggered because the value of the control
--		changed. Special case: if a button control is pressed, then this
--		event is sent as well, even though there is not explicit value
--		associated with a button control.</entry>
--	  </row>
--	  <row>
--	    <entry><constant>V4L2_EVENT_CTRL_CH_FLAGS</constant></entry>
--	    <entry>0x0002</entry>
--	    <entry>This control event was triggered because the control flags
--		changed.</entry>
--	  </row>
--	</tbody>
--      </tgroup>
--    </table>
-   </refsect1>
-   <refsect1>
-     &return-value;
--- 
-1.7.2.5
-
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
+http://www.open-technology.de/
