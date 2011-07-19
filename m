@@ -1,68 +1,95 @@
-Return-path: <mchehab@localhost>
-Received: from mailout0.thls.bbc.co.uk ([132.185.240.35]:48248 "EHLO
-	mailout0.thls.bbc.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755988Ab1GKMCL (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 11 Jul 2011 08:02:11 -0400
-Received: from gateh.kw.bbc.co.uk (gateh.kw.bbc.co.uk [132.185.132.17])
-	by mailout0.thls.bbc.co.uk (8.14.4/8.14.3) with ESMTP id p6BBNTPK021133
-	for <linux-media@vger.kernel.org>; Mon, 11 Jul 2011 12:23:29 +0100 (BST)
-Received: from mailhub.rd.bbc.co.uk ([172.29.120.130])
-	by gateh.kw.bbc.co.uk (8.13.6/8.13.6) with ESMTP id p6BBNSBR026245
-	for <linux-media@vger.kernel.org>; Mon, 11 Jul 2011 12:23:28 +0100 (BST)
-Received: from goliath.rd.bbc.co.uk ([172.29.90.42]:43448 helo=goliath.sid.rd.bbc.co.uk)
-	by mailhub.rd.bbc.co.uk with esmtp (Exim 4.72)
-	(envelope-from <david.waring@rd.bbc.co.uk>)
-	id 1QgEaG-0001cs-DI
-	for linux-media@vger.kernel.org; Mon, 11 Jul 2011 12:23:28 +0100
-Message-ID: <4E1ADD30.6090502@rd.bbc.co.uk>
-Date: Mon, 11 Jul 2011 12:23:28 +0100
-From: David Waring <david.waring@rd.bbc.co.uk>
-MIME-Version: 1.0
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Problems with Hauppauge Nova-TD (dib0070/dib7000PC)
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Return-path: <linux-media-owner@vger.kernel.org>
+Received: from mx1.redhat.com ([209.132.183.28]:50697 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751298Ab1GSQM5 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 19 Jul 2011 12:12:57 -0400
+From: Jarod Wilson <jarod@redhat.com>
+To: linux-media@vger.kernel.org
+Cc: Jarod Wilson <jarod@redhat.com>,
+	Andy Walls <awalls@md.metrocast.net>,
+	Chris W <lkml@psychogeeks.com>
+Subject: [PATCH] [media] imon: don't parse scancodes until intf configured
+Date: Tue, 19 Jul 2011 12:12:47 -0400
+Message-Id: <1311091967-2791-1-git-send-email-jarod@redhat.com>
+In-Reply-To: <D7E52A85-331A-4650-94F0-C1477F457457@redhat.com>
+References: <D7E52A85-331A-4650-94F0-C1477F457457@redhat.com>
+Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
-Sender: <mchehab@infradead.org>
 
-I'm currently using 3 of these USB sticks on a PC with the videolan.org
-dvblast program to multicast the UK Freeview DVB-T muxes on our local
-network. I'm also using a PCTV nanostick 290e to multicast the DVB-T2
-mux too.
+The imon devices have either 1 or 2 usb interfaces on them, each wired
+up to its own urb callback. The interface 0 urb callback is wired up
+before the imon context's rc_dev pointer is filled in, which is
+necessary for imon 0xffdc device auto-detection to work properly, but we
+need to make sure we don't actually run the callback routines until
+we've entirely filled in the necessary bits for each given interface,
+lest we wind up oopsing. Technically, any imon device could have hit
+this, but the issue is exacerbated on the 0xffdc devices, which send a
+constant stream of interrupts, even when they have no valid key data.
 
-I'm having a problem with the Nova-TD sticks (52009) using recent builds
-from the media_build git repository (to get the 290e drivers) on Debian
-squeeze using 2.6.38-bpo.2-686. The problem is that only one half of
-each Nova-TD stick will tune and give data. Which half seems to be
-random and changes with each reboot. Occasionally I'll get a whole stick
-working or one of the sticks will not work at all. If I try to use a
-non-working half of a stick it will knock out the working half until I
-stop using trying to use the non-working half. So I'm seeing
-interference of one logical dvb adapter from another that are both on
-the same physical hardware.
+CC: Andy Walls <awalls@md.metrocast.net>
+CC: Chris W <lkml@psychogeeks.com>
+Reported-by: Chris W <lkml@psychogeeks.com>
+Signed-off-by: Jarod Wilson <jarod@redhat.com>
+---
+ drivers/media/rc/imon.c |   10 ++++++----
+ 1 files changed, 6 insertions(+), 4 deletions(-)
 
-Also after a few days the sticks stop working completely and need to be
-powered down before they work again, but this may be a different issue.
-
-I'm getting a few "dib0700: tx buffer length is larger than 4. Not
-supported." in dmesg during first tune. Maybe coincidence, but I've
-noticed that on the last reboot 4 tuners (out of the 6 total Nova-TD
-tuners) are not working and I have 4 of the above message in dmesg, so
-there could be a link.
-
-I've tried turning on the debugging for both the dvb_usb_dib0700 and
-dvb_usb modules but there was no indication of the problem.
-
-Any suggestions for what I could try next to find the cause and fix this?
-
-David
+diff --git a/drivers/media/rc/imon.c b/drivers/media/rc/imon.c
+index caa3e3a..6ed9646 100644
+--- a/drivers/media/rc/imon.c
++++ b/drivers/media/rc/imon.c
+@@ -1658,7 +1658,7 @@ static void usb_rx_callback_intf0(struct urb *urb)
+ 		return;
+ 
+ 	ictx = (struct imon_context *)urb->context;
+-	if (!ictx)
++	if (!ictx || !ictx->dev_present_intf0)
+ 		return;
+ 
+ 	switch (urb->status) {
+@@ -1690,7 +1690,7 @@ static void usb_rx_callback_intf1(struct urb *urb)
+ 		return;
+ 
+ 	ictx = (struct imon_context *)urb->context;
+-	if (!ictx)
++	if (!ictx || !ictx->dev_present_intf1)
+ 		return;
+ 
+ 	switch (urb->status) {
+@@ -2118,7 +2118,6 @@ static struct imon_context *imon_init_intf0(struct usb_interface *intf)
+ 
+ 	ictx->dev = dev;
+ 	ictx->usbdev_intf0 = usb_get_dev(interface_to_usbdev(intf));
+-	ictx->dev_present_intf0 = true;
+ 	ictx->rx_urb_intf0 = rx_urb;
+ 	ictx->tx_urb = tx_urb;
+ 	ictx->rf_device = false;
+@@ -2157,6 +2156,8 @@ static struct imon_context *imon_init_intf0(struct usb_interface *intf)
+ 		goto rdev_setup_failed;
+ 	}
+ 
++	ictx->dev_present_intf0 = true;
++
+ 	mutex_unlock(&ictx->lock);
+ 	return ictx;
+ 
+@@ -2200,7 +2201,6 @@ static struct imon_context *imon_init_intf1(struct usb_interface *intf,
+ 	}
+ 
+ 	ictx->usbdev_intf1 = usb_get_dev(interface_to_usbdev(intf));
+-	ictx->dev_present_intf1 = true;
+ 	ictx->rx_urb_intf1 = rx_urb;
+ 
+ 	ret = -ENODEV;
+@@ -2229,6 +2229,8 @@ static struct imon_context *imon_init_intf1(struct usb_interface *intf,
+ 		goto urb_submit_failed;
+ 	}
+ 
++	ictx->dev_present_intf1 = true;
++
+ 	mutex_unlock(&ictx->lock);
+ 	return ictx;
+ 
 -- 
-David Waring, Software Engineer, BBC Research & Development
-5th Floor, Dock House, MediaCity:UK, Salford, M50 2LH
-----------------------------------------------------------------------
-This e-mail, and any attachment, is confidential. If you have received
-it in error, please delete it from your system, do not use or disclose
-the information in any way, and notify me immediately. The contents of
-this message may contain personal views which are not the views of the
-BBC, unless specifically stated.
+1.7.1
+
