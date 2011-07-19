@@ -1,93 +1,51 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-68.nebula.fi ([83.145.220.68]:43517 "EHLO
-	smtp-68.nebula.fi" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932239Ab1GNV0n (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 14 Jul 2011 17:26:43 -0400
-Date: Fri, 15 Jul 2011 00:26:38 +0300
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Cc: linux-media@vger.kernel.org
-Subject: Re: [RFC] Binning on sensors
-Message-ID: <20110714212638.GH27451@valkosipuli.localdomain>
-References: <20110714113201.GD27451@valkosipuli.localdomain>
- <Pine.LNX.4.64.1107141955280.10688@axis700.grange>
+Received: from smtp10.mail.ru ([94.100.176.152]:41335 "EHLO smtp10.mail.ru"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750952Ab1GSNta (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 19 Jul 2011 09:49:30 -0400
+Message-ID: <4E258B60.6010007@list.ru>
+Date: Tue, 19 Jul 2011 17:49:20 +0400
+From: Stas Sergeev <stsp@list.ru>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <Pine.LNX.4.64.1107141955280.10688@axis700.grange>
+To: Lennart Poettering <lpoetter@redhat.com>
+CC: Mauro Carvalho Chehab <mchehab@infradead.org>,
+	linux-media@vger.kernel.org,
+	"Nickolay V. Shmyrev" <nshmyrev@yandex.ru>,
+	Devin Heitmueller <dheitmueller@kernellabs.com>,
+	ALSA devel <alsa-devel@alsa-project.org>,
+	lennart@poettering.net
+Subject: Re: [patch][saa7134] do not change mute state for capturing audio
+References: <4E19D2F7.6060803@list.ru> <4E1E05AC.2070002@infradead.org> <4E1E0A1D.6000604@list.ru> <4E1E1571.6010400@infradead.org> <4E1E8108.3060305@list.ru> <4E1F9A25.1020208@infradead.org> <4E22AF12.4020600@list.ru> <4E22CCC0.8030803@infradead.org> <4E24BEB8.4060501@redhat.com> <4E257FF5.4040401@infradead.org>
+In-Reply-To: <4E257FF5.4040401@infradead.org>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Guennadi,
+19.07.2011 17:00, Mauro Carvalho Chehab wrote:
+> Several video boards have the option of plugging a loop cable between
+> the device output pin and the motherboard line in pin. So, if you start
+> capturing, you'll also enabling the output of such pin, as the kernel
+> driver has no way to know if the user decided to use a wire cable,
+> instead
+> of the ALSA PCM stream.
+> So, if users with such cables are lucky, it will play something, but,
+> on most cases, it will just tune into a non-existing station, and it will
+> produce a white noise.
+This needs to be clarified a bit (for Lennart).
+Initially, before the board is tuned to some station,
+the sound is wisely muted. It is muted for both the
+capturing and the pass-through cable.
+As far as I can tell, if you want to probe the card by
+capturing, you can capture the silence, you don't need
+any real sound to record.
+The problem here is that the particular driver has a
+"nice code" (or a hack) that unmutes both the capturing
+and the pass-through cable when you capture anything.
+>From my POV, exactly that leads to the problem. Simply
+removing that piece of code makes the peace in the world:
+the app that tunes the board, also unmutes the sound anyway.
 
-Thanks for the comments.
-
-On Thu, Jul 14, 2011 at 07:56:10PM +0200, Guennadi Liakhovetski wrote:
-> On Thu, 14 Jul 2011, Sakari Ailus wrote:
-> 
-> > Hi all,
-> > 
-> > I was thinking about the sensor binning controls.
-> 
-> What wrong with just doing S_FMT on the subdev pad? Binning does in fact 
-> implement scaling.
-
-Nothing really. Supporting setting binning using S_FMT is fine.
-
-However, the interface does not express binning capabilities in any way. To
-effectively use binning settings one must know the capabilities. Binning is
-scaling but the choices are so coarse that the capabilities are a must.
-
-The capabilities could be found implicitly by trying out different formats
-and looking back at the result. That's still not quite trivial.
-
-If there would be a good way to enumerate the binning capabilities, combined
-with S_FMT it'd be close to perfect.
-
-> > I have a sensor which can do binning both horizontally and vertically, but
-> > the two are connected. So, the sensor supports e.g. 3x1 and 1x3 binning but
-> > not 3x3.
-> > 
-> > However, most (I assume) sensors do not have dependencies between the two.
-> > The interface which would be provided to the user still should be able to
-> > tell what is supported, whether the two are independent or not.
-> > 
-> > I have a few ideas how to achieve this.
-> > 
-> > 1. Implement dependent binning as a menu control. The user will have an easy
-> > way to enumerate binning and select it. If horizontal and vertical binning
-> > factors are independent, two integer controls are provided. The downside is
-> > that there are two ways to do this, and integer to string and back
-> > conversions involved.
-> > 
-> > 2. Menu control is used all the time. The benefit is that the user gets a
-> > single interface, but the downside is that if there are many possible
-> > binning factors both horizontally and vertically, the size of the menu grows
-> > large. Typically binning ends at 2 or 4, though.
-> > 
-> > 3. Implement two integer controls. The user is responsible for selecting a
-> > valid configuration. A way to enumerate possible values would have to be
-> > implemented. One option would be an ioctl but I don't like the idea.
-> > 
-> > Comments are welcome as always.
-> > 
-> > Cheers,
-> > 
-> > -- 
-> > Sakari Ailus
-> > sakari.ailus@iki.fi
-> > --
-> > To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> > the body of a message to majordomo@vger.kernel.org
-> > More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> > 
-> 
-> ---
-> Guennadi Liakhovetski, Ph.D.
-> Freelance Open-Source Software Developer
-> http://www.open-technology.de/
-
--- 
-Sakari Ailus
-sakari.ailus@iki.fi
+My question was and still is: do we need to search for
+any other solution at all? Do we need to modify PA, if
+it is entirely fine with capturing the silence for probing audio?
