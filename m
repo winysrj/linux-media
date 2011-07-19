@@ -1,76 +1,66 @@
-Return-path: <mchehab@pedra>
-Received: from moutng.kundenserver.de ([212.227.126.171]:58293 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755885Ab1GELuS (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 5 Jul 2011 07:50:18 -0400
-From: Arnd Bergmann <arnd@arndb.de>
-To: Marek Szyprowski <m.szyprowski@samsung.com>
-Subject: Re: [PATCH 6/8 RESEND] drivers: add Contiguous Memory Allocator
-Date: Tue, 5 Jul 2011 13:50:10 +0200
-Cc: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-	linux-media@vger.kernel.org, linux-mm@kvack.org,
-	linaro-mm-sig@lists.linaro.org,
-	Michal Nazarewicz <mina86@mina86.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	Andrew Morton <akpm@linux-foundation.org>,
-	KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>,
-	Ankita Garg <ankita@in.ibm.com>,
-	Daniel Walker <dwalker@codeaurora.org>,
-	Mel Gorman <mel@csn.ul.ie>,
-	Jesse Barker <jesse.barker@linaro.org>,
-	Jonathan Corbet <corbet@lwn.net>,
-	Chunsang Jeong <chunsang.jeong@linaro.org>
-References: <1309851710-3828-7-git-send-email-m.szyprowski@samsung.com> <1309863722-6370-1-git-send-email-m.szyprowski@samsung.com>
-In-Reply-To: <1309863722-6370-1-git-send-email-m.szyprowski@samsung.com>
+Return-path: <linux-media-owner@vger.kernel.org>
+Received: from smtp.nokia.com ([147.243.1.48]:17861 "EHLO mgw-sa02.nokia.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750952Ab1GSTX0 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 19 Jul 2011 15:23:26 -0400
+Message-ID: <4E25D9B8.9070109@iki.fi>
+Date: Tue, 19 Jul 2011 22:23:36 +0300
+From: Sakari Ailus <sakari.ailus@iki.fi>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-15"
+To: "Hadli, Manjunath" <manjunath.hadli@ti.com>
+CC: LMML <linux-media@vger.kernel.org>,
+	dlos <davinci-linux-open-source@linux.davincidsp.com>,
+	"Netagunte, Nagabhushana" <nagabhushana.netagunte@ti.com>
+Subject: Re: [RFC PATCH 1/8] davinci: vpfe: add dm3xx IPIPEIF hardware support
+ module
+References: <1309439597-15998-1-git-send-email-manjunath.hadli@ti.com> <1309439597-15998-2-git-send-email-manjunath.hadli@ti.com> <20110713185050.GC27451@valkosipuli.localdomain> <B85A65D85D7EB246BE421B3FB0FBB593024BCEF740@dbde02.ent.ti.com>
+In-Reply-To: <B85A65D85D7EB246BE421B3FB0FBB593024BCEF740@dbde02.ent.ti.com>
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Message-Id: <201107051350.11150.arnd@arndb.de>
+Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
-Sender: <mchehab@pedra>
 
-On Tuesday 05 July 2011, Marek Szyprowski wrote:
-> The Contiguous Memory Allocator is a set of helper functions for DMA
-> mapping framework that improves allocations of contiguous memory chunks.
-> 
-> CMA grabs memory on system boot, marks it with CMA_MIGRATE_TYPE and
-> gives back to the system. Kernel is allowed to allocate movable pages
-> within CMA's managed memory so that it can be used for example for page
-> cache when DMA mapping do not use it. On dma_alloc_from_contiguous()
-> request such pages are migrated out of CMA area to free required
-> contiguous block and fulfill the request. This allows to allocate large
-> contiguous chunks of memory at any time assuming that there is enough
-> free memory available in the system.
-> 
-> This code is heavily based on earlier works by Michal Nazarewicz.
-> 
-> Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
-> Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
-> CC: Michal Nazarewicz <mina86@mina86.com>
+Hadli, Manjunath wrote:
+> Sakari, Thank you for your comments. I agree with them and fix.
+> Please comment
+on the rest of the patches as well.
+> -Manju>
 
-Reviewed-by: Arnd Bergmann <arnd@arndb.de>, but I noticed two
-one-character mistakes:
+Hi Manju,
 
-> +if CMA
-> +
-> +config CMA_DEBUG
-> +	bool "CMA debug messages (DEVELOPEMENT)"
+I'll attempt to find more time for this.
 
-s/DEVELOPEMENT/DEVELOPMENT/
+[clip]
 
-> diff --git a/drivers/base/Makefile b/drivers/base/Makefile
-> index 4c5701c..be6aab4 100644
-> --- a/drivers/base/Makefile
-> +++ b/drivers/base/Makefile
-> @@ -5,6 +5,7 @@ obj-y			:= core.o sys.o bus.o dd.o syscore.o \
->  			   cpu.o firmware.o init.o map.o devres.o \
->  			   attribute_container.o transport_class.o
->  obj-$(CONFIG_DEVTMPFS)	+= devtmpfs.o
-> +obj-$(CONFIG_CMA) += dma-contiguous.o
->  obj-y			+= power/
->  obj-$(CONFIG_HAS_DMA)	+= dma-mapping.o
+>>> +/* CFG1 Masks and shifts */
+>>> +#define ONESHOT_SHIFT                      (0)
+>>> +#define DECIM_SHIFT                        (1)
+>>> +#define INPSRC_SHIFT                       (2)
+>>> +#define CLKDIV_SHIFT                       (4)
+>>> +#define AVGFILT_SHIFT                      (7)
+>>> +#define PACK8IN_SHIFT                      (8)
+>>> +#define IALAW_SHIFT                        (9)
+>>> +#define CLKSEL_SHIFT                       (10)
+>>> +#define DATASFT_SHIFT                      (11)
+>>> +#define INPSRC1_SHIFT                      (14)
+>>
+>> IPIPEIF prefix. Are these related to a particular register or a set of registers?
+> One register. Will need to add the IPIPEIF prefix.
 
-Please add another tab to indent the line in the same way as the others.
+Assuming CFG1 is the name of the register, what about IPIPEIF_CFG1_...?
 
-	Arnd
+>>> +/* DPC2 */
+>>> +#define IPIPEIF_DPC2_EN_SHIFT              (12)
+>>> +#define IPIPEIF_DPC2_THR_MASK              (0xFFF)
+>>> +#define IPIPEIF_DF_GAIN_EN_SHIFT   (10)
+>>> +#define IPIPEIF_DF_GAIN_MASK               (0x3FF)
+>>> +#define IPIPEIF_DF_GAIN_THR_MASK   (0xFFF)
+
+Also all of these should have DPC2 prefix before DPC2 if they're all for
+the same register.
+
+Regards,
+
+-- 
+Sakari Ailus
+sakari.ailus@iki.fi
