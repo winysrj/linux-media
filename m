@@ -1,80 +1,36 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-68.nebula.fi ([83.145.220.68]:47823 "EHLO
-	smtp-68.nebula.fi" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932320Ab1GNVvq (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 14 Jul 2011 17:51:46 -0400
-Date: Fri, 15 Jul 2011 00:51:42 +0300
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Sylwester Nawrocki <snjw23@gmail.com>
-Cc: linux-media@vger.kernel.org
-Subject: Re: [GIT PATCHES FOR 3.1] s5p-fimc and noon010pc30 drivers
- conversion? to media controller API
-Message-ID: <20110714215142.GI27451@valkosipuli.localdomain>
-References: <4E17216F.7030200@samsung.com>
- <4E1F18E5.9050703@redhat.com>
- <almarsoft.8585519850362298955@news.gmane.org>
+Received: from mx1.redhat.com ([209.132.183.28]:41474 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751695Ab1GSMP1 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 19 Jul 2011 08:15:27 -0400
+Received: from int-mx02.intmail.prod.int.phx2.redhat.com (int-mx02.intmail.prod.int.phx2.redhat.com [10.5.11.12])
+	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id p6JCFQhj026579
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
+	for <linux-media@vger.kernel.org>; Tue, 19 Jul 2011 08:15:27 -0400
+Received: from shalem.localdomain (vpn1-6-8.ams2.redhat.com [10.36.6.8])
+	by int-mx02.intmail.prod.int.phx2.redhat.com (8.13.8/8.13.8) with ESMTP id p6JCFOu3026346
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-media@vger.kernel.org>; Tue, 19 Jul 2011 08:15:26 -0400
+Message-ID: <4E2575B7.3080306@redhat.com>
+Date: Tue, 19 Jul 2011 14:16:55 +0200
+From: Hans de Goede <hdegoede@redhat.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <almarsoft.8585519850362298955@news.gmane.org>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: RFC: removing pwc kconfig options
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, Jul 14, 2011 at 10:07:03PM +0300, Sylwester Nawrocki wrote:
-> Hi Mauro,
+Hi,
 
-Hi Sylwester and Mauro,
+The pwc driver currently has 2 kconfig options, one to enable /
+disable various debugging options, and another for enabling/
+disabling input-evdev support.
 
-> On Thu, 14 Jul 2011 13:27:17 -0300, Mauro Carvalho Chehab
-> <mchehab@redhat.com> wrote:
-> >Em 08-07-2011 12:25, Sylwester Nawrocki escreveu:
-...
-> >>       s5p-fimc: Remove sclk_cam clock handling
-> >>       s5p-fimc: Limit number of available inputs to one
-> 
-> 
-> >Camera sensors at FIMC input are no longer selected with S_INPUT
-> ioctl.
-> >They will be attached to required FIMC entity through pipeline
-> >re-configuration at the media device level.
-> 
-> 
-> >Why? The proper way to select an input is via S_INPUT. The driver
-> may also
-> >optionally allow changing it via the media device, but it should
-> not be
-> >a mandatory requirement, as the media device API is optional.
-> 
-> The problem I'm trying to solve here is sharing the sensors and
-> mipi-csi receivers between multiple FIMC H/W instances. Previously
-> the driver supported attaching a sensor to only one selected FIMC at
-> compile time. You could, for instance, specify all sensors as the
-> selected FIMC's platform data and then use S_INPUT to choose between
-> them. The sensor could not be used together with any other FIMC. But
-> this is desired due to different capabilities of the FIMC IP
-> instances. And now, instead of hardcoding a sensor assigment to
-> particular video node, the sensors are bound to the media device.
-> The media device driver takes the list of sensors and attaches them
-> one by one to subsequent FIMC instances when it is initializing.
-> Each sensor has a link to each FIMC but only one of them is active
-> by default. That said an user application can use selected camera by
-> opening corresponding video node. Which camera is at which node can
-> be queried with G_INPUT.
-> 
-> I could try to implement the previous S_INPUT behaviour, but IMHO
-> this would lead to considerable and unnecessary driver code
-> complication due to supporting overlapping APIs.
+IMHO these both can go away, the debugging can trigger on
+CONFIG_VIDEO_ADV_DEBUG, and the input on CONFIG_INPUT.
 
-This sounds quite familiar and similar to OMAP 3 ISP. There's more to
-configure than an S_INPUT ioctl can do. Selecting sensor using S_INPUT
-involves a number of other decisions as well if I'm not mistaken.
+Regards,
 
-Sylwester: could you provide an MC graph of the device with possibly a few
-sensors attached? AFAIR media-ctl -p and dotfile.
-
-Cheers,
-
--- 
-Sakari Ailus
-sakari.ailus@iki.fi
+Hans
