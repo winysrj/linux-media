@@ -1,47 +1,81 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:39288 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754502Ab1G1PDr (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 28 Jul 2011 11:03:47 -0400
-Message-ID: <4E317A52.2080204@iki.fi>
-Date: Thu, 28 Jul 2011 18:03:46 +0300
-From: Antti Palosaari <crope@iki.fi>
+Received: from casper.infradead.org ([85.118.1.10]:34428 "EHLO
+	casper.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751778Ab1GTUJU (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 20 Jul 2011 16:09:20 -0400
+Message-ID: <4E2735EB.70606@infradead.org>
+Date: Wed, 20 Jul 2011 17:09:15 -0300
+From: Mauro Carvalho Chehab <mchehab@infradead.org>
 MIME-Version: 1.0
-To: linux-media@vger.kernel.org
-CC: Thomas Gutzler <thomas.gutzler@gmail.com>
-Subject: [PATCH 1/2] af9015: map remote for Leadtek WinFast DTV2000DS
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+To: Abylay Ospan <aospan@netup.ru>
+CC: linux-media@vger.kernel.org
+Subject: Re: [GIT PULL] NetUP Dual DVB-T/C CI RF card
+References: <4E23ED1C.7070609@netup.ru> <4E2708B3.50004@netup.ru>
+In-Reply-To: <4E2708B3.50004@netup.ru>
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Thanks to Thomas Gutzler for reporting this.
+Hi Abylay,
 
-Signed-off-by: Antti Palosaari <crope@iki.fi>
-Cc: Thomas Gutzler <thomas.gutzler@gmail.com>
----
+Em 20-07-2011 13:56, Abylay Ospan escreveu:
+> Hi Mauro,
+> 
+> Here is more correct pull request. URL now is git://git.netup.tv/git/linux-3.0-netup.git.
+> 
+> 
+> The following changes since commit f560f6697f17e2465c8845c09f3a483faef38275:
+> 
+>   Merge git://git.kernel.org/pub/scm/linux/kernel/git/sfrench/cifs-2.6 (2011-07-17 12:49:55 -0700)
+> 
+> are available in the git repository at:
+> 
+>   git://git.netup.tv/git/linux-3.0-netup.git netup-fw
 
+Could you please also prepare a patch moving altera-stapl to drivers/misc? 
 
--- 
-http://palosaari.fi/
+Thanks!
+Mauro 
 
-  drivers/media/dvb/dvb-usb/af9015.c |    2 ++
-  1 files changed, 2 insertions(+), 0 deletions(-)
+> 
+> Abylay Ospan (3):
+>       NetUP Dual DVB-T/C CI RF: load firmware according card revision
+>       Don't fail if videobuf_dvb_get_frontend return NULL
+>       NetUP Dual DVB-T/C CI RF: force card hardware revision by module param
+> 
+>  drivers/media/video/cx23885/cx23885-cards.c |   21 +++++++++++++++++++++
+>  drivers/media/video/cx23885/cx23885-dvb.c   |    2 +-
+>  2 files changed, 22 insertions(+), 1 deletions(-)
+> 
+> 
+> 
+> On 18.07.2011 12:21, Abylay Ospan wrote:
+>> Hi Mauro,
+>>
+>> Please pull 3 changes from http://stand.netup.tv/gitweb/?p=linux-3.0-netup;a=summary
+>>
+>> Thanks!
+>>
+>>
+>> The following changes since commit f560f6697f17e2465c8845c09f3a483faef38275:
+>>
+>>   Merge git://git.kernel.org/pub/scm/linux/kernel/git/sfrench/cifs-2.6 (2011-07-17 12:49:55 -0700)
+>>
+>> are available in the git repository at:
+>>
+>>   http://stand.netup.tv/gitweb/?p=linux-3.0-netup netup_fw
+>>
+>> Abylay Ospan (3):
+>>       NetUP Dual DVB-T/C CI RF: load firmware according card revision
+>>       Don't fail if videobuf_dvb_get_frontend return NULL
+>>       NetUP Dual DVB-T/C CI RF: force card hardware revision by module param
+>>
+>>  drivers/media/video/cx23885/cx23885-cards.c |   21 +++++++++++++++++++++
+>>  drivers/media/video/cx23885/cx23885-dvb.c   |    2 +-
+>>  2 files changed, 22 insertions(+), 1 deletions(-)
+>>
+>>
+> 
 
-diff --git a/drivers/media/dvb/dvb-usb/af9015.c 
-b/drivers/media/dvb/dvb-usb/af9015.c
-index d7ad05f..1fb8248 100644
---- a/drivers/media/dvb/dvb-usb/af9015.c
-+++ b/drivers/media/dvb/dvb-usb/af9015.c
-@@ -758,6 +758,8 @@ static const struct af9015_rc_setup 
-af9015_rc_setup_usbids[] = {
-  		RC_MAP_MSI_DIGIVOX_III },
-  	{ (USB_VID_LEADTEK << 16) + USB_PID_WINFAST_DTV_DONGLE_GOLD,
-  		RC_MAP_LEADTEK_Y04G0051 },
-+	{ (USB_VID_LEADTEK << 16) + USB_PID_WINFAST_DTV2000DS,
-+		RC_MAP_LEADTEK_Y04G0051 },
-  	{ (USB_VID_AVERMEDIA << 16) + USB_PID_AVERMEDIA_VOLAR_X,
-  		RC_MAP_AVERMEDIA_M135A },
-  	{ (USB_VID_AFATECH << 16) + USB_PID_TREKSTOR_DVBT,
--- 
-1.7.6
