@@ -1,89 +1,117 @@
-Return-path: <mchehab@localhost>
-Received: from mail-ey0-f174.google.com ([209.85.215.174]:61445 "EHLO
-	mail-ey0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758299Ab1GKRcq convert rfc822-to-8bit (ORCPT
+Return-path: <linux-media-owner@vger.kernel.org>
+Received: from mail-qy0-f181.google.com ([209.85.216.181]:46023 "EHLO
+	mail-qy0-f181.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750726Ab1GTEQp convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 11 Jul 2011 13:32:46 -0400
-Received: by eyx24 with SMTP id 24so1431299eyx.19
-        for <linux-media@vger.kernel.org>; Mon, 11 Jul 2011 10:32:44 -0700 (PDT)
+	Wed, 20 Jul 2011 00:16:45 -0400
+Received: by qyk9 with SMTP id 9so2793676qyk.19
+        for <linux-media@vger.kernel.org>; Tue, 19 Jul 2011 21:16:44 -0700 (PDT)
 MIME-Version: 1.0
-In-Reply-To: <19995.12215.798514.99100@morden.metzler>
-References: <201107031831.20378@orion.escape-edv.de>
-	<CAGoCfiwaYhXFi1_QXX55nfSOivgnk1YyDNP5_sXL61k3hdabQA@mail.gmail.com>
-	<19995.8804.939482.9336@morden.metzler>
-	<CAGoCfizQhU10ECyHwcdY+T6=66-KcPxRL-j_w3ELHpK=6+wwdg@mail.gmail.com>
-	<19995.12215.798514.99100@morden.metzler>
-Date: Mon, 11 Jul 2011 13:32:44 -0400
-Message-ID: <CAGoCfiwUtgpCM49WqpTorH-D-VVgkbtoGk++rp3FTsOJQD06rw@mail.gmail.com>
-Subject: Re: [PATCH 00/16] New drivers: DRX-K, TDA18271c2, Updates: CXD2099
- and ngene
-From: Devin Heitmueller <dheitmueller@kernellabs.com>
-To: Ralph Metzler <rjkm@metzlerbros.de>
-Cc: Oliver Endriss <o.endriss@gmx.de>, linux-media@vger.kernel.org,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Michael Krufky <mkrufky@kernellabs.com>
+In-Reply-To: <20110627103944.504bd2a9@bike.lwn.net>
+References: <20110624141927.1c89a033@bike.lwn.net> <001901cc34e4$9f348970$dd9d9c50$%szyprowski@samsung.com>
+ <20110627103944.504bd2a9@bike.lwn.net>
+From: Pawel Osciak <pawel@osciak.com>
+Date: Tue, 19 Jul 2011 21:16:24 -0700
+Message-ID: <CAMm-=zCqyBwGMuNk-m5m=6px6j9q7_noGKPAz+bU36mJEuZEuQ@mail.gmail.com>
+Subject: Re: [RFC] vb2: Push buffer allocation and freeing into drivers
+To: Jonathan Corbet <corbet@lwn.net>
+Cc: Marek Szyprowski <m.szyprowski@samsung.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	g.liakhovetski@gmx.de, Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Kamil Debski <k.debski@samsung.com>
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 8BIT
+Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
-Sender: <mchehab@infradead.org>
 
-On Mon, Jul 11, 2011 at 1:15 PM, Ralph Metzler <rjkm@metzlerbros.de> wrote:
->  > Generally speaking with other devices the IF is configured for the
->  > tuner depending on the target modulation (there is a tda18271_config
->  > struct passed at attach time containing the IF for various modes).
->  > Then the demod driver is also configured for a particular IF.
+Hi Jon,
+Thanks for your patch. I agree I'm not particularly proud of how
+allocation looks like right now and of the "first structure field"
+requirement. I had similar design dilemmas, but have to agree with
+Marek here though. Please see my explanation below.
+
+On Mon, Jun 27, 2011 at 09:39, Jonathan Corbet <corbet@lwn.net> wrote:
+> On Mon, 27 Jun 2011 18:09:41 +0200
+> Marek Szyprowski <m.szyprowski@samsung.com> wrote:
 >
-> You mean the optional "struct tda18271_std_map *std_map;"?
-> That would be a possibility. But then you have to handle IF tables for
-> all kinds of tuners and demods in the bridge driver.
-> Letting the tuner choose the IF and have a way to tell the demod (a simple
-> get_if() call) is much easier.
-
-The downside of the approach you've suggested is it prevents the tuner
-driver from varying the IF based on the demod it is interacting with.
-By having the information defined in the bridge driver, the IF can be
-defined by the driver developer based on the attached demod.  Also, in
-some cases the IF needs to different because of the PCB layout (rather
-than just the chosen modulation or what demod it is attached to),
-which there is no way a tuner driver could know that based solely on
-what tuner/demod is being used.
-
-In other words, in some cases the optimal IF for a given hardware
-design is determined by cycling through the various possible values
-with a spectrum analyzer attached, and that is the sort of
-optimization that is defined in the bridge driver where it is known
-exactly what product is being used.
-
->  > If there are indeed good reasons, then so be it.  But it feels like we
->  > are working around deficiencies in the core DVB framework that would
->  > apply to all drivers, and it would be good if we could avoid the
->  > maintenance headaches associated with two different drivers for the
->  > same chip.
+>> Thanks for your work! I really appreciate your effort for making the kernel
+>> code better. :) However I would like to get some more comments before making
+>> the final decision.
 >
-> I know. At the time I was also just porting the DRX-K and only wanted
-> to get it working based on the known to work Windows driver
-> combination and not wrestle with other problems.
-> I guess it whould not be too hard to adapt the old driver now.
+> That's fine - it *was* an RFC, after all...:)
+>
+>> The main difference between buffer_init() and buffer_alloc() is the fact
+>> that buffer_init() is called when the buffer has all internal data filled in
+>> (like for example index) and, what is more important, memory buffers for all
+>> planes are already allocated.
+>
+> I had thought that might be the case, but none of the in-tree drivers
+> needed that information.  Obviously, I don't want to break other stuff
+> which is coming (that driver *is* headed for mainline, right? :), so the
+> idea of simply repurposing buf_init() won't quite work.  Too bad, moving
+> it took out a lot of error-handling code.
+>
 
-I can certainly appreciate this, as I've done this myself at times.
-That said though, for upstream inclusion we generally want to clean up
-such issues.
+One thing that I think wasn't mentioned was that you did remove
+buf_init call from __qbuf_userptr(), which removes some functionality
+and symmetry. In USERPTR case we still want to call buf_init(), as
+it's used to perform operations that are to be done once per buffer,
+after it is ready. There is no allocation in USERPTR's case though. So
+it's not as much a feature for particular drivers, but to accommodate
+USERPTR. For MMAP, we could do those things in buf_alloc().
 
-> Another problem that keeps showing up in the existing drivers is that
-> some tuner/demod combinations let the tuner call gate_ctrl, others
-> only call it in the demod.
-> This leads to problems when trying to use them in new combinations.
-> Either the gate is not opened/closed at all or twice. In the latter
-> case this can even lead to lockups if also using locking.
+> Could this more involved initialization code move to buf_prepare(),
+> perhaps with a flag in the buffer for stuff that only has to happen once?
+> Or maybe there could be a highly optional buf_map() (or some such) for
+> this kind of special-case driver?
+>
 
-Yeah, this is a bit of a mess.  Whether it's done in the demod or the
-tuner is typically dictated by what driver the developer happened to
-have copied as skeleton code.  There are certainly merits to both
-approaches under certain conditions, but the inconsistency across
-drivers is very annoying.
+buf_prepare() is called once per frame, so checking for this flag
+every frame would add some unpleasant overhead.
 
-Devin
+>> I considered similar solution during videobuf2 development, but decided
+>> that having access to all information about buffer internals (index, plane
+>> addresses) is something that might be really useful for device drivers.
+>
+> I guess the question is: is it sufficiently useful to enough drivers to
+> create a separate callback for?  I'm not convinced...but I could certainly
+> be wrong about that.
+>
+
+You mean buf_init(), right? Well, I aimed for this nice symmetry:
+buf_init() - buf_cleanup()
+buf_prepare() - buf_finish()
+
+I agree many drivers might not need such fine-grained design, but as
+we could find sensible use cases for all of them, all of them were
+kept.
+
+>> Creating additional buffer_alloc() and buffer_free() callbacks (and keeping
+>> buffer_init and buffer_cleanup) just to make the code nicer was already
+>> pointed to be just an over-engineering.
+>
+> I don't think there's a need for a buf_free(), given that buf_cleanup() is
+> already there.  But I really dislike the "vb2_buffer must be the first
+> structure field" requirement; it's fragile in the long term.  The kernel
+> has usually gone out of its way to avoid adding that kind of hidden
+> constraint.
+>
+
+As with buf_init() and allocation, you don't always free the memory
+when you buf_cleanup(), which happens in USERPTR case.
+
+> Oh, well.  I'd like to see the change merged, I think it makes things a
+> little better.  But I've said my piece now and don't intend to argue it
+> further - I'll keep using vb2 either way :)
+>
+> Thanks,
+>
+> jon
+>
+
 
 -- 
-Devin J. Heitmueller - Kernel Labs
-http://www.kernellabs.com
+Best regards,
+Pawel Osciak
