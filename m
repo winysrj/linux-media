@@ -1,135 +1,329 @@
-Return-path: <mchehab@localhost>
-Received: from mx1.redhat.com ([209.132.183.28]:57003 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753101Ab1GGRqV (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 7 Jul 2011 13:46:21 -0400
-Message-ID: <4E15F0EA.4080003@redhat.com>
-Date: Thu, 07 Jul 2011 14:46:18 -0300
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-MIME-Version: 1.0
-To: Hans Verkuil <hverkuil@xs4all.nl>
-CC: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
-Subject: Re: [PATCH RFCv3 03/17] [media] DocBook: Use the generic error code
- page also for MC API
-References: <cover.1309974026.git.mchehab@redhat.com> <201107071729.03676.hverkuil@xs4all.nl> <4E15E9AC.9050800@redhat.com> <201107071928.57090.hverkuil@xs4all.nl>
-In-Reply-To: <201107071928.57090.hverkuil@xs4all.nl>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+Return-path: <linux-media-owner@vger.kernel.org>
+Received: from mailout4.w1.samsung.com ([210.118.77.14]:39969 "EHLO
+	mailout4.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751120Ab1GTI50 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 20 Jul 2011 04:57:26 -0400
+MIME-version: 1.0
+Content-transfer-encoding: 7BIT
+Content-type: TEXT/PLAIN
+Date: Wed, 20 Jul 2011 10:57:13 +0200
+From: Marek Szyprowski <m.szyprowski@samsung.com>
+Subject: [PATCH 1/8] mm: move some functions from memory_hotplug.c to
+ page_isolation.c
+In-reply-to: <1311152240-16384-1-git-send-email-m.szyprowski@samsung.com>
+To: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+	linux-media@vger.kernel.org, linux-mm@kvack.org,
+	linaro-mm-sig@lists.linaro.org
+Cc: Michal Nazarewicz <mina86@mina86.com>,
+	Marek Szyprowski <m.szyprowski@samsung.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	Andrew Morton <akpm@linux-foundation.org>,
+	KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>,
+	Ankita Garg <ankita@in.ibm.com>,
+	Daniel Walker <dwalker@codeaurora.org>,
+	Mel Gorman <mel@csn.ul.ie>, Arnd Bergmann <arnd@arndb.de>,
+	Jesse Barker <jesse.barker@linaro.org>,
+	Jonathan Corbet <corbet@lwn.net>,
+	Chunsang Jeong <chunsang.jeong@linaro.org>,
+	Russell King <linux@arm.linux.org.uk>
+Message-id: <1311152240-16384-2-git-send-email-m.szyprowski@samsung.com>
+References: <1311152240-16384-1-git-send-email-m.szyprowski@samsung.com>
+Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
-Sender: <mchehab@infradead.org>
 
-Em 07-07-2011 14:28, Hans Verkuil escreveu:
-> On Thursday, July 07, 2011 19:15:24 Mauro Carvalho Chehab wrote:
->> Em 07-07-2011 12:29, Hans Verkuil escreveu:
->>> On Wednesday, July 06, 2011 20:03:52 Mauro Carvalho Chehab wrote:
->>>> Instead of having their own generic error codes at the MC API, move
->>>> its section to the generic one and be sure that all media ioctl's
->>>> will point to it.
->>>>
->>>> Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
->>>>
->>>> diff --git a/Documentation/DocBook/media/v4l/gen-errors.xml b/Documentation/DocBook/media/v4l/gen-errors.xml
->>>> index 6ef476a..a7f73c9 100644
->>>> --- a/Documentation/DocBook/media/v4l/gen-errors.xml
->>>> +++ b/Documentation/DocBook/media/v4l/gen-errors.xml
->>>> @@ -5,6 +5,11 @@
->>>>    <tgroup cols="2">
->>>>      &cs-str;
->>>>      <tbody valign="top">
->>>> +	<!-- Keep it ordered alphabetically -->
->>>> +      <row>
->>>> +	<entry>EBADF</entry>
->>>> +	<entry><parameter>fd</parameter> is not a valid open file descriptor.</entry>
->>>> +      </row>
->>>>        <row>
->>>>  	<entry>EBUSY</entry>
->>>>  	<entry>The ioctl can't be handled because the device is busy. This is
->>>> @@ -15,7 +20,16 @@
->>>>  	       problem first (typically: stop the stream before retrying).</entry>
->>>>        </row>
->>>>        <row>
->>>> +	<entry>EFAULT</entry>
->>>> +	<entry><parameter>fd</parameter> is not a valid open file descriptor.</entry>
->>>
->>> This seems to be a copy-and-paste error. The original text in media-func-ioctl.xml says this:
->>>
->>> 	  <para><parameter>argp</parameter> references an inaccessible memory
->>> 	  area.</para>
->>
->> Ah, yes. Anyway, a latter patch changes it to:
-> 
-> OK, I missed that. It was a bit confusing to review.
+From: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 
-Yeah. Documentation patches are harder to handle than normal patches. I did several
-changes on the existing patches, but perfecting each patch individually will probably
-take forever.
+Memory hotplug is a logic for making pages unused in the specified
+range of pfn. So, some of core logics can be used for other purpose
+as allocating a very large contigous memory block.
 
->>
->> 	<entry>EFAULT</entry>
->> 	<entry>There was a failure while copying data from/to userspace.</entry>
->>       </row>
->>
->> referencing a parameter name there is a bad thing anyway, as this is now at the common
->> ioctl error code.
->>
->> Instead of just using a posix-like error code:
->> 	EFAULT          Bad address (POSIX.1)
->>
->> I opted to use a more valuable description, explaining the reason for such error,
->> e. g. that there was a failure at the data copy from/to userspace.
->>
->> It may be better to change it to:
->>
->> 	<entry>EFAULT</entry>
->> 	<entry>There was a failure while copying data from/to userspace, probably
->> 		caused by an invalid pointer reference.</entry>
->>
->> I think I'll add the above description at the latter patch.
->>
->> I was intending to add there the other possible error causes found at V4L/DVB API's
->> and drivers, but the changes I did took me a longer time than I was expecting
->> originally.  I'll eventually do that when I have more time. 
->>
->> It would be really great if we could find some volunteer to help syncing 
->> the media API specs with the code.
->>
->>>> +      </row>
->>>> +      <row>
->>>>  	<entry>EINVAL</entry>
->>>> +	<entry>One or more of the ioctl parameters are invalid. This is a widely
->>>
->>> widely -> widely used
->>>
->>>> +	       error code. see the individual ioctl requests for actual causes.</entry>
->>>
->>> see -> See
->>
->> Fixed. 
-> 
-> OK, with these changes you have my
-> 
-> Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
-> 
-> as well for this patch.
+This patch moves some functions from mm/memory_hotplug.c to
+mm/page_isolation.c. This helps adding a function for large-alloc in
+page_isolation.c with memory-unplug technique.
 
-Thanks!
+Signed-off-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+[m.nazarewicz: reworded commit message]
+Signed-off-by: Michal Nazarewicz <m.nazarewicz@samsung.com>
+Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+[m.szyprowski: rebased and updated to Linux v3.0-rc1]
+Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
+CC: Michal Nazarewicz <mina86@mina86.com>
+Acked-by: Arnd Bergmann <arnd@arndb.de>
+---
+ include/linux/page-isolation.h |    7 +++
+ mm/memory_hotplug.c            |  111 --------------------------------------
+ mm/page_isolation.c            |  114 ++++++++++++++++++++++++++++++++++++++++
+ 3 files changed, 121 insertions(+), 111 deletions(-)
 
-> Just for my understanding: do you plan on merging this for 3.1? I have no objection to
-> that. Together with the querycap version changes it is easy to add compatibility support
-> to libv4l should that be necessary. I'm not convinced there won't be any fallout from
-> this change, but at least there is a decent way of working around it if needed. And there
-> is no doubt that -ENOTTY is a much better return code.
-
-Yes, that's my plan. Having both patch series merged together seemed a good idea to me, as
-it becomes easier for applications to benefit of that.
-> 
-> When this is merged I'll modify v4l2-compliance, v4l2-ctl (if necessary) and qv4l2.
-
-OK.
-
-> 
-> Regards,
-> 
-> 	Hans
+diff --git a/include/linux/page-isolation.h b/include/linux/page-isolation.h
+index 051c1b1..58cdbac 100644
+--- a/include/linux/page-isolation.h
++++ b/include/linux/page-isolation.h
+@@ -33,5 +33,12 @@ test_pages_isolated(unsigned long start_pfn, unsigned long end_pfn);
+ extern int set_migratetype_isolate(struct page *page);
+ extern void unset_migratetype_isolate(struct page *page);
+ 
++/*
++ * For migration.
++ */
++
++int test_pages_in_a_zone(unsigned long start_pfn, unsigned long end_pfn);
++unsigned long scan_lru_pages(unsigned long start, unsigned long end);
++int do_migrate_range(unsigned long start_pfn, unsigned long end_pfn);
+ 
+ #endif
+diff --git a/mm/memory_hotplug.c b/mm/memory_hotplug.c
+index c46887b..c32ca23 100644
+--- a/mm/memory_hotplug.c
++++ b/mm/memory_hotplug.c
+@@ -645,117 +645,6 @@ int is_mem_section_removable(unsigned long start_pfn, unsigned long nr_pages)
+ }
+ 
+ /*
+- * Confirm all pages in a range [start, end) is belongs to the same zone.
+- */
+-static int test_pages_in_a_zone(unsigned long start_pfn, unsigned long end_pfn)
+-{
+-	unsigned long pfn;
+-	struct zone *zone = NULL;
+-	struct page *page;
+-	int i;
+-	for (pfn = start_pfn;
+-	     pfn < end_pfn;
+-	     pfn += MAX_ORDER_NR_PAGES) {
+-		i = 0;
+-		/* This is just a CONFIG_HOLES_IN_ZONE check.*/
+-		while ((i < MAX_ORDER_NR_PAGES) && !pfn_valid_within(pfn + i))
+-			i++;
+-		if (i == MAX_ORDER_NR_PAGES)
+-			continue;
+-		page = pfn_to_page(pfn + i);
+-		if (zone && page_zone(page) != zone)
+-			return 0;
+-		zone = page_zone(page);
+-	}
+-	return 1;
+-}
+-
+-/*
+- * Scanning pfn is much easier than scanning lru list.
+- * Scan pfn from start to end and Find LRU page.
+- */
+-static unsigned long scan_lru_pages(unsigned long start, unsigned long end)
+-{
+-	unsigned long pfn;
+-	struct page *page;
+-	for (pfn = start; pfn < end; pfn++) {
+-		if (pfn_valid(pfn)) {
+-			page = pfn_to_page(pfn);
+-			if (PageLRU(page))
+-				return pfn;
+-		}
+-	}
+-	return 0;
+-}
+-
+-static struct page *
+-hotremove_migrate_alloc(struct page *page, unsigned long private, int **x)
+-{
+-	/* This should be improooooved!! */
+-	return alloc_page(GFP_HIGHUSER_MOVABLE);
+-}
+-
+-#define NR_OFFLINE_AT_ONCE_PAGES	(256)
+-static int
+-do_migrate_range(unsigned long start_pfn, unsigned long end_pfn)
+-{
+-	unsigned long pfn;
+-	struct page *page;
+-	int move_pages = NR_OFFLINE_AT_ONCE_PAGES;
+-	int not_managed = 0;
+-	int ret = 0;
+-	LIST_HEAD(source);
+-
+-	for (pfn = start_pfn; pfn < end_pfn && move_pages > 0; pfn++) {
+-		if (!pfn_valid(pfn))
+-			continue;
+-		page = pfn_to_page(pfn);
+-		if (!get_page_unless_zero(page))
+-			continue;
+-		/*
+-		 * We can skip free pages. And we can only deal with pages on
+-		 * LRU.
+-		 */
+-		ret = isolate_lru_page(page);
+-		if (!ret) { /* Success */
+-			put_page(page);
+-			list_add_tail(&page->lru, &source);
+-			move_pages--;
+-			inc_zone_page_state(page, NR_ISOLATED_ANON +
+-					    page_is_file_cache(page));
+-
+-		} else {
+-#ifdef CONFIG_DEBUG_VM
+-			printk(KERN_ALERT "removing pfn %lx from LRU failed\n",
+-			       pfn);
+-			dump_page(page);
+-#endif
+-			put_page(page);
+-			/* Because we don't have big zone->lock. we should
+-			   check this again here. */
+-			if (page_count(page)) {
+-				not_managed++;
+-				ret = -EBUSY;
+-				break;
+-			}
+-		}
+-	}
+-	if (!list_empty(&source)) {
+-		if (not_managed) {
+-			putback_lru_pages(&source);
+-			goto out;
+-		}
+-		/* this function returns # of failed pages */
+-		ret = migrate_pages(&source, hotremove_migrate_alloc, 0,
+-								true, true);
+-		if (ret)
+-			putback_lru_pages(&source);
+-	}
+-out:
+-	return ret;
+-}
+-
+-/*
+  * remove from free_area[] and mark all as Reserved.
+  */
+ static int
+diff --git a/mm/page_isolation.c b/mm/page_isolation.c
+index 4ae42bb..270a026 100644
+--- a/mm/page_isolation.c
++++ b/mm/page_isolation.c
+@@ -5,6 +5,9 @@
+ #include <linux/mm.h>
+ #include <linux/page-isolation.h>
+ #include <linux/pageblock-flags.h>
++#include <linux/memcontrol.h>
++#include <linux/migrate.h>
++#include <linux/mm_inline.h>
+ #include "internal.h"
+ 
+ static inline struct page *
+@@ -139,3 +142,114 @@ int test_pages_isolated(unsigned long start_pfn, unsigned long end_pfn)
+ 	spin_unlock_irqrestore(&zone->lock, flags);
+ 	return ret ? 0 : -EBUSY;
+ }
++
++
++/*
++ * Confirm all pages in a range [start, end) is belongs to the same zone.
++ */
++int test_pages_in_a_zone(unsigned long start_pfn, unsigned long end_pfn)
++{
++	unsigned long pfn;
++	struct zone *zone = NULL;
++	struct page *page;
++	int i;
++	for (pfn = start_pfn;
++	     pfn < end_pfn;
++	     pfn += MAX_ORDER_NR_PAGES) {
++		i = 0;
++		/* This is just a CONFIG_HOLES_IN_ZONE check.*/
++		while ((i < MAX_ORDER_NR_PAGES) && !pfn_valid_within(pfn + i))
++			i++;
++		if (i == MAX_ORDER_NR_PAGES)
++			continue;
++		page = pfn_to_page(pfn + i);
++		if (zone && page_zone(page) != zone)
++			return 0;
++		zone = page_zone(page);
++	}
++	return 1;
++}
++
++/*
++ * Scanning pfn is much easier than scanning lru list.
++ * Scan pfn from start to end and Find LRU page.
++ */
++unsigned long scan_lru_pages(unsigned long start, unsigned long end)
++{
++	unsigned long pfn;
++	struct page *page;
++	for (pfn = start; pfn < end; pfn++) {
++		if (pfn_valid(pfn)) {
++			page = pfn_to_page(pfn);
++			if (PageLRU(page))
++				return pfn;
++		}
++	}
++	return 0;
++}
++
++struct page *
++hotremove_migrate_alloc(struct page *page, unsigned long private, int **x)
++{
++	/* This should be improooooved!! */
++	return alloc_page(GFP_HIGHUSER_MOVABLE);
++}
++
++#define NR_OFFLINE_AT_ONCE_PAGES	(256)
++int do_migrate_range(unsigned long start_pfn, unsigned long end_pfn)
++{
++	unsigned long pfn;
++	struct page *page;
++	int move_pages = NR_OFFLINE_AT_ONCE_PAGES;
++	int not_managed = 0;
++	int ret = 0;
++	LIST_HEAD(source);
++
++	for (pfn = start_pfn; pfn < end_pfn && move_pages > 0; pfn++) {
++		if (!pfn_valid(pfn))
++			continue;
++		page = pfn_to_page(pfn);
++		if (!get_page_unless_zero(page))
++			continue;
++		/*
++		 * We can skip free pages. And we can only deal with pages on
++		 * LRU.
++		 */
++		ret = isolate_lru_page(page);
++		if (!ret) { /* Success */
++			put_page(page);
++			list_add_tail(&page->lru, &source);
++			move_pages--;
++			inc_zone_page_state(page, NR_ISOLATED_ANON +
++					    page_is_file_cache(page));
++
++		} else {
++#ifdef CONFIG_DEBUG_VM
++			printk(KERN_ALERT "removing pfn %lx from LRU failed\n",
++			       pfn);
++			dump_page(page);
++#endif
++			put_page(page);
++			/* Because we don't have big zone->lock. we should
++			   check this again here. */
++			if (page_count(page)) {
++				not_managed++;
++				ret = -EBUSY;
++				break;
++			}
++		}
++	}
++	if (!list_empty(&source)) {
++		if (not_managed) {
++			putback_lru_pages(&source);
++			goto out;
++		}
++		/* this function returns # of failed pages */
++		ret = migrate_pages(&source, hotremove_migrate_alloc, 0,
++								true, true);
++		if (ret)
++			putback_lru_pages(&source);
++	}
++out:
++	return ret;
++}
+-- 
+1.7.1.569.g6f426
 
