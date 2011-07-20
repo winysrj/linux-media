@@ -1,69 +1,223 @@
-Return-path: <mchehab@localhost>
-Received: from mail-ey0-f174.google.com ([209.85.215.174]:43259 "EHLO
-	mail-ey0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757981Ab1GKQ1o (ORCPT
+Return-path: <linux-media-owner@vger.kernel.org>
+Received: from mailout4.w1.samsung.com ([210.118.77.14]:39969 "EHLO
+	mailout4.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751269Ab1GTI51 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 11 Jul 2011 12:27:44 -0400
-Received: by eyx24 with SMTP id 24so1410619eyx.19
-        for <linux-media@vger.kernel.org>; Mon, 11 Jul 2011 09:27:43 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <19995.8804.939482.9336@morden.metzler>
-References: <201107031831.20378@orion.escape-edv.de>
-	<CAGoCfiwaYhXFi1_QXX55nfSOivgnk1YyDNP5_sXL61k3hdabQA@mail.gmail.com>
-	<19995.8804.939482.9336@morden.metzler>
-Date: Mon, 11 Jul 2011 12:27:42 -0400
-Message-ID: <CAGoCfizQhU10ECyHwcdY+T6=66-KcPxRL-j_w3ELHpK=6+wwdg@mail.gmail.com>
-Subject: Re: [PATCH 00/16] New drivers: DRX-K, TDA18271c2, Updates: CXD2099
- and ngene
-From: Devin Heitmueller <dheitmueller@kernellabs.com>
-To: Ralph Metzler <rjkm@metzlerbros.de>
-Cc: Oliver Endriss <o.endriss@gmx.de>, linux-media@vger.kernel.org,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Michael Krufky <mkrufky@kernellabs.com>
-Content-Type: text/plain; charset=ISO-8859-1
+	Wed, 20 Jul 2011 04:57:27 -0400
+MIME-version: 1.0
+Content-transfer-encoding: 7BIT
+Content-type: TEXT/PLAIN
+Date: Wed, 20 Jul 2011 10:57:15 +0200
+From: Marek Szyprowski <m.szyprowski@samsung.com>
+Subject: [PATCH 3/8] mm: alloc_contig_range() added
+In-reply-to: <1311152240-16384-1-git-send-email-m.szyprowski@samsung.com>
+To: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+	linux-media@vger.kernel.org, linux-mm@kvack.org,
+	linaro-mm-sig@lists.linaro.org
+Cc: Michal Nazarewicz <mina86@mina86.com>,
+	Marek Szyprowski <m.szyprowski@samsung.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	Andrew Morton <akpm@linux-foundation.org>,
+	KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>,
+	Ankita Garg <ankita@in.ibm.com>,
+	Daniel Walker <dwalker@codeaurora.org>,
+	Mel Gorman <mel@csn.ul.ie>, Arnd Bergmann <arnd@arndb.de>,
+	Jesse Barker <jesse.barker@linaro.org>,
+	Jonathan Corbet <corbet@lwn.net>,
+	Chunsang Jeong <chunsang.jeong@linaro.org>,
+	Russell King <linux@arm.linux.org.uk>
+Message-id: <1311152240-16384-4-git-send-email-m.szyprowski@samsung.com>
+References: <1311152240-16384-1-git-send-email-m.szyprowski@samsung.com>
+Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
-Sender: <mchehab@infradead.org>
 
-Hi Ralph,
+From: Michal Nazarewicz <m.nazarewicz@samsung.com>
 
-Good to hear from you.
+This commit adds the alloc_contig_range() function which tries
+to allecate given range of pages.  It tries to migrate all
+already allocated pages that fall in the range thus freeing them.
+Once all pages in the range are freed they are removed from the
+buddy system thus allocated for the caller to use.
 
-> AFAIR, there were at least 2 reasons.
-> One was that the existing driver does not accept 2 (or even 4) tuners with the
-> same address (but behind different demods) on the same I2C bus which
-> is the case on duoflex C/T addon cards.
+Signed-off-by: Michal Nazarewicz <m.nazarewicz@samsung.com>
+Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+[m.szyprowski: renamed some variables for easier code reading]
+Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
+CC: Michal Nazarewicz <mina86@mina86.com>
+Acked-by: Arnd Bergmann <arnd@arndb.de>
+---
+ include/linux/page-isolation.h |    2 +
+ mm/page_alloc.c                |  144 ++++++++++++++++++++++++++++++++++++++++
+ 2 files changed, 146 insertions(+), 0 deletions(-)
 
-Do you mean that you are relying solely on the i2c gates on the
-"other" demods being closed so that the tuners associated with the
-other inputs do not receive the commands?  If so, that would
-definitely create the need for some weird locking structure (since
-today demods typically do not manage their i2c gates in tandem).
-
-> The other was that it does not give back the intermediate frequency
-> which the demod needs. (This is currently done by misusing
-> get_frequency() but I added a get_if() call in newer internal versions
-> which should be added to dvb-core/dvb_frontend.h)
-
-Generally speaking with other devices the IF is configured for the
-tuner depending on the target modulation (there is a tda18271_config
-struct passed at attach time containing the IF for various modes).
-Then the demod driver is also configured for a particular IF.
-
-Are you changing the IF based on something other than the target
-modulation type?  Or do you need to vary the IF based on different
-frequencies within the same modulation?
-
-> Feel free to change ngene/ddbridge to use the existing driver but it
-> will need some major changes in tda18271_attach() and a few other places.
-
-If there are indeed good reasons, then so be it.  But it feels like we
-are working around deficiencies in the core DVB framework that would
-apply to all drivers, and it would be good if we could avoid the
-maintenance headaches associated with two different drivers for the
-same chip.
-
-Devin
-
+diff --git a/include/linux/page-isolation.h b/include/linux/page-isolation.h
+index f1417ed..c5d1a7c 100644
+--- a/include/linux/page-isolation.h
++++ b/include/linux/page-isolation.h
+@@ -34,6 +34,8 @@ extern int set_migratetype_isolate(struct page *page);
+ extern void unset_migratetype_isolate(struct page *page);
+ extern unsigned long alloc_contig_freed_pages(unsigned long start,
+ 					      unsigned long end, gfp_t flag);
++extern int alloc_contig_range(unsigned long start, unsigned long end,
++			      gfp_t flags);
+ extern void free_contig_pages(struct page *page, int nr_pages);
+ 
+ /*
+diff --git a/mm/page_alloc.c b/mm/page_alloc.c
+index 00e9b24..2cea044 100644
+--- a/mm/page_alloc.c
++++ b/mm/page_alloc.c
+@@ -5638,6 +5638,150 @@ unsigned long alloc_contig_freed_pages(unsigned long start, unsigned long end,
+ 	return pfn;
+ }
+ 
++static unsigned long pfn_to_maxpage(unsigned long pfn)
++{
++	return pfn & ~(MAX_ORDER_NR_PAGES - 1);
++}
++
++static unsigned long pfn_to_maxpage_up(unsigned long pfn)
++{
++	return ALIGN(pfn, MAX_ORDER_NR_PAGES);
++}
++
++#define MIGRATION_RETRY	5
++static int __alloc_contig_migrate_range(unsigned long start, unsigned long end)
++{
++	int migration_failed = 0, ret;
++	unsigned long pfn = start;
++
++	/*
++	 * Some code "borrowed" from KAMEZAWA Hiroyuki's
++	 * __alloc_contig_pages().
++	 */
++
++	for (;;) {
++		pfn = scan_lru_pages(pfn, end);
++		if (!pfn || pfn >= end)
++			break;
++
++		ret = do_migrate_range(pfn, end);
++		if (!ret) {
++			migration_failed = 0;
++		} else if (ret != -EBUSY
++			|| ++migration_failed >= MIGRATION_RETRY) {
++			return ret;
++		} else {
++			/* There are unstable pages.on pagevec. */
++			lru_add_drain_all();
++			/*
++			 * there may be pages on pcplist before
++			 * we mark the range as ISOLATED.
++			 */
++			drain_all_pages();
++		}
++		cond_resched();
++	}
++
++	if (!migration_failed) {
++		/* drop all pages in pagevec and pcp list */
++		lru_add_drain_all();
++		drain_all_pages();
++	}
++
++	/* Make sure all pages are isolated */
++	if (WARN_ON(test_pages_isolated(start, end)))
++		return -EBUSY;
++
++	return 0;
++}
++
++/**
++ * alloc_contig_range() -- tries to allocate given range of pages
++ * @start:	start PFN to allocate
++ * @end:	one-past-the-last PFN to allocate
++ * @flags:	flags passed to alloc_contig_freed_pages().
++ *
++ * The PFN range does not have to be pageblock or MAX_ORDER_NR_PAGES
++ * aligned, hovewer it's callers responsibility to guarantee that we
++ * are the only thread that changes migrate type of pageblocks the
++ * pages fall in.
++ *
++ * Returns zero on success or negative error code.  On success all
++ * pages which PFN is in (start, end) are allocated for the caller and
++ * need to be freed with free_contig_pages().
++ */
++int alloc_contig_range(unsigned long start, unsigned long end,
++		       gfp_t flags)
++{
++	unsigned long outer_start, outer_end;
++	int ret;
++
++	/*
++	 * What we do here is we mark all pageblocks in range as
++	 * MIGRATE_ISOLATE.  Because of the way page allocator work, we
++	 * align the range to MAX_ORDER pages so that page allocator
++	 * won't try to merge buddies from different pageblocks and
++	 * change MIGRATE_ISOLATE to some other migration type.
++	 *
++	 * Once the pageblocks are marked as MIGRATE_ISOLATE, we
++	 * migrate the pages from an unaligned range (ie. pages that
++	 * we are interested in).  This will put all the pages in
++	 * range back to page allocator as MIGRATE_ISOLATE.
++	 *
++	 * When this is done, we take the pages in range from page
++	 * allocator removing them from the buddy system.  This way
++	 * page allocator will never consider using them.
++	 *
++	 * This lets us mark the pageblocks back as
++	 * MIGRATE_CMA/MIGRATE_MOVABLE so that free pages in the
++	 * MAX_ORDER aligned range but not in the unaligned, original
++	 * range are put back to page allocator so that buddy can use
++	 * them.
++	 */
++
++	ret = start_isolate_page_range(pfn_to_maxpage(start),
++				       pfn_to_maxpage_up(end));
++	if (ret)
++		goto done;
++
++	ret = __alloc_contig_migrate_range(start, end);
++	if (ret)
++		goto done;
++
++	/*
++	 * Pages from [start, end) are within a MAX_ORDER_NR_PAGES
++	 * aligned blocks that are marked as MIGRATE_ISOLATE.  What's
++	 * more, all pages in [start, end) are free in page allocator.
++	 * What we are going to do is to allocate all pages from
++	 * [start, end) (that is remove them from page allocater).
++	 *
++	 * The only problem is that pages at the beginning and at the
++	 * end of interesting range may be not aligned with pages that
++	 * page allocator holds, ie. they can be part of higher order
++	 * pages.  Because of this, we reserve the bigger range and
++	 * once this is done free the pages we are not interested in.
++	 */
++
++	ret = 0;
++	while (!PageBuddy(pfn_to_page(start & (~0UL << ret))))
++		if (WARN_ON(++ret >= MAX_ORDER))
++			return -EINVAL;
++
++	outer_start = start & (~0UL << ret);
++	outer_end   = alloc_contig_freed_pages(outer_start, end, flags);
++
++	/* Free head and tail (if any) */
++	if (start != outer_start)
++		free_contig_pages(pfn_to_page(outer_start), start - outer_start);
++	if (end != outer_end)
++		free_contig_pages(pfn_to_page(end), outer_end - end);
++
++	ret = 0;
++done:
++	undo_isolate_page_range(pfn_to_maxpage(start), pfn_to_maxpage_up(end));
++	return ret;
++}
++
+ void free_contig_pages(struct page *page, int nr_pages)
+ {
+ 	for (; nr_pages; --nr_pages, ++page)
 -- 
-Devin J. Heitmueller - Kernel Labs
-http://www.kernellabs.com
+1.7.1.569.g6f426
+
