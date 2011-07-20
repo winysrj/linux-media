@@ -1,87 +1,119 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:47209 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750829Ab1GRXo6 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 18 Jul 2011 19:44:58 -0400
-Message-ID: <4E24C576.40102@iki.fi>
-Date: Tue, 19 Jul 2011 02:44:54 +0300
-From: Antti Palosaari <crope@iki.fi>
-MIME-Version: 1.0
-To: Jose Alberto Reguero <jareguero@telefonica.net>
-CC: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	linux-media@vger.kernel.org,
-	Michael Krufky <mkrufky@kernellabs.com>
-Subject: Re: [PATCH] add support for the dvb-t part of CT-3650 v3
-References: <201106070205.08118.jareguero@telefonica.net> <201107142200.52970.jareguero@telefonica.net> <4E249779.4000503@iki.fi> <201107190100.16802.jareguero@telefonica.net>
-In-Reply-To: <201107190100.16802.jareguero@telefonica.net>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 8bit
+Received: from mr.siano-ms.com ([62.0.79.70]:35541 "EHLO
+	Siano-NV.ser.netvision.net.il" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1751075Ab1GTL4L convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 20 Jul 2011 07:56:11 -0400
+Subject: [PATCH] siano: apply debug flag to module level.
+From: Doron Cohen <doronc@siano-ms.com>
+Reply-To: doronc@siano-ms.com
+To: linux-media@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 8BIT
+Date: Wed, 20 Jul 2011 15:07:36 +0300
+Message-ID: <1311163656.32566.6.camel@doron-ubuntu>
+Mime-Version: 1.0
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 07/19/2011 02:00 AM, Jose Alberto Reguero wrote:
-> On Lunes, 18 de Julio de 2011 22:28:41 Antti Palosaari escribió:
->> Hello
->> I did some review for this since I was interested of adding MFE for
->> Anysee driver which is rather similar (dvb-usb-framework).
->>
->> I found this patch have rather major issue(s) which should be fixed
->> properly.
->>
->> * it does not compile
->> drivers/media/dvb/dvb-usb/dvb-usb.h:24:21: fatal error: dvb-pll.h: No
->> such file or directory
->
-> Perhaps you need to add:
-> -Idrivers/media/dvb/frontends/
-> in:
-> drivers/media/dvb/frontends/Makefile
-> I compile the driver with:
-> git://linuxtv.org/mchehab/new_build.git
-> and I not have this problem.
+Hi,
+Siano modules already had sms_dbg flag which is a module parameter which
+sets the debug mode so module prints messages to dmesg for debugging.
+The variable was static therefore apply only to the file which defines
+the module. In modules as smsmdtv.ko that contain a few files, the debug
+flag applied only for functions in that main file.
+flag was changed to be non-static and therefore can be accessed by all
+module files (although it is still not exported out of the module).
 
-Maybe, I was running latest Git. Not big issue.
-
->> * it puts USB-bridge functionality to the frontend driver
->>
->> * 1st FE, TDA10023, is passed as pointer inside config to 2nd FE
->> TDA10048. Much of glue sleep, i2c etc, those calls are wrapped back to
->> to 1st FE...
->>
->> * no exclusive locking between MFEs. What happens if both are accessed
->> same time?
->>
->>
->> Almost all those are somehow chained to same issue, few calls to 2nd FE
->> are wrapped to 1st FE. Maybe IOCTL override callback could help if those
->> are really needed.
->
-> There are two problems:
->
-> First, the two frontends (tda10048 and tda10023)  use tda10023 i2c gate to
-> talk with the tuner.
-
-Very easy to implement correctly. Attach tda10023 first and after that 
-tda10048. Override tda10048 .i2c_gate_ctrl() with tda10023 
-.i2c_gate_ctrl() immediately after tda10048 attach inside ttusb2.c. Now 
-you have both demods (FEs) .i2c_gate_ctrl() which will control 
-physically tda10023 I2C-gate as tuner is behind it.
-
-> The second is that with dvb-usb, there is only one frontend, and if you wake
-> up the second frontend, the adapter is not wake up. That can be avoided the
-> way I do in the patch, or mantaining the adapter alwais on.
-
-I think that could be also avoided similarly overriding demod callbacks 
-and adding some more logic inside ttusb2.c.
-
-Proper fix that later problem is surely correct MFE support for 
-DVB-USB-framework. I am now looking for it, lets see how difficult it 
-will be.
+Thanks,
+Doron
 
 
-regards
-Antti
 
+Signed-off-by: Doron Cohen <doronc@siano-ms.com>
+---
+ drivers/media/dvb/siano/sms-cards.c  |    4 ----
+ drivers/media/dvb/siano/smscoreapi.c |    2 +-
+ drivers/media/dvb/siano/smscoreapi.h |    1 +
+ drivers/media/dvb/siano/smsdvb.c     |    2 +-
+ drivers/media/dvb/siano/smsusb.c     |    2 +-
+ 5 files changed, 4 insertions(+), 7 deletions(-)
 
+diff --git a/drivers/media/dvb/siano/sms-cards.c
+b/drivers/media/dvb/siano/sms-cards.c
+index af121db..cf442dc 100644
+--- a/drivers/media/dvb/siano/sms-cards.c
++++ b/drivers/media/dvb/siano/sms-cards.c
+@@ -20,10 +20,6 @@
+ #include "sms-cards.h"
+ #include "smsir.h"
+ 
+-static int sms_dbg;
+-module_param_named(cards_dbg, sms_dbg, int, 0644);
+-MODULE_PARM_DESC(cards_dbg, "set debug level (info=1, adv=2
+(or-able))");
+-
+ static struct sms_board sms_boards[] = {
+ 	[SMS_BOARD_UNKNOWN] = {
+ 		.name	= "Unknown board",
+diff --git a/drivers/media/dvb/siano/smscoreapi.c
+b/drivers/media/dvb/siano/smscoreapi.c
+index 78765ed..239f453 100644
+--- a/drivers/media/dvb/siano/smscoreapi.c
++++ b/drivers/media/dvb/siano/smscoreapi.c
+@@ -39,7 +39,7 @@
+ #include "smsir.h"
+ #include "smsendian.h"
+ 
+-static int sms_dbg;
++int sms_dbg;
+ module_param_named(debug, sms_dbg, int, 0644);
+ MODULE_PARM_DESC(debug, "set debug level (info=1, adv=2 (or-able))");
+ 
+diff --git a/drivers/media/dvb/siano/smscoreapi.h
+b/drivers/media/dvb/siano/smscoreapi.h
+index 8ecadec..05dd9f6 100644
+--- a/drivers/media/dvb/siano/smscoreapi.h
++++ b/drivers/media/dvb/siano/smscoreapi.h
+@@ -752,6 +752,7 @@ int smscore_led_state(struct smscore_device_t *core,
+int led);
+ 
+ 
+ /*
+------------------------------------------------------------------------
+*/
++extern int sms_dbg;
+ 
+ #define DBG_INFO 1
+ #define DBG_ADV  2
+diff --git a/drivers/media/dvb/siano/smsdvb.c
+b/drivers/media/dvb/siano/smsdvb.c
+index 37c594f..9fbf022 100644
+--- a/drivers/media/dvb/siano/smsdvb.c
++++ b/drivers/media/dvb/siano/smsdvb.c
+@@ -60,7 +60,7 @@ struct smsdvb_client_t {
+ static struct list_head g_smsdvb_clients;
+ static struct mutex g_smsdvb_clientslock;
+ 
+-static int sms_dbg;
++int sms_dbg;
+ module_param_named(debug, sms_dbg, int, 0644);
+ MODULE_PARM_DESC(debug, "set debug level (info=1, adv=2 (or-able))");
+ 
+diff --git a/drivers/media/dvb/siano/smsusb.c
+b/drivers/media/dvb/siano/smsusb.c
+index 0b8da57..da4628d 100644
+--- a/drivers/media/dvb/siano/smsusb.c
++++ b/drivers/media/dvb/siano/smsusb.c
+@@ -29,7 +29,7 @@ along with this program.  If not, see
+<http://www.gnu.org/licenses/>.
+ #include "sms-cards.h"
+ #include "smsendian.h"
+ 
+-static int sms_dbg;
++int sms_dbg;
+ module_param_named(debug, sms_dbg, int, 0644);
+ MODULE_PARM_DESC(debug, "set debug level (info=1, adv=2 (or-able))");
+ 
 -- 
-http://palosaari.fi/
+
