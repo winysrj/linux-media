@@ -1,226 +1,72 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:35990 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755980Ab1G1Vf0 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 28 Jul 2011 17:35:26 -0400
-Received: from dyn3-82-128-185-212.psoas.suomi.net ([82.128.185.212] helo=localhost.localdomain)
-	by mail.kapsi.fi with esmtpsa (TLS1.0:DHE_RSA_AES_256_CBC_SHA1:32)
-	(Exim 4.69)
-	(envelope-from <crope@iki.fi>)
-	id 1QmYEn-0005vX-6l
-	for linux-media@vger.kernel.org; Fri, 29 Jul 2011 00:35:25 +0300
-Message-ID: <4E31D61C.8090702@iki.fi>
-Date: Fri, 29 Jul 2011 00:35:24 +0300
-From: Antti Palosaari <crope@iki.fi>
+Received: from smtpo13.poczta.onet.pl ([213.180.142.144]:42133 "EHLO
+	smtpo13.poczta.onet.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751613Ab1GTUgE (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 20 Jul 2011 16:36:04 -0400
+Received: from [10.2.240.219] (242.132.246.94.ip4.artcom.pl [94.246.132.242])
+	(using TLSv1 with cipher ECDHE-RSA-AES256-SHA (256/256 bits))
+	(No client certificate requested)
+	(Authenticated sender: chmooreck@poczta.onet.pl)
+	by smtp.poczta.onet.pl (Onet) with ESMTPSA id 9DC6820262A93
+	for <linux-media@vger.kernel.org>; Wed, 20 Jul 2011 22:29:45 +0200 (CEST)
+Message-ID: <4E273AB5.7090405@poczta.onet.pl>
+Date: Wed, 20 Jul 2011 22:29:41 +0200
+From: Piotr Chmura <chmooreck@poczta.onet.pl>
 MIME-Version: 1.0
 To: linux-media@vger.kernel.org
-Subject: [PATCH 2/3] dvb-usb: multi-frontend support (MFE)
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Subject: [PATCH] dvb/as102 nBox DVB-T dongle
+Content-Type: text/plain; charset=UTF-8; format=flowed
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Signed-off-by: Antti Palosaari <crope@iki.fi>
----
-  drivers/media/dvb/dvb-usb/dvb-usb-dvb.c  |   85 
-+++++++++++++++++++++++-------
-  drivers/media/dvb/dvb-usb/dvb-usb-init.c |    4 ++
-  drivers/media/dvb/dvb-usb/dvb-usb.h      |   11 +++-
-  3 files changed, 78 insertions(+), 22 deletions(-)
+I just bought DVB-T USB dongle for one of polish digital platform. It 
+works fine with as102 driver.
+Here is patch adding vendor and product ID to as102 driver taken from 
+http://kernellabs.com/hg/~dheitmueller/v4l-dvb-as102.
+I tested it with kernel-3.0-rc7-git7 (had to change usb_buffer_alloc() 
+to usb_alloc_coherent and usb_buffer_free to usb_free_coherent() ).
 
-diff --git a/drivers/media/dvb/dvb-usb/dvb-usb-dvb.c 
-b/drivers/media/dvb/dvb-usb/dvb-usb-dvb.c
-index d8c0bd9..5e34df7 100644
---- a/drivers/media/dvb/dvb-usb/dvb-usb-dvb.c
-+++ b/drivers/media/dvb/dvb-usb/dvb-usb-dvb.c
-@@ -162,8 +162,11 @@ static int dvb_usb_fe_wakeup(struct dvb_frontend *fe)
+patch:
 
-  	dvb_usb_device_power_ctrl(adap->dev, 1);
+diff -Nur linux/drivers/media/dvb/as102/as102_usb_drv.c 
+linux-mine/drivers/media/dvb/as102/as102_usb_drv.c
+--- as102/as102_usb_drv.c    2011-07-20 21:37:33.924143297 +0200
++++ /usr/src/linux/drivers/media/dvb/as102/as102_usb_drv.c    2011-07-20 
+20:40:21.000000000 +0200
+@@ -39,6 +39,7 @@
+  static struct usb_device_id as102_usb_id_table[] = {
+      { USB_DEVICE(AS102_USB_DEVICE_VENDOR_ID, AS102_USB_DEVICE_PID_0001) },
+      { USB_DEVICE(PCTV_74E_USB_VID, PCTV_74E_USB_PID) },
++    { USB_DEVICE(NBOX_USB_VID, NBOX_USB_PID) },
+      { USB_DEVICE(ELGATO_EYETV_DTT_USB_VID, ELGATO_EYETV_DTT_USB_PID) },
+      { } /* Terminating entry */
+  };
+@@ -48,6 +49,7 @@
+  static const char *as102_device_names[] = {
+      AS102_REFERENCE_DESIGN,
+      AS102_PCTV_74E,
++    AS102_NBOX,
+      AS102_ELGATO_EYETV_DTT_NAME,
+      NULL /* Terminating entry */
+  };
+diff -Nur linux/drivers/media/dvb/as102/as102_usb_drv.h 
+linux-mine/drivers/media/dvb/as102/as102_usb_drv.h
+--- as102/as102_usb_drv.h    2011-07-20 21:37:33.925143297 +0200
++++ /usr/src/linux/drivers/media/dvb/as102/as102_usb_drv.h    2011-07-20 
+20:39:46.000000000 +0200
+@@ -36,6 +36,11 @@
+  #define PCTV_74E_USB_VID        0x2013
+  #define PCTV_74E_USB_PID        0x0246
 
--	if (adap->fe_init)
--		adap->fe_init(fe);
-+	if (adap->props.frontend_ctrl)
-+		adap->props.frontend_ctrl(fe, 1);
++/* nBox DVB-T Stick */
++#define AS102_NBOX            "nBox DVB-T Stick"
++#define NBOX_USB_VID            0x0b89
++#define NBOX_USB_PID            0x0007
 +
-+	if (adap->fe_init[fe->id])
-+		adap->fe_init[fe->id](fe);
+  /* Elgato: EyeTV DTT Deluxe */
+  #define AS102_ELGATO_EYETV_DTT_NAME    "Elgato EyeTV DTT Deluxe"
+  #define ELGATO_EYETV_DTT_USB_VID    0x0fd9
 
-  	return 0;
-  }
-@@ -172,45 +175,89 @@ static int dvb_usb_fe_sleep(struct dvb_frontend *fe)
-  {
-  	struct dvb_usb_adapter *adap = fe->dvb->priv;
 
--	if (adap->fe_sleep)
--		adap->fe_sleep(fe);
-+	if (adap->fe_sleep[fe->id])
-+		adap->fe_sleep[fe->id](fe);
-+
-+	if (adap->props.frontend_ctrl)
-+		adap->props.frontend_ctrl(fe, 0);
-
-  	return dvb_usb_device_power_ctrl(adap->dev, 0);
-  }
-
-  int dvb_usb_adapter_frontend_init(struct dvb_usb_adapter *adap)
-  {
-+	int ret, i, x;
-+
-+	memset(adap->fe, 0, sizeof(adap->fe));
-+
-  	if (adap->props.frontend_attach == NULL) {
--		err("strange: '%s' #%d doesn't want to attach a 
-frontend.",adap->dev->desc->name, adap->id);
-+		err("strange: '%s' #%d doesn't want to attach a frontend.",
-+			adap->dev->desc->name, adap->id);
-+
-  		return 0;
-  	}
-
--	/* re-assign sleep and wakeup functions */
--	if (adap->props.frontend_attach(adap) == 0 && adap->fe[0] != NULL) {
--		adap->fe_init  = adap->fe[0]->ops.init;  adap->fe[0]->ops.init  = 
-dvb_usb_fe_wakeup;
--		adap->fe_sleep = adap->fe[0]->ops.sleep; adap->fe[0]->ops.sleep = 
-dvb_usb_fe_sleep;
-+	/* register all given adapter frontends */
-+	if (adap->props.num_frontends)
-+		x = adap->props.num_frontends - 1;
-+	else
-+		x = 0;
-+
-+	for (i = 0; i <= x; i++) {
-+		ret = adap->props.frontend_attach(adap);
-+		if (ret || adap->fe[i] == NULL) {
-+			/* only print error when there is no FE at all */
-+			if (i == 0)
-+				err("no frontend was attached by '%s'",
-+					adap->dev->desc->name);
-+
-+			return 0;
-+		}
-
--		if (dvb_register_frontend(&adap->dvb_adap, adap->fe[0])) {
--			err("Frontend registration failed.");
--			dvb_frontend_detach(adap->fe[0]);
--			adap->fe[0] = NULL;
--			return -ENODEV;
-+		adap->fe[i]->id = i;
-+
-+		/* re-assign sleep and wakeup functions */
-+		adap->fe_init[i] = adap->fe[i]->ops.init;
-+		adap->fe[i]->ops.init  = dvb_usb_fe_wakeup;
-+		adap->fe_sleep[i] = adap->fe[i]->ops.sleep;
-+		adap->fe[i]->ops.sleep = dvb_usb_fe_sleep;
-+
-+		if (dvb_register_frontend(&adap->dvb_adap, adap->fe[i])) {
-+			err("Frontend %d registration failed.", i);
-+			dvb_frontend_detach(adap->fe[i]);
-+			adap->fe[i] = NULL;
-+			/* In error case, do not try register more FEs,
-+			 * still leaving already registered FEs alive. */
-+			if (i == 0)
-+				return -ENODEV;
-+			else
-+				return 0;
-  		}
-
-  		/* only attach the tuner if the demod is there */
-  		if (adap->props.tuner_attach != NULL)
-  			adap->props.tuner_attach(adap);
--	} else
--		err("no frontend was attached by '%s'",adap->dev->desc->name);
-+	}
-
-  	return 0;
-  }
-
-  int dvb_usb_adapter_frontend_exit(struct dvb_usb_adapter *adap)
-  {
--	if (adap->fe[0] != NULL) {
--		dvb_unregister_frontend(adap->fe[0]);
--		dvb_frontend_detach(adap->fe[0]);
-+	int i;
-+
-+	/* unregister all given adapter frontends */
-+	if (adap->props.num_frontends)
-+		i = adap->props.num_frontends - 1;
-+	else
-+		i = 0;
-+
-+	for (; i >= 0; i--) {
-+		if (adap->fe[i] != NULL) {
-+			dvb_unregister_frontend(adap->fe[i]);
-+			dvb_frontend_detach(adap->fe[i]);
-+		}
-  	}
-+
-  	return 0;
-  }
-diff --git a/drivers/media/dvb/dvb-usb/dvb-usb-init.c 
-b/drivers/media/dvb/dvb-usb/dvb-usb-init.c
-index 2e3ea0f..f9af348 100644
---- a/drivers/media/dvb/dvb-usb/dvb-usb-init.c
-+++ b/drivers/media/dvb/dvb-usb/dvb-usb-init.c
-@@ -77,6 +77,10 @@ static int dvb_usb_adapter_init(struct dvb_usb_device 
-*d, short *adapter_nrs)
-  			return ret;
-  		}
-
-+		/* use exclusive FE lock if there is multiple shared FEs */
-+		if (adap->fe[1])
-+			adap->dvb_adap.mfe_shared = 1;
-+
-  		d->num_adapters_initialized++;
-  		d->state |= DVB_USB_STATE_DVB;
-  	}
-diff --git a/drivers/media/dvb/dvb-usb/dvb-usb.h 
-b/drivers/media/dvb/dvb-usb/dvb-usb.h
-index 2e57bff..a3e77b2 100644
---- a/drivers/media/dvb/dvb-usb/dvb-usb.h
-+++ b/drivers/media/dvb/dvb-usb/dvb-usb.h
-@@ -124,6 +124,8 @@ struct usb_data_stream_properties {
-   * @caps: capabilities of the DVB USB device.
-   * @pid_filter_count: number of PID filter position in the optional 
-hardware
-   *  PID-filter.
-+ * @num_frontends: number of frontends of the DVB USB adapter.
-+ * @frontend_ctrl: called to power on/off active frontend.
-   * @streaming_ctrl: called to start and stop the MPEG2-TS streaming of the
-   *  device (not URB submitting/killing).
-   * @pid_filter_ctrl: called to en/disable the PID filter, if any.
-@@ -141,7 +143,9 @@ struct dvb_usb_adapter_properties {
-  #define DVB_USB_ADAP_RECEIVES_204_BYTE_TS         0x08
-  	int caps;
-  	int pid_filter_count;
-+	int num_frontends;
-
-+	int (*frontend_ctrl)   (struct dvb_frontend *, int);
-  	int (*streaming_ctrl)  (struct dvb_usb_adapter *, int);
-  	int (*pid_filter_ctrl) (struct dvb_usb_adapter *, int);
-  	int (*pid_filter)      (struct dvb_usb_adapter *, int, u16, int);
-@@ -345,6 +349,7 @@ struct usb_data_stream {
-   *
-   * @stream: the usb data stream.
-   */
-+#define MAX_NO_OF_FE_PER_ADAP 2
-  struct dvb_usb_adapter {
-  	struct dvb_usb_device *dev;
-  	struct dvb_usb_adapter_properties props;
-@@ -363,11 +368,11 @@ struct dvb_usb_adapter {
-  	struct dmxdev        dmxdev;
-  	struct dvb_demux     demux;
-  	struct dvb_net       dvb_net;
--	struct dvb_frontend *fe[1];
-+	struct dvb_frontend *fe[MAX_NO_OF_FE_PER_ADAP];
-  	int                  max_feed_count;
-
--	int (*fe_init)  (struct dvb_frontend *);
--	int (*fe_sleep) (struct dvb_frontend *);
-+	int (*fe_init[MAX_NO_OF_FE_PER_ADAP])  (struct dvb_frontend *);
-+	int (*fe_sleep[MAX_NO_OF_FE_PER_ADAP]) (struct dvb_frontend *);
-
-  	struct usb_data_stream stream;
-
--- 
-1.7.6
