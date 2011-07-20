@@ -1,45 +1,131 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:36923 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753802Ab1GNWJ4 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 14 Jul 2011 18:09:56 -0400
-Received: from int-mx01.intmail.prod.int.phx2.redhat.com (int-mx01.intmail.prod.int.phx2.redhat.com [10.5.11.11])
-	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id p6EM9u1E020686
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
-	for <linux-media@vger.kernel.org>; Thu, 14 Jul 2011 18:09:56 -0400
-From: Jarod Wilson <jarod@redhat.com>
-To: linux-media@vger.kernel.org
-Cc: Jarod Wilson <jarod@redhat.com>
-Subject: [PATCH 0/9] mceusb updates per MS docs
-Date: Thu, 14 Jul 2011 18:09:45 -0400
-Message-Id: <1310681394-3530-1-git-send-email-jarod@redhat.com>
+Received: from mailout3.w1.samsung.com ([210.118.77.13]:27555 "EHLO
+	mailout3.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751248Ab1GTI51 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 20 Jul 2011 04:57:27 -0400
+MIME-version: 1.0
+Content-transfer-encoding: 7BIT
+Content-type: TEXT/PLAIN
+Date: Wed, 20 Jul 2011 10:57:14 +0200
+From: Marek Szyprowski <m.szyprowski@samsung.com>
+Subject: [PATCH 2/8] mm: alloc_contig_freed_pages() added
+In-reply-to: <1311152240-16384-1-git-send-email-m.szyprowski@samsung.com>
+To: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+	linux-media@vger.kernel.org, linux-mm@kvack.org,
+	linaro-mm-sig@lists.linaro.org
+Cc: Michal Nazarewicz <mina86@mina86.com>,
+	Marek Szyprowski <m.szyprowski@samsung.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	Andrew Morton <akpm@linux-foundation.org>,
+	KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>,
+	Ankita Garg <ankita@in.ibm.com>,
+	Daniel Walker <dwalker@codeaurora.org>,
+	Mel Gorman <mel@csn.ul.ie>, Arnd Bergmann <arnd@arndb.de>,
+	Jesse Barker <jesse.barker@linaro.org>,
+	Jonathan Corbet <corbet@lwn.net>,
+	Chunsang Jeong <chunsang.jeong@linaro.org>,
+	Russell King <linux@arm.linux.org.uk>
+Message-id: <1311152240-16384-3-git-send-email-m.szyprowski@samsung.com>
+References: <1311152240-16384-1-git-send-email-m.szyprowski@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This is a stack of updates made based on the Windows Media Center remote
-and receiver/transmitter specification and requirements document that
-Rafi Rubin recently pointed me at. Its titled
-Windows-Media-Center-RC-IR-Collection-Green-Button-Specification-03-08-2011-V2.pdf
-which as of this writing, is publicly available from
-download.microsoft.com.
+From: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 
-Tested with 7 different mceusb devices, with no ill effects. Unfortunately,
-for the most part, these chagnes don't actually improve any shortcomings in
-the driver, but they do give us a better view of the hardware features and
-whatnot, and a few things are better explained now, with most of the command
-and response bits lining up with what MS has documented.
+This commit introduces alloc_contig_freed_pages() function
+which allocates (ie. removes from buddy system) free pages
+in range.  Caller has to guarantee that all pages in range
+are in buddy system.
 
-Jarod Wilson (9):
-  [media] mceusb: command/response updates from MS docs
-  [media] mceusb: give hardware time to reply to cmds
-  [media] mceusb: set wakeup bits for IR-based resume
-  [media] mceusb: issue device resume cmd when needed
-  [media] mceusb: query device for firmware emulator version
-  [media] mceusb: get misc port data from hardware
-  [media] mceusb: flash LED (emu v2+ only) to signal end of init
-  [media] mceusb: report actual tx frequencies
-  [media] mceusb: update version, copyright, author
+Along with this function, a free_contig_pages() function is
+provided which frees all (or a subset of) pages allocated
+with alloc_contig_free_pages().
 
- drivers/media/rc/mceusb.c |  422 ++++++++++++++++++++++++++++++---------------
- 1 files changed, 286 insertions(+), 136 deletions(-)
+Michal Nazarewicz has modified the function to make it easier
+to allocate not MAX_ORDER_NR_PAGES aligned pages by making it
+return pfn of one-past-the-last allocated page.
+
+Signed-off-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Signed-off-by: Michal Nazarewicz <m.nazarewicz@samsung.com>
+Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
+CC: Michal Nazarewicz <mina86@mina86.com>
+Acked-by: Arnd Bergmann <arnd@arndb.de>
+---
+ include/linux/page-isolation.h |    3 ++
+ mm/page_alloc.c                |   44 ++++++++++++++++++++++++++++++++++++++++
+ 2 files changed, 47 insertions(+), 0 deletions(-)
+
+diff --git a/include/linux/page-isolation.h b/include/linux/page-isolation.h
+index 58cdbac..f1417ed 100644
+--- a/include/linux/page-isolation.h
++++ b/include/linux/page-isolation.h
+@@ -32,6 +32,9 @@ test_pages_isolated(unsigned long start_pfn, unsigned long end_pfn);
+  */
+ extern int set_migratetype_isolate(struct page *page);
+ extern void unset_migratetype_isolate(struct page *page);
++extern unsigned long alloc_contig_freed_pages(unsigned long start,
++					      unsigned long end, gfp_t flag);
++extern void free_contig_pages(struct page *page, int nr_pages);
+ 
+ /*
+  * For migration.
+diff --git a/mm/page_alloc.c b/mm/page_alloc.c
+index 4e8985a..00e9b24 100644
+--- a/mm/page_alloc.c
++++ b/mm/page_alloc.c
+@@ -5600,6 +5600,50 @@ out:
+ 	spin_unlock_irqrestore(&zone->lock, flags);
+ }
+ 
++unsigned long alloc_contig_freed_pages(unsigned long start, unsigned long end,
++				       gfp_t flag)
++{
++	unsigned long pfn = start, count;
++	struct page *page;
++	struct zone *zone;
++	int order;
++
++	VM_BUG_ON(!pfn_valid(start));
++	zone = page_zone(pfn_to_page(start));
++
++	spin_lock_irq(&zone->lock);
++
++	page = pfn_to_page(pfn);
++	for (;;) {
++		VM_BUG_ON(page_count(page) || !PageBuddy(page));
++		list_del(&page->lru);
++		order = page_order(page);
++		zone->free_area[order].nr_free--;
++		rmv_page_order(page);
++		__mod_zone_page_state(zone, NR_FREE_PAGES, -(1UL << order));
++		pfn  += 1 << order;
++		if (pfn >= end)
++			break;
++		VM_BUG_ON(!pfn_valid(pfn));
++		page += 1 << order;
++	}
++
++	spin_unlock_irq(&zone->lock);
++
++	/* After this, pages in the range can be freed one be one */
++	page = pfn_to_page(start);
++	for (count = pfn - start; count; --count, ++page)
++		prep_new_page(page, 0, flag);
++
++	return pfn;
++}
++
++void free_contig_pages(struct page *page, int nr_pages)
++{
++	for (; nr_pages; --nr_pages, ++page)
++		__free_page(page);
++}
++
+ #ifdef CONFIG_MEMORY_HOTREMOVE
+ /*
+  * All pages in the range must be isolated before calling this.
+-- 
+1.7.1.569.g6f426
 
