@@ -1,55 +1,74 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp12.mail.ru ([94.100.176.89]:48066 "EHLO smtp12.mail.ru"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751476Ab1GXTF1 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 24 Jul 2011 15:05:27 -0400
-Message-ID: <4E2C6BD2.3060905@list.ru>
-Date: Sun, 24 Jul 2011 23:00:34 +0400
-From: Stas Sergeev <stsp@list.ru>
+Received: from ppp118-208-7-216.lns20.bne1.internode.on.net ([118.208.7.216]:54349
+	"EHLO mail.psychogeeks.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752102Ab1GTW4r (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 20 Jul 2011 18:56:47 -0400
+Message-ID: <4E275D2A.9070200@psychogeeks.com>
+Date: Thu, 21 Jul 2011 08:56:42 +1000
+From: Chris W <lkml@psychogeeks.com>
 MIME-Version: 1.0
-To: Mauro Carvalho Chehab <mchehab@infradead.org>
-CC: linux-media@vger.kernel.org,
-	"Nickolay V. Shmyrev" <nshmyrev@yandex.ru>,
-	Lennart Poettering <lpoetter@redhat.com>,
-	ALSA devel <alsa-devel@alsa-project.org>
-Subject: Re: [patch][saa7134] do not change mute state for capturing audio
-References: <4E19D2F7.6060803@list.ru> <4E22AF12.4020600@list.ru> <4E22CCC0.8030803@infradead.org> <4E24BEB8.4060501@redhat.com> <4E257FF5.4040401@infradead.org> <4E258B60.6010007@list.ru> <4E25906D.3020200@infradead.org> <4E259B0C.90107@list.ru> <4E25A26A.2000204@infradead.org> <4E25A7C2.3050609@list.ru> <4E25C7AE.5020503@infradead.org> <4E25CF35.7000802@list.ru> <4E25DB37.8020609@infradead.org> <4E25FDE4.7040805@list.ru> <4E262772.9060509@infradead.org> <4E266799.8030706@list.ru> <4E26AEC0.5000405@infradead.org> <4E26B1E7.2080107@list.ru> <4E26B29B.4010109@infradead.org> <4E292BED.60108@list.ru> <4E296D00.9040608@infradead.org> <4E296F6C.9080107@list.ru> <4E2971D4.1060109@infradead.org> <4E29738F.7040605@list.ru> <4E297505.7090307@infradead.org> <4E29E02A.1020402@list.ru> <4E2A23C7.3040209@infradead.org> <4E2A7BF0.8080606@list.ru> <4E2AC742.8020407@infradead.org> <4E2ACAAD.4050602@list.ru> <4E2AE40F.7030108@infradead.org> <4E2C5A35.9030404@list.ru> <4E2C6638.2040707@infradead.org>
-In-Reply-To: <4E2C6638.2040707@infradead.org>
-Content-Type: text/plain; charset=UTF-8; format=flowed
+To: Jarod Wilson <jarod@redhat.com>
+CC: linux-media@vger.kernel.org, Andy Walls <awalls@md.metrocast.net>
+Subject: Re: [PATCH] [media] imon: don't parse scancodes until intf configured
+References: <D7E52A85-331A-4650-94F0-C1477F457457@redhat.com> <1311091967-2791-1-git-send-email-jarod@redhat.com> <4E25FFB7.70205@psychogeeks.com> <20110720131830.GC9799@redhat.com>
+In-Reply-To: <20110720131830.GC9799@redhat.com>
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-24.07.2011 22:36, Mauro Carvalho Chehab wrote:
-> So, only people that has saa7134 with alsa stream that opted
-> to wire the saa7134 device to the sound card, and with a strong
-> interference at the default tunning frequency (400 MHz) would
-> notice a problem.
-No, the "strong interference" thing have nothing to
-do with it, I think. My card detects signal sometimes,
-not always. Otherwise it says this:
----
-saa7134[0]/audio: audio carrier scan failed, using 5.500 MHz [default]
----
-yet the moise is still there.
-If you look into a tvaudio_thread() function, you'll
-notice that it disables automute _unconditionally_!
-saa7134_tvaudio_do_scan() also disables automute
-unconditionally.
-That's why I think there are bugs. Can we start
-from fixing at least this, and see what happens then?
+On 20/07/11 23:18, Jarod Wilson wrote:
+> On Wed, Jul 20, 2011 at 08:05:43AM +1000, Chris W wrote:
+>> On 20/07/11 02:12, Jarod Wilson wrote:
+>>> The imon devices have either 1 or 2 usb interfaces on them, each wired
+>>> up to its own urb callback. The interface 0 urb callback is wired up
+>>> before the imon context's rc_dev pointer is filled in, which is
+>>> necessary for imon 0xffdc device auto-detection to work properly, but
+>>> we need to make sure we don't actually run the callback routines until
+>>> we've entirely filled in the necessary bits for each given interface,
+>>> lest we wind up oopsing. Technically, any imon device could have hit
+>>> this, but the issue is exacerbated on the 0xffdc devices, which send a
+>>> constant stream of interrupts, even when they have no valid key data.
+>>
+>>
+>>
+>> OK.  The patch applies and everything continues to work.   There is no
+>> obvious difference in the dmesg output on module load, with my device
+>> remaining unidentified.  I don't know if that is indicative of anything.
+> 
+> Did you apply this patch on top of the earlier patch, or instead of it?
 
->> Since I have no idea why it finds some carrier, I can't
->> fix that in any way. Or, maybe, not to call the scan
->> on driver init? What will that break?
-> Analog tuners need to be tuned at the device init on a high frequency
-> according with their datasheets, otherwise the PLL may fail.
-OK.
-Maybe, not disabling the automute when the scan
-was started at init, rather than when it was requested
-by an app?
+On top of it.   I've reversed the patches and installed just the last
+one with this result on loading the module:
 
-> You're the first one that reported it, and the code is there for _years_.
-> So, this is not a commonly noticed problem at all.
-I am only the first one who reported it _to that list_.
-I think most other reports were against pulseaudio.
+input: iMON Panel, Knob and Mouse(15c2:ffdc) as
+/devices/pci0000:00/0000:00:10.2/usb4/4-2/4-2:1.0/input/input8
+imon 4-2:1.0: 0xffdc iMON VFD, iMON IR (id 0x24)
+Registered IR keymap rc-imon-pad
+input: iMON Remote (15c2:ffdc) as
+/devices/pci0000:00/0000:00:10.2/usb4/4-2/4-2:1.0/rc/rc3/input9
+rc3: iMON Remote (15c2:ffdc) as
+/devices/pci0000:00/0000:00:10.2/usb4/4-2/4-2:1.0/rc/rc3
+imon 4-2:1.0: iMON device (15c2:ffdc, intf0) on usb<4:3> initialized
+usbcore: registered new interface driver imon
+
+Much better.
+
+>> intf0 decoded packet: 00 00 00 00 00 00 24 01
+>> intf0 decoded packet: 00 00 00 00 00 00 24 01
+>> intf0 decoded packet: 00 00 00 00 00 00 24 01
+> 
+> One other amusing tidbit: you get continuous spew like the above, because
+> to date, I thought all the ffdc devices had "nothing to report" spew that
+> started with 0xffffff, which we filter out. Sigh. I hate imon hardware...
+
+I am beginning to understand why. That output was only printed with the
+"debug=1" option and is not printed with the patched module.
+
+Regards,
+Chris
+
+-- 
+Chris Williams
+Brisbane, Australia
