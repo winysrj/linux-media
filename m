@@ -1,112 +1,247 @@
-Return-path: <mchehab@localhost>
-Received: from bear.ext.ti.com ([192.94.94.41]:39487 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755675Ab1GGMV0 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 7 Jul 2011 08:21:26 -0400
-Received: from dlep33.itg.ti.com ([157.170.170.112])
-	by bear.ext.ti.com (8.13.7/8.13.7) with ESMTP id p67CLQka028084
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-media@vger.kernel.org>; Thu, 7 Jul 2011 07:21:26 -0500
-Received: from dlep26.itg.ti.com (smtp-le.itg.ti.com [157.170.170.27])
-	by dlep33.itg.ti.com (8.13.7/8.13.8) with ESMTP id p67CLQsb006856
-	for <linux-media@vger.kernel.org>; Thu, 7 Jul 2011 07:21:26 -0500 (CDT)
-Received: from dlee73.ent.ti.com (localhost [127.0.0.1])
-	by dlep26.itg.ti.com (8.13.8/8.13.8) with ESMTP id p67CLQI3007571
-	for <linux-media@vger.kernel.org>; Thu, 7 Jul 2011 07:21:26 -0500 (CDT)
-From: Amber Jain <amber@ti.com>
-To: <linux-media@vger.kernel.org>
-CC: hvaibhav@ti.com, Amber Jain <amber@ti.com>
-Subject: [PATCH v2 1/3] V4L2: OMAP: VOUT: isr handling extended for DPI and HDMI interface
-Date: Thu, 7 Jul 2011 17:51:16 +0530
-Message-ID: <1310041278-8810-2-git-send-email-amber@ti.com>
-In-Reply-To: <1310041278-8810-1-git-send-email-amber@ti.com>
-References: <1310041278-8810-1-git-send-email-amber@ti.com>
-MIME-Version: 1.0
-Content-Type: text/plain
+Return-path: <linux-media-owner@vger.kernel.org>
+Received: from mailout2.w1.samsung.com ([210.118.77.12]:23243 "EHLO
+	mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751120Ab1GTI53 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 20 Jul 2011 04:57:29 -0400
+Date: Wed, 20 Jul 2011 10:57:17 +0200
+From: Marek Szyprowski <m.szyprowski@samsung.com>
+Subject: [PATCH 5/8] mm: MIGRATE_CMA isolation functions added
+In-reply-to: <1311152240-16384-1-git-send-email-m.szyprowski@samsung.com>
+To: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+	linux-media@vger.kernel.org, linux-mm@kvack.org,
+	linaro-mm-sig@lists.linaro.org
+Cc: Michal Nazarewicz <mina86@mina86.com>,
+	Marek Szyprowski <m.szyprowski@samsung.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	Andrew Morton <akpm@linux-foundation.org>,
+	KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>,
+	Ankita Garg <ankita@in.ibm.com>,
+	Daniel Walker <dwalker@codeaurora.org>,
+	Mel Gorman <mel@csn.ul.ie>, Arnd Bergmann <arnd@arndb.de>,
+	Jesse Barker <jesse.barker@linaro.org>,
+	Jonathan Corbet <corbet@lwn.net>,
+	Chunsang Jeong <chunsang.jeong@linaro.org>,
+	Russell King <linux@arm.linux.org.uk>
+Message-id: <1311152240-16384-6-git-send-email-m.szyprowski@samsung.com>
+MIME-version: 1.0
+Content-type: TEXT/PLAIN
+Content-transfer-encoding: 7BIT
+References: <1311152240-16384-1-git-send-email-m.szyprowski@samsung.com>
+Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
-Sender: <mchehab@infradead.org>
 
-Extending the omap vout isr handling for:
-- secondary lcd over DPI interface,
-- HDMI interface.
+From: Michal Nazarewicz <m.nazarewicz@samsung.com>
 
-These are the new interfaces added to OMAP4 DSS.
+This commit changes various functions that change pages and
+pageblocks migrate type between MIGRATE_ISOLATE and
+MIGRATE_MOVABLE in such a way as to allow to work with
+MIGRATE_CMA migrate type.
 
-Signed-off-by: Amber Jain <amber@ti.com>
+Signed-off-by: Michal Nazarewicz <m.nazarewicz@samsung.com>
+Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
+CC: Michal Nazarewicz <mina86@mina86.com>
+Acked-by: Arnd Bergmann <arnd@arndb.de>
 ---
-Changes from v1:
-- updated commit message to mention that these changes are specifically
-  for OMAP4.
- 
- drivers/media/video/omap/omap_vout.c |   26 +++++++++++++++++++-------
- 1 files changed, 19 insertions(+), 7 deletions(-)
+ include/linux/page-isolation.h |   40 +++++++++++++++++++++++++++-------------
+ mm/page_alloc.c                |   19 ++++++++++++-------
+ mm/page_isolation.c            |   15 ++++++++-------
+ 3 files changed, 47 insertions(+), 27 deletions(-)
 
-diff --git a/drivers/media/video/omap/omap_vout.c b/drivers/media/video/omap/omap_vout.c
-index 343b50c..6cd3622 100644
---- a/drivers/media/video/omap/omap_vout.c
-+++ b/drivers/media/video/omap/omap_vout.c
-@@ -546,10 +546,20 @@ static void omap_vout_isr(void *arg, unsigned int irqstatus)
+diff --git a/include/linux/page-isolation.h b/include/linux/page-isolation.h
+index 856d9cf..b2a81fd 100644
+--- a/include/linux/page-isolation.h
++++ b/include/linux/page-isolation.h
+@@ -3,39 +3,53 @@
  
- 	spin_lock(&vout->vbq_lock);
- 	do_gettimeofday(&timevalue);
--	if (cur_display->type == OMAP_DISPLAY_TYPE_DPI) {
--		if (!(irqstatus & DISPC_IRQ_VSYNC))
--			goto vout_isr_err;
+ /*
+  * Changes migrate type in [start_pfn, end_pfn) to be MIGRATE_ISOLATE.
+- * If specified range includes migrate types other than MOVABLE,
++ * If specified range includes migrate types other than MOVABLE or CMA,
+  * this will fail with -EBUSY.
+  *
+  * For isolating all pages in the range finally, the caller have to
+  * free all pages in the range. test_page_isolated() can be used for
+  * test it.
+  */
+-extern int
+-start_isolate_page_range(unsigned long start_pfn, unsigned long end_pfn);
++int __start_isolate_page_range(unsigned long start_pfn, unsigned long end_pfn,
++			       unsigned migratetype);
++
++static inline int
++start_isolate_page_range(unsigned long start_pfn, unsigned long end_pfn)
++{
++	return __start_isolate_page_range(start_pfn, end_pfn, MIGRATE_MOVABLE);
++}
++
++int __undo_isolate_page_range(unsigned long start_pfn, unsigned long end_pfn,
++			      unsigned migratetype);
  
-+	if (cur_display->type != OMAP_DISPLAY_TYPE_VENC) {
-+		switch (cur_display->type) {
-+		case OMAP_DISPLAY_TYPE_DPI:
-+			if (!(irqstatus & (DISPC_IRQ_VSYNC | DISPC_IRQ_VSYNC2)))
-+				goto vout_isr_err;
-+			break;
-+		case OMAP_DISPLAY_TYPE_HDMI:
-+			if (!(irqstatus & DISPC_IRQ_EVSYNC_EVEN))
-+				goto vout_isr_err;
-+			break;
-+		default:
-+			goto vout_isr_err;
-+		}
- 		if (!vout->first_int && (vout->cur_frm != vout->next_frm)) {
- 			vout->cur_frm->ts = timevalue;
- 			vout->cur_frm->state = VIDEOBUF_DONE;
-@@ -573,7 +583,7 @@ static void omap_vout_isr(void *arg, unsigned int irqstatus)
- 		ret = omapvid_init(vout, addr);
- 		if (ret)
- 			printk(KERN_ERR VOUT_NAME
--					"failed to set overlay info\n");
-+				"failed to set overlay info\n");
- 		/* Enable the pipeline and set the Go bit */
- 		ret = omapvid_apply_changes(vout);
- 		if (ret)
-@@ -943,7 +953,7 @@ static int omap_vout_release(struct file *file)
- 		u32 mask = 0;
+ /*
+  * Changes MIGRATE_ISOLATE to MIGRATE_MOVABLE.
+  * target range is [start_pfn, end_pfn)
+  */
+-extern int
+-undo_isolate_page_range(unsigned long start_pfn, unsigned long end_pfn);
++static inline int
++undo_isolate_page_range(unsigned long start_pfn, unsigned long end_pfn)
++{
++	return __undo_isolate_page_range(start_pfn, end_pfn, MIGRATE_MOVABLE);
++}
  
- 		mask = DISPC_IRQ_VSYNC | DISPC_IRQ_EVSYNC_EVEN |
--			DISPC_IRQ_EVSYNC_ODD;
-+			DISPC_IRQ_EVSYNC_ODD | DISPC_IRQ_VSYNC2;
- 		omap_dispc_unregister_isr(omap_vout_isr, vout, mask);
- 		vout->streaming = 0;
+ /*
+- * test all pages in [start_pfn, end_pfn)are isolated or not.
++ * Test all pages in [start_pfn, end_pfn) are isolated or not.
+  */
+-extern int
+-test_pages_isolated(unsigned long start_pfn, unsigned long end_pfn);
++int test_pages_isolated(unsigned long start_pfn, unsigned long end_pfn);
  
-@@ -1614,7 +1624,8 @@ static int vidioc_streamon(struct file *file, void *fh, enum v4l2_buf_type i)
- 	addr = (unsigned long) vout->queued_buf_addr[vout->cur_frm->i]
- 		+ vout->cropped_offset;
+ /*
+- * Internal funcs.Changes pageblock's migrate type.
+- * Please use make_pagetype_isolated()/make_pagetype_movable().
++ * Internal functions. Changes pageblock's migrate type.
+  */
+-extern int set_migratetype_isolate(struct page *page);
+-extern void unset_migratetype_isolate(struct page *page);
++int set_migratetype_isolate(struct page *page);
++void __unset_migratetype_isolate(struct page *page, unsigned migratetype);
++static inline void unset_migratetype_isolate(struct page *page)
++{
++	__unset_migratetype_isolate(page, MIGRATE_MOVABLE);
++}
+ extern unsigned long alloc_contig_freed_pages(unsigned long start,
+ 					      unsigned long end, gfp_t flag);
+ extern int alloc_contig_range(unsigned long start, unsigned long end,
+-			      gfp_t flags);
++			      gfp_t flags, unsigned migratetype);
+ extern void free_contig_pages(struct page *page, int nr_pages);
  
--	mask = DISPC_IRQ_VSYNC | DISPC_IRQ_EVSYNC_EVEN | DISPC_IRQ_EVSYNC_ODD;
-+	mask = DISPC_IRQ_VSYNC | DISPC_IRQ_EVSYNC_EVEN | DISPC_IRQ_EVSYNC_ODD
-+		| DISPC_IRQ_VSYNC2;
+ /*
+diff --git a/mm/page_alloc.c b/mm/page_alloc.c
+index e6c403c..2d2cf29 100644
+--- a/mm/page_alloc.c
++++ b/mm/page_alloc.c
+@@ -5634,7 +5634,7 @@ out:
+ 	return ret;
+ }
  
- 	omap_dispc_register_isr(omap_vout_isr, vout, mask);
+-void unset_migratetype_isolate(struct page *page)
++void __unset_migratetype_isolate(struct page *page, unsigned migratetype)
+ {
+ 	struct zone *zone;
+ 	unsigned long flags;
+@@ -5642,8 +5642,8 @@ void unset_migratetype_isolate(struct page *page)
+ 	spin_lock_irqsave(&zone->lock, flags);
+ 	if (get_pageblock_migratetype(page) != MIGRATE_ISOLATE)
+ 		goto out;
+-	set_pageblock_migratetype(page, MIGRATE_MOVABLE);
+-	move_freepages_block(zone, page, MIGRATE_MOVABLE);
++	set_pageblock_migratetype(page, migratetype);
++	move_freepages_block(zone, page, migratetype);
+ out:
+ 	spin_unlock_irqrestore(&zone->lock, flags);
+ }
+@@ -5748,6 +5748,10 @@ static int __alloc_contig_migrate_range(unsigned long start, unsigned long end)
+  * @start:	start PFN to allocate
+  * @end:	one-past-the-last PFN to allocate
+  * @flags:	flags passed to alloc_contig_freed_pages().
++ * @migratetype:	migratetype of the underlaying pageblocks (either
++ *			#MIGRATE_MOVABLE or #MIGRATE_CMA).  All pageblocks
++ *			in range must have the same migratetype and it must
++ *			be either of the two.
+  *
+  * The PFN range does not have to be pageblock or MAX_ORDER_NR_PAGES
+  * aligned, hovewer it's callers responsibility to guarantee that we
+@@ -5759,7 +5763,7 @@ static int __alloc_contig_migrate_range(unsigned long start, unsigned long end)
+  * need to be freed with free_contig_pages().
+  */
+ int alloc_contig_range(unsigned long start, unsigned long end,
+-		       gfp_t flags)
++		       gfp_t flags, unsigned migratetype)
+ {
+ 	unsigned long outer_start, outer_end;
+ 	int ret;
+@@ -5787,8 +5791,8 @@ int alloc_contig_range(unsigned long start, unsigned long end,
+ 	 * them.
+ 	 */
  
-@@ -1664,7 +1675,8 @@ static int vidioc_streamoff(struct file *file, void *fh, enum v4l2_buf_type i)
- 		return -EINVAL;
+-	ret = start_isolate_page_range(pfn_to_maxpage(start),
+-				       pfn_to_maxpage_up(end));
++	ret = __start_isolate_page_range(pfn_to_maxpage(start),
++					 pfn_to_maxpage_up(end), migratetype);
+ 	if (ret)
+ 		goto done;
  
- 	vout->streaming = 0;
--	mask = DISPC_IRQ_VSYNC | DISPC_IRQ_EVSYNC_EVEN | DISPC_IRQ_EVSYNC_ODD;
-+	mask = DISPC_IRQ_VSYNC | DISPC_IRQ_EVSYNC_EVEN | DISPC_IRQ_EVSYNC_ODD
-+		| DISPC_IRQ_VSYNC2;
+@@ -5826,7 +5830,8 @@ int alloc_contig_range(unsigned long start, unsigned long end,
  
- 	omap_dispc_unregister_isr(omap_vout_isr, vout, mask);
+ 	ret = 0;
+ done:
+-	undo_isolate_page_range(pfn_to_maxpage(start), pfn_to_maxpage_up(end));
++	__undo_isolate_page_range(pfn_to_maxpage(start), pfn_to_maxpage_up(end),
++				  migratetype);
+ 	return ret;
+ }
  
+diff --git a/mm/page_isolation.c b/mm/page_isolation.c
+index 270a026..e232b25 100644
+--- a/mm/page_isolation.c
++++ b/mm/page_isolation.c
+@@ -23,10 +23,11 @@ __first_valid_page(unsigned long pfn, unsigned long nr_pages)
+ }
+ 
+ /*
+- * start_isolate_page_range() -- make page-allocation-type of range of pages
++ * __start_isolate_page_range() -- make page-allocation-type of range of pages
+  * to be MIGRATE_ISOLATE.
+  * @start_pfn: The lower PFN of the range to be isolated.
+  * @end_pfn: The upper PFN of the range to be isolated.
++ * @migratetype: migrate type to set in error recovery.
+  *
+  * Making page-allocation-type to be MIGRATE_ISOLATE means free pages in
+  * the range will never be allocated. Any free pages and pages freed in the
+@@ -35,8 +36,8 @@ __first_valid_page(unsigned long pfn, unsigned long nr_pages)
+  * start_pfn/end_pfn must be aligned to pageblock_order.
+  * Returns 0 on success and -EBUSY if any part of range cannot be isolated.
+  */
+-int
+-start_isolate_page_range(unsigned long start_pfn, unsigned long end_pfn)
++int __start_isolate_page_range(unsigned long start_pfn, unsigned long end_pfn,
++			       unsigned migratetype)
+ {
+ 	unsigned long pfn;
+ 	unsigned long undo_pfn;
+@@ -59,7 +60,7 @@ undo:
+ 	for (pfn = start_pfn;
+ 	     pfn < undo_pfn;
+ 	     pfn += pageblock_nr_pages)
+-		unset_migratetype_isolate(pfn_to_page(pfn));
++		__unset_migratetype_isolate(pfn_to_page(pfn), migratetype);
+ 
+ 	return -EBUSY;
+ }
+@@ -67,8 +68,8 @@ undo:
+ /*
+  * Make isolated pages available again.
+  */
+-int
+-undo_isolate_page_range(unsigned long start_pfn, unsigned long end_pfn)
++int __undo_isolate_page_range(unsigned long start_pfn, unsigned long end_pfn,
++			      unsigned migratetype)
+ {
+ 	unsigned long pfn;
+ 	struct page *page;
+@@ -80,7 +81,7 @@ undo_isolate_page_range(unsigned long start_pfn, unsigned long end_pfn)
+ 		page = __first_valid_page(pfn, pageblock_nr_pages);
+ 		if (!page || get_pageblock_migratetype(page) != MIGRATE_ISOLATE)
+ 			continue;
+-		unset_migratetype_isolate(page);
++		__unset_migratetype_isolate(page, migratetype);
+ 	}
+ 	return 0;
+ }
 -- 
-1.7.1
+1.7.1.569.g6f426
 
