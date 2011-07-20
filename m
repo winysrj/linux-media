@@ -1,58 +1,48 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:53113 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752130Ab1GQICG (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 17 Jul 2011 04:02:06 -0400
-Message-ID: <4E2296F3.8040809@redhat.com>
-Date: Sun, 17 Jul 2011 05:01:55 -0300
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Received: from perceval.ideasonboard.com ([95.142.166.194]:54762 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751243Ab1GTN6M (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 20 Jul 2011 09:58:12 -0400
+Received: from lancelot.localnet (unknown [91.178.170.101])
+	by perceval.ideasonboard.com (Postfix) with ESMTPSA id 4ED04359A1
+	for <linux-media@vger.kernel.org>; Wed, 20 Jul 2011 13:58:11 +0000 (UTC)
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: linux-media@vger.kernel.org
+Subject: [GIT PULL FOR v3.1] OMAP3 ISP fixes
+Date: Wed, 20 Jul 2011 15:58:11 +0200
 MIME-Version: 1.0
-To: =?UTF-8?B?UsOpbWkgRGVuaXMtQ291cm1vbnQ=?= <remi@remlab.net>
-CC: linux-media@vger.kernel.org
-Subject: Re: [PATCH 0/5] Driver support for cards based on Digital Devices
- bridge (ddbridge)
-References: <201107032321.46092@orion.escape-edv.de> <4E21B3EC.9060709@linuxtv.org> <4E223344.1080109@redhat.com> <201107171039.18383.remi@remlab.net>
-In-Reply-To: <201107171039.18383.remi@remlab.net>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Content-Type: Text/Plain;
+  charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201107201558.12877.laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em 17-07-2011 04:39, Rémi Denis-Courmont escreveu:
-> Le dimanche 17 juillet 2011 03:56:36 Mauro Carvalho Chehab, vous avez écrit :
->>>>> After all, you cannot connect both a DVB-C cable and a DVB-T antenna at
->>>>> the same time, so the vast majority of users won't ever want to switch
->>>>> modes at all.
->>>>
->>>> You are wrong, actually you can. At least here in Finland some cable
->>>> networks offers DVB-T too.
->>
->> As Antti and Rémi pointed, there are issues with some cable operators. Not
->> sure how critical is that, but an userspace application changing it via
->> sysfs might work while the applications are not ported to support both
->> ways.
-> 
-> Telling applications to use sysfs... I can see many ways that you might regret 
-> that in the future...
+Hi Mauro,
 
-I'm expressed it badly. What I meant to say is to have some sort of script
-or a specific application to allow users to change the delivery system, 
-by changing the modprobe parameter, for the MFE drivers supported on <= 3.0 Kernel 
-that won't fit in the agreed approach, while applications don't support 
-the adopted approach directly.
+The following changes since commit 9bc5f6fa12c9e3e1e73e66bfabe9d463ea779b08:
 
-> Accessing sysfs directly from an application is against all the good practices 
-> I thought I had learnt regarding Linux. There is the theoretical possibility 
-> that udev gets "explicit" support for Linux DVB and exposes the properties 
-> nicely. But that would be rather inconvenient, and cannot be used to change 
-> properties.
-> 
->> Antti/Rémi, how the current applications work with one physical frontend
->> supporting both DVB-T and DVB-C? Do they allow to change channels from one
->> to the other mode on a transparent way?
-> 
-> I don't know. VLC does not care if you switch from DVB-T to DVB-C, to the DVD 
-> drive or to YouTube. Each channel (or at least each multiplex) is a different 
-> playlist item. So it'll close the all device nodes and (re)open them. There 
-> are obviously other applications at stake.
+  [media] drxk: Remove goto/break after return (2011-07-15 09:35:58 -0300)
 
+are available in the git repository at:
+  git://linuxtv.org/pinchartl/media.git omap3isp-next-omap3isp
+
+Kalle Jokiniemi (2):
+      OMAP3: ISP: Add regulator control for omap34xx
+      OMAP3: RX-51: define vdds_csib regulator supply
+
+Laurent Pinchart (1):
+      omap3isp: Support configurable HS/VS polarities
+
+ arch/arm/mach-omap2/board-rx51-peripherals.c |    5 ++++
+ drivers/media/video/omap3isp/isp.h           |    6 +++++
+ drivers/media/video/omap3isp/ispccdc.c       |    4 +-
+ drivers/media/video/omap3isp/ispccp2.c       |   27 ++++++++++++++++++++++++-
+ drivers/media/video/omap3isp/ispccp2.h       |    1 +
+ 5 files changed, 39 insertions(+), 4 deletions(-)
+
+-- 
+Regards,
+
+Laurent Pinchart
