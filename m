@@ -1,52 +1,63 @@
-Return-path: <mchehab@localhost>
-Received: from moutng.kundenserver.de ([212.227.17.9]:50258 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755978Ab1GFUXy (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 6 Jul 2011 16:23:54 -0400
-From: Arnd Bergmann <arnd@arndb.de>
-To: linaro-mm-sig@lists.linaro.org
-Subject: Re: [Linaro-mm-sig] [PATCH 6/8] drivers: add Contiguous Memory Allocator
-Date: Wed, 6 Jul 2011 22:23:01 +0200
-Cc: Nicolas Pitre <nicolas.pitre@linaro.org>,
-	"'Daniel Walker'" <dwalker@codeaurora.org>,
-	"Russell King - ARM Linux" <linux@arm.linux.org.uk>,
-	linux-media@vger.kernel.org, "'Jonathan Corbet'" <corbet@lwn.net>,
-	"'Mel Gorman'" <mel@csn.ul.ie>,
-	"'Chunsang Jeong'" <chunsang.jeong@linaro.org>,
-	lkml <linux-kernel@vger.kernel.org>,
-	"'Michal Nazarewicz'" <mina86@mina86.com>,
-	"'Jesse Barker'" <jesse.barker@linaro.org>,
-	"'Kyungmin Park'" <kyungmin.park@samsung.com>,
-	"'KAMEZAWA Hiroyuki'" <kamezawa.hiroyu@jp.fujitsu.com>,
-	"'Andrew Morton'" <akpm@linux-foundation.org>, linux-mm@kvack.org,
-	linux-arm-kernel@lists.infradead.org,
-	"'Ankita Garg'" <ankita@in.ibm.com>
-References: <1309851710-3828-1-git-send-email-m.szyprowski@samsung.com> <201107061831.59739.arnd@arndb.de> <alpine.LFD.2.00.1107061459520.14596@xanadu.home>
-In-Reply-To: <alpine.LFD.2.00.1107061459520.14596@xanadu.home>
-MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201107062223.01940.arnd@arndb.de>
+Return-path: <linux-media-owner@vger.kernel.org>
+Received: from smtp1-g21.free.fr ([212.27.42.1]:42811 "EHLO smtp1-g21.free.fr"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751638Ab1GTLKS convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 20 Jul 2011 07:10:18 -0400
+Date: Wed, 20 Jul 2011 13:12:12 +0200
+From: Jean-Francois Moine <moinejf@free.fr>
+To: Luiz Ramos <lramos.prof@yahoo.com.br>
+Cc: linux-media@vger.kernel.org
+Subject: Re: [PATCH] Fix wrong register mask in gspca/sonixj.c
+Message-ID: <20110720131212.13a9f8d2@tele>
+In-Reply-To: <1311039554.88024.YahooMailClassic@web121815.mail.ne1.yahoo.com>
+References: <20110715194448.401bf441@tele>
+	<1311039554.88024.YahooMailClassic@web121815.mail.ne1.yahoo.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
+Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
-Sender: <mchehab@infradead.org>
 
-On Wednesday 06 July 2011 21:10:07 Nicolas Pitre wrote:
-> If you get a highmem page, because the cache is VIPT, that page might 
-> still be cached even if it wasn't mapped.  With a VIVT cache we must 
-> flush the cache whenever a highmem page is unmapped.  There is no such 
-> restriction with VIPT i.e. ARMv6 and above.  Therefore to make sure the 
-> highmem page you get doesn't have cache lines associated to it, you must 
-> first map it cacheable, then perform cache invalidation on it, and 
-> eventually remap it as non-cacheable.  This is necessary because there 
-> is no way to perform cache maintenance on L1 cache using physical 
-> addresses unfortunately.  See commit 7e5a69e83b for an example of what 
-> this entails (fortunately commit 3e4d3af501 made things much easier and 
-> therefore commit 39af22a79 greatly simplified things).
+On Mon, 18 Jul 2011 18:39:14 -0700 (PDT)
+Luiz Ramos <lramos.prof@yahoo.com.br> wrote:
+	[snip]
+> I noticed that in 640x480 the device worked fine, but in 320x240 and
+> 160x120 it didn't (I mean: the image is dark). Or'ing reg17 with 0x04
+> in line 2535 (as it's currently done for VGA) is sufficient to make
+> the webcam work again. The change could be like that:
+	[snip]
+> However, the frame rates get limited to 10 fps. Without that change,
+> and in 320x240 and 160x120, they reach 20 fps (of darkness).
+> 
+> I can't see what or'ing that register means, and what's the
+> relationship between this and the webcam darkness. It seems that
+> these bits control some kind of clock; this can be read in the
+> program comments. One other argument in favour of this assumption is
+> the fact that the frame rate changes accordingly to the value of
+> these bits. But I can't see how this relates to exposure.
+> 
+> For my purposes, I'll stay with that change; it's sufficient for my
+> purposes. If you know what I did, please advise me. :-)
 
-Ok, thanks for the explanation. This definitely makes the highmem approach
-much harder to get right, and slower. Let's hope then that Marek's approach
-of using small pages for the contiguous memory region and changing their
-attributes on the fly works out better than this.
+Hi Luiz,
 
-	Arnd
+You changed the sensor clock from 24MHz to 12MHz.
+
+The clocks of the sensor and the bridge may have different values.
+In 640x480, the bridge clock is 48MHz (reg01) and the sensor clock is
+12MHz (reg17: clock / 4). Previously, in 320x240, the bridge clock was
+48MHz and the sensor clock 24 MHz (reg17: clock / 2).
+
+I think that the sensor clock must stay the same for a same frame rate.
+So, what about changing the bridge clock only, i.e. bridge clock 24MHZ
+(reg01) and sensor clock 24MHz (reg17: clock / 1)?
+
+That's what I coded in the last gspca test version (2.13.3) which is
+available in my web site (see below). May you try it?
+
+Best regards.
+
+-- 
+Ken ar c'hentañ	|	      ** Breizh ha Linux atav! **
+Jef		|		http://moinejf.free.fr/
