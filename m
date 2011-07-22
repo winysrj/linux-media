@@ -1,90 +1,122 @@
-Return-path: <mchehab@localhost>
-Received: from mailout2.w1.samsung.com ([210.118.77.12]:64065 "EHLO
-	mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756559Ab1GGNea (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 7 Jul 2011 09:34:30 -0400
-Received: from spt2.w1.samsung.com (mailout2.w1.samsung.com [210.118.77.12])
- by mailout2.w1.samsung.com
- (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14 2004))
- with ESMTP id <0LNY00B6ATPHY8@mailout2.w1.samsung.com> for
- linux-media@vger.kernel.org; Thu, 07 Jul 2011 14:34:29 +0100 (BST)
-Received: from linux.samsung.com ([106.116.38.10])
- by spt2.w1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14
- 2004)) with ESMTPA id <0LNY00IX3TPF13@spt2.w1.samsung.com> for
- linux-media@vger.kernel.org; Thu, 07 Jul 2011 14:34:28 +0100 (BST)
-Date: Thu, 07 Jul 2011 15:34:27 +0200
-From: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Subject: Re: [PATCH 1/3] s5p-csis: Handle all available power supplies
-In-reply-to: <201107062347.01766.laurent.pinchart@ideasonboard.com>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: linux-media@vger.kernel.org, m.szyprowski@samsung.com,
-	kyungmin.park@samsung.com, sw0312.kim@samsung.com,
-	riverful.kim@samsung.com
-Message-id: <4E15B5E3.7050204@samsung.com>
-MIME-version: 1.0
-Content-type: text/plain; charset=ISO-8859-15
-Content-transfer-encoding: 7BIT
-References: <1309972421-29690-1-git-send-email-s.nawrocki@samsung.com>
- <1309972421-29690-2-git-send-email-s.nawrocki@samsung.com>
- <201107062347.01766.laurent.pinchart@ideasonboard.com>
+Return-path: <linux-media-owner@vger.kernel.org>
+Received: from mail.kapsi.fi ([217.30.184.167]:44158 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751599Ab1GVWXL (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 22 Jul 2011 18:23:11 -0400
+Message-ID: <4E29F849.2040808@iki.fi>
+Date: Sat, 23 Jul 2011 01:23:05 +0300
+From: Antti Palosaari <crope@iki.fi>
+MIME-Version: 1.0
+To: Jose Alberto Reguero <jareguero@telefonica.net>
+CC: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	linux-media@vger.kernel.org,
+	Michael Krufky <mkrufky@kernellabs.com>
+Subject: Re: [PATCH] add support for the dvb-t part of CT-3650 v3
+References: <201106070205.08118.jareguero@telefonica.net> <4E29A960.3090401@iki.fi> <201107222012.20711.jareguero@telefonica.net> <201107222349.22717.jareguero@telefonica.net>
+In-Reply-To: <201107222349.22717.jareguero@telefonica.net>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 8bit
+Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
-Sender: <mchehab@infradead.org>
 
-Hi Laurent,
-
-On 07/06/2011 11:47 PM, Laurent Pinchart wrote:
-> Hi Sylwester,
-> 
-> On Wednesday 06 July 2011 19:13:39 Sylwester Nawrocki wrote:
->> On the SoCs this driver is intended to support the are three
->> separate pins to supply the MIPI-CSIS subsystem: 1.1V or 1.2V,
->> 1.8V and power supply for an internal PLL.
->> This patch adds support for two separate voltage supplies
->> to cover properly board configurations where PMIC requires
->> to configure independently each external supply of the MIPI-CSI
->> device. The 1.8V and PLL supply are assigned a single "vdd18"
->> regulator supply as it seems more reasonable than creating
->> separate regulator supplies for them.
+On 07/23/2011 12:49 AM, Jose Alberto Reguero wrote:
+> On Viernes, 22 de Julio de 2011 20:12:20 Jose Alberto Reguero escribió:
+>> On Viernes, 22 de Julio de 2011 18:46:24 Antti Palosaari escribió:
+>>> On 07/22/2011 07:25 PM, Jose Alberto Reguero wrote:
+>>>> On Viernes, 22 de Julio de 2011 18:08:39 Antti Palosaari escribió:
+>>>>> On 07/22/2011 07:02 PM, Jose Alberto Reguero wrote:
+>>>>>> On Viernes, 22 de Julio de 2011 13:32:53 Antti Palosaari escribió:
+>>>>>>> Have you had to time test these?
+>>>>>>>
+>>>>>>> And about I2C adapter, I don't see why changes are needed. As far as
+>>>>>>> I understand it is already working with TDA10023 and you have done
+>>>>>>> changes for TDA10048 support. I compared TDA10048 and TDA10023 I2C
+>>>>>>> functions and those are ~similar. Both uses most typical access,
+>>>>>>> for reg write {u8 REG, u8 VAL} and for reg read {u8 REG}/{u8 VAL}.
+>>>>>>>
+>>>>>>> regards
+>>>>>>> Antti
+>>>>>>
+>>>>>> I just finish the testing. The changes to I2C are for the tuner
+>>>>>> tda827x. The MFE fork fine. I need to change the code in tda10048 and
+>>>>>> ttusb2. Attached is the patch for CT-3650 with your MFE patch.
+>>>>>
+>>>>> You still pass tda10023 fe pointer to tda10048 for I2C-gate control
+>>>>> which is wrong. Could you send USB sniff I can look what there really
+>>>>> happens. If you have raw SniffUSB2 logs I wish to check those, other
+>>>>> logs are welcome too if no raw SniffUSB2 available.
+>>>>
+>>>> Youre chnage don't work. You need to change the function i2c gate of
+>>>> tda1048 for the one of tda1023, but the parameter of this function must
+>>>> be the fe pointer of tda1023. If this is a problem, I can duplicate
+>>>> tda1023 i2c gate in ttusb2 code and pass it to the tda10048. It is done
+>>>> this way in the first patch of this thread.
+>>>
+>>> Yes I now see why it cannot work - since FE is given as a parameter to
+>>> i2c_gate_ctrl it does not see correct priv and used I2C addr is read
+>>> from priv. You must implement own i2c_gate_ctrl in ttusb2 driver.
+>>> Implement own ct3650_i2c_gate_ctrl and override tda10048 i2c_gate_ctrl
+>>> using that. Then call tda10023 i2c_gate_ctrl but instead of tda10048 FE
+>>> use td10023 FE. Something like
+>>>
+>>> static int ct3650_i2c_gate_ctrl(struct dvb_frontend* fe, int enable)
+>>> {
+>>>
+>>> 	return adap->mfe[0]->ops.i2c_gate_ctrl(POINTER_TO_TDA10023_FE, enable);
+>>>
+>>> }
+>>>
+>>> /* tuner is behind TDA10023 I2C-gate */
+>>> adap->mfe[1]->ops.i2c_gate_ctrl = ct3650_i2c_gate_ctrl;
+>>>
+>>>
+>>> Could you still send USB logs? I don't see it correct behaviour you need
+>>> to change I2C-adaper when same tuner is used for DVB-T because it was
+>>> already working in DVB-C mode.
+>>>
+>>> regards
+>>> Antti
 >>
->> Reported-by: HeungJun Kim <riverful.kim@samsung.com>
->> Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
->> Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
->> ---
->>  drivers/media/video/s5p-fimc/mipi-csis.c |   42
->> +++++++++++++++++------------ 1 files changed, 25 insertions(+), 17
->> deletions(-)
+>> Thanks, I try to implement that. I attach a processed log. It prints the
+>> first line of a usb command and the first line of the returned byes. If
+>> you want the full log I can upload it where you want.
 >>
->> diff --git a/drivers/media/video/s5p-fimc/mipi-csis.c
->> b/drivers/media/video/s5p-fimc/mipi-csis.c index ef056d6..4a529b4 100644
->> --- a/drivers/media/video/s5p-fimc/mipi-csis.c
->> +++ b/drivers/media/video/s5p-fimc/mipi-csis.c
->> @@ -81,6 +81,12 @@ static char *csi_clock_name[] = {
->>  };
->>  #define NUM_CSIS_CLOCKS	ARRAY_SIZE(csi_clock_name)
->>
->> +static const char * const csis_supply_name[] = {
->> +	"vdd11", /* 1.1V or 1.2V (s5pc100) MIPI CSI suppply */
->> +	"vdd18", /* VDD 1.8V and MIPI CSI PLL supply */
->> +};
->> +#define CSIS_NUM_SUPPLIES ARRAY_SIZE(csis_supply_name)
->> +
->>  enum {
->>  	ST_POWERED	= 1,
->>  	ST_STREAMING	= 2,
->> @@ -109,9 +115,9 @@ struct csis_state {
->>  	struct platform_device *pdev;
->>  	struct resource *regs_res;
->>  	void __iomem *regs;
->> +	struct regulator_bulk_data supply[CSIS_NUM_SUPPLIES];
-> 
-> I would have called this supplies, but that's nitpicking. Otherwise the patch 
-> looks good to me.
+>> Jose Alberto
+>
+> New version with Antti's sugestion.
 
-No problem, I have already renamed it. It seems to make more sense like this.
-Thanks for the review!
+GOOD! As you can see implementing things correctly drops also much lines 
+of code! No more ugly hacks in TDA10048 driver.
+
+But now you must fix that I2C-adapter. I looked sniffs and tda827x 
+driver. I2C is rather clear. tda827x uses a little bit unusual I2C read. 
+Normally reads are done as I2C write+read combination, that tuner, as 
+many other NXP tuners, uses only single read and it is starting always 
+from reg "0".
+
+It looked for my eyes that it will never do read operation as in read 
+there is num = 1, msg[0].flags = I2C_M_RD
+
+ttusb2_i2c_xfer():
+	for (i = 0; i < num; i++) {
+		read = i+1 < num && (msg[i+1].flags & I2C_M_RD);
+
+But in the case it have been working for DVB-C I don't understand why it 
+does not work for DVB-T. And thus I really suspect your changes to 
+I2C-adapter are not needed. So whats the problem using original I2C 
+adapter? What does it print when debugs are enabled. Is there some 
+errors in log?
+
+Also looking from sniffs, it seems that this could be wrong:
+		(rlen > 0 && r[3] != rlen)) {
+		warn("there might have been an error during control message transfer. 
+(rlen = %d, was %d)",rlen,r[3]);
 
 
-Regards,
+regards
+Antti
+
+
+
 -- 
-Sylwester Nawrocki
-Samsung Poland R&D Center
+http://palosaari.fi/
