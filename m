@@ -1,74 +1,64 @@
-Return-path: <mchehab@pedra>
-Received: from metis.ext.pengutronix.de ([92.198.50.35]:41481 "EHLO
-	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752471Ab1GBIHo (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sat, 2 Jul 2011 04:07:44 -0400
-Date: Sat, 2 Jul 2011 10:07:41 +0200
-From: Wolfram Sang <w.sang@pengutronix.de>
-To: linux-media@vger.kernel.org
-Cc: Jean-Francois Moine <moinejf@free.fr>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: Re: [PATCH] [media] gspca/zc3xx: add usb_id for HP Premium Starter
- Cam
-Message-ID: <20110702080741.GA5578@pengutronix.de>
-References: <1308140202-14854-1-git-send-email-w.sang@pengutronix.de>
+Return-path: <linux-media-owner@vger.kernel.org>
+Received: from mail-yx0-f174.google.com ([209.85.213.174]:37739 "EHLO
+	mail-yx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752515Ab1GVXBt (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 22 Jul 2011 19:01:49 -0400
+Received: by yxi11 with SMTP id 11so1569269yxi.19
+        for <linux-media@vger.kernel.org>; Fri, 22 Jul 2011 16:01:49 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="sdtB3X0nJg68CQEu"
-Content-Disposition: inline
-In-Reply-To: <1308140202-14854-1-git-send-email-w.sang@pengutronix.de>
+In-Reply-To: <4E29FF56.5080604@iki.fi>
+References: <CAJbz7-29H=e=C2SyY-6Ru23Zzv6sH7wBbOm72ZWMxqOagakuKQ@mail.gmail.com>
+	<4E29FB9E.4060507@iki.fi>
+	<CAJbz7-3HkkEoDa3qGvoaF61ohhdxo38ZxF+GWGV+tBQ0yEBopA@mail.gmail.com>
+	<4E29FF56.5080604@iki.fi>
+Date: Sat, 23 Jul 2011 01:01:48 +0200
+Message-ID: <CAJbz7-0pDj7mdgHAyyuSOfwGmYdNaKqxM9RxWZdQbEN0Eyjx9w@mail.gmail.com>
+Subject: Re: [PATCH] cxd2820r: fix possible out-of-array lookup
+From: HoP <jpetrous@gmail.com>
+To: Antti Palosaari <crope@iki.fi>
+Cc: linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
-Sender: <mchehab@pedra>
 
+2011/7/23 Antti Palosaari <crope@iki.fi>:
+> On 07/23/2011 01:47 AM, HoP wrote:
+>>
+>> 2011/7/23 Antti Palosaari<crope@iki.fi>:
+>>>
+>>> On 07/23/2011 01:18 AM, HoP wrote:
+>>>>
+>>>> In case of i2c write operation there is only one element in msg[] array.
+>>>> Don't access msg[1] in that case.
+>>>
+>>> NACK.
+>>> I suspect you confuse now local msg2 and msg that is passed as function
+>>> parameter. Could you double check and explain?
+>>>
+>>
+>> Ok, may I really understand it badly.
+>>
+>> My intention was that in case of tda18271_write_regs() there is
+>> i2c_transfer() called with msg[] array of one element only.
+>> So am I wrong?
+>
+> No. There is only one msg array in write and in case of reg read there is
+> two elements, first one is write and second is read.
+>
+> But now I see what you mean. msg2[1] is set as garbage fields in case of
+> incoming msg len is 1. True, but it does not harm since it is not used in
+> that case.
 
---sdtB3X0nJg68CQEu
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+In case of write, cxd2820r_tuner_i2c_xfer() gets msg[] parameter
+with only one element, true? If so, then my patch is correct.
 
-On Wed, Jun 15, 2011 at 02:16:42PM +0200, Wolfram Sang wrote:
-> Signed-off-by: Wolfram Sang <w.sang@pengutronix.de>
-> ---
+>
+> The idea of whole system is just add 2 bytes to incoming msg .buf and then
+> forward that message.
+>
 
-Ping. Who is picking this up? Anything to be done on my side?
+Yes. I just learnt it, very clever way. What I only don't understand is
+why do you decrease msg2[0].len. Seems really like some hw bug.
 
->=20
-> Fixes https://bugzilla.kernel.org/show_bug.cgi?id=3D13479
->=20
->  drivers/media/video/gspca/zc3xx.c |    1 +
->  1 files changed, 1 insertions(+), 0 deletions(-)
->=20
-> diff --git a/drivers/media/video/gspca/zc3xx.c b/drivers/media/video/gspc=
-a/zc3xx.c
-> index 61cdd56..dbbab48 100644
-> --- a/drivers/media/video/gspca/zc3xx.c
-> +++ b/drivers/media/video/gspca/zc3xx.c
-> @@ -6970,6 +6970,7 @@ static const struct sd_desc sd_desc =3D {
->  };
-> =20
->  static const struct usb_device_id device_table[] =3D {
-> +	{USB_DEVICE(0x03f0, 0x1b07)},
->  	{USB_DEVICE(0x041e, 0x041e)},
->  	{USB_DEVICE(0x041e, 0x4017)},
->  	{USB_DEVICE(0x041e, 0x401c), .driver_info =3D SENSOR_PAS106},
-> --=20
-> 1.7.2.5
->=20
-
---=20
-Pengutronix e.K.                           | Wolfram Sang                |
-Industrial Linux Solutions                 | http://www.pengutronix.de/  |
-
---sdtB3X0nJg68CQEu
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.11 (GNU/Linux)
-
-iEYEARECAAYFAk4O0c0ACgkQD27XaX1/VRsj1ACfTm+FmGqVGoLrXt/y1rxoeg2/
-Tp0An00EpKJ9ulqlwtXxHXjZTbzN9rlS
-=TM0R
------END PGP SIGNATURE-----
-
---sdtB3X0nJg68CQEu--
+Honza
