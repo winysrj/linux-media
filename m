@@ -1,270 +1,39 @@
-Return-path: <mchehab@pedra>
-Received: from mail.mnsspb.ru ([84.204.75.2]:33649 "EHLO mail.mnsspb.ru"
+Return-path: <linux-media-owner@vger.kernel.org>
+Received: from smtp5.mail.ru ([94.100.176.132]:59010 "EHLO smtp5.mail.ru"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755775Ab1GALse (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 1 Jul 2011 07:48:34 -0400
-From: Kirill Smelkov <kirr@mns.spb.ru>
-To: Alan Stern <stern@rowland.harvard.edu>
-Cc: Sarah Sharp <sarah.a.sharp@linux.intel.com>,
-	matt mooney <mfm@muteddisk.com>,
-	Greg Kroah-Hartman <gregkh@suse.de>, linux-usb@vger.kernel.org,
-	linux-uvc-devel@lists.berlios.de, linux-media@vger.kernel.org,
-	linux-kernel@vger.kernel.org, Kirill Smelkov <kirr@mns.spb.ru>
-Subject: [PATCH v3 1/2] USB: EHCI: Move sysfs related bits into ehci-sysfs.c
-Date: Fri,  1 Jul 2011 15:47:10 +0400
-Message-Id: <a8236643abf74ea7fbf5fdada29f03d2aad61969.1309520144.git.kirr@mns.spb.ru>
-In-Reply-To: <cover.1309520144.git.kirr@mns.spb.ru>
-References: <cover.1309520144.git.kirr@mns.spb.ru>
-In-Reply-To: <cover.1309520144.git.kirr@mns.spb.ru>
-References: <cover.1309520144.git.kirr@mns.spb.ru>
+	id S1754950Ab1GVUpA (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 22 Jul 2011 16:45:00 -0400
+Message-ID: <4E29E02A.1020402@list.ru>
+Date: Sat, 23 Jul 2011 00:40:10 +0400
+From: Stas Sergeev <stsp@list.ru>
+MIME-Version: 1.0
+To: Mauro Carvalho Chehab <mchehab@infradead.org>
+CC: linux-media@vger.kernel.org
+Subject: Re: [patch][saa7134] do not change mute state for capturing audio
+References: <4E19D2F7.6060803@list.ru> <4E1E05AC.2070002@infradead.org> <4E1E0A1D.6000604@list.ru> <4E1E1571.6010400@infradead.org> <4E1E8108.3060305@list.ru> <4E1F9A25.1020208@infradead.org> <4E22AF12.4020600@list.ru> <4E22CCC0.8030803@infradead.org> <4E24BEB8.4060501@redhat.com> <4E257FF5.4040401@infradead.org> <4E258B60.6010007@list.ru> <4E25906D.3020200@infradead.org> <4E259B0C.90107@list.ru> <4E25A26A.2000204@infradead.org> <4E25A7C2.3050609@list.ru> <4E25C7AE.5020503@infradead.org> <4E25CF35.7000802@list.ru> <4E25DB37.8020609@infradead.org> <4E25FDE4.7040805@list.ru> <4E262772.9060509@infradead.org> <4E266799.8030706@list.ru> <4E26AEC0.5000405@infradead.org> <4E26B1E7.2080107@list.ru> <4E26B29B.4010109@infradead.org> <4E292BED.60108@list.ru> <4E296D00.9040608@infradead.org> <4E296F6C.9080107@list.ru> <4E2971D4.1060109@infradead.org> <4E29738F.7040605@list.ru> <4E297505.7090307@infradead.org>
+In-Reply-To: <4E297505.7090307@infradead.org>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
+Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
-Sender: <mchehab@pedra>
 
-The only sysfs attr implemented so far is "companion" from ehci-hub.c,
-but in the next patch we are going to add another sysfs file, so prior
-to that let's structure things and move already-in-there sysfs code to
-separate file.
-
-NOTE: All the code I'm moving into this new file was written by Alan
-Stern (in 57e06c11 "EHCI: force high-speed devices to run at full
-speed"; Jan 16 2007), that's why I'm putting
-
-    Copyright (C) 2007 by Alan Stern
-
-there after explicit request from the author.
-
-Signed-off-by: Kirill Smelkov <kirr@mns.spb.ru>
-Acked-off-by: Alan Stern <stern@rowland.harvard.edu>
----
- drivers/usb/host/ehci-hcd.c   |    5 +-
- drivers/usb/host/ehci-hub.c   |   75 --------------------------------
- drivers/usb/host/ehci-sysfs.c |   94 +++++++++++++++++++++++++++++++++++++++++
- 3 files changed, 97 insertions(+), 77 deletions(-)
- create mode 100644 drivers/usb/host/ehci-sysfs.c
-
-diff --git a/drivers/usb/host/ehci-hcd.c b/drivers/usb/host/ehci-hcd.c
-index e18862c..8306155 100644
---- a/drivers/usb/host/ehci-hcd.c
-+++ b/drivers/usb/host/ehci-hcd.c
-@@ -336,6 +336,7 @@ static void ehci_work(struct ehci_hcd *ehci);
- #include "ehci-mem.c"
- #include "ehci-q.c"
- #include "ehci-sched.c"
-+#include "ehci-sysfs.c"
- 
- /*-------------------------------------------------------------------------*/
- 
-@@ -520,7 +521,7 @@ static void ehci_stop (struct usb_hcd *hcd)
- 	ehci_reset (ehci);
- 	spin_unlock_irq(&ehci->lock);
- 
--	remove_companion_file(ehci);
-+	remove_sysfs_files(ehci);
- 	remove_debug_files (ehci);
- 
- 	/* root hub is shut down separately (first, when possible) */
-@@ -754,7 +755,7 @@ static int ehci_run (struct usb_hcd *hcd)
- 	 * since the class device isn't created that early.
- 	 */
- 	create_debug_files(ehci);
--	create_companion_file(ehci);
-+	create_sysfs_files(ehci);
- 
- 	return 0;
- }
-diff --git a/drivers/usb/host/ehci-hub.c b/drivers/usb/host/ehci-hub.c
-index ea6184b..d9e8d71 100644
---- a/drivers/usb/host/ehci-hub.c
-+++ b/drivers/usb/host/ehci-hub.c
-@@ -471,29 +471,6 @@ static int ehci_bus_resume (struct usb_hcd *hcd)
- 
- /*-------------------------------------------------------------------------*/
- 
--/* Display the ports dedicated to the companion controller */
--static ssize_t show_companion(struct device *dev,
--			      struct device_attribute *attr,
--			      char *buf)
--{
--	struct ehci_hcd		*ehci;
--	int			nports, index, n;
--	int			count = PAGE_SIZE;
--	char			*ptr = buf;
--
--	ehci = hcd_to_ehci(bus_to_hcd(dev_get_drvdata(dev)));
--	nports = HCS_N_PORTS(ehci->hcs_params);
--
--	for (index = 0; index < nports; ++index) {
--		if (test_bit(index, &ehci->companion_ports)) {
--			n = scnprintf(ptr, count, "%d\n", index + 1);
--			ptr += n;
--			count -= n;
--		}
--	}
--	return ptr - buf;
--}
--
- /*
-  * Sets the owner of a port
-  */
-@@ -528,58 +505,6 @@ static void set_owner(struct ehci_hcd *ehci, int portnum, int new_owner)
- 	}
- }
- 
--/*
-- * Dedicate or undedicate a port to the companion controller.
-- * Syntax is "[-]portnum", where a leading '-' sign means
-- * return control of the port to the EHCI controller.
-- */
--static ssize_t store_companion(struct device *dev,
--			       struct device_attribute *attr,
--			       const char *buf, size_t count)
--{
--	struct ehci_hcd		*ehci;
--	int			portnum, new_owner;
--
--	ehci = hcd_to_ehci(bus_to_hcd(dev_get_drvdata(dev)));
--	new_owner = PORT_OWNER;		/* Owned by companion */
--	if (sscanf(buf, "%d", &portnum) != 1)
--		return -EINVAL;
--	if (portnum < 0) {
--		portnum = - portnum;
--		new_owner = 0;		/* Owned by EHCI */
--	}
--	if (portnum <= 0 || portnum > HCS_N_PORTS(ehci->hcs_params))
--		return -ENOENT;
--	portnum--;
--	if (new_owner)
--		set_bit(portnum, &ehci->companion_ports);
--	else
--		clear_bit(portnum, &ehci->companion_ports);
--	set_owner(ehci, portnum, new_owner);
--	return count;
--}
--static DEVICE_ATTR(companion, 0644, show_companion, store_companion);
--
--static inline int create_companion_file(struct ehci_hcd *ehci)
--{
--	int	i = 0;
--
--	/* with integrated TT there is no companion! */
--	if (!ehci_is_TDI(ehci))
--		i = device_create_file(ehci_to_hcd(ehci)->self.controller,
--				       &dev_attr_companion);
--	return i;
--}
--
--static inline void remove_companion_file(struct ehci_hcd *ehci)
--{
--	/* with integrated TT there is no companion! */
--	if (!ehci_is_TDI(ehci))
--		device_remove_file(ehci_to_hcd(ehci)->self.controller,
--				   &dev_attr_companion);
--}
--
--
- /*-------------------------------------------------------------------------*/
- 
- static int check_reset_complete (
-diff --git a/drivers/usb/host/ehci-sysfs.c b/drivers/usb/host/ehci-sysfs.c
-new file mode 100644
-index 0000000..29824a9
---- /dev/null
-+++ b/drivers/usb/host/ehci-sysfs.c
-@@ -0,0 +1,94 @@
-+/*
-+ * Copyright (C) 2007 by Alan Stern
-+ *
-+ * This program is free software; you can redistribute it and/or modify it
-+ * under the terms of the GNU General Public License as published by the
-+ * Free Software Foundation; either version 2 of the License, or (at your
-+ * option) any later version.
-+ *
-+ * This program is distributed in the hope that it will be useful, but
-+ * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
-+ * or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
-+ * for more details.
-+ *
-+ * You should have received a copy of the GNU General Public License
-+ * along with this program; if not, write to the Free Software Foundation,
-+ * Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
-+ */
-+
-+/* this file is part of ehci-hcd.c */
-+
-+
-+/* Display the ports dedicated to the companion controller */
-+static ssize_t show_companion(struct device *dev,
-+			      struct device_attribute *attr,
-+			      char *buf)
-+{
-+	struct ehci_hcd		*ehci;
-+	int			nports, index, n;
-+	int			count = PAGE_SIZE;
-+	char			*ptr = buf;
-+
-+	ehci = hcd_to_ehci(bus_to_hcd(dev_get_drvdata(dev)));
-+	nports = HCS_N_PORTS(ehci->hcs_params);
-+
-+	for (index = 0; index < nports; ++index) {
-+		if (test_bit(index, &ehci->companion_ports)) {
-+			n = scnprintf(ptr, count, "%d\n", index + 1);
-+			ptr += n;
-+			count -= n;
-+		}
-+	}
-+	return ptr - buf;
-+}
-+
-+/*
-+ * Dedicate or undedicate a port to the companion controller.
-+ * Syntax is "[-]portnum", where a leading '-' sign means
-+ * return control of the port to the EHCI controller.
-+ */
-+static ssize_t store_companion(struct device *dev,
-+			       struct device_attribute *attr,
-+			       const char *buf, size_t count)
-+{
-+	struct ehci_hcd		*ehci;
-+	int			portnum, new_owner;
-+
-+	ehci = hcd_to_ehci(bus_to_hcd(dev_get_drvdata(dev)));
-+	new_owner = PORT_OWNER;		/* Owned by companion */
-+	if (sscanf(buf, "%d", &portnum) != 1)
-+		return -EINVAL;
-+	if (portnum < 0) {
-+		portnum = - portnum;
-+		new_owner = 0;		/* Owned by EHCI */
-+	}
-+	if (portnum <= 0 || portnum > HCS_N_PORTS(ehci->hcs_params))
-+		return -ENOENT;
-+	portnum--;
-+	if (new_owner)
-+		set_bit(portnum, &ehci->companion_ports);
-+	else
-+		clear_bit(portnum, &ehci->companion_ports);
-+	set_owner(ehci, portnum, new_owner);
-+	return count;
-+}
-+static DEVICE_ATTR(companion, 0644, show_companion, store_companion);
-+
-+static inline int create_sysfs_files(struct ehci_hcd *ehci)
-+{
-+	int	i = 0;
-+
-+	/* with integrated TT there is no companion! */
-+	if (!ehci_is_TDI(ehci))
-+		i = device_create_file(ehci_to_hcd(ehci)->self.controller,
-+				       &dev_attr_companion);
-+	return i;
-+}
-+
-+static inline void remove_sysfs_files(struct ehci_hcd *ehci)
-+{
-+	/* with integrated TT there is no companion! */
-+	if (!ehci_is_TDI(ehci))
-+		device_remove_file(ehci_to_hcd(ehci)->self.controller,
-+				   &dev_attr_companion);
-+}
--- 
-1.7.6.rc3
-
+22.07.2011 17:03, Mauro Carvalho Chehab wrote:
+> Here, I add the following line at my .mplayer/config:
+>
+> tv		= "driver=v4l2:device=/dev/video0:norm=PAL-M:chanlist=us-bcast:alsa=1:adevice=hw.1:audiorate=32000:immediatemode=0:amode=1"
+Thanks for starting to answer what I was asking for over a week. :)
+If this is the case (not verified yet), there may be the simple
+automute logic that will fix that in an absense of an auto-unmute
+in alsa.
+Initially, the driver may be put in an auto-mute state.
+It is mute until the tuner is tuned: after the tuner is tuned,
+the audio gets immediately automatically unmuted.
+If the app does not want this to happen, it may use
+the V4L2_CID_AUDIO_MUTE before tuning, to put the device
+in a permanent-mute state.
+So, in short, I suggest to bind the auto-unmute to the
+tuner tune, rather than to the capture start. And that
+should be a separate, third mute state, automute. If the
+app explicitly wants the mute or unmute, this automute
+logic disables.
+Do you know any app that will regress even with that?
