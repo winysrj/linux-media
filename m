@@ -1,129 +1,57 @@
-Return-path: <mchehab@pedra>
-Received: from mailout-de.gmx.net ([213.165.64.23]:49690 "HELO
-	mailout-de.gmx.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1751340Ab1GCRFv (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sun, 3 Jul 2011 13:05:51 -0400
-From: Oliver Endriss <o.endriss@gmx.de>
-To: linux-media@vger.kernel.org
-Subject: [PATCH 16/16] ngene: Strip dummy packets inserted by the driver
-Date: Sun, 3 Jul 2011 19:04:46 +0200
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>
-References: <201107031831.20378@orion.escape-edv.de>
-In-Reply-To: <201107031831.20378@orion.escape-edv.de>
+Return-path: <linux-media-owner@vger.kernel.org>
+Received: from impaqm5.telefonica.net ([213.4.138.21]:22955 "EHLO
+	telefonica.net" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1750820Ab1GVQZx convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 22 Jul 2011 12:25:53 -0400
+From: Jose Alberto Reguero <jareguero@telefonica.net>
+To: Antti Palosaari <crope@iki.fi>
+Subject: Re: [PATCH] add support for the dvb-t part of CT-3650 v3
+Date: Fri, 22 Jul 2011 18:25:47 +0200
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	linux-media@vger.kernel.org,
+	Michael Krufky <mkrufky@kernellabs.com>
+References: <201106070205.08118.jareguero@telefonica.net> <201107221802.34505.jareguero@telefonica.net> <4E29A087.4090507@iki.fi>
+In-Reply-To: <4E29A087.4090507@iki.fi>
 MIME-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-Message-Id: <201107031904.48044@orion.escape-edv.de>
+Content-Type: Text/Plain;
+  charset="utf-8"
+Content-Transfer-Encoding: 8BIT
+Message-Id: <201107221825.48246.jareguero@telefonica.net>
+Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
-Sender: <mchehab@pedra>
 
-As the CI requires a continuous data stream, the driver inserts dummy
-packets when necessary. Do not pass these packets to userspace anymore.
+On Viernes, 22 de Julio de 2011 18:08:39 Antti Palosaari escribió:
+> On 07/22/2011 07:02 PM, Jose Alberto Reguero wrote:
+> > On Viernes, 22 de Julio de 2011 13:32:53 Antti Palosaari escribió:
+> >> Have you had to time test these?
+> >> 
+> >> And about I2C adapter, I don't see why changes are needed. As far as I
+> >> understand it is already working with TDA10023 and you have done changes
+> >> for TDA10048 support. I compared TDA10048 and TDA10023 I2C functions and
+> >> those are ~similar. Both uses most typical access, for reg write {u8
+> >> REG, u8 VAL} and for reg read {u8 REG}/{u8 VAL}.
+> >> 
+> >> regards
+> >> Antti
+> > 
+> > I just finish the testing. The changes to I2C are for the tuner tda827x.
+> > The MFE fork fine. I need to change the code in tda10048 and ttusb2.
+> > Attached is the patch for CT-3650 with your MFE patch.
+> 
+> You still pass tda10023 fe pointer to tda10048 for I2C-gate control
+> which is wrong. Could you send USB sniff I can look what there really
+> happens. If you have raw SniffUSB2 logs I wish to check those, other
+> logs are welcome too if no raw SniffUSB2 available.
+> 
 
-Signed-off-by: Oliver Endriss <o.endriss@gmx.de>
----
- drivers/media/dvb/ngene/ngene-core.c |    2 +-
- drivers/media/dvb/ngene/ngene-dvb.c  |   42 +++++++++++++++++++++++++++++-----
- drivers/media/dvb/ngene/ngene.h      |    2 +
- 3 files changed, 39 insertions(+), 7 deletions(-)
+Youre chnage don't work. You need to change the function i2c gate of tda1048 
+for the one of tda1023, but the parameter of this function must be the fe 
+pointer of tda1023. If this is a problem, I can duplicate tda1023 i2c gate in 
+ttusb2 code and pass it to the tda10048. It is done this way in the first patch 
+of this thread.
 
-diff --git a/drivers/media/dvb/ngene/ngene-core.c b/drivers/media/dvb/ngene/ngene-core.c
-index df0f0bd..f129a93 100644
---- a/drivers/media/dvb/ngene/ngene-core.c
-+++ b/drivers/media/dvb/ngene/ngene-core.c
-@@ -507,7 +507,7 @@ void FillTSBuffer(void *Buffer, int Length, u32 Flags)
- {
- 	u32 *ptr = Buffer;
- 
--	memset(Buffer, 0xff, Length);
-+	memset(Buffer, TS_FILLER, Length);
- 	while (Length > 0) {
- 		if (Flags & DF_SWAP32)
- 			*ptr = 0x471FFF10;
-diff --git a/drivers/media/dvb/ngene/ngene-dvb.c b/drivers/media/dvb/ngene/ngene-dvb.c
-index ba209cb..fcb16a6 100644
---- a/drivers/media/dvb/ngene/ngene-dvb.c
-+++ b/drivers/media/dvb/ngene/ngene-dvb.c
-@@ -118,6 +118,16 @@ static void swap_buffer(u32 *p, u32 len)
- 	}
- }
- 
-+/* start of filler packet */
-+static u8 fill_ts[] = { 0x47, 0x1f, 0xff, 0x10, TS_FILLER };
-+
-+/* #define DEBUG_CI_XFER */
-+#ifdef DEBUG_CI_XFER
-+static u32 ok;
-+static u32 overflow;
-+static u32 stripped;
-+#endif
-+
- void *tsin_exchange(void *priv, void *buf, u32 len, u32 clock, u32 flags)
- {
- 	struct ngene_channel *chan = priv;
-@@ -126,21 +136,41 @@ void *tsin_exchange(void *priv, void *buf, u32 len, u32 clock, u32 flags)
- 
- 	if (flags & DF_SWAP32)
- 		swap_buffer(buf, len);
-+
- 	if (dev->ci.en && chan->number == 2) {
--		if (dvb_ringbuffer_free(&dev->tsin_rbuf) > len) {
--			dvb_ringbuffer_write(&dev->tsin_rbuf, buf, len);
--			wake_up_interruptible(&dev->tsin_rbuf.queue);
-+		while (len >= 188) {
-+			if (memcmp(buf, fill_ts, sizeof fill_ts) != 0) {
-+				if (dvb_ringbuffer_free(&dev->tsin_rbuf) >= 188) {
-+					dvb_ringbuffer_write(&dev->tsin_rbuf, buf, 188);
-+					wake_up(&dev->tsin_rbuf.queue);
-+#ifdef DEBUG_CI_XFER
-+					ok++;
-+#endif
-+				}
-+#ifdef DEBUG_CI_XFER
-+				else
-+					overflow++;
-+#endif
-+			}
-+#ifdef DEBUG_CI_XFER
-+			else
-+				stripped++;
-+
-+			if (ok % 100 == 0 && overflow)
-+				printk(KERN_WARNING "%s: ok %u overflow %u dropped %u\n", __func__, ok, overflow, stripped);
-+#endif
-+			buf += 188;
-+			len -= 188;
- 		}
--		return 0;
-+		return NULL;
- 	}
-+
- 	if (chan->users > 0)
- 		dvb_dmx_swfilter(&chan->demux, buf, len);
- 
- 	return NULL;
- }
- 
--u8 fill_ts[188] = { 0x47, 0x1f, 0xff, 0x10 };
--
- void *tsout_exchange(void *priv, void *buf, u32 len, u32 clock, u32 flags)
- {
- 	struct ngene_channel *chan = priv;
-diff --git a/drivers/media/dvb/ngene/ngene.h b/drivers/media/dvb/ngene/ngene.h
-index 90fa136..5443dc0 100644
---- a/drivers/media/dvb/ngene/ngene.h
-+++ b/drivers/media/dvb/ngene/ngene.h
-@@ -789,6 +789,8 @@ struct ngene {
- 	u8                    uart_rbuf[UART_RBUF_LEN];
- 	int                   uart_rp, uart_wp;
- 
-+#define TS_FILLER  0x6f
-+
- 	u8                   *tsout_buf;
- #define TSOUT_BUF_SIZE (512*188*8)
- 	struct dvb_ringbuffer tsout_rbuf;
--- 
-1.7.4.1
-
+Jose Alberto
+  
+> regards
+> Antti
