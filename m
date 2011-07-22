@@ -1,45 +1,106 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-vw0-f46.google.com ([209.85.212.46]:43944 "EHLO
-	mail-vw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750781Ab1GYInX (ORCPT
+Received: from mailout-de.gmx.net ([213.165.64.23]:40540 "HELO
+	mailout-de.gmx.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1754695Ab1GVSfz (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 25 Jul 2011 04:43:23 -0400
-Received: by vws1 with SMTP id 1so2804170vws.19
-        for <linux-media@vger.kernel.org>; Mon, 25 Jul 2011 01:43:23 -0700 (PDT)
+	Fri, 22 Jul 2011 14:35:55 -0400
+Cc: rglowery@exemail.com.au
+Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset="utf-8"
+Date: Fri, 22 Jul 2011 20:35:52 +0200
+From: "Alina Friedrichsen" <x-alina@gmx.net>
+Message-ID: <20110722183552.169950@gmx.net>
 MIME-Version: 1.0
-Date: Mon, 25 Jul 2011 16:43:21 +0800
-Message-ID: <CAOy7-nMnE6_z4pAmw+Jc1riYSeCWwiNS2=_Ya==+7q5=bNrWuw@mail.gmail.com>
-Subject: Parallel CMOS Image Sensor with UART Control Interface
-From: James <angweiyang@gmail.com>
+Subject: [PATCH v3] tuner_xc2028: Allow selection of the frequency adjustment
+ code for XC3028
 To: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Dear all,
+Since many, many kernel releases my Hauppauge WinTV HVR-1400 doesn't work
+anymore, and nobody feels responsible to fix it.
+The code to get it work is still in there, it's only commented out.
+My patch to enable it was rejected, because somebody had fear that it could
+break other cards.
+So here is a new patch, that allows you to select the frequency adjustment
+code by a module parameter. Default is the old code, so it can't break
+anything.
 
-Does anyone came across a v4l2 Linux Device Driver for an Image Sensor
-that uses Parallel CMOS H/V and can only be control by UART interface
-instead of the common I2C or SPI interface?
+Signed-off-by: Alina Friedrichsen <x-alina@gmx.net>
+---
+diff -urN linux-3.0.orig/drivers/media/common/tuners/tuner-xc2028.c linux-3.0/drivers/media/common/tuners/tuner-xc2028.c
+--- linux-3.0.orig/drivers/media/common/tuners/tuner-xc2028.c	2011-07-22 04:17:23.000000000 +0200
++++ linux-3.0/drivers/media/common/tuners/tuner-xc2028.c	2011-07-22 20:15:08.212540252 +0200
+@@ -54,6 +54,11 @@
+ MODULE_PARM_DESC(firmware_name, "Firmware file name. Allows overriding the "
+ 				"default firmware name\n");
+ 
++static int freq_magic;
++module_param(freq_magic, int, 0644);
++MODULE_PARM_DESC(freq_magic, "Selects the frequency adjustment code "
++			     "for XC3028. Set it to 1 if tuning fails.");
++
+ static LIST_HEAD(hybrid_tuner_instance_list);
+ static DEFINE_MUTEX(xc2028_list_mutex);
+ 
+@@ -967,34 +972,36 @@
+ 		 * newer firmwares
+ 		 */
+ 
+-#if 1
+-		/*
+-		 * The proper adjustment would be to do it at s-code table.
+-		 * However, this didn't work, as reported by
+-		 * Robert Lowery <rglowery@exemail.com.au>
+-		 */
+-
+-		if (priv->cur_fw.type & DTV7)
+-			offset += 500000;
+-
+-#else
+-		/*
+-		 * Still need tests for XC3028L (firmware 3.2 or upper)
+-		 * So, for now, let's just comment the per-firmware
+-		 * version of this change. Reports with xc3028l working
+-		 * with and without the lines bellow are welcome
+-		 */
++		if (!freq_magic) {
++			/*
++			 * The proper adjustment would be to do it at s-code
++			 * table. However, this didn't work, as reported by
++			 * Robert Lowery <rglowery@exemail.com.au>
++			 */
+ 
+-		if (priv->firm_version < 0x0302) {
+ 			if (priv->cur_fw.type & DTV7)
+ 				offset += 500000;
++
+ 		} else {
+-			if (priv->cur_fw.type & DTV7)
+-				offset -= 300000;
+-			else if (type != ATSC) /* DVB @6MHz, DTV 8 and DTV 7/8 */
+-				offset += 200000;
++			/*
++			 * Still need tests for XC3028L (firmware 3.2 or upper)
++			 * So, for now, let's just comment the per-firmware
++			 * version of this change. Reports with xc3028l working
++			 * with and without the lines bellow are welcome
++			 */
++
++			if (priv->firm_version < 0x0302) {
++				if (priv->cur_fw.type & DTV7)
++					offset += 500000;
++			} else {
++				if (priv->cur_fw.type & DTV7)
++					offset -= 300000;
++				else if (type != ATSC) {
++					/* DVB @6MHz, DTV 8 and DTV 7/8 */
++					offset += 200000;
++				}
++			}
+ 		}
+-#endif
+ 	}
+ 
+ 	div = (freq - offset + DIV / 2) / DIV;
 
-A similar sensor is the STMicroelectronics VL5510 Image Sensor
-although it support all 3 types of control interface.
-(http://www.st.com/internet/automotive/product/178477.jsp)
-
-Most or all the drivers found I found under drivers/media/video uses
-the I2C or SPI interface instead
-
-I'm new to writing driver and need a reference v4l2 driver for this
-type of image sensor to work with OMAP3530 ISP port on Gumstix's Overo
-board.
-
-I just need a very simple v4l2 driver that can extract the image from
-the sensor and control over it via the UART control interface.
-
-Any help is very much appreciated.
-
-Thanks in adv.
-
--- 
-Regards,
-James
