@@ -1,38 +1,42 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:58508 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751440Ab1GQD7c (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 16 Jul 2011 23:59:32 -0400
-Message-ID: <4E225E12.8040502@redhat.com>
-Date: Sun, 17 Jul 2011 00:59:14 -0300
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Received: from mail-gy0-f174.google.com ([209.85.160.174]:56574 "EHLO
+	mail-gy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750895Ab1GVWra (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 22 Jul 2011 18:47:30 -0400
+Received: by gyh3 with SMTP id 3so1558577gyh.19
+        for <linux-media@vger.kernel.org>; Fri, 22 Jul 2011 15:47:29 -0700 (PDT)
 MIME-Version: 1.0
-To: Andreas Oberritter <obi@linuxtv.org>
-CC: Antti Palosaari <crope@iki.fi>,
-	Ralph Metzler <rjkm@metzlerbros.de>,
-	linux-media@vger.kernel.org
-Subject: Re: [PATCH 0/5] Driver support for cards based on Digital Devices
- bridge (ddbridge)
-References: <201107032321.46092@orion.escape-edv.de> <4E1F8E1F.3000008@redhat.com> <4E1FBA6F.10509@redhat.com> <201107150717.08944@orion.escape-edv.de> <19999.63914.990114.26990@morden.metzler> <4E203FD0.4030503@redhat.com> <4E207252.5050506@linuxtv.org> <4E20D042.3000302@iki.fi> <4E21832A.20600@redhat.com> <4E219D49.1070709@iki.fi> <4E21A63A.8040008@redhat.com> <4E21B0DE.2020902@linuxtv.org> <4E21B1E6.4090302@iki.fi> <4E21B3EC.9060709@linuxtv.org> <4E223344.1080109@redhat.com> <4E2250C5.2010400@linuxtv.org>
-In-Reply-To: <4E2250C5.2010400@linuxtv.org>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+In-Reply-To: <4E29FB9E.4060507@iki.fi>
+References: <CAJbz7-29H=e=C2SyY-6Ru23Zzv6sH7wBbOm72ZWMxqOagakuKQ@mail.gmail.com>
+	<4E29FB9E.4060507@iki.fi>
+Date: Sat, 23 Jul 2011 00:47:29 +0200
+Message-ID: <CAJbz7-3HkkEoDa3qGvoaF61ohhdxo38ZxF+GWGV+tBQ0yEBopA@mail.gmail.com>
+Subject: Re: [PATCH] cxd2820r: fix possible out-of-array lookup
+From: HoP <jpetrous@gmail.com>
+To: Antti Palosaari <crope@iki.fi>
+Cc: linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em 17-07-2011 00:02, Andreas Oberritter escreveu:
+2011/7/23 Antti Palosaari <crope@iki.fi>:
+> On 07/23/2011 01:18 AM, HoP wrote:
+>>
+>> In case of i2c write operation there is only one element in msg[] array.
+>> Don't access msg[1] in that case.
+>
+> NACK.
+> I suspect you confuse now local msg2 and msg that is passed as function
+> parameter. Could you double check and explain?
+>
 
->> Approach 2 limits the usage of two simultaneous fe, when they're not
->> mutually exclusive. Not sure if this is actually a problem.
-> 
-> This would be a problem, of course. If they're not mutually exclusive,
-> then I'd expect the possibility to use them simultaneously.
+Ok, may I really understand it badly.
 
->From userspace perspective, the possibility of using them simultaneously
-may not actually be useful, provided that they both share the same
-demux interface.
+My intention was that in case of tda18271_write_regs() there is
+i2c_transfer() called with msg[] array of one element only.
+So am I wrong?
 
-However, I agree that adding an artificial limit there doesn't seem right.
+Thanks
 
-Cheers,
-Mauro.
+Honza
