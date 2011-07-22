@@ -1,93 +1,96 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.17.10]:50010 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756291Ab1G2K5F (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 29 Jul 2011 06:57:05 -0400
-Received: from 6a.grange (6a.grange [192.168.1.11])
-	by axis700.grange (Postfix) with ESMTPS id E6A6D18B03D
-	for <linux-media@vger.kernel.org>; Fri, 29 Jul 2011 12:57:01 +0200 (CEST)
-Received: from lyakh by 6a.grange with local (Exim 4.72)
-	(envelope-from <g.liakhovetski@gmx.de>)
-	id 1QmkkX-0007pD-R5
-	for linux-media@vger.kernel.org; Fri, 29 Jul 2011 12:57:01 +0200
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: linux-media@vger.kernel.org
-Subject: [PATCH 46/59] V4L: ov2640: remove superfluous soc-camera client operations
-Date: Fri, 29 Jul 2011 12:56:46 +0200
-Message-Id: <1311937019-29914-47-git-send-email-g.liakhovetski@gmx.de>
-In-Reply-To: <1311937019-29914-1-git-send-email-g.liakhovetski@gmx.de>
-References: <1311937019-29914-1-git-send-email-g.liakhovetski@gmx.de>
+Received: from mail.kapsi.fi ([217.30.184.167]:51847 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753353Ab1GVLc7 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 22 Jul 2011 07:32:59 -0400
+Message-ID: <4E295FE5.7040905@iki.fi>
+Date: Fri, 22 Jul 2011 14:32:53 +0300
+From: Antti Palosaari <crope@iki.fi>
+MIME-Version: 1.0
+To: Jose Alberto Reguero <jareguero@telefonica.net>
+CC: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	linux-media@vger.kernel.org,
+	Michael Krufky <mkrufky@kernellabs.com>
+Subject: Re: [PATCH] add support for the dvb-t part of CT-3650 v3
+References: <201106070205.08118.jareguero@telefonica.net> <201107190100.16802.jareguero@telefonica.net> <4E24C576.40102@iki.fi> <201107191025.49662.jareguero@telefonica.net> <4E260E4A.2020707@iki.fi>
+In-Reply-To: <4E260E4A.2020707@iki.fi>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Now that all soc-camera hosts have been ported to use V4L2 subdevice
-mediabus-config operations and soc-camera client bus-parameter operations
-have been made optional, they can be removed.
+Have you had to time test these?
 
-Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
----
- drivers/media/video/ov2640.c |   40 ----------------------------------------
- 1 files changed, 0 insertions(+), 40 deletions(-)
+And about I2C adapter, I don't see why changes are needed. As far as I 
+understand it is already working with TDA10023 and you have done changes 
+for TDA10048 support. I compared TDA10048 and TDA10023 I2C functions and 
+those are ~similar. Both uses most typical access, for reg write {u8 
+REG, u8 VAL} and for reg read {u8 REG}/{u8 VAL}.
 
-diff --git a/drivers/media/video/ov2640.c b/drivers/media/video/ov2640.c
-index 31f361e..2826aff 100644
---- a/drivers/media/video/ov2640.c
-+++ b/drivers/media/video/ov2640.c
-@@ -701,44 +701,6 @@ static int ov2640_s_stream(struct v4l2_subdev *sd, int enable)
- 	return 0;
- }
- 
--static int ov2640_set_bus_param(struct soc_camera_device *icd,
--				unsigned long flags)
--{
--	struct soc_camera_link *icl = to_soc_camera_link(icd);
--	unsigned long width_flag = flags & SOCAM_DATAWIDTH_MASK;
--
--	/* Only one width bit may be set */
--	if (!is_power_of_2(width_flag))
--		return -EINVAL;
--
--	if (icl->set_bus_param)
--		return icl->set_bus_param(icl, width_flag);
--
--	/*
--	 * Without board specific bus width settings we support only the
--	 * sensors native bus width witch are tested working
--	 */
--	if (width_flag & (SOCAM_DATAWIDTH_10 | SOCAM_DATAWIDTH_8))
--		return 0;
--
--	return 0;
--}
--
--static unsigned long ov2640_query_bus_param(struct soc_camera_device *icd)
--{
--	struct soc_camera_link *icl = to_soc_camera_link(icd);
--	unsigned long flags = SOCAM_PCLK_SAMPLE_RISING | SOCAM_MASTER |
--		SOCAM_VSYNC_ACTIVE_HIGH | SOCAM_HSYNC_ACTIVE_HIGH |
--		SOCAM_DATA_ACTIVE_HIGH;
--
--	if (icl->query_bus_param)
--		flags |= icl->query_bus_param(icl) & SOCAM_DATAWIDTH_MASK;
--	else
--		flags |= SOCAM_DATAWIDTH_10;
--
--	return soc_camera_apply_sensor_flags(icl, flags);
--}
--
- static int ov2640_g_ctrl(struct v4l2_subdev *sd, struct v4l2_control *ctrl)
- {
- 	struct i2c_client  *client = v4l2_get_subdevdata(sd);
-@@ -1067,8 +1029,6 @@ err:
- }
- 
- static struct soc_camera_ops ov2640_ops = {
--	.set_bus_param		= ov2640_set_bus_param,
--	.query_bus_param	= ov2640_query_bus_param,
- 	.controls		= ov2640_controls,
- 	.num_controls		= ARRAY_SIZE(ov2640_controls),
- };
+regards
+Antti
+
+
+On 07/20/2011 02:07 AM, Antti Palosaari wrote:
+> On 07/19/2011 11:25 AM, Jose Alberto Reguero wrote:
+>> On Martes, 19 de Julio de 2011 01:44:54 Antti Palosaari escribió:
+>>> On 07/19/2011 02:00 AM, Jose Alberto Reguero wrote:
+>>>> On Lunes, 18 de Julio de 2011 22:28:41 Antti Palosaari escribió:
+>
+>>>> There are two problems:
+>>>>
+>>>> First, the two frontends (tda10048 and tda10023) use tda10023 i2c gate
+>>>> to talk with the tuner.
+>>>
+>>> Very easy to implement correctly. Attach tda10023 first and after that
+>>> tda10048. Override tda10048 .i2c_gate_ctrl() with tda10023
+>>> .i2c_gate_ctrl() immediately after tda10048 attach inside ttusb2.c. Now
+>>> you have both demods (FEs) .i2c_gate_ctrl() which will control
+>>> physically tda10023 I2C-gate as tuner is behind it.
+>>>
+>>
+>> I try that, but don't work. I get an oops. Because the i2c gate
+>> function of
+>> the tda10023 driver use:
+>>
+>> struct tda10023_state* state = fe->demodulator_priv;
+>>
+>> to get the i2c adress. When called from tda10048, don't work.
+>>
+>> Jose Alberto
+>>
+>>>> The second is that with dvb-usb, there is only one frontend, and if you
+>>>> wake up the second frontend, the adapter is not wake up. That can be
+>>>> avoided the way I do in the patch, or mantaining the adapter alwais on.
+>>>
+>>> I think that could be also avoided similarly overriding demod callbacks
+>>> and adding some more logic inside ttusb2.c.
+>>>
+>>> Proper fix that later problem is surely correct MFE support for
+>>> DVB-USB-framework. I am now looking for it, lets see how difficult it
+>>> will be.
+>
+>
+> Signed-off-by: Antti Palosaari <crope@iki.fi>
+>
+> Test attached patches and try to fix if they are not working. Most
+> likely not working since I don't have HW to test... I tested MFE parts
+> using Anysee, so it should be working. I changed rather much your ttusb2
+> and tda10048 patches, size reduced something like 50% or more. Still
+> ttusb2 I2C-adapter changes made looks rather complex. Try to double
+> check if those can be done easier. There is many drivers to look example
+> from.
+>
+> DVB USB MFE is something like RFC. I know FE exclusive lock is missing,
+> no need to mention that :) But other comments are welcome! I left three
+> old "unneeded" pointers to struct dvb_usb_adapter to reduce changing all
+> the drivers.
+>
+>
+> regards
+> Antti
+>
+
+
 -- 
-1.7.2.5
-
+http://palosaari.fi/
