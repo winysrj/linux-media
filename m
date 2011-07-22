@@ -1,119 +1,65 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:41667 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751175Ab1G1Ug7 (ORCPT
+Received: from mail1-out1.atlantis.sk ([80.94.52.55]:38370 "EHLO
+	mail.atlantis.sk" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1755132Ab1GVUBI (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 28 Jul 2011 16:36:59 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Sakari Ailus <sakari.ailus@iki.fi>
-Subject: Re: [PATCH 2/3] v4l: events: Define frame start event
-Date: Thu, 28 Jul 2011 22:36:57 +0200
-Cc: linux-media@vger.kernel.org, hans.verkuil@cisco.com,
-	snjw23@gmail.com
-References: <4E2F0C53.10907@iki.fi> <201107281352.21742.laurent.pinchart@ideasonboard.com> <20110728202857.GK32629@valkosipuli.localdomain>
-In-Reply-To: <20110728202857.GK32629@valkosipuli.localdomain>
+	Fri, 22 Jul 2011 16:01:08 -0400
+To: Joerg Heckenbach <joerg@heckenbach-aw.de>
+Subject: [PATCH] [resend] usbvision: disable scaling for Nogatech MicroCam
+Cc: Dwaine Garden <dwainegarden@rogers.com>,
+	linux-media@vger.kernel.org,
+	Kernel development list <linux-kernel@vger.kernel.org>,
+	"Hans Verkuil" <hverkuil@xs4all.nl>
+Content-Disposition: inline
+From: Ondrej Zary <linux@rainbow-software.org>
+Date: Fri, 22 Jul 2011 22:00:50 +0200
 MIME-Version: 1.0
-Content-Type: Text/Plain;
+Content-Type: text/plain;
   charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
-Message-Id: <201107282236.57896.laurent.pinchart@ideasonboard.com>
+Message-Id: <201107222200.55834.linux@rainbow-software.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sakari,
+Scaling causes bad artifacts (horizontal lines) with compression at least
+with Nogatech MicroCam so disable it (for this HW).
 
-On Thursday 28 July 2011 22:28:57 Sakari Ailus wrote:
-> On Thu, Jul 28, 2011 at 01:52:21PM +0200, Laurent Pinchart wrote:
-> > On Tuesday 26 July 2011 20:49:43 Sakari Ailus wrote:
+This also fixes messed up image with some programs (Cheese with 160x120,
+Adobe Flash). HW seems to support only image widths that are multiple of 64
+but the driver does not account that in vidioc_try_fmt_vid_cap(). Cheese
+calls try_fmt with 160x120, succeeds and then assumes that it really gets
+data in that resolution - but it gets 128x120 instead. Don't know if this
+affects other usbvision devices, it would be great if someone could test it.
 
-[snip]
+Signed-off-by: Ondrej Zary <linux@rainbow-software.org>
 
-> > > +    <table frame="none" pgwide="1" id="v4l2-event-frame-sync">
-> > > +      <title>struct
-> > > <structname>v4l2_event_frame_sync</structname></title> +      <tgroup
-> > > cols="3">
-> > > +	&cs-str;
-> > > +	<tbody valign="top">
-> > > +	  <row>
-> > > +	    <entry>__u32</entry>
-> > > +	    <entry><structfield>buffer_sequence</structfield></entry>
-> > > +	    <entry>
-> > > +	      The sequence number of the buffer to be handled next or
-> > > +	      currently handled by the driver.
-> > 
-> > What happens if a particular piece of hardware can capture two (or more)
-> > simultaneous streams from the same video source (an unscaled compressed
-> > stream and a scaled down uncompressed stream for instance) ?
-> > Applications don't need to start both streams at the same time, what
-> > buffer sequence number should be reported in that case ?
-> 
-> I think that if the video data comes from the same source, the sequence
-> numbers should definitely be in sync. This would mean that for the second
-> stream the first sequence number wouldn't be zero.
-
-Then we should document this somewhere. Here is probably not the best place to 
-document that, but the buffer_sequence documentation should still refer to the 
-explanation.
-
-I also find the wording a bit unclear. The "buffer to be handled next" could 
-mean the buffer that will be given to an application at the next DQBUF call. 
-Maybe we should refer to frame sequence numbers instead of buffer sequence 
-numbers.
-
-> > > +	    </entry>
-> > > +	  </row>
-> > > +	</tbody>
-> > > +      </tgroup>
-> > > +    </table>
-> > > +
-> > > 
-> > >      <table pgwide="1" frame="none" id="changes-flags">
-> > >      
-> > >        <title>Changes</title>
-> > >        <tgroup cols="3">
-> > > 
-> > > diff --git a/Documentation/DocBook/media/v4l/vidioc-subscribe-event.xml
-> > > b/Documentation/DocBook/media/v4l/vidioc-subscribe-event.xml index
-> > > 275be96..812b63c 100644
-> > > --- a/Documentation/DocBook/media/v4l/vidioc-subscribe-event.xml
-> > > +++ b/Documentation/DocBook/media/v4l/vidioc-subscribe-event.xml
-> > > @@ -139,6 +139,24 @@
-> > > 
-> > >  	    </entry>
-> > >  	  
-> > >  	  </row>
-> > >  	  <row>
-> > > 
-> > > +	    <entry><constant>V4L2_EVENT_FRAME_SYNC</constant></entry>
-> > > +	    <entry>4</entry>
-> > > +	    <entry>
-> > > +	      <para>Triggered immediately when the reception of a
-> > > +	      frame has begun. This event has a
-> > > +	      &v4l2-event-frame-sync; associated with it.</para>
-> > > +
-> > > +	      <para>A driver will only generate this event when the
-> > > +	      hardware can generate it. This might not be the case
-> > > +	      e.g. when the hardware has no DMA buffer to write the
-> > > +	      image data to. In such cases the
-> > > +	      <structfield>buffer_sequence</structfield> field in
-> > > +	      &v4l2-event-frame-sync; will not be incremented either.
-> > > +	      This causes two consecutive buffer sequence numbers to
-> > > +	      have n times frame interval in between them.</para>
-> > 
-> > I don't think that's correct. Don't many drivers still increment the
-> > sequence number in that case, to make it possible for applications to
-> > detect frame loss ?
-> 
-> I think I understood once that the OMAP 3 ISP driver didn't do this in all
-> cases but I later learned that this isn't the case. I still would be
-> actually a bit surprised if there was not hardware that could not do this.
-> 
-> Do you think the text is relevant in this context, or should it be removed?
-
-I think you should just mention that the event *might* not be generated if the 
-hardware needs to be stopped in case of buffer underrun for instance.
+diff -urp linux-2.6.39-rc2-/drivers/media/video/usbvision//usbvision-video.c linux-2.6.39-rc2/drivers/media/video/usbvision/usbvision-video.c
+--- linux-2.6.39-rc2-/drivers/media/video/usbvision//usbvision-video.c	2011-07-16 16:42:35.000000000 +0200
++++ linux-2.6.39-rc2/drivers/media/video/usbvision/usbvision-video.c	2011-07-16 16:36:43.000000000 +0200
+@@ -924,6 +924,11 @@ static int vidioc_try_fmt_vid_cap(struct
+ 	RESTRICT_TO_RANGE(vf->fmt.pix.width, MIN_FRAME_WIDTH, MAX_FRAME_WIDTH);
+ 	RESTRICT_TO_RANGE(vf->fmt.pix.height, MIN_FRAME_HEIGHT, MAX_FRAME_HEIGHT);
+ 
++	if (usbvision_device_data[usbvision->dev_model].codec == CODEC_WEBCAM) {
++		vf->fmt.pix.width = MAX_FRAME_WIDTH;
++		vf->fmt.pix.height = MAX_FRAME_HEIGHT;
++	}
++
+ 	vf->fmt.pix.bytesperline = vf->fmt.pix.width*
+ 		usbvision->palette.bytes_per_pixel;
+ 	vf->fmt.pix.sizeimage = vf->fmt.pix.bytesperline*vf->fmt.pix.height;
+@@ -952,6 +957,11 @@ static int vidioc_s_fmt_vid_cap(struct f
+ 
+ 	usbvision->cur_frame = NULL;
+ 
++	if (usbvision_device_data[usbvision->dev_model].codec == CODEC_WEBCAM) {
++		vf->fmt.pix.width = MAX_FRAME_WIDTH;
++		vf->fmt.pix.height = MAX_FRAME_HEIGHT;
++	}
++
+ 	/* by now we are committed to the new data... */
+ 	usbvision_set_output(usbvision, vf->fmt.pix.width, vf->fmt.pix.height);
+ 
 
 -- 
-Regards,
-
-Laurent Pinchart
+Ondrej Zary
