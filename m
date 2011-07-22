@@ -1,61 +1,59 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.mnsspb.ru ([84.204.75.2]:39292 "EHLO mail.mnsspb.ru"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750916Ab1GVW0Y (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 22 Jul 2011 18:26:24 -0400
-Date: Sat, 23 Jul 2011 02:25:20 +0400
-From: Kirill Smelkov <kirr@mns.spb.ru>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Andrew Morton <akpm@linux-foundation.org>,
-	linux-uvc-devel@lists.berlios.de, linux-media@vger.kernel.org,
-	linux-kernel@vger.kernel.org
-Subject: Re: [PATCH, RESEND] uvcvideo: Add FIX_BANDWIDTH quirk to HP Webcam
-	found on HP Mini 5103 netbook
-Message-ID: <20110722222520.GA14917@tugrik.mns.mnsspb.ru>
-References: <20110722144722.GA3717@tugrik.mns.mnsspb.ru> <201107230003.59800.laurent.pinchart@ideasonboard.com>
+Received: from casper.infradead.org ([85.118.1.10]:43529 "EHLO
+	casper.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753745Ab1GVM2x (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 22 Jul 2011 08:28:53 -0400
+Message-ID: <4E296D00.9040608@infradead.org>
+Date: Fri, 22 Jul 2011 09:28:48 -0300
+From: Mauro Carvalho Chehab <mchehab@infradead.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <201107230003.59800.laurent.pinchart@ideasonboard.com>
+To: Stas Sergeev <stsp@list.ru>
+CC: linux-media@vger.kernel.org
+Subject: Re: [patch][saa7134] do not change mute state for capturing audio
+References: <4E19D2F7.6060803@list.ru> <4E1E05AC.2070002@infradead.org> <4E1E0A1D.6000604@list.ru> <4E1E1571.6010400@infradead.org> <4E1E8108.3060305@list.ru> <4E1F9A25.1020208@infradead.org> <4E22AF12.4020600@list.ru> <4E22CCC0.8030803@infradead.org> <4E24BEB8.4060501@redhat.com> <4E257FF5.4040401@infradead.org> <4E258B60.6010007@list.ru> <4E25906D.3020200@infradead.org> <4E259B0C.90107@list.ru> <4E25A26A.2000204@infradead.org> <4E25A7C2.3050609@list.ru> <4E25C7AE.5020503@infradead.org> <4E25CF35.7000802@list.ru> <4E25DB37.8020609@infradead.org> <4E25FDE4.7040805@list.ru> <4E262772.9060509@infradead.org> <4E266799.8030706@list.ru> <4E26AEC0.5000405@infradead.org> <4E26B1E7.2080107@list.ru> <4E26B29B.4010109@infradead.org> <4E292BED.60108@list.ru>
+In-Reply-To: <4E292BED.60108@list.ru>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Laurent, All,
+Em 22-07-2011 04:51, Stas Sergeev escreveu:
+> Ok, Mauro, so may I take your silence as an evidence
+> that this reiterating myth about the mplayer breakage
+> is just a myth?
 
-On Sat, Jul 23, 2011 at 12:03:57AM +0200, Laurent Pinchart wrote:
-> Hi Kirill,
-> 
-> On Friday 22 July 2011 16:47:22 Kirill Smelkov wrote:
-> >  [ Cc'ing Andrew Morton -- Andrew, could you please pick this patch, in
-> >    case there is no response from maintainers again? Thanks beforehand. ]
-> > 
-> > 
-> > Hello up there,
-> > 
-> > My first posting was 1 month ago, and a reminder ~ 2 weeks ago. All
-> > without a reply. v3.0 is out and they say the merge window will be
-> > shorter this time, so in oder not to miss it, I've decided to resend my
-> > patch on lowering USB periodic bandwidth allocation topic.
-> 
-> I'm very very sorry for missing the patch (and worse, twice :-/).
+It is due to my lack of time of explaining the obvious for you.
+Changing the behavior of the kernel drivers has consequences
+on userspace, called regressions. Regressions are not allowed
+at the Linux Kernel: a binary that used to run with an old
+kernel should keep running on a new kernel.
+ 
+In this specific case, applications like mplayer,
+using the alsa parameters for streaming will stop work, as mplayer
+won't touch at the mixer or at the V4L mute control. So,
+it will have the same practical effect of a kernel bug at the
+audio part of the driver.
 
-Nevermind. I'm curious though, whether I did something wrong or anything
-else?  I mean how to avoid such long delays next time?
+> Look, I spent time on investigating the problem, on
+> trying the different approaches to fix it, on explaining
+> the problem to you, etc. So maybe I deserve something
+> more than just a blunt "NACK, lets fix real bugs" reply
+> you initially did? :)
+> Note: that's the first time I got the nack without any
+> explanation in the very first reply, and with the false
+> explanations later. My patch doesn't break mplayer: it
+> can't, since mplayer does not use that interface at all.
+> And my patch fixes a real problem, so even if it is for
+> some reasons incorrect, it certainly deserves a better
+> treatment than the false claims.
+> I guess you are doing this in order to just push your
+> own patch, and you'll do that anyway, so this "letter of
+> disappointment" is going to be my last posting to that
+> thread, unless you decide to explain your nack after all. :)
+
+I probably won't push my own patch, at least for now, as it
+is not tested, and I'm currently lacking time to install a few
+saa7134 boards for testing.
 
 
-> > Could this simple patch be please applied?
-> 
-> Yes it can. I see that Andrew already applied it to his tree. Mauro, should it 
-> go through there, or through your tree ? I've pushed it to my tree at 
-> git://linuxtv.org/pinchartl/uvcvideo.git uvcvideo-stable, so you can already 
-> pull.
-
-You've applied the patch from my first posting, but actually in the
-RESEND one I've added reference to EHCI-tweaking patch -- it is already
-merged into Greg's USB tree (it was not when I first posted), so could you
-please reapply? (sorry for confusion).
-
-
-Thanks for replying and for uvcvideo,
-Kirill
