@@ -1,126 +1,105 @@
-Return-path: <mchehab@localhost>
-Received: from mx1.redhat.com ([209.132.183.28]:47244 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756792Ab1GKCAH (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 10 Jul 2011 22:00:07 -0400
-Received: from int-mx10.intmail.prod.int.phx2.redhat.com (int-mx10.intmail.prod.int.phx2.redhat.com [10.5.11.23])
-	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id p6B206sv014376
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
-	for <linux-media@vger.kernel.org>; Sun, 10 Jul 2011 22:00:07 -0400
-Received: from pedra (vpn-225-29.phx2.redhat.com [10.3.225.29])
-	by int-mx10.intmail.prod.int.phx2.redhat.com (8.14.4/8.14.4) with ESMTP id p6B1xKKk030664
-	for <linux-media@vger.kernel.org>; Sun, 10 Jul 2011 22:00:06 -0400
-Date: Sun, 10 Jul 2011 22:59:06 -0300
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: [PATCH 20/21] [media] drxk: Improve the scu_command error message
-Message-ID: <20110710225906.055d58c1@pedra>
-In-Reply-To: <cover.1310347962.git.mchehab@redhat.com>
-References: <cover.1310347962.git.mchehab@redhat.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
-To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
+Return-path: <linux-media-owner@vger.kernel.org>
+Received: from mailout-de.gmx.net ([213.165.64.23]:34211 "HELO
+	mailout-de.gmx.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1751943Ab1GVQjp (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 22 Jul 2011 12:39:45 -0400
+Cc: rglowery@exemail.com.au
+Content-Type: text/plain; charset="utf-8"
+Date: Fri, 22 Jul 2011 18:39:40 +0200
+From: "Alina Friedrichsen" <x-alina@gmx.net>
+Message-ID: <20110722163940.169950@gmx.net>
+MIME-Version: 1.0
+Subject: [PATCH v2] tuner_xc2028: Allow selection of the frequency adjustment
+ code for XC3028
+To: linux-media@vger.kernel.org
+Content-Transfer-Encoding: 8bit
+Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
-Sender: <mchehab@infradead.org>
 
-Now, it outputs:
+Since many, many kernel releases my Hauppauge WinTV HVR-1400 doesn't work
+anymore, and nobody feels responsible to fix it.
+The code to get it work is still in there, it's only commented out.
+My patch to enable it was rejected, because somebody had fear that it could
+break other cards.
+So here is a new patch, that allows you to select the frequency adjustment
+code by a module parameter. Default is the old code, so it can't break
+anything.
 
-[10927.639641] drxk: SCU_RESULT_INVPAR while sending cmd 0x0203 with params:
-[10927.646283] drxk: 02 00 00 00 10 00 07 00 03 02                    ..........
-
-Better than ERROR -3. This happens with Terratec H5 firmware.
-
-It adds 2 new error conditions, and something useful to track
-what the heck is that.
-
-I suspect that the scu_command is dependent on the firmware
-revision.
-
-Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
-
-diff --git a/drivers/media/dvb/frontends/drxk_hard.c b/drivers/media/dvb/frontends/drxk_hard.c
-index bb8627f..5745f52 100644
---- a/drivers/media/dvb/frontends/drxk_hard.c
-+++ b/drivers/media/dvb/frontends/drxk_hard.c
-@@ -1521,6 +1521,8 @@ static int scu_command(struct drxk_state *state,
- 	unsigned long end;
- 	u8 buffer[34];
- 	int cnt = 0, ii;
-+	const char *p;
-+	char errname[30];
+Signed-off-by: Alina Friedrichsen <x-alina@gmx.net>
+---
+diff -urN linux-3.0.orig/drivers/media/common/tuners/tuner-xc2028.c linux-3.0/drivers/media/common/tuners/tuner-xc2028.c
+--- linux-3.0.orig/drivers/media/common/tuners/tuner-xc2028.c	2011-07-22 04:17:23.000000000 +0200
++++ linux-3.0/drivers/media/common/tuners/tuner-xc2028.c	2011-07-22 18:31:20.181449782 +0200
+@@ -54,6 +54,11 @@
+ MODULE_PARM_DESC(firmware_name, "Firmware file name. Allows overriding the "
+ 				"default firmware name\n");
  
- 	dprintk(1, "\n");
++static int frequency_magic;
++module_param(frequency_magic, int, 0644);
++MODULE_PARM_DESC(frequency_magic, "Selects the frequency adjustment code "
++				  "for XC3028. Set it to 1 if tuning fails.");
++
+ static LIST_HEAD(hybrid_tuner_instance_list);
+ static DEFINE_MUTEX(xc2028_list_mutex);
  
-@@ -1567,31 +1569,36 @@ static int scu_command(struct drxk_state *state,
+@@ -967,34 +972,36 @@
+ 		 * newer firmwares
+ 		 */
  
- 		/* Check if an error was reported by SCU */
- 		err = (s16)result[0];
-+		if (err >= 0)
-+			goto error;
+-#if 1
+-		/*
+-		 * The proper adjustment would be to do it at s-code table.
+-		 * However, this didn't work, as reported by
+-		 * Robert Lowery <rglowery@exemail.com.au>
+-		 */
+-
+-		if (priv->cur_fw.type & DTV7)
+-			offset += 500000;
+-
+-#else
+-		/*
+-		 * Still need tests for XC3028L (firmware 3.2 or upper)
+-		 * So, for now, let's just comment the per-firmware
+-		 * version of this change. Reports with xc3028l working
+-		 * with and without the lines bellow are welcome
+-		 */
++		if (!frequency_magic) {
++			/*
++			 * The proper adjustment would be to do it at s-code
++			 * table. However, this didn't work, as reported by
++			 * Robert Lowery <rglowery@exemail.com.au>
++			 */
  
--		/* check a few fixed error codes */
--		if (err == SCU_RESULT_UNKSTD) {
--			printk(KERN_ERR "drxk: SCU_RESULT_UNKSTD\n");
--			status = -EINVAL;
--			goto error2;
--		} else if (err == SCU_RESULT_UNKCMD) {
--			printk(KERN_ERR "drxk: SCU_RESULT_UNKCMD\n");
--			status = -EINVAL;
--			goto error2;
--		} else if (err < 0) {
--			/*
--			 * here it is assumed that a nagative result means
--			 *  error, and positive no error
--			 */
--			printk(KERN_ERR "drxk: %s ERROR: %d\n", __func__, err);
--			status = -EINVAL;
--			goto error2;
-+		/* check for the known error codes */
-+		switch (err) {
-+		case SCU_RESULT_UNKCMD:
-+			p = "SCU_RESULT_UNKCMD";
-+			break;
-+		case SCU_RESULT_UNKSTD:
-+			p = "SCU_RESULT_UNKSTD";
-+			break;
-+		case SCU_RESULT_SIZE:
-+			p = "SCU_RESULT_SIZE";
-+			break;
-+		case SCU_RESULT_INVPAR:
-+			p = "SCU_RESULT_INVPAR";
-+			break;
-+		default: /* Other negative values are errors */
-+			sprintf(errname, "ERROR: %d\n", err);
-+			p = errname;
+-		if (priv->firm_version < 0x0302) {
+ 			if (priv->cur_fw.type & DTV7)
+ 				offset += 500000;
++
+ 		} else {
+-			if (priv->cur_fw.type & DTV7)
+-				offset -= 300000;
+-			else if (type != ATSC) /* DVB @6MHz, DTV 8 and DTV 7/8 */
+-				offset += 200000;
++			/*
++			 * Still need tests for XC3028L (firmware 3.2 or upper)
++			 * So, for now, let's just comment the per-firmware
++			 * version of this change. Reports with xc3028l working
++			 * with and without the lines bellow are welcome
++			 */
++
++			if (priv->firm_version < 0x0302) {
++				if (priv->cur_fw.type & DTV7)
++					offset += 500000;
++			} else {
++				if (priv->cur_fw.type & DTV7)
++					offset -= 300000;
++				else if (type != ATSC) {
++					/* DVB @6MHz, DTV 8 and DTV 7/8 */
++					offset += 200000;
++				}
++			}
  		}
-+		printk(KERN_ERR "drxk: %s while sending cmd 0x%04x with params:", p, cmd);
-+		print_hex_dump_bytes("drxk: ", DUMP_PREFIX_NONE, buffer, cnt);
-+		status = -EINVAL;
-+		goto error2;
+-#endif
  	}
  
- error:
- 	if (status < 0)
- 		printk(KERN_ERR "drxk: Error %d on %s\n", status, __func__);
--
- error2:
- 	mutex_unlock(&state->mutex);
- 	return status;
-diff --git a/drivers/media/dvb/frontends/drxk_hard.h b/drivers/media/dvb/frontends/drxk_hard.h
-index a20a19d..a05c32e 100644
---- a/drivers/media/dvb/frontends/drxk_hard.h
-+++ b/drivers/media/dvb/frontends/drxk_hard.h
-@@ -20,6 +20,8 @@
- #define DRX_SCU_READY   0
- #define DRXK_MAX_WAITTIME (200)
- #define SCU_RESULT_OK      0
-+#define SCU_RESULT_SIZE   -4
-+#define SCU_RESULT_INVPAR -3
- #define SCU_RESULT_UNKSTD -2
- #define SCU_RESULT_UNKCMD -1
- 
--- 
-1.7.1
-
-
+ 	div = (freq - offset + DIV / 2) / DIV;
