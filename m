@@ -1,91 +1,53 @@
-Return-path: <mchehab@localhost>
-Received: from nm17-vm0.bullet.mail.ukl.yahoo.com ([217.146.183.93]:29061 "HELO
-	nm17-vm0.bullet.mail.ukl.yahoo.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with SMTP id S1753653Ab1GLUdM convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 12 Jul 2011 16:33:12 -0400
-Received: by iyb12 with SMTP id 12so4983243iyb.19
-        for <linux-media@vger.kernel.org>; Tue, 12 Jul 2011 13:33:09 -0700 (PDT)
+Return-path: <linux-media-owner@vger.kernel.org>
+Received: from mail-yx0-f174.google.com ([209.85.213.174]:45664 "EHLO
+	mail-yx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751659Ab1GVXrr (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 22 Jul 2011 19:47:47 -0400
+Received: by yxi11 with SMTP id 11so1581170yxi.19
+        for <linux-media@vger.kernel.org>; Fri, 22 Jul 2011 16:47:46 -0700 (PDT)
 MIME-Version: 1.0
-In-Reply-To: <4E17CF84.108@iki.fi>
-References: <BANLkTi=SM+syVFQOs3_22tGZN1v+AcKGpQ@mail.gmail.com>
-	<BANLkTimSqC3bAyJQneXkmM8Mae5Ono1JLA@mail.gmail.com>
-	<4E17CF84.108@iki.fi>
-Date: Tue, 12 Jul 2011 22:33:08 +0200
-Message-ID: <CA+x4LmirEv-+PDUDV=eSXv7fiMJbnz-k7Q7jT3oZOgVvGPF_rw@mail.gmail.com>
-Subject: Re: Fwd: [PATCH] STV22 Dual USB DVB-T Tuner HDTV linux kernel support
-From: David <reality_es@yahoo.es>
-To: Antti Palosaari <crope@iki.fi>, linux-media@vger.kernel.org
+In-Reply-To: <4E2A099B.2030601@iki.fi>
+References: <CAJbz7-29H=e=C2SyY-6Ru23Zzv6sH7wBbOm72ZWMxqOagakuKQ@mail.gmail.com>
+	<4E29FB9E.4060507@iki.fi>
+	<CAJbz7-3HkkEoDa3qGvoaF61ohhdxo38ZxF+GWGV+tBQ0yEBopA@mail.gmail.com>
+	<4E29FF56.5080604@iki.fi>
+	<CAJbz7-0pDj7mdgHAyyuSOfwGmYdNaKqxM9RxWZdQbEN0Eyjx9w@mail.gmail.com>
+	<4E2A0856.7050009@iki.fi>
+	<4E2A099B.2030601@iki.fi>
+Date: Sat, 23 Jul 2011 01:47:46 +0200
+Message-ID: <CAJbz7-3-xGQOsk2CHq1pfyDoSLSKUo3ULt-7QAfuUfFBuiMt1g@mail.gmail.com>
+Subject: Re: [PATCH] cxd2820r: fix possible out-of-array lookup
+From: HoP <jpetrous@gmail.com>
+To: Antti Palosaari <crope@iki.fi>
+Cc: linux-media@vger.kernel.org
 Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
-Sender: <mchehab@infradead.org>
 
-Hello Again:
+2011/7/23 Antti Palosaari <crope@iki.fi>:
+> On 07/23/2011 02:31 AM, Antti Palosaari wrote:
+>>
+>> On 07/23/2011 02:01 AM, HoP wrote:
+>>>
+>>> 2011/7/23 Antti Palosaari<crope@iki.fi>:
+>>>>
+>>>> But now I see what you mean. msg2[1] is set as garbage fields in case of
+>>>> incoming msg len is 1. True, but it does not harm since it is not
+>>>> used in
+>>>> that case.
+>>>
+>>> In case of write, cxd2820r_tuner_i2c_xfer() gets msg[] parameter
+>>> with only one element, true? If so, then my patch is correct.
+>>
+>> Yes it is true but nonsense. It is also wrong to make always msg2 as two
+>> element array too, but those are just simpler and generates most likely
+>> some code less. Could you see it can cause problem in some case?
+>
+> Now I thought it more, could it crash if it point out of memory area?
 
-The new patches are done, please tell me if i have to make any
-changes. Thanks for your time.
+I see you finally understood what I wanted to do :-)
 
-Signed-off-by: Emilio David Diaus Lopez <reality_es@yahoo.es>
-----------------------------------------------
---- ./drivers/media/dvb/dvb-usb/af9015.c.orig    2011-03-22
-05:45:24.000000000 +0100
-+++ ./drivers/media/dvb/dvb-usb/af9015.c    2011-07-12 22:04:15.612645277 +0200
-@@ -759,6 +759,8 @@ static const struct af9015_rc_setup af90
-         RC_MAP_DIGITALNOW_TINYTWIN },
-     { (USB_VID_GTEK << 16) + USB_PID_TINYTWIN_3,
-         RC_MAP_DIGITALNOW_TINYTWIN },
-+    { (USB_VID_KWORLD_2 << 16) + USB_PID_SVEON_STV22,
-+        RC_MAP_MSI_DIGIVOX_III },
-     { }
- };
+I'm surprised that it not crashed already. I thought I have to missed something.
 
-@@ -1309,6 +1311,7 @@ static struct usb_device_id af9015_usb_t
-         USB_PID_TERRATEC_CINERGY_T_STICK_DUAL_RC)},
- /* 35 */{USB_DEVICE(USB_VID_AVERMEDIA, USB_PID_AVERMEDIA_A850T)},
-     {USB_DEVICE(USB_VID_GTEK,      USB_PID_TINYTWIN_3)},
-+    {USB_DEVICE(USB_VID_KWORLD_2,  USB_PID_SVEON_STV22)},
-     {0},
- };
- MODULE_DEVICE_TABLE(usb, af9015_usb_table);
-@@ -1502,7 +1505,7 @@ static struct dvb_usb_device_properties
-
-         .i2c_algo = &af9015_i2c_algo,
-
--        .num_device_descs = 9, /* check max from dvb-usb.h */
-+        .num_device_descs = 10, /* check max from dvb-usb.h */
-         .devices = {
-             {
-                 .name = "Xtensions XD-380",
-@@ -1554,6 +1557,11 @@ static struct dvb_usb_device_properties
-                 .cold_ids = {&af9015_usb_table[20], NULL},
-                 .warm_ids = {NULL},
-             },
-+                        {
-+                .name = "Sveon STV22 Dual USB DVB-T Tuner HDTV ",
-+                .cold_ids = {&af9015_usb_table[37], NULL},
-+                .warm_ids = {NULL},
-+            },
-         }
-     }, {
-         .caps = DVB_USB_IS_AN_I2C_ADAPTER,
-------------------------
---- ./drivers/media/dvb/dvb-usb/dvb-usb-ids.h.orig    2011-06-08
-03:51:23.000000000 +0200
-+++ ./drivers/media/dvb/dvb-usb/dvb-usb-ids.h    2011-07-12
-22:06:22.432044202 +0200
-@@ -315,6 +315,7 @@
- #define USB_PID_FRIIO_WHITE                0x0001
- #define USB_PID_TVWAY_PLUS                0x0002
- #define USB_PID_SVEON_STV20                0xe39d
-+#define USB_PID_SVEON_STV22                0xe401
- #define USB_PID_AZUREWAVE_AZ6027            0x3275
- #define USB_PID_TERRATEC_DVBS2CI_V1            0x10a4
- #define USB_PID_TERRATEC_DVBS2CI_V2            0x10ac
-----------------------
-1.3
--------------------------
-
-regards
-
-Emilio David Diaus López
+Honza
