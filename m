@@ -1,49 +1,38 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:63406 "EHLO mx1.redhat.com"
+Received: from smtp10.mail.ru ([94.100.176.152]:47878 "EHLO smtp10.mail.ru"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750954Ab1GSKbx (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 19 Jul 2011 06:31:53 -0400
-Received: from int-mx09.intmail.prod.int.phx2.redhat.com (int-mx09.intmail.prod.int.phx2.redhat.com [10.5.11.22])
-	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id p6JAVrnn028551
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
-	for <linux-media@vger.kernel.org>; Tue, 19 Jul 2011 06:31:53 -0400
-Received: from shalem.localdomain (vpn1-6-8.ams2.redhat.com [10.36.6.8])
-	by int-mx09.intmail.prod.int.phx2.redhat.com (8.14.4/8.14.4) with ESMTP id p6JAVp25030178
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-CAMELLIA256-SHA bits=256 verify=NO)
-	for <linux-media@vger.kernel.org>; Tue, 19 Jul 2011 06:31:52 -0400
-Message-ID: <4E255D71.8050906@redhat.com>
-Date: Tue, 19 Jul 2011 12:33:21 +0200
-From: Hans de Goede <hdegoede@redhat.com>
+	id S1751122Ab1GVHvM (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 22 Jul 2011 03:51:12 -0400
+Message-ID: <4E292BED.60108@list.ru>
+Date: Fri, 22 Jul 2011 11:51:09 +0400
+From: Stas Sergeev <stsp@list.ru>
 MIME-Version: 1.0
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: [GIT PATCHES FOR 3.1] pwc: Add support for control events
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+To: Mauro Carvalho Chehab <mchehab@infradead.org>
+CC: linux-media@vger.kernel.org
+Subject: Re: [patch][saa7134] do not change mute state for capturing audio
+References: <4E19D2F7.6060803@list.ru> <4E1E05AC.2070002@infradead.org> <4E1E0A1D.6000604@list.ru> <4E1E1571.6010400@infradead.org> <4E1E8108.3060305@list.ru> <4E1F9A25.1020208@infradead.org> <4E22AF12.4020600@list.ru> <4E22CCC0.8030803@infradead.org> <4E24BEB8.4060501@redhat.com> <4E257FF5.4040401@infradead.org> <4E258B60.6010007@list.ru> <4E25906D.3020200@infradead.org> <4E259B0C.90107@list.ru> <4E25A26A.2000204@infradead.org> <4E25A7C2.3050609@list.ru> <4E25C7AE.5020503@infradead.org> <4E25CF35.7000802@list.ru> <4E25DB37.8020609@infradead.org> <4E25FDE4.7040805@list.ru> <4E262772.9060509@infradead.org> <4E266799.8030706@list.ru> <4E26AEC0.5000405@infradead.org> <4E26B1E7.2080107@list.ru> <4E26B29B.4010109@infradead.org>
+In-Reply-To: <4E26B29B.4010109@infradead.org>
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
-
-Please pull from my tree to add support for control events to
-the pwc driver. Note that this patch depends upon the patches
-from hverkuils poll tree (and those patches are thus also
-in my tree, but not part of this pull req).
-
-The following changes since commit 30178e8623281063c18592a848cdcd71f78f603d:
-
-   vivi: let vb2_poll handle events. (2011-07-18 13:07:28 +0200)
-
-are available in the git repository at:
-   git://linuxtv.org/hgoede/gspca.git media-for_v3.1
-
-Hans de Goede (1):
-       pwc: Add support for control events
-
-  drivers/media/video/pwc/pwc-if.c  |   84 ++++++++++++++++---------------------
-  drivers/media/video/pwc/pwc-v4l.c |   16 ++++++-
-  drivers/media/video/pwc/pwc.h     |    4 ++
-  3 files changed, 53 insertions(+), 51 deletions(-)
-
-Regards,
-
-Hans
+Ok, Mauro, so may I take your silence as an evidence
+that this reiterating myth about the mplayer breakage
+is just a myth?
+Look, I spent time on investigating the problem, on
+trying the different approaches to fix it, on explaining
+the problem to you, etc. So maybe I deserve something
+more than just a blunt "NACK, lets fix real bugs" reply
+you initially did? :)
+Note: that's the first time I got the nack without any
+explanation in the very first reply, and with the false
+explanations later. My patch doesn't break mplayer: it
+can't, since mplayer does not use that interface at all.
+And my patch fixes a real problem, so even if it is for
+some reasons incorrect, it certainly deserves a better
+treatment than the false claims.
+I guess you are doing this in order to just push your
+own patch, and you'll do that anyway, so this "letter of
+disappointment" is going to be my last posting to that
+thread, unless you decide to explain your nack after all. :)
