@@ -1,88 +1,138 @@
-Return-path: <mchehab@pedra>
-Received: from smtp.nokia.com ([147.243.1.48]:31217 "EHLO mgw-sa02.nokia.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751842Ab1GDQNO (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 4 Jul 2011 12:13:14 -0400
-Message-ID: <4E11E695.9090508@iki.fi>
-Date: Mon, 04 Jul 2011 19:13:09 +0300
-From: Sakari Ailus <sakari.ailus@iki.fi>
+Return-path: <linux-media-owner@vger.kernel.org>
+Received: from mail-pz0-f42.google.com ([209.85.210.42]:55896 "EHLO
+	mail-pz0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752791Ab1GVJ0x (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 22 Jul 2011 05:26:53 -0400
+Message-ID: <4E294255.1050407@gmail.com>
+Date: Fri, 22 Jul 2011 14:56:45 +0530
+From: Subash Patel <subashrp@gmail.com>
 MIME-Version: 1.0
-To: "Hadli, Manjunath" <manjunath.hadli@ti.com>
-CC: "'Laurent Pinchart'" <laurent.pinchart@ideasonboard.com>,
-	LMML <linux-media@vger.kernel.org>,
-	dlos <davinci-linux-open-source@linux.davincidsp.com>
-Subject: Re: [ RFC PATCH 0/8] RFC for Media Controller capture driver for
- DM365
-References: <1309439597-15998-1-git-send-email-manjunath.hadli@ti.com> <20110630135736.GK12671@valkosipuli.localdomain> <B85A65D85D7EB246BE421B3FB0FBB593024BCEF739@dbde02.ent.ti.com> <201107041522.37437.laurent.pinchart@ideasonboard.com> <B85A65D85D7EB246BE421B3FB0FBB593024BCEF73A@dbde02.ent.ti.com>
-In-Reply-To: <B85A65D85D7EB246BE421B3FB0FBB593024BCEF73A@dbde02.ent.ti.com>
-Content-Type: text/plain; charset=ISO-8859-1
+To: Sylwester Nawrocki <snjw23@gmail.com>
+CC: Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org,
+	m.szyprowski@samsung.com, kyungmin.park@samsung.com,
+	sw0312.kim@samsung.com, riverful.kim@samsung.com
+Subject: Re: [PATCH v3 08/19] s5p-fimc: Add the media device driver
+References: <1309802110-16682-1-git-send-email-s.nawrocki@samsung.com> <1309802110-16682-9-git-send-email-s.nawrocki@samsung.com> <4E291800.7060402@gmail.com> <4E293BD6.2030502@gmail.com>
+In-Reply-To: <4E293BD6.2030502@gmail.com>
+Content-Type: text/plain; charset=UTF-8; format=flowed
 Content-Transfer-Encoding: 7bit
+Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
-Sender: <mchehab@pedra>
 
-Hadli, Manjunath wrote:
-> Thank you Laurent.
+Hi Sylwester,
 
-Hi Manjunath,
+On 07/22/2011 02:29 PM, Sylwester Nawrocki wrote:
+> Hi Subash,
+>
+> On 07/22/2011 08:26 AM, Subash Patel wrote:
+>> Hi Sylwester,
+>>
+>> On 07/04/2011 11:24 PM, Sylwester Nawrocki wrote:
+>>> The fimc media device driver is hooked onto "s5p-fimc-md" platform device.
+>>> Such a platform device need to be added in a board initialization code
+>>> and then camera sensors need to be specified as it's platform data.
+>>> The "s5p-fimc-md" device is a top level entity for all FIMC, mipi-csis
+>>> and sensor devices.
+>>>
+>>> Signed-off-by: Sylwester Nawrocki<s.nawrocki@samsung.com>
+>>> Signed-off-by: Kyungmin Park<kyungmin.park@samsung.com>
+>>> ---
+>>> drivers/media/video/Kconfig | 2 +-
+>>> drivers/media/video/s5p-fimc/Makefile | 2 +-
+>> ...
+>>>
+>>> /* -----------------------------------------------------*/
+>>> /* fimc-capture.c */
+>>> diff --git a/drivers/media/video/s5p-fimc/fimc-mdevice.c b/drivers/media/video/s5p-fimc/fimc-mdevice.c
+>>> new file mode 100644
+>>> index 0000000..10c8d5d
+>>> --- /dev/null
+>>> +++ b/drivers/media/video/s5p-fimc/fimc-mdevice.c
+>>> @@ -0,0 +1,804 @@
+>> ...
+>>> +
+>>> +static int fimc_md_register_sensor_entities(struct fimc_md *fmd)
+>>> +{
+>>> + struct s5p_platform_fimc *pdata = fmd->pdev->dev.platform_data;
+>>> + struct fimc_dev *fd = NULL;
+>>> + int num_clients, ret, i;
+>>> +
+>>> + /*
+>>> + * Runtime resume one of the FIMC entities to make sure
+>>> + * the sclk_cam clocks are not globally disabled.
+>>> + */
+>>> + for (i = 0; !fd&&  i<  ARRAY_SIZE(fmd->fimc); i++)
+>>> + if (fmd->fimc[i])
+>>> + fd = fmd->fimc[i];
+>>> + if (!fd)
+>>> + return -ENXIO;
+>>> + ret = pm_runtime_get_sync(&fd->pdev->dev);
+>>> + if (ret<  0)
+>>> + return ret;
+>>> +
+>>> + WARN_ON(pdata->num_clients>  ARRAY_SIZE(fmd->sensor));
+>>> + num_clients = min_t(u32, pdata->num_clients, ARRAY_SIZE(fmd->sensor));
+>>> +
+>>> + fmd->num_sensors = num_clients;
+>>> + for (i = 0; i<  num_clients; i++) {
+>>> + fmd->sensor[i].pdata =&pdata->isp_info[i];
+>>> + ret = __fimc_md_set_camclk(fmd,&fmd->sensor[i], true);
+>>> + if (ret)
+>>> + break;
+>>> + fmd->sensor[i].subdev =
+>>> + fimc_md_register_sensor(fmd,&fmd->sensor[i]);
+>>
+>> There is an issue here. Function fimc_md_register_sensor(),
+>> can return subdev, as also error codes when i2c_get_adapter()
+>> or NULL when v4l2_i2c_new_subdev_board() fail. But we do not
+>> invalidate, and assume the return value is valid subdev. It
+>> will cause kernel NULL pointer exception later in fimc_md_create_links().
+>
+> Thanks for letting know.
+> I remember fixing this issue in v2 of the patch set by making
+> fimc_md_register_sensor() return NULL on any error, also when
+> i2c_get_adapter() fails, rather than ERR_PTR value.
+>
+> Do you really mean that there is a NULL or _invalid_ pointer
+> dereference in fimc_md_create_links() ?
+> An oops on a NULL subdev pointer in fmd->sensor[] array seems
+> impossible as there is a check at the beginning of the loop:
 
-> On Mon, Jul 04, 2011 at 18:52:37, Laurent Pinchart wrote:
->> Hi Manjunath,
->> 
->> On Monday 04 July 2011 07:58:06 Hadli, Manjunath wrote:
->>> On Thu, Jun 30, 2011 at 19:27:36, Sakari Ailus wrote:
->> 
->> [snip]
->> 
->>>> I understand that not all the blocks are there. Are there any
->>>> major functional differences between those in Davinci and those
->>>> in OMAP 3? Could the OMAP 3 ISP driver made support Davinci ISP
->>>> as well?
->>> 
->>> Yes, there are a lot of major differences between OMAP3 and 
->>> Dm365/Dm355, both in terms of features, there IP, and the
->>> software interface, including all the registers which are
->>> entirely different. The closest omap3 would come to is only to
->>> DM6446. I do not think OMAP3 driver can be made to support Dm355
->>> and Dm365. It is good to keep the OMAP3 neat and clean to cater
->>> for OMAP4 and beyond, and keep the Davinci family separate. The
->>> names might look similar and hence confusing for you, but the
->>> names can as well be made the same as Dm365 blocks like ISIF and
->>> IPIPE and IPIPEIF which are different.
->> 
->> The DM6446 ISP is very similar to the OMAP3 ISP, and thus quite
->> different from the DM355/365 ISPs. Should the DM6446 be supported
->> by the OMAP3 ISP driver, and the DM355/365 by this driver ?
-> 
-> DM6446 capture IP is in some respects similar to OMAP3 for some
-> features, but there are a large number of differences also (MMU,
-> VRFB, a lot of display interfaces etc). Having a single driver
-> catering to Since DM6446 and OMAP3 is going to be unwieldy. Also,
-> DM6446 belongs to the Davinci family of chips, it should be clubbed
-> with the other Davinci SoCs as it will simplify a lot of other things
-> including directory subdirectory/file naming, organization of
-> machine/platform code etc among other things. Other than Video a lot
-> of other system registers and features which are common with the rest
-> of Davinci SoCs which if treated together is a good thing, whereas
-> OMAP3 can be modified and developed with those on the OMAP family
-> (OMAP4 for ex).
+If you return NULL, then this check will block a crash. In my case, I 
+failed to get the i2c_adapter, and ENODEV was returned, which is not 
+NULL. Hence I pass through this check, and will crash in
 
-Thanks for the clarifications.
+              s_info = v4l2_get_subdev_hostdata(sensor);
 
-What about the DM3730? As far as I understand, the ISP on that one is
-supported by the OMAP 3 ISP driver. But it looks like that it's more
-continuation for the OMAP family of the chips than the Davinci.
+I dont have access to your new patch-set. But if you have returned NULL, 
+then thats should fix this.
 
-I glanced at the DM6446 documentation and at the register level the
-interface looks somewhat different although some register names are the
-same. I didn't found a proper TRM which would be as detailed as the OMAP
-ones --- does TI have one available in public?
-
-OMAP 4 has a quite different ISS --- which the ISP is a part of, and
-which also is very different to the OMAP 3 one  --- so it's unlikely
-that the same driver would support OMAP 3 and OMAP 4 ISPs.
-
-Kind regards,
-
--- 
-Sakari Ailus
-sakari.ailus@iki.fi
+>
+> +static int fimc_md_create_links(struct fimc_md *fmd)
+> +{
+> +	struct v4l2_subdev *sensor, *csis;
+> +	struct s5p_fimc_isp_info *pdata;
+> +	struct fimc_sensor_info *s_info;
+> +	struct media_entity *source;
+> +	int fimc_id = 0;
+> +	int i, pad;
+> +	int rc = 0;
+> +
+> +	for (i = 0; i<  fmd->num_sensors; i++) {
+> +		if (fmd->sensor[i].subdev == NULL)
+> +			continue;
+> ...
+>
+> Sorry, I'll be able to only make more test of this on Monday.
+>
+> --
+> Thanks,
+> Sylwester
+>
+>
+>
+Regards,
+Subash
+SISO-SLG
