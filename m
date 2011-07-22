@@ -1,88 +1,33 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:51701 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754825Ab1GNWKG (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 14 Jul 2011 18:10:06 -0400
-Received: from int-mx01.intmail.prod.int.phx2.redhat.com (int-mx01.intmail.prod.int.phx2.redhat.com [10.5.11.11])
-	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id p6EMA6c2020721
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
-	for <linux-media@vger.kernel.org>; Thu, 14 Jul 2011 18:10:06 -0400
-From: Jarod Wilson <jarod@redhat.com>
-To: linux-media@vger.kernel.org
-Cc: Jarod Wilson <jarod@redhat.com>
-Subject: [PATCH 8/9] [media] mceusb: report actual tx frequencies
-Date: Thu, 14 Jul 2011 18:09:53 -0400
-Message-Id: <1310681394-3530-9-git-send-email-jarod@redhat.com>
-In-Reply-To: <1310681394-3530-1-git-send-email-jarod@redhat.com>
-References: <1310681394-3530-1-git-send-email-jarod@redhat.com>
+Received: from casper.infradead.org ([85.118.1.10]:60587 "EHLO
+	casper.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753785Ab1GVND0 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 22 Jul 2011 09:03:26 -0400
+Message-ID: <4E297505.7090307@infradead.org>
+Date: Fri, 22 Jul 2011 10:03:01 -0300
+From: Mauro Carvalho Chehab <mchehab@infradead.org>
+MIME-Version: 1.0
+To: Stas Sergeev <stsp@list.ru>
+CC: linux-media@vger.kernel.org
+Subject: Re: [patch][saa7134] do not change mute state for capturing audio
+References: <4E19D2F7.6060803@list.ru> <4E1E05AC.2070002@infradead.org> <4E1E0A1D.6000604@list.ru> <4E1E1571.6010400@infradead.org> <4E1E8108.3060305@list.ru> <4E1F9A25.1020208@infradead.org> <4E22AF12.4020600@list.ru> <4E22CCC0.8030803@infradead.org> <4E24BEB8.4060501@redhat.com> <4E257FF5.4040401@infradead.org> <4E258B60.6010007@list.ru> <4E25906D.3020200@infradead.org> <4E259B0C.90107@list.ru> <4E25A26A.2000204@infradead.org> <4E25A7C2.3050609@list.ru> <4E25C7AE.5020503@infradead.org> <4E25CF35.7000802@list.ru> <4E25DB37.8020609@infradead.org> <4E25FDE4.7040805@list.ru> <4E262772.9060509@infradead.org> <4E266799.8030706@list.ru> <4E26AEC0.5000405@infradead.org> <4E26B1E7.2080107@list.ru> <4E26B29B.4010109@infradead.org> <4E292BED.60108@list.ru> <4E296D00.9040608@infradead.org> <4E296F6C.9080107@list.ru> <4E2971D4.1060109@infradead.org> <4E29738F.7040605@list.ru>
+In-Reply-To: <4E29738F.7040605@list.ru>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Rather than dumping out hex values, lets print the actual calculated
-frequency and period the hardware has been configured for. After this
-change:
+Em 22-07-2011 09:56, Stas Sergeev escreveu:
+> 22.07.2011 16:49, Mauro Carvalho Chehab wrote:
+>> Let me rephase it:
+>> Some applications like mplayer don't use V4L2_CID_AUDIO_MUTE to unmute a
+>> video device. They assume the current behavior that starting audio on a
+>> video board also unmutes audio.
+> Could you please give me a command line I can use
+> to verify that? Or any pointers to the code, anything
+> to check?
 
-[ 2643.276215] mceusb 3-1:1.0: tx data: 9f 07 (length=2)
-[ 2643.276218] mceusb 3-1:1.0: Get carrier mode and freq
-[ 2643.277206] mceusb 3-1:1.0: rx data: 9f 06 01 42 (length=4)
-[ 2643.277209] mceusb 3-1:1.0: Got carrier of 37037 Hz (period 27us)
+Here, I add the following line at my .mplayer/config:
 
-Matches up perfectly with the table in Microsoft's docs.
-
-Of course, I've noticed on one of my devices that the MS-recommended
-default value of 1 for carrier pre-scaler and 66 for carrier period was
-butchered, and instead of converting 66 to hex (0x42 like above), they
-put in 0x66, so the hardware reports a default carrier of 24390Hz.
-Fortunately, I guess, this particular device is rx-only, but I wouldn't
-put it past other hw to screw up here too.
-
-Signed-off-by: Jarod Wilson <jarod@redhat.com>
----
- drivers/media/rc/mceusb.c |   16 +++++++++++-----
- 1 files changed, 11 insertions(+), 5 deletions(-)
-
-diff --git a/drivers/media/rc/mceusb.c b/drivers/media/rc/mceusb.c
-index bbd79c0..fa1d182 100644
---- a/drivers/media/rc/mceusb.c
-+++ b/drivers/media/rc/mceusb.c
-@@ -517,6 +517,7 @@ static void mceusb_dev_printdata(struct mceusb_dev *ir, char *buf,
- 	u8 cmd, subcmd, data1, data2, data3, data4, data5;
- 	struct device *dev = ir->dev;
- 	int i, start, skip = 0;
-+	u32 carrier, period;
- 
- 	if (!debug)
- 		return;
-@@ -614,9 +615,14 @@ static void mceusb_dev_printdata(struct mceusb_dev *ir, char *buf,
- 			dev_info(dev, "Resp to 9f 05 of 0x%02x 0x%02x\n",
- 				 data1, data2);
- 			break;
--		case MCE_CMD_SETIRCFS:
--			dev_info(dev, "%s carrier mode and freq of "
--				 "0x%02x 0x%02x\n", inout, data1, data2);
-+		case MCE_RSP_EQIRCFS:
-+			period = DIV_ROUND_CLOSEST(
-+					(1 << data1 * 2) * (data2 + 1), 10);
-+			if (!period)
-+				break;
-+			carrier = (1000 * 1000) / period;
-+			dev_info(dev, "%s carrier of %u Hz (period %uus)\n",
-+				 inout, carrier, period);
- 			break;
- 		case MCE_CMD_GETIRCFS:
- 			dev_info(dev, "Get carrier mode and freq\n");
-@@ -627,9 +633,9 @@ static void mceusb_dev_printdata(struct mceusb_dev *ir, char *buf,
- 			break;
- 		case MCE_RSP_EQIRTIMEOUT:
- 			/* value is in units of 50us, so x*50/1000 ms */
-+			period = ((data1 << 8) | data2) * MCE_TIME_UNIT / 1000;
- 			dev_info(dev, "%s receive timeout of %d ms\n",
--				 inout,
--				 ((data1 << 8) | data2) * MCE_TIME_UNIT / 1000);
-+				 inout, period);
- 			break;
- 		case MCE_CMD_GETIRTIMEOUT:
- 			dev_info(dev, "Get receive timeout\n");
--- 
-1.7.1
-
+tv		= "driver=v4l2:device=/dev/video0:norm=PAL-M:chanlist=us-bcast:alsa=1:adevice=hw.1:audiorate=32000:immediatemode=0:amode=1"
