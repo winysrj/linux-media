@@ -1,36 +1,41 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp5.mail.ru ([94.100.176.132]:59383 "EHLO smtp5.mail.ru"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754163Ab1GVMjM (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 22 Jul 2011 08:39:12 -0400
-Message-ID: <4E296F6C.9080107@list.ru>
-Date: Fri, 22 Jul 2011 16:39:08 +0400
-From: Stas Sergeev <stsp@list.ru>
+Received: from perceval.ideasonboard.com ([95.142.166.194]:51707 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751434Ab1GVXoB (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 22 Jul 2011 19:44:01 -0400
+Received: from lancelot.localnet (unknown [91.178.30.248])
+	by perceval.ideasonboard.com (Postfix) with ESMTPSA id 91868359A4
+	for <linux-media@vger.kernel.org>; Fri, 22 Jul 2011 23:44:00 +0000 (UTC)
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: linux-media@vger.kernel.org
+Subject: [GIT PULL FOR v3.1] Sensor driver fixes
+Date: Sat, 23 Jul 2011 01:44:05 +0200
 MIME-Version: 1.0
-To: Mauro Carvalho Chehab <mchehab@infradead.org>
-CC: linux-media@vger.kernel.org
-Subject: Re: [patch][saa7134] do not change mute state for capturing audio
-References: <4E19D2F7.6060803@list.ru> <4E1E05AC.2070002@infradead.org> <4E1E0A1D.6000604@list.ru> <4E1E1571.6010400@infradead.org> <4E1E8108.3060305@list.ru> <4E1F9A25.1020208@infradead.org> <4E22AF12.4020600@list.ru> <4E22CCC0.8030803@infradead.org> <4E24BEB8.4060501@redhat.com> <4E257FF5.4040401@infradead.org> <4E258B60.6010007@list.ru> <4E25906D.3020200@infradead.org> <4E259B0C.90107@list.ru> <4E25A26A.2000204@infradead.org> <4E25A7C2.3050609@list.ru> <4E25C7AE.5020503@infradead.org> <4E25CF35.7000802@list.ru> <4E25DB37.8020609@infradead.org> <4E25FDE4.7040805@list.ru> <4E262772.9060509@infradead.org> <4E266799.8030706@list.ru> <4E26AEC0.5000405@infradead.org> <4E26B1E7.2080107@list.ru> <4E26B29B.4010109@infradead.org> <4E292BED.60108@list.ru> <4E296D00.9040608@infradead.org>
-In-Reply-To: <4E296D00.9040608@infradead.org>
-Content-Type: text/plain; charset=UTF-8
+Content-Type: Text/Plain;
+  charset="us-ascii"
 Content-Transfer-Encoding: 7bit
+Message-Id: <201107230144.05954.laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-22.07.2011 16:28, Mauro Carvalho Chehab wrote:
-> In this specific case, applications like mplayer,
-> using the alsa parameters for streaming will stop work, as mplayer
-> won't touch at the mixer or at the V4L mute control. So,
-> it will have the same practical effect of a kernel bug at the
-> audio part of the driver.
-Let me quote you again:
----
-Some applications like mplayer don't use V4L2_CID_AUDIO_MUTE to unmute a
-video device. They assume the current behavior that starting video also
-unmutes audio.
----
-Could you please explain how my patch breaks
-"starting video also unmutes audio"? I haven't touched
-anything related to "starting video", so, if starting video
-used to unmute audio, it will keep it that way.
-Can you tell me how exactly I can reproduce that breakage?
+Hi Mauro,
+
+The following changes since commit f0a21151140da01c71de636f482f2eddec2840cc:
+
+  Merge tag 'v3.0' into staging/for_v3.1 (2011-07-22 13:33:14 -0300)
+
+are available in the git repository at:
+
+  git://linuxtv.org/pinchartl/media.git omap3isp-next-sensors
+
+Laurent Pinchart (1):
+      v4l: mt9v032: Fix Bayer pattern
+
+ drivers/media/video/mt9v032.c |   20 ++++++++++----------
+ 1 files changed, 10 insertions(+), 10 deletions(-)
+
+-- 
+Regards,
+
+Laurent Pinchart
