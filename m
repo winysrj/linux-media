@@ -1,101 +1,60 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.17.8]:59606 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755728Ab1G2K5D (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 29 Jul 2011 06:57:03 -0400
-Received: from 6a.grange (6a.grange [192.168.1.11])
-	by axis700.grange (Postfix) with ESMTPS id 3A2CD18B039
-	for <linux-media@vger.kernel.org>; Fri, 29 Jul 2011 12:57:00 +0200 (CEST)
-Received: from lyakh by 6a.grange with local (Exim 4.72)
-	(envelope-from <g.liakhovetski@gmx.de>)
-	id 1QmkkW-0007nH-0D
-	for linux-media@vger.kernel.org; Fri, 29 Jul 2011 12:57:00 +0200
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: linux-media@vger.kernel.org
-Subject: [PATCH 07/59] V4L: mt9m001: support the new mbus-config subdev ops
-Date: Fri, 29 Jul 2011 12:56:07 +0200
-Message-Id: <1311937019-29914-8-git-send-email-g.liakhovetski@gmx.de>
-In-Reply-To: <1311937019-29914-1-git-send-email-g.liakhovetski@gmx.de>
-References: <1311937019-29914-1-git-send-email-g.liakhovetski@gmx.de>
+Received: from mail.kapsi.fi ([217.30.184.167]:50018 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752285Ab1GVWhU (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 22 Jul 2011 18:37:20 -0400
+Message-ID: <4E29FB9E.4060507@iki.fi>
+Date: Sat, 23 Jul 2011 01:37:18 +0300
+From: Antti Palosaari <crope@iki.fi>
+MIME-Version: 1.0
+To: HoP <jpetrous@gmail.com>
+CC: linux-media@vger.kernel.org
+Subject: Re: [PATCH] cxd2820r: fix possible out-of-array lookup
+References: <CAJbz7-29H=e=C2SyY-6Ru23Zzv6sH7wBbOm72ZWMxqOagakuKQ@mail.gmail.com>
+In-Reply-To: <CAJbz7-29H=e=C2SyY-6Ru23Zzv6sH7wBbOm72ZWMxqOagakuKQ@mail.gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Extend the driver to also support [gs]_mbus_config() subdevice video
-operations.
+On 07/23/2011 01:18 AM, HoP wrote:
+> In case of i2c write operation there is only one element in msg[] array.
+> Don't access msg[1] in that case.
 
-Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
----
- drivers/media/video/mt9m001.c |   40 +++++++++++++++++++++++++++++++++++++++-
- 1 files changed, 39 insertions(+), 1 deletions(-)
+NACK.
+I suspect you confuse now local msg2 and msg that is passed as function 
+parameter. Could you double check and explain?
 
-diff --git a/drivers/media/video/mt9m001.c b/drivers/media/video/mt9m001.c
-index 4da9cca..7618b3c 100644
---- a/drivers/media/video/mt9m001.c
-+++ b/drivers/media/video/mt9m001.c
-@@ -13,9 +13,10 @@
- #include <linux/i2c.h>
- #include <linux/log2.h>
- 
-+#include <media/soc_camera.h>
-+#include <media/soc_mediabus.h>
- #include <media/v4l2-subdev.h>
- #include <media/v4l2-chip-ident.h>
--#include <media/soc_camera.h>
- 
- /*
-  * mt9m001 i2c address 0x5d
-@@ -710,6 +711,41 @@ static int mt9m001_enum_fmt(struct v4l2_subdev *sd, unsigned int index,
- 	return 0;
- }
- 
-+static int mt9m001_g_mbus_config(struct v4l2_subdev *sd,
-+				struct v4l2_mbus_config *cfg)
-+{
-+	struct i2c_client *client = v4l2_get_subdevdata(sd);
-+	struct soc_camera_device *icd = client->dev.platform_data;
-+	struct soc_camera_link *icl = to_soc_camera_link(icd);
-+
-+	/* MT9M001 has all capture_format parameters fixed */
-+	cfg->flags = V4L2_MBUS_PCLK_SAMPLE_FALLING |
-+		V4L2_MBUS_HSYNC_ACTIVE_HIGH | V4L2_MBUS_VSYNC_ACTIVE_HIGH |
-+		V4L2_MBUS_DATA_ACTIVE_HIGH | V4L2_MBUS_MASTER;
-+	cfg->type = V4L2_MBUS_PARALLEL;
-+	cfg->flags = soc_camera_apply_board_flags(icl, cfg);
-+
-+	return 0;
-+}
-+
-+static int mt9m001_s_mbus_config(struct v4l2_subdev *sd,
-+				const struct v4l2_mbus_config *cfg)
-+{
-+	struct i2c_client *client = v4l2_get_subdevdata(sd);
-+	struct soc_camera_device *icd = client->dev.platform_data;
-+	struct soc_camera_link *icl = to_soc_camera_link(icd);
-+	unsigned int bps = soc_mbus_get_fmtdesc(icd->current_fmt->code)->bits_per_sample;
-+
-+	if (icl->set_bus_param)
-+		return icl->set_bus_param(icl, 1 << (bps - 1));
-+
-+	/*
-+	 * Without board specific bus width settings we only support the
-+	 * sensors native bus width
-+	 */
-+	return bps == 10 ? 0 : -EINVAL;
-+}
-+
- static struct v4l2_subdev_video_ops mt9m001_subdev_video_ops = {
- 	.s_stream	= mt9m001_s_stream,
- 	.s_mbus_fmt	= mt9m001_s_fmt,
-@@ -719,6 +755,8 @@ static struct v4l2_subdev_video_ops mt9m001_subdev_video_ops = {
- 	.g_crop		= mt9m001_g_crop,
- 	.cropcap	= mt9m001_cropcap,
- 	.enum_mbus_fmt	= mt9m001_enum_fmt,
-+	.g_mbus_config	= mt9m001_g_mbus_config,
-+	.s_mbus_config	= mt9m001_s_mbus_config,
- };
- 
- static struct v4l2_subdev_sensor_ops mt9m001_subdev_sensor_ops = {
+
+regards
+Antti
+
+>
+> Signed-off-by: Honza Petrous<jpetrous@smartimp.cz>
+>
+> --
+>
+> diff -uBbp cxd2820r_core.c.orig cxd2820r_core.c
+> --- cxd2820r_core.c.orig	2011-07-22 23:31:56.319168405 +0200
+> +++ cxd2820r_core.c	2011-07-22 23:35:02.508046078 +0200
+> @@ -750,8 +750,6 @@ static int cxd2820r_tuner_i2c_xfer(struc
+>   		}, {
+>   			.addr = priv->cfg.i2c_address,
+>   			.flags = I2C_M_RD,
+> -			.len = msg[1].len,
+> -			.buf = msg[1].buf,
+>   		}
+>   	};
+>
+> @@ -760,6 +758,8 @@ static int cxd2820r_tuner_i2c_xfer(struc
+>   	if (num == 2) { /* I2C read */
+>   		obuf[1] = (msg[0].addr<<  1) | I2C_M_RD; /* I2C RD flag */
+>   		msg2[0].len = sizeof(obuf) - 1; /* maybe HW bug ? */
+> +		msg2[1].len = msg[1].len;
+> +		msg2[1].buf = msg[1].buf;
+>   	}
+>   	memcpy(&obuf[2], msg[0].buf, msg[0].len);
+
+
 -- 
-1.7.2.5
-
+http://palosaari.fi/
