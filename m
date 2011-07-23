@@ -1,83 +1,156 @@
-Return-path: <mchehab@pedra>
-Received: from mailout1.w1.samsung.com ([210.118.77.11]:60701 "EHLO
-	mailout1.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756207Ab1GAMy2 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 1 Jul 2011 08:54:28 -0400
-Received: from eu_spt1 (mailout1.w1.samsung.com [210.118.77.11])
- by mailout1.w1.samsung.com
- (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14 2004))
- with ESMTP id <0LNN00ETFNUJ0K@mailout1.w1.samsung.com> for
- linux-media@vger.kernel.org; Fri, 01 Jul 2011 13:54:19 +0100 (BST)
-Received: from linux.samsung.com ([106.116.38.10])
- by spt1.w1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14
- 2004)) with ESMTPA id <0LNN007IFNUIZL@spt1.w1.samsung.com> for
- linux-media@vger.kernel.org; Fri, 01 Jul 2011 13:54:18 +0100 (BST)
-Date: Fri, 01 Jul 2011 14:54:17 +0200
-From: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Subject: Re: [PATCH/RFC v4] V4L: add media bus configuration subdev operations
-In-reply-to: <Pine.LNX.4.64.1107010036390.20437@axis700.grange>
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Cc: Sylwester Nawrocki <snjw23@gmail.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Sakari Ailus <sakari.ailus@iki.fi>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	sakari.ailus@maxwell.research.nokia.com,
-	Stan <svarbanov@mm-sol.com>, Hans Verkuil <hansverk@cisco.com>,
-	saaguirre@ti.com, Mauro Carvalho Chehab <mchehab@infradead.org>
-Message-id: <4E0DC379.4060807@samsung.com>
-MIME-version: 1.0
-Content-type: text/plain; charset=ISO-8859-1
-Content-transfer-encoding: 7BIT
-References: <Pine.LNX.4.64.1106291819520.12577@axis700.grange>
- <4E0CEFEB.2080005@gmail.com> <Pine.LNX.4.64.1107010036390.20437@axis700.grange>
+Return-path: <linux-media-owner@vger.kernel.org>
+Received: from mail.kapsi.fi ([217.30.184.167]:50575 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752320Ab1GWJnE (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 23 Jul 2011 05:43:04 -0400
+Message-ID: <4E2A97A2.6080206@iki.fi>
+Date: Sat, 23 Jul 2011 12:42:58 +0300
+From: Antti Palosaari <crope@iki.fi>
+MIME-Version: 1.0
+To: Jose Alberto Reguero <jareguero@telefonica.net>
+CC: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	linux-media@vger.kernel.org,
+	Michael Krufky <mkrufky@kernellabs.com>,
+	Guy Martin <gmsoft@tuxicoman.be>
+Subject: Re: [PATCH] add support for the dvb-t part of CT-3650 v3
+References: <201106070205.08118.jareguero@telefonica.net> <201107222349.22717.jareguero@telefonica.net> <4E29F849.2040808@iki.fi> <201107231026.57485.jareguero@telefonica.net>
+In-Reply-To: <201107231026.57485.jareguero@telefonica.net>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 8bit
+Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
-Sender: <mchehab@pedra>
 
-On 07/01/2011 12:42 AM, Guennadi Liakhovetski wrote:
-...
->>> +/**
->>> + * v4l2_mbus_type - media bus type
->>> + * @V4L2_MBUS_PARALLEL:	parallel interface with hsync and vsync
->>> + * @V4L2_MBUS_BT656:	parallel interface with embedded synchronisation, can
->>> + *			also be used for BT.1120
->>> + * @V4L2_MBUS_CSI2:	MIPI CSI-2 serial interface
->>> + */
->>> +enum v4l2_mbus_type {
->>> +	V4L2_MBUS_PARALLEL,
->>> +	V4L2_MBUS_BT656,
->>> +	V4L2_MBUS_CSI2,
+On 07/23/2011 11:26 AM, Jose Alberto Reguero wrote:
+> On Sábado, 23 de Julio de 2011 00:23:05 Antti Palosaari escribió:
+>> On 07/23/2011 12:49 AM, Jose Alberto Reguero wrote:
+>>> On Viernes, 22 de Julio de 2011 20:12:20 Jose Alberto Reguero escribió:
+>>>> On Viernes, 22 de Julio de 2011 18:46:24 Antti Palosaari escribió:
+>>>>> On 07/22/2011 07:25 PM, Jose Alberto Reguero wrote:
+>>>>>> On Viernes, 22 de Julio de 2011 18:08:39 Antti Palosaari escribió:
+>>>>>>> On 07/22/2011 07:02 PM, Jose Alberto Reguero wrote:
+>>>>>>>> On Viernes, 22 de Julio de 2011 13:32:53 Antti Palosaari escribió:
+>>>>>>>>> Have you had to time test these?
+>>>>>>>>>
+>>>>>>>>> And about I2C adapter, I don't see why changes are needed. As far
+>>>>>>>>> as I understand it is already working with TDA10023 and you have
+>>>>>>>>> done changes for TDA10048 support. I compared TDA10048 and
+>>>>>>>>> TDA10023 I2C functions and those are ~similar. Both uses most
+>>>>>>>>> typical access, for reg write {u8 REG, u8 VAL} and for reg read
+>>>>>>>>> {u8 REG}/{u8 VAL}.
+>>>>>>>>>
+>>>>>>>>> regards
+>>>>>>>>> Antti
+>>>>>>>>
+>>>>>>>> I just finish the testing. The changes to I2C are for the tuner
+>>>>>>>> tda827x. The MFE fork fine. I need to change the code in tda10048
+>>>>>>>> and ttusb2. Attached is the patch for CT-3650 with your MFE patch.
+>>>>>>>
+>>>>>>> You still pass tda10023 fe pointer to tda10048 for I2C-gate control
+>>>>>>> which is wrong. Could you send USB sniff I can look what there really
+>>>>>>> happens. If you have raw SniffUSB2 logs I wish to check those, other
+>>>>>>> logs are welcome too if no raw SniffUSB2 available.
+>>>>>>
+>>>>>> Youre chnage don't work. You need to change the function i2c gate of
+>>>>>> tda1048 for the one of tda1023, but the parameter of this function
+>>>>>> must be the fe pointer of tda1023. If this is a problem, I can
+>>>>>> duplicate tda1023 i2c gate in ttusb2 code and pass it to the
+>>>>>> tda10048. It is done this way in the first patch of this thread.
+>>>>>
+>>>>> Yes I now see why it cannot work - since FE is given as a parameter to
+>>>>> i2c_gate_ctrl it does not see correct priv and used I2C addr is read
+>>>>> from priv. You must implement own i2c_gate_ctrl in ttusb2 driver.
+>>>>> Implement own ct3650_i2c_gate_ctrl and override tda10048 i2c_gate_ctrl
+>>>>> using that. Then call tda10023 i2c_gate_ctrl but instead of tda10048 FE
+>>>>> use td10023 FE. Something like
+>>>>>
+>>>>> static int ct3650_i2c_gate_ctrl(struct dvb_frontend* fe, int enable)
+>>>>> {
+>>>>>
+>>>>> 	return adap->mfe[0]->ops.i2c_gate_ctrl(POINTER_TO_TDA10023_FE,
+>>>>> 	enable);
+>>>>>
+>>>>> }
+>>>>>
+>>>>> /* tuner is behind TDA10023 I2C-gate */
+>>>>> adap->mfe[1]->ops.i2c_gate_ctrl = ct3650_i2c_gate_ctrl;
+>>>>>
+>>>>>
+>>>>> Could you still send USB logs? I don't see it correct behaviour you
+>>>>> need to change I2C-adaper when same tuner is used for DVB-T because it
+>>>>> was already working in DVB-C mode.
+>>>>>
+>>>>> regards
+>>>>> Antti
+>>>>
+>>>> Thanks, I try to implement that. I attach a processed log. It prints the
+>>>> first line of a usb command and the first line of the returned byes. If
+>>>> you want the full log I can upload it where you want.
+>>>>
+>>>> Jose Alberto
+>>>
+>>> New version with Antti's sugestion.
 >>
->> How about internal connections between processing blocks inside SoCs?
->> Don't we want to also list those here? I mean direct connections
->> like Preview Engine -> Resizer in TI SoCs or Display Mixer -> Video Capture
->> Engine in Samsung SoCs.
->> If there is no all possible bus types in this list I can't see how
->> driver's for such hardware could be converted to use this new interface. 
+>> GOOD! As you can see implementing things correctly drops also much lines
+>> of code! No more ugly hacks in TDA10048 driver.
 >>
->> Perhaps we could add something like
->> V4L2_MBUS_INTERNAL or V4L2_MBUS_USER1...?
-> 
-> Maybe. But again, this patch is not aiming at covering all possible cases. 
-> We discuss it to avoid stupid or wrong things. Correct but incomplete 
-> things can always be added. So, once someone get to implement such a 
-> connection, using this API, they will just add one more type here. Why I'm 
+>> But now you must fix that I2C-adapter. I looked sniffs and tda827x
+>> driver. I2C is rather clear. tda827x uses a little bit unusual I2C read.
+>> Normally reads are done as I2C write+read combination, that tuner, as
+>> many other NXP tuners, uses only single read and it is starting always
+>> from reg "0".
+>>
+>> It looked for my eyes that it will never do read operation as in read
+>> there is num = 1, msg[0].flags = I2C_M_RD
+>>
+>> ttusb2_i2c_xfer():
+>> 	for (i = 0; i<  num; i++) {
+>> 		read = i+1<  num&&  (msg[i+1].flags&  I2C_M_RD);
+>>
+>> But in the case it have been working for DVB-C I don't understand why it
+>> does not work for DVB-T. And thus I really suspect your changes to
+>> I2C-adapter are not needed. So whats the problem using original I2C
+>> adapter? What does it print when debugs are enabled. Is there some
+>> errors in log?
+>>
+>> Also looking from sniffs, it seems that this could be wrong:
+>> 		(rlen>  0&&  r[3] != rlen)) {
+>> 		warn("there might have been an error during control message
+> transfer.
+>> (rlen = %d, was %d)",rlen,r[3]);
+>>
+>>
+>> regards
+>> Antti
+>
+> The problem is in i2c read in tda827x_probe_version. Without the fix sometimes,
+> when changing the code the tuner is detected as  tda827xo instead of tda827xa.
+> That is because the variable where i2c read should store the value is
+> initialized, and sometimes it works.
 
-Sure, we can add more types when needed. The only parameters I'm aware of
-at the moment for such an internal bus is clock type and clock frequency.
-It certainly needs more investigation and discussing.
+struct i2c_msg msg = { .addr = priv->i2c_addr, .flags = I2C_M_RD,
+			       .buf = &data, .len = 1 };
 
-Your patch looks OK to me, except is has only a declaration of
-v4l2_mbus_config_compatible() and the implementation is lost somewhere.
-I guess we'll need to replace the "flags" field with an union ewentually,
-but it would be good to get the patch merged in this form so we can finally
-move forward with the sensor drivers standardization.
+rc = tuner_transfer(fe, &msg, 1);
 
-> also unsure whether and how to add it now is, that these types define bus 
-> properties. E.g., on CSI-2 you have up to 4 data lanes, a clock lane with 
-> certain properties etc. What properties does the "internal" bus have? I 
-> would leave it out until we really get to implement it.
+:-( Could you read what I write. It is a little bit annoying to find out 
+everything for you. You just answer every time something like it does 
+not work and I should always find out what's problem.
 
-Regards,
+As I pointed out read will never work since I2C adapter supports only 
+read done in WRITE+READ combination. Driver uses read which is single 
+READ without write.
+
+You should implement new read. You can look example from af9015 or other 
+drivers using tda827x
+
+This have been never worked thus I Cc Guy Martin who have added DVB-C 
+support for that device.
+
+
+regards
+Antti
+
+
+
 -- 
-Sylwester Nawrocki
-Samsung Poland R&D Center
+http://palosaari.fi/
