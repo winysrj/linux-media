@@ -1,136 +1,63 @@
-Return-path: <mchehab@localhost>
-Received: from mail-iw0-f174.google.com ([209.85.214.174]:45435 "EHLO
-	mail-iw0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756218Ab1GJSOp convert rfc822-to-8bit (ORCPT
+Return-path: <linux-media-owner@vger.kernel.org>
+Received: from casper.infradead.org ([85.118.1.10]:38937 "EHLO
+	casper.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750730Ab1GWB2o (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 10 Jul 2011 14:14:45 -0400
-Received: by mail-iw0-f174.google.com with SMTP id 6so3056403iwn.19
-        for <linux-media@vger.kernel.org>; Sun, 10 Jul 2011 11:14:45 -0700 (PDT)
+	Fri, 22 Jul 2011 21:28:44 -0400
+Message-ID: <4E2A23C7.3040209@infradead.org>
+Date: Fri, 22 Jul 2011 22:28:39 -0300
+From: Mauro Carvalho Chehab <mchehab@infradead.org>
 MIME-Version: 1.0
-From: Christian Gmeiner <christian.gmeiner@gmail.com>
-Date: Sun, 10 Jul 2011 18:14:25 +0000
-Message-ID: <CAH9NwWeiAtrGN-X9LeLabfLN6eBxhdfiUcwbBx1u0nyKvRU1sQ@mail.gmail.com>
-Subject: [PATCH 3/3] Make use of 8-bit and 16-bit YCrCb media bus pixel codes
- in adv7175 driver
-To: linux-media@vger.kernel.org
+To: Stas Sergeev <stsp@list.ru>
+CC: linux-media@vger.kernel.org
+Subject: Re: [patch][saa7134] do not change mute state for capturing audio
+References: <4E19D2F7.6060803@list.ru> <4E1E05AC.2070002@infradead.org> <4E1E0A1D.6000604@list.ru> <4E1E1571.6010400@infradead.org> <4E1E8108.3060305@list.ru> <4E1F9A25.1020208@infradead.org> <4E22AF12.4020600@list.ru> <4E22CCC0.8030803@infradead.org> <4E24BEB8.4060501@redhat.com> <4E257FF5.4040401@infradead.org> <4E258B60.6010007@list.ru> <4E25906D.3020200@infradead.org> <4E259B0C.90107@list.ru> <4E25A26A.2000204@infradead.org> <4E25A7C2.3050609@list.ru> <4E25C7AE.5020503@infradead.org> <4E25CF35.7000802@list.ru> <4E25DB37.8020609@infradead.org> <4E25FDE4.7040805@list.ru> <4E262772.9060509@infradead.org> <4E266799.8030706@list.ru> <4E26AEC0.5000405@infradead.org> <4E26B1E7.2080107@list.ru> <4E26B29B.4010109@infradead.org> <4E292BED.60108@list.ru> <4E296D00.9040608@infradead.org> <4E296F6C.9080107@list.ru> <4E2971D4.1060109@infradead.org> <4E29738F.7040605@list.ru> <4E297505.7090307@infradead.org> <4E29E02A.1020402@list.ru>
+In-Reply-To: <4E29E02A.1020402@list.ru>
 Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8BIT
+Content-Transfer-Encoding: 7bit
+Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
-Sender: <mchehab@infradead.org>
 
-The ADV7175A/ADV7176A can operate in either 8-bit or 16-bit YCrCb mode.
+Em 22-07-2011 17:40, Stas Sergeev escreveu:
+> 22.07.2011 17:03, Mauro Carvalho Chehab wrote:
+>> Here, I add the following line at my .mplayer/config:
+>>
+>> tv        = "driver=v4l2:device=/dev/video0:norm=PAL-M:chanlist=us-bcast:alsa=1:adevice=hw.1:audiorate=32000:immediatemode=0:amode=1"
+> Thanks for starting to answer what I was asking for over a week. :)
+> If this is the case (not verified yet), there may be the simple
+> automute logic that will fix that in an absense of an auto-unmute
+> in alsa.
+> Initially, the driver may be put in an auto-mute state.
+> It is mute until the tuner is tuned: after the tuner is tuned,
+> the audio gets immediately automatically unmuted.
+> If the app does not want this to happen, it may use
+> the V4L2_CID_AUDIO_MUTE before tuning, to put the device
+> in a permanent-mute state.
+> So, in short, I suggest to bind the auto-unmute to the
+> tuner tune, rather than to the capture start. And that
+> should be a separate, third mute state, automute. If the
+> app explicitly wants the mute or unmute, this automute
+> logic disables.
+> Do you know any app that will regress even with that?
 
-* 8-Bit YCrCb Mode
-This default mode accepts multiplexed YCrCb inputs through
-the P7-P0 pixel inputs. The inputs follow the sequence Cb0, Y0
-Cr0, Y1 Cb1, Y2, etc. The Y, Cb and Cr data are input on a
-rising clock edge.
+Mplayer was just one example of an application that I know
+it doesn't call V4L2_CID_AUDIO_MUTE to unmute. I didn't 
+check for other applications and scripts that may break
+with such change.
 
-* 16-Bit YCrCb Mode
-This mode accepts Y inputs through the P7–P0 pixel inputs and
-multiplexed CrCb inputs through the P15–P8 pixel inputs. The
-data is loaded on every second rising edge of CLOCK. The inputs
-follow the sequence Cb0, Y0 Cr0, Y1 Cb1, Y2, etc.
+Your approach of moving it to VIDIOC_S_FREQUENCY (if I 
+understood well) won't work, as, every time someone would 
+change the channel, it will be unmuted, causing troubles
+on applications like "scantv" (part of xawtv).
 
-Signed-off-by: Christian Gmeiner
----
-diff --git a/drivers/media/video/adv7175.c b/drivers/media/video/adv7175.c
-index d2327db..79ab5a3 100644
---- a/drivers/media/video/adv7175.c
-+++ b/drivers/media/video/adv7175.c
-@@ -51,6 +51,7 @@ MODULE_PARM_DESC(debug, "Debug level (0-1)");
- struct adv7175 {
- 	struct v4l2_subdev sd;
- 	v4l2_std_id norm;
-+	enum v4l2_mbus_pixelcode pixelcode;
- 	int input;
- };
+You can't associate such logic to any ioctl, due to the
+same reasons. Also, associating with V4L open also will
+cause side effects, as udev opens all V4L devices when
+the device is detected.
 
-@@ -61,6 +62,11 @@ static inline struct adv7175 *to_adv7175(struct
-v4l2_subdev *sd)
+You should also remind that it is possible to use a separate
+application (like v4l2-ctl) while a device is opened
+by other applications, and even to not have the device
+opened while streaming (radio applications allow that).
 
- static char *inputs[] = { "pass_through", "play_back", "color_bar" };
-
-+static enum v4l2_mbus_pixelcode adv7175_codes[] = {
-+	V4L2_MBUS_FMT_YCRCB_1X8,
-+	V4L2_MBUS_FMT_YCRCB_1X16,
-+};
-+
- /* ----------------------------------------------------------------------- */
-
- static inline int adv7175_write(struct v4l2_subdev *sd, u8 reg, u8 value)
-@@ -296,6 +302,60 @@ static int adv7175_s_routing(struct v4l2_subdev *sd,
- 	return 0;
- }
-
-+static int adv7175_enum_fmt(struct v4l2_subdev *sd, unsigned int index,
-+				enum v4l2_mbus_pixelcode *code)
-+{
-+	if (index >= ARRAY_SIZE(adv7175_codes))
-+		return -EINVAL;
-+
-+	*code = adv7175_codes[index];
-+	return 0;
-+}
-+
-+static int adv7175_g_fmt(struct v4l2_subdev *sd,
-+				struct v4l2_mbus_framefmt *mf)
-+{
-+	struct adv7175 *encoder = to_adv7175(sd);
-+
-+	mf->code        = encoder->pixelcode;
-+	mf->colorspace  = V4L2_COLORSPACE_SMPTE170M;
-+	mf->width       = 0;
-+	mf->height      = 0;
-+	mf->field       = V4L2_FIELD_NONE;
-+
-+	return 0;
-+}
-+
-+static int adv7175_s_fmt(struct v4l2_subdev *sd,
-+				struct v4l2_mbus_framefmt *mf)
-+{
-+	struct adv7175 *encoder = to_adv7175(sd);
-+	u8 val = adv7175_read(sd, 0x7);
-+	int ret;
-+
-+	switch (mf->code) {
-+	case V4L2_MBUS_FMT_YCRCB_1X8:
-+		val &= ~0x40;
-+		break;
-+
-+	case V4L2_MBUS_FMT_YCRCB_1X16:
-+		val |= 0x40;
-+		break;
-+
-+	default:
-+		v4l2_dbg(1, debug, sd,
-+			"illegal v4l2_mbus_framefmt code: %d\n", mf->code);
-+		return -EINVAL;
-+	}
-+
-+	ret = adv7175_write(sd, 0x7, val);
-+
-+	if (ret == 0)
-+		encoder->pixelcode = mf->code;
-+
-+	return ret;
-+}
-+
- static int adv7175_g_chip_ident(struct v4l2_subdev *sd, struct
-v4l2_dbg_chip_ident *chip)
- {
- 	struct i2c_client *client = v4l2_get_subdevdata(sd);
-@@ -324,6 +384,9 @@ static const struct v4l2_subdev_core_ops
-adv7175_core_ops = {
- static const struct v4l2_subdev_video_ops adv7175_video_ops = {
- 	.s_std_output = adv7175_s_std_output,
- 	.s_routing = adv7175_s_routing,
-+	.s_mbus_fmt = adv7175_s_fmt,
-+	.g_mbus_fmt = adv7175_g_fmt,
-+	.enum_mbus_fmt  = adv7175_enum_fmt,
- };
-
- static const struct v4l2_subdev_ops adv7175_ops = {
---
-1.7.6
+Mauro.
