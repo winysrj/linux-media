@@ -1,42 +1,39 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from que21.charter.net ([209.225.8.22]:50217 "EHLO que21.charter.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752782Ab1G3Vet (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 30 Jul 2011 17:34:49 -0400
-Message-ID: <4E347824.9080207@cuw.edu>
-Date: Sat, 30 Jul 2011 16:31:16 -0500
-From: Greg Dietsche <gregory.dietsche@cuw.edu>
+Received: from mail-in-11.arcor-online.net ([151.189.21.51]:36390 "EHLO
+	mail-in-11.arcor-online.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752608Ab1GWKdc (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sat, 23 Jul 2011 06:33:32 -0400
+Received: from mail-in-08-z2.arcor-online.net (mail-in-08-z2.arcor-online.net [151.189.8.20])
+	by mx.arcor.de (Postfix) with ESMTP id A028535A553
+	for <linux-media@vger.kernel.org>; Sat, 23 Jul 2011 12:33:30 +0200 (CEST)
+Received: from mail-in-13.arcor-online.net (mail-in-13.arcor-online.net [151.189.21.53])
+	by mail-in-08-z2.arcor-online.net (Postfix) with ESMTP id 87DB577CD0
+	for <linux-media@vger.kernel.org>; Sat, 23 Jul 2011 12:33:30 +0200 (CEST)
+Received: from [127.0.0.1] (dyndsl-095-033-076-011.ewe-ip-backbone.de [95.33.76.11])
+	(Authenticated sender: treito@arcor.de)
+	by mail-in-13.arcor-online.net (Postfix) with ESMTPSA id 5B39B212792
+	for <linux-media@vger.kernel.org>; Sat, 23 Jul 2011 12:33:30 +0200 (CEST)
+Message-ID: <4E2AA378.3050902@arcor.de>
+Date: Sat, 23 Jul 2011 12:33:28 +0200
+From: Treito <treito@arcor.de>
 MIME-Version: 1.0
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-CC: mchehab@infradead.org, linux-media@vger.kernel.org,
-	linux-kernel@vger.kernel.org, trivial@kernel.org,
-	jpiszcz@lucidpixels.com
-Subject: Re: [PATCH] uvcvideo: correct kernel version reference
-References: <alpine.DEB.2.02.1107301020220.4925@p34.internal.lan> <1312040850-21475-1-git-send-email-Gregory.Dietsche@cuw.edu> <201107302236.13354.laurent.pinchart@ideasonboard.com>
-In-Reply-To: <201107302236.13354.laurent.pinchart@ideasonboard.com>
+To: linux-media@vger.kernel.org
+Subject: s2-liplianin - dib0700 causes kernel oops!
 Content-Type: text/plain; charset=ISO-8859-15; format=flowed
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Hello,
 
+I tried to install s2-liplianin on changing kernel-versions. All in 
+common is, that my Hauppauge Nova-T USB-Stick causes a kernel oops when 
+plugged in. The devices are generated, but it does not tune. lsusb freezes.
+Here is my kernel.log: http://pastebin.com/03hxKvme
+The drivers from 2011-02-05 does not run, but the drivers from 
+2010-10-16 runs perfectly.
 
-On 07/30/2011 03:36 PM, Laurent Pinchart wrote:
-> Hi Greg,
->
-> Thanks for the patch.
->
-> On Saturday 30 July 2011 17:47:30 Greg Dietsche wrote:
->    
->> change from v2.6.42 to v3.2
->>      
-> This patch would be queued for v3.2. As the code it fixes will go away at the
-> same time, it would be pretty pointless to apply it :-) Thanks for warning me
-> though.
->
->    
-you're welcome - I thought the merge window was still open for 3.1 ... 
-so that's why I sent it in.
+Regards,
 
-Greg
-
+Sven
