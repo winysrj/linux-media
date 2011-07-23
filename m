@@ -1,86 +1,65 @@
-Return-path: <mchehab@localhost>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:49367 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753876Ab1GKK6F (ORCPT
+Return-path: <linux-media-owner@vger.kernel.org>
+Received: from smtp-68.nebula.fi ([83.145.220.68]:45706 "EHLO
+	smtp-68.nebula.fi" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750927Ab1GWFtC (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 11 Jul 2011 06:58:05 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Christian Gmeiner <christian.gmeiner@gmail.com>
-Subject: Re: [PATCH 2/3] Document 8-bit and 16-bit YCrCb media bus pixel codes
-Date: Mon, 11 Jul 2011 12:58:49 +0200
-Cc: linux-media@vger.kernel.org
-References: <CAH9NwWc+zLqPyBcC99wbsbNkdjzMFfn2zuGm1VfmZctgpOGMew@mail.gmail.com>
-In-Reply-To: <CAH9NwWc+zLqPyBcC99wbsbNkdjzMFfn2zuGm1VfmZctgpOGMew@mail.gmail.com>
+	Sat, 23 Jul 2011 01:49:02 -0400
+Date: Sat, 23 Jul 2011 08:48:57 +0300
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Jonathan Corbet <corbet@lwn.net>
+Cc: Marek Szyprowski <m.szyprowski@samsung.com>,
+	linux-media@vger.kernel.org,
+	'Mauro Carvalho Chehab' <mchehab@redhat.com>,
+	'Pawel Osciak' <pawel@osciak.com>
+Subject: Re: [PATCH 1/2] videobuf2: Add a non-coherent contiguous DMA mode
+Message-ID: <20110723054857.GK29320@valkosipuli.localdomain>
+References: <1310675711-39744-1-git-send-email-corbet@lwn.net>
+ <1310675711-39744-2-git-send-email-corbet@lwn.net>
+ <000001cc42b5$40c025f0$c24071d0$%szyprowski@samsung.com>
+ <20110715083003.79802a49@bike.lwn.net>
+ <00cb01cc4518$55c0c490$01424db0$%szyprowski@samsung.com>
+ <20110722135547.5a0b38db@bike.lwn.net>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201107111258.50144.laurent.pinchart@ideasonboard.com>
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20110722135547.5a0b38db@bike.lwn.net>
+Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
-Sender: <mchehab@infradead.org>
 
-Hi Christian,
+Hi Jonathan,
 
-On Sunday 10 July 2011 20:14:21 Christian Gmeiner wrote:
-> Signed-off-by: Christian Gmeiner
-> ---
-> diff --git a/Documentation/DocBook/media/v4l/subdev-formats.xml
-> b/Documentation/DocBook/media/v4l/subdev-formats.xml
-> index 49c532e..18e30b0 100644
-> --- a/Documentation/DocBook/media/v4l/subdev-formats.xml
-> +++ b/Documentation/DocBook/media/v4l/subdev-formats.xml
-> @@ -2565,5 +2565,43 @@
->         </tgroup>
->        </table>
->      </section>
-> +
-> +    <section>
-> +      <title>YCrCb Formats</title>
-> +
-> +      <para>YCbCr represents colors as a combination of three values:
-> +      <itemizedlist>
-> +       <listitem><para>Y - the luminosity (roughly the
-> brightness)</para></listitem>
-> +       <listitem><para>Cb - the chrominance of the blue
-> primary</para></listitem>
-> +       <listitem><para>Cr - the chrominance of the red
-> primary</para></listitem>
+On Fri, Jul 22, 2011 at 01:55:47PM -0600, Jonathan Corbet wrote:
+> > >  You *can't* do the mapping at allocation time...
+> > 
+> > Could you elaborate why you can't create the mapping at allocation time? 
+> > DMA-mapping api requires the following call sequence:
+> > dma_map_single()
+> > ...
+> > dma_sync_single_for_cpu()
+> > dma_sync_single_for_device()
+> > ...
+> > dma_unmap_single()
+> > 
+> > I see no problem to call dma_map_single() on buffer creation and 
+> > dma_unmap_single() on release. dma_sync_single_for_{device,cpu} can
+> > be used on buffer_{prepare,finish}.
+> 
+> Yes, it could be done that way.  I guess I've always, rightly or wrongly,
+> seen streaming mappings as transient things that aren't meant to be kept
+> around for long periods of time.  Especially if they might, somehow, be
+> taking up limited resources like IOMMU slots.  But I honestly have no idea
+> whether it's better to keep a set of mappings around and use the sync
+> functions, or whether it's better to remake them each time.
 
-How does that differ from YUV ?
+Creating IOMMU mappings (and removing them) usually takes considerable
+amount of time but usually consume practically no resources, so they are
+kept while the buffers are pinned to system memory.
 
-> +      </itemizedlist>
-> +      </para>
-> +
-> +      <para>The following table lists existing YCrCb compressed
-> formats.</para> +
-> +      <table pgwide="0" frame="none" id="v4l2-mbus-pixelcode-ycrcb">
-> +       <title>YCrCb Formats</title>
-> +       <tgroup cols="2">
-> +         <colspec colname="id" align="left" />
-> +         <colspec colname="code" align="left"/>
-> +         <thead>
-> +           <row>
-> +             <entry>Identifier</entry>
-> +             <entry>Code</entry>
-> +           </row>
-> +         </thead>
-> +         <tbody valign="top">
-> +           <row id="V4L2_MBUS_FMT_YCRCB_1X8">
-> +             <entry>V4L2_MBUS_FMT_YCRCB_1X8</entry>
-> +             <entry>0x5001</entry>
-> +           </row>
-> +           <row id="V4L2_MBUS_FMT_YCRCB_1X16">
-> +             <entry>V4L2_MBUS_FMT_YCRCB_1X16</entry>
-> +             <entry>0x5002</entry>
-> +           </row>
-> +         </tbody>
-> +       </tgroup>
-> +       </table>
-> +    </section>
->    </section>
->  </section>
+Do you have hardware which has limitations on IOMMU mappings?
+
+For example, the OMA 3 IOMMU can be used to map the whole system memory (if
+you need it) and it does page tabe walking, too.
 
 -- 
-Regards,
-
-Laurent Pinchart
+Sakari Ailus
+sakari.ailus@iki.fi
