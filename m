@@ -1,93 +1,91 @@
-Return-path: <mchehab@pedra>
-Received: from mailout-de.gmx.net ([213.165.64.23]:47033 "HELO
-	mailout-de.gmx.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1751416Ab1GCWn0 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sun, 3 Jul 2011 18:43:26 -0400
-From: Oliver Endriss <o.endriss@gmx.de>
-To: "Linux Media Mailing List" <linux-media@vger.kernel.org>
-Subject: Re: [DVB] TT S-1500b tuning issue
-Date: Mon, 4 Jul 2011 00:42:59 +0200
-Cc: =?iso-8859-1?q?S=E9bastien_RAILLARD?= (COEXSI) <sr@coexsi.fr>,
-	Malcolm Priestley <tvboxspy@gmail.com>
-References: <00a301cc365e$b6d415c0$247c4140$@coexsi.fr>
-In-Reply-To: <00a301cc365e$b6d415c0$247c4140$@coexsi.fr>
+Return-path: <linux-media-owner@vger.kernel.org>
+Received: from mail.mnsspb.ru ([84.204.75.2]:33839 "EHLO mail.mnsspb.ru"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753020Ab1GWSQS (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 23 Jul 2011 14:16:18 -0400
+Date: Sat, 23 Jul 2011 22:15:09 +0400
+From: Kirill Smelkov <kirr@mns.spb.ru>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Andrew Morton <akpm@linux-foundation.org>,
+	linux-uvc-devel@lists.berlios.de, linux-media@vger.kernel.org,
+	linux-kernel@vger.kernel.org
+Subject: Re: [PATCH, RESEND] uvcvideo: Add FIX_BANDWIDTH quirk to HP Webcam
+	found on HP Mini 5103 netbook
+Message-ID: <20110723181509.GA16414@tugrik.mns.mnsspb.ru>
+References: <20110722144722.GA3717@tugrik.mns.mnsspb.ru> <201107230003.59800.laurent.pinchart@ideasonboard.com> <20110722222520.GA14917@tugrik.mns.mnsspb.ru> <201107230112.12868.laurent.pinchart@ideasonboard.com>
 MIME-Version: 1.0
-Content-Type: Multipart/Mixed;
-  boundary="Boundary-00=_0BPEONZYsCeMZ15"
-Message-Id: <201107040043.00393@orion.escape-edv.de>
-List-ID: <linux-media.vger.kernel.org>
-Sender: <mchehab@pedra>
-
---Boundary-00=_0BPEONZYsCeMZ15
-Content-Type: text/plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
+In-Reply-To: <201107230112.12868.laurent.pinchart@ideasonboard.com>
+Sender: linux-media-owner@vger.kernel.org
+List-ID: <linux-media.vger.kernel.org>
 
-On Wednesday 29 June 2011 15:16:10 S=E9bastien RAILLARD wrote:
-> Dear all,
->=20
-> We have found what seems to be a tuning issue in the driver for the ALPS
-> BSBE1-D01A used in the new TT-S-1500b card from Technotrend.
-> On some transponders, like ASTRA 19.2E 11817-V-27500, the card can work v=
-ery
-> well (no lock issues) for hours.
->=20
-> On some other transponders, like ASTRA 19.2E 11567-V-22000, the card near=
-ly
-> never manage to get the lock: it's looking like the signal isn't good
-> enough.
+Hi Laurent, All,
 
-Afaics the problem is caused by the tuning loop
-    for (tm =3D -6; tm < 7;)
-in stv0288_set_frontend().
+On Sat, Jul 23, 2011 at 01:12:11AM +0200, Laurent Pinchart wrote:
+> Hi Kirill,
+> 
+> On Saturday 23 July 2011 00:25:20 Kirill Smelkov wrote:
+> > On Sat, Jul 23, 2011 at 12:03:57AM +0200, Laurent Pinchart wrote:
+> > > On Friday 22 July 2011 16:47:22 Kirill Smelkov wrote:
+> > > >  [ Cc'ing Andrew Morton -- Andrew, could you please pick this patch, in
+> > > >  
+> > > >    case there is no response from maintainers again? Thanks beforehand.
+> > > >    ]
+> > > > 
+> > > > Hello up there,
+> > > > 
+> > > > My first posting was 1 month ago, and a reminder ~ 2 weeks ago. All
+> > > > without a reply. v3.0 is out and they say the merge window will be
+> > > > shorter this time, so in oder not to miss it, I've decided to resend my
+> > > > patch on lowering USB periodic bandwidth allocation topic.
+> > > 
+> > > I'm very very sorry for missing the patch (and worse, twice :-/).
+> > 
+> > Nevermind. I'm curious though, whether I did something wrong or anything
+> > else?  I mean how to avoid such long delays next time?
+> 
+> It was all my fault, mails piled up in my mailbox and for some reason I marked 
+> yours as processed while they were not. I certainly hope it won't happen 
+> again.
 
-I doubt that this code works reliably.
-Apparently it never obtains a lock within the given delay (30us).
+I see, thanks. Yes let's hope mail won't do such "surprises" next time.
 
-Could you please try the attached patch?
-It disables the loop and tries to tune to the center frequency.
 
-CU
-Oliver
 
-=2D-=20
-=2D---------------------------------------------------------------
-VDR Remote Plugin 0.4.0: http://www.escape-edv.de/endriss/vdr/
-4 MByte Mod: http://www.escape-edv.de/endriss/dvb-mem-mod/
-=46ull-TS Mod: http://www.escape-edv.de/endriss/dvb-full-ts-mod/
-=2D---------------------------------------------------------------
+> > > > Could this simple patch be please applied?
+> > > 
+> > > Yes it can. I see that Andrew already applied it to his tree. Mauro,
+> > > should it go through there, or through your tree ? I've pushed it to my
+> > > tree at git://linuxtv.org/pinchartl/uvcvideo.git uvcvideo-stable, so you
+> > > can already pull.
+> > 
+> > You've applied the patch from my first posting, but actually in the
+> > RESEND one I've added reference to EHCI-tweaking patch -- it is already
+> > merged into Greg's USB tree (it was not when I first posted), so could you
+> > please reapply? (sorry for confusion).
+> 
+> Sure. That should now be fixed.
 
---Boundary-00=_0BPEONZYsCeMZ15
-Content-Type: text/x-diff;
-  charset="iso-8859-1";
-  name="stv0288-scan-disable.diff"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: attachment;
-	filename="stv0288-scan-disable.diff"
+Thanks.
 
-diff --git a/drivers/media/dvb/frontends/stv0288.c b/drivers/media/dvb/frontends/stv0288.c
-index 8e0cfad..4ffe7da 100644
---- a/drivers/media/dvb/frontends/stv0288.c
-+++ b/drivers/media/dvb/frontends/stv0288.c
-@@ -488,6 +488,10 @@ static int stv0288_set_frontend(struct dvb_frontend *fe,
- 	/* Carrier lock control register */
- 	stv0288_writeregI(state, 0x15, 0xc5);
- 
-+#if 1 /* TEST */
-+	stv0288_writeregI(state, 0x2b, 0);
-+	stv0288_writeregI(state, 0x2c, 0);
-+#else
- 	tda[0] = 0x2b; /* CFRM */
- 	tda[2] = 0x0; /* CFRL */
- 	for (tm = -6; tm < 7;) {
-@@ -503,6 +507,7 @@ static int stv0288_set_frontend(struct dvb_frontend *fe,
- 		stv0288_writeregI(state, 0x2c, tda[2]);
- 		udelay(30);
- 	}
-+#endif
- 
- 	state->tuner_frequency = c->frequency;
- 	state->fec_inner = FEC_AUTO;
 
---Boundary-00=_0BPEONZYsCeMZ15--
+> > Thanks for replying and for uvcvideo,
+> 
+> You're more than welcome. Thank you for the patch, and thank you for keeping 
+> on pushing :-)
+
+:) Thanks again. I suppose it would be better for my patch to enter the
+mainline through v4l tree then, because it's the normal path for uvc
+bits.
+
+
+
+Thanks,
+Kirill
+
+
+P.S.
+
+And thanks Andrew for backing me up.
