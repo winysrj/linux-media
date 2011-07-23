@@ -1,28 +1,39 @@
-Return-path: <mchehab@localhost>
-Received: from equal.cluenet.org ([109.74.200.177]:60233 "EHLO
-	equal.cluenet.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753250Ab1GFMLO (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 6 Jul 2011 08:11:14 -0400
-Received: from snow.nullroute.eu.org (unknown [IPv6:2001:470:1f0b:614:4a5d:60ff:fee8:658f])
-	by equal.cluenet.org (Postfix) with ESMTPSA id 24F01128001
-	for <linux-media@vger.kernel.org>; Wed,  6 Jul 2011 12:04:16 +0000 (UTC)
-From: =?UTF-8?q?Mantas=20Mikul=C4=97nas?= <grawity@nullroute.eu.org>
-To: linux-media@vger.kernel.org
-Subject: [PATCH] Upside-down webcam on Asus K52JT
-Date: Wed,  6 Jul 2011 15:04:03 +0300
-Message-Id: <1309953844-3500-1-git-send-email-grawity@nullroute.eu.org>
+Return-path: <linux-media-owner@vger.kernel.org>
+Received: from mail-wy0-f174.google.com ([74.125.82.174]:53643 "EHLO
+	mail-wy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753265Ab1GWSzD (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sat, 23 Jul 2011 14:55:03 -0400
+Date: Sat, 23 Jul 2011 21:53:03 +0300
+From: Dan Carpenter <error27@gmail.com>
+To: Mauro Carvalho Chehab <mchehab@infradead.org>
+Cc: Hans de Goede <hdegoede@redhat.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	=?iso-8859-1?Q?Jean-Fran=E7ois?= Moine <moinejf@free.fr>,
+	"open list:MEDIA INPUT INFRA..." <linux-media@vger.kernel.org>,
+	kernel-janitors@vger.kernel.org
+Subject: [patch] [media] pwc: precedence bug in pwc_init_controls()
+Message-ID: <20110723185303.GA3711@shale.localdomain>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
-Sender: <mchehab@infradead.org>
 
-Greetings from yet another owner of an Asus laptop. Hopefully this is the right place... patch included.
+'!' has higher precedence than '&' so we need parenthesis here.
 
-- device: 04f2:b1e5
-- manufacturer: "ASUSTeK Computer Inc.        "
-- product: "K52JT"
+Signed-off-by: Dan Carpenter <error27@gmail.com>
 
--- 
-Mantas
-
+diff --git a/drivers/media/video/pwc/pwc-v4l.c b/drivers/media/video/pwc/pwc-v4l.c
+index e9a0e94..8c70e64 100644
+--- a/drivers/media/video/pwc/pwc-v4l.c
++++ b/drivers/media/video/pwc/pwc-v4l.c
+@@ -338,7 +338,7 @@ int pwc_init_controls(struct pwc_device *pdev)
+ 	if (pdev->restore_factory)
+ 		pdev->restore_factory->flags = V4L2_CTRL_FLAG_UPDATE;
+ 
+-	if (!pdev->features & FEATURE_MOTOR_PANTILT)
++	if (!(pdev->features & FEATURE_MOTOR_PANTILT))
+ 		return hdl->error;
+ 
+ 	/* Motor pan / tilt / reset */
