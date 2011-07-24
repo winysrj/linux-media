@@ -1,128 +1,41 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:35312 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752739Ab1GRSRC convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 18 Jul 2011 14:17:02 -0400
-Received: from dbdp20.itg.ti.com ([172.24.170.38])
-	by devils.ext.ti.com (8.13.7/8.13.7) with ESMTP id p6IIGxD3013387
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-media@vger.kernel.org>; Mon, 18 Jul 2011 13:17:02 -0500
-Received: from dbde71.ent.ti.com (localhost [127.0.0.1])
-	by dbdp20.itg.ti.com (8.13.8/8.13.8) with ESMTP id p6IIGxYx024792
-	for <linux-media@vger.kernel.org>; Mon, 18 Jul 2011 23:46:59 +0530 (IST)
-From: "Hiremath, Vaibhav" <hvaibhav@ti.com>
-To: "JAIN, AMBER" <amber@ti.com>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Date: Mon, 18 Jul 2011 23:46:59 +0530
-Subject: RE: [PATCH v2 2/3] V4L2: OMAP: VOUT: dma map and unmap v4l2 buffers
- in qbuf and dqbuf
-Message-ID: <19F8576C6E063C45BE387C64729E739404E3737BA8@dbde02.ent.ti.com>
-References: <1310041278-8810-1-git-send-email-amber@ti.com>
- <1310041278-8810-3-git-send-email-amber@ti.com>
-In-Reply-To: <1310041278-8810-3-git-send-email-amber@ti.com>
-Content-Language: en-US
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Received: from smtp9.mail.ru ([94.100.176.54]:48738 "EHLO smtp9.mail.ru"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751624Ab1GXRuQ (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 24 Jul 2011 13:50:16 -0400
+Message-ID: <4E2C5A35.9030404@list.ru>
+Date: Sun, 24 Jul 2011 21:45:25 +0400
+From: Stas Sergeev <stsp@list.ru>
 MIME-Version: 1.0
+To: Mauro Carvalho Chehab <mchehab@infradead.org>
+CC: linux-media@vger.kernel.org,
+	"Nickolay V. Shmyrev" <nshmyrev@yandex.ru>
+Subject: Re: [patch][saa7134] do not change mute state for capturing audio
+References: <4E19D2F7.6060803@list.ru> <4E1E8108.3060305@list.ru> <4E1F9A25.1020208@infradead.org> <4E22AF12.4020600@list.ru> <4E22CCC0.8030803@infradead.org> <4E24BEB8.4060501@redhat.com> <4E257FF5.4040401@infradead.org> <4E258B60.6010007@list.ru> <4E25906D.3020200@infradead.org> <4E259B0C.90107@list.ru> <4E25A26A.2000204@infradead.org> <4E25A7C2.3050609@list.ru> <4E25C7AE.5020503@infradead.org> <4E25CF35.7000802@list.ru> <4E25DB37.8020609@infradead.org> <4E25FDE4.7040805@list.ru> <4E262772.9060509@infradead.org> <4E266799.8030706@list.ru> <4E26AEC0.5000405@infradead.org> <4E26B1E7.2080107@list.ru> <4E26B29B.4010109@infradead.org> <4E292BED.60108@list.ru> <4E296D00.9040608@infradead.org> <4E296F6C.9080107@list.ru> <4E2971D4.1060109@infradead.org> <4E29738F.7040605@list.ru> <4E297505.7090307@infradead.org> <4E29E02A.1020402@list.ru> <4E2A23C7.3040209@infradead.org> <4E2A7BF0.8080606@list.ru> <4E2AC742.8020407@infradead.org> <4E2ACAAD.4050602@list.ru> <4E2AE40F.7030108@infradead.org>
+In-Reply-To: <4E2AE40F.7030108@infradead.org>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+23.07.2011 19:09, Mauro Carvalho Chehab wrote:
+> >  In this case, it will not be autounmuted after tuning.
+> Hard to tell about your solution without seeing a patch.
+OK, it turns out the automute code is already there,
+but it doesn't work. The driver for some reasons
+starts the scan on initialization, finds the carrier:
+---
+saa7134[0]/audio: found PAL main sound carrier @ 6.000 MHz [3969/324]
+---
+and, because of that, disables the automute. If the
+real mute is not enabled at that point, you get the
+white noise right away.
 
-> -----Original Message-----
-> From: JAIN, AMBER
-> Sent: Thursday, July 07, 2011 5:51 PM
-> To: linux-media@vger.kernel.org
-> Cc: Hiremath, Vaibhav; JAIN, AMBER
-> Subject: [PATCH v2 2/3] V4L2: OMAP: VOUT: dma map and unmap v4l2 buffers
-> in qbuf and dqbuf
-> 
-> Add support to map the buffer using dma_map_single during qbuf which
-> inturn
-> calls cache flush and unmap the same during dqbuf. This is done to prevent
-> the artifacts seen because of cache-coherency issues on OMAP4
-> 
-> Signed-off-by: Amber Jain <amber@ti.com>
-> ---
-> Changes from v1:
-> - Changed the definition of address variables to be u32 instead of int.
-> - Removed extra typedef for size variable.
-> 
->  drivers/media/video/omap/omap_vout.c |   29 +++++++++++++++++++++++++++--
->  1 files changed, 27 insertions(+), 2 deletions(-)
-> 
-> diff --git a/drivers/media/video/omap/omap_vout.c
-> b/drivers/media/video/omap/omap_vout.c
-> index 6cd3622..7d3410a 100644
-> --- a/drivers/media/video/omap/omap_vout.c
-> +++ b/drivers/media/video/omap/omap_vout.c
-> @@ -37,6 +37,7 @@
->  #include <linux/platform_device.h>
->  #include <linux/irq.h>
->  #include <linux/videodev2.h>
-> +#include <linux/dma-mapping.h>
-> 
->  #include <media/videobuf-dma-contig.h>
->  #include <media/v4l2-device.h>
-> @@ -778,6 +779,17 @@ static int omap_vout_buffer_prepare(struct
-> videobuf_queue *q,
->  		vout->queued_buf_addr[vb->i] = (u8 *)
->  			omap_vout_uservirt_to_phys(vb->baddr);
->  	} else {
-> +		u32 addr, dma_addr;
-> +		unsigned long size;
-> +
-> +		addr = (unsigned long) vout->buf_virt_addr[vb->i];
-> +		size = (unsigned long) vb->size;
-> +
-> +		dma_addr = dma_map_single(vout->vid_dev->v4l2_dev.dev, (void
-> *) addr,
-> +				size, DMA_TO_DEVICE);
-> +		if (dma_mapping_error(vout->vid_dev->v4l2_dev.dev, dma_addr))
-> +			v4l2_err(&vout->vid_dev->v4l2_dev, "dma_map_single
-> failed\n");
-> +
->  		vout->queued_buf_addr[vb->i] = (u8 *)vout->buf_phy_addr[vb-
-> >i];
->  	}
-> 
-> @@ -1567,15 +1579,28 @@ static int vidioc_dqbuf(struct file *file, void
-> *fh, struct v4l2_buffer *b)
->  	struct omap_vout_device *vout = fh;
->  	struct videobuf_queue *q = &vout->vbq;
-> 
-> +	int ret;
-> +	u32 addr;
-> +	unsigned long size;
-> +	struct videobuf_buffer *vb;
-> +
-> +	vb = q->bufs[b->index];
-> +
->  	if (!vout->streaming)
->  		return -EINVAL;
-> 
->  	if (file->f_flags & O_NONBLOCK)
->  		/* Call videobuf_dqbuf for non blocking mode */
-> -		return videobuf_dqbuf(q, (struct v4l2_buffer *)b, 1);
-> +		ret = videobuf_dqbuf(q, (struct v4l2_buffer *)b, 1);
->  	else
->  		/* Call videobuf_dqbuf for  blocking mode */
-> -		return videobuf_dqbuf(q, (struct v4l2_buffer *)b, 0);
-> +		ret = videobuf_dqbuf(q, (struct v4l2_buffer *)b, 0);
-> +
-> +	addr = (unsigned long) vout->buf_phy_addr[vb->i];
-> +	size = (unsigned long) vb->size;
-> +	dma_unmap_single(vout->vid_dev->v4l2_dev.dev,  addr,
-> +				size, DMA_TO_DEVICE);
-> +	return ret;
->  }
-> 
->  static int vidioc_streamon(struct file *file, void *fh, enum
-> v4l2_buf_type i)
-[Hiremath, Vaibhav] Acked-By: Vaibhav Hiremath <hvaibhav@ti.com>
+Since I have no idea why it finds some carrier, I can't
+fix that in any way. Or, maybe, not to call the scan
+on driver init? What will that break?
 
-Thanks,
-Vaibhav
-> --
-> 1.7.1
-
+Anyway, as long as the automute code is broken,
+we should either start fixing it, or fix PA, or fix mplayer...
+Dunno. I wonder how come so many bugs left unfixed
+for so long, resulting in a white noise to people...
