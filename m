@@ -1,48 +1,63 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:56230 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750927Ab1GVQIn (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 22 Jul 2011 12:08:43 -0400
-Message-ID: <4E29A087.4090507@iki.fi>
-Date: Fri, 22 Jul 2011 19:08:39 +0300
-From: Antti Palosaari <crope@iki.fi>
+Received: from mail-ey0-f171.google.com ([209.85.215.171]:41918 "EHLO
+	mail-ey0-f171.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752693Ab1GXNDA (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 24 Jul 2011 09:03:00 -0400
+Received: by eye22 with SMTP id 22so3067501eye.2
+        for <linux-media@vger.kernel.org>; Sun, 24 Jul 2011 06:02:59 -0700 (PDT)
 MIME-Version: 1.0
-To: Jose Alberto Reguero <jareguero@telefonica.net>
-CC: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	linux-media@vger.kernel.org,
-	Michael Krufky <mkrufky@kernellabs.com>
-Subject: Re: [PATCH] add support for the dvb-t part of CT-3650 v3
-References: <201106070205.08118.jareguero@telefonica.net> <4E260E4A.2020707@iki.fi> <4E295FE5.7040905@iki.fi> <201107221802.34505.jareguero@telefonica.net>
-In-Reply-To: <201107221802.34505.jareguero@telefonica.net>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 8bit
+In-Reply-To: <4E2C16B5.5010703@redhat.com>
+References: <CAGoCfiyp4TB6RvF75WFrFLkTxha0-XKrXnR8L13BwJu938PaHg@mail.gmail.com>
+	<4E2C16B5.5010703@redhat.com>
+Date: Sun, 24 Jul 2011 09:02:59 -0400
+Message-ID: <CAGoCfiyM1O1o2Ops=fzwPEL2pR-e4TbSqm0qDXtQqAfifa0KjQ@mail.gmail.com>
+Subject: Re: [PATCH] Fix regression introduced which broke the Hauppauge
+ USBLive 2
+From: Devin Heitmueller <dheitmueller@kernellabs.com>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Gerd Hoffmann <kraxel@redhat.com>,
+	Sri Deevi <Srinivasa.Deevi@conexant.com>,
+	Palash Bandyopadhyay <Palash.Bandyopadhyay@conexant.com>
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 07/22/2011 07:02 PM, Jose Alberto Reguero wrote:
-> On Viernes, 22 de Julio de 2011 13:32:53 Antti Palosaari escribió:
->> Have you had to time test these?
->>
->> And about I2C adapter, I don't see why changes are needed. As far as I
->> understand it is already working with TDA10023 and you have done changes
->> for TDA10048 support. I compared TDA10048 and TDA10023 I2C functions and
->> those are ~similar. Both uses most typical access, for reg write {u8
->> REG, u8 VAL} and for reg read {u8 REG}/{u8 VAL}.
->>
->> regards
->> Antti
+On Sun, Jul 24, 2011 at 8:57 AM, Mauro Carvalho Chehab
+<mchehab@redhat.com> wrote:
+> I proposed the same fix sometime ago, when Gerd reported this issue
+> for me. His feedback was that this partially fixed the issue, but
+> he reported that he also needed to increase the set_power_mode delay
+> from 5 to 50 ms in order to fully initialize the cx231xx hardware,
+> as on the enclosed patch. It seems he tested with vanilla Fedora kernel.
 >
-> I just finish the testing. The changes to I2C are for the tuner tda827x. The
-> MFE fork fine. I need to change the code in tda10048 and ttusb2. Attached is
-> the patch for CT-3650 with your MFE patch.
+> So, I suspect that HZ may be affecting this driver as well. As you know,
+> if HZ is configured with 100, the minimum msleep() delay will be 10.
+> so, instead of waiting for 5ms, it will wait for 10ms for the device
+> to powerup.
+>
+> It would be great to configure HZ with 1000 and see the differences with
+> and without Gerd's patch.
+>
+> Cheers,
+> Mauro.
 
-You still pass tda10023 fe pointer to tda10048 for I2C-gate control 
-which is wrong. Could you send USB sniff I can look what there really 
-happens. If you have raw SniffUSB2 logs I wish to check those, other 
-logs are welcome too if no raw SniffUSB2 available.
+I don't dispute the possibility that there is some *other* bug that
+effects users who have some other value for HZ, but neither I nor the
+other use saw it.  Without this patch though, the device is broken for
+*everybody*.
 
-regards
-Antti
+I would suggest checking in this patch, and separately the HZ issue
+can be investigated.
+
+I'll see if I can find some cycles today to reconfigure my kernel with
+a different HZ.  Will also check the datasheets and see if Conexant
+documented any sort of time for power ramping.  It's not uncommon for
+such documentation to include a diagram showing timing for power up.
+
+Devin
 
 -- 
-http://palosaari.fi/
+Devin J. Heitmueller - Kernel Labs
+http://www.kernellabs.com
