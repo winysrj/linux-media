@@ -1,66 +1,59 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:50420 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751668Ab1GQIUm (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 17 Jul 2011 04:20:42 -0400
-Message-ID: <4E229B52.9040403@redhat.com>
-Date: Sun, 17 Jul 2011 05:20:34 -0300
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Received: from mail-ey0-f171.google.com ([209.85.215.171]:55245 "EHLO
+	mail-ey0-f171.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752074Ab1GXUXL (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 24 Jul 2011 16:23:11 -0400
+Received: by eye22 with SMTP id 22so3151795eye.2
+        for <linux-media@vger.kernel.org>; Sun, 24 Jul 2011 13:23:10 -0700 (PDT)
 MIME-Version: 1.0
-To: Pupthai <pupthai@gmail.com>
-CC: linux-media@vger.kernel.org
-Subject: Re: em28xx detection
-References: <4E2334A4.7000408@gmail.com>
-In-Reply-To: <4E2334A4.7000408@gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Date: Sun, 24 Jul 2011 16:23:09 -0400
+Message-ID: <CAGoCfizrzVgDpA_wjk84yWQFrYcH+8F4bbQ5gQ=mja5mgGZkaA@mail.gmail.com>
+Subject: [PATCH] au8522: set signal field to 100% when signal present
+From: Devin Heitmueller <dheitmueller@kernellabs.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Content-Type: multipart/mixed; boundary=00504502c8739a90bb04a8d67782
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em 17-07-2011 16:14, Pupthai escreveu:
-> is em2820 detected as em2860
-> 
->>lsusb
-> 
-> Bus 001 Device 004: ID eb1a:2820 eMPIA Technology, Inc.
-> 
->>dmesg | grep em28xx
-> 
-> usbcore: registered new interface driver em28xx
-> em28xx driver loaded
-> em28xx: New device @ 480 Mbps (eb1a:2820, interface 0, class 0)
-> em28xx #0: chip ID is em2820 (or em2710)
-> em28xx #0: board has no eeprom
-> em28xx #0: found i2c device @ 0x4a [saa7113h]
-> em28xx #0: Your board has no unique USB ID.
-> em28xx #0: A hint were successfully done, based on i2c devicelist hash.
-> em28xx #0: This method is not 100% failproof.
-> em28xx #0: If the board were missdetected, please email this log to:
-> em28xx #0:      V4L Mailing List <linux-media@vger.kernel.org>
-> em28xx #0: Board detected as EM2860/SAA711X Reference Design
-> em28xx #0: Identified as EM2860/SAA711X Reference Design (card=19)
-> em28xx #0: Registering snapshot button...
-> input: em28xx snapshot button as /devices/pci0000:00/0000:00:1d.7/usb1/1-3/input/input1
-> em28xx #0: Config register raw data: 0x00
-> em28xx #0: v4l2 driver version 0.1.2
-> em28xx #0: V4L2 video device registered as video0
-> 
-> Nothing works with this device anymore and it used to work with application <motion> and <vlc>  still works fine in windows apps
-> and windows vlc sees a em2820
+--00504502c8739a90bb04a8d67782
+Content-Type: text/plain; charset=ISO-8859-1
 
-Your device doesn't have an eeprom. So, there's no reliable way to identify
-what board you have. Kernel can try to hint, but there will always be cases
-where two different boards will match such hint. On such cases (like yours),
-you'll need to modprobe em28xx with card= parameter.
+This patch makes the HVR-950q behave consistently with other drivers,
+which is to show the signal level as 100% in cases where we have a
+signal present but given we are unable to determine an actual signal
+level.  The old code would set the value to "1", which divided by
+65535 is rounded down to 0%.
 
-If your device used to be supported by the in-kernel em28xx driver, all you
-need is to add something like:
-	options em28xx card=20
+Devin
 
-(well, replacing 20 by the correct card number from Documentation/video4linux/CARDLIST.em28xx)
+-- 
+Devin J. Heitmueller - Kernel Labs
+http://www.kernellabs.com
 
-If otherwise your board is not listed there, then you'll need to discover what are
-the correct setups for it and send us a patch adding a new card number with your
-configs.
+--00504502c8739a90bb04a8d67782
+Content-Type: text/x-patch; charset=US-ASCII; name="au8522_sig_scale.patch"
+Content-Disposition: attachment; filename="au8522_sig_scale.patch"
+Content-Transfer-Encoding: base64
+X-Attachment-Id: f_gqigd9zv0
 
-Mauro
+YXU4NTIyOiBzZXQgc2lnbmFsIGZpZWxkIHRvIDEwMCUgd2hlbiBzaWduYWwgcHJlc2VudAoKRnJv
+bTogRGV2aW4gSGVpdG11ZWxsZXIgPGRoZWl0bXVlbGxlckBrZXJuZWxsYWJzLmNvbT4KClRoZSBz
+aWduYWwgc3RhdGUgZmllbGQgaW4gR19UVU5FUiBpcyB0eXBpY2FsbHkgc2NhbGVkIGZyb20gMC0x
+MDAlLiAgU2luY2Ugd2UKZG9uJ3Qga25vdyB0aGUgc2lnbmFsIGxldmVsLCB3ZSByZWFsbHkgd291
+bGQgcHJlZmVyIHRoZSBmaWVsZCB0byBjb250YWluIDEwMCUKdGhhbiAxLzI1Niwgd2hpY2ggaW4g
+bWFueSB1dGlsaXRpZXMgKHN1Y2ggYXMgdjRsMi1jdGwpIHJvdW5kcyB0byAwJSBldmVuIHdoZW4K
+YSBzaWduYWwgaXMgYWN0dWFsbHkgcHJlc2VudC4KClRoaXMgcGF0Y2ggbWFrZXMgdGhlIGJlaGF2
+aW9yIGNvbnNpc3RlbnQgd2l0aCBvdGhlciBkcml2ZXJzLgoKU2lnbmVkLW9mZi1ieTogRGV2aW4g
+SGVpdG11ZWxsZXIgPGRoZWl0bXVlbGxlckBrZXJuZWxsYWJzLmNvbT4KCmRpZmYgLS1naXQgYS9k
+cml2ZXJzL21lZGlhL2R2Yi9mcm9udGVuZHMvYXU4NTIyX2RlY29kZXIuYyBiL2RyaXZlcnMvbWVk
+aWEvZHZiL2Zyb250ZW5kcy9hdTg1MjJfZGVjb2Rlci5jCmluZGV4IGI1Mzc4OTEuLjJiMjQ4YzEg
+MTAwNjQ0Ci0tLSBhL2RyaXZlcnMvbWVkaWEvZHZiL2Zyb250ZW5kcy9hdTg1MjJfZGVjb2Rlci5j
+CisrKyBiL2RyaXZlcnMvbWVkaWEvZHZiL2Zyb250ZW5kcy9hdTg1MjJfZGVjb2Rlci5jCkBAIC02
+OTIsNyArNjkyLDcgQEAgc3RhdGljIGludCBhdTg1MjJfZ190dW5lcihzdHJ1Y3QgdjRsMl9zdWJk
+ZXYgKnNkLCBzdHJ1Y3QgdjRsMl90dW5lciAqdnQpCiAJLyogSW50ZXJyb2dhdGUgdGhlIGRlY29k
+ZXIgdG8gc2VlIGlmIHdlIGFyZSBnZXR0aW5nIGEgcmVhbCBzaWduYWwgKi8KIAlsb2NrX3N0YXR1
+cyA9IGF1ODUyMl9yZWFkcmVnKHN0YXRlLCAweDAwKTsKIAlpZiAobG9ja19zdGF0dXMgPT0gMHhh
+MikKLQkJdnQtPnNpZ25hbCA9IDB4MDE7CisJCXZ0LT5zaWduYWwgPSAweGZmZmY7CiAJZWxzZQog
+CQl2dC0+c2lnbmFsID0gMHgwMDsKIAo=
+--00504502c8739a90bb04a8d67782--
