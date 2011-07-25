@@ -1,45 +1,44 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-gy0-f174.google.com ([209.85.160.174]:52343 "EHLO
-	mail-gy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932127Ab1G2LQU (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 29 Jul 2011 07:16:20 -0400
-Received: by gyh3 with SMTP id 3so2435824gyh.19
-        for <linux-media@vger.kernel.org>; Fri, 29 Jul 2011 04:16:19 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <4E31526F.3060608@southpole.se>
-References: <CAKdnbx5DQe+c1+ZD6tEJqgSfv6CRV18s2YGv=Z3cOT=wEOyF7g@mail.gmail.com>
- <4E31526F.3060608@southpole.se>
-From: Eddi De Pieri <eddi@depieri.net>
-Date: Fri, 29 Jul 2011 13:15:59 +0200
-Message-ID: <CAKdnbx6O8JgMM37e28q1g9dt=AdJpAAjWHqxBnTXHZrcyBMKyQ@mail.gmail.com>
-Subject: Re: Trying to support for HAUPPAUGE HVR-930C
-To: linux-media@vger.kernel.org
-Cc: Benjamin Larsson <benjamin@southpole.se>
-Content-Type: text/plain; charset=ISO-8859-1
+Received: from mga01.intel.com ([192.55.52.88]:28728 "EHLO mga01.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752007Ab1GYORP (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 25 Jul 2011 10:17:15 -0400
+From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+To: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Sakari Ailus <sakari.ailus@iki.fi>
+Subject: [PATCH] adp1653: check platform_data before usage
+Date: Mon, 25 Jul 2011 17:16:41 +0300
+Message-Id: <55316b63b7084f869d550fd600f29d2e0dfa862c.1311603384.git.andriy.shevchenko@linux.intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-2011/7/28 Benjamin Larsson <benjamin@southpole.se>:
-> 0x82 is the address of the chip handling the analog signals(?) Micronas
-> AVF 4910BA1 maybe.
+The driver requires platform_data to be present. That's why we need to check
+and fail in case of the absence of necessary data.
 
-I don't have the schematic of hauppauge card, so I can't say you if
-082 is the AVF 4910
+Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
+Cc: Sakari Ailus <sakari.ailus@iki.fi>
+---
+ drivers/media/video/adp1653.c |    4 ++++
+ 1 files changed, 4 insertions(+), 0 deletions(-)
 
-> So change the names so it is clear that this part
-> sends commands to that chip.
+diff --git a/drivers/media/video/adp1653.c b/drivers/media/video/adp1653.c
+index be7befd..8ad89ff 100644
+--- a/drivers/media/video/adp1653.c
++++ b/drivers/media/video/adp1653.c
+@@ -413,6 +413,10 @@ static int adp1653_probe(struct i2c_client *client,
+ 	struct adp1653_flash *flash;
+ 	int ret;
+ 
++	/* we couldn't work without platform data */
++	if (client->dev.platform_data == NULL)
++		return -ENODEV;
++
+ 	flash = kzalloc(sizeof(*flash), GFP_KERNEL);
+ 	if (flash == NULL)
+ 		return -ENOMEM;
+-- 
+1.7.5.4
 
-As I already told my patch is a derivate work of Terratec H5 Patch.
-Mauro's patch should have the same issue
-
-> I'm not sure I understand the I2C addressing but my tuner is at 0xc2 and
-> the demod at 0x52.
-
-I hate binary operation however if you shift the address you should
-get same value...
-0x52 = 0x29 << 1
-0x29 = 0x52 >> 1
-
-
-Eddi
