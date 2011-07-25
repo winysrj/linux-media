@@ -1,77 +1,86 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-gy0-f174.google.com ([209.85.160.174]:62750 "EHLO
-	mail-gy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750776Ab1GYQ4D (ORCPT
+Received: from mail-vx0-f174.google.com ([209.85.220.174]:51318 "EHLO
+	mail-vx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751074Ab1GYIPb (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 25 Jul 2011 12:56:03 -0400
-Received: by gyh3 with SMTP id 3so2346218gyh.19
-        for <linux-media@vger.kernel.org>; Mon, 25 Jul 2011 09:56:02 -0700 (PDT)
+	Mon, 25 Jul 2011 04:15:31 -0400
+Received: by vxh35 with SMTP id 35so2704412vxh.19
+        for <linux-media@vger.kernel.org>; Mon, 25 Jul 2011 01:15:31 -0700 (PDT)
 MIME-Version: 1.0
-In-Reply-To: <1310581347-31102-1-git-send-email-agnel.joel@gmail.com>
-References: <1310581347-31102-1-git-send-email-agnel.joel@gmail.com>
-Date: Mon, 25 Jul 2011 09:56:00 -0700
-Message-ID: <CAL8ugEc33uZBEz-5WxVd5aGArCRq8tv6X1K0uaJHiEVgqEfd6g@mail.gmail.com>
-Subject: Re: [beagleboard] [RFC v1] mt9v113: VGA camera sensor driver and
- support for BeagleBoard
-From: Mark Grosen <mark@grosen.org>
-To: beagleboard@googlegroups.com
-Cc: Joel A Fernandes <agnel.joel@gmail.com>, jdk@ti.com,
-	Javier Martin <javier.martin@vista-silicon.com>,
-	laurent.pinchart@ideasonboard.com, linux-media@vger.kernel.org,
-	k-kooi@ti.com, pprakash@ti.com, chase.maupin@ti.com,
-	s-kipisz2@ti.com, saaguirre@ti.com
+In-Reply-To: <4E2A0856.7050009@iki.fi>
+References: <CAJbz7-29H=e=C2SyY-6Ru23Zzv6sH7wBbOm72ZWMxqOagakuKQ@mail.gmail.com>
+	<4E29FB9E.4060507@iki.fi>
+	<CAJbz7-3HkkEoDa3qGvoaF61ohhdxo38ZxF+GWGV+tBQ0yEBopA@mail.gmail.com>
+	<4E29FF56.5080604@iki.fi>
+	<CAJbz7-0pDj7mdgHAyyuSOfwGmYdNaKqxM9RxWZdQbEN0Eyjx9w@mail.gmail.com>
+	<4E2A0856.7050009@iki.fi>
+Date: Mon, 25 Jul 2011 10:15:30 +0200
+Message-ID: <CAJbz7-0mXyUOa7psF+vgd6V1sm13TyKvkjuBh7ea9u_hNVVv9A@mail.gmail.com>
+Subject: Re: [PATCH] cxd2820r: fix possible out-of-array lookup
+From: HoP <jpetrous@gmail.com>
+To: Antti Palosaari <crope@iki.fi>
+Cc: linux-media@vger.kernel.org
 Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, Jul 13, 2011 at 11:22 AM, Joel A Fernandes <agnel.joel@gmail.com> wrote:
-> * Adds support for mt9v113 sensor by borrowing heavily from PSP 2.6.37 kernel patches
-> * Adapted to changes in v4l2 framework and ISP driver
->
-> Signed-off-by: Joel A Fernandes <agnel.joel@gmail.com>
-> ---
-> This patch will apply against the 2.6.39 kernel built from the OE-development tree (Which is essentially
-> the v2.6.39 from the main tree with OE patches for BeagleBoard support and a few other features)
->
-> If you have the Leapord imaging camera board with this particular sensor, I would apprecite it if anyone could
-> try this patch out and provide any feedback/test results.
->
-> To get the complete tree which works on a BeagleBoard-xM with all the OE patches and this patch,
-> you can clone: https://github.com/joelagnel/linux-omap-2.6/tree/oedev-2.6.39-mt9v113
->
-> It will compile and work on a BeagleBoard-xM with the defconfig at:
-> http://cgit.openembedded.org/cgit.cgi/openembedded/tree/recipes/linux/linux-omap-2.6.39/beagleboard/defconfig
->
-> Also you will need to apply my media-ctl patch (or clone the tree) to setup the formats:
-> https://github.com/joelagnel/media-ctl/commit/cdf24d1249ac1ff3cd6f70ad80c3b76ac28ba0d5
->
-> Binaries for quick testing on a BeagleBoard-xM:
-> U-boot: http://utdallas.edu/~joel.fernandes/u-boot.bin
-> U-boot: http://utdallas.edu/~joel.fernandes/MLO
-> uEnv.txt: http://utdallas.edu/~joel.fernandes/uEnv.txt
-> media-ctl: http://utdallas.edu/~joel.fernandes/media-ctl
-> kernel: http://utdallas.edu/~joel.fernandes/uImage
->
-> media-ctl/yavta commands you could use to get it to show a picture can be found at:
-> http://utdallas.edu/~joel.fernandes/stream.sh
->
+Hi Antti
 
-Joel,
+2011/7/23 Antti Palosaari <crope@iki.fi>:
+> On 07/23/2011 02:01 AM, HoP wrote:
+>>
+>> 2011/7/23 Antti Palosaari<crope@iki.fi>:
+>>>
+>>> On 07/23/2011 01:47 AM, HoP wrote:
+>>>>
+>>>> 2011/7/23 Antti Palosaari<crope@iki.fi>:
+>>>>>
+>>>>> On 07/23/2011 01:18 AM, HoP wrote:
+>>>>>>
+>>>>>> In case of i2c write operation there is only one element in msg[]
+>>>>>> array.
+>>>>>> Don't access msg[1] in that case.
+>>>>>
+>>>>> NACK.
+>>>>> I suspect you confuse now local msg2 and msg that is passed as function
+>>>>> parameter. Could you double check and explain?
 
-I gave this a try this weekend. I ran into a few problems/questions.
+Can you confirm your NACK?
 
-I wanted to try with pre-built (tested?) binaries so I grabbed yours
-(used your uImage):
-1. media-ctl binary does not work because there is no libmediactl.so
-on my Angstrom root FS.
-2. There was no yavta-nc application.
+As I wrote before, my patch was about read access out of msg[] array
+parameter of function cxd2820r_tuner_i2c_xfer() in case when msg[]
+array has only one element (what should be case when using
+tda18271_write_regs() for example). Or am I still missed something?
 
-I googled and found Laurent's git.ideasonboard.org site and cloned the
-media-ctl and yavta projects and built those.
+[snip]
 
-1. The second media-ctl invocation in streams.sh fails with "error
-parsing format".
-2. The yavta app fails trying to do a "stream on" (maybe due to
-media-ctl failure)?
+> And one point more for I2C implementations, i2c_transfer() should implement
+> repeated start sequence to messages given. But I am almost sure there is
+> rather none I2C adapter HW which can do that really. Whole i2c_transfer()
 
-Mark
+Strange enought. Or may better say that linux/i2c.h must fool if you are right,
+because there you can read:
+
+--- linux/i2c.h ---
+ * An i2c_msg is the low level representation of one segment of an I2C
+ * transaction.  It is visible to drivers in the @i2c_transfer() procedure,
+ * to userspace from i2c-dev, and to I2C adapter drivers through the
+ * @i2c_adapter.@master_xfer() method.
+ *
+ * Except when I2C "protocol mangling" is used, all I2C adapters implement
+ * the standard rules for I2C transactions.  Each transaction begins with a
+ * START.  That is followed by the slave address, and a bit encoding read
+ * versus write.  Then follow all the data bytes, possibly including a byte
+ * with SMBus PEC.  The transfer terminates with a NAK, or when all those
+ * bytes have been transferred and ACKed.  If this is the last message in a
+ * group, it is followed by a STOP.  Otherwise it is followed by the next
+ * @i2c_msg transaction segment, beginning with a (repeated) START.
+---
+
+It says quite the reverse - all multimessage transfers have using
+repeated START.
+Very annoying. At least for kernel newbies.
+
+Regards
+
+Honza
