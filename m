@@ -1,137 +1,83 @@
-Return-path: <mchehab@pedra>
-Received: from mailout-de.gmx.net ([213.165.64.23]:38362 "HELO
-	mailout-de.gmx.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1751183Ab1GCXYb (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sun, 3 Jul 2011 19:24:31 -0400
-From: Oliver Endriss <o.endriss@gmx.de>
-Reply-To: linux-media@vger.kernel.org
-To: linux-media@vger.kernel.org
-Subject: Re: [PATCH 0/5] Driver support for cards based on Digital Devices bridge (ddbridge)
-Date: Mon, 4 Jul 2011 01:24:03 +0200
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Ralph Metzler <rjkm@metzlerbros.de>
-References: <201107032321.46092@orion.escape-edv.de> <4E10ECEA.6040808@redhat.com>
-In-Reply-To: <4E10ECEA.6040808@redhat.com>
+Return-path: <linux-media-owner@vger.kernel.org>
+Received: from mail-gx0-f174.google.com ([209.85.161.174]:34328 "EHLO
+	mail-gx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751153Ab1GYRc2 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 25 Jul 2011 13:32:28 -0400
+Received: by gxk21 with SMTP id 21so2365724gxk.19
+        for <linux-media@vger.kernel.org>; Mon, 25 Jul 2011 10:32:27 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: text/plain;
-  charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-Message-Id: <201107040124.04924@orion.escape-edv.de>
+In-Reply-To: <6F36B362-244D-4127-8E57-2E4441709159@beagleboard.org>
+References: <1310581347-31102-1-git-send-email-agnel.joel@gmail.com>
+	<CAL8ugEc33uZBEz-5WxVd5aGArCRq8tv6X1K0uaJHiEVgqEfd6g@mail.gmail.com>
+	<6F36B362-244D-4127-8E57-2E4441709159@beagleboard.org>
+Date: Mon, 25 Jul 2011 10:32:27 -0700
+Message-ID: <CAL8ugEfjWDFFeFCcGMVAbX_E6S7Lyqk4CFEbuQVKabOKUMdpPQ@mail.gmail.com>
+Subject: Re: [beagleboard] [RFC v1] mt9v113: VGA camera sensor driver and
+ support for BeagleBoard
+From: Mark Grosen <mark@grosen.org>
+To: beagleboard@googlegroups.com
+Cc: Joel A Fernandes <agnel.joel@gmail.com>, jdk@ti.com,
+	Javier Martin <javier.martin@vista-silicon.com>,
+	laurent.pinchart@ideasonboard.com, linux-media@vger.kernel.org,
+	k-kooi@ti.com, pprakash@ti.com, chase.maupin@ti.com,
+	s-kipisz2@ti.com, saaguirre@ti.com
+Content-Type: text/plain; charset=ISO-8859-1
+Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
-Sender: <mchehab@pedra>
 
-Hi Mauro,
+On Mon, Jul 25, 2011 at 10:13 AM, Koen Kooi <koen@beagleboard.org> wrote:
+>
+> Op 25 jul. 2011, om 18:56 heeft Mark Grosen het volgende geschreven:
+>
+>> On Wed, Jul 13, 2011 at 11:22 AM, Joel A Fernandes <agnel.joel@gmail.com> wrote:
+>>> * Adds support for mt9v113 sensor by borrowing heavily from PSP 2.6.37 kernel patches
+>>> * Adapted to changes in v4l2 framework and ISP driver
+>>>
+>>> Signed-off-by: Joel A Fernandes <agnel.joel@gmail.com>
+>>> ---
+>>> This patch will apply against the 2.6.39 kernel built from the OE-development tree (Which is essentially
+>>> the v2.6.39 from the main tree with OE patches for BeagleBoard support and a few other features)
+>>>
+>>> If you have the Leapord imaging camera board with this particular sensor, I would apprecite it if anyone could
+>>> try this patch out and provide any feedback/test results.
+>>>
+>>> To get the complete tree which works on a BeagleBoard-xM with all the OE patches and this patch,
+>>> you can clone: https://github.com/joelagnel/linux-omap-2.6/tree/oedev-2.6.39-mt9v113
+>>>
+>>> It will compile and work on a BeagleBoard-xM with the defconfig at:
+>>> http://cgit.openembedded.org/cgit.cgi/openembedded/tree/recipes/linux/linux-omap-2.6.39/beagleboard/defconfig
+>>>
+>>> Also you will need to apply my media-ctl patch (or clone the tree) to setup the formats:
+>>> https://github.com/joelagnel/media-ctl/commit/cdf24d1249ac1ff3cd6f70ad80c3b76ac28ba0d5
+>>>
+>>> Binaries for quick testing on a BeagleBoard-xM:
+>>> U-boot: http://utdallas.edu/~joel.fernandes/u-boot.bin
+>>> U-boot: http://utdallas.edu/~joel.fernandes/MLO
+>>> uEnv.txt: http://utdallas.edu/~joel.fernandes/uEnv.txt
+>>> media-ctl: http://utdallas.edu/~joel.fernandes/media-ctl
+>>> kernel: http://utdallas.edu/~joel.fernandes/uImage
+>>>
+>>> media-ctl/yavta commands you could use to get it to show a picture can be found at:
+>>> http://utdallas.edu/~joel.fernandes/stream.sh
+>>>
+>>
+>> Joel,
+>>
+>> I gave this a try this weekend. I ran into a few problems/questions.
+>>
+>> I wanted to try with pre-built (tested?) binaries so I grabbed yours
+>> (used your uImage):
+>> 1. media-ctl binary does not work because there is no libmediactl.so
+>> on my Angstrom root FS.
+>> 2. There was no yavta-nc application.
+>
+> have you tried 'opkg update ; opkg install mediactl yavta-nc' ?
+>
 
-On Monday 04 July 2011 00:27:54 Mauro Carvalho Chehab wrote:
-> Hi Oliver,
-> 
-> Em 03-07-2011 18:21, Oliver Endriss escreveu:
-> > [PATCH 1/5] ddbridge: Initial check-in
-> > [PATCH 2/5] ddbridge: Codingstyle fixes
-> > [PATCH 3/5] ddbridge: Allow compiling of the driver
-> > [PATCH 4/5] cxd2099: Fix compilation of ngene/ddbridge for DVB_CXD2099=n
-> > [PATCH 5/5] cxd2099: Update Kconfig descrition (ddbridge support)
-> > 
-> > Note:
-> > This patch series depends on the previous one:
-> > [PATCH 00/16] New drivers: DRX-K, TDA18271c2, Updates: CXD2099 and ngene
-> 
-> I've applied both series today on an experimental tree that I use when merging
-> some complex drivers. They are at:
-> 	http://git.linuxtv.org/mchehab/experimental.git?a=shortlog;h=refs/heads/ngene
-> 
-> I didn't actually reviewed the patch series yet, but I noticed some troubles
-> related to Coding Style, and 2 compilation breakages, when all drivers are selected,
-> due to some duplicated symbols. So, I've applied some patches fixing the issues
-> I noticed. It would be great if you could test if the changes didn't break anything.
+Yes and no. I tried finding the mediactl package but failed because it
+is actually
+called media-ctl. Poor searching/naming skills. Thanks for the help. I
+will try again tonight.
 
-Apparently these duplicated symbols did not show up here,
-because I compiled the drivers as modules. :-(
-
-> There's a problem that I've noticed already at the patch series: the usage of
-> CHK_ERROR macro hided a trouble on some places, especially at drxd_hard.c.
-> 
-> As you know, the macro was defined as:
-> 	#define CHK_ERROR(s) if ((status = s)) break
-> 
-> I've replaced it, on all places, using a small perl script, as the above is a CodingStyle
-> violation, and may hide some troubles[1].
-
-True.
-
-> [1] http://git.linuxtv.org/mchehab/experimental.git?a=commit;h=792ecdd1cc494a1e10ed494052ed697ab4e1aa8a
-> 
-> After the removal, I've noticed that this works fine on several places
-> where the code have things like:
-> 	do {
-> 		status = foo()
-> 		if (status < 0)
-> 			break;
-> 
-> 	} while (0);
-> 
-> There are places, however, that there are two loops, like, for example, at:
-> 
-> static int DRX_Start(struct drxd_state *state, s32 off)
-> {
-> ...
-> 	do {
-> ...
-> 		switch (p->transmission_mode) {
-> 		case TRANSMISSION_MODE_8K:
-> 			transmissionParams |= SC_RA_RAM_OP_PARAM_MODE_8K;
-> 			if (state->type_A) {
-> 				status = Write16(state, EC_SB_REG_TR_MODE__A, EC_SB_REG_TR_MODE_8K, 0x0000);
-> 				if (status < 0)
-> 					break;
-> 			}
-> 			break;
-> ...
-> 		}
-> 
-> ...
-> 	} while (0);
-> 
-> 	return status;
-> 
-> On those cases, instead of returning the error status, the function
-> will just ignore the error and proceed to the next switch(). In this specific 
-> routine, as there are no locks inside the code, the better fix would be to 
-> just replace:
-> 	if (status < 0)
-> 		break;
-> by
-> 	if (status < 0)
-> 		return (status);
-> 
-> But I suspect that the same trouble is also present on other parts of the code.
-> 
-> Another issue that I've noticed alread is that, on some places, instead of doing 
-> "return -EINVAL" (or some other proper error code), the code is just doing: "return -1".
-> 
-> Could you please take a look on those issues?
-
-That CHK_ERROR stuff appears very dangerous to me.
-Btw, this is why I did not remove the curly braces { } in some cases:
-        if (...) {
-                CHK_ERROR(...)
-        }
-It would have caused really nasty effects.
-
-Anyway, I spent the whole weekend to re-format the code carefully
-and create both patch series, trying not to break anything.
-I simply cannot go through the driver code and verify everything.
-Please note that I am not the driver author!
-
-I think Ralph should comment on this.
-
-CU
-Oliver
-
--- 
-----------------------------------------------------------------
-VDR Remote Plugin 0.4.0: http://www.escape-edv.de/endriss/vdr/
-4 MByte Mod: http://www.escape-edv.de/endriss/dvb-mem-mod/
-Full-TS Mod: http://www.escape-edv.de/endriss/dvb-full-ts-mod/
-----------------------------------------------------------------
+Mark
