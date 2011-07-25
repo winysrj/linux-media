@@ -1,133 +1,155 @@
-Return-path: <mchehab@localhost>
-Received: from mx1.redhat.com ([209.132.183.28]:34162 "EHLO mx1.redhat.com"
+Return-path: <linux-media-owner@vger.kernel.org>
+Received: from smtp.nokia.com ([147.243.1.48]:36386 "EHLO mgw-sa02.nokia.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1758287Ab1GKRjh (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 11 Jul 2011 13:39:37 -0400
-Message-ID: <4E1B3551.4030705@redhat.com>
-Date: Mon, 11 Jul 2011 14:39:29 -0300
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
+	id S1750886Ab1GYJE1 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 25 Jul 2011 05:04:27 -0400
+Message-ID: <4E2D3183.2040303@iki.fi>
+Date: Mon, 25 Jul 2011 12:04:03 +0300
+From: Sakari Ailus <sakari.ailus@iki.fi>
 MIME-Version: 1.0
-CC: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Oliver Endriss <o.endriss@gmx.de>,
-	Ralph Metzler <rjkm@metzlerbros.de>
-Subject: Re: [PATCH 00/21] drx-k patches and Terratec H5 support (em28xx)
-References: <20110710225907.29f002e1@pedra>
-In-Reply-To: <20110710225907.29f002e1@pedra>
-Content-Type: text/plain; charset=UTF-8
+To: Sylwester Nawrocki <snjw23@gmail.com>
+CC: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Subject: Re: [RFC 0/3] Frame synchronisation events and support for them in
+ the OMAP 3 ISP driver
+References: <4E2588AD.4070106@maxwell.research.nokia.com> <4E284C71.7050806@gmail.com> <4E29536A.3010003@maxwell.research.nokia.com> <4E2987CC.5010303@gmail.com>
+In-Reply-To: <4E2987CC.5010303@gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
+Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
-Sender: <mchehab@infradead.org>
 
-Em 10-07-2011 22:59, Mauro Carvalho Chehab escreveu:
-> This patch series applies after the DRX-K/ngene/ddbridge patches that
-> Oliver Endriss submitted.
+Sylwester Nawrocki wrote:
+> Hi,
+
+Hi Sylwester,
+
+Thanks for your comments.
+
+> On 07/22/2011 12:39 PM, Sakari Ailus wrote:
+> ...
+>>> On 07/19/2011 03:37 PM, Sakari Ailus wrote:
+>>>> Hi all,
+>>>>
+>>>> The OMAP 3 ISP driver implements an HS_VS event which is triggered when
+>>>> the reception of a frame begins. This functionality is very, very likely
+>>>> not specific to OMAP 3 ISP so it should be standardised.
+>>>>
+>>>> I have a few patches to do that. Additionally the next expected buffer
+>>>> sequence number is provided with the event, unlike earlier.
+>>>>
+>>>> There are a few open questions, however, and this is why I'm sending the
+>>>> set as RFC.
+>>>>
+>>>>
+>>>> 1) Other frame synchronisation events. The CCDC block in the OMAP 3 ISP
+>>>> is able to trigger interrupts at two chosen lines of the image. These
+>>>> naturally can be translated to events. The driver uses both of them
+>>>> internally at specific points of the frame. Nevertheless, there might be
+>>>> some use for these in user space. Other hardware might implement a
+>>>> number of these which wouldn't be used by the driver itself, but I don't
+>>>> know of that at the moment. On the other hand high resolution timers are
+>>>> also available in user space, so doing timing based on ISP provided
+>>>> events is not quite as important as before --- as long as there's one
+>>>> frame based event produced at a known time, such as V4L2_EVENT_FRAME_START.
+>>>
+>>> I'm curious, have you perhaps tried to measure latency of such up calls
+>>> to a user space process? I mean this is going to be a real time stuff,
+>>> with HSYNC periods of 50 us order. Could a user space thread be receiving
+>>> such periodic events reliably ? From my experience I doubt this can work
+>>> reliably outside of an interrupt handler even with high priority real time
+>>> threads.
+>>>
+>>> V4L2_EVENT_FRAME_START event seems OK, but HSYNC events in user space
+>>> sound rather tricky to me :-)
+>>
+>> I think the user space could be interested in just one or two of these
+>> per frame, not for every line. But how to subscribe them --- if they are
+>> needed?
 > 
-> It does a cleanup on several small issues at drx-k, including driver
-> removal. It also adds support for Terratec H5 (only DVB-C were tested).
-> In order to use Terratec H5, a different firmware is needed. I'm trying
-> to get a formal permission to release the firmware, or to find some time
-> to write an extraction logic for get_firmware script.
+> Yes, that was my understanding. But still we need much better accuracy than
+> in case of VSYNC/FRAME_START. It seems really hard to guarantee in Linux
+> that a specific line event will be received in user space when that actual
+> line is transmitted. There is much better chance that a FRAME_START event
+
+There's nothing that a driver may do itself to make the user space
+receive the event in time, especially if the user space process is not
+running on real-time priority. This is a completely separate issue.
+
+The timestamp is very important here, more important than guaranteed
+timely event delivery.
+
+> is received during the time when a frame that triggered it is being processed.
+
+This is what happens in practice and I do not consider it as an issue.
+Any configuration which is related to the processing of that frame must
+have been given to the driver well beforehand.
+
+> And VSYNC signals last over several horizontal lines (if not tens or thousands)
+> which makes it easier to receive an event when a VSYNC pulse/period hasn't yet
+> expired.
+
+I'm not sure I can follow you here. It's the responsibility of the
+driver / hardware to provide the event. If it can't, then it shouldn't
+allow subscribing it.
+
+>>
+>> Perhaps it'd be better to start with just one and add more once necessary?
 > 
-> The entire series with DRX-K, ngene support, ddbridge and em28xx are
-> hosted at my experimental tree, at branch ngene of:
-> 	git://linuxtv.org/mchehab/experimental.git ngene
+> Maybe we could accommodate the struct v4l2_event_subscription::id field for 
+> a horizontal line number, with a special bit indicating any one ?
+
+That's an interesting idea. The subscription problem for line events
+still remains.
+
+> But again I'm not convinced to horizontal line events :) There might be
+> situations when even interrupt handlers are to slow for this.
+
+Events may be delivered when there's an interrupt source which can
+generate an interrupt per event. This is no more complex than generating
+one in the beginning of the frame.
+
+Nevertheless, I don't either think these would be very useful, so I
+think they could be ignored, at least for the time being.
+
+>>
+>>> Also HS_VS looks a bit more descriptive than FRAME_START for me.
+>>
+>> HS_VS doesn't really tell which one it is (horizontal or vertical), and
+>> we already have a VSYNC event but it's used for a different purpose.
+>> HS_VS is specific to the CCDC block and doesn't have that meaning in
+>> context of serial interfaces.
+>>
+>> This is why I proposed FRAME_START.
 > 
-> In order to make DRX-K driver to work with Terratec H5, I used a refence
-> driver found at Terratec site:
-> 	http://linux.terratec.de/files/TERRATEC_H7/20110323_TERRATEC_H7_Linux.tar.gz
+> OK, initially I thought it was that HS_VS means a moment when vertical
+> and horizontal sync (blanking?) signals go off and thus video data 
+> of the first line in a frame is started to be transmitted.
+> I agree that HS_VS isn't that relevant in the CSI terminology.
+
+The OMAP 3 ISP may produce interrupts for either vertical or horizontal
+sync events but the driver only uses it for vertical sync. I guess
+there's little or no imaginable use for HS_VS to generate an interrupt
+per every line. VD_INT interrupts Laurent mentioned are used to generate
+an interrupt on a specific line of the frame.
+
+>>> But unfortunately I can't come up with a better name, e.g. something like
+>>> V4L2_EVENT_FRAME_AV_START - frame active video start. Just in case in
+>>> future there are more specific events added.
+>>
+>> What additional information would AV add which isn't evident from
+>> FRAME_START?
 > 
-> The driver there is more complete, and has also analog support, but
-> it didn't work as-is for Terratec H7. On both drivers, there were
-> some board-specific setup in the middle of the driver. I've parametrized
-> the ones found at the ngene/drxk in order to allow re-using the same
-> driver for em28xx/drxk. I suspect that I'll need to add more parameters
-> for Terratec H7. For example, the driver at Terratec site uses 3 GPIO's 
-> for H7, while the other drivers don't seem to need any.
-> 
-> In order to allow me to check what was going wrong with Terratec H5, I
-> wrote a DRX-K parser for em28xx logs, found at:
-> 	http://git.linuxtv.org/v4l-utils.git?a=blob;f=contrib/em28xx/parse_em28xx_drxk.pl;h=8659ccac29c0cac1acfa39907cf0239a3201fe26;hb=86a37d95c8c33e6b877a486104da122a0a05931c
-> 
-> The parser helped a lot to discover what commands were generating errors,
-> allowing me to compare with the reference drivers and discovering what
-> were broken. I hope it may be useful also for the others. It shouldn't
-> be hard to change it to parse logs from other usb devices.
-> 
-> It is possible to check what's happening in real time with:
-> 
-> 	sudo ./parse_tcpdump_log.pl |./em28xx/parse_em28xx_drxk.pl
-> 
-> I'll post a message as soon as I find a way to allow people to obtain
-> the DRX-K firmware needed for Terratec H5.
+> Given different formats of frame headers across the standards (ITU-R BT.656,
+> MIPI-CSI2 and the like) it might be not so obvious at which moment the
+> FRAME_START event is to be triggered. But not being too paranoid I guess
+> we're perfectly fine with VSYNC and FRAME_START events.
 
-Terratec has granted us a permission to re-distribute the firmware:
-	http://www.linuxtv.org/downloads/firmware/#7
+It should be trigered when the first bit of data is being received. What
+about FRAME_DATA_START?
 
-I'll be submitting the firmware to linux-firmware tree.
+Cheers,
 
-The enclosed patch should make it to work, once the firmware is downloaded
-and copyed into /lib/firmware.
-
-Please test.
-
--
-
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-Date: Mon, 11 Jul 2011 14:33:51 -0300
-Subject: [media] em28xx: Change firmware name for Terratec H5 DRX-K
-
-Use a name convention for the firmware file that matches on the
-current firmware namespacing. Also, add it to the firmware
-download script.
-
-Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
-
-diff --git a/Documentation/dvb/get_dvb_firmware b/Documentation/dvb/get_dvb_firmware
-old mode 100644
-new mode 100755
-index 224d9e6..c466f58
---- a/Documentation/dvb/get_dvb_firmware
-+++ b/Documentation/dvb/get_dvb_firmware
-@@ -27,7 +27,7 @@ use IO::Handle;
- 		"or51211", "or51132_qam", "or51132_vsb", "bluebird",
- 		"opera1", "cx231xx", "cx18", "cx23885", "pvrusb2", "mpc718",
- 		"af9015", "ngene", "az6027", "lme2510_lg", "lme2510c_s7395",
--		"lme2510c_s7395_old", "drxk");
-+		"lme2510c_s7395_old", "drxk", "drxk_terratec_h5");
- 
- # Check args
- syntax() if (scalar(@ARGV) != 1);
-@@ -652,6 +652,19 @@ sub drxk {
-     "$fwfile"
- }
- 
-+sub drxk_terratec_h5 {
-+    my $url = "http://www.linuxtv.org/downloads/firmware/";
-+    my $hash = "19000dada8e2741162ccc50cc91fa7f1";
-+    my $fwfile = "dvb-usb-terratec-h5-drxk.fw";
-+
-+    checkstandard();
-+
-+    wgetfile($fwfile, $url . $fwfile);
-+    verify($fwfile, $hash);
-+
-+    "$fwfile"
-+}
-+
- # ---------------------------------------------------------------
- # Utilities
- 
-diff --git a/drivers/media/video/em28xx/em28xx-dvb.c b/drivers/media/video/em28xx/em28xx-dvb.c
-index 9b2be03..f8617d2 100644
---- a/drivers/media/video/em28xx/em28xx-dvb.c
-+++ b/drivers/media/video/em28xx/em28xx-dvb.c
-@@ -305,7 +305,7 @@ struct drxk_config terratec_h5_drxk = {
- 	.adr = 0x29,
- 	.single_master = 1,
- 	.no_i2c_bridge = 1,
--	.microcode_name = "terratec_h5.fw",
-+	.microcode_name = "dvb-usb-terratec-h5-drxk.fw",
- };
- 
- static int drxk_gate_ctrl(struct dvb_frontend *fe, int enable)
+-- 
+Sakari Ailus
+sakari.ailus@iki.fi
