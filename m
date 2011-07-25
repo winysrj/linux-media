@@ -1,51 +1,52 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:44380 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932187Ab1GNWEy (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 14 Jul 2011 18:04:54 -0400
-Received: from int-mx12.intmail.prod.int.phx2.redhat.com (int-mx12.intmail.prod.int.phx2.redhat.com [10.5.11.25])
-	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id p6EM4rZP019333
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
-	for <linux-media@vger.kernel.org>; Thu, 14 Jul 2011 18:04:54 -0400
-From: Jarod Wilson <jarod@redhat.com>
+Received: from mail-wy0-f174.google.com ([74.125.82.174]:37755 "EHLO
+	mail-wy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751350Ab1GYSey (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 25 Jul 2011 14:34:54 -0400
+Received: by wyg8 with SMTP id 8so2946422wyg.19
+        for <linux-media@vger.kernel.org>; Mon, 25 Jul 2011 11:34:52 -0700 (PDT)
+Subject: [PATCH 1/3] IT9137 driver for Kworld UB499-2T T09 (id 1b80:e409) -
+ firmware details
+From: Malcolm Priestley <tvboxspy@gmail.com>
 To: linux-media@vger.kernel.org
-Cc: Jarod Wilson <jarod@redhat.com>
-Subject: [PATCH] [media] redrat3: remove unused dev struct members
-Date: Thu, 14 Jul 2011 18:04:49 -0400
-Message-Id: <1310681089-3204-1-git-send-email-jarod@redhat.com>
+Content-Type: text/plain; charset="UTF-8"
+Date: Mon, 25 Jul 2011 19:34:45 +0100
+Message-ID: <1311618885.7655.3.camel@localhost>
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Signed-off-by: Jarod Wilson <jarod@redhat.com>
----
- drivers/media/rc/redrat3.c |    7 -------
- 1 files changed, 0 insertions(+), 7 deletions(-)
+Firmware information for Kworld UB499-2T T09 based on IT913x series. This device
+uses file dvb-usb-it9137-01.fw.
 
-diff --git a/drivers/media/rc/redrat3.c b/drivers/media/rc/redrat3.c
-index 5fc2f05..ee1303c 100644
---- a/drivers/media/rc/redrat3.c
-+++ b/drivers/media/rc/redrat3.c
-@@ -195,11 +195,6 @@ struct redrat3_dev {
- 	dma_addr_t dma_in;
- 	dma_addr_t dma_out;
- 
--	/* true if write urb is busy */
--	bool write_busy;
--	/* wait for the write to finish */
--	struct completion write_finished;
--
- 	/* locks this structure */
- 	struct mutex lock;
- 
-@@ -207,8 +202,6 @@ struct redrat3_dev {
- 	struct timer_list rx_timeout;
- 	u32 hw_timeout;
- 
--	/* Is the device currently receiving? */
--	bool recv_in_progress;
- 	/* is the detector enabled*/
- 	bool det_enabled;
- 	/* Is the device currently transmitting?*/
+
+Signed-off-by: Malcolm Priestley <tvboxspy@gmail.com>
+
+---
+ Documentation/dvb/it9137.txt |    9 +++++++++
+ 1 files changed, 9 insertions(+), 0 deletions(-)
+ create mode 100644 Documentation/dvb/it9137.txt
+
+diff --git a/Documentation/dvb/it9137.txt b/Documentation/dvb/it9137.txt
+new file mode 100644
+index 0000000..9e6726e
+--- /dev/null
++++ b/Documentation/dvb/it9137.txt
+@@ -0,0 +1,9 @@
++To extract firmware for Kworld UB499-2T (id 1b80:e409) you need to copy the
++following file(s) to this directory.
++
++IT9135BDA.sys Dated Mon 22 Mar 2010 02:20:08 GMT
++
++extract using dd
++dd if=IT9135BDA.sys ibs=1 skip=69632 count=5731 of=dvb-usb-it9137-01.fw
++
++copy to default firmware location.
 -- 
-1.7.1
+1.7.4.1
+
+
+
 
