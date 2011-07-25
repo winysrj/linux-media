@@ -1,52 +1,45 @@
-Return-path: <mchehab@pedra>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:44970 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752478Ab1GDWrP (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 4 Jul 2011 18:47:15 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-Subject: Re: [RFC] DV timings spec fixes at V4L2 API - was: [PATCH 1/8] v4l: add macro for 1080p59_54 preset
-Date: Tue, 5 Jul 2011 00:47:43 +0200
-Cc: Tomasz Stanislawski <t.stanislaws@samsung.com>,
-	linux-media@vger.kernel.org, m.szyprowski@samsung.com,
-	kyungmin.park@samsung.com, hverkuil@xs4all.nl
-References: <1309351877-32444-1-git-send-email-t.stanislaws@samsung.com> <1309351877-32444-2-git-send-email-t.stanislaws@samsung.com> <4E11E5AE.30304@redhat.com>
-In-Reply-To: <4E11E5AE.30304@redhat.com>
+Return-path: <linux-media-owner@vger.kernel.org>
+Received: from mail-vw0-f46.google.com ([209.85.212.46]:43944 "EHLO
+	mail-vw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750781Ab1GYInX (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 25 Jul 2011 04:43:23 -0400
+Received: by vws1 with SMTP id 1so2804170vws.19
+        for <linux-media@vger.kernel.org>; Mon, 25 Jul 2011 01:43:23 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201107050047.44275.laurent.pinchart@ideasonboard.com>
+Date: Mon, 25 Jul 2011 16:43:21 +0800
+Message-ID: <CAOy7-nMnE6_z4pAmw+Jc1riYSeCWwiNS2=_Ya==+7q5=bNrWuw@mail.gmail.com>
+Subject: Parallel CMOS Image Sensor with UART Control Interface
+From: James <angweiyang@gmail.com>
+To: linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
-Sender: <mchehab@pedra>
 
-Hi Mauro,
+Dear all,
 
-On Monday 04 July 2011 18:09:18 Mauro Carvalho Chehab wrote:
+Does anyone came across a v4l2 Linux Device Driver for an Image Sensor
+that uses Parallel CMOS H/V and can only be control by UART interface
+instead of the common I2C or SPI interface?
 
-[snip]
+A similar sensor is the STMicroelectronics VL5510 Image Sensor
+although it support all 3 types of control interface.
+(http://www.st.com/internet/automotive/product/178477.jsp)
 
-> 1) PRESET STANDARDS
->    ====== =========
-> 
-> There are 3 specs involved with DV presets: ITU-R BT 709 and BT 1120 and
-> CEA 861.
-> 
-> At ITU-R BT.709, both 60Hz and 60/1.001 Hz are equally called as "60 Hz".
-> BT.1120 follows the same logic, as it uses BT.709 as a reference for video
-> timings.
-> 
-> The CEA-861-E spec says at item 4, that:
+Most or all the drivers found I found under drivers/media/video uses
+the I2C or SPI interface instead
 
-[snip]
+I'm new to writing driver and need a reference v4l2 driver for this
+type of image sensor to work with OMAP3530 ISP port on Gumstix's Overo
+board.
 
-> At the same item, the table 2 describes several video parameters for each
-> preset, associating the Video Identification Codes (VIC) for each preset.
+I just need a very simple v4l2 driver that can extract the image from
+the sensor and control over it via the UART control interface.
 
-This might be a bit out of scope, but why aren't we using the VICs as DV 
-presets ?
+Any help is very much appreciated.
+
+Thanks in adv.
 
 -- 
 Regards,
-
-Laurent Pinchart
+James
