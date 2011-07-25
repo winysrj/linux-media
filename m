@@ -1,48 +1,85 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([147.243.128.24]:24762 "EHLO mgw-da01.nokia.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751631Ab1GTNXr (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 20 Jul 2011 09:23:47 -0400
-Message-ID: <4E26D6D7.1090403@maxwell.research.nokia.com>
-Date: Wed, 20 Jul 2011 16:23:35 +0300
-From: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
+Received: from mail-fx0-f52.google.com ([209.85.161.52]:52537 "EHLO
+	mail-fx0-f52.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752530Ab1GYCpD (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 24 Jul 2011 22:45:03 -0400
+Received: by fxd18 with SMTP id 18so8235897fxd.11
+        for <linux-media@vger.kernel.org>; Sun, 24 Jul 2011 19:45:01 -0700 (PDT)
 MIME-Version: 1.0
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-CC: linux-media@vger.kernel.org, linux-omap@vger.kernel.org
-Subject: Re: [PATCH 0/3] OMAP3 ISP patches for v3.1
-References: <1310754250-28788-1-git-send-email-laurent.pinchart@ideasonboard.com>
-In-Reply-To: <1310754250-28788-1-git-send-email-laurent.pinchart@ideasonboard.com>
+From: Dave Fine <finerrecliner@gmail.com>
+Date: Sun, 24 Jul 2011 22:44:41 -0400
+Message-ID: <CAOMmEg=SRi64zgSebzBpVTaur-k4_2QEyqvsbXbkA9sGyWO8Zg@mail.gmail.com>
+Subject: webcam doesn't work on some USB ports (gspca_sonixj module)
+To: linux-media <linux-media@vger.kernel.org>
 Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Laurent Pinchart wrote:
-> Hi everybody,
-> 
-> Here are the OMAP3 ISP patches in my queue for v3.1. I'll send a pull request
-> in a couple of days if there's no objection.
-> 
-> Kalle Jokiniemi (2):
->   OMAP3: ISP: Add regulator control for omap34xx
->   OMAP3: RX-51: define vdds_csib regulator supply
-> 
-> Laurent Pinchart (1):
->   omap3isp: Support configurable HS/VS polarities
-> 
->  arch/arm/mach-omap2/board-rx51-peripherals.c |    5 ++++
->  drivers/media/video/omap3isp/isp.h           |    6 +++++
->  drivers/media/video/omap3isp/ispccdc.c       |    4 +-
->  drivers/media/video/omap3isp/ispccp2.c       |   27 ++++++++++++++++++++++++-
->  drivers/media/video/omap3isp/ispccp2.h       |    1 +
->  5 files changed, 39 insertions(+), 4 deletions(-)
+I have a Microsoft LifeCam VX-3000. My desktop computer has two USB
+buses. 4 external ports on one bus in the back of the computer, and 2
+external ports on another bus in the front. The webcam only works
+properly on the front-facing ports. I'm using the lastest stable
+release of the gspca_sonixj module.
 
-Hi Laurent,
+The problems I experience is that the webcam is not able to work with
+Google's gchat video chatting. The screen remains black for a few
+seconds, before fading to gray. Sometimes I see myself for a
+split-second before it fades to gray permanently. The webcam always
+work fine with local programs like cheese.
 
-Thanks for the patchset!
+syslog output:
 
-Acked-by: Sakari Ailus <sakari.ailus@iki.fi>
+webcam plugged into "bad" USB bus:
 
--- 
-Sakari Ailus
-sakari.ailus@maxwell.research.nokia.com
+Jul 24 22:09:22 Bluemoon kernel: [432235.451132] usb 1-1.3: new full
+speed USB device using ehci_hcd and address 10
+Jul 24 22:09:22 Bluemoon kernel: [432235.562660] gspca-2.13.2: probing 045e:00f5
+Jul 24 22:09:22 Bluemoon kernel: [432235.563467] sonixj-2.13.2: Sonix
+chip id: 11
+Jul 24 22:09:22 Bluemoon kernel: [432235.564042] input: sonixj as
+/devices/pci0000:00/0000:00:1a.0/usb1/1-1/1-1.3/input/input17
+Jul 24 22:09:22 Bluemoon kernel: [432235.564178] gspca-2.13.2: video0 created
+Jul 24 22:09:22 Bluemoon rtkit-daemon[1365]: Successfully made thread
+9824 of process 1506 (n/a) owned by '1000' RT at priority 5.
+Jul 24 22:09:22 Bluemoon rtkit-daemon[1365]: Supervising 4 threads of
+1 processes of 1 users.
+Jul 24 22:09:40 Bluemoon kernel: [432253.344199] gspca-2.13.2:
+bandwidth not wide enough - trying again
+Jul 24 22:09:41 Bluemoon kernel: [432254.622338] gspca-2.13.2:
+bandwidth not wide enough - trying again
+Jul 24 22:09:42 Bluemoon kernel: [432255.900844] gspca-2.13.2:
+bandwidth not wide enough - trying again
+Jul 24 22:09:44 Bluemoon kernel: [432257.179608] gspca-2.13.2:
+bandwidth not wide enough - trying again
+Jul 24 22:09:45 Bluemoon kernel: [432258.457975] gspca-2.13.2:
+bandwidth not wide enough - trying again
+... (repeats)
+
+
+
+webcam plugged into "good" USB bus:
+Jul 24 22:06:47 Bluemoon kernel: [432080.751839] usb 2-1.4: new full
+speed USB device using ehci_hcd and address 9
+Jul 24 22:06:47 Bluemoon kernel: [432080.863272] gspca-2.13.2: probing 045e:00f5
+Jul 24 22:06:47 Bluemoon kernel: [432080.863943] sonixj-2.13.2: Sonix
+chip id: 11
+Jul 24 22:06:47 Bluemoon kernel: [432080.864304] input: sonixj as
+/devices/pci0000:00/0000:00:1d.0/usb2/2-1/2-1.4/input/input15
+Jul 24 22:06:47 Bluemoon kernel: [432080.864578] gspca-2.13.2: video0 created
+Jul 24 22:06:47 Bluemoon rtkit-daemon[1365]: Successfully made thread
+9637 of process 1506 (n/a) owned by '1000' RT at priority 5.
+Jul 24 22:06:47 Bluemoon rtkit-daemon[1365]: Supervising 4 threads of
+1 processes of 1 users.
+Jul 24 22:07:22 Bluemoon kernel: [432116.213808] gspca-2.13.2:
+bandwidth not wide enough - trying again
+Jul 24 22:07:24 Bluemoon kernel: [432117.542586] gspca-2.13.2:
+bandwidth not wide enough - trying again
+Jul 24 22:07:25 Bluemoon kernel: [432118.831024] gspca-2.13.2:
+bandwidth not wide enough - trying again
+(webcam operates normally at this point)
+
+
+Has anyone seen this before? Any suggestions to help debug this?
+
+-Dave
