@@ -1,39 +1,82 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-gy0-f174.google.com ([209.85.160.174]:34725 "EHLO
-	mail-gy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751313Ab1G0Nv6 (ORCPT
+Received: from mailout-de.gmx.net ([213.165.64.22]:34612 "HELO
+	mailout-de.gmx.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1751430Ab1GYSeB (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 27 Jul 2011 09:51:58 -0400
-Received: by gyh3 with SMTP id 3so1029879gyh.19
-        for <linux-media@vger.kernel.org>; Wed, 27 Jul 2011 06:51:57 -0700 (PDT)
+	Mon, 25 Jul 2011 14:34:01 -0400
+From: Oliver Endriss <o.endriss@gmx.de>
+Reply-To: linux-media@vger.kernel.org
+To: linux-media@vger.kernel.org
+Subject: [Patch] media_build: Add support for kernel 3.x, remove support for kernel 2.4
+Date: Mon, 25 Jul 2011 20:30:58 +0200
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>
 MIME-Version: 1.0
-In-Reply-To: <20110727101305.GI32629@valkosipuli.localdomain>
-References: <CACKLOr1veNZ_6E3V_m1Tf+mxxUAKiRKDbboW-fMbRGUrLns_XA@mail.gmail.com>
-	<1311757981-6968-1-git-send-email-laurent.pinchart@ideasonboard.com>
-	<20110727101305.GI32629@valkosipuli.localdomain>
-Date: Wed, 27 Jul 2011 15:51:56 +0200
-Message-ID: <CACKLOr1mQ8BqZ-juy63X1ygO2cUpHpb6q-bp00SEcDHU+a+twg@mail.gmail.com>
-Subject: Re: [PATCH] mt9p031: Aptina (Micron) MT9P031 5MP sensor driver
-From: javier Martin <javier.martin@vista-silicon.com>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: Sakari Ailus <sakari.ailus@iki.fi>, linux-media@vger.kernel.org,
-	shotty317@gmail.com
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain;
+  charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+Message-Id: <201107252030.58897@orion.escape-edv.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Laurent,
-I really was looking forward to your patch.
+Signed-off-by: Oliver Endriss <o.endriss@gmx.de>
 
-Tomorrow i have the day off, so I will look at this on Friday.
-I will review and test your patch and send you my comments.
-
+diff -r 7830053e4245 v4l/Makefile
+--- a/v4l/Makefile	Mon Jul 18 22:25:39 2011 +0200
++++ b/v4l/Makefile	Mon Jul 25 20:05:51 2011 +0200
+@@ -135,21 +135,11 @@
+ EXTRA_CFLAGS += -include $(obj)/compat.h
+ 
+ #################################################
+-# Kernel 2.4/2.6 specific rules
++# Kernel 2.6/3.x specific rules
+ 
+ ifneq ($(KERNELRELEASE),)
+-
+-ifeq ($(VERSION).$(PATCHLEVEL),2.6)
+  export-objs	:=
+  list-multi	:=
+-else
+-include $(obj)/Makefile.kern24
+-
+- multi-m	:= $(filter $(list-multi), $(obj-m))
+- int-m		:= $(sort $(foreach m, $(multi-m), $($(basename $(m))-objs)))
+- export-objs	:= $(filter $(int-m) $(obj-m),$(export-objs))
+-endif
+-
+ endif
+ 
+ #################################################
+@@ -171,19 +161,15 @@
+ HOSTCC:=$(CC)
+ CC += -I$(obj)
+ 
+-ifeq ($(VERSION).$(PATCHLEVEL),2.6)
+- CPPFLAGS := -I$(SUBDIRS)/../linux/include $(CPPFLAGS) -I$(SUBDIRS)/
++CPPFLAGS := -I$(SUBDIRS)/../linux/include $(CPPFLAGS) -I$(SUBDIRS)/
+ 
+- # Needed for kernel 2.6.24 or up
+- KBUILD_CPPFLAGS := -I$(SUBDIRS)/../linux/include $(KBUILD_CPPFLAGS) -I$(SUBDIRS)/
++# Needed for kernel 2.6.24 or up
++KBUILD_CPPFLAGS := -I$(SUBDIRS)/../linux/include $(KBUILD_CPPFLAGS) -I$(SUBDIRS)/
+ 
+- # Needed for kernel 2.6.29 or up
+- LINUXINCLUDE    := -I$(SUBDIRS)/../linux/include $(LINUXINCLUDE) -I$(SUBDIRS)/
++# Needed for kernel 2.6.29 or up
++LINUXINCLUDE    := -I$(SUBDIRS)/../linux/include $(LINUXINCLUDE) -I$(SUBDIRS)/
+ 
+- MYCFLAGS :=
+-else
+- MYCFLAGS := CFLAGS="-I../linux/include -D__KERNEL__ -I$(KDIR)/include -DEXPORT_SYMTAB"
+-endif
++MYCFLAGS :=
+ 
+ 
+ #################################################
 
 -- 
-Javier Martin
-Vista Silicon S.L.
-CDTUC - FASE C - Oficina S-345
-Avda de los Castros s/n
-39005- Santander. Cantabria. Spain
-+34 942 25 32 60
-www.vista-silicon.com
+----------------------------------------------------------------
+VDR Remote Plugin 0.4.0: http://www.escape-edv.de/endriss/vdr/
+4 MByte Mod: http://www.escape-edv.de/endriss/dvb-mem-mod/
+Full-TS Mod: http://www.escape-edv.de/endriss/dvb-full-ts-mod/
+----------------------------------------------------------------
