@@ -1,96 +1,39 @@
-Return-path: <mchehab@pedra>
-Received: from mx1.redhat.com ([209.132.183.28]:59152 "EHLO mx1.redhat.com"
+Return-path: <linux-media-owner@vger.kernel.org>
+Received: from smtp12.mail.ru ([94.100.176.89]:57986 "EHLO smtp12.mail.ru"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756477Ab1GAOHn (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 1 Jul 2011 10:07:43 -0400
-Message-ID: <4E0DD4A9.8010308@redhat.com>
-Date: Fri, 01 Jul 2011 11:07:37 -0300
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
+	id S1751627Ab1GYLUY (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 25 Jul 2011 07:20:24 -0400
+Message-ID: <4E2D5051.8080208@list.ru>
+Date: Mon, 25 Jul 2011 15:15:29 +0400
+From: Stas Sergeev <stsp@list.ru>
 MIME-Version: 1.0
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-CC: oravecz@nytud.hu
-Subject: [PATCH] Enable audio at MSI Digivox AD II card
-References: <201107011102.p61B2pX09363@ny01.nytud.hu>
-In-Reply-To: <201107011102.p61B2pX09363@ny01.nytud.hu>
-Content-Type: text/plain; charset=UTF-8
+To: Mauro Carvalho Chehab <mchehab@infradead.org>
+CC: linux-media@vger.kernel.org,
+	"Nickolay V. Shmyrev" <nshmyrev@yandex.ru>,
+	Lennart Poettering <lpoetter@redhat.com>,
+	ALSA devel <alsa-devel@alsa-project.org>
+Subject: Re: [patch][saa7134] do not change mute state for capturing audio
+References: <4E19D2F7.6060803@list.ru> <4E22AF12.4020600@list.ru> <4E22CCC0.8030803@infradead.org> <4E24BEB8.4060501@redhat.com> <4E257FF5.4040401@infradead.org> <4E258B60.6010007@list.ru> <4E25906D.3020200@infradead.org> <4E259B0C.90107@list.ru> <4E25A26A.2000204@infradead.org> <4E25A7C2.3050609@list.ru> <4E25C7AE.5020503@infradead.org> <4E25CF35.7000802@list.ru> <4E25DB37.8020609@infradead.org> <4E25FDE4.7040805@list.ru> <4E262772.9060509@infradead.org> <4E266799.8030706@list.ru> <4E26AEC0.5000405@infradead.org> <4E26B1E7.2080107@list.ru> <4E26B29B.4010109@infradead.org> <4E292BED.60108@list.ru> <4E296D00.9040608@infradead.org> <4E296F6C.9080107@list.ru> <4E2971D4.1060109@infradead.org> <4E29738F.7040605@list.ru> <4E297505.7090307@infradead.org> <4E29E02A.1020402@list.ru> <4E2A23C7.3040209@infradead.org> <4E2A7BF0.8080606@list.ru> <4E2AC742.8020407@infradead.org> <4E2ACAAD.4050602@list.ru> <4E2AE40F.7030108@infradead.org> <4E2C5A35.9030404@list.ru> <4E2C6638.2040707@infradead.org>
+In-Reply-To: <4E2C6638.2040707@infradead.org>
+Content-Type: text/plain; charset=UTF-8; format=flowed
 Content-Transfer-Encoding: 7bit
+Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
-Sender: <mchehab@pedra>
 
-This device also uses audio on a separate USB interface. The new audio
-handling works fine, but the GPIO settings, and I2C/XCLK speed need
-some fixes.
-
-Thanks to Oravecz to diagnose and get the right configs for the registers.
-
-Reported-by: Oravecz Csaba <oravecz@nytud.hu>
-Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
-
----
-
-I'm waiting for Oravecz confirmation that this patch works like the changes he
-originally made, but I'm forwarding the patch to the ML, in order to keep it
-tracked via patchwork, and to allow others to test it.
-
-
-diff --git a/drivers/media/video/em28xx/em28xx-cards.c b/drivers/media/video/em28xx/em28xx-cards.c
-index c892a1e..e9bb267 100644
---- a/drivers/media/video/em28xx/em28xx-cards.c
-+++ b/drivers/media/video/em28xx/em28xx-cards.c
-@@ -107,16 +107,20 @@ static struct em28xx_reg_seq hauppauge_wintv_hvr_900R2_digital[] = {
- 	{ -1,			-1,	-1,		-1},
- };
- 
--/* Boards - EM2880 MSI DIGIVOX AD and EM2880_BOARD_MSI_DIGIVOX_AD_II */
-+/* Board EM2880 MSI DIGIVOX AD */
- static struct em28xx_reg_seq em2880_msi_digivox_ad_analog[] = {
- 	{EM28XX_R08_GPIO,       0x69,   ~EM_GPIO_4,	 10},
- 	{	-1,		-1,	-1,		 -1},
- };
- 
--/* Boards - EM2880 MSI DIGIVOX AD and EM2880_BOARD_MSI_DIGIVOX_AD_II */
--
--/* Board  - EM2870 Kworld 355u
--   Analog - No input analog */
-+/* Board EM2880_BOARD_MSI_DIGIVOX_AD_II */
-+static struct em28xx_reg_seq em2880_msi_digivox_ad_ii_analog[] = {
-+	{EM28XX_R08_GPIO,	0x6d,	~EM_GPIO_4,	10},
-+	{EM28XX_R08_GPIO,	0x7d,	~EM_GPIO_4,	10},
-+	{EM2880_R04_GPO,	0x00,	0xff,		10},
-+	{EM2880_R04_GPO,	0x08,	0xff,		10},
-+	{	-1,		-1,	-1,		 -1},
-+};
- 
- /* Board - EM2882 Kworld 315U digital */
- static struct em28xx_reg_seq em2882_kworld_315u_digital[] = {
-@@ -1299,22 +1303,26 @@ struct em28xx_board em28xx_boards[] = {
- 		.valid        = EM28XX_BOARD_NOT_VALIDATED,
- 		.tuner_type   = TUNER_XC2028,
- 		.tuner_gpio   = default_tuner_gpio,
-+		.i2c_speed      = EM28XX_I2C_CLK_WAIT_ENABLE |
-+				  EM28XX_I2C_EEPROM_ON_BOARD |
-+				  EM28XX_I2C_EEPROM_KEY_VALID,
-+		.xclk		= EM28XX_XCLK_FREQUENCY_12MHZ,
- 		.decoder      = EM28XX_TVP5150,
- 		.input        = { {
- 			.type     = EM28XX_VMUX_TELEVISION,
- 			.vmux     = TVP5150_COMPOSITE0,
- 			.amux     = EM28XX_AMUX_VIDEO,
--			.gpio     = em2880_msi_digivox_ad_analog,
-+			.gpio     = em2880_msi_digivox_ad_ii_analog,
- 		}, {
- 			.type     = EM28XX_VMUX_COMPOSITE1,
- 			.vmux     = TVP5150_COMPOSITE1,
- 			.amux     = EM28XX_AMUX_LINE_IN,
--			.gpio     = em2880_msi_digivox_ad_analog,
-+			.gpio     = em2880_msi_digivox_ad_ii_analog,
- 		}, {
- 			.type     = EM28XX_VMUX_SVIDEO,
- 			.vmux     = TVP5150_SVIDEO,
- 			.amux     = EM28XX_AMUX_LINE_IN,
--			.gpio     = em2880_msi_digivox_ad_analog,
-+			.gpio     = em2880_msi_digivox_ad_ii_analog,
- 		} },
- 	},
- 	[EM2880_BOARD_KWORLD_DVB_305U] = {
-
+24.07.2011 22:36, Mauro Carvalho Chehab wrote:
+> The automute code works fine. Maybe you have a strong interference
+> at the default tuning frequency, leading into saa7134 miss-detection.
+OK, so my accusation to the automute code is
+that it gets disabled unconditionally, no matter
+have the scan failed or succeeded. Also, since
+that scan is done on driver init, the automute
+state stands no chance to survive: it is getting
+disabled unconditionally, on the driver init.
+Do we agree that this is a bug?
+Do we agree that fixing it will also fix the PA problem,
+or, at the very least, will advance us a lot in getting
+it fixed?
+If so, can you take a look into fixing that code?
+It seems the automute code is rather fragile right
+now, I'd better not touch it if you have some time
+to take a look.
