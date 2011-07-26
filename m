@@ -1,52 +1,52 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailer-b4.gwdg.de ([134.76.10.28]:41748 "EHLO mailer-b4.gwdg.de"
+Received: from smtp.nokia.com ([147.243.128.24]:37311 "EHLO mgw-da01.nokia.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753061Ab1GaXkI (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 31 Jul 2011 19:40:08 -0400
-Received: from gwdexc-fe2.exc.top.gwdg.de ([134.76.26.172] helo=vsmtpgwdexc.exc.top.gwdg.de)
-	by mailer.gwdg.de with smtp (Exim 4.72)
-	(envelope-from <henning.hollermann@stud.uni-goettingen.de>)
-	id 1Qnf0l-0001Qb-Jj
-	for linux-media@vger.kernel.org; Mon, 01 Aug 2011 01:01:31 +0200
-Message-ID: <4E35DECA.2090700@stud.uni-goettingen.de>
-Date: Mon, 01 Aug 2011 01:01:30 +0200
-From: Henning Hollermann <henning.hollermann@stud.uni-goettingen.de>
+	id S1753064Ab1GZStj (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 26 Jul 2011 14:49:39 -0400
+Message-ID: <4E2F0C53.10907@iki.fi>
+Date: Tue, 26 Jul 2011 21:49:55 +0300
+From: Sakari Ailus <sakari.ailus@iki.fi>
 MIME-Version: 1.0
-To: linux-media@vger.kernel.org
-Subject: Missing package "Proc::ProcessTable" is in debian: libproc-processtable-perl
+To: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+CC: Hans Verkuil <hans.verkuil@cisco.com>,
+	Sylwester Nawrocki <snjw23@gmail.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Subject: [PATCH 0/3] Frame synchronisation events and support for them in
+ the OMAP 3 ISP driver
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-I just tried to install the latest media-build-package via git. I got an
-error because of a missing package, but the script could not provide a
-hint about the name of the missing package. One quick search made clear,
-that it was perl's ProcessTable package, which was missing. This is
-named "libproc-processtable-perl" in debian, so you could add this as hint.
+Hi all,
 
-Cheers,
-Henning
+The OMAP 3 ISP driver implements an HS_VS event which is triggered when
+the reception of a frame begins. This functionality is very, very likely
+not specific to OMAP 3 ISP so it should be standardised.
 
----------------------
-What i did and uname:
+I have a few patches to do that. Additionally the next expected buffer
+sequence number is provided with the event, unlike earlier.
 
-~$ git clone git://linuxtv.org/media_build.git
+The questions I had over the RFC (under otherwise same subject field on
+this list) have been resolved:
 
-~$ cd media_build
+1) Other frame synchronisation events, if they ever are needed, can be
+implemented by using the id field as the line number the event should be
+triggered on, as proposed by Sylwester and Hans. Currently, the id field
+is not separately mentioned in the documentation, meaning that
+FRAME_SYNC events have id field set to 0 meaning frame start.
 
-~/media_build$ ./build.sh
-Checking if the needed tools are present
-./check_needs.pl
-ERROR: please install "Proc::ProcessTable", otherwise, build won't work.
-I don't know distro . So, I can't provide you a hint with the package names.
-Be welcome to contribute with a patch for media-build, by submitting a
-distro-specific hint
-to linux-media@vger.kernel.org
-Build can't procceed as 1 dependency is missing at ./check_needs.pl line
-132.
-*** ERROR. Aborting ***
+2) It was also concluded that the buffer sequence number is specific to
+FRAME_SYNC event and deserves its own struct: struct v4l2_event_frame_sync.
 
-~/media_build:$ uname -a
-Linux henning-laptop 2.6.38-2-amd64 #1 SMP Sun May 8 13:51:57 UTC 2011
-x86_64 GNU/Linux
+Changes to the RFC:
+
+- Renamed V4L2_EVENT_FRAME_START to V4L2_EVENT_FRAME_SYNC.
+- Removed extra reference to V4L2_EVENT_FRAME_START in documentation; it
+is mentioned in the same page struct v4l2_event_frame_sync is related to it.
+- The OMAP 3 ISP driver check that the id field is zero in anticipation
+of such events.
+
+-- 
+Sakari Ailus
+sakari.ailus@iki.fi
