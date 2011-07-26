@@ -1,47 +1,59 @@
-Return-path: <mchehab@localhost>
-Received: from mail.kapsi.fi ([217.30.184.167]:53961 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751471Ab1GICsa (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 8 Jul 2011 22:48:30 -0400
-Message-ID: <4E17C17A.1030205@iki.fi>
-Date: Sat, 09 Jul 2011 05:48:26 +0300
-From: Antti Palosaari <crope@iki.fi>
+Return-path: <linux-media-owner@vger.kernel.org>
+Received: from perceval.ideasonboard.com ([95.142.166.194]:58849 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753402Ab1GZOrt (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 26 Jul 2011 10:47:49 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Sakari Ailus <sakari.ailus@iki.fi>
+Subject: Re: [RFC] V4L2 brainstorming meeting in Cambridge, August 2011
+Date: Tue, 26 Jul 2011 16:47:47 +0200
+Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>,
+	Marek Szyprowski <m.szyprowski@samsung.com>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+References: <201106171056.11702.laurent.pinchart@ideasonboard.com> <20110726085215.GL29320@valkosipuli.localdomain>
+In-Reply-To: <20110726085215.GL29320@valkosipuli.localdomain>
 MIME-Version: 1.0
-To: Peter Chen <cwz0522@gmail.com>
-CC: linux-media@vger.kernel.org
-Subject: Re: where to find the old hg repo. ?
-References: <CAMwFWNYZWLRS-T_xMcJf1-RX+E2hNZ4FmGSk5Q9zpkKxarYP9Q@mail.gmail.com>
-In-Reply-To: <CAMwFWNYZWLRS-T_xMcJf1-RX+E2hNZ4FmGSk5Q9zpkKxarYP9Q@mail.gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
+Message-Id: <201107261647.48235.laurent.pinchart@ideasonboard.com>
+Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
-Sender: <mchehab@infradead.org>
 
-On 07/09/2011 05:14 AM, Peter Chen wrote:
-> Dear all,
-> I need the old revision of the mxl500x-af9015 to driver the USB device
-> 07ca:815c from AVerMedia.
-> Original path is:  http://linuxtv.org/hg/~anttip/af9015-mxl500x
->
-> the wanted revision is af9015-mxl500x-1487a7dcf22a or other
-> newer/latest revision.
->
-> One of my friend in his company has successfully use the driver to watch TV,
-> but he cannot send the source to me according company policy.
->
-> Is it not integrated into mainline kernel?
+Hi Sakari,
 
-I removed it since it have been inside main Kernel ages.
+On Tuesday 26 July 2011 10:52:16 Sakari Ailus wrote:
+> On Fri, Jun 17, 2011 at 10:56:11AM +0200, Laurent Pinchart wrote:
+> > Hello everybody,
+> 
+> Hi Laurent and all others,
+> 
+> > Following our (not so) long-standing tradition of V4L2 brainstorming
+> > meetings, I would like to propose Cambridge, UK as a possible location
+> > for the next brainstorming session on the first week of August (1st to
+> > 5th).
+> > 
+> > Linaro developers will gather for a one-week sprint session at the same
+> > time and place, and they will have a 3 half-day graphics summit where
+> > graphic memory management will be discussed
+> > (https://wiki.linaro.org/Events/2011-08- LDS/Schedule). Collocating the
+> > V4L2 brainstorming meeting with the Linaro sprint would allow those of
+> > us who are interested in both topics to attend the Linaro graphics
+> > summit as well.
+> > 
+> > Topics to be discussed include pipeline configuration and per-frame
+> > configuration. Other topics can be proposed as well, but this should be
+> > enough to fill our usual 3 days agenda.
+> 
+> What about sub-subdevs? Or is everything concerning them clear? :-)
 
-Are you sure product ID is 815c? Current driver does not have this ID 
-and I am almost 100% sure it was never supported. You should add new 
-device entry for that device to af9015.c in order to get it working. 
-Please send patch.
-
-
-regards
-Antti
-
+Please see the meeting's agenda I've just posted :-)
 
 -- 
-http://palosaari.fi/
+Regards,
+
+Laurent Pinchart
