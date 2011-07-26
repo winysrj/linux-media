@@ -1,53 +1,79 @@
-Return-path: <mchehab@localhost>
-Received: from moutng.kundenserver.de ([212.227.126.186]:52466 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753232Ab1GFPAU (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 6 Jul 2011 11:00:20 -0400
-From: Arnd Bergmann <arnd@arndb.de>
-To: linux-arm-kernel@lists.infradead.org
-Subject: Re: [Linaro-mm-sig] [PATCH 6/8] drivers: add Contiguous Memory Allocator
-Date: Wed, 6 Jul 2011 16:59:45 +0200
-Cc: Nicolas Pitre <nicolas.pitre@linaro.org>,
-	"Russell King - ARM Linux" <linux@arm.linux.org.uk>,
-	"'Daniel Walker'" <dwalker@codeaurora.org>,
-	"'Jonathan Corbet'" <corbet@lwn.net>,
-	"'Mel Gorman'" <mel@csn.ul.ie>,
-	"'Chunsang Jeong'" <chunsang.jeong@linaro.org>,
-	linux-kernel@vger.kernel.org,
-	"'Michal Nazarewicz'" <mina86@mina86.com>,
-	linaro-mm-sig@lists.linaro.org,
-	"'Jesse Barker'" <jesse.barker@linaro.org>,
-	"'Kyungmin Park'" <kyungmin.park@samsung.com>,
-	"'Ankita Garg'" <ankita@in.ibm.com>,
-	"'Andrew Morton'" <akpm@linux-foundation.org>, linux-mm@kvack.org,
-	"'KAMEZAWA Hiroyuki'" <kamezawa.hiroyu@jp.fujitsu.com>,
-	linux-media@vger.kernel.org
-References: <1309851710-3828-1-git-send-email-m.szyprowski@samsung.com> <20110706142345.GC8286@n2100.arm.linux.org.uk> <alpine.LFD.2.00.1107061034200.14596@xanadu.home>
-In-Reply-To: <alpine.LFD.2.00.1107061034200.14596@xanadu.home>
+Return-path: <linux-media-owner@vger.kernel.org>
+Received: from mx1.redhat.com ([209.132.183.28]:23988 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751377Ab1GZR5X (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 26 Jul 2011 13:57:23 -0400
+Message-ID: <4E2EFFF0.3000904@redhat.com>
+Date: Tue, 26 Jul 2011 13:57:04 -0400
+From: Jarod Wilson <jarod@redhat.com>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
+To: Chris W <lkml@psychogeeks.com>
+CC: linux-media@vger.kernel.org, Andy Walls <awalls@md.metrocast.net>
+Subject: Re: [PATCH] [media] imon: don't parse scancodes until intf configured
+References: <D7E52A85-331A-4650-94F0-C1477F457457@redhat.com> <1311091967-2791-1-git-send-email-jarod@redhat.com> <4E25FFB7.70205@psychogeeks.com> <20110720131830.GC9799@redhat.com> <4E275D2A.9070200@psychogeeks.com>
+In-Reply-To: <4E275D2A.9070200@psychogeeks.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
-Message-Id: <201107061659.45253.arnd@arndb.de>
+Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
-Sender: <mchehab@infradead.org>
 
-On Wednesday 06 July 2011, Nicolas Pitre wrote:
-> On Wed, 6 Jul 2011, Russell King - ARM Linux wrote:
-> 
-> > Another issue is that when a platform has restricted DMA regions,
-> > they typically don't fall into the highmem zone.  As the dmabounce
-> > code allocates from the DMA coherent allocator to provide it with
-> > guaranteed DMA-able memory, that would be rather inconvenient.
-> 
-> Do we encounter this in practice i.e. do those platforms requiring large 
-> contiguous allocations motivating this work have such DMA restrictions?
+Chris W wrote:
+> On 20/07/11 23:18, Jarod Wilson wrote:
+>> On Wed, Jul 20, 2011 at 08:05:43AM +1000, Chris W wrote:
+>>> On 20/07/11 02:12, Jarod Wilson wrote:
+>>>> The imon devices have either 1 or 2 usb interfaces on them, each wired
+>>>> up to its own urb callback. The interface 0 urb callback is wired up
+>>>> before the imon context's rc_dev pointer is filled in, which is
+>>>> necessary for imon 0xffdc device auto-detection to work properly, but
+>>>> we need to make sure we don't actually run the callback routines until
+>>>> we've entirely filled in the necessary bits for each given interface,
+>>>> lest we wind up oopsing. Technically, any imon device could have hit
+>>>> this, but the issue is exacerbated on the 0xffdc devices, which send a
+>>>> constant stream of interrupts, even when they have no valid key data.
+>>>
+>>>
+>>> OK.  The patch applies and everything continues to work.   There is no
+>>> obvious difference in the dmesg output on module load, with my device
+>>> remaining unidentified.  I don't know if that is indicative of anything.
+>> Did you apply this patch on top of the earlier patch, or instead of it?
+>
+> On top of it.   I've reversed the patches and installed just the last
+> one with this result on loading the module:
+>
+> input: iMON Panel, Knob and Mouse(15c2:ffdc) as
+> /devices/pci0000:00/0000:00:10.2/usb4/4-2/4-2:1.0/input/input8
+> imon 4-2:1.0: 0xffdc iMON VFD, iMON IR (id 0x24)
+> Registered IR keymap rc-imon-pad
+> input: iMON Remote (15c2:ffdc) as
+> /devices/pci0000:00/0000:00:10.2/usb4/4-2/4-2:1.0/rc/rc3/input9
+> rc3: iMON Remote (15c2:ffdc) as
+> /devices/pci0000:00/0000:00:10.2/usb4/4-2/4-2:1.0/rc/rc3
+> imon 4-2:1.0: iMON device (15c2:ffdc, intf0) on usb<4:3>  initialized
+> usbcore: registered new interface driver imon
+>
+> Much better.
 
-You can probably find one or two of those, but we don't have to optimize
-for that case. I would at least expect the maximum size of the allocation
-to be smaller than the DMA limit for these, and consequently mandate that
-they define a sufficiently large CONSISTENT_DMA_SIZE for the crazy devices,
-or possibly add a hack to unmap some low memory and call
-dma_declare_coherent_memory() for the device.
+Yeah, that looks sane now. We missed 3.0, but I'll try to flag this one 
+to go into the various stable trees when it gets merged for 3.1.
 
-	Arnd
+
+>>> intf0 decoded packet: 00 00 00 00 00 00 24 01
+>>> intf0 decoded packet: 00 00 00 00 00 00 24 01
+>>> intf0 decoded packet: 00 00 00 00 00 00 24 01
+>> One other amusing tidbit: you get continuous spew like the above, because
+>> to date, I thought all the ffdc devices had "nothing to report" spew that
+>> started with 0xffffff, which we filter out. Sigh. I hate imon hardware...
+>
+> I am beginning to understand why. That output was only printed with the
+> "debug=1" option and is not printed with the patched module.
+
+Yup. The additional filtering was added because my own ffdc imon devices 
+were so noisy, it was next to impossible to see what was going on when 
+trying to debug anything.
+
+
+-- 
+Jarod Wilson
+jarod@redhat.com
+
+
