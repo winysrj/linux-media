@@ -1,65 +1,63 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:36204 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752620Ab1GQVJx (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 17 Jul 2011 17:09:53 -0400
-Message-ID: <4E234FEF.6000204@redhat.com>
-Date: Sun, 17 Jul 2011 23:11:11 +0200
-From: Hans de Goede <hdegoede@redhat.com>
+Received: from smtp-68.nebula.fi ([83.145.220.68]:43601 "EHLO
+	smtp-68.nebula.fi" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753160Ab1GZTFl (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 26 Jul 2011 15:05:41 -0400
+Date: Tue, 26 Jul 2011 22:05:37 +0300
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Hans de Goede <hdegoede@redhat.com>
+Cc: Yordan Kamenov <ykamenov@mm-sol.com>, linux-media@vger.kernel.org,
+	sakari.ailus@maxwell.research.nokia.com
+Subject: Re: [PATCH v4 1/1] libv4l: Add plugin support to libv4l
+Message-ID: <20110726190536.GE32629@valkosipuli.localdomain>
+References: <1304436396-10501-1-git-send-email-ykamenov@mm-sol.com>
+ <1678f1f41284ad9665de8717b7b8be117ddf9596.1304435825.git.ykamenov@mm-sol.com>
+ <4E234D53.4030604@redhat.com>
+ <4E2999C6.1090006@mm-sol.com>
+ <4E2C5826.6040109@redhat.com>
 MIME-Version: 1.0
-To: Tomasz Stanislawski <t.stanislaws@samsung.com>
-CC: linux-media@vger.kernel.org, m.szyprowski@samsung.com,
-	kyungmin.park@samsung.com, mchehab@redhat.com, pawel@osciak.com
-Subject: Re: [PATCH 1/2] libv4l2: add implicit conversion from single- to
- multi-plane api
-References: <1309944253-11703-1-git-send-email-t.stanislaws@samsung.com>
-In-Reply-To: <1309944253-11703-1-git-send-email-t.stanislaws@samsung.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <4E2C5826.6040109@redhat.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+On Sun, Jul 24, 2011 at 07:36:38PM +0200, Hans de Goede wrote:
+> Hi,
+> 
+> On 07/22/2011 05:39 PM, Yordan Kamenov wrote:
+> >Hi Hans,
+> >
+> >Hans de Goede wrote:
+> >>Hi,
+> >>
+> >>Sorry it took so long, but I've just merged the plugin
+> >>support into v4l-utils git. I did make some minor mods /
+> >>bugfixes before merging, see the commit message in git.
+> >>
+> >>Regards,
+> >>
+> >>Hans
+> >>
+> >>p.s.
+> >>
+> >>I think we should expand the plugin support with support
+> >>for a output devices, iow add a write() dev_op. If you
+> >>guys agree I can easily do so myself, we should do this
+> >>asap before people start depending on the ABI
+> >>(although there is no ABI stability promise until I
+> >>release 0.10.x, see my message to the list wrt
+> >>the start of the 0.9.x cycle).
+> >>
+> >
+> >I think that it is a good point, you can add write() and
+> >reserved dev_ops.
+> 
+> Ok, done, this is in v4l-utils git master now.
 
-On 07/06/2011 11:24 AM, Tomasz Stanislawski wrote:
-> This patch add implicit conversion of single plane variant of ioctl to
-> multiplane variant. The conversion is performed only in case if a driver
-> implements only mplane api. The conversion is done by substituting SYS_IOCTL
-> with a wrapper that converts single plane call to their mplane analogs.
-> Function v4l2_fd_open was revised to work correctly with the wrapper.
->
-> Signed-off-by: Tomasz Stanislawski<t.stanislaws@samsung.com>
-> Signed-off-by: Kyungmin Park<kyungmin.park@samsung.com>
+Wow! Thanks, Hans and Yordan! :-)
 
-Thanks for the patch, I like the general idea, but I'm not completely
-happy with the implementation.
-
-I think overloading SYS_ioctl is not such a great idea, since this won't
-work for calls made by libv4lconvert, unless we export it from libv4l2
-and use it in libv4lconvert too, which is quite ugly from an ABI pov.
-
-This is also problematic in the light of the upcoming plugin support
-(which just landed in v4l-utils git). Notice how that has replaced
-SYS_ioctl with dev_ops->ioctl, so that plugins can intercept ioctls.
-
-Actually the plugni support should make doing this more easy wrt
-libv4lconvert, since libv4lconvert now uses dev_ops->ioctl too.
-
-I think this can and should be handled in the following way, with a
-2 patch patch-set:
-
-Patch1: Make the dev_ops member of v4l2_dev_info a struct rather
-then a pointer to a struct (and adjust v4l_plugin_init accordingly).
-
-Patch2: If one of the devices in question is detected the original
-dev_ops->ioctl should be saved in v4l2_dev_info and be replaced with
-the proposed wrapper, which then calls the saved original in cases
-where it now calls SYS_ioctl.
-
-Regards,
-
-Hans
-
-
-
-
+-- 
+Sakari Ailus
+sakari.ailus@iki.fi
