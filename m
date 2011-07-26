@@ -1,86 +1,52 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:40669 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750924Ab1GQDUh (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 16 Jul 2011 23:20:37 -0400
-Message-ID: <4E2254FA.8080200@redhat.com>
-Date: Sun, 17 Jul 2011 00:20:26 -0300
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Received: from smtp-68.nebula.fi ([83.145.220.68]:35932 "EHLO
+	smtp-68.nebula.fi" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751165Ab1GZIwW (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 26 Jul 2011 04:52:22 -0400
+Date: Tue, 26 Jul 2011 11:52:16 +0300
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>,
+	Marek Szyprowski <m.szyprowski@samsung.com>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: Re: [RFC] V4L2 brainstorming meeting in Cambridge, August 2011
+Message-ID: <20110726085215.GL29320@valkosipuli.localdomain>
+References: <201106171056.11702.laurent.pinchart@ideasonboard.com>
 MIME-Version: 1.0
-To: Linus Torvalds <torvalds@linux-foundation.org>
-CC: Andrew Morton <akpm@linux-foundation.org>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
-Subject: [GIT pull for 3.0] media regression fixes: Was: Re: [GIT PULL for
- 3.0] master
-References: <4E21B169.4020902@redhat.com>
-In-Reply-To: <4E21B169.4020902@redhat.com>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <201106171056.11702.laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em 16-07-2011 12:42, Mauro Carvalho Chehab escreveu:
-> Linus,
+On Fri, Jun 17, 2011 at 10:56:11AM +0200, Laurent Pinchart wrote:
+> Hello everybody,
 
-In time:
+Hi Laurent and all others,
 
-Email subject got wrong... 
+> Following our (not so) long-standing tradition of V4L2 brainstorming meetings, 
+> I would like to propose Cambridge, UK as a possible location for the next 
+> brainstorming session on the first week of August (1st to 5th).
+> 
+> Linaro developers will gather for a one-week sprint session at the same time 
+> and place, and they will have a 3 half-day graphics summit where graphic 
+> memory management will be discussed (https://wiki.linaro.org/Events/2011-08-
+> LDS/Schedule). Collocating the V4L2 brainstorming meeting with the Linaro 
+> sprint would allow those of us who are interested in both topics to attend the 
+> Linaro graphics summit as well.
+> 
+> Topics to be discussed include pipeline configuration and per-frame 
+> configuration. Other topics can be proposed as well, but this should be enough 
+> to fill our usual 3 days agenda.
 
-Note to myself: I should avoid rush sending emails just before a weekend travel...
+What about sub-subdevs? Or is everything concerning them clear? :-)
 
-The patches at the tree are correct, and I double-checked it on my
-notebook.
+Regards,
 
-Thanks!
-Mauro
-
-> 
-> Please pull from:
->   ssh://master.kernel.org/pub/scm/linux/kernel/git/mchehab/linux-2.6.git v4l_for_linus
-> 
-> For a couple of regression fixes for 3.0.
-> 
-> Thanks!
-> Mauro
-> 
-> The following changes since commit ddc6ff31cc22720c46c1547a5310ea260a968ae9:
-> 
->   [media] msp3400: fill in v4l2_tuner based on vt->type field (2011-07-07 17:28:30 -0300)
-> 
-> are available in the git repository at:
->   ssh://master.kernel.org/pub/scm/linux/kernel/git/mchehab/linux-2.6.git v4l_for_linus
-> 
-> Devin Heitmueller (1):
->       [media] dvb_frontend: fix race condition in stopping/starting frontend
-> 
-> Jarod Wilson (2):
->       [media] Revert "V4L/DVB: cx23885: Enable Message Signaled Interrupts(MSI)"
->       [media] nuvoton-cir: make idle timeout more sane
-> 
-> Mauro Carvalho Chehab (1):
->       [media] tuner-core: fix a 2.6.39 regression with mt20xx
-> 
-> Rafi Rubin (2):
->       [media] mceusb: Timeout unit corrections
->       [media] mceusb: increase default timeout to 100ms
-> 
-> Ralf Baechle (1):
->       [media] MEDIA: Fix non-ISA_DMA_API link failure of sound code
-> 
-> Randy Dunlap (1):
->       [media] media: fix radio-sf16fmr2 build when SND is not enabled
-> 
->  drivers/media/dvb/dvb-core/dvb_frontend.c  |    8 ++++++++
->  drivers/media/radio/Kconfig                |    4 ++--
->  drivers/media/rc/mceusb.c                  |    9 +++++----
->  drivers/media/rc/nuvoton-cir.c             |    2 +-
->  drivers/media/video/cx23885/cx23885-core.c |    9 ++-------
->  drivers/media/video/tuner-core.c           |   16 ++++++++++++----
->  6 files changed, 30 insertions(+), 18 deletions(-)
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-
+-- 
+Sakari Ailus
+sakari.ailus@iki.fi
