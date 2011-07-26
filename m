@@ -1,84 +1,101 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout-de.gmx.net ([213.165.64.23]:55045 "HELO
+Received: from mailout-de.gmx.net ([213.165.64.23]:55705 "HELO
 	mailout-de.gmx.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1752587Ab1GaWyw (ORCPT
+	with SMTP id S1751443Ab1GZU5t (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 31 Jul 2011 18:54:52 -0400
-Message-ID: <4E35DD38.7070609@gmx.de>
-Date: Sun, 31 Jul 2011 22:54:48 +0000
-From: Florian Tobias Schandinat <FlorianSchandinat@gmx.de>
+	Tue, 26 Jul 2011 16:57:49 -0400
+From: Oliver Endriss <o.endriss@gmx.de>
+Reply-To: Linux Media Mailing List <linux-media@vger.kernel.org>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+Subject: Re: [PATCH] drx-k: Fix QAM Annex C selection
+Date: Tue, 26 Jul 2011 22:27:06 +0200
+Cc: Ralph Metzler <rjkm@metzlerbros.de>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+References: <4E2C0BF8.5090006@redhat.com>
+In-Reply-To: <4E2C0BF8.5090006@redhat.com>
 MIME-Version: 1.0
-To: Geert Uytterhoeven <geert@linux-m68k.org>
-CC: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Paul Mundt <lethal@linux-sh.org>, linux-fbdev@vger.kernel.org,
-	linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org
-Subject: Re: [PATCH/RFC] fbdev: Add FOURCC-based format configuration API
-References: <4DDAE63A.3070203@gmx.de>	<201107111732.52156.laurent.pinchart@ideasonboard.com>	<Pine.LNX.4.64.1107280943470.20737@axis700.grange>	<201107281251.35018.laurent.pinchart@ideasonboard.com> <CAMuHMdX=c=p7oASCE+GgY9AgaCPWoXRQyjEGpn4BvA9xSY6GQg@mail.gmail.com>
-In-Reply-To: <CAMuHMdX=c=p7oASCE+GgY9AgaCPWoXRQyjEGpn4BvA9xSY6GQg@mail.gmail.com>
-Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Type: text/plain;
+  charset="utf-8"
 Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+Message-Id: <201107262227.07515@orion.escape-edv.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 07/31/2011 08:32 PM, Geert Uytterhoeven wrote:
-> On Thu, Jul 28, 2011 at 12:51, Laurent Pinchart
-> <laurent.pinchart@ideasonboard.com>  wrote:
->>> As for struct fb_var_screeninfo fields to support switching to a FOURCC
->>> mode, I also prefer an explicit dedicated flag to specify switching to it.
->>> Even though using FOURCC doesn't fit under the notion of a videomode, using
->>> one of .vmode bits is too tempting, so, I would actually take the plunge and
->>> use FB_VMODE_FOURCC.
->>
->> Another option would be to consider any grayscale>  1 value as a FOURCC. I've
->> briefly checked the in-tree drivers: they only assign grayscale with 0 or 1,
->> and check whether grayscale is 0 or different than 0. If a userspace
->> application only sets grayscale>  1 when talking to a driver that supports the
->> FOURCC-based API, we could get rid of the flag.
->>
->> What can't be easily found out is whether existing applications set grayscale
->> to a>  1 value. They would break when used with FOURCC-aware drivers if we
->> consider any grayscale>  1 value as a FOURCC. Is that a risk we can take ?
->
-> I think we can. I'd expect applications to use either 1 or -1 (i.e.
-> all ones), both are
-> invalid FOURCC values.
->
-> Still, I prefer the nonstd way.
-> And limiting traditional nonstd values to the lowest 24 bits (there
-> are no in-tree
-> drivers using the highest 8 bits, right?).
+On Sunday 24 July 2011 14:11:36 Mauro Carvalho Chehab wrote:
+> Ralph/Oliver,
+> 
+> As I said before,the DRX-K logic to select DVB-C annex A seems wrong.
+> 
+> Basically, it sets Annex A at setEnvParameters, but this var is not
+> used anywhere.  However, as setParamParameters[2] is not used, I suspect
+> that this is a typo.
 
-Okay, it would be okay for me to
-- write raw FOURCC values in nonstd, enable FOURCC mode if upper byte != 0
-- not having an explicit flag to enable FOURCC
-- in FOURCC mode drivers must set visual to FB_VISUAL_FOURCC
-- making support of FOURCC visible to userspace by capabilites |= FB_CAP_FOURCC
+Yes, it is a typo.
+It has no impact for Annex A, and nobody uses Annex C here.
 
-The capabilities is not strictly necessary but I think it's very useful as
-- it allows applications to make sure the extension is supported (for example to 
-adjust the UI)
-- it allows applications to distinguish whether a particular format is not 
-supported or FOURCC at all
-- it allows signaling further extensions of the API
-- it does not hurt, one line per driver and still some bytes in fixinfo free
+Acked-by: Oliver Endriss <o.endriss@gmx.de>
 
+> The enclosed patch fixes it, but, on my tests here with devices with
+> drx-3913k and drx-3926k, DVB-C is not working with the drxk_a3.mc firmware. 
+> So, I'm not sure if the devices I have don't support that firmware,
+> or if the DVB-C code is broken or is not supported by such firmware.
+> 
+> I'm getting the drxk_a3.mc via Documentation/dvb/get_dvb_firmware
+> from:
+> 	http://l4m-daten.de/files/DDTuner.zip
 
-So using it would look like this:
-- the driver must have capabilities |= FB_CAP_FOURCC
-- the application may check capabilities to know whether FOURCC is supported
-- the application may write a raw FOURCC value in nonstd to request changing to 
-FOURCC mode with this format
-- when the driver switches to a FOURCC mode it must have visual = 
-FB_VISUAL_FOURCC and the current FOURCC format in nonstd
-- the application should check visual and nonstd to make sure it gets what it wanted
+This firmware is guaranteed to work for the drx-3913k spin A3 only.
 
+> With the firmware I'm using, SCU_RAM_COMMAND_CMD_DEMOD_SET_PARAM only
+> accepts 1 parameter.
+> 
+> So, I can't actually test it.
+> 
+> Could you please double-check it?
 
-So if there are no strong objections against this I think we should implement it.
-I do not really care whether we use a union or not but I think if we decide to 
-have one it should cover all fields that are undefined/unused in FOURCC mode.
+Please note that the interface may be different for other versions of
+the chip or firmware. So you have to be very careful, when you add
+support for other DRXK chips.
 
+> Fix the DRX-K logic to select DVB-C annex A
+> 
+> setEnvParameters, but this var is not used anywhere.  However, as 
+> setParamParameters[2] is not used, it seems to be a typo.
+> 
+> The enclosed patch fixes it.
+> 
+> This patch was not tested.
+> ...
+>  	status = scu_command(state, SCU_RAM_COMMAND_STANDARD_QAM | SCU_RAM_COMMAND_CMD_DEMOD_SET_PARAM, 4, setParamParameters, 1, &cmdResult);
+>  	if (status < 0) {
+> +		u16 setEnvParameters[5] = { 0, 0, 0, 0, 0 };
+>  		/* Fall-back to the simpler call */
+>  		setParamParameters[0] = QAM_TOP_ANNEX_A;
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Imho this line is a typo, too.
+You can remove it, as setParamParameters[0] is initialised below.
 
-Hope we can find anything that everyone considers acceptable,
+>  		if (state->m_OperationMode == OM_QAM_ITU_C)
+> @@ -5461,8 +5459,8 @@ static int SetQAM(struct drxk_state *state, u16 IntermediateFreqkHz,
+>  			setEnvParameters[0] = 0;
+>  
+>  		status = scu_command(state, SCU_RAM_COMMAND_STANDARD_QAM | SCU_RAM_COMMAND_CMD_DEMOD_SET_ENV, 1, setEnvParameters, 1, &cmdResult);
+> -	if (status < 0)
+> -		goto error;
+> +		if (status < 0)
+> +			goto error;
+>  
+>  		setParamParameters[0] = state->m_Constellation; /* constellation     */
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+>  		setParamParameters[1] = DRXK_QAM_I12_J17;       /* interleave mode   */
 
-Florian Tobias Schandinat
+CU
+Oliver
+
+-- 
+----------------------------------------------------------------
+VDR Remote Plugin 0.4.0: http://www.escape-edv.de/endriss/vdr/
+4 MByte Mod: http://www.escape-edv.de/endriss/dvb-mem-mod/
+Full-TS Mod: http://www.escape-edv.de/endriss/dvb-full-ts-mod/
+----------------------------------------------------------------
