@@ -1,68 +1,56 @@
-Return-path: <mchehab@localhost>
-Received: from mx1.redhat.com ([209.132.183.28]:41787 "EHLO mx1.redhat.com"
+Return-path: <linux-media-owner@vger.kernel.org>
+Received: from lo.gmane.org ([80.91.229.12]:60444 "EHLO lo.gmane.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753910Ab1GFPcR (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 6 Jul 2011 11:32:17 -0400
-Message-ID: <4E147FFA.1020902@redhat.com>
-Date: Wed, 06 Jul 2011 12:32:10 -0300
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-MIME-Version: 1.0
-To: Linus Torvalds <torvalds@linux-foundation.org>
-CC: Andrew Morton <akpm@linux-foundation.org>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
-Subject: Re: [GIT PULL for v3.1-rc7] media fixes
-References: <4E14775D.9010503@redhat.com>
-In-Reply-To: <4E14775D.9010503@redhat.com>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+	id S1752048Ab1GZMlC (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 26 Jul 2011 08:41:02 -0400
+Received: from list by lo.gmane.org with local (Exim 4.69)
+	(envelope-from <gldv-linux-media@m.gmane.org>)
+	id 1QlgwU-00017w-6a
+	for linux-media@vger.kernel.org; Tue, 26 Jul 2011 14:40:58 +0200
+Received: from support01.office.net1.cc ([213.137.58.124])
+        by main.gmane.org with esmtp (Gmexim 0.1 (Debian))
+        id 1AlnuQ-0007hv-00
+        for <linux-media@vger.kernel.org>; Tue, 26 Jul 2011 14:40:58 +0200
+Received: from root by support01.office.net1.cc with local (Gmexim 0.1 (Debian))
+        id 1AlnuQ-0007hv-00
+        for <linux-media@vger.kernel.org>; Tue, 26 Jul 2011 14:40:58 +0200
+To: linux-media@vger.kernel.org
+From: Doychin Dokov <root@net1.cc>
+Subject: Re: driver problem: cx231xx error -71 with Hauppauge USB live2 on
+ Ubuntu 11.04, netbook edition
+Date: Tue, 26 Jul 2011 15:40:31 +0300
+Message-ID: <j0mck9$vh4$1@dough.gmane.org>
+References: <AANLkTinprP=o6_TnPjj1ieZAp27qmW-nuWHq04dN1oVp@mail.gmail.com> <AANLkTi=-umKif5pGz-adhZhtcd8CnJJsZ1pzHn0ttvwA@mail.gmail.com> <j0m9s7$e9j$1@dough.gmane.org> <CAGoCfizFA75Lyyx49EEJO9n5Smw1trBX7Azdu1iYrAqpYnDE8g@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <CAGoCfizFA75Lyyx49EEJO9n5Smw1trBX7Azdu1iYrAqpYnDE8g@mail.gmail.com>
+Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
-Sender: <mchehab@infradead.org>
 
-Em 06-07-2011 11:55, Mauro Carvalho Chehab escreveu:
-> Hi Linus,
-> 
-> Please pull from:
->   ssh://master.kernel.org/pub/scm/linux/kernel/git/mchehab/linux-2.6.git v4l_for_linus
-> 
-> For a series of bug fixes:
-> 	- mx1-camera were using an uninitialized variable;
-> 	- pwc issues at USB disconnect;
-> 	- several mceusb and lirc fixes;
-> 	- some OOPSes fixes at uvc driver;
-> 	- some videobuf2 fixes;
-> 	- some omap1 camera fixes;
-> 	- m5mols/s5p-fimc fixes (this is a driver added at 3.0 merge window);
-> 
-> Thanks!
-> Mauro
-> 
+На 26.7.2011 г. 15:17 ч., Devin Heitmueller написа:
+> On Tue, Jul 26, 2011 at 7:53 AM, Doychin Dokov<root@net1.cc>  wrote:
+>> [416830.939483] cx231xx #0: can't change interface 3 alt no. to 0 (err=-71)
+>>
+>> This is with the stock kernel, no media_build tree installed (I'm currently
+>> compiling it).
+>
+> Patches for this issue were submitted over the weekend.  Check the
+> mailing list for posts from Saturday or wait a few days for the
+> patches to be merged into the linux_media tree.
+>
 
-Linus,
+I find only the Sunday fix for the power ramp issue, which states it's 
+for a problem caused by the config hz being different of 100. Is this 
+the patch you point me to, and do you think it's the solution in my case?
 
-In time:
- 
-There will be a small conflict when applying over 3.0-rc6:
+# cat /boot/config-2.6.38-10-server | grep CONFIG_HZ
+CONFIG_HZ_100=y
+# CONFIG_HZ_250 is not set
+# CONFIG_HZ_300 is not set
+# CONFIG_HZ_1000 is not set
+CONFIG_HZ=100
 
-$ git diff
-diff --cc MAINTAINERS
-index ae563fa,63be58b..0000000
---- a/MAINTAINERS
-+++ b/MAINTAINERS
-@@@ -6733,6 -6723,7 +6733,10 @@@ F:     fs/fat
-  VIDEOBUF2 FRAMEWORK
-  M:    Pawel Osciak <pawel@osciak.com>
-  M:    Marek Szyprowski <m.szyprowski@samsung.com>
-++<<<<<<< HEAD
-++=======
-+ M:        Kyungmin Park <kyungmin.park@samsung.com>
-++>>>>>>> 98c32bcded0e249fd48726930ae9f393e0e318b4
-  L:    linux-media@vger.kernel.org
-  S:    Maintained
-  F:    drivers/media/video/videobuf2-*
+Kind regards,
+Doychin
 
-The right conflict resolution is to add Kyugmin's name as one of the VB2
-maintainers.
-
-Thanks,
-Mauro
