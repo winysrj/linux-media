@@ -1,95 +1,152 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lo.gmane.org ([80.91.229.12]:33485 "EHLO lo.gmane.org"
+Received: from mx1.redhat.com ([209.132.183.28]:15585 "EHLO mx1.redhat.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752168Ab1GMTFI (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 13 Jul 2011 15:05:08 -0400
-Received: from list by lo.gmane.org with local (Exim 4.69)
-	(envelope-from <gldv-linux-media@m.gmane.org>)
-	id 1Qh4k7-0004hw-DS
-	for linux-media@vger.kernel.org; Wed, 13 Jul 2011 21:05:07 +0200
-Received: from h82-143-164-59-static.e-wro.net.pl ([82.143.164.59])
-        by main.gmane.org with esmtp (Gmexim 0.1 (Debian))
-        id 1AlnuQ-0007hv-00
-        for <linux-media@vger.kernel.org>; Wed, 13 Jul 2011 21:05:07 +0200
-Received: from kamil by h82-143-164-59-static.e-wro.net.pl with local (Gmexim 0.1 (Debian))
-        id 1AlnuQ-0007hv-00
-        for <linux-media@vger.kernel.org>; Wed, 13 Jul 2011 21:05:07 +0200
-To: linux-media@vger.kernel.org
-From: Kamil Kaminski <kamil@mrblur.net>
-Subject: Re: Gigabyte 8300
-Date: Wed, 13 Jul 2011 19:00:43 +0000 (UTC)
-Message-ID: <loom.20110713T195633-611@post.gmane.org>
-References: <AANLkTi=SY9xWCjp_0q6US7XN6XYoTWnGHA2=6EfjuWK-@mail.gmail.com> <AANLkTikg79zui71Xz8r-Lg3zut0jkSk-BGEpBpXfWz5Y@mail.gmail.com> <AANLkTimc2TTQQogO8Q6ih6Bv3j_oOcVMux3cg-CJPGsw@mail.gmail.com> <AANLkTim_mU7ayxjeE2HQz57UsPqHU46dPC3Ys600RJAD@mail.gmail.com> <1283529713.12583.84.camel@morgan.silverblock.net> <AANLkTimvC6811Pb-sxTVSod-p2U+Cmy5QUenKRn9ceYX@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 8bit
+	id S1751342Ab1GZNuT (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 26 Jul 2011 09:50:19 -0400
+Message-ID: <4E2EC67E.6010300@redhat.com>
+Date: Tue, 26 Jul 2011 15:51:58 +0200
+From: Hans de Goede <hdegoede@redhat.com>
+MIME-Version: 1.0
+To: Hans Verkuil <hverkuil@xs4all.nl>
+CC: Hans Verkuil <hansverk@cisco.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: Some comments on the new autocluster patches
+References: <4E0DE283.2030107@redhat.com> <201107041143.13458.hansverk@cisco.com> <4E1C4B2E.7010403@redhat.com> <201107261126.22285.hverkuil@xs4all.nl>
+In-Reply-To: <201107261126.22285.hverkuil@xs4all.nl>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Devin Heitmueller <dheitmueller <at> kernellabs.com> writes:
+Hi,
 
-> 
-> On Fri, Sep 3, 2010 at 12:01 PM, Andy Walls <awalls <at> md.metrocast.net> 
-wrote:
-> > On Fri, 2010-09-03 at 10:55 +0000, Dagur Ammendrup wrote:
-> >> I tried it on a windows machine where it's identified as "Conextant
-> >> Polaris Video Capture"  or
-> >> 
-"oem17.inf:Conexant.NTx86:POLARIS.DVBTX.x86:6.113.1125.1210:usb\vid_1b80&pid_d41
-6&mi_01"
-> >> if that tells you anything.
-> >
-> >
-> > Polaris refers to the series of CX2310[012] chips IIRC.
-> >
-> > Support would need changes to the cx231xx driver, and possibly changes
-> > to the cx25480 module, depending on how far the board differs from
-> > Conexant reference designs.
-> 
-> I've been working with Conexant on this, and have their current tree here:
-> 
-> https://www.kernellabs.com/hg/~dheitmueller/polaris4/
-> 
-> So if you feel the urge to do any new device support, I would suggest
-> using this as a starting point.
-> 
-> Devin
-> 
+On 07/26/2011 11:26 AM, Hans Verkuil wrote:
+> OK, I'm back to work after my vacation, so it's time to go through the
+> backlog...
+>
 
+Welcome back :)
 
-Hello everyone,
+> On Tuesday, July 12, 2011 15:25:02 Hans de Goede wrote:
+>> Hi,
+>>
+>> On 07/04/2011 11:43 AM, Hans Verkuil wrote:
 
-I'd like to refresh a little this thread as I have also bought this device and 
-I'm willing to donate my time to make it working with Linux.
+<snip snip>
 
-The bad news is that I am not familiar with Linux API (and device programming at 
-all), so I can only offer myself for testing and gathering informations.
+>>> It is relevant. Take an application that saves the current state of all
+>>> controls and restores it the next time it is started. If you report the
+>>> device's autogain value instead of the manual gain, then that manual gain
+>>> value is lost. I consider this a major drawback.
+>>
+>> If autogain is on, then the gain is RO, so it should not be saved. Let alone
+>> restored.
+>
+> Marking gain as inactive is fine, but marking it as read-only is not so clear.
+> Currently the RO flag is static. This allows control panels to use e.g. a text
+> field instead of an input field to show the value.
+>
+> I would like to keep that functionality. If we make the RO flag dynamic, then
+> GUIs won't know whether to show it as a disabled input field or as a text field.
+>
+> Whereas with the inactive flag they will know that it has to be a disabled
+> input field.
+>
 
-I have taken two high resolution pictures of this board.
-As you (propably) know, it has 3 chips:
-- Conexant 23102-11Z
-- Conexant 24232-11Z
-- NXP TDA18271 HDC2
+Agreed, where I wrote read only I meant inactive, which does make it less clear
+that the control should not be saved / restored by a save / restore app.
 
-The board is labeled UD412 if it makes any sense.
+> When the inactive flag is set, it is still allowed to set the value. However,
+> if we add a volatile flag as well, then we may want to have the combination
+> 'inactive and volatile' return an error when an application attempts to set the
+> value.
 
-Pictures are on Picasa account: 
-https://picasaweb.google.com/kamilkaminski000/GigabyteU8300?
-authuser=0&authkey=Gv1sRgCID_5oOcsdXRpwE&feat=directlink
-Both are 10MPix, you can zoom-in.
+I think that is a good solution to indicate dynamic-readonly ness (more or less),
+and thus to indicate that the control should not be written (and thus not saved/
+restored).
 
-Device is still not recognized on Gentoo with 2.6.39-r3 (2.6.39.3) kernel.
-It has same vendor id and device id (1b80:d416).
+> Or is this too complex and should we just discard the value in a case like that?
 
-I have seen that there are drivers ready for tuner and for conexant chip. Is it 
-really a problem to put them together?
+I would prefer returning an error, so that things don't silently fail, also
+unless we actually return an error many apps are likely to get this wrong.
 
-I do not know where to start, and this thread is the only one Google shows.
+<snip snip>
 
-I do not understand also the last message on thread, I have checked kernellabs 
-code, but haven't seen my device in USB devices table for cx231xx. No cx2432 
-also.
+>> I still believe that everything boils down to 2 possible scenarios,
+>> and the rest follows from that. With the 2 scenarios being:
+>>
+>> 1) There is a manual setting which is constant until explicitly
+>> changed, when (ie) gain switches from auto mode to manual mode
+>> then the actual used gain is reset to this manual setting
+>>
+>> 2) There is a single gain setting / register, which is r/w when the
+>> control is in manual mode and ro when in auto mode. When auto mode
+>> gets switched off, the gain stays at the last value set by auto mode.
+>>
+>> 2) Is what most webcam sensors (and the pwc firmware) implement at
+>> the hardware level, and what to me also makes the most sense for webcams.
+>>
+>> To me this whole discussion centers around these 2 scenarios, with you
+>> being a proponent of 1), and I guess that for video capture boards 1 makes
+>> a lot of sense, and me being a proponent of 2.
+>>
+>> Proposal: lets agree that these 2 methods of handling autofoo controls
+>> both exist and both have merits in certain cases, this means letting
+>> it be up to the driver to choose which method to implement.
+>
+> OK.
+>
+>> If we can agree on this, then the next step would be to document both
+>> methods, as well as how the controls should behave in either scenario.
+>> I'm willing to write up a first draft for this.
+>
+> I can do that as well, see below.
 
-Best regards,
-Kamil Kaminski
+Ah great, you just saved me some work I always like it when people
+save me work :)
 
+<snip snip>
+
+>> I think we need to agree that we disagree :)
+>
+> Actually, I agree with much of what you wrote :-)
+>
+
+Good :)
+
+> OK, so we have two scenarios:
+>
+> 1) There is a manual setting which is constant until explicitly changed, when e.g.
+> gain switches from auto mode to manual mode then the actual used gain is reset to
+> this manual setting.
+>
+> In this case the e.g. gain control is *not* marked volatile, but just inactive.
+> If the hardware can return the gain as set by the autogain circuit, then that has
+> to be exported as a separate read-only control (e.g. 'Current Gain').
+>
+>
+> 2) There is a single gain setting / register, which is active when the control is in
+> manual mode and inactive and volatile when in auto mode. When auto mode gets switched
+> off, the gain stays at the last value set by auto mode.
+>
+> This scenario is only possible, of course, if you can obtain the gain value as set
+> by the autogain circuitry.
+>
+
+I fully agree with the above, +1
+
+> An open question is whether writing to an inactive and volatile control should return
+> an error or not.
+
+I would prefer an error return.
+
+> Webcams should follow scenario 2 (if possible).
+>
+> It is less obvious what to recommend for video capture devices. I'd leave it up to
+> the driver for now.
+
+Sounds good to me.
+
+Regards,
+
+Hans
