@@ -1,76 +1,266 @@
-Return-path: <mchehab@pedra>
-Received: from mail-ww0-f44.google.com ([74.125.82.44]:36441 "EHLO
-	mail-ww0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753071Ab1GCUig (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sun, 3 Jul 2011 16:38:36 -0400
-Received: by wwe5 with SMTP id 5so4557194wwe.1
-        for <linux-media@vger.kernel.org>; Sun, 03 Jul 2011 13:38:35 -0700 (PDT)
-Subject: RE: [PATCH] STV0288 Fast Channel Acquisition
-From: Malcolm Priestley <tvboxspy@gmail.com>
-To: =?ISO-8859-1?Q?S=E9bastien?= "RAILLARD (COEXSI)" <sr@coexsi.fr>
-Cc: 'Linux Media Mailing List' <linux-media@vger.kernel.org>,
-	o.endriss@gmx.de
-In-Reply-To: <004901cc37c7$147763d0$3d662b70$@coexsi.fr>
-References: <00a301cc365e$b6d415c0$247c4140$@coexsi.fr>
-	 <1309472493.11947.12.camel@localhost>
-	 <004901cc37c7$147763d0$3d662b70$@coexsi.fr>
-Content-Type: text/plain; charset="UTF-8"
-Date: Sun, 03 Jul 2011 21:38:27 +0100
-Message-ID: <1309725507.6571.14.camel@localhost>
-Mime-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Return-path: <linux-media-owner@vger.kernel.org>
+Received: from smtp.nokia.com ([147.243.1.48]:19195 "EHLO mgw-sa02.nokia.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753032Ab1GZStt (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 26 Jul 2011 14:49:49 -0400
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: linux-media@vger.kernel.org
+Cc: hans.verkuil@cisco.com, snjw23@gmail.com,
+	laurent.pinchart@ideasonboard.com
+Subject: [PATCH 1/3] v4l: Move event documentation from SUBSCRIBE_EVENT to DQEVENT
+Date: Tue, 26 Jul 2011 21:49:42 +0300
+Message-Id: <1311706184-22658-1-git-send-email-sakari.ailus@iki.fi>
+In-Reply-To: <4E2F0C53.10907@iki.fi>
+References: <4E2F0C53.10907@iki.fi>
+Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
-Sender: <mchehab@pedra>
 
-On Fri, 2011-07-01 at 10:15 +0200, Sébastien RAILLARD (COEXSI) wrote:
-> 
-> > -----Original Message-----
-> > From: linux-media-owner@vger.kernel.org [mailto:linux-media-
-> > owner@vger.kernel.org] On Behalf Of Malcolm Priestley
-> > Sent: vendredi 1 juillet 2011 00:22
-> > To: Linux Media Mailing List
-> > Cc: Sébastien RAILLARD (COEXSI)
-> > Subject: [PATCH] STV0288 Fast Channel Acquisition
-> > 
-> > On Wed, 2011-06-29 at 15:16 +0200, Sébastien RAILLARD (COEXSI) wrote:
-> > 
-> > > On some other transponders, like ASTRA 19.2E 11567-V-22000, the card
-> > > nearly never manage to get the lock: it's looking like the signal
-> > > isn't good enough.
-> > > I turned on the debugging of the stb6000 and stv0288 modules, but I
-> > > can't see anything wrong.
-> > 
-> > I have had similar problems with the stv0288 on astra 19.2 and 28.2 with
-> > various frequencies.
-> > 
-> > I have been using this patch for some time which seems to improve
-> > things.
-> > 
-> > The STV0288 has a fast channel function which eliminates the need for
-> > software carrier search.
-> > 
-> > The patch removes the slow carrier search and replaces it with this
-> > faster and more reliable built-in chip function.
-> > 
-> > If carrier is lost while channel is running, fast channel attempts to
-> > recover it.
-> > 
-> > The patch also reguires registers 50-57 to be set correctly with
-> > inittab. All current combinations in the kernel media tree have been
-> > checked and tested.
-> > 
-> 
-> Thanks Macolm for this patch!
-> 
-> Regarding the TT-S-1500b, it's using a specific inittab, I hope Oliver can have a look and check if this patch is compatible with the ALPS BSBE1 tuner.
-> 
-> Sebastien
-> 
-For some reason, I have had nothing but trouble today testing this patch
-scanning and tuning certain frequencies. Especially 11426V on Astra
-28.2.
+Move documentation of structures used in DQEVENT from SUBSCRIBE_EVENT to
+DQEVENT.
 
-So this patch is for review only and marked not applicable on Patchwork.
+Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
+Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ Documentation/DocBook/media/v4l/vidioc-dqevent.xml |  107 ++++++++++++++++++++
+ .../DocBook/media/v4l/vidioc-subscribe-event.xml   |  107 --------------------
+ 2 files changed, 107 insertions(+), 107 deletions(-)
 
-tvboxspy
+diff --git a/Documentation/DocBook/media/v4l/vidioc-dqevent.xml b/Documentation/DocBook/media/v4l/vidioc-dqevent.xml
+index 7769642..5200b68 100644
+--- a/Documentation/DocBook/media/v4l/vidioc-dqevent.xml
++++ b/Documentation/DocBook/media/v4l/vidioc-dqevent.xml
+@@ -135,6 +135,113 @@
+       </tgroup>
+     </table>
+ 
++    <table frame="none" pgwide="1" id="v4l2-event-vsync">
++      <title>struct <structname>v4l2_event_vsync</structname></title>
++      <tgroup cols="3">
++	&cs-str;
++	<tbody valign="top">
++	  <row>
++	    <entry>__u8</entry>
++	    <entry><structfield>field</structfield></entry>
++	    <entry>The upcoming field. See &v4l2-field;.</entry>
++	  </row>
++	</tbody>
++      </tgroup>
++    </table>
++
++    <table frame="none" pgwide="1" id="v4l2-event-ctrl">
++      <title>struct <structname>v4l2_event_ctrl</structname></title>
++      <tgroup cols="4">
++	&cs-str;
++	<tbody valign="top">
++	  <row>
++	    <entry>__u32</entry>
++	    <entry><structfield>changes</structfield></entry>
++	    <entry></entry>
++	    <entry>A bitmask that tells what has changed. See <xref linkend="changes-flags" />.</entry>
++	  </row>
++	  <row>
++	    <entry>__u32</entry>
++	    <entry><structfield>type</structfield></entry>
++	    <entry></entry>
++	    <entry>The type of the control. See &v4l2-ctrl-type;.</entry>
++	  </row>
++	  <row>
++	    <entry>union (anonymous)</entry>
++	    <entry></entry>
++	    <entry></entry>
++	    <entry></entry>
++	  </row>
++	  <row>
++	    <entry></entry>
++	    <entry>__s32</entry>
++	    <entry><structfield>value</structfield></entry>
++	    <entry>The 32-bit value of the control for 32-bit control types.
++		This is 0 for string controls since the value of a string
++		cannot be passed using &VIDIOC-DQEVENT;.</entry>
++	  </row>
++	  <row>
++	    <entry></entry>
++	    <entry>__s64</entry>
++	    <entry><structfield>value64</structfield></entry>
++	    <entry>The 64-bit value of the control for 64-bit control types.</entry>
++	  </row>
++	  <row>
++	    <entry>__u32</entry>
++	    <entry><structfield>flags</structfield></entry>
++	    <entry></entry>
++	    <entry>The control flags. See <xref linkend="control-flags" />.</entry>
++	  </row>
++	  <row>
++	    <entry>__s32</entry>
++	    <entry><structfield>minimum</structfield></entry>
++	    <entry></entry>
++	    <entry>The minimum value of the control. See &v4l2-queryctrl;.</entry>
++	  </row>
++	  <row>
++	    <entry>__s32</entry>
++	    <entry><structfield>maximum</structfield></entry>
++	    <entry></entry>
++	    <entry>The maximum value of the control. See &v4l2-queryctrl;.</entry>
++	  </row>
++	  <row>
++	    <entry>__s32</entry>
++	    <entry><structfield>step</structfield></entry>
++	    <entry></entry>
++	    <entry>The step value of the control. See &v4l2-queryctrl;.</entry>
++	  </row>
++	  <row>
++	    <entry>__s32</entry>
++	    <entry><structfield>default_value</structfield></entry>
++	    <entry></entry>
++	    <entry>The default value value of the control. See &v4l2-queryctrl;.</entry>
++	  </row>
++	</tbody>
++      </tgroup>
++    </table>
++
++    <table pgwide="1" frame="none" id="changes-flags">
++      <title>Changes</title>
++      <tgroup cols="3">
++	&cs-def;
++	<tbody valign="top">
++	  <row>
++	    <entry><constant>V4L2_EVENT_CTRL_CH_VALUE</constant></entry>
++	    <entry>0x0001</entry>
++	    <entry>This control event was triggered because the value of the control
++		changed. Special case: if a button control is pressed, then this
++		event is sent as well, even though there is not explicit value
++		associated with a button control.</entry>
++	  </row>
++	  <row>
++	    <entry><constant>V4L2_EVENT_CTRL_CH_FLAGS</constant></entry>
++	    <entry>0x0002</entry>
++	    <entry>This control event was triggered because the control flags
++		changed.</entry>
++	  </row>
++	</tbody>
++      </tgroup>
++    </table>
+   </refsect1>
+   <refsect1>
+     &return-value;
+diff --git a/Documentation/DocBook/media/v4l/vidioc-subscribe-event.xml b/Documentation/DocBook/media/v4l/vidioc-subscribe-event.xml
+index 69c0d8a..275be96 100644
+--- a/Documentation/DocBook/media/v4l/vidioc-subscribe-event.xml
++++ b/Documentation/DocBook/media/v4l/vidioc-subscribe-event.xml
+@@ -183,113 +183,6 @@
+       </tgroup>
+     </table>
+ 
+-    <table frame="none" pgwide="1" id="v4l2-event-vsync">
+-      <title>struct <structname>v4l2_event_vsync</structname></title>
+-      <tgroup cols="3">
+-	&cs-str;
+-	<tbody valign="top">
+-	  <row>
+-	    <entry>__u8</entry>
+-	    <entry><structfield>field</structfield></entry>
+-	    <entry>The upcoming field. See &v4l2-field;.</entry>
+-	  </row>
+-	</tbody>
+-      </tgroup>
+-    </table>
+-
+-    <table frame="none" pgwide="1" id="v4l2-event-ctrl">
+-      <title>struct <structname>v4l2_event_ctrl</structname></title>
+-      <tgroup cols="4">
+-	&cs-str;
+-	<tbody valign="top">
+-	  <row>
+-	    <entry>__u32</entry>
+-	    <entry><structfield>changes</structfield></entry>
+-	    <entry></entry>
+-	    <entry>A bitmask that tells what has changed. See <xref linkend="changes-flags" />.</entry>
+-	  </row>
+-	  <row>
+-	    <entry>__u32</entry>
+-	    <entry><structfield>type</structfield></entry>
+-	    <entry></entry>
+-	    <entry>The type of the control. See &v4l2-ctrl-type;.</entry>
+-	  </row>
+-	  <row>
+-	    <entry>union (anonymous)</entry>
+-	    <entry></entry>
+-	    <entry></entry>
+-	    <entry></entry>
+-	  </row>
+-	  <row>
+-	    <entry></entry>
+-	    <entry>__s32</entry>
+-	    <entry><structfield>value</structfield></entry>
+-	    <entry>The 32-bit value of the control for 32-bit control types.
+-		This is 0 for string controls since the value of a string
+-		cannot be passed using &VIDIOC-DQEVENT;.</entry>
+-	  </row>
+-	  <row>
+-	    <entry></entry>
+-	    <entry>__s64</entry>
+-	    <entry><structfield>value64</structfield></entry>
+-	    <entry>The 64-bit value of the control for 64-bit control types.</entry>
+-	  </row>
+-	  <row>
+-	    <entry>__u32</entry>
+-	    <entry><structfield>flags</structfield></entry>
+-	    <entry></entry>
+-	    <entry>The control flags. See <xref linkend="control-flags" />.</entry>
+-	  </row>
+-	  <row>
+-	    <entry>__s32</entry>
+-	    <entry><structfield>minimum</structfield></entry>
+-	    <entry></entry>
+-	    <entry>The minimum value of the control. See &v4l2-queryctrl;.</entry>
+-	  </row>
+-	  <row>
+-	    <entry>__s32</entry>
+-	    <entry><structfield>maximum</structfield></entry>
+-	    <entry></entry>
+-	    <entry>The maximum value of the control. See &v4l2-queryctrl;.</entry>
+-	  </row>
+-	  <row>
+-	    <entry>__s32</entry>
+-	    <entry><structfield>step</structfield></entry>
+-	    <entry></entry>
+-	    <entry>The step value of the control. See &v4l2-queryctrl;.</entry>
+-	  </row>
+-	  <row>
+-	    <entry>__s32</entry>
+-	    <entry><structfield>default_value</structfield></entry>
+-	    <entry></entry>
+-	    <entry>The default value value of the control. See &v4l2-queryctrl;.</entry>
+-	  </row>
+-	</tbody>
+-      </tgroup>
+-    </table>
+-
+-    <table pgwide="1" frame="none" id="changes-flags">
+-      <title>Changes</title>
+-      <tgroup cols="3">
+-	&cs-def;
+-	<tbody valign="top">
+-	  <row>
+-	    <entry><constant>V4L2_EVENT_CTRL_CH_VALUE</constant></entry>
+-	    <entry>0x0001</entry>
+-	    <entry>This control event was triggered because the value of the control
+-		changed. Special case: if a button control is pressed, then this
+-		event is sent as well, even though there is not explicit value
+-		associated with a button control.</entry>
+-	  </row>
+-	  <row>
+-	    <entry><constant>V4L2_EVENT_CTRL_CH_FLAGS</constant></entry>
+-	    <entry>0x0002</entry>
+-	    <entry>This control event was triggered because the control flags
+-		changed.</entry>
+-	  </row>
+-	</tbody>
+-      </tgroup>
+-    </table>
+   </refsect1>
+   <refsect1>
+     &return-value;
+-- 
+1.7.2.5
 
