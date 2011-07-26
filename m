@@ -1,80 +1,118 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.126.171]:64952 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756294Ab1G2K5F (ORCPT
+Received: from smtp-vbr15.xs4all.nl ([194.109.24.35]:3833 "EHLO
+	smtp-vbr15.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751087Ab1GZJzV (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 29 Jul 2011 06:57:05 -0400
-Received: from 6a.grange (6a.grange [192.168.1.11])
-	by axis700.grange (Postfix) with ESMTPS id 500E218B044
-	for <linux-media@vger.kernel.org>; Fri, 29 Jul 2011 12:57:02 +0200 (CEST)
-Received: from lyakh by 6a.grange with local (Exim 4.72)
-	(envelope-from <g.liakhovetski@gmx.de>)
-	id 1QmkkY-0007pb-6g
-	for linux-media@vger.kernel.org; Fri, 29 Jul 2011 12:57:02 +0200
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: linux-media@vger.kernel.org
-Subject: [PATCH 54/59] V4L: rj54n1cb0c: remove superfluous soc-camera client operations
-Date: Fri, 29 Jul 2011 12:56:54 +0200
-Message-Id: <1311937019-29914-55-git-send-email-g.liakhovetski@gmx.de>
-In-Reply-To: <1311937019-29914-1-git-send-email-g.liakhovetski@gmx.de>
-References: <1311937019-29914-1-git-send-email-g.liakhovetski@gmx.de>
+	Tue, 26 Jul 2011 05:55:21 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Subject: Re: Migrate from soc_camera to v4l2
+Date: Tue, 26 Jul 2011 11:55:04 +0200
+Cc: Teresa Gamez <T.Gamez@phytec.de>, LBM <lbm9527@qq.com>,
+	"linux-media" <linux-media@vger.kernel.org>
+References: <tencent_0C81805C0261B60E5643A744@qq.com> <1310737039.2366.394.camel@lws-gamez> <Pine.LNX.4.64.1107151710220.22613@axis700.grange>
+In-Reply-To: <Pine.LNX.4.64.1107151710220.22613@axis700.grange>
+MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201107261155.04639.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Now that all soc-camera hosts have been ported to use V4L2 subdevice
-mediabus-config operations and soc-camera client bus-parameter operations
-have been made optional, they can be removed.
+On Friday, July 15, 2011 17:31:13 Guennadi Liakhovetski wrote:
+> Hello Teresa
+> 
+> On Fri, 15 Jul 2011, Teresa Gamez wrote:
+> 
+> > Hello Guennadi,
+> > 
+> > Am Mittwoch, den 13.07.2011, 09:14 +0200 schrieb Guennadi Liakhovetski:
+> > > On Wed, 13 Jul 2011, LBM wrote:
+> > > 
+> > > > my dear Guennadi
+> > > >      I'm wrong about that "v4l2-int-device",maybe it just "V4L2".  
+> > > >        Now i have a board of OMAP3530 and a cmos camera MT9M111,so i want to get the image from the mt9m111.
+> > > >  and ,I want to use the V4L2 API. But in the linux kernel 2.6.38,the driver of the mt9m111 is  a soc_camera.I see some thing about how to convert the soc_camera to V4L2,like "soc-camera: (partially) convert to v4l2-(sub)dev API".
+> > > >       Can you tell me how to migrate from soc_camera to v4l2,and
+> > > >      or do you tell me some experience about that?
+> > > 
+> > > Currently there's no standard way to make a driver to work with both 
+> > > soc-camera and (pure) v4l2-subdev APIs. It is being worked on:
+> > > 
+> > > http://www.spinics.net/lists/linux-media/msg34878.html
+> > > 
+> > > and, hopefully, beginning with the next kernel version 3.1 it will become 
+> > > at least theoretically possible. For now you just have to hack the driver 
+> > > yourself for your local uses by removing all soc-camera specific code and 
+> > > replacing it with your own glue, something along these lines:
+> > 
+> > We are also interested in the support of the MT9M111 and MT9V022 for OMAP-4460/OMAP-4430/OMAP-3525.
+> > I have not taken a deeper look at it yet. But what do you mean by theoretically possible?
+> 
+> By this I mean, that most important APIs, required for a "proper" 
+> conversion, suitable for the mainline, should be in place by then. 
+> Although there still might be one thing, preventing this: controls. 
+> Unfortunately, it looks like Hans haven't found the time yet to submit a 
+> new version of his soc-camera conversion to the new v4l2 control 
+> framework, and even if he did, it would be very difficult for me ATM to 
+> find time to review, merge and push it.
 
-Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
----
- drivers/media/video/rj54n1cb0c.c |   27 ---------------------------
- 1 files changed, 0 insertions(+), 27 deletions(-)
+This has been delayed by discussions on how to handle autogain/gain-like
+controls (and my vacation as well). As soon as that has been resolved I can
+continue with this.
 
-diff --git a/drivers/media/video/rj54n1cb0c.c b/drivers/media/video/rj54n1cb0c.c
-index d19c79b..c302211 100644
---- a/drivers/media/video/rj54n1cb0c.c
-+++ b/drivers/media/video/rj54n1cb0c.c
-@@ -499,31 +499,6 @@ static int rj54n1_s_stream(struct v4l2_subdev *sd, int enable)
- 	return reg_set(client, RJ54N1_STILL_CONTROL, (!enable) << 7, 0x80);
- }
- 
--static int rj54n1_set_bus_param(struct soc_camera_device *icd,
--				unsigned long flags)
--{
--	struct v4l2_subdev *sd = soc_camera_to_subdev(icd);
--	struct i2c_client *client = v4l2_get_subdevdata(sd);
--	/* Figures 2.5-1 to 2.5-3 - default falling pixclk edge */
--
--	if (flags & SOCAM_PCLK_SAMPLE_RISING)
--		return reg_write(client, RJ54N1_OUT_SIGPO, 1 << 4);
--	else
--		return reg_write(client, RJ54N1_OUT_SIGPO, 0);
--}
--
--static unsigned long rj54n1_query_bus_param(struct soc_camera_device *icd)
--{
--	struct soc_camera_link *icl = to_soc_camera_link(icd);
--	const unsigned long flags =
--		SOCAM_PCLK_SAMPLE_RISING | SOCAM_PCLK_SAMPLE_FALLING |
--		SOCAM_MASTER | SOCAM_DATAWIDTH_8 |
--		SOCAM_HSYNC_ACTIVE_HIGH | SOCAM_VSYNC_ACTIVE_HIGH |
--		SOCAM_DATA_ACTIVE_HIGH;
--
--	return soc_camera_apply_sensor_flags(icl, flags);
--}
--
- static int rj54n1_set_rect(struct i2c_client *client,
- 			   u16 reg_x, u16 reg_y, u16 reg_xy,
- 			   u32 width, u32 height)
-@@ -1240,8 +1215,6 @@ static const struct v4l2_queryctrl rj54n1_controls[] = {
- };
- 
- static struct soc_camera_ops rj54n1_ops = {
--	.set_bus_param		= rj54n1_set_bus_param,
--	.query_bus_param	= rj54n1_query_bus_param,
- 	.controls		= rj54n1_controls,
- 	.num_controls		= ARRAY_SIZE(rj54n1_controls),
- };
--- 
-1.7.2.5
+A tree with a fairly up-to-date control conversion is here:
 
+http://git.linuxtv.org/hverkuil/media_tree.git/shortlog/refs/heads/soc-camera
+
+Missing is any support for the new control event, but that can wait until
+the poll() changes are merged anyway.
+
+> So, I'm not sure if it would be 
+> possible to do a proper conversion without that, maybe not, then we'd 
+> have to work on controls conversion too.
+
+I'm pretty sure you need this.
+
+Regards,
+
+	Hans
+
+> > Could it work out of the box? Or is there more work to do? 
+> 
+> No, first the APIs have to be made compatible, then individual drivers 
+> have to be converted one by one.
+> 
+> Thanks
+> Guennadi
+> 
+> > 
+> > Regards,
+> > Teresa
+> > 
+> > > http://thread.gmane.org/gmane.linux.drivers.video-input-infrastructure/11486/focus=11691
+> > > 
+> > > Thanks
+> > > Guennadi
+> > > ---
+> > > Guennadi Liakhovetski, Ph.D.
+> > > Freelance Open-Source Software Developer
+> > > http://www.open-technology.de/
+> > > --
+> > > To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> > > the body of a message to majordomo@vger.kernel.org
+> > > More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> > 
+> > 
+> 
+> ---
+> Guennadi Liakhovetski, Ph.D.
+> Freelance Open-Source Software Developer
+> http://www.open-technology.de/
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
+> 
