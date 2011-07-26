@@ -1,82 +1,133 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp18.mail.ru ([94.100.176.155]:58360 "EHLO smtp18.mail.ru"
+Received: from smtp.nokia.com ([147.243.128.26]:64790 "EHLO mgw-da02.nokia.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751073Ab1GSWCp (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 19 Jul 2011 18:02:45 -0400
-Message-ID: <4E25FDE4.7040805@list.ru>
-Date: Wed, 20 Jul 2011 01:57:56 +0400
-From: Stas Sergeev <stsp@list.ru>
-MIME-Version: 1.0
-To: Mauro Carvalho Chehab <mchehab@infradead.org>
-CC: Lennart Poettering <lpoetter@redhat.com>,
-	linux-media@vger.kernel.org,
-	"Nickolay V. Shmyrev" <nshmyrev@yandex.ru>,
-	Devin Heitmueller <dheitmueller@kernellabs.com>,
-	ALSA devel <alsa-devel@alsa-project.org>
-Subject: Re: [patch][saa7134] do not change mute state for capturing audio
-References: <4E19D2F7.6060803@list.ru> <4E1E05AC.2070002@infradead.org> <4E1E0A1D.6000604@list.ru> <4E1E1571.6010400@infradead.org> <4E1E8108.3060305@list.ru> <4E1F9A25.1020208@infradead.org> <4E22AF12.4020600@list.ru> <4E22CCC0.8030803@infradead.org> <4E24BEB8.4060501@redhat.com> <4E257FF5.4040401@infradead.org> <4E258B60.6010007@list.ru> <4E25906D.3020200@infradead.org> <4E259B0C.90107@list.ru> <4E25A26A.2000204@infradead.org> <4E25A7C2.3050609@list.ru> <4E25C7AE.5020503@infradead.org> <4E25CF35.7000802@list.ru> <4E25DB37.8020609@infradead.org>
-In-Reply-To: <4E25DB37.8020609@infradead.org>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
+	id S1753064Ab1GZSty (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 26 Jul 2011 14:49:54 -0400
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: linux-media@vger.kernel.org
+Cc: hans.verkuil@cisco.com, snjw23@gmail.com,
+	laurent.pinchart@ideasonboard.com
+Subject: [PATCH 2/3] v4l: events: Define frame start event
+Date: Tue, 26 Jul 2011 21:49:43 +0300
+Message-Id: <1311706184-22658-2-git-send-email-sakari.ailus@iki.fi>
+In-Reply-To: <4E2F0C53.10907@iki.fi>
+References: <4E2F0C53.10907@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-19.07.2011 23:29, Mauro Carvalho Chehab wrote:
->> the additional element, they are fine already.
->> We can rename it to "Master Capture Switch",
->> or may not.
-> Adding a new volume control that changes the mute values for the other controls
-> or renaming it don't solve anything.
-The proposed solution is to have the mute
-control, that can be valid for all the cards/drivers.
-Presumably, it should have the similar name
-for all of them, even though for some it will be
-a "virtual" control that will control several items,
-and for others - it should map directly to their
-single mute control.
-If we have such a mute control, any app can use
-it, and the auto-unmute logic can be removed
-from the alsa driver. v4l2 is left as it is now.
-So that's the proposal, what problems can you see
-with it?
+Define a frame start event to tell user space when the reception of a frame
+starts.
 
->> So, am I right that the only problem is that it is not
->> exported to the user by some _alsa_ drivers right now?
-> I fail to see why this would be a problem.
-But that was the problem _you_ named.
-That is, that right now the app will have difficulties
-unmuting the complex boards via the alsa interface,
-because it will have to unmute several items instead
-of one.
-I propose to add the single item for that, except for
-the drivers that already have only one mute switch.
-With this, the problem you named, seems to be solved.
-And then, perhaps, the auto-unmute logic can go away.
-What am I missing?
+Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
+---
+ Documentation/DocBook/media/v4l/vidioc-dqevent.xml |   23 ++++++++++++++++++++
+ .../DocBook/media/v4l/vidioc-subscribe-event.xml   |   18 +++++++++++++++
+ include/linux/videodev2.h                          |   12 +++++++--
+ 3 files changed, 50 insertions(+), 3 deletions(-)
 
-> It is doable, although it is probably not trivial.
-> Devices with saa7130 (PCI_DEVICE_ID_PHILIPS_SAA7130) doesn't enable the
-> alsa module, as they don't support I2S transfers, required for PCM audio.
-> So, we need to take care only on saa7133/4/5 devices.
->
-> The mute code is at saa7134-tvaudio.c, mute_input_7134() function. For
-> saa7134, it does:
->
->          if (PCI_DEVICE_ID_PHILIPS_SAA7134 == dev->pci->device)
->                  /* 7134 mute */
->                  saa_writeb(SAA7134_AUDIO_MUTE_CTRL, mute ?
->                                                      SAA7134_MUTE_MASK |
->                                                      SAA7134_MUTE_ANALOG |
->                                                      SAA7134_MUTE_I2S :
->                                                      SAA7134_MUTE_MASK);
->
-> Clearly, there are two mute flags: SAA7134_MUTE_ANALOG and SAA7134_MUTE_I2S.
-I was actually already playing with that piece of
-code, and got no results. Will retry the next week-end
-to see exactly why...
-IIRC the problem was that this does not mute the
-sound input from the back panel of the board, which
-would then still go to the pass-through wire in case
-you are capturing. The only way do mute it, was to
-configure muxes the way you can't capture at the
-same time. But I may be wrong with the recollections.
+diff --git a/Documentation/DocBook/media/v4l/vidioc-dqevent.xml b/Documentation/DocBook/media/v4l/vidioc-dqevent.xml
+index 5200b68..1d03313 100644
+--- a/Documentation/DocBook/media/v4l/vidioc-dqevent.xml
++++ b/Documentation/DocBook/media/v4l/vidioc-dqevent.xml
+@@ -88,6 +88,12 @@
+ 	  </row>
+ 	  <row>
+ 	    <entry></entry>
++	    <entry>&v4l2-event-frame-sync;</entry>
++            <entry><structfield>frame</structfield></entry>
++	    <entry>Event data for event V4L2_EVENT_FRAME_SYNC.</entry>
++	  </row>
++	  <row>
++	    <entry></entry>
+ 	    <entry>__u8</entry>
+             <entry><structfield>data</structfield>[64]</entry>
+ 	    <entry>Event data. Defined by the event type. The union
+@@ -220,6 +226,23 @@
+       </tgroup>
+     </table>
+ 
++    <table frame="none" pgwide="1" id="v4l2-event-frame-sync">
++      <title>struct <structname>v4l2_event_frame_sync</structname></title>
++      <tgroup cols="3">
++	&cs-str;
++	<tbody valign="top">
++	  <row>
++	    <entry>__u32</entry>
++	    <entry><structfield>buffer_sequence</structfield></entry>
++	    <entry>
++	      The sequence number of the buffer to be handled next or
++	      currently handled by the driver.
++	    </entry>
++	  </row>
++	</tbody>
++      </tgroup>
++    </table>
++
+     <table pgwide="1" frame="none" id="changes-flags">
+       <title>Changes</title>
+       <tgroup cols="3">
+diff --git a/Documentation/DocBook/media/v4l/vidioc-subscribe-event.xml b/Documentation/DocBook/media/v4l/vidioc-subscribe-event.xml
+index 275be96..812b63c 100644
+--- a/Documentation/DocBook/media/v4l/vidioc-subscribe-event.xml
++++ b/Documentation/DocBook/media/v4l/vidioc-subscribe-event.xml
+@@ -139,6 +139,24 @@
+ 	    </entry>
+ 	  </row>
+ 	  <row>
++	    <entry><constant>V4L2_EVENT_FRAME_SYNC</constant></entry>
++	    <entry>4</entry>
++	    <entry>
++	      <para>Triggered immediately when the reception of a
++	      frame has begun. This event has a
++	      &v4l2-event-frame-sync; associated with it.</para>
++
++	      <para>A driver will only generate this event when the
++	      hardware can generate it. This might not be the case
++	      e.g. when the hardware has no DMA buffer to write the
++	      image data to. In such cases the
++	      <structfield>buffer_sequence</structfield> field in
++	      &v4l2-event-frame-sync; will not be incremented either.
++	      This causes two consecutive buffer sequence numbers to
++	      have n times frame interval in between them.</para>
++	    </entry>
++	  </row>
++	  <row>
+ 	    <entry><constant>V4L2_EVENT_PRIVATE_START</constant></entry>
+ 	    <entry>0x08000000</entry>
+ 	    <entry>Base event number for driver-private events.</entry>
+diff --git a/include/linux/videodev2.h b/include/linux/videodev2.h
+index fca24cc..056a49e 100644
+--- a/include/linux/videodev2.h
++++ b/include/linux/videodev2.h
+@@ -2006,6 +2006,7 @@ struct v4l2_streamparm {
+ #define V4L2_EVENT_VSYNC			1
+ #define V4L2_EVENT_EOS				2
+ #define V4L2_EVENT_CTRL				3
++#define V4L2_EVENT_FRAME_SYNC			4
+ #define V4L2_EVENT_PRIVATE_START		0x08000000
+ 
+ /* Payload for V4L2_EVENT_VSYNC */
+@@ -2032,12 +2033,17 @@ struct v4l2_event_ctrl {
+ 	__s32 default_value;
+ };
+ 
++struct v4l2_event_frame_sync {
++	__u32 buffer_sequence;
++};
++
+ struct v4l2_event {
+ 	__u32				type;
+ 	union {
+-		struct v4l2_event_vsync vsync;
+-		struct v4l2_event_ctrl	ctrl;
+-		__u8			data[64];
++		struct v4l2_event_vsync		vsync;
++		struct v4l2_event_ctrl		ctrl;
++		struct v4l2_event_frame_sync	frame_sync;
++		__u8				data[64];
+ 	} u;
+ 	__u32				pending;
+ 	__u32				sequence;
+-- 
+1.7.2.5
+
