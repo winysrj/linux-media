@@ -1,53 +1,71 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-yx0-f174.google.com ([209.85.213.174]:45664 "EHLO
-	mail-yx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751659Ab1GVXrr (ORCPT
+Received: from smtp-68.nebula.fi ([83.145.220.68]:46400 "EHLO
+	smtp-68.nebula.fi" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752427Ab1G0IP1 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 22 Jul 2011 19:47:47 -0400
-Received: by yxi11 with SMTP id 11so1581170yxi.19
-        for <linux-media@vger.kernel.org>; Fri, 22 Jul 2011 16:47:46 -0700 (PDT)
+	Wed, 27 Jul 2011 04:15:27 -0400
+Date: Wed, 27 Jul 2011 11:15:22 +0300
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: Re: [PATCH] adp1653: check error code of adp1653_init_controls
+Message-ID: <20110727081522.GH32629@valkosipuli.localdomain>
+References: <1b238cd98e03909bc4955113ffbe7e0c9f0db4f8.1311753459.git.andriy.shevchenko@linux.intel.com>
 MIME-Version: 1.0
-In-Reply-To: <4E2A099B.2030601@iki.fi>
-References: <CAJbz7-29H=e=C2SyY-6Ru23Zzv6sH7wBbOm72ZWMxqOagakuKQ@mail.gmail.com>
-	<4E29FB9E.4060507@iki.fi>
-	<CAJbz7-3HkkEoDa3qGvoaF61ohhdxo38ZxF+GWGV+tBQ0yEBopA@mail.gmail.com>
-	<4E29FF56.5080604@iki.fi>
-	<CAJbz7-0pDj7mdgHAyyuSOfwGmYdNaKqxM9RxWZdQbEN0Eyjx9w@mail.gmail.com>
-	<4E2A0856.7050009@iki.fi>
-	<4E2A099B.2030601@iki.fi>
-Date: Sat, 23 Jul 2011 01:47:46 +0200
-Message-ID: <CAJbz7-3-xGQOsk2CHq1pfyDoSLSKUo3ULt-7QAfuUfFBuiMt1g@mail.gmail.com>
-Subject: Re: [PATCH] cxd2820r: fix possible out-of-array lookup
-From: HoP <jpetrous@gmail.com>
-To: Antti Palosaari <crope@iki.fi>
-Cc: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <1b238cd98e03909bc4955113ffbe7e0c9f0db4f8.1311753459.git.andriy.shevchenko@linux.intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-2011/7/23 Antti Palosaari <crope@iki.fi>:
-> On 07/23/2011 02:31 AM, Antti Palosaari wrote:
->>
->> On 07/23/2011 02:01 AM, HoP wrote:
->>>
->>> 2011/7/23 Antti Palosaari<crope@iki.fi>:
->>>>
->>>> But now I see what you mean. msg2[1] is set as garbage fields in case of
->>>> incoming msg len is 1. True, but it does not harm since it is not
->>>> used in
->>>> that case.
->>>
->>> In case of write, cxd2820r_tuner_i2c_xfer() gets msg[] parameter
->>> with only one element, true? If so, then my patch is correct.
->>
->> Yes it is true but nonsense. It is also wrong to make always msg2 as two
->> element array too, but those are just simpler and generates most likely
->> some code less. Could you see it can cause problem in some case?
->
-> Now I thought it more, could it crash if it point out of memory area?
+On Wed, Jul 27, 2011 at 10:58:02AM +0300, Andy Shevchenko wrote:
+> Potentially the adp1653_init_controls could return an error. In our case the
+> error was ignored, meanwhile it means incorrect initialization of V4L2
+> controls.
 
-I see you finally understood what I wanted to do :-)
+Hi, Andy!
 
-I'm surprised that it not crashed already. I thought I have to missed something.
+Many thanks for the another patch! I'll add this to my next pull req as
+well.
 
-Honza
+Just FYI: As this is clearly a regular patch for the V4L2 subsystem, I think
+cc'ing the linux-kernel list isn't necessary.
+
+> Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+> Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
+> Cc: Sakari Ailus <sakari.ailus@iki.fi>
+> ---
+>  drivers/media/video/adp1653.c |    6 +++++-
+>  1 files changed, 5 insertions(+), 1 deletions(-)
+> 
+> diff --git a/drivers/media/video/adp1653.c b/drivers/media/video/adp1653.c
+> index 8ad89ff..3379e6d 100644
+> --- a/drivers/media/video/adp1653.c
+> +++ b/drivers/media/video/adp1653.c
+> @@ -429,7 +429,11 @@ static int adp1653_probe(struct i2c_client *client,
+>  	flash->subdev.internal_ops = &adp1653_internal_ops;
+>  	flash->subdev.flags |= V4L2_SUBDEV_FL_HAS_DEVNODE;
+>  
+> -	adp1653_init_controls(flash);
+> +	ret = adp1653_init_controls(flash);
+> +	if (ret) {
+> +		kfree(flash);
+> +		return ret;
+> +	}
+>  
+>  	ret = media_entity_init(&flash->subdev.entity, 0, NULL, 0);
+>  	if (ret < 0)
+> -- 
+> 1.7.5.4
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
+Cheers,
+
+-- 
+Sakari Ailus
+sakari.ailus@iki.fi
