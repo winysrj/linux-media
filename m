@@ -1,63 +1,85 @@
-Return-path: <mchehab@localhost>
-Received: from mail-bw0-f46.google.com ([209.85.214.46]:51650 "EHLO
-	mail-bw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756614Ab1GJThT convert rfc822-to-8bit (ORCPT
+Return-path: <linux-media-owner@vger.kernel.org>
+Received: from mail-vw0-f46.google.com ([209.85.212.46]:41158 "EHLO
+	mail-vw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752518Ab1G0FmA (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 10 Jul 2011 15:37:19 -0400
-Received: by bwd5 with SMTP id 5so2780795bwd.19
-        for <linux-media@vger.kernel.org>; Sun, 10 Jul 2011 12:37:17 -0700 (PDT)
-Date: Sun, 10 Jul 2011 21:37:14 +0200
-From: Stefan Seyfried <stefan.seyfried@googlemail.com>
-To: linux-media@vger.kernel.org
-Subject: Re: [Patch] dvb-apps: add test tool for DMX_OUT_TSDEMUX_TAP
-Message-ID: <20110710213714.5b60a7c7@susi.home.s3e.de>
-In-Reply-To: <201107101645.47915.remi@remlab.net>
-References: <20110710124303.26655303@susi.home.s3e.de>
-	<201107101645.47915.remi@remlab.net>
-Mime-Version: 1.0
+	Wed, 27 Jul 2011 01:42:00 -0400
+Received: by vws1 with SMTP id 1so855282vws.19
+        for <linux-media@vger.kernel.org>; Tue, 26 Jul 2011 22:42:00 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <20110726194035.GF32629@valkosipuli.localdomain>
+References: <CAOy7-nMnE6_z4pAmw+Jc1riYSeCWwiNS2=_Ya==+7q5=bNrWuw@mail.gmail.com>
+	<20110726194035.GF32629@valkosipuli.localdomain>
+Date: Wed, 27 Jul 2011 13:41:59 +0800
+Message-ID: <CAOy7-nNmeYy14Rm-NYBNqCoCkAs++rTUabiTZehWyBQ-k0M0og@mail.gmail.com>
+Subject: Re: Parallel CMOS Image Sensor with UART Control Interface
+From: James <angweiyang@gmail.com>
+To: Sakari Ailus <sakari.ailus@iki.fi>
+Cc: linux-media@vger.kernel.org, laurent.pinchart@ideasonboard.com,
+	michael.jones@matrix-vision.de, alexg@meprolight.com
 Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
-Sender: <mchehab@infradead.org>
 
-Am Sun, 10 Jul 2011 16:45:46 +0300
-schrieb "Rémi Denis-Courmont" <remi@remlab.net>:
+On Wed, Jul 27, 2011 at 3:40 AM, Sakari Ailus <sakari.ailus@iki.fi> wrote:
+> On Mon, Jul 25, 2011 at 04:43:21PM +0800, James wrote:
+>> Dear all,
+>>
+>> Does anyone came across a v4l2 Linux Device Driver for an Image Sensor
+>> that uses Parallel CMOS H/V and can only be control by UART interface
+>> instead of the common I2C or SPI interface?
+>>
+>> A similar sensor is the STMicroelectronics VL5510 Image Sensor
+>> although it support all 3 types of control interface.
+>> (http://www.st.com/internet/automotive/product/178477.jsp)
+>>
+>> Most or all the drivers found I found under drivers/media/video uses
+>> the I2C or SPI interface instead
+>>
+>> I'm new to writing driver and need a reference v4l2 driver for this
+>> type of image sensor to work with OMAP3530 ISP port on Gumstix's Overo
+>> board.
+>>
+>> I just need a very simple v4l2 driver that can extract the image from
+>> the sensor and control over it via the UART control interface.
+>>
+>> Any help is very much appreciated.
+>
+> Hi James,
+>
+> I think there has been a recent discussion on a similar topic under the
+> subject "RE: FW: OMAP 3 ISP". The way to do this would be to implement
+> platform subdevs in V4L2 core, which I think we don't have quite yet.
+>
+> Cc Laurent and Michael.
+>
+> --
+> Sakari Ailus
+> sakari.ailus@iki.fi
+>
 
-> Le dimanche 10 juillet 2011 13:43:03 Stefan Seyfried, vous avez écrit :
-> > Hi all,
-> > 
-> > I patched test_dvr to use DMX_OUT_TSDEMUX_TAP and named it test_tapdmx.
-> > Might be useful for others, too :-)
-> > This is my first experience with mercurial, so bear with me if it's
-> > totally wrong.
-> 
-> Did it work for you? We at VideoLAN.org could not get DMX_OUT_TSDEMUX_TAP to 
-> work with any of three distinct device/drivers (on two different delivery 
-> systems). We do get TS packets, but they seem to be partly corrupt.
+Hi Sakari,
 
-Yes, worked today on plain openSUSE Factory, kernel 3.0.0-rc5-1-desktop
+Thanks for pointing me to the discussion thread.
 
-I did read your post to the list and actually looked up on how to use the
-interface in the vlc code you linked ;-).
+I found it from the archive at
+http://thread.gmane.org/gmane.linux.drivers.video-input-infrastructure/32700/focus=32721
 
-My device is a TeVii S660 USB DVB-S2
+I read through the threads and see that I'm indeed in similar
+situation with Alex.
 
-usb 2-1: New USB device found, idVendor=9022, idProduct=d660
-usb 2-1: New USB device strings: Mfr=1, Product=2, SerialNumber=0
-usb 2-1: Product: DVBS2BOX
-usb 2-1: Manufacturer: TBS-Tech
-dvb-usb: found a 'TeVii S660 USB' in cold state, will try to load a firmware
+We both have sensor that output CMOS H/V image and only have
+UART/RS232 for control of the sensor operations via sending/reading
+packet of bytes. i.e. AGC, contrast, brightness etc..
 
-I successfully recorded an audio and a video PID from Astra 19.2E
-transponder 11836 MHz horizontal
+Since the thread ended on 29-Jun, is there anymore update or information?
 
-Trying to record the complete TS (pid 0x2000) did produce dropouts, but
-that might be due to insufficient buffer size or something like that.
+As I've a MT9V032 camera with Gusmtix Overo, I was hoping to rely on
+the MT9V032 driver as a starting point and adapt it for the VL5510
+sensor using only the UART interface.
 
-In general the DMX_OUT_TSDEMUX_TAP interface worked well.
+Thanks in adv.
 
-Just try it with my test_tapdmx :-)
 -- 
-Stefan Seyfried
-
-"Dispatch war rocket Ajax to bring back his body!"
+Regards,
+James
