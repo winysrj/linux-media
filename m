@@ -1,36 +1,47 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:41474 "EHLO mx1.redhat.com"
+Received: from mga03.intel.com ([143.182.124.21]:60582 "EHLO mga03.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751695Ab1GSMP1 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 19 Jul 2011 08:15:27 -0400
-Received: from int-mx02.intmail.prod.int.phx2.redhat.com (int-mx02.intmail.prod.int.phx2.redhat.com [10.5.11.12])
-	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id p6JCFQhj026579
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
-	for <linux-media@vger.kernel.org>; Tue, 19 Jul 2011 08:15:27 -0400
-Received: from shalem.localdomain (vpn1-6-8.ams2.redhat.com [10.36.6.8])
-	by int-mx02.intmail.prod.int.phx2.redhat.com (8.13.8/8.13.8) with ESMTP id p6JCFOu3026346
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-media@vger.kernel.org>; Tue, 19 Jul 2011 08:15:26 -0400
-Message-ID: <4E2575B7.3080306@redhat.com>
-Date: Tue, 19 Jul 2011 14:16:55 +0200
-From: Hans de Goede <hdegoede@redhat.com>
-MIME-Version: 1.0
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: RFC: removing pwc kconfig options
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+	id S1751826Ab1G0H6c (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 27 Jul 2011 03:58:32 -0400
+From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+To: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Sakari Ailus <sakari.ailus@iki.fi>
+Subject: [PATCH] adp1653: check error code of adp1653_init_controls
+Date: Wed, 27 Jul 2011 10:58:02 +0300
+Message-Id: <1b238cd98e03909bc4955113ffbe7e0c9f0db4f8.1311753459.git.andriy.shevchenko@linux.intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+Potentially the adp1653_init_controls could return an error. In our case the
+error was ignored, meanwhile it means incorrect initialization of V4L2
+controls.
 
-The pwc driver currently has 2 kconfig options, one to enable /
-disable various debugging options, and another for enabling/
-disabling input-evdev support.
+Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
+Cc: Sakari Ailus <sakari.ailus@iki.fi>
+---
+ drivers/media/video/adp1653.c |    6 +++++-
+ 1 files changed, 5 insertions(+), 1 deletions(-)
 
-IMHO these both can go away, the debugging can trigger on
-CONFIG_VIDEO_ADV_DEBUG, and the input on CONFIG_INPUT.
+diff --git a/drivers/media/video/adp1653.c b/drivers/media/video/adp1653.c
+index 8ad89ff..3379e6d 100644
+--- a/drivers/media/video/adp1653.c
++++ b/drivers/media/video/adp1653.c
+@@ -429,7 +429,11 @@ static int adp1653_probe(struct i2c_client *client,
+ 	flash->subdev.internal_ops = &adp1653_internal_ops;
+ 	flash->subdev.flags |= V4L2_SUBDEV_FL_HAS_DEVNODE;
+ 
+-	adp1653_init_controls(flash);
++	ret = adp1653_init_controls(flash);
++	if (ret) {
++		kfree(flash);
++		return ret;
++	}
+ 
+ 	ret = media_entity_init(&flash->subdev.entity, 0, NULL, 0);
+ 	if (ret < 0)
+-- 
+1.7.5.4
 
-Regards,
-
-Hans
