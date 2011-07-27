@@ -1,43 +1,87 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:52428 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753774Ab1G1WPl (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 28 Jul 2011 18:15:41 -0400
-Message-ID: <4E31DF8A.50503@iki.fi>
-Date: Fri, 29 Jul 2011 01:15:38 +0300
-From: Antti Palosaari <crope@iki.fi>
+Received: from perceval.ideasonboard.com ([95.142.166.194]:53526 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752178Ab1G0I7V (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 27 Jul 2011 04:59:21 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: James <angweiyang@gmail.com>
+Subject: Re: Parallel CMOS Image Sensor with UART Control Interface
+Date: Wed, 27 Jul 2011 10:59:18 +0200
+Cc: Sakari Ailus <sakari.ailus@iki.fi>, linux-media@vger.kernel.org,
+	michael.jones@matrix-vision.de, alexg@meprolight.com
+References: <CAOy7-nMnE6_z4pAmw+Jc1riYSeCWwiNS2=_Ya==+7q5=bNrWuw@mail.gmail.com> <20110726194035.GF32629@valkosipuli.localdomain> <CAOy7-nNmeYy14Rm-NYBNqCoCkAs++rTUabiTZehWyBQ-k0M0og@mail.gmail.com>
+In-Reply-To: <CAOy7-nNmeYy14Rm-NYBNqCoCkAs++rTUabiTZehWyBQ-k0M0og@mail.gmail.com>
 MIME-Version: 1.0
-To: linux-media@vger.kernel.org
-CC: Thomas Gutzler <thomas.gutzler@gmail.com>
-Subject: [PATCH 1/2] af9015: map remote for Leadtek WinFast DTV2000DS
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
+Message-Id: <201107271059.19184.laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Thanks to Thomas Gutzler for reporting this.
+Hi James,
 
-Signed-off-by: Antti Palosaari <crope@iki.fi>
-Cc: Thomas Gutzler <thomas.gutzler@gmail.com>
----
- drivers/media/dvb/dvb-usb/af9015.c |    2 ++
- 1 files changed, 2 insertions(+), 0 deletions(-)
+On Wednesday 27 July 2011 07:41:59 James wrote:
+> On Wed, Jul 27, 2011 at 3:40 AM, Sakari Ailus <sakari.ailus@iki.fi> wrote:
+> > On Mon, Jul 25, 2011 at 04:43:21PM +0800, James wrote:
+> >> Dear all,
+> >> 
+> >> Does anyone came across a v4l2 Linux Device Driver for an Image Sensor
+> >> that uses Parallel CMOS H/V and can only be control by UART interface
+> >> instead of the common I2C or SPI interface?
+> >> 
+> >> A similar sensor is the STMicroelectronics VL5510 Image Sensor
+> >> although it support all 3 types of control interface.
+> >> (http://www.st.com/internet/automotive/product/178477.jsp)
+> >> 
+> >> Most or all the drivers found I found under drivers/media/video uses
+> >> the I2C or SPI interface instead
+> >> 
+> >> I'm new to writing driver and need a reference v4l2 driver for this
+> >> type of image sensor to work with OMAP3530 ISP port on Gumstix's Overo
+> >> board.
+> >> 
+> >> I just need a very simple v4l2 driver that can extract the image from
+> >> the sensor and control over it via the UART control interface.
+> >> 
+> >> Any help is very much appreciated.
+> > 
+> > Hi James,
+> > 
+> > I think there has been a recent discussion on a similar topic under the
+> > subject "RE: FW: OMAP 3 ISP". The way to do this would be to implement
+> > platform subdevs in V4L2 core, which I think we don't have quite yet.
+> > 
+> > Cc Laurent and Michael.
+> 
+> Hi Sakari,
+> 
+> Thanks for pointing me to the discussion thread.
+> 
+> I found it from the archive at
+> http://thread.gmane.org/gmane.linux.drivers.video-input-infrastructure/3270
+> 0/focus=32721
+> 
+> I read through the threads and see that I'm indeed in similar
+> situation with Alex.
+> 
+> We both have sensor that output CMOS H/V image and only have
+> UART/RS232 for control of the sensor operations via sending/reading
+> packet of bytes. i.e. AGC, contrast, brightness etc..
+> 
+> Since the thread ended on 29-Jun, is there anymore update or information?
+> 
+> As I've a MT9V032 camera with Gusmtix Overo, I was hoping to rely on
+> the MT9V032 driver as a starting point and adapt it for the VL5510
+> sensor using only the UART interface.
 
-diff --git a/drivers/media/dvb/dvb-usb/af9015.c b/drivers/media/dvb/dvb-usb/af9015.c
-index d7ad05f..1fb8248 100644
---- a/drivers/media/dvb/dvb-usb/af9015.c
-+++ b/drivers/media/dvb/dvb-usb/af9015.c
-@@ -758,6 +758,8 @@ static const struct af9015_rc_setup af9015_rc_setup_usbids[] = {
- 		RC_MAP_MSI_DIGIVOX_III },
- 	{ (USB_VID_LEADTEK << 16) + USB_PID_WINFAST_DTV_DONGLE_GOLD,
- 		RC_MAP_LEADTEK_Y04G0051 },
-+	{ (USB_VID_LEADTEK << 16) + USB_PID_WINFAST_DTV2000DS,
-+		RC_MAP_LEADTEK_Y04G0051 },
- 	{ (USB_VID_AVERMEDIA << 16) + USB_PID_AVERMEDIA_VOLAR_X,
- 		RC_MAP_AVERMEDIA_M135A },
- 	{ (USB_VID_AFATECH << 16) + USB_PID_TREKSTOR_DVBT,
+As a quick hack, to start with, you can still use an I2C subdev driver. Just 
+remove all I2C-related code from the driver, and register a fake I2C device in 
+board code. That will let you at least develop the driver and test the UART 
+interface.
+
 -- 
-1.7.6
+Regards,
 
--- 
-http://palosaari.fi/
+Laurent Pinchart
