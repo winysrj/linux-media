@@ -1,74 +1,39 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:53144 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754232Ab1GRSMN (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 18 Jul 2011 14:12:13 -0400
-Received: from int-mx12.intmail.prod.int.phx2.redhat.com (int-mx12.intmail.prod.int.phx2.redhat.com [10.5.11.25])
-	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id p6IICD5g024511
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
-	for <linux-media@vger.kernel.org>; Mon, 18 Jul 2011 14:12:13 -0400
-Message-ID: <4E24776E.2010609@redhat.com>
-Date: Mon, 18 Jul 2011 14:11:58 -0400
-From: Jarod Wilson <jarod@redhat.com>
+Received: from mail-gy0-f174.google.com ([209.85.160.174]:34725 "EHLO
+	mail-gy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751313Ab1G0Nv6 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 27 Jul 2011 09:51:58 -0400
+Received: by gyh3 with SMTP id 3so1029879gyh.19
+        for <linux-media@vger.kernel.org>; Wed, 27 Jul 2011 06:51:57 -0700 (PDT)
 MIME-Version: 1.0
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-CC: linux-media@vger.kernel.org
-Subject: Re: [PATCH 2/9] [media] mceusb: give hardware time to reply to cmds
-References: <1310681394-3530-1-git-send-email-jarod@redhat.com> <1310681394-3530-3-git-send-email-jarod@redhat.com> <4E1F7C11.1050608@redhat.com> <4E24719C.8040809@redhat.com>
-In-Reply-To: <4E24719C.8040809@redhat.com>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
+In-Reply-To: <20110727101305.GI32629@valkosipuli.localdomain>
+References: <CACKLOr1veNZ_6E3V_m1Tf+mxxUAKiRKDbboW-fMbRGUrLns_XA@mail.gmail.com>
+	<1311757981-6968-1-git-send-email-laurent.pinchart@ideasonboard.com>
+	<20110727101305.GI32629@valkosipuli.localdomain>
+Date: Wed, 27 Jul 2011 15:51:56 +0200
+Message-ID: <CACKLOr1mQ8BqZ-juy63X1ygO2cUpHpb6q-bp00SEcDHU+a+twg@mail.gmail.com>
+Subject: Re: [PATCH] mt9p031: Aptina (Micron) MT9P031 5MP sensor driver
+From: javier Martin <javier.martin@vista-silicon.com>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: Sakari Ailus <sakari.ailus@iki.fi>, linux-media@vger.kernel.org,
+	shotty317@gmail.com
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Jarod Wilson wrote:
-> Mauro Carvalho Chehab wrote:
->> Em 14-07-2011 19:09, Jarod Wilson escreveu:
->>> Sometimes the init routine is blasting commands out to the hardware
->>> faster than it can reply. Throw a brief delay in there to give the
->>> hardware a chance to reply before we send the next command.
->>>
->>> Signed-off-by: Jarod Wilson<jarod@redhat.com>
->>> ---
->>> drivers/media/rc/mceusb.c | 2 ++
->>> 1 files changed, 2 insertions(+), 0 deletions(-)
->>>
->>> diff --git a/drivers/media/rc/mceusb.c b/drivers/media/rc/mceusb.c
->>> index 111bead..13a853b 100644
->>> --- a/drivers/media/rc/mceusb.c
->>> +++ b/drivers/media/rc/mceusb.c
->>> @@ -37,6 +37,7 @@
->>> #include<linux/slab.h>
->>> #include<linux/usb.h>
->>> #include<linux/usb/input.h>
->>> +#include<linux/delay.h>
->>> #include<media/rc-core.h>
->>>
->>> #define DRIVER_VERSION "1.91"
->>> @@ -735,6 +736,7 @@ static void mce_request_packet(struct mceusb_dev
->>> *ir, unsigned char *data,
->>> static void mce_async_out(struct mceusb_dev *ir, unsigned char *data,
->>> int size)
->>> {
->>> mce_request_packet(ir, data, size, MCEUSB_TX);
->>> + mdelay(10);
->>
->> Can't it be a msleep() instead? Delays spend more power, and keeps the
->> CPU busy while
->> running.
->
-> I think I was thinking we'd end up sleeping in an interrupt handler when
-> we shouldn't be, but upon closer code inspection and actual testing,
-> that's not the case, so yeah, those can be msleeps. While testing all
-> code paths, I also discovered that patch 6 in the series breaks lirc tx
-> support (the lirc dev is registered before the tx function pointers are
-> filled in), so I'll resend at least patches 2 and 6...
+Hi Laurent,
+I really was looking forward to your patch.
 
-I'll just resend an entire v2 series, the changes to patch 2 have 
-cascading impact on multiple patches in the rest of the series.
+Tomorrow i have the day off, so I will look at this on Friday.
+I will review and test your patch and send you my comments.
+
 
 -- 
-Jarod Wilson
-jarod@redhat.com
-
-
+Javier Martin
+Vista Silicon S.L.
+CDTUC - FASE C - Oficina S-345
+Avda de los Castros s/n
+39005- Santander. Cantabria. Spain
++34 942 25 32 60
+www.vista-silicon.com
