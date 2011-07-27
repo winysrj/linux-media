@@ -1,83 +1,55 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-iy0-f174.google.com ([209.85.210.174]:49823 "EHLO
+Received: from mail-iy0-f174.google.com ([209.85.210.174]:52507 "EHLO
 	mail-iy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751587Ab1GPDvW (ORCPT
+	with ESMTP id S1751684Ab1G0GwI convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 15 Jul 2011 23:51:22 -0400
-Date: Sat, 16 Jul 2011 11:51:00 +0800
-From: Ming Lei <tom.leiming@gmail.com>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	<linux-media@vger.kernel.org>
-Cc: Alan Stern <stern@rowland.harvard.edu>,
-	Ming Lei <ming.lei@canonical.com>, <linux-usb@vger.kernel.org>,
-	Jeremy Kerr <jeremy.kerr@canonical.com>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>
-Subject: [PATCH] uvcvideo: add SetInterface(0) in .reset_resume handler
-Message-ID: <20110716115100.10f6f764@tom-ThinkPad-T410>
-In-Reply-To: <Pine.LNX.4.44L0.1107151122490.1866-100000@iolanthe.rowland.org>
-References: <CACVXFVPHfskUCxhznpATknNxokmL5hft-b+KoxWiMzprVmuJ4w@mail.gmail.com>
-	<Pine.LNX.4.44L0.1107151122490.1866-100000@iolanthe.rowland.org>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+	Wed, 27 Jul 2011 02:52:08 -0400
+Received: by iyb12 with SMTP id 12so1382099iyb.19
+        for <linux-media@vger.kernel.org>; Tue, 26 Jul 2011 23:52:07 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <d8ef561a-7dc9-43eb-a2a3-cee6ab8e6d80@q11g2000yqm.googlegroups.com>
+References: <1308568877-9164-1-git-send-email-javier.martin@vista-silicon.com>
+	<CACKLOr2YT6z1_75Zi1g4ujQq+EAN3tVgUKatK+8ZyjnERvOzig@mail.gmail.com>
+	<201107070122.34075.laurent.pinchart@ideasonboard.com>
+	<CACKLOr2n3CiT-Vc=rHZ9V3V7stHrYFb4bfYcAx8pW14q63Zg2Q@mail.gmail.com>
+	<d8ef561a-7dc9-43eb-a2a3-cee6ab8e6d80@q11g2000yqm.googlegroups.com>
+Date: Wed, 27 Jul 2011 08:52:07 +0200
+Message-ID: <CACKLOr1veNZ_6E3V_m1Tf+mxxUAKiRKDbboW-fMbRGUrLns_XA@mail.gmail.com>
+Subject: Re: Add driver for Aptina Micron mt9p031 sensor.
+From: javier Martin <javier.martin@vista-silicon.com>
+To: Clayton Shotwell <shotty317@gmail.com>
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	linux-media@vger.kernel.org, g.liakhovetski@gmx.de,
+	carlighting@yahoo.co.nz, beagleboard@googlegroups.com,
+	mch_kot@yahoo.com.cn
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+On 26 July 2011 22:22, Clayton Shotwell <shotty317@gmail.com> wrote:
+> Javier,
+>
+> I was wondering what the status was of your patches and when you
+> thought they might get added into the mainstream kernel.  I am working
+> on integrating the mt9p031 into a little project I am doing.  Please
+> let me know when you get a chance.
 
-As commented in uvc_video_init,
+Hi,
+they are currently sitting in Laurent's tree. According to him, there
+are a couple of things that must be fixed before submitting them to
+mainline.
 
-	/* Alternate setting 0 should be the default, yet the XBox Live Vision
-	 * Cam (and possibly other devices) crash or otherwise misbehave if
-	 * they don't receive a SET_INTERFACE request before any other video
-	 * control request.
-	 */
-
-so it does make sense to add the SetInterface(0) in .reset_resume
-handler so that this kind of devices can work well if they are reseted
-during resume from system or runtime suspend.
-
-We have found, without the patch, Microdia camera(0c45:6437) can't send
-stream data any longer after it is reseted during resume from
-system suspend.
-
-Cc: Jeremy Kerr <jeremy.kerr@canonical.com>
-Cc: Alan Stern <stern@rowland.harvard.edu>
-Signed-off-by: Ming Lei <ming.lei@canonical.com>
----
- drivers/media/video/uvc/uvc_driver.c |   14 +++++++++++++-
- 1 files changed, 13 insertions(+), 1 deletions(-)
-
-diff --git a/drivers/media/video/uvc/uvc_driver.c b/drivers/media/video/uvc/uvc_driver.c
-index b6eae48..41c6d1a 100644
---- a/drivers/media/video/uvc/uvc_driver.c
-+++ b/drivers/media/video/uvc/uvc_driver.c
-@@ -1959,8 +1959,20 @@ static int __uvc_resume(struct usb_interface *intf, int reset)
- 	}
- 
- 	list_for_each_entry(stream, &dev->streams, list) {
--		if (stream->intf == intf)
-+		if (stream->intf == intf) {
-+			/*
-+			 * After usb bus reset, some devices may
-+			 * misbehave if SetInterface(0) is not done, for
-+			 * example, Microdia camera(0c45:6437) will stop
-+			 * sending streaming data. I think XBox Live
-+			 * Vision Cam needs it too, as commented in
-+			 * uvc_video_init.
-+			 */
-+			if (reset)
-+				usb_set_interface(stream->dev->udev,
-+					stream->intfnum, 0);
- 			return uvc_video_resume(stream);
-+		}
- 	}
- 
- 	uvc_trace(UVC_TRACE_SUSPEND, "Resume: video streaming USB interface "
--- 
-1.7.4.1
-
+But I don't know anything else. Maybe Laurent himself could clarify
+what is the status right now.
 
 
 
 -- 
-Ming Lei
+Javier Martin
+Vista Silicon S.L.
+CDTUC - FASE C - Oficina S-345
+Avda de los Castros s/n
+39005- Santander. Cantabria. Spain
++34 942 25 32 60
+www.vista-silicon.com
