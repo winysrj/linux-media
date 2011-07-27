@@ -1,86 +1,47 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.126.171]:55315 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756163Ab1G2K5D (ORCPT
+Received: from smtp-68.nebula.fi ([83.145.220.68]:55378 "EHLO
+	smtp-68.nebula.fi" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755405Ab1G0Wyg (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 29 Jul 2011 06:57:03 -0400
-Received: from 6a.grange (6a.grange [192.168.1.11])
-	by axis700.grange (Postfix) with ESMTPS id EE9BF18B049
-	for <linux-media@vger.kernel.org>; Fri, 29 Jul 2011 12:57:00 +0200 (CEST)
-Received: from lyakh by 6a.grange with local (Exim 4.72)
-	(envelope-from <g.liakhovetski@gmx.de>)
-	id 1QmkkW-0007oB-Pm
-	for linux-media@vger.kernel.org; Fri, 29 Jul 2011 12:57:00 +0200
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: linux-media@vger.kernel.org
-Subject: [PATCH 25/59] V4L: soc_camera_platform: support the new mbus-config subdev ops
-Date: Fri, 29 Jul 2011 12:56:25 +0200
-Message-Id: <1311937019-29914-26-git-send-email-g.liakhovetski@gmx.de>
-In-Reply-To: <1311937019-29914-1-git-send-email-g.liakhovetski@gmx.de>
-References: <1311937019-29914-1-git-send-email-g.liakhovetski@gmx.de>
+	Wed, 27 Jul 2011 18:54:36 -0400
+Date: Thu, 28 Jul 2011 01:54:32 +0300
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: linux-media@vger.kernel.org, javier.martin@vista-silicon.com,
+	shotty317@gmail.com
+Subject: Re: [PATCH] mt9p031: Aptina (Micron) MT9P031 5MP sensor driver
+Message-ID: <20110727225431.GJ32629@valkosipuli.localdomain>
+References: <CACKLOr1veNZ_6E3V_m1Tf+mxxUAKiRKDbboW-fMbRGUrLns_XA@mail.gmail.com>
+ <1311757981-6968-1-git-send-email-laurent.pinchart@ideasonboard.com>
+ <20110727101305.GI32629@valkosipuli.localdomain>
+ <201107271951.37601.laurent.pinchart@ideasonboard.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <201107271951.37601.laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Extend the driver to also support [gs]_mbus_config() subdevice video
-operations.
+On Wed, Jul 27, 2011 at 07:51:36PM +0200, Laurent Pinchart wrote:
+> Hi Sakari,
 
-Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
----
- drivers/media/video/soc_camera_platform.c |   12 ++++++++++++
- include/media/soc_camera_platform.h       |    3 +++
- 2 files changed, 15 insertions(+), 0 deletions(-)
+Hi Laurent,
 
-diff --git a/drivers/media/video/soc_camera_platform.c b/drivers/media/video/soc_camera_platform.c
-index 8069cd6..7045e45 100644
---- a/drivers/media/video/soc_camera_platform.c
-+++ b/drivers/media/video/soc_camera_platform.c
-@@ -115,6 +115,17 @@ static int soc_camera_platform_cropcap(struct v4l2_subdev *sd,
- 	return 0;
- }
- 
-+static int soc_camera_platform_g_mbus_config(struct v4l2_subdev *sd,
-+					     struct v4l2_mbus_config *cfg)
-+{
-+	struct soc_camera_platform_info *p = v4l2_get_subdevdata(sd);
-+
-+	cfg->flags = p->mbus_param;
-+	cfg->type = p->mbus_type;
-+
-+	return 0;
-+}
-+
- static struct v4l2_subdev_video_ops platform_subdev_video_ops = {
- 	.s_stream	= soc_camera_platform_s_stream,
- 	.enum_mbus_fmt	= soc_camera_platform_enum_fmt,
-@@ -123,6 +134,7 @@ static struct v4l2_subdev_video_ops platform_subdev_video_ops = {
- 	.try_mbus_fmt	= soc_camera_platform_fill_fmt,
- 	.g_mbus_fmt	= soc_camera_platform_fill_fmt,
- 	.s_mbus_fmt	= soc_camera_platform_fill_fmt,
-+	.g_mbus_config	= soc_camera_platform_g_mbus_config,
- };
- 
- static struct v4l2_subdev_ops platform_subdev_ops = {
-diff --git a/include/media/soc_camera_platform.h b/include/media/soc_camera_platform.h
-index 74f0fa1..a15f92b 100644
---- a/include/media/soc_camera_platform.h
-+++ b/include/media/soc_camera_platform.h
-@@ -13,6 +13,7 @@
- 
- #include <linux/videodev2.h>
- #include <media/soc_camera.h>
-+#include <media/v4l2-mediabus.h>
- 
- struct device;
- 
-@@ -21,6 +22,8 @@ struct soc_camera_platform_info {
- 	unsigned long format_depth;
- 	struct v4l2_mbus_framefmt format;
- 	unsigned long bus_param;
-+	unsigned long mbus_param;
-+	enum v4l2_mbus_type mbus_type;
- 	struct soc_camera_device *icd;
- 	int (*set_capture)(struct soc_camera_platform_info *info, int enable);
- };
+> On Wednesday 27 July 2011 12:13:05 Sakari Ailus wrote:
+> > Hi Laurent,
+> > 
+> > Thanks for the patch. I have a few comments below.
+> 
+> Thanks for the review. Please see my answers to your comments below. Javier, 
+> there's one question for you as well.
+
+In my opinion the patch looks very good and clean in general. All my
+comments were small issues and I agree with the resolutions. I think
+implementing dynamic pll calculation and digital gain control may be
+postponed if you wish. Especially the latter would be nice since I think
+many sensors have that feature (plus colour component gains) but no driver
+expose any proper interface for it.
+
 -- 
-1.7.2.5
-
+Sakari Ailus
+sakari.ailus@iki.fi
