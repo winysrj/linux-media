@@ -1,83 +1,45 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.17.10]:61000 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754003Ab1GQQwt (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 17 Jul 2011 12:52:49 -0400
-Date: Sun, 17 Jul 2011 18:52:19 +0200 (CEST)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-cc: Michael Grzeschik <m.grzeschik@pengutronix.de>,
+Received: from narfation.org ([79.140.41.39]:43169 "EHLO v3-1039.vlinux.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754186Ab1G0Jzw (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 27 Jul 2011 05:55:52 -0400
+From: Sven Eckelmann <sven@narfation.org>
+To: linux-arch@vger.kernel.org
+Cc: linux-kernel@vger.kernel.org, Sven Eckelmann <sven@narfation.org>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
 	linux-media@vger.kernel.org
-Subject: Re: [PATCH 1/5] mt9m111: set inital return values to zero
-In-Reply-To: <201107141725.21401.laurent.pinchart@ideasonboard.com>
-Message-ID: <Pine.LNX.4.64.1107171844150.13485@axis700.grange>
-References: <1310485146-27759-1-git-send-email-m.grzeschik@pengutronix.de>
- <201107141725.21401.laurent.pinchart@ideasonboard.com>
-MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Subject: [PATCHv4 05/11] omap3isp: Use *_dec_not_zero instead of *_add_unless
+Date: Wed, 27 Jul 2011 11:47:44 +0200
+Message-Id: <1311760070-21532-5-git-send-email-sven@narfation.org>
+In-Reply-To: <1311760070-21532-1-git-send-email-sven@narfation.org>
+References: <1311760070-21532-1-git-send-email-sven@narfation.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, 14 Jul 2011, Laurent Pinchart wrote:
+atomic_dec_not_zero is defined for each architecture through
+<linux/atomic.h> to provide the functionality of
+atomic_add_unless(x, -1, 0).
 
-> Hi Michael,
-> 
-> There's no need to set initial return values to zero if they're assigned to in 
-> all code paths.
-> 
-> [snip]
-> 
-> > *client) static int mt9m111_enable(struct i2c_client *client)
-> >  {
-> >  	struct mt9m111 *mt9m111 = to_mt9m111(client);
-> > -	int ret;
-> > +	int ret = 0;
-> > 
-> >  	ret = reg_set(RESET, MT9M111_RESET_CHIP_ENABLE);
-> >  	if (!ret)
-> 
-> This is a clear example, ret will never be used uninitialized. Initializing it 
-> to 0 would be a waste of resources (although in this case it will probably be 
-> optimized out by the compiler).
-
-Seconded. When I wrote:
-
-> > +static int mt9m111_reg_mask(struct i2c_client *client, const u16 reg,
-> > +			    const u16 data, const u16 mask)
-> > +{
-> > +	int ret;
-> > +
-> > +	ret = mt9m111_reg_read(client, reg);
-> > +	return mt9m111_reg_write(client, reg, (ret & ~mask) | data);
-> 
-> Ok, I feel ashamed, that I have accepted this driver in this form... It is 
-> full of such buggy error handling instances, and this adds just one 
-> more... So, I would very appreciate if you could clean them up - before 
-> this patch, and handle this error properly too, otherwise I might do this 
-> myself some time... And, just noticed - "static int lastpage" from 
-> reg_page_map_set() must be moved into struct mt9m111, if this driver shall 
-> be able to handle more than one sensor simultaneously, at least in 
-> principle...
-
-I didn't mean to init all return codes to 0. I meant, before using a 
-result of a reg_read(), you have to check it for error. I.e.,
-
-+	ret = mt9m111_reg_read(client, reg);
-+	if (ret >= 0)
-+		ret = mt9m111_reg_write(client, reg, (ret & ~mask) | data);
-+	return ret;
-
-In principle, after the updated version of your patch "mt9m111: rewrite 
-set_pixfmt" all errors, returned by reg_read(), reg_write() and reg_mask() 
-are checked, even if some of them I would do a bit differently. E.g., I 
-would propagate the error code instead of replacing it with -EIO, etc. But 
-in principle all error cases are handled, so, we can live with that for 
-now. I'm dropping this patch.
-
-Thanks
-Guennadi
+Signed-off-by: Sven Eckelmann <sven@narfation.org>
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: linux-media@vger.kernel.org
 ---
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
-http://www.open-technology.de/
+ drivers/media/video/omap3isp/ispstat.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
+
+diff --git a/drivers/media/video/omap3isp/ispstat.c b/drivers/media/video/omap3isp/ispstat.c
+index b44cb68..81b1ec9 100644
+--- a/drivers/media/video/omap3isp/ispstat.c
++++ b/drivers/media/video/omap3isp/ispstat.c
+@@ -652,7 +652,7 @@ static int isp_stat_buf_process(struct ispstat *stat, int buf_state)
+ {
+ 	int ret = STAT_NO_BUF;
+ 
+-	if (!atomic_add_unless(&stat->buf_err, -1, 0) &&
++	if (!atomic_dec_not_zero(&stat->buf_err) &&
+ 	    buf_state == STAT_BUF_DONE && stat->state == ISPSTAT_ENABLED) {
+ 		ret = isp_stat_buf_queue(stat);
+ 		isp_stat_buf_next(stat);
+-- 
+1.7.5.4
+
