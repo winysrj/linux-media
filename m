@@ -1,107 +1,69 @@
-Return-path: <mchehab@localhost>
-Received: from d1.icnet.pl ([212.160.220.21]:55499 "EHLO d1.icnet.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754146Ab1GIPAJ (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 9 Jul 2011 11:00:09 -0400
-From: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
-To: Arnd Bergmann <arnd@arndb.de>
-Subject: Re: [Linaro-mm-sig] [PATCH 6/8] drivers: add Contiguous Memory Allocator
-Date: Sat, 9 Jul 2011 16:57:07 +0200
-Cc: linux-arm-kernel@lists.infradead.org,
-	Nicolas Pitre <nicolas.pitre@linaro.org>,
-	"Russell King - ARM Linux" <linux@arm.linux.org.uk>,
-	"'Daniel Walker'" <dwalker@codeaurora.org>,
-	"'Jonathan Corbet'" <corbet@lwn.net>,
-	"'Mel Gorman'" <mel@csn.ul.ie>,
-	"'Chunsang Jeong'" <chunsang.jeong@linaro.org>,
-	linux-kernel@vger.kernel.org,
-	"'Michal Nazarewicz'" <mina86@mina86.com>,
-	linaro-mm-sig@lists.linaro.org,
-	"'Jesse Barker'" <jesse.barker@linaro.org>,
-	"'Kyungmin Park'" <kyungmin.park@samsung.com>,
-	"'Ankita Garg'" <ankita@in.ibm.com>,
-	"'Andrew Morton'" <akpm@linux-foundation.org>, linux-mm@kvack.org,
-	"'KAMEZAWA Hiroyuki'" <kamezawa.hiroyu@jp.fujitsu.com>,
-	linux-media@vger.kernel.org,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Marin Mitov <mitov@issp.bas.bg>,
-	FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp>
-References: <1309851710-3828-1-git-send-email-m.szyprowski@samsung.com> <alpine.LFD.2.00.1107061034200.14596@xanadu.home> <201107061659.45253.arnd@arndb.de>
-In-Reply-To: <201107061659.45253.arnd@arndb.de>
+Return-path: <linux-media-owner@vger.kernel.org>
+Received: from mail-gw0-f46.google.com ([74.125.83.46]:46407 "EHLO
+	mail-gw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754946Ab1G0TT3 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 27 Jul 2011 15:19:29 -0400
+Received: by gwaa18 with SMTP id a18so1297987gwa.19
+        for <linux-media@vger.kernel.org>; Wed, 27 Jul 2011 12:19:29 -0700 (PDT)
 MIME-Version: 1.0
-Message-Id: <201107091657.07925.jkrzyszt@tis.icnet.pl>
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
+In-Reply-To: <CAD=GYpbVf94cxMhud8eted7WBX_csN_abpyYFHR7tL9ng+cV5w@mail.gmail.com>
+References: <1310581347-31102-1-git-send-email-agnel.joel@gmail.com>
+	<CAL8ugEc33uZBEz-5WxVd5aGArCRq8tv6X1K0uaJHiEVgqEfd6g@mail.gmail.com>
+	<6F36B362-244D-4127-8E57-2E4441709159@beagleboard.org>
+	<CAL8ugEdYGV9H8vXWErh5-cKRhjT8nU8CxHoOSgxUJ3E_um1gFg@mail.gmail.com>
+	<CAD=GYpbVf94cxMhud8eted7WBX_csN_abpyYFHR7tL9ng+cV5w@mail.gmail.com>
+Date: Wed, 27 Jul 2011 12:19:28 -0700
+Message-ID: <CAL8ugEcjThc8KYyEjG5eLORWGfQt_7FdVi9rXoZ+sipjbHRG9g@mail.gmail.com>
+Subject: Re: [beagleboard] [RFC v1] mt9v113: VGA camera sensor driver and
+ support for BeagleBoard
+From: Mark Grosen <mark@grosen.org>
+To: Joel A Fernandes <agnel.joel@gmail.com>
+Cc: beagleboard@googlegroups.com, jdk@ti.com,
+	Javier Martin <javier.martin@vista-silicon.com>,
+	laurent.pinchart@ideasonboard.com, linux-media@vger.kernel.org,
+	k-kooi@ti.com, pprakash@ti.com, chase.maupin@ti.com,
+	s-kipisz2@ti.com, saaguirre@ti.com
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
+Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
-Sender: <mchehab@infradead.org>
 
-On Wed, 6 Jul 2011 at 16:59:45 Arnd Bergmann wrote:
-> On Wednesday 06 July 2011, Nicolas Pitre wrote:
-> > On Wed, 6 Jul 2011, Russell King - ARM Linux wrote:
-> > > Another issue is that when a platform has restricted DMA regions,
-> > > they typically don't fall into the highmem zone.  As the
-> > > dmabounce code allocates from the DMA coherent allocator to
-> > > provide it with guaranteed DMA-able memory, that would be rather
-> > > inconvenient.
-> > 
-> > Do we encounter this in practice i.e. do those platforms requiring
-> > large contiguous allocations motivating this work have such DMA
-> > restrictions?
-> 
-> You can probably find one or two of those, but we don't have to
-> optimize for that case. I would at least expect the maximum size of
-> the allocation to be smaller than the DMA limit for these, and
-> consequently mandate that they define a sufficiently large
-> CONSISTENT_DMA_SIZE for the crazy devices, or possibly add a hack to
-> unmap some low memory and call
-> dma_declare_coherent_memory() for the device.
+On Wed, Jul 27, 2011 at 11:49 AM, Joel A Fernandes <agnel.joel@gmail.com> wrote:
+>>>> Joel,
+>>>>
+>>>> I gave this a try this weekend. I ran into a few problems/questions.
+>>>>
+>>>> I wanted to try with pre-built (tested?) binaries so I grabbed yours
+>>>> (used your uImage):
+>>>> 1. media-ctl binary does not work because there is no libmediactl.so
+>>>> on my Angstrom root FS.
+>>>> 2. There was no yavta-nc application.
+>>>
+>>> have you tried 'opkg update ; opkg install mediactl yavta-nc' ?
+>>>
+>>
+>> Showing my Angstrom ignorance here, but I cannot get these packages
+>> via opkg update. I use Narcissus builder - I built a new FS yesterday
+>> using 2011.03 - should I have used "next". It runs fine, but when I do
+>> the opkg update; opkg install yavta-nc  it fails. I see media-ctl and
+>> yavta-nc in the package browser website, but my guess is they are for
+>> "newer" builds?
+>>
+>
+> What is the failure? If you have some output, could you paste it?
+>
+> As a last resort, you could download the .ipk from Angstrom Package
+> browser, and uncompress it to get yavta-nc
+>
+> Thanks,
+> Joel
 
-Once found that Russell has dropped his "ARM: DMA: steal memory for DMA 
-coherent mappings" for now, let me get back to this idea of a hack that 
-would allow for safely calling dma_declare_coherent_memory() in order to 
-assign a device with a block of contiguous memory for exclusive use. 
-Assuming there should be no problem with successfully allocating a large 
-continuous block of coherent memory at boot time with 
-dma_alloc_coherent(), this block could be reserved for the device. The 
-only problem is with the dma_declare_coherent_memory() calling 
-ioremap(), which was designed with a device's dedicated physical memory 
-in mind, but shouldn't be called on a memory already mapped.
+The error is what you would expect: "package not found"
 
-There were three approaches proposed, two of them in August 2010:
-http://www.spinics.net/lists/linux-media/msg22179.html,
-http://www.spinics.net/lists/arm-kernel/msg96318.html,
-and a third one in January 2011:
-http://www.spinics.net/lists/linux-arch/msg12637.html.
+I did try downloading the .ipk, but it fails to install because "libc6
+is too old". If I try to update libc6, it says it is already the
+latest. This is the point about being on an old release (2011.03 vs
+next).
 
-As far as I can understand the reason why both of the first two were 
-NAKed, it was suggested that videobuf-dma-contig shouldn't use coherent 
-if all it requires is a contiguous memory, and a new API should be 
-invented, or dma_pool API extended, for providing contiguous memory. The 
-CMA was pointed out as a new work in progress contiguous memory API. Now 
-it turns out it's not, it's only a helper to ensure that 
-dma_alloc_coherent() always succeeds, and videobuf2-dma-contig is still 
-going to allocate buffers from coherent memory.
-
-(CCing both authors, Marin Mitov and Guennadi Liakhovetski, and their 
-main opponent, FUJITA Tomonori)
-
-The third solution was not discussed much after it was pointed out as 
-being not very different from those two in terms of the above mentioned 
-rationale.
-
-All three solutions was different from now suggested method of unmapping 
-some low memory and then calling dma_declare_coherent_memory() which 
-ioremaps it in that those tried to reserve some boot time allocated 
-coherent memory, already mapped correctly, without (io)remapping it.
-
-If there are still problems with the CMA on one hand, and a need for a 
-hack to handle "crazy devices" is still seen, regardless of CMA 
-available and working or not, on the other, maybe we should get back to 
-the idea of adopting coherent API to new requirements, review those 
-three proposals again and select one which seems most acceptable to 
-everyone? Being a submitter of the third, I'll be happy to refresh it if 
-selected.
-
-Thanks,
-Janusz
+Mark
