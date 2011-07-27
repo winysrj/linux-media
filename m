@@ -1,163 +1,50 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout1.w1.samsung.com ([210.118.77.11]:64423 "EHLO
-	mailout1.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750745Ab1GRGa6 (ORCPT
+Received: from mail-ey0-f171.google.com ([209.85.215.171]:36266 "EHLO
+	mail-ey0-f171.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752402Ab1G0O6i (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 18 Jul 2011 02:30:58 -0400
-Received: from spt2.w1.samsung.com (mailout1.w1.samsung.com [210.118.77.11])
- by mailout1.w1.samsung.com
- (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14 2004))
- with ESMTP id <0LOI00M00NFJKP@mailout1.w1.samsung.com> for
- linux-media@vger.kernel.org; Mon, 18 Jul 2011 07:30:55 +0100 (BST)
-Received: from linux.samsung.com ([106.116.38.10])
- by spt2.w1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14
- 2004)) with ESMTPA id <0LOI000GYNFIVL@spt2.w1.samsung.com> for
- linux-media@vger.kernel.org; Mon, 18 Jul 2011 07:30:55 +0100 (BST)
-Date: Mon, 18 Jul 2011 08:30:06 +0200
-From: Marek Szyprowski <m.szyprowski@samsung.com>
-Subject: RE: [RFCv1 PATCH 5/6] videobuf2-core: also test for pending events.
-In-reply-to: <7e5b35d540b5937481b1b9a44cd926b170a81188.1310549521.git.hans.verkuil@cisco.com>
-To: 'Hans Verkuil' <hverkuil@xs4all.nl>, linux-media@vger.kernel.org
-Cc: 'Hans Verkuil' <hans.verkuil@cisco.com>,
-	'Pawel Osciak' <pawel@osciak.com>
-Message-id: <00c801cc4514$2263cc90$672b65b0$%szyprowski@samsung.com>
-MIME-version: 1.0
-Content-type: text/plain; charset=us-ascii
-Content-language: pl
-Content-transfer-encoding: 7BIT
-References: <1310549944-23756-1-git-send-email-hverkuil@xs4all.nl>
- <7e5b35d540b5937481b1b9a44cd926b170a81188.1310549521.git.hans.verkuil@cisco.com>
+	Wed, 27 Jul 2011 10:58:38 -0400
+Received: by eye22 with SMTP id 22so1986258eye.2
+        for <linux-media@vger.kernel.org>; Wed, 27 Jul 2011 07:58:37 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <4E302207.8050409@redhat.com>
+References: <20110722183552.169950@gmx.net>
+	<4E302207.8050409@redhat.com>
+Date: Wed, 27 Jul 2011 10:58:36 -0400
+Message-ID: <CAGoCfiyx8d_ALG6N+9Zru8Hps3iACx=jCq+bUDkadQMFae=6gg@mail.gmail.com>
+Subject: Re: [PATCH v3] tuner_xc2028: Allow selection of the frequency
+ adjustment code for XC3028
+From: Devin Heitmueller <dheitmueller@kernellabs.com>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Alina Friedrichsen <x-alina@gmx.net>, linux-media@vger.kernel.org,
+	rglowery@exemail.com.au
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello,
+On Wed, Jul 27, 2011 at 10:34 AM, Mauro Carvalho Chehab
+<mchehab@redhat.com> wrote:
+> Btw, what's the video standard that you're using? DTV7? Does your device use
+> a xc3028 or xc3028xl? Whats's your demod and board?
 
-On Wednesday, July 13, 2011 11:39 AM Hans Verkuil wrote:
+It was in the first sentence of his email.  He's got an HVR-1400,
+which uses the xc3028L and dib7000p.
 
-> From: Hans Verkuil <hans.verkuil@cisco.com>
-> 
-> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+It's also worth noting that he isn't the first person to complain
+about tuning offset problems with the xc3028L.  Just look at the
+rather nasty hack some random user did for the EVGA inDtube (which is
+xc3208L/s5h1409).
 
-Acked-by: Marek Szyprowski <m.szyprowski@samsung.com>
+http://linuxtv.org/wiki/index.php/EVGA_inDtube
 
-> ---
->  drivers/media/video/videobuf2-core.c |   41 +++++++++++++++++++++++-------
-> ---
->  1 files changed, 28 insertions(+), 13 deletions(-)
-> 
-> diff --git a/drivers/media/video/videobuf2-core.c
-> b/drivers/media/video/videobuf2-core.c
-> index 1892bb8..1922bf8 100644
-> --- a/drivers/media/video/videobuf2-core.c
-> +++ b/drivers/media/video/videobuf2-core.c
-> @@ -19,6 +19,9 @@
->  #include <linux/slab.h>
->  #include <linux/sched.h>
-> 
-> +#include <media/v4l2-dev.h>
-> +#include <media/v4l2-fh.h>
-> +#include <media/v4l2-event.h>
->  #include <media/videobuf2-core.h>
-> 
->  static int debug;
-> @@ -1360,15 +1363,28 @@ static int __vb2_cleanup_fileio(struct vb2_queue
-> *q);
->   * For OUTPUT queues, if a buffer is ready to be dequeued, the file
-> descriptor
->   * will be reported as available for writing.
->   *
-> + * If the driver uses struct v4l2_fh, then vb2_poll() will also check for
-> any
-> + * pending events.
-> + *
->   * The return values from this function are intended to be directly
-> returned
->   * from poll handler in driver.
->   */
->  unsigned int vb2_poll(struct vb2_queue *q, struct file *file, poll_table
-> *wait)
->  {
-> +	struct video_device *vfd = video_devdata(file);
->  	unsigned long req_events = poll_requested_events(wait);
-> -	unsigned long flags;
-> -	unsigned int ret;
->  	struct vb2_buffer *vb = NULL;
-> +	unsigned int res = 0;
-> +	unsigned long flags;
-> +
-> +	if (test_bit(V4L2_FL_USES_V4L2_FH, &vfd->flags)) {
-> +		struct v4l2_fh *fh = file->private_data;
-> +
-> +		if (v4l2_event_pending(fh))
-> +			res = POLLPRI;
-> +		else if (req_events & POLLPRI)
-> +			poll_wait(file, &fh->wait, wait);
-> +	}
-> 
->  	/*
->  	 * Start file I/O emulator only if streaming API has not been used
-> yet.
-> @@ -1376,19 +1392,17 @@ unsigned int vb2_poll(struct vb2_queue *q, struct
-> file *file, poll_table *wait)
->  	if (q->num_buffers == 0 && q->fileio == NULL) {
->  		if (!V4L2_TYPE_IS_OUTPUT(q->type) && (q->io_modes & VB2_READ)
-> &&
->  				(req_events & (POLLIN | POLLRDNORM))) {
-> -			ret = __vb2_init_fileio(q, 1);
-> -			if (ret)
-> -				return POLLERR;
-> +			if (__vb2_init_fileio(q, 1))
-> +				return res | POLLERR;
->  		}
->  		if (V4L2_TYPE_IS_OUTPUT(q->type) && (q->io_modes & VB2_WRITE)
-> &&
->  				(req_events & (POLLOUT | POLLWRNORM))) {
-> -			ret = __vb2_init_fileio(q, 0);
-> -			if (ret)
-> -				return POLLERR;
-> +			if (__vb2_init_fileio(q, 0))
-> +				return res | POLLERR;
->  			/*
->  			 * Write to OUTPUT queue can be done immediately.
->  			 */
-> -			return POLLOUT | POLLWRNORM;
-> +			return res | POLLOUT | POLLWRNORM;
->  		}
->  	}
-> 
-> @@ -1396,7 +1410,7 @@ unsigned int vb2_poll(struct vb2_queue *q, struct
-> file *file, poll_table *wait)
->  	 * There is nothing to wait for if no buffers have already been
-> queued.
->  	 */
->  	if (list_empty(&q->queued_list))
-> -		return POLLERR;
-> +		return res | POLLERR;
-> 
->  	poll_wait(file, &q->done_wq, wait);
-> 
-> @@ -1411,10 +1425,11 @@ unsigned int vb2_poll(struct vb2_queue *q, struct
-> file *file, poll_table *wait)
-> 
->  	if (vb && (vb->state == VB2_BUF_STATE_DONE
->  			|| vb->state == VB2_BUF_STATE_ERROR)) {
-> -		return (V4L2_TYPE_IS_OUTPUT(q->type)) ? POLLOUT | POLLWRNORM :
-> -			POLLIN | POLLRDNORM;
-> +		return (V4L2_TYPE_IS_OUTPUT(q->type)) ?
-> +				res | POLLOUT | POLLWRNORM :
-> +				res | POLLIN | POLLRDNORM;
->  	}
-> -	return 0;
-> +	return res;
->  }
->  EXPORT_SYMBOL_GPL(vb2_poll);
-> 
-> --
+Bear in mind that it worked when I added the original support.
+Somebody caused a regression since then though.
 
-Best regards
+In short, I can appreciate why the user is frustrated.  The xc3028L
+support worked at one point and then somebody broke the xc3028 driver.
+
+Devin
+
 -- 
-Marek Szyprowski
-Samsung Poland R&D Center
-
-
-
+Devin J. Heitmueller - Kernel Labs
+http://www.kernellabs.com
