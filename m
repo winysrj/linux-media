@@ -1,125 +1,44 @@
-Return-path: <mchehab@localhost>
-Received: from cnc.isely.net ([75.149.91.89]:54758 "EHLO cnc.isely.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751880Ab1GGQoP (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 7 Jul 2011 12:44:15 -0400
-Date: Thu, 7 Jul 2011 11:44:14 -0500 (CDT)
-From: Mike Isely <isely@isely.net>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
-Subject: Re: [PATCH RFCv3 17/17] [media] return -ENOTTY for unsupported
- ioctl's at legacy drivers
-In-Reply-To: <20110706150349.44795968@pedra>
-Message-ID: <alpine.DEB.1.10.1107071143210.967@cnc.isely.net>
-References: <cover.1309974026.git.mchehab@redhat.com> <20110706150349.44795968@pedra>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
+Return-path: <linux-media-owner@vger.kernel.org>
+Received: from mail-fx0-f46.google.com ([209.85.161.46]:61513 "EHLO
+	mail-fx0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751838Ab1G0Upj convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 27 Jul 2011 16:45:39 -0400
+Received: by fxh19 with SMTP id 19so572223fxh.19
+        for <linux-media@vger.kernel.org>; Wed, 27 Jul 2011 13:45:38 -0700 (PDT)
+MIME-Version: 1.0
+Date: Wed, 27 Jul 2011 22:45:37 +0200
+Message-ID: <CAMyVd1oipP4EaBab730oFWu5EDzDvz5wjUATGnH-q+1dDQpB+Q@mail.gmail.com>
+Subject: [GIT PATCHES FOR 3.1] Updates for the gspca-stv06xx driver
+From: =?ISO-8859-1?Q?Erik_Andr=E9n?= <erik.andren@gmail.com>
+To: Mauro Carvalho Chehab <mchehab@infradead.org>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
+Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
-Sender: <mchehab@infradead.org>
 
+Hi Mauro,
+Long time no code. :)
+Here are some updates to the stv06xx driver.
 
-For the pvrusb2 portion of this patch:
+The following changes since commit b0189cd087aa82bd23277cb5c8960ab030e13e5c:
 
-Acked-By: Mike Isely <isely@pobox.com>
+  Merge branch 'next/devel2' of
+git://git.kernel.org/pub/scm/linux/kernel/git/arm/linux-arm-soc
+(2011-07-26 17:42:18 -0700)
 
-  -Mike
+are available in the git repository at:
 
-On Wed, 6 Jul 2011, Mauro Carvalho Chehab wrote:
+  http://git.linuxtv.org/eandren/v4l-dvb-stv06xx.git media-for_v3.1
 
-> Those drivers are not relying at the V4L2 core to handle the ioctl's.
-> So, we need to manually patch them every time a change goes to the
-> core.
-> 
-> Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
-> 
-> diff --git a/drivers/media/video/et61x251/et61x251_core.c b/drivers/media/video/et61x251/et61x251_core.c
-> index d7efb33..9a1e80a 100644
-> --- a/drivers/media/video/et61x251/et61x251_core.c
-> +++ b/drivers/media/video/et61x251/et61x251_core.c
-> @@ -2480,16 +2480,8 @@ static long et61x251_ioctl_v4l2(struct file *filp,
->  	case VIDIOC_S_PARM:
->  		return et61x251_vidioc_s_parm(cam, arg);
->  
-> -	case VIDIOC_G_STD:
-> -	case VIDIOC_S_STD:
-> -	case VIDIOC_QUERYSTD:
-> -	case VIDIOC_ENUMSTD:
-> -	case VIDIOC_QUERYMENU:
-> -	case VIDIOC_ENUM_FRAMEINTERVALS:
-> -		return -EINVAL;
-> -
->  	default:
-> -		return -EINVAL;
-> +		return -ENOTTY;
->  
->  	}
->  }
-> diff --git a/drivers/media/video/pvrusb2/pvrusb2-v4l2.c b/drivers/media/video/pvrusb2/pvrusb2-v4l2.c
-> index 573749a..e27f8ab 100644
-> --- a/drivers/media/video/pvrusb2/pvrusb2-v4l2.c
-> +++ b/drivers/media/video/pvrusb2/pvrusb2-v4l2.c
-> @@ -369,11 +369,6 @@ static long pvr2_v4l2_do_ioctl(struct file *file, unsigned int cmd, void *arg)
->  		break;
->  	}
->  
-> -	case VIDIOC_S_AUDIO:
-> -	{
-> -		ret = -EINVAL;
-> -		break;
-> -	}
->  	case VIDIOC_G_TUNER:
->  	{
->  		struct v4l2_tuner *vt = (struct v4l2_tuner *)arg;
-> @@ -850,7 +845,7 @@ static long pvr2_v4l2_do_ioctl(struct file *file, unsigned int cmd, void *arg)
->  #endif
->  
->  	default :
-> -		ret = -EINVAL;
-> +		ret = -ENOTTY;
->  		break;
->  	}
->  
-> diff --git a/drivers/media/video/sn9c102/sn9c102_core.c b/drivers/media/video/sn9c102/sn9c102_core.c
-> index d8eece8..16cb07c 100644
-> --- a/drivers/media/video/sn9c102/sn9c102_core.c
-> +++ b/drivers/media/video/sn9c102/sn9c102_core.c
-> @@ -3187,16 +3187,8 @@ static long sn9c102_ioctl_v4l2(struct file *filp,
->  	case VIDIOC_S_AUDIO:
->  		return sn9c102_vidioc_s_audio(cam, arg);
->  
-> -	case VIDIOC_G_STD:
-> -	case VIDIOC_S_STD:
-> -	case VIDIOC_QUERYSTD:
-> -	case VIDIOC_ENUMSTD:
-> -	case VIDIOC_QUERYMENU:
-> -	case VIDIOC_ENUM_FRAMEINTERVALS:
-> -		return -EINVAL;
-> -
->  	default:
-> -		return -EINVAL;
-> +		return -ENOTTY;
->  
->  	}
->  }
-> diff --git a/drivers/media/video/uvc/uvc_v4l2.c b/drivers/media/video/uvc/uvc_v4l2.c
-> index cdd967b..7afb97b 100644
-> --- a/drivers/media/video/uvc/uvc_v4l2.c
-> +++ b/drivers/media/video/uvc/uvc_v4l2.c
-> @@ -83,7 +83,7 @@ static int uvc_ioctl_ctrl_map(struct uvc_video_chain *chain,
->  	default:
->  		uvc_trace(UVC_TRACE_CONTROL, "Unsupported V4L2 control type "
->  			  "%u.\n", xmap->v4l2_type);
-> -		ret = -EINVAL;
-> +		ret = -ENOTTY;
->  		goto done;
->  	}
->  
-> 
+Erik Andrén (5):
+      gspca-stv06xx: Simplify register writes by avoiding special data
+structures
+      gspca-stv06xx: Simplify stv_init struct and vv6410 bridge init.
+      gspca-stv06xx: Fix sensor init indentation.
+      gspca-stv06xx: Remove writes to read-only registers
+      gspca-stv06xx: Triple frame rate by decreasing the scan rate.
 
--- 
-
-Mike Isely
-isely @ isely (dot) net
-PGP: 03 54 43 4D 75 E5 CC 92 71 16 01 E2 B5 F5 C1 E8
+Regards,
+Erik
