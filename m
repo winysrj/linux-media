@@ -1,62 +1,93 @@
-Return-path: <mchehab@pedra>
-Received: from smtp-vbr12.xs4all.nl ([194.109.24.32]:1135 "EHLO
-	smtp-vbr12.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754997Ab1GAMKW (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 1 Jul 2011 08:10:22 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-Subject: Re: RFC: poll behavior
-Date: Fri, 1 Jul 2011 14:10:15 +0200
-Cc: Hans Verkuil <hansverk@cisco.com>,
-	Hans de Goede <hdegoede@redhat.com>,
-	linux-media@vger.kernel.org
-References: <201106291326.47527.hansverk@cisco.com> <201107011145.51118.hverkuil@xs4all.nl> <4E0DB692.7040605@redhat.com>
-In-Reply-To: <4E0DB692.7040605@redhat.com>
+Return-path: <linux-media-owner@vger.kernel.org>
+Received: from mail.southpole.se ([193.12.106.18]:44567 "EHLO
+	mail.southpole.se" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752099Ab1G0Mmw (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 27 Jul 2011 08:42:52 -0400
+Received: from [192.168.16.134] (assp.southpole.se [193.12.106.25])
+	by mail.southpole.se (Postfix) with ESMTPA id C5780880002
+	for <linux-media@vger.kernel.org>; Wed, 27 Jul 2011 14:21:15 +0200 (CEST)
+Message-ID: <4E3002DF.7060209@ludd.ltu.se>
+Date: Wed, 27 Jul 2011 14:21:51 +0200
+From: Benjamin Larsson <banan@ludd.ltu.se>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201107011410.15401.hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: [PATCH] Firmware extraction for IT9135 based devices
+Content-Type: multipart/mixed;
+ boundary="------------010604070709010008060209"
+Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
-Sender: <mchehab@pedra>
 
-On Friday, July 01, 2011 13:59:14 Mauro Carvalho Chehab wrote:
-> Em 01-07-2011 06:45, Hans Verkuil escreveu:
-> > On Thursday, June 30, 2011 22:35:15 Mauro Carvalho Chehab wrote:
-> 
-> >>> This also leads to another ambiguity with poll(): what should poll do if 
-> >>> another filehandle started streaming? So fh1 called STREAMON (and so becomes 
-> >>> the 'owner' of the stream), and you poll on fh2. If a frame becomes available, 
-> >>> should fh2 wake up? Is fh2 allowed to call DQBUF?
-> >>
-> >> IMO, both fh's should get the same results. This is what happens if you're
-> >> writing into a file and two or more processes are selecting at the EOF.
-> > 
-> > Yes, but multiple filehandles are allowed to write/read from a file at the
-> > same time. That's not true for V4L2. Only one filehandle can do I/O at a time.
-> 
-> Actually, this is not quite true currently, as you could, for example use one fd
-> for QBUF, and another for DQBUF, with the current behavior, but, with luck,
-> no applications are doing weird things like that. Yet, tests are needed to avoid
-> breaking something, if we're willing to change it.
 
-Many drivers prevent such things. But it is very much up to the driver. My
-gut-feeling is that it is a 50-50 split between drivers that allow it (whether
-it actually works is another matter) and drivers that prevent this and return
--EBUSY.
+This is a multi-part message in MIME format.
+--------------010604070709010008060209
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 
-> > I'm going to look into changing fs/select.c so that the poll driver function
-> > can actually see the event mask provided by the application.
-> 
-> Why? A POLLERR should be notified, whatever mask is there, as the application
-> may need to abort (for example, in cases like hardware removal).
+MvH
+Benjamin Larsson
 
-If an application isn't interested in POLLIN or POLLOUT, but just POLLPRI, then
-poll() doesn't need to start streaming.
+--------------010604070709010008060209
+Content-Type: text/x-patch;
+ name="0001-Firmware-extraction-for-IT9135-based-devices.patch"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: attachment;
+ filename*0="0001-Firmware-extraction-for-IT9135-based-devices.patch"
 
-It obviously makes no sense to start streaming if the application isn't polling
-for input.
+>From b3cbee633f5a6403c2460892e64adcb88f6ae4a6 Mon Sep 17 00:00:00 2001
+From: Benjamin Larsson <benjamin@southpole.se>
+Date: Wed, 27 Jul 2011 13:43:38 +0200
+Subject: [PATCH 1/1] Firmware extraction for IT9135 based devices
 
-Regards,
 
-	Hans
+Signed-off-by: Benjamin Larsson <benjamin@southpole.se>
+---
+ Documentation/dvb/get_dvb_firmware |   23 ++++++++++++++++++++++-
+ 1 files changed, 22 insertions(+), 1 deletions(-)
+
+diff --git a/Documentation/dvb/get_dvb_firmware b/Documentation/dvb/get_dvb_firmware
+index c466f58..65ebe20 100755
+--- a/Documentation/dvb/get_dvb_firmware
++++ b/Documentation/dvb/get_dvb_firmware
+@@ -27,7 +27,8 @@ use IO::Handle;
+ 		"or51211", "or51132_qam", "or51132_vsb", "bluebird",
+ 		"opera1", "cx231xx", "cx18", "cx23885", "pvrusb2", "mpc718",
+ 		"af9015", "ngene", "az6027", "lme2510_lg", "lme2510c_s7395",
+-		"lme2510c_s7395_old", "drxk", "drxk_terratec_h5");
++		"lme2510c_s7395_old", "drxk", "drxk_terratec_h5",
++                "it9135" );
+ 
+ # Check args
+ syntax() if (scalar(@ARGV) != 1);
+@@ -665,6 +666,26 @@ sub drxk_terratec_h5 {
+     "$fwfile"
+ }
+ 
++sub it9135 {
++    my $url = "http://kworld.server261.com/kworld/CD/ITE_TiVme/V1.00/";
++    my $zipfile = "Driver_V10.323.1.0412.100412.zip";
++    my $hash = "79b597dc648698ed6820845c0c9d0d37";
++    my $tmpdir = tempdir(DIR => "/tmp", CLEANUP => 0);
++    my $drvfile = "Driver_V10.323.1.0412.100412/Data/x86/IT9135BDA.sys";
++    my $fwfile = "dvb-usb-it9137-01.fw";
++
++    checkstandard();
++
++    wgetfile($zipfile, $url . $zipfile);
++    verify($zipfile, $hash);
++    unzip($zipfile, $tmpdir);
++    extract("$tmpdir/$drvfile", 69632, 5731, "$fwfile");
++
++    "$fwfile"
++}
++
++
++
+ # ---------------------------------------------------------------
+ # Utilities
+ 
+-- 
+1.7.1
+
+
+--------------010604070709010008060209--
