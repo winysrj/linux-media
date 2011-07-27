@@ -1,150 +1,156 @@
-Return-path: <mchehab@localhost>
-Received: from smtp-vbr10.xs4all.nl ([194.109.24.30]:2170 "EHLO
-	smtp-vbr10.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756785Ab1GGPbp (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 7 Jul 2011 11:31:45 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: [PATCH RFCv3 00/17] Error code fixes and return -ENOTTY for no-ioctl
-Date: Thu, 7 Jul 2011 17:31:31 +0200
-Cc: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
-	Stefan Richter <stefanr@s5r6.in-berlin.de>
-References: <20110706150404.3ac4ed6e@pedra>
-In-Reply-To: <20110706150404.3ac4ed6e@pedra>
-MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
+Return-path: <linux-media-owner@vger.kernel.org>
+Received: from mail-ww0-f44.google.com ([74.125.82.44]:43720 "EHLO
+	mail-ww0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755494Ab1G0WHp (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 27 Jul 2011 18:07:45 -0400
+Received: by wwe5 with SMTP id 5so1861516wwe.1
+        for <linux-media@vger.kernel.org>; Wed, 27 Jul 2011 15:07:43 -0700 (PDT)
+Subject: Re: [PATCH 2/3] dvb-usb: multi-frontend support (MFE)
+From: Malcolm Priestley <tvboxspy@gmail.com>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Antti Palosaari <crope@iki.fi>, linux-media@vger.kernel.org
+In-Reply-To: <4E3061CF.2080009@redhat.com>
+References: <4E2E0788.3010507@iki.fi>  <4E3061CF.2080009@redhat.com>
+Content-Type: text/plain; charset="UTF-8"
+Date: Wed, 27 Jul 2011 23:07:31 +0100
+Message-ID: <1311804451.9058.20.camel@localhost>
+Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
-Message-Id: <201107071731.31434.hverkuil@xs4all.nl>
+Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
-Sender: <mchehab@infradead.org>
 
-On Wednesday, July 06, 2011 20:04:04 Mauro Carvalho Chehab wrote:
-> This patch series contain some fixes on how error codes are handled
-> at the media API's. It consists on two parts. 
+On Wed, 2011-07-27 at 16:06 -0300, Mauro Carvalho Chehab wrote:
+> Em 25-07-2011 21:17, Antti Palosaari escreveu:
+> > Signed-off-by: Antti Palosaari <crope@iki.fi>
+> > ---
+> >  drivers/media/dvb/dvb-usb/dvb-usb-dvb.c  |   85 +++++++++++++++++++++++-------
+> >  drivers/media/dvb/dvb-usb/dvb-usb-init.c |    4 ++
+> >  drivers/media/dvb/dvb-usb/dvb-usb.h      |   11 +++-
+> >  3 files changed, 78 insertions(+), 22 deletions(-)
+> > 
+> > diff --git a/drivers/media/dvb/dvb-usb/dvb-usb-dvb.c b/drivers/media/dvb/dvb-usb/dvb-usb-dvb.c
+> > index d8c0bd9..5e34df7 100644
+> > --- a/drivers/media/dvb/dvb-usb/dvb-usb-dvb.c
+> > +++ b/drivers/media/dvb/dvb-usb/dvb-usb-dvb.c
+> > @@ -162,8 +162,11 @@ static int dvb_usb_fe_wakeup(struct dvb_frontend *fe)
+> > 
+> >      dvb_usb_device_power_ctrl(adap->dev, 1);
+> > 
+> > -    if (adap->fe_init)
+> > -        adap->fe_init(fe);
+> > +    if (adap->props.frontend_ctrl)
+> > +        adap->props.frontend_ctrl(fe, 1);
+> > +
+> > +    if (adap->fe_init[fe->id])
+> > +        adap->fe_init[fe->id](fe);
+> > 
+> >      return 0;
+> >  }
+> > @@ -172,45 +175,89 @@ static int dvb_usb_fe_sleep(struct dvb_frontend *fe)
+> >  {
+> >      struct dvb_usb_adapter *adap = fe->dvb->priv;
+> > 
+> > -    if (adap->fe_sleep)
+> > -        adap->fe_sleep(fe);
+> > +    if (adap->fe_sleep[fe->id])
+> > +        adap->fe_sleep[fe->id](fe);
+> > +
+> > +    if (adap->props.frontend_ctrl)
+> > +        adap->props.frontend_ctrl(fe, 0);
+> > 
+> >      return dvb_usb_device_power_ctrl(adap->dev, 0);
+> >  }
+> > 
+> >  int dvb_usb_adapter_frontend_init(struct dvb_usb_adapter *adap)
+> >  {
+> > +    int ret, i, x;
+> > +
+> > +    memset(adap->fe, 0, sizeof(adap->fe));
+> > +
+> >      if (adap->props.frontend_attach == NULL) {
+> > -        err("strange: '%s' #%d doesn't want to attach a frontend.",adap->dev->desc->name, adap->id);
+> > +        err("strange: '%s' #%d doesn't want to attach a frontend.",
+> > +            adap->dev->desc->name, adap->id);
+> > +
+> >          return 0;
+> >      }
+> > 
+> > -    /* re-assign sleep and wakeup functions */
+> > -    if (adap->props.frontend_attach(adap) == 0 && adap->fe[0] != NULL) {
+> > -        adap->fe_init  = adap->fe[0]->ops.init;  adap->fe[0]->ops.init  = dvb_usb_fe_wakeup;
+> > -        adap->fe_sleep = adap->fe[0]->ops.sleep; adap->fe[0]->ops.sleep = dvb_usb_fe_sleep;
+> > +    /* register all given adapter frontends */
+> > +    if (adap->props.num_frontends)
+> > +        x = adap->props.num_frontends - 1;
+> > +    else
+> > +        x = 0;
+> > +
+> > +    for (i = 0; i <= x; i++) {
+> > +        ret = adap->props.frontend_attach(adap);
+> > +        if (ret || adap->fe[i] == NULL) {
+> > +            /* only print error when there is no FE at all */
+> > +            if (i == 0)
+> > +                err("no frontend was attached by '%s'",
+> > +                    adap->dev->desc->name);
 > 
-> The first part have the DocBook changes:
-> - Create a generic errno xml file, used by all media API's
->   (V4L, MC, LIRC and DVB);
-> - Move the generic errorcodes to the new file;
-> - Removes code duplication/inconsistency along the several
->   API files;
-> - Removes two bogus undefined errorcodes: EINTERNAL/ENOSIGNAL
->   from the ioctl's.
+> This doesn't seem right. One thing is to accept adap->fe[1] to be
+> NULL. Another thing is to accept an error at the attach. IMO, the
+> logic should be something like:
 > 
-> The second part have the code changes:
-> - Some fixes on a few drivers that use EFAULT on a wrong
->   way, and not compliant with the DVB API;
-> - The usage of ENOTTY meaning that no ioctl is implemented.
+> 	if (ret < 0)
+> 		return ret;
+> 
+> 	if (!i && !adap->fe[0]) {
+> 		err("no adapter!");
+> 		return -ENODEV;
+> 	}
+> 
+> > +
+> > +            return 0;
+> > +        }
+> > 
+> > -        if (dvb_register_frontend(&adap->dvb_adap, adap->fe[0])) {
+> > -            err("Frontend registration failed.");
+> > -            dvb_frontend_detach(adap->fe[0]);
+> > -            adap->fe[0] = NULL;
+> > -            return -ENODEV;
+> > +        adap->fe[i]->id = i;
+> > +
+> > +        /* re-assign sleep and wakeup functions */
+> > +        adap->fe_init[i] = adap->fe[i]->ops.init;
+> > +        adap->fe[i]->ops.init  = dvb_usb_fe_wakeup;
+> > +        adap->fe_sleep[i] = adap->fe[i]->ops.sleep;
+> > +        adap->fe[i]->ops.sleep = dvb_usb_fe_sleep;
+> > +
+> > +        if (dvb_register_frontend(&adap->dvb_adap, adap->fe[i])) {
+> > +            err("Frontend %d registration failed.", i);
+> > +            dvb_frontend_detach(adap->fe[i]);
+> 
+> There is a special case here: for DRX-K, we can't call dvb_frontend_detach().
+> as just one drxk_attach() returns the two pointers. While this is not fixed,
+> we need to add some logic here to check if the adapter were attached.
+> 
+> > +            adap->fe[i] = NULL;
+> > +            /* In error case, do not try register more FEs,
+> > +             * still leaving already registered FEs alive. */
+> 
+> I think that the proper thing to do is to detach everything, if one of
+> the attach fails. There isn't much sense on keeping the device partially
+> initialized.
+> 
+>From memory, I recall the existing code doesn't detach the frontend even
+if the device driver forces an error. So, the device driver must detach
+the frontend first.
 
-Except for patch 03/17 (see my comments there):
+The trouble is that dvb-usb is becoming dated as new drivers tend to
+work around it. No one likes to touch it, out of fear of breaking
+existing drivers.
 
-Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+I think perhaps some kind of legacy wrapper is needed here, with the
+moving of dvb-usb to its own core, so more development work can be done.
 
-Regards,
+Regards
 
-	Hans
+Malcolm
 
-> TODO:
-> - Some DVB open/close API description are mentioning the
->   non-existent EINTERNAL error code;
-> - firedtv driver needs to be fixed with respect to the usage
->   of -EFAULT (Stefan c/c).
-> - The DVB driver uses a couple different error codes to mean that
->   an ioctl is not implemented: ENOSYS and EOPNOTSUPP. The last
->   one is used on most places. It would be great to standardize
->   this error code as well, but further study is required.
-> - There are still several error codes not present at gen-errors.xml.
->   A match between what's currently used at the drivers and the
->   API is needed. Probably, both code and DocBook needs to be
->   changed, as, on several cases, different drivers return different
->   error codes for the same error.
-> 
-> Mauro Carvalho Chehab (17):
->   [media] DocBook: Add a chapter to describe media errors
->   [media] DocBook: Use the generic ioctl error codes for all V4L
->     ioctl's
->   [media] DocBook: Use the generic error code page also for MC API
->   [media] DocBook/media-ioc-setup-link.xml: Remove EBUSY
->   [media] DocBook: Remove V4L generic error description for ioctl()
->   [media] DocBook: Add an error code session for LIRC interface
->   [media] DocBook: Add return error codes to LIRC ioctl session
->   [media] siano: bad parameter is -EINVAL and not -EFAULT
->   [media] nxt6000: i2c bus error should return -EIO
->   [media] DVB: Point to the generic error chapter
->   [media] DocBook/audio.xml: Remove generic errors
->   [media] DocBook/demux.xml: Remove generic errors
->   [media] dvb-bt8xx: Don't return -EFAULT when a device is not found
->   [media] DocBook/dvb: Use generic descriptions for the frontend API
->   [media] DocBook/dvb: Use generic descriptions for the video API
->   [media] v4l2 core: return -ENOTTY if an ioctl doesn't exist
->   [media] return -ENOTTY for unsupported ioctl's at legacy drivers
-> 
->  Documentation/DocBook/.gitignore                   |    2 +
->  Documentation/DocBook/media/Makefile               |   42 ++-
->  Documentation/DocBook/media/dvb/audio.xml          |  372 +--------------
->  Documentation/DocBook/media/dvb/ca.xml             |    6 +-
->  Documentation/DocBook/media/dvb/demux.xml          |  121 +-----
->  Documentation/DocBook/media/dvb/dvbproperty.xml    |   23 +-
->  Documentation/DocBook/media/dvb/frontend.xml       |  487 +-------------------
->  Documentation/DocBook/media/dvb/video.xml          |  418 +----------------
->  Documentation/DocBook/media/v4l/func-ioctl.xml     |   72 +---
->  Documentation/DocBook/media/v4l/gen-errors.xml     |   77 +++
->  .../DocBook/media/v4l/lirc_device_interface.xml    |    4 +-
->  .../DocBook/media/v4l/media-func-ioctl.xml         |   47 +--
->  .../DocBook/media/v4l/media-ioc-device-info.xml    |    3 +-
->  .../DocBook/media/v4l/media-ioc-setup-link.xml     |    9 -
->  Documentation/DocBook/media/v4l/v4l2.xml           |    2 +
->  Documentation/DocBook/media/v4l/vidioc-cropcap.xml |   13 +-
->  .../DocBook/media/v4l/vidioc-dbg-g-chip-ident.xml  |   11 +-
->  .../DocBook/media/v4l/vidioc-dbg-g-register.xml    |   17 -
->  Documentation/DocBook/media/v4l/vidioc-dqevent.xml |   10 +-
->  .../DocBook/media/v4l/vidioc-encoder-cmd.xml       |   11 +-
->  .../media/v4l/vidioc-enum-frameintervals.xml       |   11 -
->  .../DocBook/media/v4l/vidioc-enum-framesizes.xml   |   11 -
->  .../DocBook/media/v4l/vidioc-enumaudio.xml         |   12 +-
->  .../DocBook/media/v4l/vidioc-enumaudioout.xml      |   12 +-
->  Documentation/DocBook/media/v4l/vidioc-g-audio.xml |   18 +-
->  .../DocBook/media/v4l/vidioc-g-audioout.xml        |   18 +-
->  Documentation/DocBook/media/v4l/vidioc-g-crop.xml  |   17 -
->  .../DocBook/media/v4l/vidioc-g-dv-preset.xml       |   12 +-
->  .../DocBook/media/v4l/vidioc-g-dv-timings.xml      |   11 +-
->  .../DocBook/media/v4l/vidioc-g-enc-index.xml       |   17 -
->  Documentation/DocBook/media/v4l/vidioc-g-fbuf.xml  |   19 +-
->  Documentation/DocBook/media/v4l/vidioc-g-fmt.xml   |   20 +-
->  Documentation/DocBook/media/v4l/vidioc-g-input.xml |   19 +-
->  .../DocBook/media/v4l/vidioc-g-jpegcomp.xml        |   17 -
->  .../DocBook/media/v4l/vidioc-g-output.xml          |   18 +-
->  Documentation/DocBook/media/v4l/vidioc-g-parm.xml  |   17 -
->  .../DocBook/media/v4l/vidioc-g-priority.xml        |    3 +-
->  .../DocBook/media/v4l/vidioc-g-sliced-vbi-cap.xml  |   11 +-
->  Documentation/DocBook/media/v4l/vidioc-g-std.xml   |    9 +-
->  .../DocBook/media/v4l/vidioc-log-status.xml        |   17 -
->  Documentation/DocBook/media/v4l/vidioc-overlay.xml |   11 +-
->  Documentation/DocBook/media/v4l/vidioc-qbuf.xml    |   17 -
->  .../DocBook/media/v4l/vidioc-query-dv-preset.xml   |   22 -
->  .../DocBook/media/v4l/vidioc-querycap.xml          |   19 -
->  .../DocBook/media/v4l/vidioc-querystd.xml          |   23 -
->  Documentation/DocBook/media/v4l/vidioc-reqbufs.xml |   16 -
->  .../DocBook/media/v4l/vidioc-streamon.xml          |   14 +-
->  .../DocBook/media/v4l/vidioc-subdev-g-fmt.xml      |    3 +
->  .../DocBook/media/v4l/vidioc-subscribe-event.xml   |   11 +-
->  Documentation/DocBook/media_api.tmpl               |    9 +-
->  drivers/media/dvb/bt8xx/dvb-bt8xx.c                |    4 +-
->  drivers/media/dvb/frontends/nxt6000.c              |    2 +-
->  drivers/media/dvb/siano/smscoreapi.c               |    2 +-
->  drivers/media/video/et61x251/et61x251_core.c       |   10 +-
->  drivers/media/video/pvrusb2/pvrusb2-v4l2.c         |    7 +-
->  drivers/media/video/sn9c102/sn9c102_core.c         |   10 +-
->  drivers/media/video/uvc/uvc_v4l2.c                 |    2 +-
->  drivers/media/video/v4l2-ioctl.c                   |    4 +-
->  58 files changed, 267 insertions(+), 1955 deletions(-)
->  create mode 100644 Documentation/DocBook/media/v4l/gen-errors.xml
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
-> 
