@@ -1,359 +1,1133 @@
-Return-path: <mchehab@localhost>
-Received: from mailout4.w1.samsung.com ([210.118.77.14]:48742 "EHLO
-	mailout4.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754248Ab1GFJYU (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 6 Jul 2011 05:24:20 -0400
-MIME-version: 1.0
-Content-transfer-encoding: 7BIT
-Content-type: TEXT/PLAIN
-Received: from eu_spt1 ([210.118.77.14]) by mailout4.w1.samsung.com
- (Sun Java(tm) System Messaging Server 6.3-8.04 (built Jul 29 2009; 32bit))
- with ESMTP id <0LNW003X8NGHD120@mailout4.w1.samsung.com> for
- linux-media@vger.kernel.org; Wed, 06 Jul 2011 10:24:18 +0100 (BST)
-Received: from linux.samsung.com ([106.116.38.10])
- by spt1.w1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14
- 2004)) with ESMTPA id <0LNW001OGNGGBE@spt1.w1.samsung.com> for
- linux-media@vger.kernel.org; Wed, 06 Jul 2011 10:24:17 +0100 (BST)
-Date: Wed, 06 Jul 2011 11:24:13 +0200
-From: Tomasz Stanislawski <t.stanislaws@samsung.com>
-Subject: [PATCH 1/2] libv4l2: add implicit conversion from single- to
- multi-plane api
-To: linux-media@vger.kernel.org
-Cc: m.szyprowski@samsung.com, t.stanislaws@samsung.com,
-	kyungmin.park@samsung.com, mchehab@redhat.com, pawel@osciak.com,
-	hdegoede@redhat.com
-Message-id: <1309944253-11703-1-git-send-email-t.stanislaws@samsung.com>
+Return-path: <linux-media-owner@vger.kernel.org>
+Received: from smtp-68.nebula.fi ([83.145.220.68]:47997 "EHLO
+	smtp-68.nebula.fi" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753077Ab1G0KNN (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 27 Jul 2011 06:13:13 -0400
+Date: Wed, 27 Jul 2011 13:13:05 +0300
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: linux-media@vger.kernel.org, javier.martin@vista-silicon.com,
+	shotty317@gmail.com
+Subject: Re: [PATCH] mt9p031: Aptina (Micron) MT9P031 5MP sensor driver
+Message-ID: <20110727101305.GI32629@valkosipuli.localdomain>
+References: <CACKLOr1veNZ_6E3V_m1Tf+mxxUAKiRKDbboW-fMbRGUrLns_XA@mail.gmail.com>
+ <1311757981-6968-1-git-send-email-laurent.pinchart@ideasonboard.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <1311757981-6968-1-git-send-email-laurent.pinchart@ideasonboard.com>
+Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
-Sender: <mchehab@infradead.org>
 
-This patch add implicit conversion of single plane variant of ioctl to
-multiplane variant. The conversion is performed only in case if a driver
-implements only mplane api. The conversion is done by substituting SYS_IOCTL
-with a wrapper that converts single plane call to their mplane analogs.
-Function v4l2_fd_open was revised to work correctly with the wrapper.
+Hi Laurent,
 
-Signed-off-by: Tomasz Stanislawski <t.stanislaws@samsung.com>
-Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
----
- lib/libv4l2/libv4l2.c                  |  227 ++++++++++++++++++++++++++++----
- lib/libv4lconvert/libv4lsyscall-priv.h |    5 +-
- 2 files changed, 205 insertions(+), 27 deletions(-)
+Thanks for the patch. I have a few comments below.
 
-diff --git a/lib/libv4l2/libv4l2.c b/lib/libv4l2/libv4l2.c
-index 4de382e..6af9f8c 100644
---- a/lib/libv4l2/libv4l2.c
-+++ b/lib/libv4l2/libv4l2.c
-@@ -57,6 +57,7 @@
-  */
- #include <errno.h>
- #include <stdarg.h>
-+#include <stddef.h>
- #include <stdio.h>
- #include <stdlib.h>
- #include <fcntl.h>
-@@ -79,6 +80,7 @@
- #define V4L2_STREAM_TOUCHED		0x2000
- #define V4L2_USE_READ_FOR_READ		0x4000
- #define V4L2_SUPPORTS_TIMEPERFRAME	0x8000
-+#define V4L2_CONVERT2MPLANE		0x00010000
- 
- #define V4L2_MMAP_OFFSET_MAGIC      0xABCDEF00u
- 
-@@ -93,6 +95,165 @@ static struct v4l2_dev_info devices[V4L2_MAX_DEVICES] = {
- };
- static int devices_used;
- 
-+static int v4l2_get_index(int fd);
-+
-+#define SYS_DO_IOCTL(fd, cmd, arg) \
-+	syscall(SYS_ioctl, (int)(fd), (unsigned long)(cmd), (void *)(arg))
-+
-+int v4l2_ioctl_mp(int fd, unsigned long cmd, void *arg)
-+{
-+	int ret;
-+	int index = v4l2_get_index(fd);
-+
-+	/* skipping if no mplane convertion is needed */
-+	if (index == -1 || !(devices[index].flags & V4L2_CONVERT2MPLANE))
-+		return SYS_DO_IOCTL(fd, cmd, arg);
-+
-+	switch (cmd) {
-+	case VIDIOC_QUERYCAP: {
-+		struct v4l2_capability *cap = arg;
-+		ret = SYS_DO_IOCTL(fd, cmd, cap);
-+		if (ret)
-+			return ret;
-+		if (cap->capabilities & V4L2_CAP_VIDEO_CAPTURE_MPLANE)
-+			cap->capabilities |= V4L2_CAP_VIDEO_CAPTURE;
-+		return 0;
-+	}
-+	case VIDIOC_TRY_FMT:
-+	case VIDIOC_S_FMT: {
-+		/* convert single planar structs to mplane structs */
-+		struct v4l2_format fmt = {0};
-+		struct v4l2_format *old = arg;
-+
-+		fmt.type = V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE;
-+		fmt.fmt.pix_mp.width = old->fmt.pix.width;
-+		fmt.fmt.pix_mp.height = old->fmt.pix.height;
-+		fmt.fmt.pix_mp.pixelformat = old->fmt.pix.pixelformat;
-+		fmt.fmt.pix_mp.field = old->fmt.pix.field;
-+		fmt.fmt.pix_mp.colorspace = old->fmt.pix.colorspace;
-+		fmt.fmt.pix_mp.num_planes = 1;
-+		fmt.fmt.pix_mp.plane_fmt[0].bytesperline = old->fmt.pix.bytesperline;
-+		fmt.fmt.pix_mp.plane_fmt[0].sizeimage = old->fmt.pix.sizeimage;
-+
-+		ret = SYS_DO_IOCTL(fd, cmd, &fmt);
-+		if (ret)
-+			return ret;
-+
-+		old->fmt.pix.width = fmt.fmt.pix_mp.width;
-+		old->fmt.pix.height = fmt.fmt.pix_mp.height;
-+		old->fmt.pix.pixelformat = fmt.fmt.pix_mp.pixelformat;
-+		old->fmt.pix.field = fmt.fmt.pix_mp.field;
-+		old->fmt.pix.colorspace = fmt.fmt.pix_mp.colorspace;
-+		old->fmt.pix.bytesperline = fmt.fmt.pix_mp.plane_fmt[0].bytesperline;
-+		old->fmt.pix.sizeimage = fmt.fmt.pix_mp.plane_fmt[0].sizeimage;
-+
-+		return 0;
-+	}
-+	case VIDIOC_G_FMT: {
-+		struct v4l2_format fmt = { 0 };
-+		struct v4l2_format *old = arg;
-+
-+		fmt.type = V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE;
-+		ret = SYS_DO_IOCTL(fd, cmd, &fmt);
-+		if (ret)
-+			return ret;
-+		/* cannot return multiplane format to singleplane app */
-+		if (fmt.fmt.pix_mp.num_planes > 1) {
-+			errno = -EBUSY;
-+			return -1;
-+		}
-+		old->fmt.pix.width = fmt.fmt.pix_mp.width;
-+		old->fmt.pix.height = fmt.fmt.pix_mp.height;
-+		old->fmt.pix.pixelformat = fmt.fmt.pix_mp.pixelformat;
-+		old->fmt.pix.field = fmt.fmt.pix_mp.field;
-+		old->fmt.pix.colorspace = fmt.fmt.pix_mp.colorspace;
-+		old->fmt.pix.bytesperline = fmt.fmt.pix_mp.plane_fmt[0].bytesperline;
-+		old->fmt.pix.sizeimage = fmt.fmt.pix_mp.plane_fmt[0].sizeimage;
-+
-+		return 0;
-+	}
-+	case VIDIOC_ENUM_FMT: {
-+		struct v4l2_fmtdesc *fmtdesc = arg;
-+
-+		fmtdesc->type = V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE;
-+		ret = SYS_DO_IOCTL(fd, cmd, fmtdesc);
-+		fmtdesc->type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
-+
-+		return ret;
-+	}
-+	case VIDIOC_S_PARM:
-+	case VIDIOC_G_PARM: {
-+		struct v4l2_streamparm *parm = arg;
-+
-+		parm->type = V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE;
-+		ret = SYS_DO_IOCTL(fd, cmd, parm);
-+		parm->type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
-+		return ret;
-+	}
-+	case VIDIOC_STREAMON:
-+	case VIDIOC_STREAMOFF: {
-+		int type = V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE;
-+
-+		return SYS_DO_IOCTL(fd, cmd, &type);
-+	}
-+	case VIDIOC_CROPCAP: {
-+		struct v4l2_cropcap *cropcap = arg;
-+
-+		cropcap->type = V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE;
-+		ret = SYS_DO_IOCTL(fd, cmd, cropcap);
-+		cropcap->type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
-+		return ret;
-+	}
-+	case VIDIOC_S_CROP:
-+	case VIDIOC_G_CROP: {
-+		struct v4l2_crop *crop = arg;
-+
-+		crop->type = V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE;
-+		ret = SYS_DO_IOCTL(fd, cmd, crop);
-+		crop->type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
-+		return ret;
-+	}
-+	case VIDIOC_REQBUFS: {
-+		struct v4l2_requestbuffers *rq = arg;
-+
-+		rq->type = V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE;
-+		ret = SYS_DO_IOCTL(fd, cmd, rq);
-+		rq->type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
-+		return ret;
-+	}
-+	case VIDIOC_QBUF:
-+	case VIDIOC_DQBUF:
-+	case VIDIOC_QUERYBUF: {
-+		struct v4l2_buffer buf;
-+		struct v4l2_buffer *old = arg;
-+		struct v4l2_plane plane = { 0 };
-+
-+		memcpy(&buf, old, sizeof buf);
-+		memcpy(&plane.m, &old->m, sizeof old->m);
-+		plane.length = old->length;
-+		plane.bytesused = old->bytesused;
-+
-+		buf.type = V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE;
-+		buf.m.planes = &plane;
-+		buf.length = 1;
-+
-+		ret = SYS_DO_IOCTL(fd, cmd, &buf);
-+		if (ret)
-+			return ret;
-+
-+		memcpy(old, &buf, sizeof buf);
-+		old->type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
-+		memcpy(&old->m, &plane.m, sizeof plane.m);
-+		old->length = plane.length;
-+		old->bytesused = plane.bytesused;
-+		return 0;
-+	}
-+
-+	} /* switch brace */
-+
-+	/* handling not mplane ioctl */
-+	return SYS_DO_IOCTL(fd, cmd, arg);
-+}
- 
- static int v4l2_request_read_buffers(int index)
- {
-@@ -586,7 +747,7 @@ int v4l2_fd_open(int fd, int v4l2_flags)
- 	}
- 
- 	/* check that this is an v4l2 device */
--	if (SYS_IOCTL(fd, VIDIOC_QUERYCAP, &cap)) {
-+	if (SYS_DO_IOCTL(fd, VIDIOC_QUERYCAP, &cap)) {
- 		int saved_err = errno;
- 
- 		V4L2_LOG_ERR("getting capabilities: %s\n", strerror(errno));
-@@ -595,35 +756,21 @@ int v4l2_fd_open(int fd, int v4l2_flags)
- 	}
- 
- 	/* we only add functionality for video capture devices */
--	if (!(cap.capabilities & V4L2_CAP_VIDEO_CAPTURE) ||
--			!(cap.capabilities & (V4L2_CAP_STREAMING | V4L2_CAP_READWRITE)))
-+	if (!(cap.capabilities &
-+		(V4L2_CAP_VIDEO_CAPTURE | V4L2_CAP_VIDEO_CAPTURE_MPLANE)))
- 		return fd;
- 
--	/* Get current cam format */
--	fmt.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
--	if (SYS_IOCTL(fd, VIDIOC_G_FMT, &fmt)) {
--		int saved_err = errno;
--
--		V4L2_LOG_ERR("getting pixformat: %s\n", strerror(errno));
--		errno = saved_err;
--		return -1;
--	}
--
--	/* Check for framerate setting support */
--	parm.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
--	if (SYS_IOCTL(fd, VIDIOC_G_PARM, &parm))
--		parm.type = 0;
--
--	/* init libv4lconvert */
--	convert = v4lconvert_create(fd);
--	if (!convert)
--		return -1;
-+	/* we only add functionality for video streaming and read/write devices */
-+	if (!(cap.capabilities & (V4L2_CAP_STREAMING | V4L2_CAP_READWRITE)))
-+		return fd;
- 
- 	/* So we have a v4l2 capture device, register it in our devices array */
- 	pthread_mutex_lock(&v4l2_open_mutex);
- 	for (index = 0; index < V4L2_MAX_DEVICES; index++)
- 		if (devices[index].fd == -1) {
- 			devices[index].fd = fd;
-+			if (index >= devices_used)
-+				devices_used = index + 1;
- 			break;
- 		}
- 	pthread_mutex_unlock(&v4l2_open_mutex);
-@@ -636,6 +783,31 @@ int v4l2_fd_open(int fd, int v4l2_flags)
- 	}
- 
- 	devices[index].flags = v4l2_flags;
-+	/* enabling conversion for driver that supports only multiplanar api */
-+	if ((cap.capabilities & V4L2_CAP_VIDEO_CAPTURE_MPLANE) &&
-+		!(cap.capabilities & V4L2_CAP_VIDEO_CAPTURE))
-+		devices[index].flags |= V4L2_CONVERT2MPLANE;
-+
-+	/* Get current cam format */
-+	fmt.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
-+	if (SYS_IOCTL(fd, VIDIOC_G_FMT, &fmt)) {
-+		int saved_err = errno;
-+
-+		V4L2_LOG_ERR("getting pixformat: %s\n", strerror(errno));
-+		errno = saved_err;
-+		goto fail;
-+	}
-+
-+	/* Check for framerate setting support */
-+	parm.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
-+	if (SYS_IOCTL(fd, VIDIOC_G_PARM, &parm))
-+		parm.type = 0;
-+
-+	/* init libv4lconvert */
-+	convert = v4lconvert_create(fd);
-+	if (!convert)
-+		goto fail;
-+
- 	if (cap.capabilities & V4L2_CAP_READWRITE)
- 		devices[index].flags |= V4L2_SUPPORTS_READ;
- 	if (!(cap.capabilities & V4L2_CAP_STREAMING)) {
-@@ -677,9 +849,6 @@ int v4l2_fd_open(int fd, int v4l2_flags)
- 	devices[index].readbuf = NULL;
- 	devices[index].readbuf_size = 0;
- 
--	if (index >= devices_used)
--		devices_used = index + 1;
--
- 	/* Note we always tell v4lconvert to optimize src fmt selection for
- 	   our default fps, the only exception is the app explictly selecting
- 	   a framerate using the S_PARM ioctl after a S_FMT */
-@@ -689,6 +858,14 @@ int v4l2_fd_open(int fd, int v4l2_flags)
- 	V4L2_LOG("open: %d\n", fd);
- 
- 	return fd;
-+
-+fail:
-+	/* unregister device */
-+	pthread_mutex_lock(&v4l2_open_mutex);
-+	devices[index].fd = -1;
-+	pthread_mutex_unlock(&v4l2_open_mutex);
-+
-+	return -1;
- }
- 
- /* Is this an fd for which we are emulating v4l1 ? */
-diff --git a/lib/libv4lconvert/libv4lsyscall-priv.h b/lib/libv4lconvert/libv4lsyscall-priv.h
-index 87028ef..9aaf20e 100644
---- a/lib/libv4lconvert/libv4lsyscall-priv.h
-+++ b/lib/libv4lconvert/libv4lsyscall-priv.h
-@@ -72,12 +72,13 @@ typedef off_t __off_t;
- 
- #ifndef CONFIG_SYS_WRAPPER
- 
-+int v4l2_ioctl_mp(int fd, unsigned long cmd, void *arg) __attribute__ ((visibility("default")));
-+
- #define SYS_OPEN(file, oflag, mode) \
- 	syscall(SYS_open, (const char *)(file), (int)(oflag), (mode_t)(mode))
- #define SYS_CLOSE(fd) \
- 	syscall(SYS_close, (int)(fd))
--#define SYS_IOCTL(fd, cmd, arg) \
--	syscall(SYS_ioctl, (int)(fd), (unsigned long)(cmd), (void *)(arg))
-+#define SYS_IOCTL(fd, cmd, arg) v4l2_ioctl_mp(fd, cmd, arg)
- #define SYS_READ(fd, buf, len) \
- 	syscall(SYS_read, (int)(fd), (void *)(buf), (size_t)(len));
- #define SYS_WRITE(fd, buf, len) \
+On Wed, Jul 27, 2011 at 11:13:01AM +0200, Laurent Pinchart wrote:
+> From: Javier Martin <javier.martin@vista-silicon.com>
+> 
+> The MT9P031 is a parallel 12-bit 5MP sensor from Aptina (formerly
+> Micron) controlled through I2C.
+> 
+> The driver creates a V4L2 subdevice. It currently supports skipping,
+> cropping, automatic binning, and gain, exposure, h/v flip and test
+> pattern controls.
+> 
+> Signed-off-by: Javier Martin <javier.martin@vista-silicon.com>
+> Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+> ---
+>  drivers/media/video/Kconfig   |    7 +
+>  drivers/media/video/Makefile  |    1 +
+>  drivers/media/video/mt9p031.c |  961 +++++++++++++++++++++++++++++++++++++++++
+>  include/media/mt9p031.h       |   19 +
+>  4 files changed, 988 insertions(+), 0 deletions(-)
+>  create mode 100644 drivers/media/video/mt9p031.c
+>  create mode 100644 include/media/mt9p031.h
+> 
+> Hi Javier,
+> 
+> I've finally been able to spend some time on your MT9P031 driver, and here is
+> the result. I would like to push the driver to mainline for v3.2. Could you
+> please review it ?
+> 
+> I still need to have a look at the PLL code to see if we can compute the PLL
+> registers values at runtime instead of using a table-based approach.
+> 
+> BTW, do you plan to maintain the driver ?
+> 
+> diff --git a/drivers/media/video/Kconfig b/drivers/media/video/Kconfig
+> index 176ac49..81252ec 100644
+> --- a/drivers/media/video/Kconfig
+> +++ b/drivers/media/video/Kconfig
+> @@ -467,6 +467,13 @@ config VIDEO_OV7670
+>  	  OV7670 VGA camera.  It currently only works with the M88ALP01
+>  	  controller.
+>  
+> +config VIDEO_MT9P031
+> +	tristate "Aptina MT9P031 support"
+> +	depends on I2C && VIDEO_V4L2
+> +	---help---
+> +	  This is a Video4Linux2 sensor-level driver for the Aptina
+> +	  (Micron) mt9p031 5 Mpixel camera.
+> +
+>  config VIDEO_MT9V011
+>  	tristate "Micron mt9v011 sensor support"
+>  	depends on I2C && VIDEO_V4L2
+> diff --git a/drivers/media/video/Makefile b/drivers/media/video/Makefile
+> index 6cca52a..b9e9bb3 100644
+> --- a/drivers/media/video/Makefile
+> +++ b/drivers/media/video/Makefile
+> @@ -65,6 +65,7 @@ obj-$(CONFIG_VIDEO_UPD64083) += upd64083.o
+>  obj-$(CONFIG_VIDEO_OV7670) 	+= ov7670.o
+>  obj-$(CONFIG_VIDEO_TCM825X) += tcm825x.o
+>  obj-$(CONFIG_VIDEO_TVEEPROM) += tveeprom.o
+> +obj-$(CONFIG_VIDEO_MT9P031) += mt9p031.o
+>  obj-$(CONFIG_VIDEO_MT9V011) += mt9v011.o
+>  obj-$(CONFIG_VIDEO_MT9V032) += mt9v032.o
+>  obj-$(CONFIG_VIDEO_SR030PC30)	+= sr030pc30.o
+> diff --git a/drivers/media/video/mt9p031.c b/drivers/media/video/mt9p031.c
+> new file mode 100644
+> index 0000000..18e9a3c
+> --- /dev/null
+> +++ b/drivers/media/video/mt9p031.c
+> @@ -0,0 +1,961 @@
+> +/*
+> + * Driver for MT9P031 CMOS Image Sensor from Aptina
+> + *
+> + * Copyright (C) 2011, Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+> + * Copyright (C) 2011, Javier Martin <javier.martin@vista-silicon.com>
+> + * Copyright (C) 2011, Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+> + *
+> + * Based on the MT9V032 driver and Bastian Hecht's code.
+> + *
+> + * This program is free software; you can redistribute it and/or modify
+> + * it under the terms of the GNU General Public License version 2 as
+> + * published by the Free Software Foundation.
+> + */
+> +
+> +#include <linux/delay.h>
+> +#include <linux/device.h>
+> +#include <linux/i2c.h>
+> +#include <linux/log2.h>
+> +#include <linux/pm.h>
+> +#include <linux/slab.h>
+> +#include <media/v4l2-subdev.h>
+> +#include <linux/videodev2.h>
+> +
+> +#include <media/mt9p031.h>
+> +#include <media/v4l2-chip-ident.h>
+> +#include <media/v4l2-ctrls.h>
+> +#include <media/v4l2-device.h>
+> +#include <media/v4l2-subdev.h>
+> +
+> +#define MT9P031_PIXEL_ARRAY_WIDTH			2752
+> +#define MT9P031_PIXEL_ARRAY_HEIGHT			2004
+> +
+> +#define MT9P031_CHIP_VERSION				0x00
+> +#define		MT9P031_CHIP_VERSION_VALUE		0x1801
+> +#define MT9P031_ROW_START				0x01
+> +#define		MT9P031_ROW_START_MIN			0
+> +#define		MT9P031_ROW_START_MAX			2004
+> +#define		MT9P031_ROW_START_DEF			54
+> +#define MT9P031_COLUMN_START				0x02
+> +#define		MT9P031_COLUMN_START_MIN		0
+> +#define		MT9P031_COLUMN_START_MAX		2750
+> +#define		MT9P031_COLUMN_START_DEF		16
+> +#define MT9P031_WINDOW_HEIGHT				0x03
+> +#define		MT9P031_WINDOW_HEIGHT_MIN		2
+> +#define		MT9P031_WINDOW_HEIGHT_MAX		2006
+> +#define		MT9P031_WINDOW_HEIGHT_DEF		1944
+> +#define MT9P031_WINDOW_WIDTH				0x04
+> +#define		MT9P031_WINDOW_WIDTH_MIN		2
+> +#define		MT9P031_WINDOW_WIDTH_MAX		2752
+> +#define		MT9P031_WINDOW_WIDTH_DEF		2592
+> +#define MT9P031_HORIZONTAL_BLANK			0x05
+> +#define		MT9P031_HORIZONTAL_BLANK_MIN		0
+> +#define		MT9P031_HORIZONTAL_BLANK_MAX		4095
+> +#define MT9P031_VERTICAL_BLANK				0x06
+> +#define		MT9P031_VERTICAL_BLANK_MIN		0
+> +#define		MT9P031_VERTICAL_BLANK_MAX		4095
+> +#define		MT9P031_VERTICAL_BLANK_DEF		25
+> +#define MT9P031_OUTPUT_CONTROL				0x07
+> +#define		MT9P031_OUTPUT_CONTROL_CEN		2
+> +#define		MT9P031_OUTPUT_CONTROL_SYN		1
+> +#define		MT9P031_OUTPUT_CONTROL_DEF		0x1f82
+> +#define MT9P031_SHUTTER_WIDTH_UPPER			0x08
+> +#define MT9P031_SHUTTER_WIDTH_LOWER			0x09
+> +#define		MT9P031_SHUTTER_WIDTH_MIN		1
+> +#define		MT9P031_SHUTTER_WIDTH_MAX		1048575
+> +#define		MT9P031_SHUTTER_WIDTH_DEF		1943
+> +#define MT9P031_PLL_CONTROL				0x10
+> +#define		MT9P031_PLL_CONTROL_PWROFF		0x0050
+> +#define		MT9P031_PLL_CONTROL_PWRON		0x0051
+> +#define		MT9P031_PLL_CONTROL_USEPLL		0x0052
+> +#define MT9P031_PLL_CONFIG_1				0x11
+> +#define MT9P031_PLL_CONFIG_2				0x12
+> +#define MT9P031_PIXEL_CLOCK_CONTROL			0x0a
+> +#define MT9P031_FRAME_RESTART				0x0b
+> +#define MT9P031_SHUTTER_DELAY				0x0c
+> +#define MT9P031_RST					0x0d
+> +#define		MT9P031_RST_ENABLE			1
+> +#define		MT9P031_RST_DISABLE			0
+> +#define MT9P031_READ_MODE_1				0x1e
+> +#define MT9P031_READ_MODE_2				0x20
+> +#define		MT9P031_READ_MODE_2_ROW_MIR		(1 << 15)
+> +#define		MT9P031_READ_MODE_2_COL_MIR		(1 << 14)
+> +#define		MT9P031_READ_MODE_2_ROW_BLC		(1 << 6)
+> +#define MT9P031_ROW_ADDRESS_MODE			0x22
+> +#define MT9P031_COLUMN_ADDRESS_MODE			0x23
+> +#define MT9P031_GLOBAL_GAIN				0x35
+> +#define		MT9P031_GLOBAL_GAIN_MIN			8
+> +#define		MT9P031_GLOBAL_GAIN_MAX			1024
+> +#define		MT9P031_GLOBAL_GAIN_DEF			8
+> +#define		MT9P031_GLOBAL_GAIN_MULT		(1 << 6)
+> +#define MT9P031_ROW_BLACK_DEF_OFFSET			0x4b
+> +#define MT9P031_TEST_PATTERN				0xa0
+> +#define		MT9P031_TEST_PATTERN_SHIFT		3
+> +#define		MT9P031_TEST_PATTERN_ENABLE		(1 << 0)
+> +#define		MT9P031_TEST_PATTERN_DISABLE		(0 << 0)
+> +#define MT9P031_TEST_PATTERN_GREEN			0xa1
+> +#define MT9P031_TEST_PATTERN_RED			0xa2
+> +#define MT9P031_TEST_PATTERN_BLUE			0xa3
+> +
+> +struct mt9p031_pll_divs {
+> +	u32 ext_freq;
+> +	u32 target_freq;
+> +	u8 m;
+> +	u8 n;
+> +	u8 p1;
+> +};
+> +
+> +struct mt9p031 {
+> +	struct v4l2_subdev subdev;
+> +	struct media_pad pad;
+> +	struct v4l2_rect crop;  /* Sensor window */
+> +	struct v4l2_mbus_framefmt format;
+> +	struct v4l2_ctrl_handler ctrls;
+> +	struct mt9p031_platform_data *pdata;
+> +	struct mutex power_lock; /* lock to protect power_count */
+> +	int power_count;
+> +	u16 xskip;
+> +	u16 yskip;
+> +	u32 ext_freq;
+> +	/* pll dividers */
+> +	u8 m;
+> +	u8 n;
+> +	u8 p1;
+> +
+> +	/* Registers cache */
+> +	u16 output_control;
+> +	u16 mode2;
+> +};
+> +
+> +static struct mt9p031 *to_mt9p031(struct v4l2_subdev *sd)
+> +{
+> +	return container_of(sd, struct mt9p031, subdev);
+> +}
+> +
+> +static int mt9p031_read(struct i2c_client *client, u8 reg)
+> +{
+> +	s32 data = i2c_smbus_read_word_data(client, reg);
+> +	return data < 0 ? data : swab16(data);
+
+Why swab16, and not e.g. be16_to_cpu?
+
+> +}
+> +
+> +static int mt9p031_write(struct i2c_client *client, u8 reg, u16 data)
+> +{
+> +	return i2c_smbus_write_word_data(client, reg, swab16(data));
+
+Same here.
+
+> +}
+> +
+> +static int mt9p031_set_output_control(struct mt9p031 *mt9p031, u16 clear,
+> +				      u16 set)
+> +{
+> +	struct i2c_client *client = v4l2_get_subdevdata(&mt9p031->subdev);
+> +	u16 value = (mt9p031->output_control & ~clear) | set;
+> +	int ret;
+> +
+> +	ret = mt9p031_write(client, MT9P031_OUTPUT_CONTROL, value);
+> +	if (ret < 0)
+> +		return ret;
+> +
+> +	mt9p031->output_control = value;
+> +	return 0;
+> +}
+> +
+> +static int mt9p031_set_mode2(struct mt9p031 *mt9p031, u16 clear, u16 set)
+> +{
+> +	struct i2c_client *client = v4l2_get_subdevdata(&mt9p031->subdev);
+> +	u16 value = (mt9p031->mode2 & ~clear) | set;
+> +	int ret;
+> +
+> +	ret = mt9p031_write(client, MT9P031_READ_MODE_2, value);
+> +	if (ret < 0)
+> +		return ret;
+> +
+> +	mt9p031->mode2 = value;
+> +	return 0;
+> +}
+> +
+> +static int mt9p031_reset(struct mt9p031 *mt9p031)
+> +{
+> +	struct i2c_client *client = v4l2_get_subdevdata(&mt9p031->subdev);
+> +	int ret;
+> +
+> +	/* Disable chip output, synchronous option update */
+> +	ret = mt9p031_write(client, MT9P031_RST, MT9P031_RST_ENABLE);
+> +	if (ret < 0)
+> +		return ret;
+> +	ret = mt9p031_write(client, MT9P031_RST, MT9P031_RST_DISABLE);
+> +	if (ret < 0)
+> +		return ret;
+> +
+> +	return mt9p031_set_output_control(mt9p031, MT9P031_OUTPUT_CONTROL_CEN,
+> +					  0);
+> +}
+> +
+> +/*
+> + * This static table uses ext_freq and vdd_io values to select suitable
+> + * PLL dividers m, n and p1 which have been calculated as specifiec in p36
+> + * of Aptina's mt9p031 datasheet. New values should be added here.
+> + */
+> +static const struct mt9p031_pll_divs mt9p031_divs[] = {
+> +	/* ext_freq	target_freq	m	n	p1 */
+> +	{21000000,	48000000,	26,	2,	6}
+
+Can the divisors be calculated dynamically?
+
+The external clock frequency, target_freq (pixel clock, I assume!) are
+typically highly board dependent.
+
+> +};
+> +
+> +static int mt9p031_pll_get_divs(struct mt9p031 *mt9p031)
+> +{
+> +	struct i2c_client *client = v4l2_get_subdevdata(&mt9p031->subdev);
+> +	int i;
+> +
+> +	for (i = 0; i < ARRAY_SIZE(mt9p031_divs); i++) {
+> +		if (mt9p031_divs[i].ext_freq == mt9p031->pdata->ext_freq &&
+> +		  mt9p031_divs[i].target_freq == mt9p031->pdata->target_freq) {
+> +			mt9p031->ext_freq = mt9p031_divs[i].ext_freq;
+> +			mt9p031->m = mt9p031_divs[i].m;
+> +			mt9p031->n = mt9p031_divs[i].n;
+> +			mt9p031->p1 = mt9p031_divs[i].p1;
+
+What about a pointer to the array instead of copying the values?
+
+> +			return 0;
+> +		}
+> +	}
+> +
+> +	dev_err(&client->dev, "Couldn't find PLL dividers for ext_freq = %d, "
+> +		"target_freq = %d\n", mt9p031->pdata->ext_freq,
+> +		mt9p031->pdata->target_freq);
+> +	return -EINVAL;
+> +}
+> +
+> +static int mt9p031_pll_enable(struct mt9p031 *mt9p031)
+> +{
+> +	struct i2c_client *client = v4l2_get_subdevdata(&mt9p031->subdev);
+> +	int ret;
+> +
+> +	ret = mt9p031_write(client, MT9P031_PLL_CONTROL,
+> +			    MT9P031_PLL_CONTROL_PWRON);
+> +	if (ret < 0)
+> +		return ret;
+> +
+> +	ret = mt9p031_write(client, MT9P031_PLL_CONFIG_1,
+> +			    (mt9p031->m << 8) | (mt9p031->n - 1));
+> +	if (ret < 0)
+> +		return ret;
+> +
+> +	ret = mt9p031_write(client, MT9P031_PLL_CONFIG_2, mt9p031->p1 - 1);
+> +	if (ret < 0)
+> +		return ret;
+> +
+> +	mdelay(1);
+
+mdelay() is a busyloop. Either msleep(), if the timing isn't critical, and
+if it is, then usleep_range().
+
+> +	ret = mt9p031_write(client, MT9P031_PLL_CONTROL,
+> +			    MT9P031_PLL_CONTROL_PWRON |
+> +			    MT9P031_PLL_CONTROL_USEPLL);
+> +	mdelay(1);
+> +	return ret;
+> +}
+> +
+> +static inline int mt9p031_pll_disable(struct mt9p031 *mt9p031)
+> +{
+> +	struct i2c_client *client = v4l2_get_subdevdata(&mt9p031->subdev);
+> +
+> +	return mt9p031_write(client, MT9P031_PLL_CONTROL,
+> +			     MT9P031_PLL_CONTROL_PWROFF);
+> +}
+> +
+> +static int mt9p031_power_on(struct mt9p031 *mt9p031)
+> +{
+> +	/* Ensure RESET_BAR is low */
+> +	if (mt9p031->pdata->reset) {
+> +		mt9p031->pdata->reset(&mt9p031->subdev, 1);
+> +		msleep(1);
+
+msleep(1) may take considerably longer than 1 ms, depending on the system
+clock. You might want to use usleep_range() here.
+
+> +	}
+> +
+> +	/* Emable clock */
+> +	if (mt9p031->pdata->set_xclk)
+> +		mt9p031->pdata->set_xclk(&mt9p031->subdev,
+> +					 mt9p031->pdata->ext_freq);
+> +
+> +	/* Now RESET_BAR must be high */
+> +	if (mt9p031->pdata->reset) {
+> +		mt9p031->pdata->reset(&mt9p031->subdev, 0);
+> +		msleep(1);
+> +	}
+> +
+> +	return 0;
+> +}
+> +
+> +static void mt9p031_power_off(struct mt9p031 *mt9p031)
+> +{
+> +	if (mt9p031->pdata->reset) {
+> +		mt9p031->pdata->reset(&mt9p031->subdev, 1);
+> +		msleep(1);
+> +	}
+> +
+> +	if (mt9p031->pdata->set_xclk)
+> +		mt9p031->pdata->set_xclk(&mt9p031->subdev, 0);
+> +}
+> +
+> +static int __mt9p031_set_power(struct mt9p031 *mt9p031, bool on)
+> +{
+> +	struct i2c_client *client = v4l2_get_subdevdata(&mt9p031->subdev);
+> +	int ret;
+> +
+> +	if (!on) {
+> +		mt9p031_power_off(mt9p031);
+> +		return 0;
+> +	}
+> +
+> +	ret = mt9p031_power_on(mt9p031);
+> +	if (ret < 0)
+> +		return ret;
+> +
+> +	ret = mt9p031_reset(mt9p031);
+> +	if (ret < 0) {
+> +		dev_err(&client->dev, "Failed to reset the camera\n");
+> +		return ret;
+> +	}
+> +
+> +	return v4l2_ctrl_handler_setup(&mt9p031->ctrls);
+> +}
+> +
+> +/* -----------------------------------------------------------------------------
+> + * V4L2 subdev video operations
+> + */
+> +
+> +static int mt9p031_set_params(struct mt9p031 *mt9p031)
+> +{
+> +	struct i2c_client *client = v4l2_get_subdevdata(&mt9p031->subdev);
+> +	struct v4l2_mbus_framefmt *format = &mt9p031->format;
+> +	const struct v4l2_rect *crop = &mt9p031->crop;
+> +	unsigned int hblank;
+> +	unsigned int vblank;
+> +	unsigned int xskip;
+> +	unsigned int yskip;
+> +	unsigned int xbin;
+> +	unsigned int ybin;
+> +	int ret;
+> +
+> +	/* Windows position and size.
+> +	 *
+> +	 * TODO: Make sure the start coordinates and window size match the
+> +	 * skipping, binning and mirroring (see description of registers 2 and 4
+> +	 * in table 13, and Binning section on page 41).
+> +	 */
+> +	ret = mt9p031_write(client, MT9P031_COLUMN_START, crop->left);
+> +	if (ret < 0)
+> +		return ret;
+> +	ret = mt9p031_write(client, MT9P031_ROW_START, crop->top);
+> +	if (ret < 0)
+> +		return ret;
+> +	ret = mt9p031_write(client, MT9P031_WINDOW_WIDTH, crop->width - 1);
+> +	if (ret < 0)
+> +		return ret;
+> +	ret = mt9p031_write(client, MT9P031_WINDOW_HEIGHT, crop->height - 1);
+> +	if (ret < 0)
+> +		return ret;
+> +
+> +	/* Row and column binning and skipping. Use the maximum binning value
+> +	 * compatible with the skipping settings.
+> +	 */
+> +	xskip = DIV_ROUND_CLOSEST(crop->width, format->width);
+> +	yskip = DIV_ROUND_CLOSEST(crop->height, format->height);
+> +	xbin = 1 << (ffs(xskip) - 1);
+> +	ybin = 1 << (ffs(yskip) - 1);
+> +
+> +	ret = mt9p031_write(client, MT9P031_COLUMN_ADDRESS_MODE,
+> +			    ((xbin - 1) << 4) | (xskip - 1));
+> +	if (ret < 0)
+> +		return ret;
+> +	ret = mt9p031_write(client, MT9P031_ROW_ADDRESS_MODE,
+> +			    ((ybin - 1) << 4) | (yskip - 1));
+> +	if (ret < 0)
+> +		return ret;
+> +
+> +	/* Blanking - use minimum value for horizontal blanking and default
+> +	 * value for vertical blanking.
+> +	 */
+> +	hblank = 346 * ybin + 64 + (80 >> max_t(unsigned int, xbin, 3));
+
+Where do all these numbers come from? :-) I saw very nice register
+definitions and value ranges in the beginning of the patch.
+
+> +	vblank = MT9P031_VERTICAL_BLANK_DEF;
+> +
+> +	ret = mt9p031_write(client, MT9P031_HORIZONTAL_BLANK, hblank);
+> +	if (ret < 0)
+> +		return ret;
+> +	ret = mt9p031_write(client, MT9P031_VERTICAL_BLANK, vblank);
+> +	if (ret < 0)
+> +		return ret;
+> +
+> +	return ret;
+> +}
+> +
+> +static int mt9p031_s_stream(struct v4l2_subdev *subdev, int enable)
+> +{
+> +	struct mt9p031 *mt9p031 = to_mt9p031(subdev);
+> +	int ret;
+> +
+> +	if (!enable) {
+> +		/* Stop sensor readout */
+> +		ret = mt9p031_set_output_control(mt9p031,
+> +						 MT9P031_OUTPUT_CONTROL_CEN, 0);
+> +		if (ret < 0)
+> +			return ret;
+> +
+> +		return mt9p031_pll_disable(mt9p031);
+> +	}
+> +
+> +	ret = mt9p031_set_params(mt9p031);
+> +	if (ret < 0)
+> +		return ret;
+> +
+> +	/* Switch to master "normal" mode */
+> +	ret = mt9p031_set_output_control(mt9p031, 0,
+> +					 MT9P031_OUTPUT_CONTROL_CEN);
+> +	if (ret < 0)
+> +		return ret;
+> +
+> +	return mt9p031_pll_enable(mt9p031);
+> +}
+> +
+> +static int mt9p031_enum_mbus_code(struct v4l2_subdev *subdev,
+> +				  struct v4l2_subdev_fh *fh,
+> +				  struct v4l2_subdev_mbus_code_enum *code)
+> +{
+> +	struct mt9p031 *mt9p031 = to_mt9p031(subdev);
+> +
+> +	if (code->pad || code->index)
+> +		return -EINVAL;
+> +
+> +	code->code = mt9p031->format.code;
+> +	return 0;
+> +}
+> +
+> +static int mt9p031_enum_frame_size(struct v4l2_subdev *subdev,
+> +				   struct v4l2_subdev_fh *fh,
+> +				   struct v4l2_subdev_frame_size_enum *fse)
+> +{
+> +	struct mt9p031 *mt9p031 = to_mt9p031(subdev);
+> +
+> +	if (fse->index >= 8 || fse->code != mt9p031->format.code)
+> +		return -EINVAL;
+> +
+> +	fse->min_width = MT9P031_WINDOW_WIDTH_DEF
+> +		       / min_t(unsigned int, 7, fse->index + 1);
+> +	fse->max_width = fse->min_width;
+> +	fse->min_height = MT9P031_WINDOW_HEIGHT_DEF / (fse->index + 1);
+> +	fse->max_height = fse->min_height;
+> +
+> +	return 0;
+> +}
+> +
+> +static struct v4l2_mbus_framefmt *
+> +__mt9p031_get_pad_format(struct mt9p031 *mt9p031, struct v4l2_subdev_fh *fh,
+> +			 unsigned int pad, u32 which)
+> +{
+> +	switch (which) {
+> +	case V4L2_SUBDEV_FORMAT_TRY:
+> +		return v4l2_subdev_get_try_format(fh, pad);
+> +	case V4L2_SUBDEV_FORMAT_ACTIVE:
+> +		return &mt9p031->format;
+> +	default:
+> +		return NULL;
+> +	}
+> +}
+> +
+> +static struct v4l2_rect *
+> +__mt9p031_get_pad_crop(struct mt9p031 *mt9p031, struct v4l2_subdev_fh *fh,
+> +		     unsigned int pad, u32 which)
+> +{
+> +	switch (which) {
+> +	case V4L2_SUBDEV_FORMAT_TRY:
+> +		return v4l2_subdev_get_try_crop(fh, pad);
+> +	case V4L2_SUBDEV_FORMAT_ACTIVE:
+> +		return &mt9p031->crop;
+> +	default:
+> +		return NULL;
+> +	}
+> +}
+> +
+> +static int mt9p031_get_format(struct v4l2_subdev *subdev,
+> +			      struct v4l2_subdev_fh *fh,
+> +			      struct v4l2_subdev_format *fmt)
+> +{
+> +	struct mt9p031 *mt9p031 = to_mt9p031(subdev);
+> +
+> +	fmt->format = *__mt9p031_get_pad_format(mt9p031, fh, fmt->pad,
+> +						fmt->which);
+> +	return 0;
+> +}
+> +
+> +static int mt9p031_set_format(struct v4l2_subdev *subdev,
+> +			      struct v4l2_subdev_fh *fh,
+> +			      struct v4l2_subdev_format *format)
+> +{
+> +	struct mt9p031 *mt9p031 = to_mt9p031(subdev);
+> +	struct v4l2_mbus_framefmt *__format;
+> +	struct v4l2_rect *__crop;
+> +	unsigned int width;
+> +	unsigned int height;
+> +	unsigned int hratio;
+> +	unsigned int vratio;
+> +
+> +	__crop = __mt9p031_get_pad_crop(mt9p031, fh, format->pad,
+> +					format->which);
+> +
+> +	/* Clamp the width and height to avoid dividing by zero. */
+> +	width = clamp_t(unsigned int, ALIGN(format->format.width, 2),
+> +			max(__crop->width / 7, MT9P031_WINDOW_WIDTH_MIN),
+> +			__crop->width);
+> +	height = clamp_t(unsigned int, ALIGN(format->format.height, 2),
+> +			max(__crop->height / 8, MT9P031_WINDOW_HEIGHT_MIN),
+> +			__crop->height);
+> +
+> +	hratio = DIV_ROUND_CLOSEST(__crop->width, width);
+> +	vratio = DIV_ROUND_CLOSEST(__crop->height, height);
+> +
+> +	__format = __mt9p031_get_pad_format(mt9p031, fh, format->pad,
+> +					    format->which);
+> +	__format->width = __crop->width / hratio;
+> +	__format->height = __crop->height / vratio;
+> +
+> +	format->format = *__format;
+> +
+> +	return 0;
+> +}
+> +
+> +static int mt9p031_get_crop(struct v4l2_subdev *subdev,
+> +			    struct v4l2_subdev_fh *fh,
+> +			    struct v4l2_subdev_crop *crop)
+> +{
+> +	struct mt9p031 *mt9p031 = to_mt9p031(subdev);
+> +
+> +	crop->rect = *__mt9p031_get_pad_crop(mt9p031, fh, crop->pad,
+> +					     crop->which);
+> +	return 0;
+> +}
+> +
+> +static int mt9p031_set_crop(struct v4l2_subdev *subdev,
+> +			    struct v4l2_subdev_fh *fh,
+> +			    struct v4l2_subdev_crop *crop)
+> +{
+> +	struct mt9p031 *mt9p031 = to_mt9p031(subdev);
+> +	struct v4l2_mbus_framefmt *__format;
+> +	struct v4l2_rect *__crop;
+> +	struct v4l2_rect rect;
+> +
+> +	/* Clamp the crop rectangle boundaries and align them to a multiple of 2
+> +	 * pixels to ensure a GRBG Bayer pattern.
+> +	 */
+> +	rect.left = clamp(ALIGN(crop->rect.left, 2), MT9P031_COLUMN_START_MIN,
+> +			  MT9P031_COLUMN_START_MAX);
+> +	rect.top = clamp(ALIGN(crop->rect.top, 2), MT9P031_ROW_START_MIN,
+> +			 MT9P031_ROW_START_MAX);
+> +	rect.width = clamp(ALIGN(crop->rect.width, 2),
+> +			   MT9P031_WINDOW_WIDTH_MIN,
+> +			   MT9P031_WINDOW_WIDTH_MAX);
+> +	rect.height = clamp(ALIGN(crop->rect.height, 2),
+> +			    MT9P031_WINDOW_HEIGHT_MIN,
+> +			    MT9P031_WINDOW_HEIGHT_MAX);
+> +
+> +	rect.width = min(rect.width, MT9P031_PIXEL_ARRAY_WIDTH - rect.left);
+> +	rect.height = min(rect.height, MT9P031_PIXEL_ARRAY_HEIGHT - rect.top);
+> +
+> +	__crop = __mt9p031_get_pad_crop(mt9p031, fh, crop->pad, crop->which);
+> +
+> +	if (rect.width != __crop->width || rect.height != __crop->height) {
+> +		/* Reset the output image size if the crop rectangle size has
+> +		 * been modified.
+> +		 */
+> +		__format = __mt9p031_get_pad_format(mt9p031, fh, crop->pad,
+> +						    crop->which);
+> +		__format->width = rect.width;
+> +		__format->height = rect.height;
+> +	}
+> +
+> +	*__crop = rect;
+> +	crop->rect = rect;
+> +
+> +	return 0;
+> +}
+> +
+> +/* -----------------------------------------------------------------------------
+> + * V4L2 subdev control operations
+> + */
+> +
+> +#define V4L2_CID_TEST_PATTERN		(V4L2_CID_USER_BASE | 0x1001)
+> +
+> +static int mt9p031_s_ctrl(struct v4l2_ctrl *ctrl)
+> +{
+> +	struct mt9p031 *mt9p031 =
+> +			container_of(ctrl->handler, struct mt9p031, ctrls);
+> +	struct i2c_client *client = v4l2_get_subdevdata(&mt9p031->subdev);
+> +	u16 data;
+> +	int ret;
+> +
+> +	switch (ctrl->id) {
+> +	case V4L2_CID_EXPOSURE:
+> +		ret = mt9p031_write(client, MT9P031_SHUTTER_WIDTH_UPPER,
+> +				    (ctrl->val >> 16) & 0xffff);
+> +		if (ret < 0)
+> +			return ret;
+> +
+> +		return mt9p031_write(client, MT9P031_SHUTTER_WIDTH_LOWER,
+> +				     ctrl->val & 0xffff);
+> +
+> +	case V4L2_CID_GAIN:
+> +		/* Gain is controlled by 2 analog stages and a digital stage.
+
+Just a general question: shouldn't there be another control for digital (or
+analog) range? Which to change in what point of time is somewhat a policy
+decision. Sometimes the user would also want to know that (s)he is using
+digital gain.
+
+> +		 * Valid values for the 3 stages are
+> +		 *
+> +		 * Stage                Min     Max     Step
+> +		 * ------------------------------------------
+> +		 * First analog stage   x1      x2      1
+> +		 * Second analog stage  x1      x4      0.125
+> +		 * Digital stage        x1      x16     0.125
+> +		 *
+> +		 * To minimize noise, the gain stages should be used in the
+> +		 * second analog stage, first analog stage, digital stage order.
+> +		 * Gain from a previous stage should be pushed to its maximum
+> +		 * value before the next stage is used.
+> +		 */
+> +		if (ctrl->val <= 32) {
+> +			data = ctrl->val;
+> +		} else if (ctrl->val <= 64) {
+> +			ctrl->val &= ~1;
+> +			data = (1 << 6) | (ctrl->val >> 1);
+> +		} else {
+> +			ctrl->val &= ~7;
+> +			data = ((ctrl->val - 64) << 5) | (1 << 6) | 32;
+> +		}
+> +
+> +		return mt9p031_write(client, MT9P031_GLOBAL_GAIN, data);
+> +
+> +	case V4L2_CID_HFLIP:
+> +		if (ctrl->val)
+> +			return mt9p031_set_mode2(mt9p031,
+> +					0, MT9P031_READ_MODE_2_COL_MIR);
+> +		else
+> +			return mt9p031_set_mode2(mt9p031,
+> +					MT9P031_READ_MODE_2_COL_MIR, 0);
+> +
+> +	case V4L2_CID_VFLIP:
+> +		if (ctrl->val)
+> +			return mt9p031_set_mode2(mt9p031,
+> +					0, MT9P031_READ_MODE_2_ROW_MIR);
+> +		else
+> +			return mt9p031_set_mode2(mt9p031,
+> +					MT9P031_READ_MODE_2_ROW_MIR, 0);
+> +
+> +	case V4L2_CID_TEST_PATTERN:
+> +		if (!ctrl->val) {
+> +			ret = mt9p031_set_mode2(mt9p031,
+> +					0, MT9P031_READ_MODE_2_ROW_BLC);
+> +			if (ret < 0)
+> +				return ret;
+> +
+> +			return mt9p031_write(client, MT9P031_TEST_PATTERN,
+> +					     MT9P031_TEST_PATTERN_DISABLE);
+> +		}
+> +
+> +		ret = mt9p031_write(client, MT9P031_TEST_PATTERN_GREEN, 0x05a0);
+> +		if (ret < 0)
+> +			return ret;
+> +		ret = mt9p031_write(client, MT9P031_TEST_PATTERN_RED, 0x0a50);
+> +		if (ret < 0)
+> +			return ret;
+> +		ret = mt9p031_write(client, MT9P031_TEST_PATTERN_BLUE, 0x0aa0);
+> +		if (ret < 0)
+> +			return ret;
+> +
+> +		ret = mt9p031_set_mode2(mt9p031, MT9P031_READ_MODE_2_ROW_BLC,
+> +					0);
+> +		if (ret < 0)
+> +			return ret;
+> +		ret = mt9p031_write(client, MT9P031_ROW_BLACK_DEF_OFFSET, 0);
+> +		if (ret < 0)
+> +			return ret;
+> +
+> +		return mt9p031_write(client, MT9P031_TEST_PATTERN,
+> +				((ctrl->val - 1) << MT9P031_TEST_PATTERN_SHIFT)
+> +				| MT9P031_TEST_PATTERN_ENABLE);
+> +	}
+> +	return 0;
+> +}
+> +
+> +static struct v4l2_ctrl_ops mt9p031_ctrl_ops = {
+> +	.s_ctrl = mt9p031_s_ctrl,
+> +};
+> +
+> +static const char * const mt9p031_test_pattern_menu[] = {
+> +	"Disabled",
+> +	"Color Field",
+> +	"Horizontal Gradient",
+> +	"Vertical Gradient",
+> +	"Diagonal Gradient",
+> +	"Classic Test Pattern",
+> +	"Walking 1s",
+> +	"Monochrome Horizontal Bars",
+> +	"Monochrome Vertical Bars",
+> +	"Vertical Color Bars",
+> +};
+> +
+> +static const struct v4l2_ctrl_config mt9p031_ctrls[] = {
+> +	{
+> +		.ops		= &mt9p031_ctrl_ops,
+> +		.id		= V4L2_CID_TEST_PATTERN,
+> +		.type		= V4L2_CTRL_TYPE_MENU,
+> +		.name		= "Test Pattern",
+> +		.min		= 0,
+> +		.max		= 9,
+
+I wonder if ARRAY_SIZE(mt9p031_test_pattern_menu) would return something
+sensible.
+
+> +		.step		= 0,
+> +		.def		= 0,
+> +		.flags		= 0,
+> +		.menu_skip_mask	= 0,
+> +		.qmenu		= mt9p031_test_pattern_menu,
+> +	}
+> +};
+> +
+> +/* -----------------------------------------------------------------------------
+> + * V4L2 subdev core operations
+> + */
+> +
+> +static int mt9p031_set_power(struct v4l2_subdev *subdev, int on)
+> +{
+> +	struct mt9p031 *mt9p031 = to_mt9p031(subdev);
+> +	int ret = 0;
+> +
+> +	mutex_lock(&mt9p031->power_lock);
+> +
+> +	/* If the power count is modified from 0 to != 0 or from != 0 to 0,
+> +	 * update the power state.
+> +	 */
+> +	if (mt9p031->power_count == !on) {
+> +		ret = __mt9p031_set_power(mt9p031, !!on);
+> +		if (ret < 0)
+> +			goto out;
+> +	}
+> +
+> +	/* Update the power count. */
+> +	mt9p031->power_count += on ? 1 : -1;
+> +	WARN_ON(mt9p031->power_count < 0);
+> +
+> +out:
+> +	mutex_unlock(&mt9p031->power_lock);
+> +	return ret;
+> +}
+> +
+> +/* -----------------------------------------------------------------------------
+> + * V4L2 subdev internal operations
+> + */
+> +
+> +static int mt9p031_registered(struct v4l2_subdev *subdev)
+> +{
+> +	struct i2c_client *client = v4l2_get_subdevdata(subdev);
+> +	struct mt9p031 *mt9p031 = to_mt9p031(subdev);
+> +	s32 data;
+> +	int ret;
+> +
+> +	ret = mt9p031_power_on(mt9p031);
+> +	if (ret < 0) {
+> +		dev_err(&client->dev, "MT9P031 power up failed\n");
+> +		return ret;
+> +	}
+> +
+> +	/* Read out the chip version register */
+> +	data = mt9p031_read(client, MT9P031_CHIP_VERSION);
+> +	if (data != MT9P031_CHIP_VERSION_VALUE) {
+> +		dev_err(&client->dev, "MT9P031 not detected, wrong version "
+> +			"0x%04x\n", data);
+> +		return -ENODEV;
+> +	}
+> +
+> +	mt9p031_power_off(mt9p031);
+> +
+> +	dev_info(&client->dev, "MT9P031 detected at address 0x%02x\n",
+> +		 client->addr);
+> +
+> +	return ret;
+> +}
+> +
+> +static int mt9p031_open(struct v4l2_subdev *subdev, struct v4l2_subdev_fh *fh)
+> +{
+> +	struct mt9p031 *mt9p031 = to_mt9p031(subdev);
+> +	struct v4l2_mbus_framefmt *format;
+> +	struct v4l2_rect *crop;
+> +
+> +	crop = v4l2_subdev_get_try_crop(fh, 0);
+> +	crop->left = MT9P031_COLUMN_START_DEF;
+> +	crop->top = MT9P031_ROW_START_DEF;
+> +	crop->width = MT9P031_WINDOW_WIDTH_DEF;
+> +	crop->height = MT9P031_WINDOW_HEIGHT_DEF;
+> +
+> +	format = v4l2_subdev_get_try_format(fh, 0);
+> +
+> +	if (mt9p031->pdata->version == MT9P031_MONOCHROME_VERSION)
+> +		format->code = V4L2_MBUS_FMT_Y12_1X12;
+> +	else
+> +		format->code = V4L2_MBUS_FMT_SGRBG12_1X12;
+> +
+> +	format->width = MT9P031_WINDOW_WIDTH_DEF;
+> +	format->height = MT9P031_WINDOW_HEIGHT_DEF;
+> +	format->field = V4L2_FIELD_NONE;
+> +	format->colorspace = V4L2_COLORSPACE_SRGB;
+> +
+> +	mt9p031->xskip = 1;
+> +	mt9p031->yskip = 1;
+> +	return mt9p031_set_power(subdev, 1);
+> +}
+> +
+> +static int mt9p031_close(struct v4l2_subdev *subdev, struct v4l2_subdev_fh *fh)
+> +{
+> +	return mt9p031_set_power(subdev, 0);
+> +}
+> +
+> +static struct v4l2_subdev_core_ops mt9p031_subdev_core_ops = {
+> +	.s_power        = mt9p031_set_power,
+> +};
+> +
+> +static struct v4l2_subdev_video_ops mt9p031_subdev_video_ops = {
+> +	.s_stream       = mt9p031_s_stream,
+> +};
+> +
+> +static struct v4l2_subdev_pad_ops mt9p031_subdev_pad_ops = {
+> +	.enum_mbus_code = mt9p031_enum_mbus_code,
+> +	.enum_frame_size = mt9p031_enum_frame_size,
+> +	.get_fmt = mt9p031_get_format,
+> +	.set_fmt = mt9p031_set_format,
+> +	.get_crop = mt9p031_get_crop,
+> +	.set_crop = mt9p031_set_crop,
+> +};
+> +
+> +static struct v4l2_subdev_ops mt9p031_subdev_ops = {
+> +	.core   = &mt9p031_subdev_core_ops,
+> +	.video  = &mt9p031_subdev_video_ops,
+> +	.pad    = &mt9p031_subdev_pad_ops,
+> +};
+> +
+> +static const struct v4l2_subdev_internal_ops mt9p031_subdev_internal_ops = {
+> +	.registered = mt9p031_registered,
+> +	.open = mt9p031_open,
+> +	.close = mt9p031_close,
+> +};
+> +
+> +/* -----------------------------------------------------------------------------
+> + * Driver initialization and probing
+> + */
+> +
+> +static int mt9p031_probe(struct i2c_client *client,
+> +				const struct i2c_device_id *did)
+> +{
+> +	struct mt9p031_platform_data *pdata = client->dev.platform_data;
+
+You might want to check pdata isn't NULL.
+
+> +	struct i2c_adapter *adapter = to_i2c_adapter(client->dev.parent);
+> +	struct mt9p031 *mt9p031;
+> +	unsigned int i;
+> +	int ret;
+> +
+> +	if (!i2c_check_functionality(adapter, I2C_FUNC_SMBUS_WORD_DATA)) {
+> +		dev_warn(&adapter->dev,
+> +			"I2C-Adapter doesn't support I2C_FUNC_SMBUS_WORD\n");
+> +		return -EIO;
+> +	}
+> +
+> +	mt9p031 = kzalloc(sizeof(*mt9p031), GFP_KERNEL);
+> +	if (mt9p031 == NULL)
+> +		return -ENOMEM;
+> +
+> +	mt9p031->pdata = pdata;
+> +	mt9p031->output_control	= MT9P031_OUTPUT_CONTROL_DEF;
+> +	mt9p031->mode2 = MT9P031_READ_MODE_2_ROW_BLC;
+> +
+> +	v4l2_ctrl_handler_init(&mt9p031->ctrls, ARRAY_SIZE(mt9p031_ctrls) + 4);
+> +
+> +	v4l2_ctrl_new_std(&mt9p031->ctrls, &mt9p031_ctrl_ops,
+> +			  V4L2_CID_EXPOSURE, MT9P031_SHUTTER_WIDTH_MIN,
+> +			  MT9P031_SHUTTER_WIDTH_MAX, 1,
+> +			  MT9P031_SHUTTER_WIDTH_DEF);
+> +	v4l2_ctrl_new_std(&mt9p031->ctrls, &mt9p031_ctrl_ops,
+> +			  V4L2_CID_GAIN, MT9P031_GLOBAL_GAIN_MIN,
+> +			  MT9P031_GLOBAL_GAIN_MAX, 1, MT9P031_GLOBAL_GAIN_DEF);
+> +	v4l2_ctrl_new_std(&mt9p031->ctrls, &mt9p031_ctrl_ops,
+> +			  V4L2_CID_HFLIP, 0, 1, 1, 0);
+> +	v4l2_ctrl_new_std(&mt9p031->ctrls, &mt9p031_ctrl_ops,
+> +			  V4L2_CID_VFLIP, 0, 1, 1, 0);
+> +
+> +	for (i = 0; i < ARRAY_SIZE(mt9p031_ctrls); ++i)
+> +		v4l2_ctrl_new_custom(&mt9p031->ctrls, &mt9p031_ctrls[i], NULL);
+> +
+> +	mt9p031->subdev.ctrl_handler = &mt9p031->ctrls;
+> +
+> +	if (mt9p031->ctrls.error)
+> +		printk(KERN_INFO "%s: control initialization error %d\n",
+> +		       __func__, mt9p031->ctrls.error);
+> +
+> +	mutex_init(&mt9p031->power_lock);
+> +	v4l2_i2c_subdev_init(&mt9p031->subdev, client, &mt9p031_subdev_ops);
+> +	mt9p031->subdev.internal_ops = &mt9p031_subdev_internal_ops;
+> +
+> +	mt9p031->pad.flags = MEDIA_PAD_FL_SOURCE;
+> +	ret = media_entity_init(&mt9p031->subdev.entity, 1, &mt9p031->pad, 0);
+> +	if (ret < 0)
+> +		goto done;
+> +
+> +	mt9p031->subdev.flags |= V4L2_SUBDEV_FL_HAS_DEVNODE;
+> +
+> +	mt9p031->crop.width = MT9P031_WINDOW_WIDTH_DEF;
+> +	mt9p031->crop.height = MT9P031_WINDOW_HEIGHT_DEF;
+> +	mt9p031->crop.left = MT9P031_COLUMN_START_DEF;
+> +	mt9p031->crop.top = MT9P031_ROW_START_DEF;
+> +
+> +	if (mt9p031->pdata->version == MT9P031_MONOCHROME_VERSION)
+> +		mt9p031->format.code = V4L2_MBUS_FMT_Y12_1X12;
+> +	else
+> +		mt9p031->format.code = V4L2_MBUS_FMT_SGRBG12_1X12;
+> +
+> +	mt9p031->format.width = MT9P031_WINDOW_WIDTH_DEF;
+> +	mt9p031->format.height = MT9P031_WINDOW_HEIGHT_DEF;
+> +	mt9p031->format.field = V4L2_FIELD_NONE;
+> +	mt9p031->format.colorspace = V4L2_COLORSPACE_SRGB;
+> +
+> +	ret = mt9p031_pll_get_divs(mt9p031);
+> +
+> +done:
+> +	if (ret < 0)
+> +		kfree(mt9p031);
+> +
+> +	return ret;
+> +}
+> +
+> +static int mt9p031_remove(struct i2c_client *client)
+> +{
+> +	struct v4l2_subdev *subdev = i2c_get_clientdata(client);
+> +	struct mt9p031 *mt9p031 = to_mt9p031(subdev);
+> +
+> +	v4l2_device_unregister_subdev(subdev);
+> +	media_entity_cleanup(&subdev->entity);
+> +	kfree(mt9p031);
+> +
+> +	return 0;
+> +}
+> +
+> +static const struct i2c_device_id mt9p031_id[] = {
+> +	{ "mt9p031", 0 },
+> +	{ }
+> +};
+> +MODULE_DEVICE_TABLE(i2c, mt9p031_id);
+> +
+> +static struct i2c_driver mt9p031_i2c_driver = {
+> +	.driver = {
+> +		.name = "mt9p031",
+> +	},
+> +	.probe          = mt9p031_probe,
+> +	.remove         = mt9p031_remove,
+> +	.id_table       = mt9p031_id,
+> +};
+> +
+> +static int __init mt9p031_mod_init(void)
+> +{
+> +	return i2c_add_driver(&mt9p031_i2c_driver);
+> +}
+> +
+> +static void __exit mt9p031_mod_exit(void)
+> +{
+> +	i2c_del_driver(&mt9p031_i2c_driver);
+> +}
+> +
+> +module_init(mt9p031_mod_init);
+> +module_exit(mt9p031_mod_exit);
+> +
+> +MODULE_DESCRIPTION("Aptina MT9P031 Camera driver");
+> +MODULE_AUTHOR("Bastian Hecht <hechtb@gmail.com>");
+> +MODULE_LICENSE("GPL v2");
+> diff --git a/include/media/mt9p031.h b/include/media/mt9p031.h
+> new file mode 100644
+> index 0000000..96448c7
+> --- /dev/null
+> +++ b/include/media/mt9p031.h
+> @@ -0,0 +1,19 @@
+> +#ifndef MT9P031_H
+> +#define MT9P031_H
+> +
+> +struct v4l2_subdev;
+> +
+> +enum {
+> +	MT9P031_COLOR_VERSION,
+> +	MT9P031_MONOCHROME_VERSION,
+> +};
+> +
+> +struct mt9p031_platform_data {
+> +	int (*set_xclk)(struct v4l2_subdev *subdev, int hz);
+> +	int (*reset)(struct v4l2_subdev *subdev, int active);
+> +	int ext_freq; /* input frequency to the mt9p031 for PLL dividers */
+> +	int target_freq; /* frequency target for the PLL */
+> +	int version; /* MT9P031_COLOR_VERSION or MT9P031_MONOCHROME_VERSION */
+> +};
+> +
+> +#endif
+> -- 
+> Regards,
+> 
+> Laurent Pinchart
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
 -- 
-1.7.5.4
-
+Sakari Ailus
+sakari.ailus@iki.fi
