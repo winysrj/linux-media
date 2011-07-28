@@ -1,174 +1,517 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:49423 "EHLO mail.kapsi.fi"
+Received: from mail.kapsi.fi ([217.30.184.167]:54157 "EHLO mail.kapsi.fi"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752027Ab1GPPom (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 16 Jul 2011 11:44:42 -0400
-Message-ID: <4E21B1E6.4090302@iki.fi>
-Date: Sat, 16 Jul 2011 18:44:38 +0300
+	id S1755980Ab1G1Vfu (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 28 Jul 2011 17:35:50 -0400
+Message-ID: <4E31D634.6090804@iki.fi>
+Date: Fri, 29 Jul 2011 00:35:48 +0300
 From: Antti Palosaari <crope@iki.fi>
 MIME-Version: 1.0
-To: Andreas Oberritter <obi@linuxtv.org>
-CC: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Ralph Metzler <rjkm@metzlerbros.de>,
-	linux-media@vger.kernel.org
-Subject: Re: [PATCH 0/5] Driver support for cards based on Digital Devices
- bridge (ddbridge)
-References: <201107032321.46092@orion.escape-edv.de> <4E1F8E1F.3000008@redhat.com> <4E1FBA6F.10509@redhat.com> <201107150717.08944@orion.escape-edv.de> <19999.63914.990114.26990@morden.metzler> <4E203FD0.4030503@redhat.com> <4E207252.5050506@linuxtv.org> <4E20D042.3000302@iki.fi> <4E21832A.20600@redhat.com> <4E219D49.1070709@iki.fi> <4E21A63A.8040008@redhat.com> <4E21B0DE.2020902@linuxtv.org>
-In-Reply-To: <4E21B0DE.2020902@linuxtv.org>
-Content-Type: text/plain; charset=UTF-8; format=flowed
+To: linux-media@vger.kernel.org
+CC: Antti Palosaari <crope@iki.fi>
+Subject: [PATCH 3/3] anysee: use multi-frontend (MFE)
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 07/16/2011 06:40 PM, Andreas Oberritter wrote:
-> On 16.07.2011 16:54, Mauro Carvalho Chehab wrote:
->> Em 16-07-2011 11:16, Antti Palosaari escreveu:
->>> On 07/16/2011 03:25 PM, Mauro Carvalho Chehab wrote:
->>>> Em 15-07-2011 20:41, Antti Palosaari escreveu:
->>>>> On 07/15/2011 08:01 PM, Andreas Oberritter wrote:
->>>>>> On 15.07.2011 15:25, Mauro Carvalho Chehab wrote:
->>>>>>> Em 15-07-2011 05:26, Ralph Metzler escreveu:
->>>>>>>> At the same time I want to add delivery system properties to
->>>>>>>> support everything in one frontend device.
->>>>>>>> Adding a parameter to select C or T as default should help in most
->>>>>>>> cases where the application does not support switching yet.
->>>>>>>
->>>>>>> If I understood well, creating a multi-delivery type of frontend for
->>>>>>> devices like DRX-K makes sense for me.
->>>>>>>
->>>>>>> We need to take some care about how to add support for them, to avoid
->>>>>>> breaking userspace, or to follow kernel deprecating rules, by adding
->>>>>>> some legacy compatibility glue for a few kernel versions. So, the sooner
->>>>>>> we add such support, the better, as less drivers will need to support
->>>>>>> a "fallback" mechanism.
->>>>>>>
->>>>>>> The current DVB version 5 API doesn't prevent some userspace application
->>>>>>> to change the delivery system[1] for a given frontend. This feature is
->>>>>>> actually used by DVB-T2 and DVB-S2 drivers. This actually improved the
->>>>>>> DVB API multi-fe support, by avoiding the need of create of a secondary
->>>>>>> frontend for T2/S2.
->>>>>>>
->>>>>>> Userspace applications can detect that feature by using FE_CAN_2G_MODULATION
->>>>>>> flag, but this mechanism doesn't allow other types of changes like
->>>>>>> from/to DVB-T/DVB-C or from/to DVB-T/ISDB-T. So, drivers that allow such
->>>>>>> type of delivery system switch, using the same chip ended by needing to
->>>>>>> add two frontends.
->>>>>>>
->>>>>>> Maybe we can add a generic FE_CAN_MULTI_DELIVERY flag to fe_caps_t, and
->>>>>>> add a way to query the type of delivery systems supported by a driver.
->>>>>>>
->>>>>>> [1] http://linuxtv.org/downloads/v4l-dvb-apis/FE_GET_SET_PROPERTY.html#DTV-DELIVERY-SYSTEM
->>>>>>
->>>>>> I don't think it's necessary to add a new flag. It should be sufficient
->>>>>> to add a property like "DTV_SUPPORTED_DELIVERY_SYSTEMS", which should be
->>>>>> read-only and return an array of type fe_delivery_system_t.
->>>>>>
->>>>>> Querying this new property on present kernels hopefully fails with a
->>>>>> non-zero return code. in which case FE_GET_INFO should be used to query
->>>>>> the delivery system.
->>>>>>
->>>>>> In future kernels we can provide a default implementation, returning
->>>>>> exactly one fe_delivery_system_t for unported drivers. Other drivers
->>>>>> should be able to override this default implementation in their
->>>>>> get_property callback.
->>>>>
->>>>> One thing I want to say is that consider about devices which does have MFE using two different *physical* demods, not integrated to same silicon.
->>>>>
->>>>> If you add such FE delsys switch mechanism it needs some more glue to bind two physical FEs to one virtual FE. I see much easier to keep all FEs as own - just register those under the same adapter if FEs are shared.
->>>>
->>>> In this case, the driver should just create two frontends, as currently.
->>>>
->>>> There's a difference when there are two physical FE's and just one FE:
->>>> with 2 FE's, the userspace application can just keep both opened at
->>>> the same time. Some applications (like vdr) assumes that all multi-fe
->>>> are like that.
->>>
->>> Does this mean demod is not sleeping (.init() called)?
->>>
->>>> When there's just a single FE, but the driver needs to "fork" it in two
->>>> due to the API troubles, the driver needs to prevent the usage of both
->>>> fe's, either at open or at the ioctl level. So, applications like vdr
->>>> will only use the first frontend.
->>>
->>> Lets take example. There is shared MFE having DVB-S, DVB-T and DVB-C. DVB-T and DVB-C are integrated to one chip whilst DVB-S have own.
->>>
->>> Currently it will shown as:
->>
->> Let me name the approaches:
->>
->> Approach 1)
->>> * adapter0
->>> ** frontend0 (DVB-S)
->>> ** frontend1 (DVB-T)
->>> ** frontend2 (DVB-C)
->>
->> Approach 2)
->>> Your new "ideal" solution will be:
->>> * adapter0
->>> ** frontend0 (DVB-S/T/C)
->>
->> Approach 3)
->>> What really happens (mixed old and new):
->>> * adapter0
->>> ** frontend0 (DVB-S)
->>> ** frontend1 (DVB-T/C)
->>
->> What I've said before is that approach 3 is the "ideal" solution.
->>
->>> It does not look very good to offer this kind of mixed solution, since it is possible to offer only one solution for userspace, new or old, but not mixing.
->>
->> Good point.
->>
->> There's an additional aspect to handle: if a driver that uses approach 1, a conversion
->> to either approach 2 or 3 would break existing applications that can't handle with
->> the new approach.
->>
->> There's a 4th posibility: always offering fe0 with MFE capabilities, and creating additional fe's
->> for old applications that can't cope with the new mode.
->> For example, on a device that supports DVB-S/DVB-S2/DVB-T/DVB-T2/DVB-C/ISDB-T, it will be shown as:
->>
->> Approach 4) fe0 is a frontend "superset"
->>
->> *adapter0
->> *frontend0 (DVB-S/DVB-S2/DVB-T/DVB-T2/DVB-C/ISDB-T) - aka: FE superset
->> *frontend1 (DVB-S/DVB-S2)
->> *frontend2 (DVB-T/DVB-T2)
->> *frontend3 (DVB-C)
->> *frontend4 (ISDB-T)
->>
->> fe0 will need some special logic to allow redirecting a FE call to the right fe, if
->> there are more than one physical frontend bound into the FE API.
->>
->> I'm starting to think that (4) is the better approach, as it won't break legacy
->> applications, and it will provide an easier way for new applications to control
->> the frontend with just one frontend.
->
-> Approach 4 would break existing applications, because suddenly they'd
-> have to cope with an additional device. It would be impossible for an
-> existing application to tell whether frontend0 (from your example) was a
-> real device or not.
->
-> Approach 2 doesn't make any sense to me.
+Signed-off-by: Antti Palosaari <crope@iki.fi>
+---
+  drivers/media/dvb/dvb-usb/anysee.c |  299 
+++++++++++++++++++++++++-----------
+  drivers/media/dvb/dvb-usb/anysee.h |    1 +
+  2 files changed, 206 insertions(+), 94 deletions(-)
 
-I like approach 1 since it is very simple interface. Secondly I like 
-approach 2. I think that more API issue than technical.
+diff --git a/drivers/media/dvb/dvb-usb/anysee.c 
+b/drivers/media/dvb/dvb-usb/anysee.c
+index 1ec88b6..d4d2420 100644
+--- a/drivers/media/dvb/dvb-usb/anysee.c
++++ b/drivers/media/dvb/dvb-usb/anysee.c
+@@ -446,6 +446,114 @@ static struct isl6423_config anysee_isl6423_config = {
+   * IOE[5] STV0903 1=enabled
+   */
 
++static int anysee_frontend_ctrl(struct dvb_frontend *fe, int onoff)
++{
++	struct dvb_usb_adapter *adap = fe->dvb->priv;
++	struct anysee_state *state = adap->dev->priv;
++	int ret;
++
++	deb_info("%s: fe=%d onoff=%d\n", __func__, fe->id, onoff);
++
++	/* no frontend sleep control */
++	if (onoff == 0)
++		return 0;
++
++	switch (state->hw) {
++	case ANYSEE_HW_507FA: /* 15 */
++		/* E30 Combo Plus */
++		/* E30 C Plus */
++
++		if ((fe->id ^ dvb_usb_anysee_delsys) == 0)  {
++			/* disable DVB-T demod on IOD[0] */
++			ret = anysee_wr_reg_mask(adap->dev, REG_IOD, (0 << 0),
++				0x01);
++			if (ret)
++				goto error;
++
++			/* enable DVB-C demod on IOD[5] */
++			ret = anysee_wr_reg_mask(adap->dev, REG_IOD, (1 << 5),
++				0x20);
++			if (ret)
++				goto error;
++
++			/* enable DVB-C tuner on IOE[0] */
++			ret = anysee_wr_reg_mask(adap->dev, REG_IOE, (1 << 0),
++				0x01);
++			if (ret)
++				goto error;
++		} else {
++			/* disable DVB-C demod on IOD[5] */
++			ret = anysee_wr_reg_mask(adap->dev, REG_IOD, (0 << 5),
++				0x20);
++			if (ret)
++				goto error;
++
++			/* enable DVB-T demod on IOD[0] */
++			ret = anysee_wr_reg_mask(adap->dev, REG_IOD, (1 << 0),
++				0x01);
++			if (ret)
++				goto error;
++
++			/* enable DVB-T tuner on IOE[0] */
++			ret = anysee_wr_reg_mask(adap->dev, REG_IOE, (0 << 0),
++				0x01);
++			if (ret)
++				goto error;
++		}
++
++		break;
++	case ANYSEE_HW_508TC: /* 18 */
++	case ANYSEE_HW_508PTC: /* 21 */
++		/* E7 TC */
++		/* E7 PTC */
++
++		if ((fe->id ^ dvb_usb_anysee_delsys) == 0)  {
++			/* disable DVB-T demod on IOD[6] */
++			ret = anysee_wr_reg_mask(adap->dev, REG_IOD, (0 << 6),
++				0x40);
++			if (ret)
++				goto error;
++
++			/* enable DVB-C demod on IOD[5] */
++			ret = anysee_wr_reg_mask(adap->dev, REG_IOD, (1 << 5),
++				0x20);
++			if (ret)
++				goto error;
++
++			/* enable IF route on IOE[0] */
++			ret = anysee_wr_reg_mask(adap->dev, REG_IOE, (1 << 0),
++				0x01);
++			if (ret)
++				goto error;
++		} else {
++			/* disable DVB-C demod on IOD[5] */
++			ret = anysee_wr_reg_mask(adap->dev, REG_IOD, (0 << 5),
++				0x20);
++			if (ret)
++				goto error;
++
++			/* enable DVB-T demod on IOD[6] */
++			ret = anysee_wr_reg_mask(adap->dev, REG_IOD, (1 << 6),
++				0x40);
++			if (ret)
++				goto error;
++
++			/* enable IF route on IOE[0] */
++			ret = anysee_wr_reg_mask(adap->dev, REG_IOE, (0 << 0),
++				0x01);
++			if (ret)
++				goto error;
++		}
++
++		break;
++	default:
++		ret = 0;
++	}
++
++error:
++	return ret;
++}
++
+  static int anysee_frontend_attach(struct dvb_usb_adapter *adap)
+  {
+  	int ret;
+@@ -466,27 +574,37 @@ static int anysee_frontend_attach(struct 
+dvb_usb_adapter *adap)
+  		}
+  	};
 
-> The only sane approach is 3, because it creates one device node per
-> demod chip. As Ralph already suggested, an easy way to not break
-> applications is to add a module parameter which selects the default mode
-> (DVB-C or DVB-T in Antti's example). One could also write a small
-> command line application to switch modes independently from VDR et al.
-> After all, you cannot connect both a DVB-C cable and a DVB-T antenna at
-> the same time, so the vast majority of users won't ever want to switch
-> modes at all.
+-	/* Check which hardware we have.
+-	 * We must do this call two times to get reliable values (hw bug).
+-	 */
+-	ret = anysee_get_hw_info(adap->dev, hw_info);
+-	if (ret)
+-		goto error;
++	/* detect hardware only once */
++	if (adap->fe[0] == NULL) {
++		/* Check which hardware we have.
++		 * We must do this call two times to get reliable values (hw bug).
++		 */
++		ret = anysee_get_hw_info(adap->dev, hw_info);
++		if (ret)
++			goto error;
 
-You are wrong, actually you can. At least here in Finland some cable 
-networks offers DVB-T too.
+-	ret = anysee_get_hw_info(adap->dev, hw_info);
+-	if (ret)
+-		goto error;
++		ret = anysee_get_hw_info(adap->dev, hw_info);
++		if (ret)
++			goto error;
++
++		/* Meaning of these info bytes are guessed. */
++		info("firmware version:%d.%d hardware id:%d",
++			hw_info[1], hw_info[2], hw_info[0]);
 
+-	/* Meaning of these info bytes are guessed. */
+-	info("firmware version:%d.%d hardware id:%d",
+-		hw_info[1], hw_info[2], hw_info[0]);
++		state->hw = hw_info[0];
++	}
 
-regards
-Antti
+-	state->hw = hw_info[0];
++	/* set current frondend ID for devices having two frondends */
++	if (adap->fe[0])
++		state->fe_id++;
 
+  	switch (state->hw) {
+  	case ANYSEE_HW_507T: /* 2 */
+  		/* E30 */
+
++		if (state->fe_id)
++			break;
++
+  		/* attach demod */
+  		adap->fe[0] = dvb_attach(mt352_attach, &anysee_mt352_config,
+  			&adap->dev->i2c_adap);
+@@ -501,6 +619,9 @@ static int anysee_frontend_attach(struct 
+dvb_usb_adapter *adap)
+  	case ANYSEE_HW_507CD: /* 6 */
+  		/* E30 Plus */
+
++		if (state->fe_id)
++			break;
++
+  		/* enable DVB-T demod on IOD[0] */
+  		ret = anysee_wr_reg_mask(adap->dev, REG_IOD, (1 << 0), 0x01);
+  		if (ret)
+@@ -512,26 +633,32 @@ static int anysee_frontend_attach(struct 
+dvb_usb_adapter *adap)
+  			goto error;
+
+  		/* attach demod */
+-		adap->fe[0] = dvb_attach(zl10353_attach, &anysee_zl10353_config,
+-			&adap->dev->i2c_adap);
++		adap->fe[0] = dvb_attach(zl10353_attach,
++			&anysee_zl10353_config, &adap->dev->i2c_adap);
+
+  		break;
+  	case ANYSEE_HW_507DC: /* 10 */
+  		/* E30 C Plus */
+
++		if (state->fe_id)
++			break;
++
+  		/* enable DVB-C demod on IOD[0] */
+  		ret = anysee_wr_reg_mask(adap->dev, REG_IOD, (1 << 0), 0x01);
+  		if (ret)
+  			goto error;
+
+  		/* attach demod */
+-		adap->fe[0] = dvb_attach(tda10023_attach, &anysee_tda10023_config,
+-			&adap->dev->i2c_adap, 0x48);
++		adap->fe[0] = dvb_attach(tda10023_attach,
++			&anysee_tda10023_config, &adap->dev->i2c_adap, 0x48);
+
+  		break;
+  	case ANYSEE_HW_507SI: /* 11 */
+  		/* E30 S2 Plus */
+
++		if (state->fe_id)
++			break;
++
+  		/* enable DVB-S/S2 demod on IOD[0] */
+  		ret = anysee_wr_reg_mask(adap->dev, REG_IOD, (1 << 0), 0x01);
+  		if (ret)
+@@ -564,55 +691,59 @@ static int anysee_frontend_attach(struct 
+dvb_usb_adapter *adap)
+  		if (ret)
+  			goto error;
+
+-		if (dvb_usb_anysee_delsys) {
+-			/* disable DVB-C demod on IOD[5] */
+-			ret = anysee_wr_reg_mask(adap->dev, REG_IOD, (0 << 5),
+-				0x20);
++		if ((state->fe_id ^ dvb_usb_anysee_delsys) == 0)  {
++			/* disable DVB-T demod on IOD[0] */
++			ret = anysee_wr_reg_mask(adap->dev, REG_IOD, (0 << 0),
++				0x01);
+  			if (ret)
+  				goto error;
+
+-			/* enable DVB-T demod on IOD[0] */
+-			ret = anysee_wr_reg_mask(adap->dev, REG_IOD, (1 << 0),
+-				0x01);
++			/* enable DVB-C demod on IOD[5] */
++			ret = anysee_wr_reg_mask(adap->dev, REG_IOD, (1 << 5),
++				0x20);
+  			if (ret)
+  				goto error;
+
+  			/* attach demod */
+  			if (tmp == 0xc7) {
+  				/* TDA18212 config */
+-				adap->fe[0] = dvb_attach(zl10353_attach,
+-					&anysee_zl10353_tda18212_config2,
+-					&adap->dev->i2c_adap);
++				adap->fe[state->fe_id] = dvb_attach(
++					tda10023_attach,
++					&anysee_tda10023_tda18212_config,
++					&adap->dev->i2c_adap, 0x48);
+  			} else {
+  				/* PLL config */
+-				adap->fe[0] = dvb_attach(zl10353_attach,
+-					&anysee_zl10353_config,
+-					&adap->dev->i2c_adap);
++				adap->fe[state->fe_id] = dvb_attach(
++					tda10023_attach,
++					&anysee_tda10023_config,
++					&adap->dev->i2c_adap, 0x48);
+  			}
+  		} else {
+-			/* disable DVB-T demod on IOD[0] */
+-			ret = anysee_wr_reg_mask(adap->dev, REG_IOD, (0 << 0),
+-				0x01);
++			/* disable DVB-C demod on IOD[5] */
++			ret = anysee_wr_reg_mask(adap->dev, REG_IOD, (0 << 5),
++				0x20);
+  			if (ret)
+  				goto error;
+
+-			/* enable DVB-C demod on IOD[5] */
+-			ret = anysee_wr_reg_mask(adap->dev, REG_IOD, (1 << 5),
+-				0x20);
++			/* enable DVB-T demod on IOD[0] */
++			ret = anysee_wr_reg_mask(adap->dev, REG_IOD, (1 << 0),
++				0x01);
+  			if (ret)
+  				goto error;
+
+  			/* attach demod */
+  			if (tmp == 0xc7) {
+  				/* TDA18212 config */
+-				adap->fe[0] = dvb_attach(tda10023_attach,
+-					&anysee_tda10023_tda18212_config,
+-					&adap->dev->i2c_adap, 0x48);
++				adap->fe[state->fe_id] = dvb_attach(
++					zl10353_attach,
++					&anysee_zl10353_tda18212_config2,
++					&adap->dev->i2c_adap);
+  			} else {
+  				/* PLL config */
+-				adap->fe[0] = dvb_attach(tda10023_attach,
+-					&anysee_tda10023_config,
+-					&adap->dev->i2c_adap, 0x48);
++				adap->fe[state->fe_id] = dvb_attach(
++					zl10353_attach,
++					&anysee_zl10353_config,
++					&adap->dev->i2c_adap);
+  			}
+  		}
+
+@@ -627,52 +758,40 @@ static int anysee_frontend_attach(struct 
+dvb_usb_adapter *adap)
+  		if (ret)
+  			goto error;
+
+-		if (dvb_usb_anysee_delsys) {
+-			/* disable DVB-C demod on IOD[5] */
+-			ret = anysee_wr_reg_mask(adap->dev, REG_IOD, (0 << 5),
+-				0x20);
+-			if (ret)
+-				goto error;
+-
+-			/* enable DVB-T demod on IOD[6] */
+-			ret = anysee_wr_reg_mask(adap->dev, REG_IOD, (1 << 6),
++		if ((state->fe_id ^ dvb_usb_anysee_delsys) == 0)  {
++			/* disable DVB-T demod on IOD[6] */
++			ret = anysee_wr_reg_mask(adap->dev, REG_IOD, (0 << 6),
+  				0x40);
+  			if (ret)
+  				goto error;
+
+-			/* enable IF route on IOE[0] */
+-			ret = anysee_wr_reg_mask(adap->dev, REG_IOE, (0 << 0),
+-				0x01);
++			/* enable DVB-C demod on IOD[5] */
++			ret = anysee_wr_reg_mask(adap->dev, REG_IOD, (1 << 5),
++				0x20);
+  			if (ret)
+  				goto error;
+
+  			/* attach demod */
+-			adap->fe[0] = dvb_attach(zl10353_attach,
+-				&anysee_zl10353_tda18212_config,
+-				&adap->dev->i2c_adap);
++			adap->fe[state->fe_id] = dvb_attach(tda10023_attach,
++				&anysee_tda10023_tda18212_config,
++				&adap->dev->i2c_adap, 0x48);
+  		} else {
+-			/* disable DVB-T demod on IOD[6] */
+-			ret = anysee_wr_reg_mask(adap->dev, REG_IOD, (0 << 6),
+-				0x40);
+-			if (ret)
+-				goto error;
+-
+-			/* enable DVB-C demod on IOD[5] */
+-			ret = anysee_wr_reg_mask(adap->dev, REG_IOD, (1 << 5),
++			/* disable DVB-C demod on IOD[5] */
++			ret = anysee_wr_reg_mask(adap->dev, REG_IOD, (0 << 5),
+  				0x20);
+  			if (ret)
+  				goto error;
+
+-			/* enable IF route on IOE[0] */
+-			ret = anysee_wr_reg_mask(adap->dev, REG_IOE, (1 << 0),
+-				0x01);
++			/* enable DVB-T demod on IOD[6] */
++			ret = anysee_wr_reg_mask(adap->dev, REG_IOD, (1 << 6),
++				0x40);
+  			if (ret)
+  				goto error;
+
+  			/* attach demod */
+-			adap->fe[0] = dvb_attach(tda10023_attach,
+-				&anysee_tda10023_tda18212_config,
+-				&adap->dev->i2c_adap, 0x48);
++			adap->fe[state->fe_id] = dvb_attach(zl10353_attach,
++				&anysee_zl10353_tda18212_config,
++				&adap->dev->i2c_adap);
+  		}
+
+  		break;
+@@ -681,6 +800,9 @@ static int anysee_frontend_attach(struct 
+dvb_usb_adapter *adap)
+  		/* E7 S2 */
+  		/* E7 PS2 */
+
++		if (state->fe_id)
++			break;
++
+  		/* enable transport stream on IOA[7] */
+  		ret = anysee_wr_reg_mask(adap->dev, REG_IOA, (1 << 7), 0x80);
+  		if (ret)
+@@ -713,7 +835,7 @@ static int anysee_tuner_attach(struct 
+dvb_usb_adapter *adap)
+  	struct anysee_state *state = adap->dev->priv;
+  	struct dvb_frontend *fe;
+  	int ret;
+-	deb_info("%s:\n", __func__);
++	deb_info("%s: fe=%d\n", __func__, state->fe_id);
+
+  	switch (state->hw) {
+  	case ANYSEE_HW_507T: /* 2 */
+@@ -744,28 +866,14 @@ static int anysee_tuner_attach(struct 
+dvb_usb_adapter *adap)
+  		/* E30 S2 Plus */
+
+  		/* attach LNB controller */
+-		fe = dvb_attach(isl6423_attach, adap->fe[0], &adap->dev->i2c_adap,
+-			&anysee_isl6423_config);
++		fe = dvb_attach(isl6423_attach, adap->fe[0],
++			&adap->dev->i2c_adap, &anysee_isl6423_config);
+
+  		break;
+  	case ANYSEE_HW_507FA: /* 15 */
+  		/* E30 Combo Plus */
+  		/* E30 C Plus */
+
+-		if (dvb_usb_anysee_delsys) {
+-			/* enable DVB-T tuner on IOE[0] */
+-			ret = anysee_wr_reg_mask(adap->dev, REG_IOE, (0 << 0),
+-				0x01);
+-			if (ret)
+-				goto error;
+-		} else {
+-			/* enable DVB-C tuner on IOE[0] */
+-			ret = anysee_wr_reg_mask(adap->dev, REG_IOE, (1 << 0),
+-				0x01);
+-			if (ret)
+-				goto error;
+-		}
+-
+  		/* Try first attach TDA18212 silicon tuner on IOE[4], if that
+  		 * fails attach old simple PLL. */
+
+@@ -775,8 +883,8 @@ static int anysee_tuner_attach(struct 
+dvb_usb_adapter *adap)
+  			goto error;
+
+  		/* attach tuner */
+-		fe = dvb_attach(tda18212_attach, adap->fe[0], &adap->dev->i2c_adap,
+-			&anysee_tda18212_config);
++		fe = dvb_attach(tda18212_attach, adap->fe[state->fe_id],
++			&adap->dev->i2c_adap, &anysee_tda18212_config);
+  		if (fe)
+  			break;
+
+@@ -786,8 +894,9 @@ static int anysee_tuner_attach(struct 
+dvb_usb_adapter *adap)
+  			goto error;
+
+  		/* attach tuner */
+-		fe = dvb_attach(dvb_pll_attach, adap->fe[0], (0xc0 >> 1),
+-			&adap->dev->i2c_adap, DVB_PLL_SAMSUNG_DTOS403IH102A);
++		fe = dvb_attach(dvb_pll_attach, adap->fe[state->fe_id],
++			(0xc0 >> 1), &adap->dev->i2c_adap,
++			DVB_PLL_SAMSUNG_DTOS403IH102A);
+
+  		break;
+  	case ANYSEE_HW_508TC: /* 18 */
+@@ -801,8 +910,8 @@ static int anysee_tuner_attach(struct 
+dvb_usb_adapter *adap)
+  			goto error;
+
+  		/* attach tuner */
+-		fe = dvb_attach(tda18212_attach, adap->fe[0], &adap->dev->i2c_adap,
+-			&anysee_tda18212_config);
++		fe = dvb_attach(tda18212_attach, adap->fe[state->fe_id],
++			&adap->dev->i2c_adap, &anysee_tda18212_config);
+
+  		break;
+  	case ANYSEE_HW_508S2: /* 19 */
+@@ -918,6 +1027,8 @@ static struct dvb_usb_device_properties 
+anysee_properties = {
+  	.num_adapters = 1,
+  	.adapter = {
+  		{
++			.num_frontends    = 2,
++			.frontend_ctrl    = anysee_frontend_ctrl,
+  			.streaming_ctrl   = anysee_streaming_ctrl,
+  			.frontend_attach  = anysee_frontend_attach,
+  			.tuner_attach     = anysee_tuner_attach,
+diff --git a/drivers/media/dvb/dvb-usb/anysee.h 
+b/drivers/media/dvb/dvb-usb/anysee.h
+index ad6ccd1..57ee500 100644
+--- a/drivers/media/dvb/dvb-usb/anysee.h
++++ b/drivers/media/dvb/dvb-usb/anysee.h
+@@ -59,6 +59,7 @@ enum cmd {
+  struct anysee_state {
+  	u8 hw; /* PCB ID */
+  	u8 seq;
++	u8 fe_id:1; /* frondend ID */
+  };
+
+  #define ANYSEE_HW_507T    2 /* E30 */
 -- 
-http://palosaari.fi/
+1.7.6
