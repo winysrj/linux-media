@@ -1,85 +1,266 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-fx0-f52.google.com ([209.85.161.52]:52537 "EHLO
-	mail-fx0-f52.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752530Ab1GYCpD (ORCPT
+Received: from mail-qw0-f46.google.com ([209.85.216.46]:38821 "EHLO
+	mail-qw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751806Ab1G1EL7 convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 24 Jul 2011 22:45:03 -0400
-Received: by fxd18 with SMTP id 18so8235897fxd.11
-        for <linux-media@vger.kernel.org>; Sun, 24 Jul 2011 19:45:01 -0700 (PDT)
+	Thu, 28 Jul 2011 00:11:59 -0400
+Received: by qwk3 with SMTP id 3so1140664qwk.19
+        for <linux-media@vger.kernel.org>; Wed, 27 Jul 2011 21:11:58 -0700 (PDT)
 MIME-Version: 1.0
-From: Dave Fine <finerrecliner@gmail.com>
-Date: Sun, 24 Jul 2011 22:44:41 -0400
-Message-ID: <CAOMmEg=SRi64zgSebzBpVTaur-k4_2QEyqvsbXbkA9sGyWO8Zg@mail.gmail.com>
-Subject: webcam doesn't work on some USB ports (gspca_sonixj module)
-To: linux-media <linux-media@vger.kernel.org>
+In-Reply-To: <Pine.LNX.4.64.1107201025120.12084@axis700.grange>
+References: <Pine.LNX.4.64.1107201025120.12084@axis700.grange>
+From: Pawel Osciak <pawel@osciak.com>
+Date: Wed, 27 Jul 2011 21:11:38 -0700
+Message-ID: <CAMm-=zB3dOJyCy7ZhqiTQkeL2b=Dvtz8geMR8zbHYBCVR6=pEw@mail.gmail.com>
+Subject: Re: [PATCH v3] V4L: add two new ioctl()s for multi-size videobuffer management
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Sakari Ailus <sakari.ailus@iki.fi>,
+	Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
 Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-I have a Microsoft LifeCam VX-3000. My desktop computer has two USB
-buses. 4 external ports on one bus in the back of the computer, and 2
-external ports on another bus in the front. The webcam only works
-properly on the front-facing ports. I'm using the lastest stable
-release of the gspca_sonixj module.
+Hi Guennadi,
 
-The problems I experience is that the webcam is not able to work with
-Google's gchat video chatting. The screen remains black for a few
-seconds, before fading to gray. Sometimes I see myself for a
-split-second before it fades to gray permanently. The webcam always
-work fine with local programs like cheese.
+On Wed, Jul 20, 2011 at 01:43, Guennadi Liakhovetski
+<g.liakhovetski@gmx.de> wrote:
+> A possibility to preallocate and initialise buffers of different sizes
+> in V4L2 is required for an efficient implementation of asnapshot mode.
+> This patch adds two new ioctl()s: VIDIOC_CREATE_BUFS and
+> VIDIOC_PREPARE_BUF and defines respective data structures.
+>
+> Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+> ---
+>
+<snip>
 
-syslog output:
+This looks nicer, I like how we got rid of destroy and gave up on
+making holes, it would've given us a lot of headaches. I'm thinking
+about some issues though and also have some comments/questions further
+below.
 
-webcam plugged into "bad" USB bus:
+Already mentioned by others mixing of REQBUFS and CREATE_BUFS.
+Personally I'd like to allow mixing, including REQBUFS for non-zero,
+because I think it would be easy to do. I think it could work in the
+same way as REQBUFS for !=0 works currently (at least in vb2), if we
+already have some buffers allocated and they are not in use, we free
+them and a new set is allocated. So I guess it could just stay this
+way. REQBUFS(0) would of course free everything.
 
-Jul 24 22:09:22 Bluemoon kernel: [432235.451132] usb 1-1.3: new full
-speed USB device using ehci_hcd and address 10
-Jul 24 22:09:22 Bluemoon kernel: [432235.562660] gspca-2.13.2: probing 045e:00f5
-Jul 24 22:09:22 Bluemoon kernel: [432235.563467] sonixj-2.13.2: Sonix
-chip id: 11
-Jul 24 22:09:22 Bluemoon kernel: [432235.564042] input: sonixj as
-/devices/pci0000:00/0000:00:1a.0/usb1/1-1/1-1.3/input/input17
-Jul 24 22:09:22 Bluemoon kernel: [432235.564178] gspca-2.13.2: video0 created
-Jul 24 22:09:22 Bluemoon rtkit-daemon[1365]: Successfully made thread
-9824 of process 1506 (n/a) owned by '1000' RT at priority 5.
-Jul 24 22:09:22 Bluemoon rtkit-daemon[1365]: Supervising 4 threads of
-1 processes of 1 users.
-Jul 24 22:09:40 Bluemoon kernel: [432253.344199] gspca-2.13.2:
-bandwidth not wide enough - trying again
-Jul 24 22:09:41 Bluemoon kernel: [432254.622338] gspca-2.13.2:
-bandwidth not wide enough - trying again
-Jul 24 22:09:42 Bluemoon kernel: [432255.900844] gspca-2.13.2:
-bandwidth not wide enough - trying again
-Jul 24 22:09:44 Bluemoon kernel: [432257.179608] gspca-2.13.2:
-bandwidth not wide enough - trying again
-Jul 24 22:09:45 Bluemoon kernel: [432258.457975] gspca-2.13.2:
-bandwidth not wide enough - trying again
-... (repeats)
+Passing format to CREATE_BUFS will make vb2 a bit format-aware, as it
+would have to pass it forward to the driver somehow. The obvious way
+would be just vb2 calling the driver's s_fmt handler, but that won't
+work, as you can't pass indexes to s_fmt. So we'd have to implement a
+new driver callback for setting formats per index. I guess there is no
+way around it, unless we actually take the format struct out of
+CREATE_BUFS and somehow do it via S_FMT. The single-planar structure
+is full already though, the only way would be to use
+v4l2_pix_format_mplane instead with plane count = 1 (or more if
+needed).
 
+Another thing is the case of passing size to CREATE_BUFS. vb2, when
+allocating buffers, gets their sizes from the driver (via
+queue_setup), it never "suggest" any particular size. So that flow
+would have to be changed as well. I guess vb2 could pass the size to
+queue_setup in a similar way as it does with buffer count. This would
+mean though that the ioctl would fail if the driver didn't agree to
+the given size. Right now I don't see an option to "negotiate" the
+size with the driver via this option.
 
-
-webcam plugged into "good" USB bus:
-Jul 24 22:06:47 Bluemoon kernel: [432080.751839] usb 2-1.4: new full
-speed USB device using ehci_hcd and address 9
-Jul 24 22:06:47 Bluemoon kernel: [432080.863272] gspca-2.13.2: probing 045e:00f5
-Jul 24 22:06:47 Bluemoon kernel: [432080.863943] sonixj-2.13.2: Sonix
-chip id: 11
-Jul 24 22:06:47 Bluemoon kernel: [432080.864304] input: sonixj as
-/devices/pci0000:00/0000:00:1d.0/usb2/2-1/2-1.4/input/input15
-Jul 24 22:06:47 Bluemoon kernel: [432080.864578] gspca-2.13.2: video0 created
-Jul 24 22:06:47 Bluemoon rtkit-daemon[1365]: Successfully made thread
-9637 of process 1506 (n/a) owned by '1000' RT at priority 5.
-Jul 24 22:06:47 Bluemoon rtkit-daemon[1365]: Supervising 4 threads of
-1 processes of 1 users.
-Jul 24 22:07:22 Bluemoon kernel: [432116.213808] gspca-2.13.2:
-bandwidth not wide enough - trying again
-Jul 24 22:07:24 Bluemoon kernel: [432117.542586] gspca-2.13.2:
-bandwidth not wide enough - trying again
-Jul 24 22:07:25 Bluemoon kernel: [432118.831024] gspca-2.13.2:
-bandwidth not wide enough - trying again
-(webcam operates normally at this point)
+The more I think of it though, why do we need the size argument? It's
+not needed in the existing flows (that use S_FMT) and, more
+importantly, I don't think the application can know more than the
+driver can, so why giving that option? The driver should know the size
+for a format at least as well as the application... Also, is there a
+real use case of providing just size, will the driver know which
+format to use given a size?
 
 
-Has anyone seen this before? Any suggestions to help debug this?
+> +    <para>To allocate device buffers applications initialize all
+> +fields of the <structname>v4l2_create_buffers</structname> structure.
+> +They set the <structfield>type</structfield> field in the
+> +<structname>v4l2_format</structname> structure, embedded in this
+> +structure, to the respective stream or buffer type.
+> +<structfield>count</structfield> must be set to the number of required
+> +buffers. <structfield>memory</structfield> specifies the required I/O
+> +method. Applications have two possibilities to specify the size of buffers
+> +to be prepared: they can either set the <structfield>size</structfield>
+> +field explicitly to a non-zero value, or fill in the frame format data in the
+> +<structfield>format</structfield> field. In the latter case buffer sizes
+> +will be calculated automatically by the driver. The
 
--Dave
+Technically, we shouldn't say "applications initialize all fields" in
+the first sentence if they do not have to initialize both size and
+format fields at the same time.
+
+> +<structfield>reserved</structfield> array must be zeroed. When the ioctl
+> +is called with a pointer to this structure the driver will attempt to allocate
+> +up to the requested number of buffers and store the actual number allocated
+> +and the starting index in the <structfield>count</structfield> and
+> +the <structfield>index</structfield> fields respectively.
+> +<structfield>count</structfield> can be smaller than the number requested.
+> +-ENOMEM is returned, if the driver runs out of free memory.</para>
+> +    <para>When the I/O method is not supported the ioctl
+> +returns an &EINVAL;.</para>
+> +
+> +    <table pgwide="1" frame="none" id="v4l2-create-buffers">
+> +      <title>struct <structname>v4l2_create_buffers</structname></title>
+> +      <tgroup cols="3">
+> +       &cs-str;
+> +       <tbody valign="top">
+> +         <row>
+> +           <entry>__u32</entry>
+> +           <entry><structfield>index</structfield></entry>
+> +           <entry>The starting buffer index, returned by the driver.</entry>
+> +         </row>
+> +         <row>
+> +           <entry>__u32</entry>
+> +           <entry><structfield>count</structfield></entry>
+> +           <entry>The number of buffers requested or granted.</entry>
+> +         </row>
+> +         <row>
+> +           <entry>&v4l2-memory;</entry>
+> +           <entry><structfield>memory</structfield></entry>
+> +           <entry>Applications set this field to
+> +<constant>V4L2_MEMORY_MMAP</constant> or
+> +<constant>V4L2_MEMORY_USERPTR</constant>.</entry>
+> +         </row>
+> +         <row>
+> +           <entry>__u32</entry>
+> +           <entry><structfield>size</structfield></entry>
+> +           <entry>Explicit size of buffers, being created.</entry>
+> +         </row>
+> +         <row>
+> +           <entry>&v4l2-format;</entry>
+> +           <entry><structfield>format</structfield></entry>
+> +           <entry>Application has to set the <structfield>type</structfield>
+> +field, other fields should be used, if the application wants to allocate buffers
+> +for a specific frame format.</entry>
+> +         </row>
+> +         <row>
+> +           <entry>__u32</entry>
+> +           <entry><structfield>reserved</structfield>[8]</entry>
+> +           <entry>A place holder for future extensions.</entry>
+> +         </row>
+> +       </tbody>
+> +      </tgroup>
+> +    </table>
+> +  </refsect1>
+> +
+> +  <refsect1>
+> +    &return-value;
+> +
+> +    <variablelist>
+> +      <varlistentry>
+> +       <term><errorcode>ENOMEM</errorcode></term>
+> +       <listitem>
+> +         <para>No memory to allocate buffers for <link linkend="mmap">memory
+> +mapped</link> I/O.</para>
+> +       </listitem>
+> +      </varlistentry>
+> +      <varlistentry>
+> +       <term><errorcode>EINVAL</errorcode></term>
+> +       <listitem>
+> +         <para>The buffer type (<structfield>type</structfield> field) or the
+> +requested I/O method (<structfield>memory</structfield>) is not
+> +supported.</para>
+> +       </listitem>
+> +      </varlistentry>
+> +    </variablelist>
+> +  </refsect1>
+> +</refentry>
+> +
+
+What happens if the driver does not agree to the provided size? EINVAL?
+
+> +<!--
+> +Local Variables:
+> +mode: sgml
+> +sgml-parent-document: "v4l2.sgml"
+> +indent-tabs-mode: nil
+> +End:
+> +-->
+> diff --git a/Documentation/DocBook/media/v4l/vidioc-prepare-buf.xml b/Documentation/DocBook/media/v4l/vidioc-prepare-buf.xml
+> new file mode 100644
+> index 0000000..509e752
+> --- /dev/null
+> +++ b/Documentation/DocBook/media/v4l/vidioc-prepare-buf.xml
+> @@ -0,0 +1,96 @@
+> +<refentry id="vidioc-prepare-buf">
+> +  <refmeta>
+> +    <refentrytitle>ioctl VIDIOC_PREPARE_BUF</refentrytitle>
+> +    &manvol;
+> +  </refmeta>
+> +
+> +  <refnamediv>
+> +    <refname>VIDIOC_PREPARE_BUF</refname>
+> +    <refpurpose>Prepare a buffer for I/O</refpurpose>
+> +  </refnamediv>
+> +
+> +  <refsynopsisdiv>
+> +    <funcsynopsis>
+> +      <funcprototype>
+> +       <funcdef>int <function>ioctl</function></funcdef>
+> +       <paramdef>int <parameter>fd</parameter></paramdef>
+> +       <paramdef>int <parameter>request</parameter></paramdef>
+> +       <paramdef>struct v4l2_buffer *<parameter>argp</parameter></paramdef>
+> +      </funcprototype>
+> +    </funcsynopsis>
+> +  </refsynopsisdiv>
+> +
+> +  <refsect1>
+> +    <title>Arguments</title>
+> +
+> +    <variablelist>
+> +      <varlistentry>
+> +       <term><parameter>fd</parameter></term>
+> +       <listitem>
+> +         <para>&fd;</para>
+> +       </listitem>
+> +      </varlistentry>
+> +      <varlistentry>
+> +       <term><parameter>request</parameter></term>
+> +       <listitem>
+> +         <para>VIDIOC_PREPARE_BUF</para>
+> +       </listitem>
+> +      </varlistentry>
+> +      <varlistentry>
+> +       <term><parameter>argp</parameter></term>
+> +       <listitem>
+> +         <para></para>
+> +       </listitem>
+> +      </varlistentry>
+> +    </variablelist>
+> +  </refsect1>
+> +
+> +  <refsect1>
+> +    <title>Description</title>
+> +
+> +    <para>Applications can optionally call the
+> +<constant>VIDIOC_PREPARE_BUF</constant> ioctl to pass ownership of the buffer
+> +to the driver before actually enqueuing it, using the
+> +<constant>VIDIOC_QBUF</constant> ioctl, and to prepare it for future I/O.
+> +Such preparations may include cache invalidation or cleaning. Performing them
+> +in advance saves time during the actual I/O. In case such cache operations are
+> +not required, the application can use one of
+> +<constant>V4L2_BUF_FLAG_NO_CACHE_INVALIDATE</constant> and
+> +<constant>V4L2_BUF_FLAG_NO_CACHE_CLEAN</constant> flags to skip the respective
+> +step.</para>
+> +
+
+I'm probably forgetting something, but why would we want to do both
+PREPARE_BUF and QBUF? Why not queue in advance?
+Could you give a full sequence of ioctls how it will be used
+(including streamons, etc.)? I'm trying to picture how passing of both
+types of buffers will have to look like between vb2 and a driver.
+
+<snip>
+
+--
+Best regards,
+Pawel Osciak
