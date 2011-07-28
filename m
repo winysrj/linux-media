@@ -1,98 +1,65 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.126.171]:49205 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753617Ab1GOXLc (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 15 Jul 2011 19:11:32 -0400
-Date: Sat, 16 Jul 2011 01:11:28 +0200 (CEST)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-cc: linux-media@vger.kernel.org
-Subject: Re: [PATCH] v4l: mt9v032: Fix Bayer pattern
-In-Reply-To: <1310761106-29722-1-git-send-email-laurent.pinchart@ideasonboard.com>
-Message-ID: <Pine.LNX.4.64.1107160109000.27399@axis700.grange>
-References: <1310761106-29722-1-git-send-email-laurent.pinchart@ideasonboard.com>
+Received: from mail.kapsi.fi ([217.30.184.167]:51164 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753537Ab1G1OrL (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 28 Jul 2011 10:47:11 -0400
+Received: from dyn3-82-128-185-212.psoas.suomi.net ([82.128.185.212] helo=localhost.localdomain)
+	by mail.kapsi.fi with esmtpsa (TLS1.0:DHE_RSA_AES_256_CBC_SHA1:32)
+	(Exim 4.69)
+	(envelope-from <crope@iki.fi>)
+	id 1QmRrh-000228-4U
+	for linux-media@vger.kernel.org; Thu, 28 Jul 2011 17:47:09 +0300
+Message-ID: <4E31766C.6010705@iki.fi>
+Date: Thu, 28 Jul 2011 17:47:08 +0300
+From: Antti Palosaari <crope@iki.fi>
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+To: linux-media@vger.kernel.org
+Subject: [PATCH] em28xx: use MFE lock for PCTV nanoStick T2 290e
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, 15 Jul 2011, Laurent Pinchart wrote:
-
-> Compute crop rectangle boundaries to ensure a GRBG Bayer pattern.
-> 
-> Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-> ---
->  drivers/media/video/mt9v032.c |   20 ++++++++++----------
->  1 files changed, 10 insertions(+), 10 deletions(-)
-> 
-> If there's no comment I'll send a pull request for this patch in a couple of
-> days.
-
-Hm, I might have a comment: why?... Isn't it natural to accept the fact, 
-that different sensors put a different Bayer pixel at their sensor matrix 
-origin? Isn't that why we have all possible Bayer formats? Maybe you just 
-have to choose a different output format?
-
-Thanks
-Guennadi
-
-> 
-> diff --git a/drivers/media/video/mt9v032.c b/drivers/media/video/mt9v032.c
-> index 1319c2c..c64e1dc 100644
-> --- a/drivers/media/video/mt9v032.c
-> +++ b/drivers/media/video/mt9v032.c
-> @@ -31,14 +31,14 @@
->  #define MT9V032_CHIP_VERSION				0x00
->  #define		MT9V032_CHIP_ID_REV1			0x1311
->  #define		MT9V032_CHIP_ID_REV3			0x1313
-> -#define MT9V032_ROW_START				0x01
-> -#define		MT9V032_ROW_START_MIN			4
-> -#define		MT9V032_ROW_START_DEF			10
-> -#define		MT9V032_ROW_START_MAX			482
-> -#define MT9V032_COLUMN_START				0x02
-> +#define MT9V032_COLUMN_START				0x01
->  #define		MT9V032_COLUMN_START_MIN		1
-> -#define		MT9V032_COLUMN_START_DEF		2
-> +#define		MT9V032_COLUMN_START_DEF		1
->  #define		MT9V032_COLUMN_START_MAX		752
-> +#define MT9V032_ROW_START				0x02
-> +#define		MT9V032_ROW_START_MIN			4
-> +#define		MT9V032_ROW_START_DEF			5
-> +#define		MT9V032_ROW_START_MAX			482
->  #define MT9V032_WINDOW_HEIGHT				0x03
->  #define		MT9V032_WINDOW_HEIGHT_MIN		1
->  #define		MT9V032_WINDOW_HEIGHT_DEF		480
-> @@ -420,13 +420,13 @@ static int mt9v032_set_crop(struct v4l2_subdev *subdev,
->  	struct v4l2_rect *__crop;
->  	struct v4l2_rect rect;
->  
-> -	/* Clamp the crop rectangle boundaries and align them to a multiple of 2
-> -	 * pixels.
-> +	/* Clamp the crop rectangle boundaries and align them to a non multiple
-> +	 * of 2 pixels to ensure a GRBG Bayer pattern.
->  	 */
-> -	rect.left = clamp(ALIGN(crop->rect.left, 2),
-> +	rect.left = clamp(ALIGN(crop->rect.left + 1, 2) - 1,
->  			  MT9V032_COLUMN_START_MIN,
->  			  MT9V032_COLUMN_START_MAX);
-> -	rect.top = clamp(ALIGN(crop->rect.top, 2),
-> +	rect.top = clamp(ALIGN(crop->rect.top + 1, 2) - 1,
->  			 MT9V032_ROW_START_MIN,
->  			 MT9V032_ROW_START_MAX);
->  	rect.width = clamp(ALIGN(crop->rect.width, 2),
-> -- 
-> Regards,
-> 
-> Laurent Pinchart
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
-
+Signed-off-by: Antti Palosaari <crope@iki.fi>
 ---
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
-http://www.open-technology.de/
+  drivers/media/video/em28xx/em28xx-dvb.c |    7 ++++++-
+  1 files changed, 6 insertions(+), 1 deletions(-)
+
+diff --git a/drivers/media/video/em28xx/em28xx-dvb.c 
+b/drivers/media/video/em28xx/em28xx-dvb.c
+index ab8a740..b9cfe93 100644
+--- a/drivers/media/video/em28xx/em28xx-dvb.c
++++ b/drivers/media/video/em28xx/em28xx-dvb.c
+@@ -604,7 +604,7 @@ static void unregister_dvb(struct em28xx_dvb *dvb)
+
+  static int dvb_init(struct em28xx *dev)
+  {
+-	int result = 0;
++	int result = 0, mfe_shared = 0;
+  	struct em28xx_dvb *dvb;
+
+  	if (!dev->board.has_dvb) {
+@@ -767,6 +767,8 @@ static int dvb_init(struct em28xx *dev)
+  				dvb_frontend_detach(dvb->fe[1]);
+  				/* leave FE 0 still active */
+  			}
++
++			mfe_shared = 1;
+  		}
+  		break;
+  	case EM2884_BOARD_TERRATEC_H5:
+@@ -823,6 +825,9 @@ static int dvb_init(struct em28xx *dev)
+  	if (result < 0)
+  		goto out_free;
+
++	/* MFE lock */
++	dvb->adapter.mfe_shared = mfe_shared;
++
+  	em28xx_info("Successfully loaded em28xx-dvb\n");
+  ret:
+  	em28xx_set_mode(dev, EM28XX_SUSPEND);
+-- 
+1.7.6
+
+-- 
+http://palosaari.fi/
