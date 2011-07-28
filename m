@@ -1,67 +1,43 @@
-Return-path: <mchehab@localhost>
-Received: from smtp-vbr18.xs4all.nl ([194.109.24.38]:2239 "EHLO
-	smtp-vbr18.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753530Ab1GGQqh (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 7 Jul 2011 12:46:37 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Jonathan Corbet <corbet@lwn.net>
-Subject: Re: [RFC PATCH] poll: add poll_requested_events() function
-Date: Thu, 7 Jul 2011 18:46:33 +0200
-Cc: "linux-kernel" <linux-kernel@vger.kernel.org>,
-	"linux-media" <linux-media@vger.kernel.org>,
-	linux-fsdevel@vger.kernel.org, viro@zeniv.linux.org.uk
-References: <201107011537.30829.hverkuil@xs4all.nl> <20110707104255.6771771d@bike.lwn.net>
-In-Reply-To: <20110707104255.6771771d@bike.lwn.net>
+Return-path: <linux-media-owner@vger.kernel.org>
+Received: from mail.kapsi.fi ([217.30.184.167]:52428 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753774Ab1G1WPl (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 28 Jul 2011 18:15:41 -0400
+Message-ID: <4E31DF8A.50503@iki.fi>
+Date: Fri, 29 Jul 2011 01:15:38 +0300
+From: Antti Palosaari <crope@iki.fi>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
+To: linux-media@vger.kernel.org
+CC: Thomas Gutzler <thomas.gutzler@gmail.com>
+Subject: [PATCH 1/2] af9015: map remote for Leadtek WinFast DTV2000DS
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Message-Id: <201107071846.33586.hverkuil@xs4all.nl>
+Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
-Sender: <mchehab@infradead.org>
 
-On Thursday, July 07, 2011 18:42:55 Jonathan Corbet wrote:
-> On Fri, 1 Jul 2011 15:37:30 +0200
-> Hans Verkuil <hverkuil@xs4all.nl> wrote:
-> 
-> > In some cases the poll() implementation in a driver has to do different
-> > things depending on the events the caller wants to poll for. An example is
-> > when a driver needs to start a DMA engine if the caller polls for POLLIN,
-> > but doesn't want to do that if POLLIN is not requested but instead only
-> > POLLOUT or POLLPRI is requested. This is something that can happen in the
-> > video4linux subsystem.
-> 
-> The change makes sense to me, FWIW.  One bit of trivia I noticed while
-> looking at it:
-> 
-> > @@ -796,7 +792,7 @@ static int do_poll(unsigned int nfds,  struct poll_list *list,
-> >  		 * All waiters have already been registered, so don't provide
-> >  		 * a poll_table to them on the next loop iteration.
-> >  		 */
-> > -		pt = NULL;
-> > +		pt->qproc = NULL;
-> >  		if (!count) {
-> >  			count = wait->error;
-> >  			if (signal_pending(current))
-> 
-> The comment at the beginning of this hunk is no longer accurate since the
-> poll_table is, indeed, still being supplied.  The previous comment in the
-> same function:
-> 
-> 				/*
-> 				 * Fish for events. If we found one, record it
-> 				 * and kill the poll_table, so we don't
-> 				 * needlessly register any other waiters after
-> 				 * this. They'll get immediately deregistered
-> 				 * when we break out and return.
-> 				 */
-> 
-> Could also use tweaking.
+Thanks to Thomas Gutzler for reporting this.
 
-Indeed! I'll make an RFCv3 tomorrow fixing this.
+Signed-off-by: Antti Palosaari <crope@iki.fi>
+Cc: Thomas Gutzler <thomas.gutzler@gmail.com>
+---
+ drivers/media/dvb/dvb-usb/af9015.c |    2 ++
+ 1 files changed, 2 insertions(+), 0 deletions(-)
 
-Thanks for looking at this!
+diff --git a/drivers/media/dvb/dvb-usb/af9015.c b/drivers/media/dvb/dvb-usb/af9015.c
+index d7ad05f..1fb8248 100644
+--- a/drivers/media/dvb/dvb-usb/af9015.c
++++ b/drivers/media/dvb/dvb-usb/af9015.c
+@@ -758,6 +758,8 @@ static const struct af9015_rc_setup af9015_rc_setup_usbids[] = {
+ 		RC_MAP_MSI_DIGIVOX_III },
+ 	{ (USB_VID_LEADTEK << 16) + USB_PID_WINFAST_DTV_DONGLE_GOLD,
+ 		RC_MAP_LEADTEK_Y04G0051 },
++	{ (USB_VID_LEADTEK << 16) + USB_PID_WINFAST_DTV2000DS,
++		RC_MAP_LEADTEK_Y04G0051 },
+ 	{ (USB_VID_AVERMEDIA << 16) + USB_PID_AVERMEDIA_VOLAR_X,
+ 		RC_MAP_AVERMEDIA_M135A },
+ 	{ (USB_VID_AFATECH << 16) + USB_PID_TREKSTOR_DVBT,
+-- 
+1.7.6
 
-Regards,
-
-	Hans
+-- 
+http://palosaari.fi/
