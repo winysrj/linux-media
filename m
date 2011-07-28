@@ -1,127 +1,52 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.perches.com ([173.55.12.10]:4395 "EHLO mail.perches.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750762Ab1GaEhN (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 31 Jul 2011 00:37:13 -0400
-From: Joe Perches <joe@perches.com>
-To: linux-kernel@vger.kernel.org
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
-	linux-media@vger.kernel.org
-Subject: [PATCH] [media] tda18271: Use printk extension %pV
-Date: Sat, 30 Jul 2011 21:37:10 -0700
-Message-Id: <7d652e92c65b5cf1495492bd1e56eca6a7c9d2dd.1312087002.git.joe@perches.com>
+Received: from moutng.kundenserver.de ([212.227.17.8]:64667 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753600Ab1G1K0x (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 28 Jul 2011 06:26:53 -0400
+Date: Thu, 28 Jul 2011 12:26:51 +0200 (CEST)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+cc: Sakari Ailus <sakari.ailus@iki.fi>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Pawel Osciak <pawel@osciak.com>
+Subject: Re: [PATCH v3] V4L: add two new ioctl()s for multi-size videobuffer
+ management
+In-Reply-To: <201107261305.29863.hverkuil@xs4all.nl>
+Message-ID: <Pine.LNX.4.64.1107281152010.20737@axis700.grange>
+References: <Pine.LNX.4.64.1107201025120.12084@axis700.grange>
+ <Pine.LNX.4.64.1107201641030.12084@axis700.grange>
+ <20110720151946.GH29320@valkosipuli.localdomain> <201107261305.29863.hverkuil@xs4all.nl>
+MIME-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Deduplicate printk formats to save ~20KB text.
+On Tue, 26 Jul 2011, Hans Verkuil wrote:
 
-$ size drivers/media/common/tuners/tda18271*o.*
-   text	   data	    bss	    dec	    hex	filename
-  10747	     56	   1920	  12723	   31b3	drivers/media/common/tuners/tda18271-common.o.new
-  18889	     56	   3112	  22057	   5629	drivers/media/common/tuners/tda18271-common.o.old
-  20561	    204	   4264	  25029	   61c5	drivers/media/common/tuners/tda18271-fe.o.new
-  31093	    204	   6000	  37297	   91b1	drivers/media/common/tuners/tda18271-fe.o.old
-   3681	   6760	    440	  10881	   2a81	drivers/media/common/tuners/tda18271-maps.o.new
-   5631	   6760	    680	  13071	   330f	drivers/media/common/tuners/tda18271-maps.o.old
+[snip]
 
-Signed-off-by: Joe Perches <joe@perches.com>
+> I am happy with the API. The only thing that's unclear to me is whether you can call
+> CREATE_BUFS after REQBUFS. And if not, then why not? It would also be helpful to see
+> the full patch series as the last one was from April. It is interesting to see how
+> this will interface with vb2.
+
+I think it would be logical to allow both, since we anyway need 
+REQBUFS(count=0) for freeing of buffers. This would confirm, that buffers 
+vreated with either of these methods are indistinguishable. Then we shall 
+define:
+
+CREATE_BUFS after REQBUFS or after earlier CREATE_BUFS adds more buffers
+REQBUFS(count=0) frees all buffers
+REQBUFS(count > 0) frees all buffers and allocates new ones
+
+Yes, I'll extend the documentation with this.
+
+Thanks
+Guennadi
 ---
- drivers/media/common/tuners/tda18271-common.c |   32 ++++++++++++++++----
- drivers/media/common/tuners/tda18271-priv.h   |   39 +++++++++++-------------
- 2 files changed, 43 insertions(+), 28 deletions(-)
-
-diff --git a/drivers/media/common/tuners/tda18271-common.c b/drivers/media/common/tuners/tda18271-common.c
-index aae40e5..39c6457 100644
---- a/drivers/media/common/tuners/tda18271-common.c
-+++ b/drivers/media/common/tuners/tda18271-common.c
-@@ -676,10 +676,28 @@ fail:
- 	return ret;
- }
- 
--/*
-- * Overrides for Emacs so that we follow Linus's tabbing style.
-- * ---------------------------------------------------------------------------
-- * Local variables:
-- * c-basic-offset: 8
-- * End:
-- */
-+int _tda_printk(struct tda18271_priv *state, const char *level,
-+		const char *func, const char *fmt, ...)
-+{
-+	struct va_format vaf;
-+	va_list args;
-+	int rtn;
-+
-+	va_start(args, fmt);
-+
-+	vaf.fmt = fmt;
-+	vaf.va = &args;
-+
-+	if (state)
-+		rtn = printk("%s%s: [%d-%04x|%c] %pV",
-+			     level, func, i2c_adapter_id(state->i2c_props.adap),
-+			     state->i2c_props.addr,
-+			     (state->role == TDA18271_MASTER) ? 'M' : 'S',
-+			     &vaf);
-+	else
-+		rtn = printk("%s%s: %pV", level, func, &vaf);
-+
-+	va_end(args);
-+
-+	return rtn;
-+}
-diff --git a/drivers/media/common/tuners/tda18271-priv.h b/drivers/media/common/tuners/tda18271-priv.h
-index 9589ab0..94340f4 100644
---- a/drivers/media/common/tuners/tda18271-priv.h
-+++ b/drivers/media/common/tuners/tda18271-priv.h
-@@ -136,29 +136,26 @@ extern int tda18271_debug;
- #define DBG_ADV  8
- #define DBG_CAL  16
- 
--#define tda_printk(st, kern, fmt, arg...) do {\
--	if (st) { \
--		struct tda18271_priv *state = st; \
--		printk(kern "%s: [%d-%04x|%s] " fmt, __func__, \
--			i2c_adapter_id(state->i2c_props.adap), \
--			state->i2c_props.addr, \
--			(state->role == TDA18271_MASTER) \
--			? "M" : "S", ##arg); \
--	} else \
--		printk(kern "%s: " fmt, __func__, ##arg); \
-+__attribute__((format(printf, 4, 5)))
-+int _tda_printk(struct tda18271_priv *state, const char *level,
-+		const char *func, const char *fmt, ...);
-+
-+#define tda_printk(st, lvl, fmt, arg...)			\
-+	_tda_printk(st, lvl, __func__, fmt, ##arg)
-+
-+#define tda_dprintk(st, lvl, fmt, arg...)			\
-+do {								\
-+	if (tda18271_debug & lvl)				\
-+		tda_printk(st, KERN_DEBUG, fmt, ##arg);		\
- } while (0)
- 
--#define tda_dprintk(st, lvl, fmt, arg...) do {\
--	if (tda18271_debug & lvl) \
--		tda_printk(st, KERN_DEBUG, fmt, ##arg); } while (0)
--
--#define tda_info(fmt, arg...)     printk(KERN_INFO     fmt, ##arg)
--#define tda_warn(fmt, arg...) tda_printk(priv, KERN_WARNING, fmt, ##arg)
--#define tda_err(fmt, arg...)  tda_printk(priv, KERN_ERR,     fmt, ##arg)
--#define tda_dbg(fmt, arg...)  tda_dprintk(priv, DBG_INFO,    fmt, ##arg)
--#define tda_map(fmt, arg...)  tda_dprintk(priv, DBG_MAP,     fmt, ##arg)
--#define tda_reg(fmt, arg...)  tda_dprintk(priv, DBG_REG,     fmt, ##arg)
--#define tda_cal(fmt, arg...)  tda_dprintk(priv, DBG_CAL,     fmt, ##arg)
-+#define tda_info(fmt, arg...)	pr_info(fmt, ##arg)
-+#define tda_warn(fmt, arg...)	tda_printk(priv, KERN_WARNING, fmt, ##arg)
-+#define tda_err(fmt, arg...)	tda_printk(priv, KERN_ERR,     fmt, ##arg)
-+#define tda_dbg(fmt, arg...)	tda_dprintk(priv, DBG_INFO,    fmt, ##arg)
-+#define tda_map(fmt, arg...)	tda_dprintk(priv, DBG_MAP,     fmt, ##arg)
-+#define tda_reg(fmt, arg...)	tda_dprintk(priv, DBG_REG,     fmt, ##arg)
-+#define tda_cal(fmt, arg...)	tda_dprintk(priv, DBG_CAL,     fmt, ##arg)
- 
- #define tda_fail(ret)							     \
- ({									     \
--- 
-1.7.6.131.g99019
-
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
+http://www.open-technology.de/
