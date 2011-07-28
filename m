@@ -1,258 +1,98 @@
-Return-path: <mchehab@pedra>
-Received: from smtp-vbr14.xs4all.nl ([194.109.24.34]:4766 "EHLO
-	smtp-vbr14.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753701Ab1GEHha (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 5 Jul 2011 03:37:30 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: "linux-kernel" <linux-kernel@vger.kernel.org>
-Subject: [RFCv2 PATCH] poll: add poll_requested_events() function
-Date: Tue, 5 Jul 2011 09:37:27 +0200
-Cc: "linux-media" <linux-media@vger.kernel.org>,
-	linux-fsdevel@vger.kernel.org, viro@zeniv.linux.org.uk
+Return-path: <linux-media-owner@vger.kernel.org>
+Received: from moutng.kundenserver.de ([212.227.126.187]:55039 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754463Ab1G1M3n (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 28 Jul 2011 08:29:43 -0400
+Date: Thu, 28 Jul 2011 14:29:38 +0200 (CEST)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+cc: Pawel Osciak <pawel@osciak.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Sakari Ailus <sakari.ailus@iki.fi>,
+	Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: Re: [PATCH v3] V4L: add two new ioctl()s for multi-size videobuffer
+ management
+In-Reply-To: <201107280856.55731.hverkuil@xs4all.nl>
+Message-ID: <Pine.LNX.4.64.1107281422350.20737@axis700.grange>
+References: <Pine.LNX.4.64.1107201025120.12084@axis700.grange>
+ <CAMm-=zB3dOJyCy7ZhqiTQkeL2b=Dvtz8geMR8zbHYBCVR6=pEw@mail.gmail.com>
+ <201107280856.55731.hverkuil@xs4all.nl>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201107050937.28047.hverkuil@xs4all.nl>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
-Sender: <mchehab@pedra>
 
-This is the second version of this patch. The only change I've made is that
-init_poll_funcptr() is now used in fs/eventpoll.c to initialize the poll_table
-instead of initializing it with '= { NULL, ~0 }'.
+On Thu, 28 Jul 2011, Hans Verkuil wrote:
 
-Comments? Or even better: an Acked-by or Reviewed-by?
+> On Thursday, July 28, 2011 06:11:38 Pawel Osciak wrote:
+> > Hi Guennadi,
+> > 
+> > On Wed, Jul 20, 2011 at 01:43, Guennadi Liakhovetski
+> > <g.liakhovetski@gmx.de> wrote:
+> > > A possibility to preallocate and initialise buffers of different sizes
+> > > in V4L2 is required for an efficient implementation of asnapshot mode.
+> > > This patch adds two new ioctl()s: VIDIOC_CREATE_BUFS and
+> > > VIDIOC_PREPARE_BUF and defines respective data structures.
+> > >
+> > > Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+> > > ---
+> > >
+> > <snip>
+> > 
+> > This looks nicer, I like how we got rid of destroy and gave up on
+> > making holes, it would've given us a lot of headaches. I'm thinking
+> > about some issues though and also have some comments/questions further
+> > below.
+> > 
+> > Already mentioned by others mixing of REQBUFS and CREATE_BUFS.
+> > Personally I'd like to allow mixing, including REQBUFS for non-zero,
+> > because I think it would be easy to do. I think it could work in the
+> > same way as REQBUFS for !=0 works currently (at least in vb2), if we
+> > already have some buffers allocated and they are not in use, we free
+> > them and a new set is allocated. So I guess it could just stay this
+> > way. REQBUFS(0) would of course free everything.
+> > 
+> > Passing format to CREATE_BUFS will make vb2 a bit format-aware, as it
+> > would have to pass it forward to the driver somehow. The obvious way
+> > would be just vb2 calling the driver's s_fmt handler, but that won't
+> > work, as you can't pass indexes to s_fmt. So we'd have to implement a
+> > new driver callback for setting formats per index. I guess there is no
+> > way around it, unless we actually take the format struct out of
+> > CREATE_BUFS and somehow do it via S_FMT. The single-planar structure
+> > is full already though, the only way would be to use
+> > v4l2_pix_format_mplane instead with plane count = 1 (or more if
+> > needed).
+> 
+> I just got an idea for this: use TRY_FMT. That will do exactly what
+> you want. In fact, perhaps we should remove the format struct from
+> CREATE_BUFS and use __u32 sizes[VIDEO_MAX_PLANES] instead. Let the
+> application call TRY_FMT and initialize the sizes array instead of
+> putting that into vb2. We may need a num_planes field as well. If the
+> sizes are all 0 (or num_planes is 0), then the driver can use the current
+> format, just as it does with REQBUFS.
 
-Regards,
+Hm, I think, I like this idea. It gives applications more flexibility and 
+removes the size == 0 vs. size != 0 dilemma. So, we get
 
-	Hans
+/* VIDIOC_CREATE_BUFS */
+struct v4l2_create_buffers {
+	__u32			index;		/* output: buffers index...index + count - 1 have been created */
+	__u32			count;
+	__u32			num_planes;
+	__u32			sizes[VIDEO_MAX_PLANES];
+	enum v4l2_memory        memory;
+	enum v4l2_buf_type	type;
+	__u32			reserved[8];
+};
 
+?
 
-In some cases the poll() implementation in a driver has to do different
-things depending on the events the caller wants to poll for. An example is
-when a driver needs to start a DMA engine if the caller polls for POLLIN,
-but doesn't want to do that if POLLIN is not requested but instead only
-POLLOUT or POLLPRI is requested. This is something that can happen in the
-video4linux subsystem.
-
-Unfortunately, the current epoll/poll/select implementation doesn't provide
-that information reliably. The poll_table_struct does have it: it has a key
-field with the event mask. But once a poll() call matches one or more bits
-of that mask any following poll() calls are passed a NULL poll_table_struct
-pointer.
-
-The solution is to set the qproc field to NULL in poll_table_struct once
-poll() matches the events, not the poll_table_struct pointer itself. That
-way drivers can obtain the mask through a new poll_requested_events inline.
-
-The poll_table_struct can still be NULL since some kernel code calls it
-internally (netfs_state_poll() in ./drivers/staging/pohmelfs/netfs.h). In
-that case poll_requested_events() returns ~0 (i.e. all events).
-
-Since eventpoll always leaves the key field at ~0 instead of using the
-requested events mask, that source was changed as well to properly fill in
-the key field.
-
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Thanks
+Guennadi
 ---
- fs/eventpoll.c       |   19 +++++++++++++++----
- fs/select.c          |   32 ++++++++++++++------------------
- include/linux/poll.h |    7 ++++++-
- 3 files changed, 35 insertions(+), 23 deletions(-)
-
-diff --git a/fs/eventpoll.c b/fs/eventpoll.c
-index f9cfd16..6a54a69 100644
---- a/fs/eventpoll.c
-+++ b/fs/eventpoll.c
-@@ -650,9 +650,12 @@ static int ep_read_events_proc(struct eventpoll *ep, struct list_head *head,
- 			       void *priv)
- {
- 	struct epitem *epi, *tmp;
-+	poll_table pt;
- 
-+	init_poll_funcptr(&pt, NULL);
- 	list_for_each_entry_safe(epi, tmp, head, rdllink) {
--		if (epi->ffd.file->f_op->poll(epi->ffd.file, NULL) &
-+		pt.key = epi->event.events;
-+		if (epi->ffd.file->f_op->poll(epi->ffd.file, &pt) &
- 		    epi->event.events)
- 			return POLLIN | POLLRDNORM;
- 		else {
-@@ -946,6 +949,7 @@ static int ep_insert(struct eventpoll *ep, struct epoll_event *event,
- 	/* Initialize the poll table using the queue callback */
- 	epq.epi = epi;
- 	init_poll_funcptr(&epq.pt, ep_ptable_queue_proc);
-+	epq.pt.key = event->events;
- 
- 	/*
- 	 * Attach the item to the poll hooks and get current event bits.
-@@ -1027,20 +1031,23 @@ static int ep_modify(struct eventpoll *ep, struct epitem *epi, struct epoll_even
- {
- 	int pwake = 0;
- 	unsigned int revents;
-+	poll_table pt;
-+
-+	init_poll_funcptr(&pt, NULL);
- 
- 	/*
- 	 * Set the new event interest mask before calling f_op->poll();
- 	 * otherwise we might miss an event that happens between the
- 	 * f_op->poll() call and the new event set registering.
- 	 */
--	epi->event.events = event->events;
-+	epi->event.events = pt.key = event->events;
- 	epi->event.data = event->data; /* protected by mtx */
- 
- 	/*
- 	 * Get current event bits. We can safely use the file* here because
- 	 * its usage count has been increased by the caller of this function.
- 	 */
--	revents = epi->ffd.file->f_op->poll(epi->ffd.file, NULL);
-+	revents = epi->ffd.file->f_op->poll(epi->ffd.file, &pt);
- 
- 	/*
- 	 * If the item is "hot" and it is not registered inside the ready
-@@ -1075,6 +1082,9 @@ static int ep_send_events_proc(struct eventpoll *ep, struct list_head *head,
- 	unsigned int revents;
- 	struct epitem *epi;
- 	struct epoll_event __user *uevent;
-+	poll_table pt;
-+
-+	init_poll_funcptr(&pt, NULL);
- 
- 	/*
- 	 * We can loop without lock because we are passed a task private list.
-@@ -1087,7 +1097,8 @@ static int ep_send_events_proc(struct eventpoll *ep, struct list_head *head,
- 
- 		list_del_init(&epi->rdllink);
- 
--		revents = epi->ffd.file->f_op->poll(epi->ffd.file, NULL) &
-+		pt.key = epi->event.events;
-+		revents = epi->ffd.file->f_op->poll(epi->ffd.file, &pt) &
- 			epi->event.events;
- 
- 		/*
-diff --git a/fs/select.c b/fs/select.c
-index d33418f..2da21b8 100644
---- a/fs/select.c
-+++ b/fs/select.c
-@@ -386,13 +386,11 @@ get_max:
- static inline void wait_key_set(poll_table *wait, unsigned long in,
- 				unsigned long out, unsigned long bit)
- {
--	if (wait) {
--		wait->key = POLLEX_SET;
--		if (in & bit)
--			wait->key |= POLLIN_SET;
--		if (out & bit)
--			wait->key |= POLLOUT_SET;
--	}
-+	wait->key = POLLEX_SET;
-+	if (in & bit)
-+		wait->key |= POLLIN_SET;
-+	if (out & bit)
-+		wait->key |= POLLOUT_SET;
- }
- 
- int do_select(int n, fd_set_bits *fds, struct timespec *end_time)
-@@ -414,7 +412,7 @@ int do_select(int n, fd_set_bits *fds, struct timespec *end_time)
- 	poll_initwait(&table);
- 	wait = &table.pt;
- 	if (end_time && !end_time->tv_sec && !end_time->tv_nsec) {
--		wait = NULL;
-+		wait->qproc = NULL;
- 		timed_out = 1;
- 	}
- 
-@@ -459,17 +457,17 @@ int do_select(int n, fd_set_bits *fds, struct timespec *end_time)
- 					if ((mask & POLLIN_SET) && (in & bit)) {
- 						res_in |= bit;
- 						retval++;
--						wait = NULL;
-+						wait->qproc = NULL;
- 					}
- 					if ((mask & POLLOUT_SET) && (out & bit)) {
- 						res_out |= bit;
- 						retval++;
--						wait = NULL;
-+						wait->qproc = NULL;
- 					}
- 					if ((mask & POLLEX_SET) && (ex & bit)) {
- 						res_ex |= bit;
- 						retval++;
--						wait = NULL;
-+						wait->qproc = NULL;
- 					}
- 				}
- 			}
-@@ -481,7 +479,7 @@ int do_select(int n, fd_set_bits *fds, struct timespec *end_time)
- 				*rexp = res_ex;
- 			cond_resched();
- 		}
--		wait = NULL;
-+		wait->qproc = NULL;
- 		if (retval || timed_out || signal_pending(current))
- 			break;
- 		if (table.error) {
-@@ -738,9 +736,7 @@ static inline unsigned int do_pollfd(struct pollfd *pollfd, poll_table *pwait)
- 		if (file != NULL) {
- 			mask = DEFAULT_POLLMASK;
- 			if (file->f_op && file->f_op->poll) {
--				if (pwait)
--					pwait->key = pollfd->events |
--							POLLERR | POLLHUP;
-+				pwait->key = pollfd->events | POLLERR | POLLHUP;
- 				mask = file->f_op->poll(file, pwait);
- 			}
- 			/* Mask out unneeded events. */
-@@ -763,7 +759,7 @@ static int do_poll(unsigned int nfds,  struct poll_list *list,
- 
- 	/* Optimise the no-wait case */
- 	if (end_time && !end_time->tv_sec && !end_time->tv_nsec) {
--		pt = NULL;
-+		pt->qproc = NULL;
- 		timed_out = 1;
- 	}
- 
-@@ -788,7 +784,7 @@ static int do_poll(unsigned int nfds,  struct poll_list *list,
- 				 */
- 				if (do_pollfd(pfd, pt)) {
- 					count++;
--					pt = NULL;
-+					pt->qproc = NULL;
- 				}
- 			}
- 		}
-@@ -796,7 +792,7 @@ static int do_poll(unsigned int nfds,  struct poll_list *list,
- 		 * All waiters have already been registered, so don't provide
- 		 * a poll_table to them on the next loop iteration.
- 		 */
--		pt = NULL;
-+		pt->qproc = NULL;
- 		if (!count) {
- 			count = wait->error;
- 			if (signal_pending(current))
-diff --git a/include/linux/poll.h b/include/linux/poll.h
-index cf40010..fe1e360 100644
---- a/include/linux/poll.h
-+++ b/include/linux/poll.h
-@@ -39,10 +39,15 @@ typedef struct poll_table_struct {
- 
- static inline void poll_wait(struct file * filp, wait_queue_head_t * wait_address, poll_table *p)
- {
--	if (p && wait_address)
-+	if (p && p->qproc && wait_address)
- 		p->qproc(filp, wait_address, p);
- }
- 
-+static inline unsigned long poll_requested_events(const poll_table *p)
-+{
-+	return p ? p->key : ~0UL;
-+}
-+
- static inline void init_poll_funcptr(poll_table *pt, poll_queue_proc qproc)
- {
- 	pt->qproc = qproc;
--- 
-1.7.1
-
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
+http://www.open-technology.de/
