@@ -1,71 +1,47 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:34983 "EHLO mx1.redhat.com"
+Received: from mail.kapsi.fi ([217.30.184.167]:39288 "EHLO mail.kapsi.fi"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932187Ab1GNWKB (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 14 Jul 2011 18:10:01 -0400
-Received: from int-mx01.intmail.prod.int.phx2.redhat.com (int-mx01.intmail.prod.int.phx2.redhat.com [10.5.11.11])
-	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id p6EMA1tm010322
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
-	for <linux-media@vger.kernel.org>; Thu, 14 Jul 2011 18:10:01 -0400
-From: Jarod Wilson <jarod@redhat.com>
+	id S1754502Ab1G1PDr (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 28 Jul 2011 11:03:47 -0400
+Message-ID: <4E317A52.2080204@iki.fi>
+Date: Thu, 28 Jul 2011 18:03:46 +0300
+From: Antti Palosaari <crope@iki.fi>
+MIME-Version: 1.0
 To: linux-media@vger.kernel.org
-Cc: Jarod Wilson <jarod@redhat.com>
-Subject: [PATCH 4/9] [media] mceusb: issue device resume cmd when needed
-Date: Thu, 14 Jul 2011 18:09:49 -0400
-Message-Id: <1310681394-3530-5-git-send-email-jarod@redhat.com>
-In-Reply-To: <1310681394-3530-1-git-send-email-jarod@redhat.com>
-References: <1310681394-3530-1-git-send-email-jarod@redhat.com>
+CC: Thomas Gutzler <thomas.gutzler@gmail.com>
+Subject: [PATCH 1/2] af9015: map remote for Leadtek WinFast DTV2000DS
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-According to MS docs, the device firmware may halt after receiving an
-unknown instruction, but that it should be possible to tell the firmware
-to continue running by simply sending a device resume command. So lets
-do that.
+Thanks to Thomas Gutzler for reporting this.
 
-Signed-off-by: Jarod Wilson <jarod@redhat.com>
+Signed-off-by: Antti Palosaari <crope@iki.fi>
+Cc: Thomas Gutzler <thomas.gutzler@gmail.com>
 ---
- drivers/media/rc/mceusb.c |   13 +++++++++++++
- 1 files changed, 13 insertions(+), 0 deletions(-)
 
-diff --git a/drivers/media/rc/mceusb.c b/drivers/media/rc/mceusb.c
-index 7ff755f..a777623 100644
---- a/drivers/media/rc/mceusb.c
-+++ b/drivers/media/rc/mceusb.c
-@@ -437,6 +437,8 @@ struct mceusb_dev {
- 	char name[128];
- 	char phys[64];
- 	enum mceusb_model_type model;
-+
-+	bool need_reset;	/* flag to issue a device resume cmd */
- };
- 
- /* MCE Device Command Strings, generally a port and command pair */
-@@ -736,6 +738,14 @@ static void mce_request_packet(struct mceusb_dev *ir, unsigned char *data,
- 
- static void mce_async_out(struct mceusb_dev *ir, unsigned char *data, int size)
- {
-+	int rsize = sizeof(DEVICE_RESUME);
-+
-+	if (ir->need_reset) {
-+		ir->need_reset = false;
-+		mce_request_packet(ir, DEVICE_RESUME, rsize, MCEUSB_TX);
-+		mdelay(10);
-+	}
-+
- 	mce_request_packet(ir, data, size, MCEUSB_TX);
- 	mdelay(10);
- }
-@@ -912,6 +922,9 @@ static void mceusb_handle_command(struct mceusb_dev *ir, int index)
- 	case MCE_RSP_EQIRRXPORTEN:
- 		ir->learning_enabled = ((hi & 0x02) == 0x02);
- 		break;
-+	case MCE_RSP_CMD_ILLEGAL:
-+		ir->need_reset = true;
-+		break;
- 	default:
- 		break;
- 	}
+
 -- 
-1.7.1
+http://palosaari.fi/
 
+  drivers/media/dvb/dvb-usb/af9015.c |    2 ++
+  1 files changed, 2 insertions(+), 0 deletions(-)
+
+diff --git a/drivers/media/dvb/dvb-usb/af9015.c 
+b/drivers/media/dvb/dvb-usb/af9015.c
+index d7ad05f..1fb8248 100644
+--- a/drivers/media/dvb/dvb-usb/af9015.c
++++ b/drivers/media/dvb/dvb-usb/af9015.c
+@@ -758,6 +758,8 @@ static const struct af9015_rc_setup 
+af9015_rc_setup_usbids[] = {
+  		RC_MAP_MSI_DIGIVOX_III },
+  	{ (USB_VID_LEADTEK << 16) + USB_PID_WINFAST_DTV_DONGLE_GOLD,
+  		RC_MAP_LEADTEK_Y04G0051 },
++	{ (USB_VID_LEADTEK << 16) + USB_PID_WINFAST_DTV2000DS,
++		RC_MAP_LEADTEK_Y04G0051 },
+  	{ (USB_VID_AVERMEDIA << 16) + USB_PID_AVERMEDIA_VOLAR_X,
+  		RC_MAP_AVERMEDIA_M135A },
+  	{ (USB_VID_AFATECH << 16) + USB_PID_TREKSTOR_DVBT,
+-- 
+1.7.6
