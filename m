@@ -1,56 +1,94 @@
-Return-path: <mchehab@localhost>
-Received: from mx1.redhat.com ([209.132.183.28]:6623 "EHLO mx1.redhat.com"
+Return-path: <linux-media-owner@vger.kernel.org>
+Received: from mx1.redhat.com ([209.132.183.28]:24056 "EHLO mx1.redhat.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1758138Ab1GKSpp (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 11 Jul 2011 14:45:45 -0400
-Received: from int-mx09.intmail.prod.int.phx2.redhat.com (int-mx09.intmail.prod.int.phx2.redhat.com [10.5.11.22])
-	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id p6BIjjf5002147
+	id S1755455Ab1G1TFN (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 28 Jul 2011 15:05:13 -0400
+Received: from int-mx12.intmail.prod.int.phx2.redhat.com (int-mx12.intmail.prod.int.phx2.redhat.com [10.5.11.25])
+	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id p6SJ5DsJ001327
 	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
-	for <linux-media@vger.kernel.org>; Mon, 11 Jul 2011 14:45:45 -0400
-Date: Mon, 11 Jul 2011 14:45:44 -0400
-From: Jarod Wilson <jarod@redhat.com>
-To: mchehab@redhat.com
-Cc: linux-media@vger.kernel.org
-Subject: [GIT PULL] last-minute IR fixes for 3.0
-Message-ID: <20110711184544.GA7245@redhat.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+	for <linux-media@vger.kernel.org>; Thu, 28 Jul 2011 15:05:13 -0400
+Received: from localhost.localdomain (vpn-8-21.rdu.redhat.com [10.11.8.21])
+	by int-mx12.intmail.prod.int.phx2.redhat.com (8.14.4/8.14.4) with ESMTP id p6SJ58KE026840
+	for <linux-media@vger.kernel.org>; Thu, 28 Jul 2011 15:05:12 -0400
+Date: Thu, 28 Jul 2011 16:04:34 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: [PATCH 2/2] tda18271c2dd: Fix saw filter configuration for DVB-6 @
+ 6MHz
+Message-ID: <20110728160434.39dccf67@redhat.com>
+In-Reply-To: <cover.1311879724.git.mchehab@redhat.com>
+References: <cover.1311879724.git.mchehab@redhat.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
+To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
+Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
-Sender: <mchehab@infradead.org>
 
-Hey Mauro,
+Currently, the driver assumes that all QAM carriers are spaced with
+8MHz. This is wrong, and may decrease QoS on Countries like Brazil,
+that have DVB-C carriers with 6MHz-spaced.
 
-I know its late in the game, but after a weekend of testing here, and
-feedback from other folks testing, I'd like to see if we can sneak a few
-more minor changes into kernel 3.0. If not, these can probably all go in
-via the stable tree later, but here they are... These changes greatly
-improve the reliability of IR functionality for cx23885, mceusb and
-nuvoton-cir users (the latter two primarily when using non-stock remotes
-and lirc userspace decode -- RC5 and RC6 both work fine w/o this change).
+Fortunately, both ITU-T J-83 and EN 300 429 specifies a way to
+associate the symbol rate with the bandwidth needed for it.
 
-The following changes since commit e3bbfa78bab125f58b831b5f7f45b5a305091d72:
+For ITU-T J-83 2007 annex A, the maximum symbol rate for 6 MHz is:
+	6 MHz / 1.15 = 5217391 Bauds
+For  ITU-T J-83 2007 annex C, the maximum symbol rate for 6 MHz is:
+	6 MHz / 1.13 = 5309735 Bauds.
 
-  Merge branch 'hwmon-for-linus' of git://git.kernel.org/pub/scm/linux/kernel/git/groeck/staging (2011-07-10 10:24:47 -0700)
+As this tuner is currently used only for DRX-K, and it is currently
+hard-coded to annex A, I've opted to use the roll-off factor of 0.15,
+instead of 0.13.
 
-are available in the git repository at:
+If we ever support annex C, the better would be to add a DVB S2API
+call to allow changing between Annex A and C, and add the 0.13 roll-off
+factor to it.
 
-  git://git.kernel.org/pub/scm/linux/kernel/git/jarod/linux-2.6-ir.git/ for-3.0
+This code is currently being used on other frontends, so I think we
+should later add a core function with this code, to warrant that
+it will be properly implemented everywhere.
 
-Jarod Wilson (2):
-      Revert "V4L/DVB: cx23885: Enable Message Signaled Interrupts(MSI)"
-      [media] nuvoton-cir: make idle timeout more sane
+Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
 
-Rafi Rubin (2):
-      [media] mceusb: Timeout unit corrections
-      [media] mceusb: increase default timeout to 100ms
-
- drivers/media/rc/mceusb.c                  |    9 +++++----
- drivers/media/rc/nuvoton-cir.c             |    2 +-
- drivers/media/video/cx23885/cx23885-core.c |    9 ++-------
- 3 files changed, 8 insertions(+), 12 deletions(-)
-
+diff --git a/drivers/media/dvb/frontends/tda18271c2dd.c b/drivers/media/dvb/frontends/tda18271c2dd.c
+index 2eb3a31..9aa4c09 100644
+--- a/drivers/media/dvb/frontends/tda18271c2dd.c
++++ b/drivers/media/dvb/frontends/tda18271c2dd.c
+@@ -1123,6 +1123,21 @@ static int release(struct dvb_frontend *fe)
+ 	return 0;
+ }
+ 
++/*
++ * As defined on EN 300 429 Annex A and on ITU-T J.83 annex A, the DVB-C
++ * roll-off factor is 0.15.
++ * According with the specs, the amount of the needed bandwith is given by:
++ * 	Bw = Symbol_rate * (1 + 0.15)
++ * As such, the maximum symbol rate supported by 6 MHz is
++ *	max_symbol_rate = 6 MHz / 1.15 = 5217391 Bauds
++ *NOTE: For ITU-T J.83 Annex C, the roll-off factor is 0.13. So:
++ *	max_symbol_rate = 6 MHz / 1.13 = 5309735 Baud
++ *	That means that an adjustment is needed for Japan,
++ *	but, as currently DRX-K is hardcoded to Annex A, let's stick
++ *	with 0.15 roll-off factor.
++ */
++#define MAX_SYMBOL_RATE_6MHz	5217391
++
+ static int set_params(struct dvb_frontend *fe,
+ 		      struct dvb_frontend_parameters *params)
+ {
+@@ -1146,7 +1161,10 @@ static int set_params(struct dvb_frontend *fe,
+ 			break;
+ 		}
+ 	else if (fe->ops.info.type == FE_QAM) {
+-		Standard = HF_DVBC_8MHZ;
++		if (params->u.qam.symbol_rate <= MAX_SYMBOL_RATE_6MHz)
++			Standard = HF_DVBC_6MHZ;
++		else
++			Standard = HF_DVBC_8MHZ;
+ 	} else
+ 		return -EINVAL;
+ 	do {
 -- 
-Jarod Wilson
-jarod@redhat.com
+1.7.1
 
