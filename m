@@ -1,102 +1,126 @@
-Return-path: <mchehab@localhost>
-Received: from mx1.redhat.com ([209.132.183.28]:43810 "EHLO mx1.redhat.com"
+Return-path: <linux-media-owner@vger.kernel.org>
+Received: from mx1.redhat.com ([209.132.183.28]:42092 "EHLO mx1.redhat.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755029Ab1GGRP0 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 7 Jul 2011 13:15:26 -0400
-Message-ID: <4E15E9AC.9050800@redhat.com>
-Date: Thu, 07 Jul 2011 14:15:24 -0300
+	id S1754326Ab1G1OzN (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 28 Jul 2011 10:55:13 -0400
+Message-ID: <4E317848.8040101@redhat.com>
+Date: Thu, 28 Jul 2011 11:55:04 -0300
 From: Mauro Carvalho Chehab <mchehab@redhat.com>
 MIME-Version: 1.0
-To: Hans Verkuil <hverkuil@xs4all.nl>
-CC: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
-Subject: Re: [PATCH RFCv3 03/17] [media] DocBook: Use the generic error code
- page also for MC API
-References: <cover.1309974026.git.mchehab@redhat.com> <20110706150352.436f7a2a@pedra> <201107071729.03676.hverkuil@xs4all.nl>
-In-Reply-To: <201107071729.03676.hverkuil@xs4all.nl>
+To: Kirill Smelkov <kirr@mns.spb.ru>
+CC: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	linux-media@vger.kernel.org
+Subject: Re: [git:v4l-dvb/for_v3.1] [media] uvcvideo: Add FIX_BANDWIDTH quirk
+ to HP Webcam on HP Mini 5103 netbook
+References: <E1QmAuS-0002S0-Pd@www.linuxtv.org> <20110728114236.GA5391@tugrik.mns.mnsspb.ru> <4E3167F9.7020908@redhat.com> <20110728135445.GA6599@tugrik.mns.mnsspb.ru>
+In-Reply-To: <20110728135445.GA6599@tugrik.mns.mnsspb.ru>
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 7bit
+Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
-Sender: <mchehab@infradead.org>
 
-Em 07-07-2011 12:29, Hans Verkuil escreveu:
-> On Wednesday, July 06, 2011 20:03:52 Mauro Carvalho Chehab wrote:
->> Instead of having their own generic error codes at the MC API, move
->> its section to the generic one and be sure that all media ioctl's
->> will point to it.
+Em 28-07-2011 10:54, Kirill Smelkov escreveu:
+> Mauro, thanks for answering,
+> 
+> On Thu, Jul 28, 2011 at 10:45:29AM -0300, Mauro Carvalho Chehab wrote:
+>> Em 28-07-2011 08:42, Kirill Smelkov escreveu:
+>>> On Wed, Jul 27, 2011 at 09:42:08PM +0200, Mauro Carvalho Chehab wrote:
+>>>> This is an automatic generated email to let you know that the following patch were queued at the 
+>>>> http://git.linuxtv.org/media_tree.git tree:
+>>>>
+>>>> Subject: [media] uvcvideo: Add FIX_BANDWIDTH quirk to HP Webcam on HP Mini 5103 netbook
+>>>> Author:  Kirill Smelkov <kirr@mns.spb.ru>
+>>>> Date:    Fri Jul 22 11:47:22 2011 -0300
+>>>
+>>> Thanks
+>>>
+>>>
+>>>> The camera there identifies itself as being manufactured by Cheng Uei
+>>>> Precision Industry Co., Ltd (Foxlink), and product is titled as "HP
+>>>> Webcam [2 MP Fixed]".
+>>>>
+>>>> I was trying to get 2 USB video capture devices to work simultaneously,
+>>>> and noticed that the above mentioned webcam always requires packet size
+>>>> = 3072 bytes per micro frame (~= 23.4 MB/s isoc bandwidth), which is far
+>>>> more than enough to get standard NTSC 640x480x2x30 = ~17.6 MB/s isoc
+>>>> bandwidth.
+>>>>
+>>>> As there are alt interfaces with smaller MxPS
+>>>>
+>>>>     T:  Bus=01 Lev=01 Prnt=01 Port=03 Cnt=01 Dev#=  2 Spd=480  MxCh= 0
+>>>>     D:  Ver= 2.00 Cls=ef(misc ) Sub=02 Prot=01 MxPS=64 #Cfgs=  1
+>>>>     P:  Vendor=05c8 ProdID=0403 Rev= 1.06
+>>>>     S:  Manufacturer=Foxlink
+>>>>     S:  Product=HP Webcam [2 MP Fixed]
+>>>>     S:  SerialNumber=200909240102
+>>>>     C:* #Ifs= 2 Cfg#= 1 Atr=80 MxPwr=500mA
+>>>>     A:  FirstIf#= 0 IfCount= 2 Cls=0e(video) Sub=03 Prot=00
+>>>>     I:* If#= 0 Alt= 0 #EPs= 1 Cls=0e(video) Sub=01 Prot=00 Driver=uvcvideo
+>>>>     E:  Ad=83(I) Atr=03(Int.) MxPS=  16 Ivl=4ms
+>>>>     I:* If#= 1 Alt= 0 #EPs= 0 Cls=0e(video) Sub=02 Prot=00 Driver=uvcvideo
+>>>>     I:  If#= 1 Alt= 1 #EPs= 1 Cls=0e(video) Sub=02 Prot=00 Driver=uvcvideo
+>>>>     E:  Ad=81(I) Atr=05(Isoc) MxPS= 128 Ivl=125us
+>>>>     I:  If#= 1 Alt= 2 #EPs= 1 Cls=0e(video) Sub=02 Prot=00 Driver=uvcvideo
+>>>>     E:  Ad=81(I) Atr=05(Isoc) MxPS= 512 Ivl=125us
+>>>>     I:  If#= 1 Alt= 3 #EPs= 1 Cls=0e(video) Sub=02 Prot=00 Driver=uvcvideo
+>>>>     E:  Ad=81(I) Atr=05(Isoc) MxPS=1024 Ivl=125us
+>>>>     I:  If#= 1 Alt= 4 #EPs= 1 Cls=0e(video) Sub=02 Prot=00 Driver=uvcvideo
+>>>>     E:  Ad=81(I) Atr=05(Isoc) MxPS=1536 Ivl=125us
+>>>>     I:  If#= 1 Alt= 5 #EPs= 1 Cls=0e(video) Sub=02 Prot=00 Driver=uvcvideo
+>>>>     E:  Ad=81(I) Atr=05(Isoc) MxPS=2048 Ivl=125us
+>>>>     I:  If#= 1 Alt= 6 #EPs= 1 Cls=0e(video) Sub=02 Prot=00 Driver=uvcvideo
+>>>>     E:  Ad=81(I) Atr=05(Isoc) MxPS=2688 Ivl=125us
+>>>>     I:  If#= 1 Alt= 7 #EPs= 1 Cls=0e(video) Sub=02 Prot=00 Driver=uvcvideo
+>>>>     E:  Ad=81(I) Atr=05(Isoc) MxPS=3072 Ivl=125us
+>>>>
+>>>> UVC_QUIRK_FIX_BANDWIDTH helps here and NTSC video can be served with
+>>>> MxPS=2688 i.e. 20.5 MB/s isoc bandwidth.
+>>>>
+>>>> In terms of microframe time allocation, before the quirk NTSC video
+>>>> required 60 usecs / microframe and 53 usecs / microframe after.
+>>>>
+>>>> Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+>>>> Signed-off-by: Kirill Smelkov <kirr@mns.spb.ru>
+>>>> Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+>>>
+>>>
+>>> May I ask, why you removed the reference to cc62a7eb? Original patch
+>>> description contained the following paragraph just before sob
+>>>
+>>>     Now with tweaked ehci-hcd to allow up to 90% isoc bandwidth (cc62a7eb
+>>>     "USB: EHCI: Allow users to override 80% max periodic bandwidth") I can
+>>>     capture two video sources -- PAL 720x576 YUV422 @25fps + NTSC 640x480
+>>>     YUV422 @30fps simultaneously.  Hooray!
+>>>
+>>>
+>>> which was removed on applying.
 >>
->> Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
->>
->> diff --git a/Documentation/DocBook/media/v4l/gen-errors.xml b/Documentation/DocBook/media/v4l/gen-errors.xml
->> index 6ef476a..a7f73c9 100644
->> --- a/Documentation/DocBook/media/v4l/gen-errors.xml
->> +++ b/Documentation/DocBook/media/v4l/gen-errors.xml
->> @@ -5,6 +5,11 @@
->>    <tgroup cols="2">
->>      &cs-str;
->>      <tbody valign="top">
->> +	<!-- Keep it ordered alphabetically -->
->> +      <row>
->> +	<entry>EBADF</entry>
->> +	<entry><parameter>fd</parameter> is not a valid open file descriptor.</entry>
->> +      </row>
->>        <row>
->>  	<entry>EBUSY</entry>
->>  	<entry>The ioctl can't be handled because the device is busy. This is
->> @@ -15,7 +20,16 @@
->>  	       problem first (typically: stop the stream before retrying).</entry>
->>        </row>
->>        <row>
->> +	<entry>EFAULT</entry>
->> +	<entry><parameter>fd</parameter> is not a valid open file descriptor.</entry>
+>> For a few reasons:
+>> 1) I was not sure if the changeset reference was not changed when
 > 
-> This seems to be a copy-and-paste error. The original text in media-func-ioctl.xml says this:
+> And it was not changed, because when I referenced it, it was already in
+> Greg's usb tree, and Linus pulls from Greg and Greg does not destroy
+> history as far as I can tell...
 > 
-> 	  <para><parameter>argp</parameter> references an inaccessible memory
-> 	  area.</para>
-
-Ah, yes. Anyway, a latter patch changes it to:
-
-	<entry>EFAULT</entry>
-	<entry>There was a failure while copying data from/to userspace.</entry>
-      </row>
-
-referencing a parameter name there is a bad thing anyway, as this is now at the common
-ioctl error code.
-
-Instead of just using a posix-like error code:
-	EFAULT          Bad address (POSIX.1)
-
-I opted to use a more valuable description, explaining the reason for such error,
-e. g. that there was a failure at the data copy from/to userspace.
-
-It may be better to change it to:
-
-	<entry>EFAULT</entry>
-	<entry>There was a failure while copying data from/to userspace, probably
-		caused by an invalid pointer reference.</entry>
-
-I think I'll add the above description at the latter patch.
-
-I was intending to add there the other possible error causes found at V4L/DVB API's
-and drivers, but the changes I did took me a longer time than I was expecting
-originally.  I'll eventually do that when I have more time. 
-
-It would be really great if we could find some volunteer to help syncing 
-the media API specs with the code.
-
->> +      </row>
->> +      <row>
->>  	<entry>EINVAL</entry>
->> +	<entry>One or more of the ioctl parameters are invalid. This is a widely
+>>    merged upstream, and I was too lazy^Wbusy to double check ;)
 > 
-> widely -> widely used
+> It's just doing `git log linus/master | grep cc62a7eb`. Compared or less
+> time to editing...
 > 
->> +	       error code. see the individual ioctl requests for actual causes.</entry>
 > 
-> see -> See
+>> 2) Reducing the amount of bandwidth used is good, even without trying to use
+>>    two webcams;
+>> 3) The bandwidth override patch is independent of this one.
+> 
+> Yes, but coupled, and also they were motivated by each other. Could we
+> please merge my comment back, or is it too late?
 
-Fixed. 
+Too late. my tree is ready for merge upstream. Changing anything there will
+require me to rebase it and loose one day in order to wait for the patches to
+arrive at the -next tree.
 
-Thanks!
-Mauro
+> 
+> 
+> Thanks,
+> Kirill
+
