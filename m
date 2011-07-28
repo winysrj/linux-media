@@ -1,222 +1,182 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout4.w1.samsung.com ([210.118.77.14]:20466 "EHLO
-	mailout4.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753278Ab1G0NLS (ORCPT
+Received: from smtp-68.nebula.fi ([83.145.220.68]:50162 "EHLO
+	smtp-68.nebula.fi" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755829Ab1G1U3C (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 27 Jul 2011 09:11:18 -0400
-MIME-version: 1.0
-Content-transfer-encoding: 7BIT
-Content-type: text/plain; charset=ISO-8859-1
-Received: from eu_spt1 ([210.118.77.14]) by mailout4.w1.samsung.com
- (Sun Java(tm) System Messaging Server 6.3-8.04 (built Jul 29 2009; 32bit))
- with ESMTP id <0LOZ00K4OTYSZFA0@mailout4.w1.samsung.com> for
- linux-media@vger.kernel.org; Wed, 27 Jul 2011 14:11:16 +0100 (BST)
-Received: from linux.samsung.com ([106.116.38.10])
- by spt1.w1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14
- 2004)) with ESMTPA id <0LOZ00K78TYRM4@spt1.w1.samsung.com> for
- linux-media@vger.kernel.org; Wed, 27 Jul 2011 14:11:16 +0100 (BST)
-Date: Wed, 27 Jul 2011 15:11:15 +0200
-From: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Subject: Re: [PATCH v3] V4L: add two new ioctl()s for multi-size videobuffer
- management
-In-reply-to: <Pine.LNX.4.64.1107201025120.12084@axis700.grange>
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Sakari Ailus <sakari.ailus@iki.fi>,
-	Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Pawel Osciak <pawel@osciak.com>
-Message-id: <4E300E73.4040402@samsung.com>
-References: <Pine.LNX.4.64.1107201025120.12084@axis700.grange>
+	Thu, 28 Jul 2011 16:29:02 -0400
+Date: Thu, 28 Jul 2011 23:28:57 +0300
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: linux-media@vger.kernel.org, hans.verkuil@cisco.com,
+	snjw23@gmail.com
+Subject: Re: [PATCH 2/3] v4l: events: Define frame start event
+Message-ID: <20110728202857.GK32629@valkosipuli.localdomain>
+References: <4E2F0C53.10907@iki.fi>
+ <1311706184-22658-2-git-send-email-sakari.ailus@iki.fi>
+ <201107281352.21742.laurent.pinchart@ideasonboard.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <201107281352.21742.laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Gueannadi,
+On Thu, Jul 28, 2011 at 01:52:21PM +0200, Laurent Pinchart wrote:
+> Hi Sakari,
 
-On 07/20/2011 10:43 AM, Guennadi Liakhovetski wrote:
-> A possibility to preallocate and initialise buffers of different sizes
-> in V4L2 is required for an efficient implementation of asnapshot mode.
-> This patch adds two new ioctl()s: VIDIOC_CREATE_BUFS and
-> VIDIOC_PREPARE_BUF and defines respective data structures.
+Hi Laurent,
+
+Thanks for the comments!
+
+> On Tuesday 26 July 2011 20:49:43 Sakari Ailus wrote:
+> > Define a frame start event to tell user space when the reception of a frame
+> > starts.
 > 
-> Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-> ---
+> You might want to rename 'frame start' to 'frame sync' in the subject and 
+> commit message as well.
+
+Good point. I forgot to change those. Thanks.
+
+> > Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
+> > ---
+> >  Documentation/DocBook/media/v4l/vidioc-dqevent.xml |   23
+> > ++++++++++++++++++++ .../DocBook/media/v4l/vidioc-subscribe-event.xml   | 
+> >  18 +++++++++++++++ include/linux/videodev2.h                          |  
+> > 12 +++++++-- 3 files changed, 50 insertions(+), 3 deletions(-)
+> > 
+> > diff --git a/Documentation/DocBook/media/v4l/vidioc-dqevent.xml
+> > b/Documentation/DocBook/media/v4l/vidioc-dqevent.xml index
+> > 5200b68..1d03313 100644
+> > --- a/Documentation/DocBook/media/v4l/vidioc-dqevent.xml
+> > +++ b/Documentation/DocBook/media/v4l/vidioc-dqevent.xml
+> > @@ -88,6 +88,12 @@
+> >  	  </row>
+> >  	  <row>
+> >  	    <entry></entry>
+> > +	    <entry>&v4l2-event-frame-sync;</entry>
+> > +            <entry><structfield>frame</structfield></entry>
+> > +	    <entry>Event data for event V4L2_EVENT_FRAME_SYNC.</entry>
+> > +	  </row>
+> > +	  <row>
+> > +	    <entry></entry>
+> >  	    <entry>__u8</entry>
+> >              <entry><structfield>data</structfield>[64]</entry>
+> >  	    <entry>Event data. Defined by the event type. The union
+> > @@ -220,6 +226,23 @@
+> >        </tgroup>
+> >      </table>
+> > 
+> > +    <table frame="none" pgwide="1" id="v4l2-event-frame-sync">
+> > +      <title>struct <structname>v4l2_event_frame_sync</structname></title>
+> > +      <tgroup cols="3">
+> > +	&cs-str;
+> > +	<tbody valign="top">
+> > +	  <row>
+> > +	    <entry>__u32</entry>
+> > +	    <entry><structfield>buffer_sequence</structfield></entry>
+> > +	    <entry>
+> > +	      The sequence number of the buffer to be handled next or
+> > +	      currently handled by the driver.
 > 
-> It's been almost a month since v2, the only comments were a request to 
-> increase the reserved space in the new ioctl() and to improve 
-> documentation. The reserved field is increased in this version, 
-> documentation also has been improved in multiple locations. I think, 
-> documentation can be further improved at any time, but if there are no 
-> objections against the actual contents of this patch, maybe we can commit 
-> this version. I still don't see v3.0;-), so, maybe we even can push it for 
-> 3.1. A trivial comparison with v2 shows the size of the reserved field as 
-> the only change in the API, and the compatibility fix as the only two 
-> functional changes.
+> What happens if a particular piece of hardware can capture two (or more) 
+> simultaneous streams from the same video source (an unscaled compressed stream 
+> and a scaled down uncompressed stream for instance) ? Applications don't need 
+> to start both streams at the same time, what buffer sequence number should be 
+> reported in that case ?
+
+I think that if the video data comes from the same source, the sequence
+numbers should definitely be in sync. This would mean that for the second
+stream the first sequence number wouldn't be zero.
+
+> > +	    </entry>
+> > +	  </row>
+> > +	</tbody>
+> > +      </tgroup>
+> > +    </table>
+> > +
+> >      <table pgwide="1" frame="none" id="changes-flags">
+> >        <title>Changes</title>
+> >        <tgroup cols="3">
+> > diff --git a/Documentation/DocBook/media/v4l/vidioc-subscribe-event.xml
+> > b/Documentation/DocBook/media/v4l/vidioc-subscribe-event.xml index
+> > 275be96..812b63c 100644
+> > --- a/Documentation/DocBook/media/v4l/vidioc-subscribe-event.xml
+> > +++ b/Documentation/DocBook/media/v4l/vidioc-subscribe-event.xml
+> > @@ -139,6 +139,24 @@
+> >  	    </entry>
+> >  	  </row>
+> >  	  <row>
+> > +	    <entry><constant>V4L2_EVENT_FRAME_SYNC</constant></entry>
+> > +	    <entry>4</entry>
+> > +	    <entry>
+> > +	      <para>Triggered immediately when the reception of a
+> > +	      frame has begun. This event has a
+> > +	      &v4l2-event-frame-sync; associated with it.</para>
+> > +
+> > +	      <para>A driver will only generate this event when the
+> > +	      hardware can generate it. This might not be the case
+> > +	      e.g. when the hardware has no DMA buffer to write the
+> > +	      image data to. In such cases the
+> > +	      <structfield>buffer_sequence</structfield> field in
+> > +	      &v4l2-event-frame-sync; will not be incremented either.
+> > +	      This causes two consecutive buffer sequence numbers to
+> > +	      have n times frame interval in between them.</para>
 > 
-> v3: addressed multiple comments by Sakari Ailus
+> I don't think that's correct. Don't many drivers still increment the sequence 
+> number in that case, to make it possible for applications to detect frame loss 
+> ?
+
+I think I understood once that the OMAP 3 ISP driver didn't do this in all
+cases but I later learned that this isn't the case. I still would be
+actually a bit surprised if there was not hardware that could not do this.
+
+Do you think the text is relevant in this context, or should it be removed?
+
+> > +	    </entry>
+> > +	  </row>
+> > +	  <row>
+> >  	    <entry><constant>V4L2_EVENT_PRIVATE_START</constant></entry>
+> >  	    <entry>0x08000000</entry>
+> >  	    <entry>Base event number for driver-private events.</entry>
+> > diff --git a/include/linux/videodev2.h b/include/linux/videodev2.h
+> > index fca24cc..056a49e 100644
+> > --- a/include/linux/videodev2.h
+> > +++ b/include/linux/videodev2.h
+> > @@ -2006,6 +2006,7 @@ struct v4l2_streamparm {
+> >  #define V4L2_EVENT_VSYNC			1
+> >  #define V4L2_EVENT_EOS				2
+> >  #define V4L2_EVENT_CTRL				3
+> > +#define V4L2_EVENT_FRAME_SYNC			4
+> >  #define V4L2_EVENT_PRIVATE_START		0x08000000
+> > 
+> >  /* Payload for V4L2_EVENT_VSYNC */
+> > @@ -2032,12 +2033,17 @@ struct v4l2_event_ctrl {
+> >  	__s32 default_value;
+> >  };
+> > 
+> > +struct v4l2_event_frame_sync {
+> > +	__u32 buffer_sequence;
+> > +};
+> > +
+> >  struct v4l2_event {
+> >  	__u32				type;
+> >  	union {
+> > -		struct v4l2_event_vsync vsync;
+> > -		struct v4l2_event_ctrl	ctrl;
+> > -		__u8			data[64];
+> > +		struct v4l2_event_vsync		vsync;
+> > +		struct v4l2_event_ctrl		ctrl;
+> > +		struct v4l2_event_frame_sync	frame_sync;
+> > +		__u8				data[64];
+> >  	} u;
+> >  	__u32				pending;
+> >  	__u32				sequence;
 > 
-> 1. increased reserved field in "struct v4l2_create_buffers" to 8 32-bit 
->    ints
-> 2. multiple documentation fixes and improvements
-> 3. fixed misplaced "case VIDIOC_PREPARE_BUF" in ioctl 32-bit compatibility 
->    processing
+> -- 
+> Regards,
 > 
-> v2:
-> 
-> 1. add preliminary Documentation
-> 2. add flag V4L2_BUFFER_FLAG_NO_CACHE_CLEAN
-> 3. remove VIDIOC_DESTROY_BUFS
-> 4. rename SUBMIT to VIDIOC_PREPARE_BUF
-> 5. add reserved field to struct v4l2_create_buffers
-> 6. cache handling flags moved to struct v4l2_buffer for processing during 
->    VIDIOC_PREPARE_BUF
-> 7. VIDIOC_PREPARE_BUF now uses struct v4l2_buffer as its argument
-> 
-> 
->  Documentation/DocBook/media/v4l/io.xml             |   17 +++
->  Documentation/DocBook/media/v4l/v4l2.xml           |    2 +
->  .../DocBook/media/v4l/vidioc-create-bufs.xml       |  152 ++++++++++++++++++++
->  .../DocBook/media/v4l/vidioc-prepare-buf.xml       |   96 ++++++++++++
->  drivers/media/video/v4l2-compat-ioctl32.c          |   68 ++++++++-
->  drivers/media/video/v4l2-ioctl.c                   |   32 ++++
->  include/linux/videodev2.h                          |   16 ++
->  include/media/v4l2-ioctl.h                         |    2 +
->  8 files changed, 377 insertions(+), 8 deletions(-)
->  create mode 100644 Documentation/DocBook/media/v4l/vidioc-create-bufs.xml
->  create mode 100644 Documentation/DocBook/media/v4l/vidioc-prepare-buf.xml
-> 
-> diff --git a/Documentation/DocBook/media/v4l/io.xml b/Documentation/DocBook/media/v4l/io.xml
-> index 227e7ac..6249d0e 100644
-> --- a/Documentation/DocBook/media/v4l/io.xml
-> +++ b/Documentation/DocBook/media/v4l/io.xml
-> @@ -927,6 +927,23 @@ ioctl is called.</entry>
->  Applications set or clear this flag before calling the
->  <constant>VIDIOC_QBUF</constant> ioctl.</entry>
->  	  </row>
-> +	  <row>
-> +	    <entry><constant>V4L2_BUF_FLAG_NO_CACHE_INVALIDATE</constant></entry>
-> +	    <entry>0x0400</entry>
-> +	    <entry>Caches do not have to be invalidated for this buffer.
-> +Typically applications shall use this flag, if the data, captured in the buffer
-> +is not going to br touched by the CPU, instead the buffer will, probably, be
-> +passed on to a DMA-capable hardware unit for further processing or output.
-> +</entry>
-> +	  </row>
-> +	  <row>
-> +	    <entry><constant>V4L2_BUF_FLAG_NO_CACHE_CLEAN</constant></entry>
-> +	    <entry>0x0800</entry>
-> +	    <entry>Caches do not have to be cleaned for this buffer.
-> +Typically applications shall use this flag for output buffers, if the data
-> +in this buffer has not been created by the CPU, but by some DMA-capable unit,
-> +in which case caches have not been used.</entry>
-> +	  </row>
->  	</tbody>
->        </tgroup>
->      </table>
-> diff --git a/Documentation/DocBook/media/v4l/v4l2.xml b/Documentation/DocBook/media/v4l/v4l2.xml
-> index 0d05e87..06bb179 100644
-> --- a/Documentation/DocBook/media/v4l/v4l2.xml
-> +++ b/Documentation/DocBook/media/v4l/v4l2.xml
-> @@ -462,6 +462,7 @@ and discussions on the V4L mailing list.</revremark>
->      &sub-close;
->      &sub-ioctl;
->      <!-- All ioctls go here. -->
-> +    &sub-create-bufs;
->      &sub-cropcap;
->      &sub-dbg-g-chip-ident;
->      &sub-dbg-g-register;
-> @@ -504,6 +505,7 @@ and discussions on the V4L mailing list.</revremark>
->      &sub-queryctrl;
->      &sub-query-dv-preset;
->      &sub-querystd;
-> +    &sub-prepare-buf;
->      &sub-reqbufs;
->      &sub-s-hw-freq-seek;
->      &sub-streamon;
-> diff --git a/Documentation/DocBook/media/v4l/vidioc-create-bufs.xml b/Documentation/DocBook/media/v4l/vidioc-create-bufs.xml
-> new file mode 100644
-> index 0000000..5f0158c
-> --- /dev/null
-> +++ b/Documentation/DocBook/media/v4l/vidioc-create-bufs.xml
-> @@ -0,0 +1,152 @@
-> +<refentry id="vidioc-create-bufs">
-> +  <refmeta>
-> +    <refentrytitle>ioctl VIDIOC_CREATE_BUFS</refentrytitle>
-> +    &manvol;
-> +  </refmeta>
-> +
-> +  <refnamediv>
-> +    <refname>VIDIOC_CREATE_BUFS</refname>
-> +    <refpurpose>Create buffers for Memory Mapped or User Pointer I/O</refpurpose>
-> +  </refnamediv>
-> +
-> +  <refsynopsisdiv>
-> +    <funcsynopsis>
-> +      <funcprototype>
-> +	<funcdef>int <function>ioctl</function></funcdef>
-> +	<paramdef>int <parameter>fd</parameter></paramdef>
-> +	<paramdef>int <parameter>request</parameter></paramdef>
-> +	<paramdef>struct v4l2_create_buffers *<parameter>argp</parameter></paramdef>
-> +      </funcprototype>
-> +    </funcsynopsis>
-> +  </refsynopsisdiv>
-> +
-> +  <refsect1>
-> +    <title>Arguments</title>
-> +
-> +    <variablelist>
-> +      <varlistentry>
-> +	<term><parameter>fd</parameter></term>
-> +	<listitem>
-> +	  <para>&fd;</para>
-> +	</listitem>
-> +      </varlistentry>
-> +      <varlistentry>
-> +	<term><parameter>request</parameter></term>
-> +	<listitem>
-> +	  <para>VIDIOC_CREATE_BUFS</para>
-> +	</listitem>
-> +      </varlistentry>
-> +      <varlistentry>
-> +	<term><parameter>argp</parameter></term>
-> +	<listitem>
-> +	  <para></para>
-> +	</listitem>
-> +      </varlistentry>
-> +    </variablelist>
-> +  </refsect1>
-> +
-> +  <refsect1>
-> +    <title>Description</title>
-> +
-> +    <para>This ioctl is used to create buffers for <link linkend="mmap">memory
-> +mapped</link> or <link linkend="userp">user pointer</link>
-> +I/O. It can be used as an alternative to the <constant>VIDIOC_REQBUFS</constant>
-> +ioctl, when a tighter control over buffers is required. This ioctl can be called
-> +multiple times to create buffers of different sizes.
-
-It looks like there is a </para> tag missing, that line should be:
-
-+multiple times to create buffers of different sizes. </para>
-
-Otherwise the compilation fails.
-
-
---
-Regards,
-Sylwester Nawrocki
-
-
-
-
-
-
-
-
-
+> Laurent Pinchart
 
 -- 
-Sylwester Nawrocki
-Samsung Poland R&D Center
+Sakari Ailus
+sakari.ailus@iki.fi
