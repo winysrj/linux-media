@@ -1,27 +1,54 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp10.mail.ru ([94.100.176.152]:46720 "EHLO smtp10.mail.ru"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751431Ab1GVM4t (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 22 Jul 2011 08:56:49 -0400
-Message-ID: <4E29738F.7040605@list.ru>
-Date: Fri, 22 Jul 2011 16:56:47 +0400
-From: Stas Sergeev <stsp@list.ru>
-MIME-Version: 1.0
-To: Mauro Carvalho Chehab <mchehab@infradead.org>
-CC: linux-media@vger.kernel.org
-Subject: Re: [patch][saa7134] do not change mute state for capturing audio
-References: <4E19D2F7.6060803@list.ru> <4E1E05AC.2070002@infradead.org> <4E1E0A1D.6000604@list.ru> <4E1E1571.6010400@infradead.org> <4E1E8108.3060305@list.ru> <4E1F9A25.1020208@infradead.org> <4E22AF12.4020600@list.ru> <4E22CCC0.8030803@infradead.org> <4E24BEB8.4060501@redhat.com> <4E257FF5.4040401@infradead.org> <4E258B60.6010007@list.ru> <4E25906D.3020200@infradead.org> <4E259B0C.90107@list.ru> <4E25A26A.2000204@infradead.org> <4E25A7C2.3050609@list.ru> <4E25C7AE.5020503@infradead.org> <4E25CF35.7000802@list.ru> <4E25DB37.8020609@infradead.org> <4E25FDE4.7040805@list.ru> <4E262772.9060509@infradead.org> <4E266799.8030706@list.ru> <4E26AEC0.5000405@infradead.org> <4E26B1E7.2080107@list.ru> <4E26B29B.4010109@infradead.org> <4E292BED.60108@list.ru> <4E296D00.9040608@infradead.org> <4E296F6C.9080107@list.ru> <4E2971D4.1060109@infradead.org>
-In-Reply-To: <4E2971D4.1060109@infradead.org>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+Received: from moutng.kundenserver.de ([212.227.17.8]:61043 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756297Ab1G2K5F (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 29 Jul 2011 06:57:05 -0400
+Received: from 6a.grange (6a.grange [192.168.1.11])
+	by axis700.grange (Postfix) with ESMTPS id 53949189B84
+	for <linux-media@vger.kernel.org>; Fri, 29 Jul 2011 12:57:01 +0200 (CEST)
+Received: from lyakh by 6a.grange with local (Exim 4.72)
+	(envelope-from <g.liakhovetski@gmx.de>)
+	id 1QmkkX-0007oa-7S
+	for linux-media@vger.kernel.org; Fri, 29 Jul 2011 12:57:01 +0200
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: linux-media@vger.kernel.org
+Subject: [PATCH 33/59] V4L: ov2640: remove undefined struct
+Date: Fri, 29 Jul 2011 12:56:33 +0200
+Message-Id: <1311937019-29914-34-git-send-email-g.liakhovetski@gmx.de>
+In-Reply-To: <1311937019-29914-1-git-send-email-g.liakhovetski@gmx.de>
+References: <1311937019-29914-1-git-send-email-g.liakhovetski@gmx.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-22.07.2011 16:49, Mauro Carvalho Chehab wrote:
-> Let me rephase it:
-> Some applications like mplayer don't use V4L2_CID_AUDIO_MUTE to unmute a
-> video device. They assume the current behavior that starting audio on a
-> video board also unmutes audio.
-Could you please give me a command line I can use
-to verify that? Or any pointers to the code, anything
-to check?
+struct ov2640_camera_info isn't declared anywhere, remove it.
+
+Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+---
+ drivers/media/video/ov2640.c |    3 ---
+ 1 files changed, 0 insertions(+), 3 deletions(-)
+
+diff --git a/drivers/media/video/ov2640.c b/drivers/media/video/ov2640.c
+index 78bf602..31f361e 100644
+--- a/drivers/media/video/ov2640.c
++++ b/drivers/media/video/ov2640.c
+@@ -300,7 +300,6 @@ struct ov2640_win_size {
+ 
+ struct ov2640_priv {
+ 	struct v4l2_subdev		subdev;
+-	struct ov2640_camera_info	*info;
+ 	enum v4l2_mbus_pixelcode	cfmt_code;
+ 	const struct ov2640_win_size	*win;
+ 	int				model;
+@@ -1153,8 +1152,6 @@ static int ov2640_probe(struct i2c_client *client,
+ 		return -ENOMEM;
+ 	}
+ 
+-	priv->info = icl->priv;
+-
+ 	v4l2_i2c_subdev_init(&priv->subdev, client, &ov2640_subdev_ops);
+ 
+ 	icd->ops = &ov2640_ops;
+-- 
+1.7.2.5
+
