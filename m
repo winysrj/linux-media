@@ -1,76 +1,93 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.17.10]:62211 "EHLO
+Received: from moutng.kundenserver.de ([212.227.17.10]:50010 "EHLO
 	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751655Ab1GPVkZ (ORCPT
+	with ESMTP id S1756291Ab1G2K5F (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 16 Jul 2011 17:40:25 -0400
-Date: Sat, 16 Jul 2011 23:40:23 +0200 (CEST)
+	Fri, 29 Jul 2011 06:57:05 -0400
+Received: from 6a.grange (6a.grange [192.168.1.11])
+	by axis700.grange (Postfix) with ESMTPS id E6A6D18B03D
+	for <linux-media@vger.kernel.org>; Fri, 29 Jul 2011 12:57:01 +0200 (CEST)
+Received: from lyakh by 6a.grange with local (Exim 4.72)
+	(envelope-from <g.liakhovetski@gmx.de>)
+	id 1QmkkX-0007pD-R5
+	for linux-media@vger.kernel.org; Fri, 29 Jul 2011 12:57:01 +0200
 From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-cc: linux-media@vger.kernel.org
-Subject: Re: [PATCH] v4l: mt9v032: Fix Bayer pattern
-In-Reply-To: <201107161152.09214.laurent.pinchart@ideasonboard.com>
-Message-ID: <Pine.LNX.4.64.1107162206010.6202@axis700.grange>
-References: <1310761106-29722-1-git-send-email-laurent.pinchart@ideasonboard.com>
- <Pine.LNX.4.64.1107160109000.27399@axis700.grange>
- <201107161152.09214.laurent.pinchart@ideasonboard.com>
-MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+To: linux-media@vger.kernel.org
+Subject: [PATCH 46/59] V4L: ov2640: remove superfluous soc-camera client operations
+Date: Fri, 29 Jul 2011 12:56:46 +0200
+Message-Id: <1311937019-29914-47-git-send-email-g.liakhovetski@gmx.de>
+In-Reply-To: <1311937019-29914-1-git-send-email-g.liakhovetski@gmx.de>
+References: <1311937019-29914-1-git-send-email-g.liakhovetski@gmx.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sat, 16 Jul 2011, Laurent Pinchart wrote:
+Now that all soc-camera hosts have been ported to use V4L2 subdevice
+mediabus-config operations and soc-camera client bus-parameter operations
+have been made optional, they can be removed.
 
-> Hi Guennadi,
-> 
-> On Saturday 16 July 2011 01:11:28 Guennadi Liakhovetski wrote:
-> > On Fri, 15 Jul 2011, Laurent Pinchart wrote:
-> > > Compute crop rectangle boundaries to ensure a GRBG Bayer pattern.
-> > > 
-> > > Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-> > > ---
-> > > 
-> > >  drivers/media/video/mt9v032.c |   20 ++++++++++----------
-> > >  1 files changed, 10 insertions(+), 10 deletions(-)
-> > > 
-> > > If there's no comment I'll send a pull request for this patch in a couple
-> > > of days.
-> > 
-> > Hm, I might have a comment: why?... Isn't it natural to accept the fact,
-> > that different sensors put a different Bayer pixel at their sensor matrix
-> > origin? Isn't that why we have all possible Bayer formats? Maybe you just
-> > have to choose a different output format?
-> 
-> That's the other solution. The driver currently claims the device outputs 
-> SGRBG, but configures it to output SGBGR. This is clearly a bug. Is it better 
-> to modify the format than the crop rectangle location ?
-
-Actually, it is interesting. I just looked (again) in the mt9v032 and some 
-other Aptina Bayer sensor datasheets, and they actually have _odd_ numbers 
-of rows and columns. So, mt9v032 actually has 753x481 active pixels. And 
-that extra pixel is explicitly provided to adjust the origin colour. Ok, 
-they write, it is for uniformity with the mirrored image, but who believes 
-them?;-) So, maybe you should adjust your max values to the above ones, 
-then taking one pixel out of your image will not reduce your useful image 
-size.
-
-Thanks
-Guennadi
-
-> The OMAP3 ISP supports all Bayer formats, but the driver configures itself for 
-> SGRBG by default. Using another pattern currently requires userspace software 
-> to change several hardware-dependent parameters (including matrices and 
-> tables). This should eventually be fixed in the OMAP3 ISP driver, but for the 
-> time being application developers will have an easier life if the sensor 
-> outputs SGRBG instead of SGBRG.
-> 
-> -- 
-> Regards,
-> 
-> Laurent Pinchart
-> 
-
+Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
 ---
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
-http://www.open-technology.de/
+ drivers/media/video/ov2640.c |   40 ----------------------------------------
+ 1 files changed, 0 insertions(+), 40 deletions(-)
+
+diff --git a/drivers/media/video/ov2640.c b/drivers/media/video/ov2640.c
+index 31f361e..2826aff 100644
+--- a/drivers/media/video/ov2640.c
++++ b/drivers/media/video/ov2640.c
+@@ -701,44 +701,6 @@ static int ov2640_s_stream(struct v4l2_subdev *sd, int enable)
+ 	return 0;
+ }
+ 
+-static int ov2640_set_bus_param(struct soc_camera_device *icd,
+-				unsigned long flags)
+-{
+-	struct soc_camera_link *icl = to_soc_camera_link(icd);
+-	unsigned long width_flag = flags & SOCAM_DATAWIDTH_MASK;
+-
+-	/* Only one width bit may be set */
+-	if (!is_power_of_2(width_flag))
+-		return -EINVAL;
+-
+-	if (icl->set_bus_param)
+-		return icl->set_bus_param(icl, width_flag);
+-
+-	/*
+-	 * Without board specific bus width settings we support only the
+-	 * sensors native bus width witch are tested working
+-	 */
+-	if (width_flag & (SOCAM_DATAWIDTH_10 | SOCAM_DATAWIDTH_8))
+-		return 0;
+-
+-	return 0;
+-}
+-
+-static unsigned long ov2640_query_bus_param(struct soc_camera_device *icd)
+-{
+-	struct soc_camera_link *icl = to_soc_camera_link(icd);
+-	unsigned long flags = SOCAM_PCLK_SAMPLE_RISING | SOCAM_MASTER |
+-		SOCAM_VSYNC_ACTIVE_HIGH | SOCAM_HSYNC_ACTIVE_HIGH |
+-		SOCAM_DATA_ACTIVE_HIGH;
+-
+-	if (icl->query_bus_param)
+-		flags |= icl->query_bus_param(icl) & SOCAM_DATAWIDTH_MASK;
+-	else
+-		flags |= SOCAM_DATAWIDTH_10;
+-
+-	return soc_camera_apply_sensor_flags(icl, flags);
+-}
+-
+ static int ov2640_g_ctrl(struct v4l2_subdev *sd, struct v4l2_control *ctrl)
+ {
+ 	struct i2c_client  *client = v4l2_get_subdevdata(sd);
+@@ -1067,8 +1029,6 @@ err:
+ }
+ 
+ static struct soc_camera_ops ov2640_ops = {
+-	.set_bus_param		= ov2640_set_bus_param,
+-	.query_bus_param	= ov2640_query_bus_param,
+ 	.controls		= ov2640_controls,
+ 	.num_controls		= ARRAY_SIZE(ov2640_controls),
+ };
+-- 
+1.7.2.5
+
