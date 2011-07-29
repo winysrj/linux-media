@@ -1,83 +1,44 @@
-Return-path: <mchehab@pedra>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:46109 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752584Ab1GDF6l convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 4 Jul 2011 01:58:41 -0400
-From: "Hadli, Manjunath" <manjunath.hadli@ti.com>
-To: "'Sakari Ailus'" <sakari.ailus@iki.fi>
-CC: LMML <linux-media@vger.kernel.org>,
-	dlos <davinci-linux-open-source@linux.davincidsp.com>,
-	"laurent.pinchart@ideasonboard.com"
-	<laurent.pinchart@ideasonboard.com>
-Date: Mon, 4 Jul 2011 11:28:06 +0530
-Subject: RE: [ RFC PATCH 0/8] RFC for Media Controller capture driver for
- DM365
-Message-ID: <B85A65D85D7EB246BE421B3FB0FBB593024BCEF739@dbde02.ent.ti.com>
-References: <1309439597-15998-1-git-send-email-manjunath.hadli@ti.com>
- <20110630135736.GK12671@valkosipuli.localdomain>
-In-Reply-To: <20110630135736.GK12671@valkosipuli.localdomain>
-Content-Language: en-US
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-MIME-Version: 1.0
+Return-path: <linux-media-owner@vger.kernel.org>
+Received: from moutng.kundenserver.de ([212.227.126.186]:52172 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755659Ab1G2K5H (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 29 Jul 2011 06:57:07 -0400
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: linux-media@vger.kernel.org
+Cc: Paul Mundt <lethal@linux-sh.org>
+Subject: [PATCH 20/59] ARM: ap4evb: switch imx074 configuration to default number of lanes
+Date: Fri, 29 Jul 2011 12:56:20 +0200
+Message-Id: <1311937019-29914-21-git-send-email-g.liakhovetski@gmx.de>
+In-Reply-To: <1311937019-29914-1-git-send-email-g.liakhovetski@gmx.de>
+References: <1311937019-29914-1-git-send-email-g.liakhovetski@gmx.de>
+Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
-Sender: <mchehab@pedra>
 
-Sakari,
- Thank you for the comments. My responses inlined.
+The sh_mobile_csi2 driver will change meaning of the .lanes platform
+data field from "bitmask of used lanes" to "number of used lanes."
+To avoid a regression during this transition switch ap4evb to rely
+on the 2 lane default.
 
--Manjunath
+Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Cc: Paul Mundt <lethal@linux-sh.org>
+---
+ arch/arm/mach-shmobile/board-ap4evb.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
 
-On Thu, Jun 30, 2011 at 19:27:36, Sakari Ailus wrote:
-> Hi Manjunath,
-> 
-> Thanks for the patches.
-> 
-> On Thu, Jun 30, 2011 at 06:43:09PM +0530, Manjunath Hadli wrote:
-> > Thease are the RFC patches for the DM365 video capture, of which the 
-> > current set includes only CCDC and the VPFE framework. Once the 
-> > present set is reviewed, I will send out the other parts like H3A, 
-> > sensor additions etc.
-> > 
-> > Introduction
-> > ------------
-> > This is the proposal of the initial version of design and 
-> > implementation  of the Davinci family (dm644x,dm355,dm365)VPFE (Video 
-> > Port Front End) drivers using Media Controloler , the initial version 
-> > which supports the following:
-> > 1) dm365 vpfe
-> > 2) ccdc,previewer,resizer,h3a,af blocks
-> > 3) supports both continuous and single-shot modes
-> > 4) supports user pointer exchange and memory mapped modes for buffer 
-> > allocation
-> > 
-> > This driver bases its design on Laurent Pinchart's Media Controller 
-> > Design whose patches for Media Controller and subdev enhancements form the base.
-> > The driver also takes copious elements taken from Laurent Pinchart and 
-> > others' OMAP ISP driver based on Media Controller. So thank you all 
-> > the people who are responsible for the Media Controller and the OMAP ISP driver.
-> 
-> This may be a stupid question, but how much changes are there between this driver and the OMAP 3 ISP driver?
-The elements which pertain to how to write to media controller driver for a capture device have been imbibed from the OMAP3 but as such the code is very different. For example the v4l2 video routines as an almost separate library is a good element we took as a design, but the rest of it is entirely different.
-> 
-> I understand that not all the blocks are there. Are there any major functional differences between those in Davinci and those in OMAP 3? Could the OMAP 3 ISP driver made support Davinci ISP as well?
-Yes, there are a lot of major differences between OMAP3 and Dm365/Dm355, both in terms of features, there IP, and the software interface, including all the registers which are entirely different. The closest omap3 would come to is only to DM6446. 
- I do not think OMAP3 driver can be made to support Dm355 and Dm365. It is good to keep the OMAP3 neat and clean to cater for OMAP4 and beyond, and keep the Davinci family separate. The names might look similar and hence confusing for you, but the names can as well be made the same as Dm365 blocks like ISIF and IPIPE and IPIPEIF which are different.
-
-> 
-> There are number of possible improvements that still should be made to the OMAP 3 ISP driver so this way both of the driver would easily get them. To mention some:
-> 
-> - Multiple output pipeline
-> - Switch to videobuf2
-> - Switch to GENIRQ
-Sure. There is definitely a design element convergence, and overtime I think some of these would get into the core v4l2 infrastructure.
-> 
-> Cc Laurent.
-> 
-> Regards,
-> 
-> --
-> Sakari Ailus
-> sakari.ailus@iki.fi
-> 
+diff --git a/arch/arm/mach-shmobile/board-ap4evb.c b/arch/arm/mach-shmobile/board-ap4evb.c
+index 67b3d0b..47151dc 100644
+--- a/arch/arm/mach-shmobile/board-ap4evb.c
++++ b/arch/arm/mach-shmobile/board-ap4evb.c
+@@ -931,7 +931,7 @@ static struct platform_device ap4evb_camera = {
+ static struct sh_csi2_client_config csi2_clients[] = {
+ 	{
+ 		.phy		= SH_CSI2_PHY_MAIN,
+-		.lanes		= 3,
++		.lanes		= 0,		/* default: 2 lanes */
+ 		.channel	= 0,
+ 		.pdev		= &ap4evb_camera,
+ 	},
+-- 
+1.7.2.5
 
