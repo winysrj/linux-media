@@ -1,85 +1,83 @@
-Return-path: <mchehab@pedra>
-Received: from mx1.redhat.com ([209.132.183.28]:63461 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755104Ab1GALmp (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 1 Jul 2011 07:42:45 -0400
-Message-ID: <4E0DB2A8.10102@redhat.com>
-Date: Fri, 01 Jul 2011 08:42:32 -0300
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-MIME-Version: 1.0
-To: Sakari Ailus <sakari.ailus@iki.fi>
-CC: Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org,
-	laurent.pinchart@ideasonboard.com
-Subject: Re: [GIT PULL FOR 3.1] Bitmask controls, flash API and adp1653 driver
-References: <20110610092703.GH7830@valkosipuli.localdomain> <4E0D226E.5010809@redhat.com> <201107010957.39930.hverkuil@xs4all.nl> <20110701111512.GN12671@valkosipuli.localdomain>
-In-Reply-To: <20110701111512.GN12671@valkosipuli.localdomain>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+Return-path: <linux-media-owner@vger.kernel.org>
+Received: from moutng.kundenserver.de ([212.227.126.171]:51829 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756055Ab1G2K5D (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 29 Jul 2011 06:57:03 -0400
+Received: from 6a.grange (6a.grange [192.168.1.11])
+	by axis700.grange (Postfix) with ESMTPS id 97AC718B042
+	for <linux-media@vger.kernel.org>; Fri, 29 Jul 2011 12:57:00 +0200 (CEST)
+Received: from lyakh by 6a.grange with local (Exim 4.72)
+	(envelope-from <g.liakhovetski@gmx.de>)
+	id 1QmkkW-0007nn-Db
+	for linux-media@vger.kernel.org; Fri, 29 Jul 2011 12:57:00 +0200
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: linux-media@vger.kernel.org
+Subject: [PATCH 17/59] V4L: ov9640: support the new mbus-config subdev ops
+Date: Fri, 29 Jul 2011 12:56:17 +0200
+Message-Id: <1311937019-29914-18-git-send-email-g.liakhovetski@gmx.de>
+In-Reply-To: <1311937019-29914-1-git-send-email-g.liakhovetski@gmx.de>
+References: <1311937019-29914-1-git-send-email-g.liakhovetski@gmx.de>
+Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
-Sender: <mchehab@pedra>
 
-Em 01-07-2011 08:15, Sakari Ailus escreveu:
-> On Fri, Jul 01, 2011 at 09:57:39AM +0200, Hans Verkuil wrote:
->> On Friday, July 01, 2011 03:27:10 Mauro Carvalho Chehab wrote:
->>> Em 10-06-2011 06:27, Sakari Ailus escreveu:
->>>> Hi Mauro,
->>>>
->>>> This pull request adds the bitmask controls, flash API and the adp1653
->>>> driver. What has changed since the patches is:
->>>>
->>>> - Adp1653 flash faults control is volatile. Fix this.
->>>> - Flash interface marked as experimental.
->>>> - Moved the DocBook documentation to a new location.
->>>> - The target version is 3.1, not 2.6.41.
->>>>
->>>> The following changes since commit 75125b9d44456e0cf2d1fbb72ae33c13415299d1:
->>>>
->>>>   [media] DocBook: Don't be noisy at make cleanmediadocs (2011-06-09 16:40:58 -0300)
->>>>
->>>> are available in the git repository at:
->>>>   ssh://linuxtv.org/git/sailus/media_tree.git media-for-3.1
->>>>
->>>> Hans Verkuil (3):
->>>>       v4l2-ctrls: add new bitmask control type.
->>>>       vivi: add bitmask test control.
->>>>       DocBook: document V4L2_CTRL_TYPE_BITMASK.
->>>
->>> I'm sure I've already mentioned, but I think it was at the Hans pull request:
->>> the specs don't mention what endiannes is needed for the bitmask controls: 
->>> machine endianess, little endian or big endian.  IMO, we should stick with either
->>> LE or BE.
->>
->> Sorry Sakari, I should have fixed that. But since the patch was going through
->> your repository I forgot about it. Anyway, it should be machine endianess. You
->> have to be able to do (value & bit_define). The bit_defines for each bitmask
->> control should be part of the control's definition in videodev2.h.
->>
->> It makes no sense to require LE or BE. We don't do that for other control types,
->> so why should bitmask be any different?
->>
->> Can you add this clarification to DocBook?
-> 
-> Thinking about this some more, if we're to say something about the
-> endianness we should specify it for all controls, not just bitmasks. I
-> really wonder if need this at all: why would you think the endianness in a
-> bitmask would be some other than machine endianness, be it a V4L2 control or
-> a flags field in, say, struct v4l2_buffer? It would make sense to document
-> it if it differs from the norm, so in my opinion such statement would be
-> redundant.
+Extend the driver to also support [gs]_mbus_config() subdevice video
+operations.
 
-Because someone might have the "bright" idea of exposing a hardware register via
-V4L2_CTRL_TYPE_BITMASK directly without reminding about the endiannes, and do the
-wrong thing.
+Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+---
+ drivers/media/video/ov9640.c |   22 ++++++++++++++++++++--
+ 1 files changed, 20 insertions(+), 2 deletions(-)
 
-There's not much problem on being redundant at the specs, but not specifying it
-means that different implementations will still be valid.
+diff --git a/drivers/media/video/ov9640.c b/drivers/media/video/ov9640.c
+index 3681a6f..4156c9f 100644
+--- a/drivers/media/video/ov9640.c
++++ b/drivers/media/video/ov9640.c
+@@ -25,9 +25,11 @@
+ #include <linux/slab.h>
+ #include <linux/delay.h>
+ #include <linux/videodev2.h>
++
++#include <media/soc_camera.h>
++#include <media/soc_mediabus.h>
+ #include <media/v4l2-chip-ident.h>
+ #include <media/v4l2-common.h>
+-#include <media/soc_camera.h>
+ 
+ #include "ov9640.h"
+ 
+@@ -722,6 +724,22 @@ static struct v4l2_subdev_core_ops ov9640_core_ops = {
+ 
+ };
+ 
++static int ov9640_g_mbus_config(struct v4l2_subdev *sd,
++				struct v4l2_mbus_config *cfg)
++{
++	struct i2c_client *client = v4l2_get_subdevdata(sd);
++	struct soc_camera_device *icd = client->dev.platform_data;
++	struct soc_camera_link *icl = to_soc_camera_link(icd);
++
++	cfg->flags = V4L2_MBUS_PCLK_SAMPLE_RISING | V4L2_MBUS_MASTER |
++		V4L2_MBUS_VSYNC_ACTIVE_HIGH | V4L2_MBUS_HSYNC_ACTIVE_HIGH |
++		V4L2_MBUS_DATA_ACTIVE_HIGH;
++	cfg->type = V4L2_MBUS_PARALLEL;
++	cfg->flags = soc_camera_apply_board_flags(icl, cfg);
++
++	return 0;
++}
++
+ static struct v4l2_subdev_video_ops ov9640_video_ops = {
+ 	.s_stream	= ov9640_s_stream,
+ 	.s_mbus_fmt	= ov9640_s_fmt,
+@@ -729,7 +747,7 @@ static struct v4l2_subdev_video_ops ov9640_video_ops = {
+ 	.enum_mbus_fmt	= ov9640_enum_fmt,
+ 	.cropcap	= ov9640_cropcap,
+ 	.g_crop		= ov9640_g_crop,
+-
++	.g_mbus_config	= ov9640_g_mbus_config,
+ };
+ 
+ static struct v4l2_subdev_ops ov9640_subdev_ops = {
+-- 
+1.7.2.5
 
-Btw, if you take a look at the descriptions for RGB format at the spec, you'll see
-that endiannes problems already happened in the past: the specs had to explicitly
-allow both endiannes for a few RGB formats due to that.
-
-I'm ok if we standardize that it should be the machine endiannes, but we should
-be explicit on that.
-
-Cheers,
-Mauro
