@@ -1,56 +1,94 @@
-Return-path: <mchehab@localhost>
-Received: from emh02.mail.saunalahti.fi ([62.142.5.108]:56435 "EHLO
-	emh02.mail.saunalahti.fi" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756056Ab1GFT7Y (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 6 Jul 2011 15:59:24 -0400
-Message-ID: <4E14BE93.2030205@kolumbus.fi>
-Date: Wed, 06 Jul 2011 22:59:15 +0300
-From: Marko Ristola <marko.ristola@kolumbus.fi>
-MIME-Version: 1.0
-To: Devin Heitmueller <dheitmueller@kernellabs.com>
-CC: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	Andy Walls <awalls@md.metrocast.net>,
-	linux-media@vger.kernel.org
-Subject: Re: [RFCv2 PATCH 0/5] tuner-core: fix s_std and s_tuner
-References: <1307804731-16430-1-git-send-email-hverkuil@xs4all.nl>	<201106152237.02427.hverkuil@xs4all.nl>	<BANLkTimVQDoHo+5-2ZkU0sE0LWiUjHeBXg@mail.gmail.com>	<201106160821.15352.hverkuil@xs4all.nl>	<4DF9E5AB.1050707@redhat.com>	<BANLkTi=Wq=swMMBfK+X9gVQ0XhL4OSxXFA@mail.gmail.com>	<4E14A127.8040805@kolumbus.fi> <CAGoCfiwjXYBR8FBYMS8BsBM20mCQLvWQbyhLh-psA_HX73SGjw@mail.gmail.com>
-In-Reply-To: <CAGoCfiwjXYBR8FBYMS8BsBM20mCQLvWQbyhLh-psA_HX73SGjw@mail.gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Return-path: <linux-media-owner@vger.kernel.org>
+Received: from moutng.kundenserver.de ([212.227.126.171]:55490 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755619Ab1G2K5D (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 29 Jul 2011 06:57:03 -0400
+Received: from 6a.grange (6a.grange [192.168.1.11])
+	by axis700.grange (Postfix) with ESMTPS id E93C7189B6F
+	for <linux-media@vger.kernel.org>; Fri, 29 Jul 2011 12:56:59 +0200 (CEST)
+Received: from lyakh by 6a.grange with local (Exim 4.72)
+	(envelope-from <g.liakhovetski@gmx.de>)
+	id 1QmkkV-0007n2-PD
+	for linux-media@vger.kernel.org; Fri, 29 Jul 2011 12:56:59 +0200
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: linux-media@vger.kernel.org
+Subject: [PATCH 02/59] V4L: sh_mobile_ceu_camera: don't try to improve client scaling, if perfect
+Date: Fri, 29 Jul 2011 12:56:02 +0200
+Message-Id: <1311937019-29914-3-git-send-email-g.liakhovetski@gmx.de>
+In-Reply-To: <1311937019-29914-1-git-send-email-g.liakhovetski@gmx.de>
+References: <1311937019-29914-1-git-send-email-g.liakhovetski@gmx.de>
+Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
-Sender: <mchehab@infradead.org>
 
-06.07.2011 21:17, Devin Heitmueller kirjoitti:
-> On Wed, Jul 6, 2011 at 1:53 PM, Marko Ristola <marko.ristola@kolumbus.fi> wrote:
->>
-> 
-> All that said, I believe that you are correct in that the business
-> logic needs to ultimately be decided by the bridge driver, rather than
-> having the dvb/tuner core blindly calling the sleep routines against
-> the tuner and demod drivers without a full understanding of what
-> impact it has on the board as a whole.
+If the client has managed to configure the precise output format,
+we don't have to try to further improve it.
 
-You wrote it nicely and compactly.
+Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+---
+ drivers/media/video/sh_mobile_ceu_camera.c |   21 ++++++++++++++++-----
+ 1 files changed, 16 insertions(+), 5 deletions(-)
 
-What do you think about tracking coarse last busy time rather than figuring out accurate idle time?
+diff --git a/drivers/media/video/sh_mobile_ceu_camera.c b/drivers/media/video/sh_mobile_ceu_camera.c
+index 2e5a01d..407b96a 100644
+--- a/drivers/media/video/sh_mobile_ceu_camera.c
++++ b/drivers/media/video/sh_mobile_ceu_camera.c
+@@ -1279,6 +1279,7 @@ static int client_s_fmt(struct soc_camera_device *icd,
+ 	unsigned int width = mf->width, height = mf->height, tmp_w, tmp_h;
+ 	unsigned int max_width, max_height;
+ 	struct v4l2_cropcap cap;
++	bool ceu_1to1;
+ 	int ret;
+ 
+ 	ret = v4l2_device_call_until_err(sd->v4l2_dev, (long)icd, video,
+@@ -1288,7 +1289,14 @@ static int client_s_fmt(struct soc_camera_device *icd,
+ 
+ 	dev_geo(dev, "camera scaled to %ux%u\n", mf->width, mf->height);
+ 
+-	if ((width == mf->width && height == mf->height) || !ceu_can_scale)
++	if (width == mf->width && height == mf->height) {
++		/* Perfect! The client has done it all. */
++		ceu_1to1 = true;
++		goto update_cache;
++	}
++
++	ceu_1to1 = false;
++	if (!ceu_can_scale)
+ 		goto update_cache;
+ 
+ 	cap.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
+@@ -1328,7 +1336,10 @@ update_cache:
+ 	if (ret < 0)
+ 		return ret;
+ 
+-	update_subrect(cam);
++	if (ceu_1to1)
++		cam->subrect = cam->rect;
++	else
++		update_subrect(cam);
+ 
+ 	return 0;
+ }
+@@ -1579,8 +1590,8 @@ static void calculate_client_output(struct soc_camera_device *icd,
+ 	dev_geo(dev, "3: scales %u:%u\n", scale_h, scale_v);
+ 
+ 	/*
+-	 * 4. Calculate client output window by applying combined scales to real
+-	 *    input window.
++	 * 4. Calculate desired client output window by applying combined scales
++	 *    to client (real) input window.
+ 	 */
+ 	mf->width	= scale_down(cam->rect.width, scale_h);
+ 	mf->height	= scale_down(cam->rect.height, scale_v);
+@@ -1627,7 +1638,7 @@ static int sh_mobile_ceu_set_fmt(struct soc_camera_device *icd,
+ 		return -EINVAL;
+ 	}
+ 
+-	/* 1.-4. Calculate client output geometry */
++	/* 1.-4. Calculate desired client output geometry */
+ 	calculate_client_output(icd, pix, &mf);
+ 	mf.field	= pix->field;
+ 	mf.colorspace	= pix->colorspace;
+-- 
+1.7.2.5
 
-dvb_frontend.c and V4L side would just poll the device:
-"bridge->wake()". wake() will just store current "busy" timestamp to the bridge device
-with coarse accuracy, if subdevices are already at active state.
-If subdevices are powered off, it will first power them on and resume them, and then store "busy" timestamp.
-
-Bridge device would have a "delayed task": "Check after 3 minutes: If I haven't been busy
-for three minutes, I'll go to sleep. I'll suspend the subdevices and power them off."
-
-The "delayed task" would refresh itself: check again after last awake time + 3 minutes.
-
-"Delayed task" could be further developed to support multiple suspend states.
-
-> 
-> Cheers,
-> 
-> Devin
-> 
-
-
-Marko
