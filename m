@@ -1,270 +1,132 @@
-Return-path: <mchehab@localhost>
-Received: from mx1.redhat.com ([209.132.183.28]:36577 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756562Ab1GKCAA (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 10 Jul 2011 22:00:00 -0400
-Received: from int-mx10.intmail.prod.int.phx2.redhat.com (int-mx10.intmail.prod.int.phx2.redhat.com [10.5.11.23])
-	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id p6B200VM018186
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
-	for <linux-media@vger.kernel.org>; Sun, 10 Jul 2011 22:00:00 -0400
-Received: from pedra (vpn-225-29.phx2.redhat.com [10.3.225.29])
-	by int-mx10.intmail.prod.int.phx2.redhat.com (8.14.4/8.14.4) with ESMTP id p6B1xKKg030664
-	for <linux-media@vger.kernel.org>; Sun, 10 Jul 2011 21:59:59 -0400
-Date: Sun, 10 Jul 2011 22:59:03 -0300
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: [PATCH 17/21] [media] drxk: Improves the UIO handling
-Message-ID: <20110710225903.1046ca38@pedra>
-In-Reply-To: <cover.1310347962.git.mchehab@redhat.com>
-References: <cover.1310347962.git.mchehab@redhat.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
-To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
+Return-path: <linux-media-owner@vger.kernel.org>
+Received: from mail-iy0-f174.google.com ([209.85.210.174]:50022 "EHLO
+	mail-iy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755806Ab1G2JKt convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 29 Jul 2011 05:10:49 -0400
+Received: by iyb12 with SMTP id 12so3796139iyb.19
+        for <linux-media@vger.kernel.org>; Fri, 29 Jul 2011 02:10:48 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <201107271951.37601.laurent.pinchart@ideasonboard.com>
+References: <CACKLOr1veNZ_6E3V_m1Tf+mxxUAKiRKDbboW-fMbRGUrLns_XA@mail.gmail.com>
+	<1311757981-6968-1-git-send-email-laurent.pinchart@ideasonboard.com>
+	<20110727101305.GI32629@valkosipuli.localdomain>
+	<201107271951.37601.laurent.pinchart@ideasonboard.com>
+Date: Fri, 29 Jul 2011 11:10:48 +0200
+Message-ID: <CACKLOr1iDXcftKqw14i4K6aoxWaR7iHSv0VHbSFEJcar1L62ug@mail.gmail.com>
+Subject: Re: [PATCH] mt9p031: Aptina (Micron) MT9P031 5MP sensor driver
+From: javier Martin <javier.martin@vista-silicon.com>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: Sakari Ailus <sakari.ailus@iki.fi>, linux-media@vger.kernel.org,
+	shotty317@gmail.com
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
+Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
-Sender: <mchehab@infradead.org>
 
-The driver is too limited: it assumes that UIO is used only for
-controlling the antenna, and that only UIO-1 is in usage. However,
-from Terratec H7 driver [1], 3 UIO's can be used. In fact, it seems
-that H7 needs to use all 3. So, make the code generic enough to handle
-the most complex scenario. For now, only antena GPIO can be specified,
-but is is easier now to add the other GPIO/UIO needs.
+Hi Laurent,
+I've been reviewing and testing your patch as promised.
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+On 27 July 2011 19:51, Laurent Pinchart
+<laurent.pinchart@ideasonboard.com> wrote:
+>> > +static int mt9p031_pll_enable(struct mt9p031 *mt9p031)
+>> > +{
+>> > +   struct i2c_client *client = v4l2_get_subdevdata(&mt9p031->subdev);
+>> > +   int ret;
+>> > +
+>> > +   ret = mt9p031_write(client, MT9P031_PLL_CONTROL,
+>> > +                       MT9P031_PLL_CONTROL_PWRON);
+>> > +   if (ret < 0)
+>> > +           return ret;
+>> > +
+>> > +   ret = mt9p031_write(client, MT9P031_PLL_CONFIG_1,
+>> > +                       (mt9p031->m << 8) | (mt9p031->n - 1));
+>> > +   if (ret < 0)
+>> > +           return ret;
+>> > +
+>> > +   ret = mt9p031_write(client, MT9P031_PLL_CONFIG_2, mt9p031->p1 - 1);
+>> > +   if (ret < 0)
+>> > +           return ret;
+>> > +
+>> > +   mdelay(1);
+>>
+>> mdelay() is a busyloop. Either msleep(), if the timing isn't critical, and
+>> if it is, then usleep_range().
+>
+> Timing isn't critical, but that's a stream-on delay, so I'll use
+> usleep_range().
+>
+>> > +   ret = mt9p031_write(client, MT9P031_PLL_CONTROL,
+>> > +                       MT9P031_PLL_CONTROL_PWRON |
+>> > +                       MT9P031_PLL_CONTROL_USEPLL);
+>> > +   mdelay(1);
+>
+> Javier, is this second mdelay() needed ?
 
-diff --git a/drivers/media/dvb/frontends/drxk.h b/drivers/media/dvb/frontends/drxk.h
-index 67589b6..a756e45 100644
---- a/drivers/media/dvb/frontends/drxk.h
-+++ b/drivers/media/dvb/frontends/drxk.h
-@@ -10,18 +10,21 @@
-  * adr:			I2C Address of the DRX-K
-  * single_master:	Device is on the single master mode
-  * no_i2c_bridge:	Don't switch the I2C bridge to talk with tuner
-- * antenna_uses_gpio:	Use GPIO to control the antenna
-- * antenna_dvbc:	GPIO for changing antenna to DVB-C
-- * antenna_dvbt:	GPIO for changing antenna to DVB-T
-+ * antenna_gpio:	GPIO bit used to control the antenna
-+ * antenna_dvbt:	GPIO bit for changing antenna to DVB-C. A value of 1
-+ *			means that 1=DVBC, 0 = DVBT. Zero means the opposite.
-  * microcode_name:	Name of the firmware file with the microcode
-+ *
-+ * On the *_gpio vars, bit 0 is UIO-1, bit 1 is UIO-2 and bit 2 is
-+ * UIO-3.
-  */
- struct drxk_config {
- 	u8	adr;
- 	bool	single_master;
- 	bool	no_i2c_bridge;
- 
--	bool	antenna_uses_gpio;
--	u16	antenna_dvbc, antenna_dvbt;
-+	bool	antenna_dvbt;
-+	u16	antenna_gpio;
- 
- 	const char *microcode_name;
- };
-diff --git a/drivers/media/dvb/frontends/drxk_hard.c b/drivers/media/dvb/frontends/drxk_hard.c
-index 0d288a7..aaef8e3 100644
---- a/drivers/media/dvb/frontends/drxk_hard.c
-+++ b/drivers/media/dvb/frontends/drxk_hard.c
-@@ -856,7 +856,6 @@ static int init_state(struct drxk_state *state)
- 	state->m_agcFastClipCtrlDelay = 0;
- 
- 	state->m_GPIOCfg = (ulGPIOCfg);
--	state->m_GPIO = (ulGPIO == 0 ? 0 : 1);
- 
- 	state->m_bPowerDown = false;
- 	state->m_currentPowerMode = DRX_POWER_DOWN;
-@@ -5795,24 +5794,63 @@ static int WriteGPIO(struct drxk_state *state)
- 		goto error;
- 
- 	if (state->m_hasSAWSW) {
--		/* write to io pad configuration register - output mode */
--		status = write16(state, SIO_PDR_SMA_TX_CFG__A, state->m_GPIOCfg);
--		if (status < 0)
--			goto error;
-+		if (state->UIO_mask & 0x0001) { /* UIO-1 */
-+			/* write to io pad configuration register - output mode */
-+			status = write16(state, SIO_PDR_SMA_TX_CFG__A, state->m_GPIOCfg);
-+			if (status < 0)
-+				goto error;
- 
--		/* use corresponding bit in io data output registar */
--		status = read16(state, SIO_PDR_UIO_OUT_LO__A, &value);
--		if (status < 0)
--			goto error;
--		if (state->m_GPIO == 0)
--			value &= 0x7FFF;	/* write zero to 15th bit - 1st UIO */
--		else
--			value |= 0x8000;	/* write one to 15th bit - 1st UIO */
--		/* write back to io data output register */
--		status = write16(state, SIO_PDR_UIO_OUT_LO__A, value);
--		if (status < 0)
--			goto error;
-+			/* use corresponding bit in io data output registar */
-+			status = read16(state, SIO_PDR_UIO_OUT_LO__A, &value);
-+			if (status < 0)
-+				goto error;
-+			if ((state->m_GPIO & 0x0001) == 0)
-+				value &= 0x7FFF;	/* write zero to 15th bit - 1st UIO */
-+			else
-+				value |= 0x8000;	/* write one to 15th bit - 1st UIO */
-+			/* write back to io data output register */
-+			status = write16(state, SIO_PDR_UIO_OUT_LO__A, value);
-+			if (status < 0)
-+				goto error;
-+		}
-+		if (state->UIO_mask & 0x0002) { /* UIO-2 */
-+			/* write to io pad configuration register - output mode */
-+			status = write16(state, SIO_PDR_SMA_TX_CFG__A, state->m_GPIOCfg);
-+			if (status < 0)
-+				goto error;
- 
-+			/* use corresponding bit in io data output registar */
-+			status = read16(state, SIO_PDR_UIO_OUT_LO__A, &value);
-+			if (status < 0)
-+				goto error;
-+			if ((state->m_GPIO & 0x0002) == 0)
-+				value &= 0xBFFF;	/* write zero to 14th bit - 2st UIO */
-+			else
-+				value |= 0x4000;	/* write one to 14th bit - 2st UIO */
-+			/* write back to io data output register */
-+			status = write16(state, SIO_PDR_UIO_OUT_LO__A, value);
-+			if (status < 0)
-+				goto error;
-+		}
-+		if (state->UIO_mask & 0x0004) { /* UIO-3 */
-+			/* write to io pad configuration register - output mode */
-+			status = write16(state, SIO_PDR_SMA_TX_CFG__A, state->m_GPIOCfg);
-+			if (status < 0)
-+				goto error;
-+
-+			/* use corresponding bit in io data output registar */
-+			status = read16(state, SIO_PDR_UIO_OUT_LO__A, &value);
-+			if (status < 0)
-+				goto error;
-+			if ((state->m_GPIO & 0x0004) == 0)
-+				value &= 0xFFFB;            /* write zero to 2nd bit - 3rd UIO */
-+			else
-+				value |= 0x0004;            /* write one to 2nd bit - 3rd UIO */
-+			/* write back to io data output register */
-+			status = write16(state, SIO_PDR_UIO_OUT_LO__A, value);
-+			if (status < 0)
-+				goto error;
-+		}
- 	}
- 	/*  Write magic word to disable pdr reg write               */
- 	status = write16(state, SIO_TOP_COMM_KEY__A, 0x0000);
-@@ -5825,14 +5863,22 @@ error:
- static int SwitchAntennaToQAM(struct drxk_state *state)
- {
- 	int status = 0;
-+	bool gpio_state;
- 
- 	dprintk(1, "\n");
- 
--	if (state->m_AntennaSwitchDVBTDVBC != 0) {
--		if (state->m_GPIO != state->m_AntennaDVBC) {
--			state->m_GPIO = state->m_AntennaDVBC;
--			status = WriteGPIO(state);
--		}
-+	if (!state->antenna_gpio)
-+		return 0;
-+
-+	gpio_state = state->m_GPIO & state->antenna_gpio;
-+
-+	if (state->antenna_dvbt ^ gpio_state) {
-+		/* Antenna is on DVB-T mode. Switch */
-+		if (state->antenna_dvbt)
-+			state->m_GPIO &= ~state->antenna_gpio;
-+		else
-+			state->m_GPIO |= state->antenna_gpio;
-+		status = WriteGPIO(state);
- 	}
- 	if (status < 0)
- 		printk(KERN_ERR "drxk: Error %d on %s\n", status, __func__);
-@@ -5842,13 +5888,22 @@ static int SwitchAntennaToQAM(struct drxk_state *state)
- static int SwitchAntennaToDVBT(struct drxk_state *state)
- {
- 	int status = 0;
-+	bool gpio_state;
- 
- 	dprintk(1, "\n");
--	if (state->m_AntennaSwitchDVBTDVBC != 0) {
--		if (state->m_GPIO != state->m_AntennaDVBT) {
--			state->m_GPIO = state->m_AntennaDVBT;
--			status = WriteGPIO(state);
--		}
-+
-+	if (!state->antenna_gpio)
-+		return 0;
-+
-+	gpio_state = state->m_GPIO & state->antenna_gpio;
-+
-+	if (!(state->antenna_dvbt ^ gpio_state)) {
-+		/* Antenna is on DVB-C mode. Switch */
-+		if (state->antenna_dvbt)
-+			state->m_GPIO |= state->antenna_gpio;
-+		else
-+			state->m_GPIO &= ~state->antenna_gpio;
-+		status = WriteGPIO(state);
- 	}
- 	if (status < 0)
- 		printk(KERN_ERR "drxk: Error %d on %s\n", status, __func__);
-@@ -6350,9 +6405,17 @@ struct dvb_frontend *drxk_attach(const struct drxk_config *config,
- 	state->single_master = config->single_master;
- 	state->microcode_name = config->microcode_name;
- 	state->no_i2c_bridge = config->no_i2c_bridge;
--	state->m_AntennaSwitchDVBTDVBC = config->antenna_uses_gpio;
--	state->m_AntennaDVBC = config->antenna_dvbc;
--	state->m_AntennaDVBT = config->antenna_dvbt;
-+	state->antenna_gpio = config->antenna_gpio;
-+	state->antenna_dvbt = config->antenna_dvbt;
-+
-+	/* NOTE: as more UIO bits will be used, add them to the mask */
-+	state->UIO_mask = config->antenna_gpio;
-+
-+	/* Default gpio to DVB-C */
-+	if (!state->antenna_dvbt && state->antenna_gpio)
-+		state->m_GPIO |= state->antenna_gpio;
-+	else
-+		state->m_GPIO &= ~state->antenna_gpio;
- 
- 	mutex_init(&state->mutex);
- 	mutex_init(&state->ctlock);
-diff --git a/drivers/media/dvb/frontends/drxk_hard.h b/drivers/media/dvb/frontends/drxk_hard.h
-index 8b29dc8..a20a19d 100644
---- a/drivers/media/dvb/frontends/drxk_hard.h
-+++ b/drivers/media/dvb/frontends/drxk_hard.h
-@@ -323,17 +323,19 @@ struct drxk_state {
- 
- 	enum DRXPowerMode m_currentPowerMode;
- 
--	/* Configurable parameters at the driver */
-+	/*
-+	 * Configurable parameters at the driver. They stores the values found
-+	 * at struct drxk_config.
-+	 */
- 
--	bool              m_AntennaSwitchDVBTDVBC;
--	u16               m_AntennaDVBC;
--	u16               m_AntennaDVBT;
-+	u16	UIO_mask;	/* Bits used by UIO */
- 
--	u32 single_master : 1;		/* Use single master i2c mode */
--	u32 no_i2c_bridge : 1;		/* Tuner is not on port 1, don't use I2C bridge */
-+	bool	single_master;
-+	bool	no_i2c_bridge;
-+	bool	antenna_dvbt;
-+	u16	antenna_gpio;
- 
- 	const char *microcode_name;
--
- };
- 
- #define NEVER_LOCK 0
+No, sorry, I included it because I was having problems with PLLs and
+wanted to be very cautious. You can safely remove it. It is not
+specified in the datasheet and I've just tested it myself.
+
+Apart from the minor issues mentioned by Sakari, I think dynamic
+calculation of PLL dividers should be postponed for a next version
+thus not delaying this one to enter mainline.
+
+However I'm having problems for testing your version with linux-3.0
+and my old test "yavta + mplayer":
+
+On my PC:
+nc -l 3000 | ./mplayer - -demuxer rawvideo -rawvideo
+w=320:h=240:format=ba81:size=76800 -vf ba81 -vo x11
+
+On my Beagleboard:
+./media-ctl -r -l '"mt9p031 2-0048":0->"OMAP3 ISP CCDC":0[1], "OMAP3
+ISP CCDC":1->"OMAP3 ISP CCDC output":0[1]'
+Setting up link 16:0 -> 5:0 [1]
+Setting up link 5:1 -> 6:0 [1]
+
+./media-ctl -f '"mt9p031 2-0048":0[SGRBG12 320x240], "OMAP3 ISP
+CCDC":0[SGRBG8 320x240], "OMAP3 ISP CCDC":1[SGRBG8 320x240]'
+Setting up format SGRBG12 320x240 on pad mt9p031 2-0048/0
+Format set: SGRBG12 370x243
+Setting up format SGRBG12 370x243 on pad OMAP3 ISP CCDC/0
+Format set: SGRBG12 370x243
+Setting up format SGRBG8 320x240 on pad OMAP3 ISP CCDC/0
+Format set: SGRBG8 320x240
+Setting up format SGRBG8 320x240 on pad OMAP3 ISP CCDC/1
+Format set: SGRBG8 320x240
+
+
+./yavta --stdout -f SGRBG8 -s 320x240 -n 4 --capture=100 --skip 3 -F
+`./media-ctl -e "OMAP3 ISP CCDC output"` | nc 192.168.0.42 3000
+Device /dev/video2 opened: OMAP3 ISP CCDC output (media).
+Video format set: width: 320 height: 240 buffer size: 76800
+Video format: GRBG (47425247) 320x240
+4 buffers requested.
+length: 76800 offset: 0
+Buffer 0 mapped at address 0x40082000.
+length: 76800 offset: 77824
+Buffer 1 mapped at address 0x400a8000.
+length: 76800 offset: 155648
+Buffer 2 mapped at address 0x4016a000.
+length: 76800 offset: 233472
+Buffer 3 mapped at address 0x402be000.
+Unable to start streaming: 32.
+
+What are you using for testing?
+
+By the way, this is my last day in the office till August the 14th.
+
+Furthermore, I've got no intention to be the maintainer of the driver,
+since probably the main contributor to the patch was Guennadi.
+However, as we'll be using this driver for a project that will last
+for a year, count on me for testing, reviewing patches, etc... Because
+out interest on this patch going into mainline is high.
+
 -- 
-1.7.1
-
-
+Javier Martin
+Vista Silicon S.L.
+CDTUC - FASE C - Oficina S-345
+Avda de los Castros s/n
+39005- Santander. Cantabria. Spain
++34 942 25 32 60
+www.vista-silicon.com
