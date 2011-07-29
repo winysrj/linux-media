@@ -1,85 +1,126 @@
-Return-path: <mchehab@pedra>
-Received: from mailout2.w1.samsung.com ([210.118.77.12]:21550 "EHLO
-	mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751121Ab1GAPEh (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 1 Jul 2011 11:04:37 -0400
-Received: from eu_spt1 (mailout2.w1.samsung.com [210.118.77.12])
- by mailout2.w1.samsung.com
- (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14 2004))
- with ESMTP id <0LNN008PDTVOAX@mailout2.w1.samsung.com> for
- linux-media@vger.kernel.org; Fri, 01 Jul 2011 16:04:36 +0100 (BST)
-Received: from linux.samsung.com ([106.116.38.10])
- by spt1.w1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14
- 2004)) with ESMTPA id <0LNN00C74TVMEF@spt1.w1.samsung.com> for
- linux-media@vger.kernel.org; Fri, 01 Jul 2011 16:04:35 +0100 (BST)
-Date: Fri, 01 Jul 2011 17:04:32 +0200
-From: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Subject: [PATCH v2 4/4] noon010pc30: Remove g_chip_ident operation handler
-In-reply-to: <1309532672-17920-1-git-send-email-s.nawrocki@samsung.com>
-To: linux-media@vger.kernel.org
-Cc: m.szyprowski@samsung.com, kyungmin.park@samsung.com,
-	laurent.pinchart@ideasonboard.com, s.nawrocki@samsung.com,
-	sw0312.kim@samsung.com, riverful.kim@samsung.com
-Message-id: <1309532672-17920-5-git-send-email-s.nawrocki@samsung.com>
-MIME-version: 1.0
-Content-type: TEXT/PLAIN
-Content-transfer-encoding: 7BIT
-References: <1309532672-17920-1-git-send-email-s.nawrocki@samsung.com>
+Return-path: <linux-media-owner@vger.kernel.org>
+Received: from smtp-68.nebula.fi ([83.145.220.68]:51225 "EHLO
+	smtp-68.nebula.fi" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754803Ab1G2H7O (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 29 Jul 2011 03:59:14 -0400
+Date: Fri, 29 Jul 2011 10:59:10 +0300
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Hans Verkuil <hansverk@cisco.com>
+Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	Pawel Osciak <pawel@osciak.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: Re: [PATCH v3] V4L: add two new ioctl()s for multi-size
+ videobuffer management
+Message-ID: <20110729075910.GM32629@valkosipuli.localdomain>
+References: <Pine.LNX.4.64.1107201025120.12084@axis700.grange>
+ <201107280856.55731.hverkuil@xs4all.nl>
+ <Pine.LNX.4.64.1107281422350.20737@axis700.grange>
+ <201107281442.52970.hansverk@cisco.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <201107281442.52970.hansverk@cisco.com>
+Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
-Sender: <mchehab@pedra>
 
-It is now not needed as the sensor identification is done
-through the media controller API.
+On Thu, Jul 28, 2011 at 02:42:52PM +0200, Hans Verkuil wrote:
+> On Thursday, July 28, 2011 14:29:38 Guennadi Liakhovetski wrote:
+> > On Thu, 28 Jul 2011, Hans Verkuil wrote:
+> > 
+> > > On Thursday, July 28, 2011 06:11:38 Pawel Osciak wrote:
+> > > > Hi Guennadi,
+> > > > 
+> > > > On Wed, Jul 20, 2011 at 01:43, Guennadi Liakhovetski
+> > > > <g.liakhovetski@gmx.de> wrote:
+> > > > > A possibility to preallocate and initialise buffers of different sizes
+> > > > > in V4L2 is required for an efficient implementation of asnapshot mode.
+> > > > > This patch adds two new ioctl()s: VIDIOC_CREATE_BUFS and
+> > > > > VIDIOC_PREPARE_BUF and defines respective data structures.
+> > > > >
+> > > > > Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+> > > > > ---
+> > > > >
+> > > > <snip>
+> > > > 
+> > > > This looks nicer, I like how we got rid of destroy and gave up on
+> > > > making holes, it would've given us a lot of headaches. I'm thinking
+> > > > about some issues though and also have some comments/questions further
+> > > > below.
+> > > > 
+> > > > Already mentioned by others mixing of REQBUFS and CREATE_BUFS.
+> > > > Personally I'd like to allow mixing, including REQBUFS for non-zero,
+> > > > because I think it would be easy to do. I think it could work in the
+> > > > same way as REQBUFS for !=0 works currently (at least in vb2), if we
+> > > > already have some buffers allocated and they are not in use, we free
+> > > > them and a new set is allocated. So I guess it could just stay this
+> > > > way. REQBUFS(0) would of course free everything.
+> > > > 
+> > > > Passing format to CREATE_BUFS will make vb2 a bit format-aware, as it
+> > > > would have to pass it forward to the driver somehow. The obvious way
+> > > > would be just vb2 calling the driver's s_fmt handler, but that won't
+> > > > work, as you can't pass indexes to s_fmt. So we'd have to implement a
+> > > > new driver callback for setting formats per index. I guess there is no
+> > > > way around it, unless we actually take the format struct out of
+> > > > CREATE_BUFS and somehow do it via S_FMT. The single-planar structure
+> > > > is full already though, the only way would be to use
+> > > > v4l2_pix_format_mplane instead with plane count = 1 (or more if
+> > > > needed).
+> > > 
+> > > I just got an idea for this: use TRY_FMT. That will do exactly what
+> > > you want. In fact, perhaps we should remove the format struct from
+> > > CREATE_BUFS and use __u32 sizes[VIDEO_MAX_PLANES] instead. Let the
+> > > application call TRY_FMT and initialize the sizes array instead of
+> > > putting that into vb2. We may need a num_planes field as well. If the
+> > > sizes are all 0 (or num_planes is 0), then the driver can use the current
+> > > format, just as it does with REQBUFS.
+> > 
+> > Hm, I think, I like this idea. It gives applications more flexibility and 
+> > removes the size == 0 vs. size != 0 dilemma. So, we get
+> > 
+> > /* VIDIOC_CREATE_BUFS */
+> > struct v4l2_create_buffers {
+> > 	__u32			index;		/* output: buffers index...index + count - 1 have been created */
+> > 	__u32			count;
+> > 	__u32			num_planes;
+> > 	__u32			sizes[VIDEO_MAX_PLANES];
+> > 	enum v4l2_memory        memory;
+> > 	enum v4l2_buf_type	type;
+> > 	__u32			reserved[8];
+> > };
+> > 
+> > ?
+> 
+> Yes. I'd probably rearrange the fields a bit, though:
+> 
+> /* VIDIOC_CREATE_BUFS */
+> struct v4l2_create_buffers {
+> 	__u32			index;		/* output: buffers index...index + count - 1 have been created */
+> 	__u32			count;
+> 	__u32			type;
+> 	__u32			memory;
+> 	__u32			num_planes;
+> 	__u32			sizes[VIDEO_MAX_PLANES];
+> 	__u32			reserved[8];
+> };
+> 
+> The order of the count, type and memory fields is now identical to that of
+> v4l2_requestbuffers.
+> 
+> I also changed the enums to u32 since without the v4l2_format struct we shouldn't
+> use enums. As an additional bonus this also simplifies the compat32 code.
 
-Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
----
- drivers/media/video/noon010pc30.c |   10 ----------
- include/media/v4l2-chip-ident.h   |    3 ---
- 2 files changed, 0 insertions(+), 13 deletions(-)
+I have to say I like what I see above. :-)
 
-diff --git a/drivers/media/video/noon010pc30.c b/drivers/media/video/noon010pc30.c
-index d05db4b..28cf6ce 100644
---- a/drivers/media/video/noon010pc30.c
-+++ b/drivers/media/video/noon010pc30.c
-@@ -621,15 +621,6 @@ static int noon010_s_stream(struct v4l2_subdev *sd, int on)
- 	return ret;
- }
- 
--static int noon010_g_chip_ident(struct v4l2_subdev *sd,
--				struct v4l2_dbg_chip_ident *chip)
--{
--	struct i2c_client *client = v4l2_get_subdevdata(sd);
--
--	return v4l2_chip_ident_i2c_client(client, chip,
--					  V4L2_IDENT_NOON010PC30, 0);
--}
--
- static int noon010_log_status(struct v4l2_subdev *sd)
- {
- 	struct noon010_info *info = to_noon010(sd);
-@@ -643,7 +634,6 @@ static const struct v4l2_ctrl_ops noon010_ctrl_ops = {
- };
- 
- static const struct v4l2_subdev_core_ops noon010_core_ops = {
--	.g_chip_ident	= noon010_g_chip_ident,
- 	.s_power	= noon010_s_power,
- 	.g_ctrl		= v4l2_subdev_g_ctrl,
- 	.s_ctrl		= v4l2_subdev_s_ctrl,
-diff --git a/include/media/v4l2-chip-ident.h b/include/media/v4l2-chip-ident.h
-index 8717045..e23a351 100644
---- a/include/media/v4l2-chip-ident.h
-+++ b/include/media/v4l2-chip-ident.h
-@@ -211,9 +211,6 @@ enum {
- 	/* module sn9c20x: just ident 10000 */
- 	V4L2_IDENT_SN9C20X = 10000,
- 
--	/* Siliconfile sensors: reserved range 10100 - 10199 */
--	V4L2_IDENT_NOON010PC30	= 10100,
--
- 	/* module cx231xx and cx25840 */
- 	V4L2_IDENT_CX2310X_AV = 23099, /* Integrated A/V decoder; not in '100 */
- 	V4L2_IDENT_CX23100    = 23100,
+I have one comment at this point, which is what I always have: reserved
+fields. If we want to later add per-plane fields, 8 u32s isn't much for
+that. CREATE_BUFS isn't time critical either at all, so I'd go with 19 (to
+align the buffer size to a power of 2) or even more.
+
 -- 
-1.7.5.4
-
+Sakari Ailus
+sakari.ailus@iki.fi
