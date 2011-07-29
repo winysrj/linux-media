@@ -1,52 +1,64 @@
-Return-path: <mchehab@localhost>
-Received: from mx1.redhat.com ([209.132.183.28]:62356 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756166Ab1GKB7n (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 10 Jul 2011 21:59:43 -0400
-Received: from int-mx10.intmail.prod.int.phx2.redhat.com (int-mx10.intmail.prod.int.phx2.redhat.com [10.5.11.23])
-	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id p6B1xgwg023461
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
-	for <linux-media@vger.kernel.org>; Sun, 10 Jul 2011 21:59:42 -0400
-Received: from pedra (vpn-225-29.phx2.redhat.com [10.3.225.29])
-	by int-mx10.intmail.prod.int.phx2.redhat.com (8.14.4/8.14.4) with ESMTP id p6B1xKKZ030664
-	for <linux-media@vger.kernel.org>; Sun, 10 Jul 2011 21:59:42 -0400
-Date: Sun, 10 Jul 2011 22:58:55 -0300
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: [PATCH 07/21] [media] drxk: Avoid OOPSes if firmware is corrupted
-Message-ID: <20110710225855.3d7534e8@pedra>
-In-Reply-To: <cover.1310347962.git.mchehab@redhat.com>
-References: <cover.1310347962.git.mchehab@redhat.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Return-path: <linux-media-owner@vger.kernel.org>
+Received: from perceval.ideasonboard.com ([95.142.166.194]:40131 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751409Ab1G2N2V (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 29 Jul 2011 09:28:21 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: javier Martin <javier.martin@vista-silicon.com>
+Subject: Re: [PATCH] mt9p031: Aptina (Micron) MT9P031 5MP sensor driver
+Date: Fri, 29 Jul 2011 15:28:22 +0200
+Cc: Sakari Ailus <sakari.ailus@iki.fi>, linux-media@vger.kernel.org,
+	shotty317@gmail.com
+References: <CACKLOr1veNZ_6E3V_m1Tf+mxxUAKiRKDbboW-fMbRGUrLns_XA@mail.gmail.com> <201107291214.40779.laurent.pinchart@ideasonboard.com> <CACKLOr3VxSDUKzgWByH-qcWeA85QvY-0jY=bAogW8JZa3=v1nw@mail.gmail.com>
+In-Reply-To: <CACKLOr3VxSDUKzgWByH-qcWeA85QvY-0jY=bAogW8JZa3=v1nw@mail.gmail.com>
+MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
-To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
+Message-Id: <201107291528.23734.laurent.pinchart@ideasonboard.com>
+Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
-Sender: <mchehab@infradead.org>
 
-Don't read paste the buffer, if the firmware is corrupted.
-Instead, print an error message.
+Hi Javier,
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+On Friday 29 July 2011 14:31:12 javier Martin wrote:
+> All right,
+> it works like a charm for me.
+> 
+> It took me a bit to figure out that binning and skipping is controlled
+> through ratio between cropping window size and actual format size but
+> it is clear now.
+> 
+> Just one thing; both VFLIP (this one is my fault) and HFLIP controls
+> change the pixel format of the image and it no longer is GRBG.
+> 
+> Given the following example image:
+> 
+> G R G R
+> B G B G
+> 
+> If we apply VFLIP we'll have:
+> 
+> B G B G
+> G R G R
+> 
+> And if we apply HFLIP we'll have:
+> 
+> R G R G
+> G B G B
+> 
+> I am not sure how we could solve this issue, maybe through adjusting
+> row and column start...
 
-diff --git a/drivers/media/dvb/frontends/drxk_hard.c b/drivers/media/dvb/frontends/drxk_hard.c
-index c4b35a5..89db378 100644
---- a/drivers/media/dvb/frontends/drxk_hard.c
-+++ b/drivers/media/dvb/frontends/drxk_hard.c
-@@ -1388,6 +1388,12 @@ static int DownloadMicrocode(struct drxk_state *state,
- 		BlockCRC = (pSrc[0] << 8) | pSrc[1];
- 		pSrc += sizeof(u16);
- 		offset += sizeof(u16);
-+
-+		if (offset + BlockSize > Length) {
-+			printk(KERN_ERR "drxk: Firmware is corrupted.\n");
-+			return -EINVAL;
-+		}
-+
- 		status = write_block(state, Address, BlockSize, pSrc);
- 		if (status < 0)
- 			break;
+That's probably the easiest solution, yes.
+
+> In any case the driver is OK for me and the issue with VFLIP and HFLIP
+> could be solved later on.
+
+OK. Thanks for the review.
+
 -- 
-1.7.1
+Regards,
 
-
+Laurent Pinchart
