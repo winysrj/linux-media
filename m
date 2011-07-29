@@ -1,176 +1,68 @@
-Return-path: <mchehab@pedra>
-Received: from mailout2.w1.samsung.com ([210.118.77.12]:17598 "EHLO
-	mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758401Ab1GDRzn (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 4 Jul 2011 13:55:43 -0400
-Date: Mon, 04 Jul 2011 19:55:03 +0200
-From: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Subject: [PATCH v3 12/19] s5p-fimc: Add PM helper function for streaming control
-In-reply-to: <1309802110-16682-1-git-send-email-s.nawrocki@samsung.com>
-To: linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org
-Cc: m.szyprowski@samsung.com, kyungmin.park@samsung.com,
-	s.nawrocki@samsung.com, sw0312.kim@samsung.com,
-	riverful.kim@samsung.com
-Message-id: <1309802110-16682-13-git-send-email-s.nawrocki@samsung.com>
-MIME-version: 1.0
-Content-type: TEXT/PLAIN
-Content-transfer-encoding: 7BIT
-References: <1309802110-16682-1-git-send-email-s.nawrocki@samsung.com>
+Return-path: <linux-media-owner@vger.kernel.org>
+Received: from moutng.kundenserver.de ([212.227.126.187]:64647 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756162Ab1G2K5D (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 29 Jul 2011 06:57:03 -0400
+Received: from 6a.grange (6a.grange [192.168.1.11])
+	by axis700.grange (Postfix) with ESMTPS id 02C0118B04A
+	for <linux-media@vger.kernel.org>; Fri, 29 Jul 2011 12:57:01 +0200 (CEST)
+Received: from lyakh by 6a.grange with local (Exim 4.72)
+	(envelope-from <g.liakhovetski@gmx.de>)
+	id 1QmkkW-0007oE-RI
+	for linux-media@vger.kernel.org; Fri, 29 Jul 2011 12:57:00 +0200
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: linux-media@vger.kernel.org
+Subject: [PATCH 26/59] V4L: soc-camera: compatible bus-width flags
+Date: Fri, 29 Jul 2011 12:56:26 +0200
+Message-Id: <1311937019-29914-27-git-send-email-g.liakhovetski@gmx.de>
+In-Reply-To: <1311937019-29914-1-git-send-email-g.liakhovetski@gmx.de>
+References: <1311937019-29914-1-git-send-email-g.liakhovetski@gmx.de>
+Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
-Sender: <mchehab@pedra>
 
-Create a helper function for (re)starting streaming in PM resume calls.
+With the new subdevice media-bus configuration methods bus-width is not
+configured along with other bus parameters, instead, it is derived from
+the data format. With those methods it is convenient to specify
+supported bus-widths in the platform data as (1 << (width - 1)). We
+redefine SOCAM_DATAWIDTH_* flags to use the same convention to make
+platform data seemlessly reusable.
 
-Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
 ---
- drivers/media/video/s5p-fimc/fimc-capture.c |   80 ++++++++++++++++-----------
- drivers/media/video/s5p-fimc/fimc-core.c    |    4 +-
- drivers/media/video/s5p-fimc/fimc-core.h    |    3 +
- 3 files changed, 52 insertions(+), 35 deletions(-)
+ include/media/soc_camera.h |   12 ++++++------
+ 1 files changed, 6 insertions(+), 6 deletions(-)
 
-diff --git a/drivers/media/video/s5p-fimc/fimc-capture.c b/drivers/media/video/s5p-fimc/fimc-capture.c
-index 7c6c420..7af4ac5 100644
---- a/drivers/media/video/s5p-fimc/fimc-capture.c
-+++ b/drivers/media/video/s5p-fimc/fimc-capture.c
-@@ -30,6 +30,48 @@
- #include "fimc-mdevice.h"
- #include "fimc-core.h"
- 
-+/**
-+ * fimc_start_capture - initialize the H/W for camera capture operation
-+ *
-+ * Initialize the camera capture datapath so when this function successfuly
-+ * completes all what is needed to start the capture pipeline is asserting
-+ * the global capture bit ImgCptEn.
-+ */
-+static int fimc_start_capture(struct fimc_dev *fimc)
-+{
-+	struct fimc_ctx *ctx = fimc->vid_cap.ctx;
-+	struct fimc_sensor_info *sensor;
-+	unsigned long flags;
-+	int ret = 0;
-+
-+	if (fimc->pipeline.sensor == NULL || ctx == NULL)
-+		return -EIO;
-+	sensor = v4l2_get_subdev_hostdata(fimc->pipeline.sensor);
-+
-+	spin_lock_irqsave(&fimc->slock, flags);
-+	fimc_prepare_dma_offset(ctx, &ctx->d_frame);
-+	fimc_set_yuv_order(ctx);
-+
-+	fimc_hw_set_camera_polarity(fimc, sensor->pdata);
-+	fimc_hw_set_camera_type(fimc, sensor->pdata);
-+	fimc_hw_set_camera_source(fimc, sensor->pdata);
-+	fimc_hw_set_camera_offset(fimc, &ctx->s_frame);
-+
-+	ret = fimc_set_scaler_info(ctx);
-+	if (!ret) {
-+		fimc_hw_set_input_path(ctx);
-+		fimc_hw_set_prescaler(ctx);
-+		fimc_hw_set_mainscaler(ctx);
-+		fimc_hw_set_target_format(ctx);
-+		fimc_hw_set_rotation(ctx);
-+		fimc_hw_set_effect(ctx);
-+		fimc_hw_set_output_path(ctx);
-+		fimc_hw_set_out_dma(ctx);
-+	}
-+	spin_unlock_irqrestore(&fimc->slock, flags);
-+	return ret;
-+}
-+
- static int fimc_stop_capture(struct fimc_dev *fimc)
- {
- 	unsigned long flags;
-@@ -89,47 +131,19 @@ static int start_streaming(struct vb2_queue *q)
- {
- 	struct fimc_ctx *ctx = q->drv_priv;
- 	struct fimc_dev *fimc = ctx->fimc_dev;
--	struct s5p_fimc_isp_info *isp_info;
-+	struct fimc_vid_cap *vid_cap = &fimc->vid_cap;
- 	int ret;
- 
- 	fimc_hw_reset(fimc);
- 
--	ret = v4l2_subdev_call(fimc->vid_cap.sd, video, s_stream, 1);
--	if (ret && ret != -ENOIOCTLCMD)
--		return ret;
-+	vid_cap->active_buf_cnt = 0;
-+	vid_cap->frame_count = 0;
-+	vid_cap->buf_index = 0;
- 
--	ret = fimc_prepare_config(ctx, ctx->state);
-+	ret = fimc_start_capture(fimc);
- 	if (ret)
- 		return ret;
- 
--	isp_info = &fimc->pdata->isp_info[fimc->vid_cap.input_index];
--	fimc_hw_set_camera_type(fimc, isp_info);
--	fimc_hw_set_camera_source(fimc, isp_info);
--	fimc_hw_set_camera_offset(fimc, &ctx->s_frame);
--
--	if (ctx->state & FIMC_PARAMS) {
--		ret = fimc_set_scaler_info(ctx);
--		if (ret) {
--			err("Scaler setup error");
--			return ret;
--		}
--		fimc_hw_set_input_path(ctx);
--		fimc_hw_set_prescaler(ctx);
--		fimc_hw_set_mainscaler(ctx);
--		fimc_hw_set_target_format(ctx);
--		fimc_hw_set_rotation(ctx);
--		fimc_hw_set_effect(ctx);
--	}
--
--	fimc_hw_set_output_path(ctx);
--	fimc_hw_set_out_dma(ctx);
--
--	INIT_LIST_HEAD(&fimc->vid_cap.pending_buf_q);
--	INIT_LIST_HEAD(&fimc->vid_cap.active_buf_q);
--	fimc->vid_cap.active_buf_cnt = 0;
--	fimc->vid_cap.frame_count = 0;
--	fimc->vid_cap.buf_index = 0;
--
- 	set_bit(ST_CAPT_PEND, &fimc->state);
- 	return 0;
- }
-diff --git a/drivers/media/video/s5p-fimc/fimc-core.c b/drivers/media/video/s5p-fimc/fimc-core.c
-index cb89146..a3edaf8 100644
---- a/drivers/media/video/s5p-fimc/fimc-core.c
-+++ b/drivers/media/video/s5p-fimc/fimc-core.c
-@@ -476,7 +476,7 @@ int fimc_prepare_addr(struct fimc_ctx *ctx, struct vb2_buffer *vb,
- }
- 
- /* Set order for 1 and 2 plane YCBCR 4:2:2 formats. */
--static void fimc_set_yuv_order(struct fimc_ctx *ctx)
-+void fimc_set_yuv_order(struct fimc_ctx *ctx)
- {
- 	/* The one only mode supported in SoC. */
- 	ctx->in_order_2p = S5P_FIMC_LSB_CRCB;
-@@ -518,7 +518,7 @@ static void fimc_set_yuv_order(struct fimc_ctx *ctx)
- 	dbg("ctx->out_order_1p= %d", ctx->out_order_1p);
- }
- 
--static void fimc_prepare_dma_offset(struct fimc_ctx *ctx, struct fimc_frame *f)
-+void fimc_prepare_dma_offset(struct fimc_ctx *ctx, struct fimc_frame *f)
- {
- 	struct samsung_fimc_variant *variant = ctx->fimc_dev->variant;
- 	u32 i, depth = 0;
-diff --git a/drivers/media/video/s5p-fimc/fimc-core.h b/drivers/media/video/s5p-fimc/fimc-core.h
-index 86288c8..ab911be 100644
---- a/drivers/media/video/s5p-fimc/fimc-core.h
-+++ b/drivers/media/video/s5p-fimc/fimc-core.h
-@@ -663,6 +663,9 @@ int fimc_set_scaler_info(struct fimc_ctx *ctx);
- int fimc_prepare_config(struct fimc_ctx *ctx, u32 flags);
- int fimc_prepare_addr(struct fimc_ctx *ctx, struct vb2_buffer *vb,
- 		      struct fimc_frame *frame, struct fimc_addr *paddr);
-+void fimc_prepare_dma_offset(struct fimc_ctx *ctx, struct fimc_frame *f);
-+void fimc_set_yuv_order(struct fimc_ctx *ctx);
-+
- int fimc_register_m2m_device(struct fimc_dev *fimc,
- 			     struct v4l2_device *v4l2_dev);
- void fimc_unregister_m2m_device(struct fimc_dev *fimc);
+diff --git a/include/media/soc_camera.h b/include/media/soc_camera.h
+index 936a504..73337cf 100644
+--- a/include/media/soc_camera.h
++++ b/include/media/soc_camera.h
+@@ -241,19 +241,19 @@ static inline struct v4l2_queryctrl const *soc_camera_find_qctrl(
+ #define SOCAM_MASTER			(1 << 0)
+ #define SOCAM_SLAVE			(1 << 1)
+ #define SOCAM_HSYNC_ACTIVE_HIGH		(1 << 2)
+-#define SOCAM_HSYNC_ACTIVE_LOW		(1 << 3)
++#define SOCAM_HSYNC_ACTIVE_LOW		(1 << 6)
+ #define SOCAM_VSYNC_ACTIVE_HIGH		(1 << 4)
+ #define SOCAM_VSYNC_ACTIVE_LOW		(1 << 5)
+-#define SOCAM_DATAWIDTH_4		(1 << 6)
++#define SOCAM_DATAWIDTH_4		(1 << 3)
+ #define SOCAM_DATAWIDTH_8		(1 << 7)
+ #define SOCAM_DATAWIDTH_9		(1 << 8)
+ #define SOCAM_DATAWIDTH_10		(1 << 9)
+-#define SOCAM_DATAWIDTH_15		(1 << 10)
+-#define SOCAM_DATAWIDTH_16		(1 << 11)
++#define SOCAM_DATAWIDTH_15		(1 << 14)
++#define SOCAM_DATAWIDTH_16		(1 << 15)
+ #define SOCAM_PCLK_SAMPLE_RISING	(1 << 12)
+ #define SOCAM_PCLK_SAMPLE_FALLING	(1 << 13)
+-#define SOCAM_DATA_ACTIVE_HIGH		(1 << 14)
+-#define SOCAM_DATA_ACTIVE_LOW		(1 << 15)
++#define SOCAM_DATA_ACTIVE_HIGH		(1 << 10)
++#define SOCAM_DATA_ACTIVE_LOW		(1 << 11)
+ #define SOCAM_MIPI_1LANE		(1 << 16)
+ #define SOCAM_MIPI_2LANE		(1 << 17)
+ #define SOCAM_MIPI_3LANE		(1 << 18)
 -- 
-1.7.5.4
+1.7.2.5
 
