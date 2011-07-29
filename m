@@ -1,74 +1,112 @@
-Return-path: <mchehab@pedra>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:42075 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753974Ab1GDOzz convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 4 Jul 2011 10:55:55 -0400
-From: "Hadli, Manjunath" <manjunath.hadli@ti.com>
-To: "'Laurent Pinchart'" <laurent.pinchart@ideasonboard.com>
-CC: "'Sakari Ailus'" <sakari.ailus@iki.fi>,
-	LMML <linux-media@vger.kernel.org>,
-	dlos <davinci-linux-open-source@linux.davincidsp.com>
-Date: Mon, 4 Jul 2011 20:25:34 +0530
-Subject: RE: [ RFC PATCH 0/8] RFC for Media Controller capture driver for
- DM365
-Message-ID: <B85A65D85D7EB246BE421B3FB0FBB593024BCEF73A@dbde02.ent.ti.com>
-References: <1309439597-15998-1-git-send-email-manjunath.hadli@ti.com>
- <20110630135736.GK12671@valkosipuli.localdomain>
- <B85A65D85D7EB246BE421B3FB0FBB593024BCEF739@dbde02.ent.ti.com>
- <201107041522.37437.laurent.pinchart@ideasonboard.com>
-In-Reply-To: <201107041522.37437.laurent.pinchart@ideasonboard.com>
-Content-Language: en-US
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-MIME-Version: 1.0
+Return-path: <linux-media-owner@vger.kernel.org>
+Received: from moutng.kundenserver.de ([212.227.17.10]:56572 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756289Ab1G2K5F (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 29 Jul 2011 06:57:05 -0400
+Received: from 6a.grange (6a.grange [192.168.1.11])
+	by axis700.grange (Postfix) with ESMTPS id CDAA9189B89
+	for <linux-media@vger.kernel.org>; Fri, 29 Jul 2011 12:57:01 +0200 (CEST)
+Received: from lyakh by 6a.grange with local (Exim 4.72)
+	(envelope-from <g.liakhovetski@gmx.de>)
+	id 1QmkkX-0007p7-Nu
+	for linux-media@vger.kernel.org; Fri, 29 Jul 2011 12:57:01 +0200
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: linux-media@vger.kernel.org
+Subject: [PATCH 44/59] V4L: mt9t112: remove superfluous soc-camera client operations
+Date: Fri, 29 Jul 2011 12:56:44 +0200
+Message-Id: <1311937019-29914-45-git-send-email-g.liakhovetski@gmx.de>
+In-Reply-To: <1311937019-29914-1-git-send-email-g.liakhovetski@gmx.de>
+References: <1311937019-29914-1-git-send-email-g.liakhovetski@gmx.de>
+Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
-Sender: <mchehab@pedra>
 
-Thank you Laurent.
+Now that all soc-camera hosts have been ported to use V4L2 subdevice
+mediabus-config operations and soc-camera client bus-parameter operations
+have been made optional, they can be removed.
 
-On Mon, Jul 04, 2011 at 18:52:37, Laurent Pinchart wrote:
-> Hi Manjunath,
-> 
-> On Monday 04 July 2011 07:58:06 Hadli, Manjunath wrote:
-> > On Thu, Jun 30, 2011 at 19:27:36, Sakari Ailus wrote:
-> 
-> [snip]
-> 
-> > > I understand that not all the blocks are there. Are there any major 
-> > > functional differences between those in Davinci and those in OMAP 3?
-> > > Could the OMAP 3 ISP driver made support Davinci ISP as well?
-> > 
-> > Yes, there are a lot of major differences between OMAP3 and 
-> > Dm365/Dm355, both in terms of features, there IP, and the software 
-> > interface, including all the registers which are entirely different. 
-> > The closest omap3 would come to is only to DM6446. I do not think 
-> > OMAP3 driver can be made to support Dm355 and Dm365. It is good to 
-> > keep the OMAP3 neat and clean to cater for OMAP4 and beyond, and keep 
-> > the Davinci family separate. The names might look similar and hence 
-> > confusing for you, but the names can as well be made the same as Dm365 
-> > blocks like ISIF and IPIPE and IPIPEIF which are different.
-> 
-> The DM6446 ISP is very similar to the OMAP3 ISP, and thus quite different from the DM355/365 ISPs. Should the DM6446 be supported by the OMAP3 ISP driver, and the DM355/365 by this driver ?
+Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+---
+ drivers/media/video/mt9t112.c |   48 +---------------------------------------
+ 1 files changed, 2 insertions(+), 46 deletions(-)
 
-DM6446 capture IP is in some respects similar to OMAP3 for some features, but there are a large number of differences also (MMU, VRFB, a lot of display interfaces etc). Having a single driver catering to  
-Since DM6446 and OMAP3 is going to be unwieldy.
-Also, DM6446 belongs to the Davinci family of chips, it should be clubbed with the other Davinci SoCs as it will simplify a lot of other things including directory subdirectory/file naming, organization of machine/platform code etc among other things. Other than Video a lot of other system registers and features which are common with the rest of Davinci SoCs which if treated together is a good thing, whereas OMAP3 can be modified and developed with those on the OMAP family (OMAP4 for ex).
-
-> 
-> > > There are number of possible improvements that still should be made 
-> > > to the OMAP 3 ISP driver so this way both of the driver would easily 
-> > > get them. To mention some:
-> > > 
-> > > - Multiple output pipeline
-> > > - Switch to videobuf2
-> > > - Switch to GENIRQ
-> > 
-> > Sure. There is definitely a design element convergence, and overtime I 
-> > think some of these would get into the core v4l2 infrastructure.
-> 
-> --
-> Regards,
-> 
-> Laurent Pinchart
-> 
+diff --git a/drivers/media/video/mt9t112.c b/drivers/media/video/mt9t112.c
+index a3368d8..608a3b6 100644
+--- a/drivers/media/video/mt9t112.c
++++ b/drivers/media/video/mt9t112.c
+@@ -743,46 +743,6 @@ static int mt9t112_init_camera(const struct i2c_client *client)
+ }
+ 
+ /************************************************************************
+-			soc_camera_ops
+-************************************************************************/
+-static int mt9t112_set_bus_param(struct soc_camera_device *icd,
+-				 unsigned long	flags)
+-{
+-	struct soc_camera_link *icl = to_soc_camera_link(icd);
+-	struct i2c_client *client = to_i2c_client(to_soc_camera_control(icd));
+-	struct mt9t112_priv *priv = to_mt9t112(client);
+-
+-	if (soc_camera_apply_sensor_flags(icl, flags) & SOCAM_PCLK_SAMPLE_RISING)
+-		priv->flags |= PCLK_RISING;
+-
+-	return 0;
+-}
+-
+-static unsigned long mt9t112_query_bus_param(struct soc_camera_device *icd)
+-{
+-	struct i2c_client *client = to_i2c_client(to_soc_camera_control(icd));
+-	struct mt9t112_priv *priv = to_mt9t112(client);
+-	struct soc_camera_link *icl = to_soc_camera_link(icd);
+-	unsigned long flags = SOCAM_MASTER | SOCAM_VSYNC_ACTIVE_HIGH |
+-		SOCAM_HSYNC_ACTIVE_HIGH | SOCAM_DATA_ACTIVE_HIGH;
+-
+-	flags |= (priv->info->flags & MT9T112_FLAG_PCLK_RISING_EDGE) ?
+-		SOCAM_PCLK_SAMPLE_RISING : SOCAM_PCLK_SAMPLE_FALLING;
+-
+-	if (priv->info->flags & MT9T112_FLAG_DATAWIDTH_8)
+-		flags |= SOCAM_DATAWIDTH_8;
+-	else
+-		flags |= SOCAM_DATAWIDTH_10;
+-
+-	return soc_camera_apply_sensor_flags(icl, flags);
+-}
+-
+-static struct soc_camera_ops mt9t112_ops = {
+-	.set_bus_param		= mt9t112_set_bus_param,
+-	.query_bus_param	= mt9t112_query_bus_param,
+-};
+-
+-/************************************************************************
+ 			v4l2_subdev_core_ops
+ ************************************************************************/
+ static int mt9t112_g_chip_ident(struct v4l2_subdev *sd,
+@@ -1117,13 +1077,11 @@ static int mt9t112_probe(struct i2c_client *client,
+ 
+ 	v4l2_i2c_subdev_init(&priv->subdev, client, &mt9t112_subdev_ops);
+ 
+-	icd->ops = &mt9t112_ops;
++	icd->ops = NULL;
+ 
+ 	ret = mt9t112_camera_probe(icd, client);
+-	if (ret) {
+-		icd->ops = NULL;
++	if (ret)
+ 		kfree(priv);
+-	}
+ 
+ 	return ret;
+ }
+@@ -1131,9 +1089,7 @@ static int mt9t112_probe(struct i2c_client *client,
+ static int mt9t112_remove(struct i2c_client *client)
+ {
+ 	struct mt9t112_priv *priv = to_mt9t112(client);
+-	struct soc_camera_device *icd = client->dev.platform_data;
+ 
+-	icd->ops = NULL;
+ 	kfree(priv);
+ 	return 0;
+ }
+-- 
+1.7.2.5
 
