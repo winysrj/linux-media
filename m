@@ -1,104 +1,152 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout-de.gmx.net ([213.165.64.23]:48942 "HELO
-	mailout-de.gmx.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1750927Ab1GVQFT (ORCPT
+Received: from moutng.kundenserver.de ([212.227.17.8]:55339 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756166Ab1G2K5E (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 22 Jul 2011 12:05:19 -0400
-Content-Transfer-Encoding: 8bit
-Content-Type: text/plain; charset="utf-8"
-Date: Fri, 22 Jul 2011 18:05:14 +0200
-From: "Alina Friedrichsen" <x-alina@gmx.net>
-Message-ID: <20110722160514.169940@gmx.net>
-MIME-Version: 1.0
-Subject: [PATCH] tuner_xc2028: Allow selection of the frequency adjustment code
- for XC3028
+	Fri, 29 Jul 2011 06:57:04 -0400
+Received: from 6a.grange (6a.grange [192.168.1.11])
+	by axis700.grange (Postfix) with ESMTPS id 37C9218B04C
+	for <linux-media@vger.kernel.org>; Fri, 29 Jul 2011 12:57:01 +0200 (CEST)
+Received: from lyakh by 6a.grange with local (Exim 4.72)
+	(envelope-from <g.liakhovetski@gmx.de>)
+	id 1QmkkX-0007oU-3j
+	for linux-media@vger.kernel.org; Fri, 29 Jul 2011 12:57:01 +0200
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
 To: linux-media@vger.kernel.org
+Subject: [PATCH 31/59] V4L: mx1_camera: convert to the new mbus-config subdev operations
+Date: Fri, 29 Jul 2011 12:56:31 +0200
+Message-Id: <1311937019-29914-32-git-send-email-g.liakhovetski@gmx.de>
+In-Reply-To: <1311937019-29914-1-git-send-email-g.liakhovetski@gmx.de>
+References: <1311937019-29914-1-git-send-email-g.liakhovetski@gmx.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Since many, many kernel releases my Hauppauge WinTV HVR-1400 doesn't work
-anymore, and nobody feels responsible to fix it.
-The code to get it work is still in there, it's only commented out.
-My patch to enable it was rejected, because somebody had fear that it could
-break other cards.
-So here is a new patch, that allows you to select the frequency adjustment
-code by a module parameter. Default is the old code, so it can't break
-anything.
+Switch from soc-camera specific .{query,set}_bus_param() to V4L2
+subdevice .[gs]_mbus_config() operations.
 
-Signed-off-by: Alina Friedrichsen <x-alina@gmx.net>
+Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
 ---
-diff -urN linux-3.0.orig/drivers/media/common/tuners/tuner-xc2028.c linux-3.0/drivers/media/common/tuners/tuner-xc2028.c
---- linux-3.0.orig/drivers/media/common/tuners/tuner-xc2028.c	2011-07-22 04:17:23.000000000 +0200
-+++ linux-3.0/drivers/media/common/tuners/tuner-xc2028.c	2011-07-22 16:30:54.280668772 +0200
-@@ -54,6 +54,11 @@
- MODULE_PARM_DESC(firmware_name, "Firmware file name. Allows overriding the "
- 				"default firmware name\n");
+ drivers/media/video/mx1_camera.c |   71 ++++++++++++++++++++++---------------
+ 1 files changed, 42 insertions(+), 29 deletions(-)
+
+diff --git a/drivers/media/video/mx1_camera.c b/drivers/media/video/mx1_camera.c
+index 087db12..18e94c7 100644
+--- a/drivers/media/video/mx1_camera.c
++++ b/drivers/media/video/mx1_camera.c
+@@ -78,11 +78,10 @@
+ #define CSI_IRQ_MASK	(CSISR_SFF_OR_INT | CSISR_RFF_OR_INT | \
+ 			CSISR_STATFF_INT | CSISR_RXFF_INT | CSISR_SOF_INT)
  
-+static int frequency_magic;
-+module_param(frequency_magic, int, 0644);
-+MODULE_PARM_DESC(frequency_magic, "selects the adjustment code for XC3028 to "
-+				  "properly centralize the frequency");
-+
- static LIST_HEAD(hybrid_tuner_instance_list);
- static DEFINE_MUTEX(xc2028_list_mutex);
+-#define CSI_BUS_FLAGS	(SOCAM_MASTER | SOCAM_HSYNC_ACTIVE_HIGH | \
+-			SOCAM_VSYNC_ACTIVE_HIGH | SOCAM_VSYNC_ACTIVE_LOW | \
+-			SOCAM_PCLK_SAMPLE_RISING | SOCAM_PCLK_SAMPLE_FALLING | \
+-			SOCAM_DATA_ACTIVE_HIGH | SOCAM_DATA_ACTIVE_LOW | \
+-			SOCAM_DATAWIDTH_8)
++#define CSI_BUS_FLAGS	(V4L2_MBUS_MASTER | V4L2_MBUS_HSYNC_ACTIVE_HIGH | \
++			V4L2_MBUS_VSYNC_ACTIVE_HIGH | V4L2_MBUS_VSYNC_ACTIVE_LOW | \
++			V4L2_MBUS_PCLK_SAMPLE_RISING | V4L2_MBUS_PCLK_SAMPLE_FALLING | \
++			V4L2_MBUS_DATA_ACTIVE_HIGH | V4L2_MBUS_DATA_ACTIVE_LOW)
  
-@@ -967,34 +972,36 @@
- 		 * newer firmwares
- 		 */
+ #define MAX_VIDEO_MEM 16	/* Video memory limit in megabytes */
  
--#if 1
--		/*
--		 * The proper adjustment would be to do it at s-code table.
--		 * However, this didn't work, as reported by
--		 * Robert Lowery <rglowery@exemail.com.au>
--		 */
+@@ -490,59 +489,73 @@ static int mx1_camera_set_crop(struct soc_camera_device *icd,
+ 
+ static int mx1_camera_set_bus_param(struct soc_camera_device *icd, __u32 pixfmt)
+ {
++	struct v4l2_subdev *sd = soc_camera_to_subdev(icd);
+ 	struct soc_camera_host *ici = to_soc_camera_host(icd->parent);
+ 	struct mx1_camera_dev *pcdev = ici->priv;
+-	unsigned long camera_flags, common_flags;
++	struct v4l2_mbus_config cfg = {.type = V4L2_MBUS_PARALLEL,};
++	unsigned long common_flags;
+ 	unsigned int csicr1;
+ 	int ret;
+ 
+-	camera_flags = icd->ops->query_bus_param(icd);
 -
--		if (priv->cur_fw.type & DTV7)
--			offset += 500000;
--
--#else
--		/*
--		 * Still need tests for XC3028L (firmware 3.2 or upper)
--		 * So, for now, let's just comment the per-firmware
--		 * version of this change. Reports with xc3028l working
--		 * with and without the lines bellow are welcome
--		 */
-+		if (!frequency_magic) {
-+			/*
-+			 * The proper adjustment would be to do it at s-code
-+			 * table. However, this didn't work, as reported by
-+			 * Robert Lowery <rglowery@exemail.com.au>
-+			 */
+ 	/* MX1 supports only 8bit buswidth */
+-	common_flags = soc_camera_bus_param_compatible(camera_flags,
+-						       CSI_BUS_FLAGS);
+-	if (!common_flags)
+-		return -EINVAL;
++	ret = v4l2_subdev_call(sd, video, g_mbus_config, &cfg);
++	if (!ret) {
++		common_flags = soc_mbus_config_compatible(&cfg, CSI_BUS_FLAGS);
++		if (!common_flags) {
++			dev_warn(icd->parent,
++				 "Flags incompatible: camera 0x%x, host 0x%x\n",
++				 cfg.flags, CSI_BUS_FLAGS);
++			return -EINVAL;
++		}
++	} else if (ret != -ENOIOCTLCMD) {
++		return ret;
++	} else {
++		common_flags = CSI_BUS_FLAGS;
++	}
  
--		if (priv->firm_version < 0x0302) {
- 			if (priv->cur_fw.type & DTV7)
- 				offset += 500000;
-+
- 		} else {
--			if (priv->cur_fw.type & DTV7)
--				offset -= 300000;
--			else if (type != ATSC) /* DVB @6MHz, DTV 8 and DTV 7/8 */
--				offset += 200000;
-+			/*
-+			 * Still need tests for XC3028L (firmware 3.2 or upper)
-+			 * So, for now, let's just comment the per-firmware
-+			 * version of this change. Reports with xc3028l working
-+			 * with and without the lines bellow are welcome
-+			 */
-+
-+			if (priv->firm_version < 0x0302) {
-+				if (priv->cur_fw.type & DTV7)
-+					offset += 500000;
-+			} else {
-+				if (priv->cur_fw.type & DTV7)
-+					offset -= 300000;
-+				else if (type != ATSC) {
-+					/* DVB @6MHz, DTV 8 and DTV 7/8 */
-+					offset += 200000;
-+				}
-+			}
- 		}
--#endif
+ 	/* Make choises, based on platform choice */
+-	if ((common_flags & SOCAM_VSYNC_ACTIVE_HIGH) &&
+-		(common_flags & SOCAM_VSYNC_ACTIVE_LOW)) {
++	if ((common_flags & V4L2_MBUS_VSYNC_ACTIVE_HIGH) &&
++		(common_flags & V4L2_MBUS_VSYNC_ACTIVE_LOW)) {
+ 			if (!pcdev->pdata ||
+ 			     pcdev->pdata->flags & MX1_CAMERA_VSYNC_HIGH)
+-				common_flags &= ~SOCAM_VSYNC_ACTIVE_LOW;
++				common_flags &= ~V4L2_MBUS_VSYNC_ACTIVE_LOW;
+ 			else
+-				common_flags &= ~SOCAM_VSYNC_ACTIVE_HIGH;
++				common_flags &= ~V4L2_MBUS_VSYNC_ACTIVE_HIGH;
  	}
  
- 	div = (freq - offset + DIV / 2) / DIV;
+-	if ((common_flags & SOCAM_PCLK_SAMPLE_RISING) &&
+-		(common_flags & SOCAM_PCLK_SAMPLE_FALLING)) {
++	if ((common_flags & V4L2_MBUS_PCLK_SAMPLE_RISING) &&
++		(common_flags & V4L2_MBUS_PCLK_SAMPLE_FALLING)) {
+ 			if (!pcdev->pdata ||
+ 			     pcdev->pdata->flags & MX1_CAMERA_PCLK_RISING)
+-				common_flags &= ~SOCAM_PCLK_SAMPLE_FALLING;
++				common_flags &= ~V4L2_MBUS_PCLK_SAMPLE_FALLING;
+ 			else
+-				common_flags &= ~SOCAM_PCLK_SAMPLE_RISING;
++				common_flags &= ~V4L2_MBUS_PCLK_SAMPLE_RISING;
+ 	}
+ 
+-	if ((common_flags & SOCAM_DATA_ACTIVE_HIGH) &&
+-		(common_flags & SOCAM_DATA_ACTIVE_LOW)) {
++	if ((common_flags & V4L2_MBUS_DATA_ACTIVE_HIGH) &&
++		(common_flags & V4L2_MBUS_DATA_ACTIVE_LOW)) {
+ 			if (!pcdev->pdata ||
+ 			     pcdev->pdata->flags & MX1_CAMERA_DATA_HIGH)
+-				common_flags &= ~SOCAM_DATA_ACTIVE_LOW;
++				common_flags &= ~V4L2_MBUS_DATA_ACTIVE_LOW;
+ 			else
+-				common_flags &= ~SOCAM_DATA_ACTIVE_HIGH;
++				common_flags &= ~V4L2_MBUS_DATA_ACTIVE_HIGH;
+ 	}
+ 
+-	ret = icd->ops->set_bus_param(icd, common_flags);
+-	if (ret < 0)
++	cfg.flags = common_flags;
++	ret = v4l2_subdev_call(sd, video, s_mbus_config, &cfg);
++	if (ret < 0 && ret != -ENOIOCTLCMD) {
++		dev_dbg(icd->parent, "camera s_mbus_config(0x%lx) returned %d\n",
++			common_flags, ret);
+ 		return ret;
++	}
+ 
+ 	csicr1 = __raw_readl(pcdev->base + CSICR1);
+ 
+-	if (common_flags & SOCAM_PCLK_SAMPLE_RISING)
++	if (common_flags & V4L2_MBUS_PCLK_SAMPLE_RISING)
+ 		csicr1 |= CSICR1_REDGE;
+-	if (common_flags & SOCAM_VSYNC_ACTIVE_HIGH)
++	if (common_flags & V4L2_MBUS_VSYNC_ACTIVE_HIGH)
+ 		csicr1 |= CSICR1_SOF_POL;
+-	if (common_flags & SOCAM_DATA_ACTIVE_LOW)
++	if (common_flags & V4L2_MBUS_DATA_ACTIVE_LOW)
+ 		csicr1 |= CSICR1_DATA_POL;
+ 
+ 	__raw_writel(csicr1, pcdev->base + CSICR1);
+-- 
+1.7.2.5
+
