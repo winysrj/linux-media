@@ -1,39 +1,65 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-in-11.arcor-online.net ([151.189.21.51]:36390 "EHLO
-	mail-in-11.arcor-online.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752608Ab1GWKdc (ORCPT
+Received: from mail-iy0-f174.google.com ([209.85.210.174]:33705 "EHLO
+	mail-iy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755822Ab1G2MbN (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 23 Jul 2011 06:33:32 -0400
-Received: from mail-in-08-z2.arcor-online.net (mail-in-08-z2.arcor-online.net [151.189.8.20])
-	by mx.arcor.de (Postfix) with ESMTP id A028535A553
-	for <linux-media@vger.kernel.org>; Sat, 23 Jul 2011 12:33:30 +0200 (CEST)
-Received: from mail-in-13.arcor-online.net (mail-in-13.arcor-online.net [151.189.21.53])
-	by mail-in-08-z2.arcor-online.net (Postfix) with ESMTP id 87DB577CD0
-	for <linux-media@vger.kernel.org>; Sat, 23 Jul 2011 12:33:30 +0200 (CEST)
-Received: from [127.0.0.1] (dyndsl-095-033-076-011.ewe-ip-backbone.de [95.33.76.11])
-	(Authenticated sender: treito@arcor.de)
-	by mail-in-13.arcor-online.net (Postfix) with ESMTPSA id 5B39B212792
-	for <linux-media@vger.kernel.org>; Sat, 23 Jul 2011 12:33:30 +0200 (CEST)
-Message-ID: <4E2AA378.3050902@arcor.de>
-Date: Sat, 23 Jul 2011 12:33:28 +0200
-From: Treito <treito@arcor.de>
+	Fri, 29 Jul 2011 08:31:13 -0400
+Received: by iyb12 with SMTP id 12so3950829iyb.19
+        for <linux-media@vger.kernel.org>; Fri, 29 Jul 2011 05:31:12 -0700 (PDT)
 MIME-Version: 1.0
-To: linux-media@vger.kernel.org
-Subject: s2-liplianin - dib0700 causes kernel oops!
-Content-Type: text/plain; charset=ISO-8859-15; format=flowed
-Content-Transfer-Encoding: 7bit
+In-Reply-To: <201107291214.40779.laurent.pinchart@ideasonboard.com>
+References: <CACKLOr1veNZ_6E3V_m1Tf+mxxUAKiRKDbboW-fMbRGUrLns_XA@mail.gmail.com>
+	<201107271951.37601.laurent.pinchart@ideasonboard.com>
+	<CACKLOr1iDXcftKqw14i4K6aoxWaR7iHSv0VHbSFEJcar1L62ug@mail.gmail.com>
+	<201107291214.40779.laurent.pinchart@ideasonboard.com>
+Date: Fri, 29 Jul 2011 14:31:12 +0200
+Message-ID: <CACKLOr3VxSDUKzgWByH-qcWeA85QvY-0jY=bAogW8JZa3=v1nw@mail.gmail.com>
+Subject: Re: [PATCH] mt9p031: Aptina (Micron) MT9P031 5MP sensor driver
+From: javier Martin <javier.martin@vista-silicon.com>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: Sakari Ailus <sakari.ailus@iki.fi>, linux-media@vger.kernel.org,
+	shotty317@gmail.com
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello,
+All right,
+it works like a charm for me.
 
-I tried to install s2-liplianin on changing kernel-versions. All in 
-common is, that my Hauppauge Nova-T USB-Stick causes a kernel oops when 
-plugged in. The devices are generated, but it does not tune. lsusb freezes.
-Here is my kernel.log: http://pastebin.com/03hxKvme
-The drivers from 2011-02-05 does not run, but the drivers from 
-2010-10-16 runs perfectly.
+It took me a bit to figure out that binning and skipping is controlled
+through ratio between cropping window size and actual format size but
+it is clear now.
 
-Regards,
+Just one thing; both VFLIP (this one is my fault) and HFLIP controls
+change the pixel format of the image and it no longer is GRBG.
 
-Sven
+Given the following example image:
+
+G R G R
+B G B G
+
+If we apply VFLIP we'll have:
+
+B G B G
+G R G R
+
+And if we apply HFLIP we'll have:
+
+R G R G
+G B G B
+
+I am not sure how we could solve this issue, maybe through adjusting
+row and column start...
+
+In any case the driver is OK for me and the issue with VFLIP and HFLIP
+could be solved later on.
+Thank you.
+
+-- 
+Javier Martin
+Vista Silicon S.L.
+CDTUC - FASE C - Oficina S-345
+Avda de los Castros s/n
+39005- Santander. Cantabria. Spain
++34 942 25 32 60
+www.vista-silicon.com
