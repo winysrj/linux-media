@@ -1,227 +1,132 @@
-Return-path: <mchehab@localhost>
-Received: from mx1.redhat.com ([209.132.183.28]:19371 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753311Ab1GFMbu (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 6 Jul 2011 08:31:50 -0400
-Message-ID: <4E1455AC.1090704@redhat.com>
-Date: Wed, 06 Jul 2011 09:31:40 -0300
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-MIME-Version: 1.0
-To: Hans Verkuil <hverkuil@xs4all.nl>
-CC: Tomasz Stanislawski <t.stanislaws@samsung.com>,
-	linux-media@vger.kernel.org, m.szyprowski@samsung.com,
-	kyungmin.park@samsung.com, laurent.pinchart@ideasonboard.com
-Subject: Re: [RFC] DV timings spec fixes at V4L2 API - was: [PATCH 1/8] v4l:
- add macro for 1080p59_54 preset
-References: <1309351877-32444-1-git-send-email-t.stanislaws@samsung.com>    <201107050926.38639.hverkuil@xs4all.nl> <4E12FEA3.6010500@redhat.com>    <201107051520.17361.hverkuil@xs4all.nl> <4E14415A.9010001@redhat.com>    <416b47156837d78280f98bfd96e36dc7.squirrel@webmail.xs4all.nl>    <4E144B93.7060105@redhat.com> <761c3894fa161d5e702cccf80443c7dd.squirrel@webmail.xs4all.nl>
-In-Reply-To: <761c3894fa161d5e702cccf80443c7dd.squirrel@webmail.xs4all.nl>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+Return-path: <linux-media-owner@vger.kernel.org>
+Received: from moutng.kundenserver.de ([212.227.17.9]:57120 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756306Ab1G2K5G (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 29 Jul 2011 06:57:06 -0400
+Received: from 6a.grange (6a.grange [192.168.1.11])
+	by axis700.grange (Postfix) with ESMTPS id 79D1E18B058
+	for <linux-media@vger.kernel.org>; Fri, 29 Jul 2011 12:57:02 +0200 (CEST)
+Received: from lyakh by 6a.grange with local (Exim 4.72)
+	(envelope-from <g.liakhovetski@gmx.de>)
+	id 1QmkkY-0007pn-DM
+	for linux-media@vger.kernel.org; Fri, 29 Jul 2011 12:57:02 +0200
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: linux-media@vger.kernel.org
+Subject: [PATCH 58/59] V4L: tw9910: remove superfluous soc-camera client operations
+Date: Fri, 29 Jul 2011 12:56:58 +0200
+Message-Id: <1311937019-29914-59-git-send-email-g.liakhovetski@gmx.de>
+In-Reply-To: <1311937019-29914-1-git-send-email-g.liakhovetski@gmx.de>
+References: <1311937019-29914-1-git-send-email-g.liakhovetski@gmx.de>
+Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
-Sender: <mchehab@infradead.org>
 
-Em 06-07-2011 09:14, Hans Verkuil escreveu:
->> Em 06-07-2011 08:31, Hans Verkuil escreveu:
->>>> Em 05-07-2011 10:20, Hans Verkuil escreveu:
->>>>
->>>>>> I failed to see what information is provided by the "presets" name.
->>>>>> If
->>>>>> this were removed
->>>>>> from the ioctl, and fps would be added instead, the API would be
->>>>>> clearer. The only
->>>>>> adjustment would be to use "index" as the preset selection key.
->>>>>> Anyway,
->>>>>> it is too late
->>>>>> for such change. We need to live with that.
->>>>>
->>>>> Adding the fps solves nothing. Because that still does not give you
->>>>> specific timings.
->>>>> You can have 1920x1080P60 that has quite different timings from the
->>>>> CEA-861 standard
->>>>> and that may not be supported by a TV.
->>>>>
->>>>> If you are working with HDMI, then you may want to filter all
->>>>> supported
->>>>> presets to
->>>>> those of the CEA standard.
->>>>>
->>>>> That's one thing that is missing at the moment: that presets belonging
->>>>> to a certain
->>>>> standard get their own range. Since we only do CEA861 right now it
->>>>> hasn't been an
->>>>> issue, but it will.
->>>>
->>>> I prepared a long email about that, but then I realized that we're
->>>> investing our time into
->>>> something broken, at the light of all DV timing standards. So, I've
->>>> dropped it and
->>>> started from scratch.
->>>>
->>>> From what I've got, there are some hardware that can only do a limited
->>>> set
->>>> of DV timings.
->>>> If this were not the case, we could simply just use the
->>>> VIDIOC_S_DV_TIMINGS/VIDIOC_G_DV_TIMINGS,
->>>> and put the CEA 861 and VESA timings into some userspace library.
->>>>
->>>> In other words, the PRESET API is meant to solve the case where
->>>> hardware
->>>> only support
->>>> a limited set of frequencies, that may or may not be inside the CEA
->>>> standard.
->>>>
->>>> Let's assume we never added the current API, and discuss how it would
->>>> properly fulfill
->>>> the user needs. An API that would likely work is:
->>>>
->>>> struct v4l2_dv_enum_preset2 {
->>>> 	__u32	  index;
->>>> 	__u8	  name[32]; /* Name of the preset timing */
->>>>
->>>> 	struct v4l2_fract fps;
->>>>
->>>> #define DV_PRESET_IS_PROGRESSIVE	1<<31
->>>> #define DV_PRESET_SPEC(flag)		(flag && 0xff)
->>>> #define DV_PRESET_IS_CEA861		1
->>>> #define DV_PRESET_IS_DMT		2
->>>> #define DV_PRESET_IS_CVF		3
->>>> #define DV_PRESET_IS_GTF		4
->>>> #define DV_PRESET_IS_VENDOR_SPECIFIC	5
->>>>
->>>> 	__u32	flags;		/* Interlaced/progressive, DV specs, etc */
->>>>
->>>> 	__u32	width;		/* width in pixels */
->>>> 	__u32	height;		/* height in lines */
->>>> 	__u32	polarities;	/* Positive or negative polarity */
->>>> 	__u64	pixelclock;	/* Pixel clock in HZ. Ex. 74.25MHz->74250000 */
->>>> 	__u32	hfrontporch;	/* Horizpontal front porch in pixels */
->>>> 	__u32	hsync;		/* Horizontal Sync length in pixels */
->>>> 	__u32	hbackporch;	/* Horizontal back porch in pixels */
->>>> 	__u32	vfrontporch;	/* Vertical front porch in pixels */
->>>> 	__u32	vsync;		/* Vertical Sync length in lines */
->>>> 	__u32	vbackporch;	/* Vertical back porch in lines */
->>>> 	__u32	il_vfrontporch;	/* Vertical front porch for bottom field of
->>>> 				 * interlaced field formats
->>>> 				 */
->>>> 	__u32	il_vsync;	/* Vertical sync length for bottom field of
->>>> 				 * interlaced field formats
->>>> 				 */
->>>> 	__u32	il_vbackporch;	/* Vertical back porch for bottom field of
->>>> 				 * interlaced field formats
->>>> 				 */
->>>> 	__u32	  reserved[4];
->>>> };
->>>>
->>>> #define	VIDIOC_ENUM_DV_PRESETS2	_IOWR('V', 83, struct
->>>> v4l2_dv_enum_preset2)
->>>> #define	VIDIOC_S_DV_PRESET2	_IOWR('V', 84, u32 index)
->>>> #define	VIDIOC_G_DV_PRESET2	_IOWR('V', 85, u32 index)
->>>>
->>>> Such preset API seems to work for all cases. Userspace can use any DV
->>>> timing
->>>> information to select the desired format, and don't need to have a
->>>> switch
->>>> for
->>>> a preset macro to try to guess what the format actually means. Also,
->>>> there's no
->>>> need to touch at the API spec every time a new DV timeline is needed.
->>>>
->>>> Also, it should be noticed that, since the size of the data on the
->>>> above
->>>> definitions
->>>> are different than the old ones, _IO macros will provide a different
->>>> magic
->>>> number,
->>>> so, adding these won't break the existing API.
->>>>
->>>> So, I think we should work on this proposal, and mark the existing one
->>>> as
->>>> deprecated.
->>>
->>> This proposal makes it very hard for applications to directly select a
->>> format like 720p50 because the indices can change at any time.
->>
->> Why? All the application needs to do is to call VIDIOC_ENUM_DV_PRESETS2,
->> check what line it wants,
-> 
-> It's not so easy as you think to find the right timings: you have to check
-> many parameters to be certain you have the right one and not some subtle
-> variation.
+Now that all soc-camera hosts have been ported to use V4L2 subdevice
+mediabus-config operations and soc-camera client bus-parameter operations
+have been made optional, they can be removed.
 
-Or you can do a strcmp(v4l2_dv_enum_preset2.name,"my preset").
+Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+---
+ drivers/media/video/tw9910.c |   53 ++---------------------------------------
+ 1 files changed, 3 insertions(+), 50 deletions(-)
 
->> and do a S_DV_PRESET2, just like any other place
->> where V4L2 defines an ENUM function.
->>
->> The enum won't change during application runtime, so, they can be stored
->> if the application would need to switch to other formats latter.
->>
->>> I think
->>> this is a very desirable feature, particularly for apps running on
->>> embedded systems where the hardware is known. This was one of the design
->>> considerations at the time this API was made.
->>
->> This is a very weak argument. With just one ENUM loop, the application can
->> quickly get the right format(s), and associate them with any internal
->> namespace.
-> 
-> That actually isn't easy at all.
+diff --git a/drivers/media/video/tw9910.c b/drivers/media/video/tw9910.c
+index 4f9fbf2..40cc149 100644
+--- a/drivers/media/video/tw9910.c
++++ b/drivers/media/video/tw9910.c
+@@ -453,7 +453,7 @@ static const struct tw9910_scale_ctrl *tw9910_select_norm(struct soc_camera_devi
+ }
+ 
+ /*
+- * soc_camera_ops function
++ * subdevice operations
+  */
+ static int tw9910_s_stream(struct v4l2_subdev *sd, int enable)
+ {
+@@ -495,44 +495,6 @@ static int tw9910_s_stream(struct v4l2_subdev *sd, int enable)
+ 	return tw9910_power(client, enable);
+ }
+ 
+-static int tw9910_set_bus_param(struct soc_camera_device *icd,
+-				unsigned long flags)
+-{
+-	struct soc_camera_link *icl = to_soc_camera_link(icd);
+-	struct v4l2_subdev *sd = soc_camera_to_subdev(icd);
+-	struct i2c_client *client = v4l2_get_subdevdata(sd);
+-	u8 val = VSSL_VVALID | HSSL_DVALID;
+-
+-	flags = soc_camera_apply_sensor_flags(icl, flags);
+-
+-	/*
+-	 * set OUTCTR1
+-	 *
+-	 * We use VVALID and DVALID signals to control VSYNC and HSYNC
+-	 * outputs, in this mode their polarity is inverted.
+-	 */
+-	if (flags & SOCAM_HSYNC_ACTIVE_LOW)
+-		val |= HSP_HI;
+-
+-	if (flags & SOCAM_VSYNC_ACTIVE_LOW)
+-		val |= VSP_HI;
+-
+-	return i2c_smbus_write_byte_data(client, OUTCTR1, val);
+-}
+-
+-static unsigned long tw9910_query_bus_param(struct soc_camera_device *icd)
+-{
+-	struct i2c_client *client = to_i2c_client(to_soc_camera_control(icd));
+-	struct tw9910_priv *priv = to_tw9910(client);
+-	struct soc_camera_link *icl = to_soc_camera_link(icd);
+-	unsigned long flags = SOCAM_PCLK_SAMPLE_RISING | SOCAM_MASTER |
+-		SOCAM_VSYNC_ACTIVE_HIGH | SOCAM_HSYNC_ACTIVE_HIGH |
+-		SOCAM_VSYNC_ACTIVE_LOW  | SOCAM_HSYNC_ACTIVE_LOW  |
+-		SOCAM_DATA_ACTIVE_HIGH | priv->info->buswidth;
+-
+-	return soc_camera_apply_sensor_flags(icl, flags);
+-}
+-
+ static int tw9910_s_std(struct v4l2_subdev *sd, v4l2_std_id norm)
+ {
+ 	int ret = -EINVAL;
+@@ -840,11 +802,6 @@ static int tw9910_video_probe(struct soc_camera_device *icd,
+ 	return 0;
+ }
+ 
+-static struct soc_camera_ops tw9910_ops = {
+-	.set_bus_param		= tw9910_set_bus_param,
+-	.query_bus_param	= tw9910_query_bus_param,
+-};
+-
+ static struct v4l2_subdev_core_ops tw9910_subdev_core_ops = {
+ 	.g_chip_ident	= tw9910_g_chip_ident,
+ 	.s_std		= tw9910_s_std,
+@@ -964,14 +921,12 @@ static int tw9910_probe(struct i2c_client *client,
+ 
+ 	v4l2_i2c_subdev_init(&priv->subdev, client, &tw9910_subdev_ops);
+ 
+-	icd->ops     = &tw9910_ops;
++	icd->ops     = NULL;
+ 	icd->iface   = icl->bus_id;
+ 
+ 	ret = tw9910_video_probe(icd, client);
+-	if (ret) {
+-		icd->ops = NULL;
++	if (ret)
+ 		kfree(priv);
+-	}
+ 
+ 	return ret;
+ }
+@@ -979,9 +934,7 @@ static int tw9910_probe(struct i2c_client *client,
+ static int tw9910_remove(struct i2c_client *client)
+ {
+ 	struct tw9910_priv *priv = to_tw9910(client);
+-	struct soc_camera_device *icd = client->dev.platform_data;
+ 
+-	icd->ops = NULL;
+ 	kfree(priv);
+ 	return 0;
+ }
+-- 
+1.7.2.5
 
-???
-
->>> But looking at this I wonder if we shouldn't just make a
->>> VIDIOC_G_PRESET_TIMINGS function? You give it the preset ID and you get
->>> all the timing information back. No need to deprecate anything. I'm not
->>> even sure if with this change we need to modify struct
->>> v4l2_dv_enum_preset
->>> as I proposed in my RFC, although I think we should.
->>
->> Won't solve the issue: one new #define is needed for each video timing,
->> namespaces will be confusing, no support for VESA GVF/ VESA CVT timings
->> (or worse: we'll end by having thousands of formats at the end of the
->> day),
->> instead of just one ENUM ioctl, an extra ioctl will be required for each
->> returned value, etc.
-> 
-> Presets for GTF/CVT are useless (and I have never seen hardware that has
-> such presets). In practice you have CEA and DMT presets and nothing else.
-> 
-> We may need to add PRESET_PRIVATE (just like we do for controls) should we
-> get non-CEA/DMT formats as well. There is no point in having specific
-> preset defines for those IMHO.
-
-A PRESET_PRIVATE would mean just one DV timing, as the "preset" is the index
-to get data. So, this won't fix the API.
-
-> 
-> I see very little advantage in throwing away an API that works quite well
-> in practice only to add a new one that isn't much better IMO. Instead we
-> can easily improve the existing API.
-> 
-> I *want* to be able to specify the most common CEA/DMT standards directly
-> and unambiguously through presets. 
-
-With my proposal, you can do it.
-
-> It is very easy and nice to use in
-> practice. Once you go into the realm of GTF/CVT, then the preset API is
-> too limited and G/S_DV_TIMINGS need to be used, but that requires much
-> more effort on the part of the application.
-
-The usage of G/S_DV_TIMINGS require an extra care: in the past, old VGA hardware
-(and/or monitors) could be damaged if it is programed with some parameters.
-It used to have some viruses that damaged hardware using it. So, any driver
-implementing it will need to validate the timings, to be sure that they are
-on an acceptable range and won't damage the hardware in any way, or it will 
-need to require some special capability (root access) to avoid that an userspace
-program to damage the hardware.
-
-The timings on a preset table should be ok, so it is safer to implement the *PRESET
-ioctls than the *TIMINGS one.
-
-> I hope others will pitch in as well with their opinions.
-
-Agreed.
-
-Thanks,
-Mauro.
