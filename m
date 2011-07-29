@@ -1,234 +1,129 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:43386 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753225Ab1GPP7b (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 16 Jul 2011 11:59:31 -0400
-Message-ID: <4E21B55E.2070309@iki.fi>
-Date: Sat, 16 Jul 2011 18:59:26 +0300
-From: Antti Palosaari <crope@iki.fi>
+Received: from smtp-68.nebula.fi ([83.145.220.68]:49218 "EHLO
+	smtp-68.nebula.fi" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755162Ab1G2Hov (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 29 Jul 2011 03:44:51 -0400
+Date: Fri, 29 Jul 2011 10:44:46 +0300
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: linux-media@vger.kernel.org, hans.verkuil@cisco.com,
+	snjw23@gmail.com
+Subject: Re: [PATCH 2/3] v4l: events: Define frame start event
+Message-ID: <20110729074446.GL32629@valkosipuli.localdomain>
+References: <4E2F0C53.10907@iki.fi>
+ <201107281352.21742.laurent.pinchart@ideasonboard.com>
+ <20110728202857.GK32629@valkosipuli.localdomain>
+ <201107282236.57896.laurent.pinchart@ideasonboard.com>
 MIME-Version: 1.0
-To: Andreas Oberritter <obi@linuxtv.org>
-CC: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Ralph Metzler <rjkm@metzlerbros.de>,
-	linux-media@vger.kernel.org
-Subject: Re: [PATCH 0/5] Driver support for cards based on Digital Devices
- bridge (ddbridge)
-References: <201107032321.46092@orion.escape-edv.de> <4E1F8E1F.3000008@redhat.com> <4E1FBA6F.10509@redhat.com> <201107150717.08944@orion.escape-edv.de> <19999.63914.990114.26990@morden.metzler> <4E203FD0.4030503@redhat.com> <4E207252.5050506@linuxtv.org> <4E20D042.3000302@iki.fi> <4E21832A.20600@redhat.com> <4E219D49.1070709@iki.fi> <4E21A63A.8040008@redhat.com> <4E21B0DE.2020902@linuxtv.org> <4E21B1E6.4090302@iki.fi> <4E21B3EC.9060709@linuxtv.org>
-In-Reply-To: <4E21B3EC.9060709@linuxtv.org>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <201107282236.57896.laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 07/16/2011 06:53 PM, Andreas Oberritter wrote:
-> On 16.07.2011 17:44, Antti Palosaari wrote:
->> On 07/16/2011 06:40 PM, Andreas Oberritter wrote:
->>> On 16.07.2011 16:54, Mauro Carvalho Chehab wrote:
->>>> Em 16-07-2011 11:16, Antti Palosaari escreveu:
->>>>> On 07/16/2011 03:25 PM, Mauro Carvalho Chehab wrote:
->>>>>> Em 15-07-2011 20:41, Antti Palosaari escreveu:
->>>>>>> On 07/15/2011 08:01 PM, Andreas Oberritter wrote:
->>>>>>>> On 15.07.2011 15:25, Mauro Carvalho Chehab wrote:
->>>>>>>>> Em 15-07-2011 05:26, Ralph Metzler escreveu:
->>>>>>>>>> At the same time I want to add delivery system properties to
->>>>>>>>>> support everything in one frontend device.
->>>>>>>>>> Adding a parameter to select C or T as default should help in most
->>>>>>>>>> cases where the application does not support switching yet.
->>>>>>>>>
->>>>>>>>> If I understood well, creating a multi-delivery type of frontend
->>>>>>>>> for
->>>>>>>>> devices like DRX-K makes sense for me.
->>>>>>>>>
->>>>>>>>> We need to take some care about how to add support for them, to
->>>>>>>>> avoid
->>>>>>>>> breaking userspace, or to follow kernel deprecating rules, by
->>>>>>>>> adding
->>>>>>>>> some legacy compatibility glue for a few kernel versions. So,
->>>>>>>>> the sooner
->>>>>>>>> we add such support, the better, as less drivers will need to
->>>>>>>>> support
->>>>>>>>> a "fallback" mechanism.
->>>>>>>>>
->>>>>>>>> The current DVB version 5 API doesn't prevent some userspace
->>>>>>>>> application
->>>>>>>>> to change the delivery system[1] for a given frontend. This
->>>>>>>>> feature is
->>>>>>>>> actually used by DVB-T2 and DVB-S2 drivers. This actually
->>>>>>>>> improved the
->>>>>>>>> DVB API multi-fe support, by avoiding the need of create of a
->>>>>>>>> secondary
->>>>>>>>> frontend for T2/S2.
->>>>>>>>>
->>>>>>>>> Userspace applications can detect that feature by using
->>>>>>>>> FE_CAN_2G_MODULATION
->>>>>>>>> flag, but this mechanism doesn't allow other types of changes like
->>>>>>>>> from/to DVB-T/DVB-C or from/to DVB-T/ISDB-T. So, drivers that
->>>>>>>>> allow such
->>>>>>>>> type of delivery system switch, using the same chip ended by
->>>>>>>>> needing to
->>>>>>>>> add two frontends.
->>>>>>>>>
->>>>>>>>> Maybe we can add a generic FE_CAN_MULTI_DELIVERY flag to
->>>>>>>>> fe_caps_t, and
->>>>>>>>> add a way to query the type of delivery systems supported by a
->>>>>>>>> driver.
->>>>>>>>>
->>>>>>>>> [1]
->>>>>>>>> http://linuxtv.org/downloads/v4l-dvb-apis/FE_GET_SET_PROPERTY.html#DTV-DELIVERY-SYSTEM
->>>>>>>>>
->>>>>>>>
->>>>>>>> I don't think it's necessary to add a new flag. It should be
->>>>>>>> sufficient
->>>>>>>> to add a property like "DTV_SUPPORTED_DELIVERY_SYSTEMS", which
->>>>>>>> should be
->>>>>>>> read-only and return an array of type fe_delivery_system_t.
->>>>>>>>
->>>>>>>> Querying this new property on present kernels hopefully fails with a
->>>>>>>> non-zero return code. in which case FE_GET_INFO should be used to
->>>>>>>> query
->>>>>>>> the delivery system.
->>>>>>>>
->>>>>>>> In future kernels we can provide a default implementation, returning
->>>>>>>> exactly one fe_delivery_system_t for unported drivers. Other drivers
->>>>>>>> should be able to override this default implementation in their
->>>>>>>> get_property callback.
->>>>>>>
->>>>>>> One thing I want to say is that consider about devices which does
->>>>>>> have MFE using two different *physical* demods, not integrated to
->>>>>>> same silicon.
->>>>>>>
->>>>>>> If you add such FE delsys switch mechanism it needs some more glue
->>>>>>> to bind two physical FEs to one virtual FE. I see much easier to
->>>>>>> keep all FEs as own - just register those under the same adapter
->>>>>>> if FEs are shared.
->>>>>>
->>>>>> In this case, the driver should just create two frontends, as
->>>>>> currently.
->>>>>>
->>>>>> There's a difference when there are two physical FE's and just one FE:
->>>>>> with 2 FE's, the userspace application can just keep both opened at
->>>>>> the same time. Some applications (like vdr) assumes that all multi-fe
->>>>>> are like that.
->>>>>
->>>>> Does this mean demod is not sleeping (.init() called)?
->>>>>
->>>>>> When there's just a single FE, but the driver needs to "fork" it in
->>>>>> two
->>>>>> due to the API troubles, the driver needs to prevent the usage of both
->>>>>> fe's, either at open or at the ioctl level. So, applications like vdr
->>>>>> will only use the first frontend.
->>>>>
->>>>> Lets take example. There is shared MFE having DVB-S, DVB-T and
->>>>> DVB-C. DVB-T and DVB-C are integrated to one chip whilst DVB-S have
->>>>> own.
->
-> One remark: In my previous mail I assumed that in your example DVB-S and
-> either DVB-C or DVB-T can be tuned simultaneously, i.e. there are two
-> antenna connectors and two tuners in addition to the two demod chips. If
-> this assumtion was wrong, then of course approach 2 is the sane one, not
-> approach 3.
+On Thu, Jul 28, 2011 at 10:36:57PM +0200, Laurent Pinchart wrote:
+> Hi Sakari,
 
-My assumption was that frontends are using shared HW resources for 
-reason or the other and thus only one FE can be used at the time.
+Hi, Laurent!
 
-When there is no shared resources it should be implemented as multiple 
-adapters.
+> On Thursday 28 July 2011 22:28:57 Sakari Ailus wrote:
+> > On Thu, Jul 28, 2011 at 01:52:21PM +0200, Laurent Pinchart wrote:
+> > > On Tuesday 26 July 2011 20:49:43 Sakari Ailus wrote:
+> 
+> [snip]
+> 
+> > > > +    <table frame="none" pgwide="1" id="v4l2-event-frame-sync">
+> > > > +      <title>struct
+> > > > <structname>v4l2_event_frame_sync</structname></title> +      <tgroup
+> > > > cols="3">
+> > > > +	&cs-str;
+> > > > +	<tbody valign="top">
+> > > > +	  <row>
+> > > > +	    <entry>__u32</entry>
+> > > > +	    <entry><structfield>buffer_sequence</structfield></entry>
+> > > > +	    <entry>
+> > > > +	      The sequence number of the buffer to be handled next or
+> > > > +	      currently handled by the driver.
+> > > 
+> > > What happens if a particular piece of hardware can capture two (or more)
+> > > simultaneous streams from the same video source (an unscaled compressed
+> > > stream and a scaled down uncompressed stream for instance) ?
+> > > Applications don't need to start both streams at the same time, what
+> > > buffer sequence number should be reported in that case ?
+> > 
+> > I think that if the video data comes from the same source, the sequence
+> > numbers should definitely be in sync. This would mean that for the second
+> > stream the first sequence number wouldn't be zero.
+> 
+> Then we should document this somewhere. Here is probably not the best place to 
+> document that, but the buffer_sequence documentation should still refer to the 
+> explanation.
+> 
+> I also find the wording a bit unclear. The "buffer to be handled next" could 
+> mean the buffer that will be given to an application at the next DQBUF call. 
+> Maybe we should refer to frame sequence numbers instead of buffer sequence 
+> numbers.
 
->>>>> Currently it will shown as:
->>>>
->>>> Let me name the approaches:
->>>>
->>>> Approach 1)
->>>>> * adapter0
->>>>> ** frontend0 (DVB-S)
->>>>> ** frontend1 (DVB-T)
->>>>> ** frontend2 (DVB-C)
->>>>
->>>> Approach 2)
->>>>> Your new "ideal" solution will be:
->>>>> * adapter0
->>>>> ** frontend0 (DVB-S/T/C)
->>>>
->>>> Approach 3)
->>>>> What really happens (mixed old and new):
->>>>> * adapter0
->>>>> ** frontend0 (DVB-S)
->>>>> ** frontend1 (DVB-T/C)
->>>>
->>>> What I've said before is that approach 3 is the "ideal" solution.
->>>>
->>>>> It does not look very good to offer this kind of mixed solution,
->>>>> since it is possible to offer only one solution for userspace, new
->>>>> or old, but not mixing.
->>>>
->>>> Good point.
->>>>
->>>> There's an additional aspect to handle: if a driver that uses
->>>> approach 1, a conversion
->>>> to either approach 2 or 3 would break existing applications that
->>>> can't handle with
->>>> the new approach.
->>>>
->>>> There's a 4th posibility: always offering fe0 with MFE capabilities,
->>>> and creating additional fe's
->>>> for old applications that can't cope with the new mode.
->>>> For example, on a device that supports
->>>> DVB-S/DVB-S2/DVB-T/DVB-T2/DVB-C/ISDB-T, it will be shown as:
->>>>
->>>> Approach 4) fe0 is a frontend "superset"
->>>>
->>>> *adapter0
->>>> *frontend0 (DVB-S/DVB-S2/DVB-T/DVB-T2/DVB-C/ISDB-T) - aka: FE superset
->>>> *frontend1 (DVB-S/DVB-S2)
->>>> *frontend2 (DVB-T/DVB-T2)
->>>> *frontend3 (DVB-C)
->>>> *frontend4 (ISDB-T)
->>>>
->>>> fe0 will need some special logic to allow redirecting a FE call to
->>>> the right fe, if
->>>> there are more than one physical frontend bound into the FE API.
->>>>
->>>> I'm starting to think that (4) is the better approach, as it won't
->>>> break legacy
->>>> applications, and it will provide an easier way for new applications
->>>> to control
->>>> the frontend with just one frontend.
->>>
->>> Approach 4 would break existing applications, because suddenly they'd
->>> have to cope with an additional device. It would be impossible for an
->>> existing application to tell whether frontend0 (from your example) was a
->>> real device or not.
->>>
->>> Approach 2 doesn't make any sense to me.
->>
->> I like approach 1 since it is very simple interface. Secondly I like
->> approach 2. I think that more API issue than technical.
->>
->>
->>> The only sane approach is 3, because it creates one device node per
->>> demod chip. As Ralph already suggested, an easy way to not break
->>> applications is to add a module parameter which selects the default mode
->>> (DVB-C or DVB-T in Antti's example). One could also write a small
->>> command line application to switch modes independently from VDR et al.
->>> After all, you cannot connect both a DVB-C cable and a DVB-T antenna at
->>> the same time, so the vast majority of users won't ever want to switch
->>> modes at all.
->>
->> You are wrong, actually you can. At least here in Finland some cable
->> networks offers DVB-T too.
->
-> I know that there are cable operators which use DVB-T, but they don't
-> use DVB-C simultaneously. This wouldn't make sense, unless they didn't
-> want their customers to receive their signals.
+What's the difference? I would consider the two the same.
 
-Hmmm, after all that's not big issue but they send both DVB-C and DVB-T 
-muxes in same network. Most likely to offers some basic channels for 
-customers who does not have DVB-C capable receiver. So setting desired 
-FE to DVB-C mode blocks reception of DVB-T channels.
+..."buffer to be written next to by the hardware"?
 
-regards
-Antti
+> > > > +	    </entry>
+> > > > +	  </row>
+> > > > +	</tbody>
+> > > > +      </tgroup>
+> > > > +    </table>
+> > > > +
+> > > > 
+> > > >      <table pgwide="1" frame="none" id="changes-flags">
+> > > >      
+> > > >        <title>Changes</title>
+> > > >        <tgroup cols="3">
+> > > > 
+> > > > diff --git a/Documentation/DocBook/media/v4l/vidioc-subscribe-event.xml
+> > > > b/Documentation/DocBook/media/v4l/vidioc-subscribe-event.xml index
+> > > > 275be96..812b63c 100644
+> > > > --- a/Documentation/DocBook/media/v4l/vidioc-subscribe-event.xml
+> > > > +++ b/Documentation/DocBook/media/v4l/vidioc-subscribe-event.xml
+> > > > @@ -139,6 +139,24 @@
+> > > > 
+> > > >  	    </entry>
+> > > >  	  
+> > > >  	  </row>
+> > > >  	  <row>
+> > > > 
+> > > > +	    <entry><constant>V4L2_EVENT_FRAME_SYNC</constant></entry>
+> > > > +	    <entry>4</entry>
+> > > > +	    <entry>
+> > > > +	      <para>Triggered immediately when the reception of a
+> > > > +	      frame has begun. This event has a
+> > > > +	      &v4l2-event-frame-sync; associated with it.</para>
+> > > > +
+> > > > +	      <para>A driver will only generate this event when the
+> > > > +	      hardware can generate it. This might not be the case
+> > > > +	      e.g. when the hardware has no DMA buffer to write the
+> > > > +	      image data to. In such cases the
+> > > > +	      <structfield>buffer_sequence</structfield> field in
+> > > > +	      &v4l2-event-frame-sync; will not be incremented either.
+> > > > +	      This causes two consecutive buffer sequence numbers to
+> > > > +	      have n times frame interval in between them.</para>
+> > > 
+> > > I don't think that's correct. Don't many drivers still increment the
+> > > sequence number in that case, to make it possible for applications to
+> > > detect frame loss ?
+> > 
+> > I think I understood once that the OMAP 3 ISP driver didn't do this in all
+> > cases but I later learned that this isn't the case. I still would be
+> > actually a bit surprised if there was not hardware that could not do this.
+> > 
+> > Do you think the text is relevant in this context, or should it be removed?
+> 
+> I think you should just mention that the event *might* not be generated if the 
+> hardware needs to be stopped in case of buffer underrun for instance.
 
+Ack.
 
 -- 
-http://palosaari.fi/
+Sakari Ailus
+sakari.ailus@iki.fi
