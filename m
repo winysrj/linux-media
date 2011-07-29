@@ -1,114 +1,62 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ams-iport-1.cisco.com ([144.254.224.140]:40001 "EHLO
-	ams-iport-1.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754106Ab1G1Mok (ORCPT
+Received: from mail-qw0-f46.google.com ([209.85.216.46]:57678 "EHLO
+	mail-qw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752012Ab1G2RbN (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 28 Jul 2011 08:44:40 -0400
-From: Hans Verkuil <hansverk@cisco.com>
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Subject: Re: [PATCH v3] V4L: add two new ioctl()s for multi-size videobuffer management
-Date: Thu, 28 Jul 2011 14:42:52 +0200
-Cc: Hans Verkuil <hverkuil@xs4all.nl>, Pawel Osciak <pawel@osciak.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Sakari Ailus <sakari.ailus@iki.fi>,
-	Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-References: <Pine.LNX.4.64.1107201025120.12084@axis700.grange> <201107280856.55731.hverkuil@xs4all.nl> <Pine.LNX.4.64.1107281422350.20737@axis700.grange>
-In-Reply-To: <Pine.LNX.4.64.1107281422350.20737@axis700.grange>
-MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
+	Fri, 29 Jul 2011 13:31:13 -0400
+Received: by qwk3 with SMTP id 3so1943254qwk.19
+        for <linux-media@vger.kernel.org>; Fri, 29 Jul 2011 10:31:12 -0700 (PDT)
+References: <20110729025356.28cc99e8@redhat.com>
+In-Reply-To: <20110729025356.28cc99e8@redhat.com>
+Mime-Version: 1.0 (Apple Message framework v1084)
+Content-Type: text/plain; charset=us-ascii
+Message-Id: <019F3E90-A128-4527-8698-1E2FE89341C9@wilsonet.com>
 Content-Transfer-Encoding: 7bit
-Message-Id: <201107281442.52970.hansverk@cisco.com>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
+From: Jarod Wilson <jarod@wilsonet.com>
+Subject: Re: [PATCH 1/2] [media] rc-main: Fix device de-registration logic
+Date: Fri, 29 Jul 2011 13:30:56 -0400
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thursday, July 28, 2011 14:29:38 Guennadi Liakhovetski wrote:
-> On Thu, 28 Jul 2011, Hans Verkuil wrote:
+On Jul 29, 2011, at 1:53 AM, Mauro Carvalho Chehab wrote:
+
+> rc unregister logic were deadly broken, preventing some drivers to
+> be removed. Among the broken things, rc_dev_uevent() is being called
+> during device_del(), causing a data filling on an area that it is
+> not ready anymore.
 > 
-> > On Thursday, July 28, 2011 06:11:38 Pawel Osciak wrote:
-> > > Hi Guennadi,
-> > > 
-> > > On Wed, Jul 20, 2011 at 01:43, Guennadi Liakhovetski
-> > > <g.liakhovetski@gmx.de> wrote:
-> > > > A possibility to preallocate and initialise buffers of different sizes
-> > > > in V4L2 is required for an efficient implementation of asnapshot mode.
-> > > > This patch adds two new ioctl()s: VIDIOC_CREATE_BUFS and
-> > > > VIDIOC_PREPARE_BUF and defines respective data structures.
-> > > >
-> > > > Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-> > > > ---
-> > > >
-> > > <snip>
-> > > 
-> > > This looks nicer, I like how we got rid of destroy and gave up on
-> > > making holes, it would've given us a lot of headaches. I'm thinking
-> > > about some issues though and also have some comments/questions further
-> > > below.
-> > > 
-> > > Already mentioned by others mixing of REQBUFS and CREATE_BUFS.
-> > > Personally I'd like to allow mixing, including REQBUFS for non-zero,
-> > > because I think it would be easy to do. I think it could work in the
-> > > same way as REQBUFS for !=0 works currently (at least in vb2), if we
-> > > already have some buffers allocated and they are not in use, we free
-> > > them and a new set is allocated. So I guess it could just stay this
-> > > way. REQBUFS(0) would of course free everything.
-> > > 
-> > > Passing format to CREATE_BUFS will make vb2 a bit format-aware, as it
-> > > would have to pass it forward to the driver somehow. The obvious way
-> > > would be just vb2 calling the driver's s_fmt handler, but that won't
-> > > work, as you can't pass indexes to s_fmt. So we'd have to implement a
-> > > new driver callback for setting formats per index. I guess there is no
-> > > way around it, unless we actually take the format struct out of
-> > > CREATE_BUFS and somehow do it via S_FMT. The single-planar structure
-> > > is full already though, the only way would be to use
-> > > v4l2_pix_format_mplane instead with plane count = 1 (or more if
-> > > needed).
-> > 
-> > I just got an idea for this: use TRY_FMT. That will do exactly what
-> > you want. In fact, perhaps we should remove the format struct from
-> > CREATE_BUFS and use __u32 sizes[VIDEO_MAX_PLANES] instead. Let the
-> > application call TRY_FMT and initialize the sizes array instead of
-> > putting that into vb2. We may need a num_planes field as well. If the
-> > sizes are all 0 (or num_planes is 0), then the driver can use the current
-> > format, just as it does with REQBUFS.
+> Also, some drivers have a stop callback defined, that needs to be called
+> before data removal, as it stops data polling.
 > 
-> Hm, I think, I like this idea. It gives applications more flexibility and 
-> removes the size == 0 vs. size != 0 dilemma. So, we get
+> Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
 > 
-> /* VIDIOC_CREATE_BUFS */
-> struct v4l2_create_buffers {
-> 	__u32			index;		/* output: buffers index...index + count - 1 have been created */
-> 	__u32			count;
-> 	__u32			num_planes;
-> 	__u32			sizes[VIDEO_MAX_PLANES];
-> 	enum v4l2_memory        memory;
-> 	enum v4l2_buf_type	type;
-> 	__u32			reserved[8];
-> };
+> diff --git a/drivers/media/rc/rc-main.c b/drivers/media/rc/rc-main.c
+> index 51a23f4..666d4bb 100644
+> --- a/drivers/media/rc/rc-main.c
+> +++ b/drivers/media/rc/rc-main.c
+> @@ -928,10 +928,6 @@ out:
 > 
-> ?
+> static void rc_dev_release(struct device *device)
+> {
+> -	struct rc_dev *dev = to_rc_dev(device);
+> -
+> -	kfree(dev);
+> -	module_put(THIS_MODULE);
+> }
 
-Yes. I'd probably rearrange the fields a bit, though:
+Since this function become a no-op, does it make sense to just remove it
+and not set a .release function for static struct device_type rc_dev_type?
 
-/* VIDIOC_CREATE_BUFS */
-struct v4l2_create_buffers {
-	__u32			index;		/* output: buffers index...index + count - 1 have been created */
-	__u32			count;
-	__u32			type;
-	__u32			memory;
-	__u32			num_planes;
-	__u32			sizes[VIDEO_MAX_PLANES];
-	__u32			reserved[8];
-};
+Other than that, after reading through the patch several times, along with
+the resulting rc-main.c and some input code, everything seems to make
+sense to me. Will do some quick sanity-testing with a few of my various
+devices before I give an ack though, just to be sure. :)
 
-The order of the count, type and memory fields is now identical to that of
-v4l2_requestbuffers.
+-- 
+Jarod Wilson
+jarod@wilsonet.com
 
-I also changed the enums to u32 since without the v4l2_format struct we shouldn't
-use enums. As an additional bonus this also simplifies the compat32 code.
 
-Regards,
 
-	Hans
