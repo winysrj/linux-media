@@ -1,163 +1,83 @@
-Return-path: <mchehab@localhost>
-Received: from mx1.redhat.com ([209.132.183.28]:21665 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752983Ab1GFLsp (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 6 Jul 2011 07:48:45 -0400
-Message-ID: <4E144B93.7060105@redhat.com>
-Date: Wed, 06 Jul 2011 08:48:35 -0300
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-MIME-Version: 1.0
-To: Hans Verkuil <hverkuil@xs4all.nl>
-CC: Tomasz Stanislawski <t.stanislaws@samsung.com>,
-	linux-media@vger.kernel.org, m.szyprowski@samsung.com,
-	kyungmin.park@samsung.com, laurent.pinchart@ideasonboard.com
-Subject: Re: [RFC] DV timings spec fixes at V4L2 API - was: [PATCH 1/8] v4l:
- add macro for 1080p59_54 preset
-References: <1309351877-32444-1-git-send-email-t.stanislaws@samsung.com>    <201107050926.38639.hverkuil@xs4all.nl> <4E12FEA3.6010500@redhat.com>    <201107051520.17361.hverkuil@xs4all.nl> <4E14415A.9010001@redhat.com> <416b47156837d78280f98bfd96e36dc7.squirrel@webmail.xs4all.nl>
-In-Reply-To: <416b47156837d78280f98bfd96e36dc7.squirrel@webmail.xs4all.nl>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+Return-path: <linux-media-owner@vger.kernel.org>
+Received: from mail-ww0-f44.google.com ([74.125.82.44]:50660 "EHLO
+	mail-ww0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752943Ab1G2Vkc convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 29 Jul 2011 17:40:32 -0400
+Received: by wwe5 with SMTP id 5so3957012wwe.1
+        for <linux-media@vger.kernel.org>; Fri, 29 Jul 2011 14:40:31 -0700 (PDT)
+References: <20110729025356.28cc99e8@redhat.com> <019F3E90-A128-4527-8698-1E2FE89341C9@wilsonet.com> <4E332550.2060806@redhat.com>
+In-Reply-To: <4E332550.2060806@redhat.com>
+Mime-Version: 1.0 (Apple Message framework v1084)
+Content-Type: text/plain; charset=us-ascii
+Message-Id: <FCB94AF5-5287-4CBE-885B-5A03A6D4FC40@wilsonet.com>
+Content-Transfer-Encoding: 8BIT
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
+From: Jarod Wilson <jarod@wilsonet.com>
+Subject: Re: [PATCH 1/2] [media] rc-main: Fix device de-registration logic
+Date: Fri, 29 Jul 2011 17:39:46 -0400
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
-Sender: <mchehab@infradead.org>
 
-Em 06-07-2011 08:31, Hans Verkuil escreveu:
->> Em 05-07-2011 10:20, Hans Verkuil escreveu:
->>
->>>> I failed to see what information is provided by the "presets" name. If
->>>> this were removed
->>>> from the ioctl, and fps would be added instead, the API would be
->>>> clearer. The only
->>>> adjustment would be to use "index" as the preset selection key. Anyway,
->>>> it is too late
->>>> for such change. We need to live with that.
->>>
->>> Adding the fps solves nothing. Because that still does not give you
->>> specific timings.
->>> You can have 1920x1080P60 that has quite different timings from the
->>> CEA-861 standard
->>> and that may not be supported by a TV.
->>>
->>> If you are working with HDMI, then you may want to filter all supported
->>> presets to
->>> those of the CEA standard.
->>>
->>> That's one thing that is missing at the moment: that presets belonging
->>> to a certain
->>> standard get their own range. Since we only do CEA861 right now it
->>> hasn't been an
->>> issue, but it will.
->>
->> I prepared a long email about that, but then I realized that we're
->> investing our time into
->> something broken, at the light of all DV timing standards. So, I've
->> dropped it and
->> started from scratch.
->>
->> From what I've got, there are some hardware that can only do a limited set
->> of DV timings.
->> If this were not the case, we could simply just use the
->> VIDIOC_S_DV_TIMINGS/VIDIOC_G_DV_TIMINGS,
->> and put the CEA 861 and VESA timings into some userspace library.
->>
->> In other words, the PRESET API is meant to solve the case where hardware
->> only support
->> a limited set of frequencies, that may or may not be inside the CEA
->> standard.
->>
->> Let's assume we never added the current API, and discuss how it would
->> properly fulfill
->> the user needs. An API that would likely work is:
->>
->> struct v4l2_dv_enum_preset2 {
->> 	__u32	  index;
->> 	__u8	  name[32]; /* Name of the preset timing */
->>
->> 	struct v4l2_fract fps;
->>
->> #define DV_PRESET_IS_PROGRESSIVE	1<<31
->> #define DV_PRESET_SPEC(flag)		(flag && 0xff)
->> #define DV_PRESET_IS_CEA861		1
->> #define DV_PRESET_IS_DMT		2
->> #define DV_PRESET_IS_CVF		3
->> #define DV_PRESET_IS_GTF		4
->> #define DV_PRESET_IS_VENDOR_SPECIFIC	5
->>
->> 	__u32	flags;		/* Interlaced/progressive, DV specs, etc */
->>
->> 	__u32	width;		/* width in pixels */
->> 	__u32	height;		/* height in lines */
->> 	__u32	polarities;	/* Positive or negative polarity */
->> 	__u64	pixelclock;	/* Pixel clock in HZ. Ex. 74.25MHz->74250000 */
->> 	__u32	hfrontporch;	/* Horizpontal front porch in pixels */
->> 	__u32	hsync;		/* Horizontal Sync length in pixels */
->> 	__u32	hbackporch;	/* Horizontal back porch in pixels */
->> 	__u32	vfrontporch;	/* Vertical front porch in pixels */
->> 	__u32	vsync;		/* Vertical Sync length in lines */
->> 	__u32	vbackporch;	/* Vertical back porch in lines */
->> 	__u32	il_vfrontporch;	/* Vertical front porch for bottom field of
->> 				 * interlaced field formats
->> 				 */
->> 	__u32	il_vsync;	/* Vertical sync length for bottom field of
->> 				 * interlaced field formats
->> 				 */
->> 	__u32	il_vbackporch;	/* Vertical back porch for bottom field of
->> 				 * interlaced field formats
->> 				 */
->> 	__u32	  reserved[4];
->> };
->>
->> #define	VIDIOC_ENUM_DV_PRESETS2	_IOWR('V', 83, struct
->> v4l2_dv_enum_preset2)
->> #define	VIDIOC_S_DV_PRESET2	_IOWR('V', 84, u32 index)
->> #define	VIDIOC_G_DV_PRESET2	_IOWR('V', 85, u32 index)
->>
->> Such preset API seems to work for all cases. Userspace can use any DV
->> timing
->> information to select the desired format, and don't need to have a switch
->> for
->> a preset macro to try to guess what the format actually means. Also,
->> there's no
->> need to touch at the API spec every time a new DV timeline is needed.
->>
->> Also, it should be noticed that, since the size of the data on the above
->> definitions
->> are different than the old ones, _IO macros will provide a different magic
->> number,
->> so, adding these won't break the existing API.
->>
->> So, I think we should work on this proposal, and mark the existing one as
->> deprecated.
+On Jul 29, 2011, at 5:25 PM, Mauro Carvalho Chehab wrote:
+
+> Em 29-07-2011 14:30, Jarod Wilson escreveu:
+>> On Jul 29, 2011, at 1:53 AM, Mauro Carvalho Chehab wrote:
+>> 
+>>> rc unregister logic were deadly broken, preventing some drivers to
+>>> be removed. Among the broken things, rc_dev_uevent() is being called
+>>> during device_del(), causing a data filling on an area that it is
+>>> not ready anymore.
+>>> 
+>>> Also, some drivers have a stop callback defined, that needs to be called
+>>> before data removal, as it stops data polling.
+>>> 
+>>> Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+>>> 
+>>> diff --git a/drivers/media/rc/rc-main.c b/drivers/media/rc/rc-main.c
+>>> index 51a23f4..666d4bb 100644
+>>> --- a/drivers/media/rc/rc-main.c
+>>> +++ b/drivers/media/rc/rc-main.c
+>>> @@ -928,10 +928,6 @@ out:
+>>> 
+>>> static void rc_dev_release(struct device *device)
+>>> {
+>>> -	struct rc_dev *dev = to_rc_dev(device);
+>>> -
+>>> -	kfree(dev);
+>>> -	module_put(THIS_MODULE);
+>>> }
+>> 
+>> Since this function become a no-op, does it make sense to just remove it
+>> and not set a .release function for static struct device_type rc_dev_type?
 > 
-> This proposal makes it very hard for applications to directly select a
-> format like 720p50 because the indices can change at any time.
+> As you tested, this function needs to exist... well, other drivers sometimes
+> do the same, by defining it as a no-op function.
+> 
+>> Other than that, after reading through the patch several times, along with
+>> the resulting rc-main.c and some input code, everything seems to make
+>> sense to me. Will do some quick sanity-testing with a few of my various
+>> devices before I give an ack though, just to be sure. :)
+> 
+> Thanks! Yeah, a test with other devices is welcome, as we don't want fix for one
+> and break for the others ;)
 
-Why? All the application needs to do is to call VIDIOC_ENUM_DV_PRESETS2,
-check what line it wants, and do a S_DV_PRESET2, just like any other place
-where V4L2 defines an ENUM function.
+Done. Checked out mceusb, redrat3 and imon, all show no ill effects.
 
-The enum won't change during application runtime, so, they can be stored
-if the application would need to switch to other formats latter.
 
-> I think
-> this is a very desirable feature, particularly for apps running on
-> embedded systems where the hardware is known. This was one of the design
-> considerations at the time this API was made.
+> The logic there looks simple, but it is, in fact, tricky, especially since
+> drivers may have polling tasks running, and they need to be cancelled before 
+> freeing the resources.
 
-This is a very weak argument. With just one ENUM loop, the application can
-quickly get the right format(s), and associate them with any internal 
-namespace.
+Indeed. Took a bit to wrap my head around it all, but I think I got it.
 
-> But looking at this I wonder if we shouldn't just make a
-> VIDIOC_G_PRESET_TIMINGS function? You give it the preset ID and you get
-> all the timing information back. No need to deprecate anything. I'm not
-> even sure if with this change we need to modify struct v4l2_dv_enum_preset
-> as I proposed in my RFC, although I think we should.
 
-Won't solve the issue: one new #define is needed for each video timing,
-namespaces will be confusing, no support for VESA GVF/ VESA CVT timings
-(or worse: we'll end by having thousands of formats at the end of the day),
-instead of just one ENUM ioctl, an extra ioctl will be required for each
-returned value, etc.
+Acked-by: Jarod Wilson <jarod@redhat.com>
 
-Cheers,
-Mauro.
+-- 
+Jarod Wilson
+jarod@wilsonet.com
+
+
+
