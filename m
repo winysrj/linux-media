@@ -1,223 +1,147 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout4.w1.samsung.com ([210.118.77.14]:39969 "EHLO
-	mailout4.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751269Ab1GTI51 (ORCPT
+Received: from moutng.kundenserver.de ([212.227.126.171]:63718 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756165Ab1G2K5D (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 20 Jul 2011 04:57:27 -0400
-MIME-version: 1.0
-Content-transfer-encoding: 7BIT
-Content-type: TEXT/PLAIN
-Date: Wed, 20 Jul 2011 10:57:15 +0200
-From: Marek Szyprowski <m.szyprowski@samsung.com>
-Subject: [PATCH 3/8] mm: alloc_contig_range() added
-In-reply-to: <1311152240-16384-1-git-send-email-m.szyprowski@samsung.com>
-To: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-	linux-media@vger.kernel.org, linux-mm@kvack.org,
-	linaro-mm-sig@lists.linaro.org
-Cc: Michal Nazarewicz <mina86@mina86.com>,
-	Marek Szyprowski <m.szyprowski@samsung.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	Andrew Morton <akpm@linux-foundation.org>,
-	KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>,
-	Ankita Garg <ankita@in.ibm.com>,
-	Daniel Walker <dwalker@codeaurora.org>,
-	Mel Gorman <mel@csn.ul.ie>, Arnd Bergmann <arnd@arndb.de>,
-	Jesse Barker <jesse.barker@linaro.org>,
-	Jonathan Corbet <corbet@lwn.net>,
-	Chunsang Jeong <chunsang.jeong@linaro.org>,
-	Russell King <linux@arm.linux.org.uk>
-Message-id: <1311152240-16384-4-git-send-email-m.szyprowski@samsung.com>
-References: <1311152240-16384-1-git-send-email-m.szyprowski@samsung.com>
+	Fri, 29 Jul 2011 06:57:03 -0400
+Received: from 6a.grange (6a.grange [192.168.1.11])
+	by axis700.grange (Postfix) with ESMTPS id 4494318B04D
+	for <linux-media@vger.kernel.org>; Fri, 29 Jul 2011 12:57:01 +0200 (CEST)
+Received: from lyakh by 6a.grange with local (Exim 4.72)
+	(envelope-from <g.liakhovetski@gmx.de>)
+	id 1QmkkX-0007oX-5T
+	for linux-media@vger.kernel.org; Fri, 29 Jul 2011 12:57:01 +0200
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: linux-media@vger.kernel.org
+Subject: [PATCH 32/59] V4L: mx2_camera: convert to the new mbus-config subdev operations
+Date: Fri, 29 Jul 2011 12:56:32 +0200
+Message-Id: <1311937019-29914-33-git-send-email-g.liakhovetski@gmx.de>
+In-Reply-To: <1311937019-29914-1-git-send-email-g.liakhovetski@gmx.de>
+References: <1311937019-29914-1-git-send-email-g.liakhovetski@gmx.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Michal Nazarewicz <m.nazarewicz@samsung.com>
+Switch from soc-camera specific .{query,set}_bus_param() to V4L2
+subdevice .[gs]_mbus_config() operations.
 
-This commit adds the alloc_contig_range() function which tries
-to allecate given range of pages.  It tries to migrate all
-already allocated pages that fall in the range thus freeing them.
-Once all pages in the range are freed they are removed from the
-buddy system thus allocated for the caller to use.
-
-Signed-off-by: Michal Nazarewicz <m.nazarewicz@samsung.com>
-Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
-[m.szyprowski: renamed some variables for easier code reading]
-Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
-CC: Michal Nazarewicz <mina86@mina86.com>
-Acked-by: Arnd Bergmann <arnd@arndb.de>
+Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
 ---
- include/linux/page-isolation.h |    2 +
- mm/page_alloc.c                |  144 ++++++++++++++++++++++++++++++++++++++++
- 2 files changed, 146 insertions(+), 0 deletions(-)
+ drivers/media/video/mx2_camera.c |   78 ++++++++++++++++++++++----------------
+ 1 files changed, 45 insertions(+), 33 deletions(-)
 
-diff --git a/include/linux/page-isolation.h b/include/linux/page-isolation.h
-index f1417ed..c5d1a7c 100644
---- a/include/linux/page-isolation.h
-+++ b/include/linux/page-isolation.h
-@@ -34,6 +34,8 @@ extern int set_migratetype_isolate(struct page *page);
- extern void unset_migratetype_isolate(struct page *page);
- extern unsigned long alloc_contig_freed_pages(unsigned long start,
- 					      unsigned long end, gfp_t flag);
-+extern int alloc_contig_range(unsigned long start, unsigned long end,
-+			      gfp_t flags);
- extern void free_contig_pages(struct page *page, int nr_pages);
- 
- /*
-diff --git a/mm/page_alloc.c b/mm/page_alloc.c
-index 00e9b24..2cea044 100644
---- a/mm/page_alloc.c
-+++ b/mm/page_alloc.c
-@@ -5638,6 +5638,150 @@ unsigned long alloc_contig_freed_pages(unsigned long start, unsigned long end,
- 	return pfn;
+diff --git a/drivers/media/video/mx2_camera.c b/drivers/media/video/mx2_camera.c
+index ec2410c..a803d9e 100644
+--- a/drivers/media/video/mx2_camera.c
++++ b/drivers/media/video/mx2_camera.c
+@@ -686,16 +686,15 @@ static void mx2_camera_init_videobuf(struct videobuf_queue *q,
+ 			icd, &icd->video_lock);
  }
  
-+static unsigned long pfn_to_maxpage(unsigned long pfn)
-+{
-+	return pfn & ~(MAX_ORDER_NR_PAGES - 1);
-+}
-+
-+static unsigned long pfn_to_maxpage_up(unsigned long pfn)
-+{
-+	return ALIGN(pfn, MAX_ORDER_NR_PAGES);
-+}
-+
-+#define MIGRATION_RETRY	5
-+static int __alloc_contig_migrate_range(unsigned long start, unsigned long end)
-+{
-+	int migration_failed = 0, ret;
-+	unsigned long pfn = start;
-+
-+	/*
-+	 * Some code "borrowed" from KAMEZAWA Hiroyuki's
-+	 * __alloc_contig_pages().
-+	 */
-+
-+	for (;;) {
-+		pfn = scan_lru_pages(pfn, end);
-+		if (!pfn || pfn >= end)
-+			break;
-+
-+		ret = do_migrate_range(pfn, end);
-+		if (!ret) {
-+			migration_failed = 0;
-+		} else if (ret != -EBUSY
-+			|| ++migration_failed >= MIGRATION_RETRY) {
-+			return ret;
-+		} else {
-+			/* There are unstable pages.on pagevec. */
-+			lru_add_drain_all();
-+			/*
-+			 * there may be pages on pcplist before
-+			 * we mark the range as ISOLATED.
-+			 */
-+			drain_all_pages();
-+		}
-+		cond_resched();
-+	}
-+
-+	if (!migration_failed) {
-+		/* drop all pages in pagevec and pcp list */
-+		lru_add_drain_all();
-+		drain_all_pages();
-+	}
-+
-+	/* Make sure all pages are isolated */
-+	if (WARN_ON(test_pages_isolated(start, end)))
-+		return -EBUSY;
-+
-+	return 0;
-+}
-+
-+/**
-+ * alloc_contig_range() -- tries to allocate given range of pages
-+ * @start:	start PFN to allocate
-+ * @end:	one-past-the-last PFN to allocate
-+ * @flags:	flags passed to alloc_contig_freed_pages().
-+ *
-+ * The PFN range does not have to be pageblock or MAX_ORDER_NR_PAGES
-+ * aligned, hovewer it's callers responsibility to guarantee that we
-+ * are the only thread that changes migrate type of pageblocks the
-+ * pages fall in.
-+ *
-+ * Returns zero on success or negative error code.  On success all
-+ * pages which PFN is in (start, end) are allocated for the caller and
-+ * need to be freed with free_contig_pages().
-+ */
-+int alloc_contig_range(unsigned long start, unsigned long end,
-+		       gfp_t flags)
-+{
-+	unsigned long outer_start, outer_end;
-+	int ret;
-+
-+	/*
-+	 * What we do here is we mark all pageblocks in range as
-+	 * MIGRATE_ISOLATE.  Because of the way page allocator work, we
-+	 * align the range to MAX_ORDER pages so that page allocator
-+	 * won't try to merge buddies from different pageblocks and
-+	 * change MIGRATE_ISOLATE to some other migration type.
-+	 *
-+	 * Once the pageblocks are marked as MIGRATE_ISOLATE, we
-+	 * migrate the pages from an unaligned range (ie. pages that
-+	 * we are interested in).  This will put all the pages in
-+	 * range back to page allocator as MIGRATE_ISOLATE.
-+	 *
-+	 * When this is done, we take the pages in range from page
-+	 * allocator removing them from the buddy system.  This way
-+	 * page allocator will never consider using them.
-+	 *
-+	 * This lets us mark the pageblocks back as
-+	 * MIGRATE_CMA/MIGRATE_MOVABLE so that free pages in the
-+	 * MAX_ORDER aligned range but not in the unaligned, original
-+	 * range are put back to page allocator so that buddy can use
-+	 * them.
-+	 */
-+
-+	ret = start_isolate_page_range(pfn_to_maxpage(start),
-+				       pfn_to_maxpage_up(end));
-+	if (ret)
-+		goto done;
-+
-+	ret = __alloc_contig_migrate_range(start, end);
-+	if (ret)
-+		goto done;
-+
-+	/*
-+	 * Pages from [start, end) are within a MAX_ORDER_NR_PAGES
-+	 * aligned blocks that are marked as MIGRATE_ISOLATE.  What's
-+	 * more, all pages in [start, end) are free in page allocator.
-+	 * What we are going to do is to allocate all pages from
-+	 * [start, end) (that is remove them from page allocater).
-+	 *
-+	 * The only problem is that pages at the beginning and at the
-+	 * end of interesting range may be not aligned with pages that
-+	 * page allocator holds, ie. they can be part of higher order
-+	 * pages.  Because of this, we reserve the bigger range and
-+	 * once this is done free the pages we are not interested in.
-+	 */
-+
-+	ret = 0;
-+	while (!PageBuddy(pfn_to_page(start & (~0UL << ret))))
-+		if (WARN_ON(++ret >= MAX_ORDER))
-+			return -EINVAL;
-+
-+	outer_start = start & (~0UL << ret);
-+	outer_end   = alloc_contig_freed_pages(outer_start, end, flags);
-+
-+	/* Free head and tail (if any) */
-+	if (start != outer_start)
-+		free_contig_pages(pfn_to_page(outer_start), start - outer_start);
-+	if (end != outer_end)
-+		free_contig_pages(pfn_to_page(end), outer_end - end);
-+
-+	ret = 0;
-+done:
-+	undo_isolate_page_range(pfn_to_maxpage(start), pfn_to_maxpage_up(end));
-+	return ret;
-+}
-+
- void free_contig_pages(struct page *page, int nr_pages)
+-#define MX2_BUS_FLAGS	(SOCAM_DATAWIDTH_8 | \
+-			SOCAM_MASTER | \
+-			SOCAM_VSYNC_ACTIVE_HIGH | \
+-			SOCAM_VSYNC_ACTIVE_LOW | \
+-			SOCAM_HSYNC_ACTIVE_HIGH | \
+-			SOCAM_HSYNC_ACTIVE_LOW | \
+-			SOCAM_PCLK_SAMPLE_RISING | \
+-			SOCAM_PCLK_SAMPLE_FALLING | \
+-			SOCAM_DATA_ACTIVE_HIGH | \
+-			SOCAM_DATA_ACTIVE_LOW)
++#define MX2_BUS_FLAGS	(V4L2_MBUS_MASTER | \
++			V4L2_MBUS_VSYNC_ACTIVE_HIGH | \
++			V4L2_MBUS_VSYNC_ACTIVE_LOW | \
++			V4L2_MBUS_HSYNC_ACTIVE_HIGH | \
++			V4L2_MBUS_HSYNC_ACTIVE_LOW | \
++			V4L2_MBUS_PCLK_SAMPLE_RISING | \
++			V4L2_MBUS_PCLK_SAMPLE_FALLING | \
++			V4L2_MBUS_DATA_ACTIVE_HIGH | \
++			V4L2_MBUS_DATA_ACTIVE_LOW)
+ 
+ static int mx27_camera_emma_prp_reset(struct mx2_camera_dev *pcdev)
  {
- 	for (; nr_pages; --nr_pages, ++page)
+@@ -770,46 +769,59 @@ static void mx27_camera_emma_buf_init(struct soc_camera_device *icd,
+ static int mx2_camera_set_bus_param(struct soc_camera_device *icd,
+ 		__u32 pixfmt)
+ {
+-	struct soc_camera_host *ici =
+-		to_soc_camera_host(icd->parent);
++	struct v4l2_subdev *sd = soc_camera_to_subdev(icd);
++	struct soc_camera_host *ici = to_soc_camera_host(icd->parent);
+ 	struct mx2_camera_dev *pcdev = ici->priv;
+-	unsigned long camera_flags, common_flags;
+-	int ret = 0;
++	struct v4l2_mbus_config cfg = {.type = V4L2_MBUS_PARALLEL,};
++	unsigned long common_flags;
++	int ret;
+ 	int bytesperline;
+ 	u32 csicr1 = pcdev->csicr1;
+ 
+-	camera_flags = icd->ops->query_bus_param(icd);
+-
+-	common_flags = soc_camera_bus_param_compatible(camera_flags,
+-				MX2_BUS_FLAGS);
+-	if (!common_flags)
+-		return -EINVAL;
++	ret = v4l2_subdev_call(sd, video, g_mbus_config, &cfg);
++	if (!ret) {
++		common_flags = soc_mbus_config_compatible(&cfg, MX2_BUS_FLAGS);
++		if (!common_flags) {
++			dev_warn(icd->parent,
++				 "Flags incompatible: camera 0x%x, host 0x%x\n",
++				 cfg.flags, MX2_BUS_FLAGS);
++			return -EINVAL;
++		}
++	} else if (ret != -ENOIOCTLCMD) {
++		return ret;
++	} else {
++		common_flags = MX2_BUS_FLAGS;
++	}
+ 
+-	if ((common_flags & SOCAM_HSYNC_ACTIVE_HIGH) &&
+-	    (common_flags & SOCAM_HSYNC_ACTIVE_LOW)) {
++	if ((common_flags & V4L2_MBUS_HSYNC_ACTIVE_HIGH) &&
++	    (common_flags & V4L2_MBUS_HSYNC_ACTIVE_LOW)) {
+ 		if (pcdev->platform_flags & MX2_CAMERA_HSYNC_HIGH)
+-			common_flags &= ~SOCAM_HSYNC_ACTIVE_LOW;
++			common_flags &= ~V4L2_MBUS_HSYNC_ACTIVE_LOW;
+ 		else
+-			common_flags &= ~SOCAM_HSYNC_ACTIVE_HIGH;
++			common_flags &= ~V4L2_MBUS_HSYNC_ACTIVE_HIGH;
+ 	}
+ 
+-	if ((common_flags & SOCAM_PCLK_SAMPLE_RISING) &&
+-	    (common_flags & SOCAM_PCLK_SAMPLE_FALLING)) {
++	if ((common_flags & V4L2_MBUS_PCLK_SAMPLE_RISING) &&
++	    (common_flags & V4L2_MBUS_PCLK_SAMPLE_FALLING)) {
+ 		if (pcdev->platform_flags & MX2_CAMERA_PCLK_SAMPLE_RISING)
+-			common_flags &= ~SOCAM_PCLK_SAMPLE_FALLING;
++			common_flags &= ~V4L2_MBUS_PCLK_SAMPLE_FALLING;
+ 		else
+-			common_flags &= ~SOCAM_PCLK_SAMPLE_RISING;
++			common_flags &= ~V4L2_MBUS_PCLK_SAMPLE_RISING;
+ 	}
+ 
+-	ret = icd->ops->set_bus_param(icd, common_flags);
+-	if (ret < 0)
++	cfg.flags = common_flags;
++	ret = v4l2_subdev_call(sd, video, s_mbus_config, &cfg);
++	if (ret < 0 && ret != -ENOIOCTLCMD) {
++		dev_dbg(icd->parent, "camera s_mbus_config(0x%lx) returned %d\n",
++			common_flags, ret);
+ 		return ret;
++	}
+ 
+-	if (common_flags & SOCAM_PCLK_SAMPLE_RISING)
++	if (common_flags & V4L2_MBUS_PCLK_SAMPLE_RISING)
+ 		csicr1 |= CSICR1_REDGE;
+-	if (common_flags & SOCAM_VSYNC_ACTIVE_HIGH)
++	if (common_flags & V4L2_MBUS_VSYNC_ACTIVE_HIGH)
+ 		csicr1 |= CSICR1_SOF_POL;
+-	if (common_flags & SOCAM_HSYNC_ACTIVE_HIGH)
++	if (common_flags & V4L2_MBUS_HSYNC_ACTIVE_HIGH)
+ 		csicr1 |= CSICR1_HSYNC_POL;
+ 	if (pcdev->platform_flags & MX2_CAMERA_SWAP16)
+ 		csicr1 |= CSICR1_SWAP16_EN;
 -- 
-1.7.1.569.g6f426
+1.7.2.5
 
