@@ -1,79 +1,101 @@
-Return-path: <mchehab@pedra>
-Received: from lo.gmane.org ([80.91.229.12]:59493 "EHLO lo.gmane.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752612Ab1GCMaI (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 3 Jul 2011 08:30:08 -0400
-Received: from list by lo.gmane.org with local (Exim 4.69)
-	(envelope-from <gldv-linux-media@m.gmane.org>)
-	id 1QdLoM-0002F3-Az
-	for linux-media@vger.kernel.org; Sun, 03 Jul 2011 14:30:06 +0200
-Received: from ppp121-45-71-247.lns20.adl6.internode.on.net ([121.45.71.247])
-        by main.gmane.org with esmtp (Gmexim 0.1 (Debian))
-        id 1AlnuQ-0007hv-00
-        for <linux-media@vger.kernel.org>; Sun, 03 Jul 2011 14:30:06 +0200
-Received: from arthur.marsh by ppp121-45-71-247.lns20.adl6.internode.on.net with local (Gmexim 0.1 (Debian))
-        id 1AlnuQ-0007hv-00
-        for <linux-media@vger.kernel.org>; Sun, 03 Jul 2011 14:30:06 +0200
+Return-path: <linux-media-owner@vger.kernel.org>
+Received: from moutng.kundenserver.de ([212.227.17.8]:59606 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755728Ab1G2K5D (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 29 Jul 2011 06:57:03 -0400
+Received: from 6a.grange (6a.grange [192.168.1.11])
+	by axis700.grange (Postfix) with ESMTPS id 3A2CD18B039
+	for <linux-media@vger.kernel.org>; Fri, 29 Jul 2011 12:57:00 +0200 (CEST)
+Received: from lyakh by 6a.grange with local (Exim 4.72)
+	(envelope-from <g.liakhovetski@gmx.de>)
+	id 1QmkkW-0007nH-0D
+	for linux-media@vger.kernel.org; Fri, 29 Jul 2011 12:57:00 +0200
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
 To: linux-media@vger.kernel.org
-From: Arthur Marsh <arthur.marsh@internode.on.net>
-Subject: Re: Fwd: 0bda:2838 Ezcap DVB USB adaptor - no device files created
- / RTL2831U/RTL2832U
-Date: Sun, 03 Jul 2011 13:43:23 +0930
-Message-ID: <4E0FEC63.1080004@internode.on.net>
-References: <4E0EC37F.1010201@internode.on.net> <4E0F7E5F.3040702@hoogenraad.net> <CACPK8Xd5HzdVSX6=QKoNjWMWCOMTKh7s=1==j9aDki6zJcFBBw@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-Cc: Joel Stanley <joel@jms.id.au>
-In-Reply-To: <CACPK8Xd5HzdVSX6=QKoNjWMWCOMTKh7s=1==j9aDki6zJcFBBw@mail.gmail.com>
+Subject: [PATCH 07/59] V4L: mt9m001: support the new mbus-config subdev ops
+Date: Fri, 29 Jul 2011 12:56:07 +0200
+Message-Id: <1311937019-29914-8-git-send-email-g.liakhovetski@gmx.de>
+In-Reply-To: <1311937019-29914-1-git-send-email-g.liakhovetski@gmx.de>
+References: <1311937019-29914-1-git-send-email-g.liakhovetski@gmx.de>
+Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
-Sender: <mchehab@pedra>
 
-Joel Stanley wrote, on 03/07/11 12:17:
-> Hello Jan,
->
-> On Sun, Jul 3, 2011 at 05:53, Jan Hoogenraad
-> <jan-conceptronic@hoogenraad.net>  wrote:
->> I have decided AGAINST making it runnable on newer kernels, as there are
->> some people working right now on a new release.
->
-> I appreciate that you would prefer efforts to go towards a upstream
-> driver. In the mean time I've updated the git tree[1] on my website.
-> There were no real changes required; just a re-build with an updated
-> dvb-usb.h and dvb_frontend.h from the kernel tree. Checkout the
-> linux-3 branch.
+Extend the driver to also support [gs]_mbus_config() subdevice video
+operations.
 
-Thanks, I rebuilt this against the linux-3 branch and now see the device 
-tree:
+Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+---
+ drivers/media/video/mt9m001.c |   40 +++++++++++++++++++++++++++++++++++++++-
+ 1 files changed, 39 insertions(+), 1 deletions(-)
 
-# ls -alR /dev/dvb
-/dev/dvb:
-total 0
-drwxr-xr-x  4 root root   80 Jul  3 13:33 .
-drwxr-xr-x 15 root root 3140 Jul  3 13:33 ..
-drwxr-xr-x  2 root root  120 Jul  3 13:33 adapter0
-drwxr-xr-x  2 root root  120 Jul  3 13:33 adapter1
-
-/dev/dvb/adapter0:
-total 0
-drwxr-xr-x  2 root root     120 Jul  3 13:33 .
-drwxr-xr-x  4 root root      80 Jul  3 13:33 ..
-crw-rw----+ 1 root video 212, 0 Jul  3 13:33 demux0
-crw-rw----+ 1 root video 212, 1 Jul  3 13:33 dvr0
-crw-rw----+ 1 root video 212, 3 Jul  3 13:33 frontend0
-crw-rw----+ 1 root video 212, 2 Jul  3 13:33 net0
-
-/dev/dvb/adapter1:
-total 0
-drwxr-xr-x  2 root root     120 Jul  3 13:33 .
-drwxr-xr-x  4 root root      80 Jul  3 13:33 ..
-crw-rw----+ 1 root video 212, 4 Jul  3 13:33 demux0
-crw-rw----+ 1 root video 212, 5 Jul  3 13:33 dvr0
-crw-rw----+ 1 root video 212, 7 Jul  3 13:33 frontend0
-crw-rw----+ 1 root video 212, 6 Jul  3 13:33 net0
-
-but haven't had time to test it further yet.
-I'd be interested to hear more about the new release.
-
-Arthur.
+diff --git a/drivers/media/video/mt9m001.c b/drivers/media/video/mt9m001.c
+index 4da9cca..7618b3c 100644
+--- a/drivers/media/video/mt9m001.c
++++ b/drivers/media/video/mt9m001.c
+@@ -13,9 +13,10 @@
+ #include <linux/i2c.h>
+ #include <linux/log2.h>
+ 
++#include <media/soc_camera.h>
++#include <media/soc_mediabus.h>
+ #include <media/v4l2-subdev.h>
+ #include <media/v4l2-chip-ident.h>
+-#include <media/soc_camera.h>
+ 
+ /*
+  * mt9m001 i2c address 0x5d
+@@ -710,6 +711,41 @@ static int mt9m001_enum_fmt(struct v4l2_subdev *sd, unsigned int index,
+ 	return 0;
+ }
+ 
++static int mt9m001_g_mbus_config(struct v4l2_subdev *sd,
++				struct v4l2_mbus_config *cfg)
++{
++	struct i2c_client *client = v4l2_get_subdevdata(sd);
++	struct soc_camera_device *icd = client->dev.platform_data;
++	struct soc_camera_link *icl = to_soc_camera_link(icd);
++
++	/* MT9M001 has all capture_format parameters fixed */
++	cfg->flags = V4L2_MBUS_PCLK_SAMPLE_FALLING |
++		V4L2_MBUS_HSYNC_ACTIVE_HIGH | V4L2_MBUS_VSYNC_ACTIVE_HIGH |
++		V4L2_MBUS_DATA_ACTIVE_HIGH | V4L2_MBUS_MASTER;
++	cfg->type = V4L2_MBUS_PARALLEL;
++	cfg->flags = soc_camera_apply_board_flags(icl, cfg);
++
++	return 0;
++}
++
++static int mt9m001_s_mbus_config(struct v4l2_subdev *sd,
++				const struct v4l2_mbus_config *cfg)
++{
++	struct i2c_client *client = v4l2_get_subdevdata(sd);
++	struct soc_camera_device *icd = client->dev.platform_data;
++	struct soc_camera_link *icl = to_soc_camera_link(icd);
++	unsigned int bps = soc_mbus_get_fmtdesc(icd->current_fmt->code)->bits_per_sample;
++
++	if (icl->set_bus_param)
++		return icl->set_bus_param(icl, 1 << (bps - 1));
++
++	/*
++	 * Without board specific bus width settings we only support the
++	 * sensors native bus width
++	 */
++	return bps == 10 ? 0 : -EINVAL;
++}
++
+ static struct v4l2_subdev_video_ops mt9m001_subdev_video_ops = {
+ 	.s_stream	= mt9m001_s_stream,
+ 	.s_mbus_fmt	= mt9m001_s_fmt,
+@@ -719,6 +755,8 @@ static struct v4l2_subdev_video_ops mt9m001_subdev_video_ops = {
+ 	.g_crop		= mt9m001_g_crop,
+ 	.cropcap	= mt9m001_cropcap,
+ 	.enum_mbus_fmt	= mt9m001_enum_fmt,
++	.g_mbus_config	= mt9m001_g_mbus_config,
++	.s_mbus_config	= mt9m001_s_mbus_config,
+ };
+ 
+ static struct v4l2_subdev_sensor_ops mt9m001_subdev_sensor_ops = {
+-- 
+1.7.2.5
 
