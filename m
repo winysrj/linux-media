@@ -1,74 +1,57 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:11776 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755043Ab1G0U3t (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 27 Jul 2011 16:29:49 -0400
-Received: from int-mx09.intmail.prod.int.phx2.redhat.com (int-mx09.intmail.prod.int.phx2.redhat.com [10.5.11.22])
-	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id p6RKTn2H017657
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
-	for <linux-media@vger.kernel.org>; Wed, 27 Jul 2011 16:29:49 -0400
-Received: from localhost.localdomain (vpn-227-4.phx2.redhat.com [10.3.227.4])
-	by int-mx09.intmail.prod.int.phx2.redhat.com (8.14.4/8.14.4) with ESMTP id p6RKTkxv009397
-	for <linux-media@vger.kernel.org>; Wed, 27 Jul 2011 16:29:48 -0400
-Date: Wed, 27 Jul 2011 17:29:33 -0300
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: [PATCH 2/3] [media] drxk: Fix read debug message
-Message-ID: <20110727172933.0ced5d66@redhat.com>
-In-Reply-To: <cover.1311798269.git.mchehab@redhat.com>
-References: <cover.1311798269.git.mchehab@redhat.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
-To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
+Received: from mail-ey0-f171.google.com ([209.85.215.171]:57262 "EHLO
+	mail-ey0-f171.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752468Ab1G2SK1 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 29 Jul 2011 14:10:27 -0400
+Received: by eye22 with SMTP id 22so3678424eye.2
+        for <linux-media@vger.kernel.org>; Fri, 29 Jul 2011 11:10:26 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <CAKdnbx6O8JgMM37e28q1g9dt=AdJpAAjWHqxBnTXHZrcyBMKyQ@mail.gmail.com>
+References: <CAKdnbx5DQe+c1+ZD6tEJqgSfv6CRV18s2YGv=Z3cOT=wEOyF7g@mail.gmail.com>
+	<4E31526F.3060608@southpole.se>
+	<CAKdnbx6O8JgMM37e28q1g9dt=AdJpAAjWHqxBnTXHZrcyBMKyQ@mail.gmail.com>
+Date: Fri, 29 Jul 2011 14:10:25 -0400
+Message-ID: <CAGoCfiyoh1QSBgqFU6ym-co1QFdHanK3WJ_ese7Cv4ACRfDhrg@mail.gmail.com>
+Subject: Re: Trying to support for HAUPPAUGE HVR-930C
+From: Devin Heitmueller <dheitmueller@kernellabs.com>
+To: Eddi De Pieri <eddi@depieri.net>
+Cc: linux-media@vger.kernel.org,
+	Benjamin Larsson <benjamin@southpole.se>
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+On Fri, Jul 29, 2011 at 7:15 AM, Eddi De Pieri <eddi@depieri.net> wrote:
+> 2011/7/28 Benjamin Larsson <benjamin@southpole.se>:
+>> 0x82 is the address of the chip handling the analog signals(?) Micronas
+>> AVF 4910BA1 maybe.
+>
+> I don't have the schematic of hauppauge card, so I can't say you if
+> 082 is the AVF 4910
 
-diff --git a/drivers/media/dvb/frontends/drxk_hard.c b/drivers/media/dvb/frontends/drxk_hard.c
-index 5b22c1f..85332e8 100644
---- a/drivers/media/dvb/frontends/drxk_hard.c
-+++ b/drivers/media/dvb/frontends/drxk_hard.c
-@@ -355,13 +355,7 @@ static int i2c_read(struct i2c_adapter *adap,
- 		{.addr = adr, .flags = I2C_M_RD,
- 		 .buf = answ, .len = alen}
- 	};
--	dprintk(3, ":");
--	if (debug > 2) {
--		int i;
--		for (i = 0; i < len; i++)
--			printk(KERN_CONT " %02x", msg[i]);
--		printk(KERN_CONT "\n");
--	}
-+
- 	status = i2c_transfer(adap, msgs, 2);
- 	if (status != 2) {
- 		if (debug > 2)
-@@ -374,9 +368,12 @@ static int i2c_read(struct i2c_adapter *adap,
- 	}
- 	if (debug > 2) {
- 		int i;
--		printk(KERN_CONT ": Read ");
-+		dprintk(2, ": read from ");
- 		for (i = 0; i < len; i++)
- 			printk(KERN_CONT " %02x", msg[i]);
-+		printk(KERN_CONT "Value = ");
-+		for (i = 0; i < alen; i++)
-+			printk(KERN_CONT " %02x", answ[i]);
- 		printk(KERN_CONT "\n");
- 	}
- 	return 0;
-@@ -1075,7 +1072,7 @@ static int GetDeviceCapabilities(struct drxk_state *state)
- 		state->m_hasIRQN = false;
- 		break;
- 	default:
--		printk(KERN_ERR "drxk: DeviceID not supported = %02x\n",
-+		printk(KERN_ERR "drxk: DeviceID 0x%02x not supported\n",
- 			((sioTopJtagidLo >> 12) & 0xFF));
- 		status = -EINVAL;
- 		goto error2;
+Yes, it's an avf4910b.  I did a Linux driver for the AVFA for the
+Viewcast boards, but there isn't a driver for the AFVB at this time.
+Should be pretty easy for you to whip one up though just by capturing
+the register sets under Windows and then replaying them for each of
+the three inputs.
+
+Devin
+
+>> So change the names so it is clear that this part
+>> sends commands to that chip.
+>
+> As I already told my patch is a derivate work of Terratec H5 Patch.
+> Mauro's patch should have the same issue
+>
+>> I'm not sure I understand the I2C addressing but my tuner is at 0xc2 and
+>> the demod at 0x52.
+
+Correct: the xc5000 is at 0xc2, the avf4910b is at 0x82 and the drx-k
+is at 0x52.
+
+Devin
+
 -- 
-1.7.1
-
-
+Devin J. Heitmueller - Kernel Labs
+http://www.kernellabs.com
