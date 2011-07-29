@@ -1,39 +1,80 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-in-13.arcor-online.net ([151.189.21.53]:38322 "EHLO
-	mail-in-13.arcor-online.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753084Ab1GVRTs (ORCPT
+Received: from perceval.ideasonboard.com ([95.142.166.194]:40300 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755778Ab1G2JiN (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 22 Jul 2011 13:19:48 -0400
-Received: from mail-in-06-z2.arcor-online.net (mail-in-06-z2.arcor-online.net [151.189.8.18])
-	by mx.arcor.de (Postfix) with ESMTP id CAA1B2125BF
-	for <linux-media@vger.kernel.org>; Fri, 22 Jul 2011 19:19:45 +0200 (CEST)
-Received: from mail-in-04.arcor-online.net (mail-in-04.arcor-online.net [151.189.21.44])
-	by mail-in-06-z2.arcor-online.net (Postfix) with ESMTP id AC720157564
-	for <linux-media@vger.kernel.org>; Fri, 22 Jul 2011 19:19:45 +0200 (CEST)
-Received: from [127.0.0.1] (dyndsl-095-033-083-042.ewe-ip-backbone.de [95.33.83.42])
-	(Authenticated sender: treito@arcor.de)
-	by mail-in-04.arcor-online.net (Postfix) with ESMTPSA id 78D41A9F83
-	for <linux-media@vger.kernel.org>; Fri, 22 Jul 2011 19:19:45 +0200 (CEST)
-Message-ID: <4E29B130.1040206@arcor.de>
-Date: Fri, 22 Jul 2011 19:19:44 +0200
-From: Treito <treito@arcor.de>
+	Fri, 29 Jul 2011 05:38:13 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Sakari Ailus <sakari.ailus@iki.fi>
+Subject: Re: [PATCH 2/3] v4l: events: Define frame start event
+Date: Fri, 29 Jul 2011 11:38:16 +0200
+Cc: linux-media@vger.kernel.org, hans.verkuil@cisco.com,
+	snjw23@gmail.com
+References: <4E2F0C53.10907@iki.fi> <201107282236.57896.laurent.pinchart@ideasonboard.com> <20110729074446.GL32629@valkosipuli.localdomain>
+In-Reply-To: <20110729074446.GL32629@valkosipuli.localdomain>
 MIME-Version: 1.0
-To: linux-media@vger.kernel.org
-Subject: s2-liplianin - dib0700 causes kernel oops
-Content-Type: text/plain; charset=ISO-8859-15; format=flowed
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
+Message-Id: <201107291138.16958.laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello,
+Hi Sakari,
 
-I tried to install s2-liplianin on changing kernel-versions. All in 
-common is, that my Hauppauge Nova-T USB-Stick causes a kernel oops when 
-plugged in. The devices are generated, but it does not tune. lsusb freezes.
-Here is my kernel.log: http://pastebin.com/03hxKvme
-The drivers from 2011-02-05 does not run, but the driver from 2010-10-16 
-runs perfectly.
+On Friday 29 July 2011 09:44:46 Sakari Ailus wrote:
+> On Thu, Jul 28, 2011 at 10:36:57PM +0200, Laurent Pinchart wrote:
+> > On Thursday 28 July 2011 22:28:57 Sakari Ailus wrote:
+> > > On Thu, Jul 28, 2011 at 01:52:21PM +0200, Laurent Pinchart wrote:
+> > > > On Tuesday 26 July 2011 20:49:43 Sakari Ailus wrote:
+> > [snip]
+> > 
+> > > > > +    <table frame="none" pgwide="1" id="v4l2-event-frame-sync">
+> > > > > +      <title>struct
+> > > > > <structname>v4l2_event_frame_sync</structname></title> +     
+> > > > > <tgroup cols="3">
+> > > > > +	&cs-str;
+> > > > > +	<tbody valign="top">
+> > > > > +	  <row>
+> > > > > +	    <entry>__u32</entry>
+> > > > > +	    <entry><structfield>buffer_sequence</structfield></entry>
+> > > > > +	    <entry>
+> > > > > +	      The sequence number of the buffer to be handled next or
+> > > > > +	      currently handled by the driver.
+> > > > 
+> > > > What happens if a particular piece of hardware can capture two (or
+> > > > more) simultaneous streams from the same video source (an unscaled
+> > > > compressed stream and a scaled down uncompressed stream for
+> > > > instance) ? Applications don't need to start both streams at the
+> > > > same time, what buffer sequence number should be reported in that
+> > > > case ?
+> > > 
+> > > I think that if the video data comes from the same source, the sequence
+> > > numbers should definitely be in sync. This would mean that for the
+> > > second stream the first sequence number wouldn't be zero.
+> > 
+> > Then we should document this somewhere. Here is probably not the best
+> > place to document that, but the buffer_sequence documentation should
+> > still refer to the explanation.
+> > 
+> > I also find the wording a bit unclear. The "buffer to be handled next"
+> > could mean the buffer that will be given to an application at the next
+> > DQBUF call. Maybe we should refer to frame sequence numbers instead of
+> > buffer sequence numbers.
+> 
+> What's the difference? I would consider the two the same.
 
+If we have multiple simultaneous streams from the same source, I think it 
+would make sense to start thinking about frame sequence numbers instead of 
+buffer sequence numbers. The buffer sequence number would then just store the 
+frame sequence number of the frame stored in the buffer. This would (in my 
+opinion) simplify the spec's understanding.
+
+> ..."buffer to be written next to by the hardware"?
+
+What about ..."buffer that will store the image" ?
+
+-- 
 Regards,
 
-Sven
+Laurent Pinchart
