@@ -1,70 +1,64 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:64972 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751897Ab1HAAq4 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 31 Jul 2011 20:46:56 -0400
-Message-ID: <4E35F779.4090100@redhat.com>
-Date: Sun, 31 Jul 2011 21:46:49 -0300
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-MIME-Version: 1.0
-To: Henning Hollermann <henning.hollermann@stud.uni-goettingen.de>
-CC: linux-media@vger.kernel.org
-Subject: Re: Missing package "Proc::ProcessTable" is in debian: libproc-processtable-perl
-References: <4E35DECA.2090700@stud.uni-goettingen.de>
-In-Reply-To: <4E35DECA.2090700@stud.uni-goettingen.de>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+Received: from moutng.kundenserver.de ([212.227.126.186]:49469 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755532Ab1G2K5D (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 29 Jul 2011 06:57:03 -0400
+Received: from 6a.grange (6a.grange [192.168.1.11])
+	by axis700.grange (Postfix) with ESMTPS id 170DC189B83
+	for <linux-media@vger.kernel.org>; Fri, 29 Jul 2011 12:57:00 +0200 (CEST)
+Received: from lyakh by 6a.grange with local (Exim 4.72)
+	(envelope-from <g.liakhovetski@gmx.de>)
+	id 1QmkkV-0007nB-TH
+	for linux-media@vger.kernel.org; Fri, 29 Jul 2011 12:56:59 +0200
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: linux-media@vger.kernel.org
+Subject: [PATCH 05/59] V4L: imx074: support the new mbus-config subdev ops
+Date: Fri, 29 Jul 2011 12:56:05 +0200
+Message-Id: <1311937019-29914-6-git-send-email-g.liakhovetski@gmx.de>
+In-Reply-To: <1311937019-29914-1-git-send-email-g.liakhovetski@gmx.de>
+References: <1311937019-29914-1-git-send-email-g.liakhovetski@gmx.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Henning,
+Extend the driver to also support [gs]_mbus_config() subdevice video
+operations.
 
-Em 31-07-2011 20:01, Henning Hollermann escreveu:
-> I just tried to install the latest media-build-package via git. I got an
-> error because of a missing package, but the script could not provide a
-> hint about the name of the missing package. One quick search made clear,
-> that it was perl's ProcessTable package, which was missing. This is
-> named "libproc-processtable-perl" in debian, so you could add this as hint.
+Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+---
+ drivers/media/video/imx074.c |   12 ++++++++++++
+ 1 files changed, 12 insertions(+), 0 deletions(-)
 
-There are some functions there that tries to detect the distribution used.
-Currently, it parses Fedora, RHEL and Ubuntu. From the above, it seems
-that the requirements for Debian are the same as the ones for Ubuntu.
-
-
-This is the requirements for Ubuntu:
-
-		"lsdiff"		=> "patchutils",
-		"Digest::SHA1"		=> "libdigest-sha1-perl",
-		"Proc::ProcessTable"	=> "libproc-processtable-perl",
-
-Could you please double check if all of them also applies for Debian?
-
-If so, then probably the enclosed patch will do the job. Could you
-please test it as well?
-
-Thanks,
-Mauro
-
--
-
-check_needs.pl: Add detection for Debian
-
-
-Reported-by: Henning Hollermann <henning.hollermann@stud.uni-goettingen.de>
-Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
-
-diff --git a/check_needs.pl b/check_needs.pl
-index 8060361..1467ee1 100755
---- a/check_needs.pl
-+++ b/check_needs.pl
-@@ -73,6 +73,10 @@ sub give_hints
- 		give_ubuntu_hints;
- 		return;
- 	}
-+	if ($system_release =~ /Debian/) {
-+		give_ubuntu_hints;
-+		return;
-+	}
+diff --git a/drivers/media/video/imx074.c b/drivers/media/video/imx074.c
+index 0382ea7..63f17aa 100644
+--- a/drivers/media/video/imx074.c
++++ b/drivers/media/video/imx074.c
+@@ -267,6 +267,17 @@ static int imx074_g_chip_ident(struct v4l2_subdev *sd,
+ 	return 0;
+ }
  
- 	# Fall-back to generic hint code
- 	foreach my $prog (@missing) {
++static int imx074_g_mbus_config(struct v4l2_subdev *sd,
++				struct v4l2_mbus_config *cfg)
++{
++	cfg->type = V4L2_MBUS_CSI2;
++	cfg->flags = V4L2_MBUS_CSI2_2_LANE |
++		V4L2_MBUS_CSI2_CHANNEL_0 |
++		V4L2_MBUS_CSI2_CONTINUOUS_CLOCK;
++
++	return 0;
++}
++
+ static struct v4l2_subdev_video_ops imx074_subdev_video_ops = {
+ 	.s_stream	= imx074_s_stream,
+ 	.s_mbus_fmt	= imx074_s_fmt,
+@@ -275,6 +286,7 @@ static struct v4l2_subdev_video_ops imx074_subdev_video_ops = {
+ 	.enum_mbus_fmt	= imx074_enum_fmt,
+ 	.g_crop		= imx074_g_crop,
+ 	.cropcap	= imx074_cropcap,
++	.g_mbus_config	= imx074_g_mbus_config,
+ };
+ 
+ static struct v4l2_subdev_core_ops imx074_subdev_core_ops = {
+-- 
+1.7.2.5
+
