@@ -1,31 +1,59 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:59861 "EHLO mx1.redhat.com"
+Received: from mga11.intel.com ([192.55.52.93]:6565 "EHLO mga11.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752069Ab1GMV0O (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 13 Jul 2011 17:26:14 -0400
-Received: from int-mx01.intmail.prod.int.phx2.redhat.com (int-mx01.intmail.prod.int.phx2.redhat.com [10.5.11.11])
-	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id p6DLQD9g013275
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
-	for <linux-media@vger.kernel.org>; Wed, 13 Jul 2011 17:26:14 -0400
-From: Jarod Wilson <jarod@redhat.com>
-To: linux-media@vger.kernel.org
-Cc: Jarod Wilson <jarod@redhat.com>
-Subject: [PATCH 0/3] redrat3 driver updates for 3.1
-Date: Wed, 13 Jul 2011 17:26:04 -0400
-Message-Id: <1310592367-11501-1-git-send-email-jarod@redhat.com>
+	id S1754488Ab1G2HKf convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 29 Jul 2011 03:10:35 -0400
+From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+In-Reply-To: <201107281634.24288.laurent.pinchart@ideasonboard.com>
+References: <20110727081522.GH32629@valkosipuli.localdomain>
+	 <4db811899ccd7b5315080790a627974e3569c7cc.1311839940.git.andriy.shevchenko@linux.intel.com>
+	 <201107281634.24288.laurent.pinchart@ideasonboard.com>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 8BIT
+Message-ID: <1311923232.3903.45.camel@smile>
+Mime-Version: 1.0
+Subject: Re: [PATCHv2] adp1653: check error code of adp1653_init_controls
+Date: Fri, 29 Jul 2011 10:10:03 +0300
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-These changes make the redrat3 driver cooperate better with both in-kernel
-and lirc userspace decoding of signals, tested with RC5, RC6 and NEC.
-There's probably more we can do to make this a bit less hackish, but its
-working quite well here for me right now.
+On Thu, 2011-07-28 at 16:34 +0200, Laurent Pinchart wrote: 
+> > -	adp1653_init_controls(flash);
+> > +	ret = adp1653_init_controls(flash);
+> > +	if (ret)
+> > +		goto free_and_quit;
+> > 
+> >  	ret = media_entity_init(&flash->subdev.entity, 0, NULL, 0);
+> >  	if (ret < 0)
+> > -		kfree(flash);
+> > +		goto free_and_quit;
+> > 
+> > +	return 0;
+> > +
+> > +free_and_quit:
+> > +	v4l2_ctrl_handler_free(&flash->ctrls);
+> > +	kfree(flash);
+> >  	return ret;
 
-Jarod Wilson (3):
-  [media] redrat3: sending extra trailing space was useless
-  [media] redrat3: cap duration in the right place
-  [media] redrat3: improve compat with lirc userspace decode
+> What about
+>         ret = adp1653_init_controls(flash);
+>         if (ret)
+>                 goto done;
+> 
+>         ret = media_entity_init(&flash->subdev.entity, 0, NULL, 0);
+> 
+> done:
+>         if (ret < 0) {
+>                 v4l2_ctrl_handler_free(&flash->ctrls);
+>                 kfree(flash);
+>         }
+> 
+>         return ret;
+There is no difference at first glance. However, your variant is less
+straight to understand for my opinion.
 
- drivers/media/rc/redrat3.c |   61 ++++++++++++++++++++-----------------------
- 1 files changed, 28 insertions(+), 33 deletions(-)
-
+-- 
+Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Intel Finland Oy
