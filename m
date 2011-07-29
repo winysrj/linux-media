@@ -1,89 +1,70 @@
-Return-path: <mchehab@localhost>
-Received: from mailout3.w1.samsung.com ([210.118.77.13]:11338 "EHLO
-	mailout3.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752842Ab1GFN7G (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 6 Jul 2011 09:59:06 -0400
-MIME-version: 1.0
-Content-transfer-encoding: 7BIT
-Content-type: text/plain; charset=us-ascii
-Date: Wed, 06 Jul 2011 15:58:58 +0200
-From: Marek Szyprowski <m.szyprowski@samsung.com>
-Subject: RE: [PATCH 6/8] drivers: add Contiguous Memory Allocator
-In-reply-to: <20110705113345.GA8286@n2100.arm.linux.org.uk>
-To: 'Russell King - ARM Linux' <linux@arm.linux.org.uk>
-Cc: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-	linux-media@vger.kernel.org, linux-mm@kvack.org,
-	linaro-mm-sig@lists.linaro.org,
-	'Daniel Walker' <dwalker@codeaurora.org>,
-	'Arnd Bergmann' <arnd@arndb.de>,
-	'Jonathan Corbet' <corbet@lwn.net>,
-	'Mel Gorman' <mel@csn.ul.ie>,
-	'Chunsang Jeong' <chunsang.jeong@linaro.org>,
-	'Michal Nazarewicz' <mina86@mina86.com>,
-	'Jesse Barker' <jesse.barker@linaro.org>,
-	'Kyungmin Park' <kyungmin.park@samsung.com>,
-	'Ankita Garg' <ankita@in.ibm.com>,
-	'Andrew Morton' <akpm@linux-foundation.org>,
-	'KAMEZAWA Hiroyuki' <kamezawa.hiroyu@jp.fujitsu.com>,
-	Marek Szyprowski <m.szyprowski@samsung.com>
-Message-id: <006301cc3be4$daab1850$900148f0$%szyprowski@samsung.com>
-Content-language: pl
-References: <1309851710-3828-1-git-send-email-m.szyprowski@samsung.com>
- <1309851710-3828-7-git-send-email-m.szyprowski@samsung.com>
- <20110705113345.GA8286@n2100.arm.linux.org.uk>
+Return-path: <linux-media-owner@vger.kernel.org>
+Received: from mail-wy0-f174.google.com ([74.125.82.174]:43183 "EHLO
+	mail-wy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752815Ab1G2UaY convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 29 Jul 2011 16:30:24 -0400
+Received: by wyg8 with SMTP id 8so431857wyg.19
+        for <linux-media@vger.kernel.org>; Fri, 29 Jul 2011 13:30:22 -0700 (PDT)
+References: <20110729025356.28cc99e8@redhat.com> <019F3E90-A128-4527-8698-1E2FE89341C9@wilsonet.com>
+In-Reply-To: <019F3E90-A128-4527-8698-1E2FE89341C9@wilsonet.com>
+Mime-Version: 1.0 (Apple Message framework v1084)
+Content-Type: text/plain; charset=us-ascii
+Message-Id: <B1E87CBC-4F0B-4407-80AB-6FE91E9EBABF@wilsonet.com>
+Content-Transfer-Encoding: 8BIT
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
+From: Jarod Wilson <jarod@wilsonet.com>
+Subject: Re: [PATCH 1/2] [media] rc-main: Fix device de-registration logic
+Date: Fri, 29 Jul 2011 16:30:01 -0400
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
-Sender: <mchehab@infradead.org>
 
-Hello,
+On Jul 29, 2011, at 1:30 PM, Jarod Wilson wrote:
 
-On Tuesday, July 05, 2011 1:34 PM Russell King - ARM Linux wrote:
-
-> On Tue, Jul 05, 2011 at 09:41:48AM +0200, Marek Szyprowski wrote:
-> > The Contiguous Memory Allocator is a set of helper functions for DMA
-> > mapping framework that improves allocations of contiguous memory chunks.
-> >
-> > CMA grabs memory on system boot, marks it with CMA_MIGRATE_TYPE and
-> > gives back to the system. Kernel is allowed to allocate movable pages
-> > within CMA's managed memory so that it can be used for example for page
-> > cache when DMA mapping do not use it. On dma_alloc_from_contiguous()
-> > request such pages are migrated out of CMA area to free required
-> > contiguous block and fulfill the request. This allows to allocate large
-> > contiguous chunks of memory at any time assuming that there is enough
-> > free memory available in the system.
-> >
-> > This code is heavily based on earlier works by Michal Nazarewicz.
+> On Jul 29, 2011, at 1:53 AM, Mauro Carvalho Chehab wrote:
 > 
-> And how are you addressing the technical concerns about aliasing of
-> cache attributes which I keep bringing up with this and you keep
-> ignoring and telling me that I'm standing in your way.
+>> rc unregister logic were deadly broken, preventing some drivers to
+>> be removed. Among the broken things, rc_dev_uevent() is being called
+>> during device_del(), causing a data filling on an area that it is
+>> not ready anymore.
+>> 
+>> Also, some drivers have a stop callback defined, that needs to be called
+>> before data removal, as it stops data polling.
+>> 
+>> Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+>> 
+>> diff --git a/drivers/media/rc/rc-main.c b/drivers/media/rc/rc-main.c
+>> index 51a23f4..666d4bb 100644
+>> --- a/drivers/media/rc/rc-main.c
+>> +++ b/drivers/media/rc/rc-main.c
+>> @@ -928,10 +928,6 @@ out:
+>> 
+>> static void rc_dev_release(struct device *device)
+>> {
+>> -	struct rc_dev *dev = to_rc_dev(device);
+>> -
+>> -	kfree(dev);
+>> -	module_put(THIS_MODULE);
+>> }
+> 
+> Since this function become a no-op, does it make sense to just remove it
+> and not set a .release function for static struct device_type rc_dev_type?
 
-I'm perfectly aware of the issues with aliasing of cache attributes.
+Nope, that leads to this:
 
-My idea is to change low memory linear mapping for all CMA areas on boot
-time to use 2 level page tables (4KiB mappings instead of super-section
-mappings). This way the page properties for a single page in CMA area can
-be changed/updated at any time to match required coherent/writecombine
-attributes. Linear mapping can be even removed completely if we want to 
-create the it elsewhere in the address space. 
+[  765.095926] ------------[ cut here ]------------
+[  765.098076] WARNING: at /home/jarod/src/linux-ir/drivers/base/core.c:143 device_release+0x73/0x7f()
+[  765.100215] Hardware name: empty
+[  765.102343] Device 'rc0' does not have a release() function, it is broken and must be fixed.
 
-The only problem that might need to be resolved is GFP_ATOMIC allocation
-(updating page properties probably requires some locking), but it can be
-served from a special area which is created on boot without low-memory
-mapping at all. None sane driver will call dma_alloc_coherent(GFP_ATOMIC)
-for large buffers anyway.
+Which may or not be bogus. But I've got a hanging modprobe -r em28xx-dvb
+with this change in place. Now to test with it rolled back...
 
-CMA limits the memory area from which coherent pages are being taken quite
-well, so the change in the linear mapping method should have no significant
-impact on the system performance.
 
-I didn't implement such solution yet, because it is really hard to handle
-all issues at the same time and creating the allocator was just a first
-step.
-
-Best regards
 -- 
-Marek Szyprowski
-Samsung Poland R&D Center
+Jarod Wilson
+jarod@wilsonet.com
 
 
 
