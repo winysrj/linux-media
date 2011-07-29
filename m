@@ -1,62 +1,44 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:52498 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751782Ab1GTN2W (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 20 Jul 2011 09:28:22 -0400
-Date: Wed, 20 Jul 2011 09:18:30 -0400
-From: Jarod Wilson <jarod@redhat.com>
-To: Chris W <lkml@psychogeeks.com>
-Cc: linux-media@vger.kernel.org, Andy Walls <awalls@md.metrocast.net>
-Subject: Re: [PATCH] [media] imon: don't parse scancodes until intf configured
-Message-ID: <20110720131830.GC9799@redhat.com>
-References: <D7E52A85-331A-4650-94F0-C1477F457457@redhat.com>
- <1311091967-2791-1-git-send-email-jarod@redhat.com>
- <4E25FFB7.70205@psychogeeks.com>
+Received: from metis.ext.pengutronix.de ([92.198.50.35]:37098 "EHLO
+	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754334Ab1G2L5f (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 29 Jul 2011 07:57:35 -0400
+Date: Fri, 29 Jul 2011 13:57:32 +0200
+From: Uwe =?iso-8859-1?Q?Kleine-K=F6nig?=
+	<u.kleine-koenig@pengutronix.de>
+To: Jan Pohanka <xhpohanka@gmail.com>
+Cc: linux-media@vger.kernel.org, s.hauer@pengutronix.de
+Subject: Re: mx2_camera driver on mx27ipcam: dma_alloc_coherent size  failed
+Message-ID: <20110729115732.GA16561@pengutronix.de>
+References: <op.vzdduqnuyxxkfz@localhost.localdomain>
+ <20110729075143.GX16561@pengutronix.de>
+ <op.vzdhx5ucyxxkfz@localhost.localdomain>
+ <20110729092311.GY16561@pengutronix.de>
+ <op.vzdldvr1yxxkfz@localhost.localdomain>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=iso-8859-1
 Content-Disposition: inline
-In-Reply-To: <4E25FFB7.70205@psychogeeks.com>
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <op.vzdldvr1yxxkfz@localhost.localdomain>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, Jul 20, 2011 at 08:05:43AM +1000, Chris W wrote:
-> On 20/07/11 02:12, Jarod Wilson wrote:
-> > The imon devices have either 1 or 2 usb interfaces on them, each wired
-> > up to its own urb callback. The interface 0 urb callback is wired up
-> > before the imon context's rc_dev pointer is filled in, which is
-> > necessary for imon 0xffdc device auto-detection to work properly, but
-> > we need to make sure we don't actually run the callback routines until
-> > we've entirely filled in the necessary bits for each given interface,
-> > lest we wind up oopsing. Technically, any imon device could have hit
-> > this, but the issue is exacerbated on the 0xffdc devices, which send a
-> > constant stream of interrupts, even when they have no valid key data.
-> 
-> 
-> 
-> OK.  The patch applies and everything continues to work.   There is no
-> obvious difference in the dmesg output on module load, with my device
-> remaining unidentified.  I don't know if that is indicative of anything.
+Hello Jan,
 
-Did you apply this patch on top of the earlier patch, or instead of it?
+On Fri, Jul 29, 2011 at 12:14:09PM +0200, Jan Pohanka wrote:
+> which repository should I search
+> 90026c8c823bff54172eab33a5e7fcecfd3df635 in? I have not found it in
+> git.pengutronix.de/git/imx/linux-2.6.git nor in vanilla sources.
+Seems my copy'n'paste foo isn't optimal.  Commit
+dca7c0b4293a06d1ed9387e729a4882896abccc2 is the relevant, it's in
+vanilla.
 
-> input: iMON Panel, Knob and Mouse(15c2:ffdc) as
-> /devices/pci0000:00/0000:00:10.2/usb4/4-2/4-2:1.0/input/input9
-> imon 4-2:1.0: Unknown 0xffdc device, defaulting to VFD and iMON IR (id 0x00)
+http://git.kernel.org/linus/dca7c0b4293a06d1ed9387e729a4882896abccc2
 
-The 'id 0x00' part should read 'id 0x24', as the ongoing spew below has in
-index 6, which makes me think you still have the earlier patch applied.
-You actually want only the newer patch applied. If you only have the newer
-one applied, then I'll have to take another look to see what's up.
-
-> intf0 decoded packet: 00 00 00 00 00 00 24 01
-> intf0 decoded packet: 00 00 00 00 00 00 24 01
-> intf0 decoded packet: 00 00 00 00 00 00 24 01
-
-One other amusing tidbit: you get continuous spew like the above, because
-to date, I thought all the ffdc devices had "nothing to report" spew that
-started with 0xffffff, which we filter out. Sigh. I hate imon hardware...
+Best regards
+Uwe
 
 -- 
-Jarod Wilson
-jarod@redhat.com
-
+Pengutronix e.K.                           | Uwe Kleine-König            |
+Industrial Linux Solutions                 | http://www.pengutronix.de/  |
