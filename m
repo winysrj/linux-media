@@ -1,140 +1,56 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nm15.bullet.mail.ne1.yahoo.com ([98.138.90.78]:44543 "HELO
-	nm15.bullet.mail.ne1.yahoo.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with SMTP id S1751495Ab1GUKnP convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 21 Jul 2011 06:43:15 -0400
-Message-ID: <1311244993.60601.YahooMailClassic@web121810.mail.ne1.yahoo.com>
-Date: Thu, 21 Jul 2011 03:43:13 -0700 (PDT)
-From: Luiz Ramos <lramos.prof@yahoo.com.br>
-Subject: Re: [PATCH] Fix wrong register mask in gspca/sonixj.c
-To: Jean-Francois Moine <moinejf@free.fr>
-Cc: linux-media@vger.kernel.org
-In-Reply-To: <20110720131212.13a9f8d2@tele>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: 8BIT
+Received: from moutng.kundenserver.de ([212.227.126.171]:60937 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756331Ab1G2K5K (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 29 Jul 2011 06:57:10 -0400
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: linux-media@vger.kernel.org
+Cc: Paul Mundt <lethal@linux-sh.org>
+Subject: [PATCH 49/59] sh: ap3rxa: remove redundant soc-camera platform data fields
+Date: Fri, 29 Jul 2011 12:56:49 +0200
+Message-Id: <1311937019-29914-50-git-send-email-g.liakhovetski@gmx.de>
+In-Reply-To: <1311937019-29914-1-git-send-email-g.liakhovetski@gmx.de>
+References: <1311937019-29914-1-git-send-email-g.liakhovetski@gmx.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello,
+The sh_mobile_ceu_camera driver has been converted to use the V4L2
+subdevice .[gs]_mbus_config() operations, therefore we don't need
+SOCAM_* flags for the soc_camera_platform driver anymore. The ov772x
+driver only supports 8 bits per sample pixel codes, hence the
+OV772X_FLAG_8BIT flag has no effect. Remove both of them.
 
-The package version 2.13.3 was compiled, and there are some results:
+Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Cc: Paul Mundt <lethal@linux-sh.org>
+---
+ arch/sh/boards/mach-ap325rxa/setup.c |    6 +-----
+ 1 files changed, 1 insertions(+), 5 deletions(-)
 
-  - at 640x480: it works as before (10 fps, good image)
-  - at 320x240 and 160x120: it does not work (no frames when using qv4l2)
+diff --git a/arch/sh/boards/mach-ap325rxa/setup.c b/arch/sh/boards/mach-ap325rxa/setup.c
+index 547928f..f8242f6 100644
+--- a/arch/sh/boards/mach-ap325rxa/setup.c
++++ b/arch/sh/boards/mach-ap325rxa/setup.c
+@@ -345,9 +345,6 @@ static struct soc_camera_platform_info camera_info = {
+ 		.width = 640,
+ 		.height = 480,
+ 	},
+-	.bus_param = SOCAM_PCLK_SAMPLE_RISING | SOCAM_HSYNC_ACTIVE_HIGH |
+-	SOCAM_VSYNC_ACTIVE_HIGH | SOCAM_MASTER | SOCAM_DATAWIDTH_8 |
+-	SOCAM_DATA_ACTIVE_HIGH,
+ 	.mbus_param = V4L2_MBUS_PCLK_SAMPLE_RISING | V4L2_MBUS_MASTER |
+ 	V4L2_MBUS_VSYNC_ACTIVE_HIGH | V4L2_MBUS_HSYNC_ACTIVE_HIGH |
+ 	V4L2_MBUS_DATA_ACTIVE_HIGH,
+@@ -505,8 +502,7 @@ static struct i2c_board_info ap325rxa_i2c_camera[] = {
+ };
+ 
+ static struct ov772x_camera_info ov7725_info = {
+-	.flags		= OV772X_FLAG_VFLIP | OV772X_FLAG_HFLIP | \
+-			  OV772X_FLAG_8BIT,
++	.flags		= OV772X_FLAG_VFLIP | OV772X_FLAG_HFLIP,
+ 	.edgectrl	= OV772X_AUTO_EDGECTRL(0xf, 0),
+ };
+ 
+-- 
+1.7.2.5
 
-Now my doubts. Unless I misunderstood something, it seems these are the our assumptions regarding reg01 and reg17:
-
-  - reg01 bit 6 is set when bridge runs at 48 MHz; if reset, 24 MHz
-  - reg17 bits 0..4 is a mask for dividing a sensor clock of 48 MHz, so
-    - if reg17 = x | 01 then clock = 48 MHz
-    - if reg17 = x | 02 then clock = 24 MHz
-    - if reg17 = x | 04 then clock = 12 MHz
-
-Putting some printk at the code version 2.13.3, the values of these registers at the last command are:
-
-  - at 640x480 ........... reg01 = 0x66  reg17 = 0x64
-  - at 320x240/160x120 ... reg01 = 0x26  reg17 = 0x61
-
-So, at 640x480 the bridge would be running at 48 MHz and the sensor at 12 MHz. At lower resolutions the bridge would be running at 24 MHz and the sensor at 48 MHz. It seems that this is not what we'd like to do.
-
-I made some experiences, and noticed that:
-
-  - making reg17 = 0x62 (sensor clock at 24 MHz) and reg01 = 0x26
-    (bridge clock at 24 MHz) at 320x240 and lower makes it work again.
-    I think this reaches the goal of having both clocks at 24 MHz, but
-    at 10 fps
-
-  - making reg17 = 0x61 (sensor at 48 MHz) and reg01 = 0x66 (bridge
-    at 48 MHz) at 640x480 gives me back a "No frame". A side question:
-    would it be associated to the speed limit of USB 1.1 or whatever?
-
-There are more experiences to be done, and as there are more conclusions, I'll post them here. But again, to make the code work it's sufficient to change the reg17 or'ing at line 2537 from 0x01 to 0x02, making the sensor run at 24 MHz for resolutions 320x240 and 160x120.
-
-For now, it seems to exist a trade-off between sensor clock and exposure, meaning that if you'd like to run at 20 fps, you'd have to use higher clock rates and the images require higher levels of light. Or running at 10 fps gives the ability to capture images in darker places. Does this makes sense? If so, one nice feature for such cameras would be controlling the exposure level by the user interface (ioctl), which in effect puts that decision in the user's hands.
-
-Thanks,
-
-Luiz Ramos
-
-
-
---- Em qua, 20/7/11, Jean-Francois Moine <moinejf@free.fr> escreveu:
-
-> De: Jean-Francois Moine <moinejf@free.fr>
-> Assunto: Re: [PATCH] Fix wrong register mask in gspca/sonixj.c
-> Para: "Luiz Ramos" <lramos.prof@yahoo.com.br>
-> Cc: linux-media@vger.kernel.org
-> Data: Quarta-feira, 20 de Julho de 2011, 8:12
-> On Mon, 18 Jul 2011 18:39:14 -0700
-> (PDT)
-> Luiz Ramos <lramos.prof@yahoo.com.br>
-> wrote:
->     [snip]
-> > I noticed that in 640x480 the device worked fine, but
-> in 320x240 and
-> > 160x120 it didn't (I mean: the image is dark). Or'ing
-> reg17 with 0x04
-> > in line 2535 (as it's currently done for VGA) is
-> sufficient to make
-> > the webcam work again. The change could be like that:
->     [snip]
-> > However, the frame rates get limited to 10 fps.
-> Without that change,
-> > and in 320x240 and 160x120, they reach 20 fps (of
-> darkness).
-> > 
-> > I can't see what or'ing that register means, and
-> what's the
-> > relationship between this and the webcam darkness. It
-> seems that
-> > these bits control some kind of clock; this can be
-> read in the
-> > program comments. One other argument in favour of this
-> assumption is
-> > the fact that the frame rate changes accordingly to
-> the value of
-> > these bits. But I can't see how this relates to
-> exposure.
-> > 
-> > For my purposes, I'll stay with that change; it's
-> sufficient for my
-> > purposes. If you know what I did, please advise me.
-> :-)
-> 
-> Hi Luiz,
-> 
-> You changed the sensor clock from 24MHz to 12MHz.
-> 
-> The clocks of the sensor and the bridge may have different
-> values.
-> In 640x480, the bridge clock is 48MHz (reg01) and the
-> sensor clock is
-> 12MHz (reg17: clock / 4). Previously, in 320x240, the
-> bridge clock was
-> 48MHz and the sensor clock 24 MHz (reg17: clock / 2).
-> 
-> I think that the sensor clock must stay the same for a same
-> frame rate.
-> So, what about changing the bridge clock only, i.e. bridge
-> clock 24MHZ
-> (reg01) and sensor clock 24MHz (reg17: clock / 1)?
-> 
-> That's what I coded in the last gspca test version (2.13.3)
-> which is
-> available in my web site (see below). May you try it?
-> 
-> Best regards.
-> 
-> -- 
-> Ken ar c'hentañ    |   
->       ** Breizh ha Linux atav! **
-> Jef       
-> |        http://moinejf.free.fr/
-> --
-> To unsubscribe from this list: send the line "unsubscribe
-> linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
