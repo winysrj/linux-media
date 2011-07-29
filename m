@@ -1,121 +1,215 @@
-Return-path: <mchehab@localhost>
-Received: from rcdn-iport-5.cisco.com ([173.37.86.76]:4729 "EHLO
-	rcdn-iport-5.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752900Ab1GFLQh (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 6 Jul 2011 07:16:37 -0400
-Received: from OSLEXCP11.eu.tandberg.int ([173.38.136.5])
-	by rcdn-core-2.cisco.com (8.14.3/8.14.3) with ESMTP id p66BGXME007433
-	for <linux-media@vger.kernel.org>; Wed, 6 Jul 2011 11:16:36 GMT
-Received: from cobaltpc1.localnet ([10.54.77.72])
-	by ultra.eu.tandberg.int (8.13.1/8.13.1) with ESMTP id p66BGY7V031410
-	for <linux-media@vger.kernel.org>; Wed, 6 Jul 2011 13:16:35 +0200
-From: Hans Verkuil <hansverk@cisco.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: RFC: Changes to preset handling
-Date: Wed, 6 Jul 2011 13:16:12 +0200
-MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201107061316.12948.hansverk@cisco.com>
+Return-path: <linux-media-owner@vger.kernel.org>
+Received: from moutng.kundenserver.de ([212.227.17.9]:64656 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755908Ab1G2K5D (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 29 Jul 2011 06:57:03 -0400
+Received: from 6a.grange (6a.grange [192.168.1.11])
+	by axis700.grange (Postfix) with ESMTPS id 6573718B03D
+	for <linux-media@vger.kernel.org>; Fri, 29 Jul 2011 12:57:00 +0200 (CEST)
+Received: from lyakh by 6a.grange with local (Exim 4.72)
+	(envelope-from <g.liakhovetski@gmx.de>)
+	id 1QmkkW-0007nS-3z
+	for linux-media@vger.kernel.org; Fri, 29 Jul 2011 12:57:00 +0200
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: linux-media@vger.kernel.org
+Subject: [PATCH 10/59] V4L: mt9t112: support the new mbus-config subdev ops
+Date: Fri, 29 Jul 2011 12:56:10 +0200
+Message-Id: <1311937019-29914-11-git-send-email-g.liakhovetski@gmx.de>
+In-Reply-To: <1311937019-29914-1-git-send-email-g.liakhovetski@gmx.de>
+References: <1311937019-29914-1-git-send-email-g.liakhovetski@gmx.de>
+Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
-Sender: <mchehab@infradead.org>
 
-There has been some discussion recently regarding the preset API:
+Extend the driver to also support [gs]_mbus_config() subdevice video
+operations.
 
-http://www.mail-archive.com/linux-media@vger.kernel.org/msg33774.html
+Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+---
+ drivers/media/video/mt9t112.c |   81 +++++++++++++++++++++--------------------
+ 1 files changed, 42 insertions(+), 39 deletions(-)
 
-The current presets are:
+diff --git a/drivers/media/video/mt9t112.c b/drivers/media/video/mt9t112.c
+index d2e0a50..a3368d8 100644
+--- a/drivers/media/video/mt9t112.c
++++ b/drivers/media/video/mt9t112.c
+@@ -34,11 +34,7 @@
+ /* #define EXT_CLOCK 24000000 */
+ 
+ /************************************************************************
+-
+-
+ 			macro
+-
+-
+ ************************************************************************/
+ /*
+  * frame size
+@@ -80,11 +76,7 @@
+ #define VAR8(id, offset) _VAR(id, offset, 0x8000)
+ 
+ /************************************************************************
+-
+-
+ 			struct
+-
+-
+ ************************************************************************/
+ struct mt9t112_frame_size {
+ 	u16 width;
+@@ -108,15 +100,12 @@ struct mt9t112_priv {
+ 	int				 model;
+ 	u32				 flags;
+ /* for flags */
+-#define INIT_DONE  (1<<0)
++#define INIT_DONE	(1 << 0)
++#define PCLK_RISING	(1 << 1)
+ };
+ 
+ /************************************************************************
+-
+-
+ 			supported format
+-
+-
+ ************************************************************************/
+ 
+ static const struct mt9t112_format mt9t112_cfmts[] = {
+@@ -154,11 +143,7 @@ static const struct mt9t112_format mt9t112_cfmts[] = {
+ };
+ 
+ /************************************************************************
+-
+-
+ 			general function
+-
+-
+ ************************************************************************/
+ static struct mt9t112_priv *to_mt9t112(const struct i2c_client *client)
+ {
+@@ -758,15 +743,18 @@ static int mt9t112_init_camera(const struct i2c_client *client)
+ }
+ 
+ /************************************************************************
+-
+-
+ 			soc_camera_ops
+-
+-
+ ************************************************************************/
+ static int mt9t112_set_bus_param(struct soc_camera_device *icd,
+ 				 unsigned long	flags)
+ {
++	struct soc_camera_link *icl = to_soc_camera_link(icd);
++	struct i2c_client *client = to_i2c_client(to_soc_camera_control(icd));
++	struct mt9t112_priv *priv = to_mt9t112(client);
++
++	if (soc_camera_apply_sensor_flags(icl, flags) & SOCAM_PCLK_SAMPLE_RISING)
++		priv->flags |= PCLK_RISING;
++
+ 	return 0;
+ }
+ 
+@@ -795,11 +783,7 @@ static struct soc_camera_ops mt9t112_ops = {
+ };
+ 
+ /************************************************************************
+-
+-
+ 			v4l2_subdev_core_ops
+-
+-
+ ************************************************************************/
+ static int mt9t112_g_chip_ident(struct v4l2_subdev *sd,
+ 				struct v4l2_dbg_chip_ident *id)
+@@ -850,11 +834,7 @@ static struct v4l2_subdev_core_ops mt9t112_subdev_core_ops = {
+ 
+ 
+ /************************************************************************
+-
+-
+ 			v4l2_subdev_video_ops
+-
+-
+ ************************************************************************/
+ static int mt9t112_s_stream(struct v4l2_subdev *sd, int enable)
+ {
+@@ -877,8 +857,7 @@ static int mt9t112_s_stream(struct v4l2_subdev *sd, int enable)
+ 	}
+ 
+ 	if (!(priv->flags & INIT_DONE)) {
+-		u16 param = (MT9T112_FLAG_PCLK_RISING_EDGE &
+-			     priv->info->flags) ? 0x0001 : 0x0000;
++		u16 param = PCLK_RISING & priv->flags ? 0x0001 : 0x0000;
+ 
+ 		ECHECKER(ret, mt9t112_init_camera(client));
+ 
+@@ -1027,6 +1006,36 @@ static int mt9t112_enum_fmt(struct v4l2_subdev *sd, unsigned int index,
+ 	return 0;
+ }
+ 
++static int mt9t112_g_mbus_config(struct v4l2_subdev *sd,
++				 struct v4l2_mbus_config *cfg)
++{
++	struct i2c_client *client = v4l2_get_subdevdata(sd);
++	struct soc_camera_device *icd = client->dev.platform_data;
++	struct soc_camera_link *icl = to_soc_camera_link(icd);
++
++	cfg->flags = V4L2_MBUS_MASTER | V4L2_MBUS_VSYNC_ACTIVE_HIGH |
++		V4L2_MBUS_HSYNC_ACTIVE_HIGH | V4L2_MBUS_DATA_ACTIVE_HIGH |
++		V4L2_MBUS_PCLK_SAMPLE_RISING | V4L2_MBUS_PCLK_SAMPLE_FALLING;
++	cfg->type = V4L2_MBUS_PARALLEL;
++	cfg->flags = soc_camera_apply_board_flags(icl, cfg);
++
++	return 0;
++}
++
++static int mt9t112_s_mbus_config(struct v4l2_subdev *sd,
++				 const struct v4l2_mbus_config *cfg)
++{
++	struct i2c_client *client = v4l2_get_subdevdata(sd);
++	struct soc_camera_device *icd = client->dev.platform_data;
++	struct soc_camera_link *icl = to_soc_camera_link(icd);
++	struct mt9t112_priv *priv = to_mt9t112(client);
++
++	if (soc_camera_apply_board_flags(icl, cfg) & V4L2_MBUS_PCLK_SAMPLE_RISING)
++		priv->flags |= PCLK_RISING;
++
++	return 0;
++}
++
+ static struct v4l2_subdev_video_ops mt9t112_subdev_video_ops = {
+ 	.s_stream	= mt9t112_s_stream,
+ 	.g_mbus_fmt	= mt9t112_g_fmt,
+@@ -1036,14 +1045,12 @@ static struct v4l2_subdev_video_ops mt9t112_subdev_video_ops = {
+ 	.g_crop		= mt9t112_g_crop,
+ 	.s_crop		= mt9t112_s_crop,
+ 	.enum_mbus_fmt	= mt9t112_enum_fmt,
++	.g_mbus_config	= mt9t112_g_mbus_config,
++	.s_mbus_config	= mt9t112_s_mbus_config,
+ };
+ 
+ /************************************************************************
+-
+-
+ 			i2c driver
+-
+-
+ ************************************************************************/
+ static struct v4l2_subdev_ops mt9t112_subdev_ops = {
+ 	.core	= &mt9t112_subdev_core_ops,
+@@ -1147,11 +1154,7 @@ static struct i2c_driver mt9t112_i2c_driver = {
+ };
+ 
+ /************************************************************************
+-
+-
+ 			module function
+-
+-
+ ************************************************************************/
+ static int __init mt9t112_module_init(void)
+ {
+-- 
+1.7.2.5
 
-#define         V4L2_DV_INVALID         0
-#define         V4L2_DV_480P59_94       1 /* BT.1362 */
-#define         V4L2_DV_576P50          2 /* BT.1362 */
-#define         V4L2_DV_720P24          3 /* SMPTE 296M */
-#define         V4L2_DV_720P25          4 /* SMPTE 296M */
-#define         V4L2_DV_720P30          5 /* SMPTE 296M */
-#define         V4L2_DV_720P50          6 /* SMPTE 296M */
-#define         V4L2_DV_720P59_94       7 /* SMPTE 274M */
-#define         V4L2_DV_720P60          8 /* SMPTE 274M/296M */
-#define         V4L2_DV_1080I29_97      9 /* BT.1120/ SMPTE 274M */
-#define         V4L2_DV_1080I30         10 /* BT.1120/ SMPTE 274M */
-#define         V4L2_DV_1080I25         11 /* BT.1120 */
-#define         V4L2_DV_1080I50         12 /* SMPTE 296M */
-#define         V4L2_DV_1080I60         13 /* SMPTE 296M */
-#define         V4L2_DV_1080P24         14 /* SMPTE 296M */
-#define         V4L2_DV_1080P25         15 /* SMPTE 296M */
-#define         V4L2_DV_1080P30         16 /* SMPTE 296M */
-#define         V4L2_DV_1080P50         17 /* BT.1120 */
-#define         V4L2_DV_1080P60         18 /* BT.1120 */
-
-One thing that needs to change is that the comments should refer to the
-CEA-861 standard since all these presets are from that document. The other
-thing is that the macros should contain the name of the standard and the
-exact resolution. This allows for adding presets from other standards
-such as the VESA DMT standard.
-
-The proposed list of presets would look like this:
-
-#define         V4L2_DV_INVALID                    0
-#define         V4L2_DV_CEA861_720X480P59_94       1 /* CEA-861, VIC 2, 3 */
-#define         V4L2_DV_480P59_94       V4L2_DV_CEA861_720X480P59_94
-#define         V4L2_DV_CEA861_720X576P50          2 /* CEA-861, VIC 17, 18 */
-#define         V4L2_DV_576P50          V4L2_DV_CEA861_720X576P50
-#define         V4L2_DV_CEA861_1280X720P24         3 /* CEA-861, VIC 60 */
-#define         V4L2_DV_720P24          V4L2_DV_CEA861_1280X720P24
-...
-#define         V4L2_DV_CEA861_1280X720P59_94      7 /* CEA-861, VIC 4 */
-#define         V4L2_DV_720P59_94       V4L2_DV_CEA861_1280X720P59_94
-#define         V4L2_DV_CEA861_1280X720P60         8 /* CEA-861, VIC 4 */
-#define         V4L2_DV_720P60          V4L2_DV_CEA861_1280X720P60
-...
-
-The old names become aliases to the new ones.
-
-I would also like to reserve the range 1-65535 for the CEA presets, so a comment
-is needed for this.
-
-The other part that needs to be extended is struct v4l2_dv_enum_presets. Currently
-this returns a human readable description of the format and the width and height.
-
-What is missing is the fps or frame period and a flags field that can tell whether
-this is an interlaced or progressive format.
-
-So I propose to extend the struct as follows:
-
-struct v4l2_dv_enum_preset {
-        __u32   index;
-        __u32   preset;
-        __u8    name[32]; /* Name of the preset timing */
-        __u32   width;
-        __u32   height;
-        struct v4l2_fract fps;
-        __u32   flags;
-        __u32   reserved[1];
-};
-
-#define V4L2_DV_ENUM_FL_INTERLACED (1 << 0)
-
-What is better: that the v4l2_fract represents frames-per-second or that it represents
-time-per-frame? G/S_PARM uses the latter, but I find the first more logical.
-
-Another thing that is missing in VIDIOC_ENUM_DV_PRESETS is that you cannot put in a
-specific preset and get back this information. Instead it is index based. This is fine
-when you want to enumerate all available presets, but it is annoying when you want to
-find the specifics one particular preset.
-
-I propose that we define a specific index value (e.g. 0x80000000) that will let the
-driver return the information about the preset instead (or -EINVAL if the preset is
-not supported by the driver). So:
-
-#define V4L2_DV_ENUM_USE_PRESET 0x80000000
-
-A separate issue is how to handle calculated modes based on the VESA GTF and CVT
-standards. For a video transmitter the VIDIOC_S_DV_TIMINGS can be used, although
-the application has to do the calculations. For video receiving things are much
-more complex. This needs more research. There are several possibilities, but it
-isn't clear which works best. Some experimentation is needed, but due to vacations
-this will have to be postponed.
-
-Comment?
-
-	Hans
