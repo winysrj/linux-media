@@ -1,270 +1,51 @@
-Return-path: <mchehab@pedra>
-Received: from mail.mnsspb.ru ([84.204.75.2]:35626 "EHLO mail.mnsspb.ru"
+Return-path: <linux-media-owner@vger.kernel.org>
+Received: from mail.kapsi.fi ([217.30.184.167]:38632 "EHLO mail.kapsi.fi"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756106Ab1GCQiL (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 3 Jul 2011 12:38:11 -0400
-From: Kirill Smelkov <kirr@mns.spb.ru>
-To: Alan Stern <stern@rowland.harvard.edu>
-Cc: Sarah Sharp <sarah.a.sharp@linux.intel.com>,
-	matt mooney <mfm@muteddisk.com>,
-	Greg Kroah-Hartman <gregkh@suse.de>, linux-usb@vger.kernel.org,
-	linux-uvc-devel@lists.berlios.de, linux-media@vger.kernel.org,
-	linux-kernel@vger.kernel.org, Kirill Smelkov <kirr@mns.spb.ru>
-Subject: [PATCH v4 1/2] USB: EHCI: Move sysfs related bits into ehci-sysfs.c
-Date: Sun,  3 Jul 2011 20:36:56 +0400
-Message-Id: <0f7b5fa21a812cd4ca73a17d137170247a0867e1.1309710420.git.kirr@mns.spb.ru>
-In-Reply-To: <cover.1309710420.git.kirr@mns.spb.ru>
-References: <cover.1309710420.git.kirr@mns.spb.ru>
-In-Reply-To: <cover.1309710420.git.kirr@mns.spb.ru>
-References: <cover.1309710420.git.kirr@mns.spb.ru>
+	id S1756061Ab1G2NDo (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 29 Jul 2011 09:03:44 -0400
+Message-ID: <4E32AFAE.6020000@iki.fi>
+Date: Fri, 29 Jul 2011 16:03:42 +0300
+From: Antti Palosaari <crope@iki.fi>
+MIME-Version: 1.0
+To: Eddi De Pieri <eddi@depieri.net>
+CC: linux-media@vger.kernel.org,
+	Benjamin Larsson <benjamin@southpole.se>
+Subject: Re: Trying to support for HAUPPAUGE HVR-930C
+References: <CAKdnbx5DQe+c1+ZD6tEJqgSfv6CRV18s2YGv=Z3cOT=wEOyF7g@mail.gmail.com> <4E31526F.3060608@southpole.se> <CAKdnbx6O8JgMM37e28q1g9dt=AdJpAAjWHqxBnTXHZrcyBMKyQ@mail.gmail.com>
+In-Reply-To: <CAKdnbx6O8JgMM37e28q1g9dt=AdJpAAjWHqxBnTXHZrcyBMKyQ@mail.gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
-Sender: <mchehab@pedra>
 
-The only sysfs attr implemented so far is "companion" from ehci-hub.c,
-but in the next patch we are going to add another sysfs file, so prior
-to that let's structure things and move already-in-there sysfs code to
-separate file.
+On 07/29/2011 02:15 PM, Eddi De Pieri wrote:
+> 2011/7/28 Benjamin Larsson <benjamin@southpole.se>:
+>> 0x82 is the address of the chip handling the analog signals(?) Micronas
+>> AVF 4910BA1 maybe.
+> 
+> I don't have the schematic of hauppauge card, so I can't say you if
+> 082 is the AVF 4910
 
-NOTE: All the code I'm moving into this new file was written by Alan
-Stern (in 57e06c11 "EHCI: force high-speed devices to run at full
-speed"; Jan 16 2007), that's why I'm putting
+Rather few Linux devels have those but generally it is rather easy to guess. Just look addresses from sniff, then you have driver working you can read and write to chip and try to see what happens.
 
-    Copyright (C) 2007 by Alan Stern
+>> I'm not sure I understand the I2C addressing but my tuner is at 0xc2 and
+>> the demod at 0x52.
+> 
+> I hate binary operation however if you shift the address you should
+> get same value...
+> 0x52 = 0x29 << 1
+> 0x29 = 0x52 >> 1
 
-there after explicit request from the author.
+I2C uses 7 bit addressing and thus 0x29 is correct. Many times address like 0x52 is called as 8 bit I2C address even in chip documents. Anyhow, 0x29 is correct, also (0x52 >> 1) can be used.
 
-Signed-off-by: Kirill Smelkov <kirr@mns.spb.ru>
-Acked-by: Alan Stern <stern@rowland.harvard.edu>
----
- drivers/usb/host/ehci-hcd.c   |    5 +-
- drivers/usb/host/ehci-hub.c   |   75 --------------------------------
- drivers/usb/host/ehci-sysfs.c |   94 +++++++++++++++++++++++++++++++++++++++++
- 3 files changed, 97 insertions(+), 77 deletions(-)
- create mode 100644 drivers/usb/host/ehci-sysfs.c
+I encourage to use
 
-diff --git a/drivers/usb/host/ehci-hcd.c b/drivers/usb/host/ehci-hcd.c
-index e18862c..8306155 100644
---- a/drivers/usb/host/ehci-hcd.c
-+++ b/drivers/usb/host/ehci-hcd.c
-@@ -336,6 +336,7 @@ static void ehci_work(struct ehci_hcd *ehci);
- #include "ehci-mem.c"
- #include "ehci-q.c"
- #include "ehci-sched.c"
-+#include "ehci-sysfs.c"
- 
- /*-------------------------------------------------------------------------*/
- 
-@@ -520,7 +521,7 @@ static void ehci_stop (struct usb_hcd *hcd)
- 	ehci_reset (ehci);
- 	spin_unlock_irq(&ehci->lock);
- 
--	remove_companion_file(ehci);
-+	remove_sysfs_files(ehci);
- 	remove_debug_files (ehci);
- 
- 	/* root hub is shut down separately (first, when possible) */
-@@ -754,7 +755,7 @@ static int ehci_run (struct usb_hcd *hcd)
- 	 * since the class device isn't created that early.
- 	 */
- 	create_debug_files(ehci);
--	create_companion_file(ehci);
-+	create_sysfs_files(ehci);
- 
- 	return 0;
- }
-diff --git a/drivers/usb/host/ehci-hub.c b/drivers/usb/host/ehci-hub.c
-index ea6184b..d9e8d71 100644
---- a/drivers/usb/host/ehci-hub.c
-+++ b/drivers/usb/host/ehci-hub.c
-@@ -471,29 +471,6 @@ static int ehci_bus_resume (struct usb_hcd *hcd)
- 
- /*-------------------------------------------------------------------------*/
- 
--/* Display the ports dedicated to the companion controller */
--static ssize_t show_companion(struct device *dev,
--			      struct device_attribute *attr,
--			      char *buf)
--{
--	struct ehci_hcd		*ehci;
--	int			nports, index, n;
--	int			count = PAGE_SIZE;
--	char			*ptr = buf;
--
--	ehci = hcd_to_ehci(bus_to_hcd(dev_get_drvdata(dev)));
--	nports = HCS_N_PORTS(ehci->hcs_params);
--
--	for (index = 0; index < nports; ++index) {
--		if (test_bit(index, &ehci->companion_ports)) {
--			n = scnprintf(ptr, count, "%d\n", index + 1);
--			ptr += n;
--			count -= n;
--		}
--	}
--	return ptr - buf;
--}
--
- /*
-  * Sets the owner of a port
-  */
-@@ -528,58 +505,6 @@ static void set_owner(struct ehci_hcd *ehci, int portnum, int new_owner)
- 	}
- }
- 
--/*
-- * Dedicate or undedicate a port to the companion controller.
-- * Syntax is "[-]portnum", where a leading '-' sign means
-- * return control of the port to the EHCI controller.
-- */
--static ssize_t store_companion(struct device *dev,
--			       struct device_attribute *attr,
--			       const char *buf, size_t count)
--{
--	struct ehci_hcd		*ehci;
--	int			portnum, new_owner;
--
--	ehci = hcd_to_ehci(bus_to_hcd(dev_get_drvdata(dev)));
--	new_owner = PORT_OWNER;		/* Owned by companion */
--	if (sscanf(buf, "%d", &portnum) != 1)
--		return -EINVAL;
--	if (portnum < 0) {
--		portnum = - portnum;
--		new_owner = 0;		/* Owned by EHCI */
--	}
--	if (portnum <= 0 || portnum > HCS_N_PORTS(ehci->hcs_params))
--		return -ENOENT;
--	portnum--;
--	if (new_owner)
--		set_bit(portnum, &ehci->companion_ports);
--	else
--		clear_bit(portnum, &ehci->companion_ports);
--	set_owner(ehci, portnum, new_owner);
--	return count;
--}
--static DEVICE_ATTR(companion, 0644, show_companion, store_companion);
--
--static inline int create_companion_file(struct ehci_hcd *ehci)
--{
--	int	i = 0;
--
--	/* with integrated TT there is no companion! */
--	if (!ehci_is_TDI(ehci))
--		i = device_create_file(ehci_to_hcd(ehci)->self.controller,
--				       &dev_attr_companion);
--	return i;
--}
--
--static inline void remove_companion_file(struct ehci_hcd *ehci)
--{
--	/* with integrated TT there is no companion! */
--	if (!ehci_is_TDI(ehci))
--		device_remove_file(ehci_to_hcd(ehci)->self.controller,
--				   &dev_attr_companion);
--}
--
--
- /*-------------------------------------------------------------------------*/
- 
- static int check_reset_complete (
-diff --git a/drivers/usb/host/ehci-sysfs.c b/drivers/usb/host/ehci-sysfs.c
-new file mode 100644
-index 0000000..29824a9
---- /dev/null
-+++ b/drivers/usb/host/ehci-sysfs.c
-@@ -0,0 +1,94 @@
-+/*
-+ * Copyright (C) 2007 by Alan Stern
-+ *
-+ * This program is free software; you can redistribute it and/or modify it
-+ * under the terms of the GNU General Public License as published by the
-+ * Free Software Foundation; either version 2 of the License, or (at your
-+ * option) any later version.
-+ *
-+ * This program is distributed in the hope that it will be useful, but
-+ * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
-+ * or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
-+ * for more details.
-+ *
-+ * You should have received a copy of the GNU General Public License
-+ * along with this program; if not, write to the Free Software Foundation,
-+ * Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
-+ */
-+
-+/* this file is part of ehci-hcd.c */
-+
-+
-+/* Display the ports dedicated to the companion controller */
-+static ssize_t show_companion(struct device *dev,
-+			      struct device_attribute *attr,
-+			      char *buf)
-+{
-+	struct ehci_hcd		*ehci;
-+	int			nports, index, n;
-+	int			count = PAGE_SIZE;
-+	char			*ptr = buf;
-+
-+	ehci = hcd_to_ehci(bus_to_hcd(dev_get_drvdata(dev)));
-+	nports = HCS_N_PORTS(ehci->hcs_params);
-+
-+	for (index = 0; index < nports; ++index) {
-+		if (test_bit(index, &ehci->companion_ports)) {
-+			n = scnprintf(ptr, count, "%d\n", index + 1);
-+			ptr += n;
-+			count -= n;
-+		}
-+	}
-+	return ptr - buf;
-+}
-+
-+/*
-+ * Dedicate or undedicate a port to the companion controller.
-+ * Syntax is "[-]portnum", where a leading '-' sign means
-+ * return control of the port to the EHCI controller.
-+ */
-+static ssize_t store_companion(struct device *dev,
-+			       struct device_attribute *attr,
-+			       const char *buf, size_t count)
-+{
-+	struct ehci_hcd		*ehci;
-+	int			portnum, new_owner;
-+
-+	ehci = hcd_to_ehci(bus_to_hcd(dev_get_drvdata(dev)));
-+	new_owner = PORT_OWNER;		/* Owned by companion */
-+	if (sscanf(buf, "%d", &portnum) != 1)
-+		return -EINVAL;
-+	if (portnum < 0) {
-+		portnum = - portnum;
-+		new_owner = 0;		/* Owned by EHCI */
-+	}
-+	if (portnum <= 0 || portnum > HCS_N_PORTS(ehci->hcs_params))
-+		return -ENOENT;
-+	portnum--;
-+	if (new_owner)
-+		set_bit(portnum, &ehci->companion_ports);
-+	else
-+		clear_bit(portnum, &ehci->companion_ports);
-+	set_owner(ehci, portnum, new_owner);
-+	return count;
-+}
-+static DEVICE_ATTR(companion, 0644, show_companion, store_companion);
-+
-+static inline int create_sysfs_files(struct ehci_hcd *ehci)
-+{
-+	int	i = 0;
-+
-+	/* with integrated TT there is no companion! */
-+	if (!ehci_is_TDI(ehci))
-+		i = device_create_file(ehci_to_hcd(ehci)->self.controller,
-+				       &dev_attr_companion);
-+	return i;
-+}
-+
-+static inline void remove_sysfs_files(struct ehci_hcd *ehci)
-+{
-+	/* with integrated TT there is no companion! */
-+	if (!ehci_is_TDI(ehci))
-+		device_remove_file(ehci_to_hcd(ehci)->self.controller,
-+				   &dev_attr_companion);
-+}
+.i2c_addr = 0x29; /* 0x52 >> 1 */
+
+to make clear which is 8 bit since 8bit is almost always seen in usb logs.
+
+regards
+Antti
+
 -- 
-1.7.6.rc3
-
+http://palosaari.fi/
