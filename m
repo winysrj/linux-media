@@ -1,58 +1,56 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:37346 "EHLO mx1.redhat.com"
+Received: from que21.charter.net ([209.225.8.22]:48398 "EHLO que21.charter.net"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753868Ab1G0SbB (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 27 Jul 2011 14:31:01 -0400
-Message-ID: <4E305962.4090208@redhat.com>
-Date: Wed, 27 Jul 2011 15:30:58 -0300
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-MIME-Version: 1.0
-To: Malcolm Priestley <tvboxspy@gmail.com>
-CC: linux-media@vger.kernel.org
-Subject: Re: [PATCH 1/3] IT9137 driver for Kworld UB499-2T T09 (id 1b80:e409)
- - firmware details
-References: <1311618885.7655.3.camel@localhost>
-In-Reply-To: <1311618885.7655.3.camel@localhost>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+	id S1751419Ab1G3Pp6 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 30 Jul 2011 11:45:58 -0400
+From: Greg Dietsche <Gregory.Dietsche@cuw.edu>
+To: laurent.pinchart@ideasonboard.com
+Cc: mchehab@infradead.org, linux-media@vger.kernel.org,
+	linux-kernel@vger.kernel.org, trivial@kernel.org,
+	jpiszcz@lucidpixels.com, Greg Dietsche <Gregory.Dietsche@cuw.edu>
+Subject: [PATCH] uvcvideo: correct kernel version reference
+Date: Sat, 30 Jul 2011 10:47:30 -0500
+Message-Id: <1312040850-21475-1-git-send-email-Gregory.Dietsche@cuw.edu>
+In-Reply-To: <alpine.DEB.2.02.1107301020220.4925@p34.internal.lan>
+References: <alpine.DEB.2.02.1107301020220.4925@p34.internal.lan>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em 25-07-2011 15:34, Malcolm Priestley escreveu:
-> Firmware information for Kworld UB499-2T T09 based on IT913x series. This device
-> uses file dvb-usb-it9137-01.fw.
-> 
-> 
-> Signed-off-by: Malcolm Priestley <tvboxspy@gmail.com>
-> 
-> ---
->  Documentation/dvb/it9137.txt |    9 +++++++++
->  1 files changed, 9 insertions(+), 0 deletions(-)
->  create mode 100644 Documentation/dvb/it9137.txt
-> 
-> diff --git a/Documentation/dvb/it9137.txt b/Documentation/dvb/it9137.txt
-> new file mode 100644
-> index 0000000..9e6726e
-> --- /dev/null
-> +++ b/Documentation/dvb/it9137.txt
-> @@ -0,0 +1,9 @@
-> +To extract firmware for Kworld UB499-2T (id 1b80:e409) you need to copy the
-> +following file(s) to this directory.
-> +
-> +IT9135BDA.sys Dated Mon 22 Mar 2010 02:20:08 GMT
-> +
-> +extract using dd
-> +dd if=IT9135BDA.sys ibs=1 skip=69632 count=5731 of=dvb-usb-it9137-01.fw
-> +
-> +copy to default firmware location.
+change from v2.6.42 to v3.2
 
+Reported-by: Justin Piszcz <jpiszcz@lucidpixels.com>
+Signed-off-by: Greg Dietsche <Gregory.Dietsche@cuw.edu>
+---
+ drivers/media/video/uvc/uvc_v4l2.c |    2 +-
+ drivers/media/video/uvc/uvcvideo.h |    2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
 
-Malcolm,
+diff --git a/drivers/media/video/uvc/uvc_v4l2.c b/drivers/media/video/uvc/uvc_v4l2.c
+index ea71d5f..6d6e3f9 100644
+--- a/drivers/media/video/uvc/uvc_v4l2.c
++++ b/drivers/media/video/uvc/uvc_v4l2.c
+@@ -546,7 +546,7 @@ static void uvc_v4l2_ioctl_warn(void)
+ 		return;
+ 
+ 	uvc_printk(KERN_INFO, "Deprecated UVCIOC_CTRL_{ADD,MAP_OLD,GET,SET} "
+-		   "ioctls will be removed in 2.6.42.\n");
++		   "ioctls will be removed in 3.2.\n");
+ 	uvc_printk(KERN_INFO, "See http://www.ideasonboard.org/uvc/upgrade/ "
+ 		   "for upgrade instructions.\n");
+ 	warned = 1;
+diff --git a/drivers/media/video/uvc/uvcvideo.h b/drivers/media/video/uvc/uvcvideo.h
+index df32a43..4419c34 100644
+--- a/drivers/media/video/uvc/uvcvideo.h
++++ b/drivers/media/video/uvc/uvcvideo.h
+@@ -7,7 +7,7 @@
+ #ifndef __KERNEL__
+ /*
+  * This header provides binary compatibility with applications using the private
+- * uvcvideo API. This API is deprecated and will be removed in 2.6.42.
++ * uvcvideo API. This API is deprecated and will be removed in 3.2.
+  * Applications should be recompiled against the public linux/uvcvideo.h header.
+  */
+ #warn "The uvcvideo.h header is deprecated, use linux/uvcvideo.h instead."
+-- 
+1.7.2.5
 
-You should add a rule like the above at:
-	Documentation/dvb/get_dvb_firmware
-
-if you cannot get the distribution rights for such firmware.
-
-Thanks,
-Mauro
