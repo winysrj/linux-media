@@ -1,41 +1,72 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from gelbbaer.kn-bremen.de ([78.46.108.116]:50544 "EHLO
-	smtp.kn-bremen.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752530Ab1GMX07 (ORCPT
+Received: from perceval.ideasonboard.com ([95.142.166.194]:52704 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752404Ab1G3UgJ (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 13 Jul 2011 19:26:59 -0400
-From: Juergen Lock <nox@jelal.kn-bremen.de>
-Date: Thu, 14 Jul 2011 01:26:14 +0200
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Juergen Lock <nox@jelal.kn-bremen.de>, linux-media@vger.kernel.org,
-	hselasky@c2i.net
-Subject: Re: [PATCH] pctv452e.c: switch rc handling to rc.core
-Message-ID: <20110713232614.GA57768@triton8.kn-bremen.de>
-References: <20110625193427.GA66720@triton8.kn-bremen.de>
- <4E1E1CA7.5090004@redhat.com>
+	Sat, 30 Jul 2011 16:36:09 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Greg Dietsche <Gregory.Dietsche@cuw.edu>
+Subject: Re: [PATCH] uvcvideo: correct kernel version reference
+Date: Sat, 30 Jul 2011 22:36:12 +0200
+Cc: mchehab@infradead.org, linux-media@vger.kernel.org,
+	linux-kernel@vger.kernel.org, trivial@kernel.org,
+	jpiszcz@lucidpixels.com
+References: <alpine.DEB.2.02.1107301020220.4925@p34.internal.lan> <1312040850-21475-1-git-send-email-Gregory.Dietsche@cuw.edu>
+In-Reply-To: <1312040850-21475-1-git-send-email-Gregory.Dietsche@cuw.edu>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <4E1E1CA7.5090004@redhat.com>
+Content-Type: Text/Plain;
+  charset="iso-8859-15"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201107302236.13354.laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, Jul 13, 2011 at 07:31:03PM -0300, Mauro Carvalho Chehab wrote:
-> Em 25-06-2011 16:34, Juergen Lock escreveu:
-> > This is on top of the submitted pctv452e.c driver and was done similar
-> > to how ttusb2 works.  Tested with lirc (devinput) and ir-keytable(1).
+Hi Greg,
+
+Thanks for the patch.
+
+On Saturday 30 July 2011 17:47:30 Greg Dietsche wrote:
+> change from v2.6.42 to v3.2
+
+This patch would be queued for v3.2. As the code it fixes will go away at the 
+same time, it would be pretty pointless to apply it :-) Thanks for warning me 
+though.
+
+> Reported-by: Justin Piszcz <jpiszcz@lucidpixels.com>
+> Signed-off-by: Greg Dietsche <Gregory.Dietsche@cuw.edu>
+> ---
+>  drivers/media/video/uvc/uvc_v4l2.c |    2 +-
+>  drivers/media/video/uvc/uvcvideo.h |    2 +-
+>  2 files changed, 2 insertions(+), 2 deletions(-)
 > 
-> You should submit pctv452e driver first, otherwise I can't apply
-> this one ;)
+> diff --git a/drivers/media/video/uvc/uvc_v4l2.c
+> b/drivers/media/video/uvc/uvc_v4l2.c index ea71d5f..6d6e3f9 100644
+> --- a/drivers/media/video/uvc/uvc_v4l2.c
+> +++ b/drivers/media/video/uvc/uvc_v4l2.c
+> @@ -546,7 +546,7 @@ static void uvc_v4l2_ioctl_warn(void)
+>  		return;
+> 
+>  	uvc_printk(KERN_INFO, "Deprecated UVCIOC_CTRL_{ADD,MAP_OLD,GET,SET} "
+> -		   "ioctls will be removed in 2.6.42.\n");
+> +		   "ioctls will be removed in 3.2.\n");
+>  	uvc_printk(KERN_INFO, "See http://www.ideasonboard.org/uvc/upgrade/ "
+>  		   "for upgrade instructions.\n");
+>  	warned = 1;
+> diff --git a/drivers/media/video/uvc/uvcvideo.h
+> b/drivers/media/video/uvc/uvcvideo.h index df32a43..4419c34 100644
+> --- a/drivers/media/video/uvc/uvcvideo.h
+> +++ b/drivers/media/video/uvc/uvcvideo.h
+> @@ -7,7 +7,7 @@
+>  #ifndef __KERNEL__
+>  /*
+>   * This header provides binary compatibility with applications using the
+> private - * uvcvideo API. This API is deprecated and will be removed in
+> 2.6.42. + * uvcvideo API. This API is deprecated and will be removed in
+> 3.2. * Applications should be recompiled against the public
+> linux/uvcvideo.h header. */
+>  #warn "The uvcvideo.h header is deprecated, use linux/uvcvideo.h instead."
 
-Heh well Hans <hselasky@c2i.net> last did that a little while ago
-iirc, tho of course he didn't write it. :)  (Do I guess right it
-never got committed earlier because of stb0899 tuning problems for
-which the fix(es?) are still waiting to be committed?  At least
-I think I still need patches here if I don't want w_scan to miss
-random transponders...  I.e. it only finds like 70% of what's on
-Astra 19.2E and missed different ones each time I ran it without
-stb0899 patches.)
+-- 
+Regards,
 
- Cheers,
-	Juergen
+Laurent Pinchart
