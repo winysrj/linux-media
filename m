@@ -1,77 +1,116 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:6189 "EHLO mx1.redhat.com"
+Received: from mx1.redhat.com ([209.132.183.28]:27602 "EHLO mx1.redhat.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754495Ab1GORec (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 15 Jul 2011 13:34:32 -0400
-Message-ID: <4E207A22.9030209@redhat.com>
-Date: Fri, 15 Jul 2011 14:34:26 -0300
+	id S1751480Ab1G3ODQ (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 30 Jul 2011 10:03:16 -0400
+Message-ID: <4E340F17.7020501@redhat.com>
+Date: Sat, 30 Jul 2011 11:03:03 -0300
 From: Mauro Carvalho Chehab <mchehab@redhat.com>
 MIME-Version: 1.0
-To: Andreas Oberritter <obi@linuxtv.org>
-CC: Ralph Metzler <rjkm@metzlerbros.de>, linux-media@vger.kernel.org
-Subject: Re: [PATCH 0/5] Driver support for cards based on Digital Devices
- bridge (ddbridge)
-References: <201107032321.46092@orion.escape-edv.de> <4E1F8E1F.3000008@redhat.com> <4E1FBA6F.10509@redhat.com> <201107150717.08944@orion.escape-edv.de> <19999.63914.990114.26990@morden.metzler> <4E203FD0.4030503@redhat.com> <4E207252.5050506@linuxtv.org>
-In-Reply-To: <4E207252.5050506@linuxtv.org>
+To: Istvan Varga <istvan_v@mailbox.hu>
+CC: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Devin Heitmueller <dheitmueller@kernellabs.com>,
+	Patrick Boettcher <patrick.boettcher@desy.de>
+Subject: Re: [GIT PULL for v3.0] media updates for v3.1
+References: <4E32EE71.4030908@redhat.com> <4E33C426.50000@mailbox.hu>
+In-Reply-To: <4E33C426.50000@mailbox.hu>
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em 15-07-2011 14:01, Andreas Oberritter escreveu:
-> On 15.07.2011 15:25, Mauro Carvalho Chehab wrote:
->> Em 15-07-2011 05:26, Ralph Metzler escreveu:
->>> At the same time I want to add delivery system properties to 
->>> support everything in one frontend device.
->>> Adding a parameter to select C or T as default should help in most
->>> cases where the application does not support switching yet.
->>
->> If I understood well, creating a multi-delivery type of frontend for
->> devices like DRX-K makes sense for me.
->>
->> We need to take some care about how to add support for them, to avoid
->> breaking userspace, or to follow kernel deprecating rules, by adding
->> some legacy compatibility glue for a few kernel versions. So, the sooner
->> we add such support, the better, as less drivers will need to support
->> a "fallback" mechanism.
->>
->> The current DVB version 5 API doesn't prevent some userspace application
->> to change the delivery system[1] for a given frontend. This feature is
->> actually used by DVB-T2 and DVB-S2 drivers. This actually improved the
->> DVB API multi-fe support, by avoiding the need of create of a secondary
->> frontend for T2/S2.
->>
->> Userspace applications can detect that feature by using FE_CAN_2G_MODULATION
->> flag, but this mechanism doesn't allow other types of changes like
->> from/to DVB-T/DVB-C or from/to DVB-T/ISDB-T. So, drivers that allow such
->> type of delivery system switch, using the same chip ended by needing to
->> add two frontends.
->>
->> Maybe we can add a generic FE_CAN_MULTI_DELIVERY flag to fe_caps_t, and
->> add a way to query the type of delivery systems supported by a driver.
->>
->> [1] http://linuxtv.org/downloads/v4l-dvb-apis/FE_GET_SET_PROPERTY.html#DTV-DELIVERY-SYSTEM
+Em 30-07-2011 05:43, Istvan Varga escreveu:
+> On 07/29/2011 07:31 PM, Mauro Carvalho Chehab wrote:
 > 
-> I don't think it's necessary to add a new flag. It should be sufficient
-> to add a property like "DTV_SUPPORTED_DELIVERY_SYSTEMS", which should be
-> read-only and return an array of type fe_delivery_system_t.
+>> istvan_v@mailbox.hu (11):
+>>        [media] xc4000: code cleanup
+>>        [media] dvb-usb/Kconfig: auto-select XC4000 tuner for dib0700
+>>        [media] xc4000: check firmware version
+>>        [media] xc4000: removed card_type
+> 
+> I assume a firmware file for XC4000 is still needed ? 
 
-Yes, this would work properly.
+Yes, it is.
+
+> I did create a
+> firmware package some time ago and sent it to Devin Heitmueller so that
+> he can check if it is OK for being submitted, and also asked if the
+> Xceive sources that the firmware building utility depends on can be
+> redistributed, but I did not get a reply yet.
+
+Devin,
+
+Any return about that?
+
+> In addition to the utility that creates the firmware from the official
+> Xceive sources, I have written one that can extract the firmware
+> (version 1.2 or 1.4) from Windows drivers; both utilities produce
+> identical output files.
+
+Let's try first with Xceive.
+
+> Another XC4000 issue that may need to be resolved is I2C problems on
+> dib0700 based devices like the PCTV 340e. I cannot test these, since
+> I have only a cx88 based card with XC4000, and it does not have any
+> I2C reliability issues. If PCTV 340e users report I2C related problems,
+> perhaps some code may need to be added to retry failed operations before
+> reporting an error. I think there is also a hack still in the driver
+> that ignores I2C errors during various operations.
+
+Maybe Patrick can help us with dib0700/xc4000. I have a few devices here
+with dib0700, but they don't suffer any problem. However, afaik, those
+tuner devices require I2C clock stretching. Maybe the current I2C implementation
+at dib0700 doesn't implement it.
 
 > 
-> Querying this new property on present kernels hopefully fails with a
-> non-zero return code. in which case FE_GET_INFO should be used to query
-> the delivery system.
-
-Yes. it currently returns an specific error code for not supported.
+>>        [media] cx88: implemented luma notch filter control
 > 
-> In future kernels we can provide a default implementation, returning
-> exactly one fe_delivery_system_t for unported drivers. Other drivers
-> should be able to override this default implementation in their
-> get_property callback.
-
-Seems fine for me.
+> In cx88-core.c, there is a change that may be unneeded:
 > 
-> Regards,
-> Andreas
+> @@ -636,6 +636,9 @@
+>         cx_write(MO_PCI_INTSTAT,   0xFFFFFFFF); // Clear PCI int
+>         cx_write(MO_INT1_STAT,     0xFFFFFFFF); // Clear RISC int
+> 
+> +       /* set default notch filter */
+> +       cx_andor(MO_HTOTAL, 0x1800, (  << 11));
+> +
+>         /* Reset on-board parts */
+>         cx_write(MO_SRST_IO, 0);
+>         msleep(10);
+> 
+> In fact, I have re-submitted the patch with this change removed, but
+> it is the first version that was incorporated. Having some look at the
+> cx88 sources, it seems cx88_reset() is not supposed to set/initialize
+> controls, because it is done elsewhere ?
 
+Control Initialization should occur at device init, or when the user
+changes something. 
+
+In the specific case of the notch filter, however, it might make sense to 
+initialize it after changing the video standard, in order to fulfill the 
+cx88 specs.
+
+Btw, It may actually make sense to not allow using the PAL filter with a
+NTSC source and vice-versa, e. g. reducing the notch filter to only 3
+possible values:
+
+	0 - 4xFSC			(00)
+	1 - square pixel		(01)
+	2 - std-optimized filter	(10 or 11)
+
+Where 2 would man 10 for NTSC standard or 11 for PAL standard. I suspect,
+however, that the std-optimized filter only works if the sampling frequency
+is set to 27 MHz. However, at cx88 code, we set the sampling frequency to
+be 8xFSC, instead of fixing it to 27MHz. Due to that, I doubt that the
+PAL or NTSC optimized filters will give a good result. So, maybe we can change
+it to just:
+
+	0 - 4xFSC
+	1 - square pixel
+
+In other words, except if you found that the std-optimized filters are giving
+better results, I would change the control to only select between 00 and 01, 
+and initialize it at device init, with 00.
+
+Cheers,
+Mauro
