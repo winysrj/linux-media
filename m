@@ -1,64 +1,46 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.126.186]:61187 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755692Ab1G2K5D (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 29 Jul 2011 06:57:03 -0400
-Received: from 6a.grange (6a.grange [192.168.1.11])
-	by axis700.grange (Postfix) with ESMTPS id 8D60D189B6D
-	for <linux-media@vger.kernel.org>; Fri, 29 Jul 2011 12:57:00 +0200 (CEST)
-Received: from lyakh by 6a.grange with local (Exim 4.72)
-	(envelope-from <g.liakhovetski@gmx.de>)
-	id 1QmkkW-0007nb-7v
-	for linux-media@vger.kernel.org; Fri, 29 Jul 2011 12:57:00 +0200
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: linux-media@vger.kernel.org
-Subject: [PATCH 13/59] V4L: ov5642: support the new mbus-config subdev ops
-Date: Fri, 29 Jul 2011 12:56:13 +0200
-Message-Id: <1311937019-29914-14-git-send-email-g.liakhovetski@gmx.de>
-In-Reply-To: <1311937019-29914-1-git-send-email-g.liakhovetski@gmx.de>
-References: <1311937019-29914-1-git-send-email-g.liakhovetski@gmx.de>
+Received: from mail.juropnet.hu ([212.24.188.131]:50244 "EHLO mail.juropnet.hu"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751480Ab1G3OOx (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 30 Jul 2011 10:14:53 -0400
+Message-ID: <4E3411D3.90703@mailbox.hu>
+Date: Sat, 30 Jul 2011 16:14:43 +0200
+From: Istvan Varga <istvan_v@mailbox.hu>
+MIME-Version: 1.0
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+CC: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: [GIT PULL for v3.0] media updates for v3.1
+References: <4E32EE71.4030908@redhat.com> <4E33C426.50000@mailbox.hu> <4E340F17.7020501@redhat.com>
+In-Reply-To: <4E340F17.7020501@redhat.com>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Extend the driver to also support [gs]_mbus_config() subdevice video
-operations.
+On 07/30/2011 04:03 PM, Mauro Carvalho Chehab wrote:
 
-Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
----
- drivers/media/video/ov5642.c |   12 ++++++++++++
- 1 files changed, 12 insertions(+), 0 deletions(-)
+> Btw, It may actually make sense to not allow using the PAL filter with a
+> NTSC source and vice-versa, e. g. reducing the notch filter to only 3
+> possible values:
+>
+> 	0 - 4xFSC			(00)
+> 	1 - square pixel		(01)
+> 	2 - std-optimized filter	(10 or 11)
+>
+> Where 2 would man 10 for NTSC standard or 11 for PAL standard. I suspect,
+> however, that the std-optimized filter only works if the sampling frequency
+> is set to 27 MHz. However, at cx88 code, we set the sampling frequency to
+> be 8xFSC, instead of fixing it to 27MHz. Due to that, I doubt that the
+> PAL or NTSC optimized filters will give a good result. So, maybe we can change
+> it to just:
+>
+> 	0 - 4xFSC
+> 	1 - square pixel
+>
+> In other words, except if you found that the std-optimized filters are giving
+> better results, I would change the control to only select between 00 and 01,
+> and initialize it at device init, with 00.
 
-diff --git a/drivers/media/video/ov5642.c b/drivers/media/video/ov5642.c
-index 3cdae97..60ffc60 100644
---- a/drivers/media/video/ov5642.c
-+++ b/drivers/media/video/ov5642.c
-@@ -854,6 +854,17 @@ static int ov5642_cropcap(struct v4l2_subdev *sd, struct v4l2_cropcap *a)
- 	return 0;
- }
- 
-+static int ov5642_g_mbus_config(struct v4l2_subdev *sd,
-+				struct v4l2_mbus_config *cfg)
-+{
-+	cfg->type = V4L2_MBUS_CSI2;
-+	cfg->flags = V4L2_MBUS_CSI2_2_LANE |
-+		V4L2_MBUS_CSI2_CHANNEL_0 |
-+		V4L2_MBUS_CSI2_CONTINUOUS_CLOCK;
-+
-+	return 0;
-+}
-+
- static struct v4l2_subdev_video_ops ov5642_subdev_video_ops = {
- 	.s_mbus_fmt	= ov5642_s_fmt,
- 	.g_mbus_fmt	= ov5642_g_fmt,
-@@ -861,6 +872,7 @@ static struct v4l2_subdev_video_ops ov5642_subdev_video_ops = {
- 	.enum_mbus_fmt	= ov5642_enum_fmt,
- 	.g_crop		= ov5642_g_crop,
- 	.cropcap	= ov5642_cropcap,
-+	.g_mbus_config	= ov5642_g_mbus_config,
- };
- 
- static struct v4l2_subdev_core_ops ov5642_subdev_core_ops = {
--- 
-1.7.2.5
-
+OK, I have no problem with removing the standard optimized filters and
+restricting the control to 2 settings; I only used the square pixel one
+anyway, as I found it often looks better than the default filter.
