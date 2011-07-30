@@ -1,89 +1,74 @@
-Return-path: <mchehab@pedra>
-Received: from mailout1.w1.samsung.com ([210.118.77.11]:38860 "EHLO
-	mailout1.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754063Ab1GEHl5 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 5 Jul 2011 03:41:57 -0400
-Date: Tue, 05 Jul 2011 09:41:50 +0200
-From: Marek Szyprowski <m.szyprowski@samsung.com>
-Subject: [PATCH 8/8] ARM: S5PV210: example of CMA private area for FIMC device
- on Goni board
-In-reply-to: <1309851710-3828-1-git-send-email-m.szyprowski@samsung.com>
-To: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-	linux-media@vger.kernel.org, linux-mm@kvack.org,
-	linaro-mm-sig@lists.linaro.org
-Cc: Michal Nazarewicz <mina86@mina86.com>,
-	Marek Szyprowski <m.szyprowski@samsung.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	Andrew Morton <akpm@linux-foundation.org>,
-	KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>,
-	Ankita Garg <ankita@in.ibm.com>,
-	Daniel Walker <dwalker@codeaurora.org>,
-	Mel Gorman <mel@csn.ul.ie>, Arnd Bergmann <arnd@arndb.de>,
-	Jesse Barker <jesse.barker@linaro.org>,
-	Jonathan Corbet <corbet@lwn.net>,
-	Chunsang Jeong <chunsang.jeong@linaro.org>
-Message-id: <1309851710-3828-9-git-send-email-m.szyprowski@samsung.com>
-MIME-version: 1.0
-Content-type: TEXT/PLAIN
-Content-transfer-encoding: 7BIT
-References: <1309851710-3828-1-git-send-email-m.szyprowski@samsung.com>
+Return-path: <linux-media-owner@vger.kernel.org>
+Received: from oproxy7-pub.bluehost.com ([67.222.55.9]:45992 "HELO
+	oproxy7-pub.bluehost.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1751433Ab1G3Xvf (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sat, 30 Jul 2011 19:51:35 -0400
+Date: Sat, 30 Jul 2011 16:51:33 -0700
+From: Randy Dunlap <rdunlap@xenotime.net>
+To: linux-media@vger.kernel.org
+Cc: mchehab@infradead.org
+Subject: media Documentation Errors
+Message-Id: <20110730165133.74b91104.rdunlap@xenotime.net>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
+Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
-Sender: <mchehab@pedra>
 
-This patch is an example how device private CMA area can be activated.
-It creates one CMA region and assigns it to the first s5p-fimc device on
-Samsung Goni S5PC110 board.
+Hi,
 
-Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
-Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+What do I need to do to eliminate these errors?
+(from 3.0-git12)
+
+
+Error: no ID for constraint linkend: v4l2-mpeg-video-header-mode.
+Error: no ID for constraint linkend: v4l2-mpeg-video-multi-slice-mode.
+Error: no ID for constraint linkend: v4l2-mpeg-video-h264-entropy-mode.
+Error: no ID for constraint linkend: v4l2-mpeg-video-h264-level.
+Error: no ID for constraint linkend: v4l2-mpeg-video-h264-loop-filter-mode.
+Error: no ID for constraint linkend: v4l2-mpeg-video-h264-profile.
+Error: no ID for constraint linkend: v4l2-mpeg-video-h264-vui-sar-idc.
+Error: no ID for constraint linkend: v4l2-mpeg-video-mpeg4-level.
+Error: no ID for constraint linkend: v4l2-mpeg-video-mpeg4-profile.
+Error: no ID for constraint linkend: v4l2-mpeg-mfc51-video-frame-skip-mode.
+Error: no ID for constraint linkend: v4l2-mpeg-mfc51-video-force-frame-type.
+Error: no ID for constraint linkend: v4l2-mpeg-video-header-mode.
+Error: no ID for constraint linkend: v4l2-mpeg-video-multi-slice-mode.
+Error: no ID for constraint linkend: v4l2-mpeg-video-h264-entropy-mode.
+Error: no ID for constraint linkend: v4l2-mpeg-video-h264-level.
+Error: no ID for constraint linkend: v4l2-mpeg-video-h264-loop-filter-mode.
+Error: no ID for constraint linkend: v4l2-mpeg-video-h264-profile.
+Error: no ID for constraint linkend: v4l2-mpeg-video-h264-vui-sar-idc.
+Error: no ID for constraint linkend: v4l2-mpeg-video-mpeg4-level.
+Error: no ID for constraint linkend: v4l2-mpeg-video-mpeg4-profile.
+Error: no ID for constraint linkend: v4l2-mpeg-mfc51-video-frame-skip-mode.
+Error: no ID for constraint linkend: v4l2-mpeg-mfc51-video-force-frame-type.
+Error: no ID for constraint linkend: AUDIO_GET_PTS.  Error: no ID for constraint linkend: AUDIO_BILINGUAL_CHANNEL_SELECT.
+Error: no ID for constraint linkend: CA_RESET.
+Error: no ID for constraint linkend: CA_GET_CAP.
+Error: no ID for constraint linkend: CA_GET_SLOT_INFO.
+Error: no ID for constraint linkend: CA_GET_DESCR_INFO.
+Error: no ID for constraint linkend: CA_GET_MSG.
+Error: no ID for constraint linkend: CA_SEND_MSG.
+Error: no ID for constraint linkend: CA_SET_DESCR.
+Error: no ID for constraint linkend: CA_SET_PID.
+Error: no ID for constraint linkend: DMX_GET_PES_PIDS.
+Error: no ID for constraint linkend: DMX_GET_CAPS.
+Error: no ID for constraint linkend: DMX_SET_SOURCE.
+Error: no ID for constraint linkend: DMX_ADD_PID.
+Error: no ID for constraint linkend: DMX_REMOVE_PID.
+Error: no ID for constraint linkend: NET_ADD_IF.
+Error: no ID for constraint linkend: NET_REMOVE_IF.
+Error: no ID for constraint linkend: NET_GET_IF.
+Error: no ID for constraint linkend: VIDEO_GET_SIZE.
+Error: no ID for constraint linkend: VIDEO_GET_FRAME_RATE.
+Error: no ID for constraint linkend: VIDEO_GET_PTS.
+Error: no ID for constraint linkend: VIDEO_GET_FRAME_COUNT.
+Error: no ID for constraint linkend: VIDEO_COMMAND.
+Error: no ID for constraint linkend: VIDEO_TRY_COMMAND.
+
+
 ---
- arch/arm/mach-s5pv210/Kconfig     |    1 +
- arch/arm/mach-s5pv210/mach-goni.c |    8 ++++++++
- 2 files changed, 9 insertions(+), 0 deletions(-)
-
-diff --git a/arch/arm/mach-s5pv210/Kconfig b/arch/arm/mach-s5pv210/Kconfig
-index 37b5a97..c09a92c 100644
---- a/arch/arm/mach-s5pv210/Kconfig
-+++ b/arch/arm/mach-s5pv210/Kconfig
-@@ -64,6 +64,7 @@ menu "S5PC110 Machines"
- config MACH_AQUILA
- 	bool "Aquila"
- 	select CPU_S5PV210
-+	select CMA
- 	select S3C_DEV_FB
- 	select S5P_DEV_FIMC0
- 	select S5P_DEV_FIMC1
-diff --git a/arch/arm/mach-s5pv210/mach-goni.c b/arch/arm/mach-s5pv210/mach-goni.c
-index 31d5aa7..d9e565d 100644
---- a/arch/arm/mach-s5pv210/mach-goni.c
-+++ b/arch/arm/mach-s5pv210/mach-goni.c
-@@ -26,6 +26,7 @@
- #include <linux/input.h>
- #include <linux/gpio.h>
- #include <linux/interrupt.h>
-+#include <linux/dma-contiguous.h>
- 
- #include <asm/mach/arch.h>
- #include <asm/mach/map.h>
-@@ -886,6 +887,12 @@ static void __init goni_machine_init(void)
- 	platform_add_devices(goni_devices, ARRAY_SIZE(goni_devices));
- }
- 
-+static void __init goni_reserve(void)
-+{
-+	/* Create private 16MiB contiguous memory area for s5p-fimc.0 device */
-+	dma_declare_contiguous(&s5p_device_fimc0.dev, 16*SZ_1M, 0);
-+}
-+
- MACHINE_START(GONI, "GONI")
- 	/* Maintainers: Kyungmin Park <kyungmin.park@samsung.com> */
- 	.boot_params	= S5P_PA_SDRAM + 0x100,
-@@ -893,4 +900,5 @@ MACHINE_START(GONI, "GONI")
- 	.map_io		= goni_map_io,
- 	.init_machine	= goni_machine_init,
- 	.timer		= &s5p_timer,
-+	.reserve	= goni_reserve,
- MACHINE_END
--- 
-1.7.1.569.g6f426
-
+~Randy
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
