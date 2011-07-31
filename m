@@ -1,54 +1,107 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:48275 "EHLO
+Received: from perceval.ideasonboard.com ([95.142.166.194]:55507 "EHLO
 	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753065Ab1GPJwO (ORCPT
+	with ESMTP id S1753009Ab1GaX2G (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 16 Jul 2011 05:52:14 -0400
+	Sun, 31 Jul 2011 19:28:06 -0400
 From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Subject: Re: [PATCH] v4l: mt9v032: Fix Bayer pattern
-Date: Sat, 16 Jul 2011 11:52:08 +0200
-Cc: linux-media@vger.kernel.org
-References: <1310761106-29722-1-git-send-email-laurent.pinchart@ideasonboard.com> <Pine.LNX.4.64.1107160109000.27399@axis700.grange>
-In-Reply-To: <Pine.LNX.4.64.1107160109000.27399@axis700.grange>
+To: Florian Tobias Schandinat <FlorianSchandinat@gmx.de>
+Subject: Re: [PATCH/RFC] fbdev: Add FOURCC-based format configuration API
+Date: Mon, 1 Aug 2011 01:28:13 +0200
+Cc: Geert Uytterhoeven <geert@linux-m68k.org>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Paul Mundt <lethal@linux-sh.org>, linux-fbdev@vger.kernel.org,
+	linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org
+References: <4DDAE63A.3070203@gmx.de> <CAMuHMdX=c=p7oASCE+GgY9AgaCPWoXRQyjEGpn4BvA9xSY6GQg@mail.gmail.com> <4E35DD38.7070609@gmx.de>
+In-Reply-To: <4E35DD38.7070609@gmx.de>
 MIME-Version: 1.0
 Content-Type: Text/Plain;
-  charset="iso-8859-1"
+  charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Message-Id: <201107161152.09214.laurent.pinchart@ideasonboard.com>
+Message-Id: <201108010128.13832.laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Guennadi,
+Hi Florian,
 
-On Saturday 16 July 2011 01:11:28 Guennadi Liakhovetski wrote:
-> On Fri, 15 Jul 2011, Laurent Pinchart wrote:
-> > Compute crop rectangle boundaries to ensure a GRBG Bayer pattern.
+Thanks for the feedback.
+
+On Monday 01 August 2011 00:54:48 Florian Tobias Schandinat wrote:
+> On 07/31/2011 08:32 PM, Geert Uytterhoeven wrote:
+> > On Thu, Jul 28, 2011 at 12:51, Laurent Pinchart wrote:
+> >>> As for struct fb_var_screeninfo fields to support switching to a FOURCC
+> >>> mode, I also prefer an explicit dedicated flag to specify switching to
+> >>> it. Even though using FOURCC doesn't fit under the notion of a
+> >>> videomode, using one of .vmode bits is too tempting, so, I would
+> >>> actually take the plunge and use FB_VMODE_FOURCC.
+> >> 
+> >> Another option would be to consider any grayscale>  1 value as a FOURCC.
+> >> I've briefly checked the in-tree drivers: they only assign grayscale
+> >> with 0 or 1, and check whether grayscale is 0 or different than 0. If a
+> >> userspace application only sets grayscale>  1 when talking to a driver
+> >> that supports the FOURCC-based API, we could get rid of the flag.
+> >> 
+> >> What can't be easily found out is whether existing applications set
+> >> grayscale to a>  1 value. They would break when used with FOURCC-aware
+> >> drivers if we consider any grayscale>  1 value as a FOURCC. Is that a
+> >> risk we can take ?
 > > 
-> > Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-> > ---
+> > I think we can. I'd expect applications to use either 1 or -1 (i.e.
+> > all ones), both are
+> > invalid FOURCC values.
 > > 
-> >  drivers/media/video/mt9v032.c |   20 ++++++++++----------
-> >  1 files changed, 10 insertions(+), 10 deletions(-)
-> > 
-> > If there's no comment I'll send a pull request for this patch in a couple
-> > of days.
+> > Still, I prefer the nonstd way.
+> > And limiting traditional nonstd values to the lowest 24 bits (there
+> > are no in-tree
+> > drivers using the highest 8 bits, right?).
 > 
-> Hm, I might have a comment: why?... Isn't it natural to accept the fact,
-> that different sensors put a different Bayer pixel at their sensor matrix
-> origin? Isn't that why we have all possible Bayer formats? Maybe you just
-> have to choose a different output format?
+> Okay, it would be okay for me to
+> - write raw FOURCC values in nonstd, enable FOURCC mode if upper byte != 0
+> - not having an explicit flag to enable FOURCC
+> - in FOURCC mode drivers must set visual to FB_VISUAL_FOURCC
+> - making support of FOURCC visible to userspace by capabilites |=
+> FB_CAP_FOURCC
+> 
+> The capabilities is not strictly necessary but I think it's very useful as
+> - it allows applications to make sure the extension is supported (for
+> example to adjust the UI)
+> - it allows applications to distinguish whether a particular format is not
+> supported or FOURCC at all
+> - it allows signaling further extensions of the API
+> - it does not hurt, one line per driver and still some bytes in fixinfo
+> free
 
-That's the other solution. The driver currently claims the device outputs 
-SGRBG, but configures it to output SGBGR. This is clearly a bug. Is it better 
-to modify the format than the crop rectangle location ?
+Without a FOURCC capability applications will need to try FOURCCs blindly. 
+Drivers that are not FOURCC aware would then risk interpreting the FOURCC as 
+something else. As you mention below applications will need that check that 
+visual == FB_VISUAL_FOURCC, so it's less of an issue than I initially thought, 
+but it doesn't become a non-issue. The display might still show glitches.
 
-The OMAP3 ISP supports all Bayer formats, but the driver configures itself for 
-SGRBG by default. Using another pattern currently requires userspace software 
-to change several hardware-dependent parameters (including matrices and 
-tables). This should eventually be fixed in the OMAP3 ISP driver, but for the 
-time being application developers will have an easier life if the sensor 
-outputs SGRBG instead of SGBRG.
+> So using it would look like this:
+> - the driver must have capabilities |= FB_CAP_FOURCC
+> - the application may check capabilities to know whether FOURCC is
+> supported - the application may write a raw FOURCC value in nonstd to
+> request changing to FOURCC mode with this format
+> - when the driver switches to a FOURCC mode it must have visual =
+> FB_VISUAL_FOURCC and the current FOURCC format in nonstd
+> - the application should check visual and nonstd to make sure it gets what
+> it wanted
+> 
+> 
+> So if there are no strong objections against this I think we should
+> implement it. I do not really care whether we use a union or not but I
+> think if we decide to have one it should cover all fields that are
+> undefined/unused in FOURCC mode.
+> 
+> 
+> Hope we can find anything that everyone considers acceptable,
+
+This sounds good to me, except that I would use the grayscale field instead of 
+the nonstd field. nonstd has pretty weird usecases, while grayscale is better 
+defined. nonstd might also make sense combined with FOURCC-based modes, while 
+grayscale would be completely redundant.
+
+What's your opinion on that ?
 
 -- 
 Regards,
