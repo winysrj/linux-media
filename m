@@ -1,37 +1,63 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:23384 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754520Ab1G1TFK (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 28 Jul 2011 15:05:10 -0400
-Received: from int-mx12.intmail.prod.int.phx2.redhat.com (int-mx12.intmail.prod.int.phx2.redhat.com [10.5.11.25])
-	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id p6SJ5AcM001190
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
-	for <linux-media@vger.kernel.org>; Thu, 28 Jul 2011 15:05:10 -0400
-Received: from localhost.localdomain (vpn-8-21.rdu.redhat.com [10.11.8.21])
-	by int-mx12.intmail.prod.int.phx2.redhat.com (8.14.4/8.14.4) with ESMTP id p6SJ58KC026840
-	for <linux-media@vger.kernel.org>; Thu, 28 Jul 2011 15:05:09 -0400
-Date: Thu, 28 Jul 2011 16:04:35 -0300
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: [PATCH 0/2] Some fixes for DVB-C with DRX-K
-Message-ID: <20110728160435.68823b02@redhat.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
-To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
+Received: from mail-iy0-f174.google.com ([209.85.210.174]:43947 "EHLO
+	mail-iy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750940Ab1GaUcn convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 31 Jul 2011 16:32:43 -0400
+MIME-Version: 1.0
+In-Reply-To: <201107281251.35018.laurent.pinchart@ideasonboard.com>
+References: <4DDAE63A.3070203@gmx.de>
+	<201107111732.52156.laurent.pinchart@ideasonboard.com>
+	<Pine.LNX.4.64.1107280943470.20737@axis700.grange>
+	<201107281251.35018.laurent.pinchart@ideasonboard.com>
+Date: Sun, 31 Jul 2011 22:32:42 +0200
+Message-ID: <CAMuHMdX=c=p7oASCE+GgY9AgaCPWoXRQyjEGpn4BvA9xSY6GQg@mail.gmail.com>
+Subject: Re: [PATCH/RFC] fbdev: Add FOURCC-based format configuration API
+From: Geert Uytterhoeven <geert@linux-m68k.org>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Florian Tobias Schandinat <FlorianSchandinat@gmx.de>,
+	Paul Mundt <lethal@linux-sh.org>, linux-fbdev@vger.kernel.org,
+	linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Those two fixes are needed in order to properly support DVB-C with
-Terratec H5 here in Brazil. After those, the quality of the image
-for DVB-C is now acceptable.
+On Thu, Jul 28, 2011 at 12:51, Laurent Pinchart
+<laurent.pinchart@ideasonboard.com> wrote:
+>> As for struct fb_var_screeninfo fields to support switching to a FOURCC
+>> mode, I also prefer an explicit dedicated flag to specify switching to it.
+>> Even though using FOURCC doesn't fit under the notion of a videomode, using
+>> one of .vmode bits is too tempting, so, I would actually take the plunge and
+>> use FB_VMODE_FOURCC.
+>
+> Another option would be to consider any grayscale > 1 value as a FOURCC. I've
+> briefly checked the in-tree drivers: they only assign grayscale with 0 or 1,
+> and check whether grayscale is 0 or different than 0. If a userspace
+> application only sets grayscale > 1 when talking to a driver that supports the
+> FOURCC-based API, we could get rid of the flag.
+>
+> What can't be easily found out is whether existing applications set grayscale
+> to a > 1 value. They would break when used with FOURCC-aware drivers if we
+> consider any grayscale > 1 value as a FOURCC. Is that a risk we can take ?
 
-Mauro Carvalho Chehab (2):
-  em28xx: Fix DVB-C maxsize for em2884
-  tda18271c2dd: Fix saw filter configuration for DVB-6 @ 6MHz
+I think we can. I'd expect applications to use either 1 or -1 (i.e.
+all ones), both are
+invalid FOURCC values.
 
- drivers/media/dvb/frontends/tda18271c2dd.c |   20 +++++++++++++-
- drivers/media/video/em28xx/em28xx-core.c   |   39 ++++++++++++++++++++--------
- drivers/media/video/em28xx/em28xx-dvb.c    |    5 +++
- 3 files changed, 52 insertions(+), 12 deletions(-)
+Still, I prefer the nonstd way.
+And limiting traditional nonstd values to the lowest 24 bits (there
+are no in-tree
+drivers using the highest 8 bits, right?).
 
+Gr{oetje,eeting}s,
+
+                        Geert
+
+--
+Geert Uytterhoeven -- There's lots of Linux beyond ia32 -- geert@linux-m68k.org
+
+In personal conversations with technical people, I call myself a hacker. But
+when I'm talking to journalists I just say "programmer" or something like that.
+                                -- Linus Torvalds
