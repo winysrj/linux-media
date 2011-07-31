@@ -1,81 +1,93 @@
-Return-path: <mchehab@localhost>
-Received: from mailout2.w1.samsung.com ([210.118.77.12]:18044 "EHLO
-	mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754217Ab1GKNYP (ORCPT
+Return-path: <linux-media-owner@vger.kernel.org>
+Received: from perceval.ideasonboard.com ([95.142.166.194]:58791 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752943Ab1GaWH5 convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 11 Jul 2011 09:24:15 -0400
-Date: Mon, 11 Jul 2011 15:24:08 +0200
-From: Marek Szyprowski <m.szyprowski@samsung.com>
-Subject: RE: [PATCHv11 0/8] Contiguous Memory Allocator
-In-reply-to: <20110706151112.5c619431.akpm@linux-foundation.org>
-To: 'Andrew Morton' <akpm@linux-foundation.org>,
-	'Arnd Bergmann' <arnd@arndb.de>
-Cc: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-	linux-media@vger.kernel.org, linux-mm@kvack.org,
-	linaro-mm-sig@lists.linaro.org,
-	'Michal Nazarewicz' <mina86@mina86.com>,
-	'Kyungmin Park' <kyungmin.park@samsung.com>,
-	'KAMEZAWA Hiroyuki' <kamezawa.hiroyu@jp.fujitsu.com>,
-	'Ankita Garg' <ankita@in.ibm.com>,
-	'Daniel Walker' <dwalker@codeaurora.org>,
-	'Mel Gorman' <mel@csn.ul.ie>,
-	'Jesse Barker' <jesse.barker@linaro.org>,
-	'Jonathan Corbet' <corbet@lwn.net>,
-	'Chunsang Jeong' <chunsang.jeong@linaro.org>
-Message-id: <001d01cc3fcd$d082a450$7187ecf0$%szyprowski@samsung.com>
-MIME-version: 1.0
-Content-type: text/plain; charset=us-ascii
-Content-language: pl
-Content-transfer-encoding: 7BIT
-References: <1309851710-3828-1-git-send-email-m.szyprowski@samsung.com>
- <201107051407.17249.arnd@arndb.de>
- <20110706151112.5c619431.akpm@linux-foundation.org>
+	Sun, 31 Jul 2011 18:07:57 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Jonathan Cameron <jic23@cam.ac.uk>
+Subject: Re: Error routes through omap3isp ccdc.
+Date: Sun, 31 Jul 2011 17:15:15 +0200
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
+References: <4E1AD36D.4030702@cam.ac.uk> <201107111257.24089.laurent.pinchart@ideasonboard.com> <4E1ADB90.8050305@cam.ac.uk>
+In-Reply-To: <4E1ADB90.8050305@cam.ac.uk>
+MIME-Version: 1.0
+Content-Type: Text/Plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
+Message-Id: <201107311715.16374.laurent.pinchart@ideasonboard.com>
+Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
-Sender: <mchehab@infradead.org>
 
-Hello,
+Hi Jonathan,
 
-On Thursday, July 07, 2011 12:11 AM Andrew Morton wrote:
-
-> On Tue, 5 Jul 2011 14:07:17 +0200
-> Arnd Bergmann <arnd@arndb.de> wrote:
+On Monday 11 July 2011 13:16:32 Jonathan Cameron wrote:
+> On 07/11/11 11:57, Laurent Pinchart wrote:
+> > On Monday 11 July 2011 12:54:42 Laurent Pinchart wrote:
+> >> On Monday 11 July 2011 12:41:49 Jonathan Cameron wrote:
+> > [snip]
+> > 
+> >> I think we should try to fix it in ispvideo.c instead. You could add a
+> >> check to isp_video_validate_pipeline() to make sure that the pipeline
+> >> has a video source.
+> > 
+> > And I forgot to mention, I can send a patch if you don't want to write
+> > it.
 > 
-> > On Tuesday 05 July 2011, Marek Szyprowski wrote:
-> > > This is yet another round of Contiguous Memory Allocator patches. I
-> hope
-> > > that I've managed to resolve all the items discussed during the Memory
-> > > Management summit at Linaro Meeting in Budapest and pointed later on
-> > > mailing lists. The goal is to integrate it as tight as possible with
-> > > other kernel subsystems (like memory management and dma-mapping) and
-> > > finally merge to mainline.
-> >
-> > You have certainly addressed all of my concerns, this looks really good
-> now!
-> >
-> > Andrew, can you add this to your -mm tree? What's your opinion on the
-> > current state, do you think this is ready for merging in 3.1 or would
-> > you want to have more reviews from core memory management people?
-> >
-> > My reviews were mostly on the driver and platform API side, and I think
-> > we're fine there now, but I don't really understand the impacts this has
-> > in mm.
-> 
-> I could review it and put it in there on a preliminary basis for some
-> runtime testing.  But the question in my mind is how different will the
-> code be after the problems which rmk has identified have been fixed?
-> 
-> If "not very different" then that effort and testing will have been
-> worthwhile.
+> Given I can't quite see why the validate_pipeline code would ever want to
+> break on source pad being null (which I think is what it is currently
+> doing), I'll leave it to you.  Really don't know this code well enough!
 
-The issue reported by Russell is very ARM specific and can be solved mostly
-in arch/arm/mm/dma-mapping.c, maybe with some minor changes/helpers in
-drivers/base/dma-contiguous.c The core part in linux/mm probably won't be
-affected by these changes at all.
+Could you please test the following patch ?
 
-Best regards
+>From 578d0b64a25177290815f974fb7898e32587b450 Mon Sep 17 00:00:00 2001
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Date: Sun, 31 Jul 2011 17:12:02 +0200
+Subject: [PATCH] omap3isp: Don't accept pipelines with no video source as valid
+
+Make sure the pipeline has a valid video source (either a subdev with no
+sink pad, or a non-subdev entity) at stream-on time and return -EPIPE if
+no video source can be found.
+
+Reported-by: Jonathan Cameron <jic23@cam.ac.uk>
+Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+---
+ drivers/media/video/omap3isp/ispvideo.c |   14 ++++++++++----
+ 1 files changed, 10 insertions(+), 4 deletions(-)
+
+diff --git a/drivers/media/video/omap3isp/ispvideo.c b/drivers/media/video/omap3isp/ispvideo.c
+index fd965ad..d3ddfc0 100644
+--- a/drivers/media/video/omap3isp/ispvideo.c
++++ b/drivers/media/video/omap3isp/ispvideo.c
+@@ -278,7 +278,8 @@ isp_video_far_end(struct isp_video *video)
+  * limits reported by every block in the pipeline.
+  *
+  * Return 0 if all formats match, or -EPIPE if at least one link is found with
+- * different formats on its two ends.
++ * different formats on its two ends or if the pipeline doesn't start with a
++ * video source (either a subdev with no input pad, or a non-subdev entity).
+  */
+ static int isp_video_validate_pipeline(struct isp_pipeline *pipe)
+ {
+@@ -329,10 +330,15 @@ static int isp_video_validate_pipeline(struct isp_pipeline *pipe)
+ 		 * in the middle of it. */
+ 		shifter_link = subdev == &isp->isp_ccdc.subdev;
+ 
+-		/* Retrieve the source format */
++		/* Retrieve the source format. Return an error if no source
++		 * entity can be found, and stop checking the pipeline if the
++		 * source entity isn't a subdev.
++		 */
+ 		pad = media_entity_remote_source(pad);
+-		if (pad == NULL ||
+-		    media_entity_type(pad->entity) != MEDIA_ENT_T_V4L2_SUBDEV)
++		if (pad == NULL
++			return -EPIPE;
++
++		if (media_entity_type(pad->entity) != MEDIA_ENT_T_V4L2_SUBDEV)
+ 			break;
+ 
+ 		subdev = media_entity_to_v4l2_subdev(pad->entity);
 -- 
-Marek Szyprowski
-Samsung Poland R&D Center
+Regards,
 
-
-
+Laurent Pinchart
