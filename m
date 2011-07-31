@@ -1,66 +1,103 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ppp118-208-7-216.lns20.bne1.internode.on.net ([118.208.7.216]:45360
-	"EHLO mail.psychogeeks.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750846Ab1GRW3N (ORCPT
+Received: from casper.infradead.org ([85.118.1.10]:45816 "EHLO
+	casper.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750805Ab1GaFIh (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 18 Jul 2011 18:29:13 -0400
-Message-ID: <4E24B3B5.5080200@psychogeeks.com>
-Date: Tue, 19 Jul 2011 08:29:09 +1000
-From: Chris W <lkml@psychogeeks.com>
+	Sun, 31 Jul 2011 01:08:37 -0400
+Message-ID: <4E34E34E.9040200@infradead.org>
+Date: Sun, 31 Jul 2011 02:08:30 -0300
+From: Mauro Carvalho Chehab <mchehab@infradead.org>
 MIME-Version: 1.0
-To: Jarod Wilson <jarod@redhat.com>
-CC: linux-media@vger.kernel.org, Andy Walls <awalls@md.metrocast.net>,
-	Randy Dunlap <rdunlap@xenotime.net>,
-	linux-kernel@vger.kernel.org
-Subject: Re: [PATCH] [media] imon: don't submit urb before rc_dev set up
-References: <A91CBD95-B2AF-4F43-8BEC-6C8007ABB33C@wilsonet.com> <1311007609-28210-1-git-send-email-jarod@redhat.com>
-In-Reply-To: <1311007609-28210-1-git-send-email-jarod@redhat.com>
-Content-Type: text/plain; charset=ISO-8859-1
+To: Randy Dunlap <rdunlap@xenotime.net>
+CC: linux-media@vger.kernel.org, Kamil Debski <k.debski@samsung.com>
+Subject: Re: media Documentation Errors
+References: <20110730165133.74b91104.rdunlap@xenotime.net>
+In-Reply-To: <20110730165133.74b91104.rdunlap@xenotime.net>
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 19/07/11 02:46, Jarod Wilson wrote:
-> The interface 0 urb callback was being wired up before the rc_dev device
-> was allocated, meaning the callback could be called with a null rc_dev,
-> leading to an oops. This likely only ever happens on the older 0xffdc
-> SoundGraph devices, which continually trigger interrupts even when they
-> have no valid keydata, and the window in which it could happen is small,
-> but its actually happening regularly for at least one user, and its an
-> obvious fix. Compile and sanity-tested with one of my own imon devices.
+Hi Randy,
 
-As the "at least one user" I can confirm that the patch has indeed
-corrected the problem on my 2.6.38-gentoo-r6, 2.6.39.3 vanilla, and
-3.0.0-rc7 kernels.
+Em 30-07-2011 20:51, Randy Dunlap escreveu:
+> Hi,
+> 
+> What do I need to do to eliminate these errors?
+> (from 3.0-git12)
 
-This is what loading the module with the "debug=1" option outputs:
+Thanks for reporting it.
 
-input: iMON Panel, Knob and Mouse(15c2:ffdc) as
-/devices/pci0000:00/0000:00:10.2/usb4/4-2/4-2:1.0/input/input7
-imon 4-2:1.0: Unknown 0xffdc device, defaulting to VFD and iMON IR (id 0x00)
-Registered IR keymap rc-imon-pad
-input: iMON Remote (15c2:ffdc) as
-/devices/pci0000:00/0000:00:10.2/usb4/4-2/4-2:1.0/rc/rc2/input8
-rc2: iMON Remote (15c2:ffdc) as
-/devices/pci0000:00/0000:00:10.2/usb4/4-2/4-2:1.0/rc/rc2
-imon 4-2:1.0: iMON device (15c2:ffdc, intf0) on usb<4:3> initialized
-usbcore: registered new interface driver imon
-intf0 decoded packet: 00 00 00 00 00 00 24 01
-intf0 decoded packet: 00 00 00 00 00 00 24 01
-intf0 decoded packet: 00 00 00 00 00 00 24 01
-intf0 decoded packet: 00 00 00 00 00 00 24 01
-...
+> Error: no ID for constraint linkend: v4l2-mpeg-video-header-mode.
+> Error: no ID for constraint linkend: v4l2-mpeg-video-multi-slice-mode.
+> Error: no ID for constraint linkend: v4l2-mpeg-video-h264-entropy-mode.
+> Error: no ID for constraint linkend: v4l2-mpeg-video-h264-level.
+> Error: no ID for constraint linkend: v4l2-mpeg-video-h264-loop-filter-mode.
+> Error: no ID for constraint linkend: v4l2-mpeg-video-h264-profile.
+> Error: no ID for constraint linkend: v4l2-mpeg-video-h264-vui-sar-idc.
+> Error: no ID for constraint linkend: v4l2-mpeg-video-mpeg4-level.
+> Error: no ID for constraint linkend: v4l2-mpeg-video-mpeg4-profile.
+> Error: no ID for constraint linkend: v4l2-mpeg-mfc51-video-frame-skip-mode.
+> Error: no ID for constraint linkend: v4l2-mpeg-mfc51-video-force-frame-type.
+> Error: no ID for constraint linkend: v4l2-mpeg-video-header-mode.
+> Error: no ID for constraint linkend: v4l2-mpeg-video-multi-slice-mode.
+> Error: no ID for constraint linkend: v4l2-mpeg-video-h264-entropy-mode.
+> Error: no ID for constraint linkend: v4l2-mpeg-video-h264-level.
+> Error: no ID for constraint linkend: v4l2-mpeg-video-h264-loop-filter-mode.
+> Error: no ID for constraint linkend: v4l2-mpeg-video-h264-profile.
+> Error: no ID for constraint linkend: v4l2-mpeg-video-h264-vui-sar-idc.
+> Error: no ID for constraint linkend: v4l2-mpeg-video-mpeg4-level.
+> Error: no ID for constraint linkend: v4l2-mpeg-video-mpeg4-profile.
+> Error: no ID for constraint linkend: v4l2-mpeg-mfc51-video-frame-skip-mode.
+> Error: no ID for constraint linkend: v4l2-mpeg-mfc51-video-force-frame-type.
 
-The decoded packet lines are fast and furious with no deliberate IR
-input (the VFD is in use), which might explain how this device managed
-to break the code in the small window available.
+This probably means that Samsung guys didn't properly documented those new stuff
+into the DocBook, e. g. they're defined at include/linux/videodev2.h, but
+either there's no documentation for them, or the links inside the docbook
+don't match.
 
-Thank you Jarod and Andy for taking the time to track this problem down
-to give it a drubbing.
+Kamil?
 
-Regards,
-Chris
+> Error: no ID for constraint linkend: AUDIO_GET_PTS.  
+> Error: no ID for constraint linkend: AUDIO_BILINGUAL_CHANNEL_SELECT.
+> Error: no ID for constraint linkend: CA_RESET.
+> Error: no ID for constraint linkend: CA_GET_CAP.
+> Error: no ID for constraint linkend: CA_GET_SLOT_INFO.
+> Error: no ID for constraint linkend: CA_GET_DESCR_INFO.
+> Error: no ID for constraint linkend: CA_GET_MSG.
+> Error: no ID for constraint linkend: CA_SEND_MSG.
+> Error: no ID for constraint linkend: CA_SET_DESCR.
+> Error: no ID for constraint linkend: CA_SET_PID.
+> Error: no ID for constraint linkend: DMX_GET_PES_PIDS.
+> Error: no ID for constraint linkend: DMX_GET_CAPS.
+> Error: no ID for constraint linkend: DMX_SET_SOURCE.
+> Error: no ID for constraint linkend: DMX_ADD_PID.
+> Error: no ID for constraint linkend: DMX_REMOVE_PID.
+> Error: no ID for constraint linkend: NET_ADD_IF.
+> Error: no ID for constraint linkend: NET_REMOVE_IF.
+> Error: no ID for constraint linkend: NET_GET_IF.
+> Error: no ID for constraint linkend: VIDEO_GET_SIZE.
+> Error: no ID for constraint linkend: VIDEO_GET_FRAME_RATE.
+> Error: no ID for constraint linkend: VIDEO_GET_PTS.
+> Error: no ID for constraint linkend: VIDEO_GET_FRAME_COUNT.
+> Error: no ID for constraint linkend: VIDEO_COMMAND.
+> Error: no ID for constraint linkend: VIDEO_TRY_COMMAND.
 
--- 
-Chris Williams
-Brisbane, Australia
+Those are some already known issue: The DVB API spec doesn't match the current
+DVB API stack implementation, e. g. those ioctl's are defined at the DVB code,
+but the API doesn't specify them.
+
+We need to work to sync the above. Worse than that, several of the above ioctl's
+are defined at the code, but are used only on one legacy driver and on some
+out-of-tree drivers for years.
+
+This is one of the things I'd like to discuss with the media people during the
+KS/2011.
+
+None of the above are fatal errors: they'll just leave a few html links at the the
+spec appendices without pointing to the place where they should be defined.
+
+My idea is to have all of them fixed for 3.2.
+
+Thanks,
+Mauro
