@@ -1,59 +1,127 @@
-Return-path: <mchehab@localhost>
-Received: from oproxy4-pub.bluehost.com ([69.89.21.11]:39799 "HELO
-	oproxy4-pub.bluehost.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1755984Ab1GJUAn (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 10 Jul 2011 16:00:43 -0400
-Date: Sun, 10 Jul 2011 12:58:32 -0700
-From: Randy Dunlap <rdunlap@xenotime.net>
-To: lkml <linux-kernel@vger.kernel.org>
-Cc: linux-media@vger.kernel.org, mchehab@infradead.org
-Subject: [PATCH 7/9] media/radio: fix trust CONFIG IO PORT
-Message-Id: <20110710125832.fdcef732.rdunlap@xenotime.net>
-In-Reply-To: <20110710125109.c72f9c2d.rdunlap@xenotime.net>
-References: <20110710125109.c72f9c2d.rdunlap@xenotime.net>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Return-path: <linux-media-owner@vger.kernel.org>
+Received: from mail.perches.com ([173.55.12.10]:4395 "EHLO mail.perches.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750762Ab1GaEhN (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 31 Jul 2011 00:37:13 -0400
+From: Joe Perches <joe@perches.com>
+To: linux-kernel@vger.kernel.org
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
+	linux-media@vger.kernel.org
+Subject: [PATCH] [media] tda18271: Use printk extension %pV
+Date: Sat, 30 Jul 2011 21:37:10 -0700
+Message-Id: <7d652e92c65b5cf1495492bd1e56eca6a7c9d2dd.1312087002.git.joe@perches.com>
+Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
-Sender: <mchehab@infradead.org>
 
-From: Randy Dunlap <rdunlap@xenotime.net>
+Deduplicate printk formats to save ~20KB text.
 
-Modify radio-trust to use HEX_STRING(CONFIG_RADIO_TRUST_PORT)
-so that the correct IO port value is used.
+$ size drivers/media/common/tuners/tda18271*o.*
+   text	   data	    bss	    dec	    hex	filename
+  10747	     56	   1920	  12723	   31b3	drivers/media/common/tuners/tda18271-common.o.new
+  18889	     56	   3112	  22057	   5629	drivers/media/common/tuners/tda18271-common.o.old
+  20561	    204	   4264	  25029	   61c5	drivers/media/common/tuners/tda18271-fe.o.new
+  31093	    204	   6000	  37297	   91b1	drivers/media/common/tuners/tda18271-fe.o.old
+   3681	   6760	    440	  10881	   2a81	drivers/media/common/tuners/tda18271-maps.o.new
+   5631	   6760	    680	  13071	   330f	drivers/media/common/tuners/tda18271-maps.o.old
 
-Fixes the IO port value that is used since this is hex:
-CONFIG_RADIO_TRUST_PORT=350
-but it was being interpreted as decimal instead of hex.
-
-Signed-off-by: Randy Dunlap <rdunlap@xenotime.net>
+Signed-off-by: Joe Perches <joe@perches.com>
 ---
- drivers/media/radio/radio-trust.c |    7 +++++--
- 1 file changed, 5 insertions(+), 2 deletions(-)
+ drivers/media/common/tuners/tda18271-common.c |   32 ++++++++++++++++----
+ drivers/media/common/tuners/tda18271-priv.h   |   39 +++++++++++-------------
+ 2 files changed, 43 insertions(+), 28 deletions(-)
 
---- linux-next-20110707.orig/drivers/media/radio/radio-trust.c
-+++ linux-next-20110707/drivers/media/radio/radio-trust.c
-@@ -19,6 +19,7 @@
- #include <linux/module.h>
- #include <linux/init.h>
- #include <linux/ioport.h>
-+#include <linux/stringify.h>
- #include <linux/videodev2.h>
- #include <linux/io.h>
- #include <media/v4l2-device.h>
-@@ -32,10 +33,12 @@ MODULE_VERSION("0.0.3");
- /* acceptable ports: 0x350 (JP3 shorted), 0x358 (JP3 open) */
+diff --git a/drivers/media/common/tuners/tda18271-common.c b/drivers/media/common/tuners/tda18271-common.c
+index aae40e5..39c6457 100644
+--- a/drivers/media/common/tuners/tda18271-common.c
++++ b/drivers/media/common/tuners/tda18271-common.c
+@@ -676,10 +676,28 @@ fail:
+ 	return ret;
+ }
  
- #ifndef CONFIG_RADIO_TRUST_PORT
--#define CONFIG_RADIO_TRUST_PORT -1
-+#define __RADIO_TRUST_PORT -1
-+#else
-+#define __RADIO_TRUST_PORT HEX_STRING(CONFIG_RADIO_TRUST_PORT)
- #endif
+-/*
+- * Overrides for Emacs so that we follow Linus's tabbing style.
+- * ---------------------------------------------------------------------------
+- * Local variables:
+- * c-basic-offset: 8
+- * End:
+- */
++int _tda_printk(struct tda18271_priv *state, const char *level,
++		const char *func, const char *fmt, ...)
++{
++	struct va_format vaf;
++	va_list args;
++	int rtn;
++
++	va_start(args, fmt);
++
++	vaf.fmt = fmt;
++	vaf.va = &args;
++
++	if (state)
++		rtn = printk("%s%s: [%d-%04x|%c] %pV",
++			     level, func, i2c_adapter_id(state->i2c_props.adap),
++			     state->i2c_props.addr,
++			     (state->role == TDA18271_MASTER) ? 'M' : 'S',
++			     &vaf);
++	else
++		rtn = printk("%s%s: %pV", level, func, &vaf);
++
++	va_end(args);
++
++	return rtn;
++}
+diff --git a/drivers/media/common/tuners/tda18271-priv.h b/drivers/media/common/tuners/tda18271-priv.h
+index 9589ab0..94340f4 100644
+--- a/drivers/media/common/tuners/tda18271-priv.h
++++ b/drivers/media/common/tuners/tda18271-priv.h
+@@ -136,29 +136,26 @@ extern int tda18271_debug;
+ #define DBG_ADV  8
+ #define DBG_CAL  16
  
--static int io = CONFIG_RADIO_TRUST_PORT;
-+static int io = __RADIO_TRUST_PORT;
- static int radio_nr = -1;
+-#define tda_printk(st, kern, fmt, arg...) do {\
+-	if (st) { \
+-		struct tda18271_priv *state = st; \
+-		printk(kern "%s: [%d-%04x|%s] " fmt, __func__, \
+-			i2c_adapter_id(state->i2c_props.adap), \
+-			state->i2c_props.addr, \
+-			(state->role == TDA18271_MASTER) \
+-			? "M" : "S", ##arg); \
+-	} else \
+-		printk(kern "%s: " fmt, __func__, ##arg); \
++__attribute__((format(printf, 4, 5)))
++int _tda_printk(struct tda18271_priv *state, const char *level,
++		const char *func, const char *fmt, ...);
++
++#define tda_printk(st, lvl, fmt, arg...)			\
++	_tda_printk(st, lvl, __func__, fmt, ##arg)
++
++#define tda_dprintk(st, lvl, fmt, arg...)			\
++do {								\
++	if (tda18271_debug & lvl)				\
++		tda_printk(st, KERN_DEBUG, fmt, ##arg);		\
+ } while (0)
  
- module_param(io, int, 0);
+-#define tda_dprintk(st, lvl, fmt, arg...) do {\
+-	if (tda18271_debug & lvl) \
+-		tda_printk(st, KERN_DEBUG, fmt, ##arg); } while (0)
+-
+-#define tda_info(fmt, arg...)     printk(KERN_INFO     fmt, ##arg)
+-#define tda_warn(fmt, arg...) tda_printk(priv, KERN_WARNING, fmt, ##arg)
+-#define tda_err(fmt, arg...)  tda_printk(priv, KERN_ERR,     fmt, ##arg)
+-#define tda_dbg(fmt, arg...)  tda_dprintk(priv, DBG_INFO,    fmt, ##arg)
+-#define tda_map(fmt, arg...)  tda_dprintk(priv, DBG_MAP,     fmt, ##arg)
+-#define tda_reg(fmt, arg...)  tda_dprintk(priv, DBG_REG,     fmt, ##arg)
+-#define tda_cal(fmt, arg...)  tda_dprintk(priv, DBG_CAL,     fmt, ##arg)
++#define tda_info(fmt, arg...)	pr_info(fmt, ##arg)
++#define tda_warn(fmt, arg...)	tda_printk(priv, KERN_WARNING, fmt, ##arg)
++#define tda_err(fmt, arg...)	tda_printk(priv, KERN_ERR,     fmt, ##arg)
++#define tda_dbg(fmt, arg...)	tda_dprintk(priv, DBG_INFO,    fmt, ##arg)
++#define tda_map(fmt, arg...)	tda_dprintk(priv, DBG_MAP,     fmt, ##arg)
++#define tda_reg(fmt, arg...)	tda_dprintk(priv, DBG_REG,     fmt, ##arg)
++#define tda_cal(fmt, arg...)	tda_dprintk(priv, DBG_CAL,     fmt, ##arg)
+ 
+ #define tda_fail(ret)							     \
+ ({									     \
+-- 
+1.7.6.131.g99019
+
