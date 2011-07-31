@@ -1,34 +1,69 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pv0-f174.google.com ([74.125.83.174]:65229 "EHLO
-	mail-pv0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754817Ab1GOCOG (ORCPT
+Received: from mail.windriver.com ([147.11.1.11]:61445 "EHLO
+	mail.windriver.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752458Ab1GaIO6 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 14 Jul 2011 22:14:06 -0400
-Received: by pvg12 with SMTP id 12so691439pvg.19
-        for <linux-media@vger.kernel.org>; Thu, 14 Jul 2011 19:14:06 -0700 (PDT)
+	Sun, 31 Jul 2011 04:14:58 -0400
+Date: Sun, 31 Jul 2011 04:14:47 -0400
+From: Paul Gortmaker <paul.gortmaker@windriver.com>
+To: Stephen Rothwell <sfr@canb.auug.org.au>
+CC: <linux-next@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	<linux-media@vger.kernel.org>
+Subject: Re: linux-next: build failure after merge of the moduleh tree
+Message-ID: <20110731081446.GL31842@windriver.com>
+References: <20110729152533.73329e8bafd4e839e85f0555@canb.auug.org.au>
 MIME-Version: 1.0
-In-Reply-To: <4E170186.8060002@redhat.com>
-References: <CAE_m23n+Hj3xkC5UrUow64mLGaKAOKmR8yPDAATnZ=kWpqWaKw@mail.gmail.com>
-	<4E170186.8060002@redhat.com>
-Date: Fri, 15 Jul 2011 02:14:06 +0000
-Message-ID: <CAE_m23kGCRK=AWB+fhfAFF_HH_Y8SGj835vogmgLwdoKKKzFkg@mail.gmail.com>
-Subject: Re: Pach under review.
-From: =?ISO-8859-1?Q?Marco_Diego_Aur=E9lio_Mesquita?=
-	<marcodiegomesquita@gmail.com>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	linux-media <linux-media@vger.kernel.org>,
-	Hans de Goede <hdegoede@redhat.com>
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset="us-ascii"
+Content-Disposition: inline
+In-Reply-To: <20110729152533.73329e8bafd4e839e85f0555@canb.auug.org.au>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 7/8/11, Mauro Carvalho Chehab <mchehab@redhat.com> wrote:
-> I prefer to not rush merging it, because I don't have the pac207 datasheets,
-> and it is a good idea to have more tests on it. What webcams had you test
-> needing such fix?
->
+[linux-next: build failure after merge of the moduleh tree] On 29/07/2011 (Fri 15:25) Stephen Rothwell wrote:
 
-The camera I have this[1] one. It is identified as ID 093a:2460 Pixart
-Imaging, Inc. Q-TEC WEBCAM 100.
+> Hi Paul,
+> 
+> After merging the moduleh tree, today's linux-next build (x86_64
+> allmodconfig) failed like this:
+> 
+> drivers/media/rc/ir-raw.c: In function 'init_decoders':
+> drivers/media/rc/ir-raw.c:354:2: error: implicit declaration of function 'request_module'
+> 
+> I have added this patch for today:
+> 
+> From: Stephen Rothwell <sfr@canb.auug.org.au>
+> Date: Fri, 29 Jul 2011 15:21:27 +1000
+> Subject: [PATCH] ir-raw.c: include modules .h for request_module
 
-[1] http://www.c3technology.com.br/index.asp?id_parametro=detalhe_produto&id=34
+Thanks, I've got this change in tree now.
+
+P.
+
+> 
+> Signed-off-by: Stephen Rothwell <sfr@canb.auug.org.au>
+> ---
+>  drivers/media/rc/ir-raw.c |    2 +-
+>  1 files changed, 1 insertions(+), 1 deletions(-)
+> 
+> diff --git a/drivers/media/rc/ir-raw.c b/drivers/media/rc/ir-raw.c
+> index 56adca8..ba817d2 100644
+> --- a/drivers/media/rc/ir-raw.c
+> +++ b/drivers/media/rc/ir-raw.c
+> @@ -14,7 +14,7 @@
+>  
+>  #include <linux/kthread.h>
+>  #include <linux/mutex.h>
+> -#include <linux/export.h>
+> +#include <linux/module.h>
+>  #include <linux/sched.h>
+>  #include <linux/freezer.h>
+>  #include "rc-core-priv.h"
+> -- 
+> 1.7.5.4
+> 
+> 
+> -- 
+> Cheers,
+> Stephen Rothwell                    sfr@canb.auug.org.au
+> http://www.canb.auug.org.au/~sfr/
