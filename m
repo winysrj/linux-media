@@ -1,42 +1,44 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp18.mail.ru ([94.100.176.155]:35513 "EHLO smtp18.mail.ru"
+Received: from mail.juropnet.hu ([212.24.188.131]:46995 "EHLO mail.juropnet.hu"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751460Ab1GTKzF (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 20 Jul 2011 06:55:05 -0400
-Message-ID: <4E26B405.7000308@list.ru>
-Date: Wed, 20 Jul 2011 14:55:01 +0400
-From: Stas Sergeev <stsp@list.ru>
+	id S1751665Ab1GaO3l (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 31 Jul 2011 10:29:41 -0400
+Message-ID: <4E3566B7.5020405@mailbox.hu>
+Date: Sun, 31 Jul 2011 16:29:11 +0200
+From: Istvan Varga <istvan_v@mailbox.hu>
 MIME-Version: 1.0
-To: Mauro Carvalho Chehab <mchehab@infradead.org>
-CC: Lennart Poettering <lpoetter@redhat.com>,
-	linux-media@vger.kernel.org,
-	"Nickolay V. Shmyrev" <nshmyrev@yandex.ru>,
-	Devin Heitmueller <dheitmueller@kernellabs.com>,
-	ALSA devel <alsa-devel@alsa-project.org>
-Subject: Re: [patch][saa7134] do not change mute state for capturing audio
-References: <4E19D2F7.6060803@list.ru> <4E1E05AC.2070002@infradead.org> <4E1E0A1D.6000604@list.ru> <4E1E1571.6010400@infradead.org> <4E1E8108.3060305@list.ru> <4E1F9A25.1020208@infradead.org> <4E22AF12.4020600@list.ru> <4E22CCC0.8030803@infradead.org> <4E24BEB8.4060501@redhat.com> <4E257FF5.4040401@infradead.org> <4E258B60.6010007@list.ru> <4E25906D.3020200@infradead.org> <4E259B0C.90107@list.ru> <4E25A26A.2000204@infradead.org> <4E25A7C2.3050609@list.ru> <4E25C7AE.5020503@infradead.org> <4E25CF35.7000802@list.ru> <4E25DB37.8020609@infradead.org> <4E25FDE4.7040805@list.ru> <4E262772.9060509@infradead.org> <4E266799.8030706@list.ru> <4E26AEC0.5000405@infradead.org> <4E26B1E7.2080107@list.ru> <4E26B29B.4010109@infradead.org>
-In-Reply-To: <4E26B29B.4010109@infradead.org>
-Content-Type: text/plain; charset=UTF-8
+To: Devin Heitmueller <dheitmueller@kernellabs.com>
+CC: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: [GIT PULL for v3.0] media updates for v3.1
+References: <4E32EE71.4030908@redhat.com>	<4E33C426.50000@mailbox.hu> <CAGoCfiw0f1puvj33eOHsh8bqVP-EgOUwCPQigF3u5gTEry839Q@mail.gmail.com>
+In-Reply-To: <CAGoCfiw0f1puvj33eOHsh8bqVP-EgOUwCPQigF3u5gTEry839Q@mail.gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-20.07.2011 14:48, Mauro Carvalho Chehab wrote:
->> Well, until you explain the exact breakage of my proposal,
->> I won't trust this. :)
-> I've said already: mplayer for example relies on such behavior to work. Reverting
-> it breaks mplayer. This is enough for me to NACK your patch.
-What you said, was:
----
-Some applications like mplayer don't use V4L2_CID_AUDIO_MUTE to unmute a
-video
-device. They assume the current behavior that starting video also
-unmutes audio.
----
-"starting video also unmutes audio" is what my patch
-_does not touch_! And that certainly happens not even
-in the alsa driver, but somewhere in the v4l2 code.
+On 07/31/2011 03:53 PM, Devin Heitmueller wrote:
 
-So, please please please, could you actually precisely
-explain how exactly mplayer breaks with my patch?
-That's the only thing I need! :))
+> Sorry about the top post.  Replying from phone since i'm on vacation.
+>
+> Haven't tested the firmware, but as long as it's based on the Xceive
+> sources it's ok to redistribute in terms of licensing.  Just use the
+> same license I provided for the original firmware.
+
+I have uploaded the firmware package to here:
+   http://juropnet.hu/~istvan_v/xc4000_firmware.tar.gz
+Simply running "make" should compile the utility and create the
+firmware file (dvb-fe-xc4000-1.4.fw). The package includes some files
+that are not actually needed, for building the version 1.4 firmware
+from the official sources, it is enough to have build_fw.c and the
+two header files it depends on. I did not change any license
+information, although the source files did not include it originally,
+so that may still need to be added from here:
+   http://www.kernellabs.com/firmware/xc4000/README.xc4000
+
+For completeness, here is the original version of build_fw.c for
+comparison, and the original firmware SDK (I have modified one of
+the header files to fix a compile error):
+   http://juropnet.hu/~istvan_v/build_fw.c
+   http://juropnet.hu/~istvan_v/Xc4000_c_code.zip
