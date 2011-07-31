@@ -1,90 +1,84 @@
-Return-path: <mchehab@localhost>
-Received: from mx1.redhat.com ([209.132.183.28]:46020 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755819Ab1GKB73 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 10 Jul 2011 21:59:29 -0400
-Received: from int-mx10.intmail.prod.int.phx2.redhat.com (int-mx10.intmail.prod.int.phx2.redhat.com [10.5.11.23])
-	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id p6B1xT4o014276
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
-	for <linux-media@vger.kernel.org>; Sun, 10 Jul 2011 21:59:29 -0400
-Received: from pedra (vpn-225-29.phx2.redhat.com [10.3.225.29])
-	by int-mx10.intmail.prod.int.phx2.redhat.com (8.14.4/8.14.4) with ESMTP id p6B1xKKT030664
-	for <linux-media@vger.kernel.org>; Sun, 10 Jul 2011 21:59:28 -0400
-Date: Sun, 10 Jul 2011 22:58:49 -0300
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: [PATCH 02/21] [media] tda18271c2dd: add tda18271c2dd prefix to the
- errors
-Message-ID: <20110710225849.475c1eda@pedra>
-In-Reply-To: <cover.1310347962.git.mchehab@redhat.com>
-References: <cover.1310347962.git.mchehab@redhat.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Return-path: <linux-media-owner@vger.kernel.org>
+Received: from mailout-de.gmx.net ([213.165.64.23]:55045 "HELO
+	mailout-de.gmx.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1752587Ab1GaWyw (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 31 Jul 2011 18:54:52 -0400
+Message-ID: <4E35DD38.7070609@gmx.de>
+Date: Sun, 31 Jul 2011 22:54:48 +0000
+From: Florian Tobias Schandinat <FlorianSchandinat@gmx.de>
+MIME-Version: 1.0
+To: Geert Uytterhoeven <geert@linux-m68k.org>
+CC: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Paul Mundt <lethal@linux-sh.org>, linux-fbdev@vger.kernel.org,
+	linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org
+Subject: Re: [PATCH/RFC] fbdev: Add FOURCC-based format configuration API
+References: <4DDAE63A.3070203@gmx.de>	<201107111732.52156.laurent.pinchart@ideasonboard.com>	<Pine.LNX.4.64.1107280943470.20737@axis700.grange>	<201107281251.35018.laurent.pinchart@ideasonboard.com> <CAMuHMdX=c=p7oASCE+GgY9AgaCPWoXRQyjEGpn4BvA9xSY6GQg@mail.gmail.com>
+In-Reply-To: <CAMuHMdX=c=p7oASCE+GgY9AgaCPWoXRQyjEGpn4BvA9xSY6GQg@mail.gmail.com>
+Content-Type: text/plain; charset=UTF-8; format=flowed
 Content-Transfer-Encoding: 7bit
-To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
+Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
-Sender: <mchehab@infradead.org>
 
-It is hard to identify the origin for those errors without a
-prefix to indicate which driver produced them:
+On 07/31/2011 08:32 PM, Geert Uytterhoeven wrote:
+> On Thu, Jul 28, 2011 at 12:51, Laurent Pinchart
+> <laurent.pinchart@ideasonboard.com>  wrote:
+>>> As for struct fb_var_screeninfo fields to support switching to a FOURCC
+>>> mode, I also prefer an explicit dedicated flag to specify switching to it.
+>>> Even though using FOURCC doesn't fit under the notion of a videomode, using
+>>> one of .vmode bits is too tempting, so, I would actually take the plunge and
+>>> use FB_VMODE_FOURCC.
+>>
+>> Another option would be to consider any grayscale>  1 value as a FOURCC. I've
+>> briefly checked the in-tree drivers: they only assign grayscale with 0 or 1,
+>> and check whether grayscale is 0 or different than 0. If a userspace
+>> application only sets grayscale>  1 when talking to a driver that supports the
+>> FOURCC-based API, we could get rid of the flag.
+>>
+>> What can't be easily found out is whether existing applications set grayscale
+>> to a>  1 value. They would break when used with FOURCC-aware drivers if we
+>> consider any grayscale>  1 value as a FOURCC. Is that a risk we can take ?
+>
+> I think we can. I'd expect applications to use either 1 or -1 (i.e.
+> all ones), both are
+> invalid FOURCC values.
+>
+> Still, I prefer the nonstd way.
+> And limiting traditional nonstd values to the lowest 24 bits (there
+> are no in-tree
+> drivers using the highest 8 bits, right?).
 
-[ 1390.220984] i2c_write error
-[ 1390.224133] I2C Write error
-[ 1391.284202] i2c_read error
-[ 1392.288685] i2c_read error
+Okay, it would be okay for me to
+- write raw FOURCC values in nonstd, enable FOURCC mode if upper byte != 0
+- not having an explicit flag to enable FOURCC
+- in FOURCC mode drivers must set visual to FB_VISUAL_FOURCC
+- making support of FOURCC visible to userspace by capabilites |= FB_CAP_FOURCC
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
-
-diff --git a/drivers/media/dvb/frontends/tda18271c2dd.c b/drivers/media/dvb/frontends/tda18271c2dd.c
-index 90584eb..2eb3a31 100644
---- a/drivers/media/dvb/frontends/tda18271c2dd.c
-+++ b/drivers/media/dvb/frontends/tda18271c2dd.c
-@@ -130,7 +130,7 @@ static int i2c_write(struct i2c_adapter *adap, u8 adr, u8 *data, int len)
- 			      .buf = data, .len = len};
- 
- 	if (i2c_transfer(adap, &msg, 1) != 1) {
--		printk(KERN_ERR "i2c_write error\n");
-+		printk(KERN_ERR "tda18271c2dd: i2c write error at addr %i\n", adr);
- 		return -1;
- 	}
- 	return 0;
-@@ -582,7 +582,7 @@ static int RFTrackingFiltersInit(struct tda_state *state,
- 	state->m_RF3[RFBand] = RF3;
- 
- #if 0
--	printk(KERN_ERR "%s %d RF1 = %d A1 = %d B1 = %d RF2 = %d A2 = %d B2 = %d RF3 = %d\n", __func__,
-+	printk(KERN_ERR "tda18271c2dd: %s %d RF1 = %d A1 = %d B1 = %d RF2 = %d A2 = %d B2 = %d RF3 = %d\n", __func__,
- 	       RFBand, RF1, state->m_RF_A1[RFBand], state->m_RF_B1[RFBand], RF2,
- 	       state->m_RF_A2[RFBand], state->m_RF_B2[RFBand], RF3);
- #endif
-@@ -610,7 +610,7 @@ static int PowerScan(struct tda_state *state,
- 		      SearchMap1(m_GainTaper_Map, RF_in, &Gain_Taper) &&
- 		      SearchMap3(m_CID_Target_Map, RF_in, &CID_Target, &CountLimit))) {
- 
--			printk(KERN_ERR "%s Search map failed\n", __func__);
-+			printk(KERN_ERR "tda18271c2dd: %s Search map failed\n", __func__);
- 			return -EINVAL;
- 		}
- 
-@@ -991,7 +991,7 @@ static int ChannelConfiguration(struct tda_state *state,
- 	u8 IR_Meas = 0;
- 
- 	state->IF = IntermediateFrequency;
--	/* printk("%s Freq = %d Standard = %d IF = %d\n", __func__, Frequency, Standard, IntermediateFrequency); */
-+	/* printk("tda18271c2dd: %s Freq = %d Standard = %d IF = %d\n", __func__, Frequency, Standard, IntermediateFrequency); */
- 	/* get values from tables */
- 
- 	if (!(SearchMap1(m_BP_Filter_Map, Frequency, &BP_Filter) &&
-@@ -999,7 +999,7 @@ static int ChannelConfiguration(struct tda_state *state,
- 	       SearchMap1(m_IR_Meas_Map, Frequency, &IR_Meas) &&
- 	       SearchMap4(m_RF_Band_Map, Frequency, &RF_Band))) {
- 
--		printk(KERN_ERR "%s SearchMap failed\n", __func__);
-+		printk(KERN_ERR "tda18271c2dd: %s SearchMap failed\n", __func__);
- 		return -EINVAL;
- 	}
- 
--- 
-1.7.1
+The capabilities is not strictly necessary but I think it's very useful as
+- it allows applications to make sure the extension is supported (for example to 
+adjust the UI)
+- it allows applications to distinguish whether a particular format is not 
+supported or FOURCC at all
+- it allows signaling further extensions of the API
+- it does not hurt, one line per driver and still some bytes in fixinfo free
 
 
+So using it would look like this:
+- the driver must have capabilities |= FB_CAP_FOURCC
+- the application may check capabilities to know whether FOURCC is supported
+- the application may write a raw FOURCC value in nonstd to request changing to 
+FOURCC mode with this format
+- when the driver switches to a FOURCC mode it must have visual = 
+FB_VISUAL_FOURCC and the current FOURCC format in nonstd
+- the application should check visual and nonstd to make sure it gets what it wanted
+
+
+So if there are no strong objections against this I think we should implement it.
+I do not really care whether we use a union or not but I think if we decide to 
+have one it should cover all fields that are undefined/unused in FOURCC mode.
+
+
+Hope we can find anything that everyone considers acceptable,
+
+Florian Tobias Schandinat
