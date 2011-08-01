@@ -1,118 +1,145 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:35155 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751423Ab1HHPok (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 8 Aug 2011 11:44:40 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Subject: Re: [RFC] The clock dependencies between sensor subdevs and the host interface drivers
-Date: Mon, 8 Aug 2011 17:44:37 +0200
-Cc: linux-media@vger.kernel.org,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Sakari Ailus <sakari.ailus@iki.fi>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	"Marek Szyprowski/Poland R&D Center-Linux (MSS)/./????"
-	<m.szyprowski@samsung.com>
-References: <4E400280.7070100@samsung.com>
-In-Reply-To: <4E400280.7070100@samsung.com>
+Received: from mail1-out1.atlantis.sk ([80.94.52.55]:52752 "EHLO
+	mail.atlantis.sk" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1752786Ab1HASum (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 1 Aug 2011 14:50:42 -0400
+From: Ondrej Zary <linux@rainbow-software.org>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+Subject: Re: [PATCH] [resend] usbvision: disable scaling for Nogatech MicroCam
+Date: Mon, 1 Aug 2011 20:50:16 +0200
+Cc: Devin Heitmueller <dheitmueller@kernellabs.com>,
+	Joerg Heckenbach <joerg@heckenbach-aw.de>,
+	Dwaine Garden <dwainegarden@rogers.com>,
+	linux-media@vger.kernel.org,
+	Kernel development list <linux-kernel@vger.kernel.org>,
+	Hans Verkuil <hverkuil@xs4all.nl>
+References: <201107222200.55834.linux@rainbow-software.org> <201107222344.46003.linux@rainbow-software.org> <4E3028AA.4030703@redhat.com>
+In-Reply-To: <4E3028AA.4030703@redhat.com>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
+Content-Type: text/plain;
+  charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Message-Id: <201108081744.37953.laurent.pinchart@ideasonboard.com>
+Content-Disposition: inline
+Message-Id: <201108012050.25416.linux@rainbow-software.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sylwester,
-
-On Monday 08 August 2011 17:36:32 Sylwester Nawrocki wrote:
-> Hi everyone,
+On Wednesday 27 July 2011 17:03:06 Mauro Carvalho Chehab wrote:
+> Em 22-07-2011 18:44, Ondrej Zary escreveu:
+> > On Friday 22 July 2011 23:31:46 Devin Heitmueller wrote:
+> >> On Fri, Jul 22, 2011 at 5:22 PM, Ondrej Zary <linux@rainbow-software.org> wrote:
+> >>> Seems that this bug is widespread - the same problem appears also in guvcview
+> >>> and adobe flash. I think that the driver is broken too - it should return
+> >>> corrected resolution in TRY_FMT.
+> >>
+> >> Well, if the driver does not return the resolution it is actually
+> >> capturing in, then that indeed is a driver bug.  That's a different
+> >> issue though than what your patch proposed.
+> >>
+> >> You should make the TRY_FMT call specifying an invalid resolution and
+> >> see if it returns the real resolution the device will capture at.  If
+> >> it doesn't, then fix *that* bug.
+> > 
+> > It does not, there's no code that would do that. I actually fixed that only
+> > to find out that the scaling is unusable at least with the MicroCam because
+> > of black horizontal lines that appear in the image (amount of the lines
+> > depend on the scaling factor). So I just disabled the scaling completely for
+> > MicroCam.
+> > 
+> > I also don't know if the multiple-of-64 width limit is valid for all
+> > usbvision devices - that's why I haven't posted patch to fix this.
+> > 
+> >> The application needs to know the capturing resolution, so it's
+> >> possible that it does properly handle the driver passing back the real
+> >> resolution and the driver is at fault, in which case no change is
+> >> needed to the app at all.
 > 
-> Nowadays many of the V4L2 camera device drivers heavily depend on the board
-> code to set up voltage supplies, clocks, and some control signals, like
-> 'reset' and 'standby' signals for the sensors. Those things are often
-> being done by means of the driver specific platform data callbacks.
+> Well, for sure you don't need to touch at s_fmt, as it calls try_fmt. Also,
+> if the problem is that the scaler requrires that the vertical resolution to be
+> multiple of some limit, a patch like the one bellow would do a better job:
 > 
-> There has been recently quite a lot effort on ARM towards migration to the
-> device tree. Unfortunately the custom platform data callbacks effectively
-> prevent the boards to be booted and configured through the device tree
-> bindings.
-> 
-> The following is usually handled in the board files:
-> 
-> 1) sensor/frontend power supply
-> 2) sensor's master clock (provided by the host device)
-> 3) reset and standby signals (GPIO)
-> 4) other signals applied by the host processor to the sensor device, e.g.
->    I2C level shifter enable, etc.
-> 
-> For 1), the regulator API should possibly be used. It should be applicable
-> for most, if not all cases.
-> 3) and 4) are a bit hard as there might be huge differences across boards
-> as how many GPIOs are used, what are the required delays between changes
-> of their states, etc. Still we could try to find a common description of
-> the behaviour and pass such information to the drivers.
-> 
-> For 2) I'd like to propose adding a callback to struct v4l2_device, for
-> instance as in the below patch. The host driver would implement such an
-> operation and the sensor subdev driver would use it in its s_power op.
-
-What about using a struct clk object ? There has been lots of work in the ARM 
-tree to make struct clk generic. I'm not sure if all patches have been pushed 
-to mainline yet, but I think that's the direction we should follow.
-
-> If there is more than one output clock at the host, to distinguish which
-> clock applies to a given sensor the host driver could be passed the
-> assignment information in it's platform data.
-> 
-> AFAICS in the omap3isp case the clock control is done through the board
-> code. I wonder what prevents making direct calls between the drivers,
-> as the sensor subdevs call a board code callback there, which in turn only
-> calls into the omap3isp driver.
-> What am I missing ?
-
-We go through board code to remove dependencies between drivers. My goal is to 
-implement this through struct clk, but I haven't had time to work on that yet.
-
-> In order to support fully DT based builds it would be desired to change
-> that method so the board specific callbacks in platform data structures
-> are avoided.
-> 
-> 
-> diff --git a/include/media/v4l2-device.h b/include/media/v4l2-device.h
-> index d61febf..08b6699 100644
-> --- a/include/media/v4l2-device.h
-> +++ b/include/media/v4l2-device.h
-> @@ -36,6 +36,15 @@
-> 
->  struct v4l2_ctrl_handler;
-> 
-> +struct v4l2_device_ops {
-> +	/* notify callback called by some sub-devices */
-> +	void (*notify)(struct v4l2_subdev *sd,
-> +			unsigned int notification, void *arg);
-> +	/* clock control callback */
-> +	void (*set_clock)(struct v4l2_subdev *sd,
-> +			  u_long *frequency, bool enable);
-> +};
+> diff --git a/drivers/media/video/usbvision/usbvision-video.c b/drivers/media/video/usbvision/usbvision-video.c
+> index 5a74f5e..6907eff 100644
+> --- a/drivers/media/video/usbvision/usbvision-video.c
+> +++ b/drivers/media/video/usbvision/usbvision-video.c
+> @@ -922,6 +922,9 @@ static int vidioc_try_fmt_vid_cap(struct file *file, void *priv,
+>  	RESTRICT_TO_RANGE(vf->fmt.pix.width, MIN_FRAME_WIDTH, MAX_FRAME_WIDTH);
+>  	RESTRICT_TO_RANGE(vf->fmt.pix.height, MIN_FRAME_HEIGHT, MAX_FRAME_HEIGHT);
+>  
+> +	/* FIXME: please correct the minimum resolution here */
+> +	vf->fmt.pix.width &= ~0x01;
 > +
->  struct v4l2_device {
->  	/* dev->driver_data points to this struct.
->  	   Note: dev might be NULL if there is no parent device
-> @@ -51,9 +60,8 @@ struct v4l2_device {
->  	spinlock_t lock;
->  	/* unique device name, by default the driver name + bus ID */
->  	char name[V4L2_DEVICE_NAME_SIZE];
-> -	/* notify callback called by some sub-devices. */
-> -	void (*notify)(struct v4l2_subdev *sd,
-> -			unsigned int notification, void *arg);
-> +	/* ops for sub-devices */
-> +	struct v4l2_device_ops ops;
->  	/* The control handler. May be NULL. */
->  	struct v4l2_ctrl_handler *ctrl_handler;
->  	/* Device's priority state */
+>  	vf->fmt.pix.bytesperline = vf->fmt.pix.width*
+>  		usbvision->palette.bytes_per_pixel;
+>  	vf->fmt.pix.sizeimage = vf->fmt.pix.bytesperline*vf->fmt.pix.height;
+> 
+> Some scalers require an even vertical resolution. So, you'll need to adjust the
+> above, according with the restrictions you may have on the scaler your webcam
+> has.
+> 
+> Btw, V4L2 core defines a macro for such type of adjustments. For example,
+> em28xx uses it as:
+> 
+> 		/* width must even because of the YUYV format
+> 		   height must be even because of interlacing */
+> 		v4l_bound_align_image(&width, 48, maxw, 1, &height, 32, maxh,
+> 				      1, 0);
+> 
+> (
+> 
+> So, a better fix would be to remove the RESTRICT_TO_RANGE() calls, and use
+> the v4l_bound_align_image() macro instead, filled with the needed restrictions,
+> like:
+> 	v4l_bound_align_image(&width, MIN_FRAME_WIDTH, MAX_FRAME_WIDTH, 1,
+> 			      &height, MIN_FRAME_HEIGHT, MAX_FRAME_HEIGHT, 0);
+> 
+> 
+> -
+> 
+> [usbvision] Fix width/height scaling limits
+> 
+> It assumes that both just width is required to be even number.
+
+Width on the Nogatech MicroCam is limited to multiples of 64 (e.g. if you set
+the width to 160, you get 128 instead). But the scaled output is useless
+because of black horizontal lines that scaling produces with compression
+(which is enabled by default). Probably nobody wants to disable the
+compression as the framerate is very low without it.
+
+I don't know about other usbvision devices. We shouldn't change the code for
+all of them without testing.
+
+
+> NOT TESTED.
+> 
+> Signed-of-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+> 
+> diff --git a/drivers/media/video/usbvision/usbvision-video.c b/drivers/media/video/usbvision/usbvision-video.c
+> index 5a74f5e..41d3b47 100644
+> --- a/drivers/media/video/usbvision/usbvision-video.c
+> +++ b/drivers/media/video/usbvision/usbvision-video.c
+> @@ -919,8 +919,11 @@ static int vidioc_try_fmt_vid_cap(struct file *file, void *priv,
+>  	/* robustness */
+>  	if (format_idx == USBVISION_SUPPORTED_PALETTES)
+>  		return -EINVAL;
+> -	RESTRICT_TO_RANGE(vf->fmt.pix.width, MIN_FRAME_WIDTH, MAX_FRAME_WIDTH);
+> -	RESTRICT_TO_RANGE(vf->fmt.pix.height, MIN_FRAME_HEIGHT, MAX_FRAME_HEIGHT);
+> +
+> +	v4l_bound_align_image(&vf->fmt.pix.width,
+> +			      MIN_FRAME_WIDTH, MAX_FRAME_WIDTH, 1,
+> +			      &vf->fmt.pix.height,
+> +			      MIN_FRAME_HEIGHT, MAX_FRAME_HEIGHT, 0, 0);
+>  
+>  	vf->fmt.pix.bytesperline = vf->fmt.pix.width*
+>  		usbvision->palette.bytes_per_pixel;
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-kernel" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> Please read the FAQ at  http://www.tux.org/lkml/
+> 
+
+
 
 -- 
-Regards,
-
-Laurent Pinchart
+Ondrej Zary
