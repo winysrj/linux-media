@@ -1,59 +1,81 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-gx0-f174.google.com ([209.85.161.174]:33094 "EHLO
-	mail-gx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752584Ab1H2NJF convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 29 Aug 2011 09:09:05 -0400
-MIME-Version: 1.0
-In-Reply-To: <201108291455.36145.laurent.pinchart@ideasonboard.com>
-References: <1313746626-23845-1-git-send-email-laurent.pinchart@ideasonboard.com>
-	<201108291308.50244.laurent.pinchart@ideasonboard.com>
-	<CAMuHMdUheemZVb7cPAsyPrC9LLowr+XV_5A+H1EfWWbWHeCVFw@mail.gmail.com>
-	<201108291455.36145.laurent.pinchart@ideasonboard.com>
-Date: Mon, 29 Aug 2011 15:09:04 +0200
-Message-ID: <CAMuHMdVGV6dYW+szHyD30=HvAnSh92rRp=PMauwZZLw6H7DhYw@mail.gmail.com>
-Subject: Re: [PATCH/RFC v2 1/3] fbdev: Add FOURCC-based format configuration API
-From: Geert Uytterhoeven <geert@linux-m68k.org>
+Received: from narfation.org ([79.140.41.39]:49554 "EHLO v3-1039.vlinux.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750911Ab1HAKHX (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 1 Aug 2011 06:07:23 -0400
+From: Sven Eckelmann <sven@narfation.org>
 To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: linux-fbdev@vger.kernel.org, linux-media@vger.kernel.org,
-	magnus.damm@gmail.com
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8BIT
+Cc: linux-arch@vger.kernel.org, linux-kernel@vger.kernel.org,
+	linux-media@vger.kernel.org
+Subject: Re: Re: [PATCHv4 05/11] omap3isp: Use *_dec_not_zero instead of *_add_unless
+Date: Mon, 01 Aug 2011 12:07:15 +0200
+Message-ID: <1518031.UNu44UiQdf@sven-laptop.home.narfation.org>
+In-Reply-To: <201107311700.43515.laurent.pinchart@ideasonboard.com>
+References: <1311760070-21532-1-git-send-email-sven@narfation.org> <1311760070-21532-5-git-send-email-sven@narfation.org> <201107311700.43515.laurent.pinchart@ideasonboard.com>
+MIME-Version: 1.0
+Content-Type: multipart/signed; boundary="nextPart1410967.cpOlAuVVht"; micalg="pgp-sha512"; protocol="application/pgp-signature"
+Content-Transfer-Encoding: 7Bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Laurent,
 
-On Mon, Aug 29, 2011 at 14:55, Laurent Pinchart
-<laurent.pinchart@ideasonboard.com> wrote:
->> When will the driver report FB_{TYPE,VISUAL}_FOURCC?
->>   - When using a mode that cannot be represented in the legacy way,
->
-> Definitely.
->
->>   - But what with modes that can be represented? Legacy software cannot
->>     handle FB_{TYPE,VISUAL}_FOURCC.
->
-> My idea was to use FB_{TYPE,VISUAL}_FOURCC only when the mode is configured
-> using the FOURCC API. If FBIOPUT_VSCREENINFO is called with a non-FOURCC
-> format, the driver will report non-FOURCC types and visuals.
+--nextPart1410967.cpOlAuVVht
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 
-Hmm, two use cases:
-  - The video mode is configured using a FOURCC-aware tool ("fbset on
-steroids").
-    Later the user runs a legacy application.
-      => Do not retain FOURCC across opening of /dev/fb*.
-  - Is there an easy way to force FOURCC reporting, so new apps don't have to
-    support parsing the legacy formats? This is useful for new apps that want to
-    support (a subset of) FOURCC modes only.
+On Sunday 31 July 2011 17:00:43 Laurent Pinchart wrote:
+> Hi Sven,
+> 
+> Thanks for the patch.
+> 
+> On Wednesday 27 July 2011 11:47:44 Sven Eckelmann wrote:
+> > atomic_dec_not_zero is defined for each architecture through
+> > <linux/atomic.h> to provide the functionality of
+> > atomic_add_unless(x, -1, 0).
+> > 
+> > Signed-off-by: Sven Eckelmann <sven@narfation.org>
+> > Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+> 
+> Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+> 
+> I'll queue this to my tree for v3.2. Please let me know if you would rather
+> push the patch through another tree.
 
-Gr{oetje,eeting}s,
+The problem is that until now no one from linux-arch has applied the patch 
+01/11 in his tree (which is needed before this patch can be applied) and you 
+tree have to be based on the "yet to be chosen linux-arch tree". Otherwise 
+your tree will just break and not be acceptable for a pull request. 
 
-                        Geert
+Maybe it is easier when one person applies 01-11 after 02-11 was Acked-by the 
+responsible maintainers.
 
---
-Geert Uytterhoeven -- There's lots of Linux beyond ia32 -- geert@linux-m68k.org
+02 is more or less automatically Acked-by us :)
+04, 09 and 10 are also Acked.
+... and the rest is waiting for actions.
 
-In personal conversations with technical people, I call myself a hacker. But
-when I'm talking to journalists I just say "programmer" or something like that.
-                                -- Linus Torvalds
+Kind regards,
+	Sven
+--nextPart1410967.cpOlAuVVht
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: This is a digitally signed message part.
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.11 (GNU/Linux)
+
+iQIcBAABCgAGBQJONnrTAAoJEF2HCgfBJntGlHgQALreUYVAb04uP6ya4Mz0D24D
+9gRxde9DaBYZovxlmhH9Cis/FiOEGkpbMl/sooyRZYzWaID5jpDp8020K622uBMw
+Le3CrZOzv1IZtEFepJ1jxaRUOgNHVACwH0+B314BNNhRG3NZet1MRMhpwWYWbVQ9
+SupB7fB7GNn23a0nkvwFndRxAONpbWMc4rtSbZMwi4x4ViSRVlFkAxGefLubBUoJ
+/0J8hX6C/ddrYbuJWdHbzlFr2y/j3S8EQFV0YTBGOeLjBAN/io3K/t76IEFCuofP
+47wmjKLgkl0EJIYQw8Rzhqd6tzPupXTPgeJfi0jwQvBCUValXO34rDf+2iZoB1eo
+fdNBnvYTZWpM3DDDtJtEnNN9/1V0P4qnYuvwxhDD8d2w1PHh8TlSpug72oliKnm+
+Y+XC+E2jZFGuQDofZqu/SCpFqsesjyRJVvEMXbk4pxT1AyVlWELgdnxcFg5zqPxG
+UFk38o5mp4yqm18KWQDqmH4LNjBlP00SSl8wyMYUfiowc81Yt5gf/T6gViDM7o74
+RCmfuzRKd8uyrKeeVakEEWMv5f2oVRZy0ziBT3R4wo8NBsErQR//6L0d8RvdWM0L
+0MnlpHBbw88pFJDcLL8HnloF7hO3914WwPcbIQ3M1A6WSLFEzhcjuuIrckHE2nae
++ihdk+MrfXO8JKC0rmH/
+=NHxW
+-----END PGP SIGNATURE-----
+
+--nextPart1410967.cpOlAuVVht--
+
