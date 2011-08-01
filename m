@@ -1,60 +1,67 @@
-Return-path: <mchehab@pedra>
-Received: from smtp-vbr6.xs4all.nl ([194.109.24.26]:4822 "EHLO
-	smtp-vbr6.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753759Ab1GEGq2 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 5 Jul 2011 02:46:28 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Subject: Re: [RFC] DV timings spec fixes at V4L2 API - was: [PATCH 1/8] v4l: add macro for 1080p59_54 preset
-Date: Tue, 5 Jul 2011 08:46:18 +0200
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Tomasz Stanislawski <t.stanislaws@samsung.com>,
-	linux-media@vger.kernel.org, m.szyprowski@samsung.com,
-	kyungmin.park@samsung.com
-References: <1309351877-32444-1-git-send-email-t.stanislaws@samsung.com> <4E11E5AE.30304@redhat.com> <201107050047.44275.laurent.pinchart@ideasonboard.com>
-In-Reply-To: <201107050047.44275.laurent.pinchart@ideasonboard.com>
+Return-path: <linux-media-owner@vger.kernel.org>
+Received: from mx1.redhat.com ([209.132.183.28]:26942 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751897Ab1HAAqy (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 31 Jul 2011 20:46:54 -0400
+Message-ID: <4E35F773.3060807@redhat.com>
+Date: Sun, 31 Jul 2011 21:46:43 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="utf-8"
+To: Antti Palosaari <crope@iki.fi>
+CC: linux-media@vger.kernel.org
+Subject: Re: [PATCH 2/3] dvb-usb: multi-frontend support (MFE)
+References: <4E2E0788.3010507@iki.fi> <4E3061CF.2080009@redhat.com> <4E306BAE.1020302@iki.fi>
+In-Reply-To: <4E306BAE.1020302@iki.fi>
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 7bit
-Message-Id: <201107050846.18443.hverkuil@xs4all.nl>
+Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
-Sender: <mchehab@pedra>
 
-On Tuesday, July 05, 2011 00:47:43 Laurent Pinchart wrote:
-> Hi Mauro,
+Em 27-07-2011 16:49, Antti Palosaari escreveu:
+> On 07/27/2011 10:06 PM, Mauro Carvalho Chehab wrote:
 > 
-> On Monday 04 July 2011 18:09:18 Mauro Carvalho Chehab wrote:
+>>> +    for (i = 0; i<= x; i++) {
+>>> +        ret = adap->props.frontend_attach(adap);
+>>> +        if (ret || adap->fe[i] == NULL) {
+>>> +            /* only print error when there is no FE at all */
+>>> +            if (i == 0)
+>>> +                err("no frontend was attached by '%s'",
+>>> +                    adap->dev->desc->name);
+>>
+>> This doesn't seem right. One thing is to accept adap->fe[1] to be
+>> NULL. Another thing is to accept an error at the attach. IMO, the
+>> logic should be something like:
+>>
+>>     if (ret<  0)
+>>         return ret;
+>>
+>>     if (!i&&  !adap->fe[0]) {
+>>         err("no adapter!");
+>>         return -ENODEV;
+>>     }
 > 
-> [snip]
+> Heh, I tried to keep it functioning as earlier not to break anything! Only thing it does now differently is that it keeps silent when 2nd FE attach fails since we don't know always before fe attach if there is fe or not.
 > 
-> > 1) PRESET STANDARDS
-> >    ====== =========
-> > 
-> > There are 3 specs involved with DV presets: ITU-R BT 709 and BT 1120 and
-> > CEA 861.
-> > 
-> > At ITU-R BT.709, both 60Hz and 60/1.001 Hz are equally called as "60 Hz".
-> > BT.1120 follows the same logic, as it uses BT.709 as a reference for video
-> > timings.
-> > 
-> > The CEA-861-E spec says at item 4, that:
+> So since it *does not change old behaviour* it must be OK. Let fix old problems later. There is millions of DVB USB callbacks failing silently - like tuner_attach etc.
 > 
-> [snip]
-> 
-> > At the same item, the table 2 describes several video parameters for each
-> > preset, associating the Video Identification Codes (VIC) for each preset.
-> 
-> This might be a bit out of scope, but why aren't we using the VICs as DV 
-> presets ?
+> Surely I want also fix many old issues but it is always too risky.
 
-The VIC does more than just set the timings. It also determines the pixel
-aspect ratio. So exactly the same video timings may have two VICs, the only
-difference being the pixel aspect which is *not* part of the timings. The VIC
-is part of the AVI InfoFrame, however.
+Added support for DRX-K way at dvb-usb:
 
-So VIC != timings.
+http://git.linuxtv.org/mchehab/experimental.git/commitdiff/765b3db218f1e9af6432251c2ebe59bc9660cd42
+http://git.linuxtv.org/mchehab/experimental.git/commitdiff/37fa5797c58068cc60cca6829bd662cd4f883cfa
+
+One bad thing I noticed with the API is that it calls adap->props.frontend_attach(adap)
+several times, instead of just one, without even passing an argument for the driver to
+know that it was called twice.
+
+IMO, there are two ways of doing the attach:
+
+1) call it only once, and, inside the driver, it will loop to add the other FE's;
+2) add a parameter, at the call, to say what FE needs to be initialized.
+
+I think (1) is preferred, as it is more flexible, allowing the driver to test for
+several types of frontends.
 
 Regards,
-
-	Hans
+Mauro
