@@ -1,72 +1,46 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr18.xs4all.nl ([194.109.24.38]:3455 "EHLO
-	smtp-vbr18.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751417Ab1HYOIo (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 25 Aug 2011 10:08:44 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [RFC PATCH 11/12] drxd_hard: fix compiler warnings
-Date: Thu, 25 Aug 2011 16:08:34 +0200
-Message-Id: <d120f6eafa4207ce12540d3daf630bd7817e7b62.1314281302.git.hans.verkuil@cisco.com>
-In-Reply-To: <1314281315-32366-1-git-send-email-hverkuil@xs4all.nl>
-References: <1314281315-32366-1-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <afd314e95a520c3a4de0f112735d1d5584ec8a9a.1314281302.git.hans.verkuil@cisco.com>
-References: <afd314e95a520c3a4de0f112735d1d5584ec8a9a.1314281302.git.hans.verkuil@cisco.com>
+Received: from perceval.ideasonboard.com ([95.142.166.194]:43881 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751937Ab1HAL0V (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 1 Aug 2011 07:26:21 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Ming Lei <tom.leiming@gmail.com>
+Subject: Re: [PATCH] uvcvideo: add SetInterface(0) in .reset_resume handler
+Date: Mon, 1 Aug 2011 13:26:31 +0200
+Cc: linux-media@vger.kernel.org,
+	Alan Stern <stern@rowland.harvard.edu>,
+	linux-usb@vger.kernel.org, Jeremy Kerr <jeremy.kerr@canonical.com>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>
+References: <CACVXFVPHfskUCxhznpATknNxokmL5hft-b+KoxWiMzprVmuJ4w@mail.gmail.com> <201107311738.58462.laurent.pinchart@ideasonboard.com> <CACVXFVMJvZqYH3eS7LH_jgewL40KK74wrSX_-FhqLmyDJmPEGg@mail.gmail.com>
+In-Reply-To: <CACVXFVMJvZqYH3eS7LH_jgewL40KK74wrSX_-FhqLmyDJmPEGg@mail.gmail.com>
+MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201108011326.31648.laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+Hi Ming,
 
-v4l-dvb-git/drivers/media/dvb/frontends/drxd_hard.c: In function 'DownloadMicrocode':
-v4l-dvb-git/drivers/media/dvb/frontends/drxd_hard.c:933:6: warning: variable 'BlockCRC' set but not used [-Wunused-but-set-variable]
-v4l-dvb-git/drivers/media/dvb/frontends/drxd_hard.c:929:6: warning: variable 'Flags' set but not used [-Wunused-but-set-variable]
+On Monday 01 August 2011 02:56:59 Ming Lei wrote:
+> On Sun, Jul 31, 2011 at 11:38 PM, Laurent Pinchart wrote:
+> > Hi Ming,
+> > 
+> > Thanks for the patch. I've queued it for v3.2 with a small modification
+> > (the usb_set_interface() call has been moved to uvc_video.c).
+> 
+> Thanks for queuing it.
+> 
+> Considered it is a fix patch, could you queue it for 3.1 -rcX as fix patch?
+> But anyway, it is up to you, :-)
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- drivers/media/dvb/frontends/drxd_hard.c |   11 ++++++-----
- 1 files changed, 6 insertions(+), 5 deletions(-)
+It's not completely up to me :-) This patch falls in the "features that never 
+worked" category. I've heard that Linus didn't want such non-regression fixes 
+during the 3.0-rc phase. Mauro, is it still true for v3.1-rc ? Can I push this 
+patch for 3.1, or does it need to wait until 3.2 ?
 
-diff --git a/drivers/media/dvb/frontends/drxd_hard.c b/drivers/media/dvb/frontends/drxd_hard.c
-index 2238bf0..5490b48 100644
---- a/drivers/media/dvb/frontends/drxd_hard.c
-+++ b/drivers/media/dvb/frontends/drxd_hard.c
-@@ -926,16 +926,15 @@ static int DownloadMicrocode(struct drxd_state *state,
- 			     const u8 *pMCImage, u32 Length)
- {
- 	u8 *pSrc;
--	u16 Flags;
- 	u32 Address;
- 	u16 nBlocks;
- 	u16 BlockSize;
--	u16 BlockCRC;
- 	u32 offset = 0;
- 	int i, status = 0;
- 
- 	pSrc = (u8 *) pMCImage;
--	Flags = (pSrc[0] << 8) | pSrc[1];
-+	/* We're not using Flags */
-+	/* Flags = (pSrc[0] << 8) | pSrc[1]; */
- 	pSrc += sizeof(u16);
- 	offset += sizeof(u16);
- 	nBlocks = (pSrc[0] << 8) | pSrc[1];
-@@ -952,11 +951,13 @@ static int DownloadMicrocode(struct drxd_state *state,
- 		pSrc += sizeof(u16);
- 		offset += sizeof(u16);
- 
--		Flags = (pSrc[0] << 8) | pSrc[1];
-+		/* We're not using Flags */
-+		/* u16 Flags = (pSrc[0] << 8) | pSrc[1]; */
- 		pSrc += sizeof(u16);
- 		offset += sizeof(u16);
- 
--		BlockCRC = (pSrc[0] << 8) | pSrc[1];
-+		/* We're not using BlockCRC */
-+		/* u16 BlockCRC = (pSrc[0] << 8) | pSrc[1]; */
- 		pSrc += sizeof(u16);
- 		offset += sizeof(u16);
- 
 -- 
-1.7.5.4
+Regards,
 
+Laurent Pinchart
