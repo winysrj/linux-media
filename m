@@ -1,68 +1,42 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ww0-f44.google.com ([74.125.82.44]:43177 "EHLO
-	mail-ww0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751589Ab1HVMBF convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 22 Aug 2011 08:01:05 -0400
-Received: by wwf5 with SMTP id 5so5131782wwf.1
-        for <linux-media@vger.kernel.org>; Mon, 22 Aug 2011 05:01:04 -0700 (PDT)
+Received: from mx1.redhat.com ([209.132.183.28]:33828 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751381Ab1HAHJZ (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 1 Aug 2011 03:09:25 -0400
+Message-ID: <4E365192.2000404@redhat.com>
+Date: Mon, 01 Aug 2011 09:11:14 +0200
+From: Hans de Goede <hdegoede@redhat.com>
 MIME-Version: 1.0
-In-Reply-To: <CAATJ+fv6x6p5kimJs4unWGQ_PU36hp29Rafu8BDCcRAABtAfgQ@mail.gmail.com>
-References: <CAATJ+fu5JqVmyY=zJn_CM_Eusst_YWKG2B2MAuu5fqELYYsYqA@mail.gmail.com>
-	<CAATJ+ft9HNqLA62ZZkkEP6EswXC1Jhq=FBcXU+OHCkXTKpqeUA@mail.gmail.com>
-	<1313949634.2874.13.camel@localhost>
-	<CAATJ+fv6x6p5kimJs4unWGQ_PU36hp29Rafu8BDCcRAABtAfgQ@mail.gmail.com>
-Date: Mon, 22 Aug 2011 14:01:02 +0200
-Message-ID: <CAL9G6WUFddsFM2V46xXCDWEfhfCR0n5G-8S4JSYwLLkmZnYu7g@mail.gmail.com>
-Subject: Re: Afatech AF9013
-From: Josu Lazkano <josu.lazkano@gmail.com>
-To: Jason Hecker <jwhecker@gmail.com>
-Cc: Malcolm Priestley <tvboxspy@gmail.com>,
-	linux-media <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+CC: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Hans Verkuil <hverkuil@xs4all.nl>
+Subject: Re: [GIT PULL for v3.0] media updates for v3.1
+References: <4E32EE71.4030908@redhat.com> <4E350B04.6050209@redhat.com> <4E3530BC.9050108@redhat.com>
+In-Reply-To: <4E3530BC.9050108@redhat.com>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-2011/8/22 Jason Hecker <jwhecker@gmail.com>:
-> I just tried LiveCDs of Mythbuntu 10.04 and 10.10 but had limited luck
-> with the former and some joy with the latter.  Unfortunately the
-> default framebuffer slowed things down.  Anyway in LiveCD 10.10 I used
-> mplayer to set up and view Tuner A and Tuner B and Tuner A only showed
-> some slight errors when Tuner B was being set up.  After that for some
-> strange reason attempt at retuning with mplayer failed utterly so I
-> suspect there is some problems with the older versions of mplayer.
+Hi,
+
+On 07/31/2011 12:38 PM, Mauro Carvalho Chehab wrote:
+> Em 31-07-2011 04:57, Hans de Goede escreveu:
+>> Hi,
+>>
+>> I notice that Hans Verkuil's patches to make poll
+>> report what is being polled to drivers, and my corresponding
+>> patches for adding event support to pwc are not included,
+>> what is the plan with these?
 >
-> These cards have blue LEDs for each tuner and light up when in use.  I
-> did notice in my testing that the LED on tuner A would flicker off
-> briefly (and presumably issue the errors) when Tuner B was being set
-> up.  I am wondering if there is a general setup problem or even a I2S
-> timing problem.  Could someone contact me off list about sending me
-> the data sheets for the AF901x chips?
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->
+> The changes for the vfs code need vfs maintainer's ack, or to go
+> via their tree. So, we need to wait for them to merge/send it
+> upstream, before being able to merge the patches that depend on it.
 
-Hello again, yesterday I try to connect the KWorld USB Dual DVB-T TV
-Stick (DVB-T 399U) on my HTPC, I start MythTV and both tuners were
-working great, I could record a channel and watch an other one, both
-HD.
+Hmm, has anyone had any direct communications with the vfs maintainer
+about this? If not I think we should have some direct communications
+on this, otherwise we may end up waiting a long long time.
 
-But 2 hours later they start to watch bad, with pixeled images:
-http://dl.dropbox.com/u/1541853/kworld.3gp
+Regards,
 
-I don't know what happens with this tuner. I have two identical ones
-and both have same issues.
-
-I could share a SSH root access to everyone that want to test the
-tuner. I will install a fresh Debian Squeeze on my laptop and give
-full access to the machine.
-
-Anyone interested? I don't know what else to try with it.
-
-Thanks and best regards.
-
--- 
-Josu Lazkano
+Hans
