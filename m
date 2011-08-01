@@ -1,236 +1,156 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout1.w1.samsung.com ([210.118.77.11]:59856 "EHLO
-	mailout1.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752089Ab1HXJys (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 24 Aug 2011 05:54:48 -0400
-Received: from spt2.w1.samsung.com (mailout1.w1.samsung.com [210.118.77.11])
- by mailout1.w1.samsung.com
+Received: from mailout2.w1.samsung.com ([210.118.77.12]:41461 "EHLO
+	mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751859Ab1HAOvy (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 1 Aug 2011 10:51:54 -0400
+Received: from spt2.w1.samsung.com (mailout2.w1.samsung.com [210.118.77.12])
+ by mailout2.w1.samsung.com
  (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14 2004))
- with ESMTP id <0LQF00IIPFJAHH@mailout1.w1.samsung.com> for
- linux-media@vger.kernel.org; Wed, 24 Aug 2011 10:54:46 +0100 (BST)
+ with ESMTP id <0LP9002GO7YHZX@mailout2.w1.samsung.com> for
+ linux-media@vger.kernel.org; Mon, 01 Aug 2011 15:51:53 +0100 (BST)
 Received: from linux.samsung.com ([106.116.38.10])
  by spt2.w1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14
- 2004)) with ESMTPA id <0LQF00I4HFJ99X@spt2.w1.samsung.com> for
- linux-media@vger.kernel.org; Wed, 24 Aug 2011 10:54:46 +0100 (BST)
-Date: Wed, 24 Aug 2011 11:54:42 +0200
-From: Marek Szyprowski <m.szyprowski@samsung.com>
-Subject: [PATCH] media: vb2: change plane sizes array to unsigned int[]
+ 2004)) with ESMTPA id <0LP900K467YFS8@spt2.w1.samsung.com> for
+ linux-media@vger.kernel.org; Mon, 01 Aug 2011 15:51:51 +0100 (BST)
+Date: Mon, 01 Aug 2011 16:51:39 +0200
+From: Kamil Debski <k.debski@samsung.com>
+Subject: [PATCH] v4l2: Fix documentation of the codec device controls
 To: linux-media@vger.kernel.org
-Cc: Marek Szyprowski <m.szyprowski@samsung.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	Pawel Osciak <pawel@osciak.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Hans Verkuil <hverkuil@xs4all.nl>
-Message-id: <1314179682-8557-1-git-send-email-m.szyprowski@samsung.com>
+Cc: kyungmin.park@samsung.com, k.debski@samsung.com,
+	jaeryul.oh@samsung.com, rdunlap@xenotime.net, mchehab@infradead.org
+Message-id: <1312210299-8040-1-git-send-email-k.debski@samsung.com>
 MIME-version: 1.0
 Content-type: TEXT/PLAIN
 Content-transfer-encoding: 7BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Plane sizes array was declared as unsigned long[], while unsigned int is
-more than enough for storing size of the video buffer. This patch reduces
-the size of the array by definiting it as unsigned int[].
+Fixed missing ids of the codec controls description in the controls.xml file.
 
-Reported-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
+Signed-off-by: Kamil Debski <k.debski@samsung.com>
 Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
-CC: Pawel Osciak <pawel@osciak.com>
+Reported-by: Randy Dunlap <rdunlap@xenotime.net>
 ---
- drivers/media/video/atmel-isi.c              |    2 +-
- drivers/media/video/marvell-ccic/mcam-core.c |    2 +-
- drivers/media/video/mem2mem_testdev.c        |    2 +-
- drivers/media/video/mx3_camera.c             |    2 +-
- drivers/media/video/pwc/pwc-if.c             |    2 +-
- drivers/media/video/s5p-fimc/fimc-capture.c  |    2 +-
- drivers/media/video/s5p-fimc/fimc-core.c     |    2 +-
- drivers/media/video/s5p-mfc/s5p_mfc_dec.c    |    2 +-
- drivers/media/video/s5p-mfc/s5p_mfc_enc.c    |    2 +-
- drivers/media/video/s5p-tv/mixer_video.c     |    2 +-
- drivers/media/video/sh_mobile_ceu_camera.c   |    2 +-
- drivers/media/video/vivi.c                   |    2 +-
- include/media/videobuf2-core.h               |    4 ++--
- 13 files changed, 14 insertions(+), 14 deletions(-)
+Hi,
 
-diff --git a/drivers/media/video/atmel-isi.c b/drivers/media/video/atmel-isi.c
-index 7b89f00..5a4b2d7 100644
---- a/drivers/media/video/atmel-isi.c
-+++ b/drivers/media/video/atmel-isi.c
-@@ -249,7 +249,7 @@ static int atmel_isi_wait_status(struct atmel_isi *isi, int wait_reset)
- 	Videobuf operations
-    ------------------------------------------------------------------*/
- static int queue_setup(struct vb2_queue *vq, unsigned int *nbuffers,
--				unsigned int *nplanes, unsigned long sizes[],
-+				unsigned int *nplanes, unsigned int sizes[],
- 				void *alloc_ctxs[])
- {
- 	struct soc_camera_device *icd = soc_camera_from_vb2q(vq);
-diff --git a/drivers/media/video/marvell-ccic/mcam-core.c b/drivers/media/video/marvell-ccic/mcam-core.c
-index 83c1451..744cf37 100644
---- a/drivers/media/video/marvell-ccic/mcam-core.c
-+++ b/drivers/media/video/marvell-ccic/mcam-core.c
-@@ -884,7 +884,7 @@ static int mcam_read_setup(struct mcam_camera *cam)
-  */
+This patch fixes the problem with codec controls documentation reported by Randy
+in the following email:
+http://comments.gmane.org/gmane.linux.drivers.video-input-infrastructure/36288
+
+Thanks for reporting those errors.
+
+Best wishes,
+Kamil
+---
+ Documentation/DocBook/media/v4l/controls.xml |   24 ++++++++++++------------
+ 1 files changed, 12 insertions(+), 12 deletions(-)
+
+diff --git a/Documentation/DocBook/media/v4l/controls.xml b/Documentation/DocBook/media/v4l/controls.xml
+index 8516401..09d6872 100644
+--- a/Documentation/DocBook/media/v4l/controls.xml
++++ b/Documentation/DocBook/media/v4l/controls.xml
+@@ -1455,7 +1455,7 @@ Applicable to the H264 encoder.</entry>
+ 	      </row>
  
- static int mcam_vb_queue_setup(struct vb2_queue *vq, unsigned int *nbufs,
--		unsigned int *num_planes, unsigned long sizes[],
-+		unsigned int *num_planes, unsigned int sizes[],
- 		void *alloc_ctxs[])
- {
- 	struct mcam_camera *cam = vb2_get_drv_priv(vq);
-diff --git a/drivers/media/video/mem2mem_testdev.c b/drivers/media/video/mem2mem_testdev.c
-index 166bf93..0d0c0d5 100644
---- a/drivers/media/video/mem2mem_testdev.c
-+++ b/drivers/media/video/mem2mem_testdev.c
-@@ -739,7 +739,7 @@ static const struct v4l2_ioctl_ops m2mtest_ioctl_ops = {
-  */
+ 	      <row><entry></entry></row>
+-	      <row>
++	      <row id="v4l2-mpeg-video-h264-vui-sar-idc">
+ 		<entry spanname="id"><constant>V4L2_CID_MPEG_VIDEO_H264_VUI_SAR_IDC</constant>&nbsp;</entry>
+ 		<entry>enum&nbsp;v4l2_mpeg_video_h264_vui_sar_idc</entry>
+ 	      </row>
+@@ -1561,7 +1561,7 @@ Applicable to the H264 encoder.</entry>
+ 	      </row>
  
- static int m2mtest_queue_setup(struct vb2_queue *vq, unsigned int *nbuffers,
--				unsigned int *nplanes, unsigned long sizes[],
-+				unsigned int *nplanes, unsigned int sizes[],
- 				void *alloc_ctxs[])
- {
- 	struct m2mtest_ctx *ctx = vb2_get_drv_priv(vq);
-diff --git a/drivers/media/video/mx3_camera.c b/drivers/media/video/mx3_camera.c
-index c045b47..9ae7785 100644
---- a/drivers/media/video/mx3_camera.c
-+++ b/drivers/media/video/mx3_camera.c
-@@ -191,7 +191,7 @@ static void mx3_cam_dma_done(void *arg)
-  */
- static int mx3_videobuf_setup(struct vb2_queue *vq,
- 			unsigned int *count, unsigned int *num_planes,
--			unsigned long sizes[], void *alloc_ctxs[])
-+			unsigned int sizes[], void *alloc_ctxs[])
- {
- 	struct soc_camera_device *icd = soc_camera_from_vb2q(vq);
- 	struct soc_camera_host *ici = to_soc_camera_host(icd->parent);
-diff --git a/drivers/media/video/pwc/pwc-if.c b/drivers/media/video/pwc/pwc-if.c
-index 51ca358..a7e4f56 100644
---- a/drivers/media/video/pwc/pwc-if.c
-+++ b/drivers/media/video/pwc/pwc-if.c
-@@ -745,7 +745,7 @@ static int pwc_video_mmap(struct file *file, struct vm_area_struct *vma)
- /* Videobuf2 operations */
+ 	      <row><entry></entry></row>
+-	      <row>
++	      <row id="v4l2-mpeg-video-h264-level">
+ 		<entry spanname="id"><constant>V4L2_CID_MPEG_VIDEO_H264_LEVEL</constant>&nbsp;</entry>
+ 		<entry>enum&nbsp;v4l2_mpeg_video_h264_level</entry>
+ 	      </row>
+@@ -1641,7 +1641,7 @@ Possible values are:</entry>
+ 	      </row>
  
- static int queue_setup(struct vb2_queue *vq, unsigned int *nbuffers,
--				unsigned int *nplanes, unsigned long sizes[],
-+				unsigned int *nplanes, unsigned int sizes[],
- 				void *alloc_ctxs[])
- {
- 	struct pwc_device *pdev = vb2_get_drv_priv(vq);
-diff --git a/drivers/media/video/s5p-fimc/fimc-capture.c b/drivers/media/video/s5p-fimc/fimc-capture.c
-index 0d730e5..e6afe5f 100644
---- a/drivers/media/video/s5p-fimc/fimc-capture.c
-+++ b/drivers/media/video/s5p-fimc/fimc-capture.c
-@@ -265,7 +265,7 @@ static unsigned int get_plane_size(struct fimc_frame *fr, unsigned int plane)
- }
+ 	      <row><entry></entry></row>
+-	      <row>
++	      <row id="v4l2-mpeg-video-mpeg4-level">
+ 		<entry spanname="id"><constant>V4L2_CID_MPEG_VIDEO_MPEG4_LEVEL</constant>&nbsp;</entry>
+ 		<entry>enum&nbsp;v4l2_mpeg_video_mpeg4_level</entry>
+ 	      </row>
+@@ -1689,7 +1689,7 @@ Possible values are:</entry>
+ 	      </row>
  
- static int queue_setup(struct vb2_queue *vq, unsigned int *num_buffers,
--		       unsigned int *num_planes, unsigned long sizes[],
-+		       unsigned int *num_planes, unsigned int sizes[],
- 		       void *allocators[])
- {
- 	struct fimc_ctx *ctx = vq->drv_priv;
-diff --git a/drivers/media/video/s5p-fimc/fimc-core.c b/drivers/media/video/s5p-fimc/fimc-core.c
-index aa55066..36d127f 100644
---- a/drivers/media/video/s5p-fimc/fimc-core.c
-+++ b/drivers/media/video/s5p-fimc/fimc-core.c
-@@ -692,7 +692,7 @@ static void fimc_job_abort(void *priv)
- }
+ 	      <row><entry></entry></row>
+-	      <row>
++	      <row id="v4l2-mpeg-h264-profile">
+ 		<entry spanname="id"><constant>V4L2_CID_MPEG_VIDEO_H264_PROFILE</constant>&nbsp;</entry>
+ 		<entry>enum&nbsp;v4l2_mpeg_h264_profile</entry>
+ 	      </row>
+@@ -1774,7 +1774,7 @@ Possible values are:</entry>
+ 	      </row>
  
- static int fimc_queue_setup(struct vb2_queue *vq, unsigned int *num_buffers,
--			    unsigned int *num_planes, unsigned long sizes[],
-+			    unsigned int *num_planes, unsigned int sizes[],
- 			    void *allocators[])
- {
- 	struct fimc_ctx *ctx = vb2_get_drv_priv(vq);
-diff --git a/drivers/media/video/s5p-mfc/s5p_mfc_dec.c b/drivers/media/video/s5p-mfc/s5p_mfc_dec.c
-index b2c5052..dbc94b8 100644
---- a/drivers/media/video/s5p-mfc/s5p_mfc_dec.c
-+++ b/drivers/media/video/s5p-mfc/s5p_mfc_dec.c
-@@ -745,7 +745,7 @@ static const struct v4l2_ioctl_ops s5p_mfc_dec_ioctl_ops = {
- };
+ 	      <row><entry></entry></row>
+-	      <row>
++	      <row id="v4l2-mpeg-mpeg4-profile">
+ 		<entry spanname="id"><constant>V4L2_CID_MPEG_VIDEO_MPEG4_PROFILE</constant>&nbsp;</entry>
+ 		<entry>enum&nbsp;v4l2_mpeg_mpeg4_profile</entry>
+ 	      </row>
+@@ -1820,7 +1820,7 @@ Applicable to the encoder.
+ 	      </row>
  
- static int s5p_mfc_queue_setup(struct vb2_queue *vq, unsigned int *buf_count,
--			       unsigned int *plane_count, unsigned long psize[],
-+			       unsigned int *plane_count, unsigned int psize[],
- 			       void *allocators[])
- {
- 	struct s5p_mfc_ctx *ctx = fh_to_ctx(vq->drv_priv);
-diff --git a/drivers/media/video/s5p-mfc/s5p_mfc_enc.c b/drivers/media/video/s5p-mfc/s5p_mfc_enc.c
-index fee094a..019a9e7 100644
---- a/drivers/media/video/s5p-mfc/s5p_mfc_enc.c
-+++ b/drivers/media/video/s5p-mfc/s5p_mfc_enc.c
-@@ -1514,7 +1514,7 @@ static int check_vb_with_fmt(struct s5p_mfc_fmt *fmt, struct vb2_buffer *vb)
+ 	      <row><entry></entry></row>
+-	      <row>
++	      <row id="v4l2-mpeg-multi-slice-mode">
+ 		<entry spanname="id"><constant>V4L2_CID_MPEG_VIDEO_MULTI_SLICE_MODE</constant>&nbsp;</entry>
+ 		<entry>enum&nbsp;v4l2_mpeg_multi_slice_mode</entry>
+ 	      </row>
+@@ -1868,7 +1868,7 @@ Applicable to the encoder.</entry>
+ 	      </row>
  
- static int s5p_mfc_queue_setup(struct vb2_queue *vq,
- 		       unsigned int *buf_count, unsigned int *plane_count,
--		       unsigned long psize[], void *allocators[])
-+		       unsigned int psize[], void *allocators[])
- {
- 	struct s5p_mfc_ctx *ctx = fh_to_ctx(vq->drv_priv);
+ 	      <row><entry></entry></row>
+-	      <row>
++	      <row id="v4l2-mpeg-h264-loop-filter-mode">
+ 		<entry spanname="id"><constant>V4L2_CID_MPEG_VIDEO_H264_LOOP_FILTER_MODE</constant>&nbsp;</entry>
+ 		<entry>enum&nbsp;v4l2_mpeg_h264_loop_filter_mode</entry>
+ 	      </row>
+@@ -1913,9 +1913,9 @@ Applicable to the H264 encoder.</entry>
+ 	      </row>
  
-diff --git a/drivers/media/video/s5p-tv/mixer_video.c b/drivers/media/video/s5p-tv/mixer_video.c
-index 43ac22f..8bea0f3 100644
---- a/drivers/media/video/s5p-tv/mixer_video.c
-+++ b/drivers/media/video/s5p-tv/mixer_video.c
-@@ -728,7 +728,7 @@ static const struct v4l2_file_operations mxr_fops = {
- };
+ 	      <row><entry></entry></row>
+-	      <row>
++	      <row id="v4l2-mpeg-h264-entropy-mode">
+ 		<entry spanname="id"><constant>V4L2_CID_MPEG_VIDEO_H264_ENTROPY_MODE</constant>&nbsp;</entry>
+-		<entry>enum&nbsp;v4l2_mpeg_h264_symbol_mode</entry>
++		<entry>enum&nbsp;v4l2_mpeg_h264_entropy_mode</entry>
+ 	      </row>
+ 	      <row><entry spanname="descr">Entropy coding mode for H264 - CABAC/CAVALC.
+ Applicable to the H264 encoder.
+@@ -2140,7 +2140,7 @@ previous frames. Applicable to the H264 encoder.</entry>
+ 	      </row>
  
- static int queue_setup(struct vb2_queue *vq, unsigned int *nbuffers,
--	unsigned int *nplanes, unsigned long sizes[],
-+	unsigned int *nplanes, unsigned int sizes[],
- 	void *alloc_ctxs[])
- {
- 	struct mxr_layer *layer = vb2_get_drv_priv(vq);
-diff --git a/drivers/media/video/sh_mobile_ceu_camera.c b/drivers/media/video/sh_mobile_ceu_camera.c
-index e540898..f4f95ab 100644
---- a/drivers/media/video/sh_mobile_ceu_camera.c
-+++ b/drivers/media/video/sh_mobile_ceu_camera.c
-@@ -218,7 +218,7 @@ static int sh_mobile_ceu_soft_reset(struct sh_mobile_ceu_dev *pcdev)
-  */
- static int sh_mobile_ceu_videobuf_setup(struct vb2_queue *vq,
- 			unsigned int *count, unsigned int *num_planes,
--			unsigned long sizes[], void *alloc_ctxs[])
-+			unsigned int sizes[], void *alloc_ctxs[])
- {
- 	struct soc_camera_device *icd = container_of(vq, struct soc_camera_device, vb2_vidq);
- 	struct soc_camera_host *ici = to_soc_camera_host(icd->parent);
-diff --git a/drivers/media/video/vivi.c b/drivers/media/video/vivi.c
-index a848bd2..26eda47 100644
---- a/drivers/media/video/vivi.c
-+++ b/drivers/media/video/vivi.c
-@@ -651,7 +651,7 @@ static void vivi_stop_generating(struct vivi_dev *dev)
- 	Videobuf operations
-    ------------------------------------------------------------------*/
- static int queue_setup(struct vb2_queue *vq, unsigned int *nbuffers,
--				unsigned int *nplanes, unsigned long sizes[],
-+				unsigned int *nplanes, unsigned int sizes[],
- 				void *alloc_ctxs[])
- {
- 	struct vivi_dev *dev = vb2_get_drv_priv(vq);
-diff --git a/include/media/videobuf2-core.h b/include/media/videobuf2-core.h
-index 984f2ba..5287e90 100644
---- a/include/media/videobuf2-core.h
-+++ b/include/media/videobuf2-core.h
-@@ -208,7 +208,7 @@ struct vb2_buffer {
-  */
- struct vb2_ops {
- 	int (*queue_setup)(struct vb2_queue *q, unsigned int *num_buffers,
--			   unsigned int *num_planes, unsigned long sizes[],
-+			   unsigned int *num_planes, unsigned int sizes[],
- 			   void *alloc_ctxs[]);
- 
- 	void (*wait_prepare)(struct vb2_queue *q);
-@@ -273,7 +273,7 @@ struct vb2_queue {
- 	wait_queue_head_t		done_wq;
- 
- 	void				*alloc_ctx[VIDEO_MAX_PLANES];
--	unsigned long			plane_sizes[VIDEO_MAX_PLANES];
-+	unsigned int			plane_sizes[VIDEO_MAX_PLANES];
- 
- 	unsigned int			streaming:1;
- 
+ 	      <row><entry></entry></row>
+-	      <row>
++	      <row id="v4l2-mpeg-header-mode">
+ 		<entry spanname="id"><constant>V4L2_CID_MPEG_VIDEO_HEADER_MODE</constant>&nbsp;</entry>
+ 		<entry>enum&nbsp;v4l2_mpeg_header_mode</entry>
+ 	      </row>
+@@ -2320,7 +2320,7 @@ Valid only when H.264 and macroblock level RC is enabled (<constant>V4L2_CID_MPE
+ Applicable to the H264 encoder.</entry>
+ 	      </row>
+ 	      <row><entry></entry></row>
+-	      <row>
++	      <row id="v4l2-mpeg-mfc51-frame-skip-mode">
+ 		<entry spanname="id"><constant>V4L2_CID_MPEG_MFC51_VIDEO_FRAME_SKIP_MODE</constant>&nbsp;</entry>
+ 		<entry>enum&nbsp;v4l2_mpeg_mfc51_frame_skip_mode</entry>
+ 	      </row>
+@@ -2361,7 +2361,7 @@ the stream will meet tight bandwidth contraints. Applicable to encoders.
+ </entry>
+ 	      </row>
+ 	      <row><entry></entry></row>
+-	      <row>
++	      <row id="v4l2-mpeg-mfc51-force-frame-type">
+ 		<entry spanname="id"><constant>V4L2_CID_MPEG_MFC51_VIDEO_FORCE_FRAME_TYPE</constant>&nbsp;</entry>
+ 		<entry>enum&nbsp;v4l2_mpeg_mfc51_force_frame_type</entry>
+ 	      </row>
 -- 
-1.7.1.569.g6f426
+1.6.3.3
 
