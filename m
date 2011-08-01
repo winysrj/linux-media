@@ -1,75 +1,105 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ww0-f44.google.com ([74.125.82.44]:39910 "EHLO
-	mail-ww0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751452Ab1GaS1s (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 31 Jul 2011 14:27:48 -0400
-Received: by wwe5 with SMTP id 5so4960599wwe.1
-        for <linux-media@vger.kernel.org>; Sun, 31 Jul 2011 11:27:47 -0700 (PDT)
-From: Patrick Boettcher <pboettcher@kernellabs.com>
-To: Antti Palosaari <crope@iki.fi>
-Subject: Re: [PATCH 2/3] dvb-usb: multi-frontend support (MFE)
-Date: Sun, 31 Jul 2011 20:28:01 +0200
-Cc: Malcolm Priestley <tvboxspy@gmail.com>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	linux-media@vger.kernel.org
-References: <4E2E0788.3010507@iki.fi> <1311804451.9058.20.camel@localhost> <4E308FCA.9090509@iki.fi>
-In-Reply-To: <4E308FCA.9090509@iki.fi>
+Received: from mx1.redhat.com ([209.132.183.28]:12409 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753024Ab1HACYa (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 31 Jul 2011 22:24:30 -0400
+Message-ID: <4E360E53.80107@redhat.com>
+Date: Sun, 31 Jul 2011 23:24:19 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="us-ascii"
+To: Antti Palosaari <crope@iki.fi>
+CC: linux-media@vger.kernel.org
+Subject: Re: [PATCH 2/3] dvb-usb: multi-frontend support (MFE)
+References: <4E2E0788.3010507@iki.fi> <4E3061CF.2080009@redhat.com> <4E306BAE.1020302@iki.fi> <4E35F773.3060807@redhat.com> <4E35FFBF.9010408@iki.fi>
+In-Reply-To: <4E35FFBF.9010408@iki.fi>
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 7bit
-Message-Id: <201107312028.02342.pboettcher@kernellabs.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thursday 28 July 2011 00:23:06 Antti Palosaari wrote:
-> On 07/28/2011 01:07 AM, Malcolm Priestley wrote:
-> > On Wed, 2011-07-27 at 16:06 -0300, Mauro Carvalho Chehab wrote:
-> >> Em 25-07-2011 21:17, Antti Palosaari escreveu:
-> >>> Signed-off-by: Antti Palosaari<crope@iki.fi>
-> >>> 
-> >>> +            adap->fe[i] = NULL;
-> >>> +            /* In error case, do not try register more FEs,
-> >>> +             * still leaving already registered FEs alive. */
-> >> 
-> >> I think that the proper thing to do is to detach everything, if one of
-> >> the attach fails. There isn't much sense on keeping the device
-> >> partially initialized.
-> >> 
-> >> From memory, I recall the existing code doesn't detach the frontend
-> >> even
-> > 
-> > if the device driver forces an error. So, the device driver must detach
-> > the frontend first.
+Em 31-07-2011 22:22, Antti Palosaari escreveu:
+> On 08/01/2011 03:46 AM, Mauro Carvalho Chehab wrote:
+>> Em 27-07-2011 16:49, Antti Palosaari escreveu:
+>>> On 07/27/2011 10:06 PM, Mauro Carvalho Chehab wrote:
+>>>
+>>>>> +    for (i = 0; i<= x; i++) {
+>>>>> +        ret = adap->props.frontend_attach(adap);
+>>>>> +        if (ret || adap->fe[i] == NULL) {
+>>>>> +            /* only print error when there is no FE at all */
+>>>>> +            if (i == 0)
+>>>>> +                err("no frontend was attached by '%s'",
+>>>>> +                    adap->dev->desc->name);
+>>>>
+>>>> This doesn't seem right. One thing is to accept adap->fe[1] to be
+>>>> NULL. Another thing is to accept an error at the attach. IMO, the
+>>>> logic should be something like:
+>>>>
+>>>>     if (ret<  0)
+>>>>         return ret;
+>>>>
+>>>>     if (!i&&  !adap->fe[0]) {
+>>>>         err("no adapter!");
+>>>>         return -ENODEV;
+>>>>     }
+>>>
+>>> Heh, I tried to keep it functioning as earlier not to break anything! Only thing it does now differently is that it keeps silent when 2nd FE attach fails since we don't know always before fe attach if there is fe or not.
+>>>
+>>> So since it *does not change old behaviour* it must be OK. Let fix old problems later. There is millions of DVB USB callbacks failing silently - like tuner_attach etc.
+>>>
+>>> Surely I want also fix many old issues but it is always too risky.
+>>
+>> Added support for DRX-K way at dvb-usb:
+>>
+>> http://git.linuxtv.org/mchehab/experimental.git/commitdiff/765b3db218f1e9af6432251c2ebe59bc9660cd42
+>> http://git.linuxtv.org/mchehab/experimental.git/commitdiff/37fa5797c58068cc60cca6829bd662cd4f883cfa
+>>
+>> One bad thing I noticed with the API is that it calls adap->props.frontend_attach(adap)
+>> several times, instead of just one, without even passing an argument for the driver to
+>> know that it was called twice.
+>>
+>> IMO, there are two ways of doing the attach:
+>>
+>> 1) call it only once, and, inside the driver, it will loop to add the other FE's;
+>> 2) add a parameter, at the call, to say what FE needs to be initialized.
+>>
+>> I think (1) is preferred, as it is more flexible, allowing the driver to test for
+>> several types of frontends.
 > 
-> Yes, if you return for example error (or fe == NULL) for .tuner_attach()
-> it does not detach or deregister it - just silently discard all. I
-> thought very many times those when implementing this and keep very
-> careful not to change old functionality.
-> 
-> > The trouble is that dvb-usb is becoming dated as new drivers tend to
-> > work around it. No one likes to touch it, out of fear of breaking
-> > existing drivers.
-> 
-> Yes, so true. I have thought that too. There is a lot of things I want
-> to change but those are very hard without massive work.
-> 
-> * We should have priv at the very first. No priv for FW DL example.
-> * Remote keytable should be property of certain device model not adapter
-> * There should be way to set count of adapter (and fe) in runtime (this
-> is why I allowed to fail 2nd FE attach silently)
-> * no probe (read eeprom etc) callback (I think read MAC could be renamed
-> for probe)
-> * no FE power control (GPIOs etc) that MFE patch adds this too
-> * maybe probe1 and probe2 callbacks needed. sequence something like plug
-> device => probe1 => download FW => probe2 => attach demod
+> For more you add configuration parameters more it goes complex. Now it
+> calls attach as many times as .num_frontends is set in adapter
+> configuration.
 
-If I had more time I'd add 
+True, but even on a device with separate frontends, it needs to have
+some way to track what's the fe number that is free, and even this
+won't work.
 
-* handle suspend/resume calls properly for buggy USB firmwares (iow: all 
-devices I saw)
+The logic there expects that, for the first call, it will fill fe[0],
+for the second call, it will fill fe[1], and so on. If, for whatever
+reason, a call to for fe[0] fails, the driver may do the wrong thing,
+e. g. it may be filling fe[0] while fe[1] is expected, fe[1] while fe[2]
+is expected, and so on.
 
---
-Patrick Boettcher - KernelLabs
-http://www.kernellabs.com/
+As I said before: or it should be called once, or it needs to pass a 
+parameter to the driver to indicate what fe is expected to be filled.
+
+> It is currently only DRX-K frontend which does not behave
+> like other FEs. You have added similar hacks to em28xx and now DVB USB.
+> Maybe it could be easier to change DRX-K driver to attach and register
+> as others. Also I see it very easy at least in theory to register as one
+> DRX-K FE normally and then hack 2nd FE in device driver (which is I
+> think done other drivers using that chip too).
+
+The current way of handling DRX-K is a temporary solution, while we don't come
+to a conclusion about how should we address a single frontend, like DRX-K,
+that supports multiple delivery systems.
+
+I agree that this is ugly, but mapping the same frontend as two separate FE's
+is also ugly.
+
+When MFE were first added, it were to be used by two different frontends. When
+the same FE implements more than one delivery system, there are currently two
+ways of implementing it: using MFE, or using DVB S2API. Both ways are currently
+used, depending on the delivery systems. This is messy.
+
+Regards,
+Mauro.
