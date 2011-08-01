@@ -1,117 +1,174 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:65022 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753279Ab1HKINZ (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 11 Aug 2011 04:13:25 -0400
-Message-ID: <4E438F69.4030902@redhat.com>
-Date: Thu, 11 Aug 2011 10:14:33 +0200
-From: Hans de Goede <hdegoede@redhat.com>
-MIME-Version: 1.0
-To: Alan Stern <stern@rowland.harvard.edu>
-CC: Theodore Kilgore <kilgota@banach.math.auburn.edu>,
-	Sarah Sharp <sarah.a.sharp@linux.intel.com>,
-	Greg KH <greg@kroah.com>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	linux-usb@vger.kernel.org, linux-media@vger.kernel.org,
-	linux-kernel@vger.kernel.org, libusb-devel@lists.sourceforge.net,
-	Alexander Graf <agraf@suse.de>,
-	Gerd Hoffmann <kraxel@redhat.com>, hector@marcansoft.com,
-	Jan Kiszka <jan.kiszka@siemens.com>,
-	Stefan Hajnoczi <stefanha@linux.vnet.ibm.com>,
-	pbonzini@redhat.com, Anthony Liguori <aliguori@us.ibm.com>,
-	Jes Sorensen <Jes.Sorensen@redhat.com>,
-	Oliver Neukum <oliver@neukum.org>, Felipe Balbi <balbi@ti.com>,
-	Clemens Ladisch <clemens@ladisch.de>,
-	Jaroslav Kysela <perex@perex.cz>, Takashi Iwai <tiwai@suse.de>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Adam Baker <linux@baker-net.org.uk>
-Subject: Re: USB mini-summit at LinuxCon Vancouver
-References: <Pine.LNX.4.44L0.1108101156350.1917-100000@iolanthe.rowland.org>
-In-Reply-To: <Pine.LNX.4.44L0.1108101156350.1917-100000@iolanthe.rowland.org>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Received: from oproxy8-pub.bluehost.com ([69.89.22.20]:59996 "HELO
+	oproxy8-pub.bluehost.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1752946Ab1HARXu (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 1 Aug 2011 13:23:50 -0400
+Date: Mon, 1 Aug 2011 10:23:46 -0700
+From: Randy Dunlap <rdunlap@xenotime.net>
+To: Kamil Debski <k.debski@samsung.com>
+Cc: linux-media@vger.kernel.org, kyungmin.park@samsung.com,
+	jaeryul.oh@samsung.com, mchehab@infradead.org
+Subject: Re: [PATCH] v4l2: Fix documentation of the codec device controls
+Message-Id: <20110801102346.0b2b9126.rdunlap@xenotime.net>
+In-Reply-To: <1312210299-8040-1-git-send-email-k.debski@samsung.com>
+References: <1312210299-8040-1-git-send-email-k.debski@samsung.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+On Mon, 01 Aug 2011 16:51:39 +0200 Kamil Debski wrote:
+
+> Fixed missing ids of the codec controls description in the controls.xml file.
+> 
+> Signed-off-by: Kamil Debski <k.debski@samsung.com>
+> Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+> Reported-by: Randy Dunlap <rdunlap@xenotime.net>
+> ---
+> Hi,
+> 
+> This patch fixes the problem with codec controls documentation reported by Randy
+> in the following email:
+> http://comments.gmane.org/gmane.linux.drivers.video-input-infrastructure/36288
+> 
+> Thanks for reporting those errors.
+> 
+> Best wishes,
+> Kamil
+
 Hi,
+This patch eliminates some (3) of the reported errors, but not all of them.
 
-On 08/10/2011 06:09 PM, Alan Stern wrote:
-> On Wed, 10 Aug 2011, Theodore Kilgore wrote:
->
->>> Okay, I didn't realize that the different cameras used different webcam
->>> drivers as well as different stillcam drivers.
->>
->> Oh, yes. They are Proprietary devices. And that means what it says. :-)
->> And all different from each other, too.
->>
->>> As far as I can see, there's nothing to stop anybody from adding the
->>> stillcam functionality into the webcam drivers right now.  If some
->>> common code can be abstracted out into a shared source file, so much
->>> the better.
->>>
->>> That would solve the problem, right?
->>
->> I think everyone involved believes that it would solve the problem.
->>
->> The question has been all along whether or not there is any other way
->> which would work. Also the question of what, exactly, "belongs" in the
->> kernel and what does not. For, if something has been historically
->> supported in userspace (stillcam support, in this case) and has worked
->> well there, I would think it is kind of too bad to have to move said
->> support into the kernel just because the same hardware requires kernel
->> support for another functionality and the two sides clash. I mean, the
->> kernel is already big enough, no? But the logic that Hans has set forth
->> seems rather compelling.
->
-> The alternative seems to be to define a device-sharing protocol for USB
-> drivers.  Kernel drivers would implement a new callback (asking them to
-> give up control of the device), and usbfs would implement new ioctls by
-> which a program could ask for and relinquish control of a device.  The
-> amount of rewriting needed would be relatively small.
->
-> A few loose ends would remain, such as how to handle suspends, resumes,
-> resets, and disconnects.  Assuming usbfs is the only driver that will
-> want to share a device in this way, we could handle them.
->
-> Hans, what do you think?
->
+The fixed ones are:
+Error: no ID for constraint linkend: v4l2-mpeg-video-h264-level.
+Error: no ID for constraint linkend: v4l2-mpeg-video-h264-vui-sar-idc.
+Error: no ID for constraint linkend: v4l2-mpeg-video-mpeg4-level.
 
-First of all thanks for the constructive input!
+but I still see these:
+Error: no ID for constraint linkend: v4l2-mpeg-video-header-mode.
+Error: no ID for constraint linkend: v4l2-mpeg-video-multi-slice-mode.
+Error: no ID for constraint linkend: v4l2-mpeg-video-h264-entropy-mode.
+Error: no ID for constraint linkend: v4l2-mpeg-video-h264-loop-filter-mode.
+Error: no ID for constraint linkend: v4l2-mpeg-video-h264-profile.
+Error: no ID for constraint linkend: v4l2-mpeg-video-mpeg4-profile.
+Error: no ID for constraint linkend: v4l2-mpeg-mfc51-video-frame-skip-mode.
+Error: no ID for constraint linkend: v4l2-mpeg-mfc51-video-force-frame-type.
 
-When you say: "device-sharing protocol", do you mean 2 drivers been
-attached, but only 1 being active. Or just some additional glue to make
-hand-over between them work better?
 
-I've 2 concerns with this approach:
-1) Assuming we are going for the just make hand over work better solution
-we will still have the whole disappear / reappear act of the /dev/video#
-node, which I don't like at all.
+> ---
+>  Documentation/DocBook/media/v4l/controls.xml |   24 ++++++++++++------------
+>  1 files changed, 12 insertions(+), 12 deletions(-)
+> 
+> diff --git a/Documentation/DocBook/media/v4l/controls.xml b/Documentation/DocBook/media/v4l/controls.xml
+> index 8516401..09d6872 100644
+> --- a/Documentation/DocBook/media/v4l/controls.xml
+> +++ b/Documentation/DocBook/media/v4l/controls.xml
+> @@ -1455,7 +1455,7 @@ Applicable to the H264 encoder.</entry>
+>  	      </row>
+>  
+>  	      <row><entry></entry></row>
+> -	      <row>
+> +	      <row id="v4l2-mpeg-video-h264-vui-sar-idc">
+>  		<entry spanname="id"><constant>V4L2_CID_MPEG_VIDEO_H264_VUI_SAR_IDC</constant>&nbsp;</entry>
+>  		<entry>enum&nbsp;v4l2_mpeg_video_h264_vui_sar_idc</entry>
+>  	      </row>
+> @@ -1561,7 +1561,7 @@ Applicable to the H264 encoder.</entry>
+>  	      </row>
+>  
+>  	      <row><entry></entry></row>
+> -	      <row>
+> +	      <row id="v4l2-mpeg-video-h264-level">
+>  		<entry spanname="id"><constant>V4L2_CID_MPEG_VIDEO_H264_LEVEL</constant>&nbsp;</entry>
+>  		<entry>enum&nbsp;v4l2_mpeg_video_h264_level</entry>
+>  	      </row>
+> @@ -1641,7 +1641,7 @@ Possible values are:</entry>
+>  	      </row>
+>  
+>  	      <row><entry></entry></row>
+> -	      <row>
+> +	      <row id="v4l2-mpeg-video-mpeg4-level">
+>  		<entry spanname="id"><constant>V4L2_CID_MPEG_VIDEO_MPEG4_LEVEL</constant>&nbsp;</entry>
+>  		<entry>enum&nbsp;v4l2_mpeg_video_mpeg4_level</entry>
+>  	      </row>
+> @@ -1689,7 +1689,7 @@ Possible values are:</entry>
+>  	      </row>
+>  
+>  	      <row><entry></entry></row>
+> -	      <row>
+> +	      <row id="v4l2-mpeg-h264-profile">
+>  		<entry spanname="id"><constant>V4L2_CID_MPEG_VIDEO_H264_PROFILE</constant>&nbsp;</entry>
+>  		<entry>enum&nbsp;v4l2_mpeg_h264_profile</entry>
+>  	      </row>
+> @@ -1774,7 +1774,7 @@ Possible values are:</entry>
+>  	      </row>
+>  
+>  	      <row><entry></entry></row>
+> -	      <row>
+> +	      <row id="v4l2-mpeg-mpeg4-profile">
+>  		<entry spanname="id"><constant>V4L2_CID_MPEG_VIDEO_MPEG4_PROFILE</constant>&nbsp;</entry>
+>  		<entry>enum&nbsp;v4l2_mpeg_mpeg4_profile</entry>
+>  	      </row>
+> @@ -1820,7 +1820,7 @@ Applicable to the encoder.
+>  	      </row>
+>  
+>  	      <row><entry></entry></row>
+> -	      <row>
+> +	      <row id="v4l2-mpeg-multi-slice-mode">
+>  		<entry spanname="id"><constant>V4L2_CID_MPEG_VIDEO_MULTI_SLICE_MODE</constant>&nbsp;</entry>
+>  		<entry>enum&nbsp;v4l2_mpeg_multi_slice_mode</entry>
+>  	      </row>
+> @@ -1868,7 +1868,7 @@ Applicable to the encoder.</entry>
+>  	      </row>
+>  
+>  	      <row><entry></entry></row>
+> -	      <row>
+> +	      <row id="v4l2-mpeg-h264-loop-filter-mode">
+>  		<entry spanname="id"><constant>V4L2_CID_MPEG_VIDEO_H264_LOOP_FILTER_MODE</constant>&nbsp;</entry>
+>  		<entry>enum&nbsp;v4l2_mpeg_h264_loop_filter_mode</entry>
+>  	      </row>
+> @@ -1913,9 +1913,9 @@ Applicable to the H264 encoder.</entry>
+>  	      </row>
+>  
+>  	      <row><entry></entry></row>
+> -	      <row>
+> +	      <row id="v4l2-mpeg-h264-entropy-mode">
+>  		<entry spanname="id"><constant>V4L2_CID_MPEG_VIDEO_H264_ENTROPY_MODE</constant>&nbsp;</entry>
+> -		<entry>enum&nbsp;v4l2_mpeg_h264_symbol_mode</entry>
+> +		<entry>enum&nbsp;v4l2_mpeg_h264_entropy_mode</entry>
+>  	      </row>
+>  	      <row><entry spanname="descr">Entropy coding mode for H264 - CABAC/CAVALC.
+>  Applicable to the H264 encoder.
+> @@ -2140,7 +2140,7 @@ previous frames. Applicable to the H264 encoder.</entry>
+>  	      </row>
+>  
+>  	      <row><entry></entry></row>
+> -	      <row>
+> +	      <row id="v4l2-mpeg-header-mode">
+>  		<entry spanname="id"><constant>V4L2_CID_MPEG_VIDEO_HEADER_MODE</constant>&nbsp;</entry>
+>  		<entry>enum&nbsp;v4l2_mpeg_header_mode</entry>
+>  	      </row>
+> @@ -2320,7 +2320,7 @@ Valid only when H.264 and macroblock level RC is enabled (<constant>V4L2_CID_MPE
+>  Applicable to the H264 encoder.</entry>
+>  	      </row>
+>  	      <row><entry></entry></row>
+> -	      <row>
+> +	      <row id="v4l2-mpeg-mfc51-frame-skip-mode">
+>  		<entry spanname="id"><constant>V4L2_CID_MPEG_MFC51_VIDEO_FRAME_SKIP_MODE</constant>&nbsp;</entry>
+>  		<entry>enum&nbsp;v4l2_mpeg_mfc51_frame_skip_mode</entry>
+>  	      </row>
+> @@ -2361,7 +2361,7 @@ the stream will meet tight bandwidth contraints. Applicable to encoders.
+>  </entry>
+>  	      </row>
+>  	      <row><entry></entry></row>
+> -	      <row>
+> +	      <row id="v4l2-mpeg-mfc51-force-frame-type">
+>  		<entry spanname="id"><constant>V4L2_CID_MPEG_MFC51_VIDEO_FORCE_FRAME_TYPE</constant>&nbsp;</entry>
+>  		<entry>enum&nbsp;v4l2_mpeg_mfc51_force_frame_type</entry>
+>  	      </row>
+> -- 
 
-If for example skype gets started it will say the user has no camera. If it
-were to say the device is busy, the user just might make a link to some
-application using the device in stillcam mode still being open.
 
-2) The whole notion of the device being in use is rather vague when it comes
-to the userspace parts of this. Simply leaving say F-Spot running, or having
-a gvfs libgphoto share mounted, should not lead to not being able to use the
-device in webcam mode. But currently it will.
-
-Fixing all users of libgphoto2 wrt this is unlikely to happen, and even if
-we do that now, more broken ones will likely come along later. I estimate
-98% of all cameras are not dual mode cameras, so the average stillcam
-application developer will not test for this.
-
-That leaves us with fixing the busy notion inside libgphoto2, iow, release
-the device as soon as an operation has completed. This will be quite slow,
-since both drivers don't know anything about each other, they will just
-know there is some $random_other_driver. So they need to assume the
-device state is unclean and re-init the device from scratch each time.
-
-Where as if we have both functions in one driver, that can remember the
-actual device state and only make changes if needed, so downloading +
-deleting 10 photos will lead to setting it to stillcam mode once, rather
-then 20 times.
-
-Regards,
-
-Hans
+---
+~Randy
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
