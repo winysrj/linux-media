@@ -1,103 +1,96 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:57523 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750807Ab1HIU4C (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 9 Aug 2011 16:56:02 -0400
-Message-ID: <4E419F2C.6070707@redhat.com>
-Date: Tue, 09 Aug 2011 22:57:16 +0200
-From: Hans de Goede <hdegoede@redhat.com>
-MIME-Version: 1.0
-To: Adam Baker <linux@baker-net.org.uk>
-CC: Alan Stern <stern@rowland.harvard.edu>,
-	Sarah Sharp <sarah.a.sharp@linux.intel.com>,
-	Greg KH <greg@kroah.com>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	linux-usb@vger.kernel.org, linux-media@vger.kernel.org,
-	linux-kernel@vger.kernel.org, libusb-devel@lists.sourceforge.net,
-	Alexander Graf <agraf@suse.de>,
-	Gerd Hoffmann <kraxel@redhat.com>, hector@marcansoft.com,
-	Jan Kiszka <jan.kiszka@siemens.com>,
-	Stefan Hajnoczi <stefanha@linux.vnet.ibm.com>,
-	pbonzini@redhat.com, Anthony Liguori <aliguori@us.ibm.com>,
-	Jes Sorensen <Jes.Sorensen@redhat.com>,
-	Oliver Neukum <oliver@neukum.org>, Felipe Balbi <balbi@ti.com>,
-	Clemens Ladisch <clemens@ladisch.de>,
-	Jaroslav Kysela <perex@perex.cz>, Takashi Iwai <tiwai@suse.de>,
+Received: from moutng.kundenserver.de ([212.227.126.187]:60109 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751710Ab1HAPFh (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 1 Aug 2011 11:05:37 -0400
+Date: Mon, 1 Aug 2011 17:05:04 +0200 (CEST)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Sakari Ailus <sakari.ailus@iki.fi>
+cc: Hans Verkuil <hverkuil@xs4all.nl>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
 	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Theodore Kilgore <kilgota@banach.math.auburn.edu>
-Subject: Re: USB mini-summit at LinuxCon Vancouver
-References: <Pine.LNX.4.44L0.1108091016380.1949-100000@iolanthe.rowland.org> <4E41912F.50901@redhat.com> <201108092131.03818.linux@baker-net.org.uk>
-In-Reply-To: <201108092131.03818.linux@baker-net.org.uk>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Pawel Osciak <pawel@osciak.com>
+Subject: Re: [PATCH v3] V4L: add two new ioctl()s for multi-size videobuffer
+ management
+In-Reply-To: <4E36BE4F.7080704@iki.fi>
+Message-ID: <Pine.LNX.4.64.1108011704290.30975@axis700.grange>
+References: <Pine.LNX.4.64.1107201025120.12084@axis700.grange>
+ <201107261305.29863.hverkuil@xs4all.nl> <20110726114427.GC32507@valkosipuli.localdomain>
+ <201107261357.31673.hverkuil@xs4all.nl> <Pine.LNX.4.64.1108011031150.30975@axis700.grange>
+ <4E36BE4F.7080704@iki.fi>
+MIME-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+On Mon, 1 Aug 2011, Sakari Ailus wrote:
 
-On 08/09/2011 10:31 PM, Adam Baker wrote:
-> On Tuesday 09 August 2011, Hans de Goede wrote:
+> Guennadi Liakhovetski wrote:
+> > On Tue, 26 Jul 2011, Hans Verkuil wrote:
+> > 
+> >> On Tuesday, July 26, 2011 13:44:28 Sakari Ailus wrote:
+> >>> Hi Hans and Guennadi,
+> >>
+> >> <snip>
+> >>
+> >>>> I realized that it is not clear from the documentation whether it is possible to call
+> >>>> VIDIOC_REQBUFS and make additional calls to VIDIOC_CREATE_BUFS afterwards.
+> >>>
+> >>> That's actually a must if one wants to release buffers. Currently no other
+> >>> method than requesting 0 buffers using REQBUFS is provided (apart from
+> >>> closing the file handle).
+> >>
+> >> I was referring to the non-0 use-case :-)
+> >>
+> >>>> I can't remember whether the code allows it or not, but it should be clearly documented.
+> >>>
+> >>> I would guess no user application would have to call REQBUFS with other than
+> >>> zero buffers when using CREATE_BUFS. This must be an exception if mixing
+> >>> REQBUFS and CREATE_BUFS is not allowed in general. That said, I don't see a
+> >>> reason to prohibit either, but perhaps Guennadi has more informed opinion
+> >>> on this.
+> >>  
+> >> <snip>
+> >>
+> >>>>>>> Future functionality which would be nice:
+> >>>>>>>
+> >>>>>>> - Format counters. Every format set by S_FMT (or gotten by G_FMT) should
+> >>>>>>>   come with a counter value so that the user would know the format of
+> >>>>>>>   dequeued buffers when setting the format on-the-fly. Currently there are
+> >>>>>>>   only bytesperline and length, but the format can't be explicitly
+> >>>>>>>   determined from those.
+> >>>>
+> >>>> Actually, the index field will give you that information. When you create the
+> >>>> buffers you know that range [index, index + count - 1] is associated with that
+> >>>> specific format.
+> >>>
+> >>> Some hardware is able to change the format while streaming is ongoing (for
+> >>> example: OMAP 3). The problem is that the user should be able to know which
+> >>> frame has the new format.
+> > 
+> > How exactly does this work or should it work? You mean, you just configure 
+> > your hardware with new frame size parameters without stopping the current 
+> > streaming, and the ISP will change frame sizes, beginning with some future 
+> > frame? How does the driver then get to know, which frame already has the 
+> 
+> That's correct.
+> 
+> > new sizes? You actually want to know this in advance to already queue a 
+> > suitably sized buffer to the hardware?
+> 
+> The driver knows that since it has configured the hardware to produce
+> that frame size.
+> 
+> The assumption is that all the buffers have suitable size for all the
+> formats. This must be checked by the driver, something which also must
+> be taken into account.
 
-<snip>
+Hm, but do you then at all need different buffers?
 
-> It has also just occured to me that it might be possible to solve the issues
-> we are facing just in the kernel. At the moment when the kernel performs a
-> USBDEVFS_DISCONNECT it keeps the kernel driver locked out until userspace
-> performs a USBDEVFS_CONNECT. If the kernel reattached the kernel driver when
-> the device file was closed then, as gvfs doesn't keep the file open the
-> biggest current issue would be solved instantly. If a mechanism could be found
-> to prevent USBDEVFS_DISCONNECT from succeeding when the corresponding
-> /dev/videox file was open then that would seem to be a reasonable solution.
-
-<sigh>
-
-This has been discussed over and over and over again, playing clever
-tricks with USBDEVFS_[DIS]CONNECT like adding a new USBDEVFS_TRYDISCONNECT
-which the v4l2 driver could intercept won't cut it. We need some central
-manager of the device doing multiplexing between the 2 functions, and you
-can *not* assume that either side will be nice wrt closing file descriptors.
-
-Examples:
-1) You are wrong wrt gvfs, it does keep the libgphoto2 context open all the
-time, and through that the usbfs device nodes.
-
-2) Lets say a user starts a photo managing app like f-spot, and that opens
-the device through libgphoto2 on startup, then the user switches to another
-virtual desktop and forgets all about having f-spot open. Notice that if
-the user now tries to stream he will not get a busy error, but the app trying
-to do the streaming will simply not see the camera at all (kernel driver
-unbound /dev/video# node is gone).
-
-3) Notice that little speaker icon in your panel on your average Linux
-desktop, that keeps the mixer of the audio device open *all the time* it
-is quite easy to imagine a similar applet for v4l2 device controls (see
-for example gtk-v4l) doing the same. Or a user could simply start up a
-v4l2 control panel app like gtk-v4l, qv4l2 or v4l2ucp, and leave it running
-minimized ...
-
-4) Some laptops have a Fn + F## key which enables / disables the builtin
-webcam by turning its power on / off. Effectively plugging it into / out
-of a usb port. We would like to have an on screen notification of this one
-day like we have now for brightness and volume controls, based on udev
-events. But the current dual mode cam stuff causes udev events for
-a *new* video device being added / an existing one being removed
-each time libgphoto2 releases / takes control of the camera.
-
-5) More in general, more and more software is dynamically monitoring the
-addition / removal of (usb) devices using udev, our current solution
-suggests to this software the /dev/video device is being unplugged /
-re-plugged all the time, not pretty.
-
-
-All in all what we've today is a kludge, and if we want to provide
-a "seamless" user experience we need to fix it.
-
-Don't get me wrong usbfs is a really nice solution for driving
-usb devices from userspace, like scanners and all other sorts of
-devices. But what all these devices have in common is that they
-have no kernel driver. Having a userspace based driver and a kernel
-driver "fight it out" just does not work well.
-
-Regards,
-
-Hans
+Thanks
+Guennadi
+---
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
+http://www.open-technology.de/
