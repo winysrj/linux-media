@@ -1,66 +1,58 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nm20-vm4.bullet.mail.ne1.yahoo.com ([98.138.91.180]:38748 "HELO
-	nm20-vm4.bullet.mail.ne1.yahoo.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with SMTP id S1751066Ab1HNX43 convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 14 Aug 2011 19:56:29 -0400
-Message-ID: <1313366188.5010.YahooMailClassic@web121715.mail.ne1.yahoo.com>
-Date: Sun, 14 Aug 2011 16:56:28 -0700 (PDT)
-From: Chris Rankin <rankincj@yahoo.com>
-Subject: Re: PCTV 290e - assorted problems
-To: Antti Palosaari <crope@iki.fi>
-Cc: linux-media@vger.kernel.org
-In-Reply-To: <4E485C0C.8040600@iki.fi>
+Received: from perceval.ideasonboard.com ([95.142.166.194]:33595 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751565Ab1HALJ6 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 1 Aug 2011 07:09:58 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Sven Eckelmann <sven@narfation.org>
+Subject: Re: [PATCHv4 05/11] omap3isp: Use *_dec_not_zero instead of *_add_unless
+Date: Mon, 1 Aug 2011 13:10:02 +0200
+Cc: linux-arch@vger.kernel.org, linux-kernel@vger.kernel.org,
+	linux-media@vger.kernel.org
+References: <1311760070-21532-1-git-send-email-sven@narfation.org> <201107311700.43515.laurent.pinchart@ideasonboard.com> <1518031.UNu44UiQdf@sven-laptop.home.narfation.org>
+In-Reply-To: <1518031.UNu44UiQdf@sven-laptop.home.narfation.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 8BIT
+Content-Type: Text/Plain;
+  charset="iso-8859-15"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201108011310.02626.laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
---- On Mon, 15/8/11, Antti Palosaari <crope@iki.fi> wrote:
-> T 554000000 8MHz + auto auto auto etc.
-> is enough.
+Hi Sven,
 
-Hmm, not here it isn't:
+On Monday 01 August 2011 12:07:15 Sven Eckelmann wrote:
+> On Sunday 31 July 2011 17:00:43 Laurent Pinchart wrote:
+> > On Wednesday 27 July 2011 11:47:44 Sven Eckelmann wrote:
+> > > atomic_dec_not_zero is defined for each architecture through
+> > > <linux/atomic.h> to provide the functionality of
+> > > atomic_add_unless(x, -1, 0).
+> > > 
+> > > Signed-off-by: Sven Eckelmann <sven@narfation.org>
+> > > Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+> > 
+> > Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+> > 
+> > I'll queue this to my tree for v3.2. Please let me know if you would
+> > rather push the patch through another tree.
+> 
+> The problem is that until now no one from linux-arch has applied the patch
+> 01/11 in his tree (which is needed before this patch can be applied) and
+> you tree have to be based on the "yet to be chosen linux-arch tree".
+> Otherwise your tree will just break and not be acceptable for a pull
+> request.
+> 
+> Maybe it is easier when one person applies 01-11 after 02-11 was Acked-by
+> the responsible maintainers.
+> 
+> 02 is more or less automatically Acked-by us :)
+> 04, 09 and 10 are also Acked.
+> ... and the rest is waiting for actions.
 
-$ scandvb -u -vvv uk-CrystalPalace 
-scanning uk-CrystalPalace
-using '/dev/dvb/adapter0/frontend0' and '/dev/dvb/adapter0/demux0'
-initial transponder 554000000 0 9 9 6 2 4 4
->>> tune to: 554000000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_AUTO:FEC_AUTO:QAM_AUTO:TRANSMISSION_MODE_AUTO:GUARD_INTERVAL_AUTO:HIERARCHY_AUTO
->>> tuning status == 0x00
->>> tuning status == 0x00
->>> tuning status == 0x00
->>> tuning status == 0x0f
->>> tuning status == 0x0f
->>> tuning status == 0x0f
->>> tuning status == 0x0f
->>> tuning status == 0x0f
->>> tuning status == 0x0f
->>> tuning status == 0x0f
-WARNING: >>> tuning failed!!!
->>> tune to: 554000000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_AUTO:FEC_AUTO:QAM_AUTO:TRANSMISSION_MODE_AUTO:GUARD_INTERVAL_AUTO:HIERARCHY_AUTO (tuning failed)
->>> tuning status == 0x00
->>> tuning status == 0x00
->>> tuning status == 0x00
->>> tuning status == 0x0f
->>> tuning status == 0x0f
->>> tuning status == 0x0f
->>> tuning status == 0x0f
->>> tuning status == 0x0f
->>> tuning status == 0x0f
->>> tuning status == 0x0f
-WARNING: >>> tuning failed!!!
-ERROR: initial tuning failed
-dumping lists (0 services)
-Done.
+OK. I'm fine with 05/11 being pushed through any tree with my ack. Please let 
+me know if/when you want me to apply it to my tree.
 
-Although it was working (briefly) on Saturday morning.
+-- 
+Regards,
 
-> Have you tried it on Windows?
-
-No, because I don't own a Windows machine.
-
-Cheers,
-Chris
-
+Laurent Pinchart
