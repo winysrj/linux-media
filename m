@@ -1,83 +1,82 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ww0-f44.google.com ([74.125.82.44]:47157 "EHLO
-	mail-ww0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751886Ab1HWVnn (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 23 Aug 2011 17:43:43 -0400
-Received: by wwf5 with SMTP id 5so556648wwf.1
-        for <linux-media@vger.kernel.org>; Tue, 23 Aug 2011 14:43:42 -0700 (PDT)
-Subject: [PATCH] Re: Afatech AF9013 [TEST ONLY] AF9015 stream buffer size
- aligned with max packet size.
-From: Malcolm Priestley <tvboxspy@gmail.com>
-To: Jason Hecker <jwhecker@gmail.com>
-Cc: Josu Lazkano <josu.lazkano@gmail.com>,
-	linux-media <linux-media@vger.kernel.org>
-In-Reply-To: <CAATJ+ftemL4NYTQLxLw4vmXpD+nFfxrUVjmapUt9EzYJNqH6FQ@mail.gmail.com>
-References: <CAATJ+fu5JqVmyY=zJn_CM_Eusst_YWKG2B2MAuu5fqELYYsYqA@mail.gmail.com>
-	 <CAATJ+ft9HNqLA62ZZkkEP6EswXC1Jhq=FBcXU+OHCkXTKpqeUA@mail.gmail.com>
-	 <1313949634.2874.13.camel@localhost>
-	 <CAATJ+fv6x6p5kimJs4unWGQ_PU36hp29Rafu8BDCcRAABtAfgQ@mail.gmail.com>
-	 <CAL9G6WUFddsFM2V46xXCDWEfhfCR0n5G-8S4JSYwLLkmZnYu7g@mail.gmail.com>
-	 <CAATJ+fsUWPjh5aq38triZOu0-DmU=nCbd77qUzxUn5kiDiaR+w@mail.gmail.com>
-	 <CAATJ+ftemL4NYTQLxLw4vmXpD+nFfxrUVjmapUt9EzYJNqH6FQ@mail.gmail.com>
-Content-Type: text/plain; charset="UTF-8"
-Date: Tue, 23 Aug 2011 22:43:36 +0100
-Message-ID: <1314135816.2140.16.camel@localhost>
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+Received: from moutng.kundenserver.de ([212.227.17.8]:61017 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752242Ab1HAKzc (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 1 Aug 2011 06:55:32 -0400
+Date: Mon, 1 Aug 2011 12:55:24 +0200 (CEST)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+cc: Pawel Osciak <pawel@osciak.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Sakari Ailus <sakari.ailus@iki.fi>,
+	Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: Re: [PATCH v3] V4L: add two new ioctl()s for multi-size videobuffer
+ management
+In-Reply-To: <201107301550.53638.hverkuil@xs4all.nl>
+Message-ID: <Pine.LNX.4.64.1108011225230.30975@axis700.grange>
+References: <Pine.LNX.4.64.1107201025120.12084@axis700.grange>
+ <201107280856.55731.hverkuil@xs4all.nl> <CAMm-=zCU1B1zXNK7hp_B8hAW0YfcrN9V8M_uSDva8TbXL2AKbQ@mail.gmail.com>
+ <201107301550.53638.hverkuil@xs4all.nl>
+MIME-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, 2011-08-23 at 11:47 +1000, Jason Hecker wrote:
-> Damn, this patch didn't help so maybe forget this patch.  Tuner A is
-> still messed up.
-Try this patch, applied to the latest media_build. it aligns buffer size to the max packet
-size instead of TS packet size.
+On Sat, 30 Jul 2011, Hans Verkuil wrote:
 
-I think what might happening is that TS packets are getting chopped, as device seems to want
-to align to max packet size.
+[snip]
 
-Afatech seem to want create rather large buffers at considerable delay. The size of the buffer
-has also been considerably reduced. If you want to increase it change TS_USB20_PACKET_COUNT
-in multiplies of 2 (56 ... 112).
+> No. We do not have a mechanism (yet) to tie a pipeline configuration to
+> a queued buffer (to be discussed in next week in Cambourne).
+> 
+> It is my understanding that you change the current streaming format, and
+> then queue the large (prepared) buffer and switch back afterwards.
 
+As far as I understand, currently we have 2 unclarified points with this 
+patch:
+
+1. size of the reserved field. Sakari proposed 19 32-bit words for 
+possible per-plane extensions with a max of 8 planes. That would make up 
+to 2 32-bit words per plane plus 3 words for the common part. So, although 
+reserving 76 bytes "just in case" seems like a huge overkill to me, I 
+kinda can see the reasoning... We could also do with 10 reserved words - 1 
+word per plane + 2 common. What do others think?
+
+2. as in the above quote - we do not know yet, how to tell the user, when 
+the format changes.
+
+AFAIU, the problem is the following:
+
+(a) we prepare buffers of two sizes, say - small for preview and large for 
+snapshot
+(b) S_FMT(preview)
+(c) QBUF(preview)...
+(d) STREAMON
+(e) capture for some time...
+(f) S_FMT(snapshot)
+(g) now, we do not yet necessarily want to queue our big buffers, because 
+the hardware will not switch immediately
+(h) when the hardware has switch we QBUF(snapshor)
+...
+
+Currently, there's no way to find out when the hardware switched to the 
+new frame format. Maybe an event is needed?
+
+Besides, the TRY_FMT idea is nice, but it doesn't give us an ultimate 
+solution either. What if a TRY_FMT now returns different plane sizes, than 
+when we actually perform S_FMT? E.g., if the user also issues an S_CROP 
+between those and that also changes the output format because of driver 
+limitations?
+
+So, my question is: shall I prepare a new version of this RFC now, also 
+providing examples for vb2 and a hardware driver, or we're waiting for the 
+brainstorming and following ML discussion results on the above?
+
+Thanks
+Guennadi
 ---
- drivers/media/dvb/dvb-usb/af9015.c |   13 +++++++------
- 1 files changed, 7 insertions(+), 6 deletions(-)
-
-diff --git a/drivers/media/dvb/dvb-usb/af9015.c b/drivers/media/dvb/dvb-usb/af9015.c
-index d7ad05f..eaf0800 100644
---- a/drivers/media/dvb/dvb-usb/af9015.c
-+++ b/drivers/media/dvb/dvb-usb/af9015.c
-@@ -404,21 +404,22 @@ static int af9015_init_endpoint(struct dvb_usb_device *d)
- 	   We use smaller - about 1/4 from the original, 5 and 87. */
- #define TS_PACKET_SIZE            188
- 
--#define TS_USB20_PACKET_COUNT      87
--#define TS_USB20_FRAME_SIZE       (TS_PACKET_SIZE*TS_USB20_PACKET_COUNT)
--
- #define TS_USB11_PACKET_COUNT       5
- #define TS_USB11_FRAME_SIZE       (TS_PACKET_SIZE*TS_USB11_PACKET_COUNT)
- 
--#define TS_USB20_MAX_PACKET_SIZE  512
-+#define TS_USB20_MAX_PACKET_SIZE  128
- #define TS_USB11_MAX_PACKET_SIZE   64
- 
-+#define TS_USB20_PACKET_COUNT      28
-+#define TS_USB20_FRAME_SIZE       (TS_USB20_MAX_PACKET_SIZE\
-+					*TS_USB20_PACKET_COUNT)
-+
- 	if (d->udev->speed == USB_SPEED_FULL) {
- 		frame_size = TS_USB11_FRAME_SIZE/4;
- 		packet_size = TS_USB11_MAX_PACKET_SIZE/4;
- 	} else {
--		frame_size = TS_USB20_FRAME_SIZE/4;
--		packet_size = TS_USB20_MAX_PACKET_SIZE/4;
-+		frame_size = TS_USB20_FRAME_SIZE;
-+		packet_size = TS_USB20_MAX_PACKET_SIZE;
- 	}
- 
- 	ret = af9015_set_reg_bit(d, 0xd507, 2); /* assert EP4 reset */
--- 
-1.7.4.1
-
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
+http://www.open-technology.de/
