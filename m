@@ -1,52 +1,42 @@
-Return-path: <mchehab@localhost>
-Received: from mail-vw0-f46.google.com ([209.85.212.46]:52545 "EHLO
-	mail-vw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752986Ab1GHAb3 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 7 Jul 2011 20:31:29 -0400
-Received: by vws1 with SMTP id 1so1104039vws.19
-        for <linux-media@vger.kernel.org>; Thu, 07 Jul 2011 17:31:29 -0700 (PDT)
+Return-path: <linux-media-owner@vger.kernel.org>
+Received: from mail-yi0-f46.google.com ([209.85.218.46]:41768 "EHLO
+	mail-yi0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752123Ab1HAA47 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 31 Jul 2011 20:56:59 -0400
 MIME-Version: 1.0
-In-Reply-To: <20110705172119.GA19358@kroah.com>
-References: <1308252706-13879-1-git-send-email-jarod@redhat.com>
-	<20110705172119.GA19358@kroah.com>
-Date: Thu, 7 Jul 2011 20:31:28 -0400
-Message-ID: <CANOx78EPynqirWSuSyRCjhwUks2Br1R1vBQGSD6H7HpYtydH=w@mail.gmail.com>
-Subject: Re: [PATCH] [staging] lirc_serial: allocate irq at init time
-From: Jarod Wilson <jarod@wilsonet.com>
-To: Greg KH <greg@kroah.com>
-Cc: Jarod Wilson <jarod@redhat.com>, linux-media@vger.kernel.org,
-	devel@driverdev.osuosl.org
+In-Reply-To: <201107311738.58462.laurent.pinchart@ideasonboard.com>
+References: <CACVXFVPHfskUCxhznpATknNxokmL5hft-b+KoxWiMzprVmuJ4w@mail.gmail.com>
+	<Pine.LNX.4.44L0.1107151122490.1866-100000@iolanthe.rowland.org>
+	<20110716115100.10f6f764@tom-ThinkPad-T410>
+	<201107311738.58462.laurent.pinchart@ideasonboard.com>
+Date: Mon, 1 Aug 2011 08:56:59 +0800
+Message-ID: <CACVXFVMJvZqYH3eS7LH_jgewL40KK74wrSX_-FhqLmyDJmPEGg@mail.gmail.com>
+Subject: Re: [PATCH] uvcvideo: add SetInterface(0) in .reset_resume handler
+From: Ming Lei <tom.leiming@gmail.com>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: linux-media@vger.kernel.org,
+	Alan Stern <stern@rowland.harvard.edu>,
+	linux-usb@vger.kernel.org, Jeremy Kerr <jeremy.kerr@canonical.com>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>
 Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
-Sender: <mchehab@infradead.org>
 
-On Tue, Jul 5, 2011 at 1:21 PM, Greg KH <greg@kroah.com> wrote:
-> On Thu, Jun 16, 2011 at 03:31:46PM -0400, Jarod Wilson wrote:
->> There's really no good reason not to just grab the desired IRQ at driver
->> init time, instead of every time the lirc device node is accessed. This
->> also improves the speed and reliability with which a serial transmitter
->> can operate, as back-to-back transmission attempts (i.e., channel change
->> to a multi-digit channel) don't have to spend time acquiring and then
->> releasing the IRQ for every digit, sometimes multiple times, if lircd
->> has been told to use the min_repeat parameter.
->>
->> CC: devel@driverdev.osuosl.org
->> Signed-off-by: Jarod Wilson <jarod@redhat.com>
->> ---
->>  drivers/staging/lirc/lirc_serial.c |   44 +++++++++++++++++------------------
->>  1 files changed, 21 insertions(+), 23 deletions(-)
+Hi,
+
+On Sun, Jul 31, 2011 at 11:38 PM, Laurent Pinchart
+<laurent.pinchart@ideasonboard.com> wrote:
+> Hi Ming,
 >
-> This patch doesn't apply to the staging-next branch, care to respin it
-> and resend it so I can apply it?
+> Thanks for the patch. I've queued it for v3.2 with a small modification (the
+> usb_set_interface() call has been moved to uvc_video.c).
 
-This actually got merged into mainline a few days ago via the media tree.
+Thanks for queuing it.
 
-http://git.kernel.org/?p=linux/kernel/git/torvalds/linux-2.6.git;a=commitdiff;h=c4b0afee3c1730cf9b0f6ad21729928d23d3918e
+Considered it is a fix patch, could you queue it for 3.1 -rcX as fix patch?
+But anyway, it is up to you, :-)
 
-Do you want me to take a look at what's in staging-next and fix that
-up to apply on top of the above?
-
+thanks,
 -- 
-Jarod Wilson
-jarod@wilsonet.com
+Ming Lei
