@@ -1,67 +1,87 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from na3sys009aog123.obsmtp.com ([74.125.149.149]:44589 "EHLO
-	na3sys009aog123.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750934Ab1HXPlj (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 24 Aug 2011 11:41:39 -0400
+Received: from smtp.nokia.com ([147.243.1.47]:35303 "EHLO mgw-sa01.nokia.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752150Ab1HAOy5 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 1 Aug 2011 10:54:57 -0400
+Message-ID: <4E36BE4F.7080704@iki.fi>
+Date: Mon, 01 Aug 2011 17:55:11 +0300
+From: Sakari Ailus <sakari.ailus@iki.fi>
 MIME-Version: 1.0
-From: "Aguirre, Sergio" <saaguirre@ti.com>
-Date: Wed, 24 Aug 2011 10:41:17 -0500
-Message-ID: <CAKnK67RcMAt6j3CEi2Z7QTN42v07LDCfa_T38F9-5b97TJ0-hA@mail.gmail.com>
-Subject: Re: [PATCH 8/8] ARM: S5PV210: example of CMA private area for FIMC
- device on Goni board
-To: Marek Szyprowski <m.szyprowski@samsung.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>
-Cc: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-	linux-media@vger.kernel.org, linux-mm@kvack.org,
-	linaro-mm-sig@lists.linaro.org,
-	Michal Nazarewicz <mina86@mina86.com>,
-	Russell King <linux@arm.linux.org.uk>,
-	Andrew Morton <akpm@linux-foundation.org>
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+CC: Hans Verkuil <hverkuil@xs4all.nl>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Pawel Osciak <pawel@osciak.com>
+Subject: Re: [PATCH v3] V4L: add two new ioctl()s for multi-size videobuffer
+ management
+References: <Pine.LNX.4.64.1107201025120.12084@axis700.grange> <201107261305.29863.hverkuil@xs4all.nl> <20110726114427.GC32507@valkosipuli.localdomain> <201107261357.31673.hverkuil@xs4all.nl> <Pine.LNX.4.64.1108011031150.30975@axis700.grange>
+In-Reply-To: <Pine.LNX.4.64.1108011031150.30975@axis700.grange>
 Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Marek/Kyungmin,
+Guennadi Liakhovetski wrote:
+> On Tue, 26 Jul 2011, Hans Verkuil wrote:
+> 
+>> On Tuesday, July 26, 2011 13:44:28 Sakari Ailus wrote:
+>>> Hi Hans and Guennadi,
+>>
+>> <snip>
+>>
+>>>> I realized that it is not clear from the documentation whether it is possible to call
+>>>> VIDIOC_REQBUFS and make additional calls to VIDIOC_CREATE_BUFS afterwards.
+>>>
+>>> That's actually a must if one wants to release buffers. Currently no other
+>>> method than requesting 0 buffers using REQBUFS is provided (apart from
+>>> closing the file handle).
+>>
+>> I was referring to the non-0 use-case :-)
+>>
+>>>> I can't remember whether the code allows it or not, but it should be clearly documented.
+>>>
+>>> I would guess no user application would have to call REQBUFS with other than
+>>> zero buffers when using CREATE_BUFS. This must be an exception if mixing
+>>> REQBUFS and CREATE_BUFS is not allowed in general. That said, I don't see a
+>>> reason to prohibit either, but perhaps Guennadi has more informed opinion
+>>> on this.
+>>  
+>> <snip>
+>>
+>>>>>>> Future functionality which would be nice:
+>>>>>>>
+>>>>>>> - Format counters. Every format set by S_FMT (or gotten by G_FMT) should
+>>>>>>>   come with a counter value so that the user would know the format of
+>>>>>>>   dequeued buffers when setting the format on-the-fly. Currently there are
+>>>>>>>   only bytesperline and length, but the format can't be explicitly
+>>>>>>>   determined from those.
+>>>>
+>>>> Actually, the index field will give you that information. When you create the
+>>>> buffers you know that range [index, index + count - 1] is associated with that
+>>>> specific format.
+>>>
+>>> Some hardware is able to change the format while streaming is ongoing (for
+>>> example: OMAP 3). The problem is that the user should be able to know which
+>>> frame has the new format.
+> 
+> How exactly does this work or should it work? You mean, you just configure 
+> your hardware with new frame size parameters without stopping the current 
+> streaming, and the ISP will change frame sizes, beginning with some future 
+> frame? How does the driver then get to know, which frame already has the 
 
-On Fri, Aug 19, 2011 at 04:27:44PM +0200, Marek Szyprowski wrote:
-> This patch is an example how device private CMA area can be activated.
-> It creates one CMA region and assigns it to the first s5p-fimc device on
-> Samsung Goni S5PC110 board.
->
-> Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
-> Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
-> ---
->  arch/arm/mach-s5pv210/mach-goni.c |    4 ++++
->  1 files changed, 4 insertions(+), 0 deletions(-)
-> diff --git a/arch/arm/mach-s5pv210/mach-goni.c b/arch/arm/mach-s5pv210/mach-goni.c
-> index 14578f5..f766c45 100644
-> --- a/arch/arm/mach-s5pv210/mach-goni.c
-> +++ b/arch/arm/mach-s5pv210/mach-goni.c
-> @@ -26,6 +26,7 @@
->  #include <linux/input.h>
->  #include <linux/gpio.h>
->  #include <linux/interrupt.h>
-> +#include <linux/dma-contiguous.h>
->
->  #include <asm/mach/arch.h>
->  #include <asm/mach/map.h>
-> @@ -857,6 +858,9 @@ static void __init goni_map_io(void)
->  static void __init goni_reserve(void)
->  {
->  	s5p_mfc_reserve_mem(0x43000000, 8 << 20, 0x51000000, 8 << 20);
-> +
-> +	/* Create private 16MiB contiguous memory area for s5p-fimc.0 device */
-> +	dma_declare_contiguous(&s5p_device_fimc0.dev, 16*SZ_1M, 0);
+That's correct.
 
-This is broken, since according to patch #0006, dma_declare_contiguous requires
-a 4th param (limit) which you're not providing here.
+> new sizes? You actually want to know this in advance to already queue a 
+> suitably sized buffer to the hardware?
 
-Regards,
-Sergio
+The driver knows that since it has configured the hardware to produce
+that frame size.
 
->  }
->
->  static void __init goni_machine_init(void)
-> --
-> 1.7.1.569.g6f426
+The assumption is that all the buffers have suitable size for all the
+formats. This must be checked by the driver, something which also must
+be taken into account.
+
+-- 
+Sakari Ailus
+sakari.ailus@iki.fi
