@@ -1,52 +1,69 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:51115 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751492Ab1HPI7B (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 16 Aug 2011 04:59:01 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-Subject: Re: [GIT PATCHES FOR 3.1] s5p-fimc and noon010pc30 driver updates
-Date: Tue, 16 Aug 2011 10:59:11 +0200
-Cc: Sakari Ailus <sakari.ailus@iki.fi>,
-	Sylwester Nawrocki <snjw23@gmail.com>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	hverkuil@xs4all.nl
-References: <4E303E5B.9050701@samsung.com> <201108151445.38650.laurent.pinchart@ideasonboard.com> <4E49B7F5.4010609@redhat.com>
-In-Reply-To: <4E49B7F5.4010609@redhat.com>
-MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201108161059.12300.laurent.pinchart@ideasonboard.com>
+Received: from mailout3.samsung.com ([203.254.224.33]:47746 "EHLO
+	mailout3.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754162Ab1HBP6z (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 2 Aug 2011 11:58:55 -0400
+Received: from epcpsbgm2.samsung.com (mailout3.samsung.com [203.254.224.33])
+ by mailout3.samsung.com
+ (Oracle Communications Messaging Exchange Server 7u4-19.01 64bit (built Sep  7
+ 2010)) with ESMTP id <0LPB00AIX5Q0C080@mailout3.samsung.com> for
+ linux-media@vger.kernel.org; Wed, 03 Aug 2011 00:58:53 +0900 (KST)
+Received: from AMDN157 ([106.116.48.215])
+ by mmp2.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14 2004))
+ with ESMTPA id <0LPB00JNU5Q2KH@mmp2.samsung.com> for
+ linux-media@vger.kernel.org; Wed, 03 Aug 2011 00:58:54 +0900 (KST)
+Date: Tue, 02 Aug 2011 17:58:48 +0200
+From: Kamil Debski <k.debski@samsung.com>
+Subject: RE: [PATCH] v4l2: Fix documentation of the codec device controls
+In-reply-to: <20110802083126.413c07ee.rdunlap@xenotime.net>
+To: 'Randy Dunlap' <rdunlap@xenotime.net>
+Cc: linux-media@vger.kernel.org, kyungmin.park@samsung.com,
+	jaeryul.oh@samsung.com, mchehab@infradead.org
+Message-id: <001201cc512d$13e86fc0$3bb94f40$%debski@samsung.com>
+MIME-version: 1.0
+Content-type: text/plain; charset=US-ASCII
+Content-language: en-gb
+Content-transfer-encoding: 7BIT
+References: <1312210299-8040-1-git-send-email-k.debski@samsung.com>
+ <20110801102346.0b2b9126.rdunlap@xenotime.net>
+ <002401cc50e9$d348d6f0$79da84d0$%debski@samsung.com>
+ <20110802083126.413c07ee.rdunlap@xenotime.net>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
+Hi,
 
-On Tuesday 16 August 2011 02:21:09 Mauro Carvalho Chehab wrote:
-> Em 15-08-2011 05:45, Laurent Pinchart escreveu:
-> >> After having it there properly working and tested independently, we may
-> >> consider patches removing V4L2 interfaces that were obsoleted in favor
-> >> of using the libv4l implementation, of course using the Kernel way of
-> >> deprecating interfaces. But doing it before having it, doesn't make any
-> >> sense.
-> > 
-> > Once again we're not trying to remove controls, but expose them
-> > differently.
+> From: Randy Dunlap [mailto:rdunlap@xenotime.net]
 > 
-> See the comments at the patch series, starting from the patches that
-> removes support for S_INPUT. I'm aware that the controls will be exposed
-> by both MC and V4L2 API, althrough having ways to expose/hide controls via
-> V4L2 API makes patch review a way more complicated than it used to be
-> before the MC patches.
+> On Tue, 02 Aug 2011 09:57:23 +0200 Kamil Debski wrote:
+> 
+> > Hi,
+> >
+> > I am sorry, I did run "make htmldocs" and got no errors. So I have to be
+> > doing something wrong building the docs. Could you tell me how do you
+> build
+> > the documentation? Knowing this I could check the next patch to make sure
+> it
+> > is error free.
+> 
+> I'm just running "make htmldocs".  I expect the differences are in what
+> versions of tools (or xml reference files etc.) we have installed.
+> I'm using fedora 11 (which is fairly old).
+> 
+> You have done what you should do, so I'll just ignore the warnings etc.
+> (and move off of fedora 11 one day).
+> 
 
-The MC API doesn't expose controls. Controls are still exposed by the V4L2 API 
-only, but V4L2 can then expose them on subdev nodes in addition to video 
-nodes.
+It just bothers me that I did not get those errors and I think it was important
+to correct them. I am using Ubuntu 9.10 and I also feel it might be the time to
+upgrade ;)
 
--- 
-Regards,
+I have send a second version of the patch so all of the errors should be fixed
+now.
 
-Laurent Pinchart
+Thanks,
+--
+Kamil Debski
+Linux Platform Group
+Samsung Poland R&D Center
+
