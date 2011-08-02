@@ -1,179 +1,498 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout3.w1.samsung.com ([210.118.77.13]:42825 "EHLO
-	mailout3.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754191Ab1HBPyF (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 2 Aug 2011 11:54:05 -0400
-MIME-version: 1.0
-Content-transfer-encoding: 7BIT
-Content-type: TEXT/PLAIN
-Received: from eu_spt1 ([210.118.77.13]) by mailout3.w1.samsung.com
- (Sun Java(tm) System Messaging Server 6.3-8.04 (built Jul 29 2009; 32bit))
- with ESMTP id <0LPB0068K5I4S3A0@mailout3.w1.samsung.com> for
- linux-media@vger.kernel.org; Tue, 02 Aug 2011 16:54:04 +0100 (BST)
-Received: from linux.samsung.com ([106.116.38.10])
- by spt1.w1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14
- 2004)) with ESMTPA id <0LPB00HML5I3GU@spt1.w1.samsung.com> for
- linux-media@vger.kernel.org; Tue, 02 Aug 2011 16:54:03 +0100 (BST)
-Date: Tue, 02 Aug 2011 17:53:49 +0200
-From: Kamil Debski <k.debski@samsung.com>
-Subject: [PATCH v2] v4l2: Fix documentation of the codec device controls
-To: linux-media@vger.kernel.org
-Cc: kyungmin.park@samsung.com, k.debski@samsung.com,
-	jaeryul.oh@samsung.com, rdunlap@xenotime.net, mchehab@infradead.org
-Message-id: <1312300429-26777-1-git-send-email-k.debski@samsung.com>
+Received: from ist.d-labs.de ([213.239.218.44]:56730 "EHLO mx01.d-labs.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753318Ab1HBPuj (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 2 Aug 2011 11:50:39 -0400
+From: Florian Mickler <florian@mickler.org>
+To: mchehab@infradead.org, patrick.boettcher@dibcom.fr, pb@linuxtv.org
+Cc: linux-media@vger.kernel.org, error27@gmail.com,
+	Florian Mickler <florian@mickler.org>
+Subject: [PATCH] [media] vp702x: fix buffer handling
+Date: Tue,  2 Aug 2011 17:50:13 +0200
+Message-Id: <1312300213-29099-1-git-send-email-florian@mickler.org>
+In-Reply-To: <20110802173942.6f951c95@schatten.dmk.lab>
+References: <20110802173942.6f951c95@schatten.dmk.lab>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Fixed missing ids of the codec controls description in the controls.xml file.
+In my previous change to this driver, I was not aware that dvb_usb_device_init
+calls the frontend_attach routine which needs a transfer
+buffer. So we can not setup anything private in the probe routine beforehand but
+have to allocate when needed. This means also that we cannot use a private
+buffer mutex to serialize that buffer but instead need to use the
+dvb_usb_device's usb_mutex.
 
-Signed-off-by: Kamil Debski <k.debski@samsung.com>
-Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
-Reported-by: Randy Dunlap <rdunlap@xenotime.net>
+Note: Compile tested only!
+
+Signed-off-by: Florian Mickler <florian@mickler.org>
 ---
-Hi,
+ drivers/media/dvb/dvb-usb/vp702x-fe.c |   30 ++++-
+ drivers/media/dvb/dvb-usb/vp702x.c    |  220 ++++++++++++++++++---------------
+ drivers/media/dvb/dvb-usb/vp702x.h    |    8 +-
+ 3 files changed, 150 insertions(+), 108 deletions(-)
 
-This patch fixes the problem with codec controls documentation reported by Randy
-in the following email:
-http://comments.gmane.org/gmane.linux.drivers.video-input-infrastructure/36288
-
-The first version did not address all the errors detected - this one should
-make the docs build without errors.
-
-Thank you again for reporting these errors.
-
-Best wishes,
-Kamil Debski
----
- Documentation/DocBook/media/v4l/controls.xml |   38 +++++++++++++-------------
- 1 files changed, 19 insertions(+), 19 deletions(-)
-
-diff --git a/Documentation/DocBook/media/v4l/controls.xml b/Documentation/DocBook/media/v4l/controls.xml
-index 8516401..23fdf79 100644
---- a/Documentation/DocBook/media/v4l/controls.xml
-+++ b/Documentation/DocBook/media/v4l/controls.xml
-@@ -1455,7 +1455,7 @@ Applicable to the H264 encoder.</entry>
- 	      </row>
+diff --git a/drivers/media/dvb/dvb-usb/vp702x-fe.c b/drivers/media/dvb/dvb-usb/vp702x-fe.c
+index 2bb8d4c..d9eff02 100644
+--- a/drivers/media/dvb/dvb-usb/vp702x-fe.c
++++ b/drivers/media/dvb/dvb-usb/vp702x-fe.c
+@@ -43,21 +43,30 @@ static int vp702x_fe_refresh_state(struct vp702x_fe_state *st)
+ {
+ 	struct vp702x_device_state *dst = st->d->priv;
+ 	u8 *buf;
++	int ret;
  
- 	      <row><entry></entry></row>
--	      <row>
-+	      <row id="v4l2-mpeg-video-h264-vui-sar-idc">
- 		<entry spanname="id"><constant>V4L2_CID_MPEG_VIDEO_H264_VUI_SAR_IDC</constant>&nbsp;</entry>
- 		<entry>enum&nbsp;v4l2_mpeg_video_h264_vui_sar_idc</entry>
- 	      </row>
-@@ -1561,7 +1561,7 @@ Applicable to the H264 encoder.</entry>
- 	      </row>
+ 	if (time_after(jiffies, st->next_status_check)) {
+-		mutex_lock(&dst->buf_mutex);
+-		buf = dst->buf;
++		ret = mutex_lock_interruptible(&st->d->usb_mutex);
++		if (ret < 0)
++			return ret;
  
- 	      <row><entry></entry></row>
--	      <row>
-+	      <row id="v4l2-mpeg-video-h264-level">
- 		<entry spanname="id"><constant>V4L2_CID_MPEG_VIDEO_H264_LEVEL</constant>&nbsp;</entry>
- 		<entry>enum&nbsp;v4l2_mpeg_video_h264_level</entry>
- 	      </row>
-@@ -1641,7 +1641,7 @@ Possible values are:</entry>
- 	      </row>
+-		vp702x_usb_in_op(st->d, READ_STATUS, 0, 0, buf, 10);
++		ret = vp702x_buffer_setup(dst, &buf, 10);
++		if (ret)
++			goto unlock;
++
++		vp702x_usb_in_op_unlocked(st->d, READ_STATUS, 0, 0, buf, 10);
+ 		st->lock = buf[4];
  
- 	      <row><entry></entry></row>
--	      <row>
-+	      <row id="v4l2-mpeg-video-mpeg4-level">
- 		<entry spanname="id"><constant>V4L2_CID_MPEG_VIDEO_MPEG4_LEVEL</constant>&nbsp;</entry>
- 		<entry>enum&nbsp;v4l2_mpeg_video_mpeg4_level</entry>
- 	      </row>
-@@ -1689,9 +1689,9 @@ Possible values are:</entry>
- 	      </row>
+-		vp702x_usb_in_op(st->d, READ_TUNER_REG_REQ, 0x11, 0, buf, 1);
++		vp702x_usb_in_op_unlocked(st->d, READ_TUNER_REG_REQ, 0x11, 0,
++				buf, 1);
+ 		st->snr = buf[0];
  
- 	      <row><entry></entry></row>
--	      <row>
-+	      <row id="v4l2-mpeg-video-h264-profile">
- 		<entry spanname="id"><constant>V4L2_CID_MPEG_VIDEO_H264_PROFILE</constant>&nbsp;</entry>
--		<entry>enum&nbsp;v4l2_mpeg_h264_profile</entry>
-+		<entry>enum&nbsp;v4l2_mpeg_video_h264_profile</entry>
- 	      </row>
- 	      <row><entry spanname="descr">The profile information for H264.
- Applicable to the H264 encoder.
-@@ -1774,9 +1774,9 @@ Possible values are:</entry>
- 	      </row>
+-		vp702x_usb_in_op(st->d, READ_TUNER_REG_REQ, 0x15, 0, buf, 1);
++		vp702x_usb_in_op_unlocked(st->d, READ_TUNER_REG_REQ, 0x15, 0,
++				buf, 1);
+ 		st->sig = buf[0];
  
- 	      <row><entry></entry></row>
--	      <row>
-+	      <row id="v4l2-mpeg-video-mpeg4-profile">
- 		<entry spanname="id"><constant>V4L2_CID_MPEG_VIDEO_MPEG4_PROFILE</constant>&nbsp;</entry>
--		<entry>enum&nbsp;v4l2_mpeg_mpeg4_profile</entry>
-+		<entry>enum&nbsp;v4l2_mpeg_video_mpeg4_profile</entry>
- 	      </row>
- 	      <row><entry spanname="descr">The profile information for MPEG4.
- Applicable to the MPEG4 encoder.
-@@ -1820,9 +1820,9 @@ Applicable to the encoder.
- 	      </row>
+-		mutex_unlock(&dst->buf_mutex);
++unlock:
++		mutex_unlock(&st->d->usb_mutex);
+ 		st->next_status_check = jiffies + (st->status_check_interval*HZ)/1000;
+ 	}
+ 	return 0;
+@@ -200,8 +209,15 @@ static int vp702x_fe_set_frontend(struct dvb_frontend* fe,
+ static int vp702x_fe_init(struct dvb_frontend *fe)
+ {
+ 	struct vp702x_fe_state *st = fe->demodulator_priv;
++	int ret;
++
+ 	deb_fe("%s\n",__func__);
+-	vp702x_usb_in_op(st->d, RESET_TUNER, 0, 0, NULL, 0);
++	ret = mutex_lock_interruptible(&st->d->usb_mutex);
++	if (ret < 0)
++		return ret;
++	vp702x_usb_in_op_unlocked(st->d, RESET_TUNER, 0, 0, NULL, 0);
++
++	mutex_unlock(&st->d->usb_mutex);
+ 	return 0;
+ }
  
- 	      <row><entry></entry></row>
--	      <row>
-+	      <row id="v4l2-mpeg-video-multi-slice-mode">
- 		<entry spanname="id"><constant>V4L2_CID_MPEG_VIDEO_MULTI_SLICE_MODE</constant>&nbsp;</entry>
--		<entry>enum&nbsp;v4l2_mpeg_multi_slice_mode</entry>
-+		<entry>enum&nbsp;v4l2_mpeg_video_multi_slice_mode</entry>
- 	      </row>
- 	      <row><entry spanname="descr">Determines how the encoder should handle division of frame into slices.
- Applicable to the encoder.
-@@ -1868,9 +1868,9 @@ Applicable to the encoder.</entry>
- 	      </row>
+diff --git a/drivers/media/dvb/dvb-usb/vp702x.c b/drivers/media/dvb/dvb-usb/vp702x.c
+index 54355f8..a34938e 100644
+--- a/drivers/media/dvb/dvb-usb/vp702x.c
++++ b/drivers/media/dvb/dvb-usb/vp702x.c
+@@ -30,7 +30,8 @@ struct vp702x_adapter_state {
+ 	u8  pid_filter_state;
+ };
  
- 	      <row><entry></entry></row>
--	      <row>
-+	      <row id="v4l2-mpeg-video-h264-loop-filter-mode">
- 		<entry spanname="id"><constant>V4L2_CID_MPEG_VIDEO_H264_LOOP_FILTER_MODE</constant>&nbsp;</entry>
--		<entry>enum&nbsp;v4l2_mpeg_h264_loop_filter_mode</entry>
-+		<entry>enum&nbsp;v4l2_mpeg_video_h264_loop_filter_mode</entry>
- 	      </row>
- 	      <row><entry spanname="descr">Loop filter mode for H264 encoder.
- Possible values are:</entry>
-@@ -1913,9 +1913,9 @@ Applicable to the H264 encoder.</entry>
- 	      </row>
+-static int vp702x_usb_in_op_unlocked(struct dvb_usb_device *d, u8 req,
++/* usb_mutex has to be held around this */
++int vp702x_usb_in_op_unlocked(struct dvb_usb_device *d, u8 req,
+ 				     u16 value, u16 index, u8 *b, int blen)
+ {
+ 	int ret;
+@@ -55,20 +56,9 @@ static int vp702x_usb_in_op_unlocked(struct dvb_usb_device *d, u8 req,
+ 	return ret;
+ }
  
- 	      <row><entry></entry></row>
--	      <row>
-+	      <row id="v4l2-mpeg-video-h264-entropy-mode">
- 		<entry spanname="id"><constant>V4L2_CID_MPEG_VIDEO_H264_ENTROPY_MODE</constant>&nbsp;</entry>
--		<entry>enum&nbsp;v4l2_mpeg_h264_symbol_mode</entry>
-+		<entry>enum&nbsp;v4l2_mpeg_video_h264_entropy_mode</entry>
- 	      </row>
- 	      <row><entry spanname="descr">Entropy coding mode for H264 - CABAC/CAVALC.
- Applicable to the H264 encoder.
-@@ -2140,9 +2140,9 @@ previous frames. Applicable to the H264 encoder.</entry>
- 	      </row>
+-int vp702x_usb_in_op(struct dvb_usb_device *d, u8 req, u16 value,
+-			    u16 index, u8 *b, int blen)
+-{
+-	int ret;
+-
+-	mutex_lock(&d->usb_mutex);
+-	ret = vp702x_usb_in_op_unlocked(d, req, value, index, b, blen);
+-	mutex_unlock(&d->usb_mutex);
+-
+-	return ret;
+-}
+-
+-int vp702x_usb_out_op_unlocked(struct dvb_usb_device *d, u8 req, u16 value,
+-				      u16 index, u8 *b, int blen)
++/* usb_mutex has to be held around this */
++static int vp702x_usb_out_op_unlocked(struct dvb_usb_device *d, u8 req,
++		u16 value, u16 index, u8 *b, int blen)
+ {
+ 	int ret;
+ 	deb_xfer("out: req. %02x, val: %04x, ind: %04x, buffer: ",req,value,index);
+@@ -86,33 +76,50 @@ int vp702x_usb_out_op_unlocked(struct dvb_usb_device *d, u8 req, u16 value,
+ 		return 0;
+ }
  
- 	      <row><entry></entry></row>
--	      <row>
-+	      <row id="v4l2-mpeg-video-header-mode">
- 		<entry spanname="id"><constant>V4L2_CID_MPEG_VIDEO_HEADER_MODE</constant>&nbsp;</entry>
--		<entry>enum&nbsp;v4l2_mpeg_header_mode</entry>
-+		<entry>enum&nbsp;v4l2_mpeg_video_header_mode</entry>
- 	      </row>
- 	      <row><entry spanname="descr">Determines whether the header is returned as the first buffer or is
- it returned together with the first frame. Applicable to encoders.
-@@ -2320,9 +2320,9 @@ Valid only when H.264 and macroblock level RC is enabled (<constant>V4L2_CID_MPE
- Applicable to the H264 encoder.</entry>
- 	      </row>
- 	      <row><entry></entry></row>
--	      <row>
-+	      <row id="v4l2-mpeg-mfc51-video-frame-skip-mode">
- 		<entry spanname="id"><constant>V4L2_CID_MPEG_MFC51_VIDEO_FRAME_SKIP_MODE</constant>&nbsp;</entry>
--		<entry>enum&nbsp;v4l2_mpeg_mfc51_frame_skip_mode</entry>
-+		<entry>enum&nbsp;v4l2_mpeg_mfc51_video_frame_skip_mode</entry>
- 	      </row>
- 	      <row><entry spanname="descr">
- Indicates in what conditions the encoder should skip frames. If encoding a frame would cause the encoded stream to be larger then
-@@ -2361,9 +2361,9 @@ the stream will meet tight bandwidth contraints. Applicable to encoders.
- </entry>
- 	      </row>
- 	      <row><entry></entry></row>
--	      <row>
-+	      <row id="v4l2-mpeg-mfc51-video-force-frame-type">
- 		<entry spanname="id"><constant>V4L2_CID_MPEG_MFC51_VIDEO_FORCE_FRAME_TYPE</constant>&nbsp;</entry>
--		<entry>enum&nbsp;v4l2_mpeg_mfc51_force_frame_type</entry>
-+		<entry>enum&nbsp;v4l2_mpeg_mfc51_video_force_frame_type</entry>
- 	      </row>
- 	      <row><entry spanname="descr">Force a frame type for the next queued buffer. Applicable to encoders.
- Possible values are:</entry>
+-int vp702x_usb_out_op(struct dvb_usb_device *d, u8 req, u16 value,
+-			     u16 index, u8 *b, int blen)
++static int vp702x_usb_out_op(struct dvb_usb_device *d, u8 req, u16 val, u16 idx)
+ {
+ 	int ret;
++	ret = mutex_lock_interruptible(&d->usb_mutex);
++	if (ret < 0)
++		return ret;
+ 
+-	mutex_lock(&d->usb_mutex);
+-	ret = vp702x_usb_out_op_unlocked(d, req, value, index, b, blen);
+-	mutex_unlock(&d->usb_mutex);
++	vp702x_usb_out_op_unlocked(d, req, val, idx, NULL, 0);
+ 
+-	return ret;
++	mutex_unlock(&d->usb_mutex);
++	return 0;
+ }
+ 
+-int vp702x_usb_inout_op(struct dvb_usb_device *d, u8 *o, int olen, u8 *i, int ilen, int msec)
++/* usb_mutex has to be held around this */
++int vp702x_usb_inout_op_unlocked(struct dvb_usb_device *d, u8 *o, int olen,
++		u8 *i, int ilen, int msec)
+ {
+ 	int ret;
+ 
+-	if ((ret = mutex_lock_interruptible(&d->usb_mutex)))
+-		return ret;
+-
+ 	ret = vp702x_usb_out_op_unlocked(d, REQUEST_OUT, 0, 0, o, olen);
+ 	msleep(msec);
+ 	ret = vp702x_usb_in_op_unlocked(d, REQUEST_IN, 0, 0, i, ilen);
+ 
+-	mutex_unlock(&d->usb_mutex);
+ 	return ret;
+ }
+ 
++/* usb_mutex needs to be hold while using the buffer */
++int vp702x_buffer_setup(struct vp702x_device_state *st, u8 **bufp,
++		int buflen)
++{
++	if (buflen > st->buf_len) {
++		*bufp = kmalloc(buflen, GFP_KERNEL);
++		if (!*bufp)
++			return -ENOMEM;
++		info("successfully reallocated a bigger buffer");
++		kfree(st->buf);
++		st->buf = *bufp;
++		st->buf_len = buflen;
++	} else {
++		*bufp = st->buf;
++	}
++	return 0;
++}
++
+ static int vp702x_usb_inout_cmd(struct dvb_usb_device *d, u8 cmd, u8 *o,
+ 				int olen, u8 *i, int ilen, int msec)
+ {
+@@ -121,34 +128,24 @@ static int vp702x_usb_inout_cmd(struct dvb_usb_device *d, u8 cmd, u8 *o,
+ 	u8 *buf;
+ 	int buflen = max(olen + 2, ilen + 1);
+ 
+-	ret = mutex_lock_interruptible(&st->buf_mutex);
++	ret = mutex_lock_interruptible(&d->usb_mutex);
+ 	if (ret < 0)
+ 		return ret;
+ 
+-	if (buflen > st->buf_len) {
+-		buf = kmalloc(buflen, GFP_KERNEL);
+-		if (!buf) {
+-			mutex_unlock(&st->buf_mutex);
+-			return -ENOMEM;
+-		}
+-		info("successfully reallocated a bigger buffer");
+-		kfree(st->buf);
+-		st->buf = buf;
+-		st->buf_len = buflen;
+-	} else {
+-		buf = st->buf;
+-	}
++	ret = vp702x_buffer_setup(st, &buf, buflen);
++	if (ret)
++		goto unlock;
+ 
+ 	buf[0] = 0x00;
+ 	buf[1] = cmd;
+ 	memcpy(&buf[2], o, olen);
+ 
+-	ret = vp702x_usb_inout_op(d, buf, olen+2, buf, ilen+1, msec);
++	ret = vp702x_usb_inout_op_unlocked(d, buf, olen+2, buf, ilen+1, msec);
+ 
+ 	if (ret == 0)
+ 		memcpy(i, &buf[1], ilen);
+-	mutex_unlock(&st->buf_mutex);
+-
++unlock:
++	mutex_unlock(&d->usb_mutex);
+ 	return ret;
+ }
+ 
+@@ -158,14 +155,19 @@ static int vp702x_set_pld_mode(struct dvb_usb_adapter *adap, u8 bypass)
+ 	struct vp702x_device_state *st = adap->dev->priv;
+ 	u8 *buf;
+ 
+-	mutex_lock(&st->buf_mutex);
++	ret = mutex_lock_interruptible(&adap->dev->usb_mutex);
++	if (ret < 0)
++		return ret;
+ 
+-	buf = st->buf;
+-	memset(buf, 0, 16);
++	ret = vp702x_buffer_setup(st, &buf, 16);
++	if (ret)
++		goto unlock;
+ 
+-	ret = vp702x_usb_in_op(adap->dev, 0xe0, (bypass << 8) | 0x0e,
++	memset(buf, 0, 16);
++	ret = vp702x_usb_in_op_unlocked(adap->dev, 0xe0, (bypass << 8) | 0x0e,
+ 			0, buf, 16);
+-	mutex_unlock(&st->buf_mutex);
++unlock:
++	mutex_unlock(&adap->dev->usb_mutex);
+ 	return ret;
+ }
+ 
+@@ -175,15 +177,20 @@ static int vp702x_set_pld_state(struct dvb_usb_adapter *adap, u8 state)
+ 	struct vp702x_device_state *st = adap->dev->priv;
+ 	u8 *buf;
+ 
+-	mutex_lock(&st->buf_mutex);
++	ret = mutex_lock_interruptible(&adap->dev->usb_mutex);
++	if (ret < 0)
++		return ret;
++
++	ret = vp702x_buffer_setup(st, &buf, 16);
++	if (ret)
++		goto unlock;
+ 
+-	buf = st->buf;
+ 	memset(buf, 0, 16);
+-	ret = vp702x_usb_in_op(adap->dev, 0xe0, (state << 8) | 0x0f,
++	ret = vp702x_usb_in_op_unlocked(adap->dev, 0xe0, (state << 8) | 0x0f,
+ 			0, buf, 16);
+ 
+-	mutex_unlock(&st->buf_mutex);
+-
++unlock:
++	mutex_unlock(&adap->dev->usb_mutex);
+ 	return ret;
+ }
+ 
+@@ -192,6 +199,7 @@ static int vp702x_set_pid(struct dvb_usb_adapter *adap, u16 pid, u8 id, int onof
+ 	struct vp702x_adapter_state *st = adap->priv;
+ 	struct vp702x_device_state *dst = adap->dev->priv;
+ 	u8 *buf;
++	int ret;
+ 
+ 	if (onoff)
+ 		st->pid_filter_state |=  (1 << id);
+@@ -204,16 +212,23 @@ static int vp702x_set_pid(struct dvb_usb_adapter *adap, u16 pid, u8 id, int onof
+ 
+ 	vp702x_set_pld_state(adap, st->pid_filter_state);
+ 
+-	mutex_lock(&dst->buf_mutex);
++	ret = mutex_lock_interruptible(&adap->dev->usb_mutex);
++	if (ret < 0)
++		return ret;
++
++	ret = vp702x_buffer_setup(dst, &buf, 16);
++	if (ret)
++		goto unlock;
+ 
+-	buf = dst->buf;
+ 	memset(buf, 0, 16);
+-	vp702x_usb_in_op(adap->dev, 0xe0, (((pid >> 8) & 0xff) << 8) | (id), 0, buf, 16);
+-	vp702x_usb_in_op(adap->dev, 0xe0, (((pid     ) & 0xff) << 8) | (id+1), 0, buf, 16);
++	vp702x_usb_in_op_unlocked(adap->dev, 0xe0,
++			(((pid >> 8) & 0xff) << 8) | (id), 0, buf, 16);
++	vp702x_usb_in_op_unlocked(adap->dev, 0xe0,
++			(((pid     ) & 0xff) << 8) | (id+1), 0, buf, 16);
+ 
+-	mutex_unlock(&dst->buf_mutex);
+-
+-	return 0;
++unlock:
++	mutex_unlock(&adap->dev->usb_mutex);
++	return ret;
+ }
+ 
+ 
+@@ -223,6 +238,7 @@ static int vp702x_init_pid_filter(struct dvb_usb_adapter *adap)
+ 	struct vp702x_device_state *dst = adap->dev->priv;
+ 	int i;
+ 	u8 *b;
++	int ret;
+ 
+ 	st->pid_filter_count = 8;
+ 	st->pid_filter_can_bypass = 1;
+@@ -233,16 +249,23 @@ static int vp702x_init_pid_filter(struct dvb_usb_adapter *adap)
+ 	for (i = 0; i < st->pid_filter_count; i++)
+ 		vp702x_set_pid(adap, 0xffff, i, 1);
+ 
+-	mutex_lock(&dst->buf_mutex);
+-	b = dst->buf;
++	ret = mutex_lock_interruptible(&adap->dev->usb_mutex);
++	if (ret < 0)
++		return ret;
++
++	ret = vp702x_buffer_setup(dst, &b, 10);
++	if (ret)
++		goto unlock;
++
+ 	memset(b, 0, 10);
+-	vp702x_usb_in_op(adap->dev, 0xb5, 3, 0, b, 10);
+-	vp702x_usb_in_op(adap->dev, 0xb5, 0, 0, b, 10);
+-	vp702x_usb_in_op(adap->dev, 0xb5, 1, 0, b, 10);
+-	mutex_unlock(&dst->buf_mutex);
++	vp702x_usb_in_op_unlocked(adap->dev, 0xb5, 3, 0, b, 10);
++	vp702x_usb_in_op_unlocked(adap->dev, 0xb5, 0, 0, b, 10);
++	vp702x_usb_in_op_unlocked(adap->dev, 0xb5, 1, 0, b, 10);
+ 	/*vp702x_set_pld_mode(d, 0); // filter */
+ 
+-	return 0;
++unlock:
++	mutex_unlock(&adap->dev->usb_mutex);
++	return ret;
+ }
+ 
+ static int vp702x_streaming_ctrl(struct dvb_usb_adapter *adap, int onoff)
+@@ -261,6 +284,7 @@ static int vp702x_rc_query(struct dvb_usb_device *d, u32 *event, int *state)
+ {
+ 	u8 *key;
+ 	int i;
++	int ret;
+ 
+ /* remove the following return to enabled remote querying */
+ 	return 0;
+@@ -269,7 +293,11 @@ static int vp702x_rc_query(struct dvb_usb_device *d, u32 *event, int *state)
+ 	if (!key)
+ 		return -ENOMEM;
+ 
+-	vp702x_usb_in_op(d,READ_REMOTE_REQ,0,0,key,10);
++	ret = mutex_lock_interruptible(&d->usb_mutex);
++	if (ret < 0)
++		return ret;
++	vp702x_usb_in_op_unlocked(d, READ_REMOTE_REQ, 0, 0, key, 10);
++	mutex_unlock(&d->usb_mutex);
+ 
+ 	deb_rc("remote query key: %x %d\n",key[1],key[1]);
+ 
+@@ -294,22 +322,32 @@ static int vp702x_read_mac_addr(struct dvb_usb_device *d,u8 mac[6])
+ {
+ 	u8 i, *buf;
+ 	struct vp702x_device_state *st = d->priv;
++	int ret;
++
++	ret = mutex_lock_interruptible(&d->usb_mutex);
++	if (ret < 0)
++		return ret;
++
++	ret = vp702x_buffer_setup(st, &buf, 6);
++	if (ret)
++		goto unlock;
+ 
+-	mutex_lock(&st->buf_mutex);
+-	buf = st->buf;
+ 	for (i = 6; i < 12; i++)
+-		vp702x_usb_in_op(d, READ_EEPROM_REQ, i, 1, &buf[i - 6], 1);
++		vp702x_usb_in_op_unlocked(d, READ_EEPROM_REQ, i, 1,
++				&buf[i - 6], 1);
+ 
+ 	memcpy(mac, buf, 6);
+-	mutex_unlock(&st->buf_mutex);
+-	return 0;
++
++unlock:
++	mutex_unlock(&d->usb_mutex);
++	return ret;
+ }
+ 
+ static int vp702x_frontend_attach(struct dvb_usb_adapter *adap)
+ {
+ 	u8 buf[10] = { 0 };
+ 
+-	vp702x_usb_out_op(adap->dev, SET_TUNER_POWER_REQ, 0, 7, NULL, 0);
++	vp702x_usb_out_op(adap->dev, SET_TUNER_POWER_REQ, 0, 7);
+ 
+ 	if (vp702x_usb_inout_cmd(adap->dev, GET_SYSTEM_STRING, NULL, 0,
+ 				   buf, 10, 10))
+@@ -321,7 +359,8 @@ static int vp702x_frontend_attach(struct dvb_usb_adapter *adap)
+ 	vp702x_init_pid_filter(adap);
+ 
+ 	adap->fe = vp702x_fe_attach(adap->dev);
+-	vp702x_usb_out_op(adap->dev, SET_TUNER_POWER_REQ, 1, 7, NULL, 0);
++
++	vp702x_usb_out_op(adap->dev, SET_TUNER_POWER_REQ, 1, 7);
+ 
+ 	return 0;
+ }
+@@ -331,37 +370,20 @@ static struct dvb_usb_device_properties vp702x_properties;
+ static int vp702x_usb_probe(struct usb_interface *intf,
+ 		const struct usb_device_id *id)
+ {
+-	struct dvb_usb_device *d;
+-	struct vp702x_device_state *st;
+-	int ret;
+-
+-	ret = dvb_usb_device_init(intf, &vp702x_properties,
+-				   THIS_MODULE, &d, adapter_nr);
+-	if (ret)
+-		goto out;
+-
+-	st = d->priv;
+-	st->buf_len = 16;
+-	st->buf = kmalloc(st->buf_len, GFP_KERNEL);
+-	if (!st->buf) {
+-		ret = -ENOMEM;
+-		dvb_usb_device_exit(intf);
+-		goto out;
+-	}
+-	mutex_init(&st->buf_mutex);
+-
+-out:
+-	return ret;
+-
++	return dvb_usb_device_init(intf, &vp702x_properties,
++				   THIS_MODULE, NULL, adapter_nr);
+ }
+ 
+ static void vp702x_usb_disconnect(struct usb_interface *intf)
+ {
+ 	struct dvb_usb_device *d = usb_get_intfdata(intf);
+ 	struct vp702x_device_state *st = d->priv;
+-	mutex_lock(&st->buf_mutex);
++
++	mutex_lock(&d->usb_mutex);
++	st->buf_len = 0;
+ 	kfree(st->buf);
+-	mutex_unlock(&st->buf_mutex);
++	mutex_unlock(&d->usb_mutex);
++
+ 	dvb_usb_device_exit(intf);
+ }
+ 
+diff --git a/drivers/media/dvb/dvb-usb/vp702x.h b/drivers/media/dvb/dvb-usb/vp702x.h
+index 20b9005..25d5616 100644
+--- a/drivers/media/dvb/dvb-usb/vp702x.h
++++ b/drivers/media/dvb/dvb-usb/vp702x.h
+@@ -107,7 +107,11 @@ struct vp702x_device_state {
+ 
+ extern struct dvb_frontend * vp702x_fe_attach(struct dvb_usb_device *d);
+ 
+-extern int vp702x_usb_inout_op(struct dvb_usb_device *d, u8 *o, int olen, u8 *i, int ilen, int msec);
+-extern int vp702x_usb_in_op(struct dvb_usb_device *d, u8 req, u16 value, u16 index, u8 *b, int blen);
++extern int vp702x_usb_inout_op(struct dvb_usb_device *d, u8 *o, int olen, u8 *i,
++		int ilen, int msec);
++extern int vp702x_usb_in_op_unlocked(struct dvb_usb_device *d, u8 req,
++		u16 value, u16 index, u8 *b, int blen);
++extern int vp702x_buffer_setup(struct vp702x_device_state *st, u8 **buf,
++		int len);
+ 
+ #endif
 -- 
-1.6.3.3
+1.7.6
 
