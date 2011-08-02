@@ -1,32 +1,44 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:53464 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751864Ab1HOLOe (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 15 Aug 2011 07:14:34 -0400
-Message-ID: <4E48FF99.7030006@iki.fi>
-Date: Mon, 15 Aug 2011 14:14:33 +0300
-From: Antti Palosaari <crope@iki.fi>
+Received: from moutng.kundenserver.de ([212.227.126.186]:52395 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753368Ab1HBO3B (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 2 Aug 2011 10:29:01 -0400
+Date: Tue, 2 Aug 2011 16:28:59 +0200 (CEST)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Sakari Ailus <sakari.ailus@iki.fi>
+cc: Hans Verkuil <hverkuil@xs4all.nl>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Pawel Osciak <pawel@osciak.com>
+Subject: Re: [PATCH v3] V4L: add two new ioctl()s for multi-size videobuffer
+ management
+In-Reply-To: <4E37FFA7.3040508@iki.fi>
+Message-ID: <Pine.LNX.4.64.1108021628200.29918@axis700.grange>
+References: <Pine.LNX.4.64.1107201025120.12084@axis700.grange>
+ <201107261305.29863.hverkuil@xs4all.nl> <20110726114427.GC32507@valkosipuli.localdomain>
+ <201107261357.31673.hverkuil@xs4all.nl> <Pine.LNX.4.64.1108011031150.30975@axis700.grange>
+ <4E36BE4F.7080704@iki.fi> <Pine.LNX.4.64.1108011704290.30975@axis700.grange>
+ <4E37B082.4090105@iki.fi> <Pine.LNX.4.64.1108021015460.29918@axis700.grange>
+ <4E37D551.8030803@iki.fi> <Pine.LNX.4.64.1108021301410.29918@axis700.grange>
+ <4E37FFA7.3040508@iki.fi>
 MIME-Version: 1.0
-To: =?ISO-8859-1?Q?Istv=E1n_V=E1radi?= <ivaradi@gmail.com>
-CC: linux-media@vger.kernel.org
-Subject: Re: Smart card reader support for Anysee DVB devices
-References: <CAFk-VPxQvGiEUdd+X4jjUqcygPO-JsT0gTFvrX-q4cGAW6tq_Q@mail.gmail.com> <4E485F81.9020700@iki.fi>
-In-Reply-To: <4E485F81.9020700@iki.fi>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 08/15/2011 02:51 AM, Antti Palosaari wrote:
-> Biggest problem I see whole thing is poor application support. OpenCT is
-> rather legacy but there is no good alternative. All this kind of serial
-> drivers seems to be OpenCT currently.
+On Tue, 2 Aug 2011, Sakari Ailus wrote:
 
-I wonder if it is possible to make virtual CCID device since CCID seems
-to be unfortunately the only interface SmartCard guys currently care.
+> Uh, I'm a bit lost now. Do different buffer types (e.g. capture, overlay
+> and input) need to be taken into account here, and if so, how? My
+> understanding was this is not related to preparing buffers.
 
+They all should be dealt with correctly. If you find any problems, please, 
+report.
 
-Antti
-
--- 
-http://palosaari.fi/
+Thanks
+Guennadi
+---
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
+http://www.open-technology.de/
