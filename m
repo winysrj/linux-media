@@ -1,70 +1,103 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:65359 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750820Ab1HaScQ (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 31 Aug 2011 14:32:16 -0400
-Message-ID: <4E5E7E2B.90603@redhat.com>
-Date: Wed, 31 Aug 2011 15:32:11 -0300
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Received: from na3sys009aog108.obsmtp.com ([74.125.149.199]:43633 "EHLO
+	na3sys009aog108.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753348Ab1HBSJk convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 2 Aug 2011 14:09:40 -0400
+Received: by mail-gx0-f175.google.com with SMTP id 3so21187gxk.20
+        for <linux-media@vger.kernel.org>; Tue, 02 Aug 2011 11:09:39 -0700 (PDT)
 MIME-Version: 1.0
-To: Thierry Reding <thierry.reding@avionic-design.de>
-CC: linux-media@vger.kernel.org
-Subject: Re: [PATCH 02/21] [media] tuner/xc2028: Fix frequency offset for
- radio mode.
-References: <1312442059-23935-1-git-send-email-thierry.reding@avionic-design.de> <1312442059-23935-3-git-send-email-thierry.reding@avionic-design.de>
-In-Reply-To: <1312442059-23935-3-git-send-email-thierry.reding@avionic-design.de>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+In-Reply-To: <4E37C841.7000709@samsung.com>
+References: <4E37C7D7.40301@samsung.com>
+	<4E37C841.7000709@samsung.com>
+Date: Tue, 2 Aug 2011 13:09:39 -0500
+Message-ID: <CAO8GWq=sMkm08L56rgc6xophAj_uGO9AE3bfK8D=oCOHBSmNRA@mail.gmail.com>
+Subject: Re: [Linaro-mm-sig] [PATCH 1/6] drivers: base: add shared buffer framework
+From: "Clark, Rob" <rob@ti.com>
+To: Marek Szyprowski <m.szyprowski@samsung.com>
+Cc: linaro-mm-sig@lists.linaro.org,
+	Tomasz Stanislawski <t.stanislaws@samsung.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em 04-08-2011 04:14, Thierry Reding escreveu:
-> In radio mode, no frequency offset is needed. While at it, split off the
-> frequency offset computation for digital TV into a separate function.
+On Tue, Aug 2, 2011 at 4:49 AM, Marek Szyprowski
+<m.szyprowski@samsung.com> wrote:
+> From: Tomasz Stanislawski <t.stanislaws@samsung.com>
+>
 
-Nah, it is better to keep the offset calculation there. there is already
-a set_freq for DVB. breaking the frequency logic even further seems to
-increase the driver's logic. Also, patch is simpler and easier to review.
+> +/**
+> + * shrbuf_import() - obtain shrbuf structure from a file descriptor
+> + * @fd:        file descriptor
+> + *
+> + * The function obtains an instance of a  shared buffer from a file
+> descriptor
+> + * Call sb->put when imported buffer is not longer needed
+> + *
+> + * Returns pointer to a shared buffer or error pointer on failure
+> + */
+> +struct shrbuf *shrbuf_import(int fd)
+> +{
+> +    struct file *file;
+> +    struct shrbuf *sb;
+> +
+> +    /* obtain a file, assure that it will not be released */
+> +    file = fget(fd);
+> +    /* check if descriptor is incorrect */
+> +    if (!file)
+> +        return ERR_PTR(-EBADF);
+> +    /* check if dealing with shrbuf-file */
+> +    if (file->f_op != &shrbuf_fops) {
 
-The patch bellow seems to be better. On a quick review, I think that the 
-	send_seq(priv, {0x00, 0x00})
-sequence may be wrong. I suspect that the device is just discarding that,
-but changing it needs more testing.
 
--
+Hmm.. I was liking the idea of letting the buffer allocator provide
+the fops, so it could deal w/ mmap'ing and that sort of thing.
+Although this reminds me that we would need a sane way to detect if
+someone tries to pass in a non-<umm/dmabuf/shrbuf/whatever> fd.
 
-[media] tuner/xc2028: Fix frequency offset for radio mode
 
-In radio mode, no frequency offset should be used.
-  
-Instead of taking Thierry's patch that creates a separate function
-to calculate the digital offset, it seemed better to just keep
-everything at the same place.
+> +        fput(file);
+> +        return ERR_PTR(-EINVAL);
+> +    }
+> +    /* add user of shared buffer */
+> +    sb = file->private_data;
+> +    sb->get(sb);
+> +    /* release the file */
+> +    fput(file);
+> +
+> +    return sb;
+> +}
 
-Reported-by: Thierry Reding <thierry.reding@avionic-design.de>
-Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
 
-diff --git a/drivers/media/common/tuners/tuner-xc2028.c b/drivers/media/common/tuners/tuner-xc2028.c
-index b6b2868..3acbaa0 100644
---- a/drivers/media/common/tuners/tuner-xc2028.c
-+++ b/drivers/media/common/tuners/tuner-xc2028.c
-@@ -940,11 +940,16 @@ static int generic_set_freq(struct dvb_frontend *fe, u32 freq /* in HZ */,
- 	 * that xc2028 will be in a safe state.
- 	 * Maybe this might also be needed for DTV.
- 	 */
--	if (new_type == V4L2_TUNER_ANALOG_TV) {
-+	switch (new_type) {
-+	case V4L2_TUNER_ANALOG_TV:
- 		rc = send_seq(priv, {0x00, 0x00});
- 
--		/* Analog modes require offset = 0 */
--	} else {
-+		/* Analog mode requires offset = 0 */
-+		break;
-+	case V4L2_TUNER_RADIO:
-+		/* Radio mode requires offset = 0 */
-+		break;
-+	case V4L2_TUNER_DIGITAL_TV:
- 		/*
- 		 * Digital modes require an offset to adjust to the
- 		 * proper frequency. The offset depends on what
+> +/**
+> + * struct shrbuf - shared buffer instance
+> + * @get:    increase number of a buffer's users
+> + * @put:    decrease number of a buffer's user, release resources if needed
+> + * @dma_addr:    start address of a contiguous buffer
+> + * @size:    size of a contiguous buffer
+> + *
+> + * Both get/put methods are required. The structure is dedicated for
+> + * embedding. The fields dma_addr and size are used for proof-of-concept
+> + * purpose. They will be substituted by scatter-gatter lists.
+> + */
+> +struct shrbuf {
+> +    void (*get)(struct shrbuf *);
+> +    void (*put)(struct shrbuf *);
+
+Hmm, is fput()/fget() and fops->release() not enough?
+
+Ie. original buffer allocator provides fops, incl the fops->release(),
+which may in turn be decrementing an internal ref cnt used by the
+allocating driver..  so if your allocating driver was the GPU, it's
+release fxn might be calling drm_gem_object_unreference_unlocked()..
+and I guess there must be something similar for videobuf2.
+
+(Previous comment about letting the allocating driver implement fops
+notwithstanding.. but I guess there must be some good way to deal with
+that.)
+
+BR,
+-R
