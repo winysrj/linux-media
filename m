@@ -1,131 +1,358 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-gw0-f46.google.com ([74.125.83.46]:36445 "EHLO
-	mail-gw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751393Ab1HWDr1 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 22 Aug 2011 23:47:27 -0400
-Received: by gwaa12 with SMTP id a12so3487712gwa.19
-        for <linux-media@vger.kernel.org>; Mon, 22 Aug 2011 20:47:27 -0700 (PDT)
-Message-ID: <4E5322C8.6040809@gmail.com>
-Date: Tue, 23 Aug 2011 15:47:20 +1200
-From: CJ <cjpostor@gmail.com>
-MIME-Version: 1.0
-To: Michael Jones <michael.jones@matrix-vision.de>
-CC: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	javier Martin <javier.martin@vista-silicon.com>,
-	Koen Kooi <koen@beagleboard.org>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	linux-media@vger.kernel.org, mch_kot@yahoo.com.cn
-Subject: Re: [beagleboard] Re: [PATCH v7 1/2] Add driver for Aptina (Micron)
- mt9p031 sensor.
-References: <1307014603-22944-1-git-send-email-javier.martin@vista-silicon.com> <201108191212.49729.laurent.pinchart@ideasonboard.com> <4E51D739.7010000@gmail.com> <201108221141.40818.laurent.pinchart@ideasonboard.com> <4E522C56.3090605@matrix-vision.de>
-In-Reply-To: <4E522C56.3090605@matrix-vision.de>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Received: from mailout3.w1.samsung.com ([210.118.77.13]:60672 "EHLO
+	mailout3.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752920Ab1HBJwT (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 2 Aug 2011 05:52:19 -0400
+MIME-version: 1.0
+Content-transfer-encoding: 7BIT
+Content-type: text/plain; charset=UTF-8; format=flowed
+Received: from spt2.w1.samsung.com ([210.118.77.13]) by mailout3.w1.samsung.com
+ (Sun Java(tm) System Messaging Server 6.3-8.04 (built Jul 29 2009; 32bit))
+ with ESMTP id <0LPA0039YOR6ZV40@mailout3.w1.samsung.com> for
+ linux-media@vger.kernel.org; Tue, 02 Aug 2011 10:52:18 +0100 (BST)
+Received: from [127.0.0.1] ([106.10.22.139])
+ by spt2.w1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14
+ 2004)) with ESMTPA id <0LPA00L17OR4UB@spt2.w1.samsung.com> for
+ linux-media@vger.kernel.org; Tue, 02 Aug 2011 10:52:17 +0100 (BST)
+Date: Tue, 02 Aug 2011 11:52:18 +0200
+From: Marek Szyprowski <m.szyprowski@samsung.com>
+Subject: [PATCH 3/6] v4l: vb2: add support for shared buffer (shrbuf)
+In-reply-to: <4E37C7D7.40301@samsung.com>
+To: Marek Szyprowski <m.szyprowski@samsung.com>
+Cc: linaro-mm-sig@lists.linaro.org, linux-media@vger.kernel.org,
+	Tomasz Stanislawski <t.stanislaws@samsung.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>
+Message-id: <4E37C8D2.4060900@samsung.com>
+References: <4E37C7D7.40301@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Laurent and Michael,
+From: Tomasz Stanislawski <t.stanislaws@samsung.com>
 
-On 22/08/11 22:15, Michael Jones wrote:
->>>>> I am trying to get the mt9p031 working from nand with a ubifs file
->>>>> system and I am having a few problems.
->>>>>
->>>>> /dev/media0 is not present unless I run:
->>>>> #mknod /dev/media0 c 251 0
->>>>> #chown root:video /dev/media0
->>>>>
->>>>> #media-ctl -p
->>>>> Enumerating entities
->>>>> media_open: Unable to enumerate entities for device /dev/media0
->>>>> (Inappropriate ioctl for device)
->>>>>
->>>>> With the same rig/files it works fine running from EXT4 on an SD card.
->>>>> Any idea why this does not work on nand with ubifs?
->>>> Is the OMAP3 ISP driver loaded ? Has it probed the device successfully ?
->>>> Check the kernel log for OMAP3 ISP-related messages.
->>> Here is the version running from SD card:
->>> # dmesg | grep isp
->>> [    0.265502] omap-iommu omap-iommu.0: isp registered
->>> [    2.986541] omap3isp omap3isp: Revision 2.0 found
->>> [    2.991577] omap-iommu omap-iommu.0: isp: version 1.1
->>> [    2.997406] omap3isp omap3isp: hist: DMA channel = 0
->>> [    3.006256] omap3isp omap3isp: isp_set_xclk(): cam_xclka set to
->>> 21600000 Hz
->>> [    3.011932] omap3isp omap3isp: isp_set_xclk(): cam_xclka set to 0 Hz
->>>
->>>   From NAND using UBIFS:
->>> # dmesg | grep isp
->>> [    3.457061] omap3isp omap3isp: Revision 2.0 found
->>> [    3.462036] omap-iommu omap-iommu.0: isp: version 1.1
->>> [    3.467620] omap3isp omap3isp: hist: DMA channel = 0
->>> [    3.472564] omap3isp omap3isp: isp_set_xclk(): cam_xclka set to
->>> 21600000 Hz
->>> [    3.478027] omap3isp omap3isp: isp_set_xclk(): cam_xclka set to 0 Hz
->>>
->>> Seems to be missing:
->>> omap-iommu omap-iommu.0: isp registered
->>>
->>> Is that the issue? Why would this not work when running from NAND?
-> I'm not sure, either, but I had a similar problem before using Laurent's
-> patch below. IIRC, usually udev would create /dev/media0 from a cached
-> list of /dev/*. Later modutils would come along and load the modules in
-> the proper order (iommu, then omap3-isp) and everybody was happy.
-> Occasionally, udev would fail to use the cached version of /dev/, and
-> look through /sys/devices to re-create the devices in /dev/. When media0
-> was found, omap3-isp.ko would be loaded, but iommu had not yet been,
-> presumably because it doesn't have an entry in /sys/devices/. So maybe
-> udev is behaving differently for you on NAND than it did on the card?
-> Either way, as I said, using Laurent's patch below did the job for me.
->
-> -Michael
->
->> I'm not sure why it doesn't work from NAND, but the iommu2 module needs to be
->> loaded before the omap3-isp module. Alternatively you can compile the iommu2
->> module in the kernel with
->>
->> diff --git a/arch/arm/plat-omap/Kconfig b/arch/arm/plat-omap/Kconfig
->> index 49a4c75..3c87644 100644
->> --- a/arch/arm/plat-omap/Kconfig
->> +++ b/arch/arm/plat-omap/Kconfig
->> @@ -132,7 +132,7 @@ config OMAP_MBOX_KFIFO_SIZE
->>   	  module parameter).
->>
->>   config OMAP_IOMMU
->> -       tristate
->> +       bool
->>
->>   config OMAP_IOMMU_DEBUG
->>          tristate "Export OMAP IOMMU internals in DebugFS"
+This patch adds support for SHRBUF memory type in videbuf2. It also provides
+implementation of VIDIOC_EXPOBUF ioctl within videobuf2.
 
-Thanks for the help!
+Signed-off-by: Tomasz Stanislawski <t.stanislaws@samsung.com>
+Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
+---
+  drivers/media/video/videobuf2-core.c |  176 
+++++++++++++++++++++++++++++++++++
+  include/media/videobuf2-core.h       |    7 ++
+  2 files changed, 183 insertions(+), 0 deletions(-)
 
-For some reason dmesg does not read early kernel stuff when in UBIFS 
-from NAND.
-So when I went back and had a look the line I thought was not there is 
-actually included.
+diff --git a/drivers/media/video/videobuf2-core.c 
+b/drivers/media/video/videobuf2-core.c
+index 6ba1461..a1363a6 100644
+--- a/drivers/media/video/videobuf2-core.c
++++ b/drivers/media/video/videobuf2-core.c
+@@ -107,6 +107,25 @@ static void __vb2_buf_userptr_put(struct vb2_buffer 
+*vb)
+  }
 
-[    0.276977] omap-iommu omap-iommu.0: isp registered
+  /**
++ * __vb2_buf_shrbuf_put() - release memory associated with
++ * a SHRBUF buffer
++ */
++static void __vb2_buf_shrbuf_put(struct vb2_buffer *vb)
++{
++    struct vb2_queue *q = vb->vb2_queue;
++    unsigned int plane;
++
++    for (plane = 0; plane < vb->num_planes; ++plane) {
++        void *mem_priv = vb->planes[plane].mem_priv;
++
++        if (mem_priv) {
++            call_memop(q, plane, put_shrbuf, mem_priv);
++            vb->planes[plane].mem_priv = NULL;
++        }
++    }
++}
++
++/**
+   * __setup_offsets() - setup unique offsets ("cookies") for every plane in
+   * every buffer on the queue
+   */
+@@ -220,6 +239,8 @@ static void __vb2_free_mem(struct vb2_queue *q)
+          /* Free MMAP buffers or release USERPTR buffers */
+          if (q->memory == V4L2_MEMORY_MMAP)
+              __vb2_buf_mem_free(vb);
++        if (q->memory == V4L2_MEMORY_SHRBUF)
++            __vb2_buf_shrbuf_put(vb);
+          else
+              __vb2_buf_userptr_put(vb);
+      }
+@@ -314,6 +335,8 @@ static int __fill_v4l2_buffer(struct vb2_buffer *vb, 
+struct v4l2_buffer *b)
+              b->m.offset = vb->v4l2_planes[0].m.mem_offset;
+          else if (q->memory == V4L2_MEMORY_USERPTR)
+              b->m.userptr = vb->v4l2_planes[0].m.userptr;
++        else if (q->memory == V4L2_MEMORY_SHRBUF)
++            b->m.fd = vb->v4l2_planes[0].m.fd;
+      }
 
-So I guess everything is loading fine.
+      /*
+@@ -402,6 +425,19 @@ static int __verify_mmap_ops(struct vb2_queue *q)
+  }
 
-I tried the patch and it didn't make a difference.
+  /**
++ * __verify_shrbuf_ops() - verify that all memory operations required for
++ * SHRBUF queue type have been provided
++ */
++static int __verify_shrbuf_ops(struct vb2_queue *q)
++{
++    if (!(q->io_modes & VB2_SHRBUF) || !q->mem_ops->put_shrbuf ||
++        !q->mem_ops->import_shrbuf || !q->mem_ops->export_shrbuf)
++        return -EINVAL;
++
++    return 0;
++}
++
++/**
+   * __buffers_in_use() - return true if any buffers on the queue are in 
+use and
+   * the queue cannot be freed (by the means of REQBUFS(0)) call
+   */
+@@ -463,6 +499,7 @@ int vb2_reqbufs(struct vb2_queue *q, struct 
+v4l2_requestbuffers *req)
+      }
 
-Regarding what Michael said /dev/media0 is not created by udev when boot 
-from NAND.
-I tried creating it manually with:
-#mknod /dev/media0 c 251 0
-#chown root:video /dev/media0
+      if (req->memory != V4L2_MEMORY_MMAP
++ && req->memory != V4L2_MEMORY_SHRBUF
+&& req->memory != V4L2_MEMORY_USERPTR) {
+          dprintk(1, "reqbufs: unsupported memory type\n");
+          return -EINVAL;
+@@ -492,6 +529,11 @@ int vb2_reqbufs(struct vb2_queue *q, struct 
+v4l2_requestbuffers *req)
+          return -EINVAL;
+      }
 
-But this does not work - outputs:
++    if (req->memory == V4L2_MEMORY_SHRBUF && __verify_shrbuf_ops(q)) {
++        dprintk(1, "reqbufs: SHRBUF for current setup unsupported\n");
++        return -EINVAL;
++    }
++
+      /*
+       * If the same number of buffers and memory access method is requested
+       * then return immediately.
+@@ -702,6 +744,10 @@ static int __fill_vb2_buffer(struct vb2_buffer *vb, 
+struct v4l2_buffer *b,
+                      b->m.planes[plane].length;
+              }
+          }
++        if (b->memory == V4L2_MEMORY_SHRBUF)
++            for (plane = 0; plane < vb->num_planes; ++plane)
++                v4l2_planes[plane].m.fd =
++                    b->m.planes[plane].m.fd;
+      } else {
+          /*
+           * Single-planar buffers do not use planes array,
+@@ -716,6 +762,8 @@ static int __fill_vb2_buffer(struct vb2_buffer *vb, 
+struct v4l2_buffer *b,
+              v4l2_planes[0].m.userptr = b->m.userptr;
+              v4l2_planes[0].length = b->length;
+          }
++        if (b->memory == V4L2_MEMORY_SHRBUF)
++            v4l2_planes[0].m.fd = b->m.fd;
+      }
 
-# media-ctl -r -l '"mt9p031 2-0048":0->"OMAP3 ISP CCDC":0[1], "OMAP3 ISP 
-CCDC":2->"OMAP3 ISP preview":0[1], "OMAP3 ISP preview":1->"OMAP3 ISP 
-resizer":0[1], "OMAP3 ISP resizer":1->"OMAP3 ISP resizer output":0[1]'
-media_open: Unable to enumerate entities for device /dev/media0 
-(Inappropriate ioctl for device)
+      vb->v4l2_buf.field = b->field;
+@@ -813,6 +861,79 @@ static int __qbuf_mmap(struct vb2_buffer *vb, 
+struct v4l2_buffer *b)
+  }
 
-So is there a problem with udev?
+  /**
++ * __qbuf_shrbuf() - handle qbuf of a SHRBUF buffer
++ */
++static int __qbuf_shrbuf(struct vb2_buffer *vb, struct v4l2_buffer *b)
++{
++    struct v4l2_plane planes[VIDEO_MAX_PLANES];
++    struct vb2_queue *q = vb->vb2_queue;
++    void *mem_priv;
++    unsigned int plane;
++    int ret;
++
++    /* Verify and copy relevant information provided by the userspace */
++    ret = __fill_vb2_buffer(vb, b, planes);
++    if (ret)
++        return ret;
++
++    for (plane = 0; plane < vb->num_planes; ++plane) {
++        /* Skip the plane if already verified */
++        if (vb->v4l2_planes[plane].m.fd == planes[plane].m.fd)
++            continue;
++
++        dprintk(3, "qbuf: buffer descriptor for plane %d changed, "
++                "reacquiring memory\n", plane);
++
++        /* Release previously acquired memory if present */
++        if (vb->planes[plane].mem_priv)
++            call_memop(q, plane, put_shrbuf,
++                    vb->planes[plane].mem_priv);
++
++        vb->planes[plane].mem_priv = NULL;
++
++        /* Acquire each plane's memory */
++        if (q->mem_ops->import_shrbuf) {
++            mem_priv = q->mem_ops->import_shrbuf(
++                q->alloc_ctx[plane], planes[plane].m.fd);
++            if (IS_ERR(mem_priv)) {
++                dprintk(1, "qbuf: failed acquiring userspace "
++                        "memory for plane %d\n", plane);
++                ret = PTR_ERR(mem_priv);
++                goto err;
++            }
++            vb->planes[plane].mem_priv = mem_priv;
++        }
++    }
++
++    /*
++     * Call driver-specific initialization on the newly acquired buffer,
++     * if provided.
++     */
++    ret = call_qop(q, buf_init, vb);
++    if (ret) {
++        dprintk(1, "qbuf: buffer initialization failed\n");
++        goto err;
++    }
++
++    /*
++     * Now that everything is in order, copy relevant information
++     * provided by userspace.
++     */
++    for (plane = 0; plane < vb->num_planes; ++plane)
++        vb->v4l2_planes[plane] = planes[plane];
++
++    return 0;
++err:
++    /* In case of errors, release planes that were already acquired */
++    for (; plane > 0; --plane) {
++        call_memop(q, plane, put_shrbuf,
++                vb->planes[plane - 1].mem_priv);
++        vb->planes[plane - 1].mem_priv = NULL;
++    }
++
++    return ret;
++}
++/**
+   * __enqueue_in_driver() - enqueue a vb2_buffer in driver for processing
+   */
+  static void __enqueue_in_driver(struct vb2_buffer *vb)
+@@ -882,6 +1003,8 @@ int vb2_qbuf(struct vb2_queue *q, struct 
+v4l2_buffer *b)
+          ret = __qbuf_mmap(vb, b);
+      else if (q->memory == V4L2_MEMORY_USERPTR)
+          ret = __qbuf_userptr(vb, b);
++    else if (q->memory == V4L2_MEMORY_SHRBUF)
++        ret = __qbuf_shrbuf(vb, b);
+      else {
+          WARN(1, "Invalid queue type\n");
+          return -EINVAL;
+@@ -1102,6 +1225,59 @@ int vb2_dqbuf(struct vb2_queue *q, struct 
+v4l2_buffer *b, bool nonblocking)
+  }
+  EXPORT_SYMBOL_GPL(vb2_dqbuf);
 
-Cheers,
-Chris
++static int __find_plane_by_offset(struct vb2_queue *q, unsigned long off,
++            unsigned int *_buffer, unsigned int *_plane);
++
++/**
++ * vb2_expbuf() - Export a buffer as a file descriptor
++ * @q:        videobuf2 queue
++ * @b:        buffer structure passed from userspace to vidioc_expbuf 
+handler
++ *        in driver
++ *
++ * The return values from this function are intended to be directly 
+returned
++ * from vidioc_expbuf handler in driver.
++ */
++int vb2_expbuf(struct vb2_queue *q, unsigned int offset)
++{
++    struct vb2_buffer *vb = NULL;
++    struct vb2_plane *vb_plane;
++    unsigned int buffer, plane;
++    int ret;
++
++    if (q->memory != V4L2_MEMORY_MMAP) {
++        dprintk(1, "Queue is not currently set up for mmap\n");
++        return -EINVAL;
++    }
++
++    if (~q->io_modes & VB2_SHRBUF) {
++        dprintk(1, "Queue does not support shared buffer\n");
++        return -EINVAL;
++    }
++
++    /*
++     * Find the plane corresponding to the offset passed by userspace.
++     */
++    ret = __find_plane_by_offset(q, offset, &buffer, &plane);
++    if (ret) {
++        dprintk(1, "invalid offset %d\n", offset);
++        return ret;
++    }
++
++    vb = q->bufs[buffer];
++    vb_plane = &vb->planes[plane];
++
++    ret = q->mem_ops->export_shrbuf(vb_plane->mem_priv);
++    if (ret < 0) {
++        dprintk(1, "Failed to export buffer %d, plane %d\n",
++            buffer, plane);
++        return -EINVAL;
++    }
++
++    dprintk(3, "buffer %d, plane %d exported as %d descriptor\n",
++        buffer, plane, ret);
++    return ret;
++}
++
+  /**
+   * vb2_streamon - start streaming
+   * @q:        videobuf2 queue
+diff --git a/include/media/videobuf2-core.h b/include/media/videobuf2-core.h
+index f87472a..d2610e5 100644
+--- a/include/media/videobuf2-core.h
++++ b/include/media/videobuf2-core.h
+@@ -65,6 +65,10 @@ struct vb2_mem_ops {
+                      unsigned long size, int write);
+      void        (*put_userptr)(void *buf_priv);
+
++    void        *(*import_shrbuf)(void *alloc_ctx, int fd);
++    int        (*export_shrbuf)(void *buf_priv);
++    void        (*put_shrbuf)(void *buf_priv);
++
+      void        *(*vaddr)(void *buf_priv);
+      void        *(*cookie)(void *buf_priv);
+
+@@ -82,6 +86,7 @@ struct vb2_plane {
+   * enum vb2_io_modes - queue access methods
+   * @VB2_MMAP:        driver supports MMAP with streaming API
+   * @VB2_USERPTR:    driver supports USERPTR with streaming API
++ * @VB2_SHRBUF:        driver supports SHRBUF with streaming API
+   * @VB2_READ:        driver supports read() style access
+   * @VB2_WRITE:        driver supports write() style access
+   */
+@@ -90,6 +95,7 @@ enum vb2_io_modes {
+      VB2_USERPTR    = (1 << 1),
+      VB2_READ    = (1 << 2),
+      VB2_WRITE    = (1 << 3),
++    VB2_SHRBUF    = (1 << 4),
+  };
+
+  /**
+@@ -296,6 +302,7 @@ int vb2_queue_init(struct vb2_queue *q);
+  void vb2_queue_release(struct vb2_queue *q);
+
+  int vb2_qbuf(struct vb2_queue *q, struct v4l2_buffer *b);
++int vb2_expbuf(struct vb2_queue *q, unsigned int offset);
+  int vb2_dqbuf(struct vb2_queue *q, struct v4l2_buffer *b, bool 
+nonblocking);
+
+  int vb2_streamon(struct vb2_queue *q, enum v4l2_buf_type type);
+-- 
+1.7.6
+
+
+
