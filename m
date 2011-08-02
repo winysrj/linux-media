@@ -1,127 +1,83 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:38279 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751083Ab1HMKWe convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 13 Aug 2011 06:22:34 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-Subject: Re: Is V4L2_PIX_FMT_RGB656 RGB or BGR ?
-Date: Sat, 13 Aug 2011 12:22:36 +0200
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
-References: <201108121826.39804.laurent.pinchart@ideasonboard.com> <4E457C88.5040403@redhat.com>
-In-Reply-To: <4E457C88.5040403@redhat.com>
-MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="utf-8"
-Content-Transfer-Encoding: 8BIT
-Message-Id: <201108131222.37132.laurent.pinchart@ideasonboard.com>
+Received: from mailout4.w1.samsung.com ([210.118.77.14]:24224 "EHLO
+	mailout4.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752361Ab1HBJyb (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 2 Aug 2011 05:54:31 -0400
+MIME-version: 1.0
+Content-transfer-encoding: 7BIT
+Content-type: text/plain; charset=UTF-8; format=flowed
+Received: from eu_spt1 ([210.118.77.14]) by mailout4.w1.samsung.com
+ (Sun Java(tm) System Messaging Server 6.3-8.04 (built Jul 29 2009; 32bit))
+ with ESMTP id <0LPA003Y8OUUWB30@mailout4.w1.samsung.com> for
+ linux-media@vger.kernel.org; Tue, 02 Aug 2011 10:54:30 +0100 (BST)
+Received: from [127.0.0.1] ([106.10.22.139])
+ by spt1.w1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14
+ 2004)) with ESMTPA id <0LPA00JD5OUSXO@spt1.w1.samsung.com> for
+ linux-media@vger.kernel.org; Tue, 02 Aug 2011 10:54:29 +0100 (BST)
+Date: Tue, 02 Aug 2011 11:54:30 +0200
+From: Marek Szyprowski <m.szyprowski@samsung.com>
+Subject: [PATCH 6/6] v4l: s5p-tv: mixer: integrate with shrbuf
+In-reply-to: <4E37C7D7.40301@samsung.com>
+To: Marek Szyprowski <m.szyprowski@samsung.com>
+Cc: linaro-mm-sig@lists.linaro.org, linux-media@vger.kernel.org,
+	Tomasz Stanislawski <t.stanislaws@samsung.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>
+Message-id: <4E37C956.1080008@samsung.com>
+References: <4E37C7D7.40301@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
+From: Tomasz Stanislawski <t.stanislaws@samsung.com>
 
-On Friday 12 August 2011 21:18:32 Mauro Carvalho Chehab wrote:
-> Em 12-08-2011 13:26, Laurent Pinchart escreveu:
-> > According to http://linuxtv.org/downloads/v4l-dvb-apis/packed-rgb.html,
-> > V4L2_PIX_FMT_RGB565 is defined as
-> > 
-> >  Identifier           Byte 0 in memory         Byte 1
-> >  
-> >                   Bit  7  6  5  4  3  2  1  0    7  6  5  4  3  2  1  0
-> >  
-> >  V4L2_PIX_FMT_RGB565  g2 g1 g0 r4 r3 r2 r1 r0   b4 b3 b2 b1 b0 g5 g4 g3
-> > 
-> > As this is stored in little-endian, the color word is thus
-> > 
-> > b4 b3 b2 b1 b0 g5 g4 g3 g2 g1 g0 r4 r3 r2 r1 r0
-> > 
-> > This looks awfully like BGR to me, not RGB.
-> > 
-> > I need to define a FOURCC for the corresponding RGB format
-> > 
-> >  Identifier           Byte 0 in memory         Byte 1
-> >  
-> >                   Bit  7  6  5  4  3  2  1  0    7  6  5  4  3  2  1  0
-> >  
-> >  V4L2_PIX_FMT_RGB565  g2 g1 g0 b4 b3 b2 b1 b0   r4 r3 r2 r1 r0 g5 g4 g3
-> > 
-> > Should I call it V4L2_PIX_FMT_BGR565 ? :-)
-> 
-> Had you seen both Tables 2.6 and 2.7?
-> 
-> http://linuxtv.org/downloads/v4l-dvb-apis/packed-rgb.html#rgb-formats-corre
-> cted
+Signed-off-by: Tomasz Stanislawski <t.stanislaws@samsung.com>
+Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
+---
+  drivers/media/video/s5p-tv/mixer_video.c |   11 ++++++++++-
+  1 files changed, 10 insertions(+), 1 deletions(-)
 
-Good point, I missed 2.7. Thank you.
+diff --git a/drivers/media/video/s5p-tv/mixer_video.c 
+b/drivers/media/video/s5p-tv/mixer_video.c
+index 43ac22f..52cb51a 100644
+--- a/drivers/media/video/s5p-tv/mixer_video.c
++++ b/drivers/media/video/s5p-tv/mixer_video.c
+@@ -591,6 +591,14 @@ static int mxr_dqbuf(struct file *file, void *priv, 
+struct v4l2_buffer *p)
+      return vb2_dqbuf(&layer->vb_queue, p, file->f_flags & O_NONBLOCK);
+  }
 
-> The format you're looking for is "table 2.7" version of
-> V4L2_PIX_FMT_BGR565.
-> 
-> Yeah, this looks crazy. Basically, some drivers were using it on one way,
-> while other drivers were using it the other way. I suspect that this
-> trouble were there since V4L1 times.
-> 
-> See at the changelogs
-> (http://linuxtv.org/downloads/v4l-dvb-apis/hist-v4l2.html), in particular
-> the one on 2003:
-> 
-> 1998-11-14: V4L2_PIX_FMT_RGB24 changed to V4L2_PIX_FMT_BGR24, and
-> V4L2_PIX_FMT_RGB32 changed to V4L2_PIX_FMT_BGR32. Audio controls are now
-> accessible with the VIDIOC_G_CTRL and VIDIOC_S_CTRL ioctls under names
-> starting with V4L2_CID_AUDIO. The V4L2_MAJOR define was removed from
-> videodev.h since it was only used once in the videodev kernel module. The
-> YUV422 and YUV411 planar image formats were added.
++static int mxr_expbuf(struct file *file, void *priv, unsigned int offset)
++{
++    struct mxr_layer *layer = video_drvdata(file);
++
++    mxr_dbg(layer->mdev, "%s:%d\n", __func__, __LINE__);
++    return vb2_expbuf(&layer->vb_queue, offset);
++}
++
+  static int mxr_streamon(struct file *file, void *priv, enum 
+v4l2_buf_type i)
+  {
+      struct mxr_layer *layer = video_drvdata(file);
+@@ -618,6 +626,7 @@ static const struct v4l2_ioctl_ops mxr_ioctl_ops = {
+      .vidioc_querybuf = mxr_querybuf,
+      .vidioc_qbuf = mxr_qbuf,
+      .vidioc_dqbuf = mxr_dqbuf,
++    .vidioc_expbuf = mxr_expbuf,
+      /* Streaming control */
+      .vidioc_streamon = mxr_streamon,
+      .vidioc_streamoff = mxr_streamoff,
+@@ -972,7 +981,7 @@ struct mxr_layer *mxr_base_layer_create(struct 
+mxr_device *mdev,
 
-Thinking some more about this, there might be a reason why RGB24/32 and 
-BGR24/32 were mixed.
-
-If you look at the RGB565 format, a pixel is stored as
-
-Bit 15 14 13 12 11 10  9  8  7  6  5  4  3  2  1  0
-    r4 r3 r2 r1 r0 g5 g4 g3 g2 g1 g0 b4 b3 b2 b1 b0
-
-in a 16-bit word. Storing that to memory on a little endian system, we then 
-get
-
-Byte 0                        1
-Bit  7  6  5  4  3  2  1  0   7  6  5  4  3  2  1  0
-    g2 g1 g0 b4 b3 b2 b1 b0   r4 r3 r2 r1 r0 g5 g4 g3
-
-This is logical, and is what table 2.7 defines. If we apply the same reasoning 
-to an  RGB24 format, a pixel should be stored in a 24-bit word as 
-
-Bit 23 22 21 20 19 18 17 16 15 14 13 12 11 10  9  8  7  6  5  4  3  2  1  0
-    r7 r6 r5 r4 r3 r2 r1 r0 g7 g6 g5 g4 g3 g2 g1 g0 b7 b6 b5 b4 b3 b2 b1 b0
-
-Storing that to memory on a little endian system, we would get
-
-Byte 0                         1                         2
-Bit  7  6  5  4  3  2  1  0   7  6  5  4  3  2  1  0   7  6  5  4  3  2  1  0
-    b7 b6 b5 b4 b3 b2 b1 b0  g7 g6 g5 g4 g3 g2 g1 g0  r7 r6 r5 r4 r3 r2 r1 r0
-
-We call this BGR24 in table 2.7. This makes sense, as bytes are stored in BGR 
-order in memory. However, this is inconsistent with the way we name RGB565. 
-The RGB565 name is defined by the pixel layout in a 16-bit word, while the 
-RGB24 and (RGB32) names are defined by the pixel layout in memory.
-
-This is obviously something we can live with, but it's worth understanding 
-where we come from and how we name formats to avoid confusions.
-
-> 2001-04-13: Big endian 16-bit RGB formats were added.
-> 
-> V4L2 2003-11-05:
-> 
->   In the section called “RGB Formats” the following pixel formats were
-> incorrectly transferred from Bill Dirks' V4L2 specification. Descriptions
-> below refer to bytes in memory, in ascending address order. In the section
-> called “Image Properties” the mapping of the V4L VIDEO_PALETTE_RGB24 and
-> VIDEO_PALETTE_RGB32 formats to V4L2 pixel formats was accordingly
-> corrected. Unrelated to the fixes above, drivers may still interpret some
-> V4L2 RGB pixel formats differently. These issues have yet to be addressed,
-> for details see the section called “RGB Formats”.
-
+      layer->vb_queue = (struct vb2_queue) {
+          .type = V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE,
+-        .io_modes = VB2_MMAP | VB2_USERPTR,
++        .io_modes = VB2_MMAP | VB2_USERPTR | VB2_SHRBUF,
+          .drv_priv = layer,
+          .buf_struct_size = sizeof(struct mxr_buffer),
+          .ops = &mxr_video_qops,
 -- 
-Regards,
+1.7.6
 
-Laurent Pinchart
+
+
