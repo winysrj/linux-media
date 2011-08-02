@@ -1,168 +1,125 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ams-iport-1.cisco.com ([144.254.224.140]:54006 "EHLO
-	ams-iport-1.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751257Ab1HHJTI (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 8 Aug 2011 05:19:08 -0400
-From: Hans Verkuil <hansverk@cisco.com>
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Subject: Re: [PATCH 1/6 v4] V4L: add two new ioctl()s for multi-size videobuffer management
-Date: Mon, 8 Aug 2011 11:16:41 +0200
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+Received: from moutng.kundenserver.de ([212.227.126.171]:51957 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752174Ab1HBIPJ (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 2 Aug 2011 04:15:09 -0400
+Date: Tue, 2 Aug 2011 10:15:02 +0200 (CEST)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+cc: Pawel Osciak <pawel@osciak.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
 	Sakari Ailus <sakari.ailus@iki.fi>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	Pawel Osciak <pawel@osciak.com>,
 	Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>,
 	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
 	Mauro Carvalho Chehab <mchehab@infradead.org>
-References: <Pine.LNX.4.64.1108042329460.31239@axis700.grange> <Pine.LNX.4.64.1108050908590.26715@axis700.grange>
-In-Reply-To: <Pine.LNX.4.64.1108050908590.26715@axis700.grange>
+Subject: Re: [PATCH v3] V4L: add two new ioctl()s for multi-size videobuffer
+ management
+In-Reply-To: <201107280856.55731.hverkuil@xs4all.nl>
+Message-ID: <Pine.LNX.4.64.1108020919290.29918@axis700.grange>
+References: <Pine.LNX.4.64.1107201025120.12084@axis700.grange>
+ <CAMm-=zB3dOJyCy7ZhqiTQkeL2b=Dvtz8geMR8zbHYBCVR6=pEw@mail.gmail.com>
+ <201107280856.55731.hverkuil@xs4all.nl>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201108081116.41126.hansverk@cisco.com>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Guennadi!
+On Thu, 28 Jul 2011, Hans Verkuil wrote:
 
-On Friday, August 05, 2011 09:47:13 Guennadi Liakhovetski wrote:
-> A possibility to preallocate and initialise buffers of different sizes
-> in V4L2 is required for an efficient implementation of asnapshot mode.
-> This patch adds two new ioctl()s: VIDIOC_CREATE_BUFS and
-> VIDIOC_PREPARE_BUF and defines respective data structures.
+> On Thursday, July 28, 2011 06:11:38 Pawel Osciak wrote:
+> > Hi Guennadi,
+> > 
+> > On Wed, Jul 20, 2011 at 01:43, Guennadi Liakhovetski
+> > <g.liakhovetski@gmx.de> wrote:
+> > > A possibility to preallocate and initialise buffers of different sizes
+> > > in V4L2 is required for an efficient implementation of asnapshot mode.
+> > > This patch adds two new ioctl()s: VIDIOC_CREATE_BUFS and
+> > > VIDIOC_PREPARE_BUF and defines respective data structures.
+> > >
+> > > Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+> > > ---
+> > >
+> > <snip>
+> > 
+> > This looks nicer, I like how we got rid of destroy and gave up on
+> > making holes, it would've given us a lot of headaches. I'm thinking
+> > about some issues though and also have some comments/questions further
+> > below.
+> > 
+> > Already mentioned by others mixing of REQBUFS and CREATE_BUFS.
+> > Personally I'd like to allow mixing, including REQBUFS for non-zero,
+> > because I think it would be easy to do. I think it could work in the
+> > same way as REQBUFS for !=0 works currently (at least in vb2), if we
+> > already have some buffers allocated and they are not in use, we free
+> > them and a new set is allocated. So I guess it could just stay this
+> > way. REQBUFS(0) would of course free everything.
+> > 
+> > Passing format to CREATE_BUFS will make vb2 a bit format-aware, as it
+> > would have to pass it forward to the driver somehow. The obvious way
+> > would be just vb2 calling the driver's s_fmt handler, but that won't
+> > work, as you can't pass indexes to s_fmt. So we'd have to implement a
+> > new driver callback for setting formats per index. I guess there is no
+> > way around it, unless we actually take the format struct out of
+> > CREATE_BUFS and somehow do it via S_FMT. The single-planar structure
+> > is full already though, the only way would be to use
+> > v4l2_pix_format_mplane instead with plane count = 1 (or more if
+> > needed).
 > 
-> Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-> ---
+> I just got an idea for this: use TRY_FMT. That will do exactly what
+> you want. In fact, perhaps we should remove the format struct from
+> CREATE_BUFS and use __u32 sizes[VIDEO_MAX_PLANES] instead. Let the
+> application call TRY_FMT and initialize the sizes array instead of
+> putting that into vb2. We may need a num_planes field as well. If the
+> sizes are all 0 (or num_planes is 0), then the driver can use the current
+> format, just as it does with REQBUFS.
 > 
-> v4:
-> 
-> 1. CREATE_BUFS now takes an array of plane sizes and a fourcc code in its 
->    argument, instead of a frame format specification, including 
->    documentation update
-> 2. documentation improvements, as suggested by Hans
-> 3. increased reserved fields to 18, as suggested by Sakari
-> 
->  Documentation/DocBook/media/v4l/io.xml             |   17 ++
->  Documentation/DocBook/media/v4l/v4l2.xml           |    2 +
->  .../DocBook/media/v4l/vidioc-create-bufs.xml       |  161 
-++++++++++++++++++++
->  .../DocBook/media/v4l/vidioc-prepare-buf.xml       |   96 ++++++++++++
->  drivers/media/video/v4l2-compat-ioctl32.c          |    6 +
->  drivers/media/video/v4l2-ioctl.c                   |   26 +++
->  include/linux/videodev2.h                          |   18 +++
->  include/media/v4l2-ioctl.h                         |    2 +
->  8 files changed, 328 insertions(+), 0 deletions(-)
->  create mode 100644 Documentation/DocBook/media/v4l/vidioc-create-bufs.xml
->  create mode 100644 Documentation/DocBook/media/v4l/vidioc-prepare-buf.xml
-> 
+> Or am I missing something?
 
-<snip>
+...After more thinking and looking at the vb2 code, this began to feel 
+wrong to me. This introduces an asymmetry, which doesn't necessarily look 
+good to me. At present we have the TRY_FMT and S_FMT ioctl()s, which among 
+other tasks calculate sizeimage and bytesperline - either per plane or 
+total. Besides we also have the REQBUFS call, that internally calls the 
+.queue_setup() queue method. In that method the _driver_ has a chance to 
+calculate for the _current format_ the number of planes (again?...) and 
+buffer sizes for each plane. This suggests, that the latter calculation 
+can be different from the former.
 
-> diff --git a/include/linux/videodev2.h b/include/linux/videodev2.h
-> index fca24cc..3cd0cb3 100644
-> --- a/include/linux/videodev2.h
-> +++ b/include/linux/videodev2.h
-> @@ -653,6 +653,9 @@ struct v4l2_buffer {
->  #define V4L2_BUF_FLAG_ERROR	0x0040
->  #define V4L2_BUF_FLAG_TIMECODE	0x0100	/* timecode field is valid */
->  #define V4L2_BUF_FLAG_INPUT     0x0200  /* input field is valid */
-> +/* Cache handling flags */
-> +#define V4L2_BUF_FLAG_NO_CACHE_INVALIDATE	0x0400
-> +#define V4L2_BUF_FLAG_NO_CACHE_CLEAN		0x0800
->  
->  /*
->   *	O V E R L A Y   P R E V I E W
-> @@ -2092,6 +2095,18 @@ struct v4l2_dbg_chip_ident {
->  	__u32 revision;    /* chip revision, chip specific */
->  } __attribute__ ((packed));
->  
-> +/* VIDIOC_CREATE_BUFS */
-> +struct v4l2_create_buffers {
-> +	__u32	index;	/* output: buffers index...index + count - 1 have been 
-created */
-> +	__u32	count;
-> +	__u32	type;
-> +	__u32	memory;
-> +	__u32	fourcc;
-> +	__u32	num_planes;
-> +	__u32	sizes[VIDEO_MAX_PLANES];
-> +	__u32	reserved[18];
-> +};
+Now you're suggesting to use TRY_FMT to calculate the number of planes and 
+per-plane sizeofimage, and then use _only_ this information to set up the 
+buffers from the CREATE_BUFS ioctl(). So, are we now claiming, that this 
+information alone (per-plane-sizeofimage) should be dufficient to set up 
+buffers?
 
-I know you are going to hate me for this, but I've changed my mind: I think
-this should use a struct v4l2_format after all.
+OTOH, Pawel's above question has a simple answer: vb2 is not becoming 
+format aware. It just passes the format on to the driver with the 
+(modified) .queue_setup() method:
 
-This change of heart came out of discussions during the V4L2 brainstorm 
-meeting last week. The only way to be sure the buffers are allocated optimally 
-is if the driver has all the information. The easiest way to do that is by 
-passing struct v4l2_format. This is also consistent with REQBUFS since that 
-uses the information from the currently selected format (i.e. what you get 
-back from VIDIOC_G_FMT).
+diff --git a/include/media/videobuf2-core.h b/include/media/videobuf2-core.h
+index f87472a..f5a7d92 100644
+--- a/include/media/videobuf2-core.h
++++ b/include/media/videobuf2-core.h
+@@ -210,9 +216,10 @@ struct vb2_buffer {
+  *			the buffer back by calling vb2_buffer_done() function
+  */
+ struct vb2_ops {
+-	int (*queue_setup)(struct vb2_queue *q, unsigned int *num_buffers,
+-			   unsigned int *num_planes, unsigned long sizes[],
+-			   void *alloc_ctxs[]);
++	int (*queue_setup)(struct vb2_queue *q,
++			 struct v4l2_create_buffers *create,
++			 unsigned int *num_buffers, unsigned int *num_planes,
++			 unsigned long sizes[], void *alloc_ctxs[]);
+ 
+ 	void (*wait_prepare)(struct vb2_queue *q);
+ 	void (*wait_finish)(struct vb2_queue *q);
 
-There can be subtle behaviors such as allocating from different memory back 
-based on the fourcc and the size of the image.
+(of course, we would first add a new method, migrate all drivers, then 
+remove the old one).
 
-One reason why I liked passing sizes directly is that it allows the caller to 
-ask for more memory than is strictly necessary.
-
-However, while brainstorming last week the suggestion was made that there is 
-no reason why the user can't set the sizeimage field in 
-v4l2_pix_format(_mplane) to something higher. The S/TRY_FMT spec explicitly 
-mentions that the sizeimage field is set by the driver, but for the new 
-CREATEBUFS ioctl no such limitation has to be placed. The only thing necessary 
-is to ensure that sizeimage is not too small (and you probably want some 
-sanity check against crazy values as well).
-
-This way the decision on how to allocate memory is the same between REQBUFS 
-and CREATEBUFS (i.e. both use v4l2_format information), but there is no need 
-for a union as we had in the initial proposal since apps can set the sizeimage 
-to something larger than strictly necessary (or just leave it to 0 to get the 
-smallest size).
-
-Regards,
-
-	Hans
-
-> +
->  /*
->   *	I O C T L   C O D E S   F O R   V I D E O   D E V I C E S
->   *
-> @@ -2182,6 +2197,9 @@ struct v4l2_dbg_chip_ident {
->  #define	VIDIOC_SUBSCRIBE_EVENT	 _IOW('V', 90, struct 
-v4l2_event_subscription)
->  #define	VIDIOC_UNSUBSCRIBE_EVENT _IOW('V', 91, struct 
-v4l2_event_subscription)
->  
-> +#define VIDIOC_CREATE_BUFS	_IOWR('V', 92, struct v4l2_create_buffers)
-> +#define VIDIOC_PREPARE_BUF	 _IOW('V', 93, struct v4l2_buffer)
-> +
->  /* Reminder: when adding new ioctls please add support for them to
->     drivers/media/video/v4l2-compat-ioctl32.c as well! */
->  
-> diff --git a/include/media/v4l2-ioctl.h b/include/media/v4l2-ioctl.h
-> index dd9f1e7..4d1c74a 100644
-> --- a/include/media/v4l2-ioctl.h
-> +++ b/include/media/v4l2-ioctl.h
-> @@ -122,6 +122,8 @@ struct v4l2_ioctl_ops {
->  	int (*vidioc_qbuf)    (struct file *file, void *fh, struct v4l2_buffer 
-*b);
->  	int (*vidioc_dqbuf)   (struct file *file, void *fh, struct v4l2_buffer 
-*b);
->  
-> +	int (*vidioc_create_bufs)(struct file *file, void *fh, struct 
-v4l2_create_buffers *b);
-> +	int (*vidioc_prepare_buf)(struct file *file, void *fh, struct v4l2_buffer 
-*b);
->  
->  	int (*vidioc_overlay) (struct file *file, void *fh, unsigned int i);
->  	int (*vidioc_g_fbuf)   (struct file *file, void *fh,
-> -- 
-> 1.7.2.5
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
-> 
+Thanks
+Guennadi
+---
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
+http://www.open-technology.de/
