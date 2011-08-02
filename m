@@ -1,48 +1,104 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:33048 "EHLO mail.kapsi.fi"
+Received: from smtp.nokia.com ([147.243.1.48]:25630 "EHLO mgw-sa02.nokia.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753109Ab1HNL0h (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 14 Aug 2011 07:26:37 -0400
-Message-ID: <4E47B0E9.2030801@iki.fi>
-Date: Sun, 14 Aug 2011 14:26:33 +0300
-From: Antti Palosaari <crope@iki.fi>
-MIME-Version: 1.0
-To: Hans-Frieder Vogt <hfvogt@gmx.net>
-CC: linux-media@vger.kernel.org
-Subject: Re: TerraTec T6 Dual Tuner Stick initial support available
-References: <201108140930.07873.hfvogt@gmx.net>
-In-Reply-To: <201108140930.07873.hfvogt@gmx.net>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+	id S1753310Ab1HBKkc (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 2 Aug 2011 06:40:32 -0400
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: linux-media@vger.kernel.org
+Cc: laurent.pinchart@ideasonboard.com, hans.verkuil@cisco.com,
+	snjw23@gmail.com
+Subject: [PATCH v2 2/2] omap3isp: ccdc: Make frame start event generic
+Date: Tue,  2 Aug 2011 13:40:46 +0300
+Message-Id: <1312281646-3449-2-git-send-email-sakari.ailus@iki.fi>
+In-Reply-To: <4E37D415.8060000@iki.fi>
+References: <4E37D415.8060000@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 08/14/2011 10:30 AM, Hans-Frieder Vogt wrote:
-> just wanted to inform you that I got the TerraTec Dual DVB-T Stick working 
-> using a slightly patched driver from Afatech. Please see the wiki entry
-> http://www.linuxtv.org/wiki/index.php/TerraTec_T6_Dual_DVB-T_Stick
-> Currently both tuners work, but the remote doesn't.
-> 
-> This driver is only supposed to be a temporary solution until I have 
-> integrated the bits into Antti's af9035 driver, see
-> http://openee.googlecode.com/svn-history/r137/trunk/recipes/v4l-dvb/files/v4l-
-> dvb-af9035.patch
-> http://openee.googlecode.com/svn-history/r137/trunk/recipes/v4l-dvb/files/v4l-
-> dvb-af9033.patch
+The ccdc block in the omap3isp produces frame start events. These events
+were previously specific to the omap3isp. Make them generic.
 
-Situation of my AF9035 & AF9033 driver is and have been years totally
-frozen, I given it up since I never got permission from ITE to push it
-Kernel and firmware distribution. Thus I left it. I have had in mind to
-write out all vendor code (not much code I think) to get rid of
-copyrights and do what I want - but never had enough time.
+Also add sequence number to the frame. This is stored to the id field.
 
-Due to that I am not going to work my AF9035 + AF9033 unless something
-changes dramatically at least now when there is other drivers.
+Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
+---
+ Documentation/video4linux/omap3isp.txt |    9 +++++----
+ drivers/media/video/omap3isp/ispccdc.c |   11 +++++++++--
+ include/linux/omap3isp.h               |    2 --
+ 3 files changed, 14 insertions(+), 8 deletions(-)
 
-
-regards
-Antti
-
-
+diff --git a/Documentation/video4linux/omap3isp.txt b/Documentation/video4linux/omap3isp.txt
+index 69be2c7..5dd1439 100644
+--- a/Documentation/video4linux/omap3isp.txt
++++ b/Documentation/video4linux/omap3isp.txt
+@@ -70,10 +70,11 @@ Events
+ The OMAP 3 ISP driver does support the V4L2 event interface on CCDC and
+ statistics (AEWB, AF and histogram) subdevs.
+ 
+-The CCDC subdev produces V4L2_EVENT_OMAP3ISP_HS_VS type event on HS_VS
+-interrupt which is used to signal frame start. The event is triggered exactly
+-when the reception of the first line of the frame starts in the CCDC module.
+-The event can be subscribed on the CCDC subdev.
++The CCDC subdev produces V4L2_EVENT_FRAME_SYNC type event on HS_VS
++interrupt which is used to signal frame start. Earlier version of this
++driver used V4L2_EVENT_OMAP3ISP_HS_VS for this purpose. The event is
++triggered exactly when the reception of the first line of the frame starts
++in the CCDC module. The event can be subscribed on the CCDC subdev.
+ 
+ (When using parallel interface one must pay account to correct configuration
+ of the VS signal polarity. This is automatically correct when using the serial
+diff --git a/drivers/media/video/omap3isp/ispccdc.c b/drivers/media/video/omap3isp/ispccdc.c
+index 6766247..110d4ab 100644
+--- a/drivers/media/video/omap3isp/ispccdc.c
++++ b/drivers/media/video/omap3isp/ispccdc.c
+@@ -1402,11 +1402,14 @@ static int __ccdc_handle_stopping(struct isp_ccdc_device *ccdc, u32 event)
+ 
+ static void ccdc_hs_vs_isr(struct isp_ccdc_device *ccdc)
+ {
++	struct isp_pipeline *pipe =
++		to_isp_pipeline(&ccdc->video_out.video.entity);
+ 	struct video_device *vdev = &ccdc->subdev.devnode;
+ 	struct v4l2_event event;
+ 
+ 	memset(&event, 0, sizeof(event));
+-	event.type = V4L2_EVENT_OMAP3ISP_HS_VS;
++	event.type = V4L2_EVENT_FRAME_SYNC;
++	event.u.frame_sync.frame_sequence = atomic_read(&pipe->frame_number);
+ 
+ 	v4l2_event_queue(vdev, &event);
+ }
+@@ -1688,7 +1691,11 @@ static long ccdc_ioctl(struct v4l2_subdev *sd, unsigned int cmd, void *arg)
+ static int ccdc_subscribe_event(struct v4l2_subdev *sd, struct v4l2_fh *fh,
+ 				struct v4l2_event_subscription *sub)
+ {
+-	if (sub->type != V4L2_EVENT_OMAP3ISP_HS_VS)
++	if (sub->type != V4L2_EVENT_FRAME_SYNC)
++		return -EINVAL;
++
++	/* line number is zero at frame start */
++	if (sub->id != 0)
+ 		return -EINVAL;
+ 
+ 	return v4l2_event_subscribe(fh, sub, OMAP3ISP_CCDC_NEVENTS);
+diff --git a/include/linux/omap3isp.h b/include/linux/omap3isp.h
+index b6111f8..c73a34c 100644
+--- a/include/linux/omap3isp.h
++++ b/include/linux/omap3isp.h
+@@ -62,14 +62,12 @@
+  * V4L2_EVENT_OMAP3ISP_AEWB: AEWB statistics data ready
+  * V4L2_EVENT_OMAP3ISP_AF: AF statistics data ready
+  * V4L2_EVENT_OMAP3ISP_HIST: Histogram statistics data ready
+- * V4L2_EVENT_OMAP3ISP_HS_VS: Horizontal/vertical synchronization detected
+  */
+ 
+ #define V4L2_EVENT_OMAP3ISP_CLASS	(V4L2_EVENT_PRIVATE_START | 0x100)
+ #define V4L2_EVENT_OMAP3ISP_AEWB	(V4L2_EVENT_OMAP3ISP_CLASS | 0x1)
+ #define V4L2_EVENT_OMAP3ISP_AF		(V4L2_EVENT_OMAP3ISP_CLASS | 0x2)
+ #define V4L2_EVENT_OMAP3ISP_HIST	(V4L2_EVENT_OMAP3ISP_CLASS | 0x3)
+-#define V4L2_EVENT_OMAP3ISP_HS_VS	(V4L2_EVENT_OMAP3ISP_CLASS | 0x4)
+ 
+ struct omap3isp_stat_event_status {
+ 	__u32 frame_number;
 -- 
-http://palosaari.fi/
+1.7.2.5
+
