@@ -1,406 +1,250 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr7.xs4all.nl ([194.109.24.27]:4051 "EHLO
-	smtp-vbr7.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756568Ab1H3U3X (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 30 Aug 2011 16:29:23 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Subject: Re: [PATCH] media: none of the drivers should be enabled by default
-Date: Tue, 30 Aug 2011 22:28:44 +0200
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-References: <Pine.LNX.4.64.1108301921040.19151@axis700.grange> <201108302139.23337.hverkuil@xs4all.nl> <Pine.LNX.4.64.1108302208310.20675@axis700.grange>
-In-Reply-To: <Pine.LNX.4.64.1108302208310.20675@axis700.grange>
-MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
+Received: from oproxy8-pub.bluehost.com ([69.89.22.20]:48837 "HELO
+	oproxy8-pub.bluehost.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1753318Ab1HBPb2 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 2 Aug 2011 11:31:28 -0400
+Date: Tue, 2 Aug 2011 08:31:26 -0700
+From: Randy Dunlap <rdunlap@xenotime.net>
+To: Kamil Debski <k.debski@samsung.com>
+Cc: linux-media@vger.kernel.org, kyungmin.park@samsung.com,
+	jaeryul.oh@samsung.com, mchehab@infradead.org
+Subject: Re: [PATCH] v4l2: Fix documentation of the codec device controls
+Message-Id: <20110802083126.413c07ee.rdunlap@xenotime.net>
+In-Reply-To: <002401cc50e9$d348d6f0$79da84d0$%debski@samsung.com>
+References: <1312210299-8040-1-git-send-email-k.debski@samsung.com>
+	<20110801102346.0b2b9126.rdunlap@xenotime.net>
+	<002401cc50e9$d348d6f0$79da84d0$%debski@samsung.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
-Message-Id: <201108302228.45059.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tuesday, August 30, 2011 22:12:09 Guennadi Liakhovetski wrote:
-> On Tue, 30 Aug 2011, Hans Verkuil wrote:
+On Tue, 02 Aug 2011 09:57:23 +0200 Kamil Debski wrote:
+
+> Hi,
 > 
-> > On Tuesday, August 30, 2011 19:22:00 Guennadi Liakhovetski wrote:
-> > > None of the media drivers are compulsory, let users select which drivers
-> > > they want to build, instead of having to unselect them one by one.
-> > 
-> > I disagree with this: while this is fine for SoCs, for a generic kernel I
-> > think it is better to build it all. Even expert users can have a hard time
-> > figuring out what chip is in a particular device.
+> I am sorry, I did run "make htmldocs" and got no errors. So I have to be
+> doing something wrong building the docs. Could you tell me how do you build
+> the documentation? Knowing this I could check the next patch to make sure it
+> is error free.
+
+I'm just running "make htmldocs".  I expect the differences are in what
+versions of tools (or xml reference files etc.) we have installed.
+I'm using fedora 11 (which is fairly old).
+
+You have done what you should do, so I'll just ignore the warnings etc.
+(and move off of fedora 11 one day).
+
+Thanks.
+
+> Best wishes,
+> --
+> Kamil Debski
+> Linux Platform Group
+> Samsung Poland R&D Center
 > 
-> Then could someone, please, explain to me, why I don't find this 
-> "convenience" in any other kernel driver class? Wireless, ALSA, USB, I2C - 
-> you name them. Is there something special about media, that I'm missing, 
-> or are all others just user-unfriendly? Why are distro-kernels, 
-> allmodconfig, allyesconfig not enough for media and we think it's 
-> necessary to build everything "just in case?"
-
-That's actually a good question. I certainly think that the more obscure
-drivers can be disabled by default. But I also think that you want to keep
-a certain subset of commonly used drivers enabled. I'm thinking bttv, uvc,
-perhaps gspca.
-
-As far as I can see, alsa enables for example HD Audio, which almost all
-modern hw supports. We should do something similar for v4l.
-
-And we should really reorder some of the entries in the menu: one of the
-first drivers you see are parallel port webcams and other very obscure
-devices.
-
-Regards,
-
-	Hans
-
 > 
-> Thanks
-> Guennadi
-> 
+> > -----Original Message-----
+> > From: Randy Dunlap [mailto:rdunlap@xenotime.net]
+> > Sent: 01 August 2011 19:24
+> > To: Kamil Debski
+> > Cc: linux-media@vger.kernel.org; kyungmin.park@samsung.com;
+> > jaeryul.oh@samsung.com; mchehab@infradead.org
+> > Subject: Re: [PATCH] v4l2: Fix documentation of the codec device controls
 > > 
-> > Regards,
+> > On Mon, 01 Aug 2011 16:51:39 +0200 Kamil Debski wrote:
 > > 
-> > 	Hans
-> > 
-> > > Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+> > > Fixed missing ids of the codec controls description in the controls.xml
+> > file.
+> > >
+> > > Signed-off-by: Kamil Debski <k.debski@samsung.com>
+> > > Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+> > > Reported-by: Randy Dunlap <rdunlap@xenotime.net>
 > > > ---
-> > >  drivers/media/common/tuners/Kconfig |   23 +----------------------
-> > >  drivers/media/radio/Kconfig         |    1 -
-> > >  drivers/media/rc/Kconfig            |   16 +---------------
-> > >  drivers/media/rc/keymaps/Kconfig    |    1 -
-> > >  drivers/media/video/Kconfig         |    7 ++-----
-> > >  5 files changed, 4 insertions(+), 44 deletions(-)
-> > > 
-> > > diff --git a/drivers/media/common/tuners/Kconfig b/drivers/media/common/tuners/Kconfig
-> > > index 996302a..1e53057 100644
-> > > --- a/drivers/media/common/tuners/Kconfig
-> > > +++ b/drivers/media/common/tuners/Kconfig
-> > > @@ -33,7 +33,7 @@ config MEDIA_TUNER
-> > >  	select MEDIA_TUNER_MC44S803 if !MEDIA_TUNER_CUSTOMISE
-> > >  
-> > >  config MEDIA_TUNER_CUSTOMISE
-> > > -	bool "Customize analog and hybrid tuner modules to build"
-> > > +	bool "Select analog and hybrid tuner modules to build"
-> > >  	depends on MEDIA_TUNER
-> > >  	default y if EXPERT
-> > >  	help
-> > > @@ -52,7 +52,6 @@ config MEDIA_TUNER_SIMPLE
-> > >  	tristate "Simple tuner support"
-> > >  	depends on VIDEO_MEDIA && I2C
-> > >  	select MEDIA_TUNER_TDA9887
-> > > -	default m if MEDIA_TUNER_CUSTOMISE
-> > >  	help
-> > >  	  Say Y here to include support for various simple tuners.
-> > >  
-> > > @@ -61,28 +60,24 @@ config MEDIA_TUNER_TDA8290
-> > >  	depends on VIDEO_MEDIA && I2C
-> > >  	select MEDIA_TUNER_TDA827X
-> > >  	select MEDIA_TUNER_TDA18271
-> > > -	default m if MEDIA_TUNER_CUSTOMISE
-> > >  	help
-> > >  	  Say Y here to include support for Philips TDA8290+8275(a) tuner.
-> > >  
-> > >  config MEDIA_TUNER_TDA827X
-> > >  	tristate "Philips TDA827X silicon tuner"
-> > >  	depends on VIDEO_MEDIA && I2C
-> > > -	default m if MEDIA_TUNER_CUSTOMISE
-> > >  	help
-> > >  	  A DVB-T silicon tuner module. Say Y when you want to support this tuner.
-> > >  
-> > >  config MEDIA_TUNER_TDA18271
-> > >  	tristate "NXP TDA18271 silicon tuner"
-> > >  	depends on VIDEO_MEDIA && I2C
-> > > -	default m if MEDIA_TUNER_CUSTOMISE
-> > >  	help
-> > >  	  A silicon tuner module. Say Y when you want to support this tuner.
-> > >  
-> > >  config MEDIA_TUNER_TDA9887
-> > >  	tristate "TDA 9885/6/7 analog IF demodulator"
-> > >  	depends on VIDEO_MEDIA && I2C
-> > > -	default m if MEDIA_TUNER_CUSTOMISE
-> > >  	help
-> > >  	  Say Y here to include support for Philips TDA9885/6/7
-> > >  	  analog IF demodulator.
-> > > @@ -91,63 +86,54 @@ config MEDIA_TUNER_TEA5761
-> > >  	tristate "TEA 5761 radio tuner (EXPERIMENTAL)"
-> > >  	depends on VIDEO_MEDIA && I2C
-> > >  	depends on EXPERIMENTAL
-> > > -	default m if MEDIA_TUNER_CUSTOMISE
-> > >  	help
-> > >  	  Say Y here to include support for the Philips TEA5761 radio tuner.
-> > >  
-> > >  config MEDIA_TUNER_TEA5767
-> > >  	tristate "TEA 5767 radio tuner"
-> > >  	depends on VIDEO_MEDIA && I2C
-> > > -	default m if MEDIA_TUNER_CUSTOMISE
-> > >  	help
-> > >  	  Say Y here to include support for the Philips TEA5767 radio tuner.
-> > >  
-> > >  config MEDIA_TUNER_MT20XX
-> > >  	tristate "Microtune 2032 / 2050 tuners"
-> > >  	depends on VIDEO_MEDIA && I2C
-> > > -	default m if MEDIA_TUNER_CUSTOMISE
-> > >  	help
-> > >  	  Say Y here to include support for the MT2032 / MT2050 tuner.
-> > >  
-> > >  config MEDIA_TUNER_MT2060
-> > >  	tristate "Microtune MT2060 silicon IF tuner"
-> > >  	depends on VIDEO_MEDIA && I2C
-> > > -	default m if MEDIA_TUNER_CUSTOMISE
-> > >  	help
-> > >  	  A driver for the silicon IF tuner MT2060 from Microtune.
-> > >  
-> > >  config MEDIA_TUNER_MT2266
-> > >  	tristate "Microtune MT2266 silicon tuner"
-> > >  	depends on VIDEO_MEDIA && I2C
-> > > -	default m if MEDIA_TUNER_CUSTOMISE
-> > >  	help
-> > >  	  A driver for the silicon baseband tuner MT2266 from Microtune.
-> > >  
-> > >  config MEDIA_TUNER_MT2131
-> > >  	tristate "Microtune MT2131 silicon tuner"
-> > >  	depends on VIDEO_MEDIA && I2C
-> > > -	default m if MEDIA_TUNER_CUSTOMISE
-> > >  	help
-> > >  	  A driver for the silicon baseband tuner MT2131 from Microtune.
-> > >  
-> > >  config MEDIA_TUNER_QT1010
-> > >  	tristate "Quantek QT1010 silicon tuner"
-> > >  	depends on VIDEO_MEDIA && I2C
-> > > -	default m if MEDIA_TUNER_CUSTOMISE
-> > >  	help
-> > >  	  A driver for the silicon tuner QT1010 from Quantek.
-> > >  
-> > >  config MEDIA_TUNER_XC2028
-> > >  	tristate "XCeive xc2028/xc3028 tuners"
-> > >  	depends on VIDEO_MEDIA && I2C
-> > > -	default m if MEDIA_TUNER_CUSTOMISE
-> > >  	help
-> > >  	  Say Y here to include support for the xc2028/xc3028 tuners.
-> > >  
-> > >  config MEDIA_TUNER_XC5000
-> > >  	tristate "Xceive XC5000 silicon tuner"
-> > >  	depends on VIDEO_MEDIA && I2C
-> > > -	default m if MEDIA_TUNER_CUSTOMISE
-> > >  	help
-> > >  	  A driver for the silicon tuner XC5000 from Xceive.
-> > >  	  This device is only used inside a SiP called together with a
-> > > @@ -156,7 +142,6 @@ config MEDIA_TUNER_XC5000
-> > >  config MEDIA_TUNER_XC4000
-> > >  	tristate "Xceive XC4000 silicon tuner"
-> > >  	depends on VIDEO_MEDIA && I2C
-> > > -	default m if MEDIA_TUNER_CUSTOMISE
-> > >  	help
-> > >  	  A driver for the silicon tuner XC4000 from Xceive.
-> > >  	  This device is only used inside a SiP called together with a
-> > > @@ -165,42 +150,36 @@ config MEDIA_TUNER_XC4000
-> > >  config MEDIA_TUNER_MXL5005S
-> > >  	tristate "MaxLinear MSL5005S silicon tuner"
-> > >  	depends on VIDEO_MEDIA && I2C
-> > > -	default m if MEDIA_TUNER_CUSTOMISE
-> > >  	help
-> > >  	  A driver for the silicon tuner MXL5005S from MaxLinear.
-> > >  
-> > >  config MEDIA_TUNER_MXL5007T
-> > >  	tristate "MaxLinear MxL5007T silicon tuner"
-> > >  	depends on VIDEO_MEDIA && I2C
-> > > -	default m if MEDIA_TUNER_CUSTOMISE
-> > >  	help
-> > >  	  A driver for the silicon tuner MxL5007T from MaxLinear.
-> > >  
-> > >  config MEDIA_TUNER_MC44S803
-> > >  	tristate "Freescale MC44S803 Low Power CMOS Broadband tuners"
-> > >  	depends on VIDEO_MEDIA && I2C
-> > > -	default m if MEDIA_TUNER_CUSTOMISE
-> > >  	help
-> > >  	  Say Y here to support the Freescale MC44S803 based tuners
-> > >  
-> > >  config MEDIA_TUNER_MAX2165
-> > >  	tristate "Maxim MAX2165 silicon tuner"
-> > >  	depends on VIDEO_MEDIA && I2C
-> > > -	default m if MEDIA_TUNER_CUSTOMISE
-> > >  	help
-> > >  	  A driver for the silicon tuner MAX2165 from Maxim.
-> > >  
-> > >  config MEDIA_TUNER_TDA18218
-> > >  	tristate "NXP TDA18218 silicon tuner"
-> > >  	depends on VIDEO_MEDIA && I2C
-> > > -	default m if MEDIA_TUNER_CUSTOMISE
-> > >  	help
-> > >  	  NXP TDA18218 silicon tuner driver.
-> > >  
-> > >  config MEDIA_TUNER_TDA18212
-> > >  	tristate "NXP TDA18212 silicon tuner"
-> > >  	depends on VIDEO_MEDIA && I2C
-> > > -	default m if MEDIA_TUNER_CUSTOMISE
-> > >  	help
-> > >  	  NXP TDA18212 silicon tuner driver.
-> > >  
-> > > diff --git a/drivers/media/radio/Kconfig b/drivers/media/radio/Kconfig
-> > > index 52798a1..0195335 100644
-> > > --- a/drivers/media/radio/Kconfig
-> > > +++ b/drivers/media/radio/Kconfig
-> > > @@ -5,7 +5,6 @@
-> > >  menuconfig RADIO_ADAPTERS
-> > >  	bool "Radio Adapters"
-> > >  	depends on VIDEO_V4L2
-> > > -	default y
-> > >  	---help---
-> > >  	  Say Y here to enable selecting AM/FM radio adapters.
-> > >  
-> > > diff --git a/drivers/media/rc/Kconfig b/drivers/media/rc/Kconfig
-> > > index 899f783..2a4f829 100644
-> > > --- a/drivers/media/rc/Kconfig
-> > > +++ b/drivers/media/rc/Kconfig
-> > > @@ -1,7 +1,6 @@
-> > >  menuconfig RC_CORE
-> > >  	tristate "Remote Controller adapters"
-> > >  	depends on INPUT
-> > > -	default INPUT
-> > >  	---help---
-> > >  	  Enable support for Remote Controllers on Linux. This is
-> > >  	  needed in order to support several video capture adapters.
-> > > @@ -11,12 +10,9 @@ menuconfig RC_CORE
-> > >  	  if you don't need IR, as otherwise, you may not be able to
-> > >  	  compile the driver for your adapter.
-> > >  
-> > > -if RC_CORE
-> > > -
-> > >  config LIRC
-> > >  	tristate
-> > > -	default y
-> > > -
-> > > +	depends on RC_CORE
-> > >  	---help---
-> > >  	   Enable this option to build the Linux Infrared Remote
-> > >  	   Control (LIRC) core device interface driver. The LIRC
-> > > @@ -30,7 +26,6 @@ config IR_NEC_DECODER
-> > >  	tristate "Enable IR raw decoder for the NEC protocol"
-> > >  	depends on RC_CORE
-> > >  	select BITREVERSE
-> > > -	default y
-> > >  
-> > >  	---help---
-> > >  	   Enable this option if you have IR with NEC protocol, and
-> > > @@ -40,7 +35,6 @@ config IR_RC5_DECODER
-> > >  	tristate "Enable IR raw decoder for the RC-5 protocol"
-> > >  	depends on RC_CORE
-> > >  	select BITREVERSE
-> > > -	default y
-> > >  
-> > >  	---help---
-> > >  	   Enable this option if you have IR with RC-5 protocol, and
-> > > @@ -50,7 +44,6 @@ config IR_RC6_DECODER
-> > >  	tristate "Enable IR raw decoder for the RC6 protocol"
-> > >  	depends on RC_CORE
-> > >  	select BITREVERSE
-> > > -	default y
-> > >  
-> > >  	---help---
-> > >  	   Enable this option if you have an infrared remote control which
-> > > @@ -60,7 +53,6 @@ config IR_JVC_DECODER
-> > >  	tristate "Enable IR raw decoder for the JVC protocol"
-> > >  	depends on RC_CORE
-> > >  	select BITREVERSE
-> > > -	default y
-> > >  
-> > >  	---help---
-> > >  	   Enable this option if you have an infrared remote control which
-> > > @@ -69,7 +61,6 @@ config IR_JVC_DECODER
-> > >  config IR_SONY_DECODER
-> > >  	tristate "Enable IR raw decoder for the Sony protocol"
-> > >  	depends on RC_CORE
-> > > -	default y
-> > >  
-> > >  	---help---
-> > >  	   Enable this option if you have an infrared remote control which
-> > > @@ -79,7 +70,6 @@ config IR_RC5_SZ_DECODER
-> > >  	tristate "Enable IR raw decoder for the RC-5 (streamzap) protocol"
-> > >  	depends on RC_CORE
-> > >  	select BITREVERSE
-> > > -	default y
-> > >  
-> > >  	---help---
-> > >  	   Enable this option if you have IR with RC-5 (streamzap) protocol,
-> > > @@ -91,7 +81,6 @@ config IR_MCE_KBD_DECODER
-> > >  	tristate "Enable IR raw decoder for the MCE keyboard/mouse protocol"
-> > >  	depends on RC_CORE
-> > >  	select BITREVERSE
-> > > -	default y
-> > >  
-> > >  	---help---
-> > >  	   Enable this option if you have a Microsoft Remote Keyboard for
-> > > @@ -102,7 +91,6 @@ config IR_LIRC_CODEC
-> > >  	tristate "Enable IR to LIRC bridge"
-> > >  	depends on RC_CORE
-> > >  	depends on LIRC
-> > > -	default y
-> > >  
-> > >  	---help---
-> > >  	   Enable this option to pass raw IR to and from userspace via
-> > > @@ -236,5 +224,3 @@ config RC_LOOPBACK
-> > >  
-> > >  	   To compile this driver as a module, choose M here: the module will
-> > >  	   be called rc_loopback.
-> > > -
-> > > -endif #RC_CORE
-> > > diff --git a/drivers/media/rc/keymaps/Kconfig b/drivers/media/rc/keymaps/Kconfig
-> > > index 8e615fd..dbaacf1 100644
-> > > --- a/drivers/media/rc/keymaps/Kconfig
-> > > +++ b/drivers/media/rc/keymaps/Kconfig
-> > > @@ -1,7 +1,6 @@
-> > >  config RC_MAP
-> > >  	tristate "Compile Remote Controller keymap modules"
-> > >  	depends on RC_CORE
-> > > -	default y
-> > >  
-> > >  	---help---
-> > >  	   This option enables the compilation of lots of Remote
-> > > diff --git a/drivers/media/video/Kconfig b/drivers/media/video/Kconfig
-> > > index f574dc0..d26443d 100644
-> > > --- a/drivers/media/video/Kconfig
-> > > +++ b/drivers/media/video/Kconfig
-> > > @@ -73,7 +73,6 @@ config VIDEOBUF2_DMA_SG
-> > >  menuconfig VIDEO_CAPTURE_DRIVERS
-> > >  	bool "Video capture adapters"
-> > >  	depends on VIDEO_V4L2
-> > > -	default y
-> > >  	---help---
-> > >  	  Say Y here to enable selecting the video adapters for
-> > >  	  webcams, analog TV, and hybrid analog/digital TV.
-> > > @@ -113,8 +112,8 @@ config VIDEO_HELPER_CHIPS_AUTO
-> > >  
-> > >  config VIDEO_IR_I2C
-> > >  	tristate "I2C module for IR" if !VIDEO_HELPER_CHIPS_AUTO
-> > > -	depends on I2C && RC_CORE
-> > > -	default y
-> > > +	depends on I2C
-> > > +	select RC_CORE
-> > >  	---help---
-> > >  	  Most boards have an IR chip directly connected via GPIO. However,
-> > >  	  some video boards have the IR connected via I2C bus.
-> > > @@ -556,7 +555,6 @@ config VIDEO_VIU
-> > >  	tristate "Freescale VIU Video Driver"
-> > >  	depends on VIDEO_V4L2 && PPC_MPC512x
-> > >  	select VIDEOBUF_DMA_CONTIG
-> > > -	default y
-> > >  	---help---
-> > >  	  Support for Freescale VIU video driver. This device captures
-> > >  	  video data, or overlays video on DIU frame buffer.
-> > > @@ -986,7 +984,6 @@ source "drivers/media/video/s5p-tv/Kconfig"
-> > >  menuconfig V4L_USB_DRIVERS
-> > >  	bool "V4L USB devices"
-> > >  	depends on USB
-> > > -	default y
-> > >  
-> > >  if V4L_USB_DRIVERS && USB
-> > >  
-> > > 
+> > > Hi,
+> > >
+> > > This patch fixes the problem with codec controls documentation reported by
+> > Randy
+> > > in the following email:
+> > > http://comments.gmane.org/gmane.linux.drivers.video-input-
+> > infrastructure/36288
+> > >
+> > > Thanks for reporting those errors.
+> > >
+> > > Best wishes,
+> > > Kamil
 > > 
+> > Hi,
+> > This patch eliminates some (3) of the reported errors, but not all of them.
+> > 
+> > The fixed ones are:
+> > Error: no ID for constraint linkend: v4l2-mpeg-video-h264-level.
+> > Error: no ID for constraint linkend: v4l2-mpeg-video-h264-vui-sar-idc.
+> > Error: no ID for constraint linkend: v4l2-mpeg-video-mpeg4-level.
+> > 
+> > but I still see these:
+> > Error: no ID for constraint linkend: v4l2-mpeg-video-header-mode.
+> > Error: no ID for constraint linkend: v4l2-mpeg-video-multi-slice-mode.
+> > Error: no ID for constraint linkend: v4l2-mpeg-video-h264-entropy-mode.
+> > Error: no ID for constraint linkend: v4l2-mpeg-video-h264-loop-filter-mode.
+> > Error: no ID for constraint linkend: v4l2-mpeg-video-h264-profile.
+> > Error: no ID for constraint linkend: v4l2-mpeg-video-mpeg4-profile.
+> > Error: no ID for constraint linkend: v4l2-mpeg-mfc51-video-frame-skip-mode.
+> > Error: no ID for constraint linkend: v4l2-mpeg-mfc51-video-force-frame-type.
+> > 
+> > 
+> > > ---
+> > >  Documentation/DocBook/media/v4l/controls.xml |   24 ++++++++++++---------
+> > ---
+> > >  1 files changed, 12 insertions(+), 12 deletions(-)
+> > >
+> > > diff --git a/Documentation/DocBook/media/v4l/controls.xml
+> > b/Documentation/DocBook/media/v4l/controls.xml
+> > > index 8516401..09d6872 100644
+> > > --- a/Documentation/DocBook/media/v4l/controls.xml
+> > > +++ b/Documentation/DocBook/media/v4l/controls.xml
+> > > @@ -1455,7 +1455,7 @@ Applicable to the H264 encoder.</entry>
+> > >  	      </row>
+> > >
+> > >  	      <row><entry></entry></row>
+> > > -	      <row>
+> > > +	      <row id="v4l2-mpeg-video-h264-vui-sar-idc">
+> > >  		<entry
+> > spanname="id"><constant>V4L2_CID_MPEG_VIDEO_H264_VUI_SAR_IDC</constant>&nbsp
+> > ;</entry>
+> > >  		<entry>enum&nbsp;v4l2_mpeg_video_h264_vui_sar_idc</entry>
+> > >  	      </row>
+> > > @@ -1561,7 +1561,7 @@ Applicable to the H264 encoder.</entry>
+> > >  	      </row>
+> > >
+> > >  	      <row><entry></entry></row>
+> > > -	      <row>
+> > > +	      <row id="v4l2-mpeg-video-h264-level">
+> > >  		<entry
+> > spanname="id"><constant>V4L2_CID_MPEG_VIDEO_H264_LEVEL</constant>&nbsp;</ent
+> > ry>
+> > >  		<entry>enum&nbsp;v4l2_mpeg_video_h264_level</entry>
+> > >  	      </row>
+> > > @@ -1641,7 +1641,7 @@ Possible values are:</entry>
+> > >  	      </row>
+> > >
+> > >  	      <row><entry></entry></row>
+> > > -	      <row>
+> > > +	      <row id="v4l2-mpeg-video-mpeg4-level">
+> > >  		<entry
+> > spanname="id"><constant>V4L2_CID_MPEG_VIDEO_MPEG4_LEVEL</constant>&nbsp;</en
+> > try>
+> > >  		<entry>enum&nbsp;v4l2_mpeg_video_mpeg4_level</entry>
+> > >  	      </row>
+> > > @@ -1689,7 +1689,7 @@ Possible values are:</entry>
+> > >  	      </row>
+> > >
+> > >  	      <row><entry></entry></row>
+> > > -	      <row>
+> > > +	      <row id="v4l2-mpeg-h264-profile">
+> > >  		<entry
+> > spanname="id"><constant>V4L2_CID_MPEG_VIDEO_H264_PROFILE</constant>&nbsp;</e
+> > ntry>
+> > >  		<entry>enum&nbsp;v4l2_mpeg_h264_profile</entry>
+> > >  	      </row>
+> > > @@ -1774,7 +1774,7 @@ Possible values are:</entry>
+> > >  	      </row>
+> > >
+> > >  	      <row><entry></entry></row>
+> > > -	      <row>
+> > > +	      <row id="v4l2-mpeg-mpeg4-profile">
+> > >  		<entry
+> > spanname="id"><constant>V4L2_CID_MPEG_VIDEO_MPEG4_PROFILE</constant>&nbsp;</
+> > entry>
+> > >  		<entry>enum&nbsp;v4l2_mpeg_mpeg4_profile</entry>
+> > >  	      </row>
+> > > @@ -1820,7 +1820,7 @@ Applicable to the encoder.
+> > >  	      </row>
+> > >
+> > >  	      <row><entry></entry></row>
+> > > -	      <row>
+> > > +	      <row id="v4l2-mpeg-multi-slice-mode">
+> > >  		<entry
+> > spanname="id"><constant>V4L2_CID_MPEG_VIDEO_MULTI_SLICE_MODE</constant>&nbsp
+> > ;</entry>
+> > >  		<entry>enum&nbsp;v4l2_mpeg_multi_slice_mode</entry>
+> > >  	      </row>
+> > > @@ -1868,7 +1868,7 @@ Applicable to the encoder.</entry>
+> > >  	      </row>
+> > >
+> > >  	      <row><entry></entry></row>
+> > > -	      <row>
+> > > +	      <row id="v4l2-mpeg-h264-loop-filter-mode">
+> > >  		<entry
+> > spanname="id"><constant>V4L2_CID_MPEG_VIDEO_H264_LOOP_FILTER_MODE</constant>
+> > &nbsp;</entry>
+> > >  		<entry>enum&nbsp;v4l2_mpeg_h264_loop_filter_mode</entry>
+> > >  	      </row>
+> > > @@ -1913,9 +1913,9 @@ Applicable to the H264 encoder.</entry>
+> > >  	      </row>
+> > >
+> > >  	      <row><entry></entry></row>
+> > > -	      <row>
+> > > +	      <row id="v4l2-mpeg-h264-entropy-mode">
+> > >  		<entry
+> > spanname="id"><constant>V4L2_CID_MPEG_VIDEO_H264_ENTROPY_MODE</constant>&nbs
+> > p;</entry>
+> > > -		<entry>enum&nbsp;v4l2_mpeg_h264_symbol_mode</entry>
+> > > +		<entry>enum&nbsp;v4l2_mpeg_h264_entropy_mode</entry>
+> > >  	      </row>
+> > >  	      <row><entry spanname="descr">Entropy coding mode for H264 -
+> > CABAC/CAVALC.
+> > >  Applicable to the H264 encoder.
+> > > @@ -2140,7 +2140,7 @@ previous frames. Applicable to the H264
+> > encoder.</entry>
+> > >  	      </row>
+> > >
+> > >  	      <row><entry></entry></row>
+> > > -	      <row>
+> > > +	      <row id="v4l2-mpeg-header-mode">
+> > >  		<entry
+> > spanname="id"><constant>V4L2_CID_MPEG_VIDEO_HEADER_MODE</constant>&nbsp;</en
+> > try>
+> > >  		<entry>enum&nbsp;v4l2_mpeg_header_mode</entry>
+> > >  	      </row>
+> > > @@ -2320,7 +2320,7 @@ Valid only when H.264 and macroblock level RC is
+> > enabled (<constant>V4L2_CID_MPE
+> > >  Applicable to the H264 encoder.</entry>
+> > >  	      </row>
+> > >  	      <row><entry></entry></row>
+> > > -	      <row>
+> > > +	      <row id="v4l2-mpeg-mfc51-frame-skip-mode">
+> > >  		<entry
+> > spanname="id"><constant>V4L2_CID_MPEG_MFC51_VIDEO_FRAME_SKIP_MODE</constant>
+> > &nbsp;</entry>
+> > >  		<entry>enum&nbsp;v4l2_mpeg_mfc51_frame_skip_mode</entry>
+> > >  	      </row>
+> > > @@ -2361,7 +2361,7 @@ the stream will meet tight bandwidth contraints.
+> > Applicable to encoders.
+> > >  </entry>
+> > >  	      </row>
+> > >  	      <row><entry></entry></row>
+> > > -	      <row>
+> > > +	      <row id="v4l2-mpeg-mfc51-force-frame-type">
+> > >  		<entry
+> > spanname="id"><constant>V4L2_CID_MPEG_MFC51_VIDEO_FORCE_FRAME_TYPE</constant
+> > >&nbsp;</entry>
+> > >  		<entry>enum&nbsp;v4l2_mpeg_mfc51_force_frame_type</entry>
+> > >  	      </row>
+> > > --
+> > 
+> > 
+> > ---
+> > ~Randy
+> > *** Remember to use Documentation/SubmitChecklist when testing your code ***
 > 
-> ---
-> Guennadi Liakhovetski, Ph.D.
-> Freelance Open-Source Software Developer
-> http://www.open-technology.de/
-> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
+
+---
+~Randy
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
