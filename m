@@ -1,233 +1,156 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from oproxy7-pub.bluehost.com ([67.222.55.9]:37371 "HELO
-	oproxy7-pub.bluehost.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1754603Ab1HBRnL (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 2 Aug 2011 13:43:11 -0400
-Date: Tue, 2 Aug 2011 10:43:09 -0700
-From: Randy Dunlap <rdunlap@xenotime.net>
-To: Kamil Debski <k.debski@samsung.com>
-Cc: linux-media@vger.kernel.org, kyungmin.park@samsung.com,
-	jaeryul.oh@samsung.com, mchehab@infradead.org
-Subject: Re: [PATCH v2] v4l2: Fix documentation of the codec device controls
-Message-Id: <20110802104309.00be2e23.rdunlap@xenotime.net>
-In-Reply-To: <1312300429-26777-1-git-send-email-k.debski@samsung.com>
-References: <1312300429-26777-1-git-send-email-k.debski@samsung.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Received: from service87.mimecast.com ([94.185.240.25]:43967 "HELO
+	service87.mimecast.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1753547Ab1HCJdq convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 3 Aug 2011 05:33:46 -0400
+From: Tom Cooksey <Tom.Cooksey@arm.com>
+To: Jordan Crouse <jcrouse@codeaurora.org>,
+	Marek Szyprowski <m.szyprowski@samsung.com>
+CC: "linaro-mm-sig@lists.linaro.org" <linaro-mm-sig@lists.linaro.org>,
+	Tomasz Stanislawski <t.stanislaws@samsung.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Date: Wed, 3 Aug 2011 10:33:36 +0100
+Subject: RE: [Linaro-mm-sig] Buffer sharing proof-of-concept
+Message-ID: <20E136AF98049A48A90A7417B4343D5E1DF747A563@BUNGLE.Emea.Arm.com>
+References: <4E37C7D7.40301@samsung.com> <4E381B73.8050706@codeaurora.org>
+In-Reply-To: <4E381B73.8050706@codeaurora.org>
+Content-Language: en-US
+MIME-Version: 1.0
+Content-Type: text/plain; charset=WINDOWS-1252
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, 02 Aug 2011 17:53:49 +0200 Kamil Debski wrote:
-
-> Fixed missing ids of the codec controls description in the controls.xml file.
-> 
-> Signed-off-by: Kamil Debski <k.debski@samsung.com>
-> Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
-> Reported-by: Randy Dunlap <rdunlap@xenotime.net>
-> ---
-> Hi,
-> 
-> This patch fixes the problem with codec controls documentation reported by Randy
-> in the following email:
-> http://comments.gmane.org/gmane.linux.drivers.video-input-infrastructure/36288
-> 
-> The first version did not address all the errors detected - this one should
-> make the docs build without errors.
-> 
-> Thank you again for reporting these errors.
-
-Acked-by: Randy Dunlap <rdunlap@xenotime.net>
 
 
-Thanks.  This patch does fix all of these errors:
+> -----Original Message-----
+> From: linaro-mm-sig-bounces@lists.linaro.org [mailto:linaro-mm-sig-
+> bounces@lists.linaro.org] On Behalf Of Jordan Crouse
+> Sent: 02 August 2011 16:45
+> To: Marek Szyprowski
+> Cc: linaro-mm-sig@lists.linaro.org; Tomasz Stanislawski; Kyungmin Park;
+> linux-media@vger.kernel.org
+> Subject: Re: [Linaro-mm-sig] Buffer sharing proof-of-concept
+>
+> On 08/02/2011 03:48 AM, Marek Szyprowski wrote:
+> > Hello Everyone,
+> >
+> > This patchset introduces the proof-of-concept infrastructure for
+> buffer sharing between multiple devices using file descriptors. The
+> infrastructure has been integrated with V4L2 framework, more
+> specifically videobuf2 and two S5P drivers FIMC (capture interface) and
+> TV drivers, but it can be easily used by other kernel subsystems, like
+> DRI.
+> >
+> > In this patch the buffer object has been simplified to absolute
+> minimum - it contains only the buffer physical address (only physically
+> contiguous buffers are supported), but this can be easily extended to
+> complete scatter list in the future.
+> >
+> > Best regards
+>
+> Looks like a good start.  I'm not sure what has already been discussed
+> at the meetings, so please forgive me if any of these comments have
+> already been added to the to-do list and/or discounted.
+>
+> I would definitely consider adding lock and unlock functions. It would
+> be great to have sane fencing built right into the sharing mechanism.
+> Deferred unlock would be nice too, but that is probably hard to do in
+> a generic way.
 
-Error: no ID for constraint linkend: v4l2-mpeg-video-header-mode.
-Error: no ID for constraint linkend: v4l2-mpeg-video-multi-slice-mode.
-Error: no ID for constraint linkend: v4l2-mpeg-video-h264-entropy-mode.
-Error: no ID for constraint linkend: v4l2-mpeg-video-h264-level.
-Error: no ID for constraint linkend: v4l2-mpeg-video-h264-loop-filter-mode.
-Error: no ID for constraint linkend: v4l2-mpeg-video-h264-profile.
-Error: no ID for constraint linkend: v4l2-mpeg-video-h264-vui-sar-idc.
-Error: no ID for constraint linkend: v4l2-mpeg-video-mpeg4-level.
-Error: no ID for constraint linkend: v4l2-mpeg-video-mpeg4-profile.
-Error: no ID for constraint linkend: v4l2-mpeg-mfc51-video-frame-skip-mode.
-Error: no ID for constraint linkend: v4l2-mpeg-mfc51-video-force-frame-type.
-Error: no ID for constraint linkend: v4l2-mpeg-video-header-mode.
-Error: no ID for constraint linkend: v4l2-mpeg-video-multi-slice-mode.
-Error: no ID for constraint linkend: v4l2-mpeg-video-h264-entropy-mode.
-Error: no ID for constraint linkend: v4l2-mpeg-video-h264-level.
-Error: no ID for constraint linkend: v4l2-mpeg-video-h264-loop-filter-mode.
-Error: no ID for constraint linkend: v4l2-mpeg-video-h264-profile.
-Error: no ID for constraint linkend: v4l2-mpeg-video-h264-vui-sar-idc.
-Error: no ID for constraint linkend: v4l2-mpeg-video-mpeg4-level.
-Error: no ID for constraint linkend: v4l2-mpeg-video-mpeg4-profile.
-Error: no ID for constraint linkend: v4l2-mpeg-mfc51-video-frame-skip-mode.
-Error: no ID for constraint linkend: v4l2-mpeg-mfc51-video-force-frame-type.
+We've discussed synchronization and I think the general consensus is to
+keep it separate from the buffer sharing mechanism. Initially at least,
+user-space should be able to implement whatever mechanisms it needs on
+top of the buffer sharing system.
 
-leaving only these:
-Error: no ID for constraint linkend: AUDIO_GET_PTS.
-Error: no ID for constraint linkend: AUDIO_BILINGUAL_CHANNEL_SELECT.
-Error: no ID for constraint linkend: CA_RESET.
-Error: no ID for constraint linkend: CA_GET_CAP.
-Error: no ID for constraint linkend: CA_GET_SLOT_INFO.
-Error: no ID for constraint linkend: CA_GET_DESCR_INFO.
-Error: no ID for constraint linkend: CA_GET_MSG.
-Error: no ID for constraint linkend: CA_SEND_MSG.
-Error: no ID for constraint linkend: CA_SET_DESCR.
-Error: no ID for constraint linkend: CA_SET_PID.
-Error: no ID for constraint linkend: DMX_GET_PES_PIDS.
-Error: no ID for constraint linkend: DMX_GET_CAPS.
-Error: no ID for constraint linkend: DMX_SET_SOURCE.
-Error: no ID for constraint linkend: DMX_ADD_PID.
-Error: no ID for constraint linkend: DMX_REMOVE_PID.
-Error: no ID for constraint linkend: NET_ADD_IF.
-Error: no ID for constraint linkend: NET_REMOVE_IF.
-Error: no ID for constraint linkend: NET_GET_IF.
-Error: no ID for constraint linkend: VIDEO_GET_SIZE.
-Error: no ID for constraint linkend: VIDEO_GET_FRAME_RATE.
-Error: no ID for constraint linkend: VIDEO_GET_PTS.
-Error: no ID for constraint linkend: VIDEO_GET_FRAME_COUNT.
-Error: no ID for constraint linkend: VIDEO_COMMAND.
-Error: no ID for constraint linkend: VIDEO_TRY_COMMAND.
+However, it was mentioned that having to bounce up into userspace and
+then go back down into kernel space when an event occurs is sub-optimal.
+To improve things, we discussed adding a kernel-side synchronization
+object/event mechanism. Extra API could be added to V4L2/KMS/Whatever
+which tells that driver to signal the sync object when something happens
+and another bit of API to tell the driver to do something when a sync
+object is signalled. A simple example might be to tell a camera to write
+to a buffer and signal a sync object when it has written a complete
+frame. At the same time, you could tell a KMS overlay plane to switch
+to the new video frame once the synchronization object is signalled. So
+userspace sets up what needs to happen, but it all actually occurs
+asynchronously (from the application's point of view) in kernel space.
+This obviously needs some more thought and investigation, but from the
+discussions we had yesterday, I don't think anything would stop this
+kind of thing being added in the future.
 
+> The owner of the buffer should be able to attach a private information
+> structure to the object and the consumer should be able to get it. This
+> is key for sharing buffer information and out of band data, especially
+> for video buffers (width, height, fourcc, alignment, pitch, start
+> of U buffer, start of V buffer, UV pitch, etc)
 
-> Best wishes,
-> Kamil Debski
-> ---
->  Documentation/DocBook/media/v4l/controls.xml |   38 +++++++++++++-------------
->  1 files changed, 19 insertions(+), 19 deletions(-)
-> 
-> diff --git a/Documentation/DocBook/media/v4l/controls.xml b/Documentation/DocBook/media/v4l/controls.xml
-> index 8516401..23fdf79 100644
-> --- a/Documentation/DocBook/media/v4l/controls.xml
-> +++ b/Documentation/DocBook/media/v4l/controls.xml
-> @@ -1455,7 +1455,7 @@ Applicable to the H264 encoder.</entry>
->  	      </row>
->  
->  	      <row><entry></entry></row>
-> -	      <row>
-> +	      <row id="v4l2-mpeg-video-h264-vui-sar-idc">
->  		<entry spanname="id"><constant>V4L2_CID_MPEG_VIDEO_H264_VUI_SAR_IDC</constant>&nbsp;</entry>
->  		<entry>enum&nbsp;v4l2_mpeg_video_h264_vui_sar_idc</entry>
->  	      </row>
-> @@ -1561,7 +1561,7 @@ Applicable to the H264 encoder.</entry>
->  	      </row>
->  
->  	      <row><entry></entry></row>
-> -	      <row>
-> +	      <row id="v4l2-mpeg-video-h264-level">
->  		<entry spanname="id"><constant>V4L2_CID_MPEG_VIDEO_H264_LEVEL</constant>&nbsp;</entry>
->  		<entry>enum&nbsp;v4l2_mpeg_video_h264_level</entry>
->  	      </row>
-> @@ -1641,7 +1641,7 @@ Possible values are:</entry>
->  	      </row>
->  
->  	      <row><entry></entry></row>
-> -	      <row>
-> +	      <row id="v4l2-mpeg-video-mpeg4-level">
->  		<entry spanname="id"><constant>V4L2_CID_MPEG_VIDEO_MPEG4_LEVEL</constant>&nbsp;</entry>
->  		<entry>enum&nbsp;v4l2_mpeg_video_mpeg4_level</entry>
->  	      </row>
-> @@ -1689,9 +1689,9 @@ Possible values are:</entry>
->  	      </row>
->  
->  	      <row><entry></entry></row>
-> -	      <row>
-> +	      <row id="v4l2-mpeg-video-h264-profile">
->  		<entry spanname="id"><constant>V4L2_CID_MPEG_VIDEO_H264_PROFILE</constant>&nbsp;</entry>
-> -		<entry>enum&nbsp;v4l2_mpeg_h264_profile</entry>
-> +		<entry>enum&nbsp;v4l2_mpeg_video_h264_profile</entry>
->  	      </row>
->  	      <row><entry spanname="descr">The profile information for H264.
->  Applicable to the H264 encoder.
-> @@ -1774,9 +1774,9 @@ Possible values are:</entry>
->  	      </row>
->  
->  	      <row><entry></entry></row>
-> -	      <row>
-> +	      <row id="v4l2-mpeg-video-mpeg4-profile">
->  		<entry spanname="id"><constant>V4L2_CID_MPEG_VIDEO_MPEG4_PROFILE</constant>&nbsp;</entry>
-> -		<entry>enum&nbsp;v4l2_mpeg_mpeg4_profile</entry>
-> +		<entry>enum&nbsp;v4l2_mpeg_video_mpeg4_profile</entry>
->  	      </row>
->  	      <row><entry spanname="descr">The profile information for MPEG4.
->  Applicable to the MPEG4 encoder.
-> @@ -1820,9 +1820,9 @@ Applicable to the encoder.
->  	      </row>
->  
->  	      <row><entry></entry></row>
-> -	      <row>
-> +	      <row id="v4l2-mpeg-video-multi-slice-mode">
->  		<entry spanname="id"><constant>V4L2_CID_MPEG_VIDEO_MULTI_SLICE_MODE</constant>&nbsp;</entry>
-> -		<entry>enum&nbsp;v4l2_mpeg_multi_slice_mode</entry>
-> +		<entry>enum&nbsp;v4l2_mpeg_video_multi_slice_mode</entry>
->  	      </row>
->  	      <row><entry spanname="descr">Determines how the encoder should handle division of frame into slices.
->  Applicable to the encoder.
-> @@ -1868,9 +1868,9 @@ Applicable to the encoder.</entry>
->  	      </row>
->  
->  	      <row><entry></entry></row>
-> -	      <row>
-> +	      <row id="v4l2-mpeg-video-h264-loop-filter-mode">
->  		<entry spanname="id"><constant>V4L2_CID_MPEG_VIDEO_H264_LOOP_FILTER_MODE</constant>&nbsp;</entry>
-> -		<entry>enum&nbsp;v4l2_mpeg_h264_loop_filter_mode</entry>
-> +		<entry>enum&nbsp;v4l2_mpeg_video_h264_loop_filter_mode</entry>
->  	      </row>
->  	      <row><entry spanname="descr">Loop filter mode for H264 encoder.
->  Possible values are:</entry>
-> @@ -1913,9 +1913,9 @@ Applicable to the H264 encoder.</entry>
->  	      </row>
->  
->  	      <row><entry></entry></row>
-> -	      <row>
-> +	      <row id="v4l2-mpeg-video-h264-entropy-mode">
->  		<entry spanname="id"><constant>V4L2_CID_MPEG_VIDEO_H264_ENTROPY_MODE</constant>&nbsp;</entry>
-> -		<entry>enum&nbsp;v4l2_mpeg_h264_symbol_mode</entry>
-> +		<entry>enum&nbsp;v4l2_mpeg_video_h264_entropy_mode</entry>
->  	      </row>
->  	      <row><entry spanname="descr">Entropy coding mode for H264 - CABAC/CAVALC.
->  Applicable to the H264 encoder.
-> @@ -2140,9 +2140,9 @@ previous frames. Applicable to the H264 encoder.</entry>
->  	      </row>
->  
->  	      <row><entry></entry></row>
-> -	      <row>
-> +	      <row id="v4l2-mpeg-video-header-mode">
->  		<entry spanname="id"><constant>V4L2_CID_MPEG_VIDEO_HEADER_MODE</constant>&nbsp;</entry>
-> -		<entry>enum&nbsp;v4l2_mpeg_header_mode</entry>
-> +		<entry>enum&nbsp;v4l2_mpeg_video_header_mode</entry>
->  	      </row>
->  	      <row><entry spanname="descr">Determines whether the header is returned as the first buffer or is
->  it returned together with the first frame. Applicable to encoders.
-> @@ -2320,9 +2320,9 @@ Valid only when H.264 and macroblock level RC is enabled (<constant>V4L2_CID_MPE
->  Applicable to the H264 encoder.</entry>
->  	      </row>
->  	      <row><entry></entry></row>
-> -	      <row>
-> +	      <row id="v4l2-mpeg-mfc51-video-frame-skip-mode">
->  		<entry spanname="id"><constant>V4L2_CID_MPEG_MFC51_VIDEO_FRAME_SKIP_MODE</constant>&nbsp;</entry>
-> -		<entry>enum&nbsp;v4l2_mpeg_mfc51_frame_skip_mode</entry>
-> +		<entry>enum&nbsp;v4l2_mpeg_mfc51_video_frame_skip_mode</entry>
->  	      </row>
->  	      <row><entry spanname="descr">
->  Indicates in what conditions the encoder should skip frames. If encoding a frame would cause the encoded stream to be larger then
-> @@ -2361,9 +2361,9 @@ the stream will meet tight bandwidth contraints. Applicable to encoders.
->  </entry>
->  	      </row>
->  	      <row><entry></entry></row>
-> -	      <row>
-> +	      <row id="v4l2-mpeg-mfc51-video-force-frame-type">
->  		<entry spanname="id"><constant>V4L2_CID_MPEG_MFC51_VIDEO_FORCE_FRAME_TYPE</constant>&nbsp;</entry>
-> -		<entry>enum&nbsp;v4l2_mpeg_mfc51_force_frame_type</entry>
-> +		<entry>enum&nbsp;v4l2_mpeg_mfc51_video_force_frame_type</entry>
->  	      </row>
->  	      <row><entry spanname="descr">Force a frame type for the next queued buffer. Applicable to encoders.
->  Possible values are:</entry>
-> -- 
+Passing buffer meta-data around was also discussed yesterday. Again, the
+general consensus seemed to be that this data should be kept out of the
+kernel. The userspace application should know what the buffer format
+etc. is and can provide that information to the relevant device APIs
+when is passes in the buffer.
+
+This ties into another discussion we had yesterday about which device
+allocates buffers and how format negotiation works. I think this was a
+little more contentious. It seemed like a slight majority favoured a
+system where there wasn't a single buffer allocation device. Instead,
+each device API could allocate buffers and provide a way to get a file
+descriptor which could be passed to different devices. However, without
+a centralized buffer allocator, userspace needs to know which device it
+should use to allocate a buffer which it wants to share with another
+device. There's two aspects of this. The first is the actual memory
+allocation parameters - where in physical memory the buffer is
+allocated from, if it is physically contiguous or not, etc. This is
+information userspace shouldn't have to know. I seem to recall the
+discussion concluding that at least for the first iteration, userspace
+must "know" which device it has to use. I.e. There must be some vendor
+specific code in userspace which knows if a buffer is to be shared
+between device B and device D, device D must be used to allocate it.
+The second aspect is format negotiation. This seemed less contentious.
+V4L2 already provides API to query what formats a device supports so
+userspace can figure out which formats, etc. are common. Not sure
+about KMS or DRM, but it at least seems feasible to be able to add
+ioctls to query supported formats even if that doesn't exist today.
+I guess for GPU drivers, the userspace part of the driver will know
+what formats the GPU it's driving supports, so no need to query.
 
 
----
-~Randy
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+Cheers,
+
+Tom
+
+
+
+
+>
+> Thinking back to anything that could be salvaged from PMEM, about the
+> only
+> thing of value that wouldn't otherwise be implemented here is the idea
+> of
+> revoking a buffer. The thought is that when the master is was done with
+> the buffer, it could revoke it so that the client couldn't hang on to
+> it
+> forever and possibly use it for nefarious purposes.  The client still
+> has
+> it mapped, but the range is remapped to garbage. I've never been very
+> clear on how useful this was from a security standpoint because the
+> master
+> has to implicitly share the fd in the first place but it seems to be a
+> feature that has survived several years of pmem hacking.
+>
+> I look forward to seeing the session notes from the meetings and seeing
+> what the other ideas are.  Thanks for your hard work.
+>
+> Jordan
+>
+> _______________________________________________
+> Linaro-mm-sig mailing list
+> Linaro-mm-sig@lists.linaro.org
+> http://lists.linaro.org/mailman/listinfo/linaro-mm-sig
+
+
+-- IMPORTANT NOTICE: The contents of this email and any attachments are confidential and may also be privileged. If you are not the intended recipient, please notify the sender immediately and do not disclose the contents to any other person, use it for any purpose, or store or copy the information in any medium.  Thank you.
+
