@@ -1,159 +1,121 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([147.243.1.48]:29508 "EHLO mgw-sa02.nokia.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752116Ab1HDI5c (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 4 Aug 2011 04:57:32 -0400
-Message-ID: <4E3A5EE2.7030707@iki.fi>
-Date: Thu, 04 Aug 2011 11:57:06 +0300
-From: Sakari Ailus <sakari.ailus@iki.fi>
-MIME-Version: 1.0
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-CC: Hans Verkuil <hverkuil@xs4all.nl>, Pawel Osciak <pawel@osciak.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: Re: [PATCH v3] V4L: add two new ioctl()s for multi-size   videobuffer
- management
-References: <Pine.LNX.4.64.1107201025120.12084@axis700.grange>    <CAMm-=zB3dOJyCy7ZhqiTQkeL2b=Dvtz8geMR8zbHYBCVR6=pEw@mail.gmail.com>    <201107280856.55731.hverkuil@xs4all.nl>    <Pine.LNX.4.64.1108020919290.29918@axis700.grange>    <8f4c70b8d38860d2403645fa773d8d42.squirrel@webmail.xs4all.nl> <f94be2f6fed71ddc3e717bd84c027d01.squirrel@webmail.xs4all.nl> <Pine.LNX.4.64.1108032346560.746@axis700.grange>
-In-Reply-To: <Pine.LNX.4.64.1108032346560.746@axis700.grange>
-Content-Type: text/plain; charset=ISO-8859-1
+Received: from bedivere.hansenpartnership.com ([66.63.167.143]:50788 "EHLO
+	bedivere.hansenpartnership.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752077Ab1HCRnz (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 3 Aug 2011 13:43:55 -0400
+Subject: Re: [PATCH 6/8] drivers: add Contiguous Memory Allocator
+From: James Bottomley <James.Bottomley@HansenPartnership.com>
+To: Arnd Bergmann <arnd@arndb.de>
+Cc: Russell King - ARM Linux <linux@arm.linux.org.uk>,
+	Marek Szyprowski <m.szyprowski@samsung.com>,
+	linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+	linux-media@vger.kernel.org, linux-mm@kvack.org,
+	linaro-mm-sig@lists.linaro.org,
+	Daniel Walker <dwalker@codeaurora.org>,
+	Jonathan Corbet <corbet@lwn.net>, Mel Gorman <mel@csn.ul.ie>,
+	Chunsang Jeong <chunsang.jeong@linaro.org>,
+	Michal Nazarewicz <mina86@mina86.com>,
+	Jesse Barker <jesse.barker@linaro.org>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	Ankita Garg <ankita@in.ibm.com>,
+	Andrew Morton <akpm@linux-foundation.org>,
+	KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>,
+	ksummit-2011-discuss@lists.linux-foundation.org
+In-Reply-To: <201107051427.44899.arnd@arndb.de>
+References: <1309851710-3828-1-git-send-email-m.szyprowski@samsung.com>
+	 <1309851710-3828-7-git-send-email-m.szyprowski@samsung.com>
+	 <20110705113345.GA8286@n2100.arm.linux.org.uk>
+	 <201107051427.44899.arnd@arndb.de>
+Content-Type: text/plain; charset="UTF-8"
+Date: Wed, 03 Aug 2011 12:43:50 -0500
+Message-ID: <1312393430.2855.51.camel@mulgrave>
+Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Guennadi Liakhovetski wrote:
-> On Wed, 3 Aug 2011, Hans Verkuil wrote:
-> 
->>>> On Thu, 28 Jul 2011, Hans Verkuil wrote:
->>>>
->>>>> On Thursday, July 28, 2011 06:11:38 Pawel Osciak wrote:
->>>>>> Hi Guennadi,
->>>>>>
->>>>>> On Wed, Jul 20, 2011 at 01:43, Guennadi Liakhovetski
->>>>>> <g.liakhovetski@gmx.de> wrote:
->>>>>>> A possibility to preallocate and initialise buffers of different
->>>>> sizes
->>>>>>> in V4L2 is required for an efficient implementation of asnapshot
->>>>> mode.
->>>>>>> This patch adds two new ioctl()s: VIDIOC_CREATE_BUFS and
->>>>>>> VIDIOC_PREPARE_BUF and defines respective data structures.
->>>>>>>
->>>>>>> Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
->>>>>>> ---
->>>>>>>
->>>>>> <snip>
->>>>>>
->>>>>> This looks nicer, I like how we got rid of destroy and gave up on
->>>>>> making holes, it would've given us a lot of headaches. I'm thinking
->>>>>> about some issues though and also have some comments/questions
->>>>> further
->>>>>> below.
->>>>>>
->>>>>> Already mentioned by others mixing of REQBUFS and CREATE_BUFS.
->>>>>> Personally I'd like to allow mixing, including REQBUFS for non-zero,
->>>>>> because I think it would be easy to do. I think it could work in the
->>>>>> same way as REQBUFS for !=0 works currently (at least in vb2), if we
->>>>>> already have some buffers allocated and they are not in use, we free
->>>>>> them and a new set is allocated. So I guess it could just stay this
->>>>>> way. REQBUFS(0) would of course free everything.
->>>>>>
->>>>>> Passing format to CREATE_BUFS will make vb2 a bit format-aware, as it
->>>>>> would have to pass it forward to the driver somehow. The obvious way
->>>>>> would be just vb2 calling the driver's s_fmt handler, but that won't
->>>>>> work, as you can't pass indexes to s_fmt. So we'd have to implement a
->>>>>> new driver callback for setting formats per index. I guess there is
->>>>> no
->>>>>> way around it, unless we actually take the format struct out of
->>>>>> CREATE_BUFS and somehow do it via S_FMT. The single-planar structure
->>>>>> is full already though, the only way would be to use
->>>>>> v4l2_pix_format_mplane instead with plane count = 1 (or more if
->>>>>> needed).
->>>>>
->>>>> I just got an idea for this: use TRY_FMT. That will do exactly what
->>>>> you want. In fact, perhaps we should remove the format struct from
->>>>> CREATE_BUFS and use __u32 sizes[VIDEO_MAX_PLANES] instead. Let the
->>>>> application call TRY_FMT and initialize the sizes array instead of
->>>>> putting that into vb2. We may need a num_planes field as well. If the
->>>>> sizes are all 0 (or num_planes is 0), then the driver can use the
->>>>> current
->>>>> format, just as it does with REQBUFS.
->>>>>
->>>>> Or am I missing something?
->>>>
->>>> ...After more thinking and looking at the vb2 code, this began to feel
->>>> wrong to me. This introduces an asymmetry, which doesn't necessarily
->>>> look
->>>> good to me. At present we have the TRY_FMT and S_FMT ioctl()s, which
->>>> among
->>>> other tasks calculate sizeimage and bytesperline - either per plane or
->>>> total.
->>>
->>> Correct.
->>>
->>>> Besides we also have the REQBUFS call, that internally calls the
->>>> .queue_setup() queue method. In that method the _driver_ has a chance to
->>>> calculate for the _current format_ the number of planes (again?...) and
->>>> buffer sizes for each plane.
->>>
->>> Correct. Usually the driver will update some internal datastructure
->>> whenever S_FMT is called to store the sizeimage/bytesperline etc. so
->>> queue_setup can refer to those values.
->>>
->>>> This suggests, that the latter calculation
->>>> can be different from the former.
->>>
->>> No, it can't (shouldn't). For USERPTR mode applications always need to
->>> rely on sizeimage anyway, so doing anything different in queue_setup is
->>> something I would consider a driver bug.
->>>
->>>> Now you're suggesting to use TRY_FMT to calculate the number of planes
->>>> and
->>>> per-plane sizeofimage, and then use _only_ this information to set up
->>>> the
->>>> buffers from the CREATE_BUFS ioctl(). So, are we now claiming, that this
->>>> information alone (per-plane-sizeofimage) should be dufficient to set up
->>>> buffers?
->>>
->>> Yes. Again, if it is not sufficient, then USERPTR wouldn't work :-)
->>
->> Ouch. While this is correct with respect to the sizes, it is a different
->> matter when it comes to e.g. start addresses.
->>
->> The prime example is the Samsung hardware where some multiplanar formats
->> need to be allocated from specific memory banks. So trying to pass just
->> sizes to CREATE_BUFS would not carry enough information for the samsung
->> driver to decide whether or not to allocate from specific memory banks or
->> if any memory will do.
->>
->> So either we go back to using v4l2_format, or we add a fourcc describing
->> the pixelformat. I *think* this may be sufficient, but I do not know for
->> sure.
-> 
-> Nobody knows for sure, that's why we've got 19 * 4 reserved bytes in 
-> there;-)
-> 
-> From my PoV, I would add a fourcc field. Having only sizes in struct 
-> v4l2_create_buffers fits nicely, IMHO. It avoids internal implicit 
-> duplication of TRY_FMT, keeps the code smaller. Adding one 32-bit fourcc 
-> field to it will change nothing for most users, but provide the required 
-> information to the Samsung driver.
+[cc to ks-discuss added, since this may be a relevant topic]
 
-As the user would not know (in general case) what kind of hardware does
-have requirements on the allocation, it should always set the
-pixelformat field, also for other drivers. I don't see this as an issue.
+On Tue, 2011-07-05 at 14:27 +0200, Arnd Bergmann wrote:
+> On Tuesday 05 July 2011, Russell King - ARM Linux wrote:
+> > On Tue, Jul 05, 2011 at 09:41:48AM +0200, Marek Szyprowski wrote:
+> > > The Contiguous Memory Allocator is a set of helper functions for DMA
+> > > mapping framework that improves allocations of contiguous memory chunks.
+> > > 
+> > > CMA grabs memory on system boot, marks it with CMA_MIGRATE_TYPE and
+> > > gives back to the system. Kernel is allowed to allocate movable pages
+> > > within CMA's managed memory so that it can be used for example for page
+> > > cache when DMA mapping do not use it. On dma_alloc_from_contiguous()
+> > > request such pages are migrated out of CMA area to free required
+> > > contiguous block and fulfill the request. This allows to allocate large
+> > > contiguous chunks of memory at any time assuming that there is enough
+> > > free memory available in the system.
+> > > 
+> > > This code is heavily based on earlier works by Michal Nazarewicz.
+> > 
+> > And how are you addressing the technical concerns about aliasing of
+> > cache attributes which I keep bringing up with this and you keep
+> > ignoring and telling me that I'm standing in your way.
 
-> OTOH, I'm thinking, whether this should be handled in a more generic way, 
-> like per-buffer (or per-plane) attributes. This is similar to device-local 
-> memory allocations, only in our case different workloads impose different 
-> requirements on the allocated memory. But our problem in this case is 
-> also, that the user-space currently has no way to know, that it has to 
-> request that special memory. TRY_FMT doesn't return that information. 
-> Unless, say, we add a new enum v4l2_buf_type for this case... Or even just 
-> let the Samsung driver use a private buffer type in this case. They could 
-> then have two buffer-queues in their driver: a "normal" and a "special" 
-> one.
+Just to chime in here, parisc has an identical issue.  If the CPU ever
+sees an alias with different attributes for the same page, it will HPMC
+the box (that's basically the bios will kill the system as being
+architecturally inconsistent), so an architecture neutral solution on
+this point is essential to us as well.
 
--- 
-Sakari Ailus
-sakari.ailus@iki.fi
+> This is of course an important issue, and it's the one item listed as
+> TODO in the introductory mail that sent.
+> 
+> It's also a preexisting problem as far as I can tell, and it needs
+> to be solved in __dma_alloc for both cases, dma_alloc_from_contiguous
+> and __alloc_system_pages as introduced in patch 7.
+> 
+> We've discussed this back and forth, and it always comes down to
+> one of two ugly solutions:
+> 
+> 1. Put all of the MIGRATE_CMA and pages into highmem and change
+> __alloc_system_pages so it also allocates only from highmem pages.
+> The consequences of this are that we always need to build kernels
+> with highmem enabled and that we have less lowmem on systems that
+> are already small, both of which can be fairly expensive unless
+> you have lots of highmem already.
+
+So this would require that systems using the API have a highmem? (parisc
+doesn't today).
+
+> 2. Add logic to unmap pages from the linear mapping, which is
+> very expensive because it forces the use of small pages in the
+> linear mapping (or in parts of it), and possibly means walking
+> all page tables to remove the PTEs on alloc and put them back
+> in on free.
+> 
+> I believe that Chunsang Jeong from Linaro is planning to
+> implement both variants and post them for review, so we can
+> decide which one to merge, or even to merge both and make
+> it a configuration option. See also
+> https://blueprints.launchpad.net/linaro-mm-sig/+spec/engr-mm-dma-mapping-2011.07
+> 
+> I don't think we need to make merging the CMA patches depending on
+> the other patches, it's clear that both need to be solved, and
+> they are independent enough.
+
+I assume from the above that ARM has a hardware page walker?
+
+The way I'd fix this on parisc, because we have a software based TLB, is
+to rely on the fact that a page may only be used either for DMA or for
+Page Cache, so the aliases should never be interleaved.  Since you know
+the point at which the page flips from DMA to Cache (and vice versa),
+I'd purge the TLB entry and flush the page at that point and rely on the
+usage guarantees to ensure that the alias TLB entry doesn't reappear.
+This isn't inexpensive but the majority of the cost is the cache flush
+which is a requirement to clean the aliases anyway (a TLB entry purge is
+pretty cheap).
+
+Would this work for the ARM hardware walker as well?  It would require
+you to have a TLB entry purge instruction as well as some architectural
+guarantees about not speculating the TLB.
+
+James
+
+
