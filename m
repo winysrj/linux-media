@@ -1,114 +1,201 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from banach.math.auburn.edu ([131.204.45.3]:45142 "EHLO
-	banach.math.auburn.edu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751811Ab1HHCVi (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sun, 7 Aug 2011 22:21:38 -0400
-Date: Sun, 7 Aug 2011 21:26:29 -0500 (CDT)
-From: Theodore Kilgore <kilgota@banach.math.auburn.edu>
-To: Adam Baker <linux@baker-net.org.uk>
-cc: Hans de Goede <hdegoede@redhat.com>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	workshop-2011@linuxtv.org,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: [Workshop-2011] Media Subsystem Workshop 2011
-In-Reply-To: <201108072353.42237.linux@baker-net.org.uk>
-Message-ID: <alpine.LNX.2.00.1108072103200.20613@banach.math.auburn.edu>
-References: <4E398381.4080505@redhat.com> <4E3A91D1.1040000@redhat.com> <4E3B9597.4040307@redhat.com> <201108072353.42237.linux@baker-net.org.uk>
+Received: from wolverine02.qualcomm.com ([199.106.114.251]:19557 "EHLO
+	wolverine02.qualcomm.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754888Ab1HCPNK (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 3 Aug 2011 11:13:10 -0400
+Message-ID: <4E396569.30708@codeaurora.org>
+Date: Wed, 03 Aug 2011 09:12:41 -0600
+From: Jordan Crouse <jcrouse@codeaurora.org>
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+To: Tom Cooksey <Tom.Cooksey@arm.com>
+CC: Marek Szyprowski <m.szyprowski@samsung.com>,
+	"linaro-mm-sig@lists.linaro.org" <linaro-mm-sig@lists.linaro.org>,
+	Tomasz Stanislawski <t.stanislaws@samsung.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Subject: Re: [Linaro-mm-sig] Buffer sharing proof-of-concept
+References: <4E37C7D7.40301@samsung.com> <4E381B73.8050706@codeaurora.org> <20E136AF98049A48A90A7417B4343D5E1DF747A563@BUNGLE.Emea.Arm.com>
+In-Reply-To: <20E136AF98049A48A90A7417B4343D5E1DF747A563@BUNGLE.Emea.Arm.com>
+Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+On 08/03/2011 03:33 AM, Tom Cooksey wrote:
+>
+>
+>> -----Original Message-----
+>> From: linaro-mm-sig-bounces@lists.linaro.org [mailto:linaro-mm-sig-
+>> bounces@lists.linaro.org] On Behalf Of Jordan Crouse
+>> Sent: 02 August 2011 16:45
+>> To: Marek Szyprowski
+>> Cc: linaro-mm-sig@lists.linaro.org; Tomasz Stanislawski; Kyungmin Park;
+>> linux-media@vger.kernel.org
+>> Subject: Re: [Linaro-mm-sig] Buffer sharing proof-of-concept
+>>
+>> On 08/02/2011 03:48 AM, Marek Szyprowski wrote:
+>>> Hello Everyone,
+>>>
+>>> This patchset introduces the proof-of-concept infrastructure for
+>> buffer sharing between multiple devices using file descriptors. The
+>> infrastructure has been integrated with V4L2 framework, more
+>> specifically videobuf2 and two S5P drivers FIMC (capture interface) and
+>> TV drivers, but it can be easily used by other kernel subsystems, like
+>> DRI.
+>>>
+>>> In this patch the buffer object has been simplified to absolute
+>> minimum - it contains only the buffer physical address (only physically
+>> contiguous buffers are supported), but this can be easily extended to
+>> complete scatter list in the future.
+>>>
+>>> Best regards
+>>
+>> Looks like a good start.  I'm not sure what has already been discussed
+>> at the meetings, so please forgive me if any of these comments have
+>> already been added to the to-do list and/or discounted.
+>>
+>> I would definitely consider adding lock and unlock functions. It would
+>> be great to have sane fencing built right into the sharing mechanism.
+>> Deferred unlock would be nice too, but that is probably hard to do in
+>> a generic way.
+>
+> We've discussed synchronization and I think the general consensus is to
+> keep it separate from the buffer sharing mechanism. Initially at least,
+> user-space should be able to implement whatever mechanisms it needs on
+> top of the buffer sharing system.
+>
+> However, it was mentioned that having to bounce up into userspace and
+> then go back down into kernel space when an event occurs is sub-optimal.
+> To improve things, we discussed adding a kernel-side synchronization
+> object/event mechanism. Extra API could be added to V4L2/KMS/Whatever
+> which tells that driver to signal the sync object when something happens
+> and another bit of API to tell the driver to do something when a sync
+> object is signalled. A simple example might be to tell a camera to write
+> to a buffer and signal a sync object when it has written a complete
+> frame. At the same time, you could tell a KMS overlay plane to switch
+> to the new video frame once the synchronization object is signalled. So
+> userspace sets up what needs to happen, but it all actually occurs
+> asynchronously (from the application's point of view) in kernel space.
+> This obviously needs some more thought and investigation, but from the
+> discussions we had yesterday, I don't think anything would stop this
+> kind of thing being added in the future.
 
-(first of two replies to Adam's message; second reply deals with other 
-topics)
+I think thats is exactly what I was getting at. You solved the hard case
+first. The use case I had in mind was composition where you might have a
+2D surface (or video surface) being composited into a 3D scene, and you
+wanted to serialize access to the surface, but it would be optimal to
+asynchronously release the lock when the surface is available without
+bothering user-space. I think what you describe above would handle that
+perfectly.
 
-On Sun, 7 Aug 2011, Adam Baker wrote:
+>> The owner of the buffer should be able to attach a private information
+>> structure to the object and the consumer should be able to get it. This
+>> is key for sharing buffer information and out of band data, especially
+>> for video buffers (width, height, fourcc, alignment, pitch, start
+>> of U buffer, start of V buffer, UV pitch, etc)
+>
+> Passing buffer meta-data around was also discussed yesterday. Again, the
+> general consensus seemed to be that this data should be kept out of the
+> kernel. The userspace application should know what the buffer format
+> etc. is and can provide that information to the relevant device APIs
+> when is passes in the buffer.
 
-> On Friday 05 August 2011, Hans de Goede wrote:
-> > > This sounds to be a good theme for the Workshop, or even to KS/2011.
-> > 
-> > Agreed, although we don't need to talk about this for very long, the
-> > solution is basically:
-> > 1) Define a still image retrieval API for v4l2 devices (there is only 1
-> >    interface for both functions on these devices, so only 1 driver, and to
-> >    me it makes sense to extend the existing drivers to also do still image
-> >    retrieval).
-> > 2) Modify existing kernel v4l2 drivers to provide this API
-> > 3) Write a new libgphoto driver which talks this interface (only need to
-> >    do one driver since all dual mode cams will export the same API).
-> > 
-> > 1) is something to discuss at the workshop.
-> > 
-> This approach sounds fine as long as you can come up with a definition for the 
-> API that covers the existing needs and is extensible when new cameras come 
-> along and doesn't create horrible inefficiencies by not matching the way some 
-> cameras work. I've only got one example of such a camera and it is a fairly 
-> basic one but things I can imagine the API needing to provide are
-> 
-> 1) Report number of images on device
-> 2) Select an image to read (for some cameras selecting next may be much more 
-> efficient than selecting at random although whether that inefficiency occurs 
-> when selecting, when reading image info or when reading image data may vary)
-> 3) Read image information for selected image (resolution, compression type, 
-> FOURCC)
-> 4) Read raw image data for selected image
-> 5) Delete individual image (not supported by all cameras)
-> 6) Delete all images (sometimes supported on cameras that don't support 
-> individual delete)
-> 
-> I'm not sure if any of these cameras support tethered capture but if they do 
-> then add
-> Take photo
-> Set resolution
-> 
-> I doubt if any of them support EXIF data, thumbnail images, the ability to 
-> upload images to the camera or any sound recording but if they do then those 
-> are additional things that gphoto2 would want to be able to do.
+True, but APIs change slowly. Some APIs *cough* OpenMAX *cough* are damn
+near immutable over the life time of a average software release. A blob of
+data attached to a buffer can evolve far more rapidly and be far more
+extensible and much more vendor specific. This isn't an new idea, I think
+the DRM/GEM guys have tossed it around too.
 
+I bring up OpenMAX because this has been a thorn in my side before. Based
+on quirks in the video decoder and the GPU, there are various alignment
+requirements for the YUV frames which may differ slightly between different
+generations of GPUs and decoders. There just isn't enough information in
+the Port Definition for OMX to give us 100% certainty that we have the right
+magic combination, so we have to make educated guesses based on gentleman's
+agreements with the encoder drivers that the blocks will be aligned in certain
+ways. It works well enough to be functional, but I hate leaving things to
+agreement and chance. If we could have space to store a blob in the buffer
+structure it would make all the difference in the world.
 
-Adam,
+> This ties into another discussion we had yesterday about which device
+> allocates buffers and how format negotiation works. I think this was a
+> little more contentious. It seemed like a slight majority favoured a
+> system where there wasn't a single buffer allocation device. Instead,
+> each device API could allocate buffers and provide a way to get a file
+> descriptor which could be passed to different devices. However, without
+> a centralized buffer allocator, userspace needs to know which device it
+> should use to allocate a buffer which it wants to share with another
+> device. There's two aspects of this. The first is the actual memory
+> allocation parameters - where in physical memory the buffer is
+> allocated from, if it is physically contiguous or not, etc. This is
+> information userspace shouldn't have to know. I seem to recall the
+> discussion concluding that at least for the first iteration, userspace
+> must "know" which device it has to use. I.e. There must be some vendor
+> specific code in userspace which knows if a buffer is to be shared
+> between device B and device D, device D must be used to allocate it.
 
-Yipe. This looks to me like one inglorious mess. I do not know if it is 
-feasible, or not, but I would wish for something much more simple. Namely, 
-if the camera is not a dual-mode camera then nothing of this is necessary, 
-of course. But if it is a dual-mode camera then the kernel driver is able 
-to "hand off" the camera to a (libgphoto2-based) userspace driver which 
-can handle all of the gory details of what the camera can do in its role 
-as a still camera. This would imply that there is a device which 
-libgphoto2 can access, presumably another device which is distinct from 
-/dev/videoX, lets call it right now /dev/camX just to give it a name 
-during the discussion.
+I agree.  It is easy to get bogged down into details. Like say
+that D has an IOMMU and that B only can access contiguous memory so then
+D needs to know what B's capabilities are. These are policy decisions that
+can only be rightly be done in userspace. I think in practice this will be
+less complex then it sounds since most of our modern SoCs have hardware
+that is flexible enough to handle the odd device with strange requirements
+(Samsung encoder) but designing for the worse case is always a good
+policy.
 
-So then what happens ought to be something like the following:
+> The second aspect is format negotiation. This seemed less contentious.
+> V4L2 already provides API to query what formats a device supports so
+> userspace can figure out which formats, etc. are common. Not sure
+> about KMS or DRM, but it at least seems feasible to be able to add
+> ioctls to query supported formats even if that doesn't exist today.
+> I guess for GPU drivers, the userspace part of the driver will know
+> what formats the GPU it's driving supports, so no need to query.
 
-1. Camera is plugged in, detected, and kernel module is fired up. Then 
-either
+I agree for the most part. I think it gets a little bit less clear for
+things like streaming textures and EGL images where the specifications
+are far less clear about what is supported and the behavior tends to be
+more vendor specific. Of course, the vendors could help themselves with
+a private blob on the buffer to fill in the vague details.. :)
 
-2a. A streaming app is started. Then, upon request from outside the 
-kernel, the /dev/videoX is locked in and /dev/camX is locked out. The 
-camera streams until told to quit streaming, and in the meantime any 
-access to /dev/camX is not permitted. When the streaming is turned off, 
-the lock is released.
+Jordan
 
-or
+>
+>
+> Cheers,
+>
+> Tom
+>
+>
+>
+>
+>>
+>> Thinking back to anything that could be salvaged from PMEM, about the
+>> only
+>> thing of value that wouldn't otherwise be implemented here is the idea
+>> of
+>> revoking a buffer. The thought is that when the master is was done with
+>> the buffer, it could revoke it so that the client couldn't hang on to
+>> it
+>> forever and possibly use it for nefarious purposes.  The client still
+>> has
+>> it mapped, but the range is remapped to garbage. I've never been very
+>> clear on how useful this was from a security standpoint because the
+>> master
+>> has to implicitly share the fd in the first place but it seems to be a
+>> feature that has survived several years of pmem hacking.
+>>
+>> I look forward to seeing the session notes from the meetings and seeing
+>> what the other ideas are.  Thanks for your hard work.
+>>
+>> Jordan
+>>
+>> _______________________________________________
+>> Linaro-mm-sig mailing list
+>> Linaro-mm-sig@lists.linaro.org
+>> http://lists.linaro.org/mailman/listinfo/linaro-mm-sig
+>
+>
+> -- IMPORTANT NOTICE: The contents of this email and any attachments are confidential and may also be privileged. If you are not the intended recipient, please notify the sender immediately and do not disclose the contents to any other person, use it for any purpose, or store or copy the information in any medium.  Thank you.
+>
+>
 
-2b. A stillcam app is started. Then similar to 2a, but the locking is 
-reversed.
-
-I think that this kind of thing would keep life simple. As I understand 
-what Hans is envisioning, it is pretty much along the same lines, too. It 
-would mean, of course, that the way that libgphoto2 would access one of 
-these cameras would be directly to access the /dev/camX provided by the 
-kernel, and not to use libusb. But that can be done, I think. As I 
-mentioned before, Hans has written several libgphoto2 drivers for digital 
-picture frames which are otherwise seen as USB mass storage devices. 
-Something similar would have to be done with dual-mode cameras.
-
-
-I will send a second reply to this message, which deals in particular with 
-the list of abilities you outlined above. The point is, the situation as 
-to that list of abilities is more chaotic than is generally realized. And 
-when people are laying plans they really need to be aware of that.
-
-Theodore Kilgore
