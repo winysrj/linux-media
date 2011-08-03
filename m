@@ -1,114 +1,162 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-gy0-f174.google.com ([209.85.160.174]:51901 "EHLO
-	mail-gy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755033Ab1H3P30 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 30 Aug 2011 11:29:26 -0400
-Received: by gya6 with SMTP id 6so5711733gya.19
-        for <linux-media@vger.kernel.org>; Tue, 30 Aug 2011 08:29:26 -0700 (PDT)
+Received: from banach.math.auburn.edu ([131.204.45.3]:54396 "EHLO
+	banach.math.auburn.edu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755422Ab1HCUUL (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 3 Aug 2011 16:20:11 -0400
+Date: Wed, 3 Aug 2011 14:53:43 -0500 (CDT)
+From: Theodore Kilgore <kilgota@banach.math.auburn.edu>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+cc: workshop-2011@linuxtv.org,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: Media Subsystem Workshop 2011
+In-Reply-To: <4E398381.4080505@redhat.com>
+Message-ID: <alpine.LNX.2.00.1108031418480.16384@banach.math.auburn.edu>
+References: <4E398381.4080505@redhat.com>
 MIME-Version: 1.0
-In-Reply-To: <Pine.LNX.4.64.1108301650190.19151@axis700.grange>
-References: <alpine.DEB.2.02.1108171551040.17540@ipanema>
-	<201108301546.42050.hverkuil@xs4all.nl>
-	<Pine.LNX.4.64.1108301555350.19151@axis700.grange>
-	<201108301636.55251.hverkuil@xs4all.nl>
-	<Pine.LNX.4.64.1108301650190.19151@axis700.grange>
-Date: Tue, 30 Aug 2011 17:28:47 +0200
-Message-ID: <CABYn4syUi0ZjONWyZ_xkS1u4n_fF=xOEoXrvGN6xDYoRLBck6w@mail.gmail.com>
-Subject: Re: [PATCH] media: Add support for arbitrary resolution for the
- ov5642 camera driver
-From: Bastian Hecht <hechtb@googlemail.com>
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Cc: Hans Verkuil <hverkuil@xs4all.nl>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Sakari Ailus <sakari.ailus@iki.fi>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-2011/8/30 Guennadi Liakhovetski <g.liakhovetski@gmx.de>:
-> On Tue, 30 Aug 2011, Hans Verkuil wrote:
->
->> On Tuesday, August 30, 2011 16:24:55 Guennadi Liakhovetski wrote:
->> > Hi Hans
->> >
->> > On Tue, 30 Aug 2011, Hans Verkuil wrote:
->
-> [snip]
->
->> > > The problem with S_FMT changing the crop rectangle (and I assume we are not
->> > > talking about small pixel tweaks to make the hardware happy) is that the
->> > > crop operation actually removes part of the frame. That's not something you
->> > > would expect S_FMT to do, ever. Such an operation has to be explicitly
->> > > requested by the user.
->> > >
->> > > It's also why properly written applications (e.g. capture-example.c) has
->> > > code like this to reset the crop rectangle before starting streaming:
->> > >
->> > >         if (0 == xioctl(fd, VIDIOC_CROPCAP, &cropcap)) {
->> > >                 crop.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
->> > >                 crop.c = cropcap.defrect; /* reset to default */
->> > >
->> > >                 if (-1 == xioctl(fd, VIDIOC_S_CROP, &crop)) {
->> > >                         switch (errno) {
->> > >                         case EINVAL:
->> > >                                 /* Cropping not supported. */
->> > >                                 break;
->> > >                         default:
->> > >                                 /* Errors ignored. */
->> > >                                 break;
->> > >                         }
->> > >                 }
->> > >         }
->> > >
->> > > (Hmm, capture-example.c should also test for ENOTTY since we changed the
->> > > error code).
->> >
->> > I agree, that preserving input rectangle == output rectangle in reply to
->> > S_FMT is not nice, and should be avoided, wherever possible. Still, I
->> > prefer this to sticking with just one fixed output geometry, especially
->> > since (1) the spec doesn't prohibit this behaviour,
->>
->> Hmm, I think it should be prohibited. Few drivers actually implement crop,
->> and fewer applications use it. So I'm not surprised the spec doesn't go into
->> much detail.
->>
->> > (2) there are already
->> > precedents in the mainline.
->>
->> Which precedents? My guess is that any driver that does this was either not
->> (or poorly) reviewed, or everyone just missed it.
->
-> My first two sensor drivers mt9m001 and mt9v022 do this, but, I suspect, I
-> didn't invent it at that time, I think, I copied it from somewhere, cannot
-> say for sure though anymore.
->
->> > Maybe, a bit of hardware background would help: the sensor is actually
->> > supposed to be able to both crop and scale, and we did try to implement
->> > scales other than 1:1, but the chip just refused to produce anything
->> > meaningful.
->>
->> I still don't see any reason why S_FMT would suddenly crop on such a sensor.
->> It's completely unexpected and the user does not get what he expects.
->
-> Good, let's make it simple for all (except Bastian) then: Bastian, sorry
-> for having misguided you, please, switch to .s_crop().
 
-Sure, no problem. So s_fmt() shall be not available at all then,
-right? Instead the cropping rectangle can be changed and the output
-rectangle is adjusted accordingly.
 
-best regards,
+On Wed, 3 Aug 2011, Mauro Carvalho Chehab wrote:
 
- Bastian
+> As already announced, we're continuing the planning for this year's 
+> media subsystem workshop.
+> 
+> To avoid overriding the main ML with workshop-specifics, a new ML
+> was created:
+> 	workshop-2011@linuxtv.org
+> 
+> I'll also be updating the event page at:
+> 	http://www.linuxtv.org/events.php
+> 
+> Over the one-year period, we had 242 developers contributing to the
+> subsystem. Thank you all for that! Unfortunately, the space there is
+> limited, and we can't affort to have all developers there. 
+> 
+> Due to that some criteria needed to be applied to create a short list
+> of people that were invited today to participate. 
+> 
+> The main criteria were to select the developers that did significant 
+> contributions for the media subsystem over the last 1 year period, 
+> measured in terms of number of commits and changed lines to the kernel
+> drivers/media tree.
+> 
+> As the used criteria were the number of kernel patches, userspace-only 
+> developers weren't included on the invitations. It would be great to 
+> have there open source application developers as well, in order to allow 
+> us to tune what's needed from applications point of view. 
+> 
+> So, if you're leading the development of some V4L and/or DVB open-source 
+> application and wants to be there, or you think you can give good 
+> contributions for helping to improve the subsystem, please feel free 
+> to send us an email.
+> 
+> With regards to the themes, we're received, up to now, the following 
+> proposals:
+> 
+> ---------------------------------------------------------+----------------------
+> THEME                                                    | Proposed-by:
+> ---------------------------------------------------------+----------------------
+> Buffer management: snapshot mode                         | Guennadi
+> Rotation in webcams in tablets while streaming is active | Hans de Goede
+> V4L2 Spec ? ambiguities fix                              | Hans Verkuil
+> V4L2 compliance test results                             | Hans Verkuil
+> Media Controller presentation (probably for Wed, 25)     | Laurent Pinchart
+> Workshop summary presentation on Wed, 25                 | Mauro Carvalho Chehab
+> ---------------------------------------------------------+----------------------
+> 
+> >From my side, I also have the following proposals:
+> 
+> 1) DVB API consistency - what to do with the audio and video DVB API's 
+> that conflict with V4L2 and (somewhat) with ALSA?
+> 
+> 2) Multi FE support - How should we handle a frontend with multiple 
+> delivery systems like DRX-K frontend?
+> 
+> 3) videobuf2 - migration plans for legacy drivers
+> 
+> 4) NEC IR decoding - how should we handle 32, 24, and 16 bit protocol
+> variations?
+> 
+> Even if you won't be there, please feel free to propose themes for 
+> discussion, in order to help us to improve even more the subsystem.
+> 
+> Thank you!
+> Mauro
 
-> Thanks
-> Guennadi
-> ---
-> Guennadi Liakhovetski, Ph.D.
-> Freelance Open-Source Software Developer
-> http://www.open-technology.de/
->
+Mauro,
+
+Not saying that you need to change the program for this session to deal 
+with this topic, but an old and vexing problem is dual-mode devices. It is 
+an issue which needs some kind of unified approach, and, in my opinion, 
+consensus about policy and methodology.
+
+As a very good example if this problem, several of the cameras that I have 
+supported as GSPCA devices in their webcam modality are also still cameras 
+and are supported, as still cameras, in Gphoto. This can cause a collision 
+between driver software in userspace which functions with libusb, and on 
+the other hand with a kernel driver which tries to grab the device.
+
+Recent attempts to deal with this problem involve the incorporation of 
+code in libusb which disables a kernel module that has already grabbed the 
+device, allowing the userspace driver to function. This has made life a 
+little bit easier for some people, but not for everybody. For, the device 
+needs to be re-plugged in order to re-activate the kernel support. But 
+some of the "user-friencly" desktop setups used by some distros will 
+automatically start up a dual-mode camera with a gphoto-based program, 
+thereby making it impossible for the camera to be used as a webcam unless 
+the user goes for a crash course in how to disable the "feature" which has 
+been so thoughtfully (thoughtlessly?) provided. 
+
+As the problem is not confined to cameras but also affects some other 
+devices, such as DSL modems which have a partition on them and are thus 
+seen as Mass Storage devices, perhaps it is time to try to find a 
+systematic approach to problems like this.
+
+There are of course several possible approaches. 
+
+1. A kernel module should handle everything related to connecting up the 
+hardware. In that case, the existing userspace driver has to be modified 
+to use the kernel module instead of libusb. Those who support this option 
+would say that it gets everything under the control of the kernel, where 
+it belongs. OTOG, the possible result is to create a minor mess in 
+projects like Gphoto.
+
+2. The kernel module should be abolished, and all of its functionality 
+moved to userspace. This would of course involve difficulties 
+approximately equivalent to item 1. An advantage, in the eyes of some, 
+would be to cut down on the 
+yet-another-driver-for-yet-another-piece-of-peculiar-hardware syndrome 
+which obviously contributes to an in principle unlimited increase in the 
+size of the kernel codebase. A disadvantage would be that it would create 
+some disruption in webcam support.
+
+3. A further modification to libusb reactivates the kernel module 
+automatically, as soon as the userspace app which wanted to access the 
+device through a libusb-based driver library is closed. This seems 
+attractive, but it has certain deficiencies as well. One of them is that 
+it can not necessarily provide a smooth and informative user experience, 
+since circumstances can occur in which something appears to go wrong, but 
+the user gets no clear message saying what the problem is. In other words, 
+it is a patchwork solution which only slightly refines the current 
+patchwork solution in libusb, which is in itself only a slight improvement 
+on the original, unaddressed problem.
+
+4. ???
+
+Several people are interested in this problem, but not much progress has 
+been made at this time. I think that the topic ought to be put somehow on 
+the front burner so that lots of people will try to think of the best way 
+to handle it. Many eyes, and all that.
+
+Not saying change your schedule, as I said. Have a nice conference. I wish 
+I could attend. But I do hope by this message to raise some general 
+concern about this problem.
+
+Theodore Kilgore
+
+
+
+
