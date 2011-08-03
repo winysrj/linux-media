@@ -1,398 +1,257 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:40600 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752528Ab1HSJhI (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 19 Aug 2011 05:37:08 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: linux-fbdev@vger.kernel.org
-Cc: linux-media@vger.kernel.org, magnus.damm@gmail.com
-Subject: [PATCH/RFC v2 1/3] fbdev: Add FOURCC-based format configuration API
-Date: Fri, 19 Aug 2011 11:37:04 +0200
-Message-Id: <1313746626-23845-2-git-send-email-laurent.pinchart@ideasonboard.com>
-In-Reply-To: <1313746626-23845-1-git-send-email-laurent.pinchart@ideasonboard.com>
-References: <1313746626-23845-1-git-send-email-laurent.pinchart@ideasonboard.com>
+Received: from banach.math.auburn.edu ([131.204.45.3]:47158 "EHLO
+	banach.math.auburn.edu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755760Ab1HCXPs (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 3 Aug 2011 19:15:48 -0400
+Date: Wed, 3 Aug 2011 18:20:36 -0500 (CDT)
+From: Theodore Kilgore <kilgota@banach.math.auburn.edu>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+cc: workshop-2011@linuxtv.org,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: Media Subsystem Workshop 2011
+In-Reply-To: <4E39B150.40108@redhat.com>
+Message-ID: <alpine.LNX.2.00.1108031750241.16520@banach.math.auburn.edu>
+References: <4E398381.4080505@redhat.com> <alpine.LNX.2.00.1108031418480.16384@banach.math.auburn.edu> <4E39B150.40108@redhat.com>
+MIME-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This API will be used to support YUV frame buffer formats in a standard
-way.
 
-Last but not least, create a much needed fbdev API documentation and
-document the format setting APIs.
 
-Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
----
- Documentation/fb/api.txt |  299 ++++++++++++++++++++++++++++++++++++++++++++++
- include/linux/fb.h       |   27 ++++-
- 2 files changed, 320 insertions(+), 6 deletions(-)
- create mode 100644 Documentation/fb/api.txt
+On Wed, 3 Aug 2011, Mauro Carvalho Chehab wrote:
 
-diff --git a/Documentation/fb/api.txt b/Documentation/fb/api.txt
-new file mode 100644
-index 0000000..6808492
---- /dev/null
-+++ b/Documentation/fb/api.txt
-@@ -0,0 +1,299 @@
-+			The Frame Buffer Device API
-+			---------------------------
-+
-+Last revised: June 21, 2011
-+
-+
-+0. Introduction
-+---------------
-+
-+This document describes the frame buffer API used by applications to interact
-+with frame buffer devices. In-kernel APIs between device drivers and the frame
-+buffer core are not described.
-+
-+Due to a lack of documentation in the original frame buffer API, drivers
-+behaviours differ in subtle (and not so subtle) ways. This document describes
-+the recommended API implementation, but applications should be prepared to
-+deal with different behaviours.
-+
-+
-+1. Capabilities
-+---------------
-+
-+Device and driver capabilities are reported in the fixed screen information
-+capabilities field.
-+
-+struct fb_fix_screeninfo {
-+	...
-+	__u16 capabilities;		/* see FB_CAP_*			*/
-+	...
-+};
-+
-+Application should use those capabilities to find out what features they can
-+expect from the device and driver.
-+
-+- FB_CAP_FOURCC
-+
-+The driver supports the four character code (FOURCC) based format setting API.
-+When supported, formats are configured using a FOURCC instead of manually
-+specifying color components layout.
-+
-+
-+2. Types and visuals
-+--------------------
-+
-+Pixels are stored in memory in hardware-dependent formats. Applications need
-+to be aware of the pixel storage format in order to write image data to the
-+frame buffer memory in the format expected by the hardware.
-+
-+Formats are described by frame buffer types and visuals. Some visuals require
-+additional information, which are stored in the variable screen information
-+bits_per_pixel, grayscale, fourcc, red, green, blue and transp fields.
-+
-+The following types and visuals are supported.
-+
-+- FB_TYPE_PACKED_PIXELS
-+
-+Color components (usually RGB or YUV) are packed together into macropixels
-+that are stored in a single plane. The exact color components layout is
-+described in a visual-dependent way.
-+
-+Frame buffer visuals that don't use multiple color components per pixel
-+(such as monochrome and pseudo-color visuals) are reported as packed frame
-+buffer types, even though they don't stricly speaking pack color components
-+into macropixels.
-+
-+- FB_TYPE_PLANES
-+
-+Color components are stored in separate planes. Planes are located
-+contiguously in memory.
-+
-+- FB_VISUAL_MONO01
-+
-+Pixels are black or white and stored on one bit. A bit set to 1 represents a
-+black pixel and a bit set to 0 a white pixel. Pixels are packed together in
-+bytes with 8 pixels per byte.
-+
-+FB_VISUAL_MONO01 is used with FB_TYPE_PACKED_PIXELS only.
-+
-+- FB_VISUAL_MONO10
-+
-+Pixels are black or white and stored on one bit. A bit set to 1 represents a
-+white pixel and a bit set to 0 a black pixel. Pixels are packed together in
-+bytes with 8 pixels per byte.
-+
-+FB_VISUAL_MONO01 is used with FB_TYPE_PACKED_PIXELS only.
-+
-+- FB_VISUAL_TRUECOLOR
-+
-+Pixels are broken into red, green and blue components, and each component
-+indexes a read-only lookup table for the corresponding value. Lookup tables
-+are device-dependent, and provide linear or non-linear ramps.
-+
-+Each component is stored in memory according to the variable screen
-+information red, green, blue and transp fields.
-+
-+- FB_VISUAL_PSEUDOCOLOR and FB_VISUAL_STATIC_PSEUDOCOLOR
-+
-+Pixel values are encoded as indices into a colormap that stores red, green and
-+blue components. The colormap is read-only for FB_VISUAL_STATIC_PSEUDOCOLOR
-+and read-write for FB_VISUAL_PSEUDOCOLOR.
-+
-+Each pixel value is stored in the number of bits reported by the variable
-+screen information bits_per_pixel field. Pixels are contiguous in memory.
-+
-+FB_VISUAL_PSEUDOCOLOR and FB_VISUAL_STATIC_PSEUDOCOLOR are used with
-+FB_TYPE_PACKED_PIXELS only.
-+
-+- FB_VISUAL_DIRECTCOLOR
-+
-+Pixels are broken into red, green and blue components, and each component
-+indexes a programmable lookup table for the corresponding value.
-+
-+Each component is stored in memory according to the variable screen
-+information red, green, blue and transp fields.
-+
-+- FB_VISUAL_FOURCC
-+
-+Pixels are stored in memory as described by the format FOURCC identifier
-+stored in the variable screen information fourcc field.
-+
-+
-+3. Screen information
-+---------------------
-+
-+Screen information are queried by applications using the FBIOGET_FSCREENINFO
-+and FBIOGET_VSCREENINFO ioctls. Those ioctls take a pointer to a
-+fb_fix_screeninfo and fb_var_screeninfo structure respectively.
-+
-+struct fb_fix_screeninfo stores device independent unchangeable information
-+about the frame buffer device and the current format. Those information can't
-+be directly modified by applications, but can be changed by the driver when an
-+application modifies the format.
-+
-+struct fb_fix_screeninfo {
-+	char id[16];			/* identification string eg "TT Builtin" */
-+	unsigned long smem_start;	/* Start of frame buffer mem */
-+					/* (physical address) */
-+	__u32 smem_len;			/* Length of frame buffer mem */
-+	__u32 type;			/* see FB_TYPE_*		*/
-+	__u32 type_aux;			/* Interleave for interleaved Planes */
-+	__u32 visual;			/* see FB_VISUAL_*		*/
-+	__u16 xpanstep;			/* zero if no hardware panning  */
-+	__u16 ypanstep;			/* zero if no hardware panning  */
-+	__u16 ywrapstep;		/* zero if no hardware ywrap    */
-+	__u32 line_length;		/* length of a line in bytes    */
-+	unsigned long mmio_start;	/* Start of Memory Mapped I/O   */
-+					/* (physical address) */
-+	__u32 mmio_len;			/* Length of Memory Mapped I/O  */
-+	__u32 accel;			/* Indicate to driver which	*/
-+					/*  specific chip/card we have	*/
-+	__u16 capabilities;		/* see FB_CAP_*			*/
-+	__u16 reserved[2];		/* Reserved for future compatibility */
-+};
-+
-+struct fb_var_screeninfo stores device independent changeable information
-+about a frame buffer device, its current format and video mode, as well as
-+other miscellaneous parameters.
-+
-+struct fb_var_screeninfo {
-+	__u32 xres;			/* visible resolution		*/
-+	__u32 yres;
-+	__u32 xres_virtual;		/* virtual resolution		*/
-+	__u32 yres_virtual;
-+	__u32 xoffset;			/* offset from virtual to visible */
-+	__u32 yoffset;			/* resolution			*/
-+
-+	__u32 bits_per_pixel;		/* guess what			*/
-+	union {
-+		struct {		/* Legacy format API		*/
-+			__u32 grayscale; /* != 0 Graylevels instead of colors */
-+			/* bitfields in fb mem if true color, else only */
-+			/* length is significant			*/
-+			struct fb_bitfield red;
-+			struct fb_bitfield green;
-+			struct fb_bitfield blue;
-+			struct fb_bitfield transp;	/* transparency	*/
-+		};
-+		struct {		/* FOURCC-based format API	*/
-+			__u32 fourcc;		/* FOURCC format	*/
-+			__u32 colorspace;
-+			__u32 reserved[11];
-+		} format;
-+	};
-+
-+	struct fb_bitfield red;		/* bitfield in fb mem if true color, */
-+	struct fb_bitfield green;	/* else only length is significant */
-+	struct fb_bitfield blue;
-+	struct fb_bitfield transp;	/* transparency			*/
-+
-+	__u32 nonstd;			/* != 0 Non standard pixel format */
-+
-+	__u32 activate;			/* see FB_ACTIVATE_*		*/
-+
-+	__u32 height;			/* height of picture in mm    */
-+	__u32 width;			/* width of picture in mm     */
-+
-+	__u32 accel_flags;		/* (OBSOLETE) see fb_info.flags */
-+
-+	/* Timing: All values in pixclocks, except pixclock (of course) */
-+	__u32 pixclock;			/* pixel clock in ps (pico seconds) */
-+	__u32 left_margin;		/* time from sync to picture	*/
-+	__u32 right_margin;		/* time from picture to sync	*/
-+	__u32 upper_margin;		/* time from sync to picture	*/
-+	__u32 lower_margin;
-+	__u32 hsync_len;		/* length of horizontal sync	*/
-+	__u32 vsync_len;		/* length of vertical sync	*/
-+	__u32 sync;			/* see FB_SYNC_*		*/
-+	__u32 vmode;			/* see FB_VMODE_*		*/
-+	__u32 rotate;			/* angle we rotate counter clockwise */
-+	__u32 reserved[5];		/* Reserved for future compatibility */
-+};
-+
-+To modify variable information, applications call the FBIOPUT_VSCREENINFO
-+ioctl with a pointer to a fb_var_screeninfo structure. If the call is
-+successful, the driver will update the fixed screen information accordingly.
-+
-+Instead of filling the complete fb_var_screeninfo structure manually,
-+applications should call the FBIOGET_VSCREENINFO ioctl and modify only the
-+fields they care about.
-+
-+
-+4. Format configuration
-+-----------------------
-+
-+Frame buffer devices offer two ways to configure the frame buffer format: the
-+legacy API and the FOURCC-based API.
-+
-+
-+The legacy API has been the only frame buffer format configuration API for a
-+long time and is thus widely used by application. It is the recommended API
-+for applications when using RGB and grayscale formats, as well as legacy
-+non-standard formats.
-+
-+To select a format, applications set the fb_var_screeninfo bits_per_pixel field
-+to the desired frame buffer depth. Values up to 8 will usually map to
-+monochrome, grayscale or pseudocolor visuals, although this is not required.
-+
-+- For grayscale formats, applications set the grayscale field to a non-zero
-+  value. The red, blue, green and transp fields must be set to 0 by
-+  applications and ignored by drivers. Drivers must fill the red, blue and
-+  green offsets to 0 and lengths to the bits_per_pixel value.
-+
-+- For pseudocolor formats, applications set the grayscale field to a zero
-+  value. The red, blue, green and transp fields must be set to 0 by
-+  applications and ignored by drivers. Drivers must fill the red, blue and
-+  green offsets to 0 and lengths to the bits_per_pixel value.
-+
-+- For truecolor and directcolor formats, applications set the grayscale field
-+  to a zero value, and the red, blue, green and transp fields to describe the
-+  layout of color components in memory.
-+
-+struct fb_bitfield {
-+	__u32 offset;			/* beginning of bitfield	*/
-+	__u32 length;			/* length of bitfield		*/
-+	__u32 msb_right;		/* != 0 : Most significant bit is */
-+					/* right */
-+};
-+
-+  Pixel values are bits_per_pixel wide and are split in non-overlapping red,
-+  green, blue and alpha (transparency) components. Location and size of each
-+  component in the pixel value are described by the fb_bitfield offset and
-+  length fields. Offset are computed from the right.
-+
-+  Pixels are always stored in an integer number of bytes. If the number of
-+  bits per pixel is not a multiple of 8, pixel values are padded to the next
-+  multiple of 8 bits.
-+
-+Upon successful format configuration, drivers update the fb_fix_screeninfo
-+type, visual and line_length fields depending on the selected format.
-+
-+
-+The FOURCC-based API replaces format descriptions by four character codes
-+(FOURCC). FOURCCs are abstract identifiers that uniquely define a format
-+without explicitly describing it. This is the only API that supports YUV
-+formats. Drivers are also encouraged to implement the FOURCC-based API for RGB
-+and grayscale formats.
-+
-+Drivers that support the FOURCC-based API report this capability by setting
-+the FB_CAP_FOURCC bit in the fb_fix_screeninfo capabilities field.
-+
-+FOURCC definitions are located in the linux/videodev2.h header. However, and
-+despite starting with the V4L2_PIX_FMT_prefix, they are not restricted to V4L2
-+and don't require usage of the V4L2 subsystem. FOURCC documentation is
-+available in Documentation/DocBook/v4l/pixfmt.xml.
-+
-+To select a format, applications set the format.fourcc field to the desired
-+FOURCC. For YUV formats, they should also select the appropriate colorspace by
-+setting the format.colorspace field to one of the colorspaces listed in
-+linux/videodev2.h and documented in Documentation/DocBook/v4l/colorspaces.xml.
-+
-+For forward compatibility reasons the format.reserved field must be set to 0 by
-+applications and ignored by drivers. Values other than 0 may get a meaning in
-+future extensions. Note that the grayscale, red, green, blue and transp field
-+share memory with the format field. Application must thus not touch those
-+fields when using the FOURCC-based API.
-+
-+Upon successful format configuration, drivers update the fb_fix_screeninfo
-+type, visual and line_length fields depending on the selected format. The
-+visual field is set to FB_VISUAL_FOURCC.
-diff --git a/include/linux/fb.h b/include/linux/fb.h
-index 1d6836c..c6baf28 100644
---- a/include/linux/fb.h
-+++ b/include/linux/fb.h
-@@ -69,6 +69,7 @@
- #define FB_VISUAL_PSEUDOCOLOR		3	/* Pseudo color (like atari) */
- #define FB_VISUAL_DIRECTCOLOR		4	/* Direct color */
- #define FB_VISUAL_STATIC_PSEUDOCOLOR	5	/* Pseudo color readonly */
-+#define FB_VISUAL_FOURCC		6	/* Visual identified by a V4L2 FOURCC */
- 
- #define FB_ACCEL_NONE		0	/* no hardware accelerator	*/
- #define FB_ACCEL_ATARIBLITT	1	/* Atari Blitter		*/
-@@ -154,6 +155,8 @@
- 
- #define FB_ACCEL_PUV3_UNIGFX	0xa0	/* PKUnity-v3 Unigfx		*/
- 
-+#define FB_CAP_FOURCC		1	/* Device supports FOURCC-based formats */
-+
- struct fb_fix_screeninfo {
- 	char id[16];			/* identification string eg "TT Builtin" */
- 	unsigned long smem_start;	/* Start of frame buffer mem */
-@@ -171,7 +174,8 @@ struct fb_fix_screeninfo {
- 	__u32 mmio_len;			/* Length of Memory Mapped I/O  */
- 	__u32 accel;			/* Indicate to driver which	*/
- 					/*  specific chip/card we have	*/
--	__u16 reserved[3];		/* Reserved for future compatibility */
-+	__u16 capabilities;		/* see FB_CAP_*			*/
-+	__u16 reserved[2];		/* Reserved for future compatibility */
- };
- 
- /* Interpretation of offset for color fields: All offsets are from the right,
-@@ -246,12 +250,23 @@ struct fb_var_screeninfo {
- 	__u32 yoffset;			/* resolution			*/
- 
- 	__u32 bits_per_pixel;		/* guess what			*/
--	__u32 grayscale;		/* != 0 Graylevels instead of colors */
- 
--	struct fb_bitfield red;		/* bitfield in fb mem if true color, */
--	struct fb_bitfield green;	/* else only length is significant */
--	struct fb_bitfield blue;
--	struct fb_bitfield transp;	/* transparency			*/	
-+	union {
-+		struct {		/* Legacy format API		*/
-+			__u32 grayscale; /* != 0 Graylevels instead of colors */
-+			/* bitfields in fb mem if true color, else only */
-+			/* length is significant			*/
-+			struct fb_bitfield red;
-+			struct fb_bitfield green;
-+			struct fb_bitfield blue;
-+			struct fb_bitfield transp;	/* transparency	*/
-+		};
-+		struct {		/* FOURCC-based format API	*/
-+			__u32 fourcc;		/* FOURCC format	*/
-+			__u32 colorspace;
-+			__u32 reserved[11];
-+		} format;
-+	};
- 
- 	__u32 nonstd;			/* != 0 Non standard pixel format */
- 
--- 
-1.7.3.4
+> Em 03-08-2011 16:53, Theodore Kilgore escreveu:
+> > 
+> > 
+> > On Wed, 3 Aug 2011, Mauro Carvalho Chehab wrote:
+> > 
+> >> As already announced, we're continuing the planning for this year's 
+> >> media subsystem workshop.
+> >>
+> >> To avoid overriding the main ML with workshop-specifics, a new ML
+> >> was created:
+> >> 	workshop-2011@linuxtv.org
+> >>
+> >> I'll also be updating the event page at:
+> >> 	http://www.linuxtv.org/events.php
+> >>
+> >> Over the one-year period, we had 242 developers contributing to the
+> >> subsystem. Thank you all for that! Unfortunately, the space there is
+> >> limited, and we can't affort to have all developers there. 
+> >>
+> >> Due to that some criteria needed to be applied to create a short list
+> >> of people that were invited today to participate. 
+> >>
+> >> The main criteria were to select the developers that did significant 
+> >> contributions for the media subsystem over the last 1 year period, 
+> >> measured in terms of number of commits and changed lines to the kernel
+> >> drivers/media tree.
+> >>
+> >> As the used criteria were the number of kernel patches, userspace-only 
+> >> developers weren't included on the invitations. It would be great to 
+> >> have there open source application developers as well, in order to allow 
+> >> us to tune what's needed from applications point of view. 
+> >>
+> >> So, if you're leading the development of some V4L and/or DVB open-source 
+> >> application and wants to be there, or you think you can give good 
+> >> contributions for helping to improve the subsystem, please feel free 
+> >> to send us an email.
+> >>
+> >> With regards to the themes, we're received, up to now, the following 
+> >> proposals:
+> >>
+> >> ---------------------------------------------------------+----------------------
+> >> THEME                                                    | Proposed-by:
+> >> ---------------------------------------------------------+----------------------
+> >> Buffer management: snapshot mode                         | Guennadi
+> >> Rotation in webcams in tablets while streaming is active | Hans de Goede
+> >> V4L2 Spec ? ambiguities fix                              | Hans Verkuil
+> >> V4L2 compliance test results                             | Hans Verkuil
+> >> Media Controller presentation (probably for Wed, 25)     | Laurent Pinchart
+> >> Workshop summary presentation on Wed, 25                 | Mauro Carvalho Chehab
+> >> ---------------------------------------------------------+----------------------
+> >>
+> >> >From my side, I also have the following proposals:
+> >>
+> >> 1) DVB API consistency - what to do with the audio and video DVB API's 
+> >> that conflict with V4L2 and (somewhat) with ALSA?
+> >>
+> >> 2) Multi FE support - How should we handle a frontend with multiple 
+> >> delivery systems like DRX-K frontend?
+> >>
+> >> 3) videobuf2 - migration plans for legacy drivers
+> >>
+> >> 4) NEC IR decoding - how should we handle 32, 24, and 16 bit protocol
+> >> variations?
+> >>
+> >> Even if you won't be there, please feel free to propose themes for 
+> >> discussion, in order to help us to improve even more the subsystem.
+> >>
+> >> Thank you!
+> >> Mauro
+> > 
+> > Mauro,
+> > 
+> > Not saying that you need to change the program for this session to deal 
+> > with this topic, but an old and vexing problem is dual-mode devices. It is 
+> > an issue which needs some kind of unified approach, and, in my opinion, 
+> > consensus about policy and methodology.
+> > 
+> > As a very good example if this problem, several of the cameras that I have 
+> > supported as GSPCA devices in their webcam modality are also still cameras 
+> > and are supported, as still cameras, in Gphoto. This can cause a collision 
+> > between driver software in userspace which functions with libusb, and on 
+> > the other hand with a kernel driver which tries to grab the device.
+> > 
+> > Recent attempts to deal with this problem involve the incorporation of 
+> > code in libusb which disables a kernel module that has already grabbed the 
+> > device, allowing the userspace driver to function. This has made life a 
+> > little bit easier for some people, but not for everybody. For, the device 
+> > needs to be re-plugged in order to re-activate the kernel support. But 
+> > some of the "user-friencly" desktop setups used by some distros will 
+> > automatically start up a dual-mode camera with a gphoto-based program, 
+> > thereby making it impossible for the camera to be used as a webcam unless 
+> > the user goes for a crash course in how to disable the "feature" which has 
+> > been so thoughtfully (thoughtlessly?) provided. 
+> > 
+> > As the problem is not confined to cameras but also affects some other 
+> > devices, such as DSL modems which have a partition on them and are thus 
+> > seen as Mass Storage devices, perhaps it is time to try to find a 
+> > systematic approach to problems like this.
+> > 
+> > There are of course several possible approaches. 
+> > 
+> > 1. A kernel module should handle everything related to connecting up the 
+> > hardware. In that case, the existing userspace driver has to be modified 
+> > to use the kernel module instead of libusb. Those who support this option 
+> > would say that it gets everything under the control of the kernel, where 
+> > it belongs. OTOG, the possible result is to create a minor mess in 
+> > projects like Gphoto.
+> > 
+> > 2. The kernel module should be abolished, and all of its functionality 
+> > moved to userspace. This would of course involve difficulties 
+> > approximately equivalent to item 1. An advantage, in the eyes of some, 
+> > would be to cut down on the 
+> > yet-another-driver-for-yet-another-piece-of-peculiar-hardware syndrome 
+> > which obviously contributes to an in principle unlimited increase in the 
+> > size of the kernel codebase. A disadvantage would be that it would create 
+> > some disruption in webcam support.
+> > 
+> > 3. A further modification to libusb reactivates the kernel module 
+> > automatically, as soon as the userspace app which wanted to access the 
+> > device through a libusb-based driver library is closed. This seems 
+> > attractive, but it has certain deficiencies as well. One of them is that 
+> > it can not necessarily provide a smooth and informative user experience, 
+> > since circumstances can occur in which something appears to go wrong, but 
+> > the user gets no clear message saying what the problem is. In other words, 
+> > it is a patchwork solution which only slightly refines the current 
+> > patchwork solution in libusb, which is in itself only a slight improvement 
+> > on the original, unaddressed problem.
+> > 
+> > 4. ???
+> > 
+> > Several people are interested in this problem, but not much progress has 
+> > been made at this time. I think that the topic ought to be put somehow on 
+> > the front burner so that lots of people will try to think of the best way 
+> > to handle it. Many eyes, and all that.
+> > 
+> > Not saying change your schedule, as I said. Have a nice conference. I wish 
+> > I could attend. But I do hope by this message to raise some general 
+> > concern about this problem.
+
+I meant this. Two ways. First, I knew when the conference was announced 
+that it would severely conflict with the schedule of my workplace 
+(right after the start of the academic semester). So I had simply to write 
+off a conference which I really think I would have enjoyed attending. 
+Second, I am hoping to raise general interest in a rather vexing issue. 
+The problem here, in a nutshell, originates from a conflict between user 
+convenience and the Linux security model. Nobody wants to sacrifice either 
+of these. More cleverness is needed.
+
+> 
+> That's an interesting issue. 
+
+Yes.
+
+> 
+> A solution like (3) is a little bit out of scope, as it is a pure userspace
+> (or a mixed userspace USB stack) solution.
+
+And does not completely solve the problem, either. 
+
+> 
+> Technically speaking, letting the same device being handled by either an
+> userspace or a kernelspace driver doesn't seem smart to me, due to:
+> 	- Duplicated efforts to maintain both drivers;
+> 	- It is hard to sync a kernel driver with an userspace driver,
+> as you've pointed.
+> 
+> So, we're between (1) or (2). 
+> 
+> Moving the solution entirely to userspace will have, additionally, the
+> problem of having two applications trying to access the same hardware
+> using two different userspace instances (for example, an incoming videoconf
+> call while Gphoto is opened, assuming that such videoconf call would also
+> have an userspace driver).
+
+Yes, that kind of thing is an obvious problem. Actually, though, it may be 
+that this had just better not happen. For some of the hardware that I know 
+of, it could be a real problem no matter what approach would be taken. For 
+example, certain specific dual-mode cameras will delete all data stored on 
+the camera if the camera is fired up in webcam mode. To drop Gphoto 
+suddenly in order to do the videoconf call would, on such cameras, result 
+in the automatic deletion of all photos on the camera even if those photos 
+had not yet been downloaded. Presumably, one would not want to do that. 
+
+> 
+> IMO, the right solution is to work on a proper snapshot mode, in kernelspace,
+> and moving the drivers that have already a kernelspace out of Gphoto.
+
+Well, the problem with that is, a still camera and a webcam are entirely 
+different beasts. Still photos stored in the memory of an external device, 
+waiting to be downloaded, are not snapshots. Thus, access to those still 
+photos is not access to snapshots. Things are not that simple.
+
+> 
+> That's said, there is a proposed topic for snapshot buffer management. Maybe
+> it may cover the remaining needs for taking high quality pictures in Kernel.
+
+Again, when downloading photo images which are _stored_ on the camera one 
+is not "taking high quality pictures." Different functionality is 
+involved. This may involve, for example, a different Altsetting for the 
+USB device and may also require the use of Bulk transport instead of 
+Isochronous transport. 
+
+> 
+> The hole idea is to allocate additional buffers for snapshots, imagining that
+> the camera may be streaming in low quality/low resolution, and, once snapshot
+> is requested, it will take one high quality/high resolution picture.
+
+The ability to "take" a photo is present on some still cameras and not on 
+others. "Some still cameras" includes some dual-mode cameras. For 
+dual-mode cameras which can be requested to "take" a photo while running 
+in webcam mode, the ability to do so is, generally speaking, present in 
+the kernel driver.
+
+To present the problem more simply, a webcam is, essentially, a device of 
+USB class Video (even if the device uses proprietary protocols, this is at 
+least conceptually true). This is true because a webcam streams 
+video data. However, a still camera is, in its essence as a 
+computer peripheral, a USB mass storage device (even if the device has a 
+proprietary protocol and even if it will not do everything one would 
+expect from a normal mass storage device). That is, a still camera can be 
+considered as a device which contains data, and one needs to get the data 
+from there to the computer, and then to process said data. It is when the 
+two different kinds of device are married together in one piece of 
+physical hardware, with the same USB Vendor:Product code, that trouble 
+follows. 
+
+I suggest that we continue this discussion after the conference. I expect 
+that you and several others who I think are interested in this topic are 
+rather busy getting ready for the conference. I also hope that some of 
+those people read this, since I think that a general discussion is needed. 
+The problem will, after all, not go away. It has been with us for years.
+
+Theodore Kilgore
 
