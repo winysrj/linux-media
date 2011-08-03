@@ -1,43 +1,82 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.126.186]:52395 "EHLO
+Received: from moutng.kundenserver.de ([212.227.17.8]:64552 "EHLO
 	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753368Ab1HBO3B (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 2 Aug 2011 10:29:01 -0400
-Date: Tue, 2 Aug 2011 16:28:59 +0200 (CEST)
+	with ESMTP id S1754392Ab1HCQiD (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 3 Aug 2011 12:38:03 -0400
+Date: Wed, 3 Aug 2011 18:37:58 +0200 (CEST)
 From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Sakari Ailus <sakari.ailus@iki.fi>
-cc: Hans Verkuil <hverkuil@xs4all.nl>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Pawel Osciak <pawel@osciak.com>
-Subject: Re: [PATCH v3] V4L: add two new ioctl()s for multi-size videobuffer
- management
-In-Reply-To: <4E37FFA7.3040508@iki.fi>
-Message-ID: <Pine.LNX.4.64.1108021628200.29918@axis700.grange>
-References: <Pine.LNX.4.64.1107201025120.12084@axis700.grange>
- <201107261305.29863.hverkuil@xs4all.nl> <20110726114427.GC32507@valkosipuli.localdomain>
- <201107261357.31673.hverkuil@xs4all.nl> <Pine.LNX.4.64.1108011031150.30975@axis700.grange>
- <4E36BE4F.7080704@iki.fi> <Pine.LNX.4.64.1108011704290.30975@axis700.grange>
- <4E37B082.4090105@iki.fi> <Pine.LNX.4.64.1108021015460.29918@axis700.grange>
- <4E37D551.8030803@iki.fi> <Pine.LNX.4.64.1108021301410.29918@axis700.grange>
- <4E37FFA7.3040508@iki.fi>
+To: Eric Miao <eric.y.miao@gmail.com>
+cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	Robert Jarzmik <robert.jarzmik@free.fr>
+Subject: Re: [PATCH 29/59] ARM: PXA: use gpio_set_value_cansleep() on pcm990
+In-Reply-To: <CAMPhdO8V=y+se-vuozXW2_w6Y2cP2L7FVpiG7zXWS_WBcQvgqQ@mail.gmail.com>
+Message-ID: <Pine.LNX.4.64.1108031835540.28502@axis700.grange>
+References: <1311937019-29914-1-git-send-email-g.liakhovetski@gmx.de>
+ <1311937019-29914-30-git-send-email-g.liakhovetski@gmx.de>
+ <CAMPhdO8V=y+se-vuozXW2_w6Y2cP2L7FVpiG7zXWS_WBcQvgqQ@mail.gmail.com>
 MIME-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, 2 Aug 2011, Sakari Ailus wrote:
+Hi Eric
 
-> Uh, I'm a bit lost now. Do different buffer types (e.g. capture, overlay
-> and input) need to be taken into account here, and if so, how? My
-> understanding was this is not related to preparing buffers.
+On Wed, 3 Aug 2011, Eric Miao wrote:
 
-They all should be dealt with correctly. If you find any problems, please, 
-report.
+> I'm not a big fan of this _cansleep() version of the API, is there any
+> specific reason for doing so? Does the original code break anything?
+
+Sure:
+
+> > explicitly to avoid runtime warnings.
+
+i.e., without this patch the
+
+	WARN_ON(chip->can_sleep);
+
+in drivers/gpio/gpiolib.c::__gpio_set_value() triggers.
 
 Thanks
 Guennadi
+
+> 
+> On Friday, July 29, 2011, Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+> wrote:
+> > Camera-switching GPIOs are provided by a i2c GPIO extender, switching
+> > them can send the caller to sleep. Use the GPIO API *_cansleep methods
+> > explicitly to avoid runtime warnings.
+> >
+> > Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+> > Cc: Robert Jarzmik <robert.jarzmik@free.fr>
+> > Cc: Eric Miao <eric.y.miao@gmail.com>
+> > ---
+> >  arch/arm/mach-pxa/pcm990-baseboard.c |    4 ++--
+> >  1 files changed, 2 insertions(+), 2 deletions(-)
+> >
+> > diff --git a/arch/arm/mach-pxa/pcm990-baseboard.c
+> b/arch/arm/mach-pxa/pcm990-baseboard.c
+> > index 6d5b7e0..8ad2597 100644
+> > --- a/arch/arm/mach-pxa/pcm990-baseboard.c
+> > +++ b/arch/arm/mach-pxa/pcm990-baseboard.c
+> > @@ -395,9 +395,9 @@ static int pcm990_camera_set_bus_param(struct
+> soc_camera_link *link,
+> >        }
+> >
+> >        if (flags & SOCAM_DATAWIDTH_8)
+> > -               gpio_set_value(gpio_bus_switch, 1);
+> > +               gpio_set_value_cansleep(gpio_bus_switch, 1);
+> >        else
+> > -               gpio_set_value(gpio_bus_switch, 0);
+> > +               gpio_set_value_cansleep(gpio_bus_switch, 0);
+> >
+> >        return 0;
+> >  }
+> > --
+> > 1.7.2.5
+> >
+> >
+> 
+
 ---
 Guennadi Liakhovetski, Ph.D.
 Freelance Open-Source Software Developer
