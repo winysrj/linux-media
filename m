@@ -1,52 +1,92 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:7019 "EHLO mx1.redhat.com"
+Received: from mx1.redhat.com ([209.132.183.28]:16399 "EHLO mx1.redhat.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752347Ab1HHP57 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 8 Aug 2011 11:57:59 -0400
-Message-ID: <4E40076D.2030303@redhat.com>
-Date: Mon, 08 Aug 2011 11:57:33 -0400
-From: Jarod Wilson <jarod@redhat.com>
+	id S1751655Ab1HCRpk (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 3 Aug 2011 13:45:40 -0400
+Message-ID: <4E398940.4020409@redhat.com>
+Date: Wed, 03 Aug 2011 14:45:36 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
 MIME-Version: 1.0
-To: Anssi Hannula <anssi.hannula@iki.fi>
-CC: Dmitry Torokhov <dmitry.torokhov@gmail.com>,
-	linux-media@vger.kernel.org, linux-input@vger.kernel.org,
-	linux-kernel@vger.kernel.org
-Subject: Re: [PATCH 5/7] [media] ati_remote: add keymap for Medion X10 RF
- remote
-References: <4E3DB2C2.7040104@iki.fi> <1312669093-23771-1-git-send-email-anssi.hannula@iki.fi> <1312669093-23771-6-git-send-email-anssi.hannula@iki.fi> <20110808055754.GB7329@core.coreip.homeip.net> <4E3FF355.6090807@iki.fi>
-In-Reply-To: <4E3FF355.6090807@iki.fi>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
+To: workshop-2011@linuxtv.org,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: Media Subsystem Workshop 2011
+References: <4E398381.4080505@redhat.com>
+In-Reply-To: <4E398381.4080505@redhat.com>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Anssi Hannula wrote:
-> On 08.08.2011 08:57, Dmitry Torokhov wrote:
->> On Sun, Aug 07, 2011 at 01:18:11AM +0300, Anssi Hannula wrote:
->>> Add keymap for the Medion X10 RF remote which uses the ati_remote
->>> driver, and default to it based on the usb id.
->> Since rc-core supports loading custom keytmaps should we ass medion
->> keymap here?
->>
->> I think we should keep the original keymap to avoid regressions, but new
->> keymaps should be offloaded to udev.
->
-> Well, I simply followed the convention, as all other remotes under
-> media/ have the default table in-kernel.
->
-> I'm not against putting it off-kernel, but in that case the same should
-> be done for all new media devices. Is that the plan?
+Em 03-08-2011 14:21, Mauro Carvalho Chehab escreveu:
+> As already announced, we're continuing the planning for this year's 
+> media subsystem workshop.
+> 
+> To avoid overriding the main ML with workshop-specifics, a new ML
+> was created:
+> 	workshop-2011@linuxtv.org
+> 
+> I'll also be updating the event page at:
+> 	http://www.linuxtv.org/events.php
+> 
+> Over the one-year period, we had 242 developers contributing to the
+> subsystem. Thank you all for that! Unfortunately, the space there is
+> limited, and we can't affort to have all developers there. 
+> 
+> Due to that some criteria needed to be applied to create a short list
+> of people that were invited today to participate. 
+> 
+> The main criteria were to select the developers that did significant 
+> contributions for the media subsystem over the last 1 year period, 
+> measured in terms of number of commits and changed lines to the kernel
+> drivers/media tree.
+> 
+> As the used criteria were the number of kernel patches, userspace-only 
+> developers weren't included on the invitations. It would be great to 
+> have there open source application developers as well, in order to allow 
+> us to tune what's needed from applications point of view. 
+> 
+> So, if you're leading the development of some V4L and/or DVB open-source 
+> application and wants to be there, or you think you can give good 
+> contributions for helping to improve the subsystem, please feel free 
+> to send us an email.
+> 
+> With regards to the themes, we're received, up to now, the following 
+> proposals:
+> 
+> ---------------------------------------------------------+----------------------
+> THEME                                                    | Proposed-by:
+> ---------------------------------------------------------+----------------------
+> Buffer management: snapshot mode                         | Guennadi
+> Rotation in webcams in tablets while streaming is active | Hans de Goede
+> V4L2 Spec – ambiguities fix                              | Hans Verkuil
+> V4L2 compliance test results                             | Hans Verkuil
+> Media Controller presentation (probably for Wed, 25)     | Laurent Pinchart
+> Workshop summary presentation on Wed, 25                 | Mauro Carvalho Chehab
 
-That's the long-term plan, but not every distro has a sufficiently new 
-enough v4l-utils and ir-keytable with udev rules to load keymaps, so 
-we've been adding default remotes in-kernel and userspace (effectively 
-meaning duplicated keymap loads if the user does have ir-keytable with 
-udev rules, but meh). I'd say add it for now, and when we get to the 
-point of v4l-utils ubiquity, we can drop this along with all the other 
-in-kernel rc keymaps.
+In time: it should be, instead Tue Oct, 25. Sorry for the typo.
 
--- 
-Jarod Wilson
-jarod@redhat.com
+> ---------------------------------------------------------+----------------------
+> 
+> From my side, I also have the following proposals:
+> 
+> 1) DVB API consistency - what to do with the audio and video DVB API's 
+> that conflict with V4L2 and (somewhat) with ALSA?
+> 
+> 2) Multi FE support - How should we handle a frontend with multiple 
+> delivery systems like DRX-K frontend?
+> 
+> 3) videobuf2 - migration plans for legacy drivers
+> 
+> 4) NEC IR decoding - how should we handle 32, 24, and 16 bit protocol
+> variations?
+> 
+> Even if you won't be there, please feel free to propose themes for 
+> discussion, in order to help us to improve even more the subsystem.
+> 
+> Thank you!
+> Mauro
 
+Rémi, thanks for pointing it!
 
+Thanks!
+Mauro
