@@ -1,68 +1,72 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from emh05.mail.saunalahti.fi ([62.142.5.111]:44565 "EHLO
-	emh05.mail.saunalahti.fi" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752647Ab1HIPEY (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 9 Aug 2011 11:04:24 -0400
-Message-ID: <4E414C55.5040903@kolumbus.fi>
-Date: Tue, 09 Aug 2011 18:03:49 +0300
-From: Marko Ristola <marko.ristola@kolumbus.fi>
-MIME-Version: 1.0
-To: Alan Stern <stern@rowland.harvard.edu>
-CC: Hans de Goede <hdegoede@redhat.com>,
-	Sarah Sharp <sarah.a.sharp@linux.intel.com>,
-	Greg KH <greg@kroah.com>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	linux-usb@vger.kernel.org, linux-media@vger.kernel.org,
-	linux-kernel@vger.kernel.org, libusb-devel@lists.sourceforge.net,
-	Alexander Graf <agraf@suse.de>,
-	Gerd Hoffmann <kraxel@redhat.com>, hector@marcansoft.com,
-	Jan Kiszka <jan.kiszka@siemens.com>,
-	Stefan Hajnoczi <stefanha@linux.vnet.ibm.com>,
-	pbonzini@redhat.com, Anthony Liguori <aliguori@us.ibm.com>,
-	Jes Sorensen <Jes.Sorensen@redhat.com>,
-	Oliver Neukum <oliver@neukum.org>, Felipe Balbi <balbi@ti.com>,
-	Clemens Ladisch <clemens@ladisch.de>,
-	Jaroslav Kysela <perex@perex.cz>, Takashi Iwai <tiwai@suse.de>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+Received: from moutng.kundenserver.de ([212.227.126.171]:58875 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755315Ab1HDTC1 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 4 Aug 2011 15:02:27 -0400
+Date: Thu, 4 Aug 2011 21:02:19 +0200 (CEST)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Jean-Francois Moine <moinejf@free.fr>
+cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Hans de Goede <hdegoede@redhat.com>,
 	Theodore Kilgore <kilgota@banach.math.auburn.edu>,
-	Adam Baker <linux@baker-net.org.uk>
-Subject: Re: USB mini-summit at LinuxCon Vancouver
-References: <Pine.LNX.4.44L0.1108091016380.1949-100000@iolanthe.rowland.org>
-In-Reply-To: <Pine.LNX.4.44L0.1108091016380.1949-100000@iolanthe.rowland.org>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+	workshop-2011@linuxtv.org
+Subject: Re: [Workshop-2011] Media Subsystem Workshop 2011
+In-Reply-To: <20110804184020.6edb96d8@tele>
+Message-ID: <Pine.LNX.4.64.1108042052070.31239@axis700.grange>
+References: <4E398381.4080505@redhat.com> <alpine.LNX.2.00.1108031418480.16384@banach.math.auburn.edu>
+ <4E39B150.40108@redhat.com> <4E3A84F0.5050208@redhat.com> <4E3A9332.1060404@redhat.com>
+ <20110804184020.6edb96d8@tele>
+MIME-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+(re-adding all from the original CC-list, please, don't drop anyone)
 
-Hi
+On Thu, 4 Aug 2011, Jean-Francois Moine wrote:
 
-I've been thinking about the Kernel driver side.
-Mauro and others emailed requirements on Jun or July.
+> On Thu, 04 Aug 2011 09:40:18 -0300
+> Mauro Carvalho Chehab <mchehab@redhat.com> wrote:
+> 
+> > > What we need for this is a simple API (new v4l ioctl's I guess) for the
+> > > stillcam mode of these dual mode cameras (stillcam + webcam). So that the
+> > > webcam drivers can grow code to also allow access to the stored pictures,
+> > > which were taken in standalone (iow not connected to usb) stillcam mode.
+> > > 
+> > > This API does not need to be terribly complex. AFAIK all of the currently
+> > > supported dual cam cameras don't have filenames only picture numbers,
+> > > so the API could consist of a simple, get highest picture nr, is picture
+> > > X present (some slots may contain deleted pictures), get picture X,
+> > > delete picture X, delete all API.  
+> > 
+> > That sounds to work. I would map it on a way close to the controls API
+> > (or like the DVB FE_[GET|SET]_PROPERTY API), as this would make easier to expand
+> > it in the future, if we start to see webcams with file names or other things
+> > like that.
+> 
+> I did not follow all the thread, but I was wondering about an other
+> solution: what about offering both USB mass storage and webcam accesses?
+> 
+> When a dual-mode webcam is plugged in, the driver creates two devices,
+> the video device /dev/videox and the volume /dev/sdx. When the webcam is
+> opened, the volume cannot be mounted. When the volume is mounted, the
+> webcam cannot be opened. There is no need for a specific API. As Mauro
+> said:
+> 
+> > For those, we may eventually need some sort of locking between
+> > the USB storage and V4L.
+> 
+> That's all. By where am I wrong?
 
-I'm sorry for this spam: maybe you have thought this already.
+That'd also be my understanding. There are already several standard ways 
+to access data on still cameras: mass-storage, PTP, MTP, why invent Yet 
+Another One? "Just" learn to share a device between several existing 
+drivers.
 
-A linked list of read/write locks as the solution for these protections could be
-a base for the general solution. Locks could be accessed either by name "string name"
-or by an integer identifier.
-
-The bridge driver would be the container of the lock list.
-Lock take / release handles would be changeable by Bridge driver at driver init.
-This way bridge could tune the lock taking actions. Sub devices would not have
-to know the details of the bridge device.
-
-When implemented as a library ".ko" module, this could be
-used by all related kernel drivers. The locking code would be very general.
-Maybe adding a lock list into each PCI bus device would solve the device export problem to KVM too.
-
-If some module wouldn't handle the proper locking yet,
-it would not deliver the protection, but it would work as before: no regressions.
-
-The library could also be called so that a driver would ask three locks at the same time.
-If the driver would get all three locks, it would return success.
-If the driver would not get all three locks, it would not lock any of them (with _trylock case).
-
-I don't have time to implement this feature.
-
-Happy meeting for all of you,
-Marko Ristola
+Thanks
+Guennadi
+---
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
+http://www.open-technology.de/
