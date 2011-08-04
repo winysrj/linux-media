@@ -1,60 +1,34 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-vx0-f174.google.com ([209.85.220.174]:62880 "EHLO
-	mail-vx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755278Ab1HRQNv (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 18 Aug 2011 12:13:51 -0400
-Received: by vxi9 with SMTP id 9so1846928vxi.19
-        for <linux-media@vger.kernel.org>; Thu, 18 Aug 2011 09:13:51 -0700 (PDT)
-Message-ID: <4E4D3A3B.3040305@gmail.com>
-Date: Thu, 18 Aug 2011 09:13:47 -0700
-From: Mauro Carvalho Chehab <maurochehab@gmail.com>
-MIME-Version: 1.0
-To: shacky <shacky83@gmail.com>
-CC: Josu Lazkano <josu.lazkano@gmail.com>, linux-media@vger.kernel.org
-Subject: Re: Record DVB-T from command line
-References: <CAPz3gmkRoh_gXU4PtzVhXb=0BOBjcgmhK7CCCq5ioajfjHZg3A@mail.gmail.com> <CAL9G6WUFyWuKJQnTBCW6StEfoWeKhXix3rFkU9eC8AxEbuD5Uw@mail.gmail.com> <CAPz3gm=ABUESbFNjL+RJ6RHMCGW_a4T70h6A3GP4b_B2ves92w@mail.gmail.com> <4E4D3946.5060900@gmail.com>
-In-Reply-To: <4E4D3946.5060900@gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Received: from moutng.kundenserver.de ([212.227.17.10]:54089 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752085Ab1HDHOb (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 4 Aug 2011 03:14:31 -0400
+From: Thierry Reding <thierry.reding@avionic-design.de>
+To: linux-media@vger.kernel.org
+Subject: [PATCH 19/21] [staging] tm6000: Enable audio clock in radio mode.
+Date: Thu,  4 Aug 2011 09:14:17 +0200
+Message-Id: <1312442059-23935-20-git-send-email-thierry.reding@avionic-design.de>
+In-Reply-To: <1312442059-23935-1-git-send-email-thierry.reding@avionic-design.de>
+References: <1312442059-23935-1-git-send-email-thierry.reding@avionic-design.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em 18-08-2011 09:09, Mauro Carvalho Chehab escreveu:
-> Em 18-08-2011 08:47, shacky escreveu:
->>> szap -a 0 -c channels_astra.conf -r "TV3 CAT"
->>> cat /dev/dvb/adapter0/dvr0 > testvideo.mpg
->>> mplayer testvideo.mpg
->>
->> I tried that, but cat tells me that the device is busy:
->>
->> root@werecit1:/opt/utils/tv# tzap -c /etc/channels.conf -r "Rai 1"
->> using '/dev/dvb/adapter0/frontend0' and '/dev/dvb/adapter0/demux0'
->> reading channels from file '/etc/channels.conf'
->> tuning to 177500000 Hz
->> video pid 0x0200, audio pid 0x028a
->> status 00 | signal 1b1b | snr 000c | ber 0000ffff | unc 00000000 |
->> status 1f | signal fefe | snr 00f6 | ber 000000bd | unc 00000282 | FE_HAS_LOCK
->> [last line repeated several times]
->>
->> In another console:
->>
->> root@werecit1:~# cat /dev/dvb/adapter0/dvr0 > prova.mpg
->> cat: /dev/dvb/adapter0/dvr0: Dispositivo o risorsa occupata
->>
->> Could you help me please?
-> 
-> You can use gnometv for that. It is also part of dvb-utils package.
-Sorry... the name of the application is: gnutv
+---
+ drivers/staging/tm6000/tm6000-stds.c |    1 +
+ 1 files changed, 1 insertions(+), 0 deletions(-)
 
-You'll use it with something like:
-	$ gnutv -out file test.mpeg -channels channel.conf mychannel
-
-PS.: I'm fighting with a gnome application here that is doing something bad
-when called fom xfce... so, "gnome" come to my mind, instead of "gnu" ;)
->> --
->> To unsubscribe from this list: send the line "unsubscribe linux-media" in
->> the body of a message to majordomo@vger.kernel.org
->> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
+diff --git a/drivers/staging/tm6000/tm6000-stds.c b/drivers/staging/tm6000/tm6000-stds.c
+index f44451b..9a4145d 100644
+--- a/drivers/staging/tm6000/tm6000-stds.c
++++ b/drivers/staging/tm6000/tm6000-stds.c
+@@ -357,6 +357,7 @@ static int tm6000_set_audio_std(struct tm6000_core *dev)
+ 		tm6000_set_reg(dev, TM6010_REQ08_RF1_AADC_POWER_DOWN, 0xfe);
+ 		tm6000_set_reg(dev, TM6010_REQ08_R1E_A_GAIN_DEEMPH_OUT, 0x13);
+ 		tm6000_set_reg(dev, TM6010_REQ08_R01_A_INIT, 0x80);
++		tm6000_set_reg(dev, TM6010_REQ07_RFE_POWER_DOWN, 0xff);
+ 		return 0;
+ 	}
+ 
+-- 
+1.7.6
 
