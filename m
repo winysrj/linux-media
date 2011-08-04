@@ -1,57 +1,68 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr7.xs4all.nl ([194.109.24.27]:4811 "EHLO
-	smtp-vbr7.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751767Ab1HZMAc (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 26 Aug 2011 08:00:32 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
+Received: from mail.kapsi.fi ([217.30.184.167]:48443 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755572Ab1HDXnv (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 4 Aug 2011 19:43:51 -0400
+Message-ID: <4E3B2EB3.6030501@iki.fi>
+Date: Fri, 05 Aug 2011 02:43:47 +0300
+From: Antti Palosaari <crope@iki.fi>
+MIME-Version: 1.0
 To: linux-media@vger.kernel.org
-Cc: Hans de Goede <hdegoede@redhat.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [RFCv2 PATCH 7/8] pwc: add support for VIDIOC_LOG_STATUS.
-Date: Fri, 26 Aug 2011 14:00:12 +0200
-Message-Id: <3d076640f292760cb464668d0dbeae9ddad75be7.1314359706.git.hans.verkuil@cisco.com>
-In-Reply-To: <1314360013-9876-1-git-send-email-hverkuil@xs4all.nl>
-References: <1314360013-9876-1-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <c30383666acc85a530fba5b1a14189670dfb8bb3.1314359706.git.hans.verkuil@cisco.com>
-References: <c30383666acc85a530fba5b1a14189670dfb8bb3.1314359706.git.hans.verkuil@cisco.com>
+CC: Jan Hoogenraad <jan-conceptronic@hoogenraad.net>,
+	Maxim Levitsky <maximlevitsky@gmail.com>,
+	=?UTF-8?B?U2FzY2hhIFfDvHN0ZW1hbm4=?= <sascha@killerhippy.de>,
+	Thomas Holzeisen <thomas@holzeisen.de>, stybla@turnovfree.net
+Subject: Re: RTL2831U driver updates
+References: <4DF9BCAA.3030301@holzeisen.de>	 <4DF9EA62.2040008@killerhippy.de> <4DFA7748.6000704@hoogenraad.net>	 <4DFFC82B.10402@iki.fi> <1308649292.3635.2.camel@maxim-laptop> <4E006BDB.8060000@hoogenraad.net> <4E17CA94.8030307@iki.fi>
+In-Reply-To: <4E17CA94.8030307@iki.fi>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+Hello,
+I have done some updates. MXL5005S based RTL2831U devices didn't worked
+due to bug. That's main visible change. Secondly I added basic support
+for RTL2832U to rtl28xx driver. And implemented I2C as I see it really
+is, I think it is almost perfect now. It works fine my RTL2832U device
+with stubbed demod and tuner drivers.
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- drivers/media/video/pwc/pwc-v4l.c |    9 +++++++++
- 1 files changed, 9 insertions(+), 0 deletions(-)
+Next weeks I will hack most likely Anysee, but when I feel bored of
+Anysee, I will switch back to rtl28xx driver :p
 
-diff --git a/drivers/media/video/pwc/pwc-v4l.c b/drivers/media/video/pwc/pwc-v4l.c
-index d15ae89..bdc369c 100644
---- a/drivers/media/video/pwc/pwc-v4l.c
-+++ b/drivers/media/video/pwc/pwc-v4l.c
-@@ -1078,6 +1078,14 @@ static int pwc_enum_frameintervals(struct file *file, void *fh,
- 	return 0;
- }
- 
-+static int pwc_log_status(struct file *file, void *priv)
-+{
-+	struct pwc_device *pdev = video_drvdata(file);
-+
-+	v4l2_ctrl_handler_log_status(&pdev->ctrl_handler, PWC_NAME);
-+	return 0;
-+}
-+
- static long pwc_default(struct file *file, void *fh, bool valid_prio,
- 			int cmd, void *arg)
- {
-@@ -1101,6 +1109,7 @@ const struct v4l2_ioctl_ops pwc_ioctl_ops = {
- 	.vidioc_dqbuf			    = pwc_dqbuf,
- 	.vidioc_streamon		    = pwc_streamon,
- 	.vidioc_streamoff		    = pwc_streamoff,
-+	.vidioc_log_status		    = pwc_log_status,
- 	.vidioc_enum_framesizes		    = pwc_enum_framesizes,
- 	.vidioc_enum_frameintervals	    = pwc_enum_frameintervals,
- 	.vidioc_default		    = pwc_default,
+regards
+Antti
+
+
+On 07/09/2011 06:27 AM, Antti Palosaari wrote:
+> Hello
+> RTL2831U driver is now available here "realtek" branch:
+> http://git.linuxtv.org/anttip/media_tree.git
+> 
+> From my side it is ready for merge.
+> 
+> RTL2830 DVB-T demod
+> ===================
+> Driver is very limited, it basically just works, no any statistics.
+> That's written totally from the scratch.
+> 
+> RTL28XXU DVB USB
+> ================
+> I think it is also almost fully written from the scratch, but not sure
+> since it have been so loooong under the development. At least register
+> definitions are from Realtek driver. Jan could you now find out
+> copyrights, SOBs, etc. are correct? And how that should be merge...
+> 
+> I wonder Maxim can add support for RTL2832U to RTL28XXU DVB USB. It
+> should not be much work. I tested it with my RTL2832U device and some
+> minor changes were needed. Remote controller seems to be only which is
+> totally different between RTL2831U and RTL2832U (and later).
+> 
+> 
+> regards
+> Antti
+> 
+
+
 -- 
-1.7.5.4
-
+http://palosaari.fi/
