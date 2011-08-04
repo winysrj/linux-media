@@ -1,72 +1,124 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from chilli.pcug.org.au ([203.10.76.44]:55287 "EHLO smtps.tip.net.au"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756122Ab1HDAXr (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 3 Aug 2011 20:23:47 -0400
-Date: Thu, 4 Aug 2011 10:23:37 +1000
-From: Stephen Rothwell <sfr@canb.auug.org.au>
-To: Randy Dunlap <rdunlap@xenotime.net>
-Cc: akpm@linux-foundation.org, linux-media@vger.kernel.org,
-	mchehab@infradead.org, linux-kernel@vger.kernel.org,
-	linux-mm@kvack.org, linux-fsdevel@vger.kernel.org,
-	linux-next@vger.kernel.org
-Subject: Re: [PATCH -mmotm] media: video/adp1653.c needs module.h
-Message-Id: <20110804102337.7a91f4d91d887ccd0168e4f8@canb.auug.org.au>
-In-Reply-To: <20110803101226.0d17b23e.rdunlap@xenotime.net>
-References: <201108022357.p72NvsZM022462@imap1.linux-foundation.org>
-	<20110803101226.0d17b23e.rdunlap@xenotime.net>
-Mime-Version: 1.0
-Content-Type: multipart/signed; protocol="application/pgp-signature";
- micalg="PGP-SHA1";
- boundary="Signature=_Thu__4_Aug_2011_10_23_37_+1000_.lv._/j8Qp6KHUCM"
+Received: from moutng.kundenserver.de ([212.227.126.187]:65358 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752044Ab1HDHO3 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 4 Aug 2011 03:14:29 -0400
+From: Thierry Reding <thierry.reding@avionic-design.de>
+To: linux-media@vger.kernel.org
+Subject: [PATCH 15/21] [staging] tm6000: Execute lightweight reset on close.
+Date: Thu,  4 Aug 2011 09:14:13 +0200
+Message-Id: <1312442059-23935-16-git-send-email-thierry.reding@avionic-design.de>
+In-Reply-To: <1312442059-23935-1-git-send-email-thierry.reding@avionic-design.de>
+References: <1312442059-23935-1-git-send-email-thierry.reding@avionic-design.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
---Signature=_Thu__4_Aug_2011_10_23_37_+1000_.lv._/j8Qp6KHUCM
-Content-Type: text/plain; charset=US-ASCII
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+When the last user closes the device, perform a lightweight reset of the
+device to bring it into a well-known state.
 
-Hi Randy,
+Note that this is not always enough with the TM6010, which sometimes
+needs a hard reset to get into a working state again.
+---
+ drivers/staging/tm6000/tm6000-core.c  |   43 +++++++++++++++++++++++++++++++++
+ drivers/staging/tm6000/tm6000-video.c |    8 +++++-
+ drivers/staging/tm6000/tm6000.h       |    1 +
+ 3 files changed, 51 insertions(+), 1 deletions(-)
 
-On Wed, 3 Aug 2011 10:12:26 -0700 Randy Dunlap <rdunlap@xenotime.net> wrote:
->
-> From: Randy Dunlap <rdunlap@xenotime.net>
->=20
-> adp1653.c uses interfaces that are provided by <linux/module.h>
-> and needs to include that header file to fix build errors.
->=20
-> drivers/media/video/adp1653.c:453: warning: data definition has no type o=
-r storage class
-> drivers/media/video/adp1653.c:453: warning: parameter names (without type=
-s) in function declaration
-> drivers/media/video/adp1653.c:474: error: 'THIS_MODULE' undeclared (first=
- use in this function)
-> and more.
->=20
-> Signed-off-by: Randy Dunlap <rdunlap@xenotime.net>
+diff --git a/drivers/staging/tm6000/tm6000-core.c b/drivers/staging/tm6000/tm6000-core.c
+index 317ab7e..58c1399 100644
+--- a/drivers/staging/tm6000/tm6000-core.c
++++ b/drivers/staging/tm6000/tm6000-core.c
+@@ -597,6 +597,49 @@ int tm6000_init(struct tm6000_core *dev)
+ 	return rc;
+ }
+ 
++int tm6000_reset(struct tm6000_core *dev)
++{
++	int pipe;
++	int err;
++
++	msleep(500);
++
++	err = usb_set_interface(dev->udev, dev->isoc_in.bInterfaceNumber, 0);
++	if (err < 0) {
++		tm6000_err("failed to select interface %d, alt. setting 0\n",
++				dev->isoc_in.bInterfaceNumber);
++		return err;
++	}
++
++	err = usb_reset_configuration(dev->udev);
++	if (err < 0) {
++		tm6000_err("failed to reset configuration\n");
++		return err;
++	}
++
++	msleep(5);
++
++	err = usb_set_interface(dev->udev, dev->isoc_in.bInterfaceNumber, 2);
++	if (err < 0) {
++		tm6000_err("failed to select interface %d, alt. setting 2\n",
++				dev->isoc_in.bInterfaceNumber);
++		return err;
++	}
++
++	msleep(5);
++
++	pipe = usb_rcvintpipe(dev->udev,
++			dev->int_in.endp->desc.bEndpointAddress & USB_ENDPOINT_NUMBER_MASK);
++
++	err = usb_clear_halt(dev->udev, pipe);
++	if (err < 0) {
++		tm6000_err("usb_clear_halt failed: %d\n", err);
++		return err;
++	}
++
++	return 0;
++}
++
+ int tm6000_set_audio_bitrate(struct tm6000_core *dev, int bitrate)
+ {
+ 	int val = 0;
+diff --git a/drivers/staging/tm6000/tm6000-video.c b/drivers/staging/tm6000/tm6000-video.c
+index 492ec73..70fc19e 100644
+--- a/drivers/staging/tm6000/tm6000-video.c
++++ b/drivers/staging/tm6000/tm6000-video.c
+@@ -1503,7 +1503,6 @@ static int tm6000_open(struct file *file)
+ 	tm6000_get_std_res(dev);
+ 
+ 	file->private_data = fh;
+-	fh->vdev = vdev;
+ 	fh->dev = dev;
+ 	fh->radio = radio;
+ 	fh->type = type;
+@@ -1606,9 +1605,16 @@ static int tm6000_release(struct file *file)
+ 	dev->users--;
+ 
+ 	res_free(dev, fh);
++
+ 	if (!dev->users) {
++		int err;
++
+ 		tm6000_uninit_isoc(dev);
+ 		videobuf_mmap_free(&fh->vb_vidq);
++
++		err = tm6000_reset(dev);
++		if (err < 0)
++			dev_err(&vdev->dev, "reset failed: %d\n", err);
+ 	}
+ 
+ 	kfree(fh);
+diff --git a/drivers/staging/tm6000/tm6000.h b/drivers/staging/tm6000/tm6000.h
+index cf57e1e..dac2063 100644
+--- a/drivers/staging/tm6000/tm6000.h
++++ b/drivers/staging/tm6000/tm6000.h
+@@ -311,6 +311,7 @@ int tm6000_set_reg_mask(struct tm6000_core *dev, u8 req, u16 value,
+ 						u16 index, u16 mask);
+ int tm6000_i2c_reset(struct tm6000_core *dev, u16 tsleep);
+ int tm6000_init(struct tm6000_core *dev);
++int tm6000_reset(struct tm6000_core *dev);
+ 
+ int tm6000_init_analog_mode(struct tm6000_core *dev);
+ int tm6000_init_digital_mode(struct tm6000_core *dev);
+-- 
+1.7.6
 
-That is a bug that is now in Linus' tree and this fix is pending in the
-moduleh tree in linux-next.  So this patch should go to Linus.
-
---=20
-Cheers,
-Stephen Rothwell                    sfr@canb.auug.org.au
-http://www.canb.auug.org.au/~sfr/
-
---Signature=_Thu__4_Aug_2011_10_23_37_+1000_.lv._/j8Qp6KHUCM
-Content-Type: application/pgp-signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.11 (GNU/Linux)
-
-iQEcBAEBAgAGBQJOOeaJAAoJEDMEi1NhKgbs87UH/30egYvPcRfZQ3gF+enSutHA
-sqn+pfBMKC9inTWgoQG+Fexryg2KHU9XDEMox7sXFtlj16nHdZB6yQ/wNoGusbLc
-FSjUIjIIYdE99Xr2WfXXVSa8qjV77OWvq4/FHxgTtoIE1ZHJxcyHrG31M7sxj1K0
-LPJQrRSM+XDrVnfl5L0Q/Yza3Z5t6Rv+YvpVzAiLL2VI/iXxDfgUc0XX0mfAzRT/
-FDpC68KIoMVKEeSQonKI+bbnLY721kE0A28Fdw4QrTLXq1byXzhmlyA6d33WwiS+
-wmxjeFf/HZoBbNAgGlohRRVwBzXJrXXFs/af0BuCcNbL+b4qkAXsA7gNzHypSYs=
-=PorZ
------END PGP SIGNATURE-----
-
---Signature=_Thu__4_Aug_2011_10_23_37_+1000_.lv._/j8Qp6KHUCM--
