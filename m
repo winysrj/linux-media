@@ -1,127 +1,109 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nm2.bt.bullet.mail.ird.yahoo.com ([212.82.108.233]:27569 "HELO
-	nm2.bt.bullet.mail.ird.yahoo.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with SMTP id S1753394Ab1HTLme (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 20 Aug 2011 07:42:34 -0400
-Message-ID: <4E4F9DA4.90701@yahoo.com>
-Date: Sat, 20 Aug 2011 12:42:28 +0100
-From: Chris Rankin <rankincj@yahoo.com>
-MIME-Version: 1.0
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-CC: Devin Heitmueller <dheitmueller@kernellabs.com>,
-	linux-media@vger.kernel.org, Antti Palosaari <crope@iki.fi>
-Subject: [PATCH 1/2] EM28xx - fix race on disconnect
-References: <4E4D5157.2080406@yahoo.com> <CAGoCfiwk4vy1V7T=Hdz1CsywgWVpWEis0eDoh2Aqju3LYqcHfA@mail.gmail.com> <CAGoCfiw4v-ZsUPmVgOhARwNqjCVK458EV79djD625Sf+8Oghag@mail.gmail.com> <4E4D8DFD.5060800@yahoo.com> <4E4DFA65.4090508@redhat.com>
-In-Reply-To: <4E4DFA65.4090508@redhat.com>
-Content-Type: multipart/mixed;
- boundary="------------060801070901080106070800"
+Received: from moutng.kundenserver.de ([212.227.17.8]:52968 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751718Ab1HDHOZ (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 4 Aug 2011 03:14:25 -0400
+From: Thierry Reding <thierry.reding@avionic-design.de>
+To: linux-media@vger.kernel.org
+Subject: [PATCH 09/21] [staging] tm6000: Rename active interface register.
+Date: Thu,  4 Aug 2011 09:14:07 +0200
+Message-Id: <1312442059-23935-10-git-send-email-thierry.reding@avionic-design.de>
+In-Reply-To: <1312442059-23935-1-git-send-email-thierry.reding@avionic-design.de>
+References: <1312442059-23935-1-git-send-email-thierry.reding@avionic-design.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This is a multi-part message in MIME format.
---------------060801070901080106070800
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+The register ACTIVE_VIDEO_IF register should be named ACTIVE_IF since it
+controls more than just the video interface.
+---
+ drivers/staging/tm6000/tm6000-alsa.c |    4 ++--
+ drivers/staging/tm6000/tm6000-core.c |   12 ++++++------
+ drivers/staging/tm6000/tm6000-regs.h |    4 +++-
+ 3 files changed, 11 insertions(+), 9 deletions(-)
 
-*Sigh* I overlooked two patches in the original numbering...
-
-This patch closes the race on the device and extension lists at USB disconnect 
-time. Previously, the device was removed from the device list during 
-em28xx_release_resources(), and then passed to the em28xx_close_extension() 
-function so that all extensions could run their fini() operations. However, this 
-left a (brief, theoretical, highly unlikely ;-)) window between these two calls 
-during which a new module could call em28xx_register_extension(). The result 
-would have been that the em28xx_usb_disconnect() function would also have passed 
-the device to the new extension's fini() function, despite never having called 
-the extension's init() function.
-
-This patch also restores em28xx_close_extension()'s symmetry with 
-em28xx_init_extension(), and establishes the property that every device in the 
-device list must have been initialised for every extension in the extension list.
-
-Signed-of-by: Chris Rankin <ranki...@yahoo.com>
-
-
---------------060801070901080106070800
-Content-Type: text/x-patch;
- name="EM28xx-race-on-disconnect.diff"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: attachment;
- filename="EM28xx-race-on-disconnect.diff"
-
---- linux-3.0/drivers/media/video/em28xx/em28xx-cards.c.orig	2011-08-19 00:23:17.000000000 +0100
-+++ linux-3.0/drivers/media/video/em28xx/em28xx-cards.c	2011-08-19 00:32:40.000000000 +0100
-@@ -2738,9 +2738,9 @@
- #endif /* CONFIG_MODULES */
+diff --git a/drivers/staging/tm6000/tm6000-alsa.c b/drivers/staging/tm6000/tm6000-alsa.c
+index 768d713..35ad1f0 100644
+--- a/drivers/staging/tm6000/tm6000-alsa.c
++++ b/drivers/staging/tm6000/tm6000-alsa.c
+@@ -80,7 +80,7 @@ static int _tm6000_start_audio_dma(struct snd_tm6000_card *chip)
+ 	dprintk(1, "Starting audio DMA\n");
  
- /*
-- * em28xx_realease_resources()
-+ * em28xx_release_resources()
-  * unregisters the v4l2,i2c and usb devices
-- * called when the device gets disconected or at module unload
-+ * called when the device gets disconnected or at module unload
- */
- void em28xx_release_resources(struct em28xx *dev)
- {
-@@ -2754,8 +2754,6 @@
+ 	/* Enables audio */
+-	tm6000_set_reg_mask(core, TM6010_REQ07_RCC_ACTIVE_VIDEO_IF, 0x40, 0x40);
++	tm6000_set_reg_mask(core, TM6010_REQ07_RCC_ACTIVE_IF, 0x40, 0x40);
  
- 	em28xx_release_analog_resources(dev);
+ 	tm6000_set_audio_bitrate(core, 48000);
  
--	em28xx_remove_from_devlist(dev);
--
- 	em28xx_i2c_unregister(dev);
+@@ -98,7 +98,7 @@ static int _tm6000_stop_audio_dma(struct snd_tm6000_card *chip)
+ 	dprintk(1, "Stopping audio DMA\n");
  
- 	v4l2_device_unregister(&dev->v4l2_dev);
-@@ -3152,7 +3150,7 @@
+ 	/* Disables audio */
+-	tm6000_set_reg_mask(core, TM6010_REQ07_RCC_ACTIVE_VIDEO_IF, 0x00, 0x40);
++	tm6000_set_reg_mask(core, TM6010_REQ07_RCC_ACTIVE_IF, 0x00, 0x40);
  
- /*
-  * em28xx_usb_disconnect()
-- * called when the device gets diconencted
-+ * called when the device gets disconnected
-  * video device will be unregistered on v4l2_close in case it is still open
-  */
- static void em28xx_usb_disconnect(struct usb_interface *interface)
---- linux-3.0/drivers/media/video/em28xx/em28xx-core.c.orig	2011-08-18 23:07:51.000000000 +0100
-+++ linux-3.0/drivers/media/video/em28xx/em28xx-core.c	2011-08-19 00:27:00.000000000 +0100
-@@ -1160,18 +1160,6 @@
- static DEFINE_MUTEX(em28xx_devlist_mutex);
- 
- /*
-- * em28xx_realease_resources()
-- * unregisters the v4l2,i2c and usb devices
-- * called when the device gets disconected or at module unload
--*/
--void em28xx_remove_from_devlist(struct em28xx *dev)
--{
--	mutex_lock(&em28xx_devlist_mutex);
--	list_del(&dev->devlist);
--	mutex_unlock(&em28xx_devlist_mutex);
--};
--
--/*
-  * Extension interface
-  */
- 
-@@ -1221,14 +1209,13 @@
- 
- void em28xx_close_extension(struct em28xx *dev)
- {
--	struct em28xx_ops *ops = NULL;
-+	const struct em28xx_ops *ops = NULL;
- 
- 	mutex_lock(&em28xx_devlist_mutex);
--	if (!list_empty(&em28xx_extension_devlist)) {
--		list_for_each_entry(ops, &em28xx_extension_devlist, next) {
--			if (ops->fini)
--				ops->fini(dev);
--		}
-+	list_for_each_entry(ops, &em28xx_extension_devlist, next) {
-+		if (ops->fini)
-+			ops->fini(dev);
- 	}
-+	list_del(&dev->devlist);
- 	mutex_unlock(&em28xx_devlist_mutex);
+ 	return 0;
  }
+diff --git a/drivers/staging/tm6000/tm6000-core.c b/drivers/staging/tm6000/tm6000-core.c
+index 2c156dd..2117f8e 100644
+--- a/drivers/staging/tm6000/tm6000-core.c
++++ b/drivers/staging/tm6000/tm6000-core.c
+@@ -184,11 +184,11 @@ void tm6000_set_fourcc_format(struct tm6000_core *dev)
+ 	if (dev->dev_type == TM6010) {
+ 		int val;
+ 
+-		val = tm6000_get_reg(dev, TM6010_REQ07_RCC_ACTIVE_VIDEO_IF, 0) & 0xfc;
++		val = tm6000_get_reg(dev, TM6010_REQ07_RCC_ACTIVE_IF, 0) & 0xfc;
+ 		if (dev->fourcc == V4L2_PIX_FMT_UYVY)
+-			tm6000_set_reg(dev, TM6010_REQ07_RCC_ACTIVE_VIDEO_IF, val);
++			tm6000_set_reg(dev, TM6010_REQ07_RCC_ACTIVE_IF, val);
+ 		else
+-			tm6000_set_reg(dev, TM6010_REQ07_RCC_ACTIVE_VIDEO_IF, val | 1);
++			tm6000_set_reg(dev, TM6010_REQ07_RCC_ACTIVE_IF, val | 1);
+ 	} else {
+ 		if (dev->fourcc == V4L2_PIX_FMT_UYVY)
+ 			tm6000_set_reg(dev, TM6010_REQ07_RC1_TRESHOLD, 0xd0);
+@@ -265,7 +265,7 @@ int tm6000_init_analog_mode(struct tm6000_core *dev)
+ 
+ 	if (dev->dev_type == TM6010) {
+ 		/* Enable video and audio */
+-		tm6000_set_reg_mask(dev, TM6010_REQ07_RCC_ACTIVE_VIDEO_IF,
++		tm6000_set_reg_mask(dev, TM6010_REQ07_RCC_ACTIVE_IF,
+ 							0x60, 0x60);
+ 		/* Disable TS input */
+ 		tm6000_set_reg_mask(dev, TM6010_REQ07_RC0_ACTIVE_VIDEO_SOURCE,
+@@ -331,7 +331,7 @@ int tm6000_init_digital_mode(struct tm6000_core *dev)
+ {
+ 	if (dev->dev_type == TM6010) {
+ 		/* Disable video and audio */
+-		tm6000_set_reg_mask(dev, TM6010_REQ07_RCC_ACTIVE_VIDEO_IF,
++		tm6000_set_reg_mask(dev, TM6010_REQ07_RCC_ACTIVE_IF,
+ 				0x00, 0x60);
+ 		/* Enable TS input */
+ 		tm6000_set_reg_mask(dev, TM6010_REQ07_RC0_ACTIVE_VIDEO_SOURCE,
+@@ -459,7 +459,7 @@ static struct reg_init tm6010_init_tab[] = {
+ 	{ TM6010_REQ07_RC4_HSTART0, 0xa0 },
+ 	{ TM6010_REQ07_RC6_HEND0, 0x40 },
+ 	{ TM6010_REQ07_RCA_VEND0, 0x31 },
+-	{ TM6010_REQ07_RCC_ACTIVE_VIDEO_IF, 0xe1 },
++	{ TM6010_REQ07_RCC_ACTIVE_IF, 0xe1 },
+ 	{ TM6010_REQ07_RE0_DVIDEO_SOURCE, 0x03 },
+ 	{ TM6010_REQ07_RFE_POWER_DOWN, 0x7f },
+ 
+diff --git a/drivers/staging/tm6000/tm6000-regs.h b/drivers/staging/tm6000/tm6000-regs.h
+index 5375a83..6e4ef95 100644
+--- a/drivers/staging/tm6000/tm6000-regs.h
++++ b/drivers/staging/tm6000/tm6000-regs.h
+@@ -270,7 +270,9 @@ enum {
+ #define TM6010_REQ07_RCA_VEND0				0x07, 0xca
+ #define TM6010_REQ07_RCB_DELAY				0x07, 0xcb
+ /* ONLY for TM6010 */
+-#define TM6010_REQ07_RCC_ACTIVE_VIDEO_IF		0x07, 0xcc
++#define TM6010_REQ07_RCC_ACTIVE_IF			0x07, 0xcc
++#define TM6010_REQ07_RCC_ACTIVE_IF_VIDEO_ENABLE (1 << 5)
++#define TM6010_REQ07_RCC_ACTIVE_IF_AUDIO_ENABLE (1 << 6)
+ #define TM6010_REQ07_RD0_USB_PERIPHERY_CONTROL		0x07, 0xd0
+ #define TM6010_REQ07_RD1_ADDR_FOR_REQ1			0x07, 0xd1
+ #define TM6010_REQ07_RD2_ADDR_FOR_REQ2			0x07, 0xd2
+-- 
+1.7.6
 
---------------060801070901080106070800--
