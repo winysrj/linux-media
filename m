@@ -1,48 +1,143 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-fx0-f46.google.com ([209.85.161.46]:64481 "EHLO
-	mail-fx0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751346Ab1HDGgw (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 4 Aug 2011 02:36:52 -0400
-Received: by fxh19 with SMTP id 19so1416488fxh.19
-        for <linux-media@vger.kernel.org>; Wed, 03 Aug 2011 23:36:51 -0700 (PDT)
+Received: from mx1.redhat.com ([209.132.183.28]:33020 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753004Ab1HDLhm (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 4 Aug 2011 07:37:42 -0400
+Message-ID: <4E3A84F0.5050208@redhat.com>
+Date: Thu, 04 Aug 2011 13:39:28 +0200
+From: Hans de Goede <hdegoede@redhat.com>
 MIME-Version: 1.0
-In-Reply-To: <20110729201721.GA2375@minime.bse>
-References: <CAKdnbx5DQe+c1+ZD6tEJqgSfv6CRV18s2YGv=Z3cOT=wEOyF7g@mail.gmail.com>
-	<4E31526F.3060608@southpole.se>
-	<CAKdnbx6O8JgMM37e28q1g9dt=AdJpAAjWHqxBnTXHZrcyBMKyQ@mail.gmail.com>
-	<CAGoCfiyoh1QSBgqFU6ym-co1QFdHanK3WJ_ese7Cv4ACRfDhrg@mail.gmail.com>
-	<20110729201721.GA2375@minime.bse>
-Date: Thu, 4 Aug 2011 02:36:50 -0400
-Message-ID: <CAGoCfizoOG3uu5jV65cKMVPs_vMWEX0o9Xu6FaQua5XRjA_Ddw@mail.gmail.com>
-Subject: Re: Trying to support for HAUPPAUGE HVR-930C
-From: Devin Heitmueller <dheitmueller@kernellabs.com>
-To: Devin Heitmueller <dheitmueller@kernellabs.com>,
-	Eddi De Pieri <eddi@depieri.net>,
-	linux-media@vger.kernel.org,
-	Benjamin Larsson <benjamin@southpole.se>
-Content-Type: text/plain; charset=ISO-8859-1
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+CC: Theodore Kilgore <kilgota@banach.math.auburn.edu>,
+	workshop-2011@linuxtv.org,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: [Workshop-2011] Media Subsystem Workshop 2011
+References: <4E398381.4080505@redhat.com>	<alpine.LNX.2.00.1108031418480.16384@banach.math.auburn.edu> <4E39B150.40108@redhat.com>
+In-Reply-To: <4E39B150.40108@redhat.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Daniel,
+Hi,
 
-Sorry for the delayed reply.  I actually did reply five days ago but
-the message got dropped by the ML filter because my phone apparently
-formatted it into HTML content.  Resending here...
+On 08/03/2011 10:36 PM, Mauro Carvalho Chehab wrote:
+> Em 03-08-2011 16:53, Theodore Kilgore escreveu:
 
-> Do you have a contact at Trident I can ask to get access to that
-> data sheet? I have been looking for it for some time now as well.
+<snip snip>
 
-Nope.  I had access to them under NDA but do not anymore.
+>> Mauro,
+>>
+>> Not saying that you need to change the program for this session to deal
+>> with this topic, but an old and vexing problem is dual-mode devices. It is
+>> an issue which needs some kind of unified approach, and, in my opinion,
+>> consensus about policy and methodology.
+>>
+>> As a very good example if this problem, several of the cameras that I have
+>> supported as GSPCA devices in their webcam modality are also still cameras
+>> and are supported, as still cameras, in Gphoto. This can cause a collision
+>> between driver software in userspace which functions with libusb, and on
+>> the other hand with a kernel driver which tries to grab the device.
+>>
+>> Recent attempts to deal with this problem involve the incorporation of
+>> code in libusb which disables a kernel module that has already grabbed the
+>> device, allowing the userspace driver to function. This has made life a
+>> little bit easier for some people, but not for everybody. For, the device
+>> needs to be re-plugged in order to re-activate the kernel support. But
+>> some of the "user-friencly" desktop setups used by some distros will
+>> automatically start up a dual-mode camera with a gphoto-based program,
+>> thereby making it impossible for the camera to be used as a webcam unless
+>> the user goes for a crash course in how to disable the "feature" which has
+>> been so thoughtfully (thoughtlessly?) provided.
+>>
+>> As the problem is not confined to cameras but also affects some other
+>> devices, such as DSL modems which have a partition on them and are thus
+>> seen as Mass Storage devices, perhaps it is time to try to find a
+>> systematic approach to problems like this.
+>>
+>> There are of course several possible approaches.
+>>
+>> 1. A kernel module should handle everything related to connecting up the
+>> hardware. In that case, the existing userspace driver has to be modified
+>> to use the kernel module instead of libusb. Those who support this option
+>> would say that it gets everything under the control of the kernel, where
+>> it belongs. OTOG, the possible result is to create a minor mess in
+>> projects like Gphoto.
+>>
+>> 2. The kernel module should be abolished, and all of its functionality
+>> moved to userspace. This would of course involve difficulties
+>> approximately equivalent to item 1. An advantage, in the eyes of some,
+>> would be to cut down on the
+>> yet-another-driver-for-yet-another-piece-of-peculiar-hardware syndrome
+>> which obviously contributes to an in principle unlimited increase in the
+>> size of the kernel codebase. A disadvantage would be that it would create
+>> some disruption in webcam support.
+>>
+>> 3. A further modification to libusb reactivates the kernel module
+>> automatically, as soon as the userspace app which wanted to access the
+>> device through a libusb-based driver library is closed. This seems
+>> attractive, but it has certain deficiencies as well. One of them is that
+>> it can not necessarily provide a smooth and informative user experience,
+>> since circumstances can occur in which something appears to go wrong, but
+>> the user gets no clear message saying what the problem is. In other words,
+>> it is a patchwork solution which only slightly refines the current
+>> patchwork solution in libusb, which is in itself only a slight improvement
+>> on the original, unaddressed problem.
+>>
+>> 4. ???
+>>
+>> Several people are interested in this problem, but not much progress has
+>> been made at this time. I think that the topic ought to be put somehow on
+>> the front burner so that lots of people will try to think of the best way
+>> to handle it. Many eyes, and all that.
+>>
+>> Not saying change your schedule, as I said. Have a nice conference. I wish
+>> I could attend. But I do hope by this message to raise some general
+>> concern about this problem.
+>
+> That's an interesting issue.
+>
+> A solution like (3) is a little bit out of scope, as it is a pure userspace
+> (or a mixed userspace USB stack) solution.
+>
+> Technically speaking, letting the same device being handled by either an
+> userspace or a kernelspace driver doesn't seem smart to me, due to:
+> 	- Duplicated efforts to maintain both drivers;
+> 	- It is hard to sync a kernel driver with an userspace driver,
+> as you've pointed.
+>
+> So, we're between (1) or (2).
+>
+> Moving the solution entirely to userspace will have, additionally, the
+> problem of having two applications trying to access the same hardware
+> using two different userspace instances (for example, an incoming videoconf
+> call while Gphoto is opened, assuming that such videoconf call would also
+> have an userspace driver).
+>
+> IMO, the right solution is to work on a proper snapshot mode, in kernelspace,
+> and moving the drivers that have already a kernelspace out of Gphoto.
+>
 
-> And do you know if there are significant differences between the
-> avf4910a and the avf4910b?
+I agree that solution 1) so all the driver bits in kernelspace is the right
+solution. This is unrelated to snapshot mode though, snapshot mode is all
+about taking live snapshots. Where as in this case we are downloading
+pictures which have already been taken (perhaps days ago) from device memory.
 
-They're completely different.  I wouldn't even try to glean anything
-about the avfb by looking at the avfa driver.
+What we need for this is a simple API (new v4l ioctl's I guess) for the
+stillcam mode of these dual mode cameras (stillcam + webcam). So that the
+webcam drivers can grow code to also allow access to the stored pictures,
+which were taken in standalone (iow not connected to usb) stillcam mode.
 
-Devin
+This API does not need to be terribly complex. AFAIK all of the currently
+supported dual cam cameras don't have filenames only picture numbers,
+so the API could consist of a simple, get highest picture nr, is picture
+X present (some slots may contain deleted pictures), get picture X,
+delete picture X, delete all API.
 
--- 
-Devin J. Heitmueller - Kernel Labs
-http://www.kernellabs.com
+If others are  willing to help flesh out an API for this, I can write
+a proposal and submit it a few weeks before the Media Subsystem Workshop
+starts.
+
+Regards,
+
+Hans
