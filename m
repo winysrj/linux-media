@@ -1,170 +1,159 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga02.intel.com ([134.134.136.20]:16905 "EHLO mga02.intel.com"
+Received: from smtp.nokia.com ([147.243.1.48]:29508 "EHLO mgw-sa02.nokia.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752018Ab1HOMVH (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 15 Aug 2011 08:21:07 -0400
-From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	linux-media@vger.kernel.org
-Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Subject: [media-ctl][PATCH] libmediactl: engage udev to get devname
-Date: Mon, 15 Aug 2011 15:20:34 +0300
-Message-Id: <4a6d0bf1e50189da0c02e2326c3413d9088926c1.1313410776.git.andriy.shevchenko@linux.intel.com>
+	id S1752116Ab1HDI5c (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 4 Aug 2011 04:57:32 -0400
+Message-ID: <4E3A5EE2.7030707@iki.fi>
+Date: Thu, 04 Aug 2011 11:57:06 +0300
+From: Sakari Ailus <sakari.ailus@iki.fi>
+MIME-Version: 1.0
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+CC: Hans Verkuil <hverkuil@xs4all.nl>, Pawel Osciak <pawel@osciak.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: Re: [PATCH v3] V4L: add two new ioctl()s for multi-size   videobuffer
+ management
+References: <Pine.LNX.4.64.1107201025120.12084@axis700.grange>    <CAMm-=zB3dOJyCy7ZhqiTQkeL2b=Dvtz8geMR8zbHYBCVR6=pEw@mail.gmail.com>    <201107280856.55731.hverkuil@xs4all.nl>    <Pine.LNX.4.64.1108020919290.29918@axis700.grange>    <8f4c70b8d38860d2403645fa773d8d42.squirrel@webmail.xs4all.nl> <f94be2f6fed71ddc3e717bd84c027d01.squirrel@webmail.xs4all.nl> <Pine.LNX.4.64.1108032346560.746@axis700.grange>
+In-Reply-To: <Pine.LNX.4.64.1108032346560.746@axis700.grange>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
----
- configure.in    |   10 ++++++++
- src/Makefile.am |    2 +
- src/media.c     |   66 ++++++++++++++++++++++++++----------------------------
- 3 files changed, 44 insertions(+), 34 deletions(-)
+Guennadi Liakhovetski wrote:
+> On Wed, 3 Aug 2011, Hans Verkuil wrote:
+> 
+>>>> On Thu, 28 Jul 2011, Hans Verkuil wrote:
+>>>>
+>>>>> On Thursday, July 28, 2011 06:11:38 Pawel Osciak wrote:
+>>>>>> Hi Guennadi,
+>>>>>>
+>>>>>> On Wed, Jul 20, 2011 at 01:43, Guennadi Liakhovetski
+>>>>>> <g.liakhovetski@gmx.de> wrote:
+>>>>>>> A possibility to preallocate and initialise buffers of different
+>>>>> sizes
+>>>>>>> in V4L2 is required for an efficient implementation of asnapshot
+>>>>> mode.
+>>>>>>> This patch adds two new ioctl()s: VIDIOC_CREATE_BUFS and
+>>>>>>> VIDIOC_PREPARE_BUF and defines respective data structures.
+>>>>>>>
+>>>>>>> Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+>>>>>>> ---
+>>>>>>>
+>>>>>> <snip>
+>>>>>>
+>>>>>> This looks nicer, I like how we got rid of destroy and gave up on
+>>>>>> making holes, it would've given us a lot of headaches. I'm thinking
+>>>>>> about some issues though and also have some comments/questions
+>>>>> further
+>>>>>> below.
+>>>>>>
+>>>>>> Already mentioned by others mixing of REQBUFS and CREATE_BUFS.
+>>>>>> Personally I'd like to allow mixing, including REQBUFS for non-zero,
+>>>>>> because I think it would be easy to do. I think it could work in the
+>>>>>> same way as REQBUFS for !=0 works currently (at least in vb2), if we
+>>>>>> already have some buffers allocated and they are not in use, we free
+>>>>>> them and a new set is allocated. So I guess it could just stay this
+>>>>>> way. REQBUFS(0) would of course free everything.
+>>>>>>
+>>>>>> Passing format to CREATE_BUFS will make vb2 a bit format-aware, as it
+>>>>>> would have to pass it forward to the driver somehow. The obvious way
+>>>>>> would be just vb2 calling the driver's s_fmt handler, but that won't
+>>>>>> work, as you can't pass indexes to s_fmt. So we'd have to implement a
+>>>>>> new driver callback for setting formats per index. I guess there is
+>>>>> no
+>>>>>> way around it, unless we actually take the format struct out of
+>>>>>> CREATE_BUFS and somehow do it via S_FMT. The single-planar structure
+>>>>>> is full already though, the only way would be to use
+>>>>>> v4l2_pix_format_mplane instead with plane count = 1 (or more if
+>>>>>> needed).
+>>>>>
+>>>>> I just got an idea for this: use TRY_FMT. That will do exactly what
+>>>>> you want. In fact, perhaps we should remove the format struct from
+>>>>> CREATE_BUFS and use __u32 sizes[VIDEO_MAX_PLANES] instead. Let the
+>>>>> application call TRY_FMT and initialize the sizes array instead of
+>>>>> putting that into vb2. We may need a num_planes field as well. If the
+>>>>> sizes are all 0 (or num_planes is 0), then the driver can use the
+>>>>> current
+>>>>> format, just as it does with REQBUFS.
+>>>>>
+>>>>> Or am I missing something?
+>>>>
+>>>> ...After more thinking and looking at the vb2 code, this began to feel
+>>>> wrong to me. This introduces an asymmetry, which doesn't necessarily
+>>>> look
+>>>> good to me. At present we have the TRY_FMT and S_FMT ioctl()s, which
+>>>> among
+>>>> other tasks calculate sizeimage and bytesperline - either per plane or
+>>>> total.
+>>>
+>>> Correct.
+>>>
+>>>> Besides we also have the REQBUFS call, that internally calls the
+>>>> .queue_setup() queue method. In that method the _driver_ has a chance to
+>>>> calculate for the _current format_ the number of planes (again?...) and
+>>>> buffer sizes for each plane.
+>>>
+>>> Correct. Usually the driver will update some internal datastructure
+>>> whenever S_FMT is called to store the sizeimage/bytesperline etc. so
+>>> queue_setup can refer to those values.
+>>>
+>>>> This suggests, that the latter calculation
+>>>> can be different from the former.
+>>>
+>>> No, it can't (shouldn't). For USERPTR mode applications always need to
+>>> rely on sizeimage anyway, so doing anything different in queue_setup is
+>>> something I would consider a driver bug.
+>>>
+>>>> Now you're suggesting to use TRY_FMT to calculate the number of planes
+>>>> and
+>>>> per-plane sizeofimage, and then use _only_ this information to set up
+>>>> the
+>>>> buffers from the CREATE_BUFS ioctl(). So, are we now claiming, that this
+>>>> information alone (per-plane-sizeofimage) should be dufficient to set up
+>>>> buffers?
+>>>
+>>> Yes. Again, if it is not sufficient, then USERPTR wouldn't work :-)
+>>
+>> Ouch. While this is correct with respect to the sizes, it is a different
+>> matter when it comes to e.g. start addresses.
+>>
+>> The prime example is the Samsung hardware where some multiplanar formats
+>> need to be allocated from specific memory banks. So trying to pass just
+>> sizes to CREATE_BUFS would not carry enough information for the samsung
+>> driver to decide whether or not to allocate from specific memory banks or
+>> if any memory will do.
+>>
+>> So either we go back to using v4l2_format, or we add a fourcc describing
+>> the pixelformat. I *think* this may be sufficient, but I do not know for
+>> sure.
+> 
+> Nobody knows for sure, that's why we've got 19 * 4 reserved bytes in 
+> there;-)
+> 
+> From my PoV, I would add a fourcc field. Having only sizes in struct 
+> v4l2_create_buffers fits nicely, IMHO. It avoids internal implicit 
+> duplication of TRY_FMT, keeps the code smaller. Adding one 32-bit fourcc 
+> field to it will change nothing for most users, but provide the required 
+> information to the Samsung driver.
 
-diff --git a/configure.in b/configure.in
-index fd4c70c..63432ba 100644
---- a/configure.in
-+++ b/configure.in
-@@ -12,6 +12,16 @@ AC_PROG_CC
- AC_PROG_LIBTOOL
- 
- # Checks for libraries.
-+PKG_CHECK_MODULES(libudev, libudev, have_libudev=yes, have_libudev=no)
-+
-+if test x$have_libudev = xyes; then
-+    LIBUDEV_CFLAGS="$lbudev_CFLAGS"
-+    LIBUDEV_LIBS="$libudev_LIBS"
-+    AC_SUBST(LIBUDEV_CFLAGS)
-+    AC_SUBST(LIBUDEV_LIBS)
-+else
-+    AC_MSG_ERROR([libudev is required])
-+fi
- 
- # Kernel headers path.
- AC_ARG_WITH(kernel-headers,
-diff --git a/src/Makefile.am b/src/Makefile.am
-index 267ea83..52628d2 100644
---- a/src/Makefile.am
-+++ b/src/Makefile.am
-@@ -5,6 +5,8 @@ mediactl_includedir=$(includedir)/mediactl
- mediactl_include_HEADERS = media.h subdev.h
- 
- bin_PROGRAMS = media-ctl
-+media_ctl_CFLAGS = $(LIBUDEV_CFLAGS)
-+media_ctl_LDFLAGS = $(LIBUDEV_LIBS)
- media_ctl_SOURCES = main.c options.c options.h tools.h
- media_ctl_LDADD = libmediactl.la libv4l2subdev.la
- 
-diff --git a/src/media.c b/src/media.c
-index e3cab86..000d750 100644
---- a/src/media.c
-+++ b/src/media.c
-@@ -31,6 +31,8 @@
- #include <linux/videodev2.h>
- #include <linux/media.h>
- 
-+#include <libudev.h>
-+
- #include "media.h"
- #include "tools.h"
- 
-@@ -247,15 +249,20 @@ static int media_enum_links(struct media_device *media)
- 
- static int media_enum_entities(struct media_device *media)
- {
-+	struct udev *udev;
-+	dev_t devnum;
-+	struct udev_device *device;
- 	struct media_entity *entity;
--	struct stat devstat;
- 	unsigned int size;
--	char devname[32];
--	char sysname[32];
--	char target[1024];
--	char *p;
-+	const char *p;
- 	__u32 id;
--	int ret;
-+	int ret = 0;
-+
-+	udev = udev_new();
-+	if (udev == NULL) {
-+		printf("unable to allocate memory for context\n");
-+		return -ENOMEM;
-+	}
- 
- 	for (id = 0; ; id = entity->info.id) {
- 		size = (media->entities_count + 1) * sizeof(*media->entities);
-@@ -268,9 +275,9 @@ static int media_enum_entities(struct media_device *media)
- 
- 		ret = ioctl(media->fd, MEDIA_IOC_ENUM_ENTITIES, &entity->info);
- 		if (ret < 0) {
--			if (errno == EINVAL)
--				break;
--			return -errno;
-+			if (errno != EINVAL)
-+				ret = -errno;
-+			break;
- 		}
- 
- 		/* Number of links (for outbound links) plus number of pads (for
-@@ -281,8 +288,10 @@ static int media_enum_entities(struct media_device *media)
- 
- 		entity->pads = malloc(entity->info.pads * sizeof(*entity->pads));
- 		entity->links = malloc(entity->max_links * sizeof(*entity->links));
--		if (entity->pads == NULL || entity->links == NULL)
--			return -ENOMEM;
-+		if (entity->pads == NULL || entity->links == NULL) {
-+			ret = -ENOMEM;
-+			break;
-+		}
- 
- 		media->entities_count++;
- 
-@@ -291,32 +300,21 @@ static int media_enum_entities(struct media_device *media)
- 		    media_entity_type(entity) != MEDIA_ENT_T_V4L2_SUBDEV)
- 			continue;
- 
--		sprintf(sysname, "/sys/dev/char/%u:%u", entity->info.v4l.major,
--			entity->info.v4l.minor);
--		ret = readlink(sysname, target, sizeof(target));
--		if (ret < 0)
--			continue;
--
--		target[ret] = '\0';
--		p = strrchr(target, '/');
--		if (p == NULL)
--			continue;
--
--		sprintf(devname, "/dev/%s", p + 1);
--		ret = stat(devname, &devstat);
--		if (ret < 0)
--			continue;
-+		devnum = makedev(entity->info.v4l.major, entity->info.v4l.minor);
-+		printf("looking up device: %u:%u\n", major(devnum), minor(devnum));
-+		device = udev_device_new_from_devnum(udev, 'c', devnum);
-+		if (device) {
-+			p = udev_device_get_devnode(device);
-+			if (p)
-+				snprintf(entity->devname, sizeof(entity->devname),
-+					 "%s", p);
-+		}
- 
--		/* Sanity check: udev might have reordered the device nodes.
--		 * Make sure the major/minor match. We should really use
--		 * libudev.
--		 */
--		if (major(devstat.st_rdev) == entity->info.v4l.major &&
--		    minor(devstat.st_rdev) == entity->info.v4l.minor)
--			strcpy(entity->devname, devname);
-+		udev_device_unref(device);
- 	}
- 
--	return 0;
-+	udev_unref(udev);
-+	return ret;
- }
- 
- struct media_device *media_open(const char *name, int verbose)
+As the user would not know (in general case) what kind of hardware does
+have requirements on the allocation, it should always set the
+pixelformat field, also for other drivers. I don't see this as an issue.
+
+> OTOH, I'm thinking, whether this should be handled in a more generic way, 
+> like per-buffer (or per-plane) attributes. This is similar to device-local 
+> memory allocations, only in our case different workloads impose different 
+> requirements on the allocated memory. But our problem in this case is 
+> also, that the user-space currently has no way to know, that it has to 
+> request that special memory. TRY_FMT doesn't return that information. 
+> Unless, say, we add a new enum v4l2_buf_type for this case... Or even just 
+> let the Samsung driver use a private buffer type in this case. They could 
+> then have two buffer-queues in their driver: a "normal" and a "special" 
+> one.
+
 -- 
-1.7.5.4
-
+Sakari Ailus
+sakari.ailus@iki.fi
