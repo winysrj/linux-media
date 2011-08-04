@@ -1,35 +1,69 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ww0-f44.google.com ([74.125.82.44]:33154 "EHLO
-	mail-ww0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754096Ab1HQQUh (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 17 Aug 2011 12:20:37 -0400
-Received: by wwf5 with SMTP id 5so1174998wwf.1
-        for <linux-media@vger.kernel.org>; Wed, 17 Aug 2011 09:20:36 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <201108172233.53829.declan.mullen@bigpond.com>
-References: <201108150923.44824.declan.mullen@bigpond.com>
-	<201108152232.46744.declan.mullen@bigpond.com>
-	<CALzAhNW2iZA7f=hj+Kao055T-z5C-z4sArX7OE=JHU1DiyRx2Q@mail.gmail.com>
-	<201108172233.53829.declan.mullen@bigpond.com>
-Date: Wed, 17 Aug 2011 12:20:36 -0400
-Message-ID: <CALzAhNUsACrYnSYbMj2wQN1GgBNMExLPWcnJPX0XwHiLEB2Qpw@mail.gmail.com>
-Subject: Re: How to git and build HVR-2200 drivers from Kernel labs ?
-From: Steven Toth <stoth@kernellabs.com>
-To: Declan Mullen <declan.mullen@bigpond.com>
-Cc: linux-media@vger.kernel.org,
-	Devin Heitmueller <dheitmueller@kernellabs.com>
-Content-Type: text/plain; charset=ISO-8859-1
+Received: from moutng.kundenserver.de ([212.227.126.187]:50333 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752102Ab1HDHOb (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 4 Aug 2011 03:14:31 -0400
+From: Thierry Reding <thierry.reding@avionic-design.de>
+To: linux-media@vger.kernel.org
+Subject: [PATCH 21/21] [staging] tm6000: Remove unnecessary workaround.
+Date: Thu,  4 Aug 2011 09:14:19 +0200
+Message-Id: <1312442059-23935-22-git-send-email-thierry.reding@avionic-design.de>
+In-Reply-To: <1312442059-23935-1-git-send-email-thierry.reding@avionic-design.de>
+References: <1312442059-23935-1-git-send-email-thierry.reding@avionic-design.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-> Eg should I use the source from "git clone git://kernellabs.com/stoth/saa7164-
-> dev.git" or do you recommend something else that might be more stable ?
+Implicitly setting the tuner frequency each time the device is opened
+seems no longer necessary, so it is removed. This speeds up opening the
+device by about 120 ms.
 
-pull a snapshot:
+It also avoids excessive firmware reloads because the default will load
+the BASE and F8MHZ type firmwares independent of which device, video or
+radio, is opened. Before this patch opening the radio device would
+automatically trigger a BASE and F8MHZ firmware load only to immediately
+replace them by the FM firmware.
+---
+ drivers/staging/tm6000/tm6000-core.c |   19 -------------------
+ 1 files changed, 0 insertions(+), 19 deletions(-)
 
-http://www.kernellabs.com/gitweb/?p=stoth/saa7164-stable.git;a=snapshot;h=87e0c0378bf2068df5d0c43acd66aea9ba71bd89;sf=tgz
-
+diff --git a/drivers/staging/tm6000/tm6000-core.c b/drivers/staging/tm6000/tm6000-core.c
+index 58c1399..7bb1d37 100644
+--- a/drivers/staging/tm6000/tm6000-core.c
++++ b/drivers/staging/tm6000/tm6000-core.c
+@@ -264,8 +264,6 @@ static void tm6000_set_vbi(struct tm6000_core *dev)
+ 
+ int tm6000_init_analog_mode(struct tm6000_core *dev)
+ {
+-	struct v4l2_frequency f;
+-
+ 	if (dev->dev_type == TM6010) {
+ 		u8 active = TM6010_REQ07_RCC_ACTIVE_IF_AUDIO_ENABLE;
+ 
+@@ -304,24 +302,7 @@ int tm6000_init_analog_mode(struct tm6000_core *dev)
+ 		/* Disables soft reset */
+ 		tm6000_set_reg(dev, TM6010_REQ07_R3F_RESET, 0x00);
+ 	}
+-	msleep(20);
+-
+-	/* Tuner firmware can now be loaded */
+-
+-	/*
+-	 * FIXME: This is a hack! xc3028 "sleeps" when no channel is detected
+-	 * for more than a few seconds. Not sure why, as this behavior does
+-	 * not happen on other devices with xc3028. So, I suspect that it
+-	 * is yet another bug at tm6000. After start sleeping, decoding
+-	 * doesn't start automatically. Instead, it requires some
+-	 * I2C commands to wake it up. As we want to have image at the
+-	 * beginning, we needed to add this hack. The better would be to
+-	 * discover some way to make tm6000 to wake up without this hack.
+-	 */
+-	f.frequency = dev->freq;
+-	v4l2_device_call_all(&dev->v4l2_dev, 0, tuner, s_frequency, &f);
+ 
+-	msleep(100);
+ 	tm6000_set_standard(dev);
+ 	tm6000_set_vbi(dev);
+ 	tm6000_set_audio_bitrate(dev, 48000);
 -- 
-Steven Toth - Kernel Labs
-http://www.kernellabs.com
+1.7.6
+
