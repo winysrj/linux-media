@@ -1,54 +1,43 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.dream-property.net ([82.149.226.172]:39128 "EHLO
-	mail.dream-property.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751392Ab1HHOyr (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 8 Aug 2011 10:54:47 -0400
-From: Andreas Oberritter <obi@linuxtv.org>
+Received: from mail1.matrix-vision.com ([78.47.19.71]:40504 "EHLO
+	mail1.matrix-vision.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751766Ab1HDPlO (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 4 Aug 2011 11:41:14 -0400
+From: Michael Jones <michael.jones@matrix-vision.de>
 To: linux-media@vger.kernel.org
-Cc: user.vdr@gmail.com, alannisota@gmail.com
-Subject: [PATCH 2/3] DVB: dvb_frontend: Fix compatibility criteria for satellite receivers
-Date: Mon,  8 Aug 2011 14:54:36 +0000
-Message-Id: <1312815277-9502-2-git-send-email-obi@linuxtv.org>
-In-Reply-To: <1312815277-9502-1-git-send-email-obi@linuxtv.org>
-References: <1312815277-9502-1-git-send-email-obi@linuxtv.org>
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: [PATCH] [media] omap3isp: queue: fail QBUF if buffer is too small
+Date: Thu,  4 Aug 2011 17:40:37 +0200
+Message-Id: <1312472437-26231-1-git-send-email-michael.jones@matrix-vision.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-- When converting satellite receiver parameters from S2API to legacy,
-  identify a satellite receiver by its 'delivery_system' instead of
-  'modulation', which may overlap between different delivery systems.
+Add buffer length to sanity checks for QBUF.
 
-Signed-off-by: Andreas Oberritter <obi@linuxtv.org>
+Signed-off-by: Michael Jones <michael.jones@matrix-vision.de>
 ---
- drivers/media/dvb/dvb-core/dvb_frontend.c |   13 +++++--------
- 1 files changed, 5 insertions(+), 8 deletions(-)
+ drivers/media/video/omap3isp/ispqueue.c |    3 +++
+ 1 files changed, 3 insertions(+), 0 deletions(-)
 
-diff --git a/drivers/media/dvb/dvb-core/dvb_frontend.c b/drivers/media/dvb/dvb-core/dvb_frontend.c
-index d02c32e..d218fe2 100644
---- a/drivers/media/dvb/dvb-core/dvb_frontend.c
-+++ b/drivers/media/dvb/dvb-core/dvb_frontend.c
-@@ -1132,16 +1132,13 @@ static void dtv_property_adv_params_sync(struct dvb_frontend *fe)
- 	p->frequency = c->frequency;
- 	p->inversion = c->inversion;
+diff --git a/drivers/media/video/omap3isp/ispqueue.c b/drivers/media/video/omap3isp/ispqueue.c
+index 9c31714..4f6876f 100644
+--- a/drivers/media/video/omap3isp/ispqueue.c
++++ b/drivers/media/video/omap3isp/ispqueue.c
+@@ -867,6 +867,9 @@ int omap3isp_video_queue_qbuf(struct isp_video_queue *queue,
+ 	if (buf->state != ISP_BUF_STATE_IDLE)
+ 		goto done;
  
--	switch(c->modulation) {
--	case PSK_8:
--	case APSK_16:
--	case APSK_32:
--	case QPSK:
-+	if (c->delivery_system == SYS_DSS ||
-+	    c->delivery_system == SYS_DVBS ||
-+	    c->delivery_system == SYS_DVBS2 ||
-+	    c->delivery_system == SYS_ISDBS ||
-+	    c->delivery_system == SYS_TURBO) {
- 		p->u.qpsk.symbol_rate = c->symbol_rate;
- 		p->u.qpsk.fec_inner = c->fec_inner;
--		break;
--	default:
--		break;
- 	}
- 
- 	/* Fake out a generic DVB-T request so we pass validation in the ioctl */
++	if (vbuf->length < buf->vbuf.length)
++		goto done;
++
+ 	if (vbuf->memory == V4L2_MEMORY_USERPTR &&
+ 	    vbuf->m.userptr != buf->vbuf.m.userptr) {
+ 		isp_video_buffer_cleanup(buf);
 -- 
-1.7.2.5
+1.7.6
 
+
+MATRIX VISION GmbH, Talstrasse 16, DE-71570 Oppenweiler
+Registergericht: Amtsgericht Stuttgart, HRB 271090
+Geschaeftsfuehrer: Gerhard Thullner, Werner Armingeon, Uwe Furtner, Erhard Meier
