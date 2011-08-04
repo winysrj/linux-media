@@ -1,202 +1,86 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout2.w1.samsung.com ([210.118.77.12]:46934 "EHLO
-	mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750763Ab1HJIXu (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 10 Aug 2011 04:23:50 -0400
-Received: from spt2.w1.samsung.com (mailout2.w1.samsung.com [210.118.77.12])
- by mailout2.w1.samsung.com
- (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14 2004))
- with ESMTP id <0LPP00MG6DZP52@mailout2.w1.samsung.com> for
- linux-media@vger.kernel.org; Wed, 10 Aug 2011 09:23:49 +0100 (BST)
-Received: from linux.samsung.com ([106.116.38.10])
- by spt2.w1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14
- 2004)) with ESMTPA id <0LPP00LRGDZORQ@spt2.w1.samsung.com> for
- linux-media@vger.kernel.org; Wed, 10 Aug 2011 09:23:48 +0100 (BST)
-Date: Wed, 10 Aug 2011 10:23:37 +0200
-From: Marek Szyprowski <m.szyprowski@samsung.com>
-Subject: [PATCH] media: vb2: dma-sg allocator: change scatterlist allocation
- method
-To: linux-media@vger.kernel.org
-Cc: Marek Szyprowski <m.szyprowski@samsung.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	Pawel Osciak <pawel@osciak.com>,
-	Andrzej Pietrasiewicz <andrzej.p@samsung.com>
-Message-id: <1312964617-3192-1-git-send-email-m.szyprowski@samsung.com>
-MIME-version: 1.0
-Content-type: TEXT/PLAIN
-Content-transfer-encoding: 7BIT
+Received: from banach.math.auburn.edu ([131.204.45.3]:40856 "EHLO
+	banach.math.auburn.edu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753288Ab1HDWwQ (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 4 Aug 2011 18:52:16 -0400
+Date: Thu, 4 Aug 2011 17:57:06 -0500 (CDT)
+From: Theodore Kilgore <kilgota@banach.math.auburn.edu>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+cc: workshop-2011@linuxtv.org,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Hans de Goede <hdegoede@redhat.com>,
+	Jean-Francois Moine <moinejf@free.fr>
+Subject: Re: Media Subsystem Workshop 2011
+In-Reply-To: <4E3B15EB.7050508@redhat.com>
+Message-ID: <alpine.LNX.2.00.1108041732060.17734@banach.math.auburn.edu>
+References: <4E398381.4080505@redhat.com> <alpine.LNX.2.00.1108031418480.16384@banach.math.auburn.edu> <4E39B150.40108@redhat.com> <alpine.LNX.2.00.1108031750241.16520@banach.math.auburn.edu> <4E3A91D1.1040000@redhat.com> <alpine.LNX.2.00.1108041255070.17533@banach.math.auburn.edu>
+ <4E3AEEE3.8080704@redhat.com> <alpine.LNX.2.00.1108041549090.17734@banach.math.auburn.edu> <4E3B15EB.7050508@redhat.com>
+MIME-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Andrzej Pietrasiewicz <andrzej.p@samsung.com>
 
-Scatter-gather lib provides a helper functions to allocate scatter list,
-so there is no need to use vmalloc for it. sg_alloc_table() splits
-allocation into page size chunks and links them together into a chain.
 
-Signed-off-by: Andrzej Pietrasiewicz <andrzej.p@samsung.com>
-Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
-Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
-CC: Pawel Osciak <pawel@osciak.com>
----
- drivers/media/video/videobuf2-dma-sg.c |   54 +++++++++++++++++++------------
- 1 files changed, 33 insertions(+), 21 deletions(-)
+On Thu, 4 Aug 2011, Mauro Carvalho Chehab wrote:
 
-diff --git a/drivers/media/video/videobuf2-dma-sg.c b/drivers/media/video/videobuf2-dma-sg.c
-index 065f468..e1158f9 100644
---- a/drivers/media/video/videobuf2-dma-sg.c
-+++ b/drivers/media/video/videobuf2-dma-sg.c
-@@ -36,6 +36,8 @@ static void vb2_dma_sg_put(void *buf_priv);
- static void *vb2_dma_sg_alloc(void *alloc_ctx, unsigned long size)
- {
- 	struct vb2_dma_sg_buf *buf;
-+	struct sg_table sgt;
-+	struct scatterlist *sl;
- 	int i;
- 
- 	buf = kzalloc(sizeof *buf, GFP_KERNEL);
-@@ -48,23 +50,21 @@ static void *vb2_dma_sg_alloc(void *alloc_ctx, unsigned long size)
- 	buf->sg_desc.size = size;
- 	buf->sg_desc.num_pages = (size + PAGE_SIZE - 1) >> PAGE_SHIFT;
- 
--	buf->sg_desc.sglist = vzalloc(buf->sg_desc.num_pages *
--				      sizeof(*buf->sg_desc.sglist));
--	if (!buf->sg_desc.sglist)
-+	if (sg_alloc_table(&sgt, buf->sg_desc.num_pages, GFP_KERNEL))
- 		goto fail_sglist_alloc;
--	sg_init_table(buf->sg_desc.sglist, buf->sg_desc.num_pages);
-+	buf->sg_desc.sglist = sgt.sgl;
- 
- 	buf->pages = kzalloc(buf->sg_desc.num_pages * sizeof(struct page *),
- 			     GFP_KERNEL);
- 	if (!buf->pages)
- 		goto fail_pages_array_alloc;
- 
--	for (i = 0; i < buf->sg_desc.num_pages; ++i) {
--		buf->pages[i] = alloc_page(GFP_KERNEL | __GFP_ZERO | __GFP_NOWARN);
-+	for_each_sg(buf->sg_desc.sglist, sl, buf->sg_desc.num_pages, i) {
-+		buf->pages[i] = alloc_page(GFP_KERNEL | __GFP_ZERO |
-+					   __GFP_NOWARN);
- 		if (NULL == buf->pages[i])
- 			goto fail_pages_alloc;
--		sg_set_page(&buf->sg_desc.sglist[i],
--			    buf->pages[i], PAGE_SIZE, 0);
-+		sg_set_page(sl, buf->pages[i], PAGE_SIZE, 0);
- 	}
- 
- 	buf->handler.refcount = &buf->refcount;
-@@ -89,7 +89,7 @@ fail_pages_alloc:
- 	kfree(buf->pages);
- 
- fail_pages_array_alloc:
--	vfree(buf->sg_desc.sglist);
-+	sg_free_table(&sgt);
- 
- fail_sglist_alloc:
- 	kfree(buf);
-@@ -99,6 +99,7 @@ fail_sglist_alloc:
- static void vb2_dma_sg_put(void *buf_priv)
- {
- 	struct vb2_dma_sg_buf *buf = buf_priv;
-+	struct sg_table sgt;
- 	int i = buf->sg_desc.num_pages;
- 
- 	if (atomic_dec_and_test(&buf->refcount)) {
-@@ -106,7 +107,9 @@ static void vb2_dma_sg_put(void *buf_priv)
- 			buf->sg_desc.num_pages);
- 		if (buf->vaddr)
- 			vm_unmap_ram(buf->vaddr, buf->sg_desc.num_pages);
--		vfree(buf->sg_desc.sglist);
-+		sgt.sgl = buf->sg_desc.sglist;
-+		sgt.orig_nents = sgt.nents = i;
-+		sg_free_table(&sgt);
- 		while (--i >= 0)
- 			__free_page(buf->pages[i]);
- 		kfree(buf->pages);
-@@ -118,6 +121,8 @@ static void *vb2_dma_sg_get_userptr(void *alloc_ctx, unsigned long vaddr,
- 				    unsigned long size, int write)
- {
- 	struct vb2_dma_sg_buf *buf;
-+	struct sg_table sgt;
-+	struct scatterlist *sl;
- 	unsigned long first, last;
- 	int num_pages_from_user, i;
- 
-@@ -134,12 +139,9 @@ static void *vb2_dma_sg_get_userptr(void *alloc_ctx, unsigned long vaddr,
- 	last  = ((vaddr + size - 1) & PAGE_MASK) >> PAGE_SHIFT;
- 	buf->sg_desc.num_pages = last - first + 1;
- 
--	buf->sg_desc.sglist = vzalloc(
--		buf->sg_desc.num_pages * sizeof(*buf->sg_desc.sglist));
--	if (!buf->sg_desc.sglist)
-+	if (sg_alloc_table(&sgt, buf->sg_desc.num_pages, GFP_KERNEL))
- 		goto userptr_fail_sglist_alloc;
--
--	sg_init_table(buf->sg_desc.sglist, buf->sg_desc.num_pages);
-+	buf->sg_desc.sglist = sgt.sgl;
- 
- 	buf->pages = kzalloc(buf->sg_desc.num_pages * sizeof(struct page *),
- 			     GFP_KERNEL);
-@@ -158,12 +160,12 @@ static void *vb2_dma_sg_get_userptr(void *alloc_ctx, unsigned long vaddr,
- 	if (num_pages_from_user != buf->sg_desc.num_pages)
- 		goto userptr_fail_get_user_pages;
- 
--	sg_set_page(&buf->sg_desc.sglist[0], buf->pages[0],
--		    PAGE_SIZE - buf->offset, buf->offset);
-+	sl = buf->sg_desc.sglist;
-+	sg_set_page(sl, buf->pages[0], PAGE_SIZE - buf->offset, buf->offset);
- 	size -= PAGE_SIZE - buf->offset;
- 	for (i = 1; i < buf->sg_desc.num_pages; ++i) {
--		sg_set_page(&buf->sg_desc.sglist[i], buf->pages[i],
--			    min_t(size_t, PAGE_SIZE, size), 0);
-+		sl = sg_next(sl);
-+		sg_set_page(sl, buf->pages[i], min_t(size_t, PAGE_SIZE, size), 0);
- 		size -= min_t(size_t, PAGE_SIZE, size);
- 	}
- 	return buf;
-@@ -176,7 +178,7 @@ userptr_fail_get_user_pages:
- 	kfree(buf->pages);
- 
- userptr_fail_pages_array_alloc:
--	vfree(buf->sg_desc.sglist);
-+	sg_free_table(&sgt);
- 
- userptr_fail_sglist_alloc:
- 	kfree(buf);
-@@ -190,6 +192,8 @@ userptr_fail_sglist_alloc:
- static void vb2_dma_sg_put_userptr(void *buf_priv)
- {
- 	struct vb2_dma_sg_buf *buf = buf_priv;
-+	struct sg_table sgt;
-+
- 	int i = buf->sg_desc.num_pages;
- 
- 	printk(KERN_DEBUG "%s: Releasing userspace buffer of %d pages\n",
-@@ -201,7 +205,9 @@ static void vb2_dma_sg_put_userptr(void *buf_priv)
- 			set_page_dirty_lock(buf->pages[i]);
- 		put_page(buf->pages[i]);
- 	}
--	vfree(buf->sg_desc.sglist);
-+	sgt.sgl = buf->sg_desc.sglist;
-+	sgt.orig_nents = sgt.nents = buf->sg_desc.num_pages;
-+	sg_free_table(&sgt);
- 	kfree(buf->pages);
- 	kfree(buf);
- }
-@@ -218,6 +224,12 @@ static void *vb2_dma_sg_vaddr(void *buf_priv)
- 					-1,
- 					PAGE_KERNEL);
- 
-+	if (!buf->vaddr) {
-+		printk(KERN_ERR "Cannot map buffer memory "
-+				"into kernel address space\n");
-+		return NULL;
-+	}
-+
- 	/* add offset in case userptr is not page-aligned */
- 	return buf->vaddr + buf->offset;
- }
--- 
-1.7.1.569.g6f426
+> Em 04-08-2011 18:16, Theodore Kilgore escreveu:
+> >>>>
+> >>>> This sounds to be a good theme for the Workshop, or even to KS/2011.
+> >>>
+> >>> Thanks. Do you recall when and where is KS/2011 going to take place?
+> >>
+> >> The media workshop happens together with the KS/2011. Sunday is an
+> >> exclusive day for the workshops, Monday is an exclusive day for KS/2011,
+> >> and Tuesday is a joint day for both KS and the KS workshops.
+> > 
+> > So, as I understand, these are all about to take place in Vancouver, 
+> > sometime in the next two weeks? It really is the wrong time, but I really 
+> > wish now that I were going. I would at the very minimum try to get the 
+> > people together that I know of, who have wrestled with the issue.
+> 
+> Hmm... it seems that you didn't read the sites I've pointed on my original
+> email, 
 
+Not really, no. I had resigned myself to being unable to attend anything 
+like this, so why torture myself with looking in the shop window at what I 
+cannot buy?
+
+> or that I was not clear enough. 
+
+Without looking again, I expect that you were quite clear. 
+
+> 
+> The Media Subsystem Workshop and the Kernel Summit won't happen in Vancouver.
+> What will happen there is the LinuxCon North-America, plus the USB mini-summit. 
+> I should be there, btw. I think I should add an additional topic there to
+> discuss about multi-featured devices.
+
+A very good idea. 
+
+> 
+> The KS/2011 and the Media Workshop will happen in Prague, on Oct 23-25,
+> just before the LinuxCon Europe.
+
+Hmmm. That is still not good because classes are in session. But it is not 
+nearly so bad in the middle of a semester as it is at the beginning. It is 
+even conceivable that I might be able to shake loose some money -- if I 
+were either giving a presentation or would (for example) lead a panel 
+discussion on this topic. I believe that I would find it easier to be a 
+moderator or discussion "leader" than actually to present about a thing 
+like this. Namely, I can see the issues but not always the solutions.
+
+Probably, it is not good to apply to my university for money if I merely 
+were going to attend; mere intent to attend would probably not get me 
+funding for a mathematics conference, either. I also would need enough 
+lead time to be able to get things through the bureaucratic system. There 
+is some kind of very unreasonable deadline now in effect in the university 
+about how soon one needs to apply for foreign travel.
+
+So if you think my presence would have some value, I need something to get 
+the application started, over here. Invitation, or something similar. If 
+it is too much trouble or would interfere with already-existing plans, 
+then never mind. I would hardly be upset if I don't go to something which 
+I was not expecting to go to in the first place.
+
+Theodore Kilgore
