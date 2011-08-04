@@ -1,268 +1,679 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.17.8]:57593 "EHLO
+Received: from moutng.kundenserver.de ([212.227.126.171]:61719 "EHLO
 	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751934Ab1HCRMS (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 3 Aug 2011 13:12:18 -0400
-Date: Wed, 3 Aug 2011 19:12:12 +0200 (CEST)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-cc: Kuninori Morimoto <kuninori.morimoto.gx@renesas.com>
-Subject: [PATCH] V4L: mt9t112: fix broken cropping and scaling
-Message-ID: <Pine.LNX.4.64.1108031904050.28502@axis700.grange>
-MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+	with ESMTP id S1751922Ab1HDHO1 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 4 Aug 2011 03:14:27 -0400
+From: Thierry Reding <thierry.reding@avionic-design.de>
+To: linux-media@vger.kernel.org
+Subject: [PATCH 11/21] [staging] tm6000: Rework standard register tables.
+Date: Thu,  4 Aug 2011 09:14:09 +0200
+Message-Id: <1312442059-23935-12-git-send-email-thierry.reding@avionic-design.de>
+In-Reply-To: <1312442059-23935-1-git-send-email-thierry.reding@avionic-design.de>
+References: <1312442059-23935-1-git-send-email-thierry.reding@avionic-design.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-G_CROP, S_CROP, CROPCAP, G_FMT, and S_FMT functionality in the mt9t112
-driver was broken on many occasions. This patch allows consistent
-cropping for rectangles also larger than VGA and cleans up multiple
-other issues in this area. It still doesn't add support for proper
-scaling, using the sensor own scaler, so input window is still
-always equal to the output frame.
-
-Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+This commit uses sentinel entries to terminate the TV standard register
+tables instead of hard-coding their size, allowing further entries to be
+added more easily. It is also more space-efficient if the tables have a
+varying number of entries.
 ---
+ drivers/staging/tm6000/tm6000-stds.c |  610 ++++++++++++++++------------------
+ 1 files changed, 294 insertions(+), 316 deletions(-)
 
-Applies and tested on top of
-
-git://linuxtv.org/gliakhovetski/v4l-dvb.git mbus-config
-
-but might also apply and work on top of a recent tree.
-
- drivers/media/video/mt9t112.c |  119 ++++++++++++++++++++++++-----------------
- 1 files changed, 70 insertions(+), 49 deletions(-)
-
-diff --git a/drivers/media/video/mt9t112.c b/drivers/media/video/mt9t112.c
-index 608a3b6..25cdcb9 100644
---- a/drivers/media/video/mt9t112.c
-+++ b/drivers/media/video/mt9t112.c
-@@ -78,11 +78,6 @@
- /************************************************************************
- 			struct
- ************************************************************************/
--struct mt9t112_frame_size {
--	u16 width;
--	u16 height;
--};
+diff --git a/drivers/staging/tm6000/tm6000-stds.c b/drivers/staging/tm6000/tm6000-stds.c
+index cd69626..f44451b 100644
+--- a/drivers/staging/tm6000/tm6000-stds.c
++++ b/drivers/staging/tm6000/tm6000-stds.c
+@@ -35,316 +35,303 @@ struct tm6000_reg_settings {
+ 
+ struct tm6000_std_settings {
+ 	v4l2_std_id id;
+-	struct tm6000_reg_settings common[27];
++	struct tm6000_reg_settings *common;
++};
++
++static struct tm6000_reg_settings composite_pal_m[] = {
++	{ TM6010_REQ07_R3F_RESET, 0x01 },
++	{ TM6010_REQ07_R00_VIDEO_CONTROL0, 0x04 },
++	{ TM6010_REQ07_R01_VIDEO_CONTROL1, 0x0e },
++	{ TM6010_REQ07_R02_VIDEO_CONTROL2, 0x5f },
++	{ TM6010_REQ07_R03_YC_SEP_CONTROL, 0x00 },
++	{ TM6010_REQ07_R07_OUTPUT_CONTROL, 0x31 },
++	{ TM6010_REQ07_R18_CHROMA_DTO_INCREMENT3, 0x1e },
++	{ TM6010_REQ07_R19_CHROMA_DTO_INCREMENT2, 0x83 },
++	{ TM6010_REQ07_R1A_CHROMA_DTO_INCREMENT1, 0x0a },
++	{ TM6010_REQ07_R1B_CHROMA_DTO_INCREMENT0, 0xe0 },
++	{ TM6010_REQ07_R1C_HSYNC_DTO_INCREMENT3, 0x1c },
++	{ TM6010_REQ07_R1D_HSYNC_DTO_INCREMENT2, 0xcc },
++	{ TM6010_REQ07_R1E_HSYNC_DTO_INCREMENT1, 0xcc },
++	{ TM6010_REQ07_R1F_HSYNC_DTO_INCREMENT0, 0xcd },
++	{ TM6010_REQ07_R2E_ACTIVE_VIDEO_HSTART, 0x88 },
++	{ TM6010_REQ07_R30_ACTIVE_VIDEO_VSTART, 0x20 },
++	{ TM6010_REQ07_R31_ACTIVE_VIDEO_VHIGHT, 0x61 },
++	{ TM6010_REQ07_R33_VSYNC_HLOCK_MAX, 0x0c },
++	{ TM6010_REQ07_R35_VSYNC_AGC_MAX, 0x1c },
++	{ TM6010_REQ07_R82_COMB_FILTER_CONFIG, 0x52 },
++	{ TM6010_REQ07_R83_CHROMA_LOCK_CONFIG, 0x6f },
++	{ TM6010_REQ07_R04_LUMA_HAGC_CONTROL, 0xdc },
++	{ TM6010_REQ07_R0D_CHROMA_KILL_LEVEL, 0x07 },
++	{ TM6010_REQ07_R3F_RESET, 0x00 },
++	{ 0, 0, 0 }
++};
++
++static struct tm6000_reg_settings composite_pal_nc[] = {
++	{ TM6010_REQ07_R3F_RESET, 0x01 },
++	{ TM6010_REQ07_R00_VIDEO_CONTROL0, 0x36 },
++	{ TM6010_REQ07_R01_VIDEO_CONTROL1, 0x0e },
++	{ TM6010_REQ07_R02_VIDEO_CONTROL2, 0x5f },
++	{ TM6010_REQ07_R03_YC_SEP_CONTROL, 0x02 },
++	{ TM6010_REQ07_R07_OUTPUT_CONTROL, 0x31 },
++	{ TM6010_REQ07_R18_CHROMA_DTO_INCREMENT3, 0x1e },
++	{ TM6010_REQ07_R19_CHROMA_DTO_INCREMENT2, 0x91 },
++	{ TM6010_REQ07_R1A_CHROMA_DTO_INCREMENT1, 0x1f },
++	{ TM6010_REQ07_R1B_CHROMA_DTO_INCREMENT0, 0x0c },
++	{ TM6010_REQ07_R1C_HSYNC_DTO_INCREMENT3, 0x1c },
++	{ TM6010_REQ07_R1D_HSYNC_DTO_INCREMENT2, 0xcc },
++	{ TM6010_REQ07_R1E_HSYNC_DTO_INCREMENT1, 0xcc },
++	{ TM6010_REQ07_R1F_HSYNC_DTO_INCREMENT0, 0xcd },
++	{ TM6010_REQ07_R2E_ACTIVE_VIDEO_HSTART, 0x8c },
++	{ TM6010_REQ07_R30_ACTIVE_VIDEO_VSTART, 0x2c },
++	{ TM6010_REQ07_R31_ACTIVE_VIDEO_VHIGHT, 0xc1 },
++	{ TM6010_REQ07_R33_VSYNC_HLOCK_MAX, 0x0c },
++	{ TM6010_REQ07_R35_VSYNC_AGC_MAX, 0x1c },
++	{ TM6010_REQ07_R82_COMB_FILTER_CONFIG, 0x52 },
++	{ TM6010_REQ07_R83_CHROMA_LOCK_CONFIG, 0x6f },
++	{ TM6010_REQ07_R04_LUMA_HAGC_CONTROL, 0xdc },
++	{ TM6010_REQ07_R0D_CHROMA_KILL_LEVEL, 0x07 },
++	{ TM6010_REQ07_R3F_RESET, 0x00 },
++	{ 0, 0, 0 }
++};
++
++static struct tm6000_reg_settings composite_pal[] = {
++	{ TM6010_REQ07_R3F_RESET, 0x01 },
++	{ TM6010_REQ07_R00_VIDEO_CONTROL0, 0x32 },
++	{ TM6010_REQ07_R01_VIDEO_CONTROL1, 0x0e },
++	{ TM6010_REQ07_R02_VIDEO_CONTROL2, 0x5f },
++	{ TM6010_REQ07_R03_YC_SEP_CONTROL, 0x02 },
++	{ TM6010_REQ07_R07_OUTPUT_CONTROL, 0x31 },
++	{ TM6010_REQ07_R18_CHROMA_DTO_INCREMENT3, 0x25 },
++	{ TM6010_REQ07_R19_CHROMA_DTO_INCREMENT2, 0xd5 },
++	{ TM6010_REQ07_R1A_CHROMA_DTO_INCREMENT1, 0x63 },
++	{ TM6010_REQ07_R1B_CHROMA_DTO_INCREMENT0, 0x50 },
++	{ TM6010_REQ07_R1C_HSYNC_DTO_INCREMENT3, 0x1c },
++	{ TM6010_REQ07_R1D_HSYNC_DTO_INCREMENT2, 0xcc },
++	{ TM6010_REQ07_R1E_HSYNC_DTO_INCREMENT1, 0xcc },
++	{ TM6010_REQ07_R1F_HSYNC_DTO_INCREMENT0, 0xcd },
++	{ TM6010_REQ07_R2E_ACTIVE_VIDEO_HSTART, 0x8c },
++	{ TM6010_REQ07_R30_ACTIVE_VIDEO_VSTART, 0x2c },
++	{ TM6010_REQ07_R31_ACTIVE_VIDEO_VHIGHT, 0xc1 },
++	{ TM6010_REQ07_R33_VSYNC_HLOCK_MAX, 0x0c },
++	{ TM6010_REQ07_R35_VSYNC_AGC_MAX, 0x1c },
++	{ TM6010_REQ07_R82_COMB_FILTER_CONFIG, 0x52 },
++	{ TM6010_REQ07_R83_CHROMA_LOCK_CONFIG, 0x6f },
++	{ TM6010_REQ07_R04_LUMA_HAGC_CONTROL, 0xdc },
++	{ TM6010_REQ07_R0D_CHROMA_KILL_LEVEL, 0x07 },
++	{ TM6010_REQ07_R3F_RESET, 0x00 },
++	{ 0, 0, 0 }
++};
++
++static struct tm6000_reg_settings composite_secam[] = {
++	{ TM6010_REQ07_R3F_RESET, 0x01 },
++	{ TM6010_REQ07_R00_VIDEO_CONTROL0, 0x38 },
++	{ TM6010_REQ07_R01_VIDEO_CONTROL1, 0x0e },
++	{ TM6010_REQ07_R02_VIDEO_CONTROL2, 0x5f },
++	{ TM6010_REQ07_R03_YC_SEP_CONTROL, 0x02 },
++	{ TM6010_REQ07_R07_OUTPUT_CONTROL, 0x31 },
++	{ TM6010_REQ07_R18_CHROMA_DTO_INCREMENT3, 0x24 },
++	{ TM6010_REQ07_R19_CHROMA_DTO_INCREMENT2, 0x92 },
++	{ TM6010_REQ07_R1A_CHROMA_DTO_INCREMENT1, 0xe8 },
++	{ TM6010_REQ07_R1B_CHROMA_DTO_INCREMENT0, 0xed },
++	{ TM6010_REQ07_R1C_HSYNC_DTO_INCREMENT3, 0x1c },
++	{ TM6010_REQ07_R1D_HSYNC_DTO_INCREMENT2, 0xcc },
++	{ TM6010_REQ07_R1E_HSYNC_DTO_INCREMENT1, 0xcc },
++	{ TM6010_REQ07_R1F_HSYNC_DTO_INCREMENT0, 0xcd },
++	{ TM6010_REQ07_R2E_ACTIVE_VIDEO_HSTART, 0x8c },
++	{ TM6010_REQ07_R30_ACTIVE_VIDEO_VSTART, 0x2c },
++	{ TM6010_REQ07_R31_ACTIVE_VIDEO_VHIGHT, 0xc1 },
++	{ TM6010_REQ07_R33_VSYNC_HLOCK_MAX, 0x2c },
++	{ TM6010_REQ07_R35_VSYNC_AGC_MAX, 0x18 },
++	{ TM6010_REQ07_R82_COMB_FILTER_CONFIG, 0x42 },
++	{ TM6010_REQ07_R83_CHROMA_LOCK_CONFIG, 0xff },
++	{ TM6010_REQ07_R0D_CHROMA_KILL_LEVEL, 0x07 },
++	{ TM6010_REQ07_R3F_RESET, 0x00 },
++	{ 0, 0, 0 }
++};
++
++static struct tm6000_reg_settings composite_ntsc[] = {
++	{ TM6010_REQ07_R3F_RESET, 0x01 },
++	{ TM6010_REQ07_R00_VIDEO_CONTROL0, 0x00 },
++	{ TM6010_REQ07_R01_VIDEO_CONTROL1, 0x0f },
++	{ TM6010_REQ07_R02_VIDEO_CONTROL2, 0x5f },
++	{ TM6010_REQ07_R03_YC_SEP_CONTROL, 0x00 },
++	{ TM6010_REQ07_R07_OUTPUT_CONTROL, 0x31 },
++	{ TM6010_REQ07_R18_CHROMA_DTO_INCREMENT3, 0x1e },
++	{ TM6010_REQ07_R19_CHROMA_DTO_INCREMENT2, 0x8b },
++	{ TM6010_REQ07_R1A_CHROMA_DTO_INCREMENT1, 0xa2 },
++	{ TM6010_REQ07_R1B_CHROMA_DTO_INCREMENT0, 0xe9 },
++	{ TM6010_REQ07_R1C_HSYNC_DTO_INCREMENT3, 0x1c },
++	{ TM6010_REQ07_R1D_HSYNC_DTO_INCREMENT2, 0xcc },
++	{ TM6010_REQ07_R1E_HSYNC_DTO_INCREMENT1, 0xcc },
++	{ TM6010_REQ07_R1F_HSYNC_DTO_INCREMENT0, 0xcd },
++	{ TM6010_REQ07_R2E_ACTIVE_VIDEO_HSTART, 0x88 },
++	{ TM6010_REQ07_R30_ACTIVE_VIDEO_VSTART, 0x22 },
++	{ TM6010_REQ07_R31_ACTIVE_VIDEO_VHIGHT, 0x61 },
++	{ TM6010_REQ07_R33_VSYNC_HLOCK_MAX, 0x1c },
++	{ TM6010_REQ07_R35_VSYNC_AGC_MAX, 0x1c },
++	{ TM6010_REQ07_R82_COMB_FILTER_CONFIG, 0x42 },
++	{ TM6010_REQ07_R83_CHROMA_LOCK_CONFIG, 0x6f },
++	{ TM6010_REQ07_R04_LUMA_HAGC_CONTROL, 0xdd },
++	{ TM6010_REQ07_R0D_CHROMA_KILL_LEVEL, 0x07 },
++	{ TM6010_REQ07_R3F_RESET, 0x00 },
++	{ 0, 0, 0 }
+ };
+ 
+ static struct tm6000_std_settings composite_stds[] = {
+-	{
+-		.id = V4L2_STD_PAL_M,
+-		.common = {
+-			{TM6010_REQ07_R3F_RESET, 0x01},
+-			{TM6010_REQ07_R00_VIDEO_CONTROL0, 0x04},
+-			{TM6010_REQ07_R01_VIDEO_CONTROL1, 0x0e},
+-			{TM6010_REQ07_R02_VIDEO_CONTROL2, 0x5f},
+-			{TM6010_REQ07_R03_YC_SEP_CONTROL, 0x00},
+-			{TM6010_REQ07_R07_OUTPUT_CONTROL, 0x31},
+-			{TM6010_REQ07_R18_CHROMA_DTO_INCREMENT3, 0x1e},
+-			{TM6010_REQ07_R19_CHROMA_DTO_INCREMENT2, 0x83},
+-			{TM6010_REQ07_R1A_CHROMA_DTO_INCREMENT1, 0x0a},
+-			{TM6010_REQ07_R1B_CHROMA_DTO_INCREMENT0, 0xe0},
+-			{TM6010_REQ07_R1C_HSYNC_DTO_INCREMENT3, 0x1c},
+-			{TM6010_REQ07_R1D_HSYNC_DTO_INCREMENT2, 0xcc},
+-			{TM6010_REQ07_R1E_HSYNC_DTO_INCREMENT1, 0xcc},
+-			{TM6010_REQ07_R1F_HSYNC_DTO_INCREMENT0, 0xcd},
+-			{TM6010_REQ07_R2E_ACTIVE_VIDEO_HSTART, 0x88},
+-			{TM6010_REQ07_R30_ACTIVE_VIDEO_VSTART, 0x20},
+-			{TM6010_REQ07_R31_ACTIVE_VIDEO_VHIGHT, 0x61},
+-			{TM6010_REQ07_R33_VSYNC_HLOCK_MAX, 0x0c},
+-			{TM6010_REQ07_R35_VSYNC_AGC_MAX, 0x1c},
+-			{TM6010_REQ07_R82_COMB_FILTER_CONFIG, 0x52},
+-			{TM6010_REQ07_R83_CHROMA_LOCK_CONFIG, 0x6F},
 -
- struct mt9t112_format {
- 	enum v4l2_mbus_pixelcode code;
- 	enum v4l2_colorspace colorspace;
-@@ -95,7 +90,7 @@ struct mt9t112_priv {
- 	struct mt9t112_camera_info	*info;
- 	struct i2c_client		*client;
- 	struct soc_camera_device	 icd;
--	struct mt9t112_frame_size	 frame;
-+	struct v4l2_rect		 frame;
- 	const struct mt9t112_format	*format;
- 	int				 model;
- 	u32				 flags;
-@@ -348,13 +343,10 @@ static int mt9t112_clock_info(const struct i2c_client *client, u32 ext)
- }
- #endif
- 
--static void mt9t112_frame_check(u32 *width, u32 *height)
-+static void mt9t112_frame_check(u32 *width, u32 *height, u32 *left, u32 *top)
- {
--	if (*width > MAX_WIDTH)
--		*width = MAX_WIDTH;
+-			{TM6010_REQ07_R04_LUMA_HAGC_CONTROL, 0xdc},
+-			{TM6010_REQ07_R0D_CHROMA_KILL_LEVEL, 0x07},
+-			{TM6010_REQ07_R3F_RESET, 0x00},
+-			{0, 0, 0},
+-		},
+-	 }, {
+-		.id = V4L2_STD_PAL_Nc,
+-		.common = {
+-			{TM6010_REQ07_R3F_RESET, 0x01},
+-			{TM6010_REQ07_R00_VIDEO_CONTROL0, 0x36},
+-			{TM6010_REQ07_R01_VIDEO_CONTROL1, 0x0e},
+-			{TM6010_REQ07_R02_VIDEO_CONTROL2, 0x5f},
+-			{TM6010_REQ07_R03_YC_SEP_CONTROL, 0x02},
+-			{TM6010_REQ07_R07_OUTPUT_CONTROL, 0x31},
+-			{TM6010_REQ07_R18_CHROMA_DTO_INCREMENT3, 0x1e},
+-			{TM6010_REQ07_R19_CHROMA_DTO_INCREMENT2, 0x91},
+-			{TM6010_REQ07_R1A_CHROMA_DTO_INCREMENT1, 0x1f},
+-			{TM6010_REQ07_R1B_CHROMA_DTO_INCREMENT0, 0x0c},
+-			{TM6010_REQ07_R1C_HSYNC_DTO_INCREMENT3, 0x1c},
+-			{TM6010_REQ07_R1D_HSYNC_DTO_INCREMENT2, 0xcc},
+-			{TM6010_REQ07_R1E_HSYNC_DTO_INCREMENT1, 0xcc},
+-			{TM6010_REQ07_R1F_HSYNC_DTO_INCREMENT0, 0xcd},
+-			{TM6010_REQ07_R2E_ACTIVE_VIDEO_HSTART, 0x8c},
+-			{TM6010_REQ07_R30_ACTIVE_VIDEO_VSTART, 0x2c},
+-			{TM6010_REQ07_R31_ACTIVE_VIDEO_VHIGHT, 0xc1},
+-			{TM6010_REQ07_R33_VSYNC_HLOCK_MAX, 0x0c},
+-			{TM6010_REQ07_R35_VSYNC_AGC_MAX, 0x1c},
+-			{TM6010_REQ07_R82_COMB_FILTER_CONFIG, 0x52},
+-			{TM6010_REQ07_R83_CHROMA_LOCK_CONFIG, 0x6F},
 -
--	if (*height > MAX_HEIGHT)
--		*height = MAX_HEIGHT;
-+	soc_camera_limit_side(left, width, 0, 0, MAX_WIDTH);
-+	soc_camera_limit_side(top, height, 0, 0, MAX_HEIGHT);
- }
- 
- static int mt9t112_set_a_frame_size(const struct i2c_client *client,
-@@ -849,19 +841,12 @@ static int mt9t112_s_stream(struct v4l2_subdev *sd, int enable)
- 	return ret;
- }
- 
--static int mt9t112_set_params(struct i2c_client *client, u32 width, u32 height,
-+static int mt9t112_set_params(struct mt9t112_priv *priv,
-+			      const struct v4l2_rect *rect,
- 			      enum v4l2_mbus_pixelcode code)
- {
--	struct mt9t112_priv *priv = to_mt9t112(client);
- 	int i;
- 
--	priv->format = NULL;
+-			{TM6010_REQ07_R04_LUMA_HAGC_CONTROL, 0xdc},
+-			{TM6010_REQ07_R0D_CHROMA_KILL_LEVEL, 0x07},
+-			{TM6010_REQ07_R3F_RESET, 0x00},
+-			{0, 0, 0},
+-		},
+-	}, {
+-		.id = V4L2_STD_PAL,
+-		.common = {
+-			{TM6010_REQ07_R3F_RESET, 0x01},
+-			{TM6010_REQ07_R00_VIDEO_CONTROL0, 0x32},
+-			{TM6010_REQ07_R01_VIDEO_CONTROL1, 0x0e},
+-			{TM6010_REQ07_R02_VIDEO_CONTROL2, 0x5f},
+-			{TM6010_REQ07_R03_YC_SEP_CONTROL, 0x02},
+-			{TM6010_REQ07_R07_OUTPUT_CONTROL, 0x31},
+-			{TM6010_REQ07_R18_CHROMA_DTO_INCREMENT3, 0x25},
+-			{TM6010_REQ07_R19_CHROMA_DTO_INCREMENT2, 0xd5},
+-			{TM6010_REQ07_R1A_CHROMA_DTO_INCREMENT1, 0x63},
+-			{TM6010_REQ07_R1B_CHROMA_DTO_INCREMENT0, 0x50},
+-			{TM6010_REQ07_R1C_HSYNC_DTO_INCREMENT3, 0x1c},
+-			{TM6010_REQ07_R1D_HSYNC_DTO_INCREMENT2, 0xcc},
+-			{TM6010_REQ07_R1E_HSYNC_DTO_INCREMENT1, 0xcc},
+-			{TM6010_REQ07_R1F_HSYNC_DTO_INCREMENT0, 0xcd},
+-			{TM6010_REQ07_R2E_ACTIVE_VIDEO_HSTART, 0x8c},
+-			{TM6010_REQ07_R30_ACTIVE_VIDEO_VSTART, 0x2c},
+-			{TM6010_REQ07_R31_ACTIVE_VIDEO_VHIGHT, 0xc1},
+-			{TM6010_REQ07_R33_VSYNC_HLOCK_MAX, 0x0c},
+-			{TM6010_REQ07_R35_VSYNC_AGC_MAX, 0x1c},
+-			{TM6010_REQ07_R82_COMB_FILTER_CONFIG, 0x52},
+-			{TM6010_REQ07_R83_CHROMA_LOCK_CONFIG, 0x6F},
 -
--	/*
--	 * frame size check
--	 */
--	mt9t112_frame_check(&width, &height);
+-			{TM6010_REQ07_R04_LUMA_HAGC_CONTROL, 0xdc},
+-			{TM6010_REQ07_R0D_CHROMA_KILL_LEVEL, 0x07},
+-			{TM6010_REQ07_R3F_RESET, 0x00},
+-			{0, 0, 0},
+-		},
+-	 }, {
+-		.id = V4L2_STD_SECAM,
+-		.common = {
+-			{TM6010_REQ07_R3F_RESET, 0x01},
+-			{TM6010_REQ07_R00_VIDEO_CONTROL0, 0x38},
+-			{TM6010_REQ07_R01_VIDEO_CONTROL1, 0x0e},
+-			{TM6010_REQ07_R02_VIDEO_CONTROL2, 0x5f},
+-			{TM6010_REQ07_R03_YC_SEP_CONTROL, 0x02},
+-			{TM6010_REQ07_R07_OUTPUT_CONTROL, 0x31},
+-			{TM6010_REQ07_R18_CHROMA_DTO_INCREMENT3, 0x24},
+-			{TM6010_REQ07_R19_CHROMA_DTO_INCREMENT2, 0x92},
+-			{TM6010_REQ07_R1A_CHROMA_DTO_INCREMENT1, 0xe8},
+-			{TM6010_REQ07_R1B_CHROMA_DTO_INCREMENT0, 0xed},
+-			{TM6010_REQ07_R1C_HSYNC_DTO_INCREMENT3, 0x1c},
+-			{TM6010_REQ07_R1D_HSYNC_DTO_INCREMENT2, 0xcc},
+-			{TM6010_REQ07_R1E_HSYNC_DTO_INCREMENT1, 0xcc},
+-			{TM6010_REQ07_R1F_HSYNC_DTO_INCREMENT0, 0xcd},
+-			{TM6010_REQ07_R2E_ACTIVE_VIDEO_HSTART, 0x8c},
+-			{TM6010_REQ07_R30_ACTIVE_VIDEO_VSTART, 0x2c},
+-			{TM6010_REQ07_R31_ACTIVE_VIDEO_VHIGHT, 0xc1},
+-			{TM6010_REQ07_R33_VSYNC_HLOCK_MAX, 0x2c},
+-			{TM6010_REQ07_R35_VSYNC_AGC_MAX, 0x18},
+-			{TM6010_REQ07_R82_COMB_FILTER_CONFIG, 0x42},
+-			{TM6010_REQ07_R83_CHROMA_LOCK_CONFIG, 0xFF},
 -
- 	/*
- 	 * get color format
- 	 */
-@@ -872,8 +857,13 @@ static int mt9t112_set_params(struct i2c_client *client, u32 width, u32 height,
- 	if (i == ARRAY_SIZE(mt9t112_cfmts))
- 		return -EINVAL;
- 
--	priv->frame.width  = (u16)width;
--	priv->frame.height = (u16)height;
-+	priv->frame  = *rect;
-+
-+	/*
-+	 * frame size check
-+	 */
-+	mt9t112_frame_check(&priv->frame.width, &priv->frame.height,
-+			    &priv->frame.left, &priv->frame.top);
- 
- 	priv->format = mt9t112_cfmts + i;
- 
-@@ -884,9 +874,12 @@ static int mt9t112_cropcap(struct v4l2_subdev *sd, struct v4l2_cropcap *a)
- {
- 	a->bounds.left			= 0;
- 	a->bounds.top			= 0;
--	a->bounds.width			= VGA_WIDTH;
--	a->bounds.height		= VGA_HEIGHT;
--	a->defrect			= a->bounds;
-+	a->bounds.width			= MAX_WIDTH;
-+	a->bounds.height		= MAX_HEIGHT;
-+	a->defrect.left			= 0;
-+	a->defrect.top			= 0;
-+	a->defrect.width		= VGA_WIDTH;
-+	a->defrect.height		= VGA_HEIGHT;
- 	a->type				= V4L2_BUF_TYPE_VIDEO_CAPTURE;
- 	a->pixelaspect.numerator	= 1;
- 	a->pixelaspect.denominator	= 1;
-@@ -896,11 +889,11 @@ static int mt9t112_cropcap(struct v4l2_subdev *sd, struct v4l2_cropcap *a)
- 
- static int mt9t112_g_crop(struct v4l2_subdev *sd, struct v4l2_crop *a)
- {
--	a->c.left	= 0;
--	a->c.top	= 0;
--	a->c.width	= VGA_WIDTH;
--	a->c.height	= VGA_HEIGHT;
--	a->type		= V4L2_BUF_TYPE_VIDEO_CAPTURE;
-+	struct i2c_client *client = v4l2_get_subdevdata(sd);
-+	struct mt9t112_priv *priv = to_mt9t112(client);
-+
-+	a->c	= priv->frame;
-+	a->type	= V4L2_BUF_TYPE_VIDEO_CAPTURE;
- 
- 	return 0;
- }
-@@ -908,10 +901,10 @@ static int mt9t112_g_crop(struct v4l2_subdev *sd, struct v4l2_crop *a)
- static int mt9t112_s_crop(struct v4l2_subdev *sd, struct v4l2_crop *a)
- {
- 	struct i2c_client *client = v4l2_get_subdevdata(sd);
-+	struct mt9t112_priv *priv = to_mt9t112(client);
- 	struct v4l2_rect *rect = &a->c;
- 
--	return mt9t112_set_params(client, rect->width, rect->height,
--				 V4L2_MBUS_FMT_UYVY8_2X8);
-+	return mt9t112_set_params(priv, rect, priv->format->code);
- }
- 
- static int mt9t112_g_fmt(struct v4l2_subdev *sd,
-@@ -920,16 +913,9 @@ static int mt9t112_g_fmt(struct v4l2_subdev *sd,
- 	struct i2c_client *client = v4l2_get_subdevdata(sd);
- 	struct mt9t112_priv *priv = to_mt9t112(client);
- 
--	if (!priv->format) {
--		int ret = mt9t112_set_params(client, VGA_WIDTH, VGA_HEIGHT,
--					     V4L2_MBUS_FMT_UYVY8_2X8);
--		if (ret < 0)
--			return ret;
--	}
+-			{TM6010_REQ07_R0D_CHROMA_KILL_LEVEL, 0x07},
+-			{TM6010_REQ07_R3F_RESET, 0x00},
+-			{0, 0, 0},
+-		},
+-	}, {
+-		.id = V4L2_STD_NTSC,
+-		.common = {
+-			{TM6010_REQ07_R3F_RESET, 0x01},
+-			{TM6010_REQ07_R00_VIDEO_CONTROL0, 0x00},
+-			{TM6010_REQ07_R01_VIDEO_CONTROL1, 0x0f},
+-			{TM6010_REQ07_R02_VIDEO_CONTROL2, 0x5f},
+-			{TM6010_REQ07_R03_YC_SEP_CONTROL, 0x00},
+-			{TM6010_REQ07_R07_OUTPUT_CONTROL, 0x31},
+-			{TM6010_REQ07_R18_CHROMA_DTO_INCREMENT3, 0x1e},
+-			{TM6010_REQ07_R19_CHROMA_DTO_INCREMENT2, 0x8b},
+-			{TM6010_REQ07_R1A_CHROMA_DTO_INCREMENT1, 0xa2},
+-			{TM6010_REQ07_R1B_CHROMA_DTO_INCREMENT0, 0xe9},
+-			{TM6010_REQ07_R1C_HSYNC_DTO_INCREMENT3, 0x1c},
+-			{TM6010_REQ07_R1D_HSYNC_DTO_INCREMENT2, 0xcc},
+-			{TM6010_REQ07_R1E_HSYNC_DTO_INCREMENT1, 0xcc},
+-			{TM6010_REQ07_R1F_HSYNC_DTO_INCREMENT0, 0xcd},
+-			{TM6010_REQ07_R2E_ACTIVE_VIDEO_HSTART, 0x88},
+-			{TM6010_REQ07_R30_ACTIVE_VIDEO_VSTART, 0x22},
+-			{TM6010_REQ07_R31_ACTIVE_VIDEO_VHIGHT, 0x61},
+-			{TM6010_REQ07_R33_VSYNC_HLOCK_MAX, 0x1c},
+-			{TM6010_REQ07_R35_VSYNC_AGC_MAX, 0x1c},
+-			{TM6010_REQ07_R82_COMB_FILTER_CONFIG, 0x42},
+-			{TM6010_REQ07_R83_CHROMA_LOCK_CONFIG, 0x6F},
 -
- 	mf->width	= priv->frame.width;
- 	mf->height	= priv->frame.height;
--	/* TODO: set colorspace */
-+	mf->colorspace	= priv->format->colorspace;
- 	mf->code	= priv->format->code;
- 	mf->field	= V4L2_FIELD_NONE;
+-			{TM6010_REQ07_R04_LUMA_HAGC_CONTROL, 0xdd},
+-			{TM6010_REQ07_R0D_CHROMA_KILL_LEVEL, 0x07},
+-			{TM6010_REQ07_R3F_RESET, 0x00},
+-			{0, 0, 0},
+-		},
+-	},
++	{ .id = V4L2_STD_PAL_M, .common = composite_pal_m, },
++	{ .id = V4L2_STD_PAL_Nc, .common = composite_pal_nc, },
++	{ .id = V4L2_STD_PAL, .common = composite_pal, },
++	{ .id = V4L2_STD_SECAM, .common = composite_secam, },
++	{ .id = V4L2_STD_NTSC, .common = composite_ntsc, },
+ };
  
-@@ -940,17 +926,42 @@ static int mt9t112_s_fmt(struct v4l2_subdev *sd,
- 			 struct v4l2_mbus_framefmt *mf)
+-static struct tm6000_std_settings svideo_stds[] = {
+-	{
+-		.id = V4L2_STD_PAL_M,
+-		.common = {
+-			{TM6010_REQ07_R3F_RESET, 0x01},
+-			{TM6010_REQ07_R00_VIDEO_CONTROL0, 0x05},
+-			{TM6010_REQ07_R01_VIDEO_CONTROL1, 0x0e},
+-			{TM6010_REQ07_R02_VIDEO_CONTROL2, 0x5f},
+-			{TM6010_REQ07_R03_YC_SEP_CONTROL, 0x04},
+-			{TM6010_REQ07_R07_OUTPUT_CONTROL, 0x31},
+-			{TM6010_REQ07_R18_CHROMA_DTO_INCREMENT3, 0x1e},
+-			{TM6010_REQ07_R19_CHROMA_DTO_INCREMENT2, 0x83},
+-			{TM6010_REQ07_R1A_CHROMA_DTO_INCREMENT1, 0x0a},
+-			{TM6010_REQ07_R1B_CHROMA_DTO_INCREMENT0, 0xe0},
+-			{TM6010_REQ07_R1C_HSYNC_DTO_INCREMENT3, 0x1c},
+-			{TM6010_REQ07_R1D_HSYNC_DTO_INCREMENT2, 0xcc},
+-			{TM6010_REQ07_R1E_HSYNC_DTO_INCREMENT1, 0xcc},
+-			{TM6010_REQ07_R1F_HSYNC_DTO_INCREMENT0, 0xcd},
+-			{TM6010_REQ07_R2E_ACTIVE_VIDEO_HSTART, 0x88},
+-			{TM6010_REQ07_R30_ACTIVE_VIDEO_VSTART, 0x22},
+-			{TM6010_REQ07_R31_ACTIVE_VIDEO_VHIGHT, 0x61},
+-			{TM6010_REQ07_R33_VSYNC_HLOCK_MAX, 0x0c},
+-			{TM6010_REQ07_R35_VSYNC_AGC_MAX, 0x1c},
+-			{TM6010_REQ07_R82_COMB_FILTER_CONFIG, 0x52},
+-			{TM6010_REQ07_R83_CHROMA_LOCK_CONFIG, 0x6F},
+-
+-			{TM6010_REQ07_R04_LUMA_HAGC_CONTROL, 0xdc},
+-			{TM6010_REQ07_R0D_CHROMA_KILL_LEVEL, 0x07},
+-			{TM6010_REQ07_R3F_RESET, 0x00},
+-			{0, 0, 0},
+-		},
+-	}, {
+-		.id = V4L2_STD_PAL_Nc,
+-		.common = {
+-			{TM6010_REQ07_R3F_RESET, 0x01},
+-			{TM6010_REQ07_R00_VIDEO_CONTROL0, 0x37},
+-			{TM6010_REQ07_R01_VIDEO_CONTROL1, 0x0e},
+-			{TM6010_REQ07_R02_VIDEO_CONTROL2, 0x5f},
+-			{TM6010_REQ07_R03_YC_SEP_CONTROL, 0x04},
+-			{TM6010_REQ07_R07_OUTPUT_CONTROL, 0x31},
+-			{TM6010_REQ07_R18_CHROMA_DTO_INCREMENT3, 0x1e},
+-			{TM6010_REQ07_R19_CHROMA_DTO_INCREMENT2, 0x91},
+-			{TM6010_REQ07_R1A_CHROMA_DTO_INCREMENT1, 0x1f},
+-			{TM6010_REQ07_R1B_CHROMA_DTO_INCREMENT0, 0x0c},
+-			{TM6010_REQ07_R1C_HSYNC_DTO_INCREMENT3, 0x1c},
+-			{TM6010_REQ07_R1D_HSYNC_DTO_INCREMENT2, 0xcc},
+-			{TM6010_REQ07_R1E_HSYNC_DTO_INCREMENT1, 0xcc},
+-			{TM6010_REQ07_R1F_HSYNC_DTO_INCREMENT0, 0xcd},
+-			{TM6010_REQ07_R2E_ACTIVE_VIDEO_HSTART, 0x88},
+-			{TM6010_REQ07_R30_ACTIVE_VIDEO_VSTART, 0x22},
+-			{TM6010_REQ07_R31_ACTIVE_VIDEO_VHIGHT, 0xc1},
+-			{TM6010_REQ07_R33_VSYNC_HLOCK_MAX, 0x0c},
+-			{TM6010_REQ07_R35_VSYNC_AGC_MAX, 0x1c},
+-			{TM6010_REQ07_R82_COMB_FILTER_CONFIG, 0x52},
+-			{TM6010_REQ07_R83_CHROMA_LOCK_CONFIG, 0x6F},
+-
+-			{TM6010_REQ07_R04_LUMA_HAGC_CONTROL, 0xdc},
+-			{TM6010_REQ07_R0D_CHROMA_KILL_LEVEL, 0x07},
+-			{TM6010_REQ07_R3F_RESET, 0x00},
+-			{0, 0, 0},
+-		},
+-	}, {
+-		.id = V4L2_STD_PAL,
+-		.common = {
+-			{TM6010_REQ07_R3F_RESET, 0x01},
+-			{TM6010_REQ07_R00_VIDEO_CONTROL0, 0x33},
+-			{TM6010_REQ07_R01_VIDEO_CONTROL1, 0x0e},
+-			{TM6010_REQ07_R02_VIDEO_CONTROL2, 0x5f},
+-			{TM6010_REQ07_R03_YC_SEP_CONTROL, 0x04},
+-			{TM6010_REQ07_R07_OUTPUT_CONTROL, 0x30},
+-			{TM6010_REQ07_R18_CHROMA_DTO_INCREMENT3, 0x25},
+-			{TM6010_REQ07_R19_CHROMA_DTO_INCREMENT2, 0xd5},
+-			{TM6010_REQ07_R1A_CHROMA_DTO_INCREMENT1, 0x63},
+-			{TM6010_REQ07_R1B_CHROMA_DTO_INCREMENT0, 0x50},
+-			{TM6010_REQ07_R1C_HSYNC_DTO_INCREMENT3, 0x1c},
+-			{TM6010_REQ07_R1D_HSYNC_DTO_INCREMENT2, 0xcc},
+-			{TM6010_REQ07_R1E_HSYNC_DTO_INCREMENT1, 0xcc},
+-			{TM6010_REQ07_R1F_HSYNC_DTO_INCREMENT0, 0xcd},
+-			{TM6010_REQ07_R2E_ACTIVE_VIDEO_HSTART, 0x8c},
+-			{TM6010_REQ07_R30_ACTIVE_VIDEO_VSTART, 0x2a},
+-			{TM6010_REQ07_R31_ACTIVE_VIDEO_VHIGHT, 0xc1},
+-			{TM6010_REQ07_R33_VSYNC_HLOCK_MAX, 0x0c},
+-			{TM6010_REQ07_R35_VSYNC_AGC_MAX, 0x1c},
+-			{TM6010_REQ07_R82_COMB_FILTER_CONFIG, 0x52},
+-			{TM6010_REQ07_R83_CHROMA_LOCK_CONFIG, 0x6F},
+-
+-			{TM6010_REQ07_R04_LUMA_HAGC_CONTROL, 0xdc},
+-			{TM6010_REQ07_R0D_CHROMA_KILL_LEVEL, 0x07},
+-			{TM6010_REQ07_R3F_RESET, 0x00},
+-			{0, 0, 0},
+-		},
+-	 }, {
+-		.id = V4L2_STD_SECAM,
+-		.common = {
+-			{TM6010_REQ07_R3F_RESET, 0x01},
+-			{TM6010_REQ07_R00_VIDEO_CONTROL0, 0x39},
+-			{TM6010_REQ07_R01_VIDEO_CONTROL1, 0x0e},
+-			{TM6010_REQ07_R02_VIDEO_CONTROL2, 0x5f},
+-			{TM6010_REQ07_R03_YC_SEP_CONTROL, 0x03},
+-			{TM6010_REQ07_R07_OUTPUT_CONTROL, 0x31},
+-			{TM6010_REQ07_R18_CHROMA_DTO_INCREMENT3, 0x24},
+-			{TM6010_REQ07_R19_CHROMA_DTO_INCREMENT2, 0x92},
+-			{TM6010_REQ07_R1A_CHROMA_DTO_INCREMENT1, 0xe8},
+-			{TM6010_REQ07_R1B_CHROMA_DTO_INCREMENT0, 0xed},
+-			{TM6010_REQ07_R1C_HSYNC_DTO_INCREMENT3, 0x1c},
+-			{TM6010_REQ07_R1D_HSYNC_DTO_INCREMENT2, 0xcc},
+-			{TM6010_REQ07_R1E_HSYNC_DTO_INCREMENT1, 0xcc},
+-			{TM6010_REQ07_R1F_HSYNC_DTO_INCREMENT0, 0xcd},
+-			{TM6010_REQ07_R2E_ACTIVE_VIDEO_HSTART, 0x8c},
+-			{TM6010_REQ07_R30_ACTIVE_VIDEO_VSTART, 0x2a},
+-			{TM6010_REQ07_R31_ACTIVE_VIDEO_VHIGHT, 0xc1},
+-			{TM6010_REQ07_R33_VSYNC_HLOCK_MAX, 0x2c},
+-			{TM6010_REQ07_R35_VSYNC_AGC_MAX, 0x18},
+-			{TM6010_REQ07_R82_COMB_FILTER_CONFIG, 0x42},
+-			{TM6010_REQ07_R83_CHROMA_LOCK_CONFIG, 0xFF},
+-
+-			{TM6010_REQ07_R0D_CHROMA_KILL_LEVEL, 0x07},
+-			{TM6010_REQ07_R3F_RESET, 0x00},
+-			{0, 0, 0},
+-		},
+-	}, {
+-		.id = V4L2_STD_NTSC,
+-		.common = {
+-			{TM6010_REQ07_R3F_RESET, 0x01},
+-			{TM6010_REQ07_R00_VIDEO_CONTROL0, 0x01},
+-			{TM6010_REQ07_R01_VIDEO_CONTROL1, 0x0f},
+-			{TM6010_REQ07_R02_VIDEO_CONTROL2, 0x5f},
+-			{TM6010_REQ07_R03_YC_SEP_CONTROL, 0x03},
+-			{TM6010_REQ07_R07_OUTPUT_CONTROL, 0x30},
+-			{TM6010_REQ07_R17_HLOOP_MAXSTATE, 0x8b},
+-			{TM6010_REQ07_R18_CHROMA_DTO_INCREMENT3, 0x1e},
+-			{TM6010_REQ07_R19_CHROMA_DTO_INCREMENT2, 0x8b},
+-			{TM6010_REQ07_R1A_CHROMA_DTO_INCREMENT1, 0xa2},
+-			{TM6010_REQ07_R1B_CHROMA_DTO_INCREMENT0, 0xe9},
+-			{TM6010_REQ07_R1C_HSYNC_DTO_INCREMENT3, 0x1c},
+-			{TM6010_REQ07_R1D_HSYNC_DTO_INCREMENT2, 0xcc},
+-			{TM6010_REQ07_R1E_HSYNC_DTO_INCREMENT1, 0xcc},
+-			{TM6010_REQ07_R1F_HSYNC_DTO_INCREMENT0, 0xcd},
+-			{TM6010_REQ07_R2E_ACTIVE_VIDEO_HSTART, 0x88},
+-			{TM6010_REQ07_R30_ACTIVE_VIDEO_VSTART, 0x22},
+-			{TM6010_REQ07_R31_ACTIVE_VIDEO_VHIGHT, 0x61},
+-			{TM6010_REQ07_R33_VSYNC_HLOCK_MAX, 0x1c},
+-			{TM6010_REQ07_R35_VSYNC_AGC_MAX, 0x1c},
+-			{TM6010_REQ07_R82_COMB_FILTER_CONFIG, 0x42},
+-			{TM6010_REQ07_R83_CHROMA_LOCK_CONFIG, 0x6F},
+-
+-			{TM6010_REQ07_R04_LUMA_HAGC_CONTROL, 0xdd},
+-			{TM6010_REQ07_R0D_CHROMA_KILL_LEVEL, 0x07},
+-			{TM6010_REQ07_R3F_RESET, 0x00},
+-			{0, 0, 0},
+-		},
+-	},
++static struct tm6000_reg_settings svideo_pal_m[] = {
++	{ TM6010_REQ07_R3F_RESET, 0x01 },
++	{ TM6010_REQ07_R00_VIDEO_CONTROL0, 0x05 },
++	{ TM6010_REQ07_R01_VIDEO_CONTROL1, 0x0e },
++	{ TM6010_REQ07_R02_VIDEO_CONTROL2, 0x5f },
++	{ TM6010_REQ07_R03_YC_SEP_CONTROL, 0x04 },
++	{ TM6010_REQ07_R07_OUTPUT_CONTROL, 0x31 },
++	{ TM6010_REQ07_R18_CHROMA_DTO_INCREMENT3, 0x1e },
++	{ TM6010_REQ07_R19_CHROMA_DTO_INCREMENT2, 0x83 },
++	{ TM6010_REQ07_R1A_CHROMA_DTO_INCREMENT1, 0x0a },
++	{ TM6010_REQ07_R1B_CHROMA_DTO_INCREMENT0, 0xe0 },
++	{ TM6010_REQ07_R1C_HSYNC_DTO_INCREMENT3, 0x1c },
++	{ TM6010_REQ07_R1D_HSYNC_DTO_INCREMENT2, 0xcc },
++	{ TM6010_REQ07_R1E_HSYNC_DTO_INCREMENT1, 0xcc },
++	{ TM6010_REQ07_R1F_HSYNC_DTO_INCREMENT0, 0xcd },
++	{ TM6010_REQ07_R2E_ACTIVE_VIDEO_HSTART, 0x88 },
++	{ TM6010_REQ07_R30_ACTIVE_VIDEO_VSTART, 0x22 },
++	{ TM6010_REQ07_R31_ACTIVE_VIDEO_VHIGHT, 0x61 },
++	{ TM6010_REQ07_R33_VSYNC_HLOCK_MAX, 0x0c },
++	{ TM6010_REQ07_R35_VSYNC_AGC_MAX, 0x1c },
++	{ TM6010_REQ07_R82_COMB_FILTER_CONFIG, 0x52 },
++	{ TM6010_REQ07_R83_CHROMA_LOCK_CONFIG, 0x6f },
++	{ TM6010_REQ07_R04_LUMA_HAGC_CONTROL, 0xdc },
++	{ TM6010_REQ07_R0D_CHROMA_KILL_LEVEL, 0x07 },
++	{ TM6010_REQ07_R3F_RESET, 0x00 },
++	{ 0, 0, 0 }
+ };
+ 
++static struct tm6000_reg_settings svideo_pal_nc[] = {
++	{ TM6010_REQ07_R3F_RESET, 0x01 },
++	{ TM6010_REQ07_R00_VIDEO_CONTROL0, 0x37 },
++	{ TM6010_REQ07_R01_VIDEO_CONTROL1, 0x0e },
++	{ TM6010_REQ07_R02_VIDEO_CONTROL2, 0x5f },
++	{ TM6010_REQ07_R03_YC_SEP_CONTROL, 0x04 },
++	{ TM6010_REQ07_R07_OUTPUT_CONTROL, 0x31 },
++	{ TM6010_REQ07_R18_CHROMA_DTO_INCREMENT3, 0x1e },
++	{ TM6010_REQ07_R19_CHROMA_DTO_INCREMENT2, 0x91 },
++	{ TM6010_REQ07_R1A_CHROMA_DTO_INCREMENT1, 0x1f },
++	{ TM6010_REQ07_R1B_CHROMA_DTO_INCREMENT0, 0x0c },
++	{ TM6010_REQ07_R1C_HSYNC_DTO_INCREMENT3, 0x1c },
++	{ TM6010_REQ07_R1D_HSYNC_DTO_INCREMENT2, 0xcc },
++	{ TM6010_REQ07_R1E_HSYNC_DTO_INCREMENT1, 0xcc },
++	{ TM6010_REQ07_R1F_HSYNC_DTO_INCREMENT0, 0xcd },
++	{ TM6010_REQ07_R2E_ACTIVE_VIDEO_HSTART, 0x88 },
++	{ TM6010_REQ07_R30_ACTIVE_VIDEO_VSTART, 0x22 },
++	{ TM6010_REQ07_R31_ACTIVE_VIDEO_VHIGHT, 0xc1 },
++	{ TM6010_REQ07_R33_VSYNC_HLOCK_MAX, 0x0c },
++	{ TM6010_REQ07_R35_VSYNC_AGC_MAX, 0x1c },
++	{ TM6010_REQ07_R82_COMB_FILTER_CONFIG, 0x52 },
++	{ TM6010_REQ07_R83_CHROMA_LOCK_CONFIG, 0x6f },
++	{ TM6010_REQ07_R04_LUMA_HAGC_CONTROL, 0xdc },
++	{ TM6010_REQ07_R0D_CHROMA_KILL_LEVEL, 0x07 },
++	{ TM6010_REQ07_R3F_RESET, 0x00 },
++	{ 0, 0, 0 }
++};
++
++static struct tm6000_reg_settings svideo_pal[] = {
++	{ TM6010_REQ07_R3F_RESET, 0x01 },
++	{ TM6010_REQ07_R00_VIDEO_CONTROL0, 0x33 },
++	{ TM6010_REQ07_R01_VIDEO_CONTROL1, 0x0e },
++	{ TM6010_REQ07_R02_VIDEO_CONTROL2, 0x5f },
++	{ TM6010_REQ07_R03_YC_SEP_CONTROL, 0x04 },
++	{ TM6010_REQ07_R07_OUTPUT_CONTROL, 0x30 },
++	{ TM6010_REQ07_R18_CHROMA_DTO_INCREMENT3, 0x25 },
++	{ TM6010_REQ07_R19_CHROMA_DTO_INCREMENT2, 0xd5 },
++	{ TM6010_REQ07_R1A_CHROMA_DTO_INCREMENT1, 0x63 },
++	{ TM6010_REQ07_R1B_CHROMA_DTO_INCREMENT0, 0x50 },
++	{ TM6010_REQ07_R1C_HSYNC_DTO_INCREMENT3, 0x1c },
++	{ TM6010_REQ07_R1D_HSYNC_DTO_INCREMENT2, 0xcc },
++	{ TM6010_REQ07_R1E_HSYNC_DTO_INCREMENT1, 0xcc },
++	{ TM6010_REQ07_R1F_HSYNC_DTO_INCREMENT0, 0xcd },
++	{ TM6010_REQ07_R2E_ACTIVE_VIDEO_HSTART, 0x8c },
++	{ TM6010_REQ07_R30_ACTIVE_VIDEO_VSTART, 0x2a },
++	{ TM6010_REQ07_R31_ACTIVE_VIDEO_VHIGHT, 0xc1 },
++	{ TM6010_REQ07_R33_VSYNC_HLOCK_MAX, 0x0c },
++	{ TM6010_REQ07_R35_VSYNC_AGC_MAX, 0x1c },
++	{ TM6010_REQ07_R82_COMB_FILTER_CONFIG, 0x52 },
++	{ TM6010_REQ07_R83_CHROMA_LOCK_CONFIG, 0x6f },
++	{ TM6010_REQ07_R04_LUMA_HAGC_CONTROL, 0xdc },
++	{ TM6010_REQ07_R0D_CHROMA_KILL_LEVEL, 0x07 },
++	{ TM6010_REQ07_R3F_RESET, 0x00 },
++	{ 0, 0, 0 }
++};
++
++static struct tm6000_reg_settings svideo_secam[] = {
++	{ TM6010_REQ07_R3F_RESET, 0x01 },
++	{ TM6010_REQ07_R00_VIDEO_CONTROL0, 0x39 },
++	{ TM6010_REQ07_R01_VIDEO_CONTROL1, 0x0e },
++	{ TM6010_REQ07_R02_VIDEO_CONTROL2, 0x5f },
++	{ TM6010_REQ07_R03_YC_SEP_CONTROL, 0x03 },
++	{ TM6010_REQ07_R07_OUTPUT_CONTROL, 0x31 },
++	{ TM6010_REQ07_R18_CHROMA_DTO_INCREMENT3, 0x24 },
++	{ TM6010_REQ07_R19_CHROMA_DTO_INCREMENT2, 0x92 },
++	{ TM6010_REQ07_R1A_CHROMA_DTO_INCREMENT1, 0xe8 },
++	{ TM6010_REQ07_R1B_CHROMA_DTO_INCREMENT0, 0xed },
++	{ TM6010_REQ07_R1C_HSYNC_DTO_INCREMENT3, 0x1c },
++	{ TM6010_REQ07_R1D_HSYNC_DTO_INCREMENT2, 0xcc },
++	{ TM6010_REQ07_R1E_HSYNC_DTO_INCREMENT1, 0xcc },
++	{ TM6010_REQ07_R1F_HSYNC_DTO_INCREMENT0, 0xcd },
++	{ TM6010_REQ07_R2E_ACTIVE_VIDEO_HSTART, 0x8c },
++	{ TM6010_REQ07_R30_ACTIVE_VIDEO_VSTART, 0x2a },
++	{ TM6010_REQ07_R31_ACTIVE_VIDEO_VHIGHT, 0xc1 },
++	{ TM6010_REQ07_R33_VSYNC_HLOCK_MAX, 0x2c },
++	{ TM6010_REQ07_R35_VSYNC_AGC_MAX, 0x18 },
++	{ TM6010_REQ07_R82_COMB_FILTER_CONFIG, 0x42 },
++	{ TM6010_REQ07_R83_CHROMA_LOCK_CONFIG, 0xff },
++	{ TM6010_REQ07_R0D_CHROMA_KILL_LEVEL, 0x07 },
++	{ TM6010_REQ07_R3F_RESET, 0x00 },
++	{ 0, 0, 0 }
++};
++
++static struct tm6000_reg_settings svideo_ntsc[] = {
++	{ TM6010_REQ07_R3F_RESET, 0x01 },
++	{ TM6010_REQ07_R00_VIDEO_CONTROL0, 0x01 },
++	{ TM6010_REQ07_R01_VIDEO_CONTROL1, 0x0f },
++	{ TM6010_REQ07_R02_VIDEO_CONTROL2, 0x5f },
++	{ TM6010_REQ07_R03_YC_SEP_CONTROL, 0x03 },
++	{ TM6010_REQ07_R07_OUTPUT_CONTROL, 0x30 },
++	{ TM6010_REQ07_R17_HLOOP_MAXSTATE, 0x8b },
++	{ TM6010_REQ07_R18_CHROMA_DTO_INCREMENT3, 0x1e },
++	{ TM6010_REQ07_R19_CHROMA_DTO_INCREMENT2, 0x8b },
++	{ TM6010_REQ07_R1A_CHROMA_DTO_INCREMENT1, 0xa2 },
++	{ TM6010_REQ07_R1B_CHROMA_DTO_INCREMENT0, 0xe9 },
++	{ TM6010_REQ07_R1C_HSYNC_DTO_INCREMENT3, 0x1c },
++	{ TM6010_REQ07_R1D_HSYNC_DTO_INCREMENT2, 0xcc },
++	{ TM6010_REQ07_R1E_HSYNC_DTO_INCREMENT1, 0xcc },
++	{ TM6010_REQ07_R1F_HSYNC_DTO_INCREMENT0, 0xcd },
++	{ TM6010_REQ07_R2E_ACTIVE_VIDEO_HSTART, 0x88 },
++	{ TM6010_REQ07_R30_ACTIVE_VIDEO_VSTART, 0x22 },
++	{ TM6010_REQ07_R31_ACTIVE_VIDEO_VHIGHT, 0x61 },
++	{ TM6010_REQ07_R33_VSYNC_HLOCK_MAX, 0x1c },
++	{ TM6010_REQ07_R35_VSYNC_AGC_MAX, 0x1c },
++	{ TM6010_REQ07_R82_COMB_FILTER_CONFIG, 0x42 },
++	{ TM6010_REQ07_R83_CHROMA_LOCK_CONFIG, 0x6f },
++	{ TM6010_REQ07_R04_LUMA_HAGC_CONTROL, 0xdd },
++	{ TM6010_REQ07_R0D_CHROMA_KILL_LEVEL, 0x07 },
++	{ TM6010_REQ07_R3F_RESET, 0x00 },
++	{ 0, 0, 0 }
++};
++
++static struct tm6000_std_settings svideo_stds[] = {
++	{ .id = V4L2_STD_PAL_M, .common = svideo_pal_m, },
++	{ .id = V4L2_STD_PAL_Nc, .common = svideo_pal_nc, },
++	{ .id = V4L2_STD_PAL, .common = svideo_pal, },
++	{ .id = V4L2_STD_SECAM, .common = svideo_secam, },
++	{ .id = V4L2_STD_NTSC, .common = svideo_ntsc, },
++};
+ 
+ static int tm6000_set_audio_std(struct tm6000_core *dev)
  {
- 	struct i2c_client *client = v4l2_get_subdevdata(sd);
-+	struct mt9t112_priv *priv = to_mt9t112(client);
-+	struct v4l2_rect rect = {
-+		.width = mf->width,
-+		.height = mf->height,
-+		.left = priv->frame.left,
-+		.top = priv->frame.top,
-+	};
-+	int ret;
-+
-+	ret = mt9t112_set_params(priv, &rect, mf->code);
-+
-+	if (!ret)
-+		mf->colorspace = priv->format->colorspace;
- 
--	/* TODO: set colorspace */
--	return mt9t112_set_params(client, mf->width, mf->height, mf->code);
-+	return ret;
+@@ -501,16 +488,12 @@ void tm6000_get_std_res(struct tm6000_core *dev)
+ 	dev->width = 720;
  }
  
- static int mt9t112_try_fmt(struct v4l2_subdev *sd,
- 			   struct v4l2_mbus_framefmt *mf)
+-static int tm6000_load_std(struct tm6000_core *dev,
+-			   struct tm6000_reg_settings *set, int max_size)
++static int tm6000_load_std(struct tm6000_core *dev, struct tm6000_reg_settings *set)
  {
--	mt9t112_frame_check(&mf->width, &mf->height);
-+	unsigned int top, left;
-+	int i;
-+
-+	for (i = 0; i < ARRAY_SIZE(mt9t112_cfmts); i++)
-+		if (mt9t112_cfmts[i].code == mf->code)
-+			break;
-+
-+	if (i == ARRAY_SIZE(mt9t112_cfmts)) {
-+		mf->code = V4L2_MBUS_FMT_UYVY8_2X8;
-+		mf->colorspace = V4L2_COLORSPACE_JPEG;
-+	} else {
-+		mf->colorspace	= mt9t112_cfmts[i].colorspace;
-+	}
-+
-+	mt9t112_frame_check(&mf->width, &mf->height, &left, &top);
+ 	int i, rc;
  
--	/* TODO: set colorspace */
- 	mf->field = V4L2_FIELD_NONE;
- 
- 	return 0;
-@@ -963,6 +974,7 @@ static int mt9t112_enum_fmt(struct v4l2_subdev *sd, unsigned int index,
- 		return -EINVAL;
- 
- 	*code = mt9t112_cfmts[index].code;
-+
- 	return 0;
- }
- 
-@@ -1055,10 +1067,16 @@ static int mt9t112_camera_probe(struct soc_camera_device *icd,
- static int mt9t112_probe(struct i2c_client *client,
- 			 const struct i2c_device_id *did)
- {
--	struct mt9t112_priv        *priv;
--	struct soc_camera_device   *icd = client->dev.platform_data;
--	struct soc_camera_link     *icl;
--	int                         ret;
-+	struct mt9t112_priv *priv;
-+	struct soc_camera_device *icd = client->dev.platform_data;
-+	struct soc_camera_link *icl;
-+	struct v4l2_rect rect = {
-+		.width = VGA_WIDTH,
-+		.height = VGA_HEIGHT,
-+		.left = (MAX_WIDTH - VGA_WIDTH) / 2,
-+		.top = (MAX_HEIGHT - VGA_HEIGHT) / 2,
-+	};
-+	int ret;
- 
- 	if (!icd) {
- 		dev_err(&client->dev, "mt9t112: missing soc-camera data!\n");
-@@ -1083,6 +1101,9 @@ static int mt9t112_probe(struct i2c_client *client,
- 	if (ret)
- 		kfree(priv);
- 
-+	/* Cannot fail: using the default supported pixel code */
-+	mt9t112_set_params(priv, &rect, V4L2_MBUS_FMT_UYVY8_2X8);
-+
- 	return ret;
- }
- 
+ 	/* Load board's initialization table */
+-	for (i = 0; max_size; i++) {
+-		if (!set[i].req)
+-			return 0;
+-
++	for (i = 0; set[i].req; i++) {
+ 		rc = tm6000_set_reg(dev, set[i].req, set[i].reg, set[i].value);
+ 		if (rc < 0) {
+ 			printk(KERN_ERR "Error %i while setting "
+@@ -645,9 +628,7 @@ int tm6000_set_standard(struct tm6000_core *dev)
+ 	if (input->type == TM6000_INPUT_SVIDEO) {
+ 		for (i = 0; i < ARRAY_SIZE(svideo_stds); i++) {
+ 			if (dev->norm & svideo_stds[i].id) {
+-				rc = tm6000_load_std(dev, svideo_stds[i].common,
+-						     sizeof(svideo_stds[i].
+-							    common));
++				rc = tm6000_load_std(dev, svideo_stds[i].common);
+ 				goto ret;
+ 			}
+ 		}
+@@ -655,10 +636,7 @@ int tm6000_set_standard(struct tm6000_core *dev)
+ 	} else {
+ 		for (i = 0; i < ARRAY_SIZE(composite_stds); i++) {
+ 			if (dev->norm & composite_stds[i].id) {
+-				rc = tm6000_load_std(dev,
+-						     composite_stds[i].common,
+-						     sizeof(composite_stds[i].
+-							    common));
++				rc = tm6000_load_std(dev, composite_stds[i].common);
+ 				goto ret;
+ 			}
+ 		}
 -- 
-1.7.2.5
+1.7.6
 
