@@ -1,54 +1,72 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from april.london.02.net ([87.194.255.143]:58109 "EHLO
-	april.london.02.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753523Ab1HHUdF (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 8 Aug 2011 16:33:05 -0400
-From: Adam Baker <linux@baker-net.org.uk>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-Subject: Re: [Workshop-2011] Media Subsystem Workshop 2011
-Date: Mon, 8 Aug 2011 21:33:00 +0100
-Cc: Theodore Kilgore <kilgota@banach.math.auburn.edu>,
-	Hans de Goede <hdegoede@redhat.com>,
-	workshop-2011@linuxtv.org,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-References: <4E398381.4080505@redhat.com> <alpine.LNX.2.00.1108072103200.20613@banach.math.auburn.edu> <4E3FE86A.5030908@redhat.com>
-In-Reply-To: <4E3FE86A.5030908@redhat.com>
-MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201108082133.00340.linux@baker-net.org.uk>
+Received: from moutng.kundenserver.de ([212.227.126.186]:64522 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751955Ab1HDHO1 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 4 Aug 2011 03:14:27 -0400
+From: Thierry Reding <thierry.reding@avionic-design.de>
+To: linux-media@vger.kernel.org
+Subject: [PATCH 12/21] [staging] tm6000: Add locking for USB transfers.
+Date: Thu,  4 Aug 2011 09:14:10 +0200
+Message-Id: <1312442059-23935-13-git-send-email-thierry.reding@avionic-design.de>
+In-Reply-To: <1312442059-23935-1-git-send-email-thierry.reding@avionic-design.de>
+References: <1312442059-23935-1-git-send-email-thierry.reding@avionic-design.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Monday 08 August 2011, Mauro Carvalho Chehab wrote:
-> > I will send a second reply to this message, which deals in particular
-> > with  the list of abilities you outlined above. The point is, the
-> > situation as to that list of abilities is more chaotic than is generally
-> > realized. And when people are laying plans they really need to be aware
-> > of that.
-> 
-> From what I understood from your proposal, "/dev/camX" would be providing a
-> libusb-like interface, right?
-> 
-> If so, then, I'd say that we should just use the current libusb
-> infrastructure. All we need is a way to lock libusb access when another
-> driver is using the same USB interface.
-> 
+This commit introduces the usb_lock mutex to ensure that a USB request
+always gets the proper response. While this is currently not really
+necessary it will become important as there are more users.
+---
+ drivers/staging/tm6000/tm6000-cards.c |    1 +
+ drivers/staging/tm6000/tm6000-core.c  |    3 +++
+ drivers/staging/tm6000/tm6000.h       |    1 +
+ 3 files changed, 5 insertions(+), 0 deletions(-)
 
-I think adding the required features to libusb is in general the correct 
-approach however some locking may be needed in the kernel regardless to ensure 
-a badly behaved libusb or libusb user can't corrupt kernel state.
+diff --git a/drivers/staging/tm6000/tm6000-cards.c b/drivers/staging/tm6000/tm6000-cards.c
+index a5d2a71..68f7c7a 100644
+--- a/drivers/staging/tm6000/tm6000-cards.c
++++ b/drivers/staging/tm6000/tm6000-cards.c
+@@ -1174,6 +1174,7 @@ static int tm6000_usb_probe(struct usb_interface *interface,
+ 		return -ENOMEM;
+ 	}
+ 	spin_lock_init(&dev->slock);
++	mutex_init(&dev->usb_lock);
+ 
+ 	/* Increment usage count */
+ 	tm6000_devused |= 1<<nr;
+diff --git a/drivers/staging/tm6000/tm6000-core.c b/drivers/staging/tm6000/tm6000-core.c
+index 1f8abe3..317ab7e 100644
+--- a/drivers/staging/tm6000/tm6000-core.c
++++ b/drivers/staging/tm6000/tm6000-core.c
+@@ -39,6 +39,8 @@ int tm6000_read_write_usb(struct tm6000_core *dev, u8 req_type, u8 req,
+ 	unsigned int pipe;
+ 	u8	     *data = NULL;
+ 
++	mutex_lock(&dev->usb_lock);
++
+ 	if (len)
+ 		data = kzalloc(len, GFP_KERNEL);
+ 
+@@ -86,6 +88,7 @@ int tm6000_read_write_usb(struct tm6000_core *dev, u8 req_type, u8 req,
+ 	}
+ 
+ 	kfree(data);
++	mutex_unlock(&dev->usb_lock);
+ 	return ret;
+ }
+ 
+diff --git a/drivers/staging/tm6000/tm6000.h b/drivers/staging/tm6000/tm6000.h
+index 4323fc2..cf57e1e 100644
+--- a/drivers/staging/tm6000/tm6000.h
++++ b/drivers/staging/tm6000/tm6000.h
+@@ -245,6 +245,7 @@ struct tm6000_core {
+ 
+ 	/* locks */
+ 	struct mutex			lock;
++	struct mutex			usb_lock;
+ 
+ 	/* usb transfer */
+ 	struct usb_device		*udev;		/* the usb device */
+-- 
+1.7.6
 
-> Hans and Adam's proposal is to actually create a "/dev/camX" node that will
-> give fs-like access to the pictures. As the data access to the cameras
-> generally use PTP (or a PTP-like protocol), probably one driver will
-> handle several different types of cameras, so, we'll end by having one
-> different driver for PTP than the V4L driver.
-
-I'm not advocating this approach, my post was intended as a "straw man" to 
-allow the advantages and disadvantages of such an approach to be considered by 
-all concerned. I suspected it would be excessively complex but I don't know 
-enough about the various cameras to be certain.
-
-Adam
