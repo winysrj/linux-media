@@ -1,63 +1,58 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from caramon.arm.linux.org.uk ([78.32.30.218]:49622 "EHLO
-	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751996Ab1HPNzs (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 16 Aug 2011 09:55:48 -0400
-Date: Tue, 16 Aug 2011 14:55:16 +0100
-From: Russell King - ARM Linux <linux@arm.linux.org.uk>
-To: Arnd Bergmann <arnd@arndb.de>
-Cc: Marek Szyprowski <m.szyprowski@samsung.com>,
-	linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-	linux-media@vger.kernel.org, linux-mm@kvack.org,
-	linaro-mm-sig@lists.linaro.org,
-	Michal Nazarewicz <mina86@mina86.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	Andrew Morton <akpm@linux-foundation.org>,
-	KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>,
-	Ankita Garg <ankita@in.ibm.com>,
-	Daniel Walker <dwalker@codeaurora.org>,
-	Mel Gorman <mel@csn.ul.ie>,
-	Jesse Barker <jesse.barker@linaro.org>,
-	Jonathan Corbet <corbet@lwn.net>,
-	Shariq Hasnain <shariq.hasnain@linaro.org>,
-	Chunsang Jeong <chunsang.jeong@linaro.org>
-Subject: Re: [PATCH 7/9] ARM: DMA: steal memory for DMA coherent mappings
-Message-ID: <20110816135516.GC17310@n2100.arm.linux.org.uk>
-References: <1313146711-1767-1-git-send-email-m.szyprowski@samsung.com> <201108121453.05898.arnd@arndb.de> <20110814075205.GA4986@n2100.arm.linux.org.uk> <201108161528.48954.arnd@arndb.de>
+Received: from metis.ext.pengutronix.de ([92.198.50.35]:47861 "EHLO
+	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753639Ab1HDNZD (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 4 Aug 2011 09:25:03 -0400
+Date: Thu, 4 Aug 2011 15:25:00 +0200
+From: Uwe =?iso-8859-1?Q?Kleine-K=F6nig?=
+	<u.kleine-koenig@pengutronix.de>
+To: Jan Pohanka <xhpohanka@gmail.com>
+Cc: linux-media@vger.kernel.org, s.hauer@pengutronix.de
+Subject: Re: mx2_camera driver on mx27ipcam: dma_alloc_coherent size  failed
+Message-ID: <20110804132500.GF31521@pengutronix.de>
+References: <op.vzdduqnuyxxkfz@localhost.localdomain>
+ <20110729075143.GX16561@pengutronix.de>
+ <op.vzdhx5ucyxxkfz@localhost.localdomain>
+ <20110729092311.GY16561@pengutronix.de>
+ <op.vzdldvr1yxxkfz@localhost.localdomain>
+ <20110729115732.GA16561@pengutronix.de>
+ <op.vzoxkxheyxxkfz@localhost.localdomain>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=iso-8859-1
 Content-Disposition: inline
-In-Reply-To: <201108161528.48954.arnd@arndb.de>
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <op.vzoxkxheyxxkfz@localhost.localdomain>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, Aug 16, 2011 at 03:28:48PM +0200, Arnd Bergmann wrote:
-> On Sunday 14 August 2011, Russell King - ARM Linux wrote:
-> > On Fri, Aug 12, 2011 at 02:53:05PM +0200, Arnd Bergmann wrote:
-> > > 
-> > > I thought that our discussion ended with the plan to use this only
-> > > for ARMv6+ (which has a problem with double mapping) but not on ARMv5
-> > > and below (which don't have this problem but might need dmabounce).
-> > 
-> > I thought we'd decided to have a pool of available CMA memory on ARMv6K
-> > to satisfy atomic allocations, which can grow and shrink in size, rather
-> > than setting aside a fixed amount of contiguous system memory.
+Hello Jan,
+
+On Thu, Aug 04, 2011 at 03:11:11PM +0200, Jan Pohanka wrote:
+> Dear Uwe,
+> could you please give me some advice once more? It seems I'm not
+> able to make mx2_camera working by myself.
+> I have tried dma memory allocation in my board file in several ways,
+> but nothing seems to work. I use Video capture example for v4l2 for
+> testing.
 > 
-> Hmm, I don't remember the point about dynamically sizing the pool for
-> ARMv6K, but that can well be an oversight on my part.  I do remember the
-> part about taking that memory pool from the CMA region as you say.
+> regards
+> Jan
+> 
+> mx27ipcam_camera_power: 1
+> mx27ipcam_camera_reset
+> mx2-camera mx2-camera.0: Camera driver attached to camera 0
+> mx2-camera mx2-camera.0: dma_alloc_coherent size 614400 failed
+> mmap error 12, Cannot allocate memory
+> mx2-camera mx2-camera.0: Camera driver detached from camera 0
+> mx27ipcam_camera_power: 0
+Cannot say offhand. I'd instrument dma_alloc_from_coherent to check
+where it fails.
+ 
+The patch looks OK from a first glance.
 
-If you're setting aside a pool of pages, then you have to dynamically
-size it.  I did mention during our discussion about this.
+Best regards
+Uwe
 
-The problem is that a pool of fixed size is two fold: you need it to be
-sufficiently large that it can satisfy all allocations which come along
-in atomic context.  Yet, we don't want the pool to be too large because
-then it prevents the memory being used for other purposes.
-
-Basically, the total number of pages in the pool can be a fixed size,
-but as they are depleted through allocation, they need to be
-re-populated from CMA to re-build the reserve for future atomic
-allocations.  If the pool becomes larger via frees, then obviously
-we need to give pages back.
+-- 
+Pengutronix e.K.                           | Uwe Kleine-König            |
+Industrial Linux Solutions                 | http://www.pengutronix.de/  |
