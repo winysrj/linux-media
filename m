@@ -1,96 +1,186 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:2104 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752438Ab1HIH22 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 9 Aug 2011 03:28:28 -0400
-Message-ID: <4E40E20C.2090001@redhat.com>
-Date: Tue, 09 Aug 2011 09:30:20 +0200
-From: Hans de Goede <hdegoede@redhat.com>
-MIME-Version: 1.0
-To: Theodore Kilgore <kilgota@banach.math.auburn.edu>
-CC: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Adam Baker <linux@baker-net.org.uk>, workshop-2011@linuxtv.org,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: [Workshop-2011] Media Subsystem Workshop 2011
-References: <4E398381.4080505@redhat.com> <4E3A91D1.1040000@redhat.com> <4E3B9597.4040307@redhat.com> <201108072353.42237.linux@baker-net.org.uk> <alpine.LNX.2.00.1108072103200.20613@banach.math.auburn.edu> <4E3FE86A.5030908@redhat.com> <alpine.LNX.2.00.1108081208080.21409@banach.math.auburn.edu>
-In-Reply-To: <alpine.LNX.2.00.1108081208080.21409@banach.math.auburn.edu>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Received: from moutng.kundenserver.de ([212.227.126.171]:52112 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751384Ab1HDHOV (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 4 Aug 2011 03:14:21 -0400
+From: Thierry Reding <thierry.reding@avionic-design.de>
+To: linux-media@vger.kernel.org
+Subject: [PATCH 02/21] [media] tuner/xc2028: Fix frequency offset for radio mode.
+Date: Thu,  4 Aug 2011 09:14:00 +0200
+Message-Id: <1312442059-23935-3-git-send-email-thierry.reding@avionic-design.de>
+In-Reply-To: <1312442059-23935-1-git-send-email-thierry.reding@avionic-design.de>
+References: <1312442059-23935-1-git-send-email-thierry.reding@avionic-design.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+In radio mode, no frequency offset is needed. While at it, split off the
+frequency offset computation for digital TV into a separate function.
+---
+ drivers/media/common/tuners/tuner-xc2028.c |  137 +++++++++++++++-------------
+ 1 files changed, 75 insertions(+), 62 deletions(-)
 
-On 08/08/2011 07:39 PM, Theodore Kilgore wrote:
->
->
-> On Mon, 8 Aug 2011, Mauro Carvalho Chehab wrote:
->
+diff --git a/drivers/media/common/tuners/tuner-xc2028.c b/drivers/media/common/tuners/tuner-xc2028.c
+index b6b2868..8e53e5e 100644
+--- a/drivers/media/common/tuners/tuner-xc2028.c
++++ b/drivers/media/common/tuners/tuner-xc2028.c
+@@ -913,6 +913,66 @@ ret:
+ 
+ #define DIV 15625
+ 
++static u32 digital_freq_offset(struct xc2028_data *priv, u32 freq)
++{
++	u32 offset = 0;
++
++	/*
++	 * Adjust to the center frequency. This is calculated by the
++	 * formula: offset = 1.25MHz - BW/2
++	 * For DTV 7/8, the firmware uses BW = 8000, so it needs a
++	 * further adjustment to get the frequency center on VHF
++	 */
++	if (priv->cur_fw.type & DTV6)
++		offset = 1750000;
++	else if (priv->cur_fw.type & DTV7)
++		offset = 2250000;
++	else /* DTV8 or DTV78 */
++		offset = 2750000;
++
++	if ((priv->cur_fw.type & DTV78) && freq < 470000000)
++		offset -= 500000;
++
++	/*
++	 * xc3028 additional "magic"
++	 * Depending on the firmware version, it needs some adjustments
++	 * to properly centralize the frequency. This seems to be
++	 * needed to compensate the SCODE table adjustments made by
++	 * newer firmwares
++	 */
++
++#if 1
++	/*
++	 * The proper adjustment would be to do it at s-code table.
++	 * However, this didn't work, as reported by
++	 * Robert Lowery <rglowery@exemail.com.au>
++	 */
++
++	if (priv->cur_fw.type & DTV7)
++		offset += 500000;
++
++#else
++	/*
++	 * Still need tests for XC3028L (firmware 3.2 or upper)
++	 * So, for now, let's just comment the per-firmware
++	 * version of this change. Reports with xc3028l working
++	 * with and without the lines bellow are welcome
++	 */
++
++	if (priv->firm_version < 0x0302) {
++		if (priv->cur_fw.type & DTV7)
++			offset += 500000;
++	} else {
++		if (priv->cur_fw.type & DTV7)
++			offset -= 300000;
++		else if (type != ATSC) /* DVB @6MHz, DTV 8 and DTV 7/8 */
++			offset += 200000;
++	}
++#endif
++
++	return offset;
++}
++
+ static int generic_set_freq(struct dvb_frontend *fe, u32 freq /* in HZ */,
+ 			    enum v4l2_tuner_type new_type,
+ 			    unsigned int type,
+@@ -933,75 +993,28 @@ static int generic_set_freq(struct dvb_frontend *fe, u32 freq /* in HZ */,
+ 	if (check_firmware(fe, type, std, int_freq) < 0)
+ 		goto ret;
+ 
+-	/* On some cases xc2028 can disable video output, if
+-	 * very weak signals are received. By sending a soft
+-	 * reset, this is re-enabled. So, it is better to always
+-	 * send a soft reset before changing channels, to be sure
+-	 * that xc2028 will be in a safe state.
+-	 * Maybe this might also be needed for DTV.
+-	 */
+-	if (new_type == V4L2_TUNER_ANALOG_TV) {
++	switch (new_type) {
++	case V4L2_TUNER_ANALOG_TV:
++		/* On some cases xc2028 can disable video output, if
++		 * very weak signals are received. By sending a soft
++		 * reset, this is re-enabled. So, it is better to always
++		 * send a soft reset before changing channels, to be sure
++		 * that xc2028 will be in a safe state.
++		 * Maybe this might also be needed for DTV.
++		 */
+ 		rc = send_seq(priv, {0x00, 0x00});
+-
++		/* fall through */
++	case V4L2_TUNER_RADIO:
+ 		/* Analog modes require offset = 0 */
+-	} else {
++		break;
++	case V4L2_TUNER_DIGITAL_TV:
+ 		/*
+ 		 * Digital modes require an offset to adjust to the
+ 		 * proper frequency. The offset depends on what
+ 		 * firmware version is used.
+ 		 */
+-
+-		/*
+-		 * Adjust to the center frequency. This is calculated by the
+-		 * formula: offset = 1.25MHz - BW/2
+-		 * For DTV 7/8, the firmware uses BW = 8000, so it needs a
+-		 * further adjustment to get the frequency center on VHF
+-		 */
+-		if (priv->cur_fw.type & DTV6)
+-			offset = 1750000;
+-		else if (priv->cur_fw.type & DTV7)
+-			offset = 2250000;
+-		else	/* DTV8 or DTV78 */
+-			offset = 2750000;
+-		if ((priv->cur_fw.type & DTV78) && freq < 470000000)
+-			offset -= 500000;
+-
+-		/*
+-		 * xc3028 additional "magic"
+-		 * Depending on the firmware version, it needs some adjustments
+-		 * to properly centralize the frequency. This seems to be
+-		 * needed to compensate the SCODE table adjustments made by
+-		 * newer firmwares
+-		 */
+-
+-#if 1
+-		/*
+-		 * The proper adjustment would be to do it at s-code table.
+-		 * However, this didn't work, as reported by
+-		 * Robert Lowery <rglowery@exemail.com.au>
+-		 */
+-
+-		if (priv->cur_fw.type & DTV7)
+-			offset += 500000;
+-
+-#else
+-		/*
+-		 * Still need tests for XC3028L (firmware 3.2 or upper)
+-		 * So, for now, let's just comment the per-firmware
+-		 * version of this change. Reports with xc3028l working
+-		 * with and without the lines bellow are welcome
+-		 */
+-
+-		if (priv->firm_version < 0x0302) {
+-			if (priv->cur_fw.type & DTV7)
+-				offset += 500000;
+-		} else {
+-			if (priv->cur_fw.type & DTV7)
+-				offset -= 300000;
+-			else if (type != ATSC) /* DVB @6MHz, DTV 8 and DTV 7/8 */
+-				offset += 200000;
+-		}
+-#endif
++		offset = digital_freq_offset(priv, freq);
++		break;
+ 	}
+ 
+ 	div = (freq - offset + DIV / 2) / DIV;
+-- 
+1.7.6
 
-<snip>
-
-> Mauro,
->
-> In fact none of the currently known and supported cameras are using PTP.
-> All of them are proprietary. They have a rather intimidating set of
-> differences in functionality, too. Namely, some of them have an
-> isochronous endpoint, and some of them rely exclusively upon bulk
-> transport. Some of them have a well developed set of internal capabilities
-> as far as handling still photos are concerned. I mean, such things as the
-> ability to download a single photo, selected at random from the set of
-> photos on the camera, and some do not, requiring that the "ability" to do
-> this is emulated in software -- by first downloading all previously listed
-> photos and sending the data to /dev/null, then downloading the desired
-> photo and saving it. Some of them permit deletion of individual photos, or
-> all photos, and some do not. For some of them it is even true, as I have
-> previously mentioned, that the USB command string which will delete all
-> photos is the same command used for starting the camera in streaming mode.
->
-> But the point here is that these cameras are all different from one
-> another, depending upon chipset and even, sometimes, upon firmware
-> or chipset version. The still camera abilities and limitations of all of
-> them are pretty much worked out in libgphoto2. My suggestion would be that
-> the libgphoto2 support libraries for these cameras ought to be left the
-> hell alone, except for some changes in, for example, how the camera is
-> accessed in the first place (through libusb or through a kernel device) in
-> order to address adequately the need to support both modes. I know what is
-> in those libgphoto2 drivers because I wrote them. I can definitely promise
-> that to move all of that functionality over into kernel modules would be a
-> nightmare and would moreover greatly contribute to kernel bloat. You
-> really don't want to go there.
-
-I strongly disagree with this. The libgphoto2 camlibs (drivers) for these
-cameras handle a number of different tasks:
-
-1) Talking to the camera getting binary blobs out of them (be it a PAT or
-    some data)
-2) Interpreting said blobs
-3) Converting the data parts to pictures doing post processing, etc.
-
-I'm not suggesting to move all of this to the kernel driver, we just need
-to move part 1. to the kernel driver. This is not rocket science.
-
-We currently have a really bad situation were drivers are fighting
-for the same device. The problem here is that these devices are not
-only one device on the physical level, but also one device on the
-logical level (IOW they have only 1 usb interface).
-
-It is time to quit thinking in band-aides and solve this properly,
-1 logical device means it gets 1 driver.
-
-This may be an approach which means some more work then others, but
-I believe in the end that doing it right is worth the effort.
-
-As for Mauro's resource locking patches, these won't work because
-the assume both drivers are active at the same time, which is simply
-not true. Only 1 driver can be bound to the interface at a time, and
-when switching from the gspca driver to the usbfs driver, gspca will
-see an unplug which is indistinguishable from a real device unplug.
-
-More over a kernel only solution without libgphoto changes won't solve
-the problem of a libgphoto app keeping the device open locking out
-streaming.
-
-Regards,
-
-Hans
