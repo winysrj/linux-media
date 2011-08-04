@@ -1,41 +1,50 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from na3sys009aog120.obsmtp.com ([74.125.149.140]:52571 "EHLO
-	na3sys009aog120.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751420Ab1H1QWR (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 28 Aug 2011 12:22:17 -0400
-Received: by gwj20 with SMTP id 20so5474180gwj.12
-        for <linux-media@vger.kernel.org>; Sun, 28 Aug 2011 09:22:15 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <10799840.E2KM4cQAaW@wuerfel>
-References: <10799840.E2KM4cQAaW@wuerfel>
-Date: Sun, 28 Aug 2011 19:22:15 +0300
-Message-ID: <CAP16SskCCQctOpsKthYN_hBOOB_5h=a4LH7-2w=DNxCQDE9vLQ@mail.gmail.com>
-Subject: Re: VIDEO_OMAP2_VOUT broken
-From: "Valkeinen, Tomi" <tomi.valkeinen@ti.com>
-To: Arnd Bergmann <arnd@arndb.de>
-Cc: linux-media@vger.kernel.org, Amber Jain <amber@ti.com>,
-	Vaibhav Hiremath <hvaibhav@ti.com>,
-	Archit Taneja <archit@ti.com>
-Content-Type: text/plain; charset=ISO-8859-1
+Received: from mail.dream-property.net ([82.149.226.172]:36439 "EHLO
+	mail.dream-property.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751663Ab1HDPkm (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 4 Aug 2011 11:40:42 -0400
+Received: from localhost (localhost [127.0.0.1])
+	by mail.dream-property.net (Postfix) with ESMTP id 016B13153473
+	for <linux-media@vger.kernel.org>; Thu,  4 Aug 2011 17:33:25 +0200 (CEST)
+Received: from mail.dream-property.net ([127.0.0.1])
+	by localhost (mail.dream-property.net [127.0.0.1]) (amavisd-new, port 10024)
+	with LMTP id GETln1gOMeiS for <linux-media@vger.kernel.org>;
+	Thu,  4 Aug 2011 17:33:18 +0200 (CEST)
+Received: from pepe.dream-property.nete (dreamboxupdate.com [82.149.226.174])
+	by mail.dream-property.net (Postfix) with SMTP id 2825F3153477
+	for <linux-media@vger.kernel.org>; Thu,  4 Aug 2011 17:33:17 +0200 (CEST)
+From: Andreas Oberritter <obi@linuxtv.org>
+To: linux-media@vger.kernel.org
+Subject: [PATCH 2/4] DVB: dvb_frontend: avoid possible race condition on first event
+Date: Thu,  4 Aug 2011 15:33:13 +0000
+Message-Id: <1312471995-26292-2-git-send-email-obi@linuxtv.org>
+In-Reply-To: <1312471995-26292-1-git-send-email-obi@linuxtv.org>
+References: <1312471995-26292-1-git-send-email-obi@linuxtv.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Arnd,
+- Make sure the initial frontend event on FE_SET_FRONTEND gets
+  enqueued before the frontend thread wakes up.
 
-On Sat, Aug 27, 2011 at 11:58 PM, Arnd Bergmann <arnd@arndb.de> wrote:
-> Hi Tomi,
->
-> Apparently your patch 8cff88c5d "OMAP: DSS2: remove update_mode from omapdss"
-> broke building the omap_vout driver:
+Signed-off-by: Andreas Oberritter <obi@linuxtv.org>
+---
+ drivers/media/dvb/dvb-core/dvb_frontend.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
 
-Yes, I didn't realize it affects v4l2, and I didn't have v4l2 enabled
-in the kernel. I have it now enabled by default =).
+diff --git a/drivers/media/dvb/dvb-core/dvb_frontend.c b/drivers/media/dvb/dvb-core/dvb_frontend.c
+index 23d79d0..45ea843 100644
+--- a/drivers/media/dvb/dvb-core/dvb_frontend.c
++++ b/drivers/media/dvb/dvb-core/dvb_frontend.c
+@@ -1891,8 +1891,8 @@ static int dvb_frontend_ioctl_legacy(struct file *file,
+ 		/* Request the search algorithm to search */
+ 		fepriv->algo_status |= DVBFE_ALGO_SEARCH_AGAIN;
+ 
+-		dvb_frontend_wakeup(fe);
+ 		dvb_frontend_add_event(fe, 0);
++		dvb_frontend_wakeup(fe);
+ 		fepriv->status = 0;
+ 		err = 0;
+ 		break;
+-- 
+1.7.2.5
 
-There was a patch posted to linux-omap and to linux-media by Archit
-some weeks ago which fixes the issue. I guess it hasn't gotten into
-mainline yet:
-
-[PATCH] [media] OMAP_VOUT: Fix build break caused by update_mode removal in DSS2
-
- Tomi
