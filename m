@@ -1,44 +1,66 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:44210 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753659Ab1HAWSx (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 1 Aug 2011 18:18:53 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-Subject: [GIT PATCH FOR v3.1] uvcvideo: Set alternate setting 0 on resume if the bus has been reset
-Date: Tue, 2 Aug 2011 00:19:03 +0200
-Cc: Ming Lei <tom.leiming@gmail.com>, linux-media@vger.kernel.org,
-	Alan Stern <stern@rowland.harvard.edu>,
-	linux-usb@vger.kernel.org, Jeremy Kerr <jeremy.kerr@canonical.com>
-References: <CACVXFVPHfskUCxhznpATknNxokmL5hft-b+KoxWiMzprVmuJ4w@mail.gmail.com> <201108011326.31648.laurent.pinchart@ideasonboard.com> <4E36E4B9.80701@redhat.com>
-In-Reply-To: <4E36E4B9.80701@redhat.com>
-MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201108020019.03470.laurent.pinchart@ideasonboard.com>
+Received: from mgw2.diku.dk ([130.225.96.92]:59168 "EHLO mgw2.diku.dk"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753772Ab1HDK3n (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 4 Aug 2011 06:29:43 -0400
+From: Julia Lawall <julia@diku.dk>
+To: Mauro Carvalho Chehab <mchehab@infradead.org>
+Cc: kernel-janitors@vger.kernel.org,
+	Paul Gortmaker <paul.gortmaker@windriver.com>,
+	Lucas De Marchi <lucas.demarchi@profusion.mobi>,
+	Jean Delvare <khali@linux-fr.org>,
+	Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org,
+	linux-kernel@vger.kernel.org
+Subject: [PATCH 3/4] drivers/media/video/hexium_gemini.c: delete useless initialization
+Date: Thu,  4 Aug 2011 12:29:33 +0200
+Message-Id: <1312453774-23333-4-git-send-email-julia@diku.dk>
+In-Reply-To: <1312453774-23333-1-git-send-email-julia@diku.dk>
+References: <1312453774-23333-1-git-send-email-julia@diku.dk>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
+From: Julia Lawall <julia@diku.dk>
 
-The following changes since commit 46540f7ac646ada7f22912ea7ea9b761ff5c4718:
+Delete nontrivial initialization that is immediately overwritten by the
+result of an allocation function.
 
-  [media] ir-mce_kbd-decoder: include module.h for its facilities (2011-07-29 
-12:52:23 -0300)
+The semantic match that makes this change is as follows:
+(http://coccinelle.lip6.fr/)
 
-are available in the git repository at:
-  git://linuxtv.org/pinchartl/uvcvideo.git uvcvideo-stable
+// <smpl>
+@@
+type T;
+identifier i;
+expression e;
+@@
 
-Ming Lei (1):
-      uvcvideo: Set alternate setting 0 on resume if the bus has been reset
+(
+T i = \(0\|NULL\|ERR_PTR(...)\);
+|
+-T i = e;
++T i;
+)
+... when != i
+i = \(kzalloc\|kcalloc\|kmalloc\)(...);
 
- drivers/media/video/uvc/uvc_driver.c |    2 +-
- drivers/media/video/uvc/uvc_video.c  |   10 +++++++++-
- drivers/media/video/uvc/uvcvideo.h   |    2 +-
- 3 files changed, 11 insertions(+), 3 deletions(-)
+// </smpl>
 
--- 
-Regards,
+Signed-off-by: Julia Lawall <julia@diku.dk>
 
-Laurent Pinchart
+---
+ drivers/media/video/hexium_gemini.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff -u -p a/drivers/media/video/hexium_gemini.c b/drivers/media/video/hexium_gemini.c
+--- a/drivers/media/video/hexium_gemini.c
++++ b/drivers/media/video/hexium_gemini.c
+@@ -352,7 +352,7 @@ static struct saa7146_ext_vv vv_data;
+ /* this function only gets called when the probing was successful */
+ static int hexium_attach(struct saa7146_dev *dev, struct saa7146_pci_extension_data *info)
+ {
+-	struct hexium *hexium = (struct hexium *) dev->ext_priv;
++	struct hexium *hexium;
+ 	int ret;
+ 
+ 	DEB_EE((".\n"));
+
