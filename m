@@ -1,153 +1,300 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from proofpoint-cluster.metrocast.net ([65.175.128.136]:48901 "EHLO
-	proofpoint-cluster.metrocast.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751327Ab1H0N2w (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 27 Aug 2011 09:28:52 -0400
-Subject: Re: [PATCH 06/14] [media] cx18: Use current logging styles
-From: Andy Walls <awalls@md.metrocast.net>
-To: Joe Perches <joe@perches.com>
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
-	ivtv-devel@ivtvdriver.org, linux-media@vger.kernel.org,
-	linux-kernel@vger.kernel.org
-Date: Sat, 27 Aug 2011 09:28:59 -0400
-In-Reply-To: <1314222175.15882.8.camel@Joe-Laptop>
-References: <cover.1313966088.git.joe@perches.com>
-	 <29abc343c4fce5d019ce56f5a3882aedaeb092bc.1313966089.git.joe@perches.com>
-	 <1314182047.2253.3.camel@palomino.walls.org>
-	 <1314222175.15882.8.camel@Joe-Laptop>
-Content-Type: text/plain; charset="UTF-8"
+Received: from mx1.redhat.com ([209.132.183.28]:50337 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752501Ab1HDMeg (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 4 Aug 2011 08:34:36 -0400
+Message-ID: <4E3A91D1.1040000@redhat.com>
+Date: Thu, 04 Aug 2011 09:34:25 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+MIME-Version: 1.0
+To: Theodore Kilgore <kilgota@banach.math.auburn.edu>
+CC: workshop-2011@linuxtv.org,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: Media Subsystem Workshop 2011
+References: <4E398381.4080505@redhat.com> <alpine.LNX.2.00.1108031418480.16384@banach.math.auburn.edu> <4E39B150.40108@redhat.com> <alpine.LNX.2.00.1108031750241.16520@banach.math.auburn.edu>
+In-Reply-To: <alpine.LNX.2.00.1108031750241.16520@banach.math.auburn.edu>
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 7bit
-Message-ID: <1314451740.2244.7.camel@palomino.walls.org>
-Mime-Version: 1.0
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, 2011-08-24 at 14:42 -0700, Joe Perches wrote:
-> On Wed, 2011-08-24 at 06:34 -0400, Andy Walls wrote:
-> > On Sun, 2011-08-21 at 15:56 -0700, Joe Perches wrote:
-> > > Add pr_fmt.
-> > > Convert printks to pr_<level>.
-> > > Convert printks without KERN_<level> to appropriate pr_<level>.
-> > > Removed embedded prefixes when pr_fmt was added.
-> > > Use ##__VA_ARGS__ for variadic macros.
-> > > Coalesce format strings.
-> > 1. It is important to preserve the per-card prefixes emitted by the
-> > driver: cx18-0, cx18-1, cx18-2, etc.  With a quick skim, I think your
-> > change preserves the format of all output messages (except removing
-> > periods).  Can you confirm this?
+Em 03-08-2011 20:20, Theodore Kilgore escreveu:
 > 
-> Here's the output diff of
-> strings built-in.o | grep "^<.>" | sort
-> new and old
-> $ diff -u0 cx18.old cx18.new
-> --- cx18.old	2011-08-24 13:18:41.000000000 -0700
-> +++ cx18.new	2011-08-24 14:04:10.000000000 -0700
-> @@ -1,2 +1,9 @@
-> -<3>cx18-alsa cx is NULL
-> -<3>cx18-alsa: %s: struct v4l2_device * is NULL
-> +<3>cx18_alsa: cx is NULL
-> +<3>cx18_alsa: %s-alsa: %s: failed to create struct snd_cx18_card
-> +<3>cx18_alsa: %s-alsa: %s: snd_card_create() failed with err %d
-> +<3>cx18_alsa: %s-alsa: %s: snd_card_register() failed with err %d
-> +<3>cx18_alsa: %s-alsa: %s: snd_cx18_card_create() failed with err %d
-> +<3>cx18_alsa: %s-alsa: %s: snd_cx18_pcm_create() failed with err %d
-> +<3>cx18_alsa: %s-alsa: %s: snd_cx18_pcm_create() failed with err %d
-> +<3>cx18_alsa: %s-alsa: %s: struct snd_cx18_card * already exists
-> +<3>cx18_alsa: %s: struct v4l2_device * is NULL
-> @@ -17,7 +23,0 @@
-> -<3>%s-alsa: %s: failed to create struct snd_cx18_card
-> -<3>%s-alsa: %s: snd_card_create() failed with err %d
-> -<3>%s-alsa: %s: snd_card_register() failed with err %d
-> -<3>%s-alsa: %s: snd_cx18_card_create() failed with err %d
-> -<3>%s-alsa: %s: snd_cx18_pcm_create() failed with err %d
-> -<3>%s-alsa: %s: snd_cx18_pcm_create() failed with err %d
-> -<3>%s-alsa: %s: struct snd_cx18_card * already exists
-
-Yuck.
-
-> @@ -62 +62 @@
-> -<3>%s: Prefix your subject line with [UNKNOWN CX18 CARD].
-> +<3>%s: Prefix your subject line with [UNKNOWN CX18 CARD]
-
-> @@ -80 +80 @@
-> -<4>%s-alsa: %s: struct snd_cx18_card * is NULL
-> +<4>cx18_alsa: %s-alsa: %s: struct snd_cx18_card * is NULL
-
-Yuck.
-
-> @@ -82 +82 @@
-> -<4>%s: Could not register GPIO reset controllersubdevice; proceeding anyway.
-> +<4>%s: Could not register GPIO reset controller subdevice; proceeding anyway.
-> @@ -85 +85 @@
-> -<4>%s: MPEG Index stream cannot be claimed directly, but something tried.
-> +<4>%s: MPEG Index stream cannot be claimed directly, but something tried
-> @@ -99,12 +99,14 @@
-> -<6>cx18-alsa: module loading...
-> -<6>cx18-alsa: module unload complete
-> -<6>cx18-alsa: module unloading...
-> -<6>cx18-alsa-pcm %s: Allocating vbuffer
-> -<6>cx18-alsa-pcm %s: cx18 alsa announce ptr=%p data=%p num_bytes=%zd
-> -<6>cx18-alsa-pcm %s: dma area was NULL - ignoring
-> -<6>cx18-alsa-pcm %s: freeing pcm capture region
-> -<6>cx18-alsa-pcm %s: runtime was NULL
-> -<6>cx18-alsa-pcm %s: %s called
-> -<6>cx18-alsa-pcm %s: %s: length was zero
-> -<6>cx18-alsa-pcm %s: stride is zero
-> -<6>cx18-alsa-pcm %s: substream was NULL
-> +<6>cx18_alsa: module loading...
-> +<6>cx18_alsa: module unload complete
-> +<6>cx18_alsa: module unloading...
-> +<6>cx18_alsa: %s: Allocating vbuffer
-> +<6>cx18_alsa: %s: created cx18 ALSA interface instance 
-> +<6>cx18_alsa: %s: cx18 alsa announce ptr=%p data=%p num_bytes=%zd
-> +<6>cx18_alsa: %s: dma area was NULL - ignoring
-> +<6>cx18_alsa: %s: freeing pcm capture region
-> +<6>cx18_alsa: %s: PCM stream for card is disabled - skipping
-> +<6>cx18_alsa: %s: runtime was NULL
-> +<6>cx18_alsa: %s: %s called
-> +<6>cx18_alsa: %s: %s: length was zero
-> +<6>cx18_alsa: %s: stride is zero
-> +<6>cx18_alsa: %s: substream was NULL
-> @@ -172 +174 @@
-> -<6>%s:  info: dualwatch: change stereo flag from 0x%x to 0x%x.
-> +<6>%s:  info: dualwatch: change stereo flag from 0x%x to 0x%x
-> @@ -188 +190 @@
-> -<6>%s:  info: Preparing for firmware halt.
-> +<6>%s:  info: Preparing for firmware halt
-> @@ -206 +208 @@
-> -<6>%s:  info: Switching standard to %llx.
-> +<6>%s:  info: Switching standard to %llx
-> @@ -236 +237,0 @@
-> -<6>%s: %s: created cx18 ALSA interface instance 
-> @@ -239 +239,0 @@
-> -<6>%s: %s: PCM stream for card is disabled - skipping
-
-
-
-> > 2. PLease don't add a pr_fmt() #define to exevry file.  Just put one
-> > where all the other CX18_*() macros are defined.  Every file picks those
-> > up.
 > 
-> It's not the first #include of every file.
-> printk.h has a default #define pr_fmt(fmt) fmt
+> On Wed, 3 Aug 2011, Mauro Carvalho Chehab wrote:
 > 
+>> Em 03-08-2011 16:53, Theodore Kilgore escreveu:
+>>>
+>>>
+>>> On Wed, 3 Aug 2011, Mauro Carvalho Chehab wrote:
+>>>
+>>>> As already announced, we're continuing the planning for this year's 
+>>>> media subsystem workshop.
+>>>>
+>>>> To avoid overriding the main ML with workshop-specifics, a new ML
+>>>> was created:
+>>>> 	workshop-2011@linuxtv.org
+>>>>
+>>>> I'll also be updating the event page at:
+>>>> 	http://www.linuxtv.org/events.php
+>>>>
+>>>> Over the one-year period, we had 242 developers contributing to the
+>>>> subsystem. Thank you all for that! Unfortunately, the space there is
+>>>> limited, and we can't affort to have all developers there. 
+>>>>
+>>>> Due to that some criteria needed to be applied to create a short list
+>>>> of people that were invited today to participate. 
+>>>>
+>>>> The main criteria were to select the developers that did significant 
+>>>> contributions for the media subsystem over the last 1 year period, 
+>>>> measured in terms of number of commits and changed lines to the kernel
+>>>> drivers/media tree.
+>>>>
+>>>> As the used criteria were the number of kernel patches, userspace-only 
+>>>> developers weren't included on the invitations. It would be great to 
+>>>> have there open source application developers as well, in order to allow 
+>>>> us to tune what's needed from applications point of view. 
+>>>>
+>>>> So, if you're leading the development of some V4L and/or DVB open-source 
+>>>> application and wants to be there, or you think you can give good 
+>>>> contributions for helping to improve the subsystem, please feel free 
+>>>> to send us an email.
+>>>>
+>>>> With regards to the themes, we're received, up to now, the following 
+>>>> proposals:
+>>>>
+>>>> ---------------------------------------------------------+----------------------
+>>>> THEME                                                    | Proposed-by:
+>>>> ---------------------------------------------------------+----------------------
+>>>> Buffer management: snapshot mode                         | Guennadi
+>>>> Rotation in webcams in tablets while streaming is active | Hans de Goede
+>>>> V4L2 Spec ? ambiguities fix                              | Hans Verkuil
+>>>> V4L2 compliance test results                             | Hans Verkuil
+>>>> Media Controller presentation (probably for Wed, 25)     | Laurent Pinchart
+>>>> Workshop summary presentation on Wed, 25                 | Mauro Carvalho Chehab
+>>>> ---------------------------------------------------------+----------------------
+>>>>
+>>>> >From my side, I also have the following proposals:
+>>>>
+>>>> 1) DVB API consistency - what to do with the audio and video DVB API's 
+>>>> that conflict with V4L2 and (somewhat) with ALSA?
+>>>>
+>>>> 2) Multi FE support - How should we handle a frontend with multiple 
+>>>> delivery systems like DRX-K frontend?
+>>>>
+>>>> 3) videobuf2 - migration plans for legacy drivers
+>>>>
+>>>> 4) NEC IR decoding - how should we handle 32, 24, and 16 bit protocol
+>>>> variations?
+>>>>
+>>>> Even if you won't be there, please feel free to propose themes for 
+>>>> discussion, in order to help us to improve even more the subsystem.
+>>>>
+>>>> Thank you!
+>>>> Mauro
+>>>
+>>> Mauro,
+>>>
+>>> Not saying that you need to change the program for this session to deal 
+>>> with this topic, but an old and vexing problem is dual-mode devices. It is 
+>>> an issue which needs some kind of unified approach, and, in my opinion, 
+>>> consensus about policy and methodology.
+>>>
+>>> As a very good example if this problem, several of the cameras that I have 
+>>> supported as GSPCA devices in their webcam modality are also still cameras 
+>>> and are supported, as still cameras, in Gphoto. This can cause a collision 
+>>> between driver software in userspace which functions with libusb, and on 
+>>> the other hand with a kernel driver which tries to grab the device.
+>>>
+>>> Recent attempts to deal with this problem involve the incorporation of 
+>>> code in libusb which disables a kernel module that has already grabbed the 
+>>> device, allowing the userspace driver to function. This has made life a 
+>>> little bit easier for some people, but not for everybody. For, the device 
+>>> needs to be re-plugged in order to re-activate the kernel support. But 
+>>> some of the "user-friencly" desktop setups used by some distros will 
+>>> automatically start up a dual-mode camera with a gphoto-based program, 
+>>> thereby making it impossible for the camera to be used as a webcam unless 
+>>> the user goes for a crash course in how to disable the "feature" which has 
+>>> been so thoughtfully (thoughtlessly?) provided. 
+>>>
+>>> As the problem is not confined to cameras but also affects some other 
+>>> devices, such as DSL modems which have a partition on them and are thus 
+>>> seen as Mass Storage devices, perhaps it is time to try to find a 
+>>> systematic approach to problems like this.
+>>>
+>>> There are of course several possible approaches. 
+>>>
+>>> 1. A kernel module should handle everything related to connecting up the 
+>>> hardware. In that case, the existing userspace driver has to be modified 
+>>> to use the kernel module instead of libusb. Those who support this option 
+>>> would say that it gets everything under the control of the kernel, where 
+>>> it belongs. OTOG, the possible result is to create a minor mess in 
+>>> projects like Gphoto.
+>>>
+>>> 2. The kernel module should be abolished, and all of its functionality 
+>>> moved to userspace. This would of course involve difficulties 
+>>> approximately equivalent to item 1. An advantage, in the eyes of some, 
+>>> would be to cut down on the 
+>>> yet-another-driver-for-yet-another-piece-of-peculiar-hardware syndrome 
+>>> which obviously contributes to an in principle unlimited increase in the 
+>>> size of the kernel codebase. A disadvantage would be that it would create 
+>>> some disruption in webcam support.
+>>>
+>>> 3. A further modification to libusb reactivates the kernel module 
+>>> automatically, as soon as the userspace app which wanted to access the 
+>>> device through a libusb-based driver library is closed. This seems 
+>>> attractive, but it has certain deficiencies as well. One of them is that 
+>>> it can not necessarily provide a smooth and informative user experience, 
+>>> since circumstances can occur in which something appears to go wrong, but 
+>>> the user gets no clear message saying what the problem is. In other words, 
+>>> it is a patchwork solution which only slightly refines the current 
+>>> patchwork solution in libusb, which is in itself only a slight improvement 
+>>> on the original, unaddressed problem.
+>>>
+>>> 4. ???
+>>>
+>>> Several people are interested in this problem, but not much progress has 
+>>> been made at this time. I think that the topic ought to be put somehow on 
+>>> the front burner so that lots of people will try to think of the best way 
+>>> to handle it. Many eyes, and all that.
+>>>
+>>> Not saying change your schedule, as I said. Have a nice conference. I wish 
+>>> I could attend. But I do hope by this message to raise some general 
+>>> concern about this problem.
+> 
+> I meant this. Two ways. First, I knew when the conference was announced 
+> that it would severely conflict with the schedule of my workplace 
+> (right after the start of the academic semester). So I had simply to write 
+> off a conference which I really think I would have enjoyed attending. 
 
-Well then don't use "pr_fmt(fmt)" in cx18, if it overloads a define
-somewhere else in the kernel and has a dependency on its order relative
-to #include statements.  That sort of thing just ups maintenance hours
-later.  That's not a good trade off for subjectively better log
-messages.
+Ah, I see.
 
-Won't redifining the 'pr_fmt(fmt)' generate preprocessor warnings
-anyway?
+> Second, I am hoping to raise general interest in a rather vexing issue. 
+> The problem here, in a nutshell, originates from a conflict between user 
+> convenience and the Linux security model. Nobody wants to sacrifice either 
+> of these. More cleverness is needed.
+> 
+>>
+>> That's an interesting issue. 
+> 
+> Yes.
+> 
+>>
+>> A solution like (3) is a little bit out of scope, as it is a pure userspace
+>> (or a mixed userspace USB stack) solution.
+> 
+> And does not completely solve the problem, either. 
+> 
+>>
+>> Technically speaking, letting the same device being handled by either an
+>> userspace or a kernelspace driver doesn't seem smart to me, due to:
+>> 	- Duplicated efforts to maintain both drivers;
+>> 	- It is hard to sync a kernel driver with an userspace driver,
+>> as you've pointed.
+>>
+>> So, we're between (1) or (2). 
+>>
+>> Moving the solution entirely to userspace will have, additionally, the
+>> problem of having two applications trying to access the same hardware
+>> using two different userspace instances (for example, an incoming videoconf
+>> call while Gphoto is opened, assuming that such videoconf call would also
+>> have an userspace driver).
+> 
+> Yes, that kind of thing is an obvious problem. Actually, though, it may be 
+> that this had just better not happen. For some of the hardware that I know 
+> of, it could be a real problem no matter what approach would be taken. For 
+> example, certain specific dual-mode cameras will delete all data stored on 
+> the camera if the camera is fired up in webcam mode. To drop Gphoto 
+> suddenly in order to do the videoconf call would, on such cameras, result 
+> in the automatic deletion of all photos on the camera even if those photos 
+> had not yet been downloaded. Presumably, one would not want to do that. 
 
+So, in other words, the Kernel driver should return -EBUSY if on such
+cameras, if there are photos stored on them, and someone tries to stream.
 
-NACK.
+>> IMO, the right solution is to work on a proper snapshot mode, in kernelspace,
+>> and moving the drivers that have already a kernelspace out of Gphoto.
+> 
+> Well, the problem with that is, a still camera and a webcam are entirely 
+> different beasts. Still photos stored in the memory of an external device, 
+> waiting to be downloaded, are not snapshots. Thus, access to those still 
+> photos is not access to snapshots. Things are not that simple.
 
-Regards,
-Andy 
+Yes, stored photos require a different API, as Hans pointed. I think that some cameras
+just export them as a USB storage. For those, we may eventually need some sort of locking
+between the USB storage and V4L.
 
+>> That's said, there is a proposed topic for snapshot buffer management. Maybe
+>> it may cover the remaining needs for taking high quality pictures in Kernel.
+> 
+> Again, when downloading photo images which are _stored_ on the camera one 
+> is not "taking high quality pictures." Different functionality is 
+> involved. This may involve, for example, a different Altsetting for the 
+> USB device and may also require the use of Bulk transport instead of 
+> Isochronous transport. 
 
+Ok. The gspca driver supports it already. All we need to do is to implement a
+proper API for retrieving still photos.
 
+>> The hole idea is to allocate additional buffers for snapshots, imagining that
+>> the camera may be streaming in low quality/low resolution, and, once snapshot
+>> is requested, it will take one high quality/high resolution picture.
+> 
+> The ability to "take" a photo is present on some still cameras and not on 
+> others. "Some still cameras" includes some dual-mode cameras. For 
+> dual-mode cameras which can be requested to "take" a photo while running 
+> in webcam mode, the ability to do so is, generally speaking, present in 
+> the kernel driver.
+> 
+> To present the problem more simply, a webcam is, essentially, a device of 
+> USB class Video (even if the device uses proprietary protocols, this is at 
+> least conceptually true). This is true because a webcam streams 
+> video data. However, a still camera is, in its essence as a 
+> computer peripheral, a USB mass storage device (even if the device has a 
+> proprietary protocol and even if it will not do everything one would 
+> expect from a normal mass storage device). That is, a still camera can be 
+> considered as a device which contains data, and one needs to get the data 
+> from there to the computer, and then to process said data. It is when the 
+> two different kinds of device are married together in one piece of 
+> physical hardware, with the same USB Vendor:Product code, that trouble 
+> follows. 
+
+We'll need to split the problem on all possible alternatives, as the solution
+may be different for each.
+
+If I understood you well, there are 4 possible ways:
+
+1) UVC + USB mass storage;
+2) UVC + Vendor Class mass storage;
+3) Vendor Class video + USB mass storage;
+4) Vendor Class video + Vendor Class mass storage.
+
+For (1) and (3), it doesn't make sense to re-implement USB mass storage on V4L.
+We may just need some sort of resource locking, if the device can't provide both
+ways at the same time.
+
+For (2) and (4), we'll need an extra API like what Hans is proposing, plus a
+resource locking schema.
+
+That's said, "resource locking" is currently one big problem we need to solve on
+the media subsystem.
+
+We have already some problems like that on devices that implement both V4L and
+DVB API's. For example, you can't use the same tuner to watch analog and digital
+TV at the same time. Also, several devices have I2C switches. You can't, for example,
+poll for a RC code while the I2C switch is opened for tuner access.
+
+This is the same kind of problem, for example, that happens with 3G modems that
+can work either as USB storage or as modem.
+
+This sounds to be a good theme for the Workshop, or even to KS/2011.
+
+> I suggest that we continue this discussion after the conference. I expect 
+> that you and several others who I think are interested in this topic are 
+> rather busy getting ready for the conference. I also hope that some of 
+> those people read this, since I think that a general discussion is needed. 
+> The problem will, after all, not go away. It has been with us for years.
+> 
+> Theodore Kilgore
+> 
 
