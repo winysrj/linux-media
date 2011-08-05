@@ -1,83 +1,82 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.17.8]:64552 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754392Ab1HCQiD (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 3 Aug 2011 12:38:03 -0400
-Date: Wed, 3 Aug 2011 18:37:58 +0200 (CEST)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Eric Miao <eric.y.miao@gmail.com>
-cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	Robert Jarzmik <robert.jarzmik@free.fr>
-Subject: Re: [PATCH 29/59] ARM: PXA: use gpio_set_value_cansleep() on pcm990
-In-Reply-To: <CAMPhdO8V=y+se-vuozXW2_w6Y2cP2L7FVpiG7zXWS_WBcQvgqQ@mail.gmail.com>
-Message-ID: <Pine.LNX.4.64.1108031835540.28502@axis700.grange>
-References: <1311937019-29914-1-git-send-email-g.liakhovetski@gmx.de>
- <1311937019-29914-30-git-send-email-g.liakhovetski@gmx.de>
- <CAMPhdO8V=y+se-vuozXW2_w6Y2cP2L7FVpiG7zXWS_WBcQvgqQ@mail.gmail.com>
+Received: from casper.infradead.org ([85.118.1.10]:56710 "EHLO
+	casper.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755887Ab1HEAeE (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 4 Aug 2011 20:34:04 -0400
+Message-ID: <4E3B3A4C.9010700@infradead.org>
+Date: Thu, 04 Aug 2011 21:33:16 -0300
+From: Mauro Carvalho Chehab <mchehab@infradead.org>
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+To: Matthew Dharm <mdharm-usb@one-eyed-alien.net>
+CC: Greg KH <greg@kroah.com>,
+	Sarah Sharp <sarah.a.sharp@linux.intel.com>,
+	linux-usb@vger.kernel.org, linux-media@vger.kernel.org,
+	linux-kernel@vger.kernel.org, libusb-devel@lists.sourceforge.net,
+	Alexander Graf <agraf@suse.de>,
+	Gerd Hoffmann <kraxel@redhat.com>, hector@marcansoft.com,
+	Jan Kiszka <jan.kiszka@siemens.com>,
+	Stefan Hajnoczi <stefanha@linux.vnet.ibm.com>,
+	pbonzini@redhat.com, Anthony Liguori <aliguori@us.ibm.com>,
+	Jes Sorensen <Jes.Sorensen@redhat.com>,
+	Alan Stern <stern@rowland.harvard.edu>,
+	Oliver Neukum <oliver@neukum.org>, Felipe Balbi <balbi@ti.com>,
+	Clemens Ladisch <clemens@ladisch.de>,
+	Jaroslav Kysela <perex@perex.cz>, Takashi Iwai <tiwai@suse.de>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Hans de Goede <hdegoede@redhat.com>,
+	Theodore Kilgore <kilgota@banach.math.auburn.edu>,
+	Adam Baker <linux@baker-net.org.uk>
+Subject: Re: USB mini-summit at LinuxCon Vancouver
+References: <20110610002103.GA7169@xanatos> <4E3B1B7B.2040501@infradead.org> <20110804225603.GA2557@kroah.com> <CAA6KcBBZv7bvVxvEWOYL83igpNZHyzh=bcGxh6Dr5aKsvJK5Cg@mail.gmail.com>
+In-Reply-To: <CAA6KcBBZv7bvVxvEWOYL83igpNZHyzh=bcGxh6Dr5aKsvJK5Cg@mail.gmail.com>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Eric
-
-On Wed, 3 Aug 2011, Eric Miao wrote:
-
-> I'm not a big fan of this _cansleep() version of the API, is there any
-> specific reason for doing so? Does the original code break anything?
-
-Sure:
-
-> > explicitly to avoid runtime warnings.
-
-i.e., without this patch the
-
-	WARN_ON(chip->can_sleep);
-
-in drivers/gpio/gpiolib.c::__gpio_set_value() triggers.
-
-Thanks
-Guennadi
-
+Em 04-08-2011 20:22, Matthew Dharm escreveu:
+> On Thu, Aug 4, 2011 at 3:56 PM, Greg KH <greg@kroah.com <mailto:greg@kroah.com>> wrote:
 > 
-> On Friday, July 29, 2011, Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-> wrote:
-> > Camera-switching GPIOs are provided by a i2c GPIO extender, switching
-> > them can send the caller to sleep. Use the GPIO API *_cansleep methods
-> > explicitly to avoid runtime warnings.
-> >
-> > Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-> > Cc: Robert Jarzmik <robert.jarzmik@free.fr>
-> > Cc: Eric Miao <eric.y.miao@gmail.com>
-> > ---
-> >  arch/arm/mach-pxa/pcm990-baseboard.c |    4 ++--
-> >  1 files changed, 2 insertions(+), 2 deletions(-)
-> >
-> > diff --git a/arch/arm/mach-pxa/pcm990-baseboard.c
-> b/arch/arm/mach-pxa/pcm990-baseboard.c
-> > index 6d5b7e0..8ad2597 100644
-> > --- a/arch/arm/mach-pxa/pcm990-baseboard.c
-> > +++ b/arch/arm/mach-pxa/pcm990-baseboard.c
-> > @@ -395,9 +395,9 @@ static int pcm990_camera_set_bus_param(struct
-> soc_camera_link *link,
-> >        }
-> >
-> >        if (flags & SOCAM_DATAWIDTH_8)
-> > -               gpio_set_value(gpio_bus_switch, 1);
-> > +               gpio_set_value_cansleep(gpio_bus_switch, 1);
-> >        else
-> > -               gpio_set_value(gpio_bus_switch, 0);
-> > +               gpio_set_value_cansleep(gpio_bus_switch, 0);
-> >
-> >        return 0;
-> >  }
-> > --
-> > 1.7.2.5
-> >
-> >
+>     On Thu, Aug 04, 2011 at 07:21:47PM -0300, Mauro Carvalho Chehab wrote:
+>     > I know that this problem were somewhat solved for 3G modems, with the usage
+>     > of the userspace problem usb_modeswitch, and with some quirks for the USB
+>     > storage driver, but I'm not sure if such tricks will scale forever, as more
+>     > functions are seen on some USB devices.
 > 
+>     Well, no matter how it "scales" it needs to be done in userspace, like
+>     usb_modeswitch does.  We made that decision a while ago, and it is
+>     working out very well.  I see no reason why you can't do it in userspace
+>     as well as that is the easiest place to control this type of thing.
+> 
+>     I thought we had a long discussion about this topic a while ago and came
+>     to this very conclusion.  Or am I mistaken?
+> 
+>  
+> We keep having the discussion over and over again.  But, you are correct: the conclusion was that this all needs to live in userspace.
 
----
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
-http://www.open-technology.de/
+In the case of 3G modem x USB storage only, it is possible to handle it on userspace.
+
+However, when there are more functions added, an they're not (completely) mutually exclusive,
+then I don't see an easy way (if is there a way) for doing it at userspace.
+
+Several devices offer more than one function at the same time, but some
+resources are mutually exclusive. A TV stick with just one tuner, and
+both analog and digital demods offer both analog and digital TV at the
+same time. So, both analog and digital parts of the driver will offer
+the device to userspace. However, unpredictable results will happen if
+userspace tries to use both at the same time.
+
+The Digital camera devices that offer PTP transfers and V4L support also
+fall at the same type of trouble. Some of those devices just delete
+all pictures from the memory, if streaming is started. So, receiving
+an automatic Skype video call may delete all pictures you took.
+
+Worse than that, currently, the PTP protocol is handled via libusb, while
+streaming is done via V4L2 API.
+
+The best technical approach, IMO, is to implement the PTP protocol in
+kernelspace, and do some sort of inter-subsystem locking to prevent such
+troubles.
+
+Regards,
+Mauro
