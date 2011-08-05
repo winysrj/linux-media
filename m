@@ -1,53 +1,64 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr16.xs4all.nl ([194.109.24.36]:1844 "EHLO
-	smtp-vbr16.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752072Ab1HAHp5 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 1 Aug 2011 03:45:57 -0400
-Message-ID: <c1f1fc61e7d5249df122e24ec539cb8a.squirrel@webmail.xs4all.nl>
-In-Reply-To: <4E365192.2000404@redhat.com>
-References: <4E32EE71.4030908@redhat.com> <4E350B04.6050209@redhat.com>
-    <4E3530BC.9050108@redhat.com> <4E365192.2000404@redhat.com>
-Date: Mon, 1 Aug 2011 09:45:53 +0200
-Subject: Re: [GIT PULL for v3.0] media updates for v3.1
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: "Hans de Goede" <hdegoede@redhat.com>
-Cc: "Mauro Carvalho Chehab" <mchehab@redhat.com>,
-	"Linux Media Mailing List" <linux-media@vger.kernel.org>
-MIME-Version: 1.0
+Received: from oproxy8-pub.bluehost.com ([69.89.22.20]:37428 "HELO
+	oproxy8-pub.bluehost.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1755365Ab1HEX4N (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 5 Aug 2011 19:56:13 -0400
+Date: Fri, 5 Aug 2011 16:56:11 -0700
+From: Randy Dunlap <rdunlap@xenotime.net>
+To: Stephen Rothwell <sfr@canb.auug.org.au>,
+	linux-media@vger.kernel.org,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Cc: linux-next@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>,
+	Ondrej Zary <linux@rainbow-software.org>,
+	Takashi Iwai <tiwai@suse.de>
+Subject: Re: linux-next: Tree for Aug 5 (media/radio/radio-sf16fmr2)
+Message-Id: <20110805165611.d2feaf32.rdunlap@xenotime.net>
+In-Reply-To: <20110805143103.f9388ca143560d73caac60c1@canb.auug.org.au>
+References: <20110805143103.f9388ca143560d73caac60c1@canb.auug.org.au>
+Mime-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-> Hi,
->
-> On 07/31/2011 12:38 PM, Mauro Carvalho Chehab wrote:
->> Em 31-07-2011 04:57, Hans de Goede escreveu:
->>> Hi,
->>>
->>> I notice that Hans Verkuil's patches to make poll
->>> report what is being polled to drivers, and my corresponding
->>> patches for adding event support to pwc are not included,
->>> what is the plan with these?
->>
->> The changes for the vfs code need vfs maintainer's ack, or to go
->> via their tree. So, we need to wait for them to merge/send it
->> upstream, before being able to merge the patches that depend on it.
->
-> Hmm, has anyone had any direct communications with the vfs maintainer
-> about this? If not I think we should have some direct communications
-> on this, otherwise we may end up waiting a long long time.
+On Fri, 5 Aug 2011 14:31:03 +1000 Stephen Rothwell wrote:
 
-He was CC-ed on this from the very beginning...
+> Hi all,
+> 
+> [The kernel.org mirroring is running slowly today]
 
-Regards,
-
-         Hans
-
->
-> Regards,
->
-> Hans
->
+Is media/radio/radio-sf16fmr2 an ISA driver or a PCI driver?
+ugh.  Or is it an I2C driver?
 
 
+linux-next fails with (this is not a new failure):
+
+ERROR: "snd_tea575x_init" [drivers/media/radio/radio-sf16fmr2.ko] undefined!
+ERROR: "snd_tea575x_exit" [drivers/media/radio/radio-sf16fmr2.ko] undefined!
+
+The Kconfig entry for RADIO_SF16FMR2 is:
+
+config RADIO_SF16FMR2
+	tristate "SF16FMR2 Radio"
+	depends on ISA && VIDEO_V4L2 && SND
+
+and the Kconfig entry for SND_TEA575X is (not user visible):
+
+config SND_TEA575X
+	tristate
+	depends on SND_FM801_TEA575X_BOOL || SND_ES1968_RADIO || RADIO_SF16FMR2
+	default SND_FM801 || SND_ES1968 || RADIO_SF16FMR2
+
+This latter entry is in sound/pci/Kconfig and is under:
+if SND_PCI
+so it depends on PCI and SND_PCI.
+
+This build fails when CONFIG_PCI is not enabled.
+
+
+Suggestions?
+
+thanks,
+---
+~Randy
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
