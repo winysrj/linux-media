@@ -1,80 +1,91 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:38962 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753679Ab1HQPaj convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 17 Aug 2011 11:30:39 -0400
-From: "Hiremath, Vaibhav" <hvaibhav@ti.com>
-To: "Ravi, Deepthy" <deepthy.ravi@ti.com>,
-	"mchehab@infradead.org" <mchehab@infradead.org>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
-CC: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
-Date: Wed, 17 Aug 2011 21:00:28 +0530
-Subject: RE: [PATCH] Media controller: Define media_entity_init() and
- media_entity_cleanup() conditionally
-Message-ID: <19F8576C6E063C45BE387C64729E739404E3CDE6D9@dbde02.ent.ti.com>
-References: <1313577276-18182-1-git-send-email-deepthy.ravi@ti.com>
-In-Reply-To: <1313577276-18182-1-git-send-email-deepthy.ravi@ti.com>
-Content-Language: en-US
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Received: from mx1.redhat.com ([209.132.183.28]:37719 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753051Ab1HEHA7 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 5 Aug 2011 03:00:59 -0400
+Message-ID: <4E3B9597.4040307@redhat.com>
+Date: Fri, 05 Aug 2011 09:02:47 +0200
+From: Hans de Goede <hdegoede@redhat.com>
 MIME-Version: 1.0
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+CC: Theodore Kilgore <kilgota@banach.math.auburn.edu>,
+	workshop-2011@linuxtv.org,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: [Workshop-2011] Media Subsystem Workshop 2011
+References: <4E398381.4080505@redhat.com>	<alpine.LNX.2.00.1108031418480.16384@banach.math.auburn.edu>	<4E39B150.40108@redhat.com>	<alpine.LNX.2.00.1108031750241.16520@banach.math.auburn.edu> <4E3A91D1.1040000@redhat.com>
+In-Reply-To: <4E3A91D1.1040000@redhat.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Hi all,
 
-> -----Original Message-----
-> From: Ravi, Deepthy
-> Sent: Wednesday, August 17, 2011 4:05 PM
-> To: mchehab@infradead.org; linux-media@vger.kernel.org; linux-
-> kernel@vger.kernel.org
-> Cc: linux-omap@vger.kernel.org; Hiremath, Vaibhav; Ravi, Deepthy
-> Subject: [PATCH] Media controller: Define media_entity_init() and
-> media_entity_cleanup() conditionally
-> 
-> From: Vaibhav Hiremath <hvaibhav@ti.com>
-> 
-> Defines the two functions only when CONFIG_MEDIA_CONTROLLER
-> is enabled.
-[Hiremath, Vaibhav] Deepthy,
+On 08/04/2011 02:34 PM, Mauro Carvalho Chehab wrote:
+> Em 03-08-2011 20:20, Theodore Kilgore escreveu:
 
-You may want to mention about build failure without MEDIA_CONTROLLER option being enabled, especially if any sensor driver is being used between MC and non-MC framework compatible devices.
-For example, OMAP3 and AM3517, where TVP5146 is being used but OMAP3 is based on MC framework and AM3517 is based on simple sub-dev based interface.
+<snip snip>
 
-Thanks,
-Vaibhav
-> 
-> Signed-off-by: Vaibhav Hiremath <hvaibhav@ti.com>
-> Signed-off-by: Deepthy Ravi <deepthy.ravi@ti.com>
-> ---
->  include/media/media-entity.h |    9 +++++++++
->  1 files changed, 9 insertions(+), 0 deletions(-)
-> 
-> diff --git a/include/media/media-entity.h b/include/media/media-entity.h
-> index cd8bca6..c90916e 100644
-> --- a/include/media/media-entity.h
-> +++ b/include/media/media-entity.h
-> @@ -121,9 +121,18 @@ struct media_entity_graph {
->  	int top;
->  };
-> 
-> +#ifdef CONFIG_MEDIA_CONTROLLER
->  int media_entity_init(struct media_entity *entity, u16 num_pads,
->  		struct media_pad *pads, u16 extra_links);
->  void media_entity_cleanup(struct media_entity *entity);
-> +#else
-> +static inline int media_entity_init(struct media_entity *entity, u16
-> num_pads,
-> +		struct media_pad *pads, u16 extra_links)
-> +{
-> +	return 0;
-> +}
-> +static inline void media_entity_cleanup(struct media_entity *entity) {}
-> +#endif
-> 
->  int media_entity_create_link(struct media_entity *source, u16 source_pad,
->  		struct media_entity *sink, u16 sink_pad, u32 flags);
-> --
-> 1.7.0.4
+>> Yes, that kind of thing is an obvious problem. Actually, though, it may be
+>> that this had just better not happen. For some of the hardware that I know
+>> of, it could be a real problem no matter what approach would be taken. For
+>> example, certain specific dual-mode cameras will delete all data stored on
+>> the camera if the camera is fired up in webcam mode. To drop Gphoto
+>> suddenly in order to do the videoconf call would, on such cameras, result
+>> in the automatic deletion of all photos on the camera even if those photos
+>> had not yet been downloaded. Presumably, one would not want to do that.
+>
+> So, in other words, the Kernel driver should return -EBUSY if on such
+> cameras, if there are photos stored on them, and someone tries to stream.
+>
 
+Agreed.
+
+>>> IMO, the right solution is to work on a proper snapshot mode, in kernelspace,
+>>> and moving the drivers that have already a kernelspace out of Gphoto.
+>>
+>> Well, the problem with that is, a still camera and a webcam are entirely
+>> different beasts. Still photos stored in the memory of an external device,
+>> waiting to be downloaded, are not snapshots. Thus, access to those still
+>> photos is not access to snapshots. Things are not that simple.
+>
+> Yes, stored photos require a different API, as Hans pointed. I think that some cameras
+> just export them as a USB storage.
+
+Erm, that is not what I tried to say, or do you mean another
+Hans?
+
+<snip snip>
+
+> If I understood you well, there are 4 possible ways:
+>
+> 1) UVC + USB mass storage;
+> 2) UVC + Vendor Class mass storage;
+> 3) Vendor Class video + USB mass storage;
+> 4) Vendor Class video + Vendor Class mass storage.
+>
+
+Actually the cameras Theodore and I are talking about here all
+fall into category 4. I expect devices which do any of 1-3 to
+properly use different interfaces for this, actually the different
+class specifications mandate that they use different interfaces
+for this.
+
+> This sounds to be a good theme for the Workshop, or even to KS/2011.
+>
+
+Agreed, although we don't need to talk about this for very long, the solution
+is basically:
+1) Define a still image retrieval API for v4l2 devices (there is only 1
+   interface for both functions on these devices, so only 1 driver, and to
+   me it makes sense to extend the existing drivers to also do still image
+   retrieval).
+2) Modify existing kernel v4l2 drivers to provide this API
+3) Write a new libgphoto driver which talks this interface (only need to
+   do one driver since all dual mode cams will export the same API).
+
+1) is something to discuss at the workshop.
+
+Regards,
+
+Hans
