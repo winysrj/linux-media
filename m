@@ -1,79 +1,67 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-68.nebula.fi ([83.145.220.68]:54941 "EHLO
-	smtp-68.nebula.fi" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751253Ab1HKLJv (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 11 Aug 2011 07:09:51 -0400
-Date: Thu, 11 Aug 2011 14:09:46 +0300
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Hans Verkuil <hansverk@cisco.com>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Pawel Osciak <pawel@osciak.com>,
-	Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: Re: [PATCH 1/6 v4] V4L: add two new ioctl()s for multi-size
- videobuffer management
-Message-ID: <20110811110946.GG5926@valkosipuli.localdomain>
-References: <Pine.LNX.4.64.1108042329460.31239@axis700.grange>
- <201108090926.30157.hverkuil@xs4all.nl>
- <20110809233727.GB5926@valkosipuli.localdomain>
- <201108100825.24309.hverkuil@xs4all.nl>
+Received: from smtp-out003.kontent.com ([81.88.40.217]:51488 "EHLO
+	smtp-out003.kontent.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753766Ab1HEHJ5 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 5 Aug 2011 03:09:57 -0400
+From: Oliver Neukum <oliver@neukum.org>
+To: Greg KH <greg@kroah.com>
+Subject: Re: USB mini-summit at LinuxCon Vancouver
+Date: Fri, 5 Aug 2011 08:57:52 +0200
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Sarah Sharp <sarah.a.sharp@linux.intel.com>,
+	linux-usb@vger.kernel.org, linux-media@vger.kernel.org,
+	linux-kernel@vger.kernel.org, libusb-devel@lists.sourceforge.net,
+	Alexander Graf <agraf@suse.de>,
+	Gerd Hoffmann <kraxel@redhat.com>, hector@marcansoft.com,
+	Jan Kiszka <jan.kiszka@siemens.com>,
+	Stefan Hajnoczi <stefanha@linux.vnet.ibm.com>,
+	pbonzini@redhat.com, Anthony Liguori <aliguori@us.ibm.com>,
+	Jes Sorensen <Jes.Sorensen@redhat.com>,
+	Alan Stern <stern@rowland.harvard.edu>,
+	Felipe Balbi <balbi@ti.com>,
+	Clemens Ladisch <clemens@ladisch.de>,
+	Jaroslav Kysela <perex@perex.cz>, Takashi Iwai <tiwai@suse.de>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Hans de Goede <hdegoede@redhat.com>,
+	Theodore Kilgore <kilgota@banach.math.auburn.edu>,
+	Adam Baker <linux@baker-net.org.uk>
+References: <20110610002103.GA7169@xanatos> <4E3B1B7B.2040501@infradead.org> <20110804225603.GA2557@kroah.com>
+In-Reply-To: <20110804225603.GA2557@kroah.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <201108100825.24309.hverkuil@xs4all.nl>
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201108050857.52204.oliver@neukum.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, Aug 10, 2011 at 08:25:24AM +0200, Hans Verkuil wrote:
-> On Wednesday, August 10, 2011 01:37:27 Sakari Ailus wrote:
-> > On Tue, Aug 09, 2011 at 09:26:30AM +0200, Hans Verkuil wrote:
-> > ...
-> > > > Wouldn't that be a security issue ? Any application with permissions to access 
-> > > > the video device could DoS the system.
-> > > 
-> > > How is this any different from an application that tries to use more memory
-> > > then there is available? It's an out-of-memory situation, that can happen at
-> > > any time. Anyone can make an application that runs out of memory.
-> > > 
-> > > Out-of-memory is not a security risk AFAIK.
-> > 
-> > If you coun availability to security, then it is.
-> > 
-> > This might not be an issue in embedded systems which have a single user, but
-> > think of the availability of the interface in e.g. a server.
-> > 
-> > Also, this memory is locked to system physical memory, making it impossible
-> > to page it out to a block device.
+Am Freitag, 5. August 2011, 00:56:03 schrieb Greg KH:
+> On Thu, Aug 04, 2011 at 07:21:47PM -0300, Mauro Carvalho Chehab wrote:
+> > I know that this problem were somewhat solved for 3G modems, with the usage
+> > of the userspace problem usb_modeswitch, and with some quirks for the USB
+> > storage driver, but I'm not sure if such tricks will scale forever, as more
+> > functions are seen on some USB devices.
 > 
-> So? Anyone can make a program that allocates and uses a lot of memory causing
-> an out of memory error. I still don't see how that differs from trying to allocate
-> these buffers.
+> Well, no matter how it "scales" it needs to be done in userspace, like
+> usb_modeswitch does.  We made that decision a while ago, and it is
+> working out very well.  I see no reason why you can't do it in userspace
+> as well as that is the easiest place to control this type of thing.
+> 
+> I thought we had a long discussion about this topic a while ago and came
+> to this very conclusion.  Or am I mistaken?
 
-The difference is between physical and virtual memory. Reserving buffers
-pinned in physical memory will starve all the other users very efficiently.
+Circumstances change. We want to keep the stuff in user space as much and
+as long as we can. However user space has limitations:
 
-> Out of memory is a normal condition, not a security risk.
+- it has by necessity a race between resumption and access by others
+- it cannot resume anything we run a (rw) filesystem over.
 
-Administrators of largish servers with thousands of users might disagree. I
-have to admit I don't know their usage patterns very well so I have no
-demands on the issue. ulimit is being used in those systems as is quota,
-that I know.
+Furthermore, today PM actions that lead to a loss of mode are initiated
+by user space. If we ever want to oportunistically suspend a system
+we also need to restore mode from inside the kernel.
 
-On the other hand, those systems typically do not contain V4L2 devices
-either.
+We could avoid all that trouble, if we persuaded vendors to use plain
+USB configurations for those purposes.
 
-> The problem I have is that you can't really determine a valid policy here
-> since that will depend entirely on your use-case and (embedded) device.
-
-This is quite similar case as with the CMA in my opinion. The proposal (by
-Arnd, if my memory serves me correctly) was to limit the CMA allocations
-under certain percentage of the system memory address space. The limit could
-be overriddend e.g. in board code.
-
--- 
-Sakari Ailus
-sakari.ailus@iki.fi
+	Regards
+		Oliver
