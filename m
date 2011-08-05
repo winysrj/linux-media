@@ -1,49 +1,69 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([92.198.50.35]:37198 "EHLO
-	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752166Ab1HEH2g (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 5 Aug 2011 03:28:36 -0400
-Date: Fri, 5 Aug 2011 09:28:31 +0200
-From: Uwe =?iso-8859-1?Q?Kleine-K=F6nig?=
-	<u.kleine-koenig@pengutronix.de>
-To: Jan Pohanka <xhpohanka@gmail.com>
-Cc: linux-media@vger.kernel.org, s.hauer@pengutronix.de
-Subject: Re: mx2_camera driver on mx27ipcam: dma_alloc_coherent size failed
-Message-ID: <20110805072831.GN31521@pengutronix.de>
-References: <op.vzdduqnuyxxkfz@localhost.localdomain>
- <20110729075143.GX16561@pengutronix.de>
- <op.vzdhx5ucyxxkfz@localhost.localdomain>
- <20110729092311.GY16561@pengutronix.de>
- <op.vzdldvr1yxxkfz@localhost.localdomain>
- <20110729115732.GA16561@pengutronix.de>
- <op.vzoxkxheyxxkfz@localhost.localdomain>
- <20110804132500.GF31521@pengutronix.de>
- <CABMiYf9MDzDbVjQMsBZSxsumSU1ZDJEm7AapF86dN4m3qWe6_A@mail.gmail.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <CABMiYf9MDzDbVjQMsBZSxsumSU1ZDJEm7AapF86dN4m3qWe6_A@mail.gmail.com>
+Received: from mail-ww0-f42.google.com ([74.125.82.42]:64238 "EHLO
+	mail-ww0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751405Ab1HESI4 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 5 Aug 2011 14:08:56 -0400
+Cc: <hvaibhav@ti.com>, <linux-media@vger.kernel.org>,
+	<tomi.valkeinen@ti.com>, <linux-omap@vger.kernel.org>
+Message-Id: <8565F923-5F8F-40B1-AFA8-ADE152507223@dominion.thruhere.net>
+From: Koen Kooi <koen@beagleboard.org>
+To: Archit Taneja <archit@ti.com>
+In-Reply-To: <1312528761-18241-1-git-send-email-archit@ti.com>
+Content-Type: text/plain; charset=US-ASCII; format=flowed; delsp=yes
+Content-Transfer-Encoding: 7bit
+Mime-Version: 1.0 (Apple Message framework v936)
+Subject: Re: [PATCH] [media] OMAP_VOUT: Fix build break caused by update_mode removal in DSS2
+Date: Fri, 5 Aug 2011 20:08:46 +0200
+References: <1312528761-18241-1-git-send-email-archit@ti.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello Jan,
 
-On Fri, Aug 05, 2011 at 09:21:36AM +0200, Jan Pohanka wrote:
-> Hello Uwe,
-> thank you for the hint. There was problem with insufficient memory.
-> dma_alloc_from_coherent is called several times and when I allocated
-> only 4MB, last call failed. When I passed 8MB to
-> dma_declare_coherent_memory, it works. Unfortunately I do not
-> understand why 4MB is not enough for 640x480 YUV image...
-A YUV420 image of size 640x480 needs 1.5 * 640 * 480 bytes (I think).
-That's ~ 0.5MB. Now it depends how much buffers are allocated. For
-taking a photo a single buffer is enough, for a video it uses probably
-more than one.
+Op 5 aug 2011, om 09:19 heeft Archit Taneja het volgende geschreven:
 
-Best regards
-Uwe
+> The DSS2 driver does not support the configuration of the  
+> update_mode of a
+> panel anymore. Remove the setting of update_mode done in  
+> omap_vout_probe().
+> Ignore configuration of TE since omap_vout driver doesn't support  
+> manual update
+> displays anyway.
+>
+> Signed-off-by: Archit Taneja <archit@ti.com>
 
--- 
-Pengutronix e.K.                           | Uwe Kleine-König            |
-Industrial Linux Solutions                 | http://www.pengutronix.de/  |
+Tested-by: Koen Kooi <koen@dominion.thruhere.net>
+
+> ---
+> drivers/media/video/omap/omap_vout.c |   13 -------------
+> 1 files changed, 0 insertions(+), 13 deletions(-)
+>
+> diff --git a/drivers/media/video/omap/omap_vout.c b/drivers/media/ 
+> video/omap/omap_vout.c
+> index b5ef362..b3a5ecd 100644
+> --- a/drivers/media/video/omap/omap_vout.c
+> +++ b/drivers/media/video/omap/omap_vout.c
+> @@ -2194,19 +2194,6 @@ static int __init omap_vout_probe(struct  
+> platform_device *pdev)
+> 					"'%s' Display already enabled\n",
+> 					def_display->name);
+> 			}
+> -			/* set the update mode */
+> -			if (def_display->caps &
+> -					OMAP_DSS_DISPLAY_CAP_MANUAL_UPDATE) {
+> -				if (dssdrv->enable_te)
+> -					dssdrv->enable_te(def_display, 0);
+> -				if (dssdrv->set_update_mode)
+> -					dssdrv->set_update_mode(def_display,
+> -							OMAP_DSS_UPDATE_MANUAL);
+> -			} else {
+> -				if (dssdrv->set_update_mode)
+> -					dssdrv->set_update_mode(def_display,
+> -							OMAP_DSS_UPDATE_AUTO);
+> -			}
+> 		}
+> 	}
+>
+> -- 
+> 1.7.1
+>
+
