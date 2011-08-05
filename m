@@ -1,112 +1,210 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail2.matrix-vision.com ([85.214.244.251]:36104 "EHLO
-	mail2.matrix-vision.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752461Ab1HVKPw (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 22 Aug 2011 06:15:52 -0400
-Message-ID: <4E522C56.3090605@matrix-vision.de>
-Date: Mon, 22 Aug 2011 12:15:50 +0200
-From: Michael Jones <michael.jones@matrix-vision.de>
+Received: from moutng.kundenserver.de ([212.227.17.8]:52142 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755951Ab1HEHrj (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 5 Aug 2011 03:47:39 -0400
+Date: Fri, 5 Aug 2011 09:47:31 +0200 (CEST)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+cc: Sakari Ailus <sakari.ailus@iki.fi>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	Pawel Osciak <pawel@osciak.com>,
+	Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: [PATCH 5/6 v4] V4L: sh-mobile-ceu-camera: prepare to support multi-size
+ buffers
+In-Reply-To: <Pine.LNX.4.64.1108042329460.31239@axis700.grange>
+Message-ID: <Pine.LNX.4.64.1108050933020.26715@axis700.grange>
+References: <Pine.LNX.4.64.1108042329460.31239@axis700.grange>
 MIME-Version: 1.0
-To: CJ <cjpostor@gmail.com>
-CC: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	javier Martin <javier.martin@vista-silicon.com>,
-	Koen Kooi <koen@beagleboard.org>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	linux-media@vger.kernel.org, mch_kot@yahoo.com.cn
-Subject: Re: [beagleboard] Re: [PATCH v7 1/2] Add driver for Aptina (Micron)
- mt9p031 sensor.
-References: <1307014603-22944-1-git-send-email-javier.martin@vista-silicon.com> <201108191212.49729.laurent.pinchart@ideasonboard.com> <4E51D739.7010000@gmail.com> <201108221141.40818.laurent.pinchart@ideasonboard.com>
-In-Reply-To: <201108221141.40818.laurent.pinchart@ideasonboard.com>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Chris,
+Prepare the sh_mobile_ceu_camera friver to support the new
+VIDIOC_CREATE_BUFS and VIDIOC_PREPARE_BUF ioctl()s. The .queue_setup()
+vb2 operation must be able to handle buffer sizes, provided by the
+caller, and the .buf_prepare() operation must not use the currently
+configured frame format for its operation.
 
-On 08/22/2011 11:41 AM, Laurent Pinchart wrote:
-> 
-> Hi Chris,
-> 
-> On Monday 22 August 2011 06:12:41 CJ wrote:
->> On 19/08/11 22:12, Laurent Pinchart wrote:
->>>> I am trying to get the mt9p031 working from nand with a ubifs file
->>>> system and I am having a few problems.
->>>>
->>>> /dev/media0 is not present unless I run:
->>>> #mknod /dev/media0 c 251 0
->>>> #chown root:video /dev/media0
->>>>
->>>> #media-ctl -p
->>>> Enumerating entities
->>>> media_open: Unable to enumerate entities for device /dev/media0
->>>> (Inappropriate ioctl for device)
->>>>
->>>> With the same rig/files it works fine running from EXT4 on an SD card.
->>>> Any idea why this does not work on nand with ubifs?
->>>
->>> Is the OMAP3 ISP driver loaded ? Has it probed the device successfully ?
->>> Check the kernel log for OMAP3 ISP-related messages.
->>
->> Here is the version running from SD card:
->> # dmesg | grep isp
->> [    0.265502] omap-iommu omap-iommu.0: isp registered
->> [    2.986541] omap3isp omap3isp: Revision 2.0 found
->> [    2.991577] omap-iommu omap-iommu.0: isp: version 1.1
->> [    2.997406] omap3isp omap3isp: hist: DMA channel = 0
->> [    3.006256] omap3isp omap3isp: isp_set_xclk(): cam_xclka set to
->> 21600000 Hz
->> [    3.011932] omap3isp omap3isp: isp_set_xclk(): cam_xclka set to 0 Hz
->>
->>  From NAND using UBIFS:
->> # dmesg | grep isp
->> [    3.457061] omap3isp omap3isp: Revision 2.0 found
->> [    3.462036] omap-iommu omap-iommu.0: isp: version 1.1
->> [    3.467620] omap3isp omap3isp: hist: DMA channel = 0
->> [    3.472564] omap3isp omap3isp: isp_set_xclk(): cam_xclka set to
->> 21600000 Hz
->> [    3.478027] omap3isp omap3isp: isp_set_xclk(): cam_xclka set to 0 Hz
->>
->> Seems to be missing:
->> omap-iommu omap-iommu.0: isp registered
->>
->> Is that the issue? Why would this not work when running from NAND?
+Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+---
+ drivers/media/video/sh_mobile_ceu_camera.c |   98 ++++++++++++++++------------
+ 1 files changed, 57 insertions(+), 41 deletions(-)
 
-I'm not sure, either, but I had a similar problem before using Laurent's
-patch below. IIRC, usually udev would create /dev/media0 from a cached
-list of /dev/*. Later modutils would come along and load the modules in
-the proper order (iommu, then omap3-isp) and everybody was happy.
-Occasionally, udev would fail to use the cached version of /dev/, and
-look through /sys/devices to re-create the devices in /dev/. When media0
-was found, omap3-isp.ko would be loaded, but iommu had not yet been,
-presumably because it doesn't have an entry in /sys/devices/. So maybe
-udev is behaving differently for you on NAND than it did on the card?
-Either way, as I said, using Laurent's patch below did the job for me.
+diff --git a/drivers/media/video/sh_mobile_ceu_camera.c b/drivers/media/video/sh_mobile_ceu_camera.c
+index 26d0248..996f2a9 100644
+--- a/drivers/media/video/sh_mobile_ceu_camera.c
++++ b/drivers/media/video/sh_mobile_ceu_camera.c
+@@ -101,6 +101,7 @@ struct sh_mobile_ceu_dev {
+ 	unsigned int irq;
+ 	void __iomem *base;
+ 	unsigned long video_limit;
++	unsigned long buf_total;
+ 
+ 	spinlock_t lock;		/* Protects video buffer lists */
+ 	struct list_head capture;
+@@ -192,6 +193,12 @@ static int sh_mobile_ceu_soft_reset(struct sh_mobile_ceu_dev *pcdev)
+ /*
+  *  Videobuf operations
+  */
++
++/*
++ * .queue_setup() is called to check, whether the driver can accept the
++ *		  requested number of buffers and to fill in plane sizes
++ *		  for the current frame format if required
++ */
+ static int sh_mobile_ceu_videobuf_setup(struct vb2_queue *vq,
+ 			unsigned int *count, unsigned int *num_planes,
+ 			unsigned int sizes[], void *alloc_ctxs[])
+@@ -199,26 +206,39 @@ static int sh_mobile_ceu_videobuf_setup(struct vb2_queue *vq,
+ 	struct soc_camera_device *icd = container_of(vq, struct soc_camera_device, vb2_vidq);
+ 	struct soc_camera_host *ici = to_soc_camera_host(icd->parent);
+ 	struct sh_mobile_ceu_dev *pcdev = ici->priv;
+-	int bytes_per_line = soc_mbus_bytes_per_line(icd->user_width,
++	ssize_t size;
++
++	if (!sizes[0] || !*num_planes) {
++		/* Called from VIDIOC_REQBUFS or in compatibility mode */
++		int bytes_per_line = soc_mbus_bytes_per_line(icd->user_width,
+ 						icd->current_fmt->host_fmt);
++		if (bytes_per_line < 0)
++			return bytes_per_line;
+ 
+-	if (bytes_per_line < 0)
+-		return bytes_per_line;
++		sizes[0] = bytes_per_line * icd->user_height;
+ 
+-	*num_planes = 1;
++		*num_planes = 1;
++	}
+ 
+-	pcdev->sequence = 0;
+-	sizes[0] = bytes_per_line * icd->user_height;
+ 	alloc_ctxs[0] = pcdev->alloc_ctx;
+ 
++	if (!vq->num_buffers)
++		pcdev->sequence = 0;
++
+ 	if (!*count)
+ 		*count = 2;
+ 
+-	if (pcdev->video_limit) {
+-		if (PAGE_ALIGN(sizes[0]) * *count > pcdev->video_limit)
+-			*count = pcdev->video_limit / PAGE_ALIGN(sizes[0]);
++	size = PAGE_ALIGN(sizes[0]) * *count;
++
++	if (pcdev->video_limit &&
++	    size + pcdev->buf_total > pcdev->video_limit) {
++		*count = (pcdev->video_limit - pcdev->buf_total) /
++			PAGE_ALIGN(sizes[0]);
++		size = PAGE_ALIGN(sizes[0]) * *count;
+ 	}
+ 
++	pcdev->buf_total += size;
++
+ 	dev_dbg(icd->parent, "count=%d, size=%u\n", *count, sizes[0]);
+ 
+ 	return 0;
+@@ -330,23 +350,40 @@ static int sh_mobile_ceu_capture(struct sh_mobile_ceu_dev *pcdev)
+ 
+ static int sh_mobile_ceu_videobuf_prepare(struct vb2_buffer *vb)
+ {
++	struct sh_mobile_ceu_buffer *buf = to_ceu_vb(vb);
++
++	/* Added list head initialization on alloc */
++	WARN(!list_empty(&buf->queue), "Buffer %p on queue!\n", vb);
++
++	return 0;
++}
++
++static void sh_mobile_ceu_videobuf_queue(struct vb2_buffer *vb)
++{
+ 	struct soc_camera_device *icd = container_of(vb->vb2_queue, struct soc_camera_device, vb2_vidq);
+-	struct sh_mobile_ceu_buffer *buf;
++	struct soc_camera_host *ici = to_soc_camera_host(icd->parent);
++	struct sh_mobile_ceu_dev *pcdev = ici->priv;
++	struct sh_mobile_ceu_buffer *buf = to_ceu_vb(vb);
++	unsigned long size;
+ 	int bytes_per_line = soc_mbus_bytes_per_line(icd->user_width,
+ 						icd->current_fmt->host_fmt);
+-	unsigned long size;
+ 
+ 	if (bytes_per_line < 0)
+-		return bytes_per_line;
++		return;
++
++	size = icd->user_height * bytes_per_line;
++
++	if (vb2_plane_size(vb, 0) < size) {
++		dev_err(icd->parent, "Buffer #%d too small (%lu < %lu)\n",
++			vb->v4l2_buf.index, vb2_plane_size(vb, 0), size);
++		return;
++	}
+ 
+-	buf = to_ceu_vb(vb);
++	vb2_set_plane_payload(vb, 0, size);
+ 
+ 	dev_dbg(icd->parent, "%s (vb=0x%p) 0x%p %lu\n", __func__,
+ 		vb, vb2_plane_vaddr(vb, 0), vb2_get_plane_payload(vb, 0));
+ 
+-	/* Added list head initialization on alloc */
+-	WARN(!list_empty(&buf->queue), "Buffer %p on queue!\n", vb);
+-
+ #ifdef DEBUG
+ 	/*
+ 	 * This can be useful if you want to see if we actually fill
+@@ -356,31 +393,6 @@ static int sh_mobile_ceu_videobuf_prepare(struct vb2_buffer *vb)
+ 		memset(vb2_plane_vaddr(vb, 0), 0xaa, vb2_get_plane_payload(vb, 0));
+ #endif
+ 
+-	BUG_ON(NULL == icd->current_fmt);
+-
+-	size = icd->user_height * bytes_per_line;
+-
+-	if (vb2_plane_size(vb, 0) < size) {
+-		dev_err(icd->parent, "Buffer too small (%lu < %lu)\n",
+-			vb2_plane_size(vb, 0), size);
+-		return -ENOBUFS;
+-	}
+-
+-	vb2_set_plane_payload(vb, 0, size);
+-
+-	return 0;
+-}
+-
+-static void sh_mobile_ceu_videobuf_queue(struct vb2_buffer *vb)
+-{
+-	struct soc_camera_device *icd = container_of(vb->vb2_queue, struct soc_camera_device, vb2_vidq);
+-	struct soc_camera_host *ici = to_soc_camera_host(icd->parent);
+-	struct sh_mobile_ceu_dev *pcdev = ici->priv;
+-	struct sh_mobile_ceu_buffer *buf = to_ceu_vb(vb);
+-
+-	dev_dbg(icd->parent, "%s (vb=0x%p) 0x%p %lu\n", __func__,
+-		vb, vb2_plane_vaddr(vb, 0), vb2_get_plane_payload(vb, 0));
+-
+ 	spin_lock_irq(&pcdev->lock);
+ 	list_add_tail(&buf->queue, &pcdev->capture);
+ 
+@@ -418,6 +430,8 @@ static void sh_mobile_ceu_videobuf_release(struct vb2_buffer *vb)
+ 	if (buf->queue.next)
+ 		list_del_init(&buf->queue);
+ 
++	pcdev->buf_total -= PAGE_ALIGN(vb2_plane_size(vb, 0));
++
+ 	spin_unlock_irq(&pcdev->lock);
+ }
+ 
+@@ -524,6 +538,8 @@ static int sh_mobile_ceu_add_device(struct soc_camera_device *icd)
+ 
+ 	pm_runtime_get_sync(ici->v4l2_dev.dev);
+ 
++	pcdev->buf_total = 0;
++
+ 	ret = sh_mobile_ceu_soft_reset(pcdev);
+ 
+ 	csi2_sd = find_csi2(pcdev);
+-- 
+1.7.2.5
 
--Michael
-
-> 
-> I'm not sure why it doesn't work from NAND, but the iommu2 module needs to be 
-> loaded before the omap3-isp module. Alternatively you can compile the iommu2 
-> module in the kernel with
-> 
-> diff --git a/arch/arm/plat-omap/Kconfig b/arch/arm/plat-omap/Kconfig
-> index 49a4c75..3c87644 100644
-> --- a/arch/arm/plat-omap/Kconfig
-> +++ b/arch/arm/plat-omap/Kconfig
-> @@ -132,7 +132,7 @@ config OMAP_MBOX_KFIFO_SIZE
->  	  module parameter).
->  
->  config OMAP_IOMMU
-> -       tristate
-> +       bool
->  
->  config OMAP_IOMMU_DEBUG
->         tristate "Export OMAP IOMMU internals in DebugFS"
-> 
-
-
-MATRIX VISION GmbH, Talstrasse 16, DE-71570 Oppenweiler
-Registergericht: Amtsgericht Stuttgart, HRB 271090
-Geschaeftsfuehrer: Gerhard Thullner, Werner Armingeon, Uwe Furtner, Erhard Meier
