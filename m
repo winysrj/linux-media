@@ -1,164 +1,151 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-68.nebula.fi ([83.145.220.68]:49054 "EHLO
-	smtp-68.nebula.fi" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752279Ab1HHWqn (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 8 Aug 2011 18:46:43 -0400
-Message-ID: <4E40674F.1000904@iki.fi>
-Date: Tue, 09 Aug 2011 01:46:39 +0300
-From: Sakari Ailus <sakari.ailus@iki.fi>
+Received: from banach.math.auburn.edu ([131.204.45.3]:58858 "EHLO
+	banach.math.auburn.edu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754609Ab1HDX4o (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 4 Aug 2011 19:56:44 -0400
+Date: Thu, 4 Aug 2011 19:01:36 -0500 (CDT)
+From: Theodore Kilgore <kilgota@banach.math.auburn.edu>
+To: Adam Baker <linux@baker-net.org.uk>
+cc: Jean-Francois Moine <moinejf@free.fr>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: [Workshop-2011] Media Subsystem Workshop 2011
+In-Reply-To: <201108050004.55659.linux@baker-net.org.uk>
+Message-ID: <alpine.LNX.2.00.1108041847210.17969@banach.math.auburn.edu>
+References: <4E398381.4080505@redhat.com> <201108042135.15972.linux@baker-net.org.uk> <alpine.LNX.2.00.1108041624220.17734@banach.math.auburn.edu> <201108050004.55659.linux@baker-net.org.uk>
 MIME-Version: 1.0
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-CC: Hans Verkuil <hansverk@cisco.com>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	Pawel Osciak <pawel@osciak.com>,
-	Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: Re: [PATCH 1/6 v4] V4L: add two new ioctl()s for multi-size videobuffer
- management
-References: <Pine.LNX.4.64.1108042329460.31239@axis700.grange> <201108081340.23999.laurent.pinchart@ideasonboard.com> <201108081440.27488.hansverk@cisco.com> <201108090006.11075.laurent.pinchart@ideasonboard.com>
-In-Reply-To: <201108090006.11075.laurent.pinchart@ideasonboard.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Laurent Pinchart wrote:
-> Hi Hans,
->
-> On Monday 08 August 2011 14:40:27 Hans Verkuil wrote:
->> On Monday, August 08, 2011 13:40:23 Laurent Pinchart wrote:
->>> On Monday 08 August 2011 11:16:41 Hans Verkuil wrote:
->>>> On Friday, August 05, 2011 09:47:13 Guennadi Liakhovetski wrote:
->>>>> A possibility to preallocate and initialise buffers of different
->>>>> sizes in V4L2 is required for an efficient implementation of
->>>>> asnapshot mode. This patch adds two new ioctl()s: VIDIOC_CREATE_BUFS
->>>>> and
->>>>> VIDIOC_PREPARE_BUF and defines respective data structures.
->>>>>
->>>>> Signed-off-by: Guennadi Liakhovetski<g.liakhovetski@gmx.de>
->>>>> ---
->>>>>
->>>>> v4:
->>>>>
->>>>> 1. CREATE_BUFS now takes an array of plane sizes and a fourcc code in
->>>>>     its argument, instead of a frame format specification, including
->>>>>     documentation update
->>>>>
->>>>> 2. documentation improvements, as suggested by Hans
->>>>> 3. increased reserved fields to 18, as suggested by Sakari
->>>>>
->>>>>   Documentation/DocBook/media/v4l/io.xml             |   17 ++
->>>>>   Documentation/DocBook/media/v4l/v4l2.xml           |    2 +
->>>>>   .../DocBook/media/v4l/vidioc-create-bufs.xml       |  161
->>>>
->>>> ++++++++++++++++++++
->>>>
->>>>>   .../DocBook/media/v4l/vidioc-prepare-buf.xml       |   96
->>>>>   ++++++++++++ drivers/media/video/v4l2-compat-ioctl32.c          |
->>>>>    6 + drivers/media/video/v4l2-ioctl.c                   |   26 +++
->>>>>   include/linux/videodev2.h                          |   18 +++
->>>>>   include/media/v4l2-ioctl.h                         |    2 + 8 files
->>>>>   changed, 328 insertions(+), 0 deletions(-)
->>>>>   create mode 100644
->>>>>   Documentation/DocBook/media/v4l/vidioc-create-bufs.xml create mode
->>>>>   100644 Documentation/DocBook/media/v4l/vidioc-prepare-buf.xml
->>>>
->>>> <snip>
->>>>
->>>>> diff --git a/include/linux/videodev2.h b/include/linux/videodev2.h
->>>>> index fca24cc..3cd0cb3 100644
->>>>> --- a/include/linux/videodev2.h
->>>>> +++ b/include/linux/videodev2.h
->>>>> @@ -653,6 +653,9 @@ struct v4l2_buffer {
->>>>>
->>>>>   #define V4L2_BUF_FLAG_ERROR	0x0040
->>>>>   #define V4L2_BUF_FLAG_TIMECODE	0x0100	/* timecode field is valid */
->>>>>   #define V4L2_BUF_FLAG_INPUT     0x0200  /* input field is valid */
->>>>>
->>>>> +/* Cache handling flags */
->>>>> +#define V4L2_BUF_FLAG_NO_CACHE_INVALIDATE	0x0400
->>>>> +#define V4L2_BUF_FLAG_NO_CACHE_CLEAN		0x0800
->>>>>
->>>>>   /*
->>>>>
->>>>>    *	O V E R L A Y   P R E V I E W
->>>>>
->>>>> @@ -2092,6 +2095,18 @@ struct v4l2_dbg_chip_ident {
->>>>>
->>>>>   	__u32 revision;    /* chip revision, chip specific */
->>>>>
->>>>>   } __attribute__ ((packed));
->>>>>
->>>>> +/* VIDIOC_CREATE_BUFS */
->>>>> +struct v4l2_create_buffers {
->>>>> +	__u32	index;	/* output: buffers index...index + count - 1 have been
->>>>> created */
->>>>>
->>>>> +	__u32	count;
->>>>> +	__u32	type;
->>>>> +	__u32	memory;
->>>>> +	__u32	fourcc;
->>>>> +	__u32	num_planes;
->>>>> +	__u32	sizes[VIDEO_MAX_PLANES];
->>>>> +	__u32	reserved[18];
->>>>> +};
->>>>
->>>> I know you are going to hate me for this, but I've changed my mind: I
->>>> think this should use a struct v4l2_format after all.
->>>>
->>>> This change of heart came out of discussions during the V4L2 brainstorm
->>>> meeting last week. The only way to be sure the buffers are allocated
->>>> optimally is if the driver has all the information. The easiest way to
->>>> do that is by passing struct v4l2_format. This is also consistent with
->>>> REQBUFS since that uses the information from the currently selected
->>>> format (i.e. what you get back from VIDIOC_G_FMT).
->>>>
->>>> There can be subtle behaviors such as allocating from different memory
->>>> back based on the fourcc and the size of the image.
->>>>
->>>> One reason why I liked passing sizes directly is that it allows the
->>>> caller to ask for more memory than is strictly necessary.
->>>>
->>>> However, while brainstorming last week the suggestion was made that
->>>> there is no reason why the user can't set the sizeimage field in
->>>> v4l2_pix_format(_mplane) to something higher. The S/TRY_FMT spec
->>>> explicitly mentions that the sizeimage field is set by the driver, but
->>>> for the new CREATEBUFS ioctl no such limitation has to be placed. The
->>>> only thing necessary is to ensure that sizeimage is not too small (and
->>>> you probably want some sanity check against crazy values as well).
->>>
->>> We need to decide on a policy here. What should be the maximum allowable
->>> size for MMAP buffers ? How do we restrict the requested image size so
->>> that application won't be allowed to starve the system by requesting
->>> memory for 1GP images ?
->>
->> Either just a arbitrary cap like 1 GB (mainly to prevent any weird
->> calculation problems around the 2 GB (signedness) and 4 GB (wrap-around)
->> boundaries), or something like 3 or 4 times the minimum buffer size.
->>
->> I'm in favor of enforcing a 1 GB cap in vb2 and letting drivers enforce a
->> policy of their own if that makes sense for them.
->
-> Wouldn't that be a security issue ? Any application with permissions to access
-> the video device could DoS the system.
 
-I wonder if it would make sense to add a new resource limit for this. 
-That should make it easy to have a common default while keeping it 
-easily changeable.
 
-The limit could apply to multimedia related buffers that typically are 
-pinned to memory.
+On Fri, 5 Aug 2011, Adam Baker wrote:
 
-Or perhaps we just use RLIMIT_MEMLOCK; that's what it really is after 
-all. The manual page (man getrlimit) isn't very clear whether it's 
-supposed to apply to process or user id, though. The defaults would need 
-to change; in my system with 3 GiB of memory the default seems to be 64 
-kiB...
+> On Thursday 04 August 2011, Theodore Kilgore wrote:
+> > On Thu, 4 Aug 2011, Adam Baker wrote:
+> > > On Thursday 04 August 2011, Theodore Kilgore wrote:
+> > > > As far as I know, /dev/sdx signifies a device which is accessible by
+> > > > something like the USB mass storage protocols, at the very least. So,
+> > > > if that fits the camera, fine. But most of the cameras in question are
+> > > > Class Proprietary. Thus, not in any way standard mass storage devices.
+> > > > Then it is probably better not to call the new device by that name
+> > > > unless that name really fits. Probably, it would be better to have
+> > > > /dev/cam or /dev/stillcam, or something like that.
+> > > 
+> > > Correct and that is why this idea doesn't work - /dev/sdx needs to be a
+> > > block device that can have a file system on it. These cameras don't have
+> > > a traditional file system and there is a lot of code in gphoto to
+> > > support all the different types of camera.
+> > > 
+> > > There does exist the possibility of a relatively simple fix - If libusb
+> > > include a usb_reattach_kernel_driver_np call to go with the
+> > > usb_detach_kernel_driver_np then once gphoto had finished with the device
+> > > it could restore the kernel driver and webcam mode would work.
+> > > Unfortunately the libusb devs don't want to support it in the 0.1
+> > > version of libusb that everyone uses and the reattach function needs
+> > > knowledge of libusb internals to work reliably.
+> > > 
+> > > I did come up with a hack that sort of worked but I never worked out how
+> > > to clean it up to be acceptable to go upstream.
+> > > 
+> > > http://old.nabble.com/Re-attaching-USB-kernel-drivers-detached-by-libgpho
+> > > to2- td22978838.html
+> > > 
+> > > http://libusb.6.n5.nabble.com/re-attaching-after-usb-detach-kernel-driver
+> > > -np- td6068.html
+> > > 
+> > > Adam Baker
+> > 
+> > Adam,
+> > 
+> > (without looking at the details of your code) I agree that something like
+> > fixing libusb to reattach a kernel driver would partially alleviate the
+> > immediate problem of dual-mode cameras.
+> > 
+> > 1. It would provide immediate relief to those people who are afflicted
+> > with the shortsightedness of some of the "user friendly" distros,
+> > which have set up a "rule" that every camera supported by Gphoto will be
+> > opened for download of photos as soon as it ls plugged in and the result
+> > is that no dual-mode camera can be used in webcam mode -- unless the user
+> > knows how to go and fix the mess.
+> > 
+> > 2. It would solve a lot of existing problems for lots of other people.
+> > 
+> > Therefore, I have favored this approach myself, sometimes in the past. The
+> > problems, as I see it (partly after some education from people like Hans
+> > de Goede), are the following:
+> > 
+> > 1. No locking, and no error-handling.
+> > 	-- What if the user is downloading photos and gets a
+> > videoconference telephone call? What if the user, just for fun, starts up
+> > a webcam app, at the same time? Well, you might say, it can't start up
+> > because the /dev/video is disabled so we are home free on that one. But
+> > then
+> > 	-- What if it is the other way around, and the webcam interface is
+> > active, and the user (or some idiot automated software like what I
+> > mentioned above!) decides to start up the stillcam apps? What then? Does
+> > libusb just cut off the /dev/videoX device in the middle of things?
+> > 
+> 
+> It does look as though there might be an issue here - the IOCTL that libusb 
+> uses calls usb_driver_release_interface in drivers/core/usb/devio.c, the 
+> definition of that function says "Callers must own the device lock" but as far 
+> as I can see it won't and a quick test running gphoto2 -L while streaming 
+> video does indicate it is making a severe mess of things.
 
-Cheers,
+I haven't tried it myself. It is one of those things that all by myself 
+I would never have thought of testing. But I am certainly not surprised at 
+the result. 
 
--- 
-Sakari Ailus
-sakari.ailus@iki.fi
+> 
+> > 2. This adaptation to libusb solves the specific problem of handling
+> > dual-mode hardware for which one of the modes is handled by the kernel and
+> > the other mode is handled in userspace, through libusb. The further
+> > refinement of libusb addresses only this problem, not the general problem
+> > of dual-mode or triple-mode hardware, in the case that all functionality
+> > of the hardware is addressed through the kernel. Therefore, your solution
+> > ends up being a partial cure to a general problem, not a general cure for
+> > a general problem. Further, it is much easier to solve the locking issues
+> > which arise if the basic access to the hardware is through the kernel for
+> > all of its functionality.
+> 
+> If you can solve the locking problem between devices in the kernel then it 
+> shouldn't matter if one of the kernel devices is the generic device that is 
+> used to support libusb. 
+
+Hmmm. Perhaps not. While we are on the topic, what exactly do you mean by 
+"the generic device that is used to support libusb." Which device is that, 
+exactly?
+
+> 
+> > 
+> > Thus, while originally favoring your approach, my position is at this
+> > point more in the direction that something needs to be done about this at
+> > the level of the kernel. As I said, others have convinced me of this,
+> > mainly Hans, because at first I thought your way of doing it was plenty
+> > good enough.
+> > 
+> > Thanks for joining the debate, Adam, even though I just gave an opinion
+> > that you don't have the most optimal solution. I think that this problem
+> > has gone on long enough, and we all need to get together and fix it.
+> 
+> That it has gone on long enough is something I can't argue with, my original 
+> posts on the subject were 2 years ago. 
+
+I suspect that mine are much older than that. I have been aware of the 
+problem at least since I wrote the libgphoto2 code for the sq905 cameras 
+and M. Lengyel wrote the original sq905 streaming module. And that was 
+back in something like 2003.
+
+I don't have time to actually work on 
+> this so while I'll try to review what is happening whoever does work on it 
+> gets to choose what is the best solution from the suggestions that are made.
+
+Well, we really do need to solve this once and for all. 
+
+As to coding, I have not done much recently, myself. My wife got very sick 
+last summer, and she has had a rather slow and incremental recovery. 
+Something like that drains the concentration and preoccupies the mind at 
+the same time.
+
+Theodore Kilgore
