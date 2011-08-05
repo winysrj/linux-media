@@ -1,82 +1,75 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:45732 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751156Ab1HNXvb (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 14 Aug 2011 19:51:31 -0400
-Message-ID: <4E485F81.9020700@iki.fi>
-Date: Mon, 15 Aug 2011 02:51:29 +0300
-From: Antti Palosaari <crope@iki.fi>
+Received: from mail-qw0-f46.google.com ([209.85.216.46]:53152 "EHLO
+	mail-qw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755243Ab1HEPBa (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 5 Aug 2011 11:01:30 -0400
+Received: by qwk3 with SMTP id 3so1563625qwk.19
+        for <linux-media@vger.kernel.org>; Fri, 05 Aug 2011 08:01:29 -0700 (PDT)
 MIME-Version: 1.0
-To: =?ISO-8859-1?Q?Istv=E1n_V=E1radi?= <ivaradi@gmail.com>
-CC: linux-media@vger.kernel.org
-Subject: Re: Smart card reader support for Anysee DVB devices
-References: <CAFk-VPxQvGiEUdd+X4jjUqcygPO-JsT0gTFvrX-q4cGAW6tq_Q@mail.gmail.com>
-In-Reply-To: <CAFk-VPxQvGiEUdd+X4jjUqcygPO-JsT0gTFvrX-q4cGAW6tq_Q@mail.gmail.com>
+In-Reply-To: <201108051055.08641.laurent.pinchart@ideasonboard.com>
+References: <201108051055.08641.laurent.pinchart@ideasonboard.com>
+From: Pawel Osciak <pawel@osciak.com>
+Date: Fri, 5 Aug 2011 08:01:09 -0700
+Message-ID: <CAMm-=zBQePQpaFZ2t7sfu8_u2V0BxLXgCZrQZt8dK8jHePSoow@mail.gmail.com>
+Subject: Re: Possible issue in videobuf2 with buffer length check at QBUF time
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: Marek Szyprowski <m.szyprowski@samsung.com>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
 Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello,
-I looked your codes and examined also some more. About your driver, I
-don't like you put so much functionality to the Kernel driver. Just put
-this functionality to the userspace driver all and offer only lowest
-possible interface (read + write) from Kernel. If you look other IFDs it
-is like that.
-On the other hand I see it could be possible to add some glue and
-functionality to the Kernel driver if you find already existing
-userspace protocol (IFD driver) which can be used. Add some emulation to
-Kernel and use existing user space. Select some well supported serial
-smartcard reader and make Anysee driver speak like that.
+Hi Laurent,
 
-Biggest problem I see whole thing is poor application support. OpenCT is
-rather legacy but there is no good alternative. All this kind of serial
-drivers seems to be OpenCT currently.
+On Fri, Aug 5, 2011 at 01:55, Laurent Pinchart
+<laurent.pinchart@ideasonboard.com> wrote:
+> Hi Marek and Pawel,
+>
+> While reviewing an OMAP3 ISP patch, I noticed that videobuf2 doesn't verify
+> the buffer length field value when a new USERPTR buffer is queued.
+>
 
-regards
-Antti
+That's a good catch. We should definitely do something about it.
 
-On 07/17/2011 05:18 PM, István Váradi wrote:
-> Hi,
-> 
-> I have developed smart card reader support for the Anysee devices by
-> extending Antti Palosaari's driver. I attached the patches for it. It
-> registers a character device named /dev/anysee_scN for each Anysee
-> device.
-> 
-> The character device supports two ioctl's (see anysee_sc), one for
-> detecting the presence of a card, the other one for resetting the card
-> and querying the ATR. The write() operation writes to the card by
-> packaging the bytes into USB commands. The read() operation issues an
-> appropriate command over USB and returns the reply. I have also
-> written a simple OpenCT driver (attached) which shows the usage.
-> 
-> I would like to have the kernel driver included in the official
-> sources. For this reason I corresponded with Antti, and he suggested
-> the perhaps the kernel driver should have a lower-level interface. I
-> had the following proposal:
-> 
-> We would continue having the two ioctls, ANYSEE_SC_ACTIVATE and
-> ANYSEE_SC_PRESENT, however, ANYSEE_SC_ACTIVATE would do only the
-> register reading and writing.
-> 
-> Besides these two we need access to the anysee_ctrl_msg() function
-> somehow. I think the cleanest way would be via another ioctl() call in
-> which we would pass the return buffer as well, with the length so that
-> we know how many bytes to copy. Another possibility would be that a
-> call to write() calls anysee_ctrl_msg() and stores the return data in
-> a 64 byte buffer that we allocate for each device. The read()
-> following a write() would read this buffer, then discard it. Further
-> read() attempts would fail with EAGAIN, or we could maintain an offset
-> into the 64 byte buffer, and read as long as there is data, and fail
-> only then. A write() would cause losing any unread data.
-> 
-> What do you think?
-> 
-> Thanks,
-> 
-> Istvan
+> The length given by userspace is copied to the internal buffer length field.
+> It seems to be up to drivers to verify that the value is equal to or higher
+> than the minimum required to store the image, but that's not clearly
+> documented. Should the buf_init operation be made mandatory for drivers that
+> support USERPTR, and documented as required to implement a length check ?
+>
 
+Technically, drivers can do the length checks on buf_prepare if they
+don't allow format changes after REQBUFS. On the other hand though, if
+a driver supports USERPTR, the buffers queued from userspace have to
+be verified on qbuf and the only place to do that would be buf_init.
+So every driver that supports USERPTR would have to implement
+buf_init, as you said.
+
+> Alternatively the check could be performed in videobuf2-core, which would
+> probably make sense as the check is required. videobuf2 doesn't store the
+> minimum size for USERPTR buffers though (but that can of course be changed).
+>
+
+Let's say we make vb2 save minimum buffer size. This would have to be
+done on queue_setup I imagine. We could add a new field to vb2_buffer
+for that. One problem is that if the driver actually supports changing
+format after REQBUFS, we would need a new function in vb2 to change
+minimum buffer size. Actually, this has to be minimum plane sizes. So
+the alternatives are:
+
+1. Make buf_init required for drivers that support USERPTR; or
+2. Add minimum plane sizes to vb2_buffer,add a new return array
+argument to queue_setup to return minimum plane sizes that would be
+stored in vb2. Make vb2 verify sizes on qbuf of USERPTR. Add a new vb2
+function for drivers to call when minimum sizes have to be changed.
+
+The first solution is way simpler for drivers that require this. The
+second solution is maybe a bit simpler for drivers that do not, as
+they would only have to return the sizes in queue_setup, but
+implementing buf_init instead wouldn't be a big of a difference I
+think. So I'm leaning towards the second solution.
+Any comments, did I miss something?
 
 -- 
-http://palosaari.fi/
+Best regards,
+Pawel Osciak
