@@ -1,366 +1,109 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ams-iport-2.cisco.com ([144.254.224.141]:53290 "EHLO
-	ams-iport-2.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751065Ab1HWKMN (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 23 Aug 2011 06:12:13 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Marek Szyprowski <m.szyprowski@samsung.com>
-Subject: Re: [PATCH/RFC] media: vb2: change queue initialization order
-Date: Tue, 23 Aug 2011 12:11:25 +0200
-Cc: linux-media@vger.kernel.org,
-	Kyungmin Park <kyungmin.park@samsung.com>,
+Received: from moutng.kundenserver.de ([212.227.17.9]:64212 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756059Ab1HEHrw (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 5 Aug 2011 03:47:52 -0400
+Date: Fri, 5 Aug 2011 09:47:36 +0200 (CEST)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+cc: Sakari Ailus <sakari.ailus@iki.fi>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
 	Pawel Osciak <pawel@osciak.com>,
-	Jonathan Corbet <corbet@lwn.net>,
-	"Uwe =?iso-8859-15?q?Kleine-K=F6nig?="
-	<u.kleine-koenig@pengutronix.de>, Marin Mitov <mitov@issp.bas.bg>,
+	Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>,
 	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>
-References: <1309340946-5658-1-git-send-email-m.szyprowski@samsung.com>
-In-Reply-To: <1309340946-5658-1-git-send-email-m.szyprowski@samsung.com>
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: [PATCH 6/6 v4] V4L: soc-camera: add 2 new ioctl() handlers
+In-Reply-To: <Pine.LNX.4.64.1108042329460.31239@axis700.grange>
+Message-ID: <Pine.LNX.4.64.1108050934280.26715@axis700.grange>
+References: <Pine.LNX.4.64.1108042329460.31239@axis700.grange>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-15"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201108231211.25278.hverkuil@xs4all.nl>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Marek,
+This patch adds two new ioctl() handlers: .vidioc_create_bufs() and
+.vidioc_prepare_buf() for compliant vb2 soc-camera hosts.
 
-Are you planning a RFCv2 for this?
+Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+---
 
-I've been implementing vb2 in an internal driver and this initialization
-order of vb2 is a bit of a pain to be honest.
+Actually, there should be one more patch before this one - to convert 
+mx3-camera to the new API, otherwise it will break, if anyone decides to 
+use CREATE_BUFS / PREPARE_BUF with it. I'll work on that while these 
+patches are being reviewed.
 
-Regards,
+ drivers/media/video/soc_camera.c |   33 +++++++++++++++++++++++++++++++--
+ 1 files changed, 31 insertions(+), 2 deletions(-)
 
-	Hans
+diff --git a/drivers/media/video/soc_camera.c b/drivers/media/video/soc_camera.c
+index ac23916..088972d 100644
+--- a/drivers/media/video/soc_camera.c
++++ b/drivers/media/video/soc_camera.c
+@@ -318,6 +318,32 @@ static int soc_camera_dqbuf(struct file *file, void *priv,
+ 		return vb2_dqbuf(&icd->vb2_vidq, p, file->f_flags & O_NONBLOCK);
+ }
+ 
++static int soc_camera_create_bufs(struct file *file, void *priv,
++			    struct v4l2_create_buffers *create)
++{
++	struct soc_camera_device *icd = file->private_data;
++	struct soc_camera_host *ici = to_soc_camera_host(icd->parent);
++
++	/* videobuf2 only */
++	if (ici->ops->init_videobuf)
++		return -EINVAL;
++	else
++		return vb2_create_bufs(&icd->vb2_vidq, create);
++}
++
++static int soc_camera_prepare_buf(struct file *file, void *priv,
++				  struct v4l2_buffer *b)
++{
++	struct soc_camera_device *icd = file->private_data;
++	struct soc_camera_host *ici = to_soc_camera_host(icd->parent);
++
++	/* videobuf2 only */
++	if (ici->ops->init_videobuf)
++		return -EINVAL;
++	else
++		return vb2_prepare_buf(&icd->vb2_vidq, b);
++}
++
+ /* Always entered with .video_lock held */
+ static int soc_camera_init_user_formats(struct soc_camera_device *icd)
+ {
+@@ -1101,6 +1127,7 @@ static int soc_camera_probe(struct soc_camera_device *icd)
+ 		if (!control || !control->driver || !dev_get_drvdata(control) ||
+ 		    !try_module_get(control->driver->owner)) {
+ 			icl->del_device(icd);
++			ret = -ENODEV;
+ 			goto enodrv;
+ 		}
+ 	}
+@@ -1366,19 +1393,21 @@ static int soc_camera_device_register(struct soc_camera_device *icd)
+ 
+ static const struct v4l2_ioctl_ops soc_camera_ioctl_ops = {
+ 	.vidioc_querycap	 = soc_camera_querycap,
++	.vidioc_try_fmt_vid_cap  = soc_camera_try_fmt_vid_cap,
+ 	.vidioc_g_fmt_vid_cap    = soc_camera_g_fmt_vid_cap,
+-	.vidioc_enum_fmt_vid_cap = soc_camera_enum_fmt_vid_cap,
+ 	.vidioc_s_fmt_vid_cap    = soc_camera_s_fmt_vid_cap,
++	.vidioc_enum_fmt_vid_cap = soc_camera_enum_fmt_vid_cap,
+ 	.vidioc_enum_input	 = soc_camera_enum_input,
+ 	.vidioc_g_input		 = soc_camera_g_input,
+ 	.vidioc_s_input		 = soc_camera_s_input,
+ 	.vidioc_s_std		 = soc_camera_s_std,
+ 	.vidioc_enum_framesizes  = soc_camera_enum_fsizes,
+ 	.vidioc_reqbufs		 = soc_camera_reqbufs,
+-	.vidioc_try_fmt_vid_cap  = soc_camera_try_fmt_vid_cap,
+ 	.vidioc_querybuf	 = soc_camera_querybuf,
+ 	.vidioc_qbuf		 = soc_camera_qbuf,
+ 	.vidioc_dqbuf		 = soc_camera_dqbuf,
++	.vidioc_create_bufs	 = soc_camera_create_bufs,
++	.vidioc_prepare_buf	 = soc_camera_prepare_buf,
+ 	.vidioc_streamon	 = soc_camera_streamon,
+ 	.vidioc_streamoff	 = soc_camera_streamoff,
+ 	.vidioc_queryctrl	 = soc_camera_queryctrl,
+-- 
+1.7.2.5
 
-On Wednesday, June 29, 2011 11:49:06 Marek Szyprowski wrote:
-> This patch introduces VB2_STREAMON_WITHOUT_BUFFERS io flag and changes
-> the order of operations during stream on operation. Now the buffer are
-> first queued to the driver and then the start_streaming method is called.
-> This resolves the most common case when the driver needs to know buffer
-> addresses to enable dma engine and start streaming. For drivers that can
-> handle start_streaming without queued buffers (mem2mem and 'one shot'
-> capture case) a new VB2_STREAMON_WITHOUT_BUFFERS io flag has been
-> introduced. Driver can set it to let videobuf2 know that it support this
-> mode.
-> 
-> This patch also updates videobuf2 clients (s5p-fimc, mem2mem_testdev and
-> vivi) to work properly with the changed order of operations and enables
-> use of the newly introduced flag.
-> 
-> Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
-> Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
-> Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
-> CC: Pawel Osciak <pawel@osciak.com>
-> ---
-> 
->  drivers/media/video/mem2mem_testdev.c       |    4 +-
->  drivers/media/video/s5p-fimc/fimc-capture.c |   65 
-++++++++++++++++----------
->  drivers/media/video/s5p-fimc/fimc-core.c    |    4 +-
->  drivers/media/video/videobuf2-core.c        |   21 ++++-----
->  drivers/media/video/vivi.c                  |    2 +-
->  include/media/videobuf2-core.h              |   11 +++--
->  6 files changed, 62 insertions(+), 45 deletions(-)
-> 
-> 
-> ---
-> 
-> Hello,
-> 
-> This patch introduces significant changes in the vb2 streamon operation,
-> so all vb2 clients need to be checked and updated. Right now I didn't
-> update mx3_camera and sh_mobile_ceu_camera drivers. Once we agree that
-> this patch can be merged, I will update it to include all the required
-> changes to these two drivers as well.
-> 
-> Best regards
-> -- 
-> Marek Szyprowski
-> Samsung Poland R&D Center
-> 
-> diff --git a/drivers/media/video/mem2mem_testdev.c 
-b/drivers/media/video/mem2mem_testdev.c
-> index b03d74e..65fb4ad 100644
-> --- a/drivers/media/video/mem2mem_testdev.c
-> +++ b/drivers/media/video/mem2mem_testdev.c
-> @@ -808,7 +808,7 @@ static int queue_init(void *priv, struct vb2_queue 
-*src_vq, struct vb2_queue *ds
->  
->  	memset(src_vq, 0, sizeof(*src_vq));
->  	src_vq->type = V4L2_BUF_TYPE_VIDEO_OUTPUT;
-> -	src_vq->io_modes = VB2_MMAP;
-> +	src_vq->io_modes = VB2_MMAP | VB2_STREAMON_WITHOUT_BUFFERS;
->  	src_vq->drv_priv = ctx;
->  	src_vq->buf_struct_size = sizeof(struct v4l2_m2m_buffer);
->  	src_vq->ops = &m2mtest_qops;
-> @@ -820,7 +820,7 @@ static int queue_init(void *priv, struct vb2_queue 
-*src_vq, struct vb2_queue *ds
->  
->  	memset(dst_vq, 0, sizeof(*dst_vq));
->  	dst_vq->type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
-> -	dst_vq->io_modes = VB2_MMAP;
-> +	dst_vq->io_modes = VB2_MMAP | VB2_STREAMON_WITHOUT_BUFFERS;
->  	dst_vq->drv_priv = ctx;
->  	dst_vq->buf_struct_size = sizeof(struct v4l2_m2m_buffer);
->  	dst_vq->ops = &m2mtest_qops;
-> diff --git a/drivers/media/video/s5p-fimc/fimc-capture.c 
-b/drivers/media/video/s5p-fimc/fimc-capture.c
-> index d142b40..20a5bd4 100644
-> --- a/drivers/media/video/s5p-fimc/fimc-capture.c
-> +++ b/drivers/media/video/s5p-fimc/fimc-capture.c
-> @@ -152,27 +152,11 @@ static int fimc_isp_subdev_init(struct fimc_dev *fimc, 
-unsigned int index)
->  	return ret;
->  }
->  
-> -static int fimc_stop_capture(struct fimc_dev *fimc)
-> +static void fimc_capture_state_cleanup(struct fimc_dev *fimc)
->  {
-> -	unsigned long flags;
-> -	struct fimc_vid_cap *cap;
-> +	struct fimc_vid_cap *cap = &fimc->vid_cap;
->  	struct fimc_vid_buffer *buf;
-> -
-> -	cap = &fimc->vid_cap;
-> -
-> -	if (!fimc_capture_active(fimc))
-> -		return 0;
-> -
-> -	spin_lock_irqsave(&fimc->slock, flags);
-> -	set_bit(ST_CAPT_SHUT, &fimc->state);
-> -	fimc_deactivate_capture(fimc);
-> -	spin_unlock_irqrestore(&fimc->slock, flags);
-> -
-> -	wait_event_timeout(fimc->irq_queue,
-> -			   !test_bit(ST_CAPT_SHUT, &fimc->state),
-> -			   FIMC_SHUTDOWN_TIMEOUT);
-> -
-> -	v4l2_subdev_call(cap->sd, video, s_stream, 0);
-> +	unsigned long flags;
->  
->  	spin_lock_irqsave(&fimc->slock, flags);
->  	fimc->state &= ~(1 << ST_CAPT_RUN | 1 << ST_CAPT_PEND |
-> @@ -192,27 +176,50 @@ static int fimc_stop_capture(struct fimc_dev *fimc)
->  	}
->  
->  	spin_unlock_irqrestore(&fimc->slock, flags);
-> +}
-> +
-> +static int fimc_stop_capture(struct fimc_dev *fimc)
-> +{
-> +	struct fimc_vid_cap *cap = &fimc->vid_cap;
-> +	unsigned long flags;
-> +
-> +	if (!fimc_capture_active(fimc))
-> +		return 0;
-> +
-> +	spin_lock_irqsave(&fimc->slock, flags);
-> +	set_bit(ST_CAPT_SHUT, &fimc->state);
-> +	fimc_deactivate_capture(fimc);
-> +	spin_unlock_irqrestore(&fimc->slock, flags);
-> +
-> +	wait_event_timeout(fimc->irq_queue,
-> +			   !test_bit(ST_CAPT_SHUT, &fimc->state),
-> +			   FIMC_SHUTDOWN_TIMEOUT);
->  
-> +	v4l2_subdev_call(cap->sd, video, s_stream, 0);
-> +
-> +	fimc_capture_state_cleanup(fimc);
->  	dbg("state: 0x%lx", fimc->state);
->  	return 0;
->  }
->  
-> +
->  static int start_streaming(struct vb2_queue *q)
->  {
->  	struct fimc_ctx *ctx = q->drv_priv;
->  	struct fimc_dev *fimc = ctx->fimc_dev;
->  	struct s5p_fimc_isp_info *isp_info;
-> +	int min_bufs;
->  	int ret;
->  
->  	fimc_hw_reset(fimc);
->  
->  	ret = v4l2_subdev_call(fimc->vid_cap.sd, video, s_stream, 1);
->  	if (ret && ret != -ENOIOCTLCMD)
-> -		return ret;
-> +		goto error;
->  
->  	ret = fimc_prepare_config(ctx, ctx->state);
->  	if (ret)
-> -		return ret;
-> +		goto error;
->  
->  	isp_info = &fimc->pdata->isp_info[fimc->vid_cap.input_index];
->  	fimc_hw_set_camera_type(fimc, isp_info);
-> @@ -223,7 +230,7 @@ static int start_streaming(struct vb2_queue *q)
->  		ret = fimc_set_scaler_info(ctx);
->  		if (ret) {
->  			err("Scaler setup error");
-> -			return ret;
-> +			goto error;
->  		}
->  		fimc_hw_set_input_path(ctx);
->  		fimc_hw_set_prescaler(ctx);
-> @@ -238,13 +245,20 @@ static int start_streaming(struct vb2_queue *q)
->  
->  	INIT_LIST_HEAD(&fimc->vid_cap.pending_buf_q);
->  	INIT_LIST_HEAD(&fimc->vid_cap.active_buf_q);
-> -	fimc->vid_cap.active_buf_cnt = 0;
->  	fimc->vid_cap.frame_count = 0;
->  	fimc->vid_cap.buf_index = 0;
->  
->  	set_bit(ST_CAPT_PEND, &fimc->state);
->  
-> +	min_bufs = fimc->vid_cap.reqbufs_count > 1 ? 2 : 1;
-> +
-> +	if (fimc->vid_cap.active_buf_cnt >= min_bufs)
-> +		fimc_activate_capture(ctx);
-> +
->  	return 0;
-> +error:
-> +	fimc_capture_state_cleanup(fimc);
-> +	return ret;
->  }
->  
->  static int stop_streaming(struct vb2_queue *q)
-> @@ -357,7 +371,8 @@ static void buffer_queue(struct vb2_buffer *vb)
->  
->  	min_bufs = vid_cap->reqbufs_count > 1 ? 2 : 1;
->  
-> -	if (vid_cap->active_buf_cnt >= min_bufs &&
-> +	if (vb2_is_streaming(vb->vb2_queue) &&
-> +	    vid_cap->active_buf_cnt >= min_bufs &&
->  	    !test_and_set_bit(ST_CAPT_STREAM, &fimc->state))
->  		fimc_activate_capture(ctx);
->  
-> @@ -878,7 +893,7 @@ int fimc_register_capture_device(struct fimc_dev *fimc)
->  	q = &fimc->vid_cap.vbq;
->  	memset(q, 0, sizeof(*q));
->  	q->type = V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE;
-> -	q->io_modes = VB2_MMAP | VB2_USERPTR;
-> +	q->io_modes = VB2_MMAP | VB2_USERPTR | VB2_STREAMON_WITHOUT_BUFFERS;
->  	q->drv_priv = fimc->vid_cap.ctx;
->  	q->ops = &fimc_capture_qops;
->  	q->mem_ops = &vb2_dma_contig_memops;
-> diff --git a/drivers/media/video/s5p-fimc/fimc-core.c 
-b/drivers/media/video/s5p-fimc/fimc-core.c
-> index dc91a85..6a405c8 100644
-> --- a/drivers/media/video/s5p-fimc/fimc-core.c
-> +++ b/drivers/media/video/s5p-fimc/fimc-core.c
-> @@ -1386,7 +1386,7 @@ static int queue_init(void *priv, struct vb2_queue 
-*src_vq,
->  
->  	memset(src_vq, 0, sizeof(*src_vq));
->  	src_vq->type = V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE;
-> -	src_vq->io_modes = VB2_MMAP | VB2_USERPTR;
-> +	src_vq->io_modes = VB2_MMAP | VB2_USERPTR | VB2_STREAMON_WITHOUT_BUFFERS;
->  	src_vq->drv_priv = ctx;
->  	src_vq->ops = &fimc_qops;
->  	src_vq->mem_ops = &vb2_dma_contig_memops;
-> @@ -1398,7 +1398,7 @@ static int queue_init(void *priv, struct vb2_queue 
-*src_vq,
->  
->  	memset(dst_vq, 0, sizeof(*dst_vq));
->  	dst_vq->type = V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE;
-> -	dst_vq->io_modes = VB2_MMAP | VB2_USERPTR;
-> +	dst_vq->io_modes = VB2_MMAP | VB2_USERPTR | VB2_STREAMON_WITHOUT_BUFFERS;
->  	dst_vq->drv_priv = ctx;
->  	dst_vq->ops = &fimc_qops;
->  	dst_vq->mem_ops = &vb2_dma_contig_memops;
-> diff --git a/drivers/media/video/videobuf2-core.c 
-b/drivers/media/video/videobuf2-core.c
-> index 5517913..911e2eb 100644
-> --- a/drivers/media/video/videobuf2-core.c
-> +++ b/drivers/media/video/videobuf2-core.c
-> @@ -1136,17 +1136,23 @@ int vb2_streamon(struct vb2_queue *q, enum 
-v4l2_buf_type type)
->  	}
->  
->  	/*
-> -	 * Cannot start streaming on an OUTPUT device if no buffers have
-> -	 * been queued yet.
-> +	 * Cannot start streaming if driver requires queued buffers.
->  	 */
-> -	if (V4L2_TYPE_IS_OUTPUT(q->type)) {
-> +	if (!(q->io_flags & VB2_STREAMON_WITHOUT_BUFFERS)) {
->  		if (list_empty(&q->queued_list)) {
-> -			dprintk(1, "streamon: no output buffers queued\n");
-> +			dprintk(1, "streamon: no buffers queued\n");
->  			return -EINVAL;
->  		}
->  	}
->  
->  	/*
-> +	 * If any buffers were queued before streamon,
-> +	 * we can now pass them to driver for processing.
-> +	 */
-> +	list_for_each_entry(vb, &q->queued_list, queued_entry)
-> +		__enqueue_in_driver(vb);
-> +
-> +	/*
->  	 * Let driver notice that streaming state has been enabled.
->  	 */
->  	ret = call_qop(q, start_streaming, q);
-> @@ -1157,13 +1163,6 @@ int vb2_streamon(struct vb2_queue *q, enum 
-v4l2_buf_type type)
->  
->  	q->streaming = 1;
->  
-> -	/*
-> -	 * If any buffers were queued before streamon,
-> -	 * we can now pass them to driver for processing.
-> -	 */
-> -	list_for_each_entry(vb, &q->queued_list, queued_entry)
-> -		__enqueue_in_driver(vb);
-> -
->  	dprintk(3, "Streamon successful\n");
->  	return 0;
->  }
-> diff --git a/drivers/media/video/vivi.c b/drivers/media/video/vivi.c
-> index 2238a61..e740a44 100644
-> --- a/drivers/media/video/vivi.c
-> +++ b/drivers/media/video/vivi.c
-> @@ -1232,7 +1232,7 @@ static int __init vivi_create_instance(int inst)
->  	q = &dev->vb_vidq;
->  	memset(q, 0, sizeof(dev->vb_vidq));
->  	q->type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
-> -	q->io_modes = VB2_MMAP | VB2_USERPTR | VB2_READ;
-> +	q->io_modes = VB2_MMAP | VB2_READ | VB2_STREAMON_WITHOUT_BUFFERS;
->  	q->drv_priv = dev;
->  	q->buf_struct_size = sizeof(struct vivi_buffer);
->  	q->ops = &vivi_video_qops;
-> diff --git a/include/media/videobuf2-core.h b/include/media/videobuf2-core.h
-> index f87472a..cdc0558 100644
-> --- a/include/media/videobuf2-core.h
-> +++ b/include/media/videobuf2-core.h
-> @@ -84,12 +84,15 @@ struct vb2_plane {
->   * @VB2_USERPTR:	driver supports USERPTR with streaming API
->   * @VB2_READ:		driver supports read() style access
->   * @VB2_WRITE:		driver supports write() style access
-> + * @VB2_STREAMON_WITHOUT_BUFFERS: driver supports stream_on() without 
-buffers
-> + *			queued
->   */
->  enum vb2_io_modes {
-> -	VB2_MMAP	= (1 << 0),
-> -	VB2_USERPTR	= (1 << 1),
-> -	VB2_READ	= (1 << 2),
-> -	VB2_WRITE	= (1 << 3),
-> +	VB2_MMAP			= (1 << 0),
-> +	VB2_USERPTR			= (1 << 1),
-> +	VB2_READ			= (1 << 2),
-> +	VB2_WRITE			= (1 << 3),
-> +	VB2_STREAMON_WITHOUT_BUFFERS	= (1 << 16),
->  };
->  
->  /**
-> -- 
-> 1.7.1.569.g6f426
-> 
