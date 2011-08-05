@@ -1,64 +1,82 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-fx0-f46.google.com ([209.85.161.46]:41109 "EHLO
-	mail-fx0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752544Ab1HFPv4 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sat, 6 Aug 2011 11:51:56 -0400
-Received: by fxh19 with SMTP id 19so3808292fxh.19
-        for <linux-media@vger.kernel.org>; Sat, 06 Aug 2011 08:51:55 -0700 (PDT)
+Received: from mail2.matrix-vision.com ([85.214.244.251]:33003 "EHLO
+	mail2.matrix-vision.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751407Ab1HEJdW (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 5 Aug 2011 05:33:22 -0400
+Message-ID: <4E3BB8E0.3000406@matrix-vision.de>
+Date: Fri, 05 Aug 2011 11:33:20 +0200
+From: Michael Jones <michael.jones@matrix-vision.de>
 MIME-Version: 1.0
-In-Reply-To: <20110806144444.GA11588@achter.swolter.sdf1.org>
-References: <20110806144444.GA11588@achter.swolter.sdf1.org>
-Date: Sat, 6 Aug 2011 11:51:48 -0400
-Message-ID: <CAGoCfiw8R_RsYdHucMqRCXPndZGO7bG=0ogw9k9vpd-xYuPtAw@mail.gmail.com>
-Subject: Re: Support for Hauppauge WinTV HVR-3300
-From: Devin Heitmueller <dheitmueller@kernellabs.com>
-To: Steve Wolter <swolter@sdf.lonestar.org>
-Cc: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+CC: linux-media@vger.kernel.org
+Subject: Re: ISP CCDC freeze-up on STREAMON
+References: <1309422713-18675-1-git-send-email-michael.jones@matrix-vision.de> <201107201047.11972.laurent.pinchart@ideasonboard.com>
+In-Reply-To: <201107201047.11972.laurent.pinchart@ideasonboard.com>
+Content-Type: text/plain; charset=ISO-8859-15
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sat, Aug 6, 2011 at 10:44 AM, Steve Wolter <swolter@sdf.lonestar.org> wrote:
-> Dear linux-media list,
->
-> I have recently bought a Hauppauge WinTV HVR-3300 and am trying to make
-> it run with Linux.
->
-> Going by the output of lspci -v [1], I tried to go with the cx23885, which
-> doesn't recognize the card:
->
-> [24296.910574] cx23885 driver version 0.0.2 loaded
-> [24296.910612] cx23885 0000:01:00.0: PCI INT A -> GSI 16 (level, low) -> IRQ 16
-> [24296.910620] cx23885[0]: Your board isn't known (yet) to the driver.
-> [24296.910621] cx23885[0]: Try to pick one of the existing card configs via
-> [24296.910623] cx23885[0]: card=<n> insmod option.  Updating to the latest
-> [24296.910625] cx23885[0]: version might help as well.
-> [...]
-> [24296.911165] CORE cx23885[0]: subsystem: 0070:53f1, board: UNKNOWN/GENERIC [card=0,autodetected]
-> [24297.037221] cx23885_dev_checkrevision() Hardware revision = 0xd0
-> [24297.037228] cx23885[0]/0: found at 0000:01:00.0, rev: 4, irq: 16, latency: 0, mmio: 0xfe400000
-> [24297.037236] cx23885 0000:01:00.0: setting latency timer to 64
-> [24297.037304] cx23885 0000:01:00.0: irq 48 for MSI/MSI-X
->
-> Seems like some work is necessary to do here, which I'd be willing to do.
-> Can anyone suggest which might be the most similar card or what I should try
-> to write a driver for this?
+Hi Laurent,
 
-Hi Steve,
+On 07/20/2011 10:47 AM, Laurent Pinchart wrote:
+> 
+> Hi Michael,
+> 
+> Sorry for the late reply.
 
-Like the 4400 and 5500, the 3300 uses both DVB-S and DVB-T demodulator
-chips for which there is currently no driver.  Somebody would have to
-write those drivers from
-scratch in order for any of those products to be supported.
+Likewise :)
 
-In other words, it's not a case of just needing to add a few lines of
-code for another board profile.
+> 
+> On Thursday 30 June 2011 10:31:52 Michael Jones wrote:
+>> Hi Laurent,
+>>
+>> I'm observing a system freeze-up with the ISP when writing data to memory
+>> directly from the ccdc.
+>>
+>> Here's the sequence I'm using:
+>>
+>> 0. apply the patch I'm sending separate in this thread.
+>>
+>> 1. configure the ISP pipeline for the CCDC to deliver V4L2_PIX_FMT_GREY
+>> directly from the sensor to memory.
+>>
+>> 2. yavta -c10 /dev/video2
+>>
+>> The patch is pretty self-explanatory.  It introduces a loop (with ugly
+>> indenting to keep the patch simple) with 100 iterations leaving the device
+>> open between them. My system usually hangs up within the first 30
+>> iterations.  I've never made it to 100 successfully.  I see the same
+>> behavior with user pointers and with mmap, but I don't see it when using
+>> data from the previewer.
+>>
+>> Can you please try this out with your setup?  Even if you can't get 8-bit
+>> gray data from your sensor, hopefully you could observe it with any other
+>> format directly from the CCDC.
+>>
+>> I'll postpone further discussion until you confirm that you can reproduce
+>> the behavior.  As the patch illustrates, it looks like it is hanging up in
+>> STREAMON.
+> 
+> I've tested this with a serial CSI-2 sensor and a parallel sensor (MT9V032, in 
+> both 8-bit and 10-bit modes, albeit with SGRBG8 instead of GREY for the 8-bit 
+> mode), and I can't reproduce the issue.
+> 
+> I thought I've asked you already but can't find this in my mailbox, so I 
+> apologize if I have, but could you try increasing vertical blanking and see if 
+> it helps ?
+> 
 
-Cheers,
+I think that was the first time you suggested that. Indeed, if I stretch
+out the time between frames, the problem goes away. I haven't tested it
+precisely to see how long it needs to be to work correctly. But what
+does this tell me? This isn't a very appealing fix as 1) I would have to
+fish around for a minimum vertical blank time that works and 2) this
+would slow down the frame rate for the normal case, when frames are just
+being streamed uninterrupted.
 
-Devin
+-Michael
 
--- 
-Devin J. Heitmueller - Kernel Labs
-http://www.kernellabs.com
+MATRIX VISION GmbH, Talstrasse 16, DE-71570 Oppenweiler
+Registergericht: Amtsgericht Stuttgart, HRB 271090
+Geschaeftsfuehrer: Gerhard Thullner, Werner Armingeon, Uwe Furtner, Erhard Meier
