@@ -1,316 +1,157 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.126.171]:52492 "EHLO
+Received: from moutng.kundenserver.de ([212.227.126.186]:49955 "EHLO
 	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756967Ab1HaSCx (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 31 Aug 2011 14:02:53 -0400
+	with ESMTP id S1755569Ab1HEHri (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 5 Aug 2011 03:47:38 -0400
+Date: Fri, 5 Aug 2011 09:47:17 +0200 (CEST)
 From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
 To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Hans Verkuil <hverkuil@xs4all.nl>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+cc: Sakari Ailus <sakari.ailus@iki.fi>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
 	Pawel Osciak <pawel@osciak.com>,
 	Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Marek Szyprowski <m.szyprowski@samsung.com>
-Subject: [PATCH 8/9 v6] V4L: mx3-camera: prepare to support multi-size buffers
-Date: Wed, 31 Aug 2011 20:02:47 +0200
-Message-Id: <1314813768-27752-9-git-send-email-g.liakhovetski@gmx.de>
-In-Reply-To: <1314813768-27752-1-git-send-email-g.liakhovetski@gmx.de>
-References: <1314813768-27752-1-git-send-email-g.liakhovetski@gmx.de>
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: [PATCH 2/6 v4] V4L: add a new videobuf2 buffer state VB2_BUF_STATE_PREPARED
+In-Reply-To: <Pine.LNX.4.64.1108042329460.31239@axis700.grange>
+Message-ID: <Pine.LNX.4.64.1108050925020.26715@axis700.grange>
+References: <Pine.LNX.4.64.1108042329460.31239@axis700.grange>
+MIME-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Prepare the mx3_camera driver to support the new VIDIOC_CREATE_BUFS and
-VIDIOC_PREPARE_BUF ioctl()s. The .queue_setup() vb2 operation must be
-able to handle buffer sizes, provided by the caller, and the
-.buf_prepare() operation must not use the currently configured frame
-format for its operation, which makes it superfluous for this driver.
-Its functionality is moved into .buf_queue().
+This patch prepares for a better separation of the buffer preparation
+stage.
 
 Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Cc: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: Marek Szyprowski <m.szyprowski@samsung.com>
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
-Cc: Pawel Osciak <pawel@osciak.com>
-Cc: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
 ---
+ drivers/media/video/videobuf2-core.c |   59 +++++++++++++++++++++------------
+ include/media/videobuf2-core.h       |    2 +
+ 2 files changed, 39 insertions(+), 22 deletions(-)
 
-v6: Handle the case of VIDIOC_CREATE_BUFS, when vb2 creates fewer buffers, than
-    requested by the user, correctly
-
- drivers/media/video/mx3_camera.c |  159 ++++++++++++++++++++------------------
- 1 files changed, 83 insertions(+), 76 deletions(-)
-
-diff --git a/drivers/media/video/mx3_camera.c b/drivers/media/video/mx3_camera.c
-index 6bfbce9..a85283a 100644
---- a/drivers/media/video/mx3_camera.c
-+++ b/drivers/media/video/mx3_camera.c
-@@ -114,6 +114,7 @@ struct mx3_camera_dev {
- 	struct list_head	capture;
- 	spinlock_t		lock;		/* Protects video buffer lists */
- 	struct mx3_camera_buffer *active;
-+	size_t			buf_total;
- 	struct vb2_alloc_ctx	*alloc_ctx;
- 	enum v4l2_field		field;
- 	int			sequence;
-@@ -198,73 +199,44 @@ static int mx3_videobuf_setup(struct vb2_queue *vq,
- 	struct soc_camera_device *icd = soc_camera_from_vb2q(vq);
- 	struct soc_camera_host *ici = to_soc_camera_host(icd->parent);
- 	struct mx3_camera_dev *mx3_cam = ici->priv;
--	int bytes_per_line = soc_mbus_bytes_per_line(icd->user_width,
--						icd->current_fmt->host_fmt);
--
--	if (bytes_per_line < 0)
--		return bytes_per_line;
-+	int bytes_per_line;
-+	unsigned int height;
- 
- 	if (!mx3_cam->idmac_channel[0])
- 		return -EINVAL;
- 
--	*num_planes = 1;
--
--	mx3_cam->sequence = 0;
--	sizes[0] = bytes_per_line * icd->user_height;
--	alloc_ctxs[0] = mx3_cam->alloc_ctx;
--
--	if (!*count)
--		*count = 32;
--
--	if (sizes[0] * *count > MAX_VIDEO_MEM * 1024 * 1024)
--		*count = MAX_VIDEO_MEM * 1024 * 1024 / sizes[0];
--
--	return 0;
--}
--
--static int mx3_videobuf_prepare(struct vb2_buffer *vb)
--{
--	struct soc_camera_device *icd = soc_camera_from_vb2q(vb->vb2_queue);
--	struct soc_camera_host *ici = to_soc_camera_host(icd->parent);
--	struct mx3_camera_dev *mx3_cam = ici->priv;
--	struct idmac_channel *ichan = mx3_cam->idmac_channel[0];
--	struct scatterlist *sg;
--	struct mx3_camera_buffer *buf;
--	size_t new_size;
--	int bytes_per_line = soc_mbus_bytes_per_line(icd->user_width,
-+	if (fmt) {
-+		const struct soc_camera_format_xlate *xlate = soc_camera_xlate_by_fourcc(icd,
-+								fmt->fmt.pix.pixelformat);
-+		bytes_per_line = soc_mbus_bytes_per_line(fmt->fmt.pix.width,
-+							 xlate->host_fmt);
-+		height = fmt->fmt.pix.height;
-+	} else {
-+		/* Called from VIDIOC_REQBUFS or in compatibility mode */
-+		bytes_per_line = soc_mbus_bytes_per_line(icd->user_width,
- 						icd->current_fmt->host_fmt);
--
-+		height = icd->user_height;
-+	}
- 	if (bytes_per_line < 0)
- 		return bytes_per_line;
- 
--	buf = to_mx3_vb(vb);
--	sg = &buf->sg;
--
--	new_size = bytes_per_line * icd->user_height;
--
--	if (vb2_plane_size(vb, 0) < new_size) {
--		dev_err(icd->parent, "Buffer too small (%lu < %zu)\n",
--			vb2_plane_size(vb, 0), new_size);
--		return -ENOBUFS;
--	}
-+	sizes[0] = bytes_per_line * height;
- 
--	if (buf->state == CSI_BUF_NEEDS_INIT) {
--		sg_dma_address(sg)	= vb2_dma_contig_plane_paddr(vb, 0);
--		sg_dma_len(sg)		= new_size;
-+	alloc_ctxs[0] = mx3_cam->alloc_ctx;
- 
--		buf->txd = ichan->dma_chan.device->device_prep_slave_sg(
--			&ichan->dma_chan, sg, 1, DMA_FROM_DEVICE,
--			DMA_PREP_INTERRUPT);
--		if (!buf->txd)
--			return -EIO;
-+	if (!vq->num_buffers)
-+		mx3_cam->sequence = 0;
- 
--		buf->txd->callback_param	= buf->txd;
--		buf->txd->callback		= mx3_cam_dma_done;
-+	if (!*count)
-+		*count = 2;
- 
--		buf->state = CSI_BUF_PREPARED;
--	}
-+	/* If *num_planes != 0, we have already verified *count. */
-+	if (!*num_planes &&
-+	    sizes[0] * *count + mx3_cam->buf_total > MAX_VIDEO_MEM * 1024 * 1024)
-+		*count = (MAX_VIDEO_MEM * 1024 * 1024 - mx3_cam->buf_total) /
-+			sizes[0];
- 
--	vb2_set_plane_payload(vb, 0, new_size);
-+	*num_planes = 1;
- 
- 	return 0;
- }
-@@ -288,28 +260,58 @@ static void mx3_videobuf_queue(struct vb2_buffer *vb)
- 	struct soc_camera_host *ici = to_soc_camera_host(icd->parent);
- 	struct mx3_camera_dev *mx3_cam = ici->priv;
- 	struct mx3_camera_buffer *buf = to_mx3_vb(vb);
--	struct dma_async_tx_descriptor *txd = buf->txd;
--	struct idmac_channel *ichan = to_idmac_chan(txd->chan);
-+	struct scatterlist *sg = &buf->sg;
-+	struct dma_async_tx_descriptor *txd;
-+	struct idmac_channel *ichan = mx3_cam->idmac_channel[0];
- 	struct idmac_video_param *video = &ichan->params.video;
--	dma_cookie_t cookie;
--	u32 fourcc = icd->current_fmt->host_fmt->fourcc;
-+	const struct soc_mbus_pixelfmt *host_fmt = icd->current_fmt->host_fmt;
-+	int bytes_per_line = soc_mbus_bytes_per_line(icd->user_width, host_fmt);
- 	unsigned long flags;
-+	dma_cookie_t cookie;
-+	size_t new_size;
-+
-+	BUG_ON(bytes_per_line <= 0);
-+
-+	new_size = bytes_per_line * icd->user_height;
-+
-+	if (vb2_plane_size(vb, 0) < new_size) {
-+		dev_err(icd->parent, "Buffer #%d too small (%lu < %zu)\n",
-+			vb->v4l2_buf.index, vb2_plane_size(vb, 0), new_size);
-+		goto error;
-+	}
-+
-+	if (buf->state == CSI_BUF_NEEDS_INIT) {
-+		sg_dma_address(sg)	= vb2_dma_contig_plane_paddr(vb, 0);
-+		sg_dma_len(sg)		= new_size;
-+
-+		txd = ichan->dma_chan.device->device_prep_slave_sg(
-+			&ichan->dma_chan, sg, 1, DMA_FROM_DEVICE,
-+			DMA_PREP_INTERRUPT);
-+		if (!txd)
-+			goto error;
-+
-+		txd->callback_param	= txd;
-+		txd->callback		= mx3_cam_dma_done;
-+
-+		buf->state		= CSI_BUF_PREPARED;
-+		buf->txd		= txd;
-+	} else {
-+		txd = buf->txd;
-+	}
-+
-+	vb2_set_plane_payload(vb, 0, new_size);
- 
- 	/* This is the configuration of one sg-element */
--	video->out_pixel_fmt	= fourcc_to_ipu_pix(fourcc);
-+	video->out_pixel_fmt = fourcc_to_ipu_pix(host_fmt->fourcc);
- 
- 	if (video->out_pixel_fmt == IPU_PIX_FMT_GENERIC) {
- 		/*
--		 * If the IPU DMA channel is configured to transport
--		 * generic 8-bit data, we have to set up correctly the
--		 * geometry parameters upon the current pixel format.
--		 * So, since the DMA horizontal parameters are expressed
--		 * in bytes not pixels, convert these in the right unit.
-+		 * If the IPU DMA channel is configured to transfer generic
-+		 * 8-bit data, we have to set up the geometry parameters
-+		 * correctly, according to the current pixel format. The DMA
-+		 * horizontal parameters in this case are expressed in bytes,
-+		 * not in pixels.
- 		 */
--		int bytes_per_line = soc_mbus_bytes_per_line(icd->user_width,
--						icd->current_fmt->host_fmt);
--		BUG_ON(bytes_per_line <= 0);
--
- 		video->out_width	= bytes_per_line;
- 		video->out_height	= icd->user_height;
- 		video->out_stride	= bytes_per_line;
-@@ -353,6 +355,7 @@ static void mx3_videobuf_queue(struct vb2_buffer *vb)
- 		mx3_cam->active = NULL;
- 
- 	spin_unlock_irqrestore(&mx3_cam->lock, flags);
-+error:
- 	vb2_buffer_done(vb, VB2_BUF_STATE_ERROR);
- }
- 
-@@ -386,17 +389,24 @@ static void mx3_videobuf_release(struct vb2_buffer *vb)
+diff --git a/drivers/media/video/videobuf2-core.c b/drivers/media/video/videobuf2-core.c
+index 3015e60..fb7a3ac 100644
+--- a/drivers/media/video/videobuf2-core.c
++++ b/drivers/media/video/videobuf2-core.c
+@@ -333,6 +333,7 @@ static int __fill_v4l2_buffer(struct vb2_buffer *vb, struct v4l2_buffer *b)
+ 		b->flags |= V4L2_BUF_FLAG_DONE;
+ 		break;
+ 	case VB2_BUF_STATE_DEQUEUED:
++	case VB2_BUF_STATE_PREPARED:
+ 		/* nothing */
+ 		break;
  	}
- 
- 	spin_unlock_irqrestore(&mx3_cam->lock, flags);
-+
-+	mx3_cam->buf_total -= vb2_plane_size(vb, 0);
+@@ -817,6 +818,31 @@ static void __enqueue_in_driver(struct vb2_buffer *vb)
+ 	q->ops->buf_queue(vb);
  }
  
- static int mx3_videobuf_init(struct vb2_buffer *vb)
++static int __buf_prepare(struct vb2_buffer *vb, struct v4l2_buffer *b)
++{
++	struct vb2_queue *q = vb->vb2_queue;
++	int ret;
++
++	switch (q->memory) {
++	case V4L2_MEMORY_MMAP:
++		ret = __qbuf_mmap(vb, b);
++		break;
++	case V4L2_MEMORY_USERPTR:
++		ret = __qbuf_userptr(vb, b);
++		break;
++	default:
++		WARN(1, "Invalid queue type\n");
++		ret = -EINVAL;
++	}
++
++	if (!ret)
++		ret = call_qop(q, buf_prepare, vb);
++	if (ret)
++		dprintk(1, "qbuf: buffer preparation failed: %d\n", ret);
++
++	return ret;
++}
++
+ /**
+  * vb2_qbuf() - Queue a buffer from userspace
+  * @q:		videobuf2 queue
+@@ -826,8 +852,8 @@ static void __enqueue_in_driver(struct vb2_buffer *vb)
+  * Should be called from vidioc_qbuf ioctl handler of a driver.
+  * This function:
+  * 1) verifies the passed buffer,
+- * 2) calls buf_prepare callback in the driver (if provided), in which
+- *    driver-specific buffer initialization can be performed,
++ * 2) if necessary, calls buf_prepare callback in the driver (if provided), in
++ *    which driver-specific buffer initialization can be performed,
+  * 3) if streaming is on, queues the buffer in driver by the means of buf_queue
+  *    callback for processing.
+  *
+@@ -837,7 +863,7 @@ static void __enqueue_in_driver(struct vb2_buffer *vb)
+ int vb2_qbuf(struct vb2_queue *q, struct v4l2_buffer *b)
  {
-+	struct soc_camera_device *icd = soc_camera_from_vb2q(vb->vb2_queue);
-+	struct soc_camera_host *ici = to_soc_camera_host(icd->parent);
-+	struct mx3_camera_dev *mx3_cam = ici->priv;
- 	struct mx3_camera_buffer *buf = to_mx3_vb(vb);
-+
- 	/* This is for locking debugging only */
- 	INIT_LIST_HEAD(&buf->queue);
- 	sg_init_table(&buf->sg, 1);
+ 	struct vb2_buffer *vb;
+-	int ret = 0;
++	int ret;
  
- 	buf->state = CSI_BUF_NEEDS_INIT;
--	buf->txd = NULL;
-+
-+	mx3_cam->buf_total += vb2_plane_size(vb, 0);
- 
- 	return 0;
- }
-@@ -407,13 +417,12 @@ static int mx3_stop_streaming(struct vb2_queue *q)
- 	struct soc_camera_host *ici = to_soc_camera_host(icd->parent);
- 	struct mx3_camera_dev *mx3_cam = ici->priv;
- 	struct idmac_channel *ichan = mx3_cam->idmac_channel[0];
--	struct dma_chan *chan;
- 	struct mx3_camera_buffer *buf, *tmp;
- 	unsigned long flags;
- 
- 	if (ichan) {
--		chan = &ichan->dma_chan;
--		chan->device->device_control(chan, DMA_TERMINATE_ALL, 0);
-+		struct dma_chan *chan = &ichan->dma_chan;
-+		chan->device->device_control(chan, DMA_PAUSE, 0);
+ 	if (q->fileio) {
+ 		dprintk(1, "qbuf: file io in progress\n");
+@@ -866,29 +892,18 @@ int vb2_qbuf(struct vb2_queue *q, struct v4l2_buffer *b)
+ 		return -EINVAL;
  	}
  
- 	spin_lock_irqsave(&mx3_cam->lock, flags);
-@@ -421,8 +430,8 @@ static int mx3_stop_streaming(struct vb2_queue *q)
- 	mx3_cam->active = NULL;
- 
- 	list_for_each_entry_safe(buf, tmp, &mx3_cam->capture, queue) {
--		buf->state = CSI_BUF_NEEDS_INIT;
- 		list_del_init(&buf->queue);
-+		vb2_buffer_done(&buf->vb, VB2_BUF_STATE_ERROR);
+-	if (vb->state != VB2_BUF_STATE_DEQUEUED) {
++	switch (vb->state) {
++	case VB2_BUF_STATE_DEQUEUED:
++		ret = __buf_prepare(vb, b);
++		if (ret)
++			return ret;
++	case VB2_BUF_STATE_PREPARED:
++		break;
++	default:
+ 		dprintk(1, "qbuf: buffer already in use\n");
+ 		return -EINVAL;
  	}
  
- 	spin_unlock_irqrestore(&mx3_cam->lock, flags);
-@@ -432,7 +441,6 @@ static int mx3_stop_streaming(struct vb2_queue *q)
- 
- static struct vb2_ops mx3_videobuf_ops = {
- 	.queue_setup	= mx3_videobuf_setup,
--	.buf_prepare	= mx3_videobuf_prepare,
- 	.buf_queue	= mx3_videobuf_queue,
- 	.buf_cleanup	= mx3_videobuf_release,
- 	.buf_init	= mx3_videobuf_init,
-@@ -516,6 +524,7 @@ static int mx3_camera_add_device(struct soc_camera_device *icd)
- 
- 	mx3_camera_activate(mx3_cam, icd);
- 
-+	mx3_cam->buf_total = 0;
- 	mx3_cam->icd = icd;
- 
- 	dev_info(icd->parent, "MX3 Camera driver attached to camera %d\n",
-@@ -1263,8 +1272,6 @@ static int __devexit mx3_camera_remove(struct platform_device *pdev)
- 
- 	dmaengine_put();
- 
--	dev_info(&pdev->dev, "i.MX3x Camera driver unloaded\n");
+-	if (q->memory == V4L2_MEMORY_MMAP)
+-		ret = __qbuf_mmap(vb, b);
+-	else if (q->memory == V4L2_MEMORY_USERPTR)
+-		ret = __qbuf_userptr(vb, b);
+-	else {
+-		WARN(1, "Invalid queue type\n");
+-		return -EINVAL;
+-	}
 -
- 	return 0;
- }
- 
+-	if (ret)
+-		return ret;
+-
+-	ret = call_qop(q, buf_prepare, vb);
+-	if (ret) {
+-		dprintk(1, "qbuf: buffer preparation failed\n");
+-		return ret;
+-	}
+-
+ 	/*
+ 	 * Add to the queued buffers list, a buffer will stay on it until
+ 	 * dequeued in dqbuf.
+diff --git a/include/media/videobuf2-core.h b/include/media/videobuf2-core.h
+index f87472a..65946c5 100644
+--- a/include/media/videobuf2-core.h
++++ b/include/media/videobuf2-core.h
+@@ -106,6 +106,7 @@ enum vb2_fileio_flags {
+ /**
+  * enum vb2_buffer_state - current video buffer state
+  * @VB2_BUF_STATE_DEQUEUED:	buffer under userspace control
++ * @VB2_BUF_STATE_PREPARED:	buffer prepared in videobuf and by the driver
+  * @VB2_BUF_STATE_QUEUED:	buffer queued in videobuf, but not in driver
+  * @VB2_BUF_STATE_ACTIVE:	buffer queued in driver and possibly used
+  *				in a hardware operation
+@@ -117,6 +118,7 @@ enum vb2_fileio_flags {
+  */
+ enum vb2_buffer_state {
+ 	VB2_BUF_STATE_DEQUEUED,
++	VB2_BUF_STATE_PREPARED,
+ 	VB2_BUF_STATE_QUEUED,
+ 	VB2_BUF_STATE_ACTIVE,
+ 	VB2_BUF_STATE_DONE,
 -- 
 1.7.2.5
 
