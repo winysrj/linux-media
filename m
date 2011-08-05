@@ -1,74 +1,58 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.126.186]:63841 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752155Ab1HPO1H (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 16 Aug 2011 10:27:07 -0400
-From: Arnd Bergmann <arnd@arndb.de>
-To: "Russell King - ARM Linux" <linux@arm.linux.org.uk>
-Subject: Re: [PATCH 7/9] ARM: DMA: steal memory for DMA coherent mappings
-Date: Tue, 16 Aug 2011 16:26:25 +0200
-Cc: Marek Szyprowski <m.szyprowski@samsung.com>,
-	linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-	linux-media@vger.kernel.org, linux-mm@kvack.org,
-	linaro-mm-sig@lists.linaro.org,
-	Michal Nazarewicz <mina86@mina86.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	Andrew Morton <akpm@linux-foundation.org>,
-	KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>,
-	Ankita Garg <ankita@in.ibm.com>,
-	Daniel Walker <dwalker@codeaurora.org>,
-	Mel Gorman <mel@csn.ul.ie>,
-	Jesse Barker <jesse.barker@linaro.org>,
-	Jonathan Corbet <corbet@lwn.net>,
-	Shariq Hasnain <shariq.hasnain@linaro.org>,
-	Chunsang Jeong <chunsang.jeong@linaro.org>
-References: <1313146711-1767-1-git-send-email-m.szyprowski@samsung.com> <201108161528.48954.arnd@arndb.de> <20110816135516.GC17310@n2100.arm.linux.org.uk>
-In-Reply-To: <20110816135516.GC17310@n2100.arm.linux.org.uk>
+Received: from perceval.ideasonboard.com ([95.142.166.194]:36259 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753895Ab1HEI7m (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 5 Aug 2011 04:59:42 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Michael Jones <michael.jones@matrix-vision.de>
+Subject: Re: [PATCH] [media] omap3isp: queue: fail QBUF if buffer is too small
+Date: Fri, 5 Aug 2011 10:59:46 +0200
+Cc: linux-media@vger.kernel.org,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+References: <1312472437-26231-1-git-send-email-michael.jones@matrix-vision.de>
+In-Reply-To: <1312472437-26231-1-git-send-email-michael.jones@matrix-vision.de>
 MIME-Version: 1.0
 Content-Type: Text/Plain;
-  charset="iso-8859-1"
+  charset="iso-8859-15"
 Content-Transfer-Encoding: 7bit
-Message-Id: <201108161626.26130.arnd@arndb.de>
+Message-Id: <201108051059.46485.laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tuesday 16 August 2011, Russell King - ARM Linux wrote:
-> On Tue, Aug 16, 2011 at 03:28:48PM +0200, Arnd Bergmann wrote:
-> > Hmm, I don't remember the point about dynamically sizing the pool for
-> > ARMv6K, but that can well be an oversight on my part.  I do remember the
-> > part about taking that memory pool from the CMA region as you say.
+Hi Michael,
+
+Thanks for the patch.
+
+On Thursday 04 August 2011 17:40:37 Michael Jones wrote:
+> Add buffer length to sanity checks for QBUF.
 > 
-> If you're setting aside a pool of pages, then you have to dynamically
-> size it.  I did mention during our discussion about this.
+> Signed-off-by: Michael Jones <michael.jones@matrix-vision.de>
+> ---
+>  drivers/media/video/omap3isp/ispqueue.c |    3 +++
+>  1 files changed, 3 insertions(+), 0 deletions(-)
 > 
-> The problem is that a pool of fixed size is two fold: you need it to be
-> sufficiently large that it can satisfy all allocations which come along
-> in atomic context.  Yet, we don't want the pool to be too large because
-> then it prevents the memory being used for other purposes.
+> diff --git a/drivers/media/video/omap3isp/ispqueue.c
+> b/drivers/media/video/omap3isp/ispqueue.c index 9c31714..4f6876f 100644
+> --- a/drivers/media/video/omap3isp/ispqueue.c
+> +++ b/drivers/media/video/omap3isp/ispqueue.c
+> @@ -867,6 +867,9 @@ int omap3isp_video_queue_qbuf(struct isp_video_queue
+> *queue, if (buf->state != ISP_BUF_STATE_IDLE)
+>  		goto done;
 > 
-> Basically, the total number of pages in the pool can be a fixed size,
-> but as they are depleted through allocation, they need to be
-> re-populated from CMA to re-build the reserve for future atomic
-> allocations.  If the pool becomes larger via frees, then obviously
-> we need to give pages back.
+> +	if (vbuf->length < buf->vbuf.length)
+> +		goto done;
+> +
 
-Ok, thanks for the reminder. I must have completely missed this part
-of the discussion.
+The vbuf->length value passed from userspace isn't used by the driver, so I'm 
+not sure if verifying it is really useful. We verify the memory itself 
+instead, to make sure that enough pages can be accessed. The application can 
+always lie about the length, so we can't relying on it anyway.
 
-When I briefly considered this problem, my own conclusion was that
-the number of atomic DMA allocations would always be very low
-because they tend to be short-lived (e.g. incoming network packets),
-so we could ignore this problem and just use a smaller reservation
-size. While this seems to be true in general (see "git grep -w -A3 
-dma_alloc_coherent | grep ATOMIC"), there is one very significant
-case that we cannot ignore, which is pci_alloc_consistent.
+>  	if (vbuf->memory == V4L2_MEMORY_USERPTR &&
+>  	    vbuf->m.userptr != buf->vbuf.m.userptr) {
+>  		isp_video_buffer_cleanup(buf);
 
-This function is still called by hundreds of PCI drivers and always
-does dma_alloc_coherent(..., GFP_ATOMIC), even for long-lived
-allocations and those that are too large to be ignored.
+-- 
+Regards,
 
-So at least for the case where we have PCI devices, I agree that
-we need to have the dynamic pool.
-
-	Arnd
+Laurent Pinchart
