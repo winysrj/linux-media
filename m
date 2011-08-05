@@ -1,172 +1,124 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga09.intel.com ([134.134.136.24]:9307 "EHLO mga09.intel.com"
+Received: from mx1.redhat.com ([209.132.183.28]:42149 "EHLO mx1.redhat.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751526Ab1HPK26 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 16 Aug 2011 06:28:58 -0400
-From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	linux-media@vger.kernel.org
-Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Subject: [media-ctl][PATCHv2 3/4] libmediactl: use udev conditionally to get a devname
-Date: Tue, 16 Aug 2011 13:28:04 +0300
-Message-Id: <3fa73211e84c4b2e70d4777e3664954948042d64.1313490446.git.andriy.shevchenko@linux.intel.com>
-In-Reply-To: <6075971b959c2e808cd4ceec6540dc09b101346f.1313490446.git.andriy.shevchenko@linux.intel.com>
-References: <201108151652.54417.laurent.pinchart@ideasonboard.com>
- <6075971b959c2e808cd4ceec6540dc09b101346f.1313490446.git.andriy.shevchenko@linux.intel.com>
-In-Reply-To: <6075971b959c2e808cd4ceec6540dc09b101346f.1313490446.git.andriy.shevchenko@linux.intel.com>
-References: <6075971b959c2e808cd4ceec6540dc09b101346f.1313490446.git.andriy.shevchenko@linux.intel.com>
+	id S1753926Ab1HEHoz (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 5 Aug 2011 03:44:55 -0400
+Message-ID: <4E3B9FB4.30709@redhat.com>
+Date: Fri, 05 Aug 2011 09:45:56 +0200
+From: Hans de Goede <hdegoede@redhat.com>
+MIME-Version: 1.0
+To: Greg KH <greg@kroah.com>
+CC: Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Sarah Sharp <sarah.a.sharp@linux.intel.com>,
+	linux-usb@vger.kernel.org, linux-media@vger.kernel.org,
+	linux-kernel@vger.kernel.org, libusb-devel@lists.sourceforge.net,
+	Alexander Graf <agraf@suse.de>,
+	Gerd Hoffmann <kraxel@redhat.com>, hector@marcansoft.com,
+	Jan Kiszka <jan.kiszka@siemens.com>,
+	Stefan Hajnoczi <stefanha@linux.vnet.ibm.com>,
+	pbonzini@redhat.com, Anthony Liguori <aliguori@us.ibm.com>,
+	Jes Sorensen <Jes.Sorensen@redhat.com>,
+	Alan Stern <stern@rowland.harvard.edu>,
+	Oliver Neukum <oliver@neukum.org>, Felipe Balbi <balbi@ti.com>,
+	Clemens Ladisch <clemens@ladisch.de>,
+	Jaroslav Kysela <perex@perex.cz>, Takashi Iwai <tiwai@suse.de>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Theodore Kilgore <kilgota@banach.math.auburn.edu>,
+	Adam Baker <linux@baker-net.org.uk>
+Subject: Re: USB mini-summit at LinuxCon Vancouver
+References: <20110610002103.GA7169@xanatos> <4E3B1B7B.2040501@infradead.org> <20110804225603.GA2557@kroah.com>
+In-Reply-To: <20110804225603.GA2557@kroah.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
----
- configure.in    |   22 ++++++++++++++++++++++
- src/Makefile.am |    2 ++
- src/media.c     |   50 ++++++++++++++++++++++++++++++++++++++++++++++++++
- 3 files changed, 74 insertions(+), 0 deletions(-)
+Hi,
 
-diff --git a/configure.in b/configure.in
-index fd4c70c..45e0663 100644
---- a/configure.in
-+++ b/configure.in
-@@ -13,6 +13,28 @@ AC_PROG_LIBTOOL
- 
- # Checks for libraries.
- 
-+AC_ARG_WITH([libudev],
-+    AS_HELP_STRING([--without-libudev],
-+        [Ignore presence of libudev and disable it]))
-+
-+AS_IF([test "x$with_libudev" != "xno"],
-+    [PKG_CHECK_MODULES(libudev, libudev, have_libudev=yes, have_libudev=no)],
-+    [have_libudev=no])
-+
-+AS_IF([test "x$have_libudev" = "xyes"],
-+    [
-+        AC_DEFINE([HAVE_LIBUDEV], [], [Use libudev])
-+        LIBUDEV_CFLAGS="$lbudev_CFLAGS"
-+        LIBUDEV_LIBS="$libudev_LIBS"
-+        AC_SUBST(LIBUDEV_CFLAGS)
-+        AC_SUBST(LIBUDEV_LIBS)
-+    ],
-+    [AS_IF([test "x$with_libudev" = "xyes"],
-+        [AC_MSG_ERROR([libudev requested but not found])
-+    ])
-+])
-+
-+
- # Kernel headers path.
- AC_ARG_WITH(kernel-headers,
-     [AC_HELP_STRING([--with-kernel-headers=DIR],
-diff --git a/src/Makefile.am b/src/Makefile.am
-index 267ea83..52628d2 100644
---- a/src/Makefile.am
-+++ b/src/Makefile.am
-@@ -5,6 +5,8 @@ mediactl_includedir=$(includedir)/mediactl
- mediactl_include_HEADERS = media.h subdev.h
- 
- bin_PROGRAMS = media-ctl
-+media_ctl_CFLAGS = $(LIBUDEV_CFLAGS)
-+media_ctl_LDFLAGS = $(LIBUDEV_LIBS)
- media_ctl_SOURCES = main.c options.c options.h tools.h
- media_ctl_LDADD = libmediactl.la libv4l2subdev.la
- 
-diff --git a/src/media.c b/src/media.c
-index fc05a86..e159526 100644
---- a/src/media.c
-+++ b/src/media.c
-@@ -17,6 +17,8 @@
-  * with this program; if not, write to the Free Software Foundation, Inc.,
-  */
- 
-+#include "config.h"
-+
- #include <sys/ioctl.h>
- #include <sys/stat.h>
- #include <sys/types.h>
-@@ -31,6 +33,10 @@
- #include <linux/videodev2.h>
- #include <linux/media.h>
- 
-+#ifdef HAVE_LIBUDEV
-+#include <libudev.h>
-+#endif	/* HAVE_LIBUDEV */
-+
- #include "media.h"
- #include "tools.h"
- 
-@@ -245,6 +251,37 @@ static int media_enum_links(struct media_device *media)
- 	return ret;
- }
- 
-+#ifdef HAVE_LIBUDEV
-+
-+static struct udev *udev;
-+
-+static int media_get_devname(struct media_entity *entity)
-+{
-+	dev_t devnum;
-+	struct udev_device *device;
-+	const char *p;
-+	int ret = -ENODEV;
-+
-+	if (media_entity_type(entity) != MEDIA_ENT_T_DEVNODE &&
-+	    media_entity_type(entity) != MEDIA_ENT_T_V4L2_SUBDEV)
-+		return 0;
-+
-+	devnum = makedev(entity->info.v4l.major, entity->info.v4l.minor);
-+	printf("looking up device: %u:%u\n", major(devnum), minor(devnum));
-+	device = udev_device_new_from_devnum(udev, 'c', devnum);
-+	if (device) {
-+		p = udev_device_get_devnode(device);
-+		if (p)
-+			snprintf(entity->devname, sizeof(entity->devname), "%s", p);
-+		ret = 0;
-+	}
-+
-+	udev_device_unref(device);
-+	return ret;
-+}
-+
-+#else	/* HAVE_LIBUDEV */
-+
- static int media_get_devname(struct media_entity *entity)
- {
- 	struct stat devstat;
-@@ -284,6 +321,7 @@ static int media_get_devname(struct media_entity *entity)
- 
- 	return 0;
- }
-+#endif	/* HAVE_LIBUDEV */
- 
- static int media_enum_entities(struct media_device *media)
- {
-@@ -292,6 +330,14 @@ static int media_enum_entities(struct media_device *media)
- 	__u32 id;
- 	int ret = 0;
- 
-+#ifdef HAVE_LIBUDEV
-+	udev = udev_new();
-+	if (udev == NULL) {
-+		printf("unable to allocate memory for context\n");
-+		return -ENOMEM;
-+	}
-+#endif	/* HAVE_LIBUDEV */
-+
- 	for (id = 0; ; id = entity->info.id) {
- 		size = (media->entities_count + 1) * sizeof(*media->entities);
- 		media->entities = realloc(media->entities, size);
-@@ -327,6 +373,10 @@ static int media_enum_entities(struct media_device *media)
- 		media_get_devname(entity);
- 	}
- 
-+#ifdef HAVE_LIBUDEV
-+	udev_unref(udev);
-+	udev = NULL;
-+#endif
- 	return ret;
- }
- 
--- 
-1.7.5.4
+On 08/05/2011 12:56 AM, Greg KH wrote:
+> On Thu, Aug 04, 2011 at 07:21:47PM -0300, Mauro Carvalho Chehab wrote:
+>> I know that this problem were somewhat solved for 3G modems, with the usage
+>> of the userspace problem usb_modeswitch, and with some quirks for the USB
+>> storage driver, but I'm not sure if such tricks will scale forever, as more
+>> functions are seen on some USB devices.
+>
+> Well, no matter how it "scales" it needs to be done in userspace, like
+> usb_modeswitch does.  We made that decision a while ago, and it is
+> working out very well.  I see no reason why you can't do it in userspace
+> as well as that is the easiest place to control this type of thing.
+>
+> I thought we had a long discussion about this topic a while ago and came
+> to this very conclusion.  Or am I mistaken?
 
+I think we've had multiple discussions about this, surrounding various
+topics / use cases. I would not call the do it in userspace a conclusion.
+
+I rather more have a feeling of getting stonewalled on this by various people
+surrounding the usb system. Me shutting up on this is basically a case of:
+"Discussion not getting anywhere and I don't have the time to do a kernel
+  proof of concept myself right now".
+
+To be clear about the stonewalling I'm not talking about the dual cam issue
+here, nor about the morphing devices thing which usb_modeswitch fixes.
+
+I think it is important to separate oranges from apples here, there are
+at least 3 different problem classes which all seem to have gotten thrown
+onto a pile here:
+
+1) The reason Mauro suggested having some discussion on this at the
+USB summit is because of a discussion about dual mode cameras on the
+linux media list. Dual-mode cameras are (usually very cheap) digital
+photo cameras which can take still pictures in stand alone mode and
+store them in onboard memory, like regular digital photo cameras, this
+is one mode. The other mode is they can operate as a regular webcam,
+the hardware actually is more regular webcam hardware with some memory
+and a battery added (usually no viewfinder screen).
+
+These devices typically use 1 usb interface (and thus 1 driver) for
+both modes. We currently have drivers for both modes, but they are
+separate drivers, which leads to fighting for device ownership,
+with the stillmode driver always winning as that is userspace and
+it simply kicks of the kernel webcam /streaming mode driver making
+it see a device unplug, even if an app was streaming from the device
+at the time. The solution here is simple, move both functions to
+1 driver, which can then properly return -EBUSY when the device
+is active in one mode and an app tries to use it in the other mode.
+
+This 1 driver will likely end up being a kernel driver, since doing
+streaming drivers in userspace is problematic, as the v4l2 API assumes
+a kernel device node, and we don't want to invent a new API, we want
+something which works with existing applications.
+
+2) So called morphing devices. For example a USB 3G modem which
+initially shows up as a cdrom drive with windows software, only
+to reveal its real identity (with completely different usb
+descriptors) after some magic command. This is solved by the
+usb_modeswitch command, nothing to see here move along.
+
+3) Re-direction of usb devices to virtual machines. This works by using
+the userspace usbfs interface from qemu / vmware / virtualbox / whatever.
+The basics of this work fine, but it lacks proper locking / safeguards
+for when a vm takes over a usb device from the in kernel driver.
+
+Example of the problem: usb mass storage devices is mounted, filesystem
+is in use and dirty, with writebacks pending, user redirects to vm,
+usb mass storage driver sees the cable beeing yanked out of the device.
+
+Now we've lost the pending writebacks and have a dirty, if not journaling
+possibly corrupt, fs on the device.
+
+This is the issue on which I feel a bit stonewalled. Simple putting your
+fingers in your ears and singing la la la do it in userspace is not going
+to cut it here. There is no way to do this race free in userspace, unless
+all possible callers of mount get modified. Moreover 99% of the necessary
+accounting for this is already done in the kernel. We already have the notion
+of a block device being in use. We simply need to add some code to pass
+this notion to the usb mass storage driver, and add a new try_disconnect
+callback for usb drivers. I'm not saying this is going to be completely
+straight forward, but it ain't rocket science either. And it so very
+obviously is the *right* thing to do, that I'm getting very tired of
+the do it in userspace song I keep hearing.
+
+Regards,
+
+Hans
