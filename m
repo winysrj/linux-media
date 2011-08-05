@@ -1,92 +1,75 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:16399 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751655Ab1HCRpk (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 3 Aug 2011 13:45:40 -0400
-Message-ID: <4E398940.4020409@redhat.com>
-Date: Wed, 03 Aug 2011 14:45:36 -0300
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Received: from hqemgate04.nvidia.com ([216.228.121.35]:13229 "EHLO
+	hqemgate04.nvidia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752171Ab1HEVBH convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 5 Aug 2011 17:01:07 -0400
+From: Andrew Chew <AChew@nvidia.com>
+To: 'Mauro Carvalho Chehab' <mchehab@redhat.com>
+CC: "g.liakhovetski@gmx.de" <g.liakhovetski@gmx.de>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	'Doug Anderson' <dianders@google.com>
+Date: Fri, 5 Aug 2011 14:01:03 -0700
+Subject: RE: Guidance regarding deferred I2C transactions
+Message-ID: <643E69AA4436674C8F39DCC2C05F76383CF0DD22D5@HQMAIL03.nvidia.com>
+References: <643E69AA4436674C8F39DCC2C05F76383CF0DD22D0@HQMAIL03.nvidia.com>
+ <4E3C557A.2060103@redhat.com>
+In-Reply-To: <4E3C557A.2060103@redhat.com>
+Content-Language: en-US
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 MIME-Version: 1.0
-To: workshop-2011@linuxtv.org,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: Media Subsystem Workshop 2011
-References: <4E398381.4080505@redhat.com>
-In-Reply-To: <4E398381.4080505@redhat.com>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em 03-08-2011 14:21, Mauro Carvalho Chehab escreveu:
-> As already announced, we're continuing the planning for this year's 
-> media subsystem workshop.
+> > One way to solve this can be to defer these I2C 
+> transactions in the image sensor driver all the way up 
+> > to the time the image sensor is asked to start streaming 
+> frames. However, it seems to me that this breaks 
+> > the spirit of the probe; applications will successfully 
+> probe for camera presence even though the camera 
+> > isn't actually there. Is this okay?
+> > 
+> > Is there a better way to do this? Maybe a more general 
+> thing we can add to the V4L2 framework?
 > 
-> To avoid overriding the main ML with workshop-specifics, a new ML
-> was created:
-> 	workshop-2011@linuxtv.org
-> 
-> I'll also be updating the event page at:
-> 	http://www.linuxtv.org/events.php
-> 
-> Over the one-year period, we had 242 developers contributing to the
-> subsystem. Thank you all for that! Unfortunately, the space there is
-> limited, and we can't affort to have all developers there. 
-> 
-> Due to that some criteria needed to be applied to create a short list
-> of people that were invited today to participate. 
-> 
-> The main criteria were to select the developers that did significant 
-> contributions for the media subsystem over the last 1 year period, 
-> measured in terms of number of commits and changed lines to the kernel
-> drivers/media tree.
-> 
-> As the used criteria were the number of kernel patches, userspace-only 
-> developers weren't included on the invitations. It would be great to 
-> have there open source application developers as well, in order to allow 
-> us to tune what's needed from applications point of view. 
-> 
-> So, if you're leading the development of some V4L and/or DVB open-source 
-> application and wants to be there, or you think you can give good 
-> contributions for helping to improve the subsystem, please feel free 
-> to send us an email.
-> 
-> With regards to the themes, we're received, up to now, the following 
-> proposals:
-> 
-> ---------------------------------------------------------+----------------------
-> THEME                                                    | Proposed-by:
-> ---------------------------------------------------------+----------------------
-> Buffer management: snapshot mode                         | Guennadi
-> Rotation in webcams in tablets while streaming is active | Hans de Goede
-> V4L2 Spec – ambiguities fix                              | Hans Verkuil
-> V4L2 compliance test results                             | Hans Verkuil
-> Media Controller presentation (probably for Wed, 25)     | Laurent Pinchart
-> Workshop summary presentation on Wed, 25                 | Mauro Carvalho Chehab
+> Probing for the presence of the device hardware at driver 
+> init time seems 
+> to be the right thing to do, even when the LED blinks. PC 
+> keyboard LEDs
+> also blinks during machine reset, and this is not really 
+> annoying. Even
+> on some embedded devices like some cell phones, LEDs blink 
+> during the boot
+> time.
 
-In time: it should be, instead Tue Oct, 25. Sorry for the typo.
+It's a bit different when the camera LED blinks, though.  The whole problem is that the user will have thought that the system took a picture of them without knowing.  What the user sees will potentially be indistinguishable between expected behavior, and a system that has been compromised to make use of that blink to actually take a picture, leading to privacy concerns.
 
-> ---------------------------------------------------------+----------------------
-> 
-> From my side, I also have the following proposals:
-> 
-> 1) DVB API consistency - what to do with the audio and video DVB API's 
-> that conflict with V4L2 and (somewhat) with ALSA?
-> 
-> 2) Multi FE support - How should we handle a frontend with multiple 
-> delivery systems like DRX-K frontend?
-> 
-> 3) videobuf2 - migration plans for legacy drivers
-> 
-> 4) NEC IR decoding - how should we handle 32, 24, and 16 bit protocol
-> variations?
-> 
-> Even if you won't be there, please feel free to propose themes for 
-> discussion, in order to help us to improve even more the subsystem.
-> 
-> Thank you!
-> Mauro
 
-Rémi, thanks for pointing it!
+> So, as a general rule, I'd say that the better is to keep the 
+> capability of 
+> probing the hardware at init time, especially since the same 
+> sensor may
+> eventually be used by non SoC drivers.
 
-Thanks!
-Mauro
+I completely agree with you.  I was just hoping that others have run into this as well, and that there was an officially endorsed method to solve this.  Sounds like there isn't.
+
+
+> One strategy that several drivers do, and that solves the 
+> issue of blinking
+> after the device reset is to have a shadow copy of the 
+> register contents.
+> This way, you can defer the device register writes to occur 
+> only when you're
+> actually streaming. E. g. you'll still have the blink at 
+> probe time (probably
+> a longer one), but, after that, the driver can just work with 
+> the cached
+> values, up to the moment it will really start streaming.
+
+Yes, that's easy to do, and will completely solve the blink on open issue.
+-----------------------------------------------------------------------------------
+This email message is for the sole use of the intended recipient(s) and may contain
+confidential information.  Any unauthorized review, use, disclosure or distribution
+is prohibited.  If you are not the intended recipient, please contact the sender by
+reply email and destroy all copies of the original message.
+-----------------------------------------------------------------------------------
