@@ -1,71 +1,36 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.dream-property.net ([82.149.226.172]:39133 "EHLO
-	mail.dream-property.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752731Ab1HHOys (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 8 Aug 2011 10:54:48 -0400
-From: Andreas Oberritter <obi@linuxtv.org>
-To: linux-media@vger.kernel.org
-Cc: user.vdr@gmail.com, alannisota@gmail.com
-Subject: [PATCH 3/3] DVB: gp8psk-fe: use SYS_TURBO
-Date: Mon,  8 Aug 2011 14:54:37 +0000
-Message-Id: <1312815277-9502-3-git-send-email-obi@linuxtv.org>
-In-Reply-To: <1312815277-9502-1-git-send-email-obi@linuxtv.org>
-References: <1312815277-9502-1-git-send-email-obi@linuxtv.org>
+Received: from hqemgate04.nvidia.com ([216.228.121.35]:8728 "EHLO
+	hqemgate04.nvidia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755440Ab1HEUSZ convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 5 Aug 2011 16:18:25 -0400
+From: Andrew Chew <AChew@nvidia.com>
+To: "g.liakhovetski@gmx.de" <g.liakhovetski@gmx.de>
+CC: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	'Doug Anderson' <dianders@google.com>
+Date: Fri, 5 Aug 2011 13:18:19 -0700
+Subject: Guidance regarding deferred I2C transactions
+Message-ID: <643E69AA4436674C8F39DCC2C05F76383CF0DD22D0@HQMAIL03.nvidia.com>
+Content-Language: en-US
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+MIME-Version: 1.0
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-- Allows to select Turbo QPSK (SYS_TURBO + QPSK)
+I'm looking for some guidance regarding a clean way to support a certain camera module. 
+We are using the soc_camera framework, and in particular, the ov9740.c image sensor driver. 
 
-Signed-off-by: Andreas Oberritter <obi@linuxtv.org>
----
- drivers/media/dvb/dvb-usb/gp8psk-fe.c |   17 +++++++++++++----
- 1 files changed, 13 insertions(+), 4 deletions(-)
+This camera module has the camera activity status LED tied to the image sensor's power. This is meant as a security feature, so that there is no way to turn the camera on without the user being informed through the status LED.
 
-diff --git a/drivers/media/dvb/dvb-usb/gp8psk-fe.c b/drivers/media/dvb/dvb-usb/gp8psk-fe.c
-index 60d11e5..5426267 100644
---- a/drivers/media/dvb/dvb-usb/gp8psk-fe.c
-+++ b/drivers/media/dvb/dvb-usb/gp8psk-fe.c
-@@ -144,19 +144,25 @@ static int gp8psk_fe_set_frontend(struct dvb_frontend* fe,
- 	cmd[6] = (freq >> 16) & 0xff;
- 	cmd[7] = (freq >> 24) & 0xff;
- 
-+	/* backwards compatibility: DVB-S + 8-PSK were used for Turbo-FEC */
-+	if (c->delivery_system == SYS_DVBS && c->modulation == PSK_8)
-+		c->delivery_system = SYS_TURBO;
-+
- 	switch (c->delivery_system) {
- 	case SYS_DVBS:
--		/* Allow QPSK and 8PSK (even for DVB-S) */
--		if (c->modulation != QPSK && c->modulation != PSK_8) {
-+		if (c->modulation != QPSK) {
- 			deb_fe("%s: unsupported modulation selected (%d)\n",
- 				__func__, c->modulation);
- 			return -EOPNOTSUPP;
- 		}
- 		c->fec_inner = FEC_AUTO;
- 		break;
--	case SYS_DVBS2:
-+	case SYS_DVBS2: /* kept for backwards compatibility */
- 		deb_fe("%s: DVB-S2 delivery system selected\n", __func__);
- 		break;
-+	case SYS_TURBO:
-+		deb_fe("%s: Turbo-FEC delivery system selected\n", __func__);
-+		break;
- 
- 	default:
- 		deb_fe("%s: unsupported delivery system selected (%d)\n",
-@@ -189,7 +195,10 @@ static int gp8psk_fe_set_frontend(struct dvb_frontend* fe,
- 		default:
- 			cmd[9] = 5; break;
- 		}
--		cmd[8] = ADV_MOD_DVB_QPSK;
-+		if (c->delivery_system == SYS_TURBO)
-+			cmd[8] = ADV_MOD_TURBO_QPSK;
-+		else
-+			cmd[8] = ADV_MOD_DVB_QPSK;
- 		break;
- 	case PSK_8: /* PSK_8 is for compatibility with DN */
- 		cmd[8] = ADV_MOD_TURBO_8PSK;
--- 
-1.7.2.5
+The problem with this is that any I2C transaction to the image sensor necessitates turning the image sensor on, which results in the status LED turning on. Various methods in the soc camera sensor drivers typically perform I2C transactions. For example, probe will check the image sensor registers to validate device presence. However, this results in the LED blinking during probe, which can be misconstrued as the camera having taken an actual picture. Opening the /dev/video node will also typically blink the status LED for similar reasons (in this case, calling the s_mbus_fmt video op), so any application probing for camera presence will cause the status LED to blink. 
 
+One way to solve this can be to defer these I2C transactions in the image sensor driver all the way up to the time the image sensor is asked to start streaming frames. However, it seems to me that this breaks the spirit of the probe; applications will successfully probe for camera presence even though the camera isn't actually there. Is this okay?
+
+Is there a better way to do this? Maybe a more general thing we can add to the V4L2 framework?
+
+-----------------------------------------------------------------------------------
+This email message is for the sole use of the intended recipient(s) and may contain
+confidential information.  Any unauthorized review, use, disclosure or distribution
+is prohibited.  If you are not the intended recipient, please contact the sender by
+reply email and destroy all copies of the original message.
+-----------------------------------------------------------------------------------
