@@ -1,17 +1,16 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from woodbine.london.02.net ([87.194.255.145]:36885 "EHLO
-	woodbine.london.02.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755221Ab1HJXEZ (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 10 Aug 2011 19:04:25 -0400
-From: Adam Baker <linux@baker-net.org.uk>
-To: Hans de Goede <hdegoede@redhat.com>
-Subject: Re: USB mini-summit at LinuxCon Vancouver
-Date: Thu, 11 Aug 2011 00:04:01 +0100
-Cc: Alan Stern <stern@rowland.harvard.edu>,
-	Sarah Sharp <sarah.a.sharp@linux.intel.com>,
-	Greg KH <greg@kroah.com>,
+Received: from mx1.redhat.com ([209.132.183.28]:31823 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750850Ab1HEIRJ (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 5 Aug 2011 04:17:09 -0400
+Message-ID: <4E3BA739.20101@redhat.com>
+Date: Fri, 05 Aug 2011 10:18:01 +0200
+From: Hans de Goede <hdegoede@redhat.com>
+MIME-Version: 1.0
+To: Oliver Neukum <oliver@neukum.org>
+CC: Greg KH <greg@kroah.com>,
 	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Sarah Sharp <sarah.a.sharp@linux.intel.com>,
 	linux-usb@vger.kernel.org, linux-media@vger.kernel.org,
 	linux-kernel@vger.kernel.org, libusb-devel@lists.sourceforge.net,
 	Alexander Graf <agraf@suse.de>,
@@ -20,122 +19,62 @@ Cc: Alan Stern <stern@rowland.harvard.edu>,
 	Stefan Hajnoczi <stefanha@linux.vnet.ibm.com>,
 	pbonzini@redhat.com, Anthony Liguori <aliguori@us.ibm.com>,
 	Jes Sorensen <Jes.Sorensen@redhat.com>,
-	Oliver Neukum <oliver@neukum.org>, Felipe Balbi <balbi@ti.com>,
+	Alan Stern <stern@rowland.harvard.edu>,
+	Felipe Balbi <balbi@ti.com>,
 	Clemens Ladisch <clemens@ladisch.de>,
 	Jaroslav Kysela <perex@perex.cz>, Takashi Iwai <tiwai@suse.de>,
 	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Theodore Kilgore <kilgota@banach.math.auburn.edu>
-References: <Pine.LNX.4.44L0.1108091016380.1949-100000@iolanthe.rowland.org> <201108092131.03818.linux@baker-net.org.uk> <4E419F2C.6070707@redhat.com>
-In-Reply-To: <4E419F2C.6070707@redhat.com>
-MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
+	Theodore Kilgore <kilgota@banach.math.auburn.edu>,
+	Adam Baker <linux@baker-net.org.uk>
+Subject: Re: USB mini-summit at LinuxCon Vancouveroliver
+References: <20110610002103.GA7169@xanatos> <20110804225603.GA2557@kroah.com> <4E3B9FB4.30709@redhat.com> <201108050959.00873.oliver@neukum.org>
+In-Reply-To: <201108050959.00873.oliver@neukum.org>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
-Message-Id: <201108110004.02314.linux@baker-net.org.uk>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tuesday 09 August 2011, Hans de Goede wrote:
-> Hi,
-> 
-> On 08/09/2011 10:31 PM, Adam Baker wrote:
-> > On Tuesday 09 August 2011, Hans de Goede wrote:
-> <snip>
-> 
-> > It has also just occured to me that it might be possible to solve the
-> > issues we are facing just in the kernel. At the moment when the kernel
-> > performs a USBDEVFS_DISCONNECT it keeps the kernel driver locked out
-> > until userspace performs a USBDEVFS_CONNECT. If the kernel reattached
-> > the kernel driver when the device file was closed then, as gvfs doesn't
-> > keep the file open the biggest current issue would be solved instantly.
-> > If a mechanism could be found to prevent USBDEVFS_DISCONNECT from
-> > succeeding when the corresponding /dev/videox file was open then that
-> > would seem to be a reasonable solution.
-> 
-> <sigh>
-> 
-> This has been discussed over and over and over again, playing clever
-> tricks with USBDEVFS_[DIS]CONNECT like adding a new USBDEVFS_TRYDISCONNECT
-> which the v4l2 driver could intercept won't cut it. We need some central
-> manager of the device doing multiplexing between the 2 functions, and you
-> can *not* assume that either side will be nice wrt closing file
-> descriptors.
-> 
-> Examples:
-> 1) You are wrong wrt gvfs, it does keep the libgphoto2 context open all the
-> time, and through that the usbfs device nodes.
+Hi,
 
-It seems that that depends, on my system gvfs isn't actually automounting the 
-camera after it detects it and the file is only open (according to lsof) when 
-the device is actually mounted. As soon as you unmount it the device gets 
-closed again. Because it does do a brief open,  USBDEVFS_DISCONNECT then close 
-at connection time it does still disable the kernel driver.
+On 08/05/2011 09:59 AM, Oliver Neukum wrote:
+> Am Freitag, 5. August 2011, 09:45:56 schrieb Hans de Goede:
+>> This is the issue on which I feel a bit stonewalled. Simple putting your
+>> fingers in your ears and singing la la la do it in userspace is not going
+>> to cut it here. There is no way to do this race free in userspace, unless
+>> all possible callers of mount get modified. Moreover 99% of the necessary
+>> accounting for this is already done in the kernel. We already have the notion
+>> of a block device being in use. We simply need to add some code to pass
+>> this notion to the usb mass storage driver, and add a new try_disconnect
+>> callback for usb drivers. I'm not saying this is going to be completely
+>> straight forward, but it ain't rocket science either. And it so very
+>> obviously is the right thing to do, that I'm getting very tired of
+>> the do it in userspace song I keep hearing.
+>
+> Doing a try_disconnect() would also solve the dual camera issue.
+> But it doesn't really interfere with the user space vs. kernel space
+> issue. You simply have to expand the ioctl interface to have
+> an ioctl that triggers this API call in the kernel.
+>
+> A V4L2 device would return an error if its device node is opened,
+> otherwise disconnect.
 
-> 
-> 2) Lets say a user starts a photo managing app like f-spot, and that opens
-> the device through libgphoto2 on startup, then the user switches to another
-> virtual desktop and forgets all about having f-spot open. Notice that if
-> the user now tries to stream he will not get a busy error, but the app
-> trying to do the streaming will simply not see the camera at all (kernel
-> driver unbound /dev/video# node is gone).
+Getting a bit offtopic here, but no a try_disconnect will fix the
+userspace stillcam mode driver being able to disconnect the device
+while the webcam function is active. If the webcam is not active
+userspace will still "win", and possibly never return the device
+back to the kernel driver (this already happens today with
+gvfs-gphoto creating a fuse mount and keeping the device open
+indefinitely, locking out the webcam function).
 
-This does seem like a situation where your approach could potentially give a 
-better user experience. I'm wondering slightly how you define busy though. For 
-webcams the streamon and streamoff ioctls tell you if you are using mmap or 
-userptr transfers but you don't know if when the user has finished if they 
-just use read. For stillcam mode it is again hard to determine a busy 
-condition other than being in the middle of transfering an individual picture.
-> 
-> 3) Notice that little speaker icon in your panel on your average Linux
-> desktop, that keeps the mixer of the audio device open *all the time* it
-> is quite easy to imagine a similar applet for v4l2 device controls (see
-> for example gtk-v4l) doing the same. Or a user could simply start up a
-> v4l2 control panel app like gtk-v4l, qv4l2 or v4l2ucp, and leave it running
-> minimized ...
-> 
+Likewise a v4l2 control panel like app (think alsamixer for
+videodevs to set brightness / contrast, etc.) can keep the /dev/video
+node open indefinitely. Unless we rewrite most of userspace, we need
+to allow the device to be open in bode modes *at the same time* and
+only fail with -EBUSY when something really exclusive is requested
+(so not just having the device open, or setting contrast, but
+trying to stream and read/delete pictures from the stillcam
+memory at the same time).
 
-This again needs a usable concept of busy
+Regards,
 
-> 4) Some laptops have a Fn + F## key which enables / disables the builtin
-> webcam by turning its power on / off. Effectively plugging it into / out
-> of a usb port. We would like to have an on screen notification of this one
-> day like we have now for brightness and volume controls, based on udev
-> events. But the current dual mode cam stuff causes udev events for
-> a *new* video device being added / an existing one being removed
-> each time libgphoto2 releases / takes control of the camera.
-> 
-
-Would such a system know what camera is supposed to be the internal one so it 
-doesn't show the camera as turned on just because you plug in an external 
-camera. If so then it won't turn on and off as an external camera changes 
-modes. If not then showing on when any camera is usable and off when it isn't 
-seems like sensible behaviour.
-
-> 5) More in general, more and more software is dynamically monitoring the
-> addition / removal of (usb) devices using udev, our current solution
-> suggests to this software the /dev/video device is being unplugged /
-> re-plugged all the time, not pretty.
-> 
-> 
-> All in all what we've today is a kludge, and if we want to provide
-> a "seamless" user experience we need to fix it.
-
-I think in summary I'm concerned about the possibility of perfect being the 
-enemy of good enough. At the moment we've got a significant usability problem 
-(a web search for gvfs-gphoto2-volume-monitor turns up mostly instructions on 
-how to disable it). If we come up with a solution that whilst it would be 
-perfect there isn't enough effort available to implement then that is worse 
-than a solution that fixes most of the problem. This is an even greater 
-concern when the technically superior solution has a higher long term 
-maintenance overhead (as we no longer get Win32 and OSX users helping to 
-maintain the stillcam drivers).
-
-I'm not sure if there is anything in this discussion that is relevant to the 
-cameras in phones or tablets. These appear to the user as if they are dual 
-mode devices but they don't have any independent storage - taking a photo is 
-more like capturing a single higher than usual res frame so I suspect they 
-aren't going to be an issue.
-
-Regards
-
-Adam
+Hans
