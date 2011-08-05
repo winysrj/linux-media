@@ -1,109 +1,81 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.17.9]:64212 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756059Ab1HEHrw (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 5 Aug 2011 03:47:52 -0400
-Date: Fri, 5 Aug 2011 09:47:36 +0200 (CEST)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-cc: Sakari Ailus <sakari.ailus@iki.fi>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	Pawel Osciak <pawel@osciak.com>,
-	Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: [PATCH 6/6 v4] V4L: soc-camera: add 2 new ioctl() handlers
-In-Reply-To: <Pine.LNX.4.64.1108042329460.31239@axis700.grange>
-Message-ID: <Pine.LNX.4.64.1108050934280.26715@axis700.grange>
-References: <Pine.LNX.4.64.1108042329460.31239@axis700.grange>
+Received: from mail1.matrix-vision.com ([78.47.19.71]:56665 "EHLO
+	mail1.matrix-vision.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751395Ab1HELl5 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 5 Aug 2011 07:41:57 -0400
+Message-ID: <4E3BD702.8030204@matrix-vision.de>
+Date: Fri, 05 Aug 2011 13:41:54 +0200
+From: Michael Jones <michael.jones@matrix-vision.de>
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+CC: linux-media@vger.kernel.org,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: Re: [PATCH] [media] omap3isp: queue: fail QBUF if buffer is too small
+References: <1312472437-26231-1-git-send-email-michael.jones@matrix-vision.de> <201108051059.46485.laurent.pinchart@ideasonboard.com>
+In-Reply-To: <201108051059.46485.laurent.pinchart@ideasonboard.com>
+Content-Type: text/plain; charset=ISO-8859-15
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch adds two new ioctl() handlers: .vidioc_create_bufs() and
-.vidioc_prepare_buf() for compliant vb2 soc-camera hosts.
+Hi Laurent,
 
-Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
----
+On 08/05/2011 10:59 AM, Laurent Pinchart wrote:
+> 
+> Hi Michael,
+> 
+> Thanks for the patch.
+> 
+> On Thursday 04 August 2011 17:40:37 Michael Jones wrote:
+>> Add buffer length to sanity checks for QBUF.
+>>
+>> Signed-off-by: Michael Jones <michael.jones@matrix-vision.de>
+>> ---
+>>  drivers/media/video/omap3isp/ispqueue.c |    3 +++
+>>  1 files changed, 3 insertions(+), 0 deletions(-)
+>>
+>> diff --git a/drivers/media/video/omap3isp/ispqueue.c
+>> b/drivers/media/video/omap3isp/ispqueue.c index 9c31714..4f6876f 100644
+>> --- a/drivers/media/video/omap3isp/ispqueue.c
+>> +++ b/drivers/media/video/omap3isp/ispqueue.c
+>> @@ -867,6 +867,9 @@ int omap3isp_video_queue_qbuf(struct isp_video_queue
+>> *queue, if (buf->state != ISP_BUF_STATE_IDLE)
+>>  		goto done;
+>>
+>> +	if (vbuf->length < buf->vbuf.length)
+>> +		goto done;
+>> +
+> 
+> The vbuf->length value passed from userspace isn't used by the driver, so I'm 
+> not sure if verifying it is really useful. We verify the memory itself 
+> instead, to make sure that enough pages can be accessed. The application can 
+> always lie about the length, so we can't rely on it anyway.
 
-Actually, there should be one more patch before this one - to convert 
-mx3-camera to the new API, otherwise it will break, if anyone decides to 
-use CREATE_BUFS / PREPARE_BUF with it. I'll work on that while these 
-patches are being reviewed.
+According to the spec, it's expected that the application set 'length':
+"To enqueue a user pointer buffer applications set [...] length to its
+size." (Now that I say that, I realize I should only do this length
+check for USERPTR buffers.) If we don't at least sanity check it for the
+application, then it has no purpose at all on QBUF. If this is
+desirable, I would propose changing the spec.
 
- drivers/media/video/soc_camera.c |   33 +++++++++++++++++++++++++++++++--
- 1 files changed, 31 insertions(+), 2 deletions(-)
+This patch was born of a mistake when my application set 624x480, which
+resulted in sizeimage=640x480=307200 but it used width & height to
+calculate the buffer size rather than sizeimage or even to take
+bytesperline into account. It was then honest with QBUF, confessing that
+it wasn't providing enough space, but QBUF just went ahead. What
+followed were random crashes while data was DMA'd into memory not set
+aside for the buffer, while I assumed that the buffer size was OK
+because QBUF had succeeded and was looking elsewhere in the program for
+the culprit. I think it makes sense to give the app an error on QBUF in
+this situation.
 
-diff --git a/drivers/media/video/soc_camera.c b/drivers/media/video/soc_camera.c
-index ac23916..088972d 100644
---- a/drivers/media/video/soc_camera.c
-+++ b/drivers/media/video/soc_camera.c
-@@ -318,6 +318,32 @@ static int soc_camera_dqbuf(struct file *file, void *priv,
- 		return vb2_dqbuf(&icd->vb2_vidq, p, file->f_flags & O_NONBLOCK);
- }
- 
-+static int soc_camera_create_bufs(struct file *file, void *priv,
-+			    struct v4l2_create_buffers *create)
-+{
-+	struct soc_camera_device *icd = file->private_data;
-+	struct soc_camera_host *ici = to_soc_camera_host(icd->parent);
-+
-+	/* videobuf2 only */
-+	if (ici->ops->init_videobuf)
-+		return -EINVAL;
-+	else
-+		return vb2_create_bufs(&icd->vb2_vidq, create);
-+}
-+
-+static int soc_camera_prepare_buf(struct file *file, void *priv,
-+				  struct v4l2_buffer *b)
-+{
-+	struct soc_camera_device *icd = file->private_data;
-+	struct soc_camera_host *ici = to_soc_camera_host(icd->parent);
-+
-+	/* videobuf2 only */
-+	if (ici->ops->init_videobuf)
-+		return -EINVAL;
-+	else
-+		return vb2_prepare_buf(&icd->vb2_vidq, b);
-+}
-+
- /* Always entered with .video_lock held */
- static int soc_camera_init_user_formats(struct soc_camera_device *icd)
- {
-@@ -1101,6 +1127,7 @@ static int soc_camera_probe(struct soc_camera_device *icd)
- 		if (!control || !control->driver || !dev_get_drvdata(control) ||
- 		    !try_module_get(control->driver->owner)) {
- 			icl->del_device(icd);
-+			ret = -ENODEV;
- 			goto enodrv;
- 		}
- 	}
-@@ -1366,19 +1393,21 @@ static int soc_camera_device_register(struct soc_camera_device *icd)
- 
- static const struct v4l2_ioctl_ops soc_camera_ioctl_ops = {
- 	.vidioc_querycap	 = soc_camera_querycap,
-+	.vidioc_try_fmt_vid_cap  = soc_camera_try_fmt_vid_cap,
- 	.vidioc_g_fmt_vid_cap    = soc_camera_g_fmt_vid_cap,
--	.vidioc_enum_fmt_vid_cap = soc_camera_enum_fmt_vid_cap,
- 	.vidioc_s_fmt_vid_cap    = soc_camera_s_fmt_vid_cap,
-+	.vidioc_enum_fmt_vid_cap = soc_camera_enum_fmt_vid_cap,
- 	.vidioc_enum_input	 = soc_camera_enum_input,
- 	.vidioc_g_input		 = soc_camera_g_input,
- 	.vidioc_s_input		 = soc_camera_s_input,
- 	.vidioc_s_std		 = soc_camera_s_std,
- 	.vidioc_enum_framesizes  = soc_camera_enum_fsizes,
- 	.vidioc_reqbufs		 = soc_camera_reqbufs,
--	.vidioc_try_fmt_vid_cap  = soc_camera_try_fmt_vid_cap,
- 	.vidioc_querybuf	 = soc_camera_querybuf,
- 	.vidioc_qbuf		 = soc_camera_qbuf,
- 	.vidioc_dqbuf		 = soc_camera_dqbuf,
-+	.vidioc_create_bufs	 = soc_camera_create_bufs,
-+	.vidioc_prepare_buf	 = soc_camera_prepare_buf,
- 	.vidioc_streamon	 = soc_camera_streamon,
- 	.vidioc_streamoff	 = soc_camera_streamoff,
- 	.vidioc_queryctrl	 = soc_camera_queryctrl,
--- 
-1.7.2.5
+> 
+>>  	if (vbuf->memory == V4L2_MEMORY_USERPTR &&
+>>  	    vbuf->m.userptr != buf->vbuf.m.userptr) {
+>>  		isp_video_buffer_cleanup(buf);
+> 
 
+
+MATRIX VISION GmbH, Talstrasse 16, DE-71570 Oppenweiler
+Registergericht: Amtsgericht Stuttgart, HRB 271090
+Geschaeftsfuehrer: Gerhard Thullner, Werner Armingeon, Uwe Furtner, Erhard Meier
