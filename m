@@ -1,20 +1,18 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from banach.math.auburn.edu ([131.204.45.3]:42655 "EHLO
+Received: from banach.math.auburn.edu ([131.204.45.3]:53842 "EHLO
 	banach.math.auburn.edu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751084Ab1HDVMQ (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 4 Aug 2011 17:12:16 -0400
-Date: Thu, 4 Aug 2011 16:16:57 -0500 (CDT)
+	with ESMTP id S1754999Ab1HERIN (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 5 Aug 2011 13:08:13 -0400
+Date: Fri, 5 Aug 2011 12:13:05 -0500 (CDT)
 From: Theodore Kilgore <kilgota@banach.math.auburn.edu>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-cc: workshop-2011@linuxtv.org,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Hans de Goede <hdegoede@redhat.com>,
-	Jean-Francois Moine <moinejf@free.fr>
-Subject: Re: Media Subsystem Workshop 2011
-In-Reply-To: <4E3AEEE3.8080704@redhat.com>
-Message-ID: <alpine.LNX.2.00.1108041549090.17734@banach.math.auburn.edu>
-References: <4E398381.4080505@redhat.com> <alpine.LNX.2.00.1108031418480.16384@banach.math.auburn.edu> <4E39B150.40108@redhat.com> <alpine.LNX.2.00.1108031750241.16520@banach.math.auburn.edu> <4E3A91D1.1040000@redhat.com> <alpine.LNX.2.00.1108041255070.17533@banach.math.auburn.edu>
- <4E3AEEE3.8080704@redhat.com>
+To: Hans de Goede <hdegoede@redhat.com>
+cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	workshop-2011@linuxtv.org,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: [Workshop-2011] Media Subsystem Workshop 2011
+In-Reply-To: <4E3B9597.4040307@redhat.com>
+Message-ID: <alpine.LNX.2.00.1108051143490.18884@banach.math.auburn.edu>
+References: <4E398381.4080505@redhat.com> <alpine.LNX.2.00.1108031418480.16384@banach.math.auburn.edu> <4E39B150.40108@redhat.com> <alpine.LNX.2.00.1108031750241.16520@banach.math.auburn.edu> <4E3A91D1.1040000@redhat.com> <4E3B9597.4040307@redhat.com>
 MIME-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
@@ -22,238 +20,125 @@ List-ID: <linux-media.vger.kernel.org>
 
 
 
-On Thu, 4 Aug 2011, Mauro Carvalho Chehab wrote:
+On Fri, 5 Aug 2011, Hans de Goede wrote:
 
-> Em 04-08-2011 15:37, Theodore Kilgore escreveu:
-> >>> Yes, that kind of thing is an obvious problem. Actually, though, it may be 
-> >>> that this had just better not happen. For some of the hardware that I know 
-> >>> of, it could be a real problem no matter what approach would be taken. For 
-> >>> example, certain specific dual-mode cameras will delete all data stored on 
-> >>> the camera if the camera is fired up in webcam mode. To drop Gphoto 
-> >>> suddenly in order to do the videoconf call would, on such cameras, result 
-> >>> in the automatic deletion of all photos on the camera even if those photos 
-> >>> had not yet been downloaded. Presumably, one would not want to do that. 
-> >>
-> > 
-> > Some of the sq905 cameras in particular will do this. It depends upon the 
-> > firmware version. Indeed, for those which do, the same USB command which 
-> > starts streaming is exploited in the Gphoto driver for deletion of all 
-> > photos stored on the camera. For the other firmware versions, there is in 
-> > fact no way to delete all the photos, except to push buttons on the camera 
-> > case. This is by the way a typical example of the very rudimentary, 
-> > minimalist interface of some of these cheap cameras.
-> > 
-> >> So, in other words, the Kernel driver should return -EBUSY if on such
-> >> cameras, if there are photos stored on them, and someone tries to stream.
-> > 
-> > Probably, this should work the other way around, too. If not, then there 
-> > is the question of closing the streaming in some kind of orderly fashion.
+> Hi all,
 > 
-> Yes.
+> On 08/04/2011 02:34 PM, Mauro Carvalho Chehab wrote:
+> > Em 03-08-2011 20:20, Theodore Kilgore escreveu:
 > 
-> >>>> IMO, the right solution is to work on a proper snapshot mode, in kernelspace,
-> >>>> and moving the drivers that have already a kernelspace out of Gphoto.
-> >>>
-> >>> Well, the problem with that is, a still camera and a webcam are entirely 
-> >>> different beasts. Still photos stored in the memory of an external device, 
-> >>> waiting to be downloaded, are not snapshots. Thus, access to those still 
-> >>> photos is not access to snapshots. Things are not that simple.
-> >>
-> >> Yes, stored photos require a different API, as Hans pointed. 
-> > 
-> > Yes again. His observations seem to me to be saying exactly the same thing 
-> > that I did.
-> > 
-> >> I think that some cameras
-> >> just export them as a USB storage. For those, we may eventually need some sort of locking
-> >> between the USB storage and V4L.
-> > 
-> > I can imagine that this could be the case. Also, to be entirely logical, 
-> > one might imagine that a PTP camera could be fired up in streaming mode, 
-> > too. I myself do not know of any cameras which are both USB storage and 
-> > streaming cameras. In fact, as I understand the USB classes, such a thing 
-> > would be in principle forbidden.
+> <snip snip>
 > 
-> It is possible to use a single USB ID, and having two (or more) interfaces
-> there, each belonging to a different USB class. 
+> > > Yes, that kind of thing is an obvious problem. Actually, though, it may be
+> > > that this had just better not happen. For some of the hardware that I know
+> > > of, it could be a real problem no matter what approach would be taken. For
+> > > example, certain specific dual-mode cameras will delete all data stored on
+> > > the camera if the camera is fired up in webcam mode. To drop Gphoto
+> > > suddenly in order to do the videoconf call would, on such cameras, result
+> > > in the automatic deletion of all photos on the camera even if those photos
+> > > had not yet been downloaded. Presumably, one would not want to do that.
+> > 
+> > So, in other words, the Kernel driver should return -EBUSY if on such
+> > cameras, if there are photos stored on them, and someone tries to stream.
+> > 
+> 
+> Agreed.
 
-True. However, unfortunate exceptions are found in the set of sq905 
-cameras and sq905c cameras, which have only Interface 0 (and, of course, 
-use only Bulk Transport for all data regardless of its nature). 
+Here, too. Not only that, but also -EBUSY needs to be returned if 
+streaming is being done and someone tries to download photos (cf. 
+yesterday's exchange between me and Adam Baker, where it was definitely 
+established that this currently leads to bad stuff happening).
+
+> 
+> > > > IMO, the right solution is to work on a proper snapshot mode, in
+> > > > kernelspace,
+> > > > and moving the drivers that have already a kernelspace out of Gphoto.
+> > > 
+> > > Well, the problem with that is, a still camera and a webcam are entirely
+> > > different beasts. Still photos stored in the memory of an external device,
+> > > waiting to be downloaded, are not snapshots. Thus, access to those still
+> > > photos is not access to snapshots. Things are not that simple.
+> > 
+> > Yes, stored photos require a different API, as Hans pointed. I think that
+> > some cameras
+> > just export them as a USB storage.
+> 
+> Erm, that is not what I tried to say, or do you mean another
+> Hans?
+
+For the record, this one didn't come from me, either. :-)
+
+> 
+> <snip snip>
+> 
+> > If I understood you well, there are 4 possible ways:
+> > 
+> > 1) UVC + USB mass storage;
+> > 2) UVC + Vendor Class mass storage;
+> > 3) Vendor Class video + USB mass storage;
+> > 4) Vendor Class video + Vendor Class mass storage.
+> > 
+> 
+> Actually the cameras Theodore and I are talking about here all
+> fall into category 4. 
+
+Currently true, yes.
+
+> I expect devices which do any of 1-3 to
+> properly use different interfaces for this, actually the different
+> class specifications mandate that they use different interfaces
+> for this.
+
+As is well known, *everybody* obeys the class specifications, too. Always 
+did, and always will. And Linus says that he got the original kernel from 
+the Tooth Fairy, and because he said that we all believe him. The point 
+being, trouble will very likely come along. I think Mauro is right at 
+least to consider the possibility.
+
+> 
+> > This sounds to be a good theme for the Workshop, or even to KS/2011.
+> > 
+> 
+> Agreed, although we don't need to talk about this for very long, the solution
+> is basically:
+> 1) Define a still image retrieval API for v4l2 devices (there is only 1
+>   interface for both functions on these devices, 
+
+True
 
 
-Anyway, while abstracting
-> the proper solution, it is safer to consider it as a possible scenario.
-> 
-> > However, the practical consequence could 
-> > be that sooner or later someone is going to do just that and that deviant 
-> > hardware is going to sell like hotcakes and we are going to get pestered. 
-> 
-> Yes.
-> 
-> >>
-> >>>> That's said, there is a proposed topic for snapshot buffer management. Maybe
-> >>>> it may cover the remaining needs for taking high quality pictures in Kernel.
-> >>>
-> >>> Again, when downloading photo images which are _stored_ on the camera one 
-> >>> is not "taking high quality pictures." Different functionality is 
-> >>> involved. This may involve, for example, a different Altsetting for the 
-> >>> USB device and may also require the use of Bulk transport instead of 
-> >>> Isochronous transport. 
-> >>
-> >> Ok. The gspca driver supports it already. All we need to do is to implement a
-> >> proper API for retrieving still photos.
-> > 
-> > Yes, I believe that Hans has some idea to do something like this:
-> > 
-> > 1. kernel module creates a stillcam device as well as a /dev/video, for 
-> > those cameras for which it is appropriate
-> > 
-> > 2. libgphoto2 driver is modified so as to access /dev/camera through the 
-> > kernel, instead of talking to the camera through libusb.
-> > 
-> > Hans has written some USB Mass Storage digital picture frame drivers for 
-> > Gphoto, which do something similar. 
-> 
-> The above strategy seems OK for me.
-> 
-> >>
-> >>>> The hole idea is to allocate additional buffers for snapshots, imagining that
-> >>>> the camera may be streaming in low quality/low resolution, and, once snapshot
-> >>>> is requested, it will take one high quality/high resolution picture.
-> >>>
-> >>> The ability to "take" a photo is present on some still cameras and not on 
-> >>> others. "Some still cameras" includes some dual-mode cameras. For 
-> >>> dual-mode cameras which can be requested to "take" a photo while running 
-> >>> in webcam mode, the ability to do so is, generally speaking, present in 
-> >>> the kernel driver.
-> >>>
-> >>> To present the problem more simply, a webcam is, essentially, a device of 
-> >>> USB class Video (even if the device uses proprietary protocols, this is at 
-> >>> least conceptually true). This is true because a webcam streams 
-> >>> video data. However, a still camera is, in its essence as a 
-> >>> computer peripheral, a USB mass storage device (even if the device has a 
-> >>> proprietary protocol and even if it will not do everything one would 
-> >>> expect from a normal mass storage device). That is, a still camera can be 
-> >>> considered as a device which contains data, and one needs to get the data 
-> >>> from there to the computer, and then to process said data. It is when the 
-> >>> two different kinds of device are married together in one piece of 
-> >>> physical hardware, with the same USB Vendor:Product code, that trouble 
-> >>> follows. 
-> >>
-> >> We'll need to split the problem on all possible alternatives, as the solution
-> >> may be different for each.
-> > 
-> > That, I think, is true.
-> > 
-> >>
-> >> If I understood you well, there are 4 possible ways:
-> >>
-> >> 1) UVC + USB mass storage;
-> >> 2) UVC + Vendor Class mass storage;
-> > 
-> > The two above are probably precluded by the USB specs. Which might mean 
-> > that somebody is going to do that anyway, of course. So far, in the rare 
-> > cases that such a thing has come up, the device itself is a "good citizen" 
-> > in that it has two Vendor:Product codes, not just one, and something has 
-> > to be done (pushing physical buttons, or so) to make it be seen as the 
-> > "other kind of device" when it is plugged to the computer. 
-> 
-> Some of the em28xx devices export Audio Vendor Class and Vendor Class for video
-> both using the same USB ID (but on different interfaces). Kernel handles such
-> devices fine: for each interface, it probes the driver again. So, snd-usb-audio
-> handles the audio device, and em28xx handles the video part. In this specific
-> example, the devices are well behaviored, as the USB driver doesn't need to share
-> any kind of resource locking with the video driver. The cx231xx chips use a
-> similar approach, except that one device is for Remote Controller (an HID-like MCE
-> vendor class interface), and the other one is for video and audio.
-> 
-> Yet, I don't doubt that we may find bad behaviored citizens there.
+> so only 1 driver, and to
+>   me it makes sense to extend the existing drivers to also do still image
+>   retrieval).
+> 2) Modify existing kernel v4l2 drivers to provide this API
+> 3) Write a new libgphoto driver which talks this interface (only need to
+>   do one driver since all dual mode cams will export the same API).
 
-That is almost certain to occur. I am not sure if the cause is natural 
-law, or original sin. But it is bound to happen.
- 
-> >> 3) Vendor Class video + USB mass storage;
-> > 
-> > Probably the same as the two items above.
-> > 
-> >> 4) Vendor Class video + Vendor Class mass storage.
-> > 
-> > This one is where practically all of the trouble occurs. Vendor Class 
-> > means exactly that the manufacturer can do whatever seems clever, or 
-> > cheap, and they do.
-> 
-> So, we need to solve this problem first.
-> 
-> >> For (1) and (3), it doesn't make sense to re-implement USB mass storage 
-> >> on V4L. We may just need some sort of resource locking, if the device 
-> >> can't provide both ways at the same time.
-> >>
-> >> For (2) and (4), we'll need an extra API like what Hans is proposing, 
-> >> plus a resource locking schema.
-> > 
-> > As I said, it is difficult for me to imagine how all four cases can or 
-> > will come up in practice. But it probably is good to include them, at 
-> > least conceptually.
-> 
-> Yes.
-> 
-> >>
-> >> That's said, "resource locking" is currently one big problem we need to 
-> >> solve on the media subsystem.
-> >>
-> >> We have already some problems like that on devices that implement both 
-> >> V4L and DVB API's. For example, you can't use the same tuner to watch 
-> >> analog and digital TV at the same time. Also, several devices have I2C 
-> >> switches. You can't, for example, poll for a RC code while the I2C 
-> >> switch is opened for tuner access.
-> >>
-> >> This is the same kind of problem, for example, that happens with 3G 
-> >> modems that can work either as USB storage or as modem.
-> > 
-> > Yes. It does. And the matter has given similar headaches to the 
-> > mass-storage people, which, I understand, are at least partially 
-> > addressed.
-> 
-> Yes, but I'm not sure if it was properly addressed. 
+Yes, we pretty much agree that this is probably a good way to proceed. 
+However, my curiosity is aroused by something that Adam mentioned 
+yesterday. Namely
 
-I did not follow closely what they did about the issue; I am only aware 
-that they confronted it.
+"If you can solve the locking problem between devices in the kernel then 
+it
+shouldn't matter if one of the kernel devices is the generic device that 
+is
+used to support libusb."
 
-I have one device here
-> that has 3 different functions: USB mass storage, 3G modem and ISDB-T digital
-> TV. Currently, it has no Linux Driver, so, I'm not sure what are the common
-> resources, but this probably means that some manufacturers are integrating
-> more functions into a single device. I won't doubt that the current approach
-> will fail with more devices.
-
+I am not completely sure of what he meant here. I am not intimately 
+conversant with the internals of libusb. However, is there something here 
+which could be used constructively? Could things be set up so that, for 
+example, the kernel module hands the "generic device" over to libusb? If 
+it were possible to do things that way, it might be the most minimally 
+disruptive approach of all, since it might not require much if any changes 
+in libgphoto2 access to cameras. 
 
 
 > 
-> > But this underscores one of my original points: this 
-> > is a general problem, not exclusively confined to cameras or to media 
-> > support. The fundamental problem is to deal with hardware which sits in 
-> > two categories and does two different things. 
+> 1) is something to discuss at the workshop.
 > 
-> Yes.
-
-Except, I should have said "two or more," it seems.
-
+> Regards,
 > 
-> >>
-> >> This sounds to be a good theme for the Workshop, or even to KS/2011.
-> > 
-> > Thanks. Do you recall when and where is KS/2011 going to take place?
+> Hans
 > 
-> The media workshop happens together with the KS/2011. Sunday is an
-> exclusive day for the workshops, Monday is an exclusive day for KS/2011,
-> and Tuesday is a joint day for both KS and the KS workshops.
-
-So, as I understand, these are all about to take place in Vancouver, 
-sometime in the next two weeks? It really is the wrong time, but I really 
-wish now that I were going. I would at the very minimum try to get the 
-people together that I know of, who have wrestled with the issue.
 
 Theodore Kilgore
-
-
