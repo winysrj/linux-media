@@ -1,115 +1,100 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:56702 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752333Ab1HONCA (ORCPT
+Received: from wrz3028.rz.uni-wuerzburg.de ([132.187.3.28]:51945 "EHLO
+	mailrelay.rz.uni-wuerzburg.de" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751213Ab1HFPPr (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 15 Aug 2011 09:02:00 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Deepthy Ravi <deepthy.ravi@ti.com>
-Subject: Re: [PATCH 2/2] omap3: ISP: Kernel crash when attempting suspend
-Date: Mon, 15 Aug 2011 15:02:06 +0200
-Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-	mchehab@infradead.org, linux-omap@vger.kernel.org,
-	Abhilash K V <abhilash.kv@ti.com>
-References: <1312985006-19345-1-git-send-email-deepthy.ravi@ti.com>
-In-Reply-To: <1312985006-19345-1-git-send-email-deepthy.ravi@ti.com>
+	Sat, 6 Aug 2011 11:15:47 -0400
+Received: from virusscan.mail (localhost [127.0.0.1])
+	by mailrelay.mail (Postfix) with ESMTP id 2C8095AC4B
+	for <linux-media@vger.kernel.org>; Sat,  6 Aug 2011 16:44:45 +0200 (CEST)
+Received: from localhost (localhost [127.0.0.1])
+	by virusscan.mail (Postfix) with ESMTP id 2ADD25AC3C
+	for <linux-media@vger.kernel.org>; Sat,  6 Aug 2011 16:44:45 +0200 (CEST)
+Received: from achter.swolter.sdf1.org (188-193-179-36-dynip.superkabel.de [188.193.179.36])
+	by mailmaster.uni-wuerzburg.de (Postfix) with ESMTPSA id E8D1D5D0CE
+	for <linux-media@vger.kernel.org>; Sat,  6 Aug 2011 16:44:42 +0200 (CEST)
+Received: from steve by achter.swolter.sdf1.org with local (Exim 4.76)
+	(envelope-from <swolter@sdf.lonestar.org>)
+	id 1Qpi7J-00031j-8G
+	for linux-media@vger.kernel.org; Sat, 06 Aug 2011 16:44:45 +0200
+Date: Sat, 6 Aug 2011 16:44:45 +0200
+From: Steve Wolter <swolter@sdf.lonestar.org>
+To: linux-media@vger.kernel.org
+Subject: Support for Hauppauge WinTV HVR-3300
+Message-ID: <20110806144444.GA11588@achter.swolter.sdf1.org>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-15"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201108151502.07234.laurent.pinchart@ideasonboard.com>
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="RnlQjJ0d97Da+TV1"
+Content-Disposition: inline
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
 
-On Wednesday 10 August 2011 16:03:26 Deepthy Ravi wrote:
-> From: Abhilash K V <abhilash.kv@ti.com>
-> 
-> This patch fixes the kernel crash introduced by the previous
-> patch:
-> 	omap3: ISP: Fix the failure of CCDC capture during
-> 	suspend/resume.
-> This null pointer exception happens when attempting suspend
-> while the ISP driver is not being used. The current patch
-> fixes this by deferring the code (as introduced in the
-> aforementioned patch) to handle  buffer-starvation to get
-> called only if the ISP reference count is non-zero.
-> An additional safety check is also added to ensure that
-> buffer-starvation logic kicks in for an empty dmaqueue only
-> if the ISP pipeline is not in the stopped state.
+--RnlQjJ0d97Da+TV1
+Content-Type: text/plain; charset=iso-8859-1
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-What about squashing this with the previous patch then ?
+Dear linux-media list,
 
-I'll review patch 1/2, just give me a bit more time. The race condition is 
-tricky so I need to rest a bit before attacking it :-)
+I have recently bought a Hauppauge WinTV HVR-3300 and am trying to make
+it run with Linux.
 
-> Signed-off-by: Abhilash K V <abhilash.kv@ti.com>
-> Signed-off-by: Deepthy Ravi <deepthy.ravi@ti.com>
-> ---
->  drivers/media/video/omap3isp/isp.c      |   12 ++++++------
->  drivers/media/video/omap3isp/ispvideo.c |    4 +++-
->  2 files changed, 9 insertions(+), 7 deletions(-)
-> 
-> diff --git a/drivers/media/video/omap3isp/isp.c
-> b/drivers/media/video/omap3isp/isp.c index 6604fbd..6acdedc 100644
-> --- a/drivers/media/video/omap3isp/isp.c
-> +++ b/drivers/media/video/omap3isp/isp.c
-> @@ -1573,6 +1573,9 @@ static int isp_pm_prepare(struct device *dev)
->  	unsigned long flags;
-> 
->  	WARN_ON(mutex_is_locked(&isp->isp_mutex));
-> +	if (isp->ref_count == 0)
-> +		return 0;
-> +
->  	spin_lock_irqsave(&pipe->lock, flags);
->  	pipe->state |= ISP_PIPELINE_PREPARE_SUSPEND;
->  	spin_unlock_irqrestore(&pipe->lock, flags);
-> @@ -1581,9 +1584,6 @@ static int isp_pm_prepare(struct device *dev)
->  	if (err < 0)
->  		return err;
-> 
-> -	if (isp->ref_count == 0)
-> -		return 0;
-> -
->  	reset = isp_suspend_modules(isp);
->  	isp_disable_interrupts(isp);
->  	isp_save_ctx(isp);
-> @@ -1613,13 +1613,13 @@ static int isp_pm_resume(struct device *dev)
->  	struct isp_pipeline *pipe = to_isp_pipeline(&video->video.entity);
->  	unsigned long flags;
-> 
-> +	if (isp->ref_count == 0)
-> +		return 0;
-> +
->  	spin_lock_irqsave(&pipe->lock, flags);
->  	pipe->state &= ~ISP_PIPELINE_PREPARE_SUSPEND;
->  	spin_unlock_irqrestore(&pipe->lock, flags);
-> 
-> -	if (isp->ref_count == 0)
-> -		return 0;
-> -
->  	return isp_enable_clocks(isp);
->  }
-> 
-> diff --git a/drivers/media/video/omap3isp/ispvideo.c
-> b/drivers/media/video/omap3isp/ispvideo.c index bf149a7..ffb339c 100644
-> --- a/drivers/media/video/omap3isp/ispvideo.c
-> +++ b/drivers/media/video/omap3isp/ispvideo.c
-> @@ -726,8 +726,10 @@ int isp_video_handle_buffer_starvation(struct
-> isp_video *video) struct isp_video_queue *queue = video->queue;
->  	struct isp_video_buffer *buf;
->  	struct list_head *head = &video->dmaqueue;
-> +	struct isp_ccdc_device *ccdc = &video->isp->isp_ccdc;
-> 
-> -	if (list_empty(&video->dmaqueue)) {
-> +	if (list_empty(&video->dmaqueue)
-> +		&& ccdc->state != ISP_PIPELINE_STREAM_STOPPED) {
->  		err = isp_video_deq_enq(queue);
->  	} else if (head->next->next == head) {
->  		/* only one buffer is left on dmaqueue */
+Going by the output of lspci -v [1], I tried to go with the cx23885, which
+doesn't recognize the card:
 
--- 
-Regards,
+[24296.910574] cx23885 driver version 0.0.2 loaded
+[24296.910612] cx23885 0000:01:00.0: PCI INT A -> GSI 16 (level, low) -> IR=
+Q 16
+[24296.910620] cx23885[0]: Your board isn't known (yet) to the driver.
+[24296.910621] cx23885[0]: Try to pick one of the existing card configs via
+[24296.910623] cx23885[0]: card=3D<n> insmod option.  Updating to the latest
+[24296.910625] cx23885[0]: version might help as well.
+[...]
+[24296.911165] CORE cx23885[0]: subsystem: 0070:53f1, board: UNKNOWN/GENERI=
+C [card=3D0,autodetected]
+[24297.037221] cx23885_dev_checkrevision() Hardware revision =3D 0xd0
+[24297.037228] cx23885[0]/0: found at 0000:01:00.0, rev: 4, irq: 16, latenc=
+y: 0, mmio: 0xfe400000
+[24297.037236] cx23885 0000:01:00.0: setting latency timer to 64
+[24297.037304] cx23885 0000:01:00.0: irq 48 for MSI/MSI-X
 
-Laurent Pinchart
+Seems like some work is necessary to do here, which I'd be willing to do.
+Can anyone suggest which might be the most similar card or what I should try
+to write a driver for this?
+
+Best regards, Steve
+
+[1] Output of lspci -v
+
+01:00.0 Multimedia video controller: Conexant Systems, Inc. CX23887/8 PCIe =
+Broadcast Audio and Video Decoder with 3D Comb (rev 04)
+        Subsystem: Hauppauge computer works Inc. Device 53f1
+        Flags: bus master, fast devsel, latency 0, IRQ 48
+        Memory at fe400000 (64-bit, non-prefetchable) [size=3D2M]
+        Capabilities: <access denied>
+        Kernel driver in use: cx23885
+
+
+
+--=20
+ Steve Wolter ( W=FCrzburg Univ.) | Web page: http://swolter.sdf1.org
+                                | vCard:    http://swolter.sdf1.org/swolter=
+=2Evcf
+ A witty saying proves nothing. | Schedule: http://swolter.sdf1.org/sched.c=
+gi
+    -- Voltaire (1694-1778)     | E-mail:   swolter@sdf.lonestar.org
+
+--RnlQjJ0d97Da+TV1
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.11 (GNU/Linux)
+
+iD8DBQFOPVNc7ZhDb8MHkiIRAuoLAJ4lw7FLwTqjdq3nFceUNrANzkYt3wCfWaR7
+iwB7On38fPrsRFBNZe29HGQ=
+=HaVd
+-----END PGP SIGNATURE-----
+
+--RnlQjJ0d97Da+TV1--
