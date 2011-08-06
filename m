@@ -1,362 +1,550 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.17.9]:62616 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754478Ab1HEVhO (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 5 Aug 2011 17:37:14 -0400
-Date: Fri, 5 Aug 2011 23:36:52 +0200 (CEST)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-cc: Sakari Ailus <sakari.ailus@iki.fi>,
+Received: from smtp.nokia.com ([147.243.128.24]:46873 "EHLO mgw-da01.nokia.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751403Ab1HHIWR (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 8 Aug 2011 04:22:17 -0400
+Message-ID: <4E3D8B03.3090601@iki.fi>
+Date: Sat, 06 Aug 2011 21:42:11 +0300
+From: Sakari Ailus <sakari.ailus@iki.fi>
+MIME-Version: 1.0
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+CC: Linux Media Mailing List <linux-media@vger.kernel.org>,
 	Hans Verkuil <hverkuil@xs4all.nl>,
 	Pawel Osciak <pawel@osciak.com>,
 	Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>,
 	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
 	Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: [PATCH 3/6 v5] V4L: vb2: prepare to support multi-size buffers
-In-Reply-To: <Pine.LNX.4.64.1108050926210.26715@axis700.grange>
-Message-ID: <Pine.LNX.4.64.1108052335140.26715@axis700.grange>
-References: <Pine.LNX.4.64.1108042329460.31239@axis700.grange>
- <Pine.LNX.4.64.1108050926210.26715@axis700.grange>
-MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Subject: Re: [PATCH 1/6 v4] V4L: add two new ioctl()s for multi-size videobuffer
+ management
+References: <Pine.LNX.4.64.1108042329460.31239@axis700.grange> <Pine.LNX.4.64.1108050908590.26715@axis700.grange>
+In-Reply-To: <Pine.LNX.4.64.1108050908590.26715@axis700.grange>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-In preparation for the forthcoming VIDIOC_CREATE_BUFS ioctl change
-the type of the sizes[] argument of the .queue_setup() vb2 operation
-from unsigned long to unsigned int to match with the __u32 type of
-buffer size variables elsewhere in V4L2. Drivers will also need the
-fourcc value, passed along with the new ioctl(), to correctly set
-up the queue, it has to be supplied with the .buf_init() vb2 method.
+Guennadi Liakhovetski wrote:
+> A possibility to preallocate and initialise buffers of different sizes
+> in V4L2 is required for an efficient implementation of asnapshot mode.
+> This patch adds two new ioctl()s: VIDIOC_CREATE_BUFS and
+> VIDIOC_PREPARE_BUF and defines respective data structures.
+> 
+> Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+> ---
 
-Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
----
+Hi Guennadi,
 
-v5: the fourcc value, that we now send with the CREATE_BUFS ioctl() has to 
-be passed on to the drivers. Add it to the vb2 .buf_init() method.
+Many thanks for the patchset! I have a few comments below, after reading
+through the patch once again.
 
- drivers/media/video/atmel-isi.c              |    4 ++--
- drivers/media/video/marvell-ccic/mcam-core.c |    4 ++--
- drivers/media/video/mem2mem_testdev.c        |    2 +-
- drivers/media/video/mx3_camera.c             |    4 ++--
- drivers/media/video/pwc/pwc-if.c             |    4 ++--
- drivers/media/video/s5p-fimc/fimc-capture.c  |    2 +-
- drivers/media/video/s5p-fimc/fimc-core.c     |    2 +-
- drivers/media/video/s5p-mfc/s5p_mfc_dec.c    |    4 ++--
- drivers/media/video/s5p-mfc/s5p_mfc_enc.c    |    4 ++--
- drivers/media/video/s5p-tv/mixer_video.c     |    2 +-
- drivers/media/video/sh_mobile_ceu_camera.c   |    6 +++---
- drivers/media/video/videobuf2-core.c         |   10 +++++-----
- drivers/media/video/vivi.c                   |    4 ++--
- include/media/videobuf2-core.h               |    4 ++--
- 14 files changed, 28 insertions(+), 28 deletions(-)
+> 
+> v4:
+> 
+> 1. CREATE_BUFS now takes an array of plane sizes and a fourcc code in its 
+>    argument, instead of a frame format specification, including 
+>    documentation update
+> 2. documentation improvements, as suggested by Hans
+> 3. increased reserved fields to 18, as suggested by Sakari
+> 
+>  Documentation/DocBook/media/v4l/io.xml             |   17 ++
+>  Documentation/DocBook/media/v4l/v4l2.xml           |    2 +
+>  .../DocBook/media/v4l/vidioc-create-bufs.xml       |  161 ++++++++++++++++++++
+>  .../DocBook/media/v4l/vidioc-prepare-buf.xml       |   96 ++++++++++++
+>  drivers/media/video/v4l2-compat-ioctl32.c          |    6 +
+>  drivers/media/video/v4l2-ioctl.c                   |   26 +++
+>  include/linux/videodev2.h                          |   18 +++
+>  include/media/v4l2-ioctl.h                         |    2 +
+>  8 files changed, 328 insertions(+), 0 deletions(-)
+>  create mode 100644 Documentation/DocBook/media/v4l/vidioc-create-bufs.xml
+>  create mode 100644 Documentation/DocBook/media/v4l/vidioc-prepare-buf.xml
+> 
+> diff --git a/Documentation/DocBook/media/v4l/io.xml b/Documentation/DocBook/media/v4l/io.xml
+> index 227e7ac..ff03dd2 100644
+> --- a/Documentation/DocBook/media/v4l/io.xml
+> +++ b/Documentation/DocBook/media/v4l/io.xml
+> @@ -927,6 +927,23 @@ ioctl is called.</entry>
+>  Applications set or clear this flag before calling the
+>  <constant>VIDIOC_QBUF</constant> ioctl.</entry>
+>  	  </row>
+> +	  <row>
+> +	    <entry><constant>V4L2_BUF_FLAG_NO_CACHE_INVALIDATE</constant></entry>
+> +	    <entry>0x0400</entry>
+> +	    <entry>Caches do not have to be invalidated for this buffer.
+> +Typically applications shall use this flag if the data captured in the buffer
+> +is not going to be touched by the CPU, instead the buffer will, probably, be
+> +passed on to a DMA-capable hardware unit for further processing or output.
+> +</entry>
+> +	  </row>
+> +	  <row>
+> +	    <entry><constant>V4L2_BUF_FLAG_NO_CACHE_CLEAN</constant></entry>
+> +	    <entry>0x0800</entry>
+> +	    <entry>Caches do not have to be cleaned for this buffer.
+> +Typically applications shall use this flag for output buffers if the data
+> +in this buffer has not been created by the CPU but by some DMA-capable unit,
+> +in which case caches have not been used.</entry>
+> +	  </row>
+>  	</tbody>
+>        </tgroup>
+>      </table>
+> diff --git a/Documentation/DocBook/media/v4l/v4l2.xml b/Documentation/DocBook/media/v4l/v4l2.xml
+> index 0d05e87..06bb179 100644
+> --- a/Documentation/DocBook/media/v4l/v4l2.xml
+> +++ b/Documentation/DocBook/media/v4l/v4l2.xml
+> @@ -462,6 +462,7 @@ and discussions on the V4L mailing list.</revremark>
+>      &sub-close;
+>      &sub-ioctl;
+>      <!-- All ioctls go here. -->
+> +    &sub-create-bufs;
+>      &sub-cropcap;
+>      &sub-dbg-g-chip-ident;
+>      &sub-dbg-g-register;
+> @@ -504,6 +505,7 @@ and discussions on the V4L mailing list.</revremark>
+>      &sub-queryctrl;
+>      &sub-query-dv-preset;
+>      &sub-querystd;
+> +    &sub-prepare-buf;
+>      &sub-reqbufs;
+>      &sub-s-hw-freq-seek;
+>      &sub-streamon;
+> diff --git a/Documentation/DocBook/media/v4l/vidioc-create-bufs.xml b/Documentation/DocBook/media/v4l/vidioc-create-bufs.xml
+> new file mode 100644
+> index 0000000..b37b9a4
+> --- /dev/null
+> +++ b/Documentation/DocBook/media/v4l/vidioc-create-bufs.xml
+> @@ -0,0 +1,161 @@
+> +<refentry id="vidioc-create-bufs">
+> +  <refmeta>
+> +    <refentrytitle>ioctl VIDIOC_CREATE_BUFS</refentrytitle>
+> +    &manvol;
+> +  </refmeta>
+> +
+> +  <refnamediv>
+> +    <refname>VIDIOC_CREATE_BUFS</refname>
+> +    <refpurpose>Create buffers for Memory Mapped or User Pointer I/O</refpurpose>
+> +  </refnamediv>
+> +
+> +  <refsynopsisdiv>
+> +    <funcsynopsis>
+> +      <funcprototype>
+> +	<funcdef>int <function>ioctl</function></funcdef>
+> +	<paramdef>int <parameter>fd</parameter></paramdef>
+> +	<paramdef>int <parameter>request</parameter></paramdef>
+> +	<paramdef>struct v4l2_create_buffers *<parameter>argp</parameter></paramdef>
+> +      </funcprototype>
+> +    </funcsynopsis>
+> +  </refsynopsisdiv>
+> +
+> +  <refsect1>
+> +    <title>Arguments</title>
+> +
+> +    <variablelist>
+> +      <varlistentry>
+> +	<term><parameter>fd</parameter></term>
+> +	<listitem>
+> +	  <para>&fd;</para>
+> +	</listitem>
+> +      </varlistentry>
+> +      <varlistentry>
+> +	<term><parameter>request</parameter></term>
+> +	<listitem>
+> +	  <para>VIDIOC_CREATE_BUFS</para>
+> +	</listitem>
+> +      </varlistentry>
+> +      <varlistentry>
+> +	<term><parameter>argp</parameter></term>
+> +	<listitem>
+> +	  <para></para>
+> +	</listitem>
+> +      </varlistentry>
+> +    </variablelist>
+> +  </refsect1>
+> +
+> +  <refsect1>
+> +    <title>Description</title>
+> +
+> +    <para>This ioctl is used to create buffers for <link linkend="mmap">memory
+> +mapped</link> or <link linkend="userp">user pointer</link>
+> +I/O. It can be used as an alternative or in addition to the
+> +<constant>VIDIOC_REQBUFS</constant> ioctl, when a tighter control over buffers
+> +is required. This ioctl can be called multiple times to create buffers of
+> +different sizes.</para>
+> +
+> +    <para>To allocate device buffers applications initialize relevant
+> +fields of the <structname>v4l2_create_buffers</structname> structure.
+> +They set the <structfield>type</structfield> field  to the respective stream
+> +or buffer type. <structfield>count</structfield> must be set to the number of
+> +required buffers. <structfield>memory</structfield> specifies the required I/O
+> +method. If <structfield>num_planes</structfield> == 0 or all elements of the
+> +<structfield>sizes</structfield> array are 0, then buffers, suitable for the
+> +currently configured video format, are allocated, exactly like for the
+> +<constant>VIDIOC_REQBUFS</constant> ioctl. If
+> +<structfield>num_planes</structfield> > 0 and at least some of the respective
+> +<structfield>sizes</structfield> elements are non-zero, this information will be
+> +used for buffer-allocation. The <structfield>reserved</structfield> array must
+> +be zeroed. When the ioctl is called with a pointer to this structure the driver
+> +will attempt to allocate up to the requested number of buffers and store the
+> +actual number allocated and the starting index in the
+> +<structfield>count</structfield> and the <structfield>index</structfield>
+> +fields respectively. On return <structfield>count</structfield> can be smaller
+> +than the number requested.</para>
+> +    <para>When the I/O method is not supported the ioctl
+> +returns an &EINVAL;.</para>
+> +
+> +    <table pgwide="1" frame="none" id="v4l2-create-buffers">
+> +      <title>struct <structname>v4l2_create_buffers</structname></title>
+> +      <tgroup cols="3">
+> +	&cs-str;
+> +	<tbody valign="top">
+> +	  <row>
+> +	    <entry>__u32</entry>
+> +	    <entry><structfield>index</structfield></entry>
+> +	    <entry>The starting buffer index, returned by the driver.</entry>
+> +	  </row>
+> +	  <row>
+> +	    <entry>__u32</entry>
+> +	    <entry><structfield>count</structfield></entry>
+> +	    <entry>The number of buffers requested or granted.</entry>
+> +	  </row>
+> +	  <row>
+> +	    <entry>__u32</entry>
+> +	    <entry><structfield>type</structfield></entry>
+> +	    <entry>V4L2 buffer type: one of <constant>V4L2_BUF_TYPE_*</constant>
+> +values.</entry>
 
-diff --git a/drivers/media/video/atmel-isi.c b/drivers/media/video/atmel-isi.c
-index 3e3d4cc..11b6d54 100644
---- a/drivers/media/video/atmel-isi.c
-+++ b/drivers/media/video/atmel-isi.c
-@@ -250,7 +250,7 @@ static int atmel_isi_wait_status(struct atmel_isi *isi, int wait_reset)
- 	Videobuf operations
-    ------------------------------------------------------------------*/
- static int queue_setup(struct vb2_queue *vq, unsigned int *nbuffers,
--				unsigned int *nplanes, unsigned long sizes[],
-+				unsigned int *nplanes, unsigned int sizes[],
- 				void *alloc_ctxs[])
- {
- 	struct soc_camera_device *icd = soc_camera_from_vb2q(vq);
-@@ -295,7 +295,7 @@ static int queue_setup(struct vb2_queue *vq, unsigned int *nbuffers,
- 	return 0;
- }
- 
--static int buffer_init(struct vb2_buffer *vb)
-+static int buffer_init(struct vb2_buffer *vb, u32 fourcc)
- {
- 	struct frame_buffer *buf = container_of(vb, struct frame_buffer, vb);
- 
-diff --git a/drivers/media/video/marvell-ccic/mcam-core.c b/drivers/media/video/marvell-ccic/mcam-core.c
-index 83c1451..262b861 100644
---- a/drivers/media/video/marvell-ccic/mcam-core.c
-+++ b/drivers/media/video/marvell-ccic/mcam-core.c
-@@ -884,7 +884,7 @@ static int mcam_read_setup(struct mcam_camera *cam)
-  */
- 
- static int mcam_vb_queue_setup(struct vb2_queue *vq, unsigned int *nbufs,
--		unsigned int *num_planes, unsigned long sizes[],
-+		unsigned int *num_planes, unsigned int sizes[],
- 		void *alloc_ctxs[])
- {
- 	struct mcam_camera *cam = vb2_get_drv_priv(vq);
-@@ -1000,7 +1000,7 @@ static const struct vb2_ops mcam_vb2_ops = {
-  * Scatter/gather mode uses all of the above functions plus a
-  * few extras to deal with DMA mapping.
-  */
--static int mcam_vb_sg_buf_init(struct vb2_buffer *vb)
-+static int mcam_vb_sg_buf_init(struct vb2_buffer *vb, u32 fourcc)
- {
- 	struct mcam_vb_buffer *mvb = vb_to_mvb(vb);
- 	struct mcam_camera *cam = vb2_get_drv_priv(vb->vb2_queue);
-diff --git a/drivers/media/video/mem2mem_testdev.c b/drivers/media/video/mem2mem_testdev.c
-index 166bf93..0d0c0d5 100644
---- a/drivers/media/video/mem2mem_testdev.c
-+++ b/drivers/media/video/mem2mem_testdev.c
-@@ -739,7 +739,7 @@ static const struct v4l2_ioctl_ops m2mtest_ioctl_ops = {
-  */
- 
- static int m2mtest_queue_setup(struct vb2_queue *vq, unsigned int *nbuffers,
--				unsigned int *nplanes, unsigned long sizes[],
-+				unsigned int *nplanes, unsigned int sizes[],
- 				void *alloc_ctxs[])
- {
- 	struct m2mtest_ctx *ctx = vb2_get_drv_priv(vq);
-diff --git a/drivers/media/video/mx3_camera.c b/drivers/media/video/mx3_camera.c
-index 3f37522f..b48b2a4 100644
---- a/drivers/media/video/mx3_camera.c
-+++ b/drivers/media/video/mx3_camera.c
-@@ -192,7 +192,7 @@ static void mx3_cam_dma_done(void *arg)
-  */
- static int mx3_videobuf_setup(struct vb2_queue *vq,
- 			unsigned int *count, unsigned int *num_planes,
--			unsigned long sizes[], void *alloc_ctxs[])
-+			unsigned int sizes[], void *alloc_ctxs[])
- {
- 	struct soc_camera_device *icd = soc_camera_from_vb2q(vq);
- 	struct soc_camera_host *ici = to_soc_camera_host(icd->parent);
-@@ -387,7 +387,7 @@ static void mx3_videobuf_release(struct vb2_buffer *vb)
- 	spin_unlock_irqrestore(&mx3_cam->lock, flags);
- }
- 
--static int mx3_videobuf_init(struct vb2_buffer *vb)
-+static int mx3_videobuf_init(struct vb2_buffer *vb, u32 fourcc)
- {
- 	struct mx3_camera_buffer *buf = to_mx3_vb(vb);
- 	/* This is for locking debugging only */
-diff --git a/drivers/media/video/pwc/pwc-if.c b/drivers/media/video/pwc/pwc-if.c
-index 51ca358..5b63910 100644
---- a/drivers/media/video/pwc/pwc-if.c
-+++ b/drivers/media/video/pwc/pwc-if.c
-@@ -745,7 +745,7 @@ static int pwc_video_mmap(struct file *file, struct vm_area_struct *vma)
- /* Videobuf2 operations */
- 
- static int queue_setup(struct vb2_queue *vq, unsigned int *nbuffers,
--				unsigned int *nplanes, unsigned long sizes[],
-+				unsigned int *nplanes, unsigned int sizes[],
- 				void *alloc_ctxs[])
- {
- 	struct pwc_device *pdev = vb2_get_drv_priv(vq);
-@@ -762,7 +762,7 @@ static int queue_setup(struct vb2_queue *vq, unsigned int *nbuffers,
- 	return 0;
- }
- 
--static int buffer_init(struct vb2_buffer *vb)
-+static int buffer_init(struct vb2_buffer *vb, u32 fourcc)
- {
- 	struct pwc_frame_buf *buf = container_of(vb, struct pwc_frame_buf, vb);
- 
-diff --git a/drivers/media/video/s5p-fimc/fimc-capture.c b/drivers/media/video/s5p-fimc/fimc-capture.c
-index 0d730e5..e6afe5f 100644
---- a/drivers/media/video/s5p-fimc/fimc-capture.c
-+++ b/drivers/media/video/s5p-fimc/fimc-capture.c
-@@ -265,7 +265,7 @@ static unsigned int get_plane_size(struct fimc_frame *fr, unsigned int plane)
- }
- 
- static int queue_setup(struct vb2_queue *vq, unsigned int *num_buffers,
--		       unsigned int *num_planes, unsigned long sizes[],
-+		       unsigned int *num_planes, unsigned int sizes[],
- 		       void *allocators[])
- {
- 	struct fimc_ctx *ctx = vq->drv_priv;
-diff --git a/drivers/media/video/s5p-fimc/fimc-core.c b/drivers/media/video/s5p-fimc/fimc-core.c
-index aa55066..36d127f 100644
---- a/drivers/media/video/s5p-fimc/fimc-core.c
-+++ b/drivers/media/video/s5p-fimc/fimc-core.c
-@@ -692,7 +692,7 @@ static void fimc_job_abort(void *priv)
- }
- 
- static int fimc_queue_setup(struct vb2_queue *vq, unsigned int *num_buffers,
--			    unsigned int *num_planes, unsigned long sizes[],
-+			    unsigned int *num_planes, unsigned int sizes[],
- 			    void *allocators[])
- {
- 	struct fimc_ctx *ctx = vb2_get_drv_priv(vq);
-diff --git a/drivers/media/video/s5p-mfc/s5p_mfc_dec.c b/drivers/media/video/s5p-mfc/s5p_mfc_dec.c
-index b2c5052..f5b590b 100644
---- a/drivers/media/video/s5p-mfc/s5p_mfc_dec.c
-+++ b/drivers/media/video/s5p-mfc/s5p_mfc_dec.c
-@@ -745,7 +745,7 @@ static const struct v4l2_ioctl_ops s5p_mfc_dec_ioctl_ops = {
- };
- 
- static int s5p_mfc_queue_setup(struct vb2_queue *vq, unsigned int *buf_count,
--			       unsigned int *plane_count, unsigned long psize[],
-+			       unsigned int *plane_count, unsigned int psize[],
- 			       void *allocators[])
- {
- 	struct s5p_mfc_ctx *ctx = fh_to_ctx(vq->drv_priv);
-@@ -813,7 +813,7 @@ static void s5p_mfc_lock(struct vb2_queue *q)
- 	mutex_lock(&dev->mfc_mutex);
- }
- 
--static int s5p_mfc_buf_init(struct vb2_buffer *vb)
-+static int s5p_mfc_buf_init(struct vb2_buffer *vb, u32 fourcc)
- {
- 	struct vb2_queue *vq = vb->vb2_queue;
- 	struct s5p_mfc_ctx *ctx = fh_to_ctx(vq->drv_priv);
-diff --git a/drivers/media/video/s5p-mfc/s5p_mfc_enc.c b/drivers/media/video/s5p-mfc/s5p_mfc_enc.c
-index fee094a..755c353 100644
---- a/drivers/media/video/s5p-mfc/s5p_mfc_enc.c
-+++ b/drivers/media/video/s5p-mfc/s5p_mfc_enc.c
-@@ -1514,7 +1514,7 @@ static int check_vb_with_fmt(struct s5p_mfc_fmt *fmt, struct vb2_buffer *vb)
- 
- static int s5p_mfc_queue_setup(struct vb2_queue *vq,
- 		       unsigned int *buf_count, unsigned int *plane_count,
--		       unsigned long psize[], void *allocators[])
-+		       unsigned int psize[], void *allocators[])
- {
- 	struct s5p_mfc_ctx *ctx = fh_to_ctx(vq->drv_priv);
- 
-@@ -1570,7 +1570,7 @@ static void s5p_mfc_lock(struct vb2_queue *q)
- 	mutex_lock(&dev->mfc_mutex);
- }
- 
--static int s5p_mfc_buf_init(struct vb2_buffer *vb)
-+static int s5p_mfc_buf_init(struct vb2_buffer *vb, u32 fourcc)
- {
- 	struct vb2_queue *vq = vb->vb2_queue;
- 	struct s5p_mfc_ctx *ctx = fh_to_ctx(vq->drv_priv);
-diff --git a/drivers/media/video/s5p-tv/mixer_video.c b/drivers/media/video/s5p-tv/mixer_video.c
-index 43ac22f..8bea0f3 100644
---- a/drivers/media/video/s5p-tv/mixer_video.c
-+++ b/drivers/media/video/s5p-tv/mixer_video.c
-@@ -728,7 +728,7 @@ static const struct v4l2_file_operations mxr_fops = {
- };
- 
- static int queue_setup(struct vb2_queue *vq, unsigned int *nbuffers,
--	unsigned int *nplanes, unsigned long sizes[],
-+	unsigned int *nplanes, unsigned int sizes[],
- 	void *alloc_ctxs[])
- {
- 	struct mxr_layer *layer = vb2_get_drv_priv(vq);
-diff --git a/drivers/media/video/sh_mobile_ceu_camera.c b/drivers/media/video/sh_mobile_ceu_camera.c
-index dedc981..583d771 100644
---- a/drivers/media/video/sh_mobile_ceu_camera.c
-+++ b/drivers/media/video/sh_mobile_ceu_camera.c
-@@ -194,7 +194,7 @@ static int sh_mobile_ceu_soft_reset(struct sh_mobile_ceu_dev *pcdev)
-  */
- static int sh_mobile_ceu_videobuf_setup(struct vb2_queue *vq,
- 			unsigned int *count, unsigned int *num_planes,
--			unsigned long sizes[], void *alloc_ctxs[])
-+			unsigned int sizes[], void *alloc_ctxs[])
- {
- 	struct soc_camera_device *icd = container_of(vq, struct soc_camera_device, vb2_vidq);
- 	struct soc_camera_host *ici = to_soc_camera_host(icd->parent);
-@@ -219,7 +219,7 @@ static int sh_mobile_ceu_videobuf_setup(struct vb2_queue *vq,
- 			*count = pcdev->video_limit / PAGE_ALIGN(sizes[0]);
- 	}
- 
--	dev_dbg(icd->parent, "count=%d, size=%lu\n", *count, sizes[0]);
-+	dev_dbg(icd->parent, "count=%d, size=%u\n", *count, sizes[0]);
- 
- 	return 0;
- }
-@@ -421,7 +421,7 @@ static void sh_mobile_ceu_videobuf_release(struct vb2_buffer *vb)
- 	spin_unlock_irq(&pcdev->lock);
- }
- 
--static int sh_mobile_ceu_videobuf_init(struct vb2_buffer *vb)
-+static int sh_mobile_ceu_videobuf_init(struct vb2_buffer *vb, u32 fourcc)
- {
- 	/* This is for locking debugging only */
- 	INIT_LIST_HEAD(&to_ceu_vb(vb)->queue);
-diff --git a/drivers/media/video/videobuf2-core.c b/drivers/media/video/videobuf2-core.c
-index fb7a3ac..c5fcc6a 100644
---- a/drivers/media/video/videobuf2-core.c
-+++ b/drivers/media/video/videobuf2-core.c
-@@ -44,7 +44,7 @@ module_param(debug, int, 0644);
-  * __vb2_buf_mem_alloc() - allocate video memory for the given buffer
-  */
- static int __vb2_buf_mem_alloc(struct vb2_buffer *vb,
--				unsigned long *plane_sizes)
-+				unsigned int *plane_sizes)
- {
- 	struct vb2_queue *q = vb->vb2_queue;
- 	void *mem_priv;
-@@ -142,7 +142,7 @@ static void __setup_offsets(struct vb2_queue *q)
-  */
- static int __vb2_queue_alloc(struct vb2_queue *q, enum v4l2_memory memory,
- 			     unsigned int num_buffers, unsigned int num_planes,
--			     unsigned long plane_sizes[])
-+			     unsigned int plane_sizes[])
- {
- 	unsigned int buffer;
- 	struct vb2_buffer *vb;
-@@ -181,7 +181,7 @@ static int __vb2_queue_alloc(struct vb2_queue *q, enum v4l2_memory memory,
- 			 * callback, if given. An error in initialization
- 			 * results in queue setup failure.
- 			 */
--			ret = call_qop(q, buf_init, vb);
-+			ret = call_qop(q, buf_init, vb, 0);
- 			if (ret) {
- 				dprintk(1, "Buffer %d %p initialization"
- 					" failed\n", buffer, vb);
-@@ -455,7 +455,7 @@ static bool __buffers_in_use(struct vb2_queue *q)
- int vb2_reqbufs(struct vb2_queue *q, struct v4l2_requestbuffers *req)
- {
- 	unsigned int num_buffers, num_planes;
--	unsigned long plane_sizes[VIDEO_MAX_PLANES];
-+	unsigned int plane_sizes[VIDEO_MAX_PLANES];
- 	int ret = 0;
- 
- 	if (q->fileio) {
-@@ -773,7 +773,7 @@ static int __qbuf_userptr(struct vb2_buffer *vb, struct v4l2_buffer *b)
- 	 * Call driver-specific initialization on the newly acquired buffer,
- 	 * if provided.
- 	 */
--	ret = call_qop(q, buf_init, vb);
-+	ret = call_qop(q, buf_init, vb, 0);
- 	if (ret) {
- 		dprintk(1, "qbuf: buffer initialization failed\n");
- 		goto err;
-diff --git a/drivers/media/video/vivi.c b/drivers/media/video/vivi.c
-index a848bd2..e25ac97 100644
---- a/drivers/media/video/vivi.c
-+++ b/drivers/media/video/vivi.c
-@@ -651,7 +651,7 @@ static void vivi_stop_generating(struct vivi_dev *dev)
- 	Videobuf operations
-    ------------------------------------------------------------------*/
- static int queue_setup(struct vb2_queue *vq, unsigned int *nbuffers,
--				unsigned int *nplanes, unsigned long sizes[],
-+				unsigned int *nplanes, unsigned int sizes[],
- 				void *alloc_ctxs[])
- {
- 	struct vivi_dev *dev = vb2_get_drv_priv(vq);
-@@ -680,7 +680,7 @@ static int queue_setup(struct vb2_queue *vq, unsigned int *nbuffers,
- 	return 0;
- }
- 
--static int buffer_init(struct vb2_buffer *vb)
-+static int buffer_init(struct vb2_buffer *vb, u32 fourcc)
- {
- 	struct vivi_dev *dev = vb2_get_drv_priv(vb->vb2_queue);
- 
-diff --git a/include/media/videobuf2-core.h b/include/media/videobuf2-core.h
-index 65946c5..b0f68fb 100644
---- a/include/media/videobuf2-core.h
-+++ b/include/media/videobuf2-core.h
-@@ -213,13 +213,13 @@ struct vb2_buffer {
-  */
- struct vb2_ops {
- 	int (*queue_setup)(struct vb2_queue *q, unsigned int *num_buffers,
--			   unsigned int *num_planes, unsigned long sizes[],
-+			   unsigned int *num_planes, unsigned int sizes[],
- 			   void *alloc_ctxs[]);
- 
- 	void (*wait_prepare)(struct vb2_queue *q);
- 	void (*wait_finish)(struct vb2_queue *q);
- 
--	int (*buf_init)(struct vb2_buffer *vb);
-+	int (*buf_init)(struct vb2_buffer *vb, u32 fourcc);
- 	int (*buf_prepare)(struct vb2_buffer *vb);
- 	int (*buf_finish)(struct vb2_buffer *vb);
- 	void (*buf_cleanup)(struct vb2_buffer *vb);
+&v4l2-buf-type;
+
+here?
+
+> +	  </row>
+> +	  <row>
+> +	    <entry>__u32</entry>
+> +	    <entry><structfield>memory</structfield></entry>
+> +	    <entry>Applications set this field to
+> +<constant>V4L2_MEMORY_MMAP</constant> or
+> +<constant>V4L2_MEMORY_USERPTR</constant>.</entry>
+
+&v4l2-memory;
+
+> +	  </row>
+> +	  <row>
+> +	    <entry>__u32</entry>
+> +	    <entry><structfield>fourcc</structfield></entry>
+> +	    <entry>One of V4L2_PIX_FMT_* FOURCCs of the video data.</entry>
+> +	  </row>
+> +	  <row>
+> +	    <entry>__u32</entry>
+> +	    <entry><structfield>num_planes</structfield></entry>
+> +	    <entry>Number of planes or 0 to use the current format.</entry>
+> +	  </row>
+> +	  <row>
+> +	    <entry>__u32</entry>
+> +	    <entry><structfield>size[VIDEO_MAX_PLANES]</structfield></entry>
+> +	    <entry>Explicit sizes of buffers, being created.</entry>
+> +	  </row>
+> +	  <row>
+> +	    <entry>__u32</entry>
+> +	    <entry><structfield>reserved</structfield>[18]</entry>
+> +	    <entry>A place holder for future extensions.</entry>
+> +	  </row>
+> +	</tbody>
+> +      </tgroup>
+> +    </table>
+> +  </refsect1>
+> +
+> +  <refsect1>
+> +    &return-value;
+> +
+> +    <variablelist>
+> +      <varlistentry>
+> +	<term><errorcode>ENOMEM</errorcode></term>
+> +	<listitem>
+> +	  <para>No memory to allocate buffers for <link linkend="mmap">memory
+> +mapped</link> I/O.</para>
+> +	</listitem>
+> +      </varlistentry>
+> +      <varlistentry>
+> +	<term><errorcode>EINVAL</errorcode></term>
+> +	<listitem>
+> +	  <para>The buffer type (<structfield>type</structfield> field) or the
+> +requested I/O method (<structfield>memory</structfield>) is not
+> +supported.</para>
+> +	</listitem>
+> +      </varlistentry>
+> +    </variablelist>
+> +  </refsect1>
+> +</refentry>
+> +
+> +<!--
+> +Local Variables:
+> +mode: sgml
+> +sgml-parent-document: "v4l2.sgml"
+> +indent-tabs-mode: nil
+> +End:
+> +-->
+> diff --git a/Documentation/DocBook/media/v4l/vidioc-prepare-buf.xml b/Documentation/DocBook/media/v4l/vidioc-prepare-buf.xml
+> new file mode 100644
+> index 0000000..509e752
+> --- /dev/null
+> +++ b/Documentation/DocBook/media/v4l/vidioc-prepare-buf.xml
+> @@ -0,0 +1,96 @@
+> +<refentry id="vidioc-prepare-buf">
+> +  <refmeta>
+> +    <refentrytitle>ioctl VIDIOC_PREPARE_BUF</refentrytitle>
+> +    &manvol;
+> +  </refmeta>
+> +
+> +  <refnamediv>
+> +    <refname>VIDIOC_PREPARE_BUF</refname>
+> +    <refpurpose>Prepare a buffer for I/O</refpurpose>
+> +  </refnamediv>
+> +
+> +  <refsynopsisdiv>
+> +    <funcsynopsis>
+> +      <funcprototype>
+> +	<funcdef>int <function>ioctl</function></funcdef>
+> +	<paramdef>int <parameter>fd</parameter></paramdef>
+> +	<paramdef>int <parameter>request</parameter></paramdef>
+> +	<paramdef>struct v4l2_buffer *<parameter>argp</parameter></paramdef>
+> +      </funcprototype>
+> +    </funcsynopsis>
+> +  </refsynopsisdiv>
+> +
+> +  <refsect1>
+> +    <title>Arguments</title>
+> +
+> +    <variablelist>
+> +      <varlistentry>
+> +	<term><parameter>fd</parameter></term>
+> +	<listitem>
+> +	  <para>&fd;</para>
+> +	</listitem>
+> +      </varlistentry>
+> +      <varlistentry>
+> +	<term><parameter>request</parameter></term>
+> +	<listitem>
+> +	  <para>VIDIOC_PREPARE_BUF</para>
+> +	</listitem>
+> +      </varlistentry>
+> +      <varlistentry>
+> +	<term><parameter>argp</parameter></term>
+> +	<listitem>
+> +	  <para></para>
+> +	</listitem>
+> +      </varlistentry>
+> +    </variablelist>
+> +  </refsect1>
+> +
+> +  <refsect1>
+> +    <title>Description</title>
+> +
+> +    <para>Applications can optionally call the
+> +<constant>VIDIOC_PREPARE_BUF</constant> ioctl to pass ownership of the buffer
+> +to the driver before actually enqueuing it, using the
+> +<constant>VIDIOC_QBUF</constant> ioctl, and to prepare it for future I/O.
+
+s/<constant>VIDIOC_QBUF</constant>/&VIDIOC_QBUF;/
+
+> +Such preparations may include cache invalidation or cleaning. Performing them
+> +in advance saves time during the actual I/O. In case such cache operations are
+> +not required, the application can use one of
+> +<constant>V4L2_BUF_FLAG_NO_CACHE_INVALIDATE</constant> and
+> +<constant>V4L2_BUF_FLAG_NO_CACHE_CLEAN</constant> flags to skip the respective
+> +step.</para>
+> +
+> +    <para>The <structname>v4l2_buffer</structname> structure is
+
+s/<structname>v4l2_buffer</structname>/&v4l2-buffer;/
+
+> +specified in <xref linkend="buffer" />.</para>
+> +  </refsect1>
+> +
+> +  <refsect1>
+> +    &return-value;
+> +
+> +    <variablelist>
+> +      <varlistentry>
+> +	<term><errorcode>EBUSY</errorcode></term>
+> +	<listitem>
+> +	  <para>File I/O is in progress.</para>
+> +	</listitem>
+> +      </varlistentry>
+> +      <varlistentry>
+> +	<term><errorcode>EINVAL</errorcode></term>
+> +	<listitem>
+> +	  <para>The buffer <structfield>type</structfield> is not
+> +supported, or the <structfield>index</structfield> is out of bounds,
+> +or no buffers have been allocated yet, or the
+> +<structfield>userptr</structfield> or
+> +<structfield>length</structfield> are invalid.</para>
+> +	</listitem>
+> +      </varlistentry>
+> +    </variablelist>
+> +  </refsect1>
+> +</refentry>
+> +
+> +<!--
+> +Local Variables:
+> +mode: sgml
+> +sgml-parent-document: "v4l2.sgml"
+> +indent-tabs-mode: nil
+> +End:
+> +-->
+> diff --git a/drivers/media/video/v4l2-compat-ioctl32.c b/drivers/media/video/v4l2-compat-ioctl32.c
+> index 61979b7..ee5eec8 100644
+> --- a/drivers/media/video/v4l2-compat-ioctl32.c
+> +++ b/drivers/media/video/v4l2-compat-ioctl32.c
+> @@ -702,6 +702,7 @@ static int put_v4l2_event32(struct v4l2_event *kp, struct v4l2_event32 __user *u
+>  #define VIDIOC_S_EXT_CTRLS32    _IOWR('V', 72, struct v4l2_ext_controls32)
+>  #define VIDIOC_TRY_EXT_CTRLS32  _IOWR('V', 73, struct v4l2_ext_controls32)
+>  #define	VIDIOC_DQEVENT32	_IOR ('V', 89, struct v4l2_event32)
+> +#define VIDIOC_PREPARE_BUF32	_IOWR('V', 93, struct v4l2_buffer32)
+>  
+>  #define VIDIOC_OVERLAY32	_IOW ('V', 14, s32)
+>  #define VIDIOC_STREAMON32	_IOW ('V', 18, s32)
+> @@ -751,6 +752,7 @@ static long do_video_ioctl(struct file *file, unsigned int cmd, unsigned long ar
+>  	case VIDIOC_S_INPUT32: cmd = VIDIOC_S_INPUT; break;
+>  	case VIDIOC_G_OUTPUT32: cmd = VIDIOC_G_OUTPUT; break;
+>  	case VIDIOC_S_OUTPUT32: cmd = VIDIOC_S_OUTPUT; break;
+> +	case VIDIOC_PREPARE_BUF32: cmd = VIDIOC_PREPARE_BUF; break;
+>  	}
+>  
+>  	switch (cmd) {
+> @@ -775,6 +777,7 @@ static long do_video_ioctl(struct file *file, unsigned int cmd, unsigned long ar
+>  		compatible_arg = 0;
+>  		break;
+>  
+> +	case VIDIOC_PREPARE_BUF:
+>  	case VIDIOC_QUERYBUF:
+>  	case VIDIOC_QBUF:
+>  	case VIDIOC_DQBUF:
+> @@ -860,6 +863,7 @@ static long do_video_ioctl(struct file *file, unsigned int cmd, unsigned long ar
+>  		err = put_v4l2_format32(&karg.v2f, up);
+>  		break;
+>  
+> +	case VIDIOC_PREPARE_BUF:
+>  	case VIDIOC_QUERYBUF:
+>  	case VIDIOC_QBUF:
+>  	case VIDIOC_DQBUF:
+> @@ -959,6 +963,8 @@ long v4l2_compat_ioctl32(struct file *file, unsigned int cmd, unsigned long arg)
+>  	case VIDIOC_DQEVENT32:
+>  	case VIDIOC_SUBSCRIBE_EVENT:
+>  	case VIDIOC_UNSUBSCRIBE_EVENT:
+> +	case VIDIOC_CREATE_BUFS:
+> +	case VIDIOC_PREPARE_BUF32:
+>  		ret = do_video_ioctl(file, cmd, arg);
+>  		break;
+>  
+> diff --git a/drivers/media/video/v4l2-ioctl.c b/drivers/media/video/v4l2-ioctl.c
+> index 002ce13..3da87c0 100644
+> --- a/drivers/media/video/v4l2-ioctl.c
+> +++ b/drivers/media/video/v4l2-ioctl.c
+> @@ -260,6 +260,8 @@ static const char *v4l2_ioctls[] = {
+>  	[_IOC_NR(VIDIOC_DQEVENT)]	   = "VIDIOC_DQEVENT",
+>  	[_IOC_NR(VIDIOC_SUBSCRIBE_EVENT)]  = "VIDIOC_SUBSCRIBE_EVENT",
+>  	[_IOC_NR(VIDIOC_UNSUBSCRIBE_EVENT)] = "VIDIOC_UNSUBSCRIBE_EVENT",
+> +	[_IOC_NR(VIDIOC_CREATE_BUFS)]      = "VIDIOC_CREATE_BUFS",
+> +	[_IOC_NR(VIDIOC_PREPARE_BUF)]      = "VIDIOC_PREPARE_BUF",
+>  };
+>  #define V4L2_IOCTLS ARRAY_SIZE(v4l2_ioctls)
+>  
+> @@ -2216,6 +2218,30 @@ static long __video_do_ioctl(struct file *file,
+>  		dbgarg(cmd, "type=0x%8.8x", sub->type);
+>  		break;
+>  	}
+> +	case VIDIOC_CREATE_BUFS:
+> +	{
+> +		struct v4l2_create_buffers *create = arg;
+> +
+> +		if (!ops->vidioc_create_bufs)
+> +			break;
+> +
+> +		ret = ops->vidioc_create_bufs(file, fh, create);
+> +
+> +		dbgarg(cmd, "count=%u @ %u\n", create->count, create->index);
+> +		break;
+> +	}
+> +	case VIDIOC_PREPARE_BUF:
+> +	{
+> +		struct v4l2_buffer *b = arg;
+> +
+> +		if (!ops->vidioc_prepare_buf)
+> +			break;
+> +
+> +		ret = ops->vidioc_prepare_buf(file, fh, b);
+> +
+> +		dbgarg(cmd, "index=%d", b->index);
+> +		break;
+> +	}
+>  	default:
+>  	{
+>  		bool valid_prio = true;
+> diff --git a/include/linux/videodev2.h b/include/linux/videodev2.h
+> index fca24cc..3cd0cb3 100644
+> --- a/include/linux/videodev2.h
+> +++ b/include/linux/videodev2.h
+> @@ -653,6 +653,9 @@ struct v4l2_buffer {
+>  #define V4L2_BUF_FLAG_ERROR	0x0040
+>  #define V4L2_BUF_FLAG_TIMECODE	0x0100	/* timecode field is valid */
+>  #define V4L2_BUF_FLAG_INPUT     0x0200  /* input field is valid */
+> +/* Cache handling flags */
+> +#define V4L2_BUF_FLAG_NO_CACHE_INVALIDATE	0x0400
+> +#define V4L2_BUF_FLAG_NO_CACHE_CLEAN		0x0800
+
+Do we want to have a flag to tell the buffer has been prepared but not
+queued yet? I'm not at all certain such a flag would be required; just
+asking.
+
+Perhaps the ERROR flag should be reset if it is present.
+
+If the answer to either of the above is yes, the PREPARE_BUF would need
+to be WR ioctl.
+
+>  /*
+>   *	O V E R L A Y   P R E V I E W
+> @@ -2092,6 +2095,18 @@ struct v4l2_dbg_chip_ident {
+>  	__u32 revision;    /* chip revision, chip specific */
+>  } __attribute__ ((packed));
+>  
+> +/* VIDIOC_CREATE_BUFS */
+> +struct v4l2_create_buffers {
+> +	__u32	index;	/* output: buffers index...index + count - 1 have been created */
+> +	__u32	count;
+> +	__u32	type;
+> +	__u32	memory;
+> +	__u32	fourcc;
+> +	__u32	num_planes;
+> +	__u32	sizes[VIDEO_MAX_PLANES];
+> +	__u32	reserved[18];
+> +};
+> +
+>  /*
+>   *	I O C T L   C O D E S   F O R   V I D E O   D E V I C E S
+>   *
+> @@ -2182,6 +2197,9 @@ struct v4l2_dbg_chip_ident {
+>  #define	VIDIOC_SUBSCRIBE_EVENT	 _IOW('V', 90, struct v4l2_event_subscription)
+>  #define	VIDIOC_UNSUBSCRIBE_EVENT _IOW('V', 91, struct v4l2_event_subscription)
+>  
+> +#define VIDIOC_CREATE_BUFS	_IOWR('V', 92, struct v4l2_create_buffers)
+> +#define VIDIOC_PREPARE_BUF	 _IOW('V', 93, struct v4l2_buffer)
+>  /* Reminder: when adding new ioctls please add support for them to
+>     drivers/media/video/v4l2-compat-ioctl32.c as well! */
+>  
+> diff --git a/include/media/v4l2-ioctl.h b/include/media/v4l2-ioctl.h
+> index dd9f1e7..4d1c74a 100644
+> --- a/include/media/v4l2-ioctl.h
+> +++ b/include/media/v4l2-ioctl.h
+> @@ -122,6 +122,8 @@ struct v4l2_ioctl_ops {
+>  	int (*vidioc_qbuf)    (struct file *file, void *fh, struct v4l2_buffer *b);
+>  	int (*vidioc_dqbuf)   (struct file *file, void *fh, struct v4l2_buffer *b);
+>  
+> +	int (*vidioc_create_bufs)(struct file *file, void *fh, struct v4l2_create_buffers *b);
+> +	int (*vidioc_prepare_buf)(struct file *file, void *fh, struct v4l2_buffer *b);
+>  
+>  	int (*vidioc_overlay) (struct file *file, void *fh, unsigned int i);
+>  	int (*vidioc_g_fbuf)   (struct file *file, void *fh,
+
+Kind regards,
+
 -- 
-1.7.2.5
-
+Sakari Ailus
+sakari.ailus@iki.fi
