@@ -1,58 +1,117 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ist.d-labs.de ([213.239.218.44]:45248 "EHLO mx01.d-labs.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753415Ab1HDKVh (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 4 Aug 2011 06:21:37 -0400
-Date: Thu, 4 Aug 2011 12:21:29 +0200
-From: Florian Mickler <florian@mickler.org>
-To: Patrick Boettcher <pboettcher@kernellabs.com>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Cc: Dan Carpenter <error27@gmail.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: vp702x
-Message-ID: <20110804122129.45a8b37f@schatten.dmk.lab>
-In-Reply-To: <alpine.LRH.2.00.1108030937250.5518@pub4.ifh.de>
-References: <20110802173942.6f951c95@schatten.dmk.lab>
-	<alpine.LRH.2.00.1108030937250.5518@pub4.ifh.de>
+Received: from oproxy8-pub.bluehost.com ([69.89.22.20]:39685 "HELO
+	oproxy8-pub.bluehost.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1753772Ab1HFQuG (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sat, 6 Aug 2011 12:50:06 -0400
+Date: Sat, 6 Aug 2011 09:50:04 -0700
+From: Randy Dunlap <rdunlap@xenotime.net>
+To: Takashi Iwai <tiwai@suse.de>
+Cc: Stephen Rothwell <sfr@canb.auug.org.au>,
+	linux-media@vger.kernel.org,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	linux-next@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>,
+	Ondrej Zary <linux@rainbow-software.org>
+Subject: Re: linux-next: Tree for Aug 5 (media/radio/radio-sf16fmr2)
+Message-Id: <20110806095004.017f6771.rdunlap@xenotime.net>
+In-Reply-To: <s5hy5z79bx8.wl%tiwai@suse.de>
+References: <20110805143103.f9388ca143560d73caac60c1@canb.auug.org.au>
+	<20110805165611.d2feaf32.rdunlap@xenotime.net>
+	<s5hy5z79bx8.wl%tiwai@suse.de>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+On Sat, 06 Aug 2011 10:33:39 +0200 Takashi Iwai wrote:
 
-On Wed, 3 Aug 2011 09:39:46 +0200 (CEST)
-Patrick Boettcher <pboettcher@kernellabs.com> wrote:
-
-> Hi Florian,
+> At Fri, 5 Aug 2011 16:56:11 -0700,
+> Randy Dunlap wrote:
+> > 
+> > On Fri, 5 Aug 2011 14:31:03 +1000 Stephen Rothwell wrote:
+> > 
+> > > Hi all,
+> > > 
+> > > [The kernel.org mirroring is running slowly today]
+> > 
+> > Is media/radio/radio-sf16fmr2 an ISA driver or a PCI driver?
+> > ugh.  Or is it an I2C driver?
+> > 
+> > 
+> > linux-next fails with (this is not a new failure):
+> > 
+> > ERROR: "snd_tea575x_init" [drivers/media/radio/radio-sf16fmr2.ko] undefined!
+> > ERROR: "snd_tea575x_exit" [drivers/media/radio/radio-sf16fmr2.ko] undefined!
+> > 
+> > The Kconfig entry for RADIO_SF16FMR2 is:
+> > 
+> > config RADIO_SF16FMR2
+> > 	tristate "SF16FMR2 Radio"
+> > 	depends on ISA && VIDEO_V4L2 && SND
+> > 
+> > and the Kconfig entry for SND_TEA575X is (not user visible):
+> > 
+> > config SND_TEA575X
+> > 	tristate
+> > 	depends on SND_FM801_TEA575X_BOOL || SND_ES1968_RADIO || RADIO_SF16FMR2
+> > 	default SND_FM801 || SND_ES1968 || RADIO_SF16FMR2
+> > 
+> > This latter entry is in sound/pci/Kconfig and is under:
+> > if SND_PCI
+> > so it depends on PCI and SND_PCI.
+> > 
+> > This build fails when CONFIG_PCI is not enabled.
 > 
-> 
-> I'm not sure whether I still have exactly this box. There were two 
-> versions and I got rid of at least one of them.
-> 
-> I moved recently into a new house and right now a lot of things are hidden 
-> in some boxes somewhere... I'll try to find some time to check it. Don't 
-> ask me when that will be :).
+> tea575x-tuner is an i2c component (not meaning Linux i2c-subsystem),
+> thus should be independent from the board bus type.
+> Does a patch like below work?
 > 
 
-ok, thanks for the heads up nonetheless. 
+Yes, it does.  Thanks.
 
-Mauro, what to do? Currently it will bug on
-driver probe like the vp7045 (which Tino confirmed works now again
-with my recent patch).
-
-Before the patchseries it would use on-stack dma buffers (don't know
-about the actual harm of these, at least a WARN from libdma, but
-rumours are that they may format your disk if the moon aligns with
-the sun and a special unspecified planet). 
-
-Regards,
-Flo
+Reported-by: Randy Dunlap <rdunlap@xenotime.net>
+Acked-by: Randy Dunlap <rdunlap@xenotime.net>
 
 
-> regards,
+> 
+> thanks,
+> 
+> Takashi
+> 
+> ---
+> diff --git a/sound/pci/Kconfig b/sound/pci/Kconfig
+> index 50abf5b..8816804 100644
+> --- a/sound/pci/Kconfig
+> +++ b/sound/pci/Kconfig
+> @@ -1,5 +1,10 @@
+>  # ALSA PCI drivers
+>  
+> +config SND_TEA575X
+> +	tristate
+> +	depends on SND_FM801_TEA575X_BOOL || SND_ES1968_RADIO || RADIO_SF16FMR2
+> +	default SND_FM801 || SND_ES1968 || RADIO_SF16FMR2
+> +
+>  menuconfig SND_PCI
+>  	bool "PCI sound devices"
+>  	depends on PCI
+> @@ -563,11 +568,6 @@ config SND_FM801_TEA575X_BOOL
+>  	  FM801 chip with a TEA5757 tuner (MediaForte SF256-PCS, SF256-PCP and
+>  	  SF64-PCR) into the snd-fm801 driver.
+>  
+> -config SND_TEA575X
+> -	tristate
+> -	depends on SND_FM801_TEA575X_BOOL || SND_ES1968_RADIO || RADIO_SF16FMR2
+> -	default SND_FM801 || SND_ES1968 || RADIO_SF16FMR2
+> -
+>  source "sound/pci/hda/Kconfig"
+>  
+>  config SND_HDSP
 > --
-> 
-> Patrick Boettcher - Kernel Labs
-> http://www.kernellabs.com/
+> To unsubscribe from this list: send the line "unsubscribe linux-next" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
+
+---
+~Randy
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
