@@ -1,49 +1,33 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([147.243.1.47]:36143 "EHLO mgw-sa01.nokia.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753097Ab1HBKkC (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 2 Aug 2011 06:40:02 -0400
-Message-ID: <4E37D415.8060000@iki.fi>
-Date: Tue, 02 Aug 2011 13:40:21 +0300
-From: Sakari Ailus <sakari.ailus@iki.fi>
+Received: from mail-fx0-f46.google.com ([209.85.161.46]:49338 "EHLO
+	mail-fx0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751059Ab1HFOLR (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sat, 6 Aug 2011 10:11:17 -0400
+Received: by fxh19 with SMTP id 19so3747623fxh.19
+        for <linux-media@vger.kernel.org>; Sat, 06 Aug 2011 07:11:16 -0700 (PDT)
 MIME-Version: 1.0
-To: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-CC: Hans Verkuil <hans.verkuil@cisco.com>,
-	Sylwester Nawrocki <snjw23@gmail.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Subject: [PATCH v2 0/2] Frame synchronisation events and support for them
- in the OMAP 3 ISP driver
+Date: Sat, 6 Aug 2011 10:11:15 -0400
+Message-ID: <CAGoCfiwyx2cT5Jw_wNBRMLnM0vRZC+QOKCa=B012vgUekwOXJg@mail.gmail.com>
+Subject: LinuxTV.org wiki broken - won't allow edits
+From: Devin Heitmueller <dheitmueller@kernellabs.com>
+To: Johannes Stezenbach <js@linuxtv.org>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
 Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi all,
+Well, now I understand why there hasn't been any spam on the
+linuxtv.org wiki for a couple of weeks.  Editing is broken.
 
-This is the second version of the frame synchronisation patchset which
-contains fixes based on the comments from Laurent. The patches are on
-top of this tree which contains acked patches:
+Attempts to edit articles shows:
 
-http://linuxtv.org/git/sailus/media_tree.git media-for-3.1-misc-1
+Internal error
 
-Shortlog is available here:
+Set $wgShowExceptionDetails = true; at the bottom of LocalSettings.php
+to show detailed debugging information.
 
-<URL:http://git.linuxtv.org/sailus/media_tree.git/shortlog/refs/heads/media-for-3.1-misc-1>
-
-Changes since the first one:
-
-- Fixed the description of the second patch.
-- Clarified the documentation.
-- v4l2_event_frame_sync.buffer_sequence renamed to frame_sequence
-
-Changes to the RFC:
-
-- Renamed V4L2_EVENT_FRAME_START to V4L2_EVENT_FRAME_SYNC.
-- Removed extra reference to V4L2_EVENT_FRAME_START in documentation; it
-is mentioned in the same page struct v4l2_event_frame_sync is related to it.
-- The OMAP 3 ISP driver check that the id field is zero in anticipation
-of such events.
+Devin
 
 -- 
-Sakari Ailus
-sakari.ailus@iki.fi
+Devin J. Heitmueller - Kernel Labs
+http://www.kernellabs.com
