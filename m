@@ -1,55 +1,58 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-68.nebula.fi ([83.145.220.68]:45107 "EHLO
-	smtp-68.nebula.fi" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751914Ab1HQLff (ORCPT
+Received: from sinikuusama.dnainternet.net ([83.102.40.134]:39142 "EHLO
+	sinikuusama.dnainternet.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1756780Ab1HFW2E (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 17 Aug 2011 07:35:35 -0400
-Date: Wed, 17 Aug 2011 14:35:31 +0300
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Cc: linux-media <linux-media@vger.kernel.org>
-Subject: Re: [PATCH] adp1653: set media entity type
-Message-ID: <20110817113531.GI7436@valkosipuli.localdomain>
-References: <20110811071900.GC5926@valkosipuli.localdomain>
- <bdfa2fa007fe799206043c874017fb3b412f7f32.1313062441.git.andriy.shevchenko@linux.intel.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <bdfa2fa007fe799206043c874017fb3b412f7f32.1313062441.git.andriy.shevchenko@linux.intel.com>
+	Sat, 6 Aug 2011 18:28:04 -0400
+From: Anssi Hannula <anssi.hannula@iki.fi>
+To: dmitry.torokhov@gmail.com
+Cc: linux-media@vger.kernel.org, linux-input@vger.kernel.org,
+	linux-kernel@vger.kernel.org
+Subject: [PATCH 7/7] [media] ati_remote: update Kconfig description
+Date: Sun,  7 Aug 2011 01:18:13 +0300
+Message-Id: <1312669093-23771-8-git-send-email-anssi.hannula@iki.fi>
+In-Reply-To: <1312669093-23771-1-git-send-email-anssi.hannula@iki.fi>
+References: <4E3DB2C2.7040104@iki.fi>
+ <1312669093-23771-1-git-send-email-anssi.hannula@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, Aug 11, 2011 at 02:35:04PM +0300, Andy Shevchenko wrote:
-> The type of a media entity is default for this driver. This patch makes it
-> explicitly defined as MEDIA_ENT_T_V4L2_SUBDEV_FLASH.
+The ati_remote driver supports more remotes nowadays, update the
+description to reflect that.
 
-Thanks again for the patch, Andy!
+Signed-off-by: Anssi Hannula <anssi.hannula@iki.fi>
+---
+ drivers/media/rc/Kconfig |   12 +++++++-----
+ 1 files changed, 7 insertions(+), 5 deletions(-)
 
-Applied to my tree in linuxtv.org; the branch is called
-media-for-3.2-adp1653-1.
-
-> Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-> ---
->  drivers/media/video/adp1653.c |    2 ++
->  1 files changed, 2 insertions(+), 0 deletions(-)
-> 
-> diff --git a/drivers/media/video/adp1653.c b/drivers/media/video/adp1653.c
-> index 7f2e710..0fd9579 100644
-> --- a/drivers/media/video/adp1653.c
-> +++ b/drivers/media/video/adp1653.c
-> @@ -438,6 +438,8 @@ static int adp1653_probe(struct i2c_client *client,
->  	if (ret < 0)
->  		goto free_and_quit;
->  
-> +	flash->subdev.entity.type = MEDIA_ENT_T_V4L2_SUBDEV_FLASH;
-> +
->  	return 0;
->  
->  free_and_quit:
-> -- 
-> 1.7.5.4
-> 
-
+diff --git a/drivers/media/rc/Kconfig b/drivers/media/rc/Kconfig
+index 26937b2..86c6abc 100644
+--- a/drivers/media/rc/Kconfig
++++ b/drivers/media/rc/Kconfig
+@@ -98,16 +98,18 @@ config IR_LIRC_CODEC
+ 	   the LIRC interface.
+ 
+ config RC_ATI_REMOTE
+-	tristate "ATI / X10 USB RF remote control"
++	tristate "ATI / X10 based USB RF remote controls"
+ 	depends on USB_ARCH_HAS_HCD
+ 	depends on RC_CORE
+ 	select USB
+ 	help
+-	   Say Y here if you want to use an ATI or X10 "Lola" USB remote control.
++	   Say Y here if you want to use an X10 based USB remote control.
+ 	   These are RF remotes with USB receivers.
+-	   The ATI remote comes with many of ATI's All-In-Wonder video cards.
+-	   The X10 "Lola" remote is available at:
+-	      <http://www.x10.com/products/lola_sg1.htm>
++
++	   Such devices include the ATI remote that comes with many of ATI's
++	   All-In-Wonder video cards, the X10 "Lola" remote, NVIDIA RF remote,
++	   Medion RF remote, and SnapStream FireFly remote.
++
+ 	   This driver provides mouse pointer, left and right mouse buttons,
+ 	   and maps all the other remote buttons to keypress events.
+ 
 -- 
-Sakari Ailus
-sakari.ailus@iki.fi
+1.7.4.4
+
