@@ -1,72 +1,78 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.17.10]:56889 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751841Ab1H3IzO (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 30 Aug 2011 04:55:14 -0400
-Date: Tue, 30 Aug 2011 10:55:08 +0200 (CEST)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-cc: Bastian Hecht <hechtb@googlemail.com>, linux-media@vger.kernel.org
-Subject: Re: [PATCH] media: Add support for arbitrary resolution for the
- ov5642 camera driver
-In-Reply-To: <201108291448.15139.laurent.pinchart@ideasonboard.com>
-Message-ID: <Pine.LNX.4.64.1108301051410.19151@axis700.grange>
-References: <alpine.DEB.2.02.1108171551040.17540@ipanema>
- <201108291426.57501.laurent.pinchart@ideasonboard.com>
- <Pine.LNX.4.64.1108291433090.31184@axis700.grange>
- <201108291448.15139.laurent.pinchart@ideasonboard.com>
+Received: from mail-iy0-f170.google.com ([209.85.210.170]:36858 "EHLO
+	mail-iy0-f170.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750754Ab1HFFNf (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sat, 6 Aug 2011 01:13:35 -0400
+Received: by iye16 with SMTP id 16so4939810iye.1
+        for <linux-media@vger.kernel.org>; Fri, 05 Aug 2011 22:13:34 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+In-Reply-To: <CAO-Op+FBtPm9fdB4bskq3Hv_GorLuUUb6VFx7W+2JBxoCGwnYg@mail.gmail.com>
+References: <4DF9BCAA.3030301@holzeisen.de>
+	<4DF9EA62.2040008@killerhippy.de>
+	<4DFA7748.6000704@hoogenraad.net>
+	<4DFFC82B.10402@iki.fi>
+	<1308649292.3635.2.camel@maxim-laptop>
+	<4E006BDB.8060000@hoogenraad.net>
+	<4E17CA94.8030307@iki.fi>
+	<4E3B2EB3.6030501@iki.fi>
+	<CAO-Op+FBtPm9fdB4bskq3Hv_GorLuUUb6VFx7W+2JBxoCGwnYg@mail.gmail.com>
+Date: Sat, 6 Aug 2011 06:13:34 +0100
+Message-ID: <CAO-Op+FY9KVPQFgF1ykNz_BqJu653yM2-1oj5BZotUOhLtKGVw@mail.gmail.com>
+Subject: Re: RTL2831U driver updates
+From: Alistair Buxton <a.j.buxton@gmail.com>
+To: Antti Palosaari <crope@iki.fi>
+Cc: linux-media@vger.kernel.org,
+	Jan Hoogenraad <jan-conceptronic@hoogenraad.net>,
+	Maxim Levitsky <maximlevitsky@gmail.com>,
+	=?UTF-8?Q?Sascha_W=C3=BCstemann?= <sascha@killerhippy.de>,
+	Thomas Holzeisen <thomas@holzeisen.de>, stybla@turnovfree.net
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, 29 Aug 2011, Laurent Pinchart wrote:
+On 6 August 2011 04:56, Alistair Buxton <a.j.buxton@gmail.com> wrote:
+> Hi,
+>
+> With the latest driver my card never gets a signal lock, not even
+> once. As before there are no error messages. It does always probe
+> correctly now though.
 
-> Hi Guennadi,
-> 
-> On Monday 29 August 2011 14:34:53 Guennadi Liakhovetski wrote:
-> > On Mon, 29 Aug 2011, Laurent Pinchart wrote:
-> > > On Monday 29 August 2011 14:18:50 Guennadi Liakhovetski wrote:
-> > > > On Sun, 28 Aug 2011, Laurent Pinchart wrote:
-> > > > 
-> > > > [snip]
-> > > > 
-> > > > > > @@ -774,17 +839,27 @@ static int ov5642_s_fmt(struct v4l2_subdev
-> > > > > > *sd,
-> > > > > > 
-> > > > > >  	ov5642_try_fmt(sd, mf);
-> > > > > > 
-> > > > > > +	priv->out_size.width		= mf->width;
-> > > > > > +	priv->out_size.height		= mf->height;
-> > > > > 
-> > > > > It looks like to me (but I may be wrong) that you achieve different
-> > > > > resolutions using cropping, not scaling. If that's correct you should
-> > > > > implement s_crop support and refuse changing the resolution through
-> > > > > s_fmt.
-> > > > 
-> > > > As the patch explains (I think) on several occasions, currently only
-> > > > the 1:1 scale is supported, and it was our deliberate choice to
-> > > > implement this using the scaling API
-> > > 
-> > > If you implement cropping, you should use the crop API, not the scaling
-> > > API
-> > > 
-> > > :-)
-> > 
-> > It's changing both - input and output sizes.
-> 
-> Sure, but it's still cropping.
+I tracked this down to:
 
-Why? Isn't it a matter of the PoV? It changes the output window, i.e., 
-implements S_FMT. And S_FMT is by far more important / widely used than 
-S_CROP. Refusing to change the output window and always just returning the 
-== crop size wouldn't be polite, IMHO. Don't think many users would guess 
-to use S_CROP. Standard applications a la mplayer don't use S_CROP at all.
+http://git.linuxtv.org/anttip/media_tree.git/commit/e5d3e4f27f0cf71c29d12ce39752195d8994dea3
 
-Thanks
-Guennadi
----
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
-http://www.open-technology.de/
+and to this specific change:
+
+@@ -459,21 +563,14 @@ static int rtl28xxu_power_ctrl(struct
+dvb_usb_device *d, int onoff)
+                sys0 = sys0 & 0x0f;
+                sys0 |= 0xe0;
+        } else {
+-
+-#if 0 /* keep */
+                /*
+                 * FIXME: Use .fe_ioctl_override() to prevent demod
+-                * IOCTLs in case of device is powered off.
+-                *
+-                * For now we cannot power off device because most FE IOCTLs
+-                * can be performed only when device is powered.
+-                * Using IOCTLs when device is powered off will result errors
+-                * because register access to demod fails.
++                * IOCTLs in case of device is powered off. Or change
++                * RTL2830 demod not perform requestesd IOCTL & IO when sleep.
+                 */
+                gpio &= (~0x01); /* GPIO0 = 0 */
+                gpio |= 0x10; /* GPIO4 = 1 */
+                sys0 = sys0 & (~0xc0);
+-#endif
+        }
+
+        deb_info("%s: WR SYS0=%02x GPIO_OUT_VAL=%02x\n", __func__, sys0, gpio);
+
+
+Commenting those three lines makes the driver work again. Don't know
+yet if it will keep working for longer than a couple of days.
+
+-- 
+Alistair Buxton
+a.j.buxton@gmail.com
