@@ -1,117 +1,96 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout1.w1.samsung.com ([210.118.77.11]:22527 "EHLO
-	mailout1.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753173Ab1HIMHh (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 9 Aug 2011 08:07:37 -0400
-Received: from eu_spt1 (mailout1.w1.samsung.com [210.118.77.11])
- by mailout1.w1.samsung.com
- (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14 2004))
- with ESMTP id <0LPN00C34TON0B@mailout1.w1.samsung.com> for
- linux-media@vger.kernel.org; Tue, 09 Aug 2011 13:07:36 +0100 (BST)
-Received: from linux.samsung.com ([106.116.38.10])
- by spt1.w1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14
- 2004)) with ESMTPA id <0LPN00LFZTONTE@spt1.w1.samsung.com> for
- linux-media@vger.kernel.org; Tue, 09 Aug 2011 13:07:35 +0100 (BST)
-Date: Tue, 09 Aug 2011 14:07:12 +0200
-From: Marek Szyprowski <m.szyprowski@samsung.com>
-Subject: RE: Possible issue in videobuf2 with buffer length check at QBUF time
-In-reply-to: <201108091351.44916.laurent.pinchart@ideasonboard.com>
-To: 'Laurent Pinchart' <laurent.pinchart@ideasonboard.com>
-Cc: 'Pawel Osciak' <pawel@osciak.com>, linux-media@vger.kernel.org,
-	'Marek Szyprowski' <m.szyprowski@samsung.com>
-Message-id: <025001cc568c$df347930$9d9d6b90$%szyprowski@samsung.com>
-MIME-version: 1.0
-Content-type: text/plain; charset=us-ascii
-Content-language: pl
-Content-transfer-encoding: 7BIT
-References: <201108051055.08641.laurent.pinchart@ideasonboard.com>
- <201108081211.24012.laurent.pinchart@ideasonboard.com>
- <021301cc5674$c6e1bea0$54a53be0$%szyprowski@samsung.com>
- <201108091351.44916.laurent.pinchart@ideasonboard.com>
+Received: from mail1.matrix-vision.com ([78.47.19.71]:44853 "EHLO
+	mail1.matrix-vision.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751466Ab1HHKQm (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 8 Aug 2011 06:16:42 -0400
+Message-ID: <4E3FB786.2080403@matrix-vision.de>
+Date: Mon, 08 Aug 2011 12:16:38 +0200
+From: Michael Jones <michael.jones@matrix-vision.de>
+MIME-Version: 1.0
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+CC: linux-media@vger.kernel.org,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: Re: [PATCH] [media] omap3isp: queue: fail QBUF if buffer is too small
+References: <1312472437-26231-1-git-send-email-michael.jones@matrix-vision.de> <201108051059.46485.laurent.pinchart@ideasonboard.com> <4E3BD702.8030204@matrix-vision.de> <201108081208.16888.laurent.pinchart@ideasonboard.com>
+In-Reply-To: <201108081208.16888.laurent.pinchart@ideasonboard.com>
+Content-Type: text/plain; charset=ISO-8859-15
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello,
+Hi Laurent,
 
-On Tuesday, August 09, 2011 1:52 PM Laurent Pinchart wrote:
-> On Tuesday 09 August 2011 11:14:43 Marek Szyprowski wrote:
-> > On Monday, August 08, 2011 12:11 PM Laurent Pinchart wrote:
-> > > On Friday 05 August 2011 17:01:09 Pawel Osciak wrote:
-> > > > On Fri, Aug 5, 2011 at 01:55, Laurent Pinchart wrote:
-> > > > > Hi Marek and Pawel,
-> > > > >
-> > > > > While reviewing an OMAP3 ISP patch, I noticed that videobuf2 doesn't
-> > > > > verify the buffer length field value when a new USERPTR buffer is
-> > > > > queued.
-> > > >
-> > > > That's a good catch. We should definitely do something about it.
-> > > >
-> > > > > The length given by userspace is copied to the internal buffer length
-> > > > > field. It seems to be up to drivers to verify that the value is equal
-> > > > > to or higher than the minimum required to store the image, but
-> > > > > that's not clearly documented. Should the buf_init operation be made
-> > > > > mandatory for drivers that support USERPTR, and documented as
-> > > > > required to implement a length check ?
-> > > >
-> > > > Technically, drivers can do the length checks on buf_prepare if they
-> > > > don't allow format changes after REQBUFS. On the other hand though, if
-> > > > a driver supports USERPTR, the buffers queued from userspace have to
-> > > > be verified on qbuf and the only place to do that would be buf_init.
-> > > > So every driver that supports USERPTR would have to implement
-> > > > buf_init, as you said.
-> > > >
-> > > > > Alternatively the check could be performed in videobuf2-core, which
-> > > > > would probably make sense as the check is required. videobuf2
-> > > > > doesn't store the minimum size for USERPTR buffers though (but that
-> > > > > can of course be changed).
-> > > >
-> > > > Let's say we make vb2 save minimum buffer size. This would have to be
-> > > > done on queue_setup I imagine. We could add a new field to vb2_buffer
-> > > > for that. One problem is that if the driver actually supports changing
-> > > > format after REQBUFS, we would need a new function in vb2 to change
-> > > > minimum buffer size. Actually, this has to be minimum plane sizes. So
-> > > > the alternatives are:
-> > > >
-> > > > 1. Make buf_init required for drivers that support USERPTR; or
-> > > > 2. Add minimum plane sizes to vb2_buffer,add a new return array
-> > > > argument to queue_setup to return minimum plane sizes that would be
-> > > > stored in vb2. Make vb2 verify sizes on qbuf of USERPTR. Add a new vb2
-> > > > function for drivers to call when minimum sizes have to be changed.
-> > > >
-> > > > The first solution is way simpler for drivers that require this. The
-> > > > second solution is maybe a bit simpler for drivers that do not, as
-> > > > they would only have to return the sizes in queue_setup, but
-> > > > implementing buf_init instead wouldn't be a big of a difference I
-> > > > think. So I'm leaning towards the second solution.
-> > > > Any comments, did I miss something?
-> > >
-> > > Thanks for the analysis. I would go for the second solution as well.
-> > >
-> > > Do we have any driver that supports changing the format after REQBUFS ?
-> > > If not we can delay adding the new vb2 function until we get such a
-> > > driver.
-> >
-> > I really wonder if we should support changing the format which results in
-> > buffer/plane size change after REQBUFS. Please notice that it causes
-> > additional problems with mmap-style buffers, which are allocated once
-> > during the REQBUFS call. Also none driver support it right now and I doubt
-> > that changing buffer size after REQBUFS can be implemented without
-> > breaking anything other (there are a lot of things that depends on buffer
-> > size, both in vb2 and the drivers).
+On 08/08/2011 12:08 PM, Laurent Pinchart wrote:
 > 
-> I wasn't awake enough when I sent my previous reply. We probably have no
-> driver that supports this feature at the moment, but changing the format after
-> REQBUFS is the whole point of the CREATE_BUFS and PREPARE_BUF ioctls, so I
-> think we definitely need to support that :-)
+> Hi Michael,
+> 
+> On Friday 05 August 2011 13:41:54 Michael Jones wrote:
+>> On 08/05/2011 10:59 AM, Laurent Pinchart wrote:
+>>> Hi Michael,
+>>>
+>>> Thanks for the patch.
+>>>
+>>> On Thursday 04 August 2011 17:40:37 Michael Jones wrote:
+>>>> Add buffer length to sanity checks for QBUF.
+>>>>
+>>>> Signed-off-by: Michael Jones <michael.jones@matrix-vision.de>
+>>>> ---
+>>>>
+>>>>  drivers/media/video/omap3isp/ispqueue.c |    3 +++
+>>>>  1 files changed, 3 insertions(+), 0 deletions(-)
+>>>>
+>>>> diff --git a/drivers/media/video/omap3isp/ispqueue.c
+>>>> b/drivers/media/video/omap3isp/ispqueue.c index 9c31714..4f6876f 100644
+>>>> --- a/drivers/media/video/omap3isp/ispqueue.c
+>>>> +++ b/drivers/media/video/omap3isp/ispqueue.c
+>>>> @@ -867,6 +867,9 @@ int omap3isp_video_queue_qbuf(struct isp_video_queue
+>>>> *queue, if (buf->state != ISP_BUF_STATE_IDLE)
+>>>>
+>>>>  		goto done;
+>>>>
+>>>> +	if (vbuf->length < buf->vbuf.length)
+>>>> +		goto done;
+>>>> +
+>>>
+>>> The vbuf->length value passed from userspace isn't used by the driver, so
+>>> I'm not sure if verifying it is really useful. We verify the memory
+>>> itself instead, to make sure that enough pages can be accessed. The
+>>> application can always lie about the length, so we can't rely on it
+>>> anyway.
+>>
+>> According to the spec, it's expected that the application set 'length':
+>> "To enqueue a user pointer buffer applications set [...] length to its
+>> size." (Now that I say that, I realize I should only do this length
+>> check for USERPTR buffers.) If we don't at least sanity check it for the
+>> application, then it has no purpose at all on QBUF. If this is
+>> desirable, I would propose changing the spec.
+>>
+>> This patch was born of a mistake when my application set 624x480, which
+>> resulted in sizeimage=640x480=307200 but it used width & height to
+>> calculate the buffer size rather than sizeimage or even to take
+>> bytesperline into account. It was then honest with QBUF, confessing that
+>> it wasn't providing enough space, but QBUF just went ahead. What
+>> followed were random crashes while data was DMA'd into memory not set
+>> aside for the buffer, while I assumed that the buffer size was OK
+>> because QBUF had succeeded and was looking elsewhere in the program for
+>> the culprit. I think it makes sense to give the app an error on QBUF in
+>> this situation.
+> 
+> Right. This will help catching application errors without any drawback on the 
+> kernel side.
+> 
+> Do you want to resubmit the patch with an additional USERPTR check, or should 
+> I write one ?
 
-Right, but this is an extension that will come with CRATE_BUFS/PREPARE_BUF
-calls.
-Until that, to handle buffers correctly we only need to add min_size entry to
-the
-queue and check if queued buffers are large enough.
+Thanks for the review. I will resubmit the patch with the USERPTR check.
 
-Best regards
--- 
-Marek Szyprowski
-Samsung Poland R&D Center
+> 
+>>>>  	if (vbuf->memory == V4L2_MEMORY_USERPTR &&
+>>>>  	    vbuf->m.userptr != buf->vbuf.m.userptr) {
+>>>>  		isp_video_buffer_cleanup(buf);
+> 
 
+
+MATRIX VISION GmbH, Talstrasse 16, DE-71570 Oppenweiler
+Registergericht: Amtsgericht Stuttgart, HRB 271090
+Geschaeftsfuehrer: Gerhard Thullner, Werner Armingeon, Uwe Furtner, Erhard Meier
