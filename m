@@ -1,135 +1,104 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr2.xs4all.nl ([194.109.24.22]:4996 "EHLO
-	smtp-vbr2.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751053Ab1HVPwd (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 22 Aug 2011 11:52:33 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Subject: Re: [PATCH 1/6 v4] V4L: add two new ioctl()s for multi-size videobuffer management
-Date: Mon, 22 Aug 2011 17:52:12 +0200
-Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Hans Verkuil <hansverk@cisco.com>,
-	Pawel Osciak <pawel@osciak.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Sakari Ailus <sakari.ailus@iki.fi>,
-	Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-References: <Pine.LNX.4.64.1108042329460.31239@axis700.grange> <Pine.LNX.4.64.1108221448030.29246@axis700.grange> <201108221742.37278.laurent.pinchart@ideasonboard.com>
-In-Reply-To: <201108221742.37278.laurent.pinchart@ideasonboard.com>
+Received: from banach.math.auburn.edu ([131.204.45.3]:56500 "EHLO
+	banach.math.auburn.edu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753734Ab1HHVBT (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 8 Aug 2011 17:01:19 -0400
+Date: Mon, 8 Aug 2011 16:06:16 -0500 (CDT)
+From: Theodore Kilgore <kilgota@banach.math.auburn.edu>
+To: Adam Baker <linux@baker-net.org.uk>
+cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Hans de Goede <hdegoede@redhat.com>,
+	workshop-2011@linuxtv.org,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: [Workshop-2011] Media Subsystem Workshop 2011
+In-Reply-To: <201108082133.00340.linux@baker-net.org.uk>
+Message-ID: <alpine.LNX.2.00.1108081543490.21785@banach.math.auburn.edu>
+References: <4E398381.4080505@redhat.com> <alpine.LNX.2.00.1108072103200.20613@banach.math.auburn.edu> <4E3FE86A.5030908@redhat.com> <201108082133.00340.linux@baker-net.org.uk>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201108221752.12950.hverkuil@xs4all.nl>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Monday, August 22, 2011 17:42:36 Laurent Pinchart wrote:
-> Hi Guennadi,
-> 
-> On Monday 22 August 2011 15:54:03 Guennadi Liakhovetski wrote:
-> > We discussed a bit more with Hans on IRC, and below is my attempt of a
-> > summary. Hans, please, correct me, if I misunderstood anything. Pawel,
-> > Sakari, Laurent: please, reply, whether you're ok with this.
-> 
-> Sakari is on holidays this week.
-> 
-> > On Mon, 22 Aug 2011, Hans Verkuil wrote:
-> > > On Monday, August 22, 2011 12:40:25 Guennadi Liakhovetski wrote:
-> > [snip]
-> > 
-> > > > It would be good if you also could have a look at my reply to this
-> > > > Pawel's mail:
-> > > > 
-> > > > http://article.gmane.org/gmane.linux.drivers.video-input-
-> > > 
-> > > infrastructure/36905
-> > > 
-> > > > and, specifically, at the vb2_parse_planes() function in it. That's my
-> > > > understanding of what would be needed, if we preserve .queue_setup()
-> > > > and use your last suggestion to include struct v4l2_format in struct
-> > > > v4l2_create_buffers.
-> > > 
-> > > vb2_parse_planes can be useful as a utility function that 'normal'
-> > > drivers can call from the queue_setup. But vb2 should not parse the
-> > > format directly, it should just pass it on to the driver through the
-> > > queue_setup function.
-> > > 
-> > > You also mention: "All frame-format fields like fourcc code, width,
-> > > height, colorspace are only input from the user. If the user didn't fill
-> > > them in, they should not be used."
-> > > 
-> > > I disagree with that. The user should fill in a full format description,
-> > > just as with S/TRY_FMT. That's the information that the driver will use
-> > > to set up the buffers. It could have weird rules like: if the fourcc is
-> > > this, and the size is less than that, then we can allocate in this
-> > > memory bank.
-> > > 
-> > > It is also consistent with REQBUFS: there too the driver uses a full
-> > > format (i.e. the last set format).
-> > > 
-> > > I would modify queue_setup to something like this:
-> > > 
-> > > int (*queue_setup)(struct vb2_queue *q, struct v4l2_format *fmt,
-> > > 
-> > >                      unsigned int *num_buffers,
-> > >                      unsigned int *num_planes, unsigned int sizes[],
-> > >                      void *alloc_ctxs[]);
-> > > 
-> > > Whether fmt is left to NULL in the reqbufs case, or whether the driver
-> > > has to call g_fmt first before calling vb2 is something that could be
-> > > decided by what is easiest to implement.
-> > 
-> > 1. VIDIOC_CREATE_BUFS passes struct v4l2_create_buffers from the user to
-> >    the kernel, in which struct v4l2_format is embedded. The user _must_
-> >    fill in .type member of struct v4l2_format. For .type ==
-> >    V4L2_BUF_TYPE_VIDEO_CAPTURE or V4L2_BUF_TYPE_VIDEO_OUTPUT .fmt.pix is
-> >    used, for .type == V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE or
-> >    V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE .fmt.pix_mp is used. In both these
-> >    cases the user _must_ fill in .width, .height, .pixelformat, .field,
-> >    .colorspace by possibly calling VIDIOC_G_FMT or VIDIOC_TRY_FMT. The
-> >    user also _may_ optionally fill in any further buffer-size related
-> >    fields, if it believes to have any special requirements to them. On
-> >    a successful return from the ioctl() .count and .index fields are
-> >    filled in by the kernel, .format stays unchanged. The user has to call
-> >    VIDIOC_QUERYBUF to retrieve specific buffer information.
-> > 
-> > 2. Videobuf2 drivers, that implement .vidioc_create_bufs() operation, call
-> >    vb2_create_bufs() with a pointer to struct v4l2_create_buffers as a
-> >    second argument. vb2_create_bufs() in turn calls the .queue_setup()
-> >    driver callback, whose prototype is modified as follows:
-> > 
-> > int (*queue_setup)(struct vb2_queue *q, const struct v4l2_format *fmt,
-> > 			unsigned int *num_buffers,
-> > 			unsigned int *num_planes, unsigned int sizes[],
-> > 			void *alloc_ctxs[]);
-> > 
-> >    with &create->format as a second argument. As pointed out above, this
-> >    struct is not modified by V4L, instead, the usual arguments 3-6 are
-> >    filled in by the driver, which are then used by vb2_create_bufs() to
-> >    call __vb2_queue_alloc().
-> > 
-> > 3. vb2_reqbufs() shall call .queue_setup() with fmt == NULL, which will be
-> >    a signal to the driver to use the current format.
-> > 
-> > 4. We keep .queue_setup(), because its removal would inevitably push a
-> >    part of the common code from vb2_reqbufs() and vb2_create_bufs() down
-> >    into drivers, thus creating code redundancy and increasing its
-> >    complexity.
-> 
-> How much common code would be pushed down to drivers ? I don't think this is a 
-> real issue. I like Pawel's proposal of removing .queue_setup() better.
 
-I still don't see what removing queue_setup will solve or improve. I'd say
-leave it as it is to keep the diff as small as possible and someone can always
-attempt to remove it later. Removing queue_setup is independent from multi-size
-videobuffer management and we should not mix the two.
 
-Regards,
+On Mon, 8 Aug 2011, Adam Baker wrote:
 
-	Hans
-
-> > You have 24 hours to object, before I proceed with the next version;-)
+> On Monday 08 August 2011, Mauro Carvalho Chehab wrote:
+> > > I will send a second reply to this message, which deals in particular
+> > > with  the list of abilities you outlined above. The point is, the
+> > > situation as to that list of abilities is more chaotic than is generally
+> > > realized. And when people are laying plans they really need to be aware
+> > > of that.
+> > 
+> > From what I understood from your proposal, "/dev/camX" would be providing a
+> > libusb-like interface, right?
+> > 
+> > If so, then, I'd say that we should just use the current libusb
+> > infrastructure. All we need is a way to lock libusb access when another
+> > driver is using the same USB interface.
+> > 
 > 
+> I think adding the required features to libusb is in general the correct 
+> approach however some locking may be needed in the kernel regardless to ensure 
+> a badly behaved libusb or libusb user can't corrupt kernel state.
 > 
+> > Hans and Adam's proposal is to actually create a "/dev/camX" node that will
+> > give fs-like access to the pictures. As the data access to the cameras
+> > generally use PTP (or a PTP-like protocol), probably one driver will
+> > handle several different types of cameras, so, we'll end by having one
+> > different driver for PTP than the V4L driver.
+> 
+> I'm not advocating this approach, my post was intended as a "straw man" to 
+> allow the advantages and disadvantages of such an approach to be considered by 
+> all concerned. I suspected it would be excessively complex but I don't know 
+> enough about the various cameras to be certain.
+
+Fair enough. Go and have a look at the code in the various subdirectories 
+of libgphoto2/camlibs, and you will see. Also consider that some of those 
+subdirectories do not support currently-supported dual-mode cameras, but 
+some of the ways of doing things that are present there could be applied 
+to any dual-mode camera in the future.
+
+A prime example of what I mean can be seen in camlibs/aox. Those cameras 
+are very old now and they probably will never be fully supported. They can 
+download plain bitmap photos, or they can use some kind of compression 
+which is not figured out. They can, as I recall, be run as webcams, too, 
+and then they will presumably use that weird compression. But what is 
+immediately interesting is that in still mode there is no allocation 
+table, or at least none is downloaded. Everything about how many images 
+and what kind of images and what size are they can be read out of a 
+downloaded allocation table on most cameras, but not on these. No. One has 
+to send a sequence of commands and parse the responses to them in order to 
+get the information.
+
+I merely mention this example in order to point up the actual complexity 
+of the situation, and the necessity not to make sweeping assumptions about 
+how the camera is supposed to work. Be assured, that already happened when 
+Gphoto was set up, and it made some of these cameras rather hard to 
+support. Why? Well, it was set up with the assumption that all still 
+cameras will do X, and Y, and Z. But be assured that someone either has or 
+will design a still camera which is not capable of doing X, nor Y, nor Z, 
+nor, even, all three of them, at least not in the way envisioned in 
+someone's grand design.
+
+OK, another example. The cameras supported in camlibs/jl2005c do not have 
+webcam ability, but someone could at any time design and market a dualmode 
+which has in stillcam mode the same severe limitation. What limitation? 
+Well, the entire memory of the camera must be dumped, or else the camera 
+jams itself. You can stop dumping in the middle of the operation, but you 
+must continue after that. Suppose that you had ten pictures on the camera 
+and you only wanted to download the first one. Then you can do that and 
+temporarily stop downloading the rest. But while exiting you have to check 
+whether the rest are downloaded or not. And if they are not, then it has 
+to be done, with the data simply thrown in the trash, and then the 
+camera's memory pointer reset before the camera is released. How, one 
+might ask, did anyone produce something so primitive? Well, it is done. 
+Perhaps the money saved thereby was at least in part devoted to producing 
+better optics for the camera. At least, one can hope so. But people did 
+produce those cameras, and people have bought them. But does anyone want 
+to reproduce the code to support this kind of crap in the kernel? And go 
+through all of the hoops required in order to fake the behavior which one 
+woulld "expect" from a "real" still camera? It has already been done in 
+camlibs/jl2005c and isn't that enough?
+
+Theodore Kilgore
