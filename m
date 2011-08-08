@@ -1,110 +1,119 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:50258 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753027Ab1HZPA4 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 26 Aug 2011 11:00:56 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Tomasz Stanislawski <t.stanislaws@samsung.com>
-Subject: Re: [PATCH 1/5] [media] v4l: add support for selection api
-Date: Fri, 26 Aug 2011 17:01:15 +0200
-Cc: linux-media@vger.kernel.org, m.szyprowski@samsung.com,
-	kyungmin.park@samsung.com, hverkuil@xs4all.nl
-References: <1314363967-6448-1-git-send-email-t.stanislaws@samsung.com> <1314363967-6448-2-git-send-email-t.stanislaws@samsung.com>
-In-Reply-To: <1314363967-6448-2-git-send-email-t.stanislaws@samsung.com>
-MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-15"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201108261701.15699.laurent.pinchart@ideasonboard.com>
+Received: from mailout1.w1.samsung.com ([210.118.77.11]:16924 "EHLO
+	mailout1.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751080Ab1HHPgf (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 8 Aug 2011 11:36:35 -0400
+Received: from eu_spt1 (mailout1.w1.samsung.com [210.118.77.11])
+ by mailout1.w1.samsung.com
+ (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14 2004))
+ with ESMTP id <0LPM0023W8OX0O@mailout1.w1.samsung.com> for
+ linux-media@vger.kernel.org; Mon, 08 Aug 2011 16:36:33 +0100 (BST)
+Received: from linux.samsung.com ([106.116.38.10])
+ by spt1.w1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14
+ 2004)) with ESMTPA id <0LPM003K28OW4N@spt1.w1.samsung.com> for
+ linux-media@vger.kernel.org; Mon, 08 Aug 2011 16:36:32 +0100 (BST)
+Date: Mon, 08 Aug 2011 17:36:32 +0200
+From: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Subject: [RFC] The clock dependencies between sensor subdevs and the host
+ interface drivers
+To: linux-media@vger.kernel.org
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Sakari Ailus <sakari.ailus@iki.fi>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	"Marek Szyprowski/Poland R&D Center-Linux (MSS)/./????"
+	<m.szyprowski@samsung.com>
+Message-id: <4E400280.7070100@samsung.com>
+MIME-version: 1.0
+Content-type: text/plain; charset=ISO-8859-1
+Content-transfer-encoding: 7BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Tomasz,
+Hi everyone,
 
-On Friday 26 August 2011 15:06:03 Tomasz Stanislawski wrote:
-> This patch introduces new api for a precise control of cropping and
-> composing features for video devices. The new ioctls are
-> VIDIOC_S_SELECTION and VIDIOC_G_SELECTION.
-> 
-> Signed-off-by: Tomasz Stanislawski <t.stanislaws@samsung.com>
-> Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
-> ---
->  drivers/media/video/v4l2-compat-ioctl32.c |    2 ++
->  drivers/media/video/v4l2-ioctl.c          |   28
-> ++++++++++++++++++++++++++++ include/linux/videodev2.h                 |  
-> 27 +++++++++++++++++++++++++++ include/media/v4l2-ioctl.h                |
->    4 ++++
->  4 files changed, 61 insertions(+), 0 deletions(-)
-> 
+Nowadays many of the V4L2 camera device drivers heavily depend on the board
+code to set up voltage supplies, clocks, and some control signals, like 'reset'
+and 'standby' signals for the sensors. Those things are often being done
+by means of the driver specific platform data callbacks.
 
-[snip]
+There has been recently quite a lot effort on ARM towards migration to the
+device tree. Unfortunately the custom platform data callbacks effectively
+prevent the boards to be booted and configured through the device tree
+bindings.
 
-> diff --git a/include/linux/videodev2.h b/include/linux/videodev2.h
-> index fca24cc..fad4fb3 100644
-> --- a/include/linux/videodev2.h
-> +++ b/include/linux/videodev2.h
-> @@ -738,6 +738,29 @@ struct v4l2_crop {
->  	struct v4l2_rect        c;
->  };
-> 
-> +/* Hints for adjustments of selection rectangle */
-> +#define V4L2_SEL_SIZE_GE	0x00000001
-> +#define V4L2_SEL_SIZE_LE	0x00000002
-> +
-> +enum v4l2_sel_target {
-> +	V4L2_SEL_CROP_ACTIVE  = 0,
-> +	V4L2_SEL_CROP_DEFAULT = 1,
-> +	V4L2_SEL_CROP_BOUNDS  = 2,
-> +	V4L2_SEL_COMPOSE_ACTIVE  = 256 + 0,
-> +	V4L2_SEL_COMPOSE_DEFAULT = 256 + 1,
-> +	V4L2_SEL_COMPOSE_BOUNDS  = 256 + 2,
-> +	V4L2_SEL_COMPOSE_PADDED  = 256 + 3,
-> +};
-> +
-> +struct v4l2_selection {
-> +	enum v4l2_buf_type      type;
-> +	enum v4l2_sel_target	target;
-> +	__u32                   flags;
-> +	struct v4l2_rect        r;
+The following is usually handled in the board files:
 
-Maybe rect instead of r ? Lines such as
+1) sensor/frontend power supply
+2) sensor's master clock (provided by the host device)
+3) reset and standby signals (GPIO)
+4) other signals applied by the host processor to the sensor device, e.g.
+   I2C level shifter enable, etc.
 
-	p->c = s.r;
+For 1), the regulator API should possibly be used. It should be applicable
+for most, if not all cases.
+3) and 4) are a bit hard as there might be huge differences across boards 
+as how many GPIOs are used, what are the required delays between changes
+of their states, etc. Still we could try to find a common description of the
+behaviour and pass such information to the drivers.  
 
-in patch 3/5 look a bit cryptic.
+For 2) I'd like to propose adding a callback to struct v4l2_device, for
+instance as in the below patch. The host driver would implement such an
+operation and the sensor subdev driver would use it in its s_power op.
+ 
+If there is more than one output clock at the host, to distinguish which
+clock applies to a given sensor the host driver could be passed the
+assignment information in it's platform data.
 
-> +	__u32                   reserved[9];
-> +};
-> +
-> +
->  /*
->   *      A N A L O G   V I D E O   S T A N D A R D
->   */
+AFAICS in the omap3isp case the clock control is done through the board
+code. I wonder what prevents making direct calls between the drivers,
+as the sensor subdevs call a board code callback there, which in turn only
+calls into the omap3isp driver.
+What am I missing ?
 
-[snip]
+In order to support fully DT based builds it would be desired to change
+that method so the board specific callbacks in platform data structures
+are avoided.
 
-> diff --git a/include/media/v4l2-ioctl.h b/include/media/v4l2-ioctl.h
-> index dd9f1e7..2c0396b 100644
-> --- a/include/media/v4l2-ioctl.h
-> +++ b/include/media/v4l2-ioctl.h
-> @@ -194,6 +194,10 @@ struct v4l2_ioctl_ops {
->  					struct v4l2_crop *a);
->  	int (*vidioc_s_crop)           (struct file *file, void *fh,
->  					struct v4l2_crop *a);
-> +	int (*vidioc_g_selection)      (struct file *file, void *fh,
-> +					struct v4l2_selection *a);
-> +	int (*vidioc_s_selection)      (struct file *file, void *fh,
-> +					struct v4l2_selection *a);
 
-Why 'a' ? Don't blindly copy past mistakes :-) 'sel' would be a more 
-descriptive parameter name.
+diff --git a/include/media/v4l2-device.h b/include/media/v4l2-device.h
+index d61febf..08b6699 100644
+--- a/include/media/v4l2-device.h
++++ b/include/media/v4l2-device.h
+@@ -36,6 +36,15 @@
+ 
+ struct v4l2_ctrl_handler;
+ 
++struct v4l2_device_ops {
++	/* notify callback called by some sub-devices */
++	void (*notify)(struct v4l2_subdev *sd,
++			unsigned int notification, void *arg);
++	/* clock control callback */
++	void (*set_clock)(struct v4l2_subdev *sd,
++			  u_long *frequency, bool enable);
++};
++
+ struct v4l2_device {
+ 	/* dev->driver_data points to this struct.
+ 	   Note: dev might be NULL if there is no parent device
+@@ -51,9 +60,8 @@ struct v4l2_device {
+ 	spinlock_t lock;
+ 	/* unique device name, by default the driver name + bus ID */
+ 	char name[V4L2_DEVICE_NAME_SIZE];
+-	/* notify callback called by some sub-devices. */
+-	void (*notify)(struct v4l2_subdev *sd,
+-			unsigned int notification, void *arg);
++	/* ops for sub-devices */
++	struct v4l2_device_ops ops;
+ 	/* The control handler. May be NULL. */
+ 	struct v4l2_ctrl_handler *ctrl_handler;
+ 	/* Device's priority state */
 
->  	/* Compression ioctls */
->  	int (*vidioc_g_jpegcomp)       (struct file *file, void *fh,
->  					struct v4l2_jpegcompression *a);
 
--- 
+Comments, critics ?
+
+
 Regards,
-
-Laurent Pinchart
+-- 
+Sylwester Nawrocki
+Samsung Poland R&D Center
