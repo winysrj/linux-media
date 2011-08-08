@@ -1,57 +1,52 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout1.w1.samsung.com ([210.118.77.11]:50001 "EHLO
-	mailout1.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752848Ab1H3F0n (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 30 Aug 2011 01:26:43 -0400
-Received: from euspt2 (mailout1.w1.samsung.com [210.118.77.11])
- by mailout1.w1.samsung.com
- (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14 2004))
- with ESMTP id <0LQQ00K4J74GUN@mailout1.w1.samsung.com> for
- linux-media@vger.kernel.org; Tue, 30 Aug 2011 06:26:40 +0100 (BST)
-Received: from linux.samsung.com ([106.116.38.10])
- by spt2.w1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14
- 2004)) with ESMTPA id <0LQQ00I0H74G5Y@spt2.w1.samsung.com> for
- linux-media@vger.kernel.org; Tue, 30 Aug 2011 06:26:40 +0100 (BST)
-Date: Tue, 30 Aug 2011 07:24:02 +0200
-From: Marek Szyprowski <m.szyprowski@samsung.com>
-Subject: RE: videobuf2 user pointer vma release seqeuence
-In-reply-to: <CAOQL7V_6bjnsG9QwhwA7+DNOfq3ugSH47ybiHg=jKw0mB__TUw@mail.gmail.com>
-To: "'Tang, Yu'" <ytang5@gmail.com>, linux-media@vger.kernel.org,
-	pawel@osciak.com, g.liakhovetski@gmx.de
-Message-id: <00c901cc66d5$07692420$163b6c60$%szyprowski@samsung.com>
-MIME-version: 1.0
-Content-type: text/plain; charset=us-ascii
-Content-language: pl
-Content-transfer-encoding: 7BIT
-References: <CAOQL7V_6bjnsG9QwhwA7+DNOfq3ugSH47ybiHg=jKw0mB__TUw@mail.gmail.com>
+Received: from mx1.redhat.com ([209.132.183.28]:7019 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752347Ab1HHP57 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 8 Aug 2011 11:57:59 -0400
+Message-ID: <4E40076D.2030303@redhat.com>
+Date: Mon, 08 Aug 2011 11:57:33 -0400
+From: Jarod Wilson <jarod@redhat.com>
+MIME-Version: 1.0
+To: Anssi Hannula <anssi.hannula@iki.fi>
+CC: Dmitry Torokhov <dmitry.torokhov@gmail.com>,
+	linux-media@vger.kernel.org, linux-input@vger.kernel.org,
+	linux-kernel@vger.kernel.org
+Subject: Re: [PATCH 5/7] [media] ati_remote: add keymap for Medion X10 RF
+ remote
+References: <4E3DB2C2.7040104@iki.fi> <1312669093-23771-1-git-send-email-anssi.hannula@iki.fi> <1312669093-23771-6-git-send-email-anssi.hannula@iki.fi> <20110808055754.GB7329@core.coreip.homeip.net> <4E3FF355.6090807@iki.fi>
+In-Reply-To: <4E3FF355.6090807@iki.fi>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello,
-
-On Tuesday, August 30, 2011 3:50 AM Tang, Yu wrote:
-
-> As we are trying to adapt to videobuf2, we found here is the potential
-> issue with user pointer VMA release sequence. It is not aligned with 
-> munmap syscalls behavior, (mm/mmap, remove_vma). 
+Anssi Hannula wrote:
+> On 08.08.2011 08:57, Dmitry Torokhov wrote:
+>> On Sun, Aug 07, 2011 at 01:18:11AM +0300, Anssi Hannula wrote:
+>>> Add keymap for the Medion X10 RF remote which uses the ati_remote
+>>> driver, and default to it based on the usb id.
+>> Since rc-core supports loading custom keytmaps should we ass medion
+>> keymap here?
+>>
+>> I think we should keep the original keymap to avoid regressions, but new
+>> keymaps should be offloaded to udev.
 >
-> In the current vb2_put_vma implementation, it will release the file first,
-> then release VMA. If the file handle is closed, and vma is munmap by user
-> space, then the file ref count could reach 0 and be freed before the VMA 
-> vm_ops->vm_close is called while vm_close is typically assume the file is
-> valid when it's called. 
+> Well, I simply followed the convention, as all other remotes under
+> media/ have the default table in-kernel.
 >
-> If it's agreed as valid concern, I will submit the fix as below soon. 
-> Thanks!
+> I'm not against putting it off-kernel, but in that case the same should
+> be done for all new media devices. Is that the plan?
 
-You are definitely right! Thanks for pointing this bug! I will add your
-patch to my videobuf2 fixes branch.
+That's the long-term plan, but not every distro has a sufficiently new 
+enough v4l-utils and ir-keytable with udev rules to load keymaps, so 
+we've been adding default remotes in-kernel and userspace (effectively 
+meaning duplicated keymap loads if the user does have ir-keytable with 
+udev rules, but meh). I'd say add it for now, and when we get to the 
+point of v4l-utils ubiquity, we can drop this along with all the other 
+in-kernel rc keymaps.
 
-Best regards
 -- 
-Marek Szyprowski
-Samsung Poland R&D Center
-
+Jarod Wilson
+jarod@redhat.com
 
 
