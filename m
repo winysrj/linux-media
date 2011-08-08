@@ -1,162 +1,112 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.17.8]:53885 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753805Ab1HXSmF (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 24 Aug 2011 14:42:05 -0400
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Hans Verkuil <hverkuil@xs4all.nl>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Pawel Osciak <pawel@osciak.com>,
-	Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Marek Szyprowski <m.szyprowski@samsung.com>
-Subject: [PATCH 1/7 v5] V4L: add a new videobuf2 buffer state VB2_BUF_STATE_PREPARED
-Date: Wed, 24 Aug 2011 20:41:26 +0200
-Message-Id: <1314211292-10414-2-git-send-email-g.liakhovetski@gmx.de>
-In-Reply-To: <1314211292-10414-1-git-send-email-g.liakhovetski@gmx.de>
-References: <1314211292-10414-1-git-send-email-g.liakhovetski@gmx.de>
+Received: from smtp-vbr16.xs4all.nl ([194.109.24.36]:3246 "EHLO
+	smtp-vbr16.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751464Ab1HHGXI convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 8 Aug 2011 02:23:08 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+Subject: Re: Media Subsystem Workshop 2011
+Date: Mon, 8 Aug 2011 08:22:50 +0200
+Cc: workshop-2011@linuxtv.org,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+References: <4E398381.4080505@redhat.com> <4E398940.4020409@redhat.com>
+In-Reply-To: <4E398940.4020409@redhat.com>
+MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="utf-8"
+Content-Transfer-Encoding: 8BIT
+Message-Id: <201108080822.50912.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch prepares for a better separation of the buffer preparation
-stage.
+On Wednesday, August 03, 2011 19:45:36 Mauro Carvalho Chehab wrote:
+> Em 03-08-2011 14:21, Mauro Carvalho Chehab escreveu:
+> > As already announced, we're continuing the planning for this year's 
+> > media subsystem workshop.
+> > 
+> > To avoid overriding the main ML with workshop-specifics, a new ML
+> > was created:
+> > 	workshop-2011@linuxtv.org
+> > 
+> > I'll also be updating the event page at:
+> > 	http://www.linuxtv.org/events.php
+> > 
+> > Over the one-year period, we had 242 developers contributing to the
+> > subsystem. Thank you all for that! Unfortunately, the space there is
+> > limited, and we can't affort to have all developers there. 
+> > 
+> > Due to that some criteria needed to be applied to create a short list
+> > of people that were invited today to participate. 
+> > 
+> > The main criteria were to select the developers that did significant 
+> > contributions for the media subsystem over the last 1 year period, 
+> > measured in terms of number of commits and changed lines to the kernel
+> > drivers/media tree.
+> > 
+> > As the used criteria were the number of kernel patches, userspace-only 
+> > developers weren't included on the invitations. It would be great to 
+> > have there open source application developers as well, in order to allow 
+> > us to tune what's needed from applications point of view. 
+> > 
+> > So, if you're leading the development of some V4L and/or DVB open-source 
+> > application and wants to be there, or you think you can give good 
+> > contributions for helping to improve the subsystem, please feel free 
+> > to send us an email.
+> > 
+> > With regards to the themes, we're received, up to now, the following 
+> > proposals:
+> > 
+> > ---------------------------------------------------------+----------------------
+> > THEME                                                    | Proposed-by:
+> > ---------------------------------------------------------+----------------------
+> > Buffer management: snapshot mode                         | Guennadi
+> > Rotation in webcams in tablets while streaming is active | Hans de Goede
+> > V4L2 Spec – ambiguities fix                              | Hans Verkuil
+> > V4L2 compliance test results                             | Hans Verkuil
+> > Media Controller presentation (probably for Wed, 25)     | Laurent Pinchart
+> > Workshop summary presentation on Wed, 25                 | Mauro Carvalho Chehab
+> 
+> In time: it should be, instead Tue Oct, 25. Sorry for the typo.
 
-Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Cc: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: Marek Szyprowski <m.szyprowski@samsung.com>
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
-Cc: Pawel Osciak <pawel@osciak.com>
-Cc: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
----
- drivers/media/video/videobuf2-core.c |   59 +++++++++++++++++++++------------
- include/media/videobuf2-core.h       |    2 +
- 2 files changed, 39 insertions(+), 22 deletions(-)
+So the presentation and summary are on Tuesday, but when is the workshop
+itself? Is it on the Monday or the Sunday?
 
-diff --git a/drivers/media/video/videobuf2-core.c b/drivers/media/video/videobuf2-core.c
-index 3015e60..fb7a3ac 100644
---- a/drivers/media/video/videobuf2-core.c
-+++ b/drivers/media/video/videobuf2-core.c
-@@ -333,6 +333,7 @@ static int __fill_v4l2_buffer(struct vb2_buffer *vb, struct v4l2_buffer *b)
- 		b->flags |= V4L2_BUF_FLAG_DONE;
- 		break;
- 	case VB2_BUF_STATE_DEQUEUED:
-+	case VB2_BUF_STATE_PREPARED:
- 		/* nothing */
- 		break;
- 	}
-@@ -817,6 +818,31 @@ static void __enqueue_in_driver(struct vb2_buffer *vb)
- 	q->ops->buf_queue(vb);
- }
- 
-+static int __buf_prepare(struct vb2_buffer *vb, struct v4l2_buffer *b)
-+{
-+	struct vb2_queue *q = vb->vb2_queue;
-+	int ret;
-+
-+	switch (q->memory) {
-+	case V4L2_MEMORY_MMAP:
-+		ret = __qbuf_mmap(vb, b);
-+		break;
-+	case V4L2_MEMORY_USERPTR:
-+		ret = __qbuf_userptr(vb, b);
-+		break;
-+	default:
-+		WARN(1, "Invalid queue type\n");
-+		ret = -EINVAL;
-+	}
-+
-+	if (!ret)
-+		ret = call_qop(q, buf_prepare, vb);
-+	if (ret)
-+		dprintk(1, "qbuf: buffer preparation failed: %d\n", ret);
-+
-+	return ret;
-+}
-+
- /**
-  * vb2_qbuf() - Queue a buffer from userspace
-  * @q:		videobuf2 queue
-@@ -826,8 +852,8 @@ static void __enqueue_in_driver(struct vb2_buffer *vb)
-  * Should be called from vidioc_qbuf ioctl handler of a driver.
-  * This function:
-  * 1) verifies the passed buffer,
-- * 2) calls buf_prepare callback in the driver (if provided), in which
-- *    driver-specific buffer initialization can be performed,
-+ * 2) if necessary, calls buf_prepare callback in the driver (if provided), in
-+ *    which driver-specific buffer initialization can be performed,
-  * 3) if streaming is on, queues the buffer in driver by the means of buf_queue
-  *    callback for processing.
-  *
-@@ -837,7 +863,7 @@ static void __enqueue_in_driver(struct vb2_buffer *vb)
- int vb2_qbuf(struct vb2_queue *q, struct v4l2_buffer *b)
- {
- 	struct vb2_buffer *vb;
--	int ret = 0;
-+	int ret;
- 
- 	if (q->fileio) {
- 		dprintk(1, "qbuf: file io in progress\n");
-@@ -866,29 +892,18 @@ int vb2_qbuf(struct vb2_queue *q, struct v4l2_buffer *b)
- 		return -EINVAL;
- 	}
- 
--	if (vb->state != VB2_BUF_STATE_DEQUEUED) {
-+	switch (vb->state) {
-+	case VB2_BUF_STATE_DEQUEUED:
-+		ret = __buf_prepare(vb, b);
-+		if (ret)
-+			return ret;
-+	case VB2_BUF_STATE_PREPARED:
-+		break;
-+	default:
- 		dprintk(1, "qbuf: buffer already in use\n");
- 		return -EINVAL;
- 	}
- 
--	if (q->memory == V4L2_MEMORY_MMAP)
--		ret = __qbuf_mmap(vb, b);
--	else if (q->memory == V4L2_MEMORY_USERPTR)
--		ret = __qbuf_userptr(vb, b);
--	else {
--		WARN(1, "Invalid queue type\n");
--		return -EINVAL;
--	}
--
--	if (ret)
--		return ret;
--
--	ret = call_qop(q, buf_prepare, vb);
--	if (ret) {
--		dprintk(1, "qbuf: buffer preparation failed\n");
--		return ret;
--	}
--
- 	/*
- 	 * Add to the queued buffers list, a buffer will stay on it until
- 	 * dequeued in dqbuf.
-diff --git a/include/media/videobuf2-core.h b/include/media/videobuf2-core.h
-index f87472a..65946c5 100644
---- a/include/media/videobuf2-core.h
-+++ b/include/media/videobuf2-core.h
-@@ -106,6 +106,7 @@ enum vb2_fileio_flags {
- /**
-  * enum vb2_buffer_state - current video buffer state
-  * @VB2_BUF_STATE_DEQUEUED:	buffer under userspace control
-+ * @VB2_BUF_STATE_PREPARED:	buffer prepared in videobuf and by the driver
-  * @VB2_BUF_STATE_QUEUED:	buffer queued in videobuf, but not in driver
-  * @VB2_BUF_STATE_ACTIVE:	buffer queued in driver and possibly used
-  *				in a hardware operation
-@@ -117,6 +118,7 @@ enum vb2_fileio_flags {
-  */
- enum vb2_buffer_state {
- 	VB2_BUF_STATE_DEQUEUED,
-+	VB2_BUF_STATE_PREPARED,
- 	VB2_BUF_STATE_QUEUED,
- 	VB2_BUF_STATE_ACTIVE,
- 	VB2_BUF_STATE_DONE,
--- 
-1.7.2.5
+It would be nice to know so I can plan my stay in Prague and my planning
+with the other conferences going on at the same time.
 
+Regards,
+
+	Hans
+
+> 
+> > ---------------------------------------------------------+----------------------
+> > 
+> > From my side, I also have the following proposals:
+> > 
+> > 1) DVB API consistency - what to do with the audio and video DVB API's 
+> > that conflict with V4L2 and (somewhat) with ALSA?
+> > 
+> > 2) Multi FE support - How should we handle a frontend with multiple 
+> > delivery systems like DRX-K frontend?
+> > 
+> > 3) videobuf2 - migration plans for legacy drivers
+> > 
+> > 4) NEC IR decoding - how should we handle 32, 24, and 16 bit protocol
+> > variations?
+> > 
+> > Even if you won't be there, please feel free to propose themes for 
+> > discussion, in order to help us to improve even more the subsystem.
+> > 
+> > Thank you!
+> > Mauro
+> 
+> Rémi, thanks for pointing it!
+> 
+> Thanks!
+> Mauro
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
+> 
