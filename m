@@ -1,124 +1,68 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:34832 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752637Ab1H3N0f (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 30 Aug 2011 09:26:35 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Subject: Re: [PATCH] media: Add support for arbitrary resolution for the ov5642 camera driver
-Date: Tue, 30 Aug 2011 15:26:56 +0200
-Cc: Bastian Hecht <hechtb@googlemail.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Sakari Ailus <sakari.ailus@iki.fi>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-References: <alpine.DEB.2.02.1108171551040.17540@ipanema> <201108301446.22411.laurent.pinchart@ideasonboard.com> <Pine.LNX.4.64.1108301455120.19151@axis700.grange>
-In-Reply-To: <Pine.LNX.4.64.1108301455120.19151@axis700.grange>
+Received: from banach.math.auburn.edu ([131.204.45.3]:42873 "EHLO
+	banach.math.auburn.edu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752196Ab1HHUiJ (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 8 Aug 2011 16:38:09 -0400
+Date: Mon, 8 Aug 2011 15:43:09 -0500 (CDT)
+From: Theodore Kilgore <kilgota@banach.math.auburn.edu>
+To: Adam Baker <linux@baker-net.org.uk>
+cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Hans de Goede <hdegoede@redhat.com>,
+	workshop-2011@linuxtv.org,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: [Workshop-2011] Media Subsystem Workshop 2011
+In-Reply-To: <201108082124.47789.linux@baker-net.org.uk>
+Message-ID: <alpine.LNX.2.00.1108081534300.21785@banach.math.auburn.edu>
+References: <4E398381.4080505@redhat.com> <alpine.LNX.2.00.1108081423020.21636@banach.math.auburn.edu> <4E4041EF.8020702@redhat.com> <201108082124.47789.linux@baker-net.org.uk>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201108301526.56431.laurent.pinchart@ideasonboard.com>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
 
-Could you please comment on this ? In a nutshell (and from my biased point of 
-view), the question is "can cropping be configured using S_FMT instead of 
-S_CROP ?". The answer is of course no :-)
 
-On Tuesday 30 August 2011 15:13:25 Guennadi Liakhovetski wrote:
-> On Tue, 30 Aug 2011, Laurent Pinchart wrote:
-> > On Tuesday 30 August 2011 10:55:08 Guennadi Liakhovetski wrote:
-> > > On Mon, 29 Aug 2011, Laurent Pinchart wrote:
-> > > > On Monday 29 August 2011 14:34:53 Guennadi Liakhovetski wrote:
-> > > > > On Mon, 29 Aug 2011, Laurent Pinchart wrote:
-> > > > > > On Monday 29 August 2011 14:18:50 Guennadi Liakhovetski wrote:
-> > > > > > > On Sun, 28 Aug 2011, Laurent Pinchart wrote:
-> > > > > > > 
-> > > > > > > [snip]
-> > > > > > > 
-> > > > > > > > > @@ -774,17 +839,27 @@ static int ov5642_s_fmt(struct
-> > > > > > > > > v4l2_subdev *sd,
-> > > > > > > > > 
-> > > > > > > > >  	ov5642_try_fmt(sd, mf);
-> > > > > > > > > 
-> > > > > > > > > +	priv->out_size.width		= mf->width;
-> > > > > > > > > +	priv->out_size.height		= mf->height;
-> > > > > > > > 
-> > > > > > > > It looks like to me (but I may be wrong) that you achieve
-> > > > > > > > different resolutions using cropping, not scaling. If that's
-> > > > > > > > correct you should implement s_crop support and refuse
-> > > > > > > > changing the resolution through s_fmt.
-> > > > > > > 
-> > > > > > > As the patch explains (I think) on several occasions, currently
-> > > > > > > only the 1:1 scale is supported, and it was our deliberate
-> > > > > > > choice to implement this using the scaling API
-> > > > > > 
-> > > > > > If you implement cropping, you should use the crop API, not the
-> > > > > > scaling API
-> > > > > > 
-> > > > > > :-)
-> > > > > 
-> > > > > It's changing both - input and output sizes.
-> > > > 
-> > > > Sure, but it's still cropping.
+On Mon, 8 Aug 2011, Adam Baker wrote:
+
+> On Monday 08 August 2011, Mauro Carvalho Chehab wrote:
 > > > 
-> > > Why? Isn't it a matter of the PoV?
+> > >
+> > > Well, in practice the "fork" would presumably be carried out by yours 
+> > > truly. Presumably with the advice and help of concerned parties. too. 
+> > > Since I am involved on both the kernel side and the libgphoto2 side of
+> > > the  support for the same cameras, it would certainly shorten the lines
+> > > of communication at the very least. Therefore this is not infeasible.
 > > 
-> > No it isn't. Cropping is cropping, regardless of how you look at it.
-> > 
-> > > It changes the output window, i.e., implements S_FMT. And S_FMT is by
-> > > far more important / widely used than S_CROP. Refusing to change the
-> > > output window and always just returning the == crop size wouldn't be
-> > > polite, IMHO.
-> > 
-> > If your sensor has no scaler the output size is equal to the crop
-> > rectangle. There's no way around that, and there's no reason to have the
-> > driver behave otherwise.
-> > 
-> > > Don't think many users would guess to use S_CROP.
-> > 
-> > Users who want to crop use S_CROP.
-> > 
-> > > Standard applications a la mplayer don't use S_CROP at all.
-> > 
-> > That's because they don't want to crop. mplayer expects the driver to
-> > perform scaling when it calls S_FMT, and users won't be happy if you
-> > crop instead.
+> > Forking the code just because we have something "special" is the wrong
+> > thing to do (TM). I would not like to fork V4L core code due to some
+> > special need, but instead to add some glue there to cover the extra case.
+> > Maintaining a fork is bad in long term, as the same fixes/changes will
+> > likely be needed on both copies.
 > 
-> So, here's my opinion, based on the V4L2 spec. I'm going to base on this
-> and pull this patch into my tree and let Mauro decide, unless he expresses
-> his negative opinion before that.
-> 
-> The spec defines S_FMT as an operation to set the output (in case of a
-> capture device) frame format. Which this driver clearly does. The output
-> format should be set, using scaling, however, if the driver or the
-> hardware are unable to preserve the exact same input rectangle to satisfy
-> the request, the driver is also allowed to change the cropping rectangle
-> _as much as necessary_ - S_FMT takes precedence. This has been discussed
-> before, and the conclusion was - of the two geometry calls (S_FMT and
-> S_CROP) the last call overrides previous setting of the opposite geometry.
-> 
-> It also defines S_CROP as an operation to set the cropping rectangle. The
-> driver is also allowed to change the output window, if it cannot be
-> preserved. Similarly, the last call wins.
-> 
-> Ideally in this situation I would implement both S_CROP and S_FMT and let
-> both change the opposite window as needed, which in this case means set it
-> equal to the one, being configured. Since most applications are primarily
-> interested in the S_FMT call to configure their user interface, I find it
-> a wrong approach to refuse S_FMT and always return the current cropping
-> rectangle. In such a case the application will possibly be stuck with some
-> default output rectangle, because it certainly will _not_ guess to use
-> S_CROP to configure it. Whereas if we implement S_FMT with a constant 1:1
-> scale the application will get the required UI size. I agree, that
-> changing the view area, while changing the output window, is not exactly
-> what the user expects, but it's better than presenting all applications
-> with a fixed, possibly completely unsuitable, UI window.
+> Unfortunately there is some difficulty with libusb in that respect. libgphoto 
+> relies upon libusb-0.1 becuase it  is cross platform and Win32 support in 
+> libusb-1.0 is only just being integrated. The libusb developers consider the 
+> libusb-0.1 API frozen and are not willing to extend it to address our problem. 
+> libusb doesn't expose the file descriptor it uses to talk to the underlying 
+> device so it is hard to extend the interface without forking libusb (The best 
+> hope I can think of at the moment is to get the distros to accept a patch for 
+> it to add the extra required API call(s) and for libgphoto to use the extra 
+> features in that patch if it detects it is supported at compile time).
 
--- 
-Regards,
+Adam,
 
-Laurent Pinchart
+Yes, you are quite correct about this. I was just on the way out of the 
+house and remembered that this problem exists, decided to re-connect and 
+add this point to the witches' brew that we are working on. 
+
+What struck me was not the Windows support, though, it was the Mac 
+support. And a number of people run Gphoto stuff on Mac, too. That just 
+reinforces your point, of course. Gphoto is explicitly cross-platform. It 
+is developed on Linux but it is supposed to compile on anyone's C compiler 
+and run on any hardware platform or operating system which has available 
+the minimal support require to make it work.
+
+You are right. We, basically, can not screw with the internals of 
+libgphoto2. At the outside, one can not go to the point where any changes 
+would break the support for other platforms.
+
+Theodore Kilgore
