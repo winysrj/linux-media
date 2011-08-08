@@ -1,300 +1,134 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-yi0-f46.google.com ([209.85.218.46]:55487 "EHLO
-	mail-yi0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750948Ab1H2R25 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 29 Aug 2011 13:28:57 -0400
-Received: by yie30 with SMTP id 30so3713675yie.19
-        for <linux-media@vger.kernel.org>; Mon, 29 Aug 2011 10:28:56 -0700 (PDT)
+Received: from moutng.kundenserver.de ([212.227.17.8]:60020 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751217Ab1HHR3S (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 8 Aug 2011 13:29:18 -0400
+Date: Mon, 8 Aug 2011 19:29:13 +0200 (CEST)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+cc: Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Sakari Ailus <sakari.ailus@iki.fi>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	"Marek Szyprowski/Poland R&D Center-Linux (MSS)/./????"
+	<m.szyprowski@samsung.com>
+Subject: Re: [RFC] The clock dependencies between sensor subdevs and the host
+ interface drivers
+In-Reply-To: <201108081744.37953.laurent.pinchart@ideasonboard.com>
+Message-ID: <alpine.DEB.2.00.1108081917340.5873@axis700.grange>
+References: <4E400280.7070100@samsung.com> <201108081744.37953.laurent.pinchart@ideasonboard.com>
 MIME-Version: 1.0
-Date: Mon, 29 Aug 2011 19:28:56 +0200
-Message-ID: <CA+2YH7tqJM+ZghfejvVXwSqY5BkU18Lzq0OoKUKWZFyAEsDpYg@mail.gmail.com>
-Subject: [PATCH/WIP] tvp5150: add v4l2 subdev pad ops
-From: Enrico <ebutera@users.berlios.de>
-To: linux-media@vger.kernel.org
-Cc: Enric Balletbo i Serra <eballetbo@iseebcn.com>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Content-Type: multipart/mixed; boundary=20cf3040ec04d379ba04aba83a23
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
---20cf3040ec04d379ba04aba83a23
-Content-Type: text/plain; charset=ISO-8859-1
+Hi Laurent
 
-Hi,
+On Mon, 8 Aug 2011, Laurent Pinchart wrote:
 
-attached is a patch (i tested it with kernel 3.1rc3 but applies to
-2.6.39 and 3.0 too) that makes the driver register with omap3-isp.
-Copied mostly from mt9v032.c.
+> Hi Sylwester,
+> 
+> On Monday 08 August 2011 17:36:32 Sylwester Nawrocki wrote:
+> > Hi everyone,
+> > 
+> > Nowadays many of the V4L2 camera device drivers heavily depend on the board
+> > code to set up voltage supplies, clocks, and some control signals, like
+> > 'reset' and 'standby' signals for the sensors. Those things are often
+> > being done by means of the driver specific platform data callbacks.
+> > 
+> > There has been recently quite a lot effort on ARM towards migration to the
+> > device tree. Unfortunately the custom platform data callbacks effectively
+> > prevent the boards to be booted and configured through the device tree
+> > bindings.
+> > 
+> > The following is usually handled in the board files:
+> > 
+> > 1) sensor/frontend power supply
+> > 2) sensor's master clock (provided by the host device)
+> > 3) reset and standby signals (GPIO)
+> > 4) other signals applied by the host processor to the sensor device, e.g.
+> >    I2C level shifter enable, etc.
+> > 
+> > For 1), the regulator API should possibly be used. It should be applicable
+> > for most, if not all cases.
+> > 3) and 4) are a bit hard as there might be huge differences across boards
+> > as how many GPIOs are used, what are the required delays between changes
+> > of their states, etc. Still we could try to find a common description of
+> > the behaviour and pass such information to the drivers.
+> > 
+> > For 2) I'd like to propose adding a callback to struct v4l2_device, for
+> > instance as in the below patch. The host driver would implement such an
+> > operation and the sensor subdev driver would use it in its s_power op.
+> 
+> What about using a struct clk object ? There has been lots of work in the ARM 
+> tree to make struct clk generic. I'm not sure if all patches have been pushed 
+> to mainline yet, but I think that's the direction we should follow.
+> 
+> > If there is more than one output clock at the host, to distinguish which
+> > clock applies to a given sensor the host driver could be passed the
+> > assignment information in it's platform data.
+> > 
+> > AFAICS in the omap3isp case the clock control is done through the board
+> > code. I wonder what prevents making direct calls between the drivers,
+> > as the sensor subdevs call a board code callback there, which in turn only
+> > calls into the omap3isp driver.
+> > What am I missing ?
+> 
+> We go through board code to remove dependencies between drivers. My goal is to 
+> implement this through struct clk, but I haven't had time to work on that yet.
 
-/dev/video* and v4l-subdev* are registered correctly.
+Is this now a different topic from what I have proposed in mbus 
+configuration RFC initially or have you changed your opinion?
 
-Video capture is still NOT working but i think i'm close to make it
-work so some help is welcome!
+Thanks
+Guennadi
 
-I'm testing it on an IGEP board with tvp5151 on expansion board.
+> > In order to support fully DT based builds it would be desired to change
+> > that method so the board specific callbacks in platform data structures
+> > are avoided.
+> > 
+> > 
+> > diff --git a/include/media/v4l2-device.h b/include/media/v4l2-device.h
+> > index d61febf..08b6699 100644
+> > --- a/include/media/v4l2-device.h
+> > +++ b/include/media/v4l2-device.h
+> > @@ -36,6 +36,15 @@
+> > 
+> >  struct v4l2_ctrl_handler;
+> > 
+> > +struct v4l2_device_ops {
+> > +	/* notify callback called by some sub-devices */
+> > +	void (*notify)(struct v4l2_subdev *sd,
+> > +			unsigned int notification, void *arg);
+> > +	/* clock control callback */
+> > +	void (*set_clock)(struct v4l2_subdev *sd,
+> > +			  u_long *frequency, bool enable);
+> > +};
+> > +
+> >  struct v4l2_device {
+> >  	/* dev->driver_data points to this struct.
+> >  	   Note: dev might be NULL if there is no parent device
+> > @@ -51,9 +60,8 @@ struct v4l2_device {
+> >  	spinlock_t lock;
+> >  	/* unique device name, by default the driver name + bus ID */
+> >  	char name[V4L2_DEVICE_NAME_SIZE];
+> > -	/* notify callback called by some sub-devices. */
+> > -	void (*notify)(struct v4l2_subdev *sd,
+> > -			unsigned int notification, void *arg);
+> > +	/* ops for sub-devices */
+> > +	struct v4l2_device_ops ops;
+> >  	/* The control handler. May be NULL. */
+> >  	struct v4l2_ctrl_handler *ctrl_handler;
+> >  	/* Device's priority state */
+> 
+> -- 
+> Regards,
+> 
+> Laurent Pinchart
+> 
 
-Issues i see:
-
-root@igep0020:~# ./media-ctl2 --set-format '"tvp5150 2-005c":0 [UYVY 720x628]'
-Setting up format UYVY 720x628 on pad tvp5150 2-005c/0
-Format set: UYVY 720x628
-Setting up format UYVY 720x628 on pad OMAP3 ISP CCDC/0
-Format set: SGRBG10 720x628
-
-and
-
-root@igep0020:~# gst-launch -ve v4l2src device=/dev/video2
-queue-size=1 num-buffers=250 ! fakesink
-Setting pipeline to PAUSED ...
-ERROR: Pipeline doesn't want to pause.
-ERROR: from element /GstPipeline:pipeline0/GstV4l2Src:v4l2src0: Failed
-getting controls attributes on device '/dev/video2'.
-Additional debug info:
-v4l2_calls.c(267): gst_v4l2_fill_lists ():
-/GstPipeline:pipeline0/GstV4l2Src:v4l2src0:
-Failed querying control 9963776 on device '/dev/video2'. (25 -
-Inappropriate ioctl for device)
-Setting pipeline to NULL ...
-Freeing pipeline ...
-
-
-Maybe the gstreamer issue could be caused by not being compiled with
-the proper kernel headers.
-
-media-ctl is compiled from latest ideasonboard git repo, i admit i am
-not that sure that i compiled it with correct kernel headers. I don't
-know why but every format i try to set on CCDC is always set to
-SGRBG10.
-
-I'm not sure that some parameters are correct (like V4L2_FILED_NONE,
-colorspace, pixel format...), so i need someone to take a look. Are
-the subdev_internal_ops (registered, open, close) needed?
-
-I know the patch is not properly formatted for submission, i'll do
-that when capture will work.
-
-Thanks,
-
-Enrico
-
---20cf3040ec04d379ba04aba83a23
-Content-Type: text/x-patch; charset=US-ASCII; name="tvp5150-pad-ops-v1.diff"
-Content-Disposition: attachment; filename="tvp5150-pad-ops-v1.diff"
-Content-Transfer-Encoding: base64
-X-Attachment-Id: f_grxpt1t10
-
-ZGlmZiAtLWdpdCBhL2RyaXZlcnMvbWVkaWEvdmlkZW8vdHZwNTE1MC5jIGIvZHJpdmVycy9tZWRp
-YS92aWRlby90dnA1MTUwLmMKaW5kZXggZTkyN2QyNS4uYmYzNGUxMSAxMDA2NDQKLS0tIGEvZHJp
-dmVycy9tZWRpYS92aWRlby90dnA1MTUwLmMKKysrIGIvZHJpdmVycy9tZWRpYS92aWRlby90dnA1
-MTUwLmMKQEAgLTIsNiArMiw3IEBACiAgKiB0dnA1MTUwIC0gVGV4YXMgSW5zdHJ1bWVudHMgVFZQ
-NTE1MEEvQU0xIHZpZGVvIGRlY29kZXIgZHJpdmVyCiAgKgogICogQ29weXJpZ2h0IChjKSAyMDA1
-LDIwMDYgTWF1cm8gQ2FydmFsaG8gQ2hlaGFiIChtY2hlaGFiQGluZnJhZGVhZC5vcmcpCisgKiBD
-b3B5cmlnaHQgKGMpIDIwMTEgRW5yaWNvIEJ1dGVyYSAoZWJ1dGVyYUB1c2Vycy5iZXJsaW9zLmRl
-KQogICogVGhpcyBjb2RlIGlzIHBsYWNlZCB1bmRlciB0aGUgdGVybXMgb2YgdGhlIEdOVSBHZW5l
-cmFsIFB1YmxpYyBMaWNlbnNlIHYyCiAgKi8KIApAQCAtMTMsOSArMTQsMzAgQEAKICNpbmNsdWRl
-IDxtZWRpYS90dnA1MTUwLmg+CiAjaW5jbHVkZSA8bWVkaWEvdjRsMi1jaGlwLWlkZW50Lmg+CiAj
-aW5jbHVkZSA8bWVkaWEvdjRsMi1jdHJscy5oPgorI2luY2x1ZGUgPG1lZGlhL3Y0bDItbWVkaWFi
-dXMuaD4KKyNpbmNsdWRlIDxtZWRpYS92NGwyLXN1YmRldi5oPgogCiAjaW5jbHVkZSAidHZwNTE1
-MF9yZWcuaCIKIAorI2RlZmluZSBUVlA1MTUwX1BJWEVMX0FSUkFZX0hFSUdIVAk2MjgKKyNkZWZp
-bmUgVFZQNTE1MF9QSVhFTF9BUlJBWV9XSURUSAk3MjAKKworI2RlZmluZSBUVlA1MTUwX1dJTkRP
-V19XSURUSF9NSU4JMQorI2RlZmluZSBUVlA1MTUwX1dJTkRPV19XSURUSF9ERUYJNzIwCisjZGVm
-aW5lIFRWUDUxNTBfV0lORE9XX1dJRFRIX01BWAk3MjAKKworI2RlZmluZSBUVlA1MTUwX1dJTkRP
-V19IRUlHSFRfTUlOCTEKKyNkZWZpbmUgVFZQNTE1MF9XSU5ET1dfSEVJR0hUX0RFRgk2MjgKKyNk
-ZWZpbmUgVFZQNTE1MF9XSU5ET1dfSEVJR0hUX01BWAk2MjgKKworI2RlZmluZSBUVlA1MTUwX0NP
-TFVNTl9TVEFSVF9NSU4JMAorI2RlZmluZSBUVlA1MTUwX0NPTFVNTl9TVEFSVF9ERUYJMAorI2Rl
-ZmluZSBUVlA1MTUwX0NPTFVNTl9TVEFSVF9NQVgJNzIwCisKKyNkZWZpbmUgVFZQNTE1MF9ST1df
-U1RBUlRfTUlOCQkwCisjZGVmaW5lIFRWUDUxNTBfUk9XX1NUQVJUX0RFRgkJMAorI2RlZmluZSBU
-VlA1MTUwX1JPV19TVEFSVF9NQVgJCTYyOAorCiBNT0RVTEVfREVTQ1JJUFRJT04oIlRleGFzIElu
-c3RydW1lbnRzIFRWUDUxNTBBIHZpZGVvIGRlY29kZXIgZHJpdmVyIik7CiBNT0RVTEVfQVVUSE9S
-KCJNYXVybyBDYXJ2YWxobyBDaGVoYWIiKTsKIE1PRFVMRV9MSUNFTlNFKCJHUEwiKTsKQEAgLTI4
-LDYgKzUwLDkgQEAgTU9EVUxFX1BBUk1fREVTQyhkZWJ1ZywgIkRlYnVnIGxldmVsICgwLTIpIik7
-CiBzdHJ1Y3QgdHZwNTE1MCB7CiAJc3RydWN0IHY0bDJfc3ViZGV2IHNkOwogCXN0cnVjdCB2NGwy
-X2N0cmxfaGFuZGxlciBoZGw7CisJc3RydWN0IG1lZGlhX3BhZCBwYWQ7CisJc3RydWN0IHY0bDJf
-bWJ1c19mcmFtZWZtdCBmb3JtYXQ7CisJc3RydWN0IHY0bDJfcmVjdCBjcm9wOwogCiAJdjRsMl9z
-dGRfaWQgbm9ybTsJLyogQ3VycmVudCBzZXQgc3RhbmRhcmQgKi8KIAl1MzIgaW5wdXQ7CkBAIC03
-NzksNiArODA0LDIwMyBAQCBzdGF0aWMgaW50IHR2cDUxNTBfc19jdHJsKHN0cnVjdCB2NGwyX2N0
-cmwgKmN0cmwpCiB9CiAKIC8qKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioq
-KioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqCisJCQlWNEwyIHN1YmRldiBwYWQg
-b3BzCisgKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioq
-KioqKioqKioqKioqKioqKioqKioqKioqKi8KKworc3RhdGljIHN0cnVjdCB2NGwyX21idXNfZnJh
-bWVmbXQgKgorX190dnA1MTUwX2dldF9wYWRfZm9ybWF0KHN0cnVjdCB0dnA1MTUwICp0dnA1MTUw
-LCBzdHJ1Y3QgdjRsMl9zdWJkZXZfZmggKmZoLAorICAgICAgICAgICAgICAgICAgICAgICAgIHVu
-c2lnbmVkIGludCBwYWQsIGVudW0gdjRsMl9zdWJkZXZfZm9ybWF0X3doZW5jZSB3aGljaCkKK3sK
-KyAgICAgICAgc3dpdGNoICh3aGljaCkgeworICAgICAgICBjYXNlIFY0TDJfU1VCREVWX0ZPUk1B
-VF9UUlk6CisgICAgICAgICAgICAgICAgcmV0dXJuIHY0bDJfc3ViZGV2X2dldF90cnlfZm9ybWF0
-KGZoLCBwYWQpOworICAgICAgICBjYXNlIFY0TDJfU1VCREVWX0ZPUk1BVF9BQ1RJVkU6CisgICAg
-ICAgICAgICAgICAgcmV0dXJuICZ0dnA1MTUwLT5mb3JtYXQ7CisgICAgICAgIGRlZmF1bHQ6Cisg
-ICAgICAgICAgICAgICAgcmV0dXJuIE5VTEw7CisgICAgICAgIH0KK30KKworc3RhdGljIHN0cnVj
-dCB2NGwyX3JlY3QgKgorX190dnA1MTUwX2dldF9wYWRfY3JvcChzdHJ1Y3QgdHZwNTE1MCAqdHZw
-NTE1MCwgc3RydWN0IHY0bDJfc3ViZGV2X2ZoICpmaCwKKyAgICAgICAgICAgICAgICAgICAgICAg
-dW5zaWduZWQgaW50IHBhZCwgZW51bSB2NGwyX3N1YmRldl9mb3JtYXRfd2hlbmNlIHdoaWNoKQor
-eworICAgICAgICBzd2l0Y2ggKHdoaWNoKSB7CisgICAgICAgIGNhc2UgVjRMMl9TVUJERVZfRk9S
-TUFUX1RSWToKKyAgICAgICAgICAgICAgICByZXR1cm4gdjRsMl9zdWJkZXZfZ2V0X3RyeV9jcm9w
-KGZoLCBwYWQpOworICAgICAgICBjYXNlIFY0TDJfU1VCREVWX0ZPUk1BVF9BQ1RJVkU6CisgICAg
-ICAgICAgICAgICAgcmV0dXJuICZ0dnA1MTUwLT5jcm9wOworICAgICAgICBkZWZhdWx0OgorICAg
-ICAgICAgICAgICAgIHJldHVybiBOVUxMOworICAgICAgICB9Cit9CisKK3N0YXRpYyBpbnQgdHZw
-NTE1MF9lbnVtX21idXNfY29kZShzdHJ1Y3QgdjRsMl9zdWJkZXYgKnN1YmRldiwKKyAgICAgICAg
-ICAgICAgICAgICAgICAgICAgICAgICAgICBzdHJ1Y3QgdjRsMl9zdWJkZXZfZmggKmZoLAorICAg
-ICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIHN0cnVjdCB2NGwyX3N1YmRldl9tYnVzX2Nv
-ZGVfZW51bSAqY29kZSkKK3sKKyAgICAgICAgaWYgKGNvZGUtPmluZGV4ID4gMCkKKyAgICAgICAg
-ICAgICAgICByZXR1cm4gLUVJTlZBTDsKKworICAgICAgICBjb2RlLT5jb2RlID0gVjRMMl9NQlVT
-X0ZNVF9VWVZZOF8xWDE2OworICAgICAgICByZXR1cm4gMDsKK30KKworc3RhdGljIGludCB0dnA1
-MTUwX2VudW1fZnJhbWVfc2l6ZShzdHJ1Y3QgdjRsMl9zdWJkZXYgKnN1YmRldiwKKyAgICAgICAg
-ICAgICAgICAgICAgICAgICAgICAgICAgICAgc3RydWN0IHY0bDJfc3ViZGV2X2ZoICpmaCwKKyAg
-ICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgc3RydWN0IHY0bDJfc3ViZGV2X2ZyYW1l
-X3NpemVfZW51bSAqZnNlKQoreworICAgICAgICBpZiAoZnNlLT5pbmRleCA+PSA4IHx8IGZzZS0+
-Y29kZSAhPSBWNEwyX01CVVNfRk1UX1VZVlk4XzFYMTYpCisgICAgICAgICAgICAgICAgcmV0dXJu
-IC1FSU5WQUw7CisKKyAgICAgICAgZnNlLT5taW5fd2lkdGggPSBUVlA1MTUwX1dJTkRPV19XSURU
-SF9ERUYgLyBmc2UtPmluZGV4OworICAgICAgICBmc2UtPm1heF93aWR0aCA9IGZzZS0+bWluX3dp
-ZHRoOworICAgICAgICBmc2UtPm1pbl9oZWlnaHQgPSBUVlA1MTUwX1dJTkRPV19IRUlHSFRfREVG
-IC8gZnNlLT5pbmRleDsKKyAgICAgICAgZnNlLT5tYXhfaGVpZ2h0ID0gZnNlLT5taW5faGVpZ2h0
-OworCisgICAgICAgIHJldHVybiAwOworfQorCitzdGF0aWMgaW50IHR2cDUxNTBfZ2V0X2Zvcm1h
-dChzdHJ1Y3QgdjRsMl9zdWJkZXYgKnN1YmRldiwKKyAgICAgICAgICAgICAgICAgICAgICAgICAg
-ICAgIHN0cnVjdCB2NGwyX3N1YmRldl9maCAqZmgsCisgICAgICAgICAgICAgICAgICAgICAgICAg
-ICAgICBzdHJ1Y3QgdjRsMl9zdWJkZXZfZm9ybWF0ICpmb3JtYXQpCit7CisgICAgICAgIHN0cnVj
-dCB0dnA1MTUwICp0dnA1MTUwID0gdG9fdHZwNTE1MChzdWJkZXYpOworCisgICAgICAgIGZvcm1h
-dC0+Zm9ybWF0ID0gKl9fdHZwNTE1MF9nZXRfcGFkX2Zvcm1hdCh0dnA1MTUwLCBmaCwgZm9ybWF0
-LT5wYWQsCisgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAg
-ICBmb3JtYXQtPndoaWNoKTsKKyAgICAgICAgcmV0dXJuIDA7Cit9CisKK3N0YXRpYyBpbnQgdHZw
-NTE1MF9zZXRfZm9ybWF0KHN0cnVjdCB2NGwyX3N1YmRldiAqc3ViZGV2LAorICAgICAgICAgICAg
-ICAgICAgICAgICAgICAgICAgc3RydWN0IHY0bDJfc3ViZGV2X2ZoICpmaCwKKyAgICAgICAgICAg
-ICAgICAgICAgICAgICAgICAgIHN0cnVjdCB2NGwyX3N1YmRldl9mb3JtYXQgKmZvcm1hdCkKK3sK
-KyAgICAgICAgc3RydWN0IHR2cDUxNTAgKnR2cDUxNTAgPSB0b190dnA1MTUwKHN1YmRldik7Cisg
-ICAgICAgIHN0cnVjdCB2NGwyX21idXNfZnJhbWVmbXQgKl9fZm9ybWF0OworICAgICAgICBzdHJ1
-Y3QgdjRsMl9yZWN0ICpfX2Nyb3A7CisgICAgICAgIHVuc2lnbmVkIGludCB3aWR0aDsKKyAgICAg
-ICAgdW5zaWduZWQgaW50IGhlaWdodDsKKyAgICAgICAgdW5zaWduZWQgaW50IGhyYXRpbzsKKyAg
-ICAgICAgdW5zaWduZWQgaW50IHZyYXRpbzsKKworICAgICAgICBfX2Nyb3AgPSBfX3R2cDUxNTBf
-Z2V0X3BhZF9jcm9wKHR2cDUxNTAsIGZoLCBmb3JtYXQtPnBhZCwKKyAgICAgICAgICAgICAgICAg
-ICAgICAgICAgICAgICAgICAgICAgICBmb3JtYXQtPndoaWNoKTsKKworICAgICAgICAvKiBDbGFt
-cCB0aGUgd2lkdGggYW5kIGhlaWdodCB0byBhdm9pZCBkaXZpZGluZyBieSB6ZXJvLiAqLworICAg
-ICAgICB3aWR0aCA9IGNsYW1wX3QodW5zaWduZWQgaW50LCBBTElHTihmb3JtYXQtPmZvcm1hdC53
-aWR0aCwgMiksCisgICAgICAgICAgICAgICAgICAgICAgICBtYXgoX19jcm9wLT53aWR0aCAvIDgs
-IFRWUDUxNTBfV0lORE9XX1dJRFRIX01JTiksCisgICAgICAgICAgICAgICAgICAgICAgICBfX2Ny
-b3AtPndpZHRoKTsKKyAgICAgICAgaGVpZ2h0ID0gY2xhbXBfdCh1bnNpZ25lZCBpbnQsIEFMSUdO
-KGZvcm1hdC0+Zm9ybWF0LmhlaWdodCwgMiksCisgICAgICAgICAgICAgICAgICAgICAgICAgbWF4
-KF9fY3JvcC0+aGVpZ2h0IC8gOCwgVFZQNTE1MF9XSU5ET1dfSEVJR0hUX01JTiksCisgICAgICAg
-ICAgICAgICAgICAgICAgICAgX19jcm9wLT5oZWlnaHQpOworCisgICAgICAgIGhyYXRpbyA9IERJ
-Vl9ST1VORF9DTE9TRVNUKF9fY3JvcC0+d2lkdGgsIHdpZHRoKTsKKyAgICAgICAgdnJhdGlvID0g
-RElWX1JPVU5EX0NMT1NFU1QoX19jcm9wLT5oZWlnaHQsIGhlaWdodCk7CisKKyAgICAgICAgX19m
-b3JtYXQgPSBfX3R2cDUxNTBfZ2V0X3BhZF9mb3JtYXQodHZwNTE1MCwgZmgsIGZvcm1hdC0+cGFk
-LAorICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICBmb3JtYXQtPndo
-aWNoKTsKKyAgICAgICAgX19mb3JtYXQtPndpZHRoID0gX19jcm9wLT53aWR0aCAvIGhyYXRpbzsK
-KyAgICAgICAgX19mb3JtYXQtPmhlaWdodCA9IF9fY3JvcC0+aGVpZ2h0IC8gdnJhdGlvOworCisg
-ICAgICAgIGZvcm1hdC0+Zm9ybWF0ID0gKl9fZm9ybWF0OworCisgICAgICAgIHJldHVybiAwOwor
-fQorCitzdGF0aWMgaW50IHR2cDUxNTBfZ2V0X2Nyb3Aoc3RydWN0IHY0bDJfc3ViZGV2ICpzdWJk
-ZXYsCisgICAgICAgICAgICAgICAgICAgICAgICAgICAgc3RydWN0IHY0bDJfc3ViZGV2X2ZoICpm
-aCwKKyAgICAgICAgICAgICAgICAgICAgICAgICAgICBzdHJ1Y3QgdjRsMl9zdWJkZXZfY3JvcCAq
-Y3JvcCkKK3sKKyAgICAgICAgc3RydWN0IHR2cDUxNTAgKnR2cDUxNTAgPSB0b190dnA1MTUwKHN1
-YmRldik7CisKKyAgICAgICAgY3JvcC0+cmVjdCA9ICpfX3R2cDUxNTBfZ2V0X3BhZF9jcm9wKHR2
-cDUxNTAsIGZoLCBjcm9wLT5wYWQsCisgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAg
-ICAgICAgICAgICBjcm9wLT53aGljaCk7CisgICAgICAgIHJldHVybiAwOworfQorCitzdGF0aWMg
-aW50IHR2cDUxNTBfc2V0X2Nyb3Aoc3RydWN0IHY0bDJfc3ViZGV2ICpzdWJkZXYsCisgICAgICAg
-ICAgICAgICAgICAgICAgICAgICAgc3RydWN0IHY0bDJfc3ViZGV2X2ZoICpmaCwKKyAgICAgICAg
-ICAgICAgICAgICAgICAgICAgICBzdHJ1Y3QgdjRsMl9zdWJkZXZfY3JvcCAqY3JvcCkKK3sKKyAg
-ICAgICAgc3RydWN0IHR2cDUxNTAgKnR2cDUxNTAgPSB0b190dnA1MTUwKHN1YmRldik7CisgICAg
-ICAgIHN0cnVjdCB2NGwyX21idXNfZnJhbWVmbXQgKl9fZm9ybWF0OworICAgICAgICBzdHJ1Y3Qg
-djRsMl9yZWN0ICpfX2Nyb3A7CisgICAgICAgIHN0cnVjdCB2NGwyX3JlY3QgcmVjdDsKKworICAg
-ICAgICAvKiBDbGFtcCB0aGUgY3JvcCByZWN0YW5nbGUgYm91bmRhcmllcyBhbmQgYWxpZ24gdGhl
-bSB0byBhIG11bHRpcGxlIG9mIDIKKyAgICAgICAgICogcGl4ZWxzLgorICAgICAgICAgKi8KKyAg
-ICAgICAgcmVjdC5sZWZ0ID0gY2xhbXAoQUxJR04oY3JvcC0+cmVjdC5sZWZ0LCAyKSwKKyAgICAg
-ICAgICAgICAgICAgICAgICAgICAgVFZQNTE1MF9DT0xVTU5fU1RBUlRfTUlOLAorICAgICAgICAg
-ICAgICAgICAgICAgICAgICBUVlA1MTUwX0NPTFVNTl9TVEFSVF9NQVgpOworICAgICAgICByZWN0
-LnRvcCA9IGNsYW1wKEFMSUdOKGNyb3AtPnJlY3QudG9wLCAyKSwKKyAgICAgICAgICAgICAgICAg
-ICAgICAgICBUVlA1MTUwX1JPV19TVEFSVF9NSU4sCisgICAgICAgICAgICAgICAgICAgICAgICAg
-VFZQNTE1MF9ST1dfU1RBUlRfTUFYKTsKKyAgICAgICAgcmVjdC53aWR0aCA9IGNsYW1wKEFMSUdO
-KGNyb3AtPnJlY3Qud2lkdGgsIDIpLAorICAgICAgICAgICAgICAgICAgICAgICAgICAgVFZQNTE1
-MF9XSU5ET1dfV0lEVEhfTUlOLAorICAgICAgICAgICAgICAgICAgICAgICAgICAgVFZQNTE1MF9X
-SU5ET1dfV0lEVEhfTUFYKTsKKyAgICAgICAgcmVjdC5oZWlnaHQgPSBjbGFtcChBTElHTihjcm9w
-LT5yZWN0LmhlaWdodCwgMiksCisgICAgICAgICAgICAgICAgICAgICAgICAgICAgVFZQNTE1MF9X
-SU5ET1dfSEVJR0hUX01JTiwKKyAgICAgICAgICAgICAgICAgICAgICAgICAgICBUVlA1MTUwX1dJ
-TkRPV19IRUlHSFRfTUFYKTsKKworICAgICAgICByZWN0LndpZHRoID0gbWluKHJlY3Qud2lkdGgs
-IFRWUDUxNTBfUElYRUxfQVJSQVlfV0lEVEggLSByZWN0LmxlZnQpOworICAgICAgICByZWN0Lmhl
-aWdodCA9IG1pbihyZWN0LmhlaWdodCwgVFZQNTE1MF9QSVhFTF9BUlJBWV9IRUlHSFQgLSByZWN0
-LnRvcCk7CisKKyAgICAgICAgX19jcm9wID0gX190dnA1MTUwX2dldF9wYWRfY3JvcCh0dnA1MTUw
-LCBmaCwgY3JvcC0+cGFkLCBjcm9wLT53aGljaCk7CisKKyAgICAgICAgaWYgKHJlY3Qud2lkdGgg
-IT0gX19jcm9wLT53aWR0aCB8fCByZWN0LmhlaWdodCAhPSBfX2Nyb3AtPmhlaWdodCkgeworICAg
-ICAgICAgICAgICAgIC8qIFJlc2V0IHRoZSBvdXRwdXQgaW1hZ2Ugc2l6ZSBpZiB0aGUgY3JvcCBy
-ZWN0YW5nbGUgc2l6ZSBoYXMKKyAgICAgICAgICAgICAgICAgKiBiZWVuIG1vZGlmaWVkLgorICAg
-ICAgICAgICAgICAgICAqLworICAgICAgICAgICAgICAgIF9fZm9ybWF0ID0gX190dnA1MTUwX2dl
-dF9wYWRfZm9ybWF0KHR2cDUxNTAsIGZoLCBjcm9wLT5wYWQsCisgICAgICAgICAgICAgICAgICAg
-ICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgY3JvcC0+d2hpY2gpOworICAgICAgICAg
-ICAgICAgIF9fZm9ybWF0LT53aWR0aCA9IHJlY3Qud2lkdGg7CisgICAgICAgICAgICAgICAgX19m
-b3JtYXQtPmhlaWdodCA9IHJlY3QuaGVpZ2h0OworICAgICAgICB9CisKKyAgICAgICAgKl9fY3Jv
-cCA9IHJlY3Q7CisgICAgICAgIGNyb3AtPnJlY3QgPSByZWN0OworCisgICAgICAgIHJldHVybiAw
-OworfQorCisvKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioq
-KioqKioqKioqKioqKioqKioqKioqKioqKioqKgorCQkJVjRMMiBzdWJkZXYgaW50ZXJuYWwgb3Bz
-CisgKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioq
-KioqKioqKioqKioqKioqKioqKioqKi8KKworc3RhdGljIGludCB0dnA1MTUwX3JlZ2lzdGVyZWQo
-c3RydWN0IHY0bDJfc3ViZGV2ICpzdWJkZXYpCit7CisJcmV0dXJuIDA7Cit9CisKK3N0YXRpYyBp
-bnQgdHZwNTE1MF9vcGVuKHN0cnVjdCB2NGwyX3N1YmRldiAqc3ViZGV2LCBzdHJ1Y3QgdjRsMl9z
-dWJkZXZfZmggKmZoKQoreworCXN0cnVjdCB2NGwyX21idXNfZnJhbWVmbXQgKmZvcm1hdDsKKyAg
-ICAgICAgc3RydWN0IHY0bDJfcmVjdCAqY3JvcDsKKworICAgICAgICBjcm9wID0gdjRsMl9zdWJk
-ZXZfZ2V0X3RyeV9jcm9wKGZoLCAwKTsKKyAgICAgICAgY3JvcC0+bGVmdCA9IFRWUDUxNTBfQ09M
-VU1OX1NUQVJUX0RFRjsKKyAgICAgICAgY3JvcC0+dG9wID0gVFZQNTE1MF9ST1dfU1RBUlRfREVG
-OworICAgICAgICBjcm9wLT53aWR0aCA9IFRWUDUxNTBfV0lORE9XX1dJRFRIX0RFRjsKKyAgICAg
-ICAgY3JvcC0+aGVpZ2h0ID0gVFZQNTE1MF9XSU5ET1dfSEVJR0hUX0RFRjsKKworICAgICAgICBm
-b3JtYXQgPSB2NGwyX3N1YmRldl9nZXRfdHJ5X2Zvcm1hdChmaCwgMCk7CisgICAgICAgIGZvcm1h
-dC0+Y29kZSA9IFY0TDJfTUJVU19GTVRfVVlWWThfMVgxNjsKKyAgICAgICAgZm9ybWF0LT53aWR0
-aCA9IFRWUDUxNTBfV0lORE9XX1dJRFRIX0RFRjsKKyAgICAgICAgZm9ybWF0LT5oZWlnaHQgPSBU
-VlA1MTUwX1dJTkRPV19IRUlHSFRfREVGOworICAgICAgICBmb3JtYXQtPmZpZWxkID0gVjRMMl9G
-SUVMRF9OT05FOworICAgICAgICBmb3JtYXQtPmNvbG9yc3BhY2UgPSBWNEwyX0NPTE9SU1BBQ0Vf
-U01QVEUxNzBNOworCisgICAgICAgIHJldHVybiAwOworfQorCitzdGF0aWMgaW50IHR2cDUxNTBf
-Y2xvc2Uoc3RydWN0IHY0bDJfc3ViZGV2ICpzdWJkZXYsIHN0cnVjdCB2NGwyX3N1YmRldl9maCAq
-ZmgpCit7CisgICAgICAgIHJldHVybiAwOworfQorCisvKioqKioqKioqKioqKioqKioqKioqKioq
-KioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKgogCQkJ
-STJDIENvbW1hbmQKICAqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioq
-KioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqLwogCkBAIC05MzIsNiArMTE1NCwxNSBA
-QCBzdGF0aWMgY29uc3Qgc3RydWN0IHY0bDJfc3ViZGV2X3ZpZGVvX29wcyB0dnA1MTUwX3ZpZGVv
-X29wcyA9IHsKIAkuc19yb3V0aW5nID0gdHZwNTE1MF9zX3JvdXRpbmcsCiB9OwogCitzdGF0aWMg
-Y29uc3Qgc3RydWN0IHY0bDJfc3ViZGV2X3BhZF9vcHMgdHZwNTE1MF9zdWJkZXZfcGFkX29wcyA9
-IHsKKyAgICAgICAgLmVudW1fbWJ1c19jb2RlID0gdHZwNTE1MF9lbnVtX21idXNfY29kZSwKKyAg
-ICAgICAgLmVudW1fZnJhbWVfc2l6ZSA9IHR2cDUxNTBfZW51bV9mcmFtZV9zaXplLAorICAgICAg
-ICAuZ2V0X2ZtdCA9IHR2cDUxNTBfZ2V0X2Zvcm1hdCwKKyAgICAgICAgLnNldF9mbXQgPSB0dnA1
-MTUwX3NldF9mb3JtYXQsCisgICAgICAgIC5nZXRfY3JvcCA9IHR2cDUxNTBfZ2V0X2Nyb3AsCisg
-ICAgICAgIC5zZXRfY3JvcCA9IHR2cDUxNTBfc2V0X2Nyb3AsCit9OworCiBzdGF0aWMgY29uc3Qg
-c3RydWN0IHY0bDJfc3ViZGV2X3ZiaV9vcHMgdHZwNTE1MF92Ymlfb3BzID0gewogCS5nX3NsaWNl
-ZF92YmlfY2FwID0gdHZwNTE1MF9nX3NsaWNlZF92YmlfY2FwLAogCS5nX3NsaWNlZF9mbXQgPSB0
-dnA1MTUwX2dfc2xpY2VkX2ZtdCwKQEAgLTkzOSwxMSArMTE3MCwxOCBAQCBzdGF0aWMgY29uc3Qg
-c3RydWN0IHY0bDJfc3ViZGV2X3ZiaV9vcHMgdHZwNTE1MF92Ymlfb3BzID0gewogCS5zX3Jhd19m
-bXQgPSB0dnA1MTUwX3NfcmF3X2ZtdCwKIH07CiAKK3N0YXRpYyBjb25zdCBzdHJ1Y3QgdjRsMl9z
-dWJkZXZfaW50ZXJuYWxfb3BzIHR2cDUxNTBfc3ViZGV2X2ludGVybmFsX29wcyA9IHsKKyAgICAg
-ICAgLnJlZ2lzdGVyZWQgPSB0dnA1MTUwX3JlZ2lzdGVyZWQsCisgICAgICAgIC5vcGVuID0gdHZw
-NTE1MF9vcGVuLAorICAgICAgICAuY2xvc2UgPSB0dnA1MTUwX2Nsb3NlLAorfTsKKwogc3RhdGlj
-IGNvbnN0IHN0cnVjdCB2NGwyX3N1YmRldl9vcHMgdHZwNTE1MF9vcHMgPSB7CiAJLmNvcmUgPSAm
-dHZwNTE1MF9jb3JlX29wcywKIAkudHVuZXIgPSAmdHZwNTE1MF90dW5lcl9vcHMsCiAJLnZpZGVv
-ID0gJnR2cDUxNTBfdmlkZW9fb3BzLAogCS52YmkgPSAmdHZwNTE1MF92Ymlfb3BzLAorCS5wYWQg
-PSAmdHZwNTE1MF9zdWJkZXZfcGFkX29wcywKIH07CiAKIApAQCAtOTU3LDYgKzExOTUsNyBAQCBz
-dGF0aWMgaW50IHR2cDUxNTBfcHJvYmUoc3RydWN0IGkyY19jbGllbnQgKmMsCiAJc3RydWN0IHR2
-cDUxNTAgKmNvcmU7CiAJc3RydWN0IHY0bDJfc3ViZGV2ICpzZDsKIAl1OCBtc2JfaWQsIGxzYl9p
-ZCwgbXNiX3JvbSwgbHNiX3JvbTsKKwlpbnQgcmV0OwogCiAJLyogQ2hlY2sgaWYgdGhlIGFkYXB0
-ZXIgc3VwcG9ydHMgdGhlIG5lZWRlZCBmZWF0dXJlcyAqLwogCWlmICghaTJjX2NoZWNrX2Z1bmN0
-aW9uYWxpdHkoYy0+YWRhcHRlciwKQEAgLTk2OCw2ICsxMjA3LDIzIEBAIHN0YXRpYyBpbnQgdHZw
-NTE1MF9wcm9iZShzdHJ1Y3QgaTJjX2NsaWVudCAqYywKIAkJcmV0dXJuIC1FTk9NRU07CiAJfQog
-CXNkID0gJmNvcmUtPnNkOworCisJY29yZS0+Y3JvcC5sZWZ0ID0gVFZQNTE1MF9DT0xVTU5fU1RB
-UlRfREVGOworICAgICAgICBjb3JlLT5jcm9wLnRvcCA9IFRWUDUxNTBfUk9XX1NUQVJUX0RFRjsK
-KyAgICAgICAgY29yZS0+Y3JvcC53aWR0aCA9IFRWUDUxNTBfV0lORE9XX1dJRFRIX0RFRjsKKyAg
-ICAgICAgY29yZS0+Y3JvcC5oZWlnaHQgPSBUVlA1MTUwX1dJTkRPV19IRUlHSFRfREVGOworCisg
-ICAgICAgIGNvcmUtPmZvcm1hdC5jb2RlID0gVjRMMl9NQlVTX0ZNVF9VWVZZOF8xWDE2OworICAg
-ICAgICBjb3JlLT5mb3JtYXQud2lkdGggPSBUVlA1MTUwX1dJTkRPV19XSURUSF9ERUY7CisgICAg
-ICAgIGNvcmUtPmZvcm1hdC5oZWlnaHQgPSBUVlA1MTUwX1dJTkRPV19IRUlHSFRfREVGOworICAg
-ICAgICBjb3JlLT5mb3JtYXQuZmllbGQgPSBWNEwyX0ZJRUxEX05PTkU7CisgICAgICAgIGNvcmUt
-PmZvcm1hdC5jb2xvcnNwYWNlID0gVjRMMl9DT0xPUlNQQUNFX1NNUFRFMTcwTTsKKworICAgICAg
-ICBzZC0+ZmxhZ3MgfD0gVjRMMl9TVUJERVZfRkxfSEFTX0RFVk5PREU7CisJc2QtPmludGVybmFs
-X29wcyA9ICZ0dnA1MTUwX3N1YmRldl9pbnRlcm5hbF9vcHM7CisKKyAgICAgICAgY29yZS0+cGFk
-LmZsYWdzID0gTUVESUFfUEFEX0ZMX1NPVVJDRTsKKwogCXY0bDJfaTJjX3N1YmRldl9pbml0KHNk
-LCBjLCAmdHZwNTE1MF9vcHMpOwogCXY0bF9pbmZvKGMsICJjaGlwIGZvdW5kIEAgMHglMDJ4ICgl
-cylcbiIsCiAJCSBjLT5hZGRyIDw8IDEsIGMtPmFkYXB0ZXItPm5hbWUpOwpAQCAtMTAxNSw5ICsx
-MjcxLDE3IEBAIHN0YXRpYyBpbnQgdHZwNTE1MF9wcm9iZShzdHJ1Y3QgaTJjX2NsaWVudCAqYywK
-IAl9CiAJdjRsMl9jdHJsX2hhbmRsZXJfc2V0dXAoJmNvcmUtPmhkbCk7CiAKKwlzZC0+ZmxhZ3Mg
-fD0gVjRMMl9TVUJERVZfRkxfSEFTX0RFVk5PREU7CisKKwljb3JlLT5wYWQuZmxhZ3MgPSBNRURJ
-QV9QQURfRkxfU09VUkNFOworCisJcmV0ID0gbWVkaWFfZW50aXR5X2luaXQoJnNkLT5lbnRpdHks
-IDEsICZjb3JlLT5wYWQsIDApOworCWlmIChyZXQgPCAwKQorCQlrZnJlZShjb3JlKTsKKwogCWlm
-IChkZWJ1ZyA+IDEpCiAJCXR2cDUxNTBfbG9nX3N0YXR1cyhzZCk7Ci0JcmV0dXJuIDA7CisJcmV0
-dXJuIHJldDsKIH0KIAogc3RhdGljIGludCB0dnA1MTUwX3JlbW92ZShzdHJ1Y3QgaTJjX2NsaWVu
-dCAqYykKQEAgLTEwMzEsNiArMTI5NSw3IEBAIHN0YXRpYyBpbnQgdHZwNTE1MF9yZW1vdmUoc3Ry
-dWN0IGkyY19jbGllbnQgKmMpCiAKIAl2NGwyX2RldmljZV91bnJlZ2lzdGVyX3N1YmRldihzZCk7
-CiAJdjRsMl9jdHJsX2hhbmRsZXJfZnJlZSgmZGVjb2Rlci0+aGRsKTsKKwltZWRpYV9lbnRpdHlf
-Y2xlYW51cCgmc2QtPmVudGl0eSk7CiAJa2ZyZWUodG9fdHZwNTE1MChzZCkpOwogCXJldHVybiAw
-OwogfQo=
---20cf3040ec04d379ba04aba83a23--
+---
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
+http://www.open-technology.de/
