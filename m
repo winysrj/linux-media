@@ -1,34 +1,60 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pz0-f42.google.com ([209.85.210.42]:61680 "EHLO
-	mail-pz0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753755Ab1HDKbr (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 4 Aug 2011 06:31:47 -0400
-Received: by pzk37 with SMTP id 37so1823039pzk.1
-        for <linux-media@vger.kernel.org>; Thu, 04 Aug 2011 03:31:46 -0700 (PDT)
-Date: Thu, 4 Aug 2011 13:29:42 +0300
-From: Dan Carpenter <error27@gmail.com>
-To: Florian Mickler <florian@mickler.org>
-Cc: Patrick Boettcher <pboettcher@kernellabs.com>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: vp702x
-Message-ID: <20110804102942.GB7659@shale.localdomain>
-References: <20110802173942.6f951c95@schatten.dmk.lab>
- <alpine.LRH.2.00.1108030937250.5518@pub4.ifh.de>
- <20110804122129.45a8b37f@schatten.dmk.lab>
+Received: from iolanthe.rowland.org ([192.131.102.54]:38173 "HELO
+	iolanthe.rowland.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1751392Ab1HHOze (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 8 Aug 2011 10:55:34 -0400
+Date: Mon, 8 Aug 2011 10:55:34 -0400 (EDT)
+From: Alan Stern <stern@rowland.harvard.edu>
+To: Theodore Kilgore <kilgota@banach.math.auburn.edu>
+cc: Adam Baker <linux@baker-net.org.uk>,
+	Jean-Francois Moine <moinejf@free.fr>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	<linux-usb@vger.kernel.org>, Hans de Goede <hdegoede@redhat.com>
+Subject: Re: [Workshop-2011] Media Subsystem Workshop 2011
+In-Reply-To: <alpine.LNX.2.00.1108072158210.20613@banach.math.auburn.edu>
+Message-ID: <Pine.LNX.4.44L0.1108081038350.1944-100000@iolanthe.rowland.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20110804122129.45a8b37f@schatten.dmk.lab>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, Aug 04, 2011 at 12:21:29PM +0200, Florian Mickler wrote:
-> Mauro, what to do?
+On Sun, 7 Aug 2011, Theodore Kilgore wrote:
 
-Apply the fix which Tino tested, perhaps?  :P  (obviously).
+> This indirectly answers my question, above, about whatever device there 
+> may or may not be. What I get from this, and also from a bit of snooping 
+> around, is that there is not any dev that gets created in order to be 
+> accessed by libusb. Just an entry under /proc/bus/usb, which AFAICT is at 
+> most a pseudo-device. Thanks.
 
-The bug is present in 3.0 so it should be tagged for stable as well.
+Nowadays, most distributions create device nodes under /dev/bus/usb.  A 
+few also support the old /proc/bus/usb files.
 
-regards,
-dan carpenter
+> So, Alan, what do you think is the best way to go about the problem? The 
+> camera can act as a stillcam or as a webcam. The problem is to provide 
+> access to both, with equal facility (and of course to lock out access to 
+> whichever action is not currently in use, if the other one is). 
+> 
+> The current situation with libusb does not cut it, as among other things 
+> it currently does only half the job and seemingly cannot address the 
+> locking problem. Hans suggests to create two explicit devices, /dev/video 
+> (as already done and something like /dev/cam. Then access webcam function 
+> as now and stillcam function with libgphoto2, as now, but through /dev/cam 
+> instead of through libusb. This would seem to me to solve all the 
+> problems, but at the expense of some work. Can you think of something more 
+> clever?
+
+I'm not familiar with the MTP protocol used in the stillcam mode, or
+how feasible it would be to implement that protocol in a kernel driver.  
+Maybe a good compromise would be to create a kind of stub driver that
+could negotiate the device access while still delegating most of the
+real work to userspace.
+
+This could become a bigger problem if this kind of design becomes an
+ongoing trend.  To do what Hans was suggesting, today we have to merge
+two separate drivers... then tomorrow we would have to merge two others
+and then later on even more.  Before you know it, we would end up with
+a single gigantic kernel driver to manage every USB device!  Obviously
+not a sustainable approach in the long run.
+
+Alan Stern
+
