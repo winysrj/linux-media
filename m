@@ -1,137 +1,87 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:45926 "EHLO
+Received: from perceval.ideasonboard.com ([95.142.166.194]:36605 "EHLO
 	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752936Ab1H2NId (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 29 Aug 2011 09:08:33 -0400
+	with ESMTP id S1750960Ab1HHKIG (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 8 Aug 2011 06:08:06 -0400
 From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Sylwester Nawrocki <snjw23@gmail.com>
-Subject: Re: [ANN] Meeting minutes of the Cambourne meeting
-Date: Mon, 29 Aug 2011 15:08:59 +0200
-Cc: "linux-media" <linux-media@vger.kernel.org>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>,
-	Tuukka Toivonen <tuukka.toivonen@intel.com>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Tomasz Stanislawski <t.stanislaws@samsung.com>,
-	Marek Szyprowski <m.szyprowski@samsung.com>,
-	devicetree-discuss@lists.ozlabs.org,
-	Mauro Carvalho Chehab <mchehab@redhat.com>
-References: <201107261647.19235.laurent.pinchart@ideasonboard.com> <201108081750.07000.laurent.pinchart@ideasonboard.com> <4E5A2657.7030605@gmail.com>
-In-Reply-To: <4E5A2657.7030605@gmail.com>
+To: Michael Jones <michael.jones@matrix-vision.de>
+Subject: Re: [PATCH] [media] omap3isp: queue: fail QBUF if buffer is too small
+Date: Mon, 8 Aug 2011 12:08:16 +0200
+Cc: linux-media@vger.kernel.org,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+References: <1312472437-26231-1-git-send-email-michael.jones@matrix-vision.de> <201108051059.46485.laurent.pinchart@ideasonboard.com> <4E3BD702.8030204@matrix-vision.de>
+In-Reply-To: <4E3BD702.8030204@matrix-vision.de>
 MIME-Version: 1.0
 Content-Type: Text/Plain;
-  charset="utf-8"
+  charset="iso-8859-15"
 Content-Transfer-Encoding: 7bit
-Message-Id: <201108291508.59649.laurent.pinchart@ideasonboard.com>
+Message-Id: <201108081208.16888.laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sylwester,
+Hi Michael,
 
-On Sunday 28 August 2011 13:28:23 Sylwester Nawrocki wrote:
-> On 08/08/2011 05:50 PM, Laurent Pinchart wrote:
-> > Subdevs hierachy, Linux device model
-> > ------------------------------------
+On Friday 05 August 2011 13:41:54 Michael Jones wrote:
+> On 08/05/2011 10:59 AM, Laurent Pinchart wrote:
+> > Hi Michael,
 > > 
-> >   Preliminary conclusions:
-> >   
-> >   - With the move to device tree on ARM (and other platforms), I2C, SPI
-> >   and
-> >   
-> >     platform subdevs should be created from board code, not from
-> >     bridge/host drivers.
-> >   
-> >   - Bus notifiers should be used by bridge/host drivers to wait for all
-> >   
-> >     required subdevs. V4L2 core should provide helper functions.
-> >   
-> >   - struct clk should be used to handle clocks provided by hosts to
-> >   subdevs.
+> > Thanks for the patch.
+> > 
+> > On Thursday 04 August 2011 17:40:37 Michael Jones wrote:
+> >> Add buffer length to sanity checks for QBUF.
+> >> 
+> >> Signed-off-by: Michael Jones <michael.jones@matrix-vision.de>
+> >> ---
+> >> 
+> >>  drivers/media/video/omap3isp/ispqueue.c |    3 +++
+> >>  1 files changed, 3 insertions(+), 0 deletions(-)
+> >> 
+> >> diff --git a/drivers/media/video/omap3isp/ispqueue.c
+> >> b/drivers/media/video/omap3isp/ispqueue.c index 9c31714..4f6876f 100644
+> >> --- a/drivers/media/video/omap3isp/ispqueue.c
+> >> +++ b/drivers/media/video/omap3isp/ispqueue.c
+> >> @@ -867,6 +867,9 @@ int omap3isp_video_queue_qbuf(struct isp_video_queue
+> >> *queue, if (buf->state != ISP_BUF_STATE_IDLE)
+> >> 
+> >>  		goto done;
+> >> 
+> >> +	if (vbuf->length < buf->vbuf.length)
+> >> +		goto done;
+> >> +
+> > 
+> > The vbuf->length value passed from userspace isn't used by the driver, so
+> > I'm not sure if verifying it is really useful. We verify the memory
+> > itself instead, to make sure that enough pages can be accessed. The
+> > application can always lie about the length, so we can't rely on it
+> > anyway.
 > 
-> I have been investigating recently possible ways to correct the external
-> clock handling in Samsung FIMC driver and this led me up to the device
-> tree stuff. I.e. in order to be able to register any I2C client device
-> there is a need to enable its master clock at the v4l2 host/bridge driver.
+> According to the spec, it's expected that the application set 'length':
+> "To enqueue a user pointer buffer applications set [...] length to its
+> size." (Now that I say that, I realize I should only do this length
+> check for USERPTR buffers.) If we don't at least sanity check it for the
+> application, then it has no purpose at all on QBUF. If this is
+> desirable, I would propose changing the spec.
+> 
+> This patch was born of a mistake when my application set 624x480, which
+> resulted in sizeimage=640x480=307200 but it used width & height to
+> calculate the buffer size rather than sizeimage or even to take
+> bytesperline into account. It was then honest with QBUF, confessing that
+> it wasn't providing enough space, but QBUF just went ahead. What
+> followed were random crashes while data was DMA'd into memory not set
+> aside for the buffer, while I assumed that the buffer size was OK
+> because QBUF had succeeded and was looking elsewhere in the program for
+> the culprit. I think it makes sense to give the app an error on QBUF in
+> this situation.
 
-To be completely generic, the subdev master clock can come from anywhere, not 
-only from the V4L2 host/bridge (although that's the usual case).
+Right. This will help catching application errors without any drawback on the 
+kernel side.
 
-> There is an issue that the v4l2_device (host)/v4l2_subdev hierarchy is not
-> reflected by the linux device tree model, e.g. the host might be a platform
-> device while the client an I2C client device. Thus a proper device/driver
-> registration order is not assured by the device driver core from v4l2 POV.
-> 
-> I thought about embedding some API in a struct v4l2_device for the subdevs
-> to be able to get their master clock(s) as they need it. But this would
-> work only when a v4l2_device and v4l2_subdev are matched (registered)
-> before I2C client's probe(), or alternatively
-> subdev_internal_ops::registered() callback, is called.
-> 
-> Currently such requirement is satisfied when the I2C client/v4l2 subdev
-> devices are registered from within a v4l2 bridge/host driver initialization
-> routine. But we may need to stop doing this to adhere to the DT rules.
+Do you want to resubmit the patch with an additional USERPTR check, or should 
+I write one ?
 
-Right, that's my understanding as well.
-
-> I guess above you didn't really mean to create subdevs from board code?
-> The I2C client registration is now done at the I2C bus drivers, using the
-> OF helpers to retrieve the child devices list from fdt.
-
-I meant registering the I2C board information from board code (for non-DT 
-platforms) or from the device tree (for DT platforms) instead of V4L2 
-host/bridge drivers.
-
-> I guess we could try to create some sort of replacement for
-> v4l2_i2c_new_subdev_board() function in linux/drivers/of/* (of_i2c.c ?),
-> similar to of_i2c_register_devices().
-> 
-> But first we would have somehow to make sure the host drivers are registered
-> and initialized first. I'm not sure how to do it.
-> Plus such a new subdev registration method would have to obtain a relevant
-> struct v4l2_device object reference during the process; which is getting
-> a bit cumbersome..
-> 
-> Also, if we used a 'struct clk' to handle clocks provided by hosts to
-> subdevs, could we use any subdev operation callback to pass a reference to
-> such object from host to subdev? I doubt since the clock may be needed in
-> the subdev before it is allocated and fully initialized, (i.e. available
-> in the host).
-> 
-> If we have embedded a 'struct clk' pointer into struct v4l2_device, it
-> would have probably to be an array of clocks and the subdev would have to
-> be able to find out which clock applies to it.
-> 
-> So I thought about doing something like:
-> 
-> diff --git a/include/media/v4l2-device.h b/include/media/v4l2-device.h
-> index d61febf..9888f7d 100644
-> --- a/include/media/v4l2-device.h
-> +++ b/include/media/v4l2-device.h
-> @@ -54,6 +54,7 @@ struct v4l2_device {
->         /* notify callback called by some sub-devices. */
->         void (*notify)(struct v4l2_subdev *sd,
->                         unsigned int notification, void *arg);
-> +       const struct clk * (*clock_get)(struct v4l2_subdev *sd);
->         /* The control handler. May be NULL. */
->         struct v4l2_ctrl_handler *ctrl_handler;
->         /* Device's priority state */
-> 
-> This would allow the host to return proper clock for a subdev.
-> But it won't work unless the initialization order is assured..
-
-My idea was to let the kernel register all devices based on the DT or board 
-code. When the V4L2 host/bridge driver gets registered, it will then call a 
-V4L2 core function with a list of subdevs it needs. The V4L2 core would store 
-that information and react to bus notifier events to notify the V4L2 
-host/bridge driver when all subdevs are present. At that point the host/bridge 
-driver will get hold of all the subdevs and call (probably through the V4L2 
-core) their .registered operation. That's where the subdevs will get access to 
-their clock using clk_get().
-
-This is really a rough idea, we will probably run into unexpected issues. I'm 
-not even sure if this can work out in the end, but I don't really see another 
-clean solution for now.
+> >>  	if (vbuf->memory == V4L2_MEMORY_USERPTR &&
+> >>  	    vbuf->m.userptr != buf->vbuf.m.userptr) {
+> >>  		isp_video_buffer_cleanup(buf);
 
 -- 
 Regards,
