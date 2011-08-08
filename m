@@ -1,75 +1,75 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from anakin.london.02.net ([87.194.255.134]:34252 "EHLO
-	anakin.london.02.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751767Ab1HGWaj (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sun, 7 Aug 2011 18:30:39 -0400
-From: Adam Baker <linux@baker-net.org.uk>
+Received: from iolanthe.rowland.org ([192.131.102.54]:49249 "HELO
+	iolanthe.rowland.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1752150Ab1HHTWm (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 8 Aug 2011 15:22:42 -0400
+Date: Mon, 8 Aug 2011 15:22:41 -0400 (EDT)
+From: Alan Stern <stern@rowland.harvard.edu>
 To: Theodore Kilgore <kilgota@banach.math.auburn.edu>
-Subject: Re: [Workshop-2011] Media Subsystem Workshop 2011
-Date: Sun, 7 Aug 2011 23:30:33 +0100
-Cc: "Jean-Francois Moine" <moinejf@free.fr>,
+cc: Adam Baker <linux@baker-net.org.uk>,
+	Jean-Francois Moine <moinejf@free.fr>,
 	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	linux-usb@vger.kernel.org, Hans de Goede <hdegoede@redhat.com>
-References: <4E398381.4080505@redhat.com> <201108050004.55659.linux@baker-net.org.uk> <alpine.LNX.2.00.1108041847210.17969@banach.math.auburn.edu>
-In-Reply-To: <alpine.LNX.2.00.1108041847210.17969@banach.math.auburn.edu>
+	<linux-usb@vger.kernel.org>, Hans de Goede <hdegoede@redhat.com>
+Subject: Re: [Workshop-2011] Media Subsystem Workshop 2011
+In-Reply-To: <alpine.LNX.2.00.1108081241380.21409@banach.math.auburn.edu>
+Message-ID: <Pine.LNX.4.44L0.1108081411460.1944-100000@iolanthe.rowland.org>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201108072330.33981.linux@baker-net.org.uk>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-I've addec Hans de Geode and linux-usb to the CC as this response picks up on 
-a related discussion about the usb mini summit.
+On Mon, 8 Aug 2011, Theodore Kilgore wrote:
 
-On Friday 05 August 2011, Theodore Kilgore wrote:
-> > If you can solve the locking problem between devices in the kernel then
-> > it  shouldn't matter if one of the kernel devices is the generic device
-> > that is used to support libusb.
+> On Mon, 8 Aug 2011, Alan Stern wrote:
 > 
-> Hmmm. Perhaps not. While we are on the topic, what exactly do you mean by 
-> "the generic device that is used to support libusb." Which device is that, 
-> exactly?
+> > On Sun, 7 Aug 2011, Theodore Kilgore wrote:
+> > 
+> > > This indirectly answers my question, above, about whatever device there 
+> > > may or may not be. What I get from this, and also from a bit of snooping 
+> > > around, is that there is not any dev that gets created in order to be 
+> > > accessed by libusb. Just an entry under /proc/bus/usb, which AFAICT is at 
+> > > most a pseudo-device. Thanks.
+> > 
+> > Nowadays, most distributions create device nodes under /dev/bus/usb.  A 
+> > few also support the old /proc/bus/usb files.
+> 
+> What does this mean, exactly, in practice? You are right that I have the 
+> /dev/bus/usb/ files but does everybody have them, these days?
 
-The file drivers/usb/core/devio.c registers itself as a driver called 
-usb_device which is used to provide all of the device drivers that live under 
-/proc/bus/usb
+Pretty much everybody using udev should have them, which means pretty 
+much every desktop system.
 
-If you look in there for the code to handle the ioctl() USBDEVFS_DISCONNECT 
-then you will find the code that is called when you make a 
-usb_detach_kernel_driver_np() call through libusb. That code, according to the 
-documentation and my testing needs to acquire a lock before it calls 
-usb_driver_release_interface(). Based on my testing to date (using cheese to 
-start a camera streaming and then gphoto2 -L to trigger the disconnect ioctl) 
-I would suggest that the fact it doesn't is a kernel bug that needs fixing 
-regardless of whether there is any user space solution to camera mode 
-switching because that code could potentially get called on any in use USB 
-device and if it does even thing like lsusb don't work correctly afterwards 
-and completely unrelated devices don't work if they are later plugged into the 
-same USB port.
+...
 
-With regard to userspace then stealing the device, 
+> > Maybe a good compromise would be to create a kind of stub driver that
+> > could negotiate the device access while still delegating most of the
+> > real work to userspace.
+> 
+> Hooray. This appears to me to be a very good solution.
 
-Hans de Geode wrote
-> Getting a bit offtopic here, but no a try_disconnect will fix the
-> userspace stillcam mode driver being able to disconnect the device
-> while the webcam function is active. If the webcam is not active
-> userspace will still "win", and possibly never return the device
-> back to the kernel driver (this already happens today with
-> gvfs-gphoto creating a fuse mount and keeping the device open
-> indefinitely, locking out the webcam function
+I'm not so sure.  It would require vast changes to the userspace
+program, for example.
 
-With the current design gvfs-photo doesn't even need to keep the device open. 
-The kernel provides an ioctl (USBDEVFS_CONNECT) that needs to be called before 
-the kernel mode driver can use the interface again but libusb 0.1 doesn't 
-expose it. Even if you use gphoto2 rather than gvfs that will cleanly close 
-all the devices it used when it has finished with them it doesn't release the 
-device back to the kernel but that is a failure of user space to call the 
-provided API. I did once hack libgphoto to call USBDEVFS_CONNECT and it does 
-then hand the device back correctly but it was a messy hack as it needed 
-knowledge of the internals of libusb.
+> I agree approximately 120% with this. Let's think of a more clever way. If 
+> we get the basic idea right, it really ought not to be too terribly 
+> difficult.
 
-Regards
+The method Hans suggested was rather clunky.  It also required drivers
+to know when the device was in use, which may be okay for a video
+driver but is not so practical for usb-storage (although to be fair, I
+suspect usb-storage wouldn't need to be involved).  And it required
+kernel drivers to inform user programs somehow when they want to get
+control of the device back, which is not the sort of thing drivers
+normally have to do.
 
-Adam
+Even if we could come up with a way to let the video driver somehow 
+"share" ownership of the device with usbfs, we'd still have to set up a 
+protocol for deciding who was in charge at any given time.  Would it be 
+okay for the userspace program simply to say "I want control now" and 
+"I'm done, you can have control back"?
+
+For that matter, what should the video driver do if the user program 
+crashes or hangs while in charge of the device?
+
+Alan Stern
+
