@@ -1,142 +1,88 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.126.187]:55643 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932196Ab1HaSC5 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 31 Aug 2011 14:02:57 -0400
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Hans Verkuil <hverkuil@xs4all.nl>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Pawel Osciak <pawel@osciak.com>,
-	Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>,
+Received: from banach.math.auburn.edu ([131.204.45.3]:42739 "EHLO
+	banach.math.auburn.edu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751931Ab1HHSTy (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 8 Aug 2011 14:19:54 -0400
+Date: Mon, 8 Aug 2011 13:23:56 -0500 (CDT)
+From: Theodore Kilgore <kilgota@banach.math.auburn.edu>
+To: Sarah Sharp <sarah.a.sharp@linux.intel.com>
+cc: Hans de Goede <hdegoede@redhat.com>, Greg KH <greg@kroah.com>,
 	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Marek Szyprowski <m.szyprowski@samsung.com>
-Subject: [PATCH 7/9 v6] dmaengine: ipu-idmac: add support for the DMA_PAUSE control
-Date: Wed, 31 Aug 2011 20:02:46 +0200
-Message-Id: <1314813768-27752-8-git-send-email-g.liakhovetski@gmx.de>
-In-Reply-To: <1314813768-27752-1-git-send-email-g.liakhovetski@gmx.de>
-References: <1314813768-27752-1-git-send-email-g.liakhovetski@gmx.de>
+	linux-usb@vger.kernel.org, linux-media@vger.kernel.org,
+	linux-kernel@vger.kernel.org, libusb-devel@lists.sourceforge.net,
+	Alexander Graf <agraf@suse.de>,
+	Gerd Hoffmann <kraxel@redhat.com>, hector@marcansoft.com,
+	Jan Kiszka <jan.kiszka@siemens.com>,
+	Stefan Hajnoczi <stefanha@linux.vnet.ibm.com>,
+	pbonzini@redhat.com, Anthony Liguori <aliguori@us.ibm.com>,
+	Jes Sorensen <Jes.Sorensen@redhat.com>,
+	Alan Stern <stern@rowland.harvard.edu>,
+	Oliver Neukum <oliver@neukum.org>, Felipe Balbi <balbi@ti.com>,
+	Clemens Ladisch <clemens@ladisch.de>,
+	Jaroslav Kysela <perex@perex.cz>, Takashi Iwai <tiwai@suse.de>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Adam Baker <linux@baker-net.org.uk>
+Subject: Re: USB mini-summit at LinuxCon Vancouver
+In-Reply-To: <20110808175837.GA6398@xanatos>
+Message-ID: <alpine.LNX.2.00.1108081316120.21409@banach.math.auburn.edu>
+References: <20110610002103.GA7169@xanatos> <4E3B1B7B.2040501@infradead.org> <20110804225603.GA2557@kroah.com> <4E3B9FB4.30709@redhat.com> <20110808175837.GA6398@xanatos>
+MIME-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-To support multi-size buffers in the mx3_camera V4L2 driver we have to be
-able to stop DMA on a channel without releasing descriptors and completely
-halting the hardware. Use the DMA_PAUSE control to implement this mode.
 
-Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Acked-by: Vinod Koul <vinod.koul@linux.intel.com>
-Cc: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: Marek Szyprowski <m.szyprowski@samsung.com>
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
-Cc: Pawel Osciak <pawel@osciak.com>
-Cc: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
----
- drivers/dma/ipu/ipu_idmac.c |   65 +++++++++++++++++++++++++++---------------
- 1 files changed, 42 insertions(+), 23 deletions(-)
 
-diff --git a/drivers/dma/ipu/ipu_idmac.c b/drivers/dma/ipu/ipu_idmac.c
-index c1a125e..42cdf1c 100644
---- a/drivers/dma/ipu/ipu_idmac.c
-+++ b/drivers/dma/ipu/ipu_idmac.c
-@@ -1306,6 +1306,7 @@ static irqreturn_t idmac_interrupt(int irq, void *dev_id)
- 	    ipu_submit_buffer(ichan, descnew, sgnew, ichan->active_buffer) < 0) {
- 		callback = descnew->txd.callback;
- 		callback_param = descnew->txd.callback_param;
-+		list_del_init(&descnew->list);
- 		spin_unlock(&ichan->lock);
- 		if (callback)
- 			callback(callback_param);
-@@ -1427,39 +1428,58 @@ static int __idmac_control(struct dma_chan *chan, enum dma_ctrl_cmd cmd,
- {
- 	struct idmac_channel *ichan = to_idmac_chan(chan);
- 	struct idmac *idmac = to_idmac(chan->device);
-+	struct ipu *ipu = to_ipu(idmac);
-+	struct list_head *list, *tmp;
- 	unsigned long flags;
- 	int i;
- 
--	/* Only supports DMA_TERMINATE_ALL */
--	if (cmd != DMA_TERMINATE_ALL)
--		return -ENXIO;
-+	switch (cmd) {
-+	case DMA_PAUSE:
-+		spin_lock_irqsave(&ipu->lock, flags);
-+		ipu_ic_disable_task(ipu, chan->chan_id);
- 
--	ipu_disable_channel(idmac, ichan,
--			    ichan->status >= IPU_CHANNEL_ENABLED);
-+		/* Return all descriptors into "prepared" state */
-+		list_for_each_safe(list, tmp, &ichan->queue)
-+			list_del_init(list);
- 
--	tasklet_disable(&to_ipu(idmac)->tasklet);
-+		ichan->sg[0] = NULL;
-+		ichan->sg[1] = NULL;
- 
--	/* ichan->queue is modified in ISR, have to spinlock */
--	spin_lock_irqsave(&ichan->lock, flags);
--	list_splice_init(&ichan->queue, &ichan->free_list);
-+		spin_unlock_irqrestore(&ipu->lock, flags);
- 
--	if (ichan->desc)
--		for (i = 0; i < ichan->n_tx_desc; i++) {
--			struct idmac_tx_desc *desc = ichan->desc + i;
--			if (list_empty(&desc->list))
--				/* Descriptor was prepared, but not submitted */
--				list_add(&desc->list, &ichan->free_list);
-+		ichan->status = IPU_CHANNEL_INITIALIZED;
-+		break;
-+	case DMA_TERMINATE_ALL:
-+		ipu_disable_channel(idmac, ichan,
-+				    ichan->status >= IPU_CHANNEL_ENABLED);
- 
--			async_tx_clear_ack(&desc->txd);
--		}
-+		tasklet_disable(&ipu->tasklet);
- 
--	ichan->sg[0] = NULL;
--	ichan->sg[1] = NULL;
--	spin_unlock_irqrestore(&ichan->lock, flags);
-+		/* ichan->queue is modified in ISR, have to spinlock */
-+		spin_lock_irqsave(&ichan->lock, flags);
-+		list_splice_init(&ichan->queue, &ichan->free_list);
- 
--	tasklet_enable(&to_ipu(idmac)->tasklet);
-+		if (ichan->desc)
-+			for (i = 0; i < ichan->n_tx_desc; i++) {
-+				struct idmac_tx_desc *desc = ichan->desc + i;
-+				if (list_empty(&desc->list))
-+					/* Descriptor was prepared, but not submitted */
-+					list_add(&desc->list, &ichan->free_list);
- 
--	ichan->status = IPU_CHANNEL_INITIALIZED;
-+				async_tx_clear_ack(&desc->txd);
-+			}
-+
-+		ichan->sg[0] = NULL;
-+		ichan->sg[1] = NULL;
-+		spin_unlock_irqrestore(&ichan->lock, flags);
-+
-+		tasklet_enable(&ipu->tasklet);
-+
-+		ichan->status = IPU_CHANNEL_INITIALIZED;
-+		break;
-+	default:
-+		return -ENOSYS;
-+	}
- 
- 	return 0;
- }
-@@ -1662,7 +1682,6 @@ static void __exit ipu_idmac_exit(struct ipu *ipu)
- 		struct idmac_channel *ichan = ipu->channel + i;
- 
- 		idmac_control(&ichan->dma_chan, DMA_TERMINATE_ALL, 0);
--		idmac_prep_slave_sg(&ichan->dma_chan, NULL, 0, DMA_NONE, 0);
- 	}
- 
- 	dma_async_device_unregister(&idmac->dma);
--- 
-1.7.2.5
+On Mon, 8 Aug 2011, Sarah Sharp wrote:
 
+> On Fri, Aug 05, 2011 at 09:45:56AM +0200, Hans de Goede wrote:
+> > Hi,
+> > 
+> > On 08/05/2011 12:56 AM, Greg KH wrote:
+> > >On Thu, Aug 04, 2011 at 07:21:47PM -0300, Mauro Carvalho Chehab wrote:
+> > I think it is important to separate oranges from apples here, there are
+> > at least 3 different problem classes which all seem to have gotten thrown
+> > onto a pile here:
+> > 
+> > 1) The reason Mauro suggested having some discussion on this at the
+> > USB summit is because of a discussion about dual mode cameras on the
+> > linux media list.
+> ...
+> > 3) Re-direction of usb devices to virtual machines. This works by using
+> > the userspace usbfs interface from qemu / vmware / virtualbox / whatever.
+> > The basics of this work fine, but it lacks proper locking / safeguards
+> > for when a vm takes over a usb device from the in kernel driver.
+> 
+> Hi Hans and Mauro,
+> 
+> We have do room in the schedule for the USB mini-summit for this
+> discussion, since the schedule is still pretty flexible.  The
+> preliminary schedule is up here:
+> 
+> http://userweb.kernel.org/~sarah/linuxcon-usb-minisummit.html
+> 
+> I think it's best to discuss the VM redirection in the afternoon when
+> some of the KVM folks join us after Hans' talk on USB redirection over
+> the network.
+> 
+> It sounds like we need a separate topic for the dual mode cameras and TV
+> tuners.  Mauro, do you want to lead that discussion in the early morning
+> (in a 9:30 to 10:30 slot) or in the late afternoon (in a 15:30 to 16:30
+> slot)?  I want to be sure we have all the video/media developers who are
+> interested in this topic present, and I don't know if they will be going
+> to the KVM forum.
+
+Sarah,
+
+Alas. I would suspect that I am one of the people most interested in the 
+topic of dual-mode cameras, since I have worked on supporting them both in 
+libgphoto2 and in the kernel. But I teach in a university for a living, 
+and the first classes of Fall Semester 2011 start on August 17 in Auburn, 
+Alabama. Knowing this, I decided, months ago, that I simply could not 
+attend a conference which starts on August 16 in Vancouver.
+
+So, after starting all of the current mailing-list discussion on the topic 
+I will not be at the conference. I can only hope that those who do attend 
+will keep me current about what gets discussed.
+
+Theodore Kilgore
