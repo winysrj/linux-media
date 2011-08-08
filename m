@@ -1,55 +1,54 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wy0-f174.google.com ([74.125.82.174]:42257 "EHLO
-	mail-wy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753008Ab1HNNT5 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 14 Aug 2011 09:19:57 -0400
-Received: by wyg24 with SMTP id 24so3015513wyg.19
-        for <linux-media@vger.kernel.org>; Sun, 14 Aug 2011 06:19:56 -0700 (PDT)
-Subject: Re: TerraTec T6 Dual Tuner Stick initial support available
-From: Malcolm Priestley <tvboxspy@gmail.com>
-To: Antti Palosaari <crope@iki.fi>
-Cc: Hans-Frieder Vogt <hfvogt@gmx.net>, linux-media@vger.kernel.org
-In-Reply-To: <4E47B0E9.2030801@iki.fi>
-References: <201108140930.07873.hfvogt@gmx.net>  <4E47B0E9.2030801@iki.fi>
-Content-Type: text/plain; charset="UTF-8"
-Date: Sun, 14 Aug 2011 14:19:46 +0100
-Message-ID: <1313327986.2744.12.camel@localhost>
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+Received: from mail.dream-property.net ([82.149.226.172]:39128 "EHLO
+	mail.dream-property.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751392Ab1HHOyr (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 8 Aug 2011 10:54:47 -0400
+From: Andreas Oberritter <obi@linuxtv.org>
+To: linux-media@vger.kernel.org
+Cc: user.vdr@gmail.com, alannisota@gmail.com
+Subject: [PATCH 2/3] DVB: dvb_frontend: Fix compatibility criteria for satellite receivers
+Date: Mon,  8 Aug 2011 14:54:36 +0000
+Message-Id: <1312815277-9502-2-git-send-email-obi@linuxtv.org>
+In-Reply-To: <1312815277-9502-1-git-send-email-obi@linuxtv.org>
+References: <1312815277-9502-1-git-send-email-obi@linuxtv.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sun, 2011-08-14 at 14:26 +0300, Antti Palosaari wrote:
-> On 08/14/2011 10:30 AM, Hans-Frieder Vogt wrote:
-> > just wanted to inform you that I got the TerraTec Dual DVB-T Stick working 
-> > using a slightly patched driver from Afatech. Please see the wiki entry
-> > http://www.linuxtv.org/wiki/index.php/TerraTec_T6_Dual_DVB-T_Stick
-> > Currently both tuners work, but the remote doesn't.
-> > 
-> > This driver is only supposed to be a temporary solution until I have 
-> > integrated the bits into Antti's af9035 driver, see
-> > http://openee.googlecode.com/svn-history/r137/trunk/recipes/v4l-dvb/files/v4l-
-> > dvb-af9035.patch
-> > http://openee.googlecode.com/svn-history/r137/trunk/recipes/v4l-dvb/files/v4l-
-> > dvb-af9033.patch
-> 
-> Situation of my AF9035 & AF9033 driver is and have been years totally
-> frozen, I given it up since I never got permission from ITE to push it
-> Kernel and firmware distribution. Thus I left it. I have had in mind to
-> write out all vendor code (not much code I think) to get rid of
-> copyrights and do what I want - but never had enough time.
-> 
-> Due to that I am not going to work my AF9035 + AF9033 unless something
-> changes dramatically at least now when there is other drivers.
-The situation has not got any better by ITE submitting a clearly Windows
-patched driver earlier this month, which does not work in dual mode, at
-least with IT9137 it doesn't.
+- When converting satellite receiver parameters from S2API to legacy,
+  identify a satellite receiver by its 'delivery_system' instead of
+  'modulation', which may overlap between different delivery systems.
 
-I wrote a driver for the IT9137, but have lost interest to develop it
-any further.
+Signed-off-by: Andreas Oberritter <obi@linuxtv.org>
+---
+ drivers/media/dvb/dvb-core/dvb_frontend.c |   13 +++++--------
+ 1 files changed, 5 insertions(+), 8 deletions(-)
 
-Regards
-
-Malcolm 
+diff --git a/drivers/media/dvb/dvb-core/dvb_frontend.c b/drivers/media/dvb/dvb-core/dvb_frontend.c
+index d02c32e..d218fe2 100644
+--- a/drivers/media/dvb/dvb-core/dvb_frontend.c
++++ b/drivers/media/dvb/dvb-core/dvb_frontend.c
+@@ -1132,16 +1132,13 @@ static void dtv_property_adv_params_sync(struct dvb_frontend *fe)
+ 	p->frequency = c->frequency;
+ 	p->inversion = c->inversion;
+ 
+-	switch(c->modulation) {
+-	case PSK_8:
+-	case APSK_16:
+-	case APSK_32:
+-	case QPSK:
++	if (c->delivery_system == SYS_DSS ||
++	    c->delivery_system == SYS_DVBS ||
++	    c->delivery_system == SYS_DVBS2 ||
++	    c->delivery_system == SYS_ISDBS ||
++	    c->delivery_system == SYS_TURBO) {
+ 		p->u.qpsk.symbol_rate = c->symbol_rate;
+ 		p->u.qpsk.fec_inner = c->fec_inner;
+-		break;
+-	default:
+-		break;
+ 	}
+ 
+ 	/* Fake out a generic DVB-T request so we pass validation in the ioctl */
+-- 
+1.7.2.5
 
