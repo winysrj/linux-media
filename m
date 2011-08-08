@@ -1,57 +1,71 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from opensource.wolfsonmicro.com ([80.75.67.52]:33144 "EHLO
-	opensource2.wolfsonmicro.com" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1755391Ab1H3Pqq (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 30 Aug 2011 11:46:46 -0400
-Date: Tue, 30 Aug 2011 16:46:42 +0100
-From: Mark Brown <broonie@opensource.wolfsonmicro.com>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: Grant Likely <grant.likely@secretlab.ca>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Tomasz Stanislawski <t.stanislaws@samsung.com>,
-	Sylwester Nawrocki <snjw23@gmail.com>,
-	Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	devicetree-discuss@lists.ozlabs.org,
-	linux-media <linux-media@vger.kernel.org>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Marek Szyprowski <m.szyprowski@samsung.com>,
-	Tuukka Toivonen <tuukka.toivonen@intel.com>
-Subject: Re: [ANN] Meeting minutes of the Cambourne meeting
-Message-ID: <20110830154642.GM2061@opensource.wolfsonmicro.com>
-References: <201107261647.19235.laurent.pinchart@ideasonboard.com>
- <Pine.LNX.4.64.1108301600020.19151@axis700.grange>
- <CACxGe6tCLJ6F-Rsf=1ENj98YzXHRm9p9xr4-TAiWTHpQbQVOVA@mail.gmail.com>
- <201108301742.56581.laurent.pinchart@ideasonboard.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <201108301742.56581.laurent.pinchart@ideasonboard.com>
+Received: from mail.dream-property.net ([82.149.226.172]:39133 "EHLO
+	mail.dream-property.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752731Ab1HHOys (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 8 Aug 2011 10:54:48 -0400
+From: Andreas Oberritter <obi@linuxtv.org>
+To: linux-media@vger.kernel.org
+Cc: user.vdr@gmail.com, alannisota@gmail.com
+Subject: [PATCH 3/3] DVB: gp8psk-fe: use SYS_TURBO
+Date: Mon,  8 Aug 2011 14:54:37 +0000
+Message-Id: <1312815277-9502-3-git-send-email-obi@linuxtv.org>
+In-Reply-To: <1312815277-9502-1-git-send-email-obi@linuxtv.org>
+References: <1312815277-9502-1-git-send-email-obi@linuxtv.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, Aug 30, 2011 at 05:42:55PM +0200, Laurent Pinchart wrote:
+- Allows to select Turbo QPSK (SYS_TURBO + QPSK)
 
-> A dependency system is tempting but will be very complex to implement 
-> properly, especially when faced with cyclic dependencies. For instance the 
-> OMAP3 ISP driver requires the camera sensor device to be present to proceed, 
-> and the camera sensor requires a clock provided by the OMAP3 ISP. To solve 
-> this we need to probe the OMAP3 ISP first, have it register its clock devices, 
-> and then wait until all sensors become available.
+Signed-off-by: Andreas Oberritter <obi@linuxtv.org>
+---
+ drivers/media/dvb/dvb-usb/gp8psk-fe.c |   17 +++++++++++++----
+ 1 files changed, 13 insertions(+), 4 deletions(-)
 
-With composite devices like that where the borad has sufficient
-interesting stuff on it representing the board itself as a device (this
-is what ASoC does).
+diff --git a/drivers/media/dvb/dvb-usb/gp8psk-fe.c b/drivers/media/dvb/dvb-usb/gp8psk-fe.c
+index 60d11e5..5426267 100644
+--- a/drivers/media/dvb/dvb-usb/gp8psk-fe.c
++++ b/drivers/media/dvb/dvb-usb/gp8psk-fe.c
+@@ -144,19 +144,25 @@ static int gp8psk_fe_set_frontend(struct dvb_frontend* fe,
+ 	cmd[6] = (freq >> 16) & 0xff;
+ 	cmd[7] = (freq >> 24) & 0xff;
+ 
++	/* backwards compatibility: DVB-S + 8-PSK were used for Turbo-FEC */
++	if (c->delivery_system == SYS_DVBS && c->modulation == PSK_8)
++		c->delivery_system = SYS_TURBO;
++
+ 	switch (c->delivery_system) {
+ 	case SYS_DVBS:
+-		/* Allow QPSK and 8PSK (even for DVB-S) */
+-		if (c->modulation != QPSK && c->modulation != PSK_8) {
++		if (c->modulation != QPSK) {
+ 			deb_fe("%s: unsupported modulation selected (%d)\n",
+ 				__func__, c->modulation);
+ 			return -EOPNOTSUPP;
+ 		}
+ 		c->fec_inner = FEC_AUTO;
+ 		break;
+-	case SYS_DVBS2:
++	case SYS_DVBS2: /* kept for backwards compatibility */
+ 		deb_fe("%s: DVB-S2 delivery system selected\n", __func__);
+ 		break;
++	case SYS_TURBO:
++		deb_fe("%s: Turbo-FEC delivery system selected\n", __func__);
++		break;
+ 
+ 	default:
+ 		deb_fe("%s: unsupported delivery system selected (%d)\n",
+@@ -189,7 +195,10 @@ static int gp8psk_fe_set_frontend(struct dvb_frontend* fe,
+ 		default:
+ 			cmd[9] = 5; break;
+ 		}
+-		cmd[8] = ADV_MOD_DVB_QPSK;
++		if (c->delivery_system == SYS_TURBO)
++			cmd[8] = ADV_MOD_TURBO_QPSK;
++		else
++			cmd[8] = ADV_MOD_DVB_QPSK;
+ 		break;
+ 	case PSK_8: /* PSK_8 is for compatibility with DN */
+ 		cmd[8] = ADV_MOD_TURBO_8PSK;
+-- 
+1.7.2.5
 
-> A probe deferral system is probably simpler, but it will have its share of 
-> problems as well. In the above example, if the sensor is probed first, the 
-> driver can return -EAGAIN in the probe() method as the clock isn't available 
-> yet (I'm not sure how to differentiate between "not available yet" and "not 
-> present in the system" though). However, if the OMAP3 ISP is probed first, 
-> returning -EAGAIN in its probe() method won't really help, as we need to 
-> register the clock before waiting for the sensor.
-
-Having a device for the camera subsystem as a whole breaks this loop as
-the probe of that device triggers the overall system probe.
