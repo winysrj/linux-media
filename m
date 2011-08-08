@@ -1,105 +1,218 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:52582 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751205Ab1HKRWE (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 11 Aug 2011 13:22:04 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Geert Uytterhoeven <geert@linux-m68k.org>
-Subject: Re: [PATCH/RFC] fbdev: Add FOURCC-based format configuration API
-Date: Thu, 11 Aug 2011 19:19:54 +0200
-Cc: Florian Tobias Schandinat <FlorianSchandinat@gmx.de>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Paul Mundt <lethal@linux-sh.org>, linux-fbdev@vger.kernel.org,
-	linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org
-References: <4DDAE63A.3070203@gmx.de> <4E35DD38.7070609@gmx.de> <CAMuHMdUMW3QC_43aKvw2KQqEmzmeXXois8+zFg+S+DG785GwjA@mail.gmail.com>
-In-Reply-To: <CAMuHMdUMW3QC_43aKvw2KQqEmzmeXXois8+zFg+S+DG785GwjA@mail.gmail.com>
+Received: from mail.kapsi.fi ([217.30.184.167]:33623 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752389Ab1HHXQi (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 8 Aug 2011 19:16:38 -0400
+Message-ID: <4E406E53.6050302@iki.fi>
+Date: Tue, 09 Aug 2011 02:16:35 +0300
+From: Antti Palosaari <crope@iki.fi>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201108111919.54649.laurent.pinchart@ideasonboard.com>
+To: Steve Kerrison <steve@stevekerrison.com>
+CC: linux-media@vger.kernel.org, robert_s@gmx.net
+Subject: Re: [PATCH] CXD2820R: Replace i2c message translation with repeater
+ gate control
+References: <4E32AD92.8060500@iki.fi> <1312740489-17225-1-git-send-email-steve@stevekerrison.com>
+In-Reply-To: <1312740489-17225-1-git-send-email-steve@stevekerrison.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Geert,
+Hello
+That patch is technically fine and I liked it much since get rid of
+complex repeater logic and going for normal I2C-gate.
 
-On Monday 01 August 2011 11:49:46 Geert Uytterhoeven wrote:
-> On Mon, Aug 1, 2011 at 00:54, Florian Tobias Schandinat wrote:
-> > On 07/31/2011 08:32 PM, Geert Uytterhoeven wrote:
-> >> On Thu, Jul 28, 2011 at 12:51, Laurent Pinchart wrote:
-> >>>> As for struct fb_var_screeninfo fields to support switching to a
-> >>>> FOURCC mode, I also prefer an explicit dedicated flag to specify
-> >>>> switching to it.
-> >>>> Even though using FOURCC doesn't fit under the notion of a videomode,
-> >>>> using
-> >>>> one of .vmode bits is too tempting, so, I would actually take the
-> >>>> plunge and
-> >>>> use FB_VMODE_FOURCC.
-> >>> 
-> >>> Another option would be to consider any grayscale>  1 value as a
-> >>> FOURCC. I've
-> >>> briefly checked the in-tree drivers: they only assign grayscale with 0
-> >>> or 1,
-> >>> and check whether grayscale is 0 or different than 0. If a userspace
-> >>> application only sets grayscale>  1 when talking to a driver that
-> >>> supports the
-> >>> FOURCC-based API, we could get rid of the flag.
-> >>> 
-> >>> What can't be easily found out is whether existing applications set
-> >>> grayscale
-> >>> to a>  1 value. They would break when used with FOURCC-aware drivers if
-> >>> we
-> >>> consider any grayscale>  1 value as a FOURCC. Is that a risk we can
-> >>> take ?
-> >> 
-> >> I think we can. I'd expect applications to use either 1 or -1 (i.e.
-> >> all ones), both are
-> >> invalid FOURCC values.
-> >> 
-> >> Still, I prefer the nonstd way.
-> >> And limiting traditional nonstd values to the lowest 24 bits (there
-> >> are no in-tree
-> >> drivers using the highest 8 bits, right?).
-> > 
-> > Okay, it would be okay for me to
-> > - write raw FOURCC values in nonstd, enable FOURCC mode if upper byte !=
-> > 0 - not having an explicit flag to enable FOURCC
-> > - in FOURCC mode drivers must set visual to FB_VISUAL_FOURCC
-> > - making support of FOURCC visible to userspace by capabilites |=
-> > FB_CAP_FOURCC
-> > 
-> > The capabilities is not strictly necessary but I think it's very useful
-> > as - it allows applications to make sure the extension is supported (for
-> > example to adjust the UI)
-> > - it allows applications to distinguish whether a particular format is
-> > not supported or FOURCC at all
-> > - it allows signaling further extensions of the API
-> > - it does not hurt, one line per driver and still some bytes in fixinfo
-> > free
-> > 
-> > 
-> > So using it would look like this:
-> > - the driver must have capabilities |= FB_CAP_FOURCC
-> > - the application may check capabilities to know whether FOURCC is
-> > supported - the application may write a raw FOURCC value in nonstd to
-> > request changing to FOURCC mode with this format
-> > - when the driver switches to a FOURCC mode it must have visual =
-> > FB_VISUAL_FOURCC and the current FOURCC format in nonstd
-> > - the application should check visual and nonstd to make sure it gets
-> > what it wanted
+But fix these and send new patch:
+
+1) there is a lot of style errors. you should use always checkpatch.pl
+before send patches.
+./scripts/checkpatch.pl --file drivers/media/dvb/frontends/cxd2820r*.c
+
+2) it still lefts definition of cxd2820r_get_tuner_i2c_adapter() to header
+
+
+regards
+Antti
+
+On 08/07/2011 09:08 PM, Steve Kerrison wrote:
+> This patch implements an i2c_gate_ctrl op for the cxd2820r. Thanks to Robert
+> Schlabbach for identifying the register address and field to set.
 > 
-> As several of the FOURCC formats duplicate formats you can already specify
-> in some other way (e.g. the RGB and greyscale formats), and as FOURCC makes
-> life easier for the application writer, I'm wondering whether it makes sense
-> to add FOURCC support in the generic layer for drivers that don't support
-> it? I.e. the generic layer would fill in fb_var_screeninfo depending on the
-> requested FOURCC mode, if possible.
+> The old i2c intercept code that prefixed messages with a passthrough byte has
+> been removed and the PCTV nanoStick T2 290e entry in em28xx-dvb has been
+> updated appropriately.
+> 
+> Tested for DVB-T2 use; I would appreciate it if somebody with DVB-C capabilities
+> could test it as well - from inspection I cannot see any problems.
+> 
+> Signed-off-by: Steve Kerrison <steve@stevekerrison.com>
+> ---
+>  drivers/media/dvb/frontends/cxd2820r_core.c |   73 +++------------------------
+>  drivers/media/dvb/frontends/cxd2820r_priv.h |    1 -
+>  drivers/media/video/em28xx/em28xx-dvb.c     |    7 +--
+>  3 files changed, 10 insertions(+), 71 deletions(-)
+> 
+> diff --git a/drivers/media/dvb/frontends/cxd2820r_core.c b/drivers/media/dvb/frontends/cxd2820r_core.c
+> index d416e85..15bfcf4 100644
+> --- a/drivers/media/dvb/frontends/cxd2820r_core.c
+> +++ b/drivers/media/dvb/frontends/cxd2820r_core.c
+> @@ -728,69 +728,20 @@ static void cxd2820r_release(struct dvb_frontend *fe)
+>  	dbg("%s", __func__);
+>  
+>  	if (fe->ops.info.type == FE_OFDM) {
+> -		i2c_del_adapter(&priv->tuner_i2c_adapter);
+>  		kfree(priv);
+>  	}
+>  
+>  	return;
+>  }
+>  
+> -static u32 cxd2820r_tuner_i2c_func(struct i2c_adapter *adapter)
+> -{
+> -	return I2C_FUNC_I2C;
+> -}
+> -
+> -static int cxd2820r_tuner_i2c_xfer(struct i2c_adapter *i2c_adap,
+> -	struct i2c_msg msg[], int num)
+> -{
+> -	struct cxd2820r_priv *priv = i2c_get_adapdata(i2c_adap);
+> -	int ret;
+> -	u8 *obuf = kmalloc(msg[0].len + 2, GFP_KERNEL);
+> -	struct i2c_msg msg2[2] = {
+> -		{
+> -			.addr = priv->cfg.i2c_address,
+> -			.flags = 0,
+> -			.len = msg[0].len + 2,
+> -			.buf = obuf,
+> -		}, {
+> -			.addr = priv->cfg.i2c_address,
+> -			.flags = I2C_M_RD,
+> -			.len = msg[1].len,
+> -			.buf = msg[1].buf,
+> -		}
+> -	};
+> -
+> -	if (!obuf)
+> -		return -ENOMEM;
+> -
+> -	obuf[0] = 0x09;
+> -	obuf[1] = (msg[0].addr << 1);
+> -	if (num == 2) { /* I2C read */
+> -		obuf[1] = (msg[0].addr << 1) | I2C_M_RD; /* I2C RD flag */
+> -		msg2[0].len = msg[0].len + 2 - 1; /* '-1' maybe HW bug ? */
+> -	}
+> -	memcpy(&obuf[2], msg[0].buf, msg[0].len);
+> -
+> -	ret = i2c_transfer(priv->i2c, msg2, num);
+> -	if (ret < 0)
+> -		warn("tuner i2c failed ret:%d", ret);
+> -
+> -	kfree(obuf);
+> -
+> -	return ret;
+> -}
+> -
+> -static struct i2c_algorithm cxd2820r_tuner_i2c_algo = {
+> -	.master_xfer   = cxd2820r_tuner_i2c_xfer,
+> -	.functionality = cxd2820r_tuner_i2c_func,
+> -};
+> -
+> -struct i2c_adapter *cxd2820r_get_tuner_i2c_adapter(struct dvb_frontend *fe)
+> +static int cxd2820r_i2c_gate_ctrl(struct dvb_frontend *fe, int enable)
+>  {
+>  	struct cxd2820r_priv *priv = fe->demodulator_priv;
+> -	return &priv->tuner_i2c_adapter;
+> +	dbg("%s: %d", __func__, enable);
+> +	
+> +	/* Bit 0 of reg 0xdb in bank 0x00 controls I2C repeater */
+> +	return cxd2820r_wr_reg_mask(priv, 0xdb, enable ? 1 : 0, 0x1);
+>  }
+> -EXPORT_SYMBOL(cxd2820r_get_tuner_i2c_adapter);
+>  
+>  static struct dvb_frontend_ops cxd2820r_ops[2];
+>  
+> @@ -831,18 +782,6 @@ struct dvb_frontend *cxd2820r_attach(const struct cxd2820r_config *cfg,
+>  		priv->fe[0].demodulator_priv = priv;
+>  		priv->fe[1].demodulator_priv = priv;
+>  
+> -		/* create tuner i2c adapter */
+> -		strlcpy(priv->tuner_i2c_adapter.name,
+> -			"CXD2820R tuner I2C adapter",
+> -			sizeof(priv->tuner_i2c_adapter.name));
+> -		priv->tuner_i2c_adapter.algo = &cxd2820r_tuner_i2c_algo;
+> -		priv->tuner_i2c_adapter.algo_data = NULL;
+> -		i2c_set_adapdata(&priv->tuner_i2c_adapter, priv);
+> -		if (i2c_add_adapter(&priv->tuner_i2c_adapter) < 0) {
+> -			err("tuner I2C bus could not be initialized");
+> -			goto error;
+> -		}
+> -
+>  		return &priv->fe[0];
+>  
+>  	} else {
+> @@ -883,6 +822,7 @@ static struct dvb_frontend_ops cxd2820r_ops[2] = {
+>  		.sleep = cxd2820r_sleep,
+>  
+>  		.get_tune_settings = cxd2820r_get_tune_settings,
+> +		.i2c_gate_ctrl = cxd2820r_i2c_gate_ctrl,
+>  
+>  		.get_frontend = cxd2820r_get_frontend,
+>  
+> @@ -911,6 +851,7 @@ static struct dvb_frontend_ops cxd2820r_ops[2] = {
+>  		.sleep = cxd2820r_sleep,
+>  
+>  		.get_tune_settings = cxd2820r_get_tune_settings,
+> +		.i2c_gate_ctrl = cxd2820r_i2c_gate_ctrl,
+>  
+>  		.set_frontend = cxd2820r_set_frontend,
+>  		.get_frontend = cxd2820r_get_frontend,
+> diff --git a/drivers/media/dvb/frontends/cxd2820r_priv.h b/drivers/media/dvb/frontends/cxd2820r_priv.h
+> index 0c0ebc9..9553913 100644
+> --- a/drivers/media/dvb/frontends/cxd2820r_priv.h
+> +++ b/drivers/media/dvb/frontends/cxd2820r_priv.h
+> @@ -50,7 +50,6 @@ struct cxd2820r_priv {
+>  	struct i2c_adapter *i2c;
+>  	struct dvb_frontend fe[2];
+>  	struct cxd2820r_config cfg;
+> -	struct i2c_adapter tuner_i2c_adapter;
+>  
+>  	struct mutex fe_lock; /*Â FE lock */
+>  	int active_fe:2; /* FE lock, -1=NONE, 0=DVB-T/T2, 1=DVB-C */
+> diff --git a/drivers/media/video/em28xx/em28xx-dvb.c b/drivers/media/video/em28xx/em28xx-dvb.c
+> index e5916de..223a2fc 100644
+> --- a/drivers/media/video/em28xx/em28xx-dvb.c
+> +++ b/drivers/media/video/em28xx/em28xx-dvb.c
+> @@ -438,6 +438,7 @@ static struct cxd2820r_config em28xx_cxd2820r_config = {
+>  
+>  static struct tda18271_config em28xx_cxd2820r_tda18271_config = {
+>  	.output_opt = TDA18271_OUTPUT_LT_OFF,
+> +	.gate = TDA18271_GATE_DIGITAL,
+>  };
+>  
+>  /* ------------------------------------------------------------------ */
+> @@ -753,11 +754,9 @@ static int dvb_init(struct em28xx *dev)
+>  		dvb->fe[0] = dvb_attach(cxd2820r_attach,
+>  			&em28xx_cxd2820r_config, &dev->i2c_adap, NULL);
+>  		if (dvb->fe[0]) {
+> -			struct i2c_adapter *i2c_tuner;
+> -			i2c_tuner = cxd2820r_get_tuner_i2c_adapter(dvb->fe[0]);
+>  			/* FE 0 attach tuner */
+>  			if (!dvb_attach(tda18271_attach, dvb->fe[0], 0x60,
+> -				i2c_tuner, &em28xx_cxd2820r_tda18271_config)) {
+> +				&dev->i2c_adap, &em28xx_cxd2820r_tda18271_config)) {
+>  				dvb_frontend_detach(dvb->fe[0]);
+>  				result = -EINVAL;
+>  				goto out_free;
+> @@ -768,7 +767,7 @@ static int dvb_init(struct em28xx *dev)
+>  			dvb->fe[1]->id = 1;
+>  			/* FE 1 attach tuner */
+>  			if (!dvb_attach(tda18271_attach, dvb->fe[1], 0x60,
+> -				i2c_tuner, &em28xx_cxd2820r_tda18271_config)) {
+> +				&dev->i2c_adap, &em28xx_cxd2820r_tda18271_config)) {
+>  				dvb_frontend_detach(dvb->fe[1]);
+>  				/* leave FE 0 still active */
+>  			}
 
-That's a good idea, but I'd like to add that in a second step. I'm working on 
-a proof-of-concept by porting a driver to the FOURCC-based API first.
 
 -- 
-Regards,
-
-Laurent Pinchart
+http://palosaari.fi/
