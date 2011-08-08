@@ -1,82 +1,98 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-vw0-f46.google.com ([209.85.212.46]:55405 "EHLO
-	mail-vw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754985Ab1H3PSx convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 30 Aug 2011 11:18:53 -0400
-Received: by vws1 with SMTP id 1so5460356vws.19
-        for <linux-media@vger.kernel.org>; Tue, 30 Aug 2011 08:18:52 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <Pine.LNX.4.64.1108301600020.19151@axis700.grange>
-References: <201107261647.19235.laurent.pinchart@ideasonboard.com>
- <201108081750.07000.laurent.pinchart@ideasonboard.com> <4E5A2657.7030605@gmail.com>
- <201108291508.59649.laurent.pinchart@ideasonboard.com> <Pine.LNX.4.64.1108300018490.5065@axis700.grange>
- <20110830134148.GA14976@sirena.org.uk> <20110830135609.GC1355@ponder.secretlab.ca>
- <Pine.LNX.4.64.1108301600020.19151@axis700.grange>
-From: Grant Likely <grant.likely@secretlab.ca>
-Date: Tue, 30 Aug 2011 09:18:31 -0600
-Message-ID: <CACxGe6tCLJ6F-Rsf=1ENj98YzXHRm9p9xr4-TAiWTHpQbQVOVA@mail.gmail.com>
-Subject: Re: [ANN] Meeting minutes of the Cambourne meeting
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Cc: Mark Brown <broonie@opensource.wolfsonmicro.com>,
-	Tomasz Stanislawski <t.stanislaws@samsung.com>,
-	Sylwester Nawrocki <snjw23@gmail.com>,
-	Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	devicetree-discuss@lists.ozlabs.org,
-	linux-media <linux-media@vger.kernel.org>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
+Received: from mga09.intel.com ([134.134.136.24]:20989 "EHLO mga09.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752056Ab1HHScp (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 8 Aug 2011 14:32:45 -0400
+Date: Mon, 8 Aug 2011 11:32:41 -0700
+From: Sarah Sharp <sarah.a.sharp@linux.intel.com>
+To: Theodore Kilgore <kilgota@banach.math.auburn.edu>
+Cc: Hans de Goede <hdegoede@redhat.com>, Greg KH <greg@kroah.com>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	linux-usb@vger.kernel.org, linux-media@vger.kernel.org,
+	linux-kernel@vger.kernel.org, libusb-devel@lists.sourceforge.net,
+	Alexander Graf <agraf@suse.de>,
+	Gerd Hoffmann <kraxel@redhat.com>, hector@marcansoft.com,
+	Jan Kiszka <jan.kiszka@siemens.com>,
+	Stefan Hajnoczi <stefanha@linux.vnet.ibm.com>,
+	pbonzini@redhat.com, Anthony Liguori <aliguori@us.ibm.com>,
+	Jes Sorensen <Jes.Sorensen@redhat.com>,
+	Alan Stern <stern@rowland.harvard.edu>,
+	Oliver Neukum <oliver@neukum.org>, Felipe Balbi <balbi@ti.com>,
+	Clemens Ladisch <clemens@ladisch.de>,
+	Jaroslav Kysela <perex@perex.cz>, Takashi Iwai <tiwai@suse.de>,
 	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Marek Szyprowski <m.szyprowski@samsung.com>,
-	Tuukka Toivonen <tuukka.toivonen@intel.com>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+	Adam Baker <linux@baker-net.org.uk>
+Subject: Re: USB mini-summit at LinuxCon Vancouver
+Message-ID: <20110808183241.GA7256@xanatos>
+References: <20110610002103.GA7169@xanatos>
+ <4E3B1B7B.2040501@infradead.org>
+ <20110804225603.GA2557@kroah.com>
+ <4E3B9FB4.30709@redhat.com>
+ <20110808175837.GA6398@xanatos>
+ <alpine.LNX.2.00.1108081316120.21409@banach.math.auburn.edu>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <alpine.LNX.2.00.1108081316120.21409@banach.math.auburn.edu>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, Aug 30, 2011 at 8:03 AM, Guennadi Liakhovetski
-<g.liakhovetski@gmx.de> wrote:
-> Hi Grant
->
-> On Tue, 30 Aug 2011, Grant Likely wrote:
->
->> On Tue, Aug 30, 2011 at 02:41:48PM +0100, Mark Brown wrote:
->> > On Tue, Aug 30, 2011 at 12:20:09AM +0200, Guennadi Liakhovetski wrote:
->> > > On Mon, 29 Aug 2011, Laurent Pinchart wrote:
->> >
->> > > > My idea was to let the kernel register all devices based on the DT or board
->> > > > code. When the V4L2 host/bridge driver gets registered, it will then call a
->> > > > V4L2 core function with a list of subdevs it needs. The V4L2 core would store
->> > > > that information and react to bus notifier events to notify the V4L2
->> > > > host/bridge driver when all subdevs are present. At that point the host/bridge
->>
->> Sounds a lot like what ASoC is currently doing.
->>
->> > > > driver will get hold of all the subdevs and call (probably through the V4L2
->> > > > core) their .registered operation. That's where the subdevs will get access to
->> > > > their clock using clk_get().
->> >
->> > > Correct me, if I'm wrong, but this seems to be the case of sensor (and
->> > > other i2c-client) drivers having to succeed their probe() methods without
->> > > being able to actually access the hardware?
->>
->> It indeed sounds like that, which also concerns me.  ASoC and other
->> subsystems have exactly the same problem where the 'device' is
->> actually an aggregate of multiple devices attached to different
->> busses.  My personal opinion is that the best way to handle this is to
->> support deferred probing
->
-> Yes, that's also what I think should be done. But I was thinking about a
-> slightly different approach - a dependency-based probing. I.e., you should
-> be able to register a device, depending on another one (parent?), and only
-> after the latter one has successfully probed, the driver core should be
-> allowed to probe the child. Of course, devices can depend on multiple
-> other devices, so, a single parent might not be enough.
+On Mon, Aug 08, 2011 at 01:23:56PM -0500, Theodore Kilgore wrote:
+> 
+> 
+> On Mon, 8 Aug 2011, Sarah Sharp wrote:
+> 
+> > On Fri, Aug 05, 2011 at 09:45:56AM +0200, Hans de Goede wrote:
+> > > Hi,
+> > > 
+> > > On 08/05/2011 12:56 AM, Greg KH wrote:
+> > > >On Thu, Aug 04, 2011 at 07:21:47PM -0300, Mauro Carvalho Chehab wrote:
+> > > I think it is important to separate oranges from apples here, there are
+> > > at least 3 different problem classes which all seem to have gotten thrown
+> > > onto a pile here:
+> > > 
+> > > 1) The reason Mauro suggested having some discussion on this at the
+> > > USB summit is because of a discussion about dual mode cameras on the
+> > > linux media list.
+> > ...
+> > > 3) Re-direction of usb devices to virtual machines. This works by using
+> > > the userspace usbfs interface from qemu / vmware / virtualbox / whatever.
+> > > The basics of this work fine, but it lacks proper locking / safeguards
+> > > for when a vm takes over a usb device from the in kernel driver.
+> > 
+> > Hi Hans and Mauro,
+> > 
+> > We have do room in the schedule for the USB mini-summit for this
+> > discussion, since the schedule is still pretty flexible.  The
+> > preliminary schedule is up here:
+> > 
+> > http://userweb.kernel.org/~sarah/linuxcon-usb-minisummit.html
+> > 
+> > I think it's best to discuss the VM redirection in the afternoon when
+> > some of the KVM folks join us after Hans' talk on USB redirection over
+> > the network.
+> > 
+> > It sounds like we need a separate topic for the dual mode cameras and TV
+> > tuners.  Mauro, do you want to lead that discussion in the early morning
+> > (in a 9:30 to 10:30 slot) or in the late afternoon (in a 15:30 to 16:30
+> > slot)?  I want to be sure we have all the video/media developers who are
+> > interested in this topic present, and I don't know if they will be going
+> > to the KVM forum.
+> 
+> Sarah,
+> 
+> Alas. I would suspect that I am one of the people most interested in the 
+> topic of dual-mode cameras, since I have worked on supporting them both in 
+> libgphoto2 and in the kernel. But I teach in a university for a living, 
+> and the first classes of Fall Semester 2011 start on August 17 in Auburn, 
+> Alabama. Knowing this, I decided, months ago, that I simply could not 
+> attend a conference which starts on August 16 in Vancouver.
+> 
+> So, after starting all of the current mailing-list discussion on the topic 
+> I will not be at the conference. I can only hope that those who do attend 
+> will keep me current about what gets discussed.
 
-Yes, a dependency system would be lovely... but it gets really complex
-in a hurry, especially when faced with heterogeneous device
-registrations.  A deferral system ends up being really simple to
-implement and probably work just as well.
+No worries, I'll be taking notes and post them to the Linux USB and
+Linux media lists.
 
-g.
+Sarah Sharp
