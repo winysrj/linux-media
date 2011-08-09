@@ -1,103 +1,107 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout4.w1.samsung.com ([210.118.77.14]:42779 "EHLO
-	mailout4.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751409Ab1HQICA (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 17 Aug 2011 04:02:00 -0400
-MIME-version: 1.0
-Content-transfer-encoding: 7BIT
-Content-type: text/plain; charset=us-ascii
-Date: Wed, 17 Aug 2011 10:01:22 +0200
-From: Marek Szyprowski <m.szyprowski@samsung.com>
-Subject: RE: [PATCH 7/9] ARM: DMA: steal memory for DMA coherent mappings
-In-reply-to: <201108161626.26130.arnd@arndb.de>
-To: 'Arnd Bergmann' <arnd@arndb.de>,
-	'Russell King - ARM Linux' <linux@arm.linux.org.uk>
-Cc: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-	linux-media@vger.kernel.org, linux-mm@kvack.org,
-	linaro-mm-sig@lists.linaro.org,
-	'Michal Nazarewicz' <mina86@mina86.com>,
-	'Kyungmin Park' <kyungmin.park@samsung.com>,
-	'Andrew Morton' <akpm@linux-foundation.org>,
-	'KAMEZAWA Hiroyuki' <kamezawa.hiroyu@jp.fujitsu.com>,
-	'Ankita Garg' <ankita@in.ibm.com>,
-	'Daniel Walker' <dwalker@codeaurora.org>,
-	'Mel Gorman' <mel@csn.ul.ie>,
-	'Jesse Barker' <jesse.barker@linaro.org>,
-	'Jonathan Corbet' <corbet@lwn.net>,
-	'Shariq Hasnain' <shariq.hasnain@linaro.org>,
-	'Chunsang Jeong' <chunsang.jeong@linaro.org>,
-	'Marek Szyprowski' <m.szyprowski@samsung.com>
-Message-id: <006b01cc5cb3$dac09fa0$9041dee0$%szyprowski@samsung.com>
-Content-language: pl
-References: <1313146711-1767-1-git-send-email-m.szyprowski@samsung.com>
- <201108161528.48954.arnd@arndb.de>
- <20110816135516.GC17310@n2100.arm.linux.org.uk>
- <201108161626.26130.arnd@arndb.de>
+Received: from perceval.ideasonboard.com ([95.142.166.194]:42572 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752906Ab1HIMSB (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 9 Aug 2011 08:18:01 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Marek Szyprowski <m.szyprowski@samsung.com>
+Subject: Re: Possible issue in videobuf2 with buffer length check at QBUF time
+Date: Tue, 9 Aug 2011 14:17:59 +0200
+Cc: "'Pawel Osciak'" <pawel@osciak.com>, linux-media@vger.kernel.org
+References: <201108051055.08641.laurent.pinchart@ideasonboard.com> <201108091351.44916.laurent.pinchart@ideasonboard.com> <025001cc568c$df347930$9d9d6b90$%szyprowski@samsung.com>
+In-Reply-To: <025001cc568c$df347930$9d9d6b90$%szyprowski@samsung.com>
+MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201108091418.00285.laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello,
+Hi Marek,
 
-On Tuesday, August 16, 2011 4:26 PM Arnd Bergmann wrote:
-> On Tuesday 16 August 2011, Russell King - ARM Linux wrote:
-> > On Tue, Aug 16, 2011 at 03:28:48PM +0200, Arnd Bergmann wrote:
-> > > Hmm, I don't remember the point about dynamically sizing the pool for
-> > > ARMv6K, but that can well be an oversight on my part.  I do remember the
-> > > part about taking that memory pool from the CMA region as you say.
-> >
-> > If you're setting aside a pool of pages, then you have to dynamically
-> > size it.  I did mention during our discussion about this.
-> >
-> > The problem is that a pool of fixed size is two fold: you need it to be
-> > sufficiently large that it can satisfy all allocations which come along
-> > in atomic context.  Yet, we don't want the pool to be too large because
-> > then it prevents the memory being used for other purposes.
-> >
-> > Basically, the total number of pages in the pool can be a fixed size,
-> > but as they are depleted through allocation, they need to be
-> > re-populated from CMA to re-build the reserve for future atomic
-> > allocations.  If the pool becomes larger via frees, then obviously
-> > we need to give pages back.
+On Tuesday 09 August 2011 14:07:12 Marek Szyprowski wrote:
+> On Tuesday, August 09, 2011 1:52 PM Laurent Pinchart wrote:
+> > On Tuesday 09 August 2011 11:14:43 Marek Szyprowski wrote:
+> > > On Monday, August 08, 2011 12:11 PM Laurent Pinchart wrote:
+> > > > On Friday 05 August 2011 17:01:09 Pawel Osciak wrote:
+> > > > > On Fri, Aug 5, 2011 at 01:55, Laurent Pinchart wrote:
+> > > > > > Hi Marek and Pawel,
+> > > > > > 
+> > > > > > While reviewing an OMAP3 ISP patch, I noticed that videobuf2
+> > > > > > doesn't verify the buffer length field value when a new USERPTR
+> > > > > > buffer is queued.
+> > > > > 
+> > > > > That's a good catch. We should definitely do something about it.
+> > > > > 
+> > > > > > The length given by userspace is copied to the internal buffer
+> > > > > > length field. It seems to be up to drivers to verify that the
+> > > > > > value is equal to or higher than the minimum required to store
+> > > > > > the image, but that's not clearly documented. Should the
+> > > > > > buf_init operation be made mandatory for drivers that support
+> > > > > > USERPTR, and documented as required to implement a length check
+> > > > > > ?
+> > > > > 
+> > > > > Technically, drivers can do the length checks on buf_prepare if
+> > > > > they don't allow format changes after REQBUFS. On the other hand
+> > > > > though, if a driver supports USERPTR, the buffers queued from
+> > > > > userspace have to be verified on qbuf and the only place to do
+> > > > > that would be buf_init. So every driver that supports USERPTR
+> > > > > would have to implement buf_init, as you said.
+> > > > > 
+> > > > > > Alternatively the check could be performed in videobuf2-core,
+> > > > > > which would probably make sense as the check is required.
+> > > > > > videobuf2 doesn't store the minimum size for USERPTR buffers
+> > > > > > though (but that can of course be changed).
+> > > > > 
+> > > > > Let's say we make vb2 save minimum buffer size. This would have to
+> > > > > be done on queue_setup I imagine. We could add a new field to
+> > > > > vb2_buffer for that. One problem is that if the driver actually
+> > > > > supports changing format after REQBUFS, we would need a new
+> > > > > function in vb2 to change minimum buffer size. Actually, this has
+> > > > > to be minimum plane sizes. So the alternatives are:
+> > > > > 
+> > > > > 1. Make buf_init required for drivers that support USERPTR; or
+> > > > > 2. Add minimum plane sizes to vb2_buffer,add a new return array
+> > > > > argument to queue_setup to return minimum plane sizes that would be
+> > > > > stored in vb2. Make vb2 verify sizes on qbuf of USERPTR. Add a new
+> > > > > vb2 function for drivers to call when minimum sizes have to be
+> > > > > changed.
+> > > > > 
+> > > > > The first solution is way simpler for drivers that require this.
+> > > > > The second solution is maybe a bit simpler for drivers that do
+> > > > > not, as they would only have to return the sizes in queue_setup,
+> > > > > but implementing buf_init instead wouldn't be a big of a
+> > > > > difference I think. So I'm leaning towards the second solution.
+> > > > > Any comments, did I miss something?
+> > > > 
+> > > > Thanks for the analysis. I would go for the second solution as well.
+> > > > 
+> > > > Do we have any driver that supports changing the format after REQBUFS
+> > > > ? If not we can delay adding the new vb2 function until we get such
+> > > > a driver.
+> > > 
+> > > I really wonder if we should support changing the format which results
+> > > in buffer/plane size change after REQBUFS. Please notice that it
+> > > causes additional problems with mmap-style buffers, which are
+> > > allocated once during the REQBUFS call. Also none driver support it
+> > > right now and I doubt that changing buffer size after REQBUFS can be
+> > > implemented without breaking anything other (there are a lot of things
+> > > that depends on buffer size, both in vb2 and the drivers).
+> > 
+> > I wasn't awake enough when I sent my previous reply. We probably have no
+> > driver that supports this feature at the moment, but changing the format
+> > after REQBUFS is the whole point of the CREATE_BUFS and PREPARE_BUF
+> > ioctls, so I think we definitely need to support that :-)
 > 
-> Ok, thanks for the reminder. I must have completely missed this part
-> of the discussion.
-> 
-> When I briefly considered this problem, my own conclusion was that
-> the number of atomic DMA allocations would always be very low
-> because they tend to be short-lived (e.g. incoming network packets),
-> so we could ignore this problem and just use a smaller reservation
-> size. While this seems to be true in general (see "git grep -w -A3
-> dma_alloc_coherent | grep ATOMIC"), there is one very significant
-> case that we cannot ignore, which is pci_alloc_consistent.
-> 
-> This function is still called by hundreds of PCI drivers and always
-> does dma_alloc_coherent(..., GFP_ATOMIC), even for long-lived
-> allocations and those that are too large to be ignored.
-> 
-> So at least for the case where we have PCI devices, I agree that
-> we need to have the dynamic pool.
+> Right, but this is an extension that will come with CRATE_BUFS/PREPARE_BUF
+> calls. Until that, to handle buffers correctly we only need to add min_size
+> entry to the queue and check if queued buffers are large enough.
 
-Do we really need the dynamic pool for the first version? I would like to
-know how much memory can be allocated in GFP_ATOMIC context. What are the
-typical sizes of such allocations?
+I'm fine with that, but that's not a reason to ignore the bigger picture, 
+especially as it will come back to bite us pretty soon :-)
 
-Maybe for the first version a static pool with reasonably small size
-(like 128KiB) will be more than enough? This size can be even board
-depended or changed with kernel command line for systems that really
-needs more memory.
-
-I noticed one more problem. The size of the CMA managed area must be
-the multiple of 16MiBs (MAX_ORDER+1). This means that the smallest CMA area
-is 16MiB. These values comes from the internals of the kernel memory 
-management design and page blocks are the only entities that can be managed
-with page migration code.
-
-I'm not sure if all ARMv6+ boards have at least 32MiB of memory be able to
-create a CMA area.
-
-Best regards
 -- 
-Marek Szyprowski
-Samsung Poland R&D Center
+Regards,
 
+Laurent Pinchart
