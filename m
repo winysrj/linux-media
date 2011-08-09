@@ -1,81 +1,123 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from narfation.org ([79.140.41.39]:49554 "EHLO v3-1039.vlinux.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750911Ab1HAKHX (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 1 Aug 2011 06:07:23 -0400
-From: Sven Eckelmann <sven@narfation.org>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: linux-arch@vger.kernel.org, linux-kernel@vger.kernel.org,
-	linux-media@vger.kernel.org
-Subject: Re: Re: [PATCHv4 05/11] omap3isp: Use *_dec_not_zero instead of *_add_unless
-Date: Mon, 01 Aug 2011 12:07:15 +0200
-Message-ID: <1518031.UNu44UiQdf@sven-laptop.home.narfation.org>
-In-Reply-To: <201107311700.43515.laurent.pinchart@ideasonboard.com>
-References: <1311760070-21532-1-git-send-email-sven@narfation.org> <1311760070-21532-5-git-send-email-sven@narfation.org> <201107311700.43515.laurent.pinchart@ideasonboard.com>
+Received: from impaqm2.telefonica.net ([213.4.138.18]:17829 "EHLO
+	telefonica.net" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1751537Ab1HITqA convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 9 Aug 2011 15:46:00 -0400
+From: Jose Alberto Reguero <jareguero@telefonica.net>
+To: Antti Palosaari <crope@iki.fi>
+Subject: Re: [PATCH] add support for the dvb-t part of CT-3650 v3
+Date: Tue, 9 Aug 2011 21:45:48 +0200
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	linux-media@vger.kernel.org,
+	Michael Krufky <mkrufky@kernellabs.com>,
+	Guy Martin <gmsoft@tuxicoman.be>
+References: <201106070205.08118.jareguero@telefonica.net> <201108081235.35950.jareguero@telefonica.net> <4E4058CB.7080908@iki.fi>
+In-Reply-To: <4E4058CB.7080908@iki.fi>
 MIME-Version: 1.0
-Content-Type: multipart/signed; boundary="nextPart1410967.cpOlAuVVht"; micalg="pgp-sha512"; protocol="application/pgp-signature"
-Content-Transfer-Encoding: 7Bit
+Content-Type: Text/Plain;
+  charset="utf-8"
+Content-Transfer-Encoding: 8BIT
+Message-Id: <201108092145.49090.jareguero@telefonica.net>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-
---nextPart1410967.cpOlAuVVht
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
-
-On Sunday 31 July 2011 17:00:43 Laurent Pinchart wrote:
-> Hi Sven,
+On Lunes, 8 de Agosto de 2011 23:44:43 Antti Palosaari escribió:
+> Reviewed-by: Antti Palosaari <crope@iki.fi>
 > 
-> Thanks for the patch.
+> It looks just fine.
 > 
-> On Wednesday 27 July 2011 11:47:44 Sven Eckelmann wrote:
-> > atomic_dec_not_zero is defined for each architecture through
-> > <linux/atomic.h> to provide the functionality of
-> > atomic_add_unless(x, -1, 0).
+> regards
+> Antti
+>
+ 
+Forgot the Signed-off-by
+
+Signed-off-by: Jose Alberto Reguero <jareguero@telefonica.net>
+
+Jose Alberto
+
+> On 08/08/2011 01:35 PM, Jose Alberto Reguero wrote:
+> > On Martes, 2 de Agosto de 2011 21:21:13 Jose Alberto Reguero escribió:
+> >> On Jueves, 28 de Julio de 2011 21:25:01 Jose Alberto Reguero escribió:
+> >>> On Miércoles, 27 de Julio de 2011 21:22:26 Antti Palosaari escribió:
+> >>>> On 07/24/2011 12:45 AM, Jose Alberto Reguero wrote:
+> >>>>> Read without write work as with write. Attached updated patch.
+> >>>>> 
+> >>>>> ttusb2-6.diff
+> >>>>> 
+> >>>>> -		read = i+1<  num&&  (msg[i+1].flags&  I2C_M_RD);
+> >>>>> +		write_read = i+1<  num&&  (msg[i+1].flags&  I2C_M_RD);
+> >>>>> +		read = msg[i].flags&  I2C_M_RD;
+> >>>> 
+> >>>> ttusb2 I2C-adapter seems to be fine for my eyes now. No more writing
+> >>>> any random bytes in case of single read. Good!
+> >>>> 
+> >>>>> +	.dtv6_if_freq_khz = TDA10048_IF_4000,
+> >>>>> +	.dtv7_if_freq_khz = TDA10048_IF_4500,
+> >>>>> +	.dtv8_if_freq_khz = TDA10048_IF_5000,
+> >>>>> +	.clk_freq_khz     = TDA10048_CLK_16000,
+> >>>>> 
+> >>>>> 
+> >>>>> +static int ct3650_i2c_gate_ctrl(struct dvb_frontend* fe, int enable)
+> >>>> 
+> >>>> cosmetic issue rename to ttusb2_ct3650_i2c_gate_ctrl
+> >>>> 
+> >>>>>   	{ TDA10048_CLK_16000, TDA10048_IF_4000,  10, 3, 0 },
+> >>>>> 
+> >>>>> +	{ TDA10048_CLK_16000, TDA10048_IF_4500,   5, 3, 0 },
+> >>>>> +	{ TDA10048_CLK_16000, TDA10048_IF_5000,   5, 3, 0 },
+> >>>>> 
+> >>>>> +	/* Set the  pll registers */
+> >>>>> +	tda10048_writereg(state, TDA10048_CONF_PLL1, 0x0f);
+> >>>>> +	tda10048_writereg(state, TDA10048_CONF_PLL2, (u8)(state-
+> >>>> 
+> >>>> pll_mfactor));
+> >>>> 
+> >>>>> +	tda10048_writereg(state, TDA10048_CONF_PLL3,
+> >>>>> tda10048_readreg(state, TDA10048_CONF_PLL3) |
+> >>>>> ((u8)(state->pll_nfactor) | 0x40));
+> >>>> 
+> >>>> This if only issue can have effect to functionality and I want double
+> >>>> check. I see few things.
+> >>>> 
+> >>>> 1) clock (and PLL) settings should be done generally only once at
+> >>>> .init() and probably .sleep() in case of needed for sleep. Something
+> >>>> like start clock in init, stop clock in sleep. It is usually very
+> >>>> first thing to set before other. Now it is in wrong place -
+> >>>> .set_frontend().
+> >>>> 
+> >>>> 2) Those clock settings seem somehow weird. As you set different PLL M
+> >>>> divider for 6 MHz bandwidth than others. Have you looked those are
+> >>>> really correct? I suspect there could be some other Xtal than 16MHz
+> >>>> and thus those are wrong. Which Xtals there is inside device used?
+> >>>> There is most likely 3 Xtals, one for each chip. It is metal box
+> >>>> nearest to chip.
+> >>> 
+> >>> I left 6MHz like it was before in the driver. I try to do other way,
+> >>> allowing to put different PLL in config that the default ones of the
+> >>> driver and initialize it in init.
+> >>> 
+> >>> Jose Alberto
+> >> 
+> >> Attached new version of the patch. Adding tda827x lna and doing tda10048
+> >> pll in other way.
+> >> 
+> >> Jose Alberto
 > > 
-> > Signed-off-by: Sven Eckelmann <sven@narfation.org>
-> > Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-> 
-> Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-> 
-> I'll queue this to my tree for v3.2. Please let me know if you would rather
-> push the patch through another tree.
-
-The problem is that until now no one from linux-arch has applied the patch 
-01/11 in his tree (which is needed before this patch can be applied) and you 
-tree have to be based on the "yet to be chosen linux-arch tree". Otherwise 
-your tree will just break and not be acceptable for a pull request. 
-
-Maybe it is easier when one person applies 01-11 after 02-11 was Acked-by the 
-responsible maintainers.
-
-02 is more or less automatically Acked-by us :)
-04, 09 and 10 are also Acked.
-... and the rest is waiting for actions.
-
-Kind regards,
-	Sven
---nextPart1410967.cpOlAuVVht
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: This is a digitally signed message part.
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.11 (GNU/Linux)
-
-iQIcBAABCgAGBQJONnrTAAoJEF2HCgfBJntGlHgQALreUYVAb04uP6ya4Mz0D24D
-9gRxde9DaBYZovxlmhH9Cis/FiOEGkpbMl/sooyRZYzWaID5jpDp8020K622uBMw
-Le3CrZOzv1IZtEFepJ1jxaRUOgNHVACwH0+B314BNNhRG3NZet1MRMhpwWYWbVQ9
-SupB7fB7GNn23a0nkvwFndRxAONpbWMc4rtSbZMwi4x4ViSRVlFkAxGefLubBUoJ
-/0J8hX6C/ddrYbuJWdHbzlFr2y/j3S8EQFV0YTBGOeLjBAN/io3K/t76IEFCuofP
-47wmjKLgkl0EJIYQw8Rzhqd6tzPupXTPgeJfi0jwQvBCUValXO34rDf+2iZoB1eo
-fdNBnvYTZWpM3DDDtJtEnNN9/1V0P4qnYuvwxhDD8d2w1PHh8TlSpug72oliKnm+
-Y+XC+E2jZFGuQDofZqu/SCpFqsesjyRJVvEMXbk4pxT1AyVlWELgdnxcFg5zqPxG
-UFk38o5mp4yqm18KWQDqmH4LNjBlP00SSl8wyMYUfiowc81Yt5gf/T6gViDM7o74
-RCmfuzRKd8uyrKeeVakEEWMv5f2oVRZy0ziBT3R4wo8NBsErQR//6L0d8RvdWM0L
-0MnlpHBbw88pFJDcLL8HnloF7hO3914WwPcbIQ3M1A6WSLFEzhcjuuIrckHE2nae
-+ihdk+MrfXO8JKC0rmH/
-=NHxW
------END PGP SIGNATURE-----
-
---nextPart1410967.cpOlAuVVht--
-
+> > Another version, without tda827x lna. It don't improve anything.
+> > 
+> > Jose Alberto
+> > 
+> >>>> Ran checkpatch.pl also to find out style issues before send patch.
+> >>>> 
+> >>>> I have send new version, hopefully final, of MFE. It changes array
+> >>>> name from adap->mfe to adap-fe. You should also update that.
+> >>>> 
+> >>>> 
+> >>>> regards
+> >>>> Antti
+> >>> 
+> >>> --
+> >>> To unsubscribe from this list: send the line "unsubscribe linux-media"
+> >>> in the body of a message to majordomo@vger.kernel.org
+> >>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
