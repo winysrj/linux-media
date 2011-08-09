@@ -1,94 +1,80 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.17.8]:57667 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752571Ab1H2MSw (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 29 Aug 2011 08:18:52 -0400
-Date: Mon, 29 Aug 2011 14:18:50 +0200 (CEST)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-cc: Bastian Hecht <hechtb@googlemail.com>, linux-media@vger.kernel.org
-Subject: Re: [PATCH] media: Add support for arbitrary resolution for the
- ov5642 camera driver
-In-Reply-To: <201108281949.05551.laurent.pinchart@ideasonboard.com>
-Message-ID: <Pine.LNX.4.64.1108291409300.31184@axis700.grange>
-References: <alpine.DEB.2.02.1108171551040.17540@ipanema>
- <201108281949.05551.laurent.pinchart@ideasonboard.com>
+Received: from april.london.02.net ([87.194.255.143]:40795 "EHLO
+	april.london.02.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753080Ab1HIUbZ (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 9 Aug 2011 16:31:25 -0400
+From: Adam Baker <linux@baker-net.org.uk>
+To: Hans de Goede <hdegoede@redhat.com>
+Subject: Re: USB mini-summit at LinuxCon Vancouver
+Date: Tue, 9 Aug 2011 21:31:03 +0100
+Cc: Alan Stern <stern@rowland.harvard.edu>,
+	Sarah Sharp <sarah.a.sharp@linux.intel.com>,
+	Greg KH <greg@kroah.com>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	linux-usb@vger.kernel.org, linux-media@vger.kernel.org,
+	linux-kernel@vger.kernel.org, libusb-devel@lists.sourceforge.net,
+	Alexander Graf <agraf@suse.de>,
+	Gerd Hoffmann <kraxel@redhat.com>, hector@marcansoft.com,
+	Jan Kiszka <jan.kiszka@siemens.com>,
+	Stefan Hajnoczi <stefanha@linux.vnet.ibm.com>,
+	pbonzini@redhat.com, Anthony Liguori <aliguori@us.ibm.com>,
+	Jes Sorensen <Jes.Sorensen@redhat.com>,
+	Oliver Neukum <oliver@neukum.org>, Felipe Balbi <balbi@ti.com>,
+	Clemens Ladisch <clemens@ladisch.de>,
+	Jaroslav Kysela <perex@perex.cz>, Takashi Iwai <tiwai@suse.de>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Theodore Kilgore <kilgota@banach.math.auburn.edu>
+References: <Pine.LNX.4.44L0.1108091016380.1949-100000@iolanthe.rowland.org> <4E41912F.50901@redhat.com>
+In-Reply-To: <4E41912F.50901@redhat.com>
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201108092131.03818.linux@baker-net.org.uk>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Laurent
-
-On Sun, 28 Aug 2011, Laurent Pinchart wrote:
-
-[snip]
-
-> > @@ -593,8 +639,7 @@ static struct ov5642 *to_ov5642(const struct i2c_client
-> > *client) }
-> > 
-> >  /* Find a data format by a pixel code in an array */
-> > -static const struct ov5642_datafmt
-> > -			*ov5642_find_datafmt(enum v4l2_mbus_pixelcode code)
-> > +static const struct ov5642_datafmt *ov5642_find_datafmt(enum
-> > v4l2_mbus_pixelcode code) {
+On Tuesday 09 August 2011, Hans de Goede wrote:
+> Hi,
 > 
-> checkpatch.pl won't be happy.
+> On 08/09/2011 04:19 PM, Alan Stern wrote:
 
-Since the lift of the hard 80-char limit, I often find lines of 86 characters 
-more acceptable than their split versions.
-
-[snip]
-
-> > @@ -774,17 +839,27 @@ static int ov5642_s_fmt(struct v4l2_subdev *sd,
-> > 
-> >  	ov5642_try_fmt(sd, mf);
-> > 
-> > +	priv->out_size.width		= mf->width;
-> > +	priv->out_size.height		= mf->height;
+> >  Does it really make sense to combine 5 drivers into one?
 > 
-> It looks like to me (but I may be wrong) that you achieve different 
-> resolutions using cropping, not scaling. If that's correct you should 
-> implement s_crop support and refuse changing the resolution through s_fmt.
-
-As the patch explains (I think) on several occasions, currently only the 
-1:1 scale is supported, and it was our deliberate choice to implement this 
-using the scaling API
-
-> > @@ -793,10 +868,12 @@ static int ov5642_g_fmt(struct v4l2_subdev *sd,
-> > 
-> >  	mf->code	= fmt->code;
-> >  	mf->colorspace	= fmt->colorspace;
-> > -	mf->width	= OV5642_WIDTH;
-> > -	mf->height	= OV5642_HEIGHT;
-> > +	mf->width	= priv->out_size.width;
-> > +	mf->height	= priv->out_size.height;
-> >  	mf->field	= V4L2_FIELD_NONE;
-> > 
-> > +	dev_dbg(sd->v4l2_dev->dev, "%s return width: %u heigth: %u\n", __func__,
-> > +			mf->width, mf->height);
+> Right, that is not the plan. The plan is to simply stop having 2 drivers
+> for 1 logical (and physical) block. So we go from 10 drivers, 5 stillcam
+> + 5 webcam, to just 5 drivers. We will also likely be able to share
+> code between the code for the 2 functionalities for things like generic
+> set / get register functions, initialization, etc.
 > 
-> Isn't that a bit too verbose ? Printing the format in a debug message in the 
-> s_fmt handler is useful, but maybe doing it in g_fmt is a bit too much.
 
-This is a dev_dbg()... Personally, as long as they don't clutter the source 
-code needlessly, compile without warnings and have their typos fixed (;-)) 
-I don't have problems with an odd instance, even if I don't really perceive 
-its output as particularly useful:-)
+Unfortunately as Theodore recently pointed out you don't go from 10 to 5, you 
+go from 10 to 10 where 5 of the new 10 are only used on Win32, FreeBSD and OSX 
+(but they aren't any simpler because they still rely on libusb) and the other 
+5 that are only used on Linux become significantly more complicated than they 
+currently are.
 
-[snip]
+It has also just occured to me that it might be possible to solve the issues 
+we are facing just in the kernel. At the moment when the kernel performs a 
+USBDEVFS_DISCONNECT it keeps the kernel driver locked out until userspace 
+performs a USBDEVFS_CONNECT. If the kernel reattached the kernel driver when 
+the device file was closed then, as gvfs doesn't keep the file open the 
+biggest current issue would be solved instantly. If a mechanism could be found 
+to prevent USBDEVFS_DISCONNECT from succeeding when the corresponding 
+/dev/videox file was open then that would seem to be a reasonable solution.
 
-> > +	dev_dbg(sd->v4l2_dev->dev, "%s crop width: %u heigth: %u\n", __func__,
-> > +			rect->width, rect->height);
-> 
-> Same comment as for g_fmt.
+Hans had expressed the opinion that merely having the device open to control 
+the camera not to stream shouldn't  prevent stillcam operation - I disagree 
+because if you are setting up the controls you are probably already streaming 
+so you can see what you are doing and if not you are probably about to.
 
-same reply:-)
+Of course changing the behaviour of USBDEVFS_DISCONNECT is not something to be 
+done lightly. I don't know how many other users there are for it and if the 
+current behaviour is actually correct for any of them. Cleaning up on file 
+close does have the useful side effect though that applications no longer need 
+to worry about the fact that even if they clean up properly on a normal exit, 
+if they crash they leave the kernel driver permanently disabled
 
-Thanks
-Guennadi
----
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
-http://www.open-technology.de/
+Regards
+
+Adam
