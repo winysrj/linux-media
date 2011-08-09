@@ -1,125 +1,109 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.126.186]:65106 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752720Ab1HONp4 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 15 Aug 2011 09:45:56 -0400
-Date: Mon, 15 Aug 2011 15:45:53 +0200 (CEST)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Hans Verkuil <hansverk@cisco.com>
-cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Sakari Ailus <sakari.ailus@iki.fi>,
-	Pawel Osciak <pawel@osciak.com>,
-	Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: Re: [PATCH 1/6 v4] V4L: add two new ioctl()s for multi-size videobuffer
- management
-In-Reply-To: <201108151336.07258.hansverk@cisco.com>
-Message-ID: <Pine.LNX.4.64.1108151530410.7851@axis700.grange>
-References: <Pine.LNX.4.64.1108042329460.31239@axis700.grange>
- <201108081116.41126.hansverk@cisco.com> <Pine.LNX.4.64.1108151324220.7851@axis700.grange>
- <201108151336.07258.hansverk@cisco.com>
+Received: from mx1.redhat.com ([209.132.183.28]:45256 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750780Ab1HIU2S (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 9 Aug 2011 16:28:18 -0400
+Message-ID: <4E4198D2.8070104@redhat.com>
+Date: Tue, 09 Aug 2011 22:30:10 +0200
+From: Hans de Goede <hdegoede@redhat.com>
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+To: Theodore Kilgore <kilgota@banach.math.auburn.edu>
+CC: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Adam Baker <linux@baker-net.org.uk>, workshop-2011@linuxtv.org,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: [Workshop-2011] Media Subsystem Workshop 2011
+References: <4E398381.4080505@redhat.com> <4E3A91D1.1040000@redhat.com> <4E3B9597.4040307@redhat.com> <201108072353.42237.linux@baker-net.org.uk> <alpine.LNX.2.00.1108072103200.20613@banach.math.auburn.edu> <4E3FE86A.5030908@redhat.com> <alpine.LNX.2.00.1108081208080.21409@banach.math.auburn.edu> <4E40E20C.2090001@redhat.com> <alpine.LNX.2.00.1108091138070.23136@banach.math.auburn.edu>
+In-Reply-To: <alpine.LNX.2.00.1108091138070.23136@banach.math.auburn.edu>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, 15 Aug 2011, Hans Verkuil wrote:
+Hi,
 
-> On Monday, August 15, 2011 13:28:23 Guennadi Liakhovetski wrote:
-> > Hi Hans
-> > 
-> > On Mon, 8 Aug 2011, Hans Verkuil wrote:
-> > 
-> > > Hi Guennadi!
-> > > 
-> > > On Friday, August 05, 2011 09:47:13 Guennadi Liakhovetski wrote:
-> > > > A possibility to preallocate and initialise buffers of different sizes
-> > > > in V4L2 is required for an efficient implementation of asnapshot mode.
-> > > > This patch adds two new ioctl()s: VIDIOC_CREATE_BUFS and
-> > > > VIDIOC_PREPARE_BUF and defines respective data structures.
-> > > > 
-> > > > Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-> > > > ---
-> > > > 
-> > > > v4:
-> > > > 
-> > > > 1. CREATE_BUFS now takes an array of plane sizes and a fourcc code in its 
-> > > >    argument, instead of a frame format specification, including 
-> > > >    documentation update
-> > > > 2. documentation improvements, as suggested by Hans
-> > > > 3. increased reserved fields to 18, as suggested by Sakari
-> > > > 
-> > > >  Documentation/DocBook/media/v4l/io.xml             |   17 ++
-> > > >  Documentation/DocBook/media/v4l/v4l2.xml           |    2 +
-> > > >  .../DocBook/media/v4l/vidioc-create-bufs.xml       |  161 
-> > > ++++++++++++++++++++
-> > > >  .../DocBook/media/v4l/vidioc-prepare-buf.xml       |   96 ++++++++++++
-> > > >  drivers/media/video/v4l2-compat-ioctl32.c          |    6 +
-> > > >  drivers/media/video/v4l2-ioctl.c                   |   26 +++
-> > > >  include/linux/videodev2.h                          |   18 +++
-> > > >  include/media/v4l2-ioctl.h                         |    2 +
-> > > >  8 files changed, 328 insertions(+), 0 deletions(-)
-> > > >  create mode 100644 Documentation/DocBook/media/v4l/vidioc-create-bufs.xml
-> > > >  create mode 100644 Documentation/DocBook/media/v4l/vidioc-prepare-buf.xml
-> > > > 
-> > > 
-> > > <snip>
-> > > 
-> > > > diff --git a/include/linux/videodev2.h b/include/linux/videodev2.h
-> > > > index fca24cc..3cd0cb3 100644
-> > > > --- a/include/linux/videodev2.h
-> > > > +++ b/include/linux/videodev2.h
-> > > > @@ -653,6 +653,9 @@ struct v4l2_buffer {
-> > > >  #define V4L2_BUF_FLAG_ERROR	0x0040
-> > > >  #define V4L2_BUF_FLAG_TIMECODE	0x0100	/* timecode field is valid */
-> > > >  #define V4L2_BUF_FLAG_INPUT     0x0200  /* input field is valid */
-> > > > +/* Cache handling flags */
-> > > > +#define V4L2_BUF_FLAG_NO_CACHE_INVALIDATE	0x0400
-> > > > +#define V4L2_BUF_FLAG_NO_CACHE_CLEAN		0x0800
-> > > >  
-> > > >  /*
-> > > >   *	O V E R L A Y   P R E V I E W
-> > > > @@ -2092,6 +2095,18 @@ struct v4l2_dbg_chip_ident {
-> > > >  	__u32 revision;    /* chip revision, chip specific */
-> > > >  } __attribute__ ((packed));
-> > > >  
-> > > > +/* VIDIOC_CREATE_BUFS */
-> > > > +struct v4l2_create_buffers {
-> > > > +	__u32	index;	/* output: buffers index...index + count - 1 have been 
-> > > created */
-> > > > +	__u32	count;
-> > > > +	__u32	type;
-> > > > +	__u32	memory;
-> > > > +	__u32	fourcc;
-> > > > +	__u32	num_planes;
-> > > > +	__u32	sizes[VIDEO_MAX_PLANES];
-> > > > +	__u32	reserved[18];
-> > > > +};
-> > > 
-> > > I know you are going to hate me for this,
-> > 
-> > hm, I'll consider this possibility;-)
-> > 
-> > > but I've changed my mind: I think
-> > > this should use a struct v4l2_format after all.
+On 08/09/2011 07:10 PM, Theodore Kilgore wrote:
+>
+>
+> On Tue, 9 Aug 2011, Hans de Goede wrote:
 
-While switching back, I have to change the struct vb2_ops::queue_setup() 
-operation to take a struct v4l2_create_buffers pointer. An earlier version 
-of this patch just added one more parameter to .queue_setup(), which is 
-easier - changes to videobuf2-core.c are smaller, but it is then 
-redundant. We could use the create pointer for both input and output. The 
-video plane configuration in frame format is the same as what is 
-calculated in .queue_setup(), IIUC. So, we could just let the driver fill 
-that one in. This would require then the videobuf2-core.c to parse struct 
-v4l2_format to decide which union member we need, depending on the buffer 
-type. Do we want this or shall drivers duplicate plane sizes in separate 
-.queue_setup() parameters?
+<snip>
 
-Thanks
-Guennadi
----
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
-http://www.open-technology.de/
+> No, but both Adam and I realized, approximately at the same time
+> yesterday afternoon, something which is rather important here. Gphoto is
+> not developed exclusively for Linux. Furthermore, it has a significant
+> user base both on Windows and on MacOS, not to mention BSD. It really
+> isn't nice to be screwing around too much with the way it works.
+
+Right, so my plan is not to rip out the existing camlibs from libgphoto2,
+but to instead add a new camlib which talks to /dev/video# nodes which
+support the new to be defined v4l2 API for this. This camlib will then
+take precedence over the old libusb based ones when running on a system
+which has a new enough kernel. On systems without the new enough kernel
+the matching portdriver won't find any ports, so the camlib will be
+effectively disabled. On BSD the port driver for this new /dev/video#
+API and the camlib won't even get compiled.
+
+<snip>
+
+>> It is time to quit thinking in band-aides and solve this properly,
+>> 1 logical device means it gets 1 driver.
+>>
+>> This may be an approach which means some more work then others, but
+>> I believe in the end that doing it right is worth the effort.
+>
+> Clearly, we agree about "doing it right is worth the effort." The whole
+> discussion right now is about what is "right."
+
+I'm sorry but I don't get the feeling that the discussion currently is
+focusing on what is "right". To me too much attention is being spend
+on not throwing away the effort put in the current libgphoto2 camlibs,
+which I don't like for 2 reasons:
+1) It distracts from doing what is right
+2) It ignores the fact that a lot has been learned in doing those
+camlibs, really really a lot. and all that can be re-used in a kernel
+driver.
+
+Let me try to phrase it in a way I think you'll understand. If we
+agree on doing it right over all other things (such as the fact
+that doing it right may take a considerable effort). Then this
+could be an interesting assignment for some of the computer science
+students I used to be a lecturer for. This assignment could read
+something like "Given the existing situation and knowledge <
+describe all that here>, do a re-design for the driverstack
+for these dual mode cameras, assuming a completely fresh start".
+
+Now if I were to give this assignment to a group of students, and
+they would keep coming back with the "but re-doing the camlibs
+in kernelspace is such a large effort, and we already have
+them in userspace" argument against using one unified driver
+for these devices, I would give them an F, because they are
+clearly missing the "assuming a completely fresh start"
+part of the assignment.
+
+I'm sorry if this sounds a bit harsh, but this is the way how
+the current discussion feels to me. If we agree on aiming for
+"doing it right" then with that comes to me doing a software
+design from scratch, so without taking into account what is
+already there.
+
+There are of course limits to the from scratch part, in the
+end we want this to slot into the existing Linux practices
+for webcams and stillcams, which means:
+1) offering a v4l2 /dev/video# node for streaming; and
+2) access to the pictures stored on the camera through libgphoto
+
+Taking these 2 constrictions into account, and combining that
+with my firm believe that the solution to all the device sharing
+problems is handling both functions in a single driver, I end
+up with only 1 option:
+
+Have a kernel driver which provides both functions of the device,
+with the streaming exported as a standard v4l2 device, and the
+stillcam function exported with some to be defined API. Combined
+with a libgphoto2 portlib and camlib for this new API, so that
+existing libgphoto2 apps can still access the pictures as if
+nothing was changed.
+
+Regards,
+
+Hans
