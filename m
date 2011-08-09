@@ -1,67 +1,102 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-vx0-f174.google.com ([209.85.220.174]:64858 "EHLO
-	mail-vx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752116Ab1HDI6z (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 4 Aug 2011 04:58:55 -0400
-Received: by vxi9 with SMTP id 9so40332vxi.19
-        for <linux-media@vger.kernel.org>; Thu, 04 Aug 2011 01:58:54 -0700 (PDT)
+Received: from banach.math.auburn.edu ([131.204.45.3]:51968 "EHLO
+	banach.math.auburn.edu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753279Ab1HITBk (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 9 Aug 2011 15:01:40 -0400
+Date: Tue, 9 Aug 2011 14:06:35 -0500 (CDT)
+From: Theodore Kilgore <kilgota@banach.math.auburn.edu>
+To: Hans de Goede <hdegoede@redhat.com>
+cc: Adam Baker <linux@baker-net.org.uk>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	workshop-2011@linuxtv.org,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: [Workshop-2011] Media Subsystem Workshop 2011
+In-Reply-To: <4E40E3A6.2080508@redhat.com>
+Message-ID: <alpine.LNX.2.00.1108091259450.23321@banach.math.auburn.edu>
+References: <4E398381.4080505@redhat.com> <alpine.LNX.2.00.1108072103200.20613@banach.math.auburn.edu> <4E3FE86A.5030908@redhat.com> <201108082133.00340.linux@baker-net.org.uk> <alpine.LNX.2.00.1108081543490.21785@banach.math.auburn.edu>
+ <4E40E3A6.2080508@redhat.com>
 MIME-Version: 1.0
-In-Reply-To: <4E396569.30708@codeaurora.org>
-References: <4E37C7D7.40301@samsung.com>
-	<4E381B73.8050706@codeaurora.org>
-	<20E136AF98049A48A90A7417B4343D5E1DF747A563@BUNGLE.Emea.Arm.com>
-	<4E396569.30708@codeaurora.org>
-Date: Thu, 4 Aug 2011 10:58:53 +0200
-Message-ID: <CAKMK7uECwB70CnAaoTTfG0X5tMTcsYGZvvTaMxHE654bYNJyyQ@mail.gmail.com>
-Subject: Re: [Linaro-mm-sig] Buffer sharing proof-of-concept
-From: Daniel Vetter <daniel.vetter@ffwll.ch>
-To: Jordan Crouse <jcrouse@codeaurora.org>
-Cc: Tom Cooksey <Tom.Cooksey@arm.com>,
-	"linaro-mm-sig@lists.linaro.org" <linaro-mm-sig@lists.linaro.org>,
-	Tomasz Stanislawski <t.stanislaws@samsung.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, Aug 3, 2011 at 17:12, Jordan Crouse <jcrouse@codeaurora.org> wrote:
-> On 08/03/2011 03:33 AM, Tom Cooksey wrote:
->> Passing buffer meta-data around was also discussed yesterday. Again, the
->> general consensus seemed to be that this data should be kept out of the
->> kernel. The userspace application should know what the buffer format
->> etc. is and can provide that information to the relevant device APIs
->> when is passes in the buffer.
->
-> True, but APIs change slowly. Some APIs *cough* OpenMAX *cough* are damn
-> near immutable over the life time of a average software release. A blob of
-> data attached to a buffer can evolve far more rapidly and be far more
-> extensible and much more vendor specific. This isn't an new idea, I think
-> the DRM/GEM guys have tossed it around too.
 
-Erh, no. For sharing gem buffers between process (i.e. between direct
-rendering clients and the compositor, whatever that is) we just hand
-around the gem id in the kernel. Some more stuff gets passed around in
-userspace in a generic way (e.g. DRI2 passes the buffer type (depth,
-stencil, color, ...) and the stride), but that's it.
 
-Everything else is driver specific and mostly not even passed around
-explicitly and just agreed upon implicitly. E.g. running the wrong
-XvMC decoder lib for your Xorg Intel driver will result in garbage on
-the screen. There's a bit more leeway between Mesa and the Xorg driver
-because they're released independantly, but it's very ad-hoc (i.e.
-oops, that buffer doesn't fit the requirements of the new code, must
-be an old Xorg driver, so switch to the compat paths in Mesa).
+On Tue, 9 Aug 2011, Hans de Goede wrote:
 
-But my main fear with the "blob attached to the buffer" idea is that
-sooner or later it'll be part of the kernel/userspace interface of the
-buffer sharing api ("hey, it's there, why not use it?"). And the
-timeframe for deprecating the kernel abi is 5-10 years and yes I've
-tried to dodge that and got shot at. Imo a better approach is to spec
-(_after_ the kernel buffer sharing works) a low-level userspace api
-that drivers need to implement (like the EGL Mesa extensions used to
-make Wayland work on gem drivers).
--Daniel
--- 
-Daniel Vetter
-daniel.vetter@ffwll.ch - +41 (0) 79 365 57 48 - http://blog.ffwll.ch
+> Hi,
+> 
+> <snip>
+> 
+> > OK, another example. The cameras supported in camlibs/jl2005c do not have
+> > webcam ability, but someone could at any time design and market a dualmode
+> > which has in stillcam mode the same severe limitation. What limitation?
+> > Well, the entire memory of the camera must be dumped, or else the camera
+> > jams itself. You can stop dumping in the middle of the operation, but you
+> > must continue after that. Suppose that you had ten pictures on the camera
+> > and you only wanted to download the first one. Then you can do that and
+> > temporarily stop downloading the rest. But while exiting you have to check
+> > whether the rest are downloaded or not. And if they are not, then it has
+> > to be done, with the data simply thrown in the trash, and then the
+> > camera's memory pointer reset before the camera is released. How, one
+> > might ask, did anyone produce something so primitive? Well, it is done.
+> > Perhaps the money saved thereby was at least in part devoted to producing
+> > better optics for the camera. At least, one can hope so. But people did
+> > produce those cameras, and people have bought them. But does anyone want
+> > to reproduce the code to support this kind of crap in the kernel? And go
+> > through all of the hoops required in order to fake the behavior which one
+> > woulld "expect" from a "real" still camera? It has already been done in
+> > camlibs/jl2005c and isn't that enough?
+> 
+> This actually is an example where doing a kernel driver would be easier,
+> a kernel driver never exits. So it can simply remember where it was
+> reading (and cache the data it has read sofar). If an app requests picture
+> 10, we read 1-10, cache them and return picture 10 to the app, then the same
+> or another app asks for picture 4, get it from cache, asks for picture 20
+> read 11-20, etc.
+
+This, in fact, is the way that the OEM software for most of these cheap 
+cameras works. The camera is dumped, and then raw files for the pictures 
+are created in C:\TEMP. Then the raw files are all processed immediately 
+into viewable pictures, after which thumbnails (which did not previously 
+exist as separate entities) can be created for use in the GUI app. Then, 
+if the user "chooses" to "save" certain of the photos, the "chosen" photos 
+are merely copied to a more permanent location. And when the 
+camera-accessing app is exited, the temporary files are all deleted.
+
+Clearly, the OEM approach recommends itself for simplicity. Nevertheless, 
+there is an obvious disadvantage. Namely, *all* of the raw data from the 
+camera needs to be fetched and, as you say, "kept in cache." That "cache" 
+is either going to use RAM, or is going to be based in swap. And not every 
+piece of hardware is a big, honking system with plenty of gigabytes in the 
+RAM slots, and moreover there exist systems with low memory where it is 
+also considered not a good idea to use swap. Precisely because of these 
+realities, the design of libgphoto2 has consciously rejected the approach 
+used in the OEM drivers. Rather, it is a priority to lower the memory 
+footprint by dealing with the data piece by piece. This means, 
+essentially, handling the photos on the camera one at a time. It is worth 
+considering that some of the aforementioned low-powered systems with low 
+quantities of RAM on board, and with no allocated swap space are running 
+Linux these days.
+
+> 
+> Having written code for various small digital picture frames (the keychain
+> models) I know where you are coming from. Trust me I do. 
+
+Not to worry. I know where you are coming from, too. Trust me I do. 
+
+Recently I had
+> an interesting bug report, with a corrupt PAT (picture allocation table)
+> turns out that when deleting a picture through the menu inside the frame
+> a different marker gets written to the PAT then when deleting it with the
+> windows software, Fun huh?
+
+Yes, of course it is fun. We should not have signed up to do this kind 
+of work if we can't take a joke, right? 
+
+But, more seriously, there may be some reason why that different character 
+is used -- or OTOH maybe not, and somebody was just being silly. 
+Unfortunately, experience tells me it is probably necessary to figure out 
+which of the two possibilities it is.
+
+Theodore Kilgore
