@@ -1,55 +1,78 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pz0-f42.google.com ([209.85.210.42]:37695 "EHLO
-	mail-pz0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754061Ab1HQQKn (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 17 Aug 2011 12:10:43 -0400
-Received: by pzk37 with SMTP id 37so1312816pzk.1
-        for <linux-media@vger.kernel.org>; Wed, 17 Aug 2011 09:10:43 -0700 (PDT)
+Received: from mx1.redhat.com ([209.132.183.28]:35902 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750993Ab1HIT4W (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 9 Aug 2011 15:56:22 -0400
+Message-ID: <4E41912F.50901@redhat.com>
+Date: Tue, 09 Aug 2011 21:57:35 +0200
+From: Hans de Goede <hdegoede@redhat.com>
 MIME-Version: 1.0
-In-Reply-To: <201108161953.40596.laurent.pinchart@ideasonboard.com>
-References: <alpine.DEB.2.02.1108161255100.16286@ipanema>
-	<201108161953.40596.laurent.pinchart@ideasonboard.com>
-Date: Wed, 17 Aug 2011 16:10:42 +0000
-Message-ID: <CABYn4swqs=L+OR8x8MGndPmfaDNMp+HT+Y7Wt_CYsymBbCEHJA@mail.gmail.com>
-Subject: Re: [PATCH] media: Added extensive feature set to the OV5642 camera driver
-From: Bastian Hecht <hechtb@googlemail.com>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: linux-media@vger.kernel.org,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Content-Type: text/plain; charset=ISO-8859-1
+To: Alan Stern <stern@rowland.harvard.edu>
+CC: Sarah Sharp <sarah.a.sharp@linux.intel.com>,
+	Greg KH <greg@kroah.com>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	linux-usb@vger.kernel.org, linux-media@vger.kernel.org,
+	linux-kernel@vger.kernel.org, libusb-devel@lists.sourceforge.net,
+	Alexander Graf <agraf@suse.de>,
+	Gerd Hoffmann <kraxel@redhat.com>, hector@marcansoft.com,
+	Jan Kiszka <jan.kiszka@siemens.com>,
+	Stefan Hajnoczi <stefanha@linux.vnet.ibm.com>,
+	pbonzini@redhat.com, Anthony Liguori <aliguori@us.ibm.com>,
+	Jes Sorensen <Jes.Sorensen@redhat.com>,
+	Oliver Neukum <oliver@neukum.org>, Felipe Balbi <balbi@ti.com>,
+	Clemens Ladisch <clemens@ladisch.de>,
+	Jaroslav Kysela <perex@perex.cz>, Takashi Iwai <tiwai@suse.de>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Theodore Kilgore <kilgota@banach.math.auburn.edu>,
+	Adam Baker <linux@baker-net.org.uk>
+Subject: Re: USB mini-summit at LinuxCon Vancouver
+References: <Pine.LNX.4.44L0.1108091016380.1949-100000@iolanthe.rowland.org>
+In-Reply-To: <Pine.LNX.4.44L0.1108091016380.1949-100000@iolanthe.rowland.org>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-2011/8/16 Laurent Pinchart <laurent.pinchart@ideasonboard.com>:
-> Hi Bastian,
+Hi,
+
+On 08/09/2011 04:19 PM, Alan Stern wrote:
+> On Tue, 9 Aug 2011, Hans de Goede wrote:
 >
-> On Tuesday 16 August 2011 14:58:58 Bastian Hecht wrote:
->> The driver now supports arbitray resolutions (width up to 2592, height
->> up to 720), automatic/manual gain, automatic/manual white balance,
->> automatic/manual exposure control, vertical flip, brightness control,
->> contrast control and saturation control. Additionally the following
->> effects are available now: rotating the hue in the colorspace, gray
->> scale image and solarize effect.
+>> I would really like to see the dual mode camera and TV tuner discussion
+>> separated. They are 2 different issues AFAIK.
+>>
+>> 1) Dual mode cameras:
+>>
+>> In the case of the dual mode camera we have 1 single device (both at
+>> the hardware level and at the logical block level), which can do 2 things,
+>> but not at the same time. It can stream live video data from a sensor,
+>> or it can retrieve earlier taken pictures from some picture memory.
+>>
+>> Unfortunately even though these 2 functions live in a single logical block,
+>> historically we've developed 2 drivers for them. This leads to fighting
+>> over device ownership (surprise surprise), and to me the solution is
+>> very clear, 1 logical block == 1 driver.
 >
-> That's a big patch, thus quite hard to review. What about splitting it in one
-> patch per feature (or group of features, at least separating format
-> configuration and controls) ? :-)
+> According to Theodore, we have developed 5 drivers for them because the
+> stillcam modes in different devices use four different vendor-specific
+> drivers.
 
-Hello Laurent,
+Yes, but so the the webcam modes of the different devices, so for
+the 5 (not sure if that is the right number) dual-cam mode chipsets
+we support there will be 5 drivers, each supporting both the
+webcam and the access to pictures stored in memory of the chipset
+they support. So 5 chipsets -> 5 drivers each supporting 1 chipset,
+and both functions of the single logical device that chipset
+represents.
 
-I have reposted the my code split into 2 patches. The first with
-changes related to
-the image sizes and the other with all the controls. I hope that this
-separation makes
-it easy enough to review it. If not, tell me and I can split it up further.
-Thanks for reviewing,
+>  Does it really make sense to combine 5 drivers into one?
 
- Bastian Hecht
+Right, that is not the plan. The plan is to simply stop having 2 drivers
+for 1 logical (and physical) block. So we go from 10 drivers, 5 stillcam
++ 5 webcam, to just 5 drivers. We will also likely be able to share
+code between the code for the 2 functionalities for things like generic
+set / get register functions, initialization, etc.
 
+Regards,
 
-> --
-> Regards,
->
-> Laurent Pinchart
->
+Hans
