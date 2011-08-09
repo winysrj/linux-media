@@ -1,57 +1,59 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr1.xs4all.nl ([194.109.24.21]:2733 "EHLO
-	smtp-vbr1.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751496Ab1HYOIr (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 25 Aug 2011 10:08:47 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [RFC PATCH 03/12] wl128x: fix compiler warning + wrong write() return.
-Date: Thu, 25 Aug 2011 16:08:26 +0200
-Message-Id: <cc3d210aa59d0665ce46f5f9dfd79c0881cd2327.1314281302.git.hans.verkuil@cisco.com>
-In-Reply-To: <1314281315-32366-1-git-send-email-hverkuil@xs4all.nl>
-References: <1314281315-32366-1-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <afd314e95a520c3a4de0f112735d1d5584ec8a9a.1314281302.git.hans.verkuil@cisco.com>
-References: <afd314e95a520c3a4de0f112735d1d5584ec8a9a.1314281302.git.hans.verkuil@cisco.com>
+Received: from perceval.ideasonboard.com ([95.142.166.194]:54073 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751468Ab1HIHmE (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 9 Aug 2011 03:42:04 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Michael Jones <michael.jones@matrix-vision.de>
+Subject: Re: [PATCH v2] [media] omap3isp: queue: fail QBUF if user buffer is too small
+Date: Tue, 9 Aug 2011 09:42:03 +0200
+Cc: linux-media@vger.kernel.org,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+References: <1312472437-26231-1-git-send-email-michael.jones@matrix-vision.de> <1312872140-7517-1-git-send-email-michael.jones@matrix-vision.de>
+In-Reply-To: <1312872140-7517-1-git-send-email-michael.jones@matrix-vision.de>
+MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="iso-8859-15"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201108090942.03596.laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+Hi Michael,
 
-v4l-dvb-git/drivers/media/radio/wl128x/fmdrv_v4l2.c: In function 'fm_v4l2_fops_write':
-v4l-dvb-git/drivers/media/radio/wl128x/fmdrv_v4l2.c:81:6: warning: variable 'ret' set but not used [-Wunused-but-set-variable]
+On Tuesday 09 August 2011 08:42:20 Michael Jones wrote:
+> Add buffer length check to sanity checks for USERPTR QBUF
+> 
+> Signed-off-by: Michael Jones <michael.jones@matrix-vision.de>
 
-The fix is to check for ret and return -EFAULT if non-zero.
+Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 
-I also noticed that write() didn't return the number of bytes written.
-Fixed as well.
+I'll push the patch to v3.2.
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- drivers/media/radio/wl128x/fmdrv_v4l2.c |    4 +++-
- 1 files changed, 3 insertions(+), 1 deletions(-)
+> ---
+> Changes for v2:
+>  - only check when V4L2_MEMORY_USERPTR
+> 
+>  drivers/media/video/omap3isp/ispqueue.c |    4 ++++
+>  1 files changed, 4 insertions(+), 0 deletions(-)
+> 
+> diff --git a/drivers/media/video/omap3isp/ispqueue.c
+> b/drivers/media/video/omap3isp/ispqueue.c index 9c31714..9bebb1e 100644
+> --- a/drivers/media/video/omap3isp/ispqueue.c
+> +++ b/drivers/media/video/omap3isp/ispqueue.c
+> @@ -868,6 +868,10 @@ int omap3isp_video_queue_qbuf(struct isp_video_queue
+> *queue, goto done;
+> 
+>  	if (vbuf->memory == V4L2_MEMORY_USERPTR &&
+> +	    vbuf->length < buf->vbuf.length)
+> +		goto done;
+> +
+> +	if (vbuf->memory == V4L2_MEMORY_USERPTR &&
+>  	    vbuf->m.userptr != buf->vbuf.m.userptr) {
+>  		isp_video_buffer_cleanup(buf);
+>  		buf->vbuf.m.userptr = vbuf->m.userptr;
 
-diff --git a/drivers/media/radio/wl128x/fmdrv_v4l2.c b/drivers/media/radio/wl128x/fmdrv_v4l2.c
-index 8c0e192..478d1e9 100644
---- a/drivers/media/radio/wl128x/fmdrv_v4l2.c
-+++ b/drivers/media/radio/wl128x/fmdrv_v4l2.c
-@@ -84,12 +84,14 @@ static ssize_t fm_v4l2_fops_write(struct file *file, const char __user * buf,
- 	ret = copy_from_user(&rds, buf, sizeof(rds));
- 	fmdbg("(%d)type: %d, text %s, af %d\n",
- 		   ret, rds.text_type, rds.text, rds.af_freq);
-+	if (ret)
-+		return -EFAULT;
- 
- 	fmdev = video_drvdata(file);
- 	fm_tx_set_radio_text(fmdev, rds.text, rds.text_type);
- 	fm_tx_set_af(fmdev, rds.af_freq);
- 
--	return 0;
-+	return sizeof(rds);
- }
- 
- static u32 fm_v4l2_fops_poll(struct file *file, struct poll_table_struct *pts)
 -- 
-1.7.5.4
+Regards,
 
+Laurent Pinchart
