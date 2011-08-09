@@ -1,111 +1,91 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-fx0-f46.google.com ([209.85.161.46]:51926 "EHLO
-	mail-fx0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752381Ab1HAJtr convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 1 Aug 2011 05:49:47 -0400
+Received: from mga02.intel.com ([134.134.136.20]:9636 "EHLO mga02.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753893Ab1HIRKn (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 9 Aug 2011 13:10:43 -0400
+Date: Tue, 9 Aug 2011 10:10:41 -0700
+From: Sarah Sharp <sarah.a.sharp@linux.intel.com>
+To: Hans de Goede <hdegoede@redhat.com>
+Cc: Greg KH <greg@kroah.com>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	linux-usb@vger.kernel.org, linux-media@vger.kernel.org,
+	linux-kernel@vger.kernel.org, libusb-devel@lists.sourceforge.net,
+	Alexander Graf <agraf@suse.de>,
+	Gerd Hoffmann <kraxel@redhat.com>, hector@marcansoft.com,
+	Jan Kiszka <jan.kiszka@siemens.com>,
+	Stefan Hajnoczi <stefanha@linux.vnet.ibm.com>,
+	pbonzini@redhat.com, Anthony Liguori <aliguori@us.ibm.com>,
+	Jes Sorensen <Jes.Sorensen@redhat.com>,
+	Alan Stern <stern@rowland.harvard.edu>,
+	Oliver Neukum <oliver@neukum.org>, Felipe Balbi <balbi@ti.com>,
+	Clemens Ladisch <clemens@ladisch.de>,
+	Jaroslav Kysela <perex@perex.cz>, Takashi Iwai <tiwai@suse.de>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Theodore Kilgore <kilgota@banach.math.auburn.edu>,
+	Adam Baker <linux@baker-net.org.uk>
+Subject: Re: USB mini-summit at LinuxCon Vancouver
+Message-ID: <20110809171041.GA5634@xanatos>
+References: <20110610002103.GA7169@xanatos>
+ <4E3B1B7B.2040501@infradead.org>
+ <20110804225603.GA2557@kroah.com>
+ <4E3B9FB4.30709@redhat.com>
+ <20110808175837.GA6398@xanatos>
+ <4E40E74C.9060902@redhat.com>
 MIME-Version: 1.0
-In-Reply-To: <4E35DD38.7070609@gmx.de>
-References: <4DDAE63A.3070203@gmx.de>
-	<201107111732.52156.laurent.pinchart@ideasonboard.com>
-	<Pine.LNX.4.64.1107280943470.20737@axis700.grange>
-	<201107281251.35018.laurent.pinchart@ideasonboard.com>
-	<CAMuHMdX=c=p7oASCE+GgY9AgaCPWoXRQyjEGpn4BvA9xSY6GQg@mail.gmail.com>
-	<4E35DD38.7070609@gmx.de>
-Date: Mon, 1 Aug 2011 11:49:46 +0200
-Message-ID: <CAMuHMdUMW3QC_43aKvw2KQqEmzmeXXois8+zFg+S+DG785GwjA@mail.gmail.com>
-Subject: Re: [PATCH/RFC] fbdev: Add FOURCC-based format configuration API
-From: Geert Uytterhoeven <geert@linux-m68k.org>
-To: Florian Tobias Schandinat <FlorianSchandinat@gmx.de>
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Paul Mundt <lethal@linux-sh.org>, linux-fbdev@vger.kernel.org,
-	linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <4E40E74C.9060902@redhat.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, Aug 1, 2011 at 00:54, Florian Tobias Schandinat
-<FlorianSchandinat@gmx.de> wrote:
-> On 07/31/2011 08:32 PM, Geert Uytterhoeven wrote:
->> On Thu, Jul 28, 2011 at 12:51, Laurent Pinchart
->> <laurent.pinchart@ideasonboard.com>  wrote:
->>>>
->>>> As for struct fb_var_screeninfo fields to support switching to a FOURCC
->>>> mode, I also prefer an explicit dedicated flag to specify switching to
->>>> it.
->>>> Even though using FOURCC doesn't fit under the notion of a videomode,
->>>> using
->>>> one of .vmode bits is too tempting, so, I would actually take the plunge
->>>> and
->>>> use FB_VMODE_FOURCC.
->>>
->>> Another option would be to consider any grayscale>  1 value as a FOURCC.
->>> I've
->>> briefly checked the in-tree drivers: they only assign grayscale with 0 or
->>> 1,
->>> and check whether grayscale is 0 or different than 0. If a userspace
->>> application only sets grayscale>  1 when talking to a driver that
->>> supports the
->>> FOURCC-based API, we could get rid of the flag.
->>>
->>> What can't be easily found out is whether existing applications set
->>> grayscale
->>> to a>  1 value. They would break when used with FOURCC-aware drivers if
->>> we
->>> consider any grayscale>  1 value as a FOURCC. Is that a risk we can take
->>> ?
->>
->> I think we can. I'd expect applications to use either 1 or -1 (i.e.
->> all ones), both are
->> invalid FOURCC values.
->>
->> Still, I prefer the nonstd way.
->> And limiting traditional nonstd values to the lowest 24 bits (there
->> are no in-tree
->> drivers using the highest 8 bits, right?).
->
-> Okay, it would be okay for me to
-> - write raw FOURCC values in nonstd, enable FOURCC mode if upper byte != 0
-> - not having an explicit flag to enable FOURCC
-> - in FOURCC mode drivers must set visual to FB_VISUAL_FOURCC
-> - making support of FOURCC visible to userspace by capabilites |=
-> FB_CAP_FOURCC
->
-> The capabilities is not strictly necessary but I think it's very useful as
-> - it allows applications to make sure the extension is supported (for
-> example to adjust the UI)
-> - it allows applications to distinguish whether a particular format is not
-> supported or FOURCC at all
-> - it allows signaling further extensions of the API
-> - it does not hurt, one line per driver and still some bytes in fixinfo free
->
->
-> So using it would look like this:
-> - the driver must have capabilities |= FB_CAP_FOURCC
-> - the application may check capabilities to know whether FOURCC is supported
-> - the application may write a raw FOURCC value in nonstd to request changing
-> to FOURCC mode with this format
-> - when the driver switches to a FOURCC mode it must have visual =
-> FB_VISUAL_FOURCC and the current FOURCC format in nonstd
-> - the application should check visual and nonstd to make sure it gets what
-> it wanted
+On Tue, Aug 09, 2011 at 09:52:44AM +0200, Hans de Goede wrote:
+> Hi,
+> 
+> On 08/08/2011 07:58 PM, Sarah Sharp wrote:
+> >On Fri, Aug 05, 2011 at 09:45:56AM +0200, Hans de Goede wrote:
+> >>Hi,
+> >>
+> >>On 08/05/2011 12:56 AM, Greg KH wrote:
+> >>>On Thu, Aug 04, 2011 at 07:21:47PM -0300, Mauro Carvalho Chehab wrote:
+> >>I think it is important to separate oranges from apples here, there are
+> >>at least 3 different problem classes which all seem to have gotten thrown
+> >>onto a pile here:
+> >>
+> >>1) The reason Mauro suggested having some discussion on this at the
+> >>USB summit is because of a discussion about dual mode cameras on the
+> >>linux media list.
+> >...
+> >>3) Re-direction of usb devices to virtual machines. This works by using
+> >>the userspace usbfs interface from qemu / vmware / virtualbox / whatever.
+> >>The basics of this work fine, but it lacks proper locking / safeguards
+> >>for when a vm takes over a usb device from the in kernel driver.
+> >
+> >Hi Hans and Mauro,
+> >
+> >We have do room in the schedule for the USB mini-summit for this
+> >discussion, since the schedule is still pretty flexible.  The
+> >preliminary schedule is up here:
+> >
+> >http://userweb.kernel.org/~sarah/linuxcon-usb-minisummit.html
+> >
+> >I think it's best to discuss the VM redirection in the afternoon when
+> >some of the KVM folks join us after Hans' talk on USB redirection over
+> >the network.
+> >
+> 
+> That seems best to me too. I'm available at both proposed time slots,
+> and I would like to join both discussions.
+> 
+> >It sounds like we need a separate topic for the dual mode cameras and TV
+> >tuners.  Mauro, do you want to lead that discussion in the early morning
+> >(in a 9:30 to 10:30 slot) or in the late afternoon (in a 15:30 to 16:30
+> >slot)?  I want to be sure we have all the video/media developers who are
+> >interested in this topic present, and I don't know if they will be going
+> >to the KVM forum.
+> 
+> I would really like to see the dual mode camera and TV tuner discussion
+> separated. They are 2 different issues AFAIK.
 
-As several of the FOURCC formats duplicate formats you can already
-specify in some
-other way (e.g. the RGB and greyscale formats), and as FOURCC makes life easier
-for the application writer, I'm wondering whether it makes sense to add FOURCC
-support in the generic layer for drivers that don't support it? I.e.
-the generic layer would
-fill in fb_var_screeninfo depending on the requested FOURCC mode, if possible.
+Ok, great, I've put both topics in the morning, in separate slots.
 
-Gr{oetje,eeting}s,
-
-                        Geert
-
---
-Geert Uytterhoeven -- There's lots of Linux beyond ia32 -- geert@linux-m68k.org
-
-In personal conversations with technical people, I call myself a hacker. But
-when I'm talking to journalists I just say "programmer" or something like that.
-                                -- Linus Torvalds
+Sarah Sharp
