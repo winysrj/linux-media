@@ -1,89 +1,68 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:41906 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751027Ab1H2M5l (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 29 Aug 2011 08:57:41 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Tomasz Stanislawski <t.stanislaws@samsung.com>
-Subject: Re: [PATCH 4/5] [media] v4l: fix copying ioctl results on failure
-Date: Mon, 29 Aug 2011 14:58:04 +0200
-Cc: linux-media@vger.kernel.org, hverkuil@xs4all.nl
-References: <1314363967-6448-1-git-send-email-t.stanislaws@samsung.com> <201108291056.49049.laurent.pinchart@ideasonboard.com> <4E5B7E33.9020502@samsung.com>
-In-Reply-To: <4E5B7E33.9020502@samsung.com>
+Received: from emh05.mail.saunalahti.fi ([62.142.5.111]:44565 "EHLO
+	emh05.mail.saunalahti.fi" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752647Ab1HIPEY (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 9 Aug 2011 11:04:24 -0400
+Message-ID: <4E414C55.5040903@kolumbus.fi>
+Date: Tue, 09 Aug 2011 18:03:49 +0300
+From: Marko Ristola <marko.ristola@kolumbus.fi>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-15"
+To: Alan Stern <stern@rowland.harvard.edu>
+CC: Hans de Goede <hdegoede@redhat.com>,
+	Sarah Sharp <sarah.a.sharp@linux.intel.com>,
+	Greg KH <greg@kroah.com>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	linux-usb@vger.kernel.org, linux-media@vger.kernel.org,
+	linux-kernel@vger.kernel.org, libusb-devel@lists.sourceforge.net,
+	Alexander Graf <agraf@suse.de>,
+	Gerd Hoffmann <kraxel@redhat.com>, hector@marcansoft.com,
+	Jan Kiszka <jan.kiszka@siemens.com>,
+	Stefan Hajnoczi <stefanha@linux.vnet.ibm.com>,
+	pbonzini@redhat.com, Anthony Liguori <aliguori@us.ibm.com>,
+	Jes Sorensen <Jes.Sorensen@redhat.com>,
+	Oliver Neukum <oliver@neukum.org>, Felipe Balbi <balbi@ti.com>,
+	Clemens Ladisch <clemens@ladisch.de>,
+	Jaroslav Kysela <perex@perex.cz>, Takashi Iwai <tiwai@suse.de>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Theodore Kilgore <kilgota@banach.math.auburn.edu>,
+	Adam Baker <linux@baker-net.org.uk>
+Subject: Re: USB mini-summit at LinuxCon Vancouver
+References: <Pine.LNX.4.44L0.1108091016380.1949-100000@iolanthe.rowland.org>
+In-Reply-To: <Pine.LNX.4.44L0.1108091016380.1949-100000@iolanthe.rowland.org>
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Message-Id: <201108291458.05372.laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Tomasz,
 
-On Monday 29 August 2011 13:55:31 Tomasz Stanislawski wrote:
-> On 08/29/2011 10:56 AM, Laurent Pinchart wrote:
-> > On Monday 29 August 2011 10:01:58 Tomasz Stanislawski wrote:
-> >> On 08/26/2011 05:09 PM, Laurent Pinchart wrote:
-> >>> On Friday 26 August 2011 15:06:06 Tomasz Stanislawski wrote:
-> >>>> This patch fix the handling of data passed to V4L2 ioctls.  The
-> >>>> content of the structures is not copied if the ioctl fails.  It
-> >>>> blocks ability to obtain any information about occurred error other
-> >>>> then errno code. This patch fix this issue.
-> >>> 
-> >>> Does the V4L2 spec say anything on this topic ? We might have
-> >>> applications that rely on the ioctl argument structure not being
-> >>> touched when a failure occurs.
-> >> 
-> >> Ups.. I missed something. It looks that modifying ioctl content is
-> >> illegal if ioctl fails. The spec says:
-> >> "When an ioctl that takes an output or read/write parameter fails, the
-> >> parameter remains unmodified." (v4l2 ioctl section)
-> >> However, there is probably a bug already present in V4L2 framework.
-> >> There are some ioctls that takes a pointer to an array as a field in the
-> >> argument struct.
-> >> The examples are all VIDIOC_*_EXT_CTRLS and VIDIOC_{QUERY/DQ/Q}_BUF
-> >> family. The content of such an auxiliary arays is copied even if ioctl
-> >> fails. Please take a look to video_usercopy function in v4l2-ioctl.c.
-> >> Therefore I think that the spec is already violated. What is your
-> >> opinion about this problem?
-> > 
-> > I think it was a bad idea to state that a parameter remains unmodified
-> > when the ioctl fails in the first place. I'm fine with not following
-> > that for new ioctls, but applications might rely on it for existing
-> > ioctls.
-> > 
-> >> Now back to selection case.
-> >> This patch was added as proposition of fix to VIDIOC_S_SELECTION, to
-> >> return the best-hit rectangle if constraints could not be satisfied. The
-> >> ioctl return -ERANGE in this case. Using those return values the
-> >> application gets some feedback on loosing constraints.
-> > 
-> > Shouldn't that always be the case ? :-) VIDIOC_S_SELECTION should adjust
-> > the rectangle up or down depending on the constraints and always return
-> > the best match without any error.
-> 
-> ok.. but what to do if constraints could not be satisfied?
-> The configuration should not be applied to the hardware in such a case,
-> because it is not what the application desired.
-> Therefore the ioctl must fail ... somehow.
-> If the ioctl always succeed then the constraint flags becomes actually
-> the hints.
+Hi
 
-That's what currently happens with S_FMT. Is that behaviour too limited in 
-your opinion ?
+I've been thinking about the Kernel driver side.
+Mauro and others emailed requirements on Jun or July.
 
-> We may need TRY_SELECTION to test rectangles without applying it.
-> 
-> I thought that returning the best-hit rectangle by S_SELECTION might be
-> useful because it gives the application some feedback on what the driver
-> would accept.
+I'm sorry for this spam: maybe you have thought this already.
 
-If we indeed need to fail with -ERANGE, I agree with you, the behaviour is 
-useful. It would make sense in that case to only update the parameter for a 
-specific set of ioctls. The V4L2 documentation will also need to be fixed.
+A linked list of read/write locks as the solution for these protections could be
+a base for the general solution. Locks could be accessed either by name "string name"
+or by an integer identifier.
 
--- 
-Regards,
+The bridge driver would be the container of the lock list.
+Lock take / release handles would be changeable by Bridge driver at driver init.
+This way bridge could tune the lock taking actions. Sub devices would not have
+to know the details of the bridge device.
 
-Laurent Pinchart
+When implemented as a library ".ko" module, this could be
+used by all related kernel drivers. The locking code would be very general.
+Maybe adding a lock list into each PCI bus device would solve the device export problem to KVM too.
+
+If some module wouldn't handle the proper locking yet,
+it would not deliver the protection, but it would work as before: no regressions.
+
+The library could also be called so that a driver would ask three locks at the same time.
+If the driver would get all three locks, it would return success.
+If the driver would not get all three locks, it would not lock any of them (with _trylock case).
+
+I don't have time to implement this feature.
+
+Happy meeting for all of you,
+Marko Ristola
