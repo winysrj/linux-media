@@ -1,91 +1,379 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:56683 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755181Ab1HRKKP convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 18 Aug 2011 06:10:15 -0400
-From: "Ravi, Deepthy" <deepthy.ravi@ti.com>
-To: "Hiremath, Vaibhav" <hvaibhav@ti.com>,
-	"mchehab@infradead.org" <mchehab@infradead.org>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
-CC: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
-Date: Thu, 18 Aug 2011 15:39:07 +0530
-Subject: RE: [PATCH] Media controller: Define media_entity_init() and
- media_entity_cleanup() conditionally
-Message-ID: <ADF30F4D7BDE934D9B632CE7D5C7ACA4047C4D0907DB@dbde03.ent.ti.com>
-References: <1313577276-18182-1-git-send-email-deepthy.ravi@ti.com>,<19F8576C6E063C45BE387C64729E739404E3CDE6D9@dbde02.ent.ti.com>
-In-Reply-To: <19F8576C6E063C45BE387C64729E739404E3CDE6D9@dbde02.ent.ti.com>
-Content-Language: en-US
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Received: from smtp-vbr8.xs4all.nl ([194.109.24.28]:1156 "EHLO
+	smtp-vbr8.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751825Ab1HIKKh (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 9 Aug 2011 06:10:37 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+Subject: Re: [RFCv1 PATCH for v3.1] v4l2-ioctl: fix ENOTTY handling.
+Date: Tue, 9 Aug 2011 12:10:25 +0200
+Cc: "linux-media" <linux-media@vger.kernel.org>
+References: <201107291410.53552.hverkuil@xs4all.nl> <4E354E00.5060102@redhat.com>
+In-Reply-To: <4E354E00.5060102@redhat.com>
 MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="utf-8"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201108091210.25974.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+On Sunday, July 31, 2011 14:43:44 Mauro Carvalho Chehab wrote:
+> Em 29-07-2011 09:10, Hans Verkuil escreveu:
+> > Hi all,
+> > 
+> > While converting v4l2-compliance to correctly handle ENOTTY errors I found
+> > several regressions in v4l2-ioctl.c:
+> > 
+> > 1) VIDIOC_ENUM/G/S/TRY_FMT would return -ENOTTY if the op for the particular
+> >    format type was not set, even though the op for other types might have been
+> >    present. In such a case -EINVAL should have been returned.
+> > 2) The priority check could cause -EBUSY or -EINVAL to be returned instead of
+> >    -ENOTTY if the corresponding ioctl was unsupported.
+> > 3) Certain ioctls that have an internal implementation (ENUMSTD, G_STD, S_STD,
+> >    G_PARM and the extended control ioctls) could return -EINVAL when -ENOTTY
+> >    should have been returned or vice versa.
+> > 
+> > I first tried to fix this by adding extra code for each affected ioctl, but
+> > that made the code rather ugly.
+> > 
+> > So I ended up with this code that first checks whether a certain ioctl is
+> > supported or not and returns -ENOTTY if not.
+> > 
+> > Comments?
+> 
+> This patch adds an extra cost of double-parsing the ioctl just because the
+> errors. The proper way is to check at the error path.
+> 
+> See the enclosed patch.
 
-Thanks,
-Deepthy Ravi.
-________________________________________
-From: Hiremath, Vaibhav
-Sent: Wednesday, August 17, 2011 9:00 PM
-To: Ravi, Deepthy; mchehab@infradead.org; linux-media@vger.kernel.org; linux-kernel@vger.kernel.org
-Cc: linux-omap@vger.kernel.org
-Subject: RE: [PATCH] Media controller: Define media_entity_init() and media_entity_cleanup() conditionally
+Your patch fixes some but not all of the problems that my patch fixes.
 
-> -----Original Message-----
-> From: Ravi, Deepthy
-> Sent: Wednesday, August 17, 2011 4:05 PM
-> To: mchehab@infradead.org; linux-media@vger.kernel.org; linux-
-> kernel@vger.kernel.org
-> Cc: linux-omap@vger.kernel.org; Hiremath, Vaibhav; Ravi, Deepthy
-> Subject: [PATCH] Media controller: Define media_entity_init() and
-> media_entity_cleanup() conditionally
->
-> From: Vaibhav Hiremath <hvaibhav@ti.com>
->
-> Defines the two functions only when CONFIG_MEDIA_CONTROLLER
-> is enabled.
-[Hiremath, Vaibhav] Deepthy,
+I'm trying to create a new patch on top of yours that actually fixes all the
+issues, but I'm having a hard time with that.
 
-You may want to mention about build failure without MEDIA_CONTROLLER option being enabled, especially if any sensor driver is being used between MC and non-MC framework compatible devices.
-For example, OMAP3 and AM3517, where TVP5146 is being used but OMAP3 is based on MC framework and AM3517 is based on simple sub-dev based interface.
+It is getting very difficult to follow the error path, which is exactly why
+I didn't want to do that in the first place. I've never understood the fixation
+on performance *without doing any measurements*. As the old saying goes:
+"Premature optimization is the root of all evil."
 
-[Deepthy Ravi] Ok. I will change description to include that.
+Code such as the likely/unlikely macros just obfuscate the code and should not
+be added IMHO unless you can prove that it makes a difference. See for example
+the discussion whether prefetch is useful or not: http://lwn.net/Articles/444336
 
-Thanks,
-Vaibhav
->
-> Signed-off-by: Vaibhav Hiremath <hvaibhav@ti.com>
-> Signed-off-by: Deepthy Ravi <deepthy.ravi@ti.com>
-> ---
->  include/media/media-entity.h |    9 +++++++++
->  1 files changed, 9 insertions(+), 0 deletions(-)
->
-> diff --git a/include/media/media-entity.h b/include/media/media-entity.h
-> index cd8bca6..c90916e 100644
-> --- a/include/media/media-entity.h
-> +++ b/include/media/media-entity.h
-> @@ -121,9 +121,18 @@ struct media_entity_graph {
->       int top;
->  };
->
-> +#ifdef CONFIG_MEDIA_CONTROLLER
->  int media_entity_init(struct media_entity *entity, u16 num_pads,
->               struct media_pad *pads, u16 extra_links);
->  void media_entity_cleanup(struct media_entity *entity);
-> +#else
-> +static inline int media_entity_init(struct media_entity *entity, u16
-> num_pads,
-> +             struct media_pad *pads, u16 extra_links)
-> +{
-> +     return 0;
-> +}
-> +static inline void media_entity_cleanup(struct media_entity *entity) {}
-> +#endif
->
->  int media_entity_create_link(struct media_entity *source, u16 source_pad,
->               struct media_entity *sink, u16 sink_pad, u32 flags);
+Code complexity is by far the biggest problem with all V4L code. I am tempted
+to completely reorganize v4l2-ioctl.c, but I can't do that for v3.1.
+
+I'll try to come up with another approach instead.
+
+Regards,
+
+	Hans
+
+> 
+> 
+> From: Mauro Carvalho Chehab <mchehab@redhat.com>
+> Date: Sun, 31 Jul 2011 09:37:56 -0300
+> [PATCH] v4l2-ioctl: properly return -EINVAL when parameters are wrong
+> 
+> When an ioctl is implemented, but the parameters are invalid,
+> the error code should be -EINVAL. However, if the ioctl is
+> not defined, it should return -ENOTTY instead.
+> 
+> While here, adds a gcc hint that having the ioctl enabled is more
+> likely, as userspace should know what the driver supports due to QUERYCAP
+> call.
+> 
+> Reported-by: Hans Verkuil <hverkuil@xs4all.nl>
+> Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+> 
+> diff --git a/drivers/media/video/v4l2-ioctl.c b/drivers/media/video/v4l2-ioctl.c
+> index 002ce13..9f80e9d 100644
+> --- a/drivers/media/video/v4l2-ioctl.c
+> +++ b/drivers/media/video/v4l2-ioctl.c
+> @@ -55,6 +55,14 @@
+>  	memset((u8 *)(p) + offsetof(typeof(*(p)), field) + sizeof((p)->field), \
+>  	0, sizeof(*(p)) - offsetof(typeof(*(p)), field) - sizeof((p)->field))
+>  
+> +#define no_ioctl_err(foo) ( (						\
+> +	ops->vidioc_##foo##_fmt_vid_cap ||				\
+> +	ops->vidioc_##foo##_fmt_vid_out ||				\
+> +	ops->vidioc_##foo##_fmt_vid_cap_mplane ||			\
+> +	ops->vidioc_##foo##_fmt_vid_out_mplane ||			\
+> +	ops->vidioc_##foo##_fmt_vid_overlay ||				\
+> +	ops->vidioc_##foo##_fmt_type_private) ? -EINVAL : -ENOTTY)
+> +
+>  struct std_descr {
+>  	v4l2_std_id std;
+>  	const char *descr;
+> @@ -591,7 +599,7 @@ static long __video_do_ioctl(struct file *file,
+>  			ret = v4l2_prio_check(vfd->prio, vfh->prio);
+>  			if (ret)
+>  				goto exit_prio;
+> -			ret = -EINVAL;
+> +			ret = -ENOTTY;
+>  			break;
+>  		}
+>  	}
+> @@ -638,7 +646,7 @@ static long __video_do_ioctl(struct file *file,
+>  		enum v4l2_priority *p = arg;
+>  
+>  		if (!ops->vidioc_s_priority && !use_fh_prio)
+> -				break;
+> +			break;
+>  		dbgarg(cmd, "setting priority to %d\n", *p);
+>  		if (ops->vidioc_s_priority)
+>  			ret = ops->vidioc_s_priority(file, fh, *p);
+> @@ -654,37 +662,37 @@ static long __video_do_ioctl(struct file *file,
+>  
+>  		switch (f->type) {
+>  		case V4L2_BUF_TYPE_VIDEO_CAPTURE:
+> -			if (ops->vidioc_enum_fmt_vid_cap)
+> +			if (likely(ops->vidioc_enum_fmt_vid_cap))
+>  				ret = ops->vidioc_enum_fmt_vid_cap(file, fh, f);
+>  			break;
+>  		case V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE:
+> -			if (ops->vidioc_enum_fmt_vid_cap_mplane)
+> +			if (likely(ops->vidioc_enum_fmt_vid_cap_mplane))
+>  				ret = ops->vidioc_enum_fmt_vid_cap_mplane(file,
+>  									fh, f);
+>  			break;
+>  		case V4L2_BUF_TYPE_VIDEO_OVERLAY:
+> -			if (ops->vidioc_enum_fmt_vid_overlay)
+> +			if (likely(ops->vidioc_enum_fmt_vid_overlay))
+>  				ret = ops->vidioc_enum_fmt_vid_overlay(file,
+>  					fh, f);
+>  			break;
+>  		case V4L2_BUF_TYPE_VIDEO_OUTPUT:
+> -			if (ops->vidioc_enum_fmt_vid_out)
+> +			if (likely(ops->vidioc_enum_fmt_vid_out))
+>  				ret = ops->vidioc_enum_fmt_vid_out(file, fh, f);
+>  			break;
+>  		case V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE:
+> -			if (ops->vidioc_enum_fmt_vid_out_mplane)
+> +			if (likely(ops->vidioc_enum_fmt_vid_out_mplane))
+>  				ret = ops->vidioc_enum_fmt_vid_out_mplane(file,
+>  									fh, f);
+>  			break;
+>  		case V4L2_BUF_TYPE_PRIVATE:
+> -			if (ops->vidioc_enum_fmt_type_private)
+> +			if (likely(ops->vidioc_enum_fmt_type_private))
+>  				ret = ops->vidioc_enum_fmt_type_private(file,
+>  								fh, f);
+>  			break;
+>  		default:
+>  			break;
+>  		}
+> -		if (!ret)
+> +		if (likely (!ret))
+>  			dbgarg(cmd, "index=%d, type=%d, flags=%d, "
+>  				"pixelformat=%c%c%c%c, description='%s'\n",
+>  				f->index, f->type, f->flags,
+> @@ -693,6 +701,8 @@ static long __video_do_ioctl(struct file *file,
+>  				(f->pixelformat >> 16) & 0xff,
+>  				(f->pixelformat >> 24) & 0xff,
+>  				f->description);
+> +		else if (ret == -ENOTTY)
+> +			ret = no_ioctl_err(enum);
+>  		break;
+>  	}
+>  	case VIDIOC_G_FMT:
+> @@ -744,7 +754,7 @@ static long __video_do_ioctl(struct file *file,
+>  				v4l_print_pix_fmt_mplane(vfd, &f->fmt.pix_mp);
+>  			break;
+>  		case V4L2_BUF_TYPE_VIDEO_OVERLAY:
+> -			if (ops->vidioc_g_fmt_vid_overlay)
+> +			if (likely(ops->vidioc_g_fmt_vid_overlay))
+>  				ret = ops->vidioc_g_fmt_vid_overlay(file,
+>  								    fh, f);
+>  			break;
+> @@ -789,34 +799,36 @@ static long __video_do_ioctl(struct file *file,
+>  				v4l_print_pix_fmt_mplane(vfd, &f->fmt.pix_mp);
+>  			break;
+>  		case V4L2_BUF_TYPE_VIDEO_OUTPUT_OVERLAY:
+> -			if (ops->vidioc_g_fmt_vid_out_overlay)
+> +			if (likely(ops->vidioc_g_fmt_vid_out_overlay))
+>  				ret = ops->vidioc_g_fmt_vid_out_overlay(file,
+>  				       fh, f);
+>  			break;
+>  		case V4L2_BUF_TYPE_VBI_CAPTURE:
+> -			if (ops->vidioc_g_fmt_vbi_cap)
+> +			if (likely(ops->vidioc_g_fmt_vbi_cap))
+>  				ret = ops->vidioc_g_fmt_vbi_cap(file, fh, f);
+>  			break;
+>  		case V4L2_BUF_TYPE_VBI_OUTPUT:
+> -			if (ops->vidioc_g_fmt_vbi_out)
+> +			if (likely(ops->vidioc_g_fmt_vbi_out))
+>  				ret = ops->vidioc_g_fmt_vbi_out(file, fh, f);
+>  			break;
+>  		case V4L2_BUF_TYPE_SLICED_VBI_CAPTURE:
+> -			if (ops->vidioc_g_fmt_sliced_vbi_cap)
+> +			if (likely(ops->vidioc_g_fmt_sliced_vbi_cap))
+>  				ret = ops->vidioc_g_fmt_sliced_vbi_cap(file,
+>  									fh, f);
+>  			break;
+>  		case V4L2_BUF_TYPE_SLICED_VBI_OUTPUT:
+> -			if (ops->vidioc_g_fmt_sliced_vbi_out)
+> +			if (likely(ops->vidioc_g_fmt_sliced_vbi_out))
+>  				ret = ops->vidioc_g_fmt_sliced_vbi_out(file,
+>  									fh, f);
+>  			break;
+>  		case V4L2_BUF_TYPE_PRIVATE:
+> -			if (ops->vidioc_g_fmt_type_private)
+> +			if (likely(ops->vidioc_g_fmt_type_private))
+>  				ret = ops->vidioc_g_fmt_type_private(file,
+>  								fh, f);
+>  			break;
+>  		}
+> +		if (unlikely(ret == -ENOTTY))
+> +			ret = no_ioctl_err(g);
+>  
+>  		break;
+>  	}
+> @@ -926,33 +938,36 @@ static long __video_do_ioctl(struct file *file,
+>  			break;
+>  		case V4L2_BUF_TYPE_VBI_CAPTURE:
+>  			CLEAR_AFTER_FIELD(f, fmt.vbi);
+> -			if (ops->vidioc_s_fmt_vbi_cap)
+> +			if (likely(ops->vidioc_s_fmt_vbi_cap))
+>  				ret = ops->vidioc_s_fmt_vbi_cap(file, fh, f);
+>  			break;
+>  		case V4L2_BUF_TYPE_VBI_OUTPUT:
+>  			CLEAR_AFTER_FIELD(f, fmt.vbi);
+> -			if (ops->vidioc_s_fmt_vbi_out)
+> +			if (likely(ops->vidioc_s_fmt_vbi_out))
+>  				ret = ops->vidioc_s_fmt_vbi_out(file, fh, f);
+>  			break;
+>  		case V4L2_BUF_TYPE_SLICED_VBI_CAPTURE:
+>  			CLEAR_AFTER_FIELD(f, fmt.sliced);
+> -			if (ops->vidioc_s_fmt_sliced_vbi_cap)
+> +			if (likely(ops->vidioc_s_fmt_sliced_vbi_cap))
+>  				ret = ops->vidioc_s_fmt_sliced_vbi_cap(file,
+>  									fh, f);
+>  			break;
+>  		case V4L2_BUF_TYPE_SLICED_VBI_OUTPUT:
+>  			CLEAR_AFTER_FIELD(f, fmt.sliced);
+> -			if (ops->vidioc_s_fmt_sliced_vbi_out)
+> +			if (likely(ops->vidioc_s_fmt_sliced_vbi_out))
+>  				ret = ops->vidioc_s_fmt_sliced_vbi_out(file,
+>  									fh, f);
+> +
+>  			break;
+>  		case V4L2_BUF_TYPE_PRIVATE:
+>  			/* CLEAR_AFTER_FIELD(f, fmt.raw_data); <- does nothing */
+> -			if (ops->vidioc_s_fmt_type_private)
+> +			if (likely(ops->vidioc_s_fmt_type_private))
+>  				ret = ops->vidioc_s_fmt_type_private(file,
+>  								fh, f);
+>  			break;
+>  		}
+> +		if (unlikely(ret == -ENOTTY))
+> +			ret = no_ioctl_err(g);
+>  		break;
+>  	}
+>  	case VIDIOC_TRY_FMT:
+> @@ -1008,7 +1023,7 @@ static long __video_do_ioctl(struct file *file,
+>  			break;
+>  		case V4L2_BUF_TYPE_VIDEO_OVERLAY:
+>  			CLEAR_AFTER_FIELD(f, fmt.win);
+> -			if (ops->vidioc_try_fmt_vid_overlay)
+> +			if (likely(ops->vidioc_try_fmt_vid_overlay))
+>  				ret = ops->vidioc_try_fmt_vid_overlay(file,
+>  					fh, f);
+>  			break;
+> @@ -1057,40 +1072,43 @@ static long __video_do_ioctl(struct file *file,
+>  			break;
+>  		case V4L2_BUF_TYPE_VIDEO_OUTPUT_OVERLAY:
+>  			CLEAR_AFTER_FIELD(f, fmt.win);
+> -			if (ops->vidioc_try_fmt_vid_out_overlay)
+> +			if (likely(ops->vidioc_try_fmt_vid_out_overlay))
+>  				ret = ops->vidioc_try_fmt_vid_out_overlay(file,
+>  				       fh, f);
+>  			break;
+>  		case V4L2_BUF_TYPE_VBI_CAPTURE:
+>  			CLEAR_AFTER_FIELD(f, fmt.vbi);
+> -			if (ops->vidioc_try_fmt_vbi_cap)
+> +			if (likely(ops->vidioc_try_fmt_vbi_cap))
+>  				ret = ops->vidioc_try_fmt_vbi_cap(file, fh, f);
+>  			break;
+>  		case V4L2_BUF_TYPE_VBI_OUTPUT:
+>  			CLEAR_AFTER_FIELD(f, fmt.vbi);
+> -			if (ops->vidioc_try_fmt_vbi_out)
+> +			if (likely(ops->vidioc_try_fmt_vbi_out))
+>  				ret = ops->vidioc_try_fmt_vbi_out(file, fh, f);
+>  			break;
+>  		case V4L2_BUF_TYPE_SLICED_VBI_CAPTURE:
+>  			CLEAR_AFTER_FIELD(f, fmt.sliced);
+> -			if (ops->vidioc_try_fmt_sliced_vbi_cap)
+> +			if (likely(ops->vidioc_try_fmt_sliced_vbi_cap))
+>  				ret = ops->vidioc_try_fmt_sliced_vbi_cap(file,
+>  								fh, f);
+>  			break;
+>  		case V4L2_BUF_TYPE_SLICED_VBI_OUTPUT:
+>  			CLEAR_AFTER_FIELD(f, fmt.sliced);
+> -			if (ops->vidioc_try_fmt_sliced_vbi_out)
+> +			if (likely(ops->vidioc_try_fmt_sliced_vbi_out))
+>  				ret = ops->vidioc_try_fmt_sliced_vbi_out(file,
+>  								fh, f);
+> +			else
+> +				ret = no_ioctl_err(try);
+>  			break;
+>  		case V4L2_BUF_TYPE_PRIVATE:
+>  			/* CLEAR_AFTER_FIELD(f, fmt.raw_data); <- does nothing */
+> -			if (ops->vidioc_try_fmt_type_private)
+> +			if (likely(ops->vidioc_try_fmt_type_private))
+>  				ret = ops->vidioc_try_fmt_type_private(file,
+>  								fh, f);
+>  			break;
+>  		}
+> -
+> +		if (unlikely(ret == -ENOTTY))
+> +			ret = no_ioctl_err(g);
+>  		break;
+>  	}
+>  	/* FIXME: Those buf reqs could be handled here,
+> @@ -1262,16 +1280,15 @@ static long __video_do_ioctl(struct file *file,
+>  	{
+>  		v4l2_std_id *id = arg;
+>  
+> -		ret = 0;
+>  		/* Calls the specific handler */
+>  		if (ops->vidioc_g_std)
+>  			ret = ops->vidioc_g_std(file, fh, id);
+> -		else if (vfd->current_norm)
+> +		else if (vfd->current_norm) {
+> +			ret = 0;
+>  			*id = vfd->current_norm;
+> -		else
+> -			ret = -EINVAL;
+> +		}
+>  
+> -		if (!ret)
+> +		if (likely(!ret))
+>  			dbgarg(cmd, "std=0x%08Lx\n", (long long unsigned)*id);
+>  		break;
+>  	}
+> @@ -1288,8 +1305,6 @@ static long __video_do_ioctl(struct file *file,
+>  		/* Calls the specific handler */
+>  		if (ops->vidioc_s_std)
+>  			ret = ops->vidioc_s_std(file, fh, &norm);
+> -		else
+> -			ret = -EINVAL;
+>  
+>  		/* Updates standard information */
+>  		if (ret >= 0)
+> @@ -1812,7 +1827,7 @@ static long __video_do_ioctl(struct file *file,
+>  			if (ops->vidioc_g_std)
+>  				ret = ops->vidioc_g_std(file, fh, &std);
+>  			else if (std == 0)
+> -				ret = -EINVAL;
+> +				ret = -ENOTTY;
+>  			if (ret == 0)
+>  				v4l2_video_std_frame_period(std,
+>  						    &p->parm.capture.timeperframe);
 > --
-> 1.7.0.4
-
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
+> 
