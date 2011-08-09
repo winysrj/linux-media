@@ -1,98 +1,56 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:47419 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752824Ab1H2KtH (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 29 Aug 2011 06:49:07 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Gary Thomas <gary@mlbassoc.com>
-Subject: Re: Getting started with OMAP3 ISP
-Date: Mon, 29 Aug 2011 12:49:32 +0200
-Cc: linux-media@vger.kernel.org
-References: <4E56734A.3080001@mlbassoc.com>
-In-Reply-To: <4E56734A.3080001@mlbassoc.com>
+Received: from smtp-68.nebula.fi ([83.145.220.68]:45940 "EHLO
+	smtp-68.nebula.fi" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751500Ab1HIXhb (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 9 Aug 2011 19:37:31 -0400
+Date: Wed, 10 Aug 2011 02:37:27 +0300
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Hans Verkuil <hansverk@cisco.com>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Pawel Osciak <pawel@osciak.com>,
+	Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: Re: [PATCH 1/6 v4] V4L: add two new ioctl()s for multi-size
+ videobuffer management
+Message-ID: <20110809233727.GB5926@valkosipuli.localdomain>
+References: <Pine.LNX.4.64.1108042329460.31239@axis700.grange>
+ <201108081440.27488.hansverk@cisco.com>
+ <201108090006.11075.laurent.pinchart@ideasonboard.com>
+ <201108090926.30157.hverkuil@xs4all.nl>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201108291249.33118.laurent.pinchart@ideasonboard.com>
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <201108090926.30157.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Gary,
-
-On Thursday 25 August 2011 18:07:38 Gary Thomas wrote:
-> Background:  I have working video capture drivers based on the
-> TI PSP codebase from 2.6.32.  In particular, I managed to get
-> a driver for the TVP5150 (analogue BT656) working with that kernel.
+On Tue, Aug 09, 2011 at 09:26:30AM +0200, Hans Verkuil wrote:
+...
+> > Wouldn't that be a security issue ? Any application with permissions to access 
+> > the video device could DoS the system.
 > 
-> Now I need to update to Linux 3.0, so I'm trying to get a driver
-> working with the rewritten ISP code.  Sadly, I'm having a hard
-> time with this - probably just missing something basic.
+> How is this any different from an application that tries to use more memory
+> then there is available? It's an out-of-memory situation, that can happen at
+> any time. Anyone can make an application that runs out of memory.
 > 
-> I've tried to clone the TVP514x driver which says that it works
-> with the OMAP3 ISP code.  I've updated it to use my decoder device,
-> but I can't even seem to get into that code from user land.
-> 
-> Here are the problems I've had so far:
->    * udev doesn't create any video devices although they have been
->      registered.  I see a full set in /sys/class/video4linux
->         # ls /sys/class/video4linux/
->         v4l-subdev0  v4l-subdev3  v4l-subdev6  video1       video4
->         v4l-subdev1  v4l-subdev4  v4l-subdev7  video2       video5
->         v4l-subdev2  v4l-subdev5  video0       video3       video6
+> Out-of-memory is not a security risk AFAIK.
 
-It looks like a udev issue. I don't think that's related to the kernel 
-drivers.
+If you coun availability to security, then it is.
 
->      Indeed, if I create /dev/videoX by hand, I can get somewhere, but
->      I don't really understand how this is supposed to work.  e.g.
->        # v4l2-dbg --info /dev/video3
->        Driver info:
->            Driver name   : ispvideo
->            Card type     : OMAP3 ISP CCP2 input
->            Bus info      : media
->            Driver version: 1
->            Capabilities  : 0x04000002
->                    Video Output
->                    Streaming
-> 
->    * If I try to grab video, the ISP layer gets a ton of warnings, but
->      I never see it call down into my driver, e.g. to check the current
->      format, etc.  I have some of my own code from before which fails
->      miserably (not a big surprise given the hack level of those programs).
->      I tried something off-the-shelf which also fails pretty bad:
->        # ffmpeg -t 10 -f video4linux2 -s 720x480 -r 30 -i /dev/video2
-> junk.mp4
-> 
-> I've read through Documentation/video4linux/omap3isp.txt without learning
-> much about what might be wrong.
-> 
-> Can someone give me some ideas/guidance, please?
+This might not be an issue in embedded systems which have a single user, but
+think of the availability of the interface in e.g. a server.
 
-In a nutshell, you will first have to configure the OMAP3 ISP pipeline, and 
-then capture video.
+Also, this memory is locked to system physical memory, making it impossible
+to page it out to a block device.
 
-Configuring the pipeline is done through the media controller API and the V4L2 
-subdev pad-level API. To experiment with those you can use the media-ctl 
-command line application available at http://git.ideasonboard.org/?p=media-
-ctl.git;a=summary. You can run it with --print-dot and pipe the result to dot 
--Tps to get a postscript graphical view of your device.
+> Note BTW that in practice kmalloc already has a cap (something like 16 or 32
+> MB, I believe it depends on the kernel .config) and so has CMA (the size of
 
-Here's a sample pipeline configuration to capture scaled-down YUV data from a 
-sensor:
-
-./media-ctl -r -l '"mt9t001 3-005d":0->"OMAP3 ISP CCDC":0[1], "OMAP3 ISP 
-CCDC":2->"OMAP3 ISP preview":0[1], "OMAP3 ISP preview":1->"OMAP3 ISP 
-resizer":0[1], "OMAP3 ISP resizer":1->"OMAP3 ISP resizer output":0[1]'
-./media-ctl -f '"mt9t001 3-005d":0[SGRBG10 1024x768], "OMAP3 ISP 
-CCDC":2[SGRBG10 1024x767], "OMAP3 ISP preview":1[YUYV 1006x759], "OMAP3 ISP 
-resizer":1[YUYV 800x600]'
-
-After configuring your pipeline you will be able to capture video using the 
-V4L2 API on the device node at the output of the pipeline.
+This is per a single allocation. A user could create any number of them.
 
 -- 
-Regards,
-
-Laurent Pinchart
+Sakari Ailus
+sakari.ailus@iki.fi
