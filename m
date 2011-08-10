@@ -1,32 +1,42 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-yi0-f46.google.com ([209.85.218.46]:38474 "EHLO
-	mail-yi0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756821Ab1HaQZ3 (ORCPT
+Received: from smtp1-g21.free.fr ([212.27.42.1]:57918 "EHLO smtp1-g21.free.fr"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750814Ab1HJGn0 convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 31 Aug 2011 12:25:29 -0400
-Received: by yie30 with SMTP id 30so718373yie.19
-        for <linux-media@vger.kernel.org>; Wed, 31 Aug 2011 09:25:28 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <201108311715.33777.laurent.pinchart@ideasonboard.com>
-References: <4E56734A.3080001@mlbassoc.com>
-	<201108311300.30808.laurent.pinchart@ideasonboard.com>
-	<4E5E2283.9030100@mlbassoc.com>
-	<201108311715.33777.laurent.pinchart@ideasonboard.com>
-Date: Wed, 31 Aug 2011 18:25:28 +0200
-Message-ID: <CA+2YH7sYsUuEcsu56aG-DzEU4dushzH=_LXKekMb1-zKxoRCOg@mail.gmail.com>
-Subject: Re: Getting started with OMAP3 ISP
-From: Enrico <ebutera@users.berlios.de>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
+	Wed, 10 Aug 2011 02:43:26 -0400
+Received: from tele (unknown [IPv6:2a01:e35:2f5c:9de0:212:bfff:fe1e:8db5])
+	by smtp1-g21.free.fr (Postfix) with ESMTP id F341C9400F3
+	for <linux-media@vger.kernel.org>; Wed, 10 Aug 2011 08:43:19 +0200 (CEST)
+Date: Wed, 10 Aug 2011 08:43:22 +0200
+From: Jean-Francois Moine <moinejf@free.fr>
+To: linux-media@vger.kernel.org
+Subject: [GIT PATCHES FOR 3.1] gspca for_v3.1
+Message-ID: <20110810084322.3725ec7b@tele>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, Aug 31, 2011 at 5:15 PM, Laurent Pinchart
-<laurent.pinchart@ideasonboard.com> wrote:
-> I've just sent three preliminary patches to the list to add YUYV support in
-> the OMAP3 ISP CCDC.
+The following changes since commit
+46540f7ac646ada7f22912ea7ea9b761ff5c4718:
 
-What tree are those based on?
+  [media] ir-mce_kbd-decoder: include module.h for its facilities (2011-07-29 12:52:23 -0300)
 
-Enrico
+are available in the git repository at:
+  git://linuxtv.org/jfrancois/gspca.git for_v3.1
+
+Jean-François Moine (2):
+      gspca - ov519: Fix LED inversion of some ov519 webcams
+      gspca - sonixj: Fix the darkness of sensor om6802 in 320x240
+
+Luiz Carlos Ramos (1):
+      gspca - sonixj: Fix wrong register mask for sensor om6802
+
+ drivers/media/video/gspca/ov519.c  |   22 ++++++++++------------
+ drivers/media/video/gspca/sonixj.c |    6 +++++-
+ 2 files changed, 15 insertions(+), 13 deletions(-)
+
+-- 
+Ken ar c'hentañ	|	      ** Breizh ha Linux atav! **
+Jef		|		http://moinejf.free.fr/
