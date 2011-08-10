@@ -1,348 +1,141 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:6406 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752730Ab1HQMZi (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 17 Aug 2011 08:25:38 -0400
-Message-ID: <4E4BB330.7010506@redhat.com>
-Date: Wed, 17 Aug 2011 05:25:20 -0700
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Received: from woodbine.london.02.net ([87.194.255.145]:36885 "EHLO
+	woodbine.london.02.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755221Ab1HJXEZ (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 10 Aug 2011 19:04:25 -0400
+From: Adam Baker <linux@baker-net.org.uk>
+To: Hans de Goede <hdegoede@redhat.com>
+Subject: Re: USB mini-summit at LinuxCon Vancouver
+Date: Thu, 11 Aug 2011 00:04:01 +0100
+Cc: Alan Stern <stern@rowland.harvard.edu>,
+	Sarah Sharp <sarah.a.sharp@linux.intel.com>,
+	Greg KH <greg@kroah.com>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	linux-usb@vger.kernel.org, linux-media@vger.kernel.org,
+	linux-kernel@vger.kernel.org, libusb-devel@lists.sourceforge.net,
+	Alexander Graf <agraf@suse.de>,
+	Gerd Hoffmann <kraxel@redhat.com>, hector@marcansoft.com,
+	Jan Kiszka <jan.kiszka@siemens.com>,
+	Stefan Hajnoczi <stefanha@linux.vnet.ibm.com>,
+	pbonzini@redhat.com, Anthony Liguori <aliguori@us.ibm.com>,
+	Jes Sorensen <Jes.Sorensen@redhat.com>,
+	Oliver Neukum <oliver@neukum.org>, Felipe Balbi <balbi@ti.com>,
+	Clemens Ladisch <clemens@ladisch.de>,
+	Jaroslav Kysela <perex@perex.cz>, Takashi Iwai <tiwai@suse.de>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Theodore Kilgore <kilgota@banach.math.auburn.edu>
+References: <Pine.LNX.4.44L0.1108091016380.1949-100000@iolanthe.rowland.org> <201108092131.03818.linux@baker-net.org.uk> <4E419F2C.6070707@redhat.com>
+In-Reply-To: <4E419F2C.6070707@redhat.com>
 MIME-Version: 1.0
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-CC: Sylwester Nawrocki <snjw23@gmail.com>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	Sakari Ailus <sakari.ailus@iki.fi>
-Subject: Re: [GIT PATCHES FOR 3.1] s5p-fimc and noon010pc30 driver updates
-References: <4E303E5B.9050701@samsung.com> <201108161744.34749.laurent.pinchart@ideasonboard.com> <4E4AF0FC.4070104@redhat.com> <201108170957.15955.laurent.pinchart@ideasonboard.com>
-In-Reply-To: <201108170957.15955.laurent.pinchart@ideasonboard.com>
-Content-Type: text/plain; charset=utf-8
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
+Message-Id: <201108110004.02314.linux@baker-net.org.uk>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em 17-08-2011 00:57, Laurent Pinchart escreveu:
-> Hi Mauro,
+On Tuesday 09 August 2011, Hans de Goede wrote:
+> Hi,
 > 
-> On Wednesday 17 August 2011 00:36:44 Mauro Carvalho Chehab wrote:
->> Em 16-08-2011 08:44, Laurent Pinchart escreveu:
->>> On Tuesday 16 August 2011 17:30:47 Mauro Carvalho Chehab wrote:
->>>> Em 16-08-2011 01:57, Laurent Pinchart escreveu:
->>>>>>> My point is that the ISP driver developer can't know in advance which
->>>>>>> sensor will be used systems that don't exist yet.
->>>>>>
->>>>>> As far as such hardware is projected, someone will know. It is a
->>>>>> simple trivial patch to associate a new hardware with a hardware
->>>>>> profile at the platform data.
->>>>>
->>>>> Platform data must contain hardware descriptions only, not policies.
->>>>> This is even clearer now that ARM is moving away from board code to
->>>>> the Device Tree.
->>>>
->>>> Again, a cell phone with one frontal camera and one hear camera has two
->>>> sensor inputs only. This is not a "policy". It is a hardware constraint.
->>>> The driver should allow setting the pipeline for both sensors via
->>>> S_INPUT, otherwise a V4L2 only userspace application won't work.
->>>>
->>>> It is as simple as that.
->>>
->>> When capturing from the main sensor on the OMAP3 ISP you need to capture
->>> raw data to memory on a video node, feed it back to the hardware through
->>> another video node, and finally capture it on a third video node. A
->>> V4L2-only userspace application won't work. That's how the hardware is,
->>> we can't do much about that.
->>
->> The raw data conversion is one of the functions that libv4l should do. So,
->> if you've already submitted the patches for libv4l to do the hardware
->> loopback trick, or add a function there to convert the raw data into a
->> common format, that should be ok. Otherwise, we have a problem, that needs
->> to be fixed.
+> On 08/09/2011 10:31 PM, Adam Baker wrote:
+> > On Tuesday 09 August 2011, Hans de Goede wrote:
+> <snip>
 > 
-> That's not what this is about. Bayer to YUV conversion needs to happen in 
-> hardware in this case for performance reasons. The hardware will also perform 
-> scaling on YUV, as well as many image processing tasks (white balance, defect 
-> pixel correction, gamma correction, noise filtering, ...).
+> > It has also just occured to me that it might be possible to solve the
+> > issues we are facing just in the kernel. At the moment when the kernel
+> > performs a USBDEVFS_DISCONNECT it keeps the kernel driver locked out
+> > until userspace performs a USBDEVFS_CONNECT. If the kernel reattached
+> > the kernel driver when the device file was closed then, as gvfs doesn't
+> > keep the file open the biggest current issue would be solved instantly.
+> > If a mechanism could be found to prevent USBDEVFS_DISCONNECT from
+> > succeeding when the corresponding /dev/videox file was open then that
+> > would seem to be a reasonable solution.
 > 
->>>>>> Also, on most cases, probing a sensor is as trivial as reading a
->>>>>> sensor ID during device probe. This applies, for example, for all
->>>>>> Omnivision sensors.
->>>>>>
->>>>>> We do things like that all the times for PC world, as nobody knows
->>>>>> what webcam someone would plug on his PC.
->>>>>
->>>>> Sorry, but that's not related. You simply can't decide in an embedded
->>>>> ISP driver how to deal with sensor controls, as the system will be
->>>>> used in a too wide variety of applications and hardware
->>>>> configurations. All controls need to be exposed, period.
->>>>
->>>> We're not talking about controls. We're talking about providing the
->>>> needed V4L2 support to allow an userspace application to access the
->>>> hardware sensor.
->>>
->>> OK, so we're discussing S_INPUT. Let's discuss controls later :-)
->>>
->>>>>>>> I never saw an embedded hardware that allows physically changing the
->>>>>>>> sensor.
->>>>>>>
->>>>>>> Beagleboard + pluggable sensor board.
->>>>>>
->>>>>> Development systems like beagleboard, pandaboard, Exynos SMDK, etc,
->>>>>> aren't embeeded hardware. They're development kits.
->>>>>
->>>>> People create end-user products based on those kits. That make them
->>>>> first- class embedded hardware like any other.
->>>>
->>>> No doubt they should be supported, but it doesn't make sense to create
->>>> tons of input pipelines to be used for S_INPUT for each different type
->>>> of possible sensor. Somehow, userspace needs to tell what's the sensor
->>>> that he attached to the hardware, or the driver should suport
->>>> auto-detecting it.
->>>
->>> We're not creating tons of input pipelines. Look at
->>> http://www.ideasonboard.org/media/omap3isp.ps , every video node (in
->>> yellow) has its purpose.
->>
->> Not sure if I it understood well. The subdevs 8-11 are the sensors, right?
+> <sigh>
 > 
-> et8ek8 and vs6555 are the sensors. ad5820 is the lens controller and adp1653 
-> the flash controller. All other subdevs (green blocks) are part of the ISP.
+> This has been discussed over and over and over again, playing clever
+> tricks with USBDEVFS_[DIS]CONNECT like adding a new USBDEVFS_TRYDISCONNECT
+> which the v4l2 driver could intercept won't cut it. We need some central
+> manager of the device doing multiplexing between the 2 functions, and you
+> can *not* assume that either side will be nice wrt closing file
+> descriptors.
 > 
->>>> In other words, I see 2 options for that:
->>>> 	1) add hardware auto-detection at the sensor logic. At driver probe,
->>>>
->>>> try to probe all sensors, if it is a hardware development kit;
->>>
->>> We've worked quite hard to remove I2C device probing from the kernel,
->>> let's not add it back.
->>
->> We do I2C probing on several drivers. It is there for devices where
->> the cards entry is not enough to identify the hardware. For example,
->> two different devices with the same USB ID generally uses that.
->> If the hardware information is not enough, there's nothing wrong
->> on doing that.
-> 
-> Except that probing might destroy the hardware in the general case. We can 
-> only probe I2C devices on a bus that we know will not contain any other 
-> sensitive devices.
-> 
->>>> 	2) add one new parameter at the driver: "sensors". If the hardware
->>>>
->>>> is one of those kits, this parameter will allow the developer to specify
->>>> the used sensors. It is the same logic as we do with userspace TV and
->>>> grabber cards without eeprom or any other way to auto-detect the
->>>> hardware.
->>>
->>> This will likely be done through the Device Tree.
->>
->> I don't mind much about the way it is implemented, but it should be there
->> on a place where people can find it and use it.
->>
->> Devices that requires the user to pass some parameters to the Kernel in
->> order for the driver to find the hardware are economic class devices. A
->> first class device should work as-is, after the driver is loaded.
-> 
-> I don't think there has ever been any disagreement on this, we can consider 
-> the matter settled.
-> 
->>>>>> I don't mind if, for those kits the developer that is playing with it
->>>>>> has to pass a mode parameter and/or run some open harware-aware small
->>>>>> application that makes the driver to select the sensor type he is
->>>>>> using, but, if the hardware is, instead, a N9 or a Galaxy Tab (or
->>>>>> whatever embedded hardware), the driver should expose just the sensors
->>>>>> that exists on such hardware. It shouldn't be ever allowed to change
->>>>>> it on userspace, using whatever API on those hardware.
->>>>>
->>>>> Who talked about changing sensors from userspace on those systems ?
->>>>> Platform data (regardless of whether it comes from board code, device
->>>>> tree, or something else) will contain a hardware description, and the
->>>>> kernel will create the right devices and load the right drivers. The
->>>>> issue we're discussing is how to expose controls for those devices to
->>>>> userspace, and that needs to be done through subdev nodes.
->>>>
->>>> The issue that is under discussion is the removal of S_INPUT from the
->>>> samsung driver, and the comments at the patches that talks about
->>>> removing V4L2 API support in favor of using a MC-only API for some
->>>> fundamental things.
->>>>
->>>> For example, with a patch like this one, only one sensor will be
->>>> supported without the MC API (either the front or back sensor on a
->>>> multi-sensor camera):
->>>> http://git.infradead.org/users/kmpark/linux-2.6-samsung/commit/47751733a
->>>> 32 2a241927f9238b8ab1441389c9c41
->>>>
->>>> Look at the comment on this patch also:
->>>> 	http://git.infradead.org/users/kmpark/linux-2.6-samsung/commit/c6fb462c
->>>> 	38b
->>>>
->>>> e60a45d16a29a9e56c886ee0aa08c
->>>>
->>>> What is called "API compatibility mode" is not clear, but it transmitted
->>>> me that the idea is to expose the controls only via subnodes.
->>>>
->>>> Those are the rationale for those discussions: V4L2 API is not being
->>>> deprecated in favor of MC API, e. g. controls shouldn't be hidden from
->>>> the V4L2 API without a good reason.
->>>
->>> Controls need to move to subdev nodes for embedded devices because
->>> there's simply no way to expose multiple identical controls through a
->>> video node. Please also have a look at the diagram I linked to above,
->>> and tell me though which video node sensor controls should be exposed.
->>> There's no simple answer to that.
->>
->> Again, not sure if I understood well your diagram. What device will be
->> controlling and receiving the video streaming from the sensor? /dev/video0?
->>
->> If so, this is the one that should be exposing the controls for the
->> selected input sensor.
-> 
-> When capturing data from the main sensor (et8ek8), a common pipeline is to 
-> capture data from /dev/video1, feed it back through /dev/video0 and capture 
-> the final result from /dev/video6. Another common alternative is to capture it 
-> from /dev/video2, feed it back to /dev/video3 and capture the final result 
-> from /dev/video6. Regardless of which above configuration is used, 
-> applications can also need to capture images on /dev/video4 and /dev/video6 
-> concurrently. This all depends on what kind of image the application wants and 
-> what hardware processing it wants to apply.
-> 
-> This isn't even a complex case, there are much more complex hardware out there 
-> that we want to support.
-> 
->>>>>>>>> Even if you did, fine image quality tuning requires accessing
->>>>>>>>> pretty much all controls individually anyway.
->>>>>>>>
->>>>>>>> The same is also true for non-embedded hardware. The only situation
->>>>>>>> where V4L2 API is not enough is when there are two controls of the
->>>>>>>> same type active. For example, 2 active volume controls, one at the
->>>>>>>> audio demod, and another at the bridge. There may have some cases
->>>>>>>> where you can do the same thing at the sensor or at a DSP block.
->>>>>>>> This is where MC API gives an improvement, by allowing changing
->>>>>>>> both, instead of just one of the controls.
->>>>>>>
->>>>>>> To be precise it's the V4L2 subdev userspace API that allows that,
->>>>>>> not the MC API.
->>>>>>>
->>>>>>>>>>> This is a hack...sorry, just joking ;-) Seriously, I think the
->>>>>>>>>>> situation with the userspace subdevs is a bit different. Because
->>>>>>>>>>> with one API we directly expose some functionality for
->>>>>>>>>>> applications, with other we code it in the kernel, to make the
->>>>>>>>>>> devices appear uniform at user space.
->>>>>>>>>>
->>>>>>>>>> Not sure if I understood you. V4L2 export drivers functionality to
->>>>>>>>>> userspace in an uniform way. MC api is for special applications
->>>>>>>>>> that might need to access some internal functions on embedded
->>>>>>>>>> devices.
->>>>>>>>>>
->>>>>>>>>> Of course, there are some cases where it doesn't make sense to
->>>>>>>>>> export a subdev control via V4L2 API.
->>>>>>>>>>
->>>>>>>>>>>>> Also, the sensor subdev can be configured in the video node
->>>>>>>>>>>>> driver as well as through the subdev device node. Both APIs can
->>>>>>>>>>>>> do the same thing but in order to let the subdev API work as
->>>>>>>>>>>>> expected the video node driver must be forbidden to configure
->>>>>>>>>>>>> the subdev.
->>>>>>>>>>>>
->>>>>>>>>>>> Why? For the sensor, a V4L2 API call will look just like a
->>>>>>>>>>>> bridge driver call. The subdev will need a mutex anyway, as two
->>>>>>>>>>>> MC applications may be opening it simultaneously. I can't see
->>>>>>>>>>>> why it should forbid changing the control from the bridge
->>>>>>>>>>>> driver call.
->>>>>>>>>>>
->>>>>>>>>>> Please do not forget there might be more than one subdev to
->>>>>>>>>>> configure and that the bridge itself is also a subdev (which
->>>>>>>>>>> exposes a scaler interface, for instance). A situation pretty
->>>>>>>>>>> much like in Figure 4.4 [1] (after the scaler there is also a
->>>>>>>>>>> video node to configure, but we may assume that pixel resolution
->>>>>>>>>>> at the scaler pad 1 is same as at the video node). Assuming the
->>>>>>>>>>> format and crop configuration flow is from sensor to host scaler
->>>>>>>>>>> direction, if we have tried to configure _all_ subdevs when the
->>>>>>>>>>> last stage of the pipeline is configured (i.e. video node) the
->>>>>>>>>>> whole scaler and crop/composition
->>>>>>>>>>> configuration we have been destroyed at that time. And there is
->>>>>>>>>>> more to configure than
->>>>>>>>>>> VIDIOC_S_FMT can do.
->>>>>>>>>>
->>>>>>>>>> Think from users perspective: all user wants is to see a video of
->>>>>>>>>> a given resolution. S_FMT (and a few other VIDIOC_* calls) have
->>>>>>>>>> everything that the user wants: the desired resolution, framerate
->>>>>>>>>> and format.
->>>>>>>>>>
->>>>>>>>>> Specialized applications indeed need more, in order to get the
->>>>>>>>>> best images for certain types of usages. So, MC is there.
->>>>>>>>>>
->>>>>>>>>> Such applications will probably need to know exactly what's the
->>>>>>>>>> sensor, what are their bugs, how it is connected, what are the DSP
->>>>>>>>>> blocks in the patch, how the DSP algorithms are implemented, etc,
->>>>>>>>>> in order to obtain the the perfect image.
->>>>>>>>>>
->>>>>>>>>> Even on embedded devices like smartphones and tablets, I predict
->>>>>>>>>> that both types of applications will be developed and used: people
->>>>>>>>>> may use a generic application like flash player, and an
->>>>>>>>>> specialized application provided by the manufacturer. Users can
->>>>>>>>>> even develop their own applications generic apps using V4L2
->>>>>>>>>> directly, at the devices that allow that.
->>>>>>>>>>
->>>>>>>>>> As I said before: both application types are welcome. We just need
->>>>>>>>>> to warrant that a pure V4L application will work reasonably well.
->>>>>>>>>
->>>>>>>>> That's why we have libv4l. The driver simply doesn't receive enough
->>>>>>>>> information to configure the hardware correctly from the VIDIOC_*
->>>>>>>>> calls. And as mentioned above, 3A algorithms, required by "simple"
->>>>>>>>> V4L2 applications, need to be implemented in userspace anyway.
->>>>>>>>
->>>>>>>> It is OK to improve users experience via libv4l. What I'm saying is
->>>>>>>> that it is NOT OK to remove V4L2 API support from the driver,
->>>>>>>> forcing users to use some hardware plugin at libv4l.
->>>>>>>
->>>>>>> Let me be clear on this. I'm *NOT* advocating removing V4L2 API
->>>>>>> support from any driver (well, on the drivers I can currently think
->>>>>>> of, if you show me a wifi driver that implements a V4L2 interface I
->>>>>>> might change my mind :-)).
->>>>>>
->>>>>> This thread is all about a patch series partially removing V4L2 API
->>>>>> support.
->>>>>
->>>>> Because that specific part of the API doesn't make sense for this use
->>>>> case. You wouldn't object to removing S_INPUT support from a video
->>>>> output driver, as it wouldn't make sense either.
->>>>
->>>> A device with two sensors input where just one node can be switched to
->>>> use either input is a typical case where S_INPUT needs to be provided.
->>>
->>> No. S_INPUT shouldn't be use to select between sensors. The hardware
->>> pipeline is more complex than just that. We can't make it all fit in the
->>> S_INPUT API.
->>>
->>> For instance, when switching between a b&w and a color sensor you will
->>> need to reconfigure the whole pipeline to select the right gamma table,
->>> white balance parameters, color conversion matrix, ... That's not
->>> something we want to hardcode in the kernel. This needs to be done from
->>> userspace.
->>
->> This is something that, if it is not written somehwere, no userspace
->> applications not developed by the hardware vendor will ever work.
->>
->> I don't see any code for that any at the kernel or at libv4l. Am I missing
->> something?
-> 
-> Code for that needs to be written in libv4l. It's not there yet as I don't 
-> think we have any hardware for this particular example at the moment :-)
-> 
-As no pure V4L2 application would set the pipelines as you've said, and
-no libv4l code exists yet, that means that either:
-	1) pure V4L application support is broken;
-	2) it is possible to select between the main sensor and the
-secondary sensor via S_INPUT on /dev/video1, and to control the sensor
-via this node, in order to set bright, contrast, apperture time and
-exposition. Performance will be sacrificed, as the bayer->YUV conversion
-and 3A algorithms will be done unaccelerated in libv4l. The picture will
-also not look fine, as no noise reduction, etc will be done, but support
-for a pure V4L application requirement is satisfied.
+> Examples:
+> 1) You are wrong wrt gvfs, it does keep the libgphoto2 context open all the
+> time, and through that the usbfs device nodes.
 
-Note also that even a generic MC-aware application will not work, as
-there's nothing at the MC pipeline information that shows how to proper
-configure the pipelines to get the expected result. Such application
-needs to have an internal database that associates each pipeline seen
-via the MC API to the processor type, and have the pipeline policy
-configurations coded internally.
+It seems that that depends, on my system gvfs isn't actually automounting the 
+camera after it detects it and the file is only open (according to lsof) when 
+the device is actually mounted. As soon as you unmount it the device gets 
+closed again. Because it does do a brief open,  USBDEVFS_DISCONNECT then close 
+at connection time it does still disable the kernel driver.
 
-Regards,
-Mauro
+> 
+> 2) Lets say a user starts a photo managing app like f-spot, and that opens
+> the device through libgphoto2 on startup, then the user switches to another
+> virtual desktop and forgets all about having f-spot open. Notice that if
+> the user now tries to stream he will not get a busy error, but the app
+> trying to do the streaming will simply not see the camera at all (kernel
+> driver unbound /dev/video# node is gone).
+
+This does seem like a situation where your approach could potentially give a 
+better user experience. I'm wondering slightly how you define busy though. For 
+webcams the streamon and streamoff ioctls tell you if you are using mmap or 
+userptr transfers but you don't know if when the user has finished if they 
+just use read. For stillcam mode it is again hard to determine a busy 
+condition other than being in the middle of transfering an individual picture.
+> 
+> 3) Notice that little speaker icon in your panel on your average Linux
+> desktop, that keeps the mixer of the audio device open *all the time* it
+> is quite easy to imagine a similar applet for v4l2 device controls (see
+> for example gtk-v4l) doing the same. Or a user could simply start up a
+> v4l2 control panel app like gtk-v4l, qv4l2 or v4l2ucp, and leave it running
+> minimized ...
+> 
+
+This again needs a usable concept of busy
+
+> 4) Some laptops have a Fn + F## key which enables / disables the builtin
+> webcam by turning its power on / off. Effectively plugging it into / out
+> of a usb port. We would like to have an on screen notification of this one
+> day like we have now for brightness and volume controls, based on udev
+> events. But the current dual mode cam stuff causes udev events for
+> a *new* video device being added / an existing one being removed
+> each time libgphoto2 releases / takes control of the camera.
+> 
+
+Would such a system know what camera is supposed to be the internal one so it 
+doesn't show the camera as turned on just because you plug in an external 
+camera. If so then it won't turn on and off as an external camera changes 
+modes. If not then showing on when any camera is usable and off when it isn't 
+seems like sensible behaviour.
+
+> 5) More in general, more and more software is dynamically monitoring the
+> addition / removal of (usb) devices using udev, our current solution
+> suggests to this software the /dev/video device is being unplugged /
+> re-plugged all the time, not pretty.
+> 
+> 
+> All in all what we've today is a kludge, and if we want to provide
+> a "seamless" user experience we need to fix it.
+
+I think in summary I'm concerned about the possibility of perfect being the 
+enemy of good enough. At the moment we've got a significant usability problem 
+(a web search for gvfs-gphoto2-volume-monitor turns up mostly instructions on 
+how to disable it). If we come up with a solution that whilst it would be 
+perfect there isn't enough effort available to implement then that is worse 
+than a solution that fixes most of the problem. This is an even greater 
+concern when the technically superior solution has a higher long term 
+maintenance overhead (as we no longer get Win32 and OSX users helping to 
+maintain the stillcam drivers).
+
+I'm not sure if there is anything in this discussion that is relevant to the 
+cameras in phones or tablets. These appear to the user as if they are dual 
+mode devices but they don't have any independent storage - taking a photo is 
+more like capturing a single higher than usual res frame so I suspect they 
+aren't going to be an issue.
+
+Regards
+
+Adam
