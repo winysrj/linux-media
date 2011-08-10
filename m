@@ -1,72 +1,60 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from swampdragon.chaosbits.net ([90.184.90.115]:14349 "EHLO
-	swampdragon.chaosbits.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751034Ab1HAVEb (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 1 Aug 2011 17:04:31 -0400
-Date: Mon, 1 Aug 2011 23:04:30 +0200 (CEST)
-From: Jesper Juhl <jj@chaosbits.net>
-To: LKML <linux-kernel@vger.kernel.org>
-cc: trivial@kernel.org, linux-media@vger.kernel.org,
-	ceph-devel@vger.kernel.org,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Sage Weil <sage@newdream.net>
-Subject: [PATCH][Resend] Remove unneeded version.h includes from include/
-Message-ID: <alpine.LNX.2.00.1108012250420.31999@swampdragon.chaosbits.net>
+Received: from smtp.nokia.com ([147.243.128.26]:33022 "EHLO mgw-da02.nokia.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752031Ab1HJKZL (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 10 Aug 2011 06:25:11 -0400
+Message-ID: <4E425C7D.8090208@maxwell.research.nokia.com>
+Date: Wed, 10 Aug 2011 13:25:01 +0300
+From: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+To: nitesh moundekar <niteshmoundekar@gmail.com>
+CC: Subash Patel <subashrp@gmail.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	linux-media <linux-media@vger.kernel.org>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	Tuukka Toivonen <tuukka.toivonen@intel.com>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Tomasz Stanislawski <t.stanislaws@samsung.com>,
+	Marek Szyprowski <m.szyprowski@samsung.com>
+Subject: Re: [ANN] Meeting minutes of the Cambourne meeting
+References: <201107261647.19235.laurent.pinchart@ideasonboard.com> <201108081750.07000.laurent.pinchart@ideasonboard.com> <4E410342.3010502@gmail.com> <CAF5T7d=h=BBhmFNs3EBPMGzKAJg_fciq=iB_GKQGDB+oiL+XAg@mail.gmail.com> <4E415961.501@maxwell.research.nokia.com> <CAF5T7dkXFBkD8CtKLR5UNOtmjMiOC3F6gfryMvM6=sfybQDDnA@mail.gmail.com>
+In-Reply-To: <CAF5T7dkXFBkD8CtKLR5UNOtmjMiOC3F6gfryMvM6=sfybQDDnA@mail.gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-It was pointed out by 'make versioncheck' that some includes of
-linux/version.h are not needed in include/.
-This patch removes them.
+nitesh moundekar wrote:
+> Hi Sakari,
 
-When I last posted the patch, the ceph bit was ACK'ed by Sage Weil, so 
-I've added that below.
+Hi Nitesh,
 
-The pwc-ioctl change generated quite a bit of discussion about V4L version 
-numbers in general, but as far as I can tell, no concensus was reached on 
-what the long term solution should be, so in the mean time I think we 
-could start by just removing the unneeded include, which is why I'm 
-resending the patch with that hunk still included.
+> So without touching these controls, drivers should be able to work with
+> default or internal settings calculated from frame rate and resolution. And
+> when application like DSLR wants more control it can access those controls.
 
-Signed-off-by: Jesper Juhl <jj@chaosbits.net>
-Acked-by: Sage Weil <sage@newdream.net>
----
- include/linux/ceph/messenger.h |    1 -
- include/media/pwc-ioctl.h      |    1 -
- 2 files changed, 0 insertions(+), 2 deletions(-)
+The current interface is provided from V4L2 subdevs, so the application
+using that can be expected to know something of the system already.
 
-diff --git a/include/linux/ceph/messenger.h b/include/linux/ceph/messenger.h
-index d7adf15..ca768ae 100644
---- a/include/linux/ceph/messenger.h
-+++ b/include/linux/ceph/messenger.h
-@@ -6,7 +6,6 @@
- #include <linux/net.h>
- #include <linux/radix-tree.h>
- #include <linux/uio.h>
--#include <linux/version.h>
- #include <linux/workqueue.h>
- 
- #include "types.h"
-diff --git a/include/media/pwc-ioctl.h b/include/media/pwc-ioctl.h
-index 0f19779..1ed1e61 100644
---- a/include/media/pwc-ioctl.h
-+++ b/include/media/pwc-ioctl.h
-@@ -53,7 +53,6 @@
-  */
- 
- #include <linux/types.h>
--#include <linux/version.h>
- 
- /* Enumeration of image sizes */
- #define PSZ_SQCIF	0x00
--- 
-1.7.6
+It may be up to drivers to decide what do they implement and what they
+do not. We'll have to see how generic the new way of configuring the
+sensors is; my hope is that practically all raw bayer sensors (not the
+SoC ones!) could be configured this way. Lack of information from
+manufacturer could limit the ability to write such drivers for sensors,
+though.
 
+With such a system, an user space algorithm library (a plugin for
+libv4l) will be needed in any case to come up with a fully functional
+system useful for generic applications, and it may well be that this
+interface will be used from the plugins.
+
+Alternatively the old interface could be implemented using a wrapper
+library for all drivers providing the new sensor configuration
+interface. There would be a list of default modes, some of which could
+be more board dependent than others.
+
+Regards,
 
 -- 
-Jesper Juhl <jj@chaosbits.net>       http://www.chaosbits.net/
-Don't top-post http://www.catb.org/jargon/html/T/top-post.html
-Plain text mails only, please.
-
+Sakari Ailus
+sakari.ailus@maxwell.research.nokia.com
