@@ -1,82 +1,87 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:39789 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752146Ab1HCRVK (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 3 Aug 2011 13:21:10 -0400
-Message-ID: <4E398381.4080505@redhat.com>
-Date: Wed, 03 Aug 2011 14:21:05 -0300
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-MIME-Version: 1.0
-To: workshop-2011@linuxtv.org,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Media Subsystem Workshop 2011
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Received: from mailout2.w1.samsung.com ([210.118.77.12]:51663 "EHLO
+	mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750922Ab1HJJIX (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 10 Aug 2011 05:08:23 -0400
+Received: from eu_spt1 (mailout2.w1.samsung.com [210.118.77.12])
+ by mailout2.w1.samsung.com
+ (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14 2004))
+ with ESMTP id <0LPP00A04G1Y7B@mailout2.w1.samsung.com> for
+ linux-media@vger.kernel.org; Wed, 10 Aug 2011 10:08:22 +0100 (BST)
+Received: from linux.samsung.com ([106.116.38.10])
+ by spt1.w1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14
+ 2004)) with ESMTPA id <0LPP007HSG1XNK@spt1.w1.samsung.com> for
+ linux-media@vger.kernel.org; Wed, 10 Aug 2011 10:08:21 +0100 (BST)
+Date: Wed, 10 Aug 2011 11:08:20 +0200
+From: Marek Szyprowski <m.szyprowski@samsung.com>
+Subject: RE: [PATCH] media: vb2: add a check if queued userptr buffer is large
+ enough
+In-reply-to: <201108101045.36681.hansverk@cisco.com>
+To: 'Hans Verkuil' <hansverk@cisco.com>
+Cc: linux-media@vger.kernel.org,
+	'Kyungmin Park' <kyungmin.park@samsung.com>,
+	'Pawel Osciak' <pawel@osciak.com>,
+	'Laurent Pinchart' <laurent.pinchart@ideasonboard.com>,
+	'Marek Szyprowski' <m.szyprowski@samsung.com>
+Message-id: <028201cc573d$0cdc5690$269503b0$%szyprowski@samsung.com>
+MIME-version: 1.0
+Content-type: text/plain; charset=us-ascii
+Content-language: pl
+Content-transfer-encoding: 7BIT
+References: <1312964488-2924-1-git-send-email-m.szyprowski@samsung.com>
+ <201108101045.36681.hansverk@cisco.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-As already announced, we're continuing the planning for this year's 
-media subsystem workshop.
+Hello,
 
-To avoid overriding the main ML with workshop-specifics, a new ML
-was created:
-	workshop-2011@linuxtv.org
+On Wednesday, August 10, 2011 10:46 AM Hans Verkuil wrote:
 
-I'll also be updating the event page at:
-	http://www.linuxtv.org/events.php
+> Just one comment:
+> 
+> On Wednesday, August 10, 2011 10:21:28 Marek Szyprowski wrote:
+> > Videobuf2 accepted any userptr buffer without verifying if its size is
+> > large enough to store the video data from the driver. The driver reports
+> > the minimal size of video data once in queue_setup and expects that
+> > videobuf2 provides buffers that match these requirements. This patch
+> > adds the required check.
+> >
+> > Reported-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+> > Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
+> > Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+> > CC: Pawel Osciak <pawel@osciak.com>
+> > ---
+> >  drivers/media/video/videobuf2-core.c |   41
+> +++++++++++++++++++--------------
+> >  include/media/videobuf2-core.h       |    1 +
+> >  2 files changed, 25 insertions(+), 17 deletions(-)
+> >
+> 
+> <snip>
+> 
+> > diff --git a/include/media/videobuf2-core.h b/include/media/videobuf2-core.h
+> > index f87472a..496d6e5 100644
+> > --- a/include/media/videobuf2-core.h
+> > +++ b/include/media/videobuf2-core.h
+> > @@ -276,6 +276,7 @@ struct vb2_queue {
+> >  	wait_queue_head_t		done_wq;
+> >
+> >  	void				*alloc_ctx[VIDEO_MAX_PLANES];
+> > +	unsigned long			plane_sizes[VIDEO_MAX_PLANES];
+> 
+> Why unsigned long when it is a u32 in struct v4l2_plane_pix_format?
+> 
+> unsigned long is 64 bit on a 64-bit OS, so that seems wasteful to me.
 
-Over the one-year period, we had 242 developers contributing to the
-subsystem. Thank you all for that! Unfortunately, the space there is
-limited, and we can't affort to have all developers there. 
+u32 type should be used in places where the exact size really matters,
+like strictly defined io structures passed to userspace or structures that
+are used for accessing hardware registers directly. For all other cases,
+like temporary storage of some values, the cpu native types should be used.
+Looks at the whole vb2 code - u32 type is not used in any single place.
 
-Due to that some criteria needed to be applied to create a short list
-of people that were invited today to participate. 
-
-The main criteria were to select the developers that did significant 
-contributions for the media subsystem over the last 1 year period, 
-measured in terms of number of commits and changed lines to the kernel
-drivers/media tree.
-
-As the used criteria were the number of kernel patches, userspace-only 
-developers weren't included on the invitations. It would be great to 
-have there open source application developers as well, in order to allow 
-us to tune what's needed from applications point of view. 
-
-So, if you're leading the development of some V4L and/or DVB open-source 
-application and wants to be there, or you think you can give good 
-contributions for helping to improve the subsystem, please feel free 
-to send us an email.
-
-With regards to the themes, we're received, up to now, the following 
-proposals:
-
----------------------------------------------------------+----------------------
-THEME                                                    | Proposed-by:
----------------------------------------------------------+----------------------
-Buffer management: snapshot mode                         | Guennadi
-Rotation in webcams in tablets while streaming is active | Hans de Goede
-V4L2 Spec – ambiguities fix                              | Hans Verkuil
-V4L2 compliance test results                             | Hans Verkuil
-Media Controller presentation (probably for Wed, 25)     | Laurent Pinchart
-Workshop summary presentation on Wed, 25                 | Mauro Carvalho Chehab
----------------------------------------------------------+----------------------
-
->From my side, I also have the following proposals:
-
-1) DVB API consistency - what to do with the audio and video DVB API's 
-that conflict with V4L2 and (somewhat) with ALSA?
-
-2) Multi FE support - How should we handle a frontend with multiple 
-delivery systems like DRX-K frontend?
-
-3) videobuf2 - migration plans for legacy drivers
-
-4) NEC IR decoding - how should we handle 32, 24, and 16 bit protocol
-variations?
-
-Even if you won't be there, please feel free to propose themes for 
-discussion, in order to help us to improve even more the subsystem.
-
-Thank you!
-Mauro
+Best regards
+-- 
+Marek Szyprowski
+Samsung Poland R&D Center
 
