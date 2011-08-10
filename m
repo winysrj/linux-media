@@ -1,34 +1,68 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.17.10]:54089 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752085Ab1HDHOb (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 4 Aug 2011 03:14:31 -0400
-From: Thierry Reding <thierry.reding@avionic-design.de>
-To: linux-media@vger.kernel.org
-Subject: [PATCH 19/21] [staging] tm6000: Enable audio clock in radio mode.
-Date: Thu,  4 Aug 2011 09:14:17 +0200
-Message-Id: <1312442059-23935-20-git-send-email-thierry.reding@avionic-design.de>
-In-Reply-To: <1312442059-23935-1-git-send-email-thierry.reding@avionic-design.de>
-References: <1312442059-23935-1-git-send-email-thierry.reding@avionic-design.de>
+Received: from smtp-vbr6.xs4all.nl ([194.109.24.26]:1787 "EHLO
+	smtp-vbr6.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751121Ab1HJGZh (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 10 Aug 2011 02:25:37 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Sakari Ailus <sakari.ailus@iki.fi>
+Subject: Re: [PATCH 1/6 v4] V4L: add two new ioctl()s for multi-size videobuffer management
+Date: Wed, 10 Aug 2011 08:25:24 +0200
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Hans Verkuil <hansverk@cisco.com>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Pawel Osciak <pawel@osciak.com>,
+	Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+References: <Pine.LNX.4.64.1108042329460.31239@axis700.grange> <201108090926.30157.hverkuil@xs4all.nl> <20110809233727.GB5926@valkosipuli.localdomain>
+In-Reply-To: <20110809233727.GB5926@valkosipuli.localdomain>
+MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201108100825.24309.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
----
- drivers/staging/tm6000/tm6000-stds.c |    1 +
- 1 files changed, 1 insertions(+), 0 deletions(-)
+On Wednesday, August 10, 2011 01:37:27 Sakari Ailus wrote:
+> On Tue, Aug 09, 2011 at 09:26:30AM +0200, Hans Verkuil wrote:
+> ...
+> > > Wouldn't that be a security issue ? Any application with permissions to access 
+> > > the video device could DoS the system.
+> > 
+> > How is this any different from an application that tries to use more memory
+> > then there is available? It's an out-of-memory situation, that can happen at
+> > any time. Anyone can make an application that runs out of memory.
+> > 
+> > Out-of-memory is not a security risk AFAIK.
+> 
+> If you coun availability to security, then it is.
+> 
+> This might not be an issue in embedded systems which have a single user, but
+> think of the availability of the interface in e.g. a server.
+> 
+> Also, this memory is locked to system physical memory, making it impossible
+> to page it out to a block device.
 
-diff --git a/drivers/staging/tm6000/tm6000-stds.c b/drivers/staging/tm6000/tm6000-stds.c
-index f44451b..9a4145d 100644
---- a/drivers/staging/tm6000/tm6000-stds.c
-+++ b/drivers/staging/tm6000/tm6000-stds.c
-@@ -357,6 +357,7 @@ static int tm6000_set_audio_std(struct tm6000_core *dev)
- 		tm6000_set_reg(dev, TM6010_REQ08_RF1_AADC_POWER_DOWN, 0xfe);
- 		tm6000_set_reg(dev, TM6010_REQ08_R1E_A_GAIN_DEEMPH_OUT, 0x13);
- 		tm6000_set_reg(dev, TM6010_REQ08_R01_A_INIT, 0x80);
-+		tm6000_set_reg(dev, TM6010_REQ07_RFE_POWER_DOWN, 0xff);
- 		return 0;
- 	}
- 
--- 
-1.7.6
+So? Anyone can make a program that allocates and uses a lot of memory causing
+an out of memory error. I still don't see how that differs from trying to allocate
+these buffers.
+
+If the system has swap space (which I haven't used in years) then it may take
+longer before you run out of memory, but the effect is the same.
+
+Out of memory is a normal condition, not a security risk.
+
+The problem I have is that you can't really determine a valid policy here
+since that will depend entirely on your use-case and (embedded) device.
+
+Regards,
+
+	Hans
+
+> > Note BTW that in practice kmalloc already has a cap (something like 16 or 32
+> > MB, I believe it depends on the kernel .config) and so has CMA (the size of
+> 
+> This is per a single allocation. A user could create any number of them.
 
