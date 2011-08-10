@@ -1,68 +1,73 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr6.xs4all.nl ([194.109.24.26]:1787 "EHLO
-	smtp-vbr6.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751121Ab1HJGZh (ORCPT
+Received: from iolanthe.rowland.org ([192.131.102.54]:36789 "HELO
+	iolanthe.rowland.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1751938Ab1HJOTq (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 10 Aug 2011 02:25:37 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Sakari Ailus <sakari.ailus@iki.fi>
-Subject: Re: [PATCH 1/6 v4] V4L: add two new ioctl()s for multi-size videobuffer management
-Date: Wed, 10 Aug 2011 08:25:24 +0200
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Hans Verkuil <hansverk@cisco.com>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Pawel Osciak <pawel@osciak.com>,
-	Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-References: <Pine.LNX.4.64.1108042329460.31239@axis700.grange> <201108090926.30157.hverkuil@xs4all.nl> <20110809233727.GB5926@valkosipuli.localdomain>
-In-Reply-To: <20110809233727.GB5926@valkosipuli.localdomain>
+	Wed, 10 Aug 2011 10:19:46 -0400
+Date: Wed, 10 Aug 2011 10:19:46 -0400 (EDT)
+From: Alan Stern <stern@rowland.harvard.edu>
+To: Hans de Goede <hdegoede@redhat.com>
+cc: Sarah Sharp <sarah.a.sharp@linux.intel.com>,
+	Greg KH <greg@kroah.com>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	<linux-usb@vger.kernel.org>, <linux-media@vger.kernel.org>,
+	<linux-kernel@vger.kernel.org>,
+	<libusb-devel@lists.sourceforge.net>,
+	Alexander Graf <agraf@suse.de>,
+	Gerd Hoffmann <kraxel@redhat.com>, <hector@marcansoft.com>,
+	Jan Kiszka <jan.kiszka@siemens.com>,
+	Stefan Hajnoczi <stefanha@linux.vnet.ibm.com>,
+	<pbonzini@redhat.com>, Anthony Liguori <aliguori@us.ibm.com>,
+	Jes Sorensen <Jes.Sorensen@redhat.com>,
+	Oliver Neukum <oliver@neukum.org>, Felipe Balbi <balbi@ti.com>,
+	Clemens Ladisch <clemens@ladisch.de>,
+	Jaroslav Kysela <perex@perex.cz>, Takashi Iwai <tiwai@suse.de>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Theodore Kilgore <kilgota@banach.math.auburn.edu>,
+	Adam Baker <linux@baker-net.org.uk>
+Subject: Re: USB mini-summit at LinuxCon Vancouver
+In-Reply-To: <4E41912F.50901@redhat.com>
+Message-ID: <Pine.LNX.4.44L0.1108101016200.1917-100000@iolanthe.rowland.org>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201108100825.24309.hverkuil@xs4all.nl>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wednesday, August 10, 2011 01:37:27 Sakari Ailus wrote:
-> On Tue, Aug 09, 2011 at 09:26:30AM +0200, Hans Verkuil wrote:
-> ...
-> > > Wouldn't that be a security issue ? Any application with permissions to access 
-> > > the video device could DoS the system.
-> > 
-> > How is this any different from an application that tries to use more memory
-> > then there is available? It's an out-of-memory situation, that can happen at
-> > any time. Anyone can make an application that runs out of memory.
-> > 
-> > Out-of-memory is not a security risk AFAIK.
+On Tue, 9 Aug 2011, Hans de Goede wrote:
+
+> Hi,
 > 
-> If you coun availability to security, then it is.
+> On 08/09/2011 04:19 PM, Alan Stern wrote:
+> > On Tue, 9 Aug 2011, Hans de Goede wrote:
+> > According to Theodore, we have developed 5 drivers for them because the
+> > stillcam modes in different devices use four different vendor-specific
+> > drivers.
 > 
-> This might not be an issue in embedded systems which have a single user, but
-> think of the availability of the interface in e.g. a server.
+> Yes, but so the the webcam modes of the different devices, so for
+> the 5 (not sure if that is the right number) dual-cam mode chipsets
+> we support there will be 5 drivers, each supporting both the
+> webcam and the access to pictures stored in memory of the chipset
+> they support. So 5 chipsets -> 5 drivers each supporting 1 chipset,
+> and both functions of the single logical device that chipset
+> represents.
 > 
-> Also, this memory is locked to system physical memory, making it impossible
-> to page it out to a block device.
-
-So? Anyone can make a program that allocates and uses a lot of memory causing
-an out of memory error. I still don't see how that differs from trying to allocate
-these buffers.
-
-If the system has swap space (which I haven't used in years) then it may take
-longer before you run out of memory, but the effect is the same.
-
-Out of memory is a normal condition, not a security risk.
-
-The problem I have is that you can't really determine a valid policy here
-since that will depend entirely on your use-case and (embedded) device.
-
-Regards,
-
-	Hans
-
-> > Note BTW that in practice kmalloc already has a cap (something like 16 or 32
-> > MB, I believe it depends on the kernel .config) and so has CMA (the size of
+> >  Does it really make sense to combine 5 drivers into one?
 > 
-> This is per a single allocation. A user could create any number of them.
+> Right, that is not the plan. The plan is to simply stop having 2 drivers
+> for 1 logical (and physical) block. So we go from 10 drivers, 5 stillcam
+> + 5 webcam, to just 5 drivers. We will also likely be able to share
+> code between the code for the 2 functionalities for things like generic
+> set / get register functions, initialization, etc.
+
+Okay, I didn't realize that the different cameras used different webcam 
+drivers as well as different stillcam drivers.
+
+As far as I can see, there's nothing to stop anybody from adding the 
+stillcam functionality into the webcam drivers right now.  If some 
+common code can be abstracted out into a shared source file, so much 
+the better.
+
+That would solve the problem, right?
+
+Alan Stern
 
