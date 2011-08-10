@@ -1,64 +1,76 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:35564 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755302Ab1HaMY0 (ORCPT
+Received: from iolanthe.rowland.org ([192.131.102.54]:53083 "HELO
+	iolanthe.rowland.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1752541Ab1HJQJM (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 31 Aug 2011 08:24:26 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: hvaibhav@ti.com
-Subject: Re: [PATCH] omap_vout: Add poll() support
-Date: Wed, 31 Aug 2011 14:24:52 +0200
-Cc: linux-media@vger.kernel.org
-References: <1314181669-10263-1-git-send-email-laurent.pinchart@ideasonboard.com>
-In-Reply-To: <1314181669-10263-1-git-send-email-laurent.pinchart@ideasonboard.com>
+	Wed, 10 Aug 2011 12:09:12 -0400
+Date: Wed, 10 Aug 2011 12:09:11 -0400 (EDT)
+From: Alan Stern <stern@rowland.harvard.edu>
+To: Theodore Kilgore <kilgota@banach.math.auburn.edu>
+cc: Hans de Goede <hdegoede@redhat.com>,
+	Sarah Sharp <sarah.a.sharp@linux.intel.com>,
+	Greg KH <greg@kroah.com>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	<linux-usb@vger.kernel.org>, <linux-media@vger.kernel.org>,
+	<linux-kernel@vger.kernel.org>,
+	<libusb-devel@lists.sourceforge.net>,
+	Alexander Graf <agraf@suse.de>,
+	Gerd Hoffmann <kraxel@redhat.com>, <hector@marcansoft.com>,
+	Jan Kiszka <jan.kiszka@siemens.com>,
+	Stefan Hajnoczi <stefanha@linux.vnet.ibm.com>,
+	<pbonzini@redhat.com>, Anthony Liguori <aliguori@us.ibm.com>,
+	Jes Sorensen <Jes.Sorensen@redhat.com>,
+	Oliver Neukum <oliver@neukum.org>, Felipe Balbi <balbi@ti.com>,
+	Clemens Ladisch <clemens@ladisch.de>,
+	Jaroslav Kysela <perex@perex.cz>, Takashi Iwai <tiwai@suse.de>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Adam Baker <linux@baker-net.org.uk>
+Subject: Re: USB mini-summit at LinuxCon Vancouver
+In-Reply-To: <alpine.LNX.2.00.1108100951590.24873@banach.math.auburn.edu>
+Message-ID: <Pine.LNX.4.44L0.1108101156350.1917-100000@iolanthe.rowland.org>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-15"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201108311424.53122.laurent.pinchart@ideasonboard.com>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Vaibhav,
+On Wed, 10 Aug 2011, Theodore Kilgore wrote:
 
-Any opinion on this patch ?
-
-On Wednesday 24 August 2011 12:27:49 Laurent Pinchart wrote:
-> Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-> ---
->  drivers/media/video/omap/omap_vout.c |   10 ++++++++++
->  1 files changed, 10 insertions(+), 0 deletions(-)
+> > Okay, I didn't realize that the different cameras used different webcam 
+> > drivers as well as different stillcam drivers.
 > 
-> diff --git a/drivers/media/video/omap/omap_vout.c
-> b/drivers/media/video/omap/omap_vout.c index a1f3c0f..cfc1705 100644
-> --- a/drivers/media/video/omap/omap_vout.c
-> +++ b/drivers/media/video/omap/omap_vout.c
-> @@ -1184,6 +1184,15 @@ static void omap_vout_buffer_release(struct
-> videobuf_queue *q, /*
->   *  File operations
->   */
-> +static unsigned int omap_vout_poll(struct file *file,
-> +				   struct poll_table_struct *wait)
-> +{
-> +	struct omap_vout_device *vout = file->private_data;
-> +	struct videobuf_queue *q = &vout->vbq;
-> +
-> +	return videobuf_poll_stream(file, q, wait);
-> +}
-> +
->  static void omap_vout_vm_open(struct vm_area_struct *vma)
->  {
->  	struct omap_vout_device *vout = vma->vm_private_data;
-> @@ -2175,6 +2184,7 @@ static const struct v4l2_ioctl_ops vout_ioctl_ops = {
+> Oh, yes. They are Proprietary devices. And that means what it says. :-)
+> And all different from each other, too.
+>  
+> > As far as I can see, there's nothing to stop anybody from adding the 
+> > stillcam functionality into the webcam drivers right now.  If some 
+> > common code can be abstracted out into a shared source file, so much 
+> > the better.
+> > 
+> > That would solve the problem, right?
 > 
->  static const struct v4l2_file_operations omap_vout_fops = {
->  	.owner 		= THIS_MODULE,
-> +	.poll		= omap_vout_poll,
->  	.unlocked_ioctl	= video_ioctl2,
->  	.mmap 		= omap_vout_mmap,
->  	.open 		= omap_vout_open,
+> I think everyone involved believes that it would solve the problem. 
+> 
+> The question has been all along whether or not there is any other way 
+> which would work. Also the question of what, exactly, "belongs" in the 
+> kernel and what does not. For, if something has been historically 
+> supported in userspace (stillcam support, in this case) and has worked 
+> well there, I would think it is kind of too bad to have to move said 
+> support into the kernel just because the same hardware requires kernel 
+> support for another functionality and the two sides clash. I mean, the 
+> kernel is already big enough, no? But the logic that Hans has set forth 
+> seems rather compelling. 
 
--- 
-Regards,
+The alternative seems to be to define a device-sharing protocol for USB
+drivers.  Kernel drivers would implement a new callback (asking them to
+give up control of the device), and usbfs would implement new ioctls by
+which a program could ask for and relinquish control of a device.  The
+amount of rewriting needed would be relatively small.
 
-Laurent Pinchart
+A few loose ends would remain, such as how to handle suspends, resumes,
+resets, and disconnects.  Assuming usbfs is the only driver that will
+want to share a device in this way, we could handle them.
+
+Hans, what do you think?
+
+Alan Stern
+
