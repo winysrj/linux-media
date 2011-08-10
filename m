@@ -1,97 +1,100 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:54286 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752763Ab1H2M0d (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 29 Aug 2011 08:26:33 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Subject: Re: [PATCH] media: Add support for arbitrary resolution for the ov5642 camera driver
-Date: Mon, 29 Aug 2011 14:26:56 +0200
-Cc: Bastian Hecht <hechtb@googlemail.com>, linux-media@vger.kernel.org
-References: <alpine.DEB.2.02.1108171551040.17540@ipanema> <201108281949.05551.laurent.pinchart@ideasonboard.com> <Pine.LNX.4.64.1108291409300.31184@axis700.grange>
-In-Reply-To: <Pine.LNX.4.64.1108291409300.31184@axis700.grange>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:52556 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752371Ab1HJODg (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 10 Aug 2011 10:03:36 -0400
+From: Deepthy Ravi <deepthy.ravi@ti.com>
+To: <linux-media@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
+	<mchehab@infradead.org>, <laurent.pinchart@ideasonboard.com>
+CC: <linux-omap@vger.kernel.org>, Abhilash K V <abhilash.kv@ti.com>,
+	Deepthy Ravi <deepthy.ravi@ti.com>
+Subject: [PATCH 2/2] omap3: ISP: Kernel crash when attempting suspend
+Date: Wed, 10 Aug 2011 19:33:26 +0530
+Message-ID: <1312985006-19345-1-git-send-email-deepthy.ravi@ti.com>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201108291426.57501.laurent.pinchart@ideasonboard.com>
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Guennadi,
+From: Abhilash K V <abhilash.kv@ti.com>
 
-On Monday 29 August 2011 14:18:50 Guennadi Liakhovetski wrote:
-> On Sun, 28 Aug 2011, Laurent Pinchart wrote:
-> 
-> [snip]
-> 
-> > > @@ -593,8 +639,7 @@ static struct ov5642 *to_ov5642(const struct
-> > > i2c_client *client) }
-> > > 
-> > >  /* Find a data format by a pixel code in an array */
-> > > 
-> > > -static const struct ov5642_datafmt
-> > > -			*ov5642_find_datafmt(enum v4l2_mbus_pixelcode code)
-> > > +static const struct ov5642_datafmt *ov5642_find_datafmt(enum
-> > > v4l2_mbus_pixelcode code) {
-> > 
-> > checkpatch.pl won't be happy.
-> 
-> Since the lift of the hard 80-char limit, I often find lines of 86
-> characters more acceptable than their split versions.
+This patch fixes the kernel crash introduced by the previous 
+patch: 
+	omap3: ISP: Fix the failure of CCDC capture during 
+	suspend/resume.
+This null pointer exception happens when attempting suspend
+while the ISP driver is not being used. The current patch
+fixes this by deferring the code (as introduced in the
+aforementioned patch) to handle  buffer-starvation to get
+called only if the ISP reference count is non-zero.
+An additional safety check is also added to ensure that
+buffer-starvation logic kicks in for an empty dmaqueue only
+if the ISP pipeline is not in the stopped state.
 
-When has that been lifted ?
+Signed-off-by: Abhilash K V <abhilash.kv@ti.com>
+Signed-off-by: Deepthy Ravi <deepthy.ravi@ti.com>
+---
+ drivers/media/video/omap3isp/isp.c      |   12 ++++++------
+ drivers/media/video/omap3isp/ispvideo.c |    4 +++-
+ 2 files changed, 9 insertions(+), 7 deletions(-)
 
-> [snip]
-> 
-> > > @@ -774,17 +839,27 @@ static int ov5642_s_fmt(struct v4l2_subdev *sd,
-> > > 
-> > >  	ov5642_try_fmt(sd, mf);
-> > > 
-> > > +	priv->out_size.width		= mf->width;
-> > > +	priv->out_size.height		= mf->height;
-> > 
-> > It looks like to me (but I may be wrong) that you achieve different
-> > resolutions using cropping, not scaling. If that's correct you should
-> > implement s_crop support and refuse changing the resolution through
-> > s_fmt.
-> 
-> As the patch explains (I think) on several occasions, currently only the
-> 1:1 scale is supported, and it was our deliberate choice to implement this
-> using the scaling API
-
-If you implement cropping, you should use the crop API, not the scaling API 
-:-)
-
-> > > @@ -793,10 +868,12 @@ static int ov5642_g_fmt(struct v4l2_subdev *sd,
-> > > 
-> > >  	mf->code	= fmt->code;
-> > >  	mf->colorspace	= fmt->colorspace;
-> > > 
-> > > -	mf->width	= OV5642_WIDTH;
-> > > -	mf->height	= OV5642_HEIGHT;
-> > > +	mf->width	= priv->out_size.width;
-> > > +	mf->height	= priv->out_size.height;
-> > > 
-> > >  	mf->field	= V4L2_FIELD_NONE;
-> > > 
-> > > +	dev_dbg(sd->v4l2_dev->dev, "%s return width: %u heigth: %u\n",
-> > > __func__, +			mf->width, mf->height);
-> > 
-> > Isn't that a bit too verbose ? Printing the format in a debug message in
-> > the s_fmt handler is useful, but maybe doing it in g_fmt is a bit too
-> > much.
-> 
-> This is a dev_dbg()... Personally, as long as they don't clutter the source
-> code needlessly, compile without warnings and have their typos fixed (;-))
-
-Removing it is a good way to fix the typo :-)
-
-> I don't have problems with an odd instance, even if I don't really perceive
-> its output as particularly useful:-)
-
+diff --git a/drivers/media/video/omap3isp/isp.c b/drivers/media/video/omap3isp/isp.c
+index 6604fbd..6acdedc 100644
+--- a/drivers/media/video/omap3isp/isp.c
++++ b/drivers/media/video/omap3isp/isp.c
+@@ -1573,6 +1573,9 @@ static int isp_pm_prepare(struct device *dev)
+ 	unsigned long flags;
+ 
+ 	WARN_ON(mutex_is_locked(&isp->isp_mutex));
++	if (isp->ref_count == 0)
++		return 0;
++
+ 	spin_lock_irqsave(&pipe->lock, flags);
+ 	pipe->state |= ISP_PIPELINE_PREPARE_SUSPEND;
+ 	spin_unlock_irqrestore(&pipe->lock, flags);
+@@ -1581,9 +1584,6 @@ static int isp_pm_prepare(struct device *dev)
+ 	if (err < 0)
+ 		return err;
+ 
+-	if (isp->ref_count == 0)
+-		return 0;
+-
+ 	reset = isp_suspend_modules(isp);
+ 	isp_disable_interrupts(isp);
+ 	isp_save_ctx(isp);
+@@ -1613,13 +1613,13 @@ static int isp_pm_resume(struct device *dev)
+ 	struct isp_pipeline *pipe = to_isp_pipeline(&video->video.entity);
+ 	unsigned long flags;
+ 
++	if (isp->ref_count == 0)
++		return 0;
++
+ 	spin_lock_irqsave(&pipe->lock, flags);
+ 	pipe->state &= ~ISP_PIPELINE_PREPARE_SUSPEND;
+ 	spin_unlock_irqrestore(&pipe->lock, flags);
+ 
+-	if (isp->ref_count == 0)
+-		return 0;
+-
+ 	return isp_enable_clocks(isp);
+ }
+ 
+diff --git a/drivers/media/video/omap3isp/ispvideo.c b/drivers/media/video/omap3isp/ispvideo.c
+index bf149a7..ffb339c 100644
+--- a/drivers/media/video/omap3isp/ispvideo.c
++++ b/drivers/media/video/omap3isp/ispvideo.c
+@@ -726,8 +726,10 @@ int isp_video_handle_buffer_starvation(struct isp_video *video)
+ 	struct isp_video_queue *queue = video->queue;
+ 	struct isp_video_buffer *buf;
+ 	struct list_head *head = &video->dmaqueue;
++	struct isp_ccdc_device *ccdc = &video->isp->isp_ccdc;
+ 
+-	if (list_empty(&video->dmaqueue)) {
++	if (list_empty(&video->dmaqueue)
++		&& ccdc->state != ISP_PIPELINE_STREAM_STOPPED) {
+ 		err = isp_video_deq_enq(queue);
+ 	} else if (head->next->next == head) {
+ 		/* only one buffer is left on dmaqueue */
 -- 
-Regards,
+1.7.0.4
 
-Laurent Pinchart
