@@ -1,53 +1,87 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:46758 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756730Ab1H3VHV (ORCPT
+Received: from rcdn-iport-3.cisco.com ([173.37.86.74]:48326 "EHLO
+	rcdn-iport-3.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753267Ab1HJJ4e (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 30 Aug 2011 17:07:21 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Deepthy Ravi <deepthy.ravi@ti.com>
-Subject: Re: [PATCH 1/2] omap3: ISP: Fix the failure of CCDC capture during suspend/resume
-Date: Tue, 30 Aug 2011 23:07:47 +0200
-Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-	mchehab@infradead.org, linux-omap@vger.kernel.org,
-	Abhilash K V <abhilash.kv@ti.com>
-References: <1312984992-19315-1-git-send-email-deepthy.ravi@ti.com>
-In-Reply-To: <1312984992-19315-1-git-send-email-deepthy.ravi@ti.com>
+	Wed, 10 Aug 2011 05:56:34 -0400
+From: Hans Verkuil <hansverk@cisco.com>
+To: Marek Szyprowski <m.szyprowski@samsung.com>
+Subject: Re: [PATCH] media: vb2: add a check if queued userptr buffer is large enough
+Date: Wed, 10 Aug 2011 11:56:13 +0200
+Cc: linux-media@vger.kernel.org,
+	"'Kyungmin Park'" <kyungmin.park@samsung.com>,
+	"'Pawel Osciak'" <pawel@osciak.com>,
+	"'Laurent Pinchart'" <laurent.pinchart@ideasonboard.com>
+References: <1312964488-2924-1-git-send-email-m.szyprowski@samsung.com> <201108101045.36681.hansverk@cisco.com> <028201cc573d$0cdc5690$269503b0$%szyprowski@samsung.com>
+In-Reply-To: <028201cc573d$0cdc5690$269503b0$%szyprowski@samsung.com>
 MIME-Version: 1.0
 Content-Type: Text/Plain;
-  charset="iso-8859-15"
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
-Message-Id: <201108302307.47564.laurent.pinchart@ideasonboard.com>
+Message-Id: <201108101156.13732.hansverk@cisco.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
-
-On Wednesday 10 August 2011 16:03:12 Deepthy Ravi wrote:
-> From: Abhilash K V <abhilash.kv@ti.com>
+On Wednesday, August 10, 2011 11:08:20 Marek Szyprowski wrote:
+> Hello,
 > 
-> While resuming from the "suspended to memory" state,
-> occasionally CCDC fails to get enabled and thus fails
-> to capture frames any more till the next suspend/resume
-> is issued.
-> This is a race condition which happens only when a CCDC
-> frame-completion ISR is pending even as ISP device's
-> isp_pm_prepare() is getting called and only one buffer
-> is left on the DMA queue.
-> The DMA queue buffers are thus depleted which results in
-> its underrun.So when ISP resumes there are no buffers on
-> the queue (as the application which can issue buffers is
-> yet to resume) to start video capture.
-> This fix addresses this issue by dequeuing and enqueing
-> the last buffer in isp_pm_prepare() after its DMA gets
-> completed. Thus,when ISP resumes it always finds atleast
-> one buffer on the DMA queue - this is true if application
-> uses only 3 buffers.
+> On Wednesday, August 10, 2011 10:46 AM Hans Verkuil wrote:
+> 
+> > Just one comment:
+> > 
+> > On Wednesday, August 10, 2011 10:21:28 Marek Szyprowski wrote:
+> > > Videobuf2 accepted any userptr buffer without verifying if its size is
+> > > large enough to store the video data from the driver. The driver reports
+> > > the minimal size of video data once in queue_setup and expects that
+> > > videobuf2 provides buffers that match these requirements. This patch
+> > > adds the required check.
+> > >
+> > > Reported-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+> > > Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
+> > > Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+> > > CC: Pawel Osciak <pawel@osciak.com>
+> > > ---
+> > >  drivers/media/video/videobuf2-core.c |   41
+> > +++++++++++++++++++--------------
+> > >  include/media/videobuf2-core.h       |    1 +
+> > >  2 files changed, 25 insertions(+), 17 deletions(-)
+> > >
+> > 
+> > <snip>
+> > 
+> > > diff --git a/include/media/videobuf2-core.h b/include/media/videobuf2-
+core.h
+> > > index f87472a..496d6e5 100644
+> > > --- a/include/media/videobuf2-core.h
+> > > +++ b/include/media/videobuf2-core.h
+> > > @@ -276,6 +276,7 @@ struct vb2_queue {
+> > >  	wait_queue_head_t		done_wq;
+> > >
+> > >  	void				*alloc_ctx[VIDEO_MAX_PLANES];
+> > > +	unsigned long			plane_sizes[VIDEO_MAX_PLANES];
+> > 
+> > Why unsigned long when it is a u32 in struct v4l2_plane_pix_format?
+> > 
+> > unsigned long is 64 bit on a 64-bit OS, so that seems wasteful to me.
+> 
+> u32 type should be used in places where the exact size really matters,
+> like strictly defined io structures passed to userspace or structures that
+> are used for accessing hardware registers directly. For all other cases,
+> like temporary storage of some values, the cpu native types should be used.
+> Looks at the whole vb2 code - u32 type is not used in any single place.
 
-How is that problem specific to the CCDC ? Can't it be reproduce at the 
-preview engine or resizer output as well ?
+You can also change unsigned long to unsigned int as that is always 32 bits.
 
--- 
+I don't mind one way or another.
+
 Regards,
 
-Laurent Pinchart
+	Hans
+
+> 
+> Best regards
+> -- 
+> Marek Szyprowski
+> Samsung Poland R&D Center
+> 
+> 
