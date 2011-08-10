@@ -1,109 +1,202 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout3.w1.samsung.com ([210.118.77.13]:23704 "EHLO
-	mailout3.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752711Ab1HIIKo (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 9 Aug 2011 04:10:44 -0400
-MIME-version: 1.0
-Content-transfer-encoding: 7BIT
-Content-type: text/plain; charset=ISO-8859-1
-Received: from spt2.w1.samsung.com ([210.118.77.13]) by mailout3.w1.samsung.com
- (Sun Java(tm) System Messaging Server 6.3-8.04 (built Jul 29 2009; 32bit))
- with ESMTP id <0LPN00ER9IPUGJ10@mailout3.w1.samsung.com> for
- linux-media@vger.kernel.org; Tue, 09 Aug 2011 09:10:42 +0100 (BST)
+Received: from mailout2.w1.samsung.com ([210.118.77.12]:46934 "EHLO
+	mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750763Ab1HJIXu (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 10 Aug 2011 04:23:50 -0400
+Received: from spt2.w1.samsung.com (mailout2.w1.samsung.com [210.118.77.12])
+ by mailout2.w1.samsung.com
+ (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14 2004))
+ with ESMTP id <0LPP00MG6DZP52@mailout2.w1.samsung.com> for
+ linux-media@vger.kernel.org; Wed, 10 Aug 2011 09:23:49 +0100 (BST)
 Received: from linux.samsung.com ([106.116.38.10])
  by spt2.w1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14
- 2004)) with ESMTPA id <0LPN00JQMIPTR7@spt2.w1.samsung.com> for
- linux-media@vger.kernel.org; Tue, 09 Aug 2011 09:10:41 +0100 (BST)
-Date: Tue, 09 Aug 2011 10:10:40 +0200
-From: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Subject: Re: [RFC] The clock dependencies between sensor subdevs and the host
- interface drivers
-In-reply-to: <201108081744.37953.laurent.pinchart@ideasonboard.com>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: linux-media@vger.kernel.org,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Sakari Ailus <sakari.ailus@iki.fi>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	"Marek Szyprowski/Poland R&D Center-Linux (MSS)/./????"
-	<m.szyprowski@samsung.com>
-Message-id: <4E40EB80.7080302@samsung.com>
-References: <4E400280.7070100@samsung.com>
- <201108081744.37953.laurent.pinchart@ideasonboard.com>
+ 2004)) with ESMTPA id <0LPP00LRGDZORQ@spt2.w1.samsung.com> for
+ linux-media@vger.kernel.org; Wed, 10 Aug 2011 09:23:48 +0100 (BST)
+Date: Wed, 10 Aug 2011 10:23:37 +0200
+From: Marek Szyprowski <m.szyprowski@samsung.com>
+Subject: [PATCH] media: vb2: dma-sg allocator: change scatterlist allocation
+ method
+To: linux-media@vger.kernel.org
+Cc: Marek Szyprowski <m.szyprowski@samsung.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	Pawel Osciak <pawel@osciak.com>,
+	Andrzej Pietrasiewicz <andrzej.p@samsung.com>
+Message-id: <1312964617-3192-1-git-send-email-m.szyprowski@samsung.com>
+MIME-version: 1.0
+Content-type: TEXT/PLAIN
+Content-transfer-encoding: 7BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Laurent,
+From: Andrzej Pietrasiewicz <andrzej.p@samsung.com>
 
-On 08/08/2011 05:44 PM, Laurent Pinchart wrote:
-> Hi Sylwester,
-> 
-> On Monday 08 August 2011 17:36:32 Sylwester Nawrocki wrote:
->> Hi everyone,
->>
->> Nowadays many of the V4L2 camera device drivers heavily depend on the board
->> code to set up voltage supplies, clocks, and some control signals, like
->> 'reset' and 'standby' signals for the sensors. Those things are often
->> being done by means of the driver specific platform data callbacks.
->>
->> There has been recently quite a lot effort on ARM towards migration to the
->> device tree. Unfortunately the custom platform data callbacks effectively
->> prevent the boards to be booted and configured through the device tree
->> bindings.
->>
->> The following is usually handled in the board files:
->>
->> 1) sensor/frontend power supply
->> 2) sensor's master clock (provided by the host device)
->> 3) reset and standby signals (GPIO)
->> 4) other signals applied by the host processor to the sensor device, e.g.
->>    I2C level shifter enable, etc.
->>
->> For 1), the regulator API should possibly be used. It should be applicable
->> for most, if not all cases.
->> 3) and 4) are a bit hard as there might be huge differences across boards
->> as how many GPIOs are used, what are the required delays between changes
->> of their states, etc. Still we could try to find a common description of
->> the behaviour and pass such information to the drivers.
->>
->> For 2) I'd like to propose adding a callback to struct v4l2_device, for
->> instance as in the below patch. The host driver would implement such an
->> operation and the sensor subdev driver would use it in its s_power op.
-> 
-> What about using a struct clk object ? There has been lots of work in the ARM 
-> tree to make struct clk generic. I'm not sure if all patches have been pushed 
-> to mainline yet, but I think that's the direction we should follow.
+Scatter-gather lib provides a helper functions to allocate scatter list,
+so there is no need to use vmalloc for it. sg_alloc_table() splits
+allocation into page size chunks and links them together into a chain.
 
-But is the 'struct clk' tried to be unified across all archs, not only ARM ?
-I'm afraid it's not the case.
+Signed-off-by: Andrzej Pietrasiewicz <andrzej.p@samsung.com>
+Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
+CC: Pawel Osciak <pawel@osciak.com>
+---
+ drivers/media/video/videobuf2-dma-sg.c |   54 +++++++++++++++++++------------
+ 1 files changed, 33 insertions(+), 21 deletions(-)
 
-By "using a struct clk object" do you also mean implementing some/all ops
-of this object by the driver which exports it ? 
-
-I suppose we can't rely only on the clock controller functionality exposed
-through the clock API.
-
-Some devices may need to be brought to an active state before the clock can
-be used outside. Some may have internal frequency dividers which need to be
-handled in addition to the clock path in the clock controller.
-
-For instance, on Exynos4 the FIMC devices belong to a power domain that needs
-to be enabled so the clock is not  blocked, and this is done through the
-runtime PM calls.
-
-Normally the host device driver runtime resumes the device when /dev/video*
-is opened. But we might want to use the clock before it happens, when only a
-/dev/v4l-subdev* is opened, to play with the sensor device only. In this
-situation the host device needs to be runtime resumed first.
-
-Thus the driver would need to (re)implement the clock ops to also handle
-the details which are not covered by the clock controller driver.
-
-I also wonder how could we support the boards which choose to use some extra
-external oscillator to provide clock to the sensors, rather than the one
-derived from the host.
-
-
-Thanks,
+diff --git a/drivers/media/video/videobuf2-dma-sg.c b/drivers/media/video/videobuf2-dma-sg.c
+index 065f468..e1158f9 100644
+--- a/drivers/media/video/videobuf2-dma-sg.c
++++ b/drivers/media/video/videobuf2-dma-sg.c
+@@ -36,6 +36,8 @@ static void vb2_dma_sg_put(void *buf_priv);
+ static void *vb2_dma_sg_alloc(void *alloc_ctx, unsigned long size)
+ {
+ 	struct vb2_dma_sg_buf *buf;
++	struct sg_table sgt;
++	struct scatterlist *sl;
+ 	int i;
+ 
+ 	buf = kzalloc(sizeof *buf, GFP_KERNEL);
+@@ -48,23 +50,21 @@ static void *vb2_dma_sg_alloc(void *alloc_ctx, unsigned long size)
+ 	buf->sg_desc.size = size;
+ 	buf->sg_desc.num_pages = (size + PAGE_SIZE - 1) >> PAGE_SHIFT;
+ 
+-	buf->sg_desc.sglist = vzalloc(buf->sg_desc.num_pages *
+-				      sizeof(*buf->sg_desc.sglist));
+-	if (!buf->sg_desc.sglist)
++	if (sg_alloc_table(&sgt, buf->sg_desc.num_pages, GFP_KERNEL))
+ 		goto fail_sglist_alloc;
+-	sg_init_table(buf->sg_desc.sglist, buf->sg_desc.num_pages);
++	buf->sg_desc.sglist = sgt.sgl;
+ 
+ 	buf->pages = kzalloc(buf->sg_desc.num_pages * sizeof(struct page *),
+ 			     GFP_KERNEL);
+ 	if (!buf->pages)
+ 		goto fail_pages_array_alloc;
+ 
+-	for (i = 0; i < buf->sg_desc.num_pages; ++i) {
+-		buf->pages[i] = alloc_page(GFP_KERNEL | __GFP_ZERO | __GFP_NOWARN);
++	for_each_sg(buf->sg_desc.sglist, sl, buf->sg_desc.num_pages, i) {
++		buf->pages[i] = alloc_page(GFP_KERNEL | __GFP_ZERO |
++					   __GFP_NOWARN);
+ 		if (NULL == buf->pages[i])
+ 			goto fail_pages_alloc;
+-		sg_set_page(&buf->sg_desc.sglist[i],
+-			    buf->pages[i], PAGE_SIZE, 0);
++		sg_set_page(sl, buf->pages[i], PAGE_SIZE, 0);
+ 	}
+ 
+ 	buf->handler.refcount = &buf->refcount;
+@@ -89,7 +89,7 @@ fail_pages_alloc:
+ 	kfree(buf->pages);
+ 
+ fail_pages_array_alloc:
+-	vfree(buf->sg_desc.sglist);
++	sg_free_table(&sgt);
+ 
+ fail_sglist_alloc:
+ 	kfree(buf);
+@@ -99,6 +99,7 @@ fail_sglist_alloc:
+ static void vb2_dma_sg_put(void *buf_priv)
+ {
+ 	struct vb2_dma_sg_buf *buf = buf_priv;
++	struct sg_table sgt;
+ 	int i = buf->sg_desc.num_pages;
+ 
+ 	if (atomic_dec_and_test(&buf->refcount)) {
+@@ -106,7 +107,9 @@ static void vb2_dma_sg_put(void *buf_priv)
+ 			buf->sg_desc.num_pages);
+ 		if (buf->vaddr)
+ 			vm_unmap_ram(buf->vaddr, buf->sg_desc.num_pages);
+-		vfree(buf->sg_desc.sglist);
++		sgt.sgl = buf->sg_desc.sglist;
++		sgt.orig_nents = sgt.nents = i;
++		sg_free_table(&sgt);
+ 		while (--i >= 0)
+ 			__free_page(buf->pages[i]);
+ 		kfree(buf->pages);
+@@ -118,6 +121,8 @@ static void *vb2_dma_sg_get_userptr(void *alloc_ctx, unsigned long vaddr,
+ 				    unsigned long size, int write)
+ {
+ 	struct vb2_dma_sg_buf *buf;
++	struct sg_table sgt;
++	struct scatterlist *sl;
+ 	unsigned long first, last;
+ 	int num_pages_from_user, i;
+ 
+@@ -134,12 +139,9 @@ static void *vb2_dma_sg_get_userptr(void *alloc_ctx, unsigned long vaddr,
+ 	last  = ((vaddr + size - 1) & PAGE_MASK) >> PAGE_SHIFT;
+ 	buf->sg_desc.num_pages = last - first + 1;
+ 
+-	buf->sg_desc.sglist = vzalloc(
+-		buf->sg_desc.num_pages * sizeof(*buf->sg_desc.sglist));
+-	if (!buf->sg_desc.sglist)
++	if (sg_alloc_table(&sgt, buf->sg_desc.num_pages, GFP_KERNEL))
+ 		goto userptr_fail_sglist_alloc;
+-
+-	sg_init_table(buf->sg_desc.sglist, buf->sg_desc.num_pages);
++	buf->sg_desc.sglist = sgt.sgl;
+ 
+ 	buf->pages = kzalloc(buf->sg_desc.num_pages * sizeof(struct page *),
+ 			     GFP_KERNEL);
+@@ -158,12 +160,12 @@ static void *vb2_dma_sg_get_userptr(void *alloc_ctx, unsigned long vaddr,
+ 	if (num_pages_from_user != buf->sg_desc.num_pages)
+ 		goto userptr_fail_get_user_pages;
+ 
+-	sg_set_page(&buf->sg_desc.sglist[0], buf->pages[0],
+-		    PAGE_SIZE - buf->offset, buf->offset);
++	sl = buf->sg_desc.sglist;
++	sg_set_page(sl, buf->pages[0], PAGE_SIZE - buf->offset, buf->offset);
+ 	size -= PAGE_SIZE - buf->offset;
+ 	for (i = 1; i < buf->sg_desc.num_pages; ++i) {
+-		sg_set_page(&buf->sg_desc.sglist[i], buf->pages[i],
+-			    min_t(size_t, PAGE_SIZE, size), 0);
++		sl = sg_next(sl);
++		sg_set_page(sl, buf->pages[i], min_t(size_t, PAGE_SIZE, size), 0);
+ 		size -= min_t(size_t, PAGE_SIZE, size);
+ 	}
+ 	return buf;
+@@ -176,7 +178,7 @@ userptr_fail_get_user_pages:
+ 	kfree(buf->pages);
+ 
+ userptr_fail_pages_array_alloc:
+-	vfree(buf->sg_desc.sglist);
++	sg_free_table(&sgt);
+ 
+ userptr_fail_sglist_alloc:
+ 	kfree(buf);
+@@ -190,6 +192,8 @@ userptr_fail_sglist_alloc:
+ static void vb2_dma_sg_put_userptr(void *buf_priv)
+ {
+ 	struct vb2_dma_sg_buf *buf = buf_priv;
++	struct sg_table sgt;
++
+ 	int i = buf->sg_desc.num_pages;
+ 
+ 	printk(KERN_DEBUG "%s: Releasing userspace buffer of %d pages\n",
+@@ -201,7 +205,9 @@ static void vb2_dma_sg_put_userptr(void *buf_priv)
+ 			set_page_dirty_lock(buf->pages[i]);
+ 		put_page(buf->pages[i]);
+ 	}
+-	vfree(buf->sg_desc.sglist);
++	sgt.sgl = buf->sg_desc.sglist;
++	sgt.orig_nents = sgt.nents = buf->sg_desc.num_pages;
++	sg_free_table(&sgt);
+ 	kfree(buf->pages);
+ 	kfree(buf);
+ }
+@@ -218,6 +224,12 @@ static void *vb2_dma_sg_vaddr(void *buf_priv)
+ 					-1,
+ 					PAGE_KERNEL);
+ 
++	if (!buf->vaddr) {
++		printk(KERN_ERR "Cannot map buffer memory "
++				"into kernel address space\n");
++		return NULL;
++	}
++
+ 	/* add offset in case userptr is not page-aligned */
+ 	return buf->vaddr + buf->offset;
+ }
 -- 
-Sylwester Nawrocki
-Samsung Poland R&D Center
+1.7.1.569.g6f426
+
