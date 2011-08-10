@@ -1,57 +1,43 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:44923 "EHLO mail.kapsi.fi"
+Received: from mga01.intel.com ([192.55.52.88]:21991 "EHLO mga01.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753130Ab1HNMLw (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 14 Aug 2011 08:11:52 -0400
-Message-ID: <4E47BB82.8040801@iki.fi>
-Date: Sun, 14 Aug 2011 15:11:46 +0300
-From: Antti Palosaari <crope@iki.fi>
-MIME-Version: 1.0
-To: Devin Heitmueller <dheitmueller@kernellabs.com>
-CC: Chris Rankin <rankincj@yahoo.com>, linux-media@vger.kernel.org
-Subject: Re: PCTV 290e nanostick and remote control support
-References: <4E46FB3C.7060402@iki.fi> <1313286189.94904.YahooMailClassic@web121720.mail.ne1.yahoo.com> <CAGoCfiw0p7jwac94eYM9apUN4Qd8mduteq_xH8ePoyxvO7SNGA@mail.gmail.com>
-In-Reply-To: <CAGoCfiw0p7jwac94eYM9apUN4Qd8mduteq_xH8ePoyxvO7SNGA@mail.gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+	id S1753416Ab1HJLQ0 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 10 Aug 2011 07:16:26 -0400
+Subject: adp1653 usage
+From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+To: Sakari Ailus <sakari.ailus@iki.fi>
+Cc: linux-media <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 8BIT
+Date: Wed, 10 Aug 2011 14:16:00 +0300
+Message-ID: <1312974960.2183.15.camel@smile>
+Mime-Version: 1.0
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 08/14/2011 04:48 AM, Devin Heitmueller wrote:
-> On Sat, Aug 13, 2011 at 9:43 PM, Chris Rankin <rankincj@yahoo.com> wrote:
->> The rc-pinnacle-pctv-hd keymap is missing the definition of the OK key:
->>
->> --- linux-3.0/drivers/media/rc/keymaps/rc-pinnacle-pctv-hd.c.orig       2011-08-14 02:42:01.000000000 +0100
->> +++ linux-3.0/drivers/media/rc/keymaps/rc-pinnacle-pctv-hd.c    2011-08-14 02:12:45.000000000 +0100
->> @@ -20,6 +20,7 @@
->>        { 0x0701, KEY_MENU }, /* Pinnacle logo */
->>        { 0x0739, KEY_POWER },
->>        { 0x0703, KEY_VOLUMEUP },
->> +       { 0x0705, KEY_OK },
->>        { 0x0709, KEY_VOLUMEDOWN },
->>        { 0x0706, KEY_CHANNELUP },
->>        { 0x070c, KEY_CHANNELDOWN },
->>
->> Cheers,
->> Chris
-> 
-> Wow, how the hell did I miss that?  I did numerous remotes for em28xx
-> based devices that use that RC profile, and never noticed that issue.
-> 
-> Will have to check the merge logs.  Maybe the key got lost when they
-> refactored the IR support.
+Hello, Sakari.
 
-It seems to be very old bug, year 2007, not coming from merge errors! It
-could be even possible there have not been such button originally. Very
-weird situation none have found it earlier. For example I just pressed
-few buttons to see number are coming to console => OK it works (didn't
-looked all buttons sends events).
+I would like to understand how to use subdevice (like adp1653) in
+current v4l2 framework from user space.
 
-That's commit which adds those keytables:
-commit 54d75ebaa02809f24a16624e32706af3bf97588e
+My understanding is following.
 
-regards
-Antti
+Kernel has two drivers (simplified view):
+- camera device
+- flash device
+
+Kernel initializes a camera driver from a platform specific setup code.
+The camera driver loads the subdevice drivers. Later I could access the
+subdevice driver parts via IOCTL(s) on /dev/videoX device node.
+
+What I have missed.
+- if the subdevice creates device node /dev/v4l-subdevX, how the user
+space will know the X is corresponding to let say flash device?
+- if there is no v4l-subdevX device node, when and how the kernel runs
+->open() and ->close() methods of v4l2_subdev_internal_ops?
+
 
 -- 
-http://palosaari.fi/
+Andy Shevchenko <andriy.shevchenko@intel.com>
+Intel Finland Oy
