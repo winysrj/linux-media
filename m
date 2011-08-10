@@ -1,58 +1,90 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.126.187]:54369 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751870Ab1HLMxq (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 12 Aug 2011 08:53:46 -0400
-From: Arnd Bergmann <arnd@arndb.de>
-To: Marek Szyprowski <m.szyprowski@samsung.com>
-Subject: Re: [PATCH 7/9] ARM: DMA: steal memory for DMA coherent mappings
-Date: Fri, 12 Aug 2011 14:53:05 +0200
-Cc: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-	linux-media@vger.kernel.org, linux-mm@kvack.org,
-	linaro-mm-sig@lists.linaro.org,
-	Michal Nazarewicz <mina86@mina86.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	Russell King <linux@arm.linux.org.uk>,
-	Andrew Morton <akpm@linux-foundation.org>,
-	KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>,
-	Ankita Garg <ankita@in.ibm.com>,
-	Daniel Walker <dwalker@codeaurora.org>,
-	Mel Gorman <mel@csn.ul.ie>,
-	Jesse Barker <jesse.barker@linaro.org>,
-	Jonathan Corbet <corbet@lwn.net>,
-	Shariq Hasnain <shariq.hasnain@linaro.org>,
-	Chunsang Jeong <chunsang.jeong@linaro.org>
-References: <1313146711-1767-1-git-send-email-m.szyprowski@samsung.com> <1313146711-1767-8-git-send-email-m.szyprowski@samsung.com>
-In-Reply-To: <1313146711-1767-8-git-send-email-m.szyprowski@samsung.com>
+Received: from rouge.crans.org ([138.231.136.3]:42928 "EHLO rouge.crans.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754613Ab1HJWBE (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 10 Aug 2011 18:01:04 -0400
+Message-ID: <4E42FD4F.8070904@crans.ens-cachan.fr>
+Date: Wed, 10 Aug 2011 23:51:11 +0200
+From: DUBOST Brice <dubost@crans.ens-cachan.fr>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-15"
+To: Nima Mohammadi <nima.irt@gmail.com>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Subject: Re: Structure of DiSEqC Command
+References: <CAPpMX7Sw5bO8fiYq+u_Zdv8BBsS6qahQ0Rw+_CjD+ikXH5-w3g@mail.gmail.com>
+In-Reply-To: <CAPpMX7Sw5bO8fiYq+u_Zdv8BBsS6qahQ0Rw+_CjD+ikXH5-w3g@mail.gmail.com>
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 7bit
-Message-Id: <201108121453.05898.arnd@arndb.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Friday 12 August 2011, Marek Szyprowski wrote:
+On 08/08/2011 19:06, Nima Mohammadi wrote:
+> Hi folks,
+> I was reading the source code of various dvb related utilities and I
+> was wondering about forming up the message which instructs the DiSEqC
+> switch. But I found out that different programs produce the command
+> differently.
+> The confusing thing is that according to the DiSEqC specification
+> documents that I've read, the least significant bit (lsb) must
+> indicate the band (low/high), not the polarity (ver/hor), but as you
+> see it only applies to some of these programs:
 > 
-> From: Russell King <rmk+kernel@arm.linux.org.uk>
+> getstrean abd dvbstream:
+> int i = 4 * switch_pos + 2 * hiband + (voltage_18 ? 1 : 0);
 > 
-> Steal memory from the kernel to provide coherent DMA memory to drivers.
-> This avoids the problem with multiple mappings with differing attributes
-> on later CPUs.
+> szap and mplayer:
+> (((sat_no * 4) & 0x0f) | (hi_lo ? 1 : 0) | (polv ? 0 : 2));
 > 
-> Signed-off-by: Russell King <rmk+kernel@arm.linux.org.uk>
-> [m.szyprowski: rebased onto 3.1-rc1]
-> Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
+> scan:
+> 4 * switch_pos + 2 * hiband + (voltage_18 ? 1 : 0)
+> 
+> gstdvbsrc:
+> (((sat_no * 4) & 0x0f) | (tone == SEC_TONE_ON ? 1 : 0) | (voltage ==
+> SEC_VOLTAGE_13 ? 0 : 2));
+> 
+> 
 
-Hi Marek,
 
-Is this the same patch that Russell had to revert because it didn't
-work on some of the older machines, in particular those using
-dmabounce?
+Hello
 
-I thought that our discussion ended with the plan to use this only
-for ARMv6+ (which has a problem with double mapping) but not on ARMv5
-and below (which don't have this problem but might need dmabounce).
+I'm the upstream author of MuMuDVB (http://mumudvb.braice.net)
 
-	Arnd
+The diseqc related code is here
+http://gitweb.braice.net/gitweb?p=mumudvb;a=blob;f=src/tune.c
+
+On the document
+
+http://www.eutelsat.com/satellites/pdf/Diseqc/associated%20docs/applic_info_LNB_switchers.pdf
+
+Page 7 (page 10 of the PDF) the band is the LSB and the table
+is organized in increasing binary data
+
+But in
+http://www.eutelsat.com/satellites/pdf/Diseqc/associated%20docs/update_recomm_for_implim.pdf
+
+page 33 (35 in the PDF)
+
+The LSB SEEMS to be the polarization, but it's still the band, the table
+is just organized in a strange way
+
+If you look deeply into the code of scan
+ http://www.linuxtv.org/hg/dvb-apps/file/36a084aace47/util/scan/diseqc.c
+
+You'll see that the table is organized as in the second document and the
+code addresses the table for making the message but there is no mistake
+in the real data since it's f0,f2,f1 etc ...
+
+So the difference is if the diseqc data is wrote directly (as in
+MuMuDVB) or taken from a table organised as in the specification (as in
+scan)
+
+Hope it's clear and it helps
+
+Regards
+
+-- 
+Brice
+
+A: Yes.
+>Q: Are you sure?
+>>A: Because it reverses the logical flow of conversation.
+>>>Q: Why is top posting annoying in email?
