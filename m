@@ -1,100 +1,133 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from zone0.gcu-squad.org ([212.85.147.21]:35416 "EHLO
-	services.gcu-squad.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932095Ab1HaQSa (ORCPT
+Received: from banach.math.auburn.edu ([131.204.45.3]:60890 "EHLO
+	banach.math.auburn.edu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752999Ab1HJUf2 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 31 Aug 2011 12:18:30 -0400
-Date: Wed, 31 Aug 2011 18:18:07 +0200
-From: Jean Delvare <khali@linux-fr.org>
-To: Luciano Coelho <coelho@ti.com>
-Cc: Randy Dunlap <rdunlap@xenotime.net>, matti.j.aaltonen@nokia.com,
-	johannes@sipsolutions.net, linux-kernel@vger.kernel.org,
-	sameo@linux.intel.com, mchehab@infradead.org,
-	linux-media@vger.kernel.org, linux-omap@vger.kernel.org,
-	Tony Lindgren <tony@atomide.com>,
-	Grant Likely <grant.likely@secretlab.ca>
-Subject: Re: [PATCH] mfd: Combine MFD_SUPPORT and MFD_CORE
-Message-ID: <20110831181807.4be09f72@endymion.delvare>
-In-Reply-To: <1314643307-17780-1-git-send-email-coelho@ti.com>
-References: <20110829102732.03f0f05d.rdunlap@xenotime.net>
-	<1314643307-17780-1-git-send-email-coelho@ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+	Wed, 10 Aug 2011 16:35:28 -0400
+Date: Wed, 10 Aug 2011 15:39:50 -0500 (CDT)
+From: Theodore Kilgore <kilgota@banach.math.auburn.edu>
+To: Mauro Carvalho Chehab <mchehab@infradead.org>
+cc: Alan Stern <stern@rowland.harvard.edu>,
+	Hans de Goede <hdegoede@redhat.com>,
+	Sarah Sharp <sarah.a.sharp@linux.intel.com>,
+	Greg KH <greg@kroah.com>, linux-usb@vger.kernel.org,
+	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+	libusb-devel@lists.sourceforge.net, Alexander Graf <agraf@suse.de>,
+	Gerd Hoffmann <kraxel@redhat.com>, hector@marcansoft.com,
+	Jan Kiszka <jan.kiszka@siemens.com>,
+	Stefan Hajnoczi <stefanha@linux.vnet.ibm.com>,
+	pbonzini@redhat.com, Anthony Liguori <aliguori@us.ibm.com>,
+	Jes Sorensen <Jes.Sorensen@redhat.com>,
+	Oliver Neukum <oliver@neukum.org>, Felipe Balbi <balbi@ti.com>,
+	Clemens Ladisch <clemens@ladisch.de>,
+	Jaroslav Kysela <perex@perex.cz>, Takashi Iwai <tiwai@suse.de>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Adam Baker <linux@baker-net.org.uk>
+Subject: Re: USB mini-summit at LinuxCon Vancouver
+In-Reply-To: <4E42E68D.6040501@infradead.org>
+Message-ID: <alpine.LNX.2.00.1108101534370.25232@banach.math.auburn.edu>
+References: <Pine.LNX.4.44L0.1108101156350.1917-100000@iolanthe.rowland.org> <alpine.LNX.2.00.1108101300500.25084@banach.math.auburn.edu> <4E42E68D.6040501@infradead.org>
+MIME-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Luciano,
 
-On Mon, 29 Aug 2011 21:41:47 +0300, Luciano Coelho wrote:
-> From: Randy Dunlap <rdunlap@xenotime.net>
+
+On Wed, 10 Aug 2011, Mauro Carvalho Chehab wrote:
+
+> Em 10-08-2011 15:33, Theodore Kilgore escreveu:
 > 
-> Combine MFD_SUPPORT (which only enabled the remainder of the MFD
-> menu) and MFD_CORE.  This allows other drivers to select MFD_CORE
-> without needing to also select MFD_SUPPORT, which fixes some
-> kconfig unmet dependency warnings.  Modeled after I2C kconfig.
+> > Hans seems to have argued cogently for doing all of this in the kernel and 
+> > for abandoning the usbfs-based drivers for these particular drivers for 
+> > dual-mode cameras and, I would conjecture, for drivers for dual-mode 
+> > hardware in general. Therefore, I anticipate that he won't like that very 
+> > much.
+> > 
+> > My position:
+> > 
+> > I do not have preconceptions about how the problem gets handled, and at 
+> > this point I remain agnostic and believe that all approaches ought to be 
+> > carefully analysed. I can imagine, abstractly, that things like this 
+> > could be handled by
+> > 
+> > -- moving all basic functionality to the kernel, and fixing the 
+> > relevant libgphoto2 drivers to look to the kernel instead of to libusb. 
+> > (What Hans argues for, and I am not opposed if his arguments convince 
+> > other concerned parties)
 > 
-> [Forward-ported to 3.1-rc4.  This fixes a warning when some drivers,
-> such as RADIO_WL1273, are selected, but MFD_SUPPORT is not. -- Luca]
+> Not looking on the amount of work to be done, I think that this would
+> give better results, IMO.
 
-I like the idea in general, this makes things much simpler.
-
-There is at least one issue with your current implementation though.
-"make oldconfig" has this to complain about:
-
-drivers/mfd/Kconfig:5:error: recursive dependency detected!
-drivers/mfd/Kconfig:5:	symbol MFD_CORE is selected by OLPC_XO1_PM
-arch/x86/Kconfig:2028:	symbol OLPC_XO1_PM depends on MFD_CS5535
-drivers/mfd/Kconfig:613:	symbol MFD_CS5535 depends on MFD_CORE
-
-Not sure if it is really caused by your patch or only revealed by it,
-but it should be fixed anyway. The following should fix it, please
-consider folding in your patch:
-
---- linux-3.1-rc4.orig/arch/x86/Kconfig	2011-08-16 11:49:42.000000000 +0200
-+++ linux-3.1-rc4/arch/x86/Kconfig	2011-08-31 16:54:09.000000000 +0200
-@@ -2028,7 +2028,6 @@ config OLPC
- config OLPC_XO1_PM
- 	bool "OLPC XO-1 Power Management"
- 	depends on OLPC && MFD_CS5535 && PM_SLEEP
--	select MFD_CORE
- 	---help---
- 	  Add support for poweroff and suspend of the OLPC XO-1 laptop.
- 
-@@ -2044,7 +2043,6 @@ config OLPC_XO1_SCI
- 	depends on OLPC && OLPC_XO1_PM
- 	select POWER_SUPPLY
- 	select GPIO_CS5535
--	select MFD_CORE
- 	---help---
- 	  Add support for SCI-based features of the OLPC XO-1 laptop:
- 	   - EC-driven system wakeups
+Okay. I would guess that I am one of the guys who gets to do the work, 
+though.
 
 > 
-> Signed-off-by: Randy Dunlap <rdunlap@xenotime.net>
-> Reported-by: Johannes Berg <johannes@sipsolutions.net>
-> Cc: Jean Delvare <khali@linux-fr.org>
-> Cc: Tony Lindgren <tony@atomide.com>
-> Cc: Grant Likely <grant.likely@secretlab.ca>
-> Signed-off-by: Luciano Coelho <coelho@ti.com>
-> ---
+> > -- doing some kind of patch job to make current arrangement somehow to 
+> > work better (this seems to be the position of Adam Baker; I do share
+> > the skepticism Hans has expressed about how well this could all be 
+> > pasted together)
 > 
-> I guess this should fix the problem.  I've simple forward-ported
-> Randy's patch to the latest mainline kernel.  I don't know via which
-> tree this should go in, though.
+> Adam Baker's proposal of a locking between usbfs and the kernel driver seems
+> to be interesting, but, as he pointed, there are some side effects to consider,
+> like suspend/resume, PM, etc.
+> 
+> > -- doing something like the previous, but also figuring out how to bring 
+> > udev rules into play, which would make it all work better (just tossing 
+> > this one in, for laughs, but who knows someone might like it)
+> 
+> I don't think this is a good alternative.
 
-Samuel Ortiz is the maintainer of the mfd subsystem, so his tree would
-be an obvious choice.
+I was trying to mention all alternatives. I should have also mentioned 
+"leave things the way they are" but that is certainly out the window.
 
-> NOTE: I have *not* tested this very thoroughly.  But at least
-> omap2plus stuff seems to work okay with this change.  MFD_SUPPORT is
-> also selected by a couple of "tile" platforms defconfigs, but I guess
-> the Kconfig system should take care of it.
+> 
+> > -- moving the kernel webcam drivers out of the kernel and doing with these 
+> > cameras _everything_ including webcam function through libusb. I myself do 
+> > not have the imagination to be able to figure out how this could be done 
+> > without a rather humongous amount of work (for example, which streaming 
+> > apps that are currently available would be able to live with this?) but 
+> > unless I misunderstand what he was saying, Greg K-H seems to think that 
+> > this would be the best thing to do.
+> 
+> I also don't think that this a good alternative. As Hans V. pointed, one of
+> our long term targets is to create per-sensor I2C drivers that are independent
+> from the bridges. Also, moving it to userspace would require lots of work
+> with the duplication of V4L and gspca core into userspace for the devices
+> that would be moved, and may have some performance impacts.
 
-I can't test it either, but it looks sane to me. If you merge the
-proposed changes above, you can add:
+A good argument, though it probably does not affect the devices on my list 
+one way or the other. 
 
-Acked-by: Jean Delvare <khali@linux-fr.org>
+> 
+> > Which one of these possibile approaches gets adopted is a policy issue 
+> > which I would consider is ultimately way above my pay grade.
+> > 
+> > My main motivation for bringing up the issue was to get it to the front 
+> > burner so that _something_ gets done. It is a matter which has been left 
+> > alone for too long. Therefore, I am very glad that the matter is being 
+> > addressed.
+> > 
+> > Let me add to this that I have gotten permission for time off and for a 
+> > expense money which might possibly cover my air fare. I hope to arrive in 
+> > Vancouver by sometime on Monday and intend to attend the mini-summit. I 
+> > suggest that we get all intersted parties together and figure out what is 
+> > the best way to go.
+> > 
+> > I hope everyone who is actively concerned can meet in Vancouver, and if 
+> > all goes well then on Monday as well as Tuesday. I can hang around for 
+> > another day or two after Tuesday, but I do not expect to register for 
+> > LinuxCon or be involved in it.
+> 
+> It will be great to have you there for those discussions.
 
--- 
-Jean Delvare
+My take on this was that it seems to have become important for me to 
+attend, which, frankly, I was not expecting. So thanks for the nice words.
+
+> 
+> > When I leave Vancouver I will probably go 
+> > to Seattle and spend a couple of days with my oldest son, the musician, 
+> > before coming home on the next weekend.
+> > 
+> > Theodore Kilgore
+> 
