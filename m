@@ -1,105 +1,69 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-68.nebula.fi ([83.145.220.68]:57457 "EHLO
-	smtp-68.nebula.fi" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751409Ab1HRTCl (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 18 Aug 2011 15:02:41 -0400
-Message-ID: <4E4D61CD.40405@iki.fi>
-Date: Thu, 18 Aug 2011 22:02:37 +0300
-From: Sakari Ailus <sakari.ailus@iki.fi>
+Received: from mx1.redhat.com ([209.132.183.28]:49459 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754108Ab1HJMwu (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 10 Aug 2011 08:52:50 -0400
+Message-ID: <4E427F0F.7000902@redhat.com>
+Date: Wed, 10 Aug 2011 09:52:31 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
 MIME-Version: 1.0
-To: Sylwester Nawrocki <snjw23@gmail.com>
-CC: Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
-	linux-media@vger.kernel.org
-Subject: Re: [PATCHv2] adp1653: make ->power() method optional
-References: <20110818092158.GA8872@valkosipuli.localdomain>	 <98c77ce2a17d7a098dedfc858f4055edc5556c54.1313666504.git.andriy.shevchenko@linux.intel.com>	 <1313667122.25065.8.camel@smile>	 <20110818115131.GD8872@valkosipuli.localdomain> <1313674341.25065.17.camel@smile> <4E4D4840.7050207@gmail.com>
-In-Reply-To: <4E4D4840.7050207@gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 8bit
+To: Sylwester Nawrocki <s.nawrocki@samsung.com>
+CC: Sakari Ailus <sakari.ailus@iki.fi>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Sylwester Nawrocki <snjw23@gmail.com>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	hverkuil@xs4all.nl
+Subject: Re: [GIT PATCHES FOR 3.1] s5p-fimc and noon010pc30 driver updates
+References: <4E303E5B.9050701@samsung.com> <4E31E960.1080008@gmail.com> <4E3230EE.7040602@redhat.com> <201107291036.44660.laurent.pinchart@ideasonboard.com> <4E41931B.5030901@redhat.com> <20110809231806.GA5926@valkosipuli.localdomain> <4E41CF28.9050406@redhat.com> <4E424426.6080303@samsung.com>
+In-Reply-To: <4E424426.6080303@samsung.com>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Sylwester Nawrocki wrote:
-> Hi,
+Em 10-08-2011 05:41, Sylwester Nawrocki escreveu:
+>>>> Why not? I never saw an embedded hardware that allows physically changing the
+>>>> sensor.
+> 
+> I understood Laurent's statement that you can have same ISP driver deployed on
+> multiple boards fitted with various sensors. Hence the multiple configurations
+> that cannot be known in advance,
 
-Hi Sylwester,
+True, but such kind of dependence should solved either at config time or at
+probe time. It doesn't make any sense to show that a hardware is present, when
+it is not. This applies to both V4L or MC APIs (and also to sysfs).
 
-> On 08/18/2011 03:32 PM, Andy Shevchenko wrote:
->> On Thu, 2011-08-18 at 14:51 +0300, Sakari Ailus wrote:
->>> On Thu, Aug 18, 2011 at 02:32:02PM +0300, Andy Shevchenko wrote:
->>>> On Thu, 2011-08-18 at 14:22 +0300, Andy Shevchenko wrote:
->>>>> The ->power() could be absent or not used on some platforms. This patch makes
->>>>> its presence optional.
->>>>>
->>>>> Signed-off-by: Andy Shevchenko<andriy.shevchenko@linux.intel.com>
->>>>> Cc: Sakari Ailus<sakari.ailus@iki.fi>
->>>>> ---
->>>>>    drivers/media/video/adp1653.c |    5 +++++
->>>>>    1 files changed, 5 insertions(+), 0 deletions(-)
->>>>>
->>>>> diff --git a/drivers/media/video/adp1653.c b/drivers/media/video/adp1653.c
->>>>> index 0fd9579..f830313 100644
->>>>> --- a/drivers/media/video/adp1653.c
->>>>> +++ b/drivers/media/video/adp1653.c
->>>>> @@ -329,6 +329,11 @@ adp1653_set_power(struct v4l2_subdev *subdev, int on)
->>>>>    	struct adp1653_flash *flash = to_adp1653_flash(subdev);
->>>>>    	int ret = 0;
->>>>>
->>>>> +	/* There is no need to switch power in case of absence ->power()
->>>>> +	 * method. */
->>>>> +	if (flash->platform_data->power == NULL)
->>>>> +		return 0;
->>>>> +
->>>>>    	mutex_lock(&flash->power_lock);
->>>>>
->>>>>    	/* If the power count is modified from 0 to != 0 or from != 0 to 0,
->>>>
->>>> He-h, I guess you are not going to apply this one.
->>>> The patch breaks init logic of the device. If we have no ->power(), we
->>>> still need to bring the device to the known state. I have no good idea
->>>> how to do this.
+>>>> If V4L2 API is not enough, implementing it on libv4l won't solve, as userspace
+>>>> apps will use V4L2 API for requresting it.
 >>>
->>> I don't think it breaks anything actually. Albeit in practice one is still
->>> likely to put the adp1653 reset line to the board since that lowers its power
->>> consumption significantly.
->> Yeah, even in practice we might see various ways of a chip connection.
+>>> There are two kind of applications: specialised and generic. The generic
+>>> ones may rely on restrictive policies put in place by a libv4l plugin
+>>> whereas the specialised applications need to access the device's features
+>>> directly to get the most out of it.
 >>
->>> Instead of being in power-up state after opening the flash subdev, it will
->>> reach this state already when the system is powered up. At subdev open all
->>> the relevant registers are written to anyway, so I don't see an issue here.
->> You mean at first writing to the V4L2 value, do you? Because ->open()
->> uses set_power() which will be skipped in case of no ->power method
->> defined.
+>> A submitted upstream driver should be capable of working with the existing
+>> tools/userspace.
 >>
->>> I think either this one, or one should check in probe() that the power()
->>> callback is non-NULL.
->>> The board code is going away in the near future so this callback will
->>> disappear eventually anyway.
->> So, it's up to you to include or not my last patch.
+>> Currently, there isn't such libv4l plugins (or, at least, I failed to see a
+>> merged plugin there for N9, S5P, etc). Let's not upstream new drivers or remove 
+>> functionalities from already existing drivers based on something that has yet 
+>> to be developed.
 >>
->>> The gpio code in the board file should likely
->>> be moved to the driver itself.
->> The line could be different, the hw could be used in environment w/o
->> gpio, but with (for example) external gate, and so on. I think current
->> generic driver is pretty okay.
->
-> Would it make sense to use the regulator API in place of the platform_data
-> callback? If there is only one GPIO then it's easy to create a 'fixed voltage
-> regulator' for this.
+>> After having it there properly working and tested independently, we may consider
+>> patches removing V4L2 interfaces that were obsoleted in favor of using the libv4l
+>> implementation, of course using the Kernel way of deprecating interfaces. But
+>> doing it before having it, doesn't make any sense.
+>>
+>> Let's not put the the cart before the horse.
+> 
+> That's a good point. My long term plan was to deprecate and remove duplicated ioctls
+> at the driver _once_ support for regular V4L2 interface on top of MC/subdev API
+> is added at the v4l2 libraries. But this will happen after I create an initial.. 
+> *cough* openmax IL for the driver. Which is not what the Tigers like best..
 
-I don't know the regulator framework very well, but do you mean creating 
-a new regulator which just controls a gpio? It would be preferrable that 
-this wouldn't create a new driver nor add any board core.
+Ok.
+> 
+> --
+> Regards,
+> Sylwester
 
-> Does the 'platform_data->power' callback control power supply on pin 14 (VDD)
-> or does it do something else?
-
-No. The chip is always powered on the N900 but pulling down (or up, I 
-don't remember) its reset pin puts the chip to reset and causes the 
-current draw to reach almost zero. I think it's in the class of some or 
-few tens of µA. Someone still might implement a board containing the 
-adp1653 which would require enabling a regulator for it.
-
--- 
-Sakari Ailus
-sakari.ailus@iki.fi
