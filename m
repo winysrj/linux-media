@@ -1,48 +1,48 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:56603 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750725Ab1HYQ47 (ORCPT
+Received: from smtp-68.nebula.fi ([83.145.220.68]:58723 "EHLO
+	smtp-68.nebula.fi" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753808Ab1HKVVt (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 25 Aug 2011 12:56:59 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Subject: Re: [PATCH 2/2] V4L: mx3-camera: prepare to support multi-size buffers
-Date: Thu, 25 Aug 2011 18:57:16 +0200
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	Pawel Osciak <pawel@osciak.com>,
-	Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Marek Szyprowski <m.szyprowski@samsung.com>,
-	linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
-	Vinod Koul <vinod.koul@intel.com>,
-	Dan Williams <dan.j.williams@intel.com>,
-	Sascha Hauer <kernel@pengutronix.de>
-References: <1314211292-10414-1-git-send-email-g.liakhovetski@gmx.de> <Pine.LNX.4.64.1108251838090.17190@axis700.grange> <Pine.LNX.4.64.1108251843350.17190@axis700.grange>
-In-Reply-To: <Pine.LNX.4.64.1108251843350.17190@axis700.grange>
+	Thu, 11 Aug 2011 17:21:49 -0400
+Date: Fri, 12 Aug 2011 00:21:45 +0300
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Michael Jones <michael.jones@matrix-vision.de>
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: omap3isp buffer alignment
+Message-ID: <20110811212145.GK5926@valkosipuli.localdomain>
+References: <4E43A770.7080308@matrix-vision.de>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201108251857.16865.laurent.pinchart@ideasonboard.com>
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <4E43A770.7080308@matrix-vision.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Guennadi,
+On Thu, Aug 11, 2011 at 11:57:04AM +0200, Michael Jones wrote:
+> Hi Laurent,
+> 
+> If I understood your discussion with Russell [1] correctly, user pointer
+> buffers are required to be page-aligned because of the IOMMU API, and
+> it's desirable to keep the IOMMU driver that way for other subsystems
+> which may use it. So we're stuck with user buffers needing to be
+> page-aligned.
 
-On Thursday 25 August 2011 18:46:03 Guennadi Liakhovetski wrote:
-> Prepare the mx3_camera friver to support the new VIDIOC_CREATE_BUFS and
-> VIDIOC_PREPARE_BUF ioctl()s. The .queue_setup() vb2 operation must be
-> able to handle buffer sizes, provided by the caller, and the
-> .buf_prepare() operation must not use the currently configured frame
-> format for its operation, which makes it superfluous for this driver.
-> Its functionality is moved into .buf_queue().
+My understanding is that this is actually a hardware requirement. You only
+can map pages of 4 kiB (at least).
 
-You're moving the ichan->dma_chan.device->device_prep_slave_sg() call from 
-.buf_prepare() to .buf_queue(). Is that call cheap ? Otherwise it would be 
-better to keep the .buf_prepare() callback.
+> There's a check in ispvideo.c:isp_video_buffer_prepare() that the buffer
+> address is 32-byte aligned. Isn't this superfluous considering the
+> page-aligned restriction?
+
+I guess the ISP driver isn't assuming that ispmmu_vmap always give page
+aligned mappings --- or that the page size couls theoretically be smaller.
+The assumptions might not hold in another implementation of the IOMMU API,
+which however will be replaced (hopefully at some point) by the improved DMA
+mapping API.
+
+Cheers,
 
 -- 
-Regards,
-
-Laurent Pinchart
+Sakari Ailus
+sakari.ailus@iki.fi
