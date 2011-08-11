@@ -1,77 +1,86 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.17.9]:64690 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751039Ab1H3Vba (ORCPT
+Received: from iolanthe.rowland.org ([192.131.102.54]:47246 "HELO
+	iolanthe.rowland.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1751475Ab1HKPox (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 30 Aug 2011 17:31:30 -0400
-Date: Tue, 30 Aug 2011 23:31:06 +0200 (CEST)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: Re: [PATCH] media: none of the drivers should be enabled by default
-In-Reply-To: <201108302228.45059.hverkuil@xs4all.nl>
-Message-ID: <Pine.LNX.4.64.1108302233001.20921@axis700.grange>
-References: <Pine.LNX.4.64.1108301921040.19151@axis700.grange>
- <201108302139.23337.hverkuil@xs4all.nl> <Pine.LNX.4.64.1108302208310.20675@axis700.grange>
- <201108302228.45059.hverkuil@xs4all.nl>
+	Thu, 11 Aug 2011 11:44:53 -0400
+Date: Thu, 11 Aug 2011 11:44:52 -0400 (EDT)
+From: Alan Stern <stern@rowland.harvard.edu>
+To: Mauro Carvalho Chehab <mchehab@infradead.org>
+cc: Hans de Goede <hdegoede@redhat.com>,
+	Theodore Kilgore <kilgota@banach.math.auburn.edu>,
+	Sarah Sharp <sarah.a.sharp@linux.intel.com>,
+	Greg KH <greg@kroah.com>, <linux-usb@vger.kernel.org>,
+	<linux-media@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
+	<libusb-devel@lists.sourceforge.net>,
+	Alexander Graf <agraf@suse.de>,
+	Gerd Hoffmann <kraxel@redhat.com>, <hector@marcansoft.com>,
+	Jan Kiszka <jan.kiszka@siemens.com>,
+	Stefan Hajnoczi <stefanha@linux.vnet.ibm.com>,
+	<pbonzini@redhat.com>, Anthony Liguori <aliguori@us.ibm.com>,
+	Jes Sorensen <Jes.Sorensen@redhat.com>,
+	Oliver Neukum <oliver@neukum.org>, Felipe Balbi <balbi@ti.com>,
+	Clemens Ladisch <clemens@ladisch.de>,
+	Jaroslav Kysela <perex@perex.cz>, Takashi Iwai <tiwai@suse.de>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Adam Baker <linux@baker-net.org.uk>
+Subject: Re: USB mini-summit at LinuxCon Vancouver
+In-Reply-To: <4E43F17F.6030604@infradead.org>
+Message-ID: <Pine.LNX.4.44L0.1108111134540.1958-100000@iolanthe.rowland.org>
 MIME-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, 30 Aug 2011, Hans Verkuil wrote:
+Alan Cox raised a bunch of good points.  I'm not going to respond to 
+them; they pretty much speak for themselves.
 
-> On Tuesday, August 30, 2011 22:12:09 Guennadi Liakhovetski wrote:
-> > On Tue, 30 Aug 2011, Hans Verkuil wrote:
-> > 
-> > > On Tuesday, August 30, 2011 19:22:00 Guennadi Liakhovetski wrote:
-> > > > None of the media drivers are compulsory, let users select which drivers
-> > > > they want to build, instead of having to unselect them one by one.
-> > > 
-> > > I disagree with this: while this is fine for SoCs, for a generic kernel I
-> > > think it is better to build it all. Even expert users can have a hard time
-> > > figuring out what chip is in a particular device.
-> > 
-> > Then could someone, please, explain to me, why I don't find this 
-> > "convenience" in any other kernel driver class? Wireless, ALSA, USB, I2C - 
-> > you name them. Is there something special about media, that I'm missing, 
-> > or are all others just user-unfriendly? Why are distro-kernels, 
-> > allmodconfig, allyesconfig not enough for media and we think it's 
-> > necessary to build everything "just in case?"
+On Thu, 11 Aug 2011, Mauro Carvalho Chehab wrote:
+
+> Between two or more kernel drivers, a resource locking mechanism like the one 
+> you've proposed works fine,
+
+It's not a locking mechanism.  More like cooperative multi-access.
+
+>  but, when the driver is on userspace, there's one
+> additional issue that needs to be addressed: What happens if, for example,
+> if a camera application using libgphoto2 crashes? The lock will be enabled, and
+> the V4L driver will be locked forever. Also, if the lock is made generic enough
+> to protect between two different userspace applications, re-starting the
+> camera application won't get the control back.
+
+You're wrong, because what I proposed isn't a lock.  If the user 
+program dies, the usbfs device file will automatically be closed and 
+then usbfs will freely give control back to the webcam driver.
+
+If the program hangs at the wrong time, then the webcam driver won't be 
+able to regain control.  At least the user will have the option of 
+killing the program when this happens; a similar hang in a kernel 
+driver tends to be much uglier.
+
+Two different user programs trying to drive the device at the same time 
+doesn't necessarily have to cause a problem.  At any particular moment, 
+only one of them would be in control of the device.
+
+> To avoid such risk, kernel might need to implement some ugly hacks to detect
+> when the application was killed, and put the device into a sane state, if this
+> happens.
+
+No ugly hack is needed.  usbfs can directly inform the webcam driver 
+whether or not the device file was closed while the user program 
+retained control.  If that didn't happen, it's safe to assume that the 
+program gave up control voluntarily.
+
+> > Not all users of libgphoto2 have to be changed; only those which manage
+> > dual-mode cameras.  Adding a few ioctls to ask for and give up control
+> > at the appropriate times must be a lot easier than porting the entire
+> > driver into the kernel.
 > 
-> That's actually a good question. I certainly think that the more obscure
-> drivers can be disabled by default. But I also think that you want to keep
-> a certain subset of commonly used drivers enabled. I'm thinking bttv, uvc,
-> perhaps gspca.
+> Again, applications that won't implement this control will take the lock forever.
 
-Good, this is a good beginning! It was actually the purpose of my patch - 
-to make us actually consider which drivers we need enabled per default, 
-and which we don't, instead of just enabling all.
+No, because there is no lock.  Programs that haven't been changed will 
+continue to behave as they do today -- they will unbind the webcam 
+driver and assume full control of the device.
 
-> As far as I can see, alsa enables for example HD Audio, which almost all
-> modern hw supports. We should do something similar for v4l.
+Alan Stern
 
-Yes, agree.
-
-> And we should really reorder some of the entries in the menu: one of the
-> first drivers you see are parallel port webcams and other very obscure
-> devices.
-
-Ok.
-
-So, how should we proceed? What I certainly would like to disable 
-completely or to 99% are remote controls and tuners. The rest are actually 
-disabled by default, which is great. Or at least I would like to have a 
-single switch "disable all," ideally active by default. One of the 
-possibilities would be to take the patch as is and _then_ begin to think, 
-which drivers we want enabled by default. I just think, that the correct 
-approach is to think, which drivers we need enabled by default - as 
-exceptions, instead of - which drivers we can afford to disable.
-
-Thanks
-Guennadi
----
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
-http://www.open-technology.de/
