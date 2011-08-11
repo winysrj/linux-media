@@ -1,142 +1,117 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:56671 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753257Ab1H3OTo (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 30 Aug 2011 10:19:44 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Gary Thomas <gary@mlbassoc.com>
-Subject: Re: Getting started with OMAP3 ISP
-Date: Tue, 30 Aug 2011 16:20:09 +0200
-Cc: linux-media@vger.kernel.org
-References: <4E56734A.3080001@mlbassoc.com> <4E5CEECC.6040804@mlbassoc.com> <4E5CF118.3050903@mlbassoc.com>
-In-Reply-To: <4E5CF118.3050903@mlbassoc.com>
+Received: from mx1.redhat.com ([209.132.183.28]:65022 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753279Ab1HKINZ (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 11 Aug 2011 04:13:25 -0400
+Message-ID: <4E438F69.4030902@redhat.com>
+Date: Thu, 11 Aug 2011 10:14:33 +0200
+From: Hans de Goede <hdegoede@redhat.com>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
+To: Alan Stern <stern@rowland.harvard.edu>
+CC: Theodore Kilgore <kilgota@banach.math.auburn.edu>,
+	Sarah Sharp <sarah.a.sharp@linux.intel.com>,
+	Greg KH <greg@kroah.com>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	linux-usb@vger.kernel.org, linux-media@vger.kernel.org,
+	linux-kernel@vger.kernel.org, libusb-devel@lists.sourceforge.net,
+	Alexander Graf <agraf@suse.de>,
+	Gerd Hoffmann <kraxel@redhat.com>, hector@marcansoft.com,
+	Jan Kiszka <jan.kiszka@siemens.com>,
+	Stefan Hajnoczi <stefanha@linux.vnet.ibm.com>,
+	pbonzini@redhat.com, Anthony Liguori <aliguori@us.ibm.com>,
+	Jes Sorensen <Jes.Sorensen@redhat.com>,
+	Oliver Neukum <oliver@neukum.org>, Felipe Balbi <balbi@ti.com>,
+	Clemens Ladisch <clemens@ladisch.de>,
+	Jaroslav Kysela <perex@perex.cz>, Takashi Iwai <tiwai@suse.de>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Adam Baker <linux@baker-net.org.uk>
+Subject: Re: USB mini-summit at LinuxCon Vancouver
+References: <Pine.LNX.4.44L0.1108101156350.1917-100000@iolanthe.rowland.org>
+In-Reply-To: <Pine.LNX.4.44L0.1108101156350.1917-100000@iolanthe.rowland.org>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
-Message-Id: <201108301620.09365.laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Gary,
+Hi,
 
-On Tuesday 30 August 2011 16:18:00 Gary Thomas wrote:
-> On 2011-08-30 08:08, Gary Thomas wrote:
-> > On 2011-08-29 04:49, Laurent Pinchart wrote:
-> >> On Thursday 25 August 2011 18:07:38 Gary Thomas wrote:
-> >>> Background: I have working video capture drivers based on the
-> >>> TI PSP codebase from 2.6.32. In particular, I managed to get
-> >>> a driver for the TVP5150 (analogue BT656) working with that kernel.
-> >>> 
-> >>> Now I need to update to Linux 3.0, so I'm trying to get a driver
-> >>> working with the rewritten ISP code. Sadly, I'm having a hard
-> >>> time with this - probably just missing something basic.
-> >>> 
-> >>> I've tried to clone the TVP514x driver which says that it works
-> >>> with the OMAP3 ISP code. I've updated it to use my decoder device,
-> >>> but I can't even seem to get into that code from user land.
-> >>> 
-> >>> Here are the problems I've had so far:
-> >>> * udev doesn't create any video devices although they have been
-> >>> registered. I see a full set in /sys/class/video4linux
-> >>> # ls /sys/class/video4linux/
-> >>> v4l-subdev0 v4l-subdev3 v4l-subdev6 video1 video4
-> >>> v4l-subdev1 v4l-subdev4 v4l-subdev7 video2 video5
-> >>> v4l-subdev2 v4l-subdev5 video0 video3 video6
-> >> 
-> >> It looks like a udev issue. I don't think that's related to the kernel
-> >> drivers.
-> >> 
-> >>> Indeed, if I create /dev/videoX by hand, I can get somewhere, but
-> >>> I don't really understand how this is supposed to work. e.g.
-> >>> # v4l2-dbg --info /dev/video3
-> >>> Driver info:
-> >>> Driver name : ispvideo
-> >>> Card type : OMAP3 ISP CCP2 input
-> >>> Bus info : media
-> >>> Driver version: 1
-> >>> Capabilities : 0x04000002
-> >>> Video Output
-> >>> Streaming
-> >>> 
-> >>> * If I try to grab video, the ISP layer gets a ton of warnings, but
-> >>> I never see it call down into my driver, e.g. to check the current
-> >>> format, etc. I have some of my own code from before which fails
-> >>> miserably (not a big surprise given the hack level of those programs).
-> >>> I tried something off-the-shelf which also fails pretty bad:
-> >>> # ffmpeg -t 10 -f video4linux2 -s 720x480 -r 30 -i /dev/video2
-> >>> junk.mp4
-> >>> 
-> >>> I've read through Documentation/video4linux/omap3isp.txt without
-> >>> learning much about what might be wrong.
-> >>> 
-> >>> Can someone give me some ideas/guidance, please?
-> >> 
-> >> In a nutshell, you will first have to configure the OMAP3 ISP pipeline,
-> >> and then capture video.
-> >> 
-> >> Configuring the pipeline is done through the media controller API and
-> >> the V4L2 subdev pad-level API. To experiment with those you can use the
-> >> media-ctl command line application available at
-> >> http://git.ideasonboard.org/?p=media- ctl.git;a=summary. You can run it
-> >> with --print-dot and pipe the result to dot -Tps to get a postscript
-> >> graphical view of your device.
-> >> 
-> >> Here's a sample pipeline configuration to capture scaled-down YUV data
-> >> from a sensor:
-> >> 
-> >> ./media-ctl -r -l '"mt9t001 3-005d":0->"OMAP3 ISP CCDC":0[1], "OMAP3 ISP
-> >> CCDC":2->"OMAP3 ISP preview":0[1], "OMAP3 ISP preview":1->"OMAP3 ISP
-> >> resizer":0[1], "OMAP3 ISP resizer":1->"OMAP3 ISP resizer output":0[1]'
-> >> ./media-ctl -f '"mt9t001 3-005d":0[SGRBG10 1024x768], "OMAP3 ISP
-> >> CCDC":2[SGRBG10 1024x767], "OMAP3 ISP preview":1[YUYV 1006x759], "OMAP3
-> >> ISP resizer":1[YUYV 800x600]'
-> >> 
-> >> After configuring your pipeline you will be able to capture video using
-> >> the V4L2 API on the device node at the output of the pipeline.
-> > 
-> > Thanks for the info.
-> > 
-> > When I run 'media-ctl -p', I see the various nodes, etc, and they all
-> > look good except that I get lots of messages like this:
-> > - entity 5: OMAP3 ISP CCDC (3 pads, 9 links)
-> > type V4L2 subdev subtype Unknown
-> > pad0: Input v4l2_subdev_open: Failed to open subdev device node
-> 
-> Could this be related to my missing [udev] device nodes?
+On 08/10/2011 06:09 PM, Alan Stern wrote:
+> On Wed, 10 Aug 2011, Theodore Kilgore wrote:
+>
+>>> Okay, I didn't realize that the different cameras used different webcam
+>>> drivers as well as different stillcam drivers.
+>>
+>> Oh, yes. They are Proprietary devices. And that means what it says. :-)
+>> And all different from each other, too.
+>>
+>>> As far as I can see, there's nothing to stop anybody from adding the
+>>> stillcam functionality into the webcam drivers right now.  If some
+>>> common code can be abstracted out into a shared source file, so much
+>>> the better.
+>>>
+>>> That would solve the problem, right?
+>>
+>> I think everyone involved believes that it would solve the problem.
+>>
+>> The question has been all along whether or not there is any other way
+>> which would work. Also the question of what, exactly, "belongs" in the
+>> kernel and what does not. For, if something has been historically
+>> supported in userspace (stillcam support, in this case) and has worked
+>> well there, I would think it is kind of too bad to have to move said
+>> support into the kernel just because the same hardware requires kernel
+>> support for another functionality and the two sides clash. I mean, the
+>> kernel is already big enough, no? But the logic that Hans has set forth
+>> seems rather compelling.
+>
+> The alternative seems to be to define a device-sharing protocol for USB
+> drivers.  Kernel drivers would implement a new callback (asking them to
+> give up control of the device), and usbfs would implement new ioctls by
+> which a program could ask for and relinquish control of a device.  The
+> amount of rewriting needed would be relatively small.
+>
+> A few loose ends would remain, such as how to handle suspends, resumes,
+> resets, and disconnects.  Assuming usbfs is the only driver that will
+> want to share a device in this way, we could handle them.
+>
+> Hans, what do you think?
+>
 
-It could be. You need the /dev/video* and /dev/v4l-subdev* device nodes.
+First of all thanks for the constructive input!
 
-> I can see media-ctl get confused and try to open a nonsense device name. 
-> Here's what I see when I run
->    # strace media-ctl -p | grep open
->    open("/dev/media0", O_RDWR)             = 3
->    open("", O_RDWR)                        = -1 ENOENT (No such file or
-> directory) write(1, "\tpad0: Input v4l2_subdev_open: F"..., 66) = 66
-> 
-> > When I try to setup my pipeline using something similar to what you
-> > provided, the first step runs and I can see that it does something (some
-> > lines on the graph went from dotted to solid), but I still get errors:
-> > # media-ctl -r -l '"tvp5150m1 2-005c":0->"OMAP3 ISP CCDC":0[1], "OMAP3
-> > ISP CCDC":1->"OMAP3 ISP CCDC output":0[1]' Resetting all links to
-> > inactive
-> > Setting up link 16:0 -> 5:0 [1]
-> > Setting up link 5:1 -> 6:0 [1]
-> > # media-ctl -f '"tvp5150m1 2-005c":0[SGRBG12 320x240], "OMAP3 ISP
-> > CCDC":0[SGRBG8 320x240], "OMAP3 ISP CCDC":1[SGRBG8 320x240]' Setting up
-> > format SGRBG12 320x240 on pad tvp5150m1 2-005c/0
-> > v4l2_subdev_open: Failed to open subdev device node
-> > Unable to set format: No such file or directory (-2)
-> > 
-> > As far as I can tell, none if this is making any callbacks into my
-> > driver.
-> > 
-> > Any ideas what I might be missing?
-> > 
-> > Thanks
+When you say: "device-sharing protocol", do you mean 2 drivers been
+attached, but only 1 being active. Or just some additional glue to make
+hand-over between them work better?
 
--- 
+I've 2 concerns with this approach:
+1) Assuming we are going for the just make hand over work better solution
+we will still have the whole disappear / reappear act of the /dev/video#
+node, which I don't like at all.
+
+If for example skype gets started it will say the user has no camera. If it
+were to say the device is busy, the user just might make a link to some
+application using the device in stillcam mode still being open.
+
+2) The whole notion of the device being in use is rather vague when it comes
+to the userspace parts of this. Simply leaving say F-Spot running, or having
+a gvfs libgphoto share mounted, should not lead to not being able to use the
+device in webcam mode. But currently it will.
+
+Fixing all users of libgphoto2 wrt this is unlikely to happen, and even if
+we do that now, more broken ones will likely come along later. I estimate
+98% of all cameras are not dual mode cameras, so the average stillcam
+application developer will not test for this.
+
+That leaves us with fixing the busy notion inside libgphoto2, iow, release
+the device as soon as an operation has completed. This will be quite slow,
+since both drivers don't know anything about each other, they will just
+know there is some $random_other_driver. So they need to assume the
+device state is unclean and re-init the device from scratch each time.
+
+Where as if we have both functions in one driver, that can remember the
+actual device state and only make changes if needed, so downloading +
+deleting 10 photos will lead to setting it to stillcam mode once, rather
+then 20 times.
+
 Regards,
 
-Laurent Pinchart
+Hans
