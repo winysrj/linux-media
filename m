@@ -1,34 +1,41 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga14.intel.com ([143.182.124.37]:49963 "EHLO mga14.intel.com"
+Received: from mga11.intel.com ([192.55.52.93]:9749 "EHLO mga11.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753048Ab1HQKyO convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 17 Aug 2011 06:54:14 -0400
-Subject: Re: [PATCH] Media controller: Define media_entity_init() and
- media_entity_cleanup() conditionally
+	id S1755094Ab1HKLfc (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 11 Aug 2011 07:35:32 -0400
 From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-To: Deepthy Ravi <deepthy.ravi@ti.com>
-Cc: mchehab@infradead.org, linux-media@vger.kernel.org,
-	linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org,
-	Vaibhav Hiremath <hvaibhav@ti.com>
-In-Reply-To: <1313577276-18182-1-git-send-email-deepthy.ravi@ti.com>
-References: <1313577276-18182-1-git-send-email-deepthy.ravi@ti.com>
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 8BIT
-Date: Wed, 17 Aug 2011 13:53:46 +0300
-Message-ID: <1313578426.25065.1.camel@smile>
-Mime-Version: 1.0
+To: Sakari Ailus <sakari.ailus@iki.fi>,
+	linux-media <linux-media@vger.kernel.org>
+Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Subject: [PATCH] adp1653: set media entity type
+Date: Thu, 11 Aug 2011 14:35:04 +0300
+Message-Id: <bdfa2fa007fe799206043c874017fb3b412f7f32.1313062441.git.andriy.shevchenko@linux.intel.com>
+In-Reply-To: <20110811071900.GC5926@valkosipuli.localdomain>
+References: <20110811071900.GC5926@valkosipuli.localdomain>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, 2011-08-17 at 16:04 +0530, Deepthy Ravi wrote: 
-> From: Vaibhav Hiremath <hvaibhav@ti.com>
-> 
-> Defines the two functions only when CONFIG_MEDIA_CONTROLLER
-> is enabled.
-Is it not a driver's option to be dependent on MEDIA_CONTROLLER?
+The type of a media entity is default for this driver. This patch makes it
+explicitly defined as MEDIA_ENT_T_V4L2_SUBDEV_FLASH.
 
+Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+---
+ drivers/media/video/adp1653.c |    2 ++
+ 1 files changed, 2 insertions(+), 0 deletions(-)
 
+diff --git a/drivers/media/video/adp1653.c b/drivers/media/video/adp1653.c
+index 7f2e710..0fd9579 100644
+--- a/drivers/media/video/adp1653.c
++++ b/drivers/media/video/adp1653.c
+@@ -438,6 +438,8 @@ static int adp1653_probe(struct i2c_client *client,
+ 	if (ret < 0)
+ 		goto free_and_quit;
+ 
++	flash->subdev.entity.type = MEDIA_ENT_T_V4L2_SUBDEV_FLASH;
++
+ 	return 0;
+ 
+ free_and_quit:
 -- 
-Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Intel Finland Oy
+1.7.5.4
+
