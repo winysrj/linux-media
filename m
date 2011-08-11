@@ -1,52 +1,124 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:45673 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752297Ab1HKTA0 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 11 Aug 2011 15:00:26 -0400
-Message-ID: <4E4426C3.8080306@redhat.com>
-Date: Thu, 11 Aug 2011 16:00:19 -0300
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Received: from iolanthe.rowland.org ([192.131.102.54]:56852 "HELO
+	iolanthe.rowland.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1751096Ab1HKO4E (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 11 Aug 2011 10:56:04 -0400
+Date: Thu, 11 Aug 2011 10:56:03 -0400 (EDT)
+From: Alan Stern <stern@rowland.harvard.edu>
+To: Hans de Goede <hdegoede@redhat.com>
+cc: Theodore Kilgore <kilgota@banach.math.auburn.edu>,
+	Sarah Sharp <sarah.a.sharp@linux.intel.com>,
+	Greg KH <greg@kroah.com>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	<linux-usb@vger.kernel.org>, <linux-media@vger.kernel.org>,
+	<linux-kernel@vger.kernel.org>,
+	<libusb-devel@lists.sourceforge.net>,
+	Alexander Graf <agraf@suse.de>,
+	Gerd Hoffmann <kraxel@redhat.com>, <hector@marcansoft.com>,
+	Jan Kiszka <jan.kiszka@siemens.com>,
+	Stefan Hajnoczi <stefanha@linux.vnet.ibm.com>,
+	<pbonzini@redhat.com>, Anthony Liguori <aliguori@us.ibm.com>,
+	Jes Sorensen <Jes.Sorensen@redhat.com>,
+	Oliver Neukum <oliver@neukum.org>, Felipe Balbi <balbi@ti.com>,
+	Clemens Ladisch <clemens@ladisch.de>,
+	Jaroslav Kysela <perex@perex.cz>, Takashi Iwai <tiwai@suse.de>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Adam Baker <linux@baker-net.org.uk>
+Subject: Re: USB mini-summit at LinuxCon Vancouver
+In-Reply-To: <4E438F69.4030902@redhat.com>
+Message-ID: <Pine.LNX.4.44L0.1108111037240.1958-100000@iolanthe.rowland.org>
 MIME-Version: 1.0
-To: =?UTF-8?B?UsOpbWkgRGVuaXMtQ291cm1vbnQ=?= <remi@remlab.net>
-CC: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	workshop-2011@linuxtv.org
-Subject: Re: Media Subsystem Workshop 2011
-References: <4E398381.4080505@redhat.com> <201108080822.50912.hverkuil@xs4all.nl> <4E3FE3C6.10309@redhat.com> <201108112049.12406.remi@remlab.net>
-In-Reply-To: <201108112049.12406.remi@remlab.net>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em 11-08-2011 14:49, Rémi Denis-Courmont escreveu:
-> Le lundi 8 août 2011 16:25:26 Mauro Carvalho Chehab, vous avez écrit :
->>> So the presentation and summary are on Tuesday, but when is the workshop
->>> itself? Is it on the Monday or the Sunday?
->>>
->>> It would be nice to know so I can plan my stay in Prague and my planning
->>> with the other conferences going on at the same time.
->>
->> The workshop itself will be on Sunday, and the presentations on Tuesday.
->> Monday will be for KS/2011 only invitees. The LinuxCon and ELC Europe will
->> start on Wed.
+On Thu, 11 Aug 2011, Hans de Goede wrote:
+
+> > The alternative seems to be to define a device-sharing protocol for USB
+> > drivers.  Kernel drivers would implement a new callback (asking them to
+> > give up control of the device), and usbfs would implement new ioctls by
+> > which a program could ask for and relinquish control of a device.  The
+> > amount of rewriting needed would be relatively small.
+> >
+> > A few loose ends would remain, such as how to handle suspends, resumes,
+> > resets, and disconnects.  Assuming usbfs is the only driver that will
+> > want to share a device in this way, we could handle them.
+> >
+> > Hans, what do you think?
+> >
 > 
-> So the workshop is only Sunday, is that right? 
+> First of all thanks for the constructive input!
+> 
+> When you say: "device-sharing protocol", do you mean 2 drivers been
+> attached, but only 1 being active. Or just some additional glue to make
+> hand-over between them work better?
 
-Sunday and Tuesday. The discussions will happen on Sunday. On Tuesday, we'll
-have the opportunity to exchange some information with the other people from
-KS and from the other workshops.
+I was thinking that the webcam driver would always be attached, but 
+from time to time usbfs would ask to use the device.  When the webcam 
+driver gives away control, it remains bound to the device but does not 
+send any URBs.  If it needs to send an URB, first it has to ask usbfs 
+to give control back.
 
-As Monday will be free for most people, it probably makes sense to organize
-some informal meetings there for the ones that won't be at the KS only day.
+> I've 2 concerns with this approach:
+> 1) Assuming we are going for the just make hand over work better solution
+> we will still have the whole disappear / reappear act of the /dev/video#
+> node, which I don't like at all.
 
-> Is it tied to any of the registration fees (LinuxCon is steep if you are not sponsored nor studying)?
+That will not happen any more, because the webcam driver will always be 
+bound to the device.
 
-No, but it requires an invitation, and I need to pass the names of the
-participants to KS organizers.
+> If for example skype gets started it will say the user has no camera. If it
+> were to say the device is busy, the user just might make a link to some
+> application using the device in stillcam mode still being open.
+> 
+> 2) The whole notion of the device being in use is rather vague when it comes
+> to the userspace parts of this. Simply leaving say F-Spot running, or having
+> a gvfs libgphoto share mounted, should not lead to not being able to use the
+> device in webcam mode. But currently it will.
 
-So, please let me know if you intend to be there, for me to send you
-an invitation.
+That's true -- but it's true no matter what solution we adopt.  The
+various drivers (whether in the kernel or in userspace) will have to
+decide for themselves when they can give up control.
 
-Thanks,
-Mauro
+> Fixing all users of libgphoto2 wrt this is unlikely to happen, and even if
+> we do that now, more broken ones will likely come along later. I estimate
+> 98% of all cameras are not dual mode cameras, so the average stillcam
+> application developer will not test for this.
+
+Not all users of libgphoto2 have to be changed; only those which manage
+dual-mode cameras.  Adding a few ioctls to ask for and give up control
+at the appropriate times must be a lot easier than porting the entire
+driver into the kernel.
+
+> That leaves us with fixing the busy notion inside libgphoto2, iow, release
+> the device as soon as an operation has completed. This will be quite slow,
+> since both drivers don't know anything about each other, they will just
+> know there is some $random_other_driver. So they need to assume the
+> device state is unclean and re-init the device from scratch each time.
+
+Well, a user program can assume that the kernel driver left the device
+in a clean state.  The reverse isn't always true, however -- it's one
+of the drawbacks of using a userspace driver.
+
+Besides, even though drivers don't always have to re-init the device
+from scratch every time, they do send all the current settings each
+time they use the device.  So maybe the extra overhead is tolerable.
+
+> Where as if we have both functions in one driver, that can remember the
+> actual device state and only make changes if needed, so downloading +
+> deleting 10 photos will lead to setting it to stillcam mode once, rather
+> then 20 times.
+
+Depends how the ask-for-control ioctl is implemented.  It might return
+a value indicating whether or not the webcam driver took control during
+the interval when the user program wasn't using the device.  If usbfs
+retained control the entire time, the program should be able to assume
+the device's state hasn't changed.
+
+I'm not claiming that this is a better solution than putting everything
+in the kernel.  Just that it is a workable alternative which would
+involve a lot less coding.
+
+Alan Stern
 
