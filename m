@@ -1,82 +1,52 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout3.w1.samsung.com ([210.118.77.13]:60855 "EHLO
-	mailout3.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753096Ab1HBJxy (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 2 Aug 2011 05:53:54 -0400
-MIME-version: 1.0
-Content-transfer-encoding: 7BIT
-Content-type: text/plain; charset=UTF-8; format=flowed
-Received: from spt2.w1.samsung.com ([210.118.77.13]) by mailout3.w1.samsung.com
- (Sun Java(tm) System Messaging Server 6.3-8.04 (built Jul 29 2009; 32bit))
- with ESMTP id <0LPA003AYOTTZV40@mailout3.w1.samsung.com> for
- linux-media@vger.kernel.org; Tue, 02 Aug 2011 10:53:53 +0100 (BST)
-Received: from [127.0.0.1] ([106.10.22.139])
- by spt2.w1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14
- 2004)) with ESMTPA id <0LPA00AMNOTRBP@spt2.w1.samsung.com> for
- linux-media@vger.kernel.org; Tue, 02 Aug 2011 10:53:52 +0100 (BST)
-Date: Tue, 02 Aug 2011 11:53:48 +0200
-From: Marek Szyprowski <m.szyprowski@samsung.com>
-Subject: [PATCH 5/6] v4l: fimc: integrate capture i-face with shrbuf
-In-reply-to: <4E37C7D7.40301@samsung.com>
-To: Marek Szyprowski <m.szyprowski@samsung.com>
-Cc: linaro-mm-sig@lists.linaro.org, linux-media@vger.kernel.org,
-	Tomasz Stanislawski <t.stanislaws@samsung.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>
-Message-id: <4E37C92C.9070101@samsung.com>
-References: <4E37C7D7.40301@samsung.com>
+Received: from mx1.redhat.com ([209.132.183.28]:45673 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752297Ab1HKTA0 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 11 Aug 2011 15:00:26 -0400
+Message-ID: <4E4426C3.8080306@redhat.com>
+Date: Thu, 11 Aug 2011 16:00:19 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+MIME-Version: 1.0
+To: =?UTF-8?B?UsOpbWkgRGVuaXMtQ291cm1vbnQ=?= <remi@remlab.net>
+CC: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	workshop-2011@linuxtv.org
+Subject: Re: Media Subsystem Workshop 2011
+References: <4E398381.4080505@redhat.com> <201108080822.50912.hverkuil@xs4all.nl> <4E3FE3C6.10309@redhat.com> <201108112049.12406.remi@remlab.net>
+In-Reply-To: <201108112049.12406.remi@remlab.net>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Tomasz Stanislawski <t.stanislaws@samsung.com>
+Em 11-08-2011 14:49, Rémi Denis-Courmont escreveu:
+> Le lundi 8 août 2011 16:25:26 Mauro Carvalho Chehab, vous avez écrit :
+>>> So the presentation and summary are on Tuesday, but when is the workshop
+>>> itself? Is it on the Monday or the Sunday?
+>>>
+>>> It would be nice to know so I can plan my stay in Prague and my planning
+>>> with the other conferences going on at the same time.
+>>
+>> The workshop itself will be on Sunday, and the presentations on Tuesday.
+>> Monday will be for KS/2011 only invitees. The LinuxCon and ELC Europe will
+>> start on Wed.
+> 
+> So the workshop is only Sunday, is that right? 
 
-Signed-off-by: Tomasz Stanislawski <t.stanislaws@samsung.com>
-Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
-Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
----
-  drivers/media/video/s5p-fimc/fimc-capture.c |   11 ++++++++++-
-  1 files changed, 10 insertions(+), 1 deletions(-)
+Sunday and Tuesday. The discussions will happen on Sunday. On Tuesday, we'll
+have the opportunity to exchange some information with the other people from
+KS and from the other workshops.
 
-diff --git a/drivers/media/video/s5p-fimc/fimc-capture.c 
-b/drivers/media/video/s5p-fimc/fimc-capture.c
-index a16f359..0904263 100644
---- a/drivers/media/video/s5p-fimc/fimc-capture.c
-+++ b/drivers/media/video/s5p-fimc/fimc-capture.c
-@@ -981,6 +981,14 @@ static int fimc_cap_qbuf(struct file *file, void *priv,
-      return vb2_qbuf(&fimc->vid_cap.vbq, buf);
-  }
+As Monday will be free for most people, it probably makes sense to organize
+some informal meetings there for the ones that won't be at the KS only day.
 
-+static int fimc_cap_expbuf(struct file *file, void *priv,
-+              unsigned int offset)
-+{
-+    struct fimc_dev *fimc = video_drvdata(file);
-+
-+    return vb2_expbuf(&fimc->vid_cap.vbq, offset);
-+}
-+
-  static int fimc_cap_dqbuf(struct file *file, void *priv,
-                 struct v4l2_buffer *buf)
-  {
-@@ -1051,6 +1059,7 @@ static const struct v4l2_ioctl_ops 
-fimc_capture_ioctl_ops = {
+> Is it tied to any of the registration fees (LinuxCon is steep if you are not sponsored nor studying)?
 
-      .vidioc_qbuf            = fimc_cap_qbuf,
-      .vidioc_dqbuf            = fimc_cap_dqbuf,
-+    .vidioc_expbuf            = fimc_cap_expbuf,
+No, but it requires an invitation, and I need to pass the names of the
+participants to KS organizers.
 
-      .vidioc_streamon        = fimc_cap_streamon,
-      .vidioc_streamoff        = fimc_cap_streamoff,
-@@ -1422,7 +1431,7 @@ int fimc_register_capture_device(struct fimc_dev 
-*fimc,
-      q = &fimc->vid_cap.vbq;
-      memset(q, 0, sizeof(*q));
-      q->type = V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE;
--    q->io_modes = VB2_MMAP | VB2_USERPTR;
-+    q->io_modes = VB2_MMAP | VB2_USERPTR | VB2_SHRBUF;
-      q->drv_priv = fimc->vid_cap.ctx;
-      q->ops = &fimc_capture_qops;
-      q->mem_ops = &vb2_dma_contig_memops;
--- 
-1.7.6
+So, please let me know if you intend to be there, for me to send you
+an invitation.
 
-
+Thanks,
+Mauro
 
