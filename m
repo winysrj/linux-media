@@ -1,50 +1,106 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:44025 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755651Ab1HDV6L (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 4 Aug 2011 17:58:11 -0400
-Message-ID: <4E3B15EB.7050508@redhat.com>
-Date: Thu, 04 Aug 2011 18:58:03 -0300
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Received: from mail-pz0-f42.google.com ([209.85.210.42]:55260 "EHLO
+	mail-pz0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755028Ab1HKL3U (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 11 Aug 2011 07:29:20 -0400
+Received: by pzk37 with SMTP id 37so3523952pzk.1
+        for <linux-media@vger.kernel.org>; Thu, 11 Aug 2011 04:29:19 -0700 (PDT)
 MIME-Version: 1.0
-To: Theodore Kilgore <kilgota@banach.math.auburn.edu>
-CC: workshop-2011@linuxtv.org,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Hans de Goede <hdegoede@redhat.com>,
-	Jean-Francois Moine <moinejf@free.fr>
-Subject: Re: Media Subsystem Workshop 2011
-References: <4E398381.4080505@redhat.com> <alpine.LNX.2.00.1108031418480.16384@banach.math.auburn.edu> <4E39B150.40108@redhat.com> <alpine.LNX.2.00.1108031750241.16520@banach.math.auburn.edu> <4E3A91D1.1040000@redhat.com> <alpine.LNX.2.00.1108041255070.17533@banach.math.auburn.edu> <4E3AEEE3.8080704@redhat.com> <alpine.LNX.2.00.1108041549090.17734@banach.math.auburn.edu>
-In-Reply-To: <alpine.LNX.2.00.1108041549090.17734@banach.math.auburn.edu>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+Date: Thu, 11 Aug 2011 13:29:19 +0200
+Message-ID: <CAL9G6WXnXJwfCZY5gZ8Qph_RuP29PVDCeYT037-e=T9fCo3PVg@mail.gmail.com>
+Subject: Problems with Tevii S660
+From: Josu Lazkano <josu.lazkano@gmail.com>
+To: linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em 04-08-2011 18:16, Theodore Kilgore escreveu:
->>>>
->>>> This sounds to be a good theme for the Workshop, or even to KS/2011.
->>>
->>> Thanks. Do you recall when and where is KS/2011 going to take place?
->>
->> The media workshop happens together with the KS/2011. Sunday is an
->> exclusive day for the workshops, Monday is an exclusive day for KS/2011,
->> and Tuesday is a joint day for both KS and the KS workshops.
-> 
-> So, as I understand, these are all about to take place in Vancouver, 
-> sometime in the next two weeks? It really is the wrong time, but I really 
-> wish now that I were going. I would at the very minimum try to get the 
-> people together that I know of, who have wrestled with the issue.
+Hello list, I just bought a Tevii S660 DVB-S2 USb tunner and I have
+some problems with it. I already has the Tevii S470 card and it works
+great with this configuration:
 
-Hmm... it seems that you didn't read the sites I've pointed on my original
-email, or that I was not clear enough. 
+mkdir /usr/local/src/dvb
+cd /usr/local/src/dvb
+wget http://tevii.com/100315_Beta_linux_tevii_ds3000.rar
+unrar x 100315_Beta_linux_tevii_ds3000.rar
+cp *.fw /lib/firmware
+tar xjvf linux-tevii-ds3000.tar.bz2
+cd linux-tevii-ds3000
+make && make install
 
-The Media Subsystem Workshop and the Kernel Summit won't happen in Vancouver.
-What will happen there is the LinuxCon North-America, plus the USB mini-summit. 
-I should be there, btw. I think I should add an additional topic there to
-discuss about multi-featured devices.
+I am using Debian Squeeze with stable kernel: 2.6.32-5-686
 
-The KS/2011 and the Media Workshop will happen in Prague, on Oct 23-25,
-just before the LinuxCon Europe.
+I configured the modprobe this way:
 
-Regards,
-Mauro
+# cat /etc/modprobe.d/options.conf
+#Tevii S470
+options cx23885 adapter_nr=7
+#Tevii S660
+options dvb-usb-dw2102 adapter_nr=6
+#Disable the IR
+options dvb-usb disable_rc_polling=1
+
+At first time it works well, I just pluged it and it creates a dvb
+device on /dev/dvb/adapter6 and the dmesg is correct (I have not a
+copy of the message). I didn't try yet to watch any channel (I am
+uusing MythTV).
+
+I reboot the machine and there are some USB error on the boot
+secuence, something like this:
+
+... device descriptor read/64, error -110
+
+(Here is a photo of the screen: http://i53.tinypic.com/2u3z5s0.jpg)
+
+After a long boot, I execute the dmesg and this is what I get:
+
+[  145.909045] usb 4-2: device descriptor read/64, error -110
+[  146.189073] usb 4-2: new full speed USB device using ohci_hcd and address 5
+[  151.208761] usb 4-2: device descriptor read/8, error -110
+[  156.329684] usb 4-2: device descriptor read/8, error -110
+[  156.612043] usb 4-2: new full speed USB device using ohci_hcd and address 6
+[  161.636610] usb 4-2: device descriptor read/8, error -110
+[  166.756544] usb 4-2: device descriptor read/8, error -110
+[  166.864081] hub 4-0:1.0: unable to enumerate USB device on port 2
+
+And there is no device on lsusb.
+
+Then I try to boot without the device, it start well the machine, then
+plug the device and this is the dmesg:
+
+[  162.372030] usb 1-2: new high speed USB device using ehci_hcd and address 2
+[  177.484038] usb 1-2: device descriptor read/64, error -110
+[  192.700039] usb 1-2: device descriptor read/64, error -110
+[  192.920036] usb 1-2: new high speed USB device using ehci_hcd and address 3
+[  208.028034] usb 1-2: device descriptor read/64, error -110
+[  223.252028] usb 1-2: device descriptor read/64, error -110
+[  223.465028] usb 1-2: new high speed USB device using ehci_hcd and address 4
+[  228.484176] usb 1-2: device descriptor read/8, error -110
+[  233.604097] usb 1-2: device descriptor read/8, error -110
+[  233.820029] usb 1-2: new high speed USB device using ehci_hcd and address 5
+[  238.840170] usb 1-2: device descriptor read/8, error -110
+[  243.961092] usb 1-2: device descriptor read/8, error -110
+[  244.064050] hub 1-0:1.0: unable to enumerate USB device on port 2
+[  244.392034] usb 3-2: new full speed USB device using ohci_hcd and address 2
+[  259.568033] usb 3-2: device descriptor read/64, error -110
+[  274.848036] usb 3-2: device descriptor read/64, error -110
+[  275.128035] usb 3-2: new full speed USB device using ohci_hcd and address 3
+
+I contact with Tevii, but there is no support for this device on
+Linux, they point me to go to
+http://mercurial.intuxication.org/hg/s2-liplianin/
+
+I read some users having same problem with this device, here is one
+that resolve it uploading I new firmware on each boot:
+http://www.gilzad.de/blog/pivot/entry.php?id=7
+
+Can you help with this?
+
+I am not an expert on kernel/driver/firmware, I will apreciate any help.
+
+Thanks for your help and best regards.
+
+
+-- 
+Josu Lazkano
