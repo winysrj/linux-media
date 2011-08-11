@@ -1,88 +1,64 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr12.xs4all.nl ([194.109.24.32]:3631 "EHLO
-	smtp-vbr12.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755883Ab1HaNjb (ORCPT
+Received: from smtp-68.nebula.fi ([83.145.220.68]:41250 "EHLO
+	smtp-68.nebula.fi" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754102Ab1HKHTN (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 31 Aug 2011 09:39:31 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [RFC PATCH 6/6] VL menu: Move some of the less often used drivers down in the menu list.
-Date: Wed, 31 Aug 2011 15:38:45 +0200
-Message-Id: <e7ad492588c045dcb9aa2bae25186b83dfb707a0.1314797675.git.hans.verkuil@cisco.com>
-In-Reply-To: <1314797925-8113-1-git-send-email-hverkuil@xs4all.nl>
-References: <1314797925-8113-1-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <b5c71c4b9e2f88bd5698a9920b24d24786e4a28c.1314797675.git.hans.verkuil@cisco.com>
-References: <b5c71c4b9e2f88bd5698a9920b24d24786e4a28c.1314797675.git.hans.verkuil@cisco.com>
+	Thu, 11 Aug 2011 03:19:13 -0400
+Date: Thu, 11 Aug 2011 10:19:00 +0300
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Cc: linux-media <linux-media@vger.kernel.org>
+Subject: Re: adp1653 usage
+Message-ID: <20110811071900.GC5926@valkosipuli.localdomain>
+References: <1312974960.2183.15.camel@smile>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <1312974960.2183.15.camel@smile>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+On Wed, Aug 10, 2011 at 02:16:00PM +0300, Andy Shevchenko wrote:
+> Hello, Sakari.
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- drivers/media/video/Kconfig |   32 ++++++++++++++++----------------
- 1 files changed, 16 insertions(+), 16 deletions(-)
+Hi, Andy!
 
-diff --git a/drivers/media/video/Kconfig b/drivers/media/video/Kconfig
-index d14da37..97fdaa7 100644
---- a/drivers/media/video/Kconfig
-+++ b/drivers/media/video/Kconfig
-@@ -646,22 +646,6 @@ config VIDEO_VIVI
- 
- source "drivers/media/video/bt8xx/Kconfig"
- 
--source "drivers/media/video/zoran/Kconfig"
--
--config VIDEO_MEYE
--	tristate "Sony Vaio Picturebook Motion Eye Video For Linux"
--	depends on PCI && SONY_LAPTOP && VIDEO_V4L2
--	---help---
--	  This is the video4linux driver for the Motion Eye camera found
--	  in the Vaio Picturebook laptops. Please read the material in
--	  <file:Documentation/video4linux/meye.txt> for more information.
--
--	  If you say Y or M here, you need to say Y or M to "Sony Laptop
--	  Extras" in the misc device section.
--
--	  To compile this driver as a module, choose M here: the
--	  module will be called meye.
--
- source "drivers/media/video/saa7134/Kconfig"
- 
- source "drivers/media/video/cx88/Kconfig"
-@@ -676,6 +660,8 @@ source "drivers/media/video/cx18/Kconfig"
- 
- source "drivers/media/video/saa7164/Kconfig"
- 
-+source "drivers/media/video/zoran/Kconfig"
-+
- source "drivers/media/video/marvell-ccic/Kconfig"
- 
- config VIDEO_VIA_CAMERA
-@@ -688,6 +674,20 @@ config VIDEO_VIA_CAMERA
- 	   Chrome9 chipsets.  Currently only tested on OLPC xo-1.5 systems
- 	   with ov7670 sensors.
- 
-+config VIDEO_MEYE
-+	tristate "Sony Vaio Picturebook Motion Eye Video For Linux"
-+	depends on PCI && SONY_LAPTOP && VIDEO_V4L2
-+	---help---
-+	  This is the video4linux driver for the Motion Eye camera found
-+	  in the Vaio Picturebook laptops. Please read the material in
-+	  <file:Documentation/video4linux/meye.txt> for more information.
-+
-+	  If you say Y or M here, you need to say Y or M to "Sony Laptop
-+	  Extras" in the misc device section.
-+
-+	  To compile this driver as a module, choose M here: the
-+	  module will be called meye.
-+
- #
- # Platform multimedia device configuration
- #
+> I would like to understand how to use subdevice (like adp1653) in
+> current v4l2 framework from user space.
+> 
+> My understanding is following.
+> 
+> Kernel has two drivers (simplified view):
+> - camera device
+> - flash device
+> 
+> Kernel initializes a camera driver from a platform specific setup code.
+> The camera driver loads the subdevice drivers. Later I could access the
+> subdevice driver parts via IOCTL(s) on /dev/videoX device node.
+> 
+> What I have missed.
+> - if the subdevice creates device node /dev/v4l-subdevX, how the user
+> space will know the X is corresponding to let say flash device?
+
+The whole media device's entities (of which the flash in this case is one
+of) can be enumerated. The device is called /dev/mediaX.
+
+The Media controller API is defined here:
+
+<URL:http://hverkuil.home.xs4all.nl/spec/media.html#media_common>
+
+> - if there is no v4l-subdevX device node, when and how the kernel runs
+> ->open() and ->close() methods of v4l2_subdev_internal_ops?
+
+No-one. This is part of the user space interface.
+
+Isp drivers are also free to use the adp1653 subdev directly, but in
+embedded systems where such chips typically are used that seldom makes
+sense.
+
+A webcam driver could implement the same interface and provide it through a
+video node.
+
 -- 
-1.7.5.4
-
+Sakari Ailus
+sakari.ailus@iki.fi
