@@ -1,94 +1,102 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-gw0-f46.google.com ([74.125.83.46]:33198 "EHLO
-	mail-gw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753761Ab1HNQbf (ORCPT
+Received: from banach.math.auburn.edu ([131.204.45.3]:36030 "EHLO
+	banach.math.auburn.edu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753275Ab1HKXJE (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 14 Aug 2011 12:31:35 -0400
-Received: by gwaa12 with SMTP id a12so2841307gwa.19
-        for <linux-media@vger.kernel.org>; Sun, 14 Aug 2011 09:31:34 -0700 (PDT)
-Date: Sun, 14 Aug 2011 11:31:31 -0500
-From: Jonathan Nieder <jrnieder@gmail.com>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: Daniel Dickinson <libre@cshore.neomailbox.net>,
-	linux-media@vger.kernel.org
-Subject: [regression] uvcvideo: BUG at drivers/media/media-entity.c:346 for
- compaq presario cq56 (laptop) built-in webcam
-Message-ID: <20110814163131.GN18466@elie.gateway.2wire.net>
-References: <20110813235448.7243.32451.reportbug@henryj.momlan>
+	Thu, 11 Aug 2011 19:09:04 -0400
+Date: Thu, 11 Aug 2011 18:13:15 -0500 (CDT)
+From: Theodore Kilgore <kilgota@banach.math.auburn.edu>
+To: Mauro Carvalho Chehab <mchehab@infradead.org>
+cc: Alan Stern <stern@rowland.harvard.edu>,
+	Alan Cox <alan@lxorguk.ukuu.org.uk>,
+	Hans de Goede <hdegoede@redhat.com>,
+	Sarah Sharp <sarah.a.sharp@linux.intel.com>,
+	Greg KH <greg@kroah.com>, linux-usb@vger.kernel.org,
+	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+	libusb-devel@lists.sourceforge.net, Alexander Graf <agraf@suse.de>,
+	Gerd Hoffmann <kraxel@redhat.com>, hector@marcansoft.com,
+	Jan Kiszka <jan.kiszka@siemens.com>,
+	Stefan Hajnoczi <stefanha@linux.vnet.ibm.com>,
+	pbonzini@redhat.com, Anthony Liguori <aliguori@us.ibm.com>,
+	Jes Sorensen <Jes.Sorensen@redhat.com>,
+	Oliver Neukum <oliver@neukum.org>, Felipe Balbi <balbi@ti.com>,
+	Clemens Ladisch <clemens@ladisch.de>,
+	Jaroslav Kysela <perex@perex.cz>, Takashi Iwai <tiwai@suse.de>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Adam Baker <linux@baker-net.org.uk>
+Subject: Re: USB mini-summit at LinuxCon Vancouver
+In-Reply-To: <4E443C6E.8040808@infradead.org>
+Message-ID: <alpine.LNX.2.00.1108111811260.27382@banach.math.auburn.edu>
+References: <Pine.LNX.4.44L0.1108111145360.1958-100000@iolanthe.rowland.org> <alpine.LNX.2.00.1108111235400.27040@banach.math.auburn.edu> <4E443C6E.8040808@infradead.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20110813235448.7243.32451.reportbug@henryj.momlan>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
 
-Daniel Dickinson wrote[1]:
 
-> New in 3.0.0:
->
-> webcam oopses and then spams syslog.  Didn't happen in .39 so is a
-> regression.
->
-> uvcvideo: Found UVC 1.00 device HP Webcam-101 (0bda:58e0)
->
-> From syslog:
->
-> [  428.117889] Linux video capture interface: v2.00
-> [  428.161164] uvcvideo: Found UVC 1.00 device HP Webcam-101 (0bda:58e0)
-> [  428.167520] ------------[ cut here ]------------
-> [  428.167562] kernel BUG at [...]/drivers/media/media-entity.c:346!
-> [  428.167605] invalid opcode: 0000 [#1] SMP 
-> [  428.167705] CPU 1 
-> [  428.167739] Modules linked in: uvcvideo(+) snd_seq_midi joydev videodev media v4l2_compat_ioctl32 snd_rawmidi snd_seq_midi_event snd_seq arc4 snd_timer snd_seq_device ath9k radeon(+) mac80211 ath9k_common ath9k_hw ttm ath drm_kms_helper drm snd hp_wmi cfg80211 sparse_keymap sp5100_tco edac_core soundcore rfkill i2c_algo_bit evdev snd_page_alloc edac_mce_amd psmouse k10temp shpchp i2c_piix4 serio_raw ac battery video i2c_core power_supply pci_hotplug pcspkr wmi button processor ext4 mbcache jbd2 crc16 sha256_generic cryptd aes_x86_64 aes_generic cbc dm_crypt dm_mod raid10 raid456 async_raid6_recov async_pq raid6_pq async_xor xor async_memcpy async_tx raid1 raid0 multipath linear md_mod usbhid hid sg sr_mod sd_mod cdrom crc_t10dif ohci_hcd thermal thermal_sys ahci libahci r8169 ehci_hcd mii libata scsi_mod usbcore [last unloaded: scsi_wait_scan]
-> [  428.170836] 
-> [  428.170872] Pid: 659, comm: modprobe Not tainted 3.0.0-1-amd64 #1 Hewlett-Packard Presario CQ56 Notebook PC/1604
-> [  428.171010] RIP: 0010:[<ffffffffa04d0d18>]  [<ffffffffa04d0d18>] media_entity_create_link+0x2c/0xd4 [media]
-> [  428.171088] RSP: 0018:ffff8801093c5c28  EFLAGS: 00010246
-> [  428.171125] RAX: ffff88010861f800 RBX: ffff88010861f870 RCX: 0000000000000000
-> [  428.171163] RDX: ffff880108603870 RSI: 0000000000000000 RDI: ffff88010861f870
-> [  428.171201] RBP: ffff880108603870 R08: 0000000000000003 R09: ffffffff81756440
-> [  428.171238] R10: 0000000000012800 R11: 0000000000015670 R12: 0000000000000000
-> [  428.171276] R13: ffff880108603870 R14: 0000000000000000 R15: 0000000000000000
-> [  428.171315] FS:  00007f6831cb3700(0000) GS:ffff88010fc80000(0000) knlGS:0000000000000000
-> [  428.171355] CS:  0010 DS: 0000 ES: 0000 CR0: 000000008005003b
-> [  428.171360] CR2: 0000000001858008 CR3: 0000000109eaa000 CR4: 00000000000006e0
-> [  428.171360] DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
-> [  428.171360] DR3: 0000000000000000 DR6: 00000000ffff0ff0 DR7: 0000000000000400
-> [  428.171360] Process modprobe (pid: 659, threadinfo ffff8801093c4000, task ffff880107a70300)
-> [  428.171360] Stack:
-> [  428.171360]  0000000000000002 0000000000000002 0000000000000000 ffff880108603800
-> [  428.171360]  ffff88010a0eac40 0000000000000000 ffff880108603870 ffff88010a0eac58
-> [  428.171360]  0000000000000000 ffffffffa04fefb1 ffff8801099c1408 ffff88010a0eac48
-> [  428.171360] Call Trace:
-> [  428.171360]  [<ffffffffa04fefb1>] ? uvc_mc_register_entities+0x160/0x1eb [uvcvideo]
-> [  428.171360]  [<ffffffffa04f9793>] ? uvc_probe+0x1ee7/0x1f18 [uvcvideo]
-> [  428.171360]  [<ffffffffa006c79d>] ? usb_probe_interface+0xfc/0x16f [usbcore]
-> [  428.171360]  [<ffffffff81249a37>] ? driver_probe_device+0xb2/0x142
-> [  428.171360]  [<ffffffff81249b16>] ? __driver_attach+0x4f/0x6f
-> [  428.171360]  [<ffffffff81249ac7>] ? driver_probe_device+0x142/0x142
-> [  428.171360]  [<ffffffff81248d22>] ? bus_for_each_dev+0x47/0x72
-> [  428.171360]  [<ffffffff812493a9>] ? bus_add_driver+0xa2/0x1f2
-> [  428.171360]  [<ffffffff81249fb0>] ? driver_register+0x8d/0xf5
-> [  428.171360]  [<ffffffffa006ba66>] ? usb_register_driver+0x80/0x128 [usbcore]
-> [  428.171360]  [<ffffffffa0508000>] ? 0xffffffffa0507fff
-> [  428.171360]  [<ffffffffa050801b>] ? uvc_init+0x1b/0x1000 [uvcvideo]
-> [  428.171360]  [<ffffffff81002172>] ? do_one_initcall+0x78/0x132
-> [  428.171360]  [<ffffffff81076703>] ? sys_init_module+0xbc/0x245
-> [  428.171360]  [<ffffffff8133ba92>] ? system_call_fastpath+0x16/0x1b
-> [  428.171360] Code: 57 41 89 cf 41 56 41 89 f6 41 55 41 54 55 48 89 d5 53 48 89 fb 48 83 ec 18 48 85 d2 74 05 48 85 ff 75 02 0f 0b 66 3b 77 3c 72 02 <0f> 0b 66 3b 4a 3c 72 02 0f 0b 44 89 44 24 08 41 bd f4 ff ff ff 
-> [  428.171360] RIP  [<ffffffffa04d0d18>] media_entity_create_link+0x2c/0xd4 [media]
-> [  428.171360]  RSP <ffff8801093c5c28>
-> [  428.175002] ---[ end trace 3db524e10ad1aec0 ]---
->
-> and then:
->
-> udevd[420]: timeout: killing 'usb_id --export /devices/pci0000:00/0000:00:12.2/usb1/1-3/1-3:1.0/video4linux/video0' [712]
+On Thu, 11 Aug 2011, Mauro Carvalho Chehab wrote:
 
-Known problem?  Any hints for tracking it down?
+> Em 11-08-2011 17:01, Theodore Kilgore escreveu:
+> 
+> > As I said, I am agnostic, though leaning in the direction that Hans de 
+> > Goede is pointing. What he says about a single control mechanism seems to 
+> > make a lot of sense. If you can come up with an outline of the "easier to 
+> > code" solution, that would be interesting, though.
+> > 
+> > I assume you are also going to be in Vancouver? If you will be there on 
+> > Monday, then Hans and I are already planning to meet and discuss. 
+> > 
+> > BTW, as to using V4L with "tweaks" to handle still mode, it would probably 
+> > be more difficult than is imagined. For, though the operations required to 
+> > process still images and webcam frames are in principle similar, the 
+> > priorities and constraints are too different. Therefore, my understanding 
+> > is that the libgphoto2 image processing routines, not the libv4l image 
+> > processing routines, would still be used for still images.
+> 
+> I agree with Alan Cox: most of the code that the driver needs is already there: 
+> register read/write routines, bulk transfer support, etc. The amount of extra 
+> code for adding still cam functionality is probably not big.
+> 
+> >From the kernel driver's perspective, it doesn't matter if the access will come
+> via libv4l, libgphoto2 or whatever. The driver should be able to allow simultaneous
+> open, while protecting the data access when userspace requests data stream or
+> still image retrieve.
+> 
+> instead of using the V4L2 device node to access the stored images, it probably makes 
+> more sense to use a separate device for that, that will handle a separate set of 
+> ioctl's, and just use read() to retrieve the image data, after selecting the desired
+> image number, via ioctl().
+> 
+> It probably makes sense to add a new set of callbacks at the gspca core in order
+> to handle the new device node, and letting it to avoid start streaming while the
+> store access is happening, and vice-versa. Alternatively, we may create a separate
+> "still cam" core library to handle the new device node,.
+> 
+> If all agree around such solution, I suggest to take the most complex case and try
+> to map it into the driver and core, and see how it behaves, testing with some simple
+> command line applications, only changing the libgphoto2 code after those initial
+> tests. Writing a simple code for reading still images should be easy, and we have 
+> already some testing tools for V4L2.
+> 
+> After coding the core changes that are common to all drives, I suspect that adding 
+> the remaining 4 drivers will be quick.
+> 
+> With regards to libgphoto2, all it needs to do is to test if the new device nodes
+> exist. If they exist, then the new code will be used. Otherwise, it will fallback
+> to the libusb. This way, we can incrementally add the Dual mode drivers into the
+> kernel.
+> 
+> There is one advantage on using this strategy: if, in the future, new Dual Cams
+> arise, one can write first a still cam kernel driver, adding V4L support later.
+> 
+> Cheers,
+> Mauro
+> 
 
-Thanks,
-Jonathan
+Try it out with one camera seems to me to be a reasonable way 
+forward. 
 
-[1] http://bugs.debian.org/637740
+Theodore Kilgore
+
+
