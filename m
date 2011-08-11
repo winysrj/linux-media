@@ -1,71 +1,81 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from pelian.caiw.net ([62.45.45.126]:62475 "EHLO pelian.caiw.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752671Ab1HNPNw (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 14 Aug 2011 11:13:52 -0400
-Received: from barracuda-new-out-1.caiw.net (barracuda-new-out-1.caiw.net [62.45.59.17])
-	by pelian.caiw.net (Postfix) with ESMTP id B0667B242A
-	for <linux-media@vger.kernel.org>; Sun, 14 Aug 2011 17:04:51 +0200 (CEST)
-Received: from cardassian.caiw.net (cardassian.caiw.net [62.45.45.125]) by barracuda-test-600.caiw.net with ESMTP id YtGA1HWNPokkXeJ8 for <linux-media@vger.kernel.org>; Sun, 14 Aug 2011 17:04:51 +0200 (CEST)
-Received: from dingweb.nl (024-146-045-062.dynamic.caiway.nl [62.45.146.24])
-	by cardassian.caiw.net (Postfix) with ESMTP id 20AB9228001
-	for <linux-media@vger.kernel.org>; Sun, 14 Aug 2011 17:04:51 +0200 (CEST)
-Received: from [192.168.11.16] (pluk.dingweb.nl [192.168.11.16])
-	by dingweb.nl (Postfix) with ESMTP id E3BA2180037
-	for <linux-media@vger.kernel.org>; Sun, 14 Aug 2011 17:04:50 +0200 (CEST)
-Subject: Differend Technisat CableStar HD2 card
-From: Rene Dingemanse <rene@dingweb.nl>
-To: linux-media@vger.kernel.org
-Content-Type: text/plain; charset="us-ascii"
-Date: Sun, 14 Aug 2011 17:04:51 +0200
-Message-ID: <1313334291.18458.16.camel@pluk.dingweb.nl>
+Received: from earthlight.etchedpixels.co.uk ([81.2.110.250]:47489 "EHLO
+	www.etchedpixels.co.uk" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1752238Ab1HKPZQ (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 11 Aug 2011 11:25:16 -0400
+Date: Thu, 11 Aug 2011 16:25:30 +0100
+From: Alan Cox <alan@lxorguk.ukuu.org.uk>
+To: Mauro Carvalho Chehab <mchehab@infradead.org>
+Cc: Alan Stern <stern@rowland.harvard.edu>,
+	Hans de Goede <hdegoede@redhat.com>,
+	Theodore Kilgore <kilgota@banach.math.auburn.edu>,
+	Sarah Sharp <sarah.a.sharp@linux.intel.com>,
+	Greg KH <greg@kroah.com>, linux-usb@vger.kernel.org,
+	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+	libusb-devel@lists.sourceforge.net, Alexander Graf <agraf@suse.de>,
+	Gerd Hoffmann <kraxel@redhat.com>, hector@marcansoft.com,
+	Jan Kiszka <jan.kiszka@siemens.com>,
+	Stefan Hajnoczi <stefanha@linux.vnet.ibm.com>,
+	pbonzini@redhat.com, Anthony Liguori <aliguori@us.ibm.com>,
+	Jes Sorensen <Jes.Sorensen@redhat.com>,
+	Oliver Neukum <oliver@neukum.org>, Felipe Balbi <balbi@ti.com>,
+	Clemens Ladisch <clemens@ladisch.de>,
+	Jaroslav Kysela <perex@perex.cz>, Takashi Iwai <tiwai@suse.de>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Adam Baker <linux@baker-net.org.uk>
+Subject: Re: USB mini-summit at LinuxCon Vancouver
+Message-ID: <20110811162530.5d1c6455@lxorguk.ukuu.org.uk>
+In-Reply-To: <4E43F17F.6030604@infradead.org>
+References: <Pine.LNX.4.44L0.1108111037240.1958-100000@iolanthe.rowland.org>
+	<4E43F17F.6030604@infradead.org>
 Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi all,
+> Between two or more kernel drivers, a resource locking mechanism like the one 
+> you've proposed works fine, but, when the driver is on userspace, there's one
+> additional issue that needs to be addressed: What happens if, for example,
+> if a camera application using libgphoto2 crashes? The lock will be enabled, and
+> the V4L driver will be locked forever. Also, if the lock is made generic enough
+> to protect between two different userspace applications, re-starting the
+> camera application won't get the control back.
 
-I have a card Technisat CableStar HD2
+Actually there are more issues than that - you've also got to worry about
+a security/permission model, and that is hard to get right, especially if
+you are not very careful that anything that can be retrieved which might
+violate the security model (eg the last frame on the capture) has been
+blanked before handover etc.
 
-lspci -s 04:00.0 -v 
-04:00.0 Multimedia controller: Twinhan Technology Co. Ltd Mantis DTV PCI
-Bridge Controller [Ver 1.0] (rev 01)
-	Subsystem: Device ffbf:02e4
-	Flags: bus master, medium devsel, latency 32, IRQ 21
-	Memory at 88100000 (32-bit, prefetchable) [size=4K]
-	Kernel driver in use: Mantis
-	Kernel modules: mantis
+> To avoid such risk, kernel might need to implement some ugly hacks to detect
+> when the application was killed, and put the device into a sane state, if this
+> happens.
 
-It looks like a supported card but the Subsystem id's are wrong. On the
-wiki site the id's are 1ae4:0002.
+At which point history says it's easier to do the job right, once, in the
+kernel.
 
-Using kernel 2.6.39-gentoo-r3, form the gentoo distribution.
+> Again, applications that won't implement this control will take the lock forever.
 
-But when i replace the id's in the source code from the driver 
-mantis_common.h
-#define TECHNISAT 0x1ae4
-into
-#define TECHNISAT 0xffbf
+And applications that are touching both video (even indirectly) and still
+camera may get surprise deadlocks if they accidentally reference both the
+still and video device even via some library or service.
 
-and file
-mantis_vp2040.h
-#define CABLESTAR_HD2 0x0002
-into
-#define CABLESTAR_HD2 0x02e4
+> > Well, a user program can assume that the kernel driver left the device
+> > in a clean state.  The reverse isn't always true, however -- it's one
 
-Then the driver loads just fine, and 1 get 4 devices
-in /dev/dvb/adapter0/ demux0  dvr0  frontend0  net0
+Not it cannot - the user program doesn't know
 
-And wen installing tvheadend the card seams to work just fine. I
-recorded several shows without any problem.
+a) if the kernel driver has ever been loaded
+b) the values the kernel driver leaves set (and those will change no
+doubt at times)
+c) if the camera has been plugged and unplugged and not yet had the
+kernel driver loaded
 
-Is there a way to test if the driver is working good, and why am i
-missing the ca0 device?
+To me it sounds like a recipe for disaster. For those tiny number of
+devices involved just use V4L and if need be some small V4L tweaks to
+handle still mode. In most cases the interface is basically identical and
+I'd bet much of the code is identical too.
 
-Thanks,
-
-Rene
-
-
-
+Alan
