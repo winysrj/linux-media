@@ -1,130 +1,102 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-68.nebula.fi ([83.145.220.68]:56459 "EHLO
-	smtp-68.nebula.fi" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755155Ab1HKKQo (ORCPT
+Received: from banach.math.auburn.edu ([131.204.45.3]:37809 "EHLO
+	banach.math.auburn.edu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752560Ab1HKT5Z (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 11 Aug 2011 06:16:44 -0400
-Date: Thu, 11 Aug 2011 13:16:38 +0300
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: workshop-2011@linuxtv.org,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	laurent.pinchart@ideasonboard.com
-Subject: Re: [Workshop-2011] Media Subsystem Workshop 2011
-Message-ID: <20110811101638.GE5926@valkosipuli.localdomain>
-References: <4E398381.4080505@redhat.com>
+	Thu, 11 Aug 2011 15:57:25 -0400
+Date: Thu, 11 Aug 2011 15:01:30 -0500 (CDT)
+From: Theodore Kilgore <kilgota@banach.math.auburn.edu>
+To: Alan Stern <stern@rowland.harvard.edu>
+cc: Alan Cox <alan@lxorguk.ukuu.org.uk>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Hans de Goede <hdegoede@redhat.com>,
+	Sarah Sharp <sarah.a.sharp@linux.intel.com>,
+	Greg KH <greg@kroah.com>, linux-usb@vger.kernel.org,
+	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+	libusb-devel@lists.sourceforge.net, Alexander Graf <agraf@suse.de>,
+	Gerd Hoffmann <kraxel@redhat.com>, hector@marcansoft.com,
+	Jan Kiszka <jan.kiszka@siemens.com>,
+	Stefan Hajnoczi <stefanha@linux.vnet.ibm.com>,
+	pbonzini@redhat.com, Anthony Liguori <aliguori@us.ibm.com>,
+	Jes Sorensen <Jes.Sorensen@redhat.com>,
+	Oliver Neukum <oliver@neukum.org>, Felipe Balbi <balbi@ti.com>,
+	Clemens Ladisch <clemens@ladisch.de>,
+	Jaroslav Kysela <perex@perex.cz>, Takashi Iwai <tiwai@suse.de>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Adam Baker <linux@baker-net.org.uk>
+Subject: Re: USB mini-summit at LinuxCon Vancouver
+In-Reply-To: <Pine.LNX.4.44L0.1108111145360.1958-100000@iolanthe.rowland.org>
+Message-ID: <alpine.LNX.2.00.1108111235400.27040@banach.math.auburn.edu>
+References: <Pine.LNX.4.44L0.1108111145360.1958-100000@iolanthe.rowland.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <4E398381.4080505@redhat.com>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
 
-Hi Mauro,
 
-On Wed, Aug 03, 2011 at 02:21:05PM -0300, Mauro Carvalho Chehab wrote:
-> As already announced, we're continuing the planning for this year's 
-> media subsystem workshop.
-> 
-> To avoid overriding the main ML with workshop-specifics, a new ML
-> was created:
-> 	workshop-2011@linuxtv.org
-> 
-> I'll also be updating the event page at:
-> 	http://www.linuxtv.org/events.php
-> 
-> Over the one-year period, we had 242 developers contributing to the
-> subsystem. Thank you all for that! Unfortunately, the space there is
-> limited, and we can't affort to have all developers there. 
-> 
-> Due to that some criteria needed to be applied to create a short list
-> of people that were invited today to participate. 
-> 
-> The main criteria were to select the developers that did significant 
-> contributions for the media subsystem over the last 1 year period, 
-> measured in terms of number of commits and changed lines to the kernel
-> drivers/media tree.
-> 
-> As the used criteria were the number of kernel patches, userspace-only 
-> developers weren't included on the invitations. It would be great to 
-> have there open source application developers as well, in order to allow 
-> us to tune what's needed from applications point of view. 
-> 
-> So, if you're leading the development of some V4L and/or DVB open-source 
-> application and wants to be there, or you think you can give good 
-> contributions for helping to improve the subsystem, please feel free 
-> to send us an email.
-> 
-> With regards to the themes, we're received, up to now, the following 
-> proposals:
-> 
-> ---------------------------------------------------------+----------------------
-> THEME                                                    | Proposed-by:
-> ---------------------------------------------------------+----------------------
-> Buffer management: snapshot mode                         | Guennadi
-> Rotation in webcams in tablets while streaming is active | Hans de Goede
-> V4L2 Spec ??? ambiguities fix                              | Hans Verkuil
-> V4L2 compliance test results                             | Hans Verkuil
-> Media Controller presentation (probably for Wed, 25)     | Laurent Pinchart
-> Workshop summary presentation on Wed, 25                 | Mauro Carvalho Chehab
-> ---------------------------------------------------------+----------------------
-> 
-> From my side, I also have the following proposals:
-> 
-> 1) DVB API consistency - what to do with the audio and video DVB API's 
-> that conflict with V4L2 and (somewhat) with ALSA?
-> 
-> 2) Multi FE support - How should we handle a frontend with multiple 
-> delivery systems like DRX-K frontend?
-> 
-> 3) videobuf2 - migration plans for legacy drivers
-> 
-> 4) NEC IR decoding - how should we handle 32, 24, and 16 bit protocol
-> variations?
-> 
-> Even if you won't be there, please feel free to propose themes for 
-> discussion, in order to help us to improve even more the subsystem.
+On Thu, 11 Aug 2011, Alan Stern wrote:
 
-Drawing from our recent discussions over e-mail, I would like to add another
-topic: the V4L2 on desktop vs. embedded systems.
+> On Thu, 11 Aug 2011, Alan Cox wrote:
+> 
+> > Actually there are more issues than that - you've also got to worry about
+> > a security/permission model, and that is hard to get right, especially if
+> > you are not very careful that anything that can be retrieved which might
+> > violate the security model (eg the last frame on the capture) has been
+> > blanked before handover etc.
+> 
+> As far as I can tell, these same security issues exist today.  I don't 
+> see them getting any worse than they are now.
+> 
+> > And applications that are touching both video (even indirectly) and still
+> > camera may get surprise deadlocks if they accidentally reference both the
+> > still and video device even via some library or service.
+> 
+> No, not deadlocks.  Just -EBUSY errors.
+> 
+> > > > Well, a user program can assume that the kernel driver left the device
+> > > > in a clean state.  The reverse isn't always true, however -- it's one
+> > 
+> > Not it cannot - the user program doesn't know
+> > 
+> > a) if the kernel driver has ever been loaded
+> > b) the values the kernel driver leaves set (and those will change no
+> > doubt at times)
+> > c) if the camera has been plugged and unplugged and not yet had the
+> > kernel driver loaded
+> 
+> That's true.  The program can't assume that a kernel driver was ever 
+> bound to the device; all it can assume is that _if_ a kernel driver was 
+> bound then it left the device in a sane state -- whatever "sane" might 
+> mean in this context.
+> 
+> > To me it sounds like a recipe for disaster. For those tiny number of
+> > devices involved just use V4L and if need be some small V4L tweaks to
+> > handle still mode. In most cases the interface is basically identical and
+> > I'd bet much of the code is identical too.
+> 
+> I'm not against moving the whole thing into the kernel.  I'm just
+> pointing out that an easier-to-code-up solution will accomplish much
+> the same result.
+> 
+> Alan Stern
+> 
 
-The V4L2 is being used as an application interface on desktop systems, but
-recently as support has been added to complex camera ISPs in embedded
-systems it is used for a different purpose: it's a much lower level
-interface for specialised user space which typically contains a middleware
-layer which provides its own application interface (e.g. GSTphotography).
-The V4L2 API in the two different kind of systems is exactly the same but
-its role is different: the hardware drivers are not up to offering an
-interface suitable for the use by general purpose applications.
+Alan,
 
-To run generic purpose applications on such embedded systems, I have
-promoted the use of libv4l (either plain or with plugins) to provide what is
-missing from between the V4L2, Media controller and v4l2_subdev interfaces
-provided by kernel drivers --- which mostly allow controlling the hardware
---- and what the general purpose applications need. Much of the missing
-functionality is usually implemented in algorithm frameworks and libraries
-that do not fit to kernel space: they are complex and often the algorithms
-themselves are under very restrictive licenses. There is an upside: the
-libv4l does contain an automatic exposure and a white balance algorithm
-which are suitable for some use cases.
+As I said, I am agnostic, though leaning in the direction that Hans de 
+Goede is pointing. What he says about a single control mechanism seems to 
+make a lot of sense. If you can come up with an outline of the "easier to 
+code" solution, that would be interesting, though.
 
-Defining functionality suitable for general purpose applications at the
-level of V4L2 requires scores of policy decisions on embedded systems. One
-of the examples is the pipeline configuration for which the Media controller
-and v4l2_subdev interfaces are currently being used for. Applications such
-as Fcam <URL:http://fcam.garage.maemo.org/> do need to make these policy
-decisions by themselves. For this reason, I consider it highly important
-that the low level hardware control interface is available to the user space
-applications.
+I assume you are also going to be in Vancouver? If you will be there on 
+Monday, then Hans and I are already planning to meet and discuss. 
 
-I think it is essential for the future support of such embedded devices in
-the mainline kernel to come to a common agreement on how this kind of
-systems should be implemented in a way that everyone's requirements are best
-taken into account. I believe this is in everyone's interest.
+BTW, as to using V4L with "tweaks" to handle still mode, it would probably 
+be more difficult than is imagined. For, though the operations required to 
+process still images and webcam frames are in principle similar, the 
+priorities and constraints are too different. Therefore, my understanding 
+is that the libgphoto2 image processing routines, not the libv4l image 
+processing routines, would still be used for still images.
 
-Kind regards,
-
--- 
-Sakari Ailus
-sakari.ailus@iki.fi
+Theodore Kilgore
