@@ -1,138 +1,248 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from banach.math.auburn.edu ([131.204.45.3]:56999 "EHLO
-	banach.math.auburn.edu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754115Ab1HIRFB (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 9 Aug 2011 13:05:01 -0400
-Date: Tue, 9 Aug 2011 12:10:00 -0500 (CDT)
-From: Theodore Kilgore <kilgota@banach.math.auburn.edu>
-To: Hans de Goede <hdegoede@redhat.com>
-cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Adam Baker <linux@baker-net.org.uk>, workshop-2011@linuxtv.org,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: [Workshop-2011] Media Subsystem Workshop 2011
-In-Reply-To: <4E40E20C.2090001@redhat.com>
-Message-ID: <alpine.LNX.2.00.1108091138070.23136@banach.math.auburn.edu>
-References: <4E398381.4080505@redhat.com> <4E3A91D1.1040000@redhat.com> <4E3B9597.4040307@redhat.com> <201108072353.42237.linux@baker-net.org.uk> <alpine.LNX.2.00.1108072103200.20613@banach.math.auburn.edu> <4E3FE86A.5030908@redhat.com>
- <alpine.LNX.2.00.1108081208080.21409@banach.math.auburn.edu> <4E40E20C.2090001@redhat.com>
-MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Received: from mailout2.w1.samsung.com ([210.118.77.12]:50039 "EHLO
+	mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753844Ab1HLK6q (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 12 Aug 2011 06:58:46 -0400
+Date: Fri, 12 Aug 2011 12:58:27 +0200
+From: Marek Szyprowski <m.szyprowski@samsung.com>
+Subject: [PATCH 5/9] mm: MIGRATE_CMA isolation functions added
+In-reply-to: <1313146711-1767-1-git-send-email-m.szyprowski@samsung.com>
+To: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+	linux-media@vger.kernel.org, linux-mm@kvack.org,
+	linaro-mm-sig@lists.linaro.org
+Cc: Michal Nazarewicz <mina86@mina86.com>,
+	Marek Szyprowski <m.szyprowski@samsung.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	Russell King <linux@arm.linux.org.uk>,
+	Andrew Morton <akpm@linux-foundation.org>,
+	KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>,
+	Ankita Garg <ankita@in.ibm.com>,
+	Daniel Walker <dwalker@codeaurora.org>,
+	Mel Gorman <mel@csn.ul.ie>, Arnd Bergmann <arnd@arndb.de>,
+	Jesse Barker <jesse.barker@linaro.org>,
+	Jonathan Corbet <corbet@lwn.net>,
+	Shariq Hasnain <shariq.hasnain@linaro.org>,
+	Chunsang Jeong <chunsang.jeong@linaro.org>
+Message-id: <1313146711-1767-6-git-send-email-m.szyprowski@samsung.com>
+MIME-version: 1.0
+Content-type: TEXT/PLAIN
+Content-transfer-encoding: 7BIT
+References: <1313146711-1767-1-git-send-email-m.szyprowski@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+From: Michal Nazarewicz <m.nazarewicz@samsung.com>
 
+This commit changes various functions that change pages and
+pageblocks migrate type between MIGRATE_ISOLATE and
+MIGRATE_MOVABLE in such a way as to allow to work with
+MIGRATE_CMA migrate type.
 
-On Tue, 9 Aug 2011, Hans de Goede wrote:
+Signed-off-by: Michal Nazarewicz <m.nazarewicz@samsung.com>
+Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
+CC: Michal Nazarewicz <mina86@mina86.com>
+Acked-by: Arnd Bergmann <arnd@arndb.de>
+---
+ include/linux/page-isolation.h |   40 +++++++++++++++++++++++++++-------------
+ mm/page_alloc.c                |   19 ++++++++++++-------
+ mm/page_isolation.c            |   15 ++++++++-------
+ 3 files changed, 47 insertions(+), 27 deletions(-)
 
-> Hi,
-> 
-> On 08/08/2011 07:39 PM, Theodore Kilgore wrote:
-> > 
-> > 
-> > On Mon, 8 Aug 2011, Mauro Carvalho Chehab wrote:
-> > 
-> 
-> <snip>
-> 
-> > Mauro,
-> > 
-> > In fact none of the currently known and supported cameras are using PTP.
-> > All of them are proprietary. They have a rather intimidating set of
-> > differences in functionality, too. Namely, some of them have an
-> > isochronous endpoint, and some of them rely exclusively upon bulk
-> > transport. Some of them have a well developed set of internal capabilities
-> > as far as handling still photos are concerned. I mean, such things as the
-> > ability to download a single photo, selected at random from the set of
-> > photos on the camera, and some do not, requiring that the "ability" to do
-> > this is emulated in software -- by first downloading all previously listed
-> > photos and sending the data to /dev/null, then downloading the desired
-> > photo and saving it. Some of them permit deletion of individual photos, or
-> > all photos, and some do not. For some of them it is even true, as I have
-> > previously mentioned, that the USB command string which will delete all
-> > photos is the same command used for starting the camera in streaming mode.
-> > 
-> > But the point here is that these cameras are all different from one
-> > another, depending upon chipset and even, sometimes, upon firmware
-> > or chipset version. The still camera abilities and limitations of all of
-> > them are pretty much worked out in libgphoto2. My suggestion would be that
-> > the libgphoto2 support libraries for these cameras ought to be left the
-> > hell alone, except for some changes in, for example, how the camera is
-> > accessed in the first place (through libusb or through a kernel device) in
-> > order to address adequately the need to support both modes. I know what is
-> > in those libgphoto2 drivers because I wrote them. I can definitely promise
-> > that to move all of that functionality over into kernel modules would be a
-> > nightmare and would moreover greatly contribute to kernel bloat. You
-> > really don't want to go there.
-> 
-> I strongly disagree with this. The libgphoto2 camlibs (drivers) for these
-> cameras handle a number of different tasks:
-> 
-> 1) Talking to the camera getting binary blobs out of them (be it a PAT or
->    some data)
-> 2) Interpreting said blobs
-> 3) Converting the data parts to pictures doing post processing, etc.
-> 
-> I'm not suggesting to move all of this to the kernel driver, we just need
-> to move part 1. to the kernel driver. 
+diff --git a/include/linux/page-isolation.h b/include/linux/page-isolation.h
+index 856d9cf..b2a81fd 100644
+--- a/include/linux/page-isolation.h
++++ b/include/linux/page-isolation.h
+@@ -3,39 +3,53 @@
+ 
+ /*
+  * Changes migrate type in [start_pfn, end_pfn) to be MIGRATE_ISOLATE.
+- * If specified range includes migrate types other than MOVABLE,
++ * If specified range includes migrate types other than MOVABLE or CMA,
+  * this will fail with -EBUSY.
+  *
+  * For isolating all pages in the range finally, the caller have to
+  * free all pages in the range. test_page_isolated() can be used for
+  * test it.
+  */
+-extern int
+-start_isolate_page_range(unsigned long start_pfn, unsigned long end_pfn);
++int __start_isolate_page_range(unsigned long start_pfn, unsigned long end_pfn,
++			       unsigned migratetype);
++
++static inline int
++start_isolate_page_range(unsigned long start_pfn, unsigned long end_pfn)
++{
++	return __start_isolate_page_range(start_pfn, end_pfn, MIGRATE_MOVABLE);
++}
++
++int __undo_isolate_page_range(unsigned long start_pfn, unsigned long end_pfn,
++			      unsigned migratetype);
+ 
+ /*
+  * Changes MIGRATE_ISOLATE to MIGRATE_MOVABLE.
+  * target range is [start_pfn, end_pfn)
+  */
+-extern int
+-undo_isolate_page_range(unsigned long start_pfn, unsigned long end_pfn);
++static inline int
++undo_isolate_page_range(unsigned long start_pfn, unsigned long end_pfn)
++{
++	return __undo_isolate_page_range(start_pfn, end_pfn, MIGRATE_MOVABLE);
++}
+ 
+ /*
+- * test all pages in [start_pfn, end_pfn)are isolated or not.
++ * Test all pages in [start_pfn, end_pfn) are isolated or not.
+  */
+-extern int
+-test_pages_isolated(unsigned long start_pfn, unsigned long end_pfn);
++int test_pages_isolated(unsigned long start_pfn, unsigned long end_pfn);
+ 
+ /*
+- * Internal funcs.Changes pageblock's migrate type.
+- * Please use make_pagetype_isolated()/make_pagetype_movable().
++ * Internal functions. Changes pageblock's migrate type.
+  */
+-extern int set_migratetype_isolate(struct page *page);
+-extern void unset_migratetype_isolate(struct page *page);
++int set_migratetype_isolate(struct page *page);
++void __unset_migratetype_isolate(struct page *page, unsigned migratetype);
++static inline void unset_migratetype_isolate(struct page *page)
++{
++	__unset_migratetype_isolate(page, MIGRATE_MOVABLE);
++}
+ extern unsigned long alloc_contig_freed_pages(unsigned long start,
+ 					      unsigned long end, gfp_t flag);
+ extern int alloc_contig_range(unsigned long start, unsigned long end,
+-			      gfp_t flags);
++			      gfp_t flags, unsigned migratetype);
+ extern void free_contig_pages(struct page *page, int nr_pages);
+ 
+ /*
+diff --git a/mm/page_alloc.c b/mm/page_alloc.c
+index aecf32a..e3d756a 100644
+--- a/mm/page_alloc.c
++++ b/mm/page_alloc.c
+@@ -5702,7 +5702,7 @@ out:
+ 	return ret;
+ }
+ 
+-void unset_migratetype_isolate(struct page *page)
++void __unset_migratetype_isolate(struct page *page, unsigned migratetype)
+ {
+ 	struct zone *zone;
+ 	unsigned long flags;
+@@ -5710,8 +5710,8 @@ void unset_migratetype_isolate(struct page *page)
+ 	spin_lock_irqsave(&zone->lock, flags);
+ 	if (get_pageblock_migratetype(page) != MIGRATE_ISOLATE)
+ 		goto out;
+-	set_pageblock_migratetype(page, MIGRATE_MOVABLE);
+-	move_freepages_block(zone, page, MIGRATE_MOVABLE);
++	set_pageblock_migratetype(page, migratetype);
++	move_freepages_block(zone, page, migratetype);
+ out:
+ 	spin_unlock_irqrestore(&zone->lock, flags);
+ }
+@@ -5816,6 +5816,10 @@ static int __alloc_contig_migrate_range(unsigned long start, unsigned long end)
+  * @start:	start PFN to allocate
+  * @end:	one-past-the-last PFN to allocate
+  * @flags:	flags passed to alloc_contig_freed_pages().
++ * @migratetype:	migratetype of the underlaying pageblocks (either
++ *			#MIGRATE_MOVABLE or #MIGRATE_CMA).  All pageblocks
++ *			in range must have the same migratetype and it must
++ *			be either of the two.
+  *
+  * The PFN range does not have to be pageblock or MAX_ORDER_NR_PAGES
+  * aligned, hovewer it's callers responsibility to guarantee that we
+@@ -5827,7 +5831,7 @@ static int __alloc_contig_migrate_range(unsigned long start, unsigned long end)
+  * need to be freed with free_contig_pages().
+  */
+ int alloc_contig_range(unsigned long start, unsigned long end,
+-		       gfp_t flags)
++		       gfp_t flags, unsigned migratetype)
+ {
+ 	unsigned long outer_start, outer_end;
+ 	int ret;
+@@ -5855,8 +5859,8 @@ int alloc_contig_range(unsigned long start, unsigned long end,
+ 	 * them.
+ 	 */
+ 
+-	ret = start_isolate_page_range(pfn_to_maxpage(start),
+-				       pfn_to_maxpage_up(end));
++	ret = __start_isolate_page_range(pfn_to_maxpage(start),
++					 pfn_to_maxpage_up(end), migratetype);
+ 	if (ret)
+ 		goto done;
+ 
+@@ -5894,7 +5898,8 @@ int alloc_contig_range(unsigned long start, unsigned long end,
+ 
+ 	ret = 0;
+ done:
+-	undo_isolate_page_range(pfn_to_maxpage(start), pfn_to_maxpage_up(end));
++	__undo_isolate_page_range(pfn_to_maxpage(start), pfn_to_maxpage_up(end),
++				  migratetype);
+ 	return ret;
+ }
+ 
+diff --git a/mm/page_isolation.c b/mm/page_isolation.c
+index 270a026..e232b25 100644
+--- a/mm/page_isolation.c
++++ b/mm/page_isolation.c
+@@ -23,10 +23,11 @@ __first_valid_page(unsigned long pfn, unsigned long nr_pages)
+ }
+ 
+ /*
+- * start_isolate_page_range() -- make page-allocation-type of range of pages
++ * __start_isolate_page_range() -- make page-allocation-type of range of pages
+  * to be MIGRATE_ISOLATE.
+  * @start_pfn: The lower PFN of the range to be isolated.
+  * @end_pfn: The upper PFN of the range to be isolated.
++ * @migratetype: migrate type to set in error recovery.
+  *
+  * Making page-allocation-type to be MIGRATE_ISOLATE means free pages in
+  * the range will never be allocated. Any free pages and pages freed in the
+@@ -35,8 +36,8 @@ __first_valid_page(unsigned long pfn, unsigned long nr_pages)
+  * start_pfn/end_pfn must be aligned to pageblock_order.
+  * Returns 0 on success and -EBUSY if any part of range cannot be isolated.
+  */
+-int
+-start_isolate_page_range(unsigned long start_pfn, unsigned long end_pfn)
++int __start_isolate_page_range(unsigned long start_pfn, unsigned long end_pfn,
++			       unsigned migratetype)
+ {
+ 	unsigned long pfn;
+ 	unsigned long undo_pfn;
+@@ -59,7 +60,7 @@ undo:
+ 	for (pfn = start_pfn;
+ 	     pfn < undo_pfn;
+ 	     pfn += pageblock_nr_pages)
+-		unset_migratetype_isolate(pfn_to_page(pfn));
++		__unset_migratetype_isolate(pfn_to_page(pfn), migratetype);
+ 
+ 	return -EBUSY;
+ }
+@@ -67,8 +68,8 @@ undo:
+ /*
+  * Make isolated pages available again.
+  */
+-int
+-undo_isolate_page_range(unsigned long start_pfn, unsigned long end_pfn)
++int __undo_isolate_page_range(unsigned long start_pfn, unsigned long end_pfn,
++			      unsigned migratetype)
+ {
+ 	unsigned long pfn;
+ 	struct page *page;
+@@ -80,7 +81,7 @@ undo_isolate_page_range(unsigned long start_pfn, unsigned long end_pfn)
+ 		page = __first_valid_page(pfn, pageblock_nr_pages);
+ 		if (!page || get_pageblock_migratetype(page) != MIGRATE_ISOLATE)
+ 			continue;
+-		unset_migratetype_isolate(page);
++		__unset_migratetype_isolate(page, migratetype);
+ 	}
+ 	return 0;
+ }
+-- 
+1.7.1.569.g6f426
 
-I did not assume otherwise. 
-
-> This is not rocket science.
-
-No, but both Adam and I realized, approximately at the same time 
-yesterday afternoon, something which is rather important here. Gphoto is 
-not developed exclusively for Linux. Furthermore, it has a significant 
-user base both on Windows and on MacOS, not to mention BSD. It really 
-isn't nice to be screwing around too much with the way it works.
-
-> 
-> We currently have a really bad situation were drivers are fighting
-> for the same device. The problem here is that these devices are not
-> only one device on the physical level, but also one device on the
-> logical level (IOW they have only 1 usb interface).
-
-All true. Which is why I brought the topic up for discussion in the first 
-place and why it now gets on the program of the USB Summit. 
-
-> 
-> It is time to quit thinking in band-aides and solve this properly,
-> 1 logical device means it gets 1 driver.
-> 
-> This may be an approach which means some more work then others, but
-> I believe in the end that doing it right is worth the effort.
-
-Clearly, we agree about "doing it right is worth the effort." The whole 
-discussion right now is about what is "right."
-
-> 
-> As for Mauro's resource locking patches, these won't work because
-> the assume both drivers are active at the same time, which is simply
-> not true. Only 1 driver can be bound to the interface at a time, and
-> when switching from the gspca driver to the usbfs driver, gspca will
-> see an unplug which is indistinguishable from a real device unplug.
-
-Things would not have to happen so, of course. Things did not used to 
-happen so. Presence of kernel support for streaming used to block stillcam 
-access through libusb. Period. End of discussion. The code change in 
-libusb which changes that default behavior is quite recent. It was done 
-because the kernel was *not* addressing the problem at all. That change 
-could presumably be reversed if it were decided that the kernel is going 
-to do the work instead. 
-
-A POV could be defended, that this behavior of libusb was put in as a 
-stopgap measure because the kernel was not doing its job. In which case 
-the right thing to do is to put the missing functionality into the kernel 
-drivers and take out from libusb the attempt to provide it, when libusb 
-really can't do the job completely.
-
-> 
-> More over a kernel only solution without libgphoto changes won't solve
-> the problem of a libgphoto app keeping the device open locking out
-> streaming.
-
-Eh? You really lose me with this one. If the camera is streaming then 
-clearly any attempt to do stillcam stuff needs to be blocked. If stillcam 
-stuff is being done then streaming needs to be blocked. Sauce for the 
-goose is sauce for the gander. You seem to be saying that one of these 
-activities takes priority over the other. Why?
-
-Theodore Kilgore
