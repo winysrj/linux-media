@@ -1,78 +1,65 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:35902 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750993Ab1HIT4W (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 9 Aug 2011 15:56:22 -0400
-Message-ID: <4E41912F.50901@redhat.com>
-Date: Tue, 09 Aug 2011 21:57:35 +0200
-From: Hans de Goede <hdegoede@redhat.com>
-MIME-Version: 1.0
-To: Alan Stern <stern@rowland.harvard.edu>
-CC: Sarah Sharp <sarah.a.sharp@linux.intel.com>,
+Received: from netrider.rowland.org ([192.131.102.5]:45064 "HELO
+	netrider.rowland.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1752885Ab1HLPg4 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 12 Aug 2011 11:36:56 -0400
+Date: Fri, 12 Aug 2011 11:36:55 -0400 (EDT)
+From: Alan Stern <stern@rowland.harvard.edu>
+To: Hans de Goede <hdegoede@redhat.com>
+cc: Theodore Kilgore <kilgota@banach.math.auburn.edu>,
+	Sarah Sharp <sarah.a.sharp@linux.intel.com>,
 	Greg KH <greg@kroah.com>,
 	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	linux-usb@vger.kernel.org, linux-media@vger.kernel.org,
-	linux-kernel@vger.kernel.org, libusb-devel@lists.sourceforge.net,
+	<linux-usb@vger.kernel.org>, <linux-media@vger.kernel.org>,
+	<linux-kernel@vger.kernel.org>,
+	<libusb-devel@lists.sourceforge.net>,
 	Alexander Graf <agraf@suse.de>,
-	Gerd Hoffmann <kraxel@redhat.com>, hector@marcansoft.com,
+	Gerd Hoffmann <kraxel@redhat.com>, <hector@marcansoft.com>,
 	Jan Kiszka <jan.kiszka@siemens.com>,
 	Stefan Hajnoczi <stefanha@linux.vnet.ibm.com>,
-	pbonzini@redhat.com, Anthony Liguori <aliguori@us.ibm.com>,
+	<pbonzini@redhat.com>, Anthony Liguori <aliguori@us.ibm.com>,
 	Jes Sorensen <Jes.Sorensen@redhat.com>,
 	Oliver Neukum <oliver@neukum.org>, Felipe Balbi <balbi@ti.com>,
 	Clemens Ladisch <clemens@ladisch.de>,
 	Jaroslav Kysela <perex@perex.cz>, Takashi Iwai <tiwai@suse.de>,
 	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Theodore Kilgore <kilgota@banach.math.auburn.edu>,
 	Adam Baker <linux@baker-net.org.uk>
 Subject: Re: USB mini-summit at LinuxCon Vancouver
-References: <Pine.LNX.4.44L0.1108091016380.1949-100000@iolanthe.rowland.org>
-In-Reply-To: <Pine.LNX.4.44L0.1108091016380.1949-100000@iolanthe.rowland.org>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+In-Reply-To: <4E44D5B5.7040305@redhat.com>
+Message-ID: <Pine.LNX.4.44L0.1108121135390.11936-100000@netrider.rowland.org>
+MIME-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+On Fri, 12 Aug 2011, Hans de Goede wrote:
 
-On 08/09/2011 04:19 PM, Alan Stern wrote:
-> On Tue, 9 Aug 2011, Hans de Goede wrote:
->
->> I would really like to see the dual mode camera and TV tuner discussion
->> separated. They are 2 different issues AFAIK.
->>
->> 1) Dual mode cameras:
->>
->> In the case of the dual mode camera we have 1 single device (both at
->> the hardware level and at the logical block level), which can do 2 things,
->> but not at the same time. It can stream live video data from a sensor,
->> or it can retrieve earlier taken pictures from some picture memory.
->>
->> Unfortunately even though these 2 functions live in a single logical block,
->> historically we've developed 2 drivers for them. This leads to fighting
->> over device ownership (surprise surprise), and to me the solution is
->> very clear, 1 logical block == 1 driver.
->
-> According to Theodore, we have developed 5 drivers for them because the
-> stillcam modes in different devices use four different vendor-specific
-> drivers.
+> > I'm not claiming that this is a better solution than putting everything
+> > in the kernel.  Just that it is a workable alternative which would
+> > involve a lot less coding.
+> 
+> This is definitely an interesting proposal, something to think about ...
+> 
+> I have 2 concerns wrt this approach:
+> 
+> 1) It feels less clean then just having a single driver; and
 
-Yes, but so the the webcam modes of the different devices, so for
-the 5 (not sure if that is the right number) dual-cam mode chipsets
-we support there will be 5 drivers, each supporting both the
-webcam and the access to pictures stored in memory of the chipset
-they support. So 5 chipsets -> 5 drivers each supporting 1 chipset,
-and both functions of the single logical device that chipset
-represents.
+Agreed.
 
->  Does it really make sense to combine 5 drivers into one?
+> 2) I agree it will be less coding, but I doubt it will really be that much
+> less work. It will likely need less new code (but a lot can be more or
+> less copy pasted), but it will need changes across a wider array of
+> subsystems / userspace components, requiring a lot of coordinating,
+> getting patches merged in different projects, etc. So in the end I
+> think it too will be quite a bit of work.
+> 
+> I guess that what I'm trying to say here is, that if we are going to
+> spend a significant amount of time on this, we might just as well
+> go for the best solution we can come up with even if that is some
+> more work.
 
-Right, that is not the plan. The plan is to simply stop having 2 drivers
-for 1 logical (and physical) block. So we go from 10 drivers, 5 stillcam
-+ 5 webcam, to just 5 drivers. We will also likely be able to share
-code between the code for the 2 functionalities for things like generic
-set / get register functions, initialization, etc.
+Okay, go ahead.  I have no objection.
 
-Regards,
+Alan Stern
 
-Hans
