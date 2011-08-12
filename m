@@ -1,55 +1,65 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp23.services.sfr.fr ([93.17.128.22]:28916 "EHLO
-	smtp23.services.sfr.fr" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751761Ab1HOTq5 (ORCPT
+Received: from smtp1-g21.free.fr ([212.27.42.1]:60071 "EHLO smtp1-g21.free.fr"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751259Ab1HLIhs convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 15 Aug 2011 15:46:57 -0400
-Received: from filter.sfr.fr (localhost [127.0.0.1])
-	by msfrf2314.sfr.fr (SMTP Server) with ESMTP id 02CC4700055E
-	for <linux-media@vger.kernel.org>; Mon, 15 Aug 2011 21:46:55 +0200 (CEST)
-Received: from smtp-in.softsystem.co.uk (108.98.30.93.rev.sfr.net [93.30.98.108])
-	by msfrf2314.sfr.fr (SMTP Server) with SMTP id AE831700055C
-	for <linux-media@vger.kernel.org>; Mon, 15 Aug 2011 21:46:54 +0200 (CEST)
-Received: FROM [192.168.1.62] ([192.168.1.62])
-	BY smtp-in.softsystem.co.uk [93.30.98.108] (SoftMail 1.0.6, www.softsystem.co.uk) WITH ESMTP
-	FOR <linux-media@vger.kernel.org>; Mon, 15 Aug 2011 21:46:52 +0200
-Subject: Re: [mythtv-users] Anyone tested the DVB-T2 dual tuner TBS6280?
-From: Lawrence Rust <lvr@softsystem.co.uk>
-To: Andy Walls <awalls@md.metrocast.net>
-Cc: Discussion about MythTV <mythtv-users@mythtv.org>,
-	linux-media@vger.kernel.org
-In-Reply-To: <3976b67f-b55f-44c2-99fe-ef3968105563@email.android.com>
-References: <CAC3jWv+c1HOqmo0B18Z3vWOwjr=RoPrN7sfR3bqzz4Tw7=fPAQ@mail.gmail.com>
-	 <1313226504.2840.22.camel@gagarin>
-	 <CAC3jWvLszU4gTSVW0mXUFrhnHCpPWRUqErytF9jXs39sbCJd3Q@mail.gmail.com>
-	 <1313400289.1648.22.camel@gagarin>
-	 <3976b67f-b55f-44c2-99fe-ef3968105563@email.android.com>
-Content-Type: text/plain; charset="UTF-8"
-Date: Mon, 15 Aug 2011 21:46:51 +0200
-Message-ID: <1313437611.18940.11.camel@gagarin>
+	Fri, 12 Aug 2011 04:37:48 -0400
+Received: from tele (unknown [IPv6:2a01:e35:2f5c:9de0:212:bfff:fe1e:8db5])
+	by smtp1-g21.free.fr (Postfix) with ESMTP id D4273940138
+	for <linux-media@vger.kernel.org>; Fri, 12 Aug 2011 10:37:42 +0200 (CEST)
+Date: Fri, 12 Aug 2011 10:37:49 +0200
+From: Jean-Francois Moine <moinejf@free.fr>
+To: linux-media@vger.kernel.org
+Subject: [GIT PATCHES FOR 3.2] gspca for_v3.2
+Message-ID: <20110812103749.0ba22d60@tele>
 Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, 2011-08-15 at 06:19 -0400, Andy Walls wrote:
-> One of the bigger problems with the cx23885 driver and hardware was that things don't appear to work well with MSI enabled in the driver.  Hack your version of the driver to make sure MSI is not enabled for CX2388[578] chips.
-> 
-> As far as the unclearable IR interrupt with MSI disabled, I've only seen that with the CX23885 on nonHauppauge cards; the CX23888 seems to be ok.  I'm sure the problem on nonHauppauge cards is simply me no knowing for sure how some of the pins on the CX23885 were wired up.
+The following changes since commit
+9bed77ee2fb46b74782d0d9d14b92e9d07f3df6e:
 
-Thanks for your pointers on the pitfalls and CX25840 similarity.  That
-helps considerably.
+  [media] tuner_xc2028: Allow selection of the frequency adjustment code for XC3028 (2011-08-06 09:52:47 -0300)
 
-Progressing well at present.  Will keep you posted.
+are available in the git repository at:
+  git://linuxtv.org/jfrancois/gspca.git for_v3.2
 
-How would it stand legally etc if I posted a patch to this list to
-support the tbs6981?  Two possible scenarios:
+Jean-François Moine (15):
+      gspca - ov519: Fix LED inversion of some ov519 webcams
+      gspca - sonixj: Fix the darkness of sensor om6802 in 320x240
+      gspca - jeilinj: Cleanup code
+      gspca - sonixj: Adjust the contrast control
+      gspca - sonixj: Increase the exposure for sensor soi768
+      gspca - sonixj: Cleanup source and remove useless instructions
+      gspca - benq: Remove the useless function sd_isoc_init
+      gspca - kinect: Remove the gspca_debug definition
+      gspca - ov534_9: Use the new control mechanism
+      gspca - ov534_9: New sensor ov9712 and new webcam 05a9:8065
+      gspca - main: Fix the isochronous transfer interval
+      gspca - main: Better values for V4L2_FMT_FLAG_COMPRESSED
+      gspca - main: Use a better altsetting for image transfer
+      gspca - main: Handle the xHCI error on usb_set_interface()
+      gspca - tp6800: New subdriver for Topro webcams
 
-1. Referencing, but not requiring, a blob module built from from TBS's
-tuner FE object file that they distribute.
-2. Using a reversed engineered FE driver.
+Luiz Carlos Ramos (1):
+      gspca - sonixj: Fix wrong register mask for sensor om6802
+
+ Documentation/video4linux/gspca.txt |    3 +
+ drivers/media/video/gspca/Kconfig   |    9 +
+ drivers/media/video/gspca/Makefile  |    2 +
+ drivers/media/video/gspca/benq.c    |   15 -
+ drivers/media/video/gspca/gspca.c   |  234 ++-
+ drivers/media/video/gspca/jeilinj.c |   10 +-
+ drivers/media/video/gspca/kinect.c  |    5 -
+ drivers/media/video/gspca/ov519.c   |   22 +-
+ drivers/media/video/gspca/ov534_9.c |  504 ++--
+ drivers/media/video/gspca/sonixj.c  |   29 +-
+ drivers/media/video/gspca/tp6800.c  | 4989 +++++++++++++++++++++++++++++++++++
+ 11 files changed, 5430 insertions(+), 392 deletions(-)
+ create mode 100644 drivers/media/video/gspca/tp6800.c
 
 -- 
-Lawrence
-
-
+Ken ar c'hentañ	|	      ** Breizh ha Linux atav! **
+Jef		|		http://moinejf.free.fr/
