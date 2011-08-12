@@ -1,20 +1,47 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout-de.gmx.net ([213.165.64.23]:55992 "HELO
-	mailout-de.gmx.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1751270Ab1HPIhs (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 16 Aug 2011 04:37:48 -0400
-Message-ID: <4E4A2C59.8080108@gmx.net>
-Date: Tue, 16 Aug 2011 10:37:45 +0200
-From: "MadLoisae@gmx.net" <MadLoisae@gmx.net>
-Reply-To: MadLoisae@gmx.net
-MIME-Version: 1.0
-To: linux-media@vger.kernel.org
-References: <1313384834-24433-1-git-send-email-lacombar@gmail.com> <1313384834-24433-6-git-send-email-lacombar@gmail.com> <201108161015.49608.laurent.pinchart@ideasonboard.com>
-In-Reply-To: <201108161015.49608.laurent.pinchart@ideasonboard.com>
-Content-Type: text/plain; charset=ISO-8859-15; format=flowed
-Content-Transfer-Encoding: 7bit
+Received: from mgw2.diku.dk ([130.225.96.92]:46815 "EHLO mgw2.diku.dk"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751587Ab1HLLkP (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 12 Aug 2011 07:40:15 -0400
+From: Julia Lawall <julia@diku.dk>
+To: Antoine Jacquet <royale@zerezo.com>
+Cc: kernel-janitors@vger.kernel.org,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	linux-usb@vger.kernel.org, linux-media@vger.kernel.org,
+	linux-kernel@vger.kernel.org
+Subject: [PATCH] drivers/media/video/zr364xx.c: add missing cleanup code
+Date: Fri, 12 Aug 2011 13:40:08 +0200
+Message-Id: <1313149208-7368-1-git-send-email-julia@diku.dk>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-unsubscribe linux-media
+From: Julia Lawall <julia@diku.dk>
+
+It seems just as necessary to free cam->vdev and cam in this error case as
+in the next one.
+
+Signed-off-by: Julia Lawall <julia@diku.dk>
+
+---
+There is yet another block of error handling code below the call to
+zr364xx_board_init, but perhaps no cleanup code is needed in that case,
+because that code is currently initializing a lock in cam?
+
+ drivers/media/video/zr364xx.c |    3 +++
+ 1 file changed, 3 insertions(+)
+
+diff --git a/drivers/media/video/zr364xx.c b/drivers/media/video/zr364xx.c
+index c492846..e78cf94 100644
+--- a/drivers/media/video/zr364xx.c
++++ b/drivers/media/video/zr364xx.c
+@@ -1638,6 +1638,9 @@ static int zr364xx_probe(struct usb_interface *intf,
+ 
+ 	if (!cam->read_endpoint) {
+ 		dev_err(&intf->dev, "Could not find bulk-in endpoint\n");
++		video_device_release(cam->vdev);
++		kfree(cam);
++		cam = NULL;
+ 		return -ENOMEM;
+ 	}
+ 
+
