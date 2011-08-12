@@ -1,47 +1,54 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:34318 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751765Ab1HOKd3 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 15 Aug 2011 06:33:29 -0400
-Message-ID: <4E48F5F6.1020700@iki.fi>
-Date: Mon, 15 Aug 2011 13:33:26 +0300
-From: Antti Palosaari <crope@iki.fi>
+Received: from perceval.ideasonboard.com ([95.142.166.194]:41998 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751074Ab1HLJ2o (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 12 Aug 2011 05:28:44 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Sakari Ailus <sakari.ailus@iki.fi>
+Subject: Re: omap3isp buffer alignment
+Date: Fri, 12 Aug 2011 11:28:21 +0200
+Cc: Michael Jones <michael.jones@matrix-vision.de>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+References: <4E43A770.7080308@matrix-vision.de> <20110811212145.GK5926@valkosipuli.localdomain>
+In-Reply-To: <20110811212145.GK5926@valkosipuli.localdomain>
 MIME-Version: 1.0
-To: Hein Rigolo <rigolo@gmail.com>
-CC: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	Christoph Pfister <christophpfister@gmail.com>
-Subject: Re: dvb-apps: update DVB-T intial tuning files for Finland (fi-*)
-References: <4E486AA2.30905@iki.fi> <CAPEGoTBhSkud+QLACn3i=AFpx8wYDk1O=mSJHF8iPjGCxibEfA@mail.gmail.com>
-In-Reply-To: <CAPEGoTBhSkud+QLACn3i=AFpx8wYDk1O=mSJHF8iPjGCxibEfA@mail.gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
+Message-Id: <201108121128.22850.laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 08/15/2011 12:56 PM, Hein Rigolo wrote:
-> On Mon, Aug 15, 2011 at 2:38 AM, Antti Palosaari <crope@iki.fi> wrote:
->> Updates all Finnish channels as today.
->>
->> Antti
+On Thursday 11 August 2011 23:21:45 Sakari Ailus wrote:
+> On Thu, Aug 11, 2011 at 11:57:04AM +0200, Michael Jones wrote:
+> > Hi Laurent,
+> > 
+> > If I understood your discussion with Russell [1] correctly, user pointer
+> > buffers are required to be page-aligned because of the IOMMU API, and
+> > it's desirable to keep the IOMMU driver that way for other subsystems
+> > which may use it. So we're stuck with user buffers needing to be
+> > page-aligned.
 > 
-> Do we still need to have separate initial tuning files per region in finland?
+> My understanding is that this is actually a hardware requirement. You only
+> can map pages of 4 kiB (at least).
+
+The IOMMU works on a 4kiB page granularity, but that doesn't require buffers 
+to be page-aligned. If the buffer start address isn't aligned on a page 
+boundary the IOMMU can map the whole page, and the driver can then just add an 
+offset to the virtual address.
+
+> > There's a check in ispvideo.c:isp_video_buffer_prepare() that the buffer
+> > address is 32-byte aligned. Isn't this superfluous considering the
+> > page-aligned restriction?
 > 
-> For France it was decided that the auto-With167kHzOffsets file would
-> be enough to find all possible DVB-T transponders in France. It was
-> suggested to create a fr-All that would be symlinked to the
-> auto-With167kHzOffsets file, but that was not implemented yet (as far
-> as I can see from the dvb-apps repository)
-> 
-> Can this approach also work for Finland?
-
-It was spoken ages for creation of EU-All, Taiwan-All, UK-All etc. but I
-don't remember which have been problem. For example many Windows
-channels scanner have such files. Finland uses standard EU channels,
-channels under 20 are VHF 7 MHz and channels over 20 are UHF 8 MHz. Just
-same used almost everywhere in EU.
-
-Antti
-
+> I guess the ISP driver isn't assuming that ispmmu_vmap always give page
+> aligned mappings --- or that the page size couls theoretically be smaller.
+> The assumptions might not hold in another implementation of the IOMMU API,
+> which however will be replaced (hopefully at some point) by the improved
+> DMA mapping API.
 
 -- 
-http://palosaari.fi/
+Regards,
+
+Laurent Pinchart
