@@ -1,53 +1,58 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from earthlight.etchedpixels.co.uk ([81.2.110.250]:54369 "EHLO
-	www.etchedpixels.co.uk" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1752155Ab1HLKLw (ORCPT
+Received: from moutng.kundenserver.de ([212.227.126.187]:54369 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751870Ab1HLMxq (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 12 Aug 2011 06:11:52 -0400
-Date: Fri, 12 Aug 2011 11:11:12 +0100
-From: Alan Cox <alan@lxorguk.ukuu.org.uk>
-To: Mauro Carvalho Chehab <mchehab@infradead.org>
-Cc: Theodore Kilgore <kilgota@banach.math.auburn.edu>,
-	Alan Stern <stern@rowland.harvard.edu>,
-	Hans de Goede <hdegoede@redhat.com>,
-	Sarah Sharp <sarah.a.sharp@linux.intel.com>,
-	Greg KH <greg@kroah.com>, linux-usb@vger.kernel.org,
-	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-	libusb-devel@lists.sourceforge.net, Alexander Graf <agraf@suse.de>,
-	Gerd Hoffmann <kraxel@redhat.com>, hector@marcansoft.com,
-	Jan Kiszka <jan.kiszka@siemens.com>,
-	Stefan Hajnoczi <stefanha@linux.vnet.ibm.com>,
-	pbonzini@redhat.com, Anthony Liguori <aliguori@us.ibm.com>,
-	Jes Sorensen <Jes.Sorensen@redhat.com>,
-	Oliver Neukum <oliver@neukum.org>, Felipe Balbi <balbi@ti.com>,
-	Clemens Ladisch <clemens@ladisch.de>,
-	Jaroslav Kysela <perex@perex.cz>, Takashi Iwai <tiwai@suse.de>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Adam Baker <linux@baker-net.org.uk>
-Subject: Re: USB mini-summit at LinuxCon Vancouver
-Message-ID: <20110812111112.722cce3a@lxorguk.ukuu.org.uk>
-In-Reply-To: <4E443C6E.8040808@infradead.org>
-References: <Pine.LNX.4.44L0.1108111145360.1958-100000@iolanthe.rowland.org>
-	<alpine.LNX.2.00.1108111235400.27040@banach.math.auburn.edu>
-	<4E443C6E.8040808@infradead.org>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+	Fri, 12 Aug 2011 08:53:46 -0400
+From: Arnd Bergmann <arnd@arndb.de>
+To: Marek Szyprowski <m.szyprowski@samsung.com>
+Subject: Re: [PATCH 7/9] ARM: DMA: steal memory for DMA coherent mappings
+Date: Fri, 12 Aug 2011 14:53:05 +0200
+Cc: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+	linux-media@vger.kernel.org, linux-mm@kvack.org,
+	linaro-mm-sig@lists.linaro.org,
+	Michal Nazarewicz <mina86@mina86.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	Russell King <linux@arm.linux.org.uk>,
+	Andrew Morton <akpm@linux-foundation.org>,
+	KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>,
+	Ankita Garg <ankita@in.ibm.com>,
+	Daniel Walker <dwalker@codeaurora.org>,
+	Mel Gorman <mel@csn.ul.ie>,
+	Jesse Barker <jesse.barker@linaro.org>,
+	Jonathan Corbet <corbet@lwn.net>,
+	Shariq Hasnain <shariq.hasnain@linaro.org>,
+	Chunsang Jeong <chunsang.jeong@linaro.org>
+References: <1313146711-1767-1-git-send-email-m.szyprowski@samsung.com> <1313146711-1767-8-git-send-email-m.szyprowski@samsung.com>
+In-Reply-To: <1313146711-1767-8-git-send-email-m.szyprowski@samsung.com>
+MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="iso-8859-15"
 Content-Transfer-Encoding: 7bit
+Message-Id: <201108121453.05898.arnd@arndb.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-> instead of using the V4L2 device node to access the stored images, it probably makes 
-> more sense to use a separate device for that, that will handle a separate set of 
-> ioctl's, and just use read() to retrieve the image data, after selecting the desired
-> image number, via ioctl().
+On Friday 12 August 2011, Marek Szyprowski wrote:
+> 
+> From: Russell King <rmk+kernel@arm.linux.org.uk>
+> 
+> Steal memory from the kernel to provide coherent DMA memory to drivers.
+> This avoids the problem with multiple mappings with differing attributes
+> on later CPUs.
+> 
+> Signed-off-by: Russell King <rmk+kernel@arm.linux.org.uk>
+> [m.szyprowski: rebased onto 3.1-rc1]
+> Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
 
-How will you handle the permission model, what about devices where you
-need the V4L2 controls to take the picture in the first place ?
+Hi Marek,
 
-It seems it should really be the same device and just a minor tweak to
-the API. V4L2 already provides frame reading and mapping functionality
-and the media layer provides post processing services which I could
-conceive some setups needing to use.
+Is this the same patch that Russell had to revert because it didn't
+work on some of the older machines, in particular those using
+dmabounce?
 
-gphoto would just open the v4l device ask for still image stuff and
-discover it wasn't available.
+I thought that our discussion ended with the plan to use this only
+for ARMv6+ (which has a problem with double mapping) but not on ARMv5
+and below (which don't have this problem but might need dmabounce).
+
+	Arnd
