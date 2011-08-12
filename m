@@ -1,178 +1,83 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:13026 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755752Ab1HCNXr (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 3 Aug 2011 09:23:47 -0400
-Message-ID: <4E394BDB.9040901@redhat.com>
-Date: Wed, 03 Aug 2011 10:23:39 -0300
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-MIME-Version: 1.0
-To: Doron Cohen <doronc@siano-ms.com>
-CC: BOUWSMA Barry <freebeer.bouwsma@gmail.com>,
-	linux-media@vger.kernel.org
-Subject: Re: [PATCH] drivers: support new Siano tuner devices.
-References: <D945C405928A9949A0F33C69E64A1A3BAFFC82@s-mail.siano-ms.ent><alpine.DEB.2.01.1107310018340.1800@localhost.localdomain><D945C405928A9949A0F33C69E64A1A3BB39334@s-mail.siano-ms.ent> <4E392C4B.10207@redhat.com> <D945C405928A9949A0F33C69E64A1A3BB394EE@s-mail.siano-ms.ent>
-In-Reply-To: <D945C405928A9949A0F33C69E64A1A3BB394EE@s-mail.siano-ms.ent>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+Received: from mailout2.w1.samsung.com ([210.118.77.12]:50039 "EHLO
+	mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753679Ab1HLK6r (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 12 Aug 2011 06:58:47 -0400
+Date: Fri, 12 Aug 2011 12:58:31 +0200
+From: Marek Szyprowski <m.szyprowski@samsung.com>
+Subject: [PATCH 9/9] ARM: S5PV210: example of CMA private area for FIMC device
+ on Goni board
+In-reply-to: <1313146711-1767-1-git-send-email-m.szyprowski@samsung.com>
+To: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+	linux-media@vger.kernel.org, linux-mm@kvack.org,
+	linaro-mm-sig@lists.linaro.org
+Cc: Michal Nazarewicz <mina86@mina86.com>,
+	Marek Szyprowski <m.szyprowski@samsung.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	Russell King <linux@arm.linux.org.uk>,
+	Andrew Morton <akpm@linux-foundation.org>,
+	KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>,
+	Ankita Garg <ankita@in.ibm.com>,
+	Daniel Walker <dwalker@codeaurora.org>,
+	Mel Gorman <mel@csn.ul.ie>, Arnd Bergmann <arnd@arndb.de>,
+	Jesse Barker <jesse.barker@linaro.org>,
+	Jonathan Corbet <corbet@lwn.net>,
+	Shariq Hasnain <shariq.hasnain@linaro.org>,
+	Chunsang Jeong <chunsang.jeong@linaro.org>
+Message-id: <1313146711-1767-10-git-send-email-m.szyprowski@samsung.com>
+MIME-version: 1.0
+Content-type: TEXT/PLAIN
+Content-transfer-encoding: 7BIT
+References: <1313146711-1767-1-git-send-email-m.szyprowski@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em 03-08-2011 10:22, Doron Cohen escreveu:
-> Hi,
-> OK, I will change so request_module will be called for all devices.
+This patch is an example how device private CMA area can be activated.
+It creates one CMA region and assigns it to the first s5p-fimc device on
+Samsung Goni S5PC110 board.
 
-OK, thanks!
+Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
+Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+---
+ arch/arm/mach-s5pv210/Kconfig     |    1 +
+ arch/arm/mach-s5pv210/mach-goni.c |    4 ++++
+ 2 files changed, 5 insertions(+), 0 deletions(-)
 
-> Regarding the other comment you have sent about the IR module - I have
-> noticed it when I continued with the merges and fixed it last week but
-> I had a small accident where I formatted the wrong disk and had to start
-> over my merges.
-
-Sorry to hear. Yeah, bad things happen.
-
-> I will make the proper changes based on the comments about this thread
-> and publish it again.
-
-Ok, no problem.
-
-> Thanks,
-> Doron
-> 
-> -----Original Message-----
-> From: Mauro Carvalho Chehab [mailto:mchehab@redhat.com] 
-> Sent: Wednesday, August 03, 2011 14:09
-> To: Doron Cohen
-> Cc: BOUWSMA Barry; linux-media@vger.kernel.org
-> Subject: Re: [PATCH] drivers: support new Siano tuner devices.
-
-Btw, please, don't top-post. It makes harder for people to understand, when
-the answer is written before the question.
-
-Thanks!
-Mauro
-
-> 
-> Em 03-08-2011 02:06, Doron Cohen escreveu:
->> Hi Barry,
->> One thing I need to check before I approve and even extent this
-> change:
->> What happens if the smsdvb module does not exists.
->> I assume nothing happens since we are not checking the return code and
-> therefore everything will work as if this call was
->> not exist, but I would like to check that before my final decision.
->> The reason is that the devices from HAUPPAUGE which currently request
-> for the smsdvb module must use the
->> v4l as defined by HAUPPAUGE. Other device based on other SMS chips
-> (Not just the STELLAR but also the NOVA, VENICE, RIO
->> and other device series) not always uses the v4l but sometimes has
-> proprietary player which used the SMS device directly. 
->> So I wouldn't like to cause harm for those users.
->> I seems that requesting the module will not harm, if the module does
-> not exists - the request will fail and everything
->> will keep working, and if the module exists it will load but they
-> still won't have to use it.
-> 
-> I think you're calling the DVB API as "v4l". Be careful, as "v4l" is the
-> name of 
-> the API used for analog TV and webcams. "DVB API" is the name of the API
-> used for
-> Digital TV, where DVBv3 means the API that supports only DVB/C/T/S and
-> ATSC, and
-> DVBv5 is the flexible API that supports multiple Delivery Systems, and
-> whose addition
-> of a new one is just a matter of adding a new set of properties to
-> FE_GET_PROPERTY and
-> FE_SET_PROPERTY.
-> 
-> The only API acceptable for a DVB driver at the Linux Kernel is the DVB
-> API.
-> Nothing prevents you to offer other API's to your customers, but
-> upstream 
-> patches with another API aren't accepted. We had a similar discussion
-> years 
-> ago, when Uri synced the Siano's internal tree with the kernel one.
-> 
-> That's said, if smsdvb doesn't exist, request_module("smsdvb") won't
-> produce 
-> any error.
-> 
->> So in that case I would also add a few more devices to the list (all
-> of Siano devices which 
->> supports standards supported by v4l. 
-> 
-> The right solution is to move request_module("smsdvb")to be outside of
-> the card-specific test, trying to load it for all boards, as it won't 
-> make sense otherwise (as there's no sense to add the driver to Kernel
-> without the DVB API, as it won't work as-is).
-> 
-> 
-> If there are some Delivery System not yet supported, then the right
-> solution 
-> is to propose a DVB API addition (using DVBv5 API) to support the new
-> Delivery
-> System. There are a few ones not properly supported yet. So, go ahead
-> and propose 
-> adding new properties to support such standards.
-> 
-> Recently, I found some time to update DVBv5 API description for the
-> supported 
-> Delivery Systems. It is at:
-> 	
-> http://linuxtv.org/downloads/v4l-dvb-apis/FE_GET_SET_PROPERTY.html#fe_pr
-> operty_parameters
-> The DocBook source for it is at
-> Documentation/DocBook/media/dvb/dvbproperty.xml.
-> 
-> Basically, the API currently documents: DVB-T/T2/C/S/S2, ISDB-T/S and
-> ATSC.
-> 
-> It misses a few standards like DVB-H, DMB and CMMB. Yet, there are a few
-> frontends implementing
-> them (lgs8gl5, for example, implements DMB-TH). So, maybe all that it is
-> needed for some of
-> those standards are already there or maybe the current implementations
-> just put everything on
-> the AUTO mode.
-> 
-> So, maybe it is just a matter of properly documenting what properties
-> those standards need. If not,
-> adding a few new properties and/or extending the existing ones should be
-> enough to add support
-> for them.
-> 
->> If the change will cause problems for users who doesn't need the v4l I
-> will object to this change.
->> I will run a few tests on that and either add these changes or let you
-> know of a problem in a few days.
->>
->> Regarding DAB+, it was added to the firmware about a year ago, it is
-> required to change the firmware
->> file with a newer one and nothing is required in the host layers for
-> that support. Bad news is that 
->> according to the patch you gave - you are probably using STELLAR
-> device and there is no such firmware 
->> for that device. The DAB+ support was added to newer Siano devices
-> (NOVA and up) but not for the 
->> STELLAR due to device HW limitations.
-> 
-> Currently, DAB is not covered by DVBv5 API. So, we'll likely need to add
-> some new properties there
-> for it.
-> 
-> Cheers,
-> Mauro
-> 
->  
->  
-> ************************************************************************
-> ************
-> This footnote confirms that this email message has been scanned by
-> PineApp Mail-SeCure for the presence of malicious code, vandals &
-> computer viruses.
-> ************************************************************************
-> ************
-> 
-> 
-> 
+diff --git a/arch/arm/mach-s5pv210/Kconfig b/arch/arm/mach-s5pv210/Kconfig
+index 69dd87c..697a5be 100644
+--- a/arch/arm/mach-s5pv210/Kconfig
++++ b/arch/arm/mach-s5pv210/Kconfig
+@@ -64,6 +64,7 @@ menu "S5PC110 Machines"
+ config MACH_AQUILA
+ 	bool "Aquila"
+ 	select CPU_S5PV210
++	select CMA
+ 	select S3C_DEV_FB
+ 	select S5P_DEV_FIMC0
+ 	select S5P_DEV_FIMC1
+diff --git a/arch/arm/mach-s5pv210/mach-goni.c b/arch/arm/mach-s5pv210/mach-goni.c
+index 85c2d51..665c4ae 100644
+--- a/arch/arm/mach-s5pv210/mach-goni.c
++++ b/arch/arm/mach-s5pv210/mach-goni.c
+@@ -26,6 +26,7 @@
+ #include <linux/input.h>
+ #include <linux/gpio.h>
+ #include <linux/interrupt.h>
++#include <linux/dma-contiguous.h>
+ 
+ #include <asm/mach/arch.h>
+ #include <asm/mach/map.h>
+@@ -848,6 +849,9 @@ static void __init goni_map_io(void)
+ static void __init goni_reserve(void)
+ {
+ 	s5p_mfc_reserve_mem(0x43000000, 8 << 20, 0x51000000, 8 << 20);
++
++	/* Create private 16MiB contiguous memory area for s5p-fimc.0 device */
++	dma_declare_contiguous(&s5p_device_fimc0.dev, 16*SZ_1M, 0);
+ }
+ 
+ static void __init goni_machine_init(void)
+-- 
+1.7.1.569.g6f426
 
