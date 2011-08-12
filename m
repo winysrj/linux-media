@@ -1,128 +1,74 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.126.187]:51882 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753123Ab1HaJHJ (ORCPT
+Received: from perceval.ideasonboard.com ([95.142.166.194]:47817 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751718Ab1HLUjO (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 31 Aug 2011 05:07:09 -0400
-Date: Wed, 31 Aug 2011 11:06:57 +0200 (CEST)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: Re: [PATCH] media: none of the drivers should be enabled by default
-In-Reply-To: <201108311053.00687.hverkuil@xs4all.nl>
-Message-ID: <Pine.LNX.4.64.1108311103130.8429@axis700.grange>
-References: <Pine.LNX.4.64.1108301921040.19151@axis700.grange>
- <201108311021.05793.hverkuil@xs4all.nl> <Pine.LNX.4.64.1108311023260.8429@axis700.grange>
- <201108311053.00687.hverkuil@xs4all.nl>
+	Fri, 12 Aug 2011 16:39:14 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: "Ravi, Deepthy" <deepthy.ravi@ti.com>
+Subject: Re: [QUERY] Inclusion of isp.h in board-omap3evm-camera.c
+Date: Fri, 12 Aug 2011 22:39:16 +0200
+Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	"Hiremath, Vaibhav" <hvaibhav@ti.com>,
+	"Koyamangalath, Abhilash" <abhilash.kv@ti.com>
+References: <ADF30F4D7BDE934D9B632CE7D5C7ACA4047C4D0907CF@dbde03.ent.ti.com>
+In-Reply-To: <ADF30F4D7BDE934D9B632CE7D5C7ACA4047C4D0907CF@dbde03.ent.ti.com>
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201108122239.17315.laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, 31 Aug 2011, Hans Verkuil wrote:
+Hi Ravi,
 
-> On Wednesday, August 31, 2011 10:26:08 Guennadi Liakhovetski wrote:
-> > On Wed, 31 Aug 2011, Hans Verkuil wrote:
-> > 
-> > > On Tuesday, August 30, 2011 23:31:06 Guennadi Liakhovetski wrote:
-> > > > On Tue, 30 Aug 2011, Hans Verkuil wrote:
-> > > > 
-> > > > > On Tuesday, August 30, 2011 22:12:09 Guennadi Liakhovetski wrote:
-> > > > > > On Tue, 30 Aug 2011, Hans Verkuil wrote:
-> > > > > > 
-> > > > > > > On Tuesday, August 30, 2011 19:22:00 Guennadi Liakhovetski wrote:
-> > > > > > > > None of the media drivers are compulsory, let users select which 
-> > > drivers
-> > > > > > > > they want to build, instead of having to unselect them one by 
-> one.
-> > > > > > > 
-> > > > > > > I disagree with this: while this is fine for SoCs, for a generic 
-> > > kernel I
-> > > > > > > think it is better to build it all. Even expert users can have a 
-> hard 
-> > > time
-> > > > > > > figuring out what chip is in a particular device.
-> > > > > > 
-> > > > > > Then could someone, please, explain to me, why I don't find this 
-> > > > > > "convenience" in any other kernel driver class? Wireless, ALSA, USB, 
-> I2C 
-> > > - 
-> > > > > > you name them. Is there something special about media, that I'm 
-> missing, 
-> > > > > > or are all others just user-unfriendly? Why are distro-kernels, 
-> > > > > > allmodconfig, allyesconfig not enough for media and we think it's 
-> > > > > > necessary to build everything "just in case?"
-> > > > > 
-> > > > > That's actually a good question. I certainly think that the more 
-> obscure
-> > > > > drivers can be disabled by default. But I also think that you want to 
-> keep
-> > > > > a certain subset of commonly used drivers enabled. I'm thinking bttv, 
-> uvc,
-> > > > > perhaps gspca.
-> > > > 
-> > > > Good, this is a good beginning! It was actually the purpose of my patch 
-> - 
-> > > > to make us actually consider which drivers we need enabled per default, 
-> > > > and which we don't, instead of just enabling all.
-> > > > 
-> > > > > As far as I can see, alsa enables for example HD Audio, which almost 
-> all
-> > > > > modern hw supports. We should do something similar for v4l.
-> > > > 
-> > > > Yes, agree.
-> > > > 
-> > > > > And we should really reorder some of the entries in the menu: one of 
-> the
-> > > > > first drivers you see are parallel port webcams and other very obscure
-> > > > > devices.
-> > > > 
-> > > > Ok.
-> > > > 
-> > > > So, how should we proceed? What I certainly would like to disable 
-> > > > completely or to 99% are remote controls and tuners. The rest are 
-> actually 
-> > > > disabled by default, which is great. Or at least I would like to have a 
-> > > > single switch "disable all," ideally active by default. One of the 
-> > > > possibilities would be to take the patch as is and _then_ begin to 
-> think, 
-> > > > which drivers we want enabled by default. I just think, that the correct 
-> > > > approach is to think, which drivers we need enabled by default - as 
-> > > > exceptions, instead of - which drivers we can afford to disable.
-> > > 
-> > > I would propose to start by reorganizing the menu. E.g. make a submenu for
-> > > old legacy bus drivers (parallel port, ISA), for platform drivers, and for
-> > > 'rare' drivers (need a better name for that :-) ). For example the Hexium
-> > > PCI drivers are very rare, and few people have them.
-> > 
-> > Sure, this can be done, not sure whether I'm a suitable person for this 
-> > task - I don't have a very good overview of the present market 
-> > situation;-)
-> > 
-> > > Once that is done we can look at disabling those legacy/platform/rare 
-> drivers.
-> > 
-> > I'm not sure any of those are actually enabled. What concerns me most are 
-> > tuner and remote controller drivers. Do they also belong to your "rare" 
-> > category? Do you agree, that they have to be disabled by default?
+On Friday 12 August 2011 09:35:16 Ravi, Deepthy wrote:
+> I need to use some isp structures ( isp_v4l2_subdevs_group,
+> isp_platform_data ,isp_subdev_i2c_board_info etc.) in 
+> board-omap3evm-camera.c. For that header file isp.h has to be included .
+> Currently I am including it in this way:
 > 
-> I can't comment on the remote controller drivers as I haven't been involved
-> with that.
+> #include <../drivers/media/video/omap3isp/isp.h>
 
-Mauro?
+OMAP3 ISP platform data should be split from isp.h into 
+include/media/omap3isp.h. I've sent a patch for that to the linux-media 
+mailing list and CC'ed you.
 
-> With regards to the tuners: perhaps it is sufficient to default MEDIA_ATTACH
-> to 'y'? That should prevent building those tuners that are not needed.
+Unfortunately that won't be enough, as board code currently requires the 
+isp_device structure definition to access the platform callback functions. 
+Those functions will be removed in the future when more generic alternatives 
+will be available, but there's still some work required for that.
 
-Sorry, I don't see how this should work. I mean tuners under 
-drivers/media/common/tuners/.
+> Is there a better way to do this ? The relevant hunk of the patch is shown
+> below:
+> 
+> diff --git a/arch/arm/mach-omap2/board-omap3evm-camera.c
+> b/arch/arm/mach-omap2/board-omap3evm-camera.c new file mode 100644
+> index 0000000..319a6a1
+> --- /dev/null
+> +++ b/arch/arm/mach-omap2/board-omap3evm-camera.c
+> +#include <linux/io.h>
+> +#include <linux/i2c.h>
+> +#include <linux/delay.h>
+> +#include <linux/platform_device.h>
+> +#include <linux/regulator/consumer.h>
+> +
+> +#include <mach/gpio.h>
+> +
+> +#include <media/tvp514x.h>
+> +
+> +#include <../drivers/media/video/omap3isp/isp.h>
 
-> I wouldn't change anything else here.
+#include "../drivers/media/video/omap3isp/isp.h"
 
-Thanks
-Guennadi
----
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
-http://www.open-technology.de/
+but that's not really better :-)
+
+You should include <media/omap3isp.h> (after applying the patch that creates 
+that file). If your board code doesn't use the OMAP3 ISP platform callback 
+functions, you don't need to include the isp.h header at all.
+
+-- 
+Regards,
+
+Laurent Pinchart
