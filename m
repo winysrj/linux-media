@@ -1,60 +1,109 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nm4.bt.bullet.mail.ukl.yahoo.com ([217.146.183.202]:37896 "HELO
-	nm4.bt.bullet.mail.ukl.yahoo.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with SMTP id S1752566Ab1HTLOo (ORCPT
+Received: from moutng.kundenserver.de ([212.227.17.10]:51455 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752359Ab1HLPAm (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 20 Aug 2011 07:14:44 -0400
-Message-ID: <4E4F971F.5070902@yahoo.com>
-Date: Sat, 20 Aug 2011 12:14:39 +0100
-From: Chris Rankin <rankincj@yahoo.com>
+	Fri, 12 Aug 2011 11:00:42 -0400
+From: Arnd Bergmann <arnd@arndb.de>
+To: linux-arm-kernel@lists.infradead.org
+Subject: Re: [PATCH 8/9] ARM: integrate CMA with DMA-mapping subsystem
+Date: Fri, 12 Aug 2011 17:00:30 +0200
+Cc: Marek Szyprowski <m.szyprowski@samsung.com>,
+	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
+	linux-mm@kvack.org, linaro-mm-sig@lists.linaro.org,
+	Daniel Walker <dwalker@codeaurora.org>,
+	Russell King <linux@arm.linux.org.uk>,
+	Jonathan Corbet <corbet@lwn.net>, Mel Gorman <mel@csn.ul.ie>,
+	Chunsang Jeong <chunsang.jeong@linaro.org>,
+	Michal Nazarewicz <mina86@mina86.com>,
+	Jesse Barker <jesse.barker@linaro.org>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	Ankita Garg <ankita@in.ibm.com>,
+	Shariq Hasnain <shariq.hasnain@linaro.org>,
+	Andrew Morton <akpm@linux-foundation.org>,
+	KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+References: <1313146711-1767-1-git-send-email-m.szyprowski@samsung.com> <1313146711-1767-9-git-send-email-m.szyprowski@samsung.com>
+In-Reply-To: <1313146711-1767-9-git-send-email-m.szyprowski@samsung.com>
 MIME-Version: 1.0
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-CC: Devin Heitmueller <dheitmueller@kernellabs.com>,
-	linux-media@vger.kernel.org, Antti Palosaari <crope@iki.fi>
-Subject: [PATCH 2/6] Fix memory leak on disconnect or error.
-References: <4E4D5157.2080406@yahoo.com> <CAGoCfiwk4vy1V7T=Hdz1CsywgWVpWEis0eDoh2Aqju3LYqcHfA@mail.gmail.com> <CAGoCfiw4v-ZsUPmVgOhARwNqjCVK458EV79djD625Sf+8Oghag@mail.gmail.com> <4E4D8DFD.5060800@yahoo.com> <4E4DFA65.4090508@redhat.com>
-In-Reply-To: <4E4DFA65.4090508@redhat.com>
-Content-Type: multipart/mixed;
- boundary="------------060602020005060702040206"
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201108121700.30967.arnd@arndb.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This is a multi-part message in MIME format.
---------------060602020005060702040206
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+On Friday 12 August 2011, Marek Szyprowski wrote:
+> @@ -82,16 +103,16 @@ static struct page *__dma_alloc_buffer(struct device *dev, size_t size, gfp_t gf
+>  	if (mask < 0xffffffffULL)
+>  		gfp |= GFP_DMA;
+>  
+> -	page = alloc_pages(gfp, order);
+> -	if (!page)
+> -		return NULL;
+> -
+>  	/*
+> -	 * Now split the huge page and free the excess pages
+> +	 * Allocate contiguous memory
+>  	 */
+> -	split_page(page, order);
+> -	for (p = page + (size >> PAGE_SHIFT), e = page + (1 << order); p < e; p++)
+> -		__free_page(p);
+> +	if (cma_available())
+> +		page = dma_alloc_from_contiguous(dev, count, order);
+> +	else
+> +		page = __dma_alloc_system_pages(count, gfp, order);
+> +
+> +	if (!page)
+> +		return NULL;
 
-Release the dev->alt_max_pkt_size buffer in all cases.
+Why do you need the fallback here? I would assume that CMA now has to be available
+on ARMv6 and up to work at all. When you allocate from __dma_alloc_system_pages(),
+wouldn't that necessarily fail in the dma_remap_area() stage?
 
-Signed-off-by: Chris Rankin <rankincj@yahoo.com>
+>  
+> -	if (arch_is_coherent() || nommu()) {
+> +	if (arch_is_coherent() || nommu() ||
+> +	   (cma_available() && !(gfp & GFP_ATOMIC))) {
+> +		/*
+> +		 * Allocate from system or CMA pages
+> +		 */
+>  		struct page *page = __dma_alloc_buffer(dev, size, gfp);
+>  		if (!page)
+>  			return NULL;
+> +		dma_remap_area(page, size, area->prot);
+>  		pfn = page_to_pfn(page);
+>  		ret = page_address(page);
 
+Similarly with coherent and nommu. It seems to me that lumping too
+many cases together creates extra complexity here.
 
---------------060602020005060702040206
-Content-Type: text/x-patch;
- name="EM28xx-video-leak.diff"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: attachment;
- filename="EM28xx-video-leak.diff"
+How about something like
 
---- linux-3.0/drivers/media/video/em28xx/em28xx-video.c.orig	2011-08-18 17:20:10.000000000 +0100
-+++ linux-3.0/drivers/media/video/em28xx/em28xx-video.c	2011-08-18 17:20:33.000000000 +0100
-@@ -2202,6 +2202,7 @@
- 		   free the remaining resources */
- 		if (dev->state & DEV_DISCONNECTED) {
- 			em28xx_release_resources(dev);
-+			kfree(dev->alt_max_pkt_size);
- 			kfree(dev);
- 			return 0;
- 		}
---- linux-3.0/drivers/media/video/em28xx/em28xx-cards.c.orig	2011-08-17 08:52:19.000000000 +0100
-+++ linux-3.0/drivers/media/video/em28xx/em28xx-cards.c	2011-08-18 22:09:32.000000000 +0100
-@@ -3128,6 +3128,7 @@
- 	retval = em28xx_init_dev(&dev, udev, interface, nr);
- 	if (retval) {
- 		em28xx_devused &= ~(1<<dev->devno);
-+		kfree(dev->alt_max_pkt_size);
- 		mutex_unlock(&dev->lock);
- 		kfree(dev);
- 		goto err;
+	if (arch_is_coherent() || nommu())
+		ret = alloc_simple_buffer();
+	else if (arch_is_v4_v5())
+		ret = alloc_remap();
+	else if (gfp & GFP_ATOMIC)
+		ret = alloc_from_pool();
+	else
+		ret = alloc_from_contiguous();
 
---------------060602020005060702040206--
+This also allows a natural conversion to dma_map_ops when we get there.
+
+>  	/* reserve any platform specific memblock areas */
+>  	if (mdesc->reserve)
+>  		mdesc->reserve();
+>  
+> +	dma_coherent_reserve();
+> +	dma_contiguous_reserve();
+> +
+>  	memblock_analyze();
+>  	memblock_dump_all();
+>  }
+
+Since we can handle most allocations using CMA on ARMv6+, I would think
+that we can have a much smaller reserved area. Have you tried changing
+dma_coherent_reserve() to allocate out of the contiguous area instead of
+wasting a full 2MB section of memory?
+
+	Arnd
