@@ -1,99 +1,94 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.17.8]:59951 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752153Ab1H3O52 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 30 Aug 2011 10:57:28 -0400
-Date: Tue, 30 Aug 2011 16:57:15 +0200 (CEST)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Bastian Hecht <hechtb@googlemail.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Sakari Ailus <sakari.ailus@iki.fi>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: Re: [PATCH] media: Add support for arbitrary resolution for the
- ov5642 camera driver
-In-Reply-To: <201108301636.55251.hverkuil@xs4all.nl>
-Message-ID: <Pine.LNX.4.64.1108301650190.19151@axis700.grange>
-References: <alpine.DEB.2.02.1108171551040.17540@ipanema>
- <201108301546.42050.hverkuil@xs4all.nl> <Pine.LNX.4.64.1108301555350.19151@axis700.grange>
- <201108301636.55251.hverkuil@xs4all.nl>
+Received: from mx1.redhat.com ([209.132.183.28]:10620 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751473Ab1HLHZd (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 12 Aug 2011 03:25:33 -0400
+Message-ID: <4E44D5B5.7040305@redhat.com>
+Date: Fri, 12 Aug 2011 09:26:45 +0200
+From: Hans de Goede <hdegoede@redhat.com>
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+To: Alan Stern <stern@rowland.harvard.edu>
+CC: Theodore Kilgore <kilgota@banach.math.auburn.edu>,
+	Sarah Sharp <sarah.a.sharp@linux.intel.com>,
+	Greg KH <greg@kroah.com>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	linux-usb@vger.kernel.org, linux-media@vger.kernel.org,
+	linux-kernel@vger.kernel.org, libusb-devel@lists.sourceforge.net,
+	Alexander Graf <agraf@suse.de>,
+	Gerd Hoffmann <kraxel@redhat.com>, hector@marcansoft.com,
+	Jan Kiszka <jan.kiszka@siemens.com>,
+	Stefan Hajnoczi <stefanha@linux.vnet.ibm.com>,
+	pbonzini@redhat.com, Anthony Liguori <aliguori@us.ibm.com>,
+	Jes Sorensen <Jes.Sorensen@redhat.com>,
+	Oliver Neukum <oliver@neukum.org>, Felipe Balbi <balbi@ti.com>,
+	Clemens Ladisch <clemens@ladisch.de>,
+	Jaroslav Kysela <perex@perex.cz>, Takashi Iwai <tiwai@suse.de>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Adam Baker <linux@baker-net.org.uk>
+Subject: Re: USB mini-summit at LinuxCon Vancouver
+References: <Pine.LNX.4.44L0.1108111037240.1958-100000@iolanthe.rowland.org>
+In-Reply-To: <Pine.LNX.4.44L0.1108111037240.1958-100000@iolanthe.rowland.org>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, 30 Aug 2011, Hans Verkuil wrote:
+Hi,
 
-> On Tuesday, August 30, 2011 16:24:55 Guennadi Liakhovetski wrote:
-> > Hi Hans
-> > 
-> > On Tue, 30 Aug 2011, Hans Verkuil wrote:
+On 08/11/2011 04:56 PM, Alan Stern wrote:
+> On Thu, 11 Aug 2011, Hans de Goede wrote:
+>
+>>> The alternative seems to be to define a device-sharing protocol for USB
+>>> drivers.  Kernel drivers would implement a new callback (asking them to
+>>> give up control of the device), and usbfs would implement new ioctls by
+>>> which a program could ask for and relinquish control of a device.  The
+>>> amount of rewriting needed would be relatively small.
+>>>
+>>> A few loose ends would remain, such as how to handle suspends, resumes,
+>>> resets, and disconnects.  Assuming usbfs is the only driver that will
+>>> want to share a device in this way, we could handle them.
+>>>
+>>> Hans, what do you think?
+>>>
+>>
+>> First of all thanks for the constructive input!
+>>
+>> When you say: "device-sharing protocol", do you mean 2 drivers been
+>> attached, but only 1 being active. Or just some additional glue to make
+>> hand-over between them work better?
+>
+> I was thinking that the webcam driver would always be attached, but
+> from time to time usbfs would ask to use the device.  When the webcam
+> driver gives away control, it remains bound to the device but does not
+> send any URBs.  If it needs to send an URB, first it has to ask usbfs
+> to give control back.
+>
 
-[snip]
+Oh, interesting...
 
-> > > The problem with S_FMT changing the crop rectangle (and I assume we are not
-> > > talking about small pixel tweaks to make the hardware happy) is that the
-> > > crop operation actually removes part of the frame. That's not something you
-> > > would expect S_FMT to do, ever. Such an operation has to be explicitly
-> > > requested by the user.
-> > > 
-> > > It's also why properly written applications (e.g. capture-example.c) has
-> > > code like this to reset the crop rectangle before starting streaming:
-> > > 
-> > >         if (0 == xioctl(fd, VIDIOC_CROPCAP, &cropcap)) {
-> > >                 crop.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
-> > >                 crop.c = cropcap.defrect; /* reset to default */
-> > > 
-> > >                 if (-1 == xioctl(fd, VIDIOC_S_CROP, &crop)) {
-> > >                         switch (errno) {
-> > >                         case EINVAL:
-> > >                                 /* Cropping not supported. */
-> > >                                 break;
-> > >                         default:
-> > >                                 /* Errors ignored. */
-> > >                                 break;
-> > >                         }
-> > >                 }
-> > >         }
-> > > 
-> > > (Hmm, capture-example.c should also test for ENOTTY since we changed the
-> > > error code).
-> > 
-> > I agree, that preserving input rectangle == output rectangle in reply to 
-> > S_FMT is not nice, and should be avoided, wherever possible. Still, I 
-> > prefer this to sticking with just one fixed output geometry, especially 
-> > since (1) the spec doesn't prohibit this behaviour,
-> 
-> Hmm, I think it should be prohibited. Few drivers actually implement crop,
-> and fewer applications use it. So I'm not surprised the spec doesn't go into 
-> much detail.
-> 
-> > (2) there are already 
-> > precedents in the mainline.
-> 
-> Which precedents? My guess is that any driver that does this was either not
-> (or poorly) reviewed, or everyone just missed it.
+<snip lots of good stuff>
 
-My first two sensor drivers mt9m001 and mt9v022 do this, but, I suspect, I 
-didn't invent it at that time, I think, I copied it from somewhere, cannot 
-say for sure though anymore.
+> I'm not claiming that this is a better solution than putting everything
+> in the kernel.  Just that it is a workable alternative which would
+> involve a lot less coding.
 
-> > Maybe, a bit of hardware background would help: the sensor is actually 
-> > supposed to be able to both crop and scale, and we did try to implement 
-> > scales other than 1:1, but the chip just refused to produce anything 
-> > meaningful.
-> 
-> I still don't see any reason why S_FMT would suddenly crop on such a sensor.
-> It's completely unexpected and the user does not get what he expects.
+This is definitely an interesting proposal, something to think about ...
 
-Good, let's make it simple for all (except Bastian) then: Bastian, sorry 
-for having misguided you, please, switch to .s_crop().
+I have 2 concerns wrt this approach:
 
-Thanks
-Guennadi
----
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
-http://www.open-technology.de/
+1) It feels less clean then just having a single driver; and
+2) I agree it will be less coding, but I doubt it will really be that much
+less work. It will likely need less new code (but a lot can be more or
+less copy pasted), but it will need changes across a wider array of
+subsystems / userspace components, requiring a lot of coordinating,
+getting patches merged in different projects, etc. So in the end I
+think it too will be quite a bit of work.
+
+I guess that what I'm trying to say here is, that if we are going to
+spend a significant amount of time on this, we might just as well
+go for the best solution we can come up with even if that is some
+more work.
+
+Regards,
+
+Hans
