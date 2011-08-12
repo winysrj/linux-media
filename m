@@ -1,60 +1,53 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr10.xs4all.nl ([194.109.24.30]:2659 "EHLO
-	smtp-vbr10.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752816Ab1HZMAd (ORCPT
+Received: from arroyo.ext.ti.com ([192.94.94.40]:57451 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752661Ab1HLHfU convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 26 Aug 2011 08:00:33 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Hans de Goede <hdegoede@redhat.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [RFCv2 PATCH 8/8] saa7115: use the new auto cluster support.
-Date: Fri, 26 Aug 2011 14:00:13 +0200
-Message-Id: <2cae016b0233c4ed961644396e519554f74cd2e1.1314359706.git.hans.verkuil@cisco.com>
-In-Reply-To: <1314360013-9876-1-git-send-email-hverkuil@xs4all.nl>
-References: <1314360013-9876-1-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <c30383666acc85a530fba5b1a14189670dfb8bb3.1314359706.git.hans.verkuil@cisco.com>
-References: <c30383666acc85a530fba5b1a14189670dfb8bb3.1314359706.git.hans.verkuil@cisco.com>
+	Fri, 12 Aug 2011 03:35:20 -0400
+Received: from dbdp20.itg.ti.com ([172.24.170.38])
+	by arroyo.ext.ti.com (8.13.7/8.13.7) with ESMTP id p7C7ZH7H031327
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-media@vger.kernel.org>; Fri, 12 Aug 2011 02:35:19 -0500
+Received: from dbde70.ent.ti.com (localhost [127.0.0.1])
+	by dbdp20.itg.ti.com (8.13.8/8.13.8) with ESMTP id p7C7ZHQa027201
+	for <linux-media@vger.kernel.org>; Fri, 12 Aug 2011 13:05:17 +0530 (IST)
+From: "Ravi, Deepthy" <deepthy.ravi@ti.com>
+To: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+CC: "Hiremath, Vaibhav" <hvaibhav@ti.com>,
+	"Koyamangalath, Abhilash" <abhilash.kv@ti.com>
+Date: Fri, 12 Aug 2011 13:05:16 +0530
+Subject: [QUERY] Inclusion of isp.h in board-omap3evm-camera.c
+Message-ID: <ADF30F4D7BDE934D9B632CE7D5C7ACA4047C4D0907CF@dbde03.ent.ti.com>
+Content-Language: en-US
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+MIME-Version: 1.0
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+I need to use some isp structures ( isp_v4l2_subdevs_group, isp_platform_data ,isp_subdev_i2c_board_info etc.) in  board-omap3evm-camera.c. For that header file isp.h has to be included .
+Currently I am including it in this way:
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- drivers/media/video/saa7115.c |    5 +----
- 1 files changed, 1 insertions(+), 4 deletions(-)
+#include <../drivers/media/video/omap3isp/isp.h>
 
-diff --git a/drivers/media/video/saa7115.c b/drivers/media/video/saa7115.c
-index e443d0d..cee98ea 100644
---- a/drivers/media/video/saa7115.c
-+++ b/drivers/media/video/saa7115.c
-@@ -793,7 +793,6 @@ static int saa711x_s_ctrl(struct v4l2_ctrl *ctrl)
- 			saa711x_write(sd, R_0F_CHROMA_GAIN_CNTL, state->gain->val);
- 		else
- 			saa711x_write(sd, R_0F_CHROMA_GAIN_CNTL, state->gain->val | 0x80);
--		v4l2_ctrl_activate(state->gain, !state->agc->val);
- 		break;
- 
- 	default:
-@@ -1601,7 +1600,6 @@ static int saa711x_probe(struct i2c_client *client,
- 			V4L2_CID_CHROMA_AGC, 0, 1, 1, 1);
- 	state->gain = v4l2_ctrl_new_std(hdl, &saa711x_ctrl_ops,
- 			V4L2_CID_CHROMA_GAIN, 0, 127, 1, 40);
--	state->gain->flags |= V4L2_CTRL_FLAG_VOLATILE;
- 	sd->ctrl_handler = hdl;
- 	if (hdl->error) {
- 		int err = hdl->error;
-@@ -1610,8 +1608,7 @@ static int saa711x_probe(struct i2c_client *client,
- 		kfree(state);
- 		return err;
- 	}
--	state->agc->flags |= V4L2_CTRL_FLAG_UPDATE;
--	v4l2_ctrl_cluster(2, &state->agc);
-+	v4l2_ctrl_auto_cluster(2, &state->agc, 0, true);
- 
- 	state->input = -1;
- 	state->output = SAA7115_IPORT_ON;
--- 
-1.7.5.4
+ Is there a better way to do this ? The relevant hunk of the patch is shown below:
+
+diff --git a/arch/arm/mach-omap2/board-omap3evm-camera.c b/arch/arm/mach-omap2/board-omap3evm-camera.c
+new file mode 100644
+index 0000000..319a6a1
+--- /dev/null
++++ b/arch/arm/mach-omap2/board-omap3evm-camera.c
++#include <linux/io.h>
++#include <linux/i2c.h>
++#include <linux/delay.h>
++#include <linux/platform_device.h>
++#include <linux/regulator/consumer.h>
++
++#include <mach/gpio.h>
++
++#include <media/tvp514x.h>
++
++#include <../drivers/media/video/omap3isp/isp.h> 
+
+
 
