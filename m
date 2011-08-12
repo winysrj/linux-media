@@ -1,123 +1,224 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from wondertoys-mx.wondertoys.net ([206.117.179.246]:56219 "EHLO
-	labridge.com" rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1750951Ab1HXVnB (ORCPT
+Received: from mailout2.w1.samsung.com ([210.118.77.12]:50039 "EHLO
+	mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753679Ab1HLK6j (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 24 Aug 2011 17:43:01 -0400
-Subject: Re: [PATCH 06/14] [media] cx18: Use current logging styles
-From: Joe Perches <joe@perches.com>
-To: Andy Walls <awalls@md.metrocast.net>
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
-	ivtv-devel@ivtvdriver.org, linux-media@vger.kernel.org,
-	linux-kernel@vger.kernel.org
-In-Reply-To: <1314182047.2253.3.camel@palomino.walls.org>
-References: <cover.1313966088.git.joe@perches.com>
-	 <29abc343c4fce5d019ce56f5a3882aedaeb092bc.1313966089.git.joe@perches.com>
-	 <1314182047.2253.3.camel@palomino.walls.org>
-Content-Type: text/plain; charset="UTF-8"
-Date: Wed, 24 Aug 2011 14:42:55 -0700
-Message-ID: <1314222175.15882.8.camel@Joe-Laptop>
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+	Fri, 12 Aug 2011 06:58:39 -0400
+Date: Fri, 12 Aug 2011 12:58:25 +0200
+From: Marek Szyprowski <m.szyprowski@samsung.com>
+Subject: [PATCH 3/9] mm: alloc_contig_range() added
+In-reply-to: <1313146711-1767-1-git-send-email-m.szyprowski@samsung.com>
+To: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+	linux-media@vger.kernel.org, linux-mm@kvack.org,
+	linaro-mm-sig@lists.linaro.org
+Cc: Michal Nazarewicz <mina86@mina86.com>,
+	Marek Szyprowski <m.szyprowski@samsung.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	Russell King <linux@arm.linux.org.uk>,
+	Andrew Morton <akpm@linux-foundation.org>,
+	KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>,
+	Ankita Garg <ankita@in.ibm.com>,
+	Daniel Walker <dwalker@codeaurora.org>,
+	Mel Gorman <mel@csn.ul.ie>, Arnd Bergmann <arnd@arndb.de>,
+	Jesse Barker <jesse.barker@linaro.org>,
+	Jonathan Corbet <corbet@lwn.net>,
+	Shariq Hasnain <shariq.hasnain@linaro.org>,
+	Chunsang Jeong <chunsang.jeong@linaro.org>
+Message-id: <1313146711-1767-4-git-send-email-m.szyprowski@samsung.com>
+MIME-version: 1.0
+Content-type: TEXT/PLAIN
+Content-transfer-encoding: 7BIT
+References: <1313146711-1767-1-git-send-email-m.szyprowski@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, 2011-08-24 at 06:34 -0400, Andy Walls wrote:
-> On Sun, 2011-08-21 at 15:56 -0700, Joe Perches wrote:
-> > Add pr_fmt.
-> > Convert printks to pr_<level>.
-> > Convert printks without KERN_<level> to appropriate pr_<level>.
-> > Removed embedded prefixes when pr_fmt was added.
-> > Use ##__VA_ARGS__ for variadic macros.
-> > Coalesce format strings.
-> 1. It is important to preserve the per-card prefixes emitted by the
-> driver: cx18-0, cx18-1, cx18-2, etc.  With a quick skim, I think your
-> change preserves the format of all output messages (except removing
-> periods).  Can you confirm this?
+From: Michal Nazarewicz <m.nazarewicz@samsung.com>
 
-Here's the output diff of
-strings built-in.o | grep "^<.>" | sort
-new and old
-$ diff -u0 cx18.old cx18.new
---- cx18.old	2011-08-24 13:18:41.000000000 -0700
-+++ cx18.new	2011-08-24 14:04:10.000000000 -0700
-@@ -1,2 +1,9 @@
--<3>cx18-alsa cx is NULL
--<3>cx18-alsa: %s: struct v4l2_device * is NULL
-+<3>cx18_alsa: cx is NULL
-+<3>cx18_alsa: %s-alsa: %s: failed to create struct snd_cx18_card
-+<3>cx18_alsa: %s-alsa: %s: snd_card_create() failed with err %d
-+<3>cx18_alsa: %s-alsa: %s: snd_card_register() failed with err %d
-+<3>cx18_alsa: %s-alsa: %s: snd_cx18_card_create() failed with err %d
-+<3>cx18_alsa: %s-alsa: %s: snd_cx18_pcm_create() failed with err %d
-+<3>cx18_alsa: %s-alsa: %s: snd_cx18_pcm_create() failed with err %d
-+<3>cx18_alsa: %s-alsa: %s: struct snd_cx18_card * already exists
-+<3>cx18_alsa: %s: struct v4l2_device * is NULL
-@@ -17,7 +23,0 @@
--<3>%s-alsa: %s: failed to create struct snd_cx18_card
--<3>%s-alsa: %s: snd_card_create() failed with err %d
--<3>%s-alsa: %s: snd_card_register() failed with err %d
--<3>%s-alsa: %s: snd_cx18_card_create() failed with err %d
--<3>%s-alsa: %s: snd_cx18_pcm_create() failed with err %d
--<3>%s-alsa: %s: snd_cx18_pcm_create() failed with err %d
--<3>%s-alsa: %s: struct snd_cx18_card * already exists
-@@ -62 +62 @@
--<3>%s: Prefix your subject line with [UNKNOWN CX18 CARD].
-+<3>%s: Prefix your subject line with [UNKNOWN CX18 CARD]
-@@ -80 +80 @@
--<4>%s-alsa: %s: struct snd_cx18_card * is NULL
-+<4>cx18_alsa: %s-alsa: %s: struct snd_cx18_card * is NULL
-@@ -82 +82 @@
--<4>%s: Could not register GPIO reset controllersubdevice; proceeding anyway.
-+<4>%s: Could not register GPIO reset controller subdevice; proceeding anyway.
-@@ -85 +85 @@
--<4>%s: MPEG Index stream cannot be claimed directly, but something tried.
-+<4>%s: MPEG Index stream cannot be claimed directly, but something tried
-@@ -99,12 +99,14 @@
--<6>cx18-alsa: module loading...
--<6>cx18-alsa: module unload complete
--<6>cx18-alsa: module unloading...
--<6>cx18-alsa-pcm %s: Allocating vbuffer
--<6>cx18-alsa-pcm %s: cx18 alsa announce ptr=%p data=%p num_bytes=%zd
--<6>cx18-alsa-pcm %s: dma area was NULL - ignoring
--<6>cx18-alsa-pcm %s: freeing pcm capture region
--<6>cx18-alsa-pcm %s: runtime was NULL
--<6>cx18-alsa-pcm %s: %s called
--<6>cx18-alsa-pcm %s: %s: length was zero
--<6>cx18-alsa-pcm %s: stride is zero
--<6>cx18-alsa-pcm %s: substream was NULL
-+<6>cx18_alsa: module loading...
-+<6>cx18_alsa: module unload complete
-+<6>cx18_alsa: module unloading...
-+<6>cx18_alsa: %s: Allocating vbuffer
-+<6>cx18_alsa: %s: created cx18 ALSA interface instance 
-+<6>cx18_alsa: %s: cx18 alsa announce ptr=%p data=%p num_bytes=%zd
-+<6>cx18_alsa: %s: dma area was NULL - ignoring
-+<6>cx18_alsa: %s: freeing pcm capture region
-+<6>cx18_alsa: %s: PCM stream for card is disabled - skipping
-+<6>cx18_alsa: %s: runtime was NULL
-+<6>cx18_alsa: %s: %s called
-+<6>cx18_alsa: %s: %s: length was zero
-+<6>cx18_alsa: %s: stride is zero
-+<6>cx18_alsa: %s: substream was NULL
-@@ -172 +174 @@
--<6>%s:  info: dualwatch: change stereo flag from 0x%x to 0x%x.
-+<6>%s:  info: dualwatch: change stereo flag from 0x%x to 0x%x
-@@ -188 +190 @@
--<6>%s:  info: Preparing for firmware halt.
-+<6>%s:  info: Preparing for firmware halt
-@@ -206 +208 @@
--<6>%s:  info: Switching standard to %llx.
-+<6>%s:  info: Switching standard to %llx
-@@ -236 +237,0 @@
--<6>%s: %s: created cx18 ALSA interface instance 
-@@ -239 +239,0 @@
--<6>%s: %s: PCM stream for card is disabled - skipping
+This commit adds the alloc_contig_range() function which tries
+to allecate given range of pages.  It tries to migrate all
+already allocated pages that fall in the range thus freeing them.
+Once all pages in the range are freed they are removed from the
+buddy system thus allocated for the caller to use.
 
-> 2. PLease don't add a pr_fmt() #define to exevry file.  Just put one
-> where all the other CX18_*() macros are defined.  Every file picks those
-> up.
+Signed-off-by: Michal Nazarewicz <m.nazarewicz@samsung.com>
+Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+[m.szyprowski: renamed some variables for easier code reading]
+Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
+CC: Michal Nazarewicz <mina86@mina86.com>
+Acked-by: Arnd Bergmann <arnd@arndb.de>
+---
+ include/linux/page-isolation.h |    2 +
+ mm/page_alloc.c                |  144 ++++++++++++++++++++++++++++++++++++++++
+ 2 files changed, 146 insertions(+), 0 deletions(-)
 
-It's not the first #include of every file.
-printk.h has a default #define pr_fmt(fmt) fmt
+diff --git a/include/linux/page-isolation.h b/include/linux/page-isolation.h
+index f1417ed..c5d1a7c 100644
+--- a/include/linux/page-isolation.h
++++ b/include/linux/page-isolation.h
+@@ -34,6 +34,8 @@ extern int set_migratetype_isolate(struct page *page);
+ extern void unset_migratetype_isolate(struct page *page);
+ extern unsigned long alloc_contig_freed_pages(unsigned long start,
+ 					      unsigned long end, gfp_t flag);
++extern int alloc_contig_range(unsigned long start, unsigned long end,
++			      gfp_t flags);
+ extern void free_contig_pages(struct page *page, int nr_pages);
+ 
+ /*
+diff --git a/mm/page_alloc.c b/mm/page_alloc.c
+index ad6ae3f..35423c2 100644
+--- a/mm/page_alloc.c
++++ b/mm/page_alloc.c
+@@ -5706,6 +5706,150 @@ unsigned long alloc_contig_freed_pages(unsigned long start, unsigned long end,
+ 	return pfn;
+ }
+ 
++static unsigned long pfn_to_maxpage(unsigned long pfn)
++{
++	return pfn & ~(MAX_ORDER_NR_PAGES - 1);
++}
++
++static unsigned long pfn_to_maxpage_up(unsigned long pfn)
++{
++	return ALIGN(pfn, MAX_ORDER_NR_PAGES);
++}
++
++#define MIGRATION_RETRY	5
++static int __alloc_contig_migrate_range(unsigned long start, unsigned long end)
++{
++	int migration_failed = 0, ret;
++	unsigned long pfn = start;
++
++	/*
++	 * Some code "borrowed" from KAMEZAWA Hiroyuki's
++	 * __alloc_contig_pages().
++	 */
++
++	for (;;) {
++		pfn = scan_lru_pages(pfn, end);
++		if (!pfn || pfn >= end)
++			break;
++
++		ret = do_migrate_range(pfn, end);
++		if (!ret) {
++			migration_failed = 0;
++		} else if (ret != -EBUSY
++			|| ++migration_failed >= MIGRATION_RETRY) {
++			return ret;
++		} else {
++			/* There are unstable pages.on pagevec. */
++			lru_add_drain_all();
++			/*
++			 * there may be pages on pcplist before
++			 * we mark the range as ISOLATED.
++			 */
++			drain_all_pages();
++		}
++		cond_resched();
++	}
++
++	if (!migration_failed) {
++		/* drop all pages in pagevec and pcp list */
++		lru_add_drain_all();
++		drain_all_pages();
++	}
++
++	/* Make sure all pages are isolated */
++	if (WARN_ON(test_pages_isolated(start, end)))
++		return -EBUSY;
++
++	return 0;
++}
++
++/**
++ * alloc_contig_range() -- tries to allocate given range of pages
++ * @start:	start PFN to allocate
++ * @end:	one-past-the-last PFN to allocate
++ * @flags:	flags passed to alloc_contig_freed_pages().
++ *
++ * The PFN range does not have to be pageblock or MAX_ORDER_NR_PAGES
++ * aligned, hovewer it's callers responsibility to guarantee that we
++ * are the only thread that changes migrate type of pageblocks the
++ * pages fall in.
++ *
++ * Returns zero on success or negative error code.  On success all
++ * pages which PFN is in (start, end) are allocated for the caller and
++ * need to be freed with free_contig_pages().
++ */
++int alloc_contig_range(unsigned long start, unsigned long end,
++		       gfp_t flags)
++{
++	unsigned long outer_start, outer_end;
++	int ret;
++
++	/*
++	 * What we do here is we mark all pageblocks in range as
++	 * MIGRATE_ISOLATE.  Because of the way page allocator work, we
++	 * align the range to MAX_ORDER pages so that page allocator
++	 * won't try to merge buddies from different pageblocks and
++	 * change MIGRATE_ISOLATE to some other migration type.
++	 *
++	 * Once the pageblocks are marked as MIGRATE_ISOLATE, we
++	 * migrate the pages from an unaligned range (ie. pages that
++	 * we are interested in).  This will put all the pages in
++	 * range back to page allocator as MIGRATE_ISOLATE.
++	 *
++	 * When this is done, we take the pages in range from page
++	 * allocator removing them from the buddy system.  This way
++	 * page allocator will never consider using them.
++	 *
++	 * This lets us mark the pageblocks back as
++	 * MIGRATE_CMA/MIGRATE_MOVABLE so that free pages in the
++	 * MAX_ORDER aligned range but not in the unaligned, original
++	 * range are put back to page allocator so that buddy can use
++	 * them.
++	 */
++
++	ret = start_isolate_page_range(pfn_to_maxpage(start),
++				       pfn_to_maxpage_up(end));
++	if (ret)
++		goto done;
++
++	ret = __alloc_contig_migrate_range(start, end);
++	if (ret)
++		goto done;
++
++	/*
++	 * Pages from [start, end) are within a MAX_ORDER_NR_PAGES
++	 * aligned blocks that are marked as MIGRATE_ISOLATE.  What's
++	 * more, all pages in [start, end) are free in page allocator.
++	 * What we are going to do is to allocate all pages from
++	 * [start, end) (that is remove them from page allocater).
++	 *
++	 * The only problem is that pages at the beginning and at the
++	 * end of interesting range may be not aligned with pages that
++	 * page allocator holds, ie. they can be part of higher order
++	 * pages.  Because of this, we reserve the bigger range and
++	 * once this is done free the pages we are not interested in.
++	 */
++
++	ret = 0;
++	while (!PageBuddy(pfn_to_page(start & (~0UL << ret))))
++		if (WARN_ON(++ret >= MAX_ORDER))
++			return -EINVAL;
++
++	outer_start = start & (~0UL << ret);
++	outer_end   = alloc_contig_freed_pages(outer_start, end, flags);
++
++	/* Free head and tail (if any) */
++	if (start != outer_start)
++		free_contig_pages(pfn_to_page(outer_start), start - outer_start);
++	if (end != outer_end)
++		free_contig_pages(pfn_to_page(end), outer_end - end);
++
++	ret = 0;
++done:
++	undo_isolate_page_range(pfn_to_maxpage(start), pfn_to_maxpage_up(end));
++	return ret;
++}
++
+ void free_contig_pages(struct page *page, int nr_pages)
+ {
+ 	for (; nr_pages; --nr_pages, ++page)
+-- 
+1.7.1.569.g6f426
 
