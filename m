@@ -1,120 +1,60 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.126.171]:62671 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750815Ab1HVNyU (ORCPT
+Received: from smtp-68.nebula.fi ([83.145.220.68]:52874 "EHLO
+	smtp-68.nebula.fi" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752295Ab1HMVeI (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 22 Aug 2011 09:54:20 -0400
-Date: Mon, 22 Aug 2011 15:54:03 +0200 (CEST)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Hans Verkuil <hansverk@cisco.com>
-cc: Pawel Osciak <pawel@osciak.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Sakari Ailus <sakari.ailus@iki.fi>,
-	Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: Re: [PATCH 1/6 v4] V4L: add two new ioctl()s for multi-size videobuffer
- management
-In-Reply-To: <201108221316.27491.hansverk@cisco.com>
-Message-ID: <Pine.LNX.4.64.1108221448030.29246@axis700.grange>
-References: <Pine.LNX.4.64.1108042329460.31239@axis700.grange>
- <201108221206.25308.hansverk@cisco.com> <Pine.LNX.4.64.1108221234000.29246@axis700.grange>
- <201108221316.27491.hansverk@cisco.com>
+	Sat, 13 Aug 2011 17:34:08 -0400
+Date: Sun, 14 Aug 2011 00:34:04 +0300
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: linux-media@vger.kernel.org, deepthy.ravi@ti.com
+Subject: Re: [PATCH] omap3isp: Move platform data definitions from isp.h to
+ media/omap3isp.h
+Message-ID: <20110813213404.GC7436@valkosipuli.localdomain>
+References: <1313181515-11120-1-git-send-email-laurent.pinchart@ideasonboard.com>
+ <20110813203739.GA7436@valkosipuli.localdomain>
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20110813203739.GA7436@valkosipuli.localdomain>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-We discussed a bit more with Hans on IRC, and below is my attempt of a 
-summary. Hans, please, correct me, if I misunderstood anything. Pawel, 
-Sakari, Laurent: please, reply, whether you're ok with this.
+On Sat, Aug 13, 2011 at 11:37:40PM +0300, Sakari Ailus wrote:
+> Hi Laurent,
 
-On Mon, 22 Aug 2011, Hans Verkuil wrote:
-
-> On Monday, August 22, 2011 12:40:25 Guennadi Liakhovetski wrote:
-
-[snip]
-
-> > It would be good if you also could have a look at my reply to this Pawel's 
-> > mail:
+> On Fri, Aug 12, 2011 at 10:38:35PM +0200, Laurent Pinchart wrote:
+> > drivers/media/video/omap3isp/isp.h is not a proper location for a header
+> > that needs to be included from board code. Move the platform data
+> > definitions to media/omap3isp.h.
 > > 
-> > http://article.gmane.org/gmane.linux.drivers.video-input-
-> infrastructure/36905
-> > 
-> > and, specifically, at the vb2_parse_planes() function in it. That's my 
-> > understanding of what would be needed, if we preserve .queue_setup() and 
-> > use your last suggestion to include struct v4l2_format in struct 
-> > v4l2_create_buffers.
+> > Board code still needs to include isp.h to get the struct isp_device
+> > definition and access OMAP3 ISP platform callbacks. Those callbacks will
+> > be replaced by more generic code.
 > 
-> vb2_parse_planes can be useful as a utility function that 'normal' drivers can 
-> call from the queue_setup. But vb2 should not parse the format directly, it
-> should just pass it on to the driver through the queue_setup function.
+> Thanks for the patch! I very much agree with the approach.
+
+[clip]
+
+> > +struct isp_platform_data {
+> > +	struct isp_v4l2_subdevs_group *subdevs;
+> > +	void (*set_constraints)(struct isp_device *isp, bool enable);
+> > +};
 > 
-> You also mention: "All frame-format fields like fourcc code, width, height, 
-> colorspace are only input from the user. If the user didn't fill them in, they 
-> should not be used."
+> I applied this to my rx51 tree (yeah, nasty out-of-tree stuff, for now), and
+> get a bunch of errors, mostly because of missing definitions. Have you
+> tested the patch somewhere? :-)
 > 
-> I disagree with that. The user should fill in a full format description, just 
-> as with S/TRY_FMT. That's the information that the driver will use to set up 
-> the buffers. It could have weird rules like: if the fourcc is this, and the 
-> size is less than that, then we can allocate in this memory bank.
+> At least these should be present, I think:
 > 
-> It is also consistent with REQBUFS: there too the driver uses a full format 
-> (i.e. the last set format).
-> 
-> I would modify queue_setup to something like this:
-> 
-> int (*queue_setup)(struct vb2_queue *q, struct v4l2_format *fmt,
->                      unsigned int *num_buffers,
->                      unsigned int *num_planes, unsigned int sizes[],
->                      void *alloc_ctxs[]);
-> 
-> Whether fmt is left to NULL in the reqbufs case, or whether the driver has to 
-> call g_fmt first before calling vb2 is something that could be decided by what 
-> is easiest to implement.
+> - v4l2_dev_to_isp_device
+> - isp_platform_callback
+> - ISP_XCLK_*
 
-1. VIDIOC_CREATE_BUFS passes struct v4l2_create_buffers from the user to 
-   the kernel, in which struct v4l2_format is embedded. The user _must_ 
-   fill in .type member of struct v4l2_format. For .type == 
-   V4L2_BUF_TYPE_VIDEO_CAPTURE or V4L2_BUF_TYPE_VIDEO_OUTPUT .fmt.pix is 
-   used, for .type == V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE or 
-   V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE .fmt.pix_mp is used. In both these 
-   cases the user _must_ fill in .width, .height, .pixelformat, .field, 
-   .colorspace by possibly calling VIDIOC_G_FMT or VIDIOC_TRY_FMT. The 
-   user also _may_ optionally fill in any further buffer-size related 
-   fields, if it believes to have any special requirements to them. On 
-   a successful return from the ioctl() .count and .index fields are 
-   filled in by the kernel, .format stays unchanged. The user has to call 
-   VIDIOC_QUERYBUF to retrieve specific buffer information.
+After reading the patch description and some thought,
 
-2. Videobuf2 drivers, that implement .vidioc_create_bufs() operation, call 
-   vb2_create_bufs() with a pointer to struct v4l2_create_buffers as a 
-   second argument. vb2_create_bufs() in turn calls the .queue_setup() 
-   driver callback, whose prototype is modified as follows:
+Acked-by: Sakari Ailus <sakari.ailus@iki.fi>
 
-int (*queue_setup)(struct vb2_queue *q, const struct v4l2_format *fmt,
-			unsigned int *num_buffers,
-			unsigned int *num_planes, unsigned int sizes[],
-			void *alloc_ctxs[]);
-
-   with &create->format as a second argument. As pointed out above, this 
-   struct is not modified by V4L, instead, the usual arguments 3-6 are 
-   filled in by the driver, which are then used by vb2_create_bufs() to 
-   call __vb2_queue_alloc().
-
-3. vb2_reqbufs() shall call .queue_setup() with fmt == NULL, which will be 
-   a signal to the driver to use the current format.
-
-4. We keep .queue_setup(), because its removal would inevitably push a 
-   part of the common code from vb2_reqbufs() and vb2_create_bufs() down 
-   into drivers, thus creating code redundancy and increasing its 
-   complexity.
-
-You have 24 hours to object, before I proceed with the next version;-)
-
-Thanks
-Guennadi
----
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
-http://www.open-technology.de/
+-- 
+Sakari Ailus
+sakari.ailus@iki.fi
