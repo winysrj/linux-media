@@ -1,87 +1,27 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from rcdn-iport-3.cisco.com ([173.37.86.74]:48326 "EHLO
-	rcdn-iport-3.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753267Ab1HJJ4e (ORCPT
+Received: from mail-vw0-f46.google.com ([209.85.212.46]:37420 "EHLO
+	mail-vw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751026Ab1HMSBa (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 10 Aug 2011 05:56:34 -0400
-From: Hans Verkuil <hansverk@cisco.com>
-To: Marek Szyprowski <m.szyprowski@samsung.com>
-Subject: Re: [PATCH] media: vb2: add a check if queued userptr buffer is large enough
-Date: Wed, 10 Aug 2011 11:56:13 +0200
-Cc: linux-media@vger.kernel.org,
-	"'Kyungmin Park'" <kyungmin.park@samsung.com>,
-	"'Pawel Osciak'" <pawel@osciak.com>,
-	"'Laurent Pinchart'" <laurent.pinchart@ideasonboard.com>
-References: <1312964488-2924-1-git-send-email-m.szyprowski@samsung.com> <201108101045.36681.hansverk@cisco.com> <028201cc573d$0cdc5690$269503b0$%szyprowski@samsung.com>
-In-Reply-To: <028201cc573d$0cdc5690$269503b0$%szyprowski@samsung.com>
+	Sat, 13 Aug 2011 14:01:30 -0400
+Received: by vws1 with SMTP id 1so3150120vws.19
+        for <linux-media@vger.kernel.org>; Sat, 13 Aug 2011 11:01:29 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201108101156.13732.hansverk@cisco.com>
+Date: Sat, 13 Aug 2011 23:31:29 +0530
+Message-ID: <CAOO8FEfvJWvxDxL5VnXwsWRgKSMsEq8w3zc9K1M=TjypU431Ww@mail.gmail.com>
+Subject: size of raw bayer data
+From: Veda N <veda74@gmail.com>
+To: linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wednesday, August 10, 2011 11:08:20 Marek Szyprowski wrote:
-> Hello,
-> 
-> On Wednesday, August 10, 2011 10:46 AM Hans Verkuil wrote:
-> 
-> > Just one comment:
-> > 
-> > On Wednesday, August 10, 2011 10:21:28 Marek Szyprowski wrote:
-> > > Videobuf2 accepted any userptr buffer without verifying if its size is
-> > > large enough to store the video data from the driver. The driver reports
-> > > the minimal size of video data once in queue_setup and expects that
-> > > videobuf2 provides buffers that match these requirements. This patch
-> > > adds the required check.
-> > >
-> > > Reported-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-> > > Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
-> > > Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
-> > > CC: Pawel Osciak <pawel@osciak.com>
-> > > ---
-> > >  drivers/media/video/videobuf2-core.c |   41
-> > +++++++++++++++++++--------------
-> > >  include/media/videobuf2-core.h       |    1 +
-> > >  2 files changed, 25 insertions(+), 17 deletions(-)
-> > >
-> > 
-> > <snip>
-> > 
-> > > diff --git a/include/media/videobuf2-core.h b/include/media/videobuf2-
-core.h
-> > > index f87472a..496d6e5 100644
-> > > --- a/include/media/videobuf2-core.h
-> > > +++ b/include/media/videobuf2-core.h
-> > > @@ -276,6 +276,7 @@ struct vb2_queue {
-> > >  	wait_queue_head_t		done_wq;
-> > >
-> > >  	void				*alloc_ctx[VIDEO_MAX_PLANES];
-> > > +	unsigned long			plane_sizes[VIDEO_MAX_PLANES];
-> > 
-> > Why unsigned long when it is a u32 in struct v4l2_plane_pix_format?
-> > 
-> > unsigned long is 64 bit on a 64-bit OS, so that seems wasteful to me.
-> 
-> u32 type should be used in places where the exact size really matters,
-> like strictly defined io structures passed to userspace or structures that
-> are used for accessing hardware registers directly. For all other cases,
-> like temporary storage of some values, the cpu native types should be used.
-> Looks at the whole vb2 code - u32 type is not used in any single place.
+what should be the size of a raw bayer data from the driver.
 
-You can also change unsigned long to unsigned int as that is always 32 bits.
+for 640x480 = i get 640x480x2.
 
-I don't mind one way or another.
+Shouldnt i get more? It shoule be more than yuv422/rgb565
 
+-- 
 Regards,
-
-	Hans
-
-> 
-> Best regards
-> -- 
-> Marek Szyprowski
-> Samsung Poland R&D Center
-> 
-> 
+S. N. Veda
