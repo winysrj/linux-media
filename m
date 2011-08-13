@@ -1,43 +1,35 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp1-g21.free.fr ([212.27.42.1]:45389 "EHLO smtp1-g21.free.fr"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752722Ab1HVIty convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 22 Aug 2011 04:49:54 -0400
-Date: Mon, 22 Aug 2011 10:50:03 +0200
-From: Jean-Francois Moine <moinejf@free.fr>
-To: Joe Perches <joe@perches.com>
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
-	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: Re: [PATCH 14/14] [media] gspca: Use current logging styles
-Message-ID: <20110822105003.0002ef3c@tele>
-In-Reply-To: <9927bff9b5f212dcbe867a9f882e53ed80bd9a0f.1313966090.git.joe@perches.com>
-References: <cover.1313966088.git.joe@perches.com>
-	<9927bff9b5f212dcbe867a9f882e53ed80bd9a0f.1313966090.git.joe@perches.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Received: from nm14-vm4.bullet.mail.ne1.yahoo.com ([98.138.91.174]:38268 "HELO
+	nm14-vm4.bullet.mail.ne1.yahoo.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with SMTP id S1752541Ab1HMTmZ convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 13 Aug 2011 15:42:25 -0400
+Message-ID: <1313264214.97761.YahooMailClassic@web121711.mail.ne1.yahoo.com>
+Date: Sat, 13 Aug 2011 12:36:54 -0700 (PDT)
+From: Chris Rankin <rankincj@yahoo.com>
+Subject: PCTV 290e nanostick and remote control support
+To: linux-media@vger.kernel.org
+MIME-Version: 1.0
+Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sun, 21 Aug 2011 15:56:57 -0700
-Joe Perches <joe@perches.com> wrote:
+Hi,
 
-> Add pr_fmt.
-> Convert usb style logging macros to pr_<level>.
-> Remove now unused old usb style logging macros.
+I've just acquired a PCTV 290e nanostick, and have successfully tuned it into a DVB-T2 MUX. Yay! :-).
 
-Hi Joe,
+However, before declaring total victory, I have noticed that no-one has yet wired up the device's IR support in the em28xx driver. The adapter ships with a tiny RC with only 26 buttons, which would allow me to use the 290e with VDR. Does anyone know what kind of IR hardware the 290e uses, please? I tried setting:
 
-Sorry, but I do not see the advantages of your patch.
+.has_ir_i2c = 1
 
-For gspca, the source files are bigger, and the only visible change is
-the display of the real module name instead of the name defined by hand
-(this change may have been done just in gspca.h).
+in the [EM28174_BOARD_PCTV_290E] section of em28xx_cards.c, but saw nothing new in the dmesg log. (Yes, the ir_kdb_i2c modules did load successfully.) The /sys/bus/i2c/devices directory contains two nodes:
 
-Also, I think that defining 'pr_fmt' in each source file is not a good
-idea...
+em28xx #0
+CXD2820R tuner I2C adapter
 
--- 
-Ken ar c'hentañ	|	      ** Breizh ha Linux atav! **
-Jef		|		http://moinejf.free.fr/
+Any (non-destructive) suggestions for other things to try to get IR working would be gratefully received.
+
+Thanks,
+Chris
+
