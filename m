@@ -1,58 +1,71 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:33595 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751565Ab1HALJ6 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 1 Aug 2011 07:09:58 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Sven Eckelmann <sven@narfation.org>
-Subject: Re: [PATCHv4 05/11] omap3isp: Use *_dec_not_zero instead of *_add_unless
-Date: Mon, 1 Aug 2011 13:10:02 +0200
-Cc: linux-arch@vger.kernel.org, linux-kernel@vger.kernel.org,
-	linux-media@vger.kernel.org
-References: <1311760070-21532-1-git-send-email-sven@narfation.org> <201107311700.43515.laurent.pinchart@ideasonboard.com> <1518031.UNu44UiQdf@sven-laptop.home.narfation.org>
-In-Reply-To: <1518031.UNu44UiQdf@sven-laptop.home.narfation.org>
+Received: from mail-vw0-f46.google.com ([209.85.212.46]:50875 "EHLO
+	mail-vw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751805Ab1HMTHL convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sat, 13 Aug 2011 15:07:11 -0400
+Received: by vws1 with SMTP id 1so3170388vws.19
+        for <linux-media@vger.kernel.org>; Sat, 13 Aug 2011 12:07:10 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-15"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201108011310.02626.laurent.pinchart@ideasonboard.com>
+In-Reply-To: <CAPueXH4QysAb=hsA12TQHe7Uumb0gOCBzkNkyExVGept8pa2+w@mail.gmail.com>
+References: <CAOO8FEfvJWvxDxL5VnXwsWRgKSMsEq8w3zc9K1M=TjypU431Ww@mail.gmail.com>
+	<CAPueXH4QysAb=hsA12TQHe7Uumb0gOCBzkNkyExVGept8pa2+w@mail.gmail.com>
+Date: Sun, 14 Aug 2011 00:37:10 +0530
+Message-ID: <CAOO8FEcJZkyawy0acpQndsZCmw9mBNMCMEd3s6o05CrRXy-rNQ@mail.gmail.com>
+Subject: Re: size of raw bayer data
+From: Veda N <veda74@gmail.com>
+To: Paulo Assis <pj.assis@gmail.com>
+Cc: linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sven,
+On Sat, Aug 13, 2011 at 11:56 PM, Paulo Assis <pj.assis@gmail.com> wrote:
+> Hi,
+>
+> 2011/8/13 Veda N <veda74@gmail.com>:
+>> what should be the size of a raw bayer data from the driver.
+>>
+>> for 640x480 = i get 640x480x2.
+>
+> Is this in bytes?
+>
+>>
+>> Shouldnt i get more? It shoule be more than yuv422/rgb565
+>>
+>
+> No, that depends on the pixel size, so for 8 bit pixel you should get
+> 640x480 bytes, for 12 bit you should get 640x480x3/2 and so on.
+>
+> 640x480x2 is equivalent to a 16 bit pixel, this is a bit unusual I
+> think, the most common is 8 bit pixel, what device/driver are you
+> using ?
 
-On Monday 01 August 2011 12:07:15 Sven Eckelmann wrote:
-> On Sunday 31 July 2011 17:00:43 Laurent Pinchart wrote:
-> > On Wednesday 27 July 2011 11:47:44 Sven Eckelmann wrote:
-> > > atomic_dec_not_zero is defined for each architecture through
-> > > <linux/atomic.h> to provide the functionality of
-> > > atomic_add_unless(x, -1, 0).
-> > > 
-> > > Signed-off-by: Sven Eckelmann <sven@narfation.org>
-> > > Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-> > 
-> > Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-> > 
-> > I'll queue this to my tree for v3.2. Please let me know if you would
-> > rather push the patch through another tree.
-> 
-> The problem is that until now no one from linux-arch has applied the patch
-> 01/11 in his tree (which is needed before this patch can be applied) and
-> you tree have to be based on the "yet to be chosen linux-arch tree".
-> Otherwise your tree will just break and not be acceptable for a pull
-> request.
-> 
-> Maybe it is easier when one person applies 01-11 after 02-11 was Acked-by
-> the responsible maintainers.
-> 
-> 02 is more or less automatically Acked-by us :)
-> 04, 09 and 10 are also Acked.
-> ... and the rest is waiting for actions.
+If it is V4L2_PIX_FMT_SGRBG10 - it is 10 bits/color.
+If it is V4L2_PIX_FMT_SGRBG8 -   it is 8 bits/color
 
-OK. I'm fine with 05/11 being pushed through any tree with my ack. Please let 
-me know if/when you want me to apply it to my tree.
+Shouldnt it be more? raw data is supposed to be large in size when
+compared to processed data pixel size.
+
+
+>
+>
+> Regards,
+> Paulo
+>
+>> --
+>> Regards,
+>> S. N. Veda
+>> --
+>> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+>> the body of a message to majordomo@vger.kernel.org
+>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>>
+>
+
+
 
 -- 
 Regards,
-
-Laurent Pinchart
+S. N. Veda
