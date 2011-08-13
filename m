@@ -1,47 +1,46 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:38197 "EHLO mx1.redhat.com"
+Received: from mail.kapsi.fi ([217.30.184.167]:48962 "EHLO mail.kapsi.fi"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753610Ab1HARjP (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 1 Aug 2011 13:39:15 -0400
-Message-ID: <4E36E4B9.80701@redhat.com>
-Date: Mon, 01 Aug 2011 14:39:05 -0300
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
+	id S1752560Ab1HMWbb (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 13 Aug 2011 18:31:31 -0400
+Message-ID: <4E46FB3C.7060402@iki.fi>
+Date: Sun, 14 Aug 2011 01:31:24 +0300
+From: Antti Palosaari <crope@iki.fi>
 MIME-Version: 1.0
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-CC: Ming Lei <tom.leiming@gmail.com>, linux-media@vger.kernel.org,
-	Alan Stern <stern@rowland.harvard.edu>,
-	linux-usb@vger.kernel.org, Jeremy Kerr <jeremy.kerr@canonical.com>
-Subject: Re: [PATCH] uvcvideo: add SetInterface(0) in .reset_resume handler
-References: <CACVXFVPHfskUCxhznpATknNxokmL5hft-b+KoxWiMzprVmuJ4w@mail.gmail.com> <201107311738.58462.laurent.pinchart@ideasonboard.com> <CACVXFVMJvZqYH3eS7LH_jgewL40KK74wrSX_-FhqLmyDJmPEGg@mail.gmail.com> <201108011326.31648.laurent.pinchart@ideasonboard.com>
-In-Reply-To: <201108011326.31648.laurent.pinchart@ideasonboard.com>
+To: Chris Rankin <rankincj@yahoo.com>
+CC: linux-media@vger.kernel.org
+Subject: Re: PCTV 290e nanostick and remote control support
+References: <1313264214.97761.YahooMailClassic@web121711.mail.ne1.yahoo.com>
+In-Reply-To: <1313264214.97761.YahooMailClassic@web121711.mail.ne1.yahoo.com>
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em 01-08-2011 08:26, Laurent Pinchart escreveu:
-> Hi Ming,
-> 
-> On Monday 01 August 2011 02:56:59 Ming Lei wrote:
->> On Sun, Jul 31, 2011 at 11:38 PM, Laurent Pinchart wrote:
->>> Hi Ming,
->>>
->>> Thanks for the patch. I've queued it for v3.2 with a small modification
->>> (the usb_set_interface() call has been moved to uvc_video.c).
->>
->> Thanks for queuing it.
->>
->> Considered it is a fix patch, could you queue it for 3.1 -rcX as fix patch?
->> But anyway, it is up to you, :-)
-> 
-> It's not completely up to me :-) This patch falls in the "features that never 
-> worked" category. I've heard that Linus didn't want such non-regression fixes 
-> during the 3.0-rc phase. Mauro, is it still true for v3.1-rc ? Can I push this 
-> patch for 3.1, or does it need to wait until 3.2 ?
+Hello
 
-Theoretically, we're still with the open window. Well, send it to me. It is
-a fix. I'll likely queue it to 3.1 and send on a next pull request, together with
-a few other fixes probably on the next weekend.
+On 08/13/2011 10:36 PM, Chris Rankin wrote:
+> I've just acquired a PCTV 290e nanostick, and have successfully tuned it into a DVB-T2 MUX. Yay! :-).
+> 
+> However, before declaring total victory, I have noticed that no-one has yet wired up the device's IR support in the em28xx driver. The adapter ships with a tiny RC with only 26 buttons, which would allow me to use the 290e with VDR. Does anyone know what kind of IR hardware the 290e uses, please? I tried setting:
+> 
+> .has_ir_i2c = 1
+> 
+> in the [EM28174_BOARD_PCTV_290E] section of em28xx_cards.c, but saw nothing new in the dmesg log. (Yes, the ir_kdb_i2c modules did load successfully.) The /sys/bus/i2c/devices directory contains two nodes:
+> 
+> em28xx #0
+> CXD2820R tuner I2C adapter
+> 
+> Any (non-destructive) suggestions for other things to try to get IR working would be gratefully received.
 
-Thanks,
-Mauro
+Remote is already supported, but from the 3.1 or maybe 3.2 (I am not
+sure if Mauro was hurry to sent it 3.1). Anyhow, if you need it please
+install latest v4l-dvb drivers.
+
+Thank you for the report.
+
+regards,
+Antti
+
+-- 
+http://palosaari.fi/
