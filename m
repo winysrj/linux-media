@@ -1,83 +1,56 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr16.xs4all.nl ([194.109.24.36]:3523 "EHLO
-	smtp-vbr16.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752096Ab1HYOIn (ORCPT
+Received: from mail-bw0-f46.google.com ([209.85.214.46]:59169 "EHLO
+	mail-bw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752001Ab1HNBsR convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 25 Aug 2011 10:08:43 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [RFC PATCH 02/12] mt20xx.c: fix compiler warnings
-Date: Thu, 25 Aug 2011 16:08:25 +0200
-Message-Id: <739af58fe8fe964bc038a917ac5f33beefb472f3.1314281302.git.hans.verkuil@cisco.com>
-In-Reply-To: <1314281315-32366-1-git-send-email-hverkuil@xs4all.nl>
-References: <1314281315-32366-1-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <afd314e95a520c3a4de0f112735d1d5584ec8a9a.1314281302.git.hans.verkuil@cisco.com>
-References: <afd314e95a520c3a4de0f112735d1d5584ec8a9a.1314281302.git.hans.verkuil@cisco.com>
+	Sat, 13 Aug 2011 21:48:17 -0400
+Received: by bke11 with SMTP id 11so2357424bke.19
+        for <linux-media@vger.kernel.org>; Sat, 13 Aug 2011 18:48:15 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <1313286189.94904.YahooMailClassic@web121720.mail.ne1.yahoo.com>
+References: <4E46FB3C.7060402@iki.fi>
+	<1313286189.94904.YahooMailClassic@web121720.mail.ne1.yahoo.com>
+Date: Sat, 13 Aug 2011 21:48:14 -0400
+Message-ID: <CAGoCfiw0p7jwac94eYM9apUN4Qd8mduteq_xH8ePoyxvO7SNGA@mail.gmail.com>
+Subject: Re: PCTV 290e nanostick and remote control support
+From: Devin Heitmueller <dheitmueller@kernellabs.com>
+To: Chris Rankin <rankincj@yahoo.com>
+Cc: Antti Palosaari <crope@iki.fi>, linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+On Sat, Aug 13, 2011 at 9:43 PM, Chris Rankin <rankincj@yahoo.com> wrote:
+> Hi,
+>
+> The rc-pinnacle-pctv-hd keymap is missing the definition of the OK key:
+>
+> --- linux-3.0/drivers/media/rc/keymaps/rc-pinnacle-pctv-hd.c.orig       2011-08-14 02:42:01.000000000 +0100
+> +++ linux-3.0/drivers/media/rc/keymaps/rc-pinnacle-pctv-hd.c    2011-08-14 02:12:45.000000000 +0100
+> @@ -20,6 +20,7 @@
+>        { 0x0701, KEY_MENU }, /* Pinnacle logo */
+>        { 0x0739, KEY_POWER },
+>        { 0x0703, KEY_VOLUMEUP },
+> +       { 0x0705, KEY_OK },
+>        { 0x0709, KEY_VOLUMEDOWN },
+>        { 0x0706, KEY_CHANNELUP },
+>        { 0x070c, KEY_CHANNELDOWN },
+>
+> Cheers,
+> Chris
 
-v4l-dvb-git/drivers/media/common/tuners/mt20xx.c: In function 'mt2050_set_antenna':
-v4l-dvb-git/drivers/media/common/tuners/mt20xx.c:433:6: warning: variable 'ret' set but not used [-Wunused-but-set-variable]
-v4l-dvb-git/drivers/media/common/tuners/mt20xx.c: In function 'mt2050_init':
-v4l-dvb-git/drivers/media/common/tuners/mt20xx.c:577:6: warning: variable 'ret' set but not used [-Wunused-but-set-variable]
+Wow, how the hell did I miss that?  I did numerous remotes for em28xx
+based devices that use that RC profile, and never noticed that issue.
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- drivers/media/common/tuners/mt20xx.c |   24 +++++++++++-------------
- 1 files changed, 11 insertions(+), 13 deletions(-)
+Will have to check the merge logs.  Maybe the key got lost when they
+refactored the IR support.
 
-diff --git a/drivers/media/common/tuners/mt20xx.c b/drivers/media/common/tuners/mt20xx.c
-index d0e70e1..0e74e97 100644
---- a/drivers/media/common/tuners/mt20xx.c
-+++ b/drivers/media/common/tuners/mt20xx.c
-@@ -430,11 +430,10 @@ static void mt2050_set_antenna(struct dvb_frontend *fe, unsigned char antenna)
- {
- 	struct microtune_priv *priv = fe->tuner_priv;
- 	unsigned char buf[2];
--	int ret;
- 
- 	buf[0] = 6;
- 	buf[1] = antenna ? 0x11 : 0x10;
--	ret=tuner_i2c_xfer_send(&priv->i2c_props,buf,2);
-+	tuner_i2c_xfer_send(&priv->i2c_props, buf, 2);
- 	tuner_dbg("mt2050: enabled antenna connector %d\n", antenna);
- }
- 
-@@ -574,21 +573,20 @@ static int mt2050_init(struct dvb_frontend *fe)
- {
- 	struct microtune_priv *priv = fe->tuner_priv;
- 	unsigned char buf[2];
--	int ret;
- 
--	buf[0]=6;
--	buf[1]=0x10;
--	ret=tuner_i2c_xfer_send(&priv->i2c_props,buf,2); //  power
-+	buf[0] = 6;
-+	buf[1] = 0x10;
-+	tuner_i2c_xfer_send(&priv->i2c_props, buf, 2); /* power */
- 
--	buf[0]=0x0f;
--	buf[1]=0x0f;
--	ret=tuner_i2c_xfer_send(&priv->i2c_props,buf,2); // m1lo
-+	buf[0] = 0x0f;
-+	buf[1] = 0x0f;
-+	tuner_i2c_xfer_send(&priv->i2c_props, buf, 2); /* m1lo */
- 
--	buf[0]=0x0d;
--	ret=tuner_i2c_xfer_send(&priv->i2c_props,buf,1);
--	tuner_i2c_xfer_recv(&priv->i2c_props,buf,1);
-+	buf[0] = 0x0d;
-+	tuner_i2c_xfer_send(&priv->i2c_props, buf, 1);
-+	tuner_i2c_xfer_recv(&priv->i2c_props, buf, 1);
- 
--	tuner_dbg("mt2050: sro is %x\n",buf[0]);
-+	tuner_dbg("mt2050: sro is %x\n", buf[0]);
- 
- 	memcpy(&fe->ops.tuner_ops, &mt2050_tuner_ops, sizeof(struct dvb_tuner_ops));
- 
+Chris, you should add a signed-off-by tag and submit this as a patch
+so it can be included upstream.
+
+Devin
+
 -- 
-1.7.5.4
-
+Devin J. Heitmueller - Kernel Labs
+http://www.kernellabs.com
