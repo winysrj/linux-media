@@ -1,80 +1,37 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-68.nebula.fi ([83.145.220.68]:43486 "EHLO
-	smtp-68.nebula.fi" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751036Ab1HKHiw (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 11 Aug 2011 03:38:52 -0400
-Date: Thu, 11 Aug 2011 10:38:46 +0300
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: linux-media <linux-media@vger.kernel.org>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>,
-	Tuukka Toivonen <tuukka.toivonen@intel.com>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Tomasz Stanislawski <t.stanislaws@samsung.com>,
-	Marek Szyprowski <m.szyprowski@samsung.com>
-Subject: Re: [ANN] Meeting minutes of the Cambourne meeting
-Message-ID: <20110811073846.GD5926@valkosipuli.localdomain>
-References: <201107261647.19235.laurent.pinchart@ideasonboard.com>
- <201108081750.07000.laurent.pinchart@ideasonboard.com>
+Received: from nm27-vm3.bullet.mail.ne1.yahoo.com ([98.138.91.157]:46922 "HELO
+	nm27-vm3.bullet.mail.ne1.yahoo.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with SMTP id S1751721Ab1HNBnL convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 13 Aug 2011 21:43:11 -0400
+Message-ID: <1313286189.94904.YahooMailClassic@web121720.mail.ne1.yahoo.com>
+Date: Sat, 13 Aug 2011 18:43:09 -0700 (PDT)
+From: Chris Rankin <rankincj@yahoo.com>
+Subject: Re: PCTV 290e nanostick and remote control support
+To: Antti Palosaari <crope@iki.fi>
+Cc: linux-media@vger.kernel.org
+In-Reply-To: <4E46FB3C.7060402@iki.fi>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <201108081750.07000.laurent.pinchart@ideasonboard.com>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, Aug 08, 2011 at 05:50:06PM +0200, Laurent Pinchart wrote:
-> Hi everybody,
+Hi,
 
-Hi, all!
+The rc-pinnacle-pctv-hd keymap is missing the definition of the OK key:
 
-> The V4L2 brainstorming meeting held in Cambourne from August the 1st to August 
-> the 5th was a success. I would like to thank Linaro again, and particularly 
-> Stephen Doel and Arwen Donaghey, for accommodating us during the whole week.
-> 
-> Here is a summary of the discussions, with preliminary conclusions, ideas, and 
-> action points.
-
-Thanks for the notes!
-
-...
-
-> Pixel clock and blanking
-> ------------------------
-> 
->  Preliminary conclusions:
-> 
->  - Pixel clock(s) and blanking will be exported through controls on subdev
->    nodes.
->  - The pixel array pixel clock is needed by userspace.
->  - Hosts/bridges/ISPs need pixel clock and blanking information to validate
->    pipelines.
-
-I have a small addition to this in my notes:
-
-
-Pixel array and bus configuration for sensors
----------------------------------------------
-
-The CSI-2 bus frequency will receive an integer menu control. Together with
-the binning, skipping, scaling and CSI-2 output bits-per-pixel information,
-this allows the sensor driver to calculate the value of the "best pixel
-rate" in the sensor, which will be a read-only int64 control.
-
-Based on pixel clock, image width, height and ranges on vertical and
-horizontal blanking, the user can define the frame rate. Vertical and
-horizontal blanking are implemented as integer controls.
-
-Integer menu controls are easy to add; this will be implemented by making
-the name field in v4l2_querymenu an anonymous union. (I actually have
-patches for this but haven't tested them yet. I'll send them once I have
-time for that.)
-
+--- linux-3.0/drivers/media/rc/keymaps/rc-pinnacle-pctv-hd.c.orig	2011-08-14 02:42:01.000000000 +0100
++++ linux-3.0/drivers/media/rc/keymaps/rc-pinnacle-pctv-hd.c	2011-08-14 02:12:45.000000000 +0100
+@@ -20,6 +20,7 @@
+ 	{ 0x0701, KEY_MENU }, /* Pinnacle logo */
+ 	{ 0x0739, KEY_POWER },
+ 	{ 0x0703, KEY_VOLUMEUP },
++	{ 0x0705, KEY_OK },
+ 	{ 0x0709, KEY_VOLUMEDOWN },
+ 	{ 0x0706, KEY_CHANNELUP },
+ 	{ 0x070c, KEY_CHANNELDOWN },
 
 Cheers,
+Chris
 
--- 
-Sakari Ailus
-sakari.ailus@iki.fi
