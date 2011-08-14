@@ -1,81 +1,60 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([147.243.1.47]:36146 "EHLO mgw-sa01.nokia.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753264Ab1HIPwr (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 9 Aug 2011 11:52:47 -0400
-Message-ID: <4E4157C5.10303@maxwell.research.nokia.com>
-Date: Tue, 09 Aug 2011 18:52:37 +0300
-From: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
+Received: from nschwqsrv01p.mx.bigpond.com ([61.9.189.231]:49474 "EHLO
+	nschwqsrv01p.mx.bigpond.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753252Ab1HNMHq (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 14 Aug 2011 08:07:46 -0400
+Received: from nschwotgx01p.mx.bigpond.com ([121.214.104.126])
+          by nschwmtas06p.mx.bigpond.com with ESMTP
+          id <20110814092129.UQKX18547.nschwmtas06p.mx.bigpond.com@nschwotgx01p.mx.bigpond.com>
+          for <linux-media@vger.kernel.org>;
+          Sun, 14 Aug 2011 09:21:29 +0000
+Received: from max.localnet ([121.214.104.126])
+          by nschwotgx01p.mx.bigpond.com with ESMTP
+          id <20110814092129.GPZX2024.nschwotgx01p.mx.bigpond.com@max.localnet>
+          for <linux-media@vger.kernel.org>;
+          Sun, 14 Aug 2011 09:21:29 +0000
+From: Declan Mullen <declan.mullen@bigpond.com>
+To: linux-media@vger.kernel.org
+Subject: How to git and build HVR-2200 drivers from Kernel labs ?
+Date: Sun, 14 Aug 2011 19:21:30 +1000
 MIME-Version: 1.0
-To: Subash Patel <subashrp@gmail.com>
-CC: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	linux-media <linux-media@vger.kernel.org>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	Tuukka Toivonen <tuukka.toivonen@intel.com>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Tomasz Stanislawski <t.stanislaws@samsung.com>,
-	Marek Szyprowski <m.szyprowski@samsung.com>
-Subject: Re: [ANN] Meeting minutes of the Cambourne meeting
-References: <201107261647.19235.laurent.pinchart@ideasonboard.com> <201108081750.07000.laurent.pinchart@ideasonboard.com> <4E410342.3010502@gmail.com>
-In-Reply-To: <4E410342.3010502@gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: Text/Plain;
+  charset="us-ascii"
 Content-Transfer-Encoding: 7bit
+Message-Id: <201108141921.30627.declan.mullen@bigpond.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Subash Patel wrote:
-> Hi Sakari,
+Hi
 
-Hi Subash,
+I've got a 8940 edition of a Hauppauge HVR-2200. The driver is called saa7164. 
+The versions included in my OS (mythbuntu 10.10 x86 32bit, kernel 2.6.35-30) 
+and from linuxtv.org are too old to recognise the 8940 edition. Posts #124 to 
+#128 in the "Hauppauge HVR-2200 Tuner Install Guide" topic 
+(http://www.pcmediacenter.com.au/forum/topic/37541-hauppauge-hvr-2200-tuner-
+install-guide/page__view__findpost__p__321195) document my efforts with those 
+versions.
 
-> I have a point with the pixel clock. During discussion we found that
-> pixel clock get/set is required for user space to do fine control over
-> the frame-rate etc. What if the user sets the pixel array clock which is
-> above the system/if bus clock? Suppose we are setting the pixel clock
+So I wish to use the latest stable drivers from the driver maintainers, ie 
+http://kernellabs.com/gitweb/?p=stoth/saa7164-stable.git;a=summary
 
-The pixel array clock should be calculated by the driver based on CSI-2
-bus frequency (user specified), lanes (from board data), binning,
-skipping and crop. This is since there are typically limitations for its
-value, and the sensor driver can come up with a "best value" for it,
-based on the information above. Exactly how, that depends on the sensor
-driver and the sensor.
+Problem is, I don't know git and I don't know how I'm suppose to git, build 
+and install it.  
 
-So the pixel array clock is read-only for the user, and the frame rate
-can then be chosen using the blanking configuration.
+Taking a guess I've tried:
+  git clone git://kernellabs.com/stoth/saa7164-stable.git 
+  cd saa7164-stable
+  make menuconfig
+  make
 
-> (which user space sets) to higher rate at sensor array, but for some
-> reason the bus cannot handle that rate (either low speed or loaded) or
-> lower PCLK at say CSI2 interface is being set. Are we not going to loose
-> data due to this? Also, there would be data validation overhead in
-> driver on what is acceptable PCLK values for a particular sensor on an
-> interface etc.
+However I suspect these are not the optimum steps, as it seems to have 
+downloaded and built much more than just the saa7164 drivers. The git pulled 
+down nearly 1GB (which seems a lot) and the resultant menuconfig produced a 
+very big ".config".
 
-This is something that must be handled independently of the way the
-sensor pixel clock is configured. Typically the limitation is on either
-the bus frequency or the pixel rate on the bus.
+Am I doing the right steps or should I be doing something else to git, build 
+and install  the latest drivers ?
 
-This actually can be better avoided when the user has a chance to choose
-the bus frequency explicitly rather than receive just something the
-driver happens to produce based on frame rate and resolution settings.
-
-> I am still not favoring user space controlling this, and wish driver
-> decides this for a given frame-rate requested by the user space :)
-> 
-> Frame-rate   resolution  HSYNC  VSYNC  PCLK(array)  PCLK (i/f bus) ...
-
-You can still do that, but it comes with limitations. Any fixed set of
-the above parameters is very hardware and use case dependent.
-
-> Let user space control only first two, and driver decide rest (PCLK can
-> be different at different ISP h/w units though)
-
-I'm definitely not against this. We do have drivers which use this kind
-of interface already and some vendors do not even provide enough
-information to write a driver for their sensor offering any other kind
-of interface.
-
-Cheers,
-
--- 
-Sakari Ailus
-sakari.ailus@maxwell.research.nokia.com
+Thanks,
+Declan
