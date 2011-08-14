@@ -1,246 +1,37 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.126.186]:63192 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752115Ab1HQJLI (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 17 Aug 2011 05:11:08 -0400
-Date: Wed, 17 Aug 2011 11:11:01 +0200 (CEST)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Pawel Osciak <pawel@osciak.com>
-cc: Hans Verkuil <hansverk@cisco.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Sakari Ailus <sakari.ailus@iki.fi>,
-	Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: Re: [PATCH 1/6 v4] V4L: add two new ioctl()s for multi-size videobuffer
- management
-In-Reply-To: <CAMm-=zCJBDzx=tzcnEU4RCS9jkbxDeDPDZsHRL5ZMHcdBMYivA@mail.gmail.com>
-Message-ID: <Pine.LNX.4.64.1108171047210.18317@axis700.grange>
-References: <Pine.LNX.4.64.1108042329460.31239@axis700.grange>
- <201108081116.41126.hansverk@cisco.com> <Pine.LNX.4.64.1108151324220.7851@axis700.grange>
- <201108151336.07258.hansverk@cisco.com> <Pine.LNX.4.64.1108151530410.7851@axis700.grange>
- <Pine.LNX.4.64.1108161458510.13913@axis700.grange>
- <CAMm-=zCJBDzx=tzcnEU4RCS9jkbxDeDPDZsHRL5ZMHcdBMYivA@mail.gmail.com>
+Received: from nm4-vm1.bullet.mail.ne1.yahoo.com ([98.138.91.44]:29972 "HELO
+	nm4-vm1.bullet.mail.ne1.yahoo.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with SMTP id S1751141Ab1HNXpo convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 14 Aug 2011 19:45:44 -0400
+Message-ID: <1313365542.39357.YahooMailClassic@web121712.mail.ne1.yahoo.com>
+Date: Sun, 14 Aug 2011 16:45:42 -0700 (PDT)
+From: Chris Rankin <rankincj@yahoo.com>
+Subject: PCTV 290e - assorted problems (cont)
+To: linux-media@vger.kernel.org
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, 16 Aug 2011, Pawel Osciak wrote:
+Another thing I've noticed - a successful hotplug outputs the following messages into the dmesg log:
 
-> Hi Guennadi,
-> 
-> On Tue, Aug 16, 2011 at 06:13, Guennadi Liakhovetski
-> <g.liakhovetski@gmx.de> wrote:
-> > On Mon, 15 Aug 2011, Guennadi Liakhovetski wrote:
-> >
-> >> On Mon, 15 Aug 2011, Hans Verkuil wrote:
-> >>
-> >> > On Monday, August 15, 2011 13:28:23 Guennadi Liakhovetski wrote:
-> >> > > Hi Hans
-> >> > >
-> >> > > On Mon, 8 Aug 2011, Hans Verkuil wrote:
-> >
-> > [snip]
-> >
-> >> > > > but I've changed my mind: I think
-> >> > > > this should use a struct v4l2_format after all.
-> >>
-> >> While switching back, I have to change the struct vb2_ops::queue_setup()
-> >> operation to take a struct v4l2_create_buffers pointer. An earlier version
-> >> of this patch just added one more parameter to .queue_setup(), which is
-> >> easier - changes to videobuf2-core.c are smaller, but it is then
-> >> redundant. We could use the create pointer for both input and output. The
-> >> video plane configuration in frame format is the same as what is
-> >> calculated in .queue_setup(), IIUC. So, we could just let the driver fill
-> >> that one in. This would require then the videobuf2-core.c to parse struct
-> >> v4l2_format to decide which union member we need, depending on the buffer
-> >> type. Do we want this or shall drivers duplicate plane sizes in separate
-> >> .queue_setup() parameters?
-> >
-> > Let me explain my question a bit. The current .queue_setup() method is
-> >
-> >        int (*queue_setup)(struct vb2_queue *q, unsigned int *num_buffers,
-> >                           unsigned int *num_planes, unsigned int sizes[],
-> >                           void *alloc_ctxs[]);
-> >
-> > To support multiple-size buffers we also have to pass a pointer to struct
-> > v4l2_create_buffers to this function now. We can either do it like this:
-> >
-> >        int (*queue_setup)(struct vb2_queue *q,
-> >                           struct v4l2_create_buffers *create,
-> >                           unsigned int *num_buffers,
-> >                           unsigned int *num_planes, unsigned int sizes[],
-> >                           void *alloc_ctxs[]);
-> >
-> > and let all drivers fill in respective fields in *create, e.g., either do
-> >
-> >        create->format.fmt.pix_mp.plane_fmt[i].sizeimage = ...;
-> >        create->format.fmt.pix_mp.num_planes = ...;
-> >
-> > and also duplicate it in method parameters
-> >
-> >        *num_planes = create->format.fmt.pix_mp.num_planes;
-> >        sizes[i] = create->format.fmt.pix_mp.plane_fmt[i].sizeimage;
-> >
-> > or with
-> >
-> >        create->format.fmt.pix.sizeimage = ...;
-> >
-> > for single-plane. Alternatively we make the prototype
-> >
-> >        int (*queue_setup)(struct vb2_queue *q,
-> >                           struct v4l2_create_buffers *create,
-> >                           unsigned int *num_buffers,
-> >                           void *alloc_ctxs[]);
-> >
-> > then drivers only fill in *create, and the videobuf2-core will have to
-> > check create->format.type to decide, which of create->format.fmt.* is
-> > relevant and extract plane sizes from there.
-> 
-> 
-> Could we try exploring an alternative idea?
-> The queue_setup callback was added to decouple formats from vb2 (and
-> add some asynchronousness). But now we are doing the opposite, adding
-> format awareness to vb2. Does vb2 really need to know about formats? I
-> really believe it doesn't. It only needs sizes and counts.
+DVB: registering new adapter (em28xx #0)
+DVB: registering adapter 0 frontend 0 (Sony CXD2820R (DVB-T/T2))...
+DVB: registering adapter 0 frontend 1 (Sony CXD2820R (DVB-C))...
+em28xx #0: Successfully loaded em28xx-dvb
+Em28xx: Initialized (Em28xx dvb Extension) extension
 
-This kind of objection was expected:-) However, I think, you're a bit 
-exaggerating. VB2 does not have to _fill_ the format. All frame-format 
-fields like fourcc code, width, height, colorspace are only input from the 
-user. If the user didn't fill them in, they should not be used. The only 
-thing, that vb2 will have to learn about formats is to find the location 
-of (plane-)buffer sizes in struct v4l2_format, for which it will have to 
-interpret the .type value. I.e., we just have to add this:
+However, I'm suspecting that the DVB adapter doesn't actually become usable until these messages have also appeared:
 
-static int vb2_parse_planes(const struct v4l2_create_buffers *create,
-			    unsigned int *num_planes, unsigned int *plane_sizes)
-{
-	int i;
+tda18271: performing RF tracking filter calibration
+tda18271: RF tracking filter calibration complete
 
-	switch (create->format.type) {
-	case V4L2_BUF_TYPE_VIDEO_CAPTURE:
-	case V4L2_BUF_TYPE_VIDEO_OUTPUT:
-		*num_planes = 1;
-		plane_sizes[0] = create->format.fmt.pix.sizeimage;
-		return 0;
-	case V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE:
-	case V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE:
-		*num_planes = create->format.fmt.pix_mp.num_planes;
-		for (i = 0; i < *num_planes; i++)
-			plane_sizes[i] = create->format.fmt.pix_mp.plane_fmt[i].sizeimage;
-		return 0;
-	default:
-		return -EINVAL;
-	}
-}
+The most obvious example of this is when using xine's DVB plugin: xine fails on the first attempt after a fresh hotplug, saying "Sorry, No DVB input device found.". And it's also possible that trying to use xine with the device before the "tracking filter calibration" completes is what is making em28xx_usb_probe() hang...
 
-Can you live with this or you still think it's too much format-knowledge 
-for vb2? Or am I missing something, why we need more knowledge?
+Oh well, it's early days...
 
-> Also, we
-> are actually complicating things I think. The proposal, IIUC, would
-> look like this:
-> 
-> driver_queue_setup(..., create, num_buffers, [num_planes], ...)
-> {
->     if (create != NULL && create->format != NULL) {
->         /* use create->fmt to fill sizes */
->     } else if (create != NULL) { /* this assumes we have both format or sizes */
->         /* use create->sizes to fill sizes */
->     } else {
->         /* use currently selected format to fill sizes */
->     }
-> }
-> 
-> driver_s_fmt(format)
-> {
->     /* ... */
->     driver_fill_format(&create->fmt);
->     /* ... */
-> }
-> 
-> driver_create_bufs(create)
-> {
->     vb2_create_bufs(create);
-> }
-> 
-> vb2_create_bufs(create)
-> {
->     driver_queue_setup(..., create, ...);
->     vb2_fill_format(&create->fmt); /* note different from
-> driver_fill_format(), but both needed */
-> }
-> 
-> vb2_reqbufs(reqbufs)
-> {
->    driver_queue_setup(..., NULL, ...);
-> }
-> 
-> The queue_setup not only becomes unnecessarily complicated, but I'm
-> starting to question the convenience of it. And we are teaching vb2
-> how to interpret format structs, even though vb2 only needs sizes, and
-> even though the driver has to do it anyway and knows better how.
-> 
-> As for the idea to fill fmt in vb2, even if vb2 was to do it in
-> create_bufs, some code to parse and fill the format fields would need
-> to be in the driver anyway, because it still has to support s_fmt and
-> friends. So adding that code to vb2 would duplicate it, and if the
-> driver wanted to be non-standard in a way it filled the format fields,
-> we'd not be allowing that.
-> 
-> My suggestion would be to remove queue_setup callback and instead
-> modify vb2_reqbufs and vb2_create_bufs to accept sizes and number of
-> buffers. I think it should simplify things both for drivers and vb2,
-> would keep vb2 format-unaware and save us some round trips between vb2
-> and driver:
+Cheers,
+Chris
 
-Right, I see what you mean. Well, this seems doable. Do we want this? It 
-does seem to simplify things a bit by removing .queue_setup()... Opinions?
-
-> driver_create_bufs(...) /* optional */
-> {
->     /* use create->fmt (or sizes) */
->     ret = vb2_create_bufs(num_buffers, num_planes, buf_sizes,
-> plane_sizes, alloc_ctxs);
->     fill_format(&create->fmt) /* because s_fmt has to do it anyway, so
-> have a common function for that */
->     return ret;
-> }
-> 
-> driver_reqbufs(...)
-> {
->     /* use current format */
->     return vb2_reqbufs(num_buffers, num_planes, buf_sizes,
-> plane_sizes, alloc_ctxs);
-> }
-> 
-> And the call to both could easily converge into one in vb2, as the
-> only difference is that vb2_reqbufs would need to free first, if any
-> allocated buffers were present:
-> 
-> vb2_reqbufs(num_buffers, num_planes, buf_sizes, plane_sizes, alloc_ctxs)
-> {
->     if (buffers_allocated(num_buffers, num_planes, buf_sizes,
-> plane_sizes, alloc_ctxs)) {
->         free_buffers(...);
->     }
-> 
->     return vb2_create_bufs(num_buffers, num_planes, buf_sizes,
-> plane_sizes, alloc_ctxs);
-> }
-> 
-> If the driver didn't want create_bufs, it'd just not implement it.
-> What do you think?
-> 
-> -- 
-> Best regards,
-> Pawel Osciak
-
-Thanks
-Guennadi
----
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
-http://www.open-technology.de/
