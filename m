@@ -1,53 +1,63 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:57451 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752661Ab1HLHfU convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 12 Aug 2011 03:35:20 -0400
-Received: from dbdp20.itg.ti.com ([172.24.170.38])
-	by arroyo.ext.ti.com (8.13.7/8.13.7) with ESMTP id p7C7ZH7H031327
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-media@vger.kernel.org>; Fri, 12 Aug 2011 02:35:19 -0500
-Received: from dbde70.ent.ti.com (localhost [127.0.0.1])
-	by dbdp20.itg.ti.com (8.13.8/8.13.8) with ESMTP id p7C7ZHQa027201
-	for <linux-media@vger.kernel.org>; Fri, 12 Aug 2011 13:05:17 +0530 (IST)
-From: "Ravi, Deepthy" <deepthy.ravi@ti.com>
-To: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-CC: "Hiremath, Vaibhav" <hvaibhav@ti.com>,
-	"Koyamangalath, Abhilash" <abhilash.kv@ti.com>
-Date: Fri, 12 Aug 2011 13:05:16 +0530
-Subject: [QUERY] Inclusion of isp.h in board-omap3evm-camera.c
-Message-ID: <ADF30F4D7BDE934D9B632CE7D5C7ACA4047C4D0907CF@dbde03.ent.ti.com>
-Content-Language: en-US
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Received: from nm3-vm4.bullet.mail.ne1.yahoo.com ([98.138.91.163]:29788 "HELO
+	nm3-vm4.bullet.mail.ne1.yahoo.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with SMTP id S1752623Ab1HNAjf convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 13 Aug 2011 20:39:35 -0400
+Message-ID: <1313282374.97725.YahooMailClassic@web121715.mail.ne1.yahoo.com>
+Date: Sat, 13 Aug 2011 17:39:34 -0700 (PDT)
+From: Chris Rankin <rankincj@yahoo.com>
+Subject: Re: PCTV 290e nanostick and remote control support
+To: Antti Palosaari <crope@iki.fi>
+Cc: linux-media@vger.kernel.org
+In-Reply-To: <4E46FB3C.7060402@iki.fi>
 MIME-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-I need to use some isp structures ( isp_v4l2_subdevs_group, isp_platform_data ,isp_subdev_i2c_board_info etc.) in  board-omap3evm-camera.c. For that header file isp.h has to be included .
-Currently I am including it in this way:
+--- On Sat, 13/8/11, Antti Palosaari <crope@iki.fi> wrote:
+> Remote is already supported, but from the 3.1 or maybe 3.2
+> (I am not sure if Mauro was hurry to sent it 3.1).
 
-#include <../drivers/media/video/omap3isp/isp.h>
+Hi,
 
- Is there a better way to do this ? The relevant hunk of the patch is shown below:
+This appears to be the diff from 3.1 that adds RC support:
 
-diff --git a/arch/arm/mach-omap2/board-omap3evm-camera.c b/arch/arm/mach-omap2/board-omap3evm-camera.c
-new file mode 100644
-index 0000000..319a6a1
---- /dev/null
-+++ b/arch/arm/mach-omap2/board-omap3evm-camera.c
-+#include <linux/io.h>
-+#include <linux/i2c.h>
-+#include <linux/delay.h>
-+#include <linux/platform_device.h>
-+#include <linux/regulator/consumer.h>
-+
-+#include <mach/gpio.h>
-+
-+#include <media/tvp514x.h>
-+
-+#include <../drivers/media/video/omap3isp/isp.h> 
+--- linux-3.0/drivers/media/video/em28xx/em28xx-cards.c.orig	2011-08-13 20:37:26.000000000 +0100
++++ linux-3.0/drivers/media/video/em28xx/em28xx-cards.c	2011-08-14 00:34:59.000000000 +0100
+@@ -1773,13 +1773,13 @@
+ 	/* 2013:024f PCTV Systems nanoStick T2 290e.
+ 	 * Empia EM28174, Sony CXD2820R and NXP TDA18271HD/C2 */
+ 	[EM28174_BOARD_PCTV_290E] = {
++		.name          = "PCTV nanoStick T2 290e",
+ 		.i2c_speed      = EM2874_I2C_SECONDARY_BUS_SELECT |
+ 			EM28XX_I2C_CLK_WAIT_ENABLE | EM28XX_I2C_FREQ_100_KHZ,
+-		.xclk          = EM28XX_XCLK_FREQUENCY_12MHZ,
+-		.name          = "PCTV Systems nanoStick T2 290e",
+ 		.tuner_type    = TUNER_ABSENT,
+ 		.tuner_gpio    = pctv_290e,
+ 		.has_dvb       = 1,
++		.ir_codes      = RC_MAP_PINNACLE_PCTV_HD,
+ 	},
+ };
+ const unsigned int em28xx_bcount = ARRAY_SIZE(em28xx_boards);
+--- linux-3.0/drivers/media/video/em28xx/em28xx-input.c.orig	2011-08-14 00:30:57.000000000 +0100
++++ linux-3.0/drivers/media/video/em28xx/em28xx-input.c	2011-08-14 00:31:20.000000000 +0100
+@@ -372,6 +372,7 @@
+ 		ir->get_key = default_polling_getkey;
+ 		break;
+ 	case CHIP_ID_EM2874:
++	case CHIP_ID_EM28174:
+ 		ir->get_key = em2874_polling_getkey;
+ 		em28xx_write_regs(dev, EM2874_R50_IR_CONFIG, &ir_config, 1);
+ 		break;
 
+It certainly creates a new /dev/input/event? node, and allows me to program all but *one* button on the handset: the "OK" button. At this early stage, it would seem unlikely that this particular button is faulty. Could there be an error in the IR code configuration, please?
 
+Or maybe someone else *does* have a PCTV 290e device where the OK button works?
+
+Thanks,
+Chris
 
