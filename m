@@ -1,84 +1,57 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-iy0-f174.google.com ([209.85.210.174]:51472 "EHLO
-	mail-iy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753401Ab1H2O0D convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 29 Aug 2011 10:26:03 -0400
+Received: from mail.kapsi.fi ([217.30.184.167]:44923 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753130Ab1HNMLw (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 14 Aug 2011 08:11:52 -0400
+Message-ID: <4E47BB82.8040801@iki.fi>
+Date: Sun, 14 Aug 2011 15:11:46 +0300
+From: Antti Palosaari <crope@iki.fi>
 MIME-Version: 1.0
-In-Reply-To: <201108291617.13236.laurent.pinchart@ideasonboard.com>
-References: <1313746626-23845-1-git-send-email-laurent.pinchart@ideasonboard.com>
-	<201108291534.35951.laurent.pinchart@ideasonboard.com>
-	<CAMuHMdV=ZWMSJ_-r9fRMs0RCHyDZL=1a0_ZPZCgLBYJf=Ws4=Q@mail.gmail.com>
-	<201108291617.13236.laurent.pinchart@ideasonboard.com>
-Date: Mon, 29 Aug 2011 16:26:02 +0200
-Message-ID: <CAMuHMdV1mPFUWk_=6sB73hFiRXeXwgLGKzSQy=gZA0YuG0Fb3A@mail.gmail.com>
-Subject: Re: [PATCH/RFC v2 1/3] fbdev: Add FOURCC-based format configuration API
-From: Geert Uytterhoeven <geert@linux-m68k.org>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: linux-fbdev@vger.kernel.org, linux-media@vger.kernel.org,
-	magnus.damm@gmail.com
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8BIT
+To: Devin Heitmueller <dheitmueller@kernellabs.com>
+CC: Chris Rankin <rankincj@yahoo.com>, linux-media@vger.kernel.org
+Subject: Re: PCTV 290e nanostick and remote control support
+References: <4E46FB3C.7060402@iki.fi> <1313286189.94904.YahooMailClassic@web121720.mail.ne1.yahoo.com> <CAGoCfiw0p7jwac94eYM9apUN4Qd8mduteq_xH8ePoyxvO7SNGA@mail.gmail.com>
+In-Reply-To: <CAGoCfiw0p7jwac94eYM9apUN4Qd8mduteq_xH8ePoyxvO7SNGA@mail.gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Laurent,
-
-On Mon, Aug 29, 2011 at 16:17, Laurent Pinchart
-<laurent.pinchart@ideasonboard.com> wrote:
-> On Monday 29 August 2011 16:14:38 Geert Uytterhoeven wrote:
->> On Mon, Aug 29, 2011 at 15:34, Laurent Pinchart wrote:
->> > On Monday 29 August 2011 15:09:04 Geert Uytterhoeven wrote:
->> >> On Mon, Aug 29, 2011 at 14:55, Laurent Pinchart wrote:
->> >> >> When will the driver report FB_{TYPE,VISUAL}_FOURCC?
->> >> >>   - When using a mode that cannot be represented in the legacy way,
->> >> >
->> >> > Definitely.
->> >> >
->> >> >>   - But what with modes that can be represented? Legacy software
->> >> >> cannot handle FB_{TYPE,VISUAL}_FOURCC.
->> >> >
->> >> > My idea was to use FB_{TYPE,VISUAL}_FOURCC only when the mode is
->> >> > configured using the FOURCC API. If FBIOPUT_VSCREENINFO is called with
->> >> > a non-FOURCC format, the driver will report non-FOURCC types and
->> >> > visuals.
->> >>
->> >> Hmm, two use cases:
->> >>   - The video mode is configured using a FOURCC-aware tool ("fbset on
->> >> steroids").
->> >
->> > Such as http://git.ideasonboard.org/?p=fbdev-test.git;a=summary :-)
+On 08/14/2011 04:48 AM, Devin Heitmueller wrote:
+> On Sat, Aug 13, 2011 at 9:43 PM, Chris Rankin <rankincj@yahoo.com> wrote:
+>> The rc-pinnacle-pctv-hd keymap is missing the definition of the OK key:
 >>
->> Yep.
+>> --- linux-3.0/drivers/media/rc/keymaps/rc-pinnacle-pctv-hd.c.orig       2011-08-14 02:42:01.000000000 +0100
+>> +++ linux-3.0/drivers/media/rc/keymaps/rc-pinnacle-pctv-hd.c    2011-08-14 02:12:45.000000000 +0100
+>> @@ -20,6 +20,7 @@
+>>        { 0x0701, KEY_MENU }, /* Pinnacle logo */
+>>        { 0x0739, KEY_POWER },
+>>        { 0x0703, KEY_VOLUMEUP },
+>> +       { 0x0705, KEY_OK },
+>>        { 0x0709, KEY_VOLUMEDOWN },
+>>        { 0x0706, KEY_CHANNELUP },
+>>        { 0x070c, KEY_CHANNELDOWN },
 >>
->> >>     Later the user runs a legacy application.
->> >>       => Do not retain FOURCC across opening of /dev/fb*.
->> >
->> > I know about that problem, but it's not that easy to work around. We have
->> > no per-open fixed and variable screen info, and FB devices can be opened
->> > by multiple applications at the same time.
->> >
->> >>   - Is there an easy way to force FOURCC reporting, so new apps don't
->> >> have to support parsing the legacy formats? This is useful for new apps
->> >> that want to support (a subset of) FOURCC modes only.
->> >
->> > Not at the moment.
->>
->> So perhaps we do need new ioctls instead...
->> That would also ease an in-kernel translation layer.
->
-> Do you mean new ioctls to replace the FOURCC API proposal, or new ioctls for
-> the above two operations ?
+>> Cheers,
+>> Chris
+> 
+> Wow, how the hell did I miss that?  I did numerous remotes for em28xx
+> based devices that use that RC profile, and never noticed that issue.
+> 
+> Will have to check the merge logs.  Maybe the key got lost when they
+> refactored the IR support.
 
-New ioctls to replace the FOURCC proposal.
+It seems to be very old bug, year 2007, not coming from merge errors! It
+could be even possible there have not been such button originally. Very
+weird situation none have found it earlier. For example I just pressed
+few buttons to see number are coming to console => OK it works (didn't
+looked all buttons sends events).
 
-Gr{oetje,eeting}s,
+That's commit which adds those keytables:
+commit 54d75ebaa02809f24a16624e32706af3bf97588e
 
-                        Geert
+regards
+Antti
 
---
-Geert Uytterhoeven -- There's lots of Linux beyond ia32 -- geert@linux-m68k.org
-
-In personal conversations with technical people, I call myself a hacker. But
-when I'm talking to journalists I just say "programmer" or something like that.
-                                -- Linus Torvalds
+-- 
+http://palosaari.fi/
