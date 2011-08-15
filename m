@@ -1,986 +1,571 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:53302 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753838Ab1H2PH3 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 29 Aug 2011 11:07:29 -0400
-Received: from dbdp20.itg.ti.com ([172.24.170.38])
-	by comal.ext.ti.com (8.13.7/8.13.7) with ESMTP id p7TF7QGf018066
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-media@vger.kernel.org>; Mon, 29 Aug 2011 10:07:28 -0500
-From: Manjunath Hadli <manjunath.hadli@ti.com>
-To: LMML <linux-media@vger.kernel.org>
-CC: dlos <davinci-linux-open-source@linux.davincidsp.com>,
-	Manjunath Hadli <manjunath.hadli@ti.com>,
-	Nagabhushana Netagunte <nagabhushana.netagunte@ti.com>
-Subject: [PATCH v2 5/8] davinci: vpfe: add ccdc driver with media controller interface
-Date: Mon, 29 Aug 2011 20:37:16 +0530
-Message-ID: <1314630439-1122-6-git-send-email-manjunath.hadli@ti.com>
-In-Reply-To: <1314630439-1122-1-git-send-email-manjunath.hadli@ti.com>
-References: <1314630439-1122-1-git-send-email-manjunath.hadli@ti.com>
-MIME-Version: 1.0
-Content-Type: text/plain
+Received: from mail-gw0-f46.google.com ([74.125.83.46]:33968 "EHLO
+	mail-gw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751587Ab1HOFHu (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 15 Aug 2011 01:07:50 -0400
+From: Arnaud Lacombe <lacombar@gmail.com>
+To: linux-kernel@vger.kernel.org
+Cc: Arnaud Lacombe <lacombar@gmail.com>,
+	Sam Ravnborg <sam@ravnborg.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	linux-media@vger.kernel.org
+Subject: [PATCH 05/11] drivers/media: do not use EXTRA_CFLAGS
+Date: Mon, 15 Aug 2011 01:07:08 -0400
+Message-Id: <1313384834-24433-6-git-send-email-lacombar@gmail.com>
+In-Reply-To: <1313384834-24433-1-git-send-email-lacombar@gmail.com>
+References: <1313384834-24433-1-git-send-email-lacombar@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add the CCDC driver for davinci Dm3XX SoCs. The driver supports
-CCDC as a media entity with 2 pads - 1 input and 1 output. The
-driver implements streaming support and subdev interface. The
-ccdc supports bayer and YUV formats.
+Usage of these flags has been deprecated for nearly 4 years by:
 
-Signed-off-by: Manjunath Hadli <manjunath.hadli@ti.com>
-Signed-off-by: Nagabhushana Netagunte <nagabhushana.netagunte@ti.com>
+    commit f77bf01425b11947eeb3b5b54685212c302741b8
+    Author: Sam Ravnborg <sam@neptun.(none)>
+    Date:   Mon Oct 15 22:25:06 2007 +0200
+
+        kbuild: introduce ccflags-y, asflags-y and ldflags-y
+
+Moreover, these flags (at least EXTRA_CFLAGS) have been documented for command
+line use. By default, gmake(1) do not override command line setting, so this is
+likely to result in build failure or unexpected behavior.
+
+Replace their usage by Kbuild's `{as,cc,ld}flags-y'.
+
+Cc: Sam Ravnborg <sam@ravnborg.org>
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
+Cc: linux-media@vger.kernel.org
 ---
- drivers/media/video/davinci/ccdc_hw_device.h |   10 +-
- drivers/media/video/davinci/vpfe_ccdc.c      |  813 ++++++++++++++++++++++++++
- drivers/media/video/davinci/vpfe_ccdc.h      |   85 +++
- 3 files changed, 901 insertions(+), 7 deletions(-)
- create mode 100644 drivers/media/video/davinci/vpfe_ccdc.c
- create mode 100644 drivers/media/video/davinci/vpfe_ccdc.h
+ drivers/media/common/tuners/Makefile       |    4 ++--
+ drivers/media/dvb/b2c2/Makefile            |    4 ++--
+ drivers/media/dvb/bt8xx/Makefile           |    8 ++++----
+ drivers/media/dvb/ddbridge/Makefile        |    8 ++++----
+ drivers/media/dvb/dm1105/Makefile          |    2 +-
+ drivers/media/dvb/dvb-usb/Makefile         |    4 ++--
+ drivers/media/dvb/frontends/Makefile       |    4 ++--
+ drivers/media/dvb/mantis/Makefile          |    2 +-
+ drivers/media/dvb/ngene/Makefile           |    8 ++++----
+ drivers/media/dvb/pluto2/Makefile          |    2 +-
+ drivers/media/dvb/pt1/Makefile             |    2 +-
+ drivers/media/dvb/siano/Makefile           |    4 ++--
+ drivers/media/dvb/ttpci/Makefile           |    4 ++--
+ drivers/media/dvb/ttusb-budget/Makefile    |    2 +-
+ drivers/media/dvb/ttusb-dec/Makefile       |    2 +-
+ drivers/media/radio/Makefile               |    2 +-
+ drivers/media/video/Makefile               |    6 +++---
+ drivers/media/video/au0828/Makefile        |    8 ++++----
+ drivers/media/video/bt8xx/Makefile         |    6 +++---
+ drivers/media/video/cx18/Makefile          |    6 +++---
+ drivers/media/video/cx231xx/Makefile       |   10 +++++-----
+ drivers/media/video/cx23885/Makefile       |   10 +++++-----
+ drivers/media/video/cx25840/Makefile       |    2 +-
+ drivers/media/video/cx88/Makefile          |    8 ++++----
+ drivers/media/video/em28xx/Makefile        |    8 ++++----
+ drivers/media/video/gspca/gl860/Makefile   |    2 +-
+ drivers/media/video/gspca/m5602/Makefile   |    2 +-
+ drivers/media/video/gspca/stv06xx/Makefile |    2 +-
+ drivers/media/video/hdpvr/Makefile         |    4 ++--
+ drivers/media/video/ivtv/Makefile          |    8 ++++----
+ drivers/media/video/omap3isp/Makefile      |    4 +---
+ drivers/media/video/pvrusb2/Makefile       |    8 ++++----
+ drivers/media/video/saa7134/Makefile       |    8 ++++----
+ drivers/media/video/saa7164/Makefile       |   10 +++++-----
+ drivers/media/video/tlg2300/Makefile       |    8 ++++----
+ drivers/media/video/usbvision/Makefile     |    4 ++--
+ 36 files changed, 92 insertions(+), 94 deletions(-)
 
-diff --git a/drivers/media/video/davinci/ccdc_hw_device.h b/drivers/media/video/davinci/ccdc_hw_device.h
-index 86b9b35..5394a06 100644
---- a/drivers/media/video/davinci/ccdc_hw_device.h
-+++ b/drivers/media/video/davinci/ccdc_hw_device.h
-@@ -23,8 +23,8 @@
- #ifdef __KERNEL__
- #include <linux/videodev2.h>
- #include <linux/device.h>
--#include <media/davinci/vpfe_types.h>
--#include <media/davinci/ccdc_types.h>
-+#include "ccdc_types.h"
-+#include <media/davinci/vpfe.h>
+diff --git a/drivers/media/common/tuners/Makefile b/drivers/media/common/tuners/Makefile
+index 20d24fc..196c12a 100644
+--- a/drivers/media/common/tuners/Makefile
++++ b/drivers/media/common/tuners/Makefile
+@@ -28,5 +28,5 @@ obj-$(CONFIG_MEDIA_TUNER_MAX2165) += max2165.o
+ obj-$(CONFIG_MEDIA_TUNER_TDA18218) += tda18218.o
+ obj-$(CONFIG_MEDIA_TUNER_TDA18212) += tda18212.o
  
- /*
-  * ccdc hw operations
-@@ -57,7 +57,7 @@ struct ccdc_hw_ops {
- 	 */
- 	int (*get_params) (void *params);
- 	/* Pointer to function to configure ccdc */
--	int (*configure) (void);
-+	int (*configure) (int mode);
+-EXTRA_CFLAGS += -Idrivers/media/dvb/dvb-core
+-EXTRA_CFLAGS += -Idrivers/media/dvb/frontends
++ccflags-y += -Idrivers/media/dvb/dvb-core
++ccflags-y += -Idrivers/media/dvb/frontends
+diff --git a/drivers/media/dvb/b2c2/Makefile b/drivers/media/dvb/b2c2/Makefile
+index b97cf72..3d04a8d 100644
+--- a/drivers/media/dvb/b2c2/Makefile
++++ b/drivers/media/dvb/b2c2/Makefile
+@@ -12,5 +12,5 @@ obj-$(CONFIG_DVB_B2C2_FLEXCOP_PCI) += b2c2-flexcop-pci.o
+ b2c2-flexcop-usb-objs = flexcop-usb.o
+ obj-$(CONFIG_DVB_B2C2_FLEXCOP_USB) += b2c2-flexcop-usb.o
  
- 	/* Pointer to function to set buffer type */
- 	int (*set_buftype) (enum ccdc_buftype buf_type);
-@@ -102,9 +102,5 @@ struct ccdc_hw_device {
- 	struct ccdc_hw_ops hw_ops;
- };
+-EXTRA_CFLAGS += -Idrivers/media/dvb/dvb-core/ -Idrivers/media/dvb/frontends/
+-EXTRA_CFLAGS += -Idrivers/media/common/tuners/
++ccflags-y += -Idrivers/media/dvb/dvb-core/ -Idrivers/media/dvb/frontends/
++ccflags-y += -Idrivers/media/common/tuners/
+diff --git a/drivers/media/dvb/bt8xx/Makefile b/drivers/media/dvb/bt8xx/Makefile
+index d98f1d4..0713b3a 100644
+--- a/drivers/media/dvb/bt8xx/Makefile
++++ b/drivers/media/dvb/bt8xx/Makefile
+@@ -1,6 +1,6 @@
+ obj-$(CONFIG_DVB_BT8XX) += bt878.o dvb-bt8xx.o dst.o dst_ca.o
  
--/* Used by CCDC module to register & unregister with vpfe capture driver */
--int vpfe_register_ccdc_device(struct ccdc_hw_device *dev);
--void vpfe_unregister_ccdc_device(struct ccdc_hw_device *dev);
--
- #endif
- #endif
-diff --git a/drivers/media/video/davinci/vpfe_ccdc.c b/drivers/media/video/davinci/vpfe_ccdc.c
-new file mode 100644
-index 0000000..57d8b3d
---- /dev/null
-+++ b/drivers/media/video/davinci/vpfe_ccdc.c
-@@ -0,0 +1,813 @@
-+/*
-+ * Copyright (C) 2011 Texas Instruments Inc
-+ *
-+ * This program is free software; you can redistribute it and/or
-+ * modify it under the terms of the GNU General Public License as
-+ * published by the Free Software Foundation version 2.
-+ *
-+ * This program is distributed in the hope that it will be useful,
-+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-+ * GNU General Public License for more details.
-+ *
-+ * You should have received a copy of the GNU General Public License
-+ * along with this program; if not, write to the Free Software
-+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307 USA
-+ *
-+ * Contributors:
-+ *      Manjunath Hadli <manjunath.hadli@ti.com>
-+ *      Nagabhushana Netagunte <nagabhushana.netagunte@ti.com>
-+ */
-+#include <linux/platform_device.h>
-+#include <linux/videodev2.h>
-+#include <linux/v4l2-mediabus.h>
-+#include <media/v4l2-device.h>
-+#include <media/media-entity.h>
-+#include "vpfe_capture.h"
-+
-+#include "ccdc_hw_device.h"
-+
-+#define MAX_WIDTH	4096
-+#define MAX_HEIGHT	4096
-+
-+static const unsigned int ccdc_fmts[] = {
-+	V4L2_MBUS_FMT_Y8_1X8,
-+	V4L2_MBUS_FMT_YUYV8_2X8,
-+	V4L2_MBUS_FMT_YUYV8_1X16,
-+	V4L2_MBUS_FMT_YUYV10_1X20,
-+	V4L2_MBUS_FMT_SBGGR10_1X10,
-+};
-+
-+/*
-+ * CCDC helper functions
-+ */
-+/* get field id in ccdc hardware */
-+enum v4l2_field ccdc_get_fid(struct vpfe_device *vpfe_dev)
-+{
-+	struct vpfe_ccdc_device *ccdc = &vpfe_dev->vpfe_ccdc;
-+	struct ccdc_hw_device *ccdc_dev = ccdc->ccdc_dev;
-+
-+	return ccdc_dev->hw_ops.getfid();
-+}
-+
-+/* Retrieve active or try pad format based on query */
-+static struct v4l2_mbus_framefmt *
-+__ccdc_get_format(struct vpfe_ccdc_device *ccdc, struct v4l2_subdev_fh *fh,
-+		  unsigned int pad, enum v4l2_subdev_format_whence which)
-+{
-+	if (which == V4L2_SUBDEV_FORMAT_TRY) {
-+		struct v4l2_subdev_format fmt;
-+
-+		fmt.pad = pad;
-+		fmt.which = which;
-+
-+		return v4l2_subdev_get_try_format(fh, pad);
-+	} else
-+		return &ccdc->formats[pad];
-+}
-+
-+/* configure format in ccdc hardware */
-+static int vpfe_config_ccdc_format(struct vpfe_device *vpfe_dev,
-+				   unsigned int pad)
-+{
-+	struct ccdc_hw_device *ccdc_dev = vpfe_dev->vpfe_ccdc.ccdc_dev;
-+	struct vpfe_ccdc_device *vpfe_ccdc = &vpfe_dev->vpfe_ccdc;
-+	enum ccdc_frmfmt frm_fmt = CCDC_FRMFMT_INTERLACED;
-+	struct v4l2_pix_format format;
-+	int ret = 0;
-+
-+	v4l2_fill_pix_format(&format, &vpfe_dev->vpfe_ccdc.formats[pad]);
-+	mbus_to_pix(&vpfe_dev->vpfe_ccdc.formats[pad], &format);
-+
-+	if (ccdc_dev->hw_ops.set_pixel_format(
-+			format.pixelformat) < 0) {
-+		v4l2_err(&vpfe_dev->v4l2_dev,
-+			"couldn't set pix format in ccdc\n");
-+		return -EINVAL;
-+	}
-+
-+	/* call for s_crop will override these values */
-+	vpfe_ccdc->crop.left = 0;
-+	vpfe_ccdc->crop.top = 0;
-+	vpfe_ccdc->crop.width = format.width;
-+	vpfe_ccdc->crop.height = format.height;
-+
-+	/* configure the image window */
-+	ccdc_dev->hw_ops.set_image_window(&vpfe_ccdc->crop);
-+
-+	switch (vpfe_dev->vpfe_ccdc.formats[pad].field) {
-+	case V4L2_FIELD_INTERLACED:
-+		/* do nothing, since it is default */
-+		ret = ccdc_dev->hw_ops.set_buftype(
-+				CCDC_BUFTYPE_FLD_INTERLEAVED);
-+		break;
-+	case V4L2_FIELD_NONE:
-+		frm_fmt = CCDC_FRMFMT_PROGRESSIVE;
-+		/* buffer type only applicable for interlaced scan */
-+		break;
-+	case V4L2_FIELD_SEQ_TB:
-+		ret = ccdc_dev->hw_ops.set_buftype(
-+				CCDC_BUFTYPE_FLD_SEPARATED);
-+		break;
-+	default:
-+		return -EINVAL;
-+	}
-+
-+	/* set the frame format */
-+	if (!ret)
-+		ret = ccdc_dev->hw_ops.set_frame_format(frm_fmt);
-+
-+	return ret;
-+}
-+
-+/*
-+ * ccdc_try_format - Try video format on a pad
-+ * @ccdc: VPFE CCDC device
-+ * @fh : V4L2 subdev file handle
-+ * @pad: Pad number
-+ * @fmt: Format
-+ */
-+static void
-+ccdc_try_format(struct vpfe_ccdc_device *vpfe_ccdc, struct v4l2_subdev_fh *fh,
-+		struct v4l2_subdev_format *fmt)
-+{
-+	unsigned int width = fmt->format.width;
-+	unsigned int height = fmt->format.height;
-+	unsigned int i;
-+
-+	for (i = 0; i < ARRAY_SIZE(ccdc_fmts); i++) {
-+		if (fmt->format.code == ccdc_fmts[i])
-+			break;
-+	}
-+
-+	/* If not found, use YUYV8_2x8 as default */
-+	if (i >= ARRAY_SIZE(ccdc_fmts))
-+		fmt->format.code = V4L2_MBUS_FMT_YUYV8_2X8;
-+
-+	/* Clamp the size. */
-+	fmt->format.width = clamp_t(u32, width, 32, MAX_WIDTH);
-+	fmt->format.height = clamp_t(u32, height, 32, MAX_HEIGHT);
-+
-+	/* The data formatter truncates the number of horizontal output
-+	* pixels to a multiple of 16. To avoid clipping data, allow
-+	* callers to request an output size bigger than the input size
-+	* up to the nearest multiple of 16.
-+	*/
-+	if (fmt->pad == CCDC_PAD_SOURCE)
-+		fmt->format.width &= ~15;
-+}
-+
-+/*
-+ * ccdc_buffer_isr - CCDC module non-progressive buffer scheduling isr
-+ * @ccdc: CCDC device pointer
-+ *
-+ */
-+void ccdc_buffer_isr(struct vpfe_ccdc_device *ccdc)
-+{
-+	struct vpfe_video_device *video = &ccdc->video_out;
-+	struct ccdc_hw_device *ccdc_dev = ccdc->ccdc_dev;
-+	enum v4l2_field field;
-+
-+	if (!video->started)
-+		return;
-+
-+	field = video->fmt.fmt.pix.field;
-+
-+	/* reset sbl overblow bit */
-+	if (ccdc_dev->hw_ops.reset != NULL)
-+		ccdc_dev->hw_ops.reset();
-+
-+	if (field == V4L2_FIELD_NONE) {
-+		/* handle progressive frame capture */
-+		if (video->cur_frm != video->next_frm)
-+			vpfe_process_buffer_complete(video);
-+	} else {
-+		int fid;
-+		/* interlaced or TB capture check which field we
-+		 * are in hardware
-+		 */
-+		fid = ccdc_dev->hw_ops.getfid();
-+
-+		/* switch the software maintained field id */
-+		video->field_id ^= 1;
-+		if (fid == video->field_id) {
-+			/* we are in-sync here,continue */
-+			if (fid == 0) {
-+				/*
-+				 * One frame is just being captured. If the
-+				 * next frame is available, release the current
-+				 * frame and move on
-+				 */
-+				if (video->cur_frm != video->next_frm)
-+					vpfe_process_buffer_complete(video);
-+				/*
-+				 * based on whether the two fields are stored
-+				 * interleavely or separately in memory,
-+				 * reconfigure the CCDC memory address
-+				 */
-+				if (field == V4L2_FIELD_SEQ_TB)
-+					vpfe_schedule_bottom_field(video);
-+
-+				return;
-+			} else {
-+				/*
-+				 * if one field is just being captured configure
-+				 * the next frame get the next frame from the
-+				 * empty queue if no frame is available hold on
-+				 * to the current buffer
-+				 */
-+				spin_lock(&video->dma_queue_lock);
-+				if (!list_empty(&video->dma_queue) &&
-+				video->cur_frm == video->next_frm)
-+					vpfe_schedule_next_buffer(video);
-+				spin_unlock(&video->dma_queue_lock);
-+			}
-+		} else if (fid == 0) {
-+			/*
-+			 * out of sync. Recover from any hardware out-of-sync.
-+			 * May loose one frame
-+			 */
-+			video->field_id = fid;
-+		}
-+	}
-+}
-+
-+/*
-+ * ccdc_vidint1_isr - CCDC module progressive buffer scheduling isr
-+ * @ccdc: CCDC device pointer
-+ *
-+ */
-+void ccdc_vidint1_isr(struct vpfe_ccdc_device *ccdc)
-+{
-+	struct vpfe_video_device *video = &ccdc->video_out;
-+
-+	if (!video->started)
-+		return;
-+
-+	spin_lock(&video->dma_queue_lock);
-+	if ((video->fmt.fmt.pix.field == V4L2_FIELD_NONE) &&
-+	    !list_empty(&video->dma_queue) &&
-+	    video->cur_frm == video->next_frm)
-+		vpfe_schedule_next_buffer(video);
-+	spin_unlock(&video->dma_queue_lock);
-+}
-+
-+/*
-+ * VPFE video operations
-+ */
-+
-+static void ccdc_video_queue(struct vpfe_device *vpfe_dev, unsigned long addr)
-+{
-+	struct vpfe_ccdc_device *vpfe_ccdc = &vpfe_dev->vpfe_ccdc;
-+	struct ccdc_hw_device *ccdc_dev = vpfe_ccdc->ccdc_dev;
-+
-+	ccdc_dev->hw_ops.setfbaddr(addr);
-+}
-+
-+static const struct vpfe_video_operations ccdc_video_ops = {
-+	.queue = ccdc_video_queue,
-+};
-+
-+
-+/*
-+ * V4L2 subdev operations
-+ */
-+
-+/*
-+ * ccdc_ioctl - CCDC module private ioctl's
-+ * @sd: VPFE CCDC V4L2 subdevice
-+ * @cmd: ioctl command
-+ * @arg: ioctl argument
-+ *
-+ * Return 0 on success or a negative error code otherwise.
-+ */
-+static long ccdc_ioctl(struct v4l2_subdev *sd, unsigned int cmd, void *arg)
-+{
-+	struct vpfe_ccdc_device *ccdc = v4l2_get_subdevdata(sd);
-+	struct ccdc_hw_device *ccdc_dev = ccdc->ccdc_dev;
-+	int ret;
-+
-+	switch (cmd) {
-+	case VPFE_CMD_S_CCDC_RAW_PARAMS:
-+		ret = ccdc_dev->hw_ops.set_params(arg);
-+		break;
-+	case VPFE_CMD_G_CCDC_RAW_PARAMS:
-+		if (!ccdc_dev->hw_ops.get_params) {
-+			ret = -EINVAL;
-+			break;
-+		}
-+		ret = ccdc_dev->hw_ops.get_params(arg);
-+		break;
-+
-+	default:
-+		ret = -ENOIOCTLCMD;
-+	}
-+
-+	return ret;
-+}
-+
-+/*
-+ * ccdc_set_stream - Enable/Disable streaming on the CCDC module
-+ * @sd: VPFE CCDC V4L2 subdevice
-+ * @enable: Enable/disable stream
-+ */
-+static int ccdc_set_stream(struct v4l2_subdev *sd, int enable)
-+{
-+	struct vpfe_ccdc_device *ccdc = v4l2_get_subdevdata(sd);
-+	struct ccdc_hw_device *ccdc_dev = ccdc->ccdc_dev;
-+	int ret;
-+
-+	if (enable) {
-+		ret = ccdc_dev->hw_ops.configure(
-+		(ccdc->output == CCDC_OUTPUT_MEMORY) ? 0 : 1);
-+		if (ret)
-+			return ret;
-+
-+		if ((ccdc_dev->hw_ops.enable_out_to_sdram) &&
-+			(ccdc->output == CCDC_OUTPUT_MEMORY))
-+			ccdc_dev->hw_ops.enable_out_to_sdram(1);
-+
-+		ccdc_dev->hw_ops.enable(1);
-+	} else {
-+
-+		ccdc_dev->hw_ops.enable(0);
-+
-+		if (ccdc_dev->hw_ops.enable_out_to_sdram)
-+			ccdc_dev->hw_ops.enable_out_to_sdram(0);
-+	}
-+
-+	return 0;
-+}
-+
-+/*
-+* ccdc_set_format - set format on pad
-+* @sd    : VPFE ccdc device
-+* @fh    : V4L2 subdev file handle
-+* @fmt   : pointer to v4l2 subdev format structure
-+*
-+* Return 0 on success or -EINVAL if format or pad is invalid
-+*/
-+static int ccdc_set_format(struct v4l2_subdev *sd, struct v4l2_subdev_fh *fh,
-+			   struct v4l2_subdev_format *fmt)
-+{
-+	struct vpfe_ccdc_device *ccdc = v4l2_get_subdevdata(sd);
-+	struct vpfe_device *vpfe_dev = to_vpfe_device(ccdc);
-+	struct v4l2_mbus_framefmt *format;
-+
-+	format = __ccdc_get_format(ccdc, fh, fmt->pad, fmt->which);
-+	if (format == NULL)
-+		return -EINVAL;
-+
-+	ccdc_try_format(ccdc, fh, fmt);
-+	memcpy(format, &fmt->format, sizeof(*format));
-+
-+	if (fmt->which == V4L2_SUBDEV_FORMAT_TRY)
-+		return 0;
-+
-+	if (fmt->pad == CCDC_PAD_SINK)
-+		return vpfe_config_ccdc_format(vpfe_dev, fmt->pad);
-+
-+	return 0;
-+}
-+
-+/*
-+ * ccdc_get_format - Retrieve the video format on a pad
-+ * @sd : VPFE CCDC V4L2 subdevice
-+ * @fh : V4L2 subdev file handle
-+ * @fmt: Format
-+ *
-+ * Return 0 on success or -EINVAL if the pad is invalid or doesn't correspond
-+ * to the format type.
-+ */
-+static int ccdc_get_format(struct v4l2_subdev *sd, struct v4l2_subdev_fh *fh,
-+			   struct v4l2_subdev_format *fmt)
-+{
-+	struct vpfe_ccdc_device *vpfe_ccdc = v4l2_get_subdevdata(sd);
-+	struct v4l2_mbus_framefmt *format;
-+
-+	format = __ccdc_get_format(vpfe_ccdc, fh, fmt->pad, fmt->which);
-+	if (format == NULL)
-+		return -EINVAL;
-+
-+	memcpy(&fmt->format, format, sizeof(fmt->format));
-+
-+	return 0;
-+}
-+
-+/*
-+ * ccdc_enum_frame_size - enum frame sizes on pads
-+ * @sd: VPFE ccdc V4L2 subdevice
-+ * @fh: V4L2 subdev file handle
-+ * @code: pointer to v4l2_subdev_frame_size_enum structure
-+ */
-+static int ccdc_enum_frame_size(struct v4l2_subdev *sd,
-+				struct v4l2_subdev_fh *fh,
-+				struct v4l2_subdev_frame_size_enum *fse)
-+{
-+	struct vpfe_ccdc_device *ccdc = v4l2_get_subdevdata(sd);
-+	struct v4l2_subdev_format format;
-+
-+	if (fse->index != 0)
-+		return -EINVAL;
-+
-+	format.pad = fse->pad;
-+	format.format.code = fse->code;
-+	format.format.width = 1;
-+	format.format.height = 1;
-+	format.which = V4L2_SUBDEV_FORMAT_TRY;
-+	ccdc_try_format(ccdc, fh, &format);
-+	fse->min_width = format.format.width;
-+	fse->min_height = format.format.height;
-+
-+	if (format.format.code != fse->code)
-+		return -EINVAL;
-+
-+	format.pad = fse->pad;
-+	format.format.code = fse->code;
-+	format.format.width = -1;
-+	format.format.height = -1;
-+	format.which = V4L2_SUBDEV_FORMAT_TRY;
-+	ccdc_try_format(ccdc, fh, &format);
-+	fse->max_width = format.format.width;
-+	fse->max_height = format.format.height;
-+
-+	return 0;
-+}
-+
-+/*
-+ * ccdc_enum_mbus_code - enum mbus codes for pads
-+ * @sd: VPFE ccdc V4L2 subdevice
-+ * @fh: V4L2 subdev file handle
-+ * @code: pointer to v4l2_subdev_mbus_code_enum structure
-+ */
-+static int ccdc_enum_mbus_code(struct v4l2_subdev *sd,
-+			       struct v4l2_subdev_fh *fh,
-+			       struct v4l2_subdev_mbus_code_enum *code)
-+{
-+	switch (code->pad) {
-+	case CCDC_PAD_SINK:
-+	case CCDC_PAD_SOURCE:
-+		if (code->index >= ARRAY_SIZE(ccdc_fmts))
-+			return -EINVAL;
-+
-+		code->code = ccdc_fmts[code->index];
-+		break;
-+	default:
-+		return -EINVAL;
-+	}
-+
-+	return 0;
-+}
-+
-+/*
-+ * ccdc_pad_set_crop - set crop rectangle on pad
-+ * @sd: VPFE ccdc V4L2 subdevice
-+ * @fh: V4L2 subdev file handle
-+ * @code: pointer to v4l2_subdev_mbus_code_enum structure
-+ *
-+ * Return 0 on success, -EINVAL if pad is invalid
-+ */
-+static int ccdc_pad_set_crop(struct v4l2_subdev *sd, struct v4l2_subdev_fh *fh,
-+		       struct v4l2_subdev_crop *crop)
-+{
-+	struct vpfe_ccdc_device *vpfe_ccdc = v4l2_get_subdevdata(sd);
-+	struct ccdc_hw_device *ccdc_dev = vpfe_ccdc->ccdc_dev;
-+	struct v4l2_mbus_framefmt *format;
-+
-+	/* check wether its a valid pad */
-+	if (crop->pad != CCDC_PAD_SINK)
-+		return -EINVAL;
-+
-+	format = __ccdc_get_format(vpfe_ccdc, fh, crop->pad, crop->which);
-+	if (format == NULL)
-+		return -EINVAL;
-+
-+	/* check wether crop rect is within limits */
-+	if (crop->rect.top < 0 || crop->rect.left < 0 ||
-+	(crop->rect.left + crop->rect.width >
-+	vpfe_ccdc->formats[CCDC_PAD_SINK].width) ||
-+	(crop->rect.top + crop->rect.height >
-+	vpfe_ccdc->formats[CCDC_PAD_SINK].height)) {
-+		crop->rect.left = 0;
-+		crop->rect.top = 0;
-+		crop->rect.width = format->width;
-+		crop->rect.height = format->height;
-+	}
-+
-+	/* adjust the width to 16 pixel boundry */
-+	crop->rect.width = ((crop->rect.width + 15) & ~0xf);
-+
-+	vpfe_ccdc->crop = crop->rect;
-+
-+	if (crop->which == V4L2_SUBDEV_FORMAT_ACTIVE)
-+		ccdc_dev->hw_ops.set_image_window(&vpfe_ccdc->crop);
-+	else {
-+		struct v4l2_rect *rect;
-+
-+		rect = v4l2_subdev_get_try_crop(fh, CCDC_PAD_SINK);
-+		memcpy(rect, &vpfe_ccdc->crop, sizeof(*rect));
-+	}
-+
-+	return 0;
-+}
-+
-+/*
-+ * ccdc_pad_get_crop - get crop rectangle on pad
-+ * @sd: VPFE ccdc V4L2 subdevice
-+ * @fh: V4L2 subdev file handle
-+ * @code: pointer to v4l2_subdev_mbus_code_enum structure
-+ *
-+ * Return 0 on success, -EINVAL if pad is invalid
-+ */
-+static int ccdc_pad_get_crop(struct v4l2_subdev *sd, struct v4l2_subdev_fh *fh,
-+		       struct v4l2_subdev_crop *crop)
-+{
-+	struct vpfe_ccdc_device *vpfe_ccdc = v4l2_get_subdevdata(sd);
-+
-+	/* check wether its a valid pad */
-+	if (crop->pad != CCDC_PAD_SINK)
-+		return -EINVAL;
-+
-+	if (crop->which == V4L2_SUBDEV_FORMAT_TRY) {
-+		struct v4l2_rect *rect;
-+		rect = v4l2_subdev_get_try_crop(fh, CCDC_PAD_SINK);
-+		memcpy(&crop->rect, rect, sizeof(*rect));
-+	} else
-+		crop->rect = vpfe_ccdc->crop;
-+
-+	return 0;
-+}
-+
-+/*
-+ * ccdc_init_formats - Initialize formats on all pads
-+ * @sd: VPFE ccdc V4L2 subdevice
-+ * @fh: V4L2 subdev file handle
-+ *
-+ * Initialize all pad formats with default values. If fh is not NULL, try
-+ * formats are initialized on the file handle. Otherwise active formats are
-+ * initialized on the device.
-+ */
-+static int ccdc_init_formats(struct v4l2_subdev *sd,
-+				struct v4l2_subdev_fh *fh)
-+{
-+	struct v4l2_subdev_format format;
-+	struct v4l2_subdev_crop crop;
-+
-+	memset(&format, 0, sizeof(format));
-+	format.pad = CCDC_PAD_SINK;
-+	format.which = fh ? V4L2_SUBDEV_FORMAT_TRY : V4L2_SUBDEV_FORMAT_ACTIVE;
-+	format.format.code = V4L2_MBUS_FMT_SBGGR10_1X10;
-+	format.format.width = MAX_WIDTH;
-+	format.format.height = MAX_HEIGHT;
-+	ccdc_set_format(sd, fh, &format);
-+
-+	memset(&format, 0, sizeof(format));
-+	format.pad = CCDC_PAD_SOURCE;
-+	format.which = fh ? V4L2_SUBDEV_FORMAT_TRY : V4L2_SUBDEV_FORMAT_ACTIVE;
-+	format.format.code = V4L2_MBUS_FMT_SBGGR10_1X10;
-+	format.format.width = MAX_WIDTH;
-+	format.format.height = MAX_HEIGHT;
-+	ccdc_set_format(sd, fh, &format);
-+
-+	memset(&crop, 0, sizeof(crop));
-+	crop.pad = CCDC_PAD_SINK;
-+	crop.which = fh ? V4L2_SUBDEV_FORMAT_TRY : V4L2_SUBDEV_FORMAT_ACTIVE;
-+	crop.rect.width = MAX_WIDTH;
-+	crop.rect.height = MAX_HEIGHT;
-+	ccdc_pad_set_crop(sd, fh, &crop);
-+
-+	return 0;
-+}
-+
-+/* subdev core operations */
-+static const struct v4l2_subdev_core_ops ccdc_v4l2_core_ops = {
-+	.ioctl = ccdc_ioctl,
-+};
-+
-+/* subdev file operations */
-+static const struct v4l2_subdev_file_ops ccdc_v4l2_file_ops = {
-+	.open = ccdc_init_formats,
-+};
-+
-+/* subdev video operations */
-+static const struct v4l2_subdev_video_ops ccdc_v4l2_video_ops = {
-+	.s_stream = ccdc_set_stream,
-+};
-+
-+/* subdev pad operations */
-+static const struct v4l2_subdev_pad_ops ccdc_v4l2_pad_ops = {
-+	.enum_mbus_code = ccdc_enum_mbus_code,
-+	.enum_frame_size = ccdc_enum_frame_size,
-+	.get_fmt = ccdc_get_format,
-+	.set_fmt = ccdc_set_format,
-+	.set_crop = ccdc_pad_set_crop,
-+	.get_crop = ccdc_pad_get_crop,
-+};
-+
-+/* v4l2 subdev operations */
-+static const struct v4l2_subdev_ops ccdc_v4l2_ops = {
-+	.core = &ccdc_v4l2_core_ops,
-+	.file = &ccdc_v4l2_file_ops,
-+	.video = &ccdc_v4l2_video_ops,
-+	.pad = &ccdc_v4l2_pad_ops,
-+};
-+
-+/*
-+ * Media entity operations
-+ */
-+
-+/*
-+ * ccdc_link_setup - Setup CCDC connections
-+ * @entity: CCDC media entity
-+ * @local: Pad at the local end of the link
-+ * @remote: Pad at the remote end of the link
-+ * @flags: Link flags
-+ *
-+ * return -EINVAL or zero on success
-+ */
-+static int ccdc_link_setup(struct media_entity *entity,
-+			   const struct media_pad *local,
-+			   const struct media_pad *remote, u32 flags)
-+{
-+	struct v4l2_subdev *sd = media_entity_to_v4l2_subdev(entity);
-+	struct vpfe_ccdc_device *ccdc = v4l2_get_subdevdata(sd);
-+
-+	switch (local->index | media_entity_type(remote->entity)) {
-+	case CCDC_PAD_SINK | MEDIA_ENT_T_V4L2_SUBDEV:
-+		/* read from decoder/sensor */
-+		if (!(flags & MEDIA_LNK_FL_ENABLED)) {
-+			ccdc->input = CCDC_INPUT_NONE;
-+			break;
-+		}
-+
-+		if (ccdc->input != CCDC_INPUT_NONE)
-+			return -EBUSY;
-+
-+		ccdc->input = CCDC_INPUT_PARALLEL;
-+
-+		break;
-+
-+	case CCDC_PAD_SOURCE | MEDIA_ENT_T_DEVNODE:
-+		/* write to memory */
-+		if (flags & MEDIA_LNK_FL_ENABLED)
-+			ccdc->output = CCDC_OUTPUT_MEMORY;
-+		else
-+			ccdc->output = CCDC_OUTPUT_NONE;
-+		break;
-+
-+	case CCDC_PAD_SOURCE | MEDIA_ENT_T_V4L2_SUBDEV:
-+		if (flags & MEDIA_LNK_FL_ENABLED)
-+			ccdc->output = CCDC_OUTPUT_PREVIEWER;
-+		else
-+			ccdc->output = CCDC_OUTPUT_NONE;
-+
-+		break;
-+	default:
-+		return -EINVAL;
-+	}
-+
-+	return 0;
-+}
-+static const struct media_entity_operations ccdc_media_ops = {
-+	.link_setup = ccdc_link_setup,
-+};
-+
-+/*
-+ * vpfe_ccdc_unregister_entities - CCDC subdevs/video
-+ * driver unregistrations.
-+ * @ccdc - pointer to ccdc subdevice structure.
-+ */
-+void vpfe_ccdc_unregister_entities(struct vpfe_ccdc_device *ccdc)
-+{
-+	struct ccdc_hw_device *ccdc_dev = ccdc->ccdc_dev;
-+	struct device *dev = ccdc->subdev.v4l2_dev->dev;
-+
-+	vpfe_video_unregister(&ccdc->video_out);
-+
-+	if (ccdc_dev->hw_ops.close)
-+		ccdc_dev->hw_ops.close(dev);
-+
-+	/* cleanup entity */
-+	media_entity_cleanup(&ccdc->subdev.entity);
-+	/* unregister subdev */
-+	v4l2_device_unregister_subdev(&ccdc->subdev);
-+}
-+
-+/*
-+ * vpfe_ccdc_register_entities - CCDC subdevs/video
-+ * driver registrations.
-+ * @ccdc - pointer to ccdc subdevice structure.
-+ * @vdev: pointer to v4l2 device structure.
-+ */
-+int vpfe_ccdc_register_entities(struct vpfe_ccdc_device *ccdc,
-+				struct v4l2_device *vdev)
-+{
-+	struct ccdc_hw_device *ccdc_dev = NULL;
-+	struct vpfe_device *vpfe_dev = to_vpfe_device(ccdc);
-+	struct device *dev = vdev->dev;
-+	unsigned int flags;
-+	int ret;
-+
-+	/* Register the subdev */
-+	ret = v4l2_device_register_subdev(vdev, &ccdc->subdev);
-+	if (ret < 0)
-+		return ret;
-+
-+	ccdc_dev = ccdc->ccdc_dev;
-+
-+	ret = ccdc_dev->hw_ops.open(dev);
-+	if (ret)
-+		goto out_ccdc_open;
-+
-+	ret = vpfe_video_register(&ccdc->video_out, vdev);
-+	if (ret) {
-+		printk(KERN_ERR "failed to register ccdc video out device\n");
-+		goto out_video_register;
-+	}
-+
-+	ccdc->video_out.vpfe_dev = vpfe_dev;
-+
-+	flags = 0;
-+	/* connect ccdc to video node */
-+	ret = media_entity_create_link(&ccdc->subdev.entity,
-+				       1,
-+				       &ccdc->video_out.video_dev.entity,
-+				       0, flags);
-+	if (ret < 0)
-+		goto out_create_link;
-+
-+	return 0;
-+out_create_link:
-+	vpfe_video_unregister(&ccdc->video_out);
-+out_video_register:
-+	if (ccdc_dev->hw_ops.close)
-+		ccdc_dev->hw_ops.close(dev);
-+
-+out_ccdc_open:
-+	v4l2_device_unregister_subdev(&ccdc->subdev);
-+
-+	return ret;
-+}
-+
-+/*
-+ * vpfe_ccdc_init - Initialize V4L2 subdev and media entity
-+ * @ccdc: VPFE CCDC module
-+ *
-+ * Return 0 on success and a negative error code on failure.
-+ */
-+int vpfe_ccdc_init(struct vpfe_ccdc_device *ccdc, struct platform_device *pdev)
-+{
-+	struct v4l2_subdev *sd = &ccdc->subdev;
-+	struct media_pad *pads = &ccdc->pads[0];
-+	struct media_entity *me = &sd->entity;
-+	int ret;
-+
-+	if (ccdc_init(pdev)) {
-+		printk(KERN_ERR "vpfe_ccdc_init-not supported\n");
-+		return -1;
-+	}
-+
-+	/* queue ops */
-+	ccdc->video_out.ops = &ccdc_video_ops;
-+
-+	v4l2_subdev_init(sd, &ccdc_v4l2_ops);
-+	strlcpy(sd->name, "DAVINCI CCDC", sizeof(sd->name));
-+	sd->grp_id = 1 << 16;	/* group ID for davinci subdevs */
-+	v4l2_set_subdevdata(sd, ccdc);
-+	sd->flags |= V4L2_SUBDEV_FL_HAS_EVENTS | V4L2_SUBDEV_FL_HAS_DEVNODE;
-+	sd->nevents = DAVINCI_CCDC_NEVENTS;
-+	pads[CCDC_PAD_SINK].flags = MEDIA_PAD_FL_INPUT;
-+	pads[CCDC_PAD_SOURCE].flags = MEDIA_PAD_FL_OUTPUT;
-+
-+	ccdc->input = CCDC_INPUT_NONE;
-+	ccdc->output = CCDC_OUTPUT_NONE;
-+
-+	me->ops = &ccdc_media_ops;
-+
-+	ret = media_entity_init(me, CCDC_PADS_NUM, pads, 0);
-+	if (ret)
-+		goto out_davanci_init;
-+	ccdc->video_out.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
-+	ret = vpfe_video_init(&ccdc->video_out, "CCDC");
-+	if (ret) {
-+		printk(KERN_ERR "failed to init ccdc-out video device\n");
-+		goto out_davanci_init;
-+	}
-+
-+	ccdc->ccdc_dev = get_ccdc_dev();
-+
-+	return 0;
-+
-+out_davanci_init:
-+	ccdc_remove(pdev);
-+	return ret;
-+}
-+
-+/*
-+ * vpfe_ccdc_cleanup - CCDC module cleanup.
-+ * @dev: Device pointer specific to the VPFE.
-+ */
-+void vpfe_ccdc_cleanup(struct platform_device *pdev)
-+{
-+	ccdc_remove(pdev);
-+}
-diff --git a/drivers/media/video/davinci/vpfe_ccdc.h b/drivers/media/video/davinci/vpfe_ccdc.h
-new file mode 100644
-index 0000000..92706e2
---- /dev/null
-+++ b/drivers/media/video/davinci/vpfe_ccdc.h
-@@ -0,0 +1,85 @@
-+/*
-+ * Copyright (C) 2011 Texas Instruments Inc
-+ *
-+ * This program is free software; you can redistribute it and/or
-+ * modify it under the terms of the GNU General Public License as
-+ * published by the Free Software Foundation version 2.
-+ *
-+ * This program is distributed in the hope that it will be useful,
-+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-+ * GNU General Public License for more details.
-+ *
-+ * You should have received a copy of the GNU General Public License
-+ * along with this program; if not, write to the Free Software
-+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307 USA
-+ */
-+
-+#ifndef _VPFE_CCDC_H
-+#define _VPFE_CCDC_H
-+
-+#ifdef __KERNEL__
-+
-+#ifdef CONFIG_ARCH_DAVINCI_DM365
-+#include "dm365_ccdc.h"
-+#endif
-+
-+#ifdef CONFIG_ARCH_DAVINCI_DM355
-+#include <../include/media/davinci/dm355_ccdc.h>
-+#endif
-+
-+#ifdef CONFIG_ARCH_DAVINCI_DM644x
-+#include <../include/media/davinci/dm644x_ccdc.h>
-+#endif
-+
-+#define CCDC_PAD_SINK      0
-+#define CCDC_PAD_SOURCE    1
-+
-+#define CCDC_PADS_NUM      2
-+
-+#define DAVINCI_CCDC_NEVENTS 0
-+
-+enum ccdc_input_entity {
-+	CCDC_INPUT_NONE,
-+	CCDC_INPUT_PARALLEL,
-+};
-+
-+#define CCDC_OUTPUT_NONE	(0)
-+#define CCDC_OUTPUT_MEMORY	(1 << 0)
-+#define CCDC_OUTPUT_RESIZER	(1 << 1)
-+#define CCDC_OUTPUT_PREVIEWER	(1 << 2)
-+
-+#define CCDC_NOT_CHAINED	0
-+#define CCDC_CHAINED		1
-+
-+struct vpfe_ccdc_device {
-+	struct v4l2_subdev		subdev;
-+	struct media_pad		pads[CCDC_PADS_NUM];
-+	struct v4l2_mbus_framefmt	formats[CCDC_PADS_NUM];
-+	enum ccdc_input_entity		input;
-+	unsigned int			output;
-+
-+	struct ccdc_hw_device		*ccdc_dev;
-+	struct v4l2_rect		crop;
-+
-+	/* independent video device */
-+	struct vpfe_video_device	video_out;
-+};
-+
-+enum v4l2_field ccdc_get_fid(struct vpfe_device *vpfe_dev);
-+void ccdc_remove(struct platform_device *pdev);
-+int ccdc_init(struct platform_device *pdev);
-+struct ccdc_hw_device *get_ccdc_dev(void);
-+
-+void vpfe_ccdc_unregister_entities(struct vpfe_ccdc_device *ccdc);
-+int vpfe_ccdc_register_entities(struct vpfe_ccdc_device *ccdc,
-+				struct v4l2_device *v4l2_dev);
-+int vpfe_ccdc_init(struct vpfe_ccdc_device *vpfe_ccdc,
-+			struct platform_device *pdev);
-+void vpfe_ccdc_cleanup(struct platform_device *pdev);
-+void ccdc_vidint1_isr(struct vpfe_ccdc_device *ccdc);
-+void ccdc_buffer_isr(struct vpfe_ccdc_device *ccdc);
-+
-+#endif
-+
-+#endif
+-EXTRA_CFLAGS += -Idrivers/media/dvb/dvb-core
+-EXTRA_CFLAGS += -Idrivers/media/dvb/frontends
+-EXTRA_CFLAGS += -Idrivers/media/video/bt8xx
+-EXTRA_CFLAGS += -Idrivers/media/common/tuners
++ccflags-y += -Idrivers/media/dvb/dvb-core
++ccflags-y += -Idrivers/media/dvb/frontends
++ccflags-y += -Idrivers/media/video/bt8xx
++ccflags-y += -Idrivers/media/common/tuners
+diff --git a/drivers/media/dvb/ddbridge/Makefile b/drivers/media/dvb/ddbridge/Makefile
+index de4fe19..cf7214e 100644
+--- a/drivers/media/dvb/ddbridge/Makefile
++++ b/drivers/media/dvb/ddbridge/Makefile
+@@ -6,9 +6,9 @@ ddbridge-objs := ddbridge-core.o
+ 
+ obj-$(CONFIG_DVB_DDBRIDGE) += ddbridge.o
+ 
+-EXTRA_CFLAGS += -Idrivers/media/dvb/dvb-core/
+-EXTRA_CFLAGS += -Idrivers/media/dvb/frontends/
+-EXTRA_CFLAGS += -Idrivers/media/common/tuners/
++ccflags-y += -Idrivers/media/dvb/dvb-core/
++ccflags-y += -Idrivers/media/dvb/frontends/
++ccflags-y += -Idrivers/media/common/tuners/
+ 
+ # For the staging CI driver cxd2099
+-EXTRA_CFLAGS += -Idrivers/staging/cxd2099/
++ccflags-y += -Idrivers/staging/cxd2099/
+diff --git a/drivers/media/dvb/dm1105/Makefile b/drivers/media/dvb/dm1105/Makefile
+index 8ac28b0..95a008b 100644
+--- a/drivers/media/dvb/dm1105/Makefile
++++ b/drivers/media/dvb/dm1105/Makefile
+@@ -1,3 +1,3 @@
+ obj-$(CONFIG_DVB_DM1105) += dm1105.o
+ 
+-EXTRA_CFLAGS += -Idrivers/media/dvb/dvb-core/ -Idrivers/media/dvb/frontends
++ccflags-y += -Idrivers/media/dvb/dvb-core/ -Idrivers/media/dvb/frontends
+diff --git a/drivers/media/dvb/dvb-usb/Makefile b/drivers/media/dvb/dvb-usb/Makefile
+index 4bac13d..327613f 100644
+--- a/drivers/media/dvb/dvb-usb/Makefile
++++ b/drivers/media/dvb/dvb-usb/Makefile
+@@ -94,7 +94,7 @@ obj-$(CONFIG_DVB_USB_LME2510) += dvb-usb-lmedm04.o
+ dvb-usb-technisat-usb2-objs = technisat-usb2.o
+ obj-$(CONFIG_DVB_USB_TECHNISAT_USB2) += dvb-usb-technisat-usb2.o
+ 
+-EXTRA_CFLAGS += -Idrivers/media/dvb/dvb-core/ -Idrivers/media/dvb/frontends/
++ccflags-y += -Idrivers/media/dvb/dvb-core/ -Idrivers/media/dvb/frontends/
+ # due to tuner-xc3028
+-EXTRA_CFLAGS += -Idrivers/media/common/tuners
++ccflags-y += -Idrivers/media/common/tuners
+ 
+diff --git a/drivers/media/dvb/frontends/Makefile b/drivers/media/dvb/frontends/Makefile
+index 6a6ba05..ed91c01 100644
+--- a/drivers/media/dvb/frontends/Makefile
++++ b/drivers/media/dvb/frontends/Makefile
+@@ -2,8 +2,8 @@
+ # Makefile for the kernel DVB frontend device drivers.
+ #
+ 
+-EXTRA_CFLAGS += -Idrivers/media/dvb/dvb-core/
+-EXTRA_CFLAGS += -Idrivers/media/common/tuners/
++ccflags-y += -Idrivers/media/dvb/dvb-core/
++ccflags-y += -Idrivers/media/common/tuners/
+ 
+ stb0899-objs = stb0899_drv.o stb0899_algo.o
+ stv0900-objs = stv0900_core.o stv0900_sw.o
+diff --git a/drivers/media/dvb/mantis/Makefile b/drivers/media/dvb/mantis/Makefile
+index 98dc5cd..ec8116d 100644
+--- a/drivers/media/dvb/mantis/Makefile
++++ b/drivers/media/dvb/mantis/Makefile
+@@ -25,4 +25,4 @@ obj-$(CONFIG_MANTIS_CORE)	+= mantis_core.o
+ obj-$(CONFIG_DVB_MANTIS)	+= mantis.o
+ obj-$(CONFIG_DVB_HOPPER)	+= hopper.o
+ 
+-EXTRA_CFLAGS = -Idrivers/media/dvb/dvb-core/ -Idrivers/media/dvb/frontends/
++ccflags-y += -Idrivers/media/dvb/dvb-core/ -Idrivers/media/dvb/frontends/
+diff --git a/drivers/media/dvb/ngene/Makefile b/drivers/media/dvb/ngene/Makefile
+index 2bc9687..8987361 100644
+--- a/drivers/media/dvb/ngene/Makefile
++++ b/drivers/media/dvb/ngene/Makefile
+@@ -6,9 +6,9 @@ ngene-objs := ngene-core.o ngene-i2c.o ngene-cards.o ngene-dvb.o
+ 
+ obj-$(CONFIG_DVB_NGENE) += ngene.o
+ 
+-EXTRA_CFLAGS += -Idrivers/media/dvb/dvb-core/
+-EXTRA_CFLAGS += -Idrivers/media/dvb/frontends/
+-EXTRA_CFLAGS += -Idrivers/media/common/tuners/
++ccflags-y += -Idrivers/media/dvb/dvb-core/
++ccflags-y += -Idrivers/media/dvb/frontends/
++ccflags-y += -Idrivers/media/common/tuners/
+ 
+ # For the staging CI driver cxd2099
+-EXTRA_CFLAGS += -Idrivers/staging/cxd2099/
++ccflags-y += -Idrivers/staging/cxd2099/
+diff --git a/drivers/media/dvb/pluto2/Makefile b/drivers/media/dvb/pluto2/Makefile
+index 7ac1287..7008223 100644
+--- a/drivers/media/dvb/pluto2/Makefile
++++ b/drivers/media/dvb/pluto2/Makefile
+@@ -1,3 +1,3 @@
+ obj-$(CONFIG_DVB_PLUTO2) += pluto2.o
+ 
+-EXTRA_CFLAGS += -Idrivers/media/dvb/dvb-core/ -Idrivers/media/dvb/frontends/
++ccflags-y += -Idrivers/media/dvb/dvb-core/ -Idrivers/media/dvb/frontends/
+diff --git a/drivers/media/dvb/pt1/Makefile b/drivers/media/dvb/pt1/Makefile
+index a66da17..d80d8e8 100644
+--- a/drivers/media/dvb/pt1/Makefile
++++ b/drivers/media/dvb/pt1/Makefile
+@@ -2,4 +2,4 @@ earth-pt1-objs := pt1.o va1j5jf8007s.o va1j5jf8007t.o
+ 
+ obj-$(CONFIG_DVB_PT1) += earth-pt1.o
+ 
+-EXTRA_CFLAGS += -Idrivers/media/dvb/dvb-core -Idrivers/media/dvb/frontends
++ccflags-y += -Idrivers/media/dvb/dvb-core -Idrivers/media/dvb/frontends
+diff --git a/drivers/media/dvb/siano/Makefile b/drivers/media/dvb/siano/Makefile
+index c54140b..f233b57 100644
+--- a/drivers/media/dvb/siano/Makefile
++++ b/drivers/media/dvb/siano/Makefile
+@@ -5,7 +5,7 @@ obj-$(CONFIG_SMS_SIANO_MDTV) += smsmdtv.o smsdvb.o
+ obj-$(CONFIG_SMS_USB_DRV) += smsusb.o
+ obj-$(CONFIG_SMS_SDIO_DRV) += smssdio.o
+ 
+-EXTRA_CFLAGS += -Idrivers/media/dvb/dvb-core
++ccflags-y += -Idrivers/media/dvb/dvb-core
+ 
+-EXTRA_CFLAGS += $(extra-cflags-y) $(extra-cflags-m)
++ccflags-y += $(extra-cflags-y) $(extra-cflags-m)
+ 
+diff --git a/drivers/media/dvb/ttpci/Makefile b/drivers/media/dvb/ttpci/Makefile
+index 8a4d5bb..f6e8693 100644
+--- a/drivers/media/dvb/ttpci/Makefile
++++ b/drivers/media/dvb/ttpci/Makefile
+@@ -17,5 +17,5 @@ obj-$(CONFIG_DVB_BUDGET_CI) += budget-ci.o
+ obj-$(CONFIG_DVB_BUDGET_PATCH) += budget-patch.o
+ obj-$(CONFIG_DVB_AV7110) += dvb-ttpci.o
+ 
+-EXTRA_CFLAGS += -Idrivers/media/dvb/dvb-core/ -Idrivers/media/dvb/frontends/
+-EXTRA_CFLAGS += -Idrivers/media/common/tuners
++ccflags-y += -Idrivers/media/dvb/dvb-core/ -Idrivers/media/dvb/frontends/
++ccflags-y += -Idrivers/media/common/tuners
+diff --git a/drivers/media/dvb/ttusb-budget/Makefile b/drivers/media/dvb/ttusb-budget/Makefile
+index fbe2b95..8d6c4ac 100644
+--- a/drivers/media/dvb/ttusb-budget/Makefile
++++ b/drivers/media/dvb/ttusb-budget/Makefile
+@@ -1,3 +1,3 @@
+ obj-$(CONFIG_DVB_TTUSB_BUDGET) += dvb-ttusb-budget.o
+ 
+-EXTRA_CFLAGS += -Idrivers/media/dvb/dvb-core/ -Idrivers/media/dvb/frontends
++ccflags-y += -Idrivers/media/dvb/dvb-core/ -Idrivers/media/dvb/frontends
+diff --git a/drivers/media/dvb/ttusb-dec/Makefile b/drivers/media/dvb/ttusb-dec/Makefile
+index 2d70a82..ed28b53 100644
+--- a/drivers/media/dvb/ttusb-dec/Makefile
++++ b/drivers/media/dvb/ttusb-dec/Makefile
+@@ -1,3 +1,3 @@
+ obj-$(CONFIG_DVB_TTUSB_DEC) += ttusb_dec.o ttusbdecfe.o
+ 
+-EXTRA_CFLAGS += -Idrivers/media/dvb/dvb-core/
++ccflags-y += -Idrivers/media/dvb/dvb-core/
+diff --git a/drivers/media/radio/Makefile b/drivers/media/radio/Makefile
+index f484a6e..390daf9 100644
+--- a/drivers/media/radio/Makefile
++++ b/drivers/media/radio/Makefile
+@@ -27,4 +27,4 @@ obj-$(CONFIG_RADIO_TIMBERDALE) += radio-timb.o
+ obj-$(CONFIG_RADIO_WL1273) += radio-wl1273.o
+ obj-$(CONFIG_RADIO_WL128X) += wl128x/
+ 
+-EXTRA_CFLAGS += -Isound
++ccflags-y += -Isound
+diff --git a/drivers/media/video/Makefile b/drivers/media/video/Makefile
+index 2723900..c06f515 100644
+--- a/drivers/media/video/Makefile
++++ b/drivers/media/video/Makefile
+@@ -190,6 +190,6 @@ obj-y	+= davinci/
+ 
+ obj-$(CONFIG_ARCH_OMAP)	+= omap/
+ 
+-EXTRA_CFLAGS += -Idrivers/media/dvb/dvb-core
+-EXTRA_CFLAGS += -Idrivers/media/dvb/frontends
+-EXTRA_CFLAGS += -Idrivers/media/common/tuners
++ccflags-y += -Idrivers/media/dvb/dvb-core
++ccflags-y += -Idrivers/media/dvb/frontends
++ccflags-y += -Idrivers/media/common/tuners
+diff --git a/drivers/media/video/au0828/Makefile b/drivers/media/video/au0828/Makefile
+index 5c7f2f7..bd22223 100644
+--- a/drivers/media/video/au0828/Makefile
++++ b/drivers/media/video/au0828/Makefile
+@@ -2,8 +2,8 @@ au0828-objs	:= au0828-core.o au0828-i2c.o au0828-cards.o au0828-dvb.o au0828-vid
+ 
+ obj-$(CONFIG_VIDEO_AU0828) += au0828.o
+ 
+-EXTRA_CFLAGS += -Idrivers/media/common/tuners
+-EXTRA_CFLAGS += -Idrivers/media/dvb/dvb-core
+-EXTRA_CFLAGS += -Idrivers/media/dvb/frontends
++ccflags-y += -Idrivers/media/common/tuners
++ccflags-y += -Idrivers/media/dvb/dvb-core
++ccflags-y += -Idrivers/media/dvb/frontends
+ 
+-EXTRA_CFLAGS += $(extra-cflags-y) $(extra-cflags-m)
++ccflags-y += $(extra-cflags-y) $(extra-cflags-m)
+diff --git a/drivers/media/video/bt8xx/Makefile b/drivers/media/video/bt8xx/Makefile
+index e415f6f..3f9a2b2 100644
+--- a/drivers/media/video/bt8xx/Makefile
++++ b/drivers/media/video/bt8xx/Makefile
+@@ -8,6 +8,6 @@ bttv-objs      :=      bttv-driver.o bttv-cards.o bttv-if.o \
+ 
+ obj-$(CONFIG_VIDEO_BT848) += bttv.o
+ 
+-EXTRA_CFLAGS += -Idrivers/media/video
+-EXTRA_CFLAGS += -Idrivers/media/common/tuners
+-EXTRA_CFLAGS += -Idrivers/media/dvb/dvb-core
++ccflags-y += -Idrivers/media/video
++ccflags-y += -Idrivers/media/common/tuners
++ccflags-y += -Idrivers/media/dvb/dvb-core
+diff --git a/drivers/media/video/cx18/Makefile b/drivers/media/video/cx18/Makefile
+index 2fadd9d..a86bab5 100644
+--- a/drivers/media/video/cx18/Makefile
++++ b/drivers/media/video/cx18/Makefile
+@@ -8,6 +8,6 @@ cx18-alsa-objs := cx18-alsa-main.o cx18-alsa-pcm.o
+ obj-$(CONFIG_VIDEO_CX18) += cx18.o
+ obj-$(CONFIG_VIDEO_CX18_ALSA) += cx18-alsa.o
+ 
+-EXTRA_CFLAGS += -Idrivers/media/dvb/dvb-core
+-EXTRA_CFLAGS += -Idrivers/media/dvb/frontends
+-EXTRA_CFLAGS += -Idrivers/media/common/tuners
++ccflags-y += -Idrivers/media/dvb/dvb-core
++ccflags-y += -Idrivers/media/dvb/frontends
++ccflags-y += -Idrivers/media/common/tuners
+diff --git a/drivers/media/video/cx231xx/Makefile b/drivers/media/video/cx231xx/Makefile
+index 2c24843..b334897 100644
+--- a/drivers/media/video/cx231xx/Makefile
++++ b/drivers/media/video/cx231xx/Makefile
+@@ -8,9 +8,9 @@ obj-$(CONFIG_VIDEO_CX231XX) += cx231xx.o
+ obj-$(CONFIG_VIDEO_CX231XX_ALSA) += cx231xx-alsa.o
+ obj-$(CONFIG_VIDEO_CX231XX_DVB) += cx231xx-dvb.o
+ 
+-EXTRA_CFLAGS += -Idrivers/media/video
+-EXTRA_CFLAGS += -Idrivers/media/common/tuners
+-EXTRA_CFLAGS += -Idrivers/media/dvb/dvb-core
+-EXTRA_CFLAGS += -Idrivers/media/dvb/frontends
+-EXTRA_CFLAGS += -Idrivers/media/dvb/dvb-usb
++ccflags-y += -Idrivers/media/video
++ccflags-y += -Idrivers/media/common/tuners
++ccflags-y += -Idrivers/media/dvb/dvb-core
++ccflags-y += -Idrivers/media/dvb/frontends
++ccflags-y += -Idrivers/media/dvb/dvb-usb
+ 
+diff --git a/drivers/media/video/cx23885/Makefile b/drivers/media/video/cx23885/Makefile
+index 23293c7..185cc01 100644
+--- a/drivers/media/video/cx23885/Makefile
++++ b/drivers/media/video/cx23885/Makefile
+@@ -7,9 +7,9 @@ cx23885-objs	:= cx23885-cards.o cx23885-video.o cx23885-vbi.o \
+ obj-$(CONFIG_VIDEO_CX23885) += cx23885.o
+ obj-$(CONFIG_MEDIA_ALTERA_CI) += altera-ci.o
+ 
+-EXTRA_CFLAGS += -Idrivers/media/video
+-EXTRA_CFLAGS += -Idrivers/media/common/tuners
+-EXTRA_CFLAGS += -Idrivers/media/dvb/dvb-core
+-EXTRA_CFLAGS += -Idrivers/media/dvb/frontends
++ccflags-y += -Idrivers/media/video
++ccflags-y += -Idrivers/media/common/tuners
++ccflags-y += -Idrivers/media/dvb/dvb-core
++ccflags-y += -Idrivers/media/dvb/frontends
+ 
+-EXTRA_CFLAGS += $(extra-cflags-y) $(extra-cflags-m)
++ccflags-y += $(extra-cflags-y) $(extra-cflags-m)
+diff --git a/drivers/media/video/cx25840/Makefile b/drivers/media/video/cx25840/Makefile
+index 2ee96d3..dc40dde 100644
+--- a/drivers/media/video/cx25840/Makefile
++++ b/drivers/media/video/cx25840/Makefile
+@@ -3,4 +3,4 @@ cx25840-objs    := cx25840-core.o cx25840-audio.o cx25840-firmware.o \
+ 
+ obj-$(CONFIG_VIDEO_CX25840) += cx25840.o
+ 
+-EXTRA_CFLAGS += -Idrivers/media/video
++ccflags-y += -Idrivers/media/video
+diff --git a/drivers/media/video/cx88/Makefile b/drivers/media/video/cx88/Makefile
+index 5b7e267..c1a2785 100644
+--- a/drivers/media/video/cx88/Makefile
++++ b/drivers/media/video/cx88/Makefile
+@@ -10,7 +10,7 @@ obj-$(CONFIG_VIDEO_CX88_BLACKBIRD) += cx88-blackbird.o
+ obj-$(CONFIG_VIDEO_CX88_DVB) += cx88-dvb.o
+ obj-$(CONFIG_VIDEO_CX88_VP3054) += cx88-vp3054-i2c.o
+ 
+-EXTRA_CFLAGS += -Idrivers/media/video
+-EXTRA_CFLAGS += -Idrivers/media/common/tuners
+-EXTRA_CFLAGS += -Idrivers/media/dvb/dvb-core
+-EXTRA_CFLAGS += -Idrivers/media/dvb/frontends
++ccflags-y += -Idrivers/media/video
++ccflags-y += -Idrivers/media/common/tuners
++ccflags-y += -Idrivers/media/dvb/dvb-core
++ccflags-y += -Idrivers/media/dvb/frontends
+diff --git a/drivers/media/video/em28xx/Makefile b/drivers/media/video/em28xx/Makefile
+index 38aaa00..2abdf76 100644
+--- a/drivers/media/video/em28xx/Makefile
++++ b/drivers/media/video/em28xx/Makefile
+@@ -9,8 +9,8 @@ obj-$(CONFIG_VIDEO_EM28XX) += em28xx.o
+ obj-$(CONFIG_VIDEO_EM28XX_ALSA) += em28xx-alsa.o
+ obj-$(CONFIG_VIDEO_EM28XX_DVB) += em28xx-dvb.o
+ 
+-EXTRA_CFLAGS += -Idrivers/media/video
+-EXTRA_CFLAGS += -Idrivers/media/common/tuners
+-EXTRA_CFLAGS += -Idrivers/media/dvb/dvb-core
+-EXTRA_CFLAGS += -Idrivers/media/dvb/frontends
++ccflags-y += -Idrivers/media/video
++ccflags-y += -Idrivers/media/common/tuners
++ccflags-y += -Idrivers/media/dvb/dvb-core
++ccflags-y += -Idrivers/media/dvb/frontends
+ 
+diff --git a/drivers/media/video/gspca/gl860/Makefile b/drivers/media/video/gspca/gl860/Makefile
+index 13c9403..f511ecc 100644
+--- a/drivers/media/video/gspca/gl860/Makefile
++++ b/drivers/media/video/gspca/gl860/Makefile
+@@ -6,5 +6,5 @@ gspca_gl860-objs := gl860.o \
+ 		    gl860-ov9655.o \
+ 		    gl860-mi2020.o
+ 
+-EXTRA_CFLAGS += -Idrivers/media/video/gspca
++ccflags-y += -Idrivers/media/video/gspca
+ 
+diff --git a/drivers/media/video/gspca/m5602/Makefile b/drivers/media/video/gspca/m5602/Makefile
+index bf7a19a..7f52961 100644
+--- a/drivers/media/video/gspca/m5602/Makefile
++++ b/drivers/media/video/gspca/m5602/Makefile
+@@ -8,4 +8,4 @@ gspca_m5602-objs := m5602_core.o \
+ 		    m5602_s5k83a.o \
+ 		    m5602_s5k4aa.o
+ 
+-EXTRA_CFLAGS += -Idrivers/media/video/gspca
++ccflags-y += -Idrivers/media/video/gspca
+diff --git a/drivers/media/video/gspca/stv06xx/Makefile b/drivers/media/video/gspca/stv06xx/Makefile
+index 2f3c3a6..5b318fa 100644
+--- a/drivers/media/video/gspca/stv06xx/Makefile
++++ b/drivers/media/video/gspca/stv06xx/Makefile
+@@ -6,5 +6,5 @@ gspca_stv06xx-objs := stv06xx.o \
+ 		      stv06xx_pb0100.o \
+ 		      stv06xx_st6422.o
+ 
+-EXTRA_CFLAGS += -Idrivers/media/video/gspca
++ccflags-y += -Idrivers/media/video/gspca
+ 
+diff --git a/drivers/media/video/hdpvr/Makefile b/drivers/media/video/hdpvr/Makefile
+index 3baa9f6..52f057f 100644
+--- a/drivers/media/video/hdpvr/Makefile
++++ b/drivers/media/video/hdpvr/Makefile
+@@ -2,6 +2,6 @@ hdpvr-objs	:= hdpvr-control.o hdpvr-core.o hdpvr-video.o hdpvr-i2c.o
+ 
+ obj-$(CONFIG_VIDEO_HDPVR) += hdpvr.o
+ 
+-EXTRA_CFLAGS += -Idrivers/media/video
++ccflags-y += -Idrivers/media/video
+ 
+-EXTRA_CFLAGS += $(extra-cflags-y) $(extra-cflags-m)
++ccflags-y += $(extra-cflags-y) $(extra-cflags-m)
+diff --git a/drivers/media/video/ivtv/Makefile b/drivers/media/video/ivtv/Makefile
+index 26ce0d6..71ab76a 100644
+--- a/drivers/media/video/ivtv/Makefile
++++ b/drivers/media/video/ivtv/Makefile
+@@ -7,8 +7,8 @@ ivtv-objs	:= ivtv-routing.o ivtv-cards.o ivtv-controls.o \
+ obj-$(CONFIG_VIDEO_IVTV) += ivtv.o
+ obj-$(CONFIG_VIDEO_FB_IVTV) += ivtvfb.o
+ 
+-EXTRA_CFLAGS += -Idrivers/media/video
+-EXTRA_CFLAGS += -Idrivers/media/common/tuners
+-EXTRA_CFLAGS += -Idrivers/media/dvb/dvb-core
+-EXTRA_CFLAGS += -Idrivers/media/dvb/frontends
++ccflags-y += -Idrivers/media/video
++ccflags-y += -Idrivers/media/common/tuners
++ccflags-y += -Idrivers/media/dvb/dvb-core
++ccflags-y += -Idrivers/media/dvb/frontends
+ 
+diff --git a/drivers/media/video/omap3isp/Makefile b/drivers/media/video/omap3isp/Makefile
+index b1b34477..e8847e7 100644
+--- a/drivers/media/video/omap3isp/Makefile
++++ b/drivers/media/video/omap3isp/Makefile
+@@ -1,8 +1,6 @@
+ # Makefile for OMAP3 ISP driver
+ 
+-ifdef CONFIG_VIDEO_OMAP3_DEBUG
+-EXTRA_CFLAGS += -DDEBUG
+-endif
++ccflags-$(CONFIG_VIDEO_OMAP3_DEBUG) += -DDEBUG
+ 
+ omap3-isp-objs += \
+ 	isp.o ispqueue.o ispvideo.o \
+diff --git a/drivers/media/video/pvrusb2/Makefile b/drivers/media/video/pvrusb2/Makefile
+index de2fc14..c17f37d 100644
+--- a/drivers/media/video/pvrusb2/Makefile
++++ b/drivers/media/video/pvrusb2/Makefile
+@@ -16,7 +16,7 @@ pvrusb2-objs	:= pvrusb2-i2c-core.o \
+ 
+ obj-$(CONFIG_VIDEO_PVRUSB2) += pvrusb2.o
+ 
+-EXTRA_CFLAGS += -Idrivers/media/video
+-EXTRA_CFLAGS += -Idrivers/media/common/tuners
+-EXTRA_CFLAGS += -Idrivers/media/dvb/dvb-core
+-EXTRA_CFLAGS += -Idrivers/media/dvb/frontends
++ccflags-y += -Idrivers/media/video
++ccflags-y += -Idrivers/media/common/tuners
++ccflags-y += -Idrivers/media/dvb/dvb-core
++ccflags-y += -Idrivers/media/dvb/frontends
+diff --git a/drivers/media/video/saa7134/Makefile b/drivers/media/video/saa7134/Makefile
+index 8a5ff4d..a646ccf 100644
+--- a/drivers/media/video/saa7134/Makefile
++++ b/drivers/media/video/saa7134/Makefile
+@@ -10,7 +10,7 @@ obj-$(CONFIG_VIDEO_SAA7134_ALSA) += saa7134-alsa.o
+ 
+ obj-$(CONFIG_VIDEO_SAA7134_DVB) += saa7134-dvb.o
+ 
+-EXTRA_CFLAGS += -Idrivers/media/video
+-EXTRA_CFLAGS += -Idrivers/media/common/tuners
+-EXTRA_CFLAGS += -Idrivers/media/dvb/dvb-core
+-EXTRA_CFLAGS += -Idrivers/media/dvb/frontends
++ccflags-y += -Idrivers/media/video
++ccflags-y += -Idrivers/media/common/tuners
++ccflags-y += -Idrivers/media/dvb/dvb-core
++ccflags-y += -Idrivers/media/dvb/frontends
+diff --git a/drivers/media/video/saa7164/Makefile b/drivers/media/video/saa7164/Makefile
+index 6303a8e..ecd5811 100644
+--- a/drivers/media/video/saa7164/Makefile
++++ b/drivers/media/video/saa7164/Makefile
+@@ -4,9 +4,9 @@ saa7164-objs	:= saa7164-cards.o saa7164-core.o saa7164-i2c.o saa7164-dvb.o \
+ 
+ obj-$(CONFIG_VIDEO_SAA7164) += saa7164.o
+ 
+-EXTRA_CFLAGS += -Idrivers/media/video
+-EXTRA_CFLAGS += -Idrivers/media/common/tuners
+-EXTRA_CFLAGS += -Idrivers/media/dvb/dvb-core
+-EXTRA_CFLAGS += -Idrivers/media/dvb/frontends
++ccflags-y += -Idrivers/media/video
++ccflags-y += -Idrivers/media/common/tuners
++ccflags-y += -Idrivers/media/dvb/dvb-core
++ccflags-y += -Idrivers/media/dvb/frontends
+ 
+-EXTRA_CFLAGS += $(extra-cflags-y) $(extra-cflags-m)
++ccflags-y += $(extra-cflags-y) $(extra-cflags-m)
+diff --git a/drivers/media/video/tlg2300/Makefile b/drivers/media/video/tlg2300/Makefile
+index 81bb7fd..ea09b9a 100644
+--- a/drivers/media/video/tlg2300/Makefile
++++ b/drivers/media/video/tlg2300/Makefile
+@@ -2,8 +2,8 @@ poseidon-objs := pd-video.o pd-alsa.o pd-dvb.o pd-radio.o pd-main.o
+ 
+ obj-$(CONFIG_VIDEO_TLG2300) += poseidon.o
+ 
+-EXTRA_CFLAGS += -Idrivers/media/video
+-EXTRA_CFLAGS += -Idrivers/media/common/tuners
+-EXTRA_CFLAGS += -Idrivers/media/dvb/dvb-core
+-EXTRA_CFLAGS += -Idrivers/media/dvb/frontends
++ccflags-y += -Idrivers/media/video
++ccflags-y += -Idrivers/media/common/tuners
++ccflags-y += -Idrivers/media/dvb/dvb-core
++ccflags-y += -Idrivers/media/dvb/frontends
+ 
+diff --git a/drivers/media/video/usbvision/Makefile b/drivers/media/video/usbvision/Makefile
+index 3387187..aea1e3b 100644
+--- a/drivers/media/video/usbvision/Makefile
++++ b/drivers/media/video/usbvision/Makefile
+@@ -2,5 +2,5 @@ usbvision-objs  := usbvision-core.o usbvision-video.o usbvision-i2c.o usbvision-
+ 
+ obj-$(CONFIG_VIDEO_USBVISION) += usbvision.o
+ 
+-EXTRA_CFLAGS += -Idrivers/media/video
+-EXTRA_CFLAGS += -Idrivers/media/common/tuners
++ccflags-y += -Idrivers/media/video
++ccflags-y += -Idrivers/media/common/tuners
 -- 
-1.6.2.4
+1.7.6.153.g78432
 
