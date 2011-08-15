@@ -1,49 +1,170 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kaapeli.fi ([84.20.139.148]:40537 "EHLO mail.kaapeli.fi"
+Received: from mga02.intel.com ([134.134.136.20]:16905 "EHLO mga02.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752376Ab1HVTOF (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 22 Aug 2011 15:14:05 -0400
-Message-ID: <4E52AA7B.3070708@iki.fi>
-Date: Mon, 22 Aug 2011 22:14:03 +0300
-From: Jyrki Kuoppala <jkp@iki.fi>
-MIME-Version: 1.0
-To: linux-media@vger.kernel.org,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-CC: linux-kernel@vger.kernel.org
-Subject: [PATCH] Fix to qt1010 tuner frequency selection (media/dvb), resend
- as text-only
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+	id S1752018Ab1HOMVH (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 15 Aug 2011 08:21:07 -0400
+From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	linux-media@vger.kernel.org
+Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Subject: [media-ctl][PATCH] libmediactl: engage udev to get devname
+Date: Mon, 15 Aug 2011 15:20:34 +0300
+Message-Id: <4a6d0bf1e50189da0c02e2326c3413d9088926c1.1313410776.git.andriy.shevchenko@linux.intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The patch fixes frequency selection for some UHF frequencies e.g. 
-channel 32 (562 MHz) on the qt1010 tuner. The tuner is used e.g. in the 
-MSI Mega Sky dvb-t stick ("MSI Mega Sky 55801 DVB-T USB2.0")
+Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+---
+ configure.in    |   10 ++++++++
+ src/Makefile.am |    2 +
+ src/media.c     |   66 ++++++++++++++++++++++++++----------------------------
+ 3 files changed, 44 insertions(+), 34 deletions(-)
 
-One example of problem reports of the bug this fixes can be read at 
-http://www.freak-search.com/de/thread/330303/linux-dvb_tuning_problem_with_some_frequencies_qt1010,_dvb
-
-Applies to kernel versions 2.6.38.8, 2.6.39.4, 3.0.3 and 3.1-rc2.
-
-Signed-off-by: Jyrki Kuoppala <jkp@iki.fi>
-
-diff -upr linux-source-2.6.38.orig/drivers/media/common/tuners/qt1010.c 
-linux-source-2.6.38/drivers/media/common/tuners/qt1010.c
---- linux-source-2.6.38.orig/drivers/media/common/tuners/qt1010.c 
-2011-03-15 03:20:32.000000000 +0200
-+++ linux-source-2.6.38/drivers/media/common/tuners/qt1010.c	2011-08-21 
-23:16:38.209580365 +0300
-@@ -198,9 +198,10 @@ static int qt1010_set_params(struct dvb_
-
-  	/* 22 */
-  	if      (freq < 450000000) rd[15].val = 0xd0; /* 450 MHz */
--	else if (freq < 482000000) rd[15].val = 0xd1; /* 482 MHz */
-+	else if (freq < 482000000) rd[15].val = 0xd2; /* 482 MHz */
-  	else if (freq < 514000000) rd[15].val = 0xd4; /* 514 MHz */
--	else if (freq < 546000000) rd[15].val = 0xd7; /* 546 MHz */
-+	else if (freq < 546000000) rd[15].val = 0xd6; /* 546 MHz */
-+	else if (freq < 578000000) rd[15].val = 0xd8; /* 578 MHz */
-  	else if (freq < 610000000) rd[15].val = 0xda; /* 610 MHz */
-  	else                       rd[15].val = 0xd0;
+diff --git a/configure.in b/configure.in
+index fd4c70c..63432ba 100644
+--- a/configure.in
++++ b/configure.in
+@@ -12,6 +12,16 @@ AC_PROG_CC
+ AC_PROG_LIBTOOL
+ 
+ # Checks for libraries.
++PKG_CHECK_MODULES(libudev, libudev, have_libudev=yes, have_libudev=no)
++
++if test x$have_libudev = xyes; then
++    LIBUDEV_CFLAGS="$lbudev_CFLAGS"
++    LIBUDEV_LIBS="$libudev_LIBS"
++    AC_SUBST(LIBUDEV_CFLAGS)
++    AC_SUBST(LIBUDEV_LIBS)
++else
++    AC_MSG_ERROR([libudev is required])
++fi
+ 
+ # Kernel headers path.
+ AC_ARG_WITH(kernel-headers,
+diff --git a/src/Makefile.am b/src/Makefile.am
+index 267ea83..52628d2 100644
+--- a/src/Makefile.am
++++ b/src/Makefile.am
+@@ -5,6 +5,8 @@ mediactl_includedir=$(includedir)/mediactl
+ mediactl_include_HEADERS = media.h subdev.h
+ 
+ bin_PROGRAMS = media-ctl
++media_ctl_CFLAGS = $(LIBUDEV_CFLAGS)
++media_ctl_LDFLAGS = $(LIBUDEV_LIBS)
+ media_ctl_SOURCES = main.c options.c options.h tools.h
+ media_ctl_LDADD = libmediactl.la libv4l2subdev.la
+ 
+diff --git a/src/media.c b/src/media.c
+index e3cab86..000d750 100644
+--- a/src/media.c
++++ b/src/media.c
+@@ -31,6 +31,8 @@
+ #include <linux/videodev2.h>
+ #include <linux/media.h>
+ 
++#include <libudev.h>
++
+ #include "media.h"
+ #include "tools.h"
+ 
+@@ -247,15 +249,20 @@ static int media_enum_links(struct media_device *media)
+ 
+ static int media_enum_entities(struct media_device *media)
+ {
++	struct udev *udev;
++	dev_t devnum;
++	struct udev_device *device;
+ 	struct media_entity *entity;
+-	struct stat devstat;
+ 	unsigned int size;
+-	char devname[32];
+-	char sysname[32];
+-	char target[1024];
+-	char *p;
++	const char *p;
+ 	__u32 id;
+-	int ret;
++	int ret = 0;
++
++	udev = udev_new();
++	if (udev == NULL) {
++		printf("unable to allocate memory for context\n");
++		return -ENOMEM;
++	}
+ 
+ 	for (id = 0; ; id = entity->info.id) {
+ 		size = (media->entities_count + 1) * sizeof(*media->entities);
+@@ -268,9 +275,9 @@ static int media_enum_entities(struct media_device *media)
+ 
+ 		ret = ioctl(media->fd, MEDIA_IOC_ENUM_ENTITIES, &entity->info);
+ 		if (ret < 0) {
+-			if (errno == EINVAL)
+-				break;
+-			return -errno;
++			if (errno != EINVAL)
++				ret = -errno;
++			break;
+ 		}
+ 
+ 		/* Number of links (for outbound links) plus number of pads (for
+@@ -281,8 +288,10 @@ static int media_enum_entities(struct media_device *media)
+ 
+ 		entity->pads = malloc(entity->info.pads * sizeof(*entity->pads));
+ 		entity->links = malloc(entity->max_links * sizeof(*entity->links));
+-		if (entity->pads == NULL || entity->links == NULL)
+-			return -ENOMEM;
++		if (entity->pads == NULL || entity->links == NULL) {
++			ret = -ENOMEM;
++			break;
++		}
+ 
+ 		media->entities_count++;
+ 
+@@ -291,32 +300,21 @@ static int media_enum_entities(struct media_device *media)
+ 		    media_entity_type(entity) != MEDIA_ENT_T_V4L2_SUBDEV)
+ 			continue;
+ 
+-		sprintf(sysname, "/sys/dev/char/%u:%u", entity->info.v4l.major,
+-			entity->info.v4l.minor);
+-		ret = readlink(sysname, target, sizeof(target));
+-		if (ret < 0)
+-			continue;
+-
+-		target[ret] = '\0';
+-		p = strrchr(target, '/');
+-		if (p == NULL)
+-			continue;
+-
+-		sprintf(devname, "/dev/%s", p + 1);
+-		ret = stat(devname, &devstat);
+-		if (ret < 0)
+-			continue;
++		devnum = makedev(entity->info.v4l.major, entity->info.v4l.minor);
++		printf("looking up device: %u:%u\n", major(devnum), minor(devnum));
++		device = udev_device_new_from_devnum(udev, 'c', devnum);
++		if (device) {
++			p = udev_device_get_devnode(device);
++			if (p)
++				snprintf(entity->devname, sizeof(entity->devname),
++					 "%s", p);
++		}
+ 
+-		/* Sanity check: udev might have reordered the device nodes.
+-		 * Make sure the major/minor match. We should really use
+-		 * libudev.
+-		 */
+-		if (major(devstat.st_rdev) == entity->info.v4l.major &&
+-		    minor(devstat.st_rdev) == entity->info.v4l.minor)
+-			strcpy(entity->devname, devname);
++		udev_device_unref(device);
+ 	}
+ 
+-	return 0;
++	udev_unref(udev);
++	return ret;
+ }
+ 
+ struct media_device *media_open(const char *name, int verbose)
+-- 
+1.7.5.4
 
