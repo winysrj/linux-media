@@ -1,81 +1,156 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail1.matrix-vision.com ([78.47.19.71]:56665 "EHLO
-	mail1.matrix-vision.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751395Ab1HELl5 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 5 Aug 2011 07:41:57 -0400
-Message-ID: <4E3BD702.8030204@matrix-vision.de>
-Date: Fri, 05 Aug 2011 13:41:54 +0200
-From: Michael Jones <michael.jones@matrix-vision.de>
-MIME-Version: 1.0
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-CC: linux-media@vger.kernel.org,
+Received: from ams-iport-2.cisco.com ([144.254.224.141]:23187 "EHLO
+	ams-iport-2.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752003Ab1HOLgL (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 15 Aug 2011 07:36:11 -0400
+From: Hans Verkuil <hansverk@cisco.com>
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Subject: Re: [PATCH 1/6 v4] V4L: add two new ioctl()s for multi-size videobuffer management
+Date: Mon, 15 Aug 2011 13:36:07 +0200
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Sakari Ailus <sakari.ailus@iki.fi>,
+	Pawel Osciak <pawel@osciak.com>,
+	Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
 	Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: Re: [PATCH] [media] omap3isp: queue: fail QBUF if buffer is too small
-References: <1312472437-26231-1-git-send-email-michael.jones@matrix-vision.de> <201108051059.46485.laurent.pinchart@ideasonboard.com>
-In-Reply-To: <201108051059.46485.laurent.pinchart@ideasonboard.com>
-Content-Type: text/plain; charset=ISO-8859-15
+References: <Pine.LNX.4.64.1108042329460.31239@axis700.grange> <201108081116.41126.hansverk@cisco.com> <Pine.LNX.4.64.1108151324220.7851@axis700.grange>
+In-Reply-To: <Pine.LNX.4.64.1108151324220.7851@axis700.grange>
+MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
+Message-Id: <201108151336.07258.hansverk@cisco.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Laurent,
-
-On 08/05/2011 10:59 AM, Laurent Pinchart wrote:
+On Monday, August 15, 2011 13:28:23 Guennadi Liakhovetski wrote:
+> Hi Hans
 > 
-> Hi Michael,
+> On Mon, 8 Aug 2011, Hans Verkuil wrote:
 > 
-> Thanks for the patch.
+> > Hi Guennadi!
+> > 
+> > On Friday, August 05, 2011 09:47:13 Guennadi Liakhovetski wrote:
+> > > A possibility to preallocate and initialise buffers of different sizes
+> > > in V4L2 is required for an efficient implementation of asnapshot mode.
+> > > This patch adds two new ioctl()s: VIDIOC_CREATE_BUFS and
+> > > VIDIOC_PREPARE_BUF and defines respective data structures.
+> > > 
+> > > Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+> > > ---
+> > > 
+> > > v4:
+> > > 
+> > > 1. CREATE_BUFS now takes an array of plane sizes and a fourcc code in its 
+> > >    argument, instead of a frame format specification, including 
+> > >    documentation update
+> > > 2. documentation improvements, as suggested by Hans
+> > > 3. increased reserved fields to 18, as suggested by Sakari
+> > > 
+> > >  Documentation/DocBook/media/v4l/io.xml             |   17 ++
+> > >  Documentation/DocBook/media/v4l/v4l2.xml           |    2 +
+> > >  .../DocBook/media/v4l/vidioc-create-bufs.xml       |  161 
+> > ++++++++++++++++++++
+> > >  .../DocBook/media/v4l/vidioc-prepare-buf.xml       |   96 ++++++++++++
+> > >  drivers/media/video/v4l2-compat-ioctl32.c          |    6 +
+> > >  drivers/media/video/v4l2-ioctl.c                   |   26 +++
+> > >  include/linux/videodev2.h                          |   18 +++
+> > >  include/media/v4l2-ioctl.h                         |    2 +
+> > >  8 files changed, 328 insertions(+), 0 deletions(-)
+> > >  create mode 100644 Documentation/DocBook/media/v4l/vidioc-create-bufs.xml
+> > >  create mode 100644 Documentation/DocBook/media/v4l/vidioc-prepare-buf.xml
+> > > 
+> > 
+> > <snip>
+> > 
+> > > diff --git a/include/linux/videodev2.h b/include/linux/videodev2.h
+> > > index fca24cc..3cd0cb3 100644
+> > > --- a/include/linux/videodev2.h
+> > > +++ b/include/linux/videodev2.h
+> > > @@ -653,6 +653,9 @@ struct v4l2_buffer {
+> > >  #define V4L2_BUF_FLAG_ERROR	0x0040
+> > >  #define V4L2_BUF_FLAG_TIMECODE	0x0100	/* timecode field is valid */
+> > >  #define V4L2_BUF_FLAG_INPUT     0x0200  /* input field is valid */
+> > > +/* Cache handling flags */
+> > > +#define V4L2_BUF_FLAG_NO_CACHE_INVALIDATE	0x0400
+> > > +#define V4L2_BUF_FLAG_NO_CACHE_CLEAN		0x0800
+> > >  
+> > >  /*
+> > >   *	O V E R L A Y   P R E V I E W
+> > > @@ -2092,6 +2095,18 @@ struct v4l2_dbg_chip_ident {
+> > >  	__u32 revision;    /* chip revision, chip specific */
+> > >  } __attribute__ ((packed));
+> > >  
+> > > +/* VIDIOC_CREATE_BUFS */
+> > > +struct v4l2_create_buffers {
+> > > +	__u32	index;	/* output: buffers index...index + count - 1 have been 
+> > created */
+> > > +	__u32	count;
+> > > +	__u32	type;
+> > > +	__u32	memory;
+> > > +	__u32	fourcc;
+> > > +	__u32	num_planes;
+> > > +	__u32	sizes[VIDEO_MAX_PLANES];
+> > > +	__u32	reserved[18];
+> > > +};
+> > 
+> > I know you are going to hate me for this,
 > 
-> On Thursday 04 August 2011 17:40:37 Michael Jones wrote:
->> Add buffer length to sanity checks for QBUF.
->>
->> Signed-off-by: Michael Jones <michael.jones@matrix-vision.de>
->> ---
->>  drivers/media/video/omap3isp/ispqueue.c |    3 +++
->>  1 files changed, 3 insertions(+), 0 deletions(-)
->>
->> diff --git a/drivers/media/video/omap3isp/ispqueue.c
->> b/drivers/media/video/omap3isp/ispqueue.c index 9c31714..4f6876f 100644
->> --- a/drivers/media/video/omap3isp/ispqueue.c
->> +++ b/drivers/media/video/omap3isp/ispqueue.c
->> @@ -867,6 +867,9 @@ int omap3isp_video_queue_qbuf(struct isp_video_queue
->> *queue, if (buf->state != ISP_BUF_STATE_IDLE)
->>  		goto done;
->>
->> +	if (vbuf->length < buf->vbuf.length)
->> +		goto done;
->> +
+> hm, I'll consider this possibility;-)
 > 
-> The vbuf->length value passed from userspace isn't used by the driver, so I'm 
-> not sure if verifying it is really useful. We verify the memory itself 
-> instead, to make sure that enough pages can be accessed. The application can 
-> always lie about the length, so we can't rely on it anyway.
+> > but I've changed my mind: I think
+> > this should use a struct v4l2_format after all.
+> > 
+> > This change of heart came out of discussions during the V4L2 brainstorm 
+> > meeting last week. The only way to be sure the buffers are allocated optimally 
+> > is if the driver has all the information. The easiest way to do that is by 
+> > passing struct v4l2_format. This is also consistent with REQBUFS since that 
+> > uses the information from the currently selected format (i.e. what you get 
+> > back from VIDIOC_G_FMT).
+> > 
+> > There can be subtle behaviors such as allocating from different memory back 
+> > based on the fourcc and the size of the image.
+> > 
+> > One reason why I liked passing sizes directly is that it allows the caller to 
+> > ask for more memory than is strictly necessary.
+> > 
+> > However, while brainstorming last week the suggestion was made that there is 
+> > no reason why the user can't set the sizeimage field in 
+> > v4l2_pix_format(_mplane) to something higher. The S/TRY_FMT spec explicitly 
+> > mentions that the sizeimage field is set by the driver, but for the new 
+> > CREATEBUFS ioctl no such limitation has to be placed. The only thing necessary 
+> > is to ensure that sizeimage is not too small (and you probably want some 
+> > sanity check against crazy values as well).
+> 
+> Centrally in videobuf2 or in each driver?
 
-According to the spec, it's expected that the application set 'length':
-"To enqueue a user pointer buffer applications set [...] length to its
-size." (Now that I say that, I realize I should only do this length
-check for USERPTR buffers.) If we don't at least sanity check it for the
-application, then it has no purpose at all on QBUF. If this is
-desirable, I would propose changing the spec.
+The 'too small' check can only be done in the driver since the driver has to
+calculate the size based on the format. The 'is crazy value' check can be done
+centrally. But note the discussion on what constitutes 'crazy'.
 
-This patch was born of a mistake when my application set 624x480, which
-resulted in sizeimage=640x480=307200 but it used width & height to
-calculate the buffer size rather than sizeimage or even to take
-bytesperline into account. It was then honest with QBUF, confessing that
-it wasn't providing enough space, but QBUF just went ahead. What
-followed were random crashes while data was DMA'd into memory not set
-aside for the buffer, while I assumed that the buffer size was OK
-because QBUF had succeeded and was looking elsewhere in the program for
-the culprit. I think it makes sense to give the app an error on QBUF in
-this situation.
+> > This way the decision on how to allocate memory is the same between REQBUFS 
+> > and CREATEBUFS (i.e. both use v4l2_format information), but there is no need 
+> > for a union as we had in the initial proposal since apps can set the sizeimage 
+> > to something larger than strictly necessary (or just leave it to 0 to get the 
+> > smallest size).
+> 
+> There was no union in previous versions of the patch. You mean, we don't 
+> need the .size member?
+
+Sorry, I thought we had a union containing the size and the format. Anyway, we
+don't need the .size member if we allow the user to set the sizeimage fields in
+the format when calling CREATEBUFS.
+
+Regards,
+
+       Hans
 
 > 
->>  	if (vbuf->memory == V4L2_MEMORY_USERPTR &&
->>  	    vbuf->m.userptr != buf->vbuf.m.userptr) {
->>  		isp_video_buffer_cleanup(buf);
+> Thanks
+> Guennadi
+> ---
+> Guennadi Liakhovetski, Ph.D.
+> Freelance Open-Source Software Developer
+> http://www.open-technology.de/
 > 
-
-
-MATRIX VISION GmbH, Talstrasse 16, DE-71570 Oppenweiler
-Registergericht: Amtsgericht Stuttgart, HRB 271090
-Geschaeftsfuehrer: Gerhard Thullner, Werner Armingeon, Uwe Furtner, Erhard Meier
