@@ -1,45 +1,77 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:51916 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755777Ab1HaPcr (ORCPT
+Received: from proofpoint-cluster.metrocast.net ([65.175.128.136]:42336 "EHLO
+	proofpoint-cluster.metrocast.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751184Ab1HOKTj (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 31 Aug 2011 11:32:47 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Sebastian Reichel <sre@debian.org>
-Subject: Re: status request of et8k8, ad5820 and their corresponding rx51 board code
-Date: Wed, 31 Aug 2011 17:33:16 +0200
-Cc: linux-media@vger.kernel.org, linux-omap@vger.kernel.org,
-	Sakari Ailus <sakari.ailus@iki.fi>
-References: <20110831151524.GA28065@earth.universe>
-In-Reply-To: <20110831151524.GA28065@earth.universe>
+	Mon, 15 Aug 2011 06:19:39 -0400
+References: <CAC3jWv+c1HOqmo0B18Z3vWOwjr=RoPrN7sfR3bqzz4Tw7=fPAQ@mail.gmail.com> <1313226504.2840.22.camel@gagarin> <CAC3jWvLszU4gTSVW0mXUFrhnHCpPWRUqErytF9jXs39sbCJd3Q@mail.gmail.com> <1313400289.1648.22.camel@gagarin>
+In-Reply-To: <1313400289.1648.22.camel@gagarin>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-15"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201108311733.16363.laurent.pinchart@ideasonboard.com>
+Content-Type: text/plain;
+ charset=UTF-8
+Content-Transfer-Encoding: 8bit
+Subject: Re: [mythtv-users] Anyone tested the DVB-T2 dual tuner TBS6280?
+From: Andy Walls <awalls@md.metrocast.net>
+Date: Mon, 15 Aug 2011 06:19:49 -0400
+To: Lawrence Rust <lvr@softsystem.co.uk>,
+	Discussion about MythTV <mythtv-users@mythtv.org>
+CC: linux-media@vger.kernel.org
+Message-ID: <3976b67f-b55f-44c2-99fe-ef3968105563@email.android.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sebastian,
+Lawrence Rust <lvr@softsystem.co.uk> wrote:
 
-(CC'ing Sakari Ailus)
+>On Sun, 2011-08-14 at 17:50 +0200, Harald Gustafsson wrote:
+>> Thanks for sharing your experience.
+>> 
+>[snip]
+>> > Be warned that if you run a 2.6.38 or later kernel then the IR RC
+>won't
+>> > work because of significant changes to the RC architecture that TBS
+>> > don't like (see
+>http://www.tbsdtv.com/forum/viewtopic.php?f=22&t=929 and
+>> > http://www.tbsdtv.com/forum/viewtopic.php?f=22&t=110&start=90#p2693
+>)
+>> 
+>> In the links you refer to the driver author (at least he seems to be
+>> the author) states that he has not upgraded to the latest IR code due
+>> to compatibility issues between the CX23885 and IR.
+>
+>The TBS cards use the same cx23885 device that the Hauppauge HVR 1250 &
+>1850 use, both of which support RC input.  The problem, as I understand
+>it, is that in some modes the cx23885 can produce an interrupt storm.
+>
+>Given that the current v4l RC architecture is unlikely to change
+>significantly in the near future then instead of bleating, perhaps TBS
+>should contribute a fix.  However, given that to date all of TBS's code
+>has been kept private then that's unlikely.  So the TBS Linux drivers
+>are likely to become increasingly incompatible with current Linux
+>kernels.
+>
+>I have a need to use my 6981 card so I'm developing my own fix for the
+>RC problem.  I'll post this to linuxmedia when I'm happy it's sound.
+>
+>Incidentally, the latest TBS 6981 driver OOPS with linux 2.6.39 even
+>though their release note says "Ensure compatibility with latest
+>ArchLinux (with kernel 2.6.39.2-1)".  This is due to a change in an i2c
+>driver structure in 2.6.39 and is a direct consequence of TBS shipping
+>object modules built with old kernel headers.
+>
+>Be warned, the h/w is sound but the software & support suck.
+>
+>-- 
+>Lawrence
+>
+>
+>--
+>To unsubscribe from this list: send the line "unsubscribe linux-media"
+>in
+>the body of a message to majordomo@vger.kernel.org
+>More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
-On Wednesday 31 August 2011 17:15:24 Sebastian Reichel wrote:
-> Hi,
-> 
-> What's the plan for the rx51 camera drivers from [0]? Is there a
-> chance, that they get included in the mainline 3.2 or 3.3 kernel?
+One of the bigger problems with the cx23885 driver and hardware was that things don't appear to work well with MSI enabled in the driver.  Hack your version of the driver to make sure MSI is not enabled for CX2388[578] chips.
 
-The ad5820 driver will probably be the simplest one to upstream. It should be 
-possible to push it to v3.3. Someone needs to look at the lens-related 
-controls and how they can be standardized (if at all).
+As far as the unclearable IR interrupt with MSI disabled, I've only seen that with the CX23885 on nonHauppauge cards; the CX23888 seems to be ok.  I'm sure the problem on nonHauppauge cards is simply me no knowing for sure how some of the pins on the CX23885 were wired up.
 
-The et8ek8 driver is a different story. I don't think it should get mainlined 
-in its current state. We need to get rid of the "camera firmware" support from 
-the driver first, and if possible implement the V4L2 API correctly without 
-relying on register lists.
-
--- 
-Regards,
-
-Laurent Pinchart
+-Andy
