@@ -1,73 +1,115 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nm2-vm0.bt.bullet.mail.ird.yahoo.com ([212.82.108.92]:27062
-	"HELO nm2-vm0.bt.bullet.mail.ird.yahoo.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with SMTP id S1751685Ab1HSAMY (ORCPT
+Received: from perceval.ideasonboard.com ([95.142.166.194]:56702 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752333Ab1HONCA (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 18 Aug 2011 20:12:24 -0400
-Message-ID: <4E4DAA64.4050302@yahoo.com>
-Date: Fri, 19 Aug 2011 01:12:20 +0100
-From: Chris Rankin <rankincj@yahoo.com>
+	Mon, 15 Aug 2011 09:02:00 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Deepthy Ravi <deepthy.ravi@ti.com>
+Subject: Re: [PATCH 2/2] omap3: ISP: Kernel crash when attempting suspend
+Date: Mon, 15 Aug 2011 15:02:06 +0200
+Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+	mchehab@infradead.org, linux-omap@vger.kernel.org,
+	Abhilash K V <abhilash.kv@ti.com>
+References: <1312985006-19345-1-git-send-email-deepthy.ravi@ti.com>
+In-Reply-To: <1312985006-19345-1-git-send-email-deepthy.ravi@ti.com>
 MIME-Version: 1.0
-To: Devin Heitmueller <dheitmueller@kernellabs.com>
-CC: linux-media@vger.kernel.org, mchehab@redhat.com,
-	Antti Palosaari <crope@iki.fi>
-Subject: Re: [PATCH] Latest version of em28xx / em28xx-dvb patch for PCTV
- 290e
-References: <4E4D5157.2080406@yahoo.com> <CAGoCfiwk4vy1V7T=Hdz1CsywgWVpWEis0eDoh2Aqju3LYqcHfA@mail.gmail.com> <CAGoCfiw4v-ZsUPmVgOhARwNqjCVK458EV79djD625Sf+8Oghag@mail.gmail.com>
-In-Reply-To: <CAGoCfiw4v-ZsUPmVgOhARwNqjCVK458EV79djD625Sf+8Oghag@mail.gmail.com>
-Content-Type: multipart/mixed;
- boundary="------------050603080709030200000600"
+Content-Type: Text/Plain;
+  charset="iso-8859-15"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201108151502.07234.laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This is a multi-part message in MIME format.
---------------050603080709030200000600
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Hi,
 
-The final patch removes the unplug/replug deadlock by not holding the device 
-mutex during dvb_init(). However, this mutex has already been locked during 
-device initialisation by em28xx_usb_probe() and is not released again until all 
-extensions have been initialised successfully.
+On Wednesday 10 August 2011 16:03:26 Deepthy Ravi wrote:
+> From: Abhilash K V <abhilash.kv@ti.com>
+> 
+> This patch fixes the kernel crash introduced by the previous
+> patch:
+> 	omap3: ISP: Fix the failure of CCDC capture during
+> 	suspend/resume.
+> This null pointer exception happens when attempting suspend
+> while the ISP driver is not being used. The current patch
+> fixes this by deferring the code (as introduced in the
+> aforementioned patch) to handle  buffer-starvation to get
+> called only if the ISP reference count is non-zero.
+> An additional safety check is also added to ensure that
+> buffer-starvation logic kicks in for an empty dmaqueue only
+> if the ISP pipeline is not in the stopped state.
 
-The device mutex is not held during either em28xx_register_extension() or 
-em28xx_unregister_extension() any more. More importantly, I don't believe it can 
-safely be held by these functions because they must both - by their nature -  
-acquire the device list mutex before they can iterate through the device list. 
-In other words, while usb_probe() and usb_disconnect() acquire the device mutex 
-followed by the device list mutex, the register/unregister_extension() functions 
-would need to acquire these mutexes in the opposite order. And that sounds like 
-a potential deadlock.
+What about squashing this with the previous patch then ?
 
-On the other hand, the new situation is a definite improvement :-).
+I'll review patch 1/2, just give me a bit more time. The race condition is 
+tricky so I need to rest a bit before attacking it :-)
 
-Signed-off-by: Chris Rankin <rankincj@yahoo.com>
+> Signed-off-by: Abhilash K V <abhilash.kv@ti.com>
+> Signed-off-by: Deepthy Ravi <deepthy.ravi@ti.com>
+> ---
+>  drivers/media/video/omap3isp/isp.c      |   12 ++++++------
+>  drivers/media/video/omap3isp/ispvideo.c |    4 +++-
+>  2 files changed, 9 insertions(+), 7 deletions(-)
+> 
+> diff --git a/drivers/media/video/omap3isp/isp.c
+> b/drivers/media/video/omap3isp/isp.c index 6604fbd..6acdedc 100644
+> --- a/drivers/media/video/omap3isp/isp.c
+> +++ b/drivers/media/video/omap3isp/isp.c
+> @@ -1573,6 +1573,9 @@ static int isp_pm_prepare(struct device *dev)
+>  	unsigned long flags;
+> 
+>  	WARN_ON(mutex_is_locked(&isp->isp_mutex));
+> +	if (isp->ref_count == 0)
+> +		return 0;
+> +
+>  	spin_lock_irqsave(&pipe->lock, flags);
+>  	pipe->state |= ISP_PIPELINE_PREPARE_SUSPEND;
+>  	spin_unlock_irqrestore(&pipe->lock, flags);
+> @@ -1581,9 +1584,6 @@ static int isp_pm_prepare(struct device *dev)
+>  	if (err < 0)
+>  		return err;
+> 
+> -	if (isp->ref_count == 0)
+> -		return 0;
+> -
+>  	reset = isp_suspend_modules(isp);
+>  	isp_disable_interrupts(isp);
+>  	isp_save_ctx(isp);
+> @@ -1613,13 +1613,13 @@ static int isp_pm_resume(struct device *dev)
+>  	struct isp_pipeline *pipe = to_isp_pipeline(&video->video.entity);
+>  	unsigned long flags;
+> 
+> +	if (isp->ref_count == 0)
+> +		return 0;
+> +
+>  	spin_lock_irqsave(&pipe->lock, flags);
+>  	pipe->state &= ~ISP_PIPELINE_PREPARE_SUSPEND;
+>  	spin_unlock_irqrestore(&pipe->lock, flags);
+> 
+> -	if (isp->ref_count == 0)
+> -		return 0;
+> -
+>  	return isp_enable_clocks(isp);
+>  }
+> 
+> diff --git a/drivers/media/video/omap3isp/ispvideo.c
+> b/drivers/media/video/omap3isp/ispvideo.c index bf149a7..ffb339c 100644
+> --- a/drivers/media/video/omap3isp/ispvideo.c
+> +++ b/drivers/media/video/omap3isp/ispvideo.c
+> @@ -726,8 +726,10 @@ int isp_video_handle_buffer_starvation(struct
+> isp_video *video) struct isp_video_queue *queue = video->queue;
+>  	struct isp_video_buffer *buf;
+>  	struct list_head *head = &video->dmaqueue;
+> +	struct isp_ccdc_device *ccdc = &video->isp->isp_ccdc;
+> 
+> -	if (list_empty(&video->dmaqueue)) {
+> +	if (list_empty(&video->dmaqueue)
+> +		&& ccdc->state != ISP_PIPELINE_STREAM_STOPPED) {
+>  		err = isp_video_deq_enq(queue);
+>  	} else if (head->next->next == head) {
+>  		/* only one buffer is left on dmaqueue */
 
+-- 
+Regards,
 
---------------050603080709030200000600
-Content-Type: text/x-patch;
- name="EM28xx-replug-deadlock.diff"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: attachment;
- filename="EM28xx-replug-deadlock.diff"
-
---- linux-3.0/drivers/media/video/em28xx/em28xx-dvb.c.orig	2011-08-19 00:50:41.000000000 +0100
-+++ linux-3.0/drivers/media/video/em28xx/em28xx-dvb.c	2011-08-19 00:51:03.000000000 +0100
-@@ -542,7 +542,6 @@
- 	dev->dvb = dvb;
- 	dvb->fe[0] = dvb->fe[1] = NULL;
- 
--	mutex_lock(&dev->lock);
- 	em28xx_set_mode(dev, EM28XX_DIGITAL_MODE);
- 	/* init frontend */
- 	switch (dev->model) {
-@@ -711,7 +710,6 @@
- 	em28xx_info("Successfully loaded em28xx-dvb\n");
- ret:
- 	em28xx_set_mode(dev, EM28XX_SUSPEND);
--	mutex_unlock(&dev->lock);
- 	return result;
- 
- out_free:
-
---------------050603080709030200000600--
+Laurent Pinchart
