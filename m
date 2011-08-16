@@ -1,301 +1,200 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr1.xs4all.nl ([194.109.24.21]:2634 "EHLO
-	smtp-vbr1.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752837Ab1HWGVK (ORCPT
+Received: from mail-qy0-f174.google.com ([209.85.216.174]:37752 "EHLO
+	mail-qy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751331Ab1HPQR7 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 23 Aug 2011 02:21:10 -0400
-To: viro@zeniv.linux.org.uk, Andrew Morton <akpm@linux-foundation.org>
-Subject: Can you review or ack this patch?
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	"linux-kernel" <linux-kernel@vger.kernel.org>,
-	"linux-media" <linux-media@vger.kernel.org>,
-	linux-fsdevel@vger.kernel.or
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Date: Tue, 23 Aug 2011 08:20:52 +0200
+	Tue, 16 Aug 2011 12:17:59 -0400
+Received: by qyk38 with SMTP id 38so1483225qyk.19
+        for <linux-media@vger.kernel.org>; Tue, 16 Aug 2011 09:17:58 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201108230820.52619.hverkuil@xs4all.nl>
+In-Reply-To: <Pine.LNX.4.64.1108161458510.13913@axis700.grange>
+References: <Pine.LNX.4.64.1108042329460.31239@axis700.grange>
+ <201108081116.41126.hansverk@cisco.com> <Pine.LNX.4.64.1108151324220.7851@axis700.grange>
+ <201108151336.07258.hansverk@cisco.com> <Pine.LNX.4.64.1108151530410.7851@axis700.grange>
+ <Pine.LNX.4.64.1108161458510.13913@axis700.grange>
+From: Pawel Osciak <pawel@osciak.com>
+Date: Tue, 16 Aug 2011 09:14:33 -0700
+Message-ID: <CAMm-=zCJBDzx=tzcnEU4RCS9jkbxDeDPDZsHRL5ZMHcdBMYivA@mail.gmail.com>
+Subject: Re: [PATCH 1/6 v4] V4L: add two new ioctl()s for multi-size
+ videobuffer management
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Cc: Hans Verkuil <hansverk@cisco.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Sakari Ailus <sakari.ailus@iki.fi>,
+	Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-(Resent as requested by Andrew Morton since this is still stuck)
+Hi Guennadi,
 
-Hi Al, Andrew,
+On Tue, Aug 16, 2011 at 06:13, Guennadi Liakhovetski
+<g.liakhovetski@gmx.de> wrote:
+> On Mon, 15 Aug 2011, Guennadi Liakhovetski wrote:
+>
+>> On Mon, 15 Aug 2011, Hans Verkuil wrote:
+>>
+>> > On Monday, August 15, 2011 13:28:23 Guennadi Liakhovetski wrote:
+>> > > Hi Hans
+>> > >
+>> > > On Mon, 8 Aug 2011, Hans Verkuil wrote:
+>
+> [snip]
+>
+>> > > > but I've changed my mind: I think
+>> > > > this should use a struct v4l2_format after all.
+>>
+>> While switching back, I have to change the struct vb2_ops::queue_setup()
+>> operation to take a struct v4l2_create_buffers pointer. An earlier version
+>> of this patch just added one more parameter to .queue_setup(), which is
+>> easier - changes to videobuf2-core.c are smaller, but it is then
+>> redundant. We could use the create pointer for both input and output. The
+>> video plane configuration in frame format is the same as what is
+>> calculated in .queue_setup(), IIUC. So, we could just let the driver fill
+>> that one in. This would require then the videobuf2-core.c to parse struct
+>> v4l2_format to decide which union member we need, depending on the buffer
+>> type. Do we want this or shall drivers duplicate plane sizes in separate
+>> .queue_setup() parameters?
+>
+> Let me explain my question a bit. The current .queue_setup() method is
+>
+>        int (*queue_setup)(struct vb2_queue *q, unsigned int *num_buffers,
+>                           unsigned int *num_planes, unsigned int sizes[],
+>                           void *alloc_ctxs[]);
+>
+> To support multiple-size buffers we also have to pass a pointer to struct
+> v4l2_create_buffers to this function now. We can either do it like this:
+>
+>        int (*queue_setup)(struct vb2_queue *q,
+>                           struct v4l2_create_buffers *create,
+>                           unsigned int *num_buffers,
+>                           unsigned int *num_planes, unsigned int sizes[],
+>                           void *alloc_ctxs[]);
+>
+> and let all drivers fill in respective fields in *create, e.g., either do
+>
+>        create->format.fmt.pix_mp.plane_fmt[i].sizeimage = ...;
+>        create->format.fmt.pix_mp.num_planes = ...;
+>
+> and also duplicate it in method parameters
+>
+>        *num_planes = create->format.fmt.pix_mp.num_planes;
+>        sizes[i] = create->format.fmt.pix_mp.plane_fmt[i].sizeimage;
+>
+> or with
+>
+>        create->format.fmt.pix.sizeimage = ...;
+>
+> for single-plane. Alternatively we make the prototype
+>
+>        int (*queue_setup)(struct vb2_queue *q,
+>                           struct v4l2_create_buffers *create,
+>                           unsigned int *num_buffers,
+>                           void *alloc_ctxs[]);
+>
+> then drivers only fill in *create, and the videobuf2-core will have to
+> check create->format.type to decide, which of create->format.fmt.* is
+> relevant and extract plane sizes from there.
 
-Can you take a look at this patch and send an Ack or review comments?
 
-It's already been reviewed by Jon Corbet and we really need this functionality
-for v3.1. You were in the CC list in earlier postings:
+Could we try exploring an alternative idea?
+The queue_setup callback was added to decouple formats from vb2 (and
+add some asynchronousness). But now we are doing the opposite, adding
+format awareness to vb2. Does vb2 really need to know about formats? I
+really believe it doesn't. It only needs sizes and counts. Also, we
+are actually complicating things I think. The proposal, IIUC, would
+look like this:
 
-Here: http://www.spinics.net/lists/linux-fsdevel/msg46753.html
-and here: http://www.mail-archive.com/linux-media@vger.kernel.org/msg34546.html
+driver_queue_setup(..., create, num_buffers, [num_planes], ...)
+{
+    if (create != NULL && create->format != NULL) {
+        /* use create->fmt to fill sizes */
+    } else if (create != NULL) { /* this assumes we have both format or sizes */
+        /* use create->sizes to fill sizes */
+    } else {
+        /* use currently selected format to fill sizes */
+    }
+}
 
-The patch also featured on LWN: http://lwn.net/Articles/450658/
+driver_s_fmt(format)
+{
+    /* ... */
+    driver_fill_format(&create->fmt);
+    /* ... */
+}
 
-Without your ack Mauro can't upstream this and we have a number of other
-patches that depend on this and are currently blocked.
+driver_create_bufs(create)
+{
+    vb2_create_bufs(create);
+}
 
-We would prefer to upstream this patch through the linux-media git tree
-due to these dependencies.
+vb2_create_bufs(create)
+{
+    driver_queue_setup(..., create, ...);
+    vb2_fill_format(&create->fmt); /* note different from
+driver_fill_format(), but both needed */
+}
 
-My git branch containing this and the dependent patches is here:
+vb2_reqbufs(reqbufs)
+{
+   driver_queue_setup(..., NULL, ...);
+}
 
-http://git.linuxtv.org/hverkuil/media_tree.git/shortlog/refs/heads/poll
+The queue_setup not only becomes unnecessarily complicated, but I'm
+starting to question the convenience of it. And we are teaching vb2
+how to interpret format structs, even though vb2 only needs sizes, and
+even though the driver has to do it anyway and knows better how.
 
-Your help would be greatly appreciated (and your ack even more :-) )!
+As for the idea to fill fmt in vb2, even if vb2 was to do it in
+create_bufs, some code to parse and fill the format fields would need
+to be in the driver anyway, because it still has to support s_fmt and
+friends. So adding that code to vb2 would duplicate it, and if the
+driver wanted to be non-standard in a way it filled the format fields,
+we'd not be allowing that.
 
-Regards,
+My suggestion would be to remove queue_setup callback and instead
+modify vb2_reqbufs and vb2_create_bufs to accept sizes and number of
+buffers. I think it should simplify things both for drivers and vb2,
+would keep vb2 format-unaware and save us some round trips between vb2
+and driver:
 
-	Hans
+driver_create_bufs(...) /* optional */
+{
+    /* use create->fmt (or sizes) */
+    ret = vb2_create_bufs(num_buffers, num_planes, buf_sizes,
+plane_sizes, alloc_ctxs);
+    fill_format(&create->fmt) /* because s_fmt has to do it anyway, so
+have a common function for that */
+    return ret;
+}
 
+driver_reqbufs(...)
+{
+    /* use current format */
+    return vb2_reqbufs(num_buffers, num_planes, buf_sizes,
+plane_sizes, alloc_ctxs);
+}
 
-[PATCH] poll: add poll_requested_events() function
+And the call to both could easily converge into one in vb2, as the
+only difference is that vb2_reqbufs would need to free first, if any
+allocated buffers were present:
 
-In some cases the poll() implementation in a driver has to do different
-things depending on the events the caller wants to poll for. An example is
-when a driver needs to start a DMA engine if the caller polls for POLLIN,
-but doesn't want to do that if POLLIN is not requested but instead only
-POLLOUT or POLLPRI is requested. This is something that can happen in the
-video4linux subsystem.
+vb2_reqbufs(num_buffers, num_planes, buf_sizes, plane_sizes, alloc_ctxs)
+{
+    if (buffers_allocated(num_buffers, num_planes, buf_sizes,
+plane_sizes, alloc_ctxs)) {
+        free_buffers(...);
+    }
 
-Unfortunately, the current epoll/poll/select implementation doesn't provide
-that information reliably. The poll_table_struct does have it: it has a key
-field with the event mask. But once a poll() call matches one or more bits
-of that mask any following poll() calls are passed a NULL poll_table_struct
-pointer.
+    return vb2_create_bufs(num_buffers, num_planes, buf_sizes,
+plane_sizes, alloc_ctxs);
+}
 
-The solution is to set the qproc field to NULL in poll_table_struct once
-poll() matches the events, not the poll_table_struct pointer itself. That
-way drivers can obtain the mask through a new poll_requested_events inline.
+If the driver didn't want create_bufs, it'd just not implement it.
+What do you think?
 
-The poll_table_struct can still be NULL since some kernel code calls it
-internally (netfs_state_poll() in ./drivers/staging/pohmelfs/netfs.h). In
-that case poll_requested_events() returns ~0 (i.e. all events).
-
-Since eventpoll always leaves the key field at ~0 instead of using the
-requested events mask, that source was changed as well to properly fill in
-the key field.
-
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-Reviewed-by: Jonathan Corbet <corbet@lwn.net>
----
- fs/eventpoll.c       |   19 +++++++++++++++----
- fs/select.c          |   38 +++++++++++++++++---------------------
- include/linux/poll.h |    7 ++++++-
- 3 files changed, 38 insertions(+), 26 deletions(-)
-
-diff --git a/fs/eventpoll.c b/fs/eventpoll.c
-index f9cfd16..6a54a69 100644
---- a/fs/eventpoll.c
-+++ b/fs/eventpoll.c
-@@ -650,9 +650,12 @@ static int ep_read_events_proc(struct eventpoll *ep, struct list_head *head,
- 			       void *priv)
- {
- 	struct epitem *epi, *tmp;
-+	poll_table pt;
- 
-+	init_poll_funcptr(&pt, NULL);
- 	list_for_each_entry_safe(epi, tmp, head, rdllink) {
--		if (epi->ffd.file->f_op->poll(epi->ffd.file, NULL) &
-+		pt.key = epi->event.events;
-+		if (epi->ffd.file->f_op->poll(epi->ffd.file, &pt) &
- 		    epi->event.events)
- 			return POLLIN | POLLRDNORM;
- 		else {
-@@ -946,6 +949,7 @@ static int ep_insert(struct eventpoll *ep, struct epoll_event *event,
- 	/* Initialize the poll table using the queue callback */
- 	epq.epi = epi;
- 	init_poll_funcptr(&epq.pt, ep_ptable_queue_proc);
-+	epq.pt.key = event->events;
- 
- 	/*
- 	 * Attach the item to the poll hooks and get current event bits.
-@@ -1027,20 +1031,23 @@ static int ep_modify(struct eventpoll *ep, struct epitem *epi, struct epoll_even
- {
- 	int pwake = 0;
- 	unsigned int revents;
-+	poll_table pt;
-+
-+	init_poll_funcptr(&pt, NULL);
- 
- 	/*
- 	 * Set the new event interest mask before calling f_op->poll();
- 	 * otherwise we might miss an event that happens between the
- 	 * f_op->poll() call and the new event set registering.
- 	 */
--	epi->event.events = event->events;
-+	epi->event.events = pt.key = event->events;
- 	epi->event.data = event->data; /* protected by mtx */
- 
- 	/*
- 	 * Get current event bits. We can safely use the file* here because
- 	 * its usage count has been increased by the caller of this function.
- 	 */
--	revents = epi->ffd.file->f_op->poll(epi->ffd.file, NULL);
-+	revents = epi->ffd.file->f_op->poll(epi->ffd.file, &pt);
- 
- 	/*
- 	 * If the item is "hot" and it is not registered inside the ready
-@@ -1075,6 +1082,9 @@ static int ep_send_events_proc(struct eventpoll *ep, struct list_head *head,
- 	unsigned int revents;
- 	struct epitem *epi;
- 	struct epoll_event __user *uevent;
-+	poll_table pt;
-+
-+	init_poll_funcptr(&pt, NULL);
- 
- 	/*
- 	 * We can loop without lock because we are passed a task private list.
-@@ -1087,7 +1097,8 @@ static int ep_send_events_proc(struct eventpoll *ep, struct list_head *head,
- 
- 		list_del_init(&epi->rdllink);
- 
--		revents = epi->ffd.file->f_op->poll(epi->ffd.file, NULL) &
-+		pt.key = epi->event.events;
-+		revents = epi->ffd.file->f_op->poll(epi->ffd.file, &pt) &
- 			epi->event.events;
- 
- 		/*
-diff --git a/fs/select.c b/fs/select.c
-index d33418f..b6765cf 100644
---- a/fs/select.c
-+++ b/fs/select.c
-@@ -386,13 +386,11 @@ get_max:
- static inline void wait_key_set(poll_table *wait, unsigned long in,
- 				unsigned long out, unsigned long bit)
- {
--	if (wait) {
--		wait->key = POLLEX_SET;
--		if (in & bit)
--			wait->key |= POLLIN_SET;
--		if (out & bit)
--			wait->key |= POLLOUT_SET;
--	}
-+	wait->key = POLLEX_SET;
-+	if (in & bit)
-+		wait->key |= POLLIN_SET;
-+	if (out & bit)
-+		wait->key |= POLLOUT_SET;
- }
- 
- int do_select(int n, fd_set_bits *fds, struct timespec *end_time)
-@@ -414,7 +412,7 @@ int do_select(int n, fd_set_bits *fds, struct timespec *end_time)
- 	poll_initwait(&table);
- 	wait = &table.pt;
- 	if (end_time && !end_time->tv_sec && !end_time->tv_nsec) {
--		wait = NULL;
-+		wait->qproc = NULL;
- 		timed_out = 1;
- 	}
- 
-@@ -459,17 +457,17 @@ int do_select(int n, fd_set_bits *fds, struct timespec *end_time)
- 					if ((mask & POLLIN_SET) && (in & bit)) {
- 						res_in |= bit;
- 						retval++;
--						wait = NULL;
-+						wait->qproc = NULL;
- 					}
- 					if ((mask & POLLOUT_SET) && (out & bit)) {
- 						res_out |= bit;
- 						retval++;
--						wait = NULL;
-+						wait->qproc = NULL;
- 					}
- 					if ((mask & POLLEX_SET) && (ex & bit)) {
- 						res_ex |= bit;
- 						retval++;
--						wait = NULL;
-+						wait->qproc = NULL;
- 					}
- 				}
- 			}
-@@ -481,7 +479,7 @@ int do_select(int n, fd_set_bits *fds, struct timespec *end_time)
- 				*rexp = res_ex;
- 			cond_resched();
- 		}
--		wait = NULL;
-+		wait->qproc = NULL;
- 		if (retval || timed_out || signal_pending(current))
- 			break;
- 		if (table.error) {
-@@ -720,7 +718,7 @@ struct poll_list {
-  * interested in events matching the pollfd->events mask, and the result
-  * matching that mask is both recorded in pollfd->revents and returned. The
-  * pwait poll_table will be used by the fd-provided poll handler for waiting,
-- * if non-NULL.
-+ * if pwait->qproc is non-NULL.
-  */
- static inline unsigned int do_pollfd(struct pollfd *pollfd, poll_table *pwait)
- {
-@@ -738,9 +736,7 @@ static inline unsigned int do_pollfd(struct pollfd *pollfd, poll_table *pwait)
- 		if (file != NULL) {
- 			mask = DEFAULT_POLLMASK;
- 			if (file->f_op && file->f_op->poll) {
--				if (pwait)
--					pwait->key = pollfd->events |
--							POLLERR | POLLHUP;
-+				pwait->key = pollfd->events | POLLERR | POLLHUP;
- 				mask = file->f_op->poll(file, pwait);
- 			}
- 			/* Mask out unneeded events. */
-@@ -763,7 +759,7 @@ static int do_poll(unsigned int nfds,  struct poll_list *list,
- 
- 	/* Optimise the no-wait case */
- 	if (end_time && !end_time->tv_sec && !end_time->tv_nsec) {
--		pt = NULL;
-+		pt->qproc = NULL;
- 		timed_out = 1;
- 	}
- 
-@@ -781,22 +777,22 @@ static int do_poll(unsigned int nfds,  struct poll_list *list,
- 			for (; pfd != pfd_end; pfd++) {
- 				/*
- 				 * Fish for events. If we found one, record it
--				 * and kill the poll_table, so we don't
-+				 * and kill poll_table->qproc, so we don't
- 				 * needlessly register any other waiters after
- 				 * this. They'll get immediately deregistered
- 				 * when we break out and return.
- 				 */
- 				if (do_pollfd(pfd, pt)) {
- 					count++;
--					pt = NULL;
-+					pt->qproc = NULL;
- 				}
- 			}
- 		}
- 		/*
- 		 * All waiters have already been registered, so don't provide
--		 * a poll_table to them on the next loop iteration.
-+		 * a poll_table->qproc to them on the next loop iteration.
- 		 */
--		pt = NULL;
-+		pt->qproc = NULL;
- 		if (!count) {
- 			count = wait->error;
- 			if (signal_pending(current))
-diff --git a/include/linux/poll.h b/include/linux/poll.h
-index cf40010..fe1e360 100644
---- a/include/linux/poll.h
-+++ b/include/linux/poll.h
-@@ -39,10 +39,15 @@ typedef struct poll_table_struct {
- 
- static inline void poll_wait(struct file * filp, wait_queue_head_t * wait_address, poll_table *p)
- {
--	if (p && wait_address)
-+	if (p && p->qproc && wait_address)
- 		p->qproc(filp, wait_address, p);
- }
- 
-+static inline unsigned long poll_requested_events(const poll_table *p)
-+{
-+	return p ? p->key : ~0UL;
-+}
-+
- static inline void init_poll_funcptr(poll_table *pt, poll_queue_proc qproc)
- {
- 	pt->qproc = qproc;
 -- 
-1.7.1
+Best regards,
+Pawel Osciak
