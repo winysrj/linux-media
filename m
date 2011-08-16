@@ -1,137 +1,74 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from hermes.mlbassoc.com ([64.234.241.98]:58718 "EHLO
-	mail.chez-thomas.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752857Ab1H3OSC (ORCPT
+Received: from moutng.kundenserver.de ([212.227.126.186]:63841 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752155Ab1HPO1H (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 30 Aug 2011 10:18:02 -0400
-Message-ID: <4E5CF118.3050903@mlbassoc.com>
-Date: Tue, 30 Aug 2011 08:18:00 -0600
-From: Gary Thomas <gary@mlbassoc.com>
+	Tue, 16 Aug 2011 10:27:07 -0400
+From: Arnd Bergmann <arnd@arndb.de>
+To: "Russell King - ARM Linux" <linux@arm.linux.org.uk>
+Subject: Re: [PATCH 7/9] ARM: DMA: steal memory for DMA coherent mappings
+Date: Tue, 16 Aug 2011 16:26:25 +0200
+Cc: Marek Szyprowski <m.szyprowski@samsung.com>,
+	linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+	linux-media@vger.kernel.org, linux-mm@kvack.org,
+	linaro-mm-sig@lists.linaro.org,
+	Michal Nazarewicz <mina86@mina86.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	Andrew Morton <akpm@linux-foundation.org>,
+	KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>,
+	Ankita Garg <ankita@in.ibm.com>,
+	Daniel Walker <dwalker@codeaurora.org>,
+	Mel Gorman <mel@csn.ul.ie>,
+	Jesse Barker <jesse.barker@linaro.org>,
+	Jonathan Corbet <corbet@lwn.net>,
+	Shariq Hasnain <shariq.hasnain@linaro.org>,
+	Chunsang Jeong <chunsang.jeong@linaro.org>
+References: <1313146711-1767-1-git-send-email-m.szyprowski@samsung.com> <201108161528.48954.arnd@arndb.de> <20110816135516.GC17310@n2100.arm.linux.org.uk>
+In-Reply-To: <20110816135516.GC17310@n2100.arm.linux.org.uk>
 MIME-Version: 1.0
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-CC: linux-media@vger.kernel.org
-Subject: Re: Getting started with OMAP3 ISP
-References: <4E56734A.3080001@mlbassoc.com> <201108291249.33118.laurent.pinchart@ideasonboard.com> <4E5CEECC.6040804@mlbassoc.com>
-In-Reply-To: <4E5CEECC.6040804@mlbassoc.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
+Message-Id: <201108161626.26130.arnd@arndb.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 2011-08-30 08:08, Gary Thomas wrote:
-> On 2011-08-29 04:49, Laurent Pinchart wrote:
->> Hi Gary,
->>
->> On Thursday 25 August 2011 18:07:38 Gary Thomas wrote:
->>> Background: I have working video capture drivers based on the
->>> TI PSP codebase from 2.6.32. In particular, I managed to get
->>> a driver for the TVP5150 (analogue BT656) working with that kernel.
->>>
->>> Now I need to update to Linux 3.0, so I'm trying to get a driver
->>> working with the rewritten ISP code. Sadly, I'm having a hard
->>> time with this - probably just missing something basic.
->>>
->>> I've tried to clone the TVP514x driver which says that it works
->>> with the OMAP3 ISP code. I've updated it to use my decoder device,
->>> but I can't even seem to get into that code from user land.
->>>
->>> Here are the problems I've had so far:
->>> * udev doesn't create any video devices although they have been
->>> registered. I see a full set in /sys/class/video4linux
->>> # ls /sys/class/video4linux/
->>> v4l-subdev0 v4l-subdev3 v4l-subdev6 video1 video4
->>> v4l-subdev1 v4l-subdev4 v4l-subdev7 video2 video5
->>> v4l-subdev2 v4l-subdev5 video0 video3 video6
->>
->> It looks like a udev issue. I don't think that's related to the kernel
->> drivers.
->>
->>> Indeed, if I create /dev/videoX by hand, I can get somewhere, but
->>> I don't really understand how this is supposed to work. e.g.
->>> # v4l2-dbg --info /dev/video3
->>> Driver info:
->>> Driver name : ispvideo
->>> Card type : OMAP3 ISP CCP2 input
->>> Bus info : media
->>> Driver version: 1
->>> Capabilities : 0x04000002
->>> Video Output
->>> Streaming
->>>
->>> * If I try to grab video, the ISP layer gets a ton of warnings, but
->>> I never see it call down into my driver, e.g. to check the current
->>> format, etc. I have some of my own code from before which fails
->>> miserably (not a big surprise given the hack level of those programs).
->>> I tried something off-the-shelf which also fails pretty bad:
->>> # ffmpeg -t 10 -f video4linux2 -s 720x480 -r 30 -i /dev/video2
->>> junk.mp4
->>>
->>> I've read through Documentation/video4linux/omap3isp.txt without learning
->>> much about what might be wrong.
->>>
->>> Can someone give me some ideas/guidance, please?
->>
->> In a nutshell, you will first have to configure the OMAP3 ISP pipeline, and
->> then capture video.
->>
->> Configuring the pipeline is done through the media controller API and the V4L2
->> subdev pad-level API. To experiment with those you can use the media-ctl
->> command line application available at http://git.ideasonboard.org/?p=media-
->> ctl.git;a=summary. You can run it with --print-dot and pipe the result to dot
->> -Tps to get a postscript graphical view of your device.
->>
->> Here's a sample pipeline configuration to capture scaled-down YUV data from a
->> sensor:
->>
->> ./media-ctl -r -l '"mt9t001 3-005d":0->"OMAP3 ISP CCDC":0[1], "OMAP3 ISP
->> CCDC":2->"OMAP3 ISP preview":0[1], "OMAP3 ISP preview":1->"OMAP3 ISP
->> resizer":0[1], "OMAP3 ISP resizer":1->"OMAP3 ISP resizer output":0[1]'
->> ./media-ctl -f '"mt9t001 3-005d":0[SGRBG10 1024x768], "OMAP3 ISP
->> CCDC":2[SGRBG10 1024x767], "OMAP3 ISP preview":1[YUYV 1006x759], "OMAP3 ISP
->> resizer":1[YUYV 800x600]'
->>
->> After configuring your pipeline you will be able to capture video using the
->> V4L2 API on the device node at the output of the pipeline.
->
-> Thanks for the info.
->
-> When I run 'media-ctl -p', I see the various nodes, etc, and they all look
-> good except that I get lots of messages like this:
-> - entity 5: OMAP3 ISP CCDC (3 pads, 9 links)
-> type V4L2 subdev subtype Unknown
-> pad0: Input v4l2_subdev_open: Failed to open subdev device node
+On Tuesday 16 August 2011, Russell King - ARM Linux wrote:
+> On Tue, Aug 16, 2011 at 03:28:48PM +0200, Arnd Bergmann wrote:
+> > Hmm, I don't remember the point about dynamically sizing the pool for
+> > ARMv6K, but that can well be an oversight on my part.  I do remember the
+> > part about taking that memory pool from the CMA region as you say.
+> 
+> If you're setting aside a pool of pages, then you have to dynamically
+> size it.  I did mention during our discussion about this.
+> 
+> The problem is that a pool of fixed size is two fold: you need it to be
+> sufficiently large that it can satisfy all allocations which come along
+> in atomic context.  Yet, we don't want the pool to be too large because
+> then it prevents the memory being used for other purposes.
+> 
+> Basically, the total number of pages in the pool can be a fixed size,
+> but as they are depleted through allocation, they need to be
+> re-populated from CMA to re-build the reserve for future atomic
+> allocations.  If the pool becomes larger via frees, then obviously
+> we need to give pages back.
 
-Could this be related to my missing [udev] device nodes?
+Ok, thanks for the reminder. I must have completely missed this part
+of the discussion.
 
-I can see media-ctl get confused and try to open a nonsense device name.  Here's
-what I see when I run
-   # strace media-ctl -p | grep open
-   open("/dev/media0", O_RDWR)             = 3
-   open("", O_RDWR)                        = -1 ENOENT (No such file or directory)
-   write(1, "\tpad0: Input v4l2_subdev_open: F"..., 66) = 66
+When I briefly considered this problem, my own conclusion was that
+the number of atomic DMA allocations would always be very low
+because they tend to be short-lived (e.g. incoming network packets),
+so we could ignore this problem and just use a smaller reservation
+size. While this seems to be true in general (see "git grep -w -A3 
+dma_alloc_coherent | grep ATOMIC"), there is one very significant
+case that we cannot ignore, which is pci_alloc_consistent.
 
->
-> When I try to setup my pipeline using something similar to what you provided, the
-> first step runs and I can see that it does something (some lines on the graph went
-> from dotted to solid), but I still get errors:
-> # media-ctl -r -l '"tvp5150m1 2-005c":0->"OMAP3 ISP CCDC":0[1], "OMAP3 ISP CCDC":1->"OMAP3 ISP CCDC output":0[1]'
-> Resetting all links to inactive
-> Setting up link 16:0 -> 5:0 [1]
-> Setting up link 5:1 -> 6:0 [1]
-> # media-ctl -f '"tvp5150m1 2-005c":0[SGRBG12 320x240], "OMAP3 ISP CCDC":0[SGRBG8 320x240], "OMAP3 ISP CCDC":1[SGRBG8 320x240]'
-> Setting up format SGRBG12 320x240 on pad tvp5150m1 2-005c/0
-> v4l2_subdev_open: Failed to open subdev device node
-> Unable to set format: No such file or directory (-2)
->
-> As far as I can tell, none if this is making any callbacks into my driver.
->
-> Any ideas what I might be missing?
->
-> Thanks
->
+This function is still called by hundreds of PCI drivers and always
+does dma_alloc_coherent(..., GFP_ATOMIC), even for long-lived
+allocations and those that are too large to be ignored.
 
--- 
-------------------------------------------------------------
-Gary Thomas                 |  Consulting for the
-MLB Associates              |    Embedded world
-------------------------------------------------------------
+So at least for the case where we have PCI devices, I agree that
+we need to have the dynamic pool.
+
+	Arnd
